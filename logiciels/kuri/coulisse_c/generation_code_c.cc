@@ -2298,33 +2298,38 @@ void genere_code_C(
 			 * variadics en un tableau */
 
 			auto taille_tableau = b->enfants.taille();
-
 			auto &type = contexte.typeuse[b->index_type];
+			auto nom_tableau_fixe = dls::chaine("0");
 
-			for (auto enfant : b->enfants) {
-				applique_transformation(enfant, generatrice, contexte, false);
+			// si la liste d'arguments est vide, nous passons un tableau vide,
+			// sinon nous créons d'abord un tableau fixe, qui sera converti en
+			// un tableau dynamique
+			if (taille_tableau != 0) {
+				for (auto enfant : b->enfants) {
+					applique_transformation(enfant, generatrice, contexte, false);
+				}
+
+				/* alloue un tableau fixe */
+				auto dt_tfixe = DonneesTypeFinal{};
+				dt_tfixe.pousse(GenreLexeme::TABLEAU | static_cast<int>(taille_tableau << 8));
+				dt_tfixe.pousse(type);
+
+				nom_tableau_fixe = dls::chaine("__tabl_fix")
+						.append(dls::vers_chaine(reinterpret_cast<long>(b)));
+
+				generatrice.os << nom_broye_type(contexte, dt_tfixe) << ' ' << nom_tableau_fixe;
+				generatrice.os << " = ";
+
+				auto virgule = '{';
+
+				for (auto enfant : b->enfants) {
+					generatrice.os << virgule;
+					generatrice.os << enfant->chaine_calculee();
+					virgule = ',';
+				}
+
+				generatrice.os << "};\n";
 			}
-
-			/* alloue un tableau fixe */
-			auto dt_tfixe = DonneesTypeFinal{};
-			dt_tfixe.pousse(GenreLexeme::TABLEAU | static_cast<int>(taille_tableau << 8));
-			dt_tfixe.pousse(type);
-
-			auto nom_tableau_fixe = dls::chaine("__tabl_fix")
-					.append(dls::vers_chaine(reinterpret_cast<long>(b)));
-
-			generatrice.os << nom_broye_type(contexte, dt_tfixe) << ' ' << nom_tableau_fixe;
-			generatrice.os << " = ";
-
-			auto virgule = '{';
-
-			for (auto enfant : b->enfants) {
-				generatrice.os << virgule;
-				generatrice.os << enfant->chaine_calculee();
-				virgule = ',';
-			}
-
-			generatrice.os << "};\n";
 
 			/* alloue un tableau dynamique */
 			auto dt_tdyn = DonneesTypeFinal{};
