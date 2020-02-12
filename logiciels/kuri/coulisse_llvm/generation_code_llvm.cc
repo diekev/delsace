@@ -2790,7 +2790,6 @@ static void genere_fonction_vraie_principale(ContexteGenerationCode &contexte)
 
 	// construit le contexte du programme
 	auto type_contexte = converti_type_llvm(contexte, contexte.index_type_contexte);
-	type_contexte = type_contexte->getPointerElementType();
 
 	auto alloc_contexte = builder.CreateAlloca(type_contexte, 0u, nullptr, "contexte");
 	alloc_contexte->setAlignment(8);
@@ -2809,7 +2808,7 @@ static void genere_fonction_vraie_principale(ContexteGenerationCode &contexte)
 	auto fonc_princ = contexte.module_llvm->getFunction("principale");
 
 	std::vector<llvm::Value *> parametres_appel;
-	parametres_appel.push_back(alloc_contexte);
+	parametres_appel.push_back(builder.CreateLoad(alloc_contexte));
 
 	auto charge_tabl = builder.CreateLoad(alloc_tabl, "");
 	charge_tabl->setAlignment(8);

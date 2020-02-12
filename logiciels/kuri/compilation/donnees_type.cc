@@ -456,6 +456,5 @@ void ajoute_contexte_programme(ContexteGenerationCode &contexte, DonneesTypeDecl
 		contexte.ajoute_donnees_structure("ContexteProgramme", ds);
 	}
 
-	dt.pousse(GenreLexeme::POINTEUR);
 	dt.pousse(GenreLexeme::CHAINE_CARACTERE | static_cast<int>(ds.id << 8));
 }

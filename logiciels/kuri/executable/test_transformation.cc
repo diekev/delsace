@@ -100,7 +100,7 @@ int main()
 	contexte.ajoute_donnees_structure("ContexteProgramme", ds_contexte);
 
 	auto &typeuse = contexte.typeuse;
-	contexte.index_type_contexte = typeuse.type_pointeur_pour(ds_contexte.index_type);
+	contexte.index_type_contexte = ds_contexte.index_type;
 
 	auto dt_tabl_fixe = DonneesTypeFinal{};
 	dt_tabl_fixe.pousse(GenreLexeme::TABLEAU | static_cast<GenreLexeme>(8 << 8));

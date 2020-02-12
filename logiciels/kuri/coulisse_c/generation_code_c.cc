@@ -238,12 +238,6 @@ static void genere_code_extra_pre_retour(
 		os << "pthread_mutex_unlock(&__etat->mutex_boucle);\n";
 	}
 
-	if (!contexte.donnees_fonction->est_sans_contexte) {
-		os << "if (contexte->allocatrice != __derniere_allocatrice) {\n";
-		os << "    contexte->allocatrice  = __derniere_allocatrice;\n";
-		os << "}\n";
-	}
-
 	/* génère le code pour les blocs déférés */
 	auto pile_noeud = contexte.noeuds_differes();
 
@@ -792,9 +786,9 @@ static void genere_code_allocation(
 	// long nouvelle_taille_octet = ...;
 	// long ancienne_taille_octet = ...;
 	// void *pointeur = ...;
-	// void *données = contexte->données_allocatrice;
+	// void *données = contexte.données_allocatrice;
 	// InfoType *info_type = ...;
-	// contexte->allocatrice(mode, nouvelle_taille_octet, ancienne_taille_octet, pointeur, données, info_type);
+	// contexte.allocatrice(mode, nouvelle_taille_octet, ancienne_taille_octet, pointeur, données, info_type);
 	auto const chn_index = dls::vers_chaine(index++);
 	auto const nom_nouvelle_taille = "nouvelle_taille" + chn_index;
 	auto const nom_ancienne_taille = "ancienne_taille" + chn_index;
@@ -807,12 +801,12 @@ static void genere_code_allocation(
 	generatrice.os << "InfoType *" << nom_info_type << " = (InfoType *)(&" << dt.ptr_info_type << ");\n";
 	generatrice.os << "void *" << nom_ancien_pointeur << " = " << expr_pointeur << ";\n";
 	generatrice.os << "void *" << nom_nouveu_pointeur << " = ";
-	generatrice.os << "contexte->allocatrice(";
+	generatrice.os << "contexte.allocatrice(";
 	generatrice.os << mode << ',';
 	generatrice.os << nom_nouvelle_taille << ',';
 	generatrice.os << nom_ancienne_taille << ',';
 	generatrice.os << nom_ancien_pointeur << ',';
-	generatrice.os << broye_nom_simple("contexte->données_allocatrice") << ',';
+	generatrice.os << broye_nom_simple("contexte.données_allocatrice") << ',';
 	generatrice.os << nom_info_type << ");\n";
 	generatrice.os << expr_pointeur << " = " << nom_nouveu_pointeur << ";\n";
 
@@ -929,7 +923,7 @@ static void genere_declaration_fonction(
 
 	if (!donnees_fonction->est_externe && !donnees_fonction->est_sans_contexte) {
 		generatrice.os << virgule << '\n';
-		generatrice.os << nom_broye_type(contexte, contexte.index_type_contexte) << " contexte";
+		generatrice.os << "ContexteProgramme contexte";
 		virgule = ',';
 	}
 
@@ -1039,14 +1033,6 @@ void genere_code_C(
 				pousse_argument_fonction_pile(contexte, argument, nom_broye);
 			}
 
-			if (!donnees_fonction->est_sans_contexte) {
-				generatrice.os << "{\n";
-
-				auto &df_fonc_alloc = contexte.module("Kuri")->donnees_fonction("allocatrice_défaut").front();
-				generatrice.os << nom_broye_type(contexte, df_fonc_alloc.index_type);
-				generatrice.os << " __derniere_allocatrice = contexte->allocatrice;\n";
-			}
-
 			/* Crée code pour le bloc. */
 			auto bloc = b->enfants.back();
 
@@ -1054,10 +1040,6 @@ void genere_code_C(
 
 			if (b->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
 				genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
-			}
-
-			if (!donnees_fonction->est_sans_contexte) {
-				generatrice.os << "}\n";
 			}
 
 			contexte.termine_fonction();
@@ -1081,7 +1063,7 @@ void genere_code_C(
 			generatrice.os << "pthread_mutex_t mutex_coro;\n";
 			generatrice.os << "pthread_cond_t cond_coro;\n";
 			generatrice.os << "bool __termine_coro;\n";
-			generatrice.os << "ContexteProgramme *contexte;\n";
+			generatrice.os << "ContexteProgramme contexte;\n";
 
 			auto idx_ret = 0l;
 			for (auto idx : donnees_fonction->idx_types_retours) {
@@ -1102,8 +1084,7 @@ void genere_code_C(
 			generatrice.os << "static void *" << nom_fonction << "(\nvoid *data)\n";
 			generatrice.os << "{\n";
 			generatrice.os << nom_type_coro << " *__etat = (" << nom_type_coro << " *) data;\n";
-			generatrice.os << "ContexteProgramme *contexte = __etat->contexte;\n";
-			generatrice.os << "KfTYPE_FONCTION_ALLOC __derniere_allocatrice = contexte->allocatrice;\n";
+			generatrice.os << "ContexteProgramme contexte = __etat->contexte;\n";
 
 			/* déclare les paramètres. */
 			for (auto &argument : donnees_fonction->args) {
@@ -3080,7 +3061,7 @@ int main(int argc, char **argv)
 
 	auto fin_main =
 R"(
-	return principale(&contexte, tabl_args);
+	return principale(contexte, tabl_args);
 }
 )";
 	os << fin_main;
@@ -3280,13 +3261,12 @@ void KR__acces_membre_union(
 R"(
 void lance_execution()
 {
-	KsContexteProgramme ctx;
-	KsContexteProgramme *contexte = &ctx;
+	KsContexteProgramme contexte;
 )";
 
 	os << debut_main;
-	os << "contexte->allocatrice = " << df_fonc_alloc.nom_broye << ";\n";
-	os << broye_nom_simple("contexte->données_allocatrice") << " = 0;\n";
+	os << "contexte.allocatrice = " << df_fonc_alloc.nom_broye << ";\n";
+	os << broye_nom_simple("contexte.données_allocatrice") << " = 0;\n";
 
 	genere_code_C(noeud_appel, generatrice, contexte, true);
 

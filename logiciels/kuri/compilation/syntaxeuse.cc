@@ -1397,10 +1397,7 @@ void Syntaxeuse::analyse_declaration_structure(GenreLexeme id, DonneesLexeme &le
 	m_contexte.ajoute_donnees_structure(lexeme.chaine, donnees_structure);
 
 	if (lexeme.chaine == "ContexteProgramme") {
-		auto dt = DonneesTypeFinal();
-		dt.pousse(GenreLexeme::POINTEUR);
-		dt.pousse(m_contexte.typeuse[donnees_structure.index_type]);
-		m_contexte.index_type_contexte = m_contexte.typeuse.ajoute_type(dt);
+		m_contexte.index_type_contexte = donnees_structure.index_type;
 	}
 
 	auto analyse_membres = true;
