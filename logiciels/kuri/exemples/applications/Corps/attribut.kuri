@@ -65,24 +65,35 @@ est_type_attribut_valide :: fonc(dyn type : TypeAttribut) -> bool
 
     retourne nombre_bits == 1
 }
+// À FAIRE: gabarits
+tableau_pousse :: fonc(dyn tabl: *[]r32, valeur: r32) -> rien
+{
+	dyn tmp := mémoire(tabl)
+
+	taille := tabl.taille
+	reloge tmp : [taille + 1]r32
+	tmp[taille] = valeur
+
+	mémoire(tabl) = tmp
+}
 
 principale :: fonc(args : []*z8) -> z32
 {
-	diffère { imprime_sans_format("\nMémoire utilisée : ", mémoire_utilisée(), " o\n") }
+	diffère { imprime("\nMémoire utilisée : %o\n", mémoire_utilisée()) }
 
 	imprime("Validation d'attributs...\n\n")
 
 	dyn type := TypeAttribut.Z16
-	imprime("est_type_valide : ", type, " ===> ", est_type_attribut_valide(type), "\n")
+	imprime("est_type_valide : % ===> %\n", type, est_type_attribut_valide(type))
 
 	type = TypeAttribut.TABLEAU | TypeAttribut.Z16
-	imprime("est_type_valide : ", type, " ===> ", est_type_attribut_valide(type), "\n")
+	imprime("est_type_valide : % ===> %\n", type, est_type_attribut_valide(type))
 
 	type = TypeAttribut.TABLEAU | TypeAttribut.TABLEAU
-	imprime("est_type_valide : ", type, " ===> ", est_type_attribut_valide(type), "\n")
+	imprime("est_type_valide : % ===> %\n", type, est_type_attribut_valide(type))
 
 	type = TypeAttribut.Z32 | TypeAttribut.Z16
-	imprime("est_type_valide : ", type, " ===> ", est_type_attribut_valide(type), "\n")
+	imprime("est_type_valide : % ===> %\n", type, est_type_attribut_valide(type))
 
 	imprime("\n")
 
@@ -90,26 +101,47 @@ principale :: fonc(args : []*z8) -> z32
 
 	type = TypeAttribut.R32 | TypeAttribut.TABLEAU
 	attr := crée_attribut(type)
-	attr.réserve(10)
+	réserve(@attr, 10)
 
-	imprime(attr, "\n")
+	imprime("%\n", attr)
 	imprime("\nIntialise valeurs...\n")
 
 	pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
-		dyn ptr := attr.tableau_r32(i)
+		dyn ptr := tableau_r32(@attr, i)
 		ptr.taille = 0
 		ptr.pointeur = nul
 	}
 
 	imprime("\nValeurs :\n")
 
-	pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
-		dyn ptr := attr.tableau_r32(i)
+	dyn ptr_tableau := tableau_r32(@attr, 0)
+	tableau_pousse(ptr_tableau, transtype(5.0: r32))
 
-		imprime_sans_format("Valeur ", i, " = ", mémoire(ptr), "\n")
+	ptr_tableau = tableau_r32(@attr, 5)
+	tableau_pousse(ptr_tableau, transtype(5.0: r32))
+
+	pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
+		dyn ptr := tableau_r32(@attr, i)
+
+		imprime("Valeur % = %\n", i, mémoire(ptr))
 	}
 
-	détruit(attr)
+	nattr := copie_attribut(@attr)
+
+	détruit(@attr)
+
+	imprime("\nValeurs (après copie) :\n")
+
+	ptr_tableau = tableau_r32(@attr, 5)
+	tableau_pousse(ptr_tableau, transtype(5.0: r32))
+
+	pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
+		dyn ptr := tableau_r32(@attr, i)
+
+		imprime("Valeur % = %\n", i, mémoire(ptr))
+	}
+
+	détruit(@nattr)
 
 	retourne 0
 }
@@ -119,11 +151,13 @@ crée_attribut :: fonc(type : TypeAttribut) -> Attribut
 	dyn attr : Attribut
 	attr.type = type
 	attr.nom = ""
+	attr.tampon.référence = loge z32
+	mémoire(attr.tampon.référence) = 0
 
 	retourne attr
 }
 
-réserve :: fonc(dyn attr : &Attribut, nombre_éléments : z64) -> rien
+réserve :: fonc(dyn attr : *Attribut, nombre_éléments : z64) -> rien
 {
 	// À FAIRE : copie le tampon si référencé
 	taille := nombre_éléments * taille_octet_type_attribut(attr.type)
@@ -137,22 +171,27 @@ est_type_tableau :: fonc(type : TypeAttribut) -> bool
 	retourne (type & TypeAttribut.TABLEAU) != transtype(0 : TypeAttribut)
 }
 
-détruit :: fonc(dyn attr : &Attribut) -> rien
+détruit :: fonc(dyn attr : *Attribut) -> rien
 {
-	// À FAIRE : déloge le tampon que si non référencé
+	si mémoire(attr.tampon.référence) > 0 {
+		mémoire(attr.tampon.référence) -= 1
+		retourne
+	}
 
 	si est_type_tableau(attr.type) {
 		pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
 			// À FAIRE : types des données
-			//ptr := attr.tableau_r32(i)
-			//déloge mémoire(ptr)
+			// À FAIRE: coulisse C, bug dans la génération de code C
+			ptr := mémoire(tableau_r32(attr, i))
+			déloge ptr
 		}
 	}
 
 	déloge attr.tampon.données
+	déloge attr.tampon.référence
 }
 
-valeur_z32 :: fonc(dyn attr : &Attribut, index : z64) -> *z32
+valeur_z32 :: fonc(dyn attr : *Attribut, index : z64) -> *z32
 {
 	si attr.type != TypeAttribut.Z32 {
 		retourne nul
@@ -163,7 +202,7 @@ valeur_z32 :: fonc(dyn attr : &Attribut, index : z64) -> *z32
 	retourne transtype(@attr.tampon.données[décalage] : *z32)
 }
 
-valeur_r32 :: fonc(dyn attr : &Attribut, index : z64) -> *r32
+valeur_r32 :: fonc(dyn attr : *Attribut, index : z64) -> *r32
 {
 	si attr.type != TypeAttribut.R32 {
 		retourne nul
@@ -174,7 +213,7 @@ valeur_r32 :: fonc(dyn attr : &Attribut, index : z64) -> *r32
 	retourne transtype(@attr.tampon.données[décalage] : *r32)
 }
 
-tableau_r32 :: fonc(dyn attr : &Attribut, index : z64) -> *[]r32
+tableau_r32 :: fonc(dyn attr : *Attribut, index : z64) -> *[]r32
 {
 	si attr.type != (TypeAttribut.TABLEAU | TypeAttribut.R32) {
 		retourne nul
@@ -219,8 +258,7 @@ taille_octet_type_attribut :: fonc(type : TypeAttribut) -> z64
 			taille = taille_de(chaine)
         }
 		sinon {
-			// À FAIRE : est_type_tableau échoue ici...
-            si (type & TypeAttribut.TABLEAU) != transtype(0 : TypeAttribut) {
+            si est_type_tableau(type) {
                 // Tous les types de tableaux ont la même taille.
                 taille = taille_de([]octet)
             }
@@ -240,15 +278,10 @@ taille_octet_type_attribut :: fonc(type : TypeAttribut) -> z64
 
 //fonc crée_attribut_groupe(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
 
-copie_attribut :: fonc(attr : &Attribut) -> Attribut
+copie_attribut :: fonc(attr : *Attribut) -> Attribut
 {
-    dyn nattr : Attribut
-    nattr.tampon = attr.tampon
+    dyn nattr := mémoire(attr)
     mémoire(nattr.tampon.référence) += 1
-    nattr.nom = attr.nom
-    nattr.type = attr.type
-    nattr.portée = attr.portée
-    nattr.dimensions = attr.dimensions
 
     retourne nattr
 }
@@ -272,7 +305,7 @@ copie_attribut :: fonc(attr : &Attribut) -> Attribut
 //
 // Pour les attributs nous pourrions avoir un système similaire
 //
-// fonc valeur(attr : &Attribut, index : z64, $Type_de_valeur : Type, $T : TypeAttribut)
+// fonc valeur(attr : *Attribut, index : z64, $Type_de_valeur : Type, $T : TypeAttribut)
 //
 // valeur_z32 = #cuis valeur(Type_de_valeur = z32, T = TypeAttribut.Z32)
 // valeur_r32 = #cuis valeur(Type_de_valeur = r32, T = TypeAttribut.R32)
