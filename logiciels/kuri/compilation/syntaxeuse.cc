@@ -720,6 +720,11 @@ noeud::base *Syntaxeuse::analyse_expression(
 					m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE);
 
 					expression.pousse(noeud);
+
+					// À FAIRE, XXX - désynchronisation dans l'analyse de la construction de structure ?
+					if (racine_expr != GenreLexeme::CROCHET_OUVRANT) {
+						termine_boucle = true;
+					}
 				}
 				/* variable : chaine */
 				else {
