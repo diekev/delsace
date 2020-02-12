@@ -29,28 +29,15 @@ charge "memoire"
 }
 
 // Copie le contenue de la chn native dans un tampon afin de pouvoir la terminer
-// par un '\0' et l'utiliser dans les fonctions C.
-copie_chaine_c_tampon :: fonc(dyn tampon : []z8, chn : chaine) -> *z8
+// par un '\0' et l'utiliser dans les fonctions C. Le tampon est alloué dans le
+// stockage temporaire, et n'a pas besoin d'être déloger manuellement.
+chaine_c_temp :: fonc(chn: chaine) -> *z8
 {
-    si tampon.taille == 0 {
-		retourne nul
-	}
+    dyn tampon := logement_temp(chn.taille + 1)
+    copie_mem_nonsur(src = chn.pointeur, dst = tampon, taille = chn.taille)
+    tampon[chn.taille] = transtype('\0': octet)
 
-    si tampon.taille < chn.taille + 1 {
-		tampon[0] = '\0'
-		retourne @tampon[0]
-	}
-
-	taille := chn.taille
-
-    copie_mem_nonsur(
-	    src=chn.pointeur,
-		dst=@tampon[0],
-		taille=taille)
-
-	tampon[taille] = '\0'
-
-	retourne @tampon[0]
+    retourne transtype(tampon: *z8)
 }
 
 // execute une fonction pour chaque ligne du texte d'entrée

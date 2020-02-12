@@ -641,14 +641,11 @@ jpeg_read_scanlines :: fonc externe (info : *jpeg_decompress_struct, scanlines :
 lis_jpeg :: fonc(chemin : chaine) -> Image
 {
     dyn image : Image;
-    // nous devons avoir une chaine terminée par '\0' donc copie dans un
-	// tampon
-	dyn tampon : [1024]z8;
-	ptr_tampon := copie_chaine_c_tampon(tampon, chemin);
+	ptr_tampon := chaine_c_temp(chemin);
 
     modes := "rb";
 
-    file := fopen(@tampon[0], modes.pointeur);
+    file := fopen(ptr_tampon, modes.pointeur);
     diffère { fclose(file); }
 
     si file == nul {
@@ -813,14 +810,11 @@ _JCS_RGB := 2;
 
 écris_jpeg :: fonc(image : Image, chemin : chaine) -> rien
 {
-    // nous devons avoir une chaine terminée par '\0' donc copie dans un
-	// tampon
-	dyn tampon : [1024]z8;
-	ptr_tampon := copie_chaine_c_tampon(tampon, chemin);
+	ptr_tampon := chaine_c_temp(chemin);
 
     modes := "wb";
 
-    file := fopen(@tampon[0], modes.pointeur);
+    file := fopen(ptr_tampon, modes.pointeur);
     diffère { fclose(file); }
 
 	//fseek(file, 0L, SEEK_SET);

@@ -18,8 +18,7 @@ Fichier :: struct {
 
 obtiens_stmode :: fonc(chemin : &CheminFichier) -> n32
 {
-    dyn tampon : [1024]z8
-	ptr_chemin := copie_chaine_c_tampon(tampon, chemin.chn)
+	ptr_chemin := chaine_c_temp(chemin.chn)
 
 	dyn st : stat
 	ok := stat(ptr_chemin, @st)
@@ -119,17 +118,13 @@ ouvre_fichier :: fonc(chemin : &CheminFichier) -> z32
 		retourne -1
 	}
 
-	dyn tampon : [1024]z8
-	ptr_chemin := copie_chaine_c_tampon(tampon, chemin.chn)
-
+	ptr_chemin := chaine_c_temp(chemin.chn)
 	retourne open(ptr_chemin, LECTURE_SEULE)
 }
 
 ouvre_fichier_ecriture :: fonc(chemin : &CheminFichier) -> z32
 {
-	dyn tampon : [1024]z8
-	ptr_chemin := copie_chaine_c_tampon(tampon, chemin.chn)
-
+	ptr_chemin := chaine_c_temp(chemin.chn)
 	retourne open(ptr_chemin, CREATION | ÉCRITURE_SEULE, 0o777)
 }
 
@@ -200,9 +195,7 @@ contenu_fichier_texte :: fonc(chemin : &CheminFichier) -> chaine
 
 ouvre_dossier :: fonc(chemin : &CheminFichier) -> *DIR
 {
-    dyn tampon : [1024]z8
-	ptr_chemin := copie_chaine_c_tampon(tampon, chemin.chn)
-
+	ptr_chemin := chaine_c_temp(chemin.chn)
     retourne opendir(ptr_chemin)
 }
 
@@ -381,8 +374,7 @@ chemin_courant :: fonc() -> CheminFichier
 
 chemin_courant :: fonc(chemin : CheminFichier) -> rien
 {
-    dyn tampon : [1024]z8
-	ptr_chemin := copie_chaine_c_tampon(tampon, chemin.chn)
+	ptr_chemin := chaine_c_temp(chemin.chn)
     chdir(ptr_chemin)
 }
 
@@ -392,19 +384,14 @@ chemin_courant :: fonc(chemin : CheminFichier) -> rien
 
 renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> z32
 {
-    dyn tampon_orig : [1024]z8
-	ptr_chemin_orig := copie_chaine_c_tampon(tampon_orig, orig.chn)
-
-    dyn tampon_dest : [1024]z8
-	ptr_chemin_dest := copie_chaine_c_tampon(tampon_dest, dest.chn)
+	ptr_chemin_orig := chaine_c_temp(orig.chn)
+	ptr_chemin_dest := chaine_c_temp(dest.chn)
 
 	retourne rename(ptr_chemin_orig, ptr_chemin_dest)
 }
 
 supprime :: fonc(chm : &CheminFichier) -> z32
 {
-    dyn tampon : [1024]z8
-	ptr_chemin := copie_chaine_c_tampon(tampon, chm.chn)
+	ptr_chemin := chaine_c_temp(chm.chn)
     retourne remove(ptr_chemin)
 }
-

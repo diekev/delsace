@@ -4,9 +4,7 @@ FILE_MODE := 0600;
 
 crée_fichier :: fonc(chemin : chaine) -> z32
 {
-    // Il nous faut une chaine c.
-    tampon : [1024]z8;
-    ptr_chaine_c := copie_chaine_c_tampon(tampon, chemin);
+    ptr_chaine_c := chaine_c_temp(tampon, chemin);
 
     // Supprime les liens symbolics potentiels, pour éviter les attaques.
     unlink(ptr_chaine_c);

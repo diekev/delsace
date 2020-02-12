@@ -61,8 +61,7 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
         retourne réponse, 1;
     }
 
-    dyn tampon : [1024]z8;
-    ptr_tampon = copie_chaine_c_tampon(tampon, uri.hôte);
+    ptr_tampon = chaine_c_temp(uri.hôte);
 
     he := gethostbyname(ptr_tampon);
 

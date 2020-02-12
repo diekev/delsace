@@ -211,6 +211,24 @@ __stockage_temporaire :: fonc(
     retourne nul
 }
 
+// fonction de convénience pour loge un tampon dans le stockage temporaire
+// principalement utilisé pour loger des chaines avec une terminaison nulle
+// afin de pouvoir les passer aux fonctions de C
+logement_temp :: fonc(taille: z64) -> *octet
+{
+    dyn nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    dyn ptr : *octet
+
+    pousse_contexte nouveau_contexte {
+        tmp := loge [taille]octet
+        ptr = tmp.pointeur
+    }
+
+    retourne ptr
+}
+
 // Fonction pour accéder à la variable __VG_memoire_utilisee__.
 mémoire_utilisée :: fonc() -> z64
 {
