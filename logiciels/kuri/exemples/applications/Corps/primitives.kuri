@@ -1,0 +1,216 @@
+importe Fondation
+
+TypePrimitive :: énum : z32 {
+    INVALIDE
+    POLYGONE
+    SPHÈRE
+    VOLUME
+}
+
+Primitive :: struct {
+    type : TypePrimitive
+    index : z64
+}
+
+TypePolygone :: énum : z32 {
+    FERMÉ
+    OUVERT
+}
+
+Polygone :: struct {
+    empl base : Primitive
+
+    points : []z64
+    sommets : []z64
+    type_polygone : TypePolygone
+}
+
+Sphère :: struct {
+    empl base : Primitive
+
+    index_point : z64
+    rayon : r32
+}
+
+copie_primitive :: fonc (primitive: *Primitive) -> *Primitive
+{
+    discr primitive.type {
+        POLYGONE {
+            retourne transtype(copie_polygone(transtype(primitive: *Polygone)): *Primitive)
+        }
+        SPHÈRE {
+            retourne transtype(copie_sphère(transtype(primitive: *Sphère)): *Primitive)
+        }
+        sinon {
+            retourne nul
+        }
+    }
+
+    retourne nul
+}
+
+détruit_primitive :: fonc (dyn primitive: *Primitive) -> rien
+{
+    discr primitive.type {
+        POLYGONE {
+            détruit_polygone(transtype(primitive: *Polygone))
+        }
+        SPHÈRE {
+            détruit_sphère(transtype(primitive: *Sphère))
+        }
+        sinon {
+            retourne
+        }
+    }
+}
+
+// À FAIRE: gabarits
+tableau_pousse :: fonc(dyn tabl: *[]*Primitive, valeur: *Primitive) -> rien
+{
+	dyn tmp := mémoire(tabl)
+
+	taille := tabl.taille
+	reloge tmp : [taille + 1]*Primitive
+	tmp[taille] = valeur
+
+	mémoire(tabl) = tmp
+}
+
+tableau_réserve :: fonc(dyn tabl: *[]*Primitive, taille: z64) -> rien
+{
+    si taille <= tabl.taille {
+        retourne
+    }
+
+	dyn tmp := mémoire(tabl)
+
+	reloge tmp : [taille]*Primitive
+
+	mémoire(tabl) = tmp
+}
+
+// -------------------------------
+
+// À FAIRE: gabarits
+tableau_pousse :: fonc(dyn tabl: *[]z64, valeur: z64) -> rien
+{
+	dyn tmp := mémoire(tabl)
+
+	taille := tabl.taille
+	reloge tmp : [taille + 1]z64
+	tmp[taille] = valeur
+
+	mémoire(tabl) = tmp
+}
+
+tableau_réserve :: fonc(dyn tabl: *[]z64, taille: z64) -> rien
+{
+    si taille <= tabl.taille {
+        retourne
+    }
+
+	dyn tmp := mémoire(tabl)
+
+	reloge tmp : [taille]z64
+
+	mémoire(tabl) = tmp
+}
+
+tableau_copie :: fonc(dyn tabl: []z64) -> []z64
+{
+	dyn tmp := loge [tabl.taille]z64
+    copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * transtype(taille_de(z64): z64))
+    retourne tmp
+}
+
+copie_polygone :: fonc (poly: *Polygone) -> *Polygone
+{
+    dyn npoly := loge Polygone
+    npoly.type = TypePrimitive.POLYGONE
+    npoly.index = poly.index
+    npoly.type_polygone = poly.type_polygone
+    npoly.points = tableau_copie(poly.points)
+    npoly.sommets = tableau_copie(poly.sommets)
+
+    retourne npoly
+}
+
+détruit_polygone :: fonc (dyn poly: *Polygone) -> rien
+{
+    déloge poly.points
+    déloge poly.sommets
+    déloge poly
+}
+
+ajoute_point :: fonc (dyn poly: *Polygone, idx_point: z64, idx_sommet: z64) -> rien
+{
+	//assert(idx_point >= 0)
+	//assert(idx_sommet >= 0)
+	tableau_pousse(@poly.points, idx_point)
+	tableau_pousse(@poly.sommets, idx_sommet)
+}
+
+reserve_sommets :: fonc (dyn poly: *Polygone, nombre: z64) -> rien
+{
+	//assert(nombre >= 0)
+	tableau_pousse(@poly.points, nombre)
+	tableau_pousse(@poly.sommets, nombre)
+}
+
+nombre_sommets :: fonc (poly: *Polygone) -> z64
+{
+	retourne poly.points.taille
+}
+
+nombre_segments :: fonc (poly: *Polygone) -> z64
+{
+	si poly.type_polygone == TypePolygone.FERMÉ {
+		retourne poly.nombre_sommets()
+	}
+
+	retourne poly.nombre_sommets() - 1
+}
+
+index_point :: fonc (poly: *Polygone, i: z64) -> z64
+{
+	//assert(i >= 0 && i < m_idx_points.taille())
+	retourne poly.points[i]
+}
+
+index_sommet :: fonc (poly: *Polygone, i: z64) -> z64
+{
+	//assert(i >= 0 && i < m_idx_sommets.taille())
+	retourne poly.sommets[i]
+}
+
+ajourne_index :: fonc (dyn poly: *Polygone, i: z64, j: z64) -> rien
+{
+	//assert(i >= 0)
+	//assert(j >= 0)
+	poly.points[i] = j
+}
+
+// -------------------------------
+
+construit_primitive_sphère :: fonc (index_point: z64, rayon: r32) -> *Sphère
+{
+    dyn sphère := loge Sphère
+    sphère.type = TypePrimitive.SPHÈRE
+    sphère.index_point = index_point
+    sphère.rayon = rayon
+
+    retourne sphère
+}
+
+copie_sphère :: fonc (sphère: *Sphère) -> *Sphère
+{
+    dyn nsphère := loge Sphère
+    mémoire(nsphère) = mémoire(sphère)
+
+    retourne nsphère
+}
+
+détruit_sphère :: fonc (dyn sphère: *Sphère) -> rien
+{
+    déloge sphère
+}
