@@ -117,7 +117,7 @@ analyse_valeur :: fonc(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) -> rien
 			syntaxeuse.avance()
 
 			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.RÉEL)
-			dyn obj_réel = transtype(obj: *ObjetRéel)
+			dyn obj_réel := transtype(obj: *ObjetRéel)
             obj_réel.valeur = extrait_nombre_réel(syntaxeuse.données().chn)
 		}
 		CHAINE_CARACTERE {

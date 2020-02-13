@@ -140,7 +140,10 @@ enregistre_position_mot :: fonc(dyn lexeuse : &Lexeuse) -> rien
 performe_lexage :: fonc(dyn lexeuse : &Lexeuse) -> rien
 {
     tantque !lexeuse.a_fini() {
-        est_spécial, lexème := est_caractère_spécial(lexeuse.caractère_courant())
+		// À FAIRE : permet la déclaration simultanée de plusieurs variables
+		dyn est_spécial : bool
+		dyn lexème : TypeLexème
+        est_spécial, lexème = est_caractère_spécial(lexeuse.caractère_courant())
 
         si (est_spécial) {
 			lexeuse.enregistre_position_mot()
