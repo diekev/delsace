@@ -38,49 +38,11 @@ struct Corps;
 
 /* ************************************************************************** */
 
-/**
- * Représentation d'un sommet dans l'espace tridimensionel.
- */
-struct Sommet {
-	dls::math::vec3f pos;
-	int index;
-};
-
-class Polygone;
-
-/* ************************************************************************** */
-
-/**
- * Représentation d'une arrête d'un polygone.
- */
-struct Arrete {
-	/* Les sommets connectés à cette arrête. */
-	Sommet *s[2] = { nullptr, nullptr };
-
-	/* Le polygone propriétaire de cette arrête. */
-	Polygone *p = nullptr;
-
-	/* L'arrête du polygone adjacent allant dans la direction opposée de
-	 * celle-ci. */
-	Arrete *opposee = nullptr;
-
-	/* L'index de l'arrête dans la boucle d'arrêtes du polygone. */
-	char index = 0;
-
-	Arrete() = default;
-};
-
-/* ************************************************************************** */
-
 enum class type_polygone : char {
 	FERME,
 	OUVERT,
 };
 
-/**
- * Représentation d'un quadrilatère et de son vecteur normal dans l'espace
- * tridimensionel.
- */
 class Polygone final : public Primitive {
 	dls::tableau<long> m_idx_points{};
 	dls::tableau<long> m_idx_sommets{};
@@ -97,9 +59,6 @@ public:
 	 * type_polygone::OUVERT : un polygone sans face, une courbe
 	 */
 	type_polygone type = type_polygone::FERME;
-
-	/* Le vecteur normal de ce polygone. */
-	dls::math::vec3f nor{};
 
 	void ajoute_point(long idx_point, long idx_sommet);
 
