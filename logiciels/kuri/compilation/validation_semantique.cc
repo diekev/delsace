@@ -2633,7 +2633,42 @@ static void performe_validation_semantique(
 					verifie_redefinition_membre(enfant);
 					verifie_inclusion_valeur(enfant);
 
-					ajoute_donnees_membre(enfant, nullptr);
+					// À FAIRE : emploi de structures
+					// - validation que nous avons une structure
+					// - prend note de la hierarchie, notamment pour valider les transtypages
+					// - préserve l'emploi dans les données types
+					if (enfant->drapeaux & EMPLOYE) {
+						auto &dt_enf = contexte.typeuse[enfant->index_type];
+						auto &ds_empl = contexte.donnees_structure(static_cast<long>(dt_enf.type_base() >> 8));
+
+						for (auto i = 0; i < ds_empl.index_types.taille(); ++i) {
+							for (auto &membre : ds_empl.donnees_membres) {
+								auto idx_membre = membre.second.index_membre;
+
+								if (idx_membre != i) {
+									continue;
+								}
+
+								auto idx_type_membre = ds_empl.index_types[idx_membre];
+								auto &dt_membre = contexte.typeuse[idx_type_membre];
+
+								auto align_type = alignement(contexte, dt_membre);
+								max_alignement = std::max(align_type, max_alignement);
+								auto padding = (align_type - (decalage % align_type)) % align_type;
+								decalage += padding;
+
+								ds.donnees_membres.insere({membre.first, { ds.index_types.taille(), nullptr, decalage }});
+								ds.index_types.pousse(idx_type_membre);
+
+								donnees_dependance.types_utilises.insere(idx_type_membre);
+
+								decalage += taille_octet_type(contexte, dt_membre);
+							}
+						}
+					}
+					else {
+						ajoute_donnees_membre(enfant, nullptr);
+					}
 				}
 			}
 

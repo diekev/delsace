@@ -21,28 +21,24 @@ InfoType :: struct {
 }
 
 InfoTypeEntier :: struct {
-	id : id_info // employant InfoType
-	taille_en_octet : n32
+	empl base : InfoType
 
 	est_signé : bool
 }
 
 InfoTypeRéel :: struct {
-	id : id_info // employant InfoType
-	taille_en_octet : n32
+	empl base : InfoType
 }
 
 InfoTypePointeur :: struct {
-	id : id_info // employant InfoType
-	taille_en_octet : n32
+	empl base : InfoType
 
 	type_pointé : *InfoType
 	est_référence : bool
 }
 
 InfoTypeTableau :: struct {
-	id : id_info // employant InfoType
-	taille_en_octet : n32
+	empl base : InfoType
 
 	type_pointé : *InfoType
 	est_tableau_fixe : bool
@@ -57,16 +53,14 @@ InfoTypeMembreStructure :: struct {
 }
 
 InfoTypeStructure :: struct {
-	id : id_info // employant InfoType
-	taille_en_octet : n32
+	empl base : InfoType
 
 	nom : chaine
 	membres : []*InfoTypeMembreStructure
 }
 
 InfoTypeFonction :: struct {
-	id : id_info // employant InfoType
-	taille_en_octet : n32
+	empl base : InfoType
 
 	types_entrée : []*InfoType
 	types_sortie : []*InfoType
@@ -74,8 +68,7 @@ InfoTypeFonction :: struct {
 }
 
 InfoTypeÉnum :: struct {
-	id : id_info // employant InfoType
-	taille_en_octet : n32
+	empl base : InfoType
 
 	nom : chaine
 	valeurs : []z32 // À FAIRE typage selon énum
