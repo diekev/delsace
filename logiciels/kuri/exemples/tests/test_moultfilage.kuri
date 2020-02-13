@@ -1,9 +1,8 @@
-// À FAIRE : initialisation des structures
-// À FAIRE : déclaration de variables externes (notamment pour les globales)
 // À FAIRE : permet de préciser le ctx pour les fonctions avec contexte appelée dans des fonctions sans
 
 // https://franckh.developpez.com/tutoriels/posix/pthreads/
 
+importe Fondation
 importe GlibC
 importe PThread
 
@@ -60,11 +59,17 @@ store_t :: struct {
 	retourne nul
 }
 
+donnée_client_t :: struct {
+    store : *store_t
+    index : z32
+}
+
 // Fonction pour les threads des clients.
 #nulctx fn_clients :: fonc(p_data : *rien) -> *rien
 {
-    dyn store := transtype(p_data : *store_t)
-	nb : z32 = transtype(p_data : z32)
+    donnée_client := transtype(p_data : *donnée_client_t)
+    dyn store := donnée_client.store
+	nb : z32 = donnée_client.index
 
 	boucle {
 		val : z32 = get_random(6)
@@ -80,6 +85,7 @@ store_t :: struct {
 		store.stock = store.stock - val
 
 		printf("Client %d prend %d du stock, reste %d en stock !\n".pointeur, nb, val, store.stock)
+        //printf("-- pthread_self() : %d\n".pointeur, pthread_getthreadid_np())
 
         pthread_mutex_unlock(@store.mutex)
 	}
@@ -87,8 +93,23 @@ store_t :: struct {
 	retourne nul
 }
 
+ValeurSysConf :: énum : z32 {
+    _SC_NPROCESSORS_ONLN := 84
+}
+
+sysconf :: fonc externe (nom: ValeurSysConf) -> z64
+
+nombre_threads_système :: fonc () -> z64
+{
+    retourne sysconf(ValeurSysConf._SC_NPROCESSORS_ONLN)
+}
+
 principale :: fonc(args : []*z8) -> z32
 {
+    imprime("Il y a sur le système % threads\n", nombre_threads_système());
+
+    //retourne 0
+
     dyn store := store_t{ stock = 20 }
 	dyn ret : z32 = 0
 
@@ -98,8 +119,11 @@ principale :: fonc(args : []*z8) -> z32
 	si ret == 0 {
         printf("Creation des threads clients !\n".pointeur)
 
-        pour fil_client dans store.thread_clients {
-            ret = pthread_create(@fil_client, nul, fn_clients, @store)
+        pour fil_client, idx dans store.thread_clients {
+            dyn donnée_client : donnée_client_t
+            donnée_client.store = @store
+            donnée_client.index = idx
+            ret = pthread_create(@fil_client, nul, fn_clients, @donnée_client)
 
             si ret != 0 {
                 printf("erreur : %s".pointeur, strerror(ret))
