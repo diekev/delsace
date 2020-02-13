@@ -66,6 +66,7 @@ using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
  * - coroutine, retiens
  * - erreur en cas de débordement des limites, où d'accès à un membre non-actif d'une union
  * - stockage temporaire
+ * - ajourne les infos types pour avoir une taille en octet pour chaque struct (avec la taille en octet et non en bits !)
  */
 
 /* ************************************************************************** */

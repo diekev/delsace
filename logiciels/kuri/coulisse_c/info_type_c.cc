@@ -56,10 +56,12 @@ struct IDInfoType {
 static auto cree_info_type_defaul_C(
 		dls::flux_chaine &os_decl,
 		dls::chaine const &id_type,
-		dls::chaine const &nom_info_type)
+		dls::chaine const &nom_info_type,
+		int taille_en_octet)
 {
 	os_decl << "static const InfoType " << nom_info_type << " = {\n";
-	os_decl << "\t.id = " << id_type << '\n';
+	os_decl << "\t.id = " << id_type << ",\n";
+	os_decl << "\t.taille_en_octet = " << taille_en_octet << '\n';
 	os_decl << "};\n";
 }
 
@@ -181,6 +183,7 @@ static auto cree_info_type_structure_C(
 	/* crée l'info pour la structure */
 	os_decl << "static const InfoTypeStructure " << nom_info_type << " = {\n";
 	os_decl << "\t.id = " << id_info_type.STRUCTURE << ",\n";
+	os_decl << "\t.taille_en_octet = " << donnees_structure.taille_octet << ",\n";
 	os_decl << "\t.nom = {.pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << "},\n";
 	os_decl << "\t.membres = {.pointeur = " << nom_tableau_membre << ", .taille = " << donnees_structure.index_types.taille() << "},\n";
 	os_decl << "};\n";
@@ -233,6 +236,7 @@ static auto cree_info_type_enum_C(
 	/* crée l'info type pour l'énum */
 	os_decl << "static const " << broye_nom_simple("InfoTypeÉnum ") << nom_info_type << " = {\n";
 	os_decl << "\t.id = " << id_info_type.ENUM << ",\n";
+	os_decl << "\t.taille_en_octet = " << donnees_structure.taille_octet << ",\n";
 	os_decl << "\t.est_drapeau = " << donnees_structure.est_drapeau << ",\n";
 	os_decl << "\t.nom = { .pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << " },\n";
 	os_decl << "\t.noms = { .pointeur = " << nom_tableau_noms << ", .taille = " << nombre_enfants << " },\n ";
@@ -259,67 +263,67 @@ dls::chaine cree_info_type_C(
 		}
 		case GenreLexeme::BOOL:
 		{
-			cree_info_type_defaul_C(os_decl, id_info_type.BOOLEEN, nom_info_type);
+			cree_info_type_defaul_C(os_decl, id_info_type.BOOLEEN, nom_info_type, 1);
 			break;
 		}
 		case GenreLexeme::OCTET:
 		{
-			cree_info_type_defaul_C(os_decl, id_info_type.OCTET, nom_info_type);
+			cree_info_type_defaul_C(os_decl, id_info_type.OCTET, nom_info_type, 1);
 			break;
 		}
 		case GenreLexeme::N8:
 		{
-			cree_info_type_entier_C(os_decl, 8, false, id_info_type, nom_info_type);
+			cree_info_type_entier_C(os_decl, 1, false, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::Z8:
 		{
-			cree_info_type_entier_C(os_decl, 8, true, id_info_type, nom_info_type);
+			cree_info_type_entier_C(os_decl, 1, true, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::N16:
 		{
-			cree_info_type_entier_C(os_decl, 16, false, id_info_type, nom_info_type);
+			cree_info_type_entier_C(os_decl, 2, false, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::Z16:
 		{
-			cree_info_type_entier_C(os_decl, 16, true, id_info_type, nom_info_type);
+			cree_info_type_entier_C(os_decl, 2, true, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::N32:
 		{
-			cree_info_type_entier_C(os_decl, 32, false, id_info_type, nom_info_type);
+			cree_info_type_entier_C(os_decl, 4, false, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::Z32:
 		{
-			cree_info_type_entier_C(os_decl, 32, true, id_info_type, nom_info_type);
+			cree_info_type_entier_C(os_decl, 4, true, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::N64:
 		{
-			cree_info_type_entier_C(os_decl, 64, false, id_info_type, nom_info_type);
+			cree_info_type_entier_C(os_decl, 8, false, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::Z64:
 		{
-			cree_info_type_entier_C(os_decl, 64, true, id_info_type, nom_info_type);
+			cree_info_type_entier_C(os_decl, 8, true, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::R16:
 		{
-			cree_info_type_reel_C(os_decl, 16, id_info_type, nom_info_type);
+			cree_info_type_reel_C(os_decl, 2, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::R32:
 		{
-			cree_info_type_reel_C(os_decl, 32, id_info_type, nom_info_type);
+			cree_info_type_reel_C(os_decl, 4, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::R64:
 		{
-			cree_info_type_reel_C(os_decl, 64, id_info_type, nom_info_type);
+			cree_info_type_reel_C(os_decl, 8, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::REFERENCE:
@@ -336,6 +340,7 @@ dls::chaine cree_info_type_C(
 
 			os_decl << "static const InfoTypePointeur " << nom_info_type << " = {\n";
 			os_decl << ".id = " << id_info_type.POINTEUR << ",\n";
+			os_decl << ".taille_en_octet = 8,\n";
 			os_decl << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << "),\n";
 			os_decl << '\t' << broye_nom_simple(".est_référence = ")
 					<< (donnees_type.type_base() == GenreLexeme::REFERENCE) << ",\n";
@@ -456,18 +461,18 @@ dls::chaine cree_info_type_C(
 		}
 		case GenreLexeme::EINI:
 		{
-			cree_info_type_defaul_C(os_decl, id_info_type.EINI, nom_info_type);
+			cree_info_type_defaul_C(os_decl, id_info_type.EINI, nom_info_type, 16);
 			break;
 		}
 		case GenreLexeme::NUL: /* À FAIRE */
 		case GenreLexeme::RIEN:
 		{
-			cree_info_type_defaul_C(os_decl, id_info_type.RIEN, nom_info_type);
+			cree_info_type_defaul_C(os_decl, id_info_type.RIEN, nom_info_type, 0);
 			break;
 		}
 		case GenreLexeme::CHAINE:
 		{
-			cree_info_type_defaul_C(os_decl, id_info_type.CHAINE, nom_info_type);
+			cree_info_type_defaul_C(os_decl, id_info_type.CHAINE, nom_info_type, 16);
 			break;
 		}
 	}

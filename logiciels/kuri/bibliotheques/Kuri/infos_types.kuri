@@ -17,12 +17,14 @@ id_info :: énum : z32 {
 
 InfoType :: struct {
 	id : id_info
+	taille_en_octet : n32
 }
 
 InfoTypeEntier :: struct {
 	id : id_info // employant InfoType
-	est_signé : bool
 	taille_en_octet : n32
+
+	est_signé : bool
 }
 
 InfoTypeRéel :: struct {
@@ -32,12 +34,16 @@ InfoTypeRéel :: struct {
 
 InfoTypePointeur :: struct {
 	id : id_info // employant InfoType
+	taille_en_octet : n32
+
 	type_pointé : *InfoType
 	est_référence : bool
 }
 
 InfoTypeTableau :: struct {
 	id : id_info // employant InfoType
+	taille_en_octet : n32
+
 	type_pointé : *InfoType
 }
 
@@ -50,12 +56,16 @@ InfoTypeMembreStructure :: struct {
 
 InfoTypeStructure :: struct {
 	id : id_info // employant InfoType
+	taille_en_octet : n32
+
 	nom : chaine
 	membres : []*InfoTypeMembreStructure
 }
 
 InfoTypeFonction :: struct {
 	id : id_info // employant InfoType
+	taille_en_octet : n32
+
 	types_entrée : []*InfoType
 	types_sortie : []*InfoType
 	est_coroutine : bool
@@ -63,6 +73,8 @@ InfoTypeFonction :: struct {
 
 InfoTypeÉnum :: struct {
 	id : id_info // employant InfoType
+	taille_en_octet : n32
+
 	nom : chaine
 	valeurs : []z32 // À FAIRE typage selon énum
 	noms : []chaine
