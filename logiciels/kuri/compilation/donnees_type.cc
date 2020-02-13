@@ -427,6 +427,18 @@ unsigned int taille_octet_type(
 			return 8;
 		}
 		case GenreLexeme::TABLEAU:
+		{
+			if (est_type_tableau_fixe(donnees_type.type_base())) {
+				auto taille = static_cast<unsigned>(donnees_type.type_base() >> 8);
+				return taille * taille_octet_type(contexte, donnees_type.dereference());
+			}
+
+			if (contexte.bit32) {
+				return 8;
+			}
+
+			return 16;
+		}
 		case GenreLexeme::EINI:
 		case GenreLexeme::CHAINE:
 		{
