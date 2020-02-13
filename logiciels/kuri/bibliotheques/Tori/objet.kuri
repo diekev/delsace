@@ -18,35 +18,35 @@ Objet :: struct {
 //#######################################################################
 
 ObjetEntier :: struct {
-	objet : Objet
+	empl objet : Objet
 	valeur : z64
 }
 
 //#######################################################################
 
 ObjetRéel :: struct {
-	objet : Objet
+	empl objet : Objet
 	valeur : r64
 }
 
 //#######################################################################
 
 ObjetChaine :: struct {
-	objet : Objet
+	empl objet : Objet
 	valeur : chaine
 }
 
 //#######################################################################
 
 ObjetListe :: struct {
-	objet : Objet
+	empl objet : Objet
 	valeur : []*Objet
 }
 
 //#######################################################################
 
 ObjetDictionnaire :: struct {
-	objet : Objet
+	empl objet : Objet
 	noms : []chaine
 	valeurs : []*Objet
 }
@@ -183,7 +183,7 @@ insère :: fonc(objet : *Objet, dyn liste : &[]*Objet) -> rien
 crée_dictionnaire :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetDictionnaire
 {
 	dyn objet := loge ObjetDictionnaire
-	objet.objet.id = TypeObjet.DICTIONNAIRE
+	objet.id = TypeObjet.DICTIONNAIRE
 	objet.noms.taille = 0
 	objet.noms.pointeur = nul
 	objet.valeurs.taille = 0
@@ -197,7 +197,7 @@ crée_dictionnaire :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetDictionna
 crée_liste :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetListe
 {
 	dyn objet := loge ObjetListe
-	objet.objet.id = TypeObjet.LISTE
+	objet.id = TypeObjet.LISTE
 	objet.valeur.taille = 0
 	objet.valeur.pointeur = nul
 
@@ -209,7 +209,7 @@ crée_liste :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetListe
 crée_entier :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetEntier
 {
 	dyn objet := loge ObjetEntier
-	objet.objet.id = TypeObjet.ENTIER
+	objet.id = TypeObjet.ENTIER
 	objet.valeur = 0
 
 	pousse(gestionnaire.objets, transtype(objet : *Objet))
@@ -220,7 +220,7 @@ crée_entier :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetEntier
 crée_réel :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetRéel
 {
 	dyn objet := loge ObjetRéel
-	objet.objet.id = TypeObjet.RÉEL
+	objet.id = TypeObjet.RÉEL
 	objet.valeur = 0.0
 
 	pousse(gestionnaire.objets, transtype(objet : *Objet))
@@ -231,7 +231,7 @@ crée_réel :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetRéel
 crée_chaine :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetChaine
 {
 	dyn objet := loge ObjetChaine
-	objet.objet.id = TypeObjet.CHAINE
+	objet.id = TypeObjet.CHAINE
 	objet.valeur = ""
 
 	pousse(gestionnaire.objets, transtype(objet : *Objet))
