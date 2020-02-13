@@ -2,9 +2,9 @@ importe Fondation
 importe Tori // pour imprime_json
 importe JSON
 
-//##############################################################################
+// -----------------------------------
 
-principale :: fonc(args : []*z8) -> z32
+test_json_tori :: fonc () -> rien
 {
     diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
@@ -12,7 +12,7 @@ principale :: fonc(args : []*z8) -> z32
 
     imprime("script :\n\n", chn, "\n\n")
 
-    //######################################################
+    // -----------------------------------
     // Lexage du script
 
     dyn lexeuse := construit_lexeuse(chn)
@@ -28,7 +28,7 @@ principale :: fonc(args : []*z8) -> z32
 
     imprime("\n")
 
-    //######################################################
+    // -----------------------------------
     // Syntaxage du script, création de l'objet
 
 	dyn syntaxeuse : Syntaxeuse
@@ -48,6 +48,45 @@ principale :: fonc(args : []*z8) -> z32
     }
 
 	imprime("\n")
+}
+
+// -----------------------------------
+
+// À FAIRE : comment déterminer si une valeur est manquante ?
+InformationConnexion :: struct {
+    email := "une_première_addresse@courriel.fr"
+    mot_de_passe := "L3Dfs_BaJRufF5!P"
+    age := 56
+}
+
+InformationInscription :: struct {
+    nom := ""
+    prénom := ""
+    email := ""
+    mot_de_passe := ""
+}
+
+principale :: fonc (args : []*z8) : z32
+{
+    dyn info : InformationConnexion
+
+    chn := chaine_json_depuis_struct(info)
+    diffère { déloge chn; }
+
+    imprime("JSON : %\n", chn)
+
+    info.email = "une_autre_addresse@courriel.fr"
+    info.mot_de_passe = "LkD34qdIFa0S"
+    info.age = 78
+
+    imprime("%\n", info)
+
+    remplis_struct_depuis_json(chn, info)
+
+    //chaine_json_depuis_objet_tori()
+    //objet_tori_depuis_json()
+
+    imprime("%\n", info)
 
     retourne 0
 }

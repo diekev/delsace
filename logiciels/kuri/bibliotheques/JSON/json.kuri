@@ -1,0 +1,453 @@
+importe Fondation
+
+imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *InfoType) -> rien
+{
+    discr info.id {
+		OCTET {
+			x := mémoire(transtype(pointeur : *octet))
+            chiffres_hex := "0123456789ABCDEF"
+
+			dyn chiffre := (x >> transtype(4 : octet)) & transtype(0x0F : octet)
+			pousse(mémoire(enchaineuse), chiffres_hex[chiffre])
+
+			chiffre = x & transtype(0x0F : octet)
+			pousse(mémoire(enchaineuse), chiffres_hex[chiffre])
+		}
+		ENTIER {
+			info_arg := transtype(info : *InfoTypeEntier)
+            imprime_valeur_entière(mémoire(enchaineuse), pointeur, info_arg)
+		}
+		RÉEL {
+			info_arg := transtype(info : *InfoTypeRéel)
+			dyn y : r32
+
+            si info_arg.taille_en_octet == transtype(16: n32) {
+				x := mémoire(transtype(pointeur : *r16))
+				y = x
+			}
+			sinon si info_arg.taille_en_octet == transtype(32: n32) {
+				y = mémoire(transtype(pointeur : *r32))
+			}
+			sinon si info_arg.taille_en_octet == transtype(64: n32) {
+				x := mémoire(transtype(pointeur : *r64))
+				y = transtype(x : r32)
+			}
+
+			imprime_nombre_décimal(mémoire(enchaineuse), y)
+		}
+		BOOLÉEN {
+			x := mémoire(transtype(pointeur : *bool))
+
+            si x {
+				pousse(mémoire(enchaineuse), "true")
+			}
+			sinon {
+				pousse(mémoire(enchaineuse), "false")
+			}
+		}
+		CHAINE {
+			x := mémoire(transtype(pointeur : *chaine))
+
+			pousse(mémoire(enchaineuse), '"')
+			pousse(mémoire(enchaineuse), x)
+			pousse(mémoire(enchaineuse), '"')
+		}
+		STRUCTURE {
+			info_arg := transtype(info : *InfoTypeStructure)
+
+            pousse(mémoire(enchaineuse), "{")
+
+            pour membre, idx dans info_arg.membres {
+				nom := membre.nom
+                décalage := membre.décalage
+				id := membre.id
+
+                si idx != 0 {
+                    pousse(mémoire(enchaineuse), ',')
+                }
+
+                pousse(mémoire(enchaineuse), '"')
+                pousse(mémoire(enchaineuse), nom)
+                pousse(mémoire(enchaineuse), '"')
+                pousse(mémoire(enchaineuse), ":")
+
+				imprime_valeur_json(enchaineuse, pointeur + décalage, id)
+			}
+
+            pousse(mémoire(enchaineuse), "}")
+		}
+		TABLEAU {
+			info_arg := transtype(info : *InfoTypeTableau)
+
+            pousse(mémoire(enchaineuse), "[")
+
+            décalage := transtype(info_arg.type_pointé.taille_en_octet: z32)
+
+            si info_arg.est_tableau_fixe {
+                pour i dans 0 ... info_arg.taille_fixe - 1 {
+                    si i != 0 {
+                        pousse(mémoire(enchaineuse), ',')
+                    }
+
+                    imprime_valeur_json(enchaineuse, pointeur + décalage * i, info_arg.type_pointé)
+                }
+            }
+            sinon {
+                x := mémoire(transtype(pointeur: *[]z8))
+
+                pour i dans transtype(0: z64) ... x.taille - 1 {
+                    si i != 0 {
+                        pousse(mémoire(enchaineuse), ',')
+                    }
+
+                    imprime_valeur_json(enchaineuse, x.pointeur + décalage * i, info_arg.type_pointé)
+                }
+            }
+
+            pousse(mémoire(enchaineuse), "]")
+		}
+		ÉNUM {
+			info_arg := transtype(info : *InfoTypeÉnum)
+
+			// À FAIRE : typage selon énum
+			valeur := mémoire(transtype(pointeur : *z32))
+			noms := info_arg.noms
+
+			si info_arg.est_drapeau {
+				dyn valeur_trouvée := faux
+
+				pour v, i dans info_arg.valeurs {
+					si (v & valeur) != 0 {
+						si valeur_trouvée {
+							pousse(mémoire(enchaineuse), " | ")
+						}
+
+						pousse(mémoire(enchaineuse), noms[i])
+						valeur_trouvée = vrai
+					}
+				}
+
+				si !valeur_trouvée {
+					pousse(mémoire(enchaineuse), "0")
+				}
+			}
+			sinon {
+				pour v, i dans info_arg.valeurs {
+					si v == valeur {
+						pousse(mémoire(enchaineuse), noms[i])
+						arrête
+					}
+				}
+			}
+		}
+        sinon {
+            pousse(mémoire(enchaineuse), "null")
+        }
+	}
+}
+
+// -----------------------------------
+
+importe JSON
+
+// une syntaxeuse qui met directement les données dans une structure
+SyntaxeuseStruct :: struct {
+	lexèmes : []DonneesLexème
+
+	position := 0
+}
+
+construit_syntaxeuse_struct :: fonc(lexèmes : []DonneesLexème) -> SyntaxeuseStruct
+{
+	dyn syntaxeuse : SyntaxeuseStruct
+	syntaxeuse.lexèmes = lexèmes
+
+	retourne syntaxeuse
+}
+
+lexème_courant :: fonc(syntaxeuse : *SyntaxeuseStruct) -> TypeLexème
+{
+	retourne syntaxeuse.lexèmes[syntaxeuse.position].lexème
+}
+
+avance :: fonc(dyn syntaxeuse : *SyntaxeuseStruct) -> rien
+{
+	syntaxeuse.position += 1
+}
+
+requiers_lexème :: fonc(syntaxeuse : *SyntaxeuseStruct, type : TypeLexème) -> bool
+{
+	t := syntaxeuse.lexème_courant()
+	syntaxeuse.avance()
+	retourne t == type
+}
+
+est_lexème :: fonc(syntaxeuse : *SyntaxeuseStruct, type : TypeLexème) -> bool
+{
+	retourne syntaxeuse.lexème_courant() == type
+}
+
+données :: fonc(syntaxeuse : *SyntaxeuseStruct) -> &DonneesLexème
+{
+	retourne syntaxeuse.lexèmes[syntaxeuse.position - 1]
+}
+
+analyse_objet :: fonc(
+    dyn syntaxeuse : *SyntaxeuseStruct,
+    pointeur_arg: *z8,
+    info_arg: *InfoTypeStructure) -> rien
+{
+	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTERE)) {
+		//lance_erreur("Attendu une chaine de caractère")
+        retourne
+	}
+
+	nom_objet := syntaxeuse.données().chn
+
+    // cherche le nom de l'objet dans l'InfoTypeStructure
+    dyn info_membre : *InfoTypeMembreStructure = nul
+
+    pour membre dans info_arg.membres {
+        si membre.nom == nom_objet {
+            info_membre = membre
+            arrête
+        }
+    }
+
+    si info_membre == nul {
+        // À FAIRE : erreur
+        retourne
+    }
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.DOUBLE_POINTS)) {
+		//lance_erreur("Attendu un double-point ':'")
+        retourne
+	}
+
+    pointeur_membre := pointeur_arg + info_membre.décalage
+
+	syntaxeuse.analyse_valeur(nom_objet, pointeur_membre, info_membre.id)
+
+	si (syntaxeuse.est_lexème(TypeLexème.VIRGULE)) {
+		syntaxeuse.avance()
+		syntaxeuse.analyse_objet(pointeur_arg, info_arg)
+	}
+}
+
+analyse_valeur :: fonc(
+    dyn syntaxeuse : *SyntaxeuseStruct,
+    nom_objet : chaine,
+    pointeur_membre: *z8,
+    info_membre: *InfoType) -> rien
+{
+	discr syntaxeuse.lexème_courant() {
+		ACCOLADE_OUVRANTE {
+			syntaxeuse.avance()
+
+            si info_membre.id != id_info.STRUCTURE {
+                retourne
+            }
+
+			syntaxeuse.analyse_objet(pointeur_membre, transtype(info_membre: *InfoTypeStructure))
+
+			si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
+				//lance_erreur("Attendu une accolade fermante '}' à la fin de l'objet")
+			}
+		}
+		CROCHET_OUVRANT {
+			syntaxeuse.avance()
+
+			tantque !syntaxeuse.est_lexème(TypeLexème.CROCHET_FERMANT) {
+                // À FAIRE
+				//syntaxeuse.analyse_valeur("")
+
+				si (syntaxeuse.est_lexème(TypeLexème.VIRGULE)) {
+					syntaxeuse.avance()
+				}
+			}
+
+
+			syntaxeuse.avance()
+		}
+		NOMBRE_ENTIER {
+			syntaxeuse.avance()
+
+            si info_membre.id != id_info.ENTIER {
+                retourne
+            }
+
+            // À FAIRE: typage
+            dyn ptr := transtype(pointeur_membre: *z32)
+            mémoire(ptr) = transtype(extrait_nombre_entier(syntaxeuse.données().chn): z32)
+		}
+		NOMBRE_REEL {
+			syntaxeuse.avance()
+
+            si info_membre.id != id_info.RÉEL {
+                retourne
+            }
+
+            // À FAIRE: typage
+            dyn ptr := transtype(pointeur_membre: *r32)
+            mémoire(ptr) = transtype(extrait_nombre_réel(syntaxeuse.données().chn): r32)
+		}
+		CHAINE_CARACTERE {
+			syntaxeuse.avance()
+
+            si info_membre.id != id_info.CHAINE {
+                retourne
+            }
+
+            dyn ptr := transtype(pointeur_membre: *chaine)
+            mémoire(ptr) = syntaxeuse.données().chn
+		}
+		sinon {
+			syntaxeuse.avance()
+			// À FAIRE : lance_erreur("Élément inattendu")
+		}
+	}
+}
+
+lance_analyse :: fonc(dyn syntaxeuse : *SyntaxeuseStruct, arg: eini) -> rien
+{
+	syntaxeuse.position = 0
+
+	si (syntaxeuse.lexèmes.taille == 0) {
+		retourne
+	}
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_OUVRANTE)) {
+		//lance_erreur("Attendu une accolade ouvrante '{' au début du script")
+	}
+
+	syntaxeuse.analyse_objet(arg.pointeur, transtype(arg.info: *InfoTypeStructure))
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
+		//lance_erreur("Attendu une accolade fermante '}' à la fin du script")
+	}
+}
+
+// -----------------------------------
+
+chaine_json_depuis_struct :: fonc (arg: eini) -> chaine
+{
+    dyn enchaineuse : Enchaineuse
+
+    imprime_valeur_json(@enchaineuse, arg.pointeur, arg.info)
+
+	retourne enchaineuse.résultat
+}
+
+remplis_struct_depuis_json :: fonc (script: chaine, arg: eini) -> rien
+{
+    dyn lexeuse := construit_lexeuse(script)
+    diffère { détruit_lexeuse(lexeuse); }
+
+    lexeuse.performe_lexage()
+
+    dyn syntaxeuse := construit_syntaxeuse_struct(lexeuse.lexèmes)
+
+    lance_analyse(@syntaxeuse, arg)
+}
+
+// -----------------------------------
+
+/*
+// ébauche pour un scanner mêlant le lexage et le syntaxage
+// Standard : https://www.json.org/json-en.html
+Lexème :: énum : z32 {
+    INVALIDE,
+    FIN_OBJET,
+
+    PARENTHÈSE_OUVRANTE,
+    PARENTHÈSE_FERMANTE,
+    ACCOLADE_OUVRANTE,
+    ACCOLADE_FERMANTE,
+    CROCHET_OUVRANT,
+    CROCHET_FERMANT,
+    DOUBLE_POINTS,
+    VIRGULE,
+    NOMBRE_ENTIER,
+    NOMBRE_RÉEL,
+    CHAINE_CARACTERE,
+    GUILLEMET
+    TRUE,
+    FALSE,
+    NULL,
+}
+
+ScannerJSON :: struct {
+    lexème : Lexème
+
+    chn : chaine
+    nombre_entier : z32
+    nombre_réel : r32
+    booléen : bool
+}
+
+lis :: fonc (scanner : *ScannerJSON) -> rien
+{
+    scanner.saute_espaces_blancs()
+
+    si scanner.fini() {
+        retourne
+    }
+
+    c := scanner.caractère_courant()
+
+    discr c {
+        '(' { scanner.avance(); scanner.lexème = Lexème.PARENTHESE_OUVRANTE }
+        ')' { scanner.avance(); scanner.lexème = Lexème.PARENTHESE_FERMANTE }
+        ',' { scanner.avance(); scanner.lexème = Lexème.VIRGULE }
+        ':' { scanner.avance(); scanner.lexème = Lexème.DOUBLE_POINTS }
+        '[' { scanner.avance(); scanner.lexème = Lexème.CROCHET_OUVRANT }
+        ']' { scanner.avance(); scanner.lexème = Lexème.CROCHET_FERMANT }
+        '{' { scanner.avance(); scanner.lexème = Lexème.ACCOLADE_OUVRANTE }
+        '}' { scanner.avance(); scanner.lexème = Lexème.ACCOLADE_FERMANTE }
+        '"' { scanner.avance(); scanner.lexème = Lexème.GUILLEMET }
+        't' { scanner.lexème = scanner.lis_true() }
+        'f' { scanner.lexème = scanner.lis_false() }
+        'n' { scanner.lexème = scanner.lis_null() }
+    }
+}
+
+lis_objet :: fonc (scanner: *ScannerJSON) -> Lexème
+{
+    si scanner.lexème != Lexème.ACCOLADE_OUVRANTE {
+        retourne Lexème.INVALIDE
+    }
+
+    scanner.lis()
+    scanner.lis_valeur()
+    scanner.lis()
+
+    si scanner.lexème != Lexème.ACCOLADE_FERMANTE {
+        retourne Lexème.INVALIDE
+    }
+
+    retourne Lexème.FIN_OBJET
+}
+
+lis_valeur :: fonc (scanner: *ScannerJSON) -> Lexème
+{
+    si scanner.lexème != Lexème.GUILLEMET {
+        retourne Lexème.INVALIDE
+    }
+
+    chn := scanner.lis_chaine()
+
+    si scanner.lexème != Lexème.GUILLEMET {
+        retourne Lexème.INVALIDE
+    }
+
+    scanner.lis()
+
+    si scanner.lexème != Lexème.DOUBLE_POINT {
+        retourne Lexème.INVALIDE
+    }
+
+    scanner.lis()
+
+    retourne Lexème.FIN_VALEUR
+}
+*/
