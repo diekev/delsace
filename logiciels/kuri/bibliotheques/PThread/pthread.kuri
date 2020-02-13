@@ -10,7 +10,7 @@ pthread_spinlock_t :: struct externe { d: z32; } // z32
 #bib "pthread"
 #def "_REENTRANT"
 
-__pthread_rwlock_arch_t :: struct {
+__pthread_rwlock_arch_t :: struct externe {
 	__readers : n32
 	__writers : n32
 	__wrphase_futex : n32
@@ -25,12 +25,12 @@ __pthread_rwlock_arch_t :: struct {
 	__flags : n32
 }
 
-__pthread_list_t :: struct {
+__pthread_list_t :: struct externe {
 	__prev : *__pthread_list_t
 	__next : *__pthread_list_t
 }
 
-__pthread_mutex_s :: struct {
+__pthread_mutex_s :: struct externe {
 	__lock : z32
 	__count : n32
 	__owner : z32
@@ -42,10 +42,10 @@ __pthread_mutex_s :: struct {
 }
 
 /* À FAIRE : structs dans des structs...
-__pthread_cond_s :: struct {
-	anonyme0 :: union nonsûr {
+__pthread_cond_s :: struct externe {
+	anonyme0 :: union externe nonsûr {
 		__wseq : n64
-		anonyme1 :: struct {
+		anonyme1 :: struct externe {
 			__low : n32
 			__high : n32
 		}
@@ -53,9 +53,9 @@ __pthread_cond_s :: struct {
 		__wseq32 : anonyme1
 	}
 
-	anonyme2 :: union nonsûr {
+	anonyme2 :: union externe nonsûr {
 		__g1_start : n64
-		anonyme3 :: struct {
+		anonyme3 :: struct externe {
 			__low : n32
 			__high : n32
 		}
@@ -70,29 +70,29 @@ __pthread_cond_s :: struct {
 	__g_signals : [2]n32
 }
 */
-anonyme1 :: struct {
+anonyme1 :: struct externe {
 	__low : n32
 	__high : n32
 }
 
-anonyme0 :: union nonsûr {
+anonyme0 :: union externe nonsûr {
 	__wseq : n64
 
 	__wseq32 : anonyme1
 }
 
-anonyme3 :: struct {
+anonyme3 :: struct externe {
 	__low : n32
 	__high : n32
 }
 
-anonyme2 :: union nonsûr {
+anonyme2 :: union externe nonsûr {
 	__g1_start : n64
 
 	__g1_start32 : anonyme3
 }
 
-__pthread_cond_s :: struct {
+__pthread_cond_s :: struct externe {
 	a0 : anonyme0
 
 	a2 : anonyme2
@@ -104,50 +104,50 @@ __pthread_cond_s :: struct {
 	__g_signals : [2]n32
 }
 
-pthread_mutexattr_t :: union nonsûr {
+pthread_mutexattr_t :: union externe nonsûr {
 	__size : [4]z8
 	__align : z32
 }
 
-pthread_condattr_t :: union nonsûr {
+pthread_condattr_t :: union externe nonsûr {
 	__size : [4]z8
 	__align : z32
 }
 
-pthread_attr_t :: union nonsûr {
+pthread_attr_t :: union externe nonsûr {
 	__size : [56]z8
 	__align : z64
 }
 
-pthread_mutex_t :: union nonsûr {
+pthread_mutex_t :: union externe nonsûr {
 	__data : __pthread_mutex_s
 	__size : [40]z8
 	__align : z64
 }
 
-pthread_cond_t :: union nonsûr {
+pthread_cond_t :: union externe nonsûr {
 	__data : __pthread_cond_s
 	__size : [48]z8
 	__align : z64
 }
 
-pthread_rwlock_t :: union nonsûr {
+pthread_rwlock_t :: union externe nonsûr {
 	__data : __pthread_rwlock_arch_t
 	__size : [56]z8
 	__align : z64
 }
 
-pthread_rwlockattr_t :: union nonsûr {
+pthread_rwlockattr_t :: union externe nonsûr {
 	__size : [8]z8
 	__align : z64
 }
 
-pthread_barrier_t :: union nonsûr {
+pthread_barrier_t :: union externe nonsûr {
 	__size : [32]z8
 	__align : z64
 }
 
-pthread_barrierattr_t :: union nonsûr {
+pthread_barrierattr_t :: union externe nonsûr {
 	__size : [4]z8
 	__align : z32
 }
@@ -204,8 +204,8 @@ anonyme11 :: énum : n32 {
 	PTHREAD_PROCESS_SHARED
 }
 
-_pthread_cleanup_buffer :: struct {
-	__routine : fonc(*rien)(rien)
+_pthread_cleanup_buffer :: struct externe {
+	__routine : #nulctx fonc(*rien)(rien)
 	__arg : *rien
 	__canceltype : z32
 	__prev : *_pthread_cleanup_buffer
@@ -221,7 +221,7 @@ anonyme13 :: énum : n32 {
 	PTHREAD_CANCEL_ASYNCHRONOUS
 }
 
-pthread_create :: fonc externe (__newthread : *n64, __attr : *pthread_attr_t, __start_routine : fonc(*rien)(*rien), __arg : *rien) -> z32
+pthread_create :: fonc externe (__newthread : *n64, __attr : *pthread_attr_t, __start_routine : #nulctx fonc(*rien)(*rien), __arg : *rien) -> z32
 pthread_exit :: fonc externe (__retval : *rien) -> rien
 pthread_join :: fonc externe (__th : n64, __thread_return : **rien) -> z32
 pthread_tryjoin_np :: fonc externe (__th : n64, __thread_return : **rien) -> z32
@@ -264,15 +264,15 @@ pthread_setconcurrency :: fonc externe (__level : z32) -> z32
 pthread_yield :: fonc externe () -> z32
 pthread_setaffinity_np :: fonc externe (__th : n64, __cpusetsize : n64, __cpuset : *cpu_set_t) -> z32
 pthread_getaffinity_np :: fonc externe (__th : n64, __cpusetsize : n64, __cpuset : *cpu_set_t) -> z32
-pthread_once :: fonc externe (__once_control : *pthread_once_t, __init_routine : fonc()(rien)) -> z32
+pthread_once :: fonc externe (__once_control : *pthread_once_t, __init_routine : #nulctx fonc()(rien)) -> z32
 pthread_setcancelstate :: fonc externe (__state : z32, __oldstate : *z32) -> z32
 pthread_setcanceltype :: fonc externe (__type : z32, __oldtype : *z32) -> z32
 pthread_cancel :: fonc externe (__th : n64) -> z32
 
 /*
 pthread_testcancel :: fonc externe () -> rien
-	__pthread_unwind_buf_t :: struct {
-		anonyme14 :: struct {
+	__pthread_unwind_buf_t :: struct externe {
+		anonyme14 :: struct externe {
 			__cancel_jmp_buf : __jmp_buf
 			__mask_was_saved : z32
 		}
@@ -281,19 +281,19 @@ pthread_testcancel :: fonc externe () -> rien
 		__pad : [4]*rien
 	}
 
-	__pthread_cleanup_frame :: struct {
-		__cancel_routine : fonc(*rien)(rien)
+	__pthread_cleanup_frame :: struct externe {
+		__cancel_routine : #nulctx fonc(*rien)(rien)
 		__cancel_arg : *rien
 		__do_it : z32
 		__cancel_type : z32
 	}
 
-	__pthread_cleanup_class :: struct {
-		__cancel_routine : fonc(*rien)(rien)
+	__pthread_cleanup_class :: struct externe {
+		__cancel_routine : #nulctx fonc(*rien)(rien)
 		__cancel_arg : *rien
 		__do_it : z32
 		__cancel_type : z32
-#!enligne __pthread_cleanup_class :: fonc externe (this : *__pthread_cleanup_class, __fct : fonc(*rien)(rien), __arg : *rien) -> rien
+#!enligne __pthread_cleanup_class :: fonc externe (this : *__pthread_cleanup_class, __fct : #nulctx fonc(*rien)(rien), __arg : *rien) -> rien
 {
 }
 
@@ -386,9 +386,9 @@ pthread_barrierattr_init :: fonc externe (__attr : *pthread_barrierattr_t) -> z3
 pthread_barrierattr_destroy :: fonc externe (__attr : *pthread_barrierattr_t) -> z32
 pthread_barrierattr_getpshared :: fonc externe (__attr : *pthread_barrierattr_t, __pshared : *z32) -> z32
 pthread_barrierattr_setpshared :: fonc externe (__attr : *pthread_barrierattr_t, __pshared : z32) -> z32
-pthread_key_create :: fonc externe (__key : *n32, __destr_function : fonc(*rien)(rien)) -> z32
+pthread_key_create :: fonc externe (__key : *n32, __destr_function : #nulctx fonc(*rien)(rien)) -> z32
 pthread_key_delete :: fonc externe (__key : n32) -> z32
 pthread_getspecific :: fonc externe (__key : n32) -> *rien
 pthread_setspecific :: fonc externe (__key : n32, __pointer : *rien) -> z32
 pthread_getcpuclockid :: fonc externe (__thread_id : n64, __clock_id : *__clockid_t) -> z32
-pthread_atfork :: fonc externe (__prepare : fonc()(rien), __parent : fonc()(rien), __child : fonc()(rien)) -> z32
+pthread_atfork :: fonc externe (__prepare : #nulctx fonc()(rien), __parent : #nulctx fonc()(rien), __child : #nulctx fonc()(rien)) -> z32

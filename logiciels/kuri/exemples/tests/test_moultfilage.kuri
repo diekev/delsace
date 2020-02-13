@@ -1,4 +1,3 @@
-// À FAIRE : ne peut avoir une structure externe sans définition comme champs dans une structure (hors pointeur)
 // À FAIRE : initialisation des structures
 // À FAIRE : déclaration de variables externes (notamment pour les globales)
 // À FAIRE : permet de préciser le ctx pour les fonctions avec contexte appelée dans des fonctions sans
@@ -6,41 +5,9 @@
 // https://franckh.developpez.com/tutoriels/posix/pthreads/
 
 importe GlibC
+importe PThread
 
 printf :: fonc externe (fmt : *z8, args : ...) -> z32
-
-#inclus "pthread.h"
-#bib "pthread"
-#def "_REENTRANT"
-
-pthread_attr_t :: struct externe 
-
-pthread_create :: fonc externe (thread : *n64, attr : *pthread_attr_t,  start_routine : fonc(*rien)*rien, arg : *rien) -> z32
-
-// Pour arrêter le fil courant
-pthread_exit :: fonc externe (retval : *rien) -> rien
-
-// Annule l'exécution du fil donné
-pthread_cancel :: fonc externe (thread : n64) -> z32
-
-// Cette fonction permet de changer le comportement du thread appelant par rapport aux requêtes d'annulations
-pthread_setcancelstate :: fonc externe  (state : z32, etat_pred : *z32) -> z32
-
-pthread_join :: fonc externe  (thread : n64, thread_return : **rien) -> z32
-
-pthread_mutex_t :: struct externe 
-
-pthread_mutex_lock :: fonc externe (mutex : *pthread_mutex_t) -> z32
-
-pthread_mutex_unlock :: fonc externe (mutex : *pthread_mutex_t) -> z32
-
-pthread_cond_t :: struct externe 
-
-pthread_cond_wait :: fonc externe (cond : *pthread_cond_t, mutex : *pthread_mutex_t) -> z32
-
-pthread_cond_signal :: fonc externe (cond : *pthread_cond_t) -> z32
-
-pthread_cond_broadcast :: fonc externe (cond : *pthread_cond_t) -> z32
 
 //#####################################################################################
 
@@ -59,9 +26,9 @@ store_t :: struct {
    thread_store : n64
    thread_clients : [5]n64
 
-   mutex : *pthread_mutex_t
-   cond_clients : *pthread_cond_t
-   cond_store : *pthread_cond_t
+   mutex : pthread_mutex_t
+   cond_clients : pthread_cond_t
+   cond_store : pthread_cond_t
 }
 
 // Fonction pour tirer un nombre au sort entre 0 et max.
@@ -80,14 +47,14 @@ store_t :: struct {
     dyn store := transtype(p_data : *store_t)
 
 	boucle {
-        pthread_mutex_lock(store.mutex)
-        pthread_cond_wait(store.cond_store, store.mutex)
+        pthread_mutex_lock(@store.mutex)
+        pthread_cond_wait(@store.cond_store, @store.mutex)
 
 		store.stock = 20
 		printf("Remplissage du stock de %d articles !\n".pointeur, store.stock)
 
-        pthread_cond_signal(store.cond_clients)
-        pthread_mutex_unlock(store.mutex)
+        pthread_cond_signal(@store.cond_clients)
+        pthread_mutex_unlock(@store.mutex)
 	}
 
 	retourne nul
@@ -103,18 +70,18 @@ store_t :: struct {
 		val : z32 = get_random(6)
 		sleep((get_random(3)))
 
-        pthread_mutex_lock(store.mutex)
+        pthread_mutex_lock(@store.mutex)
 
         si val > store.stock {
-            pthread_cond_signal(store.cond_store)
-            pthread_cond_wait(store.cond_clients, store.mutex)
+            pthread_cond_signal(@store.cond_store)
+            pthread_cond_wait(@store.cond_clients, @store.mutex)
         }
 
 		store.stock = store.stock - val
 
 		printf("Client %d prend %d du stock, reste %d en stock !\n".pointeur, nb, val, store.stock)
 
-        pthread_mutex_unlock(store.mutex)
+        pthread_mutex_unlock(@store.mutex)
 	}
 
 	retourne nul
@@ -122,16 +89,9 @@ store_t :: struct {
 
 principale :: fonc(args : []*z8) -> z32
 {
-    dyn store := store_t{ stock = 20, mutex = loge pthread_mutex_t, cond_clients = loge pthread_cond_t, cond_store = loge pthread_cond_t }
-
-    // À FAIRE : la mémoire n'est pas délogée car nous avons des boucles infinies et il nous faut avorter le programme manuellement
-    diffère {
-        déloge store.mutex
-        déloge store.cond_clients
-        déloge store.cond_store
-    }
-
+    dyn store := store_t{ stock = 20 }
 	dyn ret : z32 = 0
+
 	printf("Creation du thread du magasin !\n".pointeur)
 	ret = pthread_create(@store.thread_store, nul, fn_store, @store)
 

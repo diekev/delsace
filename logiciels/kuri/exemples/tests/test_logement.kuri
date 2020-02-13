@@ -1,4 +1,5 @@
-importe "flux"
+importe Fondation
+importe GlibC
 
 imprime_tableau :: fonc(tabl : []r64) -> rien
 {
@@ -6,11 +7,9 @@ imprime_tableau :: fonc(tabl : []r64) -> rien
     imprime_sans_format("tabl.taille = ", tabl.taille, "\n");
     imprime_sans_format("tabl.pointeur = ", tabl.pointeur, "\n");
 
-    dyn index = 0;
-    pour v dans tabl {
+    pour v, index dans tabl {
         x := v;
         imprime_sans_format("tabl[", index, "] = ", v, "\n");
-        index = index + 1;
     }
 }
 
@@ -43,13 +42,12 @@ test :: fonc() -> rien
     dyn vec2 : Vecteur;
     vec1 := Vecteur{x = 1.0, y = 4.0, z = 16.0};
 
-    imprime("Vecteur initiliasé : ", vec1, '\n');
-    imprime("Vecteur non-initiliasé : ", vec2, '\n');
+    imprime_sans_format("Vecteur initiliasé : ", vec1, "\n");
+    imprime_sans_format("Vecteur non-initiliasé : ", vec2, "\n");
 
-    // À FAIRE : appel foncs ne foncne pas s'il faut transformer les arguments
     dyn nom := "x";
 
-    dyn ok := possede_membre(vec1, nom);
+    dyn ok := possède_membre(vec1, nom);
 
     si ok {
         imprime_sans_format("Le vecteur possède le membre 'x' !\n");
@@ -58,9 +56,8 @@ test :: fonc() -> rien
         imprime_sans_format("Le vecteur ne possède pas le membre 'x' !\n");
     }
 
-    // À FAIRE : réassignement
-    dyn nom1 := "non";
-    ok = possede_membre(vec1, nom1);
+    nom = "non";
+    ok = possède_membre(vec1, nom);
 
     si ok {
         imprime_sans_format("Le vecteur possède le membre 'non' !\n");
@@ -77,8 +74,8 @@ logement_tableau :: fonc() -> rien
 
     dyn tabl := loge [32]r64;
 
-    imprime_sans_format("Tableau logé à l'addresse : ", tabl.pointeur, '\n');
-    imprime_sans_format("Taille tableau : ", tabl.taille, '\n');
+    imprime_sans_format("Tableau logé à l'addresse : ", tabl.pointeur, "\n");
+    imprime_sans_format("Taille tableau : ", tabl.taille, "\n");
 
     dyn debut := 1.0;
 
@@ -91,8 +88,8 @@ logement_tableau :: fonc() -> rien
 
     déloge tabl;
 
-    imprime("Tableau délogé : ", tabl.pointeur, '\n');
-    imprime("Taille tableau : ", tabl.taille, '\n');
+    imprime("Tableau délogé : ", tabl.pointeur, "\n");
+    imprime("Taille tableau : ", tabl.taille, "\n");
 
     imprime_tableau(tabl);
 }
@@ -106,14 +103,14 @@ logement_chaine :: fonc() -> rien
     chn1 := "Kévin";
     chn2 := "Dietrich";
 
-    dyn chnr = concatene(chn1, chn2);
+    dyn chnr := enchaine(chn1, chn2);
 
-    imprime_sans_format("Résultat : ", chnr, '\n');
+    imprime_sans_format("Résultat : ", chnr, "\n");
 
     déloge chnr;
 
-    imprime_sans_format("Chaîne délogée : ", chnr.pointeur, '\n');
-    imprime_sans_format("Taille chaîne  : ", chnr.taille, '\n');
+    imprime_sans_format("Chaîne délogée : ", chnr.pointeur, "\n");
+    imprime_sans_format("Taille chaîne  : ", chnr.taille, "\n");
 }
 
 test_fichier :: fonc() -> rien
@@ -124,7 +121,7 @@ test_fichier :: fonc() -> rien
     chemin := "/home/kevin/test.kuri";
 
     nonsûr {
-        dyn res := open(chemin, 0);
+        dyn res := open(chemin.pointeur, 0);
 
         si res == -1 {
             imprime_sans_format("Erreur lors de l'ouverture du fichier !\n");
@@ -132,15 +129,15 @@ test_fichier :: fonc() -> rien
         }
 
         dyn tpn : [1024]z8;
-        dyn nread = read(res, @tpn[0], 1024);
+        dyn nread := read(res, @tpn[0], transtype(1024: n64));
 
         imprime("Lu ", nread, " octets\n");
 
-        dyn chn : chaîne;
+        dyn chn : chaine;
         chn.pointeur = @tpn[0]; // À FAIRE : prend pointeur automatiquement
         chn.taille = transtype(nread : z64);
 
-        imprime(chn, '\n');
+        imprime(chn, "\n");
 
         res = close(res);
 
@@ -157,13 +154,11 @@ principale :: fonc(args : []*z8) -> z32
     imprime_sans_format("                arguments                \n");
 
     str := "nombre d'arguments = ";
-    imprime_sans_format(str, argc, "\n");
+    imprime_sans_format(str, args.taille, "\n");
 
-    dyn i := 0;
-    pour arg dans args {
+    pour arg, i dans args {
         nom_arg := converti_chaine_c(arg);
         imprime_sans_format("argument ", i,": ", nom_arg, "\n");
-        i += 1;
     }
 
     logement_tableau();
