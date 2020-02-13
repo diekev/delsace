@@ -147,8 +147,6 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 
 // -----------------------------------
 
-importe JSON
-
 // une syntaxeuse qui met directement les données dans une structure
 SyntaxeuseStruct :: struct {
 	lexèmes : []DonneesLexème
