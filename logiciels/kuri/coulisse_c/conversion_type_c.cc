@@ -307,11 +307,14 @@ static auto converti_type_simple_C(
 				converti_type_simple_C(contexte, os, dt.type_base(), false, false, false);
 			}
 			else {
-				if (donnees_struct.est_union && donnees_struct.est_nonsur) {
-					os << ((echappe) ? "union_" : "union ");
-				}
-				else if (echappe_struct || donnees_struct.est_externe) {
-					os << ((echappe) ? "struct_" : "struct ");
+				/* XXX - hack, ces types ne peuvent avoir de spécifiants par que ce sont des typedefs de structs anonymes ? */
+				if (nom_structure != "pthread_mutex_t" && nom_structure != "pthread_cond_t") {
+					if (donnees_struct.est_union && donnees_struct.est_nonsur) {
+						os << ((echappe) ? "union_" : "union ");
+					}
+					else if (echappe_struct || donnees_struct.est_externe) {
+						os << ((echappe) ? "struct_" : "struct ");
+					}
 				}
 
 				os << broye_nom_simple(nom_structure);
