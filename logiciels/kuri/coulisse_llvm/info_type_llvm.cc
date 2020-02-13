@@ -80,7 +80,7 @@ struct IDInfoType {
 		ContexteGenerationCode &contexte,
 		uint64_t nombre_bits)
 {
-	auto type_llvm = obtiens_type_pour(contexte, "InfoTypeRéel");
+	auto type_llvm = obtiens_type_pour(contexte, "InfoType");
 
 	/* { id : e32, nombre_bits : e32 } */
 

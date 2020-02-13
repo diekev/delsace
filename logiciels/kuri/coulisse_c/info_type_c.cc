@@ -85,7 +85,7 @@ static auto cree_info_type_reel_C(
 		IDInfoType const &id_info_type,
 		dls::chaine const &nom_info_type)
 {
-	os_decl << "static const " << broye_nom_simple("InfoTypeRéel ") << nom_info_type << " = {\n";
+	os_decl << "static const InfoType " << nom_info_type << " = {\n";
 	os_decl << "\t.id = " << id_info_type.REEL << ",\n";
 	os_decl << "\t.taille_en_octet = " << taille_en_octet << '\n';
 	os_decl << "};\n";
@@ -314,17 +314,17 @@ dls::chaine cree_info_type_C(
 		}
 		case GenreLexeme::R16:
 		{
-			cree_info_type_reel_C(os_decl, 2, id_info_type, nom_info_type);
+			cree_info_type_defaul_C(os_decl, id_info_type.REEL, nom_info_type, 2);
 			break;
 		}
 		case GenreLexeme::R32:
 		{
-			cree_info_type_reel_C(os_decl, 4, id_info_type, nom_info_type);
+			cree_info_type_defaul_C(os_decl, id_info_type.REEL, nom_info_type, 4);
 			break;
 		}
 		case GenreLexeme::R64:
 		{
-			cree_info_type_reel_C(os_decl, taille_octet_type(contexte, donnees_type), id_info_type, nom_info_type);
+			cree_info_type_defaul_C(os_decl, id_info_type.REEL, nom_info_type, taille_octet_type(contexte, donnees_type));
 			break;
 		}
 		case GenreLexeme::REFERENCE:

@@ -2999,7 +2999,6 @@ void KR__acces_membre_union(
 	const char *noms_structs_infos_types[] = {
 		"InfoType",
 		"InfoTypeEntier",
-		"InfoTypeRéel",
 		"InfoTypePointeur",
 		"InfoTypeÉnum",
 		"InfoTypeStructure",
@@ -3221,7 +3220,6 @@ void KR__acces_membre_union(
 	const char *noms_structs_infos_types[] = {
 		"InfoType",
 		"InfoTypeEntier",
-		"InfoTypeRéel",
 		"InfoTypePointeur",
 		"InfoTypeÉnum",
 		"InfoTypeStructure",

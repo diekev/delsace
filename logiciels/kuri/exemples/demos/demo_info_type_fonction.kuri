@@ -46,15 +46,13 @@ imprime_type :: fonc(info : *InfoType) -> rien
 			}
 		}
 		RÉEL {
-		    info_arg := transtype(info : *InfoTypeRéel)
-
-            si info_arg.taille_en_octet == 16 {
+            si info.taille_en_octet == 16 {
 			    imprime_sans_format("r16")
 			}
-			sinon si info_arg.taille_en_octet == 32 {
+			sinon si info.taille_en_octet == 32 {
 			    imprime_sans_format("r32")
 			}
-			sinon si info_arg.taille_en_octet == 64 {
+			sinon si info.taille_en_octet == 64 {
 			    imprime_sans_format("r64")
 			}
 		}

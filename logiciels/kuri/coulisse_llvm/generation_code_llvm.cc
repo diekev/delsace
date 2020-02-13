@@ -2832,7 +2832,6 @@ void genere_code_llvm(
 	const char *noms_structs_infos_types[] = {
 		"InfoType",
 		"InfoTypeEntier",
-		"InfoTypeRéel",
 		"InfoTypePointeur",
 		"InfoTypeÉnum",
 		"InfoTypeStructure",

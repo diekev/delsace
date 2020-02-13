@@ -26,10 +26,6 @@ InfoTypeEntier :: struct {
 	est_signé : bool
 }
 
-InfoTypeRéel :: struct {
-	empl base : InfoType
-}
-
 InfoTypePointeur :: struct {
 	empl base : InfoType
 

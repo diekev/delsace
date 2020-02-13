@@ -555,17 +555,16 @@ imprime_valeur :: fonc(
             imprime_valeur_entière(enchaineuse, pointeur, info_arg)
 		}
 		RÉEL {
-			info_arg := transtype(info : *InfoTypeRéel)
 			dyn y : r32
 
-            si info_arg.taille_en_octet == transtype(2: n32) {
+            si info.taille_en_octet == transtype(2: n32) {
 				x := mémoire(transtype(pointeur : *r16))
 				y = x
 			}
-			sinon si info_arg.taille_en_octet == transtype(4: n32) {
+			sinon si info.taille_en_octet == transtype(4: n32) {
 				y = mémoire(transtype(pointeur : *r32))
 			}
-			sinon si info_arg.taille_en_octet == transtype(8: n32) {
+			sinon si info.taille_en_octet == transtype(8: n32) {
 				x := mémoire(transtype(pointeur : *r64))
 				y = transtype(x : r32)
 			}

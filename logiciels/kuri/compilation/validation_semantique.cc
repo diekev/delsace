@@ -2293,13 +2293,6 @@ static void performe_validation_semantique(
 					nom_struct = "InfoTypeEntier";
 					break;
 				}
-				case GenreLexeme::R16:
-				case GenreLexeme::R32:
-				case GenreLexeme::R64:
-				{
-					nom_struct = "InfoTypeRéel";
-					break;
-				}
 				case GenreLexeme::REFERENCE:
 				case GenreLexeme::POINTEUR:
 				{

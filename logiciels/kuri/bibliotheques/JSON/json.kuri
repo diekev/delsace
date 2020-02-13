@@ -18,17 +18,16 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
             imprime_valeur_entière(mémoire(enchaineuse), pointeur, info_arg)
 		}
 		RÉEL {
-			info_arg := transtype(info : *InfoTypeRéel)
 			dyn y : r32
 
-            si info_arg.taille_en_octet == transtype(16: n32) {
+            si info.taille_en_octet == transtype(16: n32) {
 				x := mémoire(transtype(pointeur : *r16))
 				y = x
 			}
-			sinon si info_arg.taille_en_octet == transtype(32: n32) {
+			sinon si info.taille_en_octet == transtype(32: n32) {
 				y = mémoire(transtype(pointeur : *r32))
 			}
-			sinon si info_arg.taille_en_octet == transtype(64: n32) {
+			sinon si info.taille_en_octet == transtype(64: n32) {
 				x := mémoire(transtype(pointeur : *r64))
 				y = transtype(x : r32)
 			}
