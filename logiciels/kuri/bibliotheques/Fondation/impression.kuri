@@ -649,13 +649,50 @@ imprime_valeur :: fonc(
             enchaineuse.pousse("rien")
 		}
 		TABLEAU {
-			x := mémoire(transtype(pointeur : *[]z8))
+			info_arg := transtype(info : *InfoTypeTableau)
 
-            enchaineuse.pousse("tableau { ptr = ")
-            imprime_pointeur(enchaineuse, x.pointeur)
-            enchaineuse.pousse(", taille = ")
-            imprime_valeur_entier_relatif(enchaineuse, x.taille)
-            enchaineuse.pousse(" }")
+            décalage := transtype(info_arg.type_pointé.taille_en_octet: z32)
+
+			dyn max_élément := 5
+
+            si info_arg.est_tableau_fixe {
+				si info_arg.taille_fixe < max_élément {
+					max_élément = info_arg.taille_fixe
+				}
+
+                pour i dans 0 ... max_élément - 1 {
+                    si i != 0 {
+                        enchaineuse.pousse(',')
+                    }
+
+                    imprime_valeur(enchaineuse, pointeur + décalage * i, info_arg.type_pointé, vrai)
+                }
+
+				si info_arg.taille_fixe > max_élément {
+            		enchaineuse.pousse(", ...")
+				}
+            }
+            sinon {
+                x := mémoire(transtype(pointeur: *[]z8))
+
+				si x.taille < max_élément {
+					max_élément = transtype(x.taille: z32)
+				}
+
+                pour i dans 0 ... max_élément - 1 {
+                    si i != 0 {
+                        enchaineuse.pousse(',')
+                    }
+
+                    imprime_valeur(enchaineuse, x.pointeur + décalage * i, info_arg.type_pointé, vrai)
+                }
+
+				si x.taille > max_élément {
+            		enchaineuse.pousse(", ...")
+				}
+            }
+
+            enchaineuse.pousse("]")
 		}
 		ÉNUM {
 			info_arg := transtype(info : *InfoTypeÉnum)

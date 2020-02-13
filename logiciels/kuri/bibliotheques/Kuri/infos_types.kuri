@@ -1,4 +1,4 @@
-// Structures de bases pour contenir les informations d'un type.
+// Structures de bases pour contenir les informations d'un type.
 
 id_info :: énum : z32 {
     ENTIER    := 0
@@ -45,6 +45,8 @@ InfoTypeTableau :: struct {
 	taille_en_octet : n32
 
 	type_pointé : *InfoType
+	est_tableau_fixe : bool
+	taille_fixe : z32
 }
 
 InfoTypeMembreStructure :: struct {

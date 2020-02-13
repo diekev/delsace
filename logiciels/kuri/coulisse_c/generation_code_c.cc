@@ -64,6 +64,7 @@ static void applique_transformation(
 	/* force une expression gauche afin de ne pas prendre la référence d'une
 	 * variable temporaire */
 	expr_gauche |= b->transformation.type == TypeTransformation::PREND_REFERENCE;
+	expr_gauche |= b->transformation.type == TypeTransformation::CONSTRUIT_EINI;
 	genere_code_C(b, generatrice, contexte, expr_gauche);
 
 	auto nom_courant = b->chaine_calculee();
@@ -84,8 +85,8 @@ static void applique_transformation(
 		}
 		case TypeTransformation::CONSTRUIT_EINI:
 		{
-			/* dans le cas d'un nombre ou d'un tableau, etc. */
-			if (b->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+			/* dans le cas d'un nombre ou d'une chaine, etc. */
+			if (!est_valeur_gauche(b->genre_valeur)) {
 				generatrice.declare_variable(dt, nom_var_temp, b->chaine_calculee());
 				nom_courant = nom_var_temp;
 				nom_var_temp = "__var_temp_eini" + dls::vers_chaine(index++);
@@ -172,25 +173,6 @@ static void applique_transformation(
 			os << "\t.taille = " << static_cast<size_t>(dt.type_base() >> 8) << ",\n";
 			os << "\t.pointeur = " << nom_courant << "\n";
 			os << "};";
-
-			break;
-		}
-		case TypeTransformation::CONSTRUIT_EINI_TABLEAU:
-		{
-			auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
-			index_dt = contexte.typeuse.type_tableau_pour(index_dt);
-			os << nom_broye_type(contexte, index_dt) << ' ' << nom_var_temp << " = {\n";
-			os << "\t.taille = " << static_cast<size_t>(dt.type_base() >> 8) << ",\n";
-			os << "\t.pointeur = " << nom_courant << "\n";
-			os << "};";
-
-			nom_courant = nom_var_temp;
-			nom_var_temp = "__var_temp_tabl_eini" + dls::vers_chaine(index++);
-
-			os << "Kseini " << nom_var_temp << " = {\n";
-			os << "\t.pointeur = &" << nom_courant << ",\n";
-			os << "\t.info = (InfoType *)(&" << dt.ptr_info_type << ")\n";
-			os << "};\n";
 
 			break;
 		}

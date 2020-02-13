@@ -67,6 +67,7 @@ using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
  * - erreur en cas de débordement des limites, où d'accès à un membre non-actif d'une union
  * - stockage temporaire
  * - ajourne les infos types pour avoir une taille en octet pour chaque struct (avec la taille en octet et non en bits !)
+ * - ajourne les infos types pour séparer les tableaux fixes des dynamiques
  */
 
 /* ************************************************************************** */
@@ -536,32 +537,6 @@ enum {
 		{
 			valeur = genere_code_llvm(b, contexte, true);
 			valeur = converti_vers_tableau_dyn(contexte, valeur, dt, !expr_gauche);
-			break;
-		}
-		case TypeTransformation::CONSTRUIT_EINI_TABLEAU:
-		{
-			/* À FAIRE: LLVM crash à cause de ce code, mais quand nous faisons
-			 * la transformation manuellement, comme ceci :
-			 * tabl_fixe : [3]r32 = ...
-			 * tabl_dyn : []r32 = tabl_fixe
-			 * eini_tabl : eini = tabl_dyn
-			 *
-			 * le crash disparait. Il faudra analyser le code généré, mais le
-			 * crash survient lors de l'impression du code intermédiaire...
-			 */
-			valeur = genere_code_llvm(b, contexte, true);
-
-			/* construit un tableau dynamique */
-			valeur = converti_vers_tableau_dyn(contexte, valeur, dt, true);
-
-			auto deref = dt.dereference();
-			auto dt_tabl_dyn = DonneesTypeFinal{};
-			dt_tabl_dyn.pousse(GenreLexeme::TABLEAU);
-			dt_tabl_dyn.pousse(deref);
-
-			/* converti en un eini */
-			valeur = converti_vers_eini(contexte, valeur, dt_tabl_dyn, !expr_gauche);
-
 			break;
 		}
 		case TypeTransformation::FONCTION:

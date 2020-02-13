@@ -385,6 +385,9 @@ dls::chaine cree_info_type_C(
 			if (est_invalide(deref)) {
 				os_decl << "static const InfoTypeTableau " << nom_info_type << " = {\n";
 				os_decl << "\t.id = " << id_info_type.TABLEAU << ",\n";
+				os_decl << "\t.taille_en_octet = 0,\n";
+				os_decl << "\t.est_tableau_fixe = 0,\n";
+				os_decl << "\t.taille_fixe = 0,\n";
 				os_decl << '\t' << broye_nom_simple(".type_pointé") << " = 0,\n";
 				os_decl << "};\n";
 			}
@@ -398,6 +401,19 @@ dls::chaine cree_info_type_C(
 
 				os_decl << "static const InfoTypeTableau " << nom_info_type << " = {\n";
 				os_decl << "\t.id = " << id_info_type.TABLEAU << ",\n";
+
+				if (est_type_tableau_fixe(donnees_type.type_base())) {
+					auto taille_tableau = static_cast<unsigned>(donnees_type.type_base() >> 8);
+					auto taille_octets = taille_tableau * taille_octet_type(contexte, donnees_type.dereference());
+					os_decl << "\t.taille_en_octet = " << taille_octets << ",\n";
+					os_decl << "\t.est_tableau_fixe = 1,\n";
+					os_decl << "\t.taille_fixe = " << taille_tableau << ",\n";
+				}
+				else {
+					os_decl << "\t.taille_en_octet = 16,\n";
+					os_decl << "\t.est_tableau_fixe = 0,\n";
+					os_decl << "\t.taille_fixe = 0,\n";
+				}
 				os_decl << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << "),\n";
 				os_decl << "};\n";
 			}

@@ -34,7 +34,6 @@ const char *chaine_transformation(TypeTransformation type)
 		CAS_TYPE(INUTILE)
 		CAS_TYPE(IMPOSSIBLE)
 		CAS_TYPE(CONSTRUIT_EINI)
-		CAS_TYPE(CONSTRUIT_EINI_TABLEAU)
 		CAS_TYPE(EXTRAIT_EINI)
 		CAS_TYPE(CONSTRUIT_TABL_OCTET)
 		CAS_TYPE(PREND_PTR_RIEN)
@@ -132,10 +131,6 @@ TransformationType cherche_transformation(
 	}
 
 	if (type_vers == typeuse[TypeBase::EINI]) {
-		if (est_type_tableau_fixe(dt_de)) {
-			return TypeTransformation::CONSTRUIT_EINI_TABLEAU;
-		}
-
 		return TypeTransformation::CONSTRUIT_EINI;
 	}
 
