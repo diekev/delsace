@@ -44,6 +44,7 @@ endif()
 
 set(DOSSIER_MODULES
 	bibliotheques/Fondation
+	bibliotheques/JSON
 	bibliotheques/GlibC
 	bibliotheques/Kuri
 	bibliotheques/OpenSSL

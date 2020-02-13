@@ -1,8 +1,6 @@
 importe Fondation
 importe Tori // pour imprime_json
-
-charge "lexage"
-charge "syntaxage"
+importe JSON
 
 //##############################################################################
 
