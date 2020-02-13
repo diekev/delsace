@@ -57,7 +57,7 @@ static auto cree_info_type_defaul_C(
 		dls::flux_chaine &os_decl,
 		dls::chaine const &id_type,
 		dls::chaine const &nom_info_type,
-		int taille_en_octet)
+		unsigned taille_en_octet)
 {
 	os_decl << "static const InfoType " << nom_info_type << " = {\n";
 	os_decl << "\t.id = " << id_type << ",\n";
@@ -67,7 +67,7 @@ static auto cree_info_type_defaul_C(
 
 static auto cree_info_type_entier_C(
 		dls::flux_chaine &os_decl,
-		int taille_en_octet,
+		unsigned taille_en_octet,
 		bool est_signe,
 		IDInfoType const &id_info_type,
 		dls::chaine const &nom_info_type)
@@ -81,7 +81,7 @@ static auto cree_info_type_entier_C(
 
 static auto cree_info_type_reel_C(
 		dls::flux_chaine &os_decl,
-		int taille_en_octet,
+		unsigned taille_en_octet,
 		IDInfoType const &id_info_type,
 		dls::chaine const &nom_info_type)
 {
@@ -194,7 +194,8 @@ static auto cree_info_type_enum_C(
 		dls::vue_chaine_compacte const &nom_struct,
 		DonneesStructure const &donnees_structure,
 		IDInfoType const &id_info_type,
-		dls::chaine const &nom_info_type)
+		dls::chaine const &nom_info_type,
+		unsigned taille_octet)
 {
 	auto nom_broye = broye_nom_simple(nom_struct);
 
@@ -236,7 +237,7 @@ static auto cree_info_type_enum_C(
 	/* crée l'info type pour l'énum */
 	os_decl << "static const " << broye_nom_simple("InfoTypeÉnum ") << nom_info_type << " = {\n";
 	os_decl << "\t.id = " << id_info_type.ENUM << ",\n";
-	os_decl << "\t.taille_en_octet = " << donnees_structure.taille_octet << ",\n";
+	os_decl << "\t.taille_en_octet = " << taille_octet << ",\n";
 	os_decl << "\t.est_drapeau = " << donnees_structure.est_drapeau << ",\n";
 	os_decl << "\t.nom = { .pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << " },\n";
 	os_decl << "\t.noms = { .pointeur = " << nom_tableau_noms << ", .taille = " << nombre_enfants << " },\n ";
@@ -303,12 +304,12 @@ dls::chaine cree_info_type_C(
 		}
 		case GenreLexeme::N64:
 		{
-			cree_info_type_entier_C(os_decl, 8, false, id_info_type, nom_info_type);
+			cree_info_type_entier_C(os_decl, taille_octet_type(contexte, donnees_type), false, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::Z64:
 		{
-			cree_info_type_entier_C(os_decl, 8, true, id_info_type, nom_info_type);
+			cree_info_type_entier_C(os_decl, taille_octet_type(contexte, donnees_type), true, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::R16:
@@ -323,7 +324,7 @@ dls::chaine cree_info_type_C(
 		}
 		case GenreLexeme::R64:
 		{
-			cree_info_type_reel_C(os_decl, 8, id_info_type, nom_info_type);
+			cree_info_type_reel_C(os_decl, taille_octet_type(contexte, donnees_type), id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::REFERENCE:
@@ -340,7 +341,7 @@ dls::chaine cree_info_type_C(
 
 			os_decl << "static const InfoTypePointeur " << nom_info_type << " = {\n";
 			os_decl << ".id = " << id_info_type.POINTEUR << ",\n";
-			os_decl << ".taille_en_octet = 8,\n";
+			os_decl << ".taille_en_octet = " << taille_octet_type(contexte, donnees_type) << ",\n";
 			os_decl << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << "),\n";
 			os_decl << '\t' << broye_nom_simple(".est_référence = ")
 					<< (donnees_type.type_base() == GenreLexeme::REFERENCE) << ",\n";
@@ -359,7 +360,8 @@ dls::chaine cree_info_type_C(
 							contexte.nom_struct(id_structure),
 							donnees_structure,
 							id_info_type,
-							nom_info_type);
+							nom_info_type,
+							taille_octet_type(contexte, donnees_type));
 
 			}
 			else {
@@ -404,13 +406,12 @@ dls::chaine cree_info_type_C(
 
 				if (est_type_tableau_fixe(donnees_type.type_base())) {
 					auto taille_tableau = static_cast<unsigned>(donnees_type.type_base() >> 8);
-					auto taille_octets = taille_tableau * taille_octet_type(contexte, donnees_type.dereference());
-					os_decl << "\t.taille_en_octet = " << taille_octets << ",\n";
+					os_decl << "\t.taille_en_octet = " << taille_octet_type(contexte, donnees_type) << ",\n";
 					os_decl << "\t.est_tableau_fixe = 1,\n";
 					os_decl << "\t.taille_fixe = " << taille_tableau << ",\n";
 				}
 				else {
-					os_decl << "\t.taille_en_octet = 16,\n";
+					os_decl << "\t.taille_en_octet = " << taille_octet_type(contexte, donnees_type) << ",\n";
 					os_decl << "\t.est_tableau_fixe = 0,\n";
 					os_decl << "\t.taille_fixe = 0,\n";
 				}
@@ -466,6 +467,7 @@ dls::chaine cree_info_type_C(
 			/* crée l'info type pour la fonction */
 			os_decl << "static const InfoTypeFonction " << nom_info_type << " = {\n";
 			os_decl << "\t.id = " << id_info_type.FONCTION << ",\n";
+			os_decl << "\t.taille_en_octet = " << taille_octet_type(contexte, donnees_type) << ",\n";
 			os_decl << "\t.est_coroutine = " << (donnees_type.type_base() == GenreLexeme::COROUT) << ",\n";
 			os_decl << broye_nom_simple("\t.types_entrée = { .pointeur = ") << nom_tableau_entrees;
 			os_decl << ", .taille = " << nombre_types_entree << " },\n";
@@ -477,7 +479,7 @@ dls::chaine cree_info_type_C(
 		}
 		case GenreLexeme::EINI:
 		{
-			cree_info_type_defaul_C(os_decl, id_info_type.EINI, nom_info_type, 16);
+			cree_info_type_defaul_C(os_decl, id_info_type.EINI, nom_info_type, taille_octet_type(contexte, donnees_type));
 			break;
 		}
 		case GenreLexeme::NUL: /* À FAIRE */
@@ -488,7 +490,7 @@ dls::chaine cree_info_type_C(
 		}
 		case GenreLexeme::CHAINE:
 		{
-			cree_info_type_defaul_C(os_decl, id_info_type.CHAINE, nom_info_type, 16);
+			cree_info_type_defaul_C(os_decl, id_info_type.CHAINE, nom_info_type, taille_octet_type(contexte, donnees_type));
 			break;
 		}
 	}
