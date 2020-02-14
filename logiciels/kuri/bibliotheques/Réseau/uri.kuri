@@ -124,8 +124,8 @@ construit_uri :: fonc(chn : chaine) -> URI
 somme_controle :: fonc(uri : &URI) -> n64
 {
     // nous ne considérons que l'autorité, le chemin et la requête
-    dyn somme1 = 0;
-    dyn somme2 = 0;
+    dyn somme1 := 0;
+    dyn somme2 := 0;
 
     pour c dans uri.autorité {
         somme1 = (somme1 + transtype(c : z32)) % 0xffffffff
@@ -142,7 +142,7 @@ somme_controle :: fonc(uri : &URI) -> n64
         somme2 = (somme1 + somme2) % 0xffffffff
     }
 
-    retourne (transtype(somme2 : n64) << 32) | transtype(somme1 : n64);
+    retourne (transtype(somme2 : n64) << transtype(32: n64)) | transtype(somme1 : n64);
 }
 
 port_pour_uri :: fonc(uri : &URI) -> n16
