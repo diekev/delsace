@@ -271,7 +271,7 @@ static void cree_appel(
 		b->valeur_calculee = dls::chaine("");
 	}
 	else if (dt.type_base() != GenreLexeme::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
-		auto nom_indirection = "__ret" + dls::vers_chaine(b);		
+		auto nom_indirection = "__ret" + dls::vers_chaine(b);
 		os << nom_broye_type(contexte, dt) << ' ' << nom_indirection << " = ";
 		b->valeur_calculee = nom_indirection;
 	}
@@ -1404,7 +1404,10 @@ void genere_code_C(
 			/* À FAIRE : tests */
 			auto flux = dls::flux_chaine();
 
-			applique_transformation(enfant1, generatrice, contexte, expr_gauche);
+			// force une expression gauche pour les types tableau fixe car une
+			// expression droite pourrait créer une variable temporarire T x[N] = pointeur
+			// ce qui est invalide en C.
+			applique_transformation(enfant1, generatrice, contexte, expr_gauche || est_type_tableau_fixe(type1));
 			genere_code_C(enfant2, generatrice, contexte, expr_gauche);
 
 			auto type_base = type1.type_base();
