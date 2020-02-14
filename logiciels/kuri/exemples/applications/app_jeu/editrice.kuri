@@ -1,4 +1,4 @@
-type_éditrice :: énum {
+TypeÉditrice :: énum z32 {
 	NULLE     := 0
 	PROPRIETE := 1
 	TEMPS     := 2
@@ -14,17 +14,17 @@ rect2d :: struct {
 	taille : vec2d
 }
 
-Editrice :: struct {
+Éditrice :: struct {
 	nom : chaîne
-	type : type_éditrice
+	type : TypeÉditrice
 
 	rect_abs : vec2d // rectangle en coordonnées pixel
 	rect_rel : vec2d // rectangle en coordonnées normalisées
 }
 
-fonction cree_editrice(type : type_éditrice) -> Editrice
+cree_éditrice :: fonc (type : TypeÉditrice) -> Éditrice
 {
-	dyn éditrice := loge Editrice
+	dyn éditrice := loge Éditrice
 	éditrice.type = type
 
 	discr type {
@@ -42,37 +42,31 @@ fonction cree_editrice(type : type_éditrice) -> Editrice
 	retourne éditrice
 }
 
-fonction ajoute_editrice(editrices : *tableau, type : type_éditrice) -> Editrice
+ajoute_éditrice :: fonc (éditrices : *[]*Éditrice, type : TypeÉditrice) -> Éditrice
 {
-	dyn editrice := cree_editrice(type)
+	dyn éditrice := cree_éditrice(type)
 
-	pousse_tableau(editrices, editrice)
+	tableau_ajoute(éditrices, éditrice)
 
 	// initialise la taille de l'éditrice selon sa position
 
-	retourne editrice
+	retourne éditrice
 }
 
-fonction enlève_editrice(editrices : *tableau, editrice : *Editrice) -> rien
+enlève_éditrice :: fonc (éditrices : *[]*Éditrice, éditrice : *Éditrice) -> rien
 {
 	// trouve l'index de l'éditrice dans le tableau
-	index := tableau.taille
-
-	pour i dans 0 ... tableau.taille - 1 {
-		dyn ed : *Editrice
-		valeur_tableau(editrices, i)
-	}
 
 	// supprime à l'index
 }
 
-// editrice gauche-droite-haut-bas
-fonction divise_editrice(editrice : *Editrice) -> bool
+// éditrice gauche-droite-haut-bas
+divise_éditrice :: fonc (éditrice : *Éditrice) -> bool
 {
-	gauche := editrice.gauche
-	droite := editrice.droite
-	haut   := editrice.haut
-	bas    := editrice.bas
+	gauche := éditrice.gauche
+	droite := éditrice.droite
+	haut   := éditrice.haut
+	bas    := éditrice.bas
 
 	si gauche == droite == haut == bas == nul {
 		retourne vrai
