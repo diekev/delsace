@@ -205,6 +205,9 @@ struct ContexteGenerationCode {
 
 	dls::tableau<noeud::base *> noeuds_a_executer{};
 
+	bool pour_gabarit = false;
+	dls::tableau<std::pair<dls::vue_chaine_compacte, long>> paires_expansion_gabarit{};
+
 	ContexteGenerationCode();
 
 	~ContexteGenerationCode();
@@ -572,6 +575,7 @@ private:
 #ifdef AVEC_LLVM
 	llvm::BasicBlock *m_bloc_courant = nullptr;
 #endif
+public:
 	conteneur_globales globales{};
 	dls::tableau<dls::vue_chaine_compacte> nom_structures{};
 

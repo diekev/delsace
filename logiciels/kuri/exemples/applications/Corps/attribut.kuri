@@ -65,17 +65,6 @@ est_type_attribut_valide :: fonc(dyn type : TypeAttribut) -> bool
 
     retourne nombre_bits == 1
 }
-// À FAIRE: gabarits
-tableau_pousse :: fonc(dyn tabl: *[]r32, valeur: r32) -> rien
-{
-	dyn tmp := mémoire(tabl)
-
-	taille := tabl.taille
-	reloge tmp : [taille + 1]r32
-	tmp[taille] = valeur
-
-	mémoire(tabl) = tmp
-}
 
 principale :: fonc(args : []*z8) -> z32
 {

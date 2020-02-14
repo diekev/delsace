@@ -286,6 +286,7 @@ bool est_specifiant_type(GenreLexeme identifiant)
 		case GenreLexeme::CROCHET_OUVRANT:
 		case GenreLexeme::TROIS_POINTS:
 		case GenreLexeme::TYPE_DE:
+		case GenreLexeme::DOLLAR:
 			return true;
 		default:
 			return false;

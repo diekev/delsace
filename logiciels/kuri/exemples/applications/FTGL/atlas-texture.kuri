@@ -33,44 +33,6 @@ AtlasTexture :: struct {
 	données : []octet
 }
 
-// À FAIRE: gabarits
-tableau_pousse :: fonc(dyn tabl: *[]Vec3z, valeur: Vec3z) -> rien
-{
-	dyn tmp := mémoire(tabl)
-
-	taille := tabl.taille
-	reloge tmp : [taille + 1]Vec3z
-	tmp[taille] = valeur
-
-	mémoire(tabl) = tmp
-}
-
-tableau_insère :: fonc(dyn tabl: *[]Vec3z, index: z32, valeur: Vec3z) -> rien
-{
-	dyn tmp := mémoire(tabl)
-	tmp[index] = valeur
-	mémoire(tabl) = tmp
-}
-
-tableau_supprime :: fonc(dyn tabl: *[]Vec3z, index: z32) -> rien
-{
-	si index < 0 || index >= tabl.taille {
-		retourne
-	}
-
-	dyn tmp := mémoire(tabl)
-
-	taille := tabl.taille
-
-	pour i dans transtype(index: z64) ... taille - 2 {
-		tmp[i] = tmp[i + 1]
-	}
-
-	reloge tmp : [taille - 1]Vec3z
-
-	mémoire(tabl) = tmp
-}
-
 // Creates a new empty texture atlas.
 crée_atlas_texture :: fonc (largeur : n64, hauteur : n64, profondeur : n64) -> *AtlasTexture
 {

@@ -1,4 +1,10 @@
-importe "flux"
+importe Fondation
+
+// À FAIRE:
+// -- a:$T, b: type_de(a)
+// -- [8]$T
+// -- ...$T
+// -- type retour
 
 ajoute :: fonc(a : $T, b : $T) -> $T
 {
@@ -8,10 +14,16 @@ ajoute :: fonc(a : $T, b : $T) -> $T
 principale :: fonc(args : []*z8) -> z32
 {
     x := ajoute(12, 27)
-    imprime_sans_format("x = ", x, '\n')
+    imprime("résultat : %\n", x)
 
     y := ajoute(12.5, 87.9)
-    imprime_sans_format("y = ", y, '\n')
+    imprime("résultat : %\n", y)
+
+    dyn tabl : []z32
+    tableau_pousse(@tabl, 123)
+    tableau_pousse(@tabl, 124)
+
+    imprime("%\n", tabl)
 
     retourne 0
 }

@@ -56,6 +56,7 @@ struct DonneesFonction {
 	dls::tableau<DonneesTypeDeclare> types_retours_decl{};
 	dls::tableau<long> idx_types_retours{};
 	dls::tableau<dls::chaine> noms_retours{};
+	dls::tableau<dls::vue_chaine_compacte> noms_types_gabarits{};
 	DonneesTypeDeclare type_declare{};
 	long index_type{-1l};
 	dls::chaine nom_broye{};
@@ -64,7 +65,8 @@ struct DonneesFonction {
 	bool est_variadique = false;
 	bool est_coroutine = false;
 	bool est_sans_contexte = false;
-	char pad[4];
+	bool est_gabarit = false;
+	char pad[3];
 
 	using iteratrice_arg = dls::tableau<DonneesArgument>::iteratrice;
 
@@ -104,7 +106,7 @@ struct Fichier {
 struct DonneesModule {
 	dls::tableau<Fichier *> fichiers{};
 	dls::ensemble<dls::vue_chaine_compacte> fonctions_exportees{};
-	dls::dico_desordonne<dls::vue_chaine_compacte, dls::tableau<DonneesFonction>> fonctions{};
+	dls::dico_desordonne<dls::vue_chaine_compacte, dls::liste<DonneesFonction>> fonctions{};
 	size_t id = 0ul;
 	dls::chaine nom{""};
 	dls::chaine chemin{""};
@@ -128,7 +130,7 @@ struct DonneesModule {
 	 * paramètre. Si aucune fonction ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	[[nodiscard]] dls::tableau<DonneesFonction> &donnees_fonction(dls::vue_chaine_compacte const &nom_fonction) noexcept;
+	[[nodiscard]] dls::liste<DonneesFonction> &donnees_fonction(dls::vue_chaine_compacte const &nom_fonction) noexcept;
 
 	/**
 	 * Retourne vrai si le nom spécifié en paramètre est celui d'une fonction
@@ -215,6 +217,7 @@ struct DonneesCandidate {
 	noeud::base *noeud_decl = nullptr;
 	bool arg_pointeur = false;
 	dls::tableau<TransformationType> transformations{};
+	dls::tableau<std::pair<dls::vue_chaine_compacte, long>> paires_expansion_gabarit{};
 };
 
 struct ResultatRecherche {

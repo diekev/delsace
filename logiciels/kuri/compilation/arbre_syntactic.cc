@@ -26,6 +26,8 @@
 
 #include "biblinternes/outils/conditions.h"
 
+#include "assembleuse_arbre.h"
+
 /* ************************************************************************** */
 
 static void imprime_tab(std::ostream &os, int tab)
@@ -181,6 +183,20 @@ dls::chaine base::chaine_calculee() const
 GenreLexeme base::identifiant() const
 {
 	return lexeme.genre;
+}
+
+base *copie_noeud(assembleuse_arbre *assem, base *b)
+{
+	auto nb = assem->cree_noeud(b->genre, b->lexeme);
+	nb->type_declare = b->type_declare;
+	nb->drapeaux = b->drapeaux;
+
+	for (auto enfant : b->enfants) {
+		auto nenfant = copie_noeud(assem, enfant);
+		nb->enfants.pousse(nenfant);
+	}
+
+	return nb;
 }
 
 /* ************************************************************************** */

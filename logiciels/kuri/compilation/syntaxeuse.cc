@@ -1632,6 +1632,18 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 
 				break;
 			}
+			case type_id::DOLLAR:
+			{
+				donnees_type.pousse(id);
+
+				if (!requiers_identifiant(GenreLexeme::CHAINE_CARACTERE)) {
+					lance_erreur("Attendu une chaine de caractère après '$'");
+				}
+
+				donnees_type.nom_gabarit = donnees().chaine;
+				donnees_type.est_gabarit = true;
+				break;
+			}
 			default:
 			{
 				break;
@@ -1643,7 +1655,7 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 
 	auto type_attendu = true;
 
-	if (dernier_id == GenreLexeme::TYPE_DE) {
+	if (dernier_id == GenreLexeme::TYPE_DE || dernier_id == GenreLexeme::DOLLAR) {
 		type_attendu = false;
 	}
 

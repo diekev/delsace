@@ -136,6 +136,14 @@ static long resoud_type_final(
 
 			type_final.pousse(type);
 		}
+		else if (type == GenreLexeme::DOLLAR) {
+			for (auto &paire : contexte.paires_expansion_gabarit) {
+				if (paire.first == type_declare.nom_gabarit) {
+					auto &dt = contexte.typeuse[paire.second];
+					type_final.pousse(dt);
+				}
+			}
+		}
 		else {
 			type_final.pousse(type);
 		}
@@ -557,79 +565,114 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 	auto enfant = *iter_enfant++;
 	assert(enfant->genre == GenreNoeud::DECLARATION_PARAMETRES_FONCTION);
 
-	auto feuilles = dls::tableau<noeud::base *>();
-
-	if (!enfant->enfants.est_vide()) {
-		rassemble_feuilles(enfant->enfants.front(), feuilles);
-	}
-
 	if (donnees_fonction->est_coroutine) {
 		b->genre = GenreNoeud::DECLARATION_COROUTINE;
 	}
 
-	donnees_fonction->type_declare.pousse(
-				donnees_fonction->est_coroutine ? GenreLexeme::COROUT : GenreLexeme::FONC);
+	// -----------------------------------
+	if (!contexte.pour_gabarit) {
+		auto noms = dls::ensemble<dls::vue_chaine_compacte>();
+		auto dernier_est_variadic = false;
 
-	donnees_fonction->type_declare.pousse(GenreLexeme::PARENTHESE_OUVRANTE);
+		auto feuilles = dls::tableau<noeud::base *>();
 
-	if (!possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
-		ajoute_contexte_programme(contexte, donnees_fonction->type_declare);
+		if (!enfant->enfants.est_vide()) {
+			rassemble_feuilles(enfant->enfants.front(), feuilles);
+		}
 
-		if (feuilles.taille() != 0) {
-			donnees_fonction->type_declare.pousse(GenreLexeme::VIRGULE);
+		for (auto feuille : feuilles) {
+			if (noms.trouve(feuille->chaine()) != noms.fin()) {
+				erreur::lance_erreur(
+							"Redéfinition de l'argument",
+							contexte,
+							feuille->lexeme,
+							erreur::type_erreur::ARGUMENT_REDEFINI);
+			}
+
+			if (dernier_est_variadic) {
+				erreur::lance_erreur(
+							"Argument déclaré après un argument variadic",
+							contexte,
+							feuille->lexeme,
+							erreur::type_erreur::NORMAL);
+			}
+
+			auto &type_declare = feuille->type_declare;
+
+			if (type_declare.est_gabarit) {
+				donnees_fonction->noms_types_gabarits.pousse(type_declare.nom_gabarit);
+				donnees_fonction->est_gabarit = true;
+			}
+
+			auto donnees_arg = DonneesArgument{};
+			donnees_arg.type_declare = type_declare;
+			donnees_arg.nom = feuille->chaine();
+
+			noms.insere(feuille->chaine());
+
+			/* doit être vrai uniquement pour le dernier argument */
+			donnees_arg.est_variadic = donnees_arg.type_declare.type_base() == GenreLexeme::TROIS_POINTS;
+			donnees_arg.est_dynamic = possede_drapeau(feuille->drapeaux, DYNAMIC);
+			donnees_arg.est_employe = possede_drapeau(feuille->drapeaux, EMPLOYE);
+
+			dernier_est_variadic = donnees_arg.est_variadic;
+
+			donnees_fonction->est_variadique = donnees_arg.est_variadic;
+			donnees_fonction->args.pousse(donnees_arg);
+
+			if (feuille == feuilles.back()) {
+				if (!donnees_fonction->est_externe && donnees_arg.est_variadic && est_invalide(donnees_arg.type_declare.dereference())) {
+					erreur::lance_erreur(
+								"La déclaration de fonction variadique sans type n'est"
+								" implémentée que pour les fonctions externes",
+								contexte,
+								feuille->lexeme);
+				}
+			}
+		}
+
+		if (donnees_fonction->est_gabarit) {
+			return;
+		}
+	}
+	else {
+		for (auto &arg : donnees_fonction->args) {
+			arg.index_type = resoud_type_final(contexte, arg.type_declare);
+
+			// XXX - ajournement du type déclaré pour pouvoir définir plus bas
+			// le type de la fonction...
+			auto &dt_arg = contexte.typeuse[arg.index_type];
+			// ajourne seulement les données car il nous faut les expressions !
+			arg.type_declare.donnees = dls::tableau_simple_compact<GenreLexeme>();
+
+			auto debut = dt_arg.end() - 1;
+			auto fin = dt_arg.begin() - 1;
+
+			while (debut != fin) {
+				arg.type_declare.donnees.pousse(*debut--);
+			}
+
+			arg.type_declare.est_gabarit = false;
 		}
 	}
 
-	auto noms = dls::ensemble<dls::vue_chaine_compacte>();
-	auto dernier_est_variadic = false;
+	// -----------------------------------
 
-	for (auto feuille : feuilles) {
-		if (noms.trouve(feuille->chaine()) != noms.fin()) {
-			erreur::lance_erreur(
-						"Redéfinition de l'argument",
-						contexte,
-						feuille->lexeme,
-						erreur::type_erreur::ARGUMENT_REDEFINI);
-		}
+	donnees_fonction->type_declare.pousse(
+				donnees_fonction->est_coroutine ? GenreLexeme::COROUT : GenreLexeme::FONC);
 
-		if (dernier_est_variadic) {
-			erreur::lance_erreur(
-						"Argument déclaré après un argument variadic",
-						contexte,
-						feuille->lexeme,
-						erreur::type_erreur::NORMAL);
-		}
+	auto virgule = GenreLexeme::PARENTHESE_OUVRANTE;
 
-		auto donnees_arg = DonneesArgument{};
-		donnees_arg.type_declare = feuille->type_declare;
-		donnees_arg.nom = feuille->chaine();
+	if (!possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
+		donnees_fonction->type_declare.pousse(virgule);
+		ajoute_contexte_programme(contexte, donnees_fonction->type_declare);
+		virgule = GenreLexeme::VIRGULE;
+	}
 
-		noms.insere(feuille->chaine());
-
-		/* doit être vrai uniquement pour le dernier argument */
-		donnees_arg.est_variadic = donnees_arg.type_declare.type_base() == GenreLexeme::TROIS_POINTS;
-		donnees_arg.est_dynamic = possede_drapeau(feuille->drapeaux, DYNAMIC);
-		donnees_arg.est_employe = possede_drapeau(feuille->drapeaux, EMPLOYE);
-
-		dernier_est_variadic = donnees_arg.est_variadic;
-
-		donnees_fonction->est_variadique = donnees_arg.est_variadic;
-		donnees_fonction->args.pousse(donnees_arg);
-
-		donnees_fonction->type_declare.pousse(donnees_arg.type_declare);
-
-		if (feuille != feuilles.back()) {
-			donnees_fonction->type_declare.pousse(GenreLexeme::VIRGULE);
-		}
-		else {
-			if (!donnees_fonction->est_externe && donnees_arg.est_variadic && est_invalide(donnees_arg.type_declare.dereference())) {
-				erreur::lance_erreur(
-							"La déclaration de fonction variadique sans type n'est"
-							 " implémentée que pour les fonctions externes",
-							contexte,
-							feuille->lexeme);
-			}
-		}
+	for (auto &arg : donnees_fonction->args) {
+		donnees_fonction->type_declare.pousse(virgule);
+		donnees_fonction->type_declare.pousse(arg.type_declare);
+		virgule = GenreLexeme::VIRGULE;
 	}
 
 	donnees_fonction->type_declare.pousse(GenreLexeme::PARENTHESE_FERMANTE);
@@ -758,8 +801,13 @@ static void performe_validation_semantique(
 			/* Il est possible que certaines fonctions ne soient pas connectées
 			 * dans le graphe de symboles alors que nous avons besoin d'elles,
 			 * voir dans la fonction plus bas. */
-			if (b->index_type == -1) {
+			if (b->index_type == -1 && !donnees_fonction->est_gabarit) {
 				valide_type_fonction(b, contexte);
+			}
+
+			if (donnees_fonction->est_gabarit && !contexte.pour_gabarit) {
+				// nous ferons l'analyse sémantique plus tard
+				return;
 			}
 
 			if (est_externe) {
@@ -936,6 +984,55 @@ static void performe_validation_semantique(
 									decl_appel);
 					}
 				}
+			}
+
+			/* ---------------------- */
+
+			if (!candidate->paires_expansion_gabarit.est_vide()) {
+				auto noeud_decl = copie_noeud(contexte.assembleuse, candidate->df->noeud_decl);
+				auto ndf = *candidate->df;
+				ndf.noeud_decl = noeud_decl;
+
+				auto module = contexte.fichier(static_cast<size_t>(noeud_decl->lexeme.fichier))->module;
+				module->ajoute_donnees_fonctions(b->chaine(), ndf);
+
+				// À FAIRE : le réusinage de l'arbre nous permettra d'avoir des blocs séparés du contexte.
+				// sauvegarde état
+				auto sauvegarde_m_locales = contexte.m_locales;
+				auto sauvegarde_m_pile_nombre_locales = contexte.m_pile_nombre_locales;
+				auto sauvegarde_m_nombre_locales = contexte.m_nombre_locales;
+				auto sauvegarde_fonc_courante = fonction_courante;
+				auto sauvegarde_m_noeuds_differes = contexte.m_noeuds_differes;
+				auto sauvegarde_m_pile_nombre_differes = contexte.m_pile_nombre_differes;
+				auto sauvegarde_m_nombre_differes = contexte.m_nombre_differes;
+
+				contexte.termine_fonction();
+
+				contexte.pour_gabarit = true;
+				contexte.paires_expansion_gabarit = candidate->paires_expansion_gabarit;
+
+				valide_type_fonction(noeud_decl, contexte);
+
+				performe_validation_semantique(noeud_decl, contexte, expr_gauche);
+
+				// XXX
+				for (auto &df : module->donnees_fonction(b->chaine())) {
+					if (df.noeud_decl == noeud_decl) {
+						candidate->df = &df;
+						donnees_fonction = &df;
+					}
+				}
+
+				contexte.pour_gabarit = false;
+
+				contexte.commence_fonction(sauvegarde_fonc_courante);
+
+				contexte.m_locales = sauvegarde_m_locales;
+				contexte.m_pile_nombre_locales = sauvegarde_m_pile_nombre_locales;
+				contexte.m_nombre_locales = sauvegarde_m_nombre_locales;
+				contexte.m_noeuds_differes = sauvegarde_m_noeuds_differes;
+				contexte.m_pile_nombre_differes = sauvegarde_m_pile_nombre_differes;
+				contexte.m_nombre_differes = sauvegarde_m_nombre_differes;
 			}
 
 			/* met en place les drapeaux sur les enfants */

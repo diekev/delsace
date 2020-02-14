@@ -64,65 +64,6 @@ détruit_primitive :: fonc (dyn primitive: *Primitive) -> rien
     }
 }
 
-// À FAIRE: gabarits
-tableau_pousse :: fonc(dyn tabl: *[]*Primitive, valeur: *Primitive) -> rien
-{
-	dyn tmp := mémoire(tabl)
-
-	taille := tabl.taille
-	reloge tmp : [taille + 1]*Primitive
-	tmp[taille] = valeur
-
-	mémoire(tabl) = tmp
-}
-
-tableau_réserve :: fonc(dyn tabl: *[]*Primitive, taille: z64) -> rien
-{
-    si taille <= tabl.taille {
-        retourne
-    }
-
-	dyn tmp := mémoire(tabl)
-
-	reloge tmp : [taille]*Primitive
-
-	mémoire(tabl) = tmp
-}
-
-// -------------------------------
-
-// À FAIRE: gabarits
-tableau_pousse :: fonc(dyn tabl: *[]z64, valeur: z64) -> rien
-{
-	dyn tmp := mémoire(tabl)
-
-	taille := tabl.taille
-	reloge tmp : [taille + 1]z64
-	tmp[taille] = valeur
-
-	mémoire(tabl) = tmp
-}
-
-tableau_réserve :: fonc(dyn tabl: *[]z64, taille: z64) -> rien
-{
-    si taille <= tabl.taille {
-        retourne
-    }
-
-	dyn tmp := mémoire(tabl)
-
-	reloge tmp : [taille]z64
-
-	mémoire(tabl) = tmp
-}
-
-tableau_copie :: fonc(dyn tabl: []z64) -> []z64
-{
-	dyn tmp := loge [tabl.taille]z64
-    copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * transtype(taille_de(z64): z64))
-    retourne tmp
-}
-
 copie_polygone :: fonc (poly: *Polygone) -> *Polygone
 {
     dyn npoly := loge Polygone

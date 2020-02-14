@@ -67,7 +67,8 @@ struct DonneesTypeDeclare {
 	dls::tableau_simple_compact<GenreLexeme> donnees{};
 	dls::tableau_simple_compact<noeud::base *> expressions{};
 
-	dls::vue_chaine nom_gabarit = "";
+	dls::vue_chaine_compacte nom_gabarit = "";
+	bool est_gabarit = false;
 
 	using type_plage = type_plage_donnees_type;
 

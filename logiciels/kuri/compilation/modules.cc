@@ -68,14 +68,16 @@ void DonneesModule::ajoute_donnees_fonctions(dls::vue_chaine_compacte const &nom
 	auto iter = fonctions.trouve(nom_fonction);
 
 	if (iter == fonctions.fin()) {
-		fonctions.insere({nom_fonction, {donnees}});
+		auto liste = dls::liste<DonneesFonction>();
+		liste.pousse(donnees);
+		fonctions.insere({nom_fonction, liste});
 	}
 	else {
 		iter->second.pousse(donnees);
 	}
 }
 
-dls::tableau<DonneesFonction> &DonneesModule::donnees_fonction(dls::vue_chaine_compacte const &nom_fonction) noexcept
+dls::liste<DonneesFonction> &DonneesModule::donnees_fonction(dls::vue_chaine_compacte const &nom_fonction) noexcept
 {
 	auto iter = fonctions.trouve(nom_fonction);
 
@@ -422,15 +424,67 @@ static DonneesCandidate verifie_donnees_fonction(
 
 	auto expansion_rencontree = false;
 
+	auto paires_expansion_gabarit = dls::tableau<std::pair<dls::vue_chaine_compacte, long>>();
+
 	for (auto const &nom : noms_arguments) {
 		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
 		 * car ça a déjà été fait plus haut. */
 		auto const iter = donnees_fonction.trouve(nom);
 		auto index_arg = std::distance(donnees_fonction.args.debut(), iter);
-		auto const index_type_arg = iter->index_type;
+
 		auto const index_type_enf = (*enfant)->index_type;
-		auto const &type_arg = (index_type_arg == -1l) ? DonneesTypeFinal{} : contexte.typeuse[index_type_arg];
+		auto &arg = donnees_fonction.args[index_arg];
 		auto const &type_enf = contexte.typeuse[index_type_enf];
+
+		auto index_type_arg = iter->index_type;
+
+		if (arg.type_declare.est_gabarit) {
+			// trouve l'argument
+			auto type_trouve = false;
+			auto type_errone = false;
+			for (auto &paire : paires_expansion_gabarit) {
+				if (paire.first == arg.type_declare.nom_gabarit) {
+					type_trouve = true;
+
+					if (paire.second != index_type_enf) {
+						type_errone = true;
+						// erreur À FAIRE
+						poids_args = 0.0;
+						res.raison = METYPAGE_ARG;
+						//res.type1 = type_enf;
+						res.type2 = type_enf;
+						res.noeud_decl = *enfant;
+						break;
+					}
+				}
+			}
+
+			if (type_errone) {
+				break;
+			}
+
+			if (!type_trouve) {
+				auto index_type_gabarit = index_type_enf;
+
+				// résoud le type selon la déclaration
+				auto type_declare = arg.type_declare.plage();
+				auto plg_type_enf = type_enf.plage();
+
+				// permet de trouver les types du style *[]$T
+				while (type_declare.front() == plg_type_enf.front()) {
+					plg_type_enf.effronte();
+					type_declare.effronte();
+				}
+
+				index_type_gabarit = contexte.typeuse.ajoute_type(plg_type_enf);
+
+				paires_expansion_gabarit.pousse({ arg.type_declare.nom_gabarit, index_type_gabarit });
+			}
+
+			index_type_arg = index_type_enf;
+		}
+
+		auto const &type_arg = (index_type_arg == -1l) ? DonneesTypeFinal{} : contexte.typeuse[index_type_arg];
 
 		if (iter->est_variadic) {
 			if (!est_invalide(type_arg.dereference())) {
@@ -467,6 +521,11 @@ static DonneesCandidate verifie_donnees_fonction(
 				}
 				else {
 					poids_pour_enfant = verifie_compatibilite(contexte, index_type_deref, index_type_enf, *enfant, drapeau);
+				}
+
+				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
+				if (arg.type_declare.est_gabarit) {
+					poids_pour_enfant *= 0.95;
 				}
 
 				poids_args *= poids_pour_enfant;
@@ -520,7 +579,14 @@ static DonneesCandidate verifie_donnees_fonction(
 			/* il est possible que le type final ne soit pas encore résolu car
 			 * la déclaration de la candidate n'a pas encore été validée */
 			if (!est_invalide(type_arg.plage())) {
-				poids_args *= verifie_compatibilite(contexte, index_type_arg, index_type_enf, *enfant, transformation);
+				auto poids_pour_enfant = verifie_compatibilite(contexte, index_type_arg, index_type_enf, *enfant, transformation);
+
+				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
+				if (arg.type_declare.est_gabarit) {
+					poids_pour_enfant *= 0.95;
+				}
+
+				poids_args *= poids_pour_enfant;
 			}
 
 			if (poids_args == 0.0) {
@@ -571,6 +637,7 @@ static DonneesCandidate verifie_donnees_fonction(
 	res.exprs = enfants;
 	res.etat = FONCTION_TROUVEE;
 	res.transformations = transformations;
+	res.paires_expansion_gabarit = paires_expansion_gabarit;
 
 	return res;
 }

@@ -282,3 +282,62 @@ sont_chaines_inégales :: fonc(chn1: chaine, chn2: chaine) -> bool
 {
     retourne !sont_chaines_égales(chn1, chn2)
 }
+
+// Fonctions basiques pour les tableaux
+
+tableau_pousse :: fonc (dyn tabl: *[]$T, valeur: $T) -> rien
+{
+    dyn tmp := mémoire(tabl)
+
+    taille := tmp.taille
+    reloge tmp: [taille + 1]$T
+    tmp[taille] = valeur
+
+    mémoire(tabl) = tmp
+}
+
+tableau_réserve :: fonc(dyn tabl: *[]$T, taille: z64) -> rien
+{
+    si taille <= tabl.taille {
+        retourne
+    }
+
+	dyn tmp := mémoire(tabl)
+
+	reloge tmp : [taille]$T
+
+	mémoire(tabl) = tmp
+}
+
+tableau_copie :: fonc(dyn tabl: []$T) -> []$T
+{
+	dyn tmp := loge [tabl.taille]$T
+    copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * transtype(taille_de(z64): z64))
+    retourne tmp
+}
+
+tableau_insère :: fonc(dyn tabl: *[]$T, index: z32, valeur: $T) -> rien
+{
+	dyn tmp := mémoire(tabl)
+	tmp[index] = valeur
+	mémoire(tabl) = tmp
+}
+
+tableau_supprime :: fonc(dyn tabl: *[]$T, index: z32) -> rien
+{
+	si index < 0 || index >= tabl.taille {
+		retourne
+	}
+
+	dyn tmp := mémoire(tabl)
+
+	taille := tabl.taille
+
+	pour i dans transtype(index: z64) ... taille - 2 {
+		tmp[i] = tmp[i + 1]
+	}
+
+	reloge tmp : [taille - 1]$T
+
+	mémoire(tabl) = tmp
+}

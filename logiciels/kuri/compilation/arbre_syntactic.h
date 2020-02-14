@@ -33,6 +33,7 @@
 #include "transformation_type.hh"
 
 struct ContexteGenerationCode;
+class assembleuse_arbre;
 
 enum class GenreNoeud : char {
 	RACINE,
@@ -334,6 +335,8 @@ struct base {
 	/* retourne la valeur_calculee avec le type dls::chaine */
 	dls::chaine chaine_calculee() const;
 };
+
+base *copie_noeud(assembleuse_arbre *assem, base *b);
 
 void rassemble_feuilles(
 		base *noeud_base,
