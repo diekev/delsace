@@ -417,7 +417,9 @@ unsigned int taille_octet_type(
 
 			return ds.taille_octet;
 		}
+		case GenreLexeme::REFERENCE: /* À FAIRE */
 		case GenreLexeme::POINTEUR:
+		case GenreLexeme::COROUT:
 		case GenreLexeme::FONC:
 		{
 			if (contexte.bit32) {
@@ -426,6 +428,7 @@ unsigned int taille_octet_type(
 
 			return 8;
 		}
+		case GenreLexeme::TROIS_POINTS:
 		case GenreLexeme::TABLEAU:
 		{
 			if (est_type_tableau_fixe(donnees_type.type_base())) {
