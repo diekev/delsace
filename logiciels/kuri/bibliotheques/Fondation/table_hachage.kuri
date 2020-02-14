@@ -110,16 +110,9 @@ trouve :: fonc(table : *TableHachage, clé : chaine) -> *NoeudTableHachage
     retourne nul
 }
 
-cherche_noeud :: fonc(table : *TableHachage, clé : chaine) -> rien
+cherche_noeud :: fonc(table : *TableHachage, clé : chaine) -> *NoeudTableHachage
 {
-    n := trouve(table, clé)
-
-    si n == nul {
-        imprime_sans_format("Impossible de trouver le noeud dans la table !\n")
-    }
-    sinon {
-        imprime_sans_format("Trouvé noeud, valeur : ", n.valeur, "\n")
-    }
+    retourne trouve(table, clé)
 }
 
 chaque_noeud :: corout(table : *TableHachage) -> *NoeudTableHachage
