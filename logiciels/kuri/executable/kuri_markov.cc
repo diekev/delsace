@@ -190,6 +190,7 @@ static void imprime_mot(GenreLexeme id, std::ostream &os)
 		case GenreLexeme::BARRE_BARRE:
 			os << "||";
 			return;
+		case GenreLexeme::EXPANSION_VARIADIQUE:
 		case GenreLexeme::TROIS_POINTS:
 			os << "...";
 			return;

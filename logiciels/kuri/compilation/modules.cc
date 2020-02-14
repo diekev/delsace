@@ -409,26 +409,6 @@ static DonneesCandidate verifie_donnees_fonction(
 	}
 
 	auto enfant = exprs.debut();
-	auto noeud_tableau = static_cast<noeud::base *>(nullptr);
-
-	if (fonction_variadique_interne) {
-		/* Pour les fonctions variadiques interne, nous créons un tableau
-		 * correspondant au types des arguments. */
-
-		auto nombre_args_var = std::max(0l, noms_arguments.taille() - (nombre_args - 1));
-		auto index_premier_var_arg = nombre_args - 1;
-
-		noeud_tableau = contexte.assembleuse->cree_noeud(
-					GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, (*enfant)->lexeme);
-		noeud_tableau->valeur_calculee = nombre_args_var;
-		noeud_tableau->drapeaux |= EST_CALCULE;
-
-		auto index_dt_var = donnees_fonction.args.back().index_type;
-		auto &dt_var = contexte.typeuse[index_dt_var];
-		noeud_tableau->index_type = contexte.typeuse.ajoute_type(dt_var.dereference());
-
-		enfants[index_premier_var_arg] = noeud_tableau;
-	}
 
 	res.raison = AUCUNE_RAISON;
 
@@ -437,6 +417,10 @@ static DonneesCandidate verifie_donnees_fonction(
 
 	dls::tableau<TransformationType> transformations;
 	transformations.redimensionne(exprs.taille());
+
+	dls::tableau<noeud::base *> arguments_variadiques{};
+
+	auto expansion_rencontree = false;
 
 	for (auto const &nom : noms_arguments) {
 		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
@@ -448,13 +432,44 @@ static DonneesCandidate verifie_donnees_fonction(
 		auto const &type_arg = (index_type_arg == -1l) ? DonneesTypeFinal{} : contexte.typeuse[index_type_arg];
 		auto const &type_enf = contexte.typeuse[index_type_enf];
 
-		/* À FAIRE : arguments variadics : comment les passer d'une
-		 * fonction à une autre. */
 		if (iter->est_variadic) {
 			if (!est_invalide(type_arg.dereference())) {
 				auto drapeau = TransformationType();
 				auto index_type_deref = contexte.typeuse.type_dereference_pour(index_type_arg);
-				poids_args *= verifie_compatibilite(contexte, index_type_deref, index_type_enf, *enfant, drapeau);
+				auto poids_pour_enfant = 0.0;
+
+				if ((*enfant)->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
+					if (!fonction_variadique_interne) {
+						erreur::lance_erreur("Impossible d'utiliser une expansion variadique dans une fonction variadique externe", contexte, (*enfant)->lexeme);
+					}
+
+					if (expansion_rencontree) {
+						erreur::lance_erreur("Ne peut utiliser qu'une seule expansion d'argument variadique", contexte, (*enfant)->lexeme);
+					}
+
+					auto index_type_deref_enf = contexte.typeuse.type_dereference_pour(index_type_enf);
+
+					poids_pour_enfant = verifie_compatibilite(contexte, index_type_deref, index_type_deref_enf, *enfant, drapeau);
+
+					// aucune transformation acceptée sauf si nous avons un tableau fixe qu'il faudra convertir en un tableau dynamique
+					if (poids_pour_enfant != 1.0) {
+						poids_pour_enfant = 0.0;
+					}
+					else {
+						auto &dt_enf = contexte.typeuse[index_type_enf];
+
+						if (est_type_tableau_fixe(dt_enf)) {
+							drapeau = TypeTransformation::CONVERTI_TABLEAU;
+						}
+					}
+
+					expansion_rencontree = true;
+				}
+				else {
+					poids_pour_enfant = verifie_compatibilite(contexte, index_type_deref, index_type_enf, *enfant, drapeau);
+				}
+
+				poids_args *= poids_pour_enfant;
 
 				if (poids_args == 0.0) {
 					poids_args = 0.0;
@@ -465,8 +480,17 @@ static DonneesCandidate verifie_donnees_fonction(
 					break;
 				}
 
-				if (noeud_tableau) {
-					noeud_tableau->ajoute_noeud(*enfant);
+				if (fonction_variadique_interne) {
+					if (expansion_rencontree && !arguments_variadiques.est_vide()) {
+						if ((*enfant)->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
+							erreur::lance_erreur("Tentative d'utiliser une expansion d'arguments variadiques alors que d'autres arguments ont déjà été précisés", contexte, (*enfant)->lexeme);
+						}
+						else {
+							erreur::lance_erreur("Tentative d'ajouter des arguments variadiques supplémentaire alors qu'une expansion est également utilisée", contexte, (*enfant)->lexeme);
+						}
+					}
+
+					arguments_variadiques.pousse(*enfant);
 					transformations[index_arg + nombre_arg_variadic_drapeau] = drapeau;
 					++nombre_arg_variadic_drapeau;
 				}
@@ -478,6 +502,12 @@ static DonneesCandidate verifie_donnees_fonction(
 				}
 			}
 			else {
+				if ((*enfant)->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
+					if (!fonction_variadique_interne) {
+						erreur::lance_erreur("Impossible d'utiliser une expansion variadique dans une fonction variadique externe", contexte, (*enfant)->lexeme);
+					}
+				}
+
 				enfants[index_arg + nombre_arg_variadic] = *enfant;
 				transformations[index_arg + nombre_arg_variadic_drapeau] = TransformationType();
 				++nombre_arg_variadic;
@@ -507,6 +537,33 @@ static DonneesCandidate verifie_donnees_fonction(
 		}
 
 		++enfant;
+	}
+
+	if (fonction_variadique_interne) {
+		auto nombre_args_var = std::max(0l, noms_arguments.taille() - (nombre_args - 1));
+		auto index_premier_var_arg = nombre_args - 1;
+
+		if (arguments_variadiques.taille() == 1 && arguments_variadiques[0]->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
+			enfants[index_premier_var_arg] = arguments_variadiques[0];
+		}
+		else {
+			/* Pour les fonctions variadiques interne, nous créons un tableau
+			 * correspondant au types des arguments. */
+			auto noeud_tableau = contexte.assembleuse->cree_noeud(
+						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, exprs.front()->lexeme);
+			noeud_tableau->valeur_calculee = nombre_args_var;
+			noeud_tableau->drapeaux |= EST_CALCULE;
+
+			auto index_dt_var = donnees_fonction.args.back().index_type;
+			auto &dt_var = contexte.typeuse[index_dt_var];
+			noeud_tableau->index_type = contexte.typeuse.ajoute_type(dt_var.dereference());
+
+			for (auto arg_var : arguments_variadiques) {
+				noeud_tableau->ajoute_noeud(arg_var);
+			}
+
+			enfants[index_premier_var_arg] = noeud_tableau;
+		}
 	}
 
 	res.df = &donnees_fonction;

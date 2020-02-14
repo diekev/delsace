@@ -90,6 +90,7 @@ enum class GenreNoeud : char {
 	OPERATEUR_BINAIRE,
 	OPERATEUR_COMPARAISON_CHAINEE,
 	OPERATEUR_UNAIRE,
+	EXPANSION_VARIADIQUE,
 };
 
 const char *chaine_genre_noeud(GenreNoeud genre);

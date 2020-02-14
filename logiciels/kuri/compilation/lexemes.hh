@@ -155,6 +155,7 @@ enum class GenreLexeme : unsigned int {
 	INCONNU,
 	CARACTERE_BLANC,
 	COMMENTAIRE,
+	EXPANSION_VARIADIQUE,
 };
 
 inline GenreLexeme operator&(GenreLexeme id1, int id2)

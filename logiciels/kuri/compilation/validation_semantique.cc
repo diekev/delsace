@@ -969,7 +969,7 @@ static void performe_validation_semantique(
 			}
 
 			/* les drapeaux pour les arguments variadics */
-			if (!candidate->exprs.est_vide()) {
+			if (!candidate->exprs.est_vide() && candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
 				auto noeud_tableau = candidate->exprs.back();
 				auto enfant_tabl = noeud_tableau->enfants.debut();
 
@@ -3058,6 +3058,12 @@ static void performe_validation_semantique(
 			auto bloc = b->enfants.back();
 			performe_validation_semantique(bloc, contexte, true);
 
+			break;
+		}
+		case GenreNoeud::EXPANSION_VARIADIQUE:
+		{
+			performe_validation_semantique(b->enfants.front(), contexte, expr_gauche);
+			b->index_type = b->enfants.front()->index_type;
 			break;
 		}
 	}

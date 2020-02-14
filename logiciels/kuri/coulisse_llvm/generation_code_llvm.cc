@@ -2660,6 +2660,11 @@ static llvm::Value *genere_code_llvm(
 			// À FAIRE
 			return nullptr;
 		}
+		case GenreNoeud::EXPANSION_VARIADIQUE:
+		{
+			// À FAIRE
+			return nullptr;
+		}
 	}
 
 	return nullptr;

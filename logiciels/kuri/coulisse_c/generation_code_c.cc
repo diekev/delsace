@@ -2703,6 +2703,13 @@ void genere_code_C(
 
 			break;
 		}
+		case GenreNoeud::EXPANSION_VARIADIQUE:
+		{
+			auto enfant = b->enfants.front();
+			applique_transformation(enfant, generatrice, contexte, expr_gauche);
+			b->valeur_calculee = enfant->valeur_calculee;
+			break;
+		}
 	}
 }
 

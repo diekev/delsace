@@ -151,6 +151,7 @@ id_extra = [
 	u'INCONNU',
 	u'CARACTERE_BLANC',
 	u'COMMENTAIRE',
+	u'EXPANSION_VARIADIQUE',
 ]
 
 

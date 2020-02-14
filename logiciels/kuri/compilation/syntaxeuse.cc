@@ -936,9 +936,27 @@ noeud::base *Syntaxeuse::analyse_expression(
 			}
 			case GenreLexeme::TROIS_POINTS:
 			{
-				vide_pile_operateur(lexeme.genre);
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_PLAGE, lexeme);
-				pile.pousse(noeud);
+				if (precede_unaire_valide(genre_dernier_lexeme)) {
+					lexeme.genre = GenreLexeme::EXPANSION_VARIADIQUE;
+					auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPANSION_VARIADIQUE, lexeme);
+
+					avance();
+
+					if (donnees().genre != GenreLexeme::CHAINE_CARACTERE) {
+						lance_erreur("Attendu une variable après '...'");
+					}
+
+					auto noeud_var = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, donnees());
+					noeud->enfants.pousse(noeud_var);
+
+					expression.pousse(noeud);
+				}
+				else {
+					vide_pile_operateur(lexeme.genre);
+					auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_PLAGE, lexeme);
+					pile.pousse(noeud);
+				}
+
 				break;
 			}
 			case GenreLexeme::POINT:
@@ -1039,6 +1057,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			case GenreLexeme::TILDE:
 			case GenreLexeme::PLUS_UNAIRE:
 			case GenreLexeme::MOINS_UNAIRE:
+			case GenreLexeme::EXPANSION_VARIADIQUE:
 			{
 				vide_pile_operateur(lexeme.genre);
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_UNAIRE, lexeme);

@@ -405,6 +405,8 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::CARACTERE_BLANC";
 		case GenreLexeme::COMMENTAIRE:
 			return "GenreLexeme::COMMENTAIRE";
+		case GenreLexeme::EXPANSION_VARIADIQUE:
+			return "GenreLexeme::EXPANSION_VARIADIQUE";
 	};
 
 	return "ERREUR";
