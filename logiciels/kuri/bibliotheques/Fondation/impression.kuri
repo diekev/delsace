@@ -746,7 +746,7 @@ imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 	dyn index := 0
 
 	pour c dans format {
-		si c == '%' {
+		si c == '%' && index < args.taille {
 			arg := args[index]
 			imprime_valeur(enchaineuse, arg.pointeur, arg.info, faux)
 			index += 1
