@@ -209,7 +209,7 @@ pousse :: fonc(dyn enchaineuse : &Enchaineuse, chns : ...chaine) -> rien
 		taille += chn.taille
 	}
 
-	enchaineuse.réserve(taille)
+	enchaineuse.réserve(enchaineuse.taille + taille)
 
 	pour chn dans chns {
 		enchaineuse.appends(chn)
