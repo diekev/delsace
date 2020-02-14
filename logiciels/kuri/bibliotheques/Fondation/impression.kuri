@@ -753,6 +753,27 @@ imprime :: fonc(format: chaine, args: ...eini) -> rien
 	write(std_out, enchaineuse.résultat.pointeur, enchaineuse.résultat.taille)
 }
 
+imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
+{
+    dyn enchaineuse := crée_enchaineuse()
+    diffère { détruit(enchaineuse); }
+
+	dyn index := 0
+
+	pour c dans format {
+		si c == '%' {
+			arg := args[index]
+			imprime_valeur(enchaineuse, arg.pointeur, arg.info, faux)
+			index += 1
+		}
+		sinon {
+			enchaineuse.pousse(c)
+		}
+	}
+
+	retourne enchaineuse.résultat
+}
+
 imprime_sans_format :: fonc(args : ...eini) -> rien
 {
     dyn enchaineuse := crée_enchaineuse()
