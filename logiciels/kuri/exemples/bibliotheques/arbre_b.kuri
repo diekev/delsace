@@ -165,7 +165,6 @@ divise_enfant :: fonc(
 
     y.n = noeud.t - 1
 
-    // À FAIRE: for (int j = n j >= i+1 j--)
     dyn j := noeud.n
     tantque j >= i + 1 {
         noeud.enfants[j + 1] = noeud.enfants[j]
