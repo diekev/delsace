@@ -19,12 +19,6 @@ haute_précision :: struct {
 	// The individual 'digits' (32-bit unsigned integers actually) that */
 	// make up the number. The most-significant digit is in m_data[0]. */
 	données : [5]n32
-
-	// Il y a un bug dans la génération de code C où on génére des variables temporaires
-	// avec le type [N]Type mais C ne peut pas initialisé une telle variable avec un
-	// tableau comme Kuri, donc pour l'instant nous utilisons un pointeur pour accéder
-	// au tableau de données.
-	pointeur : *n32
 }
 
 construit_nombre_haute_précision :: fonc() -> haute_précision
@@ -34,8 +28,6 @@ construit_nombre_haute_précision :: fonc() -> haute_précision
 	pour i dans 0 ... 4 {
 		n.données[i] = transtype(0 : n32)
 	}
-
-	n.pointeur = @n.données[0]
 
 	retourne n
 }
@@ -69,11 +61,11 @@ insert_low_bits :: fonc(
 	// Write the results to the data array. If the index is too large then
 	// that means that the data was shifted off the edge. */
 	si high_index < count {
-		n.pointeur[high_index] |= result_high;
+		n.données[high_index] |= result_high;
 	}
 
 	si high_index + transtype(1: n32) < count {
-		n.pointeur[high_index + transtype(1: n32)] |= result_low;
+		n.données[high_index + transtype(1: n32)] |= result_low;
 	}
 }
 
@@ -96,7 +88,7 @@ insert_top_bits :: fonc(
 is_zero :: fonc(n : &haute_précision) -> bool
 {
 	pour i dans 0 ... 4 {
-		si n.pointeur[i] != transtype(0 : n32) {
+		si n.données[i] != transtype(0 : n32) {
 			retourne faux
 		}
 	}
@@ -111,10 +103,10 @@ remainder :: fonc(dyn n : &haute_précision, divisor : n32) -> n32
 
 	// Standard long-division algorithm.
 	pour i dans 0 ... 4 {
-		dividend := (transtype(remain : n64) << transtype(décalage_mot: n64)) + n.pointeur[i]
+		dividend := (transtype(remain : n64) << transtype(décalage_mot: n64)) + n.données[i]
 		result := dividend / divisor
 		remain = transtype(dividend % divisor : n32)
-		n.pointeur[i] = transtype(result : n32)
+		n.données[i] = transtype(result : n32)
 	}
 
 	retourne remain
@@ -128,10 +120,10 @@ overflow :: fonc(dyn n : &haute_précision, mul : n32) -> n32
 	pour j dans 0 ... 4 {
 		i := 4 - j
 
-		result := transtype(mul : n64) * n.pointeur[i] + over;
+		result := transtype(mul : n64) * n.données[i] + over;
 
 		// Put the bottom bits of the results back.
-		n.pointeur[i] = transtype(result : n32)
+		n.données[i] = transtype(result : n32)
 		over = transtype(result >> transtype(décalage_mot: n64) : n32)
 	}
 
@@ -263,8 +255,6 @@ exposant_cru :: fonc(n : &NombreDécimal) -> z32
 
 // Imprime le nombre décimal en utilisant un nombre entier de haute précision afin de
 // mieux cerner la valeur exacte du décimal.
-// À FAIRE : il y a un bug où les données du haute_précision sont corrompues quand on les
-// passe à une fonction il semblerait.
 imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : &Enchaineuse, f : r32) -> rien
 {
 	// Mets le nombre dans notre union magique afin d'extraire les composants
@@ -291,7 +281,7 @@ imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : &Enchaineuse,
 	// Ajustement pour le biais de l'exposant.
 	dyn valeur_exposant := num.exposant_cru() - 127
 
-	// Ajoute celui impliqué à la mantisse.
+	// Ajoute celui implicit à la mantisse.
 	dyn valeur_mantisse := (1 << 23) + num.mantisse_crue()
 
 	// Cas spécial pour les dénormales - pas de valeur spéciale d'exposant et pas d'impliquée
@@ -313,14 +303,17 @@ imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : &Enchaineuse,
 		transtype(valeur_mantisse : n32),
 		9 + valeur_exposant : n32)
 
+	dyn chn_part_entière : chaine
+
 	// Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
 		remainder := part_entière.remainder(transtype(10 : n32))
-		enchaineuse.pousse('0' + transtype(remainder : z8))
+		pousse(@chn_part_entière, '0' + transtype(remainder : z8))
 	} tantque !part_entière.is_zero()
 
-	// À FAIRE : réordonne les chiffres.
-	// std::reverse(result.begin(), result.end());
+	inverse(@chn_part_entière)
+	enchaineuse.pousse(chn_part_entière)
+	déloge chn_part_entière
 
 	// Ajout le point décimal.
 	enchaineuse.pousse('.')
@@ -334,10 +327,11 @@ imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : &Enchaineuse,
 	// la part fractionnelle.
 	frac.insert_top_bits(transtype(valeur_mantisse : n32), 23 - valeur_exposant);
 
-	tantque !frac.is_zero() {
+	// Perfome toujours au moins une itération, afin d'avoir un zéro au début.
+	répète {
 		overflow := frac.overflow(transtype(10 : n32))
 		enchaineuse.pousse('0' + transtype(overflow : z8))
-	}
+	} tantque !frac.is_zero()
 }
 
 //###################################################################################
