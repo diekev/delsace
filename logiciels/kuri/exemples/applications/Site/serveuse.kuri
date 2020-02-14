@@ -1,0 +1,428 @@
+importe Fondation
+importe GlibC
+importe Réseau
+
+charge "entete_http"
+
+// ----------------------------
+
+#inclus "time.h"
+
+// @Interface : z64 ici est time_t (pour linux en tout cas)
+time :: fonc externe (tloc: *z64) -> z64
+
+/* ISO C `broken-down time' structure.  */
+// @Interface : doit être synchronisée avec struct_tm.h
+tm :: struct externe {
+    tm_sec: z32      /* Seconds.      [0-60] (1 leap second) */
+    tm_min: z32      /* Minutes.      [0-59] */
+    tm_hour: z32     /* Hours.        [0-23] */
+    tm_mday: z32     /* Day.          [1-31] */
+    tm_mon: z32      /* Month.        [0-11] */
+    tm_year: z32     /* Year - 1900. */
+    tm_wday: z32     /* Day of week.  [0-6] */
+    tm_yday: z32     /* Days in year. [0-365] */
+    tm_isdst: z32    /* DST.          [-1/0/1] */
+    tm_gmtoff : z64; /* Seconds east of UTC.  */
+    tm_zone : *z8;   /* Timezone abbreviation.  */
+}
+
+localtime :: fonc externe (tloc: *z64) -> *tm
+
+chaine_jour_pour_tm :: fonc (tm_wday: z32) -> chaine
+{
+    discr tm_wday {
+        0 { retourne "Sun" }
+        1 { retourne "Mon" }
+        2 { retourne "Tue" }
+        3 { retourne "Wed" }
+        4 { retourne "Thu" }
+        5 { retourne "Fri" }
+        6 { retourne "Sat" }
+    }
+
+    retourne ""
+}
+
+chaine_mois_pour_tm :: fonc (tm_mon: z32) -> chaine
+{
+    discr tm_mon {
+         0 { retourne "Jan" }
+         1 { retourne "Feb" }
+         2 { retourne "Mar" }
+         3 { retourne "Apr" }
+         4 { retourne "May" }
+         5 { retourne "Jun" }
+         6 { retourne "Jul" }
+         7 { retourne "Aug" }
+         8 { retourne "Sep" }
+         9 { retourne "Oct" }
+        10 { retourne "Nov" }
+        11 { retourne "Dec" }
+    }
+
+    retourne ""
+}
+
+chaine_pour_aujourdhui :: fonc () -> chaine
+{
+    t := time(nul)
+    tm_ := localtime(@t);
+
+    // À FAIRE : ajoute d'options de formattage pour les nombres dans les fonctions "imprime..."
+    dyn enchaineuse : Enchaineuse
+
+    enchaineuse.pousse(chaine_jour_pour_tm(tm_.tm_wday), ", ")
+
+    si tm_.tm_mday < 10 {
+        enchaineuse.pousse('0')
+    }
+
+    enchaineuse.pousse(tm_.tm_mday, " ", chaine_mois_pour_tm(tm_.tm_mon), " ", tm_.tm_year + 1900)
+
+    enchaineuse.pousse(" ")
+
+    // nous sommes en CET, HTTP doit être en GMT
+    heure := tm_.tm_hour - 1
+
+    si heure < 10 {
+        enchaineuse.pousse('0')
+    }
+
+    enchaineuse.pousse(heure, ":")
+
+    si tm_.tm_min < 10 {
+        enchaineuse.pousse('0')
+    }
+
+    enchaineuse.pousse(tm_.tm_min, ":")
+
+    si tm_.tm_sec < 10 {
+        enchaineuse.pousse('0')
+    }
+
+    enchaineuse.pousse(tm_.tm_sec)
+
+    enchaineuse.pousse(" GMT")
+
+    retourne enchaineuse.résultat
+}
+
+// ----------------------------
+
+//###############################################################################
+
+CONNEXIONS_MAX := 1000
+
+dyn PRISE_SERVEUSE := -1
+
+Serveuse :: struct {
+    prise := -1
+}
+
+setsockopt :: fonc externe (sockfd: z32, level: z32, optname: z32, optval: *rien, optlen: n64) -> z32
+
+_SOL_SOCKET := 1
+_SO_REUSEADDR := 2
+
+construit_serveuse :: fonc(dyn serveuse : &Serveuse, port : n16) -> chaine
+{
+    serveuse.prise = socket(_AF_INET, _SOCK_STREAM, 0)
+
+    si serveuse.prise == -1 {
+        retourne "erreur lors de la création de la prise"
+    }
+
+    enable := 1
+    si setsockopt(serveuse.prise, _SOL_SOCKET, _SO_REUSEADDR, @enable, taille_de(z32)) < 0 {
+        close(serveuse.prise)
+        retourne "setsockopt(SO_REUSEADDR) failed"
+    }
+
+    dyn adresse_du_connecté : sockaddr_in
+	adresse_du_connecté.sin_family = transtype(_AF_INET : n16)
+    adresse_du_connecté.sin_port = htons(port)
+    // trouve notre propre adresse
+	adresse_du_connecté.sin_addr.s_addr = transtype(0 : n32)
+    adresse_du_connecté.sin_zero[0] = transtype(0 : n8)
+    adresse_du_connecté.sin_zero[1] = transtype(0 : n8)
+    adresse_du_connecté.sin_zero[2] = transtype(0 : n8)
+    adresse_du_connecté.sin_zero[3] = transtype(0 : n8)
+    adresse_du_connecté.sin_zero[4] = transtype(0 : n8)
+    adresse_du_connecté.sin_zero[5] = transtype(0 : n8)
+    adresse_du_connecté.sin_zero[6] = transtype(0 : n8)
+    adresse_du_connecté.sin_zero[7] = transtype(0 : n8)
+
+	dyn err := bind(serveuse.prise, transtype(@adresse_du_connecté : *sockaddr), transtype(taille_de(sockaddr): n64))
+
+	si err == -1 {
+		retourne "erreur lors de la liaison"
+	}
+
+	err = listen(serveuse.prise, CONNEXIONS_MAX)
+
+	si err == -1 {
+		retourne "erreur lors de l'écoute"
+	}
+
+    nonsûr {
+        PRISE_SERVEUSE = serveuse.prise
+    }
+
+    retourne ""
+}
+
+détruit_serveuse :: fonc(dyn serveuse : &Serveuse) -> rien
+{
+    si serveuse.prise == -1 {
+        retourne
+    }
+
+    close(serveuse.prise)
+}
+
+charge_donnees_requete :: fonc(prise : z32, adresse_du_connecté : &sockaddr_in) -> chaine
+{
+    //ip = converti_chaine_c(inet_ntoa(adresse_du_connecté.sin_addr))
+    //imprime("serveur: Reçu connexion de ", ip, '\n')
+    MAXDATASIZE : n64 = transtype(1024 : n64)
+
+    dyn tampon : [1024]z8
+    dyn requete : chaine
+
+    boucle {
+        taille_reçue := recv(prise, @tampon[0], MAXDATASIZE, 0)
+
+        si taille_reçue > 0 {
+            ancienne_taille := requete.taille
+            reloge requete : chaine(requete.taille + taille_reçue)
+            copie_mem_nonsur(src=@tampon[0], dst=@requete[ancienne_taille], taille=taille_reçue)
+
+            si taille_reçue < transtype(MAXDATASIZE: z64) {
+                arrête
+            }
+        }
+        sinon si taille_reçue == 0 {
+            arrête
+        }
+        sinon si taille_reçue == -1 {
+            // À FAIRE : erreur
+            arrête
+        }
+    }
+
+    //imprime("requete :\n", requete, '\n')
+
+    retourne requete
+}
+
+DonnéesRéponse :: struct {
+    status : chaine
+    contenu : chaine
+    type_contenu : chaine
+}
+
+procède_requête :: fonc (
+    prise: z32,
+    adresse_du_connecté: sockaddr_in) -> rien
+{
+    requête := charge_donnees_requete(prise, adresse_du_connecté)
+
+    // ------------------------------
+
+    //imprime("\nrequête :\n%\n", requête)
+
+    dyn analyseuse : AnalyseuseRequête
+    analyseuse.requête = requête
+    //analyse_requête(@analyseuse, requete)
+
+    dyn ligne_requête := analyse_ligne_requête(@analyseuse)
+
+    dyn table := analyse_entêtes(@analyseuse)
+    diffère { décrée_table_hachage(table); }
+
+    dyn contenu_requête := analyse_contenu(@analyseuse)
+
+    // À FAIRE(bug compilateur) : l'index type de la coroutine est négatif
+    //pour n dans chaque_noeud(table) {
+    //    imprime("--- ", n.clé, ": ", n.valeur, "\n")
+    //}
+
+/*
+    pour alvéole dans table.alvéoles {
+        dyn n := alvéole
+
+        tantque n != nul {
+            imprime_sans_format("--- ", n.clé, ": ", n.valeur, "\n")
+            n = n.suivant
+        }
+    }
+*/
+
+
+    enchaineuse_contenu := crée_enchaineuse()
+    diffère { enchaineuse_contenu.détruit() }
+
+    dyn status : chaine
+
+    // À FAIRE : gère les chemin vers les fichiers
+    // À FAIRE : les paramètres des formulaires ne sont pas dans l'URL, ils le sont pour delsace.fr
+    si ligne_requête.chemin == "/" {
+        discr ligne_requête.méthode {
+            "GET" {
+                status = "200 OK"
+
+                enchaineuse_contenu.pousse("<!DOCTYPE html>")
+                enchaineuse_contenu.pousse("<html lang='fr'>")
+                enchaineuse_contenu.pousse("<head>")
+                enchaineuse_contenu.pousse("<meta charset='utf-8'/>")
+                enchaineuse_contenu.pousse("<meta name='viewport' content='width=device-width, initial-scale=1.0'/>")
+                enchaineuse_contenu.pousse("<link rel='shortlink icon' href='/static/favicon-16x16.png'>")
+                enchaineuse_contenu.pousse("<link rel='icon' type='image/png' sizes='32x32' href='/static/favicon-32x32.png'>")
+                enchaineuse_contenu.pousse("</head>")
+                enchaineuse_contenu.pousse("<body>")
+                enchaineuse_contenu.pousse("<p>Vous avez utilisez la méthode GET</p>")
+                enchaineuse_contenu.pousse("<form method='post'>")
+                enchaineuse_contenu.pousse("<label for='POST-name'>Name:</label>")
+                enchaineuse_contenu.pousse("<input id='POST-name' type='text' name='name'>")
+                enchaineuse_contenu.pousse("<button type='submit' value='Save'>")
+                enchaineuse_contenu.pousse("</form>")
+                enchaineuse_contenu.pousse("</body>")
+                enchaineuse_contenu.pousse("</html>")
+            }
+            "POST" {
+                status = "200 OK"
+
+                noeud := table.cherche_noeud("Content-Type")
+
+                // Le contenu est dans les paramètres de l'URL
+                si noeud.valeur == "application/x-www-form-urlencoded" {
+                    // À FAIRE: normalise les données
+                }
+                // nous avons une chaine json
+                sinon si noeud.valeur == "application/json" {
+
+                }
+
+                noeud_longueur_contenu := table.cherche_noeud("Content-Length")
+
+                longueur_contenu := extrait_nombre_entier(noeud_longueur_contenu.valeur)
+
+                si longueur_contenu != contenu_requête.taille {
+                    enchaineuse_contenu.pousse("<p>Les longueurs ne correspondent pas !</p>")
+                }
+                sinon {
+                    enchaineuse_contenu.pousse("<p>Vous avez posté quelque chose !</p>")
+                    // À FAIRE : dépassement des limites de la chaine
+                    enchaineuse_contenu.pousse("<p>Le contenu est de '", contenu_requête, "'</p>")
+                    //enchaineuse_contenu.pousse("<p>Le contenu est de '")
+                    //enchaineuse_contenu.pousse(contenu_requête)
+                    //enchaineuse_contenu.pousse("'</p>")
+                }
+            }
+            sinon {
+                status = "405 METHOD NOT ALLOWED"
+                enchaineuse_contenu.pousse("<p>La méthode n'est pas autorisée !</p>")
+            }
+        }
+    }
+    sinon {
+        status = "404 NOT FOUND"
+
+        enchaineuse_contenu.pousse("<p>La page n'existe pas</p>")
+    }
+
+    // ------------------------------
+
+    imprime("% % % - %\n", ligne_requête.méthode, ligne_requête.chemin, ligne_requête.protocole, status)
+
+    //reponse = repond_requete(requete)
+
+    enchaineuse := crée_enchaineuse()
+    diffère { enchaineuse.détruit() }
+
+    contenu := enchaineuse_contenu.résultat
+
+    enchaineuse.pousse("HTTP/1.1 ", status, "\r\n")
+    enchaineuse.pousse("Server: delsace\r\n")
+    enchaineuse.pousse("Content-Length: ", contenu.taille, "\r\n")
+    enchaineuse.pousse("Content-Type: text/html; charset=utf-8\r\n")
+
+    date := chaine_pour_aujourdhui()
+    diffère { déloge date; }
+    enchaineuse.pousse("Date: ", date, "\r\n")
+
+    // À FAIRE: Content-Encoding, voir Accept-Encoding de la requête
+
+    enchaineuse.pousse("Set-Cookie: test=abcdefg; Domain=localhost; Max-Age=60; Path=/; HttpOnly\r\n")
+
+    enchaineuse.pousse("\r\n")
+    enchaineuse.pousse(contenu)
+
+    chaine_reponse := enchaineuse.résultat
+
+    //chaine_reponse = construit_reponse(reponse)
+
+    si send(prise, chaine_reponse.pointeur, chaine_reponse.taille, 0) == -1 {
+        perror("send".pointeur)
+    }
+
+    close(prise)
+    exit(0)
+}
+
+démarre :: fonc(dyn serveuse : &Serveuse) -> rien
+{
+    si serveuse.prise == -1 {
+        retourne
+    }
+
+    dyn adresse_du_connecté : sockaddr_in
+	sin_size := transtype(taille_de(sockaddr_in) : n32)
+
+    boucle {
+        prise := accept(serveuse.prise, transtype(@adresse_du_connecté : *sockaddr), @sin_size)
+
+        si prise == -1 {
+            perror("accept".pointeur)
+            continue
+        }
+
+        si fork() == 0 {
+            procède_requête(prise, adresse_du_connecté)
+        }
+
+        // le parent n'a pas besoin de cela
+        close(prise)
+
+        // nettoyage des processus fils
+        tantque waitpid(-1, nul, _WNOHANG) > 0 {}
+    }
+}
+
+//###############################################################################
+
+#nulctx rappel_interruption :: fonc (numéro_signal: z32) -> rien
+{
+    close(PRISE_SERVEUSE)
+    exit(numéro_signal)
+}
+
+signal :: fonc externe (numéro_signal: z32, rappel: #nulctx fonc(z32)(rien)) -> rien
+
+_SIGINT := 2
+
+// commentaire
+principale :: fonc(args : []*z8) -> z32
+{
+    signal(_SIGINT, rappel_interruption);
+
+    dyn serveuse : Serveuse
+    construit_serveuse(serveuse, transtype(5001 : n16))
+
+    démarre(serveuse)
+
+    close(serveuse.prise)
+
+    retourne 0
+}

@@ -72,7 +72,13 @@ analyse_entêtes :: fonc(dyn analyseuse: *AnalyseuseRequête) -> *TableHachage
     analyseuse.taille_mot = 0
 
     tantque !analyse_finie(analyseuse) {
+        si analyseuse.caractère_courant() == '\r' {
+            analyseuse.position += 1
+            continue
+        }
+
         si analyseuse.caractère_courant() == '\n' {
+            analyseuse.position += 1
             arrête
         }
 
@@ -130,30 +136,14 @@ analyse_entêtes :: fonc(dyn analyseuse: *AnalyseuseRequête) -> *TableHachage
 
 analyse_requête :: fonc(dyn analyseuse: *AnalyseuseRequête, requête: chaine) -> rien
 {
-    imprime_sans_format("requête :\n", requête, "\n")
+    //imprime_sans_format("requête :\n", requête, "\n")
 
     analyseuse.requête = requête
 
     dyn ligne_requête := analyse_ligne_requête(analyseuse)
 
-    imprime_sans_format("Ligne requête : ", ligne_requête, "\n")
+    //imprime_sans_format("Ligne requête : ", ligne_requête, "\n")
 
-    dyn table := analyse_entêtes(analyseuse)
-    diffère { décrée_table_hachage(table); }
-
-    // À FAIRE(bug compilateur) : l'index type de la coroutine est négatif
-    //pour n dans chaque_noeud(table) {
-    //    imprime("--- ", n.clé, ": ", n.valeur, "\n")
-    //}
-
-    pour alvéole dans table.alvéoles {
-        dyn n := alvéole
-
-        tantque n != nul {
-            imprime_sans_format("--- ", n.clé, ": ", n.valeur, "\n")
-            n = n.suivant
-        }
-    }
 
     // analyse_contenu (pour une réponse)
 }
@@ -206,7 +196,20 @@ analyse_ligne_requête :: fonc(dyn analyseuse: *AnalyseuseRequête) -> LigneRequ
     retourne ligne_requête
 }
 
-principale :: fonc(args : []*z8) : z32
+analyse_contenu :: fonc (dyn analyseuse: *AnalyseuseRequête) -> chaine
+{
+    si analyse_finie(analyseuse) {
+        retourne ""
+    }
+
+    // le contenu est le reste de la requête
+    analyseuse.pointeur = analyseuse.position
+    analyseuse.taille_mot = transtype(analyseuse.requête.taille - analyseuse.position: z32)
+
+    retourne analyseuse.mot_courant()
+}
+
+test_entete_http :: fonc(args : []*z8) : z32
 {
     entête := "GET / HTTP/1.1
 Host: localhost:5005
