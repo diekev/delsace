@@ -756,7 +756,6 @@ imprime :: fonc(format: chaine, args: ...eini) -> rien
 imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 {
     dyn enchaineuse := crée_enchaineuse()
-    diffère { détruit(enchaineuse); }
 
 	dyn index := 0
 
