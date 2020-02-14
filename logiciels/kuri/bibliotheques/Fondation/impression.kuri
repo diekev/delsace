@@ -229,20 +229,7 @@ pousse :: fonc(dyn enchaineuse : &Enchaineuse, args: ...eini) -> rien
 enchaine :: fonc(chns : ...chaine) -> chaine
 {
 	dyn enchaineuse : Enchaineuse
-	dyn taille : z64
-
-	// À FAIRE : trouve comment passer des arguments variadiques à
-	// d'autres fonctions
-	pour chn dans chns {
-		taille += chn.taille
-	}
-
-	enchaineuse.réserve(taille)
-
-	pour chn dans chns {
-		enchaineuse.appends(chn)
-	}
-
+	enchaineuse.pousse(...chns)
 	retourne enchaineuse.résultat
 }
 
