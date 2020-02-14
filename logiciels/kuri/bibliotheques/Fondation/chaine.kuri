@@ -2,6 +2,40 @@
 
 charge "memoire"
 
+// À FAIRE: ceci ne fonctionnera pas pour les chaines statiques, connues lors de la compilation
+pousse :: fonc (dyn chn: *chaine, c: z8) -> rien
+{
+	dyn tmp := mémoire(chn)
+
+	taille := chn.taille
+	reloge tmp: chaine(taille + 1)
+	tmp[taille] = c
+
+	mémoire(chn) = tmp
+}
+
+inverse :: fonc (dyn chn: *chaine) -> rien
+{
+    dyn chn_tmp := mémoire(chn)
+
+	taille := chn.taille / 2
+
+	pour i dans transtype(0: z64) ... taille - 1 {
+		tmp := chn_tmp[i]
+		chn_tmp[i] = chn_tmp[chn.taille - i - 1]
+		chn_tmp[chn.taille - i - 1] = tmp
+	}
+
+    mémoire(chn) = chn_tmp
+}
+
+copie_chaine :: fonc (chn: chaine) -> chaine
+{
+	dyn nchn := loge chaine(chn.taille)
+	copie_mem_nonsur(src = chn.pointeur, dst = nchn.pointeur, taille = chn.taille)
+	retourne nchn
+}
+
 // Retourne la taille d'une chaine C, c'est à dire nul-terminé.
 #nulctx taille_chaine_c :: fonc(ch : *z8) -> z64
 {
