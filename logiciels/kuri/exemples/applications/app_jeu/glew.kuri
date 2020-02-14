@@ -8,6 +8,14 @@ OGL :: énum : n32 {
     STATIC_DRAW := 0x88E4
     TRIANGLES := 0x0004
     FLOAT := 0x1406
+    RED := 0x1903
+    GREEN := 0x1904
+    BLUE := 0x1905
+    ALPHA := 0x1906
+    RGB := 0x1907
+    RGBA := 0x1908
+    LUMINANCE := 0x1909
+    LUMINANCE_ALPHA := 0x190A
     FALSE := 0
     VERTEX_SHADER := 0x8B31
     FRAGMENT_SHADER := 0x8B30

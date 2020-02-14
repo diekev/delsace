@@ -5,12 +5,19 @@ charge "glew"
 
 importe "Fondation"
 
+Couleur :: struct {
+    r : r32 = transtype(0.0 : r32)
+    v : r32 = transtype(0.0 : r32)
+    b : r32 = transtype(0.0 : r32)
+    a : r32 = transtype(0.0 : r32)
+}
+
 dyn VertexArrayID := transtype(0 : n32)
 dyn ProgramID := transtype(0 : n32)
 dyn vertexbuffer := transtype(0 : n32)
 dyn colorbuffer := transtype(0 : n32)
-dyn tabl_sommets : *tableau = nul
-dyn tabl_couleur : *tableau = nul
+dyn tabl_sommets : []r32
+dyn tabl_couleur : []Couleur
 
 charge_programme :: fonc() -> n32
 {
@@ -21,8 +28,8 @@ charge_programme :: fonc() -> n32
     smooth out vec4 couleur;
     void main()
     {
-        gl_Position.xyz = 2.0 * sommet - transtype(1.0 : r32);
-        gl_Position.w = transtype(1.0 : r32);
+        gl_Position.xyz = 2.0 * sommet - 1.0;
+        gl_Position.w = 1.0;
         couleur = couleurs;
     }
     "
@@ -105,8 +112,6 @@ charge_programme :: fonc() -> n32
 initialise_tampon_dessin :: fonc() -> rien
 {
     nonsûr {
-		tabl_sommets = crée_tableau(transtype(taille_de(z32) : z64))
-		tabl_couleur = crée_tableau(transtype(taille_de(z32) : z64))
         ProgramID = charge_programme()
     }
 
@@ -120,8 +125,8 @@ issitialise_tampon_dessin :: fonc() -> rien
     glDeleteVertexArrays(1, @VertexArrayID)
     glDeleteBuffers(1, @vertexbuffer)
     glDeleteBuffers(1, @colorbuffer)
-    decrée_tableau(tabl_sommets)
-    decrée_tableau(tabl_couleur)
+    déloge tabl_sommets
+    déloge tabl_couleur
     glDeleteProgram(ProgramID)
 }
 
@@ -130,18 +135,54 @@ débute_dessin :: fonc() -> rien
     glBindVertexArray(VertexArrayID)
 }
 
+_GL_INVALID_ENUM := transtype(0x0500: n32)
+_GL_INVALID_VALUE := transtype(0x0501: n32)
+_GL_INVALID_OPERATION := transtype(0x0502: n32)
+_GL_INVALID_FRAMEBUFFER_OPERATION := transtype(0x0506: n32)
+
+glGetError :: fonc externe () -> n32
+
+vérifie_erreur :: fonc() -> rien
+{
+    erreur := glGetError()
+
+	si erreur == transtype(0: n32) {
+        retourne
+	}
+
+	imprime("erreur OpenGL !\n")
+
+    discr erreur {
+        _GL_INVALID_ENUM {
+            imprime("-- énumération invalide\n")
+        }
+        _GL_INVALID_VALUE {
+            imprime("-- valeur invalide\n")
+        }
+        _GL_INVALID_OPERATION {
+            imprime("-- opération invalide\n")
+        }
+        _GL_INVALID_FRAMEBUFFER_OPERATION {
+            imprime("-- opération invalide sur framebuffer\n")
+        }
+        sinon {
+            imprime("-- erreur inconnue, code %\n", erreur)
+        }
+    }
+}
+
 termine_dessin :: fonc() -> rien
 {
     glUseProgram(ProgramID)
 
     glEnableVertexAttribArray(transtype(0 : n32))
     glBindBuffer(OGL.ARRAY_BUFFER, vertexbuffer)
-	glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_sommets.taille * taille_de(z32) : n64), tabl_sommets.tampon.pointeur, OGL.STATIC_DRAW)
+	glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_sommets.taille : n64) * taille_de(z32), tabl_sommets.pointeur, OGL.STATIC_DRAW)
     glVertexAttribPointer(transtype(0 : n32), 3, OGL.FLOAT, OGL.FALSE, 0, nul)
 
     glEnableVertexAttribArray(transtype(1 : n32))
     glBindBuffer(OGL.ARRAY_BUFFER, colorbuffer)
-	glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_couleur.taille * taille_de(z32) : n64), tabl_couleur.tampon.pointeur, OGL.STATIC_DRAW)
+	glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_couleur.taille : n64) * taille_de(Couleur), tabl_couleur.pointeur, OGL.STATIC_DRAW)
     glVertexAttribPointer(transtype(1 : n32), 4, OGL.FLOAT, OGL.FALSE, 0, nul)
 
     glDrawArrays(OGL.TRIANGLES, 0, tabl_sommets.taille / 3)
@@ -150,8 +191,9 @@ termine_dessin :: fonc() -> rien
     glUseProgram(transtype(0 : n32))
 
     nonsûr {
-        tabl_sommets.taille = 0
-        tabl_couleur.taille = 0
+        // À FAIRE : propriété « alloué »
+        déloge tabl_sommets
+        déloge tabl_couleur
     }
 
     glBindVertexArray(transtype(0 : n32))
@@ -159,24 +201,14 @@ termine_dessin :: fonc() -> rien
 
 ajoute_sommet :: fonc(x : r32, y : r32, z : r32) -> rien
 {
-    pousse_tableau(tabl_sommets, @x)
-    pousse_tableau(tabl_sommets, @y)
-    pousse_tableau(tabl_sommets, @z)
-}
-
-Couleur :: struct {
-    r : r32 = transtype(0.0 : r32)
-    v : r32 = transtype(0.0 : r32)
-    b : r32 = transtype(0.0 : r32)
-    a : r32 = transtype(0.0 : r32)
+    tableau_ajoute(@tabl_sommets, x)
+    tableau_ajoute(@tabl_sommets, y)
+    tableau_ajoute(@tabl_sommets, z)
 }
 
 ajoute_couleur :: fonc(coul : Couleur) -> rien
 {
-    pousse_tableau(tabl_couleur, @coul.r)
-    pousse_tableau(tabl_couleur, @coul.v)
-    pousse_tableau(tabl_couleur, @coul.b)
-    pousse_tableau(tabl_couleur, @coul.a)
+    tableau_ajoute(@tabl_couleur, coul)
 }
 
 dessine_triangle :: fonc() -> rien
@@ -255,8 +287,8 @@ dessine_quart_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : 
     débute_dessin()
 
     segs := 8
-	dyn phi = transtype(quadrant : r32) * transtype((3.14159 / 2.0) : r32)
-	dyn phi_delta = transtype(2.0 * 3.14159 / transtype(segs * 4 : r32) : r32)
+	dyn phi := transtype(quadrant : r32) * transtype((3.14159 / 2.0) : r32)
+	dyn phi_delta := transtype(2.0 * 3.14159 / transtype(segs * 4 : r32) : r32)
 
     pour i dans 0...segs - 1 {
         ca0 := cx + cos(phi) * rx

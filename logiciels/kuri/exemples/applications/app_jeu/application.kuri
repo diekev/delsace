@@ -12,14 +12,16 @@ importe Fondation
 // Puisqu'on ne peut pas passer de contexte aux méthodes de « file » via les
 // fonctions de rappel, cette structure est spécialisée pour les file d'évènements.
 // Cependant elle est limitée à un certain nombre d'événement
+NOMBRE_MAXIMUM_ÉVÈNEMET := 32
+
 FileÉvènement :: struct {
-	tampon : [32]Évènement
+	tampon : []Évènement
 	taille : z64
 }
 
 #nulctx enfile :: fonc(dyn q : *FileÉvènement, évènement : Évènement) -> rien
 {
-    si q.taille >= 32 {
+    si q.taille >= NOMBRE_MAXIMUM_ÉVÈNEMET {
         // À FAIRE: erreur?
         retourne
     }
@@ -42,14 +44,14 @@ FileÉvènement :: struct {
         retourne évènement
     }
 
-    évènement := q.tampon[0]
+    évènement = q.tampon[0]
 
     // réajuste la file en décalant les données
 
     si q.taille > 1 {
 	    ptr_dst := @q.tampon[0]
 		ptr_src := @q.tampon[1]
-        copie_mem_nonsur(ptr_src, ptr_dst, transtype(taille_de(Évènement) -> z64) * (q.taille - 1))
+        copie_mem_nonsur(ptr_src, ptr_dst, transtype(taille_de(Évènement): z64) * (q.taille - 1))
     }
 
     q.taille -= 1
@@ -255,7 +257,7 @@ TEMPS_DOUBLE_CLIC_MS_MAX : z64 = 5000
 traite_évènements :: fonc(dyn app : &Application) -> rien
 {
     tantque !est_vide(VG_file_évènements) {
-        dyn évènement = défile(VG_file_évènements)
+        dyn évènement := défile(VG_file_évènements)
 
         // enregistrement de la position de la souris, car ceci n'est donnée
 		// que pour les mouvements */
@@ -327,6 +329,7 @@ lance_application :: fonc(dyn app : &Application) -> z32
     dyn file_évènement : FileÉvènement
     nonsûr {
         VG_file_évènements = @file_évènement
+        VG_file_évènements.tampon = loge [NOMBRE_MAXIMUM_ÉVÈNEMET]Évènement
     }
 
     dyn largeur : z32 = TAILLE_TUILE * TUILES_X
@@ -374,6 +377,8 @@ lance_application :: fonc(dyn app : &Application) -> z32
     glfwDestroyWindow(fenetre)
 
     glfwTerminate()
+
+    déloge file_évènement.tampon
 
     retourne 0
 }
