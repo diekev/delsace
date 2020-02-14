@@ -359,35 +359,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 		{
 			auto res = ResultatExpression();
 			res.type = type_expression::ENTIER;
-
-			auto chaine_chiffre = dls::vue_chaine(b->chaine().pointeur(), b->chaine().taille());
-
-			switch (b->lexeme.genre) {
-				case GenreLexeme::NOMBRE_ENTIER:
-				{
-					res.entier = lng::converti_nombre_entier(chaine_chiffre);
-					break;
-				}
-				case GenreLexeme::NOMBRE_HEXADECIMAL:
-				{
-					res.entier = lng::converti_chaine_nombre_hexadecimal(chaine_chiffre);
-					break;
-				}
-				case GenreLexeme::NOMBRE_OCTAL:
-				{
-					res.entier = lng::converti_chaine_nombre_octal(chaine_chiffre);
-					break;
-				}
-				case GenreLexeme::NOMBRE_BINAIRE:
-				{
-					res.entier = lng::converti_chaine_nombre_binaire(chaine_chiffre);
-					break;
-				}
-				default:
-				{
-					break;
-				}
-			}
+			res.entier = lng::decoupeuse_nombre<GenreLexeme>::converti_chaine_nombre_entier(b->chaine(), b->lexeme.genre);
 
 			return res;
 		}
