@@ -77,20 +77,13 @@ mot :: fonc(empl lexeuse : &Lexeuse) -> chaine
 	retourne construit_chaine(@lexeuse.chn[lexeuse.début_mot], lexeuse.taille_mot)
 }
 
-pousse :: fonc(dyn lexèmes : &[]Lexème, lexème : Lexème) -> rien
-{
-    taille := lexèmes.taille
-    reloge lexèmes : [taille + 1]Lexème
-    lexèmes[taille] = lexème
-}
-
 pousse_mot :: fonc(dyn lexeuse : &Lexeuse, id : IdentifiantLexème) -> rien
 {
 	dyn lexème : Lexème
 	lexème.chn = lexeuse.mot()
 	lexème.id = id
 
-	lexeuse.lexèmes.pousse(lexème)
+	tableau_ajoute(@lexeuse.lexèmes, lexème)
 
 	lexeuse.taille_mot = 0
 }

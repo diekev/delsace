@@ -82,38 +82,6 @@ imprime_requête :: fonc(dyn requête : &Requête) -> rien
 
 //###############################################################################
 
-// À FAIRE(langage) : gabarits
-
-pousse :: fonc(dyn liste : &[]Bloc, valeur : Bloc) -> rien
-{
-    taille := liste.taille
-    reloge liste : [taille + 1]Bloc
-    liste[taille] = valeur
-}
-
-pousse :: fonc(dyn liste : &[]Objet, valeur : Objet) -> rien
-{
-    taille := liste.taille
-    reloge liste : [taille + 1]Objet
-    liste[taille] = valeur
-}
-
-pousse :: fonc(dyn liste : &[]Propriété, valeur : Propriété) -> rien
-{
-    taille := liste.taille
-    reloge liste : [taille + 1]Propriété
-    liste[taille] = valeur
-}
-
-pousse :: fonc(dyn liste : &[]Étiquette, valeur : Étiquette) -> rien
-{
-    taille := liste.taille
-    reloge liste : [taille + 1]Étiquette
-    liste[taille] = valeur
-}
-
-//###############################################################################
-
 Syntaxeuse :: struct {
 	lexèmes : *[]Lexème
 	position : z64 = 0
@@ -207,7 +175,7 @@ analyse_propriétés :: fonc(dyn syntaxeuse : &Syntaxeuse, dyn objet : &Objet) -
 			retourne
 		}
 
-		objet.propriétés.pousse(propriété)
+		tableau_ajoute(@objet.propriétés, propriété)
 
 		si syntaxeuse.est_lexème(IdentifiantLexème.VIRGULE) {
 			syntaxeuse.avance()
@@ -255,7 +223,7 @@ analyse_objet :: fonc(
 		étiquette.valeur = syntaxeuse.lexème_courant().chn
 		syntaxeuse.avance()
 
-		objet.étiquettes.pousse(étiquette)
+		tableau_ajoute(@objet.étiquettes, étiquette)
 	}
 
 	si syntaxeuse.est_lexème(IdentifiantLexème.ACCOLADE_OUVRANTE) {
@@ -263,7 +231,7 @@ analyse_objet :: fonc(
 		syntaxeuse.analyse_propriétés(objet)
 	}
 
-	expression.objets.pousse(objet)
+	tableau_ajoute(@expression.objets, objet)
 
 	si !syntaxeuse.requiers_lexème(id_final) {
 		//imprime("ERREUR : attendu l'identifiant final de l'objet\n")
@@ -349,7 +317,7 @@ analyse_requête :: fonc(dyn syntaxeuse : &Syntaxeuse) -> Résultat
 			bloc.inst = syntaxeuse.inst
 			bloc.expression = syntaxeuse.analyse_expression()
 
-			requête.blocs.pousse(bloc)
+			tableau_ajoute(@requête.blocs, bloc)
 		}
 		sinon {
 			dyn erreur : Erreur;

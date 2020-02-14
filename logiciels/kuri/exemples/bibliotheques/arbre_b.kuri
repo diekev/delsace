@@ -150,7 +150,7 @@ divise_enfant :: fonc(
 {
     // construit un noeud qui stockera t - 1 clés de y
     dyn z := construit_noeud(y.t, y.est_feuille)
-    pousse(arbre.noeuds, z)
+    tableau_ajoute(@arbre.noeuds, z)
     z.n = noeud.t - 1
 
     pour j dans 0 ... noeud.t - 2 {
@@ -406,13 +406,6 @@ fusionne_suivant :: fonc(dyn noeud: *NoeudArbreB, idx: z32) -> rien
 
 //#######################################
 
-pousse :: fonc(dyn liste: &[]*NoeudArbreB, valeur: *NoeudArbreB) -> rien
-{
-    taille := liste.taille
-    reloge liste: [taille + 1]*NoeudArbreB
-    liste[taille] = valeur
-}
-
 construit_arbre :: fonc(t: z32) -> ArbreB
 {
     dyn arbre : ArbreB
@@ -455,7 +448,7 @@ insère :: fonc(dyn arbre: *ArbreB, k: z32) -> rien
 {
     si arbre.racine == nul {
         arbre.racine = construit_noeud(arbre.t, vrai)
-        pousse(arbre.noeuds, arbre.racine)
+        tableau_ajoute(@arbre.noeuds, arbre.racine)
         arbre.racine.clés[0] = k
         arbre.racine.n = 1
 
@@ -465,7 +458,7 @@ insère :: fonc(dyn arbre: *ArbreB, k: z32) -> rien
     // si la racine est pleine, croît l'arbre
     si arbre.racine.n == (2 * arbre.t - 1) {
         dyn s := construit_noeud(arbre.t, faux)
-        pousse(arbre.noeuds, s)
+        tableau_ajoute(@arbre.noeuds, s)
 
         s.enfants[0] = arbre.racine
 

@@ -51,20 +51,6 @@ ObjetDictionnaire :: struct {
 	valeurs : []*Objet
 }
 
-pousse :: fonc(dyn liste : &[]chaine, valeur : chaine) -> rien
-{
-    taille := liste.taille
-    reloge liste : [taille + 1]chaine
-    liste[taille] = valeur
-}
-
-pousse :: fonc(dyn liste : &[]*Objet, valeur : *Objet) -> rien
-{
-    taille := liste.taille
-    reloge liste : [taille + 1]*Objet
-    liste[taille] = valeur
-}
-
 insère :: fonc(dyn dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) -> rien
 {
 	pour nom, idx dans dico.noms {
@@ -76,8 +62,8 @@ insère :: fonc(dyn dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Obje
 		retourne
 	}
 
-	pousse(dico.noms, nom_objet)
-	pousse(dico.valeurs, objet)
+	tableau_ajoute(@dico.noms, nom_objet)
+	tableau_ajoute(@dico.valeurs, objet)
 }
 
 trouve_objet :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *Objet
@@ -174,12 +160,6 @@ GestionnaireObjet :: struct {
 	objets : []*Objet
 }
 
-insère :: fonc(objet : *Objet, dyn liste : &[]*Objet) -> rien
-{
-	reloge liste : [liste.taille + 1]*Objet
-	liste[liste.taille - 1] = objet
-}
-
 crée_dictionnaire :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetDictionnaire
 {
 	dyn objet := loge ObjetDictionnaire
@@ -189,7 +169,7 @@ crée_dictionnaire :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetDictionna
 	objet.valeurs.taille = 0
 	objet.valeurs.pointeur = nul
 
-	pousse(gestionnaire.objets, transtype(objet : *Objet))
+	tableau_ajoute(@gestionnaire.objets, transtype(objet : *Objet))
 
 	retourne objet
 }
@@ -201,7 +181,7 @@ crée_liste :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetListe
 	objet.valeur.taille = 0
 	objet.valeur.pointeur = nul
 
-	pousse(gestionnaire.objets, transtype(objet : *Objet))
+	tableau_ajoute(@gestionnaire.objets, transtype(objet : *Objet))
 
 	retourne objet
 }
@@ -212,7 +192,7 @@ crée_entier :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetEntier
 	objet.id = TypeObjet.ENTIER
 	objet.valeur = 0
 
-	pousse(gestionnaire.objets, transtype(objet : *Objet))
+	tableau_ajoute(@gestionnaire.objets, transtype(objet : *Objet))
 
 	retourne objet
 }
@@ -223,7 +203,7 @@ crée_réel :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetRéel
 	objet.id = TypeObjet.RÉEL
 	objet.valeur = 0.0
 
-	pousse(gestionnaire.objets, transtype(objet : *Objet))
+	tableau_ajoute(@gestionnaire.objets, transtype(objet : *Objet))
 
 	retourne objet
 }
@@ -234,7 +214,7 @@ crée_chaine :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetChaine
 	objet.id = TypeObjet.CHAINE
 	objet.valeur = ""
 
-	pousse(gestionnaire.objets, transtype(objet : *Objet))
+	tableau_ajoute(@gestionnaire.objets, transtype(objet : *Objet))
 
 	retourne objet
 }
@@ -244,7 +224,7 @@ crée_nul :: fonc(gestionnaire : *GestionnaireObjet) -> *Objet
 	dyn objet := loge Objet
 	objet.id = TypeObjet.NUL
 
-	pousse(gestionnaire.objets, objet)
+	tableau_ajoute(@gestionnaire.objets, objet)
 
 	retourne objet
 }

@@ -87,15 +87,15 @@ ajoute_point :: fonc (dyn poly: *Polygone, idx_point: z64, idx_sommet: z64) -> r
 {
 	//assert(idx_point >= 0)
 	//assert(idx_sommet >= 0)
-	tableau_pousse(@poly.points, idx_point)
-	tableau_pousse(@poly.sommets, idx_sommet)
+	tableau_ajoute(@poly.points, idx_point)
+	tableau_ajoute(@poly.sommets, idx_sommet)
 }
 
 reserve_sommets :: fonc (dyn poly: *Polygone, nombre: z64) -> rien
 {
 	//assert(nombre >= 0)
-	tableau_pousse(@poly.points, nombre)
-	tableau_pousse(@poly.sommets, nombre)
+	tableau_ajoute(@poly.points, nombre)
+	tableau_ajoute(@poly.sommets, nombre)
 }
 
 nombre_sommets :: fonc (poly: *Polygone) -> z64

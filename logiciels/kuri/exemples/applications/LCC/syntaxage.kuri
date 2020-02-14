@@ -384,8 +384,8 @@ position :: fonc(syntaxeuse : &Syntaxeuse) -> z32
 }
 
 vide_pile_operateur :: fonc(
-    expression : &[]*NoeudSyntaxique,
-    pile : &[]*NoeudSyntaxique,
+    expression : *[]*NoeudSyntaxique,
+    pile : *[]*NoeudSyntaxique,
     lexème_op : TypeLexème) -> rien
 {
     tantque !pile.est_vide() {
@@ -393,7 +393,7 @@ vide_pile_operateur :: fonc(
 			arrête
 		}
 
-        expression.pousse(pile.dernier())
+        tableau_ajoute(@expression, pile.dernier())
         pile.pop_dernier()
     }
 }
@@ -439,24 +439,24 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 
 					syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.FONCTION)
 
-					expression.pousse(noeud)
+					tableau_ajoute(@expression, noeud)
 				}
 				// variable : chaine
 				sinon {
 					noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VARIABLE, morceau)
-					expression.pousse(noeud)
+					tableau_ajoute(@expression, noeud)
 				}
 			}
 			NOMBRE_REEL {
 				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
-				expression.pousse(noeud)
+				tableau_ajoute(@expression, noeud)
 			}
 			NOMBRE_BINAIRE,
 			NOMBRE_ENTIER,
 			NOMBRE_HEXADECIMAL,
 			NOMBRE_OCTAL {
 				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
-				expression.pousse(noeud)
+				tableau_ajoute(@expression, noeud)
 			}
 			VEC2,
 			VEC3,
@@ -477,26 +477,26 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 
 				syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.VALEUR)
 
-				expression.pousse(noeud)
+				tableau_ajoute(@expression, noeud)
 			}
 			CHAINE_LITTERALE {
 				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
-				expression.pousse(noeud)
+				tableau_ajoute(@expression, noeud)
 			}
 			CARACTERE {
 				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
-				expression.pousse(noeud)
+				tableau_ajoute(@expression, noeud)
 			}
 			NUL {
 				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
-				expression.pousse(noeud)
+				tableau_ajoute(@expression, noeud)
 			}
 			VRAI,
 			FAUX {
 				// remplace l'lexème par TypeLexème.BOOL
 				morceau.lexème = TypeLexème.BOOL
 				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
-				expression.pousse(noeud)
+				tableau_ajoute(@expression, noeud)
 			}
 			PARENTHESE_OUVRANTE {
 				noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.EXPRESSION_PARENTHESE, morceau, faux)
@@ -505,7 +505,7 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 
 				syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.EXPRESSION_PARENTHESE)
 
-				expression.pousse(noeud)
+				tableau_ajoute(@expression, noeud)
 
 				dernier_lexème = TypeLexème.PARENTHESE_FERMANTE
 
@@ -543,7 +543,7 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 
 				vide_pile_operateur(expression, pile, lexème_op)
 
-				pile.pousse(noeud)
+				tableau_ajoute(@pile, noeud)
 			}
 			FOIS,
 			DIVISE,
@@ -573,13 +573,13 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 
 				vide_pile_operateur(expression, pile, morceau.lexème)
 				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.OPERATION_BINAIRE, morceau)
-				pile.pousse(noeud)
+				tableau_ajoute(@pile, noeud)
 			}
 			EGAL {
 				vide_pile_operateur(expression, pile, morceau.lexème)
 
 				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ASSIGNATION, morceau)
-				pile.pousse(noeud)
+				tableau_ajoute(@pile, noeud)
 			}
 			CROCHET_OUVRANT {
 				// l'accès à un élément d'un tableau est chaine[index]
@@ -587,7 +587,7 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 					vide_pile_operateur(expression, pile, morceau.lexème)
 
 					noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.OPERATION_BINAIRE, morceau, faux)
-					pile.pousse(noeud)
+					tableau_ajoute(@pile, noeud)
 
 					syntaxeuse.analyse_expression(TypeLexème.CROCHET_FERMANT)
 
@@ -596,7 +596,7 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 				sinon {
 					morceau.lexème = TypeLexème.TABLEAU
 					noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.VALEUR, morceau, faux)
-					pile.pousse(noeud)
+					tableau_ajoute(@pile, noeud)
 
 					syntaxeuse.analyse_expression(TypeLexème.CROCHET_FERMANT)
 
@@ -610,7 +610,7 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 			MOINS_UNAIRE {
 				vide_pile_operateur(expression, pile, morceau.lexème)
 				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.OPERATION_UNAIRE, morceau)
-				pile.pousse(noeud)
+				tableau_ajoute(@pile, noeud)
 			}
 			DOLLAR {
 				vide_pile_operateur(expression, pile, morceau.lexème)
@@ -623,7 +623,7 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 							TypeNoeud.PROPRIETE,
 							syntaxeuse.lexèmes[position(syntaxeuse)])
 
-				expression.pousse(noeud)
+				tableau_ajoute(@expression, noeud)
 			}
 			AROBASE {
 				vide_pile_operateur(expression, pile, morceau.lexème)
@@ -636,17 +636,17 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 							TypeNoeud.ATTRIBUT,
 							syntaxeuse.lexèmes[position(syntaxeuse)])
 
-				expression.pousse(noeud)
+				tableau_ajoute(@expression, noeud)
 			}
 			POINT {
 				vide_pile_operateur(expression, pile, morceau.lexème)
 				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ACCES_MEMBRE_POINT, morceau)
-				pile.pousse(noeud)
+				tableau_ajoute(@pile, noeud)
 			}
 			TROIS_POINTS {
 				vide_pile_operateur(expression, pile, morceau.lexème)
 				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.PLAGE, morceau)
-				pile.pousse(noeud)
+				tableau_ajoute(@pile, noeud)
 			}
 			sinon {
 				//lance_erreur("Identifiant inattendu dans l'expression")
@@ -663,7 +663,7 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 	}
 
 	tantque (!pile.est_vide()) {
-		expression.pousse(pile.dernier())
+		tableau_ajoute(@expression, pile.dernier())
 		pile.pop_dernier()
 	}
 
@@ -687,7 +687,7 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 			noeud.ajoute_noeud(n1)
 			noeud.ajoute_noeud(n2)
 
-			pile.pousse(noeud)
+			tableau_ajoute(@pile, noeud)
 		}
 		sinon si (est_operateur_unaire(noeud.lexème())) {
 			n1 := pile.dernier()
@@ -695,10 +695,10 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 
 			noeud.ajoute_noeud(n1)
 
-			pile.pousse(noeud)
+			tableau_ajoute(@pile, noeud)
 		}
 		sinon {
-			pile.pousse(noeud)
+			tableau_ajoute(@pile, noeud)
 		}
 	}
 

@@ -82,7 +82,7 @@ crée_objet :: fonc(assembleuse: &AssembleuseObjet, nom_objet: chaine, type: Typ
 		}
 		sinon {
 			dyn tabl := transtype(objet_haut: *ObjetListe)
-			tabl.valeur.pousse(objet)
+			tableau_ajoute(@tabl.valeur, objet)
 		}
 	}
 

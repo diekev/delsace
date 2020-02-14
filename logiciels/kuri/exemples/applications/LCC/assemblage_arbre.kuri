@@ -36,16 +36,9 @@ détruit_noeud :: fonc(dyn noeud : *NoeudSyntaxique) -> rien
     déloge noeud
 }
 
-pousse :: fonc(dyn liste : &[]*NoeudSyntaxique, valeur : *NoeudSyntaxique) -> rien
-{
-    taille := liste.taille
-    reloge liste : [taille + 1]*NoeudSyntaxique
-    liste[taille] = valeur
-}
-
 ajoute_noeud :: fonc(dyn noeud : *NoeudSyntaxique, enfant : *NoeudSyntaxique) -> rien
 {
-    noeud.enfants.pousse(enfant)
+    tableau_ajoute(@noeud.enfants, enfant)
 }
 
 lexème :: fonc(noeud : *NoeudSyntaxique) -> TypeLexème
@@ -161,7 +154,7 @@ crée_noeud :: fonc(
     noeud.enfants.taille = 0
     noeud.enfants.pointeur = nul
 
-    assembleuse.noeuds.pousse(noeud)
+    tableau_ajoute(@assembleuse.noeuds, noeud)
 
 	retourne noeud
 }

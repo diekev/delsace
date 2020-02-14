@@ -5,13 +5,6 @@ PageMémoire :: struct {
 	position : z64
 }
 
-pousse :: fonc(dyn pages : &[]PageMémoire, page : PageMémoire) -> rien
-{
-    taille := pages.taille
-    reloge pages : [taille + 1]PageMémoire
-    pages[taille] = page
-}
-
 FichierMémoire :: struct {
 	pages : []PageMémoire
 	page_courante : z32
@@ -23,7 +16,7 @@ ajoute_page :: fonc(dyn fichier : &FichierMémoire) -> rien
 	dyn page := PageMémoire
 	page.données = loge [64 * 1024]octet
 
-	pousse(fichier.pages, page)
+	tableau_ajoute(@fichier.pages, page)
 }
 
 supprime_fichier :: fonc(dyn fichier : &FichierMémoire) -> rien
@@ -96,20 +89,6 @@ duplique :: fonc(chn : chaine) -> chaine
 	retourne rés
 }
 
-pousse :: fonc(dyn liste : &[]chaine, valeur : chaine) -> rien
-{
-    taille := liste.taille
-    reloge liste : [taille + 1]chaine
-    liste[taille] = valeur
-}
-
-pousse :: fonc(dyn liste : &[]*FichierMémoire, valeur : *FichierMémoire) -> rien
-{
-    taille := liste.taille
-    reloge liste : [taille + 1]*FichierMémoire
-    liste[taille] = valeur
-}
-
 SystèmeFichierMémoire :: struct {
 	fichiers : []*FichierMémoire
 	chemins : []chaine
@@ -148,8 +127,8 @@ ouvre_pour_écriture :: fonc(
 		copie_chemin := duplique(chemin)
 		fichier := loge FichierMémoire
 
-		système.fichiers.pousse(fichier)
-		système.chemins.pousse(copie_chemin)
+		tableau_ajoute(@système.fichiers, fichier)
+		tableau_ajoute(@système.chemins, copie_chemin)
 	}
 
 	retourne fichier

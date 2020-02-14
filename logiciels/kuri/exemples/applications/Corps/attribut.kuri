@@ -104,10 +104,10 @@ principale :: fonc(args : []*z8) -> z32
 	imprime("\nValeurs :\n")
 
 	dyn ptr_tableau := tableau_r32(@attr, 0)
-	tableau_pousse(ptr_tableau, transtype(5.0: r32))
+	tableau_ajoute(ptr_tableau, transtype(5.0: r32))
 
 	ptr_tableau = tableau_r32(@attr, 5)
-	tableau_pousse(ptr_tableau, transtype(5.0: r32))
+	tableau_ajoute(ptr_tableau, transtype(5.0: r32))
 
 	pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
 		dyn ptr := tableau_r32(@attr, i)
@@ -122,7 +122,7 @@ principale :: fonc(args : []*z8) -> z32
 	imprime("\nValeurs (après copie) :\n")
 
 	ptr_tableau = tableau_r32(@attr, 5)
-	tableau_pousse(ptr_tableau, transtype(5.0: r32))
+	tableau_ajoute(ptr_tableau, transtype(5.0: r32))
 
 	pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
 		dyn ptr := tableau_r32(@attr, i)

@@ -57,7 +57,7 @@ crée_atlas_texture :: fonc (largeur : n64, hauteur : n64, profondeur : n64) -> 
  	// Nous désirons une frontière de 1 pixel autour de l'atlas pour éviter tout artefact
 	// lors de l'échantillonnage de textures
 	noeud := Vec3z{ x = 1, y = 1, z = transtype(largeur: z32) - 2 }
-	tableau_pousse(@atlas.noeuds, noeud)
+	tableau_ajoute(@atlas.noeuds, noeud)
 
 	atlas.données = loge [largeur * hauteur * profondeur]octet
 	memset(atlas.données.pointeur, 0, largeur * hauteur * profondeur)
@@ -251,7 +251,7 @@ texture_atlas_clear :: fonc (dyn atlas : *AtlasTexture) -> rien
 	atlas.utilisé = transtype(0: n64)
 
 	noeud := Vec3z{ x = 1, y = 1, z = transtype(atlas.largeur: z32) - 2 }
-	tableau_pousse(@atlas.noeuds, noeud)
+	tableau_ajoute(@atlas.noeuds, noeud)
 
 	memset(atlas.données.pointeur, 0, atlas.largeur * atlas.hauteur * atlas.profondeur)
 }

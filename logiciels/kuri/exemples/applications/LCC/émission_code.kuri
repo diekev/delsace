@@ -17,14 +17,14 @@ int ajoute_conversion(
 // À FAIRE : suppression de la mémoire pour les feuilles
 rassemble_feuilles :: fonc(
     noeud_base : *NoeudSyntaxique,
-    dyn feuilles : &[]*NoeudSyntaxique) -> rien
+    dyn feuilles : *[]*NoeudSyntaxique) -> rien
 {
 	pour enfant dans noeud_base.enfants {
 		si enfant.lexème() == TypeLexème.VIRGULE {
 			rassemble_feuilles(enfant, feuilles)
 		}
 		sinon {
-			feuilles.pousse(enfant)
+			tableau_ajoute(feuilles, enfant)
 		}
 	}
 }
@@ -234,7 +234,7 @@ genere_code :: fonc(
 					}
 					sinon {
 						feuilles := dls::tableau<base *>()
-						rassemble_feuilles(b, feuilles)
+						rassemble_feuilles(b, @feuilles)
 
 						// À FAIRE :
 						// - vérifie que tous les noeuds sont bel et bien constants
@@ -256,7 +256,7 @@ genere_code :: fonc(
 				}
 				TypeParamètre.TABLEAU {
 					feuilles := dls::tableau<base *>()
-					rassemble_feuilles(b, feuilles)
+					rassemble_feuilles(b, @feuilles)
 
 					// À FAIRE : erreur si tableau vide, INFÉRENCE TYPE
 					type_feuille := type_var{}
@@ -582,7 +582,7 @@ genere_code :: fonc(
 			si (enfant_gauche.identifiant() == TypeLexème.VIRGULE) {
 				feuilles := dls::tableau<base *>()
 
-				rassemble_feuilles(enfant_gauche, feuilles)
+				rassemble_feuilles(enfant_gauche, @feuilles)
 
 				donnees_fonc := donnees_fonction_generation{}
 

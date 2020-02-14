@@ -21,13 +21,6 @@ DonnéesLexème :: struct {
     type_lexème : TypeLexème
 }
 
-pousse :: fonc(dyn liste : &[]DonnéesLexème, valeur : DonnéesLexème) -> rien
-{
-    taille := liste.taille
-    reloge liste : [taille + 1]DonnéesLexème
-    liste[taille] = valeur
-}
-
 //######################################
 
 id_identifiant :: fonc(identifiant : chaine) -> TypeLexème
@@ -228,7 +221,7 @@ pousse_mot :: fonc(dyn lexeuse : &Lexeuse, type_lexème : TypeLexème) -> rien
     données.type_lexème = type_lexème
     données.chn = lexeuse.mot_courant()
 
-    lexeuse.lexèmes.pousse(données)
+    tableau_ajoute(@lexeuse.lexèmes, données)
 
     lexeuse.taille_mot_courant = 0
 }

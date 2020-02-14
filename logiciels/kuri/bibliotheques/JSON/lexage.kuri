@@ -56,13 +56,6 @@ Lexeuse :: struct {
     pos_mot := 0
 }
 
-pousse :: fonc(dyn liste : &[]DonneesLexème, valeur : DonneesLexème) -> rien
-{
-    taille := liste.taille
-    reloge liste : [taille + 1]DonneesLexème
-    liste[taille] = valeur
-}
-
 construit_lexeuse :: fonc(chn : chaine) -> Lexeuse
 {
     dyn lexeuse : Lexeuse
@@ -125,7 +118,7 @@ pousse_mot :: fonc(dyn lexeuse : &Lexeuse, lexème : TypeLexème) -> rien
     données.lexème = lexème
     données.chn = lexeuse.mot_courant()
 
-    lexeuse.lexèmes.pousse(données)
+    tableau_ajoute(@lexeuse.lexèmes, données)
 
     lexeuse.taille_mot_courant = 0
 	lexeuse.début_mot = nul

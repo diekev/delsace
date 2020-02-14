@@ -285,7 +285,7 @@ sont_chaines_inégales :: fonc(chn1: chaine, chn2: chaine) -> bool
 
 // Fonctions basiques pour les tableaux
 
-tableau_pousse :: fonc (dyn tabl: *[]$T, valeur: $T) -> rien
+tableau_ajoute :: fonc (dyn tabl: *[]$T, valeur: $T) -> rien
 {
     dyn tmp := mémoire(tabl)
 
