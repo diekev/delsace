@@ -158,8 +158,8 @@ extrait_nombre_entier :: fonc(chn : chaine) -> z64
 // La fonction présume que la chaine est entièrement composée de caractères numériques et d'un point
 extrait_nombre_réel :: fonc(chn : chaine) -> r64
 {
-    dyn résultat := 0.0
-	dyn mult := 1.0
+    dyn résultat : r64 = 0.0
+	dyn mult : r64 = 1.0
 	dyn point_trouvé := faux
 
 	pour c dans chn {

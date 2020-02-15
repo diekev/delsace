@@ -1451,7 +1451,7 @@ static void performe_validation_semantique(
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		{
 			b->genre_valeur = GenreValeur::DROITE;
-			b->index_type = contexte.typeuse[TypeBase::R64];
+			b->index_type = contexte.typeuse[TypeBase::R32];
 
 			donnees_dependance.types_utilises.insere(b->index_type);
 			break;

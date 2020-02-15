@@ -6,10 +6,10 @@ charge "glew"
 importe "Fondation"
 
 Couleur :: struct {
-    r : r32 = transtype(0.0 : r32)
-    v : r32 = transtype(0.0 : r32)
-    b : r32 = transtype(0.0 : r32)
-    a : r32 = transtype(0.0 : r32)
+    r : r32 = 0.0
+    v : r32 = 0.0
+    b : r32 = 0.0
+    a : r32 = 0.0
 }
 
 dyn VertexArrayID := transtype(0 : n32)
@@ -215,9 +215,9 @@ dessine_triangle :: fonc() -> rien
 {
     débute_dessin()
 
-	ajoute_sommet(transtype(-transtype(1.0 : r32) : r32), transtype(-transtype(1.0 : r32) : r32), transtype(0.0 : r32))
-	ajoute_sommet( transtype(1.0 : r32), transtype(-transtype(1.0 : r32) : r32), transtype(0.0 : r32))
-    ajoute_sommet( transtype(0.0 : r32),  transtype(1.0 : r32), transtype(0.0 : r32))
+	ajoute_sommet(-1.0, -1.0, 0.0)
+	ajoute_sommet( 1.0, -1.0, 0.0)
+    ajoute_sommet( 0.0,  1.0, 0.0)
 
     termine_dessin()
 }
@@ -231,18 +231,18 @@ dessine_carré_ex :: fonc(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur
     max_x := px + tx
     max_y := py + ty
 
-    ajoute_sommet(min_x, min_y, transtype(0.0 : r32))
+    ajoute_sommet(min_x, min_y, 0.0)
     ajoute_couleur(coul)
-    ajoute_sommet(max_x, min_y, transtype(0.0 : r32))
+    ajoute_sommet(max_x, min_y, 0.0)
     ajoute_couleur(coul)
-    ajoute_sommet(min_x, max_y, transtype(0.0 : r32))
+    ajoute_sommet(min_x, max_y, 0.0)
     ajoute_couleur(coul)
 
-    ajoute_sommet(max_x, min_y, transtype(0.0 : r32))
+    ajoute_sommet(max_x, min_y, 0.0)
     ajoute_couleur(coul)
-    ajoute_sommet(max_x, max_y, transtype(0.0 : r32))
+    ajoute_sommet(max_x, max_y, 0.0)
     ajoute_couleur(coul)
-    ajoute_sommet(min_x, max_y, transtype(0.0 : r32))
+    ajoute_sommet(min_x, max_y, 0.0)
     ajoute_couleur(coul)
 
     termine_dessin()
@@ -250,8 +250,8 @@ dessine_carré_ex :: fonc(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur
 
 dessine_carré :: fonc() -> rien
 {
-    couleur := Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = transtype(0.0 : r32), a = transtype(1.0 : r32) }
-    dessine_carré_ex(transtype(-0.5 : r32), transtype(-0.5 : r32), transtype(1.0 : r32), transtype(1.0 : r32), couleur)
+    couleur := Couleur{r = 1.0, v = 1.0, b = 0.0, a = 1.0 }
+    dessine_carré_ex(-0.5, -0.5, 1.0, 1.0, couleur)
 }
 
 cos :: fonc externe (a : r32) -> r32
@@ -262,8 +262,8 @@ dessine_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32) -> rien
     débute_dessin()
 
     segs := 32
-    dyn phi := transtype(0.0 : r32)
-	dyn phi_delta := transtype(2.0 * 3.14159 / transtype(segs : r32) : r32)
+    dyn phi := 0.0
+	dyn phi_delta := 2.0 * 3.14159 / transtype(segs : r32)
 
     pour i dans 0...segs - 1 {
         ca0 := cx + cos(phi) * rx
@@ -272,9 +272,9 @@ dessine_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32) -> rien
         ca1 := cx + cos(phi + phi_delta) * rx
         sa1 := cy + sin(phi + phi_delta) * ry
 
-        ajoute_sommet(cx, cy, transtype(0.0 : r32))
-        ajoute_sommet(ca0, sa0, transtype(0.0 : r32))
-        ajoute_sommet(ca1, sa1, transtype(0.0 : r32))
+        ajoute_sommet(cx, cy, 0.0)
+        ajoute_sommet(ca0, sa0, 0.0)
+        ajoute_sommet(ca1, sa1, 0.0)
 
         phi += phi_delta
     }
@@ -287,8 +287,8 @@ dessine_quart_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : 
     débute_dessin()
 
     segs := 8
-	dyn phi := transtype(quadrant : r32) * transtype((3.14159 / 2.0) : r32)
-	dyn phi_delta := transtype(2.0 * 3.14159 / transtype(segs * 4 : r32) : r32)
+	dyn phi := transtype(quadrant : r32) * (3.14159 / 2.0)
+	dyn phi_delta := 2.0 * 3.14159 / transtype(segs * 4 : r32)
 
     pour i dans 0...segs - 1 {
         ca0 := cx + cos(phi) * rx
@@ -297,9 +297,9 @@ dessine_quart_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : 
         ca1 := cx + cos(phi + phi_delta) * rx
         sa1 := cy + sin(phi + phi_delta) * ry
 
-        ajoute_sommet(cx, cy, transtype(0.0 : r32))
-        ajoute_sommet(ca0, sa0, transtype(0.0 : r32))
-        ajoute_sommet(ca1, sa1, transtype(0.0 : r32))
+        ajoute_sommet(cx, cy, 0.0)
+        ajoute_sommet(ca0, sa0, 0.0)
+        ajoute_sommet(ca1, sa1, 0.0)
 
         phi += phi_delta
     }
@@ -312,12 +312,12 @@ dessine_rect_arrondi :: fonc(largeur : r32, hauteur : r32, arrondis_pixel : r32)
     rx := arrondis_pixel / largeur
     ry := arrondis_pixel / hauteur
 
-	px : r32 = transtype(transtype(-transtype(1.0 : r32) : r32) + rx : r32)
-	py : r32 = transtype(transtype(-transtype(1.0 : r32) : r32) + ry : r32)
-    tx : r32 = transtype(2.0 - 2.0 * rx : r32)
-    ty : r32 = transtype(2.0 - 2.0 * ry : r32)
+	px := -1.0 + rx
+	py := -1.0 + ry
+    tx := 2.0 - 2.0 * rx
+    ty := 2.0 - 2.0 * ry
 
-    couleur := Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = 0.0, a = transtype(1.0 : r32) }
+    couleur := Couleur{r = 1.0, v = 1.0, b = 0.0, a = 1.0 }
 
     // dessine centre
     dessine_carré_ex(px, py, tx, ty, couleur)

@@ -112,8 +112,8 @@ dyn VG_file_évènements : *FileÉvènement = nul
 {
     dyn évènement : Évènement
     évènement.type = type_évènement.SOURIS_BOUGEE
-    évènement.pos_x = pos_x
-    évènement.pos_y = pos_y
+    évènement.pos_x = transtype(pos_x: r32)
+    évènement.pos_y = transtype(pos_y: r32)
 
     enfile(VG_file_évènements, évènement)
 }
@@ -122,8 +122,8 @@ dyn VG_file_évènements : *FileÉvènement = nul
 {
     dyn évènement : Évènement
     évènement.type = type_évènement.SOURIS_ROULETTE
-    évènement.delta_x = delta_x
-    évènement.delta_y = delta_y
+    évènement.delta_x = transtype(delta_x: r32)
+    évènement.delta_y = transtype(delta_y: r32)
 
     enfile(VG_file_évènements, évènement)
 }
@@ -134,8 +134,8 @@ dyn VG_file_évènements : *FileÉvènement = nul
 
     dyn évènement : Évènement
     évènement.type = type_évènement.REDIMENSION
-    évènement.delta_x = transtype(x : r64)
-    évènement.delta_y = transtype(y : r64)
+    évènement.delta_x = transtype(x: r32)
+    évènement.delta_y = transtype(y: r32)
 
     enfile(VG_file_évènements, évènement)
 }
@@ -184,7 +184,7 @@ dessine_fenetre :: fonc(app : &Application) -> rien
 {
     glClear(0x00004000)
 
-	glClearColor(transtype(0.5 : r32), transtype(0.5 : r32), transtype(1.0 : r32), transtype(1.0 : r32))
+	glClearColor(0.5, 0.5, 1.0, 1.0)
 
 	l := transtype(app.largeur : r32)
 	h := transtype(app.hauteur : r32)
@@ -197,7 +197,7 @@ dessine_fenetre :: fonc(app : &Application) -> rien
 	pos_x := transtype(app.personnage.pos_x : r32) / transtype(TAILLE_TUILE * TUILES_X : r32)
 	pos_y := transtype(app.personnage.pos_y : r32) / transtype(TAILLE_TUILE * TUILES_Y : r32)
 
-	couleur := Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = transtype(1.0 : r32), a = transtype(1.0 : r32) }
+	couleur := Couleur{r = 1.0, v = 1.0, b = 1.0, a = 1.0 }
 
 	dessine_carré_ex(pos_x, pos_y, taille_x, taille_y, couleur)
 

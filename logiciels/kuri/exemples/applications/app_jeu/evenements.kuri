@@ -171,10 +171,10 @@ type_mod :: énum z32 {
 	souris : bouton_souris := bouton_souris.AUCUN
 
 	// position de la souris
-	pos_x : r64 := 0.0
-	pos_y : r64 := 0.0
+	pos_x := 0.0
+	pos_y := 0.0
 
 	// delta de la roulette
-	delta_x : r64 := 0.0
-	delta_y : r64 := 0.0
+	delta_x := 0.0
+	delta_y := 0.0
 }
