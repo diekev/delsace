@@ -136,10 +136,6 @@ dessine_triangle :: fonc(
 }
 
 // http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-Vec2 :: struct {
-    x : r64;
-    y : r64;
-}
 
 // Remplis un triangle qui pointe vers le haut avec une base horizontale :
 //      /\
@@ -147,9 +143,9 @@ Vec2 :: struct {
 //     ----
 remplis_triangle_bas_plat :: fonc(
     dyn image : &Image,
-    v1 : Vec2,
-    v2 : Vec2,
-    v3 : Vec2) -> rien
+    v1 : Vec2r,
+    v2 : Vec2r,
+    v3 : Vec2r) -> rien
 {
     ld := transtype(image.largeur - 1 : r64);
     hd := transtype(image.hauteur - 1 : r64);
@@ -192,9 +188,9 @@ remplis_triangle_bas_plat :: fonc(
 //      \/
 remplis_triangle_haut_plat :: fonc(
     dyn image : &Image,
-    v1 : Vec2,
-    v2 : Vec2,
-    v3 : Vec2) -> rien
+    v1 : Vec2r,
+    v2 : Vec2r,
+    v3 : Vec2r) -> rien
 {
     ld := transtype(image.largeur - 1 : r64);
     hd := transtype(image.hauteur - 1 : r64);
@@ -237,7 +233,7 @@ remplis_triangle_haut_plat :: fonc(
     b = tmp;
 }
 
-échange :: fonc(dyn v1 : &Vec2, dyn v2 : &Vec2) -> rien
+échange :: fonc(dyn v1 : &Vec2r, dyn v2 : &Vec2r) -> rien
 {
     échange(v1.x, v2.x);
     échange(v1.y, v2.y);
@@ -263,9 +259,9 @@ ratisse_triangle :: fonc(
     x3 : r64,
     y3 : r64) -> rien
 {
-    v1 := Vec2{ x = x1, y = y1 };
-    v2 := Vec2{ x = x2, y = y2 };
-    v3 := Vec2{ x = x3, y = y3 };
+    v1 := Vec2r{ x = x1, y = y1 };
+    v2 := Vec2r{ x = x2, y = y2 };
+    v3 := Vec2r{ x = x3, y = y3 };
 
     boucle {
         si (v1.y) <= (v2.y) <= (v3.y) {
@@ -291,7 +287,7 @@ ratisse_triangle :: fonc(
         x4 := v1.x + ((v2.y - v1.y) / (v3.y - v1.y)) * (v3.x - v1.x);
         y4 := v2.y;
 
-        v4 := Vec2{ x = x4, y = y4 };
+        v4 := Vec2r{ x = x4, y = y4 };
 
         remplis_triangle_bas_plat(image, v1, v2, v4);
         remplis_triangle_haut_plat(image, v2, v4, v3);

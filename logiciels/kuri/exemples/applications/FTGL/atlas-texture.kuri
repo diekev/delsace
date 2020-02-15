@@ -1,18 +1,5 @@
 importe GlibC
-
-// Vecteur 3-D de nombre entier relatif
-Vec3z :: struct {
-	x := 0
-	y := 0
-	z := 0
-}
-
-Vec4z :: struct {
-	x := 0
-	y := 0
-	z := 0
-	w := 0
-}
+importe Math
 
 // A texture atlas is utilisé to pack several small regions into a single texture.
 AtlasTexture :: struct {

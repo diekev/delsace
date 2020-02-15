@@ -1,0 +1,57 @@
+// ------------------------------------
+// vecteurs de nombres réels
+
+Vec2r :: struct {
+    x := 0.0
+    y := 0.0
+}
+
+Vec3r :: struct {
+    x := 0.0
+    y := 0.0
+    z := 0.0
+}
+
+Vec4r :: struct {
+    x := 0.0
+    y := 0.0
+    z := 0.0
+    w := 0.0
+}
+
+produit_scalaire :: fonc (u: Vec3r, v: Vec3r) -> r32
+{
+    retourne u.x * v.x + u.y * v.y + u.z * v.z
+}
+
+longueur :: fonc (u: Vec3r) -> r32
+{
+    retourne u.x * u.x + u.y * u.y + u.z * u.z
+    //retourne sqrt(u.x * u.x + u.y * u.y + u.z * u.z)
+}
+
+longueur_carrée :: fonc (u: Vec3r) -> r32
+{
+    retourne u.x * u.x + u.y * u.y + u.z * u.z
+}
+
+// ------------------------------------
+// vecteurs de nombres entiers relatifs
+
+Vec2z :: struct {
+    x := 0
+    y := 0
+}
+
+Vec3z :: struct {
+    x := 0
+    y := 0
+    z := 0
+}
+
+Vec4z :: struct {
+    x := 0
+    y := 0
+    z := 0
+    w := 0
+}
