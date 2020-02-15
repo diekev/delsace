@@ -44,6 +44,7 @@ endif()
 
 set(DOSSIER_MODULES
 	bibliotheques/Fondation
+	bibliotheques/JPEG
 	bibliotheques/JSON
 	bibliotheques/GlibC
 	bibliotheques/Kuri

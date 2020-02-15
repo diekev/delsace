@@ -1,0 +1,317 @@
+// interface pour la bibliothèque JPEG
+
+importe GlibC
+
+#inclus "jpeglib.h"
+
+#bib "jpeg"
+
+jpeg_error_mgr :: struct externe ;
+jpeg_memory_mgr :: struct externe ;
+jpeg_progress_mgr :: struct externe ;
+jpeg_source_mgr :: struct externe ;
+JQUANT_TBL :: struct externe ;
+JHUFF_TBL :: struct externe ;
+jpeg_marker_struct :: struct externe ;
+jpeg_decomp_master :: struct externe ;
+jpeg_d_main_controller :: struct externe ;
+jpeg_d_coef_controller :: struct externe ;
+jpeg_d_post_controller :: struct externe ;
+jpeg_input_controller :: struct externe ;
+jpeg_marker_reader :: struct externe ;
+jpeg_entropy_decoder :: struct externe ;
+jpeg_inverse_dct :: struct externe ;
+jpeg_upsampler :: struct externe ;
+jpeg_color_deconverter :: struct externe ;
+jpeg_color_quantizer :: struct externe ;
+jpeg_comp_master :: struct externe ;
+jpeg_c_main_controller :: struct externe ;
+jpeg_c_prep_controller :: struct externe ;
+jpeg_c_coef_controller :: struct externe ;
+jpeg_marker_writer :: struct externe ;
+jpeg_color_converter :: struct externe ;
+jpeg_downsampler :: struct externe ;
+jpeg_forward_dct :: struct externe ;
+jpeg_entropy_encoder :: struct externe ;
+jpeg_scan_info :: struct externe ;
+
+jpeg_component_info :: struct externe  {
+    component_id : z32;
+    component_index : z32;
+    h_samp_factor : z32;
+    v_samp_factor : z32;
+    quant_tbl_no : z32;
+
+    dc_tbl_no : z32;
+    ac_tbl_no : z32;
+
+    width_in_blocks : n32;
+    height_in_blocks : n32;
+
+    DCT_h_scaled_size : z32;
+    DCT_v_scaled_size : z32;
+    downsampled_width : n32;
+    downsampled_height : n32;
+    component_needed : z32;
+    MCU_width : z32;
+    MCU_height : z32;
+    MCU_blocks : z32;
+    MCU_sample_width : z32;
+    last_col_width : z32;
+    last_row_height : z32;
+    quant_table : *JQUANT_TBL;
+    dct_table : *rien;
+}
+
+jpeg_decompress_struct :: struct externe  {
+    err : *jpeg_error_mgr;
+    mem : *jpeg_memory_mgr;
+    progress : *jpeg_progress_mgr;
+    client_data : *rien;
+    is_decompressor : z32;
+    global_state : z32;
+
+    src : *jpeg_source_mgr;
+
+    image_width : n32;
+    image_height : n32;
+    num_components : z32;
+    jpeg_color_space : z32;
+
+    out_color_space : z32;
+
+    scale_num : n32;
+    scale_denom : n32;
+
+    output_gamma : r64;
+
+    buffered_image : z32;
+    raw_data_out : z32;
+
+    dct_method : z32;
+    do_fancy_upsampling : z32;
+    do_block_smoothing : z32;
+
+    quantize_colors : z32;
+    dither_mode : z32;
+    two_pass_quantize : z32;
+    desired_number_of_colors : z32;
+    enable_1pass_quant : z32;
+    enable_external_quant : z32;
+    enable_2pass_quant : z32;
+
+    output_width : n32;
+    output_height : n32;
+    out_color_components : z32;
+    output_components : z32;
+    rec_outbuf_height : z32;
+    actual_number_of_colors : z32;
+    colormap : **z8;
+    output_scanline : n32;
+    input_scan_number : z32;
+    input_iMCU_row : n32;
+    output_scan_number : z32;
+    output_iMCU_row : n32;
+    coef_bits : [64]*z32;
+
+    quant_tbl_ptrs : [4]*JQUANT_TBL;
+
+    dc_huff_tbl_ptrs : [4]*JHUFF_TBL;
+    ac_huff_tbl_ptrs : [4]*JHUFF_TBL;
+
+    data_precision : z32;
+
+    comp_info : *jpeg_component_info;
+    is_baseline : z32;
+    progressive_mode : z32;
+    arith_code : z32;
+
+    arith_dc_L : [16]z8;
+    arith_dc_U : [16]z8;
+    arith_ac_K : [16]z8;
+
+    restart_interval : n32;
+    saw_JFIF_marker : z32;
+
+    JFIF_major_version : z8;
+    JFIF_minor_version : z8;
+    density_unit : z8;
+    X_density : z16;
+    Y_density : z16;
+    saw_Adobe_marker : z32;
+    Adobe_transform : z8;
+
+    CCIR601_sampling : z32;
+
+    marker_list : *jpeg_marker_struct;
+
+    max_h_samp_factor : z32;
+    max_v_samp_factor : z32;
+
+    min_DCT_h_scaled_size : z32;
+    min_DCT_v_scaled_size : z32;
+
+    total_iMCU_rows : n32 ;
+
+    sample_range_limit : *z8;
+
+    comps_in_scan : z32;
+    cur_comp_info : [4]*jpeg_component_info;
+
+    MCUs_per_row : n32;
+    MCU_rows_in_scan : n32;
+
+    blocks_in_MCU : z32;
+    MCU_membership : [10]z32;
+
+    Ss : z32;
+    Se : z32;
+    Ah : z32;
+    Al : z32;
+
+    block_size : z32;
+    natural_order : *z32;
+    lim_Se : z32;
+
+    unread_marker : z32;
+
+    master : *jpeg_decomp_master;
+    main : *jpeg_d_main_controller;
+    coef : *jpeg_d_coef_controller;
+    post : *jpeg_d_post_controller;
+    inputctl : *jpeg_input_controller;
+    marker : *jpeg_marker_reader;
+    entropy : *jpeg_entropy_decoder;
+    idct : *jpeg_inverse_dct;
+    upsample : *jpeg_upsampler;
+    cconvert : *jpeg_color_deconverter;
+    cquantize : *jpeg_color_quantizer;
+}
+
+jpeg_std_error :: fonc externe (err : *jpeg_error_mgr) -> *jpeg_error_mgr;
+jpeg_create_decompress :: fonc externe (info : *jpeg_decompress_struct) -> rien;
+jpeg_start_decompress :: fonc externe (info : *jpeg_decompress_struct) -> rien;
+jpeg_finish_decompress :: fonc externe (info : *jpeg_decompress_struct) -> rien;
+jpeg_destroy_decompress :: fonc externe (info : *jpeg_decompress_struct) -> rien;
+
+jpeg_stdio_src :: fonc externe (info : *jpeg_decompress_struct, file : *FILE) -> rien;
+jpeg_save_markers :: fonc externe (info : *jpeg_decompress_struct, marker_code : z32, length_limit : n32) -> rien;
+jpeg_read_header :: fonc externe (info : *jpeg_decompress_struct, require_image : z32) -> rien;
+
+jpeg_read_scanlines :: fonc externe (info : *jpeg_decompress_struct, scanlines : **z8, max_lines : n32) -> n32;
+
+//soit JPEG_APP0 = 0xE0;
+
+jpeg_compress_struct :: struct externe  {
+    err : *jpeg_error_mgr;
+    mem : *jpeg_memory_mgr;
+    progress : *jpeg_progress_mgr;
+    client_data : *rien;
+    is_decompressor : z32;
+    global_state : z32;
+
+    image_width : n32;
+    image_height : n32;
+    input_components : z32;
+    in_color_space : z32;
+
+    input_gamma : r64;
+    scale_num : n32;
+    scale_denom : n32;
+
+    jpeg_width : n32;
+    jpeg_height : n32;
+
+    data_precision : z32;
+
+    num_components : z32;
+    jpeg_color_space : z32;
+
+    comp_info : *jpeg_component_info;
+
+    quant_tbl_ptrs : [4]*JQUANT_TBL;
+    q_scale_factor : [4]z32;
+
+    dc_huff_tbl_ptrs : [4]*JHUFF_TBL;
+    ac_huff_tbl_ptrs : [4]*JHUFF_TBL;
+
+    arith_dc_L : [16]n8;
+    arith_dc_U : [16]n8;
+    arith_ac_K : [16]n8;
+
+    num_scans : z32;
+    scan_info : *jpeg_scan_info;
+
+    raw_data_in : z32;
+    arith_code : z32;
+    optimize_coding : z32;
+    CCIR601_sampling : z32;
+
+    do_fancy_downsampling : z32;
+
+    smoothing_factor : z32;
+    dct_method : z32;
+
+    restart_interval : n32;
+    restart_in_rows : z32;
+
+    write_JFIF_header : z32;
+    JFIF_major_version : n8;
+    JFIF_minor_version : n8;
+    density_unit : n8;
+    X_density : n16;
+    Y_density : n16;
+    write_Adobe_marker : z32;
+
+    next_scanline : n32;
+
+    progressive_mode : z32;
+    max_h_samp_factor : z32;
+    max_v_samp_factor : z32;
+
+    min_DCT_h_scaled_size : z32;
+    min_DCT_v_scaled_size : z32;
+
+    total_iMCU_rows : n32;
+
+    comps_in_scan : z32;
+    cur_comp_info : [4]*jpeg_component_info;
+
+    MCUs_per_row : n32;
+    MCU_rows_in_scan : n32;
+
+    blocks_in_MCU : z32;
+    MCU_membership : [10]z32;
+    Ss : z32;
+    Se : z32;
+    Ah : z32;
+    Al : z32;
+
+    block_size : z32;
+    natural_order : *z32;
+    lim_Se : z32;
+
+    master : *jpeg_comp_master;
+    main : *jpeg_c_main_controller;
+    prep : *jpeg_c_prep_controller;
+    coef : *jpeg_c_coef_controller;
+    marker : *jpeg_marker_writer;
+    cconvert : *jpeg_color_converter;
+    downsample : *jpeg_downsampler;
+    fdct : *jpeg_forward_dct;
+    entropy : *jpeg_entropy_encoder;
+    script_space : *jpeg_scan_info;
+    script_space_size : z32;
+}
+
+jpeg_create_compress :: fonc externe (info : *jpeg_compress_struct) -> rien;
+jpeg_destroy_compress :: fonc externe (info : *jpeg_compress_struct) -> rien;
+jpeg_finish_compress :: fonc externe (info : *jpeg_compress_struct) -> rien;
+jpeg_set_defaults :: fonc externe (info : *jpeg_compress_struct) -> rien;
+jpeg_stdio_dest :: fonc externe (info : *jpeg_compress_struct, file : *FILE) -> rien;
+jpeg_set_quality :: fonc externe (info : *jpeg_compress_struct, quality : z32, v : z32) -> rien;
+jpeg_start_compress :: fonc externe (info : *jpeg_compress_struct, v : z32) -> rien;
+jpeg_write_scanlines :: fonc externe (info : *jpeg_compress_struct, scanlines : **z8, max_lines : n32) -> n32;
+
+_JCS_GRAYSCALE := 1;
+_JCS_RGB := 2;

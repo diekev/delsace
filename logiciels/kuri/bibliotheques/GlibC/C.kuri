@@ -195,3 +195,9 @@ sprintf :: fonc externe (buf: *z8, fmt: *z8, s: z32) -> rien
 
 memset :: fonc externe (ptr: *rien, valeur: z32, taille: n64) -> rien
 memcpy :: fonc externe (ptr: *rien, src: *rien, taille: n64) -> rien
+
+// -------------------------------------
+
+FILE :: struct externe
+fopen :: fonc externe (__filename : *z8, __modes : *z8) -> *FILE
+fclose :: fonc externe (__file : *FILE) -> z32
