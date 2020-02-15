@@ -1,136 +1,9 @@
 // Bibliothèque de flux, d'impression dans stdout.
 
 importe GlibC
+importe Numérique
 
 //###################################################################################
-
-// Algorithme d'impression de nombre décimaux sur 32-bits tiré de
-// https://randomascii.wordpress.com/2012/03/08/float-precisionfrom-zero-to-100-digits-2/
-
-décalage_mot := 32
-
-// This class represents a very limited high-precision number with 'count' 32-bit
-// unsigned elements. */
-// template <size_t count>
-haute_précision :: struct {
-	// type type_valeur n32
-	// type type_produit n64
-
-	// The individual 'digits' (32-bit unsigned integers actually) that */
-	// make up the number. The most-significant digit is in m_data[0]. */
-	données : [5]n32
-}
-
-construit_nombre_haute_précision :: fonc() -> haute_précision
-{
-	dyn n : haute_précision
-
-	pour i dans 0 ... 4 {
-		n.données[i] = transtype(0 : n32)
-	}
-
-	retourne n
-}
-
-// Insert the bits from value into m_data, shifted in from the bottom (least
-// significant end) by the specified number of bits. A shift of zero or less
-// means that none of the bits will be shifted in. A shift of one means that
-// the high bit of value will be in the bottom of the last element of m_data -
-// the least significant bit. A shift of kWordShift means that value will be
-// in the least significant element of m_data, and so on.
-insert_low_bits :: fonc(
-	dyn n : &haute_précision,
-	valeur : n32,
-	quantité_décalage : z32) -> rien
-{
-	si quantité_décalage <= 0 {
-		retourne
-	}
-
-	sub_shift := transtype(quantité_décalage & (décalage_mot - 1): n32)
-	big_shift := transtype(quantité_décalage / décalage_mot: n32)
-	result := transtype(valeur : n64) << sub_shift
-	result_low := transtype(result : n32)
-	result_high := result >> transtype(décalage_mot : n64)
-
-	// Use an unsigned type so that negative numbers will become large,
-	// which makes the range checking below simpler. */
-	count := transtype(5: n32)
-	high_index := count - transtype(1: n32) - big_shift;
-
-	// Write the results to the data array. If the index is too large then
-	// that means that the data was shifted off the edge. */
-	si high_index < count {
-		n.données[high_index] |= result_high;
-	}
-
-	si high_index + transtype(1: n32) < count {
-		n.données[high_index + transtype(1: n32)] |= result_low;
-	}
-}
-
-// Insert the bits from value into m_data, shifted in from the top (most
-// significant end) by the specified number of bits. A shift of zero or less
-// means that none of the bits will be shifted in. A shift of one means that
-// the low bit of value will be in the top of the first element of m_data -
-// the most significant bit. A shift of kWordShift means that value will be
-// in the most significant element of m_data, and so on.
-insert_top_bits :: fonc(
-	dyn n : &haute_précision,
-	valeur : n32,
-	quantité_décalage : z32) -> rien
-{
-	count := 5
-	insert_low_bits(n, valeur, (count + 1) * décalage_mot - quantité_décalage);
-}
-
-// Return true if all elements of m_data are zero.
-is_zero :: fonc(n : &haute_précision) -> bool
-{
-	pour i dans 0 ... 4 {
-		si n.données[i] != transtype(0 : n32) {
-			retourne faux
-		}
-	}
-
-	retourne vrai
-}
-
-// Divide by div and return the remainder, from 0 to div-1.
-remainder :: fonc(dyn n : &haute_précision, divisor : n32) -> n32
-{
-	dyn remain := transtype(0 : n32)
-
-	// Standard long-division algorithm.
-	pour i dans 0 ... 4 {
-		dividend := (transtype(remain : n64) << transtype(décalage_mot: n64)) + n.données[i]
-		result := dividend / divisor
-		remain = transtype(dividend % divisor : n32)
-		n.données[i] = transtype(result : n32)
-	}
-
-	retourne remain
-}
-
-// Multiply by mul and return the overflow, from 0 to mul - 1
-overflow :: fonc(dyn n : &haute_précision, mul : n32) -> n32
-{
-	dyn over := transtype(0 : n32)
-
-	pour j dans 0 ... 4 {
-		i := 4 - j
-
-		result := transtype(mul : n64) * n.données[i] + over;
-
-		// Put the bottom bits of the results back.
-		n.données[i] = transtype(result : n32)
-		over = transtype(result >> transtype(décalage_mot: n64) : n32)
-	}
-
-	retourne over;
-}
-
-// ------------------------------------------------------------
 
 Enchaineuse :: struct {
     résultat : chaine
@@ -227,38 +100,13 @@ enchaine :: fonc(chns : ...chaine) -> chaine
 
 //###################################################################################
 
-NombreDécimal :: union nonsûr {
-	i : z32
-	f : r32
-}
-
-construit_nombre_décimal :: fonc(f : r32) -> NombreDécimal
-{
-	retourne NombreDécimal{ f = f }
-}
-
-// Extraction portable des composants
-est_négatif :: fonc(n : &NombreDécimal) -> bool
-{
-	retourne (n.i >> 31) != 0
-}
-
-mantisse_crue :: fonc(n : &NombreDécimal) -> z32
-{
-	retourne n.i & ((1 << 23) - 1)
-}
-
-exposant_cru :: fonc(n : &NombreDécimal) -> z32
-{
-	retourne (n.i >> 23) & 0xFF
-}
-
 // Imprime le nombre décimal en utilisant un nombre entier de haute précision afin de
 // mieux cerner la valeur exacte du décimal.
+// https://randomascii.wordpress.com/2012/03/08/float-precisionfrom-zero-to-100-digits-2/
 imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : &Enchaineuse, f : r32) -> rien
 {
 	// Mets le nombre dans notre union magique afin d'extraire les composants
-	num := construit_nombre_décimal(f)
+	num := construit_entier_ou_décimal(f)
 
 	// Défini le caractère pour le signe
 	si num.est_négatif() {
@@ -299,17 +147,18 @@ imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : &Enchaineuse,
 	// nous avons une mantisse de 24 bits et la valeur implicite du bit le plus haut
 	// est 1. Nous devons donc décaler 9 bits depuis le bas afin d'avoir le 24ème bit
 	// dans la position du 1 dans portion entière, ajoutant le décalage de l'exposant.
-	part_entière.insert_low_bits(
+	insère_bits_du_bas(
+		@part_entière,
 		transtype(valeur_mantisse : n32),
-		9 + valeur_exposant : n32)
+		9 + valeur_exposant)
 
 	dyn chn_part_entière : chaine
 
 	// Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
-		remainder := part_entière.remainder(transtype(10 : n32))
-		pousse(@chn_part_entière, '0' + transtype(remainder : z8))
-	} tantque !part_entière.is_zero()
+		reste := reste_de_la_division(@part_entière, transtype(10 : n32))
+		pousse(@chn_part_entière, '0' + transtype(reste : z8))
+	} tantque !est_zéro(@part_entière)
 
 	inverse(@chn_part_entière)
 	enchaineuse.pousse(chn_part_entière)
@@ -325,13 +174,13 @@ imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : &Enchaineuse,
 
 	// Quand valeur_exposant est zéro nous voulons décaler 23 bits de mantisse dans
 	// la part fractionnelle.
-	frac.insert_top_bits(transtype(valeur_mantisse : n32), 23 - valeur_exposant);
+	insère_bits_du_haut(@frac, transtype(valeur_mantisse : n32), 23 - valeur_exposant);
 
 	// Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
-		overflow := frac.overflow(transtype(10 : n32))
-		enchaineuse.pousse('0' + transtype(overflow : z8))
-	} tantque !frac.is_zero()
+		surplus := surplus_de_la_multiplication(@frac, transtype(10 : n32))
+		enchaineuse.pousse('0' + transtype(surplus : z8))
+	} tantque !est_zéro(@frac)
 }
 
 //###################################################################################
@@ -439,7 +288,7 @@ imprime_valeur_entière :: fonc(
 imprime_nombre_décimal :: fonc(dyn enchaineuse : &Enchaineuse, f : r32) -> rien
 {
 	// Mets le nombre dans notre union magique afin d'extraire les composants
-	num := construit_nombre_décimal(f)
+	num := construit_entier_ou_décimal(f)
 
 	// Défini le caractère pour le signe
 	si num.est_négatif() {

@@ -1,0 +1,127 @@
+// Nombre de haute précision limité.
+// Tiré de :
+// https://randomascii.wordpress.com/2012/03/08/float-precisionfrom-zero-to-100-digits-2/
+
+DÉCALAGE_MOT := transtype(32: n32)
+COMPTE := transtype(5: n32)
+
+// À FAIRE : typage flexible des constantes
+_0 := transtype(0: n32)
+_1 := transtype(1: n32)
+
+// À FAIRE : template <size_t COMPTE>
+HautePrécision :: struct {
+	// type_valeur  :: n32
+	// type_produit :: n64
+
+    // Les « chiffres » (en réalité des nombres entiers naturels sur 32-bits)
+    // qui composent le nombre. Le chiffre le plus significatif est dans données[0]
+	données : [5]n32
+}
+
+construit_nombre_haute_précision :: fonc() -> HautePrécision
+{
+	dyn hp : HautePrécision
+
+	pour élément dans hp.données {
+		élément = transtype(0 : n32)
+	}
+
+	retourne hp
+}
+
+// Insère les bits de valeur dans hp.données, décalés depuis le bas (partie
+// la moins significative) par le nombre spécifié de bits. Un décalage de 0
+// ou moins indique qu'aucun des bits ne sera inséré. Un décalage de 1
+// indique que le bit haut de valeur sera en bas du dernier élément de hp.données
+// - le bit le moins significatif. Un décalage de DÉCALAGE_MOT indique que la
+// valeur sera dans l'élément le moins significatif de hp.données, etc.
+insère_bits_du_bas :: fonc(
+	dyn hp : *HautePrécision,
+	valeur : n32,
+	quantité_décalage : z32) -> rien
+{
+	si quantité_décalage <= 0 {
+		retourne
+	}
+
+	sous_décalage := transtype(quantité_décalage: n32) & (DÉCALAGE_MOT - _1)
+	grand_décalage := transtype(quantité_décalage: n32) / DÉCALAGE_MOT
+	résultat := transtype(valeur : n64) << sous_décalage
+	résultat_bas := transtype(résultat : n32)
+	résultat_haut := résultat >> transtype(DÉCALAGE_MOT : n64)
+
+    // Utilisation d'un type naturel pour que les nombres négatifs déviennent
+    // large, rendant la vérification de la plage plus bas plus simple.
+	high_index := COMPTE - _1 - grand_décalage;
+
+    // Écris les résultats dans le tableau de données. Si l'index est trop
+    // grand alors les données ont été décalées hors du nombre.
+	si high_index < COMPTE {
+		hp.données[high_index] |= résultat_haut;
+	}
+
+	si high_index + _1 < COMPTE {
+		hp.données[high_index + _1] |= résultat_bas;
+	}
+}
+
+// Insère les bits de valeur dans hp.données, décalés depuis le haut (partie la
+// plus significative) par le nombre spécifié de bits. Un décalage de 0 ou moins
+// indique que les bits seront insérés. Un décalage de 1 indique que le bit bas
+// de valeur sera dans le haut du prémier élément de hp.données - le bit le plus
+// significatif. Un décalage de DÉCALAGE_MOT indique que la valeur sera dans
+// l'élément le plus significatif de hp.données, etc.
+insère_bits_du_haut :: fonc(
+	dyn hp : *HautePrécision,
+	valeur : n32,
+	quantité_décalage : z32) -> rien
+{
+	insère_bits_du_bas(hp, valeur, transtype((COMPTE + _1) * DÉCALAGE_MOT: z32) - quantité_décalage);
+}
+
+// Retourne vrai si tous les éléments de hp.données sont égaux à zéro.
+est_zéro :: fonc(hp : *HautePrécision) -> bool
+{
+	pour élément dans hp.données {
+		si élément != transtype(0 : n32) {
+			retourne faux
+		}
+	}
+
+	retourne vrai
+}
+
+// Retourne le reste de la division de hp par diviseur, de 0 à diviseur - 1.
+reste_de_la_division :: fonc(dyn hp : *HautePrécision, diviseur : n32) -> n32
+{
+	dyn reste := transtype(0 : n32)
+
+	// Algorithme standard de division longue.
+	pour élément dans hp.données {
+		dividende := (transtype(reste : n64) << DÉCALAGE_MOT) + élément
+		résultat := dividende / diviseur
+		reste = transtype(dividende % diviseur : n32)
+		élément = transtype(résultat : n32)
+	}
+
+	retourne reste
+}
+
+// Multiplie par mul et retourne le surplus, de 0 à mul - 1
+surplus_de_la_multiplication :: fonc(dyn hp : *HautePrécision, mul : n32) -> n32
+{
+	dyn surplus := transtype(0 : n32)
+
+	pour j dans _0 ... COMPTE - _1 {
+		i := COMPTE - _1 - j
+
+		résultat := transtype(mul : n64) * hp.données[i] + surplus;
+
+		// Put the bottom bits of the results back.
+		hp.données[i] = transtype(résultat : n32)
+		surplus = transtype(résultat >> DÉCALAGE_MOT: n32)
+	}
+
+	retourne surplus;
+}
