@@ -12,6 +12,86 @@ asin :: fonc externe (a : r64) -> r64
 atan :: fonc externe (a : r64) -> r64
 atan2 :: fonc externe (a : r64, b: r64) -> r64
 
+// calcul d'une racine carré d'un nombre réel selon la méthode approximative de Newton
+racine_carrée :: fonc (n: r64) -> r64
+{
+    si n == 0.0 {
+        retourne 0.0
+    }
+
+    si n == 1.0 {
+        retourne 1.0
+    }
+
+    si n < 0.0 {
+        // À FAIRE: retourne NaN
+        retourne 0.0
+    }
+
+    PRÉCISION := 0.0001
+    dyn limite_basse : r64
+    dyn limite_haute : r64
+
+    si n < 1.0 {
+        limite_basse = n
+        limite_haute = 1.0
+    }
+    sinon {
+        limite_basse = 1.0
+        limite_haute = n
+    }
+
+    tantque (limite_haute - limite_basse) > PRÉCISION {
+        prédiction := (limite_basse + limite_haute) * 0.5
+
+        si (prédiction * prédiction) > n {
+            limite_haute = prédiction
+        }
+        sinon {
+            limite_basse = prédiction
+        }
+    }
+
+    retourne (limite_basse + limite_haute) * 0.5
+}
+
+racine_cubique :: fonc (n: r64) -> r64
+{
+    si n == 0.0 {
+        retourne 0.0
+    }
+
+    si n == 1.0 {
+        retourne 1.0
+    }
+
+    PRÉCISION := 0.00001
+    dyn limite_basse : r64
+    dyn limite_haute : r64
+
+    si n < 1.0 {
+        limite_basse = n
+        limite_haute = 1.0
+    }
+    sinon {
+        limite_basse = 1.0
+        limite_haute = n
+    }
+
+    tantque (limite_haute - limite_basse) > PRÉCISION {
+        prédiction := (limite_basse + limite_haute) * 0.5
+
+        si (prédiction * prédiction * prédiction) > n {
+            limite_haute = prédiction
+        }
+        sinon {
+            limite_basse = prédiction
+        }
+    }
+
+    retourne (limite_basse + limite_haute) * 0.5
+}
+
 // À FAIRE : certaines fonctions ne de sens que pour les nombres relatifs ou réels
 
 #enligne abs :: fonc(a : $T) -> $T
