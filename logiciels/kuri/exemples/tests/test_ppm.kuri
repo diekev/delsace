@@ -227,17 +227,10 @@ remplis_triangle_haut_plat :: fonc(
     }
 }
 
-échange :: fonc(dyn a : &r64, dyn b : &r64) -> rien
-{
-    tmp := a;
-    a = b;
-    b = tmp;
-}
-
 échange :: fonc(dyn v1 : &Vec2r, dyn v2 : &Vec2r) -> rien
 {
-    échange(v1.x, v2.x);
-    échange(v1.y, v2.y);
+    échange(@v1.x, @v2.x);
+    échange(@v1.y, @v2.y);
 }
 
 // Pour dessiner par ratissage un triangle quelconque, nous le divisons au besoin

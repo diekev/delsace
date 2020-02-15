@@ -1,0 +1,6 @@
+#enligne échange :: fonc(dyn a : *$T, dyn b : *$T) -> rien
+{
+	temp := mémoire(a);
+	mémoire(a) = mémoire(b);
+	mémoire(b) = temp;
+}

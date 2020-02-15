@@ -10,13 +10,6 @@ ternaire :: fonc(drapeau : bool, v1 : n32, v2 : n32) -> n32
 	         | ((transtype(drapeau : n32) - 1) & v2);
 }
 
-échange :: fonc(a : *r64, b : *r64) -> rien
-{
-	temp := mémoire(a);
-	mémoire(a) = mémoire(b);
-	mémoire(b) = temp;
-}
-
 // retourne les 4 valeurs minimales d'un tableau
 min4 :: fonc(p : []r64) -> rien
 {
