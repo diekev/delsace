@@ -1,13 +1,6 @@
+importe Math
+
 sqrt :: fonc externe (v: r64) -> r64
-
-abs :: fonc (v: r64) -> r64
-{
-	si v < 0.0 {
-		retourne -v
-	}
-
-	retourne v
-}
 
 // Compute the local gradient at edge pixels using convolution filters. The gradient is computed only at edge pixels. At other places in the image, it is never used, and it's mostly zero anyway.
 computegradient :: fonc (img : []r64, w : z32, h : z32, dyn gx : []r64, dyn gy : []r64) -> rien

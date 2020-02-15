@@ -1,14 +1,16 @@
-abs :: fonc(a : z32) -> z32
+// À FAIRE : certaines fonctions ne de sens que pour les nombres relatifs ou réels
+
+#enligne abs :: fonc(a : $T) -> $T
 {
 	retourne si a < 0 { -a } sinon { a }
 }
 
-min :: fonc(a : z32, b : z32) -> z32
+#enligne min :: fonc(a : $T, b : $T) -> $T
 {
 	retourne si a < b { a } sinon { b }
 }
 
-min :: fonc(args : ...z32) -> z32
+min :: fonc(args : ...$T) -> $T
 {
 	dyn vmin := args[0]
 
@@ -19,12 +21,12 @@ min :: fonc(args : ...z32) -> z32
 	retourne vmin
 }
 
-max :: fonc(a : z32, b : z32) -> z32
+#enligne max :: fonc(a : $T, b : $T) -> $T
 {
 	retourne si a > b { a } sinon { b }
 }
 
-max :: fonc(args : ...z32) -> z32
+max :: fonc(args : ...$T) -> $T
 {
 	dyn vmax := args[0]
 
@@ -33,6 +35,16 @@ max :: fonc(args : ...z32) -> z32
 	}
 
 	retourne vmax
+}
+
+#enligne restreint :: fonc(dyn x : *$T, min : $T, max : $T) -> rien
+{
+    si mémoire(x) <= min {
+        mémoire(x) = min;
+    }
+    si mémoire(x) >= max {
+        mémoire(x) = max;
+    }
 }
 
 // Trouve le plus grand commun diviseur selon l'algorithme d'Euclide

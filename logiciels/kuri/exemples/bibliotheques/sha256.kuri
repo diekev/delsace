@@ -199,15 +199,6 @@ construit_sha256 :: fonc() -> SHA256
     retourne sha256
 }
 
-min :: fonc(a: z64, b: z64) -> z64
-{
-    si a <= b {
-        retourne a
-    }
-
-    retourne b
-}
-
 ajoute_message :: fonc(dyn sha256 : *SHA256, message: []octet) -> rien
 {
     longueur := message.taille

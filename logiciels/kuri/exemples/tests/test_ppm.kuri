@@ -3,6 +3,8 @@ importe "fichier"
 importe "flux"
 importe "chrono"
 
+importe Math
+
 write :: fonc externe (filedes : z32, tpn : *z8, nbyte : z64) -> z32;
 
 Image :: struct {
@@ -80,15 +82,6 @@ génére_image_noire :: fonc() -> Image
     retourne image;
 }
 
-abs :: fonc(x : r32) -> r32
-{
-    si x < 0.0 {
-        retourne -x;
-    }
-
-    retourne x;
-}
-
 dessine_ligne :: fonc(dyn image : &Image, x1 : z32, y1 : z32, x2 : z32, y2 : z32) -> rien
 {
     dyn tampon := image.tampon;
@@ -151,25 +144,6 @@ dessine_triangle :: fonc(
 Vec2 :: struct {
     x : r64;
     y : r64;
-}
-
-restreint :: fonc(dyn x : &z32, min : z32, max : z32) -> rien
-{
-    si x <= min {
-        x = min;
-    }
-    si x >= max {
-        x = max;
-    }
-}
-
-min :: fonc(a : r64, b : r64) -> r64
-{
-    si a <= b {
-        retourne a;
-    }
-
-    retourne b;
 }
 
 // Remplis un triangle qui pointe vers le haut avec une base horizontale :
