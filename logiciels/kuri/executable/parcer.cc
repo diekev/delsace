@@ -878,22 +878,6 @@ static EnfantsBoucleFor determine_enfants_for(CXCursor cursor, CXTranslationUnit
 	return res;
 }
 
-static auto imprime_commentaire(CXCursor cursor, std::ostream &os)
-{
-	auto comment = clang_Cursor_getBriefCommentText(cursor);
-	auto c_str = clang_getCString(comment);
-
-	if (c_str != nullptr) {
-		auto chn = dls::chaine(c_str);
-
-		if (chn != "") {
-			os << "# " << chn << '\n';
-		}
-	}
-
-	clang_disposeString(comment);
-}
-
 struct Convertisseuse {
 	std::filesystem::path fichier_source{};
 	std::filesystem::path fichier_entete{};
@@ -907,6 +891,23 @@ struct Convertisseuse {
 	dico_typedefs typedefs{};
 
 	dls::ensemble<CXCursorKind> cursors_non_pris_en_charges{};
+
+	auto imprime_commentaire(CXCursor cursor, std::ostream &os)
+	{
+		auto comment = clang_Cursor_getBriefCommentText(cursor);
+		auto c_str = clang_getCString(comment);
+
+		if (c_str != nullptr) {
+			auto chn = dls::chaine(c_str);
+
+			if (chn != "") {
+				imprime_tab(os);
+				os << "// " << chn << '\n';
+			}
+		}
+
+		clang_disposeString(comment);
+	}
 
 	void convertis(CXCursor cursor, CXTranslationUnit trans_unit, std::ostream &flux_sortie)
 	{
@@ -1046,7 +1047,7 @@ struct Convertisseuse {
 					converti_enfants(enfants, trans_unit, flux_sortie);
 				}
 
-				flux_sortie << ",\n";
+				flux_sortie << "\n";
 
 				break;
 			}
@@ -1810,7 +1811,7 @@ struct Convertisseuse {
 		imprime_commentaire(cursor, flux_sortie);
 
 		if (clang_Cursor_isFunctionInlined(cursor)) {
-			flux_sortie << "#!enligne ";
+			flux_sortie << "#enligne ";
 		}
 
 		flux_sortie << clang_getCursorSpelling(cursor);
