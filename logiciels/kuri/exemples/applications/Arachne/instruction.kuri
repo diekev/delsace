@@ -1,6 +1,6 @@
 importe Fondation
 
-Instruction :: énum : z32 {
+Instruction :: énum z32 {
     CREE
     SUPPRIME
     TROUVE

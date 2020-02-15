@@ -24,7 +24,7 @@ dyn __VG_nombre_reallocations__ : z64 = 0
 // Contient le nombre de fois que « déloge » a été appelé.
 dyn __VG_nombre_deallocations__ : z64 = 0
 
-ModeAllocatrice :: énum : z32 {
+ModeAllocatrice :: énum z32 {
     ALLOUE
     RÉALLOUE
     DÉSALLOUE

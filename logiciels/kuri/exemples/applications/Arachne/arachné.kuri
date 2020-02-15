@@ -1,6 +1,6 @@
 importe Fondation
 
-TypeDonnées :: énum : z32 {
+TypeDonnées :: énum z32 {
 	NOMBRE_ENTIER
 	NOMBRE_DÉCIMAL
 	DATE
@@ -88,7 +88,7 @@ Arachné :: struct {
 	relations : []Relation
 }
 
-TypeErreur :: énum : z32 {
+TypeErreur :: énum z32 {
 	AUCUNE
 	SCHÉMA_EXISTANT
 	SCHÉMA_INEXISTANT

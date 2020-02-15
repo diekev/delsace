@@ -1,4 +1,4 @@
-TypeParamètre :: énum_drapeau : n16 {
+TypeParamètre :: énum_drapeau n16 {
 	TABLEAU
 	ENT32
 	DEC

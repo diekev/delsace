@@ -54,7 +54,7 @@ FT_BBox :: struct externe {
 }
 
 // **********************************************************************
-FT_Pixel_Mode :: énum : n32 {
+FT_Pixel_Mode :: énum n32 {
 	FT_PIXEL_MODE_NONE := 0
 	FT_PIXEL_MODE_MONO
 	FT_PIXEL_MODE_GRAY
@@ -106,7 +106,7 @@ FT_Outline_Funcs :: struct externe {
 }
 
 // **********************************************************************
-FT_Glyph_Format :: énum : n32 {
+FT_Glyph_Format :: énum n32 {
 	FT_GLYPH_FORMAT_NONE      := 0
     FT_GLYPH_FORMAT_COMPOSITE := 1668246896
     FT_GLYPH_FORMAT_BITMAP    := 1651078259
@@ -188,7 +188,7 @@ FT_ListRec_ :: struct externe {
 	tail : *FT_ListNodeRec_
 }
 
-anonyme5 :: énum : n32 {
+anonyme5 :: énum n32 {
     FT_Mod_Err_Base      :=  0x000
     FT_Mod_Err_Autofit   :=  0x100
     FT_Mod_Err_BDF       :=  0x200
@@ -215,7 +215,7 @@ anonyme5 :: énum : n32 {
 	FT_Mod_Err_Max
 }
 
-anonyme6 :: énum : n32 {
+anonyme6 :: énum n32 {
 	FT_Err_Ok := 0
 	FT_Err_Cannot_Open_Resource := 1
 	FT_Err_Unknown_File_Format := 2
@@ -334,7 +334,7 @@ FT_BitmapSize_ :: struct externe {
 }
 
 // **********************************************************************
-FT_Encoding :: énum : n32 {
+FT_Encoding :: énum n32 {
     FT_ENCODING_NONE := 0
     FT_ENCODING_MS_SYMBOL := 1937337698
     FT_ENCODING_UNICODE := 1970170211
@@ -508,7 +508,7 @@ FT_Done_Face :: fonc externe (face : FT_Face) -> z32
 // **********************************************************************
 FT_Select_Size :: fonc externe (face : FT_Face, strike_index : z32) -> z32
 // **********************************************************************
-FT_Size_Request_Type_ :: énum : n32 {
+FT_Size_Request_Type_ :: énum n32 {
 	FT_SIZE_REQUEST_TYPE_NOMINAL
 	FT_SIZE_REQUEST_TYPE_REAL_DIM
 	FT_SIZE_REQUEST_TYPE_BBOX
@@ -539,7 +539,7 @@ FT_Load_Char :: fonc externe (face : FT_Face, char_code : n64, load_flags : z323
 // **********************************************************************
 FT_Set_Transform :: fonc externe (face : FT_Face, matrix : *FT_Matrix, delta : *FT_Vector) -> rien
 // **********************************************************************
-FT_Render_Mode_ :: énum : n32 {
+FT_Render_Mode_ :: énum n32 {
 	FT_RENDER_MODE_NORMAL := 0
 	FT_RENDER_MODE_LIGHT
 	FT_RENDER_MODE_MONO
@@ -551,7 +551,7 @@ FT_Render_Mode_ :: énum : n32 {
 // **********************************************************************
 FT_Render_Glyph :: fonc externe (slot : FT_GlyphSlot, render_mode : FT_Render_Mode) -> z32
 // **********************************************************************
-FT_Kerning_Mode_ :: énum : n32 {
+FT_Kerning_Mode_ :: énum n32 {
 	FT_KERNING_DEFAULT := 0
 	FT_KERNING_UNFITTED
 	FT_KERNING_UNSCALED
@@ -644,7 +644,7 @@ FT_Outline_Get_Bitmap :: fonc externe (library : FT_Library, outline : *FT_Outli
 // **********************************************************************
 FT_Outline_Render :: fonc externe (library : FT_Library, outline : *FT_Outline, params : *FT_Raster_Params) -> z32
 // ************************************************************************
-FT_Orientation_ :: énum : n32 {
+FT_Orientation_ :: énum n32 {
 	FT_ORIENTATION_TRUETYPE := 0
 	FT_ORIENTATION_POSTSCRIPT := 1
 	FT_ORIENTATION_FILL_RIGHT := FT_ORIENTATION_TRUETYPE
@@ -683,7 +683,7 @@ FT_Glyph_Copy :: fonc externe (source : FT_Glyph, target : *FT_Glyph) -> z32
 // **********************************************************************
 FT_Glyph_Transform :: fonc externe (glyph : FT_Glyph, matrix : *FT_Matrix, delta : *FT_Vector) -> z32
 // **********************************************************************
-FT_Glyph_BBox_Mode_ :: énum : n32 {
+FT_Glyph_BBox_Mode_ :: énum n32 {
 	FT_GLYPH_BBOX_UNSCALED := 0
 	FT_GLYPH_BBOX_SUBPIXELS := 0
 	FT_GLYPH_BBOX_GRIDFIT := 1
@@ -702,7 +702,7 @@ FT_Matrix_Multiply :: fonc externe (a : *FT_Matrix, b : *FT_Matrix) -> rien
 // **********************************************************************
 FT_Matrix_Invert :: fonc externe (matrix : *FT_Matrix) -> z32
 // ************************************************************
-FT_Stroker_LineJoin_ :: énum : n32 {
+FT_Stroker_LineJoin_ :: énum n32 {
 	FT_STROKER_LINEJOIN_ROUND := 0
 	FT_STROKER_LINEJOIN_BEVEL := 1
 	FT_STROKER_LINEJOIN_MITER_VARIABLE := 2
@@ -711,14 +711,14 @@ FT_Stroker_LineJoin_ :: énum : n32 {
 }
 
 // ************************************************************
-FT_Stroker_LineCap_ :: énum : n32 {
+FT_Stroker_LineCap_ :: énum n32 {
 	FT_STROKER_LINECAP_BUTT := 0
 	FT_STROKER_LINECAP_ROUND
 	FT_STROKER_LINECAP_SQUARE
 }
 
 // ************************************************************
-FT_StrokerBorder_ :: énum : n32 {
+FT_StrokerBorder_ :: énum n32 {
 	FT_STROKER_BORDER_LEFT := 0
 	FT_STROKER_BORDER_RIGHT
 }
@@ -760,7 +760,7 @@ FT_Glyph_Stroke :: fonc externe (pglyph : *FT_Glyph, stroker : FT_Stroker, destr
 // ************************************************************
 FT_Glyph_StrokeBorder :: fonc externe (pglyph : *FT_Glyph, stroker : FT_Stroker, inside : n8, destroy : n8) -> z32
 // **************************************************************************
-FT_LcdFilter_ :: énum : n32 {
+FT_LcdFilter_ :: énum n32 {
 	FT_LCD_FILTER_NONE := 0
 	FT_LCD_FILTER_DEFAULT := 1
 	FT_LCD_FILTER_LIGHT := 2

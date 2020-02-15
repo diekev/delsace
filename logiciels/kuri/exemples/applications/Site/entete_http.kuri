@@ -1,6 +1,6 @@
 importe Fondation
 
-ÉtatLigneRequête :: énum : z32 {
+ÉtatLigneRequête :: énum z32 {
     INVALIDE
     MÉTHODE
     CHEMIN

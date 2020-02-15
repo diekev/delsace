@@ -1,6 +1,6 @@
 importe Fondation
 
-TypePrimitive :: énum : z32 {
+TypePrimitive :: énum z32 {
     INVALIDE
     POLYGONE
     SPHÈRE
@@ -12,7 +12,7 @@ Primitive :: struct {
     index : z64
 }
 
-TypePolygone :: énum : z32 {
+TypePolygone :: énum z32 {
     FERMÉ
     OUVERT
 }

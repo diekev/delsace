@@ -3,7 +3,7 @@ charge "lexage"
 importe Fondation
 
 // À FAIRE : les énums dont les valeurs sont autres que z32 ne sont pas imprimées (introspection)
-TypeNoeud :: énum : z32 {
+TypeNoeud :: énum z32 {
     RACINE
 	PROPRIETE
 	VARIABLE

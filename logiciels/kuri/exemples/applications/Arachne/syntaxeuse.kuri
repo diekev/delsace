@@ -5,7 +5,7 @@ charge lexeuse
 
 //###############################################################################
 
-TypeObjet :: énum : z32 {
+TypeObjet :: énum z32 {
 	NOEUD
 	RELATION
 }

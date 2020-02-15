@@ -1,6 +1,6 @@
 importe Fondation
 
-TypeAttribut :: énum_drapeau : n16 {
+TypeAttribut :: énum_drapeau n16 {
 	Z8
 	Z16
 	Z32
@@ -16,7 +16,7 @@ TypeAttribut :: énum_drapeau : n16 {
     TABLEAU
 }
 
-PortéeAttribut :: énum : z8 {
+PortéeAttribut :: énum z8 {
 	// l'attribut varie pour chaque point
 	POINT
 	// l'attribut varie pour chaque primitive

@@ -1,6 +1,6 @@
 importe Fondation
 
-TypeLexème :: énum : z32 {
+TypeLexème :: énum z32 {
 	INCONNU
 	DANS
 	FINPOUR
@@ -39,7 +39,7 @@ id_identifiant :: fonc(identifiant : chaine) -> TypeLexème
 //######################################
 
 // À FAIRE(compilateur) : l'énumération n'est pas dans le graphe de symboles
-ÉtatLexage :: énum : z32 {
+ÉtatLexage :: énum z32 {
     // L'état quand nous sommes dans un script de contrôle du gabarit
 	SCRIPT
     // L'état quand nous sommes dans du code HTML

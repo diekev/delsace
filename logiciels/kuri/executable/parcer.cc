@@ -1024,7 +1024,7 @@ struct Convertisseuse {
 				flux_sortie << determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
 
 				auto type = clang_getEnumDeclIntegerType(cursor);
-				flux_sortie << " :: énum : " << converti_type(type, typedefs);
+				flux_sortie << " :: énum " << converti_type(type, typedefs);
 
 				flux_sortie << " {\n";
 				converti_enfants(cursor, trans_unit, flux_sortie);

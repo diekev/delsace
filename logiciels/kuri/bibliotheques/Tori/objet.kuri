@@ -1,6 +1,6 @@
 importe Fondation
 
-TypeObjet :: énum : z32 {
+TypeObjet :: énum z32 {
 	NUL := 0
 	ENTIER := 1
 	RÉEL := 2

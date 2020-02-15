@@ -1,7 +1,7 @@
 importe "flux"
 
 // Ceci est un commentaire.
-Énumération :: énum : z32 {
+Énumération :: énum z32 {
     LUMIÈRE := 0
 }
 
@@ -31,14 +31,14 @@ principale :: fonc(args : []*z8) -> z32
     dyn structurée0 : Structurée
     structurée0.membrée = 68
     structurée0.fn_pointée = fée
-    structurée1 := Structurée{ membrée = 123 }
+    structurée1 := Structurée{ membrée = 123 }
 
     x := structurée1.membrée
     y := Énumération.LUMIÈRE
 
     car := '\n'
 
-    chaine_française := « chaine frainçaise »
+    chaine_française := « chaine frainçaise »
 
     imprime("structurée1 : ", structurée1, '\n')
 

@@ -2,7 +2,7 @@ importe Fondation
 
 //##############################################################################
 
-TypeRune :: énum : z32 {
+TypeRune :: énum z32 {
     // espaces
 	ESPACE_INSECABLE             := 0x00A0
 	ESPACE_D_OGAM                := 0x1680
@@ -31,7 +31,7 @@ TypeRune :: énum : z32 {
 
 //##############################################################################
 
-TypeLexème :: énum : n32 {
+TypeLexème :: énum n32 {
 	INCONNU
 
 	EXCLAMATION

@@ -1,6 +1,6 @@
 importe Fondation
 
-Drapeau :: énum_drapeau : z32 {
+Drapeau :: énum_drapeau z32 {
     FA
     FB
     FC
@@ -8,7 +8,7 @@ Drapeau :: énum_drapeau : z32 {
     FE
 }
 
-Normal :: énum : z32 {
+Normal :: énum z32 {
     FA
     FB
     FC

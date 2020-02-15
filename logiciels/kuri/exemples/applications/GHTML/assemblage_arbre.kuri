@@ -2,7 +2,7 @@ charge "lexage"
 
 importe Fondation
 
-TypeNoeud :: énum : z32 {
+TypeNoeud :: énum z32 {
 	CHAINE_CARACTÈRE
 	VARIABLE
 	BLOC

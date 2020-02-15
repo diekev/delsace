@@ -1,4 +1,4 @@
-CodeInst :: énum : z32 {
+CodeInst :: énum z32 {
     // constructions de types natifs
 	CONSTRUIT_TABLEAU
 

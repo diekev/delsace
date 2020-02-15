@@ -13,7 +13,7 @@ type_param_pour_chaine :: fonc(chn : chaine) -> TypeParamètre
     retourne TypeParamètre.INVALIDE
 }
 
-TypeProp :: énum : z32 {
+TypeProp :: énum z32 {
 	PROP_PARAM_MAX
 	PROP_PARAM_MIN
 	PROP_PARAM_NOM

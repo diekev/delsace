@@ -352,7 +352,7 @@ remplis_struct_depuis_json :: fonc (script: chaine, arg: eini) -> rien
 /*
 // ébauche pour un scanner mêlant le lexage et le syntaxage
 // Standard : https://www.json.org/json-en.html
-Lexème :: énum : z32 {
+Lexème :: énum z32 {
     INVALIDE,
     FIN_OBJET,
 

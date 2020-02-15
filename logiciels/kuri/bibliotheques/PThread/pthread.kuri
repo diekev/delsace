@@ -152,12 +152,12 @@ pthread_barrierattr_t :: union externe nonsûr {
 	__align : z32
 }
 
-anonyme4 :: énum : n32 {
+anonyme4 :: énum n32 {
 	PTHREAD_CREATE_JOINABLE
 	PTHREAD_CREATE_DETACHED
 }
 
-anonyme5 :: énum : n32 {
+anonyme5 :: énum n32 {
 	PTHREAD_MUTEX_TIMED_NP
 	PTHREAD_MUTEX_RECURSIVE_NP
 	PTHREAD_MUTEX_ERRORCHECK_NP
@@ -169,37 +169,37 @@ anonyme5 :: énum : n32 {
 	PTHREAD_MUTEX_FAST_NP := PTHREAD_MUTEX_TIMED_NP
 }
 
-anonyme6 :: énum : n32 {
+anonyme6 :: énum n32 {
 	PTHREAD_MUTEX_STALLED
 	PTHREAD_MUTEX_STALLED_NP := PTHREAD_MUTEX_STALLED
 	PTHREAD_MUTEX_ROBUST
 	PTHREAD_MUTEX_ROBUST_NP := PTHREAD_MUTEX_ROBUST
 }
 
-anonyme7 :: énum : n32 {
+anonyme7 :: énum n32 {
 	PTHREAD_PRIO_NONE
 	PTHREAD_PRIO_INHERIT
 	PTHREAD_PRIO_PROTECT
 }
 
-anonyme8 :: énum : n32 {
+anonyme8 :: énum n32 {
 	PTHREAD_RWLOCK_PREFER_READER_NP
 	PTHREAD_RWLOCK_PREFER_WRITER_NP
 	PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP
 	PTHREAD_RWLOCK_DEFAULT_NP := PTHREAD_RWLOCK_PREFER_READER_NP
 }
 
-anonyme9 :: énum : n32 {
+anonyme9 :: énum n32 {
 	PTHREAD_INHERIT_SCHED
 	PTHREAD_EXPLICIT_SCHED
 }
 
-anonyme10 :: énum : n32 {
+anonyme10 :: énum n32 {
 	PTHREAD_SCOPE_SYSTEM
 	PTHREAD_SCOPE_PROCESS
 }
 
-anonyme11 :: énum : n32 {
+anonyme11 :: énum n32 {
 	PTHREAD_PROCESS_PRIVATE
 	PTHREAD_PROCESS_SHARED
 }
@@ -211,12 +211,12 @@ _pthread_cleanup_buffer :: struct externe {
 	__prev : *_pthread_cleanup_buffer
 }
 
-anonyme12 :: énum : n32 {
+anonyme12 :: énum n32 {
 	PTHREAD_CANCEL_ENABLE
 	PTHREAD_CANCEL_DISABLE
 }
 
-anonyme13 :: énum : n32 {
+anonyme13 :: énum n32 {
 	PTHREAD_CANCEL_DEFERRED
 	PTHREAD_CANCEL_ASYNCHRONOUS
 }

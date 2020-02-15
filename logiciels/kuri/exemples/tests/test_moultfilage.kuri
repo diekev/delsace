@@ -93,7 +93,7 @@ donnée_client_t :: struct {
 	retourne nul
 }
 
-ValeurSysConf :: énum : z32 {
+ValeurSysConf :: énum z32 {
     _SC_NPROCESSORS_ONLN := 84
 }
 

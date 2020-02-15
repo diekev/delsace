@@ -1,6 +1,6 @@
 // Structures de bases pour contenir les informations d'un type.
 
-id_info :: énum : z32 {
+id_info :: énum z32 {
     ENTIER    := 0
 	RÉEL      := 1
 	BOOLÉEN   := 2

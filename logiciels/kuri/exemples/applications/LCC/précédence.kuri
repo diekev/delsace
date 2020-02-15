@@ -1,6 +1,6 @@
 charge "lexage"
 
-DirAssociativité :: énum : z8 {
+DirAssociativité :: énum z8 {
     GAUCHE
     DROITE
     INVALIDE

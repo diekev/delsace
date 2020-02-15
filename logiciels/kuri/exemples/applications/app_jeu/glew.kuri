@@ -3,7 +3,7 @@
 #bib "GL"
 #bib "GLEW"
 
-OGL :: énum : n32 {
+OGL :: énum n32 {
     ARRAY_BUFFER := 0x8892
     STATIC_DRAW := 0x88E4
     TRIANGLES := 0x0004

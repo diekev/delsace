@@ -6,7 +6,7 @@ charge "lexage"
 charge "syntaxage"
 
 // À FAIRE: ajout d'un message aux erreurs
-ErreurGénérationPage :: énum : z32 {
+ErreurGénérationPage :: énum z32 {
     AUCUNE
     OBJET_NON_ITÉRABLE
     OBJET_NON_TROUVÉ

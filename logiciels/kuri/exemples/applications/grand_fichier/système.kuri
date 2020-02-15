@@ -1,4 +1,4 @@
-État :: énum : z32 {
+État :: énum z32 {
 	DÉBUT
 	INSTRUCTION
 	CHEMIN
@@ -87,7 +87,7 @@ analyse_réponse :: fonc(réponse : chaine) -> rien
 	}
 }
 
-TypeNoeud :: énum : z32 {
+TypeNoeud :: énum z32 {
 	DOSSIER
 	FEUILLE
 }

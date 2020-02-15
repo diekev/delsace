@@ -1,6 +1,6 @@
 importe Fondation
 
-IdentifiantLexème :: énum : z32 {
+IdentifiantLexème :: énum z32 {
 	// Ponctuations
     PARENTHÈSE_OUVRANTE
     PARENTHÈSE_FERMANTE

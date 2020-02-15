@@ -1470,7 +1470,7 @@ void Syntaxeuse::analyse_declaration_enum(bool est_drapeau, DonneesLexeme &lexem
 
 	m_contexte.ajoute_donnees_structure(lexeme.chaine, donnees_structure);
 
-	noeud_decl->type_declare = analyse_declaration_type();
+	noeud_decl->type_declare = analyse_declaration_type(false);
 
 	consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 

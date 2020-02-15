@@ -2,7 +2,7 @@ importe Fondation
 
 //##############################################################################
 
-TypeLexème :: énum : z32 {
+TypeLexème :: énum z32 {
 	INCONNU
 
 	PARENTHESE_OUVRANTE
