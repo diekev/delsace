@@ -459,5 +459,14 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			return res;
 		}
+		case GenreNoeud::EXPRESSION_PARENTHESE:
+		{
+			return evalue_expression(contexte, b->enfants.front());
+		}
+		case GenreNoeud::EXPRESSION_TRANSTYPE:
+		{
+			/* À FAIRE : transtypage de l'expression constante */
+			return evalue_expression(contexte, b->enfants.front());
+		}
 	}
 }
