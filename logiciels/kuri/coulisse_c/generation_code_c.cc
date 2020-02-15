@@ -2989,7 +2989,9 @@ void KR__acces_membre_union(
 	/* déclaration des types de bases */
 	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
 	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n";
+	os << "#ifndef bool // bool est défini dans stdbool.h\n";
 	os << "typedef unsigned char bool;\n";
+	os << "#endif\n";
 	os << "typedef unsigned char octet;\n";
 	os << "typedef void Ksnul;\n";
 	os << "typedef struct ContexteProgramme KsContexteProgramme;\n";
@@ -3210,7 +3212,9 @@ void KR__acces_membre_union(
 	/* déclaration des types de bases */
 	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
 	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n";
+	os << "#ifndef bool // bool est défini dans stdbool.h\n";
 	os << "typedef unsigned char bool;\n";
+	os << "#endif\n";
 	os << "typedef unsigned char octet;\n";
 	os << "typedef void Ksnul;\n";
 	os << "typedef struct ContexteProgramme KsContexteProgramme;\n";
