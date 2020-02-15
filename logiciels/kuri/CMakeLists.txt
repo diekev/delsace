@@ -48,6 +48,7 @@ set(DOSSIER_MODULES
 	bibliotheques/JSON
 	bibliotheques/GlibC
 	bibliotheques/Kuri
+	bibliotheques/MySQL
 	bibliotheques/OpenSSL
 	bibliotheques/PThread
 	bibliotheques/Réseau

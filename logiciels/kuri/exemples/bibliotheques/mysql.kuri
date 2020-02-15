@@ -1,40 +1,30 @@
-#inclus "mysql/mysql.h"
+importe Fondation
+importe MySQL
 
-#bib "mysqlclient"
-
-mysql_fetch_row :: fonc externe () -> ;
-
-iter_résultat_requête :: corout(resultat)
+principale :: fonc (args : []*z8) : z32
 {
-    boucle {
-        ligne := mysql_fetch_row(resultat);
+	dyn mysql : MYSQL;
+	mysql_init(@mysql);
 
-        si ligne == nul {
-            arrête;
-        }
+	mysql_options(@mysql, mysql_option.MYSQL_READ_DEFAULT_GROUP,"option".pointeur);
 
-        retiens ligne;
-    }
-}
+	hôte := ""
+	utilisateur := ""
+	mot_de_passe := ""
+	base_de_données := ""
 
-iter_résultat_requête :: fonc(resultat, ligne) -> chaine
-{
-    longueurs := mysql_fetch_lengths(resultat);
-    nombre_champs := mysql_num_fields(resultat);
+	connexion := mysql_real_connect(@mysql, hôte.pointeur, utilisateur.pointeur, mot_de_passe.pointeur, base_de_données.pointeur, transtype(0: n32), nul, transtype(0: n64));
 
-    pour i dans 0 ... nombre_champs - 1 {
-        dyn champ : chaine;
-        champ.pointeur = ligne[i];
-        champ.taille = longueurs[i];
-        retiens champ;
-    }
-}
+	si (connexion == nul) {
+		e := mysql_error(@mysql)
+		chn := converti_chaine_c(e)
+		imprime("Une erreur s'est produite lors de la connexion à la BDD : % !\n", chn);
+		retourne 1
+	}
 
-test_mysql :: fonc()
-{
-    pour ligne dans iter_résultat_requête(resultat) {
-        pour champ dans iter_champ_ligne(resultat, ligne) {
+	imprime("Connexion réussie à la BDD!");
 
-        }
-    }
+	mysql_close(@mysql);
+
+	retourne 0
 }
