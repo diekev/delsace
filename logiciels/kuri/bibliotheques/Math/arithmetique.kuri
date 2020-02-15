@@ -96,14 +96,17 @@ racine_cubique :: fonc (n: r64) -> r64
 
 #enligne abs :: fonc(a : $T) -> $T
 {
-	retourne si a < 0 { -a } sinon { a }
+    si a < 0 { retourne -a } sinon { retourne a; }
+	//retourne si a < 0 { -a } sinon { a }
 }
 
 #enligne min :: fonc(a : $T, b : $T) -> $T
 {
-	retourne si a < b { a } sinon { b }
+    si a < b { retourne a; } sinon { retourne b; }
+	//retourne si a < b { a } sinon { b }
 }
 
+/*
 min :: fonc(args : ...$T) -> $T
 {
 	dyn vmin := args[0]
@@ -114,12 +117,15 @@ min :: fonc(args : ...$T) -> $T
 
 	retourne vmin
 }
+*/
 
 #enligne max :: fonc(a : $T, b : $T) -> $T
 {
-	retourne si a > b { a } sinon { b }
+    si a > b { retourne a; } sinon { retourne b; }
+	//retourne si a > b { a } sinon { b }
 }
 
+/*
 max :: fonc(args : ...$T) -> $T
 {
 	dyn vmax := args[0]
@@ -130,6 +136,7 @@ max :: fonc(args : ...$T) -> $T
 
 	retourne vmax
 }
+*/
 
 #enligne restreint :: fonc(dyn x : *$T, min : $T, max : $T) -> rien
 {

@@ -254,11 +254,11 @@ dessine_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32) -> rien
 	dyn phi_delta := 2.0 * 3.14159 / transtype(segs : r32)
 
     pour i dans 0...segs - 1 {
-        ca0 := cx + cos(phi) * rx
-        sa0 := cy + sin(phi) * ry
+        ca0 := transtype(cx + cos(phi) * rx: r32)
+        sa0 := transtype(cy + sin(phi) * ry: r32)
 
-        ca1 := cx + cos(phi + phi_delta) * rx
-        sa1 := cy + sin(phi + phi_delta) * ry
+        ca1 := transtype(cx + cos(phi + phi_delta) * rx: r32)
+        sa1 := transtype(cy + sin(phi + phi_delta) * ry: r32)
 
         ajoute_sommet(cx, cy, 0.0)
         ajoute_sommet(ca0, sa0, 0.0)
@@ -279,11 +279,11 @@ dessine_quart_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : 
 	dyn phi_delta := 2.0 * 3.14159 / transtype(segs * 4 : r32)
 
     pour i dans 0...segs - 1 {
-        ca0 := cx + cos(phi) * rx
-        sa0 := cy + sin(phi) * ry
+        ca0 := transtype(cx + cos(phi) * rx: r32)
+        sa0 := transtype(cy + sin(phi) * ry: r32)
 
-        ca1 := cx + cos(phi + phi_delta) * rx
-        sa1 := cy + sin(phi + phi_delta) * ry
+        ca1 := transtype(cx + cos(phi + phi_delta) * rx: r32)
+        sa1 := transtype(cy + sin(phi + phi_delta) * ry: r32)
 
         ajoute_sommet(cx, cy, 0.0)
         ajoute_sommet(ca0, sa0, 0.0)
