@@ -614,6 +614,11 @@ int main(int argc, char *argv[])
 				commande += " -D" + dls::chaine(def);
 			}
 
+			for (auto const &chm : assembleuse.chemins) {
+				commande += " ";
+				commande += chm;
+			}
+
 			commande += " -o /tmp/compilation_kuri.o";
 
 			os << "Exécution de la commande '" << commande << "'..." << std::endl;
@@ -629,6 +634,11 @@ int main(int argc, char *argv[])
 			else {
 				auto debut_executable = dls::chrono::compte_seconde();
 				commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
+
+				for (auto const &chm : assembleuse.chemins) {
+					commande += " ";
+					commande += chm;
+				}
 
 				for (auto const &bib : assembleuse.bibliotheques) {
 					commande += " -l" + dls::chaine(bib);

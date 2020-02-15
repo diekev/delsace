@@ -51,6 +51,8 @@ public:
 
 	dls::tableau<dls::vue_chaine_compacte> bibliotheques{};
 
+	dls::tableau<dls::vue_chaine_compacte> chemins{};
+
 	/* définitions passées au compilateur C pour modifier les fichiers d'entête */
 	dls::tableau<dls::vue_chaine_compacte> definitions{};
 

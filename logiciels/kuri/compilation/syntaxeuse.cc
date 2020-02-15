@@ -1225,7 +1225,10 @@ noeud::base *Syntaxeuse::analyse_expression(
 						// renseigne le nom et le type (obj, exe) du fichier de sortie
 					}
 					else if (directive == "chemin") {
-						// ajoute le chemin à la liste des chemins où chercher les modules
+						consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
+
+						auto chaine = donnees().chaine;
+						m_assembleuse->chemins.pousse(chaine);
 					}
 					else if (directive == "nulctx") {
 						/* marque la  déclaration  d'une fonction comme ne
