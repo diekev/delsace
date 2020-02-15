@@ -63,3 +63,11 @@ glGetShaderiv :: fonc externe (shader : n32, pname : OGL, params : *z32) -> rien
 glGetShaderInfoLog :: fonc externe (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien
 glGetProgramiv :: fonc externe (program : n32, pname : OGL, params : *z32) -> rien
 glGetProgramInfoLog :: fonc externe (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien
+
+
+_GL_INVALID_ENUM := transtype(0x0500: n32)
+_GL_INVALID_VALUE := transtype(0x0501: n32)
+_GL_INVALID_OPERATION := transtype(0x0502: n32)
+_GL_INVALID_FRAMEBUFFER_OPERATION := transtype(0x0506: n32)
+
+glGetError :: fonc externe () -> n32

@@ -6,8 +6,6 @@ importe Fondation
 importe GlibC
 importe PThread
 
-printf :: fonc externe (fmt : *z8, args : ...) -> z32
-
 //#####################################################################################
 
 rand :: fonc externe () -> r64

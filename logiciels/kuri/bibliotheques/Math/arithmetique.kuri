@@ -1,3 +1,17 @@
+// À FAIRE : implémente les fonctions suivantes avec notre langage
+
+#inclus "math.h"
+#bib "m"
+
+sqrt :: fonc externe (v: r64) -> r64
+cos :: fonc externe (a : r64) -> r64
+sin :: fonc externe (a : r64) -> r64
+tan :: fonc externe (a : r64) -> r64
+acos :: fonc externe (a : r64) -> r64
+asin :: fonc externe (a : r64) -> r64
+atan :: fonc externe (a : r64) -> r64
+atan2 :: fonc externe (a : r64, b: r64) -> r64
+
 // À FAIRE : certaines fonctions ne de sens que pour les nombres relatifs ou réels
 
 #enligne abs :: fonc(a : $T) -> $T

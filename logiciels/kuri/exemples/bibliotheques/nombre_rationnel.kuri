@@ -2,7 +2,7 @@
 // fractions, afin d'être plus précis que des nombres à point flottant.
 // https://iquilezles.org/www/articles/floatingbar/floatingbar.htm
 
-printf :: fonc externe (fmt: *z8, args: ...) -> z32
+importe GlibC
 
 NombreRationnel :: struct {
     N: n32

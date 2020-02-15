@@ -1,11 +1,6 @@
-importe "chaine"
-importe "fichier"
-importe "flux"
-importe "chrono"
-
+importe Fondation
+importe GlibC
 importe Math
-
-write :: fonc externe (filedes : z32, tpn : *z8, nbyte : z64) -> z32;
 
 Image :: struct {
     tampon : chaine; // À FAIRE : []octet

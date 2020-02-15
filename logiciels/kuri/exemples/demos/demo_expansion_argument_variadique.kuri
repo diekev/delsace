@@ -1,6 +1,5 @@
 importe Fondation
-
-printf :: fonc externe (fmt : *z8, args: ...) -> z32
+importe GlibC
 
 passe_args :: fonc (args: ... *z8) -> rien
 {

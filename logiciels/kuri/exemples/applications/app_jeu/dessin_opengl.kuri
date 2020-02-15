@@ -1,9 +1,7 @@
-#inclus "math.h"
-#bib "m"
-
 charge "glew"
 
 importe "Fondation"
+importe Math
 
 Couleur :: struct {
     r : r32 = 0.0
@@ -135,13 +133,6 @@ débute_dessin :: fonc() -> rien
     glBindVertexArray(VertexArrayID)
 }
 
-_GL_INVALID_ENUM := transtype(0x0500: n32)
-_GL_INVALID_VALUE := transtype(0x0501: n32)
-_GL_INVALID_OPERATION := transtype(0x0502: n32)
-_GL_INVALID_FRAMEBUFFER_OPERATION := transtype(0x0506: n32)
-
-glGetError :: fonc externe () -> n32
-
 vérifie_erreur :: fonc() -> rien
 {
     erreur := glGetError()
@@ -253,9 +244,6 @@ dessine_carré :: fonc() -> rien
     couleur := Couleur{r = 1.0, v = 1.0, b = 0.0, a = 1.0 }
     dessine_carré_ex(-0.5, -0.5, 1.0, 1.0, couleur)
 }
-
-cos :: fonc externe (a : r32) -> r32
-sin :: fonc externe (a : r32) -> r32
 
 dessine_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32) -> rien
 {

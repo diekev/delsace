@@ -1,8 +1,6 @@
-//importe Fondation
+importe GlibC
 
 charge "edtaa3func"
-
-memset :: fonc externe (ptr: *rien, valeur: z32, taille: n64) -> rien
 
 make_distance_mapd :: fonc (dyn data : []r64, width : z32, height : z32) -> []r64
 {

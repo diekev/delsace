@@ -42,9 +42,6 @@ OpenListener :: fonc(port : n16) -> z32
     retourne prise
 }
 
-printf :: fonc externe (fmt: *z8, args: ...) -> z32
-sprintf :: fonc externe (buf: *z8, fmt: *z8, s: z32) -> rien
-
 isRoot :: fonc() -> bool
 {
     retourne getuid() == 0

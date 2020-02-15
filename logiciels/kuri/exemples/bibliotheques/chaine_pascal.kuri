@@ -7,8 +7,7 @@
 // "chaîne pascal arguments nommés et désordonnés\n" seront imprimées dans la
 // sortie standard.
 
-// Déclaration de la fonc externe printf qui se trouve dans libc.
-printf :: fonc externe (format : *z8, args : ...) -> z32;
+importe GlibC
 
 // Définition de la structure ChaînePascal.
 ChaînePascal :: struct {

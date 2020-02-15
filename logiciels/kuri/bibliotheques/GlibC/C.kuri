@@ -187,3 +187,11 @@ exit :: fonc externe (id : z32) -> rien
 waitpid :: fonc externe (id : z32, ptr : *z32, options : z32) -> z32
 send :: fonc externe (prise : z32, pointeur : *z8, taille : z64, options : z32) -> z32
 inet_ntoa :: fonc externe (addr : in_addr) -> *z8
+
+// -------------------------------------
+
+printf :: fonc externe (fmt: *z8, args: ...) -> z32
+sprintf :: fonc externe (buf: *z8, fmt: *z8, s: z32) -> rien
+
+memset :: fonc externe (ptr: *rien, valeur: z32, taille: n64) -> rien
+memcpy :: fonc externe (ptr: *rien, src: *rien, taille: n64) -> rien
