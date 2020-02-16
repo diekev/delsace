@@ -45,6 +45,7 @@ struct DonneesArgument {
 	dls::vue_chaine_compacte nom;
 	long index_type{-1l};
 	DonneesTypeDeclare type_declare{};
+	noeud::base *expression_defaut = nullptr;
 	bool est_variadic = false;
 	bool est_dynamic = false;
 	bool est_employe = false;

@@ -46,8 +46,10 @@ struct DonneesPrecedence {
 static DonneesPrecedence associativite(GenreLexeme identifiant)
 {
 	switch (identifiant) {
-		case GenreLexeme::TROIS_POINTS:
+		case GenreLexeme::VIRGULE:
 			return { dir_associativite::GAUCHE, 0 };
+		case GenreLexeme::TROIS_POINTS:
+			return { dir_associativite::GAUCHE, 1 };
 		case GenreLexeme::EGAL:
 		case GenreLexeme::DECLARATION_VARIABLE:
 		case GenreLexeme::PLUS_EGAL:
@@ -60,8 +62,6 @@ static DonneesPrecedence associativite(GenreLexeme identifiant)
 		case GenreLexeme::OUX_EGAL:
 		case GenreLexeme::DEC_DROITE_EGAL:
 		case GenreLexeme::DEC_GAUCHE_EGAL:
-			return { dir_associativite::GAUCHE, 1 };
-		case GenreLexeme::VIRGULE:
 			return { dir_associativite::GAUCHE, 2 };
 		case GenreLexeme::BARRE_BARRE:
 			return { dir_associativite::GAUCHE, 3 };

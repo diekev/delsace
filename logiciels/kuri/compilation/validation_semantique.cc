@@ -581,11 +581,33 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 		}
 
 		for (auto feuille : feuilles) {
-			if (noms.trouve(feuille->chaine()) != noms.fin()) {
+			auto variable = feuille;
+			auto expression = static_cast<noeud::base *>(nullptr);
+
+			if (feuille->genre == GenreNoeud::DECLARATION_VARIABLE) {
+				variable = feuille->enfants.front();
+				expression = feuille->enfants.back();
+
+				performe_validation_semantique(expression, contexte, false);
+
+				/* À FAIRE: vérifie que le type de l'argument correspond à celui de l'expression */
+				if (est_invalide(variable->type_declare.plage())) {
+					auto &dt_arg = contexte.typeuse[expression->index_type];
+
+					auto debut = dt_arg.end() - 1;
+					auto fin = dt_arg.begin() - 1;
+
+					while (debut != fin) {
+						variable->type_declare.donnees.pousse(*debut--);
+					}
+				}
+			}
+
+			if (noms.trouve(variable->chaine()) != noms.fin()) {
 				erreur::lance_erreur(
 							"Redéfinition de l'argument",
 							contexte,
-							feuille->lexeme,
+							variable->lexeme,
 							erreur::type_erreur::ARGUMENT_REDEFINI);
 			}
 
@@ -593,11 +615,11 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 				erreur::lance_erreur(
 							"Argument déclaré après un argument variadic",
 							contexte,
-							feuille->lexeme,
+							variable->lexeme,
 							erreur::type_erreur::NORMAL);
 			}
 
-			auto &type_declare = feuille->type_declare;
+			auto &type_declare = variable->type_declare;
 
 			if (type_declare.est_gabarit) {
 				donnees_fonction->noms_types_gabarits.pousse(type_declare.nom_gabarit);
@@ -606,9 +628,10 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 
 			auto donnees_arg = DonneesArgument{};
 			donnees_arg.type_declare = type_declare;
-			donnees_arg.nom = feuille->chaine();
+			donnees_arg.nom = variable->chaine();
+			donnees_arg.expression_defaut = expression;
 
-			noms.insere(feuille->chaine());
+			noms.insere(variable->chaine());
 
 			/* doit être vrai uniquement pour le dernier argument */
 			donnees_arg.est_variadic = donnees_arg.type_declare.type_base() == GenreLexeme::TROIS_POINTS;

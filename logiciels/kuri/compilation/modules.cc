@@ -289,21 +289,21 @@ static double verifie_compatibilite(
 static DonneesCandidate verifie_donnees_fonction(
 		ContexteGenerationCode &contexte,
 		DonneesFonction &donnees_fonction,
-		dls::liste<dls::vue_chaine_compacte> &noms_arguments_,
+		dls::liste<dls::vue_chaine_compacte> &noms_arguments,
 		dls::liste<noeud::base *> const &exprs)
 {
 	auto res = DonneesCandidate{};
 
 	auto const nombre_args = donnees_fonction.args.taille();
 
-	if (!donnees_fonction.est_variadique && (exprs.taille() != nombre_args)) {
+	if (!donnees_fonction.est_variadique && (exprs.taille() > nombre_args)) {
 		res.etat = FONCTION_INTROUVEE;
 		res.raison = MECOMPTAGE_ARGS;
 		res.df = &donnees_fonction;
 		return res;
 	}
 
-	if (nombre_args == 0) {
+	if (nombre_args == 0 && exprs.taille() == 0) {
 		res.poids_args = 1.0;
 		res.etat = FONCTION_TROUVEE;
 		res.raison = AUCUNE_RAISON;
@@ -311,17 +311,19 @@ static DonneesCandidate verifie_donnees_fonction(
 		return res;
 	}
 
-	/* ***************** vérifie si les noms correspondent ****************** */
+	dls::tableau<noeud::base *> slots(nombre_args - donnees_fonction.est_variadique);
 
-	auto arguments_nommes = false;
-	dls::ensemble<dls::vue_chaine_compacte> args;
-	auto dernier_arg_variadique = false;
+	for (auto i = 0; i < slots.taille(); ++i) {
+		slots[i] = donnees_fonction.args[i].expression_defaut;
+	}
 
-	/* crée une copie pour ne pas polluer la liste pour les appels suivants */
-	auto noms_arguments = noms_arguments_;
 	auto index = 0l;
-	auto const index_max = nombre_args - donnees_fonction.est_variadique;
-	for (auto &nom_arg : noms_arguments) {
+	auto iter_expr = exprs.debut();
+	auto arguments_nommes = false;
+	auto dernier_arg_variadique = false;
+	dls::ensemble<dls::vue_chaine_compacte> args;
+
+	for (auto const &nom_arg : noms_arguments) {
 		if (nom_arg != "") {
 			arguments_nommes = true;
 
@@ -345,17 +347,18 @@ static DonneesCandidate verifie_donnees_fonction(
 				return res;
 			}
 
-#ifdef NONSUR
-			auto &dt = contexte.magasin_types.donnees_types[donnees.donnees_type];
-
-			if (dt.type_base() == id_lexeme::POINTEUR && !contexte.non_sur()) {
-				res.arg_pointeur = true;
-			}
-#endif
-
 			dernier_arg_variadique = donnees.est_variadic;
 
 			args.insere(nom_arg);
+
+			auto index_arg = std::distance(donnees_fonction.args.debut(), iter);
+
+			if (dernier_arg_variadique || index_arg >= slots.taille()) {
+				slots.pousse(*iter_expr++);
+			}
+			else {
+				slots[index_arg] = *iter_expr++;
+			}
 		}
 		else {
 			if (arguments_nommes == true && dernier_arg_variadique == false) {
@@ -365,78 +368,50 @@ static DonneesCandidate verifie_donnees_fonction(
 				return res;
 			}
 
-			if (nombre_args != 0) {
-				auto nom_argument = donnees_fonction.args[index].nom;
-				args.insere(nom_argument);
-				nom_arg = nom_argument;
-
-#ifdef NONSUR
-				/* À FAIRE : meilleur stockage, ceci est redondant */
-				auto iter = donnees_fonction.args.find(nom_argument);
-				auto &donnees = iter->second;
-
-				/* il est possible que le type soit non-spécifié (variadic) */
-				if (donnees.donnees_type != -1ul) {
-					auto &dt = contexte.magasin_types.donnees_types[donnees.donnees_type];
-
-					if (dt.type_base() == id_lexeme::POINTEUR && !contexte.non_sur()) {
-						res.arg_pointeur = true;
-					}
-				}
-#endif
+			if (dernier_arg_variadique || index >= slots.taille()) {
+				slots.pousse(*iter_expr++);
+				index++;
+			}
+			else {
+				slots[index++] = *iter_expr++;
 			}
 		}
-
-		index = std::min(index + 1, index_max);
 	}
 
-	/* ********************** réordonne selon les noms ********************** */
-	/* ***************** vérifie si les types correspondent ***************** */
+	for (auto slot : slots) {
+		if (slot == nullptr) {
+			// À FAIRE : on pourrait donner les noms des arguments manquants
+			res.etat = FONCTION_INTROUVEE;
+			res.raison = MECOMPTAGE_ARGS;
+			res.df = &donnees_fonction;
+			return res;
+		}
+	}
+
+	auto paires_expansion_gabarit = dls::tableau<std::pair<dls::vue_chaine_compacte, long>>();
 
 	auto poids_args = 1.0;
 	auto fonction_variadique_interne = donnees_fonction.est_variadique
 			&& !donnees_fonction.est_externe;
-
-	/* Réordonne les enfants selon l'apparition des arguments car LLVM est
-	 * tatillon : ce n'est pas l'ordre dans lequel les valeurs apparaissent
-	 * dans le vecteur de paramètres qui compte, mais l'ordre dans lequel le
-	 * code est généré. */
-	dls::tableau<noeud::base *> enfants;
-
-	if (fonction_variadique_interne) {
-		enfants.redimensionne(donnees_fonction.args.taille());
-	}
-	else {
-		enfants.redimensionne(noms_arguments.taille());
-	}
-
-	auto enfant = exprs.debut();
-
-	res.raison = AUCUNE_RAISON;
-
-	auto nombre_arg_variadic = 0l;
-	auto nombre_arg_variadic_drapeau = 0l;
-
-	dls::tableau<TransformationType> transformations;
-	transformations.redimensionne(exprs.taille());
-
-	dls::tableau<noeud::base *> arguments_variadiques{};
-
 	auto expansion_rencontree = false;
 
-	auto paires_expansion_gabarit = dls::tableau<std::pair<dls::vue_chaine_compacte, long>>();
+	auto transformations = dls::tableau<TransformationType>(slots.taille());
 
-	for (auto const &nom : noms_arguments) {
-		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
-		 * car ça a déjà été fait plus haut. */
-		auto const iter = donnees_fonction.trouve(nom);
-		auto index_arg = std::distance(donnees_fonction.args.debut(), iter);
+	auto nombre_arg_variadiques_rencontres = 0;
 
-		auto const index_type_enf = (*enfant)->index_type;
+	for (auto i = 0l; i < slots.taille(); ++i) {
+		auto index_arg = std::min(i, donnees_fonction.args.taille() - 1);
 		auto &arg = donnees_fonction.args[index_arg];
+		auto slot = slots[i];
+
+		if (slot == arg.expression_defaut) {
+			continue;
+		}
+
+		auto const index_type_enf = slot->index_type;
 		auto const &type_enf = contexte.typeuse[index_type_enf];
 
-		auto index_type_arg = iter->index_type;
+		auto index_type_arg = arg.index_type;
 
 		if (arg.type_declare.est_gabarit) {
 			// trouve l'argument
@@ -453,7 +428,7 @@ static DonneesCandidate verifie_donnees_fonction(
 						res.raison = METYPAGE_ARG;
 						//res.type1 = type_enf;
 						res.type2 = type_enf;
-						res.noeud_decl = *enfant;
+						res.noeud_decl = slot;
 						break;
 					}
 				}
@@ -486,24 +461,24 @@ static DonneesCandidate verifie_donnees_fonction(
 
 		auto const &type_arg = (index_type_arg == -1l) ? DonneesTypeFinal{} : contexte.typeuse[index_type_arg];
 
-		if (iter->est_variadic) {
+		if (arg.est_variadic) {
 			if (!est_invalide(type_arg.dereference())) {
-				auto drapeau = TransformationType();
+				auto transformation = TransformationType();
 				auto index_type_deref = contexte.typeuse.type_dereference_pour(index_type_arg);
 				auto poids_pour_enfant = 0.0;
 
-				if ((*enfant)->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
+				if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
 					if (!fonction_variadique_interne) {
-						erreur::lance_erreur("Impossible d'utiliser une expansion variadique dans une fonction variadique externe", contexte, (*enfant)->lexeme);
+						erreur::lance_erreur("Impossible d'utiliser une expansion variadique dans une fonction variadique externe", contexte, slot->lexeme);
 					}
 
 					if (expansion_rencontree) {
-						erreur::lance_erreur("Ne peut utiliser qu'une seule expansion d'argument variadique", contexte, (*enfant)->lexeme);
+						erreur::lance_erreur("Ne peut utiliser qu'une seule expansion d'argument variadique", contexte, slot->lexeme);
 					}
 
 					auto index_type_deref_enf = contexte.typeuse.type_dereference_pour(index_type_enf);
 
-					poids_pour_enfant = verifie_compatibilite(contexte, index_type_deref, index_type_deref_enf, *enfant, drapeau);
+					poids_pour_enfant = verifie_compatibilite(contexte, index_type_deref, index_type_deref_enf, slot, transformation);
 
 					// aucune transformation acceptée sauf si nous avons un tableau fixe qu'il faudra convertir en un tableau dynamique
 					if (poids_pour_enfant != 1.0) {
@@ -513,14 +488,14 @@ static DonneesCandidate verifie_donnees_fonction(
 						auto &dt_enf = contexte.typeuse[index_type_enf];
 
 						if (est_type_tableau_fixe(dt_enf)) {
-							drapeau = TypeTransformation::CONVERTI_TABLEAU;
+							transformation = TypeTransformation::CONVERTI_TABLEAU;
 						}
 					}
 
 					expansion_rencontree = true;
 				}
 				else {
-					poids_pour_enfant = verifie_compatibilite(contexte, index_type_deref, index_type_enf, *enfant, drapeau);
+					poids_pour_enfant = verifie_compatibilite(contexte, index_type_deref, index_type_enf, slot, transformation);
 				}
 
 				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
@@ -535,43 +510,34 @@ static DonneesCandidate verifie_donnees_fonction(
 					res.raison = METYPAGE_ARG;
 					res.type1 = type_arg.dereference();
 					res.type2 = type_enf;
-					res.noeud_decl = *enfant;
+					res.noeud_decl = slot;
 					break;
 				}
 
 				if (fonction_variadique_interne) {
-					if (expansion_rencontree && !arguments_variadiques.est_vide()) {
-						if ((*enfant)->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
-							erreur::lance_erreur("Tentative d'utiliser une expansion d'arguments variadiques alors que d'autres arguments ont déjà été précisés", contexte, (*enfant)->lexeme);
+					if (expansion_rencontree && nombre_arg_variadiques_rencontres != 0) {
+						if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
+							erreur::lance_erreur("Tentative d'utiliser une expansion d'arguments variadiques alors que d'autres arguments ont déjà été précisés", contexte, slot->lexeme);
 						}
 						else {
-							erreur::lance_erreur("Tentative d'ajouter des arguments variadiques supplémentaire alors qu'une expansion est également utilisée", contexte, (*enfant)->lexeme);
+							erreur::lance_erreur("Tentative d'ajouter des arguments variadiques supplémentaire alors qu'une expansion est également utilisée", contexte, slot->lexeme);
 						}
 					}
+				}
 
-					arguments_variadiques.pousse(*enfant);
-					transformations[index_arg + nombre_arg_variadic_drapeau] = drapeau;
-					++nombre_arg_variadic_drapeau;
-				}
-				else {
-					enfants[index_arg + nombre_arg_variadic] = *enfant;
-					transformations[index_arg + nombre_arg_variadic_drapeau] = drapeau;
-					++nombre_arg_variadic;
-					++nombre_arg_variadic_drapeau;
-				}
+				transformations[i] = transformation;
 			}
 			else {
-				if ((*enfant)->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
+				if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
 					if (!fonction_variadique_interne) {
-						erreur::lance_erreur("Impossible d'utiliser une expansion variadique dans une fonction variadique externe", contexte, (*enfant)->lexeme);
+						erreur::lance_erreur("Impossible d'utiliser une expansion variadique dans une fonction variadique externe", contexte, slot->lexeme);
 					}
 				}
 
-				enfants[index_arg + nombre_arg_variadic] = *enfant;
-				transformations[index_arg + nombre_arg_variadic_drapeau] = TransformationType();
-				++nombre_arg_variadic;
-				++nombre_arg_variadic_drapeau;
+				transformations[i] = TransformationType();
 			}
+
+			nombre_arg_variadiques_rencontres += 1;
 		}
 		else {
 			auto transformation = TransformationType();
@@ -579,7 +545,7 @@ static DonneesCandidate verifie_donnees_fonction(
 			/* il est possible que le type final ne soit pas encore résolu car
 			 * la déclaration de la candidate n'a pas encore été validée */
 			if (!est_invalide(type_arg.plage())) {
-				auto poids_pour_enfant = verifie_compatibilite(contexte, index_type_arg, index_type_enf, *enfant, transformation);
+				auto poids_pour_enfant = verifie_compatibilite(contexte, index_type_arg, index_type_enf, slot, transformation);
 
 				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
 				if (arg.type_declare.est_gabarit) {
@@ -594,47 +560,47 @@ static DonneesCandidate verifie_donnees_fonction(
 				res.raison = METYPAGE_ARG;
 				res.type1 = type_arg;
 				res.type2 = type_enf;
-				res.noeud_decl = *enfant;
+				res.noeud_decl = slot;
 				break;
 			}
 
-			enfants[index_arg] = *enfant;
-			transformations[index_arg] = transformation;
+			transformations[i] = transformation;
 		}
-
-		++enfant;
 	}
 
 	if (fonction_variadique_interne) {
-		auto nombre_args_var = std::max(0l, noms_arguments.taille() - (nombre_args - 1));
 		auto index_premier_var_arg = nombre_args - 1;
 
-		if (arguments_variadiques.taille() == 1 && arguments_variadiques[0]->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
-			enfants[index_premier_var_arg] = arguments_variadiques[0];
-		}
-		else {
+		if (slots.taille() != nombre_args || slots[index_premier_var_arg]->genre != GenreNoeud::EXPANSION_VARIADIQUE) {
 			/* Pour les fonctions variadiques interne, nous créons un tableau
 			 * correspondant au types des arguments. */
 			auto noeud_tableau = contexte.assembleuse->cree_noeud(
 						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, exprs.front()->lexeme);
-			noeud_tableau->valeur_calculee = nombre_args_var;
+			noeud_tableau->valeur_calculee = slots.taille() - index_premier_var_arg;
 			noeud_tableau->drapeaux |= EST_CALCULE;
 
 			auto index_dt_var = donnees_fonction.args.back().index_type;
 			auto &dt_var = contexte.typeuse[index_dt_var];
 			noeud_tableau->index_type = contexte.typeuse.ajoute_type(dt_var.dereference());
 
-			for (auto arg_var : arguments_variadiques) {
-				noeud_tableau->ajoute_noeud(arg_var);
+			for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
+				noeud_tableau->ajoute_noeud(slots[i]);
 			}
 
-			enfants[index_premier_var_arg] = noeud_tableau;
+			if (index_premier_var_arg >= slots.taille()) {
+				slots.pousse(noeud_tableau);
+			}
+			else {
+				slots[index_premier_var_arg] = noeud_tableau;
+			}
+
+			slots.redimensionne(nombre_args);
 		}
 	}
 
 	res.df = &donnees_fonction;
 	res.poids_args = poids_args;
-	res.exprs = enfants;
+	res.exprs = slots;
 	res.etat = FONCTION_TROUVEE;
 	res.transformations = transformations;
 	res.paires_expansion_gabarit = paires_expansion_gabarit;

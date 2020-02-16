@@ -284,7 +284,7 @@ void Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lex
 	/* analyse les paramètres de la fonction */
 	m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_PARAMETRES_FONCTION, donnees());
 
-	analyse_expression(GenreLexeme::PARENTHESE_FERMANTE, GenreLexeme::PARENTHESE_OUVRANTE);
+	analyse_expression(GenreLexeme::PARENTHESE_FERMANTE, GenreLexeme::FONC);
 
 	m_assembleuse->depile_noeud(GenreNoeud::DECLARATION_PARAMETRES_FONCTION);
 
@@ -968,7 +968,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			}
 			case GenreLexeme::EGAL:
 			{
-				if (assignation) {
+				if (assignation && racine_expr != GenreLexeme::FONC) {
 					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
 				}
 
@@ -991,7 +991,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			}
 			case GenreLexeme::DECLARATION_VARIABLE:
 			{
-				if (assignation) {
+				if (assignation && racine_expr != GenreLexeme::FONC) {
 					lance_erreur("Ne peut faire de déclaration dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
 				}
 
