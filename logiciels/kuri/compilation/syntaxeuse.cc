@@ -708,7 +708,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 					expression.pousse(noeud);
 				}
 				/* construction structure : chaine + { */
-				else if (dls::outils::est_element(racine_expr, GenreLexeme::EGAL, GenreLexeme::RETOURNE, GenreLexeme::CROCHET_OUVRANT)
+				else if (dls::outils::est_element(racine_expr, GenreLexeme::EGAL, GenreLexeme::RETOURNE, GenreLexeme::CROCHET_OUVRANT, GenreLexeme::INFO_DE)
 						 && est_identifiant(GenreLexeme::ACCOLADE_OUVRANTE))
 				{
 					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE, lexeme, false);
