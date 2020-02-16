@@ -128,6 +128,17 @@ désalloue :: fonc (pointeur: *rien, ancienne_taille: z64) -> *rien
 // alloue_tableau, alloue_chaine, etc.
 */
 
+// ----------------------------
+
+ModeLogage :: énum z32 {
+    AUCUN
+    MINIMAL
+    JOURNALIER
+    VERBEUX
+}
+
+// ----------------------------
+
 // Le StockageTemporaire est un stockage mis en place par le compilateur, qui réserve
 // une certaine taille dans l'exécutable où mettre des données temporaire.
 // À FAIRE : option de compilation pour définir la taille du stockage temporaire
@@ -146,8 +157,13 @@ ContexteProgramme :: struct {
     allocatrice := allocatrice_défaut
     données_allocatrice : *rien = nul
 
+    logueur := __logueur_défaut
+    données_logueur : *rien = nul
+
     stockage_temporaire : *StockageTemporaire
 }
+
+__logueur_défaut :: fonc (message: chaine, ident: chaine, mode: ModeLogage, données: *rien) -> rien {}
 
 // ----------------------------
 // Implémentation des fonctions du stockage temporaire

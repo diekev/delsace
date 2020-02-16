@@ -2972,6 +2972,10 @@ void KR__acces_membre_union(
 	auto noeud_alloc = graphe_dependance.cree_noeud_fonction(df_fonc_alloc.nom_broye, df_fonc_alloc.noeud_decl);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_alloc);
 
+	auto &df_fonc_log = contexte.module("Kuri")->donnees_fonction("__logueur_défaut").front();
+	auto noeud_log = graphe_dependance.cree_noeud_fonction(df_fonc_log.nom_broye, df_fonc_log.noeud_decl);
+	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_log);
+
 	/* ceci ne sont peut-être pas dans le graphe */
 	const char *symboles_globaux[] = {
 		"__VG_memoire_utilisee__",
@@ -3078,6 +3082,8 @@ int main(int argc, char **argv)
 	os << debut_main;
 	os << "contexte.allocatrice = " << df_fonc_alloc.nom_broye << ";\n";
 	os << broye_nom_simple("contexte.données_allocatrice") << " = 0;\n";
+	os << "contexte.logueur = " << df_fonc_log.nom_broye << ";\n";
+	os << broye_nom_simple("contexte.données_logueur") << " = 0;\n";
 
 	auto fin_main =
 R"(
@@ -3191,6 +3197,10 @@ void KR__acces_membre_union(
 	auto noeud_alloc = graphe_dependance.cree_noeud_fonction(df_fonc_alloc.nom_broye, df_fonc_alloc.noeud_decl);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_alloc);
 
+	auto &df_fonc_log = contexte.module("Kuri")->donnees_fonction("__logueur_défaut").front();
+	auto noeud_log = graphe_dependance.cree_noeud_fonction(df_fonc_log.nom_broye, df_fonc_log.noeud_decl);
+	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_log);
+
 	auto &df_fonc_init = contexte.module("Kuri")->donnees_fonction("initialise_RC").front();
 	auto noeud_init = graphe_dependance.cree_noeud_fonction(df_fonc_init.nom_broye, df_fonc_init.noeud_decl);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_init);
@@ -3298,6 +3308,8 @@ void lance_execution()
 	os << debut_main;
 	os << "contexte.allocatrice = " << df_fonc_alloc.nom_broye << ";\n";
 	os << broye_nom_simple("contexte.données_allocatrice") << " = 0;\n";
+	os << "contexte.logueur = " << df_fonc_log.nom_broye << ";\n";
+	os << broye_nom_simple("contexte.données_logueur") << " = 0;\n";
 
 	genere_code_C(noeud_appel, generatrice, contexte, true);
 

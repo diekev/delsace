@@ -613,6 +613,16 @@ imprime_sans_format_err :: fonc(args : ...eini) -> rien
 	write(std_out, enchaineuse.résultat.pointeur, enchaineuse.résultat.taille)
 }
 
+imprime_log :: fonc (mode: ModeLogage, ident: chaine, format: chaine, args: ...eini) -> rien
+{
+	message := imprime_chaine(format, ...args)
+
+	// À FAIRE (compilateur, bug dans la génération de code C)
+	log := contexte.logueur
+    log(message, ident, mode, contexte.données_logueur)
+	déloge message
+}
+
 /*
 TamponEnchaineuse :: struct {
     données : [16384]z8
