@@ -269,39 +269,13 @@ crée_réponse_pour_requête_fichier :: fonc (chm: &CheminFichier) -> RéponseRe
 
 répond_get_page_accueil :: fonc (requête: *DonnéesRequête) -> RéponseRequête
 {
-    enchaineuse : Enchaineuse
-    diffère { détruit_tampons(@enchaineuse) }
-
-    initialise_enchaineuse(@enchaineuse)
-
-    ajoute_au_tampon(@enchaineuse, "<!DOCTYPE html>")
-    ajoute_au_tampon(@enchaineuse, "<html lang='fr'>")
-    ajoute_au_tampon(@enchaineuse, "<head>")
-    ajoute_au_tampon(@enchaineuse, "<meta charset='utf-8'/>")
-    ajoute_au_tampon(@enchaineuse, "<meta name='viewport' content='width=device-width, initial-scale=1.0'/>")
-    ajoute_au_tampon(@enchaineuse, "<link rel='shortlink icon' href='/static/favicon-16x16.png'>")
-    ajoute_au_tampon(@enchaineuse, "<link rel='icon' type='image/png' sizes='32x32' href='/static/favicon-32x32.png'>")
-    ajoute_au_tampon(@enchaineuse, "</head>")
-    ajoute_au_tampon(@enchaineuse, "<body>")
-    ajoute_au_tampon(@enchaineuse, "<script src='/test.js'></script>")
-    ajoute_au_tampon(@enchaineuse, "<p>Vous avez utilisez la méthode GET</p>")
-
-    si requête.uri.requête != "" {
-        ajoute_au_tampon(@enchaineuse, "<p>Les paramètres sont : '", requête.uri.requête, "'\n")
-    }
-
-    ajoute_au_tampon(@enchaineuse, "<form>")
-    ajoute_au_tampon(@enchaineuse, "<label for='POST-name'>Name:</label>")
-    ajoute_au_tampon(@enchaineuse, "<input id='POST-name' type='text' name='name'>")
-    ajoute_au_tampon(@enchaineuse, "<button type='submit' value='Save'>")
-    ajoute_au_tampon(@enchaineuse, "</form>")
-    ajoute_au_tampon(@enchaineuse, "</body>")
-    ajoute_au_tampon(@enchaineuse, "</html>")
+    chm := construit_chemin("accueil.html")
+    contenu := contenu_fichier_texte(chm)
 
     retourne RéponseRequête{
         code = CodeÉtatHTTP.OK,
         type_contenu = TypeContenu.TEXT_HTML,
-        contenu = chaine_depuis_enchaineuse(@enchaineuse)
+        contenu = contenu
     }
 }
 
@@ -455,6 +429,7 @@ procède_requête :: fonc (
         APPLICATION_JAVASCRIPT {
             ajoute_au_tampon(@enchaineuse, "Content-Type: application/javascript\r\n")
             ajoute_au_tampon(@enchaineuse, "Content-Disposition: attachment; filename='test.js'\r\n")
+            ajoute_au_tampon(@enchaineuse, "Cache-Control: public, max-age=31556952, immutable\r\n")
         }
         APPLICATION_JSON {
             ajoute_au_tampon(@enchaineuse, "Content-Type: application/json; charset=utf-8\r\n")
