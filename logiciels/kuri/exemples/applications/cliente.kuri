@@ -255,29 +255,31 @@ principale :: fonc(args : []*z8) -> z32
 
     //imprime(uri, '\n', '\n');
 
-    enchaineuse := crée_enchaineuse()
-    diffère { enchaineuse.détruit(); }
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
 
-    enchaineuse.pousse("GET ")
-    enchaineuse.pousse(uri.chemin)
-    enchaineuse.pousse(uri.requête)
-    enchaineuse.pousse(" HTTP/1.1\r\n")
-    enchaineuse.pousse("Host:")
-    enchaineuse.pousse(uri.hôte)
-    enchaineuse.pousse("\r\n")
-    enchaineuse.pousse("Accept-Encoding: identity\r\n")
-    enchaineuse.pousse("Accept-Charset: utf-8, iso-8859-1;q=0.5\r\n")
-    enchaineuse.pousse("Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/ *;q=0.8\r\n")
-    enchaineuse.pousse("User-Agent: delsace\r\n")
-    enchaineuse.pousse("Connection: close\r\n")
-    enchaineuse.pousse("\r\n")
+    diffère { détruit_tampons(@enchaineuse); }
 
-    requête := enchaineuse.résultat
+    ajoute_au_tampon(@enchaineuse, "GET ")
+    ajoute_au_tampon(@enchaineuse, uri.chemin)
+    ajoute_au_tampon(@enchaineuse, uri.requête)
+    ajoute_au_tampon(@enchaineuse, " HTTP/1.1\r\n")
+    ajoute_au_tampon(@enchaineuse, "Host:")
+    ajoute_au_tampon(@enchaineuse, uri.hôte)
+    ajoute_au_tampon(@enchaineuse, "\r\n")
+    ajoute_au_tampon(@enchaineuse, "Accept-Encoding: identity\r\n")
+    ajoute_au_tampon(@enchaineuse, "Accept-Charset: utf-8, iso-8859-1;q=0.5\r\n")
+    ajoute_au_tampon(@enchaineuse, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/ *;q=0.8\r\n")
+    ajoute_au_tampon(@enchaineuse, "User-Agent: delsace\r\n")
+    ajoute_au_tampon(@enchaineuse, "Connection: close\r\n")
+    ajoute_au_tampon(@enchaineuse, "\r\n")
+
+    requête := chaine_depuis_enchaineuse(@enchaineuse)
 
     imprime("Reqûete envoyée :\n", requête, '\n');
 
     réponse, erreur := lance_requête(uri, requête)
-    diffère { déloge réponse; }
+    diffère { déloge réponse; déloge requête; }
 
     si erreur == 0 {
         imprime_sans_format("Réponse :", '\n', réponse, '\n');

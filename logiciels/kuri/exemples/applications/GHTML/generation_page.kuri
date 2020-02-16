@@ -16,7 +16,7 @@ génère_page :: fonc(
     noeud: *NoeudSyntaxique,
     dyn gestionnaire: *GestionnaireObjet,
     dyn dico: *ObjetDictionnaire,
-    enchaineuse: &Enchaineuse) -> ErreurGénérationPage
+    enchaineuse: *Enchaineuse) -> ErreurGénérationPage
 {
     discr noeud.type {
         BLOC {
@@ -29,7 +29,7 @@ génère_page :: fonc(
             }
         }
         CHAINE_CARACTÈRE {
-            enchaineuse.pousse(noeud.données.chn)
+            ajoute_au_tampon(@enchaineuse, noeud.données.chn)
         }
         VARIABLE {
             variable := noeud.données.chn
@@ -41,24 +41,24 @@ génère_page :: fonc(
 
             discr objet_variable.id {
                 NUL {
-                    enchaineuse.pousse("nul")
+                    ajoute_au_tampon(@enchaineuse, "nul")
                 }
                 CHAINE {
                     objet_chaine := transtype(objet_variable : *ObjetChaine)
-                    enchaineuse.pousse(objet_chaine.valeur)
+                    ajoute_au_tampon(@enchaineuse, objet_chaine.valeur)
                 }
                 ENTIER {
                     objet_nombre := transtype(objet_variable : *ObjetEntier)
-                    enchaineuse.pousse(objet_nombre.valeur)
+                    ajoute_au_tampon(@enchaineuse, objet_nombre.valeur)
                 }
                 RÉEL {
                     objet_nombre := transtype(objet_variable : *ObjetRéel)
-                    enchaineuse.pousse(objet_nombre.valeur)
+                    ajoute_au_tampon(@enchaineuse, objet_nombre.valeur)
                 }
                 LISTE,
                 DICTIONNAIRE {
-                    enchaineuse.pousse("objet à ")
-                    enchaineuse.pousse(objet_variable)
+                    ajoute_au_tampon(@enchaineuse, "objet à ")
+                    ajoute_au_tampon(@enchaineuse, objet_variable)
                 }
             }
         }
@@ -74,19 +74,19 @@ génère_page :: fonc(
 
             discr objet_iter.id {
                 NUL {
-                    enchaineuse.pousse("Objet nul n'est pas itérable !")
+                    ajoute_au_tampon(@enchaineuse, "Objet nul n'est pas itérable !")
                     retourne ErreurGénérationPage.OBJET_NON_ITÉRABLE
                 }
                 CHAINE {
-                    enchaineuse.pousse("Objet chaine n'est pas itérable !")
+                    ajoute_au_tampon(@enchaineuse, "Objet chaine n'est pas itérable !")
                     retourne ErreurGénérationPage.OBJET_NON_ITÉRABLE
                 }
                 ENTIER {
-                    enchaineuse.pousse("Objet nombre entier n'est pas itérable !")
+                    ajoute_au_tampon(@enchaineuse, "Objet nombre entier n'est pas itérable !")
                     retourne ErreurGénérationPage.OBJET_NON_ITÉRABLE
                 }
                 RÉEL {
-                    enchaineuse.pousse("Objet nombre réel n'est pas itérable !")
+                    ajoute_au_tampon(@enchaineuse, "Objet nombre réel n'est pas itérable !")
                     retourne ErreurGénérationPage.OBJET_NON_ITÉRABLE
                 }
                 LISTE {
@@ -188,7 +188,7 @@ principale :: fonc(args : []*z8) -> z32
 
     dyn dico := crée_dictionnaire(@gestionnaire)
 
-    // À FAIRE: simplifie la création d'objet en passant les paramètres
+    // À FAIRE: simplifie la création d'objet en passant les paramètres
     dyn liste := crée_liste(@gestionnaire)
     dyn obj1 := crée_entier(@gestionnaire)
     obj1.valeur = 127
@@ -214,16 +214,19 @@ principale :: fonc(args : []*z8) -> z32
     dico.insère("variable", transtype(chaine1: *Objet))
 
     dyn enchaineuse : Enchaineuse
-    diffère { détruit(enchaineuse) }
+	intialise_enchaineuse(@enchaineuse)
+    diffère { détruit_tampons(@enchaineuse) }
 
-    erreur := génère_page(racine, @gestionnaire, dico, enchaineuse)
+    erreur := génère_page(racine, @gestionnaire, dico, @enchaineuse)
 
     si erreur != ErreurGénérationPage.AUCUNE {
         imprime("Erreur lors de la génération de la page : %\n", erreur)
     }
     sinon {
         imprime("Page :\n\n")
+        chn := chaine_depuis_enchaineuse(@enchaineuse)
         imprime(enchaineuse.résultat, "\n")
+        déloge chn
     }
 
     retourne 0

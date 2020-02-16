@@ -35,26 +35,28 @@ crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 
 	// génère le code du test
 	dyn enchaineuse : Enchaineuse
-	diffère { enchaineuse.détruit(); }
+	diffère { détruit_tampons(@enchaineuse); }
 
 	// À FAIRE: ajout d'une propriété "alloué" car "taille" utilisée pour écrire dans le fichier peut être plus grande que le résultat final et contenir des données aléatoires
 	enchaineuse.réserve(taille)
 
 	pour i dans 0 ... 5 {
-		enchaineuse.pousse(chaines[i])
+		ajoute_au_tampon(@enchaineuse, chaines[i])
 	}
 
 	pour i dans 0 ... nombre_de_ligne - 1 {
-		enchaineuse.pousse(chaines[6])
+		ajoute_au_tampon(@enchaineuse, chaines[6])
 	}
 
-	enchaineuse.pousse(chaines[7])
-	enchaineuse.pousse(chaines[8])
+	ajoute_au_tampon(@enchaineuse, chaines[7])
+	ajoute_au_tampon(@enchaineuse, chaines[8])
 
 	// écris le fichier
 	chemin := construit_chemin(chemin_fichier)
 	fichier := ouvre_fichier_ecriture(chemin)
-	écris_fichier(fichier, enchaineuse.résultat)
+    chaine_reponse := chaine_depuis_enchaineuse(@enchaineuse)
+	écris_fichier(fichier, chaine_reponse)
+	déloge chaine_reponse
 }
 
 principale :: fonc(args : []*z8) -> z32

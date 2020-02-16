@@ -19,6 +19,8 @@ encode_impl :: fonc(chn : chaine, table : chaine) -> chaine
 	dyn char_array_4 : [4]n8
 
     dyn enchaineuse : Enchaineuse
+	intialise_enchaineuse(@enchaineuse)
+    diffère { détruit_tampons(@enchaineuse) }
 
     dyn longueur := chn.taille
 
@@ -34,7 +36,7 @@ encode_impl :: fonc(chn : chaine, table : chaine) -> chaine
 			char_array_4[3] = transtype(char_array_3[2] & 0x3f: n8)
 
             pour j dans 0 ... 3 {
-                enchaineuse.pousse(table[char_array_4[j]])
+                ajoute_au_tampon(@enchaineuse, table[char_array_4[j]])
             }
 
 			i = 0
@@ -52,16 +54,16 @@ encode_impl :: fonc(chn : chaine, table : chaine) -> chaine
 		char_array_4[3] = char_array_3[2] & 0x3f
 
         pour j dans 0 ... i {
-            enchaineuse.pousse(table[char_array_4[j]])
+            ajoute_au_tampon(@enchaineuse, table[char_array_4[j]])
         }
 
         tantque i < 3 {
-            enchaineuse.pousse('=')
+            ajoute_au_tampon(@enchaineuse, '=')
             i += 1
         }
 	}
 
-	retourne enchaineuse.résultat
+	retourne chaine_depuis_enchaineuse(@enchaineuse)
 }
 
 encode :: fonc(chn: chaine) -> chaine
@@ -85,6 +87,8 @@ décode_impl :: fonc(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(b
 	dyn char_array_4 : [4]n8
     dyn longueur := chn.taille
     dyn enchaineuse : Enchaineuse
+	intialise_enchaineuse(@enchaineuse)
+    diffère { détruit_tampons(@enchaineuse) }
 
     pour c dans chn {
         si c == '=' || !rappel_est_base64(c) {
@@ -104,7 +108,7 @@ décode_impl :: fonc(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(b
 			char_array_3[2] = transtype(((char_array_4[2] & 0x3) << 6) + char_array_4[3]: n8)
 
             pour j dans 0 ... 2 {
-                enchaineuse.pousse(transtype(char_array_3[j]: z8))
+                ajoute_au_tampon(@enchaineuse, transtype(char_array_3[j]: z8))
             }
 
             i = 0
@@ -125,11 +129,11 @@ décode_impl :: fonc(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(b
 		char_array_3[2] = transtype(((char_array_4[2] & 0x3) << 6) + char_array_4[3]: n8)
 
         pour j dans 0 ... i {
-			enchaineuse.pousse(transtype(table.trouve_caractère(transtype(char_array_3[j]: z8), 0): z8))
+			ajoute_au_tampon(@enchaineuse, transtype(table.trouve_caractère(transtype(char_array_3[j]: z8), 0): z8))
         }
 	}
 
-	retourne enchaineuse.résultat
+	retourne chaine_depuis_enchaineuse(@enchaineuse)
 }
 
 décode :: fonc(chn: chaine) -> chaine

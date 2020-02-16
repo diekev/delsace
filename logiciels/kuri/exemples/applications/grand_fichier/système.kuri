@@ -229,21 +229,22 @@ Requête :: struct {
 // FICHIER_DÉTRUIT
 répond :: fonc(système : &Système, requête : &Requête) -> chaine
 {
-	dyn enchaineuse = crée_constructrice_chaine()
+	dyn enchaineuse : Enchaineuse
+	diffère { détruit_tampons(@enchaineuse) }
 
 	discr requête.inst {
 		Instruction.CHERCHE {
 			si !fichier_existe(système, requête.chemin) {
-				enchaineuse.pousse("FICHIER_INTROUVABLE")
+				ajoute_au_tampon(@enchaineuse, "FICHIER_INTROUVABLE")
 			}
 		}
 		Instruction.CRÉE {
 			si fichier_existe(système, requête.chemin) {
-				enchaineuse.pousse("FICHIER_EXISTE")
+				ajoute_au_tampon(@enchaineuse, "FICHIER_EXISTE")
 			}
 
 			si !crée_fichier(système, requête.chemin) {
-				enchaineuse.pousse("CRÉATION_IMPOSSIBLE")
+				ajoute_au_tampon(@enchaineuse, "CRÉATION_IMPOSSIBLE")
 			}
 		}
 		Instruction.AJOURNE {

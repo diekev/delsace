@@ -69,41 +69,44 @@ chaine_pour_aujourdhui :: fonc () -> chaine
 
     // À FAIRE : ajoute d'options de formattage pour les nombres dans les fonctions "imprime..."
     dyn enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
 
-    enchaineuse.pousse(chaine_jour_pour_tm(tm_.tm_wday), ", ")
+    diffère { détruit_tampons(@enchaineuse) }
+
+    ajoute_au_tampon(@enchaineuse, chaine_jour_pour_tm(tm_.tm_wday), ", ")
 
     si tm_.tm_mday < 10 {
-        enchaineuse.pousse('0')
+        ajoute_au_tampon(@enchaineuse, '0')
     }
 
-    enchaineuse.pousse(tm_.tm_mday, " ", chaine_mois_pour_tm(tm_.tm_mon), " ", tm_.tm_year + 1900)
+    ajoute_au_tampon(@enchaineuse, tm_.tm_mday, " ", chaine_mois_pour_tm(tm_.tm_mon), " ", tm_.tm_year + 1900)
 
-    enchaineuse.pousse(" ")
+    ajoute_au_tampon(@enchaineuse, " ")
 
     // nous sommes en CET, HTTP doit être en GMT
     heure := tm_.tm_hour - 1
 
     si heure < 10 {
-        enchaineuse.pousse('0')
+        ajoute_au_tampon(@enchaineuse, '0')
     }
 
-    enchaineuse.pousse(heure, ":")
+    ajoute_au_tampon(@enchaineuse, heure, ":")
 
     si tm_.tm_min < 10 {
-        enchaineuse.pousse('0')
+        ajoute_au_tampon(@enchaineuse, '0')
     }
 
-    enchaineuse.pousse(tm_.tm_min, ":")
+    ajoute_au_tampon(@enchaineuse, tm_.tm_min, ":")
 
     si tm_.tm_sec < 10 {
-        enchaineuse.pousse('0')
+        ajoute_au_tampon(@enchaineuse, '0')
     }
 
-    enchaineuse.pousse(tm_.tm_sec)
+    ajoute_au_tampon(@enchaineuse, tm_.tm_sec)
 
-    enchaineuse.pousse(" GMT")
+    ajoute_au_tampon(@enchaineuse, " GMT")
 
-    retourne enchaineuse.résultat
+    retourne chaine_depuis_enchaineuse(@enchaineuse)
 }
 
 // ----------------------------
@@ -266,42 +269,48 @@ crée_réponse_pour_requête_fichier :: fonc (chm: &CheminFichier) -> RéponseRe
 
 répond_get_page_accueil :: fonc (requête: *DonnéesRequête) -> RéponseRequête
 {
-    enchaineuse_contenu := crée_enchaineuse()
+    enchaineuse : Enchaineuse
+    diffère { détruit_tampons(@enchaineuse) }
 
-    enchaineuse_contenu.pousse("<!DOCTYPE html>")
-    enchaineuse_contenu.pousse("<html lang='fr'>")
-    enchaineuse_contenu.pousse("<head>")
-    enchaineuse_contenu.pousse("<meta charset='utf-8'/>")
-    enchaineuse_contenu.pousse("<meta name='viewport' content='width=device-width, initial-scale=1.0'/>")
-    enchaineuse_contenu.pousse("<link rel='shortlink icon' href='/static/favicon-16x16.png'>")
-    enchaineuse_contenu.pousse("<link rel='icon' type='image/png' sizes='32x32' href='/static/favicon-32x32.png'>")
-    enchaineuse_contenu.pousse("</head>")
-    enchaineuse_contenu.pousse("<body>")
-    enchaineuse_contenu.pousse("<script src='/test.js'></script>")
-    enchaineuse_contenu.pousse("<p>Vous avez utilisez la méthode GET</p>")
+    initialise_enchaineuse(@enchaineuse)
+
+    ajoute_au_tampon(@enchaineuse, "<!DOCTYPE html>")
+    ajoute_au_tampon(@enchaineuse, "<html lang='fr'>")
+    ajoute_au_tampon(@enchaineuse, "<head>")
+    ajoute_au_tampon(@enchaineuse, "<meta charset='utf-8'/>")
+    ajoute_au_tampon(@enchaineuse, "<meta name='viewport' content='width=device-width, initial-scale=1.0'/>")
+    ajoute_au_tampon(@enchaineuse, "<link rel='shortlink icon' href='/static/favicon-16x16.png'>")
+    ajoute_au_tampon(@enchaineuse, "<link rel='icon' type='image/png' sizes='32x32' href='/static/favicon-32x32.png'>")
+    ajoute_au_tampon(@enchaineuse, "</head>")
+    ajoute_au_tampon(@enchaineuse, "<body>")
+    ajoute_au_tampon(@enchaineuse, "<script src='/test.js'></script>")
+    ajoute_au_tampon(@enchaineuse, "<p>Vous avez utilisez la méthode GET</p>")
 
     si requête.uri.requête != "" {
-        enchaineuse_contenu.pousse("<p>Les paramètres sont : '", requête.uri.requête, "'\n")
+        ajoute_au_tampon(@enchaineuse, "<p>Les paramètres sont : '", requête.uri.requête, "'\n")
     }
 
-    enchaineuse_contenu.pousse("<form>")
-    enchaineuse_contenu.pousse("<label for='POST-name'>Name:</label>")
-    enchaineuse_contenu.pousse("<input id='POST-name' type='text' name='name'>")
-    enchaineuse_contenu.pousse("<button type='submit' value='Save'>")
-    enchaineuse_contenu.pousse("</form>")
-    enchaineuse_contenu.pousse("</body>")
-    enchaineuse_contenu.pousse("</html>")
+    ajoute_au_tampon(@enchaineuse, "<form>")
+    ajoute_au_tampon(@enchaineuse, "<label for='POST-name'>Name:</label>")
+    ajoute_au_tampon(@enchaineuse, "<input id='POST-name' type='text' name='name'>")
+    ajoute_au_tampon(@enchaineuse, "<button type='submit' value='Save'>")
+    ajoute_au_tampon(@enchaineuse, "</form>")
+    ajoute_au_tampon(@enchaineuse, "</body>")
+    ajoute_au_tampon(@enchaineuse, "</html>")
 
     retourne RéponseRequête{
         code = CodeÉtatHTTP.OK,
         type_contenu = TypeContenu.TEXT_HTML,
-        contenu = enchaineuse_contenu.résultat
+        contenu = chaine_depuis_enchaineuse(@enchaineuse)
     }
 }
 
 répond_post_page_accueil :: fonc (requête: *DonnéesRequête) -> RéponseRequête
 {
-    enchaineuse_contenu := crée_enchaineuse()
+    enchaineuse : Enchaineuse
+    diffère { détruit_tampons(@enchaineuse) }
+
+    initialise_enchaineuse(@enchaineuse)
 
     entête := cherche_entête(@requête.entêtes, "Content-Type")
 
@@ -319,22 +328,22 @@ répond_post_page_accueil :: fonc (requête: *DonnéesRequête) -> RéponseRequ�
     longueur_contenu := extrait_nombre_entier(entête_longueur_contenu.valeur)
 
     si longueur_contenu != requête.contenu.taille {
-        enchaineuse_contenu.pousse("<p>Les longueurs ne correspondent pas !</p>")
+        ajoute_au_tampon(@enchaineuse, "<p>Les longueurs ne correspondent pas !</p>")
     }
     sinon {
-        enchaineuse_contenu.pousse("<p>Vous avez posté quelque chose !</p>")
+        ajoute_au_tampon(@enchaineuse, "<p>Vous avez posté quelque chose !</p>")
         // À FAIRE : dépassement des limites de la chaine
-        enchaineuse_contenu.pousse("<p>Le contenu est de '", requête.contenu, "'</p>")
-        //enchaineuse_contenu.pousse("<p>Le contenu est de '")
-        //enchaineuse_contenu.pousse(contenu_requête)
-        //enchaineuse_contenu.pousse("'</p>")
+        ajoute_au_tampon(@enchaineuse, "<p>Le contenu est de '", requête.contenu, "'</p>")
+        //ajoute_au_tampon(@enchaineuse, "<p>Le contenu est de '")
+        //ajoute_au_tampon(@enchaineuse, contenu_requête)
+        //ajoute_au_tampon(@enchaineuse, "'</p>")
     }
 
     retourne RéponseRequête{
         code = CodeÉtatHTTP.OK,
         type_contenu = TypeContenu.TEXT_HTML,
         // À FAIRE
-        contenu = enchaineuse_contenu.résultat
+        contenu = chaine_depuis_enchaineuse(@enchaineuse)
     }
 }
 
@@ -429,25 +438,26 @@ procède_requête :: fonc (
             chaine_code_état_http(réponse.code))
     }
 
-    enchaineuse := crée_enchaineuse()
-    diffère { enchaineuse.détruit() }
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
+    diffère { détruit_tampons(@enchaineuse) }
 
     contenu := réponse.contenu
 
-    enchaineuse.pousse("HTTP/1.1 ", chaine_code_état_http(réponse.code), "\r\n")
-    enchaineuse.pousse("Server: delsace\r\n")
-    enchaineuse.pousse("Content-Length: ", contenu.taille, "\r\n")
+    ajoute_au_tampon(@enchaineuse, "HTTP/1.1 ", chaine_code_état_http(réponse.code), "\r\n")
+    ajoute_au_tampon(@enchaineuse, "Server: delsace\r\n")
+    ajoute_au_tampon(@enchaineuse, "Content-Length: ", contenu.taille, "\r\n")
 
     discr réponse.type_contenu {
         TEXT_HTML {
-            enchaineuse.pousse("Content-Type: text/html; charset=utf-8\r\n")
+            ajoute_au_tampon(@enchaineuse, "Content-Type: text/html; charset=utf-8\r\n")
         }
         APPLICATION_JAVASCRIPT {
-            enchaineuse.pousse("Content-Type: application/javascript\r\n")
-            enchaineuse.pousse("Content-Disposition: attachment; filename='test.js'\r\n")
+            ajoute_au_tampon(@enchaineuse, "Content-Type: application/javascript\r\n")
+            ajoute_au_tampon(@enchaineuse, "Content-Disposition: attachment; filename='test.js'\r\n")
         }
         APPLICATION_JSON {
-            enchaineuse.pousse("Content-Type: application/json; charset=utf-8\r\n")
+            ajoute_au_tampon(@enchaineuse, "Content-Type: application/json; charset=utf-8\r\n")
         }
         sinon {
             // RÀF
@@ -456,16 +466,17 @@ procède_requête :: fonc (
 
     date := chaine_pour_aujourdhui()
     diffère { déloge date; }
-    enchaineuse.pousse("Date: ", date, "\r\n")
+    ajoute_au_tampon(@enchaineuse, "Date: ", date, "\r\n")
 
     // À FAIRE: Content-Encoding, voir Accept-Encoding de la requête
 
-    enchaineuse.pousse("Set-Cookie: test=abcdefg; Domain=localhost; Max-Age=60; Path=/; HttpOnly\r\n")
+    ajoute_au_tampon(@enchaineuse, "Set-Cookie: test=abcdefg; Domain=localhost; Max-Age=60; Path=/; HttpOnly\r\n")
 
-    enchaineuse.pousse("\r\n")
-    enchaineuse.pousse(contenu)
+    ajoute_au_tampon(@enchaineuse, "\r\n")
+    ajoute_au_tampon(@enchaineuse, contenu)
 
-    chaine_reponse := enchaineuse.résultat
+    chaine_reponse := chaine_depuis_enchaineuse(@enchaineuse)
+    diffère { déloge chaine_reponse; }
 
     si send(prise, chaine_reponse.pointeur, chaine_reponse.taille, 0) == -1 {
         perror("send".pointeur)

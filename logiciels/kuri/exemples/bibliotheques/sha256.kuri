@@ -264,14 +264,15 @@ calcule_empreinte_sha256 :: fonc(entrée : chaine) -> chaine
 	ptr.final(@digest[0])
 
     dyn enchaineuse : Enchaineuse
-    enchaineuse.réserve(TAILLE_DIGEST * 2)
+	intialise_enchaineuse(@enchaineuse)
+    diffère { détruit_tampons(@enchaineuse) }
 
     pour c dans digest {
-        enchaineuse.pousse(caractère_base_16((c >> 4) & 0xf))
-        enchaineuse.pousse(caractère_base_16(c & 0xf))
+        ajoute_au_tampon(@enchaineuse, caractère_base_16((c >> 4) & 0xf))
+        ajoute_au_tampon(@enchaineuse, caractère_base_16(c & 0xf))
 	}
 
-	retourne enchaineuse.résultat
+	retourne chaine_depuis_enchaineuse(@enchaineuse)
 }
 
 //#######################################

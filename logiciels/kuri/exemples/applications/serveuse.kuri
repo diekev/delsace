@@ -113,26 +113,29 @@ démarre :: fonc(dyn serveuse : &Serveuse) -> rien
 
             //reponse = repond_requete(requete)
 
-            enchaineuse := crée_enchaineuse()
-            diffère { enchaineuse.détruit(); }
+            enchaineuse : Enchaineuse
+            initialise_enchaineuse(@enchaineuse)
+            diffère { détruit_tampons(@enchaineuse); }
 
             contenu := "<p>ma réponse</p>"
 
-            enchaineuse.pousse("HTTP/1.1 200 OK\r\n")
-            enchaineuse.pousse("Content-Length ")
-            enchaineuse.pousse("18")
-            enchaineuse.pousse("\r\n")
-            enchaineuse.pousse("Content-Type: text/html; charset=utf-8\r\n")
-            enchaineuse.pousse("\r\n")
-            enchaineuse.pousse(contenu)
+            ajoute_au_tampon(@enchaineuse, "HTTP/1.1 200 OK\r\n")
+            ajoute_au_tampon(@enchaineuse, "Content-Length ")
+            ajoute_au_tampon(@enchaineuse, "18")
+            ajoute_au_tampon(@enchaineuse, "\r\n")
+            ajoute_au_tampon(@enchaineuse, "Content-Type: text/html; charset=utf-8\r\n")
+            ajoute_au_tampon(@enchaineuse, "\r\n")
+            ajoute_au_tampon(@enchaineuse, contenu)
 
-            chaine_reponse := enchaineuse.résultat
+            chaine_reponse := chaine_depuis_enchaineuse(@enchaineuse)
 
             //chaine_reponse = construit_reponse(reponse)
 
             si send(prise, chaine_reponse.pointeur, chaine_reponse.taille, 0) == -1 {
                 perror("send".pointeur)
             }
+
+            déloge chaine_reponse
 
             close(prise)
             exit(0)
