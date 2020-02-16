@@ -119,6 +119,39 @@ construit_uri :: fonc(chn : chaine) -> URI
 	retourne uri
 }
 
+construit_uri_depuis_chemin_requête :: fonc (chn: chaine) -> URI
+{
+	dyn uri : URI
+
+	dyn pos := 0
+	dyn pos_requête := trouve_caractère(chn, '?', 0)
+	dyn pos_fragment := trouve_caractère(chn, '#', 0)
+	dyn pos_fin_chemin := chn.taille
+
+    si (pos_requête != -1) {
+		pos_fin_chemin = pos_requête
+	}
+	sinon si (pos_fragment != -1) {
+		pos_fin_chemin = pos_requête
+	}
+
+	uri.chemin = construit_chaine(@chn[pos], pos_fin_chemin - pos)
+
+    si (pos_requête != -1) {
+		si (pos_fragment == -1) {
+			pos_fragment = chn.taille
+		}
+
+		uri.requête = construit_chaine(@chn[pos_requête], pos_fragment - pos_requête)
+	}
+
+	si (pos_fragment != -1 && pos_fragment < chn.taille) {
+		uri.fragment = construit_chaine(@chn[pos_fragment], chn.taille - pos_fragment)
+	}
+
+	retourne uri
+}
+
 // Calcul une somme de controle, sur 64bit, pour un URI selon l'algorithme de Fletcher
 // https://en.wikipedia.org/wiki/Fletcher%27s_checksum
 somme_controle :: fonc(uri : &URI) -> n64

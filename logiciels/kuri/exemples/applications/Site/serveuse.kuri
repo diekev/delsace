@@ -4,8 +4,6 @@ importe Réseau
 
 charge "entete_http"
 
-// ----------------------------
-
 #inclus "time.h"
 
 // @Interface : z64 ici est time_t (pour linux en tout cas)
@@ -110,8 +108,6 @@ chaine_pour_aujourdhui :: fonc () -> chaine
 
 // ----------------------------
 
-//###############################################################################
-
 CONNEXIONS_MAX := 1000
 
 dyn PRISE_SERVEUSE := -1
@@ -183,8 +179,6 @@ détruit_serveuse :: fonc(dyn serveuse : &Serveuse) -> rien
 
 charge_donnees_requete :: fonc(prise : z32, adresse_du_connecté : &sockaddr_in) -> chaine
 {
-    //ip = converti_chaine_c(inet_ntoa(adresse_du_connecté.sin_addr))
-    //imprime("serveur: Reçu connexion de ", ip, '\n')
     MAXDATASIZE : n64 = transtype(1024 : n64)
 
     dyn tampon : [1024]z8
@@ -216,17 +210,155 @@ charge_donnees_requete :: fonc(prise : z32, adresse_du_connecté : &sockaddr_in)
     retourne requete
 }
 
-DonnéesRéponse :: struct {
-    status : chaine
+DonnéesRequête :: struct {
+    uri : URI
+    entêtes : EntêtesHTTP
     contenu : chaine
-    type_contenu : chaine
+}
+
+// une liste complète des types de contenu peut se trouver ici :
+// https://www.iana.org/assignments/media-types/media-types.xhtml
+TypeContenu :: énum z32 {
+    INVALIDE
+    APPLICATION_JAVASCRIPT
+    APPLICATION_JSON
+    TEXT_HTML
+}
+
+RéponseRequête :: struct {
+    code : CodeÉtatHTTP
+    type_contenu : TypeContenu
+    contenu : chaine
+}
+
+crée_réponse_page_non_trouvée :: fonc () -> RéponseRequête
+{
+    retourne RéponseRequête{
+        code = CodeÉtatHTTP.NOT_FOUND,
+        type_contenu = TypeContenu.TEXT_HTML,
+        // À FAIRE : évite de copier la chaine
+        contenu = copie_chaine("<p>La page n'existe pas</p>")
+    }
+}
+
+crée_réponse_méthode_non_autorisée :: fonc () -> RéponseRequête
+{
+    retourne RéponseRequête{
+        code = CodeÉtatHTTP.METHOD_NOT_ALLOWED,
+        type_contenu = TypeContenu.TEXT_HTML,
+        // À FAIRE : évite de copier la chaine
+        contenu = copie_chaine("<p>La méthode n'est pas autorisée !</p>")
+    }
+}
+
+importe SysFichier
+
+crée_réponse_pour_requête_fichier :: fonc (chm: &CheminFichier) -> RéponseRequête
+{
+    contenu := contenu_fichier_texte(chm)
+
+    retourne RéponseRequête{
+        code = CodeÉtatHTTP.OK,
+        type_contenu = TypeContenu.APPLICATION_JAVASCRIPT,
+        contenu = contenu
+    }
+}
+
+répond_get_page_accueil :: fonc (requête: *DonnéesRequête) -> RéponseRequête
+{
+    enchaineuse_contenu := crée_enchaineuse()
+
+    enchaineuse_contenu.pousse("<!DOCTYPE html>")
+    enchaineuse_contenu.pousse("<html lang='fr'>")
+    enchaineuse_contenu.pousse("<head>")
+    enchaineuse_contenu.pousse("<meta charset='utf-8'/>")
+    enchaineuse_contenu.pousse("<meta name='viewport' content='width=device-width, initial-scale=1.0'/>")
+    enchaineuse_contenu.pousse("<link rel='shortlink icon' href='/static/favicon-16x16.png'>")
+    enchaineuse_contenu.pousse("<link rel='icon' type='image/png' sizes='32x32' href='/static/favicon-32x32.png'>")
+    enchaineuse_contenu.pousse("</head>")
+    enchaineuse_contenu.pousse("<body>")
+    enchaineuse_contenu.pousse("<script src='/test.js'></script>")
+    enchaineuse_contenu.pousse("<p>Vous avez utilisez la méthode GET</p>")
+
+    si requête.uri.requête != "" {
+        enchaineuse_contenu.pousse("<p>Les paramètres sont : '", requête.uri.requête, "'\n")
+    }
+
+    enchaineuse_contenu.pousse("<form>")
+    enchaineuse_contenu.pousse("<label for='POST-name'>Name:</label>")
+    enchaineuse_contenu.pousse("<input id='POST-name' type='text' name='name'>")
+    enchaineuse_contenu.pousse("<button type='submit' value='Save'>")
+    enchaineuse_contenu.pousse("</form>")
+    enchaineuse_contenu.pousse("</body>")
+    enchaineuse_contenu.pousse("</html>")
+
+    retourne RéponseRequête{
+        code = CodeÉtatHTTP.OK,
+        type_contenu = TypeContenu.TEXT_HTML,
+        contenu = enchaineuse_contenu.résultat
+    }
+}
+
+répond_post_page_accueil :: fonc (requête: *DonnéesRequête) -> RéponseRequête
+{
+    enchaineuse_contenu := crée_enchaineuse()
+
+    entête := cherche_entête(@requête.entêtes, "Content-Type")
+
+    // Le contenu est dans les paramètres de l'URL
+    si entête.valeur == "application/x-www-form-urlencoded" {
+        // À FAIRE: normalise les données
+    }
+    // nous avons une chaine json
+    sinon si entête.valeur == "application/json" {
+
+    }
+
+    entête_longueur_contenu := cherche_entête(@requête.entêtes, "Content-Length")
+
+    longueur_contenu := extrait_nombre_entier(entête_longueur_contenu.valeur)
+
+    si longueur_contenu != requête.contenu.taille {
+        enchaineuse_contenu.pousse("<p>Les longueurs ne correspondent pas !</p>")
+    }
+    sinon {
+        enchaineuse_contenu.pousse("<p>Vous avez posté quelque chose !</p>")
+        // À FAIRE : dépassement des limites de la chaine
+        enchaineuse_contenu.pousse("<p>Le contenu est de '", requête.contenu, "'</p>")
+        //enchaineuse_contenu.pousse("<p>Le contenu est de '")
+        //enchaineuse_contenu.pousse(contenu_requête)
+        //enchaineuse_contenu.pousse("'</p>")
+    }
+
+    retourne RéponseRequête{
+        code = CodeÉtatHTTP.OK,
+        type_contenu = TypeContenu.TEXT_HTML,
+        // À FAIRE
+        contenu = enchaineuse_contenu.résultat
+    }
 }
 
 procède_requête :: fonc (
     prise: z32,
     adresse_du_connecté: sockaddr_in) -> rien
 {
+    mémoire_présente := mémoire_utilisée()
+    temps_présent := compte_ticks_microsecondes()
+
+    diffère {
+        imprime_log(ModeLogage.AUCUN, "", "Mémoire utilisée (avant) : %o", mémoire_présente)
+        imprime_log(ModeLogage.AUCUN, "", "Mémoire utilisée (après) : %o", mémoire_utilisée())
+        imprime_log(ModeLogage.AUCUN, "", "Mémoire consommée        : %o", mémoire_consommée())
+        imprime_log(ModeLogage.AUCUN, "", "Durée réponse            : %us", compte_ticks_microsecondes() - temps_présent)
+
+        ip := converti_chaine_c(inet_ntoa(adresse_du_connecté.sin_addr))
+        imprime_log(ModeLogage.AUCUN, "", "IP                       : % ", ip)
+
+        imprime_log(ModeLogage.AUCUN, "", "")
+    }
+
     requête := charge_donnees_requete(prise, adresse_du_connecté)
+    diffère { déloge requête; }
 
     // ------------------------------
 
@@ -238,118 +370,92 @@ procède_requête :: fonc (
 
     dyn ligne_requête := analyse_ligne_requête(@analyseuse)
 
-    dyn table := analyse_entêtes(@analyseuse)
-    diffère { décrée_table_hachage(table); }
+    dyn entêtes := analyse_entêtes(@analyseuse)
+    diffère { détruit_entêtes(@entêtes); }
 
     dyn contenu_requête := analyse_contenu(@analyseuse)
 
-    // À FAIRE(bug compilateur) : l'index type de la coroutine est négatif
-    //pour n dans chaque_noeud(table) {
-    //    imprime("--- ", n.clé, ": ", n.valeur, "\n")
-    //}
-
 /*
-    pour alvéole dans table.alvéoles {
-        dyn n := alvéole
-
-        tantque n != nul {
-            imprime_sans_format("--- ", n.clé, ": ", n.valeur, "\n")
-            n = n.suivant
-        }
+    pour entête dans entêtes.données {
+        imprime("--- %: %\n", entête.clé, entête.valeur)
     }
 */
 
+    uri := construit_uri_depuis_chemin_requête(ligne_requête.chemin)
 
-    enchaineuse_contenu := crée_enchaineuse()
-    diffère { enchaineuse_contenu.détruit() }
+    dyn données_requête : DonnéesRequête
+    données_requête.uri = uri
+    données_requête.entêtes = entêtes
+    données_requête.contenu = contenu_requête
 
-    dyn status : chaine
+    dyn réponse : RéponseRequête
+    diffère { déloge réponse.contenu; }
 
     // À FAIRE : gère les chemin vers les fichiers
-    // À FAIRE : les paramètres des formulaires ne sont pas dans l'URL, ils le sont pour delsace.fr
-    si ligne_requête.chemin == "/" {
-        discr ligne_requête.méthode {
-            "GET" {
-                status = "200 OK"
+    chn_chemin := construit_chaine(uri.chemin.pointeur + 1, uri.chemin.taille - 1)
+    chm := construit_chemin(chn_chemin)
 
-                enchaineuse_contenu.pousse("<!DOCTYPE html>")
-                enchaineuse_contenu.pousse("<html lang='fr'>")
-                enchaineuse_contenu.pousse("<head>")
-                enchaineuse_contenu.pousse("<meta charset='utf-8'/>")
-                enchaineuse_contenu.pousse("<meta name='viewport' content='width=device-width, initial-scale=1.0'/>")
-                enchaineuse_contenu.pousse("<link rel='shortlink icon' href='/static/favicon-16x16.png'>")
-                enchaineuse_contenu.pousse("<link rel='icon' type='image/png' sizes='32x32' href='/static/favicon-32x32.png'>")
-                enchaineuse_contenu.pousse("</head>")
-                enchaineuse_contenu.pousse("<body>")
-                enchaineuse_contenu.pousse("<p>Vous avez utilisez la méthode GET</p>")
-                enchaineuse_contenu.pousse("<form method='post'>")
-                enchaineuse_contenu.pousse("<label for='POST-name'>Name:</label>")
-                enchaineuse_contenu.pousse("<input id='POST-name' type='text' name='name'>")
-                enchaineuse_contenu.pousse("<button type='submit' value='Save'>")
-                enchaineuse_contenu.pousse("</form>")
-                enchaineuse_contenu.pousse("</body>")
-                enchaineuse_contenu.pousse("</html>")
-            }
-            "POST" {
-                status = "200 OK"
-
-                noeud := table.cherche_noeud("Content-Type")
-
-                // Le contenu est dans les paramètres de l'URL
-                si noeud.valeur == "application/x-www-form-urlencoded" {
-                    // À FAIRE: normalise les données
-                }
-                // nous avons une chaine json
-                sinon si noeud.valeur == "application/json" {
-
-                }
-
-                noeud_longueur_contenu := table.cherche_noeud("Content-Length")
-
-                longueur_contenu := extrait_nombre_entier(noeud_longueur_contenu.valeur)
-
-                si longueur_contenu != contenu_requête.taille {
-                    enchaineuse_contenu.pousse("<p>Les longueurs ne correspondent pas !</p>")
-                }
-                sinon {
-                    enchaineuse_contenu.pousse("<p>Vous avez posté quelque chose !</p>")
-                    // À FAIRE : dépassement des limites de la chaine
-                    enchaineuse_contenu.pousse("<p>Le contenu est de '", contenu_requête, "'</p>")
-                    //enchaineuse_contenu.pousse("<p>Le contenu est de '")
-                    //enchaineuse_contenu.pousse(contenu_requête)
-                    //enchaineuse_contenu.pousse("'</p>")
-                }
-            }
-            sinon {
-                status = "405 METHOD NOT ALLOWED"
-                enchaineuse_contenu.pousse("<p>La méthode n'est pas autorisée !</p>")
-            }
-        }
+    // À FAIRE : gère les permissions
+    si fichier_existe(chm) {
+        réponse = crée_réponse_pour_requête_fichier(chm)
     }
     sinon {
-        status = "404 NOT FOUND"
-
-        enchaineuse_contenu.pousse("<p>La page n'existe pas</p>")
+        si uri.chemin == "/" {
+            discr ligne_requête.méthode {
+                "GET" {
+                    réponse = répond_get_page_accueil(@données_requête)
+                }
+                "POST" {
+                    réponse = répond_post_page_accueil(@données_requête)
+                }
+                sinon {
+                    réponse = crée_réponse_méthode_non_autorisée()
+                }
+            }
+        }
+        sinon {
+            réponse = crée_réponse_page_non_trouvée()
+        }
     }
 
     // ------------------------------
 
-    imprime("% % % - %\n", ligne_requête.méthode, ligne_requête.chemin, ligne_requête.protocole, status)
-
-    //reponse = repond_requete(requete)
+    diffère {
+        imprime_log(ModeLogage.AUCUN, "",
+            "% % % - %",
+            ligne_requête.méthode,
+            ligne_requête.chemin,
+            ligne_requête.protocole,
+            chaine_code_état_http(réponse.code))
+    }
 
     enchaineuse := crée_enchaineuse()
     diffère { enchaineuse.détruit() }
 
-    contenu := enchaineuse_contenu.résultat
+    contenu := réponse.contenu
 
-    enchaineuse.pousse("HTTP/1.1 ", status, "\r\n")
+    enchaineuse.pousse("HTTP/1.1 ", chaine_code_état_http(réponse.code), "\r\n")
     enchaineuse.pousse("Server: delsace\r\n")
     enchaineuse.pousse("Content-Length: ", contenu.taille, "\r\n")
-    enchaineuse.pousse("Content-Type: text/html; charset=utf-8\r\n")
+
+    discr réponse.type_contenu {
+        TEXT_HTML {
+            enchaineuse.pousse("Content-Type: text/html; charset=utf-8\r\n")
+        }
+        APPLICATION_JAVASCRIPT {
+            enchaineuse.pousse("Content-Type: application/javascript\r\n")
+            enchaineuse.pousse("Content-Disposition: attachment; filename='test.js'\r\n")
+        }
+        APPLICATION_JSON {
+            enchaineuse.pousse("Content-Type: application/json; charset=utf-8\r\n")
+        }
+        sinon {
+            // RÀF
+        }
+    }
 
     date := chaine_pour_aujourdhui()
-    diffère { déloge date; }
+    diffère { déloge date; }
     enchaineuse.pousse("Date: ", date, "\r\n")
 
     // À FAIRE: Content-Encoding, voir Accept-Encoding de la requête
@@ -361,14 +467,11 @@ procède_requête :: fonc (
 
     chaine_reponse := enchaineuse.résultat
 
-    //chaine_reponse = construit_reponse(reponse)
-
     si send(prise, chaine_reponse.pointeur, chaine_reponse.taille, 0) == -1 {
         perror("send".pointeur)
     }
 
     close(prise)
-    exit(0)
 }
 
 démarre :: fonc(dyn serveuse : &Serveuse) -> rien
@@ -390,6 +493,7 @@ démarre :: fonc(dyn serveuse : &Serveuse) -> rien
 
         si fork() == 0 {
             procède_requête(prise, adresse_du_connecté)
+            exit(0)
         }
 
         // le parent n'a pas besoin de cela
@@ -415,6 +519,8 @@ _SIGINT := 2
 // commentaire
 principale :: fonc(args : []*z8) -> z32
 {
+    contexte.logueur = mon_impression_log
+
     signal(_SIGINT, rappel_interruption);
 
     dyn serveuse : Serveuse
@@ -425,4 +531,9 @@ principale :: fonc(args : []*z8) -> z32
     close(serveuse.prise)
 
     retourne 0
+}
+
+mon_impression_log :: fonc (message: chaine, ident: chaine, mode: ModeLogage, données: *rien) -> rien
+{
+    imprime("%\n", message)
 }

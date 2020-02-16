@@ -1,5 +1,41 @@
 importe Fondation
 
+// --------------------------------
+
+PaireEntête :: struct {
+    clé: chaine
+    valeur: chaine
+}
+
+EntêtesHTTP :: struct {
+    // on ne peut pas utiliser une entêtes de hachage car plusieurs entêtes peuvent avoir la même clé (p.e. Cookie)
+    données: []PaireEntête
+}
+
+ajoute_paire_entête :: fonc (dyn entêtes: *EntêtesHTTP, clé: chaine, valeur: chaine) -> rien
+{
+    paire := PaireEntête{ clé = clé, valeur = valeur }
+    tableau_ajoute(@entêtes.données, paire)
+}
+
+détruit_entêtes :: fonc (dyn entêtes: *EntêtesHTTP) -> rien
+{
+    déloge entêtes.données
+}
+
+cherche_entête :: fonc (entêtes: *EntêtesHTTP, clé: chaine) -> *PaireEntête
+{
+    pour entête dans entêtes.données {
+        si entête.clé == clé {
+            retourne @entête
+        }
+    }
+
+    retourne nul
+}
+
+// --------------------------------
+
 ÉtatLigneRequête :: énum z32 {
     INVALIDE
     MÉTHODE
@@ -65,9 +101,9 @@ caractère_courant :: fonc(analyseuse: *AnalyseuseRequête) -> z8
     retourne analyseuse.requête[analyseuse.position]
 }
 
-analyse_entêtes :: fonc(dyn analyseuse: *AnalyseuseRequête) -> *TableHachage
+analyse_entêtes :: fonc(dyn analyseuse: *AnalyseuseRequête) -> EntêtesHTTP
 {
-    dyn table := crée_table_hachage()
+    dyn entêtes : EntêtesHTTP
 
     analyseuse.taille_mot = 0
 
@@ -98,7 +134,7 @@ analyse_entêtes :: fonc(dyn analyseuse: *AnalyseuseRequête) -> *TableHachage
             analyseuse.position += 1
         }
 
-        entête := analyseuse.mot_courant()
+        clé := analyseuse.mot_courant()
 
         analyseuse.position += 1
 
@@ -126,12 +162,12 @@ analyse_entêtes :: fonc(dyn analyseuse: *AnalyseuseRequête) -> *TableHachage
 
         valeur := analyseuse.mot_courant()
 
-        insère(table, entête, valeur)
+        ajoute_paire_entête(@entêtes, clé, valeur)
 
-        //imprime("--- ", entête, ": ", valeur, "\n")
+        //imprime("--- ", clé, ": ", valeur, "\n")
     }
 
-    retourne table
+    retourne entêtes
 }
 
 analyse_requête :: fonc(dyn analyseuse: *AnalyseuseRequête, requête: chaine) -> rien

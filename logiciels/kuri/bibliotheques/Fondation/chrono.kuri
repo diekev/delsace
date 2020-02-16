@@ -39,6 +39,13 @@ compte_ticks_ms :: fonc() -> z64
 	retourne heure.tv_sec * 1000 + heure.tv_usec / 1000
 }
 
+compte_ticks_microsecondes :: fonc() -> z64
+{
+	dyn heure : timeval
+	gettimeofday(@heure, nul)
+	retourne heure.tv_sec * 1000000 + heure.tv_usec
+}
+
 DonnéesTemps :: struct {
 	heures : z32
 	minutes : z32
