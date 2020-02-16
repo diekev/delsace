@@ -612,3 +612,136 @@ imprime_sans_format_err :: fonc(args : ...eini) -> rien
 
 	write(std_out, enchaineuse.résultat.pointeur, enchaineuse.résultat.taille)
 }
+
+/*
+TamponEnchaineuse :: struct {
+    données : [16384]z8
+    occupé  : z32
+    suivant : *TamponEnchaineuse
+}
+
+Enchaineuse :: struct {
+    tampon : TamponEnchaineuse
+    tampon_courant : *TamponEnchaineuse
+}
+
+intialise_enchaineuse :: fonc (dyn enchaineuse : *Enchaineuse) -> rien
+{
+    enchaineuse.tampon_courant = @enchaineuse.tampon
+    enchaineuse.tampon_courant.occupé = 0
+    enchaineuse.tampon_courant.suivant = nul
+}
+
+taille_chaine :: fonc (dyn enchaineuse: *Enchaineuse) -> z64
+{
+    dyn taille : z64 = 0
+    dyn tampon_courant := @enchaineuse.tampon
+
+    tantque tampon_courant != nul {
+        taille += tampon_courant.occupé
+        tampon_courant = tampon_courant.suivant
+    }
+
+    retourne taille
+}
+
+chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> chaine
+{
+    taille := taille_chaine(enchaineuse)
+    chn := loge chaine(taille)
+
+    dyn tampon_courant := @enchaineuse.tampon
+
+    dyn curseur : z64 = 0
+
+    tantque tampon_courant != nul {
+        taille_tampon := tampon_courant.occupé
+        src := @chn[curseur]
+        dst := @tampon_courant.données[0]
+
+        copie_mem_nonsur(src = src, dst = dst, taille = taille_tampon)
+
+        tampon_courant = tampon_courant.suivant
+        curseur += taille_tampon
+    }
+
+    retourne chn
+}
+
+détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
+{
+    // le premier tampon n'est pas alloué dynamiquement
+    dyn tampon_courant := enchaineuse.tampon.suivant
+
+    tantque tampon_courant != nul {
+        suivant := tampon_courant.suivant
+        déloge tampon_courant
+        tampon_courant = suivant
+    }
+}
+
+imprime_type :: fonc (enchaineuse: *Enchaineuse, infos: *InfoType) -> rien
+{
+
+}
+
+imprime_dans_enchaineuse :: fonc (dyn enchaineuse: *Enchaineuse, format: chaine, args: ...eini) -> rien
+{
+    dyn index := 0
+
+	pour c dans format {
+		si c == '%' && index < args.taille {
+			arg := args[index]
+			imprime_valeur(enchaineuse, arg.pointeur, arg.info, faux)
+			index += 1
+		}
+		sinon {
+			ajoute_au_tampon(enchaineuse, c)
+		}
+	}
+}
+
+ajoute_au_tampon :: fonc (dyn enchaineuse: *Enchaineuse, c: z8) -> rien
+{
+
+}
+
+ajoute_au_tampon :: fonc (dyn enchaineuse: *Enchaineuse, chn: chaine) -> rien
+{
+    dyn tampon := enchaineuse.tampon_courant
+
+    si tampon.occupé + chn.taille > 16384 {
+        dyn taille := 16384 - tampon.occupé
+        src := chn.pointeur
+        dst := @tampon.données[tampon.occupé]
+        taille := taille
+        tampon.occupé += taille
+
+        copie_mem_nonsur(src = src, dst = dst, taille = taille)
+
+        nouveau_tampon := loge TamponEnchaineuse
+        nouveau_tampon.occupé = 0
+        tampon.suivant = nouveau_tampon
+        enchaineuse.tampon_courant = nouveau_tampon
+
+        delta := chn.taille - taille
+
+        src := @chn[chn.taille - delta]
+        dst := @nouveau_tampon[0]
+        taille := chn.taille - taille
+
+        copie_mem_nonsur(src = src, dst = dst, taille = taille)
+
+        nouveau_tampon.occupé += delta
+    }
+    sinon {
+        src := chn.pointeur
+        dst := @tampon.données[tampon.occupé]
+        taille := chn.taille
+
+        copie_mem_nonsur(src = src, dst = dst, taille = taille)
+
+        tampon.occupé += chn.taille
+    }
+}
+*/
