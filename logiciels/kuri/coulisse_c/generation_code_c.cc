@@ -795,10 +795,6 @@ static void genere_code_allocation(
 	switch (mode) {
 		case 0:
 		{
-			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille << ";\n";
-			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
-			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
-
 			genere_code_echec_logement(
 						contexte,
 						generatrice,
@@ -817,12 +813,6 @@ static void genere_code_allocation(
 		}
 		case 1:
 		{
-			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille
-			   << " - " << nom_ancienne_taille << ";\n";
-			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
-			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
-			generatrice.os << "__VG_nombre_reallocations__ += 1;\n";
-
 			genere_code_echec_logement(
 						contexte,
 						generatrice,
@@ -830,12 +820,6 @@ static void genere_code_allocation(
 						b,
 						bloc_sinon);
 
-			break;
-		}
-		case 2:
-		{
-			generatrice.os << "__VG_memoire_utilisee__ -= " << expr_ancienne_taille_octet << ";\n";
-			generatrice.os << "__VG_nombre_deallocations__ += 1;\n";
 			break;
 		}
 	}
@@ -2976,20 +2960,6 @@ void KR__acces_membre_union(
 	auto noeud_log = graphe_dependance.cree_noeud_fonction(df_fonc_log.nom_broye, df_fonc_log.noeud_decl);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_log);
 
-	/* ceci ne sont peut-être pas dans le graphe */
-	const char *symboles_globaux[] = {
-		"__VG_memoire_utilisee__",
-		"__VG_memoire_consommee__",
-		"__VG_nombre_allocations__",
-		"__VG_nombre_reallocations__",
-		"__VG_nombre_deallocations__",
-	};
-
-	for (auto symbole : symboles_globaux) {
-		auto noeud = graphe_dependance.cherche_noeud_globale(symbole);
-		graphe_dependance.connecte_fonction_globale(*noeud_fonction_principale, *noeud);
-	}
-
 	/* déclaration des types de bases */
 	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
 	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n";
@@ -3204,20 +3174,6 @@ void KR__acces_membre_union(
 	auto &df_fonc_init = contexte.module("Kuri")->donnees_fonction("initialise_RC").front();
 	auto noeud_init = graphe_dependance.cree_noeud_fonction(df_fonc_init.nom_broye, df_fonc_init.noeud_decl);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_init);
-
-	/* ceci ne sont peut-être pas dans le graphe */
-	const char *symboles_globaux[] = {
-		"__VG_memoire_utilisee__",
-		"__VG_memoire_consommee__",
-		"__VG_nombre_allocations__",
-		"__VG_nombre_reallocations__",
-		"__VG_nombre_deallocations__",
-	};
-
-	for (auto symbole : symboles_globaux) {
-		auto noeud = graphe_dependance.cherche_noeud_globale(symbole);
-		graphe_dependance.connecte_fonction_globale(*noeud_fonction_principale, *noeud);
-	}
 
 	/* déclaration des types de bases */
 	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
