@@ -344,6 +344,10 @@ static void cree_initialisation(
 		os << chaine_parent << accesseur << "pointeur = 0;\n";
 		os << chaine_parent << accesseur << "taille = 0;\n";
 	}
+	else if (dt_parent.front() == GenreLexeme::EINI) {
+		os << chaine_parent << accesseur << "pointeur = 0\n;";
+		os << chaine_parent << accesseur << "info = 0\n;";
+	}
 	else if ((dt_parent.front() & 0xff) == GenreLexeme::CHAINE_CARACTERE) {
 		auto const index_structure = static_cast<long>(dt_parent.front() >> 8);
 		auto const &ds = contexte.donnees_structure(index_structure);
