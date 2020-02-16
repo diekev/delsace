@@ -87,6 +87,47 @@ allocatrice_défaut :: fonc(
     retourne nul
 }
 
+/*
+// À FAIRE : considère remplacer loge, déloge, et reloge avec ces fonctions
+// À FAIRE : type dépendant (gabarits, il faudra que les types deviennent citoyens de première classe)
+// À FAIER : infos types
+alloue :: fonc(nouvelle_taille: z64) -> *rien
+{
+    retourne contexte.allocatrice(
+        ModeAllocatrice.ALLOUE,
+        nouvelle_taille,
+        0,
+        nul,
+        contexte.données_allocatrice,
+        nul)
+}
+
+réalloue :: fonc (pointeur: *rien, ancienne_taille: z64, nouvelle_taille: z64) -> *rien
+{
+    retourne contexte.allocatrice(
+        ModeAllocatrice.RÉALLOUE,
+        nouvelle_taille,
+        ancienne_taille,
+        pointeur,
+        contexte.données_allocatrice,
+        nul)
+}
+
+désalloue :: fonc (pointeur: *rien, ancienne_taille: z64) -> *rien
+{
+    retourne contexte.allocatrice(
+        ModeAllocatrice.DÉSALLOUE,
+        0,
+        ancienne_taille,
+        pointeur,
+        contexte.données_allocatrice,
+        nul)
+}
+
+// alloue_avec pour changer l'allocatrice
+// alloue_tableau, alloue_chaine, etc.
+*/
+
 // Le StockageTemporaire est un stockage mis en place par le compilateur, qui réserve
 // une certaine taille dans l'exécutable où mettre des données temporaire.
 // À FAIRE : option de compilation pour définir la taille du stockage temporaire
