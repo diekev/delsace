@@ -46,7 +46,8 @@ allocatrice_défaut :: fonc(
     ancienne_taille : z64,
     ancien_pointeur : *rien,
     données : *rien,
-    info : *InfoType) -> *rien
+    info : *InfoType,
+    pos : PositionCodeSource) -> *rien
 {
     discr mode {
         ALLOUE {
@@ -216,7 +217,8 @@ __stockage_temporaire :: fonc(
     ancienne_taille : z64,
     ancien_pointeur : *rien,
     données : *rien,
-    info : *InfoType) -> *rien
+    info : *InfoType,
+    pos : PositionCodeSource) -> *rien
 {
     dyn alloc := contexte.stockage_temporaire
 

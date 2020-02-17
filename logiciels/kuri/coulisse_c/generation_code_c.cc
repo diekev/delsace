@@ -681,6 +681,33 @@ static void genere_declaration_structure(
 	donnees.deja_genere = true;
 }
 
+static void genere_code_position_source(
+		ContexteGenerationCode &contexte,
+		dls::flux_chaine &flux,
+		noeud::base *b)
+{
+	/* À FAIRE: pour les appels de fonction où l'objet est construit
+	 * via une valeur d'argument par défaut, les informations seront
+	 * toujours celles de la déclaration de l'argument. */
+	auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme.fichier));
+
+	auto fonction_courante = contexte.donnees_fonction;
+	auto nom_fonction = dls::vue_chaine_compacte("");
+
+	if (fonction_courante != nullptr) {
+		nom_fonction = fonction_courante->noeud_decl->lexeme.chaine;
+	}
+
+	auto pos = trouve_position(b->lexeme, fichier);
+
+	flux << "{ ";
+	flux << ".fichier = { .pointeur = \"" << fichier->nom << ".kuri\", .taille = " << fichier->nom.taille() + 5 << " },";
+	flux << ".fonction = { .pointeur = \"" << nom_fonction << "\", .taille = " << nom_fonction.taille() << " },";
+	flux << ".ligne = " << pos.numero_ligne << " ,";
+	flux << ".colonne = " << pos.pos;
+	flux << " };";
+}
+
 static void genere_code_allocation(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
@@ -774,7 +801,8 @@ static void genere_code_allocation(
 	// void *pointeur = ...;
 	// void *données = contexte.données_allocatrice;
 	// InfoType *info_type = ...;
-	// contexte.allocatrice(contexte, mode, nouvelle_taille_octet, ancienne_taille_octet, pointeur, données, info_type);
+	// PositionSourceCode pos = ...;
+	// contexte.allocatrice(contexte, mode, nouvelle_taille_octet, ancienne_taille_octet, pointeur, données, info_type, pos);
 	auto const chn_index = dls::vers_chaine(index++);
 	auto const nom_nouvelle_taille = "nouvelle_taille" + chn_index;
 	auto const nom_ancienne_taille = "ancienne_taille" + chn_index;
@@ -786,6 +814,12 @@ static void genere_code_allocation(
 	generatrice.os << "long " << nom_ancienne_taille << " = " << expr_ancienne_taille_octet << ";\n";
 	generatrice.os << "InfoType *" << nom_info_type << " = (InfoType *)(&" << dt.ptr_info_type << ");\n";
 	generatrice.os << "void *" << nom_ancien_pointeur << " = " << expr_pointeur << ";\n";
+
+	auto nom_pos = "__var_temp_pos" + dls::vers_chaine(index++);
+	generatrice.os << "PositionCodeSource " << nom_pos << " = ";
+	genere_code_position_source(contexte, generatrice.os, b);
+	generatrice.os << "\n;";
+
 	generatrice.os << "void *" << nom_nouveu_pointeur << " = ";
 	generatrice.os << "contexte.allocatrice(contexte, ";
 	generatrice.os << mode << ',';
@@ -793,7 +827,8 @@ static void genere_code_allocation(
 	generatrice.os << nom_ancienne_taille << ',';
 	generatrice.os << nom_ancien_pointeur << ',';
 	generatrice.os << broye_nom_simple("contexte.données_allocatrice") << ',';
-	generatrice.os << nom_info_type << ");\n";
+	generatrice.os << nom_info_type << ',';
+	generatrice.os << nom_pos << ");\n";
 	generatrice.os << expr_pointeur << " = " << nom_nouveu_pointeur << ";\n";
 
 	switch (mode) {
@@ -2324,25 +2359,7 @@ void genere_code_C(
 			auto flux = dls::flux_chaine();
 
 			if (b->chaine() == "PositionCodeSource") {
-				/* À FAIRE: pour les appels de fonction où l'objet est construit
-				 * via une valeur d'argument par défaut, les informations seront
-				 * toujours celles de la déclaration de l'argument. */
-				auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme.fichier));
-				auto fonction_courante = contexte.donnees_fonction;
-				auto nom_fonction = dls::vue_chaine_compacte("");
-
-				if (fonction_courante != nullptr) {
-					nom_fonction = fonction_courante->noeud_decl->lexeme.chaine;
-				}
-
-				auto pos = trouve_position(b->lexeme, fichier);
-
-				flux << "{ ";
-				flux << ".fichier = { .pointeur = \"" << fichier->nom << ".kuri\", .taille = " << fichier->nom.taille() + 5 << " },";
-				flux << ".fonction = { .pointeur = \"" << nom_fonction << "\", .taille = " << nom_fonction.taille() << " },";
-				flux << ".ligne = " << pos.numero_ligne << " ,";
-				flux << ".colonne = " << pos.pos;
-				flux << " }";
+				genere_code_position_source(contexte, generatrice.os, b);
 			}
 			else {
 				auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine_compacte>>(&b->valeur_calculee);
