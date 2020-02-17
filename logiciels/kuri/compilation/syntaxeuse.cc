@@ -708,7 +708,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 					expression.pousse(noeud);
 				}
 				/* construction structure : chaine + { */
-				else if (dls::outils::est_element(racine_expr, GenreLexeme::EGAL, GenreLexeme::RETOURNE, GenreLexeme::CROCHET_OUVRANT, GenreLexeme::INFO_DE)
+				else if (dls::outils::est_element(racine_expr, GenreLexeme::EGAL, GenreLexeme::RETOURNE, GenreLexeme::CROCHET_OUVRANT, GenreLexeme::INFO_DE, GenreLexeme::FONC)
 						 && est_identifiant(GenreLexeme::ACCOLADE_OUVRANTE))
 				{
 					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE, lexeme, false);
@@ -722,7 +722,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 					expression.pousse(noeud);
 
 					// À FAIRE, XXX - désynchronisation dans l'analyse de la construction de structure ?
-					if (racine_expr != GenreLexeme::CROCHET_OUVRANT) {
+					if (racine_expr != GenreLexeme::CROCHET_OUVRANT && racine_expr != GenreLexeme::FONC) {
 						termine_boucle = true;
 					}
 				}
