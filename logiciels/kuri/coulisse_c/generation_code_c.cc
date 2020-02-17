@@ -2350,7 +2350,10 @@ void genere_code_C(
 
 			flux << '}';
 
-			b->valeur_calculee = dls::chaine(flux.chn());
+			auto nom_temp = "__var_temp_struct" + dls::vers_chaine(index++);
+			generatrice.declare_variable(b->index_type, nom_temp, flux.chn());
+
+			b->valeur_calculee = nom_temp;
 
 			break;
 		}
