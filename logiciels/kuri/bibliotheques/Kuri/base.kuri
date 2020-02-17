@@ -7,6 +7,8 @@ charge "infos_types"
 // Par contre, ce fichier ne devrait pas pouvoir être modifié par les
 // utilisateurs du langage.
 
+// --------------------------
+
 // Position dans le code source. Quand cette structure est instantiée, le
 // compilateur remplis les membres de cette structure avec les valeurs
 // correspondantes de la position du lexème dans le fichier où se fait ladite
@@ -22,13 +24,11 @@ PositionCodeSource :: struct {
     colonne : z32
 }
 
-// Variables utilisée par l'allocatrice_défaut pour rassembler quelques statistiques
-// sur les allocations faites par le programme.
-dyn __VG_memoire_utilisée__ : z64 = 0
-dyn __VG_memoire_consommée__ : z64 = 0
-dyn __VG_nombre_allocations__ : z64 = 0
-dyn __VG_nombre_reallocations__ : z64 = 0
-dyn __VG_nombre_deallocations__ : z64 = 0
+// --------------------------
+
+malloc :: fonc externe (taille : z64) -> *rien
+realloc :: fonc externe (ptr : *rien, taille : z64) -> *rien
+free :: fonc externe (ptr : *rien) -> rien
 
 ModeAllocatrice :: énum z32 {
     ALLOUE
@@ -36,55 +36,66 @@ ModeAllocatrice :: énum z32 {
     DÉSALLOUE
 }
 
-malloc :: fonc externe (taille : z64) -> *rien
-realloc :: fonc externe (ptr : *rien, taille : z64) -> *rien
-free :: fonc externe (ptr : *rien) -> rien
+BaseAllocatrice :: struct {
+    nombre_allocations : z64 = 0
+    nombre_réallocations : z64 = 0
+    nombre_désallocations : z64 = 0
+    mémoire_utilisée : z64 = 0
+    pic_de_mémoire : z64 = 0
+
+    // pour pouvoir déterminer quelle type d'allocatrice nous avons
+    infos : *InfoTypeStructure = nul
+
+    allocatrice_parente : *BaseAllocatrice = nul
+    allocatrice_secours : *BaseAllocatrice = nul
+}
+
+initialise_base_allocatrice :: fonc (dyn base : *BaseAllocatrice) -> rien
+{
+    base.nombre_allocations = 0
+    base.nombre_réallocations = 0
+    base.nombre_désallocations = 0
+    base.mémoire_utilisée = 0
+    base.pic_de_mémoire = 0
+    base.infos = info_de(mémoire(base))
+    base.allocatrice_parente = nul
+    base.allocatrice_secours = nul
+}
 
 allocatrice_défaut :: fonc(
     mode : ModeAllocatrice,
     nouvelle_taille : z64,
     ancienne_taille : z64,
     ancien_pointeur : *rien,
-    données : *rien,
+    dyn données : *BaseAllocatrice,
     info : *InfoType,
     pos : PositionCodeSource) -> *rien
 {
     discr mode {
         ALLOUE {
-            // À FAIRE: LLVM crash lors de l'exécution quand ce code est activé
-            nonsûr {
-                __VG_memoire_utilisée__ = __VG_memoire_utilisée__ + nouvelle_taille
+            données.mémoire_utilisée += nouvelle_taille
+            données.nombre_allocations += 1
 
-                si __VG_memoire_consommée__ < __VG_memoire_utilisée__ {
-                    __VG_memoire_consommée__ = __VG_memoire_utilisée__
-                }
-
-                __VG_nombre_allocations__ = __VG_nombre_allocations__ + 1
+            si données.pic_de_mémoire < données.mémoire_utilisée {
+                données.pic_de_mémoire = données.mémoire_utilisée
             }
 
             retourne malloc(nouvelle_taille)
         }
         RÉALLOUE {
-            // À FAIRE: LLVM crash lors de l'exécution quand ce code est activé
-            nonsûr {
-                __VG_memoire_utilisée__ = __VG_memoire_utilisée__ + nouvelle_taille - ancienne_taille
+            données.mémoire_utilisée += nouvelle_taille - ancienne_taille
+            données.nombre_allocations += 1
+            données.nombre_réallocations += 1
 
-                si __VG_memoire_consommée__ < __VG_memoire_utilisée__ {
-                    __VG_memoire_consommée__ = __VG_memoire_utilisée__
-                }
-
-                __VG_nombre_allocations__ = __VG_nombre_allocations__ + 1
-                __VG_nombre_reallocations__ = __VG_nombre_allocations__ + 1
+            si données.pic_de_mémoire < données.mémoire_utilisée {
+                données.pic_de_mémoire = données.mémoire_utilisée
             }
 
             retourne realloc(ancien_pointeur, nouvelle_taille)
         }
         DÉSALLOUE {
-            // À FAIRE: LLVM crash lors de l'exécution quand ce code est activé
-            nonsûr {
-                __VG_memoire_utilisée__ = __VG_memoire_utilisée__ - ancienne_taille
-                __VG_nombre_deallocations__ = __VG_nombre_allocations__ + 1
-            }
+            données.mémoire_utilisée -= ancienne_taille
+            données.nombre_désallocations += 1
 
             free(ancien_pointeur)
             retourne nul
@@ -162,7 +173,7 @@ StockageTemporaire :: struct {
 // cette structure.
 ContexteProgramme :: struct {
     allocatrice := allocatrice_défaut
-    données_allocatrice : *rien = nul
+    données_allocatrice : *BaseAllocatrice = nul
 
     logueur := __logueur_défaut
     données_logueur : *rien = nul
@@ -171,6 +182,35 @@ ContexteProgramme :: struct {
 }
 
 __logueur_défaut :: fonc (message: chaine, ident: chaine, mode: ModeLogage, données: *rien) -> rien {}
+
+// ----------------------------
+
+// Fonctions de convénience pour accéder aux données sur les allocations
+// de l'allocatrice courante du contexte
+#enligne mémoire_utilisée :: fonc() -> z64
+{
+    retourne contexte.données_allocatrice.mémoire_utilisée
+}
+
+#enligne pic_de_mémoire :: fonc() -> z64
+{
+    retourne contexte.données_allocatrice.pic_de_mémoire
+}
+
+#enligne nombre_allocations :: fonc() -> z64
+{
+    retourne contexte.données_allocatrice.nombre_allocations
+}
+
+#enligne nombre_réallocations :: fonc() -> z64
+{
+    retourne contexte.données_allocatrice.nombre_réallocations
+}
+
+#enligne nombre_désallocations :: fonc() -> z64
+{
+    retourne contexte.données_allocatrice.nombre_désallocations
+}
 
 // ----------------------------
 // Implémentation des fonctions du stockage temporaire
@@ -216,11 +256,11 @@ __stockage_temporaire :: fonc(
     nouvelle_taille : z64,
     ancienne_taille : z64,
     ancien_pointeur : *rien,
-    données : *rien,
+    données : *BaseAllocatrice,
     info : *InfoType,
     pos : PositionCodeSource) -> *rien
 {
-    dyn alloc := contexte.stockage_temporaire
+    dyn alloc := transtype(contexte.stockage_temporaire: *StockageTemporaire)
 
     discr mode {
         ALLOUE {
@@ -294,35 +334,7 @@ logement_temp :: fonc(taille: z64) -> *octet
     retourne ptr
 }
 
-// Fonction pour accéder à la variable __VG_memoire_utilisée__.
-mémoire_utilisée :: fonc() -> z64
-{
-    retourne __VG_memoire_utilisée__
-}
-
-// Fonction pour accéder à la variable __VG_memoire_utilisée__.
-mémoire_consommée :: fonc() -> z64
-{
-    retourne __VG_memoire_consommée__
-}
-
-// Fonction pour accéder à la variable __VG_nombre_allocations__.
-nombre_allocations :: fonc() -> z64
-{
-    retourne __VG_nombre_allocations__
-}
-
-// Fonction pour accéder à la variable __VG_nombre_reallocations__.
-nombre_réallocations :: fonc() -> z64
-{
-    retourne __VG_nombre_reallocations__
-}
-
-// Fonction pour accéder à la variable __VG_nombre_deallocations__.
-nombre_déallocations :: fonc() -> z64
-{
-    retourne __VG_nombre_deallocations__
-}
+// -----------------------------
 
 // Fonctions de bases pour les opérateurs de comparaisons de chaines
 sont_chaines_égales :: fonc(chn1: chaine, chn2: chaine) -> bool

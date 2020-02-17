@@ -3003,6 +3003,10 @@ void KR__acces_membre_union(
 	auto noeud_alloc = graphe_dependance.cree_noeud_fonction(df_fonc_alloc.nom_broye, df_fonc_alloc.noeud_decl);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_alloc);
 
+	auto &df_fonc_init_alloc = contexte.module("Kuri")->donnees_fonction("initialise_base_allocatrice").front();
+	auto noeud_init_alloc = graphe_dependance.cree_noeud_fonction(df_fonc_init_alloc.nom_broye, df_fonc_init_alloc.noeud_decl);
+	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_init_alloc);
+
 	auto &df_fonc_log = contexte.module("Kuri")->donnees_fonction("__logueur_défaut").front();
 	auto noeud_log = graphe_dependance.cree_noeud_fonction(df_fonc_log.nom_broye, df_fonc_log.noeud_decl);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_log);
@@ -3094,11 +3098,14 @@ int main(int argc, char **argv)
 
 	KsContexteProgramme contexte;
 	contexte.stockage_temporaire = &stockage_temp;
+
+	KsBaseAllocatrice alloc_base;
+	contexte.donnxC3xA9es_allocatrice = &alloc_base;
 )";
 
 	os << debut_main;
 	os << "contexte.allocatrice = " << df_fonc_alloc.nom_broye << ";\n";
-	os << broye_nom_simple("contexte.données_allocatrice") << " = 0;\n";
+	os << df_fonc_init_alloc.nom_broye << "(contexte, &alloc_base);\n";
 	os << "contexte.logueur = " << df_fonc_log.nom_broye << ";\n";
 	os << broye_nom_simple("contexte.données_logueur") << " = 0;\n";
 
@@ -3214,6 +3221,10 @@ void KR__acces_membre_union(
 	auto noeud_alloc = graphe_dependance.cree_noeud_fonction(df_fonc_alloc.nom_broye, df_fonc_alloc.noeud_decl);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_alloc);
 
+	auto &df_fonc_init_alloc = contexte.module("Kuri")->donnees_fonction("initialise_base_allocatrice").front();
+	auto noeud_init_alloc = graphe_dependance.cree_noeud_fonction(df_fonc_init_alloc.nom_broye, df_fonc_init_alloc.noeud_decl);
+	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_init_alloc);
+
 	auto &df_fonc_log = contexte.module("Kuri")->donnees_fonction("__logueur_défaut").front();
 	auto noeud_log = graphe_dependance.cree_noeud_fonction(df_fonc_log.nom_broye, df_fonc_log.noeud_decl);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_log);
@@ -3306,11 +3317,14 @@ void lance_execution()
 
 	KsContexteProgramme contexte;
 	contexte.stockage_temporaire = &stockage_temp;
+
+	KsBaseAllocatrice alloc_base;
+	contexte.donnxC3xA9es_allocatrice = &alloc_base;
 )";
 
 	os << debut_main;
 	os << "contexte.allocatrice = " << df_fonc_alloc.nom_broye << ";\n";
-	os << broye_nom_simple("contexte.données_allocatrice") << " = 0;\n";
+	os << df_fonc_init_alloc.nom_broye << "(contexte, &alloc_base);\n";
 	os << "contexte.logueur = " << df_fonc_log.nom_broye << ";\n";
 	os << broye_nom_simple("contexte.données_logueur") << " = 0;\n";
 

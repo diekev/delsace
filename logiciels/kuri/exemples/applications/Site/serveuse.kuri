@@ -331,7 +331,7 @@ procède_requête :: fonc (
     diffère {
         imprime_log(ModeLogage.AUCUN, "", "Mémoire utilisée (avant) : %o", mémoire_présente)
         imprime_log(ModeLogage.AUCUN, "", "Mémoire utilisée (après) : %o", mémoire_utilisée())
-        imprime_log(ModeLogage.AUCUN, "", "Mémoire consommée        : %o", mémoire_consommée())
+        imprime_log(ModeLogage.AUCUN, "", "Mémoire consommée        : %o", pic_de_mémoire())
         imprime_log(ModeLogage.AUCUN, "", "Durée réponse            : %us", compte_ticks_microsecondes() - temps_présent)
 
         ip := converti_chaine_c(inet_ntoa(adresse_du_connecté.sin_addr))
