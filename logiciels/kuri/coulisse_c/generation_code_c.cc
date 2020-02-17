@@ -2359,7 +2359,7 @@ void genere_code_C(
 			auto flux = dls::flux_chaine();
 
 			if (b->chaine() == "PositionCodeSource") {
-				genere_code_position_source(contexte, generatrice.os, b);
+				genere_code_position_source(contexte, flux, b);
 			}
 			else {
 				auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine_compacte>>(&b->valeur_calculee);
