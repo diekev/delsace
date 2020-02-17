@@ -446,17 +446,45 @@ static DonneesCandidate verifie_donnees_fonction(
 				auto plg_type_enf = type_enf.plage();
 
 				// permet de trouver les types du style *[]$T
-				while (type_declare.front() == plg_type_enf.front()) {
+				while (type_declare.front() == (plg_type_enf.front() & 0xff)) {
 					plg_type_enf.effronte();
 					type_declare.effronte();
 				}
 
+				if (type_declare.front() != GenreLexeme::DOLLAR) {
+					poids_args = 0.0;
+					res.raison = METYPAGE_ARG;
+					//res.type1 = type_enf;
+					res.type2 = type_enf;
+					res.noeud_decl = slot;
+					res.df = &donnees_fonction;
+					return res;
+				}
+
 				index_type_gabarit = contexte.typeuse.ajoute_type(plg_type_enf);
+
+				/* reconstruit le type de l'argument dans le cas où nous avons
+				 * un tableau fixe devant être converti en un tableau dynamique */
+				type_declare = arg.type_declare.plage();
+				auto dt_final = DonneesTypeFinal{};
+
+				while (!type_declare.est_finie()) {
+					if (type_declare.front() == GenreLexeme::DOLLAR) {
+						dt_final.pousse(contexte.typeuse[index_type_gabarit]);
+						break;
+					}
+
+					dt_final.pousse(type_declare.front());
+					type_declare.effronte();
+				}
+
+				index_type_arg = contexte.typeuse.ajoute_type(dt_final);
 
 				paires_expansion_gabarit.pousse({ arg.type_declare.nom_gabarit, index_type_gabarit });
 			}
-
-			index_type_arg = index_type_enf;
+			else {
+				index_type_arg = index_type_enf;
+			}
 		}
 
 		auto const &type_arg = (index_type_arg == -1l) ? DonneesTypeFinal{} : contexte.typeuse[index_type_arg];
@@ -545,6 +573,8 @@ static DonneesCandidate verifie_donnees_fonction(
 			/* il est possible que le type final ne soit pas encore résolu car
 			 * la déclaration de la candidate n'a pas encore été validée */
 			if (!est_invalide(type_arg.plage())) {
+				std::cerr << "cherche transformation entre "
+						  << chaine_type(contexte.typeuse[index_type_arg], contexte) << " et " << chaine_type(contexte.typeuse[index_type_enf], contexte) << '\n';
 				auto poids_pour_enfant = verifie_compatibilite(contexte, index_type_arg, index_type_enf, slot, transformation);
 
 				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
