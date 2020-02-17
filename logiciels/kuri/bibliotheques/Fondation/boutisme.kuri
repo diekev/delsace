@@ -66,10 +66,10 @@ _56 := transtype(56: n16)
     commute_boutisme(transtype(val: *n64))
 }
 
-commute_boutisme :: fonc(dyn tabl : *[]$T) -> rien
+commute_boutisme :: fonc(dyn tabl : []$T) -> rien
 {
-    pour val dans mémoire(tabl) {
-        commute_boutisme(val)
+    pour val dans tabl {
+        commute_boutisme(@val)
     }
 }
 
