@@ -7,6 +7,21 @@ charge "infos_types"
 // Par contre, ce fichier ne devrait pas pouvoir être modifié par les
 // utilisateurs du langage.
 
+// Position dans le code source. Quand cette structure est instantiée, le
+// compilateur remplis les membres de cette structure avec les valeurs
+// correspondantes de la position du lexème dans le fichier où se fait ladite
+// construction.
+PositionCodeSource :: struct {
+    // le nom du fichier où se trouve l'objet
+    fichier : chaine
+    // le nom de la fonction où se trouve l'objet, vide si variable globale
+    fonction : chaine
+    // la ligne où se trouve l'objet
+    ligne : z32
+    // la colonne où se trouve l'objet
+    colonne : z32
+}
+
 // Variables utilisée par l'allocatrice_défaut pour rassembler quelques statistiques
 // sur les allocations faites par le programme.
 dyn __VG_memoire_utilisée__ : z64 = 0

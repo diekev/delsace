@@ -68,6 +68,7 @@ using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
  * - stockage temporaire
  * - ajourne les infos types pour avoir une taille en octet pour chaque struct (avec la taille en octet et non en bits !)
  * - ajourne les infos types pour séparer les tableaux fixes des dynamiques
+ * - construction de PositionSourceCode
  */
 
 /* ************************************************************************** */

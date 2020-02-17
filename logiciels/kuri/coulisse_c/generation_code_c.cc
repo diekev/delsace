@@ -2321,34 +2321,57 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		{
-			auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine_compacte>>(&b->valeur_calculee);
-
-			for (auto enfant : b->enfants) {
-				genere_code_C(enfant, generatrice, contexte, false);
-			}
-
 			auto flux = dls::flux_chaine();
 
-			auto enfant = b->enfants.debut();
-			auto nom_param = liste_params->debut();
-			auto virgule = '{';
+			if (b->chaine() == "PositionCodeSource") {
+				/* À FAIRE: pour les appels de fonction où l'objet est construit
+				 * via une valeur d'argument par défaut, les informations seront
+				 * toujours celles de la déclaration de l'argument. */
+				auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme.fichier));
+				auto fonction_courante = contexte.donnees_fonction;
+				auto nom_fonction = dls::vue_chaine_compacte("");
 
-			for (auto i = 0l; i < liste_params->taille(); ++i) {
-				flux << virgule;
+				if (fonction_courante != nullptr) {
+					nom_fonction = fonction_courante->noeud_decl->lexeme.chaine;
+				}
 
-				flux << '.' << broye_nom_simple(*nom_param) << '=';
-				flux << (*enfant)->chaine_calculee();
-				++enfant;
-				++nom_param;
+				auto pos = trouve_position(b->lexeme, fichier);
 
-				virgule = ',';
+				flux << "{ ";
+				flux << ".fichier = { .pointeur = \"" << fichier->nom << ".kuri\", .taille = " << fichier->nom.taille() + 5 << " },";
+				flux << ".fonction = { .pointeur = \"" << nom_fonction << "\", .taille = " << nom_fonction.taille() << " },";
+				flux << ".ligne = " << pos.numero_ligne << " ,";
+				flux << ".colonne = " << pos.pos;
+				flux << " }";
 			}
+			else {
+				auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine_compacte>>(&b->valeur_calculee);
 
-			if (liste_params->taille() == 0) {
-				flux << '{';
+				for (auto enfant : b->enfants) {
+					genere_code_C(enfant, generatrice, contexte, false);
+				}
+
+				auto enfant = b->enfants.debut();
+				auto nom_param = liste_params->debut();
+				auto virgule = '{';
+
+				for (auto i = 0l; i < liste_params->taille(); ++i) {
+					flux << virgule;
+
+					flux << '.' << broye_nom_simple(*nom_param) << '=';
+					flux << (*enfant)->chaine_calculee();
+					++enfant;
+					++nom_param;
+
+					virgule = ',';
+				}
+
+				if (liste_params->taille() == 0) {
+					flux << '{';
+				}
+
+				flux << '}';
 			}
-
-			flux << '}';
 
 			auto nom_temp = "__var_temp_struct" + dls::vers_chaine(index++);
 			generatrice.declare_variable(b->index_type, nom_temp, flux.chn());
