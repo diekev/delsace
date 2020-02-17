@@ -72,3 +72,14 @@ commute_boutisme :: fonc(dyn tabl : *[]$T) -> rien
         commute_boutisme(val)
     }
 }
+
+petit_boutisme :: fonc () -> bool
+{
+    UN := 1
+    retourne mémoire(transtype(@UN: *z8)) == '\1'
+}
+
+grand_boutisme :: fonc () -> bool
+{
+    retourne !petit_boutisme()
+}
