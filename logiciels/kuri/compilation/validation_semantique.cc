@@ -1840,6 +1840,11 @@ static void performe_validation_semantique(
 
 			performe_validation_semantique(enfant1, contexte, false);
 			auto index_type = enfant1->index_type;
+
+			if (index_type == -1 && !est_operateur_bool(enfant1->lexeme.genre)) {
+				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, enfant1->lexeme);
+			}
+
 			auto const &type_condition = contexte.typeuse[index_type];
 
 			if (type_condition.type_base() != GenreLexeme::BOOL) {
@@ -2208,6 +2213,10 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::INSTRUCTION_REPETE:
 		{
+			auto iter = b->enfants.debut();
+			auto enfant1 = *iter++;
+			auto enfant2 = *iter++;
+
 			/* À FAIRE : ceci duplique logique coulisse */
 			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
 			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
@@ -2215,8 +2224,12 @@ static void performe_validation_semantique(
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
 
-			performe_validation_semantique(b->enfants.front(), contexte, true);
-			performe_validation_semantique(b->enfants.back(), contexte, false);
+			performe_validation_semantique(enfant1, contexte, true);
+			performe_validation_semantique(enfant2, contexte, false);
+
+			if (enfant2->index_type == -1 && !est_operateur_bool(enfant2->lexeme.genre)) {
+				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, enfant1->lexeme);
+			}
 
 			contexte.depile_goto_continue();
 			contexte.depile_goto_arrete();
@@ -2237,6 +2250,10 @@ static void performe_validation_semantique(
 			auto enfant2 = *iter++;
 
 			performe_validation_semantique(enfant1, contexte, false);
+
+			if (enfant1->index_type == -1 && !est_operateur_bool(enfant1->lexeme.genre)) {
+				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, enfant1->lexeme);
+			}
 
 			/* À FAIRE : ceci duplique logique coulisse */
 			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
