@@ -1,0 +1,41 @@
+
+NoeudListeLibre :: struct {
+    suivant: *NoeudListeLibre = nul
+}
+
+AllocatriceListeLibre :: struct {
+    racine: *NoeudListeLibre = nul
+}
+
+détruit_liste_libre :: fonc(alloc: *AllocatriceListeLibre) -> rien
+{
+    dyn ptr := alloc.racine
+
+    tantque ptr != nul {
+        suivant := ptr.suivant
+        free(ptr)
+        ptr = suivant
+    }
+}
+
+allocatrice_liste_libre :: fonc(
+    mode : ModeAllocatrice,
+    nouvelle_taille : z64,
+    ancienne_taille : z64,
+    ancien_pointeur : *rien,
+    données : *rien,
+    info : *InfoType) -> *rien
+{
+    dyn alloc := transtype(données: *AllocatriceListeLibre)
+
+    discr mode {
+        ALLOUE {
+        }
+        RÉALLOUE {
+        }
+        DÉSALLOUE {
+        }
+    }
+
+    retourne nul
+}

@@ -1,0 +1,88 @@
+
+# À FAIRE: union dans les structures, etc...
+union Chunk nonsûr {
+    suivant: *Chunk
+    # À FAIRE: paramètre gabarit de taille
+    mém: [128]octet
+}
+
+struct Bloc {
+    # À FAIRE: paramètre gabarit du count de chunks
+    chunk: [4096]Chunk
+}
+
+struct PetitTableau {
+    mém: *Bloc
+    poule: [10]Bloc # mém = @poule[0]
+
+    alloué := 10
+    taille: z32 = 0
+}
+
+struct AllocatricePoule {
+    pointeurs_blocs: PetitTableau
+    racine: *Chunk
+    allocations_courantes := 0
+    nombre_allocations := 0
+    allocations_max := 0
+    nombre_non_suivis := 0
+}
+
+# À FAIRE: libère mémoire
+
+#!nulctx fonc allocatrice_poule(
+    mode : ModeAllocatrice,
+    nouvelle_taille : z64,
+    ancienne_taille : z64,
+    ancien_pointeur : *rien,
+    données : *rien,
+    info : *InfoType) -> *rien
+{
+    dyn alloc := transtype(données: *AllocatricePoule)
+
+    discr mode {
+        ALLOUE {
+            si alloc.racine == nul {
+                dyn bloc := transtype(malloc(transtype(taille_de(Bloc) : z64)) : *Bloc)
+                #alloc.pointeurs_blocs.pousse(bloc)
+
+                pour i dans 0 ... 1022 {
+                    bloc.chunk[i].suivant = @bloc.chunk[i + 1]
+                }
+
+                bloc.chunk[1023].suivant = nul
+                alloc.racine = @bloc.chunk[0]
+            }
+
+            dyn résultat := alloc.racine
+            alloc.racine = résultat.suivant
+
+            alloc.allocations_courantes += 1
+
+            si alloc.allocations_courantes > alloc.allocations_max {
+                alloc.allocations_max = alloc.allocations_courantes
+            }
+
+            alloc.nombre_allocations += 1
+            alloc.nombre_non_suivis += 1
+
+            retourne résultat
+        }
+        RÉALLOUE {
+            # A-ce un sens de réallouer si les tailles ne correspondent pas ?
+            retourne nul
+        }
+        DÉSALLOUE {
+            si ancien_pointeur == nul {
+                retourne nul
+            }
+
+            alloc.allocations_courantes -= 1
+            dyn chunk := transtype(ancien_pointeur: *Chunk)
+            chunk.suivant = alloc.racine
+            alloc.racine = chunk
+        }
+    }
+
+    retourne nul
+}

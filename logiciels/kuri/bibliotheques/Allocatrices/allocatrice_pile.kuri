@@ -1,0 +1,103 @@
+
+AllocatricePile :: struct {
+    données: [16 * 1024]octet
+    début: *octet
+    ptr : *octet
+    taille : z64
+}
+
+est_aligné :: fonc(ptr: *rien, alignement: z64) -> bool
+{
+    retourne (transtype(ptr: z64) & (alignement - 1)) == 0
+}
+
+arrondis_pour_aligner :: fonc(n: z64, alignement: z64) -> z64
+{
+    reste := n % alignement
+
+    si reste == 0 {
+        retourne n
+    }
+
+    retourne n + alignement - reste
+}
+
+// NOTE: les arrondis ne fonctionnent pas vraiment pour les réallocations car nous ne retournons pas la taille arrondie du bloc
+loge_pile :: fonc(
+    dyn alloc: *AllocatricePile,
+    nouvelle_taille : z64) -> *rien
+{
+    n := nouvelle_taille  // arrondis_pour_aligner(nouvelle_taille, 8)
+
+    f := transtype(alloc.début + alloc.données.taille: z64)
+    d := transtype(alloc.ptr: z64)
+
+    si n > (f - d) {
+        retourne nul
+    }
+
+    ptr := alloc.ptr
+    alloc.ptr += n
+
+    retourne ptr
+}
+
+allocatrice_pile :: fonc(
+    mode : ModeAllocatrice,
+    nouvelle_taille : z64,
+    ancienne_taille : z64,
+    ancien_pointeur : *rien,
+    données : *BaseAllocatrice,
+    info : *InfoType,
+    pos: PositionCodeSource) -> *rien
+{
+    dyn alloc := transtype(données: *AllocatricePile)
+
+    discr mode {
+        ALLOUE {
+            retourne loge_pile(alloc, nouvelle_taille)
+        }
+        RÉALLOUE {
+            ptr := transtype(ancien_pointeur: *octet)
+
+            si ptr == nul {
+                retourne loge_pile(alloc, nouvelle_taille)
+            }
+
+            // Nous ne pouvons réallouer que si le pointeur fut le dernier alloué...
+            dyn n := ancienne_taille  // arrondis_pour_aligner(ancienne_taille, 8)
+
+            si ptr + n != alloc.ptr {
+                retourne nul
+            }
+
+            // ... et qu'il y a suffisament de place pour delta
+            delta := nouvelle_taille - ancienne_taille
+
+            n = delta  // arrondis_pour_aligner(delta, 8)
+
+            d := transtype(alloc.ptr: z64)
+            f := transtype(alloc.début + alloc.données.taille: z64)
+
+            si n > (f - d) {
+                retourne nul
+            }
+
+		    alloc.ptr += n
+
+            retourne ancien_pointeur
+        }
+        DÉSALLOUE {
+            n := ancienne_taille  // arrondis_pour_aligner(ancienne_taille, 8)
+            ptr := transtype(ancien_pointeur: *octet)
+
+            si ptr + n == alloc.ptr {
+                alloc.ptr = ptr
+            }
+
+            retourne nul
+        }
+    }
+
+    retourne nul
+}

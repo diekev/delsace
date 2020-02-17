@@ -1,0 +1,105 @@
+allocatrice_nulle :: fonc(
+    mode : ModeAllocatrice,
+    nouvelle_taille : z64,
+    ancienne_taille : z64,
+    ancien_pointeur : *rien,
+    données : *BaseAllocatrice,
+    info : *InfoType,
+    pos: PositionCodeSource) -> *rien
+{
+    retourne nul
+}
+
+/*
+
+D'autres allocatrices à explorer :
+- stats :
+-- (globale, pour chaque allocation)
+---- appels primitives
+---- succès/échec
+---- mémoire utilisée
+---- pic de mémoire
+-- (locale, pour chaque allocation)
+---- fichier
+---- ligne
+---- fonction
+---- date/temps
+- allocatrice par seau
+-- [min, min + step), [min + step, min + 2 * step),...
+-- dans un seau, alloue la taille maximale
+- bloc bitmappé
+-- organisé par des blocs de taille constante
+-- plus simple que le tas de malloc, plus rapide
+-- superposer sur un quelconque bloc de mémoire
+-- 1 bit/bloc comme unique coût
+-- fragile quant au moultfilage (nécessite un plein-entreblocage > 1 bloc)
+
+
+template <class AllocatorType, size_t MIN, size_t MAX>
+class FreeList {
+	AllocatorType m_parent;
+
+	struct Node {
+		Node *next;
+	};
+
+	Node *m_root;
+
+public:
+	FreeList()
+	    : m_root(nullptr)
+	{}
+
+	~FreeList()
+	{
+		auto ptr = m_root;
+
+		while (ptr != nullptr) {
+			Blk b = { ptr, 0 };
+			ptr = ptr->next;
+			m_parent.deallocate(b);
+		}
+	}
+
+	Blk allocate(size_t n)
+	{
+		if ((n >= MIN && n <= MAX) && m_root) {
+			Blk r = { m_root, MAX };
+			m_root = m_root->next;
+			return r;
+		}
+
+		return m_parent.allocate(MAX);
+	}
+
+	void deallocate(Blk b)
+	{
+		if ((b.size >= MIN && b.size <= MAX)) {
+			auto ptr = static_cast<Node *>(b.ptr);
+			ptr->next = m_root;
+			m_root = ptr;
+			return;
+		}
+
+		m_parent.deallocate(b);
+	}
+
+	void reallocate(Blk &b, size_t new_size)
+	{
+		if ((new_size >= MIN && new_size <= MAX) && m_root) {
+			b.ptr = m_root;
+			b.size = new_size;
+			m_root = m_root->next;
+			return;
+		}
+
+		m_parent.reallocate(b, new_size);
+	}
+
+	bool owns(Blk b)
+	{
+		return (b.size >= MIN && b.size <= MAX) || m_parent.owns(b);
+	}
+};
+
+*/

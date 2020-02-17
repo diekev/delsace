@@ -1,0 +1,187 @@
+// Une allocatrice qui ajoute une entête aux blocs alloués et les stocke dans
+// une liste afin de trouver des fuites de mémoires potentielles.
+
+importe GlibC
+
+EntêteMémoire :: struct {
+    précédent : *EntêteMémoire = nul
+    suivant : *EntêteMémoire = nul
+    taille_bloc : z64 = 0
+    pos : PositionCodeSource
+    info : *InfoType
+}
+
+ListeEntête :: struct {
+    premier : *EntêteMémoire = nul
+    dernier : *EntêteMémoire = nul
+}
+
+enliste :: fonc (dyn liste : *ListeEntête, dyn entête : *EntêteMémoire) -> rien
+{
+    entête.suivant = nul
+    entête.précédent = liste.dernier
+
+    si liste.dernier != nul {
+        liste.dernier.suivant = entête
+    }
+
+    si liste.premier == nul {
+        liste.premier = entête
+    }
+
+    liste.dernier = entête
+}
+
+déliste :: fonc (dyn liste : *ListeEntête, dyn entête : *EntêteMémoire) -> rien
+{
+    si entête.suivant != nul {
+        entête.suivant.précédent = entête.précédent
+    }
+
+    si entête.précédent != nul {
+        entête.précédent.suivant = entête.suivant
+    }
+
+    si liste.dernier == entête {
+        liste.dernier = entête.précédent
+    }
+
+    si liste.premier == entête {
+        liste.premier = entête.suivant
+    }
+}
+
+AllocatriceGardée :: struct {
+    empl base : BaseAllocatrice
+
+    liste_entêtes : ListeEntête
+}
+
+allocation_gardée :: fonc(
+    dyn allocatrice: *AllocatriceGardée,
+    nouvelle_taille: z64,
+    pos: PositionCodeSource) -> *rien
+{
+    taille := nouvelle_taille + transtype(taille_de(EntêteMémoire): z64)
+
+    ptr := malloc(taille)
+
+    si ptr == nul {
+        retourne nul
+    }
+
+    dyn ptr_entête := transtype(ptr: *EntêteMémoire)
+    ptr_entête.taille_bloc = nouvelle_taille
+    ptr_entête.pos = pos
+
+    enliste(@allocatrice.liste_entêtes, ptr_entête)
+
+    ptr_z8 := transtype(ptr: *z8)
+
+    retourne ptr_z8 + taille_de(EntêteMémoire)
+}
+
+imprime_liste_entête :: fonc (alloc: *AllocatriceGardée) -> rien
+{
+    dyn entête := alloc.liste_entêtes.premier
+
+    printf("-------------------\n".pointeur)
+    printf("Erreur : des blocs de mémoire n'ont pas été délogés !\n".pointeur)
+
+    tantque entête != nul {
+        printf("-- entête\n".pointeur)
+        printf("---- taille bloc : %d\n".pointeur, entête.taille_bloc)
+        printf("---- fichier     : \"%s\"\n".pointeur, entête.pos.fichier.pointeur)
+        printf("---- fonction    : \"%s\"\n".pointeur, entête.pos.fonction.pointeur)
+        printf("---- ligne       : %d\n".pointeur, entête.pos.ligne)
+        printf("---- colonne     : %d\n".pointeur, entête.pos.colonne)
+        entête = entête.suivant
+    }
+}
+
+vérifie_si_liste_vide :: fonc (alloc: *AllocatriceGardée) -> bool
+{
+    dyn entête := alloc.liste_entêtes.premier
+
+    dyn nombre_blocs_non_libérés := 0
+    dyn taille_bloc_non_libérés : z64 = 0
+
+    tantque entête != nul {
+        nombre_blocs_non_libérés += 1
+        taille_bloc_non_libérés += entête.taille_bloc
+
+        entête = entête.suivant
+    }
+
+    si nombre_blocs_non_libérés != 0 {
+        //printf("-------------------\n".pointeur)
+        //printf("Erreur : des blocs de mémoire n'ont pas été délogés !\n".pointeur)
+        //printf("-- Nombre de blocs : %d\n".pointeur, nombre_blocs_non_libérés)
+        //printf("-- Taille          : %do\n".pointeur, taille_bloc_non_libérés)
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+allocatrice_gardée :: fonc(
+    mode : ModeAllocatrice,
+    nouvelle_taille : z64,
+    ancienne_taille : z64,
+    ancien_pointeur : *rien,
+    données : *BaseAllocatrice,
+    info : *InfoType,
+    pos : PositionCodeSource) -> *rien
+{
+    dyn alloc := transtype(données: *AllocatriceGardée)
+
+    discr mode {
+        ALLOUE {
+            retourne allocation_gardée(alloc, nouvelle_taille, pos)
+        }
+        RÉALLOUE {
+            si ancien_pointeur == nul {
+                retourne allocation_gardée(alloc, nouvelle_taille, pos)
+            }
+
+            ptr_z8 := transtype(ancien_pointeur: *z8)
+
+            ptr := ptr_z8 - taille_de(EntêteMémoire)
+
+            {
+                dyn ptr_entête := transtype(ptr: *EntêteMémoire)
+                déliste(@alloc.liste_entêtes, ptr_entête)
+            }
+
+            taille := nouvelle_taille + transtype(taille_de(EntêteMémoire): z64)
+
+            nptr := transtype(realloc(ptr, taille): *z8)
+
+            si nptr == nul {
+                retourne nul
+            }
+
+            {
+                dyn ptr_entête := transtype(ptr: *EntêteMémoire)
+                ptr_entête.taille_bloc = nouvelle_taille
+                ptr_entête.pos = pos
+                enliste(@alloc.liste_entêtes, ptr_entête)
+            }
+
+            retourne nptr + taille_de(EntêteMémoire)
+        }
+        DÉSALLOUE {
+            ptr := ancien_pointeur - taille_de(EntêteMémoire)
+
+            {
+                dyn ptr_entête := transtype(ptr: *EntêteMémoire)
+                déliste(@alloc.liste_entêtes, ptr_entête)
+            }
+
+            free(ptr)
+            retourne nul
+        }
+    }
+
+    retourne nul
+}
