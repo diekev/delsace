@@ -29,26 +29,11 @@ set(BIBLIOTHEQUES
 )
 
 set(ENTETES
-    allocators/affix_allocator.h
-    allocators/bitmapped_block.h
-    allocators/bucketizer.h
-    allocators/cascade_allocator.h
-    allocators/freelist.h
-    allocators/mallocator.h
-    allocators/null_allocator.h
-    allocators/stack_allocator.h
-    allocators/stats_allocator.h
-    composers/fallback_allocator.h
-    composers/segregator.h
-    allocator.h
-    block.h
-    guard.h
 	logeuse_gardee.hh
 	logeuse_memoire.hh
 )
 
 set(SOURCES
-	#main.cc
 	logeuse_gardee.cc
 	logeuse_memoire.cc
 )
