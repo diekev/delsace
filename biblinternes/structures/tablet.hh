@@ -28,93 +28,133 @@
 
 namespace dls {
 
-template <typename T, size_t N>
-struct tablet {
-	using iterateur = T*;
-	using iterateur_const = T const *;
+template <class T, unsigned long TAILLE_INITIALE>
+class tablet {
+	T*  m_memoire{};
+	T   m_tablet[TAILLE_INITIALE];
 
-private:
-	T m_donnees[N];
-	long m_taille = 0;
-
-	tableau<T> m_tabl{};
+	long m_alloue{};
+	long m_taille{};
 
 public:
-	tablet() = default;
-
-	void pousse(T const &valeur)
+	tablet()
 	{
-		if (taille() < static_cast<long>(N)) {
-			m_donnees[taille()] = valeur;
-		}
-		else if (taille() == static_cast<long>(N)) {
-			m_tabl.reserve(static_cast<long>(N) + 1);
-
-			for (auto const &v : m_donnees) {
-				m_tabl.pousse(v);
-			}
-
-			m_tabl.pousse(valeur);
-		}
-		else {
-			m_tabl.pousse(valeur);
-		}
-
-		m_taille += 1;
+		m_memoire = m_tablet;
+		m_alloue = static_cast<long>(TAILLE_INITIALE);
+		m_taille = 0;
 	}
 
-	void pousse(T &&valeur)
+	tablet(const tablet &) = delete;
+	tablet &operator=(const tablet &) = delete;
+
+	tablet(tablet &&) = default;
+	tablet &operator=(tablet &&) = default;
+
+	~tablet()
 	{
-		if (taille() < static_cast<long>(N)) {
-			m_donnees[taille()] = valeur;
+		if (m_memoire != m_tablet) {
+			memoire::deloge_tableau("tablet", m_memoire, m_alloue);
 		}
-		else if (taille() == static_cast<long>(N)) {
-			m_tabl.reserve(static_cast<long>(N) + 1);
+	}
 
-			for (auto const &v : m_donnees) {
-				m_tabl.pousse(v);
-			}
+	void efface()
+	{
+		m_taille = 0;
+	}
 
-			m_tabl.pousse(valeur);
-		}
-		else {
-			m_tabl.pousse(valeur);
-		}
+	void pousse(T t)
+	{
+		assert(m_taille < std::numeric_limits<long>::max());
+		garantie_capacite(m_taille + 1);
+		m_memoire[m_taille++] = t;
+	}
 
-		m_taille += 1;
+	bool est_vide() const
+	{
+		return m_taille == 0;
+	}
+
+	T &operator[](long i)
+	{
+		assert(i>= 0 && i < m_taille);
+		return m_memoire[i];
+	}
+
+	const T &operator[](long i) const
+	{
+		assert(i>= 0 && i < m_taille);
+		return m_memoire[i];
 	}
 
 	long taille() const
 	{
+		assert(m_taille >= 0);
 		return m_taille;
 	}
 
-	iterateur begin()
+	long capacite() const
 	{
-		if (taille() <= static_cast<long>(N)) {
-			return &m_donnees[0];
+		assert(m_alloue >= static_cast<long>(TAILLE_INITIALE));
+		return m_alloue;
+	}
+
+	const T *donnees() const
+	{
+		assert(m_memoire);
+		return m_memoire;
+	}
+
+	T *donnees()
+	{
+		assert(m_memoire);
+		return m_memoire;
+	}
+
+	T *begin()
+	{
+		return &m_memoire[0];
+	}
+
+	T const *begin() const
+	{
+		return &m_memoire[0];
+	}
+
+	T *end()
+	{
+		return this->begin() + m_taille;
+	}
+
+	T const *end() const
+	{
+		return this->begin() + m_taille;
+	}
+
+private:
+	void garantie_capacite(long cap)
+	{
+		assert(cap > 0);
+
+		if (cap <= m_alloue) {
+			return;
 		}
 
-		return &m_tabl[0];
-	}
+		assert(cap <= std::numeric_limits<long>::max() / 2);
 
-	iterateur_const begin() const
-	{
-		if (taille() <= static_cast<long>(N)) {
-			return &m_donnees[0];
+		auto nouvelle_capacite = cap * 2;
+
+		if (m_memoire != m_tablet) {
+			memoire::reloge_tableau("tablet", m_memoire, m_alloue, nouvelle_capacite);
+		}
+		else {
+			m_memoire = memoire::loge_tableau<T>("tablet", nouvelle_capacite);
+
+			for (int i = 0; i < m_taille; ++i) {
+				m_memoire[i] = m_tablet[i];
+			}
 		}
 
-		return &m_tabl[0];
-	}
-
-	iterateur fin()
-	{
-		return begin() + taille();
-	}
-
-	iterateur_const fin() const
-	{
-		return begin() + taille();
+		m_alloue = nouvelle_capacite;
 	}
 };
 
