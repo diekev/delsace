@@ -3132,8 +3132,6 @@ void genere_code_C(
 
 	dls::flux_chaine os;
 
-	auto generatrice = GeneratriceCodeC(contexte, os);
-
 	auto temps_generation = 0.0;
 
 	auto &graphe_dependance = contexte.graphe_dependance;
