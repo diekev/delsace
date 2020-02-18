@@ -3151,13 +3151,12 @@ void genere_code_C(
 
 	os << "int main(int argc, char **argv)\n";
 	os << "{\n";
-	os << "    KtKPKsz8 tabl_args;\n";
-	os << "    tabl_args.pointeur = argv;\n";
-	os << "    tabl_args.taille = argc;\n";
+	os << "    __ARGV = argv;\n";
+	os << "    __ARGC = argc;\n";
 
 	genere_code_creation_contexte(contexte, os);
 
-	os << "    return principale(contexte, tabl_args);";
+	os << "    return principale(contexte);";
 	os << "}\n";
 
 	temps_generation += debut_generation.temps();

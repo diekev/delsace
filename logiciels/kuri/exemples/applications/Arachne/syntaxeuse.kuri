@@ -333,7 +333,7 @@ analyse_requête :: fonc(dyn syntaxeuse : &Syntaxeuse) -> Résultat
 	retourne résultat
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     expressions := [
         "(moi) -[:AMI]-> (mesAmis) -[:AMI]-> (amisDeMesAmis)",

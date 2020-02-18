@@ -33,7 +33,7 @@ boucle_avec_tableau :: fonc(tableau : [10]z32) -> rien
 	imprime('\n');
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
 	boucle_avec_plage();
 

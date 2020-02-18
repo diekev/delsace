@@ -200,7 +200,7 @@ trouve_noeud :: fonc(arachné : &Arachné, nom_colonne : chaine, valeur : z32) -
 // CRÉE TYPE nom ()
 // CHERCHE (n : TYPE {})
 // CRÉE NOEUD
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
 	dyn arachné : Arachné
 

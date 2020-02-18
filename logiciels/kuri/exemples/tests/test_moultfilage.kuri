@@ -102,7 +102,7 @@ nombre_threads_système :: fonc () -> z64
     retourne sysconf(ValeurSysConf._SC_NPROCESSORS_ONLN)
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     imprime("Il y a sur le système % threads\n", nombre_threads_système());
 

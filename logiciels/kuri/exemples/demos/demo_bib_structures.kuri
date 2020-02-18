@@ -58,7 +58,7 @@ test_file :: fonc() -> rien
     }
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     imprime_sans_format("Il y a ", args.taille, " arguments :\n")
 

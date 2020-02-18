@@ -43,7 +43,7 @@ test_alloc_tableau :: fonc() -> rien
     imprime_sans_format("tableau délogé : ", tabl.pointeur, '\n')
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     test_alloc_scalaire()
     test_alloc_chaine()

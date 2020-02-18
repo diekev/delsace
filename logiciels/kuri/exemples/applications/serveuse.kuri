@@ -152,7 +152,7 @@ démarre :: fonc(dyn serveuse : &Serveuse) -> rien
 //###############################################################################
 
 // commentaire
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     dyn serveuse : Serveuse
     construit_serveuse(serveuse, transtype(5009 : n16))

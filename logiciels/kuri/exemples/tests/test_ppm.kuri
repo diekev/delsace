@@ -513,7 +513,7 @@ test_jpeg :: fonc() -> rien
 
 //####################
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     image := génére_image_noire();
     ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);

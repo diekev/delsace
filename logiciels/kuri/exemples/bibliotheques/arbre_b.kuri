@@ -739,7 +739,7 @@ supprime_et_traverse :: fonc(arbre: *ArbreB, clé: z32) -> rien
     imprime_sans_format("\n")
 }
 
-principale :: fonc(args : []*z8) : z32
+principale :: fonc () : z32
 {
     diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 

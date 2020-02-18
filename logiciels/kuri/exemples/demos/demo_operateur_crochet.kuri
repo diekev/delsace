@@ -15,7 +15,7 @@ hex_depuis_char :: fonc(hex : z8) -> z8
     retourne "0123456789ABCDEF"[hex]
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     dyn y : [2]z32
     y[0] = 12389

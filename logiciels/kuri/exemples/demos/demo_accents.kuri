@@ -19,7 +19,7 @@ prend_énum :: fonc(lumière : Énumération) -> rien
     imprime_sans_format("Valeur passée : ", lumière, '\n')
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     début := 0
     fin := 9

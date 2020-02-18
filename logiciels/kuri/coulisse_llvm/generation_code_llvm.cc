@@ -70,6 +70,7 @@ using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
  * - ajourne les infos types pour séparer les tableaux fixes des dynamiques
  * - construction de PositionSourceCode
  * - BaseAllocatrice
+ * - __ARGC, __ARGV
  */
 
 /* ************************************************************************** */

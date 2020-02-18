@@ -4,7 +4,7 @@ importe Fondation
 
 //###############################################################################
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
 	diffère {
 	    imprime_sans_format("Fin du programme, mémoire utilisée : ", mémoire_utilisée(), "o\n")

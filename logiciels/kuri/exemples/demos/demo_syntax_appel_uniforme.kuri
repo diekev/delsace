@@ -5,7 +5,7 @@ ajoute :: fonc(a : z32, b : z32) -> z32
     retourne a + b
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     x := 1
     y := 2

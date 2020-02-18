@@ -20,7 +20,7 @@ vérifie_égalité :: fonc(a : bool, b : bool) -> rien
     imprime("Les valeurs ne sont pas égales '", a, "' et '", b, "'\n")
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
 	{
 		uri := construit_uri("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top")

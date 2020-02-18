@@ -10,7 +10,7 @@ incrémente_compteur :: fonc() -> rien
     ctx.compteur += 1
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     imprime_compteur()
     incrémente_compteur()

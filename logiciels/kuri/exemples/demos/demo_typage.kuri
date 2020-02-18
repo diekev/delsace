@@ -26,7 +26,7 @@ ajoute :: fonc(a : $T, b : $T) -> $T
     retourne a + b
 }
 
-principale :: fonc(args : []*z8) -> type_de(N)
+principale :: fonc () -> type_de(N)
 {
     x := 5.0
     dyn y : type_de(x)

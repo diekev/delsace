@@ -66,7 +66,7 @@ est_type_attribut_valide :: fonc(dyn type : TypeAttribut) -> bool
     retourne nombre_bits == 1
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
 	diffère { imprime("\nMémoire utilisée : %o\n", mémoire_utilisée()) }
 

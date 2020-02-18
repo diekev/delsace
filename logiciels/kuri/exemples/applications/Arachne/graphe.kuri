@@ -423,7 +423,7 @@ ajoute_relation :: fonc(
 
 //################################################################################
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
 	dyn graphe : Graphe
 	diffère { supprime_graphe(graphe); }

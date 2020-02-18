@@ -855,7 +855,7 @@ imprime_arbre :: fonc(racine : *NoeudSyntaxique, tab : z32) -> rien
 	}
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
 	diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), " o\n") }
     script := "a = ((5 + 8) * 12) * foo(3);"

@@ -21,7 +21,7 @@ foo :: fonc(dyn a : &z32) -> rien
     b = tmp
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     dyn a := 5
     imprime_sans_format("a = ", a, '\n')

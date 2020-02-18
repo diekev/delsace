@@ -418,6 +418,33 @@ tableau_supprime :: fonc(dyn tabl: *[]$T, index: z32) -> rien
 	mémoire(tabl) = tmp
 }
 
+// --------------------------------
+
+__ARGV : **z8 = nul
+__ARGC := 0
+
+arguments_ligne_commande :: fonc () -> []chaine
+{
+    dyn tabl_args : []chaine
+
+    si __ARGC == 0 {
+        retourne tabl_args
+    }
+
+    dyn nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    pousse_contexte nouveau_contexte {
+        tabl_args = loge [__ARGC]chaine
+
+        pour idx dans 0 ... __ARGC - 1 {
+            tabl_args[idx] = converti_chaine_c(__ARGV[idx])
+        }
+
+        retourne tabl_args
+    }
+}
+
 /*
 avorte_dépassement_limites_tableau :: fonc (
     taille: z64,

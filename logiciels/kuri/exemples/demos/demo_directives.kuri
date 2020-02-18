@@ -13,7 +13,7 @@ importe "flux"
 #finsi
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     imprime_sans_format("Système d'exploitation : ", sysexp(), '\n')
     retourne 0

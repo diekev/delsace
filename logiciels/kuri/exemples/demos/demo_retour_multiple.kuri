@@ -152,7 +152,7 @@ test_coro_ret_moult :: fonc() -> rien
 
 //##############################################################################
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     test_fonction_ret_simple()
     test_ptr_fonction_ret_simple()

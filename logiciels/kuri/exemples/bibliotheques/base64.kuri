@@ -150,7 +150,7 @@ décode_pour_url :: fonc(chn: chaine) -> chaine
 
 //#######################################
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 

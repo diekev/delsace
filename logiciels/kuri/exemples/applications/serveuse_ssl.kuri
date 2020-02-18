@@ -143,7 +143,7 @@ Servlet :: fonc(ssl: *ssl_st) -> rien
 
 //###############################################################################
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     si !isRoot() {
         imprime_sans_format("This program must be run as root/sudo user!!\n")

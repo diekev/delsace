@@ -27,7 +27,7 @@ iter_liste_noeud :: corout(noeud : *r32) -> *r32
     }
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     pour j, i dans découpe("Texte d'exemple où les mots sont coupés", ' ') {
         imprime_sans_format("Mot (", i, ") : ", j, '\n')

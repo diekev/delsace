@@ -1,6 +1,6 @@
 importe "flux"
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
 	diffère {
 	    imprime_sans_format("Mémoire utilisée : ", mémoire_utilisée(), "\n")

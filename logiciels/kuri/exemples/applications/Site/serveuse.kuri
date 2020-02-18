@@ -503,7 +503,7 @@ signal :: fonc externe (numéro_signal: z32, rappel: #nulctx fonc(z32)(rien)) ->
 _SIGINT := 2
 
 // commentaire
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     contexte.logueur = mon_impression_log
 

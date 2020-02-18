@@ -16,7 +16,7 @@ Normal :: énum z32 {
     FE
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     dyn drapeau : Drapeau
 

@@ -13,7 +13,7 @@ importe SysFichier
 crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 {
 	chaines := [
-		"principale :: fonc(args : []*z8) -> z32\n",
+		"principale :: fonc () -> z32\n",
 		"{\n",
 		"\tdyn a := 1\n",
 		"\tdyn b := 2\n",
@@ -59,7 +59,7 @@ crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 	déloge chaine_reponse
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
 	crée_test(20_000, "/tmp/test_20_000_lignes.kuri")
 	crée_test(100_000, "/tmp/test_100_000_lignes.kuri")

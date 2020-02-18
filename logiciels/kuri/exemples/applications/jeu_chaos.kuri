@@ -108,7 +108,7 @@ dessine_bmp :: fonc(
 
 //#######################################################################
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
 	monde := Rectangle2D{ gauche = 0.0, bas = 0.0, haut = 800.0, droite = 800.0 };
 

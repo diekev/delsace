@@ -134,7 +134,7 @@ nombre_aléatoire :: fonc () -> z32
     retourne rand() % 10
 }
 
-principale :: fonc (args : []*z8) : z32
+principale :: fonc () : z32
 {
     {
         dyn v := valeur_monétaire_depuis_unités(100)

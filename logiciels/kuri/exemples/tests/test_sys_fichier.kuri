@@ -38,7 +38,7 @@ test_itération_dossier :: fonc() -> rien
     }
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     chm := construit_chemin("/home/kevin/test_parcer.cc")
     contenu := contenu_fichier_texte(chm)

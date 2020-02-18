@@ -15,7 +15,7 @@ imprime_films :: fonc (fmt: chaine, args: ...chaine) -> rien
     }
 }
 
-principale :: fonc (args : []*z8) : z32
+principale :: fonc () : z32
 {
     imprime("% % % % %\n", "test", 1, 2, 3, 4)
 

@@ -148,7 +148,7 @@ test_fichier :: fonc() -> rien
     }
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     imprime_sans_format("=========================================\n");
     imprime_sans_format("                arguments                \n");

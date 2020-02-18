@@ -11,7 +11,7 @@ ajoute :: fonc(a : n64, b : n64) -> n64
 	retourne a + b;
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
 	x := transtype(18014398509481984 : n64);
 	y := ajoute(x, x);

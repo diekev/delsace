@@ -20,7 +20,7 @@ foo :: fonc(args : chaine) -> z32
     retourne 0
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     dyn t : TEST
     t.fonction = foo

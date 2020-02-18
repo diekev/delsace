@@ -20,7 +20,7 @@ modifie_test :: fonc(dyn empl test : *TEST) -> rien
     z = 135.75
 }
 
-principale :: fonc(args : []*z8) -> z32
+principale :: fonc () -> z32
 {
     test : TEST
     imprime_test(test)
