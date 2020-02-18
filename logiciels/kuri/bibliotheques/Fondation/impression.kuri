@@ -278,10 +278,10 @@ FormatEntier :: struct {
     ajoute_zéros_début := faux
     nombre_zéros := 0
     base := 10
-	séparation := 3
+	séparation := 0
 }
 
-formatte_entier :: fonc (valeur: eini, ajoute_zéros_début := faux, nombre_zéros := 0, base := 10, séparation := 3) -> FormatEntier
+formatte_entier :: fonc (valeur: eini, ajoute_zéros_début := faux, nombre_zéros := 0, base := 10, séparation := 0) -> FormatEntier
 {
     retourne FormatEntier{
         valeur = valeur,
