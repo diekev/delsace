@@ -222,8 +222,8 @@ obtiens_marque_stockage_temporaire :: fonc () -> z32
 
 set_marque_stockage_temporaire :: fonc (marque: z32) -> rien
 {
-    assert(marque >= 0)
-    assert(marque < contexte.stockage_temporaire.taille)
+    //assert(marque >= 0)
+    //assert(marque < contexte.stockage_temporaire.taille)
     contexte.stockage_temporaire.occupé = marque
 }
 
