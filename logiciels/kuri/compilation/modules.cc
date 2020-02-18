@@ -573,8 +573,6 @@ static DonneesCandidate verifie_donnees_fonction(
 			/* il est possible que le type final ne soit pas encore résolu car
 			 * la déclaration de la candidate n'a pas encore été validée */
 			if (!est_invalide(type_arg.plage())) {
-				std::cerr << "cherche transformation entre "
-						  << chaine_type(contexte.typeuse[index_type_arg], contexte) << " et " << chaine_type(contexte.typeuse[index_type_enf], contexte) << '\n';
 				auto poids_pour_enfant = verifie_compatibilite(contexte, index_type_arg, index_type_enf, slot, transformation);
 
 				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
