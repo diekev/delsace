@@ -417,3 +417,43 @@ tableau_supprime :: fonc(dyn tabl: *[]$T, index: z32) -> rien
 
 	mémoire(tabl) = tmp
 }
+
+/*
+avorte_dépassement_limites_tableau :: fonc (
+    taille: z64,
+    index: z64,
+    pos : PositionCodeSource) -> rien
+{
+    imprime("%:%\n", pos.fichier, pos.ligne)
+    imprime("Dépassements des limites du tableau !\n")
+    imprime("La taille est de % mais l'index est de %\n", taille, index)
+    abort()
+}
+
+avorte_dépassement_limites_chaine :: fonc (
+    taille: z64,
+    index: z64,
+    pos : PositionCodeSource) -> rien
+{
+    imprime("%:%\n", pos.fichier, pos.ligne)
+    imprime("Dépassements des limites de la chaine !\n")
+    imprime("La taille est de % mais l'index est de %\n", taille, index)
+    abort()
+}
+
+avorte_hors_mémoire :: fonc (
+    pos : PositionCodeSource) -> rien
+{
+    imprime("%:%\n", pos.fichier, pos.ligne)
+    imprime("Impossible d'allouer de la mémoire !\n")
+    abort()
+}
+
+avorte_accès_union :: fonc (
+    pos : PositionCodeSource) -> rien
+{
+    imprime("%:%\n", pos.fichier, pos.ligne)
+    imprime("Impossible d'accèder au membre de l'union car il n'est pas actif !\n")
+    abort()
+}
+*/
