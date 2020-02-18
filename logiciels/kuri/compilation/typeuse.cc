@@ -298,6 +298,7 @@ void Typeuse::initialise_relations_pour_type(const DonneesTypeFinal &dt, long i)
 
 		operateurs.ajoute_basique(GenreLexeme::PLUS, i, idx_type_entier, i, indice, raison);
 		operateurs.ajoute_basique(GenreLexeme::MOINS, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::MOINS, i, i, i, indice, raison);
 		operateurs.ajoute_basique(GenreLexeme::PLUS_EGAL, i, idx_type_entier, i, indice, raison);
 		operateurs.ajoute_basique(GenreLexeme::MOINS_EGAL, i, idx_type_entier, i, indice, raison);
 
