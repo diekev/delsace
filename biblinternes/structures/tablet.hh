@@ -130,6 +130,13 @@ public:
 		return this->begin() + m_taille;
 	}
 
+	T defile()
+	{
+		auto t = m_memoire[m_taille - 1];
+		m_taille -= 1;
+		return t;
+	}
+
 private:
 	void garantie_capacite(long cap)
 	{
