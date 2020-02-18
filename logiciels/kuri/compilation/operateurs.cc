@@ -365,13 +365,13 @@ static double verifie_compatibilite(
 	return 0.5;
 }
 
-dls::tableau<OperateurCandidat> cherche_candidats_operateurs(
+dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		ContexteGenerationCode const &contexte,
 		long index_type1,
 		long index_type2,
 		GenreLexeme type_op)
 {
-	auto op_candidats = dls::tableau<DonneesOperateur const *>();
+	auto op_candidats = dls::tablet<DonneesOperateur const *, 10>();
 
 	for (auto const &op : contexte.operateurs.trouve(type_op)) {
 		if (op->index_type1 == index_type1 && op->index_type2 == index_type2) {
@@ -388,7 +388,7 @@ dls::tableau<OperateurCandidat> cherche_candidats_operateurs(
 		}
 	}
 
-	auto candidats = dls::tableau<OperateurCandidat>();
+	auto candidats = dls::tablet<OperateurCandidat, 10>();
 
 	for (auto const op : op_candidats) {
 		auto seq1 = TransformationType{};

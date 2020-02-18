@@ -28,6 +28,7 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
+#include "biblinternes/structures/tablet.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -118,10 +119,12 @@ struct OperateurCandidat {
 	double poids = 0.0;
 	bool inverse_operandes = false;
 
+	OperateurCandidat() = default;
+
 	COPIE_CONSTRUCT(OperateurCandidat);
 };
 
-dls::tableau<OperateurCandidat> cherche_candidats_operateurs(
+dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		ContexteGenerationCode const &contexte,
 		long index_type1,
 		long index_type2,
