@@ -769,3 +769,16 @@ imprime_log :: fonc (mode: ModeLogage, ident: chaine, format: chaine, args: ...e
     log(message, ident, mode, contexte.données_logueur)
 	déloge message
 }
+
+// --------------------------
+
+// À FAIRE : trouve une manière de trouver la chaine de l'expression
+assert :: fonc (expr: bool, pos := PositionCodeSource{}) -> rien
+{
+    si expr {
+        retourne
+    }
+
+    imprime("%:% : l'assertion a échoué !\n", pos.fichier, pos.ligne)
+    abort()
+}

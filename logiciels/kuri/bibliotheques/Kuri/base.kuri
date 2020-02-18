@@ -1,5 +1,9 @@
 charge "infos_types"
 
+malloc :: fonc externe (taille : z64) -> *rien
+realloc :: fonc externe (ptr : *rien, taille : z64) -> *rien
+free :: fonc externe (ptr : *rien) -> rien
+
 // Ce fichier est utiliser pour définir des variables et fonctions de
 // bases (« connus par le compilateur ») que tous les modules doivent importer.
 // Ceci nous évite d'avoir à manuellement spécifier ces choses dans le
@@ -25,10 +29,6 @@ PositionCodeSource :: struct {
 }
 
 // --------------------------
-
-malloc :: fonc externe (taille : z64) -> *rien
-realloc :: fonc externe (ptr : *rien, taille : z64) -> *rien
-free :: fonc externe (ptr : *rien) -> rien
 
 ModeAllocatrice :: énum z32 {
     ALLOUE
@@ -222,9 +222,8 @@ obtiens_marque_stockage_temporaire :: fonc () -> z32
 
 set_marque_stockage_temporaire :: fonc (marque: z32) -> rien
 {
-    // À FAIRE(assert)
-    // assert(marque >= 0)
-    // assert(marque < contexte.stockage_temporaire.taille)
+    assert(marque >= 0)
+    assert(marque < contexte.stockage_temporaire.taille)
     contexte.stockage_temporaire.occupé = marque
 }
 

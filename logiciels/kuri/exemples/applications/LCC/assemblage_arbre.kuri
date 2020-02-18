@@ -161,6 +161,6 @@ crée_noeud :: fonc(
 
 dépile_noeud :: fonc(dyn assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien
 {
-	// assert(assembleuse.pile.haut().type == type_noeud)
+	assert(assembleuse.pile.haut().type == type_noeud)
 	assembleuse.pile.dépile()
 }

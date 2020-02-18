@@ -85,7 +85,7 @@ ajoute_fréquence :: fonc(
 
     données.redimensionne(taille + nombre_échantillons - 1);
 
-    //assert(taille != 0);
+    assert(taille != 0);
 
     t := (math.TAU * fréquence) / (génératrice.format.échantillons_secondes * génératrice.format.nombre_cannaux);
 
@@ -95,11 +95,11 @@ ajoute_fréquence :: fonc(
         }
     }
 
-    //assert(taille != 0);
+    assert(taille != 0);
 
     génératrice.données.taille_chunk = données.taille * (génératrice.format.bits_par_échantillons / 8);
 
-    //assert(génératrice.données.taille_chunk != 0);
+    assert(génératrice.données.taille_chunk != 0);
 }
 
 sauvegarde :: fonc(génératrice : &GénératriceWave, chemin : chaine)

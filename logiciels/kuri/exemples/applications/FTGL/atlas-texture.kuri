@@ -24,8 +24,7 @@ crée_atlas_texture :: fonc (largeur : n64, hauteur : n64, profondeur : n64) -> 
 {
 	dyn atlas := loge AtlasTexture
 
-	// À FAIRE(assert)
-	//assert((profondeur == 1) || (profondeur == 3) || (profondeur == 4))
+	assert((profondeur == 1) || (profondeur == 3) || (profondeur == 4))
 
 	/*
 	si atlas == nul {
@@ -61,8 +60,7 @@ crée_atlas_texture :: fonc (largeur : n64, hauteur : n64, profondeur : n64) -> 
 // Deletes a texture atlas.
 détruit_atlas :: fonc (atlas : *AtlasTexture) -> rien
 {
-	// À FAIRE(assert)
-	// assert(atlas != nul)
+	assert(atlas != nul)
 
 	déloge atlas.noeuds
 	déloge atlas.données
@@ -72,15 +70,14 @@ détruit_atlas :: fonc (atlas : *AtlasTexture) -> rien
 // Upload données to the specified atlas region.
 texture_atlas_set_region :: fonc (atlas : *AtlasTexture, x : n64, y : n64, largeur : n64, hauteur : n64, données : *n8, stride : n64) -> rien
 {
-	// À FAIRE(assert)
-	//assert(atlas != nul)
-	//assert(x > 0)
-	//assert(y > 0)
-	//assert(x < (atlas.largeur - 1))
-	//assert((x + largeur) <= (atlas.largeur - 1))
-	//assert(y < (atlas.hauteur - 1))
-	//assert((y + hauteur) <= (atlas.hauteur - 1))
-	//assert(hauteur == 0 || (données != (transtype(0 : *rien)) && largeur > 0))
+	assert(atlas != nul)
+	assert(x > 0)
+	assert(y > 0)
+	assert(x < (atlas.largeur - 1))
+	assert((x + largeur) <= (atlas.largeur - 1))
+	assert(y < (atlas.hauteur - 1))
+	assert((y + hauteur) <= (atlas.hauteur - 1))
+	assert(hauteur == 0 || (données != (transtype(0 : *rien)) && largeur > 0))
 
 	profondeur := atlas.profondeur
 	charsize := taille_de(z8)
@@ -96,8 +93,7 @@ texture_atlas_set_region :: fonc (atlas : *AtlasTexture, x : n64, y : n64, large
 // ------------------------------------------------------ texture_atlas_fit ---
 texture_atlas_fit :: fonc (atlas : *AtlasTexture, index : n64, largeur : n64, hauteur : n64) -> z32
 {
-	// À FAIRE(assert)
-	//assert(atlas != nul)
+	assert(atlas != nul)
 
 	dyn noeud := atlas.noeuds[index]
 	dyn x := noeud.x
@@ -131,8 +127,7 @@ texture_atlas_fit :: fonc (atlas : *AtlasTexture, index : n64, largeur : n64, ha
 // ---------------------------------------------------- texture_atlas_merge ---
 texture_atlas_merge :: fonc (dyn atlas : *AtlasTexture) -> rien
 {
-	// À FAIRE(assert)
-	//assert(atlas != nul)
+	assert(atlas != nul)
 
 	dyn i := 0
 
@@ -159,8 +154,7 @@ texture_atlas_get_region :: fonc (dyn atlas : *AtlasTexture, largeur : n64, haut
 {
 	dyn region := Vec4z{ x = 0, y = 0, z = largeur, w = hauteur }
 
-	// À FAIRE(assert)
-	//assert(atlas != nul)
+	assert(atlas != nul)
 
 	dyn best_hauteur := transtype(2147483647 * 2 + 1: n64)
 	dyn best_index := -1
@@ -229,9 +223,8 @@ texture_atlas_get_region :: fonc (dyn atlas : *AtlasTexture, largeur : n64, haut
 // Remove all allocated regions from the atlas.
 texture_atlas_clear :: fonc (dyn atlas : *AtlasTexture) -> rien
 {
-	// À FAIRE(assert)
-	//assert(atlas != nul)
-	//assert(atlas.données != nul)
+	assert(atlas != nul)
+	assert(atlas.données != nul)
 
 	déloge atlas.noeuds
 	atlas.utilisé = transtype(0: n64)

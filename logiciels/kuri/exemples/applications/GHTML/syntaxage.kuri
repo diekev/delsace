@@ -116,7 +116,7 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 		syntaxeuse.analyse_pour()
 	}
 	sinon si (syntaxeuse.est_lexème(TypeLexème.SINON)) {
-		// assert(syntaxeuse.assembleuse.noued_courant() == 'SI')
+		assert(syntaxeuse.assembleuse.noued_courant() == 'SI')
 		syntaxeuse.avance()
 
 		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {

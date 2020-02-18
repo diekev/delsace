@@ -251,7 +251,7 @@ ajoute_noeud :: fonc(
 	}
 
 	n.id = ++graphe.nombre_noeuds
-	// assert(n.id != 0)
+	assert(n.id != 0)
 
 	ajoute_propriete(n, nom, valeur)
 
@@ -287,7 +287,7 @@ ajoute_propriete :: fonc(
 	p.id_nom = transtype(graphe.noms_proprietes.ajoute_chaine(nom) : n32)
 	p.valeur = valeur
 	p.id = ++graphe.nombre_proprietes
-	// assert(p.id != 0)
+	assert(p.id != 0)
 
 	graphe.proprietes.pousse(p)
 
@@ -323,7 +323,7 @@ ajoute_etiquette :: fonc(
 	e.suivante = nul
 	e.id = ++graphe.nombre_etiquettes
 	e.id_nom = static_cast<unsigned>(graphe.nom_etiquettes.ajoute_chaine(nom))
-	// assert(e.id != 0)
+	assert(e.id != 0)
 
 	graphe.etiquettes.pousse(e)
 
@@ -361,7 +361,7 @@ ajoute_propriete :: fonc(
 	p.id_nom = transtype(graphe.noms_proprietes.ajoute_chaine(nom) : n32)
 	p.valeur = valeur
 	p.id = ++graphe.nombre_proprietes
-	// assert(p.id != 0)
+	assert(p.id != 0)
 
 	graphe.proprietes.pousse(p)
 
@@ -403,7 +403,7 @@ ajoute_relation :: fonc(
 	r.rel_suiv_debut = nul
 	r.rel_prev_fin = nul
 	r.rel_suiv_fin = nul
-	// assert(r.id != 0)
+	assert(r.id != 0)
 
 	si (!debut.relations.est_vide()) {
 		r.rel_prev_debut = debut.relations.back()

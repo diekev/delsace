@@ -85,15 +85,15 @@ détruit_polygone :: fonc (dyn poly: *Polygone) -> rien
 
 ajoute_point :: fonc (dyn poly: *Polygone, idx_point: z64, idx_sommet: z64) -> rien
 {
-	//assert(idx_point >= 0)
-	//assert(idx_sommet >= 0)
+	assert(idx_point >= 0)
+	assert(idx_sommet >= 0)
 	tableau_ajoute(@poly.points, idx_point)
 	tableau_ajoute(@poly.sommets, idx_sommet)
 }
 
 reserve_sommets :: fonc (dyn poly: *Polygone, nombre: z64) -> rien
 {
-	//assert(nombre >= 0)
+	assert(nombre >= 0)
 	tableau_ajoute(@poly.points, nombre)
 	tableau_ajoute(@poly.sommets, nombre)
 }
@@ -114,20 +114,20 @@ nombre_segments :: fonc (poly: *Polygone) -> z64
 
 index_point :: fonc (poly: *Polygone, i: z64) -> z64
 {
-	//assert(i >= 0 && i < m_idx_points.taille())
+	assert(i >= 0 && i < m_idx_points.taille())
 	retourne poly.points[i]
 }
 
 index_sommet :: fonc (poly: *Polygone, i: z64) -> z64
 {
-	//assert(i >= 0 && i < m_idx_sommets.taille())
+	assert(i >= 0 && i < m_idx_sommets.taille())
 	retourne poly.sommets[i]
 }
 
 ajourne_index :: fonc (dyn poly: *Polygone, i: z64, j: z64) -> rien
 {
-	//assert(i >= 0)
-	//assert(j >= 0)
+	assert(i >= 0)
+	assert(j >= 0)
 	poly.points[i] = j
 }
 
