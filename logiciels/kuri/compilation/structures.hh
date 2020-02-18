@@ -26,6 +26,7 @@
 
 #include "biblinternes/memoire/logeuse_gardee.hh"
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/vue_chaine_compacte.hh"
 
 /**
  * Ces structures sont les mêmes que celles définies par le langage (tableaux
@@ -46,6 +47,11 @@ struct chaine {
 
 	COPIE_CONSTRUCT(chaine);
 
+	chaine(dls::vue_chaine_compacte const &chn)
+		: pointeur(const_cast<char *>(chn.pointeur()))
+		, taille(chn.taille())
+	{}
+
 	char &operator[](long i)
 	{
 		assert(i >= 0 && i < this->taille);
@@ -56,6 +62,26 @@ struct chaine {
 	{
 		assert(i >= 0 && i < this->taille);
 		return this->pointeur[i];
+	}
+
+	char *begin()
+	{
+		return this->pointeur;
+	}
+
+	char const *begin() const
+	{
+		return this->pointeur;
+	}
+
+	char *end()
+	{
+		return this->begin() + this->taille;
+	}
+
+	char const *end() const
+	{
+		return this->begin() + this->taille;
 	}
 };
 
@@ -84,6 +110,38 @@ struct tableau {
 		assert(i >= 0 && i < this->taille);
 		return this->pointeur[i];
 	}
+
+	void pousse(T const &valeur)
+	{
+		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, this->taille + 1);
+		this->taille += 1;
+		this->pointeur[this->taille - 1] = valeur;
+	}
+
+	bool est_vide() const
+	{
+		return this->taille == 0;
+	}
+
+	T *begin()
+	{
+		return this->pointeur;
+	}
+
+	T const *begin() const
+	{
+		return this->pointeur;
+	}
+
+	T *end()
+	{
+		return this->begin() + this->taille;
+	}
+
+	T const *end() const
+	{
+		return this->begin() + this->taille;
+	}
 };
 
 template <typename T>
@@ -93,6 +151,6 @@ void pousse(tableau<T> *tabl, T valeur)
 	tabl->pointeur[tabl->taille - 1] = valeur;
 }
 
-#define POUR(x) for (int i = 0; i < (x).taille; ++i)
+#define POUR(x) for (auto &it : (x))
 
 }
