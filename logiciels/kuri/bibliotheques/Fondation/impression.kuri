@@ -278,15 +278,17 @@ FormatEntier :: struct {
     ajoute_zéros_début := faux
     nombre_zéros := 0
     base := 10
+	séparation := 3
 }
 
-formatte_entier :: fonc (valeur: eini, ajoute_zéros_début := faux, nombre_zéros := 0, base := 10) -> FormatEntier
+formatte_entier :: fonc (valeur: eini, ajoute_zéros_début := faux, nombre_zéros := 0, base := 10, séparation := 3) -> FormatEntier
 {
     retourne FormatEntier{
         valeur = valeur,
         ajoute_zéros_début = ajoute_zéros_début,
         nombre_zéros = nombre_zéros,
-        base = base
+        base = base,
+		séparation = séparation
     }
 }
 
@@ -316,7 +318,13 @@ imprime_n64_base_n :: fonc (dyn enchaineuse: *Enchaineuse, dyn v: n64, format: F
 		mémoire(début) = '0'
 	}
 
-	pour i dans 0 ... transtype(fin - début: z32) - 1 {
+	taille := transtype(fin - début: z32)
+
+	pour i dans 0 ... taille - 1 {
+		si format.séparation != 0 && i != 0 && ((taille - i) % format.séparation) == 0 {
+			ajoute_au_tampon(enchaineuse, ' ')
+		}
+
 		ajoute_au_tampon(enchaineuse, début[i])
 	}
 }
