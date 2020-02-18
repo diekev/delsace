@@ -321,8 +321,10 @@ imprime_n64_base_n :: fonc (dyn enchaineuse: *Enchaineuse, dyn v: n64, format: F
 	taille := transtype(fin - début: z32)
 
 	pour i dans 0 ... taille - 1 {
-		si format.séparation != 0 && i != 0 && ((taille - i) % format.séparation) == 0 {
-			ajoute_au_tampon(enchaineuse, ' ')
+		si format.séparation != 0 {
+			si i != 0 && ((taille - i) % format.séparation) == 0 {
+				ajoute_au_tampon(enchaineuse, ' ')
+			}
 		}
 
 		ajoute_au_tampon(enchaineuse, début[i])
