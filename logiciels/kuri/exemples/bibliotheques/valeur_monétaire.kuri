@@ -1,0 +1,200 @@
+importe Fondation
+
+ValeurMonnétaire :: struct {
+    quantité : z64 = 0
+}
+
+valeur_monétaire_depuis_centimes :: fonc (centimes: z64) -> ValeurMonnétaire
+{
+    retourne ValeurMonnétaire{ quantité = centimes * 100 }
+}
+
+valeur_monétaire_depuis_unités :: fonc (unités: z64) -> ValeurMonnétaire
+{
+    retourne ValeurMonnétaire{ quantité = unités * 10000 }
+}
+
+valeur_monétaire_depuis_unités_centimes :: fonc (unités: z64, centimes: z64) -> ValeurMonnétaire
+{
+    retourne ValeurMonnétaire{ quantité = unités * 10000 + centimes * 100 }
+}
+
+// opérateur +
+ajoute :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> ValeurMonnétaire
+{
+    dyn résultat : ValeurMonnétaire
+    résultat.quantité = v1.quantité + v2.quantité
+    retourne résultat
+}
+
+// opérateur -
+soustrait :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> ValeurMonnétaire
+{
+    dyn résultat : ValeurMonnétaire
+    résultat.quantité = v1.quantité - v2.quantité
+    retourne résultat
+}
+
+// opérateur *
+multiplie :: fonc (v1 : ValeurMonnétaire, v2 : z64) -> ValeurMonnétaire
+{
+    dyn résultat : ValeurMonnétaire
+    résultat.quantité = v1.quantité * v2
+    retourne résultat
+}
+
+// opérateur /
+divise :: fonc (v1 : ValeurMonnétaire, v2 : z64) -> ValeurMonnétaire
+{
+    dyn résultat : ValeurMonnétaire
+    résultat.quantité = v1.quantité / v2
+    retourne résultat
+}
+
+// opérateur >
+est_plus_grand :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
+{
+    retourne v1.quantité > v2.quantité
+}
+
+// opérateur <
+est_plus_petit :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
+{
+    retourne v1.quantité < v2.quantité
+}
+
+// opérateur ==
+est_égal :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
+{
+    retourne v1.quantité == v2.quantité
+}
+
+// opérateur !=
+est_différent :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
+{
+    retourne v1.quantité != v2.quantité
+}
+
+// opérateur >=
+est_plus_grand_ou_égal :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
+{
+    retourne v1.quantité >= v2.quantité
+}
+
+// opérateur <=
+est_plus_petit_ou_égal :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
+{
+    retourne v1.quantité <= v2.quantité
+}
+
+// Algorithme d'allocation d'une somme d'argent selon des ratios.
+// Le but de l'allocation est de distribution équitablement l'argent, en
+// prenant en compte les problèmes liés à l'indivisibilité d'une somme
+// (p.e. 1 centime ne peut être divisé), ou de perte d'argent due à des arrondis.
+// À FAIRE : l'algorithme ne prend pas en compte les sommes dont les unités
+// (p.e. 1 €) sont indivisibles. Ceci distribuera l'argent jusqu'au dix
+// millième d'unités.
+alloue :: fonc (v: ValeurMonnétaire, ratios: []z32) -> []ValeurMonnétaire
+{
+    dyn total := 0
+
+    pour r dans ratios {
+        total += r
+    }
+
+    dyn reste := v.quantité
+    dyn résultat := loge [ratios.taille]ValeurMonnétaire
+
+    pour r, i dans résultat {
+        r.quantité = v.quantité * ratios[i] / total
+        reste -= r.quantité
+    }
+
+    pour i dans transtype(0: z64) ... reste - 1 {
+        résultat[i].quantité += 1
+    }
+
+    retourne résultat
+}
+
+imprime_valeur_monétaire :: fonc (v: ValeurMonnétaire) -> rien
+{
+    unités := v.quantité / 10000
+    centimes := (v.quantité % 10000) / 100
+
+    imprime("valeur = %,%\n",
+        formatte_entier(unités, séparation = 3),
+        formatte_entier(centimes, ajoute_zéros_début = centimes < 10, nombre_zéros = 1))
+}
+
+rand :: fonc externe () -> z32
+
+nombre_aléatoire :: fonc () -> z32
+{
+    retourne rand() % 10
+}
+
+principale :: fonc (args : []*z8) : z32
+{
+    {
+        dyn v := valeur_monétaire_depuis_unités(100)
+
+        imprime_valeur_monétaire(v)
+
+        ratios := [1, 1, 1]
+
+        dyn allocations := alloue(v, ratios)
+
+        pour allocation dans allocations {
+            imprime_valeur_monétaire(allocation)
+        }
+
+        déloge allocations
+    }
+
+    // calcul d'une TVA pour l'abonnement
+    abonnement := valeur_monétaire_depuis_unités_centimes(4, 90)
+    imprime_valeur_monétaire(abonnement)
+
+    tva := divise(multiplie(abonnement, 20), 100)
+    imprime_valeur_monétaire(tva)
+
+    valeur_final := ajoute(abonnement, tva)
+    imprime_valeur_monétaire(valeur_final)
+
+    part := divise(abonnement, 2)
+
+    abonnements_totaux := 10_000_000
+    somme_total := multiplie(multiplie(abonnement, abonnements_totaux), 12)
+    somme_redistribuée := divise(somme_total, 2)
+
+    imprime_valeur_monétaire(somme_total)
+    imprime_valeur_monétaire(somme_redistribuée)
+
+    nombre_associations := 1234
+    dyn ratios := loge [nombre_associations]z32
+
+    pour r dans ratios {
+        r = nombre_aléatoire()
+    }
+
+    dyn allocations := alloue(somme_redistribuée, ratios)
+
+    dyn somme_allouée : z64
+
+    pour allocation, idx dans allocations {
+        si idx < 10 {
+            imprime_valeur_monétaire(allocation)
+        }
+
+        somme_allouée += allocation.quantité / 100 * 100
+    }
+
+    déloge ratios
+    déloge allocations
+
+    imprime("reste après allocation, ")
+    imprime_valeur_monétaire(ValeurMonnétaire{ quantité = somme_redistribuée.quantité - somme_allouée })
+
+    retourne 0
+}
