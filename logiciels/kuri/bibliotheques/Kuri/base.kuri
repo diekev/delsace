@@ -420,8 +420,10 @@ tableau_supprime :: fonc(dyn tabl: *[]$T, index: z32) -> rien
 
 // --------------------------------
 
-__ARGV : **z8 = nul
-__ARGC := 0
+externe __ARGV : **z8
+externe __ARGC : z32
+
+strlen :: fonc externe (str: *z8) -> z64
 
 arguments_ligne_commande :: fonc () -> []chaine
 {
@@ -438,7 +440,10 @@ arguments_ligne_commande :: fonc () -> []chaine
         tabl_args = loge [__ARGC]chaine
 
         pour idx dans 0 ... __ARGC - 1 {
-            tabl_args[idx] = converti_chaine_c(__ARGV[idx])
+            dyn chn : chaine
+            chn.pointeur = __ARGV[idx]
+            chn.taille = strlen(__ARGV[idx])
+            tabl_args[idx] = chn
         }
 
         retourne tabl_args
