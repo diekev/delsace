@@ -1261,6 +1261,10 @@ void genere_code_C(
 				variable = b;
 			}
 
+			if (dls::outils::possede_drapeau(variable->drapeaux, EST_EXTERNE)) {
+				return;
+			}
+
 			auto flux = dls::flux_chaine();
 			auto dt = contexte.typeuse[variable->index_type];
 
@@ -2991,6 +2995,8 @@ void KR__acces_membre_union(
 	os << "#define Kv ...\n\n";
 	os << "#define TAILLE_STOCKAGE_TEMPORAIRE 16384\n";
 	os << "static char DONNEES_STOCKAGE_TEMPORAIRE[TAILLE_STOCKAGE_TEMPORAIRE];\n\n";
+	os << "static int __ARGC = 0;\n";
+	os << "static const char **__ARGV = 0;\n\n";
 }
 
 static void ajoute_dependances_implicites(
