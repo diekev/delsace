@@ -30,6 +30,7 @@
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/tableau_simple_compact.hh"
+#include "biblinternes/structures/tablet.hh"
 
 #include "lexemes.hh"
 
@@ -109,8 +110,7 @@ class Type;
  */
 struct DonneesTypeFinal {
 private:
-	/* À FAIRE : type similaire à llvm::SmallVector. */
-	dls::tableau<GenreLexeme> m_donnees{};
+	dls::tablet<GenreLexeme, 5> m_donnees{};
 
 #ifdef AVEC_LLVM
 	llvm::Type *m_type{nullptr};
@@ -122,7 +122,7 @@ public:
 	dls::chaine ptr_info_type{};
 	dls::chaine nom_broye{};
 
-	using iterateur_const = dls::tableau<GenreLexeme>::const_iteratrice_inverse;
+	using iterateur_const = dls::tablet<GenreLexeme, 5>::const_reverse_iterator;
 
 	DonneesTypeFinal() = default;
 
