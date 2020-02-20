@@ -1,0 +1,109 @@
+
+#bib "X11"
+
+#inclus "X11/Xlib.h"
+
+Display :: struct externe;
+_XEvent :: union externe nonsûr {
+    type : z32
+}
+
+_XGC :: struct externe;
+
+// Window :: n64
+// Drawable :: n64
+
+DefaultGC :: fonc externe (ptr: *Display, s: z32) -> *_XGC
+XOpenDisplay :: fonc externe (ptr: *rien) -> *Display
+XCloseDisplay :: fonc externe (ptr: *Display) -> rien
+DefaultScreen :: fonc externe (ptr: *Display) -> z32
+
+XCreateSimpleWindow :: fonc externe(
+    display: *Display,
+    parent: n64,
+    x: z32,
+    y: z32,
+    largeur: n32,
+    hauteur: n32,
+    largeur_bordure: n32,
+    bordure: n64,
+    arrière_plan: n64) -> n64
+
+RootWindow :: fonc externe (display: *Display, parent: n64) -> n64
+BlackPixel :: fonc externe (ptr: *Display, s: z32) -> n64
+WhitePixel :: fonc externe (ptr: *Display, s: z32) -> n64
+XSelectInput :: fonc externe (ptr: *Display, w: n64, a: z64) -> z32
+XMapWindow :: fonc externe (ptr: *Display, w: n64) -> z32
+XNextEvent :: fonc externe (display: *Display, event: *_XEvent) -> z32
+
+XDrawString :: fonc externe (
+    display: *Display,
+    d: n64,
+    gc: *_XGC,
+    x: z32,
+    y: z32,
+    string: *z8,
+    longueur: z32) -> z32
+
+XFillRectangle :: fonc externe (
+    display: *Display,
+    d: n64,
+    gc: *_XGC,
+    x: z32,
+    y: z32,
+    largeur: z32,
+    hauteur: z32) -> z32
+
+// ----------------------------------------------------------------------------
+
+principale :: fonc () -> z32
+{
+	diffère {
+	    imprime_sans_format("Fin du programme, mémoire utilisée : ", mémoire_utilisée(), "o\n")
+	}
+
+    _ExposureMask := 1 << 15
+    _KeyPressMask := 1 << 0
+
+    _KeyPress := 2
+    _Expose := 12
+
+    msg := "Hello, World!";
+
+    d := XOpenDisplay(nul);
+
+    si d == nul {
+        imprime("Impossible d'ouvrir un display !\n")
+        retourne 1
+    }
+
+    hauteur := transtype(640: n32)
+    largeur := transtype(480: n32)
+    largeur_bordure := transtype(1: n32)
+
+    s := DefaultScreen(d);
+    w := XCreateSimpleWindow(d, RootWindow(d, transtype(s: n64)), 10, 10, hauteur, largeur, largeur_bordure,
+                           BlackPixel(d, s), WhitePixel(d, s));
+
+    XSelectInput(d, w, _ExposureMask | _KeyPressMask);
+    XMapWindow(d, w);
+
+    dyn e : _XEvent
+
+    boucle {
+        XNextEvent(d, @e)
+
+        si e.type == _Expose {
+            XFillRectangle(d, w, DefaultGC(d, s), 20, 20, 10, 10);
+            XDrawString(d, w, DefaultGC(d, s), 10, 50, msg.pointeur, transtype(msg.taille: z32));
+        }
+
+        si e.type == _KeyPress {
+            arrête
+        }
+    }
+
+    XCloseDisplay(d);
+
+    retourne 0
+}
