@@ -42,17 +42,48 @@ void cree_typedef(
 		os << "typedef struct Tableau_" << nom_broye;
 
 		os << "{\n\t";
+		auto dt_deref = donnees.dereference();
 
-		converti_type_C(contexte, "", donnees.dereference(), os, false, true);
+		if (est_type_tableau_fixe(dt_deref)) {
+			auto taille_tableau = static_cast<long>(dt_deref.front() >> 8);
 
-		os << " *pointeur;\n\tlong taille;\n} " << nom_broye << ";\n\n";
+			dt_deref.effronte();
+
+			converti_type_C(contexte, "", dt_deref, os, false, true);
+
+			os << " *pointeur[" << taille_tableau << "];";
+		}
+		else {
+
+			converti_type_C(contexte, "", donnees.dereference(), os, false, true);
+
+			os << " *pointeur;";
+		}
+
+		os << "\n\tlong taille;\n} " << nom_broye << ";\n\n";
 	}
 	else if ((donnees.type_base() & 0xff) == GenreLexeme::TABLEAU) {
-		os << "typedef ";
-		converti_type_C(contexte, "", donnees.dereference(), os, false, true);
-		os << ' ' << nom_broye;
-		os << '[' << static_cast<size_t>(donnees.type_base() >> 8) << ']';
-		os << ";\n\n";
+		auto dt_deref = donnees.dereference();
+
+		// [X][X]Type
+		if (est_type_tableau_fixe(dt_deref)) {
+			auto taille_tableau = static_cast<long>(dt_deref.front() >> 8);
+			dt_deref.effronte();
+
+			os << "typedef ";
+			converti_type_C(contexte, "", dt_deref, os, false, true);
+			os << "(" << nom_broye << ')';
+			os << '[' << static_cast<size_t>(donnees.type_base() >> 8) << ']';
+			os << '[' << taille_tableau << ']';
+			os << ";\n\n";
+		}
+		else {
+			os << "typedef ";
+			converti_type_C(contexte, "", donnees.dereference(), os, false, true);
+			os << ' ' << nom_broye;
+			os << '[' << static_cast<size_t>(donnees.type_base() >> 8) << ']';
+			os << ";\n\n";
+		}
 	}
 	else if (donnees.type_base() == GenreLexeme::COROUT) {
 		/* ne peut prendre un pointeur vers une coroutine pour le moment */
