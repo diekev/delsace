@@ -288,9 +288,9 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "Temps aggrégé", formatte_nombre(temps_aggrege * 1000.0), "ms" });
 	tableau.ajoute_ligne({ "Nombre de modules", formatte_nombre(metriques.nombre_modules), "" });
 	tableau.ajoute_ligne({ "Nombre de lignes", formatte_nombre(metriques.nombre_lignes), "" });
-	tableau.ajoute_ligne({ "Débit de lignes par seconde", formatte_nombre(debit_lignes), "" });
-	tableau.ajoute_ligne({ "Débit de lignes par seconde (scène)", formatte_nombre(debit_lignes_scene), "" });
-	tableau.ajoute_ligne({ "Débit de lignes par seconde (coulisse)", formatte_nombre(debit_lignes_coulisse), "" });
+	tableau.ajoute_ligne({ "Lignes / seconde", formatte_nombre(debit_lignes), "" });
+	tableau.ajoute_ligne({ "Lignes / seconde (scène)", formatte_nombre(debit_lignes_scene), "" });
+	tableau.ajoute_ligne({ "Lignes / seconde (coulisse)", formatte_nombre(debit_lignes_coulisse), "" });
 	tableau.ajoute_ligne({ "Débit par seconde", formatte_nombre(debit_seconde), "o/s" });
 
 	tableau.ajoute_ligne({ "Arbre Syntaxique", "", "" });
