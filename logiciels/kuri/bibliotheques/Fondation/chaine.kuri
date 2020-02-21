@@ -141,26 +141,78 @@ découpe :: corout(texte : chaine, sep : z8) -> chaine
 	}
 }
 
+divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
+{
+    dyn taille_mot : z64 = 0
+	dyn début_mot : z64 = 0
+    dyn mots : []chaine
+
+    pour c, i dans ligne {
+	    si c == séparation {
+			mot := construit_chaine(@ligne[début_mot], taille_mot)
+            tableau_ajoute(@mots, mot)
+
+			début_mot = transtype(i + 1 : z64)
+			taille_mot = 0
+			continue
+		}
+
+		taille_mot += 1
+	}
+
+    si taille_mot != 0 {
+		mot := construit_chaine(@ligne[début_mot], taille_mot)
+        tableau_ajoute(@mots, mot)
+	}
+
+    retourne mots
+}
+
+avance :: fonc (ligne: chaine, compte: z64) -> chaine
+{
+    retourne construit_chaine(ligne.pointeur + compte, ligne.taille - compte)
+}
+
+recule :: fonc (ligne: chaine, compte: z64) -> chaine
+{
+    retourne construit_chaine(ligne.pointeur, ligne.taille - compte)
+}
+
 // Converti une chaine, par exemple "5005", en un nombre entier
 // La fonction présume que la chaine est entièrement composée de caractères numériques
-extrait_nombre_entier :: fonc(chn : chaine) -> z64
+extrait_nombre_entier :: fonc(dyn chn : chaine) -> z64
 {
     dyn résultat : z64 := 0
+	est_négatif := chn[0] == '-'
+
+	si est_négatif {
+		chn = avance(chn, 1)
+	}
 
 	pour c dans chn {
         résultat = résultat * 10 + transtype(c - '0' : z64)
     }
+
+	si est_négatif {
+		retourne -résultat
+	}
 
 	retourne résultat
 }
 
 // Converti une chaine, par exemple "500.5", en un nombre réel
 // La fonction présume que la chaine est entièrement composée de caractères numériques et d'un point
-extrait_nombre_réel :: fonc(chn : chaine) -> r64
+extrait_nombre_réel :: fonc(dyn chn : chaine) -> r64
 {
     dyn résultat : r64 = 0.0
 	dyn mult : r64 = 1.0
 	dyn point_trouvé := faux
+
+	est_négatif := chn[0] == '-'
+
+	si est_négatif {
+		chn = avance(chn, 1)
+	}
 
 	pour c dans chn {
 		si c == '.' {
@@ -176,6 +228,10 @@ extrait_nombre_réel :: fonc(chn : chaine) -> r64
         	résultat = résultat * 10.0 + transtype(c - '0' : r64)
 		}
     }
+
+	si est_négatif {
+		retourne -résultat
+	}
 
 	retourne résultat
 }
@@ -239,4 +295,15 @@ en_minuscule :: fonc(dyn chn : chaine) -> chaine
 	}
 
 	retourne chn
+}
+
+commence_par :: fonc (ligne: chaine, motif: chaine) -> bool
+{
+    si ligne.taille < motif.taille {
+        retourne faux
+    }
+
+    tmp := construit_chaine(ligne.pointeur, motif.taille)
+
+    retourne tmp == motif
 }
