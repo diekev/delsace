@@ -1,36 +1,6 @@
-charge "glew"
-
 importe Couleur
 importe Fondation
-
-vérifie_erreur :: fonc() -> rien
-{
-    erreur := glGetError()
-
-	si erreur == transtype(0: n32) {
-        retourne
-	}
-
-	imprime("erreur OpenGL !\n")
-
-    discr erreur {
-        _GL_INVALID_ENUM {
-            imprime("-- énumération invalide\n")
-        }
-        _GL_INVALID_VALUE {
-            imprime("-- valeur invalide\n")
-        }
-        _GL_INVALID_OPERATION {
-            imprime("-- opération invalide\n")
-        }
-        _GL_INVALID_FRAMEBUFFER_OPERATION {
-            imprime("-- opération invalide sur framebuffer\n")
-        }
-        sinon {
-            imprime("-- erreur inconnue, code %\n", erreur)
-        }
-    }
-}
+importe OpenGL
 
 TamponTexture :: struct {
     programme : n32

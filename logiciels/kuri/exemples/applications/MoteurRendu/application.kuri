@@ -1,4 +1,3 @@
-charge "glew"
 charge "sdl2"
 charge "dessin_texture"
 charge "maillage"
@@ -7,6 +6,7 @@ charge "ratissage"
 importe Couleur
 importe Fondation
 importe Image
+importe OpenGL
 importe Math
 
 // https://www.youtube.com/watch?v=HXSuNxpCzdM : 43.33
@@ -49,13 +49,7 @@ principale :: fonc () -> z32
     context := SDL_GL_CreateContext(window);
     diffère { SDL_GL_DeleteContext(context); }
 
-    nonsûr {
-        glewExperimental = 1
-    }
-
-    erreur := glewInit()
-
-    si erreur != 0 {
+    si !initialise_opengl() {
         imprime("Erreur lors de l'initilisation de GLEW !\n")
         retourne 1
     }
