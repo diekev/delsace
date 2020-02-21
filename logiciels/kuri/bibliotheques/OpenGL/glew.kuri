@@ -109,3 +109,46 @@ glGetAttribLocation :: fonc externe (programme : n32, nom: *z8) -> n32
 glGetUniformLocation :: fonc externe (programme : n32, nom: *z8) -> n32
 
 glGetError :: fonc externe () -> n32
+
+// ----------------------------------------------------------------------------
+
+importe Fondation
+
+initialise_opengl :: fonc () -> bool
+{
+    nonsûr {
+        glewExperimental = 1
+    }
+
+    erreur := glewInit()
+    retourne erreur == 0
+}
+
+vérifie_erreur :: fonc() -> rien
+{
+    erreur := glGetError()
+
+	si erreur == transtype(0: n32) {
+        retourne
+	}
+
+	imprime("erreur OpenGL !\n")
+
+    discr erreur {
+        _GL_INVALID_ENUM {
+            imprime("-- énumération invalide\n")
+        }
+        _GL_INVALID_VALUE {
+            imprime("-- valeur invalide\n")
+        }
+        _GL_INVALID_OPERATION {
+            imprime("-- opération invalide\n")
+        }
+        _GL_INVALID_FRAMEBUFFER_OPERATION {
+            imprime("-- opération invalide sur framebuffer\n")
+        }
+        sinon {
+            imprime("-- erreur inconnue, code %\n", erreur)
+        }
+    }
+}
