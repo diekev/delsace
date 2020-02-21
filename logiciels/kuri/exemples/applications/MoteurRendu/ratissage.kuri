@@ -6,6 +6,8 @@ importe Couleur
 importe Image
 importe Math
 
+// ceci utilise l'algorithme de Bresenham, on pourrait essayer celui de Wu :
+// https://en.wikipedia.org/wiki/Xiaolin_Wu%27s_line_algorithm
 dessine_ligne :: fonc(
     dyn image: *Image,
     x1 : z32,
