@@ -12,6 +12,11 @@ Vec3r :: struct {
     z := 0.0
 }
 
+crée_vec3r :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Vec3r
+{
+    retourne Vec3r{ x = x, y = y, z = z }
+}
+
 Vec4r :: struct {
     x := 0.0
     y := 0.0
@@ -33,6 +38,118 @@ longueur :: fonc (u: Vec3r) -> r32
 longueur_carrée :: fonc (u: Vec3r) -> r32
 {
     retourne u.x * u.x + u.y * u.y + u.z * u.z
+}
+
+échange :: fonc (dyn tri1 : *Vec3r, dyn tri2 : *Vec3r) -> rien
+{
+    dyn tmp := mémoire(tri2)
+    mémoire(tri2) = mémoire(tri1)
+    mémoire(tri1) = tmp
+}
+
+ajoute :: fonc (v1: Vec3r, v2: Vec3r) -> Vec3r
+{
+    dyn résultat : Vec3r
+    résultat.x = v1.x + v2.x
+    résultat.y = v1.y + v2.y
+    résultat.z = v1.z + v2.z
+
+    retourne résultat
+}
+
+soustrait :: fonc (a: Vec3r, b: Vec3r) -> Vec3r
+{
+    dyn rés : Vec3r
+
+    rés.x = a.x - b.x
+    rés.y = a.y - b.y
+    rés.z = a.z - b.z
+
+    retourne rés
+}
+
+multiplie :: fonc (v1: Vec3r, v: r32) -> Vec3r
+{
+    dyn résultat : Vec3r
+
+    si v != 0.0 {
+        résultat.x = v1.x * v
+        résultat.y = v1.y * v
+        résultat.z = v1.z * v
+    }
+
+    retourne résultat
+}
+
+divise :: fonc (v1: Vec3r, v: r32) -> Vec3r
+{
+    dyn résultat : Vec3r
+
+    si v != 0.0 {
+        résultat.x = v1.x / v
+        résultat.y = v1.y / v
+        résultat.z = v1.z / v
+    }
+
+    retourne résultat
+}
+
+est_inférieur :: fonc (v1: Vec3r, v2: Vec3r) -> bool
+{
+    retourne v1.x < v2.x || v1.y < v2.y || v1.z < v2.z
+}
+
+est_inférieur_ou_égal :: fonc (v1: Vec3r, v2: Vec3r) -> bool
+{
+    retourne v1.x <= v2.x && v1.y <= v2.y && v1.z <= v2.z
+}
+
+est_supérieur :: fonc (v1: Vec3r, v2: Vec3r) -> bool
+{
+    retourne v1.x > v2.x || v1.y > v2.y || v1.z > v2.z
+}
+
+est_supérieur_ou_égal :: fonc (v1: Vec3r, v2: Vec3r) -> bool
+{
+    retourne v1.x >= v2.x && v1.y >= v2.y && v1.z >= v2.z
+}
+
+Nor3r :: struct {
+    x := 0.0
+    y := 0.0
+    z := 0.0
+}
+
+calcul_normal :: fonc (a: Vec3r, b: Vec3r) -> Nor3r
+{
+    dyn nor : Nor3r
+
+    nor.x = a.y * b.z - a.z * b.y
+    nor.y = a.z * b.x - a.x * b.z
+    nor.z = a.x * b.y - a.y * b.x
+
+    retourne nor
+}
+
+calcul_normal_normalisé :: fonc (a: Vec3r, b: Vec3r) -> Nor3r
+{
+    dyn nor : Nor3r
+
+    nor.x = a.y * b.z - a.z * b.y
+    nor.y = a.z * b.x - a.x * b.z
+    nor.z = a.x * b.y - a.y * b.x
+
+    l := sqrt(nor.x * nor.x + nor.y * nor.y + nor.z * nor.z)
+    nor.x /= transtype(l: r32)
+    nor.y /= transtype(l: r32)
+    nor.z /= transtype(l: r32)
+
+    retourne nor
+}
+
+vec_depuis_nor :: fonc (n: Nor3r) -> Vec3r
+{
+    retourne mémoire(transtype(@n: *Vec3r))
 }
 
 // ------------------------------------
