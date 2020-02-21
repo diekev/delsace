@@ -290,7 +290,7 @@ void Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lex
 
 	/* analyse les types de retour de la fonction, À FAIRE : inférence */
 
-	avance();
+	consomme(GenreLexeme::RETOUR_TYPE, "Attendu un retour de type");
 
 	auto idx_ret = 0;
 
