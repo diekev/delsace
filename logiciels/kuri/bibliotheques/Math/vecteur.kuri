@@ -181,6 +181,31 @@ vec_depuis_nor :: fonc (n: Nor3r) -> Vec3r
     retourne mémoire(transtype(@n: *Vec3r))
 }
 
+// Calcul des coordonnées UV depuis une vecteur de direction (I) et d'un
+// vecteur normal (N) pour échantillonner une capmat.
+calcul_uv_capmat :: fonc (I: *Vec3r, N: *Vec3r, inversé: bool) -> Vec2r
+{
+    // Création rapide d'une base orthonormale
+    a := 1.0 / (1.0 + I.z);
+    b := -I.x * I.y * a;
+    b1 := crée_vec3r(1.0 - I.x * I.x * a, b, -I.x);
+    b2 := crée_vec3r(b, 1.0 - I.y * I.y * a, -I.y);
+
+    dyn uv_capmat := Vec2r{ x = produit_scalaire(b1, mémoire(N)), y = produit_scalaire(b2, mémoire(N)) }
+
+    si inversé {
+        uv_capmat.x = -uv_capmat.x;
+    }
+
+    uv_capmat.x *= 0.496
+    uv_capmat.y *= 0.496
+
+    uv_capmat.x += 0.5
+    uv_capmat.y += 0.5
+
+    retourne uv_capmat
+}
+
 // ------------------------------------
 // vecteurs de nombres entiers relatifs
 
