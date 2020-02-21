@@ -1,0 +1,172 @@
+// Interface avec la bibliothèque PNG, ainsi qu'une fonction pour charger une image
+// depuis un fichier PNG
+
+charge "image"
+
+#inclus "png.h"
+
+#bib "png"
+
+png_struct_def :: struct externe;
+png_info_def :: struct externe;
+
+png_create_read_struct :: fonc externe (
+    user_png_ver: *z8,
+    error_ptr: *rien,
+    error_fn: fonc(*png_struct_def, *z8)(rien),
+    warn_fn: fonc(*png_struct_def, *z8)(rien)) -> *png_struct_def
+
+png_destroy_read_struct :: fonc externe (
+    png: **png_struct_def,
+    info : **png_info_def,
+    end_info: **png_info_def) -> rien
+
+png_create_info_struct :: fonc externe (
+    png: *png_struct_def) -> *png_info_def
+
+
+__jmp_buf_tag :: struct externe;
+
+setjmp :: fonc externe (env: *__jmp_buf_tag) -> z32
+
+png_jmpbuf :: fonc externe (png: *png_struct_def) -> *__jmp_buf_tag
+
+_IO_FILE :: struct externe;
+
+fopen :: fonc externe (chemin: *z8, mode: *z8) -> *_IO_FILE
+fclose :: fonc externe (file: *_IO_FILE) -> rien
+
+png_init_io :: fonc externe (png: *png_struct_def, file: *_IO_FILE) -> rien
+
+png_read_info :: fonc externe (png: *png_struct_def, info : *png_info_def) -> rien
+
+png_get_image_height :: fonc externe (png: *png_struct_def, info : *png_info_def) -> n32
+png_get_image_width :: fonc externe (png: *png_struct_def, info : *png_info_def) -> n32
+png_get_color_type :: fonc externe (png: *png_struct_def, info : *png_info_def) -> n8
+png_get_bit_depth :: fonc externe (png: *png_struct_def, info : *png_info_def) -> n8
+png_read_update_info :: fonc externe (png: *png_struct_def, info : *png_info_def) -> rien
+png_get_rowbytes :: fonc externe (png: *png_struct_def, info : *png_info_def) -> n32
+
+png_set_strip_16 :: fonc externe (png: *png_struct_def) -> rien
+png_set_palette_to_rgb :: fonc externe (png: *png_struct_def) -> rien
+png_set_expand_gray_1_2_4_to_8 :: fonc externe (png: *png_struct_def) -> rien
+png_set_tRNS_to_alpha :: fonc externe (png: *png_struct_def) -> rien
+png_set_filler :: fonc externe (png: *png_struct_def, filler: n32, flags: z32) -> rien
+png_set_gray_to_rgb :: fonc externe (png: *png_struct_def) -> rien
+png_get_valid :: fonc externe (png: *png_struct_def, info : *png_info_def, flags: n32) -> n32
+
+png_read_image :: fonc externe (png: *png_struct_def, image: **n8) -> rien
+
+charge_image_png :: fonc (chemin: chaine) -> *Image
+{
+    _PNG_COLOR_TYPE_GRAY := transtype(0: n32)
+    _PNG_COLOR_TYPE_PALETTE := transtype(3: n32)
+    _PNG_COLOR_TYPE_RGB := transtype(2: n32)
+    _PNG_COLOR_TYPE_RGB_ALPHA := transtype(6: n32)
+    _PNG_COLOR_TYPE_GRAY_ALPHA := transtype(4: n32)
+    _PNG_FILLER_AFTER := 1
+    _PNG_INFO_tRNS := transtype(0x0010: n32)
+
+    dyn image := loge Image
+
+	png := png_create_read_struct("1.6.34".pointeur, nul, nul, nul)
+
+	si png == nul {
+		retourne image
+	}
+
+	info := png_create_info_struct(png)
+
+    diffère { png_destroy_read_struct(@png, @info, nul); }
+
+	si info == nul {
+		retourne image
+	}
+
+	si setjmp(png_jmpbuf(png)) != 0 {
+		retourne image
+	}
+
+	file := fopen(chemin.pointeur, "rb".pointeur)
+
+	si file == nul {
+		retourne image
+	}
+
+    diffère { fclose(file); }
+
+	png_init_io(png, file)
+
+	png_read_info(png, info)
+
+	hauteur    := png_get_image_height(png, info)
+	largeur    := png_get_image_width(png, info)
+	color_type := png_get_color_type(png, info)
+	bit_depth  := png_get_bit_depth(png, info)
+
+	si bit_depth == transtype(16: n8) {
+		png_set_strip_16(png)
+	}
+
+	si color_type == _PNG_COLOR_TYPE_PALETTE {
+		png_set_palette_to_rgb(png)
+	}
+
+	// PNG_COLOR_TYPE_GRAY_ALPHA is always 8 or 16bit depth.
+	si color_type == _PNG_COLOR_TYPE_GRAY && bit_depth < transtype(8: n8) {
+		png_set_expand_gray_1_2_4_to_8(png)
+	}
+
+	si png_get_valid(png, info, _PNG_INFO_tRNS) != transtype(0: n32) {
+		png_set_tRNS_to_alpha(png)
+	}
+
+	// These color_type don't have an alpha channel then fill it with 0xff.
+	si (color_type == _PNG_COLOR_TYPE_RGB || color_type == _PNG_COLOR_TYPE_GRAY || color_type == _PNG_COLOR_TYPE_PALETTE) {
+		png_set_filler(png, transtype(0xFF: n32), _PNG_FILLER_AFTER)
+	}
+
+	si (color_type == _PNG_COLOR_TYPE_GRAY || color_type == _PNG_COLOR_TYPE_GRAY_ALPHA) {
+		png_set_gray_to_rgb(png)
+	}
+
+	png_read_update_info(png, info)
+
+	dyn row_pointers := loge [hauteur]*n8
+
+	pour y dans 0 ... transtype(hauteur: z32) - 1 {
+        row_bytes := png_get_rowbytes(png, info)
+        row_pointers[y] = transtype(malloc(transtype(row_bytes: z64)): *n8)
+	}
+
+	png_read_image(png, @row_pointers[0])
+
+    image.hauteur = transtype(hauteur: z32)
+    image.largeur = transtype(largeur: z32)
+    image.tampon = loge [image.hauteur * image.largeur]Couleur
+
+    dyn index : z64 = 0
+
+	pour row dans row_pointers {
+        pour x dans 0 ... transtype(largeur: z32) - 1 {
+            px := @row[x * 4]
+
+            dyn couleur : Couleur
+            couleur.r = transtype(px[0]: r32) / 255.0
+            couleur.v = transtype(px[1]: r32) / 255.0
+            couleur.b = transtype(px[2]: r32) / 255.0
+            couleur.a = transtype(px[3]: r32) / 255.0
+
+            image.tampon[index] = couleur
+            index += 1
+        }
+	}
+
+	pour row dans row_pointers {
+        free(row)
+	}
+
+    déloge row_pointers
+
+    retourne image
+}
