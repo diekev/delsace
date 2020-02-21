@@ -1,0 +1,141 @@
+importe Fondation
+importe Math
+importe SysFichier
+
+charge "triangle"
+
+Maillage :: struct {
+    tris : []Triangle
+}
+
+crée_maillage_cube :: fonc () -> *Maillage
+{
+    dyn maillage := loge Maillage
+    maillage.tris.taille = 0
+    maillage.tris.pointeur = nul
+
+    // SUD
+    dyn tri := crée_triangle(crée_vec3r(0.0, 0.0, 0.0), crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(1.0, 1.0, 0.0))
+    tableau_ajoute(@maillage.tris, tri)
+
+    tri = crée_triangle(crée_vec3r(0.0, 0.0, 0.0), crée_vec3r(1.0, 1.0, 0.0), crée_vec3r(1.0, 0.0, 0.0))
+    tableau_ajoute(@maillage.tris, tri)
+
+    // EST
+    tri = crée_triangle(crée_vec3r(1.0, 0.0, 0.0), crée_vec3r(1.0, 1.0, 0.0), crée_vec3r(1.0, 1.0, 1.0))
+    tableau_ajoute(@maillage.tris, tri)
+
+    tri = crée_triangle(crée_vec3r(1.0, 0.0, 0.0), crée_vec3r(1.0, 1.0, 1.0), crée_vec3r(1.0, 0.0, 1.0))
+    tableau_ajoute(@maillage.tris, tri)
+
+    // NORD
+    tri = crée_triangle(crée_vec3r(1.0, 0.0, 1.0), crée_vec3r(1.0, 1.0, 1.0), crée_vec3r(0.0, 1.0, 1.0))
+    tableau_ajoute(@maillage.tris, tri)
+
+    tri = crée_triangle(crée_vec3r(1.0, 0.0, 1.0), crée_vec3r(0.0, 1.0, 1.0), crée_vec3r(0.0, 0.0, 1.0))
+    tableau_ajoute(@maillage.tris, tri)
+
+    // OUEST
+    tri = crée_triangle(crée_vec3r(0.0, 0.0, 1.0), crée_vec3r(0.0, 1.0, 1.0), crée_vec3r(0.0, 1.0, 0.0))
+    tableau_ajoute(@maillage.tris, tri)
+
+    tri = crée_triangle(crée_vec3r(0.0, 0.0, 1.0), crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(0.0, 0.0, 0.0))
+    tableau_ajoute(@maillage.tris, tri)
+
+    // HAUT
+    tri = crée_triangle(crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(0.0, 1.0, 1.0), crée_vec3r(1.0, 1.0, 1.0))
+    tableau_ajoute(@maillage.tris, tri)
+
+    tri = crée_triangle(crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(1.0, 1.0, 1.0), crée_vec3r(1.0, 1.0, 0.0))
+    tableau_ajoute(@maillage.tris, tri)
+
+    // BAS
+    tri = crée_triangle(crée_vec3r(1.0, 0.0, 1.0), crée_vec3r(0.0, 0.0, 1.0), crée_vec3r(0.0, 0.0, 0.0))
+    tableau_ajoute(@maillage.tris, tri)
+
+    tri = crée_triangle(crée_vec3r(1.0, 0.0, 1.0), crée_vec3r(0.0, 0.0, 0.0), crée_vec3r(1.0, 0.0, 0.0))
+    tableau_ajoute(@maillage.tris, tri)
+
+    retourne maillage
+}
+
+détruit_maillage :: fonc (maillage : *Maillage) -> rien
+{
+    déloge maillage.tris
+    déloge maillage
+}
+
+DonnéesObj :: struct {
+    vecteurs : []Vec3r
+    maillage : *Maillage
+}
+
+parse_ligne_obj :: fonc (dyn ligne: chaine, données: eini) -> rien
+{
+    dyn nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    marque := obtiens_marque_stockage_temporaire()
+    diffère { set_marque_stockage_temporaire(marque); }
+
+    // supprime le caractère de nouvelle ligne
+    ligne = recule(ligne, 1)
+
+    dyn données_obj := transtype(données.pointeur: *DonnéesObj)
+    dyn maillage := données_obj.maillage
+
+    si ligne.commence_par("f") {
+        tmp := avance(ligne, 2)
+
+        dyn tri : Triangle
+
+        pousse_contexte nouveau_contexte {
+            mots := divise(tmp, ' ')
+
+            idx0 := extrait_nombre_entier(mots[0])
+            idx1 := extrait_nombre_entier(mots[1])
+            idx2 := extrait_nombre_entier(mots[2])
+
+            tri.p0 = données_obj.vecteurs[idx0 - 1]
+            tri.p1 = données_obj.vecteurs[idx1 - 1]
+            tri.p2 = données_obj.vecteurs[idx2 - 1]
+        }
+
+        tableau_ajoute(@maillage.tris, tri)
+    }
+    sinon si ligne.commence_par("v") {
+        tmp := avance(ligne, 2)
+
+        dyn vec : Vec3r
+
+        pousse_contexte nouveau_contexte {
+            mots := divise(tmp, ' ')
+
+            vec.x = transtype(extrait_nombre_réel(mots[0]): r32)
+            vec.y = transtype(extrait_nombre_réel(mots[1]): r32)
+            vec.z = transtype(extrait_nombre_réel(mots[2]): r32)
+        }
+
+        tableau_ajoute(@données_obj.vecteurs, vec)
+    }
+}
+
+charge_maillage_depuis_obj :: fonc (chemin: chaine) -> *Maillage
+{
+    chm := construit_chemin(chemin)
+
+    contenu := contenu_fichier_texte(chm)
+    diffère { déloge contenu; }
+
+    dyn maillage := loge Maillage
+    maillage.tris.taille = 0
+    maillage.tris.pointeur = nul
+
+    dyn données : DonnéesObj
+    données.maillage = maillage
+
+    pour_chaque_ligne(contenu, données, parse_ligne_obj)
+    déloge données.vecteurs
+
+    retourne maillage
+}

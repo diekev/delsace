@@ -1,0 +1,91 @@
+importe Math
+
+// À FAIRE(langage) : les typedefs des tableaux fixes ne sont pas correctes car la structure est définie après ceux-ci
+Triangle :: struct {
+    p0 : Vec3r
+    p1 : Vec3r
+    p2 : Vec3r
+}
+
+crée_triangle :: fonc (p0 : Vec3r, p1 : Vec3r, p2 : Vec3r) -> Triangle
+{
+    dyn tri : Triangle
+    tri.p0 = p0
+    tri.p1 = p1
+    tri.p2 = p2
+
+    retourne tri
+}
+
+transforme :: fonc (mat: Mat4r, tri: Triangle) -> Triangle
+{
+    dyn rés : Triangle
+
+    rés.p0 = transforme(mat, tri.p0)
+    rés.p1 = transforme(mat, tri.p1)
+    rés.p2 = transforme(mat, tri.p2)
+
+    retourne rés
+}
+
+tri_sélection :: fonc (triangles: []Triangle) -> rien
+{
+    pour i dans transtype(0: z64) ... triangles.taille - 2 {
+        dyn index_min : z64 = i
+
+        pour j dans transtype(i + 1: z64) ... triangles.taille - 1 {
+            si condition_triangle(@triangles[j], @triangles[index_min]) {
+                index_min = j
+            }
+        }
+
+        échange(@triangles[i], @triangles[index_min])
+    }
+}
+
+échange :: fonc (dyn tri1 : *Triangle, dyn tri2 : *Triangle) -> rien
+{
+    dyn tmp := mémoire(tri2)
+    mémoire(tri2) = mémoire(tri1)
+    mémoire(tri1) = tmp
+}
+
+centre_triangle :: fonc (tri: *Triangle) -> Vec3r
+{
+    retourne divise(ajoute(ajoute(tri.p0, tri.p1), tri.p2), 3.0)
+}
+
+condition_triangle :: fonc (tri1: *Triangle, tri2: *Triangle) -> bool
+{
+    z1 := (tri1.p0.z + tri1.p1.z + tri1.p2.z) / 3.0
+    z2 := (tri2.p0.z + tri2.p1.z + tri2.p2.z) / 3.0
+
+    retourne z2 < z1
+}
+
+/*
+tri_rapide :: fonc (triangles: []Triangle, début: z64, fin: z64) -> rien
+{
+    si fin <= début {
+        retourne
+    }
+
+    dyn l := début + 1
+    dyn r := fin
+
+    échange(@triangles[début], @triangles[début + (fin - début) / 2])
+
+    // pivot arbitraire
+    pivot := triangles[début]
+
+    tantque l < r {
+        si condition_triangle(triangles[l], pivot) {
+            l += 1
+        }
+        sinon {
+            r -
+            tantque
+        }
+    }
+}
+*/

@@ -1,6 +1,8 @@
 charge "glew"
 charge "sdl2"
 charge "dessin_texture"
+charge "maillage"
+charge "ratissage"
 
 importe Couleur
 importe Fondation
@@ -8,269 +10,6 @@ importe Image
 importe Math
 
 // https://www.youtube.com/watch?v=HXSuNxpCzdM : 43.33
-
-// ----------------------------------------------------------------------------
-
-// À FAIRE(langage) : les typedefs des tableaux fixes ne sont pas correctes car la structure est définie après ceux-ci
-Triangle :: struct {
-    p0 : Vec3r
-    p1 : Vec3r
-    p2 : Vec3r
-}
-
-crée_triangle :: fonc (p0 : Vec3r, p1 : Vec3r, p2 : Vec3r) -> Triangle
-{
-    dyn tri : Triangle
-    tri.p0 = p0
-    tri.p1 = p1
-    tri.p2 = p2
-
-    retourne tri
-}
-
-transforme :: fonc (mat: Mat4r, tri: Triangle) -> Triangle
-{
-    dyn rés : Triangle
-
-    rés.p0 = transforme(mat, tri.p0)
-    rés.p1 = transforme(mat, tri.p1)
-    rés.p2 = transforme(mat, tri.p2)
-
-    retourne rés
-}
-
-Maillage :: struct {
-    tris : []Triangle
-}
-
-// ----------------------------------------------------------------------------
-
-dessine_ligne :: fonc(
-    dyn image: *Image,
-    x1 : z32,
-    y1 : z32,
-    x2 : z32,
-    y2 : z32,
-    couleur : Couleur) -> rien
-{
-    dyn dx := transtype(x2 - x1 : r32);
-    dyn dy := transtype(y2 - y1 : r32);
-    dyn pas : r32;
-
-    si abs(dx) >= abs(dy) {
-        pas = abs(dx);
-    }
-    sinon {
-        pas = abs(dy);
-    }
-
-    dx /= pas;
-    dy /= pas;
-    dyn x := transtype(x1 : r32);
-    dyn y := transtype(y1 : r32);
-    dyn i : r32 = 1.0;
-
-    tantque i <= pas {
-        xi := transtype(x : z32);
-        yi := transtype(y : z32);
-        index := xi + yi * image.largeur;
-        image.tampon[index] = couleur;
-
-        x += dx;
-        y += dy;
-        i += 1.0;
-    }
-}
-
-dessine_triangle :: fonc(
-    dyn image: *Image,
-    x1 : r32,
-    y1 : r32,
-    x2 : r32,
-    y2 : r32,
-    x3 : r32,
-    y3 : r32,
-    couleur : Couleur) -> rien
-{
-    ld := transtype(image.largeur - 1 : r32);
-    hd := transtype(image.hauteur - 1 : r32);
-
-    x1i := transtype(ld * x1 : z32);
-    x2i := transtype(ld * x2 : z32);
-    x3i := transtype(ld * x3 : z32);
-
-    y1i := transtype(hd * y1 : z32);
-    y2i := transtype(hd * y2 : z32);
-    y3i := transtype(hd * y3 : z32);
-
-    dessine_ligne(image, x1i, y1i, x2i, y2i, couleur);
-    dessine_ligne(image, x2i, y2i, x3i, y3i, couleur);
-    dessine_ligne(image, x3i, y3i, x1i, y1i, couleur);
-}
-
-// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-
-// Remplis un triangle qui pointe vers le haut avec une base horizontale :
-//      /\
-//     /  \
-//     ----
-remplis_triangle_bas_plat :: fonc(
-    dyn image: *Image,
-    v1 : Vec2r,
-    v2 : Vec2r,
-    v3 : Vec2r,
-    couleur : Couleur) -> rien
-{
-    ld := transtype(image.largeur - 1 : r32);
-    hd := transtype(image.hauteur - 1 : r32);
-
-    taille_pixel := 1.0 / min(ld, hd);
-
-    cd1_inv := (v2.x - v1.x) / (v2.y - v1.y) * taille_pixel;
-    cd2_inv := (v3.x - v1.x) / (v3.y - v1.y) * taille_pixel;
-
-    dyn cur_x1 := v1.x;
-    dyn cur_x2 := v1.x;
-
-    y1 := transtype(v1.y * hd : z32);
-    y2 := transtype(v2.y * hd : z32);
-
-    restreint(@y1, 0, image.hauteur - 1);
-    restreint(@y2, 0, image.hauteur - 1);
-
-    dyn scanlineY := y1;
-
-    tantque scanlineY <= y2 {
-        x1i := transtype(cur_x1 * ld : z32);
-        x2i := transtype(cur_x2 * ld : z32);
-
-        restreint(@x1i, 0, image.largeur - 1);
-        restreint(@x2i, 0, image.largeur - 1);
-
-        dessine_ligne(image, x1i, scanlineY, x2i, scanlineY, couleur);
-
-        cur_x1 += cd1_inv;
-        cur_x2 += cd2_inv;
-
-        scanlineY += 1;
-    }
-}
-
-// Remplis un triangle qui pointe vers le bas avec une base horizontale :
-//     ----
-//     \  /
-//      \/
-remplis_triangle_haut_plat :: fonc(
-    dyn image: *Image,
-    v1 : Vec2r,
-    v2 : Vec2r,
-    v3 : Vec2r,
-    couleur : Couleur) -> rien
-{
-    ld := transtype(image.largeur - 1 : r32);
-    hd := transtype(image.hauteur - 1 : r32);
-
-    taille_pixel := 1.0 / min(ld, hd);
-
-    cd1_inv := (v3.x - v1.x) / (v3.y - v1.y) * taille_pixel;
-    cd2_inv := (v3.x - v2.x) / (v3.y - v2.y) * taille_pixel;
-
-    dyn cur_x1 := v3.x;
-    dyn cur_x2 := v3.x;
-
-    y1 := transtype(v1.y * hd : z32);
-    y3 := transtype(v3.y * hd : z32);
-
-    restreint(@y1, 0, image.hauteur - 1);
-    restreint(@y3, 0, image.hauteur - 1);
-
-    dyn scanlineY := y3;
-
-    tantque scanlineY > y1 {
-        x1i := transtype(cur_x1 * ld : z32);
-        x2i := transtype(cur_x2 * ld : z32);
-
-        restreint(@x1i, 0, image.largeur - 1);
-        restreint(@x2i, 0, image.largeur - 1);
-
-        dessine_ligne(image, x1i, scanlineY, x2i, scanlineY, couleur);
-
-        cur_x1 -= cd1_inv;
-        cur_x2 -= cd2_inv;
-        scanlineY -= 1;
-    }
-}
-
-échange :: fonc(dyn v1 : &Vec2r, dyn v2 : &Vec2r) -> rien
-{
-    // À FAIRE : langage, erreur de compilation
-    //échange(@v1.x, @v2.x);
-    //échange(@v1.y, @v2.y);
-
-    dyn tmp := v1.x
-    v1.x = v2.x
-    v2.x = tmp
-
-    tmp = v1.y
-    v1.y = v2.y
-    v2.y = tmp
-}
-
-// Pour dessiner par ratissage un triangle quelconque, nous le divisons au besoin
-// en deux triangles avec bases horizontales dont un pointe vers le haut et
-// l'autre le bas :
-//
-//   /|
-//  / |
-// /__|
-// \  |
-//  \ |
-//   \|
-//
-ratisse_triangle :: fonc(
-    dyn image: *Image,
-    x1 : r32,
-    y1 : r32,
-    x2 : r32,
-    y2 : r32,
-    x3 : r32,
-    y3 : r32,
-    couleur : Couleur) -> rien
-{
-    v1 := Vec2r{ x = x1, y = y1 };
-    v2 := Vec2r{ x = x2, y = y2 };
-    v3 := Vec2r{ x = x3, y = y3 };
-
-    boucle {
-        si (v1.y) <= (v2.y) <= (v3.y) {
-            arrête;
-        }
-
-        si v2.y < v1.y {
-            échange(v1, v2);
-        }
-
-        si v3.y < v2.y {
-            échange(v2, v3);
-        }
-    }
-
-    si v2.y == v3.y {
-        remplis_triangle_bas_plat(image, v1, v2, v3, couleur);
-    }
-    sinon si v1.y == v2.y {
-        remplis_triangle_haut_plat(image, v1, v2, v3, couleur);
-    }
-    sinon {
-        x4 := v1.x + ((v2.y - v1.y) / (v3.y - v1.y)) * (v3.x - v1.x);
-        y4 := v2.y;
-
-        v4 := Vec2r{ x = x4, y = y4 };
-
-        remplis_triangle_bas_plat(image, v1, v2, v4, couleur);
-        remplis_triangle_haut_plat(image, v2, v4, v3, couleur);
-    }
-}
 
 // ----------------------------------------------------------------------------
 
@@ -284,128 +23,7 @@ Application :: struct {
     image : Image
 }
 
-crée_maillage :: fonc () -> *Maillage
-{
-    dyn maillage := loge Maillage
-    maillage.tris.taille = 0
-    maillage.tris.pointeur = nul
-
-    // SUD
-    dyn tri := crée_triangle(crée_vec3r(0.0, 0.0, 0.0), crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(1.0, 1.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
-
-    tri = crée_triangle(crée_vec3r(0.0, 0.0, 0.0), crée_vec3r(1.0, 1.0, 0.0), crée_vec3r(1.0, 0.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
-
-    // EST
-    tri = crée_triangle(crée_vec3r(1.0, 0.0, 0.0), crée_vec3r(1.0, 1.0, 0.0), crée_vec3r(1.0, 1.0, 1.0))
-    tableau_ajoute(@maillage.tris, tri)
-
-    tri = crée_triangle(crée_vec3r(1.0, 0.0, 0.0), crée_vec3r(1.0, 1.0, 1.0), crée_vec3r(1.0, 0.0, 1.0))
-    tableau_ajoute(@maillage.tris, tri)
-
-    // NORD
-    tri = crée_triangle(crée_vec3r(1.0, 0.0, 1.0), crée_vec3r(1.0, 1.0, 1.0), crée_vec3r(0.0, 1.0, 1.0))
-    tableau_ajoute(@maillage.tris, tri)
-
-    tri = crée_triangle(crée_vec3r(1.0, 0.0, 1.0), crée_vec3r(0.0, 1.0, 1.0), crée_vec3r(0.0, 0.0, 1.0))
-    tableau_ajoute(@maillage.tris, tri)
-
-    // OUEST
-    tri = crée_triangle(crée_vec3r(0.0, 0.0, 1.0), crée_vec3r(0.0, 1.0, 1.0), crée_vec3r(0.0, 1.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
-
-    tri = crée_triangle(crée_vec3r(0.0, 0.0, 1.0), crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(0.0, 0.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
-
-    // HAUT
-    tri = crée_triangle(crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(0.0, 1.0, 1.0), crée_vec3r(1.0, 1.0, 1.0))
-    tableau_ajoute(@maillage.tris, tri)
-
-    tri = crée_triangle(crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(1.0, 1.0, 1.0), crée_vec3r(1.0, 1.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
-
-    // BAS
-    tri = crée_triangle(crée_vec3r(1.0, 0.0, 1.0), crée_vec3r(0.0, 0.0, 1.0), crée_vec3r(0.0, 0.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
-
-    tri = crée_triangle(crée_vec3r(1.0, 0.0, 1.0), crée_vec3r(0.0, 0.0, 0.0), crée_vec3r(1.0, 0.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
-
-    assert(maillage.tris.taille == 12)
-
-    retourne maillage
-}
-
-détruit_maillage :: fonc (maillage : *Maillage) -> rien
-{
-    déloge maillage.tris
-    déloge maillage
-}
-
 // ----------------------------------------------------------------------------
-
-tri_sélection :: fonc (triangles: []Triangle) -> rien
-{
-    pour i dans transtype(0: z64) ... triangles.taille - 2 {
-        dyn index_min : z64 = i
-
-        pour j dans transtype(i + 1: z64) ... triangles.taille - 1 {
-            si condition_triangle(@triangles[j], @triangles[index_min]) {
-                index_min = j
-            }
-        }
-
-        échange(@triangles[i], @triangles[index_min])
-    }
-}
-
-échange :: fonc (dyn tri1 : *Triangle, dyn tri2 : *Triangle) -> rien
-{
-    dyn tmp := mémoire(tri2)
-    mémoire(tri2) = mémoire(tri1)
-    mémoire(tri1) = tmp
-}
-
-centre_triangle :: fonc (tri: *Triangle) -> Vec3r
-{
-    retourne divise(ajoute(ajoute(tri.p0, tri.p1), tri.p2), 3.0)
-}
-
-condition_triangle :: fonc (tri1: *Triangle, tri2: *Triangle) -> bool
-{
-    z1 := (tri1.p0.z + tri1.p1.z + tri1.p2.z) / 3.0
-    z2 := (tri2.p0.z + tri2.p1.z + tri2.p2.z) / 3.0
-
-    retourne z2 < z1
-}
-
-/*
-tri_rapide :: fonc (triangles: []Triangle, début: z64, fin: z64) -> rien
-{
-    si fin <= début {
-        retourne
-    }
-
-    dyn l := début + 1
-    dyn r := fin
-
-    échange(@triangles[début], @triangles[début + (fin - début) / 2])
-
-    // pivot arbitraire
-    pivot := triangles[début]
-
-    tantque l < r {
-        si condition_triangle(triangles[l], pivot) {
-            l += 1
-        }
-        sinon {
-            r -
-            tantque
-        }
-    }
-}
-*/
 
 principale :: fonc () -> z32
 {
@@ -449,6 +67,13 @@ principale :: fonc () -> z32
 
     app.image = crée_image(largeur, hauteur)
     diffère { détruit_image(@app.image); }
+
+    matcap := charge_image_png("/home/kevin/Téléchargements/matcap.png")
+
+    diffère {
+        détruit_image(matcap)
+        déloge matcap
+    }
 
     app.tampon_texture = crée_tampon_texture()
     diffère { détruit_tampon_texture(app.tampon_texture); }
@@ -588,14 +213,20 @@ principale :: fonc () -> z32
             dyn line1 := soustrait(tri.p1, tri.p0)
             dyn line2 := soustrait(tri.p2, tri.p0)
 
-            dyn nor := calcul_normal(line1, line2)
+            dyn nor := calcul_normal_normalisé(line1, line2)
 
             dir_lumière := crée_vec3r(z = -1.0)
             // besoin de normalisation ?
 
-            dp := produit_scalaire(vec_depuis_nor(nor), dir_lumière)
+            //dp := produit_scalaire(vec_depuis_nor(nor), dir_lumière)
 
-            couleur := Couleur{ r = dp, v = dp, b = dp, a = 1.0 }
+            //couleur := Couleur{ r = dp, v = dp, b = dp, a = 1.0 }
+
+            vnor := vec_depuis_nor(nor)
+
+            uv := calcul_uv_capmat(@dir_visé, @vnor, faux)
+
+            couleur := échantillonne_prochain(matcap, @uv)
 
             dyn tri_vue := transforme(matrice_vue, tri)
 
@@ -637,87 +268,10 @@ principale :: fonc () -> z32
 
         SDL_GL_SwapWindow(window);
 
-        //theta += 1.0 * temps_écoulé
+        theta += 1.0 * 0.016 //temps_écoulé
 
         SDL_Delay(16)
     }
 
     retourne 0
-}
-
-importe SysFichier
-
-DonnéesObj :: struct {
-    vecteurs : []Vec3r
-    maillage : *Maillage
-}
-
-parse_ligne_obj :: fonc (dyn ligne: chaine, données: eini) -> rien
-{
-    dyn nouveau_contexte := contexte
-    nouveau_contexte.allocatrice = __stockage_temporaire
-
-    marque := obtiens_marque_stockage_temporaire()
-    diffère { set_marque_stockage_temporaire(marque); }
-
-    // supprime le caractère de nouvelle ligne
-    ligne = recule(ligne, 1)
-
-    dyn données_obj := transtype(données.pointeur: *DonnéesObj)
-    dyn maillage := données_obj.maillage
-
-    si ligne.commence_par("f") {
-        tmp := avance(ligne, 2)
-
-        dyn tri : Triangle
-
-        pousse_contexte nouveau_contexte {
-            mots := divise(tmp, ' ')
-
-            idx0 := extrait_nombre_entier(mots[0])
-            idx1 := extrait_nombre_entier(mots[1])
-            idx2 := extrait_nombre_entier(mots[2])
-
-            tri.p0 = données_obj.vecteurs[idx0 - 1]
-            tri.p1 = données_obj.vecteurs[idx1 - 1]
-            tri.p2 = données_obj.vecteurs[idx2 - 1]
-        }
-
-        tableau_ajoute(@maillage.tris, tri)
-    }
-    sinon si ligne.commence_par("v") {
-        tmp := avance(ligne, 2)
-
-        dyn vec : Vec3r
-
-        pousse_contexte nouveau_contexte {
-            mots := divise(tmp, ' ')
-
-            vec.x = transtype(extrait_nombre_réel(mots[0]): r32)
-            vec.y = transtype(extrait_nombre_réel(mots[1]): r32)
-            vec.z = transtype(extrait_nombre_réel(mots[2]): r32)
-        }
-
-        tableau_ajoute(@données_obj.vecteurs, vec)
-    }
-}
-
-charge_maillage_depuis_obj :: fonc (chemin: chaine) -> *Maillage
-{
-    chm := construit_chemin(chemin)
-
-    contenu := contenu_fichier_texte(chm)
-    diffère { déloge contenu; }
-
-    dyn maillage := loge Maillage
-    maillage.tris.taille = 0
-    maillage.tris.pointeur = nul
-
-    dyn données : DonnéesObj
-    données.maillage = maillage
-
-    pour_chaque_ligne(contenu, données, parse_ligne_obj)
-    déloge données.vecteurs
-
-    retourne maillage
 }
