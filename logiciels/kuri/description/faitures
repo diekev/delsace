@@ -103,6 +103,22 @@ Faitures
 - test coroutine
 - test valeurs de retours multiples
 
+Bugs (syntaxage)
+----------------
+- Il est possible d'avoir des expressions de types (a - b := 5) dans les déclarations des énums
+- les instructions si sur plusieurs avec une nouvelle ligne entre la fin de l'expression et l'accolade ouvrante fait échoué toute la syntaxage
+
+
+Bugs
+----
+- Les pointeurs logés ne sont pas initialisés (ajout d'une fonction d'intitialisation présente dans les structures d'infos types)
+- On ne peut pas passer un pointeur d'une structure « employante » dans une fonction prenant son « employée »
+
+
+Bugs (coulisse C)
+-----------------
+- les typedefs de tableaux fixes de structures ne peuvent être déclarés avant celles-ci
+
 
 Bugs (coulisse LLVM)
 --------------------
@@ -145,6 +161,61 @@ Idées
 	}
 
 	comment pour a && c
+
+
+analyse_déclaration
+
+si chaine + ':', analyse type, si '=' ou ':', analyse_expression
+
+si chaine + ':='
+
+si chaine + '::'
+
+si chaine + '(' => appel
+
+si chaine + '{' => construction structure
+
+sinon => référence déclaration
+
+NoeudDéclaration : NoeudExpression {
+    feuilles // pour les déclarations multiple (a, b := c())
+    expr // 'structure', 'fonc', 'corout', 'énum', 'énum_drapeau', expression quelqueconque
+}
+
+déréférencement *
+prend adresse &a
+pointeur *z32
+
+transtypage :
+
+transtype(x: z16)
+x comme z16
+
+x en z16
+
+a = x.a comme z16 + 8
+a = b + c en z16
+
+précédence
+-- plus faible que + - * /
+-- plus élévée que .
+
+expr unaire : a
+    expr binaire : +
+        expr binaire : comme
+            réf var : x
+            réf type : z16
+        expr : 8
+
+nombres littéraux :
+-- définis la taille minimale naturel et relative
+---- v < 128 => z8
+---- v < 256 => n8, z16
+---- v < 65536 => n16, z32, etc....
+
+lit + var
+var + lit
+lit + lit
 
 
 Zones d'ombres
