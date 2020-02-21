@@ -1,4 +1,5 @@
 importe Couleur
+importe Math
 
 Image :: struct {
     tampon : []Couleur
@@ -26,4 +27,20 @@ remplis_image :: fonc (dyn image : *Image, couleur: Couleur) -> rien
     pour pixel dans image.tampon {
         pixel = couleur
     }
+}
+
+échantillonne_prochain :: fonc (image: *Image, pos: *Vec2r) -> Couleur
+{
+    x := pos.x * transtype(image.largeur: r32)
+    y := pos.y * transtype(image.hauteur: r32)
+
+    xi := transtype(x: z32)
+    yi := transtype(y: z32)
+
+    restreint(@xi, 0, image.largeur - 1)
+    restreint(@yi, 0, image.hauteur - 1)
+
+    index := xi + yi * image.largeur
+
+    retourne image.tampon[index]
 }
