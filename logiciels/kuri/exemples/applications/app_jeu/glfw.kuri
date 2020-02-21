@@ -1,7 +1,7 @@
 // GLEW doit être importé avant car il inclut "glew.h" doit être inclus avant
 // "glfw3" à cause des macros d'OpenGL et autres définis dans les différents
 // fichiers d'entêtes devant être dans le bon ordre.
-charge "glew"
+importe OpenGL
 
 #inclus "GLFW/glfw3.h"
 
@@ -9,7 +9,7 @@ charge "glew"
 
 charge "evenements"
 
-GLFWwindow :: struct externe 
+GLFWwindow :: struct externe
 
 glfwGetVideoMode :: fonc externe (desktop : *rien) -> *rien
 

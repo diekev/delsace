@@ -1,9 +1,9 @@
 charge "evenements"
 charge "glfw"
-charge "glew"
 charge "dessin_opengl"
 
 importe Fondation
+importe OpenGL
 
 // À FAIRE : rendu texte, chargement image
 

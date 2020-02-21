@@ -1,14 +1,7 @@
-charge "glew"
-
-importe "Fondation"
+importe Fondation
+importe Couleur
+importe OpenGL
 importe Math
-
-Couleur :: struct {
-    r : r32 = 0.0
-    v : r32 = 0.0
-    b : r32 = 0.0
-    a : r32 = 0.0
-}
 
 dyn VertexArrayID := transtype(0 : n32)
 dyn ProgramID := transtype(0 : n32)
@@ -131,35 +124,6 @@ issitialise_tampon_dessin :: fonc() -> rien
 débute_dessin :: fonc() -> rien
 {
     glBindVertexArray(VertexArrayID)
-}
-
-vérifie_erreur :: fonc() -> rien
-{
-    erreur := glGetError()
-
-	si erreur == transtype(0: n32) {
-        retourne
-	}
-
-	imprime("erreur OpenGL !\n")
-
-    discr erreur {
-        _GL_INVALID_ENUM {
-            imprime("-- énumération invalide\n")
-        }
-        _GL_INVALID_VALUE {
-            imprime("-- valeur invalide\n")
-        }
-        _GL_INVALID_OPERATION {
-            imprime("-- opération invalide\n")
-        }
-        _GL_INVALID_FRAMEBUFFER_OPERATION {
-            imprime("-- opération invalide sur framebuffer\n")
-        }
-        sinon {
-            imprime("-- erreur inconnue, code %\n", erreur)
-        }
-    }
 }
 
 termine_dessin :: fonc() -> rien
