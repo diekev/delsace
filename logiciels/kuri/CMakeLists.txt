@@ -42,21 +42,7 @@ if(AVEC_LLVM)
 	add_subdirectory(coulisse_llvm)
 endif()
 
-set(DOSSIER_MODULES
-	bibliotheques/Fondation
-	bibliotheques/JPEG
-	bibliotheques/JSON
-	bibliotheques/GlibC
-	bibliotheques/Kuri
-	bibliotheques/MySQL
-	bibliotheques/OpenSSL
-	bibliotheques/PThread
-	bibliotheques/Réseau
-	bibliotheques/SysFichier
-	bibliotheques/Tori
-)
-
 install(
-	DIRECTORY ${DOSSIER_MODULES}
-	DESTINATION ${RACINE_INSTALLATION}/modules
+	DIRECTORY modules
+	DESTINATION ${RACINE_INSTALLATION}
 )
