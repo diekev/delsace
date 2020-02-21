@@ -1,5 +1,6 @@
 charge "glew"
 
+importe Couleur
 importe Fondation
 
 vérifie_erreur :: fonc() -> rien
@@ -29,13 +30,6 @@ vérifie_erreur :: fonc() -> rien
             imprime("-- erreur inconnue, code %\n", erreur)
         }
     }
-}
-
-Couleur :: struct {
-    r := 0.0
-    v := 0.0
-    b := 0.0
-    a := 0.0
 }
 
 TamponTexture :: struct {
