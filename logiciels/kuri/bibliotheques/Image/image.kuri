@@ -1,0 +1,29 @@
+importe Couleur
+
+Image :: struct {
+    tampon : []Couleur
+    largeur: z32
+    hauteur: z32
+}
+
+crée_image :: fonc (largeur: z32, hauteur: z32) -> Image
+{
+    dyn image: Image
+    image.tampon = loge [largeur * hauteur]Couleur
+    image.largeur = largeur
+    image.hauteur = hauteur
+
+    retourne image
+}
+
+détruit_image :: fonc (image: *Image) -> rien
+{
+    déloge image.tampon
+}
+
+remplis_image :: fonc (dyn image : *Image, couleur: Couleur) -> rien
+{
+    pour pixel dans image.tampon {
+        pixel = couleur
+    }
+}
