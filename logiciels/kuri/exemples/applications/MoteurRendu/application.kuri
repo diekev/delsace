@@ -62,7 +62,7 @@ principale :: fonc () -> z32
     app.image = crée_image(largeur, hauteur)
     diffère { détruit_image(@app.image); }
 
-    matcap := charge_image_png("/home/kevin/Téléchargements/matcap.png")
+    matcap := charge_image_png("/home/kevin/Images/matcap.png")
 
     diffère {
         détruit_image(matcap)
@@ -72,7 +72,7 @@ principale :: fonc () -> z32
     app.tampon_texture = crée_tampon_texture()
     diffère { détruit_tampon_texture(app.tampon_texture); }
 
-    maillage := charge_maillage_depuis_obj("/home/kevin/Téléchargements/VideoShip.obj")
+    maillage := charge_maillage_depuis_obj("/home/kevin/fichiers/objs/VideoShip.obj")
     diffère { détruit_maillage(maillage); }
 
     app.maillage = maillage
@@ -100,6 +100,8 @@ principale :: fonc () -> z32
     temps_écoulé := 1.0
 
     boucle {
+        dyn début := compte_ticks_ms()
+
         marque := obtiens_marque_stockage_temporaire()
         diffère { set_marque_stockage_temporaire(marque); }
 
@@ -264,7 +266,16 @@ principale :: fonc () -> z32
 
         theta += 1.0 * 0.016 //temps_écoulé
 
-        SDL_Delay(16)
+        delta := compte_ticks_ms() - début
+        fps := 1000.0 / transtype(delta: r32)
+
+        nouveau_titre := imprime_chaine("Moteur Rendu - % FPS", formatte_réel(fps, précision = 2))
+
+        chn_c := chaine_c_temp(nouveau_titre)
+
+        SDL_SetWindowTitle(window, chn_c)
+
+        déloge nouveau_titre
     }
 
     retourne 0
