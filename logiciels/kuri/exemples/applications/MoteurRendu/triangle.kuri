@@ -1,6 +1,5 @@
 importe Math
 
-// À FAIRE(langage) : les typedefs des tableaux fixes ne sont pas correctes car la structure est définie après ceux-ci
 Triangle :: struct {
     p0 : Vec3r
     p1 : Vec3r

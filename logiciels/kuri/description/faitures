@@ -103,21 +103,9 @@ Faitures
 - test coroutine
 - test valeurs de retours multiples
 
-Bugs (syntaxage)
-----------------
-- Il est possible d'avoir des expressions de types (a - b := 5) dans les déclarations des énums
-- les instructions si sur plusieurs avec une nouvelle ligne entre la fin de l'expression et l'accolade ouvrante fait échoué toute la syntaxage
-
-
 Bugs
 ----
-- Les pointeurs logés ne sont pas initialisés (ajout d'une fonction d'intitialisation présente dans les structures d'infos types)
 - On ne peut pas passer un pointeur d'une structure « employante » dans une fonction prenant son « employée »
-
-
-Bugs (coulisse C)
------------------
-- les typedefs de tableaux fixes de structures ne peuvent être déclarés avant celles-ci
 
 
 Bugs (coulisse LLVM)

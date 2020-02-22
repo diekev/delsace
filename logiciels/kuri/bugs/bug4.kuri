@@ -1,0 +1,10 @@
+// Il est possible d'avoir des expressions en tout genre dans les énums
+
+MonÉnum :: énum z32 {
+    A-B := 5
+}
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}

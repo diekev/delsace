@@ -27,7 +27,6 @@ Application :: struct {
     image : Image
 }
 
-// À FAIRE (langage) : crash lors de la compilation de structures vides
 Caméra :: struct {
     position : Vec3r
     direction_vue : Vec3r

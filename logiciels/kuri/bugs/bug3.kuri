@@ -1,0 +1,14 @@
+// Les typedefs de tableaux fixes de structures ne peuvent être définis avant celles-ci
+
+MaStructure :: struct {
+    x := 0
+}
+
+MonAutreStructure :: stucture {
+    x : [5]MaStructure
+}
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}

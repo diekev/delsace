@@ -170,7 +170,6 @@ détruit :: fonc(dyn attr : *Attribut) -> rien
 	si est_type_tableau(attr.type) {
 		pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
 			// À FAIRE : types des données
-			// À FAIRE: coulisse C, bug dans la génération de code C
 			ptr := mémoire(tableau_r32(attr, i))
 			déloge ptr
 		}

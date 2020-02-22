@@ -723,7 +723,6 @@ imprime_log :: fonc (mode: ModeLogage, ident: chaine, format: chaine, args: ...e
 {
 	message := imprime_chaine(format, ...args)
 
-	// À FAIRE (compilateur, bug dans la génération de code C)
 	log := contexte.logueur
     log(message, ident, mode, contexte.données_logueur)
 	déloge message

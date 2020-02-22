@@ -136,7 +136,7 @@ readdir :: fonc externe (d : *DIR) -> *dirent
 //###############################################################################
 
 _PF_INET := 2
-_AF_INET := 2 // À FAIRE (bug compileur) _PF_INET
+_AF_INET := 2
 _SOCK_STREAM := 1
 _WNOHANG := 1
 _INADDR_ANY := transtype(0 : n32)

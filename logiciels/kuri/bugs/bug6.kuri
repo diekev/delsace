@@ -1,0 +1,11 @@
+// La coulisse C possède un bug où le déloge de pointeur déréférencé ne compile pas
+
+principale :: fonc () -> z32
+{
+    ptr := loge z32
+    indirection := @ptr
+
+    déloge mémoire(indirection)
+
+    retourne 0
+}

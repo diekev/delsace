@@ -1,0 +1,26 @@
+// Les conditions sur plusieurs lignes ou avec une nouvelle ligne avant l'accolade
+// ouvrante font échouées le syntaxage
+// l'erreur sera soit qu'une instruction de retour manque, soit si nous avons une
+// autre déclaration de fonction après, que l'identifiant :: est inattendu dans l'expression
+// il est assez étrange que les blocs ne soit pas ajoutés comme enfants de l'instruction « si »
+// je pense que le bug doit également être présent pour les boucles
+
+principale :: fonc () -> z32
+{
+    a := 7
+    b := 8
+    c := 9
+
+    si a == b
+    {
+
+    }
+
+    si (a == b) ||
+        (b == c)
+        {
+
+        }
+
+    retourne 0
+}
