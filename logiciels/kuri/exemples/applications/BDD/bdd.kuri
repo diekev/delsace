@@ -1,0 +1,341 @@
+importe Fondation
+importe GlibC
+
+// https://cstack.github.io/db_tutorial/
+// continuation, les tests ne fonctionnent pas : https://cstack.github.io/db_tutorial/parts/part4.html
+
+imprime_prompt :: fonc () -> rien
+{
+    imprime("db > ")
+}
+
+lis_entrée :: fonc () -> chaine
+{
+    dyn nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    dyn chn : chaine
+
+    pousse_contexte nouveau_contexte {
+        dyn c : z8
+
+        tantque read(0, @c, transtype(1: n64)) != 0 {
+            si c == '\n' {
+                arrête
+            }
+
+            pousse(@chn, c)
+        }
+    }
+
+    retourne chn
+}
+
+TypeMétaCommande :: énum z32 {
+    SUCCÈS
+    NON_RECONNUE
+}
+
+méta_commande :: fonc (commande: chaine) -> TypeMétaCommande
+{
+    si commande == ".sors" {
+        retourne TypeMétaCommande.SUCCÈS
+    }
+
+    retourne TypeMétaCommande.NON_RECONNUE
+}
+
+TypeInstruction :: énum z32 {
+    SÉLECTIONNE
+    INSÈRE
+}
+
+// À FAIRE
+TAILLE_MAX_NOM := 32
+TAILLE_MAX_COURRIEL := 255
+
+// À FAIRE : la représentation d'une ligne est compacte en mémoire
+TAILLE_ID := 4 // taille_de Ligne.id
+TAILLE_NOM := 32 // taille_de Lige.nom
+TAILLE_COURRIEL := 255 // taille_de Ligne.courriel
+DÉCALAGE_ID := 0
+DÉCALAGE_NOM := 4
+DÉCALAGE_COURRIEL := 36
+TAILLE_LIGNE := 291
+
+TAILLE_PAGE := 4096
+TABLE_MAX_PAGES := 100
+LIGNES_PAR_PAGES := 14 // TAILLE_PAGE / TAILLE_LIGNE
+LIGNES_MAX_TABLE := 1400 // LIGNES_PAR_PAGES * TABLE_MAX_PAGES
+
+Ligne :: struct {
+    id := 0
+    nom : [32]z8
+    courriel : [255]z8
+}
+
+Table :: struct {
+    nombre_de_lignes := 0
+    pages : [100]*rien
+}
+
+intialise_table :: fonc (dyn table: *Table) -> rien
+{
+    table.nombre_de_lignes = 0
+
+    pour page dans table.pages {
+        page = nul
+    }
+}
+
+détruit_table :: fonc (dyn table: *Table) -> rien
+{
+    table.nombre_de_lignes = 0
+
+    pour page dans table.pages {
+        si page != nul {
+            free(page)
+            page = nul
+        }
+    }
+}
+
+slot_ligne :: fonc (dyn table: *Table, index_ligne: z32) -> *rien
+{
+    index_page := index_ligne / LIGNES_PAR_PAGES
+    dyn page := table.pages[index_page]
+
+    si page == nul {
+        page = malloc(TAILLE_PAGE)
+        table.pages[index_page] = page
+    }
+
+    décalage_ligne := index_ligne % LIGNES_PAR_PAGES
+    décalage_octet := décalage_ligne * TAILLE_LIGNE
+
+    retourne page + décalage_octet
+}
+
+// @XXX
+copie_chaine_vers_tableau :: fonc (dyn tabl: *z8, chn: chaine) -> rien
+{
+    pour c, idx dans chn {
+        tabl[idx] = c
+    }
+}
+
+sérialise_ligne :: fonc (ligne: *Ligne, dyn dest: *rien) -> rien
+{
+    copie_mem_nonsur(src = @ligne.id, dst = dest, taille = TAILLE_ID)
+    copie_mem_nonsur(src = @ligne.nom[0], dst = dest + DÉCALAGE_NOM, taille = TAILLE_NOM)
+    copie_mem_nonsur(src = @ligne.courriel[0], dst = dest + DÉCALAGE_COURRIEL, taille = TAILLE_COURRIEL)
+}
+
+désérialise_ligne :: fonc (src: *rien, dyn ligne: *Ligne) -> rien
+{
+    copie_mem_nonsur(dst = @ligne.id, src = src, taille = TAILLE_ID)
+    copie_mem_nonsur(dst = @ligne.nom[0], src = src + DÉCALAGE_NOM, taille = TAILLE_NOM)
+    copie_mem_nonsur(dst = @ligne.courriel[0], src = src + DÉCALAGE_COURRIEL, taille = TAILLE_COURRIEL)
+}
+
+Instruction :: struct {
+    type : TypeInstruction
+    ligne_à_insérer : Ligne
+}
+
+PrépareRésultat :: énum z32 {
+    SUCCÈS
+    INSTRUCTION_NON_RECONNUE
+    ERREUR_SYNTAXE
+}
+
+prépare_instruction :: fonc (commande: chaine, dyn inst: *Instruction) -> PrépareRésultat
+{
+    dyn nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    dyn mots : []chaine
+
+    pousse_contexte nouveau_contexte {
+        mots = divise(commande, ' ')
+    }
+
+    si mots.taille == 0 {
+        retourne PrépareRésultat.INSTRUCTION_NON_RECONNUE
+    }
+
+    si mots[0] == "insère" {
+        si mots.taille != 4 {
+            retourne PrépareRésultat.ERREUR_SYNTAXE
+        }
+
+        // À FAIRE : vérifie que tout est dans le bon ordre
+        inst.type = TypeInstruction.INSÈRE
+        inst.ligne_à_insérer.id = transtype(extrait_nombre_entier(mots[1]): z32)
+        copie_chaine_vers_tableau(@inst.ligne_à_insérer.nom[0], mots[2])
+        copie_chaine_vers_tableau(@inst.ligne_à_insérer.courriel[0], mots[3])
+
+        inst.ligne_à_insérer.nom[mots[2].taille] = '\0'
+        inst.ligne_à_insérer.courriel[mots[3].taille] = '\0'
+
+        retourne PrépareRésultat.SUCCÈS
+    }
+
+    si mots[0] == "sélectionne" {
+        inst.type = TypeInstruction.SÉLECTIONNE
+        retourne PrépareRésultat.SUCCÈS
+    }
+
+    retourne PrépareRésultat.INSTRUCTION_NON_RECONNUE
+}
+
+RésultatExécution :: énum z32 {
+    INVALIDE
+    TABLE_PLEINE
+    SUCCÈS
+}
+
+exécute_insertion :: fonc (inst: *Instruction, dyn table: *Table) -> RésultatExécution
+{
+    si table.nombre_de_lignes >= LIGNES_MAX_TABLE {
+        retourne RésultatExécution.TABLE_PLEINE
+    }
+
+    ligne_à_insérer := @inst.ligne_à_insérer
+    slot := slot_ligne(table, table.nombre_de_lignes)
+
+    sérialise_ligne(ligne_à_insérer, slot)
+
+    table.nombre_de_lignes += 1
+
+    retourne RésultatExécution.SUCCÈS
+}
+
+imprime_ligne :: fonc (ligne: *Ligne) -> rien
+{
+    dyn nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    dyn chn_nom : chaine
+
+    {
+        pousse_contexte nouveau_contexte {
+            pour c dans ligne.nom {
+                si c == '\0' {
+                    arrête
+                }
+
+                pousse(@chn_nom, c)
+            }
+        }
+    }
+
+    dyn chn_courriel : chaine
+
+    {
+        pousse_contexte nouveau_contexte {
+            pour c dans ligne.courriel {
+                si c == '\0' {
+                    arrête
+                }
+
+                pousse(@chn_courriel, c)
+            }
+        }
+    }
+
+    imprime("(%, %, %)\n", ligne.id, chn_nom, chn_courriel)
+}
+
+exécute_sélection :: fonc (inst: *Instruction, dyn table: *Table) -> RésultatExécution
+{
+    dyn ligne : Ligne
+
+    pour i dans 0 ... table.nombre_de_lignes - 1 {
+        slot := slot_ligne(table, i)
+        désérialise_ligne(slot, @ligne)
+        imprime_ligne(@ligne)
+    }
+
+    retourne RésultatExécution.SUCCÈS
+}
+
+exécute_instruction :: fonc (inst: *Instruction, table: *Table) -> RésultatExécution
+{
+    discr inst.type {
+        INSÈRE {
+            retourne exécute_insertion(inst, table)
+        }
+        SÉLECTIONNE {
+            retourne exécute_sélection(inst, table)
+        }
+    }
+
+    retourne RésultatExécution.INVALIDE
+}
+
+principale :: fonc () -> z32
+{
+    //diffère { imprime("\nFin du programme, mémoire utilisée : %o\n", mémoire_utilisée()); }
+
+    dyn table : Table
+    intialise_table(@table)
+    diffère { détruit_table(@table); }
+
+    dyn marque := obtiens_marque_stockage_temporaire()
+
+    boucle {
+        set_marque_stockage_temporaire(marque);
+        marque = obtiens_marque_stockage_temporaire()
+
+        imprime_prompt()
+        entrée := lis_entrée()
+
+        si entrée.taille == 0 {
+            imprime("L'entrée est vide\n")
+            continue
+        }
+
+        si entrée[0] == '.' {
+            discr méta_commande(entrée) {
+                SUCCÈS {
+                    si entrée == ".sors" {
+                        retourne 0
+                    }
+
+                    continue
+                }
+                NON_RECONNUE {
+                    imprime("commande inconnue : %\n", entrée)
+                    continue
+                }
+            }
+        }
+
+        dyn instruction : Instruction
+        discr prépare_instruction(entrée, @instruction) {
+            SUCCÈS {}
+            ERREUR_SYNTAXE {
+                imprime("Erreur de syntaxe pour '%'\n", entrée)
+            }
+            INSTRUCTION_NON_RECONNUE {
+                imprime("Mot-clé inconnu au début de '%'\n", entrée)
+                continue
+            }
+        }
+
+        discr exécute_instruction(@instruction, @table) {
+            INVALIDE {
+                imprime("Exécution invalide\n")
+            }
+            SUCCÈS {
+                imprime("Exécution réussie\n")
+            }
+            TABLE_PLEINE {
+                imprime("Table pleine\n")
+            }
+        }
+    }
+
+    retourne 0
+}
