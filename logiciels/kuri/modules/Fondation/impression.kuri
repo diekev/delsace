@@ -679,6 +679,13 @@ imprime :: fonc(format: chaine, args: ...eini) -> rien
 	déloge chn
 }
 
+imprime_err :: fonc(format: chaine, args: ...eini) -> rien
+{
+    chn := imprime_chaine(format, ...args)
+	write(std_err, chn.pointeur, chn.taille)
+	déloge chn
+}
+
 imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 {
     enchaineuse : Enchaineuse
