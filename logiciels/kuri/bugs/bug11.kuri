@@ -1,0 +1,25 @@
+// Les blocs différés contenu dans le corps des boucles ne sont pas exécutés lors des instructions continue ou arrête
+
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    diffère { imprime("Bloc différé avant la boucle\n"); }
+
+    dyn i := 0
+
+    boucle {
+        diffère { imprime("Bloc différé dans la boucle\n"); }
+
+        i += 1
+
+        si i % 2 == 0 {
+            imprime("continue\n")
+            continue
+        }
+        sinon si i == 11 {
+            imprime("arrête\n")
+            arrête
+        }
+    }
+}
