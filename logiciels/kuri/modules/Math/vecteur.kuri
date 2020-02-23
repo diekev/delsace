@@ -136,6 +136,37 @@ est_supérieur_ou_égal :: fonc (v1: Vec3r, v2: Vec3r) -> bool
     retourne v1.x >= v2.x && v1.y >= v2.y && v1.z >= v2.z
 }
 
+crée_vec4r :: fonc (x := 0.0, y := 0.0, z := 0.0, w := 0.0) -> Vec4r
+{
+    retourne Vec4r{ x = x, y = y, z = z, w = w }
+}
+
+multiplie :: fonc (v1: Vec4r, v: r32) -> Vec4r
+{
+    dyn résultat : Vec4r
+
+    si v != 0.0 {
+        résultat.x = v1.x * v
+        résultat.y = v1.y * v
+        résultat.z = v1.z * v
+        résultat.z = v1.w * v
+    }
+
+    retourne résultat
+}
+
+soustrait :: fonc (v1: Vec4r, v: r32) -> Vec4r
+{
+    dyn résultat : Vec4r
+
+    résultat.x = v1.x - v
+    résultat.y = v1.y - v
+    résultat.z = v1.z - v
+    résultat.z = v1.w - v
+
+    retourne résultat
+}
+
 Nor3r :: struct {
     x := 0.0
     y := 0.0
