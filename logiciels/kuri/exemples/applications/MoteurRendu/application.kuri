@@ -154,7 +154,7 @@ ratisse_maillage :: fonc (
 // ----------------------------------------------------------------------------
 
 Rayon :: struct {
-    position : Vec3r
+    origine : Vec3r
     direction : Vec3r
 }
 
@@ -179,19 +179,83 @@ Pixol :: struct {
     m : z32
 }
 
+entresecte_triangle :: fonc (
+		vertex0: Vec3r,
+		vertex1: Vec3r,
+		vertex2: Vec3r,
+		rayon: *Rayon,
+		dyn distance: *r32,
+		dyn r_u : *r32,
+		dyn r_v : *r32) -> bool
+{
+	epsilon := 0.000001
+
+	cote1 := soustrait(vertex1, vertex0)
+	cote2 := soustrait(vertex2, vertex0)
+	h := produit_vectoriel(@rayon.direction, @cote2)
+	angle := produit_scalaire(cote1, h)
+
+	si (angle > -epsilon && angle < epsilon) {
+		retourne faux
+	}
+
+	f := 1.0 / angle
+	s := soustrait(rayon.origine, vertex0)
+	angle_u := f * produit_scalaire(s, h)
+
+	si (angle_u < 0.0 || angle_u > 1.0) {
+		retourne faux
+	}
+
+	q := produit_vectoriel(@s, @cote1);
+	angle_v := f * produit_scalaire(rayon.direction, q)
+
+	si (angle_v < 0.0 || angle_u + angle_v > 1.0) {
+		retourne faux
+	}
+
+	// À cette étape on peut calculer t pour trouver le point d'entresection sur
+	// la ligne.
+	t := f * produit_scalaire(cote2, q)
+
+	// Entresection avec le rayon.
+	si (t > epsilon) {
+		mémoire(distance) = t
+
+		si r_u != nul {
+			mémoire(r_u) = angle_u
+		}
+
+		si r_v != nul {
+			mémoire(r_v) = angle_v
+		}
+
+		retourne vrai
+	}
+
+	// Cela veut dire qu'il y a une entresection avec une ligne, mais pas avec
+	// le rayon.
+	retourne faux
+}
+
 // pas de rebond, pas d'anti-aliasing, simplement un traçage direct, pour avoir
 // un rendu plus rapide du résultat, le matériau est une capmat
 trace_maillage :: fonc (caméra : *Caméra, maillage : *Maillage, image: *Image) -> rien
 {
-    // pour chaque pixel
     pour i dans 0 ... image.hauteur - 1 {
         pour j dans 0 ... image.largeur - 1 {
             // génère rayon
+            dyn rayon : Rayon
 
-            // intersecte rayon avec le maillage
+            dyn distance_min := 1000.0
 
             pour tri dans maillage.tris {
-                // ....
+                distance := 0.0
+                touché := entresecte_triangle(tri.p0, tri.p1, tri.p2, @rayon, @distance, nul, nul)
+
+                si distance < distance_min {
+                    distance_min = distance
+                }
             }
         }
     }
