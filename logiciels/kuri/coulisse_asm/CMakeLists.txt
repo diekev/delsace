@@ -14,36 +14,30 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2020 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# ------------------------------------------------------------------------------
+set(NOM_CIBLE kuri_coulisse_asm)
 
-option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
-
-if(AVEC_LLVM)
-	find_package(LLVM REQUIRED)
-	add_definitions(-DAVEC_LLVM)
-endif()
-
-# ------------------------------------------------------------------------------
-
-set(RACINE_INSTALLATION kuri)
-
-add_subdirectory(compilation)
-add_subdirectory(coulisse_asm)
-add_subdirectory(coulisse_c)
-add_subdirectory(executable)
-add_subdirectory(exemples)
-add_subdirectory(tests)
-
-if(AVEC_LLVM)
-	add_subdirectory(coulisse_llvm)
-endif()
-
-install(
-	DIRECTORY modules
-	DESTINATION ${RACINE_INSTALLATION}
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../compilation/
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 )
+
+set(BIBLIOTHEQUES
+	kuri_compilation
+)
+
+set(SOURCES
+	generation_code_asm.cc
+
+	generation_code_asm.hh
+)
+
+add_library(${NOM_CIBLE} STATIC "${SOURCES}")
+
+target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
