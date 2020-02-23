@@ -1,0 +1,11 @@
+// Il est impossible d'assigner une valeur à un paramètre qui possède une valeur par défaut
+
+test :: fonc (dyn a := 0) -> rien
+{
+    a = 5
+}
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}
