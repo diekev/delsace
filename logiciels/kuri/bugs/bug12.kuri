@@ -1,0 +1,19 @@
+// On ne peut avoir plusieurs blocs pousse_contexte dans un même bloc (coulisse C)
+
+principale :: fonc () -> z32
+{
+    dyn nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    dyn mots : []chaine
+
+    pousse_contexte nouveau_contexte {
+        mots = divise("Je suis une chaine !", ' ')
+    }
+
+    pousse_contexte nouveau_contexte {
+        mots = divise("Je suis une autre chaine !", ' ')
+    }
+
+    retourne 0
+}
