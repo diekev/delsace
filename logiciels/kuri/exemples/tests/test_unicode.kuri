@@ -1,0 +1,86 @@
+importe Fondation
+
+// ----------------------------------------------------------------------------
+
+// Idée de Rust :
+// - validation des chaines pour vérifier qu'elles soient bel et bien encodées en UTF-8 lors de leurs construction
+// -- les chaines connues lors de la compilation doivent être vérifiées par le compilateur
+// -- lors d'une assignation ?
+// -- lors d'une construction depuis une chaine C -> validation des caractères
+// - avoir des itérateurs sur chaine pour UTF-8, aller de point-code en point-code
+// -- pouvoir convertir en majuscule ou en minuscule
+// -- pouvoir normaliser la chaine (remplacer les caractères similaires)
+// - https://fasterthanli.me/blog/2020/working-with-strings-in-rust/
+
+abort :: fonc externe () -> rien
+
+point_code_utf8 :: fonc (chn: chaine) -> z32
+{
+    retourne converti_utf8_utf32(chn.pointeur, nombre_octets_utf8_rapide(chn.pointeur))
+}
+
+en_majuscule_cp :: fonc (cp: z32) -> chaine
+{
+    si cp == point_code_utf8("é") {
+        retourne "É"
+    }
+
+    si cp == point_code_utf8("è") {
+        retourne "È"
+    }
+
+    si cp == point_code_utf8("ê") {
+        retourne "Ê"
+    }
+
+    si cp == point_code_utf8("ë") {
+        retourne "Ë"
+    }
+
+    retourne ""
+}
+
+en_majuscule_utf8 :: fonc (chn: chaine) -> chaine
+{
+    dyn résultat : chaine
+
+    dyn i : z64 = 0
+
+    tantque i < chn.taille {
+        n := nombre_octets_utf8_rapide(@chn[i])
+
+        si n == 0 {
+            imprime("Caractère Unicode invalide")
+            abort()
+        }
+
+        si n == 1 {
+            pousse(@résultat, en_majuscule(chn[i]))
+        }
+        sinon {
+            cp := converti_utf8_utf32(@chn[i], n)
+
+            maj := en_majuscule_cp(cp)
+
+            pour c dans maj {
+                pousse(@résultat, c)
+            }
+        }
+
+        i += n
+    }
+
+    retourne résultat
+}
+
+principale :: fonc () -> z32
+{
+    chn := copie_chaine("élément")
+    maj := en_majuscule_utf8(chn)
+
+    imprime("%\n", maj)
+
+    déloge maj
+
+    retourne 0
+}
