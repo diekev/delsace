@@ -1,0 +1,376 @@
+importe Fondation
+importe GlibC
+importe Réseau
+importe SysFichier
+
+charge "catalogue_fichier"
+charge "entete_http"
+charge "page_accueil"
+charge "rendeuse_page"
+charge "requête"
+charge "serveuse"
+
+chaine_jour_pour_tm :: fonc (tm_wday: z32) -> chaine
+{
+    discr tm_wday {
+        0 { retourne "Sun" }
+        1 { retourne "Mon" }
+        2 { retourne "Tue" }
+        3 { retourne "Wed" }
+        4 { retourne "Thu" }
+        5 { retourne "Fri" }
+        6 { retourne "Sat" }
+    }
+
+    retourne ""
+}
+
+chaine_mois_pour_tm :: fonc (tm_mon: z32) -> chaine
+{
+    discr tm_mon {
+         0 { retourne "Jan" }
+         1 { retourne "Feb" }
+         2 { retourne "Mar" }
+         3 { retourne "Apr" }
+         4 { retourne "May" }
+         5 { retourne "Jun" }
+         6 { retourne "Jul" }
+         7 { retourne "Aug" }
+         8 { retourne "Sep" }
+         9 { retourne "Oct" }
+        10 { retourne "Nov" }
+        11 { retourne "Dec" }
+    }
+
+    retourne ""
+}
+
+chaine_pour_aujourdhui :: fonc () -> chaine
+{
+    t := time(nul)
+    tm_ := localtime(@t);
+
+    // À FAIRE : ajoute d'options de formattage pour les nombres dans les fonctions "imprime..."
+    dyn enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
+
+    diffère { détruit_tampons(@enchaineuse) }
+
+    ajoute_au_tampon(@enchaineuse, chaine_jour_pour_tm(tm_.tm_wday), ", ")
+
+    si tm_.tm_mday < 10 {
+        ajoute_au_tampon(@enchaineuse, '0')
+    }
+
+    ajoute_au_tampon(@enchaineuse, tm_.tm_mday, " ", chaine_mois_pour_tm(tm_.tm_mon), " ", tm_.tm_year + 1900)
+
+    ajoute_au_tampon(@enchaineuse, " ")
+
+    // nous sommes en CET, HTTP doit être en GMT
+    heure := tm_.tm_hour - 1
+
+    si heure < 10 {
+        ajoute_au_tampon(@enchaineuse, '0')
+    }
+
+    ajoute_au_tampon(@enchaineuse, heure, ":")
+
+    si tm_.tm_min < 10 {
+        ajoute_au_tampon(@enchaineuse, '0')
+    }
+
+    ajoute_au_tampon(@enchaineuse, tm_.tm_min, ":")
+
+    si tm_.tm_sec < 10 {
+        ajoute_au_tampon(@enchaineuse, '0')
+    }
+
+    ajoute_au_tampon(@enchaineuse, tm_.tm_sec)
+
+    ajoute_au_tampon(@enchaineuse, " GMT")
+
+    retourne chaine_depuis_enchaineuse(@enchaineuse)
+}
+
+// ----------------------------
+
+charge_donnees_requete :: fonc(prise : z32, adresse_du_connecté : &sockaddr_in) -> chaine
+{
+    MAXDATASIZE : n64 = transtype(1024 : n64)
+
+    dyn tampon : [1024]z8
+    dyn requete : chaine
+
+    boucle {
+        taille_reçue := recv(prise, @tampon[0], MAXDATASIZE, 0)
+
+        si taille_reçue > 0 {
+            ancienne_taille := requete.taille
+            reloge requete : chaine(requete.taille + taille_reçue)
+            copie_mem_nonsur(src=@tampon[0], dst=@requete[ancienne_taille], taille=taille_reçue)
+
+            si taille_reçue < transtype(MAXDATASIZE: z64) {
+                arrête
+            }
+        }
+        sinon si taille_reçue == 0 {
+            arrête
+        }
+        sinon si taille_reçue == -1 {
+            // À FAIRE : erreur
+            arrête
+        }
+    }
+
+    //imprime("requete :\n", requete, '\n')
+
+    retourne requete
+}
+
+crée_réponse_pour_requête_fichier :: fonc (chm: &CheminFichier) -> RéponseRequête
+{
+    contenu := contenu_fichier_texte(chm)
+
+    retourne RéponseRequête{
+        code = CodeÉtatHTTP.OK,
+        type_contenu = TypeContenu.APPLICATION_JAVASCRIPT,
+        contenu = contenu
+    }
+}
+
+procède_requête :: fonc (
+    serveuse: *Serveuse,
+    prise: z32,
+    adresse_du_connecté: sockaddr_in) -> rien
+{
+    mémoire_présente := mémoire_utilisée()
+    temps_présent := compte_ticks_microsecondes()
+
+    diffère {
+        imprime_log(ModeLogage.AUCUN, "", "Mémoire utilisée (avant) : %o", mémoire_présente)
+        imprime_log(ModeLogage.AUCUN, "", "Mémoire utilisée (après) : %o", mémoire_utilisée())
+        imprime_log(ModeLogage.AUCUN, "", "Mémoire consommée        : %o", pic_de_mémoire())
+        imprime_log(ModeLogage.AUCUN, "", "Durée réponse            : %us", compte_ticks_microsecondes() - temps_présent)
+
+        ip := converti_chaine_c(inet_ntoa(adresse_du_connecté.sin_addr))
+        imprime_log(ModeLogage.AUCUN, "", "IP                       : % ", ip)
+
+        imprime_log(ModeLogage.AUCUN, "", "")
+    }
+
+    requête := charge_donnees_requete(prise, adresse_du_connecté)
+    diffère { déloge requête; }
+
+    // ------------------------------
+
+    //imprime("\nrequête :\n%\n", requête)
+
+    dyn analyseuse : AnalyseuseRequête
+    analyseuse.requête = requête
+    //analyse_requête(@analyseuse, requete)
+
+    dyn ligne_requête := analyse_ligne_requête(@analyseuse)
+
+    dyn entêtes := analyse_entêtes(@analyseuse)
+    diffère { détruit_entêtes(@entêtes); }
+
+    dyn contenu_requête := analyse_contenu(@analyseuse)
+
+/*
+    pour entête dans entêtes.données {
+        imprime("--- %: %\n", entête.clé, entête.valeur)
+    }
+*/
+
+    uri := construit_uri_depuis_chemin_requête(ligne_requête.chemin)
+
+    dyn données_requête : DonnéesRequête
+    données_requête.uri = uri
+    données_requête.entêtes = entêtes
+    données_requête.contenu = contenu_requête
+
+    dyn réponse : RéponseRequête
+    diffère { déloge réponse.contenu; }
+
+    // À FAIRE : gère les chemin vers les fichiers
+    chn_chemin := construit_chaine(uri.chemin.pointeur + 1, uri.chemin.taille - 1)
+    chm := construit_chemin(chn_chemin)
+
+    // À FAIRE : gère les permissions
+    si fichier_existe(chm) {
+        réponse = crée_réponse_pour_requête_fichier(chm)
+    }
+    sinon {
+        dyn trouvée := faux
+
+        pour route dans serveuse.routes {
+            si uri.chemin != route.url {
+                continue
+            }
+
+            trouvée = vrai
+
+            si ligne_requête.méthode == "GET" && transtype(route.méthode_get: *rien) != nul {
+                rappel := route.méthode_get
+                réponse = rappel(serveuse, @données_requête)
+                arrête
+            }
+
+            si ligne_requête.méthode == "POST" && transtype(route.méthode_post: *rien) != nul {
+                rappel := route.méthode_post
+                réponse = rappel(serveuse, @données_requête)
+                arrête
+            }
+
+            réponse = crée_réponse_méthode_non_autorisée()
+            arrête
+        }
+
+        si !trouvée {
+            réponse = crée_réponse_page_non_trouvée()
+        }
+    }
+
+    // ------------------------------
+
+    diffère {
+        imprime_log(ModeLogage.AUCUN, "",
+            "% % % - %",
+            ligne_requête.méthode,
+            ligne_requête.chemin,
+            ligne_requête.protocole,
+            chaine_code_état_http(réponse.code))
+    }
+
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
+    diffère { détruit_tampons(@enchaineuse) }
+
+    contenu := réponse.contenu
+
+    ajoute_au_tampon(@enchaineuse, "HTTP/1.1 ", chaine_code_état_http(réponse.code), "\r\n")
+    ajoute_au_tampon(@enchaineuse, "Server: delsace\r\n")
+    ajoute_au_tampon(@enchaineuse, "Content-Length: ", contenu.taille, "\r\n")
+
+    discr réponse.type_contenu {
+        TEXT_HTML {
+            ajoute_au_tampon(@enchaineuse, "Content-Type: text/html; charset=utf-8\r\n")
+        }
+        APPLICATION_JAVASCRIPT {
+            ajoute_au_tampon(@enchaineuse, "Content-Type: application/javascript\r\n")
+            ajoute_au_tampon(@enchaineuse, "Content-Disposition: attachment; filename='test.js'\r\n")
+            ajoute_au_tampon(@enchaineuse, "Cache-Control: public, max-age=31556952, immutable\r\n")
+        }
+        APPLICATION_JSON {
+            ajoute_au_tampon(@enchaineuse, "Content-Type: application/json; charset=utf-8\r\n")
+        }
+        sinon {
+            // RÀF
+        }
+    }
+
+    date := chaine_pour_aujourdhui()
+    diffère { déloge date; }
+    ajoute_au_tampon(@enchaineuse, "Date: ", date, "\r\n")
+
+    // À FAIRE: Content-Encoding, voir Accept-Encoding de la requête
+
+    ajoute_au_tampon(@enchaineuse, "Set-Cookie: test=abcdefg; Domain=localhost; Max-Age=60; Path=/; HttpOnly\r\n")
+
+    ajoute_au_tampon(@enchaineuse, "\r\n")
+    ajoute_au_tampon(@enchaineuse, contenu)
+
+    chaine_reponse := chaine_depuis_enchaineuse(@enchaineuse)
+    diffère { déloge chaine_reponse; }
+
+    si send(prise, chaine_reponse.pointeur, chaine_reponse.taille, 0) == -1 {
+        perror("send".pointeur)
+    }
+
+    close(prise)
+}
+
+dyn INTERRUTION := faux
+dyn PRISE_SERVEUSE := -1
+
+démarre :: fonc(dyn serveuse : &Serveuse) -> rien
+{
+    si serveuse.prise == -1 {
+        retourne
+    }
+
+    nonsûr {
+        PRISE_SERVEUSE = serveuse.prise
+    }
+
+    dyn adresse_du_connecté : sockaddr_in
+	sin_size := transtype(taille_de(sockaddr_in) : n32)
+
+    boucle {
+        prise := accept(serveuse.prise, transtype(@adresse_du_connecté : *sockaddr), @sin_size)
+
+        si INTERRUTION {
+            arrête
+        }
+
+        si prise == -1 {
+            perror("accept".pointeur)
+            continue
+        }
+
+        //si fork() == 0 {
+        procède_requête(@serveuse, prise, adresse_du_connecté)
+        //    exit(0)
+       // }
+
+        // le parent n'a pas besoin de cela
+       // close(prise)
+
+        // nettoyage des processus fils
+        //tantque waitpid(-1, nul, _WNOHANG) > 0 {}
+    }
+}
+
+// -------------------------------------------------
+
+#nulctx rappel_interruption :: fonc (numéro_signal: z32) -> rien
+{
+    nonsûr {
+        INTERRUTION = vrai
+    }
+
+    // débloque la prise pour pouvoir interrompre la boucle
+    flags := fcntl(PRISE_SERVEUSE, _F_GETFL, 0);
+    fcntl(PRISE_SERVEUSE, _F_SETFL, flags | _O_NONBLOCK);
+}
+
+principale :: fonc () -> z32
+{
+    diffère { imprime("Fin du programme, mémoire utilisée %o\n", mémoire_utilisée()); }
+
+    contexte.logueur = mon_impression_log
+
+    signal(_SIGINT, rappel_interruption);
+
+    dyn serveuse : Serveuse
+    construit_serveuse(serveuse, transtype(5001 : n16))
+
+    // pour les gabarits
+    ajoute_fichier(@serveuse.rendeuse_gabarit.catalogue, "accueil", "accueil.html")
+
+    // pour les fichiers statiques
+    ajoute_fichier(@serveuse.fichiers_statiques, "test", "test.js")
+
+    ajoute_route(@serveuse, "/", répond_get_page_accueil, répond_post_page_accueil)
+
+    démarre(serveuse)
+
+    détruit_serveuse(@serveuse)
+
+    retourne 0
+}
+
+mon_impression_log :: fonc (message: chaine, ident: chaine, mode: ModeLogage, données: *rien) -> rien
+{
+    imprime("%\n", message)
+}
