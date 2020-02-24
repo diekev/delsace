@@ -129,6 +129,16 @@ DSYNC	         :=    0o10000
 // encore les énum. L'expression devrait être (0o20000000 | 0o200000)
 TMPFILE          := 0o20200000
 
+_O_NONBLOCK := 0o04000
+
+_F_DUPFD := 0	/* Duplicate file descriptor.  */
+_F_GETFD := 1	/* Get file descriptor flags.  */
+_F_SETFD := 2	/* Set file descriptor flags.  */
+_F_GETFL := 3	/* Get file status flags.  */
+_F_SETFL := 4	/* Set file status flags.  */
+
+fcntl :: fonc externe (fd: z32, cmd: z32, args: ...) -> z32
+
 opendir :: fonc externe (chemin : *z8) -> *DIR
 closedir :: fonc externe (d : *DIR) -> z32
 readdir :: fonc externe (d : *DIR) -> *dirent
@@ -169,6 +179,11 @@ gethostbyname :: fonc externe (arg : *z8) -> *hostent
 
 socket :: fonc externe (a : z32, b : z32, c : z32) -> z32
 
+_SOL_SOCKET := 1
+_SO_REUSEADDR := 2
+
+setsockopt :: fonc externe (sockfd: z32, level: z32, optname: z32, optval: *rien, optlen: n64) -> z32
+
 htonl :: fonc externe (hostlong: n32) -> n32
 htons :: fonc externe (hostshort: n16) -> n16
 ntohl :: fonc externe (netlong: n32) -> n32
@@ -201,3 +216,9 @@ memcpy :: fonc externe (ptr: *rien, src: *rien, taille: n64) -> rien
 FILE :: struct externe
 fopen :: fonc externe (__filename : *z8, __modes : *z8) -> *FILE
 fclose :: fonc externe (__file : *FILE) -> z32
+
+// -------------------------------------
+
+_SIGINT := 2
+
+signal :: fonc externe (numéro_signal: z32, rappel: #nulctx fonc(z32)(rien)) -> rien
