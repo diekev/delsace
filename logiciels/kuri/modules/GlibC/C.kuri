@@ -8,6 +8,7 @@
 #inclus "sys/stat.h"
 #inclus "sys/time.h"
 #inclus "sys/wait.h"
+#inclus "time.h"
 #inclus "unistd.h"
 
 //###############################################################################
@@ -35,6 +36,27 @@ timezone :: struct externe  {
 }
 
 gettimeofday :: fonc externe (val_temps : *rien, zone_temps : *rien) -> rien
+
+// @Interface : z64 ici est time_t (pour linux en tout cas)
+time :: fonc externe (tloc: *z64) -> z64
+
+/* ISO C `broken-down time' structure.  */
+// @Interface : doit être synchronisée avec struct_tm.h
+tm :: struct externe {
+    tm_sec: z32      /* Seconds.      [0-60] (1 leap second) */
+    tm_min: z32      /* Minutes.      [0-59] */
+    tm_hour: z32     /* Hours.        [0-23] */
+    tm_mday: z32     /* Day.          [1-31] */
+    tm_mon: z32      /* Month.        [0-11] */
+    tm_year: z32     /* Year - 1900. */
+    tm_wday: z32     /* Day of week.  [0-6] */
+    tm_yday: z32     /* Days in year. [0-365] */
+    tm_isdst: z32    /* DST.          [-1/0/1] */
+    tm_gmtoff : z64; /* Seconds east of UTC.  */
+    tm_zone : *z8;   /* Timezone abbreviation.  */
+}
+
+localtime :: fonc externe (tloc: *z64) -> *tm
 
 //###############################################################################
 
