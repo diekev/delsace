@@ -1,6 +1,7 @@
 importe Fondation
 importe GlibC
 importe Réseau
+importe SysFichier
 
 charge "entete_http"
 
@@ -111,18 +112,133 @@ chaine_pour_aujourdhui :: fonc () -> chaine
 
 // ----------------------------
 
+// une liste complète des types de contenu peut se trouver ici :
+// https://www.iana.org/assignments/media-types/media-types.xhtml
+TypeContenu :: énum z32 {
+    INVALIDE
+    APPLICATION_JAVASCRIPT
+    APPLICATION_JSON
+    TEXT_HTML
+}
+
+RéponseRequête :: struct {
+    code : CodeÉtatHTTP
+    type_contenu : TypeContenu
+    contenu : chaine
+}
+
+FichierTexte :: struct {
+    nom_court : chaine
+    chemin : chaine
+
+    données : chaine
+
+    succès := faux
+}
+
+// À FAIRE: rechargement des fichiers, s'ils ont changés
+commence_fichier :: fonc (dyn fichier: *FichierTexte) -> rien
+{
+    chm := construit_chemin(fichier.chemin)
+    fichier.données = contenu_fichier_texte(chm)
+    fichier.succès = vrai
+}
+
+CatalogueFichier :: struct {
+    fichiers : []FichierTexte
+}
+
+trouve_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine) -> *FichierTexte
+{
+    pour fichier dans catalogue.fichiers {
+        si fichier.nom_court == nom_court {
+            retourne @fichier
+        }
+    }
+
+    retourne nul
+}
+
+ajoute_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine, chemin: chaine) -> rien
+{
+    fichier := trouve_fichier(catalogue, nom_court)
+
+    si fichier != nul {
+        retourne
+    }
+
+    dyn nouveau_fichier : FichierTexte
+    nouveau_fichier.nom_court = nom_court
+    nouveau_fichier.chemin = chemin
+
+    tableau_ajoute(@catalogue.fichiers, nouveau_fichier)
+}
+
+détruit_catalogue :: fonc (catalogue: *CatalogueFichier) -> rien
+{
+    pour fichier dans catalogue.fichiers {
+        déloge fichier.données
+    }
+
+    déloge catalogue.fichiers
+}
+
+RendeusePage :: struct {
+    catalogue : CatalogueFichier
+}
+
+crée_réponse_fichier_gabarit_manquant :: fonc () -> RéponseRequête
+{
+    retourne RéponseRequête{
+        code = CodeÉtatHTTP.INTERNAL_SERVER_ERROR,
+        type_contenu = TypeContenu.TEXT_HTML,
+        // À FAIRE : évite de copier la chaine
+        contenu = copie_chaine("<p>La page du gabarit n'est pas trouvable !</p>")
+    }
+}
+
+rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -> RéponseRequête
+{
+    fichier := trouve_fichier(@rendeuse_gabarit.catalogue, nom_court)
+
+    si fichier == nul {
+        retourne crée_réponse_fichier_gabarit_manquant()
+    }
+
+    si fichier.données.taille == 0 {
+        commence_fichier(fichier)
+    }
+
+    si fichier.succès == faux {
+        retourne crée_réponse_fichier_gabarit_manquant()
+    }
+
+    retourne RéponseRequête{
+        code = CodeÉtatHTTP.OK,
+        type_contenu = TypeContenu.TEXT_HTML,
+        // À FAIRE : évite de copier la chaine
+        contenu = copie_chaine(fichier.données)
+    }
+}
+
+// ----------------------------
+
 CONNEXIONS_MAX := 1000
 
-dyn PRISE_SERVEUSE := -1
+Route :: struct {
+    url : chaine
+    méthode_get : fonc(*rien, *rien)(RéponseRequête) = nul
+    méthode_post : fonc(*rien, *rien)(RéponseRequête) = nul
+}
 
 Serveuse :: struct {
     prise := -1
+    rendeuse_gabarit : RendeusePage
+    // pour les fichiers javascripts, css, ou encore les images
+    fichiers_statiques : CatalogueFichier
+
+    routes: []Route
 }
-
-setsockopt :: fonc externe (sockfd: z32, level: z32, optname: z32, optval: *rien, optlen: n64) -> z32
-
-_SOL_SOCKET := 1
-_SO_REUSEADDR := 2
 
 construit_serveuse :: fonc(dyn serveuse : &Serveuse, port : n16) -> chaine
 {
@@ -164,20 +280,19 @@ construit_serveuse :: fonc(dyn serveuse : &Serveuse, port : n16) -> chaine
 		retourne "erreur lors de l'écoute"
 	}
 
-    nonsûr {
-        PRISE_SERVEUSE = serveuse.prise
-    }
-
     retourne ""
 }
 
-détruit_serveuse :: fonc(dyn serveuse : &Serveuse) -> rien
+détruit_serveuse :: fonc (dyn serveuse: *Serveuse) -> rien
 {
-    si serveuse.prise == -1 {
-        retourne
+    si serveuse.prise != -1 {
+        close(serveuse.prise)
     }
 
-    close(serveuse.prise)
+    déloge serveuse.routes
+
+    détruit_catalogue(@serveuse.fichiers_statiques)
+    détruit_catalogue(@serveuse.rendeuse_gabarit.catalogue)
 }
 
 charge_donnees_requete :: fonc(prise : z32, adresse_du_connecté : &sockaddr_in) -> chaine
@@ -219,21 +334,6 @@ DonnéesRequête :: struct {
     contenu : chaine
 }
 
-// une liste complète des types de contenu peut se trouver ici :
-// https://www.iana.org/assignments/media-types/media-types.xhtml
-TypeContenu :: énum z32 {
-    INVALIDE
-    APPLICATION_JAVASCRIPT
-    APPLICATION_JSON
-    TEXT_HTML
-}
-
-RéponseRequête :: struct {
-    code : CodeÉtatHTTP
-    type_contenu : TypeContenu
-    contenu : chaine
-}
-
 crée_réponse_page_non_trouvée :: fonc () -> RéponseRequête
 {
     retourne RéponseRequête{
@@ -254,8 +354,6 @@ crée_réponse_méthode_non_autorisée :: fonc () -> RéponseRequête
     }
 }
 
-importe SysFichier
-
 crée_réponse_pour_requête_fichier :: fonc (chm: &CheminFichier) -> RéponseRequête
 {
     contenu := contenu_fichier_texte(chm)
@@ -267,19 +365,12 @@ crée_réponse_pour_requête_fichier :: fonc (chm: &CheminFichier) -> RéponseRe
     }
 }
 
-répond_get_page_accueil :: fonc (requête: *DonnéesRequête) -> RéponseRequête
+répond_get_page_accueil :: fonc (serveuse: *Serveuse, requête: *DonnéesRequête) -> RéponseRequête
 {
-    chm := construit_chemin("accueil.html")
-    contenu := contenu_fichier_texte(chm)
-
-    retourne RéponseRequête{
-        code = CodeÉtatHTTP.OK,
-        type_contenu = TypeContenu.TEXT_HTML,
-        contenu = contenu
-    }
+    retourne rends_page(@serveuse.rendeuse_gabarit, "accueil")
 }
 
-répond_post_page_accueil :: fonc (requête: *DonnéesRequête) -> RéponseRequête
+répond_post_page_accueil :: fonc (serveuse: *Serveuse, requête: *DonnéesRequête) -> RéponseRequête
 {
     enchaineuse : Enchaineuse
     diffère { détruit_tampons(@enchaineuse) }
@@ -322,6 +413,7 @@ répond_post_page_accueil :: fonc (requête: *DonnéesRequête) -> RéponseRequ�
 }
 
 procède_requête :: fonc (
+    serveuse: *Serveuse,
     prise: z32,
     adresse_du_connecté: sockaddr_in) -> rien
 {
@@ -383,20 +475,32 @@ procède_requête :: fonc (
         réponse = crée_réponse_pour_requête_fichier(chm)
     }
     sinon {
-        si uri.chemin == "/" {
-            discr ligne_requête.méthode {
-                "GET" {
-                    réponse = répond_get_page_accueil(@données_requête)
-                }
-                "POST" {
-                    réponse = répond_post_page_accueil(@données_requête)
-                }
-                sinon {
-                    réponse = crée_réponse_méthode_non_autorisée()
-                }
+        dyn trouvée := faux
+
+        pour route dans serveuse.routes {
+            si uri.chemin != route.url {
+                continue
             }
+
+            trouvée = vrai
+
+            si ligne_requête.méthode == "GET" && transtype(route.méthode_get: *rien) != nul {
+                rappel := route.méthode_get
+                réponse = rappel(serveuse, @données_requête)
+                arrête
+            }
+
+            si ligne_requête.méthode == "POST" && transtype(route.méthode_post: *rien) != nul {
+                rappel := route.méthode_post
+                réponse = rappel(serveuse, @données_requête)
+                arrête
+            }
+
+            réponse = crée_réponse_méthode_non_autorisée()
+            arrête
         }
-        sinon {
+
+        si !trouvée {
             réponse = crée_réponse_page_non_trouvée()
         }
     }
@@ -460,10 +564,17 @@ procède_requête :: fonc (
     close(prise)
 }
 
+dyn INTERRUTION := faux
+dyn PRISE_SERVEUSE := -1
+
 démarre :: fonc(dyn serveuse : &Serveuse) -> rien
 {
     si serveuse.prise == -1 {
         retourne
+    }
+
+    nonsûr {
+        PRISE_SERVEUSE = serveuse.prise
     }
 
     dyn adresse_du_connecté : sockaddr_in
@@ -472,39 +583,59 @@ démarre :: fonc(dyn serveuse : &Serveuse) -> rien
     boucle {
         prise := accept(serveuse.prise, transtype(@adresse_du_connecté : *sockaddr), @sin_size)
 
+        si INTERRUTION {
+            arrête
+        }
+
         si prise == -1 {
             perror("accept".pointeur)
             continue
         }
 
-        si fork() == 0 {
-            procède_requête(prise, adresse_du_connecté)
-            exit(0)
-        }
+        //si fork() == 0 {
+        procède_requête(@serveuse, prise, adresse_du_connecté)
+        //    exit(0)
+       // }
 
         // le parent n'a pas besoin de cela
-        close(prise)
+       // close(prise)
 
         // nettoyage des processus fils
-        tantque waitpid(-1, nul, _WNOHANG) > 0 {}
+        //tantque waitpid(-1, nul, _WNOHANG) > 0 {}
     }
 }
 
-//###############################################################################
+// -------------------------------------------------
 
 #nulctx rappel_interruption :: fonc (numéro_signal: z32) -> rien
 {
-    close(PRISE_SERVEUSE)
-    exit(numéro_signal)
+    nonsûr {
+        INTERRUTION = vrai
+    }
+
+    // débloque la prise pour pouvoir interrompre la boucle
+    flags := fcntl(PRISE_SERVEUSE, _F_GETFL, 0);
+    fcntl(PRISE_SERVEUSE, _F_SETFL, flags | _O_NONBLOCK);
 }
 
-signal :: fonc externe (numéro_signal: z32, rappel: #nulctx fonc(z32)(rien)) -> rien
+ajoute_route :: fonc (
+    serveuse: *Serveuse,
+    url: chaine,
+    méthode_get: fonc(*Serveuse, *DonnéesRequête)(RéponseRequête),
+    méthode_post: fonc(*Serveuse, *DonnéesRequête)(RéponseRequête)) -> rien
+{
+    dyn route : Route
+    route.url = url
+    route.méthode_get = transtype(méthode_get: fonc(*rien, *rien)(RéponseRequête))
+    route.méthode_post = transtype(méthode_post: fonc(*rien, *rien)(RéponseRequête))
 
-_SIGINT := 2
+    tableau_ajoute(@serveuse.routes, route)
+}
 
-// commentaire
 principale :: fonc () -> z32
 {
+    diffère { imprime("Fin du programme, mémoire utilisée %o\n", mémoire_utilisée()); }
+
     contexte.logueur = mon_impression_log
 
     signal(_SIGINT, rappel_interruption);
@@ -512,9 +643,17 @@ principale :: fonc () -> z32
     dyn serveuse : Serveuse
     construit_serveuse(serveuse, transtype(5001 : n16))
 
+    // pour les gabarits
+    ajoute_fichier(@serveuse.rendeuse_gabarit.catalogue, "accueil", "accueil.html")
+
+    // pour les fichiers statiques
+    ajoute_fichier(@serveuse.fichiers_statiques, "test", "test.js")
+
+    ajoute_route(@serveuse, "/", répond_get_page_accueil, répond_post_page_accueil)
+
     démarre(serveuse)
 
-    close(serveuse.prise)
+    détruit_serveuse(@serveuse)
 
     retourne 0
 }

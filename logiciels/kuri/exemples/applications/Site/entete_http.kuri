@@ -245,7 +245,7 @@ analyse_contenu :: fonc (dyn analyseuse: *AnalyseuseRequête) -> chaine
     retourne analyseuse.mot_courant()
 }
 
-test_entete_http :: fonc(args : []*z8) : z32
+test_entete_http :: fonc() -> z32
 {
     entête := "GET / HTTP/1.1
 Host: localhost:5005
