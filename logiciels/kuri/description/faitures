@@ -88,6 +88,9 @@ Faitures
 -- alias de types
 -- opérateurs implicites
 -- validation des types des énums, et typages plus libre (énum de chaines, de structures, etc.)
+-- ajout d'un mot-clé pour les types ?
+-- ajout d'un type pour les retours de fonctions (ou tuple, R-uple ?)
+-- ajout d'un type pour les caractères (« rune »), avec une gestion correcte des chaines UTF-8
 
 
 À faire (tests)
