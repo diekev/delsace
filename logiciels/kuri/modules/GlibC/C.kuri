@@ -84,6 +84,12 @@ S_IFBLK :: fonc externe (mode : n32) -> bool
 S_IFCHR :: fonc externe (mode : n32) -> bool
 S_IFIFO :: fonc externe (mode : n32) -> bool
 
+_SEEK_SET := 0	/* Seek from beginning of file.  */
+_SEEK_CUR := 1	/* Seek from current position.  */
+_SEEK_END := 2	/* Seek from end of file.  */
+
+lseek :: fonc externe (fd: z32, offset: z64, whence: z32) -> z64
+
 // Version 64-bit de la structure 'stat' de "sys/stat.h"
 stat :: struct externe  {
     st_dev : n64         // ID of device containing file

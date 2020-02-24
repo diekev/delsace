@@ -2,7 +2,7 @@ importe Fondation
 importe GlibC
 
 // https://cstack.github.io/db_tutorial/
-// continuation, les tests ne fonctionnent pas : https://cstack.github.io/db_tutorial/parts/part4.html
+// continuation : https://cstack.github.io/db_tutorial/parts/part5.html
 
 imprime_prompt :: fonc () -> rien
 {
@@ -56,12 +56,12 @@ TAILLE_MAX_COURRIEL := 255
 
 // À FAIRE : la représentation d'une ligne est compacte en mémoire
 TAILLE_ID := 4 // taille_de Ligne.id
-TAILLE_NOM := 32 // taille_de Lige.nom
-TAILLE_COURRIEL := 255 // taille_de Ligne.courriel
+TAILLE_NOM := 33 // taille_de Lige.nom + 1
+TAILLE_COURRIEL := 256 // taille_de Ligne.courriel + 1
 DÉCALAGE_ID := 0
 DÉCALAGE_NOM := 4
-DÉCALAGE_COURRIEL := 36
-TAILLE_LIGNE := 291
+DÉCALAGE_COURRIEL := 37
+TAILLE_LIGNE := 293
 
 TAILLE_PAGE := 4096
 TABLE_MAX_PAGES := 100
@@ -70,45 +70,171 @@ LIGNES_MAX_TABLE := 1400 // LIGNES_PAR_PAGES * TABLE_MAX_PAGES
 
 Ligne :: struct {
     id := 0
-    nom : [32]z8
-    courriel : [255]z8
+    // Ne pas oublier le caractère nul en fin des chaines
+    nom : [32 + 1]z8
+    courriel : [255 + 1]z8
+}
+
+Pager :: struct {
+    pages : [100]*rien
+    descripteur_fichier := -1
+    taille_fichier : z64 = 0
+}
+
+ouvre_pager :: fonc (fichier: chaine) -> *Pager
+{
+    marque := obtiens_marque_stockage_temporaire()
+    diffère { set_marque_stockage_temporaire(marque) }
+
+    chemin_c := chaine_c_temp(fichier)
+
+    fd := open(chemin_c, LECTURE_ÉCRITURE | CREATION, 0o400 | 0o200)
+
+    si fd == -1 {
+        imprime("Impossible d'ouvrir le fichier\n")
+        exit(1)
+    }
+
+    taille_fichier := lseek(fd, 0, _SEEK_END)
+
+    dyn pager := loge Pager
+    pager.descripteur_fichier = fd
+    pager.taille_fichier = taille_fichier
+
+    pour page dans pager.pages {
+        page = nul
+    }
+
+    retourne pager
+}
+
+trouve_page :: fonc (dyn pager: *Pager, index_page: z32) -> *rien
+{
+    si index_page > TABLE_MAX_PAGES {
+        imprime("Tentative de prendre une page hors des limites : % > %\n", index_page, TABLE_MAX_PAGES)
+        exit(1)
+    }
+
+    dyn page := pager.pages[index_page]
+
+    si page == nul {
+        // Cache miss
+        page = malloc(TAILLE_PAGE)
+        dyn nombre_de_pages := pager.taille_fichier / TAILLE_PAGE
+
+        // nous avons peut-être une page incomplète à la fin du fichier
+        si pager.taille_fichier % TAILLE_PAGE != 0 {
+            nombre_de_pages += 1
+        }
+
+        si index_page <= nombre_de_pages {
+            lseek(pager.descripteur_fichier, index_page * TAILLE_PAGE, _SEEK_SET)
+
+            octets_lus := read(pager.descripteur_fichier, page, transtype(TAILLE_PAGE: n64))
+
+            si octets_lus == -1 {
+                imprime("Erreur lors de la lecture du fichier !\n")
+                exit(1)
+            }
+        }
+
+        pager.pages[index_page] = page
+    }
+
+    retourne page
+}
+
+// les pages ne sont pas flushées si le programme est interrompu (ctrl + C)
+// nous pourrions également éviter d'écrire des pages qui n'ont pas changées
+flush_pager :: fonc (dyn pager: *Pager, index_page: z32, taille: z32) -> rien
+{
+    si pager.pages[index_page] == nul {
+        imprime("Tentativer de flusher une page nulle !\n")
+        exit(1)
+    }
+
+    décalage := lseek(pager.descripteur_fichier, index_page * TAILLE_PAGE, _SEEK_SET)
+
+    si décalage == -1 {
+        imprime("Impossible de chercher le point dans le fichier !\n")
+        exit(1)
+    }
+
+    octets_écris := write(pager.descripteur_fichier, pager.pages[index_page], taille)
+
+    si octets_écris == -1 {
+        imprime("Erreur lors de l'écriture !")
+        exit(1)
+    }
 }
 
 Table :: struct {
     nombre_de_lignes := 0
-    pages : [100]*rien
+    pager : *Pager = nul
 }
 
-intialise_table :: fonc (dyn table: *Table) -> rien
+ouvre_base_de_données :: fonc (fichier: chaine) -> *Table
 {
-    table.nombre_de_lignes = 0
+    pager := ouvre_pager(fichier)
+    nombre_de_lignes := pager.taille_fichier / TAILLE_LIGNE
 
-    pour page dans table.pages {
-        page = nul
+    dyn table := loge Table
+    table.pager = pager
+    table.nombre_de_lignes = transtype(nombre_de_lignes: z32)
+
+    retourne table
+}
+
+ferme_base_de_données :: fonc (dyn table: *Table) -> rien
+{
+    dyn pager := table.pager
+    nombre_de_pages_pleines := table.nombre_de_lignes / TAILLE_LIGNE
+
+    pour i dans 0 ... nombre_de_pages_pleines - 1 {
+        si pager.pages[i] == nul {
+            continue
+        }
+
+        flush_pager(pager, i, TAILLE_PAGE)
+        free(pager.pages[i])
+        pager.pages[i] = nul
     }
-}
 
-détruit_table :: fonc (dyn table: *Table) -> rien
-{
-    table.nombre_de_lignes = 0
+    // Une page partielle peut toujours être à écrire à la fin du fichier
+    // Ce ne sera plus nécessaire lorsque nous aurons un arbre-B
+    nombre_de_lignes_additionnelles := table.nombre_de_lignes % LIGNES_PAR_PAGES
 
-    pour page dans table.pages {
-        si page != nul {
-            free(page)
-            page = nul
+    si nombre_de_lignes_additionnelles > 0 {
+        index_page := nombre_de_pages_pleines
+
+        si pager.pages[index_page] != nul {
+            flush_pager(pager, index_page, nombre_de_lignes_additionnelles * TAILLE_LIGNE)
+            free(pager.pages[index_page])
+            pager.pages[index_page] = nul
         }
     }
+
+    résultat_fermeture := close(pager.descripteur_fichier)
+
+    si résultat_fermeture == -1 {
+        imprime("Échec lors de la fermeture du fichier\n")
+        exit(1)
+    }
+
+    pour page dans pager.pages {
+        si page != nul {
+            free(page)
+        }
+    }
+
+    déloge pager
+    déloge table
 }
 
 slot_ligne :: fonc (dyn table: *Table, index_ligne: z32) -> *rien
 {
     index_page := index_ligne / LIGNES_PAR_PAGES
-    dyn page := table.pages[index_page]
-
-    si page == nul {
-        page = malloc(TAILLE_PAGE)
-        table.pages[index_page] = page
-    }
+    page := trouve_page(table.pager, index_page)
 
     décalage_ligne := index_ligne % LIGNES_PAR_PAGES
     décalage_octet := décalage_ligne * TAILLE_LIGNE
@@ -147,6 +273,8 @@ PrépareRésultat :: énum z32 {
     SUCCÈS
     INSTRUCTION_NON_RECONNUE
     ERREUR_SYNTAXE
+    CHAINE_TROP_LONGUE
+    ID_NÉGATIF
 }
 
 prépare_instruction :: fonc (commande: chaine, dyn inst: *Instruction) -> PrépareRésultat
@@ -169,14 +297,30 @@ prépare_instruction :: fonc (commande: chaine, dyn inst: *Instruction) -> Prép
             retourne PrépareRésultat.ERREUR_SYNTAXE
         }
 
+        id := transtype(extrait_nombre_entier(mots[1]): z32)
+        nom := mots[2]
+        courriel := mots[3]
+
+        si id < 0 {
+            retourne PrépareRésultat.ID_NÉGATIF
+        }
+
         // À FAIRE : vérifie que tout est dans le bon ordre
         inst.type = TypeInstruction.INSÈRE
-        inst.ligne_à_insérer.id = transtype(extrait_nombre_entier(mots[1]): z32)
-        copie_chaine_vers_tableau(@inst.ligne_à_insérer.nom[0], mots[2])
-        copie_chaine_vers_tableau(@inst.ligne_à_insérer.courriel[0], mots[3])
+        inst.ligne_à_insérer.id = id
+        copie_chaine_vers_tableau(@inst.ligne_à_insérer.nom[0], nom)
+        copie_chaine_vers_tableau(@inst.ligne_à_insérer.courriel[0], courriel)
 
-        inst.ligne_à_insérer.nom[mots[2].taille] = '\0'
-        inst.ligne_à_insérer.courriel[mots[3].taille] = '\0'
+        si nom.taille > TAILLE_MAX_NOM {
+            retourne PrépareRésultat.CHAINE_TROP_LONGUE
+        }
+
+        si courriel.taille > TAILLE_MAX_COURRIEL {
+            retourne PrépareRésultat.CHAINE_TROP_LONGUE
+        }
+
+        inst.ligne_à_insérer.nom[nom.taille] = '\0'
+        inst.ligne_à_insérer.courriel[courriel.taille] = '\0'
 
         retourne PrépareRésultat.SUCCÈS
     }
@@ -276,11 +420,18 @@ exécute_instruction :: fonc (inst: *Instruction, table: *Table) -> RésultatEx�
 
 principale :: fonc () -> z32
 {
-    //diffère { imprime("\nFin du programme, mémoire utilisée : %o\n", mémoire_utilisée()); }
+    args := arguments_ligne_commande()
 
-    dyn table : Table
-    intialise_table(@table)
-    diffère { détruit_table(@table); }
+    si args.taille < 2 {
+        imprime("Un nom de fichier pour la base de données doit être spécifié !\n")
+        retourne 1
+    }
+
+    //diffère { imprime("\nFin du programme, mémoire utilisée : %o\n", mémoire_utilisée()); }
+    chemin_fichier := args[1]
+
+    dyn table := ouvre_base_de_données(chemin_fichier)
+    diffère { ferme_base_de_données(table) }
 
     dyn marque := obtiens_marque_stockage_temporaire()
 
@@ -322,17 +473,25 @@ principale :: fonc () -> z32
                 imprime("Mot-clé inconnu au début de '%'\n", entrée)
                 continue
             }
+            CHAINE_TROP_LONGUE {
+                imprime("La chaine est trop longue.\n")
+                continue
+            }
+            ID_NÉGATIF {
+                imprime("L'ID doit être positif.\n")
+                continue
+            }
         }
 
-        discr exécute_instruction(@instruction, @table) {
+        discr exécute_instruction(@instruction, table) {
             INVALIDE {
-                imprime("Exécution invalide\n")
+                imprime("Exécution invalide.\n")
             }
             SUCCÈS {
-                imprime("Exécution réussie\n")
+                imprime("Exécution réussie.\n")
             }
             TABLE_PLEINE {
-                imprime("Table pleine\n")
+                imprime("Erreur: table pleine.\n")
             }
         }
     }
