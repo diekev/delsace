@@ -307,3 +307,135 @@ commence_par :: fonc (ligne: chaine, motif: chaine) -> bool
 
     retourne tmp == motif
 }
+
+fini_par :: fonc (ligne: chaine, motif: chaine) -> bool
+{
+    si ligne.taille < motif.taille {
+        retourne faux
+    }
+
+    tmp := construit_chaine(ligne.pointeur + ligne.taille - motif.taille, motif.taille)
+
+    retourne tmp == motif
+}
+
+/*
+remplace :: fonc (ligne: chaine, c: z8) -> chaine
+{
+	// À FAIRE
+	retourne ligne
+}
+
+remplace :: fonc (ligne: chaine, motif: chaine) -> chaine
+{
+	// À FAIRE
+	retourne ligne
+}
+
+compte :: fonc (ligne: chaine, c: z8) -> z64
+{
+	// À FAIRE
+	retourne 0
+}
+
+compte :: fonc (ligne: chaine, motif: chaine) -> z64
+{
+	// À FAIRE
+	retourne 0
+}
+*/
+
+compte_commun :: fonc (chn1: chaine, chn2: chaine) -> z64
+{
+	si chn1.taille != chn2.taille {
+		retourne 0
+	}
+
+	dyn compte : z64 = 0
+
+	pour c, idx dans chn1 {
+		si c != chn2[idx] {
+			arrête
+		}
+
+		compte += 1
+	}
+
+	retourne compte
+}
+
+premier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
+{
+	dyn taille_min : z64 = taille
+
+	si taille_min > ligne.taille {
+		taille_min = ligne.taille
+	}
+
+	retourne construit_chaine(ligne.pointeur, taille_min)
+}
+
+dernier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
+{
+	dyn taille_min : z64 = taille
+
+	si taille_min > ligne.taille {
+		taille_min = ligne.taille
+	}
+
+	retourne construit_chaine(ligne.pointeur + ligne.taille - taille_min, taille_min)
+}
+
+distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
+{
+	m := chn1.taille
+	n := chn2.taille
+
+	si m == 0 {
+		retourne n
+	}
+
+	si n == 0 {
+		retourne m
+	}
+
+	dyn coûts := loge [n + 1]z64
+
+	pour c, idx dans coûts {
+		c = idx
+	}
+
+	pour i dans transtype(0: z64) ... chn1.taille - 1 {
+		coûts[0] = i + 1
+		dyn coin := i
+
+		pour j dans transtype(0: z64) ... chn2.taille - 1 {
+			enhaut := coûts[j + 1]
+
+			si chn1[i] == chn2[j] {
+				coûts[j + 1] = coin
+			}
+			sinon {
+				dyn t : z64
+
+				si enhaut < coin {
+					t = enhaut
+				}
+				sinon {
+					t = coin
+				}
+
+				si coûts[j] < t {
+					coûts[j + 1] = coûts[j] + 1
+				}
+				sinon {
+					coûts[j + 1] = t + 1
+				}
+			}
+
+			coin = enhaut
+		}
+	}
+
+	retourne coûts[n]
+}
