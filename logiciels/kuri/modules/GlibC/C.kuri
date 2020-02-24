@@ -14,9 +14,9 @@
 //###############################################################################
 
 // Valeur des descripteurs fichiers pour les flux standards.
-std_out := 0
-std_err := 1
-std_log := 2
+std_in  := 0
+std_out := 1
+std_err := 2
 
 sprintf :: fonc externe (tmp : *z8, fmt : *z8, args : ...) -> z32
 
