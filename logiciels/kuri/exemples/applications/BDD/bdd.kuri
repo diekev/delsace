@@ -231,15 +231,48 @@ ferme_base_de_données :: fonc (dyn table: *Table) -> rien
     déloge table
 }
 
-slot_ligne :: fonc (dyn table: *Table, index_ligne: z32) -> *rien
+Curseur :: struct {
+    table : *Table
+    index_ligne := 0
+    est_fin_de_table := faux
+}
+
+curseur_début_de_table :: fonc (table: *Table) -> *Curseur
 {
+    dyn curseur := loge Curseur
+    curseur.table = table
+    curseur.index_ligne = 0
+    curseur.est_fin_de_table = table.nombre_de_lignes == 0
+
+    retourne curseur
+}
+
+curseur_fin_de_table :: fonc (table: *Table) -> *Curseur
+{
+    dyn curseur := loge Curseur
+    curseur.table = table
+    curseur.index_ligne = table.nombre_de_lignes
+    curseur.est_fin_de_table = vrai
+
+    retourne curseur
+}
+
+valeur_curseur :: fonc (dyn curseur: *Curseur) -> *rien
+{
+    index_ligne := curseur.index_ligne
     index_page := index_ligne / LIGNES_PAR_PAGES
-    page := trouve_page(table.pager, index_page)
+    page := trouve_page(curseur.table.pager, index_page)
 
     décalage_ligne := index_ligne % LIGNES_PAR_PAGES
     décalage_octet := décalage_ligne * TAILLE_LIGNE
 
     retourne page + décalage_octet
+}
+
+avance_curseur :: fonc (dyn curseur: *Curseur) -> rien
+{
+    curseur.index_ligne += 1
+    curseur.est_fin_de_table = curseur.index_ligne >= curseur.table.nombre_de_lignes
 }
 
 // @XXX
@@ -346,11 +379,15 @@ exécute_insertion :: fonc (inst: *Instruction, dyn table: *Table) -> RésultatE
     }
 
     ligne_à_insérer := @inst.ligne_à_insérer
-    slot := slot_ligne(table, table.nombre_de_lignes)
+
+    dyn curseur := curseur_fin_de_table(table)
+    slot := valeur_curseur(curseur)
 
     sérialise_ligne(ligne_à_insérer, slot)
 
     table.nombre_de_lignes += 1
+
+    déloge curseur
 
     retourne RésultatExécution.SUCCÈS
 }
@@ -393,13 +430,18 @@ imprime_ligne :: fonc (ligne: *Ligne) -> rien
 
 exécute_sélection :: fonc (inst: *Instruction, dyn table: *Table) -> RésultatExécution
 {
+    dyn curseur := curseur_début_de_table(table)
     dyn ligne : Ligne
 
-    pour i dans 0 ... table.nombre_de_lignes - 1 {
-        slot := slot_ligne(table, i)
+    tantque !curseur.est_fin_de_table {
+        slot := valeur_curseur(curseur)
         désérialise_ligne(slot, @ligne)
         imprime_ligne(@ligne)
+
+        avance_curseur(curseur)
     }
+
+    déloge curseur
 
     retourne RésultatExécution.SUCCÈS
 }
