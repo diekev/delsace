@@ -104,7 +104,7 @@
     "fonc": {
         "prefix": "fonc",
         "body": [
-            "${1:nom_fonction} :: fonc (${2:parameter_list}) : ${3:type_retour}",
+            "${1:nom_fonction} :: fonc (${2:parameter_list}) -> ${3:type_retour}",
             "{",
             "\t${4:retourne}",
             "}"
@@ -114,7 +114,7 @@
     "principale": {
         "prefix": "principale",
         "body": [
-            "principale :: fonc (args : []*z8) : z32",
+            "principale :: fonc () -> z32",
             "{",
             "\t${1:expression}",
             "\tretourne 0",
@@ -125,7 +125,7 @@
     "corout": {
         "prefix": "corout",
         "body": [
-            "${1:nom_fonction} :: corout (${2:parameter_list}) : ${3:type_retour}",
+            "${1:nom_fonction} :: corout (${2:parameter_list}) -> ${3:type_retour}",
             "{",
             "\t${4:retiens}",
             "}"
