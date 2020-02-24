@@ -40,7 +40,7 @@ construit_noeud :: fonc(t : z32, est_feuille : bool) -> *NoeudArbreB
 
 détruit_noeud :: fonc(noeud : *NoeudArbreB) -> rien
 {
-    imprime_sans_format("détruit_noeud\n")
+    imprime("détruit_noeud\n")
     déloge noeud.clés
     déloge noeud.enfants
     déloge noeud
@@ -56,7 +56,7 @@ traverse :: fonc(noeud: *NoeudArbreB) -> rien
             traverse(noeud.enfants[i])
         }
 
-        imprime(" ", noeud.clés[i])
+        imprime(" %", noeud.clés[i])
     }
 
     // traverse le dernier enfant si nécessaire
@@ -417,7 +417,7 @@ construit_arbre :: fonc(t: z32) -> ArbreB
 
 détruit_arbre :: fonc(arbre: *ArbreB) -> rien
 {
-    imprime_sans_format("détruit_arbre...\n")
+    imprime("détruit_arbre...\n")
     pour noeud dans arbre.noeuds {
         détruit_noeud(noeud)
     }
@@ -665,9 +665,9 @@ construit_cache :: fonc(capacité: z32) -> *CacheMRU
 
 détruit_cache :: fonc(dyn cache: *CacheMRU) -> rien
 {
-    détruit_file(capacité)
-    détruit_arbre(arbre)
-    déloge arbre
+    détruit_file(cache.file)
+    détruit_arbre(cache.arbre)
+    déloge cache.arbre
     déloge cache
 }
 
@@ -677,7 +677,7 @@ référence_page :: fonc(dyn cache: *CacheMRU, x: z32) -> rien
 
     si noeud == nul {
         si cache.file.sont_toutes_les_pages_pleines() {
-            dernière := cache.file.cul
+            dyn dernière := cache.file.cul
             cache.arbre.supprime(dernière.numéro_page)
             dernière.précédent.suivant = nul
             déloge dernière
@@ -695,7 +695,7 @@ imprime_file :: fonc(file: *File) -> rien
     dyn ptr := file.front
 
     tantque ptr != nul {
-        imprime_sans_format("page: ", ptr.numéro_page, "\n")
+        imprime("page: %\n", ptr.numéro_page)
         ptr = ptr.suivant
     }
 }
@@ -724,24 +724,24 @@ cherche_clé :: fonc(arbre: *ArbreB, clé: z32) -> rien
     noeud := recherche(arbre, clé)
 
     si noeud == nul {
-        imprime_sans_format("La clé ", clé, " n'est pas dans l'arbre\n")
+        imprime("La clé % n'est pas dans l'arbre\n", clé)
     }
     sinon {
-        imprime_sans_format("La clé ", clé, " est dans l'arbre\n")
+        imprime("La clé % est dans l'arbre\n", clé)
     }
 }
 
 supprime_et_traverse :: fonc(arbre: *ArbreB, clé: z32) -> rien
 {
     arbre.supprime(clé)
-    imprime_sans_format("Traverse de l'arbre après la suppression de ", clé, " :\n")
+    imprime("Traverse de l'arbre après la suppression de %:\n", clé)
     arbre.traverse()
-    imprime_sans_format("\n")
+    imprime("\n")
 }
 
-principale :: fonc () : z32
+principale :: fonc () -> z32
 {
-    diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+    diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
 
     imprime("Test cache MRU :\n")
     dyn file := crée_file(4)
