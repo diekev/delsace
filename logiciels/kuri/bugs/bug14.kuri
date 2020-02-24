@@ -1,0 +1,13 @@
+// Les variables des constructions de structures ne sont pas validées
+
+Vecteur :: struct {
+    x := 1.0
+    y := 4.0
+    z := 9.0
+}
+
+principale :: fonc () -> z32
+{
+    v := Vecteur{ x = 2.0, y = 4.0, w = 6.0 }
+    retourne 0
+}
