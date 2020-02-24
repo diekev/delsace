@@ -1,0 +1,126 @@
+importe Fondation
+importe GHTML
+
+DonnéesPage :: struct {
+    titre_page := "Accueil"
+    évènements : [3]z32
+    variable := "eh ouais..."
+    lien := "http://aaa"
+}
+
+principale :: fonc () -> z32
+{
+    diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+
+    chn := "{%pour x dans évènements%}<a href='{{lien}}'>{%si variable%}{{variable}} {{x}}{% sinon %}texte{% finsi %}</a>\n{% finpour %}"
+
+    imprime("script :\n\n", chn, "\n\n")
+
+    //######################################################
+    // Lexage du script
+
+    dyn lexeuse := construit_lexeuse(chn)
+    diffère { détruit_lexeuse(lexeuse) }
+
+    lexeuse.performe_lexage()
+
+    imprime("lexèmes :\n\n")
+
+    pour lexème dans lexeuse.lexèmes {
+        imprime_sans_format(lexème.type_lexème, " : ", lexème.chn, "\n")
+    }
+
+    imprime("\n")
+
+    //######################################################
+    // Syntaxage du script
+
+    dyn syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
+    diffère { détruit_assembleuse(syntaxeuse.assembleuse) }
+
+    syntaxeuse.performe_syntaxage()
+
+	racine := syntaxeuse.assembleuse.pile.haut()
+
+	imprime("arbre :\n\n")
+	imprime_arbre(racine, 0)
+	imprime("\n")
+
+    //######################################################
+    // Génération de la page
+
+    dyn données_page : DonnéesPage
+    données_page.titre_page = "Accueil"
+    données_page.évènements[0] = 127
+    données_page.évènements[1] = 255
+    données_page.évènements[2] = 511
+
+    dyn données_génération : DonnéesGénération
+    données_génération.valeur = données_page
+
+    dyn enchaineuse : Enchaineuse
+	initialise_enchaineuse(@enchaineuse)
+    diffère { détruit_tampons(@enchaineuse) }
+
+    erreur := génère_page(@données_génération, racine, @enchaineuse)
+
+    si erreur != ErreurGénérationPage.AUCUNE {
+        imprime("Erreur lors de la génération de la page : %\n", erreur)
+    }
+    sinon {
+        imprime("Page :\n\n")
+        résultat := chaine_depuis_enchaineuse(@enchaineuse)
+        imprime("%\n", résultat)
+        déloge résultat
+    }
+
+/*
+	dyn gestionnaire : GestionnaireObjet
+	diffère { détruit(@gestionnaire) }
+
+    dyn dico := crée_dictionnaire(@gestionnaire)
+
+    // À FAIRE: simplifie la création d'objet en passant les paramètres
+    dyn liste := crée_liste(@gestionnaire)
+    dyn obj1 := crée_entier(@gestionnaire)
+    obj1.valeur = 127
+    dyn obj2 := crée_réel(@gestionnaire)
+    obj2.valeur = 36.0
+    dyn obj3 := crée_chaine(@gestionnaire)
+    obj3.valeur = "chaine test"
+
+    tableau_ajoute(@liste.valeur, transtype(obj1: *Objet))
+    tableau_ajoute(@liste.valeur, transtype(obj2: *Objet))
+    tableau_ajoute(@liste.valeur, transtype(obj3: *Objet))
+
+	dico.insère("evenements", transtype(liste: *Objet))
+
+	dyn chaine1 := crée_chaine(@gestionnaire)
+    chaine1.valeur = "http://aaa"
+
+    dico.insère("lien", transtype(chaine1: *Objet))
+
+    chaine1 = crée_chaine(@gestionnaire)
+    chaine1.valeur = "eh ouais..."
+
+    dico.insère("variable", transtype(chaine1: *Objet))
+
+    dyn enchaineuse : Enchaineuse
+	intialise_enchaineuse(@enchaineuse)
+    diffère { détruit_tampons(@enchaineuse) }
+
+    erreur := génère_page(racine, @gestionnaire, dico, @enchaineuse)
+
+    si erreur != ErreurGénérationPage.AUCUNE {
+        imprime("Erreur lors de la génération de la page : %\n", erreur)
+    }
+    sinon {
+        imprime("Page :\n\n")
+        chn := chaine_depuis_enchaineuse(@enchaineuse)
+        imprime(enchaineuse.résultat, "\n")
+        déloge chn
+    }
+*/
+
+    retourne 0
+}
