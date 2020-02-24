@@ -15,7 +15,7 @@ describe 'database' do
             raw_output = pipe.gets(nil)
         end
 
-        raw_output.split('\n')
+        raw_output.split("\n")
     end
 
     it 'inserts and retrieves a row' do
