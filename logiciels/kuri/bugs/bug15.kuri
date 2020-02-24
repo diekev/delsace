@@ -1,0 +1,17 @@
+// On ne peut pas comparer un pointeur de fonction avec "nul"
+
+foo :: fonc () -> rien
+{
+
+}
+
+principale :: fonc () -> z32
+{
+    ptr := foo
+
+    si ptr == nul {
+        retourne 1
+    }
+
+    retourne 0
+}
