@@ -28,7 +28,6 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	tests
-	sha256
 	math
 	types
 	stdc++fs

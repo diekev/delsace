@@ -19,7 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-ajoute_sousdossier(REQUIERS_BIB_BCRYPT bcrypt)
 ajoute_sousdossier(REQUIERS_BIB_BRUIT bruit)
 ajoute_sousdossier(REQUIERS_BIB_CHISEI chisei)
 ajoute_sousdossier(REQUIERS_BIB_CHRONO chrono)
@@ -47,7 +46,6 @@ ajoute_sousdossier(REQUIERS_BIB_PATRONS_CONCEPTION patrons_conception)
 ajoute_sousdossier(REQUIERS_BIB_PHYS phys)
 ajoute_sousdossier(REQUIERS_BIB_REFERENCE reference)
 ajoute_sousdossier(REQUIERS_BIB_RUNTIME_POLYMORPHY runtime_polymorphy)
-ajoute_sousdossier(REQUIERS_BIB_SHA256 sha256)
 ajoute_sousdossier(REQUIERS_BIB_STRUCTURES structures)
 ajoute_sousdossier(REQUIERS_BIB_SYSTEME_FICHIER systeme_fichier)
 ajoute_sousdossier(REQUIERS_BIB_TESTS tests)

@@ -26,20 +26,9 @@
 
 #include "biblinternes/tests/test_aleatoire.hh"
 
-#include "biblinternes/sha256/sha256.hh"
-
-int test_aleatoire_sha256(const u_char *donnees, long taille)
-{
-	dls::chaine chaine(reinterpret_cast<const char *>(donnees), taille);
-	sha256::empreinte(chaine);
-
-	return 0;
-}
-
 int main()
 {
 	dls::test_aleatoire::Testeuse testeur;
-	testeur.ajoute_tests("sha256", nullptr, test_aleatoire_sha256);
 
 	return testeur.performe_tests(std::cerr);
 }
