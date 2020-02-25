@@ -641,7 +641,14 @@ int main(int argc, char *argv[])
 				}
 
 				for (auto const &bib : assembleuse.bibliotheques) {
-					commande += " -l" + dls::chaine(bib);
+					auto chn_bib = dls::chaine(bib);
+
+					if (chn_bib.sous_chaine(chn_bib.taille() - 2) == ".a") {
+						commande += " " + chn_bib;
+					}
+					else {
+						commande += " -l" + chn_bib;
+					}
 				}
 
 				commande += " -o ";
