@@ -1,0 +1,50 @@
+// Interface Kuri pour Krypto
+
+#bib "/opt/bin/kuri/modules/Krypto/libkrypto.a"
+
+#inclus "/opt/bin/kuri/modules/Krypto/krypto.hh"
+
+
+// À FAIRE : la bibliothèque BCrypt à l'air brisée ?, il faudra de toute manière utiliser Argon2 qui a l'air d'être une meilleure fonction
+
+BCrypt_taille_tampon :: fonc externe () -> z64
+
+BCrypt_genere_empreinte :: fonc externe (mot_de_passe: *z8, charge_travail: z32, sortie: *z8) -> rien
+
+BCrypt_compare_empreinte :: fonc externe (mot_de_passe: *z8, empreinte: *z8) -> z32
+
+SHA256_taille_tampon :: fonc externe () -> z64
+
+SHA256_genere_empreinte :: fonc externe (entree: *z8, taille: z64, sortie: *z8) -> rien
+
+BCrypt_genere_empreinte :: fonc (mot_de_passe: chaine, charge_travail := 12) -> chaine
+{
+    // loge un tampon afin de pouvoir gérer la mémoire de notre côté
+    résultat := loge chaine(BCrypt_taille_tampon())
+
+    BCrypt_genere_empreinte(mot_de_passe.pointeur, charge_travail, résultat.pointeur)
+
+    retourne résultat
+}
+
+BCrypt_compare_empreinte :: fonc (mot_de_passe: chaine, empreinte: chaine) -> bool
+{
+    nempreinte := BCrypt_genere_empreinte(mot_de_passe)
+
+    ok := nempreinte == empreinte
+
+    déloge nempreinte
+
+    retourne ok
+//    retourne BCrypt_compare_empreinte(mot_de_passe.pointeur, empreinte.pointeur) == 0
+}
+
+SHA256_genere_empreinte :: fonc (entree: chaine) -> chaine
+{
+    // loge un tampon afin de pouvoir gérer la mémoire de notre côté
+    résultat := loge chaine(SHA256_taille_tampon())
+
+    SHA256_genere_empreinte(entree.pointeur, entree.taille, résultat.pointeur)
+
+    retourne résultat
+}

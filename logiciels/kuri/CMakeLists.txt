@@ -37,6 +37,7 @@ add_subdirectory(coulisse_asm)
 add_subdirectory(coulisse_c)
 add_subdirectory(executable)
 add_subdirectory(exemples)
+add_subdirectory(modules_c/Krypto)
 add_subdirectory(tests)
 
 if(AVEC_LLVM)
