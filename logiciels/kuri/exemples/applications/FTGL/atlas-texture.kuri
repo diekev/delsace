@@ -48,7 +48,7 @@ crée_atlas_texture :: fonc (largeur : n64, hauteur : n64, profondeur : n64) -> 
 	memset(atlas.données.pointeur, 0, largeur * hauteur * profondeur)
 
 	/*
-	si atlas.données == (transtype(0 : *rien)) {
+	si atlas.données == nul) {
 			fprintf(stderr, "line %d: No more memory for allocating données\n", 47)
 			exit(1)
 	}
@@ -77,7 +77,7 @@ texture_atlas_set_region :: fonc (atlas : *AtlasTexture, x : n64, y : n64, large
 	assert((x + largeur) <= (atlas.largeur - 1))
 	assert(y < (atlas.hauteur - 1))
 	assert((y + hauteur) <= (atlas.hauteur - 1))
-	assert(hauteur == 0 || (données != (transtype(0 : *rien)) && largeur > 0))
+	assert(hauteur == 0 || (données != nul) && largeur > 0))
 
 	profondeur := atlas.profondeur
 	charsize := taille_de(z8)
