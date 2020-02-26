@@ -643,7 +643,7 @@ int main(int argc, char *argv[])
 				for (auto const &bib : assembleuse.bibliotheques) {
 					auto chn_bib = dls::chaine(bib);
 
-					if (chn_bib.sous_chaine(chn_bib.taille() - 2) == ".a") {
+					if (chn_bib.taille() > 2 && chn_bib.sous_chaine(chn_bib.taille() - 2) == ".a") {
 						commande += " " + chn_bib;
 					}
 					else {
