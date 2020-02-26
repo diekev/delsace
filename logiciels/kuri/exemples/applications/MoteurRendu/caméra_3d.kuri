@@ -47,6 +47,7 @@ direction_via_pixel :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> Vec3r
     retourne soustrait(fin, début)
 }
 
+// c'est plus rapide qu'en haut, mais il y a toujours l'inversion de matrice qui prend du temps...
 direction_via_pixel_rapide :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> Vec3r
 {
     PM := multiplie(caméra.projection, caméra.monde_vers_caméra)

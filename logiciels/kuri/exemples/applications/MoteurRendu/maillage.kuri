@@ -84,7 +84,7 @@ parse_ligne_obj :: fonc (dyn ligne: chaine, données: eini) -> rien
     dyn données_obj := transtype(données.pointeur: *DonnéesObj)
     dyn maillage := données_obj.maillage
 
-    si ligne.commence_par("f") {
+    si ligne.commence_par("f ") {
         tmp := avance(ligne, 2)
 
         dyn tri : Triangle
@@ -92,9 +92,15 @@ parse_ligne_obj :: fonc (dyn ligne: chaine, données: eini) -> rien
         pousse_contexte nouveau_contexte {
             mots := divise(tmp, ' ')
 
-            idx0 := extrait_nombre_entier(mots[0])
-            idx1 := extrait_nombre_entier(mots[1])
-            idx2 := extrait_nombre_entier(mots[2])
+            // À FAIRE: uvs, normaux, quads
+            indices0 := divise(mots[0], '/')
+            idx0 := extrait_nombre_entier(indices0[0])
+
+            indices1 := divise(mots[1], '/')
+            idx1 := extrait_nombre_entier(indices1[0])
+
+            indices2 := divise(mots[2], '/')
+            idx2 := extrait_nombre_entier(indices2[0])
 
             tri.p0 = données_obj.vecteurs[idx0 - 1]
             tri.p1 = données_obj.vecteurs[idx1 - 1]
@@ -103,7 +109,7 @@ parse_ligne_obj :: fonc (dyn ligne: chaine, données: eini) -> rien
 
         tableau_ajoute(@maillage.tris, tri)
     }
-    sinon si ligne.commence_par("v") {
+    sinon si ligne.commence_par("v ") {
         tmp := avance(ligne, 2)
 
         dyn vec : Vec3r
