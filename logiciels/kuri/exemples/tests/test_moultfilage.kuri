@@ -102,6 +102,44 @@ nombre_threads_système :: fonc () -> z64
     retourne sysconf(ValeurSysConf._SC_NPROCESSORS_ONLN)
 }
 
+Tâche :: struct {
+    id_tâche : pthread_t
+
+    rappel : fonc(*rien)(rien)
+    données_rappel : *rien
+
+    id : z32
+}
+
+#fonc_tâche lance_tâche :: fonc (tâche: *Tâche) -> rien
+{
+    // contexte.id_tâche = tâche.id
+    tâche.rappel(tâche.données_rappel)
+}
+
+// comment passer le contexte ?
+// création d'un contexte par le programme ?
+crée_tâche :: fonc (rappel: fonc(*rien)(rien), données_rappel: *rien) -> Tâche
+{
+    dyn tâche := loge Tâche
+    tâche.données_rappel = données_rappel
+    tâche.rappel = rappel
+    tâche.id = 0
+
+    ret := pthread_create(@tâche.id_tâche, nul, lance_tâche, tâche)
+
+    si ret != 0 {
+		printf("erreur : %s".pointeur, strerror(ret))
+        déloge tâche
+    }
+
+    retourne tâche
+}
+
+SystèmeTâche :: struct {
+    tâches : []Tâche
+}
+
 principale :: fonc () -> z32
 {
     imprime("Il y a sur le système % threads\n", nombre_threads_système());
