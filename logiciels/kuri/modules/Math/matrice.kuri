@@ -42,9 +42,9 @@ matrice_projection :: fonc (
 
     mat.m[0][0] = ratio_aspect * champs_de_vue_rad
     mat.m[1][1] = champs_de_vue_rad
-    mat.m[2][2] = plan_éloigné / (plan_éloigné - plan_proche)
-    mat.m[3][2] = (-plan_éloigné * plan_proche) / (plan_éloigné - plan_proche)
-    mat.m[2][3] = 1.0
+    mat.m[2][2] = -(plan_éloigné + plan_proche) / (plan_éloigné - plan_proche)
+    mat.m[2][3] = -1.0
+    mat.m[3][2] = -(2.0 * plan_éloigné * plan_proche) / (plan_éloigné - plan_proche)
     mat.m[3][3] = 0.0
 
     retourne mat
@@ -74,33 +74,28 @@ matrice_de_visé :: fonc (pos: *Vec3r, cible: *Vec3r, haut: *Vec3r) -> Mat4r
     dyn dir_avant := soustrait(mémoire(cible), mémoire(pos))
     dir_avant = normalise(@dir_avant)
 
-    a := multiplie(dir_avant, produit_scalaire(mémoire(haut), dir_avant))
-    dyn dir_haut := soustrait(mémoire(haut), a)
-    dir_haut = normalise(@dir_haut)
+    dyn dir_droite := produit_vectoriel(@dir_avant, haut)
+    dir_droite = normalise(@dir_droite)
 
-    dir_droite := produit_vectoriel(@dir_haut, @dir_avant)
+    dir_haut := produit_vectoriel(@dir_droite, @dir_avant)
 
-    dyn résultat : Mat4r
+    dyn résultat := construit_identité_mat4r()
 
-    résultat.m[0][0] = dir_droite.x
-    résultat.m[0][1] = dir_droite.y
-    résultat.m[0][2] = dir_droite.z
-    résultat.m[0][3] = 0.0
+	résultat.m[0][0] =  dir_droite.x;
+	résultat.m[1][0] =  dir_droite.y;
+	résultat.m[2][0] =  dir_droite.z;
 
-    résultat.m[1][0] = dir_haut.x
-    résultat.m[1][1] = dir_haut.y
-    résultat.m[1][2] = dir_haut.z
-    résultat.m[1][3] = 0.0
+	résultat.m[0][1] =  dir_haut.x;
+	résultat.m[1][1] =  dir_haut.y;
+	résultat.m[2][1] =  dir_haut.z;
 
-    résultat.m[2][0] = dir_avant.x
-    résultat.m[2][1] = dir_avant.y
-    résultat.m[2][2] = dir_avant.z
-    résultat.m[2][3] = 0.0
+	résultat.m[0][2] = -dir_avant.x;
+	résultat.m[1][2] = -dir_avant.y;
+	résultat.m[2][2] = -dir_avant.z;
 
-    résultat.m[3][0] = pos.x
-    résultat.m[3][1] = pos.y
-    résultat.m[3][2] = pos.z
-    résultat.m[3][3] = 1.0
+	résultat.m[3][0] = -produit_scalaire(dir_droite, mémoire(pos));
+	résultat.m[3][1] = -produit_scalaire(dir_haut, mémoire(pos));
+	résultat.m[3][2] =  produit_scalaire(dir_avant, mémoire(pos));
 
     retourne résultat
 }
@@ -188,7 +183,7 @@ multiplie :: fonc (m1: Mat4r, m2: Mat4r) -> Mat4r
             dyn valeur := 0.0
 
             pour k dans 0 ... 3 {
-                valeur += m1.m[i][k] * m2.m[k][j]
+                valeur += m1.m[k][j] * m2.m[i][k]
             }
 
             résultat.m[i][j] = valeur
@@ -226,11 +221,119 @@ transforme :: fonc (mat: Mat4r, vec: Vec4r) -> Vec4r
     rés.z = vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2] + vec.w * mat.m[3][2]
     rés.w = vec.x * mat.m[0][3] + vec.y * mat.m[1][3] + vec.z * mat.m[2][3] + vec.w * mat.m[3][3]
 
-    si rés.w != 0.0 {
-        rés.x /= rés.w
-        rés.y /= rés.w
-        rés.z /= rés.w
+    retourne rés
+}
+
+échange :: fonc (dyn a: *r32, dyn b: *r32) -> rien
+{
+    tmp := mémoire(b)
+    mémoire(b) = mémoire(a)
+    mémoire(a) = tmp
+}
+
+inverse_impl :: fonc (dyn matrice_inverse: *Mat4r) -> bool
+{
+    dyn index_colonnes := [ 0, 0, 0, 0 ]
+    dyn index_lignes := [ 0, 0, 0, 0 ]
+    dyn index_pivots := [ 0, 0, 0, 0 ]
+
+    pour i dans 0 ... 3 {
+		dyn il := 0
+		dyn ic := 0
+		dyn big := 0.0
+
+		/* Choisie le pivot */
+        pour j dans 0 ... 3 {
+			si index_pivots[j] == 1 {
+				continue
+			}
+
+            pour k dans 0 ... 3 {
+                si index_pivots[k] == 0 {
+                    abs_jk := abs(matrice_inverse.m[j][k])
+
+					si abs_jk >= big {
+						big = abs_jk
+						il = j
+						ic = k
+					}
+				}
+                sinon si (index_pivots[k] > 1) {
+					/* À FAIRE : erreur :
+					 * "Matrice singulière donnée à la fonction inverse". */
+                    retourne faux
+                }
+            }
+		}
+
+		index_pivots[ic] += 1
+
+		/* Permute les lignes _irow_ et _icol_ pour le pivot. */
+		si il != ic {
+            pour k dans 0 ... 3 {
+                échange(@matrice_inverse.m[il][k], @matrice_inverse.m[ic][k])
+            }
+		}
+
+		index_lignes[i] = il
+		index_colonnes[i] = ic
+
+		si matrice_inverse.m[ic][ic] == 0.0 {
+			/* À FAIRE : erreur :
+			 * "Matrice singulière donnée à la fonction inverse". */
+			retourne faux
+		}
+
+		/* Mise à l'échelle la ligne pour faire en sorte que sa valeur sur la
+		 * diagonale soit égal à 1 (un). */
+		pivot_inverse := 1.0 / matrice_inverse.m[ic][ic];
+		matrice_inverse.m[ic][ic] = 1.0;
+
+		pour j dans 0 ... 3 {
+			matrice_inverse.m[ic][j] *= pivot_inverse
+		}
+
+		/* Soustrait cette ligne des autres pour mettre à zéro leurs colonnes. */
+		pour j dans 0 ... 3 {
+			si j == ic {
+				continue;
+			}
+
+			sauvegarde := matrice_inverse.m[j][ic]
+			matrice_inverse.m[j][ic] = 0.0
+
+		    pour k dans 0 ... 3 {
+				matrice_inverse.m[j][k] -= matrice_inverse.m[ic][k] * sauvegarde;
+			}
+		}
+	}
+
+	/* Échange les colonnes pour réfléchir la permutation. */
+    dyn j := 3
+    tantque j >= 0 {
+		si (index_lignes[j] == index_colonnes[j]) {
+            j -= 1
+			continue;
+		}
+
+		pour k dans 0 ... 3 {
+			échange(@matrice_inverse.m[k][index_lignes[j]],
+					@matrice_inverse.m[k][index_colonnes[j]]);
+		}
+
+        j -= 1
     }
 
-    retourne rés
+	retourne vrai
+}
+
+inverse :: fonc (mat: *Mat4r) -> Mat4r
+{
+    dyn résultat := mémoire(mat)
+
+    si !inverse_impl(@résultat) {
+        retourne construit_identité_mat4r()
+    }
+
+    retourne résultat
 }

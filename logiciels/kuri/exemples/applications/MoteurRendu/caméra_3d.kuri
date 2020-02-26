@@ -1,0 +1,186 @@
+importe Fondation
+importe Math
+
+Caméra3D :: struct {
+    position : Vec3r
+    direction_vue : Vec3r
+    yaw := 0.0
+    projection : Mat4r
+    monde_vers_caméra : Mat4r
+    champs_de_vue := 90.0
+    plan_proche := 0.1
+    plan_éloigné := 1000.0
+
+    hauteur := 0
+    largeur := 0
+}
+
+projette_dans_monde :: fonc (caméra: *Caméra3D, pos: *Vec3r) -> Vec3r
+{
+    proj := caméra.projection
+    model := caméra.monde_vers_caméra
+    PM := multiplie(proj, model)
+    inverse := inverse(@PM)
+
+    dyn tmp := crée_vec4r(pos.x, pos.y, pos.z, 1.0)
+    tmp.x = tmp.x * 2.0 - 1.0
+    tmp.y = tmp.y * 2.0 - 1.0
+    tmp.z = tmp.z * 2.0 - 1.0
+    tmp.w = tmp.w * 2.0 - 1.0
+
+    dyn obj := transforme(inverse, tmp)
+    obj.x /= obj.w
+    obj.y /= obj.w
+    obj.z /= obj.w
+
+	retourne crée_vec3r(obj.x, obj.y, obj.z)
+}
+
+direction_via_pixel :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> Vec3r
+{
+    dyn pos := crée_vec3r(pos_pixel.x, pos_pixel.y, 0.0)
+    début := projette_dans_monde(caméra, @pos)
+
+    pos.z = 1.0
+    fin := projette_dans_monde(caméra, @pos)
+
+    retourne soustrait(fin, début)
+}
+
+direction_via_pixel_rapide :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> Vec3r
+{
+    PM := multiplie(caméra.projection, caméra.monde_vers_caméra)
+    inverse := inverse(@PM)
+
+    dyn début : Vec3r
+    dyn fin : Vec3r
+
+    dyn x := pos_pixel.x * 2.0 - 1.0
+    dyn y := pos_pixel.y * 2.0 - 1.0
+
+    dyn commun_x := x * inverse.m[0][0] + y * inverse.m[1][0] + inverse.m[3][0]
+    dyn commun_y := x * inverse.m[0][1] + y * inverse.m[1][1] + inverse.m[3][1]
+    dyn commun_z := x * inverse.m[0][2] + y * inverse.m[1][2] + inverse.m[3][2]
+    dyn commun_w := x * inverse.m[0][3] + y * inverse.m[1][3] + inverse.m[3][3]
+
+    {
+        w := commun_w - inverse.m[2][3]
+
+        début.x = (commun_x - inverse.m[2][0]) / w
+        début.y = (commun_y - inverse.m[2][1]) / w
+        début.z = (commun_z - inverse.m[2][2]) / w
+    }
+
+    {
+        w := commun_w + inverse.m[2][3]
+
+        fin.x = (commun_x + inverse.m[2][0]) / w
+        fin.y = (commun_y + inverse.m[2][1]) / w
+        fin.z = (commun_z + inverse.m[2][2]) / w
+    }
+
+    retourne soustrait(fin, début)
+}
+
+calcul_champs_de_vue :: fonc (largeur_senseur: r32, distance_focale: r32) -> r32
+{
+    retourne transtype(2.0 * atan(0.5 * largeur_senseur / distance_focale): r32)
+}
+
+calcul_champs_de_vue_degrés :: fonc (largeur_senseur: r32, distance_focale: r32) -> r32
+{
+    retourne calcul_champs_de_vue(largeur_senseur, distance_focale) * 180.0 / 3.14159
+}
+
+imprime_matrice :: fonc (mat: Mat4r) -> rien
+{
+    pour i dans 0 ... 3 {
+        pour j dans 0 ... 3 {
+            imprime("% ", mat.m[i][j])
+        }
+
+        imprime("\n")
+    }
+}
+
+matrice_projection :: fonc (
+    champs_de_vue : r32,
+    ratio_aspect: r32,
+    plan_proche: r32,
+    plan_éloigné: r32) -> Mat4r
+{
+    champs_de_vue_rad := transtype(tan(champs_de_vue * 0.5): r32)
+
+    dyn mat := construit_mat4r()
+
+    mat.m[0][0] = 1.0 / (ratio_aspect * champs_de_vue_rad)
+    mat.m[1][1] = 1.0 / champs_de_vue_rad
+    mat.m[2][2] = -(plan_éloigné + plan_proche) / (plan_éloigné - plan_proche)
+    mat.m[2][3] = -1.0
+    mat.m[3][2] = -(2.0 * plan_éloigné * plan_proche) / (plan_éloigné - plan_proche)
+    mat.m[3][3] = 0.0
+
+    retourne mat
+}
+
+qprincipale :: fonc () -> z32
+{
+    champs_de_vue := calcul_champs_de_vue(70.0, 35.0)
+    largeur := 640
+    hauteur := 480
+    plan_proche := 0.1
+    plan_éloigné := 1000.0
+
+    projection := matrice_projection(
+        champs_de_vue,
+        transtype(largeur: r32) / transtype(hauteur: r32),
+        plan_proche,
+        plan_éloigné)
+
+    //imprime("matrice projection :\n%\n", projection)
+
+    pos_caméra := crée_vec3r(1.0, 1.0, 0.0)
+    cible := crée_vec3r(0.0, 0.0, 0.0)
+    haut := crée_vec3r(0.0, 1.0, 0.0)
+
+    monde_vers_caméra := matrice_de_visé(@pos_caméra, @cible, @haut)
+
+    caméra_vers_monde := inverse_matrice_sans_échelle(@monde_vers_caméra)
+
+    dyn caméra : Caméra3D
+
+    caméra.largeur = largeur
+    caméra.hauteur = hauteur
+    caméra.projection = projection
+
+    dyn cvm := matrice_translation(pos_caméra)
+
+    imprime("projection :\n")
+    imprime_matrice(caméra.projection)
+    imprime("\n")
+
+    caméra.monde_vers_caméra = inverse_matrice_sans_échelle(@cvm)
+
+    imprime("monde_vers_caméra :\n")
+    imprime_matrice(caméra.monde_vers_caméra)
+    imprime("\n")
+
+    dyn pos := crée_vec3r(-1.0, 1.0, 0.0)
+    dyn pos_monde := projette_dans_monde(@caméra, @pos)
+    imprime("obtenu  : %\n", pos_monde)
+
+    pos.z = 1.0
+    pos_monde = projette_dans_monde(@caméra, @pos)
+    imprime("obtenu  : %\n", pos_monde)
+
+    pos_pixel := Vec2r{ x = 0.5, y = 0.5 }
+    dir := direction_via_pixel(@caméra, @pos_pixel)
+
+    imprime("direction : %\n", dir)
+
+    dir2 := direction_via_pixel_rapide(@caméra, @pos_pixel)
+
+    imprime("direction : %\n", dir2)
+
+    retourne 0
+}

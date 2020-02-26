@@ -1,4 +1,5 @@
 charge "sdl2"
+charge "caméra_3d"
 charge "dessin_texture"
 charge "maillage"
 charge "ratissage"
@@ -8,6 +9,7 @@ importe Fondation
 importe Image
 importe OpenGL
 importe Math
+
 
 // ratissage basé sur le tutorial :
 // https://www.youtube.com/watch?v=HXSuNxpCzdM : 43.33
@@ -27,24 +29,10 @@ Application :: struct {
     image : Image
 }
 
-Caméra :: struct {
-    position : Vec3r
-    direction_vue : Vec3r
-    yaw := 0.0
-    projection : Mat4r
-    monde_vers_caméra : Mat4r
-    champs_de_vue := 90.0
-    plan_proche := 0.1
-    plan_éloigné := 1000.0
-
-    hauteur := 0
-    largeur := 0
-}
-
 // ----------------------------------------------------------------------------
 
 ratisse_maillage :: fonc (
-    dyn caméra : *Caméra,
+    dyn caméra : *Caméra3D,
     maillage: *Maillage,
     image: *Image,
     matcap: *Image,
@@ -52,6 +40,7 @@ ratisse_maillage :: fonc (
 {
     ticks := compte_ticks_ms()
 
+/*
     diffère {
         temps_rendu := compte_ticks_ms() - ticks
         temps_rendu_us := temps_rendu * 1000
@@ -64,6 +53,7 @@ ratisse_maillage :: fonc (
             formatte_entier(temps_par_pixel, séparation = 3),
             formatte_entier(temps_par_polygone, séparation = 3))
     }
+*/
 
     dyn contexte_temp := contexte
     contexte_temp.allocatrice = __stockage_temporaire
@@ -71,8 +61,8 @@ ratisse_maillage :: fonc (
     mat_trans := matrice_translation(z = 8.0)
     mat_rot_x := matrice_rotation_x(theta * 0.5)
     mat_rot_z := matrice_rotation_z(theta)
-    mat_rot := multiplie(mat_rot_x, mat_rot_z)
-    mat_obj := multiplie(mat_rot, mat_trans)
+    mat_rot := multiplie(mat_trans, mat_rot_z)
+    mat_obj := mat_trans // multiplie(mat_rot, mat_rot_x)
 
     dir_haut := crée_vec3r(y = 1.0)
     dyn dir_cible := crée_vec3r(z = 1.0)
@@ -82,7 +72,7 @@ ratisse_maillage :: fonc (
 
     //imprime("cible : %\n", dir_cible)
     matrice_caméra := matrice_de_visé(@caméra.position, @dir_cible, @dir_haut)
-    matrice_vue := inverse_matrice_sans_échelle(@matrice_caméra)
+    matrice_vue := inverse(@matrice_caméra)
 
     // élimine les triangles invisibles
     dyn triangles_visible : []Triangle
@@ -175,6 +165,7 @@ ratisse_maillage :: fonc (
 Rayon :: struct {
     origine : Vec3r
     direction : Vec3r
+    direction_inverse : Vec3r
 }
 
 // http://docs.pixologic.com/getting-started/basic-concepts/the-pixol/
@@ -257,37 +248,79 @@ entresecte_triangle :: fonc (
 	retourne faux
 }
 
-projette_dans_monde :: fonc (caméra: *Caméra, pos: *Vec3r) -> Vec3r
+entresection_rapide_min_max :: fonc (
+		r: *Rayon,
+		min_boite: *Vec3r,
+		max_boite: *Vec3r) -> r32
 {
-    proj := caméra.projection
-    model := caméra.monde_vers_caméra
-    PM := multiplie(proj, model)
-    inverse := inverse_matrice_sans_échelle(@PM)
+	//si est_supérieur_ou_égal(r.origine, mémoire(min_boite)) && est_inférieur_ou_égal(r.origine, mémoire(max_boite)) {
+	//	retourne 0.0
+	//}
 
-    viewport := crée_vec4r(z = transtype(caméra.largeur: r32), w = transtype(caméra.hauteur: r32))
-    win := pos
+	dyn t1 := (min_boite.x - r.origine.x) * r.direction_inverse.x;
+	dyn t2 := (max_boite.x - r.origine.x) * r.direction_inverse.x;
 
-    dyn tmp := crée_vec4r(win.x, win.y, win.z, 1.0)
-    tmp.x = (tmp.x - viewport.x) / viewport.z
-    tmp.y = (tmp.y - viewport.y) / viewport.w
+	dyn tmin := min(t1, t2);
+	dyn tmax := max(t1, t2);
 
-    tmp.x = tmp.x * 2.0 - 1.0
-    tmp.y = tmp.y * 2.0 - 1.0
-    tmp.z = tmp.z * 2.0 - 1.0
-    tmp.w = tmp.w * 2.0 - 1.0
+    t1 = (min_boite.x - r.origine.x) * r.direction_inverse.x;
+    t2 = (max_boite.x - r.origine.x) * r.direction_inverse.x;
 
-    dyn obj := transforme(inverse, tmp)
+    tmin = max(tmin, min(t1, t2));
+    tmax = min(tmax, max(t1, t2));
 
-    obj.x /= obj.w
-    obj.y /= obj.w
-    obj.z /= obj.w
+    t1 = (min_boite.y - r.origine.y) * r.direction_inverse.y;
+    t2 = (max_boite.y - r.origine.y) * r.direction_inverse.y;
 
-	retourne crée_vec3r(obj.x, obj.y, obj.z)
+    tmin = max(tmin, min(t1, t2));
+    tmax = min(tmax, max(t1, t2));
+
+    t1 = (min_boite.z - r.origine.z) * r.direction_inverse.z;
+    t2 = (max_boite.z - r.origine.z) * r.direction_inverse.z;
+
+    tmin = max(tmin, min(t1, t2));
+    tmax = min(tmax, max(t1, t2));
+
+	/* pour retourner une valeur booléenne : return tmax > max(tmin, 0.0); */
+
+	si (tmax < 0.0 || tmin > tmax) {
+		retourne -1.0;
+	}
+
+	retourne tmin;
+}
+
+min_max :: fonc (v: *Vec3r, dyn min_boite: *Vec3r, dyn max_boite: *Vec3r) -> rien
+{
+    si v.x < min_boite.x {
+        min_boite.x = v.x
+    }
+    sinon si v.x > max_boite.x {
+        max_boite.x = v.x
+    }
+
+    si v.y < min_boite.y {
+        min_boite.y = v.y
+    }
+    sinon si v.y > max_boite.y {
+        max_boite.y = v.y
+    }
+
+    si v.z < min_boite.z {
+        min_boite.z = v.z
+    }
+    sinon si v.z > max_boite.z {
+        max_boite.z = v.z
+    }
 }
 
 // pas de rebond, pas d'anti-aliasing, simplement un traçage direct, pour avoir
 // un rendu plus rapide du résultat, le matériau est une capmat
-trace_maillage :: fonc (dyn caméra : *Caméra, maillage : *Maillage, dyn image: *Image) -> rien
+trace_maillage :: fonc (
+    dyn caméra : *Caméra3D,
+    maillage : *Maillage,
+    dyn image: *Image,
+    matcap: *Image) -> rien
 {
     ticks := compte_ticks_ms()
 
@@ -310,16 +343,23 @@ trace_maillage :: fonc (dyn caméra : *Caméra, maillage : *Maillage, dyn image:
     mat_rot_x := matrice_rotation_x(theta * 0.5)
     mat_rot_z := matrice_rotation_z(theta)
     mat_rot := multiplie(mat_rot_x, mat_rot_z)
-    mat_obj := multiplie(mat_rot, mat_trans)
+    mat_obj := mat_trans // multiplie(mat_rot, mat_trans)
 
     dyn triangles_visible : []Triangle
     dyn contexte_temp := contexte
     contexte_temp.allocatrice = __stockage_temporaire
 
+    min_boite := crée_vec3r(x =  100000000.0, y =  100000000.0, z =  100000000.0)
+    max_boite := crée_vec3r(x = -100000000.0, y = -100000000.0, z = -100000000.0)
+
     pousse_contexte contexte_temp {
         pour tri dans maillage.tris {
             dyn tri_transformé := transforme(mat_obj, tri)
             tableau_ajoute(@triangles_visible, tri_transformé)
+
+            min_max(@tri_transformé.p0, @min_boite, @max_boite)
+            min_max(@tri_transformé.p1, @min_boite, @max_boite)
+            min_max(@tri_transformé.p2, @min_boite, @max_boite)
         }
     }
 
@@ -329,11 +369,8 @@ trace_maillage :: fonc (dyn caméra : *Caméra, maillage : *Maillage, dyn image:
     caméra.direction_vue = transforme(mat_rot_cam, dir_cible)
     dir_cible = ajoute(caméra.position, caméra.direction_vue)
 
-    //imprime("cible : %\n", dir_cible)
     caméra.monde_vers_caméra = matrice_de_visé(@caméra.position, @dir_cible, @dir_haut)
     caméra.monde_vers_caméra = inverse_matrice_sans_échelle(@caméra.monde_vers_caméra)
-
-    inverse := inverse_matrice_sans_échelle(@caméra.projection)
 
     caméra.hauteur = image.hauteur
     caméra.largeur = image.largeur
@@ -343,85 +380,55 @@ trace_maillage :: fonc (dyn caméra : *Caméra, maillage : *Maillage, dyn image:
 
     pour i dans 0 ... image.hauteur - 1 {
         pour j dans 0 ... image.largeur - 1 {
-            // exprime la position en -1.0 et 1.0
-            x := (transtype(j: r32) * largeur_inverse) * 2.0 - 1.0
-            y := (transtype(image.hauteur - i: r32) * hauteur_inverse) * 2.0 - 1.0
+            x := (transtype(j: r32) * largeur_inverse)
+            y := (transtype(image.hauteur - i: r32) * hauteur_inverse)
 
-            dyn pos := crée_vec3r(x, y, 0.0)
+            pos_pixel := Vec2r{ x = x, y = y }
 
-            début := projette_dans_monde(caméra, @pos)
-
-            pos.z = 1.0
-            fin := projette_dans_monde(caméra, @pos)
-
-            direction := soustrait(fin, début)
-
-            // z et w (implicite) doivent également être en -1.0 et 1.0
-            //dyn pos := crée_vec4r(x, y, -1.0, 1.0)
-
-            //début := transforme(inverse, pos)
-
-            //pos.z = 1.0
-            //fin := transforme(inverse, pos)
-
-            //dir4 := soustrait(fin, début)
-            //direction := crée_vec3r(dir4.x, dir4.y, dir4.z)
-
-            // À FAIRE : évite les appels du dessus, la plupart des calculs sont communs
-            // le code ci-dessous en est une ébauche
-            /*
-            {
-                tmp_x := x * inverse.m[0][0] + y * inverse.m[1][0] + inverse.m[3][0]
-                tmp_y := x * inverse.m[0][1] + y * inverse.m[1][1] + inverse.m[3][1]
-                tmp_z := x * inverse.m[0][2] + y * inverse.m[1][2] + inverse.m[3][2]
-                tmp_w := x * inverse.m[0][3] + y * inverse.m[1][3] + inverse.m[3][3]
-
-                // z = -1.0
-                déb_x := tmp_x - inverse.m[2][0]
-                déb_y := tmp_y - inverse.m[2][1]
-                déb_z := tmp_z - inverse.m[2][2]
-                déb_w := tmp_w - inverse.m[2][3]
-
-                si déb_w != 0.0 {
-                    déb_x /= déb_w
-                    déb_y /= déb_w
-                    déb_z /= déb_w
-                }
-
-                // z = 1.0
-                fin_x := tmp_x + inverse.m[2][0]
-                fin_y := tmp_y + inverse.m[2][1]
-                fin_z := tmp_z + inverse.m[2][2]
-                fin_w := tmp_w + inverse.m[2][3]
-
-                si fin_w != 0.0 {
-                    fin_x /= fin_w
-                    fin_y /= fin_w
-                    fin_z /= fin_w
-                }
-
-                dir_x := fin_x - déb_x
-                dir_y := fin_y - déb_y
-                dir_z := fin_z - déb_z
-            }
-            */
+            direction := direction_via_pixel(caméra, @pos_pixel)
 
             dyn rayon : Rayon
             rayon.origine = caméra.position
-            rayon.direction = normalise(@direction)
+            rayon.direction = direction // normalise(@direction)
+            rayon.direction_inverse.x = 1.0 / direction.x
+            rayon.direction_inverse.y = 1.0 / direction.y
+            rayon.direction_inverse.z = 1.0 / direction.z
+
+            d := entresection_rapide_min_max(@rayon, @min_boite, @max_boite)
+
+            si d < -0.5 {
+                continue
+            }
 
             dyn distance_min := 1000.0
+            dyn idx_triangle := -1
 
-            pour tri dans triangles_visible {
-                //tri := triangles_visible[0]
+            pour tri, idx dans triangles_visible {
                 distance := 0.0
                 touché := entresecte_triangle(tri.p0, tri.p1, tri.p2, @rayon, @distance, nul, nul)
 
                 si distance < distance_min {
                     distance_min = distance
-
-                    image.tampon[i * image.largeur + j] = Couleur{ r = 1.0, v = 1.0, a = 1.0 }
                 }
+
+                si touché {
+                    idx_triangle = idx
+                }
+            }
+
+            si idx_triangle != -1 {
+                tri := triangles_visible[idx_triangle]
+
+                dyn line1 := soustrait(tri.p1, tri.p0)
+                dyn line2 := soustrait(tri.p2, tri.p0)
+
+                dyn nor := calcul_normal_normalisé(line1, line2)
+                vnor := vec_depuis_nor(nor)
+
+                uv := calcul_uv_capmat(@caméra.direction_vue, @vnor, faux)
+
+                couleur := échantillonne_prochain(matcap, @uv)
+                image.tampon[i * image.largeur + j] = couleur
             }
         }
     }
@@ -476,8 +483,8 @@ principale :: fonc () -> z32
     app.tampon_texture = crée_tampon_texture()
     diffère { détruit_tampon_texture(app.tampon_texture); }
 
-    //maillage := charge_maillage_depuis_obj("/home/kevin/fichiers/objs/VideoShip.obj")
-    maillage := crée_maillage_cube()
+    maillage := charge_maillage_depuis_obj("/home/kevin/fichiers/objs/VideoShip.obj")
+    //maillage := crée_maillage_cube()
     diffère { détruit_maillage(maillage); }
 
     app.maillage = maillage
@@ -486,7 +493,8 @@ principale :: fonc () -> z32
 
     dyn theta := 0.0
 
-    dyn caméra : Caméra
+    dyn caméra : Caméra3D
+    caméra.champs_de_vue = calcul_champs_de_vue_degrés(70.0, 35.0)
     caméra.position = crée_vec3r()
     caméra.direction_vue = crée_vec3r(z = 1.0)
     caméra.yaw = 0.0
@@ -559,7 +567,7 @@ principale :: fonc () -> z32
         remplis_image(@app.image, Couleur{ r = 0.0, v = 0.0, b = 0.0, a = 1.0 })
 
         //ratisse_maillage(@caméra, maillage, @app.image, matcap, theta)
-        trace_maillage(@caméra, maillage, @app.image)
+        trace_maillage(@caméra, maillage, @app.image, matcap)
 
         génère_texture(app.tampon_texture, app.image.tampon, largeur, hauteur)
 
