@@ -19,14 +19,150 @@ importe Math
 
 // ----------------------------------------------------------------------------
 
+TypeÉditrice :: énum z32 {
+    INVALIDE
+    VUE_3D
+}
+
+Éditrice :: struct {
+    // position absolue en pixel
+    x := 0
+    y := 0
+    largeur := 0
+    hauteur := 0
+
+    // position relative dans la fenêtre
+    x_r := 0.0
+    y_r := 0.0
+    largeur_r := 0.0
+    hauteur_r := 0.0
+
+    type := TypeÉditrice.INVALIDE
+}
+
+ÉditriceVue3D :: struct {
+    empl base: Éditrice
+
+    caméra : *Caméra3D
+    tampon_texture : *TamponTexture
+    image : Image
+    matcap : *Image
+}
+
+détruit_éditrice_vue_3d :: fonc (dyn éditrice: *ÉditriceVue3D) -> rien
+{
+    détruit_tampon_texture(éditrice.tampon_texture)
+    détruit_image(@éditrice.image)
+    détruit_image(éditrice.matcap)
+    déloge éditrice.matcap
+    déloge éditrice.caméra
+    déloge éditrice
+}
+
+détruit_éditrice :: fonc (dyn éditrice: *Éditrice) -> rien
+{
+    si éditrice.type == TypeÉditrice.VUE_3D {
+        éditrice_vue_3d := transtype(éditrice: *ÉditriceVue3D)
+        détruit_éditrice_vue_3d(éditrice_vue_3d)
+    }
+    sinon {
+        déloge éditrice
+    }
+}
+
 Application :: struct {
     hauteur : z32 = 0
     largeur : z32 = 0
 
     maillage : *Maillage
-    tampon_texture : *TamponTexture
 
-    image : Image
+    éditrices : []*Éditrice
+}
+
+ajoute_éditrice :: fonc (dyn app: *Application) -> rien
+{
+    dyn éditrice := crée_éditrice_vue_3d(app)
+
+    tableau_ajoute(@app.éditrices, éditrice)
+}
+
+crée_éditrice_vue_3d :: fonc (dyn app: *Application) -> *Éditrice
+{
+    dyn éditrice := loge ÉditriceVue3D
+    éditrice.x = 0
+    éditrice.y = 0
+    éditrice.largeur = app.largeur
+    éditrice.hauteur = app.hauteur
+
+    éditrice.x_r = 0.0
+    éditrice.y_r = 0.0
+    éditrice.largeur_r = 1.0
+    éditrice.hauteur_r = 1.0
+
+    éditrice.type = TypeÉditrice.VUE_3D
+
+    éditrice.image = crée_image(éditrice.largeur, éditrice.hauteur)
+
+    éditrice.matcap = charge_image_png("/home/kevin/Images/matcap.png")
+
+    éditrice.tampon_texture = crée_tampon_texture()
+
+    dyn caméra := loge Caméra3D
+    caméra.champs_de_vue = calcul_champs_de_vue_degrés(70.0, 35.0)
+    caméra.position = crée_vec3r()
+    caméra.direction_vue = crée_vec3r(z = 1.0)
+    caméra.yaw = 0.0
+    caméra.projection = matrice_projection(
+        caméra.champs_de_vue,
+        transtype(éditrice.largeur: r32),
+        transtype(éditrice.hauteur: r32),
+        caméra.plan_proche,
+        caméra.plan_éloigné)
+
+    éditrice.caméra = caméra
+
+    retourne transtype(éditrice: *Éditrice)
+}
+
+dessine_vue_3d :: fonc (dyn app: *Application, dyn éditrice: *ÉditriceVue3D) -> rien
+{
+    remplis_image(@éditrice.image, Couleur{ r = 0.0, v = 0.0, b = 0.0, a = 1.0 })
+
+    //ratisse_maillage(@éditrice.caméra, app.maillage, @éditrice.image, éditrice.matcap, theta)
+    trace_maillage(éditrice.caméra, app.maillage, @éditrice.image, éditrice.matcap)
+
+    génère_texture(éditrice.tampon_texture, éditrice.image.tampon, éditrice.largeur, éditrice.hauteur)
+
+    dessine_tampon_texture(éditrice.tampon_texture)
+}
+
+dessine :: fonc (dyn app: *Application, dyn éditrice: *Éditrice) -> rien
+{
+    si éditrice.type == TypeÉditrice.VUE_3D {
+        éditrice_vue_3d := transtype(éditrice: *ÉditriceVue3D)
+        dessine_vue_3d(app, éditrice_vue_3d)
+    }
+    sinon {
+    }
+}
+
+initalise_application :: fonc (dyn app: *Application) -> rien
+{
+    maillage := charge_maillage_depuis_obj("/home/kevin/fichiers/objs/suzanne.obj")
+    //maillage := crée_maillage_cube()
+    app.maillage = maillage
+
+    ajoute_éditrice(app)
+}
+
+détruit_application :: fonc (dyn app: *Application) -> rien
+{
+    pour éditrice dans app.éditrices {
+        détruit_éditrice(éditrice)
+    }
+
+    déloge app.éditrices
+    détruit_maillage(app.maillage)
 }
 
 // ----------------------------------------------------------------------------
@@ -318,9 +454,6 @@ trace_maillage :: fonc (
     dyn image: *Image,
     matcap: *Image) -> rien
 {
-    marque := obtiens_marque_stockage_temporaire()
-    diffère { set_marque_stockage_temporaire(marque) }
-
     ticks := compte_ticks_ms()
 
     diffère {
@@ -345,21 +478,18 @@ trace_maillage :: fonc (
     mat_obj := mat_trans // multiplie(mat_rot, mat_trans)
 
     dyn triangles_visible : []Triangle
-    dyn contexte_temp := contexte
-    contexte_temp.allocatrice = __stockage_temporaire
+    diffère { déloge triangles_visible; }
 
     min_boite := crée_vec3r(x =  100000000.0, y =  100000000.0, z =  100000000.0)
     max_boite := crée_vec3r(x = -100000000.0, y = -100000000.0, z = -100000000.0)
 
-    pousse_contexte contexte_temp {
-        pour tri dans maillage.tris {
-            dyn tri_transformé := transforme(mat_obj, tri)
-            tableau_ajoute(@triangles_visible, tri_transformé)
+    pour tri dans maillage.tris {
+        dyn tri_transformé := transforme(mat_obj, tri)
+        tableau_ajoute(@triangles_visible, tri_transformé)
 
-            min_max(@tri_transformé.p0, @min_boite, @max_boite)
-            min_max(@tri_transformé.p1, @min_boite, @max_boite)
-            min_max(@tri_transformé.p2, @min_boite, @max_boite)
-        }
+        min_max(@tri_transformé.p0, @min_boite, @max_boite)
+        min_max(@tri_transformé.p1, @min_boite, @max_boite)
+        min_max(@tri_transformé.p2, @min_boite, @max_boite)
     }
 
     dir_haut := crée_vec3r(y = 1.0)
@@ -483,40 +613,12 @@ principale :: fonc () -> z32
     app.hauteur = hauteur
     app.largeur = largeur
 
-    app.image = crée_image(largeur, hauteur)
-    diffère { détruit_image(@app.image); }
-
-    matcap := charge_image_png("/home/kevin/Images/matcap.png")
-
-    diffère {
-        détruit_image(matcap)
-        déloge matcap
-    }
-
-    app.tampon_texture = crée_tampon_texture()
-    diffère { détruit_tampon_texture(app.tampon_texture); }
-
-    maillage := charge_maillage_depuis_obj("/home/kevin/fichiers/objs/suzanne.obj")
-    //maillage := crée_maillage_cube()
-    diffère { détruit_maillage(maillage); }
-
-    app.maillage = maillage
+    initalise_application(@app)
+    diffère { détruit_application(@app); }
 
     dyn windowEvent : SDL_Event;
 
     dyn theta := 0.0
-
-    dyn caméra : Caméra3D
-    caméra.champs_de_vue = calcul_champs_de_vue_degrés(70.0, 35.0)
-    caméra.position = crée_vec3r()
-    caméra.direction_vue = crée_vec3r(z = 1.0)
-    caméra.yaw = 0.0
-    caméra.projection = matrice_projection(
-        caméra.champs_de_vue,
-        transtype(largeur: r32),
-        transtype(hauteur: r32),
-        caméra.plan_proche,
-        caméra.plan_éloigné)
 
     temps_écoulé := 1.0
 
@@ -532,39 +634,41 @@ principale :: fonc () -> z32
             }
 
             si windowEvent.type == SDL_EventType.SDL_KEYDOWN {
+                /*
                 si windowEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_UP {
-                    caméra.position.y += 0.8 * temps_écoulé
+                    app.éditrices[0].caméra.position.y += 0.8 * temps_écoulé
                 }
 
                 si windowEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_DOWN {
-                    caméra.position.y -= 0.8 * temps_écoulé
+                    app.éditrices[0].caméra.position.y -= 0.8 * temps_écoulé
                 }
 
                 si windowEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_LEFT {
-                    caméra.position.x += 0.8 * temps_écoulé
+                    app.éditrices[0].caméra.position.x += 0.8 * temps_écoulé
                 }
 
                 si windowEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_RIGHT {
-                    caméra.position.x -= 0.8 * temps_écoulé
+                    app.éditrices[0].caméra.position.x -= 0.8 * temps_écoulé
                 }
 
                 si windowEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_A {
-                    caméra.yaw -= 2.0 * 0.016
+                    app.éditrices[0].caméra.yaw -= 2.0 * 0.016
                 }
 
                 si windowEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_D {
-                    caméra.yaw += 2.0 * 0.016
+                    app.éditrices[0].caméra.yaw += 2.0 * 0.016
                 }
 
-                dyn temp_dir_avant := multiplie(caméra.direction_vue, 0.8 * temps_écoulé)
+                dyn temp_dir_avant := multiplie(app.éditrices[0].caméra.direction_vue, 0.8 * temps_écoulé)
 
                 si windowEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_W {
-                    caméra.position = ajoute(caméra.position, temp_dir_avant)
+                    app.éditrices[0].caméra.position = ajoute(app.éditrices[0].caméra.position, temp_dir_avant)
                 }
 
                 si windowEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_S {
-                    caméra.position = soustrait(caméra.position, temp_dir_avant)
+                    app.éditrices[0].caméra.position = soustrait(app.éditrices[0].caméra.position, temp_dir_avant)
                 }
+                */
             }
         }
 
@@ -577,14 +681,9 @@ principale :: fonc () -> z32
 
         //glClearColor(0.5, 0.5, 1.0, 1.0)
 
-        remplis_image(@app.image, Couleur{ r = 0.0, v = 0.0, b = 0.0, a = 1.0 })
-
-        //ratisse_maillage(@caméra, maillage, @app.image, matcap, theta)
-        trace_maillage(@caméra, maillage, @app.image, matcap)
-
-        génère_texture(app.tampon_texture, app.image.tampon, largeur, hauteur)
-
-        dessine_tampon_texture(app.tampon_texture)
+        pour éditrice dans app.éditrices {
+            dessine(@app, éditrice)
+        }
 
         SDL_GL_SwapWindow(window);
 
