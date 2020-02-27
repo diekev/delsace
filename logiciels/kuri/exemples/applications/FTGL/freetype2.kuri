@@ -5,7 +5,7 @@
 #inclus "freetype2/freetype/ftstroke.h"
 #inclus "freetype2/freetype/ftlcdfil.h"
 
-#bib "freetype"
+#bibliothèque_dynamique "freetype"
 
 // ***********************************************************************
 FT_MemoryRec_ :: struct externe {

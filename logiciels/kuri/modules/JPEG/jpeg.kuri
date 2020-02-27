@@ -4,7 +4,7 @@ importe GlibC
 
 #inclus "jpeglib.h"
 
-#bib "jpeg"
+#bibliothèque_dynamique "jpeg"
 
 jpeg_error_mgr :: struct externe ;
 jpeg_memory_mgr :: struct externe ;

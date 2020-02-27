@@ -10,7 +10,6 @@ importe Image
 importe OpenGL
 importe Math
 
-
 // ratissage basé sur le tutorial :
 // https://www.youtube.com/watch?v=HXSuNxpCzdM : 43.33
 

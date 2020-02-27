@@ -1,5 +1,5 @@
 
-#bib "X11"
+#bibliothèque_dynamique "X11"
 
 #inclus "X11/Xlib.h"
 

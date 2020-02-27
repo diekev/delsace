@@ -3,18 +3,18 @@
 #inclus "openssl/err.h"
 #inclus "openssl/ssl.h"
 
-#bib "ssl"
-#bib "crypto"
+#bibliothèque_dynamique "ssl"
+#bibliothèque_dynamique "crypto"
 
 //###############################################################################
 
 ssl_method_st :: struct externe  // SSL_METHOD dans l'IPA C
 ssl_st :: struct externe  // SSL dans l'IPA C
 
-X509 :: struct externe 
-X509_NAME :: struct externe 
-X509_REQ :: struct externe 
-X509_CRL :: struct externe 
+X509 :: struct externe
+X509_NAME :: struct externe
+X509_REQ :: struct externe
+X509_CRL :: struct externe
 
 SSL_library_init :: fonc externe () -> rien
 OpenSSL_add_all_algorithms :: fonc externe () -> rien

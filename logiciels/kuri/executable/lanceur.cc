@@ -640,15 +640,12 @@ int main(int argc, char *argv[])
 					commande += chm;
 				}
 
-				for (auto const &bib : assembleuse.bibliotheques) {
-					auto chn_bib = dls::chaine(bib);
+				for (auto const &bib : assembleuse.bibliotheques_dynamiques) {
+					commande += " -l" + bib;
+				}
 
-					if (chn_bib.taille() > 2 && chn_bib.sous_chaine(chn_bib.taille() - 2) == ".a") {
-						commande += " " + chn_bib;
-					}
-					else {
-						commande += " -l" + chn_bib;
-					}
+				for (auto const &bib : assembleuse.bibliotheques_statiques) {
+					commande += " " + bib;
 				}
 
 				commande += " -o ";

@@ -43,13 +43,15 @@ class assembleuse_arbre {
 	size_t m_memoire_utilisee = 0;
 
 public:
-	dls::ensemble<dls::vue_chaine_compacte> deja_inclus{};
+	dls::ensemble<dls::chaine> deja_inclus{};
 	/* certains fichiers d'entête requiers d'être inclus dans un certain ordre,
 	 * par exemple pour OpenGL, donc les inclusions finales sont stockées dans
 	 * un tableau dans l'ordre dans lequel elles apparaissent dans le code */
-	dls::tableau<dls::vue_chaine_compacte> inclusions{};
+	dls::tableau<dls::chaine> inclusions{};
 
-	dls::tableau<dls::vue_chaine_compacte> bibliotheques{};
+	dls::tableau<dls::chaine> bibliotheques_dynamiques{};
+
+	dls::tableau<dls::chaine> bibliotheques_statiques{};
 
 	dls::tableau<dls::vue_chaine_compacte> chemins{};
 
@@ -114,7 +116,7 @@ public:
 	 */
 	size_t nombre_noeuds() const;
 
-	void ajoute_inclusion(dls::vue_chaine_compacte const &fichier);
+	void ajoute_inclusion(const dls::chaine &fichier);
 
 	noeud::base *racine() const;
 };

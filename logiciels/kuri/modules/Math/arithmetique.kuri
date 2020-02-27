@@ -1,7 +1,7 @@
 // À FAIRE : implémente les fonctions suivantes avec notre langage
 
 #inclus "math.h"
-#bib "m"
+#bibliothèque_dynamique "m"
 
 sqrt :: fonc externe (v: r64) -> r64
 cos :: fonc externe (a : r64) -> r64

@@ -5,7 +5,7 @@ importe OpenGL
 
 #inclus "GLFW/glfw3.h"
 
-#bib "glfw"
+#bibliothèque_dynamique "glfw"
 
 charge "evenements"
 

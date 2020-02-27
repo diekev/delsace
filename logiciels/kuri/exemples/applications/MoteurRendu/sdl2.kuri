@@ -2,7 +2,7 @@
 
 #inclus "SDL2/SDL.h"
 
-#bib "SDL2"
+#bibliothèque_dynamique "SDL2"
 
 DrapeauxInit :: énum_drapeau n32 {
     SDL_INIT_TIMER := transtype(0x00000001: n32)

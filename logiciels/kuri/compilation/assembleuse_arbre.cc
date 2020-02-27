@@ -42,7 +42,7 @@ assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
 	this->ajoute_inclusion("string.h");
 	/* Pour les coroutines nous incluons toujours pthread */
 	this->ajoute_inclusion("pthread.h");
-	this->bibliotheques.pousse("pthread");
+	this->bibliotheques_dynamiques.pousse("pthread");
 	this->definitions.pousse("_REENTRANT");
 }
 
@@ -126,7 +126,7 @@ size_t assembleuse_arbre::nombre_noeuds() const
 	return static_cast<size_t>(m_noeuds.taille());
 }
 
-void assembleuse_arbre::ajoute_inclusion(const dls::vue_chaine_compacte &fichier)
+void assembleuse_arbre::ajoute_inclusion(const dls::chaine &fichier)
 {
 	if (deja_inclus.trouve(fichier) != deja_inclus.fin()) {
 		return;

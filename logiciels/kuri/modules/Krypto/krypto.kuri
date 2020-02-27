@@ -1,8 +1,8 @@
 // Interface Kuri pour Krypto
 
-#bib "/opt/bin/kuri/modules/Krypto/libkrypto.a"
+#bibliothèque_statique "libkrypto.a"
 
-#inclus "/opt/bin/kuri/modules/Krypto/krypto.hh"
+#inclus "krypto.hh"
 
 
 // À FAIRE : la bibliothèque BCrypt à l'air brisée ?, il faudra de toute manière utiliser Argon2 qui a l'air d'être une meilleure fonction

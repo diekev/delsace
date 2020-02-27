@@ -26,6 +26,8 @@
 
 #undef DEBOGUE_EXPRESSION
 
+#include <filesystem>
+
 #include "biblinternes/langage/debogage.hh"
 #include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/conditions.h"
@@ -36,6 +38,30 @@
 #include "outils_lexemes.hh"
 
 using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
+
+/* ************************************************************************** */
+
+// Pour les bibliothèques externes ou les inclusions, détermine le chemin absolu selon le fichier courant, au cas où la bibliothèque serait dans le même dossier que le fichier
+static auto trouve_chemin_si_dans_dossier(DonneesModule *module, dls::chaine const &chaine)
+{
+	/* vérifie si le chemin est relatif ou absolu */
+	auto chemin = std::filesystem::path(chaine.c_str());
+
+	if (!std::filesystem::exists(chemin)) {
+		/* le chemin n'est pas absolu, détermine s'il est dans le même dossier */
+		auto chemin_abs = module->chemin + chaine;
+
+		chemin = std::filesystem::path(chemin_abs.c_str());
+
+		if (std::filesystem::exists(chemin)) {
+			return chemin_abs;
+		}
+	}
+
+	return chaine;
+}
+
+/* ************************************************************************** */
 
 /**
  * Retourne vrai si l'identifiant passé en paramètre peut-être un identifiant
@@ -1184,14 +1210,20 @@ noeud::base *Syntaxeuse::analyse_expression(
 					if (directive == "inclus") {
 						consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-						auto chaine = donnees().chaine;
+						auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, donnees().chaine);
 						m_assembleuse->ajoute_inclusion(chaine);
 					}
-					else if (directive == "bib") {
+					else if (directive == "bibliothèque_dynamique") {
 						consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-						auto chaine = donnees().chaine;
-						m_assembleuse->bibliotheques.pousse(chaine);
+						auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, donnees().chaine);
+						m_assembleuse->bibliotheques_dynamiques.pousse(chaine);
+					}
+					else if (directive == "bibliothèque_statique") {
+						consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
+
+						auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, donnees().chaine);
+						m_assembleuse->bibliotheques_statiques.pousse(chaine);
 					}
 					else if (directive == "def") {
 						consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");

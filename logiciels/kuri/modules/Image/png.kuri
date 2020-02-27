@@ -5,7 +5,7 @@ charge "image"
 
 #inclus "png.h"
 
-#bib "png"
+#bibliothèque_dynamique "png"
 
 png_struct_def :: struct externe;
 png_info_def :: struct externe;

@@ -1,5 +1,5 @@
 #inclus "mysql.h"
-#bib "mysqlclient"
+#bibliothèque_dynamique "mysqlclient"
 
 #chemin "-L/opt/lib/mysql/lib/"
 #chemin "-I/opt/lib/mysql/include/"
