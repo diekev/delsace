@@ -1,33 +1,103 @@
 importe Couleur
 importe FTGL
+importe Fondation
 importe Math
 importe OpenGL
+
+charge "programme"
 
 RendeuseTexte :: struct {
     hauteur := 0
     largeur := 0
-    décalage := 0
-    taille_police := 0
+    décalage := 0.0
+    taille_police := 0.0
 
     tampon : *rien
 
-    altas : *texture_atlas_t
+    atlas : *texture_atlas_t
     font : *texture_font_t
+
+    programme : n32
+
+    id_tampon_vertex : n32
+    id_tampon_index : n32
+    id_tableau_vertex : n32
+
+    id_tampon_couleur : n32
+    id_tampon_tex_coord : n32
+}
+
+crée_rendeuse_texte :: fonc (largeur: z32, hauteur: z32) -> *RendeuseTexte
+{
+    imprime("crée_rendeuse_texte\n")
+    dyn rendeuse := loge RendeuseTexte
+    rendeuse.largeur = largeur
+    rendeuse.hauteur = hauteur
+    rendeuse.décalage = 1.0
+    rendeuse.taille_police = 16.0
+    rendeuse.tampon = nul
+
+    retourne rendeuse
 }
 
 détruit_rendeuse_texte :: fonc (dyn rendeuse: *RendeuseTexte) -> rien
 {
+    imprime("détruit_rendeuse_texte\n")
     texture_atlas_delete(rendeuse.atlas)
     texture_font_delete(rendeuse.font)
+
+    glDeleteVertexArrays(1, @rendeuse.id_tableau_vertex)
+    glDeleteBuffers(1, @rendeuse.id_tampon_vertex)
+    glDeleteBuffers(1, @rendeuse.id_tampon_index)
+    glDeleteBuffers(1, @rendeuse.id_tampon_couleur)
+    glDeleteBuffers(1, @rendeuse.id_tampon_tex_coord)
+
+    glDeleteProgram(rendeuse.programme)
+
+    déloge rendeuse
 }
 
 crée_tampon :: fonc (dyn rendeuse: *RendeuseTexte) -> rien
 {
+    imprime("crée_tampon\n")
 
+    source_vertex_texte := "
+		#version 330 core
+		layout(location = 0) in vec2 vertex;
+		layout(location = 1) in vec2 tex_coord;
+		layout(location = 2) in vec4 color;
+		smooth out vec2 UV;
+		smooth out vec4 couleur;
+		void main()
+		{
+			gl_Position = vec4(vertex * 2.0 - 1.0, 0.0, 1.0);
+			UV = tex_coord;
+		   couleur = color;
+		}
+    "
+
+    source_fragment_texte := "
+		#version 330 core
+		layout (location = 0) out vec4 fragment_color;
+		uniform sampler2D atlas;
+		smooth in vec4 couleur;
+		smooth in vec2 UV;
+		void main()
+		{
+			float a = texture2D(atlas, UV).r;
+			fragment_color = vec4(couleur.xyz, couleur.a*a);
+            //fragment_color = vec4(1.0, 0.0, 1.0, 1.0);
+		}
+    "
+
+    id_programme := charge_programme(source_vertex_texte, source_fragment_texte)
+
+    rendeuse.programme = id_programme
 }
 
 dessine_texte :: fonc (dyn rendeuse: *RendeuseTexte, texte: chaine) -> rien
 {
+    imprime("dessine_texte\n")
     chemin_fonte := "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
 
     // À FAIRE : passe la couleur
@@ -37,7 +107,7 @@ dessine_texte :: fonc (dyn rendeuse: *RendeuseTexte, texte: chaine) -> rien
 
     dyn markup : markup_t
 	markup.family  = chemin_fonte.pointeur
-	markup.size    = transtype(rendeuse.taille_police: r32)
+	markup.size    = rendeuse.taille_police
 	markup.bold    = 0
 	markup.italic  = 0
 	markup.spacing = 0.0
@@ -53,32 +123,33 @@ dessine_texte :: fonc (dyn rendeuse: *RendeuseTexte, texte: chaine) -> rien
 
     si rendeuse.tampon == nul {
 		crée_tampon(rendeuse)
-		rendeuse.atlas = texture_atlas_new(512, 512, 1)
+		rendeuse.atlas = texture_atlas_new(transtype(512: n64), transtype(512: n64), transtype(1: n64))
 		rendeuse.font = texture_font_new_from_file(rendeuse.atlas, markup.size, markup.family)
 	}
 
 	markup.font = rendeuse.font
 
-	pos := Vec2r{ x = 8.0, y = 8.0 + transtype(rendeuse.decalage: r32) }
+	pos := Vec2r{ x = 8.0, y = 8.0 + rendeuse.décalage }
 	taille := Vec2r{ x = transtype(rendeuse.largeur: r32), y = transtype(rendeuse.hauteur: r32) }
 
 	markup.foreground_color = noir
 	markup.font.rendermode = rendermode_t.RENDER_OUTLINE_EDGE
 	markup.font.outline_thickness = 0.2
 
-	dessine_lettres(rendeuse.tampon, texte, rendeuse.atlas, @markup, pos, taille)
+	dessine_lettres(rendeuse, rendeuse.tampon, texte, rendeuse.atlas, @markup, pos, taille)
 
 	markup.foreground_color = blanc
 	markup.font.rendermode = rendermode_t.RENDER_NORMAL
 
-	dessine_lettres(rendeuse.tampon, texte, rendeuse.atlas, @markup, pos, taille)
+	dessine_lettres(rendeuse, rendeuse.tampon, texte, rendeuse.atlas, @markup, pos, taille)
 
-	rendeuse.decalage += transtype(rendeuse.taille_police: r32)
+	rendeuse.décalage += rendeuse.taille_police
 }
 
-dessine_lettres :: fonc (tampon: *rien, texte: chaine, altas: *texture_atlas_t, markup: *markup_t, pos: Vec2r, taille: Vec2r) -> rien
+dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine, atlas: *texture_atlas_t, markup: *markup_t, pos: Vec2r, taille: Vec2r) -> rien
 {
-    dyn pen := vec2{ x = pos.x, y = taille.y - pos.y - 16.0 }
+    imprime("dessine_lettres\n")
+    dyn pen := vec2{ x = pos.x, y = taille.y - pos.y - rendeuse.taille_police }
 
 	dyn sommets : []Vec2r
 	dyn uvs : []Vec2r
@@ -92,7 +163,12 @@ dessine_lettres :: fonc (tampon: *rien, texte: chaine, altas: *texture_atlas_t, 
         déloge indices
     }
 
-    dyn couleur := Couleur { r = markup.foreground_color.r, v = markup.foreground_color.g, b = markup.foreground_color.b, a = markup.foreground_color.a }
+    dyn couleur := Couleur {
+        r = markup.foreground_color.x,
+        v = markup.foreground_color.y,
+        b = markup.foreground_color.z,
+        a = markup.foreground_color.w
+    }
 
 	inv_taille := Vec2r{ x = 1.0 / taille.x, y = 1.0 / taille.y }
 
@@ -114,8 +190,8 @@ dessine_lettres :: fonc (tampon: *rien, texte: chaine, altas: *texture_atlas_t, 
 		pen.x += kerning
 		x0 := (pen.x + transtype(glyph.offset_x: r32)) * inv_taille.x
 		y0 := (pen.y + transtype(glyph.offset_y: r32)) * inv_taille.y
-		x1 := (x0 + transtype(glyph.width: r32)) * inv_taille.x
-		y1 := (y0 - transtype(glyph.height: r32)) * inv_taille.y
+		x1 := x0 + transtype(glyph.width: r32) * inv_taille.x
+		y1 := y0 - transtype(glyph.height: r32) * inv_taille.y
 		s0 := glyph.s0;
 		t0 := glyph.t0;
 		s1 := glyph.s1;
@@ -151,38 +227,48 @@ dessine_lettres :: fonc (tampon: *rien, texte: chaine, altas: *texture_atlas_t, 
 
     // --------------------------------------
 
-	auto params_tampon = ParametresTampon{};
-	params_tampon.attribut = "vertex";
-	params_tampon.dimension_attribut = 2;
-	params_tampon.pointeur_sommets = sommets.data();
-	params_tampon.taille_octet_sommets = sizeof(dls::math::vec2f) * sommets.size();
-	params_tampon.elements = indices.size();
-	params_tampon.pointeur_index = indices.data();
-	params_tampon.taille_octet_index = sizeof(unsigned int) * indices.size();
+    glGenVertexArrays(1, @rendeuse.id_tableau_vertex)
+    glGenBuffers(1, @rendeuse.id_tampon_index)
+    glGenBuffers(1, @rendeuse.id_tampon_vertex)
+    glGenBuffers(1, @rendeuse.id_tampon_couleur)
+    glGenBuffers(1, @rendeuse.id_tampon_tex_coord)
 
-	tampon.remplie_tampon(params_tampon);
+    glBindVertexArray(rendeuse.id_tableau_vertex)
 
     // --------------------------------------
 
-	params_tampon.attribut = "tex_coord";
-	params_tampon.dimension_attribut = 2;
-	params_tampon.pointeur_donnees_extra = uvs.data();
-	params_tampon.taille_octet_donnees_extra = sizeof(dls::math::vec2f) * uvs.size();
+    glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_vertex);
+	glBufferData(OGL.ARRAY_BUFFER, transtype(sommets.taille: n64) * taille_de(Vec2r), @sommets[0], OGL.STATIC_DRAW);
 
-	tampon.remplie_tampon_extra(params_tampon);
+	glBindBuffer(OGL.ELEMENT_ARRAY_BUFFER, rendeuse.id_tampon_index);
+	glBufferData(OGL.ELEMENT_ARRAY_BUFFER, transtype(indices.taille: n64) * taille_de(z32), @indices[0], OGL.STATIC_DRAW);
 
-    // --------------------------------------
-
-	params_tampon.attribut = "color";
-	params_tampon.dimension_attribut = 4;
-	params_tampon.pointeur_donnees_extra = colors.data();
-	params_tampon.taille_octet_donnees_extra = sizeof(dls::math::vec4f) * colors.size();
-
-	tampon.remplie_tampon_extra(params_tampon);
+	glEnableVertexAttribArray(transtype(0: n32));
+	glVertexAttribPointer(transtype(0 : n32), 2, OGL.FLOAT, OGL.FALSE, 0, nul);
 
     // --------------------------------------
 
-	si atlas = nul {
+    glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_tex_coord);
+	glBufferData(OGL.ARRAY_BUFFER, transtype(uvs.taille: n64) * taille_de(Vec2r), @uvs[0], OGL.STATIC_DRAW);
+
+	glEnableVertexAttribArray(transtype(1: n32));
+	glVertexAttribPointer(transtype(1 : n32), 2, OGL.FLOAT, OGL.FALSE, 0, nul);
+
+    // --------------------------------------
+
+    glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_couleur);
+	glBufferData(OGL.ARRAY_BUFFER, transtype(couleurs.taille: n64) * taille_de(Vec4r), @couleurs[0], OGL.STATIC_DRAW);
+
+	glEnableVertexAttribArray(transtype(2: n32));
+	glVertexAttribPointer(transtype(2 : n32), 4, OGL.FLOAT, OGL.FALSE, 0, nul);
+
+    // --------------------------------------
+
+    glBindVertexArray(transtype(0: n32))
+
+    // --------------------------------------
+
+	si atlas == nul {
 		imprime("L'atlas est nul !\n")
 	}
 	sinon si atlas.data == nul {
@@ -200,40 +286,31 @@ dessine_lettres :: fonc (tampon: *rien, texte: chaine, altas: *texture_atlas_t, 
 				  0, _GL_RED, _GL_UNSIGNED_BYTE, atlas.data )
 
 	{
+        /*
 		auto programme = tampon.programme();
 
 		if (!programme->est_valide()) {
 			std::cerr << "Programme invalide !\n";
 			return;
 		}
+        */
 
 		//dls::ego::util::GPU_check_errors("Erreur lors du rendu du tampon avant utilisation programme");
 
-		programme->active();
+		glUseProgram(rendeuse.programme)
+        glBindVertexArray(rendeuse.id_tableau_vertex)
 
-		programme->uniforme("atlas", 0);
-
-		tampon.donnees()->attache();
-		//tampon.texture()->attache();
+        loc := glGetUniformLocation(rendeuse.programme, "atlas".pointeur)
+	    glUniform1ui(loc, transtype(0: n32));
 
 		//		numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après attache texture");
 
-		mat4   model, view, projection;
-		mat4_set_identity(&projection);
-		mat4_set_identity(&model);
-		mat4_set_identity(&view);
-		glUniformMatrix4fv((*programme)("MVP"), 1, 0, model.data);
-		glUniformMatrix4fv((*programme)("matrice"), 1, 0, view.data);
-		//glUniformMatrix4fv((*programme)("projection"), 1, 0, projection.data);
-
-		glDrawElements(_GL_TRIANGLES, transtype(indices.taille: z32), _GL_UNSIGNED_INT, nul);
+		glDrawElements(OGL.TRIANGLES, transtype(indices.taille: z32), _GL_UNSIGNED_INT, nul);
 
 		//		numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après dessin indexé");
 
-		//tampon.texture()->detache();
-		tampon.donnees()->detache();
-
-        glUseProgramme(0)
+        glBindVertexArray(transtype(0: n32))
+        glUseProgram(transtype(0: n32))
 	}
 
 	glDeleteTextures(1, @atlas.id)

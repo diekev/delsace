@@ -25,10 +25,16 @@ OGL :: énum n32 {
     COMPILE_STATUS := 0x8B81
 }
 
+_GL_BLEND := transtype(0x0BE2: n32)
+_GL_SRC_ALPHA := transtype(0x0302: n32)
+_GL_ONE_MINUS_SRC_ALPHA := transtype(0x0303: n32)
 _GL_TEXTURE0 := 0x84C0
 _GL_TEXTURE_1D := 0x0DE0
 _GL_TEXTURE_2D := 0x0DE1
+_GL_UNSIGNED_BYTE := 0x1401
+_GL_UNSIGNED_INT := 0x1405
 _GL_FLOAT := 0x1406
+_GL_RED := 0x1903
 _GL_RGBA := 0x1908
 _GL_NEAREST := 0x2600
 _GL_LINEAR := 0x2601
@@ -38,6 +44,7 @@ _GL_TEXTURE_WRAP_S := 0x2802
 _GL_TEXTURE_WRAP_T := 0x2803
 _GL_CLAMP := 0x2900
 _GL_REPEAT := 0x2901
+_GL_CLAMP_TO_EDGE := 0x812F
 _GL_INVALID_ENUM := transtype(0x0500: n32)
 _GL_INVALID_VALUE := transtype(0x0501: n32)
 _GL_INVALID_OPERATION := transtype(0x0502: n32)
@@ -49,6 +56,10 @@ glewInit :: fonc externe () -> z32
 
 glClear :: fonc externe (bit : z32) -> rien
 glClearColor :: fonc externe (r : r32, g : r32, b : r32, a : r32) -> rien
+
+glEnable :: fonc externe (cap: n32) -> rien
+glDisable :: fonc externe (cap: n32) -> rien
+glBlendFunc :: fonc externe (sfactor: n32, dfactor: n32) -> rien
 
 glViewport :: fonc externe (px : z32, py : z32, tx : z32, ty : z32) -> rien
 
@@ -107,6 +118,7 @@ glGetProgramiv :: fonc externe (program : n32, pname : OGL, params : *z32) -> ri
 glGetProgramInfoLog :: fonc externe (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien
 glGetAttribLocation :: fonc externe (programme : n32, nom: *z8) -> n32
 glGetUniformLocation :: fonc externe (programme : n32, nom: *z8) -> n32
+glIsShader :: fonc externe (shader: n32) -> bool
 
 glGetError :: fonc externe () -> n32
 

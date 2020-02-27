@@ -640,12 +640,12 @@ int main(int argc, char *argv[])
 					commande += chm;
 				}
 
-				for (auto const &bib : assembleuse.bibliotheques_dynamiques) {
-					commande += " -l" + bib;
-				}
-
 				for (auto const &bib : assembleuse.bibliotheques_statiques) {
 					commande += " " + bib;
+				}
+
+				for (auto const &bib : assembleuse.bibliotheques_dynamiques) {
+					commande += " -l" + bib;
 				}
 
 				commande += " -o ";

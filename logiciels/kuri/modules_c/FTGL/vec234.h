@@ -121,33 +121,35 @@ typedef union
  *  - Third component:  <b>z</b>, <b>width</b>, <b>b</b> or <b>blue</b>
  *  - Fourth component: <b>w</b>, <b>height</b>, <b>a</b> or <b>alpha</b>
  */
-typedef union
+typedef struct vec4
 {
-    float data[4];    /**< All compoments at once    */
-    struct {
-        float x;      /**< Alias for first component */
-        float y;      /**< Alias for second component */
-        float z;      /**< Alias for third component  */
-        float w;      /**< Alias for fourth component */
-    };
-    struct {
-        float left;   /**< Alias for first component */
-        float top;    /**< Alias for second component */
-        float width;  /**< Alias for third component  */
-        float height; /**< Alias for fourth component */
-    };
-    struct {
-        float r;      /**< Alias for first component */
-        float g;      /**< Alias for second component */
-        float b;      /**< Alias for third component  */
-        float a;      /**< Alias for fourth component */
-    };
-    struct {
-        float red;    /**< Alias for first component */
-        float green;  /**< Alias for second component */
-        float blue;   /**< Alias for third component  */
-        float alpha;  /**< Alias for fourth component */
-    };
+	union {
+		float data[4];    /**< All compoments at once    */
+		struct {
+			float x;      /**< Alias for first component */
+			float y;      /**< Alias for second component */
+			float z;      /**< Alias for third component  */
+			float w;      /**< Alias for fourth component */
+		};
+		struct {
+			float left;   /**< Alias for first component */
+			float top;    /**< Alias for second component */
+			float width;  /**< Alias for third component  */
+			float height; /**< Alias for fourth component */
+		};
+		struct {
+			float r;      /**< Alias for first component */
+			float g;      /**< Alias for second component */
+			float b;      /**< Alias for third component  */
+			float a;      /**< Alias for fourth component */
+		};
+		struct {
+			float red;    /**< Alias for first component */
+			float green;  /**< Alias for second component */
+			float blue;   /**< Alias for third component  */
+			float alpha;  /**< Alias for fourth component */
+		};
+	};
 } vec4;
 
 
@@ -187,17 +189,19 @@ typedef union
  *  - First component:  <b>x</b> or <b>s</b>
  *  - Second component: <b>y</b> or <b>t</b>
  */
-typedef union
+typedef struct vec2
 {
-    float data[2]; /**< All components at once     */
-    struct {
-        float x;   /**< Alias for first component  */
-        float y;   /**< Alias for second component */
-    };
-    struct {
-        float s;   /**< Alias for first component  */
-        float t;   /**< Alias for second component */
-    };
+	union {
+		float data[2]; /**< All components at once     */
+		struct {
+			float x;   /**< Alias for first component  */
+			float y;   /**< Alias for second component */
+		};
+		struct {
+			float s;   /**< Alias for first component  */
+			float t;   /**< Alias for second component */
+		};
+	};
 } vec2;
 
 #pragma GCC diagnostic pop

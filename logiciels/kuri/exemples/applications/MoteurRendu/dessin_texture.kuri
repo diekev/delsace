@@ -2,6 +2,8 @@ importe Couleur
 importe Fondation
 importe OpenGL
 
+charge "programme"
+
 TamponTexture :: struct {
     programme : n32
 
@@ -14,8 +16,31 @@ TamponTexture :: struct {
 
 crée_tampon_texture :: fonc () -> *TamponTexture
 {
+    source_vertex := "
+    #version 330 core
+    layout(location = 0) in vec2 sommets;
+    smooth out vec2 UV;
+    void main()
+    {
+        gl_Position = vec4(sommets * 2.0 - 1.0, 0.0, 1.0);
+        UV = sommets;
+    }
+    "
+
+    source_fragment := "
+    #version 330 core
+    layout (location = 0) out vec4 couleur_fragment;
+    smooth in vec2 UV;
+    uniform sampler2D image;
+    void main()
+    {
+        vec2 flipped = vec2(UV.x, 1.0 - UV.y);
+        couleur_fragment = texture(image, flipped);
+    }
+    "
+
     dyn tampon_texture := loge TamponTexture
-    tampon_texture.programme = charge_programme()
+    tampon_texture.programme = charge_programme(source_vertex, source_fragment)
 
     // ------------------
 
@@ -106,94 +131,4 @@ génère_texture :: fonc (
 
 	glActiveTexture(_GL_TEXTURE0);
 	glBindTexture(_GL_TEXTURE_2D, transtype(0: n32));
-}
-
-charge_programme :: fonc() -> n32
-{
-    source_vertex := "
-    #version 330 core
-    layout(location = 0) in vec2 sommets;
-    smooth out vec2 UV;
-    void main()
-    {
-        gl_Position = vec4(sommets * 2.0 - 1.0, 0.0, 1.0);
-        UV = sommets;
-    }
-    "
-
-    source_fragment := "
-    #version 330 core
-    layout (location = 0) out vec4 couleur_fragment;
-    smooth in vec2 UV;
-    uniform sampler2D image;
-    void main()
-    {
-        vec2 flipped = vec2(UV.x, 1.0 - UV.y);
-        couleur_fragment = texture(image, flipped);
-    }
-    "
-
-    // crée les nuanceurs
-	VertexShaderID := glCreateShader(OGL.VERTEX_SHADER)
-	FragmentShaderID := glCreateShader(OGL.FRAGMENT_SHADER)
-
-    taille_src_vertex := transtype(source_vertex.taille : z32)
-	glShaderSource(VertexShaderID, 1, @source_vertex.pointeur , @taille_src_vertex)
-	glCompileShader(VertexShaderID)
-
-    // verifie la compilation
-    dyn Result : z32 = 0
-    dyn InfoLogLength : z32 = 0
-    glGetShaderiv(VertexShaderID, OGL.COMPILE_STATUS, @Result)
-    glGetShaderiv(VertexShaderID, OGL.INFO_LOG_LENGTH, @InfoLogLength)
-
-    si InfoLogLength > 0 {
-		ProgramErrorMessage := loge chaine(InfoLogLength+1)
-		glGetShaderInfoLog(VertexShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
-		imprime_sans_format("!!!!! Erreur compilation : VertexShaderID", ProgramErrorMessage, '\n')
-        déloge ProgramErrorMessage
-	}
-
-    taille_src_fragment := transtype(source_fragment.taille : z32)
-	glShaderSource(FragmentShaderID, 1, @source_fragment.pointeur , @taille_src_fragment)
-	glCompileShader(FragmentShaderID)
-
-    // verifie la compilation
-    Result = 0
-    InfoLogLength = 0
-    glGetShaderiv(FragmentShaderID, OGL.COMPILE_STATUS, @Result)
-	glGetShaderiv(FragmentShaderID, OGL.INFO_LOG_LENGTH, @InfoLogLength)
-
-    si InfoLogLength > 0 {
-		ProgramErrorMessage := loge chaine(InfoLogLength+1)
-		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
-		imprime_sans_format("!!!!! Erreur compilation : FragmentShaderID", ProgramErrorMessage, '\n')
-        déloge ProgramErrorMessage
-	}
-
-    ProgramID_ := glCreateProgram()
-	glAttachShader(ProgramID_, VertexShaderID)
-	glAttachShader(ProgramID_, FragmentShaderID)
-	glLinkProgram(ProgramID_)
-
-    // verifie la liaison
-    Result = 0
-    InfoLogLength = 0
-    glGetProgramiv(ProgramID_, OGL.LINK_STATUS, @Result)
-	glGetProgramiv(ProgramID_, OGL.INFO_LOG_LENGTH, @InfoLogLength)
-
-    si InfoLogLength > 0 {
-		ProgramErrorMessage := loge chaine(InfoLogLength+1)
-		glGetProgramInfoLog(ProgramID_, InfoLogLength, nul, ProgramErrorMessage.pointeur)
-		imprime_sans_format("!!!!! Erreur liaison : ProgramID", ProgramErrorMessage, '\n')
-        déloge ProgramErrorMessage
-	}
-
-	glDetachShader(ProgramID_, VertexShaderID)
-	glDetachShader(ProgramID_, FragmentShaderID)
-
-	glDeleteShader(VertexShaderID)
-	glDeleteShader(FragmentShaderID)
-
-    retourne ProgramID_
 }

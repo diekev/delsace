@@ -1,0 +1,104 @@
+importe Fondation
+importe OpenGL
+
+vérifie_compilation :: fonc (id_nuanceur: n32) -> bool
+{
+    dyn résultat : z32 = 0
+    dyn longueur_info_log : z32 = 0
+
+    glGetShaderiv(id_nuanceur, OGL.COMPILE_STATUS, @résultat)
+    glGetShaderiv(id_nuanceur, OGL.INFO_LOG_LENGTH, @longueur_info_log)
+
+    si longueur_info_log > 0 {
+		message_erreur := loge chaine(longueur_info_log + 1)
+		glGetShaderInfoLog(id_nuanceur, longueur_info_log, nul, message_erreur.pointeur)
+
+        imprime("!!!!! Erreur de compilation du nuanceur OpenGL :\n%\n", message_erreur)
+
+        déloge message_erreur
+
+        retourne faux
+	}
+
+    retourne vrai
+}
+
+vérifie_liaison :: fonc (id_programme: n32) -> bool
+{
+    dyn résultat : z32 = 0
+    dyn longueur_info_log : z32 = 0
+
+    glGetProgramiv(id_programme, OGL.LINK_STATUS, @résultat)
+	glGetProgramiv(id_programme, OGL.INFO_LOG_LENGTH, @longueur_info_log)
+
+    si longueur_info_log > 0 {
+		message_erreur := loge chaine(longueur_info_log + 1)
+		glGetProgramInfoLog(id_programme, longueur_info_log, nul, message_erreur.pointeur)
+
+        imprime("!!!!! Erreur de liaison du programme OpenGL :\n%\n", message_erreur)
+
+        déloge message_erreur
+
+        retourne faux
+	}
+
+    retourne vrai
+}
+
+détruit_nuanceur :: fonc (id_nuanceur: n32) -> rien
+{
+    si glIsShader(id_nuanceur) {
+        glDeleteShader(id_nuanceur)
+    }
+}
+
+charge_programme :: fonc (source_vertex: chaine, source_fragment: chaine) -> n32
+{
+    // -------------------
+    // nuanceur vertex
+
+	id_nuanceur_vertex := glCreateShader(OGL.VERTEX_SHADER)
+    diffère { détruit_nuanceur(id_nuanceur_vertex) }
+
+    taille_src_vertex := transtype(source_vertex.taille : z32)
+	glShaderSource(id_nuanceur_vertex, 1, @source_vertex.pointeur , @taille_src_vertex)
+	glCompileShader(id_nuanceur_vertex)
+
+    si !vérifie_compilation(id_nuanceur_vertex) {
+        retourne transtype(0: n32)
+    }
+
+    // -------------------
+    // nuanceur fragment
+
+	id_nuanceur_fragment := glCreateShader(OGL.FRAGMENT_SHADER)
+    diffère { détruit_nuanceur(id_nuanceur_fragment) }
+
+    taille_src_fragment := transtype(source_fragment.taille : z32)
+	glShaderSource(id_nuanceur_fragment, 1, @source_fragment.pointeur , @taille_src_fragment)
+	glCompileShader(id_nuanceur_fragment)
+
+    si !vérifie_compilation(id_nuanceur_fragment) {
+        retourne transtype(0: n32)
+    }
+
+    // -------------------
+    // programme
+
+    id_programme := glCreateProgram()
+
+	glAttachShader(id_programme, id_nuanceur_vertex)
+    diffère { glDetachShader(id_programme, id_nuanceur_vertex) }
+
+    glAttachShader(id_programme, id_nuanceur_fragment)
+    diffère { glDetachShader(id_programme, id_nuanceur_fragment) }
+
+    glLinkProgram(id_programme)
+
+    si !vérifie_liaison(id_programme) {
+        glDeleteProgram(id_programme)
+        retourne transtype(0: n32)
+    }
+
+    retourne id_programme
+}

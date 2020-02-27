@@ -3,6 +3,7 @@ charge "caméra_3d"
 charge "dessin_texture"
 charge "maillage"
 charge "ratissage"
+charge "dessin_texte"
 
 importe Couleur
 importe Fondation
@@ -683,6 +684,18 @@ principale :: fonc () -> z32
         pour éditrice dans app.éditrices {
             dessine(@app, éditrice)
         }
+
+        rendeuse_texte := crée_rendeuse_texte(app.largeur, app.hauteur)
+
+	    glBlendFunc(_GL_SRC_ALPHA, _GL_ONE_MINUS_SRC_ALPHA);
+	    glEnable(_GL_BLEND);
+
+        dessine_texte(rendeuse_texte, "test de dessin de texte")
+        dessine_texte(rendeuse_texte, "test de dessin de texte, ligne 2")
+
+	    glDisable(_GL_BLEND);
+
+        détruit_rendeuse_texte(rendeuse_texte)
 
         SDL_GL_SwapWindow(window);
 

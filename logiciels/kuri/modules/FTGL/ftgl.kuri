@@ -1,6 +1,9 @@
 #bibliothèque_statique "libmodule_c_ftgl.a"
+#bibliothèque_dynamique "freetype"
 
 #inclus "freetype-gl.h"
+#inclus "markup.h"
+#inclus "vec234.h"
 
 vec2 :: struct externe {
     x := 0.0
@@ -79,7 +82,7 @@ texture_glyph_t :: struct externe {
 }
 
 texture_font_get_glyph :: fonc externe (font: *texture_font_t, c: *z8) -> *texture_glyph_t
-
+texture_glyph_get_kerning :: fonc externe (glyph: *texture_glyph_t, c: *z8) -> r32
 
 markup_t :: struct externe {
     family : *z8
