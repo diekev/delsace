@@ -29,12 +29,11 @@ RendeuseTexte :: struct {
 
 crée_rendeuse_texte :: fonc (largeur: z32, hauteur: z32) -> *RendeuseTexte
 {
-    imprime("crée_rendeuse_texte\n")
     dyn rendeuse := loge RendeuseTexte
     rendeuse.largeur = largeur
     rendeuse.hauteur = hauteur
     rendeuse.décalage = 1.0
-    rendeuse.taille_police = 16.0
+    rendeuse.taille_police = 14.0
     rendeuse.tampon = nul
 
     retourne rendeuse
@@ -42,7 +41,6 @@ crée_rendeuse_texte :: fonc (largeur: z32, hauteur: z32) -> *RendeuseTexte
 
 détruit_rendeuse_texte :: fonc (dyn rendeuse: *RendeuseTexte) -> rien
 {
-    imprime("détruit_rendeuse_texte\n")
     texture_atlas_delete(rendeuse.atlas)
     texture_font_delete(rendeuse.font)
 
@@ -59,8 +57,6 @@ détruit_rendeuse_texte :: fonc (dyn rendeuse: *RendeuseTexte) -> rien
 
 crée_tampon :: fonc (dyn rendeuse: *RendeuseTexte) -> rien
 {
-    imprime("crée_tampon\n")
-
     source_vertex_texte := "
 		#version 330 core
 		layout(location = 0) in vec2 vertex;
@@ -97,8 +93,7 @@ crée_tampon :: fonc (dyn rendeuse: *RendeuseTexte) -> rien
 
 dessine_texte :: fonc (dyn rendeuse: *RendeuseTexte, texte: chaine) -> rien
 {
-    imprime("dessine_texte\n")
-    chemin_fonte := "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
+    chemin_fonte := "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
 
     // À FAIRE : passe la couleur
     blanc := vec4{ x = 1.0, y = 1.0, z = 1.0, w = 1.0 }
@@ -148,7 +143,6 @@ dessine_texte :: fonc (dyn rendeuse: *RendeuseTexte, texte: chaine) -> rien
 
 dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine, atlas: *texture_atlas_t, markup: *markup_t, pos: Vec2r, taille: Vec2r) -> rien
 {
-    imprime("dessine_lettres\n")
     dyn pen := vec2{ x = pos.x, y = taille.y - pos.y - rendeuse.taille_police }
 
 	dyn sommets : []Vec2r
@@ -286,28 +280,13 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 				  0, _GL_RED, _GL_UNSIGNED_BYTE, atlas.data )
 
 	{
-        /*
-		auto programme = tampon.programme();
-
-		if (!programme->est_valide()) {
-			std::cerr << "Programme invalide !\n";
-			return;
-		}
-        */
-
-		//dls::ego::util::GPU_check_errors("Erreur lors du rendu du tampon avant utilisation programme");
-
 		glUseProgram(rendeuse.programme)
         glBindVertexArray(rendeuse.id_tableau_vertex)
 
         loc := glGetUniformLocation(rendeuse.programme, "atlas".pointeur)
 	    glUniform1ui(loc, transtype(0: n32));
 
-		//		numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après attache texture");
-
 		glDrawElements(OGL.TRIANGLES, transtype(indices.taille: z32), _GL_UNSIGNED_INT, nul);
-
-		//		numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après dessin indexé");
 
         glBindVertexArray(transtype(0: n32))
         glUseProgram(transtype(0: n32))
