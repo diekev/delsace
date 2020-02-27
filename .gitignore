@@ -3,3 +3,5 @@
 a.out
 test.db
 *.a
+
+logiciels/kuri/modules/FTGL/*.h
