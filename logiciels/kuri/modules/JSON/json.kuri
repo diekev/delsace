@@ -8,14 +8,19 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
             chiffres_hex := "0123456789ABCDEF"
 
 			dyn chiffre := (x >> transtype(4 : octet)) & transtype(0x0F : octet)
-			pousse(enchaineuse, chiffres_hex[chiffre])
+			ajoute_au_tampon(enchaineuse, chiffres_hex[chiffre])
 
 			chiffre = x & transtype(0x0F : octet)
-			pousse(enchaineuse, chiffres_hex[chiffre])
+			ajoute_au_tampon(enchaineuse, chiffres_hex[chiffre])
 		}
 		ENTIER {
 			info_arg := transtype(info : *InfoTypeEntier)
-            imprime_valeur_entière(enchaineuse, pointeur, info_arg)
+
+            dyn e : eini
+            e.pointeur = pointeur
+            e.info = transtype(info_arg: *InfoType)
+
+            imprime_nombre_entier(enchaineuse, formatte_entier(e))
 		}
 		RÉEL {
 			dyn y : r32
@@ -32,29 +37,29 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 				y = transtype(x : r32)
 			}
 
-			imprime_nombre_décimal(enchaineuse, y)
+			imprime_nombre_réel(enchaineuse, formatte_réel(y))
 		}
 		BOOLÉEN {
 			x := mémoire(transtype(pointeur : *bool))
 
             si x {
-				pousse(enchaineuse, "true")
+				ajoute_au_tampon(enchaineuse, "true")
 			}
 			sinon {
-				pousse(enchaineuse, "false")
+				ajoute_au_tampon(enchaineuse, "false")
 			}
 		}
 		CHAINE {
 			x := mémoire(transtype(pointeur : *chaine))
 
-			pousse(enchaineuse, '"')
-			pousse(enchaineuse, x)
-			pousse(enchaineuse, '"')
+			ajoute_au_tampon(enchaineuse, '"')
+			ajoute_au_tampon(enchaineuse, x)
+			ajoute_au_tampon(enchaineuse, '"')
 		}
 		STRUCTURE {
 			info_arg := transtype(info : *InfoTypeStructure)
 
-            pousse(enchaineuse, "{")
+            ajoute_au_tampon(enchaineuse, "{")
 
             pour membre, idx dans info_arg.membres {
 				nom := membre.nom
@@ -62,30 +67,30 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 				id := membre.id
 
                 si idx != 0 {
-                    pousse(enchaineuse, ',')
+                    ajoute_au_tampon(enchaineuse, ',')
                 }
 
-                pousse(enchaineuse, '"')
-                pousse(enchaineuse, nom)
-                pousse(enchaineuse, '"')
-                pousse(enchaineuse, ":")
+                ajoute_au_tampon(enchaineuse, '"')
+                ajoute_au_tampon(enchaineuse, nom)
+                ajoute_au_tampon(enchaineuse, '"')
+                ajoute_au_tampon(enchaineuse, ":")
 
 				imprime_valeur_json(enchaineuse, pointeur + décalage, id)
 			}
 
-            pousse(enchaineuse, "}")
+            ajoute_au_tampon(enchaineuse, "}")
 		}
 		TABLEAU {
 			info_arg := transtype(info : *InfoTypeTableau)
 
-            pousse(enchaineuse, "[")
+            ajoute_au_tampon(enchaineuse, "[")
 
             décalage := transtype(info_arg.type_pointé.taille_en_octet: z32)
 
             si info_arg.est_tableau_fixe {
                 pour i dans 0 ... info_arg.taille_fixe - 1 {
                     si i != 0 {
-                        pousse(enchaineuse, ',')
+                        ajoute_au_tampon(enchaineuse, ',')
                     }
 
                     imprime_valeur_json(enchaineuse, pointeur + décalage * i, info_arg.type_pointé)
@@ -96,14 +101,14 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 
                 pour i dans transtype(0: z64) ... x.taille - 1 {
                     si i != 0 {
-                        pousse(enchaineuse, ',')
+                        ajoute_au_tampon(enchaineuse, ',')
                     }
 
                     imprime_valeur_json(enchaineuse, x.pointeur + décalage * i, info_arg.type_pointé)
                 }
             }
 
-            pousse(enchaineuse, "]")
+            ajoute_au_tampon(enchaineuse, "]")
 		}
 		ÉNUM {
 			info_arg := transtype(info : *InfoTypeÉnum)
@@ -118,29 +123,29 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 				pour v, i dans info_arg.valeurs {
 					si (v & valeur) != 0 {
 						si valeur_trouvée {
-							pousse(enchaineuse, " | ")
+							ajoute_au_tampon(enchaineuse, " | ")
 						}
 
-						pousse(enchaineuse, noms[i])
+						ajoute_au_tampon(enchaineuse, noms[i])
 						valeur_trouvée = vrai
 					}
 				}
 
 				si !valeur_trouvée {
-					pousse(enchaineuse, "0")
+					ajoute_au_tampon(enchaineuse, "0")
 				}
 			}
 			sinon {
 				pour v, i dans info_arg.valeurs {
 					si v == valeur {
-						pousse(enchaineuse, noms[i])
+						ajoute_au_tampon(enchaineuse, noms[i])
 						arrête
 					}
 				}
 			}
 		}
         sinon {
-            pousse(enchaineuse, "null")
+            ajoute_au_tampon(enchaineuse, "null")
         }
 	}
 }
@@ -329,7 +334,7 @@ lance_analyse :: fonc(dyn syntaxeuse : *SyntaxeuseStruct, arg: eini) -> rien
 chaine_json_depuis_struct :: fonc (arg: eini) -> chaine
 {
     dyn enchaineuse : Enchaineuse
-	intialise_enchaineuse(@enchaineuse)
+	initialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 
     imprime_valeur_json(@enchaineuse, arg.pointeur, arg.info)

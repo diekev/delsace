@@ -60,7 +60,7 @@ détruit :: fonc(assembleuse: &AssembleuseObjet) -> rien
 
 empile_objet :: fonc(assembleuse: &AssembleuseObjet, objet: *Objet) -> rien
 {
-    assert(objet.type == TypeObjet.DICTIONNAIRE || objet.type == TypeObjet.LISTE)
+    //assert(objet.id == TypeObjet.DICTIONNAIRE || objet.id == TypeObjet.LISTE)
     assembleuse.pile.empile(objet)
 }
 
