@@ -92,12 +92,42 @@ struct tableau {
 
 	tableau() = default;
 
+	tableau(tableau const &autre)
+	{
+		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, autre.taille);
+
+		for (auto i = 0; i < autre.taille; ++i) {
+			this->pointeur[i] = autre.pointeur[i];
+		}
+	}
+
+	tableau &operator=(tableau const &autre)
+	{
+		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, autre.taille);
+
+		for (auto i = 0; i < autre.taille; ++i) {
+			this->pointeur[i] = autre.pointeur[i];
+		}
+
+		return *this;
+	}
+
+	tableau(tableau &&autre)
+	{
+		std::swap(this->pointeur, autre.pointeur);
+		std::swap(this->taille, autre.taille);
+	}
+
+	tableau &operator=(tableau &&autre)
+	{
+		std::swap(this->pointeur, autre.pointeur);
+		std::swap(this->taille, autre.taille);
+	}
+
 	~tableau()
 	{
 		memoire::deloge_tableau("kuri::tableau", this->pointeur, this->taille);
 	}
-
-	COPIE_CONSTRUCT(tableau);
 
 	T &operator[](long i)
 	{
@@ -148,6 +178,7 @@ template <typename T>
 void pousse(tableau<T> *tabl, T valeur)
 {
 	memoire::reloge_tableau("kuri::tableau", tabl->pointeur, tabl->taille, tabl->taille + 1);
+	tabl->taille += 1;
 	tabl->pointeur[tabl->taille - 1] = valeur;
 }
 
