@@ -338,12 +338,11 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
-			auto index_dt = std::any_cast<long>(b->valeur_calculee);
-			auto const &donnees = contexte.typeuse[index_dt];
+			auto type = std::any_cast<Type *>(b->valeur_calculee);
 
 			auto res = ResultatExpression();
 			res.type = type_expression::ENTIER;
-			res.entier = taille_octet_type(contexte, donnees);
+			res.entier = type->taille_octet;
 
 			return res;
 		}

@@ -29,15 +29,15 @@
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
 struct ContexteGenerationCode;
-struct DonneesTypeFinal;
 struct GeneratriceCodeC;
 struct DonneesStructure;
+struct Type;
 
 dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
 		dls::flux_chaine &os_decl,
-		DonneesTypeFinal &donnees_type);
+		Type *type);
 
 dls::chaine chaine_valeur_enum(
 		DonneesStructure const &ds,

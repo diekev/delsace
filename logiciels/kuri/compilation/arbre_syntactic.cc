@@ -159,10 +159,10 @@ void base::imprime_code(std::ostream &os, int tab)
 		}
 	}
 	else if (this->genre == GenreNoeud::EXPRESSION_TRANSTYPE) {
-		os << this->index_type;
+		os << this->type;
 	}
 	else if (this->genre == GenreNoeud::EXPRESSION_TAILLE_DE) {
-		os << this->index_type;
+		os << this->type;
 	}
 	else if (this->genre != GenreNoeud::RACINE) {
 		os << lexeme.chaine;

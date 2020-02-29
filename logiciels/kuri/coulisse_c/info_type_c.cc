@@ -27,7 +27,7 @@
 #include "arbre_syntactic.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
-#include "donnees_type.h"
+#include "typage.hh"
 
 // À FAIRE : les types récursifs (p.e. listes chainées) générent plusieurs fois
 // leurs info_types, donc nous utilisons un index pour les différentier
@@ -95,7 +95,7 @@ static dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
 		dls::flux_chaine &os_decl,
-		DonneesTypeFinal &donnees_type,
+		Type *type,
 		IDInfoType const &id_info_type);
 
 static auto cree_info_type_structure_C(
@@ -104,11 +104,11 @@ static auto cree_info_type_structure_C(
 		GeneratriceCodeC &generatrice,
 		dls::vue_chaine_compacte const &nom_struct,
 		DonneesStructure const &donnees_structure,
-		DonneesTypeFinal &dt,
+		Type *type,
 		IDInfoType const &id_info_type,
 		dls::chaine const &nom_info_type)
 {
-	if (dt.ptr_info_type != "") {
+	if (type->ptr_info_type != "") {
 		return;
 	}
 
@@ -120,25 +120,21 @@ static auto cree_info_type_structure_C(
 
 	/* met en place le 'pointeur' au cas où une structure s'incluerait elle-même
 	 * via un pointeur */
-	dt.ptr_info_type = nom_info_type;
+	type->ptr_info_type = nom_info_type;
 
-	auto const nombre_membres = donnees_structure.index_types.taille();
+	auto const nombre_membres = donnees_structure.types.taille();
 
 	for (auto i = 0l; i < nombre_membres; ++i) {
-		auto index_dt = donnees_structure.index_types[i];
-		auto &dt_membre = contexte.typeuse[index_dt];
+		auto type_membre = donnees_structure.types[i];
 
 		for (auto paire_idx_mb : donnees_structure.donnees_membres) {
 			if (paire_idx_mb.second.index_membre != i) {
 				continue;
 			}
 
-			auto idx = contexte.typeuse.ajoute_type(dt_membre);
-			auto &rderef = contexte.typeuse[idx];
-
-			if (rderef.ptr_info_type == "") {
-				rderef.ptr_info_type = cree_info_type_C(
-							contexte, generatrice, os_decl, dt_membre, id_info_type);
+			if (type_membre->ptr_info_type == "") {
+				type_membre->ptr_info_type = cree_info_type_C(
+							contexte, generatrice, os_decl, type_membre, id_info_type);
 			}
 
 			break;
@@ -150,16 +146,12 @@ static auto cree_info_type_structure_C(
 	auto pointeurs = dls::tableau<dls::chaine>();
 
 	for (auto i = 0l; i < nombre_membres; ++i) {
-		auto index_dt = donnees_structure.index_types[i];
-		auto &dt_membre = contexte.typeuse[index_dt];
+		auto type_membre = donnees_structure.types[i];
 
 		for (auto paire_idx_mb : donnees_structure.donnees_membres) {
 			if (paire_idx_mb.second.index_membre != i) {
 				continue;
 			}
-
-			auto idx = contexte.typeuse.ajoute_type(dt_membre);
-			auto &rderef = contexte.typeuse[idx];
 
 			auto nom_info_type_membre = "__info_type_membre" + dls::vers_chaine(index_info_type++);
 			pointeurs.pousse(nom_info_type_membre);
@@ -167,7 +159,7 @@ static auto cree_info_type_structure_C(
 			os_decl << "static const InfoTypeMembreStructure " << nom_info_type_membre << " = {\n";
 			os_decl << "\t.nom = { .pointeur = \"" << paire_idx_mb.first << "\", .taille = " << paire_idx_mb.first.taille() << " },\n";
 			os_decl << "\t" << broye_nom_simple(".décalage = ") << paire_idx_mb.second.decalage << ",\n";
-			os_decl << "\t.id = (InfoType *)(&" << rderef.ptr_info_type << ")\n";
+			os_decl << "\t.id = (InfoType *)(&" << type_membre->ptr_info_type << ")\n";
 			os_decl << "};\n";
 
 			break;
@@ -185,7 +177,7 @@ static auto cree_info_type_structure_C(
 	os_decl << "\t.id = " << id_info_type.STRUCTURE << ",\n";
 	os_decl << "\t.taille_en_octet = " << donnees_structure.taille_octet << ",\n";
 	os_decl << "\t.nom = {.pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << "},\n";
-	os_decl << "\t.membres = {.pointeur = " << nom_tableau_membre << ", .taille = " << donnees_structure.index_types.taille() << "},\n";
+	os_decl << "\t.membres = {.pointeur = " << nom_tableau_membre << ", .taille = " << donnees_structure.types.taille() << "},\n";
 	os_decl << "};\n";
 }
 
@@ -249,142 +241,126 @@ dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
 		dls::flux_chaine &os_decl,
-		DonneesTypeFinal &donnees_type,
+		Type *type,
 		IDInfoType const &id_info_type)
 {
-	auto nom_info_type = "__info_type" + nom_broye_type(contexte, donnees_type) + dls::vers_chaine(index_info_type++);
+	auto nom_info_type = "__info_type" + nom_broye_type(contexte, type, true) + dls::vers_chaine(index_info_type++);
 
-	switch (donnees_type.type_base() & 0xff) {
+	switch (type->genre) {
 		default:
 		{
-			std::cerr << chaine_type(donnees_type, contexte) << '\n';
-			std::cerr << chaine_identifiant(donnees_type.type_base() & 0xff) << '\n';
+			std::cerr << chaine_type(type) << '\n';
+			//std::cerr << chaine_identifiant(type.type_base() & 0xff) << '\n';
 			assert(false);
 			break;
 		}
-		case GenreLexeme::BOOL:
+		case GenreType::BOOL:
 		{
 			cree_info_type_defaul_C(os_decl, id_info_type.BOOLEEN, nom_info_type, 1);
 			break;
 		}
-		case GenreLexeme::OCTET:
+		case GenreType::OCTET:
 		{
 			cree_info_type_defaul_C(os_decl, id_info_type.OCTET, nom_info_type, 1);
 			break;
 		}
-		case GenreLexeme::N8:
+		case GenreType::ENTIER_NATUREL:
 		{
-			cree_info_type_entier_C(os_decl, 1, false, id_info_type, nom_info_type);
+			cree_info_type_entier_C(os_decl, type->taille_octet, false, id_info_type, nom_info_type);
 			break;
 		}
-		case GenreLexeme::Z8:
+		case GenreType::ENTIER_RELATIF:
 		{
-			cree_info_type_entier_C(os_decl, 1, true, id_info_type, nom_info_type);
+			cree_info_type_entier_C(os_decl, type->taille_octet, true, id_info_type, nom_info_type);
 			break;
 		}
-		case GenreLexeme::N16:
+		case GenreType::REEL:
 		{
-			cree_info_type_entier_C(os_decl, 2, false, id_info_type, nom_info_type);
+			cree_info_type_defaul_C(os_decl, id_info_type.REEL, nom_info_type, type->taille_octet);
 			break;
 		}
-		case GenreLexeme::Z16:
+		case GenreType::REFERENCE:
+		case GenreType::POINTEUR:
 		{
-			cree_info_type_entier_C(os_decl, 2, true, id_info_type, nom_info_type);
-			break;
-		}
-		case GenreLexeme::N32:
-		{
-			cree_info_type_entier_C(os_decl, 4, false, id_info_type, nom_info_type);
-			break;
-		}
-		case GenreLexeme::Z32:
-		{
-			cree_info_type_entier_C(os_decl, 4, true, id_info_type, nom_info_type);
-			break;
-		}
-		case GenreLexeme::N64:
-		{
-			cree_info_type_entier_C(os_decl, taille_octet_type(contexte, donnees_type), false, id_info_type, nom_info_type);
-			break;
-		}
-		case GenreLexeme::Z64:
-		{
-			cree_info_type_entier_C(os_decl, taille_octet_type(contexte, donnees_type), true, id_info_type, nom_info_type);
-			break;
-		}
-		case GenreLexeme::R16:
-		{
-			cree_info_type_defaul_C(os_decl, id_info_type.REEL, nom_info_type, 2);
-			break;
-		}
-		case GenreLexeme::R32:
-		{
-			cree_info_type_defaul_C(os_decl, id_info_type.REEL, nom_info_type, 4);
-			break;
-		}
-		case GenreLexeme::R64:
-		{
-			cree_info_type_defaul_C(os_decl, id_info_type.REEL, nom_info_type, taille_octet_type(contexte, donnees_type));
-			break;
-		}
-		case GenreLexeme::REFERENCE:
-		case GenreLexeme::POINTEUR:
-		{
-			auto deref = donnees_type.dereference();
+			auto type_deref = contexte.typeuse.type_dereference_pour(type);
 
-			auto idx = contexte.typeuse.ajoute_type(deref);
-			auto &rderef = contexte.typeuse[idx];
-
-			if (rderef.ptr_info_type == "") {
-				rderef.ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, rderef, id_info_type);
+			if (type_deref && type_deref->ptr_info_type == "") {
+				type_deref->ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, type_deref, id_info_type);
 			}
 
 			os_decl << "static const InfoTypePointeur " << nom_info_type << " = {\n";
 			os_decl << ".id = " << id_info_type.POINTEUR << ",\n";
-			os_decl << ".taille_en_octet = " << taille_octet_type(contexte, donnees_type) << ",\n";
-			os_decl << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << "),\n";
+			os_decl << ".taille_en_octet = " << type->taille_octet << ",\n";
+			if (type_deref) {
+				os_decl << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << type_deref->ptr_info_type << "),\n";
+			}
+			else {
+				os_decl << '\t' << broye_nom_simple(".type_pointé") << " = 0,\n";
+			}
 			os_decl << '\t' << broye_nom_simple(".est_référence = ")
-					<< (donnees_type.type_base() == GenreLexeme::REFERENCE) << ",\n";
+					<< (type->genre == GenreType::REFERENCE) << ",\n";
 			os_decl << "};\n";
 
 			break;
 		}
-		case GenreLexeme::CHAINE_CARACTERE:
+		case GenreType::ENUM:
 		{
-			auto id_structure = static_cast<long>(donnees_type.type_base() >> 8);
-			auto donnees_structure = contexte.donnees_structure(id_structure);
+			auto nom_enum = static_cast<TypeEnum *>(type)->nom;
+			auto &donnees_structure = contexte.donnees_structure(nom_enum);
 
-			if (donnees_structure.est_enum) {
-				cree_info_type_enum_C(
-							os_decl,
-							contexte.nom_struct(id_structure),
-							donnees_structure,
-							id_info_type,
-							nom_info_type,
-							taille_octet_type(contexte, donnees_type));
-
-			}
-			else {
-				cree_info_type_structure_C(
-							os_decl,
-							contexte,
-							generatrice,
-							contexte.nom_struct(id_structure),
-							donnees_structure,
-							donnees_type,
-							id_info_type,
-							nom_info_type);
-			}
+			cree_info_type_enum_C(
+						os_decl,
+						nom_enum,
+						donnees_structure,
+						id_info_type,
+						nom_info_type,
+						type->taille_octet);
 
 			break;
 		}
-		case GenreLexeme::TROIS_POINTS:
-		case GenreLexeme::TABLEAU:
+		case GenreType::STRUCTURE:
+		case GenreType::UNION:
 		{
-			auto deref = donnees_type.dereference();
+			auto nom_struct = static_cast<TypeStructure *>(type)->nom;
+			auto &donnees_structure = contexte.donnees_structure(nom_struct);
+
+			cree_info_type_structure_C(
+						os_decl,
+						contexte,
+						generatrice,
+						nom_struct,
+						donnees_structure,
+						type,
+						id_info_type,
+						nom_info_type);
+
+			break;
+		}
+		case GenreType::TABLEAU_FIXE:
+		{
+			auto type_tabl = static_cast<TypeTableauFixe *>(type);
+			auto type_deref = type_tabl->type_pointe;
+
+			if (type_deref->ptr_info_type == "") {
+				type_deref->ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, type_deref, id_info_type);
+			}
+
+			os_decl << "static const InfoTypeTableau " << nom_info_type << " = {\n";
+			os_decl << "\t.id = " << id_info_type.TABLEAU << ",\n";
+			os_decl << "\t.taille_en_octet = " << type->taille_octet << ",\n";
+			os_decl << "\t.est_tableau_fixe = 1,\n";
+			os_decl << "\t.taille_fixe = " << type_tabl->taille << ",\n";
+			os_decl << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << type_deref->ptr_info_type << "),\n";
+			os_decl << "};\n";
+			break;
+		}
+		case GenreType::VARIADIQUE:
+		case GenreType::TABLEAU_DYNAMIQUE:
+		{
+			auto type_deref = contexte.typeuse.type_dereference_pour(type);
 
 			/* dans le cas des arguments variadics des fonctions externes */
-			if (est_invalide(deref)) {
+			if (type_deref == nullptr) {
 				os_decl << "static const InfoTypeTableau " << nom_info_type << " = {\n";
 				os_decl << "\t.id = " << id_info_type.TABLEAU << ",\n";
 				os_decl << "\t.taille_en_octet = 0,\n";
@@ -394,50 +370,40 @@ dls::chaine cree_info_type_C(
 				os_decl << "};\n";
 			}
 			else {
-				auto idx = contexte.typeuse.ajoute_type(deref);
-				auto &rderef = contexte.typeuse[idx];
-
-				if (rderef.ptr_info_type == "") {
-					rderef.ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, rderef, id_info_type);
+				if (type_deref->ptr_info_type == "") {
+					type_deref->ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, type_deref, id_info_type);
 				}
 
 				os_decl << "static const InfoTypeTableau " << nom_info_type << " = {\n";
 				os_decl << "\t.id = " << id_info_type.TABLEAU << ",\n";
-
-				if (est_type_tableau_fixe(donnees_type.type_base())) {
-					auto taille_tableau = static_cast<unsigned>(donnees_type.type_base() >> 8);
-					os_decl << "\t.taille_en_octet = " << taille_octet_type(contexte, donnees_type) << ",\n";
-					os_decl << "\t.est_tableau_fixe = 1,\n";
-					os_decl << "\t.taille_fixe = " << taille_tableau << ",\n";
-				}
-				else {
-					os_decl << "\t.taille_en_octet = " << taille_octet_type(contexte, donnees_type) << ",\n";
-					os_decl << "\t.est_tableau_fixe = 0,\n";
-					os_decl << "\t.taille_fixe = 0,\n";
-				}
-				os_decl << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << "),\n";
+				os_decl << "\t.taille_en_octet = " << type->taille_octet << ",\n";
+				os_decl << "\t.est_tableau_fixe = 0,\n";
+				os_decl << "\t.taille_fixe = 0,\n";
+				os_decl << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << type_deref->ptr_info_type << "),\n";
 				os_decl << "};\n";
 			}
 
 			break;
 		}
-		case GenreLexeme::COROUT:
-		case GenreLexeme::FONC:
+		case GenreType::FONCTION:
 		{
-			donnees_type.ptr_info_type = nom_info_type;
+			auto type_fonc = static_cast<TypeFonction *>(type);
+			type->ptr_info_type = nom_info_type;
 
-			auto nombre_types_retour = 0l;
-			auto dt_params = donnees_types_parametres(contexte.typeuse, donnees_type, nombre_types_retour);
-			auto nombre_types_entree = dt_params.taille() - nombre_types_retour;
-
-			for (auto i = 0; i < dt_params.taille(); ++i) {
-				auto &dt_prm = contexte.typeuse[dt_params[i]];
-
-				if (dt_prm.ptr_info_type != "") {
+			POUR (type_fonc->types_entrees) {
+				if (it->ptr_info_type != "") {
 					continue;
 				}
 
-				cree_info_type_C(contexte, generatrice, os_decl, dt_prm, id_info_type);
+				cree_info_type_C(contexte, generatrice, os_decl, it, id_info_type);
+			}
+
+			POUR (type_fonc->types_sorties) {
+				if (it->ptr_info_type != "") {
+					continue;
+				}
+
+				cree_info_type_C(contexte, generatrice, os_decl, it, id_info_type);
 			}
 
 			/* crée tableau infos type pour les entrées */
@@ -445,9 +411,8 @@ dls::chaine cree_info_type_C(
 
 			os_decl << "static const InfoType *" << nom_tableau_entrees << "[] = {\n";
 
-			for (auto i = 0; i < nombre_types_entree; ++i) {
-				auto const &dt_prm = contexte.typeuse[dt_params[i]];
-				os_decl << "(InfoType *)&" << dt_prm.ptr_info_type << ",\n";
+			POUR (type_fonc->types_entrees) {
+				os_decl << "(InfoType *)&" << it->ptr_info_type << ",\n";
 			}
 
 			os_decl << "};\n";
@@ -457,9 +422,8 @@ dls::chaine cree_info_type_C(
 
 			os_decl << "static const InfoType *" << nom_tableau_sorties << "[] = {\n";
 
-			for (auto i = nombre_types_entree; i < dt_params.taille(); ++i) {
-				auto const &dt_prm = contexte.typeuse[dt_params[i]];
-				os_decl << "(InfoType *)&" << dt_prm.ptr_info_type << ",\n";
+			POUR (type_fonc->types_sorties) {
+				os_decl << "(InfoType *)&" << it->ptr_info_type << ",\n";
 			}
 
 			os_decl << "};\n";
@@ -467,36 +431,36 @@ dls::chaine cree_info_type_C(
 			/* crée l'info type pour la fonction */
 			os_decl << "static const InfoTypeFonction " << nom_info_type << " = {\n";
 			os_decl << "\t.id = " << id_info_type.FONCTION << ",\n";
-			os_decl << "\t.taille_en_octet = " << taille_octet_type(contexte, donnees_type) << ",\n";
-			os_decl << "\t.est_coroutine = " << (donnees_type.type_base() == GenreLexeme::COROUT) << ",\n";
+			os_decl << "\t.taille_en_octet = " << type->taille_octet << ",\n";
+			// À FAIRE : réusinage type
+			//os_decl << "\t.est_coroutine = " << (type.type_base() == GenreLexeme::COROUT) << ",\n";
 			os_decl << broye_nom_simple("\t.types_entrée = { .pointeur = ") << nom_tableau_entrees;
-			os_decl << ", .taille = " << nombre_types_entree << " },\n";
+			os_decl << ", .taille = " << type_fonc->types_entrees.taille << " },\n";
 			os_decl << broye_nom_simple("\t.types_sortie = { .pointeur = ") << nom_tableau_sorties;
-			os_decl << ", .taille = " << nombre_types_retour << " },\n";
+			os_decl << ", .taille = " << type_fonc->types_sorties.taille << " },\n";
 			os_decl << "};\n";
 
 			break;
 		}
-		case GenreLexeme::EINI:
+		case GenreType::EINI:
 		{
-			cree_info_type_defaul_C(os_decl, id_info_type.EINI, nom_info_type, taille_octet_type(contexte, donnees_type));
+			cree_info_type_defaul_C(os_decl, id_info_type.EINI, nom_info_type, type->taille_octet);
 			break;
 		}
-		case GenreLexeme::NUL: /* À FAIRE */
-		case GenreLexeme::RIEN:
+		case GenreType::RIEN:
 		{
 			cree_info_type_defaul_C(os_decl, id_info_type.RIEN, nom_info_type, 0);
 			break;
 		}
-		case GenreLexeme::CHAINE:
+		case GenreType::CHAINE:
 		{
-			cree_info_type_defaul_C(os_decl, id_info_type.CHAINE, nom_info_type, taille_octet_type(contexte, donnees_type));
+			cree_info_type_defaul_C(os_decl, id_info_type.CHAINE, nom_info_type, type->taille_octet);
 			break;
 		}
 	}
 
-	if (donnees_type.ptr_info_type == "") {
-		donnees_type.ptr_info_type = nom_info_type;
+	if (type->ptr_info_type == "") {
+		type->ptr_info_type = nom_info_type;
 	}
 
 	return nom_info_type;
@@ -506,10 +470,10 @@ dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
 		dls::flux_chaine &os_decl,
-		DonneesTypeFinal &donnees_type)
+		Type *type)
 {
 	auto id_info_type = IDInfoType();
-	return cree_info_type_C(contexte, generatrice, os_decl, donnees_type, id_info_type);
+	return cree_info_type_C(contexte, generatrice, os_decl, type, id_info_type);
 }
 
 /* À FAIRE : bouge ça d'ici */

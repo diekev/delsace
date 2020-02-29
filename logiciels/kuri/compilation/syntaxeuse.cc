@@ -322,7 +322,7 @@ void Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lex
 
 	while (true) {
 		auto type_declare = analyse_declaration_type(false);
-		donnees_fonctions.types_retours_decl.pousse(type_declare);
+		noeud->type_declare.types_sorties.pousse(type_declare);
 		donnees_fonctions.noms_retours.pousse("__ret" + dls::vers_chaine(idx_ret++));
 
 		if (est_identifiant(type_id::ACCOLADE_OUVRANTE) || est_identifiant(type_id::POINT_VIRGULE)) {
@@ -334,14 +334,12 @@ void Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lex
 		}
 	}
 
-	noeud->type_declare = donnees_fonctions.types_retours_decl[0];
-
 	m_fichier->module->ajoute_donnees_fonctions(lexeme.chaine, donnees_fonctions);
 
 	if (externe) {
 		consomme(GenreLexeme::POINT_VIRGULE, "Attendu un point-virgule ';' après la déclaration de la fonction externe");
 
-		if (donnees_fonctions.idx_types_retours.taille() > 1) {
+		if (noeud->type_declare.types_sorties.taille() > 1) {
 			lance_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
 		}
 	}
@@ -1461,11 +1459,12 @@ void Syntaxeuse::analyse_declaration_structure(GenreLexeme id, DonneesLexeme &le
 	donnees_structure.est_externe = est_externe;
 	donnees_structure.est_union = (id == GenreLexeme::UNION);
 	donnees_structure.est_nonsur = est_nonsur;
+	donnees_structure.type = m_contexte.typeuse.reserve_type_structure(noeud_decl);
 
 	m_contexte.ajoute_donnees_structure(lexeme.chaine, donnees_structure);
 
 	if (lexeme.chaine == "ContexteProgramme") {
-		m_contexte.index_type_contexte = donnees_structure.index_type;
+		m_contexte.type_contexte = donnees_structure.type;
 	}
 
 	auto analyse_membres = true;
@@ -1502,6 +1501,7 @@ void Syntaxeuse::analyse_declaration_enum(bool est_drapeau, DonneesLexeme &lexem
 	donnees_structure.est_enum = true;
 	donnees_structure.est_drapeau = est_drapeau;
 	donnees_structure.noeud_decl = noeud_decl;
+	donnees_structure.type = m_contexte.typeuse.reserve_type_enum(noeud_decl);
 
 	m_contexte.ajoute_donnees_structure(lexeme.chaine, donnees_structure);
 
@@ -1552,30 +1552,24 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)
 
 		consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu un '(' après 'fonction'");
 
-		dt.pousse(GenreLexeme::PARENTHESE_OUVRANTE);
-
 		if (!nulctx) {
-			ajoute_contexte_programme(m_contexte, dt);
-
-			if (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
-				dt.pousse(GenreLexeme::VIRGULE);
-			}
+			auto dt_ctx = DonneesTypeDeclare(GenreLexeme::CHAINE_CARACTERE);
+			dt_ctx.nom_struct = "ContexteProgramme";
+			dt.types_entrees.pousse(dt_ctx);
 		}
 
 		while (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
 			auto dtd = analyse_declaration_type(false);
-			dt.pousse(dtd);
+			dt.types_entrees.pousse(dtd);
 
 			if (!est_identifiant(GenreLexeme::VIRGULE)) {
 				break;
 			}
 
 			avance();
-			dt.pousse(GenreLexeme::VIRGULE);
 		}
 
 		avance();
-		dt.pousse(GenreLexeme::PARENTHESE_FERMANTE);
 
 		bool eu_paren_ouvrante = false;
 
@@ -1584,11 +1578,9 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)
 			eu_paren_ouvrante = true;
 		}
 
-		dt.pousse(GenreLexeme::PARENTHESE_OUVRANTE);
-
 		while (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
 			auto dtd = analyse_declaration_type(false);
-			dt.pousse(dtd);
+			dt.types_sorties.pousse(dtd);
 
 			auto est_virgule = est_identifiant(GenreLexeme::VIRGULE);
 
@@ -1597,14 +1589,11 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)
 			}
 
 			avance();
-			dt.pousse(GenreLexeme::VIRGULE);
 		}
 
 		if (eu_paren_ouvrante && est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
 			avance();
 		}
-
-		dt.pousse(GenreLexeme::PARENTHESE_FERMANTE);
 
 		return dt;
 	}
@@ -1711,8 +1700,7 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 				lance_erreur("Structure inconnue", erreur::type_erreur::STRUCTURE_INCONNUE);
 			}
 
-			auto const &donnees_structure = m_contexte.donnees_structure(nom_type);
-			identifiant = (identifiant | (static_cast<int>(donnees_structure.id) << 8));
+			donnees_type.nom_struct = nom_type;
 		}
 
 		donnees_type.pousse(identifiant);

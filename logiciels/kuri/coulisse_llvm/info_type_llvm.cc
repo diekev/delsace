@@ -39,7 +39,7 @@
 
 #include "contexte_generation_code.h"
 #include "conversion_type_llvm.hh"
-#include "donnees_type.h"
+#include "typage.hh"
 
 /* À tenir synchronisé avec l'énum dans info_type.kuri
  * Nous utilisons ceci lors de la génération du code des infos types car nous ne
@@ -65,15 +65,8 @@ struct IDInfoType {
 		ContexteGenerationCode &contexte,
 		dls::vue_chaine_compacte const &nom_struct)
 {
-	auto index_struct_info = contexte.donnees_structure(nom_struct).id;
-
-	auto dt_info = DonneesTypeFinal{};
-	dt_info.pousse(GenreLexeme::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
-
-	index_struct_info = contexte.typeuse.ajoute_type(dt_info);
-	auto &ref_dt_info = contexte.typeuse[index_struct_info];
-
-	return converti_type_llvm(contexte, ref_dt_info);
+	auto type_struct_info = contexte.donnees_structure(nom_struct).type;
+	return converti_type_llvm(contexte, type_struct_info);
 }
 
 [[nodiscard]] static auto cree_info_type_reel(
@@ -215,12 +208,12 @@ struct IDInfoType {
 [[nodiscard]] static auto cree_tableau_global(
 		ContexteGenerationCode &contexte,
 		std::vector<llvm::Constant *> const &valeurs_enum_tmp,
-		long idx_type_membre)
+		Type *type_membre)
 {
-	auto type_valeur_llvm = converti_type_llvm(contexte, idx_type_membre);
-	auto type_tableau_valeur = contexte.typeuse.type_tableau_pour(idx_type_membre);
+	auto type_valeur_llvm = converti_type_llvm(contexte, type_membre);
+	auto type_tableau_valeur = contexte.typeuse.type_tableau_dynamique(type_membre);
 
-	auto type_tableau_valeur_llvm = converti_type_llvm(contexte, contexte.typeuse[type_tableau_valeur]);
+	auto type_tableau_valeur_llvm = converti_type_llvm(contexte, type_tableau_valeur);
 
 	auto type_tableau = llvm::ArrayType::get(type_valeur_llvm, valeurs_enum_tmp.size());
 
@@ -322,83 +315,43 @@ struct IDInfoType {
 
 llvm::Value *cree_info_type(
 		ContexteGenerationCode &contexte,
-		DonneesTypeFinal &donnees_type)
+		Type *type)
 {
 	auto valeur = static_cast<llvm::Value *>(nullptr);
 
-	switch (donnees_type.type_base() & 0xff) {
+	switch (type->genre) {
 		default:
 		{
 			assert(false);
 			break;
 		}
-		case GenreLexeme::BOOL:
+		case GenreType::BOOL:
 		{
 			valeur = cree_info_type_defaut(contexte, IDInfoType::BOOLEEN);
 			break;
 		}
-		case GenreLexeme::OCTET:
+		case GenreType::OCTET:
 		{
 			valeur = cree_info_type_defaut(contexte, IDInfoType::OCTET);
 			break;
 		}
-		case GenreLexeme::N8:
+		case GenreType::ENTIER_NATUREL:
 		{
-			valeur = cree_info_type_entier(contexte, 8, false);
+			valeur = cree_info_type_entier(contexte, 8 * type->taille_octet, false);
 			break;
 		}
-		case GenreLexeme::Z8:
+		case GenreType::ENTIER_RELATIF:
 		{
-			valeur = cree_info_type_entier(contexte, 8, true);
+			valeur = cree_info_type_entier(contexte, 8 * type->taille_octet, true);
 			break;
 		}
-		case GenreLexeme::N16:
+		case GenreType::REEL:
 		{
-			valeur = cree_info_type_entier(contexte, 16, false);
+			valeur = cree_info_type_reel(contexte, 8 * type->taille_octet);
 			break;
 		}
-		case GenreLexeme::Z16:
-		{
-			valeur = cree_info_type_entier(contexte, 16, true);
-			break;
-		}
-		case GenreLexeme::N32:
-		{
-			valeur = cree_info_type_entier(contexte, 32, false);
-			break;
-		}
-		case GenreLexeme::Z32:
-		{
-			valeur = cree_info_type_entier(contexte, 32, true);
-			break;
-		}
-		case GenreLexeme::N64:
-		{
-			valeur = cree_info_type_entier(contexte, 64, false);
-			break;
-		}
-		case GenreLexeme::Z64:
-		{
-			valeur = cree_info_type_entier(contexte, 64, true);
-			break;
-		}
-		case GenreLexeme::R16:
-		{
-			valeur = cree_info_type_reel(contexte, 16);
-			break;
-		}
-		case GenreLexeme::R32:
-		{
-			valeur = cree_info_type_reel(contexte, 32);
-			break;
-		}
-		case GenreLexeme::R64:
-		{
-			valeur = cree_info_type_reel(contexte, 64);
-			break;
-		}
-		case GenreLexeme::REFERENCE:
-		case GenreLexeme::POINTEUR:
+		case GenreType::REFERENCE:
+		case GenreType::POINTEUR:
 		{
 			/* { id, type_pointé, est_référence } */
 
@@ -409,14 +362,13 @@ llvm::Value *cree_info_type(
 						IDInfoType::POINTEUR,
 						false);
 
-			auto idx_type_deref = contexte.typeuse.ajoute_type(donnees_type.dereference());
-			auto &type_deref = contexte.typeuse[idx_type_deref];
+			auto type_deref = contexte.typeuse.type_dereference_pour(type);
 
 			auto valeur_type_pointe = cree_info_type(contexte, type_deref);
 
 			auto est_reference = llvm::ConstantInt::get(
 								   llvm::Type::getInt1Ty(contexte.contexte),
-								   donnees_type.type_base() == GenreLexeme::REFERENCE,
+								   type->genre == GenreType::REFERENCE,
 								   false);
 
 			auto constant = llvm::ConstantStruct::get(
@@ -435,15 +387,17 @@ llvm::Value *cree_info_type(
 			valeur = globale;
 			break;
 		}
-		case GenreLexeme::CHAINE_CARACTERE:
+		case GenreType::ENUM:
 		{
-			auto id_structure = static_cast<long>(donnees_type.type_base() >> 8);
-			auto donnees_structure = contexte.donnees_structure(id_structure);
-
-			if (donnees_structure.est_enum) {
-				valeur = cree_info_type_enum(contexte, donnees_structure);
-				break;
-			}
+			auto type_enum = static_cast<TypeEnum *>(type);
+			auto &donnees_structure = contexte.donnees_structure(type_enum->nom);
+			valeur = cree_info_type_enum(contexte, donnees_structure);
+			break;
+		}
+		case GenreType::STRUCTURE:
+		{
+			auto type_struct = static_cast<TypeStructure *>(type);
+			auto &donnees_structure = contexte.donnees_structure(type_struct->nom);
 
 			/* pour chaque membre cree une instance de InfoTypeMembreStructure */
 			auto type_struct_membre = obtiens_type_pour(contexte, "InfoTypeMembreStructure");
@@ -452,10 +406,9 @@ llvm::Value *cree_info_type(
 
 			for (auto &arg : donnees_structure.donnees_membres) {
 				/* { nom: chaine, info : *InfoType, décalage } */
-				auto id_dt = donnees_structure.index_types[arg.second.index_membre];
-				auto &ref_membre = contexte.typeuse[id_dt];
+				auto type_membre = donnees_structure.types[arg.second.index_membre];
 
-				auto info_type = cree_info_type(contexte, ref_membre);
+				auto info_type = cree_info_type(contexte, type_membre);
 
 				auto valeur_nom = cree_chaine_globale(contexte, arg.first);
 
@@ -488,7 +441,7 @@ llvm::Value *cree_info_type(
 
 			auto valeur_nom = cree_chaine_globale(contexte, donnees_structure.noeud_decl->chaine());
 
-			auto idx_type_membre = contexte.donnees_structure("InfoTypeMembreStructure").index_type;
+			auto idx_type_membre = contexte.donnees_structure("InfoTypeMembreStructure").type;
 			auto tableau_membre = cree_tableau_global(contexte, valeurs_membres, idx_type_membre);
 
 			auto type_llvm = obtiens_type_pour(contexte, "InfoTypeStructure");
@@ -507,7 +460,8 @@ llvm::Value *cree_info_type(
 			valeur = globale;
 			break;
 		}
-		case GenreLexeme::TABLEAU:
+		case GenreType::TABLEAU_FIXE:
+		case GenreType::TABLEAU_DYNAMIQUE:
 		{
 			/* { id, type_pointé } */
 
@@ -518,8 +472,7 @@ llvm::Value *cree_info_type(
 						IDInfoType::TABLEAU,
 						false);
 
-			auto idx_type_deref = contexte.typeuse.ajoute_type(donnees_type.dereference());
-			auto &type_deref = contexte.typeuse[idx_type_deref];
+			auto type_deref = contexte.typeuse.type_dereference_pour(type);
 
 			auto valeur_type_pointe = cree_info_type(contexte, type_deref);
 
@@ -539,23 +492,22 @@ llvm::Value *cree_info_type(
 			valeur = globale;
 			break;
 		}
-		case GenreLexeme::FONC:
+		case GenreType::FONCTION:
 		{
 			valeur = cree_info_type_defaut(contexte, IDInfoType::FONCTION);
 			break;
 		}
-		case GenreLexeme::EINI:
+		case GenreType::EINI:
 		{
 			valeur = cree_info_type_defaut(contexte, IDInfoType::EINI);
 			break;
 		}
-		case GenreLexeme::NUL: /* À FAIRE */
-		case GenreLexeme::RIEN:
+		case GenreType::RIEN:
 		{
 			valeur = cree_info_type_defaut(contexte, IDInfoType::RIEN);
 			break;
 		}
-		case GenreLexeme::CHAINE:
+		case GenreType::CHAINE:
 		{
 			valeur = cree_info_type_defaut(contexte, IDInfoType::CHAINE);
 			break;

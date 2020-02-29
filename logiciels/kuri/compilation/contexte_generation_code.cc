@@ -326,17 +326,6 @@ bool ContexteGenerationCode::globale_existe(const dls::vue_chaine_compacte &nom)
 	return true;
 }
 
-long ContexteGenerationCode::type_globale(const dls::vue_chaine_compacte &nom)
-{
-	auto iter = globales.trouve(nom);
-
-	if (iter == globales.fin()) {
-		return -1l;
-	}
-
-	return iter->second.index_type;
-}
-
 conteneur_globales::const_iteratrice ContexteGenerationCode::iter_globale(const dls::vue_chaine_compacte &nom)
 {
 	return globales.trouve(nom);
@@ -419,22 +408,6 @@ bool ContexteGenerationCode::locale_existe(const dls::vue_chaine_compacte &nom)
 	}
 
 	return true;
-}
-
-long ContexteGenerationCode::type_locale(const dls::vue_chaine_compacte &nom)
-{
-	auto iter_fin = m_locales.debut() + m_nombre_locales;
-	auto iter = std::find_if(m_locales.debut(), iter_fin,
-							 [&](const std::pair<dls::vue_chaine_compacte, DonneesVariable> &paire)
-	{
-		return paire.first == nom;
-	});
-
-	if (iter == iter_fin) {
-		return -1l;
-	}
-
-	return iter->second.index_type;
 }
 
 bool ContexteGenerationCode::peut_etre_assigne(const dls::vue_chaine_compacte &nom)
@@ -551,11 +524,6 @@ long ContexteGenerationCode::ajoute_donnees_structure(const dls::vue_chaine_comp
 	donnees.type_llvm = nullptr;
 #endif
 
-	auto dt = DonneesTypeFinal{};
-	dt.pousse(GenreLexeme::CHAINE_CARACTERE | static_cast<int>(donnees.id << 8));
-
-	donnees.index_type = typeuse.ajoute_type(dt);
-
 	structures.insere({nom, donnees});
 	nom_structures.pousse(nom);
 
@@ -635,7 +603,6 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 
 	for (auto const &structure : structures) {
 		memoire += static_cast<size_t>(structure.second.donnees_membres.taille()) * (sizeof(DonneesMembre) + sizeof(dls::vue_chaine_compacte));
-		memoire += static_cast<size_t>(structure.second.index_types.taille()) * sizeof(DonneesTypeFinal);
 	}
 
 	memoire += static_cast<size_t>(nom_structures.taille()) * sizeof(dls::vue_chaine_compacte);
@@ -651,10 +618,6 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 	/* m_pile_arrete */
 	memoire += static_cast<size_t>(m_pile_arrete.taille()) * sizeof(llvm::BasicBlock *);
 #endif
-
-	/* types */
-	memoire += static_cast<size_t>(typeuse.indexeuse.donnees_types.taille()) * sizeof(DonneesTypeFinal);
-	memoire += static_cast<size_t>(typeuse.indexeuse.donnees_type_index.taille()) * (sizeof(size_t) + sizeof(size_t));
 
 	for (auto module : modules) {
 		memoire += module->memoire_utilisee();

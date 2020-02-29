@@ -27,6 +27,7 @@
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
 struct ContexteGenerationCode;
+struct Type;
 
 enum class TypeTransformation {
 	INUTILE,
@@ -48,7 +49,7 @@ const char *chaine_transformation(TypeTransformation type);
 struct TransformationType {
 	TypeTransformation type{};
 	dls::vue_chaine_compacte nom_fonction{};
-	long index_type_cible = -1;
+	Type *type_cible = nullptr;
 
 	TransformationType() = default;
 
@@ -56,9 +57,9 @@ struct TransformationType {
 		: type(type_)
 	{}
 
-	TransformationType(TypeTransformation type_, long idx_type)
+	TransformationType(TypeTransformation type_, Type *type_cible_)
 		: type(type_)
-		, index_type_cible(idx_type)
+		, type_cible(type_cible_)
 	{}
 
 	TransformationType(dls::vue_chaine_compacte nom_fonction_)
@@ -66,10 +67,10 @@ struct TransformationType {
 		, nom_fonction(nom_fonction_)
 	{}
 
-	TransformationType(dls::vue_chaine_compacte nom_fonction_, long idx_type)
+	TransformationType(dls::vue_chaine_compacte nom_fonction_, Type *type_cible_)
 		: type(TypeTransformation::FONCTION)
 		, nom_fonction(nom_fonction_)
-		, index_type_cible(idx_type)
+		, type_cible(type_cible_)
 	{}
 
 	TransformationType(const char *nom_fonction_)
@@ -79,6 +80,5 @@ struct TransformationType {
 };
 
 TransformationType cherche_transformation(
-		ContexteGenerationCode const &contexte,
-		long type_de,
-		long type_vers);
+		Type *type_de,
+		Type *type_vers);

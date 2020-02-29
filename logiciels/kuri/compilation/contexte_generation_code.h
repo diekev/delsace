@@ -50,11 +50,10 @@ class FunctionPassManager;
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/liste.hh"
 
-#include "donnees_type.h"
 #include "operateurs.hh"
 #include "expression.h"
 #include "graphe_dependance.hh"
-#include "typeuse.hh"
+#include "typage.hh"
 
 class assembleuse_arbre;
 
@@ -89,7 +88,7 @@ struct DonneesVariable {
 #ifdef AVEC_LLVM
 	llvm::Value *valeur{nullptr};
 #endif
-	long index_type{-1l};
+	Type *type{nullptr};
 	bool est_dynamique = false;
 	bool est_variadic = false;
 	bool est_argument = false;
@@ -118,14 +117,14 @@ struct DonneesMembre {
 
 struct DonneesStructure {
 	dls::dico_desordonne<dls::vue_chaine_compacte, DonneesMembre> donnees_membres{};
-	dls::tableau<long> index_types{};
+	dls::tableau<Type *> types{};
 
 #ifdef AVEC_LLVM
 	llvm::Type *type_llvm{nullptr};
 #endif
 
 	long id{0l};
-	long index_type{-1l};
+	Type *type{nullptr};
 	noeud::base *noeud_decl = nullptr;
 	unsigned int taille_octet = 0;
 	bool est_enum = false;
@@ -199,14 +198,14 @@ struct ContexteGenerationCode {
 	 * validation sémantique. */
 	DonneesDependance donnees_dependance{};
 
-	long index_type_contexte = -1;
+	Type *type_contexte = nullptr;
 
 	bool bit32 = false;
 
 	dls::tableau<noeud::base *> noeuds_a_executer{};
 
 	bool pour_gabarit = false;
-	dls::tableau<std::pair<dls::vue_chaine_compacte, long>> paires_expansion_gabarit{};
+	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
 
 	ContexteGenerationCode();
 
@@ -375,13 +374,6 @@ struct ContexteGenerationCode {
 	 */
 	bool globale_existe(const dls::vue_chaine_compacte &nom);
 
-	/**
-	 * Retourne les données de la globale dont le nom est spécifié en
-	 * paramètre. Si aucune globale ne portant ce nom n'existe, des données
-	 * vides sont retournées.
-	 */
-	long type_globale(const dls::vue_chaine_compacte &nom);
-
 	conteneur_globales::const_iteratrice iter_globale(const dls::vue_chaine_compacte &nom);
 
 	conteneur_globales::const_iteratrice fin_globales();
@@ -414,13 +406,6 @@ struct ContexteGenerationCode {
 	 * Retourne vrai s'il existe une locale dont le nom correspond au spécifié.
 	 */
 	bool locale_existe(const dls::vue_chaine_compacte &nom);
-
-	/**
-	 * Retourne les données de la locale dont le nom est spécifié en paramètre.
-	 * Si aucune locale ne portant ce nom n'existe, des données vides sont
-	 * retournées.
-	 */
-	long type_locale(const dls::vue_chaine_compacte &nom);
 
 	/**
 	 * Retourne vrai si la variable locale dont le nom est spécifié peut être

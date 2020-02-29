@@ -257,26 +257,29 @@ const Operateurs::type_conteneur &Operateurs::trouve(GenreLexeme id) const
 
 void Operateurs::ajoute_basique(
 		GenreLexeme id,
-		long index_type,
-		long index_type_resultat,
+		Type *type,
+		Type *type_resultat,
 		IndiceTypeOp indice_type,
 		RaisonOp raison)
 {
-	ajoute_basique(id, index_type, index_type, index_type_resultat, indice_type, raison);
+	ajoute_basique(id, type, type, type_resultat, indice_type, raison);
 }
 
 void Operateurs::ajoute_basique(
 		GenreLexeme id,
-		long index_type1,
-		long index_type2,
-		long index_type_resultat,
+		Type *type1,
+		Type *type2,
+		Type *type_resultat,
 		IndiceTypeOp indice_type,
 		RaisonOp raison)
 {
+	assert(type1);
+	assert(type2);
+
 	auto op = memoire::loge<DonneesOperateur>("DonneesOpérateur");
-	op->index_type1 = index_type1;
-	op->index_type2 = index_type2;
-	op->index_resultat = index_type_resultat;
+	op->type1 = type1;
+	op->type2 = type2;
+	op->type_resultat = type_resultat;
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = true;
 
@@ -292,22 +295,22 @@ void Operateurs::ajoute_basique(
 	}
 }
 
-void Operateurs::ajoute_basique_unaire(GenreLexeme id, long index_type, long index_type_resultat)
+void Operateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat)
 {
-	ajoute_basique(id, index_type, index_type, index_type_resultat, static_cast<IndiceTypeOp>(-1), static_cast<RaisonOp>(-1));
+	ajoute_basique(id, type, type, type_resultat, static_cast<IndiceTypeOp>(-1), static_cast<RaisonOp>(-1));
 }
 
 void Operateurs::ajoute_perso(
 		GenreLexeme id,
-		long index_type1,
-		long index_type2,
-		long index_type_resultat,
+		Type *type1,
+		Type *type2,
+		Type *type_resultat,
 		const dls::chaine &nom_fonction)
 {
 	auto op = memoire::loge<DonneesOperateur>("DonneesOpérateur");
-	op->index_type1 = index_type1;
-	op->index_type2 = index_type2;
-	op->index_resultat = index_type_resultat;
+	op->type1 = type1;
+	op->type2 = type2;
+	op->type_resultat = type_resultat;
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = false;
 	op->nom_fonction = nom_fonction;
@@ -317,13 +320,13 @@ void Operateurs::ajoute_perso(
 
 void Operateurs::ajoute_perso_unaire(
 		GenreLexeme id,
-		long index_type,
-		long index_type_resultat,
+		Type *type,
+		Type *type_resultat,
 		const dls::chaine &nom_fonction)
 {
 	auto op = memoire::loge<DonneesOperateur>("DonneesOpérateur");
-	op->index_type1 = index_type;
-	op->index_resultat = index_type_resultat;
+	op->type1 = type;
+	op->type_resultat = type_resultat;
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = false;
 	op->nom_fonction = nom_fonction;
@@ -331,26 +334,25 @@ void Operateurs::ajoute_perso_unaire(
 	donnees_operateurs[id].pousse(op);
 }
 
-void Operateurs::ajoute_operateur_basique_enum(long index_type)
+void Operateurs::ajoute_operateur_basique_enum(Type *type)
 {
 	for (auto op : operateurs_comparaisons) {
 		/* À FAIRE: typage exacte de l'énumération */
-		this->ajoute_basique(op, index_type, type_bool, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_COMPARAISON);
+		this->ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_COMPARAISON);
 	}
 
 	for (auto op : operateurs_entiers) {
 		/* À FAIRE: typage exacte de l'énumération */
-		this->ajoute_basique(op, index_type, index_type, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
+		this->ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
 	}
 }
 
 static double verifie_compatibilite(
-		ContexteGenerationCode const &contexte,
-		long idx_type_arg,
-		long idx_type_enf,
+		Type *type_arg,
+		Type *type_enf,
 		TransformationType &transformation)
 {
-	transformation = cherche_transformation(contexte, idx_type_enf, idx_type_arg);
+	transformation = cherche_transformation(type_enf, type_arg);
 
 	if (transformation.type == TypeTransformation::INUTILE) {
 		return 1.0;
@@ -367,23 +369,26 @@ static double verifie_compatibilite(
 
 dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		ContexteGenerationCode const &contexte,
-		long index_type1,
-		long index_type2,
+		Type *type1,
+		Type *type2,
 		GenreLexeme type_op)
 {
+	assert(type1);
+	assert(type2);
+
 	auto op_candidats = dls::tablet<DonneesOperateur const *, 10>();
 
 	for (auto const &op : contexte.operateurs.trouve(type_op)) {
-		if (op->index_type1 == index_type1 && op->index_type2 == index_type2) {
+		if (op->type1 == type1 && op->type2 == type2) {
 			op_candidats.efface();
 			op_candidats.pousse(op);
 			break;
 		}
 
-		if (op->index_type1 == index_type1 || op->index_type2 == index_type2) {
+		if (op->type1 == type1 || op->type2 == type2) {
 			op_candidats.pousse(op);
 		}
-		else if (op->est_commutatif && (op->index_type2 == index_type1 || op->index_type1 == index_type2)) {
+		else if (op->est_commutatif && (op->type2 == type1 || op->type1 == type2)) {
 			op_candidats.pousse(op);
 		}
 	}
@@ -394,8 +399,8 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		auto seq1 = TransformationType{};
 		auto seq2 = TransformationType{};
 
-		auto poids1 = verifie_compatibilite(contexte, op->index_type1, index_type1, seq1);
-		auto poids2 = verifie_compatibilite(contexte, op->index_type2, index_type2, seq2);
+		auto poids1 = verifie_compatibilite(op->type1, type1, seq1);
+		auto poids2 = verifie_compatibilite(op->type2, type2, seq2);
 
 		auto poids = poids1 * poids2;
 
@@ -410,8 +415,8 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		}
 
 		if (op->est_commutatif && poids != 1.0) {
-			poids1 = verifie_compatibilite(contexte, op->index_type1, index_type2, seq2);
-			poids2 = verifie_compatibilite(contexte, op->index_type2, index_type1, seq1);
+			poids1 = verifie_compatibilite(op->type1, type2, seq2);
+			poids2 = verifie_compatibilite(op->type2, type1, seq1);
 
 			poids = poids1 * poids2;
 
@@ -433,11 +438,11 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 
 DonneesOperateur const *cherche_operateur_unaire(
 		Operateurs const &operateurs,
-		long index_type1,
+		Type *type1,
 		GenreLexeme type_op)
 {
 	for (auto const &op : operateurs.trouve(type_op)) {
-		if (op->index_type1 == index_type1) {
+		if (op->type1 == type1) {
 			return op;
 		}
 	}
@@ -449,14 +454,14 @@ void enregistre_operateurs_basiques(
 		ContexteGenerationCode &contexte,
 		Operateurs &operateurs)
 {
-	static long types_entiers_naturels[] = {
+	static Type *types_entiers_naturels[] = {
 		contexte.typeuse[TypeBase::N8],
 		contexte.typeuse[TypeBase::N16],
 		contexte.typeuse[TypeBase::N32],
 		contexte.typeuse[TypeBase::N64],
 	};
 
-	static long types_entiers_relatifs[] = {
+	static Type *types_entiers_relatifs[] = {
 		contexte.typeuse[TypeBase::Z8],
 		contexte.typeuse[TypeBase::Z16],
 		contexte.typeuse[TypeBase::Z32],
@@ -467,7 +472,7 @@ void enregistre_operateurs_basiques(
 	auto type_r32 = contexte.typeuse[TypeBase::R32];
 	auto type_r64 = contexte.typeuse[TypeBase::R64];
 
-	static long types_reels[] = {
+	static Type *types_reels[] = {
 		type_r32, type_r64
 	};
 

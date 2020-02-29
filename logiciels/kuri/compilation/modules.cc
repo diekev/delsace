@@ -261,13 +261,12 @@ void importe_module(
 /* ************************************************************************** */
 
 static double verifie_compatibilite(
-		ContexteGenerationCode &contexte,
-		long idx_type_arg,
-		long idx_type_enf,
+		Type *type_arg,
+		Type *type_enf,
 		noeud::base *enfant,
 		TransformationType &transformation)
 {
-	transformation = cherche_transformation(contexte, idx_type_enf, idx_type_arg);
+	transformation = cherche_transformation(type_enf, type_arg);
 
 	if (transformation.type == TypeTransformation::INUTILE) {
 		return 1.0;
@@ -284,6 +283,47 @@ static double verifie_compatibilite(
 	/* nous savons que nous devons transformer la valeur (par ex. eini), donc
 	 * donne un mi-poids à l'argument */
 	return 0.5;
+}
+
+static Type *apparie_type_gabarit(Type *type, DonneesTypeDeclare const &type_declare)
+{
+	auto type_courant = type;
+
+	for (auto i = 0; i < type_declare.taille(); ++i) {
+		auto lexeme = type_declare[i];
+
+		if (lexeme == GenreLexeme::DOLLAR) {
+			break;
+		}
+
+		if (lexeme == GenreLexeme::POINTEUR) {
+			if (type_courant->genre != GenreType::POINTEUR) {
+				return nullptr;
+			}
+
+			type_courant = static_cast<TypePointeur *>(type_courant)->type_pointe;
+		}
+		else if (lexeme == GenreLexeme::REFERENCE) {
+			if (type_courant->genre != GenreType::REFERENCE) {
+				return nullptr;
+			}
+
+			type_courant = static_cast<TypeReference *>(type_courant)->type_pointe;
+		}
+		else if (lexeme == GenreLexeme::TABLEAU) {
+			if (type_courant->genre != GenreType::TABLEAU_DYNAMIQUE) {
+				return nullptr;
+			}
+
+			type_courant = static_cast<TypeTableauDynamique *>(type_courant)->type_pointe;
+		}
+		// À FAIRE : type tableau fixe
+		else {
+			return nullptr;
+		}
+	}
+
+	return type_courant;
 }
 
 static DonneesCandidate verifie_donnees_fonction(
@@ -388,7 +428,7 @@ static DonneesCandidate verifie_donnees_fonction(
 		}
 	}
 
-	auto paires_expansion_gabarit = dls::tableau<std::pair<dls::vue_chaine_compacte, long>>();
+	auto paires_expansion_gabarit = dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>>();
 
 	auto poids_args = 1.0;
 	auto fonction_variadique_interne = donnees_fonction.est_variadique
@@ -408,10 +448,8 @@ static DonneesCandidate verifie_donnees_fonction(
 			continue;
 		}
 
-		auto const index_type_enf = slot->index_type;
-		auto const &type_enf = contexte.typeuse[index_type_enf];
-
-		auto index_type_arg = arg.index_type;
+		auto type_enf = slot->type;
+		auto type_arg = arg.type;
 
 		if (arg.type_declare.est_gabarit) {
 			// trouve l'argument
@@ -421,7 +459,7 @@ static DonneesCandidate verifie_donnees_fonction(
 				if (paire.first == arg.type_declare.nom_gabarit) {
 					type_trouve = true;
 
-					if (paire.second != index_type_enf) {
+					if (paire.second != type_enf) {
 						type_errone = true;
 						// erreur À FAIRE
 						poids_args = 0.0;
@@ -439,19 +477,9 @@ static DonneesCandidate verifie_donnees_fonction(
 			}
 
 			if (!type_trouve) {
-				auto index_type_gabarit = index_type_enf;
+				auto type_gabarit = apparie_type_gabarit(type_enf, arg.type_declare);
 
-				// résoud le type selon la déclaration
-				auto type_declare = arg.type_declare.plage();
-				auto plg_type_enf = type_enf.plage();
-
-				// permet de trouver les types du style *[]$T
-				while (type_declare.front() == (plg_type_enf.front() & 0xff)) {
-					plg_type_enf.effronte();
-					type_declare.effronte();
-				}
-
-				if (type_declare.front() != GenreLexeme::DOLLAR) {
+				if (type_gabarit == nullptr) {
 					poids_args = 0.0;
 					res.raison = METYPAGE_ARG;
 					//res.type1 = type_enf;
@@ -461,38 +489,16 @@ static DonneesCandidate verifie_donnees_fonction(
 					return res;
 				}
 
-				index_type_gabarit = contexte.typeuse.ajoute_type(plg_type_enf);
-
-				/* reconstruit le type de l'argument dans le cas où nous avons
-				 * un tableau fixe devant être converti en un tableau dynamique */
-				type_declare = arg.type_declare.plage();
-				auto dt_final = DonneesTypeFinal{};
-
-				while (!type_declare.est_finie()) {
-					if (type_declare.front() == GenreLexeme::DOLLAR) {
-						dt_final.pousse(contexte.typeuse[index_type_gabarit]);
-						break;
-					}
-
-					dt_final.pousse(type_declare.front());
-					type_declare.effronte();
-				}
-
-				index_type_arg = contexte.typeuse.ajoute_type(dt_final);
-
-				paires_expansion_gabarit.pousse({ arg.type_declare.nom_gabarit, index_type_gabarit });
+				paires_expansion_gabarit.pousse({ arg.type_declare.nom_gabarit, type_gabarit });
 			}
-			else {
-				index_type_arg = index_type_enf;
-			}
+
+			type_arg = type_enf;
 		}
 
-		auto const &type_arg = (index_type_arg == -1l) ? DonneesTypeFinal{} : contexte.typeuse[index_type_arg];
-
 		if (arg.est_variadic) {
-			if (!est_invalide(type_arg.dereference())) {
+			if (contexte.typeuse.type_dereference_pour(type_arg) != nullptr) {
 				auto transformation = TransformationType();
-				auto index_type_deref = contexte.typeuse.type_dereference_pour(index_type_arg);
+				auto type_deref = contexte.typeuse.type_dereference_pour(type_arg);
 				auto poids_pour_enfant = 0.0;
 
 				if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
@@ -504,18 +510,16 @@ static DonneesCandidate verifie_donnees_fonction(
 						erreur::lance_erreur("Ne peut utiliser qu'une seule expansion d'argument variadique", contexte, slot->lexeme);
 					}
 
-					auto index_type_deref_enf = contexte.typeuse.type_dereference_pour(index_type_enf);
+					auto type_deref_enf = contexte.typeuse.type_dereference_pour(type_enf);
 
-					poids_pour_enfant = verifie_compatibilite(contexte, index_type_deref, index_type_deref_enf, slot, transformation);
+					poids_pour_enfant = verifie_compatibilite(type_deref, type_deref_enf, slot, transformation);
 
 					// aucune transformation acceptée sauf si nous avons un tableau fixe qu'il faudra convertir en un tableau dynamique
 					if (poids_pour_enfant != 1.0) {
 						poids_pour_enfant = 0.0;
 					}
 					else {
-						auto &dt_enf = contexte.typeuse[index_type_enf];
-
-						if (est_type_tableau_fixe(dt_enf)) {
+						if (type_enf->genre == GenreType::TABLEAU_FIXE) {
 							transformation = TypeTransformation::CONVERTI_TABLEAU;
 						}
 					}
@@ -523,7 +527,7 @@ static DonneesCandidate verifie_donnees_fonction(
 					expansion_rencontree = true;
 				}
 				else {
-					poids_pour_enfant = verifie_compatibilite(contexte, index_type_deref, index_type_enf, slot, transformation);
+					poids_pour_enfant = verifie_compatibilite(type_deref, type_enf, slot, transformation);
 				}
 
 				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
@@ -536,7 +540,7 @@ static DonneesCandidate verifie_donnees_fonction(
 				if (poids_args == 0.0) {
 					poids_args = 0.0;
 					res.raison = METYPAGE_ARG;
-					res.type1 = type_arg.dereference();
+					res.type1 = contexte.typeuse.type_dereference_pour(type_arg);
 					res.type2 = type_enf;
 					res.noeud_decl = slot;
 					break;
@@ -569,19 +573,14 @@ static DonneesCandidate verifie_donnees_fonction(
 		}
 		else {
 			auto transformation = TransformationType();
+			auto poids_pour_enfant = verifie_compatibilite(type_arg, type_enf, slot, transformation);
 
-			/* il est possible que le type final ne soit pas encore résolu car
-			 * la déclaration de la candidate n'a pas encore été validée */
-			if (!est_invalide(type_arg.plage())) {
-				auto poids_pour_enfant = verifie_compatibilite(contexte, index_type_arg, index_type_enf, slot, transformation);
-
-				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
-				if (arg.type_declare.est_gabarit) {
-					poids_pour_enfant *= 0.95;
-				}
-
-				poids_args *= poids_pour_enfant;
+			// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
+			if (arg.type_declare.est_gabarit) {
+				poids_pour_enfant *= 0.95;
 			}
+
+			poids_args *= poids_pour_enfant;
 
 			if (poids_args == 0.0) {
 				poids_args = 0.0;
@@ -607,9 +606,8 @@ static DonneesCandidate verifie_donnees_fonction(
 			noeud_tableau->valeur_calculee = slots.taille() - index_premier_var_arg;
 			noeud_tableau->drapeaux |= EST_CALCULE;
 
-			auto index_dt_var = donnees_fonction.args.back().index_type;
-			auto &dt_var = contexte.typeuse[index_dt_var];
-			noeud_tableau->index_type = contexte.typeuse.ajoute_type(dt_var.dereference());
+			auto type_var = donnees_fonction.args.back().type;
+			noeud_tableau->type = contexte.typeuse.type_dereference_pour(type_var);
 
 			for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
 				noeud_tableau->ajoute_noeud(slots[i]);

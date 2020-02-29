@@ -25,6 +25,7 @@
 #include "erreur.h"
 
 #include "biblinternes/outils/chaine.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
@@ -110,8 +111,8 @@ void lance_erreur_plage(
 }
 
 [[noreturn]] void lance_erreur_type_arguments(
-		const DonneesTypeFinal &type_arg,
-		const DonneesTypeFinal &type_enf,
+		const Type *type_arg,
+		const Type *type_enf,
 		const ContexteGenerationCode &contexte,
 		const DonneesLexeme &lexeme_enfant,
 		const DonneesLexeme &lexeme)
@@ -133,14 +134,14 @@ void lance_erreur_plage(
 	ss << '\n';
 
 	ss << "Le type de l'argument '" << lexeme_enfant.chaine << "' ne correspond pas à celui requis !\n";
-	ss << "Requiers : " << chaine_type(type_arg, contexte) << '\n';
-	ss << "Obtenu   : " << chaine_type(type_enf, contexte) << '\n';
+	ss << "Requiers : " << chaine_type(type_arg) << '\n';
+	ss << "Obtenu   : " << chaine_type(type_enf) << '\n';
 	ss << '\n';
 	ss << "Astuce :\n";
 	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
 
 	lng::erreur::imprime_ligne_entre(ss, ligne, 0, pos_mot);
-	ss << "transtype(" << lexeme_enfant.chaine << " : " << chaine_type(type_arg, contexte) << ")";
+	ss << "transtype(" << lexeme_enfant.chaine << " : " << chaine_type(type_arg) << ")";
 	lng::erreur::imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant.chaine.taille(), ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
@@ -148,8 +149,8 @@ void lance_erreur_plage(
 }
 
 [[noreturn]] void lance_erreur_type_retour(
-		const DonneesTypeFinal &type_arg,
-		const DonneesTypeFinal &type_enf,
+		const Type *type_arg,
+		const Type *type_enf,
 		const ContexteGenerationCode &contexte,
 		const DonneesLexeme &lexeme_enfant,
 		const DonneesLexeme &lexeme)
@@ -171,14 +172,14 @@ void lance_erreur_plage(
 	ss << '\n';
 
 	ss << "Le type de '" << lexeme_enfant.chaine << "' ne correspond pas à celui requis !\n";
-	ss << "Requiers : " << chaine_type(type_arg, contexte) << '\n';
-	ss << "Obtenu   : " << chaine_type(type_enf, contexte) << '\n';
+	ss << "Requiers : " << chaine_type(type_arg) << '\n';
+	ss << "Obtenu   : " << chaine_type(type_enf) << '\n';
 	ss << '\n';
 	ss << "Astuce :\n";
 	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
 
 	lng::erreur::imprime_ligne_entre(ss, ligne, 0, pos_mot);
-	ss << "transtype(" << lexeme_enfant.chaine << " : " << chaine_type(type_arg, contexte) << ")";
+	ss << "transtype(" << lexeme_enfant.chaine << " : " << chaine_type(type_arg) << ")";
 	lng::erreur::imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant.chaine.taille(), ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
@@ -186,8 +187,8 @@ void lance_erreur_plage(
 }
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
-		const DonneesTypeFinal &type_gauche,
-		const DonneesTypeFinal &type_droite,
+		const Type *type_gauche,
+		const Type *type_droite,
 		const ContexteGenerationCode &contexte,
 		const DonneesLexeme &lexeme)
 {
@@ -206,15 +207,15 @@ void lance_erreur_plage(
 	ss << '\n';
 
 	ss << "Ne peut pas assigner des types différents !\n";
-	ss << "Type à gauche : " << chaine_type(type_gauche, contexte) << '\n';
-	ss << "Type à droite : " << chaine_type(type_droite, contexte) << '\n';
+	ss << "Type à gauche : " << chaine_type(type_gauche) << '\n';
+	ss << "Type à droite : " << chaine_type(type_droite) << '\n';
 
 	throw frappe(ss.chn().c_str(), type_erreur::ASSIGNATION_MAUVAIS_TYPE);
 }
 
 void lance_erreur_type_operation(
-		const DonneesTypeFinal &type_gauche,
-		const DonneesTypeFinal &type_droite,
+		const Type *type_gauche,
+		const Type *type_droite,
 		const ContexteGenerationCode &contexte,
 		const DonneesLexeme &lexeme)
 {
@@ -233,8 +234,8 @@ void lance_erreur_type_operation(
 	ss << '\n';
 
 	ss << "Les types de l'opération sont différents !\n";
-	ss << "Type à gauche : " << chaine_type(type_gauche, contexte) << '\n';
-	ss << "Type à droite : " << chaine_type(type_droite, contexte) << '\n';
+	ss << "Type à gauche : " << chaine_type(type_gauche) << '\n';
+	ss << "Type à droite : " << chaine_type(type_droite) << '\n';
 
 	throw frappe(ss.chn().c_str(), type_erreur::TYPE_DIFFERENTS);
 }
@@ -327,8 +328,8 @@ void lance_erreur_fonction_inconnue(
 			auto const &lexeme_enfant = dc.noeud_decl->lexeme;
 
 			ss << "\tLe type de l'argument '" << lexeme_enfant.chaine << "' ne correspond pas à celui requis !\n";
-			ss << "\tRequiers : " << chaine_type(dc.type1, contexte) << '\n';
-			ss << "\tObtenu   : " << chaine_type(dc.type2, contexte) << '\n';
+			ss << "\tRequiers : " << chaine_type(dc.type1) << '\n';
+			ss << "\tObtenu   : " << chaine_type(dc.type2) << '\n';
 			/* À FAIRE */
 //			ss << '\n';
 //			ss << "Astuce :\n";
@@ -403,8 +404,8 @@ void lance_erreur_fonction_nulctx(
 void lance_erreur_acces_hors_limites(
 			ContexteGenerationCode const &contexte,
 			noeud::base *b,
-			int taille_tableau,
-			DonneesTypeFinal const &type_tableau,
+			long taille_tableau,
+			const Type *type_tableau,
 			long index_acces)
 {
 	auto const &lexeme = b->lexeme;
@@ -427,7 +428,7 @@ void lance_erreur_acces_hors_limites(
 	ss << "Accès au tableau hors de ses limites !\n";
 
 	ss << "\tLe tableau a une taille de " << taille_tableau << " (de type : "
-	   << chaine_type(type_tableau, contexte) << ").\n";
+	   << chaine_type(type_tableau) << ").\n";
 	ss << "\tL'accès se fait à l'index " << index_acces << " (index maximal : " << taille_tableau - 1 << ").\n";
 
 	ss << "\n----------------------------------------------------------------\n";
@@ -481,11 +482,8 @@ void lance_erreur_type_operation(
 	auto enfant_gauche = b->enfants.front();
 	auto enfant_droite = b->enfants.back();
 
-	auto index_type_gauche = enfant_gauche->index_type;
-	auto index_type_droite = enfant_droite->index_type;
-
-	auto const &type_gauche = contexte.typeuse[index_type_gauche];
-	auto const &type_droite = contexte.typeuse[index_type_droite];
+	auto const &type_gauche = enfant_gauche->type;
+	auto const &type_droite = enfant_droite->type;
 
 	auto etendue_gauche = calcule_etendue_noeud(contexte, enfant_gauche);
 	auto etendue_droite = calcule_etendue_noeud(contexte, enfant_droite);
@@ -509,14 +507,14 @@ void lance_erreur_type_operation(
 	ss << "Veuillez vous assurer que les types correspondent.\n";
 	ss << '\n';
 	ss << "L'expression à gauche de l'opérateur, " << expr_gauche << ", est de type : ";
-	ss << chaine_type(type_gauche, contexte) << '\n';
+	ss << chaine_type(type_gauche) << '\n';
 	ss << "L'expression à droite de l'opérateur, " << expr_droite << ", est de type : ";
-	ss << chaine_type(type_droite, contexte) << '\n';
+	ss << chaine_type(type_droite) << '\n';
 	ss << '\n';
 	ss << "Pour résoudre ce problème, vous pouvez par exemple transtyper l'une des deux expressions :\n";
-	ss << "transtype(" << expr_gauche << " : " << chaine_type(type_droite, contexte) << ")\n";
+	ss << "transtype(" << expr_gauche << " : " << chaine_type(type_droite) << ")\n";
 	ss << "ou\n";
-	ss << "transtype(" << expr_droite << " : " << chaine_type(type_gauche, contexte) << ")\n";
+	ss << "transtype(" << expr_droite << " : " << chaine_type(type_gauche) << ")\n";
 
 	ss << "----------------------------------------------------------------\n";
 
@@ -540,8 +538,7 @@ void lance_erreur_type_operation_unaire(
 	auto etendue = calcule_etendue_noeud(contexte, b);
 
 	auto enfant_droite = b->enfants.front();
-	auto index_type_droite = enfant_droite->index_type;
-	auto const &type_droite = contexte.typeuse[index_type_droite];
+	auto const &type_droite =  enfant_droite->type;
 	auto etendue_droite = calcule_etendue_noeud(contexte, enfant_droite);
 	auto expr_droite = dls::vue_chaine_compacte(&ligne[etendue_droite.pos_min], etendue_droite.pos_max - etendue_droite.pos_min);
 
@@ -560,7 +557,7 @@ void lance_erreur_type_operation_unaire(
 	ss << "Veuillez vous assurer que les types correspondent.\n";
 	ss << '\n';
 	ss << "L'expression à droite de l'opérateur, " << expr_droite << ", est de type : ";
-	ss << chaine_type(type_droite, contexte) << '\n';
+	ss << chaine_type(type_droite) << '\n';
 	ss << "----------------------------------------------------------------\n";
 
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::TYPE_DIFFERENTS);

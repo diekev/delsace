@@ -145,7 +145,6 @@ void imprime_taille_memoire_noeud(std::ostream &os)
 {
 	os << "------------------------------------------------------------------\n";
 	os << "noeud::base              : " << sizeof(noeud::base) << '\n';
-	os << "DonneesTypeFinal         : " << sizeof(DonneesTypeFinal) << '\n';
 	os << "DonneesLexeme          : " << sizeof(DonneesLexeme) << '\n';
 	os << "dls::liste<noeud::base *> : " << sizeof(dls::liste<noeud::base *>) << '\n';
 	os << "std::any                 : " << sizeof(std::any) << '\n';

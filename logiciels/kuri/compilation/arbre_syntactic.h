@@ -29,11 +29,13 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/liste.hh"
 
-#include "donnees_type.h"
+#include "lexemes.hh"
+#include "typage.hh"
 #include "transformation_type.hh"
 
 struct ContexteGenerationCode;
 class assembleuse_arbre;
+struct TypeFonction;
 
 enum class GenreNoeud : char {
 	RACINE,
@@ -273,12 +275,12 @@ struct base {
 
 	dls::chaine nom_fonction_appel{}; // À FAIRE : on ne peut pas utiliser valeur_calculee car les prépasses peuvent le changer.
 
-	long index_type = -1l;
+	Type *type = nullptr;
 
 	/* utilisé pour déterminer les types de retour des fonctions à moultretour
 	 * car lors du besoin index_type est utilisé pour le type de retour de la
 	 *  première valeur */
-	long index_type_fonc = -1l;
+	TypeFonction *type_fonc = nullptr;
 
 	char aide_generation_code = 0;
 	GenreNoeud genre{};

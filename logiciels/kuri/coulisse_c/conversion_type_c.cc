@@ -29,535 +29,249 @@
 
 void cree_typedef(
 		ContexteGenerationCode &contexte,
-		DonneesTypeFinal &donnees,
+		Type *type,
 		dls::flux_chaine &os)
 {
-	auto const &nom_broye = nom_broye_type(contexte, donnees);
+	auto const &nom_broye = nom_broye_type(contexte, type, true);
 
-	if (donnees.type_base() == GenreLexeme::TABLEAU || donnees.type_base() == GenreLexeme::TROIS_POINTS) {
-		if (est_invalide(donnees.dereference())) {
-			return;
-		}
-
-		os << "typedef struct Tableau_" << nom_broye;
-
-		os << "{\n\t";
-		auto dt_deref = donnees.dereference();
-
-		if (est_type_tableau_fixe(dt_deref)) {
-			auto taille_tableau = static_cast<long>(dt_deref.front() >> 8);
-
-			dt_deref.effronte();
-
-			converti_type_C(contexte, "", dt_deref, os, false, true);
-
-			os << " *pointeur[" << taille_tableau << "];";
-		}
-		else {
-
-			converti_type_C(contexte, "", donnees.dereference(), os, false, true);
-
-			os << " *pointeur;";
-		}
-
-		os << "\n\tlong taille;\n} " << nom_broye << ";\n\n";
-	}
-	else if ((donnees.type_base() & 0xff) == GenreLexeme::TABLEAU) {
-		auto dt_deref = donnees.dereference();
-
-		// [X][X]Type
-		if (est_type_tableau_fixe(dt_deref)) {
-			auto taille_tableau = static_cast<long>(dt_deref.front() >> 8);
-			dt_deref.effronte();
-
-			os << "typedef ";
-			converti_type_C(contexte, "", dt_deref, os, false, true);
-			os << "(" << nom_broye << ')';
-			os << '[' << static_cast<size_t>(donnees.type_base() >> 8) << ']';
-			os << '[' << taille_tableau << ']';
-			os << ";\n\n";
-		}
-		else {
-			os << "typedef ";
-			converti_type_C(contexte, "", donnees.dereference(), os, false, true);
-			os << ' ' << nom_broye;
-			os << '[' << static_cast<size_t>(donnees.type_base() >> 8) << ']';
-			os << ";\n\n";
-		}
-	}
-	else if (donnees.type_base() == GenreLexeme::COROUT) {
-		/* ne peut prendre un pointeur vers une coroutine pour le moment */
-	}
-	else if (donnees.type_base() == GenreLexeme::FONC) {
-		auto nombre_types_retour = 0l;
-		auto type_parametres = donnees_types_parametres(contexte.typeuse, donnees, nombre_types_retour);
-
-		auto prefixe = dls::chaine("");
-		auto suffixe = dls::chaine("");
-
-		auto nombre_types_entree = type_parametres.taille() - nombre_types_retour;
-
-		auto nouveau_nom_broye = dls::chaine("Kf");
-		nouveau_nom_broye += dls::vers_chaine(nombre_types_entree);
-
-		if (nombre_types_retour > 1) {
-			prefixe += "void (*";
-		}
-		else {
-			auto &dt = contexte.typeuse[type_parametres.back()];
-			auto const &nom_broye_dt = nom_broye_type(contexte, dt);
-			prefixe += nom_broye_dt + " (*";
-		}
-
-		auto virgule = "(";
-
-		for (auto i = 0; i < nombre_types_entree; ++i) {
-			auto &dt = contexte.typeuse[type_parametres[i]];
-			auto const &nom_broye_dt = nom_broye_type(contexte, dt);
-
-			suffixe += virgule;
-			suffixe += nom_broye_dt;
-			nouveau_nom_broye += nom_broye_dt;
-			virgule = ",";
-		}
-
-		if (nombre_types_entree == 0) {
-			suffixe += virgule;
-			virgule = ",";
-		}
-
-		nouveau_nom_broye += dls::vers_chaine(nombre_types_retour);
-
-		for (auto i = nombre_types_entree; i < type_parametres.taille(); ++i) {
-			auto &dt = contexte.typeuse[type_parametres[i]];
-			auto const &nom_broye_dt = nom_broye_type(contexte, dt);
-
-			if (nombre_types_retour > 1) {
-				suffixe += virgule;
-				suffixe += nom_broye_dt;
-			}
-
-			nouveau_nom_broye += nom_broye_dt;
-		}
-
-		suffixe += ")";
-
-		donnees.nom_broye = nouveau_nom_broye;
-
-		nouveau_nom_broye = prefixe + nouveau_nom_broye + ")" + suffixe;
-
-		os << "typedef " << nouveau_nom_broye << ";\n\n";
-	}
-	/* cas spécial pour les types complexes : &[]z8 */
-	else if (donnees.type_base() == GenreLexeme::POINTEUR || donnees.type_base() == GenreLexeme::REFERENCE) {
-		auto index = contexte.typeuse.ajoute_type(donnees.dereference());
-		auto &dt_deref = contexte.typeuse[index];
-
-		auto nom_broye_deref = nom_broye_type(contexte, dt_deref);
-
-		os << "typedef " << nom_broye_deref << "* " << nom_broye << ";\n\n";
-	}
-	else {
-		os << "typedef ";
-		converti_type_C(contexte, "", donnees.plage(), os, false, true);
-		os << ' ' << nom_broye <<  ";\n\n";
-	}
-}
-
-static auto converti_type_simple_C(
-		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os,
-		GenreLexeme id,
-		bool echappe,
-		bool echappe_struct,
-		bool echappe_tableau_fixe)
-{
-	switch (id & 0xff) {
-		case GenreLexeme::POINTEUR:
+	switch (type->genre) {
+		case GenreType::INVALIDE:
 		{
-			if (echappe) {
-				os << "_ptr_";
+			break;
+		}
+		case GenreType::ENUM:
+		{
+			/* RÀF : les énumérations sont des constantes et nous utilisons le
+			 * type des valeurs dans le code C. */
+			break;
+		}
+		case GenreType::BOOL:
+		{
+			os << "typedef unsigned char " << nom_broye << ";\n";
+			break;
+		}
+		case GenreType::OCTET:
+		{
+			os << "typedef unsigned char " << nom_broye << ";\n";
+			break;
+		}
+		case GenreType::ENTIER_NATUREL:
+		{
+			if (type->taille_octet == 1) {
+				os << "typedef char " << nom_broye << ";\n";
 			}
-			else {
-				os << '*';
+			else if (type->taille_octet == 2) {
+				os << "typedef short " << nom_broye << ";\n";
+			}
+			else if (type->taille_octet == 4) {
+				os << "typedef int " << nom_broye << ";\n";
+			}
+			else if (type->taille_octet == 8) {
+				os << "typedef long " << nom_broye << ";\n";
 			}
 
 			break;
 		}
-		case GenreLexeme::REFERENCE:
+		case GenreType::ENTIER_RELATIF:
 		{
-			if (echappe) {
-				os << "_ref_";
+			if (type->taille_octet == 1) {
+				os << "typedef unsigned char " << nom_broye << ";\n";
 			}
-			else {
-				os << '*';
+			else if (type->taille_octet == 2) {
+				os << "typedef unsigned short " << nom_broye << ";\n";
+			}
+			else if (type->taille_octet == 4) {
+				os << "typedef unsigned int " << nom_broye << ";\n";
+			}
+			else if (type->taille_octet == 8) {
+				os << "typedef unsigned long " << nom_broye << ";\n";
 			}
 
 			break;
 		}
-		case GenreLexeme::TABLEAU:
+		case GenreType::REEL:
 		{
-			if (echappe_tableau_fixe) {
-				os << '*';
+			if (type->taille_octet == 2) {
+				os << "typedef short " << nom_broye << ";\n";
+			}
+			else if (type->taille_octet == 4) {
+				os << "typedef float " << nom_broye << ";\n";
+			}
+			else if (type->taille_octet == 8) {
+				os << "typedef double " << nom_broye << ";\n";
+			}
+
+			break;
+		}
+		case GenreType::REFERENCE:
+		{
+			auto type_pointe = static_cast<TypeReference *>(type)->type_pointe;
+			os << "typedef " << nom_broye_type(contexte, type_pointe, true) << "* " << nom_broye << ";\n";
+			break;
+		}
+		case GenreType::POINTEUR:
+		{
+			auto type_pointe = static_cast<TypePointeur *>(type)->type_pointe;
+			os << "typedef " << nom_broye_type(contexte, type_pointe, true) << "* " << nom_broye << ";\n";
+			break;
+		}
+		case GenreType::STRUCTURE:
+		{
+			auto nom_struct = broye_nom_simple(static_cast<TypeStructure *>(type)->nom);
+			auto &ds = contexte.donnees_structure(static_cast<TypeStructure *>(type)->nom);
+
+			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t") {
+				if (ds.est_union && (ds.est_nonsur || ds.est_externe)) {
+					os << "typedef union " << nom_struct << ' ' << nom_broye << ";\n";
+				}
+				else {
+					os << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
+				}
+			}
+			else {
+				os << "typedef " << nom_struct << ' ' << nom_broye << ";\n";
+			}
+
+			break;
+		}
+		case GenreType::UNION:
+		{
+			auto nom_struct = broye_nom_simple(static_cast<TypeStructure *>(type)->nom);
+			auto &ds = contexte.donnees_structure(static_cast<TypeStructure *>(type)->nom);
+
+			if (ds.est_nonsur || ds.est_externe) {
+				os << "typedef union " << nom_struct << ' ' << nom_broye << ";\n";
+			}
+			else {
+				os << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
+			}
+
+			break;
+		}
+		case GenreType::TABLEAU_FIXE:
+		{
+			auto type_pointe = static_cast<TypeTableauFixe *>(type)->type_pointe;
+
+			// [X][X]Type
+			if (type_pointe->genre == GenreType::TABLEAU_FIXE) {
+				auto type_tabl = static_cast<TypeTableauFixe *>(type_pointe);
+				auto taille_tableau = type_tabl->taille;
+
+				os << "typedef " << nom_broye_type(contexte, type_tabl->type_pointe, true);
+				os << "(" << nom_broye << ')';
+				os << '[' << static_cast<TypeTableauFixe *>(type)->taille << ']';
+				os << '[' << taille_tableau << ']';
+				os << ";\n\n";
+			}
+			else {
+				os << "typedef " << nom_broye_type(contexte, type_pointe, true);
+				os << ' ' << nom_broye;
+				os << '[' << static_cast<TypeTableauFixe *>(type)->taille << ']';
+				os << ";\n\n";
+			}
+
+			break;
+		}
+		case GenreType::VARIADIQUE:
+		{
+			// les arguments variadiques sont transformés en tableaux, donc RÀF
+			break;
+		}
+		case GenreType::TABLEAU_DYNAMIQUE:
+		{
+			auto type_pointe = static_cast<TypeTableauDynamique *>(type)->type_pointe;
+
+			if (type_pointe == nullptr) {
 				return;
 			}
 
-			auto taille = static_cast<size_t>(id >> 8);
-			os << '[' << taille << ']';
+			os << "typedef struct Tableau_" << nom_broye;
 
-			break;
-		}
-		case GenreLexeme::OCTET:
-		{
-			os << "octet";
-			break;
-		}
-		case GenreLexeme::BOOL:
-		{
-			os << "bool";
-			break;
-		}
-		case GenreLexeme::N8:
-		{
-			if (echappe) {
-				os << "unsigned_char";
+			os << "{\n\t";
+
+			if (type_pointe->genre == GenreType::TABLEAU_FIXE) {
+				auto type_tabl = static_cast<TypeTableauFixe *>(type_pointe);
+				auto taille_tableau = type_tabl->taille;
+				os << nom_broye_type(contexte, type_tabl->type_pointe, true) << " *pointeur[" << taille_tableau << "];";
 			}
 			else {
-				os << "unsigned char";
+				os << nom_broye_type(contexte, type_pointe, true) << " *pointeur;";
 			}
 
+			os << "\n\tlong taille;\n} " << nom_broye << ";\n\n";
 			break;
 		}
-		case GenreLexeme::N16:
+		case GenreType::FONCTION:
 		{
-			if (echappe) {
-				os << "unsigned_short";
-			}
-			else {
-				os << "unsigned short";
-			}
+			auto type_fonc = static_cast<TypeFonction *>(type);
 
-			break;
-		}
-		case GenreLexeme::N32:
-		{
-			if (echappe) {
-				os << "unsigned_int";
+			auto prefixe = dls::chaine("");
+			auto suffixe = dls::chaine("");
+
+			auto nouveau_nom_broye = dls::chaine("Kf");
+			nouveau_nom_broye += dls::vers_chaine(type_fonc->types_entrees.taille);
+
+			if (type_fonc->types_sorties.taille > 1) {
+				prefixe += "void (*";
 			}
 			else {
-				os << "unsigned int";
+				auto const &nom_broye_dt = nom_broye_type(contexte, type_fonc->types_sorties[0], true);
+				prefixe += nom_broye_dt + " (*";
 			}
 
-			break;
-		}
-		case GenreLexeme::N64:
-		{
-			if (echappe) {
-				os << "unsigned_long";
-			}
-			else {
-				os << "unsigned long";
+			auto virgule = "(";
+
+			POUR (type_fonc->types_entrees) {
+				auto const &nom_broye_dt = nom_broye_type(contexte, it, true);
+
+				suffixe += virgule;
+				suffixe += nom_broye_dt;
+				nouveau_nom_broye += nom_broye_dt;
+				virgule = ",";
 			}
 
-			break;
-		}
-		case GenreLexeme::R16:
-		{
-			os << "r16";
-			break;
-		}
-		case GenreLexeme::R32:
-		{
-			os << "float";
-			break;
-		}
-		case GenreLexeme::R64:
-		{
-			os << "double";
-			break;
-		}
-		case GenreLexeme::Z8:
-		{
-			os << "char";
-			break;
-		}
-		case GenreLexeme::Z16:
-		{
-			os << "short";
-			break;
-		}
-		case GenreLexeme::Z32:
-		{
-			os << "int";
-			break;
-		}
-		case GenreLexeme::Z64:
-		{
-			os << "long";
-			break;
-		}
-		case GenreLexeme::CHAINE:
-		{
-			os << "chaine";
-			break;
-		}
-		case GenreLexeme::COROUT:
-		case GenreLexeme::FONC:
-		{
-			break;
-		}
-		case GenreLexeme::PARENTHESE_OUVRANTE:
-		{
-			os << '(';
-			break;
-		}
-		case GenreLexeme::PARENTHESE_FERMANTE:
-		{
-			os << ')';
-			break;
-		}
-		case GenreLexeme::VIRGULE:
-		{
-			os << ',';
-			break;
-		}
-		case GenreLexeme::NUL: /* pour par exemple quand on retourne nul */
-		case GenreLexeme::RIEN:
-		{
-			os << "void";
-			break;
-		}
-		case GenreLexeme::CHAINE_CARACTERE:
-		{
-			auto id_struct = static_cast<long>(id >> 8);
-			auto &donnees_struct = contexte.donnees_structure(id_struct);
-			auto nom_structure = contexte.nom_struct(id_struct);
-
-			if (donnees_struct.est_enum) {
-				auto &dt = contexte.typeuse[donnees_struct.noeud_decl->index_type];
-				converti_type_simple_C(contexte, os, dt.type_base(), false, false, false);
+			if (type_fonc->types_entrees.taille == 0) {
+				suffixe += virgule;
+				virgule = ",";
 			}
-			else {
-				/* XXX - hack, ces types ne peuvent avoir de spécifiants par que ce sont des typedefs de structs anonymes ? */
-				if (nom_structure != "pthread_mutex_t" && nom_structure != "pthread_cond_t") {
-					if (donnees_struct.est_union && (donnees_struct.est_nonsur || donnees_struct.est_externe)) {
-						os << ((echappe) ? "union_" : "union ");
-					}
-					else if (echappe_struct || donnees_struct.est_externe) {
-						os << ((echappe) ? "struct_" : "struct ");
-					}
+
+			nouveau_nom_broye += dls::vers_chaine(type_fonc->types_sorties.taille);
+
+			POUR (type_fonc->types_sorties) {
+				auto const &nom_broye_dt = nom_broye_type(contexte, it, true);
+
+				if (type_fonc->types_sorties.taille > 1) {
+					suffixe += virgule;
+					suffixe += nom_broye_dt;
 				}
 
-				os << broye_nom_simple(nom_structure);
+				nouveau_nom_broye += nom_broye_dt;
 			}
+
+			suffixe += ")";
+
+			type->nom_broye = nouveau_nom_broye;
+
+			nouveau_nom_broye = prefixe + nouveau_nom_broye + ")" + suffixe;
+
+			os << "typedef " << nouveau_nom_broye << ";\n\n";
 
 			break;
 		}
-		case GenreLexeme::EINI:
+		case GenreType::EINI:
 		{
-			os << "eini";
+			os << "typedef eini " << nom_broye << ";\n";
 			break;
 		}
-		case GenreLexeme::TYPE_DE:
+		case GenreType::RIEN:
 		{
-			assert(false && "type_de aurait dû être résolu");
+			os << "typedef void " << nom_broye << ";\n";
 			break;
 		}
-		default:
+		case GenreType::CHAINE:
 		{
-			assert(false);
+			os << "typedef chaine " << nom_broye << ";\n";
 			break;
 		}
-	}
-
-	return;
-}
-
-/* a : [2]z32 -> int x[2]
- * b : [4][4]r64 -> double y[4][4]
- * c : *bool -> bool *z
- * d : **bool -> bool **z
- * e : &bool -> bool *e
- * f : [2]*z32 -> int *f[2]
- * g : []z32 -> struct Tableau
- *
- * À FAIRE pour les accès ou assignations :
- * z : [4][4]z32 -> int (*z)[4] (pour l'instant -> int **z)
- */
-void converti_type_C(
-		ContexteGenerationCode &contexte,
-		dls::vue_chaine const &nom_variable,
-		type_plage_donnees_type donnees,
-		dls::flux_chaine &os,
-		bool echappe,
-		bool echappe_struct,
-		bool echappe_tableau_fixe)
-{
-	if (est_invalide(donnees)) {
-		return;
-	}
-
-	if (donnees.front() == GenreLexeme::TABLEAU || donnees.front() == GenreLexeme::TROIS_POINTS) {
-		if (echappe_struct) {
-			os << "struct ";
-		}
-
-		os << "Tableau_";
-		donnees.effronte();
-		converti_type_C(contexte, nom_variable, donnees, os, true);
-		return;
-	}
-
-	/* cas spécial pour convertir les types complexes comme *[]z8 */
-	if (donnees.front() == GenreLexeme::POINTEUR || donnees.front() == GenreLexeme::REFERENCE) {
-		donnees.effronte();
-		converti_type_C(contexte, "", donnees, os, echappe, echappe_struct);
-
-		if (echappe) {
-			os << "_ptr_";
-		}
-		else {
-			os << '*';
-		}
-
-		if (nom_variable != "") {
-			os << ' ' << nom_variable;
-		}
-
-		return;
-	}
-
-	if (donnees.front() == GenreLexeme::FONC || donnees.front() == GenreLexeme::COROUT) {
-		dls::tableau<dls::pile<GenreLexeme>> liste_pile_type;
-
-		auto nombre_types_retour = 0l;
-		auto parametres_finis = false;
-
-		/* saute l'id fonction */
-		donnees.effronte();
-
-		dls::pile<GenreLexeme> pile;
-
-		while (!donnees.est_finie()) {
-			auto donnee = donnees.front();
-			donnees.effronte();
-
-			if (donnee == GenreLexeme::PARENTHESE_OUVRANTE) {
-				/* RAF */
-			}
-			else if (donnee == GenreLexeme::PARENTHESE_FERMANTE) {
-				/* évite d'empiler s'il n'y a pas de paramètre, càd 'foo()' */
-				if (!pile.est_vide()) {
-					liste_pile_type.pousse(pile);
-				}
-
-				pile = dls::pile<GenreLexeme>{};
-
-				if (parametres_finis) {
-					++nombre_types_retour;
-				}
-
-				parametres_finis = true;
-			}
-			else if (donnee == GenreLexeme::VIRGULE) {
-				liste_pile_type.pousse(pile);
-				pile = dls::pile<GenreLexeme>{};
-
-				if (parametres_finis) {
-					++nombre_types_retour;
-				}
-			}
-			else {
-				pile.empile(donnee);
-			}
-		}
-
-		if (nombre_types_retour == 1) {
-			auto &pile_type = liste_pile_type[liste_pile_type.taille() - nombre_types_retour];
-
-			while (!pile_type.est_vide()) {
-				converti_type_simple_C(
-							contexte,
-							os,
-							pile_type.depile(),
-							echappe,
-							echappe_struct,
-							echappe_tableau_fixe);
-			}
-		}
-		else {
-			os << "void ";
-		}
-
-		os << "(*" << nom_variable << ")";
-
-		auto virgule = '(';
-
-		if (liste_pile_type.taille() == nombre_types_retour) {
-			os << virgule;
-			virgule = ' ';
-		}
-		else {
-			for (auto i = 0l; i < liste_pile_type.taille() - nombre_types_retour; ++i) {
-				os << virgule;
-
-				auto &pile_type = liste_pile_type[i];
-
-				while (!pile_type.est_vide()) {
-					converti_type_simple_C(
-								contexte,
-								os,
-								pile_type.depile(),
-								echappe,
-								echappe_struct,
-								echappe_tableau_fixe);
-				}
-
-				virgule = ',';
-			}
-		}
-
-		if (nombre_types_retour > 1) {
-			for (auto i = liste_pile_type.taille() - nombre_types_retour; i < liste_pile_type.taille(); ++i) {
-				os << virgule;
-
-				auto &pile_type = liste_pile_type[i];
-
-				while (!pile_type.est_vide()) {
-					converti_type_simple_C(
-								contexte,
-								os,
-								pile_type.depile(),
-								echappe,
-								echappe_struct,
-								echappe_tableau_fixe);
-				}
-
-				os << '*';
-				virgule = ',';
-			}
-		}
-
-		os << ')';
-
-		return;
-	}
-
-	auto nom_consomme = false;
-
-	while (!donnees.est_finie()) {
-		auto donnee = donnees.cul();
-		donnees.ecule();
-
-		if (est_type_tableau_fixe(donnee) && nom_consomme == false && nom_variable != "" && !echappe_tableau_fixe) {
-			os << ' ' << nom_variable;
-			nom_consomme = true;
-		}
-
-		converti_type_simple_C(contexte, os, donnee, echappe, echappe_struct, echappe_tableau_fixe);
-	}
-
-	if (nom_consomme == false && nom_variable != "") {
-		os << ' ' << nom_variable;
 	}
 }

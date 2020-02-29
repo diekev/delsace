@@ -43,11 +43,11 @@ class Value;
 
 struct ContexteGenerationCode;
 struct DonneesStructure;
-struct DonneesTypeFinal;
+struct Type;
 
 llvm::Value *cree_info_type(
 		ContexteGenerationCode &contexte,
-		DonneesTypeFinal &donnees_type);
+		Type *type);
 
 llvm::Value *valeur_enum(
 		DonneesStructure const &ds,

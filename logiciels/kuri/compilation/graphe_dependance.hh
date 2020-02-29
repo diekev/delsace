@@ -49,16 +49,6 @@ enum class TypeRelation : int {
 	UTILISE_TYPE,
 	UTILISE_FONCTION,
 	UTILISE_GLOBALE,
-
-	/* pour les relations entre les types
-	 * l'idée est de stocker dans le graphe les relations entre les types, afin
-	 * de ne pas avoir à construire partout des DonneesTypeFinal
-	 */
-	TYPE_TABLEAU,
-	TYPE_REFERENCE,
-	TYPE_POINTEUR,
-	/* le type du déréférencement d'un pointeur ou d'un tableau */
-	TYPE_DEREFERENCE,
 };
 
 const char *chaine_type_relation(TypeRelation type);
@@ -78,7 +68,7 @@ struct NoeudDependance {
 	dls::tableau<Relation> relations{};
 
 	// pour les types
-	long index{};
+	Type *type_{};
 
 	// pour les fonctions ou variables globales
 	dls::vue_chaine_compacte nom{};
@@ -99,13 +89,13 @@ struct NoeudDependance {
 struct DonneesDependance {
 	dls::ensemble<dls::vue_chaine_compacte> fonctions_utilisees{};
 	dls::ensemble<dls::vue_chaine_compacte> globales_utilisees{};
-	dls::ensemble<long> types_utilises{};
+	dls::ensemble<Type *> types_utilises{};
 };
 
 struct GrapheDependance {
 	dls::tableau<NoeudDependance *> noeuds{};
 
-	dls::dico<long, NoeudDependance *> index_noeuds_type{};
+	dls::dico<Type *, NoeudDependance *> index_noeuds_type{};
 
 	~GrapheDependance();
 
@@ -116,7 +106,7 @@ struct GrapheDependance {
 	NoeudDependance *cree_noeud_globale(dls::vue_chaine_compacte const &nom, noeud::base *noeud_syntactique);
 
 	// FUSIONNE (:TYPE { index = $index })
-	NoeudDependance *cree_noeud_type(long index);
+	NoeudDependance *cree_noeud_type(Type *type);
 
 	// CHERCHE (:FONCTION { nom = $nom })
 	NoeudDependance *cherche_noeud_fonction(dls::vue_chaine_compacte const &nom) const;
@@ -125,7 +115,7 @@ struct GrapheDependance {
 	NoeudDependance *cherche_noeud_globale(dls::vue_chaine_compacte const &nom) const;
 
 	// CHERCHE (:TYPE { index = $index })
-	NoeudDependance *cherche_noeud_type(long index) const;
+	NoeudDependance *cherche_noeud_type(Type *type) const;
 
 	// CHERCHE (fonction1 :FONCTION { nom = $nom1 })
 	// CHERCHE (fonction2 :FONCTION { nom = $nom2 })
@@ -151,11 +141,11 @@ struct GrapheDependance {
 	// FUSIONNE (type1)-[:UTILISE_TYPE]->(type2)
 	void connecte_type_type(NoeudDependance &type1, NoeudDependance &type2, TypeRelation type_rel = TypeRelation::UTILISE_TYPE);
 
-	void connecte_type_type(long type1, long type2, TypeRelation type_rel = TypeRelation::UTILISE_TYPE);
+	void connecte_type_type(Type *type1, Type *type2, TypeRelation type_rel = TypeRelation::UTILISE_TYPE);
 
 	void ajoute_dependances(NoeudDependance &noeud, DonneesDependance &donnees);
 
-	long trouve_index_type(long index_racine, TypeRelation type) const;
+	Type *trouve_type(Type *type_racine, TypeRelation type) const;
 
 	void connecte_noeuds(NoeudDependance &noeud1, NoeudDependance &noeud2, TypeRelation type_relation);
 };

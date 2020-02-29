@@ -24,6 +24,8 @@
 
 #include "generation_code_asm.hh"
 
+#include "biblinternes/structures/flux_chaine.hh"
+
 #include "arbre_syntactic.h"
 #include "assembleuse_arbre.h"
 #include "graphe_dependance.hh"

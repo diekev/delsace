@@ -37,168 +37,151 @@
 
 #include "contexte_generation_code.h"
 
-#include "donnees_type.h"
-
-static llvm::Type *converti_type(
-		ContexteGenerationCode &contexte,
-		DonneesTypeFinal &donnees_type)
-{
-	/* Pointeur vers une fonction, seulement valide lors d'assignement, ou en
-	 * paramètre de fonction. */
-	if (donnees_type.type_base() == GenreLexeme::FONC) {
-		if (donnees_type.type_llvm() != nullptr) {
-			return llvm::PointerType::get(donnees_type.type_llvm(), 0);
-		}
-
-		llvm::Type *type = nullptr;
-		auto dt = DonneesTypeFinal{};
-		std::vector<llvm::Type *> parametres;
-
-		auto nombre_retour = 0l;
-		auto dt_params = donnees_types_parametres(contexte.typeuse, donnees_type, nombre_retour);
-
-		for (auto i = 0; i < dt_params.taille() - 1; ++i) {
-			type = converti_type(contexte, contexte.typeuse[dt_params[i]]);
-			parametres.push_back(type);
-		}
-
-		type = converti_type(contexte, contexte.typeuse[dt_params.back()]);
-		type = llvm::FunctionType::get(
-					type,
-					parametres,
-					false);
-
-		donnees_type.type_llvm(type);
-
-		return llvm::PointerType::get(type, 0);
-	}
-
-	if (donnees_type.type_llvm() != nullptr) {
-		return donnees_type.type_llvm();
-	}
-
-	llvm::Type *type = nullptr;
-
-	for (GenreLexeme identifiant : donnees_type) {
-		type = converti_type_simple_llvm(contexte, identifiant, type);
-	}
-
-	donnees_type.type_llvm(type);
-
-	return type;
-}
+#include "typage.hh"
 
 llvm::Type *converti_type_llvm(
 		ContexteGenerationCode &contexte,
-		DonneesTypeFinal &donnees)
+		Type *type)
 {
-	auto index = contexte.typeuse.ajoute_type(donnees);
-	auto &dt = contexte.typeuse[index];
-	return converti_type(contexte, dt);
-}
+	switch (type->genre) {
+		case GenreType::INVALIDE:
+		{
+			return nullptr;
+		}
+		case GenreType::FONCTION:
+		{
+			if (type->type_llvm != nullptr) {
+				return llvm::PointerType::get(type->type_llvm, 0);
+			}
 
-llvm::Type *converti_type_llvm(
-		ContexteGenerationCode &contexte,
-		long index_type)
-{
-	auto &dt = contexte.typeuse[index_type];
-	return converti_type(contexte, dt);
-}
+			auto type_fonc = static_cast<TypeFonction *>(type);
 
-llvm::Type *converti_type_simple_llvm(
-		ContexteGenerationCode &contexte,
-		const GenreLexeme &identifiant,
-		llvm::Type *type_entree)
-{
-	llvm::Type *type = nullptr;
+			std::vector<llvm::Type *> parametres;
+			POUR (type_fonc->types_entrees) {
+				auto type_llvm = converti_type_llvm(contexte, it);
+				parametres.push_back(type_llvm);
+			}
 
-	switch (identifiant & 0xff) {
-		case GenreLexeme::BOOL:
-		{
-			type = llvm::Type::getInt1Ty(contexte.contexte);
-			break;
+			// À FAIRE : multiples types de retours
+			auto type_retour = converti_type_llvm(contexte, type_fonc->types_sorties[0]);
+
+			auto type_llvm = llvm::FunctionType::get(
+						type_retour,
+						parametres,
+						false);
+
+			return llvm::PointerType::get(type_llvm, 0);
 		}
-		case GenreLexeme::OCTET:
-		case GenreLexeme::N8:
-		case GenreLexeme::Z8:
+		case GenreType::EINI:
 		{
-			type = llvm::Type::getInt8Ty(contexte.contexte);
-			break;
+			/* type = structure { *z8, *InfoType } */
+			auto type_info_type = contexte.typeuse.type_pour_nom("InfoType");
+
+			std::vector<llvm::Type *> types_membres(2ul);
+			types_membres[0] = llvm::Type::getInt8PtrTy(contexte.contexte);
+			types_membres[1] = converti_type_llvm(contexte, type_info_type);
+
+			return llvm::StructType::create(
+						contexte.contexte,
+						types_membres,
+						"struct.eini",
+						false);
+
 		}
-		case GenreLexeme::N16:
-		case GenreLexeme::Z16:
+		case GenreType::CHAINE:
 		{
-			type = llvm::Type::getInt16Ty(contexte.contexte);
-			break;
+			/* type = structure { *z8, z64 } */
+			std::vector<llvm::Type *> types_membres(2ul);
+			types_membres[0] = llvm::Type::getInt8PtrTy(contexte.contexte);
+			types_membres[1] = llvm::Type::getInt64Ty(contexte.contexte);
+
+			return llvm::StructType::create(
+						contexte.contexte,
+						types_membres,
+						"struct.chaine",
+						false);
 		}
-		case GenreLexeme::N32:
-		case GenreLexeme::Z32:
+		case GenreType::RIEN:
 		{
-			type = llvm::Type::getInt32Ty(contexte.contexte);
-			break;
+			return llvm::Type::getVoidTy(contexte.contexte);
 		}
-		case GenreLexeme::N64:
-		case GenreLexeme::Z64:
+		case GenreType::BOOL:
 		{
-			type = llvm::Type::getInt64Ty(contexte.contexte);
-			break;
+			return llvm::Type::getInt1Ty(contexte.contexte);
 		}
-		case GenreLexeme::R16:
+		case GenreType::OCTET:
 		{
-			type = llvm::Type::getInt16Ty(contexte.contexte);
-			break;
+			return llvm::Type::getInt8Ty(contexte.contexte);
 		}
-		case GenreLexeme::R32:
+		case GenreType::ENTIER_NATUREL:
+		case GenreType::ENTIER_RELATIF:
 		{
-			type = llvm::Type::getFloatTy(contexte.contexte);
-			break;
+			if (type->taille_octet == 1) {
+				return llvm::Type::getInt8Ty(contexte.contexte);
+			}
+
+			if (type->taille_octet == 2) {
+				return llvm::Type::getInt16Ty(contexte.contexte);
+			}
+
+			if (type->taille_octet == 4) {
+				return llvm::Type::getInt32Ty(contexte.contexte);
+			}
+
+			if (type->taille_octet == 8) {
+				return llvm::Type::getInt64Ty(contexte.contexte);
+			}
+
+			return nullptr;
 		}
-		case GenreLexeme::R64:
+		case GenreType::REEL:
 		{
-			type = llvm::Type::getDoubleTy(contexte.contexte);
-			break;
+			if (type->taille_octet == 2) {
+				return llvm::Type::getInt16Ty(contexte.contexte);
+			}
+
+			if (type->taille_octet == 4) {
+				return llvm::Type::getFloatTy(contexte.contexte);
+			}
+
+			if (type->taille_octet == 8) {
+				return llvm::Type::getDoubleTy(contexte.contexte);
+			}
+
+			return nullptr;
 		}
-		case GenreLexeme::RIEN:
+		case GenreType::REFERENCE:
+		case GenreType::POINTEUR:
 		{
-			type = llvm::Type::getVoidTy(contexte.contexte);
-			break;
+			auto type_deref_llvm = converti_type_llvm(contexte, contexte.typeuse.type_dereference_pour(type));
+			return llvm::PointerType::get(type_deref_llvm, 0);
 		}
-		case GenreLexeme::REFERENCE:
-		case GenreLexeme::POINTEUR:
+		case GenreType::UNION:
+		case GenreType::STRUCTURE:
 		{
-			type = llvm::PointerType::get(type_entree, 0);
-			break;
-		}
-		case GenreLexeme::CHAINE_CARACTERE:
-		{
-			auto const &id_structure = (static_cast<long>(identifiant) & 0xffffff00) >> 8;
-			auto &donnees_structure = contexte.donnees_structure(id_structure);
+			auto nom_struct = static_cast<TypeStructure *>(type)->nom;
+			auto &donnees_structure = contexte.donnees_structure(nom_struct);
 
 			if (donnees_structure.type_llvm == nullptr) {
-				if (donnees_structure.est_enum) {
-					auto &dt = contexte.typeuse[donnees_structure.noeud_decl->index_type];
-					donnees_structure.type_llvm = converti_type_simple_llvm(contexte, dt.type_base(), nullptr);
-				}
-				else if (donnees_structure.est_union) {
+				if (donnees_structure.est_union) {
 					auto nom_nonsur = "union_nonsure." + contexte.nom_struct(donnees_structure.id);
 					auto nom = "union." + contexte.nom_struct(donnees_structure.id);
 
 					// création d'une structure ne contenant que le membre le plus grand
 					auto taille_max = 0u;
-					auto id_max = 0l;
+					auto type_max = static_cast<Type *>(nullptr);
 
-					for (auto &id : donnees_structure.index_types) {
-						auto taille_type = taille_octet_type(contexte, contexte.typeuse[id]);
+					for (auto &id : donnees_structure.types) {
+						auto taille_type = id->taille_octet;
 
 						if (taille_type > taille_max) {
 							taille_max = taille_type;
-							id_max = id;
+							type_max = id;
 						}
 					}
 
-					auto type_max = converti_type(contexte, contexte.typeuse[id_max]);
-
-					auto type_union = llvm::StructType::create(contexte.contexte, { type_max }, nom_nonsur.c_str());
+					auto type_max_llvm = converti_type_llvm(contexte, type_max);
+					auto type_union = llvm::StructType::create(contexte.contexte, { type_max_llvm }, nom_nonsur.c_str());
 
 					if (!donnees_structure.est_nonsur) {
 						// création d'une structure contenant l'union et une valeur discriminante
@@ -216,117 +199,53 @@ llvm::Type *converti_type_simple_llvm(
 					donnees_structure.type_llvm = type_opaque;
 
 					std::vector<llvm::Type *> types_membres;
-					types_membres.resize(static_cast<size_t>(donnees_structure.index_types.taille()));
+					types_membres.resize(static_cast<size_t>(donnees_structure.types.taille()));
 
-					std::transform(donnees_structure.index_types.debut(),
-								   donnees_structure.index_types.fin(),
+					std::transform(donnees_structure.types.debut(),
+								   donnees_structure.types.fin(),
 								   types_membres.begin(),
-								   [&](const long index_type)
+								   [&](Type *type_membre)
 					{
-						auto &dt = contexte.typeuse[index_type];
-						return converti_type(contexte, dt);
+						return converti_type_llvm(contexte, type_membre);
 					});
 
 					type_opaque->setBody(types_membres, false);
 				}
 			}
 
-			type = donnees_structure.type_llvm;
-			break;
+			return donnees_structure.type_llvm;
 		}
-		case GenreLexeme::TABLEAU:
+		case GenreType::VARIADIQUE:
+		case GenreType::TABLEAU_DYNAMIQUE:
 		{
-			auto const taille = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
+			auto type_deref_llvm = converti_type_llvm(contexte, contexte.typeuse.type_dereference_pour(type));
 
-			if (taille != 0) {
-				type = llvm::ArrayType::get(type_entree, taille);
-			}
-			else {
-				/* type = structure { *type, n64 } */
-				std::vector<llvm::Type *> types_membres(2ul);
-				types_membres[0] = llvm::PointerType::get(type_entree, 0);
-				types_membres[1] = llvm::Type::getInt64Ty(contexte.contexte);
+			/* type = structure { *type, n64 } */
+			std::vector<llvm::Type *> types_membres(2ul);
+			types_membres[0] = llvm::PointerType::get(type_deref_llvm, 0);
+			types_membres[1] = llvm::Type::getInt64Ty(contexte.contexte);
 
-				type = llvm::StructType::create(
-						   contexte.contexte,
-						   types_membres,
-						   "struct.tableau",
-						   false);
-			}
-
-			break;
+			return llvm::StructType::create(
+					   contexte.contexte,
+					   types_membres,
+					   "struct.tableau",
+					   false);
 		}
-		case GenreLexeme::EINI:
+		case GenreType::TABLEAU_FIXE:
 		{
-			auto dt = DonneesTypeFinal{};
-			dt.pousse(GenreLexeme::EINI);
+			auto type_deref_llvm = converti_type_llvm(contexte, contexte.typeuse.type_dereference_pour(type));
+			auto const taille = static_cast<TypeTableauFixe *>(type)->taille;
 
-			auto index_eini = contexte.typeuse.ajoute_type(dt);
-			auto &type_eini = contexte.typeuse[index_eini];
-
-			if (type_eini.type_llvm() == nullptr) {
-				/* type = structure { *z8, *InfoType } */
-
-				auto index_struct_info = contexte.donnees_structure("InfoType").id;
-
-				auto dt_info = DonneesTypeFinal{};
-				dt_info.pousse(GenreLexeme::POINTEUR);
-				dt_info.pousse(GenreLexeme::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
-
-				index_struct_info = contexte.typeuse.ajoute_type(dt_info);
-				auto &ref_dt_info = contexte.typeuse[index_struct_info];
-
-				auto type_struct_info = converti_type(contexte, ref_dt_info);
-
-				std::vector<llvm::Type *> types_membres(2ul);
-				types_membres[0] = llvm::Type::getInt8PtrTy(contexte.contexte);
-				types_membres[1] = type_struct_info;
-
-				type = llvm::StructType::create(
-						   contexte.contexte,
-						   types_membres,
-						   "struct.eini",
-						   false);
-
-				type_eini.type_llvm(type);
-			}
-
-			type = type_eini.type_llvm();
-			break;
+			return  llvm::ArrayType::get(type_deref_llvm, static_cast<unsigned long>(taille));
 		}
-		case GenreLexeme::CHAINE:
+		case GenreType::ENUM:
 		{
-			auto index_chaine = contexte.typeuse[TypeBase::CHAINE];
-			auto &type_chaine = contexte.typeuse[index_chaine];
-
-			if (type_chaine.type_llvm() == nullptr) {
-				/* type = structure { *z8, z64 } */
-				std::vector<llvm::Type *> types_membres(2ul);
-				types_membres[0] = llvm::Type::getInt8PtrTy(contexte.contexte);
-				types_membres[1] = llvm::Type::getInt64Ty(contexte.contexte);
-
-				type = llvm::StructType::create(
-						   contexte.contexte,
-						   types_membres,
-						   "struct.chaine",
-						   false);
-
-				type_chaine.type_llvm(type);
-			}
-
-			type = type_chaine.type_llvm();
-			break;
-		}
-		case GenreLexeme::TYPE_DE:
-		{
-			assert(false && "type_de aurait dû être résolu");
-			break;
-		}
-		default:
-		{
-			assert(false);
+			auto nom_struct = static_cast<TypeStructure *>(type)->nom;
+			auto &donnees_structure = contexte.donnees_structure(nom_struct);
+			donnees_structure.type_llvm = converti_type_llvm(contexte, donnees_structure.type);
+			return nullptr;
 		}
 	}
 
-	return type;
+	return nullptr;
 }

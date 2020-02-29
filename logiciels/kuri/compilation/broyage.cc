@@ -26,6 +26,8 @@
 
 #include "biblinternes/langage/unicode.hh"
 
+#include "biblinternes/structures/flux_chaine.hh"
+
 #include "contexte_generation_code.h"
 #include "modules.hh"
 
@@ -93,169 +95,183 @@ dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)
  */
 dls::chaine const &nom_broye_type(
 		ContexteGenerationCode &contexte,
-		DonneesTypeFinal &dt)
+		Type *type,
+		bool pour_generation_code_c)
 {
-	if (dt.nom_broye == "") {
-		auto flux = dls::flux_chaine();
-		auto plage = dt.plage();
-
-		while (!plage.est_finie()) {
-			auto donnee = plage.front();
-			plage.effronte();
-
-			switch (donnee & 0xff) {
-				case GenreLexeme::TROIS_POINTS:
-				{
-					flux << "Kv";
-					break;
-				}
-				case GenreLexeme::POINTEUR:
-				{
-					flux << "KP";
-					break;
-				}
-				case GenreLexeme::TABLEAU:
-				{
-					if (static_cast<size_t>(donnee >> 8) != 0) {
-						flux << "KT" << static_cast<size_t>(donnee >> 8);
-					}
-					else {
-						flux << "Kt";
-					}
-
-					break;
-				}
-				case GenreLexeme::N8:
-				{
-					flux << "Ksn8";
-					break;
-				}
-				case GenreLexeme::N16:
-				{
-					flux << "Ksn16";
-					break;
-				}
-				case GenreLexeme::N32:
-				{
-					flux << "Ksn32";
-					break;
-				}
-				case GenreLexeme::N64:
-				{
-					flux << "Ksn64";
-					break;
-				}
-				case GenreLexeme::R16:
-				{
-					flux << "Ksr16";
-					break;
-				}
-				case GenreLexeme::R32:
-				{
-					flux << "Ksr32";
-					break;
-				}
-				case GenreLexeme::R64:
-				{
-					flux << "Ksr64";
-					break;
-				}
-				case GenreLexeme::Z8:
-				{
-					flux << "Ksz8";
-					break;
-				}
-				case GenreLexeme::Z16:
-				{
-					flux << "Ksz16";
-					break;
-				}
-				case GenreLexeme::Z32:
-				{
-					flux << "Ksz32";
-					break;
-				}
-				case GenreLexeme::Z64:
-				{
-					flux << "Ksz64";
-					break;
-				}
-				case GenreLexeme::BOOL:
-				{
-					flux << "Ksbool";
-					break;
-				}
-				case GenreLexeme::CHAINE:
-				{
-					flux << "Kschaine";
-					break;
-				}
-				case GenreLexeme::FONC:
-				{
-					/* À FAIRE gestion des paramètres */
-					flux << "Kf";
-					break;
-				}
-				case GenreLexeme::COROUT:
-				{
-					flux << "Kc";
-					break;
-				}
-				case GenreLexeme::PARENTHESE_OUVRANTE:
-				case GenreLexeme::PARENTHESE_FERMANTE:
-				case GenreLexeme::VIRGULE:
-				case GenreLexeme::EINI:
-				{
-					flux << "Kseini";
-					break;
-				}
-				case GenreLexeme::RIEN:
-				{
-					flux << "Ksrien";
-					break;
-				}
-				case GenreLexeme::OCTET:
-				{
-					flux << "Ksoctet";
-					break;
-				}
-				case GenreLexeme::NUL:
-				{
-					flux << "Ksnul";
-					break;
-				}
-				case GenreLexeme::REFERENCE:
-				{
-					flux << "KR";
-					break;
-				}
-				case GenreLexeme::CHAINE_CARACTERE:
-				{
-					auto id = static_cast<long>(donnee >> 8);
-					flux << "Ks";
-					flux << broye_nom_simple(contexte.nom_struct(id));
-					break;
-				}
-				default:
-				{
-					flux << "INVALIDE";
-					break;
-				}
-			}
-		}
-
-		dt.nom_broye = flux.chn();
+	if (type->nom_broye != "" && type->genre != GenreType::ENUM) {
+		return type->nom_broye;
 	}
 
-	return dt.nom_broye;
-}
+	auto flux = dls::flux_chaine();
 
-dls::chaine const &nom_broye_type(
-		ContexteGenerationCode &contexte,
-		long index_type)
-{
-	auto &dt = contexte.typeuse[index_type];
-	return nom_broye_type(contexte, dt);
+	switch (type->genre) {
+		case GenreType::INVALIDE:
+		{
+			flux << "Ksinvalide";
+			break;
+		}
+		case GenreType::EINI:
+		{
+			flux << "Kseini";
+			break;
+		}
+		case GenreType::CHAINE:
+		{
+			flux << "Kschaine";
+			break;
+		}
+		case GenreType::RIEN:
+		{
+			flux << "Ksrien";
+			break;
+		}
+		case GenreType::BOOL:
+		{
+			flux << "Ksbool";
+			break;
+		}
+		case GenreType::OCTET:
+		{
+			flux << "Ksoctet";
+			break;
+		}
+		case GenreType::ENTIER_NATUREL:
+		{
+			if (type->taille_octet == 1) {
+				flux << "Ksn8";
+			}
+			else if (type->taille_octet == 2) {
+				flux << "Ksn16";
+			}
+			else if (type->taille_octet == 4) {
+				flux << "Ksn32";
+			}
+			else if (type->taille_octet == 8) {
+				flux << "Ksn64";
+			}
+
+			break;
+		}
+		case GenreType::ENTIER_RELATIF:
+		{
+			if (type->taille_octet == 1) {
+				flux << "Ksz8";
+			}
+			else if (type->taille_octet == 2) {
+				flux << "Ksz16";
+			}
+			else if (type->taille_octet == 4) {
+				flux << "Ksz32";
+			}
+			else if (type->taille_octet == 8) {
+				flux << "Ksz64";
+			}
+
+			break;
+		}
+		case GenreType::REEL:
+		{
+			if (type->taille_octet == 2) {
+				flux << "Ksr16";
+			}
+			else if (type->taille_octet == 4) {
+				flux << "Ksr32";
+			}
+			else if (type->taille_octet == 8) {
+				flux << "Ksr64";
+			}
+
+			break;
+		}
+		case GenreType::REFERENCE:
+		{
+			flux << "KR";
+			flux << nom_broye_type(contexte, static_cast<TypeReference *>(type)->type_pointe, pour_generation_code_c);
+			break;
+		}
+		case GenreType::POINTEUR:
+		{
+			flux << "KP";
+
+			auto type_pointe = static_cast<TypePointeur *>(type)->type_pointe;
+
+			if (type_pointe == nullptr) {
+				flux << "nul";
+			}
+			else {
+				flux << nom_broye_type(contexte, type_pointe, pour_generation_code_c);
+			}
+
+			break;
+		}
+		case GenreType::UNION:
+		{
+			flux << "Ks";
+			flux << broye_nom_simple(static_cast<TypeStructure const *>(type)->nom);
+			break;
+		}
+		case GenreType::STRUCTURE:
+		{
+			flux << "Ks";
+			flux << broye_nom_simple(static_cast<TypeStructure const *>(type)->nom);
+			break;
+		}
+		case GenreType::VARIADIQUE:
+		{
+			auto type_pointe = static_cast<TypeVariadique *>(type)->type_pointe;
+
+			// les arguments variadiques sont transformés en tableaux, donc utilise Kt
+			if (type_pointe != nullptr) {
+				flux << "Kt";
+				flux << nom_broye_type(contexte, type_pointe, pour_generation_code_c);
+			}
+			else {
+				flux << "Kv";
+			}
+
+			break;
+		}
+		case GenreType::TABLEAU_DYNAMIQUE:
+		{
+			flux << "Kt";
+			flux << nom_broye_type(contexte, static_cast<TypeTableauDynamique *>(type)->type_pointe, pour_generation_code_c);
+			break;
+		}
+		case GenreType::TABLEAU_FIXE:
+		{
+			auto type_tabl = static_cast<TypeTableauFixe *>(type);
+
+			flux << "KT";
+			flux << type_tabl->taille;
+			flux << nom_broye_type(contexte, static_cast<TypeTableauFixe *>(type)->type_pointe, pour_generation_code_c);
+			break;
+		}
+		case GenreType::FONCTION:
+		{
+			// À FAIRE : types des paramètres, coroutine
+			flux << "Kf";
+			break;
+		}
+		case GenreType::ENUM:
+		{
+			auto type_enum = static_cast<TypeEnum const *>(type);
+
+			if (pour_generation_code_c) {
+				assert(type_enum->type_donnees);
+				flux << nom_broye_type(contexte, type_enum->type_donnees, pour_generation_code_c);
+			}
+			else {
+				flux << "Ks";
+				flux << broye_nom_simple(static_cast<TypeEnum const *>(type)->nom);
+			}
+
+			break;
+		}
+	}
+
+	type->nom_broye = flux.chn();
+
+	return type->nom_broye;
 }
 
 /* format :
@@ -279,6 +295,7 @@ dls::chaine broye_nom_fonction(
 		dls::vue_chaine_compacte const &nom_fonction,
 		dls::chaine const &nom_module)
 {
+	auto type_fonc = df.type;
 	auto ret = dls::chaine("_K");
 
 	ret += df.est_coroutine ? "C" : "F";
@@ -307,18 +324,18 @@ dls::chaine broye_nom_fonction(
 		ret += dls::vers_chaine(nom_ascii.taille());
 		ret += nom_ascii;
 
-		auto const &nom_broye = nom_broye_type(contexte, arg.index_type);
+		auto const &nom_broye = nom_broye_type(contexte, arg.type, false);
 		ret += dls::vers_chaine(nom_broye.taille());
 		ret += nom_broye;
 	}
 
 	/* sorties */
 	ret += "_S";
-	ret += dls::vers_chaine(df.idx_types_retours.taille());
+	ret += dls::vers_chaine(type_fonc->types_sorties.taille);
 	ret += "_";
 
-	for (auto const &idx : df.idx_types_retours) {
-		auto const &nom_broye = nom_broye_type(contexte, idx);
+	POUR (type_fonc->types_sorties) {
+		auto const &nom_broye = nom_broye_type(contexte, it, false);
 		ret += dls::vers_chaine(nom_broye.taille());
 		ret += nom_broye;
 	}

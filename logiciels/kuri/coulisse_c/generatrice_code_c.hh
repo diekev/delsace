@@ -29,7 +29,7 @@
 
 #include "broyage.hh"
 #include "contexte_generation_code.h"
-#include "donnees_type.h"
+#include "typage.hh"
 
 struct ContexteGenerationCode;
 
@@ -86,14 +86,9 @@ struct GeneratriceCodeC {
 		, os(flux)
 	{}
 
-	void declare_variable(long type, dls::chaine const &nom, dls::chaine const &expr)
+	void declare_variable(Type *type, dls::chaine const &nom, dls::chaine const &expr)
 	{
-		declare_variable(contexte.typeuse[type], nom, expr);
-	}
-
-	void declare_variable(DonneesTypeFinal &type, dls::chaine const &nom, dls::chaine const &expr)
-	{
-		os << nom_broye_type(contexte, type) << " " << nom;
+		os << nom_broye_type(contexte, type, true) << " " << nom;
 
 		if (!expr.est_vide()) {
 			os << " = " << expr;
@@ -115,10 +110,10 @@ struct GeneratriceCodeC {
 #endif
 	}
 
-	dls::chaine declare_variable_temp(DonneesTypeFinal &type, int index_var)
+	dls::chaine declare_variable_temp(Type *type, int index_var)
 	{
 		auto nom_temp = "__var_temp" + dls::vers_chaine(index_var);
-		os << nom_broye_type(contexte, type) << " " << nom_temp << ";\n";
+		os << nom_broye_type(contexte, type, true) << " " << nom_temp << ";\n";
 
 #ifdef UTILISE_ENCHAINEUSE
 		m_enchaineuse.pousse(nom_broye_type(contexte, type));
@@ -130,11 +125,11 @@ struct GeneratriceCodeC {
 		return nom_temp;
 	}
 
-	dls::chaine expression_malloc(DonneesTypeFinal &type, dls::chaine const &expr)
+	dls::chaine expression_malloc(Type *type, dls::chaine const &expr)
 	{
 		auto flux = dls::flux_chaine();
 		flux << "(";
-		os << nom_broye_type(contexte, type);
+		os << nom_broye_type(contexte, type, true);
 		flux << ")(malloc(" << expr << "))";
 
 		return flux.chn();

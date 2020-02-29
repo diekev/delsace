@@ -31,6 +31,7 @@
 struct DonneesLexeme;
 struct DonneesStructure;
 struct ContexteGenerationCode;
+struct Type;
 
 namespace erreur {
 
@@ -78,28 +79,28 @@ using frappe = lng::erreur::frappe<type_erreur>;
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void lance_erreur_type_arguments(
-		const DonneesTypeFinal &type_arg,
-		const DonneesTypeFinal &type_enf,
+		const Type *type_arg,
+		const Type *type_enf,
 		const ContexteGenerationCode &contexte,
 		const DonneesLexeme &morceau_enfant,
 		const DonneesLexeme &morceau);
 
 [[noreturn]] void lance_erreur_type_retour(
-		const DonneesTypeFinal &type_arg,
-		const DonneesTypeFinal &type_enf,
+		const Type *type_arg,
+		const Type *type_enf,
 		const ContexteGenerationCode &contexte,
 		const DonneesLexeme &morceau_enfant,
 		const DonneesLexeme &morceau);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
-		const DonneesTypeFinal &type_gauche,
-		const DonneesTypeFinal &type_droite,
+		const Type *type_gauche,
+		const Type *type_droite,
 		const ContexteGenerationCode &contexte,
 		const DonneesLexeme &morceau);
 
 [[noreturn]] void lance_erreur_type_operation(
-		const DonneesTypeFinal &type_gauche,
-		const DonneesTypeFinal &type_droite,
+		const Type *type_gauche,
+		const Type *type_droite,
 		const ContexteGenerationCode &contexte,
 		const DonneesLexeme &morceau);
 
@@ -117,8 +118,8 @@ using frappe = lng::erreur::frappe<type_erreur>;
 [[noreturn]] void lance_erreur_acces_hors_limites(
 			ContexteGenerationCode const &contexte,
 			noeud::base *b,
-			int taille_tableau,
-			DonneesTypeFinal const &type_tableau,
+			long taille_tableau,
+			Type const *type_tableau,
 			long index_acces);
 
 [[noreturn]] void lance_erreur_type_operation(

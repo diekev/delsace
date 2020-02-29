@@ -28,6 +28,8 @@
 #include "biblinternes/langage/outils.hh"
 #include "biblinternes/langage/unicode.hh"
 
+#include "biblinternes/structures/flux_chaine.hh"
+
 #include "erreur.h"
 
 /* ************************************************************************** */

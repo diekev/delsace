@@ -24,20 +24,12 @@
 
 #pragma once
 
-#include "biblinternes/structures/vue_chaine.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 
-#include "donnees_type.h"
-
-void converti_type_C(
-		ContexteGenerationCode &contexte,
-		dls::vue_chaine const &nom_variable,
-		type_plage_donnees_type donnees,
-		dls::flux_chaine &os,
-		bool echappe = false,
-		bool echappe_struct = false,
-		bool echappe_tableau_fixe = false);
+struct ContexteGenerationCode;
+struct Type;
 
 void cree_typedef(
 		ContexteGenerationCode &contexte,
-		DonneesTypeFinal &donnees,
+		Type *type,
 		dls::flux_chaine &os);

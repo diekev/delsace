@@ -68,42 +68,37 @@ const char *chaine_transformation(TypeTransformation type)
  * graphe, qui sera sans doute révisée plus tard.
  */
 TransformationType cherche_transformation(
-		ContexteGenerationCode const &contexte,
-		long type_de,
-		long type_vers)
+		Type *type_de,
+		Type *type_vers)
 {
 	if (type_de == type_vers) {
 		return TypeTransformation::INUTILE;
 	}
 
-	auto const &typeuse = contexte.typeuse;
-	auto const &dt_de = typeuse[type_de];
-	auto const &dt_vers = typeuse[type_vers];
-
-	if (est_type_entier_relatif(dt_de.type_base()) && est_type_entier_relatif(dt_vers.type_base())) {
-		if (taille_octet_type(contexte, dt_de) < taille_octet_type(contexte, dt_vers)) {
+	if (type_de->genre == GenreType::ENTIER_NATUREL && type_vers->genre == GenreType::ENTIER_NATUREL) {
+		if (type_de->taille_octet < type_vers->taille_octet) {
 			return { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
 		}
 
 		return TypeTransformation::IMPOSSIBLE;
 	}
 
-	if (est_type_entier_naturel(dt_de.type_base()) && est_type_entier_naturel(dt_vers.type_base())) {
-		if (taille_octet_type(contexte, dt_de) < taille_octet_type(contexte, dt_vers)) {
+	if (type_de->genre == GenreType::ENTIER_RELATIF && type_vers->genre == GenreType::ENTIER_RELATIF) {
+		if (type_de->taille_octet < type_vers->taille_octet) {
 			return { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
 		}
 
 		return TypeTransformation::IMPOSSIBLE;
 	}
 
-	if (est_type_reel(dt_de.type_base()) && est_type_reel(dt_vers.type_base())) {
+	if (type_de->genre == GenreType::REEL && type_vers->genre == GenreType::REEL) {
 		/* cas spéciaux pour R16 */
-		if (dt_de.type_base() == GenreLexeme::R16) {
-			if (dt_vers.type_base() == GenreLexeme::R32) {
+		if (type_de->taille_octet == 2) {
+			if (type_vers->taille_octet == 4) {
 				return { "DLS_vers_r32", type_vers };
 			}
 
-			if (dt_vers.type_base() == GenreLexeme::R64) {
+			if (type_vers->taille_octet == 8) {
 				return { "DLS_vers_r64", type_vers };
 			}
 
@@ -111,36 +106,36 @@ TransformationType cherche_transformation(
 		}
 
 		/* cas spéciaux pour R16 */
-		if (dt_vers.type_base() == GenreLexeme::R16) {
-			if (dt_de.type_base() == GenreLexeme::R32) {
+		if (type_vers->taille_octet == 2) {
+			if (type_de->taille_octet == 4) {
 				return { "DLS_depuis_r32", type_vers };
 			}
 
-			if (dt_de.type_base() == GenreLexeme::R64) {
+			if (type_de->taille_octet == 8) {
 				return { "DLS_depuis_r64", type_vers };
 			}
 
 			return TypeTransformation::IMPOSSIBLE;
 		}
 
-		if (taille_octet_type(contexte, dt_de) < taille_octet_type(contexte, dt_vers)) {
+		if (type_de->taille_octet < type_vers->taille_octet) {
 			return { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
 		}
 
 		return TypeTransformation::IMPOSSIBLE;
 	}
 
-	if (type_vers == typeuse[TypeBase::EINI]) {
+	if (type_vers->genre == GenreType::EINI) {
 		return TypeTransformation::CONSTRUIT_EINI;
 	}
 
-	if (type_de == typeuse[TypeBase::EINI]) {
+	if (type_de->genre == GenreType::EINI) {
 		return { TypeTransformation::EXTRAIT_EINI, type_vers };
 	}
 
-	if (dt_vers.type_base() == GenreLexeme::FONC) {
+	if (type_vers->genre == GenreType::FONCTION) {
 		/* x : fonc()rien = nul; */
-		if (dt_de.type_base() == GenreLexeme::POINTEUR && dt_de.dereference().front() == GenreLexeme::NUL) {
+		if (type_de->genre == GenreType::POINTEUR && static_cast<TypePointeur *>(type_de)->type_pointe == nullptr) {
 			return TypeTransformation::INUTILE;
 		}
 
@@ -149,60 +144,63 @@ TransformationType cherche_transformation(
 		return TypeTransformation::IMPOSSIBLE;
 	}
 
-	if (dt_vers.type_base() == GenreLexeme::REFERENCE) {
-		if (dt_vers.dereference() == dt_de) {
+	if (type_vers->genre == GenreType::REFERENCE) {
+		if (static_cast<TypeReference *>(type_vers)->type_pointe == type_de) {
 			return TypeTransformation::PREND_REFERENCE;
 		}
 	}
 
-	if (dt_de.type_base() == GenreLexeme::REFERENCE) {
-		if (dt_de.dereference() == dt_vers) {
+	if (type_de->genre == GenreType::REFERENCE) {
+		if (static_cast<TypeReference *>(type_de)->type_pointe == type_vers) {
 			return TypeTransformation::DEREFERENCE;
 		}
 	}
 
-	if (dt_vers.type_base() == GenreLexeme::TABLEAU) {
-		if (dt_vers.dereference().front() == GenreLexeme::OCTET) {
+	if (type_vers->genre == GenreType::TABLEAU_DYNAMIQUE) {
+		auto type_pointe = static_cast<TypeTableauDynamique *>(type_vers)->type_pointe;
+
+		if (type_pointe->genre == GenreType::OCTET) {
 			return TypeTransformation::CONSTRUIT_TABL_OCTET;
 		}
 
-		if ((dt_de.type_base() & 0xff) != GenreLexeme::TABLEAU) {
+		if (type_de->genre != GenreType::TABLEAU_FIXE) {
 			return TypeTransformation::IMPOSSIBLE;
 		}
 
-		if (dt_vers.dereference() == dt_de.dereference()) {
+		if (type_pointe == static_cast<TypeTableauFixe *>(type_de)->type_pointe) {
 			return TypeTransformation::CONVERTI_TABLEAU;
 		}
 
 		return TypeTransformation::IMPOSSIBLE;
 	}
 
-	if (dt_vers.type_base() == GenreLexeme::POINTEUR) {
-		if (dt_de.type_base() == GenreLexeme::POINTEUR) {
-			/* x = nul; */
-			if (dt_de.dereference().front() == GenreLexeme::NUL) {
-				return TypeTransformation::INUTILE;
-			}
+	if (type_vers->genre == GenreType::POINTEUR && type_de->genre == GenreType::POINTEUR) {
+		auto type_pointe_de = static_cast<TypePointeur *>(type_de)->type_pointe;
+		auto type_pointe_vers = static_cast<TypePointeur *>(type_vers)->type_pointe;
 
-			/* x : *z8 = y (*rien) */
-			if (dt_de.dereference().front() == GenreLexeme::RIEN) {
-				return TypeTransformation::INUTILE;
-			}
+		/* x = nul; */
+		if (type_pointe_de == nullptr) {
+			return TypeTransformation::INUTILE;
+		}
 
-			/* x : *rien = y; */
-			if (dt_vers.dereference().front() == GenreLexeme::RIEN) {
-				return TypeTransformation::INUTILE;
-			}
+		/* x : *z8 = y (*rien) */
+		if (type_pointe_de->genre == GenreType::RIEN) {
+			return TypeTransformation::INUTILE;
+		}
 
-			/* x : *octet = y; */
-			if (dt_vers.dereference().front() == GenreLexeme::OCTET) {
-				return TypeTransformation::INUTILE;
-			}
+		/* x : *nul = y */
+		if (type_pointe_vers == nullptr) {
+			return TypeTransformation::INUTILE;
+		}
 
-			/* x : *nul = y */
-			if (dt_vers.dereference().front() == GenreLexeme::NUL) {
-				return TypeTransformation::INUTILE;
-			}
+		/* x : *rien = y; */
+		if (type_pointe_vers->genre == GenreType::RIEN) {
+			return TypeTransformation::INUTILE;
+		}
+
+		/* x : *octet = y; */
+		if (type_pointe_vers->genre == GenreType::OCTET) {
+			return TypeTransformation::INUTILE;
 		}
 	}
 

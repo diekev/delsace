@@ -38,7 +38,6 @@ set(SOURCES
 	assembleuse_arbre.h
 	broyage.hh
 	contexte_generation_code.h
-	donnees_type.h
 	erreur.h
 	expression.h
 	graphe_dependance.hh
@@ -50,14 +49,13 @@ set(SOURCES
 	structures.hh
 	syntaxeuse.hh
 	transformation_type.hh
-	typeuse.hh
+	typage.hh
 	validation_semantique.hh
 
 	arbre_syntactic.cc
 	assembleuse_arbre.cc
 	broyage.cc
 	contexte_generation_code.cc
-	donnees_type.cc
 	erreur.cc
 	expression.cc
 	graphe_dependance.cc
@@ -69,7 +67,7 @@ set(SOURCES
 	structures.cc
 	syntaxeuse.cc
 	transformation_type.cc
-	typeuse.cc
+	typage.cc
 	validation_semantique.cc
 )
 

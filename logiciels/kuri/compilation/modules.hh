@@ -25,10 +25,11 @@
 #pragma once
 
 #include "biblinternes/langage/tampon_source.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/liste.hh"
 
-#include "donnees_type.h"
+#include "typage.hh"
 #include "transformation_type.hh"
 
 namespace llvm {
@@ -39,10 +40,13 @@ namespace noeud {
 struct base;
 }
 
+struct TypeFonction;
+
 struct ContexteGenerationCode;
 
 struct DonneesArgument {
 	dls::vue_chaine_compacte nom;
+	Type *type = nullptr;
 	long index_type{-1l};
 	DonneesTypeDeclare type_declare{};
 	noeud::base *expression_defaut = nullptr;
@@ -54,12 +58,9 @@ struct DonneesArgument {
 
 struct DonneesFonction {
 	dls::tableau<DonneesArgument> args{};
-	dls::tableau<DonneesTypeDeclare> types_retours_decl{};
-	dls::tableau<long> idx_types_retours{};
 	dls::tableau<dls::chaine> noms_retours{};
 	dls::tableau<dls::vue_chaine_compacte> noms_types_gabarits{};
-	DonneesTypeDeclare type_declare{};
-	long index_type{-1l};
+	TypeFonction *type{nullptr};
 	dls::chaine nom_broye{};
 	noeud::base *noeud_decl = nullptr;
 	bool est_externe = false;
@@ -213,12 +214,12 @@ struct DonneesCandidate {
 	dls::vue_chaine_compacte nom_arg{};
 	/* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
 	dls::tableau<noeud::base *> exprs{};
-	DonneesTypeFinal type1{};
-	DonneesTypeFinal type2{};
+	Type *type1{};
+	Type *type2{};
 	noeud::base *noeud_decl = nullptr;
 	bool arg_pointeur = false;
 	dls::tableau<TransformationType> transformations{};
-	dls::tableau<std::pair<dls::vue_chaine_compacte, long>> paires_expansion_gabarit{};
+	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
 };
 
 struct ResultatRecherche {
