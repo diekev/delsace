@@ -386,7 +386,7 @@ FormatRéel :: struct {
 	précision := 6
 }
 
-formatte_réel :: fonc (valeur: eini, précision: z32) -> FormatRéel
+formatte_réel :: fonc (valeur: eini, précision := 6) -> FormatRéel
 {
 	retourne FormatRéel{
 		valeur = valeur,
