@@ -79,18 +79,6 @@ static auto cree_info_type_entier_C(
 	os_decl << "};\n";
 }
 
-static auto cree_info_type_reel_C(
-		dls::flux_chaine &os_decl,
-		unsigned taille_en_octet,
-		IDInfoType const &id_info_type,
-		dls::chaine const &nom_info_type)
-{
-	os_decl << "static const InfoType " << nom_info_type << " = {\n";
-	os_decl << "\t.id = " << id_info_type.REEL << ",\n";
-	os_decl << "\t.taille_en_octet = " << taille_en_octet << '\n';
-	os_decl << "};\n";
-}
-
 static dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,

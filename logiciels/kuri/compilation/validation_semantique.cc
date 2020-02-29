@@ -312,7 +312,7 @@ static auto valide_appel_pointeur_fonction(
 	valides_enfants(b, contexte, false);
 
 	/* vérifie la compatibilité des arguments pour déterminer
-	 * s'il y aura besoin d'une transformation. */	
+	 * s'il y aura besoin d'une transformation. */
 	auto type_fonction = static_cast<TypeFonction *>(type);
 
 	auto enfant = b->enfants.debut();
@@ -3063,10 +3063,10 @@ static void performe_validation_semantique(
 					if (f->type != expression->type) {
 						erreur::lance_erreur_type_arguments(
 									expression->type,
-								f->type,
-								contexte,
-								f->lexeme,
-								expression->lexeme);
+									f->type,
+									contexte,
+									f->lexeme,
+									expression->lexeme);
 					}
 				}
 			}

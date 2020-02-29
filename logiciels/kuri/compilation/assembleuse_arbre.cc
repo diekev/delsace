@@ -25,7 +25,6 @@
 #include "assembleuse_arbre.h"
 
 #include "contexte_generation_code.h"
-
 #include "modules.hh"
 
 assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
