@@ -1628,7 +1628,7 @@ static void performe_validation_semantique(
 
 			if (type->genre == GenreType::REFERENCE) {
 				enfant->transformation = TypeTransformation::DEREFERENCE;
-				type = contexte.typeuse.type_reference_pour(type);
+				type = contexte.typeuse.type_dereference_pour(type);
 			}
 
 			if (b->type == nullptr) {
