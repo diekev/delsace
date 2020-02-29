@@ -597,6 +597,31 @@ TypeEnum *Typeuse::reserve_type_enum(noeud::base *decl)
 	return type;
 }
 
+size_t Typeuse::memoire_utilisee() const
+{
+	auto memoire = 0ul;
+
+#define COMPTE_MEMOIRE(Type, Tableau) \
+	memoire += static_cast<size_t>(Tableau.taille()) * (sizeof(Type *) + sizeof(Type))
+
+	COMPTE_MEMOIRE(Type, types_simples);
+	COMPTE_MEMOIRE(TypePointeur, types_pointeurs);
+	COMPTE_MEMOIRE(TypeReference, types_references);
+	COMPTE_MEMOIRE(TypeStructure, types_structures);
+	COMPTE_MEMOIRE(TypeEnum, types_enums);
+	COMPTE_MEMOIRE(TypeTableauFixe, types_tableaux_fixes);
+	COMPTE_MEMOIRE(TypeTableauDynamique, types_tableaux_dynamiques);
+	COMPTE_MEMOIRE(TypeFonction, types_fonctions);
+	COMPTE_MEMOIRE(TypeVariadique, types_variadiques);
+
+#undef COMPTE_MEMOIRE
+
+	// les types communs sont dans les types simples, ne comptons que la mémoire du tableau
+	memoire += static_cast<size_t>(types_communs.taille()) * sizeof(Type *);
+
+	return memoire;
+}
+
 /* ************************************************************************** */
 
 dls::chaine chaine_type(const Type *type)

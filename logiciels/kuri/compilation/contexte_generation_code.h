@@ -73,6 +73,8 @@ struct Metriques {
 	size_t memoire_lexemes = 0ul;
 	size_t memoire_arbre = 0ul;
 	size_t memoire_contexte = 0ul;
+	size_t memoire_types = 0ul;
+	size_t memoire_operateurs = 0ul;
 	double temps_chargement = 0.0;
 	double temps_analyse = 0.0;
 	double temps_tampon = 0.0;

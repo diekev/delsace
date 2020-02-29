@@ -632,6 +632,8 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 	metriques.nombre_modules  = static_cast<size_t>(modules.taille());
 	metriques.temps_validation = this->temps_validation;
 	metriques.temps_generation = this->temps_generation;
+	metriques.memoire_types = this->typeuse.memoire_utilisee();
+	metriques.memoire_operateurs = this->operateurs.memoire_utilisee();
 
 	for (auto fichier : fichiers) {
 		metriques.nombre_lignes += fichier->tampon.nombre_lignes();

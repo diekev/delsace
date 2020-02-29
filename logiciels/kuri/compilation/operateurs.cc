@@ -347,6 +347,20 @@ void Operateurs::ajoute_operateur_basique_enum(Type *type)
 	}
 }
 
+size_t Operateurs::memoire_utilisee() const
+{
+	auto memoire = 0ul;
+
+	// compte la mémoire des noeuds de la table de hachage
+	memoire += static_cast<size_t>(donnees_operateurs.taille()) * (sizeof(GenreLexeme) + sizeof(type_conteneur));
+
+	POUR (donnees_operateurs) {
+		memoire += static_cast<size_t>(it.second.taille()) * (sizeof(DonneesOperateur) + sizeof(DonneesOperateur *));
+	}
+
+	return memoire;
+}
+
 static double verifie_compatibilite(
 		Type *type_arg,
 		Type *type_enf,

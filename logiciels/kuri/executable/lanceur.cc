@@ -270,7 +270,9 @@ static void imprime_stats(
 	auto const mem_totale = metriques.memoire_tampons
 							+ metriques.memoire_lexemes
 							+ metriques.memoire_arbre
-							+ metriques.memoire_contexte;
+							+ metriques.memoire_contexte
+							+ metriques.memoire_types
+							+ metriques.memoire_operateurs;
 
 	auto memoire_consommee = memoire::consommee();
 
@@ -300,10 +302,12 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "Mémoire", "", "" });
 	tableau.ajoute_ligne({ "- Suivie", formatte_nombre(mem_totale), "o" });
 	tableau.ajoute_ligne({ "- Effective", formatte_nombre(memoire_consommee), "o" });
-	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.memoire_tampons), "o" });
-	tableau.ajoute_ligne({ "- Lexèmes", formatte_nombre(metriques.memoire_lexemes), "o" });
 	tableau.ajoute_ligne({ "- Arbre", formatte_nombre(metriques.memoire_arbre), "o" });
 	tableau.ajoute_ligne({ "- Contexte", formatte_nombre(metriques.memoire_contexte), "o" });
+	tableau.ajoute_ligne({ "- Lexèmes", formatte_nombre(metriques.memoire_lexemes), "o" });
+	tableau.ajoute_ligne({ "- Opérateurs", formatte_nombre(metriques.memoire_operateurs), "o" });
+	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.memoire_tampons), "o" });
+	tableau.ajoute_ligne({ "- Types", formatte_nombre(metriques.memoire_types), "o" });
 
 	tableau.ajoute_ligne({ "Temps Scène", formatte_nombre(temps_scene * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_scene, temps_total)) });
 	tableau.ajoute_ligne({ "- Chargement", formatte_nombre(metriques.temps_chargement * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_chargement, temps_scene)) });

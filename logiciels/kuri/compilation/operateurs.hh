@@ -102,6 +102,8 @@ struct Operateurs {
 	void ajoute_perso_unaire(GenreLexeme id, Type *type, Type *type_resultat, dls::chaine const &nom_fonction);
 
 	void ajoute_operateur_basique_enum(Type *type);
+
+	size_t memoire_utilisee() const;
 };
 
 DonneesOperateur const *cherche_operateur_unaire(
