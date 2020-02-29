@@ -28,6 +28,7 @@
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/liste.hh"
+#include "biblinternes/structures/tablet.hh"
 
 #include "typage.hh"
 #include "transformation_type.hh"
@@ -213,7 +214,7 @@ struct DonneesCandidate {
 	double poids_args = 0.0;
 	dls::vue_chaine_compacte nom_arg{};
 	/* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
-	dls::tableau<noeud::base *> exprs{};
+	dls::tablet<noeud::base *, 10> exprs{};
 	Type *type1{};
 	Type *type2{};
 	noeud::base *noeud_decl = nullptr;
@@ -223,7 +224,7 @@ struct DonneesCandidate {
 };
 
 struct ResultatRecherche {
-	dls::tableau<DonneesCandidate> candidates{};
+	dls::tablet<DonneesCandidate, 10> candidates{};
 };
 
 ResultatRecherche cherche_donnees_fonction(

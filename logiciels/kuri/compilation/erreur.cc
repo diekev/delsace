@@ -243,7 +243,7 @@ void lance_erreur_type_operation(
 void lance_erreur_fonction_inconnue(
 		ContexteGenerationCode const &contexte,
 		noeud::base *b,
-		dls::tableau<DonneesCandidate> const &candidates)
+		dls::tablet<DonneesCandidate, 10> const &candidates)
 {
 	auto const &lexeme = b->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));

@@ -107,7 +107,7 @@ using frappe = lng::erreur::frappe<type_erreur>;
 [[noreturn]] void lance_erreur_fonction_inconnue(
 		ContexteGenerationCode const &contexte,
 		noeud::base *n,
-		dls::tableau<DonneesCandidate> const &candidates);
+		dls::tablet<DonneesCandidate, 10> const &candidates);
 
 [[noreturn]] void lance_erreur_fonction_nulctx(
 		ContexteGenerationCode const &contexte,

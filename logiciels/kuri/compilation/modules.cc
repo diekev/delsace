@@ -351,7 +351,8 @@ static DonneesCandidate verifie_donnees_fonction(
 		return res;
 	}
 
-	dls::tableau<noeud::base *> slots(nombre_args - donnees_fonction.est_variadique);
+	dls::tablet<noeud::base *, 10> slots;
+	slots.redimensionne(nombre_args - donnees_fonction.est_variadique);
 
 	for (auto i = 0; i < slots.taille(); ++i) {
 		slots[i] = donnees_fonction.args[i].expression_defaut;

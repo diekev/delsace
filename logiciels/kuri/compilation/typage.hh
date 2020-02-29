@@ -26,7 +26,7 @@
 
 #include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/plage.hh"
-#include "biblinternes/structures/tableau.hh"
+#include "biblinternes/structures/tablet.hh"
 
 #include "lexemes.hh"
 #include "structures.hh"
@@ -71,9 +71,16 @@ struct Operateurs;
 using type_plage_donnees_type = dls::plage_continue<const GenreLexeme>;
 
 struct DonneesTypeDeclare {
-	dls::tableau<GenreLexeme> donnees{};
-	dls::tableau<noeud::base *> expressions{};
+	// 5 lexème par défaut est amplement suffisant, la plupart des types
+	// complexes sont de forme *[]T
+	dls::tablet<GenreLexeme, 5> donnees{};
 
+	// 2 expresssions par défaut, pour les types de matrices [..][..]T
+	dls::tablet<noeud::base *, 2> expressions{};
+
+	// nous ne pouvons pas utiliser tablet ici... car DonneesTypeDeclare est
+	// utilisé par valeur, ce qui nous une récursion pour déterminer la taille
+	// final de la structure
 	dls::tableau<DonneesTypeDeclare> types_entrees{};
 	dls::tableau<DonneesTypeDeclare> types_sorties{};
 
