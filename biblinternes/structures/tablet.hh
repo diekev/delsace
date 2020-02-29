@@ -285,9 +285,6 @@ public:
 		return *this;
 	}
 
-	tablet(tablet &&) = default;
-	tablet &operator=(tablet &&) = default;
-
 	~tablet()
 	{
 		supprime_donnees();
@@ -363,9 +360,9 @@ public:
 	typedef iteratrice_crue_inverse<T> reverse_iterator;
 	typedef iteratrice_crue_inverse<const T> const_reverse_iterator;
 
-	iterator begin()
+	iterator begin() const
 	{return iterator(&m_memoire[0]);}
-	iterator end()
+	iterator end() const
 	{return iterator(&m_memoire[m_taille]);}
 
 	const_iterator cbegin() const {return const_iterator(&m_memoire[0]);}
