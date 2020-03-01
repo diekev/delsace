@@ -579,7 +579,7 @@ trace_maillage :: fonc (
 
 // ----------------------------------------------------------------------------
 
-principale :: fonc () -> z32
+principale2 :: fonc () -> z32
 {
 	diffère {
 	    imprime_sans_format("Fin du programme, mémoire utilisée : ", mémoire_utilisée(), "o\n")
@@ -711,6 +711,128 @@ principale :: fonc () -> z32
         SDL_SetWindowTitle(window, chn_c)
 
         déloge nouveau_titre
+    }
+
+    retourne 0
+}
+
+// ----------------------------------------------------------------------------
+
+Jeu :: struct {
+    est_en_exécution := faux
+    fenêtre : *SDL_Window = nul
+    contexte : *rien = nul
+}
+
+initialise_jeu :: fonc (
+    dyn jeu: *Jeu,
+    titre: chaine,
+    pos_x: z32,
+    pos_y: z32,
+    hauteur: z32,
+    largeur: z32,
+    plein_écran: bool) -> bool
+{
+    si SDL_Init(DrapeauxInit.SDL_INIT_EVERYTHING) != 0 {
+        imprime("Impossible d'intialiser SDL !\n")
+        retourne faux
+    }
+
+    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, 1)
+    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4)
+    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0)
+    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8)
+
+    dyn drapeaux := SDL_WindowFlags.SDL_WINDOW_OPENGL
+
+    si plein_écran {
+        drapeaux |= SDL_WindowFlags.SDL_WINDOW_FULLSCREEN
+    }
+
+    jeu.fenêtre = SDL_CreateWindow(titre.pointeur, pos_x, pos_y, largeur, hauteur, drapeaux)
+
+    si jeu.fenêtre == nul {
+        imprime("Impossible de créer la fenêtre !\n")
+        retourne faux
+    }
+
+    jeu.contexte = SDL_GL_CreateContext(jeu.fenêtre)
+
+    si jeu.contexte == nul {
+        imprime("Impossible de créer le contexte OpenGL !\n")
+        retourne faux
+    }
+
+    si !initialise_opengl() {
+        imprime("Erreur lors de l'initilisation de GLEW !\n")
+        retourne faux
+    }
+
+    jeu.est_en_exécution = vrai
+
+    retourne vrai
+}
+
+détruit_jeu :: fonc (jeu: *Jeu) -> rien
+{
+    si jeu.contexte != nul {
+        SDL_GL_DeleteContext(jeu.contexte)
+    }
+
+    si jeu.fenêtre != nul {
+        SDL_DestroyWindow(jeu.fenêtre)
+    }
+
+    SDL_Quit()
+}
+
+gère_évènement :: fonc (dyn jeu: *Jeu) -> rien
+{
+    dyn évènement : SDL_Event;
+
+    tantque SDL_PollEvent(@évènement) != 0 {
+        si évènement.type == SDL_EventType.SDL_QUIT {
+            jeu.est_en_exécution = faux
+        }
+    }
+}
+
+ajourne_objets :: fonc (dyn jeu: *Jeu) -> rien
+{
+}
+
+rends_scène :: fonc (dyn jeu: *Jeu) -> rien
+{
+    glClear(0x00004000)
+
+    glClearColor(0.5, 0.5, 1.0, 1.0)
+
+    SDL_GL_SwapWindow(jeu.fenêtre)
+}
+
+principale :: fonc () -> z32
+{
+    ips : n32 = 30
+    débit_image_min : n32 = 1000 / ips
+
+    dyn jeu : Jeu
+    diffère { détruit_jeu(@jeu) }
+
+    si !initialise_jeu(@jeu, "Jeu", 100, 100, 480, 640, faux) {
+        retourne 1
+    }
+
+    tantque jeu.est_en_exécution {
+        temps_image := SDL_GetTicks()
+
+        gère_évènement(@jeu)
+        ajourne_objets(@jeu)
+        rends_scène(@jeu)
+
+        si (SDL_GetTicks() - temps_image) < débit_image_min {
+            durée := débit_image_min - (SDL_GetTicks() - temps_image)
+            SDL_Delay(durée)
+        }
     }
 
     retourne 0

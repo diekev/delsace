@@ -16,8 +16,8 @@ DrapeauxInit :: énum_drapeau n32 {
                 SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER
 }
 
-SDL_Init :: fonc externe (flahs: DrapeauxInit) -> rien
-SDL_Delay :: fonc externe (time: z32) -> rien
+SDL_Init :: fonc externe (flahs: DrapeauxInit) -> z32
+SDL_Delay :: fonc externe (time: n32) -> rien
 SDL_Quit :: fonc externe () -> rien
 
 SDL_GLattr :: énum z32 {
@@ -87,6 +87,10 @@ SDL_CreateWindow :: fonc externe (
         flags : SDL_WindowFlags) -> *SDL_Window
 
 SDL_SetWindowTitle :: fonc externe (window: *SDL_Window, title: *z8) -> rien
+
+SDL_DestroyWindow :: fonc externe (window: *SDL_Window) -> rien
+
+SDL_GetTicks :: fonc externe () -> n32
 
 SDL_Scancode :: énum n16 {
     SDL_SCANCODE_UNKNOWN := 0
