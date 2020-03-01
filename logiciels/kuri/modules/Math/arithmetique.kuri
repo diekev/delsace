@@ -11,6 +11,7 @@ acos :: fonc externe (a : r64) -> r64
 asin :: fonc externe (a : r64) -> r64
 atan :: fonc externe (a : r64) -> r64
 atan2 :: fonc externe (a : r64, b: r64) -> r64
+pow :: fonc externe (a: r64, b: r64) -> r64
 
 // calcul d'une racine carré d'un nombre réel selon la méthode approximative de Newton
 racine_carrée :: fonc (n: r64) -> r64
