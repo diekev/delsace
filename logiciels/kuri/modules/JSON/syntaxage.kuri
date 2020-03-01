@@ -4,74 +4,74 @@ importe Tori
 charge "assemblage_objet"
 charge "lexage"
 
-Syntaxeuse :: struct {
-	lexèmes : []DonneesLexème
+SyntaxeuseJSON :: struct {
+	lexèmes : []DonneesLexèmeJSON
     assembleuse : AssembleuseObjet
 
 	position := 0
 }
 
-construit_syntaxeuse :: fonc(lexèmes : &[]DonneesLexème) -> Syntaxeuse
+construit_syntaxeuse :: fonc(lexèmes : &[]DonneesLexèmeJSON) -> SyntaxeuseJSON
 {
-	dyn syntaxeuse : Syntaxeuse
+	dyn syntaxeuse : SyntaxeuseJSON
 	syntaxeuse.lexèmes = lexèmes
 
 	retourne syntaxeuse
 }
 
-détruit :: fonc(syntaxeuse : &Syntaxeuse) -> rien
+détruit :: fonc(syntaxeuse : &SyntaxeuseJSON) -> rien
 {
     détruit(syntaxeuse.assembleuse)
 }
 
-lexème_courant :: fonc(syntaxeuse : &Syntaxeuse) -> TypeLexème
+lexème_courant :: fonc(syntaxeuse : &SyntaxeuseJSON) -> TypeLexèmeJSON
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position].lexème
 }
 
-avance :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+avance :: fonc(dyn syntaxeuse : &SyntaxeuseJSON) -> rien
 {
 	syntaxeuse.position += 1
 }
 
-requiers_lexème :: fonc(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
+requiers_lexème :: fonc(syntaxeuse : &SyntaxeuseJSON, type : TypeLexèmeJSON) -> bool
 {
 	t := syntaxeuse.lexème_courant()
 	syntaxeuse.avance()
 	retourne t == type
 }
 
-est_lexème :: fonc(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
+est_lexème :: fonc(syntaxeuse : &SyntaxeuseJSON, type : TypeLexèmeJSON) -> bool
 {
 	retourne syntaxeuse.lexème_courant() == type
 }
 
-données :: fonc(syntaxeuse : &Syntaxeuse) -> &DonneesLexème
+données :: fonc(syntaxeuse : &SyntaxeuseJSON) -> &DonneesLexèmeJSON
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position - 1]
 }
 
-analyse_objet :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+analyse_objet :: fonc(dyn syntaxeuse : &SyntaxeuseJSON) -> rien
 {
-	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTERE)) {
+	si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.CHAINE_CARACTERE)) {
 		//lance_erreur("Attendu une chaine de caractère")
 	}
 
 	nom_objet := syntaxeuse.données().chn
 
-	si (!syntaxeuse.requiers_lexème(TypeLexème.DOUBLE_POINTS)) {
+	si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.DOUBLE_POINTS)) {
 		//lance_erreur("Attendu un double-point ':'")
 	}
 
 	syntaxeuse.analyse_valeur(nom_objet)
 
-	si (syntaxeuse.est_lexème(TypeLexème.VIRGULE)) {
+	si (syntaxeuse.est_lexème(TypeLexèmeJSON.VIRGULE)) {
 		syntaxeuse.avance()
 		syntaxeuse.analyse_objet()
 	}
 }
 
-analyse_valeur :: fonc(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) -> rien
+analyse_valeur :: fonc(dyn syntaxeuse : &SyntaxeuseJSON, nom_objet : chaine) -> rien
 {
 	discr syntaxeuse.lexème_courant() {
 		ACCOLADE_OUVRANTE {
@@ -84,7 +84,7 @@ analyse_valeur :: fonc(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) -> rien
 
 			syntaxeuse.assembleuse.dépile_objet()
 
-			si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
+			si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.ACCOLADE_FERMANTE)) {
 				//lance_erreur("Attendu une accolade fermante '}' à la fin de l'objet")
 			}
 		}
@@ -94,10 +94,10 @@ analyse_valeur :: fonc(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) -> rien
 			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.LISTE)
 			syntaxeuse.assembleuse.empile_objet(obj)
 
-			tantque !syntaxeuse.est_lexème(TypeLexème.CROCHET_FERMANT) {
+			tantque !syntaxeuse.est_lexème(TypeLexèmeJSON.CROCHET_FERMANT) {
 				syntaxeuse.analyse_valeur("")
 
-				si (syntaxeuse.est_lexème(TypeLexème.VIRGULE)) {
+				si (syntaxeuse.est_lexème(TypeLexèmeJSON.VIRGULE)) {
 					syntaxeuse.avance()
 				}
 			}
@@ -147,7 +147,7 @@ analyse_valeur :: fonc(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) -> rien
 	}
 }
 
-lance_analyse :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+lance_analyse :: fonc(dyn syntaxeuse : &SyntaxeuseJSON) -> rien
 {
 	syntaxeuse.position = 0
 
@@ -155,7 +155,7 @@ lance_analyse :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 		retourne
 	}
 
-	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_OUVRANTE)) {
+	si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.ACCOLADE_OUVRANTE)) {
 		//lance_erreur("Attendu une accolade ouvrante '{' au début du script")
 	}
 
@@ -166,7 +166,7 @@ lance_analyse :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 
     // Ne dépile pas le dictionnaire, car il est la racine
 
-	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
+	si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.ACCOLADE_FERMANTE)) {
 		//lance_erreur("Attendu une accolade fermante '}' à la fin du script")
 	}
 

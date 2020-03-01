@@ -154,12 +154,12 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 
 // une syntaxeuse qui met directement les données dans une structure
 SyntaxeuseStruct :: struct {
-	lexèmes : []DonneesLexème
+	lexèmes : []DonneesLexèmeJSON
 
 	position := 0
 }
 
-construit_syntaxeuse_struct :: fonc(lexèmes : []DonneesLexème) -> SyntaxeuseStruct
+construit_syntaxeuse_struct :: fonc(lexèmes : []DonneesLexèmeJSON) -> SyntaxeuseStruct
 {
 	dyn syntaxeuse : SyntaxeuseStruct
 	syntaxeuse.lexèmes = lexèmes
@@ -167,7 +167,7 @@ construit_syntaxeuse_struct :: fonc(lexèmes : []DonneesLexème) -> SyntaxeuseSt
 	retourne syntaxeuse
 }
 
-lexème_courant :: fonc(syntaxeuse : *SyntaxeuseStruct) -> TypeLexème
+lexème_courant :: fonc(syntaxeuse : *SyntaxeuseStruct) -> TypeLexèmeJSON
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position].lexème
 }
@@ -177,19 +177,19 @@ avance :: fonc(dyn syntaxeuse : *SyntaxeuseStruct) -> rien
 	syntaxeuse.position += 1
 }
 
-requiers_lexème :: fonc(syntaxeuse : *SyntaxeuseStruct, type : TypeLexème) -> bool
+requiers_lexème :: fonc(syntaxeuse : *SyntaxeuseStruct, type : TypeLexèmeJSON) -> bool
 {
 	t := syntaxeuse.lexème_courant()
 	syntaxeuse.avance()
 	retourne t == type
 }
 
-est_lexème :: fonc(syntaxeuse : *SyntaxeuseStruct, type : TypeLexème) -> bool
+est_lexème :: fonc(syntaxeuse : *SyntaxeuseStruct, type : TypeLexèmeJSON) -> bool
 {
 	retourne syntaxeuse.lexème_courant() == type
 }
 
-données :: fonc(syntaxeuse : *SyntaxeuseStruct) -> &DonneesLexème
+données :: fonc(syntaxeuse : *SyntaxeuseStruct) -> &DonneesLexèmeJSON
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position - 1]
 }
@@ -199,7 +199,7 @@ analyse_objet :: fonc(
     pointeur_arg: *z8,
     info_arg: *InfoTypeStructure) -> rien
 {
-	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTERE)) {
+	si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.CHAINE_CARACTERE)) {
 		//lance_erreur("Attendu une chaine de caractère")
         retourne
 	}
@@ -221,7 +221,7 @@ analyse_objet :: fonc(
         retourne
     }
 
-	si (!syntaxeuse.requiers_lexème(TypeLexème.DOUBLE_POINTS)) {
+	si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.DOUBLE_POINTS)) {
 		//lance_erreur("Attendu un double-point ':'")
         retourne
 	}
@@ -230,7 +230,7 @@ analyse_objet :: fonc(
 
 	syntaxeuse.analyse_valeur(nom_objet, pointeur_membre, info_membre.id)
 
-	si (syntaxeuse.est_lexème(TypeLexème.VIRGULE)) {
+	si (syntaxeuse.est_lexème(TypeLexèmeJSON.VIRGULE)) {
 		syntaxeuse.avance()
 		syntaxeuse.analyse_objet(pointeur_arg, info_arg)
 	}
@@ -252,18 +252,18 @@ analyse_valeur :: fonc(
 
 			syntaxeuse.analyse_objet(pointeur_membre, transtype(info_membre: *InfoTypeStructure))
 
-			si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
+			si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.ACCOLADE_FERMANTE)) {
 				//lance_erreur("Attendu une accolade fermante '}' à la fin de l'objet")
 			}
 		}
 		CROCHET_OUVRANT {
 			syntaxeuse.avance()
 
-			tantque !syntaxeuse.est_lexème(TypeLexème.CROCHET_FERMANT) {
+			tantque !syntaxeuse.est_lexème(TypeLexèmeJSON.CROCHET_FERMANT) {
                 // À FAIRE
 				//syntaxeuse.analyse_valeur("")
 
-				si (syntaxeuse.est_lexème(TypeLexème.VIRGULE)) {
+				si (syntaxeuse.est_lexème(TypeLexèmeJSON.VIRGULE)) {
 					syntaxeuse.avance()
 				}
 			}
@@ -318,13 +318,13 @@ lance_analyse :: fonc(dyn syntaxeuse : *SyntaxeuseStruct, arg: eini) -> rien
 		retourne
 	}
 
-	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_OUVRANTE)) {
+	si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.ACCOLADE_OUVRANTE)) {
 		//lance_erreur("Attendu une accolade ouvrante '{' au début du script")
 	}
 
 	syntaxeuse.analyse_objet(arg.pointeur, transtype(arg.info: *InfoTypeStructure))
 
-	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
+	si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.ACCOLADE_FERMANTE)) {
 		//lance_erreur("Attendu une accolade fermante '}' à la fin du script")
 	}
 }

@@ -13,7 +13,7 @@
 importe Fondation
 importe Math
 
-Lexème :: énum z32 {
+LexèmeJSON :: énum z32 {
     INVALIDE
     FIN_OBJET
     FIN_VALEUR
@@ -39,7 +39,7 @@ ScannerJSON :: struct {
     script : chaine
 
     // état du scan après une lecture
-    lexème : Lexème
+    lexème : LexèmeJSON
 
     // la structure à remplir
     structure : eini
@@ -123,15 +123,15 @@ lis :: fonc (dyn scanner : *ScannerJSON) -> rien
     c := scanner.caractère_courant()
 
     discr c {
-        '(' { scanner.avance(); scanner.lexème = Lexème.PARENTHÈSE_OUVRANTE }
-        ')' { scanner.avance(); scanner.lexème = Lexème.PARENTHÈSE_FERMANTE }
-        ',' { scanner.avance(); scanner.lexème = Lexème.VIRGULE }
-        ':' { scanner.avance(); scanner.lexème = Lexème.DOUBLE_POINTS }
-        '[' { scanner.avance(); scanner.lexème = Lexème.CROCHET_OUVRANT }
-        ']' { scanner.avance(); scanner.lexème = Lexème.CROCHET_FERMANT }
-        '{' { scanner.avance(); scanner.lexème = Lexème.ACCOLADE_OUVRANTE }
-        '}' { scanner.avance(); scanner.lexème = Lexème.ACCOLADE_FERMANTE }
-        '"' { scanner.avance(); scanner.lexème = Lexème.GUILLEMET }
+        '(' { scanner.avance(); scanner.lexème = LexèmeJSON.PARENTHÈSE_OUVRANTE }
+        ')' { scanner.avance(); scanner.lexème = LexèmeJSON.PARENTHÈSE_FERMANTE }
+        ',' { scanner.avance(); scanner.lexème = LexèmeJSON.VIRGULE }
+        ':' { scanner.avance(); scanner.lexème = LexèmeJSON.DOUBLE_POINTS }
+        '[' { scanner.avance(); scanner.lexème = LexèmeJSON.CROCHET_OUVRANT }
+        ']' { scanner.avance(); scanner.lexème = LexèmeJSON.CROCHET_FERMANT }
+        '{' { scanner.avance(); scanner.lexème = LexèmeJSON.ACCOLADE_OUVRANTE }
+        '}' { scanner.avance(); scanner.lexème = LexèmeJSON.ACCOLADE_FERMANTE }
+        '"' { scanner.avance(); scanner.lexème = LexèmeJSON.GUILLEMET }
         't' { scanner.lexème = scanner.lis_true() }
         'f' { scanner.lexème = scanner.lis_false() }
         'n' { scanner.lexème = scanner.lis_null() }
@@ -143,47 +143,47 @@ lis :: fonc (dyn scanner : *ScannerJSON) -> rien
 //    imprime("--- lexème : %\n", scanner.lexème)
 }
 
-lis_true :: fonc (dyn scanner: *ScannerJSON) -> Lexème
+lis_true :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
 {
     chn := construit_chaine(@scanner.script[scanner.position], 4)
 
     si chn != "true" {
-        retourne Lexème.INVALIDE
+        retourne LexèmeJSON.INVALIDE
     }
 
     scanner.avance(4)
 
     scanner.booléen = vrai
 
-    retourne Lexème.TRUE
+    retourne LexèmeJSON.TRUE
 }
 
-lis_false :: fonc (dyn scanner: *ScannerJSON) -> Lexème
+lis_false :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
 {
     chn := construit_chaine(@scanner.script[scanner.position], 5)
 
     si chn != "false" {
-        retourne Lexème.INVALIDE
+        retourne LexèmeJSON.INVALIDE
     }
 
     scanner.avance(5)
 
     scanner.booléen = faux
 
-    retourne Lexème.FALSE
+    retourne LexèmeJSON.FALSE
 }
 
-lis_null :: fonc (dyn scanner: *ScannerJSON) -> Lexème
+lis_null :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
 {
     chn := construit_chaine(@scanner.script[scanner.position], 4)
 
     si chn != "null" {
-        retourne Lexème.INVALIDE
+        retourne LexèmeJSON.INVALIDE
     }
 
     scanner.avance(4)
 
-    retourne Lexème.NULL
+    retourne LexèmeJSON.NULL
 }
 
 est_caractère_échappé_valide :: fonc (c: z8) -> bool
@@ -196,7 +196,7 @@ est_hexadécimal :: fonc (c: z8) -> bool
     retourne ('0' <= c <= '9') || ('a' <= c <= 'f') || ('A' <= c <= 'F')
 }
 
-lis_chaine :: fonc (dyn scanner: *ScannerJSON) -> Lexème
+lis_chaine :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
 {
     scanner.enregistre_pos_mot()
 
@@ -219,14 +219,14 @@ lis_chaine :: fonc (dyn scanner: *ScannerJSON) -> Lexème
                     c = scanner.caractère_courant()
 
                     si est_hexadécimal(c) {
-                        retourne Lexème.INVALIDE
+                        retourne LexèmeJSON.INVALIDE
                     }
 
                     scanner.avance()
                 }
             }
             sinon si !est_caractère_échappé_valide(c) {
-                retourne Lexème.INVALIDE
+                retourne LexèmeJSON.INVALIDE
             }
 
             scanner.avance()
@@ -239,9 +239,9 @@ lis_chaine :: fonc (dyn scanner: *ScannerJSON) -> Lexème
     scanner.chaine_caractère = scanner.mot_courant()
 
     scanner.avance()
-    scanner.lexème = Lexème.GUILLEMET
+    scanner.lexème = LexèmeJSON.GUILLEMET
 
-    retourne Lexème.CHAINE_CARACTÈRE
+    retourne LexèmeJSON.CHAINE_CARACTÈRE
 }
 
 DonnéesNombre :: struct {
@@ -272,10 +272,10 @@ DonnéesNombre :: struct {
 // 0.123
 // 0.123e789
 // 0e5
-lis_nombre :: fonc (dyn scanner: *ScannerJSON) -> Lexème
+lis_nombre :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
 {
     dyn données_nombre : DonnéesNombre
-    dyn lexème_nombre := Lexème.NOMBRE_ENTIER
+    dyn lexème_nombre := LexèmeJSON.NOMBRE_ENTIER
 
     scanner.enregistre_pos_mot()
 
@@ -289,7 +289,7 @@ lis_nombre :: fonc (dyn scanner: *ScannerJSON) -> Lexème
     sinon {
         // nous devons avoir au moins un chiffre
         si !scanner.lis_chiffre('1', '9') {
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         // lis les autres, ignore le retour
@@ -300,7 +300,7 @@ lis_nombre :: fonc (dyn scanner: *ScannerJSON) -> Lexème
 
     // lis fraction
     si scanner.caractère_courant() == '.' {
-        lexème_nombre = Lexème.NOMBRE_RÉEL
+        lexème_nombre = LexèmeJSON.NOMBRE_RÉEL
 
         scanner.avance()
 
@@ -308,7 +308,7 @@ lis_nombre :: fonc (dyn scanner: *ScannerJSON) -> Lexème
 
         // nous devons avoir au moins un chiffre
         si !scanner.lis_chiffre('0', '9') {
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         données_nombre.fraction = scanner.mot_courant()
@@ -318,7 +318,7 @@ lis_nombre :: fonc (dyn scanner: *ScannerJSON) -> Lexème
 
     // lis exposant
     si e == 'e' || e == 'E' {
-        lexème_nombre = Lexème.NOMBRE_RÉEL
+        lexème_nombre = LexèmeJSON.NOMBRE_RÉEL
 
         scanner.avance()
 
@@ -332,7 +332,7 @@ lis_nombre :: fonc (dyn scanner: *ScannerJSON) -> Lexème
 
         // nous devons avoir au moins un chiffre
         si !scanner.lis_chiffre('0', '9') {
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         données_nombre.exposant = scanner.mot_courant()
@@ -363,7 +363,7 @@ lis_nombre :: fonc (dyn scanner: *ScannerJSON) -> Lexème
         }
     }
 
-    si lexème_nombre == Lexème.NOMBRE_ENTIER {
+    si lexème_nombre == LexèmeJSON.NOMBRE_ENTIER {
         scanner.nombre_entier = transtype(nombre_final: z64)
     }
     sinon {
@@ -392,40 +392,40 @@ lis_chiffre :: fonc (dyn scanner: *ScannerJSON, min: z8, max: z8) -> bool
     retourne eu_un_chiffre
 }
 
-lis_objet :: fonc (scanner: *ScannerJSON) -> Lexème
+lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
     //imprime("lis_objet\n")
 
-    si scanner.lexème != Lexème.ACCOLADE_OUVRANTE {
+    si scanner.lexème != LexèmeJSON.ACCOLADE_OUVRANTE {
         imprime("Attendu une accolade ouvrante, obtenu %\n", scanner.lexème)
-        retourne Lexème.INVALIDE
+        retourne LexèmeJSON.INVALIDE
     }
 
     tantque !scanner.fini() {
         scanner.lis()
 
-        si scanner.lexème == Lexème.ACCOLADE_FERMANTE {
+        si scanner.lexème == LexèmeJSON.ACCOLADE_FERMANTE {
             arrête
         }
 
         // -------------------------
         // nom de la valeur
 
-        si scanner.lexème != Lexème.GUILLEMET {
+        si scanner.lexème != LexèmeJSON.GUILLEMET {
             imprime("Attendu un guillemet ouvrant, obtenu %\n", scanner.lexème)
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         résultat := scanner.lis_chaine()
 
-        si résultat != Lexème.CHAINE_CARACTÈRE {
+        si résultat != LexèmeJSON.CHAINE_CARACTÈRE {
             imprime("Attendu une chaine de caractère valide\n")
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
-        si scanner.lexème != Lexème.GUILLEMET {
+        si scanner.lexème != LexèmeJSON.GUILLEMET {
             imprime("Attendu un guillemet fermant, obtenu %\n", scanner.lexème)
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         nom := scanner.chaine_caractère
@@ -434,14 +434,14 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> Lexème
 
         si info_membre == nul {
             imprime("Impossible de trouver le membre '%'\n", nom)
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         scanner.lis()
 
-        si scanner.lexème != Lexème.DOUBLE_POINTS {
+        si scanner.lexème != LexèmeJSON.DOUBLE_POINTS {
             imprime("Attendu un double point, obtenu : %\n", scanner.lexème)
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         // -------------------------
@@ -453,70 +453,70 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> Lexème
 
         lexème_valeur := scanner.lis_valeur(valeur_membre)
 
-        si lexème_valeur != Lexème.FIN_VALEUR {
+        si lexème_valeur != LexèmeJSON.FIN_VALEUR {
             imprime("Erreur lors de la lecture de la valeur\n")
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         scanner.lis()
 
-        si scanner.lexème != Lexème.VIRGULE {
+        si scanner.lexème != LexèmeJSON.VIRGULE {
             arrête
         }
     }
 
-    si scanner.lexème != Lexème.ACCOLADE_FERMANTE {
+    si scanner.lexème != LexèmeJSON.ACCOLADE_FERMANTE {
         imprime("Attendu une accolade fermante, obtenu %\n", scanner.lexème)
-        retourne Lexème.INVALIDE
+        retourne LexèmeJSON.INVALIDE
     }
 
-    retourne Lexème.FIN_OBJET
+    retourne LexèmeJSON.FIN_OBJET
 }
 
-lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> Lexème
+lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> LexèmeJSON
 {
-    si scanner.lexème == Lexème.INVALIDE {
+    si scanner.lexème == LexèmeJSON.INVALIDE {
         retourne scanner.lexème
     }
 
-    si scanner.lexème == Lexème.TRUE {
+    si scanner.lexème == LexèmeJSON.TRUE {
         si valeur.info.id != id_info.BOOLÉEN {
             imprime("Attendu une chaine de caractère pour le membre de la structure\n")
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         dyn pointeur := transtype(valeur.pointeur: *bool)
         mémoire(pointeur) = vrai
     }
-    sinon si scanner.lexème == Lexème.FALSE {
+    sinon si scanner.lexème == LexèmeJSON.FALSE {
         si valeur.info.id != id_info.BOOLÉEN {
             imprime("Attendu une chaine de caractère pour le membre de la structure\n")
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         dyn pointeur := transtype(valeur.pointeur: *bool)
         mémoire(pointeur) = faux
     }
-    sinon si scanner.lexème == Lexème.GUILLEMET {
+    sinon si scanner.lexème == LexèmeJSON.GUILLEMET {
         résultat := scanner.lis_chaine()
 
-        si résultat != Lexème.CHAINE_CARACTÈRE {
+        si résultat != LexèmeJSON.CHAINE_CARACTÈRE {
             imprime("Attendu une chaine de caractère valide\n")
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         si valeur.info.id != id_info.CHAINE {
             imprime("Attendu une chaine de caractère pour le membre de la structure\n")
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         dyn pointeur := transtype(valeur.pointeur: *chaine)
         mémoire(pointeur) = scanner.chaine_caractère
     }
-    sinon si scanner.lexème == Lexème.NOMBRE_ENTIER {
+    sinon si scanner.lexème == LexèmeJSON.NOMBRE_ENTIER {
         si valeur.info.id != id_info.ENTIER {
             imprime("Attendu une valeur entière pour le membre de la structure\n")
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         info_type_entier := transtype(valeur.info: *InfoTypeEntier)
@@ -548,7 +548,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> Lexème
         sinon {
             si scanner.nombre_entier < 0 {
                 imprime("Attendu un nombre positif dans le script pour la valeur !\n")
-                retourne Lexème.INVALIDE
+                retourne LexèmeJSON.INVALIDE
             }
 
             si hors_limite(scanner.nombre_entier, taille_en_octet, faux) {
@@ -574,10 +574,10 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> Lexème
             }
         }
     }
-    sinon si scanner.lexème == Lexème.NOMBRE_RÉEL {
+    sinon si scanner.lexème == LexèmeJSON.NOMBRE_RÉEL {
         si valeur.info.id != id_info.RÉEL {
             imprime("Attendu un nombre réel pour le membre de la structure\n")
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         taille_en_octet := valeur.info.taille_en_octet
@@ -595,43 +595,43 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> Lexème
             mémoire(pointeur) = transtype(scanner.nombre_réel: r64)
         }
     }
-    sinon si scanner.lexème == Lexème.NULL {
+    sinon si scanner.lexème == LexèmeJSON.NULL {
         si valeur.info.id != id_info.POINTEUR {
             imprime("Attendu un pointeur pour le membre de la structure\n")
-            retourne Lexème.INVALIDE
+            retourne LexèmeJSON.INVALIDE
         }
 
         dyn pointeur := transtype(valeur.pointeur: **z8)
         mémoire(pointeur) = nul
     }
-    sinon si scanner.lexème == Lexème.ACCOLADE_OUVRANTE {
+    sinon si scanner.lexème == LexèmeJSON.ACCOLADE_OUVRANTE {
         // À FAIRE : type structure
         résultat := scanner.lis_objet()
 
-        si résultat != Lexème.FIN_OBJET {
-            retourne Lexème.INVALIDE
+        si résultat != LexèmeJSON.FIN_OBJET {
+            retourne LexèmeJSON.INVALIDE
         }
     }
-    sinon si scanner.lexème == Lexème.CROCHET_OUVRANT {
+    sinon si scanner.lexème == LexèmeJSON.CROCHET_OUVRANT {
         // À FAIRE : type tableau
         scanner.lis_tableau()
     }
     sinon {
         imprime("Valeur inconnue, obtenu : %\n", scanner.lexème)
-        retourne Lexème.INVALIDE
+        retourne LexèmeJSON.INVALIDE
     }
 
-    retourne Lexème.FIN_VALEUR
+    retourne LexèmeJSON.FIN_VALEUR
 }
 
-lis_tableau :: fonc (dyn scanner: *ScannerJSON) -> Lexème
+lis_tableau :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
 {
     dyn e : eini
 
     tantque !scanner.fini() {
         scanner.lis()
 
-        si scanner.lexème == Lexème.CROCHET_FERMANT {
+        si scanner.lexème == LexèmeJSON.CROCHET_FERMANT {
             arrête
         }
 
@@ -639,12 +639,12 @@ lis_tableau :: fonc (dyn scanner: *ScannerJSON) -> Lexème
 
         scanner.lis()
 
-        si scanner.lexème == Lexème.CROCHET_FERMANT {
+        si scanner.lexème == LexèmeJSON.CROCHET_FERMANT {
             arrête
         }
     }
 
-    retourne Lexème.CROCHET_FERMANT
+    retourne LexèmeJSON.CROCHET_FERMANT
 }
 
 // ---------------------------
@@ -662,7 +662,7 @@ remplis_struct_depuis_chaine_json :: fonc (script: chaine, structure: eini) -> b
 
     résultat := lis_objet(@scanner)
 
-    si résultat != Lexème.FIN_OBJET {
+    si résultat != LexèmeJSON.FIN_OBJET {
         imprime("Erreur lors du scan du script, résulat : %\n", résultat)
         retourne faux
     }
