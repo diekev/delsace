@@ -235,10 +235,8 @@ dls::chaine cree_info_type_C(
 	auto nom_info_type = "__info_type" + nom_broye_type(contexte, type, true) + dls::vers_chaine(index_info_type++);
 
 	switch (type->genre) {
-		default:
+		case GenreType::INVALIDE:
 		{
-			std::cerr << chaine_type(type) << '\n';
-			//std::cerr << chaine_identifiant(type.type_base() & 0xff) << '\n';
 			assert(false);
 			break;
 		}

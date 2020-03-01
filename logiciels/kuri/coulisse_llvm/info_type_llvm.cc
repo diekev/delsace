@@ -320,7 +320,7 @@ llvm::Value *cree_info_type(
 	auto valeur = static_cast<llvm::Value *>(nullptr);
 
 	switch (type->genre) {
-		default:
+		case GenreType::INVALIDE:
 		{
 			assert(false);
 			break;
@@ -399,6 +399,7 @@ llvm::Value *cree_info_type(
 			valeur = cree_info_type_enum(contexte, donnees_structure);
 			break;
 		}
+		case GenreType::UNION:
 		case GenreType::STRUCTURE:
 		{
 			auto type_struct = static_cast<TypeStructure *>(type);
@@ -467,6 +468,7 @@ llvm::Value *cree_info_type(
 		}
 		case GenreType::TABLEAU_FIXE:
 		case GenreType::TABLEAU_DYNAMIQUE:
+		case GenreType::VARIADIQUE:
 		{
 			/* { id, type_pointé } */
 
