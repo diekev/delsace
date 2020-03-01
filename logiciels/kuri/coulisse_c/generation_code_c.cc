@@ -1362,7 +1362,6 @@ void genere_code_C(
 
 			genere_code_C(enfant1, generatrice, contexte, expr_gauche);
 			genere_code_C(enfant2, generatrice, contexte, expr_gauche);
-			genere_code_C(enfant1->enfants.back(), generatrice, contexte, expr_gauche);
 
 			/* (a comp b) */
 			flux << '(';
