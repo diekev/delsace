@@ -75,6 +75,10 @@ TransformationType cherche_transformation(
 		return TypeTransformation::INUTILE;
 	}
 
+	if (type_de->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_vers)) {
+		return TypeTransformation::INUTILE;
+	}
+
 	if (type_de->genre == GenreType::ENTIER_NATUREL && type_vers->genre == GenreType::ENTIER_NATUREL) {
 		if (type_de->taille_octet < type_vers->taille_octet) {
 			return { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };

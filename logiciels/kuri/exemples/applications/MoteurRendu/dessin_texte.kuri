@@ -118,7 +118,7 @@ dessine_texte :: fonc (dyn rendeuse: *RendeuseTexte, texte: chaine) -> rien
 
     si rendeuse.tampon == nul {
 		crée_tampon(rendeuse)
-		rendeuse.atlas = texture_atlas_new(transtype(512: n64), transtype(512: n64), transtype(1: n64))
+		rendeuse.atlas = texture_atlas_new(512, 512, 1)
 		rendeuse.font = texture_font_new_from_file(rendeuse.atlas, markup.size, markup.family)
 	}
 
@@ -237,28 +237,28 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 	glBindBuffer(OGL.ELEMENT_ARRAY_BUFFER, rendeuse.id_tampon_index);
 	glBufferData(OGL.ELEMENT_ARRAY_BUFFER, transtype(indices.taille: n64) * taille_de(z32), @indices[0], OGL.STATIC_DRAW);
 
-	glEnableVertexAttribArray(transtype(0: n32));
-	glVertexAttribPointer(transtype(0 : n32), 2, OGL.FLOAT, OGL.FALSE, 0, nul);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, OGL.FLOAT, OGL.FALSE, 0, nul);
 
     // --------------------------------------
 
     glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_tex_coord);
 	glBufferData(OGL.ARRAY_BUFFER, transtype(uvs.taille: n64) * taille_de(Vec2r), @uvs[0], OGL.STATIC_DRAW);
 
-	glEnableVertexAttribArray(transtype(1: n32));
-	glVertexAttribPointer(transtype(1 : n32), 2, OGL.FLOAT, OGL.FALSE, 0, nul);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, OGL.FLOAT, OGL.FALSE, 0, nul);
 
     // --------------------------------------
 
     glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_couleur);
 	glBufferData(OGL.ARRAY_BUFFER, transtype(couleurs.taille: n64) * taille_de(Vec4r), @couleurs[0], OGL.STATIC_DRAW);
 
-	glEnableVertexAttribArray(transtype(2: n32));
-	glVertexAttribPointer(transtype(2 : n32), 4, OGL.FLOAT, OGL.FALSE, 0, nul);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 4, OGL.FLOAT, OGL.FALSE, 0, nul);
 
     // --------------------------------------
 
-    glBindVertexArray(transtype(0: n32))
+    glBindVertexArray(0)
 
     // --------------------------------------
 
@@ -284,12 +284,12 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
         glBindVertexArray(rendeuse.id_tableau_vertex)
 
         loc := glGetUniformLocation(rendeuse.programme, "atlas".pointeur)
-	    glUniform1ui(loc, transtype(0: n32));
+	    glUniform1ui(loc, 0);
 
 		glDrawElements(OGL.TRIANGLES, transtype(indices.taille: z32), _GL_UNSIGNED_INT, nul);
 
-        glBindVertexArray(transtype(0: n32))
-        glUseProgram(transtype(0: n32))
+        glBindVertexArray(0)
+        glUseProgram(0)
 	}
 
 	glDeleteTextures(1, @atlas.id)

@@ -60,7 +60,7 @@ ajoute :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     nb_N := nombre_de_bits_zéro_en_fin(r_N)
     nb_D := nombre_de_bits_zéro_en_fin(r_D)
 
-    si nb_N != transtype(0: n32) && nb_D != transtype(0: n32) {
+    si nb_N != 0 && nb_D != 0 {
         si nb_N < nb_D {
             r_N = r_N >> nb_N
             r_D = r_D >> nb_N
@@ -108,7 +108,7 @@ multiplie :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     nb_N := nombre_de_bits_zéro_en_fin(r_N)
     nb_D := nombre_de_bits_zéro_en_fin(r_D)
 
-    si nb_N != transtype(0: n32) && nb_D != transtype(0: n32) {
+    si nb_N != 0 && nb_D != 0 {
         si nb_N < nb_D {
             r_N = r_N >> nb_N
             r_D = r_D >> nb_N
@@ -155,33 +155,33 @@ pgdc_récursif :: fonc(u: n64, v: n64) -> n64
         retourne u
     }
 
-    si u == _0 {
+    si u == 0 {
         retourne v
     }
 
-    si v == _0 {
+    si v == 0 {
         retourne u
     }
 
     // cherche des facteurs de 2
-    si (~u & _1) != _0 { // u est pair
-        si (v & _1) != _0 { // v est impair
-            retourne pgdc_récursif(u >> _1, v)
+    si (~u & 1) != 0 { // u est pair
+        si (v & 1) != 0 { // v est impair
+            retourne pgdc_récursif(u >> 1, v)
         }
 
-        retourne pgdc_récursif(u >> _1, v >> _1) << _1
+        retourne pgdc_récursif(u >> 1, v >> 1) << 1
     }
 
-    si (~v & _1) != _0 { // u est impair, v est pair
-        retourne pgdc_récursif(u, v >> _1)
+    si (~v & 1) != 0 { // u est impair, v est pair
+        retourne pgdc_récursif(u, v >> 1)
     }
 
     // réduis l'argument le plus grand
     si (u > v) {
-        retourne pgdc_récursif((u - v) >> _1, v)
+        retourne pgdc_récursif((u - v) >> 1, v)
     }
 
-    retourne pgdc_récursif((v - u) >> _1, u)
+    retourne pgdc_récursif((v - u) >> 1, u)
 }
 
 pgdc :: fonc(dyn u: n64, dyn v: n64) -> n64
@@ -191,34 +191,34 @@ pgdc :: fonc(dyn u: n64, dyn v: n64) -> n64
     }
 
     // GCD(0,v) == v GCD(u,0) == u, GCD(0,0) == 0
-    si u == _0 {
+    si u == 0 {
         retourne v
     }
 
-    si v == _0 {
+    si v == 0 {
         retourne u
     }
 
-    dyn shift : n64 = _0
+    dyn shift : n64 = 0
 
     //Let shift := lg K, where K is the greatest power of 2
     // dividing both u and v.
-    tantque (((u | v) & _1) == _0) {
-        shift = shift + _1
-        u = u >> _1
-        v = v >> _1
+    tantque (((u | v) & 1) == 0) {
+        shift = shift + 1
+        u = u >> 1
+        v = v >> 1
     }
 
-    tantque ((u & _1) == _0) {
-        u = u >> _1
+    tantque ((u & 1) == 0) {
+        u = u >> 1
     }
 
     // From here on, u is always odd. */
     répète {
         // remove all factors of 2 in v -- they are not common */
         //   note: v is not zero, so while will terminate */
-        tantque ((v & _1) == _0) {
-            v = v >> _1
+        tantque ((v & 1) == 0) {
+            v = v >> 1
         }
 
         // Now u and v are both odd. Swap if necessary so u <= v,
@@ -232,7 +232,7 @@ pgdc :: fonc(dyn u: n64, dyn v: n64) -> n64
         }
 
         v = v - u // Here v >= u.
-    } tantque (v != _0)
+    } tantque (v != 0)
 
     // restore common factors of 2 */
     retourne u << shift
@@ -240,25 +240,18 @@ pgdc :: fonc(dyn u: n64, dyn v: n64) -> n64
 
 nombre_de_bits_zéro_en_fin :: fonc(dyn i: n64) -> n32
 {
-    si i == _0 {
-        retourne transtype(64: n32)
+    si i == 0 {
+        retourne 64
     }
 
-    _63 := transtype(63: n64)
-    _32 := transtype(32: n64)
-    _16 := transtype(16: n64)
-    _8 := transtype(8: n64)
-    _4 := transtype(4: n64)
-    _2 := transtype(2: n64)
-
-    dyn n := _63
+    dyn n : n32 = 63
     dyn y : n64
 
-    y = i << _32; si y != _0 { n = n - _32; i = y; }
-    y = i << _16; si y != _0 { n = n - _16; i = y; }
-    y = i <<  _8; si y != _0 { n = n -  _8; i = y; }
-    y = i <<  _4; si y != _0 { n = n -  _4; i = y; }
-    y = i <<  _2; si y != _0 { n = n -  _2; i = y; }
+    y = i << 32; si y != 0 { n = n - 32; i = y; }
+    y = i << 16; si y != 0 { n = n - 16; i = y; }
+    y = i <<  8; si y != 0 { n = n -  8; i = y; }
+    y = i <<  4; si y != 0 { n = n -  4; i = y; }
+    y = i <<  2; si y != 0 { n = n -  2; i = y; }
 
-	retourne transtype(n - ((i << _1) >> _63): n32)
+	retourne n - transtype((i << 1) >> 63: n32)
 }

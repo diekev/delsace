@@ -20,7 +20,7 @@ inverse :: fonc (dyn chn: *chaine) -> rien
 
 	taille := chn.taille / 2
 
-	pour i dans transtype(0: z64) ... taille - 1 {
+	pour i dans 0 ... taille - 1 {
 		tmp := chn_tmp[i]
 		chn_tmp[i] = chn_tmp[chn.taille - i - 1]
 		chn_tmp[chn.taille - i - 1] = tmp
@@ -411,11 +411,11 @@ distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
 		c = idx
 	}
 
-	pour i dans transtype(0: z64) ... chn1.taille - 1 {
+	pour i dans 0 ... chn1.taille - 1 {
 		coûts[0] = i + 1
 		dyn coin := i
 
-		pour j dans transtype(0: z64) ... chn2.taille - 1 {
+		pour j dans 0 ... chn2.taille - 1 {
 			enhaut := coûts[j + 1]
 
 			si chn1[i] == chn2[j] {

@@ -335,6 +335,11 @@ llvm::Value *cree_info_type(
 			valeur = cree_info_type_defaut(contexte, IDInfoType::OCTET);
 			break;
 		}
+		case GenreType::ENTIER_CONSTANT:
+		{
+			valeur = cree_info_type_entier(contexte, 32, true);
+			break;
+		}
 		case GenreType::ENTIER_NATUREL:
 		{
 			valeur = cree_info_type_entier(contexte, 8 * type->taille_octet, false);

@@ -246,8 +246,9 @@ Typeuse::Typeuse(GrapheDependance &g, Operateurs &o)
 	types_communs[static_cast<long>(TypeBase::RIEN)] = cree_type_pour_lexeme(GenreLexeme::RIEN);
 	types_communs[static_cast<long>(TypeBase::BOOL)] = cree_type_pour_lexeme(GenreLexeme::BOOL);
 	types_communs[static_cast<long>(TypeBase::OCTET)] = cree_type_pour_lexeme(GenreLexeme::OCTET);
+	types_communs[static_cast<long>(TypeBase::ENTIER_CONSTANT)] = Type::cree_entier_constant();
 
-	for (auto i = static_cast<long>(TypeBase::N8); i <= static_cast<long>(TypeBase::OCTET); ++i) {
+	for (auto i = static_cast<long>(TypeBase::N8); i <= static_cast<long>(TypeBase::ENTIER_CONSTANT); ++i) {
 		types_simples.pousse(types_communs[i]);
 	}
 
@@ -654,6 +655,10 @@ dls::chaine chaine_type(const Type *type)
 		case GenreType::OCTET:
 		{
 			return "octet";
+		}
+		case GenreType::ENTIER_CONSTANT:
+		{
+			return "entier_constant";
 		}
 		case GenreType::ENTIER_NATUREL:
 		{

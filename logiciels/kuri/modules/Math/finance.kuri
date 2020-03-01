@@ -25,7 +25,7 @@ covariance :: fonc(
 	taille := min(cours1.taille, cours2.taille);
 	dyn res : r32;
 
-	pour i dans transtype(0: z64) ... taille - 1 {
+	pour i dans 0 ... taille - 1 {
 		res += (cours1[i] - moyenne1) * (cours2[i] - moyenne2);
 	}
 

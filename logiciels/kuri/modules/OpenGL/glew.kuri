@@ -25,9 +25,9 @@ OGL :: énum n32 {
     COMPILE_STATUS := 0x8B81
 }
 
-_GL_BLEND := transtype(0x0BE2: n32)
-_GL_SRC_ALPHA := transtype(0x0302: n32)
-_GL_ONE_MINUS_SRC_ALPHA := transtype(0x0303: n32)
+_GL_BLEND : n32 = 0x0BE2
+_GL_SRC_ALPHA : n32 = 0x0302
+_GL_ONE_MINUS_SRC_ALPHA : n32 = 0x0303
 _GL_TEXTURE0 := 0x84C0
 _GL_TEXTURE_1D := 0x0DE0
 _GL_TEXTURE_2D := 0x0DE1
@@ -45,10 +45,10 @@ _GL_TEXTURE_WRAP_T := 0x2803
 _GL_CLAMP := 0x2900
 _GL_REPEAT := 0x2901
 _GL_CLAMP_TO_EDGE := 0x812F
-_GL_INVALID_ENUM := transtype(0x0500: n32)
-_GL_INVALID_VALUE := transtype(0x0501: n32)
-_GL_INVALID_OPERATION := transtype(0x0502: n32)
-_GL_INVALID_FRAMEBUFFER_OPERATION := transtype(0x0506: n32)
+_GL_INVALID_ENUM : n32 = 0x0500
+_GL_INVALID_VALUE : n32 = 0x0501
+_GL_INVALID_OPERATION : n32 = 0x0502
+_GL_INVALID_FRAMEBUFFER_OPERATION : n32 = 0x0506
 
 dyn externe glewExperimental : z32
 
@@ -140,7 +140,7 @@ vérifie_erreur :: fonc() -> rien
 {
     erreur := glGetError()
 
-	si erreur == transtype(0: n32) {
+	si erreur == 0 {
         retourne
 	}
 

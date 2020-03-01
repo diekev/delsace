@@ -1,15 +1,9 @@
 // Bibliothèque de travail sur le boutisme des nombres binaires.
 
-// À FAIRE : il faut vraiment travailler sur le typage des constantes
- _8 := transtype(8: n16)
-_24 := transtype(24: n16)
-_40 := transtype(40: n16)
-_56 := transtype(56: n16)
-
 #enligne commute_boutisme :: fonc(dyn val : *n16) -> rien
 {
     dyn v := mémoire(val)
-    v = (v >> _8) | (v << _8)
+    v = (v >> 8) | (v << 8)
     mémoire(val) = v
 }
 
@@ -17,10 +11,10 @@ _56 := transtype(56: n16)
 {
     dyn v := mémoire(val)
 
-    v = (v >> _24) |
-        ((v << _8) & transtype(0x00FF0000 : n32)) |
-        ((v >> _8) & transtype(0x0000FF00 : n32)) |
-        (v << _24);
+    v = (v >> 24) |
+        ((v << 8) & transtype(0x00FF0000 : n32)) |
+        ((v >> 8) & transtype(0x0000FF00 : n32)) |
+        (v << 24);
 
     mémoire(val) = v
 }
@@ -29,14 +23,14 @@ _56 := transtype(56: n16)
 {
     dyn v := mémoire(val)
 
-    v = (v >> _56) |
-        ((v << _40) & transtype(0x00FF000000000000 : n64)) |
-        ((v << _24) & transtype(0x0000FF0000000000 : n64)) |
-        ((v << _8) & transtype(0x000000FF00000000 : n64)) |
-        ((v >> _8) & transtype(0x00000000FF000000 : n64)) |
-        ((v >> _24) & transtype(0x0000000000FF0000 : n64)) |
-        ((v >> _40) & transtype(0x000000000000FF00 : n64)) |
-        (v << _56);
+    v = (v >> 56) |
+        ((v << 40) & transtype(0x00FF000000000000 : n64)) |
+        ((v << 24) & transtype(0x0000FF0000000000 : n64)) |
+        ((v << 8) & transtype(0x000000FF00000000 : n64)) |
+        ((v >> 8) & transtype(0x00000000FF000000 : n64)) |
+        ((v >> 24) & transtype(0x0000000000FF0000 : n64)) |
+        ((v >> 40) & transtype(0x000000000000FF00 : n64)) |
+        (v << 56);
 
     mémoire(val) = v
 }

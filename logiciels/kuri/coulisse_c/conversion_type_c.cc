@@ -55,6 +55,10 @@ void cree_typedef(
 			os << "typedef unsigned char " << nom_broye << ";\n";
 			break;
 		}
+		case GenreType::ENTIER_CONSTANT:
+		{
+			break;
+		}
 		case GenreType::ENTIER_NATUREL:
 		{
 			if (type->taille_octet == 1) {

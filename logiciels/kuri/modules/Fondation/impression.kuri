@@ -244,7 +244,7 @@ imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : *Enchaineuse,
 
 	// Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
-		reste := reste_de_la_division(@part_entière, transtype(10 : n32))
+		reste := reste_de_la_division(@part_entière, 10)
 		pousse(@chn_part_entière, '0' + transtype(reste : z8))
 	} tantque !est_zéro(@part_entière)
 
@@ -266,7 +266,7 @@ imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : *Enchaineuse,
 
 	// Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
-		surplus := surplus_de_la_multiplication(@frac, transtype(10 : n32))
+		surplus := surplus_de_la_multiplication(@frac, 10)
 		ajoute_au_tampon(enchaineuse, '0' + transtype(surplus : z8))
 	} tantque !est_zéro(@frac)
 }
@@ -295,8 +295,8 @@ formatte_entier :: fonc (valeur: eini, ajoute_zéros_début := faux, nombre_zér
 imprime_n64_base_n :: fonc (dyn enchaineuse: *Enchaineuse, dyn v: n64, format: FormatEntier) -> rien
 {
 	base := transtype(format.base: n64)
-	assert(base >= transtype(2: n64))
-	assert(base <= transtype(64: n64))
+	assert(base >= 2)
+	assert(base <= 64)
 
 	chiffres_base_64 := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_#"
 
@@ -305,7 +305,7 @@ imprime_n64_base_n :: fonc (dyn enchaineuse: *Enchaineuse, dyn v: n64, format: F
 	dyn fin := @résultat[0] + 64
 	dyn début := fin
 
-	tantque v != transtype(0: n64) {
+	tantque v != 0 {
 		chiffre := v % base
 		v /= base
 
@@ -363,22 +363,22 @@ imprime_nombre_entier :: fonc (dyn enchaineuse: *Enchaineuse, format: FormatEnti
 
 z64_depuis_pointeur :: fonc (pointeur: *z8, taille: n32) -> z64
 {
-	si taille == transtype(1: n32) { retourne mémoire(transtype(pointeur : *z8)) }
-	si taille == transtype(2: n32) { retourne mémoire(transtype(pointeur : *z16)) }
-	si taille == transtype(4: n32) { retourne mémoire(transtype(pointeur : *z32)) }
-	si taille == transtype(8: n32) { retourne mémoire(transtype(pointeur : *z64)) }
+	si taille == 1 { retourne mémoire(transtype(pointeur : *z8)) }
+	si taille == 2 { retourne mémoire(transtype(pointeur : *z16)) }
+	si taille == 4 { retourne mémoire(transtype(pointeur : *z32)) }
+	si taille == 8 { retourne mémoire(transtype(pointeur : *z64)) }
 
 	retourne 0
 }
 
 n64_depuis_pointeur :: fonc (pointeur: *z8, taille: n32) -> n64
 {
-	si taille == transtype(1: n32) { retourne mémoire(transtype(pointeur : *n8)) }
-	si taille == transtype(2: n32) { retourne mémoire(transtype(pointeur : *n16)) }
-	si taille == transtype(4: n32) { retourne mémoire(transtype(pointeur : *n32)) }
-	si taille == transtype(8: n32) { retourne mémoire(transtype(pointeur : *n64)) }
+	si taille == 1 { retourne mémoire(transtype(pointeur : *n8)) }
+	si taille == 2 { retourne mémoire(transtype(pointeur : *n16)) }
+	si taille == 4 { retourne mémoire(transtype(pointeur : *n32)) }
+	si taille == 8 { retourne mémoire(transtype(pointeur : *n64)) }
 
-	retourne transtype(0: n32)
+	retourne 0
 }
 
 FormatRéel :: struct {
@@ -400,14 +400,14 @@ imprime_nombre_réel :: fonc(dyn enchaineuse: *Enchaineuse, format: FormatRéel)
 	pointeur := format.valeur.pointeur
 	dyn f : r32
 
-	si info.taille_en_octet == transtype(2: n32) {
+	si info.taille_en_octet == 2 {
 		x := mémoire(transtype(pointeur : *r16))
 		f = x
 	}
-	sinon si info.taille_en_octet == transtype(4: n32) {
+	sinon si info.taille_en_octet == 4 {
 		f = mémoire(transtype(pointeur : *r32))
 	}
-	sinon si info.taille_en_octet == transtype(8: n32) {
+	sinon si info.taille_en_octet == 8 {
 		x := mémoire(transtype(pointeur : *r64))
 		f = transtype(x : r32)
 	}

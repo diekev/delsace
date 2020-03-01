@@ -3,10 +3,10 @@ importe Couleur
 importe OpenGL
 importe Math
 
-dyn VertexArrayID := transtype(0 : n32)
-dyn ProgramID := transtype(0 : n32)
-dyn vertexbuffer := transtype(0 : n32)
-dyn colorbuffer := transtype(0 : n32)
+dyn VertexArrayID : n32 = 0
+dyn ProgramID : n32 = 0
+dyn vertexbuffer : n32 = 0
+dyn colorbuffer : n32 = 0
 dyn tabl_sommets : []r32
 dyn tabl_couleur : []Couleur
 
@@ -130,20 +130,20 @@ termine_dessin :: fonc() -> rien
 {
     glUseProgram(ProgramID)
 
-    glEnableVertexAttribArray(transtype(0 : n32))
+    glEnableVertexAttribArray(0)
     glBindBuffer(OGL.ARRAY_BUFFER, vertexbuffer)
 	glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_sommets.taille : n64) * taille_de(z32), tabl_sommets.pointeur, OGL.STATIC_DRAW)
-    glVertexAttribPointer(transtype(0 : n32), 3, OGL.FLOAT, OGL.FALSE, 0, nul)
+    glVertexAttribPointer(0, 3, OGL.FLOAT, OGL.FALSE, 0, nul)
 
-    glEnableVertexAttribArray(transtype(1 : n32))
+    glEnableVertexAttribArray(1)
     glBindBuffer(OGL.ARRAY_BUFFER, colorbuffer)
 	glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_couleur.taille : n64) * taille_de(Couleur), tabl_couleur.pointeur, OGL.STATIC_DRAW)
-    glVertexAttribPointer(transtype(1 : n32), 4, OGL.FLOAT, OGL.FALSE, 0, nul)
+    glVertexAttribPointer(1, 4, OGL.FLOAT, OGL.FALSE, 0, nul)
 
     glDrawArrays(OGL.TRIANGLES, 0, tabl_sommets.taille / 3)
-    glDisableVertexAttribArray(transtype(0 : n32))
+    glDisableVertexAttribArray(0)
 
-    glUseProgram(transtype(0 : n32))
+    glUseProgram(0)
 
     nonsûr {
         // À FAIRE : propriété « alloué »
@@ -151,7 +151,7 @@ termine_dessin :: fonc() -> rien
         déloge tabl_couleur
     }
 
-    glBindVertexArray(transtype(0 : n32))
+    glBindVertexArray(0)
 }
 
 ajoute_sommet :: fonc(x : r32, y : r32, z : r32) -> rien

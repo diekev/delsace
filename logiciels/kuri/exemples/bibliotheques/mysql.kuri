@@ -67,7 +67,7 @@ principale :: fonc () : z32
 	mot_de_passe := ""
 	base_de_données := ""
 
-	connexion := mysql_real_connect(@mysql, hôte.pointeur, utilisateur.pointeur, mot_de_passe.pointeur, base_de_données.pointeur, transtype(0: n32), nul, transtype(0: n64));
+	connexion := mysql_real_connect(@mysql, hôte.pointeur, utilisateur.pointeur, mot_de_passe.pointeur, base_de_données.pointeur, 0, nul, 0);
 
 	si (connexion == nul) {
 		e := mysql_error(@mysql)

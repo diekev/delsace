@@ -142,6 +142,7 @@ enum class TypeBase : char {
 	RIEN,
 	BOOL,
 	OCTET,
+	ENTIER_CONSTANT,
 
 	PTR_N8,
 	PTR_N16,
@@ -200,6 +201,7 @@ enum class GenreType : int {
 	INVALIDE,
 	ENTIER_NATUREL,
 	ENTIER_RELATIF,
+	ENTIER_CONSTANT,
 	REEL,
 	POINTEUR,
 	STRUCTURE,
@@ -241,6 +243,14 @@ struct Type {
 		type->genre = est_naturel ? GenreType::ENTIER_NATUREL : GenreType::ENTIER_RELATIF;
 		type->taille_octet = taille_octet;
 		type->alignement = taille_octet;
+		return type;
+	}
+
+	static Type *cree_entier_constant()
+	{
+		auto type = memoire::loge<Type>("Type");
+		type->genre = GenreType::ENTIER_CONSTANT;
+
 		return type;
 	}
 
@@ -500,3 +510,8 @@ struct Typeuse {
 /* ************************************************************************** */
 
 dls::chaine chaine_type(Type const *type);
+
+inline bool est_type_entier(Type const *type)
+{
+	return type->genre == GenreType::ENTIER_NATUREL || type->genre == GenreType::ENTIER_RELATIF;
+}

@@ -2,12 +2,8 @@
 // Tiré de :
 // https://randomascii.wordpress.com/2012/03/08/float-precisionfrom-zero-to-100-digits-2/
 
-DÉCALAGE_MOT := transtype(32: n32)
-COMPTE := transtype(5: n32)
-
-// À FAIRE : typage flexible des constantes
-_0 := transtype(0: n32)
-_1 := transtype(1: n32)
+DÉCALAGE_MOT : n32 = 32
+COMPTE : n32 = 5
 
 // À FAIRE : template <size_t COMPTE>
 HautePrécision :: struct {
@@ -24,7 +20,7 @@ construit_nombre_haute_précision :: fonc() -> HautePrécision
 	dyn hp : HautePrécision
 
 	pour élément dans hp.données {
-		élément = transtype(0 : n32)
+		élément = 0
 	}
 
 	retourne hp
@@ -45,7 +41,7 @@ insère_bits_du_bas :: fonc(
 		retourne
 	}
 
-	sous_décalage := transtype(quantité_décalage: n32) & (DÉCALAGE_MOT - _1)
+	sous_décalage := transtype(quantité_décalage: n32) & (DÉCALAGE_MOT - 1)
 	grand_décalage := transtype(quantité_décalage: n32) / DÉCALAGE_MOT
 	résultat := transtype(valeur : n64) << sous_décalage
 	résultat_bas := transtype(résultat : n32)
@@ -53,7 +49,7 @@ insère_bits_du_bas :: fonc(
 
     // Utilisation d'un type naturel pour que les nombres négatifs déviennent
     // large, rendant la vérification de la plage plus bas plus simple.
-	high_index := COMPTE - _1 - grand_décalage;
+	high_index := COMPTE - 1 - grand_décalage;
 
     // Écris les résultats dans le tableau de données. Si l'index est trop
     // grand alors les données ont été décalées hors du nombre.
@@ -61,8 +57,8 @@ insère_bits_du_bas :: fonc(
 		hp.données[high_index] |= résultat_haut;
 	}
 
-	si high_index + _1 < COMPTE {
-		hp.données[high_index + _1] |= résultat_bas;
+	si high_index + 1 < COMPTE {
+		hp.données[high_index + 1] |= résultat_bas;
 	}
 }
 
@@ -77,14 +73,14 @@ insère_bits_du_haut :: fonc(
 	valeur : n32,
 	quantité_décalage : z32) -> rien
 {
-	insère_bits_du_bas(hp, valeur, transtype((COMPTE + _1) * DÉCALAGE_MOT: z32) - quantité_décalage);
+	insère_bits_du_bas(hp, valeur, transtype((COMPTE + 1) * DÉCALAGE_MOT: z32) - quantité_décalage);
 }
 
 // Retourne vrai si tous les éléments de hp.données sont égaux à zéro.
 est_zéro :: fonc(hp : *HautePrécision) -> bool
 {
 	pour élément dans hp.données {
-		si élément != transtype(0 : n32) {
+		si élément != 0 {
 			retourne faux
 		}
 	}
@@ -95,7 +91,7 @@ est_zéro :: fonc(hp : *HautePrécision) -> bool
 // Retourne le reste de la division de hp par diviseur, de 0 à diviseur - 1.
 reste_de_la_division :: fonc(dyn hp : *HautePrécision, diviseur : n32) -> n32
 {
-	dyn reste := transtype(0 : n32)
+	dyn reste : n32 = 0
 
 	// Algorithme standard de division longue.
 	pour élément dans hp.données {
@@ -111,10 +107,10 @@ reste_de_la_division :: fonc(dyn hp : *HautePrécision, diviseur : n32) -> n32
 // Multiplie par mul et retourne le surplus, de 0 à mul - 1
 surplus_de_la_multiplication :: fonc(dyn hp : *HautePrécision, mul : n32) -> n32
 {
-	dyn surplus := transtype(0 : n32)
+	dyn surplus : n32 = 0
 
-	pour j dans _0 ... COMPTE - _1 {
-		i := COMPTE - _1 - j
+	pour j dans 0 ... COMPTE - 1 {
+		i := COMPTE - 1 - j
 
 		résultat := transtype(mul : n64) * hp.données[i] + surplus;
 

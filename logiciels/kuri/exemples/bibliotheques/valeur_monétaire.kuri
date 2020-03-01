@@ -110,7 +110,7 @@ alloue :: fonc (v: ValeurMonnétaire, ratios: []z32) -> []ValeurMonnétaire
         reste -= r.quantité
     }
 
-    pour i dans transtype(0: z64) ... reste - 1 {
+    pour i dans 0 ... reste - 1 {
         résultat[i].quantité += 1
     }
 

@@ -25,14 +25,14 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 		RÉEL {
 			dyn y : r32
 
-            si info.taille_en_octet == transtype(2: n32) {
+            si info.taille_en_octet == 2 {
 				x := mémoire(transtype(pointeur : *r16))
 				y = x
 			}
-			sinon si info.taille_en_octet == transtype(4: n32) {
+			sinon si info.taille_en_octet == 4 {
 				y = mémoire(transtype(pointeur : *r32))
 			}
-			sinon si info.taille_en_octet == transtype(8: n32) {
+			sinon si info.taille_en_octet == 8 {
 				x := mémoire(transtype(pointeur : *r64))
 				y = transtype(x : r32)
 			}
@@ -99,7 +99,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
             sinon {
                 x := mémoire(transtype(pointeur: *[]z8))
 
-                pour i dans transtype(0: z64) ... x.taille - 1 {
+                pour i dans 0 ... x.taille - 1 {
                     si i != 0 {
                         ajoute_au_tampon(enchaineuse, ',')
                     }

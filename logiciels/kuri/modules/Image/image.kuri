@@ -37,8 +37,8 @@ remplis_image :: fonc (dyn image : *Image, couleur: Couleur) -> rien
     xi := transtype(x: z32)
     yi := transtype(y: z32)
 
-    restreint(@xi, 0, image.largeur - 1)
-    restreint(@yi, 0, image.hauteur - 1)
+    restreint(@xi, transtype(0: z32), image.largeur - 1)
+    restreint(@yi, transtype(0: z32), image.hauteur - 1)
 
     index := xi + yi * image.largeur
 

@@ -1407,7 +1407,12 @@ static void performe_validation_semantique(
 			variable->type = resoud_type_final(contexte, variable->type_declare);
 
 			if (variable->type == nullptr) {
-				variable->type = expression->type;
+				if (expression->type->genre == GenreType::ENTIER_CONSTANT) {
+					variable->type = contexte.typeuse[TypeBase::Z32];
+				}
+				else {
+					variable->type = expression->type;
+				}
 			}
 			else {
 				auto transformation = cherche_transformation(
@@ -1459,7 +1464,7 @@ static void performe_validation_semantique(
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		{
 			b->genre_valeur = GenreValeur::DROITE;
-			b->type = contexte.typeuse[TypeBase::Z32];
+			b->type = contexte.typeuse[TypeBase::ENTIER_CONSTANT];
 
 			donnees_dependance.types_utilises.insere(b->type);
 			break;
@@ -1644,6 +1649,10 @@ static void performe_validation_semantique(
 					b->type = contexte.typeuse.type_pointeur_pour(type);
 				}
 				else {
+					if (type->genre == GenreType::ENTIER_CONSTANT) {
+						type = contexte.typeuse[TypeBase::Z32];
+					}
+
 					auto op = cherche_operateur_unaire(contexte.operateurs, type, b->identifiant());
 
 					if (op == nullptr) {
@@ -2103,11 +2112,22 @@ static void performe_validation_semantique(
 			}
 
 			if (type_debut != type_fin) {
-				erreur::lance_erreur_type_operation(
-							type_debut,
-							type_fin,
-							contexte,
-							b->lexeme);
+				if (type_debut->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_fin)) {
+					type_debut = type_fin;
+				}
+				else if (type_fin->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_debut)) {
+					type_fin = type_debut;
+				}
+				else {
+					erreur::lance_erreur_type_operation(
+								type_debut,
+								type_fin,
+								contexte,
+								b->lexeme);
+				}
+			}
+			else if (type_debut->genre == GenreType::ENTIER_CONSTANT) {
+				type_debut = contexte.typeuse[TypeBase::Z32];
 			}
 
 			if (type_debut->genre != GenreType::ENTIER_NATUREL && type_debut->genre != GenreType::ENTIER_RELATIF && type_debut->genre != GenreType::REEL) {
@@ -2261,9 +2281,13 @@ static void performe_validation_semantique(
 
 			auto type_feuille = premiere_feuille->type;
 
+			if (type_feuille->genre == GenreType::ENTIER_CONSTANT) {
+				type_feuille = contexte.typeuse[TypeBase::Z32];
+			}
+
 			for (auto f : feuilles) {
 				/* À FAIRE : test */
-				if (f->type != type_feuille) {
+				if (f->type != type_feuille && f->type->genre != GenreType::ENTIER_CONSTANT) {
 					erreur::lance_erreur_assignation_type_differents(
 								type_feuille,
 								f->type,
@@ -2369,6 +2393,7 @@ static void performe_validation_semantique(
 					nom_struct = "InfoType";
 					break;
 				}
+				case GenreType::ENTIER_CONSTANT:
 				case GenreType::ENTIER_NATUREL:
 				case GenreType::ENTIER_RELATIF:
 				{
@@ -2665,7 +2690,12 @@ static void performe_validation_semantique(
 
 					if (decl_membre->type != decl_expr->type) {
 						if (decl_membre->type == nullptr) {
-							decl_membre->type = decl_expr->type;
+							if (decl_expr->type->genre == GenreType::ENTIER_CONSTANT) {
+								decl_membre->type = contexte.typeuse[TypeBase::Z32];
+							}
+							else {
+								decl_membre->type = decl_expr->type;
+							}
 						}
 						else {
 							auto transformation = cherche_transformation(
@@ -3060,7 +3090,7 @@ static void performe_validation_semantique(
 				for (auto f : feuilles) {
 					performe_validation_semantique(f, contexte, true);
 
-					if (f->type != expression->type) {
+					if (f->type != expression->type && f->type->genre != GenreType::ENTIER_CONSTANT) {
 						erreur::lance_erreur_type_arguments(
 									expression->type,
 									f->type,

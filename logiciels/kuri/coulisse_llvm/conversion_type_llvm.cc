@@ -113,6 +113,10 @@ llvm::Type *converti_type_llvm(
 		{
 			return llvm::Type::getInt8Ty(contexte.contexte);
 		}
+		case GenreType::ENTIER_CONSTANT:
+		{
+			return llvm::Type::getInt32Ty(contexte.contexte);
+		}
 		case GenreType::ENTIER_NATUREL:
 		case GenreType::ENTIER_RELATIF:
 		{

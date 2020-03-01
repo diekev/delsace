@@ -147,21 +147,21 @@ converti_utf8_utf32 :: fonc(caractère : *z8, n : z64) -> z32
 	s1 := transtype(caractère[1] : n8)
 
 	si (n == 2) {
-        v := (s0 & transtype(0b00011111: n8)) << transtype(6: n8) | (s1 & transtype(0b00111111: n8))
+        v := (s0 & transtype(0b00011111: n8)) << 6 | (s1 & transtype(0b00111111: n8))
 		retourne transtype(v : z32)
 	}
 
 	s2 := transtype(caractère[2] : n8)
 
 	si (n == 3) {
-		v := (s0 & transtype(0b00001111: n8)) << transtype(12: n8) | (s1 & transtype(0b00111111: n8)) << transtype(6: n8) | (s2 & transtype(0b00111111: n8))
+		v := (s0 & transtype(0b00001111: n8)) << 12 | (s1 & transtype(0b00111111: n8)) << 6 | (s2 & transtype(0b00111111: n8))
 		retourne transtype(v : z32)
 	}
 
 	s3 := transtype(caractère[3] : n8)
 
 	si (n == 4) {
-		v := (s0 & transtype(0b00000111: n8)) << transtype(18: n8) | (s1 & transtype(0b00111111: n8)) << transtype(12: n8) | (s2 & transtype(0b00111111: n8)) << transtype(6: n8) | (s3 & transtype(0b00111111: n8))
+		v := (s0 & transtype(0b00000111: n8)) << 18 | (s1 & transtype(0b00111111: n8)) << 12 | (s2 & transtype(0b00111111: n8)) << 6 | (s3 & transtype(0b00111111: n8))
 		retourne transtype(v : z32)
 	}
 

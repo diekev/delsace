@@ -59,13 +59,13 @@ png_read_image :: fonc externe (png: *png_struct_def, image: **n8) -> rien
 
 charge_image_png :: fonc (chemin: chaine) -> *Image
 {
-    _PNG_COLOR_TYPE_GRAY := transtype(0: n32)
-    _PNG_COLOR_TYPE_PALETTE := transtype(3: n32)
-    _PNG_COLOR_TYPE_RGB := transtype(2: n32)
-    _PNG_COLOR_TYPE_RGB_ALPHA := transtype(6: n32)
-    _PNG_COLOR_TYPE_GRAY_ALPHA := transtype(4: n32)
+    _PNG_COLOR_TYPE_GRAY : n32 = 0
+    _PNG_COLOR_TYPE_PALETTE : n32 = 3
+    _PNG_COLOR_TYPE_RGB : n32 = 2
+    _PNG_COLOR_TYPE_RGB_ALPHA : n32 = 6
+    _PNG_COLOR_TYPE_GRAY_ALPHA : n32 = 4
     _PNG_FILLER_AFTER := 1
-    _PNG_INFO_tRNS := transtype(0x0010: n32)
+    _PNG_INFO_tRNS : n32 = 0x0010
 
     dyn image := loge Image
 
@@ -104,7 +104,7 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
 	color_type := png_get_color_type(png, info)
 	bit_depth  := png_get_bit_depth(png, info)
 
-	si bit_depth == transtype(16: n8) {
+	si bit_depth == 16 {
 		png_set_strip_16(png)
 	}
 
@@ -113,11 +113,11 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
 	}
 
 	// PNG_COLOR_TYPE_GRAY_ALPHA is always 8 or 16bit depth.
-	si color_type == _PNG_COLOR_TYPE_GRAY && bit_depth < transtype(8: n8) {
+	si color_type == _PNG_COLOR_TYPE_GRAY && bit_depth < 8 {
 		png_set_expand_gray_1_2_4_to_8(png)
 	}
 
-	si png_get_valid(png, info, _PNG_INFO_tRNS) != transtype(0: n32) {
+	si png_get_valid(png, info, _PNG_INFO_tRNS) != 0 {
 		png_set_tRNS_to_alpha(png)
 	}
 

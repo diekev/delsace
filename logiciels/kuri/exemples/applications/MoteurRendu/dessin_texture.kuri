@@ -52,7 +52,7 @@ crée_tampon_texture :: fonc () -> *TamponTexture
 
 	glUniform1ui(loc, tampon_texture.code_texture);
 
-    glUseProgram(transtype(0 : n32))
+    glUseProgram(0)
 
     // ------------------
 
@@ -73,10 +73,10 @@ crée_tampon_texture :: fonc () -> *TamponTexture
 	glBindBuffer(OGL.ELEMENT_ARRAY_BUFFER, tampon_texture.id_tampon_index);
 	glBufferData(OGL.ELEMENT_ARRAY_BUFFER, transtype(index.taille: n64) * taille_de(z32), @index[0], OGL.STATIC_DRAW);
 
-	glEnableVertexAttribArray(transtype(0: n32));
-	glVertexAttribPointer(transtype(0 : n32), 2, OGL.FLOAT, OGL.FALSE, 0, nul);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, OGL.FLOAT, OGL.FALSE, 0, nul);
 
-    glBindVertexArray(transtype(0 : n32))
+    glBindVertexArray(0)
 
     retourne tampon_texture
 }
@@ -92,10 +92,10 @@ dessine_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
     glDrawElements(OGL.TRIANGLES, 6, 0x1405, nul)
 
 	glActiveTexture(_GL_TEXTURE0);
-	glBindTexture(_GL_TEXTURE_2D, transtype(0: n32));
+	glBindTexture(_GL_TEXTURE_2D, 0);
 
-    glBindVertexArray(transtype(0 : n32))
-    glUseProgram(transtype(0 : n32))
+    glBindVertexArray(0)
+    glUseProgram(0)
 }
 
 détruit_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
@@ -130,5 +130,5 @@ génère_texture :: fonc (
     glTexImage2D(_GL_TEXTURE_2D, 0, _GL_RGBA, largeur, hauteur, 0, _GL_RGBA, _GL_FLOAT, données.pointeur);
 
 	glActiveTexture(_GL_TEXTURE0);
-	glBindTexture(_GL_TEXTURE_2D, transtype(0: n32));
+	glBindTexture(_GL_TEXTURE_2D, 0);
 }

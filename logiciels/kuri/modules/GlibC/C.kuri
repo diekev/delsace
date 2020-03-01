@@ -177,7 +177,7 @@ _PF_INET := 2
 _AF_INET := 2
 _SOCK_STREAM := 1
 _WNOHANG := 1
-_INADDR_ANY := transtype(0 : n32)
+_INADDR_ANY : n32 = 0
 
 hostent :: struct externe  {
     h_name : *z8

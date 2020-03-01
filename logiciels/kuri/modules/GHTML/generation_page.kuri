@@ -251,7 +251,7 @@ génère_page :: fonc(
                     sinon {
                         x := mémoire(transtype(pointeur: *[]z8))
 
-                        pour i dans transtype(0: z64) ... x.taille - 1 {
+                        pour i dans 0 ... x.taille - 1 {
                             données.nom_variable_boucle = variable
 
                             dyn e : eini

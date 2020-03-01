@@ -95,7 +95,7 @@ principale :: fonc () -> z32
 	imprime("%\n", attr)
 	imprime("\nIntialise valeurs...\n")
 
-	pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
+	pour i dans 0 ... attr.nombre_éléments - 1 {
 		dyn ptr := tableau_r32(@attr, i)
 		ptr.taille = 0
 		ptr.pointeur = nul
@@ -109,7 +109,7 @@ principale :: fonc () -> z32
 	ptr_tableau = tableau_r32(@attr, 5)
 	tableau_ajoute(ptr_tableau, transtype(5.0: r32))
 
-	pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
+	pour i dans 0 ... attr.nombre_éléments - 1 {
 		dyn ptr := tableau_r32(@attr, i)
 
 		imprime("Valeur % = %\n", i, mémoire(ptr))
@@ -124,7 +124,7 @@ principale :: fonc () -> z32
 	ptr_tableau = tableau_r32(@attr, 5)
 	tableau_ajoute(ptr_tableau, transtype(5.0: r32))
 
-	pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
+	pour i dans 0 ... attr.nombre_éléments - 1 {
 		dyn ptr := tableau_r32(@attr, i)
 
 		imprime("Valeur % = %\n", i, mémoire(ptr))
@@ -168,7 +168,7 @@ détruit :: fonc(dyn attr : *Attribut) -> rien
 	}
 
 	si est_type_tableau(attr.type) {
-		pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
+		pour i dans 0 ... attr.nombre_éléments - 1 {
 			// À FAIRE : types des données
 			ptr := mémoire(tableau_r32(attr, i))
 			déloge ptr

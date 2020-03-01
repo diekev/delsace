@@ -14,7 +14,7 @@
 		retourne 1
 	}
 
-    pour i dans transtype(0 : z64)...taille - 1 {
+    pour i dans 0...taille - 1 {
 		v := a[i] - b[i]
 
         si v != transtype(0: octet) {
@@ -39,7 +39,7 @@
 		retourne faux
 	}
 
-    pour i dans transtype(0 : z64)...taille - 1 {
+    pour i dans 0...taille - 1 {
 	    si a[i] != b[i] {
 			retourne faux
 		}
@@ -50,7 +50,7 @@
 
 #nulctx copie_mem_nonsur :: fonc(src : *octet, dyn dst : *octet, taille : z64) -> rien
 {
-    pour i dans transtype(0 : z64)...taille - 1 {
+    pour i dans 0...taille - 1 {
 		dst[i] = src[i]
 	}
 }
@@ -78,13 +78,13 @@
 	// dst       |---------------|
 	// Copie à partir de la fin.
 	si ptr_deb_src <= ptr_deb_dst <= ptr_fin_src {
-	    pour i dans transtype(0 : z64)...taille - 1 {
+	    pour i dans 0...taille - 1 {
 			idx := taille - i - 1
 			dst[idx] = src[idx]
 		}
 	}
 	sinon {
-	    pour i dans transtype(0 : z64)...taille - 1 {
+	    pour i dans 0...taille - 1 {
 			dst[i] = src[i]
 		}
 	}
@@ -163,7 +163,7 @@
 	ret.pointeur = nul
 	ret.taille = 0
 
-    pour i dans transtype(0 : z64)...t - 1 {
+    pour i dans 0...t - 1 {
 	    si source[i] == transtype(valeur : octet) {
 			ret.pointeur = @source[i]
 			ret.taille = t - i

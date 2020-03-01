@@ -96,7 +96,7 @@ chaine_pour_aujourdhui :: fonc () -> chaine
 
 charge_donnees_requete :: fonc(prise : z32, adresse_du_connecté : &sockaddr_in) -> chaine
 {
-    MAXDATASIZE : n64 = transtype(1024 : n64)
+    MAXDATASIZE : n64 = 1024
 
     dyn tampon : [1024]z8
     dyn requete : chaine
@@ -353,7 +353,7 @@ principale :: fonc () -> z32
     signal(_SIGINT, rappel_interruption);
 
     dyn serveuse : Serveuse
-    construit_serveuse(serveuse, transtype(5001 : n16))
+    construit_serveuse(serveuse, 5001)
 
     // pour les gabarits
     ajoute_fichier(@serveuse.rendeuse_gabarit.catalogue, "accueil", "accueil.html")

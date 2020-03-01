@@ -29,7 +29,7 @@ transforme :: fonc (mat: Mat4r, tri: Triangle) -> Triangle
 
 tri_sélection :: fonc (triangles: []Triangle) -> rien
 {
-    pour i dans transtype(0: z64) ... triangles.taille - 2 {
+    pour i dans 0 ... triangles.taille - 2 {
         dyn index_min : z64 = i
 
         pour j dans transtype(i + 1: z64) ... triangles.taille - 1 {

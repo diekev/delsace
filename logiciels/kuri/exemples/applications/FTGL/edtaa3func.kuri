@@ -131,8 +131,8 @@ edtaa3 :: fonc (
 	offset_lu = -w - 1
 
     pour i dans 0 ... w * h - 1 {
-        distx[i] = transtype(0: z16)
-        disty[i] = transtype(0: z16)
+        distx[i] = 0
+        disty[i] = 0
 
         si img[i] <= 0.0 {
             dist[i] = 1000000.0

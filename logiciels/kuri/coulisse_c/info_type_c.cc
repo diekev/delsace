@@ -252,6 +252,11 @@ dls::chaine cree_info_type_C(
 			cree_info_type_defaul_C(os_decl, id_info_type.OCTET, nom_info_type, 1);
 			break;
 		}
+		case GenreType::ENTIER_CONSTANT:
+		{
+			cree_info_type_entier_C(os_decl, 4, true, id_info_type, nom_info_type);
+			break;
+		}
 		case GenreType::ENTIER_NATUREL:
 		{
 			cree_info_type_entier_C(os_decl, type->taille_octet, false, id_info_type, nom_info_type);

@@ -55,10 +55,10 @@ crée_noeud :: fonc(clé : chaine, valeur : chaine) -> *NoeudTableHachage
 
 calcule_empreinte :: fonc(chn : chaine) -> n64
 {
-    dyn empreinte := transtype(5381 : n64)
+    dyn empreinte : n64 = 5381
 
     pour c dans chn {
-        empreinte = ((empreinte << transtype(5 : n64)) + empreinte) + transtype(c : n64)
+        empreinte = ((empreinte << 5) + empreinte) + transtype(c : n64)
     }
 
 	retourne empreinte
@@ -66,7 +66,7 @@ calcule_empreinte :: fonc(chn : chaine) -> n64
 
 insère :: fonc(dyn table : *TableHachage, clé : chaine, valeur : chaine) -> rien
 {
-    empreinte := calcule_empreinte(clé) % transtype(10000 : n64)
+    empreinte := calcule_empreinte(clé) % 10000
 
     dyn alvéole := table.alvéoles[empreinte]
 
@@ -87,7 +87,7 @@ insère :: fonc(dyn table : *TableHachage, clé : chaine, valeur : chaine) -> ri
 
 trouve :: fonc(table : *TableHachage, clé : chaine) -> *NoeudTableHachage
 {
-    empreinte := calcule_empreinte(clé) % transtype(10000 : n64)
+    empreinte := calcule_empreinte(clé) % 10000
 
     dyn alvéole := table.alvéoles[empreinte]
 

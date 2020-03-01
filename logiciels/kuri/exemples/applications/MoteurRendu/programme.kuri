@@ -65,7 +65,7 @@ charge_programme :: fonc (source_vertex: chaine, source_fragment: chaine) -> n32
 	glCompileShader(id_nuanceur_vertex)
 
     si !vérifie_compilation(id_nuanceur_vertex) {
-        retourne transtype(0: n32)
+        retourne 0
     }
 
     // -------------------
@@ -79,7 +79,7 @@ charge_programme :: fonc (source_vertex: chaine, source_fragment: chaine) -> n32
 	glCompileShader(id_nuanceur_fragment)
 
     si !vérifie_compilation(id_nuanceur_fragment) {
-        retourne transtype(0: n32)
+        retourne 0
     }
 
     // -------------------
@@ -97,7 +97,7 @@ charge_programme :: fonc (source_vertex: chaine, source_fragment: chaine) -> n32
 
     si !vérifie_liaison(id_programme) {
         glDeleteProgram(id_programme)
-        retourne transtype(0: n32)
+        retourne 0
     }
 
     retourne id_programme

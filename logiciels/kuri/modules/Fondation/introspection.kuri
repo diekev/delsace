@@ -64,15 +64,15 @@ valeur_min :: fonc (taille_en_octet: n32, est_signé: bool) -> z64
         retourne 0
     }
 
-    si taille_en_octet == transtype(1: n32) {
+    si taille_en_octet == 1 {
         retourne -128
     }
 
-    si taille_en_octet == transtype(2: n32) {
+    si taille_en_octet == 2 {
         retourne -32768
     }
 
-    si taille_en_octet == transtype(4: n32) {
+    si taille_en_octet == 4 {
         retourne -2147483648
     }
 
@@ -82,30 +82,30 @@ valeur_min :: fonc (taille_en_octet: n32, est_signé: bool) -> z64
 valeur_max :: fonc (taille_en_octet: n32, est_signé: bool) -> n64
 {
     si !est_signé {
-        si taille_en_octet == transtype(1: n32) {
+        si taille_en_octet == 1 {
             retourne transtype(0xff: n64)
         }
 
-        si taille_en_octet == transtype(2: n32) {
+        si taille_en_octet == 2 {
             retourne transtype(0xffff: n64)
         }
 
-        si taille_en_octet == transtype(4: n32) {
+        si taille_en_octet == 4 {
             retourne transtype(0xffff_ffff: n64)
         }
 
         retourne transtype(0xffff_ffff_ffff_ffff: n64)
     }
 
-    si taille_en_octet == transtype(1: n32) {
+    si taille_en_octet == 1 {
         retourne transtype(0x7f: n64)
     }
 
-    si taille_en_octet == transtype(2: n32) {
+    si taille_en_octet == 2 {
         retourne transtype(0x7fff: n64)
     }
 
-    si taille_en_octet == transtype(4: n32) {
+    si taille_en_octet == 4 {
         retourne transtype(0x7fff_ffff: n64)
     }
 
@@ -115,30 +115,30 @@ valeur_max :: fonc (taille_en_octet: n32, est_signé: bool) -> n64
 hors_limite :: fonc (valeur: z64, taille_en_octet: n32, est_signé: bool) -> bool
 {
     si !est_signé {
-        si taille_en_octet == transtype(1: n32) {
+        si taille_en_octet == 1 {
             retourne valeur > 255
         }
 
-        si taille_en_octet == transtype(2: n32) {
+        si taille_en_octet == 2 {
             retourne valeur > 65535
         }
 
-        si taille_en_octet == transtype(4: n32) {
+        si taille_en_octet == 4 {
             retourne valeur > 0xffffffff
         }
 
         retourne faux
     }
 
-    si taille_en_octet == transtype(1: n32) {
+    si taille_en_octet == 1 {
         retourne valeur > 127 || valeur < -128
     }
 
-    si taille_en_octet == transtype(2: n32) {
+    si taille_en_octet == 2 {
         retourne valeur > 32767 || valeur < -32768
     }
 
-    si taille_en_octet == transtype(4: n32) {
+    si taille_en_octet == 4 {
         retourne valeur > 2147483647 || valeur < -2147483648
     }
 

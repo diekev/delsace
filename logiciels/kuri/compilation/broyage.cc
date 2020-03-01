@@ -135,6 +135,11 @@ dls::chaine const &nom_broye_type(
 			flux << "Ksoctet";
 			break;
 		}
+		case GenreType::ENTIER_CONSTANT:
+		{
+			flux << "Ksz32";
+			break;
+		}
 		case GenreType::ENTIER_NATUREL:
 		{
 			if (type->taille_octet == 1) {

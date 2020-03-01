@@ -77,9 +77,9 @@ principale :: fonc () -> z32
         retourne 1
     }
 
-    hauteur := transtype(640: n32)
-    largeur := transtype(480: n32)
-    largeur_bordure := transtype(1: n32)
+    hauteur : n32 = 640
+    largeur : n32 = 480
+    largeur_bordure : n32 = 1
 
     s := DefaultScreen(d);
     w := XCreateSimpleWindow(d, RootWindow(d, transtype(s: n64)), 10, 10, hauteur, largeur, largeur_bordure,

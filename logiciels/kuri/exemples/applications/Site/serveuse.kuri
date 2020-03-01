@@ -39,15 +39,15 @@ construit_serveuse :: fonc(dyn serveuse : &Serveuse, port : n16) -> chaine
 	adresse_du_connecté.sin_family = transtype(_AF_INET : n16)
     adresse_du_connecté.sin_port = htons(port)
     // trouve notre propre adresse
-	adresse_du_connecté.sin_addr.s_addr = transtype(0 : n32)
-    adresse_du_connecté.sin_zero[0] = transtype(0 : n8)
-    adresse_du_connecté.sin_zero[1] = transtype(0 : n8)
-    adresse_du_connecté.sin_zero[2] = transtype(0 : n8)
-    adresse_du_connecté.sin_zero[3] = transtype(0 : n8)
-    adresse_du_connecté.sin_zero[4] = transtype(0 : n8)
-    adresse_du_connecté.sin_zero[5] = transtype(0 : n8)
-    adresse_du_connecté.sin_zero[6] = transtype(0 : n8)
-    adresse_du_connecté.sin_zero[7] = transtype(0 : n8)
+	adresse_du_connecté.sin_addr.s_addr = 0
+    adresse_du_connecté.sin_zero[0] = 0
+    adresse_du_connecté.sin_zero[1] = 0
+    adresse_du_connecté.sin_zero[2] = 0
+    adresse_du_connecté.sin_zero[3] = 0
+    adresse_du_connecté.sin_zero[4] = 0
+    adresse_du_connecté.sin_zero[5] = 0
+    adresse_du_connecté.sin_zero[6] = 0
+    adresse_du_connecté.sin_zero[7] = 0
 
 	dyn err := bind(serveuse.prise, transtype(@adresse_du_connecté : *sockaddr), transtype(taille_de(sockaddr): n64))
 

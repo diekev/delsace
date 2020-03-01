@@ -490,6 +490,7 @@ void enregistre_operateurs_basiques(
 		type_r32, type_r64
 	};
 
+	auto type_entier_constant = contexte.typeuse[TypeBase::ENTIER_CONSTANT];
 	auto type_octet = contexte.typeuse[TypeBase::OCTET];
 	auto type_bool = contexte.typeuse[TypeBase::BOOL];
 	operateurs.type_bool = type_bool;
@@ -508,6 +509,7 @@ void enregistre_operateurs_basiques(
 		}
 
 		operateurs.ajoute_basique(op, type_octet, type_octet, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
+		operateurs.ajoute_basique(op, type_entier_constant, type_entier_constant, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
 	}
 
 	for (auto op : operateurs_comparaisons) {
@@ -524,6 +526,7 @@ void enregistre_operateurs_basiques(
 		}
 
 		operateurs.ajoute_basique(op, type_octet, type_bool, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_COMPARAISON);
+		operateurs.ajoute_basique(op, type_entier_constant, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
 	}
 
 	for (auto op : operateurs_entiers) {
@@ -536,6 +539,7 @@ void enregistre_operateurs_basiques(
 		}
 
 		operateurs.ajoute_basique(op, type_octet, type_octet, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
+		operateurs.ajoute_basique(op, type_entier_constant, type_entier_constant, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
 	}
 
 	// operateurs booléens & | ^ && || == !=

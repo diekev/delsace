@@ -150,7 +150,7 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 
     boucle {
 	    // À FAIRE : prend pointeur automatiquement
-		dyn lu := read(fd, @tampon[0], transtype(1024: n64))
+		dyn lu := read(fd, @tampon[0], 1024)
 
 		si lu == 0 {
 			arrête

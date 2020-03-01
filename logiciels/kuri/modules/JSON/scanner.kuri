@@ -528,19 +528,19 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> Lexème
                 imprime("Le minimum est %, le maximum est % !\n", valeur_min(taille_en_octet, vrai), valeur_max(taille_en_octet, vrai))
             }
 
-            si taille_en_octet == transtype(1: n32) {
+            si taille_en_octet == 1 {
                 dyn pointeur := transtype(valeur.pointeur: *z8)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: z8)
             }
-            sinon si taille_en_octet == transtype(2: n32) {
+            sinon si taille_en_octet == 2 {
                 dyn pointeur := transtype(valeur.pointeur: *z16)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: z16)
             }
-            sinon si taille_en_octet == transtype(4: n32) {
+            sinon si taille_en_octet == 4 {
                 dyn pointeur := transtype(valeur.pointeur: *z32)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: z32)
             }
-            sinon si taille_en_octet == transtype(8: n32) {
+            sinon si taille_en_octet == 8 {
                 dyn pointeur := transtype(valeur.pointeur: *z64)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: z64)
             }
@@ -556,19 +556,19 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> Lexème
                 imprime("Le minimum est 0, le maximum est % !\n", valeur_max(taille_en_octet, faux))
             }
 
-            si taille_en_octet == transtype(1: n32) {
+            si taille_en_octet == 1 {
                 dyn pointeur := transtype(valeur.pointeur: *n8)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: n8)
             }
-            sinon si taille_en_octet == transtype(2: n32) {
+            sinon si taille_en_octet == 2 {
                 dyn pointeur := transtype(valeur.pointeur: *n16)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: n16)
             }
-            sinon si taille_en_octet == transtype(4: n32) {
+            sinon si taille_en_octet == 4 {
                 dyn pointeur := transtype(valeur.pointeur: *n32)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: n32)
             }
-            sinon si taille_en_octet == transtype(8: n32) {
+            sinon si taille_en_octet == 8 {
                 dyn pointeur := transtype(valeur.pointeur: *n64)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: n64)
             }
@@ -582,15 +582,15 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> Lexème
 
         taille_en_octet := valeur.info.taille_en_octet
 
-        si taille_en_octet == transtype(2: n32) {
+        si taille_en_octet == 2 {
             dyn pointeur := transtype(valeur.pointeur: *r16)
             mémoire(pointeur) = scanner.nombre_réel
         }
-        sinon si taille_en_octet == transtype(4: n32) {
+        sinon si taille_en_octet == 4 {
             dyn pointeur := transtype(valeur.pointeur: *r32)
             mémoire(pointeur) = transtype(scanner.nombre_réel: r32)
         }
-        sinon si taille_en_octet == transtype(8: n32) {
+        sinon si taille_en_octet == 8 {
             dyn pointeur := transtype(valeur.pointeur: *r64)
             mémoire(pointeur) = transtype(scanner.nombre_réel: r64)
         }

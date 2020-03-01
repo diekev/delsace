@@ -17,14 +17,14 @@ OpenListener :: fonc(port : n16) -> z32
     }
 
     dyn addr : sockaddr_in
-    addr.sin_zero[0] = transtype(0 : n8)
-    addr.sin_zero[1] = transtype(0 : n8)
-    addr.sin_zero[2] = transtype(0 : n8)
-    addr.sin_zero[3] = transtype(0 : n8)
-    addr.sin_zero[4] = transtype(0 : n8)
-    addr.sin_zero[5] = transtype(0 : n8)
-    addr.sin_zero[6] = transtype(0 : n8)
-    addr.sin_zero[7] = transtype(0 : n8)
+    addr.sin_zero[0] = 0
+    addr.sin_zero[1] = 0
+    addr.sin_zero[2] = 0
+    addr.sin_zero[3] = 0
+    addr.sin_zero[4] = 0
+    addr.sin_zero[5] = 0
+    addr.sin_zero[6] = 0
+    addr.sin_zero[7] = 0
     addr.sin_family = transtype(_PF_INET : n16)
     addr.sin_port = htons(port)
     addr.sin_addr.s_addr = _INADDR_ANY
@@ -162,7 +162,7 @@ principale :: fonc () -> z32
 
     LoadCertificates(ctx, "mycert.pem", "mycert.pem")
 
-    server := OpenListener(transtype(5005: n16))
+    server := OpenListener(5005)
 
     boucle {
         dyn addr : sockaddr_in // Adresse du connecté

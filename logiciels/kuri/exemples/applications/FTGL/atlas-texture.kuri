@@ -33,11 +33,11 @@ crée_atlas_texture :: fonc (largeur : n64, hauteur : n64, profondeur : n64) -> 
 	}
 	*/
 
-	atlas.utilisé = transtype(0: n64)
+	atlas.utilisé = 0
 	atlas.largeur = largeur
 	atlas.hauteur = hauteur
 	atlas.profondeur = profondeur
-	atlas.id = transtype(0: n32)
+	atlas.id = 0
 
  	// Nous désirons une frontière de 1 pixel autour de l'atlas pour éviter tout artefact
 	// lors de l'échantillonnage de textures
@@ -82,7 +82,7 @@ texture_atlas_set_region :: fonc (atlas : *AtlasTexture, x : n64, y : n64, large
 	profondeur := atlas.profondeur
 	charsize := taille_de(z8)
 
-	pour i dans transtype(0: n64) ... hauteur - transtype(1: n64) {
+	pour i dans 0 ... hauteur - 1 {
 		dst := atlas.données.pointeur + ((y + i) * atlas.largeur + x) * charsize * profondeur
 		src := données + (i * stride) * charsize
 		taille := largeur * charsize * profondeur
@@ -99,26 +99,26 @@ texture_atlas_fit :: fonc (atlas : *AtlasTexture, index : n64, largeur : n64, ha
 	dyn x := noeud.x
 	dyn y := noeud.y
 
-	si (transtype(x : n64) + largeur) > (atlas.largeur - transtype(1 : n64)) {
+	si (transtype(x : n64) + largeur) > (atlas.largeur - 1) {
 		retourne -1
 	}
 
 	dyn i := index
 	dyn largeur_left := largeur
 
-	tantque largeur_left > transtype(0 : n64) {
+	tantque largeur_left > 0 {
 		noeud = atlas.noeuds[i]
 
 		si noeud.y > y {
 			y = noeud.y
 		}
 
-		si (transtype(y : n64) + hauteur) > (atlas.hauteur - transtype(1 : n64)) {
+		si (transtype(y : n64) + hauteur) > (atlas.hauteur - 1) {
 			retourne -1
 		}
 
 		largeur_left -= transtype(noeud.z : n64)
-		i += transtype(1 : n64)
+		i += 1
 	}
 
 	retourne y
@@ -227,7 +227,7 @@ texture_atlas_clear :: fonc (dyn atlas : *AtlasTexture) -> rien
 	assert(atlas.données != nul)
 
 	déloge atlas.noeuds
-	atlas.utilisé = transtype(0: n64)
+	atlas.utilisé = 0
 
 	noeud := Vec3z{ x = 1, y = 1, z = transtype(atlas.largeur: z32) - 2 }
 	tableau_ajoute(@atlas.noeuds, noeud)
