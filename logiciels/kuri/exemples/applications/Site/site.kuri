@@ -148,15 +148,15 @@ procède_requête :: fonc (
     temps_présent := compte_ticks_microsecondes()
 
     diffère {
-        imprime_log(ModeLogage.AUCUN, "", "Mémoire utilisée (avant) : %o", mémoire_présente)
-        imprime_log(ModeLogage.AUCUN, "", "Mémoire utilisée (après) : %o", mémoire_utilisée())
-        imprime_log(ModeLogage.AUCUN, "", "Mémoire consommée        : %o", pic_de_mémoire())
-        imprime_log(ModeLogage.AUCUN, "", "Durée réponse            : %us", compte_ticks_microsecondes() - temps_présent)
+        imprime_log("", "Mémoire utilisée (avant) : %o", mémoire_présente)
+        imprime_log("", "Mémoire utilisée (après) : %o", mémoire_utilisée())
+        imprime_log("", "Mémoire consommée        : %o", pic_de_mémoire())
+        imprime_log("", "Durée réponse            : %us", compte_ticks_microsecondes() - temps_présent)
 
         ip := converti_chaine_c(inet_ntoa(adresse_du_connecté.sin_addr))
-        imprime_log(ModeLogage.AUCUN, "", "IP                       : % ", ip)
+        imprime_log("", "IP                       : % ", ip)
 
-        imprime_log(ModeLogage.AUCUN, "", "")
+        imprime_log("", "")
     }
 
     requête := charge_donnees_requete(prise, adresse_du_connecté)
@@ -235,7 +235,7 @@ procède_requête :: fonc (
     // ------------------------------
 
     diffère {
-        imprime_log(ModeLogage.AUCUN, "",
+        imprime_log("",
             "% % % - %",
             ligne_requête.méthode,
             ligne_requête.chemin,

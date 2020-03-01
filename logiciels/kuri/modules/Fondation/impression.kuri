@@ -726,13 +726,18 @@ imprime_sans_format_err :: fonc(args : ...eini) -> rien
 	déloge résultat
 }
 
-imprime_log :: fonc (mode: ModeLogage, ident: chaine, format: chaine, args: ...eini) -> rien
+imprime_log :: fonc (ident: chaine, mode: ModeLogage, format: chaine, args: ...eini) -> rien
 {
 	message := imprime_chaine(format, ...args)
 
 	log := contexte.logueur
     log(message, ident, mode, contexte.données_logueur)
 	déloge message
+}
+
+imprime_log :: fonc (ident: chaine, format: chaine, args: ...eini) -> rien
+{
+	imprime_log(ident, ModeLogage.AUCUN, format, ...args)
 }
 
 // --------------------------
