@@ -3,5 +3,6 @@
 a.out
 test.db
 *.a
+config.json
 
 logiciels/kuri/modules/FTGL/*.h

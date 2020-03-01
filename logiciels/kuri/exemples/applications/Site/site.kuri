@@ -1,5 +1,6 @@
 importe Fondation
 importe GlibC
+importe JSON
 importe Réseau
 importe SysFichier
 
@@ -344,16 +345,47 @@ démarre :: fonc(dyn serveuse : &Serveuse) -> rien
     fcntl(PRISE_SERVEUSE, _F_SETFL, flags | _O_NONBLOCK);
 }
 
+ConfigurationServeuse :: struct {
+    port : n16
+}
+
 principale :: fonc () -> z32
 {
     diffère { imprime("Fin du programme, mémoire utilisée %o\n", mémoire_utilisée()); }
+
+    args := arguments_ligne_commande()
+
+    si args.taille != 2 {
+        imprime("La ligne de commande doit être : % CONFIGURATION\n", args[0])
+        retourne 1
+    }
+
+    chemin := construit_chemin(args[1])
+    script := contenu_fichier_texte(chemin)
+    diffère { déloge script; }
+
+    si script.taille == 0 {
+        imprime("Le fichier de configuration est vide !\n")
+        retourne 1
+    }
+
+    dyn configuration : ConfigurationServeuse
+
+    si !remplis_struct_depuis_chaine_json(script, configuration) {
+        imprime("Impossible de lire le fichier de configuration !\n")
+        retourne 1
+    }
+
+    si configuration.port == 0 {
+        imprime("Le port est invalide !\n")
+    }
 
     contexte.logueur = mon_impression_log
 
     signal(_SIGINT, rappel_interruption);
 
     dyn serveuse : Serveuse
-    construit_serveuse(serveuse, 5001)
+    construit_serveuse(serveuse, configuration.port)
 
     // pour les gabarits
     ajoute_fichier(@serveuse.rendeuse_gabarit.catalogue, "accueil", "accueil.html")
