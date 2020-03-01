@@ -58,23 +58,6 @@ void cree_typedef(
 		case GenreType::ENTIER_NATUREL:
 		{
 			if (type->taille_octet == 1) {
-				os << "typedef char " << nom_broye << ";\n";
-			}
-			else if (type->taille_octet == 2) {
-				os << "typedef short " << nom_broye << ";\n";
-			}
-			else if (type->taille_octet == 4) {
-				os << "typedef int " << nom_broye << ";\n";
-			}
-			else if (type->taille_octet == 8) {
-				os << "typedef long " << nom_broye << ";\n";
-			}
-
-			break;
-		}
-		case GenreType::ENTIER_RELATIF:
-		{
-			if (type->taille_octet == 1) {
 				os << "typedef unsigned char " << nom_broye << ";\n";
 			}
 			else if (type->taille_octet == 2) {
@@ -85,6 +68,23 @@ void cree_typedef(
 			}
 			else if (type->taille_octet == 8) {
 				os << "typedef unsigned long " << nom_broye << ";\n";
+			}
+
+			break;
+		}
+		case GenreType::ENTIER_RELATIF:
+		{
+			if (type->taille_octet == 1) {
+				os << "typedef char " << nom_broye << ";\n";
+			}
+			else if (type->taille_octet == 2) {
+				os << "typedef short " << nom_broye << ";\n";
+			}
+			else if (type->taille_octet == 4) {
+				os << "typedef int " << nom_broye << ";\n";
+			}
+			else if (type->taille_octet == 8) {
+				os << "typedef long " << nom_broye << ";\n";
 			}
 
 			break;
