@@ -1,0 +1,18 @@
+// La comparaison de variable de type nombre relatif comme étant inférieur à 0 échoue.
+// Voir le scanner de JSON, et la bibliothèque d'impression quand ce bug sera réglé.
+
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    a := -1
+
+    si a < 0 {
+        imprime("a est négatif\n")
+    }
+    sinon {
+        imprime("a est positif\n")
+    }
+
+    retourne 0
+}
