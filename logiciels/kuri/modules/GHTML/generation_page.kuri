@@ -108,7 +108,7 @@ génère_page :: fonc(
                         dyn objet_nom := gestionnaire.crée_chaine()
                         objet_nom.valeur = nom
 
-                        dico.insère(variable, transtype(objet_nom : *Objet))
+                        dico.insère(variable, objet_nom)
                         erreur := génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
 
                         si erreur != ErreurGénérationPage.AUCUNE {

@@ -169,7 +169,7 @@ crée_dictionnaire :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetDictionna
 	objet.valeurs.taille = 0
 	objet.valeurs.pointeur = nul
 
-	tableau_ajoute(@gestionnaire.objets, transtype(objet : *Objet))
+	tableau_ajoute(@gestionnaire.objets, objet)
 
 	retourne objet
 }
@@ -181,7 +181,7 @@ crée_liste :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetListe
 	objet.valeur.taille = 0
 	objet.valeur.pointeur = nul
 
-	tableau_ajoute(@gestionnaire.objets, transtype(objet : *Objet))
+	tableau_ajoute(@gestionnaire.objets, objet)
 
 	retourne objet
 }
@@ -192,7 +192,7 @@ crée_entier :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetEntier
 	objet.id = TypeObjet.ENTIER
 	objet.valeur = 0
 
-	tableau_ajoute(@gestionnaire.objets, transtype(objet : *Objet))
+	tableau_ajoute(@gestionnaire.objets, objet)
 
 	retourne objet
 }
@@ -203,7 +203,7 @@ crée_réel :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetRéel
 	objet.id = TypeObjet.RÉEL
 	objet.valeur = 0.0
 
-	tableau_ajoute(@gestionnaire.objets, transtype(objet : *Objet))
+	tableau_ajoute(@gestionnaire.objets, objet)
 
 	retourne objet
 }
@@ -214,7 +214,7 @@ crée_chaine :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetChaine
 	objet.id = TypeObjet.CHAINE
 	objet.valeur = ""
 
-	tableau_ajoute(@gestionnaire.objets, transtype(objet : *Objet))
+	tableau_ajoute(@gestionnaire.objets, objet)
 
 	retourne objet
 }
@@ -344,11 +344,11 @@ test_tori :: fonc() -> rien
 	obj4 := crée_nul(@gestionnaire)
 	obj5 := crée_chaine(@gestionnaire)
 
-	insère(dico, "liste", transtype(obj1 : *Objet))
-	insère(dico, "entier", transtype(obj2 : *Objet))
-	insère(dico, "réel", transtype(obj3 : *Objet))
-	insère(dico, "nul", transtype(obj4 : *Objet))
-	insère(dico, "chaine", transtype(obj5 : *Objet))
+	insère(dico, "liste", obj1)
+	insère(dico, "entier", obj2)
+	insère(dico, "réel", obj3)
+	insère(dico, "nul", obj4)
+	insère(dico, "chaine", obj5)
 
-	imprime_json(transtype(dico : *Objet), 0)
+	imprime_json(dico, 0)
 }

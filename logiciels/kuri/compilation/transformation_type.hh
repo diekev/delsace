@@ -42,6 +42,7 @@ enum class TypeTransformation {
 	PREND_REFERENCE,
 	DEREFERENCE,
 	AUGMENTE_TAILLE_TYPE,
+	CONVERTI_VERS_BASE,
 };
 
 const char *chaine_transformation(TypeTransformation type);

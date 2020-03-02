@@ -42,10 +42,22 @@ const char *chaine_transformation(TypeTransformation type)
 		CAS_TYPE(PREND_REFERENCE)
 		CAS_TYPE(DEREFERENCE)
 		CAS_TYPE(AUGMENTE_TAILLE_TYPE)
+		CAS_TYPE(CONVERTI_VERS_BASE)
 	}
 
 	return "ERREUR";
 #undef CAS_TYPE
+}
+
+static bool est_type_de_base(TypeStructure *type_de, TypeStructure *type_vers)
+{
+	POUR (type_de->types_employes) {
+		if (it == type_vers) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /* Trouve la transformation nécessaire pour aller d'un type à un autre de
@@ -205,6 +217,18 @@ TransformationType cherche_transformation(
 		/* x : *octet = y; */
 		if (type_pointe_vers->genre == GenreType::OCTET) {
 			return TypeTransformation::INUTILE;
+		}
+
+		if (type_pointe_de->genre == GenreType::STRUCTURE && type_pointe_vers->genre == GenreType::STRUCTURE) {
+			auto ts_de = static_cast<TypeStructure *>(type_pointe_de);
+			auto ts_vers = static_cast<TypeStructure *>(type_pointe_vers);
+
+			// À FAIRE : gère le décalage dans la structure, ceci ne peut
+			// fonctionner que si la structure de base est au début de la
+			// structure dérivée
+			if (est_type_de_base(ts_de, ts_vers)) {
+				return { TypeTransformation::CONVERTI_VERS_BASE, type_vers };
+			}
 		}
 	}
 

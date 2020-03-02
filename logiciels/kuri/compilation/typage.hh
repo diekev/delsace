@@ -351,6 +351,8 @@ struct TypeStructure : public Type {
 
 	kuri::tableau<Type *> types{};
 
+	kuri::tableau<TypeStructure *> types_employes{};
+
 	noeud::base *decl = nullptr;
 
 	bool est_union = false;

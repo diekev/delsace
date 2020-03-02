@@ -93,28 +93,22 @@ crée_objet :: fonc(assembleuse: &AssembleuseObjet, type: TypeObjet) -> *Objet
 {
     discr type {
         NUL {
-            obj := crée_nul(@assembleuse.gestionnaire)
-            retourne transtype(obj : *Objet)
+            retourne crée_nul(@assembleuse.gestionnaire)
         }
         DICTIONNAIRE {
-            obj := crée_dictionnaire(@assembleuse.gestionnaire)
-            retourne transtype(obj : *Objet)
+            retourne crée_dictionnaire(@assembleuse.gestionnaire)
         }
         ENTIER {
-            obj := crée_entier(@assembleuse.gestionnaire)
-            retourne transtype(obj : *Objet)
+            retourne crée_entier(@assembleuse.gestionnaire)
         }
         RÉEL {
-            obj := crée_réel(@assembleuse.gestionnaire)
-            retourne transtype(obj : *Objet)
+            retourne crée_réel(@assembleuse.gestionnaire)
         }
         CHAINE {
-            obj := crée_chaine(@assembleuse.gestionnaire)
-            retourne transtype(obj : *Objet)
+            retourne crée_chaine(@assembleuse.gestionnaire)
         }
         LISTE {
-            obj := crée_liste(@assembleuse.gestionnaire)
-            retourne transtype(obj : *Objet)
+            retourne crée_liste(@assembleuse.gestionnaire)
         }
     }
 

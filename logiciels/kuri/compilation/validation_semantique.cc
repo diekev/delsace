@@ -2573,6 +2573,8 @@ static void performe_validation_semantique(
 			auto noeud_dependance = graphe.cree_noeud_type(ds.type);
 			noeud_dependance->noeud_syntactique = ds.noeud_decl;
 
+			auto type_struct = static_cast<TypeStructure *>(ds.type);
+
 			auto verifie_inclusion_valeur = [&ds, &contexte](base *enf)
 			{
 				if (enf->type == ds.type) {
@@ -2730,6 +2732,22 @@ static void performe_validation_semantique(
 					// - prend note de la hierarchie, notamment pour valider les transtypages
 					// - préserve l'emploi dans les données types
 					if (enfant->drapeaux & EMPLOYE) {
+						if (enfant->type->genre != GenreType::STRUCTURE) {
+							erreur::lance_erreur("Ne peut employer un type n'étant pas une structure",
+												 contexte,
+												 enfant->lexeme);
+						}
+
+						POUR (type_struct->types_employes) {
+							if (enfant->type == it) {
+								erreur::lance_erreur("Ne peut employer plusieurs fois le même type",
+													 contexte,
+													 enfant->lexeme);
+							}
+						}
+
+						type_struct->types_employes.pousse(static_cast<TypeStructure *>(enfant->type));
+
 						auto type_membre = static_cast<TypeStructure *>(enfant->type);
 						auto &ds_empl = contexte.donnees_structure(type_membre->nom);
 

@@ -89,21 +89,21 @@ principale :: fonc () -> z32
     dyn obj3 := crée_chaine(@gestionnaire)
     obj3.valeur = "chaine test"
 
-    tableau_ajoute(@liste.valeur, transtype(obj1: *Objet))
-    tableau_ajoute(@liste.valeur, transtype(obj2: *Objet))
-    tableau_ajoute(@liste.valeur, transtype(obj3: *Objet))
+    tableau_ajoute(@liste.valeur, obj1)
+    tableau_ajoute(@liste.valeur, obj2)
+    tableau_ajoute(@liste.valeur, obj3)
 
-	dico.insère("evenements", transtype(liste: *Objet))
+	dico.insère("evenements", liste)
 
 	dyn chaine1 := crée_chaine(@gestionnaire)
     chaine1.valeur = "http://aaa"
 
-    dico.insère("lien", transtype(chaine1: *Objet))
+    dico.insère("lien", chaine1)
 
     chaine1 = crée_chaine(@gestionnaire)
     chaine1.valeur = "eh ouais..."
 
-    dico.insère("variable", transtype(chaine1: *Objet))
+    dico.insère("variable", chaine1)
 
     dyn enchaineuse : Enchaineuse
 	intialise_enchaineuse(@enchaineuse)

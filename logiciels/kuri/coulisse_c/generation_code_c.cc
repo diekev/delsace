@@ -75,7 +75,10 @@ static void applique_transformation(
 	auto nom_var_temp = "__var_temp_conv" + dls::vers_chaine(index++);
 
 	switch (b->transformation.type) {
-		default:
+		case TypeTransformation::IMPOSSIBLE:
+		{
+			break;
+		}
 		case TypeTransformation::INUTILE:
 		case TypeTransformation::PREND_PTR_RIEN:
 		case TypeTransformation::AUGMENTE_TAILLE_TYPE:
@@ -194,6 +197,12 @@ static void applique_transformation(
 				os << ' ' << nom_var_temp << " = *(" << nom_courant << ");\n";
 			}
 
+			break;
+		}
+		case TypeTransformation::CONVERTI_VERS_BASE:
+		{
+			//generatrice.declare_variable(b->transformation.type_cible, nom_var_temp, b->chaine_calculee());
+			nom_var_temp = nom_courant;
 			break;
 		}
 	}

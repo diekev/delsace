@@ -18,7 +18,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 
             dyn e : eini
             e.pointeur = pointeur
-            e.info = transtype(info_arg: *InfoType)
+            e.info = info_arg
 
             imprime_nombre_entier(enchaineuse, formatte_entier(e))
 		}

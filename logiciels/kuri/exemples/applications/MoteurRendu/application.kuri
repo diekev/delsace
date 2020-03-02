@@ -121,7 +121,7 @@ crée_éditrice_vue_3d :: fonc (dyn app: *Application) -> *Éditrice
 
     éditrice.caméra = caméra
 
-    retourne transtype(éditrice: *Éditrice)
+    retourne éditrice
 }
 
 dessine_vue_3d :: fonc (dyn app: *Application, dyn éditrice: *ÉditriceVue3D) -> rien
