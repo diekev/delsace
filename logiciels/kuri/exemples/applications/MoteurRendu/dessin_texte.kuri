@@ -29,7 +29,7 @@ RendeuseTexte :: struct {
 
 crée_rendeuse_texte :: fonc (largeur: z32, hauteur: z32) -> *RendeuseTexte
 {
-    dyn rendeuse := loge RendeuseTexte
+    rendeuse := loge RendeuseTexte
     rendeuse.largeur = largeur
     rendeuse.hauteur = hauteur
     rendeuse.décalage = 1.0
@@ -39,7 +39,7 @@ crée_rendeuse_texte :: fonc (largeur: z32, hauteur: z32) -> *RendeuseTexte
     retourne rendeuse
 }
 
-détruit_rendeuse_texte :: fonc (dyn rendeuse: *RendeuseTexte) -> rien
+détruit_rendeuse_texte :: fonc (rendeuse: *RendeuseTexte) -> rien
 {
     texture_atlas_delete(rendeuse.atlas)
     texture_font_delete(rendeuse.font)
@@ -55,7 +55,7 @@ détruit_rendeuse_texte :: fonc (dyn rendeuse: *RendeuseTexte) -> rien
     déloge rendeuse
 }
 
-crée_tampon :: fonc (dyn rendeuse: *RendeuseTexte) -> rien
+crée_tampon :: fonc (rendeuse: *RendeuseTexte) -> rien
 {
     source_vertex_texte := "
 		#version 330 core
@@ -91,7 +91,7 @@ crée_tampon :: fonc (dyn rendeuse: *RendeuseTexte) -> rien
     rendeuse.programme = id_programme
 }
 
-dessine_texte :: fonc (dyn rendeuse: *RendeuseTexte, texte: chaine) -> rien
+dessine_texte :: fonc (rendeuse: *RendeuseTexte, texte: chaine) -> rien
 {
     chemin_fonte := "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
 
@@ -100,7 +100,7 @@ dessine_texte :: fonc (dyn rendeuse: *RendeuseTexte, texte: chaine) -> rien
     noir  := vec4{ x = 0.0, y = 0.0, z = 0.0, w = 1.0 }
     none := blanc
 
-    dyn markup : markup_t
+    markup : markup_t
 	markup.family  = chemin_fonte.pointeur
 	markup.size    = rendeuse.taille_police
 	markup.bold    = 0
@@ -143,12 +143,12 @@ dessine_texte :: fonc (dyn rendeuse: *RendeuseTexte, texte: chaine) -> rien
 
 dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine, atlas: *texture_atlas_t, markup: *markup_t, pos: Vec2r, taille: Vec2r) -> rien
 {
-    dyn pen := vec2{ x = pos.x, y = taille.y - pos.y - rendeuse.taille_police }
+    pen := vec2{ x = pos.x, y = taille.y - pos.y - rendeuse.taille_police }
 
-	dyn sommets : []Vec2r
-	dyn uvs : []Vec2r
-	dyn couleurs : []Couleur
-	dyn indices : []z32
+	sommets : []Vec2r
+	uvs : []Vec2r
+	couleurs : []Couleur
+	indices : []z32
 
     diffère {
         déloge sommets
@@ -157,7 +157,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
         déloge indices
     }
 
-    dyn couleur := Couleur {
+    couleur := Couleur {
         r = markup.foreground_color.x,
         v = markup.foreground_color.y,
         b = markup.foreground_color.z,
@@ -166,7 +166,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 
 	inv_taille := Vec2r{ x = 1.0 / taille.x, y = 1.0 / taille.y }
 
-    dyn dernier_caractère : *z8 = nul
+    dernier_caractère : *z8 = nul
 
     pour c dans texte {
 		glyph := texture_font_get_glyph(markup.font, @c)
@@ -175,7 +175,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 			continue
 		}
 
-		dyn kerning := 0.0
+		kerning := 0.0
 
 		si dernier_caractère != nul {
 			kerning = texture_glyph_get_kerning(glyph, dernier_caractère)

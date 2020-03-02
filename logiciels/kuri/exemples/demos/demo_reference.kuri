@@ -4,17 +4,17 @@ FOO :: struct {
     a := 123
 }
 
-bar :: fonc(dyn f : &FOO) -> rien
+bar :: fonc(f : &FOO) -> rien
 {
     f.a = 987
 }
 
-foo :: fonc(dyn a : &z32) -> rien
+foo :: fonc(a : &z32) -> rien
 {
     a := 7
 }
 
-échange :: fonc(dyn a : &z32, dyn b : &z32) -> rien
+échange :: fonc(a : &z32, b : &z32) -> rien
 {
     tmp := a
     a = b
@@ -23,7 +23,7 @@ foo :: fonc(dyn a : &z32) -> rien
 
 principale :: fonc () -> z32
 {
-    dyn a := 5
+    a := 5
     imprime_sans_format("a = ", a, '\n')
 
     foo(a)
@@ -32,7 +32,7 @@ principale :: fonc () -> z32
 
     //#####################
 
-    dyn foo : FOO
+    foo : FOO
 
     imprime_sans_format(foo, '\n')
 
@@ -52,7 +52,7 @@ principale :: fonc () -> z32
     //#####################
 
     z := 5
-    dyn w : &z32 = z
+    w : &z32 = z
 
     imprime_sans_format("z = ", z, '\n')
 

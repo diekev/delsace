@@ -3,9 +3,9 @@
 charge "memoire"
 
 // À FAIRE: ceci ne fonctionnera pas pour les chaines statiques, connues lors de la compilation
-pousse :: fonc (dyn chn: *chaine, c: z8) -> rien
+pousse :: fonc (chn: *chaine, c: z8) -> rien
 {
-	dyn tmp := mémoire(chn)
+	tmp := mémoire(chn)
 
 	taille := chn.taille
 	reloge tmp: chaine(taille + 1)
@@ -14,9 +14,9 @@ pousse :: fonc (dyn chn: *chaine, c: z8) -> rien
 	mémoire(chn) = tmp
 }
 
-inverse :: fonc (dyn chn: *chaine) -> rien
+inverse :: fonc (chn: *chaine) -> rien
 {
-    dyn chn_tmp := mémoire(chn)
+    chn_tmp := mémoire(chn)
 
 	taille := chn.taille / 2
 
@@ -31,7 +31,7 @@ inverse :: fonc (dyn chn: *chaine) -> rien
 
 copie_chaine :: fonc (chn: chaine) -> chaine
 {
-	dyn nchn := loge chaine(chn.taille)
+	nchn := loge chaine(chn.taille)
 	copie_mem_nonsur(src = chn.pointeur, dst = nchn.pointeur, taille = chn.taille)
 	retourne nchn
 }
@@ -39,7 +39,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 // Retourne la taille d'une chaine C, c'est à dire nul-terminé.
 #nulctx taille_chaine_c :: fonc(ch : *z8) -> z64
 {
-	dyn index : z64 := 0
+	index : z64 := 0
 
     tantque ch[index] != '\0' {
 		index += 1
@@ -50,7 +50,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 
 #nulctx construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine
 {
-	dyn ret : chaine
+	ret : chaine
 	ret.pointeur = ptr
 	ret.taille = taille
 	retourne ret
@@ -67,7 +67,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 // stockage temporaire, et n'a pas besoin d'être déloger manuellement.
 chaine_c_temp :: fonc(chn: chaine) -> *z8
 {
-    dyn tampon := logement_temp(chn.taille + 1)
+    tampon := logement_temp(chn.taille + 1)
     copie_mem_nonsur(src = chn.pointeur, dst = tampon, taille = chn.taille)
     tampon[chn.taille] = transtype('\0': octet)
 
@@ -77,8 +77,8 @@ chaine_c_temp :: fonc(chn: chaine) -> *z8
 // execute une fonction pour chaque ligne du texte d'entrée
 pour_chaque_ligne :: fonc(texte : chaine, donnees : eini, rappel : fonc(chaine, eini)rien) -> rien
 {
-	dyn taille_chaine : z64 = 0
-	dyn début_chaine : z64 = 0
+	taille_chaine : z64 = 0
+	début_chaine : z64 = 0
 
     pour c, i dans texte {
 		taille_chaine += 1
@@ -120,9 +120,9 @@ trouve_caractère :: fonc(chn : chaine, carac : z8, pos : z64) -> z64
 
 découpe :: corout(texte : chaine, sep : z8) -> chaine
 {
-	dyn taille_mot : z64 = 0
-	dyn début_mot : z64 = 0
-	dyn mot : chaine
+	taille_mot : z64 = 0
+	début_mot : z64 = 0
+	mot : chaine
 
     pour c, i dans texte {
 	    si c == sep {
@@ -143,9 +143,9 @@ découpe :: corout(texte : chaine, sep : z8) -> chaine
 
 divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
 {
-    dyn taille_mot : z64 = 0
-	dyn début_mot : z64 = 0
-    dyn mots : []chaine
+    taille_mot : z64 = 0
+	début_mot : z64 = 0
+    mots : []chaine
 
     pour c, i dans ligne {
 	    si c == séparation {
@@ -180,9 +180,9 @@ recule :: fonc (ligne: chaine, compte: z64) -> chaine
 
 // Converti une chaine, par exemple "5005", en un nombre entier
 // La fonction présume que la chaine est entièrement composée de caractères numériques
-extrait_nombre_entier :: fonc(dyn chn : chaine) -> z64
+extrait_nombre_entier :: fonc(chn : chaine) -> z64
 {
-    dyn résultat : z64 := 0
+    résultat : z64 := 0
 	est_négatif := chn[0] == '-'
 
 	si est_négatif {
@@ -205,11 +205,11 @@ extrait_nombre_entier :: fonc(dyn chn : chaine) -> z64
 
 // Converti une chaine, par exemple "500.5", en un nombre réel
 // La fonction présume que la chaine est entièrement composée de caractères numériques et d'un point
-extrait_nombre_réel :: fonc(dyn chn : chaine) -> r64
+extrait_nombre_réel :: fonc(chn : chaine) -> r64
 {
-    dyn résultat : r64 = 0.0
-	dyn mult : r64 = 1.0
-	dyn point_trouvé := faux
+    résultat : r64 = 0.0
+	mult : r64 = 1.0
+	point_trouvé := faux
 
 	est_négatif := chn[0] == '-'
 
@@ -285,7 +285,7 @@ en_minuscule :: fonc(c: z8) -> z8
 	retourne c
 }
 
-en_majuscule :: fonc(dyn chn : chaine) -> chaine
+en_majuscule :: fonc(chn : chaine) -> chaine
 {
 	pour c dans chn {
 		c = en_majuscule(c)
@@ -294,7 +294,7 @@ en_majuscule :: fonc(dyn chn : chaine) -> chaine
 	retourne chn
 }
 
-en_minuscule :: fonc(dyn chn : chaine) -> chaine
+en_minuscule :: fonc(chn : chaine) -> chaine
 {
 	pour c dans chn {
 		c = en_majuscule(c)
@@ -357,7 +357,7 @@ compte_commun :: fonc (chn1: chaine, chn2: chaine) -> z64
 		retourne 0
 	}
 
-	dyn compte : z64 = 0
+	compte : z64 = 0
 
 	pour c, idx dans chn1 {
 		si c != chn2[idx] {
@@ -372,7 +372,7 @@ compte_commun :: fonc (chn1: chaine, chn2: chaine) -> z64
 
 premier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
 {
-	dyn taille_min : z64 = taille
+	taille_min : z64 = taille
 
 	si taille_min > ligne.taille {
 		taille_min = ligne.taille
@@ -383,7 +383,7 @@ premier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
 
 dernier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
 {
-	dyn taille_min : z64 = taille
+	taille_min : z64 = taille
 
 	si taille_min > ligne.taille {
 		taille_min = ligne.taille
@@ -405,7 +405,7 @@ distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
 		retourne m
 	}
 
-	dyn coûts := loge [n + 1]z64
+	coûts := loge [n + 1]z64
 
 	pour c, idx dans coûts {
 		c = idx
@@ -413,7 +413,7 @@ distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
 
 	pour i dans 0 ... chn1.taille - 1 {
 		coûts[0] = i + 1
-		dyn coin := i
+		coin := i
 
 		pour j dans 0 ... chn2.taille - 1 {
 			enhaut := coûts[j + 1]
@@ -422,7 +422,7 @@ distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
 				coûts[j + 1] = coin
 			}
 			sinon {
-				dyn t : z64
+				t : z64
 
 				si enhaut < coin {
 					t = enhaut

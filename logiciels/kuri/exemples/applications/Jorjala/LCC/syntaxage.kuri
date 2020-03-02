@@ -161,14 +161,14 @@ Syntaxeuse :: struct {
 
 construit_syntaxeuse :: fonc(lexèmes : &[]DonnéesLexème) -> Syntaxeuse
 {
-    dyn syntaxeuse : Syntaxeuse
+    syntaxeuse : Syntaxeuse
     syntaxeuse.lexèmes = lexèmes
 	syntaxeuse.assembleuse = construit_assembleuse()
 
     retourne syntaxeuse
 }
 
-lance_analyse :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+lance_analyse :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position = 0
 
@@ -181,7 +181,7 @@ lance_analyse :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 	}
 }
 
-analyse_bloc :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+analyse_bloc :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 {
 	tantque !syntaxeuse.a_fini() {
 		si (syntaxeuse.est_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
@@ -234,7 +234,7 @@ analyse_bloc :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 	}
 }
 
-analyse_controle_si :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+analyse_controle_si :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.SI)) {
 		//lance_erreur("Attendu la déclaration 'si'")
@@ -284,7 +284,7 @@ analyse_controle_si :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 	syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.SI)
 }
 
-analyse_controle_pour :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+analyse_controle_pour :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.POUR)) {
 		//lance_erreur("Attendu la déclaration 'pour'")
@@ -334,7 +334,7 @@ dernier :: fonc(tabl : &[]*NoeudSyntaxique) -> *NoeudSyntaxique
     retourne tabl[tabl.taille - 1]
 }
 
-pop_dernier :: fonc(dyn tabl : &[]*NoeudSyntaxique) -> rien
+pop_dernier :: fonc(tabl : &[]*NoeudSyntaxique) -> rien
 {
     taille := tabl.taille
 
@@ -351,12 +351,12 @@ lexème_courant :: fonc(syntaxeuse : &Syntaxeuse) -> TypeLexème
 	retourne syntaxeuse.lexèmes[syntaxeuse.position].lexème
 }
 
-avance :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+avance :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position += 1
 }
 
-recule :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+recule :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position -= 1
 }
@@ -403,14 +403,14 @@ a_fini :: fonc(syntaxeuse : &Syntaxeuse) -> bool
 	retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille
 }
 
-analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexème) -> rien
+analyse_expression :: fonc(syntaxeuse : &Syntaxeuse, lexème_final : TypeLexème) -> rien
 {
 	// Algorithme de Dijkstra pour générer une notation polonaise inversée.
-	dyn expression : []*NoeudSyntaxique
-	dyn pile : []*NoeudSyntaxique
+	expression : []*NoeudSyntaxique
+	pile : []*NoeudSyntaxique
 	diffère { déloge pile; déloge expression; }
 
-    dyn dernier_lexème : TypeLexème
+    dernier_lexème : TypeLexème
 
     // XXX - À FAIRE
     si syntaxeuse.position == 0 {
@@ -425,7 +425,7 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 			arrête
 		}
 
-		dyn morceau := syntaxeuse.lexèmes[position(syntaxeuse)]
+		morceau := syntaxeuse.lexèmes[position(syntaxeuse)]
 
 		discr (morceau.lexème) {
 			CHAINE_CARACTERE {
@@ -523,8 +523,8 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 			// opérations binaire
 			PLUS,
 			MOINS {
-				dyn lexème_op := morceau.lexème
-				dyn noeud : *NoeudSyntaxique = nul
+				lexème_op := morceau.lexème
+				noeud : *NoeudSyntaxique = nul
 
 				si (precede_unaire_valide(dernier_lexème)) {
 					si (lexème_op == TypeLexème.PLUS) {
@@ -734,7 +734,7 @@ analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLex
 	}
 }
 
-analyse_appel_fonction :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+analyse_appel_fonction :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 {
 	// ici nous devons être au niveau du premier paramètre
 
@@ -752,7 +752,7 @@ analyse_appel_fonction :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 	}
 }
 
-analyse_directive :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+analyse_directive :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.avance()
 
@@ -772,13 +772,13 @@ DonneesDeclarationParam :: struct {
     nom : chaine
 }
 
-analyse_parametre :: fonc(dyn syntaxeuse : &Syntaxeuse, type_param : TypeParamètre) -> rien
+analyse_parametre :: fonc(syntaxeuse : &Syntaxeuse, type_param : TypeParamètre) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.PARENTHESE_OUVRANTE)) {
 		//lance_erreur("Attendu une parenthèse ouvrante '(' après la déclaration du paramètre")
 	}
 
-	dyn param : DonneesDeclarationParam
+	param : DonneesDeclarationParam
 	param.type = type_param
 
 	boucle {
@@ -874,7 +874,7 @@ principale :: fonc () -> z32
 
 	imprime("\n")
 
-    dyn syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
+    syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
     syntaxeuse.lance_analyse()
 
 	racine := syntaxeuse.assembleuse.pile.haut()

@@ -16,7 +16,7 @@ ListeEntête :: struct {
     dernier : *EntêteMémoire = nul
 }
 
-enliste :: fonc (dyn liste : *ListeEntête, dyn entête : *EntêteMémoire) -> rien
+enliste :: fonc (liste : *ListeEntête, entête : *EntêteMémoire) -> rien
 {
     entête.suivant = nul
     entête.précédent = liste.dernier
@@ -32,7 +32,7 @@ enliste :: fonc (dyn liste : *ListeEntête, dyn entête : *EntêteMémoire) -> r
     liste.dernier = entête
 }
 
-déliste :: fonc (dyn liste : *ListeEntête, dyn entête : *EntêteMémoire) -> rien
+déliste :: fonc (liste : *ListeEntête, entête : *EntêteMémoire) -> rien
 {
     si entête.suivant != nul {
         entête.suivant.précédent = entête.précédent
@@ -58,7 +58,7 @@ AllocatriceGardée :: struct {
 }
 
 allocation_gardée :: fonc(
-    dyn allocatrice: *AllocatriceGardée,
+    allocatrice: *AllocatriceGardée,
     nouvelle_taille: z64,
     pos: PositionCodeSource) -> *rien
 {
@@ -70,7 +70,7 @@ allocation_gardée :: fonc(
         retourne nul
     }
 
-    dyn ptr_entête := transtype(ptr: *EntêteMémoire)
+    ptr_entête := transtype(ptr: *EntêteMémoire)
     ptr_entête.taille_bloc = nouvelle_taille
     ptr_entête.pos = pos
 
@@ -83,7 +83,7 @@ allocation_gardée :: fonc(
 
 imprime_liste_entête :: fonc (alloc: *AllocatriceGardée) -> rien
 {
-    dyn entête := alloc.liste_entêtes.premier
+    entête := alloc.liste_entêtes.premier
 
     printf("-------------------\n".pointeur)
     printf("Erreur : des blocs de mémoire n'ont pas été délogés !\n".pointeur)
@@ -101,10 +101,10 @@ imprime_liste_entête :: fonc (alloc: *AllocatriceGardée) -> rien
 
 vérifie_si_liste_vide :: fonc (alloc: *AllocatriceGardée) -> bool
 {
-    dyn entête := alloc.liste_entêtes.premier
+    entête := alloc.liste_entêtes.premier
 
-    dyn nombre_blocs_non_libérés := 0
-    dyn taille_bloc_non_libérés : z64 = 0
+    nombre_blocs_non_libérés := 0
+    taille_bloc_non_libérés : z64 = 0
 
     tantque entête != nul {
         nombre_blocs_non_libérés += 1
@@ -133,7 +133,7 @@ allocatrice_gardée :: fonc(
     info : *InfoType,
     pos : PositionCodeSource) -> *rien
 {
-    dyn alloc := transtype(données: *AllocatriceGardée)
+    alloc := transtype(données: *AllocatriceGardée)
 
     discr mode {
         ALLOUE {
@@ -149,7 +149,7 @@ allocatrice_gardée :: fonc(
             ptr := ptr_z8 - taille_de(EntêteMémoire)
 
             {
-                dyn ptr_entête := transtype(ptr: *EntêteMémoire)
+                ptr_entête := transtype(ptr: *EntêteMémoire)
                 déliste(@alloc.liste_entêtes, ptr_entête)
             }
 
@@ -162,7 +162,7 @@ allocatrice_gardée :: fonc(
             }
 
             {
-                dyn ptr_entête := transtype(ptr: *EntêteMémoire)
+                ptr_entête := transtype(ptr: *EntêteMémoire)
                 ptr_entête.taille_bloc = nouvelle_taille
                 ptr_entête.pos = pos
                 enliste(@alloc.liste_entêtes, ptr_entête)
@@ -174,7 +174,7 @@ allocatrice_gardée :: fonc(
             ptr := ancien_pointeur - taille_de(EntêteMémoire)
 
             {
-                dyn ptr_entête := transtype(ptr: *EntêteMémoire)
+                ptr_entête := transtype(ptr: *EntêteMémoire)
                 déliste(@alloc.liste_entêtes, ptr_entête)
             }
 

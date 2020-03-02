@@ -62,7 +62,7 @@ crée_fichier :: fonc(chemin : chaine)
 // calcul la somme de contrôle dans un ensemble de données
 somme_controle :: fonc(données : []octet) -> n64
 {
-	dyn somme : n64
+	somme : n64
 
 	pour donnée dans données {
 		somme += transtype(données : n64)

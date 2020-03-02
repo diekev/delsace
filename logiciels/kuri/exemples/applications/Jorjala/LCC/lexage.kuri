@@ -214,7 +214,7 @@ Lexeuse :: struct {
 
 construit_lexeuse :: fonc(chn : chaine) -> Lexeuse
 {
-    dyn lexeuse : Lexeuse
+    lexeuse : Lexeuse
     lexeuse.chn = chn
     lexeuse.début = @chn[0]
     lexeuse.début_mot = lexeuse.début
@@ -223,17 +223,17 @@ construit_lexeuse :: fonc(chn : chaine) -> Lexeuse
     retourne lexeuse
 }
 
-détruit_lexeuse :: fonc(dyn lexeuse : &Lexeuse) -> rien
+détruit_lexeuse :: fonc(lexeuse : &Lexeuse) -> rien
 {
 	déloge lexeuse.lexèmes
 }
 
-performe_lexage :: fonc(dyn lexeuse : &Lexeuse) -> rien
+performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 {
 	lexeuse.taille_mot_courant := 0
 
 	tantque (!lexeuse.fini()) {
-		dyn nombre_octet := nombre_octets_utf8(lexeuse.début)
+		nombre_octet := nombre_octets_utf8(lexeuse.début)
 
 		discr (nombre_octet) {
 			1 {
@@ -246,7 +246,7 @@ performe_lexage :: fonc(dyn lexeuse : &Lexeuse) -> rien
 					lexeuse.enregistre_pos_mot()
 				}
 
-				dyn c := converti_utf8_utf32(lexeuse.début, nombre_octet)
+				c := converti_utf8_utf32(lexeuse.début, nombre_octet)
 
 				discr transtype(c : TypeRune) {
 					ESPACE_INSECABLE,
@@ -323,7 +323,7 @@ fini :: fonc(lexeuse : &Lexeuse) -> bool
 	retourne lexeuse.début >= lexeuse.fin
 }
 
-avance :: fonc(dyn lexeuse : &Lexeuse, n : z32) -> rien
+avance :: fonc(lexeuse : &Lexeuse, n : z32) -> rien
 {
 	pour i dans 0 ... n - 1 {
 		si (lexeuse.caractère_courant() == '\n') {
@@ -353,7 +353,7 @@ mot_courant :: fonc(lexeuse : &Lexeuse) -> chaine
 	retourne construit_chaine(lexeuse.début_mot, lexeuse.taille_mot_courant)
 }
 
-analyse_caractère_simple :: fonc(dyn lexeuse : &Lexeuse) -> rien
+analyse_caractère_simple :: fonc(lexeuse : &Lexeuse) -> rien
 {
 	si (est_espace_blanc(lexeuse.caractère_courant())) {
 		si (lexeuse.taille_mot_courant != 0) {
@@ -374,7 +374,7 @@ analyse_caractère_simple :: fonc(dyn lexeuse : &Lexeuse) -> rien
 
 		lexeuse.enregistre_pos_mot()
 
-		dyn id := id_digraphe(construit_chaine(lexeuse.début, 2))
+		id := id_digraphe(construit_chaine(lexeuse.début, 2))
 
 		si (id != TypeLexème.INCONNU) {
 			lexeuse.pousse_caractère()
@@ -484,14 +484,14 @@ analyse_caractère_simple :: fonc(dyn lexeuse : &Lexeuse) -> rien
 	}
 }
 
-pousse_caractère :: fonc(dyn lexeuse : &Lexeuse) -> rien
+pousse_caractère :: fonc(lexeuse : &Lexeuse) -> rien
 {
 	lexeuse.taille_mot_courant += 1
 }
 
-pousse_mot :: fonc(dyn lexeuse : &Lexeuse, type_lexème : TypeLexème) -> rien
+pousse_mot :: fonc(lexeuse : &Lexeuse, type_lexème : TypeLexème) -> rien
 {
-    dyn données : DonnéesLexème
+    données : DonnéesLexème
     données.lexème = type_lexème
     données.chn = lexeuse.mot_courant()
 
@@ -500,7 +500,7 @@ pousse_mot :: fonc(dyn lexeuse : &Lexeuse, type_lexème : TypeLexème) -> rien
     lexeuse.taille_mot_courant = 0
 }
 
-enregistre_pos_mot :: fonc(dyn lexeuse : &Lexeuse) -> rien
+enregistre_pos_mot :: fonc(lexeuse : &Lexeuse) -> rien
 {
 	lexeuse.pos_mot = lexeuse.position_ligne
 	lexeuse.début_mot = lexeuse.début

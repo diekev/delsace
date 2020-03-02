@@ -17,12 +17,12 @@ pile :: struct {
 
 crée_pile :: fonc(taille_elem : z64) -> *pile
 {
-	dyn p := loge pile
+	p := loge pile
 	p.taille_elem = taille_elem
 	retourne p
 }
 
-decrée_pile :: fonc(dyn p : *pile) -> rien
+decrée_pile :: fonc(p : *pile) -> rien
 {
 	p.taille_elem = 0
 	p.taille = 0
@@ -31,7 +31,7 @@ decrée_pile :: fonc(dyn p : *pile) -> rien
 	déloge p
 }
 
-empile :: fonc(dyn p : *pile, d : *rien) -> rien
+empile :: fonc(p : *pile, d : *rien) -> rien
 {
     si p.taille == p.capacité {
 		reloge p.tampon : [(p.taille + 1) * p.taille_elem]octet
@@ -49,7 +49,7 @@ est_vide :: fonc(p : *pile) -> bool
 	retourne p.taille == 0
 }
 
-dépile :: fonc(dyn p : *pile, d : *rien) -> rien
+dépile :: fonc(p : *pile, d : *rien) -> rien
 {
     si est_vide(p) {
 		retourne
@@ -76,12 +76,12 @@ file :: struct {
 
 crée_file :: fonc(taille_elem : z64) -> *file
 {
-	dyn q := loge file
+	q := loge file
 	q.taille_elem = taille_elem
 	retourne q
 }
 
-decrée_file :: fonc(dyn q : *file) -> rien
+decrée_file :: fonc(q : *file) -> rien
 {
 	q.taille_elem = 0
 	q.taille = 0
@@ -90,7 +90,7 @@ decrée_file :: fonc(dyn q : *file) -> rien
 	déloge q
 }
 
-enfile :: fonc(dyn q : *file, d : *rien) -> rien
+enfile :: fonc(q : *file, d : *rien) -> rien
 {
     si q.taille == q.capacité {
 		reloge q.tampon : [(q.taille + 1) * q.taille_elem]octet
@@ -108,7 +108,7 @@ est_vide :: fonc(q : *file) -> bool
 	retourne q.taille == 0
 }
 
-défile :: fonc(dyn q : *file, d : *rien) -> rien
+défile :: fonc(q : *file, d : *rien) -> rien
 {
     si est_vide(q) {
 		retourne

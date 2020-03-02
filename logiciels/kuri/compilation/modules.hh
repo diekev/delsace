@@ -52,7 +52,6 @@ struct DonneesArgument {
 	DonneesTypeDeclare type_declare{};
 	noeud::base *expression_defaut = nullptr;
 	bool est_variadic = false;
-	bool est_dynamic = false;
 	bool est_employe = false;
 	char pad[5];
 };

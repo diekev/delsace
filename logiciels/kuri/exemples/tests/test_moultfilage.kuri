@@ -31,7 +31,7 @@ store_t :: struct {
 // Fonction pour tirer un nombre au sort entre 0 et max.
 #nulctx get_random :: fonc(max : z32) -> z32
 {
-	dyn val : r64
+	val : r64
 	val = transtype(max : r64) * rand()
 	val = val / (2147483647.0 + 1.0)
 
@@ -41,7 +41,7 @@ store_t :: struct {
 // Fonction pour le thread du magasin.
 #nulctx fn_store :: fonc(p_data : *rien) -> *rien
 {
-    dyn store := transtype(p_data : *store_t)
+    store := transtype(p_data : *store_t)
 
 	boucle {
         pthread_mutex_lock(@store.mutex)
@@ -66,7 +66,7 @@ donnée_client_t :: struct {
 #nulctx fn_clients :: fonc(p_data : *rien) -> *rien
 {
     donnée_client := transtype(p_data : *donnée_client_t)
-    dyn store := donnée_client.store
+    store := donnée_client.store
 	nb : z32 = donnée_client.index
 
 	boucle {
@@ -121,7 +121,7 @@ Tâche :: struct {
 // création d'un contexte par le programme ?
 crée_tâche :: fonc (rappel: fonc(*rien)(rien), données_rappel: *rien) -> Tâche
 {
-    dyn tâche := loge Tâche
+    tâche := loge Tâche
     tâche.données_rappel = données_rappel
     tâche.rappel = rappel
     tâche.id = 0
@@ -146,8 +146,8 @@ principale :: fonc () -> z32
 
     //retourne 0
 
-    dyn store := store_t{ stock = 20 }
-	dyn ret : z32 = 0
+    store := store_t{ stock = 20 }
+	ret : z32 = 0
 
 	printf("Creation du thread du magasin !\n".pointeur)
 	ret = pthread_create(@store.thread_store, nul, fn_store, @store)
@@ -156,7 +156,7 @@ principale :: fonc () -> z32
         printf("Creation des threads clients !\n".pointeur)
 
         pour fil_client, idx dans store.thread_clients {
-            dyn donnée_client : donnée_client_t
+            donnée_client : donnée_client_t
             donnée_client.store = @store
             donnée_client.index = idx
             ret = pthread_create(@fil_client, nul, fn_clients, @donnée_client)

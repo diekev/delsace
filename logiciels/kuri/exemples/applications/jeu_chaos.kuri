@@ -22,7 +22,7 @@ MondeVersEcran :: struct {
 
 monde_vers_ecran :: fonc(monde : &Rectangle2D, ecran : &Rectangle2D) -> MondeVersEcran
 {
-	dyn mve : MondeVersEcran;
+	mve : MondeVersEcran;
 
 	mve.A = (ecran.droite - ecan.gauche) / (monde.droite - monde.gauche);
 	mve.B = (ecran.haut - ecran.bas) / (monde.haut - monde.bas);
@@ -34,7 +34,7 @@ monde_vers_ecran :: fonc(monde : &Rectangle2D, ecran : &Rectangle2D) -> MondeVer
 
 mappage :: fonc(mve : &MondeVersEcran, x : r64, y : r64) -> Point2D
 {
-	dyn pos_ecran : Point2D;
+	pos_ecran : Point2D;
 
 	pos_ecran.x = mve.A * x + mve.C;
 	pos_ecran.y = mve.B * y + mve.D;

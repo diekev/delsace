@@ -10,7 +10,7 @@ Serveuse :: struct {
     prise := -1
 }
 
-construit_serveuse :: fonc(dyn serveuse : &Serveuse, port : n16) -> chaine
+construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
 {
     serveuse.prise = socket(_AF_INET, _SOCK_STREAM, 0)
 
@@ -18,7 +18,7 @@ construit_serveuse :: fonc(dyn serveuse : &Serveuse, port : n16) -> chaine
         retourne "erreur lors de la création de la prise"
     }
 
-    dyn mon_addresse : sockaddr_in
+    mon_addresse : sockaddr_in
 	mon_addresse.sin_family = transtype(_AF_INET : n16)
     mon_addresse.sin_port = htons(port)
     // trouve notre propre addresse
@@ -32,7 +32,7 @@ construit_serveuse :: fonc(dyn serveuse : &Serveuse, port : n16) -> chaine
     mon_addresse.sin_zero[6] = 0
     mon_addresse.sin_zero[7] = 0
 
-	dyn err := bind(serveuse.prise, transtype(@mon_addresse : *sockaddr), transtype(taille_de(sockaddr) -> n64))
+	err := bind(serveuse.prise, transtype(@mon_addresse : *sockaddr), transtype(taille_de(sockaddr) -> n64))
 
 	si err == -1 {
 		retourne "erreur lors de la liaison"
@@ -47,7 +47,7 @@ construit_serveuse :: fonc(dyn serveuse : &Serveuse, port : n16) -> chaine
     retourne ""
 }
 
-détruit_serveuse :: fonc(dyn serveuse : &Serveuse) -> rien
+détruit_serveuse :: fonc(serveuse : &Serveuse) -> rien
 {
     si serveuse.prise == -1 {
         retourne
@@ -62,8 +62,8 @@ charge_donnees_requete :: fonc(prise : z32, mon_addresse : &sockaddr_in) -> chai
     //imprime("serveur: Reçu connexion de ", ip, '\n')
     MAXDATASIZE : n64 = 1024
 
-    dyn tampon : [1024]z8
-    dyn requete : chaine
+    tampon : [1024]z8
+    requete : chaine
 
     boucle {
         taille_reçue := recv(prise, @tampon[0], MAXDATASIZE, 0)
@@ -91,13 +91,13 @@ charge_donnees_requete :: fonc(prise : z32, mon_addresse : &sockaddr_in) -> chai
     retourne requete
 }
 
-démarre :: fonc(dyn serveuse : &Serveuse) -> rien
+démarre :: fonc(serveuse : &Serveuse) -> rien
 {
     si serveuse.prise == -1 {
         retourne
     }
 
-    dyn mon_addresse : sockaddr_in // Adresse du connecté
+    mon_addresse : sockaddr_in // Adresse du connecté
 	sin_size := transtype(taille_de(sockaddr_in) : n32)
 
     boucle {
@@ -154,7 +154,7 @@ démarre :: fonc(dyn serveuse : &Serveuse) -> rien
 // commentaire
 principale :: fonc () -> z32
 {
-    dyn serveuse : Serveuse
+    serveuse : Serveuse
     construit_serveuse(serveuse, 5009)
 
     démarre(serveuse)

@@ -61,7 +61,7 @@ fonction limite_basse(f : *z32, l : *z32, v : z32) -> *z32
 
 fonction principale(compte : z32, arguments : **z8) -> z32
 {
-	dyn tableau : [32]z32;
+	tableau : [32]z32;
 
 	pour x dans 0 ... 31 {
 		tableau[x] = x * 4;

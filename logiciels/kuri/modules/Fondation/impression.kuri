@@ -16,17 +16,17 @@ Enchaineuse :: struct {
     tampon_courant : *TamponEnchaineuse
 }
 
-initialise_enchaineuse :: fonc (dyn enchaineuse : *Enchaineuse) -> rien
+initialise_enchaineuse :: fonc (enchaineuse : *Enchaineuse) -> rien
 {
     enchaineuse.tampon_courant = @enchaineuse.tampon
     enchaineuse.tampon_courant.occupé = 0
     enchaineuse.tampon_courant.suivant = nul
 }
 
-taille_chaine :: fonc (dyn enchaineuse: *Enchaineuse) -> z64
+taille_chaine :: fonc (enchaineuse: *Enchaineuse) -> z64
 {
-    dyn taille : z64 = 0
-    dyn tampon_courant := @enchaineuse.tampon
+    taille : z64 = 0
+    tampon_courant := @enchaineuse.tampon
 
     tantque tampon_courant != nul {
         taille += tampon_courant.occupé
@@ -46,9 +46,9 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> chaine
 
     chn := loge chaine(taille)
 
-    dyn tampon_courant := @enchaineuse.tampon
+    tampon_courant := @enchaineuse.tampon
 
-    dyn curseur : z64 = 0
+    curseur : z64 = 0
 
     tantque tampon_courant != nul {
         taille_tampon := tampon_courant.occupé
@@ -67,7 +67,7 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> chaine
 détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
 {
     // le premier tampon n'est pas alloué dynamiquement
-    dyn tampon_courant := enchaineuse.tampon.suivant
+    tampon_courant := enchaineuse.tampon.suivant
 
     tantque tampon_courant != nul {
         suivant := tampon_courant.suivant
@@ -76,9 +76,9 @@ détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
     }
 }
 
-imprime_dans_enchaineuse :: fonc (dyn enchaineuse: *Enchaineuse, format: chaine, args: ...eini) -> rien
+imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, args: ...eini) -> rien
 {
-    dyn index := 0
+    index := 0
 
 	pour c dans format {
 		si c == '%' && index < args.taille {
@@ -92,11 +92,11 @@ imprime_dans_enchaineuse :: fonc (dyn enchaineuse: *Enchaineuse, format: chaine,
 	}
 }
 
-ajoute_tampon :: fonc (dyn enchaineuse: *Enchaineuse) -> *TamponEnchaineuse
+ajoute_tampon :: fonc (enchaineuse: *Enchaineuse) -> *TamponEnchaineuse
 {
-    dyn tampon := enchaineuse.tampon_courant
+    tampon := enchaineuse.tampon_courant
 
-	dyn nouveau_tampon := loge TamponEnchaineuse
+	nouveau_tampon := loge TamponEnchaineuse
     nouveau_tampon.occupé = 0
 	nouveau_tampon.suivant = nul
 
@@ -106,9 +106,9 @@ ajoute_tampon :: fonc (dyn enchaineuse: *Enchaineuse) -> *TamponEnchaineuse
 	retourne nouveau_tampon
 }
 
-ajoute_au_tampon :: fonc (dyn enchaineuse: *Enchaineuse, c: z8) -> rien
+ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, c: z8) -> rien
 {
-    dyn tampon := enchaineuse.tampon_courant
+    tampon := enchaineuse.tampon_courant
 
     si tampon.occupé == 16384 {
 		tampon = ajoute_tampon(enchaineuse)
@@ -121,18 +121,18 @@ ajoute_au_tampon :: fonc (dyn enchaineuse: *Enchaineuse, c: z8) -> rien
 	}
 }
 
-ajoute_au_tampon :: fonc (dyn enchaineuse: *Enchaineuse, chn: chaine) -> rien
+ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
 {
 	si chn.taille == 0 {
 		retourne
 	}
 
-    dyn tampon := enchaineuse.tampon_courant
+    tampon := enchaineuse.tampon_courant
 
     si (tampon.occupé + chn.taille) > 16384 {
-        dyn taille := 16384 - tampon.occupé
-        dyn src := chn.pointeur
-        dyn dst := @tampon.données[tampon.occupé]
+        taille := 16384 - tampon.occupé
+        src := chn.pointeur
+        dst := @tampon.données[tampon.occupé]
         tampon.occupé += taille
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille)
@@ -160,14 +160,14 @@ ajoute_au_tampon :: fonc (dyn enchaineuse: *Enchaineuse, chn: chaine) -> rien
     }
 }
 
-ajoute_au_tampon :: fonc (dyn enchaineuse : *Enchaineuse, chns: ...chaine) -> rien
+ajoute_au_tampon :: fonc (enchaineuse : *Enchaineuse, chns: ...chaine) -> rien
 {
 	pour chn dans chns {
 		ajoute_au_tampon(enchaineuse, chn)
 	}
 }
 
-ajoute_au_tampon :: fonc (dyn enchaineuse: *Enchaineuse, args: ...eini) -> rien
+ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, args: ...eini) -> rien
 {
 	pour arg dans args {
 		imprime_valeur(enchaineuse, arg.pointeur, arg.info, faux)
@@ -179,7 +179,7 @@ ajoute_au_tampon :: fonc (dyn enchaineuse: *Enchaineuse, args: ...eini) -> rien
 // l'appelante.
 enchaine :: fonc(chns : ...chaine) -> chaine
 {
-	dyn enchaineuse : Enchaineuse
+	enchaineuse : Enchaineuse
 	initialise_enchaineuse(@enchaineuse)
 	diffère { détruit_tampons(@enchaineuse) }
 	ajoute_au_tampon(@enchaineuse, ...chns)
@@ -191,7 +191,7 @@ enchaine :: fonc(chns : ...chaine) -> chaine
 // Imprime le nombre décimal en utilisant un nombre entier de haute précision afin de
 // mieux cerner la valeur exacte du décimal.
 // https://randomascii.wordpress.com/2012/03/08/float-precisionfrom-zero-to-100-digits-2/
-imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : *Enchaineuse, f : r32) -> rien
+imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f : r32) -> rien
 {
 	// Mets le nombre dans notre union magique afin d'extraire les composants
 	num := construit_entier_ou_décimal(f)
@@ -215,10 +215,10 @@ imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : *Enchaineuse,
 	}
 
 	// Ajustement pour le biais de l'exposant.
-	dyn valeur_exposant := num.exposant_cru() - 127
+	valeur_exposant := num.exposant_cru() - 127
 
 	// Ajoute celui implicit à la mantisse.
-	dyn valeur_mantisse := (1 << 23) + num.mantisse_crue()
+	valeur_mantisse := (1 << 23) + num.mantisse_crue()
 
 	// Cas spécial pour les dénormales - pas de valeur spéciale d'exposant et pas d'impliquée
 	si num.exposant_cru() == 0 {
@@ -229,7 +229,7 @@ imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : *Enchaineuse,
 	// Le premier bit de la mantisse a une valeur implicite de 1 et ceci peut
 	// être décalé de 127 positions vers la gauche, donc de 125 bits vers la gauche
 	// du point binaire, ou 4 mots pour la part entière.
-	dyn part_entière := construit_nombre_haute_précision() // haute_précision<4>
+	part_entière := construit_nombre_haute_précision() // haute_précision<4>
 
 	// Quand notre valeur_exposant est 0 (un nombre entre 1.0 et 2.0),
 	// nous avons une mantisse de 24 bits et la valeur implicite du bit le plus haut
@@ -240,7 +240,7 @@ imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : *Enchaineuse,
 		transtype(valeur_mantisse : n32),
 		9 + valeur_exposant)
 
-	dyn chn_part_entière : chaine
+	chn_part_entière : chaine
 
 	// Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
@@ -258,7 +258,7 @@ imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : *Enchaineuse,
 	// Nous avons une mantisse de 23-bits à droite du point binaire et ceci
 	// peut être décalé de 126 positions vers la droite, donc 149 bits, ou
 	// 5 mots de 32-bits.
-	dyn frac := construit_nombre_haute_précision() // haute_précision<5>
+	frac := construit_nombre_haute_précision() // haute_précision<5>
 
 	// Quand valeur_exposant est zéro nous voulons décaler 23 bits de mantisse dans
 	// la part fractionnelle.
@@ -292,7 +292,7 @@ formatte_entier :: fonc (valeur: eini, ajoute_zéros_début := faux, nombre_zér
     }
 }
 
-imprime_n64_base_n :: fonc (dyn enchaineuse: *Enchaineuse, dyn v: n64, format: FormatEntier) -> rien
+imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEntier) -> rien
 {
 	base := transtype(format.base: n64)
 	assert(base >= 2)
@@ -300,10 +300,10 @@ imprime_n64_base_n :: fonc (dyn enchaineuse: *Enchaineuse, dyn v: n64, format: F
 
 	chiffres_base_64 := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_#"
 
-	dyn résultat : [64]z8
+	résultat : [64]z8
 
-	dyn fin := @résultat[0] + 64
-	dyn début := fin
+	fin := @résultat[0] + 64
+	début := fin
 
 	tantque v != 0 {
 		chiffre := v % base
@@ -331,15 +331,15 @@ imprime_n64_base_n :: fonc (dyn enchaineuse: *Enchaineuse, dyn v: n64, format: F
 	}
 }
 
-imprime_nombre_entier :: fonc (dyn enchaineuse: *Enchaineuse, format: FormatEntier) -> rien
+imprime_nombre_entier :: fonc (enchaineuse: *Enchaineuse, format: FormatEntier) -> rien
 {
 	info := transtype(format.valeur.info: *InfoTypeEntier)
 	pointeur := format.valeur.pointeur
 
-	dyn valeur : n64
+	valeur : n64
 
 	si info.est_signé {
-		dyn val := z64_depuis_pointeur(pointeur, info.taille_en_octet)
+		val := z64_depuis_pointeur(pointeur, info.taille_en_octet)
 
 		si val < 0 {
 			ajoute_au_tampon(enchaineuse, '-')
@@ -394,11 +394,11 @@ formatte_réel :: fonc (valeur: eini, précision := 6) -> FormatRéel
 	}
 }
 
-imprime_nombre_réel :: fonc(dyn enchaineuse: *Enchaineuse, format: FormatRéel) -> rien
+imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> rien
 {
 	info := format.valeur.info
 	pointeur := format.valeur.pointeur
-	dyn f : r32
+	f : r32
 
 	si info.taille_en_octet == 2 {
 		x := mémoire(transtype(pointeur : *r16))
@@ -438,23 +438,23 @@ imprime_nombre_réel :: fonc(dyn enchaineuse: *Enchaineuse, format: FormatRéel)
 		retourne
 	}
 
-	dyn x := f
+	x := f
 
 	si f < 0.0 {
 		x = -x
 	}
 
-	dyn part_entière := transtype(x : n64)
+	part_entière := transtype(x : n64)
 
 	imprime_nombre_entier(enchaineuse, formatte_entier(part_entière))
 
 	ajoute_au_tampon(enchaineuse, '.')
 
-	dyn frac := x - transtype(part_entière : r32)
+	frac := x - transtype(part_entière : r32)
 
 	chiffres := "0123456789"
 
-	dyn p := format.précision
+	p := format.précision
 
 	répète {
 		frac *= 10.0
@@ -468,14 +468,14 @@ imprime_nombre_réel :: fonc(dyn enchaineuse: *Enchaineuse, format: FormatRéel)
 }
 
 imprime_valeur :: fonc(
-	dyn enchaineuse : *Enchaineuse,
+	enchaineuse : *Enchaineuse,
 	pointeur : *z8,
 	info : *InfoType,
 	échappe_chn : bool) -> rien
 {
     discr info.id {
 		OCTET {
-			dyn e : eini
+			e : eini
 			e.pointeur = pointeur
 			e.info = info
 
@@ -483,7 +483,7 @@ imprime_valeur :: fonc(
 			imprime_nombre_entier(enchaineuse, fmt)
 		}
 		ENTIER {
-			dyn e : eini
+			e : eini
 			e.pointeur = pointeur
 			e.info = info
 
@@ -491,7 +491,7 @@ imprime_valeur :: fonc(
 			imprime_nombre_entier(enchaineuse, fmt)
 		}
 		RÉEL {
-			dyn e : eini
+			e : eini
 			e.pointeur = pointeur
 			e.info = info
 
@@ -577,7 +577,7 @@ imprime_valeur :: fonc(
 			x := mémoire(transtype(pointeur : *eini))
 
             ajoute_au_tampon(enchaineuse, "eini { ptr = ")
-			dyn fmt := formatte_entier(transtype(x.pointeur: n64), base = 16)
+			fmt := formatte_entier(transtype(x.pointeur: n64), base = 16)
 			imprime_nombre_entier(enchaineuse, fmt)
             ajoute_au_tampon(enchaineuse, ", info = ")
 			fmt = formatte_entier(transtype(x.info: n64), base = 16)
@@ -592,7 +592,7 @@ imprime_valeur :: fonc(
 
             décalage := transtype(info_arg.type_pointé.taille_en_octet: z32)
 
-			dyn max_élément := 5
+			max_élément := 5
 
             ajoute_au_tampon(enchaineuse, "[")
 
@@ -643,7 +643,7 @@ imprime_valeur :: fonc(
 			noms := info_arg.noms
 
 			si info_arg.est_drapeau {
-				dyn valeur_trouvée := faux
+				valeur_trouvée := faux
 
 				pour v, i dans info_arg.valeurs {
 					si (v & valeur) != 0 {

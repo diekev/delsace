@@ -9,7 +9,7 @@ Image :: struct {
 
 crée_image :: fonc (largeur: z32, hauteur: z32) -> Image
 {
-    dyn image: Image
+    image: Image
     image.tampon = loge [largeur * hauteur]Couleur
     image.largeur = largeur
     image.hauteur = hauteur
@@ -22,7 +22,7 @@ détruit_image :: fonc (image: *Image) -> rien
     déloge image.tampon
 }
 
-remplis_image :: fonc (dyn image : *Image, couleur: Couleur) -> rien
+remplis_image :: fonc (image : *Image, couleur: Couleur) -> rien
 {
     pour pixel dans image.tampon {
         pixel = couleur

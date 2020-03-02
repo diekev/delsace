@@ -579,7 +579,6 @@ static void pousse_argument_fonction_pile(
 		dls::chaine const &nom_broye)
 {
 	auto donnees_var = DonneesVariable{};
-	donnees_var.est_dynamique = argument.est_dynamic;
 	donnees_var.est_variadic = argument.est_variadic;
 	donnees_var.type = argument.type;
 	donnees_var.est_argument = true;
@@ -606,7 +605,6 @@ static void pousse_argument_fonction_pile(
 		for (auto &dm : ds.donnees_membres) {
 			auto type_membre = ds.types[dm.second.index_membre];
 
-			donnees_var.est_dynamique = argument.est_dynamic;
 			donnees_var.type = type_membre;
 			donnees_var.est_argument = true;
 			donnees_var.est_membre_emploie = true;
@@ -1009,7 +1007,6 @@ void genere_code_C(
 			/* pousse les arguments sur la pile */
 			if (!donnees_fonction->est_externe && !donnees_fonction->est_sans_contexte) {
 				auto donnees_var = DonneesVariable{};
-				donnees_var.est_dynamique = true;
 				donnees_var.est_variadic = false;
 				donnees_var.type = contexte.type_contexte;
 				donnees_var.est_argument = true;
@@ -1286,7 +1283,6 @@ void genere_code_C(
 
 			auto donnees_var = DonneesVariable{};
 			donnees_var.est_externe = (variable->drapeaux & EST_EXTERNE) != 0;
-			donnees_var.est_dynamique = (variable->drapeaux & DYNAMIC) != 0;
 			donnees_var.type = variable->type;
 
 			if (contexte.donnees_fonction == nullptr) {

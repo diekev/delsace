@@ -32,12 +32,12 @@ détermine_instruction :: fonc(chn : chaine) -> Instruction
 // AJOURNE /arachne/noeuds.base PGF/1.0\r\n
 analyse_réponse :: fonc(réponse : chaine) -> rien
 {
-	dyn début_mot = 0
-	dyn taille_mot = 0
+	début_mot = 0
+	taille_mot = 0
 
-	dyn inst : Instruction
-	dyn chemin : chaine
-	dyn protocole : chaine
+	inst : Instruction
+	chemin : chaine
+	protocole : chaine
 
 	pour c, idx dans réponse {
 		discr c {
@@ -122,7 +122,7 @@ décrée_arbre :: fonc(arbre : &Arbre) -> rien
 
 cherche_fichier :: fonc(arbre : &Arbre, chemin : chaine) -> chaine
 {
-	dyn noeud = arbre.noeud_racine
+	noeud = arbre.noeud_racine
 
 	pour morceau dans morcelle(chemin) {
 		noeud = noeud.trouve(morceau)
@@ -143,7 +143,7 @@ Journal :: struct {
 	requêtes : []Requête
 }
 
-pousse_requête :: fonc(dyn journal : &Journal, requête : Requête) -> rien
+pousse_requête :: fonc(journal : &Journal, requête : Requête) -> rien
 {
 	taille = journal.requêtes.taille
 	reloge journal.requêtes : [taille + 1]Requête
@@ -152,7 +152,7 @@ pousse_requête :: fonc(dyn journal : &Journal, requête : Requête) -> rien
 
 crée_journal :: fonc() -> Journal
 {
-	dyn journal : Journal
+	journal : Journal
 
 	requête = Requête {
 		inst = Instruction.CRÉE,
@@ -180,10 +180,10 @@ Système :: struct {
 
 crée_système :: fonc() -> Système
 {
-	dyn système : Système
+	système : Système
 
 	// charge le fichier journal ou crée le si inexistant
-	dyn journal : Journal
+	journal : Journal
 
 	si fichier_existe("journal_requête") {
 		journal = crée_journal()
@@ -229,7 +229,7 @@ Requête :: struct {
 // FICHIER_DÉTRUIT
 répond :: fonc(système : &Système, requête : &Requête) -> chaine
 {
-	dyn enchaineuse : Enchaineuse
+	enchaineuse : Enchaineuse
 	diffère { détruit_tampons(@enchaineuse) }
 
 	discr requête.inst {

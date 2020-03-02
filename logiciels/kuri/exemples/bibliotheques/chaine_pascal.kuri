@@ -20,7 +20,7 @@ ChaînePascal :: struct {
 // pas terminée par '\0', la fonc restera bloquée dans une boucle infinie.
 longueur :: fonc(chaîne : *z8) -> z64
 {
-	dyn i : z64 = 0;
+	i : z64 = 0;
 
 	boucle {
 		si chaîne[i] == '\0' {
@@ -42,7 +42,7 @@ longueur :: fonc(chaîne : *z8) -> z64
 // 
 // Si la chaîne 'C' mesure plus que 255 caractères, une erreur sera imprimée dans
 // la sortie standard, et la fonc retournera sans rien copier.
-assigne_chaîne_pascal :: fonc(dyn cp : *ChaînePascal,  chaîne : *z8) -> rien
+assigne_chaîne_pascal :: fonc(cp : *ChaînePascal,  chaîne : *z8) -> rien
 {
 	si cp == nul {
 		printf("La chaîne pascal est nul !\n");
@@ -84,7 +84,7 @@ imprime_chaîne_pascal :: fonc(cp : *ChaînePascal) -> rien
 // Point d'entrée des programmes Kuri.
 principale :: fonc(compte : z32, arguments : **z8) -> z32
 {
-	dyn chaîne : ChaînePascal;
+	chaîne : ChaînePascal;
 
 	assigne_chaîne_pascal(@chaîne, "chaîne pascal\n");
 	imprime_chaîne_pascal(@chaîne);

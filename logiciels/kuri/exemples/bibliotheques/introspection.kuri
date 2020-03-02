@@ -6,13 +6,13 @@ rout crée_manipulable(valeur : eini) -> &Manipulable
 
 	info := transtype(valeur.info : &InfoTypeStructure);
 
-	dyn manipulable := loge Manipulable sinon {
+	manipulable := loge Manipulable sinon {
 		// À FAIRE : erreur
 		retourne nul;
 	}
 
 	pour membre dans info.membres {
-		dyn tprop : type_prop;
+		tprop : type_prop;
 
 		discr membre.info.id {
 			id_type.ENTIER    : { tprop = type_prop.ENTIER; }
@@ -28,7 +28,7 @@ rout crée_manipulable(valeur : eini) -> &Manipulable
 }
 
 rout ajourne_valeur(
-	objet : &dyn eini,
+	objet : &eini,
 	nom_prop : &chaine,
 	valeur : eini) -> rien
 {
@@ -86,7 +86,7 @@ rout invoque(methode : eini, args : ...eini) -> eini
 
 rout test_introspection() -> rien
 {
-	dyn vec : Vecteur3D;
+	vec : Vecteur3D;
 
 	imprime_structure(vec);
 
@@ -107,7 +107,7 @@ rout test_introspection() -> rien
 
 rout loge_concat(args... : []z32) -> []z32
 {
-	dyn taille : n64 = 0;
+	taille : n64 = 0;
 
 	iter arg dans args {
 		taille = taille + tabl.taille;

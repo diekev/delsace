@@ -29,7 +29,7 @@ cycle :: corout(début : z32, fin : z32, pas : z32) -> z32
 // négatif.
 compte :: corout(début : z32, pas : z32) -> z32
 {
-	dyn val := début
+	val := début
 	boucle {
 		retiens val
 		val += pas
@@ -58,7 +58,7 @@ réitère :: corout(valeur : z32, nombre : z32) -> z32
 // Par exemple accumule([1, 2, 3, 4, 5]) donne la séquence 1, 3, 6, 10, 15
 accumule :: corout(tabl : []z32) -> z32
 {
-	dyn val := 0
+	val := 0
 
     pour i dans tabl {
 		val += i
@@ -70,7 +70,7 @@ accumule :: corout(tabl : []z32) -> z32
 plage :: corout(debut : z32, fin : z32, pas : z32) -> z32
 {
 	taille := (fin - debut) / pas
-	dyn x := debut
+	x := debut
 
     pour i dans 0 ... taille {
 		retiens x

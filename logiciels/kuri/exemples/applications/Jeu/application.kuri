@@ -19,7 +19,7 @@ FileÉvènement :: struct {
 	taille : z64
 }
 
-#nulctx enfile :: fonc(dyn q : *FileÉvènement, évènement : Évènement) -> rien
+#nulctx enfile :: fonc(q : *FileÉvènement, évènement : Évènement) -> rien
 {
     si q.taille >= NOMBRE_MAXIMUM_ÉVÈNEMET {
         // À FAIRE: erreur?
@@ -36,9 +36,9 @@ FileÉvènement :: struct {
     retourne q.taille == 0
 }
 
-#nulctx défile :: fonc(dyn q : *FileÉvènement) -> Évènement
+#nulctx défile :: fonc(q : *FileÉvènement) -> Évènement
 {
-    dyn évènement : Évènement
+    évènement : Évènement
 
     si est_vide(q) {
         retourne évènement
@@ -61,7 +61,7 @@ FileÉvènement :: struct {
 
 //###############################################################################
 
-dyn VG_file_évènements : *FileÉvènement = nul
+VG_file_évènements : *FileÉvènement = nul
 
 #nulctx rappel_erreur :: fonc(erreur : z32, desc : *z8) -> rien
 {
@@ -73,7 +73,7 @@ dyn VG_file_évènements : *FileÉvènement = nul
 #nulctx rappel_clavier :: fonc(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, action : z32, mods : type_mod) -> rien
 {
     //glfwSetWindowShouldClose(fenetre, 1);
-    dyn évènement : Évènement
+    évènement : Évènement
 
 	si action == 1 {
 		évènement.type = type_évènement.CLE_PRESSEE
@@ -93,7 +93,7 @@ dyn VG_file_évènements : *FileÉvènement = nul
 
 #nulctx rappel_bouton_souris :: fonc(fenetre : *GLFWwindow, bouton : bouton_souris, action : z32, mods : type_mod) -> rien
 {
-    dyn évènement : Évènement
+    évènement : Évènement
 
     si action == 1 {
 		évènement.type = type_évènement.SOURIS_PRESSEE
@@ -110,7 +110,7 @@ dyn VG_file_évènements : *FileÉvènement = nul
 
 #nulctx rappel_position_souris :: fonc(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) -> rien
 {
-    dyn évènement : Évènement
+    évènement : Évènement
     évènement.type = type_évènement.SOURIS_BOUGEE
     évènement.pos_x = transtype(pos_x: r32)
     évènement.pos_y = transtype(pos_y: r32)
@@ -120,7 +120,7 @@ dyn VG_file_évènements : *FileÉvènement = nul
 
 #nulctx rappel_roulette :: fonc(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) -> rien
 {
-    dyn évènement : Évènement
+    évènement : Évènement
     évènement.type = type_évènement.SOURIS_ROULETTE
     évènement.delta_x = transtype(delta_x: r32)
     évènement.delta_y = transtype(delta_y: r32)
@@ -132,7 +132,7 @@ dyn VG_file_évènements : *FileÉvènement = nul
 {
 	glViewport(0, 0, x, y)
 
-    dyn évènement : Évènement
+    évènement : Évènement
     évènement.type = type_évènement.REDIMENSION
     évènement.delta_x = transtype(x: r32)
     évènement.delta_y = transtype(y: r32)
@@ -204,7 +204,7 @@ dessine_fenetre :: fonc(app : &Application) -> rien
 	glfwSwapBuffers(app.fenetre)
 }
 
-traite_évènement :: fonc(dyn app : &Application, évènement : Évènement) -> rien
+traite_évènement :: fonc(app : &Application, évènement : Évènement) -> rien
 {
     //imprime(évènement, "\n");
 
@@ -254,10 +254,10 @@ TEMPS_DOUBLE_CLIC_MS : z64 = 500
 // Maximum, au cas où on laisse les utilisateurs renseigner le temps.
 TEMPS_DOUBLE_CLIC_MS_MAX : z64 = 5000
 
-traite_évènements :: fonc(dyn app : &Application) -> rien
+traite_évènements :: fonc(app : &Application) -> rien
 {
     tantque !est_vide(VG_file_évènements) {
-        dyn évènement := défile(VG_file_évènements)
+        évènement := défile(VG_file_évènements)
 
         // enregistrement de la position de la souris, car ceci n'est donnée
 		// que pour les mouvements */
@@ -318,7 +318,7 @@ boucle_principale :: fonc(app : &Application) -> rien
     }
 }
 
-lance_application :: fonc(dyn app : &Application) -> z32
+lance_application :: fonc(app : &Application) -> z32
 {
     si glfwInit() == 0 {
         imprime_sans_format("Impossible d'initialiser GLFW !\n")
@@ -326,16 +326,16 @@ lance_application :: fonc(dyn app : &Application) -> z32
     }
 
     // initialise la file d'évènements
-    dyn file_évènement : FileÉvènement
+    file_évènement : FileÉvènement
     nonsûr {
         VG_file_évènements = @file_évènement
         VG_file_évènements.tampon = loge [NOMBRE_MAXIMUM_ÉVÈNEMET]Évènement
     }
 
-    dyn largeur : z32 = TAILLE_TUILE * TUILES_X
-    dyn hauteur : z32 = TAILLE_TUILE * TUILES_Y
+    largeur : z32 = TAILLE_TUILE * TUILES_X
+    hauteur : z32 = TAILLE_TUILE * TUILES_Y
 
-    //dyn donnees_moniteur = transtype(glfwGetVideoMode(glfwGetPrimaryMonitor()) : *DonneesMoniteur);
+    //donnees_moniteur = transtype(glfwGetVideoMode(glfwGetPrimaryMonitor()) : *DonneesMoniteur);
 
     //si donnees_moniteur != nul {
     //    largeur = donnees_moniteur.largeur;

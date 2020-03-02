@@ -91,7 +91,6 @@ struct DonneesVariable {
 	llvm::Value *valeur{nullptr};
 #endif
 	Type *type{nullptr};
-	bool est_dynamique = false;
 	bool est_variadic = false;
 	bool est_argument = false;
 	bool est_membre_emploie = false;
@@ -408,12 +407,6 @@ struct ContexteGenerationCode {
 	 * Retourne vrai s'il existe une locale dont le nom correspond au spécifié.
 	 */
 	bool locale_existe(const dls::vue_chaine_compacte &nom);
-
-	/**
-	 * Retourne vrai si la variable locale dont le nom est spécifié peut être
-	 * assignée.
-	 */
-	bool peut_etre_assigne(const dls::vue_chaine_compacte &nom);
 
 	/**
 	 * Indique que l'on débute un nouveau bloc dans la fonction, et donc nous

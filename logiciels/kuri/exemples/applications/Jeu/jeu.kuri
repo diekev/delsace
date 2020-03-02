@@ -10,6 +10,6 @@ principale :: fonc () -> z32
 	    imprime_sans_format("Fin du programme, mémoire utilisée : ", mémoire_utilisée(), "o\n")
 	}
 
-    dyn app : Application
+    app : Application
     retourne lance_application(app)
 }

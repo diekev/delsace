@@ -27,8 +27,8 @@ rout lance_jeu()
 {
 	entités : []Entité
 
-	dyn temps_précédent := temps_courant()
-	dyn lag := 0
+	temps_précédent := temps_courant()
+	lag := 0
 
 	boucle {
 		temps_courant := temps_courant()

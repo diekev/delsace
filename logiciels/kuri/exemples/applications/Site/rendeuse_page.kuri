@@ -37,7 +37,7 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     // ----------------------------
     // Lexage du script
 
-    dyn lexeuse := construit_lexeuse(fichier.données)
+    lexeuse := construit_lexeuse(fichier.données)
     diffère { détruit_lexeuse(lexeuse) }
 
     lexeuse.performe_lexage()
@@ -45,7 +45,7 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     // ----------------------------
     // Syntaxage du script
 
-    dyn syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
+    syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
     diffère { détruit_assembleuse(syntaxeuse.assembleuse) }
 
     syntaxeuse.performe_syntaxage()
@@ -54,10 +54,10 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     // Génération de la page
 	racine := syntaxeuse.assembleuse.pile.haut()
 
-    dyn données_génération : DonnéesGénération
+    données_génération : DonnéesGénération
     données_génération.valeur = données
 
-    dyn enchaineuse : Enchaineuse
+    enchaineuse : Enchaineuse
 	initialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 

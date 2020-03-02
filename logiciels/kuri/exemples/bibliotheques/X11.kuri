@@ -88,7 +88,7 @@ principale :: fonc () -> z32
     XSelectInput(d, w, _ExposureMask | _KeyPressMask);
     XMapWindow(d, w);
 
-    dyn e : _XEvent
+    e : _XEvent
 
     boucle {
         XNextEvent(d, @e)

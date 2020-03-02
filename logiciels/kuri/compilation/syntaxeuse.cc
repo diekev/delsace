@@ -702,11 +702,6 @@ noeud::base *Syntaxeuse::analyse_expression(
 		auto genre_courant = lexeme.genre;
 
 		switch (genre_courant) {
-			case GenreLexeme::DYN:
-			{
-				drapeaux |= (DYNAMIC | DECLARATION);
-				break;
-			}
 			case GenreLexeme::EMPL:
 			{
 				drapeaux |= EMPLOYE;

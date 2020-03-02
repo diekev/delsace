@@ -67,7 +67,7 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
     _PNG_FILLER_AFTER := 1
     _PNG_INFO_tRNS : n32 = 0x0010
 
-    dyn image := loge Image
+    image := loge Image
 
 	png := png_create_read_struct("1.6.34".pointeur, nul, nul, nul)
 
@@ -132,7 +132,7 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
 
 	png_read_update_info(png, info)
 
-	dyn row_pointers := loge [hauteur]*n8
+	row_pointers := loge [hauteur]*n8
 
 	pour y dans 0 ... transtype(hauteur: z32) - 1 {
         row_bytes := png_get_rowbytes(png, info)
@@ -145,13 +145,13 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
     image.largeur = transtype(largeur: z32)
     image.tampon = loge [image.hauteur * image.largeur]Couleur
 
-    dyn index : z64 = 0
+    index : z64 = 0
 
 	pour row dans row_pointers {
         pour x dans 0 ... transtype(largeur: z32) - 1 {
             px := @row[x * 4]
 
-            dyn couleur : Couleur
+            couleur : Couleur
             couleur.r = transtype(px[0]: r32) / 255.0
             couleur.v = transtype(px[1]: r32) / 255.0
             couleur.b = transtype(px[2]: r32) / 255.0

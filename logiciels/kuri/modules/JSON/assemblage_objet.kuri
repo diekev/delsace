@@ -7,12 +7,12 @@ PileObjet :: struct {
     curseur := 0
 }
 
-détruit :: fonc(dyn pile : &PileObjet) -> rien
+détruit :: fonc(pile : &PileObjet) -> rien
 {
     déloge pile.données
 }
 
-empile :: fonc(dyn pile : &PileObjet, noeud : *Objet) -> rien
+empile :: fonc(pile : &PileObjet, noeud : *Objet) -> rien
 {
     si pile.curseur == pile.données.taille {
         taille := pile.données.taille
@@ -23,7 +23,7 @@ empile :: fonc(dyn pile : &PileObjet, noeud : *Objet) -> rien
     pile.curseur += 1
 }
 
-dépile :: fonc(dyn pile : &PileObjet) -> *Objet
+dépile :: fonc(pile : &PileObjet) -> *Objet
 {
     ret := pile.haut()
     pile.curseur -= 1
@@ -74,14 +74,14 @@ crée_objet :: fonc(assembleuse: &AssembleuseObjet, nom_objet: chaine, type: Typ
     objet := crée_objet(assembleuse, type)
 
     si !assembleuse.pile.est_vide() {
-		dyn objet_haut := assembleuse.pile.haut()
+		objet_haut := assembleuse.pile.haut()
 
 		si objet_haut.id == TypeObjet.DICTIONNAIRE {
-			dyn dico := transtype(objet_haut: *ObjetDictionnaire)
+			dico := transtype(objet_haut: *ObjetDictionnaire)
 			dico.insère(nom_objet, objet)
 		}
 		sinon {
-			dyn tabl := transtype(objet_haut: *ObjetListe)
+			tabl := transtype(objet_haut: *ObjetListe)
 			tableau_ajoute(@tabl.valeur, objet)
 		}
 	}

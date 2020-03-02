@@ -172,75 +172,6 @@ static Type *resoud_type_final(
 
 /* ************************************************************************** */
 
-static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte, bool emet_erreur = true)
-{
-	switch (b->genre) {
-		default:
-		{
-			return false;
-		}
-		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
-		{
-			auto iter_local = contexte.iter_locale(b->lexeme.chaine);
-
-			if (iter_local != contexte.fin_locales()) {
-				if (!iter_local->second.est_dynamique) {
-					if (emet_erreur) {
-						erreur::lance_erreur(
-									"Ne peut pas assigner une variable locale non-dynamique",
-									contexte,
-									b->donnees_lexeme(),
-									erreur::type_erreur::ASSIGNATION_INVALIDE);
-					}
-
-					return false;
-				}
-
-				return true;
-			}
-
-			auto iter_globale = contexte.iter_globale(b->lexeme.chaine);
-
-			if (iter_globale != contexte.fin_globales()) {
-				if (!contexte.non_sur()) {
-					if (emet_erreur) {
-						erreur::lance_erreur(
-									"Ne peut pas assigner une variable globale en dehors d'un bloc 'nonsûr'",
-									contexte,
-									b->donnees_lexeme(),
-									erreur::type_erreur::ASSIGNATION_INVALIDE);
-					}
-
-					return false;
-				}
-
-				if (!iter_globale->second.est_dynamique) {
-					if (emet_erreur) {
-						erreur::lance_erreur(
-									"Ne peut pas assigner une variable globale non-dynamique",
-									contexte,
-									b->donnees_lexeme(),
-									erreur::type_erreur::ASSIGNATION_INVALIDE);
-					}
-
-					return false;
-				}
-
-				return true;
-			}
-
-			return false;
-		}
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
-		case GenreNoeud::EXPRESSION_INDICE:
-		case GenreNoeud::EXPRESSION_MEMOIRE:
-		{
-			return peut_etre_assigne(b->enfants.front(), contexte, emet_erreur);
-		}
-	}
-}
-
 static auto derniere_instruction(base *b)
 {
 	if (b == nullptr) {
@@ -662,7 +593,6 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 
 			/* doit être vrai uniquement pour le dernier argument */
 			donnees_arg.est_variadic = donnees_arg.type_declare.type_base() == GenreLexeme::TROIS_POINTS;
-			donnees_arg.est_dynamic = possede_drapeau(feuille->drapeaux, DYNAMIC);
 			donnees_arg.est_employe = possede_drapeau(feuille->drapeaux, EMPLOYE);
 
 			dernier_est_variadic = donnees_arg.est_variadic;
@@ -839,7 +769,6 @@ static void performe_validation_semantique(
 			auto donnees_var = DonneesVariable{};
 
 			if (!possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
-				donnees_var.est_dynamique = true;
 				donnees_var.est_variadic = false;
 				donnees_var.type = contexte.type_contexte;
 				donnees_var.est_argument = true;
@@ -853,7 +782,6 @@ static void performe_validation_semantique(
 				donnees_dependance.types_utilises.insere(argument.type);
 
 				donnees_var = DonneesVariable{};
-				donnees_var.est_dynamique = argument.est_dynamic;
 				donnees_var.est_variadic = argument.est_variadic;
 				donnees_var.type = argument.type;
 				donnees_var.est_argument = true;
@@ -879,7 +807,6 @@ static void performe_validation_semantique(
 					for (auto &dm : ds.donnees_membres) {
 						auto type_membre = ds.types[dm.second.index_membre];
 
-						donnees_var.est_dynamique = argument.est_dynamic;
 						donnees_var.type = type_membre;
 						donnees_var.est_argument = true;
 						donnees_var.est_membre_emploie = true;
@@ -1318,14 +1245,6 @@ static void performe_validation_semantique(
 							erreur::type_erreur::ASSIGNATION_INVALIDE);
 			}
 
-			if (!peut_etre_assigne(variable, contexte)) {
-				erreur::lance_erreur(
-							"Impossible d'assigner l'expression à la variable !",
-							contexte,
-							b->lexeme,
-							erreur::type_erreur::ASSIGNATION_INVALIDE);
-			}
-
 			auto transformation = cherche_transformation(
 						expression->type,
 						variable->type);
@@ -1364,7 +1283,6 @@ static void performe_validation_semantique(
 
 				auto donnees_var = DonneesVariable{};
 				donnees_var.est_externe = (variable->drapeaux & EST_EXTERNE) != 0;
-				donnees_var.est_dynamique = (variable->drapeaux & DYNAMIC) != 0;
 				donnees_var.type = variable->type;
 
 				if (fonction_courante == nullptr) {
@@ -1432,7 +1350,6 @@ static void performe_validation_semantique(
 
 			auto donnees_var = DonneesVariable{};
 			donnees_var.est_externe = (variable->drapeaux & EST_EXTERNE) != 0;
-			donnees_var.est_dynamique = (variable->drapeaux & DYNAMIC) != 0;
 			donnees_var.type = variable->type;
 
 			if (donnees_var.est_externe) {
@@ -1583,14 +1500,6 @@ static void performe_validation_semantique(
 				auto type_op = b->lexeme.genre;
 
 				if (est_assignation_operee(type_op)) {
-					if (!peut_etre_assigne(enfant1, contexte)) {
-						erreur::lance_erreur(
-									"Impossible d'assigner l'expression à la variable !",
-									contexte,
-									b->lexeme,
-									erreur::type_erreur::ASSIGNATION_INVALIDE);
-					}
-
 					type_op = operateur_pour_assignation_operee(type_op);
 					b->drapeaux |= EST_ASSIGNATION_OPEREE;
 				}
@@ -1987,7 +1896,6 @@ static void performe_validation_semantique(
 
 			contexte.empile_nombre_locales();
 
-			auto est_dynamique = peut_etre_assigne(enfant2, contexte, false);
 			auto nombre_feuilles = feuilles.taille() - requiers_index;
 
 			for (auto i = 0l; i < nombre_feuilles; ++i) {
@@ -2002,8 +1910,6 @@ static void performe_validation_semantique(
 					donnees_var.type = type;
 				}
 
-				donnees_var.est_dynamique = est_dynamique;
-
 				contexte.pousse_locale(f->chaine(), donnees_var);
 			}
 
@@ -2015,7 +1921,6 @@ static void performe_validation_semantique(
 
 				auto donnees_var = DonneesVariable{};
 				donnees_var.type = type;
-				donnees_var.est_dynamique = est_dynamique;
 
 				contexte.pousse_locale(idx->chaine(), donnees_var);
 			}

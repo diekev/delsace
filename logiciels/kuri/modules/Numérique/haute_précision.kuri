@@ -17,7 +17,7 @@ HautePrécision :: struct {
 
 construit_nombre_haute_précision :: fonc() -> HautePrécision
 {
-	dyn hp : HautePrécision
+	hp : HautePrécision
 
 	pour élément dans hp.données {
 		élément = 0
@@ -33,7 +33,7 @@ construit_nombre_haute_précision :: fonc() -> HautePrécision
 // - le bit le moins significatif. Un décalage de DÉCALAGE_MOT indique que la
 // valeur sera dans l'élément le moins significatif de hp.données, etc.
 insère_bits_du_bas :: fonc(
-	dyn hp : *HautePrécision,
+	hp : *HautePrécision,
 	valeur : n32,
 	quantité_décalage : z32) -> rien
 {
@@ -69,7 +69,7 @@ insère_bits_du_bas :: fonc(
 // significatif. Un décalage de DÉCALAGE_MOT indique que la valeur sera dans
 // l'élément le plus significatif de hp.données, etc.
 insère_bits_du_haut :: fonc(
-	dyn hp : *HautePrécision,
+	hp : *HautePrécision,
 	valeur : n32,
 	quantité_décalage : z32) -> rien
 {
@@ -89,9 +89,9 @@ est_zéro :: fonc(hp : *HautePrécision) -> bool
 }
 
 // Retourne le reste de la division de hp par diviseur, de 0 à diviseur - 1.
-reste_de_la_division :: fonc(dyn hp : *HautePrécision, diviseur : n32) -> n32
+reste_de_la_division :: fonc(hp : *HautePrécision, diviseur : n32) -> n32
 {
-	dyn reste : n32 = 0
+	reste : n32 = 0
 
 	// Algorithme standard de division longue.
 	pour élément dans hp.données {
@@ -105,9 +105,9 @@ reste_de_la_division :: fonc(dyn hp : *HautePrécision, diviseur : n32) -> n32
 }
 
 // Multiplie par mul et retourne le surplus, de 0 à mul - 1
-surplus_de_la_multiplication :: fonc(dyn hp : *HautePrécision, mul : n32) -> n32
+surplus_de_la_multiplication :: fonc(hp : *HautePrécision, mul : n32) -> n32
 {
-	dyn surplus : n32 = 0
+	surplus : n32 = 0
 
 	pour j dans 0 ... COMPTE - 1 {
 		i := COMPTE - 1 - j

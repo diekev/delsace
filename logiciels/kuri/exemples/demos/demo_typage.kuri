@@ -7,7 +7,7 @@ XYZ :: struct {
     b : type_de(a)
 }
 
-copie_vNvN :: fonc(dyn a : [3]z32, b : type_de(a)) -> rien
+copie_vNvN :: fonc(a : [3]z32, b : type_de(a)) -> rien
 {
     pour v, i dans b {
         a[i] = v
@@ -29,7 +29,7 @@ ajoute :: fonc(a : $T, b : $T) -> $T
 principale :: fonc () -> type_de(N)
 {
     x := 5.0
-    dyn y : type_de(x)
+    y : type_de(x)
 
     infos := info_de(y)
 

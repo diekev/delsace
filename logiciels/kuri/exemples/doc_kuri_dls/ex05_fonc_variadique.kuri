@@ -1,6 +1,6 @@
 exemple :: fonc(args : ...r64) -> r64
 {
-	dyn résultat := 0.0
+	résultat := 0.0
 
 	pour x dans args {
 		pour y dans args {

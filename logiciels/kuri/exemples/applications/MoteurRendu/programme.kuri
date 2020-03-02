@@ -3,8 +3,8 @@ importe OpenGL
 
 vérifie_compilation :: fonc (id_nuanceur: n32) -> bool
 {
-    dyn résultat : z32 = 0
-    dyn longueur_info_log : z32 = 0
+    résultat : z32 = 0
+    longueur_info_log : z32 = 0
 
     glGetShaderiv(id_nuanceur, OGL.COMPILE_STATUS, @résultat)
     glGetShaderiv(id_nuanceur, OGL.INFO_LOG_LENGTH, @longueur_info_log)
@@ -25,8 +25,8 @@ vérifie_compilation :: fonc (id_nuanceur: n32) -> bool
 
 vérifie_liaison :: fonc (id_programme: n32) -> bool
 {
-    dyn résultat : z32 = 0
-    dyn longueur_info_log : z32 = 0
+    résultat : z32 = 0
+    longueur_info_log : z32 = 0
 
     glGetProgramiv(id_programme, OGL.LINK_STATUS, @résultat)
 	glGetProgramiv(id_programme, OGL.INFO_LOG_LENGTH, @longueur_info_log)

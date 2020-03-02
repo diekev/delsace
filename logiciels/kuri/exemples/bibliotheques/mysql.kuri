@@ -57,7 +57,7 @@ public:
 
 principale :: fonc () : z32
 {
-	dyn mysql : MYSQL;
+	mysql : MYSQL;
 	mysql_init(@mysql);
 
 	mysql_options(@mysql, mysql_option.MYSQL_READ_DEFAULT_GROUP,"option".pointeur);

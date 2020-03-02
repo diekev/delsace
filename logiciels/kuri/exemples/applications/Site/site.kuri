@@ -52,7 +52,7 @@ chaine_pour_aujourdhui :: fonc () -> chaine
     tm_ := localtime(@t);
 
     // À FAIRE : ajoute d'options de formattage pour les nombres dans les fonctions "imprime..."
-    dyn enchaineuse : Enchaineuse
+    enchaineuse : Enchaineuse
     initialise_enchaineuse(@enchaineuse)
 
     diffère { détruit_tampons(@enchaineuse) }
@@ -99,8 +99,8 @@ charge_donnees_requete :: fonc(prise : z32, adresse_du_connecté : &sockaddr_in)
 {
     MAXDATASIZE : n64 = 1024
 
-    dyn tampon : [1024]z8
-    dyn requete : chaine
+    tampon : [1024]z8
+    requete : chaine
 
     boucle {
         taille_reçue := recv(prise, @tampon[0], MAXDATASIZE, 0)
@@ -166,16 +166,16 @@ procède_requête :: fonc (
 
     //imprime("\nrequête :\n%\n", requête)
 
-    dyn analyseuse : AnalyseuseRequête
+    analyseuse : AnalyseuseRequête
     analyseuse.requête = requête
     //analyse_requête(@analyseuse, requete)
 
-    dyn ligne_requête := analyse_ligne_requête(@analyseuse)
+    ligne_requête := analyse_ligne_requête(@analyseuse)
 
-    dyn entêtes := analyse_entêtes(@analyseuse)
+    entêtes := analyse_entêtes(@analyseuse)
     diffère { détruit_entêtes(@entêtes); }
 
-    dyn contenu_requête := analyse_contenu(@analyseuse)
+    contenu_requête := analyse_contenu(@analyseuse)
 
 /*
     pour entête dans entêtes.données {
@@ -185,12 +185,12 @@ procède_requête :: fonc (
 
     uri := construit_uri_depuis_chemin_requête(ligne_requête.chemin)
 
-    dyn données_requête : DonnéesRequête
+    données_requête : DonnéesRequête
     données_requête.uri = uri
     données_requête.entêtes = entêtes
     données_requête.contenu = contenu_requête
 
-    dyn réponse : RéponseRequête
+    réponse : RéponseRequête
     diffère { déloge réponse.contenu; }
 
     // À FAIRE : gère les chemin vers les fichiers
@@ -202,7 +202,7 @@ procède_requête :: fonc (
         réponse = crée_réponse_pour_requête_fichier(chm)
     }
     sinon {
-        dyn trouvée := faux
+        trouvée := faux
 
         pour route dans serveuse.routes {
             si uri.chemin != route.url {
@@ -291,10 +291,10 @@ procède_requête :: fonc (
     close(prise)
 }
 
-dyn INTERRUTION := faux
-dyn PRISE_SERVEUSE := -1
+INTERRUTION := faux
+PRISE_SERVEUSE := -1
 
-démarre :: fonc(dyn serveuse : &Serveuse) -> rien
+démarre :: fonc(serveuse : &Serveuse) -> rien
 {
     si serveuse.prise == -1 {
         retourne
@@ -304,7 +304,7 @@ démarre :: fonc(dyn serveuse : &Serveuse) -> rien
         PRISE_SERVEUSE = serveuse.prise
     }
 
-    dyn adresse_du_connecté : sockaddr_in
+    adresse_du_connecté : sockaddr_in
 	sin_size := transtype(taille_de(sockaddr_in) : n32)
 
     boucle {
@@ -369,7 +369,7 @@ principale :: fonc () -> z32
         retourne 1
     }
 
-    dyn configuration : ConfigurationServeuse
+    configuration : ConfigurationServeuse
 
     si !remplis_struct_depuis_chaine_json(script, configuration) {
         imprime("Impossible de lire le fichier de configuration !\n")
@@ -384,7 +384,7 @@ principale :: fonc () -> z32
 
     signal(_SIGINT, rappel_interruption);
 
-    dyn serveuse : Serveuse
+    serveuse : Serveuse
     construit_serveuse(serveuse, configuration.port)
 
     // pour les gabarits

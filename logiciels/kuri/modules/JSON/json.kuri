@@ -7,7 +7,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 			x := mémoire(transtype(pointeur : *octet))
             chiffres_hex := "0123456789ABCDEF"
 
-			dyn chiffre := (x >> transtype(4 : octet)) & transtype(0x0F : octet)
+			chiffre := (x >> transtype(4 : octet)) & transtype(0x0F : octet)
 			ajoute_au_tampon(enchaineuse, chiffres_hex[chiffre])
 
 			chiffre = x & transtype(0x0F : octet)
@@ -16,14 +16,14 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 		ENTIER {
 			info_arg := transtype(info : *InfoTypeEntier)
 
-            dyn e : eini
+            e : eini
             e.pointeur = pointeur
             e.info = info_arg
 
             imprime_nombre_entier(enchaineuse, formatte_entier(e))
 		}
 		RÉEL {
-			dyn y : r32
+			y : r32
 
             si info.taille_en_octet == 2 {
 				x := mémoire(transtype(pointeur : *r16))
@@ -118,7 +118,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 			noms := info_arg.noms
 
 			si info_arg.est_drapeau {
-				dyn valeur_trouvée := faux
+				valeur_trouvée := faux
 
 				pour v, i dans info_arg.valeurs {
 					si (v & valeur) != 0 {
@@ -161,7 +161,7 @@ SyntaxeuseStruct :: struct {
 
 construit_syntaxeuse_struct :: fonc(lexèmes : []DonneesLexèmeJSON) -> SyntaxeuseStruct
 {
-	dyn syntaxeuse : SyntaxeuseStruct
+	syntaxeuse : SyntaxeuseStruct
 	syntaxeuse.lexèmes = lexèmes
 
 	retourne syntaxeuse
@@ -172,7 +172,7 @@ lexème_courant :: fonc(syntaxeuse : *SyntaxeuseStruct) -> TypeLexèmeJSON
 	retourne syntaxeuse.lexèmes[syntaxeuse.position].lexème
 }
 
-avance :: fonc(dyn syntaxeuse : *SyntaxeuseStruct) -> rien
+avance :: fonc(syntaxeuse : *SyntaxeuseStruct) -> rien
 {
 	syntaxeuse.position += 1
 }
@@ -195,7 +195,7 @@ données :: fonc(syntaxeuse : *SyntaxeuseStruct) -> &DonneesLexèmeJSON
 }
 
 analyse_objet :: fonc(
-    dyn syntaxeuse : *SyntaxeuseStruct,
+    syntaxeuse : *SyntaxeuseStruct,
     pointeur_arg: *z8,
     info_arg: *InfoTypeStructure) -> rien
 {
@@ -207,7 +207,7 @@ analyse_objet :: fonc(
 	nom_objet := syntaxeuse.données().chn
 
     // cherche le nom de l'objet dans l'InfoTypeStructure
-    dyn info_membre : *InfoTypeMembreStructure = nul
+    info_membre : *InfoTypeMembreStructure = nul
 
     pour membre dans info_arg.membres {
         si membre.nom == nom_objet {
@@ -237,7 +237,7 @@ analyse_objet :: fonc(
 }
 
 analyse_valeur :: fonc(
-    dyn syntaxeuse : *SyntaxeuseStruct,
+    syntaxeuse : *SyntaxeuseStruct,
     nom_objet : chaine,
     pointeur_membre: *z8,
     info_membre: *InfoType) -> rien
@@ -279,7 +279,7 @@ analyse_valeur :: fonc(
             }
 
             // À FAIRE: typage
-            dyn ptr := transtype(pointeur_membre: *z32)
+            ptr := transtype(pointeur_membre: *z32)
             mémoire(ptr) = transtype(extrait_nombre_entier(syntaxeuse.données().chn): z32)
 		}
 		NOMBRE_REEL {
@@ -290,7 +290,7 @@ analyse_valeur :: fonc(
             }
 
             // À FAIRE: typage
-            dyn ptr := transtype(pointeur_membre: *r32)
+            ptr := transtype(pointeur_membre: *r32)
             mémoire(ptr) = transtype(extrait_nombre_réel(syntaxeuse.données().chn): r32)
 		}
 		CHAINE_CARACTERE {
@@ -300,7 +300,7 @@ analyse_valeur :: fonc(
                 retourne
             }
 
-            dyn ptr := transtype(pointeur_membre: *chaine)
+            ptr := transtype(pointeur_membre: *chaine)
             mémoire(ptr) = syntaxeuse.données().chn
 		}
 		sinon {
@@ -310,7 +310,7 @@ analyse_valeur :: fonc(
 	}
 }
 
-lance_analyse :: fonc(dyn syntaxeuse : *SyntaxeuseStruct, arg: eini) -> rien
+lance_analyse :: fonc(syntaxeuse : *SyntaxeuseStruct, arg: eini) -> rien
 {
 	syntaxeuse.position = 0
 
@@ -333,7 +333,7 @@ lance_analyse :: fonc(dyn syntaxeuse : *SyntaxeuseStruct, arg: eini) -> rien
 
 chaine_json_depuis_struct :: fonc (arg: eini) -> chaine
 {
-    dyn enchaineuse : Enchaineuse
+    enchaineuse : Enchaineuse
 	initialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 
@@ -344,12 +344,12 @@ chaine_json_depuis_struct :: fonc (arg: eini) -> chaine
 
 remplis_struct_depuis_json :: fonc (script: chaine, arg: eini) -> rien
 {
-    dyn lexeuse := construit_lexeuse(script)
+    lexeuse := construit_lexeuse(script)
     diffère { détruit_lexeuse(lexeuse); }
 
     lexeuse.performe_lexage()
 
-    dyn syntaxeuse := construit_syntaxeuse_struct(lexeuse.lexèmes)
+    syntaxeuse := construit_syntaxeuse_struct(lexeuse.lexèmes)
 
     lance_analyse(@syntaxeuse, arg)
 }

@@ -25,20 +25,20 @@ imprime_fichier :: fonc(df : z32, args : ...eini) -> rien
 
 génére_image_damier :: fonc() -> Image
 {
-    dyn image : Image;
+    image : Image;
     image.largeur = 1024;
     image.hauteur = 1024;
     image.channels = 1;
 
     nombre_caracteres = image.largeur * image.hauteur;
 
-    dyn tampon := loge chaine(nombre_caracteres);
+    tampon := loge chaine(nombre_caracteres);
 
     taille_case := image.largeur / 8;
 
     image.tampon = tampon;
 
-    dyn idx := 0;
+    idx := 0;
 
     pour i dans 0...image.largeur - 1 {
         pour j dans 0...image.hauteur - 1 {
@@ -58,14 +58,14 @@ génére_image_damier :: fonc() -> Image
 
 génére_image_noire :: fonc() -> Image
 {
-    dyn image : Image;
+    image : Image;
     image.largeur = 1024;
     image.hauteur = 1024;
     image.channels = 1;
 
     nombre_caracteres := image.largeur * image.hauteur;
 
-    dyn tampon := loge chaine(nombre_caracteres);
+    tampon := loge chaine(nombre_caracteres);
 
     taille_case := image.largeur / 8;
 
@@ -99,11 +99,11 @@ génére_image_noire :: fonc() -> Image
 
     nombre_caracteres := taille_x * taille_y * 2;
 
-    dyn tampon := loge chaine(nombre_caracteres);
+    tampon := loge chaine(nombre_caracteres);
     diffère { déloge tampon; }
 
-    dyn idx := 0;
-    dyn idx_image := 0;
+    idx := 0;
+    idx_image := 0;
 
     pour i dans 0...taille_x - 1 {
         pour j dans 0...taille_y - 1 {
@@ -135,7 +135,7 @@ génére_image_noire :: fonc() -> Image
 
     imprime("Descripteur fichier PNM : ", df, '\n');
 
-    dyn entete : chaine;
+    entete : chaine;
 
     discr image.channels {
         1 { entete = "P5"; }
@@ -150,11 +150,11 @@ génére_image_noire :: fonc() -> Image
 
     nombre_caracteres := taille_x * taille_y * image.channels;
 
-    dyn tampon := loge chaine(nombre_caracteres);
+    tampon := loge chaine(nombre_caracteres);
     diffère { déloge tampon; }
 
-    dyn idx := 0;
-    dyn idx_image := 0;
+    idx := 0;
+    idx_image := 0;
 
     pour i dans 0...taille_x - 1 {
         pour j dans 0...taille_y - 1 {
@@ -185,7 +185,7 @@ détruit_image :: fonc(image : *Image) -> rien
 
 lis_jpeg :: fonc(chemin : chaine) -> Image
 {
-    dyn image : Image;
+    image : Image;
 	ptr_tampon := chaine_c_temp(chemin);
 
     modes := "rb";
@@ -198,8 +198,8 @@ lis_jpeg :: fonc(chemin : chaine) -> Image
         retourne image;
     }
 
-    dyn erreur_jpeg : jpeg_error_mgr;
-    dyn info : jpeg_decompress_struct;
+    erreur_jpeg : jpeg_error_mgr;
+    info : jpeg_decompress_struct;
 
 	jpeg_create_decompress(@info);
 	info.err = jpeg_std_error(@erreur_jpeg);
@@ -250,8 +250,8 @@ lis_jpeg :: fonc(chemin : chaine) -> Image
 
 	//fseek(file, 0L, SEEK_SET);
 
-	dyn info : jpeg_compress_struct;
-	dyn jerr : jpeg_error_mgr;
+	info : jpeg_compress_struct;
+	jerr : jpeg_error_mgr;
 
 	jpeg_create_compress(@info);
 	info.err = jpeg_std_error(@jerr);

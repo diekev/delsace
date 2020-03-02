@@ -7,7 +7,7 @@ MagasinChaine :: struct {
 	taille_chaines : z64 = 0
 }
 
-index_chaine :: fonc(dyn magasin : &MagasinChaine, chn : chaine) -> z64
+index_chaine :: fonc(magasin : &MagasinChaine, chn : chaine) -> z64
 {
 	résultat := magasin.dico.trouve(chn)
 
@@ -27,7 +27,7 @@ index_chaine :: fonc(dyn magasin : &MagasinChaine, chn : chaine) -> z64
 }
 
 insère_chn_index :: fonc(
-	dyn magasin : &MagasinChaine,
+	magasin : &MagasinChaine,
 	chn : chaine,
 	index : z64) -> z64
 {
@@ -36,7 +36,7 @@ insère_chn_index :: fonc(
 	magasin.nombre_chaines += 1
 }
 
-ajoute_chaine :: fonc(dyn magasin : &MagasinChaine, chn : chaine) -> z64
+ajoute_chaine :: fonc(magasin : &MagasinChaine, chn : chaine) -> z64
 {
 	index := index_chaine(magasin, chn)
 
@@ -51,7 +51,7 @@ ajoute_chaine :: fonc(dyn magasin : &MagasinChaine, chn : chaine) -> z64
 
 sous_tableau :: fonc(tabl : []octet, index : z64, taille : z64) -> []octet
 {
-	dyn tmp : []octet
+	tmp : []octet
 	tmp.pointeur = @tabl[index]
 	tmp.taille = taille
 
@@ -59,10 +59,10 @@ sous_tableau :: fonc(tabl : []octet, index : z64, taille : z64) -> []octet
 }
 
 écris_magasin :: fonc(
-	dyn magasin : &Magasin,
-	dyn système : &SystèmeFichierMémoire) -> rien
+	magasin : &Magasin,
+	système : &SystèmeFichierMémoire) -> rien
 {
-	dyn fichier := système.ouvre_pour_lecture(chemin)
+	fichier := système.ouvre_pour_lecture(chemin)
 
 	si fichier == nul {
 		retourne
@@ -72,16 +72,16 @@ sous_tableau :: fonc(tabl : []octet, index : z64, taille : z64) -> []octet
 	// 4 pour l'index et 8 pour la taille
 	taille := magasin.nombre_chaines * 12 + magasin.taille_chaines
 
-	dyn tampon := loge [taille]octet
+	tampon := loge [taille]octet
 	diffère { déloge tampon; }
 
-	dyn décalage := 0
+	décalage := 0
 
 	pour noeud dans chaque_noeud(magasin.dico) {
 		index_chaine := transtype(noeud.valeur : z32)
 		taille_chaine := noeud.chn.taille
 
-		dyn sous_tampon := sous_tableau(tampon, décalage, taille_de(z32))
+		sous_tampon := sous_tableau(tampon, décalage, taille_de(z32))
 		copie_mem(sous_tampon, index_chaine)
 
 		sous_tampon = sous_tableau(tampon, décalage + 4, taille_de(z64))
@@ -97,12 +97,12 @@ sous_tableau :: fonc(tabl : []octet, index : z64, taille : z64) -> []octet
 }
 
 lis_magasin :: fonc(
-	dyn magasin : &Magasin,
-	dyn système : &SystèmeFichierMémoire) -> rien
+	magasin : &Magasin,
+	système : &SystèmeFichierMémoire) -> rien
 {
 	// À FAIRE : réinitialise magasin
 
-	dyn fichier : Fichier
+	fichier : Fichier
 	fichier := système.ouvre_pour_lecture(chemin)
 
 	si fichier == nul {
@@ -115,11 +115,11 @@ lis_magasin :: fonc(
 
 	tantque taille != 0 {
 		// lis l'index
-		dyn index : z32
+		index : z32
 		fichier.lis(index)
 
 		// lis la taille
-		dyn taille_chaine : z64
+		taille_chaine : z64
 		fichier.lis(taille_chaine)
 
 		// lis la chaine

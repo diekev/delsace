@@ -30,8 +30,8 @@ racine_carrée :: fonc (n: r64) -> r64
     }
 
     PRÉCISION := 0.0001
-    dyn limite_basse : r64
-    dyn limite_haute : r64
+    limite_basse : r64
+    limite_haute : r64
 
     si n < 1.0 {
         limite_basse = n
@@ -67,8 +67,8 @@ racine_cubique :: fonc (n: r64) -> r64
     }
 
     PRÉCISION := 0.00001
-    dyn limite_basse : r64
-    dyn limite_haute : r64
+    limite_basse : r64
+    limite_haute : r64
 
     si n < 1.0 {
         limite_basse = n
@@ -110,7 +110,7 @@ racine_cubique :: fonc (n: r64) -> r64
 /*
 min :: fonc(args : ...$T) -> $T
 {
-	dyn vmin := args[0]
+	vmin := args[0]
 
 	pour v, index dans 1 ... args.taille - 1 {
 		vmin = min(vmin, v)
@@ -129,7 +129,7 @@ min :: fonc(args : ...$T) -> $T
 /*
 max :: fonc(args : ...$T) -> $T
 {
-	dyn vmax := args[0]
+	vmax := args[0]
 
 	pour v, index dans 1 ... args.taille - 1 {
 		vmax = max(vmin, v)
@@ -139,7 +139,7 @@ max :: fonc(args : ...$T) -> $T
 }
 */
 
-#enligne restreint :: fonc(dyn x : *$T, min : $T, max : $T) -> rien
+#enligne restreint :: fonc(x : *$T, min : $T, max : $T) -> rien
 {
     si mémoire(x) <= min {
         mémoire(x) = min;
@@ -152,8 +152,8 @@ max :: fonc(args : ...$T) -> $T
 // Trouve le plus grand commun diviseur selon l'algorithme d'Euclide
 pgcd :: fonc(a : z32, b : z32) -> z32
 {
-	dyn x := a
-	dyn y := b
+	x := a
+	y := b
 
 	tantque y > 1 {
 		x = y

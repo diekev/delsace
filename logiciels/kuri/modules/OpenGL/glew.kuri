@@ -50,7 +50,7 @@ _GL_INVALID_VALUE : n32 = 0x0501
 _GL_INVALID_OPERATION : n32 = 0x0502
 _GL_INVALID_FRAMEBUFFER_OPERATION : n32 = 0x0506
 
-dyn externe glewExperimental : z32
+externe glewExperimental : z32
 
 glewInit :: fonc externe () -> z32
 

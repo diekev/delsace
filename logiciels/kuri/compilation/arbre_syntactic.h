@@ -178,16 +178,15 @@ inline bool est_instruction_retour(GenreNoeud genre)
 
 enum drapeaux_noeud : unsigned short {
 	AUCUN                  = 0,
-	DYNAMIC                = (1 << 0),
-	EMPLOYE                = (1 << 1),
-	DECLARATION            = (1 << 2),
-	EST_EXTERNE            = (1 << 3),
-	EST_CALCULE            = (1 << 4),
-	IGNORE_OPERATEUR       = (1 << 5),
-	FORCE_ENLIGNE          = (1 << 6),
-	FORCE_HORSLIGNE        = (1 << 7),
-	FORCE_NULCTX           = (1 << 8),
-	EST_ASSIGNATION_OPEREE = (1 << 9),
+	EMPLOYE                = (1 << 0),
+	DECLARATION            = (1 << 1),
+	EST_EXTERNE            = (1 << 2),
+	EST_CALCULE            = (1 << 3),
+	IGNORE_OPERATEUR       = (1 << 4),
+	FORCE_ENLIGNE          = (1 << 5),
+	FORCE_HORSLIGNE        = (1 << 6),
+	FORCE_NULCTX           = (1 << 7),
+	EST_ASSIGNATION_OPEREE = (1 << 8),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)

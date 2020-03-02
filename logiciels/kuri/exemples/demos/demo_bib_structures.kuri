@@ -8,7 +8,7 @@ test_pile :: fonc() -> rien
 {
     imprime_sans_format("==========================================\n")
 
-	dyn p := crée_pile(transtype(taille_de(z32) : z64))
+	p := crée_pile(transtype(taille_de(z32) : z64))
     diffère {
         decrée_pile(p)
         imprime_sans_format("pile décréée !\n")
@@ -25,7 +25,7 @@ test_pile :: fonc() -> rien
     imprime(" ----------- vidage de la pile\n")
 
     tantque !est_vide(p) {
-        dyn v : z32
+        v : z32
         dépile(p, @v)
         imprime_sans_format("dépile : ", v, " -> ", mémoire(p), '\n')
     }
@@ -35,7 +35,7 @@ test_file :: fonc() -> rien
 {
     imprime_sans_format("==========================================\n")
 
-	dyn p := crée_file(transtype(taille_de(z32) : z64))
+	p := crée_file(transtype(taille_de(z32) : z64))
     diffère {
         decrée_file(p)
         imprime_sans_format("file décréée !\n")
@@ -52,7 +52,7 @@ test_file :: fonc() -> rien
     imprime(" ----------- vidage de la file\n")
 
     tantque !est_vide(p) {
-        dyn v : z32
+        v : z32
         défile(p, @v)
         imprime_sans_format("défile : ", v, " -> ", mémoire(p), '\n')
     }

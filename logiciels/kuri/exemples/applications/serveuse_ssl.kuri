@@ -16,7 +16,7 @@ OpenListener :: fonc(port : n16) -> z32
         abort()
     }
 
-    dyn addr : sockaddr_in
+    addr : sockaddr_in
     addr.sin_zero[0] = 0
     addr.sin_zero[1] = 0
     addr.sin_zero[2] = 0
@@ -100,7 +100,7 @@ ShowCerts :: fonc(ssl: *ssl_st) -> rien
     }
 
     imprime("Server certificates:\n")
-    dyn line := X509_NAME_oneline(X509_get_subject_name(cert), nul, 0)
+    line := X509_NAME_oneline(X509_get_subject_name(cert), nul, 0)
     printf("Subject: %s\n".pointeur, line)
     free(line)
     line = X509_NAME_oneline(X509_get_issuer_name(cert), nul, 0)
@@ -112,8 +112,8 @@ ShowCerts :: fonc(ssl: *ssl_st) -> rien
 // Sers la connextion -- moultfilable
 Servlet :: fonc(ssl: *ssl_st) -> rien
 {
-    dyn buf : [1024]z8
-    dyn reply : [1024]z8
+    buf : [1024]z8
+    reply : [1024]z8
     HTMLecho := "<html><body><pre>%s</pre></body></html>\n\n"
 
     si SSL_accept(ssl) == -1 {
@@ -165,7 +165,7 @@ principale :: fonc () -> z32
     server := OpenListener(5005)
 
     boucle {
-        dyn addr : sockaddr_in // Adresse du connecté
+        addr : sockaddr_in // Adresse du connecté
 	    len := transtype(taille_de(sockaddr_in) : n32)
 
         client := accept(server, transtype(@addr : *sockaddr), @len)

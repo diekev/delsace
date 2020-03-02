@@ -87,7 +87,7 @@ SAFE_OPEN_RETRY_MAX := 50;
 // À FAIRE : typedefs/alias
 //typedef int (*safe_open_path_warning_callback_type)(const char#fn);
 
-dyn safe_open_path_warning_callback : fonc(*z8)z32 = nul;
+safe_open_path_warning_callback : fonc(*z8)z32 = nul;
 
 safe_open_register_path_warning_callback :: fonc(f : fonc(*z8)z32) -> fonc(*z8)z32
 {
@@ -113,13 +113,13 @@ safe_open_path_warning :: fonc(fn : *z8) -> z32
 }
 
 // open existing file, if the last component of fn is a symbolic link fail
-safe_open_no_create :: fonc(fn : *z8, dyn flags : z32) -> z32
+safe_open_no_create :: fonc(fn : *z8, flags : z32) -> z32
 {
 	saved_errno = errno;		// used to restore errno on success
 	want_trunc = (flags & _O_TRUNC) != 0;
-	dyn lstat_buf : stat;
-	dyn fstat_buf : stat;
-	dyn num_tries = 0;
+	lstat_buf : stat;
+	fstat_buf : stat;
+	num_tries = 0;
 
 	// check for invalid argument values
 	si (fn == nul || (flags & (_O_CREAT | _O_EXCL))) {
@@ -140,7 +140,7 @@ safe_open_no_create :: fonc(fn : *z8, dyn flags : z32) -> z32
 	// attacker can stay perfectly synchronized in changing the directory entry
 	// between the open and the lstat
 
-    dyn f : z32;
+    f : z32;
 
     boucle {
 	    // If this is the second or subsequent attempt, then someone is
@@ -182,7 +182,7 @@ safe_open_no_create :: fonc(fn : *z8, dyn flags : z32) -> z32
 	    f = open(fn, flags);
 	    open_errno = errno;
 
-	    dyn r = lstat(fn, @lstat_buf);
+	    r = lstat(fn, @lstat_buf);
 
 
 	    // handle the case of the lstat failing first
@@ -331,11 +331,11 @@ safe_create_fail_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 
 
 // create file if it doesn't exist, keep inode if it does
-safe_create_keep_if_exists :: fonc(fn : *z8, dyn flags : z32, mode : z32) -> z32
+safe_create_keep_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 {
-	dyn f = -1;
+	f = -1;
 	saved_errno = errno;
-	dyn num_tries = 0;
+	num_tries = 0;
 
 	// check for invalid argument values
 	si (fn == nul) {
@@ -404,11 +404,11 @@ safe_create_keep_if_exists :: fonc(fn : *z8, dyn flags : z32, mode : z32) -> z32
 
 
 // create file, replace file if exists
-safe_create_replace_if_exists :: fonc(fn : *z8, dyn flags : z32, mode : z32) -> z32
+safe_create_replace_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 {
-	dyn f = -1;
+	f = -1;
 	saved_errno = errno;
-	dyn num_tries = 0;
+	num_tries = 0;
 
 	// check for invalid argument values
 	si (fn == nul) {
@@ -472,7 +472,7 @@ safe_create_replace_if_exists :: fonc(fn : *z8, dyn flags : z32, mode : z32) -> 
 
 
 // open existing file
-safe_open_no_create_follow :: fonc(fn : *z8, dyn flags : z32) -> z32
+safe_open_no_create_follow :: fonc(fn : *z8, flags : z32) -> z32
 {
 	want_trunc = (flags & _O_TRUNC) != 0;
 
@@ -498,9 +498,9 @@ safe_open_no_create_follow :: fonc(fn : *z8, dyn flags : z32) -> z32
 
 	// check if we need to still truncate the file
 	si (want_trunc) {
-		dyn fstat_buf : stat;
+		fstat_buf : stat;
 
-		dyn r = fstat(f, @fstat_buf);
+		r = fstat(f, @fstat_buf);
 		si (r == -1) {
 			// fstat failed.  This should never happen if 'f' is a valid open
 		    // file descriptor.  Return the error from fstat.
@@ -542,12 +542,12 @@ safe_open_no_create_follow :: fonc(fn : *z8, dyn flags : z32) -> z32
 
 
 // create file if it doesn't exist, keep inode if it does
-safe_create_keep_if_exists_follow :: fonc(fn : *z8, dyn flags : z32, mode : z32) -> z32
+safe_create_keep_if_exists_follow :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 {
-	dyn f = -1;
+	f = -1;
 	saved_errno = errno;
-	dyn lstat_buf : stat;
-	dyn num_tries = 0;
+	lstat_buf : stat;
+	num_tries = 0;
 
 	// check for invalid argument values
 	si (fn == nul) {
@@ -705,24 +705,24 @@ principale :: fonc () -> z32
     linkFn_chn = "test_file.link";
     linkFn = linkFn_chn.pointeur;
 
-    dyn r : z32; // result codes
-    dyn f : z32; // file descriptor
+    r : z32; // result codes
+    f : z32; // file descriptor
 
-    dyn F : *FILE;
+    F : *FILE;
 
     allMask = 0o777;
     userMask = 0o600;
     myUmask = 0;
 
-    dyn curStat : stat;
-    dyn prevStat : stat;
+    curStat : stat;
+    prevStat : stat;
 
-    dyn curMask : n32;
-    dyn correctMask : n32;
+    curMask : n32;
+    correctMask : n32;
 
     data_chn = "0123456789";
     data = data_chn.pointeur;
-    dyn n : z64;
+    n : z64;
 
     // no umask
     umask(myUmask);

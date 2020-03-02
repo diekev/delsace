@@ -15,13 +15,13 @@ imprime_prompt_vous :: fonc () -> rien
 
 lis_entrée :: fonc () -> chaine
 {
-    dyn nouveau_contexte := contexte
+    nouveau_contexte := contexte
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    dyn chn : chaine
+    chn : chaine
 
     pousse_contexte nouveau_contexte {
-        dyn c : z8
+        c : z8
 
         tantque read(0, @c, 1) != 0 {
             si c == '\n' {
@@ -101,10 +101,10 @@ génère_réponse_pour_peur :: fonc (mots: []chaine, idx: z64) -> chaine
 
 génère_réponse_pour_message :: fonc (message: chaine) -> chaine
 {
-    dyn nouveau_contexte := contexte
+    nouveau_contexte := contexte
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    dyn mots : []chaine
+    mots : []chaine
 
     pousse_contexte nouveau_contexte {
         mots = divise(message, ' ')
@@ -141,9 +141,9 @@ principale :: fonc () -> z32
     imprime("\n")
     imprime("\n")
 
-    dyn marque := obtiens_marque_stockage_temporaire()
+    marque := obtiens_marque_stockage_temporaire()
 
-    dyn message_éliza := "Quelque chose vous trouble ?"
+    message_éliza := "Quelque chose vous trouble ?"
 
     boucle {
         set_marque_stockage_temporaire(marque);

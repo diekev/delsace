@@ -8,12 +8,12 @@ Automate :: struct {
 	retourne automate.code[automate.pointeur]
 }
 
-avance :: fonc(dyn automate : &Automate) -> rien
+avance :: fonc(automate : &Automate) -> rien
 {
 	automate.pointeur += 1
 }
 
-reinitialise :: fonc(dyn automate : &Automate) -> rien
+reinitialise :: fonc(automate : &Automate) -> rien
 {
 	automate.pointeur = 0
 }

@@ -57,7 +57,7 @@ ScannerJSON :: struct {
     booléen : bool
 }
 
-initialise_scanner :: fonc (dyn scanner: *ScannerJSON, script: chaine, structure: eini) -> bool
+initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: eini) -> bool
 {
     scanner.script = script
     scanner.position = 0
@@ -72,17 +72,17 @@ initialise_scanner :: fonc (dyn scanner: *ScannerJSON, script: chaine, structure
     retourne vrai
 }
 
-enregistre_pos_mot :: fonc (dyn scanner: *ScannerJSON) -> rien
+enregistre_pos_mot :: fonc (scanner: *ScannerJSON) -> rien
 {
     scanner.position_mot = scanner.position
 }
 
-mot_courant :: fonc (dyn scanner: *ScannerJSON) -> chaine
+mot_courant :: fonc (scanner: *ScannerJSON) -> chaine
 {
     retourne construit_chaine(@scanner.script[scanner.position_mot], scanner.position - scanner.position_mot)
 }
 
-saute_espaces_blancs :: fonc (dyn scanner : *ScannerJSON) -> rien
+saute_espaces_blancs :: fonc (scanner : *ScannerJSON) -> rien
 {
     tantque !scanner.fini() {
         c := scanner.caractère_courant()
@@ -95,7 +95,7 @@ saute_espaces_blancs :: fonc (dyn scanner : *ScannerJSON) -> rien
     }
 }
 
-avance :: fonc (dyn scanner: *ScannerJSON, n := 1) -> rien
+avance :: fonc (scanner: *ScannerJSON, n := 1) -> rien
 {
     scanner.position += n
 }
@@ -110,7 +110,7 @@ caractère_courant :: fonc (scanner: *ScannerJSON) -> z8
     retourne scanner.script[scanner.position]
 }
 
-lis :: fonc (dyn scanner : *ScannerJSON) -> rien
+lis :: fonc (scanner : *ScannerJSON) -> rien
 {
 //    imprime("lecture...\n")
     scanner.saute_espaces_blancs()
@@ -143,7 +143,7 @@ lis :: fonc (dyn scanner : *ScannerJSON) -> rien
 //    imprime("--- lexème : %\n", scanner.lexème)
 }
 
-lis_true :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
+lis_true :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
     chn := construit_chaine(@scanner.script[scanner.position], 4)
 
@@ -158,7 +158,7 @@ lis_true :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
     retourne LexèmeJSON.TRUE
 }
 
-lis_false :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
+lis_false :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
     chn := construit_chaine(@scanner.script[scanner.position], 5)
 
@@ -173,7 +173,7 @@ lis_false :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
     retourne LexèmeJSON.FALSE
 }
 
-lis_null :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
+lis_null :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
     chn := construit_chaine(@scanner.script[scanner.position], 4)
 
@@ -196,12 +196,12 @@ est_hexadécimal :: fonc (c: z8) -> bool
     retourne ('0' <= c <= '9') || ('a' <= c <= 'f') || ('A' <= c <= 'F')
 }
 
-lis_chaine :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
+lis_chaine :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
     scanner.enregistre_pos_mot()
 
     tantque !scanner.fini() {
-        dyn c := scanner.caractère_courant()
+        c := scanner.caractère_courant()
 
         si c == '"' {
             arrête
@@ -272,10 +272,10 @@ DonnéesNombre :: struct {
 // 0.123
 // 0.123e789
 // 0e5
-lis_nombre :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
+lis_nombre :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    dyn données_nombre : DonnéesNombre
-    dyn lexème_nombre := LexèmeJSON.NOMBRE_ENTIER
+    données_nombre : DonnéesNombre
+    lexème_nombre := LexèmeJSON.NOMBRE_ENTIER
 
     scanner.enregistre_pos_mot()
 
@@ -340,7 +340,7 @@ lis_nombre :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
 
     // ------------------------
 
-    dyn nombre_final : r64
+    nombre_final : r64
 
     unités := extrait_nombre_entier(données_nombre.unités)
 
@@ -375,9 +375,9 @@ lis_nombre :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
     retourne lexème_nombre
 }
 
-lis_chiffre :: fonc (dyn scanner: *ScannerJSON, min: z8, max: z8) -> bool
+lis_chiffre :: fonc (scanner: *ScannerJSON, min: z8, max: z8) -> bool
 {
-    dyn eu_un_chiffre := faux
+    eu_un_chiffre := faux
 
     tantque !scanner.fini() {
         si min <= scanner.caractère_courant() <= max {
@@ -473,7 +473,7 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
     retourne LexèmeJSON.FIN_OBJET
 }
 
-lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> LexèmeJSON
+lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
 {
     si scanner.lexème == LexèmeJSON.INVALIDE {
         retourne scanner.lexème
@@ -485,7 +485,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
-        dyn pointeur := transtype(valeur.pointeur: *bool)
+        pointeur := transtype(valeur.pointeur: *bool)
         mémoire(pointeur) = vrai
     }
     sinon si scanner.lexème == LexèmeJSON.FALSE {
@@ -494,7 +494,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
-        dyn pointeur := transtype(valeur.pointeur: *bool)
+        pointeur := transtype(valeur.pointeur: *bool)
         mémoire(pointeur) = faux
     }
     sinon si scanner.lexème == LexèmeJSON.GUILLEMET {
@@ -510,7 +510,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
-        dyn pointeur := transtype(valeur.pointeur: *chaine)
+        pointeur := transtype(valeur.pointeur: *chaine)
         mémoire(pointeur) = scanner.chaine_caractère
     }
     sinon si scanner.lexème == LexèmeJSON.NOMBRE_ENTIER {
@@ -529,19 +529,19 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> LexèmeJSON
             }
 
             si taille_en_octet == 1 {
-                dyn pointeur := transtype(valeur.pointeur: *z8)
+                pointeur := transtype(valeur.pointeur: *z8)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: z8)
             }
             sinon si taille_en_octet == 2 {
-                dyn pointeur := transtype(valeur.pointeur: *z16)
+                pointeur := transtype(valeur.pointeur: *z16)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: z16)
             }
             sinon si taille_en_octet == 4 {
-                dyn pointeur := transtype(valeur.pointeur: *z32)
+                pointeur := transtype(valeur.pointeur: *z32)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: z32)
             }
             sinon si taille_en_octet == 8 {
-                dyn pointeur := transtype(valeur.pointeur: *z64)
+                pointeur := transtype(valeur.pointeur: *z64)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: z64)
             }
         }
@@ -557,19 +557,19 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> LexèmeJSON
             }
 
             si taille_en_octet == 1 {
-                dyn pointeur := transtype(valeur.pointeur: *n8)
+                pointeur := transtype(valeur.pointeur: *n8)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: n8)
             }
             sinon si taille_en_octet == 2 {
-                dyn pointeur := transtype(valeur.pointeur: *n16)
+                pointeur := transtype(valeur.pointeur: *n16)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: n16)
             }
             sinon si taille_en_octet == 4 {
-                dyn pointeur := transtype(valeur.pointeur: *n32)
+                pointeur := transtype(valeur.pointeur: *n32)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: n32)
             }
             sinon si taille_en_octet == 8 {
-                dyn pointeur := transtype(valeur.pointeur: *n64)
+                pointeur := transtype(valeur.pointeur: *n64)
                 mémoire(pointeur) = transtype(scanner.nombre_entier: n64)
             }
         }
@@ -583,15 +583,15 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> LexèmeJSON
         taille_en_octet := valeur.info.taille_en_octet
 
         si taille_en_octet == 2 {
-            dyn pointeur := transtype(valeur.pointeur: *r16)
+            pointeur := transtype(valeur.pointeur: *r16)
             mémoire(pointeur) = scanner.nombre_réel
         }
         sinon si taille_en_octet == 4 {
-            dyn pointeur := transtype(valeur.pointeur: *r32)
+            pointeur := transtype(valeur.pointeur: *r32)
             mémoire(pointeur) = transtype(scanner.nombre_réel: r32)
         }
         sinon si taille_en_octet == 8 {
-            dyn pointeur := transtype(valeur.pointeur: *r64)
+            pointeur := transtype(valeur.pointeur: *r64)
             mémoire(pointeur) = transtype(scanner.nombre_réel: r64)
         }
     }
@@ -601,7 +601,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
-        dyn pointeur := transtype(valeur.pointeur: **z8)
+        pointeur := transtype(valeur.pointeur: **z8)
         mémoire(pointeur) = nul
     }
     sinon si scanner.lexème == LexèmeJSON.ACCOLADE_OUVRANTE {
@@ -624,9 +624,9 @@ lis_valeur :: fonc (scanner: *ScannerJSON, dyn valeur: eini) -> LexèmeJSON
     retourne LexèmeJSON.FIN_VALEUR
 }
 
-lis_tableau :: fonc (dyn scanner: *ScannerJSON) -> LexèmeJSON
+lis_tableau :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    dyn e : eini
+    e : eini
 
     tantque !scanner.fini() {
         scanner.lis()
@@ -653,7 +653,7 @@ importe SysFichier
 
 remplis_struct_depuis_chaine_json :: fonc (script: chaine, structure: eini) -> bool
 {
-    dyn scanner : ScannerJSON
+    scanner : ScannerJSON
 
     si !initialise_scanner(@scanner, script, structure) {
         imprime("Impossible d'initialiser le scanner, la valeur passée n'est pas une structure !\n")

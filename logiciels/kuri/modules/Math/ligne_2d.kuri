@@ -22,7 +22,7 @@ crée_ligne :: fonc(p1 : Point2D, p2 : Point2D) -> Ligne2D
 
 crée_ligne_depuis_coef :: fonc(coef : r64) -> Ligne2D
 {
-	dyn ligne : Ligne2D
+	ligne : Ligne2D
 	ligne.p1 = crée_point(0.0, 0.0)
 	ligne.p2 = crée_point(1.0, coef)
 

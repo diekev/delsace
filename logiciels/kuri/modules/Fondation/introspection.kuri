@@ -51,7 +51,7 @@ trouve_info_membre :: fonc (structure: eini, nom: chaine) -> *InfoTypeMembreStru
 
 eini_depuis_info_membre :: fonc (structure: eini, info_membre: *InfoTypeMembreStructure) -> eini
 {
-    dyn e : eini
+    e : eini
     e.pointeur = structure.pointeur + info_membre.décalage
     e.info = info_membre.id
 

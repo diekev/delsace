@@ -6,7 +6,7 @@ exemple :: fonc() -> rien
 	x = 5 // Erreur de compilation
 
 	// Déclaration d'une variable « dynamique » qui peut être modifiée.
-	dyn y := x
+	y := x
 
 	y = 5 // OK.
 }

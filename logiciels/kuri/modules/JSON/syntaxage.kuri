@@ -13,7 +13,7 @@ SyntaxeuseJSON :: struct {
 
 construit_syntaxeuse :: fonc(lexèmes : &[]DonneesLexèmeJSON) -> SyntaxeuseJSON
 {
-	dyn syntaxeuse : SyntaxeuseJSON
+	syntaxeuse : SyntaxeuseJSON
 	syntaxeuse.lexèmes = lexèmes
 
 	retourne syntaxeuse
@@ -29,7 +29,7 @@ lexème_courant :: fonc(syntaxeuse : &SyntaxeuseJSON) -> TypeLexèmeJSON
 	retourne syntaxeuse.lexèmes[syntaxeuse.position].lexème
 }
 
-avance :: fonc(dyn syntaxeuse : &SyntaxeuseJSON) -> rien
+avance :: fonc(syntaxeuse : &SyntaxeuseJSON) -> rien
 {
 	syntaxeuse.position += 1
 }
@@ -51,7 +51,7 @@ données :: fonc(syntaxeuse : &SyntaxeuseJSON) -> &DonneesLexèmeJSON
 	retourne syntaxeuse.lexèmes[syntaxeuse.position - 1]
 }
 
-analyse_objet :: fonc(dyn syntaxeuse : &SyntaxeuseJSON) -> rien
+analyse_objet :: fonc(syntaxeuse : &SyntaxeuseJSON) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.CHAINE_CARACTERE)) {
 		//lance_erreur("Attendu une chaine de caractère")
@@ -71,7 +71,7 @@ analyse_objet :: fonc(dyn syntaxeuse : &SyntaxeuseJSON) -> rien
 	}
 }
 
-analyse_valeur :: fonc(dyn syntaxeuse : &SyntaxeuseJSON, nom_objet : chaine) -> rien
+analyse_valeur :: fonc(syntaxeuse : &SyntaxeuseJSON, nom_objet : chaine) -> rien
 {
 	discr syntaxeuse.lexème_courant() {
 		ACCOLADE_OUVRANTE {
@@ -110,21 +110,21 @@ analyse_valeur :: fonc(dyn syntaxeuse : &SyntaxeuseJSON, nom_objet : chaine) -> 
 			syntaxeuse.avance()
 
 			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.ENTIER)
-			dyn obj_entier := transtype(obj: *ObjetEntier)
+			obj_entier := transtype(obj: *ObjetEntier)
             obj_entier.valeur = extrait_nombre_entier(syntaxeuse.données().chn)
 		}
 		NOMBRE_REEL {
 			syntaxeuse.avance()
 
 			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.RÉEL)
-			dyn obj_réel := transtype(obj: *ObjetRéel)
+			obj_réel := transtype(obj: *ObjetRéel)
             obj_réel.valeur = extrait_nombre_réel(syntaxeuse.données().chn)
 		}
 		CHAINE_CARACTERE {
 			syntaxeuse.avance()
 
 			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.CHAINE)
-			dyn obj_chaine := transtype(obj: *ObjetChaine)
+			obj_chaine := transtype(obj: *ObjetChaine)
             obj_chaine.valeur = syntaxeuse.données().chn
 
 			// À FAIRE: gestion des chaines allouées dynamiquement
@@ -147,7 +147,7 @@ analyse_valeur :: fonc(dyn syntaxeuse : &SyntaxeuseJSON, nom_objet : chaine) -> 
 	}
 }
 
-lance_analyse :: fonc(dyn syntaxeuse : &SyntaxeuseJSON) -> rien
+lance_analyse :: fonc(syntaxeuse : &SyntaxeuseJSON) -> rien
 {
 	syntaxeuse.position = 0
 

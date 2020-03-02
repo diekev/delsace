@@ -410,17 +410,6 @@ bool ContexteGenerationCode::locale_existe(const dls::vue_chaine_compacte &nom)
 	return true;
 }
 
-bool ContexteGenerationCode::peut_etre_assigne(const dls::vue_chaine_compacte &nom)
-{
-	auto iter = iter_locale(nom);
-
-	if (iter == fin_locales()) {
-		return false;
-	}
-
-	return iter->second.est_dynamique;
-}
-
 void ContexteGenerationCode::empile_nombre_locales()
 {
 	m_pile_nombre_locales.empile(m_nombre_locales);

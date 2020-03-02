@@ -58,7 +58,7 @@ LexeuseJSON :: struct {
 
 construit_lexeuse :: fonc(chn : chaine) -> LexeuseJSON
 {
-    dyn lexeuse : LexeuseJSON
+    lexeuse : LexeuseJSON
     lexeuse.tampon = chn
     lexeuse.début_mot = @chn[0]
     lexeuse.début = @chn[0]
@@ -67,27 +67,27 @@ construit_lexeuse :: fonc(chn : chaine) -> LexeuseJSON
     retourne lexeuse
 }
 
-détruit_lexeuse :: fonc(dyn lexeuse : &LexeuseJSON) -> rien
+détruit_lexeuse :: fonc(lexeuse : &LexeuseJSON) -> rien
 {
     déloge lexeuse.lexèmes
 }
 
-a_fini :: fonc(dyn lexeuse : &LexeuseJSON) -> bool
+a_fini :: fonc(lexeuse : &LexeuseJSON) -> bool
 {
 	retourne lexeuse.début >= lexeuse.fin
 }
 
-caractère_courant :: fonc(dyn lexeuse : &LexeuseJSON) -> z8
+caractère_courant :: fonc(lexeuse : &LexeuseJSON) -> z8
 {
     retourne mémoire(lexeuse.début)
 }
 
-caractère_courant :: fonc(dyn lexeuse : &LexeuseJSON, n : z32) -> z8
+caractère_courant :: fonc(lexeuse : &LexeuseJSON, n : z32) -> z8
 {
     retourne mémoire(lexeuse.début + n)
 }
 
-avance :: fonc(dyn lexeuse : &LexeuseJSON, n : z32) -> rien
+avance :: fonc(lexeuse : &LexeuseJSON, n : z32) -> rien
 {
 	pour i dans 0 ... n - 1 {
 		si (lexeuse.caractère_courant() == '\n') {
@@ -102,19 +102,19 @@ avance :: fonc(dyn lexeuse : &LexeuseJSON, n : z32) -> rien
 	}
 }
 
-pousse_caractère :: fonc(dyn lexeuse : &LexeuseJSON) -> rien
+pousse_caractère :: fonc(lexeuse : &LexeuseJSON) -> rien
 {
 	lexeuse.taille_mot_courant += 1
 }
 
-mot_courant :: fonc(dyn lexeuse : &LexeuseJSON) -> chaine
+mot_courant :: fonc(lexeuse : &LexeuseJSON) -> chaine
 {
 	retourne construit_chaine(lexeuse.début_mot, lexeuse.taille_mot_courant)
 }
 
-pousse_mot :: fonc(dyn lexeuse : &LexeuseJSON, lexème : TypeLexèmeJSON) -> rien
+pousse_mot :: fonc(lexeuse : &LexeuseJSON, lexème : TypeLexèmeJSON) -> rien
 {
-    dyn données : DonneesLexèmeJSON
+    données : DonneesLexèmeJSON
     données.lexème = lexème
     données.chn = lexeuse.mot_courant()
 
@@ -124,18 +124,18 @@ pousse_mot :: fonc(dyn lexeuse : &LexeuseJSON, lexème : TypeLexèmeJSON) -> rie
 	lexeuse.début_mot = nul
 }
 
-enregistre_position_mot :: fonc(dyn lexeuse : &LexeuseJSON) -> rien
+enregistre_position_mot :: fonc(lexeuse : &LexeuseJSON) -> rien
 {
 	lexeuse.pos_mot = lexeuse.position_ligne
 	lexeuse.début_mot = lexeuse.début
 }
 
-performe_lexage :: fonc(dyn lexeuse : &LexeuseJSON) -> rien
+performe_lexage :: fonc(lexeuse : &LexeuseJSON) -> rien
 {
     tantque !lexeuse.a_fini() {
 		// À FAIRE : permet la déclaration simultanée de plusieurs variables
-		dyn est_spécial : bool
-		dyn lexème : TypeLexèmeJSON
+		est_spécial : bool
+		lexème : TypeLexèmeJSON
 
 		// À FAIRE : l'assignation de plusieurs variables est cassée depuis que nous pouvons
 		// avoir des valeurs par défaut pour les paramètres des fonctions
@@ -155,7 +155,7 @@ performe_lexage :: fonc(dyn lexeuse : &LexeuseJSON) -> rien
 
 			lexeuse.enregistre_position_mot()
 
-			dyn dernier_caractère := lexeuse.caractère_courant()
+			dernier_caractère := lexeuse.caractère_courant()
 
 			boucle {
 				si (lexeuse.caractère_courant() == '"' && dernier_caractère != '\\') {
@@ -178,7 +178,7 @@ performe_lexage :: fonc(dyn lexeuse : &LexeuseJSON) -> rien
 			lexeuse.pousse_caractère()
 			lexeuse.avance(1)
 
-			dyn est_nombre_réel := faux
+			est_nombre_réel := faux
 
 			tantque !lexeuse.a_fini() {
 				c := lexeuse.caractère_courant()

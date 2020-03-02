@@ -23,7 +23,7 @@ ajoute_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine, chemin:
         retourne
     }
 
-    dyn nouveau_fichier : FichierTexte
+    nouveau_fichier : FichierTexte
     nouveau_fichier.nom_court = nom_court
     nouveau_fichier.chemin = chemin
 

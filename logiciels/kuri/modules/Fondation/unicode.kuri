@@ -86,8 +86,8 @@ nombre_octets_utf8_rapide :: fonc(caractère : *z8) -> z64
 		retourne 0
 	}
 
-	dyn test_char := caractère[0]
-	dyn result : z64 = 0
+	test_char := caractère[0]
+	result : z64 = 0
 
 	si (test_char & 128) == 0 {
 		retourne 1
@@ -103,8 +103,8 @@ nombre_octets_utf8_rapide :: fonc(caractère : *z8) -> z64
 
 décalage_pour_caractère :: fonc(chn : chaine, i : z64) -> z32
 {
-	dyn décalage := 0
-	dyn n := nombre_octets_utf8(@chn[i])
+	décalage := 0
+	n := nombre_octets_utf8(@chn[i])
 
 	tantque (n == 0 && i < chn.taille) {
 		++décalage
@@ -179,7 +179,7 @@ converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
         retourne -1
     }
 
-    dyn résultat : z32
+    résultat : z32
 
     c0 := transtype(caractère[0] : z32)
 
@@ -220,8 +220,8 @@ converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
 // Retourne le nombre de caractères Unicode (UTF-8) distincts de la chaine.
 taille_unicode :: fonc(chn : chaine) -> z64
 {
-    dyn taille : z64 := 0
-    dyn i := 0
+    taille : z64 := 0
+    i := 0
 
     tantque i < chn.taille {
         pointeur := @chn[i]

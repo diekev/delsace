@@ -50,7 +50,7 @@ BaseAllocatrice :: struct {
     allocatrice_secours : *BaseAllocatrice = nul
 }
 
-initialise_base_allocatrice :: fonc (dyn base : *BaseAllocatrice) -> rien
+initialise_base_allocatrice :: fonc (base : *BaseAllocatrice) -> rien
 {
     base.nombre_allocations = 0
     base.nombre_réallocations = 0
@@ -67,7 +67,7 @@ allocatrice_défaut :: fonc(
     nouvelle_taille : z64,
     ancienne_taille : z64,
     ancien_pointeur : *rien,
-    dyn données : *BaseAllocatrice,
+    données : *BaseAllocatrice,
     info : *InfoType,
     pos : PositionCodeSource) -> *rien
 {
@@ -233,7 +233,7 @@ réinitialise_stockage_temporaire :: fonc () -> rien
     contexte.stockage_temporaire.occupation_maximale = 0
 }
 
-alloc_stockage_temporaire :: fonc (dyn alloc: *StockageTemporaire, nouvelle_taille: z64) -> *rien
+alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, nouvelle_taille: z64) -> *rien
 {
     si alloc.occupé + nouvelle_taille > alloc.taille {
         // À FAIRE : utilisation de l'allocatrice par défaut
@@ -259,7 +259,7 @@ __stockage_temporaire :: fonc(
     info : *InfoType,
     pos : PositionCodeSource) -> *rien
 {
-    dyn alloc := transtype(contexte.stockage_temporaire: *StockageTemporaire)
+    alloc := transtype(contexte.stockage_temporaire: *StockageTemporaire)
 
     discr mode {
         ALLOUE {
@@ -277,7 +277,7 @@ __stockage_temporaire :: fonc(
             // À FAIRE
             // Nous ne pouvons réallouer que si le pointeur fut le dernier alloué...
             /*
-            dyn n := ancienne_taille
+            n := ancienne_taille
 
             si ptr + n != alloc.ptr {
                 retourne nul
@@ -320,10 +320,10 @@ __stockage_temporaire :: fonc(
 // afin de pouvoir les passer aux fonctions de C
 logement_temp :: fonc(taille: z64) -> *octet
 {
-    dyn nouveau_contexte := contexte
+    nouveau_contexte := contexte
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    dyn ptr : *octet
+    ptr : *octet
 
     pousse_contexte nouveau_contexte {
         tmp := loge [taille]octet
@@ -361,9 +361,9 @@ sont_chaines_inégales :: fonc(chn1: chaine, chn2: chaine) -> bool
 
 // Fonctions basiques pour les tableaux
 
-tableau_ajoute :: fonc (dyn tabl: *[]$T, valeur: $T) -> rien
+tableau_ajoute :: fonc (tabl: *[]$T, valeur: $T) -> rien
 {
-    dyn tmp := mémoire(tabl)
+    tmp := mémoire(tabl)
 
     taille := tmp.taille
     reloge tmp: [taille + 1]$T
@@ -372,40 +372,40 @@ tableau_ajoute :: fonc (dyn tabl: *[]$T, valeur: $T) -> rien
     mémoire(tabl) = tmp
 }
 
-tableau_réserve :: fonc(dyn tabl: *[]$T, taille: z64) -> rien
+tableau_réserve :: fonc(tabl: *[]$T, taille: z64) -> rien
 {
     si taille <= tabl.taille {
         retourne
     }
 
-	dyn tmp := mémoire(tabl)
+	tmp := mémoire(tabl)
 
 	reloge tmp : [taille]$T
 
 	mémoire(tabl) = tmp
 }
 
-tableau_copie :: fonc(dyn tabl: []$T) -> []$T
+tableau_copie :: fonc(tabl: []$T) -> []$T
 {
-	dyn tmp := loge [tabl.taille]$T
+	tmp := loge [tabl.taille]$T
     copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * transtype(taille_de(z64): z64))
     retourne tmp
 }
 
-tableau_insère :: fonc(dyn tabl: *[]$T, index: z32, valeur: $T) -> rien
+tableau_insère :: fonc(tabl: *[]$T, index: z32, valeur: $T) -> rien
 {
-	dyn tmp := mémoire(tabl)
+	tmp := mémoire(tabl)
 	tmp[index] = valeur
 	mémoire(tabl) = tmp
 }
 
-tableau_supprime :: fonc(dyn tabl: *[]$T, index: z32) -> rien
+tableau_supprime :: fonc(tabl: *[]$T, index: z32) -> rien
 {
 	si index < 0 || index >= tabl.taille {
 		retourne
 	}
 
-	dyn tmp := mémoire(tabl)
+	tmp := mémoire(tabl)
 
 	taille := tabl.taille
 
@@ -427,20 +427,20 @@ strlen :: fonc externe (str: *z8) -> z64
 
 arguments_ligne_commande :: fonc () -> []chaine
 {
-    dyn tabl_args : []chaine
+    tabl_args : []chaine
 
     si __ARGC == 0 {
         retourne tabl_args
     }
 
-    dyn nouveau_contexte := contexte
+    nouveau_contexte := contexte
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     pousse_contexte nouveau_contexte {
         tabl_args = loge [__ARGC]chaine
 
         pour idx dans 0 ... __ARGC - 1 {
-            dyn chn : chaine
+            chn : chaine
             chn.pointeur = __ARGV[idx]
             chn.taille = strlen(__ARGV[idx])
             tabl_args[idx] = chn

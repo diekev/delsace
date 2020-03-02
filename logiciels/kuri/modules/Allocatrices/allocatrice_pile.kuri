@@ -24,7 +24,7 @@ arrondis_pour_aligner :: fonc(n: z64, alignement: z64) -> z64
 
 // NOTE: les arrondis ne fonctionnent pas vraiment pour les réallocations car nous ne retournons pas la taille arrondie du bloc
 loge_pile :: fonc(
-    dyn alloc: *AllocatricePile,
+    alloc: *AllocatricePile,
     nouvelle_taille : z64) -> *rien
 {
     n := nouvelle_taille  // arrondis_pour_aligner(nouvelle_taille, 8)
@@ -51,7 +51,7 @@ allocatrice_pile :: fonc(
     info : *InfoType,
     pos: PositionCodeSource) -> *rien
 {
-    dyn alloc := transtype(données: *AllocatricePile)
+    alloc := transtype(données: *AllocatricePile)
 
     discr mode {
         ALLOUE {
@@ -65,7 +65,7 @@ allocatrice_pile :: fonc(
             }
 
             // Nous ne pouvons réallouer que si le pointeur fut le dernier alloué...
-            dyn n := ancienne_taille  // arrondis_pour_aligner(ancienne_taille, 8)
+            n := ancienne_taille  // arrondis_pour_aligner(ancienne_taille, 8)
 
             si ptr + n != alloc.ptr {
                 retourne nul

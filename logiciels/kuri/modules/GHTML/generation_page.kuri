@@ -14,8 +14,8 @@ ErreurGénérationPage :: énum z32 {
 
 génère_page :: fonc(
     noeud: *NoeudSyntaxique,
-    dyn gestionnaire: *GestionnaireObjet,
-    dyn dico: *ObjetDictionnaire,
+    gestionnaire: *GestionnaireObjet,
+    dico: *ObjetDictionnaire,
     enchaineuse: *Enchaineuse) -> ErreurGénérationPage
 {
     discr noeud.type {
@@ -105,7 +105,7 @@ génère_page :: fonc(
                     dictionnaire := transtype(objet_iter : *ObjetDictionnaire)
 
                     pour nom, idx dans dictionnaire.noms {
-                        dyn objet_nom := gestionnaire.crée_chaine()
+                        objet_nom := gestionnaire.crée_chaine()
                         objet_nom.valeur = nom
 
                         dico.insère(variable, objet_nom)
@@ -172,7 +172,7 @@ trouve_variable :: fonc (données: *DonnéesGénération, nom: chaine) -> eini
     info_membre := trouve_membre(données.valeur, nom)
 
     si info_membre != nul {
-        dyn e: eini
+        e: eini
         e.pointeur = données.valeur.pointeur + info_membre.décalage
         e.info = info_membre.id
         retourne e
@@ -182,12 +182,12 @@ trouve_variable :: fonc (données: *DonnéesGénération, nom: chaine) -> eini
         retourne données.données_variable_boucle
     }
 
-    dyn e: eini
+    e: eini
     retourne e
 }
 
 génère_page :: fonc(
-    dyn données: *DonnéesGénération,
+    données: *DonnéesGénération,
     noeud: *NoeudSyntaxique,
     enchaineuse: *Enchaineuse) -> ErreurGénérationPage
 {
@@ -235,7 +235,7 @@ génère_page :: fonc(
                         pour i dans 0 ... info_arg.taille_fixe - 1 {
                             données.nom_variable_boucle = variable
 
-                            dyn e : eini
+                            e : eini
                             e.pointeur = pointeur + décalage * i
                             e.info = info_arg.type_pointé
 
@@ -254,7 +254,7 @@ génère_page :: fonc(
                         pour i dans 0 ... x.taille - 1 {
                             données.nom_variable_boucle = variable
 
-                            dyn e : eini
+                            e : eini
                             e.pointeur = pointeur + décalage * i
                             e.info = info_arg.type_pointé
 
@@ -281,7 +281,7 @@ génère_page :: fonc(
             variable := noeud.enfants[0].données.chn
             valeur := trouve_variable(données, variable)
 
-            dyn idx_enfant := 0
+            idx_enfant := 0
 
             si valeur.pointeur != nul {
                 idx_enfant = 1

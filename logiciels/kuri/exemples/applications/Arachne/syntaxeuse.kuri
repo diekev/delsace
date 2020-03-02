@@ -39,7 +39,7 @@ Requête :: struct {
 	blocs : []Bloc
 }
 
-détruit_requête :: fonc(dyn requête : &Requête) -> rien
+détruit_requête :: fonc(requête : &Requête) -> rien
 {
 	pour bloc dans requête.blocs {
 		expression := bloc.expression
@@ -55,7 +55,7 @@ détruit_requête :: fonc(dyn requête : &Requête) -> rien
 	déloge requête.blocs
 }
 
-imprime_requête :: fonc(dyn requête : &Requête) -> rien
+imprime_requête :: fonc(requête : &Requête) -> rien
 {
 	imprime_sans_format("Requête :\n")
 
@@ -89,40 +89,40 @@ Syntaxeuse :: struct {
 	inst : Instruction
 }
 
-initialise :: fonc(dyn syntaxeuse : &Syntaxeuse, lexèmes : *[]Lexème) -> rien
+initialise :: fonc(syntaxeuse : &Syntaxeuse, lexèmes : *[]Lexème) -> rien
 {
 	syntaxeuse.position = 0
 	syntaxeuse.lexèmes = lexèmes
 }
 
-a_fini :: fonc(dyn syntaxeuse : &Syntaxeuse) -> bool
+a_fini :: fonc(syntaxeuse : &Syntaxeuse) -> bool
 {
 	retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille
 }
 
-lexème_courant :: fonc(dyn syntaxeuse : &Syntaxeuse) -> Lexème
+lexème_courant :: fonc(syntaxeuse : &Syntaxeuse) -> Lexème
 {
 	// À FAIRE(langage) : l'opérateur [] ne déréférence pas les pointeurs vers les tableaux ou chaines
 	lexèmes := mémoire(syntaxeuse.lexèmes)
 	retourne lexèmes[syntaxeuse.position]
 }
 
-est_lexème :: fonc(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) -> bool
+est_lexème :: fonc(syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) -> bool
 {
 	retourne syntaxeuse.lexème_courant().id == id
 }
 
-avance :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+avance :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position += 1
 }
 
-recule :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
+recule :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position -= 1
 }
 
-requiers_lexème :: fonc(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) -> bool
+requiers_lexème :: fonc(syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) -> bool
 {
 	si syntaxeuse.position >= syntaxeuse.lexèmes.taille {
 		retourne faux
@@ -135,7 +135,7 @@ requiers_lexème :: fonc(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) 
 
 //###############################################################################
 
-analyse_propriétés :: fonc(dyn syntaxeuse : &Syntaxeuse, dyn objet : &Objet) -> rien
+analyse_propriétés :: fonc(syntaxeuse : &Syntaxeuse, objet : &Objet) -> rien
 {
 	//imprime("analyse_propriétés (", syntaxeuse.lexème_courant(), ")\n")
 	// { chaine : chaine }
@@ -146,7 +146,7 @@ analyse_propriétés :: fonc(dyn syntaxeuse : &Syntaxeuse, dyn objet : &Objet) -
 			arrête
 		}
 
-		dyn propriété : Propriété
+		propriété : Propriété
 
 		si !syntaxeuse.requiers_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
 			imprime_sans_format("ERREUR : attendu une chaine de caractère après '{' ou ','\n")
@@ -184,7 +184,7 @@ analyse_propriétés :: fonc(dyn syntaxeuse : &Syntaxeuse, dyn objet : &Objet) -
 }
 
 analyse_objet :: fonc(
-	dyn syntaxeuse : &Syntaxeuse,
+	syntaxeuse : &Syntaxeuse,
 	expression : &Expression,
 	type_objet : TypeObjet,
 	id_final : IdentifiantLexème) -> rien
@@ -194,7 +194,7 @@ analyse_objet :: fonc(
 	// [ chaine : chaine : chaine propriétés ]
 	// <- -- ->
 
-	dyn objet : Objet
+	objet : Objet
 	objet.type = type_objet
 
 	si syntaxeuse.est_lexème(id_final) {
@@ -218,7 +218,7 @@ analyse_objet :: fonc(
 			retourne
 		}
 
-		dyn étiquette : Étiquette
+		étiquette : Étiquette
 		syntaxeuse.recule()
 		étiquette.valeur = syntaxeuse.lexème_courant().chn
 		syntaxeuse.avance()
@@ -239,9 +239,9 @@ analyse_objet :: fonc(
 	}
 }
 
-analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse) -> Expression
+analyse_expression :: fonc(syntaxeuse : &Syntaxeuse) -> Expression
 {
-	dyn expression : Expression
+	expression : Expression
 
 	tantque !syntaxeuse.a_fini() {
 		//imprime("-- boucle analyse_expression\n")
@@ -276,7 +276,7 @@ instruction_pour_lexème :: fonc(id : IdentifiantLexème) -> Instruction
     retourne Instruction.INVALIDE
 }
 
-est_instruction :: fonc(dyn syntaxeuse : &Syntaxeuse) -> bool
+est_instruction :: fonc(syntaxeuse : &Syntaxeuse) -> bool
 {
 	lexème := syntaxeuse.lexème_courant()
 	inst := instruction_pour_lexème(lexème.id)
@@ -294,10 +294,10 @@ Résultat :: union {
 	erreur : Erreur
 }
 
-analyse_requête :: fonc(dyn syntaxeuse : &Syntaxeuse) -> Résultat
+analyse_requête :: fonc(syntaxeuse : &Syntaxeuse) -> Résultat
 {
-	dyn résultat : Résultat
-	dyn requête : Requête
+	résultat : Résultat
+	requête : Requête
 
 	//imprime("analyse_requête ", '\n')
 	tantque !syntaxeuse.a_fini() {
@@ -306,21 +306,21 @@ analyse_requête :: fonc(dyn syntaxeuse : &Syntaxeuse) -> Résultat
 			syntaxeuse.avance()
 
 			si !syntaxeuse.est_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
-				dyn erreur : Erreur;
+				erreur : Erreur;
 				erreur.message = "ERREUR : l'instruction doit être suivie par un noeud !\n"
 
 				résultat.erreur = erreur
 				retourne résultat
 			}
 
-			dyn bloc : Bloc
+			bloc : Bloc
 			bloc.inst = syntaxeuse.inst
 			bloc.expression = syntaxeuse.analyse_expression()
 
 			tableau_ajoute(@requête.blocs, bloc)
 		}
 		sinon {
-			dyn erreur : Erreur;
+			erreur : Erreur;
 			erreur.message = "ERREUR : la requête doit commencer par une instruction !\n"
 
 			résultat.erreur = erreur
@@ -380,12 +380,12 @@ principale :: fonc () -> z32
 
     chaine_requête := "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"
 
-    dyn lexeuse : Lexeuse
+    lexeuse : Lexeuse
     lexeuse.analyse_texte(chaine_requête)
 
     diffère { déloge lexeuse.lexèmes; }
 
-	dyn syntaxeuse : Syntaxeuse
+	syntaxeuse : Syntaxeuse
 	syntaxeuse.initialise(@lexeuse.lexèmes)
 	résultat := syntaxeuse.analyse_requête()
 

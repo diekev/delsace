@@ -10,12 +10,12 @@ Maillage :: struct {
 
 crée_maillage_cube :: fonc () -> *Maillage
 {
-    dyn maillage := loge Maillage
+    maillage := loge Maillage
     maillage.tris.taille = 0
     maillage.tris.pointeur = nul
 
     // SUD
-    dyn tri := crée_triangle(crée_vec3r(0.0, 0.0, 0.0), crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(1.0, 1.0, 0.0))
+    tri := crée_triangle(crée_vec3r(0.0, 0.0, 0.0), crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(1.0, 1.0, 0.0))
     tableau_ajoute(@maillage.tris, tri)
 
     tri = crée_triangle(crée_vec3r(0.0, 0.0, 0.0), crée_vec3r(1.0, 1.0, 0.0), crée_vec3r(1.0, 0.0, 0.0))
@@ -70,9 +70,9 @@ DonnéesObj :: struct {
     maillage : *Maillage
 }
 
-parse_ligne_obj :: fonc (dyn ligne: chaine, données: eini) -> rien
+parse_ligne_obj :: fonc (ligne: chaine, données: eini) -> rien
 {
-    dyn nouveau_contexte := contexte
+    nouveau_contexte := contexte
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     marque := obtiens_marque_stockage_temporaire()
@@ -81,13 +81,13 @@ parse_ligne_obj :: fonc (dyn ligne: chaine, données: eini) -> rien
     // supprime le caractère de nouvelle ligne
     ligne = recule(ligne, 1)
 
-    dyn données_obj := transtype(données.pointeur: *DonnéesObj)
-    dyn maillage := données_obj.maillage
+    données_obj := transtype(données.pointeur: *DonnéesObj)
+    maillage := données_obj.maillage
 
     si ligne.commence_par("f ") {
         tmp := avance(ligne, 2)
 
-        dyn tri : Triangle
+        tri : Triangle
 
         pousse_contexte nouveau_contexte {
             mots := divise(tmp, ' ')
@@ -112,7 +112,7 @@ parse_ligne_obj :: fonc (dyn ligne: chaine, données: eini) -> rien
     sinon si ligne.commence_par("v ") {
         tmp := avance(ligne, 2)
 
-        dyn vec : Vec3r
+        vec : Vec3r
 
         pousse_contexte nouveau_contexte {
             mots := divise(tmp, ' ')
@@ -133,11 +133,11 @@ charge_maillage_depuis_obj :: fonc (chemin: chaine) -> *Maillage
     contenu := contenu_fichier_texte(chm)
     diffère { déloge contenu; }
 
-    dyn maillage := loge Maillage
+    maillage := loge Maillage
     maillage.tris.taille = 0
     maillage.tris.pointeur = nul
 
-    dyn données : DonnéesObj
+    données : DonnéesObj
     données.maillage = maillage
 
     pour_chaque_ligne(contenu, données, parse_ligne_obj)

@@ -14,15 +14,15 @@ est_base64 :: fonc(c : z8) -> bool
 
 encode_impl :: fonc(chn : chaine, table : chaine) -> chaine
 {
-	dyn i := 0
-	dyn char_array_3 : [3]n8
-	dyn char_array_4 : [4]n8
+	i := 0
+	char_array_3 : [3]n8
+	char_array_4 : [4]n8
 
-    dyn enchaineuse : Enchaineuse
+    enchaineuse : Enchaineuse
 	intialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 
-    dyn longueur := chn.taille
+    longueur := chn.taille
 
     pour c dans chn {
 		char_array_3[i] = transtype(c: n8)
@@ -82,11 +82,11 @@ encode_pour_url :: fonc(chn: chaine) -> chaine
 
 décode_impl :: fonc(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(bool)) -> chaine
 {
-	dyn i := 0
-	dyn char_array_3 : [3]n8
-	dyn char_array_4 : [4]n8
-    dyn longueur := chn.taille
-    dyn enchaineuse : Enchaineuse
+	i := 0
+	char_array_3 : [3]n8
+	char_array_4 : [4]n8
+    longueur := chn.taille
+    enchaineuse : Enchaineuse
 	intialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 

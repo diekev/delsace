@@ -12,13 +12,13 @@ EntêtesHTTP :: struct {
     données: []PaireEntête
 }
 
-ajoute_paire_entête :: fonc (dyn entêtes: *EntêtesHTTP, clé: chaine, valeur: chaine) -> rien
+ajoute_paire_entête :: fonc (entêtes: *EntêtesHTTP, clé: chaine, valeur: chaine) -> rien
 {
     paire := PaireEntête{ clé = clé, valeur = valeur }
     tableau_ajoute(@entêtes.données, paire)
 }
 
-détruit_entêtes :: fonc (dyn entêtes: *EntêtesHTTP) -> rien
+détruit_entêtes :: fonc (entêtes: *EntêtesHTTP) -> rien
 {
     déloge entêtes.données
 }
@@ -50,7 +50,7 @@ LigneRequête :: struct {
     protocole: chaine
 }
 
-ajoute_chaine :: fonc(dyn ligne: *LigneRequête, état: ÉtatLigneRequête, chn: chaine) -> ÉtatLigneRequête
+ajoute_chaine :: fonc(ligne: *LigneRequête, état: ÉtatLigneRequête, chn: chaine) -> ÉtatLigneRequête
 {
     discr état {
         MÉTHODE   { ligne.méthode = chn; retourne ÉtatLigneRequête.CHEMIN; }
@@ -75,7 +75,7 @@ est_méthode_valide :: fonc(chn: chaine) -> bool
     retourne faux
 }
 
-est_requête_valide :: fonc(dyn ligne: *LigneRequête) -> bool
+est_requête_valide :: fonc(ligne: *LigneRequête) -> bool
 {
     si !est_méthode_valide(ligne.méthode) {
         retourne faux
@@ -91,7 +91,7 @@ AnalyseuseRequête :: struct {
     taille_mot := 0
 }
 
-analyse_finie :: fonc(dyn analyseuse: *AnalyseuseRequête) -> bool
+analyse_finie :: fonc(analyseuse: *AnalyseuseRequête) -> bool
 {
     retourne analyseuse.position >= analyseuse.requête.taille
 }
@@ -101,9 +101,9 @@ caractère_courant :: fonc(analyseuse: *AnalyseuseRequête) -> z8
     retourne analyseuse.requête[analyseuse.position]
 }
 
-analyse_entêtes :: fonc(dyn analyseuse: *AnalyseuseRequête) -> EntêtesHTTP
+analyse_entêtes :: fonc(analyseuse: *AnalyseuseRequête) -> EntêtesHTTP
 {
-    dyn entêtes : EntêtesHTTP
+    entêtes : EntêtesHTTP
 
     analyseuse.taille_mot = 0
 
@@ -170,13 +170,13 @@ analyse_entêtes :: fonc(dyn analyseuse: *AnalyseuseRequête) -> EntêtesHTTP
     retourne entêtes
 }
 
-analyse_requête :: fonc(dyn analyseuse: *AnalyseuseRequête, requête: chaine) -> rien
+analyse_requête :: fonc(analyseuse: *AnalyseuseRequête, requête: chaine) -> rien
 {
     //imprime_sans_format("requête :\n", requête, "\n")
 
     analyseuse.requête = requête
 
-    dyn ligne_requête := analyse_ligne_requête(analyseuse)
+    ligne_requête := analyse_ligne_requête(analyseuse)
 
     //imprime_sans_format("Ligne requête : ", ligne_requête, "\n")
 
@@ -189,10 +189,10 @@ mot_courant :: fonc(analyseuse: *AnalyseuseRequête) -> chaine
     retourne construit_chaine(@analyseuse.requête[analyseuse.pointeur], analyseuse.taille_mot)
 }
 
-analyse_ligne_requête :: fonc(dyn analyseuse: *AnalyseuseRequête) -> LigneRequête
+analyse_ligne_requête :: fonc(analyseuse: *AnalyseuseRequête) -> LigneRequête
 {
-    dyn ligne_requête : LigneRequête
-    dyn état := ÉtatLigneRequête.MÉTHODE
+    ligne_requête : LigneRequête
+    état := ÉtatLigneRequête.MÉTHODE
 
     tantque !analyse_finie(analyseuse) {
         c := analyseuse.caractère_courant()
@@ -232,7 +232,7 @@ analyse_ligne_requête :: fonc(dyn analyseuse: *AnalyseuseRequête) -> LigneRequ
     retourne ligne_requête
 }
 
-analyse_contenu :: fonc (dyn analyseuse: *AnalyseuseRequête) -> chaine
+analyse_contenu :: fonc (analyseuse: *AnalyseuseRequête) -> chaine
 {
     si analyse_finie(analyseuse) {
         retourne ""
@@ -261,7 +261,7 @@ Accept-Encoding: gzip, deflate, br
 Accept-Language: fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7,ja;q=0.6
 "
 
-    dyn analyseuse : AnalyseuseRequête
+    analyseuse : AnalyseuseRequête
     analyse_requête(@analyseuse, entête)
 
     retourne 0

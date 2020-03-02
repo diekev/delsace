@@ -24,7 +24,7 @@ rect2d :: struct {
 
 cree_éditrice :: fonc (type : TypeÉditrice) -> Éditrice
 {
-	dyn éditrice := loge Éditrice
+	éditrice := loge Éditrice
 	éditrice.type = type
 
 	discr type {
@@ -44,7 +44,7 @@ cree_éditrice :: fonc (type : TypeÉditrice) -> Éditrice
 
 ajoute_éditrice :: fonc (éditrices : *[]*Éditrice, type : TypeÉditrice) -> Éditrice
 {
-	dyn éditrice := cree_éditrice(type)
+	éditrice := cree_éditrice(type)
 
 	tableau_ajoute(éditrices, éditrice)
 

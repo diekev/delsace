@@ -9,7 +9,7 @@ RappelCompilateur :: struct {
 
 // Il nous faudrait un système pour définir un symbole interne à un module
 // afin d'éviter que les gens manipulent ceci
-dyn _RC : RappelCompilateur
+_RC : RappelCompilateur
 
 #nulctx initialise_RC :: fonc(
     rappel_ajoute_chaine: #nulctx fonc(chaine)(rien),

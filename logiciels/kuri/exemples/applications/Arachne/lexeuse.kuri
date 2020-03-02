@@ -45,28 +45,28 @@ Lexeuse :: struct {
 	début_mot : z64 = 0
 }
 
-consomme :: fonc(dyn lexeuse : &Lexeuse, n : z32) -> rien
+consomme :: fonc(lexeuse : &Lexeuse, n : z32) -> rien
 {
 	lexeuse.pos_mot += n
 }
 
-caractère_courant :: fonc(dyn lexeuse : &Lexeuse) -> z8
+caractère_courant :: fonc(lexeuse : &Lexeuse) -> z8
 {
 	retourne lexeuse.chn[lexeuse.pos_mot]
 }
 
-a_fini :: fonc(dyn lexeuse : &Lexeuse) -> bool
+a_fini :: fonc(lexeuse : &Lexeuse) -> bool
 {
 	retourne lexeuse.pos_mot >= lexeuse.chn.taille
 }
 
-enregistre_pos_mot :: fonc(dyn lexeuse : &Lexeuse) -> rien
+enregistre_pos_mot :: fonc(lexeuse : &Lexeuse) -> rien
 {
 	lexeuse.début_mot = lexeuse.pos_mot
 	lexeuse.taille_mot = 0
 }
 
-pousse_caractère :: fonc(dyn lexeuse : &Lexeuse) -> rien
+pousse_caractère :: fonc(lexeuse : &Lexeuse) -> rien
 {
 	lexeuse.taille_mot += 1
 	lexeuse.consomme(1)
@@ -77,9 +77,9 @@ mot :: fonc(empl lexeuse : &Lexeuse) -> chaine
 	retourne construit_chaine(@lexeuse.chn[lexeuse.début_mot], lexeuse.taille_mot)
 }
 
-pousse_mot :: fonc(dyn lexeuse : &Lexeuse, id : IdentifiantLexème) -> rien
+pousse_mot :: fonc(lexeuse : &Lexeuse, id : IdentifiantLexème) -> rien
 {
-	dyn lexème : Lexème
+	lexème : Lexème
 	lexème.chn = lexeuse.mot()
 	lexème.id = id
 
@@ -88,7 +88,7 @@ pousse_mot :: fonc(dyn lexeuse : &Lexeuse, id : IdentifiantLexème) -> rien
 	lexeuse.taille_mot = 0
 }
 
-est_caractère_spéciale :: fonc(c : z8, dyn id : &IdentifiantLexème) -> bool
+est_caractère_spéciale :: fonc(c : z8, id : &IdentifiantLexème) -> bool
 {
     si c == '(' {
         id = IdentifiantLexème.PARENTHÈSE_OUVRANTE
@@ -202,17 +202,17 @@ id_mot :: fonc(chn : chaine) -> IdentifiantLexème
 	retourne IdentifiantLexème.CHAINE_CARACTÈRE
 }
 
-analyse_texte :: fonc(dyn lexeuse : &Lexeuse, chn : chaine) -> rien
+analyse_texte :: fonc(lexeuse : &Lexeuse, chn : chaine) -> rien
 {
     lexeuse.chn = chn
     lexeuse.pos_mot = 0
     lexeuse.taille_mot = 0
     lexeuse.début_mot = 0
 
-    dyn idc : IdentifiantLexème
+    idc : IdentifiantLexème
 
     tantque !lexeuse.a_fini() {
-        dyn c := lexeuse.caractère_courant()
+        c := lexeuse.caractère_courant()
 
         si est_espace_blanc(c) {
 			si lexeuse.taille_mot != 0 {
@@ -228,8 +228,8 @@ analyse_texte :: fonc(dyn lexeuse : &Lexeuse, chn : chaine) -> rien
 
             lexeuse.enregistre_pos_mot()
 
-            dyn trigraphe := construit_chaine(@chn[lexeuse.pos_mot], 3)
-            dyn id := id_trigraphe(trigraphe)
+            trigraphe := construit_chaine(@chn[lexeuse.pos_mot], 3)
+            id := id_trigraphe(trigraphe)
 
             si id != IdentifiantLexème.INVALIDE {
 				lexeuse.pousse_caractère()
@@ -239,7 +239,7 @@ analyse_texte :: fonc(dyn lexeuse : &Lexeuse, chn : chaine) -> rien
 				continue
             }
 
-            dyn digraphe := construit_chaine(@chn[lexeuse.pos_mot], 2)
+            digraphe := construit_chaine(@chn[lexeuse.pos_mot], 2)
             id = id_digraphe(digraphe)
 
             si id != IdentifiantLexème.INVALIDE {
@@ -288,7 +288,7 @@ test_lexeuse :: fonc() -> rien
 {
     requête := "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->()"
 
-    dyn lexeuse : Lexeuse
+    lexeuse : Lexeuse
     lexeuse.analyse_texte(requête)
 
     diffère { déloge lexeuse.lexèmes; }

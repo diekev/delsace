@@ -11,7 +11,7 @@ importe Réseau
     retourne 0
 }
 
-imprime_erreur_ssl :: fonc(ssl : *ssl_st, dyn erreur : z32, message : chaine, pile : bool) -> rien
+imprime_erreur_ssl :: fonc(ssl : *ssl_st, erreur : z32, message : chaine, pile : bool) -> rien
 {
 	imprime_sans_format(message)
 
@@ -54,7 +54,7 @@ imprime_erreur_ssl :: fonc(ssl : *ssl_st, dyn erreur : z32, message : chaine, pi
 
 lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
 {
-    dyn réponse : chaine;
+    réponse : chaine;
 
     si !est_valide(uri) {
         imprime_sans_format("L'uri est invalide !", '\n');
@@ -81,7 +81,7 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
 
     port : n16 = port_pour_uri(uri);
 
-    dyn their_addr : sockaddr_in;
+    their_addr : sockaddr_in;
     their_addr.sin_family = transtype(_AF_INET : n16);
     their_addr.sin_port = htons(port);
     their_addr.sin_zero[0] = 0;
@@ -105,7 +105,7 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
 
     //imprime("Connexion active", '\n');
 
-    dyn m_ssl : *ssl_st = nul
+    m_ssl : *ssl_st = nul
     diffère { si m_ssl != nul { SSL_free(m_ssl); } }
 
     // initialise connexion SSL

@@ -11,7 +11,7 @@ FichierTexte :: struct {
 }
 
 // À FAIRE: rechargement des fichiers, s'ils ont changés
-commence_fichier :: fonc (dyn fichier: *FichierTexte) -> rien
+commence_fichier :: fonc (fichier: *FichierTexte) -> rien
 {
     chm := construit_chemin(fichier.chemin)
     fichier.données = contenu_fichier_texte(chm)

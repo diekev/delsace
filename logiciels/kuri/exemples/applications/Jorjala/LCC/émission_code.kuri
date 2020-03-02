@@ -17,7 +17,7 @@ int ajoute_conversion(
 // À FAIRE : suppression de la mémoire pour les feuilles
 rassemble_feuilles :: fonc(
     noeud_base : *NoeudSyntaxique,
-    dyn feuilles : *[]*NoeudSyntaxique) -> rien
+    feuilles : *[]*NoeudSyntaxique) -> rien
 {
 	pour enfant dans noeud_base.enfants {
 		si enfant.lexème() == TypeLexème.VIRGULE {
@@ -33,7 +33,7 @@ rassemble_feuilles :: fonc(
 
 extrait_entier :: fonc(chn : chaine) -> z32
 {
-    dyn résultat : z32 = 0
+    résultat : z32 = 0
 
     pour c dans chn {
         résultat *= 10
@@ -45,9 +45,9 @@ extrait_entier :: fonc(chn : chaine) -> z32
 
 extrait_decimal :: fonc(chn : chaine) -> r32
 {
-    dyn résultat := 0.0
-    dyn point_trouvé := faux
-    dyn dividende := 0.0
+    résultat := 0.0
+    point_trouvé := faux
+    dividende := 0.0
 
     pour c dans chn {
         si c == '.' {
@@ -130,7 +130,7 @@ ajoute_instruction :: fonc(inst : CodeInst) -> rien
     copie_mem_nonsûr(ptr, @inst, taille_de(CodeInst))
 }
 
-agrandi :: fonc(dyn tabl : &[]octet, taille : n32) -> *octet
+agrandi :: fonc(tabl : &[]octet, taille : n32) -> *octet
 {
     taille_tabl := tabl.taille
     reloge tabl : [taille_tabl + taille]octet
@@ -142,7 +142,7 @@ agrandi :: fonc(dyn tabl : &[]octet, taille : n32) -> *octet
 genere_code :: fonc(
 		base *b,
 		ContexteGenerationCode &contexte_generation,
-		dyn cm : &CodeMachine,
+		cm : &CodeMachine,
 		expr_gauche : bool) -> z32
 {
 	discr (b.type) {
@@ -406,8 +406,8 @@ genere_code :: fonc(
 			genere_code(enfant1, contexte_generation, cm, expr_gauche)
 			genere_code(enfant2, contexte_generation, cm, expr_gauche)
 
-			dyn decalage1 := enfant1.pointeur_donnees
-			dyn decalage2 := enfant2.pointeur_donnees
+			decalage1 := enfant1.pointeur_donnees
+			decalage2 := enfant2.pointeur_donnees
 
 			// À FAIRE : multiplication mat/vec, etc.
 
@@ -476,7 +476,7 @@ genere_code :: fonc(
 				retourne b.pointeur_donnees
 			}
 
-			dyn requiers_inst_type := true
+			requiers_inst_type := true
 
 			discr b.lexème() {
 				TypeLexème.PLUS {

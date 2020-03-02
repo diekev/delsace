@@ -19,7 +19,7 @@ partition :: fonc(tableau : []z32, premier : z32, dernier : z32, pivot : z32) ->
 tri_rapide :: fonc(tableau : []z32, premier : z32, dernier : z32) -> rien
 {
 	si premier < dernier {
-		dyn pivot := choix_pivot(tableau, premier, dernier);
+		pivot := choix_pivot(tableau, premier, dernier);
 		pivot = partition(tableau, premier, dernier, pivot);
 
 		tri_rapide(tableau, premier, pivot - 1);
@@ -40,14 +40,14 @@ choix_pivot :: fonc(plage : *Plage) -> *z32
 tri_rapide :: fonc(plage : *Plage) -> rien
 {
 	si plage.premier < plage.dernier {
-		dyn pivot := choix_pivot(plage);
+		pivot := choix_pivot(plage);
 		pivot = partition(plage, pivot);
 
-		dyn plage1;
+		plage1;
 		plage1.premier = plage.premier;
 		plage1.dernier = pivot - taille_de(z32);
 
-		dyn plage2;
+		plage2;
 		plage2.premier = pivot + taille_de(z32);
 		plage2.dernier = plage.dernier;
 
@@ -63,7 +63,7 @@ GNASimple :: struct {
 
 construit_gna :: fonc(graine : z32) -> GNASimple
 {
-	dyn gna_simple : GNASimple;
+	gna_simple : GNASimple;
 	gna_simple.z = graine;
 	gna_simple.w = graine + 1;
 	retourne gna_simple;
@@ -78,7 +78,7 @@ nombre_aléatoire :: fonc(variable gna_simple : *GNASimple) -> z32
 
 principale :: fonc(compte : z32, arguments : **z8) -> z32
 {
-	dyn tableau : [1024]z32;
+	tableau : [1024]z32;
 
 	gna_simple := construit_gna(5);
 
@@ -86,7 +86,7 @@ principale :: fonc(compte : z32, arguments : **z8) -> z32
 		tableau[i] = nombre_aléatoire(@gna_simple);
 	}
 
-	dyn plage : Plage;
+	plage : Plage;
 	plage.premier = @tableau[0];
 	plage.dernier = @tableau[1023];
 

@@ -51,7 +51,7 @@ ObjetDictionnaire :: struct {
 	valeurs : []*Objet
 }
 
-insère :: fonc(dyn dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) -> rien
+insère :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) -> rien
 {
 	pour nom, idx dans dico.noms {
 		si nom != nom_objet {
@@ -162,7 +162,7 @@ GestionnaireObjet :: struct {
 
 crée_dictionnaire :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetDictionnaire
 {
-	dyn objet := loge ObjetDictionnaire
+	objet := loge ObjetDictionnaire
 	objet.id = TypeObjet.DICTIONNAIRE
 	objet.noms.taille = 0
 	objet.noms.pointeur = nul
@@ -176,7 +176,7 @@ crée_dictionnaire :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetDictionna
 
 crée_liste :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetListe
 {
-	dyn objet := loge ObjetListe
+	objet := loge ObjetListe
 	objet.id = TypeObjet.LISTE
 	objet.valeur.taille = 0
 	objet.valeur.pointeur = nul
@@ -188,7 +188,7 @@ crée_liste :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetListe
 
 crée_entier :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetEntier
 {
-	dyn objet := loge ObjetEntier
+	objet := loge ObjetEntier
 	objet.id = TypeObjet.ENTIER
 	objet.valeur = 0
 
@@ -199,7 +199,7 @@ crée_entier :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetEntier
 
 crée_réel :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetRéel
 {
-	dyn objet := loge ObjetRéel
+	objet := loge ObjetRéel
 	objet.id = TypeObjet.RÉEL
 	objet.valeur = 0.0
 
@@ -210,7 +210,7 @@ crée_réel :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetRéel
 
 crée_chaine :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetChaine
 {
-	dyn objet := loge ObjetChaine
+	objet := loge ObjetChaine
 	objet.id = TypeObjet.CHAINE
 	objet.valeur = ""
 
@@ -221,7 +221,7 @@ crée_chaine :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetChaine
 
 crée_nul :: fonc(gestionnaire : *GestionnaireObjet) -> *Objet
 {
-	dyn objet := loge Objet
+	objet := loge Objet
 	objet.id = TypeObjet.NUL
 
 	tableau_ajoute(@gestionnaire.objets, objet)
@@ -333,10 +333,10 @@ test_tori :: fonc() -> rien
 {
     diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
-	dyn gestionnaire : GestionnaireObjet
+	gestionnaire : GestionnaireObjet
 	diffère { détruit(@gestionnaire) }
 
-	dyn dico := crée_dictionnaire(@gestionnaire)
+	dico := crée_dictionnaire(@gestionnaire)
 
 	obj1 := crée_liste(@gestionnaire)
 	obj2 := crée_entier(@gestionnaire)

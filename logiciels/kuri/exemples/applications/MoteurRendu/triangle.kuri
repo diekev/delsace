@@ -8,7 +8,7 @@ Triangle :: struct {
 
 crée_triangle :: fonc (p0 : Vec3r, p1 : Vec3r, p2 : Vec3r) -> Triangle
 {
-    dyn tri : Triangle
+    tri : Triangle
     tri.p0 = p0
     tri.p1 = p1
     tri.p2 = p2
@@ -18,7 +18,7 @@ crée_triangle :: fonc (p0 : Vec3r, p1 : Vec3r, p2 : Vec3r) -> Triangle
 
 transforme :: fonc (mat: Mat4r, tri: Triangle) -> Triangle
 {
-    dyn rés : Triangle
+    rés : Triangle
 
     rés.p0 = transforme(mat, tri.p0)
     rés.p1 = transforme(mat, tri.p1)
@@ -30,7 +30,7 @@ transforme :: fonc (mat: Mat4r, tri: Triangle) -> Triangle
 tri_sélection :: fonc (triangles: []Triangle) -> rien
 {
     pour i dans 0 ... triangles.taille - 2 {
-        dyn index_min : z64 = i
+        index_min : z64 = i
 
         pour j dans transtype(i + 1: z64) ... triangles.taille - 1 {
             si condition_triangle(@triangles[j], @triangles[index_min]) {
@@ -42,9 +42,9 @@ tri_sélection :: fonc (triangles: []Triangle) -> rien
     }
 }
 
-échange :: fonc (dyn tri1 : *Triangle, dyn tri2 : *Triangle) -> rien
+échange :: fonc (tri1 : *Triangle, tri2 : *Triangle) -> rien
 {
-    dyn tmp := mémoire(tri2)
+    tmp := mémoire(tri2)
     mémoire(tri2) = mémoire(tri1)
     mémoire(tri1) = tmp
 }
@@ -69,8 +69,8 @@ tri_rapide :: fonc (triangles: []Triangle, début: z64, fin: z64) -> rien
         retourne
     }
 
-    dyn l := début + 1
-    dyn r := fin
+    l := début + 1
+    r := fin
 
     échange(@triangles[début], @triangles[début + (fin - début) / 2])
 

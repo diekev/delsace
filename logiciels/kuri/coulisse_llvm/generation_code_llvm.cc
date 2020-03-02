@@ -1253,7 +1253,7 @@ static llvm::Value *genere_code_llvm(
 				auto vg = new llvm::GlobalVariable(
 							*contexte.module_llvm,
 							type_llvm,
-							!possede_drapeau(variable->drapeaux, DYNAMIC),
+							false,
 							est_externe ? llvm::GlobalValue::ExternalLinkage : llvm::GlobalValue::InternalLinkage,
 							nullptr);
 

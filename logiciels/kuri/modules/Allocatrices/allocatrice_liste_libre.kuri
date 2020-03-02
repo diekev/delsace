@@ -9,7 +9,7 @@ AllocatriceListeLibre :: struct {
 
 détruit_liste_libre :: fonc(alloc: *AllocatriceListeLibre) -> rien
 {
-    dyn ptr := alloc.racine
+    ptr := alloc.racine
 
     tantque ptr != nul {
         suivant := ptr.suivant
@@ -26,7 +26,7 @@ allocatrice_liste_libre :: fonc(
     données : *rien,
     info : *InfoType) -> *rien
 {
-    dyn alloc := transtype(données: *AllocatriceListeLibre)
+    alloc := transtype(données: *AllocatriceListeLibre)
 
     discr mode {
         ALLOUE {

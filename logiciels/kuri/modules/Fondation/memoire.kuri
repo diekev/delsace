@@ -48,7 +48,7 @@
 	retourne vrai
 }
 
-#nulctx copie_mem_nonsur :: fonc(src : *octet, dyn dst : *octet, taille : z64) -> rien
+#nulctx copie_mem_nonsur :: fonc(src : *octet, dst : *octet, taille : z64) -> rien
 {
     pour i dans 0...taille - 1 {
 		dst[i] = src[i]
@@ -58,7 +58,7 @@
 // Copie 'taille' octets depuis la source vers la destination
 // La copie se fait comme si un tampon intermédiaire a été utilisé,
 // permettant à la source et à la destination de se surposer.
-#nulctx copie_mem :: fonc(src : []octet, dyn dst : []octet, taille : z64) -> rien
+#nulctx copie_mem :: fonc(src : []octet, dst : []octet, taille : z64) -> rien
 {
     si src.taille < taille {
 		retourne
@@ -96,7 +96,7 @@
 // vulnérabilités ! Nous faisons une vérification dans notre version 'copie_mem'.
 // Cette fonction est plus ici pour avoir une symétrie avec la bibliothèque C
 // qu'autre chose.
-#nulctx bouge_mem :: fonc(source : []octet, dyn destination : []octet, taille : z64) -> rien
+#nulctx bouge_mem :: fonc(source : []octet, destination : []octet, taille : z64) -> rien
 {
 	copie_mem(source, destination, taille)
 }
@@ -104,21 +104,21 @@
 // À FAIRE : considération pour la surposition de blocs.
 #nulctx echange_mem :: fonc(a : []octet, b : []octet) -> rien
 {
-	dyn tmp : [128]octet
+	tmp : [128]octet
 
-	dyn taille := a.taille
+	taille := a.taille
 
     si a.taille > b.taille {
 	   taille = b.taille
 	}
 
-	dyn debut := 0
+	debut := 0
 
     tantque debut < taille {
-		dyn source := @a[debut]
-		dyn destination := @tmp[0]
+		source := @a[debut]
+		destination := @tmp[0]
 
-		dyn taille_tmp := taille - debut
+		taille_tmp := taille - debut
 
         si taille_tmp > 128 {
 		    taille_tmp = 128
@@ -140,9 +140,9 @@
 	}
 }
 
-#nulctx init_mem :: fonc(dyn destination : []octet, valeur : z8, taille : z64) -> rien
+#nulctx init_mem :: fonc(destination : []octet, valeur : z8, taille : z64) -> rien
 {
-	dyn t := taille
+	t := taille
 	si destination.taille < taille {
 		t = destination.taille
 	}
@@ -154,12 +154,12 @@
 
 #nulctx cherche_mem :: fonc(source : []octet, valeur : z8, taille : z64) -> []octet
 {
-	dyn t := taille
+	t := taille
 	si source.taille < taille {
 		t = source.taille
 	}
 
-	dyn ret : []octet
+	ret : []octet
 	ret.pointeur = nul
 	ret.taille = 0
 

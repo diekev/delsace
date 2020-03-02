@@ -19,7 +19,7 @@ principale :: fonc () -> z32
     //######################################################
     // Lexage du script
 
-    dyn lexeuse := construit_lexeuse(chn)
+    lexeuse := construit_lexeuse(chn)
     diffère { détruit_lexeuse(lexeuse) }
 
     lexeuse.performe_lexage()
@@ -35,7 +35,7 @@ principale :: fonc () -> z32
     //######################################################
     // Syntaxage du script
 
-    dyn syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
+    syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
     diffère { détruit_assembleuse(syntaxeuse.assembleuse) }
 
     syntaxeuse.performe_syntaxage()
@@ -49,16 +49,16 @@ principale :: fonc () -> z32
     //######################################################
     // Génération de la page
 
-    dyn données_page : DonnéesPage
+    données_page : DonnéesPage
     données_page.titre_page = "Accueil"
     données_page.évènements[0] = 127
     données_page.évènements[1] = 255
     données_page.évènements[2] = 511
 
-    dyn données_génération : DonnéesGénération
+    données_génération : DonnéesGénération
     données_génération.valeur = données_page
 
-    dyn enchaineuse : Enchaineuse
+    enchaineuse : Enchaineuse
 	initialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 
@@ -75,18 +75,18 @@ principale :: fonc () -> z32
     }
 
 /*
-	dyn gestionnaire : GestionnaireObjet
+	gestionnaire : GestionnaireObjet
 	diffère { détruit(@gestionnaire) }
 
-    dyn dico := crée_dictionnaire(@gestionnaire)
+    dico := crée_dictionnaire(@gestionnaire)
 
     // À FAIRE: simplifie la création d'objet en passant les paramètres
-    dyn liste := crée_liste(@gestionnaire)
-    dyn obj1 := crée_entier(@gestionnaire)
+    liste := crée_liste(@gestionnaire)
+    obj1 := crée_entier(@gestionnaire)
     obj1.valeur = 127
-    dyn obj2 := crée_réel(@gestionnaire)
+    obj2 := crée_réel(@gestionnaire)
     obj2.valeur = 36.0
-    dyn obj3 := crée_chaine(@gestionnaire)
+    obj3 := crée_chaine(@gestionnaire)
     obj3.valeur = "chaine test"
 
     tableau_ajoute(@liste.valeur, obj1)
@@ -95,7 +95,7 @@ principale :: fonc () -> z32
 
 	dico.insère("evenements", liste)
 
-	dyn chaine1 := crée_chaine(@gestionnaire)
+	chaine1 := crée_chaine(@gestionnaire)
     chaine1.valeur = "http://aaa"
 
     dico.insère("lien", chaine1)
@@ -105,7 +105,7 @@ principale :: fonc () -> z32
 
     dico.insère("variable", chaine1)
 
-    dyn enchaineuse : Enchaineuse
+    enchaineuse : Enchaineuse
 	intialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 

@@ -12,7 +12,7 @@ NombreRationnel :: struct {
 
 construit_nombre_rationnel :: fonc(n: n32, d: n32, positif: bool) -> NombreRationnel
 {
-    dyn r : NombreRationnel
+    r : NombreRationnel
     r.N = n
     r.D = d
     r.s = !positif
@@ -28,11 +28,11 @@ ajoute :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     b_n := transtype(b.N: n64)
     b_d := transtype(b.D: n64)
 
-    dyn r_N : n64
+    r_N : n64
     r_N0 := a_n * b_d
     r_N1 := a_d * b_n
 
-    dyn r : NombreRationnel
+    r : NombreRationnel
 
     si transtype(a.s: z8) == transtype(b.s: z8) {
         r_N = r_N0 + r_N1
@@ -47,7 +47,7 @@ ajoute :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
         r.s = vrai
     }
 
-    dyn r_D : n64 = a_d * b_d
+    r_D : n64 = a_d * b_d
 
     // réduit la fraction selon le plus grand dénominateur commun,
     // afin d'éviter des problèmes de surflot
@@ -80,7 +80,7 @@ ajoute :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 
 soustrait :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
-    dyn tmp := b
+    tmp := b
     tmp.s = vrai
 
     retourne ajoute(a, tmp)
@@ -94,8 +94,8 @@ multiplie :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     b_n := transtype(b.N: n64)
     b_d := transtype(b.D: n64)
 
-    dyn r_N := a_n * b_n
-    dyn r_D := a_d * b_d
+    r_N := a_n * b_n
+    r_D := a_d * b_d
 
     // réduit la fraction selon le plus grand dénominateur commun,
     // afin d'éviter des problèmes de surflot
@@ -119,7 +119,7 @@ multiplie :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
         }
     }
 
-    dyn r : NombreRationnel
+    r : NombreRationnel
     // restaure la précision
     r.N = transtype(r_N: n32)
     r.D = transtype(r_D: n32)
@@ -130,7 +130,7 @@ multiplie :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 
 divise :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
-    dyn tmp := b
+    tmp := b
     tmp.N = b.D
     tmp.D = b.N
 
@@ -184,7 +184,7 @@ pgdc_récursif :: fonc(u: n64, v: n64) -> n64
     retourne pgdc_récursif((v - u) >> 1, u)
 }
 
-pgdc :: fonc(dyn u: n64, dyn v: n64) -> n64
+pgdc :: fonc(u: n64, v: n64) -> n64
 {
     si u == v {
         retourne u
@@ -199,7 +199,7 @@ pgdc :: fonc(dyn u: n64, dyn v: n64) -> n64
         retourne u
     }
 
-    dyn shift : n64 = 0
+    shift : n64 = 0
 
     //Let shift := lg K, where K is the greatest power of 2
     // dividing both u and v.
@@ -238,14 +238,14 @@ pgdc :: fonc(dyn u: n64, dyn v: n64) -> n64
     retourne u << shift
 }
 
-nombre_de_bits_zéro_en_fin :: fonc(dyn i: n64) -> n32
+nombre_de_bits_zéro_en_fin :: fonc(i: n64) -> n32
 {
     si i == 0 {
         retourne 64
     }
 
-    dyn n : n32 = 63
-    dyn y : n64
+    n : n32 = 63
+    y : n64
 
     y = i << 32; si y != 0 { n = n - 32; i = y; }
     y = i << 16; si y != 0 { n = n - 16; i = y; }

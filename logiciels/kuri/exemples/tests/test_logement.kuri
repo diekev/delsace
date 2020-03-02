@@ -24,7 +24,7 @@ test :: fonc() -> rien
     imprime_sans_format("=========================================\n");
     imprime_sans_format("                 tableau                 \n");
 
-    dyn tabl := [1.0, 2.0, 4.0, 8.0, 16.0];
+    tabl := [1.0, 2.0, 4.0, 8.0, 16.0];
 
     imprime_tableau(tabl);
 
@@ -39,15 +39,15 @@ test :: fonc() -> rien
     imprime_sans_format("=========================================\n");
     imprime_sans_format("                 vecteur                 \n");
 
-    dyn vec2 : Vecteur;
+    vec2 : Vecteur;
     vec1 := Vecteur{x = 1.0, y = 4.0, z = 16.0};
 
     imprime_sans_format("Vecteur initiliasé : ", vec1, "\n");
     imprime_sans_format("Vecteur non-initiliasé : ", vec2, "\n");
 
-    dyn nom := "x";
+    nom := "x";
 
-    dyn ok := possède_membre(vec1, nom);
+    ok := possède_membre(vec1, nom);
 
     si ok {
         imprime_sans_format("Le vecteur possède le membre 'x' !\n");
@@ -72,12 +72,12 @@ logement_tableau :: fonc() -> rien
     imprime_sans_format("=========================================\n");
     imprime_sans_format("            logements tableau            \n");
 
-    dyn tabl := loge [32]r64;
+    tabl := loge [32]r64;
 
     imprime_sans_format("Tableau logé à l'addresse : ", tabl.pointeur, "\n");
     imprime_sans_format("Taille tableau : ", tabl.taille, "\n");
 
-    dyn debut := 1.0;
+    debut := 1.0;
 
     pour v dans tabl {
         v = debut;
@@ -103,7 +103,7 @@ logement_chaine :: fonc() -> rien
     chn1 := "Kévin";
     chn2 := "Dietrich";
 
-    dyn chnr := enchaine(chn1, chn2);
+    chnr := enchaine(chn1, chn2);
 
     imprime_sans_format("Résultat : ", chnr, "\n");
 
@@ -121,19 +121,19 @@ test_fichier :: fonc() -> rien
     chemin := "/home/kevin/test.kuri";
 
     nonsûr {
-        dyn res := open(chemin.pointeur, 0);
+        res := open(chemin.pointeur, 0);
 
         si res == -1 {
             imprime_sans_format("Erreur lors de l'ouverture du fichier !\n");
             retourne;
         }
 
-        dyn tpn : [1024]z8;
-        dyn nread := read(res, @tpn[0], 1024);
+        tpn : [1024]z8;
+        nread := read(res, @tpn[0], 1024);
 
         imprime("Lu ", nread, " octets\n");
 
-        dyn chn : chaine;
+        chn : chaine;
         chn.pointeur = @tpn[0]; // À FAIRE : prend pointeur automatiquement
         chn.taille = transtype(nread : z64);
 

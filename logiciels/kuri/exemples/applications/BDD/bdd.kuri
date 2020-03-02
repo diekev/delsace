@@ -11,13 +11,13 @@ imprime_prompt :: fonc () -> rien
 
 lis_entrée :: fonc () -> chaine
 {
-    dyn nouveau_contexte := contexte
+    nouveau_contexte := contexte
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    dyn chn : chaine
+    chn : chaine
 
     pousse_contexte nouveau_contexte {
-        dyn c : z8
+        c : z8
 
         tantque read(0, @c, 1) != 0 {
             si c == '\n' {
@@ -97,7 +97,7 @@ ouvre_pager :: fonc (fichier: chaine) -> *Pager
 
     taille_fichier := lseek(fd, 0, _SEEK_END)
 
-    dyn pager := loge Pager
+    pager := loge Pager
     pager.descripteur_fichier = fd
     pager.taille_fichier = taille_fichier
 
@@ -108,19 +108,19 @@ ouvre_pager :: fonc (fichier: chaine) -> *Pager
     retourne pager
 }
 
-trouve_page :: fonc (dyn pager: *Pager, index_page: z32) -> *rien
+trouve_page :: fonc (pager: *Pager, index_page: z32) -> *rien
 {
     si index_page > TABLE_MAX_PAGES {
         imprime("Tentative de prendre une page hors des limites : % > %\n", index_page, TABLE_MAX_PAGES)
         exit(1)
     }
 
-    dyn page := pager.pages[index_page]
+    page := pager.pages[index_page]
 
     si page == nul {
         // Cache miss
         page = malloc(TAILLE_PAGE)
-        dyn nombre_de_pages := pager.taille_fichier / TAILLE_PAGE
+        nombre_de_pages := pager.taille_fichier / TAILLE_PAGE
 
         // nous avons peut-être une page incomplète à la fin du fichier
         si pager.taille_fichier % TAILLE_PAGE != 0 {
@@ -146,7 +146,7 @@ trouve_page :: fonc (dyn pager: *Pager, index_page: z32) -> *rien
 
 // les pages ne sont pas flushées si le programme est interrompu (ctrl + C)
 // nous pourrions également éviter d'écrire des pages qui n'ont pas changées
-flush_pager :: fonc (dyn pager: *Pager, index_page: z32, taille: z32) -> rien
+flush_pager :: fonc (pager: *Pager, index_page: z32, taille: z32) -> rien
 {
     si pager.pages[index_page] == nul {
         imprime("Tentativer de flusher une page nulle !\n")
@@ -178,16 +178,16 @@ ouvre_base_de_données :: fonc (fichier: chaine) -> *Table
     pager := ouvre_pager(fichier)
     nombre_de_lignes := pager.taille_fichier / TAILLE_LIGNE
 
-    dyn table := loge Table
+    table := loge Table
     table.pager = pager
     table.nombre_de_lignes = transtype(nombre_de_lignes: z32)
 
     retourne table
 }
 
-ferme_base_de_données :: fonc (dyn table: *Table) -> rien
+ferme_base_de_données :: fonc (table: *Table) -> rien
 {
-    dyn pager := table.pager
+    pager := table.pager
     nombre_de_pages_pleines := table.nombre_de_lignes / TAILLE_LIGNE
 
     pour i dans 0 ... nombre_de_pages_pleines - 1 {
@@ -239,7 +239,7 @@ Curseur :: struct {
 
 curseur_début_de_table :: fonc (table: *Table) -> *Curseur
 {
-    dyn curseur := loge Curseur
+    curseur := loge Curseur
     curseur.table = table
     curseur.index_ligne = 0
     curseur.est_fin_de_table = table.nombre_de_lignes == 0
@@ -249,7 +249,7 @@ curseur_début_de_table :: fonc (table: *Table) -> *Curseur
 
 curseur_fin_de_table :: fonc (table: *Table) -> *Curseur
 {
-    dyn curseur := loge Curseur
+    curseur := loge Curseur
     curseur.table = table
     curseur.index_ligne = table.nombre_de_lignes
     curseur.est_fin_de_table = vrai
@@ -257,7 +257,7 @@ curseur_fin_de_table :: fonc (table: *Table) -> *Curseur
     retourne curseur
 }
 
-valeur_curseur :: fonc (dyn curseur: *Curseur) -> *rien
+valeur_curseur :: fonc (curseur: *Curseur) -> *rien
 {
     index_ligne := curseur.index_ligne
     index_page := index_ligne / LIGNES_PAR_PAGES
@@ -269,28 +269,28 @@ valeur_curseur :: fonc (dyn curseur: *Curseur) -> *rien
     retourne page + décalage_octet
 }
 
-avance_curseur :: fonc (dyn curseur: *Curseur) -> rien
+avance_curseur :: fonc (curseur: *Curseur) -> rien
 {
     curseur.index_ligne += 1
     curseur.est_fin_de_table = curseur.index_ligne >= curseur.table.nombre_de_lignes
 }
 
 // @XXX
-copie_chaine_vers_tableau :: fonc (dyn tabl: *z8, chn: chaine) -> rien
+copie_chaine_vers_tableau :: fonc (tabl: *z8, chn: chaine) -> rien
 {
     pour c, idx dans chn {
         tabl[idx] = c
     }
 }
 
-sérialise_ligne :: fonc (ligne: *Ligne, dyn dest: *rien) -> rien
+sérialise_ligne :: fonc (ligne: *Ligne, dest: *rien) -> rien
 {
     copie_mem_nonsur(src = @ligne.id, dst = dest, taille = TAILLE_ID)
     copie_mem_nonsur(src = @ligne.nom[0], dst = dest + DÉCALAGE_NOM, taille = TAILLE_NOM)
     copie_mem_nonsur(src = @ligne.courriel[0], dst = dest + DÉCALAGE_COURRIEL, taille = TAILLE_COURRIEL)
 }
 
-désérialise_ligne :: fonc (src: *rien, dyn ligne: *Ligne) -> rien
+désérialise_ligne :: fonc (src: *rien, ligne: *Ligne) -> rien
 {
     copie_mem_nonsur(dst = @ligne.id, src = src, taille = TAILLE_ID)
     copie_mem_nonsur(dst = @ligne.nom[0], src = src + DÉCALAGE_NOM, taille = TAILLE_NOM)
@@ -310,12 +310,12 @@ PrépareRésultat :: énum z32 {
     ID_NÉGATIF
 }
 
-prépare_instruction :: fonc (commande: chaine, dyn inst: *Instruction) -> PrépareRésultat
+prépare_instruction :: fonc (commande: chaine, inst: *Instruction) -> PrépareRésultat
 {
-    dyn nouveau_contexte := contexte
+    nouveau_contexte := contexte
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    dyn mots : []chaine
+    mots : []chaine
 
     pousse_contexte nouveau_contexte {
         mots = divise(commande, ' ')
@@ -372,7 +372,7 @@ RésultatExécution :: énum z32 {
     SUCCÈS
 }
 
-exécute_insertion :: fonc (inst: *Instruction, dyn table: *Table) -> RésultatExécution
+exécute_insertion :: fonc (inst: *Instruction, table: *Table) -> RésultatExécution
 {
     si table.nombre_de_lignes >= LIGNES_MAX_TABLE {
         retourne RésultatExécution.TABLE_PLEINE
@@ -380,7 +380,7 @@ exécute_insertion :: fonc (inst: *Instruction, dyn table: *Table) -> RésultatE
 
     ligne_à_insérer := @inst.ligne_à_insérer
 
-    dyn curseur := curseur_fin_de_table(table)
+    curseur := curseur_fin_de_table(table)
     slot := valeur_curseur(curseur)
 
     sérialise_ligne(ligne_à_insérer, slot)
@@ -394,10 +394,10 @@ exécute_insertion :: fonc (inst: *Instruction, dyn table: *Table) -> RésultatE
 
 imprime_ligne :: fonc (ligne: *Ligne) -> rien
 {
-    dyn nouveau_contexte := contexte
+    nouveau_contexte := contexte
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    dyn chn_nom : chaine
+    chn_nom : chaine
 
     {
         pousse_contexte nouveau_contexte {
@@ -411,7 +411,7 @@ imprime_ligne :: fonc (ligne: *Ligne) -> rien
         }
     }
 
-    dyn chn_courriel : chaine
+    chn_courriel : chaine
 
     {
         pousse_contexte nouveau_contexte {
@@ -428,10 +428,10 @@ imprime_ligne :: fonc (ligne: *Ligne) -> rien
     imprime("(%, %, %)\n", ligne.id, chn_nom, chn_courriel)
 }
 
-exécute_sélection :: fonc (inst: *Instruction, dyn table: *Table) -> RésultatExécution
+exécute_sélection :: fonc (inst: *Instruction, table: *Table) -> RésultatExécution
 {
-    dyn curseur := curseur_début_de_table(table)
-    dyn ligne : Ligne
+    curseur := curseur_début_de_table(table)
+    ligne : Ligne
 
     tantque !curseur.est_fin_de_table {
         slot := valeur_curseur(curseur)
@@ -472,10 +472,10 @@ principale :: fonc () -> z32
     //diffère { imprime("\nFin du programme, mémoire utilisée : %o\n", mémoire_utilisée()); }
     chemin_fichier := args[1]
 
-    dyn table := ouvre_base_de_données(chemin_fichier)
+    table := ouvre_base_de_données(chemin_fichier)
     diffère { ferme_base_de_données(table) }
 
-    dyn marque := obtiens_marque_stockage_temporaire()
+    marque := obtiens_marque_stockage_temporaire()
 
     boucle {
         set_marque_stockage_temporaire(marque);
@@ -505,7 +505,7 @@ principale :: fonc () -> z32
             }
         }
 
-        dyn instruction : Instruction
+        instruction : Instruction
         discr prépare_instruction(entrée, @instruction) {
             SUCCÈS {}
             ERREUR_SYNTAXE {

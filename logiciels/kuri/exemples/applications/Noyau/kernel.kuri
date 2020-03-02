@@ -47,7 +47,7 @@ Kernel :: struct {
 	ptr_vidéo : *z8;
 }
 
-clarifie_écran :: fonc(dyn ptr_vidéo : *z8) -> rien
+clarifie_écran :: fonc(ptr_vidéo : *z8) -> rien
 {
 	// Cette boucle clarifie l'écran.
 	// Il y a 25 lignes de 80 colonnes.
@@ -63,10 +63,10 @@ clarifie_écran :: fonc(dyn ptr_vidéo : *z8) -> rien
 	retourne;
 }
 
-écris_chaîne :: fonc(dyn ptr_vidéo : *z8, chaine : *z8) -> rien
+écris_chaîne :: fonc(ptr_vidéo : *z8, chaine : *z8) -> rien
 {
-	dyn i := 0;
-	dyn j := 0;
+	i := 0;
+	j := 0;
 
 	// Cette boucle écris la chaine à la mémoire vidéo.
 	boucle {

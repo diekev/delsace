@@ -18,7 +18,7 @@ Normal :: énum z32 {
 
 principale :: fonc () -> z32
 {
-    dyn drapeau : Drapeau
+    drapeau : Drapeau
 
     imprime_sans_format("drapeau = ", drapeau, "\n")
 
@@ -35,7 +35,7 @@ principale :: fonc () -> z32
 
     imprime_sans_format("drapeau = ", drapeau, " (", transtype(drapeau : z32), ")\n")
 
-    dyn normal : Normal
+    normal : Normal
 
     imprime_sans_format("normal = ", normal, "\n")
 

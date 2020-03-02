@@ -15,7 +15,7 @@ DicoChaineIndex :: struct {
 
 crée_table_hachage :: fonc() -> DicoChaineIndex
 {
-    dyn table : DicoChaineIndex
+    table : DicoChaineIndex
     table.alvéoles = loge [10000]*NoeudDicoChaineIndex
 
     pour i dans 0 ... 9999 {
@@ -28,10 +28,10 @@ crée_table_hachage :: fonc() -> DicoChaineIndex
 décrée_table_hachage :: fonc(table : &DicoChaineIndex) -> rien
 {
     pour noeud dans table.alvéoles {
-        dyn n := noeud;
+        n := noeud;
 
         tantque n != nul {
-            dyn ns := n.suivant
+            ns := n.suivant
             déloge n
             n = ns
         }
@@ -42,18 +42,18 @@ décrée_table_hachage :: fonc(table : &DicoChaineIndex) -> rien
 
 crée_noeud :: fonc(clé : chaine, valeur : chaine) -> *NoeudDicoChaineIndex
 {
-    dyn n := loge NoeudDicoChaineIndex
+    n := loge NoeudDicoChaineIndex
     n.clé = clé
     n.valeur = valeur
     n.suivant = nul
     retourne n
 }
 
-insère :: fonc(dyn table : &DicoChaineIndex, clé : chaine, valeur : z64) -> rien
+insère :: fonc(table : &DicoChaineIndex, clé : chaine, valeur : z64) -> rien
 {
     empreinte := calcule_empreinte(clé) % 10000
 
-    dyn alvéole := table.alvéoles[empreinte]
+    alvéole := table.alvéoles[empreinte]
 
     si alvéole == nul {
         table.alvéoles[empreinte] = crée_noeud(clé, valeur)
@@ -74,7 +74,7 @@ trouve :: fonc(table : &DicoChaineIndex, clé : chaine) -> *NoeudDicoChaineIndex
 {
     empreinte := calcule_empreinte(clé) % 10000
 
-    dyn alvéole := table.alvéoles[empreinte]
+    alvéole := table.alvéoles[empreinte]
 
     si alvéole == nul {
         retourne nul
@@ -103,7 +103,7 @@ RésultatRecherche :: union {
 cherche_valeur :: fonc(table : &DicoChaineIndex, clé : chaine) -> RésultatRecherche
 {
     n := trouve(table, clé)
-    dyn résultat : RésultatRecherche
+    résultat : RésultatRecherche
 
     si n == nul {
         résultat.erreur = vrai
@@ -118,7 +118,7 @@ cherche_valeur :: fonc(table : &DicoChaineIndex, clé : chaine) -> RésultatRech
 chaque_noeud :: corout(table : &DicoChaineIndex) -> *NoeudDicoChaineIndex
 {
     pour alvéole dans table.alvéoles {
-        dyn n := alvéole
+        n := alvéole
 
         tantque n != nul {
             retiens n

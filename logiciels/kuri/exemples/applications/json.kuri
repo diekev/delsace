@@ -15,7 +15,7 @@ test_json_tori :: fonc () -> rien
     // -----------------------------------
     // Lexage du script
 
-    dyn lexeuse := construit_lexeuse(chn)
+    lexeuse := construit_lexeuse(chn)
     diffère { détruit_lexeuse(lexeuse); }
 
     lexeuse.performe_lexage()
@@ -31,7 +31,7 @@ test_json_tori :: fonc () -> rien
     // -----------------------------------
     // Syntaxage du script, création de l'objet
 
-	dyn syntaxeuse : Syntaxeuse
+	syntaxeuse : Syntaxeuse
 	syntaxeuse.lexèmes = lexeuse.lexèmes
     diffère { détruit(syntaxeuse); }
 
@@ -68,7 +68,7 @@ InformationInscription :: struct {
 
 principale :: fonc () : z32
 {
-    dyn info : InformationConnexion
+    info : InformationConnexion
 
     chn := chaine_json_depuis_struct(info)
     diffère { déloge chn; }

@@ -9,16 +9,16 @@ importe Math
 // ceci utilise l'algorithme de Bresenham, on pourrait essayer celui de Wu :
 // https://en.wikipedia.org/wiki/Xiaolin_Wu%27s_line_algorithm
 dessine_ligne :: fonc(
-    dyn image: *Image,
+    image: *Image,
     x1 : z32,
     y1 : z32,
     x2 : z32,
     y2 : z32,
     couleur : Couleur) -> rien
 {
-    dyn dx := transtype(x2 - x1 : r32);
-    dyn dy := transtype(y2 - y1 : r32);
-    dyn pas : r32;
+    dx := transtype(x2 - x1 : r32);
+    dy := transtype(y2 - y1 : r32);
+    pas : r32;
 
     si abs(dx) >= abs(dy) {
         pas = abs(dx);
@@ -29,9 +29,9 @@ dessine_ligne :: fonc(
 
     dx /= pas;
     dy /= pas;
-    dyn x := transtype(x1 : r32);
-    dyn y := transtype(y1 : r32);
-    dyn i : r32 = 1.0;
+    x := transtype(x1 : r32);
+    y := transtype(y1 : r32);
+    i : r32 = 1.0;
 
     tantque i <= pas {
         xi := transtype(x : z32);
@@ -46,7 +46,7 @@ dessine_ligne :: fonc(
 }
 
 dessine_triangle :: fonc(
-    dyn image: *Image,
+    image: *Image,
     x1 : r32,
     y1 : r32,
     x2 : r32,
@@ -76,7 +76,7 @@ dessine_triangle :: fonc(
 //     /  \
 //     ----
 remplis_triangle_bas_plat :: fonc(
-    dyn image: *Image,
+    image: *Image,
     v1 : Vec2r,
     v2 : Vec2r,
     v3 : Vec2r,
@@ -90,8 +90,8 @@ remplis_triangle_bas_plat :: fonc(
     cd1_inv := (v2.x - v1.x) / (v2.y - v1.y) * taille_pixel;
     cd2_inv := (v3.x - v1.x) / (v3.y - v1.y) * taille_pixel;
 
-    dyn cur_x1 := v1.x;
-    dyn cur_x2 := v1.x;
+    cur_x1 := v1.x;
+    cur_x2 := v1.x;
 
     y1 := transtype(v1.y * hd : z32);
     y2 := transtype(v2.y * hd : z32);
@@ -99,7 +99,7 @@ remplis_triangle_bas_plat :: fonc(
     restreint(@y1, 0, image.hauteur - 1);
     restreint(@y2, 0, image.hauteur - 1);
 
-    dyn scanlineY := y1;
+    scanlineY := y1;
 
     tantque scanlineY <= y2 {
         x1i := transtype(cur_x1 * ld : z32);
@@ -122,7 +122,7 @@ remplis_triangle_bas_plat :: fonc(
 //     \  /
 //      \/
 remplis_triangle_haut_plat :: fonc(
-    dyn image: *Image,
+    image: *Image,
     v1 : Vec2r,
     v2 : Vec2r,
     v3 : Vec2r,
@@ -136,8 +136,8 @@ remplis_triangle_haut_plat :: fonc(
     cd1_inv := (v3.x - v1.x) / (v3.y - v1.y) * taille_pixel;
     cd2_inv := (v3.x - v2.x) / (v3.y - v2.y) * taille_pixel;
 
-    dyn cur_x1 := v3.x;
-    dyn cur_x2 := v3.x;
+    cur_x1 := v3.x;
+    cur_x2 := v3.x;
 
     y1 := transtype(v1.y * hd : z32);
     y3 := transtype(v3.y * hd : z32);
@@ -145,7 +145,7 @@ remplis_triangle_haut_plat :: fonc(
     restreint(@y1, 0, image.hauteur - 1);
     restreint(@y3, 0, image.hauteur - 1);
 
-    dyn scanlineY := y3;
+    scanlineY := y3;
 
     tantque scanlineY > y1 {
         x1i := transtype(cur_x1 * ld : z32);
@@ -162,13 +162,13 @@ remplis_triangle_haut_plat :: fonc(
     }
 }
 
-échange :: fonc(dyn v1 : &Vec2r, dyn v2 : &Vec2r) -> rien
+échange :: fonc(v1 : &Vec2r, v2 : &Vec2r) -> rien
 {
     // À FAIRE : langage, erreur de compilation
     //échange(@v1.x, @v2.x);
     //échange(@v1.y, @v2.y);
 
-    dyn tmp := v1.x
+    tmp := v1.x
     v1.x = v2.x
     v2.x = tmp
 
@@ -189,7 +189,7 @@ remplis_triangle_haut_plat :: fonc(
 //   \|
 //
 ratisse_triangle :: fonc(
-    dyn image: *Image,
+    image: *Image,
     x1 : r32,
     y1 : r32,
     x2 : r32,

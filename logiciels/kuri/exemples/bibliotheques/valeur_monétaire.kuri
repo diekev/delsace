@@ -22,7 +22,7 @@ valeur_monétaire_depuis_unités_centimes :: fonc (unités: z64, centimes: z64) 
 // opérateur +
 ajoute :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> ValeurMonnétaire
 {
-    dyn résultat : ValeurMonnétaire
+    résultat : ValeurMonnétaire
     résultat.quantité = v1.quantité + v2.quantité
     retourne résultat
 }
@@ -30,7 +30,7 @@ ajoute :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> ValeurMonnét
 // opérateur -
 soustrait :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> ValeurMonnétaire
 {
-    dyn résultat : ValeurMonnétaire
+    résultat : ValeurMonnétaire
     résultat.quantité = v1.quantité - v2.quantité
     retourne résultat
 }
@@ -38,7 +38,7 @@ soustrait :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> ValeurMonn
 // opérateur *
 multiplie :: fonc (v1 : ValeurMonnétaire, v2 : z64) -> ValeurMonnétaire
 {
-    dyn résultat : ValeurMonnétaire
+    résultat : ValeurMonnétaire
     résultat.quantité = v1.quantité * v2
     retourne résultat
 }
@@ -46,7 +46,7 @@ multiplie :: fonc (v1 : ValeurMonnétaire, v2 : z64) -> ValeurMonnétaire
 // opérateur /
 divise :: fonc (v1 : ValeurMonnétaire, v2 : z64) -> ValeurMonnétaire
 {
-    dyn résultat : ValeurMonnétaire
+    résultat : ValeurMonnétaire
     résultat.quantité = v1.quantité / v2
     retourne résultat
 }
@@ -96,14 +96,14 @@ est_plus_petit_ou_égal :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire)
 // millième d'unités.
 alloue :: fonc (v: ValeurMonnétaire, ratios: []z32) -> []ValeurMonnétaire
 {
-    dyn total := 0
+    total := 0
 
     pour r dans ratios {
         total += r
     }
 
-    dyn reste := v.quantité
-    dyn résultat := loge [ratios.taille]ValeurMonnétaire
+    reste := v.quantité
+    résultat := loge [ratios.taille]ValeurMonnétaire
 
     pour r, i dans résultat {
         r.quantité = v.quantité * ratios[i] / total
@@ -137,13 +137,13 @@ nombre_aléatoire :: fonc () -> z32
 principale :: fonc () : z32
 {
     {
-        dyn v := valeur_monétaire_depuis_unités(100)
+        v := valeur_monétaire_depuis_unités(100)
 
         imprime_valeur_monétaire(v)
 
         ratios := [1, 1, 1]
 
-        dyn allocations := alloue(v, ratios)
+        allocations := alloue(v, ratios)
 
         pour allocation dans allocations {
             imprime_valeur_monétaire(allocation)
@@ -172,15 +172,15 @@ principale :: fonc () : z32
     imprime_valeur_monétaire(somme_redistribuée)
 
     nombre_associations := 1234
-    dyn ratios := loge [nombre_associations]z32
+    ratios := loge [nombre_associations]z32
 
     pour r dans ratios {
         r = nombre_aléatoire()
     }
 
-    dyn allocations := alloue(somme_redistribuée, ratios)
+    allocations := alloue(somme_redistribuée, ratios)
 
-    dyn somme_allouée : z64
+    somme_allouée : z64
 
     pour allocation, idx dans allocations {
         si idx < 10 {

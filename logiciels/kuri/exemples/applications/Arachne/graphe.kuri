@@ -20,7 +20,7 @@ BaseListe :: fonc {
 	dernier : *NoeudListe = nul
 }
 
-pousse :: fonc(dyn liste : &BaseListe, données : *rien) -> rien
+pousse :: fonc(liste : &BaseListe, données : *rien) -> rien
 {
 	noeud := crée_noeud_liste(données)
 
@@ -63,7 +63,7 @@ ListeÉtiquette :: struct {
 	id_nom : n32 = 0
 }
 
-pousse :: fonc(dyn liste : &ListeÉtiquette, étq : *Étiquette) -> rien
+pousse :: fonc(liste : &ListeÉtiquette, étq : *Étiquette) -> rien
 {
 	pousse(liste.base, prop)
 }
@@ -75,7 +75,7 @@ est_vide :: fonc(liste : &ListeÉtiquette) -> bool
 
 chaque_étiquette :: corout(liste : &ListeÉtiquette) -> *Étiquette
 {
-	dyn n := liste.premier
+	n := liste.premier
 
 	tantque n != nul {
 		retiens transtype(n.données : *Étiquette)
@@ -94,7 +94,7 @@ Noeud :: struct {
 	utilise : bool = faux
 }
 
-pousse :: fonc(dyn liste : &ListeNoeud, n : *Noeud) -> rien
+pousse :: fonc(liste : &ListeNoeud, n : *Noeud) -> rien
 {
 	pousse(liste.base, prop)
 }
@@ -106,7 +106,7 @@ est_vide :: fonc(liste : &ListeNoeud) -> bool
 
 chaque_noeud :: corout(liste : &ListeNoeud) -> *Noeud
 {
-	dyn n := liste.premier
+	n := liste.premier
 
 	tantque n != nul {
 		retiens transtype(n.données : *Noeud)
@@ -131,7 +131,7 @@ Relation :: struct {
 	id : n32 = 0
 }
 
-pousse :: fonc(dyn liste : &ListeRelation, rel : *Relation) -> rien
+pousse :: fonc(liste : &ListeRelation, rel : *Relation) -> rien
 {
 	pousse(liste.base, prop)
 }
@@ -143,7 +143,7 @@ est_vide :: fonc(liste : &ListeRelation) -> bool
 
 chaque_relation :: corout(liste : &ListeRelation) -> *Relation
 {
-	dyn n := liste.premier
+	n := liste.premier
 
 	tantque n != nul {
 		retiens transtype(n.données : *Relation)
@@ -161,7 +161,7 @@ Propriété :: struct {
 	valeur : z32
 }
 
-pousse :: fonc(dyn liste : &ListePropriété, prop : *Propriété) -> rien
+pousse :: fonc(liste : &ListePropriété, prop : *Propriété) -> rien
 {
 	pousse(liste.base, prop)
 }
@@ -173,7 +173,7 @@ est_vide :: fonc(liste : &ListePropriété) -> bool
 
 chaque_propriété :: corout(liste : &ListePropriété) -> *Propriété
 {
-	dyn n := liste.premier
+	n := liste.premier
 
 	tantque n != nul {
 		retiens transtype(n.données : *Propriété)
@@ -214,7 +214,7 @@ Graphe :: struct {
 	nombre_etiquettes : n32 = 0
 }
 
-supprime_graphe :: fonc(dyn graphe : &Graphe)
+supprime_graphe :: fonc(graphe : &Graphe)
 {
 	pour noeud dans chaque_noeud(graphe.noeuds) {
 		déloge noeud
@@ -234,7 +234,7 @@ supprime_graphe :: fonc(dyn graphe : &Graphe)
 }
 
 ajoute_noeud :: fonc(
-	dyn graphe : &Graphe,
+	graphe : &Graphe,
 	nom : chaine,
 	valeur : z32) -> *Noeud
 {
@@ -245,7 +245,7 @@ ajoute_noeud :: fonc(
 		retourne
 	}
 
-	dyn n := loge noeud sinon {
+	n := loge noeud sinon {
 		// À FAIRE : erreur
 		retourne
 	}
@@ -261,8 +261,8 @@ ajoute_noeud :: fonc(
 }
 
 ajoute_propriete :: fonc(
-	dyn graphe : &Graphe,
-	dyn n : *Noeud,
+	graphe : &Graphe,
+	n : *Noeud,
 	nom : chaine,
 	valeur : z32) -> rien
 {
@@ -278,7 +278,7 @@ ajoute_propriete :: fonc(
 		retourne
 	}
 
-	dyn p := loge propriete sinon {
+	p := loge propriete sinon {
 		// À FAIRE : erreur
 		retourne
 	}
@@ -299,8 +299,8 @@ ajoute_propriete :: fonc(
 }
 
 ajoute_etiquette :: fonc(
-	dyn graphe : &Graphe,
-	dyn n : *Noeud,
+	graphe : &Graphe,
+	n : *Noeud,
 	nom : chaine) -> rien
 {
 	si (n == nul || n.id == 0) {
@@ -315,7 +315,7 @@ ajoute_etiquette :: fonc(
 
 	imprime("Création d'une étiquette <", nom,"> pour un noeud...\n")
 
-	dyn e := loge etiquette sinon {
+	e := loge etiquette sinon {
 		// À FAIRE : erreur
 		retourne
 	}
@@ -335,8 +335,8 @@ ajoute_etiquette :: fonc(
 }
 
 ajoute_propriete :: fonc(
-	dyn graphe : &Graphe,
-	dyn r : *Relation,
+	graphe : &Graphe,
+	r : *Relation,
 	nom : chaine,
 	valeur : z32) -> rien
 {
@@ -352,7 +352,7 @@ ajoute_propriete :: fonc(
 		retourne
 	}
 
-	dyn p := loge propriete sinon {
+	p := loge propriete sinon {
 		// À FAIRE : erreur
 		retourne
 	}
@@ -373,7 +373,7 @@ ajoute_propriete :: fonc(
 }
 
 ajoute_relation :: fonc(
-	dyn graphe : &Graphe,
+	graphe : &Graphe,
 	debut : *Noeud,
 	fin : *Noeud,
 	nom : chaine) -> rien
@@ -390,7 +390,7 @@ ajoute_relation :: fonc(
 
 	imprime("Création d'une relation entre les noeuds ", debut.id, " et ", fin.id, "...\n")
 
-	dyn r := loge relation sinon {
+	r := loge relation sinon {
 		// À FAIRE : erreur
 		retourne
 	}
@@ -425,7 +425,7 @@ ajoute_relation :: fonc(
 
 principale :: fonc () -> z32
 {
-	dyn graphe : Graphe
+	graphe : Graphe
 	diffère { supprime_graphe(graphe); }
 
 	n1 := graphe.crée_noeud("nom", 1)

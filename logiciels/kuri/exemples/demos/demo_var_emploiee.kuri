@@ -13,7 +13,7 @@ imprime_test :: fonc(empl test : TEST) -> rien
     imprime_sans_format("z = ", z, '\n')
 }
 
-modifie_test :: fonc(dyn empl test : *TEST) -> rien
+modifie_test :: fonc(empl test : *TEST) -> rien
 {
     x = 7
     y = "chaine modifiée"

@@ -49,7 +49,7 @@ copie_primitive :: fonc (primitive: *Primitive) -> *Primitive
     retourne nul
 }
 
-détruit_primitive :: fonc (dyn primitive: *Primitive) -> rien
+détruit_primitive :: fonc (primitive: *Primitive) -> rien
 {
     discr primitive.type {
         POLYGONE {
@@ -66,7 +66,7 @@ détruit_primitive :: fonc (dyn primitive: *Primitive) -> rien
 
 copie_polygone :: fonc (poly: *Polygone) -> *Polygone
 {
-    dyn npoly := loge Polygone
+    npoly := loge Polygone
     npoly.type = TypePrimitive.POLYGONE
     npoly.index = poly.index
     npoly.type_polygone = poly.type_polygone
@@ -76,14 +76,14 @@ copie_polygone :: fonc (poly: *Polygone) -> *Polygone
     retourne npoly
 }
 
-détruit_polygone :: fonc (dyn poly: *Polygone) -> rien
+détruit_polygone :: fonc (poly: *Polygone) -> rien
 {
     déloge poly.points
     déloge poly.sommets
     déloge poly
 }
 
-ajoute_point :: fonc (dyn poly: *Polygone, idx_point: z64, idx_sommet: z64) -> rien
+ajoute_point :: fonc (poly: *Polygone, idx_point: z64, idx_sommet: z64) -> rien
 {
 	assert(idx_point >= 0)
 	assert(idx_sommet >= 0)
@@ -91,7 +91,7 @@ ajoute_point :: fonc (dyn poly: *Polygone, idx_point: z64, idx_sommet: z64) -> r
 	tableau_ajoute(@poly.sommets, idx_sommet)
 }
 
-reserve_sommets :: fonc (dyn poly: *Polygone, nombre: z64) -> rien
+reserve_sommets :: fonc (poly: *Polygone, nombre: z64) -> rien
 {
 	assert(nombre >= 0)
 	tableau_ajoute(@poly.points, nombre)
@@ -124,7 +124,7 @@ index_sommet :: fonc (poly: *Polygone, i: z64) -> z64
 	retourne poly.sommets[i]
 }
 
-ajourne_index :: fonc (dyn poly: *Polygone, i: z64, j: z64) -> rien
+ajourne_index :: fonc (poly: *Polygone, i: z64, j: z64) -> rien
 {
 	assert(i >= 0)
 	assert(j >= 0)
@@ -135,7 +135,7 @@ ajourne_index :: fonc (dyn poly: *Polygone, i: z64, j: z64) -> rien
 
 construit_primitive_sphère :: fonc (index_point: z64, rayon: r32) -> *Sphère
 {
-    dyn sphère := loge Sphère
+    sphère := loge Sphère
     sphère.type = TypePrimitive.SPHÈRE
     sphère.index_point = index_point
     sphère.rayon = rayon
@@ -145,13 +145,13 @@ construit_primitive_sphère :: fonc (index_point: z64, rayon: r32) -> *Sphère
 
 copie_sphère :: fonc (sphère: *Sphère) -> *Sphère
 {
-    dyn nsphère := loge Sphère
+    nsphère := loge Sphère
     mémoire(nsphère) = mémoire(sphère)
 
     retourne nsphère
 }
 
-détruit_sphère :: fonc (dyn sphère: *Sphère) -> rien
+détruit_sphère :: fonc (sphère: *Sphère) -> rien
 {
     déloge sphère
 }

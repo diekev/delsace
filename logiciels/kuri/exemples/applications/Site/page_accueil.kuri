@@ -10,7 +10,7 @@ DonnéesPage :: struct {
 
 répond_get_page_accueil :: fonc (serveuse: *Serveuse, requête: *DonnéesRequête) -> RéponseRequête
 {
-    dyn données: DonnéesPage
+    données: DonnéesPage
     retourne rends_page(@serveuse.rendeuse_gabarit, "accueil", données)
 }
 

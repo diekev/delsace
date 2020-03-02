@@ -49,7 +49,7 @@ TypeÉditrice :: énum z32 {
     matcap : *Image
 }
 
-détruit_éditrice_vue_3d :: fonc (dyn éditrice: *ÉditriceVue3D) -> rien
+détruit_éditrice_vue_3d :: fonc (éditrice: *ÉditriceVue3D) -> rien
 {
     détruit_tampon_texture(éditrice.tampon_texture)
     détruit_image(@éditrice.image)
@@ -59,7 +59,7 @@ détruit_éditrice_vue_3d :: fonc (dyn éditrice: *ÉditriceVue3D) -> rien
     déloge éditrice
 }
 
-détruit_éditrice :: fonc (dyn éditrice: *Éditrice) -> rien
+détruit_éditrice :: fonc (éditrice: *Éditrice) -> rien
 {
     si éditrice.type == TypeÉditrice.VUE_3D {
         éditrice_vue_3d := transtype(éditrice: *ÉditriceVue3D)
@@ -79,16 +79,16 @@ Application :: struct {
     éditrices : []*Éditrice
 }
 
-ajoute_éditrice :: fonc (dyn app: *Application) -> rien
+ajoute_éditrice :: fonc (app: *Application) -> rien
 {
-    dyn éditrice := crée_éditrice_vue_3d(app)
+    éditrice := crée_éditrice_vue_3d(app)
 
     tableau_ajoute(@app.éditrices, éditrice)
 }
 
-crée_éditrice_vue_3d :: fonc (dyn app: *Application) -> *Éditrice
+crée_éditrice_vue_3d :: fonc (app: *Application) -> *Éditrice
 {
-    dyn éditrice := loge ÉditriceVue3D
+    éditrice := loge ÉditriceVue3D
     éditrice.x = 0
     éditrice.y = 0
     éditrice.largeur = app.largeur
@@ -107,7 +107,7 @@ crée_éditrice_vue_3d :: fonc (dyn app: *Application) -> *Éditrice
 
     éditrice.tampon_texture = crée_tampon_texture()
 
-    dyn caméra := loge Caméra3D
+    caméra := loge Caméra3D
     caméra.champs_de_vue = calcul_champs_de_vue_degrés(70.0, 35.0)
     caméra.position = crée_vec3r()
     caméra.direction_vue = crée_vec3r(z = 1.0)
@@ -124,7 +124,7 @@ crée_éditrice_vue_3d :: fonc (dyn app: *Application) -> *Éditrice
     retourne éditrice
 }
 
-dessine_vue_3d :: fonc (dyn app: *Application, dyn éditrice: *ÉditriceVue3D) -> rien
+dessine_vue_3d :: fonc (app: *Application, éditrice: *ÉditriceVue3D) -> rien
 {
     remplis_image(@éditrice.image, Couleur{ r = 0.0, v = 0.0, b = 0.0, a = 1.0 })
 
@@ -136,7 +136,7 @@ dessine_vue_3d :: fonc (dyn app: *Application, dyn éditrice: *ÉditriceVue3D) -
     dessine_tampon_texture(éditrice.tampon_texture)
 }
 
-dessine :: fonc (dyn app: *Application, dyn éditrice: *Éditrice) -> rien
+dessine :: fonc (app: *Application, éditrice: *Éditrice) -> rien
 {
     si éditrice.type == TypeÉditrice.VUE_3D {
         éditrice_vue_3d := transtype(éditrice: *ÉditriceVue3D)
@@ -146,7 +146,7 @@ dessine :: fonc (dyn app: *Application, dyn éditrice: *Éditrice) -> rien
     }
 }
 
-initalise_application :: fonc (dyn app: *Application) -> rien
+initalise_application :: fonc (app: *Application) -> rien
 {
     maillage := charge_maillage_depuis_obj("/home/kevin/fichiers/objs/suzanne.obj")
     //maillage := crée_maillage_cube()
@@ -155,7 +155,7 @@ initalise_application :: fonc (dyn app: *Application) -> rien
     ajoute_éditrice(app)
 }
 
-détruit_application :: fonc (dyn app: *Application) -> rien
+détruit_application :: fonc (app: *Application) -> rien
 {
     pour éditrice dans app.éditrices {
         détruit_éditrice(éditrice)
@@ -168,7 +168,7 @@ détruit_application :: fonc (dyn app: *Application) -> rien
 // ----------------------------------------------------------------------------
 
 ratisse_maillage :: fonc (
-    dyn caméra : *Caméra3D,
+    caméra : *Caméra3D,
     maillage: *Maillage,
     image: *Image,
     matcap: *Image,
@@ -194,7 +194,7 @@ ratisse_maillage :: fonc (
     }
 */
 
-    dyn contexte_temp := contexte
+    contexte_temp := contexte
     contexte_temp.allocatrice = __stockage_temporaire
 
     mat_trans := matrice_translation(z = 8.0)
@@ -204,7 +204,7 @@ ratisse_maillage :: fonc (
     mat_obj := mat_trans // multiplie(mat_rot, mat_rot_x)
 
     dir_haut := crée_vec3r(y = 1.0)
-    dyn dir_cible := crée_vec3r(z = 1.0)
+    dir_cible := crée_vec3r(z = 1.0)
     mat_rot_cam := matrice_rotation_y(caméra.yaw)
     caméra.direction_vue = transforme(mat_rot_cam, dir_cible)
     dir_cible = ajoute(caméra.position, caméra.direction_vue)
@@ -214,15 +214,15 @@ ratisse_maillage :: fonc (
     matrice_vue := inverse(@matrice_caméra)
 
     // élimine les triangles invisibles
-    dyn triangles_visible : []Triangle
+    triangles_visible : []Triangle
 
     pour tri dans maillage.tris {
-        dyn tri_transformé := transforme(mat_obj, tri)
+        tri_transformé := transforme(mat_obj, tri)
 
-        dyn line1 := soustrait(tri_transformé.p1, tri_transformé.p0)
-        dyn line2 := soustrait(tri_transformé.p2, tri_transformé.p0)
+        line1 := soustrait(tri_transformé.p1, tri_transformé.p0)
+        line2 := soustrait(tri_transformé.p2, tri_transformé.p0)
 
-        dyn nor := calcul_normal(line1, line2)
+        nor := calcul_normal(line1, line2)
 
         // exclus le triangle s'il n'est pas visible
         si nor.z >= 0.0 {
@@ -245,7 +245,7 @@ ratisse_maillage :: fonc (
     // tri des triangles pour les ordonner selon la distance à la caméra
     tri_sélection(triangles_visible)
 
-    dyn caméra_vers_rateau := construit_identité_mat4r()
+    caméra_vers_rateau := construit_identité_mat4r()
     //caméra_vers_rateau = multiplie(caméra_vers_rateau, matrice_échelle(0.5, 0.5, 0.0))
     //caméra_vers_rateau = multiplie(caméra_vers_rateau, matrice_translation(1.0, 1.0, 0.0))
 
@@ -255,10 +255,10 @@ ratisse_maillage :: fonc (
     caméra_vers_rateau.m[3][1] = 0.5
 
     pour tri dans triangles_visible {
-        dyn line1 := soustrait(tri.p1, tri.p0)
-        dyn line2 := soustrait(tri.p2, tri.p0)
+        line1 := soustrait(tri.p1, tri.p0)
+        line2 := soustrait(tri.p2, tri.p0)
 
-        dyn nor := calcul_normal_normalisé(line1, line2)
+        nor := calcul_normal_normalisé(line1, line2)
 
         dir_lumière := crée_vec3r(z = -1.0)
         // besoin de normalisation ?
@@ -273,9 +273,9 @@ ratisse_maillage :: fonc (
 
         couleur := échantillonne_prochain(matcap, @uv)
 
-        dyn tri_vue := transforme(matrice_vue, tri)
+        tri_vue := transforme(matrice_vue, tri)
 
-        dyn tri_projeté := transforme(caméra.projection, tri_vue)
+        tri_projeté := transforme(caméra.projection, tri_vue)
 
         // puisque le résultat est entre -1.0 et 1.0 nous devons le transformer pous qu'il soit dans les coordonnées de l'image
         tri_projeté = transforme(caméra_vers_rateau, tri_projeté)
@@ -326,9 +326,9 @@ entresecte_triangle :: fonc (
 		vertex1: Vec3r,
 		vertex2: Vec3r,
 		rayon: *Rayon,
-		dyn distance: *r32,
-		dyn r_u : *r32,
-		dyn r_v : *r32) -> bool
+		distance: *r32,
+		r_u : *r32,
+		r_v : *r32) -> bool
 {
 	epsilon := 0.000001
 
@@ -389,11 +389,11 @@ entresection_rapide_min_max :: fonc (
 	//	retourne 0.0
 	//}
 
-	dyn t1 := (min_boite.x - r.origine.x) * r.direction_inverse.x;
-	dyn t2 := (max_boite.x - r.origine.x) * r.direction_inverse.x;
+	t1 := (min_boite.x - r.origine.x) * r.direction_inverse.x;
+	t2 := (max_boite.x - r.origine.x) * r.direction_inverse.x;
 
-	dyn tmin := min(t1, t2);
-	dyn tmax := max(t1, t2);
+	tmin := min(t1, t2);
+	tmax := max(t1, t2);
 
     t1 = (min_boite.x - r.origine.x) * r.direction_inverse.x;
     t2 = (max_boite.x - r.origine.x) * r.direction_inverse.x;
@@ -422,7 +422,7 @@ entresection_rapide_min_max :: fonc (
 	retourne tmin;
 }
 
-min_max :: fonc (v: *Vec3r, dyn min_boite: *Vec3r, dyn max_boite: *Vec3r) -> rien
+min_max :: fonc (v: *Vec3r, min_boite: *Vec3r, max_boite: *Vec3r) -> rien
 {
     si v.x < min_boite.x {
         min_boite.x = v.x
@@ -449,9 +449,9 @@ min_max :: fonc (v: *Vec3r, dyn min_boite: *Vec3r, dyn max_boite: *Vec3r) -> rie
 // pas de rebond, pas d'anti-aliasing, simplement un traçage direct, pour avoir
 // un rendu plus rapide du résultat, le matériau est une capmat
 trace_maillage :: fonc (
-    dyn caméra : *Caméra3D,
+    caméra : *Caméra3D,
     maillage : *Maillage,
-    dyn image: *Image,
+    image: *Image,
     matcap: *Image) -> rien
 {
     ticks := compte_ticks_ms()
@@ -477,14 +477,14 @@ trace_maillage :: fonc (
     mat_rot := multiplie(mat_rot_x, mat_rot_z)
     mat_obj := mat_trans // multiplie(mat_rot, mat_trans)
 
-    dyn triangles_visible : []Triangle
+    triangles_visible : []Triangle
     diffère { déloge triangles_visible; }
 
     min_boite := crée_vec3r(x =  100000000.0, y =  100000000.0, z =  100000000.0)
     max_boite := crée_vec3r(x = -100000000.0, y = -100000000.0, z = -100000000.0)
 
     pour tri dans maillage.tris {
-        dyn tri_transformé := transforme(mat_obj, tri)
+        tri_transformé := transforme(mat_obj, tri)
         tableau_ajoute(@triangles_visible, tri_transformé)
 
         min_max(@tri_transformé.p0, @min_boite, @max_boite)
@@ -493,7 +493,7 @@ trace_maillage :: fonc (
     }
 
     dir_haut := crée_vec3r(y = 1.0)
-    dyn dir_cible := crée_vec3r(z = 1.0)
+    dir_cible := crée_vec3r(z = 1.0)
     mat_rot_cam := matrice_rotation_y(caméra.yaw)
     caméra.direction_vue = transforme(mat_rot_cam, dir_cible)
     dir_cible = ajoute(caméra.position, caméra.direction_vue)
@@ -530,7 +530,7 @@ trace_maillage :: fonc (
 
             direction := transforme(caméra_vers_monde, pos)
 
-            dyn rayon : Rayon
+            rayon : Rayon
             rayon.origine = caméra.position
             rayon.direction = direction // normalise(@direction)
             rayon.direction_inverse.x = 1.0 / direction.x
@@ -543,8 +543,8 @@ trace_maillage :: fonc (
                 continue
             }
 
-            dyn distance_min := 1000.0
-            dyn idx_triangle := -1
+            distance_min := 1000.0
+            idx_triangle := -1
 
             pour tri, idx dans triangles_visible {
                 distance := 0.0
@@ -562,10 +562,10 @@ trace_maillage :: fonc (
             si idx_triangle != -1 {
                 tri := triangles_visible[idx_triangle]
 
-                dyn line1 := soustrait(tri.p1, tri.p0)
-                dyn line2 := soustrait(tri.p2, tri.p0)
+                line1 := soustrait(tri.p1, tri.p0)
+                line2 := soustrait(tri.p2, tri.p0)
 
-                dyn nor := calcul_normal_normalisé(line1, line2)
+                nor := calcul_normal_normalisé(line1, line2)
                 vnor := vec_depuis_nor(nor)
 
                 uv := calcul_uv_capmat(@caméra.direction_vue, @vnor, faux)
@@ -593,8 +593,8 @@ principale2 :: fonc () -> z32
     SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8);
 
-    dyn largeur : z32 = 640
-    dyn hauteur : z32 = 480
+    largeur : z32 = 640
+    hauteur : z32 = 480
 
     titre := "Moteur Rendu"
 
@@ -609,21 +609,21 @@ principale2 :: fonc () -> z32
     }
 
     // initialise l'application
-    dyn app : Application
+    app : Application
     app.hauteur = hauteur
     app.largeur = largeur
 
     initalise_application(@app)
     diffère { détruit_application(@app); }
 
-    dyn windowEvent : SDL_Event;
+    windowEvent : SDL_Event;
 
-    dyn theta := 0.0
+    theta := 0.0
 
     temps_écoulé := 1.0
 
     boucle {
-        dyn début := compte_ticks_ms()
+        début := compte_ticks_ms()
 
         marque := obtiens_marque_stockage_temporaire()
         diffère { set_marque_stockage_temporaire(marque); }
@@ -659,7 +659,7 @@ principale2 :: fonc () -> z32
                     app.éditrices[0].caméra.yaw += 2.0 * 0.016
                 }
 
-                dyn temp_dir_avant := multiplie(app.éditrices[0].caméra.direction_vue, 0.8 * temps_écoulé)
+                temp_dir_avant := multiplie(app.éditrices[0].caméra.direction_vue, 0.8 * temps_écoulé)
 
                 si windowEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_W {
                     app.éditrices[0].caméra.position = ajoute(app.éditrices[0].caméra.position, temp_dir_avant)
@@ -725,7 +725,7 @@ Jeu :: struct {
 }
 
 initialise_jeu :: fonc (
-    dyn jeu: *Jeu,
+    jeu: *Jeu,
     titre: chaine,
     pos_x: z32,
     pos_y: z32,
@@ -743,7 +743,7 @@ initialise_jeu :: fonc (
     SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0)
     SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8)
 
-    dyn drapeaux := SDL_WindowFlags.SDL_WINDOW_OPENGL
+    drapeaux := SDL_WindowFlags.SDL_WINDOW_OPENGL
 
     si plein_écran {
         drapeaux |= SDL_WindowFlags.SDL_WINDOW_FULLSCREEN
@@ -786,9 +786,9 @@ détruit_jeu :: fonc (jeu: *Jeu) -> rien
     SDL_Quit()
 }
 
-gère_évènement :: fonc (dyn jeu: *Jeu) -> rien
+gère_évènement :: fonc (jeu: *Jeu) -> rien
 {
-    dyn évènement : SDL_Event;
+    évènement : SDL_Event;
 
     tantque SDL_PollEvent(@évènement) != 0 {
         si évènement.type == SDL_EventType.SDL_QUIT {
@@ -797,11 +797,11 @@ gère_évènement :: fonc (dyn jeu: *Jeu) -> rien
     }
 }
 
-ajourne_objets :: fonc (dyn jeu: *Jeu) -> rien
+ajourne_objets :: fonc (jeu: *Jeu) -> rien
 {
 }
 
-rends_scène :: fonc (dyn jeu: *Jeu) -> rien
+rends_scène :: fonc (jeu: *Jeu) -> rien
 {
     glClear(0x00004000)
 
@@ -815,7 +815,7 @@ principale :: fonc () -> z32
     ips : n32 = 30
     débit_image_min : n32 = 1000 / ips
 
-    dyn jeu : Jeu
+    jeu : Jeu
     diffère { détruit_jeu(@jeu) }
 
     si !initialise_jeu(@jeu, "Jeu", 100, 100, 480, 640, faux) {

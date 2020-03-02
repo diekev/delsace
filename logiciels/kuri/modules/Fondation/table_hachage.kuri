@@ -18,7 +18,7 @@ TableHachage :: struct {
 
 crée_table_hachage :: fonc() -> *TableHachage
 {
-    dyn table := loge TableHachage
+    table := loge TableHachage
     table.alvéoles = loge [10000]*NoeudTableHachage
 
     pour i dans 0 ... 9999 {
@@ -31,10 +31,10 @@ crée_table_hachage :: fonc() -> *TableHachage
 décrée_table_hachage :: fonc(table : *TableHachage) -> rien
 {
     pour noeud dans table.alvéoles {
-        dyn n := noeud;
+        n := noeud;
 
         tantque n != nul {
-            dyn ns := n.suivant
+            ns := n.suivant
             déloge n
             n = ns
         }
@@ -46,7 +46,7 @@ décrée_table_hachage :: fonc(table : *TableHachage) -> rien
 
 crée_noeud :: fonc(clé : chaine, valeur : chaine) -> *NoeudTableHachage
 {
-    dyn n := loge NoeudTableHachage
+    n := loge NoeudTableHachage
     n.clé = clé
     n.valeur = valeur
     n.suivant = nul
@@ -55,7 +55,7 @@ crée_noeud :: fonc(clé : chaine, valeur : chaine) -> *NoeudTableHachage
 
 calcule_empreinte :: fonc(chn : chaine) -> n64
 {
-    dyn empreinte : n64 = 5381
+    empreinte : n64 = 5381
 
     pour c dans chn {
         empreinte = ((empreinte << 5) + empreinte) + transtype(c : n64)
@@ -64,11 +64,11 @@ calcule_empreinte :: fonc(chn : chaine) -> n64
 	retourne empreinte
 }
 
-insère :: fonc(dyn table : *TableHachage, clé : chaine, valeur : chaine) -> rien
+insère :: fonc(table : *TableHachage, clé : chaine, valeur : chaine) -> rien
 {
     empreinte := calcule_empreinte(clé) % 10000
 
-    dyn alvéole := table.alvéoles[empreinte]
+    alvéole := table.alvéoles[empreinte]
 
     si alvéole == nul {
         table.alvéoles[empreinte] = crée_noeud(clé, valeur)
@@ -89,7 +89,7 @@ trouve :: fonc(table : *TableHachage, clé : chaine) -> *NoeudTableHachage
 {
     empreinte := calcule_empreinte(clé) % 10000
 
-    dyn alvéole := table.alvéoles[empreinte]
+    alvéole := table.alvéoles[empreinte]
 
     si alvéole == nul {
         retourne nul
@@ -118,7 +118,7 @@ cherche_noeud :: fonc(table : *TableHachage, clé : chaine) -> *NoeudTableHachag
 chaque_noeud :: corout(table : *TableHachage) -> *NoeudTableHachage
 {
     pour alvéole dans table.alvéoles {
-        dyn n := alvéole
+        n := alvéole
 
         tantque n != nul {
             retiens n

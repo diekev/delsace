@@ -13,7 +13,7 @@
 // La chaine retourner a été logée, et doit donc être délogée par l'appelante.
 encode_adn :: fonc(valeurs : []octet) -> chaine
 {
-	dyn chn : chaine
+	chn : chaine
 
     si valeurs.taille == 0 {
 		retourne chn
@@ -40,7 +40,7 @@ encode_adn :: fonc(valeurs : []octet) -> chaine
 // La chaine retourner a été logée, et doit donc être délogée par l'appelante.
 décode_adn :: fonc(valeurs : []octet) -> chaine
 {
-	dyn chn : chaine
+	chn : chaine
 	taille := valeurs.taille
 
     si taille == 0 {
@@ -48,7 +48,7 @@ décode_adn :: fonc(valeurs : []octet) -> chaine
     }
 
 	reloge chn : chaine(taille / 4)
-	dyn val : z8 = 0
+	val : z8 = 0
 
     pour v, i dans valeurs {
 		idx := i % 4
@@ -72,7 +72,7 @@ décode_adn :: fonc(valeurs : []octet) -> chaine
 
 // Change directement la chaine passée en paramètre de sorte que chaque base est
 // remplacée par sa paire.
-appariement :: fonc(dyn chn : []octet) -> rien
+appariement :: fonc(chn : []octet) -> rien
 {
     pour v dans chn {
         discr v {

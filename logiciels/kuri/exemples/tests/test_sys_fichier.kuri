@@ -5,7 +5,7 @@ importe "sys_fichier"
 
 test_chemin_courant :: fonc() -> rien
 {
-    dyn chemin := chemin_courant()
+    chemin := chemin_courant()
 
     imprime_sans_format("chemin courant : ", chemin.chn, '\n')
     déloge chemin.chn

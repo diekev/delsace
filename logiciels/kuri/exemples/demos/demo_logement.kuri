@@ -6,13 +6,13 @@ principale :: fonc () -> z32
 	    imprime_sans_format("Mémoire utilisée : ", mémoire_utilisée(), "\n")
 	}
 
-	dyn x := loge chaine(256) sinon {
+	x := loge chaine(256) sinon {
 	    retourne 1
 	}
 
 	diffère { déloge x }
 
-	dyn y := loge r64 sinon {
+	y := loge r64 sinon {
 	    retourne 1
 	}
 

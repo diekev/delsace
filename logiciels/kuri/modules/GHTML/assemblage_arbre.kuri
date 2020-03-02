@@ -16,13 +16,13 @@ NoeudSyntaxique :: struct {
     enfants : []*NoeudSyntaxique
 }
 
-détruit_noeud :: fonc(dyn noeud : *NoeudSyntaxique) -> rien
+détruit_noeud :: fonc(noeud : *NoeudSyntaxique) -> rien
 {
     déloge noeud.enfants
     déloge noeud
 }
 
-ajoute_noeud :: fonc(dyn noeud : *NoeudSyntaxique, enfant : *NoeudSyntaxique) -> rien
+ajoute_noeud :: fonc(noeud : *NoeudSyntaxique, enfant : *NoeudSyntaxique) -> rien
 {
     tableau_ajoute(@noeud.enfants, enfant)
 }
@@ -39,12 +39,12 @@ PileNoeud :: struct {
     curseur := 0
 }
 
-détruit :: fonc(dyn pile : &PileNoeud) -> rien
+détruit :: fonc(pile : &PileNoeud) -> rien
 {
     déloge pile.données
 }
 
-empile :: fonc(dyn pile : &PileNoeud, noeud : *NoeudSyntaxique) -> rien
+empile :: fonc(pile : &PileNoeud, noeud : *NoeudSyntaxique) -> rien
 {
     si pile.curseur == pile.données.taille {
         taille := pile.données.taille
@@ -55,7 +55,7 @@ empile :: fonc(dyn pile : &PileNoeud, noeud : *NoeudSyntaxique) -> rien
     pile.curseur += 1
 }
 
-dépile :: fonc(dyn pile : &PileNoeud) -> *NoeudSyntaxique
+dépile :: fonc(pile : &PileNoeud) -> *NoeudSyntaxique
 {
     ret := pile.haut()
     pile.curseur -= 1
@@ -86,11 +86,11 @@ AssembleuseArbre :: struct {
 
 construit_assembleuse :: fonc() -> AssembleuseArbre
 {
-	dyn assembleuse : AssembleuseArbre
+	assembleuse : AssembleuseArbre
     retourne assembleuse
 }
 
-détruit_assembleuse :: fonc(dyn assembleuse : &AssembleuseArbre) -> rien
+détruit_assembleuse :: fonc(assembleuse : &AssembleuseArbre) -> rien
 {
     pour noeud dans assembleuse.noeuds {
         détruit_noeud(noeud)
@@ -102,7 +102,7 @@ détruit_assembleuse :: fonc(dyn assembleuse : &AssembleuseArbre) -> rien
 }
 
 empile_noeud :: fonc(
-    dyn assembleuse : &AssembleuseArbre,
+    assembleuse : &AssembleuseArbre,
     type_noeud : TypeNoeud,
     données : &DonnéesLexème) -> *NoeudSyntaxique
 {
@@ -118,7 +118,7 @@ empile_noeud :: fonc(
 }
 
 ajoute_noeud :: fonc(
-    dyn assembleuse : &AssembleuseArbre,
+    assembleuse : &AssembleuseArbre,
     type_noeud : TypeNoeud,
     données : &DonnéesLexème) -> rien
 {
@@ -127,11 +127,11 @@ ajoute_noeud :: fonc(
 }
 
 crée_noeud :: fonc(
-    dyn assembleuse : &AssembleuseArbre,
+    assembleuse : &AssembleuseArbre,
     type_noeud : TypeNoeud,
     données : &DonnéesLexème) -> *NoeudSyntaxique
 {
-	dyn noeud := loge NoeudSyntaxique
+	noeud := loge NoeudSyntaxique
     noeud.type = type_noeud
     noeud.données = données
     noeud.enfants.taille = 0
@@ -142,13 +142,13 @@ crée_noeud :: fonc(
 	retourne noeud
 }
 
-dépile_noeud :: fonc(dyn assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien
+dépile_noeud :: fonc(assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien
 {
 	assembleuse.attend_type(type_noeud)
 	assembleuse.pile.dépile()
 }
 
-attend_type :: fonc(dyn assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien
+attend_type :: fonc(assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien
 {
 	assert(assembleuse.pile.haut().type == type_noeud)
 }

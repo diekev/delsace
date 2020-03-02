@@ -20,7 +20,7 @@ obtiens_stmode :: fonc(chemin : &CheminFichier) -> n32
 {
 	ptr_chemin := chaine_c_temp(chemin.chn)
 
-	dyn st : stat
+	st : stat
 	ok := stat(ptr_chemin, @st)
 
 	si ok == -1 {
@@ -137,7 +137,7 @@ ferme_fichier :: fonc(desc : z32) -> rien
 
 contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 {
-    dyn contenu : []octet
+    contenu : []octet
 
 	fd := ouvre_fichier(chemin)
 	diffère { ferme_fichier(fd) }
@@ -146,11 +146,11 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 		retourne contenu
 	}
 
-	dyn tampon : [1024]z8
+	tampon : [1024]z8
 
     boucle {
 	    // À FAIRE : prend pointeur automatiquement
-		dyn lu := read(fd, @tampon[0], 1024)
+		lu := read(fd, @tampon[0], 1024)
 
 		si lu == 0 {
 			arrête
@@ -166,8 +166,8 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 
 		reloge contenu : [taille_courante + lu]octet
 
-		dyn src := @tampon[0]
-		dyn dst := @contenu[taille_courante]
+		src := @tampon[0]
+		dst := @contenu[taille_courante]
 
 		copie_mem_nonsur(src=src, dst=dst, taille=lu)
 	}
@@ -178,7 +178,7 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 contenu_fichier_texte :: fonc(chemin : &CheminFichier) -> chaine
 {
     contenu := contenu_fichier_binaire(chemin)
-    dyn chn : chaine;
+    chn : chaine;
 
     nonsûr {
         chn.pointeur = transtype(contenu.pointeur : *z8)
@@ -213,7 +213,7 @@ chaque_chemin :: corout(chemin : &CheminFichier) -> CheminFichier
         retourne
     }
 
-    dyn d := ouvre_dossier(chemin)
+    d := ouvre_dossier(chemin)
 
     si d == nul {
         retourne
@@ -243,11 +243,11 @@ FileDir :: struct {
 
 crée_file_dir :: fonc() -> *FileDir
 {
-	dyn q := loge FileDir
+	q := loge FileDir
 	retourne q
 }
 
-decrée_file :: fonc(dyn q : *FileDir) -> rien
+decrée_file :: fonc(q : *FileDir) -> rien
 {
 	q.taille = 0
 	q.capacité = 0
@@ -255,7 +255,7 @@ decrée_file :: fonc(dyn q : *FileDir) -> rien
 	déloge q
 }
 
-enfile :: fonc(dyn q : *FileDir, d : *DIR) -> rien
+enfile :: fonc(q : *FileDir, d : *DIR) -> rien
 {
     si q.taille == q.capacité {
 		reloge q.tampon : [(q.taille + 1)]*DIR
@@ -271,7 +271,7 @@ est_vide :: fonc(q : *FileDir) -> bool
 	retourne q.taille == 0
 }
 
-défile :: fonc(dyn q : *FileDir) -> *DIR
+défile :: fonc(q : *FileDir) -> *DIR
 {
     si est_vide(q) {
 		retourne nul
@@ -291,7 +291,7 @@ défile :: fonc(dyn q : *FileDir) -> *DIR
 
 enfile_dossier :: fonc(file : *FileDir, dir : *dirent, chemin : &CheminFichier) -> rien
 {
-    dyn chm := chemin_pour_dirname(dir)
+    chm := chemin_pour_dirname(dir)
 
     si chm.chn == "." {
         retourne
@@ -302,7 +302,7 @@ enfile_dossier :: fonc(file : *FileDir, dir : *dirent, chemin : &CheminFichier) 
     }
 
     // Trouve le chemin absolu.
-    dyn chn : chaine
+    chn : chaine
     diffère { déloge chn; }
 
     si chemin.chn[chemin.chn.taille - 1] != '/' {
@@ -330,7 +330,7 @@ chaque_chemin_récursif :: corout(chemin : &CheminFichier) -> CheminFichier
         retourne
     }
 
-    dyn d := ouvre_dossier(chemin)
+    d := ouvre_dossier(chemin)
 
     si d == nul {
         retourne
@@ -367,7 +367,7 @@ chaque_chemin_récursif :: corout(chemin : &CheminFichier) -> CheminFichier
 
 chemin_courant :: fonc() -> CheminFichier
 {
-    dyn ret := loge chaine(1024)
+    ret := loge chaine(1024)
     getcwd(ret.pointeur, ret.taille)
     retourne construit_chemin(ret)
 }

@@ -42,9 +42,9 @@ en_majuscule_cp :: fonc (cp: z32) -> chaine
 
 en_majuscule_utf8 :: fonc (chn: chaine) -> chaine
 {
-    dyn résultat : chaine
+    résultat : chaine
 
-    dyn i : z64 = 0
+    i : z64 = 0
 
     tantque i < chn.taille {
         n := nombre_octets_utf8_rapide(@chn[i])

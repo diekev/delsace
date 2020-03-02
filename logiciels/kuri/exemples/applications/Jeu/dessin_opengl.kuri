@@ -3,12 +3,12 @@ importe Couleur
 importe OpenGL
 importe Math
 
-dyn VertexArrayID : n32 = 0
-dyn ProgramID : n32 = 0
-dyn vertexbuffer : n32 = 0
-dyn colorbuffer : n32 = 0
-dyn tabl_sommets : []r32
-dyn tabl_couleur : []Couleur
+VertexArrayID : n32 = 0
+ProgramID : n32 = 0
+vertexbuffer : n32 = 0
+colorbuffer : n32 = 0
+tabl_sommets : []r32
+tabl_couleur : []Couleur
 
 charge_programme :: fonc() -> n32
 {
@@ -44,8 +44,8 @@ charge_programme :: fonc() -> n32
 	glCompileShader(VertexShaderID)
 
     // verifie la compilation
-    dyn Result : z32 = 0
-    dyn InfoLogLength : z32 = 0
+    Result : z32 = 0
+    InfoLogLength : z32 = 0
     glGetShaderiv(VertexShaderID, OGL.LINK_STATUS, @Result)
 	glGetShaderiv(VertexShaderID, OGL.INFO_LOG_LENGTH, @InfoLogLength)
 
@@ -214,8 +214,8 @@ dessine_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32) -> rien
     débute_dessin()
 
     segs := 32
-    dyn phi := 0.0
-	dyn phi_delta := 2.0 * 3.14159 / transtype(segs : r32)
+    phi := 0.0
+	phi_delta := 2.0 * 3.14159 / transtype(segs : r32)
 
     pour i dans 0...segs - 1 {
         ca0 := transtype(cx + cos(phi) * rx: r32)
@@ -239,8 +239,8 @@ dessine_quart_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : 
     débute_dessin()
 
     segs := 8
-	dyn phi := transtype(quadrant : r32) * (3.14159 / 2.0)
-	dyn phi_delta := 2.0 * 3.14159 / transtype(segs * 4 : r32)
+	phi := transtype(quadrant : r32) * (3.14159 / 2.0)
+	phi_delta := 2.0 * 3.14159 / transtype(segs * 4 : r32)
 
     pour i dans 0...segs - 1 {
         ca0 := transtype(cx + cos(phi) * rx: r32)

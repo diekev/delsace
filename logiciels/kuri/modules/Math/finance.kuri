@@ -23,7 +23,7 @@ covariance :: fonc(
 		moyenne2 : r32) -> r32, z64
 {
 	taille := min(cours1.taille, cours2.taille);
-	dyn res : r32;
+	res : r32;
 
 	pour i dans 0 ... taille - 1 {
 		res += (cours1[i] - moyenne1) * (cours2[i] - moyenne2);

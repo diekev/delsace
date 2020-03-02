@@ -9,7 +9,7 @@ Noeud :: struct {
 
 iter_liste_noeud :: corout(noeud : *Noeud) -> *Noeud
 {
-    dyn nloc := noeud
+    nloc := noeud
 
     tantque nloc != nul {
         retiens nloc
@@ -19,7 +19,7 @@ iter_liste_noeud :: corout(noeud : *Noeud) -> *Noeud
 
 iter_liste_noeud :: corout(noeud : *r32) -> *r32
 {
-    dyn nloc := noeud
+    nloc := noeud
 
     tantque nloc != nul {
         retiens nloc
@@ -37,9 +37,9 @@ principale :: fonc () -> z32
         imprime_sans_format("Valeur (", i, ") : ", j, '\n')
     }
 
-    dyn n3 := Noeud{ suiv = nul, val = 789 }
-    dyn n2 := Noeud{ suiv = @n3, val = 456 }
-    dyn n1 := Noeud{ suiv = @n2, val = 123 }
+    n3 := Noeud{ suiv = nul, val = 789 }
+    n2 := Noeud{ suiv = @n3, val = 456 }
+    n1 := Noeud{ suiv = @n2, val = 123 }
 
     pour n, i dans iter_liste_noeud(@n1) {
         imprime_sans_format("Valeur (", i, ") : ", n.val, '\n')

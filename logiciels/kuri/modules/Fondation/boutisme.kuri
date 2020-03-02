@@ -1,15 +1,15 @@
 // Bibliothèque de travail sur le boutisme des nombres binaires.
 
-#enligne commute_boutisme :: fonc(dyn val : *n16) -> rien
+#enligne commute_boutisme :: fonc(val : *n16) -> rien
 {
-    dyn v := mémoire(val)
+    v := mémoire(val)
     v = (v >> 8) | (v << 8)
     mémoire(val) = v
 }
 
-#enligne commute_boutisme :: fonc(dyn val : *n32) -> rien
+#enligne commute_boutisme :: fonc(val : *n32) -> rien
 {
-    dyn v := mémoire(val)
+    v := mémoire(val)
 
     v = (v >> 24) |
         ((v << 8) & 0x00FF0000) |
@@ -19,9 +19,9 @@
     mémoire(val) = v
 }
 
-#enligne commute_boutisme :: fonc(dyn val : *n64) -> rien
+#enligne commute_boutisme :: fonc(val : *n64) -> rien
 {
-    dyn v := mémoire(val)
+    v := mémoire(val)
 
     v = (v >> 56) |
         ((v << 40) & 0x00FF000000000000) |
@@ -35,32 +35,32 @@
     mémoire(val) = v
 }
 
-#enligne commute_boutisme :: fonc(dyn val : *z16) -> rien
+#enligne commute_boutisme :: fonc(val : *z16) -> rien
 {
     commute_boutisme(transtype(val: *n16))
 }
 
-#enligne commute_boutisme :: fonc(dyn val : *z32) -> rien
+#enligne commute_boutisme :: fonc(val : *z32) -> rien
 {
     commute_boutisme(transtype(val: *n32))
 }
 
-#enligne commute_boutisme :: fonc(dyn val : *z64) -> rien
+#enligne commute_boutisme :: fonc(val : *z64) -> rien
 {
     commute_boutisme(transtype(val: *n64))
 }
 
-#enligne commute_boutisme :: fonc(dyn val : *r32) -> rien
+#enligne commute_boutisme :: fonc(val : *r32) -> rien
 {
     commute_boutisme(transtype(val: *n32))
 }
 
-#enligne commute_boutisme :: fonc(dyn val : *r64) -> rien
+#enligne commute_boutisme :: fonc(val : *r64) -> rien
 {
     commute_boutisme(transtype(val: *n64))
 }
 
-commute_boutisme :: fonc(dyn tabl : []$T) -> rien
+commute_boutisme :: fonc(tabl : []$T) -> rien
 {
     pour val dans tabl {
         commute_boutisme(@val)

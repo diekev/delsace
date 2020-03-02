@@ -39,7 +39,7 @@ crée_tampon_texture :: fonc () -> *TamponTexture
     }
     "
 
-    dyn tampon_texture := loge TamponTexture
+    tampon_texture := loge TamponTexture
     tampon_texture.programme = charge_programme(source_vertex, source_fragment)
 
     // ------------------
