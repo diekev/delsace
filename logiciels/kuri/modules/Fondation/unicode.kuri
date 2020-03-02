@@ -228,7 +228,7 @@ taille_unicode :: fonc(chn : chaine) -> z64
         n := nombre_octets_utf8(pointeur)
 
         si n == 0 {
-            retourne transtype(-1 : z64)
+            retourne -1
         }
 
         i += n

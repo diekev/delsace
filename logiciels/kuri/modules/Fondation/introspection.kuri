@@ -83,33 +83,33 @@ valeur_max :: fonc (taille_en_octet: n32, est_signé: bool) -> n64
 {
     si !est_signé {
         si taille_en_octet == 1 {
-            retourne transtype(0xff: n64)
+            retourne 0xff
         }
 
         si taille_en_octet == 2 {
-            retourne transtype(0xffff: n64)
+            retourne 0xffff
         }
 
         si taille_en_octet == 4 {
-            retourne transtype(0xffff_ffff: n64)
+            retourne 0xffff_ffff
         }
 
-        retourne transtype(0xffff_ffff_ffff_ffff: n64)
+        retourne 0xffff_ffff_ffff_ffff
     }
 
     si taille_en_octet == 1 {
-        retourne transtype(0x7f: n64)
+        retourne 0x7f
     }
 
     si taille_en_octet == 2 {
-        retourne transtype(0x7fff: n64)
+        retourne 0x7fff
     }
 
     si taille_en_octet == 4 {
-        retourne transtype(0x7fff_ffff: n64)
+        retourne 0x7fff_ffff
     }
 
-    retourne transtype(0x7fff_ffff_ffff_ffff: n64)
+    retourne 0x7fff_ffff_ffff_ffff
 }
 
 hors_limite :: fonc (valeur: z64, taille_en_octet: n32, est_signé: bool) -> bool
