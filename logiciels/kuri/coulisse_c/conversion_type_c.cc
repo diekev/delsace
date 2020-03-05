@@ -32,7 +32,7 @@ void cree_typedef(
 		Type *type,
 		dls::flux_chaine &os)
 {
-	auto const &nom_broye = nom_broye_type(contexte, type, true);
+	auto const &nom_broye = nom_broye_type(type, true);
 
 	switch (type->genre) {
 		case GenreType::INVALIDE:
@@ -110,13 +110,13 @@ void cree_typedef(
 		case GenreType::REFERENCE:
 		{
 			auto type_pointe = static_cast<TypeReference *>(type)->type_pointe;
-			os << "typedef " << nom_broye_type(contexte, type_pointe, true) << "* " << nom_broye << ";\n";
+			os << "typedef " << nom_broye_type(type_pointe, true) << "* " << nom_broye << ";\n";
 			break;
 		}
 		case GenreType::POINTEUR:
 		{
 			auto type_pointe = static_cast<TypePointeur *>(type)->type_pointe;
-			os << "typedef " << nom_broye_type(contexte, type_pointe, true) << "* " << nom_broye << ";\n";
+			os << "typedef " << nom_broye_type(type_pointe, true) << "* " << nom_broye << ";\n";
 			break;
 		}
 		case GenreType::STRUCTURE:
@@ -161,14 +161,14 @@ void cree_typedef(
 				auto type_tabl = static_cast<TypeTableauFixe *>(type_pointe);
 				auto taille_tableau = type_tabl->taille;
 
-				os << "typedef " << nom_broye_type(contexte, type_tabl->type_pointe, true);
+				os << "typedef " << nom_broye_type(type_tabl->type_pointe, true);
 				os << "(" << nom_broye << ')';
 				os << '[' << static_cast<TypeTableauFixe *>(type)->taille << ']';
 				os << '[' << taille_tableau << ']';
 				os << ";\n\n";
 			}
 			else {
-				os << "typedef " << nom_broye_type(contexte, type_pointe, true);
+				os << "typedef " << nom_broye_type(type_pointe, true);
 				os << ' ' << nom_broye;
 				os << '[' << static_cast<TypeTableauFixe *>(type)->taille << ']';
 				os << ";\n\n";
@@ -196,10 +196,10 @@ void cree_typedef(
 			if (type_pointe->genre == GenreType::TABLEAU_FIXE) {
 				auto type_tabl = static_cast<TypeTableauFixe *>(type_pointe);
 				auto taille_tableau = type_tabl->taille;
-				os << nom_broye_type(contexte, type_tabl->type_pointe, true) << " *pointeur[" << taille_tableau << "];";
+				os << nom_broye_type(type_tabl->type_pointe, true) << " *pointeur[" << taille_tableau << "];";
 			}
 			else {
-				os << nom_broye_type(contexte, type_pointe, true) << " *pointeur;";
+				os << nom_broye_type(type_pointe, true) << " *pointeur;";
 			}
 
 			os << "\n\tlong taille;\n} " << nom_broye << ";\n\n";
@@ -219,14 +219,14 @@ void cree_typedef(
 				prefixe += "void (*";
 			}
 			else {
-				auto const &nom_broye_dt = nom_broye_type(contexte, type_fonc->types_sorties[0], true);
+				auto const &nom_broye_dt = nom_broye_type(type_fonc->types_sorties[0], true);
 				prefixe += nom_broye_dt + " (*";
 			}
 
 			auto virgule = "(";
 
 			POUR (type_fonc->types_entrees) {
-				auto const &nom_broye_dt = nom_broye_type(contexte, it, true);
+				auto const &nom_broye_dt = nom_broye_type(it, true);
 
 				suffixe += virgule;
 				suffixe += nom_broye_dt;
@@ -242,7 +242,7 @@ void cree_typedef(
 			nouveau_nom_broye += dls::vers_chaine(type_fonc->types_sorties.taille);
 
 			POUR (type_fonc->types_sorties) {
-				auto const &nom_broye_dt = nom_broye_type(contexte, it, true);
+				auto const &nom_broye_dt = nom_broye_type(it, true);
 
 				if (type_fonc->types_sorties.taille > 1) {
 					suffixe += virgule;

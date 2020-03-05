@@ -232,7 +232,7 @@ dls::chaine cree_info_type_C(
 		Type *type,
 		IDInfoType const &id_info_type)
 {
-	auto nom_info_type = "__info_type" + nom_broye_type(contexte, type, true) + dls::vers_chaine(index_info_type++);
+	auto nom_info_type = "__info_type" + nom_broye_type(type, true) + dls::vers_chaine(index_info_type++);
 
 	switch (type->genre) {
 		case GenreType::INVALIDE:

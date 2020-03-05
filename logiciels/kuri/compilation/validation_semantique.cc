@@ -666,7 +666,7 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 	/* nous devons attendre d'avoir les types des arguments avant de
 	 * pouvoir broyer le nom de la fonction */
 	if (nom_fonction != "principale" && !possede_drapeau(b->drapeaux, EST_EXTERNE)) {
-		donnees_fonction->nom_broye = broye_nom_fonction(contexte, *donnees_fonction, nom_fonction, module->nom);
+		donnees_fonction->nom_broye = broye_nom_fonction(*donnees_fonction, nom_fonction, module->nom);
 	}
 	else {
 		donnees_fonction->nom_broye = nom_fonction;

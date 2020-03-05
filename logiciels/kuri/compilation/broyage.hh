@@ -26,19 +26,16 @@
 
 #include "biblinternes/structures/chaine.hh"
 
-struct ContexteGenerationCode;
 struct DonneesFonction;
 struct Type;
 
 dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom);
 
 dls::chaine const &nom_broye_type(
-		ContexteGenerationCode &contexte,
 		Type *type,
 		bool pour_generation_code_c);
 
 dls::chaine broye_nom_fonction(
-		ContexteGenerationCode &contexte,
 		DonneesFonction const &df,
 		dls::vue_chaine_compacte const &nom_fonction,
 		dls::chaine const &nom_module);

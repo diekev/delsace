@@ -104,8 +104,8 @@ static void applique_transformation(
 		}
 		case TypeTransformation::EXTRAIT_EINI:
 		{
-			os << nom_broye_type(contexte, b->transformation.type_cible, true) << " " << nom_var_temp << " = *(";
-			os << nom_broye_type(contexte, b->transformation.type_cible, true) << " *)(" << nom_courant << ".pointeur);\n";
+			os << nom_broye_type(b->transformation.type_cible, true) << " " << nom_var_temp << " = *(";
+			os << nom_broye_type(b->transformation.type_cible, true) << " *)(" << nom_courant << ".pointeur);\n";
 			break;
 		}
 		case TypeTransformation::CONSTRUIT_TABL_OCTET:
@@ -123,7 +123,7 @@ static void applique_transformation(
 				default:
 				{
 					os << "\t.pointeur = (unsigned char *)(&" << nom_courant << "),\n";
-					os << "\t.taille = sizeof(" << nom_broye_type(contexte, type, true) << ")\n";
+					os << "\t.taille = sizeof(" << nom_broye_type(type, true) << ")\n";
 					break;
 				}
 				case GenreType::POINTEUR:
@@ -131,7 +131,7 @@ static void applique_transformation(
 					os << "\t.pointeur = (unsigned char *)(" << nom_courant << "),\n";
 					os << "\t.taille = sizeof(";
 					auto type_deref = contexte.typeuse.type_dereference_pour(type);
-					os << nom_broye_type(contexte, type_deref, true) << ")\n";
+					os << nom_broye_type(type_deref, true) << ")\n";
 					break;
 				}
 				case GenreType::CHAINE:
@@ -145,7 +145,7 @@ static void applique_transformation(
 					os << "\t.pointeur = (unsigned char *)(&" << nom_courant << ".pointeur),\n";
 					os << "\t.taille = " << nom_courant << ".taille * sizeof(";
 					auto type_deref = contexte.typeuse.type_dereference_pour(type);
-					os << nom_broye_type(contexte, type_deref, true) << ")\n";
+					os << nom_broye_type(type_deref, true) << ")\n";
 					break;
 				}
 				case GenreType::TABLEAU_FIXE:
@@ -153,7 +153,7 @@ static void applique_transformation(
 					os << "\t.pointeur = " << nom_courant << ",\n";
 					os << "\t.taille = " << static_cast<TypeTableauFixe *>(type)->taille << " * sizeof(";
 					auto type_deref = contexte.typeuse.type_dereference_pour(type);
-					os << nom_broye_type(contexte, type_deref, true) << ")\n";
+					os << nom_broye_type(type_deref, true) << ")\n";
 					break;
 				}
 			}
@@ -166,7 +166,7 @@ static void applique_transformation(
 		{
 			auto type_deref = contexte.typeuse.type_dereference_pour(type);
 			auto type_tabl = contexte.typeuse.type_tableau_dynamique(type_deref);
-			os << nom_broye_type(contexte, type_tabl, true) << ' ' << nom_var_temp << " = {\n";
+			os << nom_broye_type(type_tabl, true) << ' ' << nom_var_temp << " = {\n";
 			os << "\t.taille = " << static_cast<TypeTableauFixe *>(type)->taille << ",\n";
 			os << "\t.pointeur = " << nom_courant << "\n";
 			os << "};";
@@ -175,7 +175,7 @@ static void applique_transformation(
 		}
 		case TypeTransformation::FONCTION:
 		{
-			os << nom_broye_type(contexte, b->transformation.type_cible, true) << ' ';
+			os << nom_broye_type(b->transformation.type_cible, true) << ' ';
 			os << nom_var_temp << " = " << b->transformation.nom_fonction << '(';
 			os << nom_courant << ");\n";
 
@@ -193,7 +193,7 @@ static void applique_transformation(
 			}
 			else {
 				auto type_deref = contexte.typeuse.type_dereference_pour(type);
-				os << nom_broye_type(contexte, type_deref, true);
+				os << nom_broye_type(type_deref, true);
 				os << ' ' << nom_var_temp << " = *(" << nom_courant << ");\n";
 			}
 
@@ -274,7 +274,7 @@ static void cree_appel(
 	}
 	else if (type->genre != GenreType::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
 		auto nom_indirection = "__ret" + dls::vers_chaine(b);
-		os << nom_broye_type(contexte, type, true) << ' ' << nom_indirection << " = ";
+		os << nom_broye_type(type, true) << ' ' << nom_indirection << " = ";
 		b->valeur_calculee = nom_indirection;
 	}
 	else {
@@ -652,7 +652,7 @@ static void genere_declaration_structure(
 		for (auto paire_idx_mb : donnees.donnees_membres) {
 			if (paire_idx_mb.second.index_membre == i) {
 				auto nom = broye_nom_simple(paire_idx_mb.first);
-				os << nom_broye_type(contexte, type_membre, true) << ' ' << nom << ";\n";
+				os << nom_broye_type(type_membre, true) << ' ' << nom << ";\n";
 				break;
 			}
 		}
@@ -730,7 +730,7 @@ static void genere_code_allocation(
 			expr_pointeur = chn_enfant + ".pointeur";
 			expr_acces_taille = chn_enfant + ".taille";
 			expr_ancienne_taille_octet = expr_acces_taille;
-			expr_ancienne_taille_octet += " * sizeof(" + nom_broye_type(contexte, type_deref, true) + ")";
+			expr_ancienne_taille_octet += " * sizeof(" + nom_broye_type(type_deref, true) + ")";
 
 			/* allocation ou réallocation */
 			if (!b->type_declare.expressions.est_vide()) {
@@ -738,7 +738,7 @@ static void genere_code_allocation(
 				genere_code_C(expression, generatrice, contexte, false);
 				expr_nouvelle_taille = expression->chaine_calculee();
 				expr_nouvelle_taille_octet = expr_nouvelle_taille;
-				expr_nouvelle_taille_octet += " * sizeof(" + nom_broye_type(contexte, type_deref, true) + ")";
+				expr_nouvelle_taille_octet += " * sizeof(" + nom_broye_type(type_deref, true) + ")";
 			}
 			/* désallocation */
 			else {
@@ -772,7 +772,7 @@ static void genere_code_allocation(
 		{
 			auto type_deref = contexte.typeuse.type_dereference_pour(type);
 			expr_pointeur = chn_enfant;
-			expr_ancienne_taille_octet = "sizeof(" + nom_broye_type(contexte, type_deref, true) + ")";
+			expr_ancienne_taille_octet = "sizeof(" + nom_broye_type(type_deref, true) + ")";
 
 			/* allocation ou réallocation */
 			expr_nouvelle_taille_octet = expr_ancienne_taille_octet;
@@ -898,7 +898,7 @@ static void genere_declaration_fonction(
 		}
 
 		auto type_fonc = static_cast<TypeFonction *>(b->type);
-		generatrice.os << nom_broye_type(contexte, type_fonc->types_sorties[0], true) << ' ' << nom_fonction;
+		generatrice.os << nom_broye_type(type_fonc->types_sorties[0], true) << ' ' << nom_fonction;
 	}
 
 	/* Code pour les arguments */
@@ -920,7 +920,7 @@ static void genere_declaration_fonction(
 		auto nom_broye = broye_nom_simple(argument.nom);
 
 		generatrice.os << virgule << '\n';
-		generatrice.os << nom_broye_type(contexte, argument.type, true) << ' ' << nom_broye;
+		generatrice.os << nom_broye_type(argument.type, true) << ' ' << nom_broye;
 
 		virgule = ',';
 	}
@@ -932,7 +932,7 @@ static void genere_declaration_fonction(
 
 			auto nom_ret = "*" + donnees_fonction->noms_retours[idx_ret++];
 
-			generatrice.os << nom_broye_type(contexte, it, true) << ' ' << nom_ret;
+			generatrice.os << nom_broye_type(it, true) << ' ' << nom_ret;
 			virgule = ',';
 		}
 	}
@@ -1256,7 +1256,7 @@ void genere_code_C(
 			}
 
 			auto nom_broye = broye_chaine(variable);
-			flux << nom_broye_type(contexte, type, true) << ' ' << nom_broye;
+			flux << nom_broye_type(type, true) << ' ' << nom_broye;
 
 			/* nous avons une déclaration, initialise à zéro */
 			if (expression == nullptr) {
@@ -1848,7 +1848,7 @@ void genere_code_C(
 				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= ";
 				os_loc << enfant_2->chaine_calculee();
 				os_loc << ".taille - 1; ++"<< nom_var <<") {\n";
-				os_loc << nom_broye_type(contexte_loc, type_loc, true);
+				os_loc << nom_broye_type(type_loc, true);
 				os_loc << " *" << broye_chaine(var) << " = &";
 				os_loc << enfant_2->chaine_calculee();
 				os_loc << ".pointeur["<< nom_var <<"];\n";
@@ -1881,7 +1881,7 @@ void genere_code_C(
 				/* utilise une expression gauche, car dans les coroutine, les
 				 * variables temporaires ne sont pas sauvegarées */
 				genere_code_C(enfant_2, generatrice, contexte_loc, true);
-				os_loc << nom_broye_type(contexte_loc, type_loc, true);
+				os_loc << nom_broye_type(type_loc, true);
 				os_loc << " *" << broye_chaine(var) << " = &";
 				os_loc << enfant_2->chaine_calculee();
 				os_loc << "["<< nom_var <<"];\n";
@@ -1913,7 +1913,7 @@ void genere_code_C(
 					genere_code_C(enfant2->enfants.back(), generatrice, contexte, false);
 
 					generatrice.os << "for (";
-					generatrice.os << nom_broye_type(contexte, type, true);
+					generatrice.os << nom_broye_type(type, true);
 					generatrice.os << " " << nom_broye << " = ";
 					generatrice.os << enfant2->enfants.front()->chaine_calculee();
 
@@ -2233,7 +2233,7 @@ void genere_code_C(
 			auto flux = dls::flux_chaine();
 
 			flux << "(";
-			flux << nom_broye_type(contexte, b->type, true);
+			flux << nom_broye_type(b->type, true);
 			flux << ")(";
 			flux << enfant->chaine_calculee();
 			flux << ")";
@@ -2293,7 +2293,7 @@ void genere_code_C(
 				nom_tableau_fixe = dls::chaine("__tabl_fix")
 						.append(dls::vers_chaine(reinterpret_cast<long>(b)));
 
-				generatrice.os << nom_broye_type(contexte, type_tfixe, true) << ' ' << nom_tableau_fixe;
+				generatrice.os << nom_broye_type(type_tfixe, true) << ' ' << nom_tableau_fixe;
 				generatrice.os << " = ";
 
 				auto virgule = '{';
@@ -2313,7 +2313,7 @@ void genere_code_C(
 			auto nom_tableau_dyn = dls::chaine("__tabl_dyn")
 					.append(dls::vers_chaine(b));
 
-			generatrice.os << nom_broye_type(contexte, type_tdyn, true) << ' ' << nom_tableau_dyn << ";\n";
+			generatrice.os << nom_broye_type(type_tdyn, true) << ' ' << nom_tableau_dyn << ";\n";
 			generatrice.os << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
 			generatrice.os << nom_tableau_dyn << ".taille = " << taille_tableau << ";\n";
 
@@ -2374,7 +2374,7 @@ void genere_code_C(
 				genere_code_C(f, generatrice, contexte, false);
 			}
 
-			generatrice.os << nom_broye_type(contexte, b->type, true) << ' ' << nom_tableau << " = ";
+			generatrice.os << nom_broye_type(b->type, true) << ' ' << nom_tableau << " = ";
 
 			auto virgule = '{';
 
