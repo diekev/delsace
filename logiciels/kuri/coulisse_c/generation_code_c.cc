@@ -3195,14 +3195,15 @@ void genere_code_C_pour_execution(
 		ds.second.deja_genere = false;
 	}
 
-	POUR (contexte.typeuse.types_simples) it->ptr_info_type = "";
-	POUR (contexte.typeuse.types_pointeurs) it->ptr_info_type = "";
-	POUR (contexte.typeuse.types_references) it->ptr_info_type = "";
-	POUR (contexte.typeuse.types_structures) it->ptr_info_type = "";
-	POUR (contexte.typeuse.types_enums) it->ptr_info_type = "";
-	POUR (contexte.typeuse.types_tableaux_fixes) it->ptr_info_type = "";
-	POUR (contexte.typeuse.types_tableaux_dynamiques) it->ptr_info_type = "";
-	POUR (contexte.typeuse.types_fonctions) it->ptr_info_type = "";
+	POUR (contexte.typeuse.types_simples) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
+	POUR (contexte.typeuse.types_pointeurs) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
+	POUR (contexte.typeuse.types_references) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
+	POUR (contexte.typeuse.types_structures) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
+	POUR (contexte.typeuse.types_enums) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
+	POUR (contexte.typeuse.types_tableaux_fixes) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
+	POUR (contexte.typeuse.types_tableaux_dynamiques) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
+	POUR (contexte.typeuse.types_fonctions) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
+	POUR (contexte.typeuse.types_variadiques) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
 }
 
 }  /* namespace noeud */
