@@ -24,3 +24,35 @@
 
 #include "structures.hh"
 
+bool kuri::operator ==(const kuri::chaine &chn1, const kuri::chaine &chn2)
+{
+	if (chn1.taille != chn2.taille) {
+		return false;
+	}
+
+	if (chn1.taille == 0) {
+		return true;
+	}
+
+	for (auto i = 0; i < chn1.taille; ++i) {
+		if (chn1[i] != chn2[i]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool kuri::operator !=(const kuri::chaine &chn1, const kuri::chaine &chn2)
+{
+	return !(chn1 == chn2);
+}
+
+std::ostream &kuri::operator<<(std::ostream &os, const kuri::chaine &chn)
+{
+	POUR (chn) {
+		os << it;
+	}
+
+	return os;
+}

@@ -39,6 +39,8 @@
 
 namespace kuri {
 
+#define POUR(x) for (auto &it : (x))
+
 struct chaine {
 	char *pointeur = nullptr;
 	long taille = 0;
@@ -84,6 +86,12 @@ struct chaine {
 		return this->begin() + this->taille;
 	}
 };
+
+bool operator == (kuri::chaine const &chn1, kuri::chaine const &chn2);
+
+bool operator != (kuri::chaine const &chn1, kuri::chaine const &chn2);
+
+std::ostream &operator<<(std::ostream &os, kuri::chaine const &chn);
 
 template <typename T>
 struct tableau {
@@ -148,6 +156,18 @@ struct tableau {
 		this->pointeur[this->taille - 1] = valeur;
 	}
 
+	void pousse_front(T const &valeur)
+	{
+		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, this->taille + 1);
+		this->taille += 1;
+
+		for (auto i = this->taille - 1; i >= 1; --i) {
+			this->pointeur[i] = this->pointeur[i - 1];
+		}
+
+		this->pointeur[0] = valeur;
+	}
+
 	bool est_vide() const
 	{
 		return this->taille == 0;
@@ -181,7 +201,5 @@ void pousse(tableau<T> *tabl, T valeur)
 	tabl->taille += 1;
 	tabl->pointeur[tabl->taille - 1] = valeur;
 }
-
-#define POUR(x) for (auto &it : (x))
 
 }
