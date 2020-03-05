@@ -377,7 +377,7 @@ void ajoute_fichier_compilation(kuri::chaine c)
 static bool lance_execution(ContexteGenerationCode &contexte)
 {
 	// crée un fichier objet
-	auto commande = "gcc -Wno-discarded-qualifiers -Wno-format-security -shared -fPIC -o /tmp/test_execution.so /tmp/execution_kuri.c";
+	auto commande = "gcc -Wno-discarded-qualifiers -Wno-format-security -shared -fPIC -o /tmp/test_execution.so /tmp/execution_kuri.c /tmp/r16_tables.o";
 
 	auto err = system(commande);
 
