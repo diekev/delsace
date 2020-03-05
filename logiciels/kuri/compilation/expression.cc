@@ -27,9 +27,9 @@
 #include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/conditions.h"
 
-#include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
 #include "outils_lexemes.hh"
+#include "portee.hh"
 
 using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
 
@@ -52,6 +52,7 @@ static DonneesPrecedence associativite(GenreLexeme identifiant)
 			return { dir_associativite::GAUCHE, 1 };
 		case GenreLexeme::EGAL:
 		case GenreLexeme::DECLARATION_VARIABLE:
+		case GenreLexeme::DECLARATION_CONSTANTE:
 		case GenreLexeme::PLUS_EGAL:
 		case GenreLexeme::MOINS_EGAL:
 		case GenreLexeme::DIVISE_EGAL:
@@ -305,7 +306,10 @@ static auto applique_operateur_binaire_comp(GenreLexeme id, T a, T b)
  * manière arbitraire du code lors de la compilation. Pour cela, la prochaine
  * étape sera de pouvoir évaluer des fonctions entières.
  */
-ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::base *b)
+ResultatExpression evalue_expression(
+		ContexteGenerationCode &contexte,
+		NoeudBloc *bloc,
+		NoeudExpression *b)
 {
 	switch (b->genre) {
 		default:
@@ -321,7 +325,9 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 		{
 			auto res = ResultatExpression();
 
-			if (!contexte.locale_existe(b->chaine())) {
+			auto decl = trouve_dans_bloc(bloc, b->ident);
+
+			if (decl == nullptr) {
 				res.est_errone = true;
 				res.noeud_erreur = b;
 				res.message_erreur = "La variable n'existe pas !";
@@ -329,12 +335,26 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 				return res;
 			}
 
-			auto &donnees = contexte.donnees_variable(b->chaine());
+			if (decl->genre != GenreNoeud::DECLARATION_VARIABLE) {
+				res.est_errone = true;
+				res.noeud_erreur = b;
+				res.message_erreur = "La référence n'est pas celle d'une variable !";
 
-			res.type = donnees.resultat_expression.type;
-			res.entier = donnees.resultat_expression.entier;
+				return res;
+			}
 
-			return res;
+			auto decl_var = static_cast<NoeudDeclarationVariable *>(decl);
+
+			if (decl_var->expression == nullptr) {
+				res.est_errone = true;
+				res.noeud_erreur = b;
+				res.message_erreur = "La déclaration de la variable n'a pas d'expression !";
+
+				return res;
+			}
+
+			// À FAIRE : stockage de la valeur
+			return evalue_expression(contexte, decl->bloc_parent, decl_var->expression);
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
@@ -350,7 +370,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 		{
 			auto res = ResultatExpression();
 			res.type = type_expression::ENTIER;
-			res.entier = b->chaine() == "vrai";
+			res.entier = b->lexeme->chaine == "vrai";
 
 			return res;
 		}
@@ -358,7 +378,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 		{
 			auto res = ResultatExpression();
 			res.type = type_expression::ENTIER;
-			res.entier = lng::decoupeuse_nombre<GenreLexeme>::converti_chaine_nombre_entier(b->chaine(), b->lexeme.genre);
+			res.entier = lng::decoupeuse_nombre<GenreLexeme>::converti_chaine_nombre_entier(b->lexeme->chaine, b->lexeme->genre);
 
 			return res;
 		}
@@ -366,19 +386,16 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 		{
 			auto res = ResultatExpression();
 			res.type = type_expression::REEL;
-			res.reel = lng::converti_nombre_reel(dls::vue_chaine(b->chaine().pointeur(), b->chaine().taille()));
+			res.reel = lng::converti_nombre_reel(dls::vue_chaine(b->lexeme->chaine.pointeur(), b->lexeme->chaine.taille()));
 
 			return res;
 		}
 		case GenreNoeud::INSTRUCTION_SAUFSI:
 		case GenreNoeud::INSTRUCTION_SI:
 		{
-			auto const nombre_enfants = b->enfants.taille();
-			auto iter_enfant = b->enfants.debut();
+			auto inst = static_cast<NoeudSi *>(b);
 
-			auto enfant1 = *iter_enfant++;
-
-			auto res = evalue_expression(contexte, enfant1);
+			auto res = evalue_expression(contexte, bloc, inst->condition);
 
 			if (res.est_errone) {
 				return res;
@@ -391,15 +408,12 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 				return res;
 			}
 
-			auto enfant2 = *iter_enfant++;
-
 			if (res.condition == (b->genre == GenreNoeud::INSTRUCTION_SI)) {
-				res = evalue_expression(contexte, enfant2);
+				res = evalue_expression(contexte, bloc, inst->bloc_si_vrai);
 			}
 			else {
-				if (nombre_enfants == 3) {
-					auto enfant3 = *iter_enfant++;
-					res = evalue_expression(contexte, enfant3);
+				if (inst->bloc_si_faux) {
+					res = evalue_expression(contexte, bloc, inst->bloc_si_faux);
 				}
 			}
 
@@ -407,30 +421,32 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 		}
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
-			auto res = evalue_expression(contexte, b->enfants.front());
+			auto inst = static_cast<NoeudExpressionUnaire *>(b);
+			auto res = evalue_expression(contexte, bloc, inst->expr);
 
 			if (res.est_errone) {
 				return res;
 			}
 
 			if (res.type == type_expression::REEL) {
-				applique_operateur_unaire(b->identifiant(), res.reel);
+				applique_operateur_unaire(inst->lexeme->genre, res.reel);
 			}
 			else {
-				applique_operateur_unaire(b->identifiant(), res.entier);
+				applique_operateur_unaire(inst->lexeme->genre, res.entier);
 			}
 
 			return res;
 		}
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		{
-			auto res1 = evalue_expression(contexte, b->enfants.front());
+			auto inst = static_cast<NoeudExpressionBinaire *>(b);
+			auto res1 = evalue_expression(contexte, bloc, inst->expr1);
 
 			if (res1.est_errone) {
 				return res1;
 			}
 
-			auto res2 = evalue_expression(contexte, b->enfants.back());
+			auto res2 = evalue_expression(contexte, bloc, inst->expr2);
 
 			if (res2.est_errone) {
 				return res2;
@@ -439,20 +455,20 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 			auto res = ResultatExpression();
 			res.type = res1.type;
 
-			if (est_operateur_bool(b->identifiant())) {
+			if (est_operateur_bool(inst->lexeme->genre)) {
 				if (res.type == type_expression::REEL) {
-					res.condition = applique_operateur_binaire_comp(b->identifiant(), res1.reel, res2.reel);
+					res.condition = applique_operateur_binaire_comp(inst->lexeme->genre, res1.reel, res2.reel);
 				}
 				else {
-					res.condition = applique_operateur_binaire_comp(b->identifiant(), res1.entier, res2.entier);
+					res.condition = applique_operateur_binaire_comp(inst->lexeme->genre, res1.entier, res2.entier);
 				}
 			}
 			else {
 				if (res.type == type_expression::REEL) {
-					res.reel = applique_operateur_binaire(b->identifiant(), res1.reel, res2.reel);
+					res.reel = applique_operateur_binaire(inst->lexeme->genre, res1.reel, res2.reel);
 				}
 				else {
-					res.entier = applique_operateur_binaire(b->identifiant(), res1.entier, res2.entier);
+					res.entier = applique_operateur_binaire(inst->lexeme->genre, res1.entier, res2.entier);
 				}
 			}
 
@@ -460,12 +476,14 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 		}
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
-			return evalue_expression(contexte, b->enfants.front());
+			auto inst = static_cast<NoeudExpressionUnaire *>(b);
+			return evalue_expression(contexte, bloc, inst->expr);
 		}
 		case GenreNoeud::EXPRESSION_TRANSTYPE:
 		{
 			/* À FAIRE : transtypage de l'expression constante */
-			return evalue_expression(contexte, b->enfants.front());
+			auto inst = static_cast<NoeudExpressionUnaire *>(b);
+			return evalue_expression(contexte, bloc, inst->expr);
 		}
 	}
 }

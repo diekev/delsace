@@ -30,20 +30,11 @@
 #include "biblinternes/flux/outils.h"
 #include "biblinternes/outils/conditions.h"
 
-#include "syntaxeuse.hh"
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
 #include "lexeuse.hh"
-
-/* ************************************************************************** */
-
-DonneesFonction::iteratrice_arg DonneesFonction::trouve(const dls::vue_chaine_compacte &nom)
-{
-	return std::find_if(args.debut(), args.fin(), [&](DonneesArgument const &da)
-	{
-		return da.nom == nom;
-	});
-}
+#include "portee.hh"
+#include "syntaxeuse.hh"
 
 /* ************************************************************************** */
 
@@ -58,52 +49,16 @@ bool Fichier::importe_module(dls::vue_chaine_compacte const &nom_module) const
 	return modules_importes.trouve(nom_module) != modules_importes.fin();
 }
 
-bool DonneesModule::possede_fonction(dls::vue_chaine_compacte const &nom_fonction) const
+DonneesModule::DonneesModule(ContexteGenerationCode &contexte)
+	: assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", contexte))
+	, bloc(assembleuse->bloc_courant())
 {
-	return fonctions_exportees.trouve(nom_fonction) != fonctions_exportees.fin();
+	assert(bloc != nullptr);
 }
 
-void DonneesModule::ajoute_donnees_fonctions(dls::vue_chaine_compacte const &nom_fonction, DonneesFonction const &donnees)
+DonneesModule::~DonneesModule()
 {
-	auto iter = fonctions.trouve(nom_fonction);
-
-	if (iter == fonctions.fin()) {
-		auto liste = dls::liste<DonneesFonction>();
-		liste.pousse(donnees);
-		fonctions.insere({nom_fonction, liste});
-	}
-	else {
-		iter->second.pousse(donnees);
-	}
-}
-
-dls::liste<DonneesFonction> &DonneesModule::donnees_fonction(dls::vue_chaine_compacte const &nom_fonction) noexcept
-{
-	auto iter = fonctions.trouve(nom_fonction);
-
-	if (iter == fonctions.fin()) {
-		assert(false);
-	}
-
-	return iter->second;
-}
-
-bool DonneesModule::fonction_existe(dls::vue_chaine_compacte const &nom_fonction) const noexcept
-{
-	return fonctions.trouve(nom_fonction) != fonctions.fin();
-}
-
-size_t DonneesModule::memoire_utilisee() const noexcept
-{
-	auto memoire = static_cast<size_t>(fonctions.taille()) * (sizeof(dls::tableau<DonneesFonction>) + sizeof(dls::vue_chaine_compacte));
-
-	for (auto const &df : fonctions) {
-		for (auto const &fonc : df.second) {
-			memoire += static_cast<size_t>(fonc.args.taille()) * (sizeof(DonneesArgument) + sizeof(dls::vue_chaine_compacte));
-		}
-	}
-
-	return memoire;
+	memoire::deloge("assembleuse_arbre", assembleuse);
 }
 
 /* ************************************************************************** */
@@ -120,7 +75,7 @@ dls::chaine charge_fichier(
 		erreur::lance_erreur(
 					"Impossible d'ouvrir le fichier correspondant au module",
 					contexte,
-					lexeme,
+					&lexeme,
 					erreur::type_erreur::MODULE_INCONNU);
 	}
 
@@ -154,7 +109,7 @@ void charge_fichier(
 		erreur::lance_erreur(
 					"Impossible de trouver le fichier correspondant au module",
 					contexte,
-					lexeme,
+					&lexeme,
 					erreur::type_erreur::MODULE_INCONNU);
 	}
 
@@ -162,7 +117,7 @@ void charge_fichier(
 		erreur::lance_erreur(
 					"Le nom du fichier ne pointe pas vers un fichier régulier",
 					contexte,
-					lexeme,
+					&lexeme,
 					erreur::type_erreur::MODULE_INCONNU);
 	}
 
@@ -218,7 +173,7 @@ void importe_module(
 			erreur::lance_erreur(
 						"Impossible de trouver le dossier correspondant au module",
 						contexte,
-						lexeme,
+						&lexeme,
 						erreur::type_erreur::MODULE_INCONNU);
 		}
 	}
@@ -227,7 +182,7 @@ void importe_module(
 		erreur::lance_erreur(
 					"Le nom du module ne pointe pas vers un dossier",
 					contexte,
-					lexeme,
+					&lexeme,
 					erreur::type_erreur::MODULE_INCONNU);
 	}
 
@@ -263,7 +218,7 @@ void importe_module(
 static double verifie_compatibilite(
 		Type *type_arg,
 		Type *type_enf,
-		noeud::base *enfant,
+		NoeudBase *enfant,
 		TransformationType &transformation)
 {
 	transformation = cherche_transformation(type_enf, type_arg);
@@ -328,84 +283,92 @@ static Type *apparie_type_gabarit(Type *type, DonneesTypeDeclare const &type_dec
 
 static DonneesCandidate verifie_donnees_fonction(
 		ContexteGenerationCode &contexte,
-		DonneesFonction &donnees_fonction,
-		dls::liste<dls::vue_chaine_compacte> &noms_arguments,
-		dls::liste<noeud::base *> const &exprs)
+		NoeudDeclarationFonction *decl,
+		kuri::tableau<IdentifiantCode *> &noms_arguments,
+		kuri::tableau<NoeudExpression *> const &exprs)
 {
 	auto res = DonneesCandidate{};
 
-	auto const nombre_args = donnees_fonction.args.taille();
+	auto const nombre_args = decl->params.taille;
 
-	if (!donnees_fonction.est_variadique && (exprs.taille() > nombre_args)) {
+	if (!decl->est_variadique && (exprs.taille > nombre_args)) {
 		res.etat = FONCTION_INTROUVEE;
 		res.raison = MECOMPTAGE_ARGS;
-		res.df = &donnees_fonction;
+		res.decl_fonc = decl;
 		return res;
 	}
 
-	if (nombre_args == 0 && exprs.taille() == 0) {
+	if (nombre_args == 0 && exprs.taille == 0) {
 		res.poids_args = 1.0;
 		res.etat = FONCTION_TROUVEE;
 		res.raison = AUCUNE_RAISON;
-		res.df = &donnees_fonction;
+		res.decl_fonc = decl;
 		return res;
 	}
 
-	dls::tablet<noeud::base *, 10> slots;
-	slots.redimensionne(nombre_args - donnees_fonction.est_variadique);
+	dls::tablet<NoeudExpression *, 10> slots;
+	slots.redimensionne(nombre_args - decl->est_variadique);
 
 	for (auto i = 0; i < slots.taille(); ++i) {
-		slots[i] = donnees_fonction.args[i].expression_defaut;
+		auto param = static_cast<NoeudDeclarationVariable *>(decl->params[i]);
+		slots[i] = param->expression;
 	}
 
 	auto index = 0l;
-	auto iter_expr = exprs.debut();
+	auto iter_expr = exprs.begin();
 	auto arguments_nommes = false;
 	auto dernier_arg_variadique = false;
-	dls::ensemble<dls::vue_chaine_compacte> args;
+	dls::ensemble<IdentifiantCode *> args;
 
 	for (auto const &nom_arg : noms_arguments) {
-		if (nom_arg != "") {
+		if (nom_arg != nullptr) {
 			arguments_nommes = true;
 
-			auto iter = donnees_fonction.trouve(nom_arg);
+			auto param = static_cast<NoeudDeclaration *>(nullptr);
+			auto index_param = 0l;
 
-			if (iter == donnees_fonction.args.fin()) {
+			for (auto i = 0; i < decl->params.taille; ++i) {
+				auto it = decl->params[i];
+
+				if (it->ident == nom_arg) {
+					param = it;
+					index_param = i;
+					break;
+				}
+			}
+
+			if (param == nullptr) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = MENOMMAGE_ARG;
-				res.nom_arg = nom_arg;
-				res.df = &donnees_fonction;
+				res.nom_arg = nom_arg->nom;
+				res.decl_fonc = decl;
 				return res;
 			}
 
-			auto &donnees = *iter;
-
-			if ((args.trouve(nom_arg) != args.fin()) && !donnees.est_variadic) {
+			if ((args.trouve(nom_arg) != args.fin()) && (param->drapeaux & EST_VARIADIQUE) == 0) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = RENOMMAGE_ARG;
-				res.nom_arg = nom_arg;
-				res.df = &donnees_fonction;
+				res.nom_arg = nom_arg->nom;
+				res.decl_fonc = decl;
 				return res;
 			}
 
-			dernier_arg_variadique = donnees.est_variadic;
+			dernier_arg_variadique = (param->drapeaux & EST_VARIADIQUE) != 0;
 
 			args.insere(nom_arg);
 
-			auto index_arg = std::distance(donnees_fonction.args.debut(), iter);
-
-			if (dernier_arg_variadique || index_arg >= slots.taille()) {
+			if (dernier_arg_variadique || index_param >= slots.taille()) {
 				slots.pousse(*iter_expr++);
 			}
 			else {
-				slots[index_arg] = *iter_expr++;
+				slots[index_param] = *iter_expr++;
 			}
 		}
 		else {
 			if (arguments_nommes == true && dernier_arg_variadique == false) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = MANQUE_NOM_APRES_VARIADIC;
-				res.df = &donnees_fonction;
+				res.decl_fonc = decl;
 				return res;
 			}
 
@@ -424,7 +387,7 @@ static DonneesCandidate verifie_donnees_fonction(
 			// À FAIRE : on pourrait donner les noms des arguments manquants
 			res.etat = FONCTION_INTROUVEE;
 			res.raison = MECOMPTAGE_ARGS;
-			res.df = &donnees_fonction;
+			res.decl_fonc = decl;
 			return res;
 		}
 	}
@@ -432,8 +395,7 @@ static DonneesCandidate verifie_donnees_fonction(
 	auto paires_expansion_gabarit = dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>>();
 
 	auto poids_args = 1.0;
-	auto fonction_variadique_interne = donnees_fonction.est_variadique
-			&& !donnees_fonction.est_externe;
+	auto fonction_variadique_interne = decl->est_variadique && !decl->est_externe;
 	auto expansion_rencontree = false;
 
 	auto transformations = dls::tableau<TransformationType>(slots.taille());
@@ -441,35 +403,26 @@ static DonneesCandidate verifie_donnees_fonction(
 	auto nombre_arg_variadiques_rencontres = 0;
 
 	for (auto i = 0l; i < slots.taille(); ++i) {
-		auto index_arg = std::min(i, donnees_fonction.args.taille() - 1);
-		auto &arg = donnees_fonction.args[index_arg];
+		auto index_arg = std::min(i, decl->params.taille - 1);
+		auto param = static_cast<NoeudDeclarationVariable *>(decl->params[index_arg]);
+		auto arg = param->valeur;
 		auto slot = slots[i];
 
-		if (slot == arg.expression_defaut) {
+		if (slot == param->expression) {
 			continue;
 		}
 
 		auto type_enf = slot->type;
-		auto type_arg = arg.type;
+		auto type_arg = arg->type;
 
-		if (arg.type_declare.est_gabarit) {
+		if (arg->type_declare.est_gabarit) {
 			// trouve l'argument
 			auto type_trouve = false;
 			auto type_errone = false;
 			for (auto &paire : paires_expansion_gabarit) {
-				if (paire.first == arg.type_declare.nom_gabarit) {
+				if (paire.first == arg->type_declare.nom_gabarit) {
 					type_trouve = true;
-
-					if (paire.second != type_enf) {
-						type_errone = true;
-						// erreur À FAIRE
-						poids_args = 0.0;
-						res.raison = METYPAGE_ARG;
-						//res.type1 = type_enf;
-						res.type2 = type_enf;
-						res.noeud_decl = slot;
-						break;
-					}
+					break;
 				}
 			}
 
@@ -478,7 +431,7 @@ static DonneesCandidate verifie_donnees_fonction(
 			}
 
 			if (!type_trouve) {
-				auto type_gabarit = apparie_type_gabarit(type_enf, arg.type_declare);
+				auto type_gabarit = apparie_type_gabarit(type_enf, arg->type_declare);
 
 				if (type_gabarit == nullptr) {
 					poids_args = 0.0;
@@ -486,17 +439,17 @@ static DonneesCandidate verifie_donnees_fonction(
 					//res.type1 = type_enf;
 					res.type2 = type_enf;
 					res.noeud_decl = slot;
-					res.df = &donnees_fonction;
+					res.decl_fonc = decl;
 					return res;
 				}
 
-				paires_expansion_gabarit.pousse({ arg.type_declare.nom_gabarit, type_gabarit });
+				paires_expansion_gabarit.pousse({ arg->type_declare.nom_gabarit, type_gabarit });
 			}
 
 			type_arg = type_enf;
 		}
 
-		if (arg.est_variadic) {
+		if ((param->drapeaux & EST_VARIADIQUE) != 0) {
 			if (contexte.typeuse.type_dereference_pour(type_arg) != nullptr) {
 				auto transformation = TransformationType();
 				auto type_deref = contexte.typeuse.type_dereference_pour(type_arg);
@@ -532,7 +485,7 @@ static DonneesCandidate verifie_donnees_fonction(
 				}
 
 				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
-				if (arg.type_declare.est_gabarit) {
+				if (arg->type_declare.est_gabarit) {
 					poids_pour_enfant *= 0.95;
 				}
 
@@ -577,7 +530,7 @@ static DonneesCandidate verifie_donnees_fonction(
 			auto poids_pour_enfant = verifie_compatibilite(type_arg, type_enf, slot, transformation);
 
 			// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
-			if (arg.type_declare.est_gabarit) {
+			if (arg->type_declare.est_gabarit) {
 				poids_pour_enfant *= 0.95;
 			}
 
@@ -602,16 +555,16 @@ static DonneesCandidate verifie_donnees_fonction(
 		if (slots.taille() != nombre_args || slots[index_premier_var_arg]->genre != GenreNoeud::EXPANSION_VARIADIQUE) {
 			/* Pour les fonctions variadiques interne, nous créons un tableau
 			 * correspondant au types des arguments. */
-			auto noeud_tableau = contexte.assembleuse->cree_noeud(
-						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, exprs.front()->lexeme);
+			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(contexte.assembleuse->cree_noeud(
+						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, exprs[0]->lexeme));
 			noeud_tableau->valeur_calculee = slots.taille() - index_premier_var_arg;
 			noeud_tableau->drapeaux |= EST_CALCULE;
 
-			auto type_var = donnees_fonction.args.back().type;
+			auto type_var = decl->params[decl->params.taille - 1]->type;
 			noeud_tableau->type = contexte.typeuse.type_dereference_pour(type_var);
 
 			for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
-				noeud_tableau->ajoute_noeud(slots[i]);
+				noeud_tableau->exprs.pousse(slots[i]);
 			}
 
 			if (index_premier_var_arg >= slots.taille()) {
@@ -625,7 +578,7 @@ static DonneesCandidate verifie_donnees_fonction(
 		}
 	}
 
-	res.df = &donnees_fonction;
+	res.decl_fonc = decl;
 	res.poids_args = poids_args;
 	res.exprs = slots;
 	res.etat = FONCTION_TROUVEE;
@@ -635,11 +588,38 @@ static DonneesCandidate verifie_donnees_fonction(
 	return res;
 }
 
+static void trouve_fonctions_dans_module(
+		ContexteGenerationCode &contexte,
+		DonneesModule *module,
+		IdentifiantCode *nom,
+		kuri::tableau<IdentifiantCode *> &noms_arguments,
+		kuri::tableau<NoeudExpression *> const &exprs,
+		ResultatRecherche &res)
+{
+	assert(module);
+	assert(module->bloc);
+
+	POUR (module->bloc->expressions) {
+		if (it->genre != GenreNoeud::DECLARATION_FONCTION) {
+			continue;
+		}
+
+		if (it->ident != nom) {
+			continue;
+		}
+
+		auto decl_fonc = static_cast<NoeudDeclarationFonction *>(it);
+
+		auto dc = verifie_donnees_fonction(contexte, decl_fonc, noms_arguments, exprs);
+		res.candidates.pousse(dc);
+	}
+}
+
 ResultatRecherche cherche_donnees_fonction(
 		ContexteGenerationCode &contexte,
-		dls::vue_chaine_compacte const &nom,
-		dls::liste<dls::vue_chaine_compacte> &noms_arguments,
-		dls::liste<noeud::base *> const &exprs,
+		IdentifiantCode *nom,
+		kuri::tableau<IdentifiantCode *> &noms_arguments,
+		kuri::tableau<NoeudExpression *> const &exprs,
 		size_t index_fichier,
 		size_t index_fichier_appel)
 {
@@ -650,16 +630,7 @@ ResultatRecherche cherche_donnees_fonction(
 		auto fichier = contexte.fichier(index_fichier_appel);
 		auto module = fichier->module;
 
-		if (!module->possede_fonction(nom)) {
-			return {};
-		}
-
-		auto &vdf = module->donnees_fonction(nom);
-
-		for (auto &df : vdf) {
-			auto dc = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
-			res.candidates.pousse(dc);
-		}
+		trouve_fonctions_dans_module(contexte, module, nom, noms_arguments, exprs, res);
 
 		return res;
 	}
@@ -667,27 +638,13 @@ ResultatRecherche cherche_donnees_fonction(
 	auto fichier = contexte.fichier(index_fichier);
 	auto module = fichier->module;
 
-	if (module->possede_fonction(nom)) {
-		auto &vdf = module->donnees_fonction(nom);
-
-		for (auto &df : vdf) {
-			auto dc = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
-			res.candidates.pousse(dc);
-		}
-	}
+	trouve_fonctions_dans_module(contexte, module, nom, noms_arguments, exprs, res);
 
 	/* cherche dans les modules importés */
 	for (auto &nom_module : fichier->modules_importes) {
 		module = contexte.module(nom_module);
 
-		if (module->possede_fonction(nom)) {
-			auto &vdf = module->donnees_fonction(nom);
-
-			for (auto &df : vdf) {
-				auto dc = verifie_donnees_fonction(contexte, df, noms_arguments, exprs);
-				res.candidates.pousse(dc);
-			}
-		}
+		trouve_fonctions_dans_module(contexte, module, nom, noms_arguments, exprs, res);
 	}
 
 	return res;
@@ -711,4 +668,16 @@ PositionMorceau trouve_position(const DonneesLexeme &lexeme, Fichier *fichier)
 	}
 
 	return pos;
+}
+
+NoeudDeclarationFonction *cherche_fonction_dans_module(
+		ContexteGenerationCode &contexte,
+		dls::vue_chaine_compacte const &nom_module,
+		dls::vue_chaine_compacte const &nom_fonction)
+{
+	auto module = contexte.module(nom_module);
+	auto ident = contexte.table_identifiants.identifiant_pour_chaine(nom_fonction);
+	auto decl = trouve_dans_bloc(module->bloc, ident);
+
+	return static_cast<NoeudDeclarationFonction *>(decl);
 }

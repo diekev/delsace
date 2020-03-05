@@ -50,13 +50,13 @@ namespace noeud {
 static int index = 0;
 
 void genere_code_C(
-		base *b,
+		NoeudExpression *b,
 		GeneratriceCodeC &generatrice,
 		ContexteGenerationCode &contexte,
 		bool expr_gauche);
 
 static void applique_transformation(
-		base *b,
+		NoeudExpression *b,
 		GeneratriceCodeC &generatrice,
 		ContexteGenerationCode &contexte,
 		bool expr_gauche)
@@ -211,6 +211,7 @@ static void applique_transformation(
 }
 
 static void genere_code_extra_pre_retour(
+		NoeudBloc *bloc,
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
 		dls::flux_chaine &os)
@@ -223,43 +224,52 @@ static void genere_code_extra_pre_retour(
 	}
 
 	/* génère le code pour les blocs déférés */
-	auto pile_noeud = contexte.noeuds_differes();
+	while (bloc != nullptr) {
+		for (auto i = bloc->noeuds_differes.taille - 1; i >= 0; --i) {
+			auto bloc_differe = bloc->noeuds_differes[i];
+			bloc_differe->est_differe = false;
+			genere_code_C(bloc_differe, generatrice, contexte, false);
+			bloc_differe->est_differe = true;
+		}
 
-	while (!pile_noeud.est_vide()) {
-		auto noeud = pile_noeud.back();
-		genere_code_C(noeud, generatrice, contexte, true);
-		pile_noeud.pop_back();
+		bloc = bloc->parent;
 	}
 }
 
 /* ************************************************************************** */
 
-static inline auto broye_chaine(base *b)
+static inline auto broye_chaine(NoeudExpression *b)
 {
-	return broye_nom_simple(b->chaine());
+	return broye_nom_simple(b->ident->nom);
+}
+
+static inline auto broye_chaine(dls::vue_chaine_compacte const &chn)
+{
+	return broye_nom_simple(chn);
 }
 
 /* ************************************************************************** */
 
 static void cree_appel(
-		base *b,
+		NoeudExpression *b,
 		dls::flux_chaine &os,
 		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		dls::chaine const &nom_broye,
-		dls::liste<base *> const &enfants)
+		GeneratriceCodeC &generatrice)
 {
-	for (auto enf : enfants) {
-		applique_transformation(enf, generatrice, contexte, false);
+	auto expr_appel = static_cast<NoeudExpressionAppel *>(b);
+	auto decl_fonction_appelee = static_cast<NoeudDeclarationFonction *>(expr_appel->noeud_fonction_appelee);
+
+	POUR (expr_appel->exprs) {
+		applique_transformation(it, generatrice, contexte, false);
 	}
 
 	auto type = b->type;
 
-	dls::liste<base *> liste_var_retour{};
+	dls::liste<NoeudExpression *> liste_var_retour{};
 	dls::tableau<dls::chaine> liste_noms_retour{};
 
 	if (b->aide_generation_code == APPEL_FONCTION_MOULT_RET) {
-		liste_var_retour = std::any_cast<dls::liste<base *>>(b->valeur_calculee);
+		liste_var_retour = std::any_cast<dls::liste<NoeudExpression *>>(b->valeur_calculee);
 		/* la valeur calculée doit être toujours valide. */
 		b->valeur_calculee = dls::chaine("");
 
@@ -272,7 +282,7 @@ static void cree_appel(
 		/* la valeur calculée doit être toujours valide. */
 		b->valeur_calculee = dls::chaine("");
 	}
-	else if (type->genre != GenreType::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
+	else if (type->genre != GenreType::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((decl_fonction_appelee != nullptr) && !decl_fonction_appelee->est_coroutine))) {
 		auto nom_indirection = "__ret" + dls::vers_chaine(b);
 		os << nom_broye_type(type, true) << ' ' << nom_indirection << " = ";
 		b->valeur_calculee = nom_indirection;
@@ -282,25 +292,22 @@ static void cree_appel(
 		b->valeur_calculee = dls::chaine("");
 	}
 
-	os << nom_broye;
+	os << expr_appel->nom_fonction_appel;
 
 	auto virgule = '(';
 
-	if (enfants.est_vide() && liste_var_retour.est_vide() && liste_noms_retour.est_vide()) {
+	if (expr_appel->params.taille == 0 && liste_var_retour.est_vide() && liste_noms_retour.est_vide()) {
 		os << virgule;
 		virgule = ' ';
 	}
 
-	if (b->df != nullptr) {
-		auto df = b->df;
-		auto noeud_decl = df->noeud_decl;
-
-		if (df->est_coroutine) {
+	if (decl_fonction_appelee != nullptr) {
+		if (decl_fonction_appelee->est_coroutine) {
 			os << virgule << "&__etat" << dls::vers_chaine(b) << ");\n";
 			return;
 		}
 
-		if (!df->est_externe && noeud_decl != nullptr && !dls::outils::possede_drapeau(noeud_decl->drapeaux, FORCE_NULCTX)) {
+		if (!decl_fonction_appelee->est_externe && !dls::outils::possede_drapeau(decl_fonction_appelee->drapeaux, FORCE_NULCTX)) {
 			os << virgule;
 			os << "contexte";
 			virgule = ',';
@@ -314,9 +321,9 @@ static void cree_appel(
 		}
 	}
 
-	for (auto enf : enfants) {
+	POUR (expr_appel->exprs) {
 		os << virgule;
-		os << enf->chaine_calculee();
+		os << it->chaine_calculee();
 		virgule = ',';
 	}
 
@@ -355,46 +362,36 @@ static void cree_initialisation(
 	}
 	else if (type_parent->genre == GenreType::UNION) {
 		auto type_union = static_cast<TypeStructure *>(type_parent);
-		auto const &ds = contexte.donnees_structure(type_union->nom);
 
 		/* À FAIRE: initialise le type le plus large */
-		if (!ds.est_nonsur) {
+		if (!type_union->decl->est_nonsure) {
 			os << chaine_parent << dls::chaine(accesseur) << "membre_actif = 0;\n";
 		}
 	}
 	else if (type_parent->genre == GenreType::STRUCTURE) {
 		auto type_struct = static_cast<TypeStructure *>(type_parent);
-		auto const &ds = contexte.donnees_structure(type_struct->nom);
+		auto decl = type_struct->decl;
 
-		for (auto i = 0l; i < ds.types.taille(); ++i) {
-			auto type_enf = ds.types[i];
+		POUR (decl->bloc->membres) {
+			auto decl_membre = static_cast<NoeudDeclarationVariable *>(it);
+			auto nom = decl_membre->ident->nom;
+			auto decl_nom = chaine_parent + dls::chaine(accesseur) + broye_nom_simple(nom);
 
-			for (auto paire_idx_mb : ds.donnees_membres) {
-				auto const &donnees_membre = paire_idx_mb.second;
-
-				if (donnees_membre.index_membre != i) {
-					continue;
-				}
-
-				auto nom = paire_idx_mb.first;
-				auto decl_nom = chaine_parent + dls::chaine(accesseur) + broye_nom_simple(nom);
-
-				if (donnees_membre.noeud_decl != nullptr) {
-					/* indirection pour les chaines ou autres */
-					genere_code_C(donnees_membre.noeud_decl, generatrice, contexte, false);
-					os << decl_nom << " = ";
-					os << donnees_membre.noeud_decl->chaine_calculee();
-					os << ";\n";
-				}
-				else {
-					cree_initialisation(
-								contexte,
-								generatrice,
-								type_enf,
-								decl_nom,
-								".",
-								os);
-				}
+			if (decl_membre->expression != nullptr) {
+				/* indirection pour les chaines ou autres */
+				genere_code_C(decl_membre->expression, generatrice, contexte, false);
+				os << decl_nom << " = ";
+				os << decl_membre->expression->chaine_calculee();
+				os << ";\n";
+			}
+			else {
+				cree_initialisation(
+							contexte,
+							generatrice,
+							it->type,
+							decl_nom,
+							".",
+							os);
 			}
 		}
 	}
@@ -409,9 +406,9 @@ static void cree_initialisation(
 static void genere_code_acces_membre(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
-		base *b,
-		base *structure,
-		base *membre,
+		NoeudExpression *b,
+		NoeudExpression *structure,
+		NoeudExpression *membre,
 		bool expr_gauche)
 {
 	auto flux = dls::flux_chaine();
@@ -460,9 +457,8 @@ static void genere_code_acces_membre(
 			flux << nom_acces;
 		}
 		else if (type_structure->genre == GenreType::ENUM) {
-			auto nom_struct = static_cast<TypeEnum *>(type_structure)->nom;
-			auto &ds = contexte.donnees_structure(nom_struct);
-			flux << chaine_valeur_enum(ds, membre->chaine());
+			auto type_enum = static_cast<TypeEnum *>(type_structure);
+			flux << chaine_valeur_enum(type_enum->decl, membre->ident->nom);
 		}
 		else if (type_structure->genre == GenreType::STRUCTURE) {
 			genere_code_C(structure, generatrice, contexte, expr_gauche);
@@ -505,7 +501,7 @@ static void genere_code_acces_membre(
 			}
 
 			flux << ((est_pointeur) ? "->" : ".");
-			flux << broye_chaine(membre);
+			flux << broye_chaine(membre->ident->nom);
 		}
 	}
 
@@ -535,8 +531,8 @@ static void genere_code_echec_logement(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
 		dls::chaine const &nom_ptr,
-		base *b,
-		base *bloc)
+		NoeudExpression *b,
+		NoeudExpression *bloc)
 {
 	generatrice.os << "if (" << nom_ptr  << " == 0)";
 
@@ -545,8 +541,8 @@ static void genere_code_echec_logement(
 	}
 	else {
 		auto const &lexeme = b->lexeme;
-		auto module = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-		auto pos = trouve_position(lexeme, module);
+		auto module = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+		auto pos = trouve_position(*lexeme, module);
 
 		generatrice.os << " {\n";
 		generatrice.os << "KR__hors_memoire(";
@@ -557,83 +553,22 @@ static void genere_code_echec_logement(
 	}
 }
 
-static DonneesFonction *cherche_donnees_fonction(
-		ContexteGenerationCode &contexte,
-		base *b)
+static void genere_declaration_structure(dls::flux_chaine &os, TypeStructure *type)
 {
-	auto module = contexte.fichier(static_cast<size_t>(b->lexeme.fichier))->module;
-	auto &vdf = module->donnees_fonction(b->lexeme.chaine);
+	auto decl = type->decl;
 
-	for (auto &df : vdf) {
-		if (df.noeud_decl == b) {
-			return &df;
-		}
-	}
-
-	return nullptr;
-}
-
-static void pousse_argument_fonction_pile(
-		ContexteGenerationCode &contexte,
-		DonneesArgument const &argument,
-		dls::chaine const &nom_broye)
-{
-	auto donnees_var = DonneesVariable{};
-	donnees_var.est_variadic = argument.est_variadic;
-	donnees_var.type = argument.type;
-	donnees_var.est_argument = true;
-
-	contexte.pousse_locale(argument.nom, donnees_var);
-
-	if (argument.est_employe) {
-		auto type = argument.type;
-		auto nom_structure = dls::vue_chaine_compacte("");
-		auto est_pointeur = false;
-
-		if (type->genre == GenreType::POINTEUR) {
-			est_pointeur = true;
-
-			type = contexte.typeuse.type_dereference_pour(type);
-		}
-
-		nom_structure = static_cast<TypeStructure *>(type)->nom;
-
-		auto &ds = contexte.donnees_structure(nom_structure);
-
-		/* pousse chaque membre de la structure sur la pile */
-
-		for (auto &dm : ds.donnees_membres) {
-			auto type_membre = ds.types[dm.second.index_membre];
-
-			donnees_var.type = type_membre;
-			donnees_var.est_argument = true;
-			donnees_var.est_membre_emploie = true;
-			donnees_var.structure = nom_broye + (est_pointeur ? "->" : ".");
-
-			contexte.pousse_locale(dm.first, donnees_var);
-		}
-	}
-}
-
-static void genere_declaration_structure(
-		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os,
-		dls::vue_chaine_compacte const &nom_struct)
-{
-	auto &donnees = contexte.donnees_structure(nom_struct);
-
-	if (donnees.est_externe) {
+	if (decl->est_externe) {
 		return;
 	}
 
-	if (donnees.deja_genere) {
+	if (type->deja_genere) {
 		return;
 	}
 
-	auto nom_broye = broye_nom_simple(contexte.nom_struct(donnees.id));
+	auto nom_broye = broye_nom_simple(type->nom);
 
-	if (donnees.est_union) {
-		if (donnees.est_nonsur) {
+	if (decl->est_union) {
+		if (decl->est_nonsure) {
 			os << "typedef union " << nom_broye << "{\n";
 		}
 		else {
@@ -646,45 +581,38 @@ static void genere_declaration_structure(
 		os << "typedef struct " << nom_broye << "{\n";
 	}
 
-	for (auto i = 0l; i < donnees.types.taille(); ++i) {
-		auto type_membre = donnees.types[i];
-
-		for (auto paire_idx_mb : donnees.donnees_membres) {
-			if (paire_idx_mb.second.index_membre == i) {
-				auto nom = broye_nom_simple(paire_idx_mb.first);
-				os << nom_broye_type(type_membre, true) << ' ' << nom << ";\n";
-				break;
-			}
-		}
+	POUR (decl->desc.membres) {
+		auto nom = broye_nom_simple(dls::vue_chaine_compacte(it.nom.pointeur, it.nom.taille));
+		os << nom_broye_type(it.type, true) << ' ' << nom << ";\n";
 	}
 
-	if (donnees.est_union && !donnees.est_nonsur) {
+	if (decl->est_union && !decl->est_nonsure) {
 		os << "};\n";
 	}
 
 	os << "} " << nom_broye << ";\n\n";
 
-	donnees.deja_genere = true;
+	type->deja_genere = true;
 }
 
 static void genere_code_position_source(
 		ContexteGenerationCode &contexte,
 		dls::flux_chaine &flux,
-		noeud::base *b)
+		NoeudExpression *b)
 {
 	/* À FAIRE: pour les appels de fonction où l'objet est construit
 	 * via une valeur d'argument par défaut, les informations seront
 	 * toujours celles de la déclaration de l'argument. */
-	auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme.fichier));
+	auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme->fichier));
 
 	auto fonction_courante = contexte.donnees_fonction;
 	auto nom_fonction = dls::vue_chaine_compacte("");
 
 	if (fonction_courante != nullptr) {
-		nom_fonction = fonction_courante->noeud_decl->lexeme.chaine;
+		nom_fonction = fonction_courante->lexeme->chaine;
 	}
 
-	auto pos = trouve_position(b->lexeme, fichier);
+	auto pos = trouve_position(*b->lexeme, fichier);
 
 	flux << "{ ";
 	flux << ".fichier = { .pointeur = \"" << fichier->nom << ".kuri\", .taille = " << fichier->nom.taille() + 5 << " },";
@@ -699,10 +627,10 @@ static void genere_code_allocation(
 		GeneratriceCodeC &generatrice,
 		Type *type,
 		int mode,
-		base *b,
-		base *variable,
-		base *expression,
-		base *bloc_sinon)
+		NoeudExpression *b,
+		NoeudExpression *variable,
+		NoeudExpression *expression,
+		NoeudExpression *bloc_sinon)
 {
 	auto expr_nouvelle_taille_octet = dls::chaine("");
 	auto expr_ancienne_taille_octet = dls::chaine("");
@@ -855,9 +783,8 @@ static void genere_code_allocation(
 }
 
 static void genere_declaration_fonction(
-		base *b,
-		GeneratriceCodeC &generatrice,
-		ContexteGenerationCode &contexte)
+		NoeudExpression *b,
+		GeneratriceCodeC &generatrice)
 {
 	using dls::outils::possede_drapeau;
 
@@ -867,14 +794,13 @@ static void genere_declaration_fonction(
 		return;
 	}
 
-	auto donnees_fonction = cherche_donnees_fonction(contexte, b);
+	auto decl = static_cast<NoeudDeclarationFonction *>(b);
 
 	/* Code pour le type et le nom */
 
-	auto nom_fonction = donnees_fonction->nom_broye;
-	donnees_fonction->est_sans_contexte = possede_drapeau(b->drapeaux, FORCE_NULCTX);
+	auto nom_fonction = decl->nom_broye;
 
-	auto moult_retour = donnees_fonction->type->types_sorties.taille > 1;
+	auto moult_retour = decl->type_fonc->types_sorties.taille > 1;
 
 	if (moult_retour) {
 		if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
@@ -905,32 +831,32 @@ static void genere_declaration_fonction(
 
 	auto virgule = '(';
 
-	if (donnees_fonction->args.taille() == 0 && !moult_retour) {
+	if (decl->params.taille == 0 && !moult_retour) {
 		generatrice.os << '(' << '\n';
 		virgule = ' ';
 	}
 
-	if (!donnees_fonction->est_externe && !donnees_fonction->est_sans_contexte) {
+	if (!decl->est_externe && !possede_drapeau(decl->drapeaux, FORCE_NULCTX)) {
 		generatrice.os << virgule << '\n';
 		generatrice.os << "KsContexteProgramme contexte";
 		virgule = ',';
 	}
 
-	for (auto &argument : donnees_fonction->args) {
-		auto nom_broye = broye_nom_simple(argument.nom);
+	POUR (decl->params) {
+		auto nom_broye = broye_nom_simple(it->ident->nom);
 
 		generatrice.os << virgule << '\n';
-		generatrice.os << nom_broye_type(argument.type, true) << ' ' << nom_broye;
+		generatrice.os << nom_broye_type(it->type, true) << ' ' << nom_broye;
 
 		virgule = ',';
 	}
 
 	if (moult_retour) {
 		auto idx_ret = 0l;
-		POUR (donnees_fonction->type->types_sorties) {
+		POUR (decl->type_fonc->types_sorties) {
 			generatrice.os << virgule << '\n';
 
-			auto nom_ret = "*" + donnees_fonction->noms_retours[idx_ret++];
+			auto nom_ret = "*" + decl->noms_retours[idx_ret++];
 
 			generatrice.os << nom_broye_type(it, true) << ' ' << nom_ret;
 			virgule = ',';
@@ -966,7 +892,7 @@ static void genere_declaration_fonction(
  * compileur C supprimera ces temporaires de toute façon.
  */
 void genere_code_C(
-		base *b,
+		NoeudExpression *b,
 		GeneratriceCodeC &generatrice,
 		ContexteGenerationCode &contexte,
 		bool expr_gauche)
@@ -997,36 +923,23 @@ void genere_code_C(
 				return;
 			}
 
-			genere_declaration_fonction(b, generatrice, contexte);
-
+			genere_declaration_fonction(b, generatrice);
 			generatrice.os << '\n';
 
-			auto donnees_fonction = cherche_donnees_fonction(contexte, b);
-			contexte.commence_fonction(donnees_fonction);
+			auto decl = static_cast<NoeudDeclarationFonction *>(b);
+			contexte.commence_fonction(decl);
 
-			/* pousse les arguments sur la pile */
-			if (!donnees_fonction->est_externe && !donnees_fonction->est_sans_contexte) {
-				auto donnees_var = DonneesVariable{};
-				donnees_var.est_variadic = false;
-				donnees_var.type = contexte.type_contexte;
-				donnees_var.est_argument = true;
-
-				contexte.pousse_locale("contexte", donnees_var);
-			}
-
-			for (auto &argument : donnees_fonction->args) {
-				auto nom_broye = broye_nom_simple(argument.nom);
-				pousse_argument_fonction_pile(contexte, argument, nom_broye);
-			}
+			generatrice.os << "{\n";
 
 			/* Crée code pour le bloc. */
-			auto bloc = b->enfants.back();
-
-			genere_code_C(bloc, generatrice, contexte, false);
+			decl->bloc->est_bloc_fonction = true;
+			genere_code_C(decl->bloc, generatrice, contexte, false);
 
 			if (b->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
-				genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
+				genere_code_extra_pre_retour(decl->bloc, contexte, generatrice, generatrice.os);
 			}
+
+			generatrice.os << "}\n";
 
 			contexte.termine_fonction();
 
@@ -1034,12 +947,12 @@ void genere_code_C(
 		}
 		case GenreNoeud::DECLARATION_COROUTINE:
 		{
-			auto donnees_fonction = cherche_donnees_fonction(contexte, b);
+			auto decl = static_cast<NoeudDeclarationFonction *>(b);
 
-			contexte.commence_fonction(donnees_fonction);
+			contexte.commence_fonction(decl);
 
 			/* Crée fonction */
-			auto nom_fonction = donnees_fonction->nom_broye;
+			auto nom_fonction = decl->nom_broye;
 			auto nom_type_coro = "__etat_coro" + nom_fonction;
 
 			/* Déclare la structure d'état de la coroutine. */
@@ -1052,14 +965,14 @@ void genere_code_C(
 			generatrice.os << "ContexteProgramme contexte;\n";
 
 			auto idx_ret = 0l;
-			POUR (donnees_fonction->type->types_sorties) {
-				auto &nom_ret = donnees_fonction->noms_retours[idx_ret++];
+			POUR (decl->type_fonc->types_sorties) {
+				auto &nom_ret = decl->noms_retours[idx_ret++];
 				generatrice.declare_variable(it, nom_ret, "");
 			}
 
-			for (auto &argument : donnees_fonction->args) {
-				auto nom_broye = broye_nom_simple(argument.nom);
-				generatrice.declare_variable(argument.type, nom_broye, "");
+			POUR (decl->params) {
+				auto nom_broye = broye_nom_simple(it->ident->nom);
+				generatrice.declare_variable(it->type, nom_broye, "");
 			}
 
 			generatrice.os << " } " << nom_type_coro << ";\n";
@@ -1071,21 +984,16 @@ void genere_code_C(
 			generatrice.os << "ContexteProgramme contexte = __etat->contexte;\n";
 
 			/* déclare les paramètres. */
-			for (auto &argument : donnees_fonction->args) {
-				auto nom_broye = broye_nom_simple(argument.nom);
-
-				generatrice.declare_variable(argument.type, nom_broye, "__etat->" + nom_broye);
-
-				pousse_argument_fonction_pile(contexte, argument, nom_broye);
+			POUR (decl->params) {
+				auto nom_broye = broye_nom_simple(it->ident->nom);
+				generatrice.declare_variable(it->type, nom_broye, "__etat->" + nom_broye);
 			}
 
 			/* Crée code pour le bloc. */
-			auto bloc = b->enfants.back();
-
-			genere_code_C(bloc, generatrice, contexte, false);
+			genere_code_C(decl->bloc, generatrice, contexte, false);
 
 			if (b->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
-				genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
+				genere_code_extra_pre_retour(decl->bloc, contexte, generatrice, generatrice.os);
 			}
 
 			generatrice.os << "}\n";
@@ -1094,14 +1002,9 @@ void genere_code_C(
 
 			break;
 		}
-		case GenreNoeud::DECLARATION_PARAMETRES_FONCTION:
-		{
-			/* géré dans DECLARATION_FONCTION */
-			break;
-		}
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
-			cree_appel(b, generatrice.os, contexte, generatrice, b->nom_fonction_appel, b->enfants);
+			cree_appel(b, generatrice.os, contexte, generatrice);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
@@ -1113,19 +1016,18 @@ void genere_code_C(
 					flux << b->nom_fonction_appel;
 				}
 				else {
-					auto dv = contexte.donnees_variable(b->lexeme.chaine);
+					// À FAIRE(réusinage arbre)
+//					if (dv.est_membre_emploie) {
+//						flux << dv.structure;
+//					}
 
-					if (dv.est_membre_emploie) {
-						flux << dv.structure;
-					}
-
-					if (dv.est_var_boucle) {
+					if ((b->drapeaux & EST_VAR_BOUCLE) != 0) {
 						flux << "(*";
 					}
 
 					flux << broye_chaine(b);
 
-					if (dv.est_var_boucle) {
+					if ((b->drapeaux & EST_VAR_BOUCLE) != 0) {
 						flux << ")";
 					}
 				}
@@ -1137,15 +1039,25 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
-			auto structure = b->enfants.front();
-			auto membre = b->enfants.back();
-			genere_code_acces_membre(contexte, generatrice, b, structure, membre, expr_gauche);
+			auto inst = static_cast<NoeudExpressionBinaire *>(b);
+			auto structure = inst->expr1;
+			auto membre = inst->expr2;
+
+			if (b->drapeaux & EST_APPEL_SYNTAXE_UNIFORME) {
+				cree_appel(membre, generatrice.os, contexte, generatrice);
+				b->valeur_calculee = membre->valeur_calculee;
+			}
+			else {
+				genere_code_acces_membre(contexte, generatrice, b, structure, membre, expr_gauche);
+			}
+
 			break;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
-			auto structure = b->enfants.front();
-			auto membre = b->enfants.back();
+			auto inst = static_cast<NoeudExpressionBinaire *>(b);
+			auto structure = inst->expr1;
+			auto membre = inst->expr2;
 
 			auto index_membre = std::any_cast<long>(b->valeur_calculee);
 			auto type = structure->type;
@@ -1154,12 +1066,12 @@ void genere_code_C(
 			est_pointeur |= (type->genre == GenreType::REFERENCE);
 
 			auto flux = dls::flux_chaine();
-			flux << broye_chaine(structure);
+			flux << broye_chaine(structure->ident->nom);
 			flux << (est_pointeur ? "->" : ".");
 
 			auto acces_structure = flux.chn();
 
-			flux << broye_chaine(membre);
+			flux << broye_chaine(membre->ident->nom);
 
 			auto expr_membre = acces_structure + "membre_actif";
 
@@ -1169,8 +1081,8 @@ void genere_code_C(
 			else {
 				if (b->aide_generation_code != IGNORE_VERIFICATION) {
 					auto const &lexeme = b->lexeme;
-					auto module = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-					auto pos = trouve_position(lexeme, module);
+					auto module = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+					auto pos = trouve_position(*lexeme, module);
 
 					generatrice.os << "if (" << expr_membre << " != " << index_membre + 1 << ") {\n";
 					generatrice.os << "KR__acces_membre_union(";
@@ -1187,17 +1099,16 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			assert(b->enfants.taille() == 2);
-
-			auto variable = b->enfants.front();
-			auto expression = b->enfants.back();
+			auto expr = static_cast<NoeudExpressionBinaire *>(b);
+			auto variable = expr->expr1;
+			auto expression = expr->expr2;
 
 			/* a, b = foo(); -> foo(&a, &b); */
-			if (variable->identifiant() == GenreLexeme::VIRGULE) {
-				dls::tableau<base *> feuilles;
+			if (variable->lexeme->genre == GenreLexeme::VIRGULE) {
+				dls::tableau<NoeudExpression *> feuilles;
 				rassemble_feuilles(variable, feuilles);
 
-				dls::liste<base *> noeuds;
+				dls::liste<NoeudExpression *> noeuds;
 
 				for (auto f : feuilles) {
 					noeuds.pousse(f);
@@ -1228,16 +1139,9 @@ void genere_code_C(
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
 		{
-			auto variable = static_cast<noeud::base *>(nullptr);
-			auto expression = static_cast<noeud::base *>(nullptr);
-
-			if (b->enfants.taille() == 2) {
-				variable = b->enfants.front();
-				expression = b->enfants.back();
-			}
-			else {
-				variable = b;
-			}
+			auto expr = static_cast<NoeudDeclarationVariable *>(b);
+			auto variable = expr->valeur;
+			auto expression = expr->expression;
 
 			if (dls::outils::possede_drapeau(variable->drapeaux, EST_EXTERNE)) {
 				return;
@@ -1255,7 +1159,7 @@ void genere_code_C(
 				}
 			}
 
-			auto nom_broye = broye_chaine(variable);
+			auto nom_broye = broye_chaine(variable->ident->nom);
 			flux << nom_broye_type(type, true) << ' ' << nom_broye;
 
 			/* nous avons une déclaration, initialise à zéro */
@@ -1281,17 +1185,6 @@ void genere_code_C(
 				generatrice.os << ";\n";
 			}
 
-			auto donnees_var = DonneesVariable{};
-			donnees_var.est_externe = (variable->drapeaux & EST_EXTERNE) != 0;
-			donnees_var.type = variable->type;
-
-			if (contexte.donnees_fonction == nullptr) {
-				contexte.pousse_globale(variable->chaine(), donnees_var);
-			}
-			else {
-				contexte.pousse_locale(variable->chaine(), donnees_var);
-			}
-
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
@@ -1299,8 +1192,8 @@ void genere_code_C(
 			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
 											 denombreuse::converti_chaine_nombre_reel(
-												 b->lexeme.chaine,
-												 b->lexeme.genre);
+												 b->lexeme->chaine,
+												 b->lexeme->genre);
 
 			b->valeur_calculee = dls::vers_chaine(valeur);
 			break;
@@ -1310,16 +1203,17 @@ void genere_code_C(
 			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
 											 denombreuse::converti_chaine_nombre_entier(
-												 b->lexeme.chaine,
-												 b->lexeme.genre);
+												 b->lexeme->chaine,
+												 b->lexeme->genre);
 
 			b->valeur_calculee = dls::vers_chaine(valeur);
 			break;
 		}
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		{
-			auto enfant1 = b->enfants.front();
-			auto enfant2 = b->enfants.back();
+			auto expr = static_cast<NoeudExpressionBinaire *>(b);
+			auto enfant1 = expr->expr1;
+			auto enfant2 = expr->expr2;
 
 			/* À FAIRE : tests */
 			auto flux = dls::flux_chaine();
@@ -1327,11 +1221,11 @@ void genere_code_C(
 			applique_transformation(enfant1, generatrice, contexte, expr_gauche);
 			applique_transformation(enfant2, generatrice, contexte, expr_gauche);
 
-			auto op = b->op;
+			auto op = expr->op;
 
 			if (op->est_basique) {
 				flux << enfant1->chaine_calculee();
-				flux << b->lexeme.chaine;
+				flux << b->lexeme->chaine;
 				flux << enfant2->chaine_calculee();
 			}
 			else {
@@ -1359,8 +1253,9 @@ void genere_code_C(
 		}
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		{
-			auto enfant1 = b->enfants.front();
-			auto enfant2 = b->enfants.back();
+			auto inst = static_cast<NoeudExpressionBinaire *>(b);
+			auto enfant1 = static_cast<NoeudExpressionBinaire *>(inst->expr1);
+			auto enfant2 = inst->expr2;
 
 			/* À FAIRE : tests */
 			auto flux = dls::flux_chaine();
@@ -1377,8 +1272,8 @@ void genere_code_C(
 
 			/* (b comp c) */
 			flux << '(';
-			flux << enfant1->enfants.back()->chaine_calculee();
-			flux << b->lexeme.chaine;
+			flux << enfant1->expr2->chaine_calculee();
+			flux << b->lexeme->chaine;
 			flux << enfant2->chaine_calculee();
 			flux << ')';
 
@@ -1391,8 +1286,9 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_INDICE:
 		{
-			auto enfant1 = b->enfants.front();
-			auto enfant2 = b->enfants.back();
+			auto expr = static_cast<NoeudExpressionBinaire *>(b);
+			auto enfant1 = expr->expr1;
+			auto enfant2 = expr->expr2;
 
 			auto type1 = enfant1->type;
 
@@ -1423,8 +1319,8 @@ void genere_code_C(
 			 */
 
 			auto const &lexeme = b->lexeme;
-			auto module = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-			auto pos = trouve_position(lexeme, module);
+			auto module = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+			auto pos = trouve_position(*lexeme, module);
 
 			switch (type1->genre) {
 				case GenreType::POINTEUR:
@@ -1540,28 +1436,29 @@ void genere_code_C(
 		}
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
-			auto enfant = b->enfants.front();
+			auto expr = static_cast<NoeudExpressionUnaire *>(b);
+			auto enfant = expr->expr;
 
 			/* À FAIRE : tests */
 
 			/* force une expression si l'opérateur est @, pour que les
 			 * expressions du type @a[0] retourne le pointeur à a + 0 et non le
 			 * pointeur de la variable temporaire du code généré */
-			expr_gauche |= b->lexeme.genre == GenreLexeme::AROBASE;
+			expr_gauche |= b->lexeme->genre == GenreLexeme::AROBASE;
 			applique_transformation(enfant, generatrice, contexte, expr_gauche);
 
-			if (b->lexeme.genre == GenreLexeme::AROBASE) {
+			if (b->lexeme->genre == GenreLexeme::AROBASE) {
 				b->valeur_calculee = "&(" + enfant->chaine_calculee() + ")";
 			}
 			else {
 				auto flux = dls::flux_chaine();
-				auto op = b->op;
+				auto op = expr->op;
 
 				if (op->est_basique) {
-					flux << b->lexeme.chaine;
+					flux << b->lexeme->chaine;
 				}
 				else {
-					flux << b->op->nom_fonction;
+					flux << expr->op->nom_fonction;
 				}
 
 				flux << '(';
@@ -1575,13 +1472,14 @@ void genere_code_C(
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
 		{
-			genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
+			genere_code_extra_pre_retour(b->bloc_parent, contexte, generatrice, generatrice.os);
 			generatrice.os << "return;\n";
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		{
-			auto enfant = b->enfants.front();
+			auto inst = static_cast<NoeudExpressionUnaire *>(b);
+			auto enfant = inst->expr;
 			auto df = contexte.donnees_fonction;
 			auto nom_variable = df->noms_retours[0];
 
@@ -1597,13 +1495,14 @@ void genere_code_C(
 			/* NOTE : le code différé doit être créé après l'expression de retour, car
 			 * nous risquerions par exemple de déloger une variable utilisée dans
 			 * l'expression de retour. */
-			genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
+			genere_code_extra_pre_retour(b->bloc_parent, contexte, generatrice, generatrice.os);
 			generatrice.os << "return " << nom_variable << ";\n";
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
 		{
-			auto enfant = b->enfants.front();
+			auto inst = static_cast<NoeudExpressionUnaire *>(b);
+			auto enfant = inst->expr;
 			auto df = contexte.donnees_fonction;
 
 			if (enfant->genre == GenreNoeud::EXPRESSION_APPEL_FONCTION) {
@@ -1612,9 +1511,9 @@ void genere_code_C(
 				enfant->valeur_calculee = df->noms_retours;
 				genere_code_C(enfant, generatrice, contexte, false);
 			}
-			else if (enfant->identifiant() == GenreLexeme::VIRGULE) {
+			else if (enfant->lexeme->genre == GenreLexeme::VIRGULE) {
 				/* retourne a, b; -> *__ret1 = a; *__ret2 = b; return; */
-				dls::tableau<base *> feuilles;
+				dls::tableau<NoeudExpression *> feuilles;
 				rassemble_feuilles(enfant, feuilles);
 
 				auto idx = 0l;
@@ -1630,7 +1529,7 @@ void genere_code_C(
 			/* NOTE : le code différé doit être créé après l'expression de retour, car
 			 * nous risquerions par exemple de déloger une variable utilisée dans
 			 * l'expression de retour. */
-			genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
+			genere_code_extra_pre_retour(b->bloc_parent, contexte, generatrice, generatrice.os);
 			generatrice.os << "return;\n";
 			break;
 		}
@@ -1638,7 +1537,7 @@ void genere_code_C(
 		{
 			/* Note : dû à la possibilité de différer le code, nous devons
 			 * utiliser la chaine originale. */
-			auto chaine = b->lexeme.chaine;
+			auto chaine = b->lexeme->chaine;
 
 			auto nom_chaine = "__chaine_tmp" + dls::vers_chaine(b);
 
@@ -1669,19 +1568,19 @@ void genere_code_C(
 		{
 			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<bool>(b->valeur_calculee)
-										   : (b->chaine() == "vrai");
+										   : (b->lexeme->chaine == "vrai");
 			b->valeur_calculee = valeur ? dls::chaine("1") : dls::chaine("0");
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		{
-			auto c = b->lexeme.chaine[0];
+			auto c = b->lexeme->chaine[0];
 
 			auto flux = dls::flux_chaine();
 
 			flux << '\'';
 			if (c == '\\') {
-				flux << c << b->lexeme.chaine[1];
+				flux << c << b->lexeme->chaine[1];
 			}
 			else {
 				flux << c;
@@ -1695,17 +1594,16 @@ void genere_code_C(
 		case GenreNoeud::INSTRUCTION_SAUFSI:
 		case GenreNoeud::INSTRUCTION_SI:
 		{
-			auto const nombre_enfants = b->enfants.taille();
-			auto iter_enfant = b->enfants.debut();
+			auto inst = static_cast<NoeudSi *>(b);
 
 			if (!expr_gauche) {
-				auto enfant1 = *iter_enfant++;
-				auto enfant2 = *iter_enfant++;
-				auto enfant3 = *iter_enfant++;
+				auto enfant1 = inst->condition;
+				auto enfant2 = inst->bloc_si_vrai;
+				auto enfant3 = inst->bloc_si_vrai;
 
 				genere_code_C(enfant1, generatrice, contexte, false);
-				genere_code_C(enfant2->enfants.front(), generatrice, contexte, false);
-				genere_code_C(enfant3->enfants.front(), generatrice, contexte, false);
+				genere_code_C(enfant2->expressions[0], generatrice, contexte, false);
+				genere_code_C(enfant3->expressions[0], generatrice, contexte, false);
 
 				auto flux = dls::flux_chaine();
 
@@ -1717,14 +1615,14 @@ void genere_code_C(
 				flux << " ? ";
 				/* prenons les enfants des enfants pour ne mettre des accolades
 				 * autour de l'expression vu qu'ils sont de type 'BLOC' */
-				flux << enfant2->enfants.front()->chaine_calculee();
+				flux << enfant2->expressions[0]->chaine_calculee();
 				flux << " : ";
-				flux << enfant3->enfants.front()->chaine_calculee();
+				flux << enfant3->expressions[0]->chaine_calculee();
 
 				auto nom_variable = "__var_temp_si" + dls::vers_chaine(index++);
 
 				generatrice.declare_variable(
-							enfant2->enfants.front()->type,
+							enfant2->expressions[0]->type,
 							nom_variable,
 							flux.chn());
 
@@ -1733,10 +1631,9 @@ void genere_code_C(
 				return;
 			}
 
-			/* noeud 1 : condition */
-			auto enfant1 = *iter_enfant++;
+			auto condition = inst->condition;
 
-			genere_code_C(enfant1, generatrice, contexte, false);
+			genere_code_C(condition, generatrice, contexte, false);
 
 			generatrice.os << "if (";
 
@@ -1744,44 +1641,46 @@ void genere_code_C(
 				generatrice.os << '!';
 			}
 
-			generatrice.os << enfant1->chaine_calculee();
+			generatrice.os << condition->chaine_calculee();
 			generatrice.os << ")";
 
-			/* noeud 2 : bloc */
-			auto enfant2 = *iter_enfant++;
-			genere_code_C(enfant2, generatrice, contexte, false);
+			genere_code_C(inst->bloc_si_vrai, generatrice, contexte, false);
 
-			/* noeud 3 : sinon (optionel) */
-			if (nombre_enfants == 3) {
+			if (inst->bloc_si_faux) {
 				generatrice.os << "else ";
-				auto enfant3 = *iter_enfant++;
-				genere_code_C(enfant3, generatrice, contexte, false);
+				genere_code_C(inst->bloc_si_faux, generatrice, contexte, false);
 			}
 
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
-			contexte.empile_nombre_locales();
+			auto inst = static_cast<NoeudBloc *>(b);
+			auto dernier_enfant = static_cast<NoeudExpression *>(nullptr);
 
-			auto dernier_enfant = static_cast<base *>(nullptr);
+			if (inst->est_differe) {
+				inst->bloc_parent->noeuds_differes.pousse(inst);
+				return;
+			}
 
-			generatrice.os << "{\n";
+			if (!inst->est_bloc_fonction) {
+				generatrice.os << "{\n";
+			}
 
-			for (auto enfant : b->enfants) {
-				genere_code_C(enfant, generatrice, contexte, true);
+			POUR (inst->expressions) {
+				genere_code_C(it, generatrice, contexte, true);
 
-				dernier_enfant = enfant;
+				dernier_enfant = it;
 
-				if (est_instruction_retour(enfant->genre)) {
+				if (est_instruction_retour(it->genre)) {
 					break;
 				}
 
-				if (enfant->genre == GenreNoeud::OPERATEUR_BINAIRE) {
+				if (it->genre == GenreNoeud::OPERATEUR_BINAIRE) {
 					/* les assignations opérées (+=, etc) n'ont pas leurs codes
 					 * générées via genere_code_C  */
-					if (est_assignation_operee(enfant->identifiant())) {
-						generatrice.os << enfant->chaine_calculee();
+					if (est_assignation_operee(it->lexeme->genre)) {
+						generatrice.os << it->chaine_calculee();
 						generatrice.os << ";\n";
 					}
 				}
@@ -1789,56 +1688,49 @@ void genere_code_C(
 
 			if (dernier_enfant != nullptr && !est_instruction_retour(dernier_enfant->genre)) {
 				/* génère le code pour tous les noeuds différés de ce bloc */
-				auto noeuds = contexte.noeuds_differes_bloc();
-
-				while (!noeuds.est_vide()) {
-					auto n = noeuds.back();
-					genere_code_C(n, generatrice, contexte, false);
-					noeuds.pop_back();
+				for (auto i = inst->noeuds_differes.taille - 1; i >= 0; --i) {
+					auto bloc_differe = inst->noeuds_differes[i];
+					bloc_differe->est_differe = false;
+					genere_code_C(bloc_differe, generatrice, contexte, false);
+					bloc_differe->est_differe = true;
 				}
 			}
 
-			generatrice.os << "}\n";
-
-			contexte.depile_nombre_locales();
+			if (!inst->est_bloc_fonction) {
+				generatrice.os << "}\n";
+			}
 
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_POUR:
 		{
-			auto nombre_enfants = b->enfants.taille();
-			auto iter = b->enfants.debut();
+			auto inst = static_cast<NoeudPour *>(b);
 
 			/* on génère d'abord le type de la variable */
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
-			auto enfant3 = *iter++;
-
-			auto enfant4 = (nombre_enfants >= 4) ? *iter++ : nullptr;
-			auto enfant5 = (nombre_enfants == 5) ? *iter++ : nullptr;
-
-			auto enfant_sans_arret = enfant4;
-			auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
+			auto enfant1 = inst->variable;
+			auto enfant2 = inst->expression;
+			auto enfant3 = inst->bloc;
+			auto enfant_sans_arret = inst->bloc_sansarret;
+			auto enfant_sinon = inst->bloc_sinon;
 
 			auto type = enfant2->type;
 			enfant1->type = type;
 
-			contexte.empile_nombre_locales();
-
 			auto genere_code_tableau_chaine = [&generatrice](
 					dls::flux_chaine &os_loc,
 					ContexteGenerationCode &contexte_loc,
-					base *enfant_1,
-					base *enfant_2,
+					NoeudExpression *enfant_1,
+					NoeudExpression *enfant_2,
 					Type *type_loc,
 					dls::chaine const &nom_var)
 			{
 				auto var = enfant_1;
-				auto idx = static_cast<noeud::base *>(nullptr);
+				auto idx = static_cast<NoeudExpression *>(nullptr);
 
-				if (enfant_1->lexeme.genre == GenreLexeme::VIRGULE) {
-					var = enfant_1->enfants.front();
-					idx = enfant_1->enfants.back();
+				if (enfant_1->lexeme->genre == GenreLexeme::VIRGULE) {
+					auto expr_bin = static_cast<NoeudExpressionBinaire *>(var);
+					var = expr_bin->expr1;
+					idx = expr_bin->expr2;
 				}
 
 				/* utilise une expression gauche, car dans les coroutine, les
@@ -1861,18 +1753,19 @@ void genere_code_C(
 			auto genere_code_tableau_fixe = [&generatrice](
 					dls::flux_chaine &os_loc,
 					ContexteGenerationCode &contexte_loc,
-					base *enfant_1,
-					base *enfant_2,
+					NoeudExpression *enfant_1,
+					NoeudExpression *enfant_2,
 					Type *type_loc,
 					dls::chaine const &nom_var,
 					long taille_tableau)
 			{
 				auto var = enfant_1;
-				auto idx = static_cast<noeud::base *>(nullptr);
+				auto idx = static_cast<NoeudExpression *>(nullptr);
 
-				if (enfant_1->lexeme.genre == GenreLexeme::VIRGULE) {
-					var = enfant_1->enfants.front();
-					idx = enfant_1->enfants.back();
+				if (enfant_1->lexeme->genre == GenreLexeme::VIRGULE) {
+					auto expr_bin = static_cast<NoeudExpressionBinaire *>(var);
+					var = expr_bin->expr1;
+					idx = expr_bin->expr2;
 				}
 
 				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= "
@@ -1895,12 +1788,14 @@ void genere_code_C(
 				case GENERE_BOUCLE_PLAGE:
 				case GENERE_BOUCLE_PLAGE_INDEX:
 				{
+					auto plage = static_cast<NoeudExpressionBinaire *>(enfant2);
 					auto var = enfant1;
-					auto idx = static_cast<noeud::base *>(nullptr);
+					auto idx = static_cast<NoeudExpression *>(nullptr);
 
-					if (enfant1->lexeme.genre == GenreLexeme::VIRGULE) {
-						var = enfant1->enfants.front();
-						idx = enfant1->enfants.back();
+					if (enfant1->lexeme->genre == GenreLexeme::VIRGULE) {
+						auto expr_bin = static_cast<NoeudExpressionBinaire *>(var);
+						var = expr_bin->expr1;
+						idx = expr_bin->expr2;
 					}
 
 					auto nom_broye = broye_chaine(var);
@@ -1909,17 +1804,17 @@ void genere_code_C(
 						generatrice.os << "int " << broye_chaine(idx) << " = 0;\n";
 					}
 
-					genere_code_C(enfant2->enfants.front(), generatrice, contexte, false);
-					genere_code_C(enfant2->enfants.back(), generatrice, contexte, false);
+					genere_code_C(plage->expr1, generatrice, contexte, false);
+					genere_code_C(plage->expr2, generatrice, contexte, false);
 
 					generatrice.os << "for (";
 					generatrice.os << nom_broye_type(type, true);
 					generatrice.os << " " << nom_broye << " = ";
-					generatrice.os << enfant2->enfants.front()->chaine_calculee();
+					generatrice.os << plage->expr1->chaine_calculee();
 
 					generatrice.os << "; "
 					   << nom_broye << " <= ";
-					generatrice.os << enfant2->enfants.back()->chaine_calculee();
+					generatrice.os << plage->expr2->chaine_calculee();
 
 					generatrice.os <<"; ++" << nom_broye;
 
@@ -1929,29 +1824,12 @@ void genere_code_C(
 
 					generatrice.os  << ") {\n";
 
-					if (b->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
-						auto donnees_var = DonneesVariable{};
-
-						donnees_var.type = var->type;
-						contexte.pousse_locale(var->chaine(), donnees_var);
-
-						donnees_var.type = idx->type;
-						contexte.pousse_locale(idx->chaine(), donnees_var);
-					}
-					else {
-						auto donnees_var = DonneesVariable{};
-						donnees_var.type = type;
-						contexte.pousse_locale(enfant1->chaine(), donnees_var);
-					}
-
 					break;
 				}
 				case GENERE_BOUCLE_TABLEAU:
 				case GENERE_BOUCLE_TABLEAU_INDEX:
 				{
 					auto nom_var = "__i" + dls::vers_chaine(b);
-
-					auto donnees_var = DonneesVariable{};
 
 					if (type->genre == GenreType::TABLEAU_FIXE) {
 						auto type_tabl = static_cast<TypeTableauFixe *>(type);
@@ -1967,32 +1845,15 @@ void genere_code_C(
 						genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, type, nom_var);
 					}
 
-					if (b->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
-						auto var = enfant1->enfants.front();
-						auto idx = enfant1->enfants.back();
-
-						donnees_var.type = type;
-						donnees_var.est_var_boucle = true;
-						contexte.pousse_locale(var->chaine(), donnees_var);
-
-						donnees_var.type = idx->type;
-						donnees_var.est_var_boucle = false;
-						contexte.pousse_locale(idx->chaine(), donnees_var);
-					}
-					else {
-						donnees_var.type = type;
-						donnees_var.est_var_boucle = true;
-						contexte.pousse_locale(enfant1->chaine(), donnees_var);
-					}
-
 					break;
 				}
 				case GENERE_BOUCLE_COROUTINE:
 				case GENERE_BOUCLE_COROUTINE_INDEX:
 				{
-					auto df = enfant2->df;
+					auto expr_appel = static_cast<NoeudExpressionAppel *>(enfant2);
+					auto decl_fonc = static_cast<NoeudDeclarationFonction *>(expr_appel->noeud_fonction_appelee);
 					auto nom_etat = "__etat" + dls::vers_chaine(enfant2);
-					auto nom_type_coro = "__etat_coro" + df->nom_broye;
+					auto nom_type_coro = "__etat_coro" + decl_fonc->nom_broye;
 
 					generatrice.os << nom_type_coro << " " << nom_etat << " = {\n";
 					generatrice.os << ".mutex_boucle = PTHREAD_MUTEX_INITIALIZER,\n";
@@ -2004,14 +1865,14 @@ void genere_code_C(
 					generatrice.os << "};\n";
 
 					/* intialise les arguments de la fonction. */
-					for (auto enfs : enfant2->enfants) {
-						genere_code_C(enfs, generatrice, contexte, false);
+					POUR (expr_appel->params) {
+						genere_code_C(it, generatrice, contexte, false);
 					}
 
-					auto iter_enf = enfant2->enfants.debut();
+					auto iter_enf = expr_appel->params.begin();
 
-					for (auto &arg : df->args) {
-						auto nom_broye = broye_nom_simple(arg.nom);
+					POUR (decl_fonc->params) {
+						auto nom_broye = broye_nom_simple(it->ident->nom);
 						generatrice.os << nom_etat << '.' << nom_broye << " = ";
 						generatrice.os << (*iter_enf)->chaine_calculee();
 						generatrice.os << ";\n";
@@ -2019,18 +1880,18 @@ void genere_code_C(
 					}
 
 					generatrice.os << "pthread_t fil_coro;\n";
-					generatrice.os << "pthread_create(&fil_coro, NULL, " << df->nom_broye << ", &" << nom_etat << ");\n";
+					generatrice.os << "pthread_create(&fil_coro, NULL, " << decl_fonc->nom_broye << ", &" << nom_etat << ");\n";
 					generatrice.os << "pthread_mutex_lock(&" << nom_etat << ".mutex_boucle);\n";
 					generatrice.os << "pthread_cond_wait(&" << nom_etat << ".cond_boucle, &" << nom_etat << ".mutex_boucle);\n";
 					generatrice.os << "pthread_mutex_unlock(&" << nom_etat << ".mutex_boucle);\n";
 
 					/* À FAIRE : utilisation du type */
-					auto nombre_vars_ret = df->type->types_sorties.taille;
+					auto nombre_vars_ret = decl_fonc->type_fonc->types_sorties.taille;
 
-					auto feuilles = dls::tableau<base *>{};
+					auto feuilles = dls::tableau<NoeudExpression *>{};
 					rassemble_feuilles(enfant1, feuilles);
 
-					auto idx = static_cast<noeud::base *>(nullptr);
+					auto idx = static_cast<NoeudExpression *>(nullptr);
 					auto nom_idx = dls::chaine{};
 
 					if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
@@ -2047,12 +1908,8 @@ void genere_code_C(
 						auto nom_var_broye = broye_chaine(f);
 						generatrice.declare_variable(type, nom_var_broye, "");
 						generatrice.os << nom_var_broye << " = "
-									   << nom_etat << '.' << df->noms_retours[i]
+									   << nom_etat << '.' << decl_fonc->noms_retours[i]
 									   << ";\n";
-
-						auto donnees_var = DonneesVariable{};
-						donnees_var.type = df->type->types_sorties[i];
-						contexte.pousse_locale(f->chaine(), donnees_var);
 					}
 
 					generatrice.os << "pthread_mutex_lock(&" << nom_etat << ".mutex_coro);\n";
@@ -2064,10 +1921,6 @@ void genere_code_C(
 					if (idx) {
 						generatrice.os << "int " << broye_chaine(idx) << " = " << nom_idx << ";\n";
 						generatrice.os << nom_idx << " += 1;";
-
-						auto donnees_var = DonneesVariable{};
-						donnees_var.type = idx->type;
-						contexte.pousse_locale(idx->chaine(), donnees_var);
 					}
 				}
 			}
@@ -2076,8 +1929,8 @@ void genere_code_C(
 			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
 			auto goto_brise = "__boucle_pour_brise" + dls::vers_chaine(b);
 
-			contexte.empile_goto_continue(enfant1->chaine(), goto_continue);
-			contexte.empile_goto_arrete(enfant1->chaine(), (enfant_sinon != nullptr) ? goto_brise : goto_apres);
+			contexte.empile_goto_continue(enfant1->lexeme->chaine, goto_continue);
+			contexte.empile_goto_arrete(enfant1->lexeme->chaine, (enfant_sinon != nullptr) ? goto_brise : goto_apres);
 
 			genere_code_C(enfant3, generatrice, contexte, false);
 
@@ -2099,8 +1952,6 @@ void genere_code_C(
 			contexte.depile_goto_arrete();
 			contexte.depile_goto_continue();
 
-			contexte.depile_nombre_locales();
-
 			if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE || b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
 				generatrice.os << "pthread_join(fil_coro, NULL);\n";
 			}
@@ -2109,9 +1960,10 @@ void genere_code_C(
 		}
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
 		{
-			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
+			auto inst = static_cast<NoeudExpressionUnaire *>(b);
+			auto chaine_var = inst->expr == nullptr ? dls::vue_chaine_compacte{""} : inst->expr->ident->nom;
 
-			auto label_goto = (b->lexeme.genre == GenreLexeme::CONTINUE)
+			auto label_goto = (b->lexeme->genre == GenreLexeme::CONTINUE)
 					? contexte.goto_continue(chaine_var)
 					: contexte.goto_arrete(chaine_var);
 
@@ -2120,18 +1972,7 @@ void genere_code_C(
 		}
 		case GenreNoeud::INSTRUCTION_BOUCLE:
 		{
-			/* boucle:
-			 *	corps
-			 *  br boucle
-			 *
-			 * apres_boucle:
-			 *	...
-			 */
-
-			auto iter = b->enfants.debut();
-			auto enfant1 = *iter++;
-
-			/* création des blocs */
+			auto inst = static_cast<NoeudBoucle *>(b);
 
 			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
 			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
@@ -2141,7 +1982,7 @@ void genere_code_C(
 
 			generatrice.os << "while (1) {\n";
 
-			genere_code_C(enfant1, generatrice, contexte, false);
+			genere_code_C(inst->bloc, generatrice, contexte, false);
 
 			generatrice.os << goto_continue << ":;\n";
 			generatrice.os << "}\n";
@@ -2154,11 +1995,7 @@ void genere_code_C(
 		}
 		case GenreNoeud::INSTRUCTION_REPETE:
 		{
-			auto iter = b->enfants.debut();
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
-
-			/* création des blocs */
+			auto inst = static_cast<NoeudBoucle *>(b);
 
 			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
 			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
@@ -2167,11 +2004,11 @@ void genere_code_C(
 			contexte.empile_goto_arrete("", goto_apres);
 
 			generatrice.os << "while (1) {\n";
-			genere_code_C(enfant1, generatrice, contexte, false);
+			genere_code_C(inst->bloc, generatrice, contexte, false);
 			generatrice.os << goto_continue << ":;\n";
-			genere_code_C(enfant2, generatrice, contexte, false);
+			genere_code_C(inst->condition, generatrice, contexte, false);
 			generatrice.os << "if (!";
-			generatrice.os << enfant2->chaine_calculee();
+			generatrice.os << inst->condition->chaine_calculee();
 			generatrice.os << ") {\nbreak;\n}\n";
 			generatrice.os << "}\n";
 			generatrice.os << goto_apres << ":;\n";
@@ -2183,10 +2020,7 @@ void genere_code_C(
 		}
 		case GenreNoeud::INSTRUCTION_TANTQUE:
 		{
-			assert(b->enfants.taille() == 2);
-			auto iter = b->enfants.debut();
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
+			auto inst = static_cast<NoeudBoucle *>(b);
 
 			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
 			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
@@ -2202,12 +2036,12 @@ void genere_code_C(
 			 * pour être sûr que la fonction est appelée à chaque boucle.
 			 */
 			generatrice.os << "while (1) {";
-			genere_code_C(enfant1, generatrice, contexte, false);
+			genere_code_C(inst->condition, generatrice, contexte, false);
 			generatrice.os << "if (!";
-			generatrice.os << enfant1->chaine_calculee();
+			generatrice.os << inst->condition->chaine_calculee();
 			generatrice.os << ") { break; }\n";
 
-			genere_code_C(enfant2, generatrice, contexte, false);
+			genere_code_C(inst->bloc, generatrice, contexte, false);
 
 			generatrice.os << goto_continue << ":;\n";
 			generatrice.os << "}\n";
@@ -2220,7 +2054,8 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_TRANSTYPE:
 		{
-			auto enfant = b->enfants.front();
+			auto inst = static_cast<NoeudExpressionUnaire *>(b);
+			auto enfant = inst->expr;
 			auto const &type_de = enfant->type;
 
 			genere_code_C(enfant, generatrice, contexte, false);
@@ -2258,33 +2093,20 @@ void genere_code_C(
 			/* pris en charge dans type_noeud::POUR */
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_DIFFERE:
-		{
-			auto noeud = b->enfants.front();
-			contexte.differe_noeud(noeud);
-			break;
-		}
-		case GenreNoeud::INSTRUCTION_NONSUR:
-		{
-			contexte.non_sur(true);
-			genere_code_C(b->enfants.front(), generatrice, contexte, false);
-			contexte.non_sur(false);
-			break;
-		}
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
 		{
 			/* utilisé principalement pour convertir les listes d'arguments
 			 * variadics en un tableau */
-
-			auto taille_tableau = b->enfants.taille();
+			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(b);
+			auto taille_tableau = noeud_tableau->exprs.taille;
 			auto nom_tableau_fixe = dls::chaine("0");
 
 			// si la liste d'arguments est vide, nous passons un tableau vide,
 			// sinon nous créons d'abord un tableau fixe, qui sera converti en
 			// un tableau dynamique
 			if (taille_tableau != 0) {
-				for (auto enfant : b->enfants) {
-					applique_transformation(enfant, generatrice, contexte, false);
+				POUR (noeud_tableau->exprs) {
+					applique_transformation(it, generatrice, contexte, false);
 				}
 
 				/* alloue un tableau fixe */
@@ -2298,9 +2120,9 @@ void genere_code_C(
 
 				auto virgule = '{';
 
-				for (auto enfant : b->enfants) {
+				POUR (noeud_tableau->exprs) {
 					generatrice.os << virgule;
-					generatrice.os << enfant->chaine_calculee();
+					generatrice.os << it->chaine_calculee();
 					virgule = ',';
 				}
 
@@ -2322,34 +2144,31 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		{
+			auto expr = static_cast<NoeudExpressionAppel *>(b);
 			auto flux = dls::flux_chaine();
 
-			if (b->chaine() == "PositionCodeSource") {
+			if (b->lexeme->chaine == "PositionCodeSource") {
 				genere_code_position_source(contexte, flux, b);
 			}
 			else {
-				auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine_compacte>>(&b->valeur_calculee);
-
-				for (auto enfant : b->enfants) {
-					genere_code_C(enfant, generatrice, contexte, false);
+				POUR (expr->params) {
+					auto param = static_cast<NoeudExpressionBinaire *>(it);
+					genere_code_C(param->expr2, generatrice, contexte, false);
 				}
 
-				auto enfant = b->enfants.debut();
-				auto nom_param = liste_params->debut();
 				auto virgule = '{';
 
-				for (auto i = 0l; i < liste_params->taille(); ++i) {
+				POUR (expr->params) {
+					auto param = static_cast<NoeudExpressionBinaire *>(it);
 					flux << virgule;
 
-					flux << '.' << broye_nom_simple(*nom_param) << '=';
-					flux << (*enfant)->chaine_calculee();
-					++enfant;
-					++nom_param;
+					flux << '.' << broye_nom_simple(param->expr1->ident->nom) << '=';
+					flux << param->expr2->chaine_calculee();
 
 					virgule = ',';
 				}
 
-				if (liste_params->taille() == 0) {
+				if (expr->params.taille == 0) {
 					flux << '{';
 				}
 
@@ -2366,9 +2185,11 @@ void genere_code_C(
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		{
 			auto nom_tableau = "__tabl" + dls::vers_chaine(b);
+			auto expr = static_cast<NoeudExpressionUnaire *>(b);
+			b->genre_valeur = GenreValeur::DROITE;
 
-			dls::tableau<base *> feuilles;
-			rassemble_feuilles(b->enfants.front(), feuilles);
+			dls::tableau<NoeudExpression *> feuilles;
+			rassemble_feuilles(expr->expr, feuilles);
 
 			for (auto f : feuilles) {
 				genere_code_C(f, generatrice, contexte, false);
@@ -2391,82 +2212,39 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		{
-			auto enfant = b->enfants.front();
+			auto inst = static_cast<NoeudExpressionUnaire *>(b);
+			auto enfant = inst->expr;
 			b->valeur_calculee = "&" + enfant->type->ptr_info_type;
 			break;
 		}
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		{
-			genere_code_C(b->enfants.front(), generatrice, contexte, false);
-			b->valeur_calculee = "*(" + b->enfants.front()->chaine_calculee() + ")";
+			auto expr = static_cast<NoeudExpressionUnaire *>(b);
+			genere_code_C(expr->expr, generatrice, contexte, false);
+			b->valeur_calculee = "*(" + expr->expr->chaine_calculee() + ")";
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LOGE:
 		{
-			auto iter_enfant = b->enfants.debut();
-			auto nombre_enfant = b->enfants.taille();
-			auto expression = static_cast<base *>(nullptr);
-			auto bloc_sinon = static_cast<base *>(nullptr);
-
-			if (nombre_enfant == 1) {
-				auto enfant = *iter_enfant++;
-
-				if (enfant->genre == GenreNoeud::INSTRUCTION_COMPOSEE) {
-					bloc_sinon = enfant;
-				}
-				else {
-					expression = enfant;
-				}
-			}
-			else if (nombre_enfant == 2) {
-				expression = *iter_enfant++;
-				bloc_sinon = *iter_enfant++;
-			}
-
-			genere_code_allocation(contexte, generatrice, b->type, 0, b, nullptr, expression, bloc_sinon);
+			auto expr = static_cast<NoeudExpressionLogement *>(b);
+			genere_code_allocation(contexte, generatrice, b->type, 0, b, expr->expr, expr->expr_chaine, expr->bloc);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_DELOGE:
 		{
-			auto enfant = b->enfants.front();
-			genere_code_allocation(contexte, generatrice, enfant->type, 2, b, enfant, nullptr, nullptr);
+			auto expr = static_cast<NoeudExpressionLogement *>(b);
+			genere_code_allocation(contexte, generatrice, expr->expr->type, 2, expr->expr, expr->expr, expr->expr_chaine, expr->bloc);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_RELOGE:
 		{
-			auto iter_enfant = b->enfants.debut();
-			auto nombre_enfant = b->enfants.taille();
-			auto variable = static_cast<base *>(nullptr);
-			auto expression = static_cast<base *>(nullptr);
-			auto bloc_sinon = static_cast<base *>(nullptr);
-
-			if (nombre_enfant == 1) {
-				variable = *iter_enfant;
-			}
-			else if (nombre_enfant == 2) {
-				variable = *iter_enfant++;
-
-				auto enfant = *iter_enfant++;
-
-				if (enfant->genre == GenreNoeud::INSTRUCTION_COMPOSEE) {
-					bloc_sinon = enfant;
-				}
-				else {
-					expression = enfant;
-				}
-			}
-			else if (nombre_enfant == 3) {
-				variable = *iter_enfant++;
-				expression = *iter_enfant++;
-				bloc_sinon = *iter_enfant++;
-			}
-
-			genere_code_allocation(contexte, generatrice, b->type, 1, b, variable, expression, bloc_sinon);
+			auto expr = static_cast<NoeudExpressionLogement *>(b);
+			genere_code_allocation(contexte, generatrice, expr->expr->type, 1, b, expr->expr, expr->expr_chaine, expr->bloc);
 			break;
 		}
 		case GenreNoeud::DECLARATION_STRUCTURE:
 		{
-			genere_declaration_structure(contexte, generatrice.os, b->chaine());
+			genere_declaration_structure(generatrice.os, static_cast<TypeStructure *>(b->type));
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENUM:
@@ -2478,110 +2256,104 @@ void genere_code_C(
 		case GenreNoeud::INSTRUCTION_DISCR:
 		{
 			/* le premier enfant est l'expression, les suivants les paires */
-
-			auto nombre_enfants = b->enfants.taille();
-			auto iter_enfant = b->enfants.debut();
-			auto expression = *iter_enfant++;
+			auto inst = static_cast<NoeudDiscr *>(b);
+			auto expression = inst->expr;
 
 			genere_code_C(expression, generatrice, contexte, true);
 			auto chaine_expr = expression->chaine_calculee();
 
-			auto op = b->op;
+			auto op = inst->op;
 
-			for (auto i = 1l; i < nombre_enfants; ++i) {
-				auto paire = *iter_enfant++;
-				auto enf0 = paire->enfants.front();
-				auto enf1 = paire->enfants.back();
+			POUR (inst->paires_discr) {
+				auto enf0 = it.first;
+				auto enf1 = it.second;
 
-				if (enf0->genre != GenreNoeud::INSTRUCTION_SINON) {
-					auto feuilles = dls::tableau<base *>();
-					rassemble_feuilles(enf0, feuilles);
+				auto feuilles = dls::tableau<NoeudExpression *>();
+				rassemble_feuilles(enf0, feuilles);
 
-					for (auto f : feuilles) {
-						genere_code_C(f, generatrice, contexte, true);
-					}
-
-					auto prefixe = "if (";
-
-					for (auto f : feuilles) {
-						generatrice.os << prefixe;
-
-						if (op->est_basique) {
-							generatrice.os << chaine_expr;
-							generatrice.os << " == ";
-							generatrice.os << f->chaine_calculee();
-						}
-						else {
-							generatrice.os << op->nom_fonction;
-							generatrice.os << "(contexte,";
-							generatrice.os << chaine_expr;
-							generatrice.os << ',';
-							generatrice.os << f->chaine_calculee();
-							generatrice.os << ')';
-						}
-
-						prefixe = " || ";
-					}
-
-					generatrice.os << ") ";
+				for (auto f : feuilles) {
+					genere_code_C(f, generatrice, contexte, true);
 				}
+
+				auto prefixe = "if (";
+
+				for (auto f : feuilles) {
+					generatrice.os << prefixe;
+
+					if (op->est_basique) {
+						generatrice.os << chaine_expr;
+						generatrice.os << " == ";
+						generatrice.os << f->chaine_calculee();
+					}
+					else {
+						generatrice.os << op->nom_fonction;
+						generatrice.os << "(contexte,";
+						generatrice.os << chaine_expr;
+						generatrice.os << ',';
+						generatrice.os << f->chaine_calculee();
+						generatrice.os << ')';
+					}
+
+					prefixe = " || ";
+				}
+
+				generatrice.os << ") ";
 
 				genere_code_C(enf1, generatrice, contexte, false);
 
-				if (i < nombre_enfants - 1) {
+				if (it != inst->paires_discr[inst->paires_discr.taille - 1]) {
 					generatrice.os << "else {\n";
 				}
 			}
 
+			if (inst->bloc_sinon) {
+				generatrice.os << "else {\n";
+				genere_code_C(inst->bloc_sinon, generatrice, contexte, false);
+			}
+
 			/* il faut fermer tous les blocs else */
-			for (auto i = 1l; i < nombre_enfants - 1; ++i) {
+			for (auto i = 0; i < inst->paires_discr.taille - 1; ++i) {
+				generatrice.os << "}\n";
+			}
+
+			if (inst->bloc_sinon) {
 				generatrice.os << "}\n";
 			}
 
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_PAIRE_DISCR:
-		{
-			/* RAF : pris en charge dans type_noeud::DISCR, ce noeud n'est que
-			 * pour ajouter un niveau d'indirection et faciliter la compilation
-			 * des discriminations. */
-			assert(false);
-			break;
-		}
 		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
 		{
 			/* le premier enfant est l'expression, les suivants les paires */
-
-			auto nombre_enfants = b->enfants.taille();
-			auto iter_enfant = b->enfants.debut();
-			auto expression = *iter_enfant++;
-			auto const nom_enum = static_cast<TypeEnum *>(expression->type)->nom;
-			auto &ds = contexte.donnees_structure(nom_enum);
+			auto inst = static_cast<NoeudDiscr *>(b);
+			auto expression = inst->expr;
+			auto type_enum = static_cast<TypeEnum *>(expression->type);
 
 			genere_code_C(expression, generatrice, contexte, true);
 			auto chaine_expr = expression->chaine_calculee();
 
 			generatrice.os << "switch (" << chaine_expr << ") {\n";
 
-			for (auto i = 1l; i < nombre_enfants; ++i) {
-				auto paire = *iter_enfant++;
-				auto enf0 = paire->enfants.front();
-				auto enf1 = paire->enfants.back();
+			POUR (inst->paires_discr) {
+				auto enf0 = it.first;
+				auto enf1 = it.second;
 
-				if (enf0->genre == GenreNoeud::INSTRUCTION_SINON) {
-					generatrice.os << "default:";
-				}
-				else {
-					auto feuilles = dls::tableau<base *>();
-					rassemble_feuilles(enf0, feuilles);
+				auto feuilles = dls::tableau<NoeudExpression *>();
+				rassemble_feuilles(enf0, feuilles);
 
-					for (auto f : feuilles) {
-						generatrice.os << "case " << chaine_valeur_enum(ds, f->chaine()) << ":\n";
-					}
+				for (auto f : feuilles) {
+					generatrice.os << "case " << chaine_valeur_enum(type_enum->decl, f->ident->nom) << ":\n";
 				}
 
 				generatrice.os << " {\n";
 				genere_code_C(enf1, generatrice, contexte, false);
+				generatrice.os << "break;\n}\n";
+			}
+
+			if (inst->bloc_sinon) {
+				generatrice.os << "default:";
+				generatrice.os << " {\n";
+				genere_code_C(inst->bloc_sinon, generatrice, contexte, false);
 				generatrice.os << "break;\n}\n";
 			}
 
@@ -2598,10 +2370,8 @@ void genere_code_C(
 			 * }
 			 */
 
-			auto nombre_enfant = b->enfants.taille();
-			auto iter_enfant = b->enfants.debut();
-			auto expression = *iter_enfant++;
-
+			auto inst = static_cast<NoeudDiscr *>(b);
+			auto expression = inst->expr;
 			auto type = expression->type;
 
 			auto const est_pointeur = type->genre == GenreType::POINTEUR;
@@ -2610,8 +2380,8 @@ void genere_code_C(
 				type = static_cast<TypePointeur *>(type)->type_pointe;
 			}
 
-			auto const nom_union = static_cast<TypeStructure *>(type)->nom;
-			auto &ds = contexte.donnees_structure(nom_union);
+			auto type_struct = static_cast<TypeStructure *>(type);
+			auto decl = type_struct->decl;
 
 			genere_code_C(expression, generatrice, contexte, true);
 			auto chaine_calculee = expression->chaine_calculee();
@@ -2619,36 +2389,31 @@ void genere_code_C(
 
 			generatrice.os << "switch (" << chaine_calculee << "membre_actif) {\n";
 
-			for (auto i = 1; i < nombre_enfant; ++i) {
-				auto enfant = *iter_enfant++;
-				auto expr_paire = enfant->enfants.front();
-				auto bloc_paire = enfant->enfants.back();
+			POUR (inst->paires_discr) {
+				auto expr_paire = it.first;
+				auto bloc_paire = it.second;
 
-				contexte.empile_nombre_locales();
+				auto index_membre = 0;
 
-				if (expr_paire->genre == GenreNoeud::INSTRUCTION_SINON) {
-					generatrice.os << "default";
+				for (auto i = 0; i < decl->bloc->membres.taille; ++i) {
+					if (decl->bloc->membres[i]->ident == expr_paire->ident) {
+						index_membre = i;
+						break;
+					}
 				}
-				else {
-					auto iter_dm = ds.donnees_membres.trouve(expr_paire->chaine());
-					auto const &dm = iter_dm->second;
-					generatrice.os << "case " << dm.index_membre + 1;
 
-					auto iter_membre = ds.donnees_membres.trouve(expr_paire->chaine());
-
-					auto dv = DonneesVariable{};
-					dv.type = ds.types[iter_membre->second.index_membre];
-					dv.est_argument = true;
-					dv.est_membre_emploie = true;
-					dv.structure = chaine_calculee;
-
-					contexte.pousse_locale(iter_membre->first, dv);
-				}
+				generatrice.os << "case " << index_membre + 1;
 
 				generatrice.os << ": {\n";
 				genere_code_C(bloc_paire, generatrice, contexte, true);
 				generatrice.os << "break;\n}\n";
-				contexte.depile_nombre_locales();
+			}
+
+			if (inst->bloc_sinon) {
+				generatrice.os << "default:";
+				generatrice.os << " {\n";
+				genere_code_C(inst->bloc_sinon, generatrice, contexte, false);
+				generatrice.os << "break;\n}\n";
 			}
 
 			generatrice.os << "}\n";
@@ -2657,12 +2422,13 @@ void genere_code_C(
 		}
 		case GenreNoeud::INSTRUCTION_RETIENS:
 		{
+			auto inst = static_cast<NoeudExpressionUnaire *>(b);
 			auto df = contexte.donnees_fonction;
-			auto enfant = b->enfants.front();
+			auto enfant = inst->expr;
 
 			generatrice.os << "pthread_mutex_lock(&__etat->mutex_coro);\n";
 
-			auto feuilles = dls::tableau<base *>{};
+			auto feuilles = dls::tableau<NoeudExpression *>{};
 			rassemble_feuilles(enfant, feuilles);
 
 			for (auto i = 0l; i < feuilles.taille(); ++i) {
@@ -2685,28 +2451,28 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
-			auto enfant = b->enfants.front();
-			genere_code_C(enfant, generatrice, contexte, expr_gauche);
-			b->valeur_calculee = '(' + enfant->chaine_calculee() + ')';
+			auto expr = static_cast<NoeudExpressionParenthese *>(b);
+			genere_code_C(expr->expr, generatrice, contexte, expr_gauche);
+			b->valeur_calculee = '(' + expr->expr->chaine_calculee() + ')';
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		{
-			auto variable = b->enfants.front();
-			auto bloc = b->enfants.back();
+			auto inst = static_cast<NoeudPousseContexte *>(b);
+			auto variable = inst->expr;
 
 			generatrice.os << "KsContexteProgramme ancien_contexte = contexte;\n";
 			generatrice.os << "contexte = " << broye_chaine(variable) << ";\n";
-			genere_code_C(bloc, generatrice, contexte, true);
+			genere_code_C(inst->bloc, generatrice, contexte, true);
 			generatrice.os << "contexte = ancien_contexte;\n";
 
 			break;
 		}
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		{
-			auto enfant = b->enfants.front();
-			applique_transformation(enfant, generatrice, contexte, expr_gauche);
-			b->valeur_calculee = enfant->valeur_calculee;
+			auto expr = static_cast<NoeudExpressionUnaire *>(b);
+			applique_transformation(expr->expr, generatrice, contexte, expr_gauche);
+			b->valeur_calculee = expr->expr->valeur_calculee;
 			break;
 		}
 	}
@@ -2767,7 +2533,7 @@ static void traverse_graphe_pour_generation_code(
 	}
 	else {
 		if (noeud->type == TypeNoeudDependance::FONCTION && !genere_fonctions) {
-			genere_declaration_fonction(noeud->noeud_syntactique, generatrice, contexte);
+			genere_declaration_fonction(noeud->noeud_syntactique, generatrice);
 			generatrice.os << ";\n";
 			return;
 		}
@@ -2825,7 +2591,7 @@ static void genere_typedefs_recursifs(
 		}
 	}
 
-	cree_typedef(contexte, type, os);
+	cree_typedef(type, os);
 	type->drapeaux |= TYPEDEF_FUT_GENERE;
 }
 
@@ -2972,21 +2738,21 @@ static void ajoute_dependances_implicites(
 	auto &graphe_dependance = contexte.graphe_dependance;
 
 	/* met en place la dépendance sur la fonction d'allocation par défaut */
-	auto &df_fonc_alloc = contexte.module("Kuri")->donnees_fonction("allocatrice_défaut").front();
-	auto noeud_alloc = graphe_dependance.cree_noeud_fonction(df_fonc_alloc.nom_broye, df_fonc_alloc.noeud_decl);
+	auto fonc_alloc = cherche_fonction_dans_module(contexte, "Kuri", "allocatrice_défaut");
+	auto noeud_alloc = graphe_dependance.cree_noeud_fonction(fonc_alloc->nom_broye, fonc_alloc);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_alloc);
 
-	auto &df_fonc_init_alloc = contexte.module("Kuri")->donnees_fonction("initialise_base_allocatrice").front();
-	auto noeud_init_alloc = graphe_dependance.cree_noeud_fonction(df_fonc_init_alloc.nom_broye, df_fonc_init_alloc.noeud_decl);
+	auto fonc_init_alloc = cherche_fonction_dans_module(contexte, "Kuri", "initialise_base_allocatrice");
+	auto noeud_init_alloc = graphe_dependance.cree_noeud_fonction(fonc_init_alloc->nom_broye, fonc_init_alloc);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_init_alloc);
 
-	auto &df_fonc_log = contexte.module("Kuri")->donnees_fonction("__logueur_défaut").front();
-	auto noeud_log = graphe_dependance.cree_noeud_fonction(df_fonc_log.nom_broye, df_fonc_log.noeud_decl);
+	auto fonc_log = cherche_fonction_dans_module(contexte, "Kuri", "__logueur_défaut");
+	auto noeud_log = graphe_dependance.cree_noeud_fonction(fonc_log->nom_broye, fonc_log);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_log);
 
 	if (pour_meta_programme) {
-		auto &df_fonc_init = contexte.module("Kuri")->donnees_fonction("initialise_RC").front();
-		auto noeud_init = graphe_dependance.cree_noeud_fonction(df_fonc_init.nom_broye, df_fonc_init.noeud_decl);
+		auto fonc_init = cherche_fonction_dans_module(contexte, "Kuri", "initialise_RC");
+		auto noeud_init = graphe_dependance.cree_noeud_fonction(fonc_init->nom_broye, fonc_init);
 		graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_init);
 	}
 }
@@ -3019,8 +2785,8 @@ static void genre_code_programme(
 	};
 
 	for (auto nom_struct : noms_structs_infos_types) {
-		auto const &ds = contexte.donnees_structure(nom_struct);
-		auto noeud = graphe_dependance.cherche_noeud_type(ds.type);
+		auto type_struct = contexte.typeuse.type_pour_nom(nom_struct);
+		auto noeud = graphe_dependance.cherche_noeud_type(type_struct);
 
 		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, false, false);
 		/* restaure le drapeaux pour la génération des infos des types */
@@ -3075,14 +2841,14 @@ R"(
 	contexte.donnxC3xA9es_logueur = 0;
 )";
 
-	auto &df_fonc_alloc = contexte.module("Kuri")->donnees_fonction("allocatrice_défaut").front();
-	auto &df_fonc_init_alloc = contexte.module("Kuri")->donnees_fonction("initialise_base_allocatrice").front();
-	auto &df_fonc_log = contexte.module("Kuri")->donnees_fonction("__logueur_défaut").front();
+	auto fonc_alloc = cherche_fonction_dans_module(contexte, "Kuri", "allocatrice_défaut");
+	auto fonc_init_alloc = cherche_fonction_dans_module(contexte, "Kuri", "initialise_base_allocatrice");
+	auto fonc_log = cherche_fonction_dans_module(contexte, "Kuri", "__logueur_défaut");
 
 	os << creation_contexte;
-	os << "contexte.allocatrice = " << df_fonc_alloc.nom_broye << ";\n";
-	os << df_fonc_init_alloc.nom_broye << "(contexte, &alloc_base);\n";
-	os << "contexte.logueur = " << df_fonc_log.nom_broye << ";\n";
+	os << "contexte.allocatrice = " << fonc_alloc->nom_broye << ";\n";
+	os << fonc_init_alloc->nom_broye << "(contexte, &alloc_base);\n";
+	os << "contexte.logueur = " << fonc_log->nom_broye << ";\n";
 }
 
 void genere_code_C(
@@ -3091,16 +2857,6 @@ void genere_code_C(
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie)
 {
-	auto racine = arbre.racine();
-
-	if (racine == nullptr) {
-		return;
-	}
-
-	if (racine->genre != GenreNoeud::RACINE) {
-		return;
-	}
-
 	dls::flux_chaine os;
 
 	auto temps_generation = 0.0;
@@ -3139,12 +2895,15 @@ void genere_code_C(
 
 void genere_code_C_pour_execution(
 		assembleuse_arbre const &arbre,
-		noeud::base *noeud_appel,
+		NoeudExpression *noeud_appel,
 		ContexteGenerationCode &contexte,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie)
 {
-	auto df = noeud_appel->df;
+	auto dir = static_cast<NoeudExpressionUnaire *>(noeud_appel);
+	auto expr = static_cast<NoeudExpressionAppel *>(dir->expr);
+	std::cerr << "Genre noeud : " << chaine_genre_noeud(expr->genre) << '\n';
+	auto decl = static_cast<NoeudDeclarationFonction *>(expr->noeud_fonction_appelee);
 
 	dls::flux_chaine os;
 
@@ -3154,7 +2913,7 @@ void genere_code_C_pour_execution(
 
 	auto &graphe_dependance = contexte.graphe_dependance;
 
-	auto noeud_fonction_principale = graphe_dependance.cherche_noeud_fonction(df->nom_broye);
+	auto noeud_fonction_principale = graphe_dependance.cherche_noeud_fonction(decl->nom_broye);
 	if (noeud_fonction_principale == nullptr) {
 		erreur::fonction_principale_manquante();
 	}
@@ -3173,7 +2932,7 @@ void genere_code_C_pour_execution(
 
 	genere_code_creation_contexte(contexte, os);
 
-	genere_code_C(noeud_appel, generatrice, contexte, true);
+	genere_code_C(expr, generatrice, contexte, true);
 
 	os << "    return;\n";
 	os << "}\n";
@@ -3191,19 +2950,15 @@ void genere_code_C_pour_execution(
 		noeud_dep->deja_genere = false;
 	}
 
-	for (auto &ds : contexte.structures) {
-		ds.second.deja_genere = false;
-	}
-
-	POUR (contexte.typeuse.types_simples) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
-	POUR (contexte.typeuse.types_pointeurs) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
-	POUR (contexte.typeuse.types_references) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
-	POUR (contexte.typeuse.types_structures) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
-	POUR (contexte.typeuse.types_enums) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
-	POUR (contexte.typeuse.types_tableaux_fixes) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
-	POUR (contexte.typeuse.types_tableaux_dynamiques) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
-	POUR (contexte.typeuse.types_fonctions) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
-	POUR (contexte.typeuse.types_variadiques) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };;
+	POUR (contexte.typeuse.types_simples) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (contexte.typeuse.types_pointeurs) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (contexte.typeuse.types_references) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (contexte.typeuse.types_structures) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; }
+	POUR (contexte.typeuse.types_enums) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (contexte.typeuse.types_tableaux_fixes) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (contexte.typeuse.types_tableaux_dynamiques) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (contexte.typeuse.types_fonctions) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (contexte.typeuse.types_variadiques) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 }
 
 }  /* namespace noeud */

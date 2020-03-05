@@ -294,14 +294,13 @@ dls::chaine const &nom_broye_type(
  * -> _KF4Test4test_P2_E1_1x3z32_S1_3z32
  */
 dls::chaine broye_nom_fonction(
-		DonneesFonction const &df,
-		dls::vue_chaine_compacte const &nom_fonction,
+		NoeudDeclarationFonction *decl,
 		dls::chaine const &nom_module)
 {
-	auto type_fonc = df.type;
+	auto type_fonc = static_cast<TypeFonction *>(decl->type);
 	auto ret = dls::chaine("_K");
 
-	ret += df.est_coroutine ? "C" : "F";
+	ret += decl->est_coroutine ? "C" : "F";
 
 	/* module */
 	auto nom_ascii = broye_nom_simple(nom_module);
@@ -310,7 +309,7 @@ dls::chaine broye_nom_fonction(
 	ret += nom_ascii;
 
 	/* nom de la fonction */
-	nom_ascii = broye_nom_simple(nom_fonction);
+	nom_ascii = broye_nom_simple(decl->lexeme->chaine);
 
 	ret += dls::vers_chaine(nom_ascii.taille());
 	ret += nom_ascii;
@@ -319,15 +318,17 @@ dls::chaine broye_nom_fonction(
 
 	/* entrées */
 	ret += "_E";
-	ret += dls::vers_chaine(df.args.taille());
+	ret += dls::vers_chaine(decl->params.taille);
 	ret += "_";
 
-	for (auto const &arg : df.args) {
-		nom_ascii = broye_nom_simple(arg.nom);
+	/* À FAIRE(réusinage arbre) : ajout du contexte */
+	POUR (decl->params) {
+		auto param = static_cast<NoeudDeclarationVariable *>(it);
+		nom_ascii = broye_nom_simple(param->valeur->ident->nom);
 		ret += dls::vers_chaine(nom_ascii.taille());
 		ret += nom_ascii;
 
-		auto const &nom_broye = nom_broye_type(arg.type, false);
+		auto const &nom_broye = nom_broye_type(it->type, false);
 		ret += dls::vers_chaine(nom_broye.taille());
 		ret += nom_broye;
 	}

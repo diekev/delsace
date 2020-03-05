@@ -31,17 +31,17 @@ enum_field_types :: énum n32 {
 	MYSQL_TYPE_TIME2
 	// Used for replication only
 	MYSQL_TYPE_TYPED_ARRAY
-	MYSQL_TYPE_JSON := 245
-	MYSQL_TYPE_NEWDECIMAL := 246
-	MYSQL_TYPE_ENUM := 247
-	MYSQL_TYPE_SET := 248
-	MYSQL_TYPE_TINY_BLOB := 249
-	MYSQL_TYPE_MEDIUM_BLOB := 250
-	MYSQL_TYPE_LONG_BLOB := 251
-	MYSQL_TYPE_BLOB := 252
-	MYSQL_TYPE_VAR_STRING := 253
-	MYSQL_TYPE_STRING := 254
-	MYSQL_TYPE_GEOMETRY := 255
+	MYSQL_TYPE_JSON :: 245
+	MYSQL_TYPE_NEWDECIMAL :: 246
+	MYSQL_TYPE_ENUM :: 247
+	MYSQL_TYPE_SET :: 248
+	MYSQL_TYPE_TINY_BLOB :: 249
+	MYSQL_TYPE_MEDIUM_BLOB :: 250
+	MYSQL_TYPE_LONG_BLOB :: 251
+	MYSQL_TYPE_BLOB :: 252
+	MYSQL_TYPE_VAR_STRING :: 253
+	MYSQL_TYPE_STRING :: 254
+	MYSQL_TYPE_GEOMETRY :: 255
 }
 
 // include/my_list.h
@@ -130,7 +130,7 @@ enum_server_command :: énum n32 {
 
 // List of valid values for compression_algorithm
 enum_compression_algorithm :: énum n32 {
-	MYSQL_UNCOMPRESSED := 1
+	MYSQL_UNCOMPRESSED :: 1
 	MYSQL_ZLIB
 	MYSQL_ZSTD
 	MYSQL_INVALID
@@ -179,30 +179,30 @@ mysql_compress_context_deinit :: fonc externe (mysql_compress_ctx : *mysql_compr
 // The status flags are a bit-field
 SERVER_STATUS_flags_enum :: énum n32 {
 	// Is raised when a multi-statement transaction has been started, either explicitly, by means of BEGIN or COMMIT AND CHAIN, or implicitly, by the first transactional statement, when autocommit=off.
-	SERVER_STATUS_IN_TRANS := 1
+	SERVER_STATUS_IN_TRANS :: 1
 	// Server in auto_commit mode
-	SERVER_STATUS_AUTOCOMMIT := 2
+	SERVER_STATUS_AUTOCOMMIT :: 2
 	// Multi query - next query exists
-	SERVER_MORE_RESULTS_EXISTS := 8
-	SERVER_QUERY_NO_GOOD_INDEX_USED := 16
-	SERVER_QUERY_NO_INDEX_USED := 32
+	SERVER_MORE_RESULTS_EXISTS :: 8
+	SERVER_QUERY_NO_GOOD_INDEX_USED :: 16
+	SERVER_QUERY_NO_INDEX_USED :: 32
 	// The server was able to fulfill the clients request and opened a read-only non-scrollable cursor for a query. This flag comes in reply to COM_STMT_EXECUTE and COM_STMT_FETCH commands. Used by Binary Protocol Resultset to signal that COM_STMT_FETCH must be used to fetch the row-data.
-	SERVER_STATUS_CURSOR_EXISTS := 64
+	SERVER_STATUS_CURSOR_EXISTS :: 64
 	// This flag is sent when a read-only cursor is exhausted, in reply to COM_STMT_FETCH command.
-	SERVER_STATUS_LAST_ROW_SENT := 128
+	SERVER_STATUS_LAST_ROW_SENT :: 128
 	// A database was dropped
-	SERVER_STATUS_DB_DROPPED := 256
-	SERVER_STATUS_NO_BACKSLASH_ESCAPES := 512
+	SERVER_STATUS_DB_DROPPED :: 256
+	SERVER_STATUS_NO_BACKSLASH_ESCAPES :: 512
 	// Sent to the client if after a prepared statement reprepare we discovered that the new statement returns a different number of result set columns.
-	SERVER_STATUS_METADATA_CHANGED := 1024
+	SERVER_STATUS_METADATA_CHANGED :: 1024
 	// Sent to the client if after a prepared statement reprepare we discovered that the new statement returns a different number of result set columns.
-	SERVER_QUERY_WAS_SLOW := 2048
+	SERVER_QUERY_WAS_SLOW :: 2048
 	// To mark ResultSet containing output parameter values.
-	SERVER_PS_OUT_PARAMS := 4096
+	SERVER_PS_OUT_PARAMS :: 4096
 	// Set at the same time as SERVER_STATUS_IN_TRANS if the started multi-statement transaction is a read-only transaction. Cleared when the transaction commits or aborts. Since this flag is sent to clients in OK and EOF packets, the flag indicates the transaction status at the end of command execution.
-	SERVER_STATUS_IN_TRANS_READONLY := 8192
+	SERVER_STATUS_IN_TRANS_READONLY :: 8192
 	// This status flag, when on, implies that one of the state information has changed on the server because of the execution of the last statement.
-	SERVER_SESSION_STATE_CHANGED := (1 << 14)
+	SERVER_SESSION_STATE_CHANGED :: (1 << 14)
 }
 
 Vio :: struct externe;
@@ -247,36 +247,36 @@ NET :: struct externe {
 
 // We want levels to be in growing order of hardness (because we use number comparisons).
 mysql_enum_shutdown_level :: énum n32 {
-	SHUTDOWN_DEFAULT := 0
+	SHUTDOWN_DEFAULT :: 0
 	// Wait for existing connections to finish
-	SHUTDOWN_WAIT_CONNECTIONS := transtype((1 << 0) : n8)
+	SHUTDOWN_WAIT_CONNECTIONS :: transtype((1 << 0) : n8)
 	// Wait for existing transactons to finish
-	SHUTDOWN_WAIT_TRANSACTIONS := transtype((1 << 1) : n8)
+	SHUTDOWN_WAIT_TRANSACTIONS :: transtype((1 << 1) : n8)
 	// Wait for existing updates to finish (=> no partial MyISAM update)
-	SHUTDOWN_WAIT_UPDATES := transtype((1 << 3) : n8)
+	SHUTDOWN_WAIT_UPDATES :: transtype((1 << 3) : n8)
 	// Flush InnoDB buffers and other storage engines' buffers
-	SHUTDOWN_WAIT_ALL_BUFFERS := (transtype((1 << 3) : n8) << 1)
+	SHUTDOWN_WAIT_ALL_BUFFERS :: (transtype((1 << 3) : n8) << 1)
 	// Don't flush InnoDB buffers, flush other storage engines' buffers
-	SHUTDOWN_WAIT_CRITICAL_BUFFERS := (transtype((1 << 3) : n8) << 1) + 1
+	SHUTDOWN_WAIT_CRITICAL_BUFFERS :: (transtype((1 << 3) : n8) << 1) + 1
 	// Query level of the KILL command
-	KILL_QUERY := 254
+	KILL_QUERY :: 254
 	// Connection level of the KILL command
-	KILL_CONNECTION := 255
+	KILL_CONNECTION :: 255
 }
 
 // @}
 enum_resultset_metadata :: énum n32 {
 	// No metadata will be sent.
-	RESULTSET_METADATA_NONE := 0
+	RESULTSET_METADATA_NONE :: 0
 	// The server will send all metadata.
-	RESULTSET_METADATA_FULL := 1
+	RESULTSET_METADATA_FULL :: 1
 }
 
 enum_cursor_type :: énum n32 {
-	CURSOR_TYPE_NO_CURSOR := 0
-	CURSOR_TYPE_READ_ONLY := 1
-	CURSOR_TYPE_FOR_UPDATE := 2
-	CURSOR_TYPE_SCROLLABLE := 4
+	CURSOR_TYPE_NO_CURSOR :: 0
+	CURSOR_TYPE_READ_ONLY :: 1
+	CURSOR_TYPE_FOR_UPDATE :: 2
+	CURSOR_TYPE_SCROLLABLE :: 4
 }
 
 // options for ::mysql_options()
@@ -310,9 +310,9 @@ rand_struct :: struct externe {
 
 // Type of the user defined function return slot and arguments
 Item_result :: énum z32 {
-	INVALID_RESULT := -1
+	INVALID_RESULT :: -1
 	// not valid for UDFs
-	STRING_RESULT := 0
+	STRING_RESULT :: 0
 	// char *
 	REAL_RESULT
 	// double
@@ -357,7 +357,7 @@ UDF_INIT :: struct externe {
 }
 
 Item_udftype :: énum n32 {
-	UDFTYPE_FUNCTION := 1
+	UDFTYPE_FUNCTION :: 1
 	UDFTYPE_AGGREGATE
 }
 
@@ -396,7 +396,7 @@ MYSQL_PLUGIN_VIO_INFO :: struct externe {
 
 // state of an asynchronous operation
 net_async_status :: énum n32 {
-	NET_ASYNC_COMPLETE := 0
+	NET_ASYNC_COMPLETE :: 0
 	NET_ASYNC_NOT_READY
 	NET_ASYNC_ERROR
 	NET_ASYNC_COMPLETE_NO_MORE_RESULTS
@@ -418,16 +418,16 @@ MYSQL_PLUGIN_VIO :: struct externe {
 
 // Do not not pull in the server header "my_inttypes.h" from client code. IWYU pragma: no_include "my_inttypes.h"
 enum_mysql_timestamp_type :: énum z32 {
-	MYSQL_TIMESTAMP_NONE := -2
-	MYSQL_TIMESTAMP_ERROR := -1
+	MYSQL_TIMESTAMP_NONE :: -2
+	MYSQL_TIMESTAMP_ERROR :: -1
 	// Stores year, month and day components.
-	MYSQL_TIMESTAMP_DATE := 0
+	MYSQL_TIMESTAMP_DATE :: 0
 	// Stores all date and time components. Value is in UTC for `TIMESTAMP` type. Value is in local time zone for `DATETIME` type.
-	MYSQL_TIMESTAMP_DATETIME := 1
+	MYSQL_TIMESTAMP_DATETIME :: 1
 	// Stores hour, minute, second and microsecond.
-	MYSQL_TIMESTAMP_TIME := 2
+	MYSQL_TIMESTAMP_TIME :: 2
 	// A temporary type for `DATETIME` or `TIMESTAMP` types equipped with time zone information. After the time zone information is reconciled, the type is converted to MYSQL_TIMESTAMP_DATETIME.
-	MYSQL_TIMESTAMP_DATETIME_TZ := 3
+	MYSQL_TIMESTAMP_DATETIME_TZ :: 3
 }
 
 // Structure which is used to represent datetime values inside MySQL.
@@ -621,7 +621,7 @@ mysql_protocol_type :: énum n32 {
 }
 
 mysql_ssl_mode :: énum n32 {
-	SSL_MODE_DISABLED := 1
+	SSL_MODE_DISABLED :: 1
 	SSL_MODE_PREFERRED
 	SSL_MODE_REQUIRED
 	SSL_MODE_VERIFY_CA
@@ -629,8 +629,8 @@ mysql_ssl_mode :: énum n32 {
 }
 
 mysql_ssl_fips_mode :: énum n32 {
-	SSL_FIPS_MODE_OFF := 0
-	SSL_FIPS_MODE_ON := 1
+	SSL_FIPS_MODE_OFF :: 0
+	SSL_FIPS_MODE_ON :: 1
 	SSL_FIPS_MODE_STRICT
 }
 
@@ -754,7 +754,7 @@ MYSQL_RPL :: struct externe {
 }
 // statement state
 enum_mysql_stmt_state :: énum n32 {
-	MYSQL_STMT_INIT_DONE := 1
+	MYSQL_STMT_INIT_DONE :: 1
 	MYSQL_STMT_PREPARE_DONE
 	MYSQL_STMT_EXECUTE_DONE
 	MYSQL_STMT_FETCH_DONE

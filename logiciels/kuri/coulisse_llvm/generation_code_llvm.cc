@@ -72,11 +72,13 @@ using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
  * - BaseAllocatrice
  * - __ARGC, __ARGV
  * - ajournement pour les nouveau système de type, notamment TypeVariadique, et les types de sorties des fonctions
+ * - ajournement pour la nouvelle architecture de l'arbre syntaxique
  */
 
 /* ************************************************************************** */
 
 namespace noeud {
+#if 0
 static llvm::Value *genere_code_llvm(
 		base *b,
 		ContexteGenerationCode &contexte,
@@ -356,7 +358,7 @@ enum {
 
 [[nodiscard]] static llvm::Value *applique_transformation(
 		ContexteGenerationCode &contexte,
-		base *b,
+		NoeudBase *b,
 		bool expr_gauche)
 {
 	auto valeur = static_cast<llvm::Value *>(nullptr);
@@ -706,10 +708,10 @@ static auto genere_code_allocation(
 		ContexteGenerationCode &contexte,
 		Type *type,
 		int mode,
-		base *b,
-		base *variable,
-		base *expression,
-		base *bloc_sinon)
+		NoeudBase *b,
+		NoeudBase *variable,
+		NoeudBase *expression,
+		NoeudBase *bloc_sinon)
 {
 	auto builder = llvm::IRBuilder<>(contexte.contexte);
 	builder.SetInsertPoint(contexte.bloc_courant());
@@ -868,7 +870,7 @@ static auto genere_code_allocation(
 /* ************************************************************************** */
 
 static llvm::Value *genere_code_llvm(
-		base *b,
+		NoeudBase *b,
 		ContexteGenerationCode &contexte,
 		const bool expr_gauche)
 {
@@ -892,7 +894,8 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
-			return genere_code_llvm(b->enfants.front(), contexte, expr_gauche);
+			auto expr = static_cast<NoeudExpressionParenthese *>(b);
+			return genere_code_llvm(expr->expr, contexte, expr_gauche);
 		}
 		case GenreNoeud::DECLARATION_FONCTION:
 		{
@@ -1060,6 +1063,9 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
+			auto refexpr = static_cast<NoeudExpressionReference *>(b);
+			auto decl = trouve_dans_bloc(refexpr->bloc_parent, refexpr->ident);
+
 			auto valeur = contexte.valeur_locale(b->lexeme.chaine);
 
 			if (valeur == nullptr) {
@@ -1082,8 +1088,9 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
-			auto structure = b->enfants.front();
-			auto membre = b->enfants.back();
+			auto expr = static_cast<NoeudOperationBinaire *>(b);
+			auto structure = expr->expr1;
+			auto membre = expr->expr2;
 
 			auto type_structure = structure->type;
 
@@ -1190,8 +1197,9 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
-			auto structure = b->enfants.front();
-			auto membre = b->enfants.back();
+			auto expr = static_cast<NoeudOperationBinaire *>(b);
+			auto structure = expr->expr1;
+			auto membre = expr->expr2;
 			auto const &nom_membre = membre->chaine();
 
 			auto type_structure = static_cast<TypeStructure *>(structure->type);
@@ -1213,10 +1221,9 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			assert(b->enfants.taille() == 2);
-
-			auto variable = b->enfants.front();
-			auto expression = b->enfants.back();
+			auto expr = static_cast<NoeudOperationBinaire *>(b);
+			auto variable = expr->expr1;
+			auto expression = expr->expr2;
 
 			/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
 			 * la variable sur la pile et celle de stockage de la valeur soit côte à
@@ -1233,16 +1240,9 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
 		{
-			auto variable = static_cast<noeud::base *>(nullptr);
-			auto expression = static_cast<noeud::base *>(nullptr);
-
-			if (b->enfants.taille() == 2) {
-				variable = b->enfants.front();
-				expression = b->enfants.back();
-			}
-			else {
-				variable = b;
-			}
+			auto expr = static_cast<NoeudOperationBinaire *>(b);
+			auto variable = expr->expr1;
+			auto expression = expr->expr2;
 
 			auto type = variable->type;
 			auto type_llvm = converti_type_llvm(contexte, type);
@@ -1321,10 +1321,10 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		{
-			auto enfant1 = b->enfants.front();
-			auto enfant2 = b->enfants.back();
-
-			auto op = b->op;
+			auto expr = static_cast<NoeudOperationBinaire *>(b);
+			auto enfant1 = expr->expr1;
+			auto enfant2 = expr->expr2;
+			auto op = expr->op;
 
 			if ((b->drapeaux & EST_ASSIGNATION_OPEREE) != 0) {
 				auto ptr_valeur1 = genere_code_llvm(enfant1, contexte, true);
@@ -1368,6 +1368,10 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
+			auto expr = static_cast<NoeudOperationUnaire *>(b);
+			auto enfant = expr->expr;
+			auto op = expr->op;
+
 			llvm::Instruction::BinaryOps instr;
 			auto enfant = b->enfants.front();
 			auto type1 = enfant->type;
@@ -1443,8 +1447,10 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		{
-			auto enfant1 = b->enfants.front();
-			auto enfant2 = b->enfants.back();
+			auto expr = static_cast<NoeudOperationBinaire *>(b);
+			auto enfant1 = expr->expr1;
+			auto enfant2 = expr->expr2;
+			auto op = expr->op;
 
 			auto a_comp_b = genere_code_llvm(enfant1, contexte, expr_gauche);
 			auto val_c = genere_code_llvm(enfant2, contexte, expr_gauche);
@@ -1474,8 +1480,9 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_INDICE:
 		{
-			auto enfant1 = b->enfants.front();
-			auto enfant2 = b->enfants.back();
+			auto expr = static_cast<NoeudOperationBinaire *>(b);
+			auto enfant1 = expr->expr1;
+			auto enfant2 = expr->expr2;
 
 			auto const type1 = enfant1->type;
 
@@ -1601,13 +1608,9 @@ static llvm::Value *genere_code_llvm(
 		case GenreNoeud::INSTRUCTION_SAUFSI:
 		case GenreNoeud::INSTRUCTION_SI:
 		{
-			auto const nombre_enfants = b->enfants.taille();
-			auto iter_enfant = b->enfants.debut();
+			auto inst = static_cast<NoeudSi *>(b);
 
-			/* noeud 1 : condition */
-			auto enfant1 = *iter_enfant++;
-
-			auto condition = genere_code_llvm(enfant1, contexte, false);
+			auto condition = genere_code_llvm(inst->condition, contexte, false);
 
 			if (b->genre == GenreNoeud::INSTRUCTION_SAUFSI) {
 				auto valeur2 = llvm::ConstantInt::get(
@@ -1626,7 +1629,7 @@ static llvm::Value *genere_code_llvm(
 
 			auto bloc_alors = cree_bloc(contexte, "alors");
 
-			auto bloc_sinon = (nombre_enfants == 3)
+			auto bloc_sinon = inst->bloc_si_faux
 							  ? cree_bloc(contexte, "sinon")
 							  : nullptr;
 
@@ -1641,15 +1644,15 @@ static llvm::Value *genere_code_llvm(
 			contexte.bloc_courant(bloc_alors);
 
 			/* noeud 2 : bloc */
-			auto enfant2 = *iter_enfant++;
+			auto enfant2 = inst->bloc_si_vrai;
 			enfant2->valeur_calculee = bloc_fusion;
 			auto ret = genere_code_llvm(enfant2, contexte, false);
 
 			/* noeud 3 : sinon (optionel) */
-			if (nombre_enfants == 3) {
+			if (inst->bloc_si_faux) {
 				contexte.bloc_courant(bloc_sinon);
 
-				auto enfant3 = *iter_enfant++;
+				auto enfant3 = inst->bloc_si_faux;
 				enfant3->valeur_calculee = bloc_fusion;
 				ret = genere_code_llvm(enfant3, contexte, false);
 			}
@@ -1663,8 +1666,6 @@ static llvm::Value *genere_code_llvm(
 			llvm::Value *valeur = nullptr;
 
 			auto bloc_entree = contexte.bloc_courant();
-
-			contexte.empile_nombre_locales();
 
 			for (auto enfant : b->enfants) {
 				valeur = genere_code_llvm(enfant, contexte, true);
@@ -1689,21 +1690,11 @@ static llvm::Value *genere_code_llvm(
 				}
 			}
 
-			contexte.depile_nombre_locales();
-
 			return valeur;
 		}
 		case GenreNoeud::INSTRUCTION_POUR:
 		{
-			/* Arbre :
-			 * pour
-			 * - enfant 1 : déclaration variable
-			 * - enfant 2 : expr
-			 * - enfant 3 : bloc
-			 * - enfant 4 : bloc sansarrêt ou sinon (optionel)
-			 * - enfant 5 : bloc sinon (optionel)
-			 *
-			 * boucle:
+			/* boucle:
 			 *	phi [entrée] [corps_boucle]
 			 *	cmp phi, fin
 			 *	br corps_boucle, apre_boucle
@@ -1720,18 +1711,14 @@ static llvm::Value *genere_code_llvm(
 			 *	...
 			 */
 
-			auto nombre_enfants = b->enfants.taille();
-			auto iter = b->enfants.debut();
+			auto inst = static_cast<NoeudPour *>(b);
 
 			/* on génère d'abord le type de la variable */
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
-			auto enfant3 = *iter++;
-			auto enfant4 = (nombre_enfants >= 4) ? *iter++ : nullptr;
-			auto enfant5 = (nombre_enfants == 5) ? *iter++ : nullptr;
-
-			auto enfant_sans_arret = enfant4;
-			auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
+			auto enfant1 = inst->variable;
+			auto enfant2 = inst->expression;
+			auto enfant3 = inst->bloc;
+			auto enfant_sans_arret = inst->bloc_sansarret;
+			auto enfant_sinon = inst->bloc_sinon;
 
 			auto type = enfant2->type;
 			enfant1->type = type;
@@ -1744,16 +1731,11 @@ static llvm::Value *genere_code_llvm(
 			auto bloc_sansarret = static_cast<llvm::BasicBlock *>(nullptr);
 			auto bloc_sinon = static_cast<llvm::BasicBlock *>(nullptr);
 
-			if (nombre_enfants == 4) {
-				if (enfant4->identifiant() == GenreLexeme::SINON) {
-					bloc_sinon = cree_bloc(contexte, "sinon_boucle");
-				}
-				else {
-					bloc_sansarret = cree_bloc(contexte, "sansarret_boucle");
-				}
-			}
-			else if (nombre_enfants == 5) {
+			if (enfant_sans_arret) {
 				bloc_sansarret = cree_bloc(contexte, "sansarret_boucle");
+			}
+
+			if (enfant_sinon) {
 				bloc_sinon = cree_bloc(contexte, "sinon_boucle");
 			}
 
@@ -1763,8 +1745,6 @@ static llvm::Value *genere_code_llvm(
 			contexte.empile_bloc_arrete(enfant1->chaine(), (bloc_sinon != nullptr) ? bloc_sinon : bloc_apres);
 
 			auto bloc_pre = contexte.bloc_courant();
-
-			contexte.empile_nombre_locales();
 
 			auto noeud_phi = static_cast<llvm::PHINode *>(nullptr);
 
@@ -1817,21 +1797,6 @@ static llvm::Value *genere_code_llvm(
 										 contexte.bloc_courant());
 
 					builder.CreateCondBr(condition, bloc_corps, (bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres);
-
-					if (b->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
-						auto donnees_var = DonneesVariable{};
-
-						donnees_var.valeur = noeud_phi;
-						contexte.pousse_locale(var->chaine(), donnees_var);
-
-						donnees_var.valeur = valeur_idx;
-						contexte.pousse_locale(idx->chaine(), donnees_var);
-					}
-					else {
-						auto donnees_var = DonneesVariable{};
-						donnees_var.valeur = noeud_phi;
-						contexte.pousse_locale(enfant1->chaine(), donnees_var);
-					}
 
 					/* création du bloc de corps */
 
@@ -1940,25 +1905,6 @@ static llvm::Value *genere_code_llvm(
 									 contexte.bloc_courant());
 					}
 
-					if (b->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
-						auto var = enfant1->enfants.front();
-						auto idx = enfant1->enfants.back();
-
-						auto donnees_var = DonneesVariable{};
-
-						donnees_var.valeur = valeur_arg;
-						contexte.pousse_locale(var->chaine(), donnees_var);
-
-						donnees_var.valeur = noeud_phi;
-						donnees_var.type = idx->type;
-						contexte.pousse_locale(idx->chaine(), donnees_var);
-					}
-					else {
-						auto donnees_var = DonneesVariable{};
-						donnees_var.valeur = valeur_arg;
-						contexte.pousse_locale(enfant1->chaine(), donnees_var);
-					}
-
 					/* création du bloc de corps */
 					builder.SetInsertPoint(contexte.bloc_courant());
 
@@ -1993,19 +1939,18 @@ static llvm::Value *genere_code_llvm(
 			contexte.depile_bloc_continue();
 			contexte.depile_bloc_arrete();
 
-			if (bloc_sansarret != nullptr) {
+			if (enfant_sans_arret) {
 				contexte.bloc_courant(bloc_sansarret);
 				enfant_sans_arret->valeur_calculee = bloc_apres;
 				ret = genere_code_llvm(enfant_sans_arret, contexte, false);
 			}
 
-			if (bloc_sinon != nullptr) {
+			if (enfant_sinon) {
 				contexte.bloc_courant(bloc_sinon);
 				enfant_sinon->valeur_calculee = bloc_apres;
 				ret = genere_code_llvm(enfant_sinon, contexte, false);
 			}
 
-			contexte.depile_nombre_locales();
 			contexte.bloc_courant(bloc_apres);
 
 			return ret;
@@ -2030,7 +1975,7 @@ static llvm::Value *genere_code_llvm(
 			 *	...
 			 */
 
-			auto enfant = b->enfants.front();
+			auto inst = static_cast<NoeudBoucle *>(b);
 
 			auto bloc_boucle = cree_bloc(contexte, "boucle");
 			auto bloc_apres = cree_bloc(contexte, "apres_boucle");
@@ -2044,7 +1989,7 @@ static llvm::Value *genere_code_llvm(
 			contexte.bloc_courant(bloc_boucle);
 
 			enfant->valeur_calculee = bloc_boucle;
-			auto ret = genere_code_llvm(enfant, contexte, false);
+			auto ret = genere_code_llvm(inst->bloc, contexte, false);
 
 			contexte.depile_bloc_continue();
 			contexte.depile_bloc_arrete();
@@ -2054,7 +1999,7 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::INSTRUCTION_REPETE:
 		{
-			auto enfant = b->enfants.front();
+			auto inst = static_cast<NoeudBoucle *>(b);
 
 			auto bloc_boucle = cree_bloc(contexte, "repete");
 			auto bloc_tantque = cree_bloc(contexte, "tantque_boucle");
@@ -2069,11 +2014,11 @@ static llvm::Value *genere_code_llvm(
 			contexte.bloc_courant(bloc_boucle);
 
 			enfant->valeur_calculee = bloc_tantque;
-			auto ret = genere_code_llvm(enfant, contexte, false);
+			auto ret = genere_code_llvm(inst->bloc, contexte, false);
 
 			contexte.bloc_courant(bloc_tantque);
 
-			auto condition = genere_code_llvm(b->enfants.back(), contexte, false);
+			auto condition = genere_code_llvm(inst->condition, contexte, false);
 
 			llvm::BranchInst::Create(
 						bloc_boucle,
@@ -2089,8 +2034,7 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::INSTRUCTION_TANTQUE:
 		{
-			auto enfant_condition = b->enfants.front();
-			auto enfant_bloc = b->enfants.back();
+			auto inst = static_cast<NoeudBoucle *>(b);
 
 			auto bloc_tantque_cond = cree_bloc(contexte, "tantque_cond");
 			auto bloc_tantque_corps = cree_bloc(contexte, "tantque_corps");
@@ -2104,7 +2048,7 @@ static llvm::Value *genere_code_llvm(
 
 			contexte.bloc_courant(bloc_tantque_cond);
 
-			auto condition = genere_code_llvm(enfant_condition, contexte, false);
+			auto condition = genere_code_llvm(inst->condition, contexte, false);
 
 			llvm::BranchInst::Create(
 						bloc_tantque_corps,
@@ -2115,7 +2059,7 @@ static llvm::Value *genere_code_llvm(
 			contexte.bloc_courant(bloc_tantque_corps);
 
 			enfant_bloc->valeur_calculee = bloc_tantque_cond;
-			genere_code_llvm(enfant_bloc, contexte, false);
+			genere_code_llvm(inst->bloc, contexte, false);
 
 			contexte.depile_bloc_continue();
 			contexte.depile_bloc_arrete();
@@ -2240,13 +2184,6 @@ static llvm::Value *genere_code_llvm(
 
 			return nullptr;
 		}
-		case GenreNoeud::INSTRUCTION_NONSUR:
-		{
-			contexte.non_sur(true);
-			genere_code_llvm(b->enfants.front(), contexte, false);
-			contexte.non_sur(false);
-			return nullptr;
-		}
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
 		{
 			auto taille_tableau = b->enfants.taille();
@@ -2364,71 +2301,24 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		{
-			auto valeur = genere_code_llvm(b->enfants.front(), contexte, expr_gauche);
+			auto expr = static_cast<NoeudOperationUnaire *>(b);
+			auto valeur = genere_code_llvm(expr->expr, contexte, expr_gauche);
 			return new llvm::LoadInst(valeur, "", contexte.bloc_courant());
 		}
 		case GenreNoeud::EXPRESSION_LOGE:
 		{
-			auto iter_enfant = b->enfants.debut();
-			auto nombre_enfant = b->enfants.taille();
-			auto expression = static_cast<base *>(nullptr);
-			auto bloc_sinon = static_cast<base *>(nullptr);
-
-			if (nombre_enfant == 1) {
-				auto enfant = *iter_enfant++;
-
-				if (enfant->genre == GenreNoeud::INSTRUCTION_COMPOSEE) {
-					bloc_sinon = enfant;
-				}
-				else {
-					expression = enfant;
-				}
-			}
-			else if (nombre_enfant == 2) {
-				expression = *iter_enfant++;
-				bloc_sinon = *iter_enfant++;
-			}
-
-			return genere_code_allocation(contexte, b->type, 0, b, nullptr, expression, bloc_sinon);
+			auto expr = static_cast<NoeudExpressionLogement *>(b);
+			return genere_code_allocation(contexte, dt, 0, b->type, expr->expression, expr->expression_chaine, expr->bloc);
 		}
 		case GenreNoeud::EXPRESSION_DELOGE:
 		{
-			auto enfant = b->enfants.front();
-			genere_code_allocation(contexte, enfant->type, 2, b, enfant, nullptr, nullptr);
-			return nullptr;
+			auto expr = static_cast<NoeudExpressionLogement *>(b);
+			return genere_code_allocation(contexte, dt, 2, b->type, expr->expression, expr->expression_chaine, expr->bloc);
 		}
 		case GenreNoeud::EXPRESSION_RELOGE:
 		{
-			auto iter_enfant = b->enfants.debut();
-			auto nombre_enfant = b->enfants.taille();
-			auto variable = static_cast<base *>(nullptr);
-			auto expression = static_cast<base *>(nullptr);
-			auto bloc_sinon = static_cast<base *>(nullptr);
-
-			if (nombre_enfant == 1) {
-				variable = *iter_enfant;
-			}
-			else if (nombre_enfant == 2) {
-				variable = *iter_enfant++;
-
-				auto enfant = *iter_enfant++;
-
-				if (enfant->genre == GenreNoeud::INSTRUCTION_COMPOSEE) {
-					bloc_sinon = enfant;
-				}
-				else {
-					expression = enfant;
-				}
-			}
-			else if (nombre_enfant == 3) {
-				variable = *iter_enfant++;
-				expression = *iter_enfant++;
-				bloc_sinon = *iter_enfant++;
-			}
-
-			genere_code_allocation(contexte, b->type, 1, b, variable, expression, bloc_sinon);
-
-			return nullptr;
+			auto expr = static_cast<NoeudExpressionLogement *>(b);
+			return genere_code_allocation(contexte, dt, 1, b->type, expr->expression, expr->expression_chaine, expr->bloc);
 		}
 		case GenreNoeud::DECLARATION_STRUCTURE:
 		{
@@ -2514,9 +2404,6 @@ static llvm::Value *genere_code_llvm(
 
 				contexte.bloc_courant(donnees.bloc_de_la_condition);
 				builder.SetInsertPoint(contexte.bloc_courant());
-
-				// pour les unions
-				contexte.empile_nombre_locales();
 
 				if (enf0->genre != GenreNoeud::INSTRUCTION_SINON) {
 					auto feuilles = dls::tableau<base *>();
@@ -2606,9 +2493,6 @@ static llvm::Value *genere_code_llvm(
 
 				enf1->valeur_calculee = bloc_post_discr;
 				genere_code_llvm(enf1, contexte, false);
-
-				// pour les unions
-				contexte.depile_nombre_locales();
 			}
 
 			contexte.bloc_courant(bloc_post_discr);
@@ -2769,11 +2653,13 @@ static void genere_fonction_vraie_principale(ContexteGenerationCode &contexte)
 	// return
 	builder.CreateRet(valeur_princ);
 }
+#endif
 
 void genere_code_llvm(
 		assembleuse_arbre const &arbre,
 		ContexteGenerationCode &contexte)
 {
+#if 0
 	auto racine = arbre.racine();
 
 	if (racine == nullptr) {
@@ -2817,6 +2703,7 @@ void genere_code_llvm(
 	genere_fonction_vraie_principale(contexte);
 
 	contexte.temps_generation = temps_generation.temps();
+#endif
 }
 
 }  /* namespace noeud */

@@ -46,6 +46,7 @@ set(SOURCES
 	modules.hh
 	operateurs.hh
 	outils_lexemes.hh
+	portee.hh
 	structures.hh
 	syntaxeuse.hh
 	transformation_type.hh
@@ -64,6 +65,7 @@ set(SOURCES
 	modules.cc
 	operateurs.cc
 	outils_lexemes.cc
+	portee.cc
 	structures.cc
 	syntaxeuse.cc
 	transformation_type.cc

@@ -2,7 +2,7 @@ importe "flux"
 
 // Ceci est un commentaire.
 Énumération :: énum z32 {
-    LUMIÈRE := 0
+    LUMIÈRE :: 0
 }
 
 Structurée :: struct {

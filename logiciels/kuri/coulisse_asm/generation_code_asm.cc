@@ -24,6 +24,7 @@
 
 #include "generation_code_asm.hh"
 
+#include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "arbre_syntactic.h"
@@ -64,7 +65,7 @@ struct GeneratriceCodeASM {
 
 void genere_code_asm(
 		ContexteGenerationCode &contexte,
-		noeud::base *b,
+		NoeudBase *b,
 		bool expr_gauche,
 		dls::flux_chaine &os)
 {
@@ -82,11 +83,11 @@ void genere_code_asm(
 			auto const est_externe = dls::outils::possede_drapeau(b->drapeaux, EST_EXTERNE);
 
 			if (est_externe) {
-				gener.ajoute_externe(b->chaine());
+				gener.ajoute_externe(b->lexeme->chaine);
 				return;
 			}
 
-			os << b->chaine() << ":\n";
+			os << b->lexeme->chaine << ":\n";
 
 			// il faut sauvegarder les registres, et les remettre en place
 			// fais de la place pour tous les arguments sur la pile
@@ -103,10 +104,6 @@ void genere_code_asm(
 		{
 			break;
 		}
-		case GenreNoeud::DECLARATION_PARAMETRES_FONCTION:
-		{
-			break;
-		}
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
 			// met les arguments dans les registres, ou la pile, selon l'ABI
@@ -115,7 +112,7 @@ void genere_code_asm(
 			os << "\tsub rsp, 8";
 
 			// appel la fonction
-			os << "\tcall " << b->nom_fonction_appel << '\n';
+			//os << "\tcall " << b->nom_fonction_appel << '\n';
 
 			// s'il y a des arguments sur la pile, il faudra les appelé
 
@@ -234,14 +231,6 @@ void genere_code_asm(
 		{
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_DIFFERE:
-		{
-			break;
-		}
-		case GenreNoeud::INSTRUCTION_NONSUR:
-		{
-			break;
-		}
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
 		{
 			break;
@@ -286,10 +275,6 @@ void genere_code_asm(
 		{
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_PAIRE_DISCR:
-		{
-			break;
-		}
 		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
 		{
 			break;
@@ -319,20 +304,20 @@ void genere_code_asm(
 
 void genere_code_asm(const assembleuse_arbre &arbre, ContexteGenerationCode &contexte, const dls::chaine &racine_kuri, std::ostream &fichier_sortie)
 {
-	auto racine = arbre.racine();
+	auto racine = arbre.bloc_courant();
 
 	if (racine == nullptr) {
 		return;
 	}
 
-	if (racine->genre != GenreNoeud::RACINE) {
+	if (racine->genre != GenreNoeud::INSTRUCTION_COMPOSEE) {
 		return;
 	}
 
 	dls::flux_chaine os;
 
-	for (auto noeud : racine->enfants) {
-		genere_code_asm(contexte, noeud, false, os);
+	POUR (racine->expressions) {
+		genere_code_asm(contexte, it, false, os);
 	}
 
 	fichier_sortie << os.chn();

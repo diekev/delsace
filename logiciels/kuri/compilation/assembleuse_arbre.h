@@ -26,7 +26,6 @@
 
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/pile.hh"
-#include "biblinternes/structures/liste.hh"
 
 #include "arbre_syntactic.h"
 
@@ -34,13 +33,30 @@ struct ContexteGenerationCode;
 struct DonneesLexeme;
 
 class assembleuse_arbre {
-	dls::pile<noeud::base *> m_pile{};
-	dls::tableau<noeud::base *> m_noeuds{};
-	dls::liste<noeud::base *> noeuds_libres{};
+	dls::tableau<NoeudBase *> m_noeuds_base{};
+	dls::tableau<NoeudExpression *> m_noeuds_expression{};
+	dls::tableau<NoeudDeclarationVariable *> m_noeuds_declaration_variable{};
+	dls::tableau<NoeudExpressionReference *> m_noeuds_expression_reference{};
+	dls::tableau<NoeudExpressionUnaire *> m_noeuds_expression_unaire{};
+	dls::tableau<NoeudExpressionBinaire *> m_noeuds_expression_binaire{};
+	dls::tableau<NoeudExpressionLogement *> m_noeuds_expression_logement{};
+	dls::tableau<NoeudDeclarationFonction *> m_noeuds_declaration_fonction{};
+	dls::tableau<NoeudStruct *> m_noeuds_struct{};
+	dls::tableau<NoeudEnum *> m_noeuds_enum{};
+	dls::tableau<NoeudSi *> m_noeuds_si{};
+	dls::tableau<NoeudPour *> m_noeuds_pour{};
+	dls::tableau<NoeudBoucle *> m_noeuds_boucle{};
+	dls::tableau<NoeudBloc *> m_noeuds_bloc{};
+	dls::tableau<NoeudDiscr *> m_noeuds_discr{};
+	dls::tableau<NoeudPousseContexte *> m_noeuds_pousse_contexte{};
+	dls::tableau<NoeudExpressionAppel *> m_noeuds_appel{};
+	dls::tableau<NoeudTableauArgsVariadiques *> m_noeuds_tableau_args_variadiques{};
 
 	ContexteGenerationCode &m_contexte;
 
 	size_t m_memoire_utilisee = 0;
+
+	dls::pile<NoeudBloc *> m_blocs{};
 
 public:
 	dls::ensemble<dls::chaine> deja_inclus{};
@@ -61,49 +77,17 @@ public:
 	explicit assembleuse_arbre(ContexteGenerationCode &contexte);
 	~assembleuse_arbre();
 
-	/**
-	 * Crée un nouveau noeud et met le sur le dessus de la pile de noeud. Si le
-	 * paramètre 'ajoute' est vrai, le noeud crée est ajouté à la liste des
-	 * enfants du noeud courant avant d'être empilé. Puisque le noeud est
-	 * empilé, il deviendra le noeud courant.
-	 *
-	 * Retourne un pointeur vers le noeud ajouté.
-	 */
-	noeud::base *empile_noeud(GenreNoeud type, DonneesLexeme const &lexeme, bool ajoute = true);
+	NoeudBloc *empile_bloc();
 
-	/**
-	 * Ajoute le noeud spécifié au noeud courant.
-	 */
-	void ajoute_noeud(noeud::base *noeud);
+	NoeudBloc *bloc_courant() const;
+
+	void depile_bloc();
 
 	/**
 	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
 	 * pointeur vers celui-ci.
 	 */
-	noeud::base *cree_noeud(GenreNoeud type, DonneesLexeme const &lexeme);
-
-	/**
-	 * Dépile le noeud courant en vérifiant que le type de ce noeud est bel et
-	 * bien le type passé en paramètre.
-	 */
-	void depile_noeud(GenreNoeud type);
-
-	/**
-	 * Visite les enfants du noeud racine et demande à chacun d'eux d'imprimer
-	 * son 'code'. C'est attendu que les différends noeuds demandent à leurs
-	 * enfants d'imprimer leurs codes.
-	 *
-	 * Cette fonction est là pour le débogage.
-	 */
-	void imprime_code(std::ostream &os);
-
-	/**
-	 * Indique que le noeud passé en paramètre est supprimé. En fait, le noeud
-	 * est ajouté à une liste de noeuds supprimés en fonction de son type, pour
-	 * pouvoir réutiliser sa mémoire en cas de besoin, évitant d'avoir à
-	 * réallouer de la mémoire pour un noeud du même type.
-	 */
-	void supprime_noeud(noeud::base *noeud);
+	NoeudBase *cree_noeud(GenreNoeud type, DonneesLexeme const *lexeme);
 
 	/**
 	 * Retourne la quantité de mémoire utilisée pour créer et stocker les noeuds
@@ -117,8 +101,6 @@ public:
 	size_t nombre_noeuds() const;
 
 	void ajoute_inclusion(const dls::chaine &fichier);
-
-	noeud::base *racine() const;
 };
 
 /**

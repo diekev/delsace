@@ -4,29 +4,29 @@ importe Fondation
 
 TypeRune :: énum z32 {
     // espaces
-	ESPACE_INSECABLE             := 0x00A0
-	ESPACE_D_OGAM                := 0x1680
-	SEPARATEUR_VOYELLES_MONGOL   := 0x180E
-	DEMI_CADRATIN                := 0x2000
-	CADRATIN                     := 0x2001
-	ESPACE_DEMI_CADRATIN         := 0x2002
-	ESPACE_CADRATIN              := 0x2003
-	TIERS_DE_CADRATIN            := 0x2004
-	QUART_DE_CADRATIN            := 0x2005
-	SIXIEME_DE_CADRATIN          := 0x2006
-	ESPACE_TABULAIRE             := 0x2007
-	ESPACE_PONCTUATION           := 0x2008
-	ESPACE_FINE                  := 0x2009
-	ESPACE_ULTRAFINE             := 0x200A
-	ESPACE_SANS_CHASSE           := 0x200B
-	ESPACE_INSECABLE_ETROITE     := 0x202F
-	ESPACE_MOYENNE_MATHEMATIQUE  := 0x205F
-	ESPACE_IDEOGRAPHIQUE         := 0x3000
-	ESPACE_INSECABLE_SANS_CHASSE := 0xFEFF
+	ESPACE_INSECABLE             :: 0x00A0
+	ESPACE_D_OGAM                :: 0x1680
+	SEPARATEUR_VOYELLES_MONGOL   :: 0x180E
+	DEMI_CADRATIN                :: 0x2000
+	CADRATIN                     :: 0x2001
+	ESPACE_DEMI_CADRATIN         :: 0x2002
+	ESPACE_CADRATIN              :: 0x2003
+	TIERS_DE_CADRATIN            :: 0x2004
+	QUART_DE_CADRATIN            :: 0x2005
+	SIXIEME_DE_CADRATIN          :: 0x2006
+	ESPACE_TABULAIRE             :: 0x2007
+	ESPACE_PONCTUATION           :: 0x2008
+	ESPACE_FINE                  :: 0x2009
+	ESPACE_ULTRAFINE             :: 0x200A
+	ESPACE_SANS_CHASSE           :: 0x200B
+	ESPACE_INSECABLE_ETROITE     :: 0x202F
+	ESPACE_MOYENNE_MATHEMATIQUE  :: 0x205F
+	ESPACE_IDEOGRAPHIQUE         :: 0x3000
+	ESPACE_INSECABLE_SANS_CHASSE :: 0xFEFF
 
     // guillemets
-	GUILLEMET_OUVRANT := 0x00AB  // «
-	GUILLEMET_FERMANT := 0x00BB  // »
+	GUILLEMET_OUVRANT :: 0x00AB  // «
+	GUILLEMET_FERMANT :: 0x00BB  // »
 }
 
 //##############################################################################

@@ -63,7 +63,7 @@ std::pair<bool, bool> retourne_erreur_lancee(
 		analyseuse.lance_analyse(os);
 
 		if (genere_code) {
-			noeud::performe_validation_semantique(assembleuse, contexte);
+			noeud::performe_validation_semantique(contexte);
 			noeud::genere_code_C(assembleuse, contexte, "", os);
 		}
 	}

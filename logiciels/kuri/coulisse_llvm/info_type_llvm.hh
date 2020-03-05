@@ -42,7 +42,7 @@ class Value;
 }
 
 struct ContexteGenerationCode;
-struct DonneesStructure;
+struct NoeudEnum;
 struct Type;
 
 llvm::Value *cree_info_type(
@@ -50,6 +50,6 @@ llvm::Value *cree_info_type(
 		Type *type);
 
 llvm::Value *valeur_enum(
-		DonneesStructure const &ds,
+		NoeudEnum *noeud_enum,
 		dls::vue_chaine_compacte const &nom,
 		llvm::IRBuilder<> &builder);

@@ -7,40 +7,40 @@
 // AP_NOIR | TE_GRIS_CLAIR au lieu de (NOIR << 4) | GRIS_CLAIR.
 { :: énum
 	// Arrière-Plan
-	AP_NOIR          := 0x00
-	AP_BLEU          := 0x10
-	AP_VERT          := 0x20
-	AP_CYAN          := 0x30
-	AP_ROUGE         := 0x40
-	AP_MAGENTA       := 0x50
-	AP_BRUN          := 0x60
-	AP_GRIS_CLAIR    := 0x70
-	AP_GRIS_FONCE    := 0x80
-	AP_BLUE_CLAIR    := 0x90
-	AP_VERT_CLAIR    := 0xA0
-	AP_CYAN_CLAIR    := 0xB0
-	AP_ROUGE_CLAIR   := 0xC0
-	AP_MAGENTA_CLAIR := 0xD0
-	AP_BRUN_CLAIR    := 0xE0
-	AP_BLANC         := 0xF0
+	AP_NOIR          :: 0x00
+	AP_BLEU          :: 0x10
+	AP_VERT          :: 0x20
+	AP_CYAN          :: 0x30
+	AP_ROUGE         :: 0x40
+	AP_MAGENTA       :: 0x50
+	AP_BRUN          :: 0x60
+	AP_GRIS_CLAIR    :: 0x70
+	AP_GRIS_FONCE    :: 0x80
+	AP_BLUE_CLAIR    :: 0x90
+	AP_VERT_CLAIR    :: 0xA0
+	AP_CYAN_CLAIR    :: 0xB0
+	AP_ROUGE_CLAIR   :: 0xC0
+	AP_MAGENTA_CLAIR :: 0xD0
+	AP_BRUN_CLAIR    :: 0xE0
+	AP_BLANC         :: 0xF0
 
 	// Texte
-	TE_NOIR          := 0x00
-	TE_BLEU          := 0x01
-	TE_VERT          := 0x02
-	TE_CYAN          := 0x03
-	TE_ROUGE         := 0x04
-	TE_MAGENTA       := 0x05
-	TE_BRUN          := 0x06
-	TE_GRIS_CLAIR    := 0x07
-	TE_GRIS_FONCE    := 0x08
-	TE_BLUE_CLAIR    := 0x09
-	TE_VERT_CLAIR    := 0x0A
-	TE_CYAN_CLAIR    := 0x0B
-	TE_ROUGE_CLAIR   := 0x0C
-	TE_MAGENTA_CLAIR := 0x0D
-	TE_BRUN_CLAIR    := 0x0E
-	TE_BLANC         := 0x0F
+	TE_NOIR          :: 0x00
+	TE_BLEU          :: 0x01
+	TE_VERT          :: 0x02
+	TE_CYAN          :: 0x03
+	TE_ROUGE         :: 0x04
+	TE_MAGENTA       :: 0x05
+	TE_BRUN          :: 0x06
+	TE_GRIS_CLAIR    :: 0x07
+	TE_GRIS_FONCE    :: 0x08
+	TE_BLUE_CLAIR    :: 0x09
+	TE_VERT_CLAIR    :: 0x0A
+	TE_CYAN_CLAIR    :: 0x0B
+	TE_ROUGE_CLAIR   :: 0x0C
+	TE_MAGENTA_CLAIR :: 0x0D
+	TE_BRUN_CLAIR    :: 0x0E
+	TE_BLANC         :: 0x0F
 }
 
 Kernel :: struct {

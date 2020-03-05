@@ -30,14 +30,11 @@
 #include "arbre_syntactic.h"
 #include "erreur.h"
 
-struct assembleuse_arbre;
 struct ContexteGenerationCode;
-struct DonneesFonction;
 struct DonneesModule;
 
 class Syntaxeuse : public lng::analyseuse<DonneesLexeme> {
 	ContexteGenerationCode &m_contexte;
-	assembleuse_arbre *m_assembleuse = nullptr;
 
 	/* Ces vecteurs sont utilisés pour stocker les données des expressions
 	 * compilées au travers de 'analyse_expression_droite()'. Nous les stockons
@@ -46,7 +43,7 @@ class Syntaxeuse : public lng::analyseuse<DonneesLexeme> {
 	 * appel vers 'analyse_expression_droite()', mais cela rend la classe peu
 	 * sûre niveau multi-threading.
 	 */
-	using paire_vecteurs = std::pair<dls::tableau<noeud::base *>, dls::tableau<noeud::base *>>;
+	using paire_vecteurs = std::pair<dls::tableau<NoeudExpression *>, dls::tableau<NoeudExpression *>>;
 	dls::tableau<paire_vecteurs> m_paires_vecteurs;
 	long m_profondeur = 0;
 
@@ -84,19 +81,19 @@ private:
 			const dls::chaine &quoi,
 			erreur::type_erreur type = erreur::type_erreur::NORMAL);
 
-	void analyse_corps(std::ostream &os);
-	void analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lexeme);
+	void analyse_expression_haut_niveau(std::ostream &os);
+	NoeudExpression *analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lexeme);
 	void analyse_corps_fonction();
-	void analyse_bloc();
-	noeud::base *analyse_expression(GenreLexeme identifiant_final, GenreLexeme racine_expr, bool ajoute_noeud = true);
-	void analyse_appel_fonction(noeud::base *noeud);
-	void analyse_declaration_structure(GenreLexeme id, DonneesLexeme &lexeme);
-	void analyse_declaration_enum(bool est_drapeau, DonneesLexeme &lexeme);
+	NoeudBloc *analyse_bloc();
+	NoeudExpression *analyse_expression(GenreLexeme identifiant_final, GenreLexeme racine_expr, bool ajoute_noeud = true);
+	NoeudExpression *analyse_appel_fonction(DonneesLexeme &lexeme);
+	NoeudExpression *analyse_declaration_structure(GenreLexeme id, DonneesLexeme &lexeme);
+	NoeudExpression *analyse_declaration_enum(bool est_drapeau, DonneesLexeme &lexeme);
 	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
 	DonneesTypeDeclare analyse_declaration_type_ex();
 	void analyse_controle_si(GenreNoeud tn);
 	void analyse_controle_pour();
-	void analyse_construction_structure(noeud::base *noeud);
+	NoeudExpression *analyse_construction_structure(DonneesLexeme &lexeme);
 	void analyse_directive_si();
 
 	void consomme(GenreLexeme id, const char *message);

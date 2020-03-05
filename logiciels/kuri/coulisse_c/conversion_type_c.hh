@@ -26,10 +26,6 @@
 
 #include "biblinternes/structures/flux_chaine.hh"
 
-struct ContexteGenerationCode;
 struct Type;
 
-void cree_typedef(
-		ContexteGenerationCode &contexte,
-		Type *type,
-		dls::flux_chaine &os);
+void cree_typedef(Type *type, dls::flux_chaine &os);

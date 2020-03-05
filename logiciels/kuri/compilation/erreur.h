@@ -28,9 +28,9 @@
 
 #include "biblinternes/langage/erreur.hh"
 
-struct DonneesLexeme;
-struct DonneesStructure;
 struct ContexteGenerationCode;
+struct DonneesLexeme;
+struct NoeudBase;
 struct Type;
 
 namespace erreur {
@@ -68,102 +68,112 @@ using frappe = lng::erreur::frappe<type_erreur>;
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme &morceau,
+		const DonneesLexeme *morceau,
 		type_erreur type = type_erreur::NORMAL);
+
+[[noreturn]] void redefinition_fonction(
+		const ContexteGenerationCode &contexte,
+		const DonneesLexeme *lexeme_redefition,
+		const DonneesLexeme *lexeme_original);
+
+[[noreturn]] void redefinition_symbole(
+		const ContexteGenerationCode &contexte,
+		const DonneesLexeme *lexeme_redefition,
+		const DonneesLexeme *lexeme_original);
 
 [[noreturn]] void lance_erreur_plage(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme &premier_morceau,
-		const DonneesLexeme &dernier_morceau,
+		const DonneesLexeme *premier_morceau,
+		const DonneesLexeme *dernier_morceau,
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void lance_erreur_type_arguments(
 		const Type *type_arg,
 		const Type *type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme &morceau_enfant,
-		const DonneesLexeme &morceau);
+		const DonneesLexeme *morceau_enfant,
+		const DonneesLexeme *morceau);
 
 [[noreturn]] void lance_erreur_type_retour(
 		const Type *type_arg,
 		const Type *type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme &morceau_enfant,
-		const DonneesLexeme &morceau);
+		const DonneesLexeme *morceau_enfant,
+		const DonneesLexeme *morceau);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const Type *type_gauche,
 		const Type *type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme &morceau);
+		const DonneesLexeme *morceau);
 
 [[noreturn]] void lance_erreur_type_operation(
 		const Type *type_gauche,
 		const Type *type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme &morceau);
+		const DonneesLexeme *morceau);
 
 [[noreturn]] void lance_erreur_fonction_inconnue(
 		ContexteGenerationCode const &contexte,
-		noeud::base *n,
+		NoeudBase *n,
 		dls::tablet<DonneesCandidate, 10> const &candidates);
 
 [[noreturn]] void lance_erreur_fonction_nulctx(
 		ContexteGenerationCode const &contexte,
-		noeud::base *appl_fonc,
-		noeud::base *decl_fonc,
-		noeud::base *decl_appel);
+		NoeudBase *appl_fonc,
+		NoeudBase *decl_fonc,
+		NoeudBase *decl_appel);
 
-[[noreturn]] void lance_erreur_acces_hors_limites(
-			ContexteGenerationCode const &contexte,
-			noeud::base *b,
+[[noreturn]] void lance_erreur_acces_hors_limites(ContexteGenerationCode const &contexte,
+			NoeudBase *b,
 			long taille_tableau,
-			Type const *type_tableau,
+			Type *type_tableau,
 			long index_acces);
 
 [[noreturn]] void lance_erreur_type_operation(
 			ContexteGenerationCode const &contexte,
-			noeud::base *b);
+			NoeudBase *b);
 
 [[noreturn]] void lance_erreur_type_operation_unaire(
 			ContexteGenerationCode const &contexte,
-			noeud::base *b);
+			NoeudBase *b);
 
 [[noreturn]] void membre_inconnu(
 		ContexteGenerationCode &contexte,
-		DonneesStructure &ds,
-		noeud::base *acces,
-		noeud::base *structure,
-		noeud::base *membre);
+		NoeudBloc *bloc,
+		NoeudBase *acces,
+		NoeudBase *structure,
+		NoeudBase *membre,
+		Type *type);
 
 [[noreturn]] void membre_inconnu_tableau(
 			ContexteGenerationCode &contexte,
-			noeud::base *acces,
-			noeud::base *structure,
-			noeud::base *membre);
+			NoeudBase *acces,
+			NoeudBase *structure,
+			NoeudBase *membre);
 
 [[noreturn]] void membre_inconnu_chaine(
 			ContexteGenerationCode &contexte,
-			noeud::base *acces,
-			noeud::base *structure,
-			noeud::base *membre);
+			NoeudBase *acces,
+			NoeudBase *structure,
+			NoeudBase *membre);
 
 [[noreturn]] void membre_inconnu_eini(
 			ContexteGenerationCode &contexte,
-			noeud::base *acces,
-			noeud::base *structure,
-			noeud::base *membre);
+			NoeudBase *acces,
+			NoeudBase *structure,
+			NoeudBase *membre);
 
 [[noreturn]] void membre_inactif(
 			ContexteGenerationCode &contexte,
-			noeud::base *acces,
-			noeud::base *structure,
-			noeud::base *membre);
+			NoeudBase *acces,
+			NoeudBase *structure,
+			NoeudBase *membre);
 
 [[noreturn]] void valeur_manquante_discr(
 			ContexteGenerationCode &contexte,
-			noeud::base *expression,
+			NoeudBase *expression,
 			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes);
 
 [[noreturn]] void fonction_principale_manquante();

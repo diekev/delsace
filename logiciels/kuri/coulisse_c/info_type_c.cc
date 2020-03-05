@@ -91,7 +91,7 @@ static auto cree_info_type_structure_C(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
 		dls::vue_chaine_compacte const &nom_struct,
-		DonneesStructure const &donnees_structure,
+		NoeudStruct *noeud_decl,
 		Type *type,
 		IDInfoType const &id_info_type,
 		dls::chaine const &nom_info_type)
@@ -110,22 +110,22 @@ static auto cree_info_type_structure_C(
 	 * via un pointeur */
 	type->ptr_info_type = nom_info_type;
 
-	auto const nombre_membres = donnees_structure.types.taille();
+	if (noeud_decl->est_externe) {
+		os_decl << "static const InfoTypeStructure " << nom_info_type << " = {\n";
+		os_decl << "\t.id = " << id_info_type.STRUCTURE << ",\n";
+		os_decl << "\t.taille_en_octet = " << type->taille_octet << ",\n";
+		os_decl << "\t.nom = {.pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << "},\n";
+		os_decl << "\t.membres = {.pointeur = 0, .taille = 0 },\n";
+		os_decl << "};\n";
+		return;
+	}
 
-	for (auto i = 0l; i < nombre_membres; ++i) {
-		auto type_membre = donnees_structure.types[i];
+	auto const nombre_membres = noeud_decl->bloc->membres.taille;
 
-		for (auto paire_idx_mb : donnees_structure.donnees_membres) {
-			if (paire_idx_mb.second.index_membre != i) {
-				continue;
-			}
-
-			if (type_membre->ptr_info_type == "") {
-				type_membre->ptr_info_type = cree_info_type_C(
-							contexte, generatrice, os_decl, type_membre, id_info_type);
-			}
-
-			break;
+	POUR (noeud_decl->desc.membres) {
+		if (it.type->ptr_info_type == "") {
+			it.type->ptr_info_type = cree_info_type_C(
+						contexte, generatrice, os_decl, it.type, id_info_type);
 		}
 	}
 
@@ -133,25 +133,15 @@ static auto cree_info_type_structure_C(
 	auto const nom_tableau_membre = "__info_type_membres" + nom_info_type;
 	auto pointeurs = dls::tableau<dls::chaine>();
 
-	for (auto i = 0l; i < nombre_membres; ++i) {
-		auto type_membre = donnees_structure.types[i];
+	POUR (noeud_decl->desc.membres) {
+		auto nom_info_type_membre = "__info_type_membre" + dls::vers_chaine(index_info_type++);
+		pointeurs.pousse(nom_info_type_membre);
 
-		for (auto paire_idx_mb : donnees_structure.donnees_membres) {
-			if (paire_idx_mb.second.index_membre != i) {
-				continue;
-			}
-
-			auto nom_info_type_membre = "__info_type_membre" + dls::vers_chaine(index_info_type++);
-			pointeurs.pousse(nom_info_type_membre);
-
-			os_decl << "static const InfoTypeMembreStructure " << nom_info_type_membre << " = {\n";
-			os_decl << "\t.nom = { .pointeur = \"" << paire_idx_mb.first << "\", .taille = " << paire_idx_mb.first.taille() << " },\n";
-			os_decl << "\t" << broye_nom_simple(".décalage = ") << paire_idx_mb.second.decalage << ",\n";
-			os_decl << "\t.id = (InfoType *)(&" << type_membre->ptr_info_type << ")\n";
-			os_decl << "};\n";
-
-			break;
-		}
+		os_decl << "static const InfoTypeMembreStructure " << nom_info_type_membre << " = {\n";
+		os_decl << "\t.nom = { .pointeur = \"" << it.nom << "\", .taille = " << it.nom.taille << " },\n";
+		os_decl << "\t" << broye_nom_simple(".décalage = ") << it.decalage << ",\n";
+		os_decl << "\t.id = (InfoType *)(&" << it.type->ptr_info_type << ")\n";
+		os_decl << "};\n";
 	}
 
 	os_decl << "static const InfoTypeMembreStructure *" << nom_tableau_membre << "[] = {\n";
@@ -163,37 +153,30 @@ static auto cree_info_type_structure_C(
 	/* crée l'info pour la structure */
 	os_decl << "static const InfoTypeStructure " << nom_info_type << " = {\n";
 	os_decl << "\t.id = " << id_info_type.STRUCTURE << ",\n";
-	os_decl << "\t.taille_en_octet = " << donnees_structure.taille_octet << ",\n";
+	os_decl << "\t.taille_en_octet = " << type->taille_octet << ",\n";
 	os_decl << "\t.nom = {.pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << "},\n";
-	os_decl << "\t.membres = {.pointeur = " << nom_tableau_membre << ", .taille = " << donnees_structure.types.taille() << "},\n";
+	os_decl << "\t.membres = {.pointeur = " << nom_tableau_membre << ", .taille = " << nombre_membres << "},\n";
 	os_decl << "};\n";
 }
 
 static auto cree_info_type_enum_C(
 		dls::flux_chaine &os_decl,
 		dls::vue_chaine_compacte const &nom_struct,
-		DonneesStructure const &donnees_structure,
+		NoeudEnum *noeud_decl,
 		IDInfoType const &id_info_type,
 		dls::chaine const &nom_info_type,
 		unsigned taille_octet)
 {
 	auto nom_broye = broye_nom_simple(nom_struct);
+	auto nombre_valeurs = noeud_decl->desc.noms.taille;
 
 	/* crée un tableau pour les noms des énumérations */
 	auto const nom_tableau_noms = "__tableau_noms_enum" + nom_info_type;
 
 	os_decl << "static const chaine " << nom_tableau_noms << "[] = {\n";
 
-	auto noeud_decl = donnees_structure.noeud_decl;
-	auto nombre_enfants = noeud_decl->enfants.taille();
-	for (auto enfant : noeud_decl->enfants) {
-		auto enf0 = enfant;
-
-		if (enfant->enfants.taille() == 2) {
-			enf0 = enf0->enfants.front();
-		}
-
-		os_decl << "\t{.pointeur=\"" << enf0->chaine() << "\", .taille=" << enf0->chaine().taille() << "},\n";
+	POUR (noeud_decl->desc.noms) {
+		os_decl << "\t{.pointeur=\"" << it << "\", .taille=" << it.taille << "},\n";
 	}
 
 	os_decl << "};\n";
@@ -202,26 +185,21 @@ static auto cree_info_type_enum_C(
 	auto const nom_tableau_valeurs = "__tableau_valeurs_enum" + nom_info_type;
 
 	os_decl << "static const int " << nom_tableau_valeurs << "[] = {\n\t";
-	for (auto enfant : noeud_decl->enfants) {
-		auto enf0 = enfant;
 
-		if (enfant->enfants.taille() == 2) {
-			enf0 = enf0->enfants.front();
-		}
-
-		os_decl << chaine_valeur_enum(donnees_structure, enf0->chaine());
-		os_decl << ',';
+	POUR (noeud_decl->desc.valeurs) {
+		os_decl << it << ',';
 	}
+
 	os_decl << "\n};\n";
 
 	/* crée l'info type pour l'énum */
 	os_decl << "static const " << broye_nom_simple("InfoTypeÉnum ") << nom_info_type << " = {\n";
 	os_decl << "\t.id = " << id_info_type.ENUM << ",\n";
 	os_decl << "\t.taille_en_octet = " << taille_octet << ",\n";
-	os_decl << "\t.est_drapeau = " << donnees_structure.est_drapeau << ",\n";
+	os_decl << "\t.est_drapeau = " << noeud_decl->desc.est_drapeau << ",\n";
 	os_decl << "\t.nom = { .pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << " },\n";
-	os_decl << "\t.noms = { .pointeur = " << nom_tableau_noms << ", .taille = " << nombre_enfants << " },\n ";
-	os_decl << "\t.valeurs = { .pointeur = " << nom_tableau_valeurs << ", .taille = " << nombre_enfants << " },\n ";
+	os_decl << "\t.noms = { .pointeur = " << nom_tableau_noms << ", .taille = " << nombre_valeurs << " },\n ";
+	os_decl << "\t.valeurs = { .pointeur = " << nom_tableau_valeurs << ", .taille = " << nombre_valeurs << " },\n ";
 	os_decl << "};\n";
 }
 
@@ -296,13 +274,12 @@ dls::chaine cree_info_type_C(
 		}
 		case GenreType::ENUM:
 		{
-			auto nom_enum = static_cast<TypeEnum *>(type)->nom;
-			auto &donnees_structure = contexte.donnees_structure(nom_enum);
+			auto type_enum = static_cast<TypeEnum *>(type);
 
 			cree_info_type_enum_C(
 						os_decl,
-						nom_enum,
-						donnees_structure,
+						type_enum->nom,
+						type_enum->decl,
 						id_info_type,
 						nom_info_type,
 						type->taille_octet);
@@ -312,15 +289,14 @@ dls::chaine cree_info_type_C(
 		case GenreType::STRUCTURE:
 		case GenreType::UNION:
 		{
-			auto nom_struct = static_cast<TypeStructure *>(type)->nom;
-			auto &donnees_structure = contexte.donnees_structure(nom_struct);
+			auto type_struct = static_cast<TypeStructure *>(type);
 
 			cree_info_type_structure_C(
 						os_decl,
 						contexte,
 						generatrice,
-						nom_struct,
-						donnees_structure,
+						type_struct->nom,
+						type_struct->decl,
 						type,
 						id_info_type,
 						nom_info_type);
@@ -468,13 +444,13 @@ dls::chaine cree_info_type_C(
 }
 
 /* À FAIRE : bouge ça d'ici */
-dls::chaine chaine_valeur_enum(const DonneesStructure &ds, const dls::vue_chaine_compacte &nom)
+dls::chaine chaine_valeur_enum(NoeudEnum *noeud_enum, const dls::vue_chaine_compacte &nom)
 {
-	auto &dm = ds.donnees_membres.trouve(nom)->second;
-
-	if (dm.resultat_expression.type == type_expression::ENTIER) {
-		return dls::vers_chaine(dm.resultat_expression.entier);
+	for (auto i = 0; i < noeud_enum->desc.noms.taille; ++i) {
+		if (noeud_enum->desc.noms[i] == kuri::chaine(nom)) {
+			return dls::vers_chaine(noeud_enum->desc.valeurs[i]);
+		}
 	}
 
-	return dls::vers_chaine(dm.resultat_expression.reel);
+	return "0";
 }

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -25,57 +25,22 @@
 #pragma once
 
 #include "biblinternes/langage/tampon_source.hh"
-#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/ensemble.hh"
-#include "biblinternes/structures/liste.hh"
 #include "biblinternes/structures/tablet.hh"
 
-#include "typage.hh"
 #include "transformation_type.hh"
+#include "typage.hh"
+#include "structures.hh"
 
-namespace llvm {
-class Type;
-}
-
-namespace noeud {
-struct base;
-}
-
-struct TypeFonction;
+class assembleuse_arbre;
 
 struct ContexteGenerationCode;
-
-struct DonneesArgument {
-	dls::vue_chaine_compacte nom;
-	Type *type = nullptr;
-	long index_type{-1l};
-	DonneesTypeDeclare type_declare{};
-	noeud::base *expression_defaut = nullptr;
-	bool est_variadic = false;
-	bool est_employe = false;
-	char pad[5];
-};
-
-struct DonneesFonction {
-	dls::tableau<DonneesArgument> args{};
-	dls::tableau<dls::chaine> noms_retours{};
-	dls::tableau<dls::vue_chaine_compacte> noms_types_gabarits{};
-	TypeFonction *type{nullptr};
-	dls::chaine nom_broye{};
-	noeud::base *noeud_decl = nullptr;
-	bool est_externe = false;
-	bool est_variadique = false;
-	bool est_coroutine = false;
-	bool est_sans_contexte = false;
-	bool est_gabarit = false;
-	char pad[3];
-
-	using iteratrice_arg = dls::tableau<DonneesArgument>::iteratrice;
-
-	iteratrice_arg trouve(dls::vue_chaine_compacte const &nom);
-};
-
 struct DonneesModule;
+struct IdentifiantCode;
+struct NoeudBase;
+struct NoeudBloc;
+struct NoeudDeclarationFonction;
+struct NoeudExpression;
 
 struct Fichier {
 	double temps_analyse = 0.0;
@@ -106,50 +71,22 @@ struct Fichier {
 };
 
 struct DonneesModule {
+	/* utilisation d'un pointeur à cause de dépendances cycliques entre les entêtes */
+	assembleuse_arbre *assembleuse{};
+	NoeudBloc *bloc = nullptr;
+
 	dls::tableau<Fichier *> fichiers{};
 	dls::ensemble<dls::vue_chaine_compacte> fonctions_exportees{};
-	dls::dico_desordonne<dls::vue_chaine_compacte, dls::liste<DonneesFonction>> fonctions{};
 	size_t id = 0ul;
 	dls::chaine nom{""};
 	dls::chaine chemin{""};
 	bool importe = false;
 
-	DonneesModule() = default;
+	DonneesModule(ContexteGenerationCode &contexte);
 
-	/**
-	 * Retourne vrai si le module possède une fonction du nom spécifié.
-	 */
-	bool possede_fonction(dls::vue_chaine_compacte const &nom_fonction) const;
+	~DonneesModule();
 
-	/**
-	 * Ajoute les données de la fonction dont le nom est spécifié en paramètres
-	 * à la table de fonctions de ce contexte.
-	 */
-	void ajoute_donnees_fonctions(dls::vue_chaine_compacte const &nom_fonction, DonneesFonction const &donnees);
-
-	/**
-	 * Retourne les données de la fonction dont le nom est spécifié en
-	 * paramètre. Si aucune fonction ne portant ce nom n'existe, des données
-	 * vides sont retournées.
-	 */
-	[[nodiscard]] dls::liste<DonneesFonction> &donnees_fonction(dls::vue_chaine_compacte const &nom_fonction) noexcept;
-
-	/**
-	 * Retourne vrai si le nom spécifié en paramètre est celui d'une fonction
-	 * ayant déjà été ajouté à la liste de fonctions de ce module.
-	 */
-	[[nodiscard]] bool fonction_existe(dls::vue_chaine_compacte const &nom_fonction) const noexcept;
-
-	/**
-	 * Retourne la mémoire utilisée en octet par les données de ce module. La
-	 * quantité de mémoire utilisée n'est pas mise en cache est est recalculée
-	 * à chaque appel à cette méthode.
-	 */
-	[[nodiscard]] size_t memoire_utilisee() const noexcept;
-
-private:
-	/* Utilisées comme retour dans donnees_fonction(nom). */
-	DonneesFonction m_donnees_invalides{};
+	COPIE_CONSTRUCT(DonneesModule);
 };
 
 dls::chaine charge_fichier(
@@ -207,16 +144,16 @@ enum {
 };
 
 struct DonneesCandidate {
-	DonneesFonction *df = nullptr;
 	int etat = FONCTION_INTROUVEE;
 	int raison = AUCUNE_RAISON;
 	double poids_args = 0.0;
 	dls::vue_chaine_compacte nom_arg{};
 	/* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
-	dls::tablet<noeud::base *, 10> exprs{};
+	dls::tablet<NoeudExpression *, 10> exprs{};
 	Type *type1{};
 	Type *type2{};
-	noeud::base *noeud_decl = nullptr;
+	NoeudBase *noeud_decl = nullptr;
+	NoeudDeclarationFonction *decl_fonc = nullptr;
 	bool arg_pointeur = false;
 	dls::tableau<TransformationType> transformations{};
 	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
@@ -228,9 +165,9 @@ struct ResultatRecherche {
 
 ResultatRecherche cherche_donnees_fonction(
 		ContexteGenerationCode &contexte,
-		dls::vue_chaine_compacte const &nom,
-		dls::liste<dls::vue_chaine_compacte> &noms_arguments,
-		dls::liste<noeud::base *> const &exprs,
+		IdentifiantCode *nom,
+		kuri::tableau<IdentifiantCode *> &noms_arguments,
+		kuri::tableau<NoeudExpression *> const &exprs,
 		size_t index_fichier,
 		size_t index_fichier_appel);
 
@@ -242,3 +179,10 @@ struct PositionMorceau {
 };
 
 PositionMorceau trouve_position(DonneesLexeme const &lexeme, Fichier *fichier);
+
+/* ************************************************************************** */
+
+NoeudDeclarationFonction *cherche_fonction_dans_module(
+		ContexteGenerationCode &contexte,
+		dls::vue_chaine_compacte const &nom_module,
+		dls::vue_chaine_compacte const &nom_fonction);

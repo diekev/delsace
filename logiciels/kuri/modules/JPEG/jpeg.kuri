@@ -313,5 +313,5 @@ jpeg_set_quality :: fonc externe (info : *jpeg_compress_struct, quality : z32, v
 jpeg_start_compress :: fonc externe (info : *jpeg_compress_struct, v : z32) -> rien;
 jpeg_write_scanlines :: fonc externe (info : *jpeg_compress_struct, scanlines : **z8, max_lines : n32) -> n32;
 
-_JCS_GRAYSCALE := 1;
-_JCS_RGB := 2;
+_JCS_GRAYSCALE :: 1;
+_JCS_RGB :: 2;

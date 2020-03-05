@@ -576,10 +576,10 @@ TypeFonction *Typeuse::type_fonction(const kuri::tableau<Type *> &entrees, const
 	return type;
 }
 
-TypeStructure *Typeuse::reserve_type_structure(noeud::base *decl)
+TypeStructure *Typeuse::reserve_type_structure(NoeudStruct *decl)
 {
 	auto type = memoire::loge<TypeStructure>("TypeStructure");
-	type->nom = decl->lexeme.chaine;
+	type->nom = decl->lexeme->chaine;
 	type->decl = decl;
 
 	types_structures.pousse(type);
@@ -587,10 +587,10 @@ TypeStructure *Typeuse::reserve_type_structure(noeud::base *decl)
 	return type;
 }
 
-TypeEnum *Typeuse::reserve_type_enum(noeud::base *decl)
+TypeEnum *Typeuse::reserve_type_enum(NoeudEnum *decl)
 {
 	auto type = memoire::loge<TypeEnum>("TypeEnum");
-	type->nom = decl->lexeme.chaine;
+	type->nom = decl->lexeme->chaine;
 	type->decl = decl;
 
 	types_enums.pousse(type);

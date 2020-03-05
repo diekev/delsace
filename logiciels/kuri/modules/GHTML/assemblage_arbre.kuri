@@ -109,7 +109,7 @@ empile_noeud :: fonc(
 	noeud := assembleuse.crée_noeud(type_noeud, données)
 
 	si (!assembleuse.pile.est_vide()) {
-		assembleuse.pile.haut().ajoute_noeud(noeud)
+		ajoute_noeud(assembleuse.pile.haut(), noeud)
 	}
 
 	assembleuse.pile.empile(noeud)
@@ -123,7 +123,7 @@ ajoute_noeud :: fonc(
     données : &DonnéesLexème) -> rien
 {
 	noeud := assembleuse.crée_noeud(type_noeud, données)
-	assembleuse.pile.haut().ajoute_noeud(noeud)
+	ajoute_noeud(assembleuse.pile.haut(), noeud)
 }
 
 crée_noeud :: fonc(

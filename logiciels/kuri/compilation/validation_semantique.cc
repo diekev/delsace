@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@
 #include "erreur.h"
 #include "expression.h"
 #include "outils_lexemes.hh"
+#include "portee.hh"
 #include "typage.hh"
 
 using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
@@ -48,13 +49,14 @@ namespace noeud {
 /* ************************************************************************** */
 
 static void performe_validation_semantique(
-		base *b,
+		NoeudExpression *b,
 		ContexteGenerationCode &contexte,
 		bool expr_gauche);
 
 static Type *resoud_type_final(
 		ContexteGenerationCode &contexte,
 		DonneesTypeDeclare &type_declare,
+		DonneesLexeme const *lexeme,
 		bool evalue_expr = true)
 {
 	if (type_declare.taille() == 0) {
@@ -75,8 +77,9 @@ static Type *resoud_type_final(
 			performe_validation_semantique(expr, contexte, false);
 
 			if (expr->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-				auto &dv = contexte.donnees_variable(expr->chaine());
-				expr->type = dv.type;
+				auto decl = trouve_dans_bloc(expr->bloc_parent, expr->ident);
+				// À FAIRE : decl peut être nulle
+				expr->type = decl->type;
 			}
 
 			type_final = expr->type;
@@ -90,7 +93,7 @@ static Type *resoud_type_final(
 			if (expr != nullptr && evalue_expr) {
 				performe_validation_semantique(expr, contexte, false);
 
-				auto res = evalue_expression(contexte, expr);
+				auto res = evalue_expression(contexte, expr->bloc_parent, expr);
 
 				if (res.est_errone) {
 					erreur::lance_erreur(
@@ -130,7 +133,7 @@ static Type *resoud_type_final(
 			type_final = typeuse.type_pour_nom(type_declare.nom_struct);
 
 			if (type_final == nullptr) {
-				erreur::lance_erreur("Impossible de définir le type pour selon le nom", contexte, {});
+				erreur::lance_erreur("Impossible de définir le type selon le nom", contexte, lexeme);
 			}
 		}
 		else if (type == GenreLexeme::POINTEUR) {
@@ -144,7 +147,7 @@ static Type *resoud_type_final(
 
 			for (auto t = 0; t < type_declare.types_entrees.taille(); ++t) {
 				auto td = type_declare.types_entrees[t];
-				auto type_entree = resoud_type_final(contexte, td);
+				auto type_entree = resoud_type_final(contexte, td, lexeme);
 
 				types_entrees.pousse(type_entree);
 			}
@@ -153,7 +156,7 @@ static Type *resoud_type_final(
 
 			for (auto t = 0; t < type_declare.types_sorties.taille(); ++t) {
 				auto td = type_declare.types_sorties[t];
-				auto type_sortie = resoud_type_final(contexte, td);
+				auto type_sortie = resoud_type_final(contexte, td, lexeme);
 
 				types_sorties.pousse(type_sortie);
 			}
@@ -172,81 +175,67 @@ static Type *resoud_type_final(
 
 /* ************************************************************************** */
 
-static auto derniere_instruction(base *b)
+static NoeudBase *derniere_instruction(NoeudBloc *b)
 {
-	if (b == nullptr) {
-		return static_cast<base *>(nullptr);
+	if (b->expressions.taille == 0) {
+		return static_cast<NoeudBase *>(nullptr);
 	}
 
-	if (est_instruction_retour(b->genre)) {
-		return b;
+	auto di = b->expressions[b->expressions.taille - 1];
+
+	if (est_instruction_retour(di->genre)) {
+		return di;
 	}
 
-	if (b->genre == GenreNoeud::INSTRUCTION_SI) {
-		if (b->enfants.taille() != 3) {
-			return static_cast<base *>(nullptr);
+	if (di->genre == GenreNoeud::INSTRUCTION_SI) {
+		auto inst = static_cast<NoeudSi *>(di);
+
+		if (inst->bloc_si_faux == nullptr) {
+			return static_cast<NoeudBase *>(nullptr);
 		}
+
+		return derniere_instruction(inst->bloc_si_faux);
 	}
 
-	return derniere_instruction(b->dernier_enfant());
+	if (di->genre == GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE) {
+		auto inst = static_cast<NoeudPousseContexte *>(di);
+		return derniere_instruction(inst->bloc);
+	}
+
+	return static_cast<NoeudBase *>(nullptr);
 }
 
 /* ************************************************************************** */
 
-static auto valides_enfants(base *b, ContexteGenerationCode &contexte, bool expr_gauche)
-{
-	for (auto enfant : b->enfants) {
-		performe_validation_semantique(enfant, contexte, expr_gauche);
-
-		/* inutile de continuer à valider du code qui ne sera pas exécuté
-		 * À FAIRE(retour précoce) : ajout d'un avertissement de compilation. */
-		if (enfant->genre == GenreNoeud::INSTRUCTION_RETOUR) {
-			break;
-		}
-	}
-}
-
 static auto valide_appel_pointeur_fonction(
-		base *b,
+		NoeudExpressionAppel *b,
 		ContexteGenerationCode &contexte,
-		dls::liste<dls::vue_chaine_compacte> const &noms_arguments,
-		dls::chaine const &nom_fonction)
+		kuri::tableau<IdentifiantCode *> const &noms_arguments,
+		kuri::tableau<NoeudExpression *> const &args)
 {
-	for (auto const &nom : noms_arguments) {
-		if (nom.est_vide()) {
+	for (auto i = 0; i < noms_arguments.taille; ++i) {
+		if (noms_arguments[i] == nullptr) {
 			continue;
 		}
 
-		/* À FAIRE : trouve les données lexemes des arguments. */
 		erreur::lance_erreur(
 					"Les arguments d'un pointeur fonction ne peuvent être nommés",
 					contexte,
-					b->donnees_lexeme(),
+					args[i]->lexeme,
 					erreur::type_erreur::ARGUMENT_INCONNU);
 	}
 
-	auto type = b->type;
-
-	if (b->aide_generation_code != GENERE_CODE_PTR_FONC_MEMBRE) {
-		auto &dv = contexte.donnees_variable(nom_fonction);
-		type = dv.type;
-	}
-
-	if (type->genre != GenreType::FONCTION) {
+	if (b->type->genre != GenreType::FONCTION) {
 		erreur::lance_erreur(
 					"La variable doit être un pointeur vers une fonction",
 					contexte,
-					b->donnees_lexeme(),
+					b->lexeme,
 					erreur::type_erreur::FONCTION_INCONNUE);
 	}
 
-	valides_enfants(b, contexte, false);
-
 	/* vérifie la compatibilité des arguments pour déterminer
 	 * s'il y aura besoin d'une transformation. */
-	auto type_fonction = static_cast<TypeFonction *>(type);
-
-	auto enfant = b->enfants.debut();
+	auto type_fonction = static_cast<TypeFonction *>(b->type);
 
 	auto debut_params = 0l;
 
@@ -256,8 +245,8 @@ static auto valide_appel_pointeur_fonction(
 
 			auto fonc_courante = contexte.donnees_fonction;
 
-			if (fonc_courante != nullptr && dls::outils::possede_drapeau(fonc_courante->noeud_decl->drapeaux, FORCE_NULCTX)) {
-				erreur::lance_erreur_fonction_nulctx(contexte, b, b, fonc_courante->noeud_decl);
+			if (fonc_courante != nullptr && dls::outils::possede_drapeau(fonc_courante->drapeaux, FORCE_NULCTX)) {
+				erreur::lance_erreur_fonction_nulctx(contexte, b, b, fonc_courante);
 			}
 		}
 		else {
@@ -267,7 +256,7 @@ static auto valide_appel_pointeur_fonction(
 
 	/* Validation des types passés en paramètre. */
 	for (auto i = debut_params; i < type_fonction->types_entrees.taille; ++i) {
-		auto arg = *enfant++;
+		auto arg = args[i - debut_params];
 		auto type_prm = type_fonction->types_entrees[i];
 		auto type_enf = arg->type;
 
@@ -287,9 +276,11 @@ static auto valide_appel_pointeur_fonction(
 		}
 
 		arg->transformation = transformation;
+
+		b->exprs.pousse(arg);
 	}
 
-	b->nom_fonction_appel = nom_fonction;
+	b->nom_fonction_appel = b->ident->nom;
 	/* À FAIRE : multiples types retours */
 	b->type = type_fonction->types_sorties[0];
 	b->type_fonc = type_fonction;
@@ -298,9 +289,9 @@ static auto valide_appel_pointeur_fonction(
 
 static void valide_acces_membre(
 		ContexteGenerationCode &contexte,
-		base *b,
-		base *structure,
-		base *membre,
+		NoeudExpression *b,
+		NoeudExpression *structure,
+		NoeudExpression *membre,
 		bool expr_gauche)
 {
 	performe_validation_semantique(structure, contexte, expr_gauche);
@@ -318,60 +309,51 @@ static void valide_acces_membre(
 		/* si nous avons une structure, vérifie si nous avons un appel vers un
 		 * pointeur de fonction */
 		if (est_structure) {
-			auto type_struct = static_cast<TypeStructure *>(type);
-			auto &ds = contexte.donnees_structure(type_struct->nom);
-			auto const &nom_membre = membre->chaine();
+			auto noeud_struct = static_cast<TypeStructure *>(type)->decl;
 
-			if (!ds.est_enum && !ds.est_union) {
-				auto const iter = ds.donnees_membres.trouve(nom_membre);
+			if (!noeud_struct->est_union) {
+				POUR (noeud_struct->desc.membres) {
+					if (it.nom == membre->ident->nom) {
+						b->type = it.type;
+						membre->type = it.type;
+						membre->aide_generation_code = GENERE_CODE_PTR_FONC_MEMBRE;
 
-				if (iter != ds.donnees_membres.fin()) {
-					/* ceci est le type de la fonction, l'analyse de l'appel
-					 * vérifiera le type des arguments et ajournera le type du
-					 * membre pour être celui du type de retour */
-					b->type = ds.types[iter->second.index_membre];
-					membre->type = b->type;
-					membre->aide_generation_code = GENERE_CODE_PTR_FONC_MEMBRE;
+						performe_validation_semantique(membre, contexte, expr_gauche);
 
-					performe_validation_semantique(membre, contexte, expr_gauche);
-
-					/* le type de l'accès est celui du retour de la fonction */
-					b->type = membre->type;
-					b->genre_valeur = GenreValeur::DROITE;
-					return;
+						/* le type de l'accès est celui du retour de la fonction */
+						b->type = membre->type;
+						b->genre_valeur = GenreValeur::DROITE;
+						return;
+					}
 				}
 			}
 		}
 
-		membre->enfants.push_front(structure);
-
-		/* les noms d'arguments sont nécessaire pour trouver la bonne fonction,
-		 * même vides, et il nous faut le bon compte de noms */
-		auto *nom_args = std::any_cast<dls::liste<dls::vue_chaine_compacte>>(&membre->valeur_calculee);
-		nom_args->push_front("");
+		auto expr_appel = static_cast<NoeudExpressionAppel *>(membre);
+		expr_appel->params.pousse_front(structure);
 
 		performe_validation_semantique(membre, contexte, expr_gauche);
 
-		/* transforme le noeud */
-		b->genre = GenreNoeud::EXPRESSION_APPEL_FONCTION;
-		b->valeur_calculee = membre->valeur_calculee;
-		b->module_appel = membre->module_appel;
+//		/* transforme le noeud, À FAIRE (réusinage arbre) */
+//		b->genre = GenreNoeud::EXPRESSION_APPEL_FONCTION;
+//		b->module_appel = membre->module_appel;
 		b->type = membre->type;
-		b->nom_fonction_appel = membre->nom_fonction_appel;
-		b->df = membre->df;
-		b->enfants = membre->enfants;
-		b->genre_valeur = GenreValeur::DROITE;
+		b->drapeaux |= EST_APPEL_SYNTAXE_UNIFORME;
+//		b->nom_fonction_appel = membre->nom_fonction_appel;
+//		b->df = membre->df;
+//		b->enfants = membre->enfants;
+//		b->genre_valeur = GenreValeur::DROITE;
 
 		return;
 	}
 
 	if (type->genre == GenreType::CHAINE) {
-		if (membre->chaine() == "taille") {
+		if (membre->ident->nom == "taille") {
 			b->type = contexte.typeuse[TypeBase::Z64];
 			return;
 		}
 
-		if (membre->chaine() == "pointeur") {
+		if (membre->ident->nom == "pointeur") {
 			b->type = contexte.typeuse[TypeBase::PTR_Z8];
 			return;
 		}
@@ -380,14 +362,14 @@ static void valide_acces_membre(
 	}
 
 	if (type->genre == GenreType::EINI) {
-		if (membre->chaine() == "info") {
+		if (membre->ident->nom == "info") {
 			auto type_info_type = contexte.typeuse.type_pour_nom("InfoType");
 			assert(type_info_type != nullptr);
 			b->type = contexte.typeuse.type_pointeur_pour(type_info_type);
 			return;
 		}
 
-		if (membre->chaine() == "pointeur") {
+		if (membre->ident->nom == "pointeur") {
 			b->type = contexte.typeuse[TypeBase::PTR_Z8];
 			return;
 		}
@@ -405,12 +387,12 @@ static void valide_acces_membre(
 						erreur::type_erreur::ASSIGNATION_INVALIDE);
 		}
 #endif
-		if (membre->chaine() == "pointeur") {
+		if (membre->ident->nom == "pointeur") {
 			b->type = contexte.typeuse.type_pointeur_pour(contexte.typeuse.type_dereference_pour(type));
 			return;
 		}
 
-		if (membre->chaine() == "taille") {
+		if (membre->ident->nom == "taille") {
 			b->type = contexte.typeuse[TypeBase::Z64];
 			return;
 		}
@@ -419,12 +401,12 @@ static void valide_acces_membre(
 	}
 
 	if (type->genre == GenreType::TABLEAU_FIXE) {
-		if (membre->chaine() == "pointeur") {
+		if (membre->ident->nom == "pointeur") {
 			b->type = contexte.typeuse.type_pointeur_pour(contexte.typeuse.type_dereference_pour(type));
 			return;
 		}
 
-		if (membre->chaine() == "taille") {
+		if (membre->ident->nom == "taille") {
 			b->type = contexte.typeuse[TypeBase::Z64];
 			return;
 		}
@@ -433,30 +415,35 @@ static void valide_acces_membre(
 	}
 
 	if (est_structure) {
-		auto type_struct = static_cast<TypeStructure *>(type);
-		auto &donnees_structure = contexte.donnees_structure(type_struct->nom);
-		auto const &nom_membre = membre->chaine();
+		auto noeud_struct = static_cast<TypeStructure *>(type)->decl;
+		auto membre_trouve = false;
 
-		auto const iter = donnees_structure.donnees_membres.trouve(nom_membre);
-
-		if (iter == donnees_structure.donnees_membres.fin()) {
-			erreur::membre_inconnu(contexte, donnees_structure, b, structure, membre);
+		POUR (noeud_struct->desc.membres) {
+			if (it.nom == membre->ident->nom) {
+				membre_trouve = true;
+				b->type = it.type;
+				return;
+			}
 		}
 
-		b->type = donnees_structure.types[iter->second.index_membre];
+		if (membre_trouve == false) {
+			erreur::membre_inconnu(contexte, noeud_struct->bloc, b, structure, membre, type);
+		}
 
-		if (donnees_structure.est_union && !donnees_structure.est_nonsur) {
+		if (noeud_struct->est_union && !noeud_struct->est_nonsure) {
 			b->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
-			b->valeur_calculee = iter->second.index_membre;
+
+			// À FAIRE (réusinage arbre)
+			//b->valeur_calculee = noeud_membre->index_membre;
 
 			if (expr_gauche) {
-				contexte.renseigne_membre_actif(structure->chaine(), membre->chaine());
+				contexte.renseigne_membre_actif(structure->ident->nom, membre->ident->nom);
 			}
 			else {
-				auto membre_actif = contexte.trouve_membre_actif(structure->chaine());
+				auto membre_actif = contexte.trouve_membre_actif(structure->ident->nom);
 
 				/* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu */
-				if (membre_actif != "" && membre_actif != membre->chaine()) {
+				if (membre_actif != "" && membre_actif != membre->ident->nom) {
 					erreur::membre_inactif(contexte, b, structure, membre);
 				}
 
@@ -469,16 +456,14 @@ static void valide_acces_membre(
 	}
 
 	if (type->genre == GenreType::ENUM) {
-		auto type_enum = static_cast<TypeEnum *>(type);
-		auto const &nom_membre = membre->chaine();
-		auto &donnees_structure = contexte.donnees_structure(type_enum->nom);
-		auto const iter = donnees_structure.donnees_membres.trouve(nom_membre);
+		auto noeud_enum = static_cast<TypeEnum *>(type)->decl;
+		auto noeud_membre = trouve_dans_bloc_seul(noeud_enum->bloc, membre);
 
-		if (iter == donnees_structure.donnees_membres.fin()) {
-			erreur::membre_inconnu(contexte, donnees_structure, b, structure, membre);
+		if (noeud_membre == nullptr) {
+			erreur::membre_inconnu(contexte, noeud_enum->bloc, b, structure, membre, type);
 		}
 
-		b->type = donnees_structure.type;
+		b->type = noeud_enum->type;
 		b->genre_valeur = GenreValeur::DROITE;
 		return;
 	}
@@ -491,11 +476,11 @@ static void valide_acces_membre(
 	erreur::lance_erreur(
 				flux.chn(),
 				contexte,
-				structure->donnees_lexeme(),
+				structure->lexeme,
 				erreur::type_erreur::TYPE_DIFFERENTS);
 }
 
-static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
+static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 {
 	// certaines fonctions sont validées 2 fois...
 	if (b->type != nullptr) {
@@ -504,45 +489,23 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 
 	using dls::outils::possede_drapeau;
 
-	auto module = contexte.fichier(static_cast<size_t>(b->lexeme.fichier))->module;
-	auto nom_fonction = b->lexeme.chaine;
-	auto &vdf = module->donnees_fonction(nom_fonction);
-	auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
+	auto decl = static_cast<NoeudDeclarationFonction *>(b);
 
-	for (auto &df : vdf) {
-		if (df.noeud_decl == b) {
-			donnees_fonction = &df;
-			break;
-		}
-	}
-
-	auto iter_enfant = b->enfants.debut();
-	auto enfant = *iter_enfant++;
-	assert(enfant->genre == GenreNoeud::DECLARATION_PARAMETRES_FONCTION);
-
-	if (donnees_fonction->est_coroutine) {
-		b->genre = GenreNoeud::DECLARATION_COROUTINE;
+	if (decl->est_coroutine) {
+		decl->genre = GenreNoeud::DECLARATION_COROUTINE;
 	}
 
 	// -----------------------------------
 	if (!contexte.pour_gabarit) {
-		auto noms = dls::ensemble<dls::vue_chaine_compacte>();
+		auto noms = dls::ensemble<IdentifiantCode *>();
 		auto dernier_est_variadic = false;
 
-		auto feuilles = dls::tableau<noeud::base *>();
+		POUR (decl->params) {
+			auto param = static_cast<NoeudDeclarationVariable *>(it);
+			auto variable = param->valeur;
+			auto expression = param->expression;
 
-		if (!enfant->enfants.est_vide()) {
-			rassemble_feuilles(enfant->enfants.front(), feuilles);
-		}
-
-		for (auto feuille : feuilles) {
-			auto variable = feuille;
-			auto expression = static_cast<noeud::base *>(nullptr);
-
-			if (feuille->genre == GenreNoeud::DECLARATION_VARIABLE) {
-				variable = feuille->enfants.front();
-				expression = feuille->enfants.back();
-
+			if (expression != nullptr) {
 				performe_validation_semantique(expression, contexte, false);
 
 				/* À FAIRE: vérifie que le type de l'argument correspond à celui de l'expression */
@@ -551,7 +514,7 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 				}
 			}
 
-			if (noms.trouve(variable->chaine()) != noms.fin()) {
+			if (noms.trouve(variable->ident) != noms.fin()) {
 				erreur::lance_erreur(
 							"Redéfinition de l'argument",
 							contexte,
@@ -570,55 +533,49 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 			auto &type_declare = variable->type_declare;
 
 			if (type_declare.est_gabarit) {
-				donnees_fonction->noms_types_gabarits.pousse(type_declare.nom_gabarit);
-				donnees_fonction->est_gabarit = true;
+				decl->noms_types_gabarits.pousse(type_declare.nom_gabarit);
+				decl->est_gabarit = true;
 			}
-
-			auto donnees_arg = DonneesArgument{};
-			donnees_arg.type_declare = type_declare;
-			donnees_arg.nom = variable->chaine();
-			donnees_arg.expression_defaut = expression;
 
 			if (!type_declare.est_gabarit) {
-				if (est_invalide(type_declare.plage())) {
-					assert(variable->type);
-					donnees_arg.type = variable->type;
-				}
-				else {
-					donnees_arg.type = resoud_type_final(contexte, type_declare);
+				if (!est_invalide(type_declare.plage())) {
+					variable->type = resoud_type_final(contexte, type_declare, variable->lexeme);
 				}
 			}
 
-			noms.insere(variable->chaine());
+			it->type = variable->type;
+
+			noms.insere(variable->ident);
 
 			/* doit être vrai uniquement pour le dernier argument */
-			donnees_arg.est_variadic = donnees_arg.type_declare.type_base() == GenreLexeme::TROIS_POINTS;
-			donnees_arg.est_employe = possede_drapeau(feuille->drapeaux, EMPLOYE);
+			if (type_declare.type_base() == GenreLexeme::TROIS_POINTS) {
+				it->drapeaux |= EST_VARIADIQUE;
+				decl->est_variadique = true;
 
-			dernier_est_variadic = donnees_arg.est_variadic;
-
-			donnees_fonction->est_variadique = donnees_arg.est_variadic;
-			donnees_fonction->args.pousse(donnees_arg);
-
-			if (feuille == feuilles.back()) {
-				if (!donnees_fonction->est_externe && donnees_arg.est_variadic && est_invalide(donnees_arg.type_declare.dereference())) {
-					erreur::lance_erreur(
-								"La déclaration de fonction variadique sans type n'est"
-								" implémentée que pour les fonctions externes",
-								contexte,
-								feuille->lexeme);
+				if (it == decl->params[decl->params.taille - 1]) {
+					if (!decl->est_externe && est_invalide(type_declare.dereference())) {
+						erreur::lance_erreur(
+									"La déclaration de fonction variadique sans type n'est"
+									" implémentée que pour les fonctions externes",
+									contexte,
+									it->lexeme);
+					}
 				}
 			}
 		}
 
-		if (donnees_fonction->est_gabarit) {
+		if (decl->est_gabarit) {
 			return;
 		}
 	}
 	else {
-		for (auto &arg : donnees_fonction->args) {
-			arg.type = resoud_type_final(contexte, arg.type_declare);
-			arg.type_declare.est_gabarit = false;
+		POUR (decl->params) {
+			auto variable = static_cast<NoeudDeclarationVariable *>(it)->valeur;
+
+			variable->type = resoud_type_final(contexte, variable->type_declare, variable->lexeme);
+			variable->type_declare.est_gabarit = false;
+
+			it->type = variable->type;
 		}
 	}
 
@@ -630,74 +587,59 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 		types_entrees.pousse(contexte.type_contexte);
 	}
 
-	for (auto &arg : donnees_fonction->args) {
-		types_entrees.pousse(arg.type);
-		contexte.donnees_dependance.types_utilises.insere(arg.type);
+	POUR (decl->params) {
+		types_entrees.pousse(it->type);
+		contexte.donnees_dependance.types_utilises.insere(it->type);
 	}
 
 	kuri::tableau<Type *> types_sorties;
 
-	for (auto &type_declare : b->type_declare.types_sorties) {
-		auto type_sortie = resoud_type_final(contexte, type_declare);
+	for (auto &type_declare : decl->type_declare.types_sorties) {
+		auto type_sortie = resoud_type_final(contexte, type_declare, decl->lexeme);
 		types_sorties.pousse(type_sortie);
 		contexte.donnees_dependance.types_utilises.insere(type_sortie);
 	}
 
-	donnees_fonction->type = contexte.typeuse.type_fonction(types_entrees, types_sorties);
-	b->type = donnees_fonction->type;
+	decl->type_fonc = contexte.typeuse.type_fonction(types_entrees, types_sorties);
+	decl->type = decl->type_fonc;
 	contexte.donnees_dependance.types_utilises.insere(b->type);
 
-	if (vdf.taille() > 1) {
-		for (auto const &df : vdf) {
-			if (df.noeud_decl == b) {
-				continue;
-			}
+	POUR (decl->bloc_parent->membres) {
+		if (it == decl) {
+			continue;
+		}
 
-			if (df.type == donnees_fonction->type) {
-				erreur::lance_erreur(
-							"Redéfinition de la fonction",
-							contexte,
-							b->lexeme,
-							erreur::type_erreur::FONCTION_REDEFINIE);
-			}
+		if (it->genre != GenreNoeud::DECLARATION_FONCTION && it->genre != GenreNoeud::DECLARATION_COROUTINE) {
+			continue;
+		}
+
+		if (it->ident != decl->ident) {
+			continue;
+		}
+
+		if (it->type == decl->type) {
+			erreur::redefinition_fonction(
+						contexte,
+						it->lexeme,
+						decl->lexeme);
 		}
 	}
 
 	/* nous devons attendre d'avoir les types des arguments avant de
 	 * pouvoir broyer le nom de la fonction */
-	if (nom_fonction != "principale" && !possede_drapeau(b->drapeaux, EST_EXTERNE)) {
-		donnees_fonction->nom_broye = broye_nom_fonction(*donnees_fonction, nom_fonction, module->nom);
+	if (decl->lexeme->chaine != "principale" && !possede_drapeau(b->drapeaux, EST_EXTERNE)) {
+		auto fichier = contexte.fichier(static_cast<size_t>(decl->lexeme->fichier));
+		decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
 	}
 	else {
-		donnees_fonction->nom_broye = nom_fonction;
+		decl->nom_broye = decl->lexeme->chaine;
 	}
 
-	contexte.graphe_dependance.cree_noeud_fonction(donnees_fonction->nom_broye, b);
-}
-
-enum {
-	SYMBOLE_VARIABLE_LOCALE,
-	SYMBOLE_VARIABLE_GLOBALE,
-	SYMBOLE_INCONNU,
-};
-
-static auto cherche_symbole(
-		ContexteGenerationCode &contexte,
-		dls::vue_chaine_compacte const &nom)
-{
-	if (contexte.locale_existe(nom)) {
-		return SYMBOLE_VARIABLE_LOCALE;
-	}
-
-	if (contexte.globale_existe(nom)) {
-		return SYMBOLE_VARIABLE_GLOBALE;
-	}
-
-	return SYMBOLE_INCONNU;
+	contexte.graphe_dependance.cree_noeud_fonction(decl->nom_broye, decl);
 }
 
 static void performe_validation_semantique(
-		base *b,
+		NoeudExpression *b,
 		ContexteGenerationCode &contexte,
 		bool expr_gauche)
 {
@@ -721,176 +663,199 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::DECLARATION_FONCTION:
 		{
-			/* À FAIRE : inférence de type
-			 * - considération du type de retour des fonctions récursive
-			 */
-
+			auto decl = static_cast<NoeudDeclarationFonction *>(b);
 			using dls::outils::possede_drapeau;
-			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
-
-			auto module = contexte.fichier(static_cast<size_t>(b->lexeme.fichier))->module;
-			auto nom_fonction = b->lexeme.chaine;
-			auto &vdf = module->donnees_fonction(nom_fonction);
-			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
-
-			for (auto &df : vdf) {
-				if (df.noeud_decl == b) {
-					donnees_fonction = &df;
-					break;
-				}
-			}
 
 			/* Il est possible que certaines fonctions ne soient pas connectées
 			 * dans le graphe de symboles alors que nous avons besoin d'elles,
 			 * voir dans la fonction plus bas. */
-			if (b->type == nullptr && !donnees_fonction->est_gabarit) {
-				valide_type_fonction(b, contexte);
+			if (decl->type == nullptr && !decl->est_gabarit) {
+				valide_type_fonction(decl, contexte);
 			}
 
-			if (donnees_fonction->est_gabarit && !contexte.pour_gabarit) {
+			if (decl->est_gabarit && !contexte.pour_gabarit) {
 				// nous ferons l'analyse sémantique plus tard
 				return;
 			}
 
-			if (est_externe) {
-				for (auto &argument : donnees_fonction->args) {
-					argument.type = resoud_type_final(contexte, argument.type_declare);
-					donnees_dependance.types_utilises.insere(argument.type);
+			if (decl->est_externe) {
+				POUR (decl->params) {
+					auto variable = static_cast<NoeudDeclarationVariable *>(it)->valeur;
+
+					variable->type = resoud_type_final(contexte, variable->type_declare, variable->lexeme);
+					it->type = variable->type;
+					donnees_dependance.types_utilises.insere(variable->type);
 				}
 
-				auto noeud_dep = graphe.cree_noeud_fonction(nom_fonction, b);
+				auto noeud_dep = graphe.cree_noeud_fonction(decl->ident->nom, decl);
 				graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 
 				return;
 			}
 
-			contexte.commence_fonction(donnees_fonction);
+			contexte.commence_fonction(decl);
 
-			auto donnees_var = DonneesVariable{};
+			if (!possede_drapeau(decl->drapeaux, FORCE_NULCTX)) {
+				auto val_ctx = static_cast<NoeudExpressionReference *>(contexte.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, b->lexeme));
+				val_ctx->type = contexte.type_contexte;
+				val_ctx->bloc_parent = b->bloc_parent;
+				val_ctx->ident = contexte.table_identifiants.identifiant_pour_chaine("contexte");
 
-			if (!possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
-				donnees_var.est_variadic = false;
-				donnees_var.type = contexte.type_contexte;
-				donnees_var.est_argument = true;
+				auto decl_ctx = static_cast<NoeudDeclarationVariable *>(contexte.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, b->lexeme));
+				decl_ctx->bloc_parent = b->bloc_parent;
+				decl_ctx->valeur = val_ctx;
+				decl_ctx->type = val_ctx->type;
+				decl_ctx->ident = val_ctx->ident;
 
-				contexte.pousse_locale("contexte", donnees_var);
+				decl->bloc->membres.pousse(decl_ctx);
+
 				donnees_dependance.types_utilises.insere(contexte.type_contexte);
 			}
 
 			/* Pousse les paramètres sur la pile. */
-			for (auto &argument : donnees_fonction->args) {
-				donnees_dependance.types_utilises.insere(argument.type);
+			POUR (decl->params) {
+				auto argument = static_cast<NoeudDeclarationVariable *>(it);
 
-				donnees_var = DonneesVariable{};
-				donnees_var.est_variadic = argument.est_variadic;
-				donnees_var.type = argument.type;
-				donnees_var.est_argument = true;
+				auto variable = argument->valeur;
+				argument->ident = variable->ident;
+				argument->type = variable->type;
 
-				contexte.pousse_locale(argument.nom, donnees_var);
+				donnees_dependance.types_utilises.insere(argument->type);
 
-				if (argument.est_employe) {
-					auto type_var = argument.type;
-					auto nom_structure = dls::vue_chaine_compacte("");
+				decl->bloc->membres.pousse(argument);
 
-					if (type_var->genre == GenreType::POINTEUR || type_var->genre == GenreType::REFERENCE) {
-						type_var = contexte.typeuse.type_dereference_pour(type_var);
-						nom_structure = static_cast<TypeStructure *>(type_var)->nom;
-					}
-					else {
-						nom_structure = static_cast<TypeStructure *>(type_var)->nom;
-					}
+				/* À FAIRE(réusinage arbre) */
+		//		if (argument.est_employe) {
+		//			auto type_var = argument.type;
+		//			auto nom_structure = dls::vue_chaine_compacte("");
 
-					auto &ds = contexte.donnees_structure(nom_structure);
+		//			if (type_var->genre == GenreType::POINTEUR || type_var->genre == GenreType::REFERENCE) {
+		//				type_var = contexte.typeuse.type_dereference_pour(type_var);
+		//				nom_structure = static_cast<TypeStructure *>(type_var)->nom;
+		//			}
+		//			else {
+		//				nom_structure = static_cast<TypeStructure *>(type_var)->nom;
+		//			}
 
-					/* pousse chaque membre de la structure sur la pile */
+		//			auto &ds = contexte.donnees_structure(nom_structure);
 
-					for (auto &dm : ds.donnees_membres) {
-						auto type_membre = ds.types[dm.second.index_membre];
+		//			/* pousse chaque membre de la structure sur la pile */
 
-						donnees_var.type = type_membre;
-						donnees_var.est_argument = true;
-						donnees_var.est_membre_emploie = true;
+		//			for (auto &dm : ds.donnees_membres) {
+		//				auto type_membre = ds.types[dm.second.index_membre];
 
-						contexte.pousse_locale(dm.first, donnees_var);
-					}
-				}
+		//				donnees_var.type = type_membre;
+		//				donnees_var.est_argument = true;
+		//				donnees_var.est_membre_emploie = true;
+
+		//				contexte.pousse_locale(dm.first, donnees_var);
+		//			}
+		//		}
 			}
 
 			/* vérifie le type du bloc */
-			auto bloc = b->enfants.back();
+			auto bloc = decl->bloc;
 
-			auto noeud_dep = graphe.cree_noeud_fonction(donnees_fonction->nom_broye, b);
+			auto noeud_dep = graphe.cree_noeud_fonction(decl->nom_broye, decl);
 
 			performe_validation_semantique(bloc, contexte, true);
-			auto inst_ret = derniere_instruction(bloc->dernier_enfant());
+			auto inst_ret = derniere_instruction(bloc);
 
 			/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
 			if (inst_ret == nullptr) {
-				assert(b->type->genre == GenreType::FONCTION);
-				auto type_fonc = static_cast<TypeFonction *>(b->type);
+				assert(decl->type->genre == GenreType::FONCTION);
+				auto type_fonc = static_cast<TypeFonction *>(decl->type);
 
-				if (type_fonc->types_sorties[0]->genre != GenreType::RIEN && !donnees_fonction->est_coroutine) {
+				if (type_fonc->types_sorties[0]->genre != GenreType::RIEN && !decl->est_coroutine) {
 					erreur::lance_erreur(
 								"Instruction de retour manquante",
 								contexte,
-								b->lexeme,
+								decl->lexeme,
 								erreur::type_erreur::TYPE_DIFFERENTS);
 				}
 
-				b->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
+				decl->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
 			}
 
 			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 
 			contexte.termine_fonction();
-			break;
-		}
-		case GenreNoeud::DECLARATION_PARAMETRES_FONCTION:
-		{
-			/* géré dans DECLARATION_FONCTION */
+
 			break;
 		}
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
-			auto const nom_fonction = dls::chaine(b->lexeme.chaine);
-			auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine_compacte>>(&b->valeur_calculee);
+			auto expr = static_cast<NoeudExpressionAppel *>(b);
+			expr->genre_valeur = GenreValeur::DROITE;
 
-			b->genre_valeur = GenreValeur::DROITE;
-
-			if (b->nom_fonction_appel != "") {
-				/* Nous avons déjà validé ce noeud, sans doute via une syntaxe
-				 * d'appel uniforme. */
-				return;
-			}
-
-			/* Nous avons un pointeur vers une fonction. */
-			if (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE
-					|| contexte.locale_existe(b->lexeme.chaine))
-			{
-				valide_appel_pointeur_fonction(b, contexte, *noms_arguments, nom_fonction);
-				return;
-			}
+			kuri::tableau<IdentifiantCode *> noms_args;
+			kuri::tableau<NoeudExpression *> args;
 
 			/* Commence par valider les enfants puisqu'il nous faudra leurs
 			 * types pour déterminer la fonction à appeler. */
-			valides_enfants(b, contexte, false);
+			for (auto f : expr->params) {
+				// l'argument est nommé
+				if (f->genre == GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
+					auto assign = static_cast<NoeudExpressionBinaire *>(f);
+					auto nom_arg = assign->expr1;
+					auto arg = assign->expr2;
+
+					performe_validation_semantique(arg, contexte, false);
+
+					noms_args.pousse(nom_arg->ident);
+					args.pousse(arg);
+				}
+				else {
+					performe_validation_semantique(f, contexte, false);
+
+					noms_args.pousse(nullptr);
+					args.pousse(f);
+				}
+			}
+
+			// ------------
+			// trouve la fonction, pour savoir ce que l'on a
+
+			auto const nom_fonction = dls::chaine(b->lexeme->chaine);
+
+			// À FAIRE(réusinage arbre): syntaxe uniforme
+//			if (b->nom_fonction_appel != "") {
+//				/* Nous avons déjà validé ce noeud, sans doute via une syntaxe
+//				 * d'appel uniforme. */
+//				return;
+//			}
+
+			/* Nous avons un pointeur vers une fonction. */
+			if (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE) {
+				valide_appel_pointeur_fonction(expr, contexte, noms_args, args);
+				return;
+			}
+
+			auto decl = trouve_dans_bloc(expr->bloc_parent, expr->ident);
+
+			/* Nous avons un pointeur vers une fonction.
+			 * À FAIRE: vérifie que la declaration sont antérieure, la condition 'decl->type' sers à ça.
+			 * Peut que l'on pourrait fusionner la logique avec celle de la recherche de fonctions, et mettre les pointeurs dans les candidats. */
+			if (decl != nullptr && decl->genre == GenreNoeud::DECLARATION_VARIABLE && decl->type && decl->type->genre == GenreType::FONCTION) {
+				b->type = decl->type;
+				valide_appel_pointeur_fonction(expr, contexte, noms_args, args);
+				return;
+			}
 
 			auto res = cherche_donnees_fonction(
 						contexte,
-						nom_fonction,
-						*noms_arguments,
-						b->enfants,
-						static_cast<size_t>(b->lexeme.fichier),
+						expr->ident,
+						noms_args,
+						args,
+						static_cast<size_t>(b->lexeme->fichier),
 						static_cast<size_t>(b->module_appel));
 
-			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
 			auto candidate = static_cast<DonneesCandidate *>(nullptr);
 
 			auto poids = 0.0;
 
 			for (auto &dc : res.candidates) {
 				if (dc.etat == FONCTION_TROUVEE) {
-
 					if (dc.poids_args > poids) {
 						candidate = &dc;
 						poids = dc.poids_args;
@@ -898,24 +863,24 @@ static void performe_validation_semantique(
 				}
 			}
 
-			if (candidate == nullptr || candidate->df == nullptr) {
+			if (candidate == nullptr || candidate->decl_fonc == nullptr) {
 				erreur::lance_erreur_fonction_inconnue(
 							contexte,
 							b,
 							res.candidates);
 			}
 
-			donnees_fonction = candidate->df;
+			auto decl_fonction_appelee = candidate->decl_fonc;
 
 			/* pour les directives d'exécution, la fonction courante est nulle */
 			if (fonction_courante != nullptr) {
 				using dls::outils::possede_drapeau;
-				auto decl_fonc = fonction_courante->noeud_decl;
+				auto decl_fonc = fonction_courante;
 
 				if (possede_drapeau(decl_fonc->drapeaux, FORCE_NULCTX)) {
-					auto decl_appel = donnees_fonction->noeud_decl;
+					auto decl_appel = decl_fonction_appelee;
 
-					if (!donnees_fonction->est_externe && !possede_drapeau(decl_appel->drapeaux, FORCE_NULCTX)) {
+					if (!decl_appel->est_externe && !possede_drapeau(decl_appel->drapeaux, FORCE_NULCTX)) {
 						erreur::lance_erreur_fonction_nulctx(
 									contexte,
 									b,
@@ -928,24 +893,8 @@ static void performe_validation_semantique(
 			/* ---------------------- */
 
 			if (!candidate->paires_expansion_gabarit.est_vide()) {
-				auto noeud_decl = copie_noeud(contexte.assembleuse, candidate->df->noeud_decl);
-				auto ndf = *candidate->df;
-				ndf.noeud_decl = noeud_decl;
-
-				auto module = contexte.fichier(static_cast<size_t>(noeud_decl->lexeme.fichier))->module;
-				module->ajoute_donnees_fonctions(b->chaine(), ndf);
-
-				// À FAIRE : le réusinage de l'arbre nous permettra d'avoir des blocs séparés du contexte.
-				// sauvegarde état
-				auto sauvegarde_m_locales = contexte.m_locales;
-				auto sauvegarde_m_pile_nombre_locales = contexte.m_pile_nombre_locales;
-				auto sauvegarde_m_nombre_locales = contexte.m_nombre_locales;
-				auto sauvegarde_fonc_courante = fonction_courante;
-				auto sauvegarde_m_noeuds_differes = contexte.m_noeuds_differes;
-				auto sauvegarde_m_pile_nombre_differes = contexte.m_pile_nombre_differes;
-				auto sauvegarde_m_nombre_differes = contexte.m_nombre_differes;
-
-				contexte.termine_fonction();
+				auto noeud_decl = copie_noeud(contexte.assembleuse, decl_fonction_appelee, decl_fonction_appelee->bloc_parent);
+				decl_fonction_appelee = static_cast<NoeudDeclarationFonction *>(noeud_decl);
 
 				contexte.pour_gabarit = true;
 				contexte.paires_expansion_gabarit = candidate->paires_expansion_gabarit;
@@ -954,24 +903,9 @@ static void performe_validation_semantique(
 
 				performe_validation_semantique(noeud_decl, contexte, expr_gauche);
 
-				// XXX
-				for (auto &df : module->donnees_fonction(b->chaine())) {
-					if (df.noeud_decl == noeud_decl) {
-						candidate->df = &df;
-						donnees_fonction = &df;
-					}
-				}
+				contexte.donnees_fonction = fonction_courante;
 
 				contexte.pour_gabarit = false;
-
-				contexte.commence_fonction(sauvegarde_fonc_courante);
-
-				contexte.m_locales = sauvegarde_m_locales;
-				contexte.m_pile_nombre_locales = sauvegarde_m_pile_nombre_locales;
-				contexte.m_nombre_locales = sauvegarde_m_nombre_locales;
-				contexte.m_noeuds_differes = sauvegarde_m_noeuds_differes;
-				contexte.m_pile_nombre_differes = sauvegarde_m_pile_nombre_differes;
-				contexte.m_nombre_differes = sauvegarde_m_nombre_differes;
 			}
 
 			/* met en place les drapeaux sur les enfants */
@@ -985,8 +919,8 @@ static void performe_validation_semantique(
 				nombre_args_variadics = candidate->transformations.taille();
 
 				/* ajoute le type du tableau */
-				auto noeud_tabl = candidate->exprs.back();
-				auto taille_tableau = noeud_tabl->enfants.taille();
+				auto noeud_tabl = static_cast<NoeudTableauArgsVariadiques *>(candidate->exprs.back());
+				auto taille_tableau = noeud_tabl->exprs.taille;
 				auto &type_tabl = noeud_tabl->type;
 
 				auto type_tfixe = contexte.typeuse.type_tableau_fixe(type_tabl, taille_tableau);
@@ -1002,8 +936,8 @@ static void performe_validation_semantique(
 
 			/* les drapeaux pour les arguments variadics */
 			if (!candidate->exprs.est_vide() && candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
-				auto noeud_tableau = candidate->exprs.back();
-				auto enfant_tabl = noeud_tableau->enfants.debut();
+				auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(candidate->exprs.back());
+				auto enfant_tabl = noeud_tableau->exprs.begin();
 
 				for (; i < nombre_args_variadics; ++i) {
 					auto enfant = *enfant_tabl++;
@@ -1011,34 +945,25 @@ static void performe_validation_semantique(
 				}
 			}
 
-			b->df = candidate->df;
-			b->type_fonc = donnees_fonction->type;
+			expr->noeud_fonction_appelee = decl_fonction_appelee;
+			expr->nom_fonction_appel = decl_fonction_appelee->nom_broye;
 
 			if (b->type == nullptr) {
-				/* À FAIRE : multiple types retours */
-				b->type = b->type_fonc->types_sorties[0];
+				/* À FAIRE: multiple type retour */
+				b->type = decl_fonction_appelee->type_fonc->types_sorties[0];
 			}
-
-			b->enfants.efface();
 
 			for (auto enfant : candidate->exprs) {
-				b->enfants.pousse(enfant);
+				expr->exprs.pousse(enfant);
 			}
 
-			if (donnees_fonction->nom_broye.est_vide()) {
-				b->nom_fonction_appel = nom_fonction;
-			}
-			else {
-				b->nom_fonction_appel = donnees_fonction->nom_broye;
-			}
+			donnees_dependance.fonctions_utilisees.insere(decl_fonction_appelee->nom_broye);
 
-			donnees_dependance.fonctions_utilisees.insere(donnees_fonction->nom_broye);
-
-			for (auto te : b->type_fonc->types_entrees) {
+			for (auto te : decl_fonction_appelee->type_fonc->types_entrees) {
 				donnees_dependance.types_utilises.insere(te);
 			}
 
-			for (auto ts : b->type_fonc->types_sorties) {
+			for (auto ts : decl_fonction_appelee->type_fonc->types_sorties) {
 				donnees_dependance.types_utilises.insere(ts);
 			}
 
@@ -1046,123 +971,99 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
-			valides_enfants(b, contexte, true);
+			auto dir = static_cast<NoeudExpressionUnaire *>(b);
+			performe_validation_semantique(dir->expr, contexte, true);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
-			b->genre_valeur = GenreValeur::TRANSCENDANTALE;
+			auto expr = static_cast<NoeudExpressionReference *>(b);
+			expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
-			auto type_symbole = cherche_symbole(contexte, b->chaine());
+			auto bloc = expr->bloc_parent;
+			assert(bloc != nullptr);
 
-			if (type_symbole == SYMBOLE_VARIABLE_LOCALE) {
-				auto const &iter_locale = contexte.iter_locale(b->lexeme.chaine);
-				b->type = iter_locale->second.type;
+			/* À FAIRE : pour une fonction, trouve la selon le type */
+			auto fichier = contexte.fichier(static_cast<size_t>(expr->lexeme->fichier));
+			auto decl = trouve_dans_bloc_ou_module(contexte, bloc, expr->ident, fichier);
 
-				donnees_dependance.types_utilises.insere(b->type);
-				return;
+			if (decl == nullptr) {
+				erreur::lance_erreur(
+							"Variable inconnue",
+							contexte,
+							b->lexeme,
+							erreur::type_erreur::VARIABLE_INCONNUE);
 			}
 
-			if (type_symbole == SYMBOLE_VARIABLE_GLOBALE) {
-				auto const &iter_locale = contexte.iter_globale(b->lexeme.chaine);
-				b->type = iter_locale->second.type;
+			/* À FAIRE: vérifie que la déclaration est antérieure à la référence (pour une variable) */
 
-				donnees_dependance.types_utilises.insere(b->type);
-				donnees_dependance.globales_utilisees.insere(b->lexeme.chaine);
-				return;
+			expr->type = decl->type;
+			assert(expr->type);
+
+			if (decl->drapeaux & EST_VAR_BOUCLE) {
+				expr->drapeaux |= EST_VAR_BOUCLE;
 			}
 
-			/* Vérifie si c'est une fonction. */
-			auto module = contexte.fichier(static_cast<size_t>(b->lexeme.fichier))->module;
+			donnees_dependance.types_utilises.insere(expr->type);
 
-			/* À FAIRE : trouve la fonction selon le type */
-			if (module->fonction_existe(b->lexeme.chaine)) {
-				auto &donnees_fonction = module->donnees_fonction(b->lexeme.chaine);
-				b->type = donnees_fonction.front().type;
-				b->nom_fonction_appel = donnees_fonction.front().nom_broye;
-
-				donnees_dependance.types_utilises.insere(b->type);
+			if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {
+				auto decl_fonc = static_cast<NoeudDeclarationFonction *>(decl);
+				b->nom_fonction_appel = decl_fonc->nom_broye;
 				donnees_dependance.fonctions_utilisees.insere(b->nom_fonction_appel);
-				return;
 			}
-
-			/* cherche dans les modules importés, À FAIRE: erreur si plusieurs symboles candidats */
-			auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme.fichier));
-			for (auto &nom_module : fichier->modules_importes) {
-				module = contexte.module(nom_module);
-
-				if (module->possede_fonction(b->lexeme.chaine)) {
-					auto &donnees_fonction = module->donnees_fonction(b->lexeme.chaine);
-					b->type = donnees_fonction.front().type;
-					b->nom_fonction_appel = donnees_fonction.front().nom_broye;
-
-					donnees_dependance.types_utilises.insere(b->type);
-					donnees_dependance.fonctions_utilisees.insere(b->nom_fonction_appel);
-					return;
+			else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
+				if (decl->drapeaux & EST_GLOBALE) {
+					donnees_dependance.globales_utilisees.insere(b->lexeme->chaine);
 				}
 			}
 
-			/* Nous avons peut-être une énumération. */
-			if (contexte.structure_existe(b->lexeme.chaine)) {
-				auto &donnees_structure = contexte.donnees_structure(b->lexeme.chaine);
-
-				if (donnees_structure.est_enum) {
-					b->type = donnees_structure.type;
-					donnees_dependance.types_utilises.insere(b->type);
-					return;
-				}
-			}
-
-			erreur::lance_erreur(
-						"Variable inconnue",
-						contexte,
-						b->lexeme,
-						erreur::type_erreur::VARIABLE_INCONNUE);
+			break;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
-			auto enfant1 = b->enfants.front();
-			auto enfant2 = b->enfants.back();
+			auto inst = static_cast<NoeudExpressionBinaire *>(b);
+			auto enfant1 = inst->expr1;
+			auto enfant2 = inst->expr2;
 			b->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
-			auto const nom_symbole = enfant1->chaine();
-
 			if (enfant1->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-				auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme.fichier));
+				auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme->fichier));
 
+				auto const nom_symbole = enfant1->ident->nom;
 				if (fichier->importe_module(nom_symbole)) {
-					auto module_importe = contexte.module(nom_symbole);
+					/* À FAIRE(réusinage arbre) */
+//					auto module_importe = contexte.module(nom_symbole);
 
-					if (module_importe == nullptr) {
-						erreur::lance_erreur(
-									"module inconnu",
-									contexte,
-									enfant1->donnees_lexeme(),
-									erreur::type_erreur::MODULE_INCONNU);
-					}
+//					if (module_importe == nullptr) {
+//						erreur::lance_erreur(
+//									"module inconnu",
+//									contexte,
+//									enfant1->lexeme,
+//									erreur::type_erreur::MODULE_INCONNU);
+//					}
 
-					auto const nom_fonction = enfant2->chaine();
+//					auto const nom_fonction = enfant2->ident->nom;
 
-					if (!module_importe->possede_fonction(nom_fonction)) {
-						erreur::lance_erreur(
-									"Le module ne possède pas la fonction",
-									contexte,
-									enfant2->donnees_lexeme(),
-									erreur::type_erreur::FONCTION_INCONNUE);
-					}
+//					if (!module_importe->possede_fonction(nom_fonction)) {
+//						erreur::lance_erreur(
+//									"Le module ne possède pas la fonction",
+//									contexte,
+//									enfant2->lexeme,
+//									erreur::type_erreur::FONCTION_INCONNUE);
+//					}
 
-					enfant2->module_appel = static_cast<int>(module_importe->id);
+//					enfant2->module_appel = static_cast<int>(module_importe->id);
 
-					performe_validation_semantique(enfant2, contexte, expr_gauche);
+//					performe_validation_semantique(enfant2, contexte, expr_gauche);
 
-					b->type = enfant2->type;
-					b->aide_generation_code = ACCEDE_MODULE;
+//					b->type = enfant2->type;
+//					b->aide_generation_code = ACCEDE_MODULE;
 
 					return;
 				}
 			}
 
-			valide_acces_membre(contexte, b, enfant1, enfant2, expr_gauche);
+			valide_acces_membre(contexte, inst, enfant1, enfant2, expr_gauche);
 
 			donnees_dependance.types_utilises.insere(b->type);
 
@@ -1170,8 +1071,9 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			auto variable = b->enfants.front();
-			auto expression = b->enfants.back();
+			auto inst = static_cast<NoeudExpressionBinaire *>(b);
+			auto variable = inst->expr1;
+			auto expression = inst->expr2;
 
 			performe_validation_semantique(expression, contexte, false);
 
@@ -1186,9 +1088,7 @@ static void performe_validation_semantique(
 			/* NOTE : l'appel à performe_validation_semantique plus bas peut
 			 * changer le vecteur et invalider une référence ou un pointeur,
 			 * donc nous faisons une copie... */
-			auto const type = expression->type;
-
-			if (type->genre == GenreType::RIEN) {
+			if (expression->type->genre == GenreType::RIEN) {
 				erreur::lance_erreur(
 							"Impossible d'assigner une expression de type 'rien' à une variable !",
 							contexte,
@@ -1197,7 +1097,7 @@ static void performe_validation_semantique(
 			}
 
 			/* a, b = foo() */
-			if (variable->identifiant() == GenreLexeme::VIRGULE) {
+			if (variable->lexeme->genre == GenreLexeme::VIRGULE) {
 				if (expression->genre != GenreNoeud::EXPRESSION_APPEL_FONCTION) {
 					erreur::lance_erreur(
 								"Une virgule ne peut se trouver qu'à gauche d'un appel de fonction.",
@@ -1206,13 +1106,13 @@ static void performe_validation_semantique(
 								erreur::type_erreur::NORMAL);
 				}
 
-				dls::tableau<base *> feuilles;
+				dls::tableau<NoeudExpression *> feuilles;
 				rassemble_feuilles(variable, feuilles);
 
 				/* Utilisation du type de la fonction et non
 				 * DonneesFonction::idx_types_retour car les pointeurs de
 				 * fonctions n'ont pas de DonneesFonction. */
-				auto type_fonc = expression->type_fonc;
+				auto type_fonc = static_cast<TypeFonction *>(expression->type);
 
 				if (feuilles.taille() != type_fonc->types_sorties.taille) {
 					erreur::lance_erreur(
@@ -1263,111 +1163,76 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
 		{
-			if (b->enfants.taille() == 0) {
-				auto variable = b;
-				variable->type = resoud_type_final(contexte, variable->type_declare);
+			auto decl = static_cast<NoeudDeclarationVariable *>(b);
+			auto variable = decl->valeur;
+			auto expression = decl->expression;
 
-				if (variable->type == nullptr) {
-					erreur::lance_erreur("variable déclarée sans type", contexte, variable->lexeme);
+			// À FAIRE : cas où nous avons plusieurs variables déclarées
+			decl->ident = variable->ident;
+
+			auto decl_prec = trouve_dans_bloc(variable->bloc_parent, decl);
+
+			if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
+				auto fichier = contexte.fichier(static_cast<size_t>(decl->lexeme->fichier));
+				auto pos_decl = trouve_position(*decl->lexeme, fichier);
+				auto pos_decl_prec = trouve_position(*decl_prec->lexeme, fichier);
+
+				if (pos_decl.numero_ligne > pos_decl_prec.numero_ligne) {
+					erreur::redefinition_symbole(contexte, variable->lexeme, decl_prec->lexeme);
 				}
+			}
 
-				auto type_symbole = cherche_symbole(contexte, variable->chaine());
+			variable->type = resoud_type_final(contexte, variable->type_declare, variable->lexeme);
 
-				if (type_symbole != SYMBOLE_INCONNU) {
-					erreur::lance_erreur(
-								"Redéfinition du symbole !",
-								contexte,
-								variable->lexeme,
-								erreur::type_erreur::VARIABLE_REDEFINIE);
+			if (expression != nullptr) {
+				performe_validation_semantique(expression, contexte, false);
+
+				if (expression->type == nullptr) {
+					erreur::lance_erreur("impossible de définir le type de l'expression", contexte, expression->lexeme);
 				}
-
-				auto donnees_var = DonneesVariable{};
-				donnees_var.est_externe = (variable->drapeaux & EST_EXTERNE) != 0;
-				donnees_var.type = variable->type;
-
-				if (fonction_courante == nullptr) {
-					contexte.pousse_globale(variable->lexeme.chaine, donnees_var);
-					graphe.cree_noeud_globale(variable->lexeme.chaine, b);
+				else if (variable->type == nullptr) {
+					if (expression->type->genre == GenreType::ENTIER_CONSTANT) {
+						variable->type = contexte.typeuse[TypeBase::Z32];
+					}
+					else {
+						variable->type = expression->type;
+					}
 				}
 				else {
-					contexte.pousse_locale(variable->lexeme.chaine, donnees_var);
-				}
-
-				donnees_dependance.types_utilises.insere(variable->type);
-				return;
-			}
-
-			auto variable = b->enfants.front();
-			auto expression = b->enfants.back();
-
-			performe_validation_semantique(expression, contexte, false);
-
-			if (expression->type == nullptr) {
-				erreur::lance_erreur(
-							"Impossible de définir le type de l'expression !",
-							contexte,
-							expression->lexeme,
-							erreur::type_erreur::TYPE_INCONNU);
-			}
-
-			auto nom_variable = variable->chaine();
-
-			auto type_symbole = cherche_symbole(contexte, nom_variable);
-
-			if (type_symbole != SYMBOLE_INCONNU) {
-				erreur::lance_erreur(
-							"Redéfinition du symbole !",
-							contexte,
-							variable->lexeme,
-							erreur::type_erreur::VARIABLE_REDEFINIE);
-			}
-
-			variable->type = resoud_type_final(contexte, variable->type_declare);
-
-			if (variable->type == nullptr) {
-				if (expression->type->genre == GenreType::ENTIER_CONSTANT) {
-					variable->type = contexte.typeuse[TypeBase::Z32];
-				}
-				else {
-					variable->type = expression->type;
-				}
-			}
-			else {
-				auto transformation = cherche_transformation(
+					auto transformation = cherche_transformation(
 							expression->type,
 							variable->type);
 
-				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-					erreur::lance_erreur_assignation_type_differents(
-								variable->type,
-								expression->type,
-								contexte,
-								b->lexeme);
-				}
+					if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+						erreur::lance_erreur_assignation_type_differents(
+									variable->type,
+									expression->type,
+									contexte,
+									b->lexeme);
+					}
 
-				expression->transformation = transformation;
+					expression->transformation = transformation;
+				}
+			}
+			else {
+				if (variable->type == nullptr) {
+					erreur::lance_erreur("variable déclarée sans type", contexte, variable->lexeme);
+				}
 			}
 
-			auto donnees_var = DonneesVariable{};
-			donnees_var.est_externe = (variable->drapeaux & EST_EXTERNE) != 0;
-			donnees_var.type = variable->type;
+			decl->type = variable->type;
 
-			if (donnees_var.est_externe) {
+			if (decl->drapeaux_decl & EST_EXTERNE) {
 				erreur::lance_erreur(
 							"Ne peut pas assigner une variable globale externe dans sa déclaration",
 							contexte,
 							b->lexeme);
 			}
 
-			if (fonction_courante == nullptr) {
-				contexte.pousse_globale(variable->lexeme.chaine, donnees_var);
-				graphe.cree_noeud_globale(variable->lexeme.chaine, b);
-			}
-			else {
-				contexte.pousse_locale(variable->lexeme.chaine, donnees_var);
+			if (decl->drapeaux & EST_GLOBALE) {
+				graphe.cree_noeud_globale(variable->ident->nom, b);
 			}
 
-			donnees_dependance.types_utilises.insere(variable->type);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
@@ -1388,10 +1253,11 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		{
-			b->genre_valeur = GenreValeur::DROITE;
+			auto expr = static_cast<NoeudExpressionBinaire *>(b);
+			expr->genre_valeur = GenreValeur::DROITE;
 
-			auto enfant1 = b->enfants.front();
-			auto enfant2 = b->enfants.back();
+			auto enfant1 = expr->expr1;
+			auto enfant2 = expr->expr2;
 
 			/* À FAIRE : transformation automatique */
 
@@ -1402,13 +1268,14 @@ static void performe_validation_semantique(
 			auto type2 = enfant2->type;
 
 			/* détecte a comp b comp c */
-			if (est_operateur_comp(b->lexeme.genre) && est_operateur_comp(enfant1->lexeme.genre)) {
-				b->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
-				b->type = contexte.typeuse[TypeBase::BOOL];
+			if (est_operateur_comp(expr->lexeme->genre) && est_operateur_comp(enfant1->lexeme->genre)) {
+				expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
+				expr->type = contexte.typeuse[TypeBase::BOOL];
 
-				auto type_op = b->lexeme.genre;
+				auto type_op = expr->lexeme->genre;
 
-				type1 = enfant1->enfants.back()->type;
+				auto enfant_expr = static_cast<NoeudExpressionBinaire *>(enfant1);
+				type1 = enfant_expr->expr2->type;
 
 				auto candidats = cherche_candidats_operateurs(contexte, type1, type2, type_op);
 				auto meilleur_candidat = static_cast<OperateurCandidat const *>(nullptr);
@@ -1425,15 +1292,15 @@ static void performe_validation_semantique(
 					erreur::lance_erreur_type_operation(contexte, b);
 				}
 
-				b->op = meilleur_candidat->op;
+				expr->op = meilleur_candidat->op;
 
-				if (!b->op->est_basique) {
-					donnees_dependance.fonctions_utilisees.insere(b->op->nom_fonction);
+				if (!expr->op->est_basique) {
+					donnees_dependance.fonctions_utilisees.insere(expr->op->nom_fonction);
 				}
 			}
-			else if (b->lexeme.genre == GenreLexeme::CROCHET_OUVRANT) {
-				b->genre = GenreNoeud::EXPRESSION_INDICE;
-				b->genre_valeur = GenreValeur::TRANSCENDANTALE;
+			else if (b->lexeme->genre == GenreLexeme::CROCHET_OUVRANT) {
+				expr->genre = GenreNoeud::EXPRESSION_INDICE;
+				expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
 				if (type1->genre == GenreType::REFERENCE) {
 					enfant1->transformation = TypeTransformation::DEREFERENCE;
@@ -1444,16 +1311,15 @@ static void performe_validation_semantique(
 					case GenreType::VARIADIQUE:
 					case GenreType::TABLEAU_DYNAMIQUE:
 					{
-						b->type = contexte.typeuse.type_dereference_pour(type1);
+						expr->type = contexte.typeuse.type_dereference_pour(type1);
 						break;
 					}
 					case GenreType::TABLEAU_FIXE:
 					{
-						b->type = contexte.typeuse.type_dereference_pour(type1);
-
 						auto type_tabl = static_cast<TypeTableauFixe *>(type1);
+						expr->type = contexte.typeuse.type_dereference_pour(type1);
 
-						auto res = evalue_expression(contexte, enfant2);
+						auto res = evalue_expression(contexte, enfant2->bloc_parent, enfant2);
 
 						if (!res.est_errone) {
 							if (res.entier >= type_tabl->taille) {
@@ -1467,19 +1333,19 @@ static void performe_validation_semantique(
 
 							/* nous savons que l'accès est dans les limites,
 								 * évite d'émettre le code de vérification */
-							b->aide_generation_code = IGNORE_VERIFICATION;
+							expr->aide_generation_code = IGNORE_VERIFICATION;
 						}
 
 						break;
 					}
 					case GenreType::POINTEUR:
 					{
-						b->type = contexte.typeuse.type_dereference_pour(type1);
+						expr->type = contexte.typeuse.type_dereference_pour(type1);
 						break;
 					}
 					case GenreType::CHAINE:
 					{
-						b->type = contexte.typeuse[TypeBase::Z8];
+						expr->type = contexte.typeuse[TypeBase::Z8];
 						break;
 					}
 					default:
@@ -1497,11 +1363,11 @@ static void performe_validation_semantique(
 				}
 			}
 			else {
-				auto type_op = b->lexeme.genre;
+				auto type_op = b->lexeme->genre;
 
 				if (est_assignation_operee(type_op)) {
 					type_op = operateur_pour_assignation_operee(type_op);
-					b->drapeaux |= EST_ASSIGNATION_OPEREE;
+					expr->drapeaux |= EST_ASSIGNATION_OPEREE;
 				}
 
 				auto candidats = cherche_candidats_operateurs(contexte, type1, type2, type_op);
@@ -1519,24 +1385,25 @@ static void performe_validation_semantique(
 					erreur::lance_erreur_type_operation(contexte, b);
 				}
 
-				b->type = meilleur_candidat->op->type_resultat;
-				b->op = meilleur_candidat->op;
+				expr->type = meilleur_candidat->op->type_resultat;
+				expr->op = meilleur_candidat->op;
 				enfant1->transformation = meilleur_candidat->transformation_type1;
 				enfant2->transformation = meilleur_candidat->transformation_type2;
 
-				if (!b->op->est_basique) {
-					donnees_dependance.fonctions_utilisees.insere(b->op->nom_fonction);
+				if (!expr->op->est_basique) {
+					donnees_dependance.fonctions_utilisees.insere(expr->op->nom_fonction);
 				}
 			}
 
-			donnees_dependance.types_utilises.insere(b->type);
+			donnees_dependance.types_utilises.insere(expr->type);
 			break;
 		}
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
-			b->genre_valeur = GenreValeur::DROITE;
+			auto expr = static_cast<NoeudExpressionUnaire *>(b);
+			expr->genre_valeur = GenreValeur::DROITE;
 
-			auto enfant = b->enfants.front();
+			auto enfant = expr->expr;
 			performe_validation_semantique(enfant, contexte, expr_gauche);
 			auto type = enfant->type;
 
@@ -1545,8 +1412,8 @@ static void performe_validation_semantique(
 				type = contexte.typeuse.type_dereference_pour(type);
 			}
 
-			if (b->type == nullptr) {
-				if (b->identifiant() == GenreLexeme::AROBASE) {
+			if (expr->type == nullptr) {
+				if (expr->lexeme->genre == GenreLexeme::AROBASE) {
 					if (!est_valeur_gauche(enfant->genre_valeur)) {
 						erreur::lance_erreur(
 									"Ne peut pas prendre l'adresse d'une valeur-droite.",
@@ -1554,36 +1421,38 @@ static void performe_validation_semantique(
 									enfant->lexeme);
 					}
 
-
-					b->type = contexte.typeuse.type_pointeur_pour(type);
+					expr->type = contexte.typeuse.type_pointeur_pour(type);
 				}
 				else {
 					if (type->genre == GenreType::ENTIER_CONSTANT) {
 						type = contexte.typeuse[TypeBase::Z32];
 					}
 
-					auto op = cherche_operateur_unaire(contexte.operateurs, type, b->identifiant());
+					auto op = cherche_operateur_unaire(contexte.operateurs, type, expr->lexeme->genre);
 
 					if (op == nullptr) {
-						erreur::lance_erreur_type_operation_unaire(contexte, b);
+						erreur::lance_erreur_type_operation_unaire(contexte, expr);
 					}
 
-					b->type = op->type_resultat;
-					b->op = op;
+					expr->type = op->type_resultat;
+					expr->op = op;
 				}
 			}
 
-			donnees_dependance.types_utilises.insere(b->type);
+			donnees_dependance.types_utilises.insere(expr->type);
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
 		{
+			auto inst = static_cast<NoeudExpressionUnaire *>(b);
 			b->genre_valeur = GenreValeur::DROITE;
 
-			if (b->enfants.est_vide()) {
+			auto type_fonc = static_cast<TypeFonction *>(fonction_courante->type);
+
+			if (inst->expr == nullptr) {
 				b->type = contexte.typeuse[TypeBase::RIEN];
 
-				if (!fonction_courante->est_coroutine && (fonction_courante->type->types_sorties[0] != b->type)) {
+				if (!fonction_courante->est_coroutine && (type_fonc->types_sorties[0] != b->type)) {
 					erreur::lance_erreur(
 								"Expression de retour manquante",
 								contexte,
@@ -1594,17 +1463,15 @@ static void performe_validation_semantique(
 				return;
 			}
 
-			assert(b->enfants.taille() == 1);
-
-			auto enfant = b->enfants.front();
-			auto nombre_retour = fonction_courante->type->types_sorties.taille;
+			auto enfant = inst->expr;
+			auto nombre_retour = fonction_courante->type_fonc->types_sorties.taille;
 
 			if (nombre_retour > 1) {
-				if (enfant->identifiant() == GenreLexeme::VIRGULE) {
-					dls::tableau<base *> feuilles;
+				if (enfant->lexeme->genre == GenreLexeme::VIRGULE) {
+					dls::tableau<NoeudExpression *> feuilles;
 					rassemble_feuilles(enfant, feuilles);
 
-					if (feuilles.taille() != fonction_courante->type->types_sorties.taille) {
+					if (feuilles.taille() != nombre_retour) {
 						erreur::lance_erreur(
 									"Le compte d'expression de retour est invalide",
 									contexte,
@@ -1617,11 +1484,11 @@ static void performe_validation_semantique(
 
 						auto transformation = cherche_transformation(
 									f->type,
-									fonction_courante->type->types_sorties[i]);
+									type_fonc->types_sorties[i]);
 
 						if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 							erreur::lance_erreur_type_retour(
-										fonction_courante->type->types_sorties[0],
+										type_fonc->types_sorties[i],
 										f->type,
 										contexte,
 										enfant->lexeme,
@@ -1653,16 +1520,16 @@ static void performe_validation_semantique(
 			}
 			else {
 				performe_validation_semantique(enfant, contexte, false);
-				b->type = fonction_courante->type->types_sorties[0];
+				b->type = type_fonc->types_sorties[0];
 				b->genre = GenreNoeud::INSTRUCTION_RETOUR_SIMPLE;
 
 				auto transformation = cherche_transformation(
 							enfant->type,
-							fonction_courante->type->types_sorties[0]);
+							b->type);
 
 				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 					erreur::lance_erreur_type_arguments(
-								fonction_courante->type->types_sorties[0],
+								b->type,
 								enfant->type,
 								contexte,
 								enfant->lexeme,
@@ -1681,13 +1548,13 @@ static void performe_validation_semantique(
 			 * comme deux caractères distincts, ce qui ne peut se faire avec la
 			 * dls::vue_chaine */
 			dls::chaine corrigee;
-			corrigee.reserve(b->lexeme.chaine.taille());
+			corrigee.reserve(b->lexeme->chaine.taille());
 
-			for (auto i = 0l; i < b->lexeme.chaine.taille(); ++i) {
-				auto c = b->lexeme.chaine[i];
+			for (auto i = 0l; i < b->lexeme->chaine.taille(); ++i) {
+				auto c = b->lexeme->chaine[i];
 
 				if (c == '\\') {
-					c = dls::caractere_echappe(&b->lexeme.chaine[i]);
+					c = dls::caractere_echappe(&b->lexeme->chaine[i]);
 					++i;
 				}
 
@@ -1722,36 +1589,31 @@ static void performe_validation_semantique(
 		case GenreNoeud::INSTRUCTION_SAUFSI:
 		case GenreNoeud::INSTRUCTION_SI:
 		{
-			auto const nombre_enfants = b->enfants.taille();
-			auto iter_enfant = b->enfants.debut();
+			auto inst = static_cast<NoeudSi *>(b);
 
-			auto enfant1 = *iter_enfant++;
-			auto enfant2 = *iter_enfant++;
+			performe_validation_semantique(inst->condition, contexte, false);
+			auto type_condition = inst->condition->type;
 
-			performe_validation_semantique(enfant1, contexte, false);
-			auto type = enfant1->type;
-
-			if (type == nullptr && !est_operateur_bool(enfant1->lexeme.genre)) {
-				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, enfant1->lexeme);
+			if (type_condition == nullptr && !est_operateur_bool(inst->condition->lexeme->genre)) {
+				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, inst->condition->lexeme);
 			}
 
-			if (type->genre != GenreType::BOOL) {
+			if (type_condition->genre != GenreType::BOOL) {
 				erreur::lance_erreur("Attendu un type booléen pour l'expression 'si'",
 									 contexte,
-									 enfant1->donnees_lexeme(),
+									 inst->condition->lexeme,
 									 erreur::type_erreur::TYPE_DIFFERENTS);
 			}
 
-			performe_validation_semantique(enfant2, contexte, true);
+			performe_validation_semantique(inst->bloc_si_vrai, contexte, true);
 
 			/* noeud 3 : sinon (optionel) */
-			if (nombre_enfants == 3) {
-				auto enfant3 = *iter_enfant++;
-				performe_validation_semantique(enfant3, contexte, true);
+			if (inst->bloc_si_faux != nullptr) {
+				performe_validation_semantique(inst->bloc_si_faux, contexte, true);
 			}
 
 			/* pour les expressions x = si y { z } sinon { w } */
-			b->type = enfant2->type;
+			inst->type = inst->bloc_si_vrai->type;
 
 			break;
 		}
@@ -1763,64 +1625,59 @@ static void performe_validation_semantique(
 			b->valeur_calculee = static_cast<llvm::BasicBlock *>(nullptr);
 #endif
 
-			contexte.empile_nombre_locales();
+			auto inst = static_cast<NoeudBloc *>(b);
 
-			valides_enfants(b, contexte, true);
-
-			if (b->enfants.est_vide()) {
+			if (inst->expressions.est_vide()) {
 				b->type = contexte.typeuse[TypeBase::RIEN];
 			}
 			else {
-				b->type = b->enfants.back()->type;
-			}
+				POUR (inst->expressions) {
+					performe_validation_semantique(it, contexte, true);
+				}
 
-			contexte.depile_nombre_locales();
+				b->type = inst->expressions[inst->expressions.taille - 1]->type;
+			}
 
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_POUR:
 		{
-			auto const nombre_enfants = b->enfants.taille();
-			auto iter = b->enfants.debut();
+			auto inst = static_cast<NoeudPour *>(b);
 
 			/* on génère d'abord le type de la variable */
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
-			auto enfant3 = *iter++;
-			auto enfant4 = (nombre_enfants >= 4) ? *iter++ : nullptr;
-			auto enfant5 = (nombre_enfants == 5) ? *iter++ : nullptr;
-
-			auto verifie_redefinition_variable = [](base *b_local, ContexteGenerationCode &contexte_loc)
-			{
-				if (contexte_loc.locale_existe(b_local->chaine())) {
-					erreur::lance_erreur(
-								"(Boucle pour) rédéfinition de la variable",
-								contexte_loc,
-								b_local->donnees_lexeme(),
-								erreur::type_erreur::VARIABLE_REDEFINIE);
-				}
-
-				if (contexte_loc.globale_existe(b_local->chaine())) {
-					erreur::lance_erreur(
-								"(Boucle pour) rédéfinition de la variable globale",
-								contexte_loc,
-								b_local->donnees_lexeme(),
-								erreur::type_erreur::VARIABLE_REDEFINIE);
-				}
-			};
-
+			auto enfant1 = inst->variable;
+			auto enfant2 = inst->expression;
+			auto enfant3 = inst->bloc;
+			auto enfant4 = inst->bloc_sansarret;
+			auto enfant5 = inst->bloc_sinon;
 
 			performe_validation_semantique(enfant2, contexte, true);
 
 			/* À FAIRE : utilisation du type */
-			auto df = static_cast<DonneesFonction *>(nullptr);
+//			auto df = static_cast<DonneesFonction *>(nullptr);
 
-			auto feuilles = dls::tableau<base *>{};
+			auto feuilles = dls::tableau<NoeudExpression *>{};
 			rassemble_feuilles(enfant1, feuilles);
 
 			for (auto f : feuilles) {
-				verifie_redefinition_variable(f, contexte);
+				auto decl_f = trouve_dans_bloc(b->bloc_parent, f->ident);
+
+				if (decl_f != nullptr) {
+					auto fichier = contexte.fichier(static_cast<size_t>(f->lexeme->fichier));
+					auto pos_decl = trouve_position(*f->lexeme, fichier);
+					auto pos_decl_prec = trouve_position(*decl_f->lexeme, fichier);
+
+					if (pos_decl.numero_ligne > pos_decl_prec.numero_ligne) {
+						erreur::lance_erreur(
+									"Redéfinition de la variable",
+									contexte,
+									f->lexeme,
+									erreur::type_erreur::VARIABLE_REDEFINIE);
+					}
+				}
 			}
+
+			auto variable = feuilles[0];
 
 			auto requiers_index = feuilles.taille() == 2;
 
@@ -1837,29 +1694,30 @@ static void performe_validation_semantique(
 					b->aide_generation_code = GENERE_BOUCLE_PLAGE;
 				}
 			}
-			else if (enfant2->genre == GenreNoeud::EXPRESSION_APPEL_FONCTION && enfant2->df->est_coroutine) {
-				enfant1->type = enfant2->type;
+			// À FAIRE (réusinage arbre)
+//			else if (enfant2->genre == GenreNoeud::EXPRESSION_APPEL_FONCTION && enfant2->df->est_coroutine) {
+//				enfant1->type = enfant2->type;
 
-				df = enfant2->df;
-				auto nombre_vars_ret = df->type->types_sorties.taille;
+//				df = enfant2->df;
+//				auto nombre_vars_ret = df->idx_types_retours.taille();
 
-				if (feuilles.taille() == nombre_vars_ret) {
-					requiers_index = false;
-					b->aide_generation_code = GENERE_BOUCLE_COROUTINE;
-				}
-				else if (feuilles.taille() == nombre_vars_ret + 1) {
-					requiers_index = true;
-					b->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
-				}
-				else {
-					erreur::lance_erreur(
-								"Mauvais compte d'arguments à déployer",
-								contexte,
-								enfant1->lexeme);
-				}
-			}
+//				if (feuilles.taille() == nombre_vars_ret) {
+//					requiers_index = false;
+//					b->aide_generation_code = GENERE_BOUCLE_COROUTINE;
+//				}
+//				else if (feuilles.taille() == nombre_vars_ret + 1) {
+//					requiers_index = true;
+//					b->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
+//				}
+//				else {
+//					erreur::lance_erreur(
+//								"Mauvais compte d'arguments à déployer",
+//								contexte,
+//								*enfant1->lexeme);
+//				}
+//			}
 			else {
-				if (type->genre == GenreType::TABLEAU_FIXE || type->genre == GenreType::TABLEAU_DYNAMIQUE || type->genre == GenreType::VARIADIQUE) {
+				if (type->genre == GenreType::TABLEAU_DYNAMIQUE || type->genre == GenreType::TABLEAU_FIXE || type->genre == GenreType::VARIADIQUE) {
 					type = contexte.typeuse.type_dereference_pour(type);
 
 					if (requiers_index) {
@@ -1881,48 +1739,46 @@ static void performe_validation_semantique(
 					}
 				}
 				else {
-					auto valeur = contexte.est_locale_variadique(enfant2->chaine());
-
-					if (!valeur) {
-						erreur::lance_erreur(
-									"La variable n'est ni un argument variadic, ni un tableau",
-									contexte,
-									enfant2->donnees_lexeme());
-					}
+					erreur::lance_erreur(
+								"La variable n'est ni un argument variadic, ni un tableau, ni une chaine",
+								contexte,
+								enfant2->lexeme);
 				}
 			}
 
 			donnees_dependance.types_utilises.insere(type);
-
-			contexte.empile_nombre_locales();
 
 			auto nombre_feuilles = feuilles.taille() - requiers_index;
 
 			for (auto i = 0l; i < nombre_feuilles; ++i) {
 				auto f = feuilles[i];
 
-				auto donnees_var = DonneesVariable{};
+				auto decl_f = static_cast<NoeudDeclarationVariable *>(contexte.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, b->lexeme));
+				decl_f->bloc_parent = b->bloc_parent;
+				decl_f->valeur = f;
+				decl_f->type = type;
+				decl_f->ident = f->ident;
+				decl_f->lexeme = f->lexeme;
 
-				if (df != nullptr) {
-					donnees_var.type = df->type->types_sorties[i];
-				}
-				else {
-					donnees_var.type = type;
+				if (enfant2->genre != GenreNoeud::EXPRESSION_PLAGE) {
+					decl_f->drapeaux |= EST_VAR_BOUCLE;
+					f->drapeaux |= EST_VAR_BOUCLE;
 				}
 
-				contexte.pousse_locale(f->chaine(), donnees_var);
+				enfant3->membres.pousse(decl_f);
 			}
 
 			if (requiers_index) {
 				auto idx = feuilles.back();
 
-				type = contexte.typeuse[TypeBase::Z32];
-				idx->type = type;
+				auto decl_idx = static_cast<NoeudDeclarationVariable *>(contexte.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, b->lexeme));
+				decl_idx->bloc_parent = b->bloc_parent;
+				decl_idx->valeur = idx;
+				decl_idx->type = contexte.typeuse[TypeBase::Z32];
+				decl_idx->ident = idx->ident;
+				decl_idx->lexeme = idx->lexeme;
 
-				auto donnees_var = DonneesVariable{};
-				donnees_var.type = type;
-
-				contexte.pousse_locale(idx->chaine(), donnees_var);
+				enfant3->membres.pousse(decl_idx);
 			}
 
 			/* À FAIRE : ceci duplique logique coulisse. */
@@ -1930,30 +1786,29 @@ static void performe_validation_semantique(
 			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
 			auto goto_brise = "__boucle_pour_brise" + dls::vers_chaine(b);
 
-			contexte.empile_goto_continue(enfant1->chaine(), goto_continue);
-			contexte.empile_goto_arrete(enfant1->chaine(), (enfant4 != nullptr) ? goto_brise : goto_apres);
+			contexte.empile_goto_continue(variable->ident->nom, goto_continue);
+			contexte.empile_goto_arrete(variable->ident->nom, (enfant4 != nullptr) ? goto_brise : goto_apres);
 
 			performe_validation_semantique(enfant3, contexte, true);
 
 			if (enfant4 != nullptr) {
 				performe_validation_semantique(enfant4, contexte, true);
+			}
 
-				if (enfant5 != nullptr) {
-					performe_validation_semantique(enfant5, contexte, true);
-				}
+			if (enfant5 != nullptr) {
+				performe_validation_semantique(enfant5, contexte, true);
 			}
 
 			contexte.depile_goto_continue();
 			contexte.depile_goto_arrete();
 
-			contexte.depile_nombre_locales();
-
 			break;
 		}
 		case GenreNoeud::EXPRESSION_TRANSTYPE:
 		{
-			b->genre_valeur = GenreValeur::DROITE;
-			b->type = resoud_type_final(contexte, b->type_declare);
+			auto expr = static_cast<NoeudExpressionUnaire *>(b);
+			expr->genre_valeur = GenreValeur::DROITE;
+			expr->type = resoud_type_final(contexte, b->type_declare, b->lexeme);
 
 			/* À FAIRE : vérifie compatibilité */
 
@@ -1961,20 +1816,20 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Ne peut transtyper vers un type invalide",
 							contexte,
-							b->donnees_lexeme(),
+							expr->lexeme,
 							erreur::type_erreur::TYPE_INCONNU);
 			}
 
 			donnees_dependance.types_utilises.insere(b->type);
 
-			auto enfant = b->enfants.front();
+			auto enfant = expr->expr;
 			performe_validation_semantique(enfant, contexte, false);
 
 			if (enfant->type == nullptr) {
 				erreur::lance_erreur(
 							"Ne peut calculer le type d'origine",
 							contexte,
-							enfant->donnees_lexeme(),
+							enfant->lexeme,
 							erreur::type_erreur::TYPE_INCONNU);
 			}
 
@@ -1984,23 +1839,26 @@ static void performe_validation_semantique(
 		{
 			b->genre_valeur = GenreValeur::DROITE;
 			b->type = contexte.typeuse[TypeBase::PTR_NUL];
+
+			donnees_dependance.types_utilises.insere(b->type);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
+			auto expr = b;
+			expr->genre_valeur = GenreValeur::DROITE;
+			expr->type = contexte.typeuse[TypeBase::N32];
+
 			auto type_declare = std::any_cast<DonneesTypeDeclare>(b->valeur_calculee);
-			b->valeur_calculee = resoud_type_final(contexte, type_declare);
-			b->genre_valeur = GenreValeur::DROITE;
-			b->type = contexte.typeuse[TypeBase::N32];
-			valides_enfants(b, contexte, false);
+			b->valeur_calculee = resoud_type_final(contexte, type_declare, b->lexeme);
+
 			break;
 		}
 		case GenreNoeud::EXPRESSION_PLAGE:
 		{
-			auto iter = b->enfants.debut();
-
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
+			auto inst = static_cast<NoeudExpressionBinaire *>(b);
+			auto enfant1 = inst->expr1;
+			auto enfant2 = inst->expr2;
 
 			performe_validation_semantique(enfant1, contexte, false);
 			performe_validation_semantique(enfant2, contexte, false);
@@ -2039,7 +1897,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Attendu des types réguliers dans la plage de la boucle 'pour'",
 							contexte,
-							b->donnees_lexeme(),
+							b->lexeme,
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
 
@@ -2049,11 +1907,11 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
 		{
-			valides_enfants(b, contexte, false);
+			auto inst = static_cast<NoeudExpressionUnaire *>(b);
 
-			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
+			auto chaine_var = inst->expr == nullptr ? dls::vue_chaine_compacte{""} : inst->expr->ident->nom;
 
-			auto label_goto = (b->lexeme.genre == GenreLexeme::CONTINUE)
+			auto label_goto = (b->lexeme->genre == GenreLexeme::CONTINUE)
 					? contexte.goto_continue(chaine_var)
 					: contexte.goto_arrete(chaine_var);
 
@@ -2069,7 +1927,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Variable inconnue",
 								contexte,
-								b->enfants.front()->donnees_lexeme(),
+								inst->expr->lexeme,
 								erreur::type_erreur::VARIABLE_INCONNUE);
 				}
 			}
@@ -2078,6 +1936,8 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::INSTRUCTION_BOUCLE:
 		{
+			auto inst = static_cast<NoeudBoucle *>(b);
+
 			/* À FAIRE : ceci duplique logique coulisse */
 			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
 			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
@@ -2085,7 +1945,7 @@ static void performe_validation_semantique(
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
 
-			performe_validation_semantique(b->enfants.front(), contexte, true);
+			performe_validation_semantique(inst->bloc, contexte, true);
 
 			contexte.depile_goto_continue();
 			contexte.depile_goto_arrete();
@@ -2094,9 +1954,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::INSTRUCTION_REPETE:
 		{
-			auto iter = b->enfants.debut();
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
+			auto inst = static_cast<NoeudBoucle *>(b);
 
 			/* À FAIRE : ceci duplique logique coulisse */
 			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
@@ -2105,11 +1963,11 @@ static void performe_validation_semantique(
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
 
-			performe_validation_semantique(enfant1, contexte, true);
-			performe_validation_semantique(enfant2, contexte, false);
+			performe_validation_semantique(inst->bloc, contexte, true);
+			performe_validation_semantique(inst->condition, contexte, false);
 
-			if (enfant2->type == nullptr && !est_operateur_bool(enfant2->lexeme.genre)) {
-				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, enfant1->lexeme);
+			if (inst->condition->type == nullptr && !est_operateur_bool(inst->condition->lexeme->genre)) {
+				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, inst->condition->lexeme);
 			}
 
 			contexte.depile_goto_continue();
@@ -2117,23 +1975,19 @@ static void performe_validation_semantique(
 
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_DIFFERE:
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
 		{
-			valides_enfants(b, contexte, true);
+			// RÀF
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_TANTQUE:
 		{
-			assert(b->enfants.taille() == 2);
-			auto iter = b->enfants.debut();
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
+			auto inst = static_cast<NoeudBoucle *>(b);
 
-			performe_validation_semantique(enfant1, contexte, false);
+			performe_validation_semantique(inst->condition, contexte, false);
 
-			if (enfant1->type == nullptr && !est_operateur_bool(enfant1->lexeme.genre)) {
-				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, enfant1->lexeme);
+			if (inst->condition->type == nullptr && !est_operateur_bool(inst->condition->lexeme->genre)) {
+				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, inst->condition->lexeme);
 			}
 
 			/* À FAIRE : ceci duplique logique coulisse */
@@ -2143,36 +1997,29 @@ static void performe_validation_semantique(
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
 
-			performe_validation_semantique(enfant2, contexte, true);
+			performe_validation_semantique(inst->bloc, contexte, true);
 
 			contexte.depile_goto_continue();
 			contexte.depile_goto_arrete();
 
 			/* À FAIRE : tests */
-			if (enfant1->type->genre != GenreType::BOOL) {
+			if (inst->condition->type->genre != GenreType::BOOL) {
 				erreur::lance_erreur(
 							"Une expression booléenne est requise pour la boucle 'tantque'",
 							contexte,
-							enfant1->lexeme,
+							inst->condition->lexeme,
 							erreur::type_erreur::TYPE_ARGUMENT);
 			}
 
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_NONSUR:
-		{
-			contexte.non_sur(true);
-			performe_validation_semantique(b->enfants.front(), contexte, true);
-			contexte.non_sur(false);
-
-			break;
-		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		{
+			auto expr = static_cast<NoeudExpressionUnaire *>(b);
 			b->genre_valeur = GenreValeur::DROITE;
 
-			dls::tableau<base *> feuilles;
-			rassemble_feuilles(b->enfants.front(), feuilles);
+			dls::tableau<NoeudExpression *> feuilles;
+			rassemble_feuilles(expr->expr, feuilles);
 
 			for (auto f : feuilles) {
 				performe_validation_semantique(f, contexte, false);
@@ -2194,8 +2041,8 @@ static void performe_validation_semantique(
 				/* À FAIRE : test */
 				if (f->type != type_feuille && f->type->genre != GenreType::ENTIER_CONSTANT) {
 					erreur::lance_erreur_assignation_type_differents(
-								type_feuille,
 								f->type,
+								type_feuille,
 								contexte,
 								f->lexeme);
 				}
@@ -2212,10 +2059,13 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		{
-			b->genre_valeur = GenreValeur::DROITE;
+			auto expr = static_cast<NoeudExpressionAppel *>(b);
+			expr->genre_valeur = GenreValeur::DROITE;
 
-			/* cherche la structure dans le tableau de structure */
-			if (!contexte.structure_existe(b->chaine())) {
+			auto fichier = contexte.fichier(static_cast<size_t>(expr->lexeme->fichier));
+			auto decl = trouve_dans_bloc_ou_module(contexte, expr->bloc_parent, expr->ident, fichier);
+
+			if (decl == nullptr) {
 				erreur::lance_erreur(
 							"Structure inconnue",
 							contexte,
@@ -2223,23 +2073,51 @@ static void performe_validation_semantique(
 							erreur::type_erreur::STRUCTURE_INCONNUE);
 			}
 
-			auto &donnees_struct = contexte.donnees_structure(b->chaine());
-			b->type = donnees_struct.type;
-
-			if (donnees_struct.est_enum) {
+			if (decl->genre != GenreNoeud::DECLARATION_STRUCTURE) {
 				erreur::lance_erreur(
-							"Ne peut pas construire une énumération",
+							"Le symbole n'est pas une structure",
 							contexte,
-							b->lexeme);
+							b->lexeme,
+							erreur::type_erreur::STRUCTURE_INCONNUE);
 			}
 
-			auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine_compacte>>(&b->valeur_calculee);
+			expr->type = decl->type;
+
+			auto decl_struct = static_cast<NoeudStruct *>(decl);
 
 			auto noms_rencontres = dls::ensemble<dls::vue_chaine_compacte>();
 
+			if (decl_struct->est_union) {
+				if (expr->params.taille > 1) {
+					erreur::lance_erreur(
+								"On ne peut initialiser qu'un seul membre d'une union à la fois",
+								contexte,
+								b->lexeme);
+				}
+				else if (expr->params.taille == 0) {
+					erreur::lance_erreur(
+								"On doit initialiser au moins un membre de l'union",
+								contexte,
+								b->lexeme);
+				}
+			}
+
 			/* À FAIRE : il nous faut les noms -> il nous faut les assignations
 			 * dans l'arbre */
-			for (auto &nom : *liste_params) {
+			for (auto param : expr->params) {
+				if (param->genre != GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
+					erreur::lance_erreur(
+								"expression invalide dans la construction de structure, requiers « nom = expr »",
+								contexte,
+								param->lexeme);
+				}
+
+				auto expr_assign = static_cast<NoeudExpressionBinaire *>(param);
+
+				performe_validation_semantique(expr_assign->expr2, contexte, false);
+
+				auto nom = expr_assign->expr1->lexeme->chaine;
+
 				if (noms_rencontres.trouve(nom) != noms_rencontres.fin()) {
 					erreur::lance_erreur(
 								"Redéfinition de l'initialisation du membre",
@@ -2250,41 +2128,24 @@ static void performe_validation_semantique(
 				noms_rencontres.insere(nom);
 			}
 
-			if (donnees_struct.est_union) {
-				if (liste_params->taille() > 1) {
-					erreur::lance_erreur(
-								"On ne peut initialiser qu'un seul membre d'une union à la fois",
-								contexte,
-								b->lexeme);
-				}
-				else if (liste_params->taille() == 0) {
-					erreur::lance_erreur(
-								"On doit initialiser au moins un membre de l'union",
-								contexte,
-								b->lexeme);
-				}
-			}
-
-			for (auto enfant : b->enfants) {
-				performe_validation_semantique(enfant, contexte, false);
-			}
-
 			break;
 		}
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		{
-			auto enfant = b->enfants.front();
+			auto expr = static_cast<NoeudExpressionUnaire *>(b);
 
-			performe_validation_semantique(enfant, contexte, false);
+			performe_validation_semantique(expr->expr, contexte, false);
 
-			if (enfant->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-				auto &dv = contexte.donnees_variable(enfant->chaine());
-				enfant->type = dv.type;
+			if (expr->expr->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+				auto decl = trouve_dans_bloc(expr->bloc_parent, expr->expr->ident);
+				expr->expr->type = decl->type;
 			}
+
+			auto type = expr->expr->type;
 
 			auto nom_struct = "InfoType";
 
-			switch (enfant->type->genre) {
+			switch (type->genre) {
 				case GenreType::INVALIDE:
 				{
 					break;
@@ -2341,76 +2202,72 @@ static void performe_validation_semantique(
 				}
 			}
 
-			auto &ds = contexte.donnees_structure(nom_struct);
 			b->genre_valeur = GenreValeur::DROITE;
-			b->type = contexte.typeuse.type_pointeur_pour(ds.type);
+			b->type = contexte.typeuse.type_pointeur_pour(contexte.typeuse.type_pour_nom(nom_struct));
 
 			break;
 		}
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		{
-			auto enfant = b->enfants.front();
-			performe_validation_semantique(enfant, contexte, false);
+			auto expr = static_cast<NoeudExpressionUnaire *>(b);
+			performe_validation_semantique(expr->expr, contexte, false);
 
-			b->genre_valeur = GenreValeur::TRANSCENDANTALE;
+			auto type = expr->expr->type;
 
-			if (enfant->type->genre != GenreType::POINTEUR) {
+			if (type->genre != GenreType::POINTEUR) {
 				erreur::lance_erreur(
 							"Un pointeur est requis pour le déréférencement via 'mémoire'",
 							contexte,
-							enfant->donnees_lexeme(),
+							expr->expr->lexeme,
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
 
-			b->type = contexte.typeuse.type_dereference_pour(enfant->type);
+			auto type_pointeur = static_cast<TypePointeur *>(type);
+			b->genre_valeur = GenreValeur::TRANSCENDANTALE;
+			b->type = type_pointeur->type_pointe;
 
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LOGE:
 		{
-			auto nombre_enfant = b->enfants.taille();
-			auto enfant = b->enfants.debut();
+			auto expr_loge = static_cast<NoeudExpressionLogement *>(b);
 
-			b->genre_valeur = GenreValeur::DROITE;
-			b->type = resoud_type_final(contexte, b->type_declare, false);
+			expr_loge->genre_valeur = GenreValeur::DROITE;
+			expr_loge->type = resoud_type_final(contexte, b->type_declare, b->lexeme, false);
 
-			if (b->type->genre == GenreType::TABLEAU_DYNAMIQUE) {
+			if (expr_loge->type->genre == GenreType::TABLEAU_DYNAMIQUE) {
 				auto expr = b->type_declare.expressions[0];
 				performe_validation_semantique(expr, contexte, false);
 
-				/* transforme en type tableau dynamic */
 				auto idx_type_deref = contexte.typeuse.type_dereference_pour(b->type);
 
 				// pour la coulisse C, ajout d'une dépendance vers le type du pointeur du tableau
 				auto idx_type_pointeur = contexte.typeuse.type_pointeur_pour(idx_type_deref);
 				donnees_dependance.types_utilises.insere(idx_type_pointeur);
 			}
-			else if (b->type->genre == GenreType::CHAINE) {
-				performe_validation_semantique(*enfant++, contexte, false);
-				nombre_enfant -= 1;
+			else if (expr_loge->type->genre == GenreType::CHAINE) {
+				performe_validation_semantique(expr_loge->expr_chaine, contexte, false);
 			}
 			else {
-				b->type = contexte.typeuse.type_pointeur_pour(b->type);
+				expr_loge->type = contexte.typeuse.type_pointeur_pour(expr_loge->type);
 			}
 
-			if (nombre_enfant == 1) {
-				performe_validation_semantique(*enfant++, contexte, true);
+			if (expr_loge->bloc != nullptr) {
+				performe_validation_semantique(expr_loge->bloc, contexte, true);
 			}
 
-			donnees_dependance.types_utilises.insere(b->type);
+			donnees_dependance.types_utilises.insere(expr_loge->type);
 
 			break;
 		}
 		case GenreNoeud::EXPRESSION_RELOGE:
 		{
-			b->type = resoud_type_final(contexte, b->type_declare, false);
+			auto expr_loge = static_cast<NoeudExpressionLogement *>(b);
+			expr_loge->type = resoud_type_final(contexte, b->type_declare, b->lexeme, false);
 
-			auto nombre_enfant = b->enfants.taille();
-			auto enfant = b->enfants.debut();
-			auto enfant1 = *enfant++;
-			performe_validation_semantique(enfant1, contexte, true);
+			performe_validation_semantique(expr_loge->expr, contexte, true);
 
-			if (b->type->genre == GenreType::TABLEAU_DYNAMIQUE) {
+			if (expr_loge->type->genre == GenreType::TABLEAU_DYNAMIQUE) {
 				auto expr = b->type_declare.expressions[0];
 				performe_validation_semantique(expr, contexte, false);
 
@@ -2419,49 +2276,48 @@ static void performe_validation_semantique(
 				auto idx_type_pointeur = contexte.typeuse.type_pointeur_pour(idx_type_deref);
 				donnees_dependance.types_utilises.insere(idx_type_pointeur);
 			}
-			else if (b->type->genre == GenreType::CHAINE) {
-				performe_validation_semantique(*enfant++, contexte, false);
-				nombre_enfant -= 1;
+			else if (expr_loge->type->genre == GenreType::CHAINE) {
+				performe_validation_semantique(expr_loge->expr_chaine, contexte, false);
 			}
 			else {
-				b->type = contexte.typeuse.type_pointeur_pour(b->type);
+				expr_loge->type = contexte.typeuse.type_pointeur_pour(expr_loge->type);
 			}
 
 			/* pour les références */
-			auto transformation = cherche_transformation(enfant1->type, b->type);
+			auto transformation = cherche_transformation(expr_loge->expr->type, expr_loge->type);
 
 			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 				erreur::lance_erreur_type_arguments(
-							b->type,
-							enfant1->type,
+							expr_loge->type,
+							expr_loge->expr->type,
 							contexte,
-							b->lexeme,
-							enfant1->lexeme);
+							expr_loge->lexeme,
+							expr_loge->expr->lexeme);
 			}
 
-			enfant1->transformation = transformation;
+			expr_loge->expr->transformation = transformation;
 
-			if (nombre_enfant == 2) {
-				performe_validation_semantique(*enfant++, contexte, true);
+			if (expr_loge->bloc != nullptr) {
+				performe_validation_semantique(expr_loge->bloc, contexte, true);
 			}
 
-			donnees_dependance.types_utilises.insere(b->type);
+			donnees_dependance.types_utilises.insere(expr_loge->type);
 
 			break;
 		}
 		case GenreNoeud::EXPRESSION_DELOGE:
 		{
-			auto enfant = b->enfants.front();
-			performe_validation_semantique(enfant, contexte, true);
+			auto expr_loge = static_cast<NoeudExpressionLogement *>(b);
+			performe_validation_semantique(expr_loge->expr, contexte, true);
 
-			auto type = enfant->type;
+			auto type = expr_loge->expr->type;
 
 			if (type->genre == GenreType::REFERENCE) {
-				enfant->transformation = TypeTransformation::DEREFERENCE;
-				type = contexte.typeuse.type_dereference_pour(type);
+				expr_loge->expr->transformation = TypeTransformation::DEREFERENCE;
+				type = static_cast<TypeReference *>(type)->type_pointe;
 			}
 
-			if (type->genre != GenreType::POINTEUR && type->genre != GenreType::TABLEAU_DYNAMIQUE && type->genre != GenreType::CHAINE) {
+			if (!dls::outils::est_element(type->genre, GenreType::POINTEUR, GenreType::TABLEAU_DYNAMIQUE, GenreType::CHAINE)) {
 				erreur::lance_erreur("Le type n'est pas délogeable", contexte, b->lexeme);
 			}
 
@@ -2469,20 +2325,27 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::DECLARATION_STRUCTURE:
 		{
-			auto &ds = contexte.donnees_structure(b->chaine());
+			auto decl = static_cast<NoeudStruct *>(b);
 
-			if (ds.est_externe && b->enfants.est_vide()) {
+			if (decl->est_externe && decl->bloc == nullptr) {
 				return;
 			}
 
-			auto noeud_dependance = graphe.cree_noeud_type(ds.type);
-			noeud_dependance->noeud_syntactique = ds.noeud_decl;
+			auto decl_precedente = trouve_dans_bloc(decl->bloc_parent, decl);
 
-			auto type_struct = static_cast<TypeStructure *>(ds.type);
+			// la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les structres (p.e. stat)
+			if (decl_precedente != nullptr && decl_precedente->genre == decl->genre) {
+				erreur::redefinition_symbole(contexte, decl->lexeme, decl_precedente->lexeme);
+			}
 
-			auto verifie_inclusion_valeur = [&ds, &contexte](base *enf)
+			auto noeud_dependance = graphe.cree_noeud_type(decl->type);
+			noeud_dependance->noeud_syntactique = decl;
+
+			auto type_struct = static_cast<TypeStructure *>(decl->type);
+
+			auto verifie_inclusion_valeur = [&decl, &contexte](NoeudBase *enf)
 			{
-				if (enf->type == ds.type) {
+				if (enf->type == decl->type) {
 					erreur::lance_erreur(
 								"Ne peut inclure la structure dans elle-même par valeur",
 								contexte,
@@ -2495,7 +2358,7 @@ static void performe_validation_semantique(
 					if (type_base->genre == GenreType::TABLEAU_FIXE) {
 						auto type_deref = contexte.typeuse.type_dereference_pour(type_base);
 
-						if (type_deref == ds.type) {
+						if (type_deref == decl->type) {
 							erreur::lance_erreur(
 										"Ne peut inclure la structure dans elle-même par valeur",
 										contexte,
@@ -2506,9 +2369,9 @@ static void performe_validation_semantique(
 				}
 			};
 
-			auto verifie_redefinition_membre = [&ds, &contexte](base *enf)
+			auto verifie_redefinition_membre = [&decl, &contexte](NoeudBase *enf)
 			{
-				if (ds.donnees_membres.trouve(enf->chaine()) != ds.donnees_membres.fin()) {
+				if (trouve_dans_bloc_seul(decl->bloc, enf) != nullptr) {
 					erreur::lance_erreur(
 								"Redéfinition du membre",
 								contexte,
@@ -2520,7 +2383,7 @@ static void performe_validation_semantique(
 			auto decalage = 0u;
 			auto max_alignement = 0u;
 
-			auto ajoute_donnees_membre = [&decalage, &ds, &max_alignement, &donnees_dependance](base *enfant, base *expression)
+			auto ajoute_donnees_membre = [&decalage, &decl, &max_alignement, &donnees_dependance](NoeudBase *enfant)
 			{
 				auto type_membre = enfant->type;
 				auto align_type = type_membre->alignement;
@@ -2528,28 +2391,35 @@ static void performe_validation_semantique(
 				auto padding = (align_type - (decalage % align_type)) % align_type;
 				decalage += padding;
 
-				ds.donnees_membres.insere({enfant->chaine(), { ds.types.taille(), expression, decalage }});
-				ds.types.pousse(enfant->type);
-
 				donnees_dependance.types_utilises.insere(type_membre);
 
+				auto desc_membre = MembreStructure();
+				desc_membre.nom = enfant->ident->nom;
+				desc_membre.decalage = decalage;
+				desc_membre.type = type_membre;
+
 				decalage += type_membre->taille_octet;
+
+				decl->desc.membres.pousse(desc_membre);
 			};
 
-			if (ds.est_union) {
-				for (auto enfant : b->enfants) {
-					enfant->type = resoud_type_final(contexte, enfant->type_declare);
+			if (decl->est_union) {
+				POUR (decl->bloc->membres) {
+					auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
+					auto decl_membre = decl_var->valeur;
+					decl_membre->type = resoud_type_final(contexte, decl_membre->type_declare, decl_membre->lexeme);
+					decl_var->type = decl_membre->type;
 
-					verifie_redefinition_membre(enfant);
-					verifie_inclusion_valeur(enfant);
+					verifie_redefinition_membre(decl_var);
+					verifie_inclusion_valeur(decl_var);
 
-					ajoute_donnees_membre(enfant, nullptr);
+					ajoute_donnees_membre(decl_membre);
 				}
 
 				auto taille_union = 0u;
 
-				for (auto enfant : b->enfants) {
-					auto type_membre = enfant->type;
+				POUR (decl->bloc->membres) {
+					auto type_membre = it->type;
 					auto taille = type_membre->taille_octet;
 
 					taille_union = std::max(taille_union, taille);
@@ -2557,7 +2427,7 @@ static void performe_validation_semantique(
 
 				/* Pour les unions sûres, il nous faut prendre en compte le
 				 * membre supplémentaire. */
-				if (!ds.est_nonsur) {
+				if (!decl->est_nonsure) {
 					/* ajoute une marge d'alignement */
 					auto padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
 					taille_union += padding;
@@ -2570,29 +2440,24 @@ static void performe_validation_semantique(
 					taille_union += padding;
 				}
 
-				ds.taille_octet = taille_union;
+				decl->type->taille_octet = taille_union;
 
 				graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
 				return;
 			}
 
-			for (auto enfant : b->enfants) {
-				if (enfant->genre != GenreNoeud::DECLARATION_VARIABLE) {
-					erreur::lance_erreur(
-								"Déclaration inattendue dans la structure",
-								contexte,
-								enfant->lexeme,
-								erreur::type_erreur::NORMAL);
-				}
+			POUR (decl->bloc->membres) {
+				auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
+				auto decl_membre = decl_var->valeur;
+				auto decl_expr = decl_var->expression;
 
-				if (enfant->enfants.taille() == 2) {
-					auto decl_membre = enfant->enfants.front();
-					auto decl_expr = enfant->enfants.back();
+				it->ident = decl_membre->ident;
 
-					decl_membre->type = resoud_type_final(contexte, decl_membre->type_declare);
+				decl_membre->type = resoud_type_final(contexte, decl_membre->type_declare, decl_membre->lexeme);
 
-					verifie_redefinition_membre(decl_membre);
+				verifie_redefinition_membre(decl_var);
 
+				if (decl_expr != nullptr) {
 					performe_validation_semantique(decl_expr, contexte, false);
 
 					if (decl_membre->type != decl_expr->type) {
@@ -2612,102 +2477,75 @@ static void performe_validation_semantique(
 							if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 								erreur::lance_erreur_type_arguments(
 											decl_membre->type,
-											decl_expr->type,
-											contexte,
-											decl_membre->lexeme,
-											decl_expr->lexeme);
+										decl_expr->type,
+										contexte,
+										decl_membre->lexeme,
+										decl_expr->lexeme);
 							}
 
 							decl_expr->transformation = transformation;
 						}
 					}
+				}
 
-					verifie_inclusion_valeur(decl_membre);
+				it->type = decl_membre->type;
 
-					ajoute_donnees_membre(decl_membre, decl_expr);
+				verifie_inclusion_valeur(decl_membre);
+
+				// À FAIRE : emploi de structures
+				// - validation que nous avons une structure
+				// - prend note de la hierarchie, notamment pour valider les transtypages
+				// - préserve l'emploi dans les données types
+				if (decl_membre->drapeaux & EMPLOYE) {
+					if (decl_membre->type->genre != GenreType::STRUCTURE) {
+						erreur::lance_erreur("Ne peut employer un type n'étant pas une structure",
+											 contexte,
+											 decl_membre->lexeme);
+					}
+
+					for (auto it_type : type_struct->types_employes) {
+						if (decl_membre->type == it_type) {
+							erreur::lance_erreur("Ne peut employer plusieurs fois le même type",
+												 contexte,
+												 decl_membre->lexeme);
+						}
+					}
+
+					auto type_struct_empl = static_cast<TypeStructure *>(decl_membre->type);
+					type_struct->types_employes.pousse(type_struct_empl);
+
+					auto decl_struct_empl = type_struct_empl->decl;
+
+					for (auto it_empl : decl_struct_empl->bloc->membres) {
+						ajoute_donnees_membre(it_empl);
+					}
 				}
 				else {
-					enfant->type = resoud_type_final(contexte, enfant->type_declare);
-
-					verifie_redefinition_membre(enfant);
-					verifie_inclusion_valeur(enfant);
-
-					// À FAIRE : emploi de structures
-					// - validation que nous avons une structure
-					// - prend note de la hierarchie, notamment pour valider les transtypages
-					// - préserve l'emploi dans les données types
-					if (enfant->drapeaux & EMPLOYE) {
-						if (enfant->type->genre != GenreType::STRUCTURE) {
-							erreur::lance_erreur("Ne peut employer un type n'étant pas une structure",
-												 contexte,
-												 enfant->lexeme);
-						}
-
-						POUR (type_struct->types_employes) {
-							if (enfant->type == it) {
-								erreur::lance_erreur("Ne peut employer plusieurs fois le même type",
-													 contexte,
-													 enfant->lexeme);
-							}
-						}
-
-						type_struct->types_employes.pousse(static_cast<TypeStructure *>(enfant->type));
-
-						auto type_membre = static_cast<TypeStructure *>(enfant->type);
-						auto &ds_empl = contexte.donnees_structure(type_membre->nom);
-
-						for (auto i = 0; i < ds_empl.types.taille(); ++i) {
-							for (auto &membre : ds_empl.donnees_membres) {
-								auto idx_membre = membre.second.index_membre;
-
-								if (idx_membre != i) {
-									continue;
-								}
-
-								auto type_membre_empl = ds_empl.types[idx_membre];
-
-								auto align_type = type_membre_empl->alignement;
-								max_alignement = std::max(align_type, max_alignement);
-								auto padding = (align_type - (decalage % align_type)) % align_type;
-								decalage += padding;
-
-								ds.donnees_membres.insere({membre.first, { ds.types.taille(), nullptr, decalage }});
-								ds.types.pousse(type_membre_empl);
-
-								donnees_dependance.types_utilises.insere(type_membre_empl);
-
-								decalage += type_membre_empl->taille_octet;
-							}
-						}
-					}
-					else {
-						ajoute_donnees_membre(enfant, nullptr);
-					}
+					ajoute_donnees_membre(decl_membre);
 				}
 			}
 
 			auto padding = (max_alignement - (decalage % max_alignement)) % max_alignement;
 			decalage += padding;
-			ds.taille_octet = decalage;
-
-			ds.type->taille_octet = decalage;
-			ds.type->alignement = max_alignement;
+			decl->type->taille_octet = decalage;
+			decl->type->alignement = max_alignement;
 
 			graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENUM:
 		{
-			auto &ds = contexte.donnees_structure(b->chaine());
+			auto decl = static_cast<NoeudEnum *>(b);
+			auto &desc = decl->desc;
 
-			auto type_enum = static_cast<TypeEnum *>(ds.type);
-			type_enum->type_donnees = resoud_type_final(contexte, ds.noeud_decl->type_declare);
-			type_enum->alignement = type_enum->type_donnees->alignement;
+			auto type_enum = static_cast<TypeEnum *>(decl->type);
+			type_enum->type_donnees = resoud_type_final(contexte, decl->type_declare, decl->lexeme);
 			type_enum->taille_octet = type_enum->type_donnees->taille_octet;
+			type_enum->alignement = type_enum->type_donnees->alignement;
 
-			auto const est_drapeau = ds.est_drapeau;
+			desc.est_drapeau = false; // inst->drapeaux_decl & EST_DRAPEAUX;
 
-			contexte.operateurs.ajoute_operateur_basique_enum(ds.type);
+			contexte.operateurs.ajoute_operateur_basique_enum(decl->type);
 
 			/* À FAIRE : tests */
 
@@ -2717,30 +2555,23 @@ static void performe_validation_semantique(
 			/* utilise est_errone pour indiquer que nous sommes à la première valeur */
 			dernier_res.est_errone = true;
 
-			contexte.empile_nombre_locales();
-
-			for (auto enfant : b->enfants) {
-				if (enfant->genre != GenreNoeud::DECLARATION_VARIABLE) {
+			POUR (decl->bloc->expressions) {
+				if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
 					erreur::lance_erreur(
 								"Type d'expression inattendu dans l'énum",
 								contexte,
-								enfant->lexeme);
+								it->lexeme);
 				}
 
-				auto var = static_cast<base *>(nullptr);
-				auto expr = static_cast<base *>(nullptr);
+				auto decl_expr = static_cast<NoeudDeclarationVariable *>(it);
+				decl_expr->type = type_enum->type_donnees;
 
-				if (enfant->enfants.taille() == 2) {
-					var = enfant->enfants.front();
-					expr = enfant->enfants.back();
-				}
-				else {
-					var = enfant;
-				}
+				auto var = decl_expr->valeur;
+				auto expr = decl_expr->expression;
 
-				auto nom = var->chaine();
+				auto decl_anterieure = trouve_dans_bloc_seul(decl->bloc, decl_expr);
 
-				if (noms_presents.trouve(nom) != noms_presents.fin()) {
+				if (decl_anterieure != nullptr) {
 					erreur::lance_erreur(
 								"Rédéfinition de la valeur de l'énum",
 								contexte,
@@ -2748,18 +2579,16 @@ static void performe_validation_semantique(
 								erreur::type_erreur::VARIABLE_REDEFINIE);
 				}
 
-				noms_presents.insere(nom);
+				decl->bloc->membres.pousse(static_cast<NoeudDeclaration *>(it));
+
+				desc.noms.pousse(kuri::chaine(var->ident->nom));
 
 				auto res = ResultatExpression();
-
-				auto donnees_variables = DonneesVariable{};
-				donnees_variables.type = type_enum->type_donnees;
-				contexte.pousse_locale(nom, donnees_variables);
 
 				if (expr != nullptr) {
 					performe_validation_semantique(expr, contexte, false);
 
-					res = evalue_expression(contexte, expr);
+					res = evalue_expression(contexte, decl->bloc, expr);
 
 					if (res.est_errone) {
 						erreur::lance_erreur(
@@ -2774,14 +2603,14 @@ static void performe_validation_semantique(
 						/* première valeur, laisse à zéro si énum normal */
 						dernier_res.est_errone = false;
 
-						if (est_drapeau) {
+						if (desc.est_drapeau) {
 							res.type = type_expression::ENTIER;
 							res.entier = 1;
 						}
 					}
 					else {
 						if (dernier_res.type == type_expression::ENTIER) {
-							if (est_drapeau) {
+							if (desc.est_drapeau) {
 								res.entier = dernier_res.entier * 2;
 							}
 							else {
@@ -2794,18 +2623,10 @@ static void performe_validation_semantique(
 					}
 				}
 
-				/* À FAIRE : pas joli */
-				auto &dv = contexte.donnees_variable(nom);
-				dv.resultat_expression = res;
-
-				auto &donnees_membre = ds.donnees_membres[nom];
-				donnees_membre.resultat_expression = res;
-				donnees_membre.noeud_decl = var;
+				desc.valeurs.pousse(static_cast<int>(res.entier));
 
 				dernier_res = res;
 			}
-
-			contexte.depile_nombre_locales();
 
 			break;
 		}
@@ -2814,58 +2635,50 @@ static void performe_validation_semantique(
 			/* TESTS : si énum -> vérifie que toutes les valeurs soient prises
 			 * en compte, sauf s'il y a un bloc sinon après. */
 
-			auto nombre_enfant = b->enfants.taille();
-			auto iter_enfant = b->enfants.debut();
-			auto expression = *iter_enfant++;
+			auto inst = static_cast<NoeudDiscr *>(b);
+
+			auto expression = inst->expr;
 
 			performe_validation_semantique(expression, contexte, false);
 			auto type = expression->type;
 
 			if (type->genre == GenreType::REFERENCE) {
+				type = static_cast<TypeReference *>(type)->type_pointe;
 				b->transformation = TypeTransformation::DEREFERENCE;
-				type = contexte.typeuse.type_dereference_pour(type);
 			}
 
-			auto membres_rencontres = dls::ensemble<dls::vue_chaine_compacte>();
-
-			auto valide_presence_membres = [&membres_rencontres, &contexte, &expression](DonneesStructure &ds) {
-				auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
-
-				for (auto const &paire : ds.donnees_membres) {
-					if (membres_rencontres.trouve(paire.first) == membres_rencontres.fin()) {
-						valeurs_manquantes.insere(paire.first);
-					}
-				}
-
-				if (valeurs_manquantes.taille() != 0) {
-					erreur::valeur_manquante_discr(contexte, expression, valeurs_manquantes);
-				}
-			};
-
 			if (type->genre == GenreType::UNION) {
-				auto type_union = static_cast<TypeStructure *>(type);
-				auto &ds = contexte.donnees_structure(type_union->nom);
+				auto decl = static_cast<TypeStructure *>(type)->decl;
 
-				if (ds.est_nonsur) {
+				if (decl->est_nonsure) {
 					erreur::lance_erreur(
 								"« discr » ne peut prendre une union nonsûre",
 								contexte,
 								expression->lexeme);
 				}
 
-				b->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
-				auto sinon_rencontre = false;
+				auto membres_rencontres = dls::ensemble<IdentifiantCode *>();
 
-				for (auto i = 1; i < nombre_enfant; ++i) {
-					auto enfant = *iter_enfant++;
-					auto expr_paire = enfant->enfants.front();
-					auto bloc_paire = enfant->enfants.back();
+				auto valide_presence_membres = [&membres_rencontres, &decl, &contexte, &expression]() {
+					auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
 
-					if (expr_paire->genre == GenreNoeud::INSTRUCTION_SINON) {
-						sinon_rencontre = true;
-						performe_validation_semantique(bloc_paire, contexte, true);
-						continue;
+					// À FAIRE : réusinage arbre, ceci ne semble pas correcte
+					POUR (decl->bloc->membres) {
+						if (membres_rencontres.trouve(it->ident) == membres_rencontres.fin()) {
+							valeurs_manquantes.insere(it->lexeme->chaine);
+						}
 					}
+
+					if (valeurs_manquantes.taille() != 0) {
+						erreur::valeur_manquante_discr(contexte, expression, valeurs_manquantes);
+					}
+				};
+
+				b->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
+
+				for (int i = 0; i < inst->paires_discr.taille; ++i) {
+					auto expr_paire = inst->paires_discr[i].first;
+					auto bloc_paire = inst->paires_discr[i].second;
 
 					/* vérifie que toutes les expressions des paires sont bel et
 					 * bien des membres */
@@ -2876,81 +2689,84 @@ static void performe_validation_semantique(
 									expr_paire->lexeme);
 					}
 
-					auto nom_membre = expr_paire->chaine();
+					auto nom_membre = expr_paire->ident->nom;
 
-					if (membres_rencontres.trouve(nom_membre) != membres_rencontres.fin()) {
+					if (membres_rencontres.trouve(expr_paire->ident) != membres_rencontres.fin()) {
 						erreur::lance_erreur(
 									"Redéfinition de l'expression",
 									contexte,
 									expr_paire->lexeme);
 					}
 
-					membres_rencontres.insere(nom_membre);
+					membres_rencontres.insere(expr_paire->ident);
 
-					auto iter_membre = ds.donnees_membres.trouve(nom_membre);
+					auto decl_var = trouve_dans_bloc_seul(decl->bloc, expr_paire);
 
-					if (iter_membre == ds.donnees_membres.fin()) {
-						erreur::membre_inconnu(contexte, ds, b, expression, expr_paire);
+					if (decl_var == nullptr) {
+						erreur::membre_inconnu(contexte, decl->bloc, b, expression, expr_paire, type);
 					}
 
-					contexte.renseigne_membre_actif(expression->chaine(), nom_membre);
+					contexte.renseigne_membre_actif(expression->ident->nom, nom_membre);
+
+					auto decl_prec = trouve_dans_bloc(inst->bloc_parent, expression->ident);
 
 					/* Pousse la variable comme étant employée, puisque nous savons ce qu'elle est */
-					if (contexte.locale_existe(iter_membre->first)) {
+					if (decl_prec != nullptr) {
 						erreur::lance_erreur(
 									"Ne peut pas utiliser implicitement le membre car une variable de ce nom existe déjà",
 									contexte,
 									expr_paire->lexeme);
 					}
 
-					auto donnees_var = DonneesVariable{};
-					donnees_var.type = ds.types[iter_membre->second.index_membre];
-					donnees_var.est_argument = true;
-					donnees_var.est_membre_emploie = true;
-					/* À FAIRE : est_dynamique */
+					/* pousse la variable dans le bloc suivant */
+					auto decl_expr = static_cast<NoeudDeclaration *>(nullptr);
+					decl_expr->ident = expression->ident;
+					decl_expr->lexeme = expression->lexeme;
+					decl_expr->bloc_parent = bloc_paire;
+					decl_expr->drapeaux_decl |= EMPLOYE;
+					decl_expr->type = expression->type;
+					// À FAIRE: mise en place des informations d'emploie
+					// À FAIRE : est_dynamique
 
-					contexte.empile_nombre_locales();
-					contexte.pousse_locale(iter_membre->first, donnees_var);
+					bloc_paire->membres.pousse(decl_expr);
 
 					performe_validation_semantique(bloc_paire, contexte, true);
-
-					contexte.depile_nombre_locales();
 				}
 
-				if (!sinon_rencontre) {
-					valide_presence_membres(ds);
+				if (inst->bloc_sinon == nullptr) {
+					valide_presence_membres();
 				}
-
-				return;
+				else {
+					performe_validation_semantique(inst->bloc_sinon, contexte, true);
+				}
 			}
+			else if (type->genre == GenreType::ENUM) {
+				auto decl = static_cast<TypeEnum *>(type)->decl;
 
-			if (type->genre == GenreType::ENUM) {
-				auto type_enum = static_cast<TypeEnum *>(type);
-				auto &ds = contexte.donnees_structure(type_enum->nom);
+				auto membres_rencontres = dls::ensemble<dls::vue_chaine_compacte>();
 				b->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
-				auto sinon_rencontre = false;
 
-				for (auto i = 1; i < nombre_enfant; ++i) {
-					auto enfant = *iter_enfant++;
-					auto expr_paire = enfant->enfants.front();
-					auto bloc_paire = enfant->enfants.back();
+				for (int i = 0; i < inst->paires_discr.taille; ++i) {
+					auto expr_paire = inst->paires_discr[i].first;
+					auto bloc_paire = inst->paires_discr[i].second;
 
-					if (expr_paire->genre == GenreNoeud::INSTRUCTION_SINON) {
-						sinon_rencontre = true;
-						performe_validation_semantique(bloc_paire, contexte, true);
-						continue;
-					}
-
-					auto feuilles = dls::tableau<base *>();
+					auto feuilles = dls::tableau<NoeudExpression *>();
 					rassemble_feuilles(expr_paire, feuilles);
 
 					for (auto f : feuilles) {
-						auto nom_membre = f->chaine();
+						auto nom_membre = f->ident->nom;
 
-						auto iter_membre = ds.donnees_membres.trouve(nom_membre);
+						auto nom_trouve = false;
 
-						if (iter_membre == ds.donnees_membres.fin()) {
-							erreur::membre_inconnu(contexte, ds, b, expression, expr_paire);
+						POUR (decl->desc.noms) {
+							if (dls::vue_chaine_compacte(it.pointeur, it.taille) == nom_membre) {
+								nom_trouve = true;
+								break;
+							}
+						}
+
+						if (!nom_trouve) {
+							erreur::membre_inconnu(contexte, decl->bloc, b, expression, expr_paire, type);
 						}
 
 						if (membres_rencontres.trouve(nom_membre) != membres_rencontres.fin()) {
@@ -2966,69 +2782,73 @@ static void performe_validation_semantique(
 					performe_validation_semantique(bloc_paire, contexte, true);
 				}
 
-				if (!sinon_rencontre) {
-					valide_presence_membres(ds);
+				if (inst->bloc_sinon == nullptr) {
+					auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
+
+					POUR (decl->desc.noms) {
+						if (membres_rencontres.trouve({ it.pointeur, it.taille }) == membres_rencontres.fin()) {
+							valeurs_manquantes.insere({ it.pointeur, it.taille });
+						}
+					}
+
+					if (valeurs_manquantes.taille() != 0) {
+						erreur::valeur_manquante_discr(contexte, expression, valeurs_manquantes);
+					}
+				}
+				else {
+					performe_validation_semantique(inst->bloc_sinon, contexte, true);
+				}
+			}
+			else {
+				auto candidats = cherche_candidats_operateurs(contexte, type, type, GenreLexeme::EGALITE);
+				auto meilleur_candidat = static_cast<OperateurCandidat const *>(nullptr);
+				auto poids = 0.0;
+
+				for (auto const &candidat : candidats) {
+					if (candidat.poids > poids) {
+						poids = candidat.poids;
+						meilleur_candidat = &candidat;
+					}
 				}
 
-				return;
-			}
-
-			auto candidats = cherche_candidats_operateurs(contexte, type, type, GenreLexeme::EGALITE);
-			auto meilleur_candidat = static_cast<OperateurCandidat const *>(nullptr);
-			auto poids = 0.0;
-
-			for (auto const &candidat : candidats) {
-				if (candidat.poids > poids) {
-					poids = candidat.poids;
-					meilleur_candidat = &candidat;
-				}
-			}
-
-			if (meilleur_candidat == nullptr) {
-				erreur::lance_erreur_type_operation(contexte, b);
-			}
-
-			b->op = meilleur_candidat->op;
-
-			if (!b->op->est_basique) {
-				donnees_dependance.fonctions_utilisees.insere(b->op->nom_fonction);
-			}
-
-			for (auto i = 1; i < nombre_enfant; ++i) {
-				auto enfant = *iter_enfant++;
-				assert(enfant->genre == GenreNoeud::INSTRUCTION_PAIRE_DISCR);
-
-				auto expr_paire = enfant->enfants.front();
-				auto bloc_paire = enfant->enfants.back();
-
-				performe_validation_semantique(bloc_paire, contexte, true);
-
-				if (expr_paire->genre == GenreNoeud::INSTRUCTION_SINON) {
-					continue;
+				if (meilleur_candidat == nullptr) {
+					erreur::lance_erreur_type_operation(contexte, b);
 				}
 
-				auto feuilles = dls::tableau<base *>();
-				rassemble_feuilles(expr_paire, feuilles);
+				inst->op = meilleur_candidat->op;
 
-				for (auto f : feuilles) {
-					performe_validation_semantique(f, contexte, true);
+				if (!inst->op->est_basique) {
+					donnees_dependance.fonctions_utilisees.insere(inst->op->nom_fonction);
+				}
 
-					if (f->type != expression->type && f->type->genre != GenreType::ENTIER_CONSTANT) {
-						erreur::lance_erreur_type_arguments(
-									expression->type,
+				for (int i = 0; i < inst->paires_discr.taille; ++i) {
+					auto expr_paire = inst->paires_discr[i].first;
+					auto bloc_paire = inst->paires_discr[i].second;
+
+					performe_validation_semantique(bloc_paire, contexte, true);
+
+					auto feuilles = dls::tableau<NoeudExpression *>();
+					rassemble_feuilles(expr_paire, feuilles);
+
+					for (auto f : feuilles) {
+						performe_validation_semantique(f, contexte, true);
+
+						if (f->type != expression->type && f->type->genre != GenreType::ENTIER_CONSTANT) {
+							erreur::lance_erreur_type_arguments(
+										expression->type,
 									f->type,
 									contexte,
 									f->lexeme,
 									expression->lexeme);
+						}
 					}
+				}
+
+				if (inst->bloc_sinon != nullptr) {
+					performe_validation_semantique(inst->bloc_sinon, contexte, true);
 				}
 			}
 
-			break;
-		}
-		case GenreNoeud::INSTRUCTION_PAIRE_DISCR:
-		{
-			/* RÀF : pris en charge plus haut */
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETIENS:
@@ -3040,84 +2860,79 @@ static void performe_validation_semantique(
 							b->lexeme);
 			}
 
-			valides_enfants(b, contexte, false);
+			auto type_fonc = static_cast<TypeFonction *>(fonction_courante->type);
 
-			auto enfant = b->enfants.front();
+			auto inst = static_cast<NoeudExpressionUnaire *>(b);
+			performe_validation_semantique(inst->expr, contexte, false);
 
 			/* À FAIRE : multiple types retours. */
-			auto idx_type_retour = fonction_courante->type->types_sorties[0];
-			auto transformation = cherche_transformation(enfant->type, idx_type_retour);
+			auto type_retour = type_fonc->types_sorties[0];
+			auto transformation = cherche_transformation(inst->type, type_retour);
 
 			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 				erreur::lance_erreur_type_retour(
-							idx_type_retour,
-							enfant->type,
+							type_retour,
+							inst->type,
 							contexte,
-							enfant->lexeme,
+							inst->lexeme,
 							b->lexeme);
 			}
 
-			enfant->transformation = transformation;
+			inst->transformation = transformation;
 
 			break;
 		}
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
-			valides_enfants(b, contexte, expr_gauche);
-			b->type = b->enfants.front()->type;
-			b->genre_valeur = b->enfants.front()->genre_valeur;
+			auto expr = static_cast<NoeudExpressionParenthese *>(b);
+			performe_validation_semantique(expr->expr, contexte, expr_gauche);
+			b->type = expr->expr->type;
+			b->genre_valeur = expr->expr->genre_valeur;
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		{
-			auto variable = b->enfants.front();
+			auto inst = static_cast<NoeudPousseContexte *>(b);
+			auto variable = inst->expr;
 
-			auto type_symbole = cherche_symbole(contexte, variable->chaine());
+			auto decl = trouve_dans_bloc(inst->bloc_parent, variable->ident);
 
-			if (type_symbole == SYMBOLE_INCONNU) {
+			if (decl == nullptr) {
 				erreur::lance_erreur("variable inconnu", contexte, variable->lexeme);
 			}
 
-			auto bloc = b->enfants.back();
-			performe_validation_semantique(bloc, contexte, true);
+			performe_validation_semantique(inst->bloc, contexte, true);
 
 			break;
 		}
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		{
-			performe_validation_semantique(b->enfants.front(), contexte, expr_gauche);
-			b->type = b->enfants.front()->type;
+			auto expr = static_cast<NoeudExpressionUnaire *>(b);
+			performe_validation_semantique(expr->expr, contexte, expr_gauche);
+			expr->type = expr->expr->type;
 			break;
 		}
 	}
 }
 
-void performe_validation_semantique(
-		assembleuse_arbre const &arbre,
-		ContexteGenerationCode &contexte)
+void performe_validation_semantique(ContexteGenerationCode &contexte)
 {
-	auto racine = arbre.racine();
-
-	if (racine == nullptr) {
-		return;
-	}
-
-	if (racine->genre != GenreNoeud::RACINE) {
-		return;
-	}
-
 	auto debut_validation = dls::chrono::compte_seconde();
 
 	/* valide d'abord les types de fonctions afin de résoudre les fonctions
 	 * appelées dans le cas de fonctions mutuellement récursives */
-	for (auto noeud : racine->enfants) {
-		if (noeud->genre == GenreNoeud::DECLARATION_COROUTINE || noeud->genre == GenreNoeud::DECLARATION_FONCTION) {
-			valide_type_fonction(noeud, contexte);
+	POUR (contexte.file_typage) {
+		if (it->genre != GenreNoeud::DECLARATION_FONCTION && it->genre != GenreNoeud::DECLARATION_COROUTINE) {
+			continue;
 		}
+
+		auto decl = static_cast<NoeudDeclarationFonction *>(it);
+
+		valide_type_fonction(decl, contexte);
 	}
 
-	for (auto noeud : racine->enfants) {
-		performe_validation_semantique(noeud, contexte, true);
+	POUR (contexte.file_typage) {
+		performe_validation_semantique(it, contexte, true);
 	}
 
 	contexte.temps_validation = debut_validation.temps();

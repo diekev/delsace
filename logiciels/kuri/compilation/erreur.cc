@@ -54,14 +54,14 @@ namespace erreur {
 void lance_erreur(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme &lexeme,
+		const DonneesLexeme *lexeme,
 		type_erreur type)
 {
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
-	auto const identifiant = lexeme.genre;
-	auto const &chaine = lexeme.chaine;
+	auto const identifiant = lexeme->genre;
+	auto const &chaine = lexeme->chaine;
 
 	auto ligne_courante = fichier->tampon[pos.index_ligne];
 
@@ -80,19 +80,96 @@ void lance_erreur(
 	throw erreur::frappe(ss.chn().c_str(), type);
 }
 
+void redefinition_fonction(
+		const ContexteGenerationCode &contexte,
+		DonneesLexeme const *lexeme_redefition,
+		DonneesLexeme const *lexeme_original)
+{
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme_redefition->fichier));
+	auto pos = trouve_position(*lexeme_redefition, fichier);
+	auto pos_mot = pos.pos;
+	auto chaine = lexeme_redefition->chaine;
+
+	auto ligne_courante = fichier->tampon[pos.index_ligne];
+
+	dls::flux_chaine ss;
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << ligne_courante;
+
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, chaine);
+	ss << '\n';
+
+	ss << "Redéfinition de la fonction !\n";
+	ss << "La fonction fût déjà définie ici :\n";
+
+	fichier = contexte.fichier(static_cast<size_t>(lexeme_original->fichier));
+	pos = trouve_position(*lexeme_original, fichier);
+	pos_mot = pos.pos;
+	chaine = lexeme_original->chaine;
+	ligne_courante = fichier->tampon[pos.index_ligne];
+
+	ss << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << ligne_courante;
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, chaine);
+	ss << '\n';
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::FONCTION_REDEFINIE);
+}
+
+void redefinition_symbole(const ContexteGenerationCode &contexte, const DonneesLexeme *lexeme_redefition, const DonneesLexeme *lexeme_original)
+{
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme_redefition->fichier));
+	auto pos = trouve_position(*lexeme_redefition, fichier);
+	auto pos_mot = pos.pos;
+	auto chaine = lexeme_redefition->chaine;
+
+	auto ligne_courante = fichier->tampon[pos.index_ligne];
+
+	dls::flux_chaine ss;
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << ligne_courante;
+
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, chaine);
+	ss << '\n';
+
+	ss << "Redéfinition du symbole !\n";
+	ss << "Le symbole fût déjà défini ici :\n";
+
+	fichier = contexte.fichier(static_cast<size_t>(lexeme_original->fichier));
+	pos = trouve_position(*lexeme_original, fichier);
+	pos_mot = pos.pos;
+	chaine = lexeme_original->chaine;
+	ligne_courante = fichier->tampon[pos.index_ligne];
+
+	ss << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << ligne_courante;
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, chaine);
+	ss << '\n';
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::VARIABLE_REDEFINIE);
+}
+
 void lance_erreur_plage(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme &premier_lexeme,
-		const DonneesLexeme &dernier_lexeme,
+		const DonneesLexeme *premier_lexeme,
+		const DonneesLexeme *dernier_lexeme,
 		type_erreur type)
 {
-	auto fichier = contexte.fichier(static_cast<size_t>(premier_lexeme.fichier));
-	auto pos = trouve_position(premier_lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(premier_lexeme->fichier));
+	auto pos = trouve_position(*premier_lexeme, fichier);
 	auto const pos_premier = pos.pos;
 
-	auto fichier_dernier = contexte.fichier(static_cast<size_t>(dernier_lexeme.fichier));
-	auto const pos_dernier = trouve_position(premier_lexeme, fichier_dernier).pos;
+	auto fichier_dernier = contexte.fichier(static_cast<size_t>(dernier_lexeme->fichier));
+	auto const pos_dernier = trouve_position(*premier_lexeme, fichier_dernier).pos;
 
 	auto ligne_courante = fichier->tampon[pos.index_ligne];
 
@@ -114,26 +191,26 @@ void lance_erreur_plage(
 		const Type *type_arg,
 		const Type *type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme &lexeme_enfant,
-		const DonneesLexeme &lexeme)
+		const DonneesLexeme *lexeme_enfant,
+		const DonneesLexeme *lexeme)
 {
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
-	ss << "Dans l'appel de la fonction '" << lexeme.chaine << "':\n";
+	ss << "Dans l'appel de la fonction '" << lexeme->chaine << "':\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme_enfant.chaine);
+	lng::erreur::imprime_tilde(ss, lexeme_enfant->chaine);
 	ss << '\n';
 
-	ss << "Le type de l'argument '" << lexeme_enfant.chaine << "' ne correspond pas à celui requis !\n";
+	ss << "Le type de l'argument '" << lexeme_enfant->chaine << "' ne correspond pas à celui requis !\n";
 	ss << "Requiers : " << chaine_type(type_arg) << '\n';
 	ss << "Obtenu   : " << chaine_type(type_enf) << '\n';
 	ss << '\n';
@@ -141,8 +218,8 @@ void lance_erreur_plage(
 	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
 
 	lng::erreur::imprime_ligne_entre(ss, ligne, 0, pos_mot);
-	ss << "transtype(" << lexeme_enfant.chaine << " : " << chaine_type(type_arg) << ")";
-	lng::erreur::imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant.chaine.taille(), ligne.taille());
+	ss << "transtype(" << lexeme_enfant->chaine << " : " << chaine_type(type_arg) << ")";
+	lng::erreur::imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant->chaine.taille(), ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
 	throw frappe(ss.chn().c_str(), type_erreur::TYPE_ARGUMENT);
@@ -152,26 +229,26 @@ void lance_erreur_plage(
 		const Type *type_arg,
 		const Type *type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme &lexeme_enfant,
-		const DonneesLexeme &lexeme)
+		const DonneesLexeme *lexeme_enfant,
+		const DonneesLexeme *lexeme)
 {
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
-	ss << "Dans l'expression de '" << lexeme.chaine << "':\n";
+	ss << "Dans l'expression de '" << lexeme->chaine << "':\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme_enfant.chaine);
+	lng::erreur::imprime_tilde(ss, lexeme_enfant->chaine);
 	ss << '\n';
 
-	ss << "Le type de '" << lexeme_enfant.chaine << "' ne correspond pas à celui requis !\n";
+	ss << "Le type de '" << lexeme_enfant->chaine << "' ne correspond pas à celui requis !\n";
 	ss << "Requiers : " << chaine_type(type_arg) << '\n';
 	ss << "Obtenu   : " << chaine_type(type_enf) << '\n';
 	ss << '\n';
@@ -179,8 +256,8 @@ void lance_erreur_plage(
 	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
 
 	lng::erreur::imprime_ligne_entre(ss, ligne, 0, pos_mot);
-	ss << "transtype(" << lexeme_enfant.chaine << " : " << chaine_type(type_arg) << ")";
-	lng::erreur::imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant.chaine.taille(), ligne.taille());
+	ss << "transtype(" << lexeme_enfant->chaine << " : " << chaine_type(type_arg) << ")";
+	lng::erreur::imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant->chaine.taille(), ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
 	throw frappe(ss.chn().c_str(), type_erreur::TYPE_DIFFERENTS);
@@ -190,10 +267,10 @@ void lance_erreur_plage(
 		const Type *type_gauche,
 		const Type *type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme &lexeme)
+		const DonneesLexeme *lexeme)
 {
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -203,7 +280,7 @@ void lance_erreur_plage(
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme.chaine);
+	lng::erreur::imprime_tilde(ss, lexeme->chaine);
 	ss << '\n';
 
 	ss << "Ne peut pas assigner des types différents !\n";
@@ -217,10 +294,10 @@ void lance_erreur_type_operation(
 		const Type *type_gauche,
 		const Type *type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme &lexeme)
+		const DonneesLexeme *lexeme)
 {
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -230,7 +307,7 @@ void lance_erreur_type_operation(
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme.chaine);
+	lng::erreur::imprime_tilde(ss, lexeme->chaine);
 	ss << '\n';
 
 	ss << "Les types de l'opération sont différents !\n";
@@ -242,12 +319,12 @@ void lance_erreur_type_operation(
 
 void lance_erreur_fonction_inconnue(
 		ContexteGenerationCode const &contexte,
-		noeud::base *b,
+		NoeudBase *b,
 		dls::tablet<DonneesCandidate, 10> const &candidates)
 {
 	auto const &lexeme = b->lexeme;
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -255,12 +332,12 @@ void lance_erreur_fonction_inconnue(
 
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n';
-	ss << "\nDans l'appel de la fonction '" << b->lexeme.chaine << "'\n";
+	ss << "\nDans l'appel de la fonction '" << b->lexeme->chaine << "'\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme.chaine);
+	lng::erreur::imprime_tilde(ss, lexeme->chaine);
 	ss << '\n';
 
 	if (candidates.est_vide()) {
@@ -270,22 +347,20 @@ void lance_erreur_fonction_inconnue(
 		throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::FONCTION_INCONNUE);
 	}
 
-	ss << "\nAucune candidate trouvée pour la fonction '" << b->lexeme.chaine << "'\n";
+	ss << "\nAucune candidate trouvée pour la fonction '" << b->lexeme->chaine << "'\n";
 
 	auto type_erreur = erreur::type_erreur::FONCTION_INCONNUE;
 
 	for (auto &dc : candidates) {
-		auto df = dc.df;
+		auto decl_fonc = dc.decl_fonc;
 		ss << "\nCandidate :";
 
-		if (df != nullptr) {
-			auto noeud_decl = df->noeud_decl;
+		if (decl_fonc != nullptr) {
+			auto const &lexeme_df = decl_fonc->lexeme;
+			auto fichier_df = contexte.fichier(static_cast<size_t>(lexeme_df->fichier));
+			auto pos_df = trouve_position(*lexeme_df, fichier_df);
 
-			auto const &lexeme_df = noeud_decl->lexeme;
-			auto fichier_df = contexte.fichier(static_cast<size_t>(lexeme_df.fichier));
-			auto pos_df = trouve_position(lexeme_df, fichier_df);
-
-			ss << ' ' << noeud_decl->chaine()
+			ss << ' ' << decl_fonc->ident->nom
 			   << " (trouvée à " << fichier_df->chemin << ':' << pos_df.numero_ligne << ")\n";
 		}
 		else {
@@ -293,9 +368,10 @@ void lance_erreur_fonction_inconnue(
 		}
 
 		if (dc.raison == MECOMPTAGE_ARGS) {
+			auto noeud_appel = static_cast<NoeudExpressionAppel *>(b);
 			ss << "\tLe nombre d'arguments de la fonction est incorrect.\n";
-			ss << "\tRequiers " << df->args.taille() << " arguments\n";
-			ss << "\tObtenu " << b->enfants.taille() << " arguments\n";
+			ss << "\tRequiers " << decl_fonc->params.taille << " arguments\n";
+			ss << "\tObtenu " << noeud_appel->params.taille << " arguments\n";
 			type_erreur = erreur::type_erreur::NOMBRE_ARGUMENT;
 		}
 
@@ -304,8 +380,8 @@ void lance_erreur_fonction_inconnue(
 			ss << "\tArgument '" << dc.nom_arg << "' inconnu !\n";
 			ss << "\tLes arguments de la fonction sont : \n";
 
-			for (auto const &argument : df->args) {
-				ss << "\t\t" << argument.nom << '\n';
+			POUR (decl_fonc->params) {
+				ss << "\t\t" << it->ident->nom << '\n';
 			}
 
 			type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;
@@ -327,7 +403,7 @@ void lance_erreur_fonction_inconnue(
 		if (dc.raison == METYPAGE_ARG) {
 			auto const &lexeme_enfant = dc.noeud_decl->lexeme;
 
-			ss << "\tLe type de l'argument '" << lexeme_enfant.chaine << "' ne correspond pas à celui requis !\n";
+			ss << "\tLe type de l'argument '" << lexeme_enfant->chaine << "' ne correspond pas à celui requis !\n";
 			ss << "\tRequiers : " << chaine_type(dc.type1) << '\n';
 			ss << "\tObtenu   : " << chaine_type(dc.type2) << '\n';
 			/* À FAIRE */
@@ -336,8 +412,8 @@ void lance_erreur_fonction_inconnue(
 //			ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
 
 //			imprime_ligne_entre(ss, ligne, 0, pos_mot);
-//			ss << "transtype(" << lexeme_enfant.chaine << " : " << dc.type1 << ")";
-//			imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant.chaine.taille(), ligne.taille());
+//			ss << "transtype(" << lexeme_enfant->chaine << " : " << dc.type1 << ")";
+//			imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant->chaine.taille(), ligne.taille());
 			type_erreur = erreur::type_erreur::TYPE_ARGUMENT;
 		}
 
@@ -357,13 +433,13 @@ void lance_erreur_fonction_inconnue(
 
 void lance_erreur_fonction_nulctx(
 			ContexteGenerationCode const &contexte,
-			noeud::base *appl_fonc,
-			noeud::base *decl_fonc,
-			noeud::base *decl_appel)
+			NoeudBase *appl_fonc,
+			NoeudBase *decl_fonc,
+			NoeudBase *decl_appel)
 {
 	auto const &lexeme = appl_fonc->lexeme;
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -371,28 +447,28 @@ void lance_erreur_fonction_nulctx(
 
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n';
-	ss << "\nDans l'appel de la fonction « " << appl_fonc->lexeme.chaine << " »\n";
+	ss << "\nDans l'appel de la fonction « " << appl_fonc->lexeme->chaine << " »\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme.chaine);
+	lng::erreur::imprime_tilde(ss, lexeme->chaine);
 	ss << '\n';
 
 	ss << "Ne peut appeler une fonction avec contexte dans une fonction sans contexte !\n";
 
-	ss << "Note : la fonction est appelée dans « " << decl_fonc->chaine() << " » "
+	ss << "Note : la fonction est appelée dans « " << decl_fonc->ident->nom << " » "
 	   << " qui a été déclarée sans contexte via #!nulctx.\n";
 
-	ss << "\n« " << decl_fonc->chaine() << " » est déclarée ici :\n";
-	fichier = contexte.fichier(static_cast<size_t>(decl_fonc->lexeme.fichier));
-	auto pos_decl = trouve_position(decl_fonc->lexeme, fichier);
+	ss << "\n« " << decl_fonc->ident->nom << " » est déclarée ici :\n";
+	fichier = contexte.fichier(static_cast<size_t>(decl_fonc->lexeme->fichier));
+	auto pos_decl = trouve_position(*decl_fonc->lexeme, fichier);
 	ss << fichier->chemin << ':' << pos_decl.numero_ligne << '\n' << '\n';
 	ss << fichier->tampon[pos_decl.index_ligne];
 
-	ss << "\n« " << appl_fonc->chaine() << " » est déclarée ici :\n";
-	fichier = contexte.fichier(static_cast<size_t>(decl_appel->lexeme.fichier));
-	auto pos_appel = trouve_position(decl_appel->lexeme, fichier);
+	ss << "\n« " << appl_fonc->ident->nom << " » est déclarée ici :\n";
+	fichier = contexte.fichier(static_cast<size_t>(decl_appel->lexeme->fichier));
+	auto pos_appel = trouve_position(*decl_appel->lexeme, fichier);
 	ss << fichier->chemin << ':' << pos_appel.numero_ligne << '\n' << '\n';
 	ss << fichier->tampon[pos_appel.index_ligne];
 
@@ -403,14 +479,14 @@ void lance_erreur_fonction_nulctx(
 
 void lance_erreur_acces_hors_limites(
 			ContexteGenerationCode const &contexte,
-			noeud::base *b,
+			NoeudBase *b,
 			long taille_tableau,
-			const Type *type_tableau,
+			Type *type_tableau,
 			long index_acces)
 {
 	auto const &lexeme = b->lexeme;
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -422,7 +498,7 @@ void lance_erreur_acces_hors_limites(
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme.chaine);
+	lng::erreur::imprime_tilde(ss, lexeme->chaine);
 	ss << '\n';
 
 	ss << "Accès au tableau hors de ses limites !\n";
@@ -443,44 +519,46 @@ struct Etendue {
 
 static Etendue calcule_etendue_noeud(
 			ContexteGenerationCode const &contexte,
-			noeud::base *b)
+			NoeudBase *b)
 {
 	auto const &lexeme = b->lexeme;
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 
 	auto etendue = Etendue{};
 	etendue.pos_min = pos.pos;
-	etendue.pos_max = pos.pos + b->lexeme.chaine.taille();
+	etendue.pos_max = pos.pos + b->lexeme->chaine.taille();
 
-	for (auto enfant : b->enfants) {
-		auto etendue_enfant = calcule_etendue_noeud(contexte, enfant);
+	/* À FAIRE : réusinage arbre */
+//	for (auto enfant : b->enfants) {
+//		auto etendue_enfant = calcule_etendue_noeud(contexte, enfant);
 
-		etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
-		etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
-	}
+//		etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+//		etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+//	}
 
 	return etendue;
 }
 
 void lance_erreur_type_operation(
 			ContexteGenerationCode const &contexte,
-			noeud::base *b)
+			NoeudBase *b)
 {
 	// soit l'opérateur n'a pas de surcharge (le typage n'est pas bon)
 	// soit l'opérateur n'est pas commutatif
 	// soit l'opérateur n'est pas défini pour le type
 
 	auto const &lexeme = b->lexeme;
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
 	auto etendue = calcule_etendue_noeud(contexte, b);
 
-	auto enfant_gauche = b->enfants.front();
-	auto enfant_droite = b->enfants.back();
+	auto inst = static_cast<NoeudExpressionBinaire *>(b);
+	auto enfant_gauche = inst->expr1;
+	auto enfant_droite = inst->expr2;
 
 	auto const &type_gauche = enfant_gauche->type;
 	auto const &type_droite = enfant_droite->type;
@@ -523,22 +601,23 @@ void lance_erreur_type_operation(
 
 void lance_erreur_type_operation_unaire(
 			ContexteGenerationCode const &contexte,
-			noeud::base *b)
+			NoeudBase *b)
 {
 	// soit l'opérateur n'a pas de surcharge (le typage n'est pas bon)
 	// soit l'opérateur n'est pas commutatif
 	// soit l'opérateur n'est pas défini pour le type
 
 	auto const &lexeme = b->lexeme;
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
 	auto etendue = calcule_etendue_noeud(contexte, b);
 
-	auto enfant_droite = b->enfants.front();
-	auto const &type_droite =  enfant_droite->type;
+	auto inst = static_cast<NoeudExpressionUnaire *>(b);
+	auto enfant_droite = inst->expr;
+	auto const &type_droite = enfant_droite->type;
 	auto etendue_droite = calcule_etendue_noeud(contexte, enfant_droite);
 	auto expr_droite = dls::vue_chaine_compacte(&ligne[etendue_droite.pos_min], etendue_droite.pos_max - etendue_droite.pos_min);
 
@@ -590,17 +669,17 @@ static auto trouve_candidat(
 
 [[noreturn]] static void genere_erreur_membre_inconnu(
 			ContexteGenerationCode &contexte,
-			noeud::base *acces,
-			noeud::base *structure,
-			noeud::base *membre,
+			NoeudBase *acces,
+			NoeudBase *structure,
+			NoeudBase *membre,
 			dls::ensemble<dls::vue_chaine_compacte> const &membres,
 			const char *chaine_structure)
 {
-	auto candidat = trouve_candidat(membres, membre->chaine());
+	auto candidat = trouve_candidat(membres, membre->ident->nom);
 
 	auto const &lexeme = acces->lexeme;
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -609,7 +688,7 @@ static auto trouve_candidat(
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
-	ss << "Dans l'accès à « " << structure->chaine() << " » :\n";
+	ss << "Dans l'accès à « " << structure->ident->nom << " » :\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
@@ -619,7 +698,7 @@ static auto trouve_candidat(
 	ss << '\n';
 
 	ss << '\n';
-	ss << "Le membre « " << membre->chaine() << " » est inconnu !\n";
+	ss << "Le membre « " << membre->ident->nom << " » est inconnu !\n";
 
 	ss << '\n';
 	ss << "Les membres " << chaine_structure << " sont :\n";
@@ -637,23 +716,24 @@ static auto trouve_candidat(
 
 void membre_inconnu(
 			ContexteGenerationCode &contexte,
-			DonneesStructure &ds,
-			noeud::base *acces,
-			noeud::base *structure,
-			noeud::base *membre)
+			NoeudBloc *bloc,
+			NoeudBase *acces,
+			NoeudBase *structure,
+			NoeudBase *membre,
+			Type *type)
 {
 	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
 
-	for (auto const &paire : ds.donnees_membres) {
-		membres.insere(paire.first);
+	POUR (bloc->membres) {
+		membres.insere(it->ident->nom);
 	}
 
 	const char *message;
 
-	if (ds.est_enum) {
+	if (type->genre == GenreType::ENUM) {
 		message = "de l'énumération";
 	}
-	else if (ds.est_union) {
+	else if (type->genre == GenreType::UNION) {
 		message = "de l'union";
 	}
 	else {
@@ -665,9 +745,9 @@ void membre_inconnu(
 
 void membre_inconnu_tableau(
 			ContexteGenerationCode &contexte,
-			noeud::base *acces,
-			noeud::base *structure,
-			noeud::base *membre)
+			NoeudBase *acces,
+			NoeudBase *structure,
+			NoeudBase *membre)
 {
 	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
 	membres.insere("taille");
@@ -678,9 +758,9 @@ void membre_inconnu_tableau(
 
 void membre_inconnu_chaine(
 			ContexteGenerationCode &contexte,
-			noeud::base *acces,
-			noeud::base *structure,
-			noeud::base *membre)
+			NoeudBase *acces,
+			NoeudBase *structure,
+			NoeudBase *membre)
 {
 	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
 	membres.insere("taille");
@@ -691,9 +771,9 @@ void membre_inconnu_chaine(
 
 void membre_inconnu_eini(
 			ContexteGenerationCode &contexte,
-			noeud::base *acces,
-			noeud::base *structure,
-			noeud::base *membre)
+			NoeudBase *acces,
+			NoeudBase *structure,
+			NoeudBase *membre)
 {
 	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
 	membres.insere("info");
@@ -704,13 +784,13 @@ void membre_inconnu_eini(
 
 void membre_inactif(
 			ContexteGenerationCode &contexte,
-			noeud::base *acces,
-			noeud::base *structure,
-			noeud::base *membre)
+			NoeudBase *acces,
+			NoeudBase *structure,
+			NoeudBase *membre)
 {
 	auto const &lexeme = acces->lexeme;
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -719,7 +799,7 @@ void membre_inactif(
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
-	ss << "Dans l'accès à « " << structure->chaine() << " » :\n";
+	ss << "Dans l'accès à « " << structure->ident->nom << " » :\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
@@ -729,8 +809,8 @@ void membre_inactif(
 	ss << '\n';
 
 	ss << '\n';
-	ss << "Le membre « " << membre->chaine() << " » est inactif dans ce contexte !\n";
-	ss << "Le membre actif dans ce contexte est « " << contexte.trouve_membre_actif(structure->chaine()) << " ».\n";
+	ss << "Le membre « " << membre->ident->nom << " » est inactif dans ce contexte !\n";
+	ss << "Le membre actif dans ce contexte est « " << contexte.trouve_membre_actif(structure->ident->nom) << " ».\n";
 	ss << "----------------------------------------------------------------\n";
 
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);
@@ -738,12 +818,12 @@ void membre_inactif(
 
 void valeur_manquante_discr(
 			ContexteGenerationCode &contexte,
-			noeud::base *expression,
+			NoeudBase *expression,
 			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes)
 {
 	auto const &lexeme = expression->lexeme;
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
-	auto pos = trouve_position(lexeme, fichier);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -752,7 +832,7 @@ void valeur_manquante_discr(
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
-	ss << "Dans la discrimination de « " << expression->chaine() << " » :\n";
+	ss << "Dans la discrimination de « " << expression->ident->nom << " » :\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);

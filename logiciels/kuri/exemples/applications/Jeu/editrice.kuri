@@ -1,7 +1,7 @@
 TypeÉditrice :: énum z32 {
-	NULLE     := 0
-	PROPRIETE := 1
-	TEMPS     := 2
+	NULLE     :: 0
+	PROPRIETE :: 1
+	TEMPS     :: 2
 }
 
 vec2d :: struct {

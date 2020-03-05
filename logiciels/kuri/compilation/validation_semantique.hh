@@ -24,16 +24,10 @@
 
 #pragma once
 
-struct assembleuse_arbre;
 struct ContexteGenerationCode;
-enum class GenreLexeme : unsigned int;
 
 namespace noeud {
 
-struct base;
-
-void performe_validation_semantique(
-		assembleuse_arbre const &arbre,
-		ContexteGenerationCode &contexte);
+void performe_validation_semantique(ContexteGenerationCode &contexte);
 
 }  /* namespace noeud */

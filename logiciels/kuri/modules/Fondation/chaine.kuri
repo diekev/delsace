@@ -77,24 +77,24 @@ chaine_c_temp :: fonc(chn: chaine) -> *z8
 // execute une fonction pour chaque ligne du texte d'entrée
 pour_chaque_ligne :: fonc(texte : chaine, donnees : eini, rappel : fonc(chaine, eini)rien) -> rien
 {
-	taille_chaine : z64 = 0
+	taille : z64 = 0
 	début_chaine : z64 = 0
 
     pour c, i dans texte {
-		taille_chaine += 1
+		taille += 1
 
         si c == '\n' {
-			ligne := construit_chaine(@texte[début_chaine], taille_chaine)
+			ligne := construit_chaine(@texte[début_chaine], taille)
 			rappel(ligne, donnees)
 
 			début_chaine = transtype(i + 1 : z64)
-			taille_chaine = 0
+			taille = 0
 		}
 	}
 
     // La dernière ligne n'a pas de retour...
-	si taille_chaine != 0 {
-		ligne := construit_chaine(@texte[début_chaine], taille_chaine)
+	si taille != 0 {
+		ligne := construit_chaine(@texte[début_chaine], taille)
 		rappel(ligne, donnees)
 	}
 }
@@ -357,17 +357,17 @@ compte_commun :: fonc (chn1: chaine, chn2: chaine) -> z64
 		retourne 0
 	}
 
-	compte : z64 = 0
+	occurences : z64 = 0
 
 	pour c, idx dans chn1 {
 		si c != chn2[idx] {
 			arrête
 		}
 
-		compte += 1
+		occurences += 1
 	}
 
-	retourne compte
+	retourne occurences
 }
 
 premier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine

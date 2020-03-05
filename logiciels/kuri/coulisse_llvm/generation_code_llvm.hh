@@ -24,16 +24,10 @@
 
 #pragma once
 
-namespace llvm {
-class Value;
-}
-
 struct assembleuse_arbre;
 struct ContexteGenerationCode;
 
 namespace noeud {
-
-struct base;
 
 /**
  * Traverse l'arbre et génère le code LLVM.

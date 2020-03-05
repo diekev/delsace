@@ -54,13 +54,13 @@
 #include "coulisse_llvm/generation_code_llvm.hh"
 #endif
 
-#include "compilation/syntaxeuse.hh"
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/contexte_generation_code.h"
-#include "compilation/lexeuse.hh"
 #include "compilation/erreur.h"
+#include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 #include "compilation/structures.hh"
+#include "compilation/syntaxeuse.hh"
 #include "compilation/validation_semantique.hh"
 
 #include "coulisse_c/generation_code_c.hh"
@@ -389,8 +389,8 @@ static bool lance_execution(ContexteGenerationCode &contexte)
 	// charge le fichier
 	auto so = dls::systeme_fichier::shared_library("/tmp/test_execution.so");
 
-	auto &df_fonc_init = contexte.module("Kuri")->donnees_fonction("initialise_RC").front();
-	auto symbole_init = so(df_fonc_init.nom_broye);
+	auto decl_fonc_init = cherche_fonction_dans_module(contexte, "Kuri", "initialise_RC");
+	auto symbole_init = so(decl_fonc_init->nom_broye);
 	auto fonc_init = dls::systeme_fichier::dso_function<void(void(*)(kuri::chaine), void(*)(kuri::chaine))>(symbole_init);
 
 	if (!fonc_init) {
@@ -471,7 +471,7 @@ int main(int argc, char *argv[])
 		auto contexte_generation = ContexteGenerationCode{};
 		contexte_generation.bit32 = ops.bit32;
 		contexte_generation.est_coulisse_llvm = ops.coulisse_llvm;
-		auto assembleuse = assembleuse_arbre(contexte_generation);
+		auto assembleuse = contexte_generation.assembleuse;
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 
@@ -484,10 +484,6 @@ int main(int argc, char *argv[])
 
 		auto module = contexte_generation.cree_module("", dossier.c_str());
 		charge_fichier(os, module, chemin_racine_kuri, nom_fichier.c_str(), contexte_generation, {});
-
-		if (ops.emet_arbre) {
-			assembleuse.imprime_code(os);
-		}
 
 #ifdef AVEC_LLVM
 		if (ops.coulisse_llvm) {
@@ -520,10 +516,10 @@ int main(int argc, char *argv[])
 			initialise_optimisation(ops.optimisation, contexte_generation);
 
 			os << "Validation sémantique du code..." << std::endl;
-			noeud::performe_validation_semantique(assembleuse, contexte_generation);
+			noeud::performe_validation_semantique(contexte_generation);
 
 			os << "Génération du code..." << std::endl;
-			noeud::genere_code_llvm(assembleuse, contexte_generation);
+			noeud::genere_code_llvm(*assembleuse, contexte_generation);
 
 			if (ops.emet_code_intermediaire) {
 				std::cerr <<  "------------------------------------------------------------------\n";
@@ -549,21 +545,26 @@ int main(int argc, char *argv[])
 #endif
 		{
 			os << "Validation sémantique du code..." << std::endl;
-			noeud::performe_validation_semantique(assembleuse, contexte_generation);
+			noeud::performe_validation_semantique(contexte_generation);
 
 			for (auto noeud: contexte_generation.noeuds_a_executer) {
 				std::ofstream of;
 				of.open("/tmp/execution_kuri.c");
 
-				noeud::genere_code_C_pour_execution(assembleuse, noeud, contexte_generation, chemin_racine_kuri, of);
+				noeud::genere_code_C_pour_execution(*assembleuse, noeud, contexte_generation, chemin_racine_kuri, of);
 				lance_execution(contexte_generation);
 			}
+
+//			POUR (contexte_generation.modules) {
+//				std::cerr << "Arbre syntaxique pour '" << it->nom << "' :\n";
+//				imprime_arbre(it->assembleuse->bloc_courant(), std::cerr, 1);
+//			}
 
 			std::ofstream of;
 			of.open("/tmp/compilation_kuri.c");
 
 			os << "Génération du code..." << std::endl;
-			noeud::genere_code_C(assembleuse, contexte_generation, chemin_racine_kuri, of);
+			noeud::genere_code_C(*assembleuse, contexte_generation, chemin_racine_kuri, of);
 
 			of.close();
 
@@ -614,11 +615,11 @@ int main(int argc, char *argv[])
 				commande += "-m32 ";
 			}
 
-			for (auto const &def : assembleuse.definitions) {
+			for (auto const &def : assembleuse->definitions) {
 				commande += " -D" + dls::chaine(def);
 			}
 
-			for (auto const &chm : assembleuse.chemins) {
+			for (auto const &chm : assembleuse->chemins) {
 				commande += " ";
 				commande += chm;
 			}
@@ -639,16 +640,16 @@ int main(int argc, char *argv[])
 				auto debut_executable = dls::chrono::compte_seconde();
 				commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
 
-				for (auto const &chm : assembleuse.chemins) {
+				for (auto const &chm : assembleuse->chemins) {
 					commande += " ";
 					commande += chm;
 				}
 
-				for (auto const &bib : assembleuse.bibliotheques_statiques) {
+				for (auto const &bib : assembleuse->bibliotheques_statiques) {
 					commande += " " + bib;
 				}
 
-				for (auto const &bib : assembleuse.bibliotheques_dynamiques) {
+				for (auto const &bib : assembleuse->bibliotheques_dynamiques) {
 					commande += " -l" + bib;
 				}
 
@@ -673,8 +674,6 @@ int main(int argc, char *argv[])
 
 		metriques = contexte_generation.rassemble_metriques();
 		metriques.memoire_contexte = contexte_generation.memoire_utilisee();
-		metriques.memoire_arbre = assembleuse.memoire_utilisee();
-		metriques.nombre_noeuds = assembleuse.nombre_noeuds();
 		metriques.temps_executable = temps_executable;
 		metriques.temps_fichier_objet = temps_fichier_objet;
 

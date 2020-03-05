@@ -33,11 +33,13 @@
 #pragma GCC diagnostic pop
 #endif
 
+#include "assembleuse_arbre.h"
 #include "broyage.hh"
 #include "modules.hh"
 
 ContexteGenerationCode::ContexteGenerationCode()
-	: typeuse(graphe_dependance, this->operateurs)
+	: assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", *this))
+	, typeuse(graphe_dependance, this->operateurs)
 {
 	enregistre_operateurs_basiques(*this, this->operateurs);
 }
@@ -51,6 +53,8 @@ ContexteGenerationCode::~ContexteGenerationCode()
 	for (auto fichier : fichiers) {
 		memoire::deloge("Fichier", fichier);
 	}
+
+	memoire::deloge("assembleuse_arbre", assembleuse);
 
 #ifdef AVEC_LLVM
 	delete menageur_fonctions;
@@ -75,7 +79,7 @@ DonneesModule *ContexteGenerationCode::cree_module(
 		}
 	}
 
-	auto module = memoire::loge<DonneesModule>("DonneesModule");
+	auto module = memoire::loge<DonneesModule>("DonneesModule", *this);
 	module->id = static_cast<size_t>(modules.taille());
 	module->nom = nom;
 	module->chemin = chemin_corrige;
@@ -291,199 +295,17 @@ dls::chaine ContexteGenerationCode::goto_arrete(dls::vue_chaine_compacte chaine)
 	return "";
 }
 
-void ContexteGenerationCode::pousse_globale(const dls::vue_chaine_compacte &nom, DonneesVariable const &donnees)
-{
-	/* Nous utilisons ça plutôt que 'insert' car la valeur est poussée deux fois :
-	 * - la première fois, nulle, lors de la validation sémantique,
-	 * - la deuxième fois, correcte, lors de la génération du code.
-	 *
-	 * 'insert' n'insert pas si la valeur existe déjà, donc nous nous
-	 * retrouvions avec un pointeur nul. */
-	globales[nom] = donnees;
-}
-
 #ifdef AVEC_LLVM
-llvm::Value *ContexteGenerationCode::valeur_globale(const dls::vue_chaine_compacte &nom)
-{
-	auto iter = globales.trouve(nom);
-
-	if (iter == globales.fin()) {
-		return nullptr;
-	}
-
-	return iter->second.valeur;
-}
-#endif
-
-bool ContexteGenerationCode::globale_existe(const dls::vue_chaine_compacte &nom)
-{
-	auto iter = globales.trouve(nom);
-
-	if (iter == globales.fin()) {
-		return false;
-	}
-
-	return true;
-}
-
-conteneur_globales::const_iteratrice ContexteGenerationCode::iter_globale(const dls::vue_chaine_compacte &nom)
-{
-	return globales.trouve(nom);
-}
-
-conteneur_globales::const_iteratrice ContexteGenerationCode::fin_globales()
-{
-	return globales.fin();
-}
-
-void ContexteGenerationCode::pousse_locale(
-		const dls::vue_chaine_compacte &nom,
-		DonneesVariable const &donnees)
-{
-	if (m_locales.taille() > m_nombre_locales) {
-		m_locales[m_nombre_locales] = { nom, donnees };
-	}
-	else {
-		m_locales.pousse({nom, donnees});
-	}
-
-	++m_nombre_locales;
-}
-
-DonneesVariable &ContexteGenerationCode::donnees_variable(dls::vue_chaine_compacte const &nom)
-{
-	auto iter_fin = m_locales.debut() + m_nombre_locales;
-
-	auto iter = std::find_if(m_locales.debut(), iter_fin,
-							 [&](const std::pair<dls::vue_chaine_compacte, DonneesVariable> &paire)
-	{
-		return paire.first == nom;
-	});
-
-	if (iter != iter_fin) {
-		return iter->second;
-	}
-
-	auto iter_g = globales.trouve(nom);
-
-	if (iter_g != globales.fin()) {
-		return iter_g->second;
-	}
-
-	std::cerr << "Échec recherche " << nom << '\n';
-	throw "";
-}
-
-#ifdef AVEC_LLVM
-llvm::Value *ContexteGenerationCode::valeur_locale(const dls::vue_chaine_compacte &nom)
-{
-	auto iter_fin = m_locales.debut() + m_nombre_locales;
-
-	auto iter = std::find_if(m_locales.debut(), iter_fin,
-							 [&](const std::pair<dls::vue_chaine_compacte, DonneesVariable> &paire)
-	{
-		return paire.first == nom;
-	});
-
-	if (iter == iter_fin) {
-		return nullptr;
-	}
-
-	return iter->second.valeur;
-}
-#endif
-
-bool ContexteGenerationCode::locale_existe(const dls::vue_chaine_compacte &nom)
-{
-	auto iter_fin = m_locales.debut() + m_nombre_locales;
-
-	auto iter = std::find_if(m_locales.debut(), iter_fin,
-							 [&](const std::pair<dls::vue_chaine_compacte, DonneesVariable> &paire)
-	{
-		return paire.first == nom;
-	});
-
-	if (iter == iter_fin) {
-		return false;
-	}
-
-	return true;
-}
-
-void ContexteGenerationCode::empile_nombre_locales()
-{
-	m_pile_nombre_locales.empile(m_nombre_locales);
-	m_pile_nombre_differes.empile(m_nombre_differes);
-}
-
-void ContexteGenerationCode::depile_nombre_locales()
-{
-	/* nous ne pouvons pas avoir moins de locales en sortant du bloc */
-	assert(m_pile_nombre_locales.haut() <= m_nombre_locales);
-	m_nombre_locales = m_pile_nombre_locales.depile();
-
-	/* nous ne pouvons pas avoir moins de noeuds différés en sortant du bloc */
-	assert(m_pile_nombre_differes.haut() <= m_nombre_differes);
-	m_nombre_differes = m_pile_nombre_differes.depile();
-
-	while (m_noeuds_differes.taille() > m_nombre_differes) {
-		m_noeuds_differes.pop_back();
-	}
-}
-
-void ContexteGenerationCode::imprime_locales(std::ostream &os)
-{
-	for (auto i = 0; i < m_nombre_locales; ++i) {
-		os << '\t' << m_locales[i].first << '\n';
-	}
-}
-
-bool ContexteGenerationCode::est_locale_variadique(const dls::vue_chaine_compacte &nom)
-{
-	auto iter = iter_locale(nom);
-
-	if (iter == fin_locales()) {
-		return false;
-	}
-
-	return iter->second.est_variadic;
-}
-
-conteneur_locales::const_iteratrice ContexteGenerationCode::iter_locale(const dls::vue_chaine_compacte &nom) const
-{
-	auto iter_fin = fin_locales();
-	auto iter = std::find_if(m_locales.debut(), iter_fin,
-							 [&](const std::pair<dls::vue_chaine_compacte, DonneesVariable> &paire)
-	{
-		return paire.first == nom;
-	});
-
-	return iter;
-}
-
-conteneur_locales::const_iteratrice ContexteGenerationCode::debut_locales() const
-{
-	return m_locales.debut();
-}
-
-conteneur_locales::const_iteratrice ContexteGenerationCode::fin_locales() const
-{
-	return m_locales.debut() + m_nombre_locales;
-}
-
-#ifdef AVEC_LLVM
-void ContexteGenerationCode::commence_fonction(llvm::Function *f, DonneesFonction *df)
+void ContexteGenerationCode::commence_fonction(llvm::Function *f, NoeudDeclarationFonction *df)
 {
 	this->fonction = f;
 	commence_fonction(df);
 }
 #endif
 
-void ContexteGenerationCode::commence_fonction(DonneesFonction *df)
+void ContexteGenerationCode::commence_fonction(NoeudDeclarationFonction *df)
 {
 	this->donnees_fonction = df;
-	m_nombre_locales = 0;
-	m_locales.efface();
 }
 
 void ContexteGenerationCode::termine_fonction()
@@ -493,87 +315,6 @@ void ContexteGenerationCode::termine_fonction()
 	m_bloc_courant = nullptr;
 #endif
 	this->donnees_fonction = nullptr;
-	m_nombre_locales = 0;
-	m_locales.efface();
-
-	while (!m_noeuds_differes.est_vide()) {
-		m_noeuds_differes.pop_back();
-	}
-}
-
-bool ContexteGenerationCode::structure_existe(const dls::vue_chaine_compacte &nom)
-{
-	return structures.trouve(nom) != structures.fin();
-}
-
-long ContexteGenerationCode::ajoute_donnees_structure(const dls::vue_chaine_compacte &nom, DonneesStructure &donnees)
-{
-	donnees.id = nom_structures.taille();
-#ifdef AVEC_LLVM
-	donnees.type_llvm = nullptr;
-#endif
-
-	structures.insere({nom, donnees});
-	nom_structures.pousse(nom);
-
-	return donnees.id;
-}
-
-DonneesStructure &ContexteGenerationCode::donnees_structure(const dls::vue_chaine_compacte &nom)
-{
-	return structures.trouve(nom)->second;
-}
-
-DonneesStructure const &ContexteGenerationCode::donnees_structure(const dls::vue_chaine_compacte &nom) const
-{
-	return structures.trouve(nom)->second;
-}
-
-DonneesStructure &ContexteGenerationCode::donnees_structure(const long id)
-{
-	return structures.trouve(nom_structures[id])->second;
-}
-
-DonneesStructure const &ContexteGenerationCode::donnees_structure(const long id) const
-{
-	return structures.trouve(nom_structures[id])->second;
-}
-
-dls::chaine ContexteGenerationCode::nom_struct(const long id) const
-{
-	return dls::chaine{nom_structures[id]};
-}
-
-/* ************************************************************************** */
-
-void ContexteGenerationCode::differe_noeud(noeud::base *noeud)
-{
-	m_noeuds_differes.pousse(noeud);
-	++m_nombre_differes;
-}
-
-dls::tableau<noeud::base *> const &ContexteGenerationCode::noeuds_differes() const
-{
-	return m_noeuds_differes;
-}
-
-dls::tableau<noeud::base *> ContexteGenerationCode::noeuds_differes_bloc() const
-{
-	auto idx_debut = m_pile_nombre_differes.haut();
-	auto idx_fin = m_nombre_differes;
-
-	if (idx_debut == idx_fin) {
-		return {};
-	}
-
-	auto liste = dls::tableau<noeud::base *>{};
-	liste.reserve(idx_fin - idx_debut);
-
-	for (auto i = idx_debut; i < idx_fin; ++i) {
-		liste.pousse(m_noeuds_differes[i]);
-	}
-
-	return liste;
 }
 
 /* ************************************************************************** */
@@ -581,24 +322,6 @@ dls::tableau<noeud::base *> ContexteGenerationCode::noeuds_differes_bloc() const
 size_t ContexteGenerationCode::memoire_utilisee() const
 {
 	auto memoire = sizeof(ContexteGenerationCode);
-
-	/* globales */
-	memoire += static_cast<size_t>(globales.taille()) * (sizeof(DonneesVariable) + sizeof(dls::vue_chaine_compacte));
-
-	/* fonctions */
-
-	/* structures */
-	memoire += static_cast<size_t>(structures.taille()) * sizeof(DonneesStructure);
-
-	for (auto const &structure : structures) {
-		memoire += static_cast<size_t>(structure.second.donnees_membres.taille()) * (sizeof(DonneesMembre) + sizeof(dls::vue_chaine_compacte));
-	}
-
-	memoire += static_cast<size_t>(nom_structures.taille()) * sizeof(dls::vue_chaine_compacte);
-
-	/* m_locales */
-	memoire += static_cast<size_t>(m_locales.capacite()) * sizeof(std::pair<dls::vue_chaine_compacte, DonneesVariable>);
-	memoire += static_cast<size_t>(m_pile_nombre_locales.taille()) * sizeof(size_t);
 
 	/* m_pile_continue */
 #ifdef AVEC_LLVM
@@ -608,9 +331,10 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 	memoire += static_cast<size_t>(m_pile_arrete.taille()) * sizeof(llvm::BasicBlock *);
 #endif
 
-	for (auto module : modules) {
-		memoire += module->memoire_utilisee();
-	}
+	/* À FAIRE : réusinage arbre */
+//	for (auto module : modules) {
+//		memoire += module->memoire_utilisee();
+//	}
 
 	return memoire;
 }
@@ -623,6 +347,14 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 	metriques.temps_generation = this->temps_generation;
 	metriques.memoire_types = this->typeuse.memoire_utilisee();
 	metriques.memoire_operateurs = this->operateurs.memoire_utilisee();
+
+	metriques.memoire_arbre += this->assembleuse->memoire_utilisee();
+	metriques.nombre_noeuds += this->assembleuse->nombre_noeuds();
+
+	POUR (modules) {
+		metriques.memoire_arbre += it->assembleuse->memoire_utilisee();
+		metriques.nombre_noeuds += it->assembleuse->nombre_noeuds();
+	}
 
 	for (auto fichier : fichiers) {
 		metriques.nombre_lignes += fichier->tampon.nombre_lignes();
@@ -639,16 +371,6 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 }
 
 /* ************************************************************************** */
-
-void ContexteGenerationCode::non_sur(bool ouinon)
-{
-	m_non_sur = ouinon;
-}
-
-bool ContexteGenerationCode::non_sur() const
-{
-	return m_non_sur;
-}
 
 dls::vue_chaine_compacte ContexteGenerationCode::trouve_membre_actif(const dls::vue_chaine_compacte &nom_union)
 {

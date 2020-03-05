@@ -14,9 +14,9 @@
 //###############################################################################
 
 // Valeur des descripteurs fichiers pour les flux standards.
-std_in  := 0
-std_out := 1
-std_err := 2
+std_in  :: 0
+std_out :: 1
+std_err :: 2
 
 sprintf :: fonc externe (tmp : *z8, fmt : *z8, args : ...) -> z32
 
@@ -84,9 +84,9 @@ S_IFBLK :: fonc externe (mode : n32) -> bool
 S_IFCHR :: fonc externe (mode : n32) -> bool
 S_IFIFO :: fonc externe (mode : n32) -> bool
 
-_SEEK_SET := 0	/* Seek from beginning of file.  */
-_SEEK_CUR := 1	/* Seek from current position.  */
-_SEEK_END := 2	/* Seek from end of file.  */
+_SEEK_SET :: 0	/* Seek from beginning of file.  */
+_SEEK_CUR :: 1	/* Seek from current position.  */
+_SEEK_END :: 2	/* Seek from end of file.  */
 
 lseek :: fonc externe (fd: z32, offset: z64, whence: z32) -> z64
 
@@ -119,51 +119,51 @@ dirent :: struct externe  {
 }
 
 // duplique un énum
-_DT_UNKNOWN := 0
-_DT_FIFO := 1
-_DT_CHR := 2
-_DT_DIR := 4
-_DT_BLK := 6
-_DT_REG := 8
-_DT_LNK := 10
-_DT_SOCK := 12
-_DT_WHT := 14
+_DT_UNKNOWN :: 0
+_DT_FIFO :: 1
+_DT_CHR :: 2
+_DT_DIR :: 4
+_DT_BLK :: 6
+_DT_REG :: 8
+_DT_LNK :: 10
+_DT_SOCK :: 12
+_DT_WHT :: 14
 
 // open/fnctl
-MODE_ACCÈS       :=      0o003
-LECTURE_SEULE    :=        0o0
-ÉCRITURE_SEULE   :=        0o1
-LECTURE_ÉCRITURE :=        0o2
-CREATION         :=      0o100
-EXCLUSION        :=      0o200
-NOCTTY           :=      0o400
-TRONCAGE         :=     0o1000
-APPEND           :=     0o2000
-NONBLOCK         :=     0o4000
-NDELAY           :=     0o4000
-SYNC             :=  0o4010000
-FSYNC            :=  0o4010000
-ASYNC            :=    0o20000
-LARGEFILE        :=   0o100000
-DIRECTORY	     :=   0o200000
-NOFOLLOW	     :=   0o400000
-CLOEXEC          :=  0o2000000
-DIRECT	         :=    0o40000
-NOATIME          :=  0o1000000
-PATH             := 0o10000000
-DSYNC	         :=    0o10000
+MODE_ACCÈS       ::      0o003
+LECTURE_SEULE    ::        0o0
+ÉCRITURE_SEULE   ::        0o1
+LECTURE_ÉCRITURE ::        0o2
+CREATION         ::      0o100
+EXCLUSION        ::      0o200
+NOCTTY           ::      0o400
+TRONCAGE         ::     0o1000
+APPEND           ::     0o2000
+NONBLOCK         ::     0o4000
+NDELAY           ::     0o4000
+SYNC             ::  0o4010000
+FSYNC            ::  0o4010000
+ASYNC            ::    0o20000
+LARGEFILE        ::   0o100000
+DIRECTORY	     ::   0o200000
+NOFOLLOW	     ::   0o400000
+CLOEXEC          ::  0o2000000
+DIRECT	         ::    0o40000
+NOATIME          ::  0o1000000
+PATH             :: 0o10000000
+DSYNC	         ::    0o10000
 // À FAIRE : les expressions utilisent des variables temporaires lors de la
 // génération du code, ce qui n'est pas possible pour les variables globales ou
 // encore les énum. L'expression devrait être (0o20000000 | 0o200000)
-TMPFILE          := 0o20200000
+TMPFILE          :: 0o20200000
 
-_O_NONBLOCK := 0o04000
+_O_NONBLOCK :: 0o04000
 
-_F_DUPFD := 0	/* Duplicate file descriptor.  */
-_F_GETFD := 1	/* Get file descriptor flags.  */
-_F_SETFD := 2	/* Set file descriptor flags.  */
-_F_GETFL := 3	/* Get file status flags.  */
-_F_SETFL := 4	/* Set file status flags.  */
+_F_DUPFD :: 0	/* Duplicate file descriptor.  */
+_F_GETFD :: 1	/* Get file descriptor flags.  */
+_F_SETFD :: 2	/* Set file descriptor flags.  */
+_F_GETFL :: 3	/* Get file status flags.  */
+_F_SETFL :: 4	/* Set file status flags.  */
 
 fcntl :: fonc externe (fd: z32, cmd: z32, args: ...) -> z32
 
@@ -173,10 +173,10 @@ readdir :: fonc externe (d : *DIR) -> *dirent
 
 //###############################################################################
 
-_PF_INET := 2
-_AF_INET := 2
-_SOCK_STREAM := 1
-_WNOHANG := 1
+_PF_INET :: 2
+_AF_INET :: 2
+_SOCK_STREAM :: 1
+_WNOHANG :: 1
 _INADDR_ANY : n32 = 0
 
 hostent :: struct externe  {
@@ -207,8 +207,8 @@ gethostbyname :: fonc externe (arg : *z8) -> *hostent
 
 socket :: fonc externe (a : z32, b : z32, c : z32) -> z32
 
-_SOL_SOCKET := 1
-_SO_REUSEADDR := 2
+_SOL_SOCKET :: 1
+_SO_REUSEADDR :: 2
 
 setsockopt :: fonc externe (sockfd: z32, level: z32, optname: z32, optval: *rien, optlen: n64) -> z32
 
@@ -247,6 +247,6 @@ fclose :: fonc externe (__file : *FILE) -> z32
 
 // -------------------------------------
 
-_SIGINT := 2
+_SIGINT :: 2
 
 signal :: fonc externe (numéro_signal: z32, rappel: #nulctx fonc(z32)(rien)) -> rien

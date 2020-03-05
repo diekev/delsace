@@ -62,7 +62,7 @@ static std::pair<bool, bool> retourne_erreur_module_lancee(
 		charge_fichier(os, module, "", nom_module.c_str(), contexte_generation, {});
 
 		if (genere_code) {
-			noeud::performe_validation_semantique(assembleuse, contexte_generation);
+			noeud::performe_validation_semantique(contexte_generation);
 			noeud::genere_code_C(assembleuse, contexte_generation, "", os);
 		}
 	}

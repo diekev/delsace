@@ -26,16 +26,11 @@
 
 #include "biblinternes/structures/chaine.hh"
 
-struct DonneesFonction;
+struct NoeudDeclarationFonction;
 struct Type;
 
 dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom);
 
-dls::chaine const &nom_broye_type(
-		Type *type,
-		bool pour_generation_code_c);
+dls::chaine const &nom_broye_type(Type *type, bool pour_generation_code_c);
 
-dls::chaine broye_nom_fonction(
-		DonneesFonction const &df,
-		dls::vue_chaine_compacte const &nom_fonction,
-		dls::chaine const &nom_module);
+dls::chaine broye_nom_fonction(NoeudDeclarationFonction *decl, dls::chaine const &nom_module);

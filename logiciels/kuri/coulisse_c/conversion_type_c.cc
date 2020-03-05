@@ -27,10 +27,7 @@
 #include "broyage.hh"
 #include "contexte_generation_code.h"
 
-void cree_typedef(
-		ContexteGenerationCode &contexte,
-		Type *type,
-		dls::flux_chaine &os)
+void cree_typedef(Type *type, dls::flux_chaine &os)
 {
 	auto const &nom_broye = nom_broye_type(type, true);
 
@@ -121,11 +118,12 @@ void cree_typedef(
 		}
 		case GenreType::STRUCTURE:
 		{
-			auto nom_struct = broye_nom_simple(static_cast<TypeStructure *>(type)->nom);
-			auto &ds = contexte.donnees_structure(static_cast<TypeStructure *>(type)->nom);
+			auto type_struct = static_cast<TypeStructure *>(type);
+			auto nom_struct = broye_nom_simple(type_struct->nom);
+			auto decl = type_struct->decl;
 
 			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t") {
-				if (ds.est_union && (ds.est_nonsur || ds.est_externe)) {
+				if (decl->est_union && (decl->est_nonsure || decl->est_externe)) {
 					os << "typedef union " << nom_struct << ' ' << nom_broye << ";\n";
 				}
 				else {
@@ -140,10 +138,11 @@ void cree_typedef(
 		}
 		case GenreType::UNION:
 		{
-			auto nom_struct = broye_nom_simple(static_cast<TypeStructure *>(type)->nom);
-			auto &ds = contexte.donnees_structure(static_cast<TypeStructure *>(type)->nom);
+			auto type_struct = static_cast<TypeStructure *>(type);
+			auto nom_struct = broye_nom_simple(type_struct->nom);
+			auto decl = type_struct->decl;
 
-			if (ds.est_nonsur || ds.est_externe) {
+			if (decl->est_nonsure || decl->est_externe) {
 				os << "typedef union " << nom_struct << ' ' << nom_broye << ";\n";
 			}
 			else {

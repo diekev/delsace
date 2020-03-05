@@ -3,6 +3,7 @@ charge "rendeuse_page"
 charge "serveuse"
 
 importe Fondation
+importe Réseau
 
 DonnéesPage :: struct {
     titre := "Accueil"

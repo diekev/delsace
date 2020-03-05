@@ -39,6 +39,7 @@
 
 #include "typage.hh"
 
+#if 0
 llvm::Type *converti_type_llvm(
 		ContexteGenerationCode &contexte,
 		Type *type)
@@ -253,3 +254,4 @@ llvm::Type *converti_type_llvm(
 
 	return nullptr;
 }
+#endif

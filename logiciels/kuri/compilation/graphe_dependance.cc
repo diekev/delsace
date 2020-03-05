@@ -47,7 +47,7 @@ GrapheDependance::~GrapheDependance()
 	}
 }
 
-NoeudDependance *GrapheDependance::cree_noeud_fonction(const dls::vue_chaine_compacte &nom, noeud::base *noeud_syntactique)
+NoeudDependance *GrapheDependance::cree_noeud_fonction(const dls::vue_chaine_compacte &nom, NoeudExpression *noeud_syntactique)
 {
 	/* différents modules peuvent déclarer la même fonction externe (p.e printf),
 	 * donc cherche d'abord le noeud. */
@@ -65,7 +65,7 @@ NoeudDependance *GrapheDependance::cree_noeud_fonction(const dls::vue_chaine_com
 	return noeud;
 }
 
-NoeudDependance *GrapheDependance::cree_noeud_globale(const dls::vue_chaine_compacte &nom, noeud::base *noeud_syntactique)
+NoeudDependance *GrapheDependance::cree_noeud_globale(const dls::vue_chaine_compacte &nom, NoeudExpression *noeud_syntactique)
 {
 	auto noeud = memoire::loge<NoeudDependance>("NoeudDependance");
 	noeud->nom = nom;

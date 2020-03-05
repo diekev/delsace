@@ -27,13 +27,11 @@
 #include <any>
 
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/liste.hh"
 
 #include "lexemes.hh"
 #include "typage.hh"
 #include "transformation_type.hh"
 
-struct ContexteGenerationCode;
 class assembleuse_arbre;
 struct TypeFonction;
 
@@ -42,7 +40,6 @@ enum class GenreNoeud : char {
 	DECLARATION_COROUTINE,
 	DECLARATION_ENUM,
 	DECLARATION_FONCTION,
-	DECLARATION_PARAMETRES_FONCTION,
 	DECLARATION_STRUCTURE,
 	DECLARATION_VARIABLE,
 	DIRECTIVE_EXECUTION,
@@ -73,13 +70,10 @@ enum class GenreNoeud : char {
 	INSTRUCTION_BOUCLE,
 	INSTRUCTION_COMPOSEE,
 	INSTRUCTION_CONTINUE_ARRETE,
-	INSTRUCTION_DIFFERE,
 	INSTRUCTION_DISCR,
 	INSTRUCTION_DISCR_ENUM,
 	INSTRUCTION_DISCR_UNION,
 	INSTRUCTION_POUR,
-	INSTRUCTION_NONSUR,
-	INSTRUCTION_PAIRE_DISCR,
 	INSTRUCTION_POUSSE_CONTEXTE,
 	INSTRUCTION_REPETE,
 	INSTRUCTION_RETIENS,
@@ -103,90 +97,25 @@ inline bool est_instruction_retour(GenreNoeud genre)
 	return genre == GenreNoeud::INSTRUCTION_RETOUR || genre == GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE || genre == GenreNoeud::INSTRUCTION_RETOUR_SIMPLE;
 }
 
-/* ************************************************************************** */
-
-/* Notes pour supprimer le dls::liste de la structure noeud et n'utiliser de la
- * mémoire que quand nécessaire.
- *
- * noeud racine : multiples enfants pouvant être dans des tableaux différents
- * -- noeud déclaration fonction
- * -- noeud déclaration structure
- * -- noeud déclaration énum
- *
- * noeud déclaration fonction : un seul enfant
- * -- noeud bloc
- *
- * noeud appel fonction : multiples enfants de mêmes types
- * -- noeud expression
- *
- * noeud assignation variable : deux enfants
- * -- noeud expression | noeud déclaration variable
- * -- noeud expression
- *
- * noeud retour : un seul enfant
- * -- noeud expression
- *
- * noeud opérateur binaire : 2 enfants de même type
- * -- noeud expression
- * -- noeud expression
- *
- * noeud opérateur binaire : un seul enfant
- * -- noeud expression
- *
- * noeud expression : un seul enfant, peut utiliser une énumeration pour choisir
- *                    le bon noeud
- * -- noeud (variable | opérateur | nombre entier | nombre réel | appel fonction)
- *
- * noeud accès membre : deux enfants de même type
- * -- noeud variable
- *
- * noeud boucle : un seul enfant
- * -- noeud bloc
- *
- * noeud pour : 4 enfants
- * -- noeud variable
- * -- noeud expression
- * -- noeud expression
- * -- noeud bloc
- *
- * noeud bloc : multiples enfants de types différents
- * -- déclaration variable / expression / retour / boucle pour
- *
- * noeud si : 2 ou 3 enfants
- * -- noeud expression
- * -- noeud bloc
- * -- noeud si | noeud bloc
- *
- * noeud déclaration variable : aucun enfant
- * noeud variable : aucun enfant
- * noeud nombre entier : aucun enfant
- * noeud nombre réel : aucun enfant
- * noeud booléen : aucun enfant
- * noeud chaine caractère : aucun enfant
- * noeud continue_arrête : aucun enfant
- * noeud pointeur nul : aucun enfant
- *
- * Le seul type de neoud posant problème est le noeud de déclaration de
- * fonction, mais nous pourrions avoir des tableaux séparés avec une structure
- * de données pour définir l'ordre d'apparition des noeuds des tableaux dans la
- * fonction. Tous les autres types de noeuds ont des enfants bien défini, donc
- * nous pourrions peut-être supprimer l'héritage, tout en forçant une interface
- * commune à tous les noeuds.
- */
+bool est_declaration(GenreNoeud genre);
 
 /* ************************************************************************** */
 
 enum drapeaux_noeud : unsigned short {
-	AUCUN                  = 0,
-	EMPLOYE                = (1 << 0),
-	DECLARATION            = (1 << 1),
-	EST_EXTERNE            = (1 << 2),
-	EST_CALCULE            = (1 << 3),
-	IGNORE_OPERATEUR       = (1 << 4),
-	FORCE_ENLIGNE          = (1 << 5),
-	FORCE_HORSLIGNE        = (1 << 6),
-	FORCE_NULCTX           = (1 << 7),
-	EST_ASSIGNATION_OPEREE = (1 << 8),
+	AUCUN                      = 0,
+	EMPLOYE                    = (1 << 0),
+	DECLARATION                = (1 << 1),
+	EST_EXTERNE                = (1 << 2),
+	EST_CALCULE                = (1 << 3),
+	IGNORE_OPERATEUR           = (1 << 4),
+	FORCE_ENLIGNE              = (1 << 5),
+	FORCE_HORSLIGNE            = (1 << 6),
+	FORCE_NULCTX               = (1 << 7),
+	EST_ASSIGNATION_OPEREE     = (1 << 8),
+	EST_VARIADIQUE             = (1 << 9),
+	EST_VAR_BOUCLE             = (1 << 10),
+	EST_GLOBALE                = (1 << 11),
+	EST_APPEL_SYNTAXE_UNIFORME = (1 << 12),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
@@ -258,92 +187,287 @@ inline bool est_valeur_droite(GenreValeur type_valeur)
 	return (type_valeur & GenreValeur::DROITE) != GenreValeur::INVALIDE;
 }
 
-struct DonneesFonction;
 struct DonneesOperateur;
 
-namespace noeud {
+#include "structures.hh"
 
-/**
- * Classe de base représentant un noeud dans l'arbre.
- */
-struct base {
-	dls::liste<base *> enfants{};
-	DonneesLexeme const &lexeme;
+void rassemble_feuilles(
+		NoeudExpression *noeud_base,
+		dls::tableau<NoeudExpression *> &feuilles);
+
+struct IdentifiantCode;
+
+struct NoeudBloc;
+
+struct NoeudBase {
+	GenreNoeud genre{};
+	GenreValeur genre_valeur{};
+	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
+	int module_appel{}; // module pour les appels de fonctions importées
+	DonneesLexeme const *lexeme = nullptr;
+	IdentifiantCode *ident = nullptr;
+	Type *type = nullptr;
+
+	NoeudBloc *bloc_parent = nullptr;
+
+	DonneesTypeDeclare type_declare{};
+
+	TransformationType transformation{};
 
 	std::any valeur_calculee{};
-
-	dls::chaine nom_fonction_appel{}; // À FAIRE : on ne peut pas utiliser valeur_calculee car les prépasses peuvent le changer.
-
-	Type *type = nullptr;
+	char aide_generation_code = 0;
 
 	/* utilisé pour déterminer les types de retour des fonctions à moultretour
 	 * car lors du besoin index_type est utilisé pour le type de retour de la
 	 *  première valeur */
 	TypeFonction *type_fonc = nullptr;
+	dls::chaine nom_fonction_appel = "";
 
-	char aide_generation_code = 0;
-	GenreNoeud genre{};
-	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
-	int module_appel{}; // module pour les appels de fonctions importées
+	NoeudBase() = default;
 
-	DonneesFonction *df = nullptr; // pour les appels de coroutines dans les boucles ou autres.
-	DonneesOperateur const *op = nullptr;
+	COPIE_CONSTRUCT(NoeudBase);
 
-	DonneesTypeDeclare type_declare{};
-
-	GenreValeur genre_valeur = GenreValeur::INVALIDE;
-
-	TransformationType transformation{};
-
-	explicit base(DonneesLexeme const &lexeme);
-
-	base(base const &) = default;
-	base &operator=(base const &) = default;
-
-	/**
-	 * Ajoute un noeud à la liste des noeuds du noeud.
-	 */
-	void ajoute_noeud(base *noeud);
-
-	/**
-	 * Imprime le 'code' de ce noeud dans le flux de sortie 'os' précisé. C'est
-	 * attendu que le noeud demande à ces enfants d'imprimer leurs 'codes' dans
-	 * le bon ordre.
-	 */
-	void imprime_code(std::ostream &os, int tab);
-
-	/**
-	 * Retourne l'identifiant du lexeme de ce noeud.
-	 */
-	GenreLexeme identifiant() const;
-
-	/**
-	 * Retourne une référence constante vers la chaine du lexeme de ce noeud.
-	 */
-	dls::vue_chaine_compacte const &chaine() const;
-
-	/**
-	 * Retourne une référence constante vers les données du lexeme de ce neoud.
-	 */
-	DonneesLexeme const &donnees_lexeme() const;
-
-	/**
-	 * Retourne un pointeur vers le dernier enfant de ce noeud. Si le noeud n'a
-	 * aucun enfant, retourne nullptr.
-	 */
-	base *dernier_enfant() const;
-
-	/* retourne la valeur_calculee avec le type dls::chaine */
-	dls::chaine chaine_calculee() const;
+	dls::chaine chaine_calculee() const
+	{
+		return std::any_cast<dls::chaine>(this->valeur_calculee);
+	}
 };
 
-base *copie_noeud(assembleuse_arbre *assem, base *b);
+/* pour simplifier l'arbre les instructions et déclarations sont également des expressions */
+struct NoeudExpression : public NoeudBase {
+};
 
-void rassemble_feuilles(
-		base *noeud_base,
-		dls::tableau<base *> &feuilles);
+struct NoeudDeclaration : public NoeudExpression {
+	drapeaux_noeud drapeaux_decl = {};
+};
 
-/* Ajout le nom d'un argument à la liste des noms d'un noeud d'appel */
-void ajoute_nom_argument(base *b, const dls::vue_chaine_compacte &nom);
+struct NoeudDeclarationVariable final : public NoeudDeclaration {
+	NoeudDeclarationVariable() { genre = GenreNoeud::DECLARATION_VARIABLE; }
 
-}  /* namespace noeud */
+	COPIE_CONSTRUCT(NoeudDeclarationVariable);
+
+	// pour une expression de style a := 5, a est la valeur, et 5 l'expression
+	// pour une expression de style a, b := foo(7) , « a, b » est la valeur, et foo(7) l'expression
+	// la valeur est une peut redondante car ce noeud pourrait contenir les données de la valeur,
+	// mais elle est nécessaire pour pouvoir prendre en compte les expressions à virgule
+	NoeudExpression *valeur = nullptr;
+	NoeudExpression *expression = nullptr;
+};
+
+struct NoeudExpressionReference : public NoeudExpression {
+	NoeudExpressionReference() { genre = GenreNoeud::EXPRESSION_REFERENCE_DECLARATION; }
+};
+
+struct NoeudExpressionUnaire : public NoeudExpression {
+	NoeudExpressionUnaire() {}
+
+	NoeudExpression *expr = nullptr;
+
+	DonneesOperateur const *op = nullptr;
+
+	COPIE_CONSTRUCT(NoeudExpressionUnaire);
+};
+
+using NoeudExpressionParenthese = NoeudExpressionUnaire;
+
+struct NoeudExpressionBinaire : public NoeudExpression {
+	NoeudExpressionBinaire() {}
+
+	NoeudExpression *expr1 = nullptr;
+	NoeudExpression *expr2 = nullptr;
+
+	DonneesOperateur const *op = nullptr;
+
+	COPIE_CONSTRUCT(NoeudExpressionBinaire);
+};
+
+struct NoeudExpressionLogement : public NoeudExpression {
+	NoeudExpressionLogement() {}
+
+	NoeudExpression *expr = nullptr;
+	NoeudExpression *expr_chaine = nullptr;
+	NoeudBloc *bloc = nullptr;
+
+	COPIE_CONSTRUCT(NoeudExpressionLogement);
+};
+
+struct NoeudDeclarationFonction : public NoeudDeclaration {
+	NoeudDeclarationFonction() { genre = GenreNoeud::DECLARATION_FONCTION; }
+
+	kuri::tableau<NoeudDeclaration *> params{};
+	kuri::tableau<NoeudExpression *> arbre_aplatis{};
+
+	dls::tableau<dls::chaine> noms_retours{};
+
+	NoeudBloc *bloc = nullptr;
+
+	dls::tableau<dls::vue_chaine_compacte> noms_types_gabarits{};
+	bool est_coroutine = false;
+	bool est_gabarit = false;
+	bool est_variadique = false;
+	bool est_externe = false;
+	dls::chaine nom_broye = "";
+
+	COPIE_CONSTRUCT(NoeudDeclarationFonction);
+};
+
+struct NoeudExpressionAppel : public NoeudExpression {
+	NoeudExpressionAppel() { genre = GenreNoeud::EXPRESSION_APPEL_FONCTION; }
+
+	kuri::tableau<NoeudExpression *> params{};
+
+	dls::tableau<NoeudExpression *> exprs{};
+
+	NoeudExpression *noeud_fonction_appelee = nullptr;
+
+	COPIE_CONSTRUCT(NoeudExpressionAppel);
+};
+
+struct MembreStructure {
+	kuri::chaine nom{};
+	/* le décalage en octets dans la struct */
+	unsigned int decalage = 0;
+	Type *type = nullptr;
+
+	MembreStructure() = default;
+
+	COPIE_CONSTRUCT(MembreStructure);
+};
+
+struct DescriptionStructure {
+	kuri::tableau<MembreStructure> membres{};
+	unsigned int taille_octet{};
+	bool est_union{};
+	bool est_nonsure{};
+	bool est_externe{};
+	/* pour la prédéclaration des InfoType* */
+	bool deja_genere{};
+};
+
+struct NoeudStruct : public NoeudDeclaration {
+	NoeudStruct() { genre = GenreNoeud::DECLARATION_STRUCTURE; }
+
+	COPIE_CONSTRUCT(NoeudStruct);
+
+	NoeudBloc *bloc = nullptr;
+
+	DescriptionStructure desc{};
+
+	bool est_union = false;
+	bool est_nonsure = false;
+	bool est_externe = false;
+};
+
+struct DescriptionEnum {
+	kuri::tableau<kuri::chaine> noms;
+	kuri::tableau<int> valeurs;
+	long index_type;
+	bool est_drapeau;
+	/* pour la prédéclaration des InfoType* */
+	bool deja_genere;
+};
+
+struct NoeudEnum : public NoeudDeclaration {
+	NoeudEnum() { genre = GenreNoeud::DECLARATION_STRUCTURE; }
+
+	NoeudBloc *bloc = nullptr;
+
+	DescriptionEnum desc{};
+
+	COPIE_CONSTRUCT(NoeudEnum);
+};
+
+struct NoeudSi : public NoeudExpression {
+	NoeudSi() { genre = GenreNoeud::INSTRUCTION_SI; }
+
+	NoeudExpression *condition = nullptr;
+	NoeudBloc *bloc_si_vrai = nullptr;
+	NoeudBloc *bloc_si_faux = nullptr;
+
+	COPIE_CONSTRUCT(NoeudSi);
+};
+
+struct NoeudPour : public NoeudExpression {
+	NoeudPour() { genre = GenreNoeud::INSTRUCTION_POUR; }
+
+	NoeudExpression *variable = nullptr;
+	NoeudExpression *expression = nullptr;
+	NoeudBloc *bloc = nullptr;
+	NoeudBloc *bloc_sansarret = nullptr;
+	NoeudBloc *bloc_sinon = nullptr;
+
+	COPIE_CONSTRUCT(NoeudPour);
+};
+
+struct NoeudBoucle : public NoeudExpression {
+	NoeudBoucle() { genre = GenreNoeud::INSTRUCTION_BOUCLE; }
+
+	NoeudExpression *condition = nullptr;
+	NoeudBloc *bloc = nullptr;
+
+	COPIE_CONSTRUCT(NoeudBoucle);
+};
+
+struct NoeudBloc : public NoeudExpression {
+	NoeudBloc() { genre = GenreNoeud::INSTRUCTION_COMPOSEE; }
+
+	NoeudBloc *parent = nullptr;
+
+	NoeudStruct *appartiens_a_struct = nullptr;
+	NoeudEnum   *appartiens_a_enum = nullptr;
+	NoeudSi     *appartiens_a_boucle = nullptr;
+	NoeudStruct *appartiens_a_discr = nullptr;
+
+	kuri::tableau<NoeudDeclaration *> membres{};
+	kuri::tableau<NoeudExpression *>  expressions{};
+
+	kuri::tableau<NoeudBloc *> noeuds_differes{};
+
+	bool est_differe = false;
+	bool est_nonsur = false;
+	bool est_bloc_fonction = false;
+
+	COPIE_CONSTRUCT(NoeudBloc);
+};
+
+struct NoeudDiscr : public NoeudExpression {
+	NoeudDiscr() { genre = GenreNoeud::INSTRUCTION_DISCR; }
+
+	NoeudExpression *expr = nullptr;
+
+	kuri::tableau<std::pair<NoeudExpression *, NoeudBloc *>> paires_discr{};
+
+	NoeudBloc *bloc_sinon = nullptr;
+
+	DonneesOperateur const *op = nullptr;
+
+	COPIE_CONSTRUCT(NoeudDiscr);
+};
+
+struct NoeudPousseContexte : public NoeudExpression {
+	NoeudPousseContexte() { genre = GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE; }
+
+	NoeudExpression *expr = nullptr;
+	NoeudBloc *bloc = nullptr;
+
+	COPIE_CONSTRUCT(NoeudPousseContexte);
+};
+
+struct NoeudTableauArgsVariadiques : public NoeudExpression {
+	NoeudTableauArgsVariadiques() { genre = GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES; }
+
+	kuri::tableau<NoeudExpression *> exprs{};
+
+	COPIE_CONSTRUCT(NoeudTableauArgsVariadiques);
+};
+
+void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab);
+
+NoeudExpression *copie_noeud(
+		assembleuse_arbre *assem,
+		NoeudExpression *racine,
+		NoeudBloc *bloc_parent);
+
+void aplatis_arbre(
+		NoeudExpression *racine,
+		kuri::tableau<NoeudExpression *> &arbre_aplatis);

@@ -28,9 +28,8 @@
 
 enum class GenreLexeme : unsigned int;
 
-namespace noeud {
-struct base;
-}
+struct NoeudBloc;
+struct NoeudExpression;
 
 class assembleuse_arbre;
 
@@ -54,7 +53,7 @@ struct ResultatExpression {
 
 	type_expression type{};
 	bool est_errone = false;
-	noeud::base *noeud_erreur = nullptr;
+	NoeudExpression *noeud_erreur = nullptr;
 	const char *message_erreur = nullptr;
 
 	ResultatExpression() = default;
@@ -62,4 +61,7 @@ struct ResultatExpression {
 	COPIE_CONSTRUCT(ResultatExpression);
 };
 
-ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::base *b);
+ResultatExpression evalue_expression(
+		ContexteGenerationCode &contexte,
+		NoeudBloc *bloc,
+		NoeudExpression *b);

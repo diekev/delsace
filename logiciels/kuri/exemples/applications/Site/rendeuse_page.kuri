@@ -1,5 +1,6 @@
 importe Fondation
 importe GHTML
+importe Réseau
 
 charge "catalogue_fichier"
 charge "requête"

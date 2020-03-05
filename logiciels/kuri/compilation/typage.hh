@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tablet.hh"
 
@@ -37,14 +36,13 @@ class Type;
 }
 #endif
 
-namespace noeud {
-struct base;
-}
-
 struct ContexteGenerationCode;
 struct GrapheDependance;
 struct IdentifiantCode;
 struct Operateurs;
+struct NoeudEnum;
+struct NoeudExpression;
+struct NoeudStruct;
 
 /**
  * Système de type.
@@ -76,7 +74,7 @@ struct DonneesTypeDeclare {
 	dls::tablet<GenreLexeme, 5> donnees{};
 
 	// 2 expresssions par défaut, pour les types de matrices [..][..]T
-	dls::tablet<noeud::base *, 2> expressions{};
+	dls::tablet<NoeudExpression *, 2> expressions{};
 
 	// nous ne pouvons pas utiliser tablet ici... car DonneesTypeDeclare est
 	// utilisé par valeur, ce qui nous une récursion pour déterminer la taille
@@ -353,9 +351,10 @@ struct TypeStructure : public Type {
 
 	kuri::tableau<TypeStructure *> types_employes{};
 
-	noeud::base *decl = nullptr;
+	NoeudStruct *decl = nullptr;
 
 	bool est_union = false;
+	bool deja_genere = false;
 
 	dls::vue_chaine_compacte nom{};
 };
@@ -367,7 +366,7 @@ struct TypeEnum : public Type {
 
 	Type *type_donnees{};
 
-	noeud::base *decl = nullptr;
+	NoeudEnum *decl = nullptr;
 
 	dls::vue_chaine_compacte nom{};
 };
@@ -497,9 +496,9 @@ struct Typeuse {
 
 	TypeFonction *type_fonction(kuri::tableau<Type *> const &entrees, kuri::tableau<Type *> const &sorties);
 
-	TypeStructure *reserve_type_structure(noeud::base *decl);
+	TypeStructure *reserve_type_structure(NoeudStruct *decl);
 
-	TypeEnum *reserve_type_enum(noeud::base *decl);
+	TypeEnum *reserve_type_enum(NoeudEnum *decl);
 
 	inline Type *operator[](TypeBase type_base) const
 	{

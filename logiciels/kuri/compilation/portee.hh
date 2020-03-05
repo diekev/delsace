@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2019 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2020 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -24,29 +24,21 @@
 
 #pragma once
 
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/flux_chaine.hh"
-
-struct assembleuse_arbre;
 struct ContexteGenerationCode;
-struct NoeudExpression;
+struct Fichier;
+struct IdentifiantCode;
+struct NoeudBase;
+struct NoeudBloc;
+struct NoeudDeclaration;
 
-namespace noeud {
+NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident);
 
-/**
- * Traverse l'arbre et génère le code C.
- */
-void genere_code_C(
-		assembleuse_arbre const &arbre,
-		ContexteGenerationCode &contexte,
-		dls::chaine const &racine_kuri,
-		std::ostream &fichier_sortie);
+NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl);
 
-void genere_code_C_pour_execution(
-		assembleuse_arbre const &arbre,
-		NoeudExpression *noeud_appel,
-		ContexteGenerationCode &contexte,
-		dls::chaine const &racine_kuri,
-		std::ostream &fichier_sortie);
+NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudBase *noeud);
 
-}  /* namespace noeud */
+NoeudDeclaration *trouve_dans_bloc_ou_module(
+		ContexteGenerationCode const &contexte,
+		NoeudBloc *bloc,
+		IdentifiantCode *ident,
+		Fichier *fichier);

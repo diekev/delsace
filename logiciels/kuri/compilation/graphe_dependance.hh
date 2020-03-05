@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico.hh"
@@ -74,10 +73,10 @@ struct NoeudDependance {
 	dls::vue_chaine_compacte nom{};
 
 	// pour tous les noeuds
-	noeud::base *noeud_syntactique{};
+	NoeudExpression *noeud_syntactique{};
 
 	// pour le graphe de dépendance syntaxique
-	dls::tableau<noeud::base *> noeuds_syntaxiques{};
+	dls::tableau<NoeudExpression *> noeuds_syntaxiques{};
 
 	bool fut_visite = false;
 	bool deja_genere = false;
@@ -100,10 +99,10 @@ struct GrapheDependance {
 	~GrapheDependance();
 
 	// CRÉE (:FONCTION { nom = $nom })
-	NoeudDependance *cree_noeud_fonction(dls::vue_chaine_compacte const &nom, noeud::base *noeud_syntactique);
+	NoeudDependance *cree_noeud_fonction(dls::vue_chaine_compacte const &nom, NoeudExpression *noeud_syntactique);
 
 	// CRÉE (:GLOBALE { nom = $nom })
-	NoeudDependance *cree_noeud_globale(dls::vue_chaine_compacte const &nom, noeud::base *noeud_syntactique);
+	NoeudDependance *cree_noeud_globale(dls::vue_chaine_compacte const &nom, NoeudExpression *noeud_syntactique);
 
 	// FUSIONNE (:TYPE { index = $index })
 	NoeudDependance *cree_noeud_type(Type *type);

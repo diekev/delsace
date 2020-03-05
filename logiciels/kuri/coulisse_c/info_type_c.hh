@@ -30,7 +30,7 @@
 
 struct ContexteGenerationCode;
 struct GeneratriceCodeC;
-struct DonneesStructure;
+struct NoeudEnum;
 struct Type;
 
 dls::chaine cree_info_type_C(
@@ -40,5 +40,5 @@ dls::chaine cree_info_type_C(
 		Type *type);
 
 dls::chaine chaine_valeur_enum(
-		DonneesStructure const &ds,
+		NoeudEnum *noeud_enum,
 		dls::vue_chaine_compacte const &nom);

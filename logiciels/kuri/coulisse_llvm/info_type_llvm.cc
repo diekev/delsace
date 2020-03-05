@@ -41,6 +41,7 @@
 #include "conversion_type_llvm.hh"
 #include "typage.hh"
 
+#if 0
 /* À tenir synchronisé avec l'énum dans info_type.kuri
  * Nous utilisons ceci lors de la génération du code des infos types car nous ne
  * générons pas de code (ou symboles) pour les énums, mais prenons directements
@@ -409,7 +410,6 @@ llvm::Value *cree_info_type(
 			auto type_struct_membre = obtiens_type_pour(contexte, "InfoTypeMembreStructure");
 
 			std::vector<llvm::Constant *> valeurs_membres;
-
 			for (auto &arg : donnees_structure.donnees_membres) {
 				/* { nom: chaine, info : *InfoType, décalage } */
 				auto type_membre = donnees_structure.types[arg.second.index_membre];
@@ -539,3 +539,4 @@ llvm::Value *valeur_enum(
 							builder.getDoubleTy(),
 							dm.resultat_expression.reel);
 }
+#endif

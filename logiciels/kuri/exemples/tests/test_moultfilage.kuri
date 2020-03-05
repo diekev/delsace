@@ -92,7 +92,7 @@ donnée_client_t :: struct {
 }
 
 ValeurSysConf :: énum z32 {
-    _SC_NPROCESSORS_ONLN := 84
+    _SC_NPROCESSORS_ONLN :: 84
 }
 
 sysconf :: fonc externe (nom: ValeurSysConf) -> z64
