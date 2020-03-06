@@ -504,6 +504,12 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 			auto expression = param->expression;
 
 			if (expression != nullptr) {
+				if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
+					erreur::lance_erreur("Un paramètre d'une surcharge d'opérateur ne peut avoir de valeur par défaut",
+										 contexte,
+										 param->lexeme);
+				}
+
 				performe_validation_semantique(expression, contexte, false);
 
 				/* À FAIRE: vérifie que le type de l'argument correspond à celui de l'expression */
