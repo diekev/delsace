@@ -1797,6 +1797,14 @@ static bool est_operateur_surchargeable(GenreLexeme genre)
 		case GenreLexeme::MOINS:
 		case GenreLexeme::FOIS:
 		case GenreLexeme::DIVISE:
+		case GenreLexeme::DECALAGE_DROITE:
+		case GenreLexeme::DECALAGE_GAUCHE:
+		case GenreLexeme::POURCENT:
+		case GenreLexeme::ESPERLUETTE:
+		case GenreLexeme::BARRE:
+		case GenreLexeme::TILDE:
+		case GenreLexeme::EXCLAMATION:
+		case GenreLexeme::CHAPEAU:
 		{
 			return true;
 		}
@@ -1866,9 +1874,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		else if (id == GenreLexeme::MOINS) {
 			lexeme.genre = GenreLexeme::MOINS_UNAIRE;
 		}
-		else {
+		else if (id != GenreLexeme::TILDE && id != GenreLexeme::EXCLAMATION) {
 			erreur::lance_erreur(
-						"La surcharge d'opérateur unaire n'est possible que pour '+' ou '-'",
+						"La surcharge d'opérateur unaire n'est possible que pour '+', '-', '~', ou '!'",
 						m_contexte,
 						&lexeme);
 		}

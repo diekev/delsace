@@ -368,6 +368,46 @@ dls::chaine broye_nom_fonction(
 				nom_ascii += "div";
 				break;
 			}
+			case GenreLexeme::DECALAGE_DROITE:
+			{
+				nom_ascii += "dcd";
+				break;
+			}
+			case GenreLexeme::DECALAGE_GAUCHE:
+			{
+				nom_ascii += "dcg";
+				break;
+			}
+			case GenreLexeme::POURCENT:
+			{
+				nom_ascii += "mod";
+				break;
+			}
+			case GenreLexeme::ESPERLUETTE:
+			{
+				nom_ascii += "et";
+				break;
+			}
+			case GenreLexeme::BARRE:
+			{
+				nom_ascii += "ou";
+				break;
+			}
+			case GenreLexeme::TILDE:
+			{
+				nom_ascii += "non";
+				break;
+			}
+			case GenreLexeme::EXCLAMATION:
+			{
+				nom_ascii += "excl";
+				break;
+			}
+			case GenreLexeme::CHAPEAU:
+			{
+				nom_ascii += "oux";
+				break;
+			}
 		}
 	}
 	else {
