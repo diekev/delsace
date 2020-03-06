@@ -27,6 +27,10 @@ Faitures
 - générateurs/coroutines permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
 - plusieurs valeur de retour
 - point-virgule implicite (à la fin des expressions)
+- surcharge d'opérateurs
+- fonctions gabarits/polymorphiques
+- valeur par défaut des paramètres de fonctions
+- héritage de structures via un système d'emploiement
 
 
 À faire
@@ -40,57 +44,33 @@ Faitures
 ---- entier + caractere    -> caractère  # À FAIRE
 ---- chaîne + caractere    -> chaîne     # À FAIRE
 ---- caractere + chaîne    -> chaîne     # À FAIRE
-- types spécial pour caractère simple
 - stack canaries (coulisse LLVM)
-- réusinage du système de vérification sémantique du code notamment pour dédupliquer ce code et prendre en compte l'analyse de fonctions dans des modules externes dont nous ne pouvons savoir le type avant l'analyse sémantique
 - coroutines en dehours de boucles
 - évite l'initialisation via "---"
 - interpreteur pour calculer le code au niveau de l'émission de code (exécuter dans le compileur, voir JAI, pour les bibliothèques externes -> chargement du .so/.dll)
-- suppression ':'
 - ajoute accès membre pour les types (==> déplacer structures dans les modules)
-- analyseuse_grammaire -> suppression des vérifications redondantes
 - ajout d'une option pour controler la génération du code d'introspection/réflexion (il faut alors également exclure les einis)
 - conversion automatique des types en unions et extraction automatique des valeurs des unions
 - infos types pour les unions
-- à faire : urgent
--- surcharge d'opérateurs (simple)
-	syntaxe : opér [opérateur] (args..) : [type]
-	opérateurs composés avec = sont implicites
-	+
-	-
-	+ unaire
-	- unaire
-	=
-	/
-	*
-	%
-	&
-	&&
-	|
-	||
-	^
-	<<
-	>>
-	== (!= implicite)
-	< (<= implicite si == ou (> et ==) est défini)
-	> (>= implicite si == ou (< et ==) est défini)
-	!
-	~
--- surcharge transtypage
+- surcharge d'opérateurs, considération pour '='
+- surcharge transtypage
 	opér [type] (arg) : [type]
--- réusinage des tests
--- avoir une meilleur gestion de la correctitude de constance, il est possible de passer une variable constante à un fonction la modifiant
-- à faire : moins urgent
--- gabarits (maintenir une table de symboles afin de désambiguer a < b (comparaison), et a<b> (paramètres)
--- empl (vérifier tous les cas)
--- évaluation arbitraire du code
--- initialisation des objets : évite d'initialiser plusieurs fois le même membre
--- alias de types
--- opérateurs implicites
--- validation des types des énums, et typages plus libre (énum de chaines, de structures, etc.)
--- ajout d'un mot-clé pour les types ?
--- ajout d'un type pour les retours de fonctions (ou tuple, R-uple ?)
--- ajout d'un type pour les caractères (« rune »), avec une gestion correcte des chaines UTF-8
+- réusinage des tests
+- avoir une gestion de la correctitude de constance
+- gabarits (maintenir une table de symboles afin de désambiguer a < b (comparaison), et a<b> (paramètres)
+- empl (vérifier tous les cas)
+- évaluation arbitraire du code (en cours)
+- initialisation des objets : évite d'initialiser plusieurs fois le même membre
+- alias de types
+- opérateurs implicites
+	<= implicite si > ou (< et ==) est défini
+	>= implicite si < ou (> et ==) est défini
+	== implicite si != est défini
+	!= implicite si == est défini
+- validation des types des énums, et typages plus libre (énum de chaines, de structures, etc.)
+- ajout d'un mot-clé pour les types ?
+- ajout d'un type pour les retours de fonctions (ou tuple, R-uple ?)
+- ajout d'un type pour les caractères (« rune »), avec une gestion correcte des chaines UTF-8
 
 
 À faire (tests)
@@ -105,10 +85,6 @@ Faitures
 - test surcharge de fonction
 - test coroutine
 - test valeurs de retours multiples
-
-Bugs
-----
-- On ne peut pas passer un pointeur d'une structure « employante » dans une fonction prenant son « employée »
 
 
 Bugs (coulisse LLVM)
@@ -130,7 +106,6 @@ Idées
 - mot-clés pour des tests fuzzés, avec maintenance des fonctions auxilliaires des tests par le compileur
 - mot-clés pour un mutli-threading par système de tâches concurrentes, avec maintenance des fonctions auxilliaires par le compileur
 - transformer les messages d'erreur en tutoriaux
-- valeur par défaut des arguments
 - ajout de nom et valeur par défaut au type de retour
 - constructeurs/destructeurs via mot-clés et pointeurs de fonction
 - concaténation des chaînes littérales connues lors de la compilation via l'opérateur '+'
@@ -153,25 +128,6 @@ Idées
 
 	comment pour a && c
 
-
-analyse_déclaration
-
-si chaine + ':', analyse type, si '=' ou ':', analyse_expression
-
-si chaine + ':='
-
-si chaine + '::'
-
-si chaine + '(' => appel
-
-si chaine + '{' => construction structure
-
-sinon => référence déclaration
-
-NoeudDéclaration : NoeudExpression {
-    feuilles // pour les déclarations multiple (a, b := c())
-    expr // 'structure', 'fonc', 'corout', 'énum', 'énum_drapeau', expression quelqueconque
-}
 
 déréférencement *
 prend adresse &a
@@ -211,10 +167,6 @@ lit + lit
 
 Zones d'ombres
 --------------
-- gestion des modules et espaces de noms
-- gabarits
-- héritage
-- introspection lors de la compilation
 - concurrence, moultfilage
 
 
