@@ -61,6 +61,8 @@ struct OptionsCompilation {
 	ArchitectureCible architecture_cible = ArchitectureCible::X64;
 	OptionsLangage options_langage = OptionsLangage::TOUT;
 
+	bool cree_executable = true;
+
 	OptionsCompilation() = default;
 
 	~OptionsCompilation()

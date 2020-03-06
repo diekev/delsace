@@ -548,7 +548,7 @@ int main(int argc, char *argv[])
 //			}
 
 			/* définition du fichier de sortie */
-			if (/*ops.emet_fichier_objet*/true) {
+			if (ops.cree_executable) {
 				os << "Écriture du code dans un fichier..." << std::endl;
 				auto debut_fichier_objet = dls::chrono::compte_seconde();
 				if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
@@ -588,104 +588,106 @@ int main(int argc, char *argv[])
 
 			of.close();
 
-			auto debut_fichier_objet = dls::chrono::compte_seconde();
-			auto commande = dls::chaine("gcc -c /tmp/compilation_kuri.c ");
+			if (ops.cree_executable) {
+				auto debut_fichier_objet = dls::chrono::compte_seconde();
+				auto commande = dls::chaine("gcc -c /tmp/compilation_kuri.c ");
 
-			/* désactivation des erreurs concernant le manque de "const" quand
-			 * on passe des variables générés temporairement par la coulisse à
-			 * des fonctions qui dont les paramètres ne sont pas constants */
-			commande += "-Wno-discarded-qualifiers ";
-			/* désactivation des avertissements de passage d'une variable au
-			 * lieu d'une chaine littérale à printf et al. */
-			commande += "-Wno-format-security ";
+				/* désactivation des erreurs concernant le manque de "const" quand
+				 * on passe des variables générés temporairement par la coulisse à
+				 * des fonctions qui dont les paramètres ne sont pas constants */
+				commande += "-Wno-discarded-qualifiers ";
+				/* désactivation des avertissements de passage d'une variable au
+				 * lieu d'une chaine littérale à printf et al. */
+				commande += "-Wno-format-security ";
 
-			switch (ops.niveau_optimisation) {
-				case NiveauOptimisation::AUCUN:
-				case NiveauOptimisation::O0:
-				{
-					commande += "-O0 ";
-					break;
+				switch (ops.niveau_optimisation) {
+					case NiveauOptimisation::AUCUN:
+					case NiveauOptimisation::O0:
+					{
+						commande += "-O0 ";
+						break;
+					}
+					case NiveauOptimisation::O1:
+					{
+						commande += "-O1 ";
+						break;
+					}
+					case NiveauOptimisation::O2:
+					{
+						commande += "-O2 ";
+						break;
+					}
+					case NiveauOptimisation::Os:
+					{
+						commande += "-Os ";
+						break;
+					}
+					/* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
+					 * plus proche. */
+					case NiveauOptimisation::Oz:
+					case NiveauOptimisation::O3:
+					{
+						commande += "-O3 ";
+						break;
+					}
 				}
-				case NiveauOptimisation::O1:
-				{
-					commande += "-O1 ";
-					break;
+
+				if (ops.architecture_cible == ArchitectureCible::X86) {
+					commande += "-m32 ";
 				}
-				case NiveauOptimisation::O2:
-				{
-					commande += "-O2 ";
-					break;
+
+				for (auto const &def : assembleuse->definitions) {
+					commande += " -D" + dls::chaine(def);
 				}
-				case NiveauOptimisation::Os:
-				{
-					commande += "-Os ";
-					break;
-				}
-				/* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
-				 * plus proche. */
-				case NiveauOptimisation::Oz:
-				case NiveauOptimisation::O3:
-				{
-					commande += "-O3 ";
-					break;
-				}
-			}
-
-			if (ops.architecture_cible == ArchitectureCible::X86) {
-				commande += "-m32 ";
-			}
-
-			for (auto const &def : assembleuse->definitions) {
-				commande += " -D" + dls::chaine(def);
-			}
-
-			for (auto const &chm : assembleuse->chemins) {
-				commande += " ";
-				commande += chm;
-			}
-
-			commande += " -o /tmp/compilation_kuri.o";
-
-			os << "Exécution de la commande '" << commande << "'..." << std::endl;
-
-			auto err = system(commande.c_str());
-
-			temps_fichier_objet = debut_fichier_objet.temps();
-
-			if (err != 0) {
-				std::cerr << "Ne peut pas créer le fichier objet !\n";
-				est_errone = true;
-			}
-			else {
-				auto debut_executable = dls::chrono::compte_seconde();
-				commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
 
 				for (auto const &chm : assembleuse->chemins) {
 					commande += " ";
 					commande += chm;
 				}
 
-				for (auto const &bib : assembleuse->bibliotheques_statiques) {
-					commande += " " + bib;
-				}
-
-				for (auto const &bib : assembleuse->bibliotheques_dynamiques) {
-					commande += " -l" + bib;
-				}
-
-				commande += " -o ";
-				commande += dls::chaine(ops.nom_sortie.pointeur, ops.nom_sortie.taille);
+				commande += " -o /tmp/compilation_kuri.o";
 
 				os << "Exécution de la commande '" << commande << "'..." << std::endl;
 
-				err = system(commande.c_str());
+				auto err = system(commande.c_str());
+
+				temps_fichier_objet = debut_fichier_objet.temps();
 
 				if (err != 0) {
-					std::cerr << "Ne peut pas créer l'exécutable !\n";
+					std::cerr << "Ne peut pas créer le fichier objet !\n";
 					est_errone = true;
 				}
+				else {
+					auto debut_executable = dls::chrono::compte_seconde();
+					commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
 
-				temps_executable = debut_executable.temps();
+					for (auto const &chm : assembleuse->chemins) {
+						commande += " ";
+						commande += chm;
+					}
+
+					for (auto const &bib : assembleuse->bibliotheques_statiques) {
+						commande += " " + bib;
+					}
+
+					for (auto const &bib : assembleuse->bibliotheques_dynamiques) {
+						commande += " -l" + bib;
+					}
+
+					commande += " -o ";
+					commande += dls::chaine(ops.nom_sortie.pointeur, ops.nom_sortie.taille);
+
+					os << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+					err = system(commande.c_str());
+
+					if (err != 0) {
+						std::cerr << "Ne peut pas créer l'exécutable !\n";
+						est_errone = true;
+					}
+
+					temps_executable = debut_executable.temps();
+				}
 			}
 		}
 

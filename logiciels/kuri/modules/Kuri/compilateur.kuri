@@ -29,7 +29,7 @@ OptionsLangage :: énum_drapeau z32 {
     ACTIVE_INTROSPECTION
     ACTIVE_COROUTINE
 
-	TOUT :: (ACTIVE_COROUTINE | ACTIVE_INTROSPECTION)
+	//TOUT :: (ACTIVE_COROUTINE | ACTIVE_INTROSPECTION)
 }
 
 OptionsCompilation :: struct {
@@ -38,6 +38,8 @@ OptionsCompilation :: struct {
     niveau_optimisation : NiveauOptimisation
     architecture_cible : ArchitectureCible
     options_langage : OptionsLangage
+
+    crée_exécutable := vrai
 }
 
 // ----------------------------------------------------------------------------
