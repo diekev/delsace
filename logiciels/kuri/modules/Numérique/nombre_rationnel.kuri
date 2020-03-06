@@ -20,7 +20,7 @@ construit_nombre_rationnel :: fonc(n: n32, d: n32, positif: bool) -> NombreRatio
     retourne r
 }
 
-ajoute :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
+opérateur + :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     // augmente la taille des types pour éviter les problèmes de surflot
     a_n := transtype(a.N: n64)
@@ -78,15 +78,15 @@ ajoute :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     retourne r
 }
 
-soustrait :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
+opérateur - :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     tmp := b
     tmp.s = vrai
 
-    retourne ajoute(a, tmp)
+    retourne a + tmp
 }
 
-multiplie :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
+opérateur * :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     // augmente la taille des types pour éviter les problèmes de surflot
     a_n := transtype(a.N: n64)
@@ -128,13 +128,13 @@ multiplie :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     retourne r
 }
 
-divise :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
+opérateur / :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     tmp := b
     tmp.N = b.D
     tmp.D = b.N
 
-    retourne multiplie(a, tmp)
+    retourne a * tmp
 }
 
 imprime_nombre_rationnel :: fonc(a: NombreRationnel) -> rien

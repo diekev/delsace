@@ -782,6 +782,15 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 
 				break;
 			}
+			case GenreLexeme::OPERATEUR:
+			{
+				auto noeud = analyse_declaration_operateur();
+				noeud->drapeaux |= IGNORE_OPERATEUR;
+				expression.pousse(noeud);
+				termine_boucle = true;
+
+				break;
+			}
 			case GenreLexeme::NOMBRE_REEL:
 			{
 				auto noeud = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL, &lexeme);
@@ -1769,6 +1778,138 @@ void Syntaxeuse::analyse_directive_si()
 	else {
 		lance_erreur("Directive inconnue");
 	}
+}
+
+static bool est_operateur_surchargeable(GenreLexeme genre)
+{
+	switch (genre) {
+		default:
+		{
+			return false;
+		}
+		case GenreLexeme::INFERIEUR:
+		case GenreLexeme::INFERIEUR_EGAL:
+		case GenreLexeme::SUPERIEUR:
+		case GenreLexeme::SUPERIEUR_EGAL:
+		case GenreLexeme::DIFFERENCE:
+		case GenreLexeme::EGALITE:
+		case GenreLexeme::PLUS:
+		case GenreLexeme::MOINS:
+		case GenreLexeme::FOIS:
+		case GenreLexeme::DIVISE:
+		{
+			return true;
+		}
+	}
+}
+
+NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
+{
+	// nous sommes au niveau du lexème de l'opérateur
+	auto id = this->identifiant_courant();
+
+	if (!est_operateur_surchargeable(id)) {
+		lance_erreur("L'opérateur n'est pas surchargeable");
+	}
+
+	avance();
+
+	auto &lexeme = this->donnees();
+
+	// :: fonc
+	consomme(GenreLexeme::DECLARATION_CONSTANTE, "Attendu :: après la déclaration de l'opérateur");
+	consomme(GenreLexeme::FONC, "Attendu fonc après ::");
+
+	auto noeud = CREE_NOEUD(NoeudDeclarationFonction, GenreNoeud::DECLARATION_OPERATEUR, &lexeme);
+
+	if (m_etiquette_enligne) {
+		noeud->drapeaux |= FORCE_ENLIGNE;
+		m_etiquette_enligne = false;
+	}
+	else if (m_etiquette_horsligne) {
+		noeud->drapeaux |= FORCE_HORSLIGNE;
+		m_etiquette_horsligne = false;
+	}
+
+	if (m_etiquette_nulctx) {
+		noeud->drapeaux |= FORCE_NULCTX;
+		m_etiquette_nulctx = false;
+	}
+
+	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
+
+	/* analyse les paramètres de la fonction */
+	while (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
+		auto param = analyse_expression(GenreLexeme::VIRGULE, type_id::FONC);
+
+		if (param->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+			auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme);
+			decl_var->valeur = param;
+
+			noeud->params.pousse(decl_var);
+		}
+		else {
+			noeud->params.pousse(static_cast<NoeudDeclaration *>(param));
+		}
+	}
+
+	if (noeud->params.taille > 2) {
+		erreur::lance_erreur(
+					"La surcharge d'opérateur ne peut prendre au plus 2 paramètres",
+					m_contexte,
+					&lexeme);
+	}
+	else if (noeud->params.taille == 1) {
+		if (id == GenreLexeme::PLUS) {
+			lexeme.genre = GenreLexeme::PLUS_UNAIRE;
+		}
+		else if (id == GenreLexeme::MOINS) {
+			lexeme.genre = GenreLexeme::MOINS_UNAIRE;
+		}
+		else {
+			erreur::lance_erreur(
+						"La surcharge d'opérateur unaire n'est possible que pour '+' ou '-'",
+						m_contexte,
+						&lexeme);
+		}
+	}
+
+	consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' à la fin des paramètres de la fonction");
+
+	/* analyse les types de retour de la fonction, À FAIRE : inférence */
+
+	consomme(GenreLexeme::RETOUR_TYPE, "Attendu un retour de type");
+
+	while (true) {
+		noeud->noms_retours.pousse("__ret" + dls::vers_chaine(noeud->noms_retours.taille()));
+
+		auto type_declare = analyse_declaration_type(false);
+		noeud->type_declare.types_sorties.pousse(type_declare);
+
+		if (est_identifiant(type_id::ACCOLADE_OUVRANTE) || est_identifiant(type_id::POINT_VIRGULE)) {
+			break;
+		}
+
+		if (est_identifiant(type_id::VIRGULE)) {
+			avance();
+		}
+	}
+
+	if (noeud->type_declare.taille() > 1) {
+		lance_erreur("Il est impossible d'avoir plusieurs de sortie pour un opérateur");
+	}
+
+	/* ignore les points-virgules implicites */
+	if (est_identifiant(GenreLexeme::POINT_VIRGULE)) {
+		avance();
+	}
+
+	consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après la liste des paramètres de la fonction");
+
+	noeud->bloc = analyse_bloc();
+	aplatis_arbre(noeud->bloc, noeud->arbre_aplatis);
+
+	return noeud;
 }
 
 void Syntaxeuse::consomme(GenreLexeme id, const char *message)

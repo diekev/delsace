@@ -309,7 +309,70 @@ dls::chaine broye_nom_fonction(
 	ret += nom_ascii;
 
 	/* nom de la fonction */
-	nom_ascii = broye_nom_simple(decl->lexeme->chaine);
+	if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
+		nom_ascii = "operateur";
+
+		switch (decl->lexeme->genre) {
+			default:
+			{
+				assert(0);
+				break;
+			}
+			case GenreLexeme::INFERIEUR:
+			{
+				nom_ascii += "inf";
+				break;
+			}
+			case GenreLexeme::INFERIEUR_EGAL:
+			{
+				nom_ascii += "infeg";
+				break;
+			}
+			case GenreLexeme::SUPERIEUR:
+			{
+				nom_ascii += "sup";
+				break;
+			}
+			case GenreLexeme::SUPERIEUR_EGAL:
+			{
+				nom_ascii += "supeg";
+				break;
+			}
+			case GenreLexeme::DIFFERENCE:
+			{
+				nom_ascii += "dif";
+				break;
+			}
+			case GenreLexeme::EGALITE:
+			{
+				nom_ascii += "egl";
+				break;
+			}
+			case GenreLexeme::PLUS:
+			{
+				nom_ascii += "plus";
+				break;
+			}
+			case GenreLexeme::MOINS:
+			{
+				nom_ascii += "moins";
+				break;
+			}
+			case GenreLexeme::FOIS:
+			{
+				nom_ascii += "mul";
+				break;
+			}
+			case GenreLexeme::DIVISE:
+			{
+				nom_ascii += "div";
+				break;
+			}
+		}
+	}
+	else {
+		nom_ascii = broye_nom_simple(decl->lexeme->chaine);
+	}
 
 	ret += dls::vers_chaine(nom_ascii.taille());
 	ret += nom_ascii;

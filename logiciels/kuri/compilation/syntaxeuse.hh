@@ -95,6 +95,7 @@ private:
 	void analyse_controle_pour();
 	NoeudExpression *analyse_construction_structure(DonneesLexeme &lexeme);
 	void analyse_directive_si();
+	NoeudExpression *analyse_declaration_operateur();
 
 	void consomme(GenreLexeme id, const char *message);
 	void consomme_type(const char *message);

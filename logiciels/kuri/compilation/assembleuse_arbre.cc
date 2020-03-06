@@ -115,6 +115,7 @@ NoeudBase *assembleuse_arbre::cree_noeud(GenreNoeud genre, DonneesLexeme const *
 			LOGE_NOEUD(NoeudBloc, m_noeuds_bloc);
 			break;
 		}
+		case GenreNoeud::DECLARATION_OPERATEUR:
 		case GenreNoeud::DECLARATION_FONCTION:
 		case GenreNoeud::DECLARATION_COROUTINE:
 		{

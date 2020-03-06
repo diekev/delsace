@@ -580,8 +580,9 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 	// -----------------------------------
 
 	kuri::tableau<Type *> types_entrees;
+	auto possede_contexte = !possede_drapeau(b->drapeaux, FORCE_NULCTX);
 
-	if (!possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
+	if (possede_contexte) {
 		types_entrees.pousse(contexte.type_contexte);
 	}
 
@@ -602,35 +603,92 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 	decl->type = decl->type_fonc;
 	contexte.donnees_dependance.types_utilises.insere(b->type);
 
-	POUR (decl->bloc_parent->membres) {
-		if (it == decl) {
-			continue;
+	if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
+		auto op = contexte.operateurs.trouve(decl->lexeme->genre);
+
+		auto type_resultat = types_sorties[0];
+
+		if (type_resultat == contexte.typeuse[TypeBase::RIEN]) {
+			erreur::lance_erreur("Un opérateur ne peut retourner 'rien'",
+								 contexte,
+								 decl->lexeme);
 		}
 
-		if (it->genre != GenreNoeud::DECLARATION_FONCTION && it->genre != GenreNoeud::DECLARATION_COROUTINE) {
-			continue;
+		if (est_operateur_bool(decl->lexeme->genre) && type_resultat != contexte.typeuse[TypeBase::BOOL]) {
+			erreur::lance_erreur("Un opérateur de comparaison doit retourner 'bool'",
+								 contexte,
+								 decl->lexeme);
 		}
 
-		if (it->ident != decl->ident) {
-			continue;
-		}
-
-		if (it->type == decl->type) {
-			erreur::redefinition_fonction(
-						contexte,
-						it->lexeme,
-						decl->lexeme);
-		}
-	}
-
-	/* nous devons attendre d'avoir les types des arguments avant de
-	 * pouvoir broyer le nom de la fonction */
-	if (decl->lexeme->chaine != "principale" && !possede_drapeau(b->drapeaux, EST_EXTERNE)) {
 		auto fichier = contexte.fichier(static_cast<size_t>(decl->lexeme->fichier));
 		decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
+
+		if (decl->params.taille == 1) {
+			auto type1 = types_entrees[0 + possede_contexte];
+
+			POUR (op) {
+				if (it->type1 == type1) {
+					// À FAIRE : stocke le noeud de déclaration, quid des opérateurs basique ?
+					erreur::lance_erreur("redéfinition de l'opérateur", contexte, decl->lexeme);
+				}
+			}
+
+			contexte.operateurs.ajoute_perso_unaire(
+						decl->lexeme->genre,
+						type1,
+						type_resultat,
+						decl->nom_broye);
+		}
+		else if (decl->params.taille == 2) {
+			auto type1 = types_entrees[0 + possede_contexte];
+			auto type2 = types_entrees[1 + possede_contexte];
+
+			POUR (op) {
+				if (it->type1 == type1 && it->type2 == type2) {
+					// À FAIRE : stocke le noeud de déclaration, quid des opérateurs basique ?
+					erreur::lance_erreur("redéfinition de l'opérateur", contexte, decl->lexeme);
+				}
+			}
+
+			contexte.operateurs.ajoute_perso(
+						decl->lexeme->genre,
+						type1,
+						type2,
+						types_sorties[0],
+						decl->nom_broye);
+		}
 	}
 	else {
-		decl->nom_broye = decl->lexeme->chaine;
+		POUR (decl->bloc_parent->membres) {
+			if (it == decl) {
+				continue;
+			}
+
+			if (it->genre != GenreNoeud::DECLARATION_FONCTION && it->genre != GenreNoeud::DECLARATION_COROUTINE) {
+				continue;
+			}
+
+			if (it->ident != decl->ident) {
+				continue;
+			}
+
+			if (it->type == decl->type) {
+				erreur::redefinition_fonction(
+							contexte,
+							it->lexeme,
+							decl->lexeme);
+			}
+		}
+
+		/* nous devons attendre d'avoir les types des arguments avant de
+		 * pouvoir broyer le nom de la fonction */
+		if (decl->lexeme->chaine != "principale" && !possede_drapeau(b->drapeaux, EST_EXTERNE)) {
+			auto fichier = contexte.fichier(static_cast<size_t>(decl->lexeme->fichier));
+			decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
+		}
+		else {
+			decl->nom_broye = decl->lexeme->chaine;
+		}
 	}
 
 	contexte.graphe_dependance.cree_noeud_fonction(decl->nom_broye, decl);
@@ -773,6 +831,95 @@ static void performe_validation_semantique(
 				}
 
 				decl->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
+			}
+
+			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
+
+			contexte.termine_fonction();
+			break;
+		}
+		case GenreNoeud::DECLARATION_OPERATEUR:
+		{
+			auto decl = static_cast<NoeudDeclarationFonction *>(b);
+			using dls::outils::possede_drapeau;
+
+			valide_type_fonction(decl, contexte);
+
+			contexte.commence_fonction(decl);
+
+			if (!possede_drapeau(decl->drapeaux, FORCE_NULCTX)) {
+				auto val_ctx = static_cast<NoeudExpressionReference *>(contexte.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, b->lexeme));
+				val_ctx->type = contexte.type_contexte;
+				val_ctx->bloc_parent = b->bloc_parent;
+				val_ctx->ident = contexte.table_identifiants.identifiant_pour_chaine("contexte");
+
+				auto decl_ctx = static_cast<NoeudDeclarationVariable *>(contexte.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, b->lexeme));
+				decl_ctx->bloc_parent = b->bloc_parent;
+				decl_ctx->valeur = val_ctx;
+				decl_ctx->type = val_ctx->type;
+				decl_ctx->ident = val_ctx->ident;
+
+				decl->bloc->membres.pousse(decl_ctx);
+
+				donnees_dependance.types_utilises.insere(contexte.type_contexte);
+			}
+
+			/* Pousse les paramètres sur la pile. */
+			POUR (decl->params) {
+				auto argument = static_cast<NoeudDeclarationVariable *>(it);
+
+				auto variable = argument->valeur;
+				argument->ident = variable->ident;
+				argument->type = variable->type;
+
+				donnees_dependance.types_utilises.insere(argument->type);
+
+				decl->bloc->membres.pousse(argument);
+
+				/* À FAIRE(réusinage arbre) */
+		//		if (argument.est_employe) {
+		//			auto type_var = argument.type;
+		//			auto nom_structure = dls::vue_chaine_compacte("");
+
+		//			if (type_var->genre == GenreType::POINTEUR || type_var->genre == GenreType::REFERENCE) {
+		//				type_var = contexte.typeuse.type_dereference_pour(type_var);
+		//				nom_structure = static_cast<TypeStructure *>(type_var)->nom;
+		//			}
+		//			else {
+		//				nom_structure = static_cast<TypeStructure *>(type_var)->nom;
+		//			}
+
+		//			auto &ds = contexte.donnees_structure(nom_structure);
+
+		//			/* pousse chaque membre de la structure sur la pile */
+
+		//			for (auto &dm : ds.donnees_membres) {
+		//				auto type_membre = ds.types[dm.second.index_membre];
+
+		//				donnees_var.type = type_membre;
+		//				donnees_var.est_argument = true;
+		//				donnees_var.est_membre_emploie = true;
+
+		//				contexte.pousse_locale(dm.first, donnees_var);
+		//			}
+		//		}
+			}
+
+			/* vérifie le type du bloc */
+			auto bloc = decl->bloc;
+
+			auto noeud_dep = graphe.cree_noeud_fonction(decl->nom_broye, decl);
+
+			performe_validation_semantique(bloc, contexte, true);
+			auto inst_ret = derniere_instruction(bloc);
+
+			/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
+			if (inst_ret == nullptr) {
+				erreur::lance_erreur(
+							"Instruction de retour manquante",
+							contexte,
+							decl->lexeme,
+							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
 
 			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);

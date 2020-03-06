@@ -48,6 +48,7 @@ const char *chaine_genre_noeud(GenreNoeud genre)
 		CAS_GENRE(GenreNoeud::RACINE)
 		CAS_GENRE(GenreNoeud::DECLARATION_FONCTION)
 		CAS_GENRE(GenreNoeud::DECLARATION_COROUTINE)
+		CAS_GENRE(GenreNoeud::DECLARATION_OPERATEUR)
 		CAS_GENRE(GenreNoeud::EXPRESSION_APPEL_FONCTION)
 		CAS_GENRE(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION)
 		CAS_GENRE(GenreNoeud::EXPRESSION_REFERENCE_MEMBRE)
@@ -170,6 +171,7 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 		}
 		case GenreNoeud::DECLARATION_FONCTION:
 		case GenreNoeud::DECLARATION_COROUTINE:
+		case GenreNoeud::DECLARATION_OPERATEUR:
 		{
 			auto expr = static_cast<NoeudDeclarationFonction *>(racine);
 
@@ -431,6 +433,7 @@ NoeudExpression *copie_noeud(
 		}
 		case GenreNoeud::DECLARATION_FONCTION:
 		case GenreNoeud::DECLARATION_COROUTINE:
+		case GenreNoeud::DECLARATION_OPERATEUR:
 		{
 			auto expr = static_cast<NoeudDeclarationFonction *>(racine);
 			auto nexpr = static_cast<NoeudDeclarationFonction *>(nracine);
@@ -653,6 +656,7 @@ void aplatis_arbre(
 		}
 		case GenreNoeud::DECLARATION_FONCTION:
 		case GenreNoeud::DECLARATION_COROUTINE:
+		case GenreNoeud::DECLARATION_OPERATEUR:
 		{
 			/* L'aplatissement d'une fonction dans une fonction doit déjà avoir été fait */
 			arbre_aplatis.pousse(racine);

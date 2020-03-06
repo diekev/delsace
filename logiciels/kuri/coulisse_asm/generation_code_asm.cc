@@ -104,6 +104,10 @@ void genere_code_asm(
 		{
 			break;
 		}
+		case GenreNoeud::DECLARATION_OPERATEUR:
+		{
+			break;
+		}
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
 			// met les arguments dans les registres, ou la pile, selon l'ABI

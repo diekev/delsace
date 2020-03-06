@@ -904,6 +904,7 @@ void genere_code_C(
 		{
 			break;
 		}
+		case GenreNoeud::DECLARATION_OPERATEUR:
 		case GenreNoeud::DECLARATION_FONCTION:
 		{
 			/* Pour les fonctions variadiques nous transformons la liste d'argument en

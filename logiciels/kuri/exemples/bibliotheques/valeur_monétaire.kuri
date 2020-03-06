@@ -19,70 +19,60 @@ valeur_monétaire_depuis_unités_centimes :: fonc (unités: z64, centimes: z64) 
     retourne ValeurMonnétaire{ quantité = unités * 10000 + centimes * 100 }
 }
 
-// opérateur +
-ajoute :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> ValeurMonnétaire
+opérateur + :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> ValeurMonnétaire
 {
     résultat : ValeurMonnétaire
     résultat.quantité = v1.quantité + v2.quantité
     retourne résultat
 }
 
-// opérateur -
-soustrait :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> ValeurMonnétaire
+opérateur - :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> ValeurMonnétaire
 {
     résultat : ValeurMonnétaire
     résultat.quantité = v1.quantité - v2.quantité
     retourne résultat
 }
 
-// opérateur *
-multiplie :: fonc (v1 : ValeurMonnétaire, v2 : z64) -> ValeurMonnétaire
+opérateur * :: fonc (v1 : ValeurMonnétaire, v2 : z64) -> ValeurMonnétaire
 {
     résultat : ValeurMonnétaire
     résultat.quantité = v1.quantité * v2
     retourne résultat
 }
 
-// opérateur /
-divise :: fonc (v1 : ValeurMonnétaire, v2 : z64) -> ValeurMonnétaire
+opérateur / :: fonc (v1 : ValeurMonnétaire, v2 : z64) -> ValeurMonnétaire
 {
     résultat : ValeurMonnétaire
     résultat.quantité = v1.quantité / v2
     retourne résultat
 }
 
-// opérateur >
-est_plus_grand :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
+opérateur > :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
 {
     retourne v1.quantité > v2.quantité
 }
 
-// opérateur <
-est_plus_petit :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
+opérateur < :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
 {
     retourne v1.quantité < v2.quantité
 }
 
-// opérateur ==
-est_égal :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
+opérateur == :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
 {
     retourne v1.quantité == v2.quantité
 }
 
-// opérateur !=
-est_différent :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
+opérateur != :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
 {
     retourne v1.quantité != v2.quantité
 }
 
-// opérateur >=
-est_plus_grand_ou_égal :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
+opérateur >= :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
 {
     retourne v1.quantité >= v2.quantité
 }
 
-// opérateur <=
-est_plus_petit_ou_égal :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
+opérateur <= :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> bool
 {
     retourne v1.quantité <= v2.quantité
 }
@@ -134,7 +124,7 @@ nombre_aléatoire :: fonc () -> z32
     retourne rand() % 10
 }
 
-principale :: fonc () : z32
+principale :: fonc () -> z32
 {
     {
         v := valeur_monétaire_depuis_unités(100)
@@ -156,17 +146,17 @@ principale :: fonc () : z32
     abonnement := valeur_monétaire_depuis_unités_centimes(4, 90)
     imprime_valeur_monétaire(abonnement)
 
-    tva := divise(multiplie(abonnement, 20), 100)
+    tva := abonnement * 20 / 100
     imprime_valeur_monétaire(tva)
 
-    valeur_final := ajoute(abonnement, tva)
+    valeur_final := abonnement + tva
     imprime_valeur_monétaire(valeur_final)
 
-    part := divise(abonnement, 2)
+    part := abonnement / 2
 
     abonnements_totaux := 10_000_000
-    somme_total := multiplie(multiplie(abonnement, abonnements_totaux), 12)
-    somme_redistribuée := divise(somme_total, 2)
+    somme_total := abonnement * abonnements_totaux * 12
+    somme_redistribuée := somme_total / 2
 
     imprime_valeur_monétaire(somme_total)
     imprime_valeur_monétaire(somme_redistribuée)

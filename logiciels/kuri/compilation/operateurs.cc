@@ -622,12 +622,4 @@ void enregistre_operateurs_basiques(
 
 	operateurs.ajoute_perso(GenreLexeme::EGAL, type_r32, type_r16, type_r32, "DLS_vers_r32");
 	operateurs.ajoute_perso(GenreLexeme::EGAL, type_r64, type_r16, type_r64, "DLS_vers_r64");
-
-	// compairaisons de chaines
-	auto type_chaine = contexte.typeuse[TypeBase::CHAINE];
-
-	// À FAIRE: le nom de la fonction doit être le nom broyé, le coder en dur
-	// n'est pas souhaitable
-	operateurs.ajoute_perso(GenreLexeme::EGALITE, type_chaine, type_chaine, type_bool, "_KF4Kuri24sont_chaines_xC3xA9gales_E2_4chn18Kschaine4chn28Kschaine_S1_6Ksbool");
-	operateurs.ajoute_perso(GenreLexeme::DIFFERENCE, type_chaine, type_chaine, type_bool, "_KF4Kuri26sont_chaines_inxC3xA9gales_E2_4chn18Kschaine4chn28Kschaine_S1_6Ksbool");
 }

@@ -336,7 +336,7 @@ logement_temp :: fonc(taille: z64) -> *octet
 // -----------------------------
 
 // Fonctions de bases pour les opérateurs de comparaisons de chaines
-sont_chaines_égales :: fonc(chn1: chaine, chn2: chaine) -> bool
+opérateur == :: fonc(chn1: chaine, chn2: chaine) -> bool
 {
     si chn1.taille != chn2.taille {
 		retourne faux
@@ -354,9 +354,9 @@ sont_chaines_égales :: fonc(chn1: chaine, chn2: chaine) -> bool
 	retourne vrai
 }
 
-sont_chaines_inégales :: fonc(chn1: chaine, chn2: chaine) -> bool
+opérateur != :: fonc(chn1: chaine, chn2: chaine) -> bool
 {
-    retourne !sont_chaines_égales(chn1, chn2)
+    retourne !(chn1 == chn2)
 }
 
 // Fonctions basiques pour les tableaux
