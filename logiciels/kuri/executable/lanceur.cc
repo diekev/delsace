@@ -151,7 +151,7 @@ static void initialise_optimisation(
 	}
 
 	switch (optimisation) {
-		case NiveauOptimisation::Aucun:
+		case NiveauOptimisation::AUCUN:
 			break;
 		case NiveauOptimisation::O0:
 			ajoute_passes(*contexte.menageur_fonctions, 0, 0);
@@ -200,7 +200,7 @@ static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module
 	return true;
 }
 
-static void cree_executable(const std::filesystem::path &dest, const std::filesystem::path &racine_kuri)
+static void cree_executable(const kuri::chaine &dest, const std::filesystem::path &racine_kuri)
 {
 	/* Compile le fichier objet qui appelera 'fonction principale'. */
 	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
@@ -243,9 +243,7 @@ static void cree_executable(const std::filesystem::path &dest, const std::filesy
 #endif
 
 static void imprime_stats(
-		std::ostream &os,
 		Metriques const &metriques,
-		OptionsCompilation const &ops,
 		dls::chrono::compte_seconde debut_compilation)
 {
 	auto const temps_total = debut_compilation.temps();
@@ -325,9 +323,9 @@ static void imprime_stats(
 
 	imprime_tableau(tableau);
 
-	if (ops.imprime_taille_memoire_objet) {
-		imprime_taille_memoire_noeud(os);
-	}
+//	if (ops.imprime_taille_memoire_objet) {
+//		imprime_taille_memoire_noeud(os);
+//	}
 
 	return;
 }
@@ -374,6 +372,23 @@ void ajoute_fichier_compilation(kuri::chaine c)
 	std::cerr << "-- " << vue << '\n';
 }
 
+static OptionsCompilation *options_compilation = nullptr;
+
+OptionsCompilation *obtiens_options_compilation()
+{
+	return options_compilation;
+}
+
+void ajourne_options_compilation(OptionsCompilation *options)
+{
+	*options_compilation = *options;
+
+	if (options_compilation->nom_sortie != "a.out") {
+		// duplique la mémoire
+		options_compilation->nom_sortie = copie_chaine(options_compilation->nom_sortie);
+	}
+}
+
 static bool lance_execution(ContexteGenerationCode &contexte)
 {
 	// crée un fichier objet
@@ -391,14 +406,22 @@ static bool lance_execution(ContexteGenerationCode &contexte)
 
 	auto decl_fonc_init = cherche_fonction_dans_module(contexte, "Kuri", "initialise_RC");
 	auto symbole_init = so(decl_fonc_init->nom_broye);
-	auto fonc_init = dls::systeme_fichier::dso_function<void(void(*)(kuri::chaine), void(*)(kuri::chaine))>(symbole_init);
+	auto fonc_init = dls::systeme_fichier::dso_function<
+			void(
+				void(*)(kuri::chaine),
+				void(*)(kuri::chaine),
+				OptionsCompilation*(*)(void),
+				void(*)(OptionsCompilation *))>(symbole_init);
 
 	if (!fonc_init) {
 		std::cerr << "Impossible de trouver le symbole de la fonction d'initialisation !\n";
 		return 1;
 	}
 
-	fonc_init(ajoute_chaine_compilation, ajoute_fichier_compilation);
+	fonc_init(ajoute_chaine_compilation,
+			  ajoute_fichier_compilation,
+			  obtiens_options_compilation,
+			  ajourne_options_compilation);
 
 	auto dso = so("lance_execution");
 
@@ -417,9 +440,8 @@ int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(false);
 
-	auto const ops = genere_options_compilation(argc, argv);
-
-	if (ops.erreur) {
+	if (argc < 2) {
+		std::cerr << "Utilisation : " << argv[0] << " FICHIER\n";
 		return 1;
 	}
 
@@ -431,17 +453,15 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	auto const chemin_fichier = ops.chemin_fichier;
-
-	if (chemin_fichier == nullptr) {
-		std::cerr << "Aucun fichier spécifié !\n";
-		return 1;
-	}
+	auto const chemin_fichier = argv[1];
 
 	if (!std::filesystem::exists(chemin_fichier)) {
 		std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
 		return 1;
 	}
+
+	auto ops = OptionsCompilation();
+	options_compilation = &ops;
 
 	std::ostream &os = std::cout;
 
@@ -469,8 +489,8 @@ int main(int argc, char *argv[])
 		auto nom_fichier = chemin.stem();
 
 		auto contexte_generation = ContexteGenerationCode{};
-		contexte_generation.bit32 = ops.bit32;
-		contexte_generation.est_coulisse_llvm = ops.coulisse_llvm;
+		contexte_generation.bit32 = ops.architecture_cible == ArchitectureCible::X86;
+		contexte_generation.est_coulisse_llvm = ops.type_coulisse == TypeCoulisse::LLVM;
 		auto assembleuse = contexte_generation.assembleuse;
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
@@ -486,7 +506,7 @@ int main(int argc, char *argv[])
 		charge_fichier(os, module, chemin_racine_kuri, nom_fichier.c_str(), contexte_generation, {});
 
 #ifdef AVEC_LLVM
-		if (ops.coulisse_llvm) {
+		if (contexte_generation.est_coulisse_llvm) {
 			auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
 			initialise_llvm();
@@ -513,7 +533,7 @@ int main(int argc, char *argv[])
 
 			contexte_generation.module_llvm = &module_llvm;
 
-			initialise_optimisation(ops.optimisation, contexte_generation);
+			//initialise_optimisation(ops.optimisation, contexte_generation);
 
 			os << "Validation sémantique du code..." << std::endl;
 			noeud::performe_validation_semantique(contexte_generation);
@@ -521,14 +541,14 @@ int main(int argc, char *argv[])
 			os << "Génération du code..." << std::endl;
 			noeud::genere_code_llvm(*assembleuse, contexte_generation);
 
-			if (ops.emet_code_intermediaire) {
-				std::cerr <<  "------------------------------------------------------------------\n";
-				module_llvm.print(llvm::errs(), nullptr);
-				std::cerr <<  "------------------------------------------------------------------\n";
-			}
+//			if (ops.emet_code_intermediaire) {
+//				std::cerr <<  "------------------------------------------------------------------\n";
+//				module_llvm.print(llvm::errs(), nullptr);
+//				std::cerr <<  "------------------------------------------------------------------\n";
+//			}
 
 			/* définition du fichier de sortie */
-			if (ops.emet_fichier_objet) {
+			if (/*ops.emet_fichier_objet*/true) {
 				os << "Écriture du code dans un fichier..." << std::endl;
 				auto debut_fichier_objet = dls::chrono::compte_seconde();
 				if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
@@ -537,7 +557,7 @@ int main(int argc, char *argv[])
 				temps_fichier_objet = debut_fichier_objet.temps();
 
 				auto debut_executable = dls::chrono::compte_seconde();
-				cree_executable(ops.chemin_sortie, chemin_racine_kuri);
+				cree_executable(ops.nom_sortie, chemin_racine_kuri);
 				temps_executable = debut_executable.temps();
 			}
 		}
@@ -579,8 +599,8 @@ int main(int argc, char *argv[])
 			 * lieu d'une chaine littérale à printf et al. */
 			commande += "-Wno-format-security ";
 
-			switch (ops.optimisation) {
-				case NiveauOptimisation::Aucun:
+			switch (ops.niveau_optimisation) {
+				case NiveauOptimisation::AUCUN:
 				case NiveauOptimisation::O0:
 				{
 					commande += "-O0 ";
@@ -611,7 +631,7 @@ int main(int argc, char *argv[])
 				}
 			}
 
-			if (ops.bit32) {
+			if (ops.architecture_cible == ArchitectureCible::X86) {
 				commande += "-m32 ";
 			}
 
@@ -654,7 +674,7 @@ int main(int argc, char *argv[])
 				}
 
 				commande += " -o ";
-				commande += ops.chemin_sortie;
+				commande += dls::chaine(ops.nom_sortie.pointeur, ops.nom_sortie.taille);
 
 				os << "Exécution de la commande '" << commande << "'..." << std::endl;
 
@@ -688,7 +708,7 @@ int main(int argc, char *argv[])
 	metriques.temps_nettoyage = debut_nettoyage.temps();
 
 	if (!est_errone) {
-		imprime_stats(os, metriques, ops, debut_compilation);
+		imprime_stats(metriques, debut_compilation);
 	}
 
 #ifdef AVEC_LLVM

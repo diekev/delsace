@@ -2,9 +2,51 @@
 
 charge "base"
 
+// ----------------------------------------------------------------------------
+
+// Ces structures doivent être tenues synchronisées avec celles dans options.hh
+TypeCoulisse :: énum z32 {
+    C
+    LLVM
+}
+
+ArchitectureCible :: énum z32 {
+    X64
+    X86
+}
+
+NiveauOptimisation :: énum z32 {
+    AUCUN
+	O0
+	O1
+	O2
+	Os
+	Oz
+	O3
+}
+
+OptionsLangage :: énum_drapeau z32 {
+    ACTIVE_INTROSPECTION
+    ACTIVE_COROUTINE
+
+	TOUT :: (ACTIVE_COROUTINE | ACTIVE_INTROSPECTION)
+}
+
+OptionsCompilation :: struct {
+    nom_sortie : chaine
+    type_coulisse : TypeCoulisse
+    niveau_optimisation : NiveauOptimisation
+    architecture_cible : ArchitectureCible
+    options_langage : OptionsLangage
+}
+
+// ----------------------------------------------------------------------------
+
 RappelCompilateur :: struct {
     rappel_ajout_chaine_à_la_compilation : #nulctx fonc(chaine)(rien)
     rappel_ajout_fichier_à_la_compilation : #nulctx fonc(chaine)(rien)
+    rappel_obtiens_options : #nulctx fonc()(*OptionsCompilation)
+    rappel_ajourne_options : #nulctx fonc(*OptionsCompilation)(rien)
 }
 
 // Il nous faudrait un système pour définir un symbole interne à un module
@@ -13,11 +55,15 @@ _RC : RappelCompilateur
 
 #nulctx initialise_RC :: fonc(
     rappel_ajoute_chaine: #nulctx fonc(chaine)(rien),
-    rappel_ajoute_fichier: #nulctx fonc(chaine)(rien)) -> rien
+    rappel_ajoute_fichier: #nulctx fonc(chaine)(rien),
+    rappel_obtiens_options : #nulctx fonc()(*OptionsCompilation),
+    rappel_ajourne_options : #nulctx fonc(*OptionsCompilation)(rien)) -> rien
 {
     nonsûr {
         _RC.rappel_ajout_chaine_à_la_compilation = rappel_ajoute_chaine
         _RC.rappel_ajout_fichier_à_la_compilation = rappel_ajoute_fichier
+        _RC.rappel_obtiens_options = rappel_obtiens_options
+        _RC.rappel_ajourne_options = rappel_ajourne_options
     }
 }
 
@@ -29,4 +75,15 @@ _RC : RappelCompilateur
 #nulctx ajoute_fichier_à_la_compilation :: fonc(c: chaine) -> rien
 {
     _RC.rappel_ajout_fichier_à_la_compilation(c)
+}
+
+#nulctx compilatrice_obtiens_options :: fonc () -> *OptionsCompilation
+{
+    ptr := _RC.rappel_obtiens_options
+    retourne ptr()
+}
+
+#nulctx compilatrice_ajourne_options :: fonc (options: *OptionsCompilation) -> rien
+{
+    _RC.rappel_ajourne_options(options)
 }

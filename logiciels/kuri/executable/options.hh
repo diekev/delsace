@@ -24,8 +24,21 @@
 
 #pragma once
 
-enum class NiveauOptimisation : char {
-	Aucun,
+#include "compilation/structures.hh"
+
+// Ces structures doivent être tenues synchronisées avec celles dans compilateur.kuri
+enum class TypeCoulisse : int {
+	C,
+	LLVM,
+};
+
+enum class ArchitectureCible : int {
+	X64,
+	X86,
+};
+
+enum class NiveauOptimisation : int {
+	AUCUN,
 	O0,
 	O1,
 	O2,
@@ -34,22 +47,26 @@ enum class NiveauOptimisation : char {
 	O3,
 };
 
-struct OptionsCompilation {
-	const char *chemin_fichier = nullptr;
-	const char *chemin_sortie = "a.out";
-	bool emet_fichier_objet = true;
-	bool emet_code_intermediaire = false;
-	bool emet_arbre = false;
-	bool imprime_taille_memoire_objet = false;
-	bool imprime_temps = false;
-	bool imprime_version = false;
-	bool imprime_aide = false;
-	bool erreur = false;
-	bool bit32 = false;
-	bool coulisse_llvm = false;
+enum class OptionsLangage : int {
+	ACTIVE_INTROSPECTION = (1 << 0),
+	ACTIVE_COROUTINE     = (1 << 1),
 
-	NiveauOptimisation optimisation = NiveauOptimisation::Aucun;
-	char pad[6];
+	TOUT = (ACTIVE_COROUTINE | ACTIVE_INTROSPECTION)
 };
 
-OptionsCompilation genere_options_compilation(int argc, char **argv);
+struct OptionsCompilation {
+	kuri::chaine nom_sortie = kuri::chaine("a.out");
+	TypeCoulisse type_coulisse = TypeCoulisse::C;
+	NiveauOptimisation niveau_optimisation = NiveauOptimisation::AUCUN;
+	ArchitectureCible architecture_cible = ArchitectureCible::X64;
+	OptionsLangage options_langage = OptionsLangage::TOUT;
+
+	OptionsCompilation() = default;
+
+	~OptionsCompilation()
+	{
+		if (nom_sortie != "a.out") {
+			detruit_chaine(nom_sortie);
+		}
+	}
+};

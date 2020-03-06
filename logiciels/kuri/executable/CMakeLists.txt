@@ -19,21 +19,26 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-################################################################################
-
-set(NOM_PROJET kuri_options)
-
-add_library(${NOM_PROJET} STATIC options.cc options.hh)
-
-################################################################################
-
-set(NOM_PROJET kuri)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${INCLUSIONS_DELSACE_CHRONO}
 )
+
+################################################################################
+
+set(NOM_PROJET kuri_options)
+
+add_library(${NOM_PROJET} STATIC options.cc options.hh)
+
+target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_PROJET} kuri_compilation)
+
+################################################################################
+
+set(NOM_PROJET kuri)
 
 set(BIBLIOTHEQUES
 	kuri_compilation

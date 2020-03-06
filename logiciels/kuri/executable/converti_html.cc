@@ -37,9 +37,8 @@ int main(int argc, char **argv)
 {
 	std::ios::sync_with_stdio(false);
 
-	auto const ops = genere_options_compilation(argc, argv);
-
-	if (ops.erreur) {
+	if (argc < 2) {
+		std::cerr << "Utilisation : " << argv[0] << " FICHIER\n";
 		return 1;
 	}
 
@@ -51,7 +50,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	auto const chemin_fichier = ops.chemin_fichier;
+	auto const chemin_fichier = argv[1];
 
 	if (chemin_fichier == nullptr) {
 		std::cerr << "Aucun fichier spécifié !\n";
