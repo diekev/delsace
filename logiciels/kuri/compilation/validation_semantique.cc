@@ -2541,8 +2541,6 @@ static void performe_validation_semantique(
 			type_enum->taille_octet = type_enum->type_donnees->taille_octet;
 			type_enum->alignement = type_enum->type_donnees->alignement;
 
-			desc.est_drapeau = false; // inst->drapeaux_decl & EST_DRAPEAUX;
-
 			contexte.operateurs.ajoute_operateur_basique_enum(decl->type);
 
 			/* À FAIRE : tests */
