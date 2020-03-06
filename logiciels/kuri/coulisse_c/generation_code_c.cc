@@ -314,7 +314,7 @@ static void cree_appel(
 		}
 	}
 	else {
-		if (!dls::outils::possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
+		if (!dls::outils::possede_drapeau(expr_appel->drapeaux, FORCE_NULCTX)) {
 			os << virgule;
 			os << "contexte";
 			virgule = ',';

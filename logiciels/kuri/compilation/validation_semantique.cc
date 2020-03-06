@@ -239,19 +239,17 @@ static auto valide_appel_pointeur_fonction(
 
 	auto debut_params = 0l;
 
-	if (type_fonction->types_entrees.taille != 0) {
-		if (type_fonction->types_entrees[0] == contexte.type_contexte) {
-			debut_params = 1;
+	if (type_fonction->types_entrees.taille != 0 && type_fonction->types_entrees[0] == contexte.type_contexte) {
+		debut_params = 1;
 
-			auto fonc_courante = contexte.donnees_fonction;
+		auto fonc_courante = contexte.donnees_fonction;
 
-			if (fonc_courante != nullptr && dls::outils::possede_drapeau(fonc_courante->drapeaux, FORCE_NULCTX)) {
-				erreur::lance_erreur_fonction_nulctx(contexte, b, b, fonc_courante);
-			}
+		if (fonc_courante != nullptr && dls::outils::possede_drapeau(fonc_courante->drapeaux, FORCE_NULCTX)) {
+			erreur::lance_erreur_fonction_nulctx(contexte, b, b, fonc_courante);
 		}
-		else {
-			b->drapeaux |= FORCE_NULCTX;
-		}
+	}
+	else {
+		b->drapeaux |= FORCE_NULCTX;
 	}
 
 	/* Validation des types passés en paramètre. */
