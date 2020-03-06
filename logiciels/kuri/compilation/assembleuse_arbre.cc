@@ -314,11 +314,3 @@ void assembleuse_arbre::ajoute_inclusion(const dls::chaine &fichier)
 	deja_inclus.insere(fichier);
 	inclusions.pousse(fichier);
 }
-
-void imprime_taille_memoire_noeud(std::ostream &os)
-{
-	os << "------------------------------------------------------------------\n";
-	os << "DonneesLexeme          : " << sizeof(DonneesLexeme) << '\n';
-	os << "std::any                 : " << sizeof(std::any) << '\n';
-	os << "------------------------------------------------------------------\n";
-}

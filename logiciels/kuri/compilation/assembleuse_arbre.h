@@ -102,8 +102,3 @@ public:
 
 	void ajoute_inclusion(const dls::chaine &fichier);
 };
-
-/**
- * Imprime la taille en mémoire des noeuds et des types qu'ils peuvent contenir.
- */
-void imprime_taille_memoire_noeud(std::ostream &os);

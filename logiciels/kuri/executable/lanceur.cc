@@ -323,10 +323,6 @@ static void imprime_stats(
 
 	imprime_tableau(tableau);
 
-//	if (ops.imprime_taille_memoire_objet) {
-//		imprime_taille_memoire_noeud(os);
-//	}
-
 	return;
 }
 
