@@ -26,63 +26,6 @@
 
 #include "lexemes.hh"
 
-bool est_type_entier(GenreLexeme type)
-{
-	switch (type) {
-		case GenreLexeme::BOOL:
-		case GenreLexeme::N8:
-		case GenreLexeme::N16:
-		case GenreLexeme::N32:
-		case GenreLexeme::N64:
-		case GenreLexeme::Z8:
-		case GenreLexeme::Z16:
-		case GenreLexeme::Z32:
-		case GenreLexeme::Z64:
-		case GenreLexeme::OCTET:
-			return true;
-		default:
-			return false;
-	}
-}
-
-bool est_type_entier_naturel(GenreLexeme type)
-{
-	switch (type) {
-		case GenreLexeme::N8:
-		case GenreLexeme::N16:
-		case GenreLexeme::N32:
-		case GenreLexeme::N64:
-			return true;
-		default:
-			return false;
-	}
-}
-
-bool est_type_entier_relatif(GenreLexeme type)
-{
-	switch (type) {
-		case GenreLexeme::Z8:
-		case GenreLexeme::Z16:
-		case GenreLexeme::Z32:
-		case GenreLexeme::Z64:
-			return true;
-		default:
-			return false;
-	}
-}
-
-bool est_type_reel(GenreLexeme type)
-{
-	switch (type) {
-		case GenreLexeme::R16:
-		case GenreLexeme::R32:
-		case GenreLexeme::R64:
-			return true;
-		default:
-			return false;
-	}
-}
-
 bool est_operateur_bool(GenreLexeme type)
 {
 	switch (type) {
@@ -194,19 +137,6 @@ bool est_operateur_comp(GenreLexeme type)
 		{
 			return true;
 		}
-	}
-}
-
-bool peut_etre_dereference(GenreLexeme id)
-{
-	switch (id & 0xff) {
-		default:
-			return false;
-		case GenreLexeme::POINTEUR:
-		case GenreLexeme::REFERENCE:
-		case GenreLexeme::TABLEAU:
-		case GenreLexeme::TROIS_POINTS:
-			return true;
 	}
 }
 

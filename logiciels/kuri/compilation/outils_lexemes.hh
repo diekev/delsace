@@ -26,14 +26,6 @@
 
 enum class GenreLexeme : unsigned int;
 
-bool est_type_entier(GenreLexeme type);
-
-bool est_type_entier_naturel(GenreLexeme type);
-
-bool est_type_entier_relatif(GenreLexeme type);
-
-bool est_type_reel(GenreLexeme type);
-
 bool est_operateur_bool(GenreLexeme type);
 
 bool est_assignation_operee(GenreLexeme type);
@@ -41,8 +33,6 @@ bool est_assignation_operee(GenreLexeme type);
 GenreLexeme operateur_pour_assignation_operee(GenreLexeme type);
 
 bool est_operateur_comp(GenreLexeme type);
-
-bool peut_etre_dereference(GenreLexeme id);
 
 bool est_mot_cle(GenreLexeme id);
 
