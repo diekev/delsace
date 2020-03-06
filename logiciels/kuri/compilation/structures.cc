@@ -56,3 +56,21 @@ std::ostream &kuri::operator<<(std::ostream &os, const kuri::chaine &chn)
 
 	return os;
 }
+
+kuri::chaine kuri::copie_chaine(kuri::chaine &autre)
+{
+	chaine resultat;
+	resultat.taille = autre.taille;
+	resultat.pointeur = memoire::loge_tableau<char>("chaine", resultat.taille);
+
+	for (auto i = 0; i < autre.taille; ++i) {
+		resultat.pointeur[i] = autre.pointeur[i];
+	}
+
+	return resultat;
+}
+
+void kuri::detruit_chaine(kuri::chaine &chn)
+{
+	memoire::deloge_tableau("chaine", chn.pointeur, chn.taille);
+}

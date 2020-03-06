@@ -49,6 +49,14 @@ struct chaine {
 
 	COPIE_CONSTRUCT(chaine);
 
+	chaine(const char *c_str)
+		: pointeur(const_cast<char *>(c_str))
+	{
+		while (*c_str++ != '\0') {
+			taille += 1;
+		}
+	}
+
 	chaine(dls::vue_chaine_compacte const &chn)
 		: pointeur(const_cast<char *>(chn.pointeur()))
 		, taille(chn.taille())
@@ -86,6 +94,10 @@ struct chaine {
 		return this->begin() + this->taille;
 	}
 };
+
+chaine copie_chaine(chaine &autre);
+
+void detruit_chaine(chaine &chn);
 
 bool operator == (kuri::chaine const &chn1, kuri::chaine const &chn2);
 
