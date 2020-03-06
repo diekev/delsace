@@ -2902,7 +2902,6 @@ void genere_code_C_pour_execution(
 {
 	auto dir = static_cast<NoeudExpressionUnaire *>(noeud_appel);
 	auto expr = static_cast<NoeudExpressionAppel *>(dir->expr);
-	std::cerr << "Genre noeud : " << chaine_genre_noeud(expr->genre) << '\n';
 	auto decl = static_cast<NoeudDeclarationFonction *>(expr->noeud_fonction_appelee);
 
 	dls::flux_chaine os;
