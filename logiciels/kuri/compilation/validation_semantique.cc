@@ -56,6 +56,7 @@ static void performe_validation_semantique(
 static Type *resoud_type_final(
 		ContexteGenerationCode &contexte,
 		DonneesTypeDeclare &type_declare,
+		NoeudBloc *bloc,
 		DonneesLexeme const *lexeme,
 		bool evalue_expr = true)
 {
@@ -130,11 +131,19 @@ static Type *resoud_type_final(
 			}
 		}
 		else if (type == GenreLexeme::CHAINE_CARACTERE) {
-			type_final = typeuse.type_pour_nom(type_declare.nom_struct);
+			auto ident = contexte.table_identifiants.identifiant_pour_chaine(type_declare.nom_struct);
+			auto fichier =  contexte.fichier(static_cast<size_t>(lexeme->fichier));
+			auto decl = trouve_dans_bloc_ou_module(contexte, bloc, ident, fichier);
 
-			if (type_final == nullptr) {
+			if (decl == nullptr) {
 				erreur::lance_erreur("Impossible de définir le type selon le nom", contexte, lexeme);
 			}
+
+			if (!est_declaration(decl->genre)) {
+				erreur::lance_erreur("Le symbole n'est pas celui d'une déclaration", contexte, lexeme);
+			}
+
+			type_final = decl->type;
 		}
 		else if (type == GenreLexeme::POINTEUR) {
 			type_final = typeuse.type_pointeur_pour(type_final);
@@ -147,7 +156,7 @@ static Type *resoud_type_final(
 
 			for (auto t = 0; t < type_declare.types_entrees.taille(); ++t) {
 				auto td = type_declare.types_entrees[t];
-				auto type_entree = resoud_type_final(contexte, td, lexeme);
+				auto type_entree = resoud_type_final(contexte, td, bloc, lexeme);
 
 				types_entrees.pousse(type_entree);
 			}
@@ -156,7 +165,7 @@ static Type *resoud_type_final(
 
 			for (auto t = 0; t < type_declare.types_sorties.taille(); ++t) {
 				auto td = type_declare.types_sorties[t];
-				auto type_sortie = resoud_type_final(contexte, td, lexeme);
+				auto type_sortie = resoud_type_final(contexte, td, bloc, lexeme);
 
 				types_sorties.pousse(type_sortie);
 			}
@@ -543,7 +552,7 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 
 			if (!type_declare.est_gabarit) {
 				if (!est_invalide(type_declare.plage())) {
-					variable->type = resoud_type_final(contexte, type_declare, variable->lexeme);
+					variable->type = resoud_type_final(contexte, type_declare, variable->bloc_parent, variable->lexeme);
 				}
 			}
 
@@ -576,7 +585,7 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 		POUR (decl->params) {
 			auto variable = static_cast<NoeudDeclarationVariable *>(it)->valeur;
 
-			variable->type = resoud_type_final(contexte, variable->type_declare, variable->lexeme);
+			variable->type = resoud_type_final(contexte, variable->type_declare, variable->bloc_parent, variable->lexeme);
 			variable->type_declare.est_gabarit = false;
 
 			it->type = variable->type;
@@ -600,7 +609,7 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 	kuri::tableau<Type *> types_sorties;
 
 	for (auto &type_declare : decl->type_declare.types_sorties) {
-		auto type_sortie = resoud_type_final(contexte, type_declare, decl->lexeme);
+		auto type_sortie = resoud_type_final(contexte, type_declare, b->bloc_parent, decl->lexeme);
 		types_sorties.pousse(type_sortie);
 		contexte.donnees_dependance.types_utilises.insere(type_sortie);
 	}
@@ -744,7 +753,7 @@ static void performe_validation_semantique(
 				POUR (decl->params) {
 					auto variable = static_cast<NoeudDeclarationVariable *>(it)->valeur;
 
-					variable->type = resoud_type_final(contexte, variable->type_declare, variable->lexeme);
+					variable->type = resoud_type_final(contexte, variable->type_declare, decl->bloc_parent, variable->lexeme);
 					it->type = variable->type;
 					donnees_dependance.types_utilises.insere(variable->type);
 				}
@@ -1333,7 +1342,7 @@ static void performe_validation_semantique(
 				}
 			}
 
-			variable->type = resoud_type_final(contexte, variable->type_declare, variable->lexeme);
+			variable->type = resoud_type_final(contexte, variable->type_declare, decl->bloc_parent, variable->lexeme);
 
 			if (expression != nullptr) {
 				performe_validation_semantique(expression, contexte, false);
@@ -1959,7 +1968,7 @@ static void performe_validation_semantique(
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(b);
 			expr->genre_valeur = GenreValeur::DROITE;
-			expr->type = resoud_type_final(contexte, b->type_declare, b->lexeme);
+			expr->type = resoud_type_final(contexte, b->type_declare, b->bloc_parent, b->lexeme);
 
 			/* À FAIRE : vérifie compatibilité */
 
@@ -2001,7 +2010,7 @@ static void performe_validation_semantique(
 			expr->type = contexte.typeuse[TypeBase::N32];
 
 			auto type_declare = std::any_cast<DonneesTypeDeclare>(b->valeur_calculee);
-			b->valeur_calculee = resoud_type_final(contexte, type_declare, b->lexeme);
+			b->valeur_calculee = resoud_type_final(contexte, type_declare, b->bloc_parent, b->lexeme);
 
 			break;
 		}
@@ -2384,7 +2393,7 @@ static void performe_validation_semantique(
 			auto expr_loge = static_cast<NoeudExpressionLogement *>(b);
 
 			expr_loge->genre_valeur = GenreValeur::DROITE;
-			expr_loge->type = resoud_type_final(contexte, b->type_declare, b->lexeme, false);
+			expr_loge->type = resoud_type_final(contexte, b->type_declare,  b->bloc_parent, b->lexeme, false);
 
 			if (expr_loge->type->genre == GenreType::TABLEAU_DYNAMIQUE) {
 				auto expr = b->type_declare.expressions[0];
@@ -2414,7 +2423,7 @@ static void performe_validation_semantique(
 		case GenreNoeud::EXPRESSION_RELOGE:
 		{
 			auto expr_loge = static_cast<NoeudExpressionLogement *>(b);
-			expr_loge->type = resoud_type_final(contexte, b->type_declare, b->lexeme, false);
+			expr_loge->type = resoud_type_final(contexte, b->type_declare, b->bloc_parent, b->lexeme, false);
 
 			performe_validation_semantique(expr_loge->expr, contexte, true);
 
@@ -2558,7 +2567,7 @@ static void performe_validation_semantique(
 				POUR (decl->bloc->membres) {
 					auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
 					auto decl_membre = decl_var->valeur;
-					decl_membre->type = resoud_type_final(contexte, decl_membre->type_declare, decl_membre->lexeme);
+					decl_membre->type = resoud_type_final(contexte, decl_membre->type_declare, decl_membre->bloc_parent, decl_membre->lexeme);
 					decl_var->type = decl_membre->type;
 
 					verifie_redefinition_membre(decl_var);
@@ -2604,7 +2613,7 @@ static void performe_validation_semantique(
 
 				it->ident = decl_membre->ident;
 
-				decl_membre->type = resoud_type_final(contexte, decl_membre->type_declare, decl_membre->lexeme);
+				decl_membre->type = resoud_type_final(contexte, decl_membre->type_declare, decl_membre->bloc_parent, decl_membre->lexeme);
 
 				verifie_redefinition_membre(decl_var);
 
@@ -2690,7 +2699,7 @@ static void performe_validation_semantique(
 			auto &desc = decl->desc;
 
 			auto type_enum = static_cast<TypeEnum *>(decl->type);
-			type_enum->type_donnees = resoud_type_final(contexte, decl->type_declare, decl->lexeme);
+			type_enum->type_donnees = resoud_type_final(contexte, decl->type_declare, decl->bloc_parent, decl->lexeme);
 			type_enum->taille_octet = type_enum->type_donnees->taille_octet;
 			type_enum->alignement = type_enum->type_donnees->alignement;
 
