@@ -595,7 +595,7 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 	// -----------------------------------
 
 	kuri::tableau<Type *> types_entrees;
-	auto possede_contexte = !possede_drapeau(b->drapeaux, FORCE_NULCTX);
+	auto possede_contexte = !decl->est_externe && !possede_drapeau(b->drapeaux, FORCE_NULCTX);
 
 	if (possede_contexte) {
 		types_entrees.pousse(contexte.type_contexte);
