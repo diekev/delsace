@@ -200,3 +200,23 @@ Anglicisme
 - fuzzing/fuzzées
 - constant folding
 - stack canaries
+
+
+// optimisations (avant la génération de code) :
+// -- supression de code mort
+// -- débouclement (tableau fixes, plages connues)
+// -- évaluation d'expressions constantes
+
+/: évaluation des conditions
+
+
+motifs :
+
+!= || != => toujours vraie, avertissement
+
+&& || => ambigüe, avertissement
+
+|| && => idem
+
+
+avoir un système de détermination de contraintes pour les fonctions polymorphiques
