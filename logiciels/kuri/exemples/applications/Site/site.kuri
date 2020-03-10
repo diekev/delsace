@@ -86,41 +86,6 @@ chaine_pour_aujourdhui :: fonc (enchaineuse : *Enchaineuse) -> rien
 
 // ----------------------------
 
-charge_donnees_requete :: fonc(prise : z32, adresse_du_connecté : &sockaddr_in) -> chaine
-{
-//    temps_présent := compte_ticks_microsecondes()
-//    diffère { imprime_log("", "Durée chargement données requête : %µs", compte_ticks_microsecondes() - temps_présent) }
-    MAXDATASIZE : n64 = 1024
-
-    tampon : [1024]z8
-    requete : chaine
-
-    boucle {
-        taille_reçue := recv(prise, @tampon[0], MAXDATASIZE, 0)
-
-        si taille_reçue > 0 {
-            ancienne_taille := requete.taille
-            reloge requete : chaine(requete.taille + taille_reçue)
-            copie_mem_nonsur(src=@tampon[0], dst=@requete[ancienne_taille], taille=taille_reçue)
-
-            si taille_reçue < transtype(MAXDATASIZE: z64) {
-                arrête
-            }
-        }
-        sinon si taille_reçue == 0 {
-            arrête
-        }
-        sinon si taille_reçue == -1 {
-            // À FAIRE : erreur
-            arrête
-        }
-    }
-
-    //imprime("requete :\n", requete, '\n')
-
-    retourne requete
-}
-
 crée_réponse_pour_requête_fichier :: fonc (chm: &CheminFichier) -> RéponseRequête
 {
     contenu := contenu_fichier_texte(chm)
@@ -132,10 +97,14 @@ crée_réponse_pour_requête_fichier :: fonc (chm: &CheminFichier) -> RéponseRe
     }
 }
 
+Cliente :: struct {
+    fichier : Fichier
+    adresse : sockaddr_in
+}
+
 procède_requête :: fonc (
     serveuse: *Serveuse,
-    prise: z32,
-    adresse_du_connecté: sockaddr_in) -> rien
+    cliente: Cliente) -> rien
 {
     mémoire_présente := mémoire_utilisée()
     temps_présent := compte_ticks_microsecondes()
@@ -146,13 +115,13 @@ procède_requête :: fonc (
         imprime_log("", "Mémoire consommée        : %o", pic_de_mémoire())
         imprime_log("", "Durée réponse            : %us", compte_ticks_microsecondes() - temps_présent)
 
-        ip := converti_chaine_c(inet_ntoa(adresse_du_connecté.sin_addr))
+        ip := converti_chaine_c(inet_ntoa(cliente.adresse.sin_addr))
         imprime_log("", "IP                       : % ", ip)
 
         imprime_log("", "")
     }
 
-    requête := charge_donnees_requete(prise, adresse_du_connecté)
+    requête := lis(@cliente.fichier)
     diffère { déloge requête; }
 
     // ------------------------------
@@ -277,15 +246,33 @@ procède_requête :: fonc (
     chaine_reponse := chaine_depuis_enchaineuse(@enchaineuse)
     diffère { déloge chaine_reponse; }
 
-    si send(prise, chaine_reponse.pointeur, chaine_reponse.taille, 0) == -1 {
+    si écris(@cliente.fichier, chaine_reponse) == -1 {
         perror("send".pointeur)
     }
 
-    close(prise)
+    ferme(@cliente.fichier)
 }
 
 INTERRUTION := faux
 PRISE_SERVEUSE := -1
+
+accepte :: fonc (serveuse: *Serveuse) -> Cliente
+{
+    adresse : sockaddr_in
+	sin_size := transtype(taille_de(sockaddr_in) : n32)
+
+    prise := accept(serveuse.prise, transtype(@adresse : *sockaddr), @sin_size)
+
+    cliente : Cliente
+    cliente.adresse = adresse
+    cliente.fichier.desc = prise
+
+    si prise == -1 {
+        retourne cliente
+    }
+
+    retourne cliente
+}
 
 démarre :: fonc(serveuse : &Serveuse) -> rien
 {
@@ -297,31 +284,20 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
         PRISE_SERVEUSE = serveuse.prise
     }
 
-    adresse_du_connecté : sockaddr_in
-	sin_size := transtype(taille_de(sockaddr_in) : n32)
-
     boucle {
-        prise := accept(serveuse.prise, transtype(@adresse_du_connecté : *sockaddr), @sin_size)
+        cliente := accepte(@serveuse)
 
         si INTERRUTION {
             arrête
         }
 
-        si prise == -1 {
+        // @Redondant
+        si cliente.fichier.desc == -1 {
             perror("accept".pointeur)
             continue
         }
 
-        //si fork() == 0 {
-        procède_requête(@serveuse, prise, adresse_du_connecté)
-        //    exit(0)
-       // }
-
-        // le parent n'a pas besoin de cela
-       // close(prise)
-
-        // nettoyage des processus fils
-        //tantque waitpid(-1, nul, _WNOHANG) > 0 {}
+        procède_requête(@serveuse, cliente)
     }
 }
 

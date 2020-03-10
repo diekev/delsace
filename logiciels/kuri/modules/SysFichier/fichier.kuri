@@ -39,6 +39,37 @@ lis :: fonc (fichier: *Fichier, tampon: chaine) -> rien
     read(fichier.desc, tampon.pointeur, transtype(tampon.taille: n32))
 }
 
+lis :: fonc (fichier: *Fichier) -> chaine
+{
+    TAILLE_MAX : n64 = 1024
+
+    tampon : [1024]z8
+    contenu : chaine
+
+    boucle {
+        taille_reçue := read(fichier.desc, @tampon[0], TAILLE_MAX)
+
+        si taille_reçue > 0 {
+            ancienne_taille := contenu.taille
+            reloge contenu : chaine(contenu.taille + taille_reçue)
+            copie_mem_nonsur(src=@tampon[0], dst=@contenu[ancienne_taille], taille=taille_reçue)
+
+            si taille_reçue < transtype(TAILLE_MAX: z64) {
+                arrête
+            }
+        }
+        sinon si taille_reçue == 0 {
+            arrête
+        }
+        sinon si taille_reçue == -1 {
+            // À FAIRE : erreur
+            arrête
+        }
+    }
+
+    retourne contenu
+}
+
 lis_ligne :: fonc (fichier: *Fichier) -> chaine
 {
 	chn : chaine
