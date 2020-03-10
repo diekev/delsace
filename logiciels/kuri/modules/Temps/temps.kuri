@@ -1,0 +1,158 @@
+importe GlibC
+
+Instantané :: struct {
+    seconde: z64
+    nanoseconde: z64
+}
+
+// Retourne le temps monotonic du système
+maintenant :: fonc () -> Instantané
+{
+    t : timespec
+    clock_gettime(_CLOCK_MONOTONIC_COARSE, @t)
+
+    inst : Instantané
+    inst.seconde = t.tv_sec
+    inst.nanoseconde = t.tv_nsec
+
+    retourne inst
+}
+
+// Retourne le temps monotonic du système
+maintenant_précis :: fonc () -> Instantané
+{
+    t : timespec
+    clock_gettime(_CLOCK_MONOTONIC, @t)
+
+    inst : Instantané
+    inst.seconde = t.tv_sec
+    inst.nanoseconde = t.tv_nsec
+
+    retourne inst
+}
+
+millisecondes :: fonc (inst: Instantané) -> z64
+{
+    retourne inst.seconde * 1_000 + inst.nanoseconde / 1_000_000
+}
+
+microsecondes :: fonc (inst: Instantané) -> z64
+{
+    retourne inst.seconde * 1_000_000 + inst.nanoseconde / 1_000
+}
+
+nanosecondes :: fonc (inst: Instantané) -> z64
+{
+    retourne inst.seconde * 1_000_000_000 + inst.nanoseconde
+}
+
+temps_écoulé_microsecondes :: fonc (inst: Instantané) -> z64
+{
+    m := maintenant_précis().microsecondes()
+    retourne m - microsecondes(inst)
+}
+
+TempsSystème :: struct {
+    seconde: z64
+    nanoseconde: z64
+}
+
+maintenant_système :: fonc () -> TempsSystème
+{
+    t : timespec
+    clock_gettime(_CLOCK_REALTIME_COARSE, @t)
+
+    temps : TempsSystème
+    temps.seconde = t.tv_sec
+    temps.nanoseconde = t.tv_nsec
+
+    retourne temps
+}
+
+maintenant_système_précis :: fonc () -> TempsSystème
+{
+    t : timespec
+    clock_gettime(_CLOCK_REALTIME, @t)
+
+    temps : TempsSystème
+    temps.seconde = t.tv_sec
+    temps.nanoseconde = t.tv_nsec
+
+    retourne temps
+}
+
+secondes_par_an :: fonc () -> z32
+{
+    retourne 31_556_952
+}
+
+Date :: struct {
+    année : z32
+    mois : z32
+    jour : z32
+    jour_semaine : z32
+
+    heure : z32
+    minute : z32
+    seconde : z32
+}
+
+est_année_bissextile :: fonc (année: z64) -> bool
+{
+    si (année % 100 == 0) {
+        si (année % 400 == 0) {
+            retourne vrai
+        }
+
+        retourne faux
+    }
+
+    retourne (année % 4 == 0)
+}
+
+hui_système :: fonc () -> Date
+{
+    inst := maintenant_système();
+
+    seconde := inst.seconde % 60
+    minutes := (inst.seconde / 60) % 60
+    heures  := (inst.seconde / 3600) % 24
+
+    années := (inst.seconde / secondes_par_an())
+
+    jours_par_mois := [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+    si est_année_bissextile(années) {
+        jours_par_mois[1] = 29
+    }
+
+    secondes_mois := (inst.seconde - (années * secondes_par_an()))
+    secondes_écoulées_mois := 0
+    mois := 0
+
+    pour j dans jours_par_mois {
+        si secondes_mois < (28 * 24 * 60 * 60) {
+            arrête
+        }
+
+        secondes_écoulées_mois += j * 24 * 60 * 60
+        secondes_mois -= j * 24 * 60 * 60
+        mois += 1
+    }
+
+    jours := (inst.seconde - (années * secondes_par_an()) - (secondes_écoulées_mois)) / (24 * 60 * 60)
+
+    // On soustrait 3 car Epoch UTC commence un jeudi (4ème jour, index 3)
+    jour_semaine := ((inst.seconde / (3600 * 24)) - 3) % 7
+
+    date : Date
+    date.jour = transtype(jours: z32)
+    date.mois = mois
+    date.année = transtype(années: z32) + 1970
+    date.heure = transtype(heures: z32)
+    date.minute = transtype(minutes: z32)
+    date.seconde = transtype(seconde: z32)
+    date.jour_semaine = transtype(jour_semaine: z32)
+
+    retourne date
+}

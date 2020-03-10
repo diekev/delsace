@@ -1,5 +1,6 @@
+importe GlibC
+
 // À FAIRE
-timespec :: struct externe;
 sched_param :: struct externe { sched_priority: z32; }
 cpu_set_t :: struct externe;
 __clockid_t :: struct externe { d: z32; } // z32

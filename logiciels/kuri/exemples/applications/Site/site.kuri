@@ -3,6 +3,7 @@ importe GlibC
 importe JSON
 importe Réseau
 importe SysFichier
+importe Temps
 
 charge "catalogue_fichier"
 charge "entete_http"
@@ -48,8 +49,7 @@ chaine_mois_pour_tm :: fonc (tm_mon: z32) -> chaine
 
 chaine_pour_aujourdhui :: fonc () -> chaine
 {
-    t := time(nul)
-    tm_ := localtime(@t);
+    date := hui_système()
 
     // À FAIRE : ajoute d'options de formattage pour les nombres dans les fonctions "imprime..."
     enchaineuse : Enchaineuse
@@ -57,18 +57,17 @@ chaine_pour_aujourdhui :: fonc () -> chaine
 
     diffère { détruit_tampons(@enchaineuse) }
 
-    ajoute_au_tampon(@enchaineuse, chaine_jour_pour_tm(tm_.tm_wday), ", ")
+    ajoute_au_tampon(@enchaineuse, chaine_jour_pour_tm(date.jour_semaine), ", ")
 
-    si tm_.tm_mday < 10 {
+    si date.jour < 10 {
         ajoute_au_tampon(@enchaineuse, '0')
     }
 
-    ajoute_au_tampon(@enchaineuse, tm_.tm_mday, " ", chaine_mois_pour_tm(tm_.tm_mon), " ", tm_.tm_year + 1900)
+    ajoute_au_tampon(@enchaineuse, date.jour, " ", chaine_mois_pour_tm(date.mois), " ", date.année)
 
     ajoute_au_tampon(@enchaineuse, " ")
 
-    // nous sommes en CET, HTTP doit être en GMT
-    heure := tm_.tm_hour - 1
+    heure := date.heure
 
     si heure < 10 {
         ajoute_au_tampon(@enchaineuse, '0')
@@ -76,17 +75,17 @@ chaine_pour_aujourdhui :: fonc () -> chaine
 
     ajoute_au_tampon(@enchaineuse, heure, ":")
 
-    si tm_.tm_min < 10 {
+    si date.minute < 10 {
         ajoute_au_tampon(@enchaineuse, '0')
     }
 
-    ajoute_au_tampon(@enchaineuse, tm_.tm_min, ":")
+    ajoute_au_tampon(@enchaineuse, date.minute, ":")
 
-    si tm_.tm_sec < 10 {
+    si date.seconde < 10 {
         ajoute_au_tampon(@enchaineuse, '0')
     }
 
-    ajoute_au_tampon(@enchaineuse, tm_.tm_sec)
+    ajoute_au_tampon(@enchaineuse, date.seconde)
 
     ajoute_au_tampon(@enchaineuse, " GMT")
 
