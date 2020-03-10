@@ -15,6 +15,6 @@ importe "flux"
 
 principale :: fonc () -> z32
 {
-    imprime_sans_format("Système d'exploitation : ", sysexp(), '\n')
+    imprime("Système d'exploitation : %\n", sysexp())
     retourne 0
 }

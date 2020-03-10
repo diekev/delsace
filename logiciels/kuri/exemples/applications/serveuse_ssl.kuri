@@ -12,7 +12,7 @@ OpenListener :: fonc(port : n16) -> z32
     prise := socket(_PF_INET, _SOCK_STREAM, 0)
 
     si prise == -1 {
-        imprime_sans_format("Ne peut pas créer la prise !\n")
+        imprime("Ne peut pas créer la prise !\n")
         abort()
     }
 
@@ -30,12 +30,12 @@ OpenListener :: fonc(port : n16) -> z32
     addr.sin_addr.s_addr = _INADDR_ANY
 
     si bind(prise, transtype(@addr : *sockaddr), transtype(taille_de(sockaddr) : n64)) != 0 {
-        imprime_sans_format("can't bind port")
+        imprime("can't bind port")
         abort()
     }
 
     si listen(prise, 10) != 0 {
-        imprime_sans_format("Can't configure listening port")
+        imprime("Can't configure listening port")
         abort()
     }
 
@@ -59,7 +59,7 @@ InitServerCTX :: fonc() -> *ssl_st
 
     si ctx == nul {
         // À FAIRE
-        imprime_sans_format("impossible d'initialiser le contexte SSL")
+        imprime("impossible d'initialiser le contexte SSL")
         //ERR_print_errors_fp(stderr)
         abort()
     }
@@ -72,20 +72,20 @@ LoadCertificates :: fonc(ctx: *ssl_st, CertFile: chaine, KeyFile: chaine) -> rie
     // set the local certificate from CertFile */
     si SSL_CTX_use_certificate_file(ctx, CertFile.pointeur, _SSL_FILETYPE_PEM) <= 0 {
         //ERR_print_errors_fp(stderr)
-        imprime_sans_format("Impossible d'utiliser CertFile")
+        imprime("Impossible d'utiliser CertFile")
         abort()
     }
 
     // set the private key from KeyFile (may be the same as CertFile) */
     si SSL_CTX_use_PrivateKey_file(ctx, KeyFile.pointeur, _SSL_FILETYPE_PEM) <= 0 {
         //ERR_print_errors_fp(stderr)
-        imprime_sans_format("Impossible d'utiliser KeyFile")
+        imprime("Impossible d'utiliser KeyFile")
         abort()
     }
 
     // verify private key
     si SSL_CTX_check_private_key(ctx) == 0 {
-        imprime_sans_format("Private key does not match the public certificate\n")
+        imprime("Private key does not match the public certificate\n")
         abort()
     }
 }
@@ -95,7 +95,7 @@ ShowCerts :: fonc(ssl: *ssl_st) -> rien
     cert := SSL_get_peer_certificate(ssl)
 
     si cert == nul {
-        imprime_sans_format("Aucun certificats !\n")
+        imprime("Aucun certificats !\n")
         retourne
     }
 
@@ -117,7 +117,7 @@ Servlet :: fonc(ssl: *ssl_st) -> rien
     HTMLecho := "<html><body><pre>%s</pre></body></html>\n\n"
 
     si SSL_accept(ssl) == -1 {
-        imprime_sans_format("SSL_accept a échoué !\n")
+        imprime("SSL_accept a échoué !\n")
         //ERR_print_errors_fp(stderr)
     }
     sinon {
@@ -131,7 +131,7 @@ Servlet :: fonc(ssl: *ssl_st) -> rien
             SSL_write(ssl, @reply[0], 1024)
         }
         sinon {
-            imprime_sans_format("SSL_read a échoué !\n")
+            imprime("SSL_read a échoué !\n")
             //ERR_print_errors_fp(stderr)
         }
     }
@@ -146,7 +146,7 @@ Servlet :: fonc(ssl: *ssl_st) -> rien
 principale :: fonc () -> z32
 {
     si !isRoot() {
-        imprime_sans_format("This program must be run as root/sudo user!!\n")
+        imprime("This program must be run as root/sudo user!!\n")
         exit(0)
     }
 

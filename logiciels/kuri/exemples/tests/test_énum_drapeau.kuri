@@ -20,34 +20,34 @@ principale :: fonc () -> z32
 {
     drapeau : Drapeau
 
-    imprime_sans_format("drapeau = ", drapeau, "\n")
+    imprime("drapeau = %\n", drapeau)
 
     drapeau |= Drapeau.FA
 
-    imprime_sans_format("drapeau = ", drapeau, " (", transtype(drapeau : z32), ")\n")
+    imprime("drapeau = % (%)\n", drapeau, transtype(drapeau : z32))
 
     drapeau |= Drapeau.FB
 
-    imprime_sans_format("drapeau = ", drapeau, " (", transtype(drapeau : z32), ")\n")
+    imprime("drapeau = % (%)\n", drapeau, transtype(drapeau : z32))
 
     drapeau |= Drapeau.FE
     drapeau |= Drapeau.FD
 
-    imprime_sans_format("drapeau = ", drapeau, " (", transtype(drapeau : z32), ")\n")
+    imprime("drapeau = % (%)\n", drapeau, transtype(drapeau : z32))
 
     normal : Normal
 
-    imprime_sans_format("normal = ", normal, "\n")
+    imprime("normal = %\n", normal)
 
     normal = Normal.FA
 
-    imprime_sans_format("normal = ", normal, "\n")
+    imprime("normal = %\n", normal)
 
     // À définir si ceci est possible ou non
     normal |= Normal.FB
     normal |= Normal.FC
 
-    imprime_sans_format("normal = ", normal, "\n")
+    imprime("normal = %\n", normal)
 
     retourne 0
 }

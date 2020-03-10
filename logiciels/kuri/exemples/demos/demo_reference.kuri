@@ -24,41 +24,41 @@ foo :: fonc(a : &z32) -> rien
 principale :: fonc () -> z32
 {
     a := 5
-    imprime_sans_format("a = ", a, '\n')
+    imprime("a = %\n", a)
 
     foo(a)
 
-    imprime_sans_format("a = ", a, '\n')
+    imprime("a = %\n", a)
 
     //#####################
 
     foo : FOO
 
-    imprime_sans_format(foo, '\n')
+    imprime("%\n", foo)
 
     bar(foo)
 
-    imprime_sans_format(foo, '\n')
+    imprime("%\n", foo)
 
     //#####################
 
     x := 123
     y := 456
-    imprime_sans_format("x = ", x, ", y = ", y, '\n')
+    imprime("x = %, y = %\n", x, y)
 
     échange(x, y)
-    imprime_sans_format("x = ", x, ", y = ", y, '\n')
+    imprime("x = %, y = %\n", x, y)
 
     //#####################
 
     z := 5
     w : &z32 = z
 
-    imprime_sans_format("z = ", z, '\n')
+    imprime("z = %\n", z)
 
     w := 10
 
-    imprime_sans_format("z = ", z, '\n')
+    imprime("z = %\n", z)
 
     //#####################
 

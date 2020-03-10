@@ -8,9 +8,9 @@ TEST :: struct {
 
 imprime_test :: fonc(empl test : TEST) -> rien
 {
-    imprime_sans_format("x = ", x, '\n')
-    imprime_sans_format("y = ", y, '\n')
-    imprime_sans_format("z = ", z, '\n')
+    imprime("x = %\n", x)
+    imprime("y = %\n", y)
+    imprime("z = %\n", z)
 }
 
 modifie_test :: fonc(empl test : *TEST) -> rien

@@ -52,7 +52,7 @@ charge_programme :: fonc() -> n32
     si InfoLogLength > 0 {
 		ProgramErrorMessage := loge chaine(InfoLogLength+1)
 		glGetShaderInfoLog(VertexShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
-		imprime_sans_format("!!!!! Erreur compilation : VertexShaderID", ProgramErrorMessage, '\n')
+		imprime("!!!!! Erreur compilation : VertexShaderID %\n", ProgramErrorMessage)
         déloge ProgramErrorMessage
 	}
 
@@ -69,7 +69,7 @@ charge_programme :: fonc() -> n32
     si InfoLogLength > 0 {
 		ProgramErrorMessage := loge chaine(InfoLogLength+1)
 		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
-		imprime_sans_format("!!!!! Erreur compilation : FragmentShaderID", ProgramErrorMessage, '\n')
+		imprime("!!!!! Erreur compilation : FragmentShaderID %\n", ProgramErrorMessage)
         déloge ProgramErrorMessage
 	}
 
@@ -87,7 +87,7 @@ charge_programme :: fonc() -> n32
     si InfoLogLength > 0 {
 		ProgramErrorMessage := loge chaine(InfoLogLength+1)
 		glGetProgramInfoLog(ProgramID_, InfoLogLength, nul, ProgramErrorMessage.pointeur)
-		imprime_sans_format("!!!!! Erreur liaison : ProgramID", ProgramErrorMessage, '\n')
+		imprime("!!!!! Erreur liaison : ProgramID %\n", ProgramErrorMessage)
         déloge ProgramErrorMessage
 	}
 

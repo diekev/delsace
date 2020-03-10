@@ -16,7 +16,7 @@ fée :: fonc() -> rien
 
 prend_énum :: fonc(lumière : Énumération) -> rien
 {
-    imprime_sans_format("Valeur passée : ", lumière, '\n')
+    imprime("Valeur passée : %\n", lumière)
 }
 
 principale :: fonc () -> z32

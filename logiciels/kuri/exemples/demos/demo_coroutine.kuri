@@ -29,12 +29,12 @@ iter_liste_noeud :: corout(noeud : *r32) -> *r32
 
 principale :: fonc () -> z32
 {
-    pour j, i dans découpe("Texte d'exemple où les mots sont coupés", ' ') {
-        imprime_sans_format("Mot (", i, ") : ", j, '\n')
+    pour j, i dans découpe("Texte d'exemple où les mots sont coupés ") {
+        imprime("Mot (%) : %\n", i, j)
     }
 
     pour j, i dans plage(0, 11, 1) {
-        imprime_sans_format("Valeur (", i, ") : ", j, '\n')
+        imprime("Valeur (%) : %\n", i, j)
     }
 
     n3 := Noeud{ suiv = nul, val = 789 }
@@ -42,7 +42,7 @@ principale :: fonc () -> z32
     n1 := Noeud{ suiv = @n2, val = 123 }
 
     pour n, i dans iter_liste_noeud(@n1) {
-        imprime_sans_format("Valeur (", i, ") : ", n.val, '\n')
+        imprime("Valeur (%) : %\n", i, n.val)
     }
 
     pour c, i dans accumule([1, 2, 3, 4, 5, 6, 7, 8]) {
@@ -50,7 +50,7 @@ principale :: fonc () -> z32
             arrête
         }
 
-        imprime("Itération ", i, ", valeur = ", c, '\n')
+        imprime("Itération %, valeur = %\n", i, c)
     }
 
     retourne 0

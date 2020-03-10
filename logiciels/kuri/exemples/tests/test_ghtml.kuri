@@ -10,7 +10,7 @@ DonnéesPage :: struct {
 
 principale :: fonc () -> z32
 {
-    diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+    diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()); }
 
     chn := "{%pour x dans évènements%}<a href='{{lien}}'>{%si variable%}{{variable}} {{x}}{% sinon %}texte{% finsi %}</a>\n{% finpour %}"
 
@@ -27,7 +27,7 @@ principale :: fonc () -> z32
     imprime("lexèmes :\n\n")
 
     pour lexème dans lexeuse.lexèmes {
-        imprime_sans_format(lexème.type_lexème, " : ", lexème.chn, "\n")
+        imprime("% : %\n", lexème.type_lexème, lexème.chn)
     }
 
     imprime("\n")

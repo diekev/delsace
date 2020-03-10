@@ -2,10 +2,10 @@ importe "flux"
 
 boucle_avec_plage :: fonc() -> rien
 {
-	imprime_sans_format("boucle_avec_plage()\n");
+	imprime("boucle_avec_plage()\n");
 
 	pour i dans 0...10 {
-		imprime_sans_format(i, '\n');
+		imprime("%\n", i);
 	}
 
 	imprime('\n');
@@ -13,10 +13,10 @@ boucle_avec_plage :: fonc() -> rien
 
 boucle_avec_args_varidics :: fonc(args : ...z32) -> rien
 {
-	imprime_sans_format("boucle_avec_args_varidics()\n");
+	imprime("boucle_avec_args_varidics()\n");
 
 	pour arg dans args {
-		imprime_sans_format(arg, '\n');
+		imprime("%\n", arg);
 	}
 
 	imprime('\n');
@@ -24,10 +24,10 @@ boucle_avec_args_varidics :: fonc(args : ...z32) -> rien
 
 boucle_avec_tableau :: fonc(tableau : [10]z32) -> rien
 {
-	imprime_sans_format("boucle_avec_tableau()\n");
+	imprime("boucle_avec_tableau()\n");
 
 	pour v dans tableau {
-		imprime_sans_format(v, '\n');
+		imprime("%\n", v);
 	}
 
 	imprime('\n');

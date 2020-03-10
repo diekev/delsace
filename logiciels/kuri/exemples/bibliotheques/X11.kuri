@@ -59,7 +59,7 @@ XFillRectangle :: fonc externe (
 principale :: fonc () -> z32
 {
 	diffère {
-	    imprime_sans_format("Fin du programme, mémoire utilisée : ", mémoire_utilisée(), "o\n")
+	    imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 	}
 
     _ExposureMask := 1 << 15

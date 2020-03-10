@@ -18,84 +18,84 @@ imprime_type :: fonc(info : *InfoType) -> rien
 
             si info_arg.est_signé {
 			    si info_arg.taille_en_octet == 8 {
-				    imprime_sans_format("z8")
+				    imprime("z8")
 				}
 				sinon si info_arg.taille_en_octet == 16 {
-				    imprime_sans_format("z16")
+				    imprime("z16")
 				}
 				sinon si info_arg.taille_en_octet == 32 {
-				    imprime_sans_format("z32")
+				    imprime("z32")
 				}
 				sinon si info_arg.taille_en_octet == 64 {
-				    imprime_sans_format("z64")
+				    imprime("z64")
 				}
 			}
 			sinon {
 			    si info_arg.taille_en_octet == 8 {
-				    imprime_sans_format("n8")
+				    imprime("n8")
 				}
 				sinon si info_arg.taille_en_octet == 16 {
-				    imprime_sans_format("n16")
+				    imprime("n16")
 				}
 				sinon si info_arg.taille_en_octet == 32 {
-				    imprime_sans_format("n32")
+				    imprime("n32")
 				}
 				sinon si info_arg.taille_en_octet == 64 {
-				    imprime_sans_format("n64")
+				    imprime("n64")
 				}
 			}
 		}
 		RÉEL {
             si info.taille_en_octet == 16 {
-			    imprime_sans_format("r16")
+			    imprime("r16")
 			}
 			sinon si info.taille_en_octet == 32 {
-			    imprime_sans_format("r32")
+			    imprime("r32")
 			}
 			sinon si info.taille_en_octet == 64 {
-			    imprime_sans_format("r64")
+			    imprime("r64")
 			}
 		}
 		BOOLÉEN {
-			imprime_sans_format("bool")
+			imprime("bool")
 		}
 		CHAINE {
-			imprime_sans_format("chaine")
+			imprime("chaine")
 		}
 		STRUCTURE {
 		    info_arg := transtype(info : *InfoTypeStructure)
-			imprime_sans_format(info_arg.nom)
+			imprime(info_arg.nom)
 		}
 		POINTEUR {
 		    info_arg := transtype(info : *InfoTypePointeur)
 
 		    si info_arg.est_référence {
-			    imprime_sans_format('&')
+			    imprime("&")
 		    }
 		    sinon {
-			    imprime_sans_format('*')
+			    imprime("*")
 		    }
 
 			imprime_type(info_arg.type_pointé)
 		}
 		FONCTION {
 		    // À FAIRE : types paramètres
-			imprime_sans_format("fonction()")
+			imprime("fonction()")
 		}
 		EINI {
-			imprime_sans_format("eini")
+			imprime("eini")
 		}
 		RIEN {
-			imprime_sans_format("rien")
+			imprime("rien")
 		}
 		TABLEAU {
 		    info_arg := transtype(info : *InfoTypeTableau)
-			imprime_sans_format("[]")
+			imprime("[]")
 			imprime_type(info_arg.type_pointé)
 		}
 		ÉNUM {
 		    info_arg := transtype(info : *InfoTypeÉnum)
-			imprime_sans_format(info_arg.nom)
+			imprime(info_arg.nom)
 		}
 	}
 }
@@ -105,26 +105,26 @@ enregistre_noeud :: fonc(fonc_exec : eini) -> rien
     info := fonc_exec.info
 
     si info.id != id_info.FONCTION {
-        imprime_sans_format("Obtenu autre chose qu'une fonction !", '\n')
+        imprime("Obtenu autre chose qu'une fonction !\n")
         retourne
     }
 
     info_fonc := transtype(info : *InfoTypeFonction)
 
-    imprime("Les types d'entrée sont : ", '\n')
+    imprime("Les types d'entrée sont : \n")
 
     pour type dans info_fonc.types_entrée {
-        imprime_sans_format("Type = ")
+        imprime("Type = ")
         imprime_type(type)
-        imprime_sans_format('\n')
+        imprime("\n")
     }
 
-    imprime("Les types de sortie sont : ", '\n')
+    imprime("Les types de sortie sont : \n")
 
     pour type dans info_fonc.types_sortie {
-        imprime_sans_format("Type = ")
+        imprime("Type = ")
         imprime_type(type)
-        imprime_sans_format('\n')
+        imprime("\n")
     }
 }
 

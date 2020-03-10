@@ -13,37 +13,37 @@ importe Réseau
 
 imprime_erreur_ssl :: fonc(ssl : *ssl_st, erreur : z32, message : chaine, pile : bool) -> rien
 {
-	imprime_sans_format(message)
+	imprime(message)
 
 	erreur := SSL_get_error(ssl, erreur);
 
 	discr (erreur) {
 		_SSL_ERROR_NONE {
-			imprime_sans_format("SSL_ERROR_NONE\n")
+			imprime("SSL_ERROR_NONE\n")
         }
 	    _SSL_ERROR_ZERO_RETURN {
-			imprime_sans_format("SSL_ERROR_ZERO_RETURN\n")
+			imprime("SSL_ERROR_ZERO_RETURN\n")
         }
 		_SSL_ERROR_WANT_READ {
-			imprime_sans_format("SSL_ERROR_WANT_READ\n")
+			imprime("SSL_ERROR_WANT_READ\n")
         }
 		_SSL_ERROR_WANT_WRITE {
-			imprime_sans_format("SSL_ERROR_WANT_WRITE\n")
+			imprime("SSL_ERROR_WANT_WRITE\n")
         }
 		_SSL_ERROR_WANT_CONNECT {
-			imprime_sans_format("SSL_ERROR_WANT_CONNECT\n")
+			imprime("SSL_ERROR_WANT_CONNECT\n")
         }
 		_SSL_ERROR_WANT_ACCEPT {
-			imprime_sans_format("SSL_ERROR_WANT_ACCEPT\n")
+			imprime("SSL_ERROR_WANT_ACCEPT\n")
         }
 		_SSL_ERROR_WANT_X509_LOOKUP {
-			imprime_sans_format("SSL_ERROR_WANT_X509_LOOKUP\n")
+			imprime("SSL_ERROR_WANT_X509_LOOKUP\n")
         }
 		_SSL_ERROR_SYSCALL {
-			imprime_sans_format("SSL_ERROR_SYSCALL\n")
+			imprime("SSL_ERROR_SYSCALL\n")
         }
 		_SSL_ERROR_SSL {
-			imprime_sans_format("SSL_ERROR_SSL\n")
+			imprime("SSL_ERROR_SSL\n")
         }
 	}
 
@@ -57,7 +57,7 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
     réponse : chaine;
 
     si !est_valide(uri) {
-        imprime_sans_format("L'uri est invalide !", '\n');
+        imprime("L'uri est invalide !\n");
         retourne réponse, 1;
     }
 
@@ -66,14 +66,14 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
     he := gethostbyname(ptr_tampon);
 
     si he == nul {
-        imprime_sans_format("Ne peut pas trouver les informations de l'hôte !", '\n');
+        imprime("Ne peut pas trouver les informations de l'hôte !\n");
         retourne réponse, 1;
     }
 
     prise := socket(_AF_INET, _SOCK_STREAM, 0);
 
     si prise == -1 {
-        imprime_sans_format("Ne peut pas créer la prise !", '\n');
+        imprime("Ne peut pas créer la prise !\n");
         retourne réponse, 1;
     }
 
@@ -99,11 +99,11 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
     //imprime(their_addr, '\n');
 
 	si connect(prise, transtype(@their_addr : *sockaddr), transtype(taille_de(sockaddr) : z64)) == -1 {
-        imprime_sans_format("Impossible de se connecter à la prise !", '\n');
+        imprime("Impossible de se connecter à la prise !\n");
         retourne réponse, 1;
     }
 
-    //imprime("Connexion active", '\n');
+    //imprime("Connexion active\n");
 
     m_ssl : *ssl_st = nul
     diffère { si m_ssl != nul { SSL_free(m_ssl); } }
@@ -117,7 +117,7 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
         method := SSLv23_client_method()
 
         si method == nul {
-            imprime_sans_format("Erreur lors de la création de la méthode SSL\n")
+            imprime("Erreur lors de la création de la méthode SSL\n")
             retourne réponse, 1
         }
 
@@ -156,7 +156,7 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
     }
     sinon {
         si send(prise, requête.pointeur, transtype(requête.taille : n64), 0) == -1 {
-            imprime_sans_format("Ne peut pas envoyer la reqûete !", '\n');
+            imprime("Ne peut pas envoyer la reqûete !\n");
             retourne réponse, 1;
         }
     }
@@ -177,35 +177,35 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
                 erreur := SSL_get_error(m_ssl, taille)
 
                 si erreur != _SSL_ERROR_NONE || erreur != _SSL_ERROR_ZERO_RETURN {
-                    imprime_sans_format("Erreur lors de la lecture SSL : ");
+                    imprime("Erreur lors de la lecture SSL : ");
 
                     discr (erreur) {
                         _SSL_ERROR_NONE {
-                            imprime_sans_format("SSL_ERROR_NONE\n")
+                            imprime("SSL_ERROR_NONE\n")
                         }
                         _SSL_ERROR_ZERO_RETURN {
-                            imprime_sans_format("SSL_ERROR_ZERO_RETURN\n")
+                            imprime("SSL_ERROR_ZERO_RETURN\n")
                         }
                         _SSL_ERROR_WANT_READ {
-                            imprime_sans_format("SSL_ERROR_WANT_READ\n")
+                            imprime("SSL_ERROR_WANT_READ\n")
                         }
                         _SSL_ERROR_WANT_WRITE {
-                            imprime_sans_format("SSL_ERROR_WANT_WRITE\n")
+                            imprime("SSL_ERROR_WANT_WRITE\n")
                         }
                         _SSL_ERROR_WANT_CONNECT {
-                            imprime_sans_format("SSL_ERROR_WANT_CONNECT\n")
+                            imprime("SSL_ERROR_WANT_CONNECT\n")
                         }
                         _SSL_ERROR_WANT_ACCEPT {
-                            imprime_sans_format("SSL_ERROR_WANT_ACCEPT\n")
+                            imprime("SSL_ERROR_WANT_ACCEPT\n")
                         }
                         _SSL_ERROR_WANT_X509_LOOKUP {
-                            imprime_sans_format("SSL_ERROR_WANT_X509_LOOKUP\n")
+                            imprime("SSL_ERROR_WANT_X509_LOOKUP\n")
                         }
                         _SSL_ERROR_SYSCALL {
-                            imprime_sans_format("SSL_ERROR_SYSCALL\n")
+                            imprime("SSL_ERROR_SYSCALL\n")
                         }
                         _SSL_ERROR_SSL {
-                            imprime_sans_format("SSL_ERROR_SSL\n")
+                            imprime("SSL_ERROR_SSL\n")
                         }
                     }
                 }
@@ -249,7 +249,7 @@ principale :: fonc () -> z32
     uri := construit_uri(chn);
 
     si !est_valide(uri) {
-        imprime_sans_format("L'uri est invalide !", '\n');
+        imprime("L'uri est invalide !\n");
         retourne 1;
     }
 
@@ -282,7 +282,7 @@ principale :: fonc () -> z32
     diffère { déloge réponse; déloge requête; }
 
     si erreur == 0 {
-        imprime_sans_format("Réponse :", '\n', réponse, '\n');
+        imprime("Réponse :\n%\n", réponse);
     }
 
     retourne 0;

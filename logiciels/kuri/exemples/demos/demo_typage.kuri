@@ -33,9 +33,9 @@ principale :: fonc () -> type_de(N)
 
     infos := info_de(y)
 
-    imprime_sans_format(mémoire(infos), '\n')
+    imprime("%\n", mémoire(infos))
 
-    imprime_sans_format("N = ", N, '\n')
+    imprime("N = %\n", N)
 
     z := faux
 

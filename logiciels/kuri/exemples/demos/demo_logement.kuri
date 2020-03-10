@@ -3,7 +3,7 @@ importe "flux"
 principale :: fonc () -> z32
 {
 	diffère {
-	    imprime_sans_format("Mémoire utilisée : ", mémoire_utilisée(), "\n")
+	    imprime("Mémoire utilisée : %o\n", mémoire_utilisée())
 	}
 
 	x := loge chaine(256) sinon {

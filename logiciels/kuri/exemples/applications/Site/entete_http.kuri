@@ -172,13 +172,13 @@ analyse_entêtes :: fonc(analyseuse: *AnalyseuseRequête) -> EntêtesHTTP
 
 analyse_requête :: fonc(analyseuse: *AnalyseuseRequête, requête: chaine) -> rien
 {
-    //imprime_sans_format("requête :\n", requête, "\n")
+    //imprime("requête :\n%\n", requête)
 
     analyseuse.requête = requête
 
     ligne_requête := analyse_ligne_requête(analyseuse)
 
-    //imprime_sans_format("Ligne requête : ", ligne_requête, "\n")
+    //imprime("Ligne requête : %\n", ligne_requête)
 
 
     // analyse_contenu (pour une réponse)

@@ -57,23 +57,23 @@ détruit_requête :: fonc(requête : &Requête) -> rien
 
 imprime_requête :: fonc(requête : &Requête) -> rien
 {
-	imprime_sans_format("Requête :\n")
+	imprime("Requête :\n")
 
 	pour bloc dans requête.blocs {
-		imprime_sans_format(bloc.inst, '\n')
+		imprime("%\n", bloc.inst)
 
 		pour objet dans bloc.expression.objets {
-			imprime_sans_format("Objet ", objet.type, " :\n")
-			imprime_sans_format("\tNom : ", objet.nom, "\n")
+			imprime("Objet % :\n", objet.type)
+			imprime("\tNom : %\n", objet.nom)
 
-			imprime_sans_format("\tÉtiquettes :\n")
+			imprime("\tÉtiquettes :\n")
 			pour étiquette dans objet.étiquettes {
-				imprime_sans_format("\t\t", étiquette.valeur, '\n')
+				imprime("\t\t%\n", étiquette.valeur)
 			}
 
 			imprime("\tPropriétés : {\n")
 			pour propriété dans objet.propriétés {
-				imprime_sans_format("\t\t", propriété.nom, " : ", propriété.valeur, ",\n")
+				imprime("\t\t % : %,\n", propriété.nom, propriété.valeur)
 			}
 			imprime("\t}\n")
 		}
@@ -149,7 +149,7 @@ analyse_propriétés :: fonc(syntaxeuse : &Syntaxeuse, objet : &Objet) -> rien
 		propriété : Propriété
 
 		si !syntaxeuse.requiers_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
-			imprime_sans_format("ERREUR : attendu une chaine de caractère après '{' ou ','\n")
+			imprime("ERREUR : attendu une chaine de caractère après '{' ou ','\n")
 			retourne
 		}
 
@@ -158,7 +158,7 @@ analyse_propriétés :: fonc(syntaxeuse : &Syntaxeuse, objet : &Objet) -> rien
 		syntaxeuse.avance()
 
 		si !syntaxeuse.requiers_lexème(IdentifiantLexème.DOUBLE_POINTS) {
-			imprime_sans_format("ERREUR : attendu un double point\n")
+			imprime("ERREUR : attendu un double point\n")
 			retourne
 		}
 
@@ -171,7 +171,7 @@ analyse_propriétés :: fonc(syntaxeuse : &Syntaxeuse, objet : &Objet) -> rien
 			syntaxeuse.avance()
 		}
 		sinon {
-			imprime_sans_format("ERREUR : attendu une chaine de caractère ou une littérale après ':'\n")
+			imprime("ERREUR : attendu une chaine de caractère ou une littérale après ':'\n")
 			retourne
 		}
 
@@ -371,11 +371,11 @@ principale :: fonc () -> z32
     ]
 
 	diffère {
-		imprime_sans_format("Mémoire utilisée        : ", mémoire_utilisée(), "o\n")
-		imprime_sans_format("Mémoire consommée       : ", mémoire_consommée(), "o\n")
-		imprime_sans_format("Nombre d'allocations    : ", nombre_allocations(), "\n")
-		imprime_sans_format("Nombre de réallocations : ", nombre_réallocations(), "\n")
-		imprime_sans_format("Nombre de déallocations : ", nombre_déallocations(), "\n")
+		imprime("Mémoire utilisée        : %o\n", mémoire_utilisée())
+		imprime("Mémoire consommée       : %o\n", mémoire_consommée())
+		imprime("Nombre d'allocations    : %\n", nombre_allocations())
+		imprime("Nombre de réallocations : %\n", nombre_réallocations())
+		imprime("Nombre de déallocations : %\n", nombre_déallocations())
 	}
 
     chaine_requête := "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"
@@ -395,7 +395,7 @@ principale :: fonc () -> z32
 			détruit_requête(requête)
 		}
 		erreur {
-			imprime_sans_format(erreur.message, '\n')
+			imprime("%\n", erreur.message)
 		}
 	}
 

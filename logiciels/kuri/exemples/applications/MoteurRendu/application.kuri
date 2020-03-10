@@ -582,7 +582,7 @@ trace_maillage :: fonc (
 principale2 :: fonc () -> z32
 {
 	diffère {
-	    imprime_sans_format("Fin du programme, mémoire utilisée : ", mémoire_utilisée(), "o\n")
+	    imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 	}
 
     SDL_Init(DrapeauxInit.SDL_INIT_EVERYTHING);

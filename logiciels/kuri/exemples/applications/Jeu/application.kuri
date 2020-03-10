@@ -172,7 +172,7 @@ initialise_opengl :: fonc(app : &Application) -> rien
     erreur := glewInit()
 
     si erreur != 0 {
-        imprime_sans_format("Erreur lors de l'initilisation de GLEW !\n")
+        imprime("Erreur lors de l'initilisation de GLEW !\n")
     }
 
     initialise_tampon_dessin()
@@ -307,8 +307,8 @@ boucle_principale :: fonc(app : &Application) -> rien
         // À FAIRE : l'impression de chaines contenant des caractères échappés
         // ont un déborderment de tampon car l'échappement est compté comme un
         // caractère en soi.
-        imprime_sans_format(app, "\n\n")
-        imprime_sans_format("Mémoire utilisée : ", mémoire_utilisée(), "o\n\n")
+        imprime("%\n\n", app)
+        imprime("Mémoire utilisée : %o\n\n", mémoire_utilisée())
 
 	    glfwWaitEvents()
 
@@ -321,7 +321,7 @@ boucle_principale :: fonc(app : &Application) -> rien
 lance_application :: fonc(app : &Application) -> z32
 {
     si glfwInit() == 0 {
-        imprime_sans_format("Impossible d'initialiser GLFW !\n")
+        imprime("Impossible d'initialiser GLFW !\n")
         retourne 1
     }
 
@@ -351,7 +351,7 @@ lance_application :: fonc(app : &Application) -> z32
     fenetre := glfwCreateWindow(largeur, hauteur, titre.pointeur, nul, nul)
 
     si fenetre == nul {
-        imprime_sans_format("Impossible d'initialiser la fenêtre !\n")
+        imprime("Impossible d'initialiser la fenêtre !\n")
         glfwTerminate()
         retourne 1
     }

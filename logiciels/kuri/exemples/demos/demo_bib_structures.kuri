@@ -6,12 +6,12 @@ importe "structures"
 
 test_pile :: fonc() -> rien
 {
-    imprime_sans_format("==========================================\n")
+    imprime("==========================================\n")
 
 	p := crée_pile(transtype(taille_de(z32) : z64))
     diffère {
         decrée_pile(p)
-        imprime_sans_format("pile décréée !\n")
+        imprime("pile décréée !\n")
     }
 
     imprime(" ----------- remplissage de la pile\n")
@@ -19,7 +19,7 @@ test_pile :: fonc() -> rien
     pour i dans 0...9 {
         v := i * 2
         empile(p, @v)
-        imprime_sans_format("empile : ", v, " -> ", mémoire(p), '\n')
+        imprime("empile : % -> %\n", v, mémoire(p))
     }
 
     imprime(" ----------- vidage de la pile\n")
@@ -27,18 +27,18 @@ test_pile :: fonc() -> rien
     tantque !est_vide(p) {
         v : z32
         dépile(p, @v)
-        imprime_sans_format("dépile : ", v, " -> ", mémoire(p), '\n')
+        imprime("dépile : % -> %\n", v, mémoire(p))
     }
 }
 
 test_file :: fonc() -> rien
 {
-    imprime_sans_format("==========================================\n")
+    imprime("==========================================\n")
 
 	p := crée_file(transtype(taille_de(z32) : z64))
     diffère {
         decrée_file(p)
-        imprime_sans_format("file décréée !\n")
+        imprime("file décréée !\n")
     }
 
     imprime(" ----------- remplissage de la file\n")
@@ -46,7 +46,7 @@ test_file :: fonc() -> rien
     pour i dans 0...9 {
         v := i * 2
         enfile(p, @v)  // À FAIRE : transtypage automatique
-        imprime_sans_format("enfile : ", v, " -> ", mémoire(p), '\n')
+        imprime("enfile : % -> %\n", v, mémoire(p))
     }
 
     imprime(" ----------- vidage de la file\n")
@@ -54,17 +54,17 @@ test_file :: fonc() -> rien
     tantque !est_vide(p) {
         v : z32
         défile(p, @v)
-        imprime_sans_format("défile : ", v, " -> ", mémoire(p), '\n')
+        imprime("défile : % -> %\n", v, mémoire(p))
     }
 }
 
 principale :: fonc () -> z32
 {
-    imprime_sans_format("Il y a ", args.taille, " arguments :\n")
+    imprime("Il y a % arguments :\n", args.taille)
 
     pour arg dans args {
         chn := converti_chaine_c(arg)
-        imprime_sans_format('\t', chn, '\n')
+        imprime("\t%\n", chn)
     }
 
     test_pile()

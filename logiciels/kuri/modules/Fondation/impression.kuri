@@ -697,36 +697,6 @@ imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 	retourne chaine_depuis_enchaineuse(@enchaineuse)
 }
 
-imprime_sans_format :: fonc(args : ...eini) -> rien
-{
-    enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse); }
-
-    pour arg dans args {
-		imprime_valeur(@enchaineuse, arg.pointeur, arg.info, faux)
-    }
-
-	résultat := chaine_depuis_enchaineuse(@enchaineuse)
-	sortie_standarde().écris(résultat)
-	déloge résultat
-}
-
-imprime_sans_format_err :: fonc(args : ...eini) -> rien
-{
-    enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-	diffère { détruit_tampons(@enchaineuse); }
-
-    pour arg dans args {
-		imprime_valeur(@enchaineuse, arg.pointeur, arg.info, faux)
-    }
-
-	résultat := chaine_depuis_enchaineuse(@enchaineuse)
-	sortie_erreur().écris(résultat)
-	déloge résultat
-}
-
 imprime_log :: fonc (ident: chaine, mode: ModeLogage, format: chaine, args: ...eini) -> rien
 {
 	message := imprime_chaine(format, ...args)

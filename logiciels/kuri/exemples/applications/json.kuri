@@ -6,7 +6,7 @@ importe JSON
 
 test_json_tori :: fonc () -> rien
 {
-    diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+    diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
 
     chn := "{ \"nom\" : \"dietrich\", \"prénom\" : \"kévin\", \"âge\": 28, \"taille\": 1.73 }"
 
@@ -23,7 +23,7 @@ test_json_tori :: fonc () -> rien
     imprime("lexèmes :\n\n")
 
     pour données dans lexeuse.lexèmes {
-        imprime_sans_format(données.lexème, "\n")
+        imprime(données.lexème, "\n")
     }
 
     imprime("\n")
@@ -40,7 +40,7 @@ test_json_tori :: fonc () -> rien
 	imprime("JSON :\n\n")
 
     si syntaxeuse.assembleuse.pile.est_vide() {
-        imprime_sans_format("La pile est vide...\n")
+        imprime("La pile est vide...\n")
     }
     sinon {
         racine := syntaxeuse.assembleuse.pile.haut()

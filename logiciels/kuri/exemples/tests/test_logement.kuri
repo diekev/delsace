@@ -3,13 +3,13 @@ importe GlibC
 
 imprime_tableau :: fonc(tabl : []r64) -> rien
 {
-    imprime_sans_format("imprime_tableau...\n");
-    imprime_sans_format("tabl.taille = ", tabl.taille, "\n");
-    imprime_sans_format("tabl.pointeur = ", tabl.pointeur, "\n");
+    imprime("imprime_tableau...\n");
+    imprime("tabl.taille = %\n", tabl.taille);
+    imprime("tabl.pointeur = %\n", tabl.pointeur);
 
     pour v, index dans tabl {
         x := v;
-        imprime_sans_format("tabl[", index, "] = ", v, "\n");
+        imprime("tabl[%] = %\n", index, v);
     }
 }
 
@@ -21,61 +21,61 @@ Vecteur :: struct {
 
 test :: fonc() -> rien
 {
-    imprime_sans_format("=========================================\n");
-    imprime_sans_format("                 tableau                 \n");
+    imprime("=========================================\n");
+    imprime("                 tableau                 \n");
 
     tabl := [1.0, 2.0, 4.0, 8.0, 16.0];
 
     imprime_tableau(tabl);
 
-    imprime_sans_format("=========================================\n");
-    imprime_sans_format("                 tailles                 \n");
+    imprime("=========================================\n");
+    imprime("                 tailles                 \n");
 
-    imprime_sans_format("taille_de(z32) = ", taille_de(z32), "\n");
-    imprime_sans_format("taille_de([]z32) = ", taille_de([]z32), "\n");
-    imprime_sans_format("taille_de([]r64) = ", taille_de([]r64), "\n");
-    imprime_sans_format("taille_de(eini) = ", taille_de(eini), "\n");
+    imprime("taille_de(z32) = %\n", taille_de(z32));
+    imprime("taille_de([]z32) = %\n", taille_de([]z32));
+    imprime("taille_de([]r64) = %\n", taille_de([]r64));
+    imprime("taille_de(eini) = %\n", taille_de(eini));
 
-    imprime_sans_format("=========================================\n");
-    imprime_sans_format("                 vecteur                 \n");
+    imprime("=========================================\n");
+    imprime("                 vecteur                 \n");
 
     vec2 : Vecteur;
     vec1 := Vecteur{x = 1.0, y = 4.0, z = 16.0};
 
-    imprime_sans_format("Vecteur initiliasé : ", vec1, "\n");
-    imprime_sans_format("Vecteur non-initiliasé : ", vec2, "\n");
+    imprime("Vecteur initiliasé : %\n", vec1);
+    imprime("Vecteur non-initiliasé : %\n", vec2);
 
     nom := "x";
 
     ok := possède_membre(vec1, nom);
 
     si ok {
-        imprime_sans_format("Le vecteur possède le membre 'x' !\n");
+        imprime("Le vecteur possède le membre 'x' !\n");
     }
     sinon {
-        imprime_sans_format("Le vecteur ne possède pas le membre 'x' !\n");
+        imprime("Le vecteur ne possède pas le membre 'x' !\n");
     }
 
     nom = "non";
     ok = possède_membre(vec1, nom);
 
     si ok {
-        imprime_sans_format("Le vecteur possède le membre 'non' !\n");
+        imprime("Le vecteur possède le membre 'non' !\n");
     }
     sinon {
-        imprime_sans_format("Le vecteur ne possède pas le membre 'non' !\n");
+        imprime("Le vecteur ne possède pas le membre 'non' !\n");
     }
 }
 
 logement_tableau :: fonc() -> rien
 {
-    imprime_sans_format("=========================================\n");
-    imprime_sans_format("            logements tableau            \n");
+    imprime("=========================================\n");
+    imprime("            logements tableau            \n");
 
     tabl := loge [32]r64;
 
-    imprime_sans_format("Tableau logé à l'addresse : ", tabl.pointeur, "\n");
-    imprime_sans_format("Taille tableau : ", tabl.taille, "\n");
+    imprime("Tableau logé à l'addresse : %\n", tabl.pointeur);
+    imprime("Taille tableau : %\n", tabl.taille);
 
     debut := 1.0;
 
@@ -88,8 +88,8 @@ logement_tableau :: fonc() -> rien
 
     déloge tabl;
 
-    imprime("Tableau délogé : ", tabl.pointeur, "\n");
-    imprime("Taille tableau : ", tabl.taille, "\n");
+    imprime("Tableau délogé : %\n", tabl.pointeur);
+    imprime("Taille tableau : %\n", tabl.taille);
 
     imprime_tableau(tabl);
 }
@@ -97,26 +97,26 @@ logement_tableau :: fonc() -> rien
 
 logement_chaine :: fonc() -> rien
 {
-    imprime_sans_format("=========================================\n");
-    imprime_sans_format("            logements chaine             \n");
+    imprime("=========================================\n");
+    imprime("            logements chaine             \n");
 
     chn1 := "Kévin";
     chn2 := "Dietrich";
 
     chnr := enchaine(chn1, chn2);
 
-    imprime_sans_format("Résultat : ", chnr, "\n");
+    imprime("Résultat : %\n", chnr);
 
     déloge chnr;
 
-    imprime_sans_format("Chaîne délogée : ", chnr.pointeur, "\n");
-    imprime_sans_format("Taille chaîne  : ", chnr.taille, "\n");
+    imprime("Chaîne délogée : %\n", chnr.pointeur);
+    imprime("Taille chaîne  : %\n", chnr.taille);
 }
 
 test_fichier :: fonc() -> rien
 {
-    imprime_sans_format("=========================================\n");
-    imprime_sans_format("                 fichier                 \n");
+    imprime("=========================================\n");
+    imprime("                 fichier                 \n");
 
     chemin := "/home/kevin/test.kuri";
 
@@ -124,7 +124,7 @@ test_fichier :: fonc() -> rien
         res := open(chemin.pointeur, 0);
 
         si res == -1 {
-            imprime_sans_format("Erreur lors de l'ouverture du fichier !\n");
+            imprime("Erreur lors de l'ouverture du fichier !\n");
             retourne;
         }
 
@@ -142,7 +142,7 @@ test_fichier :: fonc() -> rien
         res = close(res);
 
         si res == -1 {
-            imprime_sans_format("Erreur lors de la fermeture du fichier !\n");
+            imprime("Erreur lors de la fermeture du fichier !\n");
             retourne;
         }
     }
@@ -150,15 +150,14 @@ test_fichier :: fonc() -> rien
 
 principale :: fonc () -> z32
 {
-    imprime_sans_format("=========================================\n");
-    imprime_sans_format("                arguments                \n");
+    imprime("=========================================\n");
+    imprime("                arguments                \n");
 
-    str := "nombre d'arguments = ";
-    imprime_sans_format(str, args.taille, "\n");
+    imprime("nombre d'arguments = %\n", args.taille);
 
     pour arg, i dans args {
         nom_arg := converti_chaine_c(arg);
-        imprime_sans_format("argument ", i,": ", nom_arg, "\n");
+        imprime("argument %: %\n", i, nom_arg);
     }
 
     logement_tableau();

@@ -217,7 +217,7 @@ analyse_pour :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 imprime_arbre :: fonc(racine : *NoeudSyntaxique, tab : z32) -> rien
 {
 	pour i dans 0 ... tab - 1 {
-		imprime_sans_format("  ")
+		imprime("  ")
 	}
 
 	imprime("% (%)\n", racine.type, racine.données.chn)

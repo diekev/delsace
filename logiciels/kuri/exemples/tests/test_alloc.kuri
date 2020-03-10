@@ -2,45 +2,45 @@ importe Fondation
 
 test_alloc_scalaire :: fonc() -> rien
 {
-    imprime_sans_format("test_alloc_scalaire\n")
+    imprime("test_alloc_scalaire\n")
     a := loge z32
-    imprime_sans_format("scalaire logée : ", a, '\n')
+    imprime("scalaire logée : %\n", a)
 
     mémoire(a) = 5
-    imprime_sans_format("valeur scalaire : ", mémoire(a), '\n')
+    imprime("valeur scalaire : %\n", mémoire(a))
 
     reloge a : z32
-    imprime_sans_format("scalaire relogée : ", a, '\n')
-    imprime_sans_format("valeur scalaire : ", mémoire(a), '\n')
+    imprime("scalaire relogée : %\n", a)
+    imprime("valeur scalaire : %\n", mémoire(a))
     déloge a
-    imprime_sans_format("scalaire délogée : ", a, '\n')
+    imprime("scalaire délogée : %\n", a)
 }
 
 test_alloc_chaine :: fonc() -> rien
 {
-    imprime_sans_format("test_alloc_chaine\n")
+    imprime("test_alloc_chaine\n")
     chn := loge chaine(1024)
-    imprime_sans_format("chaine logée : ", chn.pointeur, '\n')
+    imprime("chaine logée : %\n", chn.pointeur)
     reloge chn : chaine(2048)
-    imprime_sans_format("chaine relogée : ", chn.pointeur, '\n')
+    imprime("chaine relogée : %\n", chn.pointeur)
     déloge chn
-    imprime_sans_format("chaine délogée : ", chn.pointeur, '\n')
+    imprime("chaine délogée : %\n", chn.pointeur)
 }
 
 test_alloc_tableau :: fonc() -> rien
 {
-    imprime_sans_format("test_alloc_tableau\n")
+    imprime("test_alloc_tableau\n")
     tabl := loge [1024]z32
-    imprime_sans_format("tableau logé : ", tabl.pointeur, '\n')
+    imprime("tableau logé : %\n", tabl.pointeur)
 
-    imprime_sans_format("taille tableau : ", tabl.taille, '\n')
+    imprime("taille tableau : %\n", tabl.taille)
     tableau_ajoute(@tabl, 5)
-    imprime_sans_format("taille tableau : ", tabl.taille, '\n')
+    imprime("taille tableau : %\n", tabl.taille)
 
     reloge tabl : [1024]z32
-    imprime_sans_format("tableau relogé : ", tabl.pointeur, '\n')
+    imprime("tableau relogé : %\n", tabl.pointeur)
     déloge tabl
-    imprime_sans_format("tableau délogé : ", tabl.pointeur, '\n')
+    imprime("tableau délogé : %\n", tabl.pointeur)
 }
 
 principale :: fonc () -> z32

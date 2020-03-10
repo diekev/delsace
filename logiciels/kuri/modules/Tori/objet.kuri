@@ -277,7 +277,7 @@ détruit :: fonc(gestionnaire : *GestionnaireObjet) -> rien
 imprime_tab :: fonc(n : z32) -> rien
 {
 	pour i dans 0 ... n - 1 {
-		imprime_sans_format("  ")
+		imprime("  ")
 	}
 }
 
@@ -285,11 +285,11 @@ imprime_json :: fonc(objet : *Objet, tab : z32) -> rien
 {
 	discr objet.id {
 		NUL {
-			imprime_sans_format("nul,\n")
+			imprime("nul,\n")
 		}
 		DICTIONNAIRE {
 			imprime_tab(tab)
-			imprime_sans_format("{\n")
+			imprime("{\n")
 
 			dico := transtype(objet : *ObjetDictionnaire)
 
@@ -297,7 +297,7 @@ imprime_json :: fonc(objet : *Objet, tab : z32) -> rien
 				obj := dico.valeurs[idx]
 
 				imprime_tab(tab + 1)
-				imprime_sans_format(nom, " : ")
+				imprime("% : ", nom)
 				imprime_json(obj, tab + 1)
 			}
 
@@ -305,7 +305,7 @@ imprime_json :: fonc(objet : *Objet, tab : z32) -> rien
 			imprime("},\n")
 		}
 		LISTE {
-			imprime_sans_format("[\n")
+			imprime("[\n")
 
 			liste := transtype(objet : *ObjetListe)
 
@@ -318,22 +318,22 @@ imprime_json :: fonc(objet : *Objet, tab : z32) -> rien
 		}
 		CHAINE {
 			obj := transtype(objet : *ObjetChaine)
-			imprime_sans_format("\"", obj.valeur, "\"", ",\n")
+			imprime("\"%\"\n", obj.valeur)
 		}
 		ENTIER {
 			obj := transtype(objet : *ObjetEntier)
-			imprime_sans_format(obj.valeur, ",\n")
+			imprime("%,\n", obj.valeur)
 		}
 		RÉEL {
 			obj := transtype(objet : *ObjetRéel)
-			imprime_sans_format(obj.valeur, ",\n")
+			imprime("%,\n", obj.valeur)
 		}
 	}
 }
 
 test_tori :: fonc() -> rien
 {
-    diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+    diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
 
 	gestionnaire : GestionnaireObjet
 	diffère { détruit(@gestionnaire) }

@@ -294,6 +294,6 @@ test_lexeuse :: fonc() -> rien
     diffère { déloge lexeuse.lexèmes; }
 
     pour lexème dans lexeuse.lexèmes {
-        imprime_sans_format(lexème, '\n')
+        imprime("%\n", lexème)
     }
 }

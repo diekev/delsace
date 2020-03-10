@@ -238,7 +238,7 @@ ajoute_noeud :: fonc(
 	nom : chaine,
 	valeur : z32) -> *Noeud
 {
-	imprime_sans_format("Création d'un noeud...\n")
+	imprime("Création d'un noeud...\n")
 
 	si (nom.est_vide()) {
 		// À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
@@ -266,7 +266,7 @@ ajoute_propriete :: fonc(
 	nom : chaine,
 	valeur : z32) -> rien
 {
-	imprime_sans_format("Création d'une propriété <", nom, ", ", valeur, "> pour un noeud...\n")
+	imprime("Création d'une propriété <%, %> pour un noeud...\n", nom, valeur)
 
 	si (n == nul || n.id == 0) {
 		// À FAIRE : erreur
@@ -340,7 +340,7 @@ ajoute_propriete :: fonc(
 	nom : chaine,
 	valeur : z32) -> rien
 {
-	imprime_sans_format("Création d'une propriété pour une relation...\n")
+	imprime("Création d'une propriété pour une relation...\n")
 
 	si r == nul || r.id == 0 {
 		// À FAIRE : erreur

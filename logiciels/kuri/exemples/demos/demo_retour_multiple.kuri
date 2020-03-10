@@ -25,24 +25,24 @@ indirection_simple :: fonc() -> z32
 
 test_fonction_ret_simple :: fonc() -> rien
 {
-    imprime_sans_format("---------------------------", '\n')
-    imprime_sans_format("fonc ret simple", '\n')
+    imprime("---------------------------\n")
+    imprime("fonc ret simple\n")
 
     a := indirection_simple()
 
-    imprime_sans_format("a = ", a, '\n')
+    imprime("a = %\n", a)
 }
 
 test_ptr_fonction_ret_simple :: fonc() -> rien
 {
-    imprime_sans_format("---------------------------", '\n')
-    imprime_sans_format("pointeur ret fonc simple", '\n')
+    imprime("---------------------------\n")
+    imprime("pointeur ret fonc simple\n")
 
     ptr := indirection_simple
 
     a := ptr()
 
-    imprime_sans_format("a = ", a, '\n')
+    imprime("a = %\n", a)
 }
 
 coro_simple :: corout() -> z32
@@ -54,13 +54,11 @@ coro_simple :: corout() -> z32
 
 test_coro_simple :: fonc() -> rien
 {
-    imprime_sans_format("---------------------------", '\n')
-    imprime_sans_format("coro simple", '\n')
+    imprime("---------------------------\n")
+    imprime("coro simple\n")
 
     pour a dans coro_simple() {
-
-     imprime_sans_format("a = ", a, '\n')
-
+        imprime("a = %\n", a)
     }
 }
 
@@ -78,12 +76,12 @@ indirection :: fonc() -> z32, bool
 
 test_fonction_ret_moult :: fonc() -> rien
 {
-    imprime_sans_format("---------------------------", '\n')
-    imprime_sans_format("fonc ret multiple", '\n')
+    imprime("---------------------------\n")
+    imprime("fonc ret multiple\n")
 
     a, b := indirection()
 
-    imprime_sans_format("a = ", a, ", b = ", b, '\n')
+    imprime("a = %, b = %\n", a, b)
 
     // ignore un paramètre
 
@@ -105,8 +103,8 @@ test___ :: fonc(x : fonc(z32)z32, y : fonc(z32)(z32),z : fonc(z32)(z32,z32), w :
 
 test_ptr_fonction_ret_moult :: fonc() -> rien
 {
-    imprime_sans_format("---------------------------", '\n')
-    imprime_sans_format("pointeur fonc ret multiple", '\n')
+    imprime("---------------------------\n")
+    imprime("pointeur fonc ret multiple\n")
 
     x : fonc(z32)z32 = nul
     y : fonc(z32)(z32) = nul
@@ -116,7 +114,7 @@ test_ptr_fonction_ret_moult :: fonc() -> rien
 
     a, b := appel_ptr_moult_ret()
 
-    imprime_sans_format("a = ", a, ", b = ", b, '\n')
+    imprime("a = %, b = %\n", a, b)
 }
 
 //##############################################################################
@@ -136,11 +134,11 @@ coro_multiple :: corout() -> z32, bool
 
 test_coro_ret_moult :: fonc() -> rien
 {
-    imprime_sans_format("---------------------------", '\n')
-    imprime_sans_format("coro ret multiple", '\n')
+    imprime("---------------------------\n")
+    imprime("coro ret multiple\n")
 
     pour a, b, i dans coro_multiple() {
-        imprime_sans_format("a = ", a, ", b = ", b, ", i = ", i, '\n')
+        imprime("a = %, b = %, i = %\n", a, b; i)
     }
 
     // ignore un paramètre

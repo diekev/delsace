@@ -1,14 +1,13 @@
-importe "chaine"
-importe "flux"
+importe Fondation
 
 principale :: fonc () -> z32
 {
-    imprime_sans_format("Bonjour, tout le monde !\n")
-    imprime_sans_format("Nous allons imprimer les arguments :\n")
+    imprime("Bonjour, tout le monde !\n")
+    imprime("Nous allons imprimer les arguments :\n")
 
     pour arg, index dans args {
         chn := converti_chaine_c(arg)
-        imprime_sans_format("Argument ", index, " = ", chn, '\n')
+        imprime("Argument % = %\n", index, chn)
     }
 
     retourne 0

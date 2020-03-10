@@ -16,6 +16,6 @@ principale :: fonc () -> z32
 	x := 18014398509481984;
 	y := ajoute(x, x);
 
-	imprime_sans_format(x, " + ", x, " = ", y, '\n');
+	imprime("% + % = %\n", x, y);
 	retourne 0;
 }

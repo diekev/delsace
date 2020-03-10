@@ -12,7 +12,7 @@ principale :: fonc () -> z32
 
     z := ajoute(x, y).ajoute(x)
 
-    imprime_sans_format(z, '\n')
+    imprime("%\n", z)
 
     retourne 0
 }

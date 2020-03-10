@@ -845,10 +845,10 @@ analyse_parametre :: fonc(syntaxeuse : &Syntaxeuse, type_param : TypeParamètre)
 imprime_arbre :: fonc(racine : *NoeudSyntaxique, tab : z32) -> rien
 {
 	pour i dans 0 ... tab - 1 {
-		imprime_sans_format("  ")
+		imprime("  ")
 	}
 
-	imprime(racine.type, " (", racine.données.chn, ")\n")
+	imprime("% (%)\n", racine.type, racine.données.chn)
 
 	pour noeud dans racine.enfants {
 		imprime_arbre(noeud, tab + 1)
@@ -857,10 +857,10 @@ imprime_arbre :: fonc(racine : *NoeudSyntaxique, tab : z32) -> rien
 
 principale :: fonc () -> z32
 {
-	diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), " o\n") }
+	diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
     script := "a = ((5 + 8) * 12) * foo(3);"
 
-	imprime("script :\n\n", script, "\n\n")
+	imprime("script :\n\n%\n\n", script)
 
     lexeuse := construit_lexeuse(script)
     diffère { détruit_lexeuse(lexeuse) }
@@ -869,7 +869,7 @@ principale :: fonc () -> z32
 
 	imprime("lexèmes :\n\n")
 	pour lexème dans lexeuse.lexèmes {
-		imprime_sans_format(lexème.lexème, "\n")
+		imprime("%\n", lexème.lexème)
 	}
 
 	imprime("\n")
