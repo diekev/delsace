@@ -243,11 +243,6 @@ static bool est_commutatif(GenreLexeme id)
 
 Operateurs::~Operateurs()
 {
-	for (auto &paire : donnees_operateurs) {
-		for (auto &op : paire.second) {
-			memoire::deloge("DonneesOpérateur", op);
-		}
-	}
 }
 
 const Operateurs::type_conteneur &Operateurs::trouve(GenreLexeme id) const
@@ -276,14 +271,12 @@ void Operateurs::ajoute_basique(
 	assert(type1);
 	assert(type2);
 
-	auto op = memoire::loge<DonneesOperateur>("DonneesOpérateur");
+	auto op = donnees_operateurs[id].ajoute_element();
 	op->type1 = type1;
 	op->type2 = type2;
 	op->type_resultat = type_resultat;
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = true;
-
-	donnees_operateurs[id].pousse(op);
 
 	if (raison == RaisonOp::POUR_COMPARAISON) {
 		op->est_comp_reel = indice_type == IndiceTypeOp::REEL;
@@ -307,15 +300,13 @@ void Operateurs::ajoute_perso(
 		Type *type_resultat,
 		const dls::chaine &nom_fonction)
 {
-	auto op = memoire::loge<DonneesOperateur>("DonneesOpérateur");
+	auto op = donnees_operateurs[id].ajoute_element();
 	op->type1 = type1;
 	op->type2 = type2;
 	op->type_resultat = type_resultat;
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = false;
 	op->nom_fonction = nom_fonction;
-
-	donnees_operateurs[id].pousse(op);
 }
 
 void Operateurs::ajoute_perso_unaire(
@@ -324,14 +315,12 @@ void Operateurs::ajoute_perso_unaire(
 		Type *type_resultat,
 		const dls::chaine &nom_fonction)
 {
-	auto op = memoire::loge<DonneesOperateur>("DonneesOpérateur");
+	auto op = donnees_operateurs[id].ajoute_element();
 	op->type1 = type;
 	op->type_resultat = type_resultat;
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = false;
 	op->nom_fonction = nom_fonction;
-
-	donnees_operateurs[id].pousse(op);
 }
 
 void Operateurs::ajoute_operateur_basique_enum(Type *type)
@@ -392,7 +381,11 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 
 	auto op_candidats = dls::tablet<DonneesOperateur const *, 10>();
 
-	for (auto const &op : contexte.operateurs.trouve(type_op)) {
+	auto &iter = contexte.operateurs.trouve(type_op);
+
+	for (auto i = 0; i < iter.taille(); ++i) {
+		auto op = &iter[i];
+
 		if (op->type1 == type1 && op->type2 == type2) {
 			op_candidats.efface();
 			op_candidats.pousse(op);
@@ -455,7 +448,11 @@ DonneesOperateur const *cherche_operateur_unaire(
 		Type *type1,
 		GenreLexeme type_op)
 {
-	for (auto const &op : operateurs.trouve(type_op)) {
+	auto &iter = operateurs.trouve(type_op);
+
+	for (auto i = 0; i < iter.taille(); ++i) {
+		auto op = &iter[i];
+
 		if (op->type1 == type1) {
 			return op;
 		}

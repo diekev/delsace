@@ -43,36 +43,6 @@ assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
 	this->definitions.pousse("_REENTRANT");
 }
 
-assembleuse_arbre::~assembleuse_arbre()
-{
-	/* NOTE : nous devons appeler les destructeurs pour libérer automatiquement
-	 * la mémoire allouée dans les noeuds (chaines, tableaux, etc.) */
-
-#define DELOGE_NOEUDS(Type, Tableau) \
-	for (auto ptr : Tableau) {\
-		memoire::deloge(#Type, ptr); \
-	}
-
-	DELOGE_NOEUDS(NoeudBloc, m_noeuds_bloc);
-	DELOGE_NOEUDS(NoeudDeclarationVariable, m_noeuds_declaration_variable);
-	DELOGE_NOEUDS(NoeudDeclarationFonction, m_noeuds_declaration_fonction);
-	DELOGE_NOEUDS(NoeudEnum, m_noeuds_enum);
-	DELOGE_NOEUDS(NoeudStruct, m_noeuds_struct);
-	DELOGE_NOEUDS(NoeudExpressionBinaire, m_noeuds_expression_binaire);
-	DELOGE_NOEUDS(NoeudExpressionAppel, m_noeuds_appel);
-	DELOGE_NOEUDS(NoeudExpressionLogement, m_noeuds_expression_logement);
-	DELOGE_NOEUDS(NoeudExpressionUnaire, m_noeuds_expression_unaire);
-	DELOGE_NOEUDS(NoeudExpression, m_noeuds_expression);
-	DELOGE_NOEUDS(NoeudBoucle, m_noeuds_boucle);
-	DELOGE_NOEUDS(NoeudPour, m_noeuds_pour);
-	DELOGE_NOEUDS(NoeudDiscr, m_noeuds_discr);
-	DELOGE_NOEUDS(NoeudSi, m_noeuds_si);
-	DELOGE_NOEUDS(NoeudPousseContexte, m_noeuds_pousse_contexte);
-	DELOGE_NOEUDS(NoeudTableauArgsVariadiques, m_noeuds_tableau_args_variadiques);
-
-#undef DELOGE_NOEUDS
-}
-
 NoeudBloc *assembleuse_arbre::empile_bloc()
 {
 	auto bloc = static_cast<NoeudBloc *>(cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, nullptr));
@@ -102,39 +72,34 @@ NoeudBase *assembleuse_arbre::cree_noeud(GenreNoeud genre, DonneesLexeme const *
 {
 	auto noeud = static_cast<NoeudBase *>(nullptr);
 
-#define LOGE_NOEUD(Type, Tableau) \
-	auto ptr = memoire::loge<Type>(#Type); \
-	Tableau.pousse(ptr); \
-	noeud = ptr;
-
 	switch (genre) {
 		case GenreNoeud::RACINE:
 		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
-			LOGE_NOEUD(NoeudBloc, m_noeuds_bloc);
+			noeud = m_noeuds_bloc.ajoute_element();
 			break;
 		}
 		case GenreNoeud::DECLARATION_OPERATEUR:
 		case GenreNoeud::DECLARATION_FONCTION:
 		case GenreNoeud::DECLARATION_COROUTINE:
 		{
-			LOGE_NOEUD(NoeudDeclarationFonction, m_noeuds_declaration_fonction);
+			noeud = m_noeuds_declaration_fonction.ajoute_element();
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENUM:
 		{
-			LOGE_NOEUD(NoeudEnum, m_noeuds_enum);
+			noeud = m_noeuds_enum.ajoute_element();
 			break;
 		}
 		case GenreNoeud::DECLARATION_STRUCTURE:
 		{
-			LOGE_NOEUD(NoeudStruct, m_noeuds_struct);
+			noeud = m_noeuds_struct.ajoute_element();
 			break;
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
 		{
-			LOGE_NOEUD(NoeudDeclarationVariable, m_noeuds_declaration_variable);
+			noeud = m_noeuds_declaration_variable.ajoute_element();
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
@@ -145,20 +110,20 @@ NoeudBase *assembleuse_arbre::cree_noeud(GenreNoeud genre, DonneesLexeme const *
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		{
-			LOGE_NOEUD(NoeudExpressionBinaire, m_noeuds_expression_binaire);
+			noeud = m_noeuds_expression_binaire.ajoute_element();
 			break;
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
-			LOGE_NOEUD(NoeudExpressionAppel, m_noeuds_appel);
+			noeud = m_noeuds_appel.ajoute_element();
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LOGE:
 		case GenreNoeud::EXPRESSION_DELOGE:
 		case GenreNoeud::EXPRESSION_RELOGE:
 		{
-			LOGE_NOEUD(NoeudExpressionLogement, m_noeuds_expression_logement);
+			noeud = m_noeuds_expression_logement.ajoute_element();
 			break;
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
@@ -175,7 +140,7 @@ NoeudBase *assembleuse_arbre::cree_noeud(GenreNoeud genre, DonneesLexeme const *
 		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		{
-			LOGE_NOEUD(NoeudExpressionUnaire, m_noeuds_expression_unaire);
+			noeud = m_noeuds_expression_unaire.ajoute_element();
 			break;
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
@@ -187,47 +152,45 @@ NoeudBase *assembleuse_arbre::cree_noeud(GenreNoeud genre, DonneesLexeme const *
 		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
-			LOGE_NOEUD(NoeudExpression, m_noeuds_expression);
+			noeud = m_noeuds_expression.ajoute_element();
 			break;
 		}
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
 		{
-			LOGE_NOEUD(NoeudTableauArgsVariadiques, m_noeuds_tableau_args_variadiques);
+			noeud = m_noeuds_tableau_args_variadiques.ajoute_element();
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_BOUCLE:
 		case GenreNoeud::INSTRUCTION_REPETE:
 		case GenreNoeud::INSTRUCTION_TANTQUE:
 		{
-			LOGE_NOEUD(NoeudBoucle, m_noeuds_boucle);
+			noeud = m_noeuds_boucle.ajoute_element();
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_POUR:
 		{
-			LOGE_NOEUD(NoeudPour, m_noeuds_pour);
+			noeud = m_noeuds_pour.ajoute_element();
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_DISCR:
 		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
 		case GenreNoeud::INSTRUCTION_DISCR_UNION:
 		{
-			LOGE_NOEUD(NoeudDiscr, m_noeuds_discr);
+			noeud = m_noeuds_discr.ajoute_element();
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_SAUFSI:
 		case GenreNoeud::INSTRUCTION_SI:
 		{
-			LOGE_NOEUD(NoeudSi, m_noeuds_si);
+			noeud = m_noeuds_si.ajoute_element();
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		{
-			LOGE_NOEUD(NoeudPousseContexte, m_noeuds_pousse_contexte);
+			noeud = m_noeuds_pousse_contexte.ajoute_element();
 			break;
 		}
 	}
-
-#undef LOGE_NOEUD
 
 	if (noeud != nullptr) {
 		noeud->genre = genre;
@@ -257,7 +220,7 @@ size_t assembleuse_arbre::memoire_utilisee() const
 	auto memoire = 0ul;
 
 #define COMPTE_MEMOIRE(Type, Tableau) \
-	memoire += static_cast<size_t>(Tableau.taille()) * (sizeof(Type *) + sizeof(Type))
+	memoire += static_cast<size_t>(Tableau.pages.taille()) * 128 * sizeof(Type)
 
 	COMPTE_MEMOIRE(NoeudBloc, m_noeuds_bloc);
 	COMPTE_MEMOIRE(NoeudDeclarationVariable, m_noeuds_declaration_variable);

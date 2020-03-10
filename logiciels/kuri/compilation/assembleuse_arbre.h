@@ -26,6 +26,7 @@
 
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/pile.hh"
+#include "biblinternes/structures/tableau_page.hh"
 
 #include "arbre_syntactic.h"
 
@@ -33,24 +34,23 @@ struct ContexteGenerationCode;
 struct DonneesLexeme;
 
 class assembleuse_arbre {
-	dls::tableau<NoeudBase *> m_noeuds_base{};
-	dls::tableau<NoeudExpression *> m_noeuds_expression{};
-	dls::tableau<NoeudDeclarationVariable *> m_noeuds_declaration_variable{};
-	dls::tableau<NoeudExpressionReference *> m_noeuds_expression_reference{};
-	dls::tableau<NoeudExpressionUnaire *> m_noeuds_expression_unaire{};
-	dls::tableau<NoeudExpressionBinaire *> m_noeuds_expression_binaire{};
-	dls::tableau<NoeudExpressionLogement *> m_noeuds_expression_logement{};
-	dls::tableau<NoeudDeclarationFonction *> m_noeuds_declaration_fonction{};
-	dls::tableau<NoeudStruct *> m_noeuds_struct{};
-	dls::tableau<NoeudEnum *> m_noeuds_enum{};
-	dls::tableau<NoeudSi *> m_noeuds_si{};
-	dls::tableau<NoeudPour *> m_noeuds_pour{};
-	dls::tableau<NoeudBoucle *> m_noeuds_boucle{};
-	dls::tableau<NoeudBloc *> m_noeuds_bloc{};
-	dls::tableau<NoeudDiscr *> m_noeuds_discr{};
-	dls::tableau<NoeudPousseContexte *> m_noeuds_pousse_contexte{};
-	dls::tableau<NoeudExpressionAppel *> m_noeuds_appel{};
-	dls::tableau<NoeudTableauArgsVariadiques *> m_noeuds_tableau_args_variadiques{};
+	tableau_page<NoeudExpression> m_noeuds_expression{};
+	tableau_page<NoeudDeclarationVariable> m_noeuds_declaration_variable{};
+	tableau_page<NoeudExpressionReference> m_noeuds_expression_reference{};
+	tableau_page<NoeudExpressionUnaire> m_noeuds_expression_unaire{};
+	tableau_page<NoeudExpressionBinaire> m_noeuds_expression_binaire{};
+	tableau_page<NoeudExpressionLogement> m_noeuds_expression_logement{};
+	tableau_page<NoeudDeclarationFonction> m_noeuds_declaration_fonction{};
+	tableau_page<NoeudStruct> m_noeuds_struct{};
+	tableau_page<NoeudEnum> m_noeuds_enum{};
+	tableau_page<NoeudSi> m_noeuds_si{};
+	tableau_page<NoeudPour> m_noeuds_pour{};
+	tableau_page<NoeudBoucle> m_noeuds_boucle{};
+	tableau_page<NoeudBloc> m_noeuds_bloc{};
+	tableau_page<NoeudDiscr> m_noeuds_discr{};
+	tableau_page<NoeudPousseContexte> m_noeuds_pousse_contexte{};
+	tableau_page<NoeudExpressionAppel> m_noeuds_appel{};
+	tableau_page<NoeudTableauArgsVariadiques> m_noeuds_tableau_args_variadiques{};
 
 	ContexteGenerationCode &m_contexte;
 
@@ -75,7 +75,7 @@ public:
 	dls::tableau<dls::vue_chaine_compacte> definitions{};
 
 	explicit assembleuse_arbre(ContexteGenerationCode &contexte);
-	~assembleuse_arbre();
+	~assembleuse_arbre() = default;
 
 	NoeudBloc *empile_bloc();
 

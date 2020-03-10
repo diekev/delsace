@@ -619,7 +619,7 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 	contexte.donnees_dependance.types_utilises.insere(b->type);
 
 	if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
-		auto op = contexte.operateurs.trouve(decl->lexeme->genre);
+		auto &iter_op = contexte.operateurs.trouve(decl->lexeme->genre);
 
 		auto type_resultat = types_sorties[0];
 
@@ -641,8 +641,10 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 		if (decl->params.taille == 1) {
 			auto type1 = types_entrees[0 + possede_contexte];
 
-			POUR (op) {
-				if (it->type1 == type1) {
+			for (auto i = 0; i < iter_op.taille(); ++i) {
+				auto op = &iter_op[i];
+
+				if (op->type1 == type1) {
 					// À FAIRE : stocke le noeud de déclaration, quid des opérateurs basique ?
 					erreur::lance_erreur("redéfinition de l'opérateur", contexte, decl->lexeme);
 				}
@@ -658,8 +660,10 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 			auto type1 = types_entrees[0 + possede_contexte];
 			auto type2 = types_entrees[1 + possede_contexte];
 
-			POUR (op) {
-				if (it->type1 == type1 && it->type2 == type2) {
+			for (auto i = 0; i < iter_op.taille(); ++i) {
+				auto op = &iter_op[i];
+
+				if (op->type1 == type1 && op->type2 == type2) {
 					// À FAIRE : stocke le noeud de déclaration, quid des opérateurs basique ?
 					erreur::lance_erreur("redéfinition de l'opérateur", contexte, decl->lexeme);
 				}

@@ -27,7 +27,7 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
-#include "biblinternes/structures/tableau.hh"
+#include "biblinternes/structures/tableau_page.hh"
 #include "biblinternes/structures/tablet.hh"
 
 #pragma GCC diagnostic push
@@ -82,7 +82,7 @@ struct DonneesOperateur {
 };
 
 struct Operateurs {
-	using type_conteneur = dls::tableau<DonneesOperateur *>;
+	using type_conteneur = tableau_page<DonneesOperateur>;
 
 	dls::dico_desordonne<GenreLexeme, type_conteneur> donnees_operateurs;
 
