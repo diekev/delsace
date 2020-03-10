@@ -42,3 +42,9 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
 		NoeudBloc *bloc,
 		IdentifiantCode *ident,
 		Fichier *fichier);
+
+NoeudDeclaration *trouve_type_dans_bloc_ou_module(
+		ContexteGenerationCode const &contexte,
+		NoeudBloc *bloc,
+		IdentifiantCode *ident,
+		Fichier *fichier);

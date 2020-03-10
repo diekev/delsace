@@ -133,7 +133,7 @@ static Type *resoud_type_final(
 		else if (type == GenreLexeme::CHAINE_CARACTERE) {
 			auto ident = contexte.table_identifiants.identifiant_pour_chaine(type_declare.nom_struct);
 			auto fichier =  contexte.fichier(static_cast<size_t>(lexeme->fichier));
-			auto decl = trouve_dans_bloc_ou_module(contexte, bloc, ident, fichier);
+			auto decl = trouve_type_dans_bloc_ou_module(contexte, bloc, ident, fichier);
 
 			if (decl == nullptr) {
 				erreur::lance_erreur("Impossible de définir le type selon le nom", contexte, lexeme);
