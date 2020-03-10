@@ -11,11 +11,6 @@ construit_chemin :: fonc(chn : chaine) -> CheminFichier
     retourne chemin
 }
 
-Fichier :: struct {
-    chemin : CheminFichier
-    fd : z32
-}
-
 obtiens_stmode :: fonc(chemin : &CheminFichier) -> n32
 {
 	ptr_chemin := chaine_c_temp(chemin.chn)

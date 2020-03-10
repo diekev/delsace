@@ -1,0 +1,96 @@
+importe Fondation
+importe GlibC
+
+Fichier :: struct {
+    desc : z32
+}
+
+// ouvre_fichier_existant
+// ouvre_fichier_existant_crée_sinon
+ouvre :: fonc (chemin: chaine) -> Fichier
+{
+   	ptr_chemin := chaine_c_temp(chemin)
+
+    desc := open(ptr_chemin, LECTURE_ÉCRITURE)
+
+    // À FAIRE : erreurs....
+
+    fichier: Fichier
+    fichier.desc = desc
+
+    retourne fichier
+}
+
+ferme :: fonc (fichier: *Fichier) -> rien
+{
+    si fichier.desc < 3 {
+        retourne
+    }
+
+    close(fichier.desc)
+}
+
+lis :: fonc (fichier: *Fichier, tampon: chaine) -> rien
+{
+    si fichier.desc == -1 || fichier.desc == 1 || fichier.desc == 2 {
+        retourne
+    }
+
+    read(fichier.desc, tampon.pointeur, transtype(tampon.taille: n32))
+}
+
+lis_tout :: fonc (fichier: *Fichier) -> chaine
+{
+    taille_fichier := lseek(fichier.desc, 0, _SEEK_END)
+
+    si taille_fichier == 0 {
+        retourne ""
+    }
+
+    lseek(fichier.desc, 0, _SEEK_SET)
+
+    résultat := loge chaine(taille_fichier)
+
+    octets_lus := read(fichier.desc, résultat.pointeur, transtype(résultat.taille: n32))
+
+    si octets_lus == -1 {
+        déloge résultat
+        retourne ""
+    }
+
+    retourne résultat
+}
+
+// écris_à_la_position
+// écris_fin
+écris :: fonc (fichier: *Fichier, chn: chaine) -> z64
+{
+    // On ne peut pas écrire ni dans l'entrée standarde, ni dans un fichier « erroné »
+    si fichier.desc == -1 || fichier.desc == 0 {
+        retourne -1
+    }
+
+    retourne write(fichier.desc, chn.pointeur, chn.taille)
+}
+
+fichier_entrée_standarde : Fichier
+fichier_sortie_standard : Fichier
+fichier_sortie_erreur : Fichier
+
+entrée_standarde :: fonc () -> *Fichier
+{
+    fichier_entrée_standarde.desc = 0
+    retourne @fichier_entrée_standarde
+}
+
+sortie_standard :: fonc () -> *Fichier
+{
+    fichier_sortie_standard.desc = 1
+    retourne @fichier_sortie_standard
+}
+
+sortie_erreur :: fonc () -> *Fichier
+{
+    fichier_sortie_erreur.desc = 2
+    retourne @fichier_sortie_erreur
+}
