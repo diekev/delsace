@@ -73,7 +73,8 @@ détruit_serveuse :: fonc (serveuse: *Serveuse) -> rien
     déloge serveuse.routes
 
     détruit_catalogue(@serveuse.fichiers_statiques)
-    détruit_catalogue(@serveuse.rendeuse_gabarit.catalogue)
+
+    détruit_rendeuse(@serveuse.rendeuse_gabarit)
 }
 
 ajoute_route :: fonc (

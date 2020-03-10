@@ -103,6 +103,9 @@ caractère_courant :: fonc(analyseuse: *AnalyseuseRequête) -> z8
 
 analyse_entêtes :: fonc(analyseuse: *AnalyseuseRequête) -> EntêtesHTTP
 {
+    //temps_présent := compte_ticks_microsecondes()
+    //diffère { imprime_log("", "Durée analyse requête : %µs", compte_ticks_microsecondes() - temps_présent) }
+
     entêtes : EntêtesHTTP
 
     analyseuse.taille_mot = 0

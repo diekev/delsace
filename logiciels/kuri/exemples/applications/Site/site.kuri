@@ -97,6 +97,8 @@ chaine_pour_aujourdhui :: fonc () -> chaine
 
 charge_donnees_requete :: fonc(prise : z32, adresse_du_connecté : &sockaddr_in) -> chaine
 {
+//    temps_présent := compte_ticks_microsecondes()
+//    diffère { imprime_log("", "Durée chargement données requête : %µs", compte_ticks_microsecondes() - temps_présent) }
     MAXDATASIZE : n64 = 1024
 
     tampon : [1024]z8
@@ -406,3 +408,12 @@ mon_impression_log :: fonc (message: chaine, ident: chaine, mode: ModeLogage, do
 {
     imprime("%\n", message)
 }
+
+configure_compilation :: fonc () -> rien
+{
+    options := compilatrice_obtiens_options()
+    options.niveau_optimisation = NiveauOptimisation.O3
+    compilatrice_ajourne_options(options)
+}
+
+//#exécute configure_compilation()

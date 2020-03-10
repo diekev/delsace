@@ -7,6 +7,75 @@ charge "requête"
 
 RendeusePage :: struct {
     catalogue : CatalogueFichier
+    cache_page : []PageGabarit
+}
+
+détruit_rendeuse :: fonc (rendeuse_gabarit: *RendeusePage) -> rien
+{
+    pour page dans rendeuse_gabarit.cache_page {
+        détruit_page_gabarit(@page)
+    }
+
+    détruit_catalogue(@rendeuse_gabarit.catalogue)
+
+    déloge rendeuse_gabarit.cache_page
+}
+
+PageGabarit :: struct {
+    fichier : *FichierTexte
+    lexeuse : Lexeuse
+    syntaxeuse : Syntaxeuse
+    racine : *NoeudSyntaxique
+}
+
+détruit_page_gabarit :: fonc (page : *PageGabarit) -> rien
+{
+    détruit_lexeuse(page.lexeuse)
+    détruit_assembleuse(page.syntaxeuse.assembleuse)
+}
+
+trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -> *PageGabarit
+{
+    pour page dans rendeuse_gabarit.cache_page {
+        si page.fichier.nom_court == nom_court {
+            retourne @page
+        }
+    }
+
+    fichier := trouve_fichier(@rendeuse_gabarit.catalogue, nom_court)
+
+    si fichier == nul {
+        retourne nul
+    }
+
+    si fichier.données.taille == 0 {
+        commence_fichier(fichier)
+    }
+
+    si fichier.succès == faux {
+        retourne nul
+    }
+
+    page : PageGabarit
+    page.fichier = fichier
+
+    // ----------------------------
+    // Lexage du script
+
+    page.lexeuse = construit_lexeuse(fichier.données)
+    page.lexeuse.performe_lexage()
+
+    // ----------------------------
+    // Syntaxage du script
+
+    page.syntaxeuse = construit_syntaxeuse(page.lexeuse.lexèmes)
+    page.syntaxeuse.performe_syntaxage()
+
+    page.racine = page.syntaxeuse.assembleuse.pile.haut()
+
+    tableau_ajoute(@rendeuse_gabarit.cache_page, page)
+
+    retourne @rendeuse_gabarit.cache_page[rendeuse_gabarit.cache_page.taille - 1]
 }
 
 crée_réponse_fichier_gabarit_manquant :: fonc () -> RéponseRequête
@@ -21,39 +90,14 @@ crée_réponse_fichier_gabarit_manquant :: fonc () -> RéponseRequête
 
 rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données: eini) -> RéponseRequête
 {
-    fichier := trouve_fichier(@rendeuse_gabarit.catalogue, nom_court)
+    //temps_présent := compte_ticks_microsecondes()
+    //diffère { imprime_log("", "Durée rendu gabarit : %µs", compte_ticks_microsecondes() - temps_présent) }
 
-    si fichier == nul {
+    page := trouve_dans_cache(rendeuse_gabarit, nom_court)
+
+    si page == nul {
         retourne crée_réponse_fichier_gabarit_manquant()
     }
-
-    si fichier.données.taille == 0 {
-        commence_fichier(fichier)
-    }
-
-    si fichier.succès == faux {
-        retourne crée_réponse_fichier_gabarit_manquant()
-    }
-
-    // ----------------------------
-    // Lexage du script
-
-    lexeuse := construit_lexeuse(fichier.données)
-    diffère { détruit_lexeuse(lexeuse) }
-
-    lexeuse.performe_lexage()
-
-    // ----------------------------
-    // Syntaxage du script
-
-    syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
-    diffère { détruit_assembleuse(syntaxeuse.assembleuse) }
-
-    syntaxeuse.performe_syntaxage()
-
-    // ----------------------------
-    // Génération de la page
-	racine := syntaxeuse.assembleuse.pile.haut()
 
     données_génération : DonnéesGénération
     données_génération.valeur = données
@@ -62,7 +106,7 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
 	initialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 
-    erreur := génère_page(@données_génération, racine, @enchaineuse)
+    erreur := génère_page(@données_génération, page.racine, @enchaineuse)
 
     si erreur != ErreurGénérationPage.AUCUNE {
         retourne crée_réponse_fichier_gabarit_manquant()
