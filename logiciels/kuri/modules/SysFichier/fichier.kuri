@@ -90,7 +90,7 @@ lis_tout :: fonc (fichier: *Fichier) -> chaine
 }
 
 fichier_entrée_standarde : Fichier
-fichier_sortie_standard : Fichier
+fichier_sortie_standarde : Fichier
 fichier_sortie_erreur : Fichier
 
 entrée_standarde :: fonc () -> *Fichier
@@ -99,10 +99,10 @@ entrée_standarde :: fonc () -> *Fichier
     retourne @fichier_entrée_standarde
 }
 
-sortie_standard :: fonc () -> *Fichier
+sortie_standarde :: fonc () -> *Fichier
 {
-    fichier_sortie_standard.desc = 1
-    retourne @fichier_sortie_standard
+    fichier_sortie_standarde.desc = 1
+    retourne @fichier_sortie_standarde
 }
 
 sortie_erreur :: fonc () -> *Fichier

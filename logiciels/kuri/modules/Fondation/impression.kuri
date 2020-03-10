@@ -2,6 +2,7 @@
 
 importe GlibC
 importe Numérique
+importe SysFichier
 
 //###################################################################################
 
@@ -675,14 +676,14 @@ imprime_valeur :: fonc(
 imprime :: fonc(format: chaine, args: ...eini) -> rien
 {
     chn := imprime_chaine(format, ...args)
-	write(std_out, chn.pointeur, chn.taille)
+	sortie_standarde().écris(chn)
 	déloge chn
 }
 
 imprime_err :: fonc(format: chaine, args: ...eini) -> rien
 {
     chn := imprime_chaine(format, ...args)
-	write(std_err, chn.pointeur, chn.taille)
+	sortie_erreur().écris(chn)
 	déloge chn
 }
 
@@ -707,7 +708,7 @@ imprime_sans_format :: fonc(args : ...eini) -> rien
     }
 
 	résultat := chaine_depuis_enchaineuse(@enchaineuse)
-	write(std_out, résultat.pointeur, résultat.taille)
+	sortie_standarde().écris(résultat)
 	déloge résultat
 }
 
@@ -722,7 +723,7 @@ imprime_sans_format_err :: fonc(args : ...eini) -> rien
     }
 
 	résultat := chaine_depuis_enchaineuse(@enchaineuse)
-	write(std_err, résultat.pointeur, résultat.taille)
+	sortie_erreur().écris(résultat)
 	déloge résultat
 }
 
