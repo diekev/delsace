@@ -1,4 +1,6 @@
 importe Fondation
+importe GlibC
+importe SysFichier
 
 //https://tools.ietf.org/html/rfc5321#page-32
 //https://fr.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol
@@ -78,51 +80,87 @@ CodeRetour :: énum z32 {
 	TRANSACTION_ÉCHOUÉE :: 554
 }
 
+serveuse_envoie :: fonc (message: chaine) -> rien
+{
+	imprime("S > %", message)
+}
+
 principale :: fonc () -> z32
 {
-	imprime("S > 220 smtp.delsace.fr SMTP Ready\n")
+	nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+	serveuse_envoie("220 smtp.delsace.fr SMTP Ready\n")
 
 	enchaineuse : Enchaineuse
 	initialise_enchaineuse(@enchaineuse)
-	diffère { détruit_enchaineuse(@enchaineuse) }
+	diffère { détruit_tampons(@enchaineuse) }
+
+	reçu_helo := faux
+	reçu_envoyeur := faux
+	reçu_destinataire := faux
+	attente_message := faux
+
+	es := entrée_standarde()
 
 	boucle {
 		imprime("C > ")
 
-		entrée := lis_entrée()
+		entrée : chaine
+    	pousse_contexte nouveau_contexte {
+			entrée = es.lis_ligne()
+    	}
 
 		si entrée.commence_par("HELO") {
-			imprime("250 smtp.delsace.fr, heureux de vous rencontrer\r\n")
-			//imprime("250 PIPELINING\r\n")
-			//imprime("250 8BITMIME\r\n")
+			reçu_helo = vrai
+			serveuse_envoie("250 smtp.delsace.fr, heureux de vous rencontrer\r\n")
+			//serveuse_envoie("250 PIPELINING\r\n")
+			//serveuse_envoie("250 8BITMIME\r\n")
 		}
-		sinon si entrée.commen_par("MAIL FROM") {
-			imprime("250 Sender Ok\r\n")
+		sinon si entrée.commence_par("MAIL FROM") {
+			reçu_envoyeur = vrai
+			serveuse_envoie("250 Sender Ok\r\n")
 		}
 		sinon si entrée.commence_par("RCPT TO:") {
-			imprime("250 Recipient ok\r\n")
+			reçu_destinataire = vrai
+			serveuse_envoie("250 Recipient ok\r\n")
 		}
 		sinon si entrée.commence_par("DATA") {
-			imprime("354 Entrez courriel, terminez par <CR><LF>.<CR><LF>\r\n")
+			si !reçu_envoyeur || !reçu_destinataire {
+				serveuse_envoie("503 Mauvaise suite de commande\r\n")
+			}
+			sinon {
+				serveuse_envoie("354 Entrez courriel, terminez par <CR><LF>.<CR><LF>\r\n")
+
+				attente_message = vrai
+			}
 		}
 		sinon si entrée.commence_par("QUIT") {
-			imprime("221 Au revoir\r\n")
+			serveuse_envoie("221 Au revoir\r\n")
 			arrête
 		}
 		sinon {
-			// accumule le mail
-			si entrée == ".\r\n" {
-				// fin du mail
-				id := 5
-				imprime("250 Ok, enfiler comme %\r\n", id)
+			si attente_message {
+				// accumule le mail
+				si entrée == ".\r\n" || entrée == ".\n" {
+					// fin du mail
+					id := 5
+					imprime("S > 250 Ok, enfiler comme %\r\n", id)
+				}
+				sinon {
+					ajoute_au_tampon(@enchaineuse, entrée)
+				}
 			}
 			sinon {
-				ajoute_au_tampon(@enchaineuse, entrée)
+				serveuse_envoie("503 Mauvaise suite de commande\r\n")
 			}
 		}
 	}
 
-	imprime("\nEnvoie du mail :\n%\n")
+	courriel := chaine_depuis_enchaineuse(@enchaineuse)
+	diffère { déloge courriel; }
+
+	imprime("\nEnvoie du mail :\n%\n", courriel)
 
 	retourne 0
 }
