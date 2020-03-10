@@ -47,49 +47,41 @@ chaine_mois_pour_tm :: fonc (tm_mon: z32) -> chaine
     retourne ""
 }
 
-chaine_pour_aujourdhui :: fonc () -> chaine
+chaine_pour_aujourdhui :: fonc (enchaineuse : *Enchaineuse) -> rien
 {
     date := hui_système()
 
-    // À FAIRE : ajoute d'options de formattage pour les nombres dans les fonctions "imprime..."
-    enchaineuse : Enchaineuse
-    initialise_enchaineuse(@enchaineuse)
-
-    diffère { détruit_tampons(@enchaineuse) }
-
-    ajoute_au_tampon(@enchaineuse, chaine_jour_pour_tm(date.jour_semaine), ", ")
+    ajoute_au_tampon(enchaineuse, chaine_jour_pour_tm(date.jour_semaine), ", ")
 
     si date.jour < 10 {
-        ajoute_au_tampon(@enchaineuse, '0')
+        ajoute_au_tampon(enchaineuse, '0')
     }
 
-    ajoute_au_tampon(@enchaineuse, date.jour, " ", chaine_mois_pour_tm(date.mois), " ", date.année)
+    ajoute_au_tampon(enchaineuse, date.jour, " ", chaine_mois_pour_tm(date.mois), " ", date.année)
 
-    ajoute_au_tampon(@enchaineuse, " ")
+    ajoute_au_tampon(enchaineuse, " ")
 
     heure := date.heure
 
     si heure < 10 {
-        ajoute_au_tampon(@enchaineuse, '0')
+        ajoute_au_tampon(enchaineuse, '0')
     }
 
-    ajoute_au_tampon(@enchaineuse, heure, ":")
+    ajoute_au_tampon(enchaineuse, heure, ":")
 
     si date.minute < 10 {
-        ajoute_au_tampon(@enchaineuse, '0')
+        ajoute_au_tampon(enchaineuse, '0')
     }
 
-    ajoute_au_tampon(@enchaineuse, date.minute, ":")
+    ajoute_au_tampon(enchaineuse, date.minute, ":")
 
     si date.seconde < 10 {
-        ajoute_au_tampon(@enchaineuse, '0')
+        ajoute_au_tampon(enchaineuse, '0')
     }
 
-    ajoute_au_tampon(@enchaineuse, date.seconde)
+    ajoute_au_tampon(enchaineuse, date.seconde)
 
-    ajoute_au_tampon(@enchaineuse, " GMT")
-
-    retourne chaine_depuis_enchaineuse(@enchaineuse)
+    ajoute_au_tampon(enchaineuse, " GMT")
 }
 
 // ----------------------------
@@ -271,9 +263,9 @@ procède_requête :: fonc (
         }
     }
 
-    date := chaine_pour_aujourdhui()
-    diffère { déloge date; }
-    ajoute_au_tampon(@enchaineuse, "Date: ", date, "\r\n")
+    ajoute_au_tampon(@enchaineuse, "Date: ")
+    chaine_pour_aujourdhui(@enchaineuse)
+    ajoute_au_tampon(@enchaineuse, "\r\n")
 
     // À FAIRE: Content-Encoding, voir Accept-Encoding de la requête
 
