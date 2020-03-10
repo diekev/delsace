@@ -1,6 +1,8 @@
 // Interface avec la bibliothèque PNG, ainsi qu'une fonction pour charger une image
 // depuis un fichier PNG
 
+importe Couleur
+
 charge "image"
 
 #inclus "png.h"
