@@ -16,15 +16,34 @@ Tabuleuse :: struct {
     nombre_colonnes : z64
 
     chaines_allouées: []chaine
+
+    enchaineuse : Enchaineuse // À FAIRE : ceci ne fonctionne pas ?
 }
 
 crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
 {
     tabuleuse: Tabuleuse
+    initialise_enchaineuse(@tabuleuse.enchaineuse)
 
     ajoute_ligne(@tabuleuse, ...titres)
 
     reloge tabuleuse.alignements: [titres.taille]z32
+
+    pour a dans tabuleuse.alignements {
+        a = transtype(Alignement.GAUCHE: z32)
+    }
+
+    retourne tabuleuse
+}
+
+crée_tabuleuse :: fonc  (ligne_titre: LigneTabuleuse) -> Tabuleuse
+{
+    tabuleuse: Tabuleuse
+    initialise_enchaineuse(@tabuleuse.enchaineuse)
+
+    ajoute_ligne(@tabuleuse, ligne_titre)
+
+    reloge tabuleuse.alignements: [ligne_titre.colonnes.taille]z32
 
     pour a dans tabuleuse.alignements {
         a = transtype(Alignement.GAUCHE: z32)
@@ -46,35 +65,43 @@ détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
     déloge tabuleuse.chaines_allouées
     déloge tabuleuse.lignes
     déloge tabuleuse.alignements
+
+    détruit_tampons(@tabuleuse.enchaineuse)
 }
 
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
 {
     ligne : LigneTabuleuse
 
-    enchaineuse : Enchaineuse
-    initialise_enchaineuse(@enchaineuse)
-
     pour arg dans args {
-        chn : chaine
-        info := arg.info
-
-        si info.id == id_info.CHAINE {
-            chn = arg
-        }
-        sinon {
-            imprime_valeur(@enchaineuse, arg.pointeur, arg.info, faux)
-
-            chn = chaine_depuis_enchaineuse(@enchaineuse)
-            enchaineuse.tampon_courant.occupé = 0
-
-            tableau_ajoute(@tabuleuse.chaines_allouées, chn)
-        }
-
+        chn := obtiens_chaine_pour_eini(tabuleuse, arg)
         tableau_ajoute(@ligne.colonnes, chn)
     }
 
     tableau_ajoute(@tabuleuse.lignes, ligne)
+}
+
+obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
+{
+    chn : chaine
+    info := arg.info
+
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
+
+    si info.id == id_info.CHAINE {
+        chn = arg
+    }
+    sinon {
+        imprime_valeur(@enchaineuse, arg.pointeur, arg.info, faux)
+
+        chn = chaine_depuis_enchaineuse(@enchaineuse)
+        enchaineuse.tampon_courant.occupé = 0
+
+        tableau_ajoute(@tabuleuse.chaines_allouées, chn)
+    }
+
+    retourne chn
 }
 
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...chaine) -> rien
@@ -85,6 +112,11 @@ ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...chaine) -> rien
         tableau_ajoute(@ligne.colonnes, arg)
     }
 
+    tableau_ajoute(@tabuleuse.lignes, ligne)
+}
+
+ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, ligne: LigneTabuleuse) -> rien
+{
     tableau_ajoute(@tabuleuse.lignes, ligne)
 }
 

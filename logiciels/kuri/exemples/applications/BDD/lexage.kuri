@@ -889,68 +889,146 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
 
 // ------------------------------------------------------------
 
-charge "tabuleuse"
-
-imprime_résultat :: fonc (résultat: *RésultatSélection) -> rien
+sélectionne_tables :: fonc (cm: *CoulisseMémoire) -> RésultatSélection
 {
-    imprime("-------------------\n")
-    pour colonne dans résultat.colonnes {
-        imprime("| % ", colonne.nom)
+    résultats : RésultatSélection
+
+    colonne_résultat : ColonneRésultat
+    colonne_résultat.type_colonne = TypeColonne.CHAINE
+    colonne_résultat.nom = "Tables"
+
+    tableau_ajoute(@résultats.colonnes, colonne_résultat)
+
+    pour nom dans cm.noms_tables {
+        cellule : CelluleMémoire
+        cellule.chn = nom
+
+        résultat : []CelluleMémoire
+        tableau_ajoute(@résultat, cellule)
+
+        tableau_ajoute(@résultats.résultats, résultat)
     }
 
-    imprime(" |\n")
-    imprime("-------------------\n")
-
-    pour ligne dans résultat.résultats {
-        pour cellule, idx_cellule dans ligne {
-            si résultat.colonnes[idx_cellule].type_colonne == TypeColonne.CHAINE {
-                imprime("% ", cellule.comme_chaine())
-            }
-            sinon {
-                imprime("% ", cellule.comme_entier())
-            }
-        }
-
-        imprime("\n")
-    }
-
-    imprime("-------------------\n")
+    retourne résultats
 }
 
 // ------------------------------------------------------------
 
+charge "tabuleuse"
+
+imprime_résultat :: fonc (résultat: *RésultatSélection) -> rien
+{
+    ligne_titre : LigneTabuleuse
+
+    pour colonne dans résultat.colonnes {
+        tableau_ajoute(@ligne_titre.colonnes, colonne.nom)
+    }
+
+    tabuleuse := crée_tabuleuse(ligne_titre)
+    diffère { détruit_tabuleuse(@tabuleuse); }
+
+    pour ligne dans résultat.résultats {
+        ligne_tabuleuse : LigneTabuleuse
+
+        pour cellule, idx_cellule dans ligne {
+            si résultat.colonnes[idx_cellule].type_colonne == TypeColonne.CHAINE {
+                tableau_ajoute(@ligne_tabuleuse.colonnes, cellule.comme_chaine())
+            }
+            sinon {
+                chn := obtiens_chaine_pour_eini(@tabuleuse, cellule.comme_entier())
+                tableau_ajoute(@ligne_tabuleuse.colonnes, chn)
+            }
+        }
+
+        ajoute_ligne(@tabuleuse, ligne_tabuleuse)
+    }
+
+    imprime_table(@tabuleuse)
+}
+
+// ------------------------------------------------------------
+
+importe GlibC
+
+imprime_prompt :: fonc () -> rien
+{
+    imprime("db > ")
+}
+
+lis_entrée :: fonc () -> chaine
+{
+    nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    chn : chaine
+
+    pousse_contexte nouveau_contexte {
+        c : z8
+
+        tantque read(0, @c, 1) != 0 {
+            si c == '\n' {
+                arrête
+            }
+
+            pousse(@chn, c)
+        }
+    }
+
+    retourne chn
+}
+
+// ------------------------------------------------------------
+
+// @bug : résultat vide lors d'une sélection sur une table vide, nous devrions au moins avoir la ligne de titre
+// @crash : quand nous insèrons une plus d'une valeur dans une table
+// @crash : quand nous libérons l'asa à la fin des boucles
 principale :: fonc () -> z32
 {
     diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
 
-    chn := "crée utilisateurs (id entier, nom texte);insère dans utilisateurs valeurs (4, 'kévin');sélectionne id, nom depuis utilisateurs;"
-
-    asa := parse(chn)
+    //chn := "crée utilisateurs (id entier, nom texte);insère dans utilisateurs valeurs (54, 'kévin');sélectionne id, nom depuis utilisateurs;"
 
     cm : CoulisseMémoire
 
-    pour inst dans asa.instructions {
-        imprime("%\n", inst.genre)
-        discr inst.genre {
-            CRÉE {
-                imprime("crée_table\n")
-                crée_table(@cm, transtype(inst: *InstructionCréationTable))
-            }
-            SÉLECTIONNE {
-                imprime("sélectionne\n")
-                résultat := sélectionne(@cm, transtype(inst: *InstructionSélection))
+    boucle {
+        imprime_prompt()
 
-                imprime_résultat(@résultat)
-                détruit_résultat(@résultat)
+        entrée := lis_entrée()
+
+        si entrée == ".tables" {
+            résultat := sélectionne_tables(@cm)
+
+            imprime_résultat(@résultat)
+            détruit_résultat(@résultat)
+        }
+        sinon {
+            asa := parse(entrée)
+
+            pour inst dans asa.instructions {
+                imprime("%\n", inst.genre)
+                discr inst.genre {
+                    CRÉE {
+                        imprime("crée_table\n")
+                        crée_table(@cm, transtype(inst: *InstructionCréationTable))
+                    }
+                    SÉLECTIONNE {
+                        imprime("sélectionne\n")
+                        résultat := sélectionne(@cm, transtype(inst: *InstructionSélection))
+
+                        imprime_résultat(@résultat)
+                        détruit_résultat(@résultat)
+                    }
+                    INSÈRE {
+                        imprime("insère\n")
+                        insère(@cm, transtype(inst: *InstructionInsère))
+                    }
+                }
             }
-            INSÈRE {
-                imprime("insère\n")
-                insère(@cm, transtype(inst: *InstructionInsère))
-            }
+
+            //détruit_asa(@asa)
         }
     }
 
-    détruit_asa(@asa)
     détruit_coulisse(@cm)
 
     retourne 0
