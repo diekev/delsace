@@ -1,0 +1,957 @@
+importe Fondation
+
+// tutoriel : http://notes.eatonphil.com/database-basics.html
+
+Position :: struct {
+    ligne: z32
+    colonne: z32
+}
+
+GenreLexème :: énum z32 {
+    INVALIDE
+
+    MOT_CLÉ_SÉLECTIONNE
+    MOT_CLÉ_DEPUIS
+    MOT_CLÉ_COMME
+    MOT_CLÉ_TABLE
+    MOT_CLÉ_CRÉE
+    MOT_CLÉ_INSÈRE
+    MOT_CLÉ_DANS
+    MOT_CLÉ_VALEURS
+    MOT_CLÉ_ENTIER
+    MOT_CLÉ_TEXTE
+
+    SYMBOLE
+    IDENTIFIANT
+    CHAINE
+    NUMÉRIQUE
+}
+
+Lexème :: struct {
+    valeur: chaine
+    genre: GenreLexème
+    pos: Position
+}
+
+est_mot_clé :: fonc (lex: Lexème) -> bool
+{
+    retourne GenreLexème.MOT_CLÉ_SÉLECTIONNE <= lex.genre <= GenreLexème.MOT_CLÉ_TEXTE
+}
+
+opérateur == :: fonc (lex1: Lexème, lex2: Lexème) -> bool
+{
+    retourne lex1.genre == lex2.genre && lex1.valeur == lex2.valeur
+}
+
+opérateur != :: fonc(lex1: Lexème, lex2: Lexème) -> bool
+{
+    retourne !(lex1 == lex2)
+}
+
+finalise :: fonc (lex1: *Lexème) -> bool
+{
+    si finalise_nombre(lex1) {
+        retourne vrai
+    }
+
+    si finalise_chaine(lex1) {
+        retourne vrai
+    }
+
+    si finalise_mot_clé(lex1) {
+        retourne vrai
+    }
+
+    si lex1.valeur.taille == 0 {
+        retourne vrai
+    }
+
+    lex1.genre = GenreLexème.IDENTIFIANT
+
+    retourne vrai
+}
+
+finalise_nombre :: fonc (lexème: *Lexème) -> bool
+{
+    si lexème.valeur.taille == 0 {
+        retourne faux
+    }
+
+    point_trouvé := faux
+    exposant_trouvé := faux
+
+    pour c, idx dans lexème.valeur {
+        est_nombre := '0' <= c <= '9'
+        est_point := c == '.'
+        est_exposant := c == 'e'
+
+        si idx == 0 {
+            si !est_nombre && !est_point {
+                retourne faux
+            }
+
+            point_trouvé = est_point
+            continue
+        }
+
+        si est_point {
+            si point_trouvé {
+                retourne faux
+            }
+
+            point_trouvé = vrai
+            continue
+        }
+
+        si est_exposant {
+            si exposant_trouvé {
+                retourne faux
+            }
+
+            point_trouvé = vrai
+            exposant_trouvé = vrai
+
+            si idx == lexème.valeur.taille - 1 {
+                retourne faux
+            }
+        }
+
+        si !est_nombre && (c != '+' && c != '-') {
+            retourne faux
+        }
+    }
+
+    lexème.genre = GenreLexème.NUMÉRIQUE
+
+    retourne vrai
+}
+
+finalise_chaine :: fonc (lexème: *Lexème) -> bool
+{
+    si lexème.valeur.taille == 0 {
+        retourne faux
+    }
+
+    si lexème.valeur[0] == '"' && lexème.valeur[lexème.valeur.taille - 1] == '"' {
+        lexème.valeur.pointeur += 1
+        lexème.valeur.taille -= 2
+        lexème.genre = GenreLexème.CHAINE
+
+        retourne vrai
+    }
+
+    si lexème.valeur[0] == '\'' && lexème.valeur[lexème.valeur.taille - 1] == '\'' {
+        lexème.valeur.pointeur += 1
+        lexème.valeur.taille -= 2
+        lexème.genre = GenreLexème.CHAINE
+
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+finalise_mot_clé :: fonc (lexème: *Lexème) -> bool
+{
+    si lexème.valeur.taille == 0 {
+        retourne faux
+    }
+
+    si lexème.valeur == "sélectionne" {
+        lexème.genre = GenreLexème.MOT_CLÉ_SÉLECTIONNE
+        retourne vrai
+    }
+
+    si lexème.valeur == "depuis" {
+        lexème.genre = GenreLexème.MOT_CLÉ_DEPUIS
+        retourne vrai
+    }
+
+    si lexème.valeur == "comme" {
+        lexème.genre = GenreLexème.MOT_CLÉ_COMME
+        retourne vrai
+    }
+
+    si lexème.valeur == "table" {
+        lexème.genre = GenreLexème.MOT_CLÉ_TABLE
+        retourne vrai
+    }
+
+    si lexème.valeur == "crée" {
+        lexème.genre = GenreLexème.MOT_CLÉ_CRÉE
+        retourne vrai
+    }
+
+    si lexème.valeur == "insère" {
+        lexème.genre = GenreLexème.MOT_CLÉ_INSÈRE
+        retourne vrai
+    }
+
+    si lexème.valeur == "dans" {
+        lexème.genre = GenreLexème.MOT_CLÉ_DANS
+        retourne vrai
+    }
+
+    si lexème.valeur == "valeurs" {
+        lexème.genre = GenreLexème.MOT_CLÉ_VALEURS
+        retourne vrai
+    }
+
+    si lexème.valeur == "entier" {
+        lexème.genre = GenreLexème.MOT_CLÉ_ENTIER
+        retourne vrai
+    }
+
+    si lexème.valeur == "texte" {
+        lexème.genre = GenreLexème.MOT_CLÉ_TEXTE
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+lèxe :: fonc (chn: chaine) -> []Lexème
+{
+    lexèmes : []Lexème
+
+    si chn.taille == 0 {
+        retourne lexèmes
+    }
+
+    courant : Lexème
+    ligne : z32
+    colonne : z32
+
+    pour c, idx dans chn {
+        discr c {
+            '\n' {
+                ligne += 1
+                colonne = 0
+            }
+            ' ',
+            ',',
+            '(',
+            ')',
+            ';' {
+                si !finalise(@courant) {
+                    imprime("Impossible de finaliser %\n", courant)
+                    // À FAIRE: erreur
+                    arrête
+                }
+
+                si courant.valeur.taille != 0 {
+                    tableau_ajoute(@lexèmes, courant)
+                }
+
+                si c != ' ' {
+                    courant.pos.ligne = ligne
+                    courant.pos.colonne = colonne
+                    courant.valeur = construit_chaine(@chn[idx], 1)
+                    courant.genre = GenreLexème.SYMBOLE
+
+                    tableau_ajoute(@lexèmes, courant)
+                }
+
+                courant.pos.ligne = ligne
+                courant.pos.colonne = colonne
+                courant.valeur = ""
+            }
+            sinon {
+                si courant.valeur.taille == 0 {
+                    courant.valeur = construit_chaine(@chn[idx], 1)
+                }
+                sinon {
+                    courant.valeur.taille += 1
+                }
+            }
+        }
+
+        colonne += 1
+        //imprime("Courant : %\n", courant.valeur)
+    }
+
+    retourne lexèmes
+}
+
+// ------------------------------------------------------------
+
+GenreInstruction :: énum z32 {
+    CRÉE
+    SÉLECTIONNE
+    INSÈRE
+}
+
+Instruction :: struct {
+    genre : GenreInstruction
+}
+
+InstructionInsère :: struct {
+    empl base : Instruction
+
+    table : Lexème
+    valeurs: []*Expression
+}
+
+GenreExpression :: énum z32 {
+    LITTÉRALE
+}
+
+Expression :: struct {
+    genre : GenreExpression
+    littérale : Lexème
+}
+
+DéfinitionColonne :: struct {
+    nom: Lexème
+    type_données: Lexème
+}
+
+InstructionCréationTable :: struct {
+    empl base : Instruction
+
+    nom: Lexème
+    colonnes : []*DéfinitionColonne
+}
+
+InstructionSélection :: struct {
+    empl base : Instruction
+
+    items : []*Expression
+    depuis : Lexème
+}
+
+ASA :: struct {
+    instructions : []*Instruction
+}
+
+détruit_asa :: fonc (asa: *ASA) -> rien
+{
+    pour inst dans asa.instructions {
+        discr inst.genre {
+            CRÉE {
+                inst_crée := transtype(inst: *InstructionCréationTable)
+
+                pour déf dans inst_crée.colonnes {
+                    déloge déf
+                }
+
+                déloge inst_crée.colonnes
+                déloge inst_crée
+            }
+            SÉLECTIONNE {
+                inst_sél := transtype(inst: *InstructionSélection)
+
+                pour expr dans inst_sél.items {
+                    déloge expr
+                }
+
+                déloge inst_sél.items
+                déloge inst_sél
+            }
+            INSÈRE {
+                inst_insère := transtype(inst: *InstructionInsère)
+
+                pour expr dans inst_insère.valeurs {
+                    déloge expr
+                }
+
+                déloge inst_insère.valeurs
+                déloge inst_insère
+            }
+        }
+    }
+
+    déloge asa.instructions
+}
+
+parse :: fonc (chn: chaine) -> ASA
+{
+    lexèmes := lèxe(chn)
+
+/*
+    pour l dans lexèmes {
+        imprime("%\n", l)
+    }
+*/
+
+    diffère { déloge lexèmes; }
+
+    asa : ASA
+
+    curseur := 0
+
+    tantque curseur < lexèmes.taille {
+        inst := parse_instruction(lexèmes, @curseur)
+
+        si inst == nul {
+            imprime("Impossible de parser les lexèmes\n")
+            arrête
+        }
+
+        tableau_ajoute(@asa.instructions, inst)
+    }
+
+    retourne asa
+}
+
+// @amélioration : retourne aussi le curseur au lieu d'utilisation un pointeur
+// @amélioration : retourne une erreur (besoin d'un système d'erreur)
+parse_instruction :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *Instruction
+{
+    curseur := mémoire(ancien_curseur)
+    diffère { mémoire(ancien_curseur) = curseur; }
+
+    discr lexèmes[curseur].genre {
+        MOT_CLÉ_CRÉE {
+            curseur += 1
+            inst := parse_instruction_crée(lexèmes, @curseur)
+
+            retourne inst
+        }
+        MOT_CLÉ_INSÈRE {
+            curseur += 1
+            inst := parse_instruction_insère(lexèmes, @curseur)
+
+            retourne inst
+        }
+        MOT_CLÉ_SÉLECTIONNE {
+            curseur += 1
+            inst := parse_instruction_sélectionne(lexèmes, @curseur)
+
+            retourne inst
+        }
+        sinon {
+            imprime("Attendu un mot-clé : obtenu %\n", lexèmes[curseur].genre)
+            retourne nul
+        }
+    }
+
+    retourne nul
+}
+
+// 1. SÉLECTIONNE (déjà consommé lors de l'appel)
+// 2. $expressions [, ...]
+// 3. DEPUIS
+// 4. $table
+// 5. ;
+parse_instruction_sélectionne :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *InstructionSélection
+{
+    curseur := mémoire(ancien_curseur)
+    diffère { mémoire(ancien_curseur) = curseur; }
+
+    inst := loge InstructionSélection
+    inst.genre = GenreInstruction.SÉLECTIONNE
+
+    si !parse_expressions(lexèmes, @curseur, @inst.items) {
+        imprime("Impossible de parser les expressions\n")
+        déloge inst // @fuite de mémoire
+        retourne nul
+    }
+
+    si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_DEPUIS {
+        imprime("Attendu 'depuis'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
+        imprime("Attendu 'identifiant'\n")
+        déloge inst
+        retourne nul
+    }
+
+    inst.depuis = lexèmes[curseur]
+
+    curseur += 1
+
+    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != ";" {
+        imprime("Attendu ';'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    retourne inst
+}
+
+// 1. CRÉE  (déjà consommé lors de l'appel)
+// 2. $nom-table
+// 3. (
+// 4. [nom-colonne type-colonne, ...]
+// 5. )
+// 6. ;
+parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *InstructionCréationTable
+{
+    curseur := mémoire(ancien_curseur)
+    diffère { mémoire(ancien_curseur) = curseur; }
+
+    inst := loge InstructionCréationTable
+    inst.genre = GenreInstruction.CRÉE
+
+    // 2. $nom-table
+    si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
+        imprime("Attendu 'identifiant'\n")
+        déloge inst
+        retourne nul
+    }
+
+    inst.nom = lexèmes[curseur]
+
+    curseur += 1
+
+    // 3. (
+    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != "(" {
+        imprime("Attendu '('\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    boucle {
+        si lexèmes[curseur].genre == GenreLexème.SYMBOLE && lexèmes[curseur].valeur == ")" {
+            arrête
+        }
+
+        desc := loge DéfinitionColonne
+        tableau_ajoute(@inst.colonnes, desc)
+
+        // nom-colonne
+        si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
+            imprime("Attendu 'identifiant'\n")
+            déloge inst
+            retourne nul
+        }
+
+        desc.nom = lexèmes[curseur]
+
+        curseur += 1
+
+        // type-colonne
+        si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_TEXTE && lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_ENTIER {
+            imprime("Attendu 'entier' ou 'texte'\n")
+            déloge inst
+            retourne nul
+        }
+
+        desc.type_données = lexèmes[curseur]
+
+        curseur += 1
+
+        si lexèmes[curseur].genre == GenreLexème.SYMBOLE && lexèmes[curseur].valeur == "," {
+            curseur += 1
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    // 5. )
+    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != ")" {
+        imprime("Attendu ')'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    // 6. ;
+    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != ";" {
+        imprime("Attendu ';'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    retourne inst
+}
+
+// 1. INSÈRE
+// 2. DANS
+// 3. $nom-table
+// 4. VALEURS
+// 5. (
+// 6. $expression [, ...]
+// 7. )
+// 8. ;
+parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *InstructionInsère
+{
+    curseur := mémoire(ancien_curseur)
+    diffère { mémoire(ancien_curseur) = curseur; }
+
+
+    inst := loge InstructionInsère
+    inst.genre = GenreInstruction.INSÈRE
+
+    // 2. DANS
+    si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_DANS {
+        imprime("Attendu 'dans'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    // 3. $nom-table
+    si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
+        imprime("Attendu 'identifiant'\n")
+        déloge inst
+        retourne nul
+    }
+
+    inst.table = lexèmes[curseur]
+
+    curseur += 1
+
+    // 4. VALEURS
+    si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_VALEURS {
+        imprime("Attendu 'valeurs'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    // 5. (
+    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != "(" {
+        imprime("Attendu '('\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    // 6. $expression [, ...]
+    si !parse_expressions(lexèmes, @curseur, @inst.valeurs) {
+        imprime("Impossible de parser les expresssions pour INSÈRE !\n")
+        déloge inst
+        retourne nul
+    }
+
+    // 7. )
+    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != ")" {
+        imprime("Attendu '('\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    // 8. ;
+    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != ";" {
+        imprime("Attendu ';'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    retourne inst
+}
+
+parse_expressions :: fonc (lexèmes: []Lexème, ancien_curseur: *z32, exprs: *[]*Expression) -> bool
+{
+    curseur := mémoire(ancien_curseur)
+    diffère { mémoire(ancien_curseur) = curseur; }
+
+    // @amélioration : évite les dépassement de bornes
+    boucle {
+        genre := lexèmes[curseur].genre
+
+        si genre != GenreLexème.IDENTIFIANT && genre != GenreLexème.NUMÉRIQUE && genre != GenreLexème.CHAINE {
+            imprime("Attendu 'identifiant'\n")
+            retourne faux
+        }
+
+        expr := loge Expression
+        expr.genre = GenreExpression.LITTÉRALE
+        expr.littérale = lexèmes[curseur]
+
+        tableau_ajoute(exprs, expr)
+
+        curseur += 1
+
+        si lexèmes[curseur].genre == GenreLexème.SYMBOLE && lexèmes[curseur].valeur == "," {
+            curseur += 1
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    retourne vrai
+}
+
+// ------------------------------------------------------------
+
+TypeColonne :: énum z32 {
+    ENTIER
+    CHAINE
+}
+
+CelluleMémoire :: union {
+    entier : z32
+    chn : chaine
+}
+
+comme_entier :: fonc (m : CelluleMémoire) -> z32
+{
+    retourne m.entier
+}
+
+comme_chaine :: fonc (m : CelluleMémoire) -> chaine
+{
+    retourne m.chn
+}
+
+Table :: struct {
+    colonnes : []chaine
+    types_colonnes : []z32 // @coulisse C
+
+    lignes : [][]CelluleMémoire
+}
+
+détruit_table :: fonc (table: *Table) -> rien
+{
+    déloge table.colonnes
+    déloge table.types_colonnes
+
+    pour ligne dans table.lignes {
+        déloge ligne
+    }
+
+    déloge table.lignes
+}
+
+CoulisseMémoire :: struct {
+    noms_tables : []chaine
+    tables : []*Table
+}
+
+détruit_coulisse :: fonc (cm: *CoulisseMémoire) -> rien
+{
+    pour table dans cm.tables {
+        détruit_table(table)
+        déloge table
+    }
+
+    déloge cm.noms_tables
+    déloge cm.tables
+}
+
+crée_table :: fonc (cm: *CoulisseMémoire, inst: *InstructionCréationTable) -> rien
+{
+    table := loge Table
+
+    tableau_ajoute(@cm.noms_tables, inst.nom.valeur)
+
+    pour définition dans inst.colonnes {
+        tableau_ajoute(@table.colonnes, définition.nom.valeur)
+
+        discr définition.type_données.genre {
+            MOT_CLÉ_ENTIER {
+                tableau_ajoute(@table.types_colonnes, TypeColonne.ENTIER)
+            }
+            MOT_CLÉ_TEXTE {
+                tableau_ajoute(@table.types_colonnes, TypeColonne.CHAINE)
+            }
+            sinon {
+                imprime("Type de données inattendu\n")
+            }
+        }
+    }
+
+    tableau_ajoute(@cm.tables, table)
+}
+
+trouve_table :: fonc (cm: *CoulisseMémoire, nom_table: chaine) -> *Table
+{
+    pour nom, idx dans cm.noms_tables {
+        si nom == nom_table {
+            retourne cm.tables[idx]
+        }
+    }
+
+    retourne nul
+}
+
+insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> rien
+{
+    table := trouve_table(cm, inst.table.valeur)
+
+    si table == nul {
+        imprime("La table n'existe pas")
+        retourne
+    }
+
+    ligne : []CelluleMémoire
+
+    pour expr dans inst.valeurs {
+        cellule : CelluleMémoire
+
+        si expr.littérale.genre == GenreLexème.NUMÉRIQUE {
+            cellule.entier = transtype(extrait_nombre_entier(expr.littérale.valeur) : z32)
+        }
+        sinon {
+            cellule.chn = expr.littérale.valeur
+        }
+
+        tableau_ajoute(@ligne, cellule)
+    }
+
+    tableau_ajoute(@table.lignes, ligne)
+}
+
+ColonneRésultat :: struct {
+    nom : chaine
+    type_colonne : TypeColonne
+}
+
+RésultatSélection :: struct {
+    colonnes: []ColonneRésultat
+    résultats: [][]CelluleMémoire
+}
+
+détruit_résultat :: fonc (résultat: *RésultatSélection) -> rien
+{
+    pour r dans résultat.résultats {
+        déloge r
+    }
+
+    déloge résultat.résultats
+    déloge résultat.colonnes
+}
+
+sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> RésultatSélection
+{
+    table := trouve_table(cm, inst.depuis.valeur)
+
+    résultats : RésultatSélection
+
+    si table == nul {
+        imprime("La table % n'existe pas\n", inst.depuis.valeur)
+        retourne résultats
+    }
+
+    imprime("La table possède % lignes\n", table.lignes.taille)
+
+    pour ligne, idx_ligne dans table.lignes {
+        est_première_ligne := idx_ligne == 0
+
+        résultat : []CelluleMémoire
+
+        pour expr dans inst.items {
+            si expr.genre != GenreExpression.LITTÉRALE {
+                imprime("Saute expression non-littérale !\n")
+                continue
+            }
+
+            lit := expr.littérale
+            si lit.genre != GenreLexème.IDENTIFIANT {
+                continue
+            }
+
+            trouvée := faux
+
+            pour colonne, idx_colonne dans table.colonnes {
+                si colonne != lit.valeur {
+                    continue
+                }
+
+                si est_première_ligne {
+                    colonne_résultat : ColonneRésultat
+                    colonne_résultat.type_colonne = transtype(table.types_colonnes[idx_colonne]: TypeColonne)
+                    colonne_résultat.nom = lit.valeur
+
+                    tableau_ajoute(@résultats.colonnes, colonne_résultat)
+                }
+
+                tableau_ajoute(@résultat, ligne[idx_colonne])
+
+                trouvée = vrai
+                arrête
+            }
+
+            si !trouvée {
+                imprime("la colonne n'existe pas !\n")
+            }
+        }
+
+        tableau_ajoute(@résultats.résultats, résultat)
+    }
+
+    retourne résultats
+}
+
+// ------------------------------------------------------------
+
+charge "tabuleuse"
+
+imprime_résultat :: fonc (résultat: *RésultatSélection) -> rien
+{
+    imprime("-------------------\n")
+    pour colonne dans résultat.colonnes {
+        imprime("| % ", colonne.nom)
+    }
+
+    imprime(" |\n")
+    imprime("-------------------\n")
+
+    pour ligne dans résultat.résultats {
+        pour cellule, idx_cellule dans ligne {
+            si résultat.colonnes[idx_cellule].type_colonne == TypeColonne.CHAINE {
+                imprime("% ", cellule.comme_chaine())
+            }
+            sinon {
+                imprime("% ", cellule.comme_entier())
+            }
+        }
+
+        imprime("\n")
+    }
+
+    imprime("-------------------\n")
+}
+
+// ------------------------------------------------------------
+
+principale :: fonc () -> z32
+{
+    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
+
+    chn := "crée utilisateurs (id entier, nom texte);insère dans utilisateurs valeurs (4, 'kévin');sélectionne id, nom depuis utilisateurs;"
+
+    asa := parse(chn)
+
+    cm : CoulisseMémoire
+
+    pour inst dans asa.instructions {
+        imprime("%\n", inst.genre)
+        discr inst.genre {
+            CRÉE {
+                imprime("crée_table\n")
+                crée_table(@cm, transtype(inst: *InstructionCréationTable))
+            }
+            SÉLECTIONNE {
+                imprime("sélectionne\n")
+                résultat := sélectionne(@cm, transtype(inst: *InstructionSélection))
+
+                imprime_résultat(@résultat)
+                détruit_résultat(@résultat)
+            }
+            INSÈRE {
+                imprime("insère\n")
+                insère(@cm, transtype(inst: *InstructionInsère))
+            }
+        }
+    }
+
+    détruit_asa(@asa)
+    détruit_coulisse(@cm)
+
+    retourne 0
+}
