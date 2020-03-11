@@ -512,34 +512,6 @@ void lance_erreur_acces_hors_limites(
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::NORMAL);
 }
 
-struct Etendue {
-	long pos_min = 0;
-	long pos_max = 0;
-};
-
-static Etendue calcule_etendue_noeud(
-			ContexteGenerationCode const &contexte,
-			NoeudBase *b)
-{
-	auto const &lexeme = b->lexeme;
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
-
-	auto etendue = Etendue{};
-	etendue.pos_min = pos.pos;
-	etendue.pos_max = pos.pos + b->lexeme->chaine.taille();
-
-	/* À FAIRE : réusinage arbre */
-//	for (auto enfant : b->enfants) {
-//		auto etendue_enfant = calcule_etendue_noeud(contexte, enfant);
-
-//		etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
-//		etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
-//	}
-
-	return etendue;
-}
-
 void lance_erreur_type_operation(
 			ContexteGenerationCode const &contexte,
 			NoeudBase *b)
@@ -554,7 +526,7 @@ void lance_erreur_type_operation(
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
-	auto etendue = calcule_etendue_noeud(contexte, b);
+	auto etendue = calcule_etendue_noeud(static_cast<NoeudExpression *>(b), fichier);
 
 	auto inst = static_cast<NoeudExpressionBinaire *>(b);
 	auto enfant_gauche = inst->expr1;
@@ -563,8 +535,8 @@ void lance_erreur_type_operation(
 	auto const &type_gauche = enfant_gauche->type;
 	auto const &type_droite = enfant_droite->type;
 
-	auto etendue_gauche = calcule_etendue_noeud(contexte, enfant_gauche);
-	auto etendue_droite = calcule_etendue_noeud(contexte, enfant_droite);
+	auto etendue_gauche = calcule_etendue_noeud(enfant_gauche, fichier);
+	auto etendue_droite = calcule_etendue_noeud(enfant_droite, fichier);
 
 	auto expr_gauche = dls::vue_chaine_compacte(&ligne[etendue_gauche.pos_min], etendue_gauche.pos_max - etendue_gauche.pos_min);
 	auto expr_droite = dls::vue_chaine_compacte(&ligne[etendue_droite.pos_min], etendue_droite.pos_max - etendue_droite.pos_min);
@@ -617,12 +589,12 @@ void lance_erreur_type_operation_unaire(
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
-	auto etendue = calcule_etendue_noeud(contexte, b);
-
 	auto inst = static_cast<NoeudExpressionUnaire *>(b);
+	auto etendue = calcule_etendue_noeud(inst, fichier);
+
 	auto enfant_droite = inst->expr;
 	auto const &type_droite = enfant_droite->type;
-	auto etendue_droite = calcule_etendue_noeud(contexte, enfant_droite);
+	auto etendue_droite = calcule_etendue_noeud(enfant_droite, fichier);
 	auto expr_droite = dls::vue_chaine_compacte(&ligne[etendue_droite.pos_min], etendue_droite.pos_max - etendue_droite.pos_min);
 
 	dls::flux_chaine ss;
@@ -687,7 +659,7 @@ static auto trouve_candidat(
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
-	auto etendue = calcule_etendue_noeud(contexte, acces);
+	auto etendue = calcule_etendue_noeud(static_cast<NoeudExpression *>(acces), fichier);
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
@@ -798,7 +770,7 @@ void membre_inactif(
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
-	auto etendue = calcule_etendue_noeud(contexte, acces);
+	auto etendue = calcule_etendue_noeud(static_cast<NoeudExpression *>(acces), fichier);
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
@@ -831,7 +803,7 @@ void valeur_manquante_discr(
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
-	auto etendue = calcule_etendue_noeud(contexte, expression);
+	auto etendue = calcule_etendue_noeud(static_cast<NoeudExpression *>(expression), fichier);
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";

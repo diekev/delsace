@@ -27,6 +27,7 @@
 #include "biblinternes/outils/conditions.h"
 
 #include "assembleuse_arbre.h"
+#include "modules.hh"
 #include "typage.hh"
 
 /* ************************************************************************** */
@@ -820,4 +821,142 @@ void aplatis_arbre(
 			break;
 		}
 	}
+}
+
+Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
+{
+	if (racine == nullptr) {
+		return {};
+	}
+
+	auto const &lexeme = racine->lexeme;
+	auto pos = trouve_position(*lexeme, fichier);
+
+	auto etendue = Etendue{};
+	etendue.pos_min = pos.pos;
+	etendue.pos_max = pos.pos + racine->lexeme->chaine.taille();
+
+	switch (racine->genre) {
+		case GenreNoeud::DECLARATION_VARIABLE:
+		{
+			auto expr = static_cast<NoeudDeclarationVariable *>(racine);
+
+			auto etendue_enfant = calcule_etendue_noeud(expr->valeur, fichier);
+
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			etendue_enfant = calcule_etendue_noeud(expr->expression, fichier);
+
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			break;
+		}
+		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
+		case GenreNoeud::EXPRESSION_INDICE:
+		case GenreNoeud::EXPRESSION_PLAGE:
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
+		case GenreNoeud::OPERATEUR_BINAIRE:
+		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+		{
+			auto expr = static_cast<NoeudExpressionBinaire *>(racine);
+
+			auto etendue_enfant = calcule_etendue_noeud(expr->expr1, fichier);
+
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			etendue_enfant = calcule_etendue_noeud(expr->expr2, fichier);
+
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			break;
+		}
+		case GenreNoeud::EXPRESSION_LOGE:
+		case GenreNoeud::EXPRESSION_DELOGE:
+		case GenreNoeud::EXPRESSION_RELOGE:
+		{
+			auto expr = static_cast<NoeudExpressionLogement *>(racine);
+
+			auto etendue_enfant = calcule_etendue_noeud(expr->expr, fichier);
+
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			break;
+		}
+		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
+		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
+		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
+		case GenreNoeud::EXPRESSION_TRANSTYPE:
+		case GenreNoeud::EXPRESSION_INFO_DE:
+		case GenreNoeud::EXPRESSION_MEMOIRE:
+		case GenreNoeud::DIRECTIVE_EXECUTION:
+		case GenreNoeud::OPERATEUR_UNAIRE:
+		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
+		case GenreNoeud::INSTRUCTION_RETOUR:
+		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
+		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
+		case GenreNoeud::INSTRUCTION_RETIENS:
+		case GenreNoeud::EXPANSION_VARIADIQUE:
+		{
+			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
+
+			auto etendue_enfant = calcule_etendue_noeud(expr->expr, fichier);
+
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			break;
+		}
+		case GenreNoeud::EXPRESSION_PARENTHESE:
+		{
+			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
+
+			auto etendue_enfant = calcule_etendue_noeud(expr->expr, fichier);
+
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			// prend en compte la parenthèse fermante
+			etendue.pos_max += 1;
+
+			break;
+		}
+		case GenreNoeud::RACINE:
+		case GenreNoeud::INSTRUCTION_SINON:
+		case GenreNoeud::INSTRUCTION_COMPOSEE:
+		case GenreNoeud::DECLARATION_FONCTION:
+		case GenreNoeud::DECLARATION_COROUTINE:
+		case GenreNoeud::DECLARATION_OPERATEUR:
+		case GenreNoeud::DECLARATION_ENUM:
+		case GenreNoeud::DECLARATION_STRUCTURE:
+		case GenreNoeud::EXPRESSION_TAILLE_DE:
+		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
+		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
+		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
+		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
+		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
+		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
+		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
+		case GenreNoeud::INSTRUCTION_BOUCLE:
+		case GenreNoeud::INSTRUCTION_REPETE:
+		case GenreNoeud::INSTRUCTION_TANTQUE:
+		case GenreNoeud::INSTRUCTION_POUR:
+		case GenreNoeud::INSTRUCTION_DISCR:
+		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
+		case GenreNoeud::INSTRUCTION_DISCR_UNION:
+		case GenreNoeud::INSTRUCTION_SAUFSI:
+		case GenreNoeud::INSTRUCTION_SI:
+		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
+		{
+			break;
+		}
+	}
+
+	return etendue;
 }

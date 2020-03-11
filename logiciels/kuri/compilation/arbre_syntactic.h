@@ -33,6 +33,7 @@
 #include "transformation_type.hh"
 
 class assembleuse_arbre;
+struct Fichier;
 struct TypeFonction;
 
 enum class GenreNoeud : char {
@@ -472,3 +473,10 @@ NoeudExpression *copie_noeud(
 void aplatis_arbre(
 		NoeudExpression *racine,
 		kuri::tableau<NoeudExpression *> &arbre_aplatis);
+
+struct Etendue {
+	long pos_min = 0;
+	long pos_max = 0;
+};
+
+Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier);
