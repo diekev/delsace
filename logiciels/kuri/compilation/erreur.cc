@@ -582,17 +582,21 @@ void lance_erreur_type_operation(
 	ss << '\n';
 
 	ss << "Aucun opérateur trouvé pour l'opération !\n";
-	ss << "Veuillez vous assurer que les types correspondent.\n";
-	ss << '\n';
-	ss << "L'expression à gauche de l'opérateur, " << expr_gauche << ", est de type : ";
-	ss << chaine_type(type_gauche) << '\n';
-	ss << "L'expression à droite de l'opérateur, " << expr_droite << ", est de type : ";
-	ss << chaine_type(type_droite) << '\n';
-	ss << '\n';
-	ss << "Pour résoudre ce problème, vous pouvez par exemple transtyper l'une des deux expressions :\n";
-	ss << "transtype(" << expr_gauche << " : " << chaine_type(type_droite) << ")\n";
-	ss << "ou\n";
-	ss << "transtype(" << expr_droite << " : " << chaine_type(type_gauche) << ")\n";
+
+	if (type_droite != type_gauche) {
+		ss << '\n';
+		ss << "Veuillez vous assurer que les types correspondent.\n";
+		ss << '\n';
+		ss << "L'expression à gauche de l'opérateur, " << expr_gauche << ", est de type : ";
+		ss << chaine_type(type_gauche) << '\n';
+		ss << "L'expression à droite de l'opérateur, " << expr_droite << ", est de type : ";
+		ss << chaine_type(type_droite) << '\n';
+		ss << '\n';
+		ss << "Pour résoudre ce problème, vous pouvez par exemple transtyper l'une des deux expressions :\n";
+		ss << "transtype(" << expr_gauche << " : " << chaine_type(type_droite) << ")\n";
+		ss << "ou\n";
+		ss << "transtype(" << expr_droite << " : " << chaine_type(type_gauche) << ")\n";
+	}
 
 	ss << "----------------------------------------------------------------\n";
 
