@@ -229,35 +229,40 @@ void lance_erreur_plage(
 		const Type *type_arg,
 		const Type *type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *lexeme_enfant,
-		const DonneesLexeme *lexeme)
+		NoeudBase *racine)
 {
+	auto inst = static_cast<NoeudExpressionUnaire *>(racine);
+	auto lexeme = inst->expr->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
 	auto pos = trouve_position(*lexeme, fichier);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
+	auto etendue = calcule_etendue_noeud(inst->expr, fichier);
+	auto chaine_expr = dls::vue_chaine_compacte(&ligne[etendue.pos_min], etendue.pos_max - etendue.pos_min);
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
-	ss << "Dans l'expression de '" << lexeme->chaine << "':\n";
+	ss << "Dans l'expression de retour de la fonction :\n";
 	ss << ligne;
 
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
+	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
+	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
 	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme_enfant->chaine);
+	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
 	ss << '\n';
 
-	ss << "Le type de '" << lexeme_enfant->chaine << "' ne correspond pas à celui requis !\n";
+	ss << '\n';
+	ss << "Le type de '" << chaine_expr << "' ne correspond pas à celui requis !\n";
 	ss << "Requiers : " << chaine_type(type_arg) << '\n';
 	ss << "Obtenu   : " << chaine_type(type_enf) << '\n';
 	ss << '\n';
 	ss << "Astuce :\n";
 	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
 
-	lng::erreur::imprime_ligne_entre(ss, ligne, 0, pos_mot);
-	ss << "transtype(" << lexeme_enfant->chaine << " : " << chaine_type(type_arg) << ")";
-	lng::erreur::imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant->chaine.taille(), ligne.taille());
+	lng::erreur::imprime_ligne_entre(ss, ligne, 0, etendue.pos_min);
+	ss << "transtype(" << chaine_expr << " : " << chaine_type(type_arg) << ")";
+	lng::erreur::imprime_ligne_entre(ss, ligne, etendue.pos_max, ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
 	throw frappe(ss.chn().c_str(), type_erreur::TYPE_DIFFERENTS);

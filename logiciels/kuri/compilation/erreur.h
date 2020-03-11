@@ -99,8 +99,7 @@ using frappe = lng::erreur::frappe<type_erreur>;
 		const Type *type_arg,
 		const Type *type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *morceau_enfant,
-		const DonneesLexeme *morceau);
+		NoeudBase *racine);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const Type *type_gauche,

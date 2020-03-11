@@ -1655,8 +1655,7 @@ static void performe_validation_semantique(
 										type_fonc->types_sorties[i],
 										f->type,
 										contexte,
-										enfant->lexeme,
-										b->lexeme);
+										b);
 						}
 
 						f->transformation = transformation;
@@ -1692,12 +1691,11 @@ static void performe_validation_semantique(
 							b->type);
 
 				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-					erreur::lance_erreur_type_arguments(
+					erreur::lance_erreur_type_retour(
 								b->type,
 								enfant->type,
 								contexte,
-								enfant->lexeme,
-								b->lexeme);
+								b);
 				}
 
 				enfant->transformation = transformation;
@@ -3036,8 +3034,7 @@ static void performe_validation_semantique(
 							type_retour,
 							inst->type,
 							contexte,
-							inst->lexeme,
-							b->lexeme);
+							b);
 			}
 
 			inst->transformation = transformation;
