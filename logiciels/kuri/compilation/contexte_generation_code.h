@@ -140,6 +140,8 @@ struct ContexteGenerationCode {
 
 	NoeudDeclarationFonction *donnees_fonction = nullptr;
 
+	NoeudExpressionAppel *pour_appel = nullptr;
+
 	/* Les données des dépendances d'un noeud syntaxique, utilisée lors de la
 	 * validation sémantique. */
 	DonneesDependance donnees_dependance{};

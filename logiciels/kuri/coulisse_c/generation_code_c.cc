@@ -259,9 +259,12 @@ static void cree_appel(
 	auto expr_appel = static_cast<NoeudExpressionAppel *>(b);
 	auto decl_fonction_appelee = static_cast<NoeudDeclarationFonction *>(expr_appel->noeud_fonction_appelee);
 
+	auto pour_appel_precedent = contexte.pour_appel;
+	contexte.pour_appel = static_cast<NoeudExpressionAppel *>(b);
 	POUR (expr_appel->exprs) {
 		applique_transformation(it, generatrice, contexte, false);
 	}
+	contexte.pour_appel = pour_appel_precedent;
 
 	auto type = b->type;
 
@@ -600,9 +603,10 @@ static void genere_code_position_source(
 		dls::flux_chaine &flux,
 		NoeudExpression *b)
 {
-	/* À FAIRE: pour les appels de fonction où l'objet est construit
-	 * via une valeur d'argument par défaut, les informations seront
-	 * toujours celles de la déclaration de l'argument. */
+	if (contexte.pour_appel) {
+		b = contexte.pour_appel;
+	}
+
 	auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme->fichier));
 
 	auto fonction_courante = contexte.donnees_fonction;
