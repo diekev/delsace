@@ -1397,6 +1397,8 @@ static void performe_validation_semantique(
 				graphe.cree_noeud_globale(variable->ident->nom, b);
 			}
 
+			donnees_dependance.types_utilises.insere(decl->type);
+
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
