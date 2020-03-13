@@ -43,6 +43,8 @@ enum class TypeTransformation {
 	DEREFERENCE,
 	AUGMENTE_TAILLE_TYPE,
 	CONVERTI_VERS_BASE,
+	CONVERTI_ENTIER_CONSTANT,
+	CONVERTI_VERS_PTR_RIEN,
 };
 
 const char *chaine_transformation(TypeTransformation type);

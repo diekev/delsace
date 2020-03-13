@@ -43,6 +43,8 @@ const char *chaine_transformation(TypeTransformation type)
 		CAS_TYPE(DEREFERENCE)
 		CAS_TYPE(AUGMENTE_TAILLE_TYPE)
 		CAS_TYPE(CONVERTI_VERS_BASE)
+		CAS_TYPE(CONVERTI_ENTIER_CONSTANT)
+		CAS_TYPE(CONVERTI_VERS_PTR_RIEN)
 	}
 
 	return "ERREUR";
@@ -88,7 +90,7 @@ TransformationType cherche_transformation(
 	}
 
 	if (type_de->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_vers)) {
-		return TypeTransformation::INUTILE;
+		return { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers };
 	}
 
 	if (type_de->genre == GenreType::ENTIER_NATUREL && type_vers->genre == GenreType::ENTIER_NATUREL) {
@@ -211,7 +213,7 @@ TransformationType cherche_transformation(
 
 		/* x : *rien = y; */
 		if (type_pointe_vers->genre == GenreType::RIEN) {
-			return TypeTransformation::INUTILE;
+			return TypeTransformation::CONVERTI_VERS_PTR_RIEN;
 		}
 
 		/* x : *octet = y; */
