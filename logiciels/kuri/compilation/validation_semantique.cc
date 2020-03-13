@@ -2277,8 +2277,38 @@ static void performe_validation_semantique(
 				}
 
 				auto expr_assign = static_cast<NoeudExpressionBinaire *>(param);
+				auto type_membre = static_cast<Type *>(nullptr);
+				auto decl_membre = static_cast<NoeudDeclaration *>(nullptr);
+
+				POUR (decl_struct->bloc->membres) {
+					if (it->ident == expr_assign->expr1->ident) {
+						type_membre = it->type;
+						decl_membre = it;
+						break;
+					}
+				}
+
+				if (type_membre == nullptr) {
+					erreur::lance_erreur(
+								"La structure ne possède pas un tel membre",
+								contexte,
+								expr_assign->expr1->lexeme);
+				}
 
 				performe_validation_semantique(expr_assign->expr2, contexte, false);
+
+				auto transformation = cherche_transformation(expr_assign->expr2->type, type_membre);
+
+				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+					erreur::lance_erreur_type_arguments(
+								type_membre,
+								expr_assign->expr2->type,
+								contexte,
+								expr_assign->expr2->lexeme,
+								decl_membre->lexeme);
+				}
+
+				expr_assign->expr2->transformation = transformation;
 
 				auto nom = expr_assign->expr1->lexeme->chaine;
 
