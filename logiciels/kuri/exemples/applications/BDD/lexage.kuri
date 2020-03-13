@@ -441,6 +441,8 @@ parse_instruction_sélectionne :: fonc (lexèmes: []Lexème, ancien_curseur: *z3
 
     inst := loge InstructionSélection
     inst.genre = GenreInstruction.SÉLECTIONNE
+    inst.items.taille = 0
+    inst.items.pointeur = nul
 
     si !parse_expressions(lexèmes, @curseur, @inst.items) {
         imprime("Impossible de parser les expressions\n")
@@ -490,6 +492,8 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
 
     inst := loge InstructionCréationTable
     inst.genre = GenreInstruction.CRÉE
+    inst.colonnes.taille = 0
+    inst.colonnes.pointeur = nul
 
     // 2. $nom-table
     si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
@@ -583,9 +587,10 @@ parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) ->
     curseur := mémoire(ancien_curseur)
     diffère { mémoire(ancien_curseur) = curseur; }
 
-
     inst := loge InstructionInsère
     inst.genre = GenreInstruction.INSÈRE
+    inst.valeurs.taille = 0
+    inst.valeurs.pointeur = nul
 
     // 2. DANS
     si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_DANS {
@@ -746,6 +751,12 @@ détruit_coulisse :: fonc (cm: *CoulisseMémoire) -> rien
 crée_table :: fonc (cm: *CoulisseMémoire, inst: *InstructionCréationTable) -> rien
 {
     table := loge Table
+    table.colonnes.taille = 0
+    table.colonnes.pointeur = nul
+    table.types_colonnes.taille = 0
+    table.types_colonnes.pointeur = nul
+    table.lignes.taille = 0
+    table.lignes.pointeur = nul
 
     tableau_ajoute(@cm.noms_tables, inst.nom.valeur)
 
@@ -918,6 +929,11 @@ charge "tabuleuse"
 
 imprime_résultat :: fonc (résultat: *RésultatSélection) -> rien
 {
+    si résultat.résultats.taille == 0 {
+        imprime("0 résultat\n")
+        retourne
+    }
+
     ligne_titre : LigneTabuleuse
 
     pour colonne dans résultat.colonnes {
@@ -949,57 +965,44 @@ imprime_résultat :: fonc (résultat: *RésultatSélection) -> rien
 // ------------------------------------------------------------
 
 importe GlibC
+importe SysFichier
 
 imprime_prompt :: fonc () -> rien
 {
     imprime("db > ")
 }
 
-lis_entrée :: fonc () -> chaine
-{
-    nouveau_contexte := contexte
-    nouveau_contexte.allocatrice = __stockage_temporaire
-
-    chn : chaine
-
-    pousse_contexte nouveau_contexte {
-        c : z8
-
-        tantque read(0, @c, 1) != 0 {
-            si c == '\n' {
-                arrête
-            }
-
-            pousse(@chn, c)
-        }
-    }
-
-    retourne chn
-}
-
 // ------------------------------------------------------------
 
-// @bug : résultat vide lors d'une sélection sur une table vide, nous devrions au moins avoir la ligne de titre
-// @crash : quand nous insèrons une plus d'une valeur dans une table
-// @crash : quand nous libérons l'asa à la fin des boucles
+// @note : certains crash peuvent causés car la mémoire n'est pas initialisé lors des logements
+// @bug : aucune erreur lorsqu'une commande est fausse (p.e. '.tabels')
 principale :: fonc () -> z32
 {
     diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
 
     //chn := "crée utilisateurs (id entier, nom texte);insère dans utilisateurs valeurs (54, 'kévin');sélectionne id, nom depuis utilisateurs;"
 
+    nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
     cm : CoulisseMémoire
 
     boucle {
         imprime_prompt()
 
-        entrée := lis_entrée()
+        entrée : chaine
+        pousse_contexte nouveau_contexte {
+            entrée = entrée_standarde().lis_ligne()
+        }
 
-        si entrée == ".tables" {
+        si entrée == ".tables\n" {
             résultat := sélectionne_tables(@cm)
 
             imprime_résultat(@résultat)
             détruit_résultat(@résultat)
+        }
+        sinon si entrée == ".sors\n" {
+            arrête
         }
         sinon {
             asa := parse(entrée)
@@ -1025,7 +1028,7 @@ principale :: fonc () -> z32
                 }
             }
 
-            //détruit_asa(@asa)
+            détruit_asa(@asa)
         }
     }
 
