@@ -617,8 +617,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc()
 
 NoeudExpression *Syntaxeuse::analyse_expression(
 		GenreLexeme identifiant_final,
-		GenreLexeme racine_expr,
-		bool ajoute_noeud)
+		GenreLexeme racine_expr)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 	auto profondeur = m_profondeur++;
@@ -1639,7 +1638,7 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 				auto expr = static_cast<NoeudBase *>(nullptr);
 
 				if (this->identifiant_courant() != GenreLexeme::CROCHET_FERMANT) {
-					expr = analyse_expression(GenreLexeme::CROCHET_FERMANT, GenreLexeme::CROCHET_OUVRANT, false);
+					expr = analyse_expression(GenreLexeme::CROCHET_FERMANT, GenreLexeme::CROCHET_OUVRANT);
 				}
 				else {
 					avance();
@@ -1671,8 +1670,7 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 
 				auto expr = analyse_expression(
 							GenreLexeme::PARENTHESE_FERMANTE,
-							GenreLexeme::TYPE_DE,
-							false);
+							GenreLexeme::TYPE_DE);
 
 				donnees_type.pousse(GenreLexeme::TYPE_DE);
 				donnees_type.expressions.pousse(expr);

@@ -85,7 +85,7 @@ private:
 	NoeudExpression *analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lexeme);
 	void analyse_corps_fonction();
 	NoeudBloc *analyse_bloc();
-	NoeudExpression *analyse_expression(GenreLexeme identifiant_final, GenreLexeme racine_expr, bool ajoute_noeud = true);
+	NoeudExpression *analyse_expression(GenreLexeme identifiant_final, GenreLexeme racine_expr);
 	NoeudExpression *analyse_appel_fonction(DonneesLexeme &lexeme);
 	NoeudExpression *analyse_declaration_structure(GenreLexeme id, DonneesLexeme &lexeme);
 	NoeudExpression *analyse_declaration_enum(bool est_drapeau, DonneesLexeme &lexeme);
