@@ -910,15 +910,6 @@ static llvm::Value *genere_code_llvm(
 				}
 			}
 
-			/* Pour les fonctions variadiques nous transformons la liste d'argument en
-			 * un tableau dynamique transmis à la fonction. La raison étant que les
-			 * instruction de LLVM pour les arguments variadiques ne fonctionnent
-			 * vraiment que pour les types simples et les pointeurs. Pour pouvoir passer
-			 * des structures, il faudrait manuellement gérer les instructions
-			 * d'incrémentation et d'extraction des arguments pour chaque plateforme.
-			 * Nos tableaux, quant à eux, sont portables.
-			 */
-
 			auto requiers_contexte = !donnees_fonction->est_externe && !possede_drapeau(b->drapeaux, FORCE_NULCTX);
 
 			auto type_fonc = static_cast<TypeFonction *>(b->type);
