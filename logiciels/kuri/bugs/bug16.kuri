@@ -1,0 +1,9 @@
+// Crash lors de l'accès à un membre inconnu d'un tableau
+
+principale :: fonc () -> z32
+{
+    a : []z32
+    a.ponteur = nul
+
+    retourne 0
+}

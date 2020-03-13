@@ -1,0 +1,11 @@
+// La validation sémantique ne prend pas en compte le typage pour les assignations composées
+
+principale :: fonc () -> z32
+{
+    a := 0
+    b : z64 = 5
+
+    a += b
+
+    retourne 0
+}
