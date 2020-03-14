@@ -347,68 +347,6 @@ static void cree_appel(
 	os << ");\n";
 }
 
-static void cree_initialisation(
-		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		Type *type_parent,
-		dls::chaine const &chaine_parent,
-		dls::vue_chaine_compacte const &accesseur,
-		dls::flux_chaine &os)
-{
-	if (type_parent->genre == GenreType::CHAINE || type_parent->genre == GenreType::TABLEAU_DYNAMIQUE) {
-		os << chaine_parent << accesseur << "pointeur = 0;\n";
-		os << chaine_parent << accesseur << "taille = 0;\n";
-	}
-	else if (type_parent->genre == GenreType::EINI) {
-		os << chaine_parent << accesseur << "pointeur = 0\n;";
-		os << chaine_parent << accesseur << "info = 0\n;";
-	}
-	else if (type_parent->genre == GenreType::ENUM) {
-		os << chaine_parent << " = 0;\n";
-	}
-	else if (type_parent->genre == GenreType::UNION) {
-		auto type_union = static_cast<TypeStructure *>(type_parent);
-
-		/* À FAIRE: initialise le type le plus large */
-		if (!type_union->decl->est_nonsure) {
-			os << chaine_parent << dls::chaine(accesseur) << "membre_actif = 0;\n";
-		}
-	}
-	else if (type_parent->genre == GenreType::STRUCTURE) {
-		auto type_struct = static_cast<TypeStructure *>(type_parent);
-		auto decl = type_struct->decl;
-
-		POUR (decl->bloc->membres) {
-			auto decl_membre = static_cast<NoeudDeclarationVariable *>(it);
-			auto nom = decl_membre->ident->nom;
-			auto decl_nom = chaine_parent + dls::chaine(accesseur) + broye_nom_simple(nom);
-
-			if (decl_membre->expression != nullptr) {
-				/* indirection pour les chaines ou autres */
-				genere_code_C(decl_membre->expression, generatrice, contexte, false);
-				os << decl_nom << " = ";
-				os << decl_membre->expression->chaine_calculee();
-				os << ";\n";
-			}
-			else {
-				cree_initialisation(
-							contexte,
-							generatrice,
-							it->type,
-							decl_nom,
-							".",
-							os);
-			}
-		}
-	}
-	else if (type_parent->genre == GenreType::TABLEAU_FIXE) {
-		/* À FAIRE */
-	}
-	else {
-		os << chaine_parent << " = 0;\n";
-	}
-}
-
 static void genere_code_acces_membre(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
@@ -759,6 +697,14 @@ static void genere_code_allocation(
 						expr_pointeur,
 						b,
 						bloc_sinon);
+
+			if (type->genre != GenreType::CHAINE && type->genre != GenreType::TABLEAU_DYNAMIQUE) {
+				auto type_deref = contexte.typeuse.type_dereference_pour(type);
+
+				if (type_deref->genre == GenreType::STRUCTURE) {
+					generatrice.os << "initialise_" << type_deref->nom_broye << '(' << expr_pointeur << ");\n";
+				}
+			}
 
 			if (expr_acces_taille.taille() != 0) {
 				b->valeur_calculee = chn_enfant;
@@ -1167,13 +1113,20 @@ void genere_code_C(
 
 				/* À FAIRE: initialisation pour les variables globales */
 				if (contexte.donnees_fonction != nullptr) {
-					cree_initialisation(
-								contexte,
-								generatrice,
-								type,
-								nom_broye,
-								".",
-								generatrice.os);
+					if (variable->type->genre == GenreType::STRUCTURE) {
+						generatrice.os << "initialise_" << type->nom_broye << "(&" << nom_broye << ");\n";
+					}
+					else if (variable->type->genre == GenreType::CHAINE || variable->type->genre == GenreType::TABLEAU_DYNAMIQUE) {
+						generatrice.os << nom_broye << ".pointeur = 0;\n";
+						generatrice.os << nom_broye << ".taille = 0;\n";
+					}
+					else if (variable->type->genre == GenreType::EINI) {
+						generatrice.os << nom_broye << ".pointeur = 0\n;";
+						generatrice.os << nom_broye << ".info = 0\n;";
+					}
+					else if (variable->type->genre != GenreType::TABLEAU_FIXE) {
+						generatrice.os << nom_broye << " = 0;\n";
+					}
 				}
 			}
 			else {
@@ -2243,7 +2196,59 @@ void genere_code_C(
 		}
 		case GenreNoeud::DECLARATION_STRUCTURE:
 		{
-			genere_declaration_structure(generatrice.os, static_cast<TypeStructure *>(b->type));
+			auto type_struct = static_cast<TypeStructure *>(b->type);
+
+			if (type_struct->deja_genere) {
+				return;
+			}
+
+			genere_declaration_structure(generatrice.os, type_struct);
+
+			auto decl = type_struct->decl;
+
+			generatrice.os << '\n';
+			generatrice.os << "void initialise_" << b->type->nom_broye << "("
+						   << b->type->nom_broye << " *pointeur)\n";
+			generatrice.os << "{\n";
+
+			POUR (decl->desc.membres) {
+				auto type_membre = it.type;
+				auto nom_broye_membre = broye_chaine(dls::vue_chaine_compacte(it.nom.pointeur, it.nom.taille));
+
+				// À FAIRE : structures employées, expressions par défaut
+
+				if (type_membre->genre == GenreType::CHAINE || type_membre->genre == GenreType::TABLEAU_DYNAMIQUE) {
+					generatrice.os << "pointeur->" << nom_broye_membre << ".pointeur = 0;\n";
+					generatrice.os << "pointeur->" << nom_broye_membre << ".taille = 0;\n";
+				}
+				else if (type_membre->genre == GenreType::EINI) {
+					generatrice.os << "pointeur->" << nom_broye_membre << ".pointeur = 0\n;";
+					generatrice.os << "pointeur->" << nom_broye_membre << ".info = 0\n;";
+				}
+				else if (type_membre->genre == GenreType::ENUM) {
+					generatrice.os << "pointeur->" << nom_broye_membre << " = 0;\n";
+				}
+				else if (type_membre->genre == GenreType::UNION) {
+					auto type_union = static_cast<TypeStructure *>(type_membre);
+
+					/* À FAIRE: initialise le type le plus large */
+					if (!type_union->decl->est_nonsure) {
+						generatrice.os << "pointeur->" << nom_broye_membre << ".membre_actif = 0;\n";
+					}
+				}
+				else if (type_membre->genre == GenreType::STRUCTURE) {
+					generatrice.os << "initialise_" << type_membre->nom_broye << "(&pointeur->" << nom_broye_membre << ");\n";
+				}
+				else if (type_membre->genre == GenreType::TABLEAU_FIXE) {
+					/* À FAIRE */
+				}
+				else {
+					generatrice.os << "pointeur->" << nom_broye_membre << " = 0;\n";
+				}
+			}
+
+			generatrice.os << "}\n";
+
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENUM:
