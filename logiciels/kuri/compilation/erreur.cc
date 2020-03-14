@@ -669,6 +669,12 @@ static auto trouve_candidat(
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
+
+	if (structure->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
+		auto noeud = static_cast<NoeudExpressionBinaire *>(structure);
+		structure = noeud->expr2;
+	}
+
 	ss << "Dans l'accès à « " << structure->ident->nom << " » :\n";
 	ss << ligne;
 
