@@ -2035,9 +2035,11 @@ static void performe_validation_semantique(
 			if (type_debut != type_fin) {
 				if (type_debut->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_fin)) {
 					type_debut = type_fin;
+					enfant1->type = type_debut;
 				}
 				else if (type_fin->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_debut)) {
 					type_fin = type_debut;
+					enfant2->type = type_fin;
 				}
 				else {
 					erreur::lance_erreur_type_operation(
