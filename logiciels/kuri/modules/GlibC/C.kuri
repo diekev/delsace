@@ -147,7 +147,7 @@ dirent :: struct externe  {
     d_off : n64
     d_reclen : n16
     d_type : n8
-    d_name : *z8
+    d_name : [256]z8
 }
 
 // duplique un énum

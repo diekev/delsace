@@ -196,8 +196,8 @@ ouvre_dossier :: fonc(chemin : &CheminFichier) -> *DIR
 
 chemin_pour_dirname :: fonc(dir : *dirent) -> CheminFichier
 {
-    taille := taille_chaine_c(dir.d_name)
-    chn := construit_chaine(dir.d_name, taille)
+    taille := taille_chaine_c(@dir.d_name[0])
+    chn := construit_chaine(@dir.d_name[0], taille)
 
     retourne construit_chemin(chn)
 }
