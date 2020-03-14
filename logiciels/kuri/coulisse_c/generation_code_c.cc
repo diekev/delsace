@@ -80,6 +80,7 @@ static void applique_transformation(
 			break;
 		}
 		case TypeTransformation::CONVERTI_VERS_PTR_RIEN:
+		case TypeTransformation::CONVERTI_VERS_TYPE_CIBLE:
 		case TypeTransformation::CONVERTI_ENTIER_CONSTANT:
 		case TypeTransformation::INUTILE:
 		case TypeTransformation::PREND_PTR_RIEN:

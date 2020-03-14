@@ -45,6 +45,7 @@ const char *chaine_transformation(TypeTransformation type)
 		CAS_TYPE(CONVERTI_VERS_BASE)
 		CAS_TYPE(CONVERTI_ENTIER_CONSTANT)
 		CAS_TYPE(CONVERTI_VERS_PTR_RIEN)
+		CAS_TYPE(CONVERTI_VERS_TYPE_CIBLE)
 	}
 
 	return "ERREUR";
@@ -198,7 +199,7 @@ TransformationType cherche_transformation(
 
 		/* x = nul; */
 		if (type_pointe_de == nullptr) {
-			return TypeTransformation::INUTILE;
+			return { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 		}
 
 		/* x : *z8 = y (*rien) */
