@@ -1783,12 +1783,6 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
-#ifdef AVEC_LLVM
-			/* Évite les crash lors de l'estimation du bloc suivant les
-			 * contrôles de flux. */
-			b->valeur_calculee = static_cast<llvm::BasicBlock *>(nullptr);
-#endif
-
 			auto inst = static_cast<NoeudBloc *>(b);
 
 			if (inst->expressions.est_vide()) {
