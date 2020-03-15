@@ -109,6 +109,134 @@ allocatrice_défaut :: fonc(
 // À FAIRE : considère remplacer loge, déloge, et reloge avec ces fonctions
 // À FAIRE : type dépendant (gabarits, il faudra que les types deviennent citoyens de première classe)
 // À FAIER : infos types
+
+
+_loge :: fonc ($t : Type, pos := PositionCodeSource{}) -> *t
+{
+    info := info_de(t)
+
+    ptr := contexte.allocatrice(
+        ModeAllocatrice.ALLOUE,
+        info.taille_en_octet,
+        0,
+        nul,
+        contexte.données_allocatrice,
+        info,
+        pos)
+
+    si ptr == nul {
+        avorte_hors_mémoire()
+    }
+
+    retourne ptr
+}
+
+_reloge :: fonc (ancien_pointeur: *$T, pos := PositionCodeSource{}) -> *$T
+{
+    info := info_de($T)
+
+    ptr := contexte.allocatrice(
+        ModeAllocatrice.RÉALLOUE,
+        info.taille_en_octet,
+        info.taille_en_octet,
+        ancien_pointeur,
+        contexte.données_allocatrice,
+        info,
+        pos)
+
+    retourne ptr
+}
+
+_déloge :: fonc (ancien_pointeur: *$T, pos := PositionCodeSource{}) -> *$T
+{
+    info := info_de($T)
+
+    ptr := contexte.allocatrice(
+        ModeAllocatrice.RÉALLOUE,
+        info.taille_en_octet,
+        0,
+        ancien_pointeur,
+        contexte.données_allocatrice,
+        info,
+        pos)
+
+    retourne ptr
+}
+
+_reloge :: fonc (ancien_tableau: []$T, nouvelle_taille: z64, pos := PositionCodeSource{}) -> []$T
+{
+    info := info_de([]$T)
+
+    ptr := contexte.allocatrice(
+        ModeAllocatrice.RÉALLOUE,
+        ancien_tableau.taille,
+        nouvelle_taille,
+        ancien_tableau.pointeur,
+        contexte.données_allocatrice,
+        info,
+        pos)
+
+    nouveau_tableau : []$T
+    nouveau_tableau.pointeur = ptr
+    nouveau_tableau.taille = nouvelle_taille
+
+    retourne nouveau_tableau
+}
+
+_déloge :: fonc (ancien_tableau: []$T, pos := PositionCodeSource{}) -> []$T
+{
+    info := info_de([]$T)
+
+    ptr := ontexte.allocatrice(
+        ModeAllocatrice.DÉSALLOUE,
+        ancien_tableau.taille,
+        0,
+        ancien_tableau.pointeur,
+        contexte.données_allocatrice,
+        info,
+        pos)
+
+    nouveau_tableau : []$T
+    retourne nouvelle_chaine
+}
+
+_reloge :: fonc (ancienne_chaine : chaine, nouvelle_taille : z64, pos := PositionCodeSource{}) -> chaine
+{
+    info := info_de(chaine)
+
+    ptr := contexte.allocatrice(
+        ModeAllocatrice.RÉALLOUE,
+        ancienne_chaine.taille,
+        nouvelle_taille,
+        ancienne_chaine.pointeur,
+        contexte.données_allocatrice,
+        info,
+        pos)
+
+    nouvelle_chaine : chaine
+    nouvelle_chaine.pointeur = ptr
+    nouvelle_chaine.taille = taille
+
+    retourne nouvelle_chaine
+}
+
+_déloge :: fonc (ancienne_chaine: chaine, pos := PositionCodeSource{}) -> chaine
+{
+    info := info_de(chaine)
+
+    ptr := ontexte.allocatrice(
+        ModeAllocatrice.DÉSALLOUE,
+        0,
+        ancienne_chaine.taille,
+        ancienne_chaine.pointeur,
+        contexte.données_allocatrice,
+        info,
+        pos)
+
+    nouvelle_chaine : chaine
+    retourne nouvelle_chaine
+}
+
 alloue :: fonc(nouvelle_taille: z64) -> *rien
 {
     retourne contexte.allocatrice(
