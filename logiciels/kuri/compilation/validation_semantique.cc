@@ -1477,6 +1477,8 @@ static void performe_validation_semantique(
 				}
 
 				expr->op = meilleur_candidat->op;
+				enfant1->transformation = meilleur_candidat->transformation_type1;
+				enfant2->transformation = meilleur_candidat->transformation_type2;
 
 				if (!expr->op->est_basique) {
 					donnees_dependance.fonctions_utilisees.insere(expr->op->nom_fonction);
