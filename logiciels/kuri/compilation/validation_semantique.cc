@@ -512,21 +512,6 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 			auto variable = param->valeur;
 			auto expression = param->expression;
 
-			if (expression != nullptr) {
-				if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
-					erreur::lance_erreur("Un paramètre d'une surcharge d'opérateur ne peut avoir de valeur par défaut",
-										 contexte,
-										 param->lexeme);
-				}
-
-				performe_validation_semantique(expression, contexte, false);
-
-				/* À FAIRE: vérifie que le type de l'argument correspond à celui de l'expression */
-				if (variable->type == nullptr) {
-					variable->type = expression->type;
-				}
-			}
-
 			if (noms.trouve(variable->ident) != noms.fin()) {
 				erreur::lance_erreur(
 							"Redéfinition de l'argument",
@@ -553,6 +538,39 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 			if (!type_declare.est_gabarit) {
 				if (!est_invalide(type_declare.plage())) {
 					variable->type = resoud_type_final(contexte, type_declare, variable->bloc_parent, variable->lexeme);
+				}
+
+				if (expression != nullptr) {
+					if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
+						erreur::lance_erreur("Un paramètre d'une surcharge d'opérateur ne peut avoir de valeur par défaut",
+											 contexte,
+											 param->lexeme);
+					}
+
+					performe_validation_semantique(expression, contexte, false);
+
+					if (variable->type == nullptr) {
+						if (expression->type->genre == GenreType::ENTIER_CONSTANT) {
+							variable->type = contexte.typeuse[TypeBase::Z32];
+						}
+						else {
+							variable->type = expression->type;
+						}
+					}
+					else if (variable->type != expression->type) {
+						auto transformation = cherche_transformation(expression->type, variable->type);
+
+						if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+							erreur::lance_erreur_type_arguments(
+										expression->type,
+										variable->type,
+										contexte,
+										variable->lexeme,
+										expression->lexeme);
+						}
+
+						expression->transformation = transformation;
+					}
 				}
 			}
 
