@@ -571,49 +571,6 @@ void enregistre_operateurs_basiques(
 
 	// type r16
 
-	// r16 + r32 => DLS_ajoute_r16r32
-
-	static dls::paire<GenreLexeme, dls::vue_chaine> op_r16[] = {
-		dls::paire{ GenreLexeme::PLUS, dls::vue_chaine("DLS_ajoute_") },
-		dls::paire{ GenreLexeme::MOINS, dls::vue_chaine("DLS_soustrait_") },
-		dls::paire{ GenreLexeme::FOIS, dls::vue_chaine("DLS_multiplie_") },
-		dls::paire{ GenreLexeme::DIVISE, dls::vue_chaine("DLS_divise_") },
-	};
-
-	static dls::paire<GenreLexeme, dls::vue_chaine> op_comp_r16[] = {
-		dls::paire{ GenreLexeme::EGALITE, dls::vue_chaine("DLS_compare_egl_") },
-		dls::paire{ GenreLexeme::DIFFERENCE, dls::vue_chaine("DLS_compare_non_egl_") },
-		dls::paire{ GenreLexeme::INFERIEUR, dls::vue_chaine("DLS_compare_inf_") },
-		dls::paire{ GenreLexeme::SUPERIEUR, dls::vue_chaine("DLS_compare_sup_") },
-		dls::paire{ GenreLexeme::INFERIEUR_EGAL, dls::vue_chaine("DLS_compare_inf_egl_") },
-		dls::paire{ GenreLexeme::SUPERIEUR_EGAL, dls::vue_chaine("DLS_compare_sup_egl_") },
-	};
-
-	for (auto paire_op : op_r16) {
-		auto op = paire_op.premier;
-		auto chaine = dls::chaine(paire_op.second);
-
-		operateurs.ajoute_perso(op, type_r16, type_r16, type_r16, chaine + "r16r16");
-		operateurs.ajoute_perso(op, type_r16, type_r32, type_r16, chaine + "r16r32");
-		operateurs.ajoute_perso(op, type_r32, type_r16, type_r16, chaine + "r32r16");
-		operateurs.ajoute_perso(op, type_r16, type_r64, type_r16, chaine + "r16r64");
-		operateurs.ajoute_perso(op, type_r64, type_r16, type_r16, chaine + "r64r16");
-	}
-
-	for (auto paire_op : op_comp_r16) {
-		auto op = paire_op.premier;
-		auto chaine = paire_op.second;
-
-		operateurs.ajoute_perso(op, type_r16, type_r16, type_bool, chaine + "r16r16");
-		operateurs.ajoute_perso(op, type_r16, type_r32, type_bool, chaine + "r16r32");
-		operateurs.ajoute_perso(op, type_r32, type_r16, type_bool, chaine + "r32r16");
-		operateurs.ajoute_perso(op, type_r16, type_r64, type_bool, chaine + "r16r64");
-		operateurs.ajoute_perso(op, type_r64, type_r16, type_bool, chaine + "r64r16");
-	}
-
-	operateurs.ajoute_perso_unaire(GenreLexeme::PLUS_UNAIRE, type_r16, type_r16, "DLS_plus_r16");
-	operateurs.ajoute_perso_unaire(GenreLexeme::MOINS_UNAIRE, type_r16, type_r16, "DLS_moins_r16");
-
 	operateurs.ajoute_perso(GenreLexeme::EGAL, type_r16, type_r32, type_r16, "DLS_depuis_r32");
 	operateurs.ajoute_perso(GenreLexeme::EGAL, type_r16, type_r64, type_r16, "DLS_depuis_r64");
 
