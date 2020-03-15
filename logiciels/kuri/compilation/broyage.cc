@@ -353,9 +353,19 @@ dls::chaine broye_nom_fonction(
 				nom_ascii += "plus";
 				break;
 			}
+			case GenreLexeme::PLUS_UNAIRE:
+			{
+				nom_ascii += "pls_unr";
+				break;
+			}
 			case GenreLexeme::MOINS:
 			{
 				nom_ascii += "moins";
+				break;
+			}
+			case GenreLexeme::MOINS_UNAIRE:
+			{
+				nom_ascii += "mns_unr";
 				break;
 			}
 			case GenreLexeme::FOIS:
