@@ -54,11 +54,11 @@ insère_bits_du_bas :: fonc(
     // Écris les résultats dans le tableau de données. Si l'index est trop
     // grand alors les données ont été décalées hors du nombre.
 	si high_index < COMPTE {
-		hp.données[high_index] |= résultat_haut;
+		hp.données[high_index] |= transtype(résultat_haut: n32);
 	}
 
 	si high_index + 1 < COMPTE {
-		hp.données[high_index + 1] |= résultat_bas;
+		hp.données[high_index + 1] |= transtype(résultat_bas: n32);
 	}
 }
 

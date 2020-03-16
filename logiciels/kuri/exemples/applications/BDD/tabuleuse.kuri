@@ -158,7 +158,7 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
     }
 
 	/* ajout de marges */
-    taille_ligne := 0
+    taille_ligne : z64 = 0
 
 	pour t dans tailles_max_colonnes {
 		taille_ligne += t + 2;

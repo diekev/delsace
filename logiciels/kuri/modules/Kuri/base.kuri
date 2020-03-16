@@ -369,7 +369,7 @@ alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, nouvelle_taille: 
     }
 
     ptr := alloc.données + alloc.occupé
-    alloc.occupé += nouvelle_taille
+    alloc.occupé += transtype(nouvelle_taille: z32)
 
     si alloc.occupé > alloc.occupation_maximale {
         alloc.occupation_maximale = alloc.occupé
@@ -425,7 +425,7 @@ __stockage_temporaire :: fonc(
 		    alloc.ptr += n
             */
 
-            alloc.occupé += delta
+            alloc.occupé += transtype(delta: z32)
 
             si alloc.occupé > alloc.occupation_maximale {
                 alloc.occupation_maximale = alloc.occupé
@@ -435,7 +435,7 @@ __stockage_temporaire :: fonc(
         }
         DÉSALLOUE {
             // À FAIRE
-            alloc.occupé -= ancienne_taille
+            alloc.occupé -= transtype(ancienne_taille: z32)
             retourne nul
         }
     }

@@ -148,7 +148,7 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille)
 
-        tampon.occupé += delta
+        tampon.occupé += transtype(delta: z32)
     }
     sinon {
         src := chn.pointeur
@@ -157,7 +157,7 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille)
 
-        tampon.occupé += chn.taille
+        tampon.occupé += transtype(chn.taille: z32)
     }
 }
 
@@ -303,23 +303,23 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
 
 	résultat : [64]z8
 
-	fin := @résultat[0] + 64
-	début := fin
+	index_fin := 63
+	index_début := index_fin
 
 	tantque v != 0 {
 		chiffre := v % base
 		v /= base
 
-		début -= 1
-		mémoire(début) = chiffres_base_64[chiffre]
+		résultat[index_début] = chiffres_base_64[chiffre]
+		index_début -= 1
 	}
 
-	si début == fin {
-		début -= 1
-		mémoire(début) = '0'
+	si index_début == index_fin {
+		résultat[index_début] = '0'
+		index_début -= 1
 	}
 
-	taille := transtype(fin - début: z32)
+	taille := transtype(index_fin - index_début: z32)
 
 	pour i dans 0 ... taille - 1 {
 		si format.séparation != 0 {
@@ -328,7 +328,7 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
 			}
 		}
 
-		ajoute_au_tampon(enchaineuse, début[i])
+		ajoute_au_tampon(enchaineuse, résultat[i])
 	}
 }
 

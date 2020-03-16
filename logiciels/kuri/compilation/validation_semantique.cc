@@ -1576,6 +1576,19 @@ static void performe_validation_semantique(
 				if (est_assignation_operee(type_op)) {
 					type_op = operateur_pour_assignation_operee(type_op);
 					expr->drapeaux |= EST_ASSIGNATION_OPEREE;
+
+					// exclue les arithmétiques de pointeur
+					if (!(type1->genre == GenreType::POINTEUR && (est_type_entier(type2) || type2->genre == GenreType::ENTIER_CONSTANT))) {
+						auto transformation = cherche_transformation(type2, type1);
+
+						if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+							erreur::lance_erreur_assignation_type_differents(
+										type1,
+										type2,
+										contexte,
+										enfant2->lexeme);
+						}
+					}
 				}
 
 				auto candidats = cherche_candidats_operateurs(contexte, type1, type2, type_op);
