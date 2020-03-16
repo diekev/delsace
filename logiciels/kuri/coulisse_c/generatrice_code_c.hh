@@ -135,3 +135,10 @@ struct GeneratriceCodeC {
 		return flux.chn();
 	}
 };
+
+template <typename T>
+GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, T const &valeur)
+{
+	generatrice.os << valeur;
+	return generatrice;
+}

@@ -36,7 +36,6 @@ struct Type;
 dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
-		dls::flux_chaine &os_decl,
 		Type *type);
 
 dls::chaine chaine_valeur_enum(
