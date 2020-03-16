@@ -51,6 +51,7 @@
 #include <llvm/Transforms/Scalar/GVN.h>
 #pragma GCC diagnostic pop
 
+#include "coulisse_llvm/contexte_generation_llvm.hh"
 #include "coulisse_llvm/generation_code_llvm.hh"
 #endif
 
@@ -119,7 +120,7 @@ static void issitialise_llvm()
  * d'optimisation.
  */
 static void ajoute_passes(
-		llvm::legacy::FunctionPassManager &menageur_fonctions,
+		llvm::legacy::FunctionPassManager &manager_fonctions,
 		uint niveau_optimisation,
 		uint niveau_taille)
 {
@@ -135,7 +136,7 @@ static void ajoute_passes(
 	builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
 	builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
 
-	builder.populateFunctionPassManager(menageur_fonctions);
+	builder.populateFunctionPassManager(manager_fonctions);
 }
 
 /**
@@ -144,38 +145,39 @@ static void ajoute_passes(
  */
 static void initialise_optimisation(
 		NiveauOptimisation optimisation,
-		ContexteGenerationCode &contexte)
+		ContexteGenerationLLVM &contexte)
 {
-	if (contexte.menageur_fonctions == nullptr) {
-		contexte.menageur_fonctions = new llvm::legacy::FunctionPassManager(contexte.module_llvm);
+	if (contexte.manager_fonctions == nullptr) {
+		contexte.manager_fonctions = new llvm::legacy::FunctionPassManager(contexte.module_llvm);
 	}
 
 	switch (optimisation) {
 		case NiveauOptimisation::AUCUN:
 			break;
 		case NiveauOptimisation::O0:
-			ajoute_passes(*contexte.menageur_fonctions, 0, 0);
+			ajoute_passes(*contexte.manager_fonctions, 0, 0);
 			break;
 		case NiveauOptimisation::O1:
-			ajoute_passes(*contexte.menageur_fonctions, 1, 0);
+			ajoute_passes(*contexte.manager_fonctions, 1, 0);
 			break;
 		case NiveauOptimisation::O2:
-			ajoute_passes(*contexte.menageur_fonctions, 2, 0);
+			ajoute_passes(*contexte.manager_fonctions, 2, 0);
 			break;
 		case NiveauOptimisation::Os:
-			ajoute_passes(*contexte.menageur_fonctions, 2, 1);
+			ajoute_passes(*contexte.manager_fonctions, 2, 1);
 			break;
 		case NiveauOptimisation::Oz:
-			ajoute_passes(*contexte.menageur_fonctions, 2, 2);
+			ajoute_passes(*contexte.manager_fonctions, 2, 2);
 			break;
 		case NiveauOptimisation::O3:
-			ajoute_passes(*contexte.menageur_fonctions, 3, 0);
+			ajoute_passes(*contexte.manager_fonctions, 3, 0);
 			break;
 	}
 }
 
 static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module &module)
 {
+#if 1
 	auto chemin_sortie = "/tmp/kuri.o";
 	std::error_code ec;
 
@@ -196,11 +198,31 @@ static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module
 
 	pass.run(module);
 	dest.flush();
+#else
+	// https://stackoverflow.com/questions/1419139/llvm-linking-problem?rq=1
+	std::error_code ec;
+	llvm::raw_fd_ostream dest("/tmp/kuri.ll", ec, llvm::sys::fs::F_None);
+	module.print(dest, nullptr);
 
+	system("llvm-as /tmp/kuri.ll -o /tmp/kuri.bc");
+	system("llc /tmp/kuri.bc -o /tmp/kuri.s");
+#endif
 	return true;
 }
 
-static void cree_executable(const kuri::chaine &dest, const std::filesystem::path &racine_kuri)
+#ifndef NDEBUG
+static bool valide_llvm_ir(llvm::Module &module)
+{
+	std::error_code ec;
+	llvm::raw_fd_ostream dest("/tmp/kuri.ll", ec, llvm::sys::fs::F_None);
+	module.print(dest, nullptr);
+
+	auto err = system("llvm-as /tmp/kuri.ll -o /tmp/kuri.bc");
+	return err == 0;
+}
+#endif
+
+static bool cree_executable(const kuri::chaine &dest, const std::filesystem::path &racine_kuri)
 {
 	/* Compile le fichier objet qui appelera 'fonction principale'. */
 	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
@@ -214,16 +236,21 @@ static void cree_executable(const kuri::chaine &dest, const std::filesystem::pat
 
 		if (err != 0) {
 			std::cerr << "Ne peut pas créer /tmp/execution_kuri.o !\n";
-			return;
+			return false;
 		}
 	}
 
 	if (!std::filesystem::exists("/tmp/kuri.o")) {
 		std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
-		return;
+		return false;
 	}
 
 	dls::flux_chaine ss;
+#if 1
+	ss << "gcc ";
+	ss << racine_kuri / "fichiers/point_d_entree.c";
+	ss << " /tmp/kuri.o /tmp/r16_tables.o -o " << dest;
+#else
 	ss << "ld ";
 	/* ce qui chargera le programme */
 	ss << "-dynamic-linker /lib64/ld-linux-x86-64.so.2 ";
@@ -233,12 +260,16 @@ static void cree_executable(const kuri::chaine &dest, const std::filesystem::pat
 	ss << "/tmp/execution_kuri.o ";
 	ss << "/tmp/kuri.o ";
 	ss << "-o " << dest;
+#endif
 
 	auto err = system(ss.chn().c_str());
 
 	if (err != 0) {
 		std::cerr << "Ne peut pas créer l'executable !\n";
+		return false;
 	}
+
+	return true;
 }
 #endif
 
@@ -518,42 +549,49 @@ int main(int argc, char *argv[])
 			auto CPU = "generic";
 			auto feature = "";
 			auto options_cible = llvm::TargetOptions{};
-			auto RM = llvm::Optional<llvm::Reloc::Model>();
+			auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
 			auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
 									 cible->createTargetMachine(
 										 triplet_cible, CPU, feature, options_cible, RM));
 
-			auto module_llvm = llvm::Module("Module", contexte_generation.contexte);
+			auto contexte_llvm = ContexteGenerationLLVM(contexte_generation.typeuse, contexte_generation.fichiers);
+			contexte_llvm.module_llvm = nullptr;
+
+			auto module_llvm = llvm::Module("Module", contexte_llvm.contexte);
 			module_llvm.setDataLayout(machine_cible->createDataLayout());
 			module_llvm.setTargetTriple(triplet_cible);
 
-			contexte_generation.module_llvm = &module_llvm;
+			contexte_llvm.module_llvm = &module_llvm;
 
-			//initialise_optimisation(ops.optimisation, contexte_generation);
+			initialise_optimisation(ops.niveau_optimisation, contexte_llvm);
 
 			os << "Validation sémantique du code..." << std::endl;
 			noeud::performe_validation_semantique(contexte_generation);
 
 			os << "Génération du code..." << std::endl;
-			noeud::genere_code_llvm(*assembleuse, contexte_generation);
+			noeud::genere_code_llvm(contexte_generation, contexte_llvm);
 
-//			if (ops.emet_code_intermediaire) {
-//				std::cerr <<  "------------------------------------------------------------------\n";
-//				module_llvm.print(llvm::errs(), nullptr);
-//				std::cerr <<  "------------------------------------------------------------------\n";
-//			}
+#ifndef NDEBUG
+			if (!valide_llvm_ir(module_llvm)) {
+				est_errone = true;
+			}
+#endif
 
 			/* définition du fichier de sortie */
-			if (ops.cree_executable) {
+			if (!est_errone && ops.cree_executable) {
 				os << "Écriture du code dans un fichier..." << std::endl;
 				auto debut_fichier_objet = dls::chrono::compte_seconde();
 				if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
 					resultat = 1;
+					est_errone = true;
 				}
 				temps_fichier_objet = debut_fichier_objet.temps();
 
 				auto debut_executable = dls::chrono::compte_seconde();
-				cree_executable(ops.nom_sortie, chemin_racine_kuri);
+				if (!cree_executable(ops.nom_sortie, chemin_racine_kuri)) {
+					est_errone = true;
+				}
+
 				temps_executable = debut_executable.temps();
 			}
 		}

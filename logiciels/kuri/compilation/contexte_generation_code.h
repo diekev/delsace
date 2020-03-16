@@ -24,28 +24,6 @@
 
 #pragma once
 
-#ifdef AVEC_LLVM
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#include <llvm/IR/LLVMContext.h>
-#pragma GCC diagnostic pop
-
-namespace llvm {
-class BasicBlock;
-class Type;
-
-namespace legacy {
-class FunctionPassManager;
-}
-}  /* namespace llvm */
-#endif
-
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/liste.hh"
 
@@ -117,13 +95,6 @@ public:
 };
 
 struct ContexteGenerationCode {
-#ifdef AVEC_LLVM
-	llvm::Module *module_llvm = nullptr;
-	llvm::LLVMContext contexte{};
-	llvm::Function *fonction = nullptr;
-	llvm::legacy::FunctionPassManager *menageur_fonctions = nullptr;
-#endif
-
 	/* À FAIRE : supprime ceci */
 	assembleuse_arbre *assembleuse = nullptr;
 
@@ -224,52 +195,6 @@ struct ContexteGenerationCode {
 
 	/* ********************************************************************** */
 
-#ifdef AVEC_LLVM
-	/**
-	 * Retourne un pointeur vers le block LLVM du bloc courant.
-	 */
-	llvm::BasicBlock *bloc_courant() const;
-
-	/**
-	 * Met un place le pointeur vers le bloc courant LLVM.
-	 */
-	void bloc_courant(llvm::BasicBlock *bloc);
-
-	/**
-	 * Ajoute le bloc spécifié sur la pile de blocs de continuation de boucle.
-	 */
-	void empile_bloc_continue(dls::vue_chaine_compacte chaine, llvm::BasicBlock *bloc);
-
-	/**
-	 * Enlève le bloc spécifié de la pile de blocs de continuation de boucle.
-	 */
-	void depile_bloc_continue();
-
-	/**
-	 * Retourne le bloc se trouvant au sommet de la pile de blocs de continuation
-	 * de boucle. Si la pile est vide, retourne un pointeur nul.
-	 */
-	llvm::BasicBlock *bloc_continue(dls::vue_chaine_compacte chaine);
-
-	/**
-	 * Ajoute le bloc spécifié sur la pile de blocs d'arrestation de boucle.
-	 */
-	void empile_bloc_arrete(dls::vue_chaine_compacte chaine, llvm::BasicBlock *bloc);
-
-	/**
-	 * Enlève le bloc spécifié de la pile de blocs d'arrestation de boucle.
-	 */
-	void depile_bloc_arrete();
-
-	/**
-	 * Retourne le bloc se trouvant au sommet de la pile de blocs d'arrestation
-	 * de boucle. Si la pile est vide, retourne un pointeur nul.
-	 */
-	llvm::BasicBlock *bloc_arrete(dls::vue_chaine_compacte chaine);
-#endif
-
-	/* ********************************************************************** */
-
 	/**
 	 * Ajoute le bloc spécifié sur la pile de blocs de continuation de boucle.
 	 */
@@ -309,9 +234,6 @@ struct ContexteGenerationCode {
 	 * variables sont remis à zéro. Le pointeur passé en paramètre est celui de
 	 * la fonction courant.
 	 */
-#ifdef AVEC_LLVM
-	void commence_fonction(llvm::Function *f, NoeudDeclarationFonction *df);
-#endif
 	void commence_fonction(NoeudDeclarationFonction *df);
 
 	/**
@@ -342,15 +264,6 @@ struct ContexteGenerationCode {
 	void renseigne_membre_actif(dls::vue_chaine_compacte const &nom_union, dls::vue_chaine_compacte const &nom_membre);
 
 private:
-#ifdef AVEC_LLVM
-	llvm::BasicBlock *m_bloc_courant = nullptr;
-
-	using paire_bloc = std::pair<dls::vue_chaine_compacte, llvm::BasicBlock *>;
-
-	dls::tableau<paire_bloc> m_pile_continue{};
-	dls::tableau<paire_bloc> m_pile_arrete{};
-#endif
-
 	using paire_goto = std::pair<dls::vue_chaine_compacte, dls::chaine>;
 
 	dls::tableau<paire_goto> m_pile_goto_continue{};

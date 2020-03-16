@@ -55,10 +55,6 @@ ContexteGenerationCode::~ContexteGenerationCode()
 	}
 
 	memoire::deloge("assembleuse_arbre", assembleuse);
-
-#ifdef AVEC_LLVM
-	delete menageur_fonctions;
-#endif
 }
 
 /* ************************************************************************** */
@@ -167,76 +163,6 @@ bool ContexteGenerationCode::fichier_existe(const dls::vue_chaine_compacte &nom)
 
 /* ************************************************************************** */
 
-#ifdef AVEC_LLVM
-llvm::BasicBlock *ContexteGenerationCode::bloc_courant() const
-{
-	return m_bloc_courant;
-}
-
-void ContexteGenerationCode::bloc_courant(llvm::BasicBlock *bloc)
-{
-	m_bloc_courant = bloc;
-}
-
-void ContexteGenerationCode::empile_bloc_continue(dls::vue_chaine_compacte chaine, llvm::BasicBlock *bloc)
-{
-	m_pile_continue.pousse({chaine, bloc});
-}
-
-void ContexteGenerationCode::depile_bloc_continue()
-{
-	m_pile_continue.pop_back();
-}
-
-llvm::BasicBlock *ContexteGenerationCode::bloc_continue(dls::vue_chaine_compacte chaine)
-{
-	if (m_pile_continue.est_vide()) {
-		return nullptr;
-	}
-
-	if (chaine.est_vide()) {
-		return m_pile_continue.back().second;
-	}
-
-	for (auto const &paire : m_pile_continue) {
-		if (paire.first == chaine) {
-			return paire.second;
-		}
-	}
-
-	return nullptr;
-}
-
-void ContexteGenerationCode::empile_bloc_arrete(dls::vue_chaine_compacte chaine, llvm::BasicBlock *bloc)
-{
-	m_pile_arrete.pousse({chaine, bloc});
-}
-
-void ContexteGenerationCode::depile_bloc_arrete()
-{
-	m_pile_arrete.pop_back();
-}
-
-llvm::BasicBlock *ContexteGenerationCode::bloc_arrete(dls::vue_chaine_compacte chaine)
-{
-	if (m_pile_arrete.est_vide()) {
-		return nullptr;
-	}
-
-	if (chaine.est_vide()) {
-		return m_pile_arrete.back().second;
-	}
-
-	for (auto const &paire : m_pile_arrete) {
-		if (paire.first == chaine) {
-			return paire.second;
-		}
-	}
-
-	return nullptr;
-}
-#endif
-
 void ContexteGenerationCode::empile_goto_continue(dls::vue_chaine_compacte chaine, dls::chaine const &bloc)
 {
 	m_pile_goto_continue.pousse({chaine, bloc});
@@ -295,14 +221,6 @@ dls::chaine ContexteGenerationCode::goto_arrete(dls::vue_chaine_compacte chaine)
 	return "";
 }
 
-#ifdef AVEC_LLVM
-void ContexteGenerationCode::commence_fonction(llvm::Function *f, NoeudDeclarationFonction *df)
-{
-	this->fonction = f;
-	commence_fonction(df);
-}
-#endif
-
 void ContexteGenerationCode::commence_fonction(NoeudDeclarationFonction *df)
 {
 	this->donnees_fonction = df;
@@ -310,10 +228,6 @@ void ContexteGenerationCode::commence_fonction(NoeudDeclarationFonction *df)
 
 void ContexteGenerationCode::termine_fonction()
 {
-#ifdef AVEC_LLVM
-	fonction = nullptr;
-	m_bloc_courant = nullptr;
-#endif
 	this->donnees_fonction = nullptr;
 }
 
@@ -322,14 +236,6 @@ void ContexteGenerationCode::termine_fonction()
 size_t ContexteGenerationCode::memoire_utilisee() const
 {
 	auto memoire = sizeof(ContexteGenerationCode);
-
-	/* m_pile_continue */
-#ifdef AVEC_LLVM
-	memoire += static_cast<size_t>(m_pile_continue.taille()) * sizeof(llvm::BasicBlock *);
-
-	/* m_pile_arrete */
-	memoire += static_cast<size_t>(m_pile_arrete.taille()) * sizeof(llvm::BasicBlock *);
-#endif
 
 	/* À FAIRE : réusinage arbre */
 //	for (auto module : modules) {

@@ -64,6 +64,7 @@ install(
 )
 
 install(FILES fichiers/execution_kuri.S DESTINATION ${RACINE_INSTALLATION}/fichiers)
+install(FILES fichiers/point_d_entree.c DESTINATION ${RACINE_INSTALLATION}/fichiers)
 
 ################################################################################
 

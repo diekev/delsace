@@ -35,26 +35,35 @@
 #include <llvm/IR/TypeBuilder.h>
 #pragma GCC diagnostic pop
 
-#include "contexte_generation_code.h"
+#include "contexte_generation_llvm.hh"
 
+#include "arbre_syntactic.h"
 #include "typage.hh"
 
-#if 0
 llvm::Type *converti_type_llvm(
-		ContexteGenerationCode &contexte,
+		ContexteGenerationLLVM &contexte,
 		Type *type)
 {
+	if (type->type_llvm != nullptr) {
+		/* Note: normalement les types des pointeurs vers les fonctions doivent
+		 * être des pointeurs, mais les types fonctions sont partagés entre les
+		 * fonctions et les variables, donc un type venant d'une fonction n'aura
+		 * pas le pointeur. Ajoutons-le. */
+		if (type->genre == GenreType::FONCTION && !type->type_llvm->isPointerTy()) {
+			return llvm::PointerType::get(type->type_llvm, 0);
+		}
+
+		return type->type_llvm;
+	}
+
 	switch (type->genre) {
 		case GenreType::INVALIDE:
 		{
-			return nullptr;
+			type->type_llvm = nullptr;
+			break;
 		}
 		case GenreType::FONCTION:
 		{
-			if (type->type_llvm != nullptr) {
-				return llvm::PointerType::get(type->type_llvm, 0);
-			}
-
 			auto type_fonc = static_cast<TypeFonction *>(type);
 
 			std::vector<llvm::Type *> parametres;
@@ -71,7 +80,8 @@ llvm::Type *converti_type_llvm(
 						parametres,
 						false);
 
-			return llvm::PointerType::get(type_llvm, 0);
+			type->type_llvm = llvm::PointerType::get(type_llvm, 0);
+			break;
 		}
 		case GenreType::EINI:
 		{
@@ -80,14 +90,15 @@ llvm::Type *converti_type_llvm(
 
 			std::vector<llvm::Type *> types_membres(2ul);
 			types_membres[0] = llvm::Type::getInt8PtrTy(contexte.contexte);
-			types_membres[1] = converti_type_llvm(contexte, type_info_type);
+			types_membres[1] = converti_type_llvm(contexte, type_info_type)->getPointerTo();
 
-			return llvm::StructType::create(
+			type->type_llvm = llvm::StructType::create(
 						contexte.contexte,
 						types_membres,
 						"struct.eini",
 						false);
 
+			break;
 		}
 		case GenreType::CHAINE:
 		{
@@ -96,131 +107,145 @@ llvm::Type *converti_type_llvm(
 			types_membres[0] = llvm::Type::getInt8PtrTy(contexte.contexte);
 			types_membres[1] = llvm::Type::getInt64Ty(contexte.contexte);
 
-			return llvm::StructType::create(
+			type->type_llvm = llvm::StructType::create(
 						contexte.contexte,
 						types_membres,
 						"struct.chaine",
 						false);
+
+			break;
 		}
 		case GenreType::RIEN:
 		{
-			return llvm::Type::getVoidTy(contexte.contexte);
+			type->type_llvm = llvm::Type::getVoidTy(contexte.contexte);
+			break;
 		}
 		case GenreType::BOOL:
 		{
-			return llvm::Type::getInt1Ty(contexte.contexte);
+			type->type_llvm = llvm::Type::getInt1Ty(contexte.contexte);
+			break;
 		}
 		case GenreType::OCTET:
 		{
-			return llvm::Type::getInt8Ty(contexte.contexte);
+			type->type_llvm = llvm::Type::getInt8Ty(contexte.contexte);
+			break;
 		}
 		case GenreType::ENTIER_CONSTANT:
 		{
-			return llvm::Type::getInt32Ty(contexte.contexte);
+			type->type_llvm = llvm::Type::getInt32Ty(contexte.contexte);
+			break;
 		}
 		case GenreType::ENTIER_NATUREL:
 		case GenreType::ENTIER_RELATIF:
 		{
 			if (type->taille_octet == 1) {
-				return llvm::Type::getInt8Ty(contexte.contexte);
+				type->type_llvm = llvm::Type::getInt8Ty(contexte.contexte);
+			}
+			else if (type->taille_octet == 2) {
+				type->type_llvm = llvm::Type::getInt16Ty(contexte.contexte);
+			}
+			else if (type->taille_octet == 4) {
+				type->type_llvm = llvm::Type::getInt32Ty(contexte.contexte);
+			}
+			else if (type->taille_octet == 8) {
+				type->type_llvm = llvm::Type::getInt64Ty(contexte.contexte);
 			}
 
-			if (type->taille_octet == 2) {
-				return llvm::Type::getInt16Ty(contexte.contexte);
-			}
-
-			if (type->taille_octet == 4) {
-				return llvm::Type::getInt32Ty(contexte.contexte);
-			}
-
-			if (type->taille_octet == 8) {
-				return llvm::Type::getInt64Ty(contexte.contexte);
-			}
-
-			return nullptr;
+			break;
 		}
 		case GenreType::REEL:
 		{
 			if (type->taille_octet == 2) {
-				return llvm::Type::getInt16Ty(contexte.contexte);
+				type->type_llvm = llvm::Type::getInt16Ty(contexte.contexte);
+			}
+			else if (type->taille_octet == 4) {
+				type->type_llvm = llvm::Type::getFloatTy(contexte.contexte);
+			}
+			else if (type->taille_octet == 8) {
+				type->type_llvm = llvm::Type::getDoubleTy(contexte.contexte);
 			}
 
-			if (type->taille_octet == 4) {
-				return llvm::Type::getFloatTy(contexte.contexte);
-			}
-
-			if (type->taille_octet == 8) {
-				return llvm::Type::getDoubleTy(contexte.contexte);
-			}
-
-			return nullptr;
+			break;
 		}
 		case GenreType::REFERENCE:
 		case GenreType::POINTEUR:
 		{
-			auto type_deref_llvm = converti_type_llvm(contexte, contexte.typeuse.type_dereference_pour(type));
-			return llvm::PointerType::get(type_deref_llvm, 0);
+			auto type_deref = contexte.typeuse.type_dereference_pour(type);
+
+			// Les pointeurs vers rien (void) ne sont pas valides avec LLVM
+			if (type_deref->genre == GenreType::RIEN) {
+				type_deref = contexte.typeuse[TypeBase::Z8];
+			}
+
+			auto type_deref_llvm = converti_type_llvm(contexte, type_deref);
+			type->type_llvm = llvm::PointerType::get(type_deref_llvm, 0);
+			break;
 		}
 		case GenreType::UNION:
-		case GenreType::STRUCTURE:
 		{
-			auto nom_struct = static_cast<TypeStructure *>(type)->nom;
-			auto &donnees_structure = contexte.donnees_structure(nom_struct);
+			auto type_struct = static_cast<TypeStructure *>(type);
+			auto decl_struct = type_struct->decl;
+			auto nom_nonsur = "union_nonsure." + type_struct->nom;
+			auto nom = "union." + type_struct->nom;
 
-			if (donnees_structure.type_llvm == nullptr) {
-				if (donnees_structure.est_union) {
-					auto nom_nonsur = "union_nonsure." + contexte.nom_struct(donnees_structure.id);
-					auto nom = "union." + contexte.nom_struct(donnees_structure.id);
+			// création d'une structure ne contenant que le membre le plus grand
+			auto taille_max = 0u;
+			auto type_max = static_cast<Type *>(nullptr);
 
-					// création d'une structure ne contenant que le membre le plus grand
-					auto taille_max = 0u;
-					auto type_max = static_cast<Type *>(nullptr);
+			POUR (decl_struct->desc.membres) {
+				auto taille_type = it.type->taille_octet;
 
-					for (auto &id : donnees_structure.types) {
-						auto taille_type = id->taille_octet;
-
-						if (taille_type > taille_max) {
-							taille_max = taille_type;
-							type_max = id;
-						}
-					}
-
-					auto type_max_llvm = converti_type_llvm(contexte, type_max);
-					auto type_union = llvm::StructType::create(contexte.contexte, { type_max_llvm }, nom_nonsur.c_str());
-
-					if (!donnees_structure.est_nonsur) {
-						// création d'une structure contenant l'union et une valeur discriminante
-						type_union = llvm::StructType::create(contexte.contexte, { type_union, llvm::Type::getInt32Ty(contexte.contexte) }, nom.c_str());
-					}
-
-					donnees_structure.type_llvm = type_union;
-				}
-				else {
-					auto nom = "struct." + contexte.nom_struct(donnees_structure.id);
-
-					/* Pour les structures récursives, il faut créer un type
-					 * opaque, dont le corps sera renseigné à la fin */
-					auto type_opaque = llvm::StructType::create(contexte.contexte, nom.c_str());
-					donnees_structure.type_llvm = type_opaque;
-
-					std::vector<llvm::Type *> types_membres;
-					types_membres.resize(static_cast<size_t>(donnees_structure.types.taille()));
-
-					std::transform(donnees_structure.types.debut(),
-								   donnees_structure.types.fin(),
-								   types_membres.begin(),
-								   [&](Type *type_membre)
-					{
-						return converti_type_llvm(contexte, type_membre);
-					});
-
-					type_opaque->setBody(types_membres, false);
+				if (taille_type > taille_max) {
+					taille_max = taille_type;
+					type_max = it.type;
 				}
 			}
 
-			return donnees_structure.type_llvm;
+			auto type_max_llvm = converti_type_llvm(contexte, type_max);
+			auto type_union = llvm::StructType::create(contexte.contexte, { type_max_llvm }, nom_nonsur.c_str());
+
+			if (!decl_struct->est_nonsure) {
+				// création d'une structure contenant l'union et une valeur discriminante
+				type_union = llvm::StructType::create(contexte.contexte, { type_union, llvm::Type::getInt32Ty(contexte.contexte) }, nom.c_str());
+			}
+
+			break;
+		}
+		case GenreType::STRUCTURE:
+		{
+			auto type_struct = static_cast<TypeStructure *>(type);
+			auto decl_struct = type_struct->decl;
+			auto nom = "struct." + type_struct->nom;
+
+			/* Pour les structures récursives, il faut créer un type
+			 * opaque, dont le corps sera renseigné à la fin */
+			auto type_opaque = llvm::StructType::create(contexte.contexte, nom.c_str());
+			type_struct->type_llvm = type_opaque;
+
+			std::vector<llvm::Type *> types_membres;
+			types_membres.reserve(static_cast<size_t>(decl_struct->desc.membres.taille));
+
+			POUR (decl_struct->desc.membres) {
+				types_membres.push_back(converti_type_llvm(contexte, it.type));
+			}
+
+			type_opaque->setBody(types_membres, false);
+
+			break;
 		}
 		case GenreType::VARIADIQUE:
+		{
+			auto type_var = static_cast<TypeVariadique *>(type);
+
+			// Utilise le type de tableau dynamique afin que le code IR LLVM
+			// soit correcte (pointe vers le même type)
+			if (type_var->type_pointe != nullptr) {
+				auto type_tabl = contexte.typeuse.type_tableau_dynamique(type_var->type_pointe);
+				type_var->type_llvm = converti_type_llvm(contexte, type_tabl);
+			}
+
+			break;
+		}
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
 			auto type_deref_llvm = converti_type_llvm(contexte, contexte.typeuse.type_dereference_pour(type));
@@ -230,28 +255,28 @@ llvm::Type *converti_type_llvm(
 			types_membres[0] = llvm::PointerType::get(type_deref_llvm, 0);
 			types_membres[1] = llvm::Type::getInt64Ty(contexte.contexte);
 
-			return llvm::StructType::create(
+			type->type_llvm = llvm::StructType::create(
 					   contexte.contexte,
 					   types_membres,
 					   "struct.tableau",
 					   false);
+			break;
 		}
 		case GenreType::TABLEAU_FIXE:
 		{
 			auto type_deref_llvm = converti_type_llvm(contexte, contexte.typeuse.type_dereference_pour(type));
 			auto const taille = static_cast<TypeTableauFixe *>(type)->taille;
 
-			return  llvm::ArrayType::get(type_deref_llvm, static_cast<unsigned long>(taille));
+			type->type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<unsigned long>(taille));
+			break;
 		}
 		case GenreType::ENUM:
 		{
-			auto nom_struct = static_cast<TypeStructure *>(type)->nom;
-			auto &donnees_structure = contexte.donnees_structure(nom_struct);
-			donnees_structure.type_llvm = converti_type_llvm(contexte, donnees_structure.type);
-			return nullptr;
+			auto type_enum = static_cast<TypeEnum *>(type);
+			type_enum->type_llvm = converti_type_llvm(contexte, type_enum->type_donnees);
+			break;
 		}
 	}
 
-	return nullptr;
+	return type->type_llvm;
 }
-#endif

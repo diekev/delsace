@@ -24,16 +24,30 @@
 
 #pragma once
 
-struct assembleuse_arbre;
 struct ContexteGenerationCode;
+struct ContexteGenerationLLVM;
+struct NoeudExpression;
+
+namespace llvm {
+class Value;
+}
 
 namespace noeud {
 
+llvm::Value *genere_code_llvm(
+		NoeudExpression *b,
+		ContexteGenerationLLVM &contexte,
+		const bool expr_gauche);
+
+[[nodiscard]] llvm::Value *applique_transformation(
+		ContexteGenerationLLVM &contexte,
+		NoeudExpression *b,
+		bool expr_gauche);
 /**
  * Traverse l'arbre et génère le code LLVM.
  */
 void genere_code_llvm(
-		assembleuse_arbre const &arbre,
-		ContexteGenerationCode &contexte);
+		ContexteGenerationCode &contexte,
+		ContexteGenerationLLVM &contexte_llvm);
 
 }  /* namespace noeud */

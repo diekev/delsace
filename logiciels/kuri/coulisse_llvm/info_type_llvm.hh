@@ -41,15 +41,15 @@ namespace llvm {
 class Value;
 }
 
-struct ContexteGenerationCode;
+struct ContexteGenerationLLVM;
 struct NoeudEnum;
 struct Type;
 
 llvm::Value *cree_info_type(
-		ContexteGenerationCode &contexte,
+		ContexteGenerationLLVM &contexte,
 		Type *type);
 
 llvm::Value *valeur_enum(
-		NoeudEnum *noeud_enum,
+		NoeudEnum *noeud_decl,
 		dls::vue_chaine_compacte const &nom,
 		llvm::IRBuilder<> &builder);

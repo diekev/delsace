@@ -26,7 +26,7 @@
 
 #include "lexemes.hh"
 
-struct ContexteGenerationCode;
+struct ContexteGenerationLLVM;
 struct Type;
 
 namespace llvm {
@@ -34,5 +34,5 @@ class Type;
 }
 
 [[nodiscard]] llvm::Type *converti_type_llvm(
-		ContexteGenerationCode &contexte,
+		ContexteGenerationLLVM &contexte,
 		Type *type);

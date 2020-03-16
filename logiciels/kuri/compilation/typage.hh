@@ -32,6 +32,7 @@
 
 #ifdef AVEC_LLVM
 namespace llvm {
+class Constant;
 class Type;
 }
 #endif
@@ -233,6 +234,7 @@ struct Type {
 
 #ifdef AVEC_LLVM
 	llvm::Type *type_llvm = nullptr;
+	llvm::Constant *info_type_llvm = nullptr;
 #endif
 
 	static Type *cree_entier(unsigned taille_octet, bool est_naturel)
