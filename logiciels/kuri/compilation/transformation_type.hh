@@ -33,6 +33,7 @@ enum class TypeTransformation {
 	INUTILE,
 	IMPOSSIBLE,
 
+	CONSTRUIT_UNION,
 	CONSTRUIT_EINI,
 	EXTRAIT_EINI,
 	CONSTRUIT_TABL_OCTET,
@@ -54,11 +55,18 @@ struct TransformationType {
 	TypeTransformation type{};
 	dls::vue_chaine_compacte nom_fonction{};
 	Type *type_cible = nullptr;
+	long index_membre = 0;
 
 	TransformationType() = default;
 
 	TransformationType(TypeTransformation type_)
 		: type(type_)
+	{}
+
+	TransformationType(TypeTransformation type_, Type *type_cible_, long index_membre_)
+		: type(type_)
+		, type_cible(type_cible_)
+		, index_membre(index_membre_)
 	{}
 
 	TransformationType(TypeTransformation type_, Type *type_cible_)

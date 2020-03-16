@@ -33,6 +33,7 @@ const char *chaine_transformation(TypeTransformation type)
 	switch (type) {
 		CAS_TYPE(INUTILE)
 		CAS_TYPE(IMPOSSIBLE)
+		CAS_TYPE(CONSTRUIT_UNION)
 		CAS_TYPE(CONSTRUIT_EINI)
 		CAS_TYPE(EXTRAIT_EINI)
 		CAS_TYPE(CONSTRUIT_TABL_OCTET)
@@ -139,6 +140,26 @@ TransformationType cherche_transformation(
 
 		if (type_de->taille_octet < type_vers->taille_octet) {
 			return { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
+		}
+
+		return TypeTransformation::IMPOSSIBLE;
+	}
+
+	if (type_vers->genre == GenreType::UNION) {
+		auto type_union = static_cast<TypeUnion *>(type_vers);
+
+		auto index_membre = 0l;
+
+		POUR (type_union->types) {
+			if (it == type_de) {
+				return { TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre };
+			}
+
+			if (est_type_entier(it) && type_de->genre == GenreType::ENTIER_CONSTANT) {
+				return { TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre };
+			}
+
+			index_membre += 1;
 		}
 
 		return TypeTransformation::IMPOSSIBLE;

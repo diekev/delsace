@@ -77,6 +77,27 @@ static void applique_transformation(
 		{
 			break;
 		}
+		case TypeTransformation::CONSTRUIT_UNION:
+		{
+			// KsUnion __var_temp;
+			// __var_temp.membre = b->chaine_calculee();
+			// __var_temp.membre_actif = idx + 1;
+
+			auto index_membre = b->transformation.index_membre;
+			auto type_union = static_cast<TypeUnion *>(b->transformation.type_cible);
+			auto decl = type_union->decl;
+			auto &membre = decl->desc.membres[index_membre];
+
+			generatrice.declare_variable(type_union, nom_var_temp, "");
+			generatrice << nom_var_temp << "." << broye_nom_simple(dls::vue_chaine_compacte(membre.nom.pointeur, membre.nom.taille));
+			generatrice << " = " << nom_courant << ";\n";
+
+			if (!type_union->est_nonsure) {
+				generatrice << nom_var_temp << ".membre_actif = " << index_membre + 1 << ";\n";
+			}
+
+			break;
+		}
 		case TypeTransformation::CONVERTI_VERS_PTR_RIEN:
 		case TypeTransformation::CONVERTI_VERS_TYPE_CIBLE:
 		case TypeTransformation::CONVERTI_ENTIER_CONSTANT:

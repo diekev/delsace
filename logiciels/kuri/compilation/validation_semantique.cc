@@ -443,13 +443,16 @@ static void valide_acces_membre(
 	if (type->genre == GenreType::UNION) {
 		auto noeud_struct = static_cast<TypeUnion *>(type)->decl;
 		auto membre_trouve = false;
+		auto index_membre = 0l;
 
 		POUR (noeud_struct->desc.membres) {
 			if (it.nom == membre->ident->nom) {
 				membre_trouve = true;
 				b->type = it.type;
-				return;
+				break;
 			}
+
+			index_membre += 1;
 		}
 
 		if (membre_trouve == false) {
@@ -458,9 +461,7 @@ static void valide_acces_membre(
 
 		if (!noeud_struct->est_nonsure) {
 			b->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
-
-			// À FAIRE (réusinage arbre)
-			//b->valeur_calculee = noeud_membre->index_membre;
+			b->valeur_calculee = index_membre;
 
 			if (expr_gauche) {
 				contexte.renseigne_membre_actif(structure->ident->nom, membre->ident->nom);
@@ -469,12 +470,14 @@ static void valide_acces_membre(
 				auto membre_actif = contexte.trouve_membre_actif(structure->ident->nom);
 
 				/* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu */
-				if (membre_actif != "" && membre_actif != membre->ident->nom) {
-					erreur::membre_inactif(contexte, b, structure, membre);
-				}
+				if (membre_actif != "") {
+					if (membre_actif != membre->ident->nom) {
+						erreur::membre_inactif(contexte, b, structure, membre);
+					}
 
-				/* nous savons que nous avons le bon membre actif */
-				b->aide_generation_code = IGNORE_VERIFICATION;
+					/* nous savons que nous avons le bon membre actif */
+					b->aide_generation_code = IGNORE_VERIFICATION;
+				}
 			}
 		}
 
@@ -2612,7 +2615,7 @@ static void performe_validation_semantique(
 			auto decalage = 0u;
 			auto max_alignement = 0u;
 
-			auto ajoute_donnees_membre = [&decalage, &decl, &max_alignement, &donnees_dependance](NoeudBase *enfant)
+			auto ajoute_donnees_membre = [&decalage, &decl, &max_alignement, &donnees_dependance, &type_struct](NoeudBase *enfant)
 			{
 				auto type_membre = enfant->type;
 				auto align_type = type_membre->alignement;
@@ -2630,9 +2633,13 @@ static void performe_validation_semantique(
 				decalage += type_membre->taille_octet;
 
 				decl->desc.membres.pousse(desc_membre);
+				type_struct->types.pousse(enfant->type);
 			};
 
 			if (decl->est_union) {
+				auto type_union = static_cast<TypeUnion *>(decl->type);
+				type_union->est_nonsure = decl->est_nonsure;
+
 				POUR (decl->bloc->membres) {
 					auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
 					auto decl_membre = decl_var->valeur;
@@ -2651,7 +2658,10 @@ static void performe_validation_semantique(
 					auto type_membre = it->type;
 					auto taille = type_membre->taille_octet;
 
-					taille_union = std::max(taille_union, taille);
+					if (taille > taille_union) {
+						type_union->type_le_plus_grand = type_membre;
+						taille_union = taille;
+					}
 				}
 
 				/* Pour les unions sûres, il nous faut prendre en compte le

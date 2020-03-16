@@ -370,6 +370,7 @@ struct TypeUnion : public Type {
 	NoeudStruct *decl = nullptr;
 
 	bool deja_genere = false;
+	bool est_nonsure = false;
 
 	dls::vue_chaine_compacte nom{};
 };
