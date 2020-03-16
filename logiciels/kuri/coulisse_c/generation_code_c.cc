@@ -98,6 +98,33 @@ static void applique_transformation(
 
 			break;
 		}
+		case TypeTransformation::EXTRAIT_UNION:
+		{
+			auto type_cible = b->transformation.type_cible;
+			auto index_membre = b->transformation.index_membre;
+
+			auto type_union = static_cast<TypeUnion *>(type);
+			auto decl = type_union->decl;
+			auto &membre = decl->desc.membres[index_membre];
+
+			auto const &lexeme = b->lexeme;
+			auto module = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+			auto pos = trouve_position(*lexeme, module);
+
+			// À FAIRE : nous pourrions avoir une erreur différente ici.
+			generatrice << "if (" << nom_courant << ".membre_actif != " << index_membre + 1 << ") {\n";
+			generatrice << "KR__acces_membre_union(";
+			generatrice << '"' << module->chemin << '"' << ',';
+			generatrice << pos.numero_ligne;
+			generatrice << ");\n";
+			generatrice << "}\n";
+
+			generatrice << nom_broye_type(type_cible, true) << " " << nom_var_temp
+						<< " = " << nom_courant << "." << broye_nom_simple(dls::vue_chaine_compacte(membre.nom.pointeur, membre.nom.taille))
+						<< ";\n";
+
+			break;
+		}
 		case TypeTransformation::CONVERTI_VERS_PTR_RIEN:
 		case TypeTransformation::CONVERTI_VERS_TYPE_CIBLE:
 		case TypeTransformation::CONVERTI_ENTIER_CONSTANT:
