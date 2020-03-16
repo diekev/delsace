@@ -108,13 +108,13 @@ static void applique_transformation(
 			auto &membre = decl->desc.membres[index_membre];
 
 			auto const &lexeme = b->lexeme;
-			auto module = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-			auto pos = trouve_position(*lexeme, module);
+			auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+			auto pos = trouve_position(*lexeme, fichier);
 
 			// À FAIRE : nous pourrions avoir une erreur différente ici.
 			generatrice << "if (" << nom_courant << ".membre_actif != " << index_membre + 1 << ") {\n";
 			generatrice << "KR__acces_membre_union(";
-			generatrice << '"' << module->chemin << '"' << ',';
+			generatrice << '"' << fichier->nom << '"' << ',';
 			generatrice << pos.numero_ligne;
 			generatrice << ");\n";
 			generatrice << "}\n";
@@ -529,12 +529,12 @@ static void genere_code_echec_logement(
 	}
 	else {
 		auto const &lexeme = b->lexeme;
-		auto module = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-		auto pos = trouve_position(*lexeme, module);
+		auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+		auto pos = trouve_position(*lexeme, fichier);
 
 		generatrice << " {\n";
 		generatrice << "KR__hors_memoire(";
-		generatrice << '"' << module->chemin << '"' << ',';
+		generatrice << '"' << fichier->nom << '"' << ',';
 		generatrice << pos.numero_ligne;
 		generatrice << ");\n";
 		generatrice << "}\n";
@@ -1108,12 +1108,12 @@ void genere_code_C(
 			else {
 				if (b->aide_generation_code != IGNORE_VERIFICATION) {
 					auto const &lexeme = b->lexeme;
-					auto module = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-					auto pos = trouve_position(*lexeme, module);
+					auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+					auto pos = trouve_position(*lexeme, fichier);
 
 					generatrice << "if (" << expr_membre << " != " << index_membre + 1 << ") {\n";
 					generatrice << "KR__acces_membre_union(";
-					generatrice << '"' << module->chemin << '"' << ',';
+					generatrice << '"' << fichier->nom << '"' << ',';
 					generatrice << pos.numero_ligne;
 					generatrice << ");\n";
 					generatrice << "}\n";
@@ -1353,8 +1353,8 @@ void genere_code_C(
 			 */
 
 			auto const &lexeme = b->lexeme;
-			auto module = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-			auto pos = trouve_position(*lexeme, module);
+			auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+			auto pos = trouve_position(*lexeme, fichier);
 
 			switch (type1->genre) {
 				case GenreType::POINTEUR:
@@ -1375,7 +1375,7 @@ void genere_code_C(
 					generatrice << enfant1->chaine_calculee();
 					generatrice << ".taille) {\n";
 					generatrice << "KR__depassement_limites_chaine(";
-					generatrice << '"' << module->chemin << '"' << ',';
+					generatrice << '"' << fichier->nom << '"' << ',';
 					generatrice << pos.numero_ligne << ',';
 					generatrice << enfant1->chaine_calculee();
 					generatrice << ".taille,";
@@ -1403,7 +1403,7 @@ void genere_code_C(
 						generatrice << ".taille";
 						generatrice << ") {\n";
 						generatrice << "KR__depassement_limites_tableau(";
-						generatrice << '"' << module->chemin << '"' << ',';
+						generatrice << '"' << fichier->nom << '"' << ',';
 						generatrice << pos.numero_ligne << ',';
 						generatrice << enfant1->chaine_calculee();
 						generatrice << ".taille";
@@ -1432,7 +1432,7 @@ void genere_code_C(
 
 						generatrice << ") {\n";
 						generatrice << "KR__depassement_limites_tableau(";
-						generatrice << '"' << module->chemin << '"' << ',';
+						generatrice << '"' << fichier->nom << '"' << ',';
 						generatrice << pos.numero_ligne << ',';
 							generatrice << taille_tableau;
 						generatrice << ",";
