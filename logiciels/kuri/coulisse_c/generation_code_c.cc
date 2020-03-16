@@ -2621,6 +2621,15 @@ static void genere_infos_pour_tous_les_types(
 	generatrice << "#pragma GCC diagnostic push\n";
 	generatrice << "#pragma GCC diagnostic ignored \"-Wincompatible-pointer-types\"\n";
 
+	POUR (contexte.typeuse.types_simples) predeclare_info_type_C(generatrice, it);
+	POUR (contexte.typeuse.types_pointeurs) predeclare_info_type_C(generatrice, it);
+	POUR (contexte.typeuse.types_references) predeclare_info_type_C(generatrice, it);
+	POUR (contexte.typeuse.types_structures) predeclare_info_type_C(generatrice, it);
+	POUR (contexte.typeuse.types_enums) predeclare_info_type_C(generatrice, it);
+	POUR (contexte.typeuse.types_tableaux_fixes) predeclare_info_type_C(generatrice, it);
+	POUR (contexte.typeuse.types_tableaux_dynamiques) predeclare_info_type_C(generatrice, it);
+	POUR (contexte.typeuse.types_fonctions) predeclare_info_type_C(generatrice, it);
+
 	POUR (contexte.typeuse.types_simples) cree_info_type_C(contexte, generatrice, it);
 	POUR (contexte.typeuse.types_pointeurs) cree_info_type_C(contexte, generatrice, it);
 	POUR (contexte.typeuse.types_references) cree_info_type_C(contexte, generatrice, it);

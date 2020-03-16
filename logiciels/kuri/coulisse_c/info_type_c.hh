@@ -33,6 +33,10 @@ struct GeneratriceCodeC;
 struct NoeudEnum;
 struct Type;
 
+dls::chaine predeclare_info_type_C(
+		GeneratriceCodeC &generatrice,
+		Type *type);
+
 dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
