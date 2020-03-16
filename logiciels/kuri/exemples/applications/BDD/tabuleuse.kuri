@@ -16,14 +16,11 @@ Tabuleuse :: struct {
     nombre_colonnes : z64
 
     chaines_allouées: []chaine
-
-    enchaineuse : Enchaineuse // À FAIRE : ceci ne fonctionne pas ?
 }
 
 crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
 {
     tabuleuse: Tabuleuse
-    initialise_enchaineuse(@tabuleuse.enchaineuse)
 
     ajoute_ligne(@tabuleuse, ...titres)
 
@@ -39,7 +36,6 @@ crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
 crée_tabuleuse :: fonc  (ligne_titre: LigneTabuleuse) -> Tabuleuse
 {
     tabuleuse: Tabuleuse
-    initialise_enchaineuse(@tabuleuse.enchaineuse)
 
     ajoute_ligne(@tabuleuse, ligne_titre)
 
@@ -65,8 +61,6 @@ détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
     déloge tabuleuse.chaines_allouées
     déloge tabuleuse.lignes
     déloge tabuleuse.alignements
-
-    détruit_tampons(@tabuleuse.enchaineuse)
 }
 
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
