@@ -297,6 +297,7 @@ Typeuse::~Typeuse()
 	DELOGE_TYPES(TypeTableauDynamique, types_tableaux_dynamiques);
 	DELOGE_TYPES(TypeFonction, types_fonctions);
 	DELOGE_TYPES(TypeVariadique, types_variadiques);
+	DELOGE_TYPES(TypeUnion, types_unions);
 
 #undef DELOGE_TYPES
 }
@@ -531,6 +532,12 @@ Type *Typeuse::type_pour_nom(const dls::vue_chaine_compacte &chaine)
 		}
 	}
 
+	POUR (types_unions) {
+		if (it->nom == chaine) {
+			return it;
+		}
+	}
+
 	return nullptr;
 }
 
@@ -598,6 +605,17 @@ TypeEnum *Typeuse::reserve_type_enum(NoeudEnum *decl)
 	return type;
 }
 
+TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
+{
+	auto type = memoire::loge<TypeUnion>("TypeUnion");
+	type->nom = decl->lexeme->chaine;
+	type->decl = decl;
+
+	types_unions.pousse(type);
+
+	return type;
+}
+
 size_t Typeuse::memoire_utilisee() const
 {
 	auto memoire = 0ul;
@@ -614,6 +632,7 @@ size_t Typeuse::memoire_utilisee() const
 	COMPTE_MEMOIRE(TypeTableauDynamique, types_tableaux_dynamiques);
 	COMPTE_MEMOIRE(TypeFonction, types_fonctions);
 	COMPTE_MEMOIRE(TypeVariadique, types_variadiques);
+	COMPTE_MEMOIRE(TypeUnion, types_unions);
 
 #undef COMPTE_MEMOIRE
 
@@ -725,6 +744,9 @@ dls::chaine chaine_type(const Type *type)
 			return "*" + chaine_type(static_cast<TypePointeur const *>(type)->type_pointe);
 		}
 		case GenreType::UNION:
+		{
+			return static_cast<TypeUnion const *>(type)->nom;
+		}
 		case GenreType::STRUCTURE:
 		{
 			return static_cast<TypeStructure const *>(type)->nom;

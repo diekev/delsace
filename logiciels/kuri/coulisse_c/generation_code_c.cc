@@ -493,19 +493,13 @@ static void genere_code_echec_logement(
 	}
 }
 
-static void genere_declaration_structure(GeneratriceCodeC &generatrice, TypeStructure *type)
+static void genere_declaration_structure(GeneratriceCodeC &generatrice, NoeudStruct *decl)
 {
-	auto decl = type->decl;
-
 	if (decl->est_externe) {
 		return;
 	}
 
-	if (type->deja_genere) {
-		return;
-	}
-
-	auto nom_broye = broye_nom_simple(type->nom);
+	auto nom_broye = broye_nom_simple(decl->ident->nom);
 
 	if (decl->est_union) {
 		if (decl->est_nonsure) {
@@ -531,8 +525,52 @@ static void genere_declaration_structure(GeneratriceCodeC &generatrice, TypeStru
 	}
 
 	generatrice << "} " << nom_broye << ";\n\n";
+}
 
-	type->deja_genere = true;
+static void cree_initialisation_structure(GeneratriceCodeC &generatrice, Type *type, NoeudStruct *decl)
+{
+	generatrice << '\n';
+	generatrice << "void initialise_" << type->nom_broye << "("
+				   << type->nom_broye << " *pointeur)\n";
+	generatrice << "{\n";
+
+	POUR (decl->desc.membres) {
+		auto type_membre = it.type;
+		auto nom_broye_membre = broye_chaine(dls::vue_chaine_compacte(it.nom.pointeur, it.nom.taille));
+
+		// À FAIRE : structures employées, expressions par défaut
+
+		if (type_membre->genre == GenreType::CHAINE || type_membre->genre == GenreType::TABLEAU_DYNAMIQUE) {
+			generatrice << "pointeur->" << nom_broye_membre << ".pointeur = 0;\n";
+			generatrice << "pointeur->" << nom_broye_membre << ".taille = 0;\n";
+		}
+		else if (type_membre->genre == GenreType::EINI) {
+			generatrice << "pointeur->" << nom_broye_membre << ".pointeur = 0\n;";
+			generatrice << "pointeur->" << nom_broye_membre << ".info = 0\n;";
+		}
+		else if (type_membre->genre == GenreType::ENUM) {
+			generatrice << "pointeur->" << nom_broye_membre << " = 0;\n";
+		}
+		else if (type_membre->genre == GenreType::UNION) {
+			auto type_union = static_cast<TypeUnion *>(type_membre);
+
+			/* À FAIRE: initialise le type le plus large */
+			if (!type_union->decl->est_nonsure) {
+				generatrice << "pointeur->" << nom_broye_membre << ".membre_actif = 0;\n";
+			}
+		}
+		else if (type_membre->genre == GenreType::STRUCTURE) {
+			generatrice << "initialise_" << type_membre->nom_broye << "(&pointeur->" << nom_broye_membre << ");\n";
+		}
+		else if (type_membre->genre == GenreType::TABLEAU_FIXE) {
+			/* À FAIRE */
+		}
+		else {
+			generatrice << "pointeur->" << nom_broye_membre << " = 0;\n";
+		}
+	}
+
+	generatrice << "}\n";
 }
 
 static void genere_code_position_source(
@@ -1109,7 +1147,7 @@ void genere_code_C(
 
 				/* À FAIRE: initialisation pour les variables globales */
 				if (contexte.donnees_fonction != nullptr) {
-					if (variable->type->genre == GenreType::STRUCTURE) {
+					if (variable->type->genre == GenreType::STRUCTURE || variable->type->genre == GenreType::UNION) {
 						generatrice << "initialise_" << type->nom_broye << "(&" << nom_broye << ");\n";
 					}
 					else if (variable->type->genre == GenreType::CHAINE || variable->type->genre == GenreType::TABLEAU_DYNAMIQUE) {
@@ -2192,58 +2230,30 @@ void genere_code_C(
 		}
 		case GenreNoeud::DECLARATION_STRUCTURE:
 		{
-			auto type_struct = static_cast<TypeStructure *>(b->type);
+			if (b->type->genre == GenreType::UNION) {
+				auto type_union = static_cast<TypeUnion *>(b->type);
 
-			if (type_struct->deja_genere) {
-				return;
+				if (type_union->deja_genere) {
+					return;
+				}
+
+				genere_declaration_structure(generatrice, type_union->decl);
+				cree_initialisation_structure(generatrice, type_union, type_union->decl);
+
+				type_union->deja_genere = true;
 			}
+			else if (b->type->genre == GenreType::STRUCTURE) {
+				auto type_struct = static_cast<TypeStructure *>(b->type);
 
-			genere_declaration_structure(generatrice, type_struct);
+				if (type_struct->deja_genere) {
+					return;
+				}
 
-			auto decl = type_struct->decl;
+				genere_declaration_structure(generatrice, type_struct->decl);
+				cree_initialisation_structure(generatrice, type_struct, type_struct->decl);
 
-			generatrice << '\n';
-			generatrice << "void initialise_" << b->type->nom_broye << "("
-						   << b->type->nom_broye << " *pointeur)\n";
-			generatrice << "{\n";
-
-			POUR (decl->desc.membres) {
-				auto type_membre = it.type;
-				auto nom_broye_membre = broye_chaine(dls::vue_chaine_compacte(it.nom.pointeur, it.nom.taille));
-
-				// À FAIRE : structures employées, expressions par défaut
-
-				if (type_membre->genre == GenreType::CHAINE || type_membre->genre == GenreType::TABLEAU_DYNAMIQUE) {
-					generatrice << "pointeur->" << nom_broye_membre << ".pointeur = 0;\n";
-					generatrice << "pointeur->" << nom_broye_membre << ".taille = 0;\n";
-				}
-				else if (type_membre->genre == GenreType::EINI) {
-					generatrice << "pointeur->" << nom_broye_membre << ".pointeur = 0\n;";
-					generatrice << "pointeur->" << nom_broye_membre << ".info = 0\n;";
-				}
-				else if (type_membre->genre == GenreType::ENUM) {
-					generatrice << "pointeur->" << nom_broye_membre << " = 0;\n";
-				}
-				else if (type_membre->genre == GenreType::UNION) {
-					auto type_union = static_cast<TypeStructure *>(type_membre);
-
-					/* À FAIRE: initialise le type le plus large */
-					if (!type_union->decl->est_nonsure) {
-						generatrice << "pointeur->" << nom_broye_membre << ".membre_actif = 0;\n";
-					}
-				}
-				else if (type_membre->genre == GenreType::STRUCTURE) {
-					generatrice << "initialise_" << type_membre->nom_broye << "(&pointeur->" << nom_broye_membre << ");\n";
-				}
-				else if (type_membre->genre == GenreType::TABLEAU_FIXE) {
-					/* À FAIRE */
-				}
-				else {
-					generatrice << "pointeur->" << nom_broye_membre << " = 0;\n";
-				}
+				type_struct->deja_genere = true;
 			}
-
-			generatrice << "}\n";
 
 			break;
 		}
@@ -2607,6 +2617,7 @@ static void genere_typedefs_pour_tous_les_types(
 	POUR (contexte.typeuse.types_tableaux_fixes) genere_typedefs_recursifs(contexte, it, os);
 	POUR (contexte.typeuse.types_tableaux_dynamiques) genere_typedefs_recursifs(contexte, it, os);
 	POUR (contexte.typeuse.types_fonctions) genere_typedefs_recursifs(contexte, it, os);
+	POUR (contexte.typeuse.types_unions) genere_typedefs_recursifs(contexte, it, os);
 }
 
 static void genere_infos_pour_tous_les_types(
@@ -2629,6 +2640,7 @@ static void genere_infos_pour_tous_les_types(
 	POUR (contexte.typeuse.types_tableaux_fixes) predeclare_info_type_C(generatrice, it);
 	POUR (contexte.typeuse.types_tableaux_dynamiques) predeclare_info_type_C(generatrice, it);
 	POUR (contexte.typeuse.types_fonctions) predeclare_info_type_C(generatrice, it);
+	POUR (contexte.typeuse.types_unions) predeclare_info_type_C(generatrice, it);
 
 	POUR (contexte.typeuse.types_simples) cree_info_type_C(contexte, generatrice, it);
 	POUR (contexte.typeuse.types_pointeurs) cree_info_type_C(contexte, generatrice, it);
@@ -2638,6 +2650,7 @@ static void genere_infos_pour_tous_les_types(
 	POUR (contexte.typeuse.types_tableaux_fixes) cree_info_type_C(contexte, generatrice, it);
 	POUR (contexte.typeuse.types_tableaux_dynamiques) cree_info_type_C(contexte, generatrice, it);
 	POUR (contexte.typeuse.types_fonctions) cree_info_type_C(contexte, generatrice, it);
+	POUR (contexte.typeuse.types_unions) cree_info_type_C(contexte, generatrice, it);
 
 	generatrice << "#pragma GCC diagnostic pop\n";
 }
@@ -2967,6 +2980,7 @@ void genere_code_C_pour_execution(
 	POUR (contexte.typeuse.types_tableaux_dynamiques) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 	POUR (contexte.typeuse.types_fonctions) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 	POUR (contexte.typeuse.types_variadiques) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (contexte.typeuse.types_unions) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; };
 }
 
 }  /* namespace noeud */

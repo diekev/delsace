@@ -211,7 +211,7 @@ dls::chaine const &nom_broye_type(
 		case GenreType::UNION:
 		{
 			flux << "Ks";
-			flux << broye_nom_simple(static_cast<TypeStructure const *>(type)->nom);
+			flux << broye_nom_simple(static_cast<TypeUnion const *>(type)->nom);
 			break;
 		}
 		case GenreType::STRUCTURE:

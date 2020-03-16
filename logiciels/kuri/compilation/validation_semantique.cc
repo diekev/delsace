@@ -437,7 +437,26 @@ static void valide_acces_membre(
 			erreur::membre_inconnu(contexte, noeud_struct->bloc, b, structure, membre, type);
 		}
 
-		if (noeud_struct->est_union && !noeud_struct->est_nonsure) {
+		return;
+	}
+
+	if (type->genre == GenreType::UNION) {
+		auto noeud_struct = static_cast<TypeUnion *>(type)->decl;
+		auto membre_trouve = false;
+
+		POUR (noeud_struct->desc.membres) {
+			if (it.nom == membre->ident->nom) {
+				membre_trouve = true;
+				b->type = it.type;
+				return;
+			}
+		}
+
+		if (membre_trouve == false) {
+			erreur::membre_inconnu(contexte, noeud_struct->bloc, b, structure, membre, type);
+		}
+
+		if (!noeud_struct->est_nonsure) {
 			b->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
 
 			// À FAIRE (réusinage arbre)
@@ -2856,7 +2875,7 @@ static void performe_validation_semantique(
 			}
 
 			if (type->genre == GenreType::UNION) {
-				auto decl = static_cast<TypeStructure *>(type)->decl;
+				auto decl = static_cast<TypeUnion *>(type)->decl;
 
 				if (decl->est_nonsure) {
 					erreur::lance_erreur(

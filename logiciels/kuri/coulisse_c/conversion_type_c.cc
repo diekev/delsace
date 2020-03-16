@@ -120,15 +120,9 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 		{
 			auto type_struct = static_cast<TypeStructure *>(type);
 			auto nom_struct = broye_nom_simple(type_struct->nom);
-			auto decl = type_struct->decl;
 
 			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t") {
-				if (decl->est_union && (decl->est_nonsure || decl->est_externe)) {
-					os << "typedef union " << nom_struct << ' ' << nom_broye << ";\n";
-				}
-				else {
-					os << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
-				}
+				os << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
 			}
 			else {
 				os << "typedef " << nom_struct << ' ' << nom_broye << ";\n";
@@ -138,15 +132,20 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 		}
 		case GenreType::UNION:
 		{
-			auto type_struct = static_cast<TypeStructure *>(type);
+			auto type_struct = static_cast<TypeUnion *>(type);
 			auto nom_struct = broye_nom_simple(type_struct->nom);
 			auto decl = type_struct->decl;
 
-			if (decl->est_nonsure || decl->est_externe) {
-				os << "typedef union " << nom_struct << ' ' << nom_broye << ";\n";
+			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t") {
+				if (decl->est_nonsure || decl->est_externe) {
+					os << "typedef union " << nom_struct << ' ' << nom_broye << ";\n";
+				}
+				else {
+					os << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
+				}
 			}
 			else {
-				os << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
+				os << "typedef " << nom_struct << ' ' << nom_broye << ";\n";
 			}
 
 			break;

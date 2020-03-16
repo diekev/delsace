@@ -353,7 +353,22 @@ struct TypeStructure : public Type {
 
 	NoeudStruct *decl = nullptr;
 
-	bool est_union = false;
+	bool deja_genere = false;
+
+	dls::vue_chaine_compacte nom{};
+};
+
+struct TypeUnion : public Type {
+	TypeUnion() { genre = GenreType::UNION; }
+
+	COPIE_CONSTRUCT(TypeUnion);
+
+	kuri::tableau<Type *> types{};
+
+	Type *type_le_plus_grand = nullptr;
+
+	NoeudStruct *decl = nullptr;
+
 	bool deja_genere = false;
 
 	dls::vue_chaine_compacte nom{};
@@ -469,6 +484,7 @@ struct Typeuse {
 	dls::tableau<TypeTableauDynamique *> types_tableaux_dynamiques{};
 	dls::tableau<TypeFonction *> types_fonctions{};
 	dls::tableau<TypeVariadique *> types_variadiques{};
+	dls::tableau<TypeUnion *> types_unions{};
 
 	// -------------------------
 
@@ -499,6 +515,8 @@ struct Typeuse {
 	TypeStructure *reserve_type_structure(NoeudStruct *decl);
 
 	TypeEnum *reserve_type_enum(NoeudEnum *decl);
+
+	TypeUnion *reserve_type_union(NoeudStruct *decl);
 
 	inline Type *operator[](TypeBase type_base) const
 	{

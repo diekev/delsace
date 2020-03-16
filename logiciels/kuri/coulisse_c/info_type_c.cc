@@ -293,9 +293,23 @@ dls::chaine cree_info_type_C(
 			break;
 		}
 		case GenreType::STRUCTURE:
-		case GenreType::UNION:
 		{
 			auto type_struct = static_cast<TypeStructure *>(type);
+
+			cree_info_type_structure_C(
+						contexte,
+						generatrice,
+						type_struct->nom,
+						type_struct->decl,
+						type,
+						id_info_type,
+						nom_info_type);
+
+			break;
+		}
+		case GenreType::UNION:
+		{
+			auto type_struct = static_cast<TypeUnion *>(type);
 
 			cree_info_type_structure_C(
 						contexte,

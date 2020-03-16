@@ -1427,7 +1427,13 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(GenreLexeme id, Donne
 {
 	auto noeud_decl = CREE_NOEUD(NoeudStruct, GenreNoeud::DECLARATION_STRUCTURE, &lexeme);
 	noeud_decl->est_union = (id == GenreLexeme::UNION);
-	noeud_decl->type = m_contexte.typeuse.reserve_type_structure(noeud_decl);
+
+	if (noeud_decl->est_union) {
+		noeud_decl->type = m_contexte.typeuse.reserve_type_union(noeud_decl);
+	}
+	else {
+		noeud_decl->type = m_contexte.typeuse.reserve_type_structure(noeud_decl);
+	}
 
 	if (lexeme.chaine == "ContexteProgramme") {
 		m_contexte.type_contexte = noeud_decl->type;
