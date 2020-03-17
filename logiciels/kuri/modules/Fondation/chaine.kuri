@@ -445,3 +445,111 @@ distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
 
 	retourne coûts[n]
 }
+
+append :: fonc (vers: *chaine, chn: chaine) -> rien
+{
+    si chn.taille == 0 {
+        retourne
+    }
+
+    tmp := mémoire(vers)
+
+    taille := tmp.taille
+    reloge tmp : chaine(tmp.taille + chn.taille)
+
+    pour idx_vers, idx_chn dans taille ... tmp.taille - 1 {
+        tmp[idx_vers] = chn[idx_chn]
+    }
+
+    mémoire(vers) = tmp
+}
+
+trouve_caractère_depuis_le_début :: fonc (chn: chaine, c: z8) -> z64
+{
+    début : z64 = 0
+
+    tantque début < chn.taille {
+        si chn[début] == c {
+            arrête
+        }
+
+        début += 1
+    }
+
+    retourne début
+}
+
+trouve_caractère_depuis_la_fin :: fonc (chn: chaine, c: z8) -> z64
+{
+    début := chn.taille - 1
+
+    tantque début > 0 {
+        si chn[début] == '@' {
+            arrête
+        }
+
+        début -= 1
+    }
+
+    retourne début
+}
+
+trouve_position_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> z64
+{
+    début : z64 = 0
+
+    tantque début < chn.taille {
+        si condition(chn[début]) {
+            arrête
+        }
+
+        début += 1
+    }
+
+    retourne début
+}
+
+compte_consécutifs_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> z64
+{
+    compte := 0
+
+    tantque compte < chn.taille {
+        si !condition(chn[compte]) {
+            arrête
+        }
+
+        compte += 1
+    }
+
+    retourne compte
+}
+
+avance_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> chaine
+{
+    début : z64 = 0
+
+    tantque début < chn.taille {
+        si !condition(chn[début]) {
+            arrête
+        }
+
+        début += 1
+    }
+
+    retourne avance(chn, début)
+}
+
+recule_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> chaine
+{
+    début : z64 = chn.taille - 1
+
+    tantque début > 0 {
+        si !condition(chn[début]) {
+            arrête
+        }
+
+        début -= 1
+    }
+
+    retourne construit_chaine(chn.pointeur, début + 1)
+}
