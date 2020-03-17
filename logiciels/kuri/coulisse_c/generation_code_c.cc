@@ -2926,7 +2926,7 @@ static void ajoute_dependances_implicites(
 	}
 }
 
-static void genre_code_programme(
+static void genere_code_programme(
 		ContexteGenerationCode &contexte,
 		dls::flux_chaine &os,
 		NoeudDependance *noeud_fonction_principale,
@@ -3043,7 +3043,7 @@ void genere_code_C(
 
 	auto debut_generation = dls::chrono::compte_seconde();
 
-	genre_code_programme(contexte, os, noeud_fonction_principale, debut_generation);
+	genere_code_programme(contexte, os, noeud_fonction_principale, debut_generation);
 
 	os << "int main(int argc, char **argv)\n";
 	os << "{\n";
@@ -3093,7 +3093,7 @@ void genere_code_C_pour_execution(
 
 	auto debut_generation = dls::chrono::compte_seconde();
 
-	genre_code_programme(contexte, os, noeud_fonction_principale, debut_generation);
+	genere_code_programme(contexte, os, noeud_fonction_principale, debut_generation);
 
 	os << "void lance_execution()\n";
 	os << "{\n";

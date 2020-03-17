@@ -51,7 +51,7 @@ struct IDInfoType {
 	dls::chaine OCTET     = "11";
 };
 
-static auto cree_info_type_defaul_C(
+static auto cree_info_type_defaut_C(
 		GeneratriceCodeC &generatrice,
 		dls::chaine const &id_type,
 		dls::chaine const &nom_info_type,
@@ -224,12 +224,12 @@ dls::chaine cree_info_type_C(
 		}
 		case GenreType::BOOL:
 		{
-			cree_info_type_defaul_C(generatrice, id_info_type.BOOLEEN, nom_info_type, 1);
+			cree_info_type_defaut_C(generatrice, id_info_type.BOOLEEN, nom_info_type, 1);
 			break;
 		}
 		case GenreType::OCTET:
 		{
-			cree_info_type_defaul_C(generatrice, id_info_type.OCTET, nom_info_type, 1);
+			cree_info_type_defaut_C(generatrice, id_info_type.OCTET, nom_info_type, 1);
 			break;
 		}
 		case GenreType::ENTIER_CONSTANT:
@@ -249,7 +249,7 @@ dls::chaine cree_info_type_C(
 		}
 		case GenreType::REEL:
 		{
-			cree_info_type_defaul_C(generatrice, id_info_type.REEL, nom_info_type, type->taille_octet);
+			cree_info_type_defaut_C(generatrice, id_info_type.REEL, nom_info_type, type->taille_octet);
 			break;
 		}
 		case GenreType::REFERENCE:
@@ -437,17 +437,17 @@ dls::chaine cree_info_type_C(
 		}
 		case GenreType::EINI:
 		{
-			cree_info_type_defaul_C(generatrice, id_info_type.EINI, nom_info_type, type->taille_octet);
+			cree_info_type_defaut_C(generatrice, id_info_type.EINI, nom_info_type, type->taille_octet);
 			break;
 		}
 		case GenreType::RIEN:
 		{
-			cree_info_type_defaul_C(generatrice, id_info_type.RIEN, nom_info_type, 0);
+			cree_info_type_defaut_C(generatrice, id_info_type.RIEN, nom_info_type, 0);
 			break;
 		}
 		case GenreType::CHAINE:
 		{
-			cree_info_type_defaul_C(generatrice, id_info_type.CHAINE, nom_info_type, type->taille_octet);
+			cree_info_type_defaut_C(generatrice, id_info_type.CHAINE, nom_info_type, type->taille_octet);
 			break;
 		}
 	}
