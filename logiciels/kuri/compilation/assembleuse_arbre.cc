@@ -212,7 +212,7 @@ NoeudBase *assembleuse_arbre::cree_noeud(GenreNoeud genre, DonneesLexeme const *
 			noeud->valeur_calculee = dls::liste<dls::vue_chaine_compacte>{};
 
 			/* requis pour déterminer le module dans le noeud d'accès point
-			 * À FAIRE : trouver mieux pour accéder à cette information */
+			 * À FAIRE : trouver mieux pour accéder à cette information => utilisation des blocs pour trouver des candidats */
 			noeud->module_appel = noeud->lexeme->fichier;
 		}
 	}

@@ -71,6 +71,8 @@ using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
  * - construction/extraction implicite des unions
  * - type erreurs, et erreurs en générale
  * - instruction tente
+ * - utilisation d'optimisation de valeur de retour pour éviter les chargement
+ *   de gros tableaux et éviter d'allouer trop de variables sur la pile
  */
 
 /* ************************************************************************** */
