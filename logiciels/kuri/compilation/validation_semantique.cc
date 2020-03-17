@@ -1483,18 +1483,20 @@ static void performe_validation_semantique(
 			auto enfant1 = expr->expr1;
 			auto enfant2 = expr->expr2;
 
+			auto type_op = expr->lexeme->genre;
+
+			auto assignation_composee = est_assignation_operee(type_op);
+
 			performe_validation_semantique(enfant1, contexte, expr_gauche);
-			performe_validation_semantique(enfant2, contexte, expr_gauche);
+			performe_validation_semantique(enfant2, contexte, assignation_composee ? false : expr_gauche);
 
 			auto type1 = enfant1->type;
 			auto type2 = enfant2->type;
 
 			/* détecte a comp b comp c */
-			if (est_operateur_comp(expr->lexeme->genre) && est_operateur_comp(enfant1->lexeme->genre)) {
+			if (est_operateur_comp(type_op) && est_operateur_comp(enfant1->lexeme->genre)) {
 				expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
 				expr->type = contexte.typeuse[TypeBase::BOOL];
-
-				auto type_op = expr->lexeme->genre;
 
 				auto enfant_expr = static_cast<NoeudExpressionBinaire *>(enfant1);
 				type1 = enfant_expr->expr2->type;
@@ -1522,7 +1524,7 @@ static void performe_validation_semantique(
 					donnees_dependance.fonctions_utilisees.insere(expr->op->nom_fonction);
 				}
 			}
-			else if (b->lexeme->genre == GenreLexeme::CROCHET_OUVRANT) {
+			else if (type_op == GenreLexeme::CROCHET_OUVRANT) {
 				expr->genre = GenreNoeud::EXPRESSION_INDICE;
 				expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
@@ -1587,9 +1589,8 @@ static void performe_validation_semantique(
 				}
 			}
 			else {
-				auto type_op = b->lexeme->genre;
 
-				if (est_assignation_operee(type_op)) {
+				if (assignation_composee) {
 					type_op = operateur_pour_assignation_operee(type_op);
 					expr->drapeaux |= EST_ASSIGNATION_OPEREE;
 
