@@ -1384,6 +1384,12 @@ static void performe_validation_semantique(
 			auto expression = decl->expression;
 
 			// À FAIRE : cas où nous avons plusieurs variables déclarées
+			if (variable->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+				erreur::lance_erreur("Expression inattendue à gauche de la déclaration",
+									 contexte,
+									 variable->lexeme);
+			}
+
 			decl->ident = variable->ident;
 
 			auto decl_prec = trouve_dans_bloc(variable->bloc_parent, decl);
