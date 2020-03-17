@@ -97,7 +97,7 @@ trouve :: fonc(table : &DicoChaineIndex, clé : chaine) -> *NoeudDicoChaineIndex
 
 RésultatRecherche :: union {
 	valeur : z64
-	erreur : bool
+	erreur_ : bool
 }
 
 cherche_valeur :: fonc(table : &DicoChaineIndex, clé : chaine) -> RésultatRecherche
@@ -106,7 +106,7 @@ cherche_valeur :: fonc(table : &DicoChaineIndex, clé : chaine) -> RésultatRech
     résultat : RésultatRecherche
 
     si n == nul {
-        résultat.erreur = vrai
+        résultat.erreur_ = vrai
     }
     sinon {
         résultat.valeur = n.valeur

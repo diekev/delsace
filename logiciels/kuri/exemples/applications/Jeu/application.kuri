@@ -63,7 +63,7 @@ FileÉvènement :: struct {
 
 VG_file_évènements : *FileÉvènement = nul
 
-#nulctx rappel_erreur :: fonc(erreur : z32, desc : *z8) -> rien
+#nulctx rappel_erreur :: fonc(erreur_ : z32, desc : *z8) -> rien
 {
     // À FAIRE : imprime n'a pas de contexte.
     //soit chn = converti_chaine_c(desc);
@@ -169,9 +169,9 @@ initialise_opengl :: fonc(app : &Application) -> rien
 {
     glfwMakeContextCurrent(app.fenetre)
 
-    erreur := glewInit()
+    erreur_ := glewInit()
 
-    si erreur != 0 {
+    si erreur_ != 0 {
         imprime("Erreur lors de l'initilisation de GLEW !\n")
     }
 

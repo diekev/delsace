@@ -27,7 +27,7 @@ SSL_new :: fonc externe (ctx_s : *rien) -> *ssl_st
 SSL_set_fd :: fonc externe (ssl : *ssl_st, prise : z32) -> rien
 SSL_connect :: fonc externe (ssl : *ssl_st) -> z32
 SSL_free :: fonc externe (ssl : *ssl_st) -> rien
-SSL_get_error :: fonc externe (ssl : *ssl_st, erreur : z32) -> z32
+SSL_get_error :: fonc externe (ssl : *ssl_st, erreur_ : z32) -> z32
 SSL_write :: fonc externe (ssl : *ssl_st, ptr : *z8, taille : z32) -> z32
 SSL_read :: fonc externe (ssl : *ssl_st, tampon : *z8, max : z32) -> z32
 

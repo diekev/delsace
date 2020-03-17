@@ -163,21 +163,21 @@ genere_code :: fonc(
 					gest_attrs.requiers_attr(b.chn(), b.donnees_type, b.pointeur_donnees)
 				}
 				sinon {
-					erreur::lance_erreur(
+					erreur_::lance_erreur(
 								"Attribut inconnu.",
 								contexte_generation,
 								b.donnees,
-								erreur::type_erreur::NORMAL)
+								erreur_::type_erreur::NORMAL)
 				}
 			}
 			sinon {
 				si expr_gauche {
 					si (donnees.est_non_modifiable) {
-						erreur::lance_erreur(
+						erreur_::lance_erreur(
 									"La propriété n'est pas modifiable.",
 									contexte_generation,
 									b.donnees,
-									erreur::type_erreur::NORMAL)
+									erreur_::type_erreur::NORMAL)
 					}
 
 					donnees.est_modifiee = true
@@ -413,14 +413,14 @@ genere_code :: fonc(
 
 			si (b.lexème() == TypeLexème.CROCHET_OUVRANT) {
 				si (enfant2.donnees_type != lcc::TypeParamètre.TABLEAU) {
-					erreur::lance_erreur(
+					erreur_::lance_erreur(
 								"Un tableau est requis pour l'opérateur []",
 								contexte_generation,
 								enfant2.donnees_morceau())
 				}
 
 				si (enfant1.donnees_type != lcc::TypeParamètre.ENT32) {
-					erreur::lance_erreur(
+					erreur_::lance_erreur(
 								"Un nombre entier est requis dans l'opérateur []",
 								contexte_generation,
 								enfant1.donnees_morceau())

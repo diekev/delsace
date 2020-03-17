@@ -42,6 +42,7 @@ struct GrapheDependance;
 struct IdentifiantCode;
 struct Operateurs;
 struct NoeudEnum;
+struct NoeudErreur;
 struct NoeudExpression;
 struct NoeudStruct;
 
@@ -216,6 +217,8 @@ enum class GenreType : int {
 	OCTET,
 	ENUM,
 	VARIADIQUE,
+	ERREUR,
+	//EINI_ERREUR,
 };
 
 enum {
@@ -520,6 +523,8 @@ struct Typeuse {
 	TypeEnum *reserve_type_enum(NoeudEnum *decl);
 
 	TypeUnion *reserve_type_union(NoeudStruct *decl);
+
+	TypeEnum *reserve_type_erreur(NoeudEnum *decl);
 
 	inline Type *operator[](TypeBase type_base) const
 	{

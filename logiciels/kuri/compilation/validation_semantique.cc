@@ -484,7 +484,7 @@ static void valide_acces_membre(
 		return;
 	}
 
-	if (type->genre == GenreType::ENUM) {
+	if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
 		auto noeud_enum = static_cast<TypeEnum *>(type)->decl;
 		auto noeud_membre = trouve_dans_bloc_seul(noeud_enum->bloc, membre);
 
@@ -1110,6 +1110,18 @@ static void performe_validation_semantique(
 				contexte.donnees_fonction = fonction_courante;
 
 				contexte.pour_gabarit = false;
+			}
+
+			// nous devons instantier les gabarits (ou avoir leurs types) avant de pouvoir faire ça
+			auto type_fonc = static_cast<TypeFonction *>(decl_fonction_appelee->type);
+			auto type_sortie = type_fonc->types_sorties[0];
+
+			// À FAIRE : ceci ne prend pas en compte les appels de syntaxe uniforme
+			if (type_sortie->genre != GenreType::RIEN && expr_gauche) {
+				erreur::lance_erreur(
+							"Inutilisation du retour de la fonction",
+							contexte,
+							b->lexeme);
 			}
 
 			/* met en place les drapeaux sur les enfants */
@@ -2441,6 +2453,7 @@ static void performe_validation_semantique(
 					break;
 				}
 				case GenreType::ENUM:
+				case GenreType::ERREUR:
 				{
 					nom_struct = "InfoTypeÉnum";
 					break;
@@ -2791,7 +2804,14 @@ static void performe_validation_semantique(
 			auto &desc = decl->desc;
 
 			auto type_enum = static_cast<TypeEnum *>(decl->type);
-			type_enum->type_donnees = resoud_type_final(contexte, decl->type_declare, decl->bloc_parent, decl->lexeme);
+
+			if (desc.est_erreur) {
+				type_enum->type_donnees = contexte.typeuse[TypeBase::Z32];
+			}
+			else {
+				type_enum->type_donnees = resoud_type_final(contexte, decl->type_declare, decl->bloc_parent, decl->lexeme);
+			}
+
 			type_enum->taille_octet = type_enum->type_donnees->taille_octet;
 			type_enum->alignement = type_enum->type_donnees->alignement;
 
@@ -2835,6 +2855,7 @@ static void performe_validation_semantique(
 
 				auto res = ResultatExpression();
 
+				// À FAIRE(erreur) : vérifie qu'aucune expression s'évalue à zéro
 				if (expr != nullptr) {
 					performe_validation_semantique(expr, contexte, false);
 
@@ -2853,7 +2874,7 @@ static void performe_validation_semantique(
 						/* première valeur, laisse à zéro si énum normal */
 						dernier_res.est_errone = false;
 
-						if (desc.est_drapeau) {
+						if (desc.est_drapeau || desc.est_erreur) {
 							res.type = type_expression::ENTIER;
 							res.entier = 1;
 						}
@@ -2990,7 +3011,7 @@ static void performe_validation_semantique(
 					performe_validation_semantique(inst->bloc_sinon, contexte, true);
 				}
 			}
-			else if (type->genre == GenreType::ENUM) {
+			else if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
 				auto decl = static_cast<TypeEnum *>(type)->decl;
 
 				auto membres_rencontres = dls::ensemble<dls::vue_chaine_compacte>();
@@ -3159,6 +3180,99 @@ static void performe_validation_semantique(
 			auto expr = static_cast<NoeudExpressionUnaire *>(b);
 			performe_validation_semantique(expr->expr, contexte, expr_gauche);
 			expr->type = expr->expr->type;
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_TENTE:
+		{
+			auto inst = static_cast<NoeudTente *>(b);
+
+			// À FAIRE :  défini correctement si on peut ignorer les valeurs de retours
+			if (inst->expr_appel != nullptr) {
+				expr_gauche = false;
+			}
+
+			performe_validation_semantique(inst->expr_appel, contexte, expr_gauche);
+			inst->type = inst->expr_appel->type;
+			inst->genre_valeur = GenreValeur::DROITE;
+
+			auto type_de_l_erreur = static_cast<Type *>(nullptr);
+
+			// voir ce que l'on retourne
+			// - si aucun type erreur -> erreur ?
+			// - si erreur seule -> il faudra vérifier l'erreur
+			// - si union -> voir si l'union est sûre et contient une erreur, dépaquete celle-ci dans le génération de code
+
+			if (inst->type->genre == GenreType::ERREUR) {
+				type_de_l_erreur = inst->type;
+			}
+			else if (inst->type->genre == GenreType::UNION) {
+				auto type_union = static_cast<TypeUnion *>(inst->type);
+				auto possede_type_erreur = false;
+
+				POUR (type_union->types) {
+					if (it->genre == GenreType::ERREUR) {
+						possede_type_erreur = true;
+					}
+				}
+
+				if (!possede_type_erreur) {
+					erreur::lance_erreur("Utilisation de « tente » sur une fonction qui ne retourne pas d'erreur",
+										 contexte,
+										 inst->lexeme);
+				}
+
+				if (type_union->types.taille == 2) {
+					if (type_union->types[0]->genre == GenreType::ERREUR) {
+						type_de_l_erreur = type_union->types[0];
+						inst->type = type_union->types[1];
+					}
+					else {
+						inst->type = type_union->types[0];
+						type_de_l_erreur = type_union->types[1];
+					}
+				}
+			}
+			else {
+				erreur::lance_erreur("Utilisation de « tente » sur une fonction qui ne retourne pas d'erreur",
+									 contexte,
+									 inst->lexeme);
+			}
+
+			if (inst->expr_piege) {
+				if (inst->expr_piege->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+					erreur::lance_erreur("Expression inattendu dans l'expression de piège, nous devons avoir une référence à une variable", contexte, inst->expr_piege->lexeme);
+				}
+
+				auto var_piege = static_cast<NoeudExpressionReference *>(inst->expr_piege);
+
+				auto decl = trouve_dans_bloc(var_piege->bloc_parent, var_piege->ident);
+
+				if (decl != nullptr) {
+					erreur::redefinition_symbole(contexte, var_piege->lexeme, decl->lexeme);
+				}
+
+				var_piege->type = type_de_l_erreur;
+
+				auto decl_var_piege = static_cast<NoeudDeclarationVariable *>(contexte.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, var_piege->lexeme));
+				decl_var_piege->bloc_parent = inst->bloc;
+				decl_var_piege->valeur = var_piege;
+				decl_var_piege->type = var_piege->type;
+				decl_var_piege->ident = var_piege->ident;
+
+				// ne l'ajoute pas aux expressions, car nous devons l'initialiser manuellement
+				inst->bloc->membres.pousse_front(decl_var_piege);
+
+				performe_validation_semantique(inst->bloc, contexte, false);
+
+				auto di = derniere_instruction(inst->bloc);
+
+				if (di == nullptr || !dls::outils::est_element(di->genre, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_RETOUR_SIMPLE, GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
+					erreur::lance_erreur("Un bloc de piège doit obligatoirement retourner, ou si dans une boucle, la continuer ou l'arrêter",
+										 contexte,
+										 inst->lexeme);
+				}
+			}
+
 			break;
 		}
 	}

@@ -36,6 +36,7 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 		{
 			break;
 		}
+		case GenreType::ERREUR:
 		case GenreType::ENUM:
 		{
 			/* RÀF : les énumérations sont des constantes et nous utilisons le

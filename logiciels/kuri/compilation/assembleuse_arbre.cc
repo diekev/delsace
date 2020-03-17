@@ -190,6 +190,11 @@ NoeudBase *assembleuse_arbre::cree_noeud(GenreNoeud genre, DonneesLexeme const *
 			noeud = m_noeuds_pousse_contexte.ajoute_element();
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_TENTE:
+		{
+			noeud = m_noeuds_tente.ajoute_element();
+			break;
+		}
 	}
 
 	if (noeud != nullptr) {
@@ -238,6 +243,7 @@ size_t assembleuse_arbre::memoire_utilisee() const
 	COMPTE_MEMOIRE(NoeudSi, m_noeuds_si);
 	COMPTE_MEMOIRE(NoeudPousseContexte, m_noeuds_pousse_contexte);
 	COMPTE_MEMOIRE(NoeudTableauArgsVariadiques, m_noeuds_tableau_args_variadiques);
+	COMPTE_MEMOIRE(NoeudTente, m_noeuds_tente);
 
 #undef COMPTE_MEMOIRE
 

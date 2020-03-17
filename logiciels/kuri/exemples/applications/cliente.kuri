@@ -11,13 +11,13 @@ importe Réseau
     retourne 0
 }
 
-imprime_erreur_ssl :: fonc(ssl : *ssl_st, erreur : z32, message : chaine, pile : bool) -> rien
+imprime_erreur_ssl :: fonc(ssl : *ssl_st, erreur_ : z32, message : chaine, pile : bool) -> rien
 {
 	imprime(message)
 
-	erreur := SSL_get_error(ssl, erreur);
+	erreur_ := SSL_get_error(ssl, erreur_);
 
-	discr (erreur) {
+	discr (erreur_) {
 		_SSL_ERROR_NONE {
 			imprime("SSL_ERROR_NONE\n")
         }
@@ -174,12 +174,12 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
                 copie_mem_nonsur(src=@tampon[0], dst=@réponse[ancienne_taille], taille=transtype(taille : z64));
             }
             sinon {
-                erreur := SSL_get_error(m_ssl, taille)
+                erreur_ := SSL_get_error(m_ssl, taille)
 
-                si erreur != _SSL_ERROR_NONE || erreur != _SSL_ERROR_ZERO_RETURN {
+                si erreur_ != _SSL_ERROR_NONE || erreur_ != _SSL_ERROR_ZERO_RETURN {
                     imprime("Erreur lors de la lecture SSL : ");
 
-                    discr (erreur) {
+                    discr (erreur_) {
                         _SSL_ERROR_NONE {
                             imprime("SSL_ERROR_NONE\n")
                         }
@@ -278,10 +278,10 @@ principale :: fonc () -> z32
 
     imprime("Reqûete envoyée :\n", requête, '\n');
 
-    réponse, erreur := lance_requête(uri, requête)
+    réponse, erreur_ := lance_requête(uri, requête)
     diffère { déloge réponse; déloge requête; }
 
-    si erreur == 0 {
+    si erreur_ == 0 {
         imprime("Réponse :\n%\n", réponse);
     }
 

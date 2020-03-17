@@ -11,9 +11,8 @@ ouvre :: fonc (chemin: chaine) -> Fichier
 {
    	ptr_chemin := chaine_c_temp(chemin)
 
+    // @erreur
     desc := open(ptr_chemin, LECTURE_ÉCRITURE)
-
-    // À FAIRE : erreurs....
 
     fichier: Fichier
     fichier.desc = desc
@@ -27,7 +26,10 @@ ferme :: fonc (fichier: *Fichier) -> rien
         retourne
     }
 
-    close(fichier.desc)
+    // @erreur
+    si close(fichier.desc) == -1 {
+        retourne
+    }
 }
 
 lis :: fonc (fichier: *Fichier, tampon: chaine) -> rien
@@ -36,7 +38,8 @@ lis :: fonc (fichier: *Fichier, tampon: chaine) -> rien
         retourne
     }
 
-    read(fichier.desc, tampon.pointeur, transtype(tampon.taille: n32))
+    // @erreur
+    octets_lus := read(fichier.desc, tampon.pointeur, transtype(tampon.taille: n32))
 }
 
 lis :: fonc (fichier: *Fichier) -> chaine
@@ -94,7 +97,8 @@ lis_tout :: fonc (fichier: *Fichier) -> chaine
         retourne ""
     }
 
-    lseek(fichier.desc, 0, _SEEK_SET)
+    // @erreur
+    _ := lseek(fichier.desc, 0, _SEEK_SET)
 
     résultat := loge chaine(taille_fichier)
 

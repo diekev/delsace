@@ -62,10 +62,10 @@ principale :: fonc () -> z32
 	initialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 
-    erreur := génère_page(@données_génération, racine, @enchaineuse)
+    erreur_ := génère_page(@données_génération, racine, @enchaineuse)
 
-    si erreur != ErreurGénérationPage.AUCUNE {
-        imprime("Erreur lors de la génération de la page : %\n", erreur)
+    si erreur_ != ErreurGénérationPage.AUCUNE {
+        imprime("Erreur lors de la génération de la page : %\n", erreur_)
     }
     sinon {
         imprime("Page :\n\n")

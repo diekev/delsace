@@ -711,21 +711,12 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 							break;
 						}
 						case GenreLexeme::ENUM:
-						{
-							avance();
-							dernier_noeud = analyse_declaration_enum(false, lexeme);
-
-							expressions.pousse(dernier_noeud);
-
-							termine_boucle = true;
-							variable_consommee = true;
-
-							break;
-						}
 						case GenreLexeme::ENUM_DRAPEAU:
+						case GenreLexeme::ERREUR:
 						{
+							auto id = this->identifiant_courant();
 							avance();
-							dernier_noeud = analyse_declaration_enum(true, lexeme);
+							dernier_noeud = analyse_declaration_enum(id, lexeme);
 
 							expressions.pousse(dernier_noeud);
 
@@ -1285,6 +1276,44 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 				termine_boucle = true;
 				break;
 			}
+			case GenreLexeme::TENTE:
+			{
+				auto inst = CREE_NOEUD(NoeudTente, GenreNoeud::INSTRUCTION_TENTE, &lexeme);
+
+				inst->expr_appel = analyse_expression(GenreLexeme::PIEGE, GenreLexeme::TENTE);
+				recule();
+
+				if (est_identifiant(GenreLexeme::PIEGE)) {
+					avance();
+
+					if (est_identifiant(GenreLexeme::NONATTEIGNABLE)) {
+						avance();
+					}
+					else {
+						inst->expr_piege = analyse_expression(GenreLexeme::ACCOLADE_OUVRANTE, GenreLexeme::TENTE);
+						recule();
+
+						consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après l'expression de « piège »");
+
+						inst->bloc = analyse_bloc();
+					}
+				}
+				else {
+					avance();
+				}
+
+				dernier_noeud = inst;
+				expressions.pousse(dernier_noeud);
+
+				termine_boucle = true;
+				break;
+			}
+			case GenreLexeme::PIEGE:
+			{
+				recule();
+				termine_boucle = true;
+				break;
+			}
 			default:
 			{
 				lance_erreur("Identifiant inattendu dans l'expression");
@@ -1487,12 +1516,19 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(GenreLexeme id, Donne
 	return noeud_decl;
 }
 
-NoeudExpression *Syntaxeuse::analyse_declaration_enum(bool est_drapeau, DonneesLexeme &lexeme)
+NoeudExpression *Syntaxeuse::analyse_declaration_enum(GenreLexeme genre, DonneesLexeme &lexeme)
 {
 	auto noeud_decl = CREE_NOEUD(NoeudEnum, GenreNoeud::DECLARATION_ENUM, &lexeme);
-	noeud_decl->desc.est_drapeau = est_drapeau;	
-	noeud_decl->type = m_contexte.typeuse.reserve_type_enum(noeud_decl);
-	noeud_decl->type_declare = analyse_declaration_type(false);
+
+	if (genre != GenreLexeme::ERREUR) {
+		noeud_decl->desc.est_drapeau = genre == GenreLexeme::ENUM_DRAPEAU;
+		noeud_decl->type_declare = analyse_declaration_type(false);
+		noeud_decl->type = m_contexte.typeuse.reserve_type_enum(noeud_decl);
+	}
+	else {
+		noeud_decl->desc.est_erreur = true;
+		noeud_decl->type = m_contexte.typeuse.reserve_type_erreur(noeud_decl);
+	}
 
 	consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 

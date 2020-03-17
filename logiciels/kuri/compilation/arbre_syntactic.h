@@ -86,6 +86,7 @@ enum class GenreNoeud : char {
 	INSTRUCTION_SI,
 	INSTRUCTION_SINON,
 	INSTRUCTION_TANTQUE,
+	INSTRUCTION_TENTE,
 	OPERATEUR_BINAIRE,
 	OPERATEUR_COMPARAISON_CHAINEE,
 	OPERATEUR_UNAIRE,
@@ -365,6 +366,7 @@ struct DescriptionEnum {
 	kuri::tableau<int> valeurs;
 	long index_type;
 	bool est_drapeau;
+	bool est_erreur = false;
 	/* pour la prédéclaration des InfoType* */
 	bool deja_genere;
 };
@@ -461,6 +463,16 @@ struct NoeudTableauArgsVariadiques : public NoeudExpression {
 	kuri::tableau<NoeudExpression *> exprs{};
 
 	COPIE_CONSTRUCT(NoeudTableauArgsVariadiques);
+};
+
+struct NoeudTente : public NoeudExpression {
+	NoeudTente() { genre = GenreNoeud::INSTRUCTION_TENTE; }
+
+	COPIE_CONSTRUCT(NoeudTente);
+
+	NoeudExpression *expr_appel = nullptr;
+	NoeudExpression *expr_piege = nullptr;
+	NoeudBloc *bloc = nullptr;
 };
 
 void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab);

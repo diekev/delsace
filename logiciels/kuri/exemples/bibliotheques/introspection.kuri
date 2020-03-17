@@ -114,7 +114,7 @@ rout loge_concat(args... : []z32) -> []z32
 	}
 
 	res := loge [taille]z32 sinon {
-		erreur;
+		erreur_;
 	}
 
 	retourne res;

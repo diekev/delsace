@@ -291,7 +291,7 @@ Erreur :: struct {
 
 Résultat :: union {
 	requête : Requête
-	erreur : Erreur
+	erreur_ : Erreur
 }
 
 analyse_requête :: fonc(syntaxeuse : &Syntaxeuse) -> Résultat
@@ -306,10 +306,10 @@ analyse_requête :: fonc(syntaxeuse : &Syntaxeuse) -> Résultat
 			syntaxeuse.avance()
 
 			si !syntaxeuse.est_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
-				erreur : Erreur;
-				erreur.message = "ERREUR : l'instruction doit être suivie par un noeud !\n"
+				erreur_ : Erreur;
+				erreur_.message = "ERREUR : l'instruction doit être suivie par un noeud !\n"
 
-				résultat.erreur = erreur
+				résultat.erreur_ = erreur_
 				retourne résultat
 			}
 
@@ -320,10 +320,10 @@ analyse_requête :: fonc(syntaxeuse : &Syntaxeuse) -> Résultat
 			tableau_ajoute(@requête.blocs, bloc)
 		}
 		sinon {
-			erreur : Erreur;
-			erreur.message = "ERREUR : la requête doit commencer par une instruction !\n"
+			erreur_ : Erreur;
+			erreur_.message = "ERREUR : la requête doit commencer par une instruction !\n"
 
-			résultat.erreur = erreur
+			résultat.erreur_ = erreur_
 			retourne résultat
 		}
 	}
@@ -394,8 +394,8 @@ principale :: fonc () -> z32
 			imprime_requête(requête)
 			détruit_requête(requête)
 		}
-		erreur {
-			imprime("%\n", erreur.message)
+		erreur_ {
+			imprime("%\n", erreur_.message)
 		}
 	}
 

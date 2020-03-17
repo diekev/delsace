@@ -88,7 +88,7 @@ private:
 	NoeudExpression *analyse_expression(GenreLexeme identifiant_final, GenreLexeme racine_expr);
 	NoeudExpression *analyse_appel_fonction(DonneesLexeme &lexeme);
 	NoeudExpression *analyse_declaration_structure(GenreLexeme id, DonneesLexeme &lexeme);
-	NoeudExpression *analyse_declaration_enum(bool est_drapeau, DonneesLexeme &lexeme);
+	NoeudExpression *analyse_declaration_enum(GenreLexeme genre, DonneesLexeme &lexeme);
 	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
 	DonneesTypeDeclare analyse_declaration_type_ex();
 	void analyse_controle_si(GenreNoeud tn);

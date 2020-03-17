@@ -150,6 +150,7 @@ llvm::Value *ConstructriceCode::cree_valeur_defaut_pour_type(Type *type)
 			return llvm::ConstantFP::get(type_llvm, 0.0);
 		}
 		case GenreType::ENUM:
+		case GenreType::ERREUR:
 		{
 			auto type_enum = static_cast<TypeEnum *>(type);
 			return cree_valeur_defaut_pour_type(type_enum->type_donnees);

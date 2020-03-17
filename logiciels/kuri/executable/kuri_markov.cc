@@ -443,6 +443,31 @@ static void imprime_mot(GenreLexeme id, std::ostream &os)
 			os << "pousse_contexte";
 			return;
 		}
+		case GenreLexeme::ERREUR:
+		{
+			os << "erreur";
+			return;
+		}
+		case GenreLexeme::EINI_ERREUR:
+		{
+			os << "erreur";
+			return;
+		}
+		case GenreLexeme::NONATTEIGNABLE:
+		{
+			os << "nonatteignable";
+			return;
+		}
+		case GenreLexeme::PIEGE:
+		{
+			os << "piège";
+			return;
+		}
+		case GenreLexeme::TENTE:
+		{
+			os << "tente";
+			return;
+		}
 	};
 
 	os << "ERREUR";

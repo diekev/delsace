@@ -60,6 +60,11 @@ mot_cles = [
 	u'charge',
 	u'opérateur',
 	u'pousse_contexte',
+	u'tente',
+	u'piège',
+	u'nonatteignable',
+	u'erreur',
+	u'eini_erreur',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)

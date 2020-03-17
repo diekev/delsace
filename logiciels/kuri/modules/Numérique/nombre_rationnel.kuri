@@ -140,10 +140,10 @@ opérateur / :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 imprime_nombre_rationnel :: fonc(a: NombreRationnel) -> rien
 {
     si a.s {
-        printf("- %u / %u\n".pointeur, a.N, a.D)
+        _ := printf("- %u / %u\n".pointeur, a.N, a.D)
     }
     sinon {
-        printf("%u / %u\n".pointeur, a.N, a.D)
+        _ := printf("%u / %u\n".pointeur, a.N, a.D)
     }
 }
 

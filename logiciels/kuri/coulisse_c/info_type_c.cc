@@ -279,6 +279,7 @@ dls::chaine cree_info_type_C(
 			break;
 		}
 		case GenreType::ENUM:
+		case GenreType::ERREUR:
 		{
 			auto type_enum = static_cast<TypeEnum *>(type);
 
@@ -495,6 +496,7 @@ dls::chaine predeclare_info_type_C(
 			break;
 		}
 		case GenreType::ENUM:
+		case GenreType::ERREUR:
 		{
 			generatrice << "static const InfoTypexC3x89num " << nom_info_type << ";\n";
 			break;

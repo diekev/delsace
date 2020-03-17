@@ -723,6 +723,9 @@ void membre_inconnu(
 	else if (type->genre == GenreType::UNION) {
 		message = "de l'union";
 	}
+	else if (type->genre == GenreType::ERREUR) {
+		message = "de l'erreur";
+	}
 	else {
 		message = "de la structure";
 	}

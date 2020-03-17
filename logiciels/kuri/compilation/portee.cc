@@ -115,7 +115,7 @@ NoeudDeclaration *trouve_type_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 				continue;
 			}
 
-			if (!dls::outils::est_element(it->type->genre, GenreType::STRUCTURE, GenreType::UNION, GenreType::ENUM)) {
+			if (!dls::outils::est_element(it->type->genre, GenreType::STRUCTURE, GenreType::UNION, GenreType::ENUM, GenreType::ERREUR)) {
 				continue;
 			}
 

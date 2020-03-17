@@ -21,10 +21,10 @@ génère_page :: fonc(
     discr noeud.type {
         BLOC {
             pour enfant dans noeud.enfants {
-                erreur := génère_page(enfant, gestionnaire, dico, enchaineuse)
+                erreur_ := génère_page(enfant, gestionnaire, dico, enchaineuse)
 
-                si erreur != ErreurGénérationPage.AUCUNE {
-                    retourne erreur
+                si erreur_ != ErreurGénérationPage.AUCUNE {
+                    retourne erreur_
                 }
             }
         }
@@ -94,10 +94,10 @@ génère_page :: fonc(
 
                     pour objet dans liste.valeur {
                         dico.insère(variable, objet)
-                        erreur := génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
+                        erreur_ := génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
 
-                        si erreur != ErreurGénérationPage.AUCUNE {
-                            retourne erreur
+                        si erreur_ != ErreurGénérationPage.AUCUNE {
+                            retourne erreur_
                         }
                     }
                 }
@@ -109,10 +109,10 @@ génère_page :: fonc(
                         objet_nom.valeur = nom
 
                         dico.insère(variable, objet_nom)
-                        erreur := génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
+                        erreur_ := génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
 
-                        si erreur != ErreurGénérationPage.AUCUNE {
-                            retourne erreur
+                        si erreur_ != ErreurGénérationPage.AUCUNE {
+                            retourne erreur_
                         }
                     }
                 }
@@ -123,17 +123,17 @@ génère_page :: fonc(
             objet_valeur := dico.trouve_objet(variable)
 
             si objet_valeur != nul {
-                erreur := génère_page(noeud.enfants[1], gestionnaire, dico, enchaineuse)
+                erreur_ := génère_page(noeud.enfants[1], gestionnaire, dico, enchaineuse)
 
-                si erreur != ErreurGénérationPage.AUCUNE {
-                    retourne erreur
+                si erreur_ != ErreurGénérationPage.AUCUNE {
+                    retourne erreur_
                 }
             }
             sinon si noeud.enfants.taille > 2 {
-                erreur := génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
+                erreur_ := génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
 
-                si erreur != ErreurGénérationPage.AUCUNE {
-                    retourne erreur
+                si erreur_ != ErreurGénérationPage.AUCUNE {
+                    retourne erreur_
                 }
             }
         }
@@ -194,10 +194,10 @@ génère_page :: fonc(
     discr noeud.type {
         BLOC {
             pour enfant dans noeud.enfants {
-                erreur := génère_page(données, enfant, enchaineuse)
+                erreur_ := génère_page(données, enfant, enchaineuse)
 
-                si erreur != ErreurGénérationPage.AUCUNE {
-                    retourne erreur
+                si erreur_ != ErreurGénérationPage.AUCUNE {
+                    retourne erreur_
                 }
             }
         }
@@ -241,10 +241,10 @@ génère_page :: fonc(
 
                             données.données_variable_boucle = e
 
-                            erreur := génère_page(données, noeud.enfants[2], enchaineuse)
+                            erreur_ := génère_page(données, noeud.enfants[2], enchaineuse)
 
-                            si erreur != ErreurGénérationPage.AUCUNE {
-                                retourne erreur
+                            si erreur_ != ErreurGénérationPage.AUCUNE {
+                                retourne erreur_
                             }
                         }
                     }
@@ -260,10 +260,10 @@ génère_page :: fonc(
 
                             données.données_variable_boucle = e
 
-                            erreur := génère_page(données, noeud.enfants[2], enchaineuse)
+                            erreur_ := génère_page(données, noeud.enfants[2], enchaineuse)
 
-                            si erreur != ErreurGénérationPage.AUCUNE {
-                                retourne erreur
+                            si erreur_ != ErreurGénérationPage.AUCUNE {
+                                retourne erreur_
                             }
                         }
                     }
@@ -290,10 +290,10 @@ génère_page :: fonc(
                 idx_enfant = 2
             }
 
-            erreur := génère_page(données, noeud.enfants[idx_enfant], enchaineuse)
+            erreur_ := génère_page(données, noeud.enfants[idx_enfant], enchaineuse)
 
-            si erreur != ErreurGénérationPage.AUCUNE {
-                retourne erreur
+            si erreur_ != ErreurGénérationPage.AUCUNE {
+                retourne erreur_
             }
         }
     }

@@ -106,9 +106,9 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
 	initialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 
-    erreur := génère_page(@données_génération, page.racine, @enchaineuse)
+    erreur_ := génère_page(@données_génération, page.racine, @enchaineuse)
 
-    si erreur != ErreurGénérationPage.AUCUNE {
+    si erreur_ != ErreurGénérationPage.AUCUNE {
         retourne crée_réponse_fichier_gabarit_manquant()
     }
 

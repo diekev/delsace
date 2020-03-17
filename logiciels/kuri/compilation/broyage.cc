@@ -97,7 +97,7 @@ dls::chaine const &nom_broye_type(
 		Type *type,
 		bool pour_generation_code_c)
 {
-	if (type->nom_broye != "" && type->genre != GenreType::ENUM) {
+	if (type->nom_broye != "" && type->genre != GenreType::ENUM && type->genre != GenreType::ERREUR) {
 		return type->nom_broye;
 	}
 
@@ -257,6 +257,7 @@ dls::chaine const &nom_broye_type(
 			break;
 		}
 		case GenreType::ENUM:
+		case GenreType::ERREUR:
 		{
 			auto type_enum = static_cast<TypeEnum const *>(type);
 

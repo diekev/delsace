@@ -69,6 +69,8 @@ using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
  * - valide que les expressions dans les accès par index sont de type z64 (ou n64 ?)
  * - séparation type structure/type union
  * - construction/extraction implicite des unions
+ * - type erreurs, et erreurs en générale
+ * - instruction tente
  */
 
 /* ************************************************************************** */
@@ -1195,7 +1197,7 @@ llvm::Value *genere_code_llvm(
 
 			auto const &nom_membre = membre->ident->nom;
 
-			if (type_structure->genre == GenreType::ENUM) {
+			if (type_structure->genre == GenreType::ENUM || type_structure->genre == GenreType::ERREUR) {
 				auto type_enum = static_cast<TypeEnum *>(type_structure);
 				auto decl_enum = type_enum->decl;
 				auto builder = llvm::IRBuilder<>(contexte.contexte);
@@ -2636,6 +2638,11 @@ llvm::Value *genere_code_llvm(
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(b);
 			return applique_transformation(contexte, expr->expr, expr_gauche);
+		}
+		case GenreNoeud::INSTRUCTION_TENTE:
+		{
+			// À FAIRE(tente)
+			return nullptr;
 		}
 	}
 

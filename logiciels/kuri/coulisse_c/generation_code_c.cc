@@ -296,6 +296,11 @@ static inline auto broye_chaine(dls::vue_chaine_compacte const &chn)
 	return broye_nom_simple(chn);
 }
 
+static inline auto broye_chaine(kuri::chaine const &chn)
+{
+	return broye_nom_simple(dls::vue_chaine_compacte(chn.pointeur, chn.taille));
+}
+
 /* ************************************************************************** */
 
 static void cree_appel(
@@ -444,7 +449,7 @@ static void genere_code_acces_membre(
 			generatrice << "long " << nom_acces << " = " << taille_tableau << ";\n";
 			flux << nom_acces;
 		}
-		else if (type_structure->genre == GenreType::ENUM) {
+		else if (type_structure->genre == GenreType::ENUM || type_structure->genre == GenreType::ERREUR) {
 			auto type_enum = static_cast<TypeEnum *>(type_structure);
 			flux << chaine_valeur_enum(type_enum->decl, membre->ident->nom);
 		}
@@ -597,6 +602,9 @@ static void cree_initialisation_structure(GeneratriceCodeC &generatrice, Type *t
 			generatrice << "pointeur->" << nom_broye_membre << ".info = 0\n;";
 		}
 		else if (type_membre->genre == GenreType::ENUM) {
+			generatrice << "pointeur->" << nom_broye_membre << " = 0;\n";
+		}
+		else if (type_membre->genre == GenreType::ERREUR) {
 			generatrice << "pointeur->" << nom_broye_membre << " = 0;\n";
 		}
 		else if (type_membre->genre == GenreType::UNION) {
@@ -2533,6 +2541,83 @@ void genere_code_C(
 			b->valeur_calculee = expr->expr->valeur_calculee;
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_TENTE:
+		{
+			// À FAIRE(retours multiples)
+			auto inst = static_cast<NoeudTente *>(b);
+
+			genere_code_C(inst->expr_appel, generatrice, contexte, false);
+
+			struct DonneesGenerationCodeTente {
+				dls::chaine acces_variable{};
+				dls::chaine acces_erreur{};
+				dls::chaine acces_erreur_pour_test{};
+
+				Type *type_piege = nullptr;
+				Type *type_variable = nullptr;
+			};
+
+			DonneesGenerationCodeTente gen_tente;
+
+			if (inst->expr_appel->type->genre == GenreType::ERREUR) {
+				gen_tente.type_piege = inst->expr_appel->type;
+				gen_tente.type_variable = gen_tente.type_piege;
+				gen_tente.acces_erreur = inst->expr_appel->chaine_calculee();
+				gen_tente.acces_variable = gen_tente.acces_erreur;
+				gen_tente.acces_erreur_pour_test = gen_tente.acces_erreur;
+			}
+			else if (inst->expr_appel->type->genre == GenreType::UNION) {
+				auto type_union = static_cast<TypeUnion *>(inst->expr_appel->type);
+				auto &desc = type_union->decl->desc;
+				auto index_membre_variable = 0;
+				auto index_membre_erreur = 0;
+
+				if (type_union->types.taille == 2) {
+					if (type_union->types[0]->genre == GenreType::ERREUR) {
+						gen_tente.type_piege = type_union->types[0];
+						gen_tente.type_variable = type_union->types[1];
+						index_membre_variable = 1;
+					}
+					else {
+						gen_tente.type_piege = type_union->types[1];
+						gen_tente.type_variable = type_union->types[0];
+						index_membre_erreur = 1;
+					}
+				}
+				else {
+					// À FAIRE(tente) : extraction des valeurs de l'union
+				}
+
+				gen_tente.acces_erreur = inst->expr_appel->chaine_calculee() + "." + broye_chaine(desc.membres[index_membre_erreur].nom);
+				gen_tente.acces_erreur_pour_test = inst->expr_appel->chaine_calculee() + ".membre_actif == " + dls::vers_chaine(index_membre_erreur + 1);
+				gen_tente.acces_erreur_pour_test += " && ";
+				gen_tente.acces_erreur_pour_test += gen_tente.acces_erreur;
+				gen_tente.acces_variable = inst->expr_appel->chaine_calculee() + "." + broye_chaine(desc.membres[index_membre_variable].nom);
+			}
+
+			generatrice << "if (" << gen_tente.acces_erreur_pour_test << " != 0) {\n";
+
+			if (inst->expr_piege == nullptr) {
+				auto const &lexeme = b->lexeme;
+				auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+				auto pos = trouve_position(*lexeme, fichier);
+				generatrice << "KR__erreur_non_geree(\"" << fichier->nom << "\", " << pos.numero_ligne << ");\n";
+			}
+			else {
+				generatrice << nom_broye_type(gen_tente.type_piege, true) << " " << broye_chaine(inst->expr_piege) << " = " << gen_tente.acces_erreur << ";\n";
+				genere_code_C(inst->bloc, generatrice, contexte, true);
+			}
+
+			generatrice << "}\n";
+
+			auto nom_var_temp = "__var_temp_tent" + dls::vers_chaine(index++);
+			inst->valeur_calculee = nom_var_temp;
+
+			generatrice << nom_broye_type(gen_tente.type_variable, true) << ' ' << nom_var_temp;
+			generatrice << " = " << gen_tente.acces_variable << ";\n";
+
+			break;
+		}
 	}
 }
 
@@ -2780,6 +2865,20 @@ void KR__acces_membre_union(
 )";
 
 	os << acces_membre_union;
+
+	auto erreur_non_geree =
+R"(
+void KR__erreur_non_geree(
+	const char *fichier,
+	long ligne)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Une erreur est survenue alors que le piège est marqué « nonatteignable » !\n");
+	abort();
+}
+)";
+
+	os << erreur_non_geree;
 
 	/* déclaration des types de bases */
 	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";

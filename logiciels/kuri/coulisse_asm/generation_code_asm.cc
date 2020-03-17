@@ -303,6 +303,10 @@ void genere_code_asm(
 		{
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_TENTE:
+		{
+			break;
+		}
 	}
 }
 

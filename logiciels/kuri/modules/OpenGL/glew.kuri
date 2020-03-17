@@ -132,21 +132,21 @@ initialise_opengl :: fonc () -> bool
         glewExperimental = 1
     }
 
-    erreur := glewInit()
-    retourne erreur == 0
+    erreur_ := glewInit()
+    retourne erreur_ == 0
 }
 
 vérifie_erreur :: fonc() -> rien
 {
-    erreur := glGetError()
+    erreur_ := glGetError()
 
-	si erreur == 0 {
+	si erreur_ == 0 {
         retourne
 	}
 
 	imprime("erreur OpenGL !\n")
 
-    discr erreur {
+    discr erreur_ {
         _GL_INVALID_ENUM {
             imprime("-- énumération invalide\n")
         }
@@ -160,7 +160,7 @@ vérifie_erreur :: fonc() -> rien
             imprime("-- opération invalide sur framebuffer\n")
         }
         sinon {
-            imprime("-- erreur inconnue, code %\n", erreur)
+            imprime("-- erreur inconnue, code %\n", erreur_)
         }
     }
 }

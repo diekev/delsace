@@ -271,6 +271,7 @@ llvm::Type *converti_type_llvm(
 			break;
 		}
 		case GenreType::ENUM:
+		case GenreType::ERREUR:
 		{
 			auto type_enum = static_cast<TypeEnum *>(type);
 			type_enum->type_llvm = converti_type_llvm(contexte, type_enum->type_donnees);

@@ -114,20 +114,27 @@ ouvre_fichier :: fonc(chemin : &CheminFichier) -> z32
 	}
 
 	ptr_chemin := chaine_c_temp(chemin.chn)
+    // @erreur
 	retourne open(ptr_chemin, LECTURE_SEULE)
 }
 
 ouvre_fichier_ecriture :: fonc(chemin : &CheminFichier) -> z32
 {
 	ptr_chemin := chaine_c_temp(chemin.chn)
+    // @erreur
 	retourne open(ptr_chemin, CREATION | ÉCRITURE_SEULE, 0o777)
 }
 
 ferme_fichier :: fonc(desc : z32) -> rien
 {
-	si desc != -1 {
-		close(desc)
+	si desc == -1 {
+        retourne
 	}
+
+    // @erreur
+    si close(desc) == -1 {
+        retourne
+    }
 }
 
 contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
@@ -185,7 +192,8 @@ contenu_fichier_texte :: fonc(chemin : &CheminFichier) -> chaine
 
 écris_fichier :: fonc(fd : z32, contenu : chaine) -> rien
 {
-    write(fd, contenu.pointeur, contenu.taille)
+    // @erreur
+    octets_écris := write(fd, contenu.pointeur, contenu.taille)
 }
 
 ouvre_dossier :: fonc(chemin : &CheminFichier) -> *DIR

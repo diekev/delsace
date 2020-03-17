@@ -676,14 +676,18 @@ imprime_valeur :: fonc(
 imprime :: fonc(format: chaine, args: ...eini) -> rien
 {
     chn := imprime_chaine(format, ...args)
-	sortie_standarde().écris(chn)
+
+    // @erreur
+	_ := sortie_standarde().écris(chn)
 	déloge chn
 }
 
 imprime_err :: fonc(format: chaine, args: ...eini) -> rien
 {
     chn := imprime_chaine(format, ...args)
-	sortie_erreur().écris(chn)
+
+    // @erreur
+	_ := sortie_erreur().écris(chn)
 	déloge chn
 }
 

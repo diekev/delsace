@@ -616,6 +616,14 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
 	return type;
 }
 
+TypeEnum *Typeuse::reserve_type_erreur(NoeudEnum *decl)
+{
+	auto type = reserve_type_enum(decl);
+	type->genre = GenreType::ERREUR;
+
+	return type;
+}
+
 size_t Typeuse::memoire_utilisee() const
 {
 	auto memoire = 0ul;
@@ -802,6 +810,7 @@ dls::chaine chaine_type(const Type *type)
 			return res;
 		}
 		case GenreType::ENUM:
+		case GenreType::ERREUR:
 		{
 			return static_cast<TypeEnum const *>(type)->nom;
 		}

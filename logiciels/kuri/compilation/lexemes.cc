@@ -42,7 +42,9 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("dyn"), GenreLexeme::DYN },
 	dls::paire{ dls::vue_chaine_compacte("déloge"), GenreLexeme::DELOGE },
 	dls::paire{ dls::vue_chaine_compacte("eini"), GenreLexeme::EINI },
+	dls::paire{ dls::vue_chaine_compacte("eini_erreur"), GenreLexeme::EINI_ERREUR },
 	dls::paire{ dls::vue_chaine_compacte("empl"), GenreLexeme::EMPL },
+	dls::paire{ dls::vue_chaine_compacte("erreur"), GenreLexeme::ERREUR },
 	dls::paire{ dls::vue_chaine_compacte("externe"), GenreLexeme::EXTERNE },
 	dls::paire{ dls::vue_chaine_compacte("faux"), GenreLexeme::FAUX },
 	dls::paire{ dls::vue_chaine_compacte("fonc"), GenreLexeme::FONC },
@@ -55,10 +57,12 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("n32"), GenreLexeme::N32 },
 	dls::paire{ dls::vue_chaine_compacte("n64"), GenreLexeme::N64 },
 	dls::paire{ dls::vue_chaine_compacte("n8"), GenreLexeme::N8 },
+	dls::paire{ dls::vue_chaine_compacte("nonatteignable"), GenreLexeme::NONATTEIGNABLE },
 	dls::paire{ dls::vue_chaine_compacte("nonsûr"), GenreLexeme::NONSUR },
 	dls::paire{ dls::vue_chaine_compacte("nul"), GenreLexeme::NUL },
 	dls::paire{ dls::vue_chaine_compacte("octet"), GenreLexeme::OCTET },
 	dls::paire{ dls::vue_chaine_compacte("opérateur"), GenreLexeme::OPERATEUR },
+	dls::paire{ dls::vue_chaine_compacte("piège"), GenreLexeme::PIEGE },
 	dls::paire{ dls::vue_chaine_compacte("pour"), GenreLexeme::POUR },
 	dls::paire{ dls::vue_chaine_compacte("pousse_contexte"), GenreLexeme::POUSSE_CONTEXTE },
 	dls::paire{ dls::vue_chaine_compacte("r16"), GenreLexeme::R16 },
@@ -76,6 +80,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("struct"), GenreLexeme::STRUCT },
 	dls::paire{ dls::vue_chaine_compacte("taille_de"), GenreLexeme::TAILLE_DE },
 	dls::paire{ dls::vue_chaine_compacte("tantque"), GenreLexeme::TANTQUE },
+	dls::paire{ dls::vue_chaine_compacte("tente"), GenreLexeme::TENTE },
 	dls::paire{ dls::vue_chaine_compacte("transtype"), GenreLexeme::TRANSTYPE },
 	dls::paire{ dls::vue_chaine_compacte("type_de"), GenreLexeme::TYPE_DE },
 	dls::paire{ dls::vue_chaine_compacte("union"), GenreLexeme::UNION },
@@ -285,8 +290,12 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::DELOGE";
 		case GenreLexeme::EINI:
 			return "GenreLexeme::EINI";
+		case GenreLexeme::EINI_ERREUR:
+			return "GenreLexeme::EINI_ERREUR";
 		case GenreLexeme::EMPL:
 			return "GenreLexeme::EMPL";
+		case GenreLexeme::ERREUR:
+			return "GenreLexeme::ERREUR";
 		case GenreLexeme::EXTERNE:
 			return "GenreLexeme::EXTERNE";
 		case GenreLexeme::FAUX:
@@ -311,6 +320,8 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::N64";
 		case GenreLexeme::N8:
 			return "GenreLexeme::N8";
+		case GenreLexeme::NONATTEIGNABLE:
+			return "GenreLexeme::NONATTEIGNABLE";
 		case GenreLexeme::NONSUR:
 			return "GenreLexeme::NONSUR";
 		case GenreLexeme::NUL:
@@ -319,6 +330,8 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::OCTET";
 		case GenreLexeme::OPERATEUR:
 			return "GenreLexeme::OPERATEUR";
+		case GenreLexeme::PIEGE:
+			return "GenreLexeme::PIEGE";
 		case GenreLexeme::POUR:
 			return "GenreLexeme::POUR";
 		case GenreLexeme::POUSSE_CONTEXTE:
@@ -353,6 +366,8 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::TAILLE_DE";
 		case GenreLexeme::TANTQUE:
 			return "GenreLexeme::TANTQUE";
+		case GenreLexeme::TENTE:
+			return "GenreLexeme::TENTE";
 		case GenreLexeme::TRANSTYPE:
 			return "GenreLexeme::TRANSTYPE";
 		case GenreLexeme::TYPE_DE:

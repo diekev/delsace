@@ -15,7 +15,7 @@ index_chaine :: fonc(magasin : &MagasinChaine, chn : chaine) -> z64
 		valeur {
 			retourne valeur
 		}
-		erreur {
+		erreur_ {
 			retourne 0
 		}
 	}

@@ -391,6 +391,7 @@ llvm::Value *cree_info_type(ContexteGenerationLLVM &contexte, Type *type)
 			break;
 		}
 		case GenreType::ENUM:
+		case GenreType::ERREUR:
 		{
 			auto type_enum = static_cast<TypeEnum *>(type);
 			type->info_type_llvm = cree_info_type_enum(contexte, type_enum->decl, type->taille_octet);
