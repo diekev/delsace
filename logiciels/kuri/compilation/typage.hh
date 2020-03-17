@@ -440,18 +440,8 @@ struct TypeFonction : public Type {
 	static TypeFonction *cree(kuri::tableau<Type *> const &entrees, kuri::tableau<Type *> const &sorties)
 	{
 		auto type = memoire::loge<TypeFonction>("TypeFonction");
-		// À FAIRE : la copie ne copie pas
-//		type->types_entrees = entrees;
-//		type->types_sorties = sorties;
-
-		POUR (entrees) {
-			type->types_entrees.pousse(it);
-		}
-
-		POUR (sorties) {
-			type->types_sorties.pousse(it);
-		}
-
+		type->types_entrees = entrees;
+		type->types_sorties = sorties;
 		type->taille_octet = 8;
 		type->alignement = 8;
 
