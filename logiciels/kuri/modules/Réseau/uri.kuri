@@ -1,155 +1,351 @@
 // Bibliothèque de manipulation d'uri.
+//
+// Un URI est une chaine de caractère identifiant une ressource sur un réseau, et
+// possède la structure suivante :
+// URI = schéma:[//autorité]chemin[?requête][#fragment]
+// autorité = [nom_utilisateur:mot_de_passe@]hôte[:port]
+//
+// Le standard détaillant la structure est accessible ici : https://tools.ietf.org/html/rfc3986
+//
+// Le parsage des URI s'inspire en partie sur l'implémentation de Chromium et Firefox,
+// notamment pour l'utilisation de '\' comme caractère de séparation d'autorité valide
+// (pour être compatible avec IE).
+// Voir :
+// https://source.chromium.org/chromium/chromium/src/+/master:url/third_party/mozilla/url_parse.cc
+// https://bugs.xdavidhu.me/google/2020/03/08/the-unexpected-google-wide-domain-check-bypass/
+//
+// Toutefois, notre implémentation valide également le parsage selon le standard, et renvoie
+// les erreurs correspondantes.
 
 importe Fondation
 
-// URI = schéma:[//autorité]chemin[?requête][#fragment]
-// autorité = [info_usager@]hôte[:port]
+// ------------------------------
+// fonctions auxilliares
+
+est_lettre :: fonc (c: z8) -> bool
+{
+    retourne ('a' <= c <= 'z') || ('A' <= c <= 'Z')
+}
+
+est_slash_uri :: fonc (c: z8) -> bool
+{
+    retourne (c == '/') || (c == '\\')
+}
+
+// l'autorité peut directement être suivie par la requête ou le fragment, sans avoir de chemin
+est_terminateur_autorité :: fonc (c: z8) -> bool
+{
+    retourne est_slash_uri(c) || (c == '?') || (c == '#')
+}
+
+// utilisée pour enlever les espaces en début et en fin de la chaine à parser
+doit_rogner_de_l_url :: fonc (c: z8) -> bool
+{
+    retourne c <= ' '
+}
+
+// ------------------------------
+
+// Les différentes erreurs possibles lors du parsage
+ErreurURI :: erreur {
+    SCHÉMA_VIDE
+    HÔTE_VIDE
+    AUTORITÉ_MANQUANTE
+    CHEMIN_NE_COMMENCE_PAS_PAR_SLASH
+    CARACTÈRE_INVALIDE_DANS_SCHÉMA
+    CARACTÈRE_INVALIDE_DANS_PORT
+    PORT_TROP_GRAND
+}
+
 URI :: struct {
+    // la chaine originale
 	uri : chaine
-	schéma : chaine
+
+    // les différents composants de l'URI
+    schéma : chaine
 	autorité : chaine
-	chemin : chaine
+	chemin_complet : chaine
+
+    // les différents composants du chemin
+    chemin : chaine
 	requête : chaine
 	fragment : chaine
-	info_usager : chaine
+
+    // les différents composants de l'autorité
+	nom_utilisateur : chaine
+    mot_de_passe : chaine
 	hôte : chaine
 	port : chaine
+
+    // un composant est défini si son séparateur est présent, mais il peut tout de même
+    // être vide
+    schéma_est_défini := faux
+    autorité_est_définie := faux
+    requête_est_définie := faux
+    fragment_est_défini := faux
 }
 
-est_valide :: fonc(uri : &URI) -> bool
+RésultatURI :: union {
+    err : ErreurURI
+    uri : URI
+}
+
+RésultatExtraction :: union {
+    b: bool
+    e: ErreurURI
+}
+
+extrait_schéma :: fonc (chn: chaine, schéma: *chaine) -> RésultatExtraction
 {
-    si est_vide(uri.schéma) {
-		retourne faux
-	}
+    chn = avance_si(chn, doit_rogner_de_l_url)
 
-    si !est_vide(uri.autorité) {
-	    si est_vide(uri.hôte) {
-			retourne faux
-		}
-	}
+    // l'entrée est vide ou ne contenant que des espaces blancs
+    si chn.taille == 0 {
+        retourne faux
+    }
 
-	retourne vrai
+    pour c, i dans chn {
+        si c == ':' {
+            mémoire(schéma) = construit_chaine(@chn[0], i)
+            retourne vrai
+        }
+
+        si est_lettre(c) {
+            continue
+        }
+
+        si est_nombre_décimal(c) {
+            continue
+        }
+
+        si c == '+' || c == '-' || c == '.' {
+            continue
+        }
+
+        retourne ErreurURI.CARACTÈRE_INVALIDE_DANS_SCHÉMA
+    }
+
+    retourne faux
 }
 
-construit_uri :: fonc(chn : chaine) -> URI
+parse_info_serveur :: fonc (uri: *URI, info_serveur: chaine) -> ErreurURI
+{
+    terminateur_ipv6 : z64 = -1
+
+    si info_serveur[0] == '[' {
+        terminateur_ipv6 = info_serveur.taille - 1
+    }
+
+    double_point : z64 = -1
+
+    pour c, idx dans info_serveur {
+        si c == ']' {
+            terminateur_ipv6 = idx
+        }
+        sinon si c == ':' {
+            double_point = idx
+        }
+    }
+
+    si double_point > terminateur_ipv6 {
+        uri.hôte = construit_chaine(info_serveur.pointeur, double_point - 1)
+
+        uri.port = avance(info_serveur, double_point + 1)
+
+        si uri.port.taille > 5 {
+            retourne ErreurURI.PORT_TROP_GRAND
+        }
+
+        pour c dans uri.port {
+            si !est_nombre_décimal(c) {
+                retourne ErreurURI.CARACTÈRE_INVALIDE_DANS_PORT
+            }
+        }
+    }
+    sinon {
+        uri.hôte = info_serveur
+    }
+
+    retourne transtype(0: ErreurURI)
+}
+
+parse_info_usager :: fonc (uri: *URI, info_usager: chaine) -> rien
+{
+    // trouve la séparation entre le nom et le mot de passe
+    double_point := trouve_caractère_depuis_le_début(info_usager, ':')
+
+    uri.nom_utilisateur = construit_chaine(info_usager.pointeur, double_point)
+    uri.mot_de_passe = avance(info_usager, double_point + 1)
+}
+
+parse_autorité :: fonc (uri: *URI) -> ErreurURI
+{
+    début := trouve_caractère_depuis_la_fin(uri.autorité, '@')
+
+    si uri.autorité[début] == '@' {
+        composant_usager := construit_chaine(uri.autorité.pointeur, début - 1)
+        composant_serveur := avance(uri.autorité, début + 1)
+
+        parse_info_usager(uri, composant_usager)
+
+        tente parse_info_serveur(uri, composant_serveur) piège err {
+            retourne err
+        }
+    }
+    sinon {
+        composant_serveur := avance(uri.autorité, début)
+
+        tente parse_info_serveur(uri, composant_serveur) piège err {
+            retourne err
+        }
+    }
+
+    si uri.autorité.taille != 0 {
+        si uri.hôte.taille == 0 {
+            retourne ErreurURI.HÔTE_VIDE
+        }
+    }
+
+    retourne transtype(0: ErreurURI)
+}
+
+parse_chemin :: fonc (uri: *URI) -> ErreurURI
+{
+    séparateur_requête : z64 = -1
+    séparateur_fragment : z64 = -1
+
+    pour c, idx dans uri.chemin_complet {
+        si c == '?' {
+            si séparateur_requête < 0 {
+                uri.requête_est_définie = vrai
+                séparateur_requête = idx
+            }
+        }
+        sinon si c == '#' {
+            si séparateur_fragment < 0 {
+                uri.fragment_est_défini = vrai
+                séparateur_fragment = idx
+                arrête
+            }
+        }
+    }
+
+    fin_requête : z64 = 0
+    fin_fichier := uri.chemin_complet.taille
+
+    si séparateur_fragment >= 0 {
+        fin_requête = séparateur_fragment
+        fin_fichier = fin_requête
+        uri.fragment = avance(uri.chemin_complet, séparateur_fragment + 1)
+    }
+    sinon {
+        fin_requête = fin_fichier
+        fin_fichier = fin_requête
+    }
+
+    si séparateur_requête >= 0 {
+        fin_fichier = séparateur_requête
+        uri.requête = construit_chaine(uri.chemin_complet.pointeur + séparateur_requête + 1, fin_requête - séparateur_requête - 1)
+    }
+
+    si fin_fichier != 0 {
+        uri.chemin = construit_chaine(uri.chemin_complet.pointeur, fin_fichier)
+
+        si uri.chemin.taille != 0 {
+            si uri.chemin[0] != '/' {
+                retourne ErreurURI.CHEMIN_NE_COMMENCE_PAS_PAR_SLASH
+            }
+        }
+    }
+
+    retourne transtype(0: ErreurURI)
+}
+
+parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
+{
+    chn = avance_si(chn, doit_rogner_de_l_url)
+    chn = recule_si(chn, doit_rogner_de_l_url)
+
+    uri : URI
+    uri.uri = chn
+
+    imprime("Chaine reçue : %\n", chn)
+
+    eu_schéma := tente extrait_schéma(chn, @uri.schéma) piège err {
+        retourne err
+    }
+
+    si eu_schéma {
+        chn = avance(chn, uri.schéma.taille + 1)
+        uri.schéma_est_défini = vrai
+    }
+
+    nombre_slashs := compte_consécutifs_si(chn, est_slash_uri)
+    après_slashs := avance(chn, nombre_slashs)
+
+    fin_autorité := trouve_position_si(après_slashs, est_terminateur_autorité)
+
+    si fin_autorité == 0 {
+        retourne ErreurURI.AUTORITÉ_MANQUANTE
+    }
+
+    uri.autorité = construit_chaine(après_slashs.pointeur, fin_autorité)
+    uri.autorité_est_définie = vrai
+    uri.chemin_complet = avance(après_slashs, fin_autorité)
+
+    tente parse_autorité(@uri) piège err {
+        retourne err
+    }
+
+    tente parse_chemin(@uri) piège err {
+        retourne err
+    }
+
+    retourne uri
+}
+
+parse_uri_depuis_chemin_requête :: fonc (chn: chaine) -> RésultatURI
 {
 	uri : URI
 	uri.uri = chn
+	uri.chemin_complet = chn
 
-	// le schéma se trouve entre le début et ':'
-	pos := trouve_caractère(chn, ':', 0)
-
-	si pos != -1 {
-		uri.schéma = construit_chaine(@chn[0], pos)
-		pos += 1
-	}
-	sinon {
-		pos = 0
-	}
-
-	si (chn[pos] == '/' && chn[pos + 1] == '/') {
-		pos = pos + 2
-		fin_autorité := trouve_caractère(chn, '/', pos)
-
-        si (fin_autorité == -1) {
-			fin_autorité = chn.taille
-		}
-
-		uri.autorité = construit_chaine(@chn[pos - 2], fin_autorité - pos + 2)
-
-		fin_user_info := trouve_caractère(chn, '@', pos)
-
-		// il est possible d'avoir un mot de passe : username:motdepasse
-		si (fin_user_info != -1) {
-			uri.info_usager = construit_chaine(@chn[pos], fin_user_info - (pos))
-
-			pos = fin_user_info + 1
-		}
-
-		// il est possible d'avoir des addresse IPv6 entre []
-
-		si (chn[pos] == '[') {
-			fin_adresse := trouve_caractère(chn, ']', 0)
-			uri.hôte = construit_chaine(@chn[pos], fin_adresse - pos + 1)
-
-			si (chn[fin_adresse + 1] == ':') {
-				uri.port = construit_chaine(@chn[fin_adresse + 2], fin_autorité - fin_adresse - 2)
-			}
-		}
-		sinon {
-			debut_port := trouve_caractère(chn, ':', pos)
-
-			si (debut_port != -1) {
-				uri.port = construit_chaine(@chn[debut_port + 1], fin_autorité - debut_port - 1)
-				uri.hôte = construit_chaine(@chn[pos], debut_port - pos)
-			}
-			sinon {
-				uri.hôte = construit_chaine(@chn[pos], fin_autorité - pos)
-			}
-		}
-
-		pos = fin_autorité
-	}
-
-	pos_requête := trouve_caractère(chn, '?', 0)
-	pos_fragment := trouve_caractère(chn, '#', 0)
-	pos_fin_chemin := chn.taille
-
-    si (pos_requête != -1) {
-		pos_fin_chemin = pos_requête
-	}
-	sinon si (pos_fragment != -1) {
-		pos_fin_chemin = pos_requête
-	}
-
-	uri.chemin = construit_chaine(@chn[pos], pos_fin_chemin - pos)
-
-    si (pos_requête != -1) {
-		si (pos_fragment == -1) {
-			pos_fragment = chn.taille
-		}
-
-		uri.requête = construit_chaine(@chn[pos_requête], pos_fragment - pos_requête)
-	}
-
-	si (pos_fragment != -1 && pos_fragment < chn.taille) {
-		uri.fragment = construit_chaine(@chn[pos_fragment], chn.taille - pos_fragment)
+	tente parse_chemin(@uri) piège err {
+		retourne err
 	}
 
 	retourne uri
 }
 
-construit_uri_depuis_chemin_requête :: fonc (chn: chaine) -> URI
+// Retourne une chaine contenant la recomposition de l'URI depuis ses composants.
+// Voir RFC3986, section 5.3
+recompose_uri :: fonc (uri: *URI) -> chaine
 {
-	uri : URI
+    résultat : chaine
 
-	pos := 0
-	pos_requête := trouve_caractère(chn, '?', 0)
-	pos_fragment := trouve_caractère(chn, '#', 0)
-	pos_fin_chemin := chn.taille
+    si uri.schéma_est_défini {
+        append(@résultat, uri.schéma)
+        append(@résultat, ":")
+    }
 
-    si (pos_requête != -1) {
-		pos_fin_chemin = pos_requête
-	}
-	sinon si (pos_fragment != -1) {
-		pos_fin_chemin = pos_requête
-	}
+    si uri.autorité_est_définie {
+        append(@résultat, "//")
+        append(@résultat, uri.autorité)
+    }
 
-	uri.chemin = construit_chaine(@chn[pos], pos_fin_chemin - pos)
+    append(@résultat, uri.chemin)
 
-    si (pos_requête != -1) {
-		si (pos_fragment == -1) {
-			pos_fragment = chn.taille
-		}
+    si uri.requête_est_définie {
+        append(@résultat, "?")
+        append(@résultat, uri.requête)
+    }
 
-		uri.requête = construit_chaine(@chn[pos_requête], pos_fragment - pos_requête)
-	}
+    si uri.fragment_est_défini {
+        append(@résultat, "#")
+        append(@résultat, uri.fragment)
+    }
 
-	si (pos_fragment != -1 && pos_fragment < chn.taille) {
-		uri.fragment = construit_chaine(@chn[pos_fragment], chn.taille - pos_fragment)
-	}
-
-	retourne uri
+    retourne résultat
 }
 
 // Calcul une somme de controle, sur 64bit, pour un URI selon l'algorithme de Fletcher
