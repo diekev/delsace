@@ -340,11 +340,6 @@ struct MembreStructure {
 struct DescriptionStructure {
 	kuri::tableau<MembreStructure> membres{};
 	unsigned int taille_octet{};
-	bool est_union{};
-	bool est_nonsure{};
-	bool est_externe{};
-	/* pour la prédéclaration des InfoType* */
-	bool deja_genere{};
 };
 
 struct NoeudStruct : public NoeudDeclaration {
@@ -367,8 +362,6 @@ struct DescriptionEnum {
 	long index_type;
 	bool est_drapeau;
 	bool est_erreur = false;
-	/* pour la prédéclaration des InfoType* */
-	bool deja_genere;
 };
 
 struct NoeudEnum : public NoeudDeclaration {
