@@ -31,10 +31,6 @@
 
 #include "generatrice_code_c.hh"
 
-// À FAIRE : les types récursifs (p.e. listes chainées) générent plusieurs fois
-// leurs info_types, donc nous utilisons un index pour les différentier
-static int index_info_type = 0;
-
 /* À tenir synchronisé avec l'énum dans info_type.kuri
  * Nous utilisons ceci lors de la génération du code des infos types car nous ne
  * générons pas de code (ou symboles) pour les énums, mais prenons directements
@@ -129,8 +125,10 @@ static auto cree_info_type_structure_C(
 	auto const nom_tableau_membre = "__info_type_membres" + nom_info_type;
 	auto pointeurs = dls::tableau<dls::chaine>();
 
+	auto index_membre = 0;
+
 	POUR (noeud_decl->desc.membres) {
-		auto nom_info_type_membre = "__info_type_membre" + dls::vers_chaine(index_info_type++);
+		auto nom_info_type_membre = "__info_type_membre" + nom_info_type + dls::vers_chaine(index_membre++);
 		pointeurs.pousse(nom_info_type_membre);
 
 		generatrice << "static const InfoTypeMembreStructure " << nom_info_type_membre << " = {\n";
@@ -402,7 +400,7 @@ dls::chaine cree_info_type_C(
 			}
 
 			/* crée tableau infos type pour les entrées */
-			auto const nom_tableau_entrees = "__types_entree" + nom_info_type + dls::vers_chaine(index_info_type++);
+			auto const nom_tableau_entrees = "__types_entree" + nom_info_type;
 
 			generatrice << "static const InfoType *" << nom_tableau_entrees << "[] = {\n";
 
@@ -413,7 +411,7 @@ dls::chaine cree_info_type_C(
 			generatrice << "};\n";
 
 			/* crée tableau infos type pour les sorties */
-			auto const nom_tableau_sorties = "__types_sortie" + nom_info_type + dls::vers_chaine(index_info_type++);
+			auto const nom_tableau_sorties = "__types_sortie" + nom_info_type;
 
 			generatrice << "static const InfoType *" << nom_tableau_sorties << "[] = {\n";
 
