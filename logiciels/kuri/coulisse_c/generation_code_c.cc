@@ -46,6 +46,23 @@ namespace noeud {
 
 /* ************************************************************************** */
 
+static inline auto broye_chaine(NoeudExpression *b)
+{
+	return broye_nom_simple(b->ident->nom);
+}
+
+static inline auto broye_chaine(dls::vue_chaine_compacte const &chn)
+{
+	return broye_nom_simple(chn);
+}
+
+static inline auto broye_chaine(kuri::chaine const &chn)
+{
+	return broye_nom_simple(dls::vue_chaine_compacte(chn.pointeur, chn.taille));
+}
+
+/* ************************************************************************** */
+
 /* À FAIRE : trouve une bonne manière de générer des noms uniques. */
 static int index = 0;
 
@@ -89,7 +106,7 @@ static void applique_transformation(
 			auto &membre = decl->desc.membres[index_membre];
 
 			generatrice.declare_variable(type_union, nom_var_temp, "");
-			generatrice << nom_var_temp << "." << broye_nom_simple(dls::vue_chaine_compacte(membre.nom.pointeur, membre.nom.taille));
+			generatrice << nom_var_temp << "." << broye_chaine(membre.nom);
 			generatrice << " = " << nom_courant << ";\n";
 
 			if (!type_union->est_nonsure) {
@@ -120,7 +137,7 @@ static void applique_transformation(
 			generatrice << "}\n";
 
 			generatrice << nom_broye_type(type_cible, true) << " " << nom_var_temp
-						<< " = " << nom_courant << "." << broye_nom_simple(dls::vue_chaine_compacte(membre.nom.pointeur, membre.nom.taille))
+						<< " = " << nom_courant << "." << broye_chaine(membre.nom)
 						<< ";\n";
 
 			break;
@@ -282,23 +299,6 @@ static void genere_code_extra_pre_retour(
 
 		bloc = bloc->parent;
 	}
-}
-
-/* ************************************************************************** */
-
-static inline auto broye_chaine(NoeudExpression *b)
-{
-	return broye_nom_simple(b->ident->nom);
-}
-
-static inline auto broye_chaine(dls::vue_chaine_compacte const &chn)
-{
-	return broye_nom_simple(chn);
-}
-
-static inline auto broye_chaine(kuri::chaine const &chn)
-{
-	return broye_nom_simple(dls::vue_chaine_compacte(chn.pointeur, chn.taille));
 }
 
 /* ************************************************************************** */
@@ -569,7 +569,7 @@ static void genere_declaration_structure(GeneratriceCodeC &generatrice, NoeudStr
 	}
 
 	POUR (decl->desc.membres) {
-		auto nom = broye_nom_simple(dls::vue_chaine_compacte(it.nom.pointeur, it.nom.taille));
+		auto nom = broye_chaine(it.nom);
 		generatrice << nom_broye_type(it.type, true) << ' ' << nom << ";\n";
 	}
 
