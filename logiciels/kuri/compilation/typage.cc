@@ -277,8 +277,6 @@ Typeuse::Typeuse(GrapheDependance &g, Operateurs &o)
 
 		types_communs[idx] = type;
 	}
-
-	// À FAIRE : ajout des dépendances dans le graphe entre les fonctions et les types de leurs paramètres
 }
 
 Typeuse::~Typeuse()

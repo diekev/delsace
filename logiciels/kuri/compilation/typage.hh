@@ -228,7 +228,6 @@ enum {
 struct Type {
 	GenreType genre{};
 	unsigned taille_octet = 0;
-	// À FAIRE: alignement pour les structures, les énums, etc.
 	unsigned alignement = 0;
 	int drapeaux = 0;
 

@@ -2334,8 +2334,6 @@ static void performe_validation_semantique(
 				}
 			}
 
-			/* À FAIRE : il nous faut les noms -> il nous faut les assignations
-			 * dans l'arbre */
 			for (auto param : expr->params) {
 				if (param->genre != GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
 					erreur::lance_erreur(
@@ -2762,10 +2760,7 @@ static void performe_validation_semantique(
 
 				verifie_inclusion_valeur(decl_membre);
 
-				// À FAIRE : emploi de structures
-				// - validation que nous avons une structure
-				// - prend note de la hierarchie, notamment pour valider les transtypages
-				// - préserve l'emploi dans les données types
+				// À FAIRE : préserve l'emploi dans les données types
 				if (decl_membre->drapeaux & EMPLOYE) {
 					if (decl_membre->type->genre != GenreType::STRUCTURE) {
 						erreur::lance_erreur("Ne peut employer un type n'étant pas une structure",
@@ -2938,7 +2933,6 @@ static void performe_validation_semantique(
 				auto valide_presence_membres = [&membres_rencontres, &decl, &contexte, &expression]() {
 					auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
 
-					// À FAIRE : réusinage arbre, ceci ne semble pas correcte
 					POUR (decl->bloc->membres) {
 						if (membres_rencontres.trouve(it->ident) == membres_rencontres.fin()) {
 							valeurs_manquantes.insere(it->lexeme->chaine);
@@ -3002,7 +2996,6 @@ static void performe_validation_semantique(
 					decl_expr->drapeaux_decl |= EMPLOYE;
 					decl_expr->type = expression->type;
 					// À FAIRE: mise en place des informations d'emploie
-					// À FAIRE : est_dynamique
 
 					bloc_paire->membres.pousse(decl_expr);
 
