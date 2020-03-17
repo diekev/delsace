@@ -38,15 +38,6 @@ static void imprime_tilde(dls::flux_chaine &ss, dls::vue_chaine_compacte chaine)
 	imprime_tilde(ss, dls::vue_chaine(chaine.pointeur(), chaine.taille()));
 }
 
-static void imprime_tilde(
-		dls::flux_chaine &ss,
-		dls::vue_chaine_compacte chaine,
-		long debut,
-		long fin)
-{
-	imprime_tilde(ss, dls::vue_chaine(chaine.pointeur(), chaine.taille()), debut, fin);
-}
-
 }
 
 namespace erreur {
