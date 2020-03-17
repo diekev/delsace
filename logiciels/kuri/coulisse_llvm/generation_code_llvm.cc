@@ -1332,7 +1332,7 @@ llvm::Value *genere_code_llvm(
 			auto type2 = enfant2->type;
 			auto op = expr->op;
 
-			if ((b->drapeaux & EST_ASSIGNATION_OPEREE) != 0) {
+			if ((b->drapeaux & EST_ASSIGNATION_COMPOSEE) != 0) {
 				auto ptr_valeur1 = genere_code_llvm(enfant1, contexte, true);
 				auto valeur1 = new llvm::LoadInst(ptr_valeur1, "", false, contexte.bloc_courant());
 				auto valeur2 = applique_transformation(contexte, enfant2, false);

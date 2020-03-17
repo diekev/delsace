@@ -1485,7 +1485,7 @@ static void performe_validation_semantique(
 
 			auto type_op = expr->lexeme->genre;
 
-			auto assignation_composee = est_assignation_operee(type_op);
+			auto assignation_composee = est_assignation_composee(type_op);
 
 			performe_validation_semantique(enfant1, contexte, expr_gauche);
 			performe_validation_semantique(enfant2, contexte, assignation_composee ? false : expr_gauche);
@@ -1591,8 +1591,8 @@ static void performe_validation_semantique(
 			else {
 
 				if (assignation_composee) {
-					type_op = operateur_pour_assignation_operee(type_op);
-					expr->drapeaux |= EST_ASSIGNATION_OPEREE;
+					type_op = operateur_pour_assignation_composee(type_op);
+					expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
 
 					// exclue les arithmétiques de pointeur
 					if (!(type1->genre == GenreType::POINTEUR && (est_type_entier(type2) || type2->genre == GenreType::ENTIER_CONSTANT))) {

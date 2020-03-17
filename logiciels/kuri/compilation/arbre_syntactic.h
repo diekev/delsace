@@ -118,7 +118,7 @@ enum drapeaux_noeud : unsigned short {
 	FORCE_ENLIGNE              = (1 << 5),
 	FORCE_HORSLIGNE            = (1 << 6),
 	FORCE_NULCTX               = (1 << 7),
-	EST_ASSIGNATION_OPEREE     = (1 << 8),
+	EST_ASSIGNATION_COMPOSEE   = (1 << 8),
 	EST_VARIADIQUE             = (1 << 9),
 	EST_VAR_BOUCLE             = (1 << 10),
 	EST_GLOBALE                = (1 << 11),

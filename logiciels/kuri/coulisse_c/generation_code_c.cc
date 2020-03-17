@@ -1719,9 +1719,9 @@ void genere_code_C(
 				}
 
 				if (it->genre == GenreNoeud::OPERATEUR_BINAIRE) {
-					/* les assignations opérées (+=, etc) n'ont pas leurs codes
+					/* les assignations composées (+=, etc) n'ont pas leurs codes
 					 * générées via genere_code_C  */
-					if (est_assignation_operee(it->lexeme->genre)) {
+					if (est_assignation_composee(it->lexeme->genre)) {
 						generatrice << it->chaine_calculee();
 						generatrice << ";\n";
 					}

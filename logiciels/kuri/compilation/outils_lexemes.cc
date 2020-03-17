@@ -48,7 +48,7 @@ bool est_operateur_bool(GenreLexeme type)
 	}
 }
 
-bool est_assignation_operee(GenreLexeme type)
+bool est_assignation_composee(GenreLexeme type)
 {
 	switch (type) {
 		default:
@@ -71,7 +71,7 @@ bool est_assignation_operee(GenreLexeme type)
 	}
 }
 
-GenreLexeme operateur_pour_assignation_operee(GenreLexeme type)
+GenreLexeme operateur_pour_assignation_composee(GenreLexeme type)
 {
 	switch (type) {
 		default:

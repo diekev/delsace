@@ -28,9 +28,9 @@ enum class GenreLexeme : unsigned int;
 
 bool est_operateur_bool(GenreLexeme type);
 
-bool est_assignation_operee(GenreLexeme type);
+bool est_assignation_composee(GenreLexeme type);
 
-GenreLexeme operateur_pour_assignation_operee(GenreLexeme type);
+GenreLexeme operateur_pour_assignation_composee(GenreLexeme type);
 
 bool est_operateur_comp(GenreLexeme type);
 
