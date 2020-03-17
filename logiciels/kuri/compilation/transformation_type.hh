@@ -26,7 +26,6 @@
 
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
-struct ContexteGenerationCode;
 struct Type;
 
 enum class TypeTransformation {

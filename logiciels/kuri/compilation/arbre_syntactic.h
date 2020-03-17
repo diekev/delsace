@@ -29,11 +29,15 @@
 #include "biblinternes/outils/definitions.h"
 
 #include "lexemes.hh"
+#include "structures.hh"
 #include "typage.hh"
 #include "transformation_type.hh"
 
 class assembleuse_arbre;
+struct DonneesOperateur;
 struct Fichier;
+struct IdentifiantCode;
+struct NoeudBloc;
 struct TypeFonction;
 
 enum class GenreNoeud : char {
@@ -190,17 +194,9 @@ inline bool est_valeur_droite(GenreValeur type_valeur)
 	return (type_valeur & GenreValeur::DROITE) != GenreValeur::INVALIDE;
 }
 
-struct DonneesOperateur;
-
-#include "structures.hh"
-
 void rassemble_feuilles(
 		NoeudExpression *noeud_base,
 		dls::tableau<NoeudExpression *> &feuilles);
-
-struct IdentifiantCode;
-
-struct NoeudBloc;
 
 struct NoeudBase {
 	GenreNoeud genre{};

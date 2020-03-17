@@ -37,12 +37,9 @@ class Type;
 }
 #endif
 
-struct ContexteGenerationCode;
 struct GrapheDependance;
-struct IdentifiantCode;
 struct Operateurs;
 struct NoeudEnum;
-struct NoeudErreur;
 struct NoeudExpression;
 struct NoeudStruct;
 

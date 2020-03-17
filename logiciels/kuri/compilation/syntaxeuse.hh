@@ -31,7 +31,6 @@
 #include "erreur.h"
 
 struct ContexteGenerationCode;
-struct DonneesModule;
 
 class Syntaxeuse : public lng::analyseuse<DonneesLexeme> {
 	ContexteGenerationCode &m_contexte;
