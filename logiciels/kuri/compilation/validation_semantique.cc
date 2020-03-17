@@ -1483,8 +1483,6 @@ static void performe_validation_semantique(
 			auto enfant1 = expr->expr1;
 			auto enfant2 = expr->expr2;
 
-			/* À FAIRE : transformation automatique */
-
 			performe_validation_semantique(enfant1, contexte, expr_gauche);
 			performe_validation_semantique(enfant2, contexte, expr_gauche);
 
