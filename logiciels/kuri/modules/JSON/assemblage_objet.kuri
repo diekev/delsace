@@ -66,7 +66,7 @@ empile_objet :: fonc(assembleuse: &AssembleuseObjet, objet: *Objet) -> rien
 
 dépile_objet :: fonc(assembleuse: &AssembleuseObjet) -> rien
 {
-    assembleuse.pile.dépile()
+    _ := assembleuse.pile.dépile()
 }
 
 crée_objet :: fonc(assembleuse: &AssembleuseObjet, nom_objet: chaine, type: TypeObjet) -> *Objet

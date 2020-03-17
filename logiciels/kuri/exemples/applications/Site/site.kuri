@@ -145,7 +145,10 @@ procède_requête :: fonc (
     }
 */
 
-    uri := construit_uri_depuis_chemin_requête(ligne_requête.chemin)
+    uri := tente parse_uri_depuis_chemin_requête(ligne_requête.chemin) piège err {
+        // @erreur
+        retourne
+    }
 
     données_requête : DonnéesRequête
     données_requête.uri = uri
@@ -311,7 +314,8 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
 
     // débloque la prise pour pouvoir interrompre la boucle
     flags := fcntl(PRISE_SERVEUSE, _F_GETFL, 0);
-    fcntl(PRISE_SERVEUSE, _F_SETFL, flags | _O_NONBLOCK);
+    // @erreur
+    _ := fcntl(PRISE_SERVEUSE, _F_SETFL, flags | _O_NONBLOCK);
 }
 
 ConfigurationServeuse :: struct {
@@ -354,7 +358,8 @@ principale :: fonc () -> z32
     signal(_SIGINT, rappel_interruption);
 
     serveuse : Serveuse
-    construit_serveuse(serveuse, configuration.port)
+    // @erreur
+    _ := construit_serveuse(serveuse, configuration.port)
 
     // pour les gabarits
     ajoute_fichier(@serveuse.rendeuse_gabarit.catalogue, "accueil", "accueil.html")

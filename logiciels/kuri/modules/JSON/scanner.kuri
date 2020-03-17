@@ -293,7 +293,7 @@ lis_nombre :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
         }
 
         // lis les autres, ignore le retour
-        scanner.lis_chiffre('0', '9')
+        _ := scanner.lis_chiffre('0', '9')
     }
 
     données_nombre.unités = scanner.mot_courant()
@@ -614,7 +614,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
     }
     sinon si scanner.lexème == LexèmeJSON.CROCHET_OUVRANT {
         // À FAIRE : type tableau
-        scanner.lis_tableau()
+        _ := scanner.lis_tableau()
     }
     sinon {
         imprime("Valeur inconnue, obtenu : %\n", scanner.lexème)
@@ -635,7 +635,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
             arrête
         }
 
-        scanner.lis_valeur(e)
+        _ := scanner.lis_valeur(e)
 
         scanner.lis()
 

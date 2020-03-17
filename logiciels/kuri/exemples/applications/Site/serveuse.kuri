@@ -31,7 +31,8 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
 
     enable := 1
     si setsockopt(serveuse.prise, _SOL_SOCKET, _SO_REUSEADDR, @enable, taille_de(z32)) < 0 {
-        close(serveuse.prise)
+        // @erreur
+        _ := close(serveuse.prise)
         retourne "setsockopt(SO_REUSEADDR) failed"
     }
 
@@ -67,7 +68,8 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
 détruit_serveuse :: fonc (serveuse: *Serveuse) -> rien
 {
     si serveuse.prise != -1 {
-        close(serveuse.prise)
+        // @erreur
+        _ := close(serveuse.prise)
     }
 
     déloge serveuse.routes

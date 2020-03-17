@@ -145,7 +145,7 @@ crée_noeud :: fonc(
 dépile_noeud :: fonc(assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien
 {
 	assembleuse.attend_type(type_noeud)
-	assembleuse.pile.dépile()
+	_ := assembleuse.pile.dépile()
 }
 
 attend_type :: fonc(assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien

@@ -70,7 +70,7 @@ performe_syntaxage :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 	}
 
     données_lexème : DonnéesLexème
-	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, données_lexème)
+	_ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, données_lexème)
 
 	syntaxeuse.analyse_page()
 
@@ -127,7 +127,7 @@ analyse_expression :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 
 		syntaxeuse.assembleuse.attend_type(TypeNoeud.SI)
 
-		syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+		_ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
 
 		syntaxeuse.analyse_page()
 	}
@@ -164,7 +164,7 @@ analyse_si :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 		//lance_erreur("Attendu 'si'")
 	}
 
-	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.SI, syntaxeuse.données())
+	_ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.SI, syntaxeuse.données())
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
 		//lance_erreur("Attendu une chaîne de caractère après 'si'")
@@ -176,7 +176,7 @@ analyse_si :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 		//lance_erreur("Attendu '%}'")
 	}
 
-	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+	_ = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
 
 	syntaxeuse.analyse_page()
 }
@@ -187,7 +187,7 @@ analyse_pour :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 		//lance_erreur("Attendu 'pour'")
 	}
 
-	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.POUR, syntaxeuse.données())
+	_ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.POUR, syntaxeuse.données())
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
 		//lance_erreur("Attendu une chaîne de caractère après 'pour'")
@@ -209,7 +209,7 @@ analyse_pour :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 		//lance_erreur("Attendu '%}'")
 	}
 
-	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+	_ = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
 
 	syntaxeuse.analyse_page()
 }
