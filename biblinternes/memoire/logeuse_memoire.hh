@@ -40,6 +40,9 @@ namespace memoire {
 struct logeuse_memoire {
 	std::atomic_long memoire_consommee = 0;
 	std::atomic_long memoire_allouee = 0;
+	std::atomic_long nombre_allocations = 0;
+	std::atomic_long nombre_reallocations = 0;
+	std::atomic_long nombre_deallocations = 0;
 
 #ifdef DEBOGUE_MEMOIRE
 	/* XXX - il est possible d'avoir une situation de concurence sur la table */
@@ -69,6 +72,8 @@ struct logeuse_memoire {
 
 		ajoute_memoire(message, static_cast<long>(sizeof(T)));
 
+		nombre_allocations += 1;
+
 		return ptr;
 	}
 
@@ -84,6 +89,8 @@ struct logeuse_memoire {
 		}
 
 		ajoute_memoire(message, static_cast<long>(sizeof(T)) * nombre);
+
+		nombre_allocations += 1;
 
 		return ptr;
 	}
@@ -109,6 +116,8 @@ struct logeuse_memoire {
 		}
 
 		ajoute_memoire(message, static_cast<long>(sizeof(T)) * (nouvelle_taille - ancienne_taille));
+		nombre_allocations += 1;
+		nombre_reallocations += 1;
 	}
 
 	template <typename T>
@@ -122,6 +131,7 @@ struct logeuse_memoire {
 		ptr = nullptr;
 
 		enleve_memoire(message, static_cast<long>(sizeof(T)));
+		nombre_deallocations += 1;
 	}
 
 	template <typename T>
@@ -137,6 +147,7 @@ struct logeuse_memoire {
 		ptr = nullptr;
 
 		enleve_memoire(message, static_cast<long>(sizeof(T)) * nombre);
+		nombre_deallocations += 1;
 	}
 
 	static logeuse_memoire &instance();
@@ -154,6 +165,12 @@ private:
  * Retourne la quantité en octets de mémoire consommée au moment de l'appel.
  */
 [[nodiscard]] long consommee();
+
+[[nodiscard]] long nombre_allocations();
+
+[[nodiscard]] long nombre_reallocations();
+
+[[nodiscard]] long nombre_deallocations();
 
 /**
  * Convertit le nombre d'octet passé en paramètre en une chaine contenant :

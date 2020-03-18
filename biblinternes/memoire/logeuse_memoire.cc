@@ -89,6 +89,24 @@ long consommee()
 	return logeuse.memoire_consommee.load();
 }
 
+long nombre_allocations()
+{
+	auto &logeuse = logeuse_memoire::instance();
+	return logeuse.nombre_allocations.load();
+}
+
+long nombre_reallocations()
+{
+	auto &logeuse = logeuse_memoire::instance();
+	return logeuse.nombre_reallocations.load();
+}
+
+long nombre_deallocations()
+{
+	auto &logeuse = logeuse_memoire::instance();
+	return logeuse.nombre_deallocations.load();
+}
+
 std::string formate_taille(long octets)
 {
 	std::stringstream ss;
