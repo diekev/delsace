@@ -33,9 +33,6 @@
 
 struct ContexteGenerationCode;
 
-#undef UTILISE_ENCHAINEUSE
-
-#ifdef UTILISE_ENCHAINEUSE
 struct Enchaineuse {
 	static constexpr auto TAILLE_TAMPON = 16 * 1024;
 
@@ -64,15 +61,10 @@ struct Enchaineuse {
 private:
 	void ajoute_tampon();
 };
-#endif
 
 struct GeneratriceCodeC {
 	ContexteGenerationCode &contexte;
-	dls::flux_chaine os{};
-
-#ifdef UTILISE_ENCHAINEUSE
 	Enchaineuse m_enchaineuse{};
-#endif
 
 	explicit GeneratriceCodeC(ContexteGenerationCode &ctx)
 		: contexte(ctx)
@@ -80,8 +72,6 @@ struct GeneratriceCodeC {
 
 	void declare_variable(Type *type, dls::chaine const &nom, dls::chaine const &expr)
 	{
-
-#ifdef UTILISE_ENCHAINEUSE
 		m_enchaineuse.pousse(nom_broye_type(type, true));
 		m_enchaineuse.pousse(" ");
 		m_enchaineuse.pousse(nom);
@@ -92,29 +82,16 @@ struct GeneratriceCodeC {
 		}
 
 		m_enchaineuse.pousse(";\n");
-#else
-		os << nom_broye_type(type, true) << " " << nom;
-
-		if (!expr.est_vide()) {
-			os << " = " << expr;
-		}
-
-		os << ";\n";
-#endif
 	}
 
 	dls::chaine declare_variable_temp(Type *type, int index_var)
 	{
 		auto nom_temp = "__var_temp" + dls::vers_chaine(index_var);
 
-#ifdef UTILISE_ENCHAINEUSE
 		m_enchaineuse.pousse(nom_broye_type(type, true));
 		m_enchaineuse.pousse(" ");
 		m_enchaineuse.pousse(nom_temp);
 		m_enchaineuse.pousse(";\n");
-#else
-		os << nom_broye_type(type, true) << " " << nom_temp << ";\n";
-#endif
 
 		return nom_temp;
 	}
@@ -123,7 +100,7 @@ struct GeneratriceCodeC {
 	{
 		auto flux = dls::flux_chaine();
 		flux << "(";
-		os << nom_broye_type(type, true);
+		flux << nom_broye_type(type, true);
 		flux << ")(malloc(" << expr << "))";
 
 		return flux.chn();
@@ -135,30 +112,20 @@ struct GeneratriceCodeC {
 template <typename T>
 GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, T const &valeur)
 {
-#ifdef UTILISE_ENCHAINEUSE
 	dls::flux_chaine flux;
 	flux << valeur;
 
 	for (auto c : flux.chn()) {
 		generatrice.m_enchaineuse.pousse_caractere(c);
 	}
-#else
-	generatrice.os << valeur;
-#endif
 
 	return generatrice;
 }
 
-#ifdef UTILISE_ENCHAINEUSE
 template <size_t N>
 GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, const char (&c)[N])
 {
-	for (auto i = 0u; i < (N - 1); ++i) {
-		generatrice.m_enchaineuse.pousse_caractere(c[i]);
-	}
-
-//	generatrice.m_enchaineuse.pousse(c, static_cast<long>(N));
-
+	generatrice.m_enchaineuse.pousse(c, static_cast<long>(N));
 	return generatrice;
 }
 
@@ -167,4 +134,3 @@ GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, dls::vue_chaine_co
 GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, dls::chaine const &chn);
 
 GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, const char *chn);
-#endif
