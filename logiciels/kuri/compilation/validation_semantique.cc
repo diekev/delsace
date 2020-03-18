@@ -170,7 +170,7 @@ static Type *resoud_type_final(
 				types_sorties.pousse(type_sortie);
 			}
 
-			type_final = typeuse.type_fonction(types_entrees, types_sorties);
+			type_final = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
 		}
 		else {
 			type_final = typeuse.type_pour_lexeme(type);
@@ -654,14 +654,14 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 		contexte.donnees_dependance.types_utilises.insere(type_sortie);
 	}
 
-	decl->type_fonc = contexte.typeuse.type_fonction(types_entrees, types_sorties);
+	decl->type_fonc = contexte.typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
 	decl->type = decl->type_fonc;
 	contexte.donnees_dependance.types_utilises.insere(b->type);
 
 	if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
 		auto &iter_op = contexte.operateurs.trouve(decl->lexeme->genre);
 
-		auto type_resultat = types_sorties[0];
+		auto type_resultat = decl->type_fonc->types_sorties[0];
 
 		if (type_resultat == contexte.typeuse[TypeBase::RIEN]) {
 			erreur::lance_erreur("Un opérateur ne peut retourner 'rien'",
@@ -679,7 +679,7 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 		decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
 
 		if (decl->params.taille == 1) {
-			auto type1 = types_entrees[0 + possede_contexte];
+			auto type1 = decl->type_fonc->types_entrees[0 + possede_contexte];
 
 			for (auto i = 0; i < iter_op.taille(); ++i) {
 				auto op = &iter_op[i];
@@ -697,8 +697,8 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 						decl->nom_broye);
 		}
 		else if (decl->params.taille == 2) {
-			auto type1 = types_entrees[0 + possede_contexte];
-			auto type2 = types_entrees[1 + possede_contexte];
+			auto type1 = decl->type_fonc->types_entrees[0 + possede_contexte];
+			auto type2 = decl->type_fonc->types_entrees[1 + possede_contexte];
 
 			for (auto i = 0; i < iter_op.taille(); ++i) {
 				auto op = &iter_op[i];
@@ -713,7 +713,7 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 						decl->lexeme->genre,
 						type1,
 						type2,
-						types_sorties[0],
+						type_resultat,
 						decl->nom_broye);
 		}
 	}

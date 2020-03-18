@@ -564,7 +564,7 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, const kuri::tableau
 	return it;
 }
 
-TypeFonction *Typeuse::type_fonction(const kuri::tableau<Type *> &entrees, const kuri::tableau<Type *> &sorties)
+TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties)
 {
 	POUR (types_fonctions) {
 		auto type = discr_type_fonction(it, entrees, sorties);
@@ -574,7 +574,7 @@ TypeFonction *Typeuse::type_fonction(const kuri::tableau<Type *> &entrees, const
 		}
 	}
 
-	auto type = TypeFonction::cree(entrees, sorties);
+	auto type = TypeFonction::cree(std::move(entrees), std::move(sorties));
 
 	types_fonctions.pousse(type);
 

@@ -434,11 +434,11 @@ struct TypeFonction : public Type {
 	kuri::tableau<Type *> types_entrees{};
 	kuri::tableau<Type *> types_sorties{};
 
-	static TypeFonction *cree(kuri::tableau<Type *> const &entrees, kuri::tableau<Type *> const &sorties)
+	static TypeFonction *cree(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties)
 	{
 		auto type = memoire::loge<TypeFonction>("TypeFonction");
-		type->types_entrees = entrees;
-		type->types_sorties = sorties;
+		type->types_entrees = std::move(entrees);
+		type->types_sorties = std::move(sorties);
 		type->taille_octet = 8;
 		type->alignement = 8;
 
@@ -502,7 +502,7 @@ struct Typeuse {
 
 	TypeFonction *discr_type_fonction(TypeFonction *it, kuri::tableau<Type *> const &entrees, kuri::tableau<Type *> const &sorties);
 
-	TypeFonction *type_fonction(kuri::tableau<Type *> const &entrees, kuri::tableau<Type *> const &sorties);
+	TypeFonction *type_fonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties);
 
 	TypeStructure *reserve_type_structure(NoeudStruct *decl);
 

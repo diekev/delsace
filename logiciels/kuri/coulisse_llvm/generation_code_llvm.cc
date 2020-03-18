@@ -2401,7 +2401,7 @@ llvm::Value *genere_code_llvm(
 			auto types_sorties = kuri::tableau<Type *>();
 			types_sorties.pousse(contexte.typeuse[TypeBase::RIEN]);
 
-			auto type_fonction = contexte.typeuse.type_fonction(types_entrees, types_sorties);
+			auto type_fonction = contexte.typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
 
 			auto type_fonction_llvm = obtiens_type_fonction(
 						contexte,
