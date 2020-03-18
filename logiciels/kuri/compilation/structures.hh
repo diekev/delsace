@@ -144,6 +144,8 @@ struct tableau {
 	{
 		std::swap(this->pointeur, autre.pointeur);
 		std::swap(this->taille, autre.taille);
+
+		return *this;
 	}
 
 	~tableau()
