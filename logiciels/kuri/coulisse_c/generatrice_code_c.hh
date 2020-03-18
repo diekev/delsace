@@ -75,15 +75,14 @@ private:
 
 struct GeneratriceCodeC {
 	ContexteGenerationCode &contexte;
-	dls::flux_chaine &os;
+	dls::flux_chaine os{};
 
 #ifdef UTILISE_ENCHAINEUSE
 	Enchaineuse m_enchaineuse{};
 #endif
 
-	GeneratriceCodeC(ContexteGenerationCode &ctx, dls::flux_chaine &flux)
+	explicit GeneratriceCodeC(ContexteGenerationCode &ctx)
 		: contexte(ctx)
-		, os(flux)
 	{}
 
 	void declare_variable(Type *type, dls::chaine const &nom, dls::chaine const &expr)

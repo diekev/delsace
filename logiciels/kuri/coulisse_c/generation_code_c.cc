@@ -2693,7 +2693,7 @@ static bool peut_etre_dereference(Type *type)
 static void genere_typedefs_recursifs(
 		ContexteGenerationCode &contexte,
 		Type *type,
-		dls::flux_chaine &os)
+		GeneratriceCodeC &generatrice)
 {
 	if ((type->drapeaux & TYPEDEF_FUT_GENERE) != 0) {
 		return;
@@ -2708,7 +2708,7 @@ static void genere_typedefs_recursifs(
 		}
 
 		if ((type_deref->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-			genere_typedefs_recursifs(contexte, type_deref, os);
+			genere_typedefs_recursifs(contexte, type_deref, generatrice);
 		}
 
 		type_deref->drapeaux |= TYPEDEF_FUT_GENERE;
@@ -2719,7 +2719,7 @@ static void genere_typedefs_recursifs(
 
 		POUR (type_fonc->types_entrees) {
 			if ((it->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-				genere_typedefs_recursifs(contexte, it, os);
+				genere_typedefs_recursifs(contexte, it, generatrice);
 			}
 
 			it->drapeaux |= TYPEDEF_FUT_GENERE;
@@ -2727,30 +2727,30 @@ static void genere_typedefs_recursifs(
 
 		POUR (type_fonc->types_sorties) {
 			if ((it->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-				genere_typedefs_recursifs(contexte, it, os);
+				genere_typedefs_recursifs(contexte, it, generatrice);
 			}
 
 			it->drapeaux |= TYPEDEF_FUT_GENERE;
 		}
 	}
 
-	cree_typedef(type, os);
+	cree_typedef(type, generatrice);
 	type->drapeaux |= TYPEDEF_FUT_GENERE;
 }
 
 static void genere_typedefs_pour_tous_les_types(
 		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os)
+		GeneratriceCodeC &generatrice)
 {
-	POUR (contexte.typeuse.types_simples) genere_typedefs_recursifs(contexte, it, os);
-	POUR (contexte.typeuse.types_pointeurs) genere_typedefs_recursifs(contexte, it, os);
-	POUR (contexte.typeuse.types_references) genere_typedefs_recursifs(contexte, it, os);
-	POUR (contexte.typeuse.types_structures) genere_typedefs_recursifs(contexte, it, os);
-	POUR (contexte.typeuse.types_enums) genere_typedefs_recursifs(contexte, it, os);
-	POUR (contexte.typeuse.types_tableaux_fixes) genere_typedefs_recursifs(contexte, it, os);
-	POUR (contexte.typeuse.types_tableaux_dynamiques) genere_typedefs_recursifs(contexte, it, os);
-	POUR (contexte.typeuse.types_fonctions) genere_typedefs_recursifs(contexte, it, os);
-	POUR (contexte.typeuse.types_unions) genere_typedefs_recursifs(contexte, it, os);
+	POUR (contexte.typeuse.types_simples) genere_typedefs_recursifs(contexte, it, generatrice);
+	POUR (contexte.typeuse.types_pointeurs) genere_typedefs_recursifs(contexte, it, generatrice);
+	POUR (contexte.typeuse.types_references) genere_typedefs_recursifs(contexte, it, generatrice);
+	POUR (contexte.typeuse.types_structures) genere_typedefs_recursifs(contexte, it, generatrice);
+	POUR (contexte.typeuse.types_enums) genere_typedefs_recursifs(contexte, it, generatrice);
+	POUR (contexte.typeuse.types_tableaux_fixes) genere_typedefs_recursifs(contexte, it, generatrice);
+	POUR (contexte.typeuse.types_tableaux_dynamiques) genere_typedefs_recursifs(contexte, it, generatrice);
+	POUR (contexte.typeuse.types_fonctions) genere_typedefs_recursifs(contexte, it, generatrice);
+	POUR (contexte.typeuse.types_unions) genere_typedefs_recursifs(contexte, it, generatrice);
 }
 
 static void genere_infos_pour_tous_les_types(
@@ -2791,17 +2791,17 @@ static void genere_infos_pour_tous_les_types(
 // ----------------------------------------------
 
 static void genere_code_debut_fichier(
-		dls::flux_chaine &os,
+		GeneratriceCodeC &generatrice,
 		assembleuse_arbre const &arbre,
 		dls::chaine const &racine_kuri)
 {
 	for (auto const &inc : arbre.inclusions) {
-		os << "#include <" << inc << ">\n";
+		generatrice << "#include <" << inc << ">\n";
 	}
 
-	os << "\n";
+	generatrice << "\n";
 
-	os << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
+	generatrice << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
 
 	auto depassement_limites_tableau =
 R"(
@@ -2818,7 +2818,7 @@ void KR__depassement_limites_tableau(
 }
 )";
 
-	os << depassement_limites_tableau;
+	generatrice << depassement_limites_tableau;
 
 	auto depassement_limites_chaine =
 R"(
@@ -2835,7 +2835,7 @@ void KR__depassement_limites_chaine(
 }
 )";
 
-	os << depassement_limites_chaine;
+	generatrice << depassement_limites_chaine;
 
 	auto hors_memoire =
 R"(
@@ -2849,7 +2849,7 @@ void KR__hors_memoire(
 }
 )";
 
-	os << hors_memoire;
+	generatrice << hors_memoire;
 
 	/* À FAIRE : renseigner le membre actif */
 	auto acces_membre_union =
@@ -2864,7 +2864,7 @@ void KR__acces_membre_union(
 }
 )";
 
-	os << acces_membre_union;
+	generatrice << acces_membre_union;
 
 	auto erreur_non_geree =
 R"(
@@ -2878,25 +2878,25 @@ void KR__erreur_non_geree(
 }
 )";
 
-	os << erreur_non_geree;
+	generatrice << erreur_non_geree;
 
 	/* déclaration des types de bases */
-	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
-	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n";
-	os << "#ifndef bool // bool est défini dans stdbool.h\n";
-	os << "typedef unsigned char bool;\n";
-	os << "#endif\n";
-	os << "typedef unsigned char octet;\n";
-	os << "typedef void Ksnul;\n";
-	os << "typedef struct ContexteProgramme KsContexteProgramme;\n";
+	generatrice << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
+	generatrice << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n";
+	generatrice << "#ifndef bool // bool est défini dans stdbool.h\n";
+	generatrice << "typedef unsigned char bool;\n";
+	generatrice << "#endif\n";
+	generatrice << "typedef unsigned char octet;\n";
+	generatrice << "typedef void Ksnul;\n";
+	generatrice << "typedef struct ContexteProgramme KsContexteProgramme;\n";
 	/* À FAIRE : pas beau, mais un pointeur de fonction peut être un pointeur
 	 * vers une fonction de LibC dont les arguments variadiques ne sont pas
 	 * typés */
-	os << "#define Kv ...\n\n";
-	os << "#define TAILLE_STOCKAGE_TEMPORAIRE 16384\n";
-	os << "static char DONNEES_STOCKAGE_TEMPORAIRE[TAILLE_STOCKAGE_TEMPORAIRE];\n\n";
-	os << "static int __ARGC = 0;\n";
-	os << "static const char **__ARGV = 0;\n\n";
+	generatrice << "#define Kv ...\n\n";
+	generatrice << "#define TAILLE_STOCKAGE_TEMPORAIRE 16384\n";
+	generatrice << "static char DONNEES_STOCKAGE_TEMPORAIRE[TAILLE_STOCKAGE_TEMPORAIRE];\n\n";
+	generatrice << "static int __ARGC = 0;\n";
+	generatrice << "static const char **__ARGV = 0;\n\n";
 }
 
 static void ajoute_dependances_implicites(
@@ -2928,17 +2928,16 @@ static void ajoute_dependances_implicites(
 
 static void genere_code_programme(
 		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os,
+		GeneratriceCodeC &generatrice,
 		NoeudDependance *noeud_fonction_principale,
 		dls::chrono::compte_seconde &debut_generation)
 {
-	auto generatrice = GeneratriceCodeC(contexte, os);
 	auto &graphe_dependance = contexte.graphe_dependance;
 
 	/* création primordiale des typedefs pour éviter les problèmes liés aux
 	 * types récursifs, inclus tous les types car dans certains cas il manque
 	 * des connexions entre types... */
-	genere_typedefs_pour_tous_les_types(contexte, os);
+	genere_typedefs_pour_tous_les_types(contexte, generatrice);
 
 	/* il faut d'abord créer le code pour les structures InfoType */
 	const char *noms_structs_infos_types[] = {
@@ -2991,7 +2990,7 @@ static void genere_code_programme(
 
 static void genere_code_creation_contexte(
 		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os)
+		GeneratriceCodeC &generatrice)
 {
 	auto creation_contexte =
 R"(
@@ -3014,10 +3013,10 @@ R"(
 	auto fonc_init_alloc = cherche_fonction_dans_module(contexte, "Kuri", "initialise_base_allocatrice");
 	auto fonc_log = cherche_fonction_dans_module(contexte, "Kuri", "__logueur_défaut");
 
-	os << creation_contexte;
-	os << "contexte.allocatrice = " << fonc_alloc->nom_broye << ";\n";
-	os << fonc_init_alloc->nom_broye << "(contexte, &alloc_base);\n";
-	os << "contexte.logueur = " << fonc_log->nom_broye << ";\n";
+	generatrice << creation_contexte;
+	generatrice << "contexte.allocatrice = " << fonc_alloc->nom_broye << ";\n";
+	generatrice << fonc_init_alloc->nom_broye << "(contexte, &alloc_base);\n";
+	generatrice << "contexte.logueur = " << fonc_log->nom_broye << ";\n";
 }
 
 void genere_code_C(
@@ -3026,8 +3025,6 @@ void genere_code_C(
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie)
 {
-	dls::flux_chaine os;
-
 	auto temps_generation = 0.0;
 
 	auto &graphe_dependance = contexte.graphe_dependance;
@@ -3037,29 +3034,31 @@ void genere_code_C(
 		erreur::fonction_principale_manquante();
 	}
 
-	genere_code_debut_fichier(os, arbre, racine_kuri);
+	auto generatrice = GeneratriceCodeC(contexte);
+
+	genere_code_debut_fichier(generatrice, arbre, racine_kuri);
 
 	ajoute_dependances_implicites(contexte, noeud_fonction_principale, false);
 
 	auto debut_generation = dls::chrono::compte_seconde();
 
-	genere_code_programme(contexte, os, noeud_fonction_principale, debut_generation);
+	genere_code_programme(contexte, generatrice, noeud_fonction_principale, debut_generation);
 
-	os << "int main(int argc, char **argv)\n";
-	os << "{\n";
-	os << "    __ARGV = argv;\n";
-	os << "    __ARGC = argc;\n";
+	generatrice << "int main(int argc, char **argv)\n";
+	generatrice << "{\n";
+	generatrice << "    __ARGV = argv;\n";
+	generatrice << "    __ARGC = argc;\n";
 
-	genere_code_creation_contexte(contexte, os);
+	genere_code_creation_contexte(contexte, generatrice);
 
-	os << "    return principale(contexte);";
-	os << "}\n";
+	generatrice << "    return principale(contexte);";
+	generatrice << "}\n";
 
 	temps_generation += debut_generation.temps();
 
 	contexte.temps_generation = temps_generation;
 
-	fichier_sortie << os.chn();
+	fichier_sortie << generatrice.os.chn();
 }
 
 void genere_code_C_pour_execution(
@@ -3073,9 +3072,6 @@ void genere_code_C_pour_execution(
 	auto expr = static_cast<NoeudExpressionAppel *>(dir->expr);
 	auto decl = static_cast<NoeudDeclarationFonction *>(expr->noeud_fonction_appelee);
 
-	dls::flux_chaine os;
-
-	auto generatrice = GeneratriceCodeC(contexte, os);
 
 	auto temps_generation = 0.0;
 
@@ -3086,30 +3082,32 @@ void genere_code_C_pour_execution(
 		erreur::fonction_principale_manquante();
 	}
 
-	genere_code_debut_fichier(os, arbre, racine_kuri);
+	auto generatrice = GeneratriceCodeC(contexte);
+
+	genere_code_debut_fichier(generatrice, arbre, racine_kuri);
 
 	/* met en place la dépendance sur la fonction d'allocation par défaut */
 	ajoute_dependances_implicites(contexte, noeud_fonction_principale, true);
 
 	auto debut_generation = dls::chrono::compte_seconde();
 
-	genere_code_programme(contexte, os, noeud_fonction_principale, debut_generation);
+	genere_code_programme(contexte, generatrice, noeud_fonction_principale, debut_generation);
 
-	os << "void lance_execution()\n";
-	os << "{\n";
+	generatrice << "void lance_execution()\n";
+	generatrice << "{\n";
 
-	genere_code_creation_contexte(contexte, os);
+	genere_code_creation_contexte(contexte, generatrice);
 
 	genere_code_C(expr, generatrice, contexte, true);
 
-	os << "    return;\n";
-	os << "}\n";
+	generatrice << "    return;\n";
+	generatrice << "}\n";
 
 	temps_generation += debut_generation.temps();
 
 	contexte.temps_generation = temps_generation;
 
-	fichier_sortie << os.chn();
+	fichier_sortie << generatrice.os.chn();
 
 	/* réinitialise les données pour la génération du code finale
 	 * À FAIRE: sauvegarde les tampons sources */

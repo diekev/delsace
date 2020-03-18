@@ -27,7 +27,9 @@
 #include "broyage.hh"
 #include "contexte_generation_code.h"
 
-void cree_typedef(Type *type, dls::flux_chaine &os)
+#include "generatrice_code_c.hh"
+
+void cree_typedef(Type *type, GeneratriceCodeC &generatrice)
 {
 	auto const &nom_broye = nom_broye_type(type, true);
 
@@ -45,12 +47,12 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 		}
 		case GenreType::BOOL:
 		{
-			os << "typedef unsigned char " << nom_broye << ";\n";
+			generatrice << "typedef unsigned char " << nom_broye << ";\n";
 			break;
 		}
 		case GenreType::OCTET:
 		{
-			os << "typedef unsigned char " << nom_broye << ";\n";
+			generatrice << "typedef unsigned char " << nom_broye << ";\n";
 			break;
 		}
 		case GenreType::ENTIER_CONSTANT:
@@ -60,16 +62,16 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 		case GenreType::ENTIER_NATUREL:
 		{
 			if (type->taille_octet == 1) {
-				os << "typedef unsigned char " << nom_broye << ";\n";
+				generatrice << "typedef unsigned char " << nom_broye << ";\n";
 			}
 			else if (type->taille_octet == 2) {
-				os << "typedef unsigned short " << nom_broye << ";\n";
+				generatrice << "typedef unsigned short " << nom_broye << ";\n";
 			}
 			else if (type->taille_octet == 4) {
-				os << "typedef unsigned int " << nom_broye << ";\n";
+				generatrice << "typedef unsigned int " << nom_broye << ";\n";
 			}
 			else if (type->taille_octet == 8) {
-				os << "typedef unsigned long " << nom_broye << ";\n";
+				generatrice << "typedef unsigned long " << nom_broye << ";\n";
 			}
 
 			break;
@@ -77,16 +79,16 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 		case GenreType::ENTIER_RELATIF:
 		{
 			if (type->taille_octet == 1) {
-				os << "typedef char " << nom_broye << ";\n";
+				generatrice << "typedef char " << nom_broye << ";\n";
 			}
 			else if (type->taille_octet == 2) {
-				os << "typedef short " << nom_broye << ";\n";
+				generatrice << "typedef short " << nom_broye << ";\n";
 			}
 			else if (type->taille_octet == 4) {
-				os << "typedef int " << nom_broye << ";\n";
+				generatrice << "typedef int " << nom_broye << ";\n";
 			}
 			else if (type->taille_octet == 8) {
-				os << "typedef long " << nom_broye << ";\n";
+				generatrice << "typedef long " << nom_broye << ";\n";
 			}
 
 			break;
@@ -94,13 +96,13 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 		case GenreType::REEL:
 		{
 			if (type->taille_octet == 2) {
-				os << "typedef short " << nom_broye << ";\n";
+				generatrice << "typedef short " << nom_broye << ";\n";
 			}
 			else if (type->taille_octet == 4) {
-				os << "typedef float " << nom_broye << ";\n";
+				generatrice << "typedef float " << nom_broye << ";\n";
 			}
 			else if (type->taille_octet == 8) {
-				os << "typedef double " << nom_broye << ";\n";
+				generatrice << "typedef double " << nom_broye << ";\n";
 			}
 
 			break;
@@ -108,13 +110,13 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 		case GenreType::REFERENCE:
 		{
 			auto type_pointe = static_cast<TypeReference *>(type)->type_pointe;
-			os << "typedef " << nom_broye_type(type_pointe, true) << "* " << nom_broye << ";\n";
+			generatrice << "typedef " << nom_broye_type(type_pointe, true) << "* " << nom_broye << ";\n";
 			break;
 		}
 		case GenreType::POINTEUR:
 		{
 			auto type_pointe = static_cast<TypePointeur *>(type)->type_pointe;
-			os << "typedef " << nom_broye_type(type_pointe, true) << "* " << nom_broye << ";\n";
+			generatrice << "typedef " << nom_broye_type(type_pointe, true) << "* " << nom_broye << ";\n";
 			break;
 		}
 		case GenreType::STRUCTURE:
@@ -123,10 +125,10 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 			auto nom_struct = broye_nom_simple(type_struct->nom);
 
 			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t") {
-				os << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
+				generatrice << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
 			}
 			else {
-				os << "typedef " << nom_struct << ' ' << nom_broye << ";\n";
+				generatrice << "typedef " << nom_struct << ' ' << nom_broye << ";\n";
 			}
 
 			break;
@@ -139,14 +141,14 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 
 			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t") {
 				if (decl->est_nonsure || decl->est_externe) {
-					os << "typedef union " << nom_struct << ' ' << nom_broye << ";\n";
+					generatrice << "typedef union " << nom_struct << ' ' << nom_broye << ";\n";
 				}
 				else {
-					os << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
+					generatrice << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
 				}
 			}
 			else {
-				os << "typedef " << nom_struct << ' ' << nom_broye << ";\n";
+				generatrice << "typedef " << nom_struct << ' ' << nom_broye << ";\n";
 			}
 
 			break;
@@ -160,17 +162,17 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 				auto type_tabl = static_cast<TypeTableauFixe *>(type_pointe);
 				auto taille_tableau = type_tabl->taille;
 
-				os << "typedef " << nom_broye_type(type_tabl->type_pointe, true);
-				os << "(" << nom_broye << ')';
-				os << '[' << static_cast<TypeTableauFixe *>(type)->taille << ']';
-				os << '[' << taille_tableau << ']';
-				os << ";\n\n";
+				generatrice << "typedef " << nom_broye_type(type_tabl->type_pointe, true);
+				generatrice << "(" << nom_broye << ')';
+				generatrice << '[' << static_cast<TypeTableauFixe *>(type)->taille << ']';
+				generatrice << '[' << taille_tableau << ']';
+				generatrice << ";\n\n";
 			}
 			else {
-				os << "typedef " << nom_broye_type(type_pointe, true);
-				os << ' ' << nom_broye;
-				os << '[' << static_cast<TypeTableauFixe *>(type)->taille << ']';
-				os << ";\n\n";
+				generatrice << "typedef " << nom_broye_type(type_pointe, true);
+				generatrice << ' ' << nom_broye;
+				generatrice << '[' << static_cast<TypeTableauFixe *>(type)->taille << ']';
+				generatrice << ";\n\n";
 			}
 
 			break;
@@ -188,20 +190,20 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 				return;
 			}
 
-			os << "typedef struct Tableau_" << nom_broye;
+			generatrice << "typedef struct Tableau_" << nom_broye;
 
-			os << "{\n\t";
+			generatrice << "{\n\t";
 
 			if (type_pointe->genre == GenreType::TABLEAU_FIXE) {
 				auto type_tabl = static_cast<TypeTableauFixe *>(type_pointe);
 				auto taille_tableau = type_tabl->taille;
-				os << nom_broye_type(type_tabl->type_pointe, true) << " *pointeur[" << taille_tableau << "];";
+				generatrice << nom_broye_type(type_tabl->type_pointe, true) << " *pointeur[" << taille_tableau << "];";
 			}
 			else {
-				os << nom_broye_type(type_pointe, true) << " *pointeur;";
+				generatrice << nom_broye_type(type_pointe, true) << " *pointeur;";
 			}
 
-			os << "\n\tlong taille;\n} " << nom_broye << ";\n\n";
+			generatrice << "\n\tlong taille;\n} " << nom_broye << ";\n\n";
 			break;
 		}
 		case GenreType::FONCTION:
@@ -257,23 +259,23 @@ void cree_typedef(Type *type, dls::flux_chaine &os)
 
 			nouveau_nom_broye = prefixe + nouveau_nom_broye + ")" + suffixe;
 
-			os << "typedef " << nouveau_nom_broye << ";\n\n";
+			generatrice << "typedef " << nouveau_nom_broye << ";\n\n";
 
 			break;
 		}
 		case GenreType::EINI:
 		{
-			os << "typedef eini " << nom_broye << ";\n";
+			generatrice << "typedef eini " << nom_broye << ";\n";
 			break;
 		}
 		case GenreType::RIEN:
 		{
-			os << "typedef void " << nom_broye << ";\n";
+			generatrice << "typedef void " << nom_broye << ";\n";
 			break;
 		}
 		case GenreType::CHAINE:
 		{
-			os << "typedef chaine " << nom_broye << ";\n";
+			generatrice << "typedef chaine " << nom_broye << ";\n";
 			break;
 		}
 	}

@@ -24,8 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/structures/flux_chaine.hh"
-
+struct GeneratriceCodeC;
 struct Type;
 
-void cree_typedef(Type *type, dls::flux_chaine &os);
+void cree_typedef(Type *type, GeneratriceCodeC &generatrice);
