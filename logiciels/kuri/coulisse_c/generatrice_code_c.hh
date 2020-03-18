@@ -39,37 +39,30 @@ struct ContexteGenerationCode;
 struct Enchaineuse {
 	static constexpr auto TAILLE_TAMPON = 16 * 1024;
 
-	using type_tampon = dls::tableau<char>;
+	struct Tampon {
+		char donnees[TAILLE_TAMPON];
+		int occupe = 0;
+		Tampon *suivant = nullptr;
+	};
 
-	dls::tableau<type_tampon> m_tampons;
-	long tampon_courant = 0;
+	Tampon m_tampon_base{};
+	Tampon *tampon_courant = nullptr;
 
-	Enchaineuse()
-	{
-		ajoute_tampon();
-	}
+	Enchaineuse();
 
-	void pousse(dls::vue_chaine const &chn)
-	{
-		auto &tampon = m_tampons[tampon_courant];
+	Enchaineuse(Enchaineuse const &) = delete;
+	Enchaineuse &operator=(Enchaineuse const &) = delete;
 
-		for (auto c : chn) {
-			tampon.pousse(c);
+	~Enchaineuse();
 
-			if (tampon.taille() == TAILLE_TAMPON) {
-				ajoute_tampon();
-				tampon = m_tampons[tampon_courant];
-			}
-		}
-	}
+	void pousse(dls::vue_chaine const &chn);
+
+	void pousse(const char *c_str, long N);
+
+	void pousse_caractere(char c);
 
 private:
-	void ajoute_tampon()
-	{
-		m_tampons.pousse(type_tampon());
-		m_tampons.back().reserve(TAILLE_TAMPON);
-		tampon_courant = m_tampons.taille() - 1;
-	}
+	void ajoute_tampon();
 };
 #endif
 
@@ -87,16 +80,9 @@ struct GeneratriceCodeC {
 
 	void declare_variable(Type *type, dls::chaine const &nom, dls::chaine const &expr)
 	{
-		os << nom_broye_type(type, true) << " " << nom;
-
-		if (!expr.est_vide()) {
-			os << " = " << expr;
-		}
-
-		os << ";\n";
 
 #ifdef UTILISE_ENCHAINEUSE
-		m_enchaineuse.pousse(nom_broye_type(type));
+		m_enchaineuse.pousse(nom_broye_type(type, true));
 		m_enchaineuse.pousse(" ");
 		m_enchaineuse.pousse(nom);
 
@@ -106,19 +92,28 @@ struct GeneratriceCodeC {
 		}
 
 		m_enchaineuse.pousse(";\n");
+#else
+		os << nom_broye_type(type, true) << " " << nom;
+
+		if (!expr.est_vide()) {
+			os << " = " << expr;
+		}
+
+		os << ";\n";
 #endif
 	}
 
 	dls::chaine declare_variable_temp(Type *type, int index_var)
 	{
 		auto nom_temp = "__var_temp" + dls::vers_chaine(index_var);
-		os << nom_broye_type(type, true) << " " << nom_temp << ";\n";
 
 #ifdef UTILISE_ENCHAINEUSE
-		m_enchaineuse.pousse(nom_broye_type(type));
+		m_enchaineuse.pousse(nom_broye_type(type, true));
 		m_enchaineuse.pousse(" ");
 		m_enchaineuse.pousse(nom_temp);
 		m_enchaineuse.pousse(";\n");
+#else
+		os << nom_broye_type(type, true) << " " << nom_temp << ";\n";
 #endif
 
 		return nom_temp;
@@ -133,11 +128,43 @@ struct GeneratriceCodeC {
 
 		return flux.chn();
 	}
+
+	void imprime_dans_flux(std::ostream &flux);
 };
 
 template <typename T>
 GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, T const &valeur)
 {
+#ifdef UTILISE_ENCHAINEUSE
+	dls::flux_chaine flux;
+	flux << valeur;
+
+	for (auto c : flux.chn()) {
+		generatrice.m_enchaineuse.pousse_caractere(c);
+	}
+#else
 	generatrice.os << valeur;
+#endif
+
 	return generatrice;
 }
+
+#ifdef UTILISE_ENCHAINEUSE
+template <size_t N>
+GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, const char (&c)[N])
+{
+	for (auto i = 0u; i < (N - 1); ++i) {
+		generatrice.m_enchaineuse.pousse_caractere(c[i]);
+	}
+
+//	generatrice.m_enchaineuse.pousse(c, static_cast<long>(N));
+
+	return generatrice;
+}
+
+GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, dls::vue_chaine_compacte const &chn);
+
+GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, dls::chaine const &chn);
+
+GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, const char *chn);
+#endif

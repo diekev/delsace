@@ -764,8 +764,10 @@ static void genere_code_allocation(
 
 	auto nom_pos = "__var_temp_pos" + dls::vers_chaine(index++);
 	generatrice << "PositionCodeSource " << nom_pos << " = ";
-	genere_code_position_source(contexte, generatrice.os, b);
-	generatrice << "\n;";
+
+	dls::flux_chaine flux;
+	genere_code_position_source(contexte, flux, b);
+	generatrice << flux.chn() << "\n;";
 
 	generatrice << "void *" << nom_nouveu_pointeur << " = ";
 	generatrice << "contexte.allocatrice(contexte, ";
@@ -3058,7 +3060,7 @@ void genere_code_C(
 
 	contexte.temps_generation = temps_generation;
 
-	fichier_sortie << generatrice.os.chn();
+	generatrice.imprime_dans_flux(fichier_sortie);
 }
 
 void genere_code_C_pour_execution(
@@ -3107,7 +3109,7 @@ void genere_code_C_pour_execution(
 
 	contexte.temps_generation = temps_generation;
 
-	fichier_sortie << generatrice.os.chn();
+	generatrice.imprime_dans_flux(fichier_sortie);
 
 	/* réinitialise les données pour la génération du code finale
 	 * À FAIRE: sauvegarde les tampons sources */

@@ -24,3 +24,129 @@
 
 #include "generatrice_code_c.hh"
 
+#ifdef UTILISE_ENCHAINEUSE
+Enchaineuse::Enchaineuse()
+	: tampon_courant(&m_tampon_base)
+{}
+
+Enchaineuse::~Enchaineuse()
+{
+	auto tampon = m_tampon_base.suivant;
+
+	while (tampon != nullptr) {
+		auto tmp = tampon;
+		tampon = tampon->suivant;
+
+		memoire::deloge("Tampon", tmp);
+	}
+}
+
+void Enchaineuse::pousse(const dls::vue_chaine &chn)
+{
+	auto tampon = tampon_courant;
+
+	for (auto c : chn) {
+		if (tampon->occupe == TAILLE_TAMPON) {
+			ajoute_tampon();
+			tampon = tampon_courant;
+		}
+
+		tampon->donnees[tampon->occupe++] = c;
+	}
+}
+
+void Enchaineuse::pousse(const char *c_str, long N)
+{
+	auto tampon = tampon_courant;
+
+	if (tampon->occupe + N < TAILLE_TAMPON) {
+		memcpy(&tampon->donnees[tampon->occupe], c_str, static_cast<size_t>(N));
+		tampon->occupe += N;
+	}
+	else {
+		auto taille_max = TAILLE_TAMPON - tampon->occupe;
+
+		if (taille_max != 0) {
+			auto taille = N - taille_max;
+			memcpy(&tampon->donnees[tampon->occupe], c_str, static_cast<size_t>(taille));
+			tampon->occupe += taille;
+		}
+
+		ajoute_tampon();
+		tampon = tampon_courant;
+
+		auto taille = N - taille_max;
+		memcpy(&tampon->donnees[0], c_str + taille_max, static_cast<size_t>(taille));
+		tampon->occupe += taille;
+	}
+}
+
+void Enchaineuse::pousse_caractere(char c)
+{
+	auto tampon = tampon_courant;
+
+	if (tampon->occupe == TAILLE_TAMPON) {
+		ajoute_tampon();
+		tampon = tampon_courant;
+	}
+
+	tampon->donnees[tampon->occupe++] = c;
+}
+
+void Enchaineuse::ajoute_tampon()
+{
+	auto tampon = memoire::loge<Tampon>("Tampon");
+	tampon_courant->suivant = tampon;
+	tampon_courant = tampon;
+}
+
+GeneratriceCodeC &operator <<(GeneratriceCodeC &generatrice, const dls::vue_chaine_compacte &chn)
+{
+	auto pointeur = chn.pointeur();
+
+	for (auto i = 0; i < chn.taille(); ++i) {
+		generatrice.m_enchaineuse.pousse_caractere(pointeur[i]);
+	}
+
+//	generatrice.m_enchaineuse.pousse(chn.pointeur(), chn.taille());
+
+	return generatrice;
+}
+
+GeneratriceCodeC &operator <<(GeneratriceCodeC &generatrice, const dls::chaine &chn)
+{
+	for (auto c : chn) {
+		generatrice.m_enchaineuse.pousse_caractere(c);
+	}
+
+//	generatrice.m_enchaineuse.pousse(chn.c_str(), chn.taille());
+
+	return generatrice;
+}
+
+GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, const char *chn)
+{
+	while (*chn != '\0') {
+		generatrice.m_enchaineuse.pousse_caractere(*chn++);
+	}
+
+	return generatrice;
+}
+#endif
+
+void GeneratriceCodeC::imprime_dans_flux(std::ostream &flux)
+{
+#ifdef UTILISE_ENCHAINEUSE
+	auto tampon = &m_enchaineuse.m_tampon_base;
+
+	while (tampon != nullptr) {
+		for (auto i = 0; i < tampon->occupe; ++i) {
+			flux << tampon->donnees[i];
+		}
+
+		tampon = tampon->suivant;
+	}
+#else
+	flux << os.chn();
+#endif
+}
