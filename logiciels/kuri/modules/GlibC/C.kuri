@@ -282,3 +282,6 @@ fclose :: fonc externe (__file : *FILE) -> z32
 _SIGINT :: 2
 
 signal :: fonc externe (numéro_signal: z32, rappel: #nulctx fonc(z32)(rien)) -> rien
+
+// défini par le compilateur
+lis_errno :: fonc externe () -> z32

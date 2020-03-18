@@ -2882,6 +2882,17 @@ void KR__erreur_non_geree(
 
 	generatrice << erreur_non_geree;
 
+	auto lis_errno =
+R"(
+#include <errno.h>
+static int lis_errno()
+{
+	return errno;
+}
+)";
+
+	generatrice << lis_errno;
+
 	/* déclaration des types de bases */
 	generatrice << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
 	generatrice << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n";

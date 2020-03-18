@@ -78,6 +78,12 @@ n16 DLS_depuis_r64(r64 v)
 	return DLS_depuis_r32((float)(v));
 }
 
+#include <errno.h>
+int lis_errno()
+{
+	return errno;
+}
+
 int vraie_principale(int argc, char **argv);
 
 int main(int argc, char **argv)
