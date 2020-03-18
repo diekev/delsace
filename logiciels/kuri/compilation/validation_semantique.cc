@@ -3185,7 +3185,7 @@ static void performe_validation_semantique(
 			auto inst = static_cast<NoeudTente *>(b);
 
 			// À FAIRE :  défini correctement si on peut ignorer les valeurs de retours
-			if (inst->expr_appel != nullptr) {
+			if (inst->expr_piege != nullptr) {
 				expr_gauche = false;
 			}
 
