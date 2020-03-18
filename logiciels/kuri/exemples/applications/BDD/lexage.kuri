@@ -21,7 +21,13 @@ GenreLexème :: énum z32 {
     MOT_CLÉ_ENTIER
     MOT_CLÉ_TEXTE
 
-    SYMBOLE
+    PARENTHÈSE_OUVRANTE
+    PARENTHÈSE_FERMANTE
+    VIRGULE
+    POINT_VIRGULE
+
+    ESPACE
+
     IDENTIFIANT
     CHAINE
     NUMÉRIQUE
@@ -210,67 +216,100 @@ finalise_mot_clé :: fonc (lexème: *Lexème) -> bool
     retourne faux
 }
 
-lèxe :: fonc (chn: chaine) -> []Lexème
-{
+ÉtatLexage :: struct {
     lexèmes : []Lexème
-
-    si chn.taille == 0 {
-        retourne lexèmes
-    }
-
     courant : Lexème
+    curseur : z32
     ligne : z32
     colonne : z32
+    chn : chaine
+}
+
+finalise_courant :: fonc (état: *ÉtatLexage, genre: GenreLexème) -> bool
+{
+    si !finalise(@état.courant) {
+        imprime("Impossible de finaliser %\n", état.courant)
+        // À FAIRE: erreur
+        retourne faux
+    }
+
+    si état.courant.valeur.taille != 0 {
+        tableau_ajoute(@état.lexèmes, état.courant)
+    }
+
+    si genre != GenreLexème.ESPACE {
+        état.courant.pos.ligne = état.ligne
+        état.courant.pos.colonne = état.colonne
+        état.courant.valeur = construit_chaine(@état.chn[état.curseur], 1)
+        état.courant.genre = genre
+
+        tableau_ajoute(@état.lexèmes, état.courant)
+    }
+
+    état.courant.pos.ligne = état.ligne
+    état.courant.pos.colonne = état.colonne
+    état.courant.valeur = ""
+
+    retourne vrai
+}
+
+lèxe :: fonc (chn: chaine) -> []Lexème
+{
+    état : ÉtatLexage
+    état.chn = chn
+
+    si chn.taille == 0 {
+        retourne état.lexèmes
+    }
 
     pour c, idx dans chn {
+        état.curseur = idx
+
         discr c {
             '\n' {
-                ligne += 1
-                colonne = 0
+                état.ligne += 1
+                état.colonne = 0
             }
-            ' ',
-            ',',
-            '(',
-            ')',
-            ';' {
-                si !finalise(@courant) {
-                    imprime("Impossible de finaliser %\n", courant)
-                    // À FAIRE: erreur
+            ' ' {
+                si !finalise_courant(@état, GenreLexème.ESPACE) {
                     arrête
                 }
-
-                si courant.valeur.taille != 0 {
-                    tableau_ajoute(@lexèmes, courant)
+            }
+            ',' {
+                si !finalise_courant(@état, GenreLexème.VIRGULE) {
+                    arrête
                 }
-
-                si c != ' ' {
-                    courant.pos.ligne = ligne
-                    courant.pos.colonne = colonne
-                    courant.valeur = construit_chaine(@chn[idx], 1)
-                    courant.genre = GenreLexème.SYMBOLE
-
-                    tableau_ajoute(@lexèmes, courant)
+            }
+            '(' {
+                si !finalise_courant(@état, GenreLexème.PARENTHÈSE_OUVRANTE) {
+                    arrête
                 }
-
-                courant.pos.ligne = ligne
-                courant.pos.colonne = colonne
-                courant.valeur = ""
+            }
+            ')' {
+                si !finalise_courant(@état, GenreLexème.PARENTHÈSE_FERMANTE) {
+                    arrête
+                }
+            }
+            ';' {
+                si !finalise_courant(@état, GenreLexème.POINT_VIRGULE) {
+                    arrête
+                }
             }
             sinon {
-                si courant.valeur.taille == 0 {
-                    courant.valeur = construit_chaine(@chn[idx], 1)
+                si état.courant.valeur.taille == 0 {
+                    état.courant.valeur = construit_chaine(@état.chn[idx], 1)
                 }
                 sinon {
-                    courant.valeur.taille += 1
+                    état.courant.valeur.taille += 1
                 }
             }
         }
 
-        colonne += 1
+        état.colonne += 1
         //imprime("Courant : %\n", courant.valeur)
     }
 
-    retourne lexèmes
+    retourne état.lexèmes
 }
 
 // ------------------------------------------------------------
@@ -468,7 +507,7 @@ parse_instruction_sélectionne :: fonc (lexèmes: []Lexème, ancien_curseur: *z3
 
     curseur += 1
 
-    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != ";" {
+    si lexèmes[curseur].genre != GenreLexème.POINT_VIRGULE {
         imprime("Attendu ';'\n")
         déloge inst
         retourne nul
@@ -507,7 +546,7 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
     curseur += 1
 
     // 3. (
-    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != "(" {
+    si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_OUVRANTE {
         imprime("Attendu '('\n")
         déloge inst
         retourne nul
@@ -516,7 +555,7 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
     curseur += 1
 
     boucle {
-        si lexèmes[curseur].genre == GenreLexème.SYMBOLE && lexèmes[curseur].valeur == ")" {
+        si lexèmes[curseur].genre == GenreLexème.PARENTHÈSE_FERMANTE {
             arrête
         }
 
@@ -545,7 +584,7 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
 
         curseur += 1
 
-        si lexèmes[curseur].genre == GenreLexème.SYMBOLE && lexèmes[curseur].valeur == "," {
+        si lexèmes[curseur].genre == GenreLexème.VIRGULE {
             curseur += 1
         }
         sinon {
@@ -554,7 +593,7 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
     }
 
     // 5. )
-    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != ")" {
+    si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_FERMANTE {
         imprime("Attendu ')'\n")
         déloge inst
         retourne nul
@@ -563,7 +602,7 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
     curseur += 1
 
     // 6. ;
-    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != ";" {
+    si lexèmes[curseur].genre != GenreLexème.POINT_VIRGULE {
         imprime("Attendu ';'\n")
         déloge inst
         retourne nul
@@ -622,7 +661,7 @@ parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) ->
     curseur += 1
 
     // 5. (
-    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != "(" {
+    si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_OUVRANTE {
         imprime("Attendu '('\n")
         déloge inst
         retourne nul
@@ -638,7 +677,7 @@ parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) ->
     }
 
     // 7. )
-    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != ")" {
+    si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_FERMANTE {
         imprime("Attendu '('\n")
         déloge inst
         retourne nul
@@ -647,7 +686,7 @@ parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) ->
     curseur += 1
 
     // 8. ;
-    si lexèmes[curseur].genre != GenreLexème.SYMBOLE && lexèmes[curseur].valeur != ";" {
+    si lexèmes[curseur].genre != GenreLexème.POINT_VIRGULE {
         imprime("Attendu ';'\n")
         déloge inst
         retourne nul
@@ -680,7 +719,7 @@ parse_expressions :: fonc (lexèmes: []Lexème, ancien_curseur: *z32, exprs: *[]
 
         curseur += 1
 
-        si lexèmes[curseur].genre == GenreLexème.SYMBOLE && lexèmes[curseur].valeur == "," {
+        si lexèmes[curseur].genre == GenreLexème.VIRGULE {
             curseur += 1
         }
         sinon {
