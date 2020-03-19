@@ -8,8 +8,7 @@ CoulisseMémoire :: struct {
 détruit_coulisse :: fonc (cm: *CoulisseMémoire) -> rien
 {
     pour table dans cm.tables {
-        détruit_table(table)
-        déloge table
+        ferme_base_de_données(table)
     }
 
     déloge cm.noms_tables

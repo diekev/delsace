@@ -1,10 +1,54 @@
 importe Fondation
+importe GlibC
 
+charge "curseur"
+charge "paginatrice"
 charge "tabuleuse"
+
+// --------------------------------------------------------
+// À FAIRE : dépedance cyclique dans entre la Table et le Curseur :
+// il nous faut un système d'interruption de la validation sémantique et
+// de reprise de celle-ci
+
+Curseur :: struct {
+    table : *Table
+    index_ligne := 0
+    est_fin_de_table := faux
+}
+
+// --------------------------------------------------------
+
+// À FAIRE
+TAILLE_MAX_NOM := 32
+TAILLE_MAX_COURRIEL := 255
+
+// À FAIRE : la représentation d'une ligne est compacte en mémoire
+TAILLE_ID := 4 // taille_de Ligne.id
+TAILLE_NOM := 33 // taille_de Lige.nom + 1
+TAILLE_COURRIEL := 256 // taille_de Ligne.courriel + 1
+DÉCALAGE_ID := 0
+DÉCALAGE_NOM := 4
+DÉCALAGE_COURRIEL := 37
+TAILLE_LIGNE := 293
+
+LIGNES_PAR_PAGES := 14 // TAILLE_PAGE / TAILLE_LIGNE
+LIGNES_MAX_TABLE := 1400 // LIGNES_PAR_PAGES * TABLE_MAX_PAGES
 
 TypeColonne :: énum z32 {
     ENTIER
     CHAINE
+}
+
+Colonne :: struct {
+    nom : chaine
+
+    genre : TypeColonne
+
+    // décalage en octet dans la ligne
+    décalage : z32
+
+    // taille en octet
+    taille : z32
 }
 
 CelluleMémoire :: union {
@@ -23,55 +67,202 @@ comme_chaine :: fonc (m : CelluleMémoire) -> chaine
 }
 
 Table :: struct {
-    colonnes : []chaine
-    types_colonnes : []z32 // @coulisse C
+    // description de la table, figée lors de la création de celle-ci
+    desc_colonnes : []Colonne
+    taille_octet_ligne : z32 = 0
+    lignes_par_page : z32 = 0
+    nombre_lignes_maximum : z32 = 0
 
-    lignes : [][]CelluleMémoire
+    // pour le curseur
+    nombre_de_lignes := 0
+
+    // stockage en mémoire ou sur disque des données
+    paginatrice : *Paginatrice = nul
 }
 
 détruit_table :: fonc (table: *Table) -> rien
 {
-    déloge table.colonnes
-    déloge table.types_colonnes
-
-    pour ligne dans table.lignes {
-        déloge ligne
-    }
-
-    déloge table.lignes
+    déloge table.desc_colonnes
+    déloge table.paginatrice
+    déloge table
 }
 
 imprime_table :: fonc (table: *Table) -> rien
 {
-    si table.lignes.taille == 0 {
-        imprime("0 résultat\n")
-        retourne
-    }
+    curseur := curseur_début_de_table(table)
+    diffère { déloge curseur; }
 
     ligne_titre : LigneTabuleuse
 
-    pour nom dans table.colonnes {
-        tableau_ajoute(@ligne_titre.colonnes, nom)
+    pour colonne dans table.desc_colonnes {
+        tableau_ajoute(@ligne_titre.colonnes, colonne.nom)
     }
 
     tabuleuse := crée_tabuleuse(ligne_titre)
     diffère { détruit_tabuleuse(@tabuleuse); }
 
-    pour ligne dans table.lignes {
+    tantque !curseur.est_fin_de_table {
         ligne_tabuleuse : LigneTabuleuse
 
-        pour cellule, idx_cellule dans ligne {
-            si table.types_colonnes[idx_cellule] == transtype(TypeColonne.CHAINE: z32) {
-                tableau_ajoute(@ligne_tabuleuse.colonnes, cellule.comme_chaine())
+        ligne := valeur_curseur(curseur)
+
+        décalage := 0
+
+        pour colonne dans table.desc_colonnes {
+            discr colonne.genre {
+                CHAINE {
+                    ptr := ligne.pointeur + décalage
+
+                    taille := mémoire(transtype(ptr: *z32))
+
+                    ptr = ligne.pointeur + décalage + 4
+
+                    chn := construit_chaine(transtype(ptr: *z8), taille)
+
+                    tableau_ajoute(@ligne_tabuleuse.colonnes, chn)
+                }
+                ENTIER {
+                    ptr := ligne.pointeur + décalage
+                    entier := mémoire(transtype(ptr: *z32))
+
+                    chn := obtiens_chaine_pour_eini(@tabuleuse, entier)
+                    tableau_ajoute(@ligne_tabuleuse.colonnes, chn)
+                }
             }
-            sinon {
-                chn := obtiens_chaine_pour_eini(@tabuleuse, cellule.comme_entier())
-                tableau_ajoute(@ligne_tabuleuse.colonnes, chn)
-            }
+
+            décalage += colonne.taille
         }
+
+        avance_curseur(curseur)
 
         ajoute_ligne(@tabuleuse, ligne_tabuleuse)
     }
 
     imprime_table(@tabuleuse)
+}
+
+ouvre_base_de_données :: fonc (fichier: chaine) -> *Table
+{
+    paginatrice := ouvre_paginatrice(fichier)
+    nombre_de_lignes := paginatrice.taille_fichier / TAILLE_LIGNE
+
+    table := loge Table
+    table.paginatrice = paginatrice
+    table.nombre_de_lignes = transtype(nombre_de_lignes: z32)
+
+    retourne table
+}
+
+ouvre_base_de_données_mémoire :: fonc (colonnes : []Colonne) -> *Table
+{
+    table := loge Table
+    table.desc_colonnes = colonnes
+
+    pour colonne dans colonnes {
+        table.taille_octet_ligne += colonne.taille
+    }
+
+    table.lignes_par_page = TAILLE_PAGE / table.taille_octet_ligne
+    table.nombre_lignes_maximum = TABLE_MAX_PAGES * table.lignes_par_page
+
+    paginatrice := ouvre_paginatrice_mémoire()
+    table.paginatrice = paginatrice
+
+    retourne table
+}
+
+ferme_base_de_données :: fonc (table: *Table) -> rien
+{
+    paginatrice := table.paginatrice
+    nombre_de_pages_pleines := table.nombre_de_lignes / table.taille_octet_ligne
+
+    pour i dans 0 ... nombre_de_pages_pleines - 1 {
+        si paginatrice.pages[i].pointeur == nul {
+            continue
+        }
+
+        si paginatrice.utilise_stockage_disque {
+            flush_paginatrice(paginatrice, i, TAILLE_PAGE)
+        }
+
+        déloge paginatrice.pages[i]
+    }
+
+    // Une page partielle peut toujours être à écrire à la fin du fichier
+    // Ce ne sera plus nécessaire lorsque nous aurons un arbre-B
+    nombre_de_lignes_additionnelles := table.nombre_de_lignes % table.lignes_par_page
+
+    si nombre_de_lignes_additionnelles > 0 {
+        index_page := nombre_de_pages_pleines
+
+        si paginatrice.pages[index_page].pointeur != nul {
+            si paginatrice.utilise_stockage_disque {
+                flush_paginatrice(paginatrice, index_page, TAILLE_PAGE)
+            }
+
+            déloge paginatrice.pages[index_page]
+        }
+    }
+
+    si paginatrice.utilise_stockage_disque {
+        résultat_fermeture := close(paginatrice.descripteur_fichier)
+
+        si résultat_fermeture == -1 {
+            imprime("Échec lors de la fermeture du fichier\n")
+            exit(1)
+        }
+    }
+
+    pour page dans paginatrice.pages {
+        si page.pointeur != nul {
+            déloge page
+        }
+    }
+
+    détruit_table(table)
+}
+
+// -----------------------------------------
+
+curseur_début_de_table :: fonc (table: *Table) -> *Curseur
+{
+    curseur := loge Curseur
+    curseur.table = table
+    curseur.index_ligne = 0
+    curseur.est_fin_de_table = table.nombre_de_lignes == 0
+
+    retourne curseur
+}
+
+curseur_fin_de_table :: fonc (table: *Table) -> *Curseur
+{
+    curseur := loge Curseur
+    curseur.table = table
+    curseur.index_ligne = table.nombre_de_lignes
+    curseur.est_fin_de_table = vrai
+
+    retourne curseur
+}
+
+valeur_curseur :: fonc (curseur: *Curseur) -> []octet
+{
+    table := curseur.table
+
+    index_ligne := curseur.index_ligne
+    index_page := index_ligne / table.lignes_par_page
+    page := trouve_page(table.paginatrice, index_page)
+
+    décalage_ligne := index_ligne % table.lignes_par_page
+    décalage_octet := décalage_ligne * table.taille_octet_ligne
+
+    page.pointeur += décalage_octet
+    page.taille = table.taille_octet_ligne
+
+    retourne page
+}
+
+avance_curseur :: fonc (curseur: *Curseur) -> rien
+{
+    curseur.index_ligne += 1
+    curseur.est_fin_de_table = curseur.index_ligne >= curseur.table.nombre_de_lignes
 }

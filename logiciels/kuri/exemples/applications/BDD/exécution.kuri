@@ -6,32 +6,37 @@ charge "table"
 
 crée_table :: fonc (cm: *CoulisseMémoire, inst: *InstructionCréationTable) -> rien
 {
-    table := loge Table
-    table.colonnes.taille = 0
-    table.colonnes.pointeur = nul
-    table.types_colonnes.taille = 0
-    table.types_colonnes.pointeur = nul
-    table.lignes.taille = 0
-    table.lignes.pointeur = nul
-
-    tableau_ajoute(@cm.noms_tables, inst.nom.valeur)
+    colonnes : []Colonne
+    décalage := 0
 
     pour définition dans inst.colonnes {
-        tableau_ajoute(@table.colonnes, définition.nom.valeur)
+        colonne : Colonne
+        colonne.nom = définition.nom.valeur
 
         discr définition.type_données.genre {
             MOT_CLÉ_ENTIER {
-                tableau_ajoute(@table.types_colonnes, TypeColonne.ENTIER)
+                colonne.genre = TypeColonne.ENTIER
+                colonne.taille = 4
+                colonne.décalage = décalage
             }
             MOT_CLÉ_TEXTE {
-                tableau_ajoute(@table.types_colonnes, TypeColonne.CHAINE)
+                colonne.genre = TypeColonne.CHAINE
+                colonne.taille = 4 + 251 // 4 pour la taille, 251 pour les caractères
+                colonne.décalage = décalage
             }
             sinon {
                 imprime("Type de données inattendu\n")
             }
         }
+
+        décalage += colonne.taille
+
+        tableau_ajoute(@colonnes, colonne)
     }
 
+    table := ouvre_base_de_données_mémoire(colonnes)
+
+    tableau_ajoute(@cm.noms_tables, inst.nom.valeur)
     tableau_ajoute(@cm.tables, table)
 }
 
@@ -51,26 +56,60 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> rien
     table := trouve_table(cm, inst.table.valeur)
 
     si table == nul {
-        imprime("La table n'existe pas")
+        imprime("La table % n'existe pas !\n", inst.table.valeur)
         retourne
     }
 
-    ligne : []CelluleMémoire
+    // ---------------------
 
-    pour expr dans inst.valeurs {
-        cellule : CelluleMémoire
-
-        si expr.littérale.genre == GenreLexème.NUMÉRIQUE {
-            cellule.entier = transtype(extrait_nombre_entier(expr.littérale.valeur) : z32)
-        }
-        sinon {
-            cellule.chn = expr.littérale.valeur
-        }
-
-        tableau_ajoute(@ligne, cellule)
+    si table.nombre_de_lignes >= LIGNES_MAX_TABLE {
+        retourne // À FAIRE : RésultatExécution.TABLE_PLEINE
     }
 
-    tableau_ajoute(@table.lignes, ligne)
+    //ligne_à_insérer := @inst.ligne_à_insérer
+
+    curseur := curseur_fin_de_table(table)
+    diffère { déloge curseur; }
+
+    ligne := valeur_curseur(curseur)
+
+    // À FAIRE : validation des valeurs
+    // À FAIRE : prepare un buffer pour l'insertion afin de ne pas polluer la base de données
+    // À FAIRE : log de préécriture
+    décalage := 0
+
+    pour expr, idx_valeur dans inst.valeurs {
+        colonne := table.desc_colonnes[idx_valeur]
+
+        si expr.littérale.genre == GenreLexème.NUMÉRIQUE {
+            entier := transtype(extrait_nombre_entier(expr.littérale.valeur) : z32)
+
+            slot := transtype(ligne.pointeur + décalage: *z32)
+            mémoire(slot) = entier
+        }
+        sinon {
+            chn := expr.littérale.valeur
+
+            si chn.taille > 251 {
+                retourne // À FAIRE
+            }
+
+            slot_taille := transtype(ligne.pointeur + décalage: *z32)
+            mémoire(slot_taille) = transtype(chn.taille: z32)
+
+            slot_données := transtype(ligne.pointeur + décalage + 4: *z8)
+
+            pour c, idx dans chn {
+                slot_données[idx] = c
+            }
+        }
+
+        décalage += colonne.taille
+    }
+
+    table.nombre_de_lignes += 1
+
+    retourne // À FAIRE : RésultatExécution.SUCCÈS
 }
 
 ErreurSélection :: erreur {
@@ -81,7 +120,7 @@ ErreurSélection :: erreur {
 
 RésultatSélection :: union {
     e : ErreurSélection
-    t : Table
+    t : *Table
 }
 
 sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> RésultatSélection
@@ -93,7 +132,7 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
         retourne ErreurSélection.TableInexistante
     }
 
-    table_résultat : Table
+    colonnes_résultat : []Colonne
 
     index_colonnes : []z64
     diffère { déloge index_colonnes; }
@@ -102,7 +141,7 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
     pour expr dans inst.items {
         si expr.genre != GenreExpression.LITTÉRALE {
             imprime("Erreur : expression non-littérale rencontrée !\n")
-            détruit_table(@table_résultat)
+            déloge colonnes_résultat
             retourne ErreurSélection.ExpressionNonLittérale
         }
 
@@ -114,13 +153,12 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
 
         trouvée := faux
 
-        pour colonne, idx_colonne dans table.colonnes {
-            si colonne != lit.valeur {
+        pour colonne, idx_colonne dans table.desc_colonnes {
+            si colonne.nom != lit.valeur {
                 continue
             }
 
-            tableau_ajoute(@table_résultat.colonnes, lit.valeur)
-            tableau_ajoute(@table_résultat.types_colonnes, table.types_colonnes[idx_colonne])
+            tableau_ajoute(@colonnes_résultat, colonne)
             tableau_ajoute(@index_colonnes, idx_colonne)
 
             trouvée = vrai
@@ -128,20 +166,42 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
 
         si !trouvée {
             imprime("Erreur : la colonne %.% n'existe pas !\n", inst.depuis.valeur, lit.valeur)
-            détruit_table(@table_résultat)
+            déloge colonnes_résultat
             retourne ErreurSélection.ColonneInexistante
         }
     }
 
+    curseur_source := curseur_début_de_table(table)
+
+    table_résultat := ouvre_base_de_données_mémoire(colonnes_résultat)
+
+    curseur_résultat := curseur_début_de_table(table_résultat)
+    diffère { déloge curseur_résultat; }
+
     // recherche dans la table
-    pour ligne, idx_ligne dans table.lignes {
-        résultat : []CelluleMémoire
+    tantque !curseur_source.est_fin_de_table {
+        ligne_source := valeur_curseur(curseur_source)
+        ligne_résultat := valeur_curseur(curseur_résultat)
+
+        décalage_source := 0
+        décalage_résultat := 0
 
         pour index dans index_colonnes {
-            tableau_ajoute(@résultat, ligne[index])
+            colonne := table.desc_colonnes[index]
+            décalage_source = colonne.décalage
+
+            pointeur_src := ligne_source.pointeur + décalage_source
+            pointeur_dst := ligne_résultat.pointeur + décalage_résultat
+
+            copie_mem_nonsur(src = pointeur_src, dst = pointeur_dst, taille = colonne.taille)
+
+            décalage_résultat += colonne.taille
         }
 
-        tableau_ajoute(@table_résultat.lignes, résultat)
+        avance_curseur(curseur_source)
+        avance_curseur(curseur_résultat)
+
+        table_résultat.nombre_de_lignes += 1
     }
 
     retourne table_résultat
@@ -149,21 +209,36 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
 
 // ------------------------------------------------------------
 
-sélectionne_tables :: fonc (cm: *CoulisseMémoire) -> Table
+sélectionne_tables :: fonc (cm: *CoulisseMémoire) -> *Table
 {
-    table_résultat : Table
+    colonne : Colonne
+    colonne.nom = "Tables"
+    colonne.genre = TypeColonne.CHAINE
+    colonne.taille = 255 // À FAIRE
 
-    tableau_ajoute(@table_résultat.colonnes, "Tables")
-    tableau_ajoute(@table_résultat.types_colonnes, transtype(TypeColonne.CHAINE: z32))
+    colonnes_résultat : []Colonne
+    tableau_ajoute(@colonnes_résultat, colonne)
+
+    table_résultat := ouvre_base_de_données_mémoire(colonnes_résultat)
+
+    curseur_résultat := curseur_début_de_table(table_résultat)
+    diffère { déloge curseur_résultat; }
 
     pour nom dans cm.noms_tables {
-        cellule : CelluleMémoire
-        cellule.chn = nom
+        ligne := valeur_curseur(curseur_résultat)
 
-        résultat : []CelluleMémoire
-        tableau_ajoute(@résultat, cellule)
+        // À FAIRE : déduplique avec insertion
+        slot_taille := transtype(ligne.pointeur: *z32)
+        mémoire(slot_taille) = transtype(nom.taille: z32)
 
-        tableau_ajoute(@table_résultat.lignes, résultat)
+        slot_données := transtype(ligne.pointeur + 4: *z8)
+
+        pour c, idx dans nom {
+            slot_données[idx] = c
+        }
+
+        avance_curseur(curseur_résultat)
+        table_résultat.nombre_de_lignes += 1
     }
 
     retourne table_résultat

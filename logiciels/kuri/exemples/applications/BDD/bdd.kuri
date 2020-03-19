@@ -1,6 +1,8 @@
 importe Fondation
 importe GlibC
+importe SysFichier
 
+charge "curseur"
 charge "paginatrice"
 
 // https://cstack.github.io/db_tutorial/
@@ -9,28 +11,6 @@ charge "paginatrice"
 imprime_prompt :: fonc () -> rien
 {
     imprime("db > ")
-}
-
-lis_entrée :: fonc () -> chaine
-{
-    nouveau_contexte := contexte
-    nouveau_contexte.allocatrice = __stockage_temporaire
-
-    chn : chaine
-
-    pousse_contexte nouveau_contexte {
-        c : z8
-
-        tantque read(0, @c, 1) != 0 {
-            si c == '\n' {
-                arrête
-            }
-
-            pousse(@chn, c)
-        }
-    }
-
-    retourne chn
 }
 
 TypeMétaCommande :: énum z32 {
@@ -52,134 +32,11 @@ TypeInstruction :: énum z32 {
     INSÈRE
 }
 
-// À FAIRE
-TAILLE_MAX_NOM := 32
-TAILLE_MAX_COURRIEL := 255
-
-// À FAIRE : la représentation d'une ligne est compacte en mémoire
-TAILLE_ID := 4 // taille_de Ligne.id
-TAILLE_NOM := 33 // taille_de Lige.nom + 1
-TAILLE_COURRIEL := 256 // taille_de Ligne.courriel + 1
-DÉCALAGE_ID := 0
-DÉCALAGE_NOM := 4
-DÉCALAGE_COURRIEL := 37
-TAILLE_LIGNE := 293
-
-LIGNES_PAR_PAGES := 14 // TAILLE_PAGE / TAILLE_LIGNE
-LIGNES_MAX_TABLE := 1400 // LIGNES_PAR_PAGES * TABLE_MAX_PAGES
-
 Ligne :: struct {
     id := 0
     // Ne pas oublier le caractère nul en fin des chaines
     nom : [32 + 1]z8
     courriel : [255 + 1]z8
-}
-
-Table :: struct {
-    nombre_de_lignes := 0
-    paginatrice : *Paginatrice = nul
-}
-
-ouvre_base_de_données :: fonc (fichier: chaine) -> *Table
-{
-    paginatrice := ouvre_paginatrice(fichier)
-    nombre_de_lignes := paginatrice.taille_fichier / TAILLE_LIGNE
-
-    table := loge Table
-    table.paginatrice = paginatrice
-    table.nombre_de_lignes = transtype(nombre_de_lignes: z32)
-
-    retourne table
-}
-
-ferme_base_de_données :: fonc (table: *Table) -> rien
-{
-    paginatrice := table.paginatrice
-    nombre_de_pages_pleines := table.nombre_de_lignes / TAILLE_LIGNE
-
-    pour i dans 0 ... nombre_de_pages_pleines - 1 {
-        si paginatrice.pages[i].pointeur == nul {
-            continue
-        }
-
-        flush_paginatrice(paginatrice, i, TAILLE_PAGE)
-        free(paginatrice.pages[i].pointeur)
-        paginatrice.pages[i].pointeur = nul
-    }
-
-    // Une page partielle peut toujours être à écrire à la fin du fichier
-    // Ce ne sera plus nécessaire lorsque nous aurons un arbre-B
-    nombre_de_lignes_additionnelles := table.nombre_de_lignes % LIGNES_PAR_PAGES
-
-    si nombre_de_lignes_additionnelles > 0 {
-        index_page := nombre_de_pages_pleines
-
-        si paginatrice.pages[index_page].pointeur != nul {
-            flush_paginatrice(paginatrice, index_page, nombre_de_lignes_additionnelles * TAILLE_LIGNE)
-            free(paginatrice.pages[index_page].pointeur)
-            paginatrice.pages[index_page].pointeur = nul
-        }
-    }
-
-    résultat_fermeture := close(paginatrice.descripteur_fichier)
-
-    si résultat_fermeture == -1 {
-        imprime("Échec lors de la fermeture du fichier\n")
-        exit(1)
-    }
-
-    pour page dans paginatrice.pages {
-        si page.pointeur != nul {
-            free(page.pointeur)
-        }
-    }
-
-    déloge paginatrice
-    déloge table
-}
-
-Curseur :: struct {
-    table : *Table
-    index_ligne := 0
-    est_fin_de_table := faux
-}
-
-curseur_début_de_table :: fonc (table: *Table) -> *Curseur
-{
-    curseur := loge Curseur
-    curseur.table = table
-    curseur.index_ligne = 0
-    curseur.est_fin_de_table = table.nombre_de_lignes == 0
-
-    retourne curseur
-}
-
-curseur_fin_de_table :: fonc (table: *Table) -> *Curseur
-{
-    curseur := loge Curseur
-    curseur.table = table
-    curseur.index_ligne = table.nombre_de_lignes
-    curseur.est_fin_de_table = vrai
-
-    retourne curseur
-}
-
-valeur_curseur :: fonc (curseur: *Curseur) -> *rien
-{
-    index_ligne := curseur.index_ligne
-    index_page := index_ligne / LIGNES_PAR_PAGES
-    page := trouve_page(curseur.table.paginatrice, index_page)
-
-    décalage_ligne := index_ligne % LIGNES_PAR_PAGES
-    décalage_octet := décalage_ligne * TAILLE_LIGNE
-
-    retourne page.pointeur + décalage_octet
-}
-
-avance_curseur :: fonc (curseur: *Curseur) -> rien
-{
-    curseur.index_ligne += 1
-    curseur.est_fin_de_table = curseur.index_ligne >= curseur.table.nombre_de_lignes
 }
 
 // @XXX
@@ -384,12 +241,19 @@ principale :: fonc () -> z32
 
     marque := obtiens_marque_stockage_temporaire()
 
+    nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
     boucle {
         set_marque_stockage_temporaire(marque);
         marque = obtiens_marque_stockage_temporaire()
 
         imprime_prompt()
-        entrée := lis_entrée()
+
+        entrée : chaine
+        pousse_contexte nouveau_contexte {
+            entrée = entrée_standarde().lis_ligne()
+        }
 
         si entrée.taille == 0 {
             imprime("L'entrée est vide\n")

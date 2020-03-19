@@ -23,6 +23,7 @@ imprime_prompt :: fonc () -> rien
 // crée utilisateurs (nom texte, id entier);insère dans utilisateurs valeurs ("Thor", 1237);insère dans utilisateurs valeurs ("Carter", 789);sélectionne id, nom depuis utilisateurs;
 
 // @bug : aucune erreur lorsqu'une commande est fausse (p.e. '.tabels')
+// @bug : désynchronisation de la quantité de mémoire allouée quand nous imprimons les tables
 principale :: fonc () -> z32
 {
     diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
@@ -43,8 +44,8 @@ principale :: fonc () -> z32
         si entrée == ".tables\n" {
             résultat := sélectionne_tables(@cm)
 
-            imprime_table(@résultat)
-            détruit_table(@résultat)
+            imprime_table(résultat)
+            ferme_base_de_données(résultat)
         }
         sinon si entrée == ".sors\n" {
             arrête
@@ -68,8 +69,8 @@ principale :: fonc () -> z32
                             arrête
                         }
 
-                        imprime_table(@résultat)
-                        détruit_table(@résultat)
+                        imprime_table(résultat)
+                        ferme_base_de_données(résultat)
                     }
                     INSÈRE {
                         insère(@cm, transtype(inst: *InstructionInsère))
