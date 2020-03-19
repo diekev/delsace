@@ -1,0 +1,52 @@
+est_puissance_de_2 :: fonc (x: z32) -> bool
+{
+    retourne (x & (x - 1)) == 0
+}
+
+compte_nombre_de_bits_actifs :: fonc (dyn x: n32) -> n32
+{
+    // ajoute les paires de bits
+    x = (x & 0b0101_0101_0101_0101_0101_0101_0101_0101) + ((x >> 1) & 0b0101_0101_0101_0101_0101_0101_0101_0101)
+
+    // ajoute les paires de paires
+    x = (x & 0b0011_0011_0011_0011_0011_0011_0011_0011) + ((x >> 2) & 0b0011_0011_0011_0011_0011_0011_0011_0011)
+
+    // ajoute les nybbles
+    x = (x & 0b0000_1111_0000_1111_0000_1111_0000_1111) + ((x >> 4) & 0b0000_1111_0000_1111_0000_1111_0000_1111)
+
+    // ajoute les octets
+    x += (x >> 8)
+
+    // ajoute les mots
+    x += (x >> 16)
+
+    retourne x & 0b1111_1111
+}
+
+compte_nombre_de_bits_inactifs :: fonc (x: n32) -> n32
+{
+    retourne 32 - compte_nombre_de_bits_actifs(x)
+}
+
+// retourne 1.0 / (2.0 ^ puissance)
+réciproque_puissance_de_2 :: fonc (puissance: z32) -> r32
+{
+    // 1.0/pow(2,power)
+    union {
+        float f;
+        int32_t i;
+    };
+    i = (127-power)<<23;
+    return f;
+}
+
+abs :: fonc (x: r32) -> r32
+{
+    union {
+        float f;
+        int32_t i;
+    };
+    f = x;
+    i &= 0x7fffffff;
+    return f;
+}

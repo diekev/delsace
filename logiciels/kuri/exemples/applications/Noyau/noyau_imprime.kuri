@@ -1,0 +1,86 @@
+
+// pas de contexte dans le noyau
+// pas de stockage temporaire
+// pas de coroutines
+// pas d'erreur en cas de dépassement de limites ou d'accès à des unions sûres, ne peut pas avorter
+// pas de loge, déloge, reloge
+
+// Le tampon pour l'écran, à faire : peut-être utilisation d'un tableau pour une sûreté, même si les dépassements de limites ne fonctionnent pas
+TamponÉcran :: struct {
+    ptr : *z8
+    taille := 80 * 25 * 2
+    occupé := 0
+}
+
+noyau_clarifie_écran :: fonc (tampon: *TamponÉcran) -> rien
+{
+    // Cette boucle clarifie l'écran.
+	// Il y a 25 lignes de 80 colonnes.
+	// Chaque élément prend 2 octets.
+	pour j dans 0 ... tampon.taille - 1 {
+		// Caractère blanc
+		tampon.ptr[j * 2] = ' ';
+
+		// Octet d'attribut - écran noir.
+		tampon.ptr[j * 2 + 1] = transtype(AP_NOIR | TE_NOIR : z8);
+	}
+}
+
+noyau_imprime :: fonc (format: chaine, args: ...eini) -> rien #nulctx
+{
+    index := 0
+
+    pour c dans format {
+        si c != '%' {
+            noyau_imprime_caractère(c)
+            continue
+        }
+
+        si index >= args.taille {
+            noyau_imprime_chaine("erreur : dépassement du nombre d'argument\n")
+            retourne
+        }
+
+        arg := args[index]
+        noyau_imprime_arg(arg.pointeur, arg.info)
+
+        index += 1
+    }
+}
+
+noyau_imprime_caractère :: fonc (c: z8) -> rien #nulctx
+{
+
+}
+
+noyau_imprime_chaine :: fonc (c: z8) -> rien #nulctx
+{
+    pour c dans chn {
+        noyau_imprime_caractère(c)
+    }
+}
+
+noyau_imprime_arg :: fonc (pointeur: *z8, info: *InfoType) -> rien #nulctx
+{
+    discr info.id {
+        CHAINE {
+            chn := mémoire(transtype(pointeur: *chaine))
+            noyau_imprime_chaine(chn)
+        }
+    }
+}
+
+noyau_imprime_nombre_entier :: fonc () -> rien #nulctx
+{
+
+}
+
+noyau_imprim_nombre_réel :: fonc () -> rien #nulctx
+{
+
+}
+
+noyau_imprime_octet :: fonc () -> rien #nulctx
+{
+
+}

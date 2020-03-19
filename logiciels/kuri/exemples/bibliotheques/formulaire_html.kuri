@@ -1,0 +1,47 @@
+importe Fondation
+
+// https://technology.blog.gov.uk/2020/02/24/why-the-gov-uk-design-system-team-changed-the-input-type-for-numbers/
+
+MotDePasse :: struct {
+    chn: chaine
+}
+
+génère_formulaire_depuis_struct :: fonc (valeur: eini) -> rien
+{
+    imprime("<form>\n")
+
+    info := transtype(valeur.info: *InfoTypeStructure)
+
+    pour membre dans info.membres {
+        info_membre := membre.id
+
+        imprime("<p class=erreur_formulaire id=erreur_% style='display:none'>Ce champs est obligatoire</p>\n", membre.nom)
+
+        si info_membre.id == id_info.CHAINE {
+            imprime("<input type='text' name='%'>\n", membre.nom)
+        }
+        sinon si info_membre.id == id_info.STRUCTURE {
+            si info_membre == info_de(MotDePasse{}) {
+                imprime("<input type='password' name='%'>\n", membre.nom)
+            }
+        }
+    }
+
+    imprime("</form>\n")
+}
+
+InformationConnexion :: struct {
+    nom: chaine
+    prénom: chaine
+    mot_de_passe: MotDePasse
+    adresse_courriel: chaine
+}
+
+principale :: fonc () -> z32
+{
+    dyn infos : InformationConnexion
+
+    génère_formulaire_depuis_struct(infos)
+
+    retourne 0
+}

@@ -1,0 +1,142 @@
+
+
+Gérant_Fichier_Texte :: struct {
+    nom_court : chaine
+    chemin : chaine
+
+    agent_log : chaine
+
+    caractère_de_commentaire := '#'
+
+    gère_numéro_version := faux
+    supprime_commentaires_en_fin_de_ligne := faux
+
+    données : chaine
+    données_originales : chaine
+
+    échec := faux
+    version := -1
+
+    numéro_ligne := 0
+}
+
+commence_ficiher :: fonc (gérant: *Gérant_Fichier_Texte, nom_court: chaine, chemin: chaine, agent_log: chaine, optionnel := faux) -> rien
+{
+    gérant.nom_court = nom_court
+    gérant.chemin = chemin
+    gérant.agent_log = agent_log
+
+    données, succès := contenu_fichier_texte(chemin)
+
+    gérant.données = données
+    gérant.données_originales = données
+
+    si !succès {
+        si !optionnel {
+            imprime_log(agent_log, ModeLogage.MINIMAL, "Impossible d'ouvrir le fichier % !\n", chemin)
+        }
+
+        gérant.échec = vrai
+        retourne
+    }
+
+    si gérant.gère_numéro_version {
+        ligne, trouvée := consomme_ligne_suivante(@gérant.données)
+        gérant.numéro_ligne += 1
+
+        // ....
+
+        si reste.taille == 0 || reste[0] != ']' {
+            imprime_log(agent_log, "Attendu ']' après le numéro de version dans le fichier %, mais ne fut pas reçu ! (Le reste est : %)\n", chemin, reste)
+            gérant.échec = vrai
+            retourne
+        }
+
+        gérant.version = version
+    }
+}
+
+consomme_ligne_suivante :: fonc (gérant: *Gérant_Fichier_Texte) -> chaine, bool
+{
+    boucle {
+        ligne, trouvée := consomme_ligne_suivante(@gérant.données)
+
+        si !trouvée {
+            retourne "", faux
+        }
+
+        gérant.numéro_ligne += 1
+
+        ligne = consomme_espaces(ligne)
+
+        // À FAIRE: langage raccourcis d'opérateurs booléen -> chaine, nombres, pointeurs
+        si ligne.taille == 0 {
+            continue
+        }
+
+        si gérant.supprime_commentaires_en_fin_de_ligne {
+            lhs, trouvée := trouve_caractère_de_la_gauche(ligne, gérant.caractère_de_commentaire)
+
+            si trouvée {
+                ligne = lhs
+
+                si ligne.taille == 0 {
+                    continue
+                }
+            }
+        }
+        sinon {
+            si ligne[0] == gérant.caractère_de_commentaire {
+                continue
+            }
+        }
+
+        ligne = consomme_espaces_finaux(ligne)
+        assert(ligne.taille > 0)
+
+        retourne ligne, trouvée
+    }
+}
+
+consomme_ligne_suivante :: fonc (pl: *chaine) -> chaine, bool
+{
+    l := mémoire(pl)
+
+    t, trouvée := trouve_caractère_de_la_gauche(l, 10)
+
+    si !trouvée {
+        mémoire(pl) = ""
+
+        //...
+    }
+}
+
+consomme_espaces :: fonc (ligne: chaine) -> chaine
+{
+    dyn résultat := ligne
+
+    tantque résultat.taille > 0 {
+        si résultat.taille != ' ' {
+            arrête
+        }
+
+        résultat = avance(résultat, 1)
+    }
+
+    retourne résultat
+}
+
+consomme_espaces_finaux :: fonc (ligne: chaine) -> chaine
+{
+    dyn résultat := ligne
+
+    tantque résultat.taille > 0 {
+        si résultat[résultat.taille - 1] != ' ' {
+            arrête
+        }
+
+        résultat = recule(résultat)
+    }
+
+    retourne résultat
+}
