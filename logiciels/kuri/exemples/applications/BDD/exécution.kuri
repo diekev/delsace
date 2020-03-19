@@ -1,0 +1,170 @@
+importe Fondation
+
+charge "coulisse_mémoire"
+charge "instructions"
+charge "table"
+
+crée_table :: fonc (cm: *CoulisseMémoire, inst: *InstructionCréationTable) -> rien
+{
+    table := loge Table
+    table.colonnes.taille = 0
+    table.colonnes.pointeur = nul
+    table.types_colonnes.taille = 0
+    table.types_colonnes.pointeur = nul
+    table.lignes.taille = 0
+    table.lignes.pointeur = nul
+
+    tableau_ajoute(@cm.noms_tables, inst.nom.valeur)
+
+    pour définition dans inst.colonnes {
+        tableau_ajoute(@table.colonnes, définition.nom.valeur)
+
+        discr définition.type_données.genre {
+            MOT_CLÉ_ENTIER {
+                tableau_ajoute(@table.types_colonnes, TypeColonne.ENTIER)
+            }
+            MOT_CLÉ_TEXTE {
+                tableau_ajoute(@table.types_colonnes, TypeColonne.CHAINE)
+            }
+            sinon {
+                imprime("Type de données inattendu\n")
+            }
+        }
+    }
+
+    tableau_ajoute(@cm.tables, table)
+}
+
+trouve_table :: fonc (cm: *CoulisseMémoire, nom_table: chaine) -> *Table
+{
+    pour nom, idx dans cm.noms_tables {
+        si nom == nom_table {
+            retourne cm.tables[idx]
+        }
+    }
+
+    retourne nul
+}
+
+insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> rien
+{
+    table := trouve_table(cm, inst.table.valeur)
+
+    si table == nul {
+        imprime("La table n'existe pas")
+        retourne
+    }
+
+    ligne : []CelluleMémoire
+
+    pour expr dans inst.valeurs {
+        cellule : CelluleMémoire
+
+        si expr.littérale.genre == GenreLexème.NUMÉRIQUE {
+            cellule.entier = transtype(extrait_nombre_entier(expr.littérale.valeur) : z32)
+        }
+        sinon {
+            cellule.chn = expr.littérale.valeur
+        }
+
+        tableau_ajoute(@ligne, cellule)
+    }
+
+    tableau_ajoute(@table.lignes, ligne)
+}
+
+ErreurSélection :: erreur {
+    TableInexistante
+    ColonneInexistante
+    ExpressionNonLittérale
+}
+
+RésultatSélection :: union {
+    e : ErreurSélection
+    t : Table
+}
+
+sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> RésultatSélection
+{
+    table := trouve_table(cm, inst.depuis.valeur)
+
+    si table == nul {
+        imprime("Erreur : la table % n'existe pas !\n", inst.depuis.valeur)
+        retourne ErreurSélection.TableInexistante
+    }
+
+    table_résultat : Table
+
+    index_colonnes : []z64
+    diffère { déloge index_colonnes; }
+
+    // trouve les colonnes dans la table
+    pour expr dans inst.items {
+        si expr.genre != GenreExpression.LITTÉRALE {
+            imprime("Erreur : expression non-littérale rencontrée !\n")
+            détruit_table(@table_résultat)
+            retourne ErreurSélection.ExpressionNonLittérale
+        }
+
+        lit := expr.littérale
+
+        si lit.genre != GenreLexème.IDENTIFIANT {
+            continue
+        }
+
+        trouvée := faux
+
+        pour colonne, idx_colonne dans table.colonnes {
+            si colonne != lit.valeur {
+                continue
+            }
+
+            tableau_ajoute(@table_résultat.colonnes, lit.valeur)
+            tableau_ajoute(@table_résultat.types_colonnes, table.types_colonnes[idx_colonne])
+            tableau_ajoute(@index_colonnes, idx_colonne)
+
+            trouvée = vrai
+        }
+
+        si !trouvée {
+            imprime("Erreur : la colonne %.% n'existe pas !\n", inst.depuis.valeur, lit.valeur)
+            détruit_table(@table_résultat)
+            retourne ErreurSélection.ColonneInexistante
+        }
+    }
+
+    // recherche dans la table
+    pour ligne, idx_ligne dans table.lignes {
+        résultat : []CelluleMémoire
+
+        pour index dans index_colonnes {
+            tableau_ajoute(@résultat, ligne[index])
+        }
+
+        tableau_ajoute(@table_résultat.lignes, résultat)
+    }
+
+    retourne table_résultat
+}
+
+// ------------------------------------------------------------
+
+sélectionne_tables :: fonc (cm: *CoulisseMémoire) -> Table
+{
+    table_résultat : Table
+
+    tableau_ajoute(@table_résultat.colonnes, "Tables")
+    tableau_ajoute(@table_résultat.types_colonnes, transtype(TypeColonne.CHAINE: z32))
+
+    pour nom dans cm.noms_tables {
+        cellule : CelluleMémoire
+        cellule.chn = nom
+
+        résultat : []CelluleMémoire
+        tableau_ajoute(@résultat, cellule)
+
+        tableau_ajoute(@table_résultat.lignes, résultat)
+    }
+
+    retourne table_résultat
+}

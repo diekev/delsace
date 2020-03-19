@@ -1,0 +1,46 @@
+charge "lexage"
+
+GenreInstruction :: énum z32 {
+    CRÉE
+    SÉLECTIONNE
+    INSÈRE
+}
+
+Instruction :: struct {
+    genre : GenreInstruction
+}
+
+InstructionInsère :: struct {
+    empl base : Instruction
+
+    table : Lexème
+    valeurs: []*Expression
+}
+
+GenreExpression :: énum z32 {
+    LITTÉRALE
+}
+
+Expression :: struct {
+    genre : GenreExpression
+    littérale : Lexème
+}
+
+DéfinitionColonne :: struct {
+    nom: Lexème
+    type_données: Lexème
+}
+
+InstructionCréationTable :: struct {
+    empl base : Instruction
+
+    nom: Lexème
+    colonnes : []*DéfinitionColonne
+}
+
+InstructionSélection :: struct {
+    empl base : Instruction
+
+    items : []*Expression
+    depuis : Lexème
+}

@@ -1,0 +1,77 @@
+importe Fondation
+
+charge "tabuleuse"
+
+TypeColonne :: énum z32 {
+    ENTIER
+    CHAINE
+}
+
+CelluleMémoire :: union {
+    entier : z32
+    chn : chaine
+}
+
+comme_entier :: fonc (m : CelluleMémoire) -> z32
+{
+    retourne m.entier
+}
+
+comme_chaine :: fonc (m : CelluleMémoire) -> chaine
+{
+    retourne m.chn
+}
+
+Table :: struct {
+    colonnes : []chaine
+    types_colonnes : []z32 // @coulisse C
+
+    lignes : [][]CelluleMémoire
+}
+
+détruit_table :: fonc (table: *Table) -> rien
+{
+    déloge table.colonnes
+    déloge table.types_colonnes
+
+    pour ligne dans table.lignes {
+        déloge ligne
+    }
+
+    déloge table.lignes
+}
+
+imprime_table :: fonc (table: *Table) -> rien
+{
+    si table.lignes.taille == 0 {
+        imprime("0 résultat\n")
+        retourne
+    }
+
+    ligne_titre : LigneTabuleuse
+
+    pour nom dans table.colonnes {
+        tableau_ajoute(@ligne_titre.colonnes, nom)
+    }
+
+    tabuleuse := crée_tabuleuse(ligne_titre)
+    diffère { détruit_tabuleuse(@tabuleuse); }
+
+    pour ligne dans table.lignes {
+        ligne_tabuleuse : LigneTabuleuse
+
+        pour cellule, idx_cellule dans ligne {
+            si table.types_colonnes[idx_cellule] == transtype(TypeColonne.CHAINE: z32) {
+                tableau_ajoute(@ligne_tabuleuse.colonnes, cellule.comme_chaine())
+            }
+            sinon {
+                chn := obtiens_chaine_pour_eini(@tabuleuse, cellule.comme_entier())
+                tableau_ajoute(@ligne_tabuleuse.colonnes, chn)
+            }
+        }
+
+        ajoute_ligne(@tabuleuse, ligne_tabuleuse)
+    }
+
+    imprime_table(@tabuleuse)
+}

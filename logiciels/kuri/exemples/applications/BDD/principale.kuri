@@ -1,0 +1,87 @@
+importe Fondation
+importe SysFichier
+
+// tutoriel : http://notes.eatonphil.com/database-basics.html
+
+charge "coulisse_mémoire"
+charge "exécution"
+charge "syntaxage"
+
+imprime_prompt :: fonc () -> rien
+{
+    imprime("db > ")
+}
+
+// ------------------------------------------------------------
+
+// crée utilisateurs (nom texte, id entier);
+// insère dans utilisateurs valeurs ("Thor", 1237);
+// insère dans utilisateurs valeurs ("Carter", 789);
+// sélectionne nom, id depuis utilisateurs;
+// sélectionne id, nom depuis utilisateurs;
+
+// crée utilisateurs (nom texte, id entier);insère dans utilisateurs valeurs ("Thor", 1237);insère dans utilisateurs valeurs ("Carter", 789);sélectionne id, nom depuis utilisateurs;
+
+// @bug : aucune erreur lorsqu'une commande est fausse (p.e. '.tabels')
+principale :: fonc () -> z32
+{
+    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
+
+    nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    cm : CoulisseMémoire
+
+    boucle {
+        imprime_prompt()
+
+        entrée : chaine
+        pousse_contexte nouveau_contexte {
+            entrée = entrée_standarde().lis_ligne()
+        }
+
+        si entrée == ".tables\n" {
+            résultat := sélectionne_tables(@cm)
+
+            imprime_table(@résultat)
+            détruit_table(@résultat)
+        }
+        sinon si entrée == ".sors\n" {
+            arrête
+        }
+        sinon {
+            asa := parse(entrée)
+
+            pour inst dans asa.instructions {
+                discr inst.genre {
+                    CRÉE {
+                        crée_table(@cm, transtype(inst: *InstructionCréationTable))
+                    }
+                    SÉLECTIONNE {
+                        résultat := tente sélectionne(@cm, transtype(inst: *InstructionSélection)) piège err {
+                            discr err {
+                                ColonneInexistante { }
+                                TableInexistante { }
+                                ExpressionNonLittérale { }
+                            }
+
+                            arrête
+                        }
+
+                        imprime_table(@résultat)
+                        détruit_table(@résultat)
+                    }
+                    INSÈRE {
+                        insère(@cm, transtype(inst: *InstructionInsère))
+                    }
+                }
+            }
+
+            détruit_asa(@asa)
+        }
+    }
+
+    détruit_coulisse(@cm)
+
+    retourne 0
+}

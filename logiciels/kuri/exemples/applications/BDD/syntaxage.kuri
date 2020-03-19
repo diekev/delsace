@@ -1,0 +1,375 @@
+importe Fondation
+
+charge "instructions"
+charge "lexage"
+
+ASA :: struct {
+    instructions : []*Instruction
+}
+
+détruit_asa :: fonc (asa: *ASA) -> rien
+{
+    pour inst dans asa.instructions {
+        discr inst.genre {
+            CRÉE {
+                inst_crée := transtype(inst: *InstructionCréationTable)
+
+                pour déf dans inst_crée.colonnes {
+                    déloge déf
+                }
+
+                déloge inst_crée.colonnes
+                déloge inst_crée
+            }
+            SÉLECTIONNE {
+                inst_sél := transtype(inst: *InstructionSélection)
+
+                pour expr dans inst_sél.items {
+                    déloge expr
+                }
+
+                déloge inst_sél.items
+                déloge inst_sél
+            }
+            INSÈRE {
+                inst_insère := transtype(inst: *InstructionInsère)
+
+                pour expr dans inst_insère.valeurs {
+                    déloge expr
+                }
+
+                déloge inst_insère.valeurs
+                déloge inst_insère
+            }
+        }
+    }
+
+    déloge asa.instructions
+}
+
+parse :: fonc (chn: chaine) -> ASA
+{
+    lexèmes := lèxe(chn)
+
+/*
+    pour l dans lexèmes {
+        imprime("%\n", l)
+    }
+*/
+
+    diffère { déloge lexèmes; }
+
+    asa : ASA
+
+    curseur := 0
+
+    tantque curseur < lexèmes.taille {
+        inst := parse_instruction(lexèmes, @curseur)
+
+        si inst == nul {
+            imprime("Impossible de parser les lexèmes\n")
+            arrête
+        }
+
+        tableau_ajoute(@asa.instructions, inst)
+    }
+
+    retourne asa
+}
+
+// @amélioration : retourne aussi le curseur au lieu d'utilisation un pointeur
+// @amélioration : retourne une erreur (besoin d'un système d'erreur)
+parse_instruction :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *Instruction
+{
+    curseur := mémoire(ancien_curseur)
+    diffère { mémoire(ancien_curseur) = curseur; }
+
+    discr lexèmes[curseur].genre {
+        MOT_CLÉ_CRÉE {
+            curseur += 1
+            inst := parse_instruction_crée(lexèmes, @curseur)
+
+            retourne inst
+        }
+        MOT_CLÉ_INSÈRE {
+            curseur += 1
+            inst := parse_instruction_insère(lexèmes, @curseur)
+
+            retourne inst
+        }
+        MOT_CLÉ_SÉLECTIONNE {
+            curseur += 1
+            inst := parse_instruction_sélectionne(lexèmes, @curseur)
+
+            retourne inst
+        }
+        sinon {
+            imprime("Attendu un mot-clé : obtenu %\n", lexèmes[curseur].genre)
+            retourne nul
+        }
+    }
+
+    retourne nul
+}
+
+// 1. SÉLECTIONNE (déjà consommé lors de l'appel)
+// 2. $expressions [, ...]
+// 3. DEPUIS
+// 4. $table
+// 5. ;
+parse_instruction_sélectionne :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *InstructionSélection
+{
+    curseur := mémoire(ancien_curseur)
+    diffère { mémoire(ancien_curseur) = curseur; }
+
+    inst := loge InstructionSélection
+    inst.genre = GenreInstruction.SÉLECTIONNE
+    inst.items.taille = 0
+    inst.items.pointeur = nul
+
+    si !parse_expressions(lexèmes, @curseur, @inst.items) {
+        imprime("Impossible de parser les expressions\n")
+        déloge inst // @fuite de mémoire
+        retourne nul
+    }
+
+    si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_DEPUIS {
+        imprime("Attendu 'depuis'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
+        imprime("Attendu 'identifiant'\n")
+        déloge inst
+        retourne nul
+    }
+
+    inst.depuis = lexèmes[curseur]
+
+    curseur += 1
+
+    si lexèmes[curseur].genre != GenreLexème.POINT_VIRGULE {
+        imprime("Attendu ';'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    retourne inst
+}
+
+// 1. CRÉE  (déjà consommé lors de l'appel)
+// 2. $nom-table
+// 3. (
+// 4. [nom-colonne type-colonne, ...]
+// 5. )
+// 6. ;
+parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *InstructionCréationTable
+{
+    curseur := mémoire(ancien_curseur)
+    diffère { mémoire(ancien_curseur) = curseur; }
+
+    inst := loge InstructionCréationTable
+    inst.genre = GenreInstruction.CRÉE
+    inst.colonnes.taille = 0
+    inst.colonnes.pointeur = nul
+
+    // 2. $nom-table
+    si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
+        imprime("Attendu 'identifiant'\n")
+        déloge inst
+        retourne nul
+    }
+
+    inst.nom = lexèmes[curseur]
+
+    curseur += 1
+
+    // 3. (
+    si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_OUVRANTE {
+        imprime("Attendu '('\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    boucle {
+        si lexèmes[curseur].genre == GenreLexème.PARENTHÈSE_FERMANTE {
+            arrête
+        }
+
+        desc := loge DéfinitionColonne
+        tableau_ajoute(@inst.colonnes, desc)
+
+        // nom-colonne
+        si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
+            imprime("Attendu 'identifiant'\n")
+            déloge inst
+            retourne nul
+        }
+
+        desc.nom = lexèmes[curseur]
+
+        curseur += 1
+
+        // type-colonne
+        si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_TEXTE && lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_ENTIER {
+            imprime("Attendu 'entier' ou 'texte'\n")
+            déloge inst
+            retourne nul
+        }
+
+        desc.type_données = lexèmes[curseur]
+
+        curseur += 1
+
+        si lexèmes[curseur].genre == GenreLexème.VIRGULE {
+            curseur += 1
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    // 5. )
+    si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_FERMANTE {
+        imprime("Attendu ')'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    // 6. ;
+    si lexèmes[curseur].genre != GenreLexème.POINT_VIRGULE {
+        imprime("Attendu ';'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    retourne inst
+}
+
+// 1. INSÈRE
+// 2. DANS
+// 3. $nom-table
+// 4. VALEURS
+// 5. (
+// 6. $expression [, ...]
+// 7. )
+// 8. ;
+parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *InstructionInsère
+{
+    curseur := mémoire(ancien_curseur)
+    diffère { mémoire(ancien_curseur) = curseur; }
+
+    inst := loge InstructionInsère
+    inst.genre = GenreInstruction.INSÈRE
+    inst.valeurs.taille = 0
+    inst.valeurs.pointeur = nul
+
+    // 2. DANS
+    si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_DANS {
+        imprime("Attendu 'dans'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    // 3. $nom-table
+    si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
+        imprime("Attendu 'identifiant'\n")
+        déloge inst
+        retourne nul
+    }
+
+    inst.table = lexèmes[curseur]
+
+    curseur += 1
+
+    // 4. VALEURS
+    si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_VALEURS {
+        imprime("Attendu 'valeurs'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    // 5. (
+    si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_OUVRANTE {
+        imprime("Attendu '('\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    // 6. $expression [, ...]
+    si !parse_expressions(lexèmes, @curseur, @inst.valeurs) {
+        imprime("Impossible de parser les expresssions pour INSÈRE !\n")
+        déloge inst
+        retourne nul
+    }
+
+    // 7. )
+    si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_FERMANTE {
+        imprime("Attendu '('\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    // 8. ;
+    si lexèmes[curseur].genre != GenreLexème.POINT_VIRGULE {
+        imprime("Attendu ';'\n")
+        déloge inst
+        retourne nul
+    }
+
+    curseur += 1
+
+    retourne inst
+}
+
+parse_expressions :: fonc (lexèmes: []Lexème, ancien_curseur: *z32, exprs: *[]*Expression) -> bool
+{
+    curseur := mémoire(ancien_curseur)
+    diffère { mémoire(ancien_curseur) = curseur; }
+
+    // @amélioration : évite les dépassement de bornes
+    boucle {
+        genre := lexèmes[curseur].genre
+
+        si genre != GenreLexème.IDENTIFIANT && genre != GenreLexème.NUMÉRIQUE && genre != GenreLexème.CHAINE {
+            imprime("Attendu 'identifiant'\n")
+            retourne faux
+        }
+
+        expr := loge Expression
+        expr.genre = GenreExpression.LITTÉRALE
+        expr.littérale = lexèmes[curseur]
+
+        tableau_ajoute(exprs, expr)
+
+        curseur += 1
+
+        si lexèmes[curseur].genre == GenreLexème.VIRGULE {
+            curseur += 1
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    retourne vrai
+}

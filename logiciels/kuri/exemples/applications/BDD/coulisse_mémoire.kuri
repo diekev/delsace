@@ -1,0 +1,17 @@
+charge "table"
+
+CoulisseMémoire :: struct {
+    noms_tables : []chaine
+    tables : []*Table
+}
+
+détruit_coulisse :: fonc (cm: *CoulisseMémoire) -> rien
+{
+    pour table dans cm.tables {
+        détruit_table(table)
+        déloge table
+    }
+
+    déloge cm.noms_tables
+    déloge cm.tables
+}
