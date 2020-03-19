@@ -192,7 +192,7 @@ static NoeudBase *derniere_instruction(NoeudBloc *b)
 
 	auto di = b->expressions[b->expressions.taille - 1];
 
-	if (est_instruction_retour(di->genre)) {
+	if (est_instruction_retour(di->genre) || (di->genre == GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
 		return di;
 	}
 
