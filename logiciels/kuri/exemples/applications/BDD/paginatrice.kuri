@@ -1,0 +1,104 @@
+importe Fondation
+importe GlibC
+
+TAILLE_PAGE :: 4096
+TABLE_MAX_PAGES :: 100
+
+Paginatrice :: struct {
+    pages : [100][]octet
+    descripteur_fichier := -1
+    taille_fichier : z64 = 0
+}
+
+ouvre_paginatrice :: fonc (fichier: chaine) -> *Paginatrice
+{
+    marque := obtiens_marque_stockage_temporaire()
+    diffère { set_marque_stockage_temporaire(marque) }
+
+    chemin_c := chaine_c_temp(fichier)
+
+    fd := open(chemin_c, LECTURE_ÉCRITURE | CREATION, 0o400 | 0o200)
+
+    si fd == -1 {
+        imprime("Impossible d'ouvrir le fichier\n")
+        exit(1)
+    }
+
+    taille_fichier := lseek(fd, 0, _SEEK_END)
+
+    paginatrice := loge Paginatrice
+    paginatrice.descripteur_fichier = fd
+    paginatrice.taille_fichier = taille_fichier
+
+    pour page dans paginatrice.pages {
+        page.pointeur = nul
+    }
+
+    retourne paginatrice
+}
+
+trouve_page :: fonc (paginatrice: *Paginatrice, index_page: z32) -> []octet
+{
+    si index_page > TABLE_MAX_PAGES {
+        imprime("Tentative de prendre une page hors des limites : % > %\n", index_page, TABLE_MAX_PAGES)
+        exit(1)
+    }
+
+    page := paginatrice.pages[index_page]
+
+    si page.pointeur == nul {
+        // Cache miss
+        page = loge [TAILLE_PAGE]octet
+
+        nombre_de_pages := paginatrice.taille_fichier / TAILLE_PAGE
+
+        // nous avons peut-être une page incomplète à la fin du fichier
+        si paginatrice.taille_fichier % TAILLE_PAGE != 0 {
+            nombre_de_pages += 1
+        }
+
+        si index_page <= nombre_de_pages {
+            décalage := lseek(paginatrice.descripteur_fichier, index_page * TAILLE_PAGE, _SEEK_SET)
+
+            si décalage == -1 {
+                imprime("Impossible de chercher le point dans le fichier !\n")
+                exit(1)
+            }
+
+            octets_lus := read(paginatrice.descripteur_fichier, transtype(page.pointeur: *z8), transtype(TAILLE_PAGE: n64))
+
+            si octets_lus == -1 {
+                imprime("Erreur lors de la lecture du fichier !\n")
+                exit(1)
+            }
+        }
+
+        paginatrice.pages[index_page] = page
+    }
+
+    retourne page
+}
+
+// les pages ne sont pas flushées si le programme est interrompu (ctrl + C)
+// nous pourrions également éviter d'écrire des pages qui n'ont pas changées
+flush_paginatrice :: fonc (paginatrice: *Paginatrice, index_page: z32, taille: z32) -> rien
+{
+    si paginatrice.pages[index_page].pointeur == nul {
+        imprime("Tentativer de flusher une page nulle !\n")
+        exit(1)
+    }
+
+    décalage := lseek(paginatrice.descripteur_fichier, index_page * TAILLE_PAGE, _SEEK_SET)
+
+    si décalage == -1 {
+        imprime("Impossible de chercher le point dans le fichier !\n")
+        exit(1)
+    }
+
+    octets_écris := write(paginatrice.descripteur_fichier, transtype(paginatrice.pages[index_page].pointeur: *z8), taille)
+
+    si octets_écris == -1 {
+        imprime("Erreur lors de l'écriture !")
+        exit(1)
+    }
+}

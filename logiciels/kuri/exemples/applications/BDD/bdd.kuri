@@ -1,6 +1,8 @@
 importe Fondation
 importe GlibC
 
+charge "paginatrice"
+
 // https://cstack.github.io/db_tutorial/
 // continuation : https://cstack.github.io/db_tutorial/parts/part5.html
 
@@ -63,8 +65,6 @@ DÉCALAGE_NOM := 4
 DÉCALAGE_COURRIEL := 37
 TAILLE_LIGNE := 293
 
-TAILLE_PAGE := 4096
-TABLE_MAX_PAGES := 100
 LIGNES_PAR_PAGES := 14 // TAILLE_PAGE / TAILLE_LIGNE
 LIGNES_MAX_TABLE := 1400 // LIGNES_PAR_PAGES * TABLE_MAX_PAGES
 
@@ -75,111 +75,18 @@ Ligne :: struct {
     courriel : [255 + 1]z8
 }
 
-Pager :: struct {
-    pages : [100]*rien
-    descripteur_fichier := -1
-    taille_fichier : z64 = 0
-}
-
-ouvre_pager :: fonc (fichier: chaine) -> *Pager
-{
-    marque := obtiens_marque_stockage_temporaire()
-    diffère { set_marque_stockage_temporaire(marque) }
-
-    chemin_c := chaine_c_temp(fichier)
-
-    fd := open(chemin_c, LECTURE_ÉCRITURE | CREATION, 0o400 | 0o200)
-
-    si fd == -1 {
-        imprime("Impossible d'ouvrir le fichier\n")
-        exit(1)
-    }
-
-    taille_fichier := lseek(fd, 0, _SEEK_END)
-
-    pager := loge Pager
-    pager.descripteur_fichier = fd
-    pager.taille_fichier = taille_fichier
-
-    pour page dans pager.pages {
-        page = nul
-    }
-
-    retourne pager
-}
-
-trouve_page :: fonc (pager: *Pager, index_page: z32) -> *rien
-{
-    si index_page > TABLE_MAX_PAGES {
-        imprime("Tentative de prendre une page hors des limites : % > %\n", index_page, TABLE_MAX_PAGES)
-        exit(1)
-    }
-
-    page := pager.pages[index_page]
-
-    si page == nul {
-        // Cache miss
-        page = malloc(TAILLE_PAGE)
-        nombre_de_pages := pager.taille_fichier / TAILLE_PAGE
-
-        // nous avons peut-être une page incomplète à la fin du fichier
-        si pager.taille_fichier % TAILLE_PAGE != 0 {
-            nombre_de_pages += 1
-        }
-
-        si index_page <= nombre_de_pages {
-            lseek(pager.descripteur_fichier, index_page * TAILLE_PAGE, _SEEK_SET)
-
-            octets_lus := read(pager.descripteur_fichier, page, transtype(TAILLE_PAGE: n64))
-
-            si octets_lus == -1 {
-                imprime("Erreur lors de la lecture du fichier !\n")
-                exit(1)
-            }
-        }
-
-        pager.pages[index_page] = page
-    }
-
-    retourne page
-}
-
-// les pages ne sont pas flushées si le programme est interrompu (ctrl + C)
-// nous pourrions également éviter d'écrire des pages qui n'ont pas changées
-flush_pager :: fonc (pager: *Pager, index_page: z32, taille: z32) -> rien
-{
-    si pager.pages[index_page] == nul {
-        imprime("Tentativer de flusher une page nulle !\n")
-        exit(1)
-    }
-
-    décalage := lseek(pager.descripteur_fichier, index_page * TAILLE_PAGE, _SEEK_SET)
-
-    si décalage == -1 {
-        imprime("Impossible de chercher le point dans le fichier !\n")
-        exit(1)
-    }
-
-    octets_écris := write(pager.descripteur_fichier, pager.pages[index_page], taille)
-
-    si octets_écris == -1 {
-        imprime("Erreur lors de l'écriture !")
-        exit(1)
-    }
-}
-
 Table :: struct {
     nombre_de_lignes := 0
-    pager : *Pager = nul
+    paginatrice : *Paginatrice = nul
 }
 
 ouvre_base_de_données :: fonc (fichier: chaine) -> *Table
 {
-    pager := ouvre_pager(fichier)
-    nombre_de_lignes := pager.taille_fichier / TAILLE_LIGNE
+    paginatrice := ouvre_paginatrice(fichier)
+    nombre_de_lignes := paginatrice.taille_fichier / TAILLE_LIGNE
 
     table := loge Table
-    table.pager = pager
+    table.paginatrice = paginatrice
     table.nombre_de_lignes = transtype(nombre_de_lignes: z32)
 
     retourne table
@@ -187,17 +94,17 @@ ouvre_base_de_données :: fonc (fichier: chaine) -> *Table
 
 ferme_base_de_données :: fonc (table: *Table) -> rien
 {
-    pager := table.pager
+    paginatrice := table.paginatrice
     nombre_de_pages_pleines := table.nombre_de_lignes / TAILLE_LIGNE
 
     pour i dans 0 ... nombre_de_pages_pleines - 1 {
-        si pager.pages[i] == nul {
+        si paginatrice.pages[i].pointeur == nul {
             continue
         }
 
-        flush_pager(pager, i, TAILLE_PAGE)
-        free(pager.pages[i])
-        pager.pages[i] = nul
+        flush_paginatrice(paginatrice, i, TAILLE_PAGE)
+        free(paginatrice.pages[i].pointeur)
+        paginatrice.pages[i].pointeur = nul
     }
 
     // Une page partielle peut toujours être à écrire à la fin du fichier
@@ -207,27 +114,27 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
     si nombre_de_lignes_additionnelles > 0 {
         index_page := nombre_de_pages_pleines
 
-        si pager.pages[index_page] != nul {
-            flush_pager(pager, index_page, nombre_de_lignes_additionnelles * TAILLE_LIGNE)
-            free(pager.pages[index_page])
-            pager.pages[index_page] = nul
+        si paginatrice.pages[index_page].pointeur != nul {
+            flush_paginatrice(paginatrice, index_page, nombre_de_lignes_additionnelles * TAILLE_LIGNE)
+            free(paginatrice.pages[index_page].pointeur)
+            paginatrice.pages[index_page].pointeur = nul
         }
     }
 
-    résultat_fermeture := close(pager.descripteur_fichier)
+    résultat_fermeture := close(paginatrice.descripteur_fichier)
 
     si résultat_fermeture == -1 {
         imprime("Échec lors de la fermeture du fichier\n")
         exit(1)
     }
 
-    pour page dans pager.pages {
-        si page != nul {
-            free(page)
+    pour page dans paginatrice.pages {
+        si page.pointeur != nul {
+            free(page.pointeur)
         }
     }
 
-    déloge pager
+    déloge paginatrice
     déloge table
 }
 
@@ -261,12 +168,12 @@ valeur_curseur :: fonc (curseur: *Curseur) -> *rien
 {
     index_ligne := curseur.index_ligne
     index_page := index_ligne / LIGNES_PAR_PAGES
-    page := trouve_page(curseur.table.pager, index_page)
+    page := trouve_page(curseur.table.paginatrice, index_page)
 
     décalage_ligne := index_ligne % LIGNES_PAR_PAGES
     décalage_octet := décalage_ligne * TAILLE_LIGNE
 
-    retourne page + décalage_octet
+    retourne page.pointeur + décalage_octet
 }
 
 avance_curseur :: fonc (curseur: *Curseur) -> rien
