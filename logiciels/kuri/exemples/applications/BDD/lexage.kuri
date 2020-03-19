@@ -859,6 +859,7 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> rien
 ColonneRésultat :: struct {
     nom : chaine
     type_colonne : TypeColonne
+    idx_colonne : z64
 }
 
 RésultatSélection :: struct {
@@ -889,46 +890,48 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
 
     imprime("La table possède % lignes\n", table.lignes.taille)
 
-    pour ligne, idx_ligne dans table.lignes {
-        est_première_ligne := idx_ligne == 0
+    // trouve les colonnes dans la table
+    pour expr dans inst.items {
+        si expr.genre != GenreExpression.LITTÉRALE {
+            imprime("Saute expression non-littérale !\n")
+            continue
+        }
 
+        lit := expr.littérale
+
+        si lit.genre != GenreLexème.IDENTIFIANT {
+            continue
+        }
+
+        trouvée := faux
+
+        pour colonne, idx_colonne dans table.colonnes {
+            si colonne != lit.valeur {
+                continue
+            }
+
+            colonne_résultat : ColonneRésultat
+            colonne_résultat.type_colonne = transtype(table.types_colonnes[idx_colonne]: TypeColonne)
+            colonne_résultat.nom = lit.valeur
+            colonne_résultat.idx_colonne = idx_colonne
+
+            tableau_ajoute(@résultats.colonnes, colonne_résultat)
+
+            trouvée = vrai
+        }
+
+        si !trouvée {
+            imprime("la colonne n'existe pas !\n")
+            retourne résultats
+        }
+    }
+
+    // recherche dans la table
+    pour ligne, idx_ligne dans table.lignes {
         résultat : []CelluleMémoire
 
-        pour expr dans inst.items {
-            si expr.genre != GenreExpression.LITTÉRALE {
-                imprime("Saute expression non-littérale !\n")
-                continue
-            }
-
-            lit := expr.littérale
-            si lit.genre != GenreLexème.IDENTIFIANT {
-                continue
-            }
-
-            trouvée := faux
-
-            pour colonne, idx_colonne dans table.colonnes {
-                si colonne != lit.valeur {
-                    continue
-                }
-
-                si est_première_ligne {
-                    colonne_résultat : ColonneRésultat
-                    colonne_résultat.type_colonne = transtype(table.types_colonnes[idx_colonne]: TypeColonne)
-                    colonne_résultat.nom = lit.valeur
-
-                    tableau_ajoute(@résultats.colonnes, colonne_résultat)
-                }
-
-                tableau_ajoute(@résultat, ligne[idx_colonne])
-
-                trouvée = vrai
-                arrête
-            }
-
-            si !trouvée {
-                imprime("la colonne n'existe pas !\n")
-            }
+        pour colonne dans résultats.colonnes {
+            tableau_ajoute(@résultat, ligne[colonne.idx_colonne])
         }
 
         tableau_ajoute(@résultats.résultats, résultat)
@@ -1012,6 +1015,14 @@ imprime_prompt :: fonc () -> rien
 }
 
 // ------------------------------------------------------------
+
+// crée utilisateurs (nom texte, id entier);
+// insère dans utilisateurs valeurs ("Thor", 1237);
+// insère dans utilisateurs valeurs ("Carter", 789);
+// sélectionne nom, id depuis utilisateurs;
+// sélectionne id, nom depuis utilisateurs;
+
+// crée utilisateurs (nom texte, id entier);insère dans utilisateurs valeurs ("Thor", 1237);insère dans utilisateurs valeurs ("Carter", 789);sélectionne id, nom depuis utilisateurs;
 
 // @note : certains crash peuvent causés car la mémoire n'est pas initialisé lors des logements
 // @bug : aucune erreur lorsqu'une commande est fausse (p.e. '.tabels')
