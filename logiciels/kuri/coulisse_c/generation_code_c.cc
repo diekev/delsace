@@ -2918,6 +2918,7 @@ static void panique_erreur_non_geree()
 	panique("une erreur n'a pas été piégée");
 }
 
+#include <signal.h>
 static void gere_erreur_segmentation(int s)
 {
 	if (s == SIGSEGV) {
