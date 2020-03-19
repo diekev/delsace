@@ -1,0 +1,33 @@
+importe Fondation
+
+charge "syntaxage"
+
+Document :: struct {
+    xxx : z32
+}
+
+// ----------------------------------------
+
+// <!doctype html>
+// <html>
+// <head>
+// </head>
+// <body>
+// </body>
+// </html>
+principale :: fonc () -> z32
+{
+    chn := "<!doctype html><html><head><title>Accueil</title><meta /></head><body><div>Un peu de texte</div><div>Un autre texte</div></body></html>"
+
+    lexèmes := lèxe(chn)
+
+    pour lexème dans lexèmes {
+        imprime("%\n", lexème)
+    }
+
+    parse(lexèmes)
+
+    déloge lexèmes
+
+    retourne 0
+}

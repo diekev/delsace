@@ -1,0 +1,197 @@
+importe Fondation
+
+charge "lexage"
+charge "noeud"
+
+parse :: fonc (lexèmes: []Lexème) -> rien
+{
+    //
+    curseur := 0
+
+    parse_doctype(@curseur, lexèmes)
+
+    tantque curseur < lexèmes.taille {
+        lexème := @lexèmes[curseur]
+
+        si lexème.type == TypeLexème.CHEVRON_GAUCHE {
+            noeud := parse_noeud(@curseur, lexèmes)
+
+            imprime_noeud(noeud, 0)
+
+            détruit_noeud(noeud)
+        }
+        sinon {
+            curseur += 1
+        }
+    }
+}
+
+parse_doctype :: fonc (ancien_curseur: *z32, lexèmes: []Lexème) -> rien
+{
+    curseur := mémoire(ancien_curseur)
+    diffère { mémoire(ancien_curseur) = curseur; }
+
+    si lexèmes[curseur].type != TypeLexème.CHEVRON_GAUCHE {
+        retourne
+    }
+
+    curseur += 1
+
+
+    si lexèmes[curseur].type != TypeLexème.EXCLAMATION {
+        retourne
+    }
+
+    curseur += 1
+
+
+    si lexèmes[curseur].chn != "doctype" {
+        retourne
+    }
+
+    curseur += 1
+
+
+    si lexèmes[curseur].chn != "html" {
+        retourne
+    }
+
+    curseur += 1
+
+    si lexèmes[curseur].type != TypeLexème.CHEVRON_DROIT {
+        retourne
+    }
+
+    curseur += 1
+
+    imprime("obtenu doctype !\n")
+}
+
+parse_noeud :: fonc (ancien_curseur: *z32, lexèmes: []Lexème) -> *Noeud
+{
+    curseur := mémoire(ancien_curseur)
+    diffère { mémoire(ancien_curseur) = curseur; }
+
+    si lexèmes[curseur].type == TypeLexème.CHAINE_CARACTÈRE {
+        texte := lexèmes[curseur].chn
+        curseur += 1
+        retourne crée_noeud_texte(texte)
+    }
+
+    si lexèmes[curseur].type != TypeLexème.CHEVRON_GAUCHE {
+        retourne nul
+    }
+
+    curseur += 1
+
+    si lexèmes[curseur].type != TypeLexème.CHAINE_CARACTÈRE {
+        retourne nul
+    }
+
+    tag := lexèmes[curseur].chn
+
+    imprime("obtenu noeud : %\n", lexèmes[curseur].chn)
+
+    noeud := noeud_depuis_tag(tag)
+
+    curseur += 1
+
+    // ici nous pouvons avoir une fin de noeud
+
+    si est_tag_auto_fermant(tag) {
+        si lexèmes[curseur].type == TypeLexème.SLASH {
+            curseur += 1
+        }
+
+        si lexèmes[curseur].type != TypeLexème.CHEVRON_DROIT {
+            détruit_noeud(noeud)
+            retourne nul
+        }
+
+        curseur += 1
+
+        retourne noeud
+    }
+    sinon {
+        si lexèmes[curseur].type != TypeLexème.CHEVRON_DROIT {
+            détruit_noeud(noeud)
+            retourne nul
+        }
+
+        curseur += 1
+    }
+
+    boucle {
+        crs := curseur
+        enfant := parse_noeud(@curseur, lexèmes)
+
+        si enfant == nul {
+            curseur = crs
+            arrête
+        }
+
+        ajoute_enfant(noeud, enfant)
+    }
+
+    // fin du noeud
+
+    si lexèmes[curseur].type != TypeLexème.CHEVRON_GAUCHE {
+        détruit_noeud(noeud)
+        retourne nul
+    }
+
+    curseur += 1
+
+    si lexèmes[curseur].type != TypeLexème.SLASH {
+        détruit_noeud(noeud)
+        retourne nul
+    }
+
+    curseur += 1
+
+    si lexèmes[curseur].type != TypeLexème.CHAINE_CARACTÈRE {
+        détruit_noeud(noeud)
+        retourne nul
+    }
+
+    tag_fin := lexèmes[curseur].chn
+
+    si tag_fin != tag {
+        imprime("les tags ne correspondent pas : % et % !\n", tag, tag_fin)
+    }
+
+    curseur += 1
+
+    si lexèmes[curseur].type != TypeLexème.CHEVRON_DROIT {
+        détruit_noeud(noeud)
+        retourne nul
+    }
+
+    curseur += 1
+
+    retourne noeud
+}
+
+est_tag_auto_fermant :: fonc (tag: chaine) -> bool
+{
+    discr tag {
+        "area",
+        "base",
+        "br",
+        "col",
+        "embed",
+        "hr",
+        "img",
+        "input",
+        "link",
+        "meta",
+        "param",
+        "source",
+        "track",
+        "wbr" {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
