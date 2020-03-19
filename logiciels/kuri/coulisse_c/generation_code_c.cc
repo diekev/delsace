@@ -66,6 +66,42 @@ static inline auto broye_chaine(kuri::chaine const &chn)
 /* À FAIRE : trouve une bonne manière de générer des noms uniques. */
 static int index = 0;
 
+static void debute_record_trace_appel(
+		ContexteGenerationCode &contexte,
+		GeneratriceCodeC &generatrice,
+		NoeudExpression *expr)
+{
+	auto const &lexeme = expr->lexeme;
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = trouve_position(*lexeme, fichier);
+
+	generatrice << "DEBUTE_RECORD_TRACE_APPEL(";
+	generatrice << "\"" << fichier->nom << ".kuri\",";
+	generatrice << pos.numero_ligne << ",";
+	generatrice << pos.pos << ",";
+	generatrice << "\"";
+
+	POUR (fichier->tampon[pos.index_ligne]) {
+		if (it == '\n') {
+			continue;
+		}
+
+		if (it == '"') {
+			generatrice.m_enchaineuse.pousse_caractere('\\');
+		}
+
+		generatrice.m_enchaineuse.pousse_caractere(it);
+	}
+
+	generatrice << "\"";
+	generatrice << ");\n";
+}
+
+static void termine_record_trace_appel(GeneratriceCodeC &generatrice)
+{
+	generatrice << "TERMINE_RECORD_TRACE_APPEL;\n";
+}
+
 void genere_code_C(
 		NoeudExpression *b,
 		GeneratriceCodeC &generatrice,
@@ -124,16 +160,10 @@ static void applique_transformation(
 			auto decl = type_union->decl;
 			auto &membre = decl->desc.membres[index_membre];
 
-			auto const &lexeme = b->lexeme;
-			auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-			auto pos = trouve_position(*lexeme, fichier);
-
 			// À FAIRE : nous pourrions avoir une erreur différente ici.
 			generatrice << "if (" << nom_courant << ".membre_actif != " << index_membre + 1 << ") {\n";
-			generatrice << "KR__acces_membre_union(";
-			generatrice << '"' << fichier->nom << '"' << ',';
-			generatrice << pos.numero_ligne;
-			generatrice << ");\n";
+			debute_record_trace_appel(contexte, generatrice, b);
+			generatrice << "panique_membre_union();";
 			generatrice << "}\n";
 
 			generatrice << nom_broye_type(type_cible, true) << " " << nom_var_temp
@@ -323,6 +353,8 @@ static void cree_appel(
 	dls::liste<NoeudExpression *> liste_var_retour{};
 	dls::tableau<dls::chaine> liste_noms_retour{};
 
+	debute_record_trace_appel(contexte, generatrice, expr_appel);
+
 	if (b->aide_generation_code == APPEL_FONCTION_MOULT_RET) {
 		liste_var_retour = std::any_cast<dls::liste<NoeudExpression *>>(b->valeur_calculee);
 		/* la valeur calculée doit être toujours valide. */
@@ -394,6 +426,7 @@ static void cree_appel(
 	}
 
 	generatrice << ");\n";
+	termine_record_trace_appel(generatrice);
 }
 
 static void genere_code_acces_membre(
@@ -533,15 +566,9 @@ static void genere_code_echec_logement(
 		genere_code_C(bloc, generatrice, contexte, true);
 	}
 	else {
-		auto const &lexeme = b->lexeme;
-		auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-		auto pos = trouve_position(*lexeme, fichier);
-
 		generatrice << " {\n";
-		generatrice << "KR__hors_memoire(";
-		generatrice << '"' << fichier->nom << '"' << ',';
-		generatrice << pos.numero_ligne;
-		generatrice << ");\n";
+		debute_record_trace_appel(contexte, generatrice, b);
+		generatrice << "panique_hors_memoire();";
 		generatrice << "}\n";
 	}
 }
@@ -967,6 +994,7 @@ void genere_code_C(
 			contexte.commence_fonction(decl);
 
 			generatrice << "{\n";
+			generatrice << "INITIALISE_TRACE_APPEL(\"" << b->lexeme->chaine << "\", " << decl->nom_broye << ");\n";
 
 			/* Crée code pour le bloc. */
 			decl->bloc->est_bloc_fonction = true;
@@ -1117,15 +1145,9 @@ void genere_code_C(
 			}
 			else {
 				if (b->aide_generation_code != IGNORE_VERIFICATION) {
-					auto const &lexeme = b->lexeme;
-					auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-					auto pos = trouve_position(*lexeme, fichier);
-
 					generatrice << "if (" << expr_membre << " != " << index_membre + 1 << ") {\n";
-					generatrice << "KR__acces_membre_union(";
-					generatrice << '"' << fichier->nom << '"' << ',';
-					generatrice << pos.numero_ligne;
-					generatrice << ");\n";
+					debute_record_trace_appel(contexte, generatrice, b);
+					generatrice << "panique_membre_union();\n";
 					generatrice << "}\n";
 				}
 			}
@@ -1362,10 +1384,6 @@ void genere_code_C(
 			 *      x[0] = 8;
 			 */
 
-			auto const &lexeme = b->lexeme;
-			auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-			auto pos = trouve_position(*lexeme, fichier);
-
 			switch (type1->genre) {
 				case GenreType::POINTEUR:
 				{
@@ -1384,9 +1402,8 @@ void genere_code_C(
 					generatrice << " >= ";
 					generatrice << enfant1->chaine_calculee();
 					generatrice << ".taille) {\n";
-					generatrice << "KR__depassement_limites_chaine(";
-					generatrice << '"' << fichier->nom << '"' << ',';
-					generatrice << pos.numero_ligne << ',';
+					debute_record_trace_appel(contexte, generatrice, b);
+					generatrice << "panique_depassement_limites_chaine(";
 					generatrice << enfant1->chaine_calculee();
 					generatrice << ".taille,";
 					generatrice << enfant2->chaine_calculee();
@@ -1412,9 +1429,8 @@ void genere_code_C(
 						generatrice << enfant1->chaine_calculee();
 						generatrice << ".taille";
 						generatrice << ") {\n";
-						generatrice << "KR__depassement_limites_tableau(";
-						generatrice << '"' << fichier->nom << '"' << ',';
-						generatrice << pos.numero_ligne << ',';
+						debute_record_trace_appel(contexte, generatrice, b);
+						generatrice << "panique_depassement_limites_tableau(";
 						generatrice << enfant1->chaine_calculee();
 						generatrice << ".taille";
 						generatrice << ",";
@@ -1441,10 +1457,9 @@ void genere_code_C(
 						generatrice << taille_tableau;
 
 						generatrice << ") {\n";
-						generatrice << "KR__depassement_limites_tableau(";
-						generatrice << '"' << fichier->nom << '"' << ',';
-						generatrice << pos.numero_ligne << ',';
-							generatrice << taille_tableau;
+						debute_record_trace_appel(contexte, generatrice, b);
+						generatrice << "panique_depassement_limites_tableau(";
+						generatrice << taille_tableau;
 						generatrice << ",";
 						generatrice << enfant2->chaine_calculee();
 						generatrice << ");\n}\n";
@@ -2600,10 +2615,8 @@ void genere_code_C(
 			generatrice << "if (" << gen_tente.acces_erreur_pour_test << " != 0) {\n";
 
 			if (inst->expr_piege == nullptr) {
-				auto const &lexeme = b->lexeme;
-				auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-				auto pos = trouve_position(*lexeme, fichier);
-				generatrice << "KR__erreur_non_geree(\"" << fichier->nom << "\", " << pos.numero_ligne << ");\n";
+				debute_record_trace_appel(contexte, generatrice, inst->expr_appel);
+				generatrice << "panique_erreur_non_geree();\n";
 			}
 			else {
 				generatrice << nom_broye_type(gen_tente.type_piege, true) << " " << broye_chaine(inst->expr_piege) << " = " << gen_tente.acces_erreur << ";\n";
@@ -2805,83 +2818,6 @@ static void genere_code_debut_fichier(
 
 	generatrice << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
 
-	auto depassement_limites_tableau =
-R"(
-void KR__depassement_limites_tableau(
-	const char *fichier,
-	long ligne,
-	long taille,
-	long index)
-{
-	fprintf(stderr, "%s:%ld\n", fichier, ligne);
-	fprintf(stderr, "Dépassement des limites du tableau !\n");
-	fprintf(stderr, "La taille est de %ld mais l'index est de %ld !\n", taille, index);
-	abort();
-}
-)";
-
-	generatrice << depassement_limites_tableau;
-
-	auto depassement_limites_chaine =
-R"(
-void KR__depassement_limites_chaine(
-	const char *fichier,
-	long ligne,
-	long taille,
-	long index)
-{
-	fprintf(stderr, "%s:%ld\n", fichier, ligne);
-	fprintf(stderr, "Dépassement des limites de la chaine !\n");
-	fprintf(stderr, "La taille est de %ld mais l'index est de %ld !\n", taille, index);
-	abort();
-}
-)";
-
-	generatrice << depassement_limites_chaine;
-
-	auto hors_memoire =
-R"(
-void KR__hors_memoire(
-	const char *fichier,
-	long ligne)
-{
-	fprintf(stderr, "%s:%ld\n", fichier, ligne);
-	fprintf(stderr, "Impossible d'allouer de la mémoire !\n");
-	abort();
-}
-)";
-
-	generatrice << hors_memoire;
-
-	/* À FAIRE : renseigner le membre actif */
-	auto acces_membre_union =
-R"(
-void KR__acces_membre_union(
-	const char *fichier,
-	long ligne)
-{
-	fprintf(stderr, "%s:%ld\n", fichier, ligne);
-	fprintf(stderr, "Impossible d'accèder au membre de l'union car il n'est pas actif !\n");
-	abort();
-}
-)";
-
-	generatrice << acces_membre_union;
-
-	auto erreur_non_geree =
-R"(
-void KR__erreur_non_geree(
-	const char *fichier,
-	long ligne)
-{
-	fprintf(stderr, "%s:%ld\n", fichier, ligne);
-	fprintf(stderr, "Une erreur est survenue alors que le piège est marqué « nonatteignable » !\n");
-	abort();
-}
-)";
-
-	generatrice << erreur_non_geree;
-
 	auto lis_errno =
 R"(
 #include <errno.h>
@@ -2892,6 +2828,105 @@ static int lis_errno()
 )";
 
 	generatrice << lis_errno;
+
+	generatrice <<
+R"(
+typedef struct TraceAppel {
+   struct TraceAppel *precedente;
+
+   const char *nom_fonction;
+   const char *fichier;
+   int ligne;
+   int colonne;
+   const void *pointeur_fonction;
+   const char *ligne_appel;
+} TraceAppel;
+
+typedef struct ListeTraceAppel {
+   TraceAppel *derniere;
+} ListeTraceAppel;
+
+static ListeTraceAppel _VG_liste_trace_appel = { 0 };
+
+#define INITIALISE_TRACE_APPEL(_nom_fonction, _pointeur_fonction) \
+   static TraceAppel ma_trace = { 0 }; \
+   ma_trace.nom_fonction = _nom_fonction; \
+   ma_trace.pointeur_fonction = _pointeur_fonction;
+
+#define DEBUTE_RECORD_TRACE_APPEL(_fichier, _ligne, _colonne, _ligne_appel) \
+   ma_trace.fichier = _fichier; \
+   ma_trace.ligne = _ligne; \
+   ma_trace.colonne = _colonne; \
+   ma_trace.ligne_appel = _ligne_appel; \
+   ma_trace.precedente = _VG_liste_trace_appel.derniere; \
+   _VG_liste_trace_appel.derniere = &ma_trace;
+
+#define TERMINE_RECORD_TRACE_APPEL \
+   _VG_liste_trace_appel.derniere = ma_trace.precedente;
+
+static void termine_panique()
+{
+   TraceAppel *pointeur = _VG_liste_trace_appel.derniere;
+
+   while (pointeur != 0) {
+	   printf("%s:%d:%d : dans %s (%p)\n", pointeur->fichier, pointeur->ligne, pointeur->colonne, pointeur->nom_fonction, pointeur->pointeur_fonction);
+	   printf("%s\n", pointeur->ligne_appel);
+
+	   for (int i = 0; i < pointeur->colonne; ++i) {
+		   printf(" ");
+	   }
+
+	   printf("\033[1;31m^\033[0m\n");
+
+	   pointeur = pointeur->precedente;
+   }
+
+   printf("\nL'exécution du programme a été arrêtée à cause d'une panique.\n");
+   exit(1);
+}
+
+static void panique(const char *message)
+{
+   printf("\n\033[1;31mErreur :\033[0m %s\n\n", message);
+   termine_panique();
+}
+
+static void panique_depassement_limites_tableau(long taille, long index)
+{
+   printf("\n\033[1;31mErreur :\033[0m dépassement des limites du tableau, la taille est de %ld mais l'index est de %ld\n\n", taille, index);
+   termine_panique();
+}
+
+static void panique_depassement_limites_chaine(long taille, long index)
+{
+   printf("\n\033[1;31mErreur :\033[0m dépassement des limites de la chaine, la taille est de %ld mais l'index est de %ld\n\n", taille, index);
+   termine_panique();
+}
+
+static void panique_membre_union()
+{
+   panique("utilisation du membre non-actif d'une union");
+}
+
+static void panique_hors_memoire()
+{
+	panique("impossible d'allouer de la mémoire");
+}
+
+static void panique_erreur_non_geree()
+{
+	panique("une erreur n'a pas été piégée");
+}
+
+static void gere_erreur_segmentation(int s)
+{
+	if (s == SIGSEGV) {
+		panique("erreur de ségmentation dans une fonction");
+	}
+
+	panique("erreur inconnue");
+}
+)";
 
 	/* déclaration des types de bases */
 	generatrice << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
@@ -3059,11 +3094,14 @@ void genere_code_C(
 
 	generatrice << "int main(int argc, char **argv)\n";
 	generatrice << "{\n";
+	generatrice << "    INITIALISE_TRACE_APPEL(\"main\", main);\n";
 	generatrice << "    __ARGV = argv;\n";
 	generatrice << "    __ARGC = argc;\n";
+	generatrice << "    signal(SIGSEGV, gere_erreur_segmentation);\n";
 
 	genere_code_creation_contexte(contexte, generatrice);
 
+	generatrice << "    DEBUTE_RECORD_TRACE_APPEL(\"???\", 1, 0, \"principale(contexte);\");";
 	generatrice << "    return principale(contexte);";
 	generatrice << "}\n";
 
