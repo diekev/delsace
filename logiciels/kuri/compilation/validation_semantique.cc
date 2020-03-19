@@ -1211,7 +1211,16 @@ static void performe_validation_semantique(
 							erreur::type_erreur::VARIABLE_INCONNUE);
 			}
 
-			/* À FAIRE: vérifie que la déclaration est antérieure à la référence (pour une variable) */
+			if (decl->lexeme->fichier == expr->lexeme->fichier && decl->genre == GenreNoeud::DECLARATION_VARIABLE && ((decl->drapeaux_decl & EST_GLOBALE) == 0)) {
+				auto fichier_decl = contexte.fichier(static_cast<size_t>(decl->lexeme->fichier));
+				auto fichier_expr = contexte.fichier(static_cast<size_t>(expr->lexeme->fichier));
+				auto pos_decl = trouve_position(*decl->lexeme, fichier_decl);
+				auto pos_expr = trouve_position(*expr->lexeme, fichier_expr);
+
+				if (pos_decl.numero_ligne > pos_expr.numero_ligne) {
+					erreur::lance_erreur("Utilisation d'une variable avant sa déclaration", contexte, expr->lexeme);
+				}
+			}
 
 			expr->type = decl->type;
 			assert(expr->type);
