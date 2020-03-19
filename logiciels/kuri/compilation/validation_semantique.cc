@@ -66,13 +66,13 @@ static Type *resoud_type_final(
 
 	auto type_final = static_cast<Type *>(nullptr);
 	auto &typeuse = contexte.typeuse;
-	auto idx_expr = 0;
+	auto idx_expr = type_declare.expressions.taille() - 1;
 
 	for (auto i = type_declare.taille() - 1; i >= 0; --i) {
 		auto type = type_declare[i];
 
 		if (type == GenreLexeme::TYPE_DE) {
-			auto expr = type_declare.expressions[idx_expr++];
+			auto expr = type_declare.expressions[idx_expr--];
 			assert(expr != nullptr);
 
 			performe_validation_semantique(expr, contexte, false);
@@ -89,7 +89,7 @@ static Type *resoud_type_final(
 			type_final = typeuse.type_variadique(type_final);
 		}
 		else if (type == GenreLexeme::TABLEAU) {
-			auto expr = type_declare.expressions[idx_expr++];
+			auto expr = type_declare.expressions[idx_expr--];
 
 			if (expr != nullptr && evalue_expr) {
 				performe_validation_semantique(expr, contexte, false);
