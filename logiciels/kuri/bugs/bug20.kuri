@@ -1,0 +1,14 @@
+// crash lors de l'accès à une variable globale n'étant pas encore typée
+
+foo :: fonc ()
+{
+    a := 1024 / TAILLE_PAGE
+}
+
+TAILLE_PAGE :: 8
+
+principale :: fonc () -> z32
+{
+    foo()
+    retourne 0
+}
