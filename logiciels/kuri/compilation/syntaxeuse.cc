@@ -1522,7 +1522,11 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(GenreLexeme genre, Donnees
 
 	if (genre != GenreLexeme::ERREUR) {
 		noeud_decl->desc.est_drapeau = genre == GenreLexeme::ENUM_DRAPEAU;
-		noeud_decl->type_declare = analyse_declaration_type(false);
+
+		if (!est_identifiant(GenreLexeme::ACCOLADE_OUVRANTE)) {
+			noeud_decl->type_declare = analyse_declaration_type(false);
+		}
+
 		noeud_decl->type = m_contexte.typeuse.reserve_type_enum(noeud_decl);
 	}
 	else {

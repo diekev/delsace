@@ -2817,8 +2817,11 @@ static void performe_validation_semantique(
 			if (desc.est_erreur) {
 				type_enum->type_donnees = contexte.typeuse[TypeBase::Z32];
 			}
-			else {
+			else if (!est_invalide(decl->type_declare.plage())) {
 				type_enum->type_donnees = resoud_type_final(contexte, decl->type_declare, decl->bloc_parent, decl->lexeme);
+			}
+			else {
+				type_enum->type_donnees = contexte.typeuse[TypeBase::Z32];
 			}
 
 			type_enum->taille_octet = type_enum->type_donnees->taille_octet;
