@@ -328,6 +328,8 @@ struct MembreStructure {
 	unsigned int decalage = 0;
 	Type *type = nullptr;
 
+	NoeudExpression *expression_valeur_defaut = nullptr;
+
 	MembreStructure() = default;
 
 	COPIE_CONSTRUCT(MembreStructure);

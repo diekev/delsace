@@ -2657,7 +2657,7 @@ static void performe_validation_semantique(
 			auto decalage = 0u;
 			auto max_alignement = 0u;
 
-			auto ajoute_donnees_membre = [&decalage, &decl, &max_alignement, &donnees_dependance, &type_struct](NoeudBase *enfant)
+			auto ajoute_donnees_membre = [&decalage, &decl, &max_alignement, &donnees_dependance, &type_struct](NoeudBase *enfant, NoeudExpression *expr_valeur)
 			{
 				auto type_membre = enfant->type;
 				auto align_type = type_membre->alignement;
@@ -2671,6 +2671,7 @@ static void performe_validation_semantique(
 				desc_membre.nom = enfant->ident->nom;
 				desc_membre.decalage = decalage;
 				desc_membre.type = type_membre;
+				desc_membre.expression_valeur_defaut = expr_valeur;
 
 				decalage += type_membre->taille_octet;
 
@@ -2691,7 +2692,7 @@ static void performe_validation_semantique(
 					verifie_redefinition_membre(decl_var);
 					verifie_inclusion_valeur(decl_var);
 
-					ajoute_donnees_membre(decl_membre);
+					ajoute_donnees_membre(decl_membre, decl_var->expression);
 				}
 
 				auto taille_union = 0u;
@@ -2795,12 +2796,13 @@ static void performe_validation_semantique(
 
 					auto decl_struct_empl = type_struct_empl->decl;
 
-					for (auto it_empl : decl_struct_empl->bloc->membres) {
-						ajoute_donnees_membre(it_empl);
+					for (auto decl_it_empl : decl_struct_empl->bloc->membres) {
+						auto it_empl = static_cast<NoeudDeclarationVariable *>(decl_it_empl);
+						ajoute_donnees_membre(it_empl->valeur, it_empl->expression);
 					}
 				}
 				else {
-					ajoute_donnees_membre(decl_membre);
+					ajoute_donnees_membre(decl_membre, decl_expr);
 				}
 			}
 

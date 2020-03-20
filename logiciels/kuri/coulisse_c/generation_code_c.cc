@@ -607,7 +607,7 @@ static void genere_declaration_structure(GeneratriceCodeC &generatrice, NoeudStr
 	generatrice << "} " << nom_broye << ";\n\n";
 }
 
-static void cree_initialisation_structure(GeneratriceCodeC &generatrice, Type *type, NoeudStruct *decl)
+static void cree_initialisation_structure(ContexteGenerationCode &contexte, GeneratriceCodeC &generatrice, Type *type, NoeudStruct *decl)
 {
 	generatrice << '\n';
 	generatrice << "void initialise_" << type->nom_broye << "("
@@ -618,7 +618,12 @@ static void cree_initialisation_structure(GeneratriceCodeC &generatrice, Type *t
 		auto type_membre = it.type;
 		auto nom_broye_membre = broye_chaine(dls::vue_chaine_compacte(it.nom.pointeur, it.nom.taille));
 
-		// À FAIRE : structures employées, expressions par défaut
+		if (it.expression_valeur_defaut != nullptr) {
+			genere_code_C(it.expression_valeur_defaut, generatrice, contexte, false);
+			generatrice << "pointeur->" << nom_broye_membre << " = ";
+			generatrice << it.expression_valeur_defaut->chaine_calculee() << ";\n";
+			continue;
+		}
 
 		if (type_membre->genre == GenreType::CHAINE || type_membre->genre == GenreType::TABLEAU_DYNAMIQUE) {
 			generatrice << "pointeur->" << nom_broye_membre << ".pointeur = 0;\n";
@@ -2311,7 +2316,7 @@ void genere_code_C(
 				}
 
 				genere_declaration_structure(generatrice, type_union->decl);
-				cree_initialisation_structure(generatrice, type_union, type_union->decl);
+				cree_initialisation_structure(contexte, generatrice, type_union, type_union->decl);
 
 				type_union->deja_genere = true;
 			}
@@ -2323,7 +2328,7 @@ void genere_code_C(
 				}
 
 				genere_declaration_structure(generatrice, type_struct->decl);
-				cree_initialisation_structure(generatrice, type_struct, type_struct->decl);
+				cree_initialisation_structure(contexte, generatrice, type_struct, type_struct->decl);
 
 				type_struct->deja_genere = true;
 			}
