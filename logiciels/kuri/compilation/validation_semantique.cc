@@ -2722,6 +2722,7 @@ static void performe_validation_semantique(
 				}
 
 				decl->type->taille_octet = taille_union;
+				decl->type->alignement = max_alignement;
 
 				graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
 				return;
