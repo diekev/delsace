@@ -1,11 +1,8 @@
 importe Fondation
+importe Moteur
 importe SysFichier
 
 // tutoriel : http://notes.eatonphil.com/database-basics.html
-
-charge "coulisse_mémoire"
-charge "exécution"
-charge "syntaxage"
 
 imprime_prompt :: fonc () -> rien
 {
@@ -59,13 +56,27 @@ principale :: fonc () -> z32
                         crée_table(@cm, transtype(inst: *InstructionCréationTable))
                     }
                     SÉLECTIONNE {
-                        résultat := tente sélectionne(@cm, transtype(inst: *InstructionSélection)) piège err {
+                        inst_sélection := transtype(inst: *InstructionSélection)
+
+                        résultat := tente sélectionne(@cm, inst_sélection) piège err {
                             discr err {
-                                ColonneInexistante { }
-                                TableInexistante { }
-                                ExpressionNonLittérale { }
+                                ColonneInexistante {
+                                    // À FAIRE : une bonne d'extraire les erreurs (ajouter des messages d'erreurs aux instructions ?)
+                                    //imprime("Erreur : la colonne %.% n'existe pas !\n", inst_sélection.depuis.valeur, lit.valeur)
+                                    imprime("Erreur : la colonne n'existe pas !\n")
+                                }
+                                TableInexistante {
+                                    imprime("Erreur : la table % n'existe pas !\n", inst_sélection.depuis.valeur)
+                                }
+                                ExpressionNonLittérale {
+                                    imprime("Erreur : expression non-littérale rencontrée !\n")
+                                }
+                                sinon {
+                                    imprime("Erreur inconnue %\n", err)
+                                }
                             }
 
+                            imprime("Exécution invalide.\n")
                             arrête
                         }
 
@@ -73,9 +84,37 @@ principale :: fonc () -> z32
                         ferme_base_de_données(résultat)
                     }
                     INSÈRE {
-                        insère(@cm, transtype(inst: *InstructionInsère))
+                        inst_insertion := transtype(inst: *InstructionInsère)
+
+                        tente insère(@cm, inst_insertion) piège err {
+                            discr err {
+                                CapacitéExcédée {
+                                    imprime("Erreur: table pleine.\n")
+                                }
+                                TableInexistante {
+                                    imprime("La table % n'existe pas !\n", inst_insertion.table.valeur)
+                                }
+                                NombreNégatif {
+                                    imprime("L'ID doit être positif.\n")
+                                }
+                                TexteTropLarge {
+                                    imprime("La chaine est trop longue.\n")
+                                }
+                                TypageColonneInvalide {
+                                    imprime("Le typage de la colonne est invalide.\n")
+                                }
+                                sinon {
+                                    imprime("Erreur inconnue %\n", err)
+                                }
+                            }
+
+                            imprime("Exécution invalide.\n")
+                            arrête
+                        }
                     }
                 }
+
+                imprime("Exécution réussie.\n")
             }
 
             détruit_asa(@asa)
