@@ -66,8 +66,6 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> rien
         retourne // À FAIRE : RésultatExécution.TABLE_PLEINE
     }
 
-    //ligne_à_insérer := @inst.ligne_à_insérer
-
     curseur := curseur_fin_de_table(table)
     diffère { déloge curseur; }
 
@@ -83,9 +81,7 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> rien
 
         si expr.littérale.genre == GenreLexème.NUMÉRIQUE {
             entier := transtype(extrait_nombre_entier(expr.littérale.valeur) : z32)
-
-            slot := transtype(ligne.pointeur + décalage: *z32)
-            mémoire(slot) = entier
+            sérialise_entier(ligne, entier, décalage)
         }
         sinon {
             chn := expr.littérale.valeur
@@ -94,14 +90,7 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> rien
                 retourne // À FAIRE
             }
 
-            slot_taille := transtype(ligne.pointeur + décalage: *z32)
-            mémoire(slot_taille) = transtype(chn.taille: z32)
-
-            slot_données := transtype(ligne.pointeur + décalage + 4: *z8)
-
-            pour c, idx dans chn {
-                slot_données[idx] = c
-            }
+            sérialise_chaine(ligne, chn, décalage)
         }
 
         décalage += colonne.taille
@@ -227,15 +216,7 @@ sélectionne_tables :: fonc (cm: *CoulisseMémoire) -> *Table
     pour nom dans cm.noms_tables {
         ligne := valeur_curseur(curseur_résultat)
 
-        // À FAIRE : déduplique avec insertion
-        slot_taille := transtype(ligne.pointeur: *z32)
-        mémoire(slot_taille) = transtype(nom.taille: z32)
-
-        slot_données := transtype(ligne.pointeur + 4: *z8)
-
-        pour c, idx dans nom {
-            slot_données[idx] = c
-        }
+        sérialise_chaine(ligne, nom, 0)
 
         avance_curseur(curseur_résultat)
         table_résultat.nombre_de_lignes += 1
