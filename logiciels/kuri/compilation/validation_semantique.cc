@@ -2601,6 +2601,10 @@ static void performe_validation_semantique(
 				return;
 			}
 
+			if (decl->bloc->membres.est_vide()) {
+				erreur::lance_erreur("Bloc vide pour la déclaration de structure", contexte, decl->lexeme);
+			}
+
 			auto decl_precedente = trouve_dans_bloc(decl->bloc_parent, decl);
 
 			// la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les structres (p.e. stat)
