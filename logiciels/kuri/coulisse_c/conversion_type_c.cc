@@ -124,7 +124,7 @@ void cree_typedef(Type *type, GeneratriceCodeC &generatrice)
 			auto type_struct = static_cast<TypeStructure *>(type);
 			auto nom_struct = broye_nom_simple(type_struct->nom);
 
-			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t") {
+			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t" && nom_struct != "MY_CHARSET_INFO") {
 				generatrice << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
 			}
 			else {
