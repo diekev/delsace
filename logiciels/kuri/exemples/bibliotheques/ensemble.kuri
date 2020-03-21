@@ -1,40 +1,7 @@
 // Un ensemble de chaine
 
+importe Algorithme
 importe Fondation
-
-opérateur > :: fonc (chn1: chaine, chn2: chaine) -> bool
-{
-    taille := chn1.taille
-
-    si taille > chn2.taille {
-        taille = chn2.taille
-    }
-
-    pour i dans 0 ... taille - 1 {
-        si chn1[i] <= chn2[i] {
-            retourne faux
-        }
-    }
-
-    retourne vrai
-}
-
-opérateur < :: fonc (chn1: chaine, chn2: chaine) -> bool
-{
-    taille := chn1.taille
-
-    si taille > chn2.taille {
-        taille = chn2.taille
-    }
-
-    pour i dans 0 ... taille - 1 {
-        si chn1[i] >= chn2[i] {
-            retourne faux
-        }
-    }
-
-    retourne vrai
-}
 
 /*
 NoeudEnsemble :: struct {
@@ -138,62 +105,6 @@ Ensemble :: struct {
 détruit_ensemble :: fonc (ensemble: *Ensemble) -> rien
 {
     déloge ensemble.données
-}
-
-distance :: fonc (ptr1 : *$T, ptr2 : *$T) -> z64
-{
-	retourne transtype(ptr2 - ptr1: z64)
-}
-
-suivant :: fonc (ptr : *$T, n : z64) -> *$T
-{
-	retourne ptr + n
-}
-
-limite_basse :: fonc (f : *$T, l : *$T, v : $T) -> *$T
-{
-	fl := f
-	ll := l
-
-	boucle {
-		si fl == ll {
-			arrête
-		}
-
-		m := suivant(fl, distance(fl, ll) / 2)
-
-		si (m[0] < v) {
-			fl = suivant(m, 1)
-		}
-		sinon {
-			ll = m
-		}
-	}
-
-	retourne fl
-}
-
-limite_haute :: fonc (f : *$T, l : *$T, v : $T) -> *$T
-{
-	fl := f
-	ll := l
-
-	boucle {
-		si fl == ll {
-			arrête
-		}
-
-		m := suivant(fl, distance(fl, ll) / 2)
-
-		si (m[0] > v) {
-			fl = suivant(m, 1)
-		}
-		sinon {
-			ll = m
-		}
-	}
-
-	retourne fl
 }
 
 ajoute :: fonc (ensemble: *Ensemble, donnée: z32) -> rien
