@@ -1,0 +1,66 @@
+// Différents algorithmes de recherche binaire. Ces algorithmes nous évitent de faire trop
+// de comparaisons, et sont résistant aux dépassement de bornes.
+
+// Retourne le nombre d'éléments se situant entre deux pointeurs.
+distance :: fonc (ptr1 : *$T, ptr2 : *$T) -> z64
+{
+	retourne transtype(ptr2 - ptr1: z64)
+}
+
+// Retourne le pointeur se situant à n éléments après celui donné.
+suivant :: fonc (ptr : *$T, n : z64) -> *$T
+{
+	retourne ptr + n
+}
+
+// Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
+// ést plus petite que la valeur recherchée. Sinon retourne le pointeur de fin.
+// Ceci est utile pour stocker dans l'ordre croissant des données.
+limite_basse :: fonc (f : *$T, l : *$T, v : $T) -> *$T
+{
+	fl := f
+	ll := l
+
+	boucle {
+		si fl == ll {
+			arrête
+		}
+
+		m := suivant(fl, distance(fl, ll) / 2)
+
+		si (m[0] < v) {
+			fl = suivant(m, 1)
+		}
+		sinon {
+			ll = m
+		}
+	}
+
+	retourne fl
+}
+
+// Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
+// ést plus grande que la valeur recherchée. Sinon retourne le pointeur de fin.
+// Ceci est utile pour stocker dans l'ordre décroissant des données.
+limite_haute :: fonc (f : *$T, l : *$T, v : $T) -> *$T
+{
+	fl := f
+	ll := l
+
+	boucle {
+		si fl == ll {
+			arrête
+		}
+
+		m := suivant(fl, distance(fl, ll) / 2)
+
+		si (m[0] > v) {
+			fl = suivant(m, 1)
+		}
+		sinon {
+			ll = m
+		}
+	}
+
+	retourne fl
+}
