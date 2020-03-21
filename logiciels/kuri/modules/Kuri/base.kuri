@@ -493,7 +493,7 @@ opérateur != :: fonc(chn1: chaine, chn2: chaine) -> bool
             return (0);
     return (*(const unsigned char *)s1 - *(const unsigned char *)(s2 - 1));
 */
-compaire_chaine :: fonc (chn1: chaine, chn2: chaine) -> z32
+compare_chaine :: fonc (chn1: chaine, chn2: chaine) -> z32
 {
     pour c, i dans chn1 {
         si i == chn2.taille {
@@ -518,47 +518,47 @@ compaire_chaine :: fonc (chn1: chaine, chn2: chaine) -> z32
 
 opérateur < :: fonc(chn1: chaine, chn2: chaine) -> bool
 {
-    retourne compaire_chaine(chn1, chn2) < 0
+    retourne compare_chaine(chn1, chn2) < 0
 }
 
 opérateur <= :: fonc(chn1: chaine, chn2: chaine) -> bool
 {
-    retourne compaire_chaine(chn1, chn2) <= 0
+    retourne compare_chaine(chn1, chn2) <= 0
 }
 
 opérateur > :: fonc(chn1: chaine, chn2: chaine) -> bool
 {
-    retourne compaire_chaine(chn1, chn2) > 0
+    retourne compare_chaine(chn1, chn2) > 0
 }
 
 opérateur >= :: fonc(chn1: chaine, chn2: chaine) -> bool
 {
-    retourne compaire_chaine(chn1, chn2) >= 0
+    retourne compare_chaine(chn1, chn2) >= 0
 }
 
 /*
-test_compaire_chaine_impl :: fonc (chn1: chaine, chn2: chaine, attendu: z32) -> rien
+test_compare_chaine_impl :: fonc (chn1: chaine, chn2: chaine, attendu: z32) -> rien
 {
-    résultat := mon_compaire_chaine(chn1, chn2)
+    résultat := mon_compare_chaine(chn1, chn2)
 
     si résultat != attendu {
-        imprime("Erreur : le résultat de compaire_chaine pour '%' et '%' doit être de %, mais eu %\n", chn1, chn2, attendu, résultat)
+        imprime("Erreur : le résultat de compare_chaine pour '%' et '%' doit être de %, mais eu %\n", chn1, chn2, attendu, résultat)
     }
 }
 
-test_compaire_chaine :: fonc () -> rien
+test_compare_chaine :: fonc () -> rien
 {
-    test_compaire_chaine_impl("", "", 0)
-    test_compaire_chaine_impl("", "abc", -1)
-    test_compaire_chaine_impl("abc", "", 1)
-    test_compaire_chaine_impl("abc", "def", -1)
-    test_compaire_chaine_impl("abc", "abcd", -1)
-    test_compaire_chaine_impl("abc", "ABC", 1)
-    test_compaire_chaine_impl("abc", "abc", 0)
-    test_compaire_chaine_impl("Prashant", "Surendra", -1)
-    test_compaire_chaine_impl("Surendra", "Jaya", 1)
-    test_compaire_chaine_impl("Jaya", "Shruti", -1)
-    test_compaire_chaine_impl("Shruti", "Mangala", 1)
+    test_compare_chaine_impl("", "", 0)
+    test_compare_chaine_impl("", "abc", -1)
+    test_compare_chaine_impl("abc", "", 1)
+    test_compare_chaine_impl("abc", "def", -1)
+    test_compare_chaine_impl("abc", "abcd", -1)
+    test_compare_chaine_impl("abc", "ABC", 1)
+    test_compare_chaine_impl("abc", "abc", 0)
+    test_compare_chaine_impl("Prashant", "Surendra", -1)
+    test_compare_chaine_impl("Surendra", "Jaya", 1)
+    test_compare_chaine_impl("Jaya", "Shruti", -1)
+    test_compare_chaine_impl("Shruti", "Mangala", 1)
 }
 */
 
