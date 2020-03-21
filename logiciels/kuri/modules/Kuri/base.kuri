@@ -487,6 +487,81 @@ opérateur != :: fonc(chn1: chaine, chn2: chaine) -> bool
     retourne !(chn1 == chn2)
 }
 
+/*
+    while (*s1 == *s2++)
+        if (*s1++ == 0)
+            return (0);
+    return (*(const unsigned char *)s1 - *(const unsigned char *)(s2 - 1));
+*/
+compaire_chaine :: fonc (chn1: chaine, chn2: chaine) -> z32
+{
+    pour c, i dans chn1 {
+        si i == chn2.taille {
+            retourne 1
+        }
+
+        si chn2[i] > c {
+            retourne -1
+        }
+
+        si c > chn2[i] {
+            retourne 1
+        }
+    }
+
+    si chn1.taille < chn2.taille {
+        retourne -1
+    }
+
+    retourne 0
+}
+
+opérateur < :: fonc(chn1: chaine, chn2: chaine) -> bool
+{
+    retourne compaire_chaine(chn1, chn2) < 0
+}
+
+opérateur <= :: fonc(chn1: chaine, chn2: chaine) -> bool
+{
+    retourne compaire_chaine(chn1, chn2) <= 0
+}
+
+opérateur > :: fonc(chn1: chaine, chn2: chaine) -> bool
+{
+    retourne compaire_chaine(chn1, chn2) > 0
+}
+
+opérateur >= :: fonc(chn1: chaine, chn2: chaine) -> bool
+{
+    retourne compaire_chaine(chn1, chn2) >= 0
+}
+
+/*
+test_compaire_chaine_impl :: fonc (chn1: chaine, chn2: chaine, attendu: z32) -> rien
+{
+    résultat := mon_compaire_chaine(chn1, chn2)
+
+    si résultat != attendu {
+        imprime("Erreur : le résultat de compaire_chaine pour '%' et '%' doit être de %, mais eu %\n", chn1, chn2, attendu, résultat)
+    }
+}
+
+test_compaire_chaine :: fonc () -> rien
+{
+    test_compaire_chaine_impl("", "", 0)
+    test_compaire_chaine_impl("", "abc", -1)
+    test_compaire_chaine_impl("abc", "", 1)
+    test_compaire_chaine_impl("abc", "def", -1)
+    test_compaire_chaine_impl("abc", "abcd", -1)
+    test_compaire_chaine_impl("abc", "ABC", 1)
+    test_compaire_chaine_impl("abc", "abc", 0)
+    test_compaire_chaine_impl("Prashant", "Surendra", -1)
+    test_compaire_chaine_impl("Surendra", "Jaya", 1)
+    test_compaire_chaine_impl("Jaya", "Shruti", -1)
+    test_compaire_chaine_impl("Shruti", "Mangala", 1)
+}
+*/
+
 // Fonctions basiques pour les tableaux
 
 tableau_ajoute :: fonc (tabl: *[]$T, valeur: $T) -> rien
