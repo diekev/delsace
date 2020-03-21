@@ -499,6 +499,10 @@ void Lexeuse::pousse_caractere(int n)
 
 void Lexeuse::pousse_mot(GenreLexeme identifiant)
 {
+	if (m_fichier->lexemes.taille() % 128 == 0) {
+		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
+	}
+
 	m_fichier->lexemes.pousse({ mot_courant(), identifiant, static_cast<int>(m_fichier->id) });
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
