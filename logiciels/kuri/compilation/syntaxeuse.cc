@@ -986,7 +986,6 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 				if ((drapeaux & DECLARATION) != 0) {
 					tn = GenreNoeud::DECLARATION_VARIABLE;
 					dernier_noeud = CREE_NOEUD(NoeudDeclarationVariable, tn, &lexeme);
-					// À FAIRE : noeud->drapeaux_declaration |= DECLARATION_EST_CONSTANTE
 				}
 				else {
 					tn = GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE;
@@ -1008,7 +1007,7 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 				transfere_operateurs_mineures_dans_expression(lexeme.genre);
 
 				dernier_noeud = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, &lexeme);
-				// À FAIRE : noeud->drapeaux_declaration |= DECLARATION_EST_DYNAMIQUE
+
 				operateurs.pousse(dernier_noeud);
 				break;
 			}
@@ -1023,7 +1022,7 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 				transfere_operateurs_mineures_dans_expression(lexeme.genre);
 
 				dernier_noeud = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, &lexeme);
-				// À FAIRE : noeud->drapeaux_declaration |= DECLARATION_EST_CONSTANTE
+
 				operateurs.pousse(dernier_noeud);
 				break;
 			}
