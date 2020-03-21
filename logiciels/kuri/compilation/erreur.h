@@ -73,12 +73,12 @@ using frappe = lng::erreur::frappe<type_erreur>;
 
 [[noreturn]] void redefinition_fonction(
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *lexeme_redefition,
+		const DonneesLexeme *lexeme_redefinition,
 		const DonneesLexeme *lexeme_original);
 
 [[noreturn]] void redefinition_symbole(
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *lexeme_redefition,
+		const DonneesLexeme *lexeme_redefinition,
 		const DonneesLexeme *lexeme_original);
 
 [[noreturn]] void lance_erreur_plage(

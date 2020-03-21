@@ -73,13 +73,13 @@ void lance_erreur(
 
 void redefinition_fonction(
 		const ContexteGenerationCode &contexte,
-		DonneesLexeme const *lexeme_redefition,
+		DonneesLexeme const *lexeme_redefinition,
 		DonneesLexeme const *lexeme_original)
 {
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme_redefition->fichier));
-	auto pos = position_lexeme(*lexeme_redefition);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme_redefinition->fichier));
+	auto pos = position_lexeme(*lexeme_redefinition);
 	auto pos_mot = pos.pos;
-	auto chaine = lexeme_redefition->chaine;
+	auto chaine = lexeme_redefinition->chaine;
 
 	auto ligne_courante = fichier->tampon[pos.index_ligne];
 
@@ -111,12 +111,12 @@ void redefinition_fonction(
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::FONCTION_REDEFINIE);
 }
 
-void redefinition_symbole(const ContexteGenerationCode &contexte, const DonneesLexeme *lexeme_redefition, const DonneesLexeme *lexeme_original)
+void redefinition_symbole(const ContexteGenerationCode &contexte, const DonneesLexeme *lexeme_redefinition, const DonneesLexeme *lexeme_original)
 {
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme_redefition->fichier));
-	auto pos = position_lexeme(*lexeme_redefition);
+	auto fichier = contexte.fichier(static_cast<size_t>(lexeme_redefinition->fichier));
+	auto pos = position_lexeme(*lexeme_redefinition);
 	auto pos_mot = pos.pos;
-	auto chaine = lexeme_redefition->chaine;
+	auto chaine = lexeme_redefinition->chaine;
 
 	auto ligne_courante = fichier->tampon[pos.index_ligne];
 
