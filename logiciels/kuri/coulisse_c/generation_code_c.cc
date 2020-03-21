@@ -661,6 +661,96 @@ static void cree_initialisation_structure(ContexteGenerationCode &contexte, Gene
 	generatrice << "}\n";
 }
 
+static void cree_initialisation_defaut_pour_constante(
+		ContexteGenerationCode &contexte,
+		GeneratriceCodeC &generatrice,
+		dls::flux_chaine &flux,
+		Type *type)
+{
+	switch (type->genre) {
+		case GenreType::CHAINE:
+		case GenreType::TABLEAU_DYNAMIQUE:
+		{
+			flux << "{ .pointeur = 0, .taille = 0 }";
+			break;
+		}
+		case GenreType::BOOL:
+		case GenreType::OCTET:
+		case GenreType::ENUM:
+		case GenreType::ERREUR:
+		case GenreType::ENTIER_NATUREL:
+		case GenreType::ENTIER_RELATIF:
+		case GenreType::ENTIER_CONSTANT:
+		case GenreType::REEL:
+		case GenreType::FONCTION:
+		case GenreType::POINTEUR:
+		case GenreType::REFERENCE: // À FAIRE : une référence ne peut être nulle
+		{
+			flux << "0";
+			break;
+		}
+		case GenreType::TABLEAU_FIXE:
+		{
+			flux << "{ 0 }";
+			break;
+		}
+		case GenreType::UNION:
+		{
+			auto type_union = static_cast<TypeUnion *>(type);
+
+			if (type_union->est_nonsure) {
+				flux << "{ 0 }";
+			}
+			else {
+				flux << "{ { 0 }, 0 }";
+			}
+
+			break;
+		}
+		case GenreType::STRUCTURE:
+		{
+			auto type_struct = static_cast<TypeStructure *>(type);
+
+			auto decl = type_struct->decl;
+
+			auto virgule = '{';
+
+			POUR (decl->desc.membres) {
+				flux << virgule << '.' << broye_chaine(it.nom) << " = ";
+
+				if (it.expression_valeur_defaut != nullptr) {
+					genere_code_C(it.expression_valeur_defaut, generatrice, contexte, true);
+					flux << it.expression_valeur_defaut->chaine_calculee();
+				}
+				else {
+					cree_initialisation_defaut_pour_constante(contexte, generatrice, flux, it.type);
+				}
+
+				virgule = ',';
+			}
+
+			if (decl->desc.membres.taille == 0) {
+				flux << "{ 0 ";
+			}
+
+			flux << '}';
+
+			break;
+		}
+		case GenreType::EINI:
+		{
+			flux << "{ .pointeur = 0, .info = 0 }";
+			break;
+		}
+		case GenreType::VARIADIQUE:
+		case GenreType::RIEN:
+		case GenreType::INVALIDE:
+		{
+			break;
+		}
+	}
+}
+
 static void genere_code_position_source(
 		ContexteGenerationCode &contexte,
 		dls::flux_chaine &flux,
@@ -2208,7 +2298,6 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		{
-			// À FAIRE : bonne gestion des unions
 			auto expr = static_cast<NoeudExpressionAppel *>(b);
 			auto flux = dls::flux_chaine();
 
@@ -2216,41 +2305,64 @@ void genere_code_C(
 				genere_code_position_source(contexte, flux, b);
 			}
 			else {
-				auto decl_struct = static_cast<NoeudStruct *>(nullptr);
-
-				if (b->type->genre == GenreType::UNION) {
-					decl_struct = static_cast<TypeUnion *>(b->type)->decl;
-				}
-				else {
-					decl_struct = static_cast<TypeStructure *>(b->type)->decl;
-				}
-
 				POUR (expr->exprs) {
 					if (it != nullptr) {
 						applique_transformation(it, generatrice, contexte, false);
 					}
 				}
 
-				auto index_membre = 0;
+				if (b->type->genre == GenreType::UNION) {
+					auto index_membre = 0;
+					auto expression = static_cast<NoeudExpression *>(nullptr);
 
-				auto virgule = '{';
+					POUR (expr->exprs) {
+						if (it != nullptr) {
+							expression = it;
+							break;
+						}
 
-				POUR (expr->exprs) {
+						index_membre += 1;
+					}
+
+					auto decl_struct = static_cast<TypeUnion *>(b->type)->decl;
 					auto &membre = decl_struct->desc.membres[index_membre];
-					index_membre += 1;
 
-					if (it == nullptr) {
-						// À FAIRE : initialisation à zéro des membres
+					auto type_union = static_cast<TypeUnion *>(b->type);
+
+					if (type_union->est_nonsure) {
+						flux << "{ ." << broye_chaine(membre.nom) << " = " << expression->chaine_calculee() << " }";
 					}
 					else {
-						flux << virgule;
-						flux << '.' << broye_chaine(membre.nom) << '=';
-						flux << it->chaine_calculee();
-						virgule = ',';
+						flux << "{ { ." << broye_chaine(membre.nom) << " = " << expression->chaine_calculee() << " }, .membre_actif = " << index_membre + 1 << " }";
 					}
 				}
+				else {
+					auto decl_struct = static_cast<TypeStructure *>(b->type)->decl;
 
-				flux << '}';
+					auto index_membre = 0;
+
+					auto virgule = '{';
+
+					POUR (expr->exprs) {
+						flux << virgule;
+
+						auto &membre = decl_struct->desc.membres[index_membre];
+						index_membre += 1;
+
+						flux << '.' << broye_chaine(membre.nom) << '=';
+
+						if (it == nullptr) {
+							cree_initialisation_defaut_pour_constante(contexte, generatrice, flux, membre.type);
+						}
+						else {
+							flux << it->chaine_calculee();
+						}
+
+						virgule = ',';
+					}
+
+					flux << '}';
+				}
 			}
 
 			auto nom_temp = "__var_temp_struct" + dls::vers_chaine(index++);
