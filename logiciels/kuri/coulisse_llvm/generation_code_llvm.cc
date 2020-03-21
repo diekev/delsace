@@ -74,6 +74,7 @@ using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
  * - utilisation d'optimisation de valeur de retour pour éviter les chargement
  *   de gros tableaux et éviter d'allouer trop de variables sur la pile
  * - trace d'appels
+ * - nouvelle forme d'initialisation des structures (en utilisant expr->exprs)
  */
 
 /* ************************************************************************** */

@@ -2343,6 +2343,14 @@ static void performe_validation_semantique(
 				}
 			}
 
+			auto slots = dls::tablet<NoeudExpression *, 10>();
+			slots.redimensionne(decl_struct->desc.membres.taille);
+
+			auto index_membre = 0;
+			POUR (decl_struct->desc.membres) {
+				slots[index_membre++] = it.expression_valeur_defaut;
+			}
+
 			for (auto param : expr->params) {
 				if (param->genre != GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
 					erreur::lance_erreur(
@@ -2354,6 +2362,7 @@ static void performe_validation_semantique(
 				auto expr_assign = static_cast<NoeudExpressionBinaire *>(param);
 				auto type_membre = static_cast<Type *>(nullptr);
 				auto decl_membre = static_cast<NoeudDeclaration *>(nullptr);
+				index_membre = 0;
 
 				POUR (decl_struct->bloc->membres) {
 					if (it->ident == expr_assign->expr1->ident) {
@@ -2361,6 +2370,8 @@ static void performe_validation_semantique(
 						decl_membre = it;
 						break;
 					}
+
+					index_membre += 1;
 				}
 
 				if (type_membre == nullptr) {
@@ -2394,7 +2405,14 @@ static void performe_validation_semantique(
 								b->lexeme);
 				}
 
+				slots[index_membre] = expr_assign->expr2;
 				noms_rencontres.insere(nom);
+			}
+
+			expr->exprs.reserve(slots.taille());
+
+			POUR (slots) {
+				expr->exprs.pousse(it);
 			}
 
 			break;

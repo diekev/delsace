@@ -2208,6 +2208,7 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		{
+			// À FAIRE : bonne gestion des unions
 			auto expr = static_cast<NoeudExpressionAppel *>(b);
 			auto flux = dls::flux_chaine();
 
@@ -2215,25 +2216,38 @@ void genere_code_C(
 				genere_code_position_source(contexte, flux, b);
 			}
 			else {
-				POUR (expr->params) {
-					auto param = static_cast<NoeudExpressionBinaire *>(it);
-					genere_code_C(param->expr2, generatrice, contexte, false);
+				auto decl_struct = static_cast<NoeudStruct *>(nullptr);
+
+				if (b->type->genre == GenreType::UNION) {
+					decl_struct = static_cast<TypeUnion *>(b->type)->decl;
 				}
+				else {
+					decl_struct = static_cast<TypeStructure *>(b->type)->decl;
+				}
+
+				POUR (expr->exprs) {
+					if (it != nullptr) {
+						applique_transformation(it, generatrice, contexte, false);
+					}
+				}
+
+				auto index_membre = 0;
 
 				auto virgule = '{';
 
-				POUR (expr->params) {
-					auto param = static_cast<NoeudExpressionBinaire *>(it);
-					flux << virgule;
+				POUR (expr->exprs) {
+					auto &membre = decl_struct->desc.membres[index_membre];
+					index_membre += 1;
 
-					flux << '.' << broye_nom_simple(param->expr1->ident->nom) << '=';
-					flux << param->expr2->chaine_calculee();
-
-					virgule = ',';
-				}
-
-				if (expr->params.taille == 0) {
-					flux << '{';
+					if (it == nullptr) {
+						// À FAIRE : initialisation à zéro des membres
+					}
+					else {
+						flux << virgule;
+						flux << '.' << broye_chaine(membre.nom) << '=';
+						flux << it->chaine_calculee();
+						virgule = ',';
+					}
 				}
 
 				flux << '}';
