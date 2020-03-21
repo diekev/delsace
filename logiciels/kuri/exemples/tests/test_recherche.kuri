@@ -1,0 +1,166 @@
+importe Ensemble
+importe Fondation
+
+// recherche via un index de trigraphes, idéal pour accélerer des recherches
+// via des expressions régulières sur un grand nombre de fichiers
+// tiré de https://swtch.com/~rsc/regexp/regexp4.html
+
+IndexTrigraphe :: struct {
+    trigraphes : []chaine
+    index : []z32
+}
+
+détruit_index :: fonc (index: *IndexTrigraphe) -> rien
+{
+    déloge index.trigraphes
+    déloge index.index
+}
+
+ajoute :: fonc (index: *IndexTrigraphe, donnée: chaine) -> rien
+{
+    idx := index.index.taille
+
+    tableau_ajoute(@index.index, idx)
+    tableau_ajoute(@index.trigraphes, donnée)
+}
+
+trouve_index :: fonc (index: *IndexTrigraphe, donnée: chaine) -> z64
+{
+    pour trigraphe, idx dans index.trigraphes {
+        si trigraphe == donnée {
+            retourne idx
+        }
+    }
+
+    retourne -1
+}
+
+imprime_index :: fonc (index: *IndexTrigraphe) -> rien
+{
+    pour idx, i dans index.index {
+        imprime("% : %\n", index.trigraphes[i], idx)
+    }
+}
+
+principale :: fonc () -> z32
+{
+    diffère { imprime("\nFin du programme, mémoire utilisée %o\n", mémoire_utilisée()) }
+
+    // --------------------------
+
+    documents := [
+        "Google code search",
+        "Google Code Project Hosting",
+        "Google Web Search"
+    ]
+
+    // --------------------------
+    index : IndexTrigraphe
+    diffère { détruit_index(@index); }
+
+    ensemble : []chaine
+    diffère { déloge ensemble; }
+
+    pour document dans documents {
+        pour i dans 2 ... document.taille - 1 {
+            chn := construit_chaine(document.pointeur + (i - 2), 3)
+
+            si ensemble_possède(@ensemble, chn) {
+                continue
+            }
+
+            ensemble_ajoute(@ensemble, chn)
+            ajoute(@index, chn)
+        }
+    }
+
+    //imprime_ensemble(@ensemble)
+
+//    imprime_index(@index)
+
+    index_avant := loge [ensemble.taille][]z64
+    diffère {
+        pour tabl dans index_avant {
+            déloge tabl
+        }
+
+        déloge index_avant;
+    }
+
+    // --------------------------
+
+    pour document, idx_document dans documents {
+        pour i dans 2 ... document.taille - 1 {
+            chn := construit_chaine(document.pointeur + (i - 2), 3)
+
+            idx_chn := trouve_index(@index, chn)
+
+            tableau_ajoute(@index_avant[idx_chn], idx_document)
+        }
+    }
+
+/*
+    pour chn, idx_chaine dans index.trigraphes {
+        imprime("% : {", chn)
+
+        pour idx_document dans index_avant[idx_chaine] {
+            imprime("% ", idx_document)
+        }
+
+        imprime("}\n")
+    }
+*/
+
+    // --------------------------
+
+    recherche := "Google code"
+    documents_résultat : []z64
+    diffère { déloge documents_résultat; }
+
+    vecteur_résultat := loge [documents.taille]r32
+    diffère { déloge vecteur_résultat; }
+
+    pour v dans vecteur_résultat {
+        v = 1.0
+    }
+
+    vecteur_trigraphe := loge [documents.taille]r32
+    diffère { déloge vecteur_trigraphe; }
+
+    pour i dans 2 ... recherche.taille - 1 {
+        tri := construit_chaine(recherche.pointeur + (i - 2), 3)
+
+        // trouve les documents qui possèdent le trigraphes
+        idx_tri := trouve_index(@index, tri)
+
+        si idx_tri == -1 {
+            pour v dans vecteur_résultat {
+                v = 0.0
+            }
+
+            arrête
+        }
+
+        pour v dans vecteur_trigraphe {
+            v = 0.0
+        }
+
+        pour idx_document dans index_avant[idx_tri] {
+            vecteur_trigraphe[idx_document] = 1.0
+        }
+
+        pour v, iv dans vecteur_trigraphe {
+            vecteur_résultat[iv] *= v
+        }
+    }
+
+    imprime("Résultat(s) :\n")
+
+    pour v, i dans vecteur_résultat {
+        si v != 0.0 {
+            imprime("%\n", documents[i])
+        }
+    }
+
+    retourne 0
+}
