@@ -124,24 +124,21 @@ lis_tout :: fonc (fichier: *Fichier) -> chaine
     retourne write(fichier.desc, chn.pointeur, chn.taille)
 }
 
-fichier_entrée_standarde : Fichier
-fichier_sortie_standarde : Fichier
-fichier_sortie_erreur : Fichier
+fichier_entrée_standarde := Fichier{ desc = 0 }
+fichier_sortie_standarde := Fichier{ desc = 1 }
+fichier_sortie_erreur    := Fichier{ desc = 2 }
 
 entrée_standarde :: fonc () -> *Fichier
 {
-    fichier_entrée_standarde.desc = 0
     retourne @fichier_entrée_standarde
 }
 
 sortie_standarde :: fonc () -> *Fichier
 {
-    fichier_sortie_standarde.desc = 1
     retourne @fichier_sortie_standarde
 }
 
 sortie_erreur :: fonc () -> *Fichier
 {
-    fichier_sortie_erreur.desc = 2
     retourne @fichier_sortie_erreur
 }

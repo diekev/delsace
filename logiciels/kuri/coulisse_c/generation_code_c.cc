@@ -1344,7 +1344,7 @@ void genere_code_C(
 				}
 			}
 			else {
-				applique_transformation(expression, generatrice, contexte, false);
+				applique_transformation(expression, generatrice, contexte, contexte.donnees_fonction == nullptr);
 				generatrice << flux.chn();
 				generatrice << " = ";
 				generatrice << expression->chaine_calculee();
@@ -2375,10 +2375,15 @@ void genere_code_C(
 				}
 			}
 
-			auto nom_temp = "__var_temp_struct" + dls::vers_chaine(index++);
-			generatrice.declare_variable(b->type, nom_temp, flux.chn());
+			if (expr_gauche) {
+				b->valeur_calculee = dls::chaine(flux.chn());
+			}
+			else {
+				auto nom_temp = "__var_temp_struct" + dls::vers_chaine(index++);
+				generatrice.declare_variable(b->type, nom_temp, flux.chn());
 
-			b->valeur_calculee = nom_temp;
+				b->valeur_calculee = nom_temp;
+			}
 
 			break;
 		}

@@ -172,7 +172,8 @@ void Syntaxeuse::analyse_expression_haut_niveau(std::ostream &os)
 			default:
 			{
 				m_global = true;
-				auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::INCONNU);
+				// Utilisation de GenreLexeme::EGAL comme racine pour autoriser les constructions de structures
+				auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::EGAL);
 
 				if (noeud != nullptr) {
 					if (noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
