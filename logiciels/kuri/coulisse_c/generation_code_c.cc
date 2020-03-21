@@ -1318,10 +1318,9 @@ void genere_code_C(
 
 			/* nous avons une déclaration, initialise à zéro */
 			if (expression == nullptr) {
-				generatrice << flux.chn() << ";\n";
-
-				/* À FAIRE: initialisation pour les variables globales */
 				if (contexte.donnees_fonction != nullptr) {
+					generatrice << flux.chn() << ";\n";
+
 					if (variable->type->genre == GenreType::STRUCTURE || variable->type->genre == GenreType::UNION) {
 						generatrice << "initialise_" << type->nom_broye << "(&" << nom_broye << ");\n";
 					}
@@ -1336,6 +1335,12 @@ void genere_code_C(
 					else if (variable->type->genre != GenreType::TABLEAU_FIXE) {
 						generatrice << nom_broye << " = 0;\n";
 					}
+				}
+				else {
+					flux << " = ";
+					cree_initialisation_defaut_pour_constante(contexte, generatrice, flux, type);
+					generatrice << flux.chn();
+					generatrice << ";\n";
 				}
 			}
 			else {
@@ -1693,29 +1698,34 @@ void genere_code_C(
 			 * utiliser la chaine originale. */
 			auto chaine = b->lexeme->chaine;
 
-			auto nom_chaine = "__chaine_tmp" + dls::vers_chaine(b);
+			auto flux = dls::flux_chaine();
 
-			generatrice << "chaine " << nom_chaine << " = {.pointeur=";
-			generatrice << '"';
+			flux << "{ .pointeur = " << '"';
 
 			for (auto c : chaine) {
 				if (c == '\n') {
-					generatrice << '\\' << 'n';
+					flux << '\\' << 'n';
 				}
 				else if (c == '\t') {
-					generatrice << '\\' << 't';
+					flux << '\\' << 't';
 				}
 				else {
-					generatrice << c;
+					flux << c;
 				}
 			}
 
-			generatrice << '"';
-			generatrice << "};\n";
-			/* on utilise strlen pour être sûr d'avoir la bonne taille à cause
-			 * des caractères échappés */
-			generatrice << nom_chaine << ".taille=strlen(" << nom_chaine << ".pointeur);\n";
-			b->valeur_calculee = nom_chaine;
+			flux << '"';
+			flux << ", .taille = " << chaine.taille() << " }";
+
+			if (expr_gauche) {
+				b->valeur_calculee = dls::chaine(flux.chn());
+			}
+			else {
+				auto nom_chaine = "__chaine_tmp" + dls::vers_chaine(b);
+				generatrice << "chaine " << nom_chaine << " = " << flux.chn() << ";\n";
+				b->valeur_calculee = nom_chaine;
+			}
+
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
