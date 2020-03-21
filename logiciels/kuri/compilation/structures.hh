@@ -109,6 +109,7 @@ template <typename T>
 struct tableau {
 	T *pointeur = nullptr;
 	long taille = 0;
+	long capacite = 0;
 
 	tableau() = default;
 
@@ -116,6 +117,7 @@ struct tableau {
 	{
 		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, autre.taille);
 		this->taille = autre.taille;
+		this->capacite = autre.capacite;
 
 		for (auto i = 0; i < autre.taille; ++i) {
 			this->pointeur[i] = autre.pointeur[i];
@@ -126,6 +128,7 @@ struct tableau {
 	{
 		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, autre.taille);
 		this->taille = autre.taille;
+		this->capacite = autre.capacite;
 
 		for (auto i = 0; i < autre.taille; ++i) {
 			this->pointeur[i] = autre.pointeur[i];
@@ -138,12 +141,14 @@ struct tableau {
 	{
 		std::swap(this->pointeur, autre.pointeur);
 		std::swap(this->taille, autre.taille);
+		std::swap(this->capacite, autre.capacite);
 	}
 
 	tableau &operator=(tableau &&autre)
 	{
 		std::swap(this->pointeur, autre.pointeur);
 		std::swap(this->taille, autre.taille);
+		std::swap(this->capacite, autre.capacite);
 
 		return *this;
 	}
@@ -167,14 +172,14 @@ struct tableau {
 
 	void pousse(T const &valeur)
 	{
-		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, this->taille + 1);
+		reserve(this->taille + 1);
 		this->taille += 1;
 		this->pointeur[this->taille - 1] = valeur;
 	}
 
 	void pousse_front(T const &valeur)
 	{
-		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, this->taille + 1);
+		reserve(this->taille + 1);
 		this->taille += 1;
 
 		for (auto i = this->taille - 1; i >= 1; --i) {
@@ -182,6 +187,16 @@ struct tableau {
 		}
 
 		this->pointeur[0] = valeur;
+	}
+
+	void reserve(long nombre)
+	{
+		if (capacite >= nombre) {
+			return;
+		}
+
+		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->capacite, nombre);
+		this->capacite = nombre;
 	}
 
 	bool est_vide() const
