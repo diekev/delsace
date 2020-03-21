@@ -73,7 +73,7 @@ static void debute_record_trace_appel(
 {
 	auto const &lexeme = expr->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 
 	generatrice << "DEBUTE_RECORD_TRACE_APPEL(";
 	generatrice << "\"" << fichier->nom << ".kuri\",";
@@ -769,7 +769,7 @@ static void genere_code_position_source(
 		nom_fonction = fonction_courante->lexeme->chaine;
 	}
 
-	auto pos = trouve_position(*b->lexeme, fichier);
+	auto pos = position_lexeme(*b->lexeme);
 
 	flux << "{ ";
 	flux << ".fichier = { .pointeur = \"" << fichier->nom << ".kuri\", .taille = " << fichier->nom.taille() + 5 << " },";

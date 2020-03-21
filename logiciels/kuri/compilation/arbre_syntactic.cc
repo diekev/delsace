@@ -871,7 +871,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 	}
 
 	auto const &lexeme = racine->lexeme;
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 
 	auto etendue = Etendue{};
 	etendue.pos_min = pos.pos;

@@ -503,7 +503,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant)
 		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
 	}
 
-	m_fichier->lexemes.pousse({ mot_courant(), identifiant, static_cast<int>(m_fichier->id) });
+	m_fichier->lexemes.pousse({ mot_courant(), identifiant, static_cast<int>(m_fichier->id), static_cast<int>(m_compte_ligne), static_cast<int>(m_pos_mot) });
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }

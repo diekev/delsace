@@ -49,7 +49,7 @@ void lance_erreur(
 		type_erreur type)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto const identifiant = lexeme->genre;
 	auto const &chaine = lexeme->chaine;
@@ -77,7 +77,7 @@ void redefinition_fonction(
 		DonneesLexeme const *lexeme_original)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme_redefition->fichier));
-	auto pos = trouve_position(*lexeme_redefition, fichier);
+	auto pos = position_lexeme(*lexeme_redefition);
 	auto pos_mot = pos.pos;
 	auto chaine = lexeme_redefition->chaine;
 
@@ -96,7 +96,7 @@ void redefinition_fonction(
 	ss << "La fonction fût déjà définie ici :\n";
 
 	fichier = contexte.fichier(static_cast<size_t>(lexeme_original->fichier));
-	pos = trouve_position(*lexeme_original, fichier);
+	pos = position_lexeme(*lexeme_original);
 	pos_mot = pos.pos;
 	chaine = lexeme_original->chaine;
 	ligne_courante = fichier->tampon[pos.index_ligne];
@@ -114,7 +114,7 @@ void redefinition_fonction(
 void redefinition_symbole(const ContexteGenerationCode &contexte, const DonneesLexeme *lexeme_redefition, const DonneesLexeme *lexeme_original)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme_redefition->fichier));
-	auto pos = trouve_position(*lexeme_redefition, fichier);
+	auto pos = position_lexeme(*lexeme_redefition);
 	auto pos_mot = pos.pos;
 	auto chaine = lexeme_redefition->chaine;
 
@@ -133,7 +133,7 @@ void redefinition_symbole(const ContexteGenerationCode &contexte, const DonneesL
 	ss << "Le symbole fût déjà défini ici :\n";
 
 	fichier = contexte.fichier(static_cast<size_t>(lexeme_original->fichier));
-	pos = trouve_position(*lexeme_original, fichier);
+	pos = position_lexeme(*lexeme_original);
 	pos_mot = pos.pos;
 	chaine = lexeme_original->chaine;
 	ligne_courante = fichier->tampon[pos.index_ligne];
@@ -156,11 +156,10 @@ void lance_erreur_plage(
 		type_erreur type)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(premier_lexeme->fichier));
-	auto pos = trouve_position(*premier_lexeme, fichier);
+	auto pos = position_lexeme(*premier_lexeme);
 	auto const pos_premier = pos.pos;
 
-	auto fichier_dernier = contexte.fichier(static_cast<size_t>(dernier_lexeme->fichier));
-	auto const pos_dernier = trouve_position(*premier_lexeme, fichier_dernier).pos;
+	auto const pos_dernier = position_lexeme(*dernier_lexeme).pos;
 
 	auto ligne_courante = fichier->tampon[pos.index_ligne];
 
@@ -186,7 +185,7 @@ void lance_erreur_plage(
 		const DonneesLexeme *lexeme)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -225,7 +224,7 @@ void lance_erreur_plage(
 	auto inst = static_cast<NoeudExpressionUnaire *>(racine);
 	auto lexeme = inst->expr->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 	auto etendue = calcule_etendue_noeud(inst->expr, fichier);
@@ -266,7 +265,7 @@ void lance_erreur_plage(
 		const DonneesLexeme *lexeme)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -293,7 +292,7 @@ void lance_erreur_type_operation(
 		const DonneesLexeme *lexeme)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -320,7 +319,7 @@ void lance_erreur_fonction_inconnue(
 {
 	auto const &lexeme = b->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -354,7 +353,7 @@ void lance_erreur_fonction_inconnue(
 		if (decl_fonc != nullptr) {
 			auto const &lexeme_df = decl_fonc->lexeme;
 			auto fichier_df = contexte.fichier(static_cast<size_t>(lexeme_df->fichier));
-			auto pos_df = trouve_position(*lexeme_df, fichier_df);
+			auto pos_df = position_lexeme(*lexeme_df);
 
 			ss << ' ' << decl_fonc->ident->nom
 			   << " (trouvée à " << fichier_df->chemin << ':' << pos_df.numero_ligne << ")\n";
@@ -435,7 +434,7 @@ void lance_erreur_fonction_nulctx(
 {
 	auto const &lexeme = appl_fonc->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -458,13 +457,13 @@ void lance_erreur_fonction_nulctx(
 
 	ss << "\n« " << decl_fonc->ident->nom << " » est déclarée ici :\n";
 	fichier = contexte.fichier(static_cast<size_t>(decl_fonc->lexeme->fichier));
-	auto pos_decl = trouve_position(*decl_fonc->lexeme, fichier);
+	auto pos_decl = position_lexeme(*decl_fonc->lexeme);
 	ss << fichier->chemin << ':' << pos_decl.numero_ligne << '\n' << '\n';
 	ss << fichier->tampon[pos_decl.index_ligne];
 
 	ss << "\n« " << appl_fonc->ident->nom << " » est déclarée ici :\n";
 	fichier = contexte.fichier(static_cast<size_t>(decl_appel->lexeme->fichier));
-	auto pos_appel = trouve_position(*decl_appel->lexeme, fichier);
+	auto pos_appel = position_lexeme(*decl_appel->lexeme);
 	ss << fichier->chemin << ':' << pos_appel.numero_ligne << '\n' << '\n';
 	ss << fichier->tampon[pos_appel.index_ligne];
 
@@ -482,7 +481,7 @@ void lance_erreur_acces_hors_limites(
 {
 	auto const &lexeme = b->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -518,7 +517,7 @@ void lance_erreur_type_operation(
 
 	auto const &lexeme = b->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -581,7 +580,7 @@ void lance_erreur_type_operation_unaire(
 
 	auto const &lexeme = b->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -651,7 +650,7 @@ static auto trouve_candidat(
 
 	auto const &lexeme = acces->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -771,7 +770,7 @@ void membre_inactif(
 {
 	auto const &lexeme = acces->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
@@ -804,7 +803,7 @@ void valeur_manquante_discr(
 {
 	auto const &lexeme = expression->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
-	auto pos = trouve_position(*lexeme, fichier);
+	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 

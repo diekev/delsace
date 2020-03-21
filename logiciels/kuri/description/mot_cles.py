@@ -180,6 +180,8 @@ def construit_structures():
 	structures += u'\tdls::vue_chaine_compacte chaine;\n'
 	structures += u'\tGenreLexeme genre;\n'
 	structures += u'\tint fichier = 0;\n'
+	structures += u'\tint ligne = 0;\n'
+	structures += u'\tint colonne = 0;\n'
 	structures += u'};\n'
 
 	return structures

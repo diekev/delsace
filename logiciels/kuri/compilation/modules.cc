@@ -651,23 +651,12 @@ ResultatRecherche cherche_donnees_fonction(
 	return res;
 }
 
-PositionMorceau trouve_position(const DonneesLexeme &lexeme, Fichier *fichier)
+PositionLexeme position_lexeme(DonneesLexeme const &lexeme)
 {
-	auto ptr = lexeme.chaine.pointeur();
-	auto pos = PositionMorceau{};
-
-	for (auto i = 0ul; i < fichier->tampon.nombre_lignes() - 1; ++i) {
-		auto l0 = fichier->tampon[static_cast<long>(i)];
-		auto l1 = fichier->tampon[static_cast<long>(i + 1)];
-
-		if (ptr >= l0.begin() && ptr < l1.begin()) {
-			pos.index_ligne = static_cast<long>(i);
-			pos.numero_ligne = pos.index_ligne + 1;
-			pos.pos = ptr - l0.begin();
-			break;
-		}
-	}
-
+	auto pos = PositionLexeme{};
+	pos.pos = lexeme.colonne;
+	pos.numero_ligne = lexeme.ligne + 1;
+	pos.index_ligne = lexeme.ligne;
 	return pos;
 }
 

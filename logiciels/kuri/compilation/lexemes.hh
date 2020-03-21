@@ -194,6 +194,8 @@ struct DonneesLexeme {
 	dls::vue_chaine_compacte chaine;
 	GenreLexeme genre;
 	int fichier = 0;
+	int ligne = 0;
+	int colonne = 0;
 };
 
 const char *chaine_identifiant(GenreLexeme id);

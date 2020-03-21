@@ -749,7 +749,7 @@ static llvm::Value *genere_code_position_source(ContexteGenerationLLVM &contexte
 	constructrice.stocke(chaine_fonction, ptr_fonction);
 
 	// ligne
-	auto pos = trouve_position(*b->lexeme, fichier);
+	auto pos = position_lexeme(*b->lexeme);
 	auto ligne = constructrice.nombre_entier(pos.numero_ligne);
 	auto ptr_ligne = constructrice.accede_membre_structure(alloc, 2, true);
 	constructrice.stocke(ligne, ptr_ligne);

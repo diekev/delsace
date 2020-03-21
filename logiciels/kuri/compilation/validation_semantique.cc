@@ -1226,12 +1226,7 @@ static void performe_validation_semantique(
 			}
 
 			if (decl->lexeme->fichier == expr->lexeme->fichier && decl->genre == GenreNoeud::DECLARATION_VARIABLE && ((decl->drapeaux_decl & EST_GLOBALE) == 0)) {
-				auto fichier_decl = contexte.fichier(static_cast<size_t>(decl->lexeme->fichier));
-				auto fichier_expr = contexte.fichier(static_cast<size_t>(expr->lexeme->fichier));
-				auto pos_decl = trouve_position(*decl->lexeme, fichier_decl);
-				auto pos_expr = trouve_position(*expr->lexeme, fichier_expr);
-
-				if (pos_decl.numero_ligne > pos_expr.numero_ligne) {
+				if (decl->lexeme->ligne > expr->lexeme->ligne) {
 					erreur::lance_erreur("Utilisation d'une variable avant sa déclaration", contexte, expr->lexeme);
 				}
 			}
@@ -1418,11 +1413,7 @@ static void performe_validation_semantique(
 			auto decl_prec = trouve_dans_bloc(variable->bloc_parent, decl);
 
 			if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
-				auto fichier = contexte.fichier(static_cast<size_t>(decl->lexeme->fichier));
-				auto pos_decl = trouve_position(*decl->lexeme, fichier);
-				auto pos_decl_prec = trouve_position(*decl_prec->lexeme, fichier);
-
-				if (pos_decl.numero_ligne > pos_decl_prec.numero_ligne) {
+				if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
 					erreur::redefinition_symbole(contexte, variable->lexeme, decl_prec->lexeme);
 				}
 			}
@@ -1916,11 +1907,7 @@ static void performe_validation_semantique(
 				auto decl_f = trouve_dans_bloc(b->bloc_parent, f->ident);
 
 				if (decl_f != nullptr) {
-					auto fichier = contexte.fichier(static_cast<size_t>(f->lexeme->fichier));
-					auto pos_decl = trouve_position(*f->lexeme, fichier);
-					auto pos_decl_prec = trouve_position(*decl_f->lexeme, fichier);
-
-					if (pos_decl.numero_ligne > pos_decl_prec.numero_ligne) {
+					if (f->lexeme->ligne > decl_f->lexeme->ligne) {
 						erreur::lance_erreur(
 									"Redéfinition de la variable",
 									contexte,

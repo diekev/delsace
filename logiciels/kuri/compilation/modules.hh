@@ -172,13 +172,13 @@ ResultatRecherche cherche_donnees_fonction(
 		size_t index_fichier_appel);
 
 
-struct PositionMorceau {
+struct PositionLexeme {
 	long index_ligne = 0;
 	long numero_ligne = 0;
 	long pos = 0;
 };
 
-PositionMorceau trouve_position(DonneesLexeme const &lexeme, Fichier *fichier);
+PositionLexeme position_lexeme(DonneesLexeme const &lexeme);
 
 /* ************************************************************************** */
 
