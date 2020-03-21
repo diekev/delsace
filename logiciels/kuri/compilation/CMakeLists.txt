@@ -34,6 +34,7 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
+	allocatrice_noeud.hh
 	arbre_syntactic.h
 	assembleuse_arbre.h
 	broyage.hh
@@ -53,6 +54,7 @@ set(SOURCES
 	typage.hh
 	validation_semantique.hh
 
+	allocatrice_noeud.cc
 	arbre_syntactic.cc
 	assembleuse_arbre.cc
 	broyage.cc

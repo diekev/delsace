@@ -27,6 +27,7 @@
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/liste.hh"
 
+#include "allocatrice_noeud.hh"
 #include "operateurs.hh"
 #include "expression.h"
 #include "graphe_dependance.hh"
@@ -95,6 +96,8 @@ public:
 };
 
 struct ContexteGenerationCode {
+	AllocatriceNoeud allocatrice_noeud{};
+
 	/* À FAIRE : supprime ceci */
 	assembleuse_arbre *assembleuse = nullptr;
 

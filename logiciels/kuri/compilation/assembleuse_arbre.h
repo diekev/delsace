@@ -24,36 +24,21 @@
 
 #pragma once
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/pile.hh"
-#include "biblinternes/structures/tableau_page.hh"
 
-#include "arbre_syntactic.h"
+enum class GenreNoeud : char;
 
+struct AllocatriceNoeud;
 struct ContexteGenerationCode;
 struct DonneesLexeme;
+struct NoeudBase;
+struct NoeudBloc;
 
 class assembleuse_arbre {
-	tableau_page<NoeudExpression> m_noeuds_expression{};
-	tableau_page<NoeudDeclarationVariable> m_noeuds_declaration_variable{};
-	tableau_page<NoeudExpressionReference> m_noeuds_expression_reference{};
-	tableau_page<NoeudExpressionUnaire> m_noeuds_expression_unaire{};
-	tableau_page<NoeudExpressionBinaire> m_noeuds_expression_binaire{};
-	tableau_page<NoeudExpressionLogement> m_noeuds_expression_logement{};
-	tableau_page<NoeudDeclarationFonction> m_noeuds_declaration_fonction{};
-	tableau_page<NoeudStruct> m_noeuds_struct{};
-	tableau_page<NoeudEnum> m_noeuds_enum{};
-	tableau_page<NoeudSi> m_noeuds_si{};
-	tableau_page<NoeudPour> m_noeuds_pour{};
-	tableau_page<NoeudBoucle> m_noeuds_boucle{};
-	tableau_page<NoeudBloc> m_noeuds_bloc{};
-	tableau_page<NoeudDiscr> m_noeuds_discr{};
-	tableau_page<NoeudPousseContexte> m_noeuds_pousse_contexte{};
-	tableau_page<NoeudExpressionAppel> m_noeuds_appel{};
-	tableau_page<NoeudTableauArgsVariadiques> m_noeuds_tableau_args_variadiques{};
-	tableau_page<NoeudTente> m_noeuds_tente{};
-
 	ContexteGenerationCode &m_contexte;
+	AllocatriceNoeud &m_allocatrice_noeud;
 
 	size_t m_memoire_utilisee = 0;
 
@@ -89,17 +74,6 @@ public:
 	 * pointeur vers celui-ci.
 	 */
 	NoeudBase *cree_noeud(GenreNoeud type, DonneesLexeme const *lexeme);
-
-	/**
-	 * Retourne la quantité de mémoire utilisée pour créer et stocker les noeuds
-	 * de l'arbre.
-	 */
-	size_t memoire_utilisee() const;
-
-	/**
-	 * Retourne le nombre de noeuds dans l'arbre.
-	 */
-	size_t nombre_noeuds() const;
 
 	void ajoute_inclusion(const dls::chaine &fichier);
 };

@@ -3339,6 +3339,8 @@ static void performe_validation_semantique(
 
 void performe_validation_semantique(ContexteGenerationCode &contexte)
 {
+	std::cerr << "Nombre d'allocations : " << memoire::nombre_allocations() << '\n';
+
 	auto debut_validation = dls::chrono::compte_seconde();
 
 	/* valide d'abord les types de fonctions afin de résoudre les fonctions
