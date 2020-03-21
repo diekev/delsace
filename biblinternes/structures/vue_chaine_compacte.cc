@@ -67,22 +67,56 @@ const char *vue_chaine_compacte::end() const
 	return pointeur() + taille();
 }
 
+static int compare_chaine(vue_chaine_compacte const &chn1, vue_chaine_compacte const &chn2)
+{
+	auto p1 = chn1.pointeur();
+	auto p2 = chn2.pointeur();
+
+	auto t1 = chn1.taille();
+	auto t2 = chn2.taille();
+
+#if 0
+	for (auto i = 0; i < t1; ++i) {
+		if (i == t2) {
+			return 0;
+		}
+
+		if (static_cast<unsigned char>(*p2) > static_cast<unsigned char>(*p1)) {
+			return -1;
+		}
+
+		if (static_cast<unsigned char>(*p1) > static_cast<unsigned char>(*p2)) {
+			return 1;
+		}
+
+		++p1;
+		++p2;
+	}
+
+	if (t1 < t2) {
+		return -1;
+	}
+
+	return 0;
+#else
+	auto taille = std::max(t1, t2);
+	return strncmp(p1, p2, static_cast<size_t>(taille));
+#endif
+}
+
 bool operator<(const vue_chaine_compacte &c1, const vue_chaine_compacte &c2)
 {
-	auto taille = std::max(c1.taille(), c2.taille());
-	return std::strncmp(&c1[0], &c2[0], static_cast<size_t>(taille)) < 0;
+	return compare_chaine(c1, c2) < 0;
 }
 
 bool operator>(const vue_chaine_compacte &c1, const vue_chaine_compacte &c2)
 {
-	auto taille = std::max(c1.taille(), c2.taille());
-	return std::strncmp(&c1[0], &c2[0], static_cast<size_t>(taille)) > 0;
+	return compare_chaine(c1, c2) > 0;
 }
 
 bool operator==(vue_chaine_compacte const &vc1, vue_chaine_compacte const &vc2)
 {
-	auto taille = std::max(vc1.taille(), vc2.taille());
-	return std::strncmp(&vc1[0], &vc2[0], static_cast<size_t>(taille)) == 0;
+	return compare_chaine(vc1, vc2) == 0;
 }
 
 bool operator==(vue_chaine_compacte const &vc1, char const *vc2)
@@ -97,8 +131,7 @@ bool operator==(char const *vc1, vue_chaine_compacte const &vc2)
 
 bool operator!=(vue_chaine_compacte const &vc1, vue_chaine_compacte const &vc2)
 {
-	auto taille = std::max(vc1.taille(), vc2.taille());
-	return std::strncmp(&vc1[0], &vc2[0], static_cast<size_t>(taille)) != 0;
+	return compare_chaine(vc1, vc2) != 0;
 }
 
 bool operator!=(vue_chaine_compacte const &vc1, char const *vc2)
