@@ -1,0 +1,73 @@
+// Bibliothèque pour traiter un tableau quelconque comme un ensemble où une même valeur
+// n'est présente qu'une seule fois. Plus tard, quand nous aurons des structures
+// polymorphiques, nous pourrons ajouter une structure spécialisée utilisant un arbre
+// binaire pour stocker les données.
+
+importe Algorithmes
+
+ensemble_ajoute :: fonc (ensemble: *[]$T, donnée: $T) -> rien
+{
+    si ensemble.taille == 0 {
+        tableau_ajoute(ensemble, donnée)
+        retourne
+    }
+
+    début := ensemble.pointeur
+    fin   := début + ensemble.taille
+
+    limite := limite_basse(début, fin, donnée)
+
+    si limite < fin {
+        si mémoire(limite) == donnée {
+            retourne
+        }
+    }
+
+    index_d_insertion := distance(début, limite)
+
+    taille := ensemble.taille
+
+    tmp := mémoire(ensemble)
+
+    reloge tmp : [taille + 1]$T
+
+    i := taille
+
+    tantque i > index_d_insertion {
+        tmp[i] = tmp[i - 1]
+        i -= 1
+    }
+
+    tmp[index_d_insertion] = donnée
+
+    mémoire(ensemble) = tmp
+}
+
+ensemble_possède :: fonc (ensemble: *[]$T, donnée: $T) -> bool
+{
+    si ensemble.taille == 0 {
+        retourne faux
+    }
+
+    début := ensemble.pointeur
+    fin   := début + ensemble.taille
+
+    limite := limite_basse(début, fin, donnée)
+
+    si limite < fin {
+        si mémoire(limite) == donnée {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+/*
+ensemble_imprime :: fonc (ensemble: *[]$T) -> rien
+{
+    pour donnée dans ensemble {
+        imprime("%\n", donnée)
+    }
+}
+*/
