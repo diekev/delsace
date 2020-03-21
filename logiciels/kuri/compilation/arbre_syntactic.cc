@@ -433,6 +433,8 @@ NoeudExpression *copie_noeud(
 			auto bloc = static_cast<NoeudBloc *>(racine);
 			auto nbloc = static_cast<NoeudBloc *>(nracine);
 			nbloc->parent = bloc_parent;
+			nbloc->membres.reserve(bloc->membres.taille);
+			nbloc->expressions.reserve(bloc->expressions.taille);
 
 			POUR (bloc->expressions) {
 				auto nexpr = copie_noeud(assem, it, nbloc);
@@ -451,6 +453,8 @@ NoeudExpression *copie_noeud(
 		{
 			auto expr = static_cast<NoeudDeclarationFonction *>(racine);
 			auto nexpr = static_cast<NoeudDeclarationFonction *>(nracine);
+			nexpr->params.reserve(expr->params.taille);
+			nexpr->noms_retours.reserve(expr->noms_retours.taille());
 
 			POUR (expr->params) {
 				auto copie = copie_noeud(assem, it, bloc_parent);
@@ -515,6 +519,7 @@ NoeudExpression *copie_noeud(
 		{
 			auto expr = static_cast<NoeudExpressionAppel *>(racine);
 			auto nexpr = static_cast<NoeudExpressionAppel *>(nracine);
+			nexpr->params.reserve(expr->params.taille);
 
 			POUR (expr->params) {
 				nexpr->params.pousse(copie_noeud(assem, it, bloc_parent));
@@ -569,6 +574,7 @@ NoeudExpression *copie_noeud(
 		{
 			auto expr = static_cast<NoeudTableauArgsVariadiques *>(racine);
 			auto nexpr = static_cast<NoeudTableauArgsVariadiques *>(nracine);
+			nexpr->exprs.reserve(expr->exprs.taille);
 
 			POUR (expr->exprs) {
 				nexpr->exprs.pousse(copie_noeud(assem, it, bloc_parent));
@@ -605,6 +611,7 @@ NoeudExpression *copie_noeud(
 		{
 			auto expr = static_cast<NoeudDiscr *>(racine);
 			auto nexpr = static_cast<NoeudDiscr *>(nracine);
+			nexpr->paires_discr.reserve(expr->paires_discr.taille);
 
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
 			nexpr->bloc_sinon = static_cast<NoeudBloc	*>(copie_noeud(assem, expr->bloc_sinon, bloc_parent));

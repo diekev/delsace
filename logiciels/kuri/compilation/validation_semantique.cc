@@ -636,6 +636,7 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 
 	kuri::tableau<Type *> types_entrees;
 	auto possede_contexte = !decl->est_externe && !possede_drapeau(b->drapeaux, FORCE_NULCTX);
+	types_entrees.reserve(decl->params.taille + possede_contexte);
 
 	if (possede_contexte) {
 		types_entrees.pousse(contexte.type_contexte);
@@ -647,6 +648,7 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 	}
 
 	kuri::tableau<Type *> types_sorties;
+	types_sorties.reserve(decl->type_declare.types_sorties.taille());
 
 	for (auto &type_declare : decl->type_declare.types_sorties) {
 		auto type_sortie = resoud_type_final(contexte, type_declare, b->bloc_parent, decl->lexeme);
@@ -810,7 +812,11 @@ static void performe_validation_semantique(
 
 			contexte.commence_fonction(decl);
 
-			if (!possede_drapeau(decl->drapeaux, FORCE_NULCTX)) {
+			auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
+
+			decl->bloc->membres.reserve(decl->params.taille + requiers_contexte);
+
+			if (requiers_contexte) {
 				auto val_ctx = static_cast<NoeudExpressionReference *>(contexte.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, b->lexeme));
 				val_ctx->type = contexte.type_contexte;
 				val_ctx->bloc_parent = b->bloc_parent;
@@ -906,7 +912,11 @@ static void performe_validation_semantique(
 
 			contexte.commence_fonction(decl);
 
-			if (!possede_drapeau(decl->drapeaux, FORCE_NULCTX)) {
+			auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
+
+			decl->bloc->membres.reserve(decl->params.taille + requiers_contexte);
+
+			if (requiers_contexte) {
 				auto val_ctx = static_cast<NoeudExpressionReference *>(contexte.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, b->lexeme));
 				val_ctx->type = contexte.type_contexte;
 				val_ctx->bloc_parent = b->bloc_parent;
@@ -993,7 +1003,10 @@ static void performe_validation_semantique(
 			expr->genre_valeur = GenreValeur::DROITE;
 
 			kuri::tableau<IdentifiantCode *> noms_args;
+			noms_args.reserve(expr->params.taille);
+
 			kuri::tableau<NoeudExpression *> args;
+			args.reserve(expr->params.taille);
 
 			/* Commence par valider les enfants puisqu'il nous faudra leurs
 			 * types pour déterminer la fonction à appeler. */
@@ -1169,6 +1182,7 @@ static void performe_validation_semantique(
 				b->type = decl_fonction_appelee->type_fonc->types_sorties[0];
 			}
 
+			expr->exprs.reserve(candidate->exprs.taille());
 			for (auto enfant : candidate->exprs) {
 				expr->exprs.pousse(enfant);
 			}
@@ -1986,6 +2000,7 @@ static void performe_validation_semantique(
 			}
 
 			donnees_dependance.types_utilises.insere(type);
+			enfant3->membres.reserve(feuilles.taille());
 
 			auto nombre_feuilles = feuilles.taille() - requiers_index;
 
@@ -2634,6 +2649,9 @@ static void performe_validation_semantique(
 			noeud_dependance->noeud_syntactique = decl;
 
 			auto type_struct = static_cast<TypeStructure *>(decl->type);
+			type_struct->types.reserve(decl->bloc->membres.taille);
+
+			decl->desc.membres.reserve(decl->bloc->membres.taille);
 
 			auto verifie_inclusion_valeur = [&decl, &contexte](NoeudBase *enf)
 			{
@@ -2814,6 +2832,8 @@ static void performe_validation_semantique(
 
 					auto decl_struct_empl = type_struct_empl->decl;
 
+					decl->desc.membres.reserve(decl->desc.membres.taille + decl_struct_empl->bloc->membres.taille);
+
 					for (auto decl_it_empl : decl_struct_empl->bloc->membres) {
 						auto it_empl = static_cast<NoeudDeclarationVariable *>(decl_it_empl);
 						ajoute_donnees_membre(it_empl->valeur, it_empl->expression);
@@ -2861,6 +2881,10 @@ static void performe_validation_semantique(
 			auto dernier_res = ResultatExpression();
 			/* utilise est_errone pour indiquer que nous sommes à la première valeur */
 			dernier_res.est_errone = true;
+
+			decl->bloc->membres.reserve(decl->bloc->expressions.taille);
+			desc.noms.reserve(decl->bloc->expressions.taille);
+			desc.valeurs.reserve(decl->bloc->expressions.taille);
 
 			POUR (decl->bloc->expressions) {
 				if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {

@@ -562,6 +562,7 @@ static DonneesCandidate verifie_donnees_fonction(
 
 			auto type_var = decl->params[decl->params.taille - 1]->type;
 			noeud_tableau->type = contexte.typeuse.type_dereference_pour(type_var);
+			noeud_tableau->exprs.reserve(slots.taille() - index_premier_var_arg);
 
 			for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
 				noeud_tableau->exprs.pousse(slots[i]);
