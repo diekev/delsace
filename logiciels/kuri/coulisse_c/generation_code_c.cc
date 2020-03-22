@@ -2426,7 +2426,7 @@ void genere_code_C(
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(b);
 			genere_code_C(expr->expr, generatrice, contexte, false);
-			b->valeur_calculee = "*(" + expr->expr->chaine_calculee() + ")";
+			b->valeur_calculee = "(*(" + expr->expr->chaine_calculee() + "))";
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LOGE:
