@@ -2709,6 +2709,11 @@ static void performe_validation_semantique(
 				POUR (decl->bloc->membres) {
 					auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
 					auto decl_membre = decl_var->valeur;
+
+					if (decl_membre->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+						erreur::lance_erreur("Expression invalide dans la déclaration du membre de l'union", contexte, decl_membre->lexeme);
+					}
+
 					decl_membre->type = resoud_type_final(contexte, decl_membre->type_declare, decl_membre->bloc_parent, decl_membre->lexeme);
 					decl_var->type = decl_membre->type;
 
@@ -2755,6 +2760,11 @@ static void performe_validation_semantique(
 			POUR (decl->bloc->membres) {
 				auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
 				auto decl_membre = decl_var->valeur;
+
+				if (decl_membre->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+					erreur::lance_erreur("Expression invalide dans la déclaration du membre de la structure", contexte, decl_membre->lexeme);
+				}
+
 				auto decl_expr = decl_var->expression;
 
 				it->ident = decl_membre->ident;
@@ -2885,6 +2895,11 @@ static void performe_validation_semantique(
 				decl_expr->type = type_enum->type_donnees;
 
 				auto var = decl_expr->valeur;
+
+				if (var->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+					erreur::lance_erreur("Expression invalide dans la déclaration du membre de l'énumération", contexte, var->lexeme);
+				}
+
 				auto expr = decl_expr->expression;
 
 				auto decl_anterieure = trouve_dans_bloc_seul(decl->bloc, decl_expr);
