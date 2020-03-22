@@ -578,6 +578,15 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 
 	types_fonctions.pousse(type);
 
+	auto indice = IndiceTypeOp::ENTIER_RELATIF;
+	auto raison = RaisonOp::POUR_COMPARAISON;
+
+	auto const &idx_dt_ptr_nul = types_communs[static_cast<long>(TypeBase::PTR_NUL)];
+	auto const &idx_dt_bool = types_communs[static_cast<long>(TypeBase::BOOL)];
+
+	operateurs.ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_ptr_nul, idx_dt_bool, indice, raison);
+	operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_ptr_nul, idx_dt_bool, indice, raison);
+
 	return type;
 }
 
