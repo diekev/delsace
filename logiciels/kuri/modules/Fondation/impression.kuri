@@ -65,6 +65,26 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> chaine
     retourne chn
 }
 
+copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, fichier: *Fichier) -> ErreurFichier
+{
+    tampon_courant := @enchaineuse.tampon
+
+    curseur : z64 = 0
+
+    tantque tampon_courant != nul {
+        taille_tampon := tampon_courant.occupé
+        src := @tampon_courant.données[0]
+
+		_ := tente système_écris(fichier.desc, src, taille_tampon) piège err {
+			retourne err
+		}
+
+        tampon_courant = tampon_courant.suivant
+    }
+
+    retourne transtype(0: ErreurFichier)
+}
+
 détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
 {
     // le premier tampon n'est pas alloué dynamiquement
@@ -675,20 +695,12 @@ imprime_valeur :: fonc(
 
 imprime :: fonc(format: chaine, args: ...eini) -> rien
 {
-    chn := imprime_chaine(format, ...args)
-
-    // @erreur
-	_ := sortie_standarde().écris(chn)
-	déloge chn
+	_ := tente imprime_dans_fichier(sortie_standarde(), format, ...args) piège nonatteignable
 }
 
 imprime_err :: fonc(format: chaine, args: ...eini) -> rien
 {
-    chn := imprime_chaine(format, ...args)
-
-    // @erreur
-	_ := sortie_erreur().écris(chn)
-	déloge chn
+	_ := tente imprime_dans_fichier(sortie_erreur(), format, ...args) piège nonatteignable
 }
 
 imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
@@ -699,6 +711,17 @@ imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 
 	imprime_dans_enchaineuse(@enchaineuse, format, ...args)
 	retourne chaine_depuis_enchaineuse(@enchaineuse)
+}
+
+imprime_dans_fichier :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> ErreurFichier
+{
+    enchaineuse : Enchaineuse
+	initialise_enchaineuse(@enchaineuse)
+	diffère { détruit_tampons(@enchaineuse) }
+
+	imprime_dans_enchaineuse(@enchaineuse, format, ...args)
+
+	retourne copie_enchaineuse_fichier(@enchaineuse, fichier)
 }
 
 imprime_log :: fonc (ident: chaine, mode: ModeLogage, format: chaine, args: ...eini) -> rien
