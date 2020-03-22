@@ -438,8 +438,3 @@ SIGUSR2   :: 31  /* User-defined signal 2.  */
 SIGWINCH  :: 28  /* Window size change (4.3 BSD, Sun).  */
 
 signal :: fonc externe (numéro_signal: z32, rappel: #nulctx fonc(z32)(rien)) -> rien
-
-// -------------------------------------
-
-// défini par le compilateur
-lis_errno :: fonc externe () -> z32
