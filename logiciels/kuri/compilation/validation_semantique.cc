@@ -2527,6 +2527,11 @@ static void performe_validation_semantique(
 
 			if (expr_loge->type->genre == GenreType::TABLEAU_DYNAMIQUE) {
 				auto expr = b->type_declare.expressions[0];
+
+				if (expr == nullptr) {
+					erreur::lance_erreur("Attendu une expression pour définir la taille du tableau à loger", contexte, b->lexeme);
+				}
+
 				performe_validation_semantique(expr, contexte, false);
 
 				auto idx_type_deref = contexte.typeuse.type_dereference_pour(b->type);
@@ -2559,6 +2564,11 @@ static void performe_validation_semantique(
 
 			if (expr_loge->type->genre == GenreType::TABLEAU_DYNAMIQUE) {
 				auto expr = b->type_declare.expressions[0];
+
+				if (expr == nullptr) {
+					erreur::lance_erreur("Attendu une expression pour définir la taille du tableau à reloger", contexte, b->lexeme);
+				}
+
 				performe_validation_semantique(expr, contexte, false);
 
 				// pour la coulisse C, ajout d'une dépendance vers le type du pointeur du tableau
