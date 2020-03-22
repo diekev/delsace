@@ -2690,10 +2690,11 @@ void genere_code_C(
 			auto inst = static_cast<NoeudPousseContexte *>(b);
 			auto variable = inst->expr;
 
-			generatrice << "KsContexteProgramme ancien_contexte = contexte;\n";
+			// Ajout le pointeur au nom de l'ancien_contexte pour avoir une variable unique.
+			generatrice << "KsContexteProgramme ancien_contexte" << b << " = contexte;\n";
 			generatrice << "contexte = " << broye_chaine(variable) << ";\n";
 			genere_code_C(inst->bloc, generatrice, contexte, true);
-			generatrice << "contexte = ancien_contexte;\n";
+			generatrice << "contexte = ancien_contexte" << b << ";\n";
 
 			break;
 		}
