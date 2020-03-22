@@ -155,7 +155,7 @@ struct tableau {
 
 	~tableau()
 	{
-		memoire::deloge_tableau("kuri::tableau", this->pointeur, this->taille);
+		memoire::deloge_tableau("kuri::tableau", this->pointeur, this->capacite);
 	}
 
 	T &operator[](long i)
