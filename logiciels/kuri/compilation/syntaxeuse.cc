@@ -294,7 +294,15 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, Donnee
 
 		consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après la liste des paramètres de la fonction");
 
+		auto nombre_noeuds_alloues = m_contexte.allocatrice_noeud.nombre_noeuds();
 		noeud->bloc = analyse_bloc();
+		nombre_noeuds_alloues = m_contexte.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
+
+		/* À FAIRE : quand nous aurons des fonctions dans des fonctions, il
+		 * faudra soustraire le nombre de noeuds des fonctions enfants. Il
+		 * faudra également faire attention au moultfilage futur.
+		 */
+		noeud->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
 		aplatis_arbre(noeud->bloc, noeud->arbre_aplatis);
 
 //		std::cerr << "Abre aplatis pour fonction " << noeud->ident->nom << " :\n";
