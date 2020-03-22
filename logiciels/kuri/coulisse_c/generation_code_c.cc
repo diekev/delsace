@@ -38,6 +38,7 @@
 #include "info_type_c.hh"
 #include "modules.hh"
 #include "outils_lexemes.hh"
+#include "portee.hh"
 #include "typage.hh"
 
 using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
@@ -1171,15 +1172,22 @@ void genere_code_C(
 		{
 			auto flux = dls::flux_chaine();
 
-			/*if (b->aide_generation_code == GENERE_CODE_ACCES_VAR)*/ {
-				if (b->nom_fonction_appel != "") {
-					flux << b->nom_fonction_appel;
+			if (b->nom_fonction_appel != "") {
+				flux << b->nom_fonction_appel;
+			}
+			else {
+				auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme->fichier));
+				auto decl = trouve_dans_bloc_ou_module(contexte, b->bloc_parent, b->ident, fichier);
+
+				if (decl->drapeaux & EST_CONSTANTE) {
+					auto decl_const = static_cast<NoeudDeclarationVariable *>(decl);
+					flux << decl_const->valeur_expression.entier;
 				}
 				else {
 					// À FAIRE(réusinage arbre)
-//					if (dv.est_membre_emploie) {
-//						flux << dv.structure;
-//					}
+					//	if (dv.est_membre_emploie) {
+					//		flux << dv.structure;
+					//	}
 
 					if ((b->drapeaux & EST_VAR_BOUCLE) != 0) {
 						flux << "(*";
@@ -1191,9 +1199,9 @@ void genere_code_C(
 						flux << ")";
 					}
 				}
-
-				b->valeur_calculee = dls::chaine(flux.chn());
 			}
+
+			b->valeur_calculee = dls::chaine(flux.chn());
 
 			break;
 		}
@@ -1296,6 +1304,10 @@ void genere_code_C(
 			auto expr = static_cast<NoeudDeclarationVariable *>(b);
 			auto variable = expr->valeur;
 			auto expression = expr->expression;
+
+			if (dls::outils::possede_drapeau(expr->drapeaux, EST_CONSTANTE)) {
+				return;
+			}
 
 			if (dls::outils::possede_drapeau(variable->drapeaux, EST_EXTERNE)) {
 				return;

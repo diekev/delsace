@@ -1030,6 +1030,7 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 				transfere_operateurs_mineures_dans_expression(lexeme.genre);
 
 				dernier_noeud = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, &lexeme);
+				dernier_noeud->drapeaux |= EST_CONSTANTE;
 
 				operateurs.pousse(dernier_noeud);
 				break;

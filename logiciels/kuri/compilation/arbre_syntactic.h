@@ -28,6 +28,7 @@
 
 #include "biblinternes/outils/definitions.h"
 
+#include "expression.h"
 #include "lexemes.hh"
 #include "structures.hh"
 #include "typage.hh"
@@ -123,6 +124,7 @@ enum drapeaux_noeud : unsigned short {
 	EST_VAR_BOUCLE             = (1 << 10),
 	EST_GLOBALE                = (1 << 11),
 	EST_APPEL_SYNTAXE_UNIFORME = (1 << 12),
+	EST_CONSTANTE              = (1 << 13),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
@@ -251,6 +253,8 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 	// mais elle est nécessaire pour pouvoir prendre en compte les expressions à virgule
 	NoeudExpression *valeur = nullptr;
 	NoeudExpression *expression = nullptr;
+
+	ResultatExpression valeur_expression{};
 };
 
 struct NoeudExpressionReference : public NoeudExpression {

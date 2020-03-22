@@ -1237,6 +1237,9 @@ static void performe_validation_semantique(
 			if (decl->drapeaux & EST_VAR_BOUCLE) {
 				expr->drapeaux |= EST_VAR_BOUCLE;
 			}
+			else if (decl->drapeaux & EST_CONSTANTE) {
+				expr->genre_valeur = GenreValeur::DROITE;
+			}
 
 			donnees_dependance.types_utilises.insere(expr->type);
 
@@ -1448,6 +1451,16 @@ static void performe_validation_semantique(
 					}
 
 					expression->transformation = transformation;
+				}
+
+				if (decl->drapeaux & EST_CONSTANTE) {
+					auto res_exec = evalue_expression(contexte, decl->bloc_parent, expression);
+
+					if (res_exec.est_errone) {
+						erreur::lance_erreur("Impossible d'évaluer l'expression de la constante", contexte, expression->lexeme);
+					}
+
+					decl->valeur_expression = res_exec;
 				}
 			}
 			else {
