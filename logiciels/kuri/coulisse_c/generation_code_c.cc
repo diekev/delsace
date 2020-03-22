@@ -1278,7 +1278,7 @@ void genere_code_C(
 				return;
 			}
 
-			applique_transformation(expression, generatrice, contexte, expr_gauche);
+			applique_transformation(expression, generatrice, contexte, false);
 
 			genere_code_C(variable, generatrice, contexte, true);
 
