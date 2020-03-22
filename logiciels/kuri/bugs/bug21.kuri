@@ -1,0 +1,9 @@
+// Crash lors de la validation de logement de tableau si l'expression est nulle.
+
+principale :: fonc () -> z32
+{
+    ptr := loge []z32
+    déloge ptr
+
+    retourne 0
+}
