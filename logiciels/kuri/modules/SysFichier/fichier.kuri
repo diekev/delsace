@@ -1,18 +1,248 @@
-importe Fondation
+importe Fondation // pour chaine_c_temp
 importe GlibC
+
+// ----------------------------------------------------------
+// Toutes les erreurs possibles ; symétries de celles d'errno
+
+ErreurFichier :: erreur {
+    Inconnue
+
+    ÉcriturePeutBloquer
+    EntréeSortie
+    EntréeSortieSpéciale
+    EspaceDisqueInexistant
+    EspaceDisqueInsuffisant
+    FichierEstLectureSeul
+    FichierEstPipe
+    FichierExisteDéjà
+    FichierInexistant
+    FichierInvalide
+    FichierTemporaireNonSupporté
+    FichierTropGrand
+    FichierTropPetit
+    ImageEnLecture
+    InterrompuParSignal
+    LecturePeutBloquer
+    LectureSurDossier
+    LimiteOuvertureFichierAtteinte
+    MauvaisEspaceAdressage
+    MatérielInconnu
+    MémoireInsuffisante
+    NomTropGrand
+    OuverturePeutBloquer
+    OuvertureDossier
+    PaireNonRenseigné
+    PasDansUnDossier
+    PermissionNonAccordé
+    PipeFerméPourÉcriture
+    SynchronisationImpossiblePourFichier
+    TropDeLiensSymboliques
+    ValeurInvalide
+}
+
+RésultatOpérationFichier :: union {
+    e: ErreurFichier
+    r: z32
+}
+
+système_ouvre :: fonc (chemin: *z8, drapeaux: z32) -> RésultatOpérationFichier
+{
+    résultat := open(chemin, drapeaux)
+
+    // À FAIRE : certaine valeur dépendent des drapeaux (création, écriture, ...)
+    // il faudra atomiser l'interface, la préciser pour savoir quoi faire
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EACCES       { retourne ErreurFichier.PermissionNonAccordé; }
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; } // O_CREAT
+            EEXIST       { retourne ErreurFichier.FichierExisteDéjà; } // O_CREAT & O_EXCL
+            EFAULT       { retourne ErreurFichier.MauvaisEspaceAdressage; }
+            EFBIG        { retourne ErreurFichier.FichierTropGrand; }
+            EINTR        { retourne ErreurFichier.InterrompuParSignal; }
+            EINVAL       { retourne ErreurFichier.ValeurInvalide; } // dépend du drapeau
+            EISDIR       { retourne ErreurFichier.OuvertureDossier; } // Si O_WRONLY | O_RDWR ou O_TMPFILE and one of O_WRONLY or O_RDWR
+            ELOOP        { retourne ErreurFichier.TropDeLiensSymboliques; } // dépend du drapeau
+            EMFILE       { retourne ErreurFichier.LimiteOuvertureFichierAtteinte; }
+            ENAMETOOLONG { retourne ErreurFichier.NomTropGrand; }
+            ENFILE       { retourne ErreurFichier.LimiteOuvertureFichierAtteinte; }
+            ENODEV       { retourne ErreurFichier.MatérielInconnu; }
+            ENOENT       { retourne ErreurFichier.FichierInexistant; } // dépend du drapeau
+            ENOMEM       { retourne ErreurFichier.MémoireInsuffisante; } // dépend du type de fichier
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
+            ENOTDIR      { retourne ErreurFichier.PasDansUnDossier; }
+            ENXIO        { retourne ErreurFichier.EntréeSortieSpéciale; } // dépend du type de fichier
+            EOPNOTSUPP   { retourne ErreurFichier.FichierTemporaireNonSupporté; }
+            EOVERFLOW    { retourne ErreurFichier.FichierTropGrand; }
+            EPERM        { retourne ErreurFichier.PermissionNonAccordé; } // dépend du drapeau
+            EROFS        { retourne ErreurFichier.FichierEstLectureSeul; } // dépend du drapeau
+            ETXTBSY      { retourne ErreurFichier.ImageEnLecture; } // dépend du drapeau
+            EWOULDBLOCK  { retourne ErreurFichier.OuverturePeutBloquer; } // dépend du drapeau
+        }
+    }
+
+    retourne résultat
+}
+
+système_ferme :: fonc (fd: z32) -> ErreurFichier
+{
+    résultat := close(fd)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EBADF        { retourne ErreurFichier.FichierInvalide; }
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
+            EINTR        { retourne ErreurFichier.InterrompuParSignal; }
+            EIO          { retourne ErreurFichier.EntréeSortie; }
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
+            sinon        { retourne ErreurFichier.Inconnue; }
+        }
+    }
+
+    retourne transtype(0: ErreurFichier)
+}
+
+système_synchronise :: fonc (fd: z32) -> RésultatOpérationFichier
+{
+    résultat := fsync(fd)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EBADF        { retourne ErreurFichier.FichierInvalide; }
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
+            EINVAL       { retourne ErreurFichier.SynchronisationImpossiblePourFichier; }
+            EIO          { retourne ErreurFichier.EntréeSortie; }
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
+            EROFS        { retourne ErreurFichier.SynchronisationImpossiblePourFichier; }
+            sinon        { retourne ErreurFichier.Inconnue; }
+        }
+    }
+
+    retourne résultat
+}
+
+système_synchronise_données :: fonc (fd: z32) -> RésultatOpérationFichier
+{
+    résultat := fdatasync(fd)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EBADF        { retourne ErreurFichier.FichierInvalide; }
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
+            EINVAL       { retourne ErreurFichier.SynchronisationImpossiblePourFichier; }
+            EIO          { retourne ErreurFichier.EntréeSortie; }
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
+            EROFS        { retourne ErreurFichier.SynchronisationImpossiblePourFichier; }
+            sinon        { retourne ErreurFichier.Inconnue; }
+        }
+    }
+
+    retourne résultat
+}
+
+système_écris :: fonc (fd: z32, ptr:  *z8, taille: z64) -> RésultatOpérationFichier
+{
+    résultat := write(fd, ptr, taille)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EAGAIN       { retourne ErreurFichier.ÉcriturePeutBloquer; }
+            EWOULDBLOCK  { retourne ErreurFichier.ÉcriturePeutBloquer; }
+            EBADF        { retourne ErreurFichier.FichierInvalide; }
+            EDESTADDRREQ { retourne ErreurFichier.PaireNonRenseigné; }
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
+            EFAULT       { retourne ErreurFichier.MauvaisEspaceAdressage; }
+            EFBIG        { retourne ErreurFichier.FichierTropGrand; }
+            EINTR        { retourne ErreurFichier.InterrompuParSignal; }
+            EINVAL       { retourne ErreurFichier.ValeurInvalide; }
+            EIO          { retourne ErreurFichier.EntréeSortie; }
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
+            EPERM        { retourne ErreurFichier.PermissionNonAccordé; }
+            EPIPE        { retourne ErreurFichier.PipeFerméPourÉcriture; }
+            sinon        { retourne ErreurFichier.Inconnue; }
+        }
+    }
+
+    retourne résultat
+}
+
+RésultatLecture :: union {
+    e: ErreurFichier
+    r: z64
+}
+
+système_lis :: fonc (fd: z32, ptr:  *z8, taille: z64) -> RésultatLecture
+{
+    résultat := read(fd, ptr, transtype(taille: n64))
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EAGAIN      { retourne ErreurFichier.LecturePeutBloquer; }
+            EWOULDBLOCK { retourne ErreurFichier.LecturePeutBloquer; }
+            EBADF       { retourne ErreurFichier.FichierInvalide; }
+            EFAULT      { retourne ErreurFichier.MauvaisEspaceAdressage; }
+            EINTR       { retourne ErreurFichier.InterrompuParSignal; }
+            EINVAL      { retourne ErreurFichier.ValeurInvalide; }
+            EIO         { retourne ErreurFichier.EntréeSortie; }
+            EISDIR      { retourne ErreurFichier.LectureSurDossier; }
+            sinon       { retourne ErreurFichier.Inconnue; }
+        }
+    }
+
+    retourne résultat
+}
+
+système_positionne_fichier :: fonc (fd: z32, décalage: z32, où: z32) -> RésultatOpérationFichier
+{
+    résultat := lseek(fd, décalage, où)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EBADF       { retourne ErreurFichier.FichierInvalide; }
+            EINVAL      { retourne ErreurFichier.ValeurInvalide; } // où est invalide
+            ENXIO       { retourne ErreurFichier.FichierTropPetit; } // où est SEEK_DATA ou SEEK_HOLE, et le décalage dépasse la taille du fichier
+            EOVERFLOW   { retourne ErreurFichier.FichierTropPetit; }
+            ESPIPE      { retourne ErreurFichier.FichierEstPipe; }
+            sinon       { retourne ErreurFichier.Inconnue; }
+        }
+    }
+
+    retourne transtype(résultat: z32)
+}
+
+// ----------------------------------------------------------
 
 Fichier :: struct {
     desc : z32
 }
 
+RésultatFichier :: union {
+    e: ErreurFichier
+    f: Fichier
+}
+
 // ouvre_fichier_existant
 // ouvre_fichier_existant_crée_sinon
-ouvre :: fonc (chemin: chaine) -> Fichier
+ouvre_fichier :: fonc (chemin: chaine) -> RésultatFichier
 {
    	ptr_chemin := chaine_c_temp(chemin)
 
-    // @erreur
-    desc := open(ptr_chemin, LECTURE_ÉCRITURE)
+    desc := tente système_ouvre(ptr_chemin, LECTURE_ÉCRITURE) piège err {
+        retourne err
+    }
 
     fichier: Fichier
     fichier.desc = desc
@@ -20,93 +250,103 @@ ouvre :: fonc (chemin: chaine) -> Fichier
     retourne fichier
 }
 
-ferme :: fonc (fichier: *Fichier) -> rien
+ferme :: fonc (fichier: *Fichier) -> ErreurFichier
 {
     si fichier.desc < 3 {
-        retourne
+        retourne transtype(0: ErreurFichier)
     }
 
-    // @erreur
-    si close(fichier.desc) == -1 {
-        retourne
-    }
+    retourne système_ferme(fichier.desc)
 }
 
-lis :: fonc (fichier: *Fichier, tampon: chaine) -> rien
+lis :: fonc (fichier: *Fichier, tampon: chaine) -> ErreurFichier
 {
     si fichier.desc == -1 || fichier.desc == 1 || fichier.desc == 2 {
-        retourne
+        retourne transtype(0: ErreurFichier)
     }
 
-    // @erreur
-    octets_lus := read(fichier.desc, tampon.pointeur, transtype(tampon.taille: n32))
+    retourne système_lis(fichier.desc, tampon.pointeur, tampon.taille)
 }
 
-lis :: fonc (fichier: *Fichier) -> chaine
-{
-    TAILLE_MAX : n64 = 1024
+ChaineOuErreurFichier :: union {
+    e: ErreurFichier
+    c: chaine
+}
 
-    tampon : [1024]z8
-    contenu : chaine
+lis :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
+{
+    TAILLE_MAX :: 1024
+
+    tampon : [TAILLE_MAX]z8
+    résultat : chaine
 
     boucle {
-        taille_reçue := read(fichier.desc, @tampon[0], TAILLE_MAX)
+        octets_lus := tente système_lis(fichier.desc, @tampon[0], TAILLE_MAX) piège err {
+            déloge résultat
+            retourne err
+        }
 
-        si taille_reçue > 0 {
-            ancienne_taille := contenu.taille
-            reloge contenu : chaine(contenu.taille + taille_reçue)
-            copie_mem_nonsur(src=@tampon[0], dst=@contenu[ancienne_taille], taille=taille_reçue)
+        si octets_lus > 0 {
+            ancienne_taille := résultat.taille
+            reloge résultat : chaine(résultat.taille + octets_lus)
+            copie_mem_nonsur(src=@tampon[0], dst=@résultat[ancienne_taille], taille=octets_lus)
 
-            si taille_reçue < transtype(TAILLE_MAX: z64) {
+            si octets_lus < TAILLE_MAX {
                 arrête
             }
         }
-        sinon si taille_reçue == 0 {
-            arrête
-        }
-        sinon si taille_reçue == -1 {
-            // À FAIRE : erreur
+        sinon si octets_lus == 0 {
             arrête
         }
     }
 
-    retourne contenu
+    retourne résultat
 }
 
-lis_ligne :: fonc (fichier: *Fichier) -> chaine
+lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
-	chn : chaine
+	résultat : chaine
 	c : z8
 
-	tantque read(fichier.desc, @c, 1) != 0 {
-		pousse(@chn, c)
+	boucle {
+        octets_lus := tente système_lis(fichier.desc, @c, 1) piège err {
+            déloge résultat
+            retourne err
+        }
+
+        si octets_lus == 0 {
+            arrête
+        }
+
+		pousse(@résultat, c)
 
 		si c == '\n' {
 			arrête
 		}
 	}
 
-    retourne chn
+    retourne résultat
 }
 
-lis_tout :: fonc (fichier: *Fichier) -> chaine
+lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
-    taille_fichier := lseek(fichier.desc, 0, SEEK_END)
+    taille_fichier := tente système_positionne_fichier(fichier.desc, 0, SEEK_END) piège err {
+        retourne err
+    }
 
     si taille_fichier == 0 {
         retourne ""
     }
 
-    // @erreur
-    _ := lseek(fichier.desc, 0, SEEK_SET)
+    _ := tente système_positionne_fichier(fichier.desc, 0, SEEK_SET) piège err {
+        retourne err
+    }
 
     résultat := loge chaine(taille_fichier)
 
-    octets_lus := read(fichier.desc, résultat.pointeur, transtype(résultat.taille: n32))
-
-    si octets_lus == -1 {
+    octets_lus := tente système_lis(fichier.desc, résultat.pointeur, résultat.taille: n32) piège err {
         déloge résultat
-        retourne ""
+        retourne err
     }
 
     retourne résultat
@@ -114,14 +354,9 @@ lis_tout :: fonc (fichier: *Fichier) -> chaine
 
 // écris_à_la_position
 // écris_fin
-écris :: fonc (fichier: *Fichier, chn: chaine) -> z64
+écris :: fonc (fichier: *Fichier, chn: chaine) -> RésultatOpérationFichier
 {
-    // On ne peut pas écrire ni dans l'entrée standarde, ni dans un fichier « erroné »
-    si fichier.desc == -1 || fichier.desc == 0 {
-        retourne -1
-    }
-
-    retourne write(fichier.desc, chn.pointeur, chn.taille)
+    retourne système_écris(fichier.desc, chn.pointeur, chn.taille)
 }
 
 fichier_entrée_standarde := Fichier{ desc = 0 }

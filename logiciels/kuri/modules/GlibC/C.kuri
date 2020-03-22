@@ -98,6 +98,9 @@ read :: fonc externe (fd : z32, tampon : *z8, taille : n64) -> z64
 write :: fonc externe (fd : z32, tampon : *z8, taille : z64) -> z32
 stat :: fonc externe (chemin : *z8, buf : *rien) -> z32
 
+fsync :: fonc externe (fd: z32) -> z32
+fdatasync :: fonc externe (fd: z32) -> z32
+
 getcwd :: fonc externe (ptr : *z8, taille : z64) -> rien
 chdir :: fonc externe (ptr : *z8) -> rien
 
@@ -116,9 +119,12 @@ S_IFBLK :: fonc externe (mode : n32) -> bool
 S_IFCHR :: fonc externe (mode : n32) -> bool
 S_IFIFO :: fonc externe (mode : n32) -> bool
 
-SEEK_SET :: 0	/* Seek from beginning of file.  */
-SEEK_CUR :: 1	/* Seek from current position.  */
-SEEK_END :: 2	/* Seek from end of file.  */
+SEEK_SET  :: 0	/* Seek from beginning of file.  */
+SEEK_CUR  :: 1	/* Seek from current position.  */
+SEEK_END  :: 2	/* Seek from end of file.  */
+/* Seulement pour GNU */
+SEEK_DATA :: 3  /* Seek to next data. */
+SEEK_HOLE :: 4  /* Seek to next hole. */
 
 lseek :: fonc externe (fd: z32, offset: z64, whence: z32) -> z64
 
