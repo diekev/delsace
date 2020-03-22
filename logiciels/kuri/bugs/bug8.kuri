@@ -1,4 +1,8 @@
+// Bug corrigé par un commit inconnu, sans doute un réusinage.
+
 // Ne peut pas assigner une variable globale depuis une autre dans la coulisse C
+
+importe Fondation
 
 // Ceci vient de C.kuri
 // !!! ne pas oublier d'ajourner le fichier quand celà sera fait
@@ -7,5 +11,6 @@ _AF_INET := _PF_INET
 
 principale :: fonc () -> z32
 {
+    imprime("%\n", _AF_INET)
     retourne 0
 }

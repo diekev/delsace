@@ -1,3 +1,5 @@
+// Bug corrigé par le commit : 325262fe06af47c9c1ba974605730ba74159d033
+
 // Crash lors de la validation de logement de tableau si l'expression est nulle.
 
 principale :: fonc () -> z32

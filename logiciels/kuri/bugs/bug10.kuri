@@ -1,3 +1,5 @@
+// Bug corrigé par le commit : 9a03204b17f7fc2c1ea902b05c3f90a512469a26
+
 // Les variables logées ne sont pas initialisées
 // Ceci peut être troublant par exemple pour les tableaux qu'elles contiennent,
 // qui sont initialisés avec une mémoire poubelle, faisant échoué les allocations

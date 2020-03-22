@@ -5,7 +5,7 @@
 
 principale :: fonc () -> z32
 {
-    dyn tabl : []z32
+    tabl : []z32
 
     tableau_ajoute(@tabl, 0)
     tableau_ajoute(@tabl, 1)
@@ -37,7 +37,7 @@ principale :: fonc () -> z32
     }
 
     {
-        dyn i := 0
+        i := 0
         répète {
             si i > 1 {
                 arrête

@@ -1,4 +1,8 @@
+// Bug corrigé par un commit inconnu.
+
 // Ne peut pas assigner une variable globale depuis une expression de transtypage dans la coulisse C
+
+importe Fondation
 
 // Ce bug se retrouve principalement dans les interfaces pour les bibliothèques externes
 // Il provient principalement ne notre pauvre gestion de nombres littéraux
@@ -7,5 +11,6 @@ Globale := transtype(5: n32)
 
 principale :: fonc () -> z32
 {
+    imprime("%\n", Globale)
     retourne 0
 }

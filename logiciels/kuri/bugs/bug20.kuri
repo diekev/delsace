@@ -1,6 +1,8 @@
+// Bug corrigé par le commit : 9e2d394edc38b062d8a614ddd37da0c2425fec48
+
 // crash lors de l'accès à une variable globale n'étant pas encore typée
 
-foo :: fonc ()
+foo :: fonc () -> rien
 {
     a := 1024 / TAILLE_PAGE
 }
