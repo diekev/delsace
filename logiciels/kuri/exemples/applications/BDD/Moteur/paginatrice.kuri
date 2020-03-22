@@ -25,7 +25,7 @@ ouvre_paginatrice :: fonc (fichier: chaine) -> *Paginatrice
         exit(1)
     }
 
-    taille_fichier := lseek(fd, 0, _SEEK_END)
+    taille_fichier := lseek(fd, 0, SEEK_END)
 
     paginatrice := loge Paginatrice
     paginatrice.utilise_stockage_disque = vrai
@@ -73,7 +73,7 @@ trouve_page :: fonc (paginatrice: *Paginatrice, index_page: z32) -> []octet
         }
 
         si index_page <= nombre_de_pages && paginatrice.utilise_stockage_disque {
-            décalage := lseek(paginatrice.descripteur_fichier, index_page * TAILLE_PAGE, _SEEK_SET)
+            décalage := lseek(paginatrice.descripteur_fichier, index_page * TAILLE_PAGE, SEEK_SET)
 
             si décalage == -1 {
                 imprime("Impossible de chercher le point dans le fichier !\n")
@@ -103,7 +103,7 @@ flush_paginatrice :: fonc (paginatrice: *Paginatrice, index_page: z32, taille: z
         exit(1)
     }
 
-    décalage := lseek(paginatrice.descripteur_fichier, index_page * TAILLE_PAGE, _SEEK_SET)
+    décalage := lseek(paginatrice.descripteur_fichier, index_page * TAILLE_PAGE, SEEK_SET)
 
     si décalage == -1 {
         imprime("Impossible de chercher le point dans le fichier !\n")

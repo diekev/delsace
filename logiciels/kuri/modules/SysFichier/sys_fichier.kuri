@@ -353,7 +353,7 @@ chaque_chemin_récursif :: corout(chemin : &CheminFichier) -> CheminFichier
                 arrête
             }
 
-            si dir.d_type == _DT_DIR {
+            si dir.d_type == DT_DIR {
                 enfile_dossier(file, dir, chemin)
             }
 

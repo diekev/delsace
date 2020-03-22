@@ -12,14 +12,14 @@ Serveuse :: struct {
 
 construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
 {
-    serveuse.prise = socket(_AF_INET, _SOCK_STREAM, 0)
+    serveuse.prise = socket(AF_INET, SOCK_STREAM, 0)
 
     si serveuse.prise == -1 {
         retourne "erreur lors de la création de la prise"
     }
 
     mon_addresse : sockaddr_in
-	mon_addresse.sin_family = transtype(_AF_INET : n16)
+	mon_addresse.sin_family = transtype(AF_INET : n16)
     mon_addresse.sin_port = htons(port)
     // trouve notre propre addresse
 	mon_addresse.sin_addr.s_addr = 0
@@ -145,7 +145,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
         close(prise)
 
         // nettoyage des processus fils
-        tantque waitpid(-1, nul, _WNOHANG) > 0 {}
+        tantque waitpid(-1, nul, WNOHANG) > 0 {}
     }
 }
 

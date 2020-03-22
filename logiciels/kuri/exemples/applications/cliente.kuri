@@ -70,7 +70,7 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
         retourne réponse, 1;
     }
 
-    prise := socket(_AF_INET, _SOCK_STREAM, 0);
+    prise := socket(AF_INET, SOCK_STREAM, 0);
 
     si prise == -1 {
         imprime("Ne peut pas créer la prise !\n");
@@ -82,7 +82,7 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
     port : n16 = port_pour_uri(uri);
 
     their_addr : sockaddr_in;
-    their_addr.sin_family = transtype(_AF_INET : n16);
+    their_addr.sin_family = transtype(AF_INET : n16);
     their_addr.sin_port = htons(port);
     their_addr.sin_zero[0] = 0;
     their_addr.sin_zero[1] = 0;

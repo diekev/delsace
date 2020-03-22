@@ -23,21 +23,21 @@ Serveuse :: struct {
 
 construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
 {
-    serveuse.prise = socket(_AF_INET, _SOCK_STREAM, 0)
+    serveuse.prise = socket(AF_INET, SOCK_STREAM, 0)
 
     si serveuse.prise == -1 {
         retourne "erreur lors de la création de la prise"
     }
 
     enable := 1
-    si setsockopt(serveuse.prise, _SOL_SOCKET, _SO_REUSEADDR, @enable, taille_de(z32)) < 0 {
+    si setsockopt(serveuse.prise, SOL_SOCKET, SO_REUSEADDR, @enable, taille_de(z32)) < 0 {
         // @erreur
         _ := close(serveuse.prise)
         retourne "setsockopt(SO_REUSEADDR) failed"
     }
 
     adresse_du_connecté : sockaddr_in
-	adresse_du_connecté.sin_family = transtype(_AF_INET : n16)
+	adresse_du_connecté.sin_family = transtype(AF_INET : n16)
     adresse_du_connecté.sin_port = htons(port)
     // trouve notre propre adresse
 	adresse_du_connecté.sin_addr.s_addr = 0

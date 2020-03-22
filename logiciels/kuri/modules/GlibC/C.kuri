@@ -59,27 +59,27 @@ tm :: struct externe {
 localtime :: fonc externe (tloc: *z64) -> *tm
 
 /* Identifier for system-wide realtime clock.  */
-_CLOCK_REALTIME := 0
+CLOCK_REALTIME           :: 0
 /* Monotonic system-wide clock.  */
-_CLOCK_MONOTONIC := 1
+CLOCK_MONOTONIC          :: 1
 /* High-resolution timer from the CPU.  */
-_CLOCK_PROCESS_CPUTIME_ID := 2
+CLOCK_PROCESS_CPUTIME_ID :: 2
 /* Thread-specific CPU-time clock.  */
-_CLOCK_THREAD_CPUTIME_ID := 3
+CLOCK_THREAD_CPUTIME_ID  :: 3
 /* Monotonic system-wide clock, not adjusted for frequency scaling.  */
-_CLOCK_MONOTONIC_RAW := 4
+CLOCK_MONOTONIC_RAW      :: 4
 /* Identifier for system-wide realtime clock, updated only on ticks.  */
-_CLOCK_REALTIME_COARSE := 5
+CLOCK_REALTIME_COARSE    :: 5
 /* Monotonic system-wide clock, updated only on ticks.  */
-_CLOCK_MONOTONIC_COARSE := 6
+CLOCK_MONOTONIC_COARSE   :: 6
 /* Monotonic system-wide clock that includes time spent in suspension.  */
-_CLOCK_BOOTTIME := 7
+CLOCK_BOOTTIME           :: 7
 /* Like CLOCK_REALTIME but also wakes suspended system.  */
-_CLOCK_REALTIME_ALARM := 8
+CLOCK_REALTIME_ALARM     :: 8
 /* Like CLOCK_BOOTTIME but also wakes suspended system.  */
-_CLOCK_BOOTTIME_ALARM := 9
+CLOCK_BOOTTIME_ALARM     :: 9
 /* Like CLOCK_REALTIME but in International Atomic Time.  */
-_CLOCK_TAI := 11
+CLOCK_TAI                :: 11
 
 clock_gettime :: fonc externe (clock_id: z32, res: *timespec) -> z32
 clock_settime :: fonc externe (clock_id: z32, res: *timespec) -> z32
@@ -116,9 +116,9 @@ S_IFBLK :: fonc externe (mode : n32) -> bool
 S_IFCHR :: fonc externe (mode : n32) -> bool
 S_IFIFO :: fonc externe (mode : n32) -> bool
 
-_SEEK_SET :: 0	/* Seek from beginning of file.  */
-_SEEK_CUR :: 1	/* Seek from current position.  */
-_SEEK_END :: 2	/* Seek from end of file.  */
+SEEK_SET :: 0	/* Seek from beginning of file.  */
+SEEK_CUR :: 1	/* Seek from current position.  */
+SEEK_END :: 2	/* Seek from end of file.  */
 
 lseek :: fonc externe (fd: z32, offset: z64, whence: z32) -> z64
 
@@ -151,15 +151,15 @@ dirent :: struct externe  {
 }
 
 // duplique un énum
-_DT_UNKNOWN :: 0
-_DT_FIFO :: 1
-_DT_CHR :: 2
-_DT_DIR :: 4
-_DT_BLK :: 6
-_DT_REG :: 8
-_DT_LNK :: 10
-_DT_SOCK :: 12
-_DT_WHT :: 14
+DT_UNKNOWN :: 0
+DT_FIFO    :: 1
+DT_CHR     :: 2
+DT_DIR     :: 4
+DT_BLK     :: 6
+DT_REG     :: 8
+DT_LNK     :: 10
+DT_SOCK    :: 12
+DT_WHT     :: 14
 
 // open/fnctl
 MODE_ACCÈS       ::      0o003
@@ -189,13 +189,13 @@ DSYNC	         ::    0o10000
 // encore les énum. L'expression devrait être (0o20000000 | 0o200000)
 TMPFILE          :: 0o20200000
 
-_O_NONBLOCK :: 0o04000
+O_NONBLOCK :: 0o04000
 
-_F_DUPFD :: 0	/* Duplicate file descriptor.  */
-_F_GETFD :: 1	/* Get file descriptor flags.  */
-_F_SETFD :: 2	/* Set file descriptor flags.  */
-_F_GETFL :: 3	/* Get file status flags.  */
-_F_SETFL :: 4	/* Set file status flags.  */
+F_DUPFD :: 0	/* Duplicate file descriptor.  */
+F_GETFD :: 1	/* Get file descriptor flags.  */
+F_SETFD :: 2	/* Set file descriptor flags.  */
+F_GETFL :: 3	/* Get file status flags.  */
+F_SETFL :: 4	/* Set file status flags.  */
 
 fcntl :: fonc externe (fd: z32, cmd: z32, args: ...) -> z32
 
@@ -203,13 +203,42 @@ opendir :: fonc externe (chemin : *z8) -> *DIR
 closedir :: fonc externe (d : *DIR) -> z32
 readdir :: fonc externe (d : *DIR) -> *dirent
 
+// -------------------------------------------------
+
+// sys/waitflags.h
+WNOHANG   :: 1
+WUNTRACED :: 2
+
+fork :: fonc externe () -> z32
+
+waitpid :: fonc externe (id : z32, ptr : *z32, options : z32) -> z32
+
 //###############################################################################
 
-_PF_INET :: 2
-_AF_INET :: 2
-_SOCK_STREAM :: 1
-_WNOHANG :: 1
-_INADDR_ANY : n32 = 0
+// arpa/inet.h
+PF_INET :: 2
+AF_INET :: PF_INET
+
+// sys/socket_types.h
+SOCK_STREAM    :: 1  /* Sequenced, reliable, connection-based byte streams.  */
+SOCK_DGRAM     :: 2  /* Connectionless, unreliable datagrams of fixed maximum length.  */
+SOCK_RAW       :: 3  /* Raw protocol interface.  */
+SOCK_RDM       :: 4  /* Reliably-delivered messages.  */
+SOCK_SEQPACKET :: 5  /* Sequenced, reliable, connection-based, datagrams of fixed maximum length.  */
+SOCK_DCCP      :: 6  /* Datagram Congestion Control Protocol.  */
+SOCK_PACKET    :: 10 /* Linux specific way of getting packets at the dev level.  For writing rarp and other similar things on the user level. */
+
+/* Flags to be ORed into the type parameter of socket and socketpair and used for the flags parameter of paccept.  */
+SOCK_CLOEXEC   :: 0o2000000	/* Atomically set close-on-exec flag for the new descriptor(s).  */
+SOCK_NONBLOCK  :: 0o0004000	/* Atomically mark descriptor(s) as non-blocking.  */
+
+// netinet/in.h
+/* Address to accept any incoming messages.  */
+INADDR_ANY       :: transtype(0x00000000: n32)
+/* Address to send to all hosts.  */
+INADDR_BROADCAST :: transtype(0xffffffff: n32)
+/* Address indicating an error return.  */
+INADDR_NONE      :: transtype(0xffffffff: n32)
 
 hostent :: struct externe  {
     h_name : *z8
@@ -239,8 +268,83 @@ gethostbyname :: fonc externe (arg : *z8) -> *hostent
 
 socket :: fonc externe (a : z32, b : z32, c : z32) -> z32
 
-_SOL_SOCKET :: 1
-_SO_REUSEADDR :: 2
+// asm-generic/socket.h
+SOL_SOCKET :: 1
+
+SO_DEBUG       :: 1
+SO_REUSEADDR   :: 2
+SO_TYPE        :: 3
+SO_ERROR       :: 4
+SO_DONTROUTE   :: 5
+SO_BROADCAST   :: 6
+SO_SNDBUF      :: 7
+SO_RCVBUF      :: 8
+SO_SNDBUFFORCE :: 32
+SO_RCVBUFFORCE :: 33
+SO_KEEPALIVE   :: 9
+SO_OOBINLINE   :: 10
+SO_NO_CHECK    :: 11
+SO_PRIORITY    :: 12
+SO_LINGER      :: 13
+SO_BSDCOMPAT   :: 14
+SO_REUSEPORT   :: 15
+
+/* powerpc only differs in these */
+SO_PASSCRED    :: 16
+SO_PEERCRED    :: 17
+SO_RCVLOWAT    :: 18
+SO_SNDLOWAT    :: 19
+SO_RCVTIMEO    :: 20
+SO_SNDTIMEO    :: 21
+
+/* Security levels - as per NRL IPv6 - don't actually do anything */
+SO_SECURITY_AUTHENTICATION       :: 22
+SO_SECURITY_ENCRYPTION_TRANSPORT :: 23
+SO_SECURITY_ENCRYPTION_NETWORK   :: 24
+SO_BINDTODEVICE                  :: 25
+
+/* Socket filtering */
+SO_ATTACH_FILTER :: 26
+SO_DETACH_FILTER :: 27
+SO_GET_FILTER    :: SO_ATTACH_FILTER
+SO_PEERNAME	     :: 28
+SO_TIMESTAMP     :: 29
+SCM_TIMESTAMP    :: SO_TIMESTAMP
+SO_ACCEPTCONN    :: 30
+SO_PEERSEC       :: 31
+SO_PASSSEC       :: 34
+SO_TIMESTAMPNS   :: 35
+SCM_TIMESTAMPNS  :: SO_TIMESTAMPNS
+SO_MARK	         :: 36
+SO_TIMESTAMPING  :: 37
+SCM_TIMESTAMPING :: SO_TIMESTAMPING
+SO_PROTOCOL      :: 38
+SO_DOMAIN        :: 39
+SO_RXQ_OVFL      :: 40
+SO_WIFI_STATUS   :: 41
+SCM_WIFI_STATUS  :: SO_WIFI_STATUS
+SO_PEEK_OFF      :: 42
+
+/* Instruct lower device to use last 4-bytes of skb data as FCS */
+SO_NOFCS                   :: 43
+SO_LOCK_FILTER             :: 44
+SO_SELECT_ERR_QUEUE        :: 45
+SO_BUSY_POLL               :: 46
+SO_MAX_PACING_RATE         :: 47
+SO_BPF_EXTENSIONS          :: 48
+SO_INCOMING_CPU            :: 49
+SO_ATTACH_BPF              :: 50
+SO_DETACH_BPF              :: SO_DETACH_FILTER
+SO_ATTACH_REUSEPORT_CBPF   :: 51
+SO_ATTACH_REUSEPORT_EBPF   :: 52
+SO_CNX_ADVICE              :: 53
+SCM_TIMESTAMPING_OPT_STATS :: 54
+SO_MEMINFO                 :: 55
+SO_INCOMING_NAPI_ID        :: 56
+SO_COOKIE                  :: 57
+SCM_TIMESTAMPING_PKTINFO   :: 58
+SO_PEERGROUPS              :: 59
+SO_ZEROCOPY                :: 60
 
 setsockopt :: fonc externe (sockfd: z32, level: z32, optname: z32, optval: *rien, optlen: n64) -> z32
 
@@ -257,16 +361,13 @@ bind :: fonc externe (prise : z32, addr : *sockaddr, taille : n64) -> z32
 listen :: fonc externe (prise : z32, connexions : z32) -> z32
 accept :: fonc externe (prise : z32, addr : *sockaddr, taille : *n32) -> z32
 perror :: fonc externe (ptr : *z8) -> rien
-fork :: fonc externe () -> z32
 exit :: fonc externe (id : z32) -> rien
-waitpid :: fonc externe (id : z32, ptr : *z32, options : z32) -> z32
 send :: fonc externe (prise : z32, pointeur : *z8, taille : z64, options : z32) -> z32
 inet_ntoa :: fonc externe (addr : in_addr) -> *z8
 
 // -------------------------------------
 
 printf :: fonc externe (fmt: *z8, args: ...) -> z32
-sprintf :: fonc externe (buf: *z8, fmt: *z8, s: z32) -> rien
 
 memset :: fonc externe (ptr: *rien, valeur: z32, taille: n64) -> rien
 memcpy :: fonc externe (ptr: *rien, src: *rien, taille: n64) -> rien
@@ -279,9 +380,66 @@ fclose :: fonc externe (__file : *FILE) -> z32
 
 // -------------------------------------
 
-_SIGINT :: 2
+// signal.h
+
+SIG_ERR   :: -1  /* Error return.  */
+SIG_DFL   :: 0   /* Default action.  */
+SIG_IGN   :: 1   /* Ignore signal.  */
+
+SIG_HOLD  :: 2   /* Add signal to hold mask.  */
+
+/* We define here all the signal names listed in POSIX (1003.1-2008);
+   as of 1003.1-2013, no additional signals have been added by POSIX.
+   We also define here signal names that historically exist in every
+   real-world POSIX variant (e.g. SIGWINCH).
+
+   Signals in the 1-15 range are defined with their historical numbers.
+   For other signals, we use the BSD numbers.
+   There are two unallocated signal numbers in the 1-31 range: 7 and 29.
+   Signal number 0 is reserved for use as kill(pid, 0), to test whether
+   a process exists without sending it a signal.  */
+
+/* ISO C99 signals.  */
+SIGINT    :: 2   /* Interactive attention signal.  */
+SIGILL    :: 4   /* Illegal instruction.  */
+SIGABRT   :: 6   /* Abnormal termination.  */
+SIGFPE    :: 8   /* Erroneous arithmetic operation.  */
+SIGSEGV   :: 11  /* Invalid access to storage.  */
+SIGTERM   :: 15  /* Termination request.  */
+
+/* Historical signals specified by POSIX. */
+SIGHUP    :: 1   /* Hangup.  */
+SIGQUIT   :: 3   /* Quit.  */
+SIGTRAP   :: 5   /* Trace/breakpoint trap.  */
+SIGKILL   :: 9   /* Killed.  */
+SIGBUS    :: 10  /* Bus error.  */
+SIGSYS    :: 12  /* Bad system call.  */
+SIGPIPE   :: 13  /* Broken pipe.  */
+SIGALRM   :: 14  /* Alarm clock.  */
+
+/* New(er) POSIX signals (1003.1-2008, 1003.1-2013).  */
+SIGURG    :: 16  /* Urgent data is available at a socket.  */
+SIGSTOP   :: 17  /* Stop, unblockable.  */
+SIGTSTP   :: 18  /* Keyboard stop.  */
+SIGCONT   :: 19  /* Continue.  */
+SIGCHLD   :: 20  /* Child terminated or stopped.  */
+SIGTTIN   :: 21  /* Background read from control terminal.  */
+SIGTTOU   :: 22  /* Background write to control terminal.  */
+SIGPOLL   :: 23  /* Pollable event occurred (System V).  */
+SIGXCPU   :: 24  /* CPU time limit exceeded.  */
+SIGXFSZ   :: 25  /* File size limit exceeded.  */
+SIGVTALRM :: 26  /* Virtual timer expired.  */
+SIGPROF   :: 27  /* Profiling timer expired.  */
+SIGUSR1   :: 30  /* User-defined signal 1.  */
+SIGUSR2   :: 31  /* User-defined signal 2.  */
+
+/* Nonstandard signals found in all modern POSIX systems
+   (including both BSD and Linux).  */
+SIGWINCH  :: 28  /* Window size change (4.3 BSD, Sun).  */
 
 signal :: fonc externe (numéro_signal: z32, rappel: #nulctx fonc(z32)(rien)) -> rien
+
+// -------------------------------------
 
 // défini par le compilateur
 lis_errno :: fonc externe () -> z32

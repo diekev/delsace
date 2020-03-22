@@ -313,9 +313,9 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
     }
 
     // débloque la prise pour pouvoir interrompre la boucle
-    flags := fcntl(PRISE_SERVEUSE, _F_GETFL, 0);
+    flags := fcntl(PRISE_SERVEUSE, F_GETFL, 0);
     // @erreur
-    _ := fcntl(PRISE_SERVEUSE, _F_SETFL, flags | _O_NONBLOCK);
+    _ := fcntl(PRISE_SERVEUSE, F_SETFL, flags | O_NONBLOCK);
 }
 
 ConfigurationServeuse :: struct {
@@ -355,7 +355,7 @@ principale :: fonc () -> z32
 
     contexte.logueur = mon_impression_log
 
-    signal(_SIGINT, rappel_interruption);
+    signal(SIGINT, rappel_interruption);
 
     serveuse : Serveuse
     // @erreur

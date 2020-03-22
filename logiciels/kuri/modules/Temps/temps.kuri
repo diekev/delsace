@@ -10,7 +10,7 @@ maintenant :: fonc () -> Instantané
 {
     t : timespec
     // @erreur
-    _ := clock_gettime(_CLOCK_MONOTONIC_COARSE, @t)
+    _ := clock_gettime(CLOCK_MONOTONIC_COARSE, @t)
 
     inst : Instantané
     inst.seconde = t.tv_sec
@@ -24,7 +24,7 @@ maintenant_précis :: fonc () -> Instantané
 {
     t : timespec
     // @erreur
-    _ := clock_gettime(_CLOCK_MONOTONIC, @t)
+    _ := clock_gettime(CLOCK_MONOTONIC, @t)
 
     inst : Instantané
     inst.seconde = t.tv_sec
@@ -63,7 +63,7 @@ maintenant_système :: fonc () -> TempsSystème
 {
     t : timespec
     // @erreur
-    _ := clock_gettime(_CLOCK_REALTIME_COARSE, @t)
+    _ := clock_gettime(CLOCK_REALTIME_COARSE, @t)
 
     temps : TempsSystème
     temps.seconde = t.tv_sec
@@ -76,7 +76,7 @@ maintenant_système_précis :: fonc () -> TempsSystème
 {
     t : timespec
     // @erreur
-    _ := clock_gettime(_CLOCK_REALTIME, @t)
+    _ := clock_gettime(CLOCK_REALTIME, @t)
 
     temps : TempsSystème
     temps.seconde = t.tv_sec
