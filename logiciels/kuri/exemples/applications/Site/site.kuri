@@ -121,7 +121,17 @@ procède_requête :: fonc (
         imprime_log("", "")
     }
 
-    requête := lis(@cliente.fichier)
+    diffère {
+        // À FAIRE : XXX que faire si erreur lors de la fermeture ?
+        _ := ferme(@cliente.fichier)
+    }
+
+    requête := tente lis(@cliente.fichier) piège err {
+        // @erreur
+        imprime("erreur lors de la lecture de la prise : %\n", err)
+        retourne
+    }
+
     diffère { déloge requête; }
 
     // ------------------------------
@@ -252,8 +262,6 @@ procède_requête :: fonc (
     si écris(@cliente.fichier, chaine_reponse) == -1 {
         perror("send".pointeur)
     }
-
-    ferme(@cliente.fichier)
 }
 
 INTERRUTION := faux
