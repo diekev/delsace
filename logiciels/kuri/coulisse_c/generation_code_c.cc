@@ -1710,6 +1710,8 @@ void genere_code_C(
 			 * utiliser la chaine originale. */
 			auto chaine = b->lexeme->chaine;
 
+			auto taille_chaine = 0;
+
 			auto flux = dls::flux_chaine();
 
 			flux << "{ .pointeur = " << '"';
@@ -1722,12 +1724,18 @@ void genere_code_C(
 					flux << '\\' << 't';
 				}
 				else {
+					if (c == '\\') {
+						taille_chaine -= 1;
+					}
+
 					flux << c;
 				}
+
+				taille_chaine += 1;
 			}
 
 			flux << '"';
-			flux << ", .taille = " << chaine.taille() << " }";
+			flux << ", .taille = " << taille_chaine << " }";
 
 			if (expr_gauche) {
 				b->valeur_calculee = dls::chaine(flux.chn());
