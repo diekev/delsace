@@ -93,6 +93,14 @@ struct chaine {
 	{
 		return this->begin() + this->taille;
 	}
+
+	void pousse(char c)
+	{
+		memoire::reloge_tableau("chaine", this->pointeur, this->taille, this->taille + 1);
+
+		this->pointeur[this->taille] = c;
+		this->taille += 1;
+	}
 };
 
 chaine copie_chaine(chaine &autre);
