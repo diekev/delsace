@@ -1807,26 +1807,12 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
 		{
-			/* fais en sorte que les caractères échappés ne soient pas comptés
-			 * comme deux caractères distincts, ce qui ne peut se faire avec la
-			 * dls::vue_chaine */
-			dls::chaine corrigee;
-			corrigee.reserve(b->lexeme->chaine.taille());
+			auto res = contexte.gerante_chaine.ajoute_chaine(b->lexeme->chaine);
 
-			for (auto i = 0l; i < b->lexeme->chaine.taille(); ++i) {
-				auto c = b->lexeme->chaine[i];
-
-				if (c == '\\') {
-					c = dls::caractere_echappe(&b->lexeme->chaine[i]);
-					++i;
-				}
-
-				corrigee.pousse(c);
+			if (!res.ok) {
+				erreur::lance_erreur(res.erreur, contexte, b->lexeme);
 			}
 
-			/* À FAIRE : ceci ne fonctionne pas dans le cas des noeuds différés
-			 * où la valeur calculee est redéfinie. */
-			b->valeur_calculee = corrigee;
 			b->type = contexte.typeuse[TypeBase::CHAINE];
 			b->genre_valeur = GenreValeur::DROITE;
 

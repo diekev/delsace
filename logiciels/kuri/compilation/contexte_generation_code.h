@@ -98,6 +98,23 @@ public:
 	}
 };
 
+struct GeranteChaine {
+	dls::dico_desordonne<dls::vue_chaine_compacte, kuri::chaine> m_table{};
+
+	struct Resultat {
+		kuri::chaine c{};
+		bool ok = false;
+		const char *erreur = nullptr;
+		const int position = 0;
+	};
+
+	~GeranteChaine();
+
+	Resultat ajoute_chaine(dls::vue_chaine_compacte const &chaine);
+
+	kuri::chaine trouve_chaine(dls::vue_chaine_compacte const &chaine);
+};
+
 struct ContexteGenerationCode {
 	AllocatriceNoeud allocatrice_noeud{};
 
@@ -133,6 +150,8 @@ struct ContexteGenerationCode {
 	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
 
 	dls::liste<NoeudExpression *> file_typage{};
+
+	GeranteChaine gerante_chaine{};
 
 	ContexteGenerationCode();
 

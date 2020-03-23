@@ -1706,36 +1706,23 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
 		{
-			/* Note : dû à la possibilité de différer le code, nous devons
-			 * utiliser la chaine originale. */
-			auto chaine = b->lexeme->chaine;
-
-			auto taille_chaine = 0;
-
 			auto flux = dls::flux_chaine();
 
 			flux << "{ .pointeur = " << '"';
 
-			for (auto c : chaine) {
-				if (c == '\n') {
-					flux << '\\' << 'n';
-				}
-				else if (c == '\t') {
-					flux << '\\' << 't';
-				}
-				else {
-					if (c == '\\') {
-						taille_chaine -= 1;
-					}
+			auto char_depuis_hex = [](char hex)
+			{
+				return "0123456789ABCDEF"[static_cast<int>(hex)];
+			};
 
-					flux << c;
-				}
+			auto chaine = contexte.gerante_chaine.trouve_chaine(b->lexeme->chaine);
 
-				taille_chaine += 1;
+			POUR (chaine) {
+				flux << "\\x" << char_depuis_hex((it & 0xf0) >> 4) << char_depuis_hex(it & 0x0f);
 			}
 
 			flux << '"';
-			flux << ", .taille = " << taille_chaine << " }";
+			flux << ", .taille = " << chaine.taille << " }";
 
 			if (expr_gauche) {
 				b->valeur_calculee = dls::chaine(flux.chn());
