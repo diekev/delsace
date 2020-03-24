@@ -1327,9 +1327,6 @@ static void performe_validation_semantique(
 							erreur::type_erreur::TYPE_INCONNU);
 			}
 
-			/* NOTE : l'appel à performe_validation_semantique plus bas peut
-			 * changer le vecteur et invalider une référence ou un pointeur,
-			 * donc nous faisons une copie... */
 			if (expression->type->genre == GenreType::RIEN) {
 				erreur::lance_erreur(
 							"Impossible d'assigner une expression de type 'rien' à une variable !",
