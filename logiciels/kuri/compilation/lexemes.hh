@@ -79,6 +79,7 @@ enum class GenreLexeme : unsigned int {
 	OUX_EGAL,
 	OU_EGAL,
 	BARRE_BARRE,
+	NON_INITIALISATION,
 	TROIS_POINTS,
 	DEC_GAUCHE_EGAL,
 	DEC_DROITE_EGAL,

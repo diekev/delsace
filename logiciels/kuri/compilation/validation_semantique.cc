@@ -775,6 +775,7 @@ static void performe_validation_semantique(
 		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
 		case GenreNoeud::INSTRUCTION_DISCR_UNION:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
+		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		{
 			break;
 		}
@@ -1312,6 +1313,10 @@ static void performe_validation_semantique(
 			auto variable = inst->expr1;
 			auto expression = inst->expr2;
 
+			if (expression->genre == GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
+				erreur::lance_erreur("Impossible d'utiliser '---' dans une expression d'assignation", contexte, expression->lexeme);
+			}
+
 			performe_validation_semantique(expression, contexte, false);
 
 			if (expression->type == nullptr) {
@@ -1423,7 +1428,11 @@ static void performe_validation_semantique(
 
 			variable->type = resoud_type_final(contexte, variable->type_declare, decl->bloc_parent, variable->lexeme);
 
-			if (expression != nullptr) {
+			if ((decl->drapeaux & EST_CONSTANTE) && expression != nullptr && expression->genre == GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
+				erreur::lance_erreur("Impossible de ne pas initialiser une constante", contexte, expression->lexeme);
+			}
+
+			if (expression != nullptr && expression->genre != GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
 				performe_validation_semantique(expression, contexte, false);
 
 				if (expression->type == nullptr) {

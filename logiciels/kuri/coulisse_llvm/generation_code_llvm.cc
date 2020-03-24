@@ -995,6 +995,7 @@ llvm::Value *genere_code_llvm(
 		case GenreNoeud::RACINE:
 		case GenreNoeud::INSTRUCTION_RETOUR:
 		case GenreNoeud::INSTRUCTION_SINON:
+		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		{
 			/* RÀF pour ces types de noeuds */
 			return nullptr;

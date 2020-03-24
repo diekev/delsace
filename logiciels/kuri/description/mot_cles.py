@@ -135,6 +135,7 @@ trigraphes = [
 	[u'<<=', u'DEC_GAUCHE_EGAL'],
 	[u'>>=', u'DEC_DROITE_EGAL'],
 	[u'...', u'TROIS_POINTS'],
+	[u'---', u'NON_INITIALISATION'],
 ]
 
 trigraphes = sorted(trigraphes)

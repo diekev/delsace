@@ -119,6 +119,7 @@ static auto paires_digraphes = dls::cree_dico(
 );
 
 static auto paires_trigraphes = dls::cree_dico(
+	dls::paire{ dls::vue_chaine_compacte("---"), GenreLexeme::NON_INITIALISATION },
 	dls::paire{ dls::vue_chaine_compacte("..."), GenreLexeme::TROIS_POINTS },
 	dls::paire{ dls::vue_chaine_compacte("<<="), GenreLexeme::DEC_GAUCHE_EGAL },
 	dls::paire{ dls::vue_chaine_compacte(">>="), GenreLexeme::DEC_DROITE_EGAL }
@@ -258,6 +259,8 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::OU_EGAL";
 		case GenreLexeme::BARRE_BARRE:
 			return "GenreLexeme::BARRE_BARRE";
+		case GenreLexeme::NON_INITIALISATION:
+			return "GenreLexeme::NON_INITIALISATION";
 		case GenreLexeme::TROIS_POINTS:
 			return "GenreLexeme::TROIS_POINTS";
 		case GenreLexeme::DEC_GAUCHE_EGAL:

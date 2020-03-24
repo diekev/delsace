@@ -468,6 +468,11 @@ static void imprime_mot(GenreLexeme id, std::ostream &os)
 			os << "tente";
 			return;
 		}
+		case GenreLexeme::NON_INITIALISATION:
+		{
+			os << "---";
+			return;
+		}
 	};
 
 	os << "ERREUR";

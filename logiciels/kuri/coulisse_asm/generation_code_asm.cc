@@ -75,6 +75,7 @@ void genere_code_asm(
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::RACINE:
+		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		{
 			break;
 		}

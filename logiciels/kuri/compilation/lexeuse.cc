@@ -89,6 +89,7 @@ static bool doit_ajouter_point_virgule(GenreLexeme dernier_id)
 		case GenreLexeme::CROCHET_FERMANT:
 		/* pour les déclarations de structures externes sans définitions */
 		case GenreLexeme::EXTERNE:
+		case GenreLexeme::NON_INITIALISATION:
 		{
 			return true;
 		}

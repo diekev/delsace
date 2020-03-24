@@ -1323,6 +1323,13 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 				termine_boucle = true;
 				break;
 			}
+			case GenreLexeme::NON_INITIALISATION:
+			{
+				dernier_noeud = CREE_NOEUD(NoeudExpression, GenreNoeud::INSTRUCTION_NON_INITIALISATION, &lexeme);
+				expressions.pousse(dernier_noeud);
+				termine_boucle = true;
+				break;
+			}
 			default:
 			{
 				lance_erreur("Identifiant inattendu dans l'expression");

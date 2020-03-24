@@ -1069,6 +1069,7 @@ void genere_code_C(
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::RACINE:
+		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		{
 			break;
 		}
@@ -1356,11 +1357,16 @@ void genere_code_C(
 				}
 			}
 			else {
-				applique_transformation(expression, generatrice, contexte, contexte.donnees_fonction == nullptr);
-				generatrice << flux.chn();
-				generatrice << " = ";
-				generatrice << expression->chaine_calculee();
-				generatrice << ";\n";
+				if (expression->genre != GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
+					applique_transformation(expression, generatrice, contexte, contexte.donnees_fonction == nullptr);
+					generatrice << flux.chn();
+					generatrice << " = ";
+					generatrice << expression->chaine_calculee();
+					generatrice << ";\n";
+				}
+				else {
+					generatrice << flux.chn() << ";\n";
+				}
 			}
 
 			break;

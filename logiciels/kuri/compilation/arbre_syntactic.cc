@@ -100,6 +100,7 @@ const char *chaine_genre_noeud(GenreNoeud genre)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE)
 		CAS_GENRE(GenreNoeud::EXPANSION_VARIADIQUE)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_TENTE)
+		CAS_GENRE(GenreNoeud::INSTRUCTION_NON_INITIALISATION)
 	}
 
 	return "erreur : GenreNoeud inconnu";
@@ -398,6 +399,12 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
+		{
+			imprime_tab(os, tab);
+			os << "---";
+			break;
+		}
 	}
 }
 
@@ -656,6 +663,10 @@ NoeudExpression *copie_noeud(
 			ninst->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, inst->bloc, bloc_parent));
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
+		{
+			break;
+		}
 	}
 
 	return static_cast<NoeudExpression *>(nracine);
@@ -861,6 +872,11 @@ void aplatis_arbre(
 
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
+		{
+			arbre_aplatis.pousse(racine);
+			break;
+		}
 	}
 }
 
@@ -995,6 +1011,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::INSTRUCTION_SI:
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		case GenreNoeud::INSTRUCTION_TENTE:
+		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		{
 			break;
 		}
