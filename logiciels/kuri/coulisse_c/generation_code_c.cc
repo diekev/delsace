@@ -1399,7 +1399,6 @@ void genere_code_C(
 			auto enfant1 = expr->expr1;
 			auto enfant2 = expr->expr2;
 
-			/* À FAIRE : tests */
 			auto flux = dls::flux_chaine();
 
 			applique_transformation(enfant1, generatrice, contexte, expr_gauche);
@@ -1441,7 +1440,6 @@ void genere_code_C(
 			auto enfant1 = static_cast<NoeudExpressionBinaire *>(inst->expr1);
 			auto enfant2 = inst->expr2;
 
-			/* À FAIRE : tests */
 			auto flux = dls::flux_chaine();
 
 			genere_code_C(enfant1, generatrice, contexte, expr_gauche);
@@ -1480,7 +1478,6 @@ void genere_code_C(
 				type1 = contexte.typeuse.type_dereference_pour(type1);
 			}
 
-			/* À FAIRE : tests */
 			auto flux = dls::flux_chaine();
 
 			// force une expression gauche pour les types tableau fixe car une
@@ -1615,8 +1612,6 @@ void genere_code_C(
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(b);
 			auto enfant = expr->expr;
-
-			/* À FAIRE : tests */
 
 			/* force une expression si l'opérateur est @, pour que les
 			 * expressions du type @a[0] retourne le pointeur à a + 0 et non le
@@ -2817,10 +2812,6 @@ static void traverse_graphe_pour_generation_code(
 			continue;
 		}
 
-		/* À FAIRE : dépendances cycliques :
-		 * - types qui s'incluent indirectement (listes chainées intrusives)
-		 * - fonctions recursives
-		 */
 		if (relation.noeud_fin->fut_visite) {
 			continue;
 		}

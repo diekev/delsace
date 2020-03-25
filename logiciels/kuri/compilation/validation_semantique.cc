@@ -2250,7 +2250,6 @@ static void performe_validation_semantique(
 			contexte.depile_goto_continue();
 			contexte.depile_goto_arrete();
 
-			/* À FAIRE : tests */
 			if (inst->condition->type->genre != GenreType::BOOL) {
 				erreur::lance_erreur(
 							"Une expression booléenne est requise pour la boucle 'tantque'",
@@ -2286,7 +2285,6 @@ static void performe_validation_semantique(
 			}
 
 			for (auto f : feuilles) {
-				/* À FAIRE : test */
 				if (f->type != type_feuille && f->type->genre != GenreType::ENTIER_CONSTANT) {
 					erreur::lance_erreur_assignation_type_differents(
 								f->type,
@@ -2886,8 +2884,6 @@ static void performe_validation_semantique(
 
 			contexte.operateurs.ajoute_operateur_basique_enum(decl->type);
 
-			/* À FAIRE : tests */
-
 			auto noms_presents = dls::ensemble<dls::vue_chaine_compacte>();
 
 			auto dernier_res = ResultatExpression();
@@ -2981,9 +2977,6 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::INSTRUCTION_DISCR:
 		{
-			/* TESTS : si énum -> vérifie que toutes les valeurs soient prises
-			 * en compte, sauf s'il y a un bloc sinon après. */
-
 			auto inst = static_cast<NoeudDiscr *>(b);
 
 			auto expression = inst->expr;
