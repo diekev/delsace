@@ -29,7 +29,7 @@ store_t :: struct {
 }
 
 // Fonction pour tirer un nombre au sort entre 0 et max.
-#nulctx get_random :: fonc(max : z32) -> z32
+get_random :: fonc(max : z32) -> z32 #nulctx
 {
 	val : r64
 	val = transtype(max : r64) * rand()
@@ -39,7 +39,7 @@ store_t :: struct {
 }
 
 // Fonction pour le thread du magasin.
-#nulctx fn_store :: fonc(p_data : *rien) -> *rien
+fn_store :: fonc(p_data : *rien) -> *rien #nulctx
 {
     store := transtype(p_data : *store_t)
 
@@ -63,7 +63,7 @@ donnée_client_t :: struct {
 }
 
 // Fonction pour les threads des clients.
-#nulctx fn_clients :: fonc(p_data : *rien) -> *rien
+fn_clients :: fonc(p_data : *rien) -> *rien #nulctx
 {
     donnée_client := transtype(p_data : *donnée_client_t)
     store := donnée_client.store

@@ -55,11 +55,11 @@ RappelCompilateur :: struct {
 // afin d'éviter que les gens manipulent ceci
 _RC : RappelCompilateur
 
-#nulctx initialise_RC :: fonc(
+initialise_RC :: fonc(
     rappel_ajoute_chaine: #nulctx fonc(chaine)(rien),
     rappel_ajoute_fichier: #nulctx fonc(chaine)(rien),
     rappel_obtiens_options : #nulctx fonc()(*OptionsCompilation),
-    rappel_ajourne_options : #nulctx fonc(*OptionsCompilation)(rien)) -> rien
+    rappel_ajourne_options : #nulctx fonc(*OptionsCompilation)(rien)) -> rien #nulctx
 {
     nonsûr {
         _RC.rappel_ajout_chaine_à_la_compilation = rappel_ajoute_chaine
@@ -69,23 +69,23 @@ _RC : RappelCompilateur
     }
 }
 
-#nulctx ajoute_chaine_à_la_compilation :: fonc(c: chaine) -> rien
+ajoute_chaine_à_la_compilation :: fonc(c: chaine) -> rien #nulctx
 {
     _RC.rappel_ajout_chaine_à_la_compilation(c)
 }
 
-#nulctx ajoute_fichier_à_la_compilation :: fonc(c: chaine) -> rien
+ajoute_fichier_à_la_compilation :: fonc(c: chaine) -> rien #nulctx
 {
     _RC.rappel_ajout_fichier_à_la_compilation(c)
 }
 
-#nulctx compilatrice_obtiens_options :: fonc () -> *OptionsCompilation
+compilatrice_obtiens_options :: fonc () -> *OptionsCompilation #nulctx
 {
     ptr := _RC.rappel_obtiens_options
     retourne ptr()
 }
 
-#nulctx compilatrice_ajourne_options :: fonc (options: *OptionsCompilation) -> rien
+compilatrice_ajourne_options :: fonc (options: *OptionsCompilation) -> rien #nulctx
 {
     _RC.rappel_ajourne_options(options)
 }

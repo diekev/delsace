@@ -36,8 +36,8 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 	retourne nchn
 }
 
-// Retourne la taille d'une chaine C, c'est à dire nul-terminé.
-#nulctx taille_chaine_c :: fonc(ch : *z8) -> z64
+// Retourne la taille d'une chaine C, c'est à  dire nul-terminé.
+taille_chaine_c :: fonc(ch : *z8) -> z64 #nulctx
 {
 	index : z64 := 0
 
@@ -48,7 +48,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 	retourne index
 }
 
-#nulctx construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine
+construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine #nulctx
 {
 	ret : chaine
 	ret.pointeur = ptr
@@ -57,7 +57,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 }
 
 // Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
-#nulctx converti_chaine_c :: fonc(chaine_c : *z8) -> chaine
+converti_chaine_c :: fonc(chaine_c : *z8) -> chaine #nulctx
 {
 	retourne construit_chaine(chaine_c, taille_chaine_c(chaine_c))
 }

@@ -11,27 +11,27 @@
 
 //###############################################################################
 
-#enligne hiBit :: fonc(u : n32) -> n32
+hiBit :: fonc(u : n32) -> n32 #enligne
 {
     retourne u & 0x80000000UL;
 }
 
-#enligne loBit :: fonc(u : n32) -> n32
+loBit :: fonc(u : n32) -> n32 #enligne
 {
     retourne u & 0x00000001UL;
 }
 
-#enligne loBits :: fonc(u : n32) -> n32
+loBits :: fonc(u : n32) -> n32 #enligne
 {
     retourne u & 0x7fffffffUL;
 }
 
-#enligne mixBits :: fonc(u : n32, const uint32& v) -> n32
+mixBits :: fonc(u : n32, const uint32& v) -> n32 #enligne
 {
     retourne hiBit(u) | loBits(v);
 }
 
-#enligne twist :: fonc(m : n32, s0 : n32, s1 : n32) const
+twist :: fonc(m : n32, s0 : n32, s1 : n32) const #enligne
 {
     retourne m ^ (mixBits(s0, s1) >> 1) ^ ((~loBit(s1) + 1) & 0x9908b0dfUL);
 }
@@ -60,7 +60,7 @@ MTRand :: struct {
     restantes : z32;
 }
 
-#enligne initialize :: fonc(empl mers : &MTRand, seed : n32) -> n32
+initialize :: fonc(empl mers : &MTRand, seed : n32) -> n32 #enligne
 {
 	// Initialize generator state with seed
 	// See Knuth TAOCP Vol 2, 3rd Ed, p.106 for multiplier.
@@ -80,7 +80,7 @@ MTRand :: struct {
 }
 
 
-#enligne void reload(mers : &MTRand)
+void reload(mers : &MTRand) #enligne
 {
 	// Generate N new values in state
 	// Made clearer and faster by Matthew Bellew (matthew.bellew@home.com)
@@ -96,7 +96,7 @@ MTRand :: struct {
 }
 
 // Initialise avec une graine simple.
-#enligne init :: fonc(mers : &MTRand, graine : n32) -> rien
+init :: fonc(mers : &MTRand, graine : n32) -> rien #enligne
 {
 	// Seed the generator with a simple uint32
 	initialize(mers, oneSeed);
@@ -104,7 +104,7 @@ MTRand :: struct {
 }
 
 // Initialise avec "/dev/urandom" ou time() et clock().
-#enligne init :: fonc(mers : &MTRand) -> rien
+init :: fonc(mers : &MTRand) -> rien #enligne
 {
     // seed deterministically to produce reproducible runs
     init(mers, 123456);
@@ -132,7 +132,7 @@ MTRand :: struct {
 }
 
 // Initialise avec un tableau de graines.
-#enligne init :: fonc(mers : &MTRand, graines : []n32) -> rien
+init :: fonc(mers : &MTRand, graines : []n32) -> rien #enligne
 {
     seedLength = graines.taille;
     bigSeed = graines.pointeur;
@@ -171,43 +171,43 @@ MTRand :: struct {
 	reload();
 }
 
-#enligne double rand(mers : &MTRand)
+double rand(mers : &MTRand) #enligne
 {
     retourne double(randInt()) * (1.0/4294967295.0);
 }
 
-#enligne double rand(mers : &MTRand, const double& n)
+double rand(mers : &MTRand, const double& n) #enligne
 {
     retourne rand() * n;
 }
 
-#enligne double randExc(mers : &MTRand)
+double randExc(mers : &MTRand) #enligne
 {
     retourne double(randInt()) * (1.0/4294967296.0);
 }
 
-#enligne double randExc(mers : &MTRand const double& n)
+double randExc(mers : &MTRand const double& n) #enligne
 {
     retourne randExc() * n;
 }
 
-#enligne double randDblExc(mers : &MTRand)
+double randDblExc(mers : &MTRand) #enligne
 {
     retourne (double(randInt()) + 0.5) * (1.0/4294967296.0);
 }
 
-#enligne double randDblExc(mers : &MTRand, const double& n)
+double randDblExc(mers : &MTRand, const double& n) #enligne
 {
     retourne randDblExc() * n;
 }
 
-#enligne double rand53(mers : &MTRand)
+double rand53(mers : &MTRand) #enligne
 {
 	uint32 a = randInt() >> 5, b = randInt() >> 6;
 	retourne (a * 67108864.0 + b) * (1.0/9007199254740992.0);  // by Isaku Wada
 }
 
-#enligne double randNorm(mers : &MTRand, const double& mean, const double& variance)
+double randNorm(mers : &MTRand, const double& mean, const double& variance) #enligne
 {
 	// retourne a real number from a normal (Gaussian) distribution with given
 	// mean and variance by Box-Muller method
@@ -216,7 +216,7 @@ MTRand :: struct {
 	retourne mean + r * cos(phi);
 }
 
-#enligne uint32 randInt(mers : &MTRand)
+uint32 randInt(mers : &MTRand) #enligne
 {
 	// Pull a 32-bit integer from the generator state
 	// Every other access function simply transforms the numbers extracted here
@@ -232,7 +232,7 @@ MTRand :: struct {
 	retourne (s1 ^ (s1 >> 18));
 }
 
-#enligne uint32 randInt(mers : &MTRand, const uint32& n)
+uint32 randInt(mers : &MTRand, const uint32& n) #enligne
 {
 	// Find which bits are used in n
 	// Optimized by Magnus Jonsson (magnus@smartelectronix.com)
@@ -252,7 +252,7 @@ MTRand :: struct {
 }
 
 
-#enligne uint32 hash(mers : &MTRand, time_t t, clock_t c)
+uint32 hash(mers : &MTRand, time_t t, clock_t c) #enligne
 {
 	// Get a uint32 from t and c
 	// Better than uint32(x) in case x is floating point in [0,1]

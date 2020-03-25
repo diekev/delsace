@@ -1,6 +1,6 @@
 importe "flux"
 
-#enligne sysexp :: fonc() -> chaine
+sysexp :: fonc() -> chaine #enligne
 {
 #si linux
     retourne "linux"

@@ -75,10 +75,6 @@ Faitures
 - types comme valeurs
 - corriger les bugs
 - ajout d'un noeud syntaxique pour les imports (simplifiant la recherche de symboles dans les expressions de type A.B.C)
-- déplacer les directives sur les fonctions après leurs types de retours :
-	- #enligne ma_fonction :: #nulctx fonc () -> rien
-	devient
-	- ma_fonction :: fonc () -> rien #enligne #nulctx
 
 
 À faire (tests)

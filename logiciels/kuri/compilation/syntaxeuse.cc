@@ -227,20 +227,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, Donnee
 		noeud->est_externe = true;
 	}
 
-	if (m_etiquette_enligne) {
-		noeud->drapeaux |= FORCE_ENLIGNE;
-		m_etiquette_enligne = false;
-	}
-	else if (m_etiquette_horsligne) {
-		noeud->drapeaux |= FORCE_HORSLIGNE;
-		m_etiquette_horsligne = false;
-	}
-
-	if (m_etiquette_nulctx) {
-		noeud->drapeaux |= FORCE_NULCTX;
-		m_etiquette_nulctx = false;
-	}
-
 	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
 	/* analyse les paramètres de la fonction */
@@ -270,12 +256,31 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, Donnee
 		auto type_declare = analyse_declaration_type(false);
 		noeud->type_declare.types_sorties.pousse(type_declare);
 
-		if (est_identifiant(type_id::ACCOLADE_OUVRANTE) || est_identifiant(type_id::POINT_VIRGULE)) {
+		if (!est_identifiant(type_id::VIRGULE)) {
 			break;
 		}
 
-		if (est_identifiant(type_id::VIRGULE)) {
-			avance();
+		avance();
+	}
+
+	while (est_identifiant(GenreLexeme::DIRECTIVE)) {
+		avance();
+		avance();
+
+		auto chn_directive = donnees().chaine;
+
+		if (chn_directive == "enligne") {
+			noeud->drapeaux |= FORCE_ENLIGNE;
+		}
+		else if (chn_directive == "horsligne") {
+			noeud->drapeaux |= FORCE_HORSLIGNE;
+		}
+		else if (chn_directive == "nulctx") {
+			noeud->drapeaux |= FORCE_NULCTX;
+		}
+		else if (chn_directive == "externe") {
+			noeud->drapeaux |= EST_EXTERNE;
+			noeud->est_externe = true;
 		}
 	}
 
@@ -1228,22 +1233,11 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 					else if (directive == "finsi") {
 						// dépile la dernière directive si, erreur si aucune
 					}
-					else if (directive == "enligne") {
-						m_etiquette_enligne = true;
-					}
-					else if (directive == "horsligne") {
-						m_etiquette_horsligne = true;
-					}
 					else if (directive == "chemin") {
 						consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 						auto chaine = donnees().chaine;
 						m_contexte.assembleuse->chemins.pousse(chaine);
-					}
-					else if (directive == "nulctx") {
-						/* marque la  déclaration  d'une fonction comme ne
-						 * requierant pas le contexte implicite */
-						m_etiquette_nulctx = true;
 					}
 					else {
 						lance_erreur("Directive inconnue");
@@ -1832,20 +1826,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 	auto noeud = CREE_NOEUD(NoeudDeclarationFonction, GenreNoeud::DECLARATION_OPERATEUR, &lexeme);
 
-	if (m_etiquette_enligne) {
-		noeud->drapeaux |= FORCE_ENLIGNE;
-		m_etiquette_enligne = false;
-	}
-	else if (m_etiquette_horsligne) {
-		noeud->drapeaux |= FORCE_HORSLIGNE;
-		m_etiquette_horsligne = false;
-	}
-
-	if (m_etiquette_nulctx) {
-		noeud->drapeaux |= FORCE_NULCTX;
-		m_etiquette_nulctx = false;
-	}
-
 	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
 	/* analyse les paramètres de la fonction */
@@ -1896,17 +1876,36 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		auto type_declare = analyse_declaration_type(false);
 		noeud->type_declare.types_sorties.pousse(type_declare);
 
-		if (est_identifiant(type_id::ACCOLADE_OUVRANTE) || est_identifiant(type_id::POINT_VIRGULE)) {
+		if (!est_identifiant(type_id::VIRGULE)) {
 			break;
 		}
 
-		if (est_identifiant(type_id::VIRGULE)) {
-			avance();
-		}
+		avance();
 	}
 
 	if (noeud->type_declare.taille() > 1) {
 		lance_erreur("Il est impossible d'avoir plusieurs de sortie pour un opérateur");
+	}
+
+	while (est_identifiant(GenreLexeme::DIRECTIVE)) {
+		avance();
+		avance();
+
+		auto chn_directive = donnees().chaine;
+
+		if (chn_directive == "enligne") {
+			noeud->drapeaux |= FORCE_ENLIGNE;
+		}
+		else if (chn_directive == "horsligne") {
+			noeud->drapeaux |= FORCE_HORSLIGNE;
+		}
+		else if (chn_directive == "nulctx") {
+			noeud->drapeaux |= FORCE_NULCTX;
+		}
+		else if (chn_directive == "externe") {
+			noeud->drapeaux |= EST_EXTERNE;
+			noeud->est_externe = true;
+		}
 	}
 
 	/* ignore les points-virgules implicites */

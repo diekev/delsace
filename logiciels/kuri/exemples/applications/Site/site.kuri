@@ -314,7 +314,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
 
 // -------------------------------------------------
 
-#nulctx rappel_interruption :: fonc (numéro_signal: z32) -> rien
+rappel_interruption :: fonc (numéro_signal: z32) -> rien #nulctx
 {
     nonsûr {
         INTERRUTION = vrai

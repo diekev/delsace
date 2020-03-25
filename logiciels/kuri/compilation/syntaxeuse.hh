@@ -52,9 +52,6 @@ class Syntaxeuse : public lng::analyseuse<DonneesLexeme> {
 
 	dls::chrono::metre_seconde m_chrono_analyse{};
 
-	bool m_etiquette_enligne = false;
-	bool m_etiquette_horsligne = false;
-	bool m_etiquette_nulctx = false;
 	bool m_global = false;
 
 public:

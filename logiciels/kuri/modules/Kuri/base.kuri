@@ -315,27 +315,27 @@ __logueur_défaut :: fonc (message: chaine, ident: chaine, mode: ModeLogage, don
 
 // Fonctions de convénience pour accéder aux données sur les allocations
 // de l'allocatrice courante du contexte
-#enligne mémoire_utilisée :: fonc() -> z64
+mémoire_utilisée :: fonc() -> z64 #enligne
 {
     retourne contexte.données_allocatrice.mémoire_utilisée
 }
 
-#enligne pic_de_mémoire :: fonc() -> z64
+pic_de_mémoire :: fonc() -> z64 #enligne
 {
     retourne contexte.données_allocatrice.pic_de_mémoire
 }
 
-#enligne nombre_allocations :: fonc() -> z64
+nombre_allocations :: fonc() -> z64 #enligne
 {
     retourne contexte.données_allocatrice.nombre_allocations
 }
 
-#enligne nombre_réallocations :: fonc() -> z64
+nombre_réallocations :: fonc() -> z64 #enligne
 {
     retourne contexte.données_allocatrice.nombre_réallocations
 }
 
-#enligne nombre_désallocations :: fonc() -> z64
+nombre_désallocations :: fonc() -> z64 #enligne
 {
     retourne contexte.données_allocatrice.nombre_désallocations
 }

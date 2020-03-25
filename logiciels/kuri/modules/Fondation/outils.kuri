@@ -1,4 +1,4 @@
-#enligne échange :: fonc(a : *$T, b : *$T) -> rien
+échange :: fonc(a : *$T, b : *$T) -> rien #enligne
 {
 	temp := mémoire(a);
 	mémoire(a) = mémoire(b);

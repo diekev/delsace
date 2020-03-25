@@ -448,7 +448,7 @@ MYSQL_TIME :: struct externe {
 // Error messages
 externe client_errors : []*z8
 // Visual Studio requires '__inline' for C code
-#enligne ER_CLIENT :: fonc (client_errno : z32) -> *z8
+ER_CLIENT :: fonc (client_errno : z32) -> *z8 #enligne
 {
 	si client_errno >= 2000 && client_errno <= 2066 {
 		retourne client_errors[client_errno - 2000]
