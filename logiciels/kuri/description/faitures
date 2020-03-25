@@ -73,8 +73,13 @@ Faitures
 - ajout d'un type pour les caractères (« rune »), avec une gestion correcte des chaines UTF-8
 - finir la coulisse LLVM, avec la métaprogrammation
 - types comme valeurs
-- implémentation des constantes ::, pour trouver leurs valeurs dans les interprétations
 - corriger les bugs
+- ajout d'un noeud syntaxique pour les imports (simplifiant la recherche de symboles dans les expressions de type A.B.C)
+- déplacer les directives sur les fonctions après leurs types de retours :
+	- #enligne ma_fonction :: #nulctx fonc () -> rien
+	devient
+	- ma_fonction :: fonc () -> rien #enligne #nulctx
+- correction du typages des énumérations en C qui clashent avec les types entiers
 
 
 À faire (tests)
