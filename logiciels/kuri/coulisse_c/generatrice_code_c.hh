@@ -72,7 +72,7 @@ struct GeneratriceCodeC {
 
 	void declare_variable(Type *type, dls::chaine const &nom, dls::chaine const &expr)
 	{
-		m_enchaineuse.pousse(nom_broye_type(type, true));
+		m_enchaineuse.pousse(nom_broye_type(type));
 		m_enchaineuse.pousse(" ");
 		m_enchaineuse.pousse(nom);
 
@@ -88,7 +88,7 @@ struct GeneratriceCodeC {
 	{
 		auto nom_temp = "__var_temp" + dls::vers_chaine(index_var);
 
-		m_enchaineuse.pousse(nom_broye_type(type, true));
+		m_enchaineuse.pousse(nom_broye_type(type));
 		m_enchaineuse.pousse(" ");
 		m_enchaineuse.pousse(nom_temp);
 		m_enchaineuse.pousse(";\n");
@@ -100,7 +100,7 @@ struct GeneratriceCodeC {
 	{
 		auto flux = dls::flux_chaine();
 		flux << "(";
-		flux << nom_broye_type(type, true);
+		flux << nom_broye_type(type);
 		flux << ")(malloc(" << expr << "))";
 
 		return flux.chn();

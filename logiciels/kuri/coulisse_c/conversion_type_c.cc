@@ -31,7 +31,7 @@
 
 void cree_typedef(Type *type, GeneratriceCodeC &generatrice)
 {
-	auto const &nom_broye = nom_broye_type(type, true);
+	auto const &nom_broye = nom_broye_type(type);
 
 	switch (type->genre) {
 		case GenreType::INVALIDE:
@@ -41,8 +41,10 @@ void cree_typedef(Type *type, GeneratriceCodeC &generatrice)
 		case GenreType::ERREUR:
 		case GenreType::ENUM:
 		{
-			/* RÀF : les énumérations sont des constantes et nous utilisons le
-			 * type des valeurs dans le code C. */
+			auto type_enum = static_cast<TypeEnum *>(type);
+			auto nom_broye_type_donnees = nom_broye_type(type_enum->type_donnees);
+
+			generatrice << "typedef " << nom_broye_type_donnees << ' ' << nom_broye << ";\n";
 			break;
 		}
 		case GenreType::BOOL:
@@ -110,13 +112,13 @@ void cree_typedef(Type *type, GeneratriceCodeC &generatrice)
 		case GenreType::REFERENCE:
 		{
 			auto type_pointe = static_cast<TypeReference *>(type)->type_pointe;
-			generatrice << "typedef " << nom_broye_type(type_pointe, true) << "* " << nom_broye << ";\n";
+			generatrice << "typedef " << nom_broye_type(type_pointe) << "* " << nom_broye << ";\n";
 			break;
 		}
 		case GenreType::POINTEUR:
 		{
 			auto type_pointe = static_cast<TypePointeur *>(type)->type_pointe;
-			generatrice << "typedef " << nom_broye_type(type_pointe, true) << "* " << nom_broye << ";\n";
+			generatrice << "typedef " << nom_broye_type(type_pointe) << "* " << nom_broye << ";\n";
 			break;
 		}
 		case GenreType::STRUCTURE:
@@ -162,14 +164,14 @@ void cree_typedef(Type *type, GeneratriceCodeC &generatrice)
 				auto type_tabl = static_cast<TypeTableauFixe *>(type_pointe);
 				auto taille_tableau = type_tabl->taille;
 
-				generatrice << "typedef " << nom_broye_type(type_tabl->type_pointe, true);
+				generatrice << "typedef " << nom_broye_type(type_tabl->type_pointe);
 				generatrice << "(" << nom_broye << ')';
 				generatrice << '[' << static_cast<TypeTableauFixe *>(type)->taille << ']';
 				generatrice << '[' << taille_tableau << ']';
 				generatrice << ";\n\n";
 			}
 			else {
-				generatrice << "typedef " << nom_broye_type(type_pointe, true);
+				generatrice << "typedef " << nom_broye_type(type_pointe);
 				generatrice << ' ' << nom_broye;
 				generatrice << '[' << static_cast<TypeTableauFixe *>(type)->taille << ']';
 				generatrice << ";\n\n";
@@ -197,10 +199,10 @@ void cree_typedef(Type *type, GeneratriceCodeC &generatrice)
 			if (type_pointe->genre == GenreType::TABLEAU_FIXE) {
 				auto type_tabl = static_cast<TypeTableauFixe *>(type_pointe);
 				auto taille_tableau = type_tabl->taille;
-				generatrice << nom_broye_type(type_tabl->type_pointe, true) << " *pointeur[" << taille_tableau << "];";
+				generatrice << nom_broye_type(type_tabl->type_pointe) << " *pointeur[" << taille_tableau << "];";
 			}
 			else {
-				generatrice << nom_broye_type(type_pointe, true) << " *pointeur;";
+				generatrice << nom_broye_type(type_pointe) << " *pointeur;";
 			}
 
 			generatrice << "\n\tlong taille;\n} " << nom_broye << ";\n\n";
@@ -220,14 +222,14 @@ void cree_typedef(Type *type, GeneratriceCodeC &generatrice)
 				prefixe += "void (*";
 			}
 			else {
-				auto const &nom_broye_dt = nom_broye_type(type_fonc->types_sorties[0], true);
+				auto const &nom_broye_dt = nom_broye_type(type_fonc->types_sorties[0]);
 				prefixe += nom_broye_dt + " (*";
 			}
 
 			auto virgule = "(";
 
 			POUR (type_fonc->types_entrees) {
-				auto const &nom_broye_dt = nom_broye_type(it, true);
+				auto const &nom_broye_dt = nom_broye_type(it);
 
 				suffixe += virgule;
 				suffixe += nom_broye_dt;
@@ -243,7 +245,7 @@ void cree_typedef(Type *type, GeneratriceCodeC &generatrice)
 			nouveau_nom_broye += dls::vers_chaine(type_fonc->types_sorties.taille);
 
 			POUR (type_fonc->types_sorties) {
-				auto const &nom_broye_dt = nom_broye_type(it, true);
+				auto const &nom_broye_dt = nom_broye_type(it);
 
 				if (type_fonc->types_sorties.taille > 1) {
 					suffixe += virgule;

@@ -197,7 +197,7 @@ dls::chaine cree_info_type_C(
 		return type->ptr_info_type;
 	}
 
-	auto nom_info_type = "__info_type" + nom_broye_type(type, false) + dls::vers_chaine(type);
+	auto nom_info_type = "__info_type" + nom_broye_type(type) + dls::vers_chaine(type);
 
 	if (type->genre == GenreType::ENTIER_CONSTANT) {
 		type->ptr_info_type = cree_info_type_C(contexte, generatrice, contexte.typeuse[TypeBase::Z32]);
@@ -446,7 +446,7 @@ dls::chaine predeclare_info_type_C(
 		GeneratriceCodeC &generatrice,
 		Type *type)
 {
-	auto nom_info_type = "__info_type" + nom_broye_type(type, false) + dls::vers_chaine(type);
+	auto nom_info_type = "__info_type" + nom_broye_type(type) + dls::vers_chaine(type);
 
 	switch (type->genre) {
 		case GenreType::INVALIDE:

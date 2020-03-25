@@ -31,6 +31,6 @@ struct Type;
 
 dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom);
 
-dls::chaine const &nom_broye_type(Type *type, bool pour_generation_code_c);
+dls::chaine const &nom_broye_type(Type *type);
 
 dls::chaine broye_nom_fonction(NoeudDeclarationFonction *decl, dls::chaine const &nom_module);

@@ -93,11 +93,9 @@ dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)
  * *z8 devient KPKsz8
  * &[]Foo devient KRKtKsFoo
  */
-dls::chaine const &nom_broye_type(
-		Type *type,
-		bool pour_generation_code_c)
+dls::chaine const &nom_broye_type(Type *type)
 {
-	if (type->nom_broye != "" && type->genre != GenreType::ENUM && type->genre != GenreType::ERREUR) {
+	if (type->nom_broye != "") {
 		return type->nom_broye;
 	}
 
@@ -190,7 +188,7 @@ dls::chaine const &nom_broye_type(
 		case GenreType::REFERENCE:
 		{
 			flux << "KR";
-			flux << nom_broye_type(static_cast<TypeReference *>(type)->type_pointe, pour_generation_code_c);
+			flux << nom_broye_type(static_cast<TypeReference *>(type)->type_pointe);
 			break;
 		}
 		case GenreType::POINTEUR:
@@ -203,7 +201,7 @@ dls::chaine const &nom_broye_type(
 				flux << "nul";
 			}
 			else {
-				flux << nom_broye_type(type_pointe, pour_generation_code_c);
+				flux << nom_broye_type(type_pointe);
 			}
 
 			break;
@@ -227,7 +225,7 @@ dls::chaine const &nom_broye_type(
 			// les arguments variadiques sont transformés en tableaux, donc utilise Kt
 			if (type_pointe != nullptr) {
 				flux << "Kt";
-				flux << nom_broye_type(type_pointe, pour_generation_code_c);
+				flux << nom_broye_type(type_pointe);
 			}
 			else {
 				flux << "Kv";
@@ -238,7 +236,7 @@ dls::chaine const &nom_broye_type(
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
 			flux << "Kt";
-			flux << nom_broye_type(static_cast<TypeTableauDynamique *>(type)->type_pointe, pour_generation_code_c);
+			flux << nom_broye_type(static_cast<TypeTableauDynamique *>(type)->type_pointe);
 			break;
 		}
 		case GenreType::TABLEAU_FIXE:
@@ -247,7 +245,7 @@ dls::chaine const &nom_broye_type(
 
 			flux << "KT";
 			flux << type_tabl->taille;
-			flux << nom_broye_type(static_cast<TypeTableauFixe *>(type)->type_pointe, pour_generation_code_c);
+			flux << nom_broye_type(static_cast<TypeTableauFixe *>(type)->type_pointe);
 			break;
 		}
 		case GenreType::FONCTION:
@@ -260,16 +258,8 @@ dls::chaine const &nom_broye_type(
 		case GenreType::ERREUR:
 		{
 			auto type_enum = static_cast<TypeEnum const *>(type);
-
-			if (pour_generation_code_c) {
-				assert(type_enum->type_donnees);
-				flux << nom_broye_type(type_enum->type_donnees, pour_generation_code_c);
-			}
-			else {
-				flux << "Ks";
-				flux << broye_nom_simple(static_cast<TypeEnum const *>(type)->nom);
-			}
-
+			flux << "Ks";
+			flux << broye_nom_simple(type_enum->nom);
 			break;
 		}
 	}
@@ -442,7 +432,7 @@ dls::chaine broye_nom_fonction(
 		ret += dls::vers_chaine(nom_ascii.taille());
 		ret += nom_ascii;
 
-		auto const &nom_broye = nom_broye_type(it->type, false);
+		auto const &nom_broye = nom_broye_type(it->type);
 		ret += dls::vers_chaine(nom_broye.taille());
 		ret += nom_broye;
 	}
@@ -453,7 +443,7 @@ dls::chaine broye_nom_fonction(
 	ret += "_";
 
 	POUR (type_fonc->types_sorties) {
-		auto const &nom_broye = nom_broye_type(it, false);
+		auto const &nom_broye = nom_broye_type(it);
 		ret += dls::vers_chaine(nom_broye.taille());
 		ret += nom_broye;
 	}

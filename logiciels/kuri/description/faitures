@@ -79,7 +79,6 @@ Faitures
 	- #enligne ma_fonction :: #nulctx fonc () -> rien
 	devient
 	- ma_fonction :: fonc () -> rien #enligne #nulctx
-- correction du typages des énumérations en C qui clashent avec les types entiers
 
 
 À faire (tests)
