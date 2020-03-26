@@ -39,6 +39,7 @@ set(ENTETES
 	conditions.h
 	definitions.h
 	empreintes.hh
+	enchaineuse.hh
 	fichier.hh
 	format.hh
 	gna.hh
@@ -56,6 +57,7 @@ set(SOURCES
 	chaine.cc
 	chemin.cc
 	empreintes.cc
+	enchaineuse.cc
 	fichier.cc
 	format.cc
 	gna.cc

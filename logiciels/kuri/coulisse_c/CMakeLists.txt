@@ -28,6 +28,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	kuri_compilation
+	bib_outils
 )
 
 set(SOURCES

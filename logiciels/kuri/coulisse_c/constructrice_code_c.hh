@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/outils/enchaineuse.hh"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
@@ -32,35 +33,6 @@
 #include "typage.hh"
 
 struct ContexteGenerationCode;
-
-struct Enchaineuse {
-	static constexpr auto TAILLE_TAMPON = 16 * 1024;
-
-	struct Tampon {
-		char donnees[TAILLE_TAMPON];
-		int occupe = 0;
-		Tampon *suivant = nullptr;
-	};
-
-	Tampon m_tampon_base{};
-	Tampon *tampon_courant = nullptr;
-
-	Enchaineuse();
-
-	Enchaineuse(Enchaineuse const &) = delete;
-	Enchaineuse &operator=(Enchaineuse const &) = delete;
-
-	~Enchaineuse();
-
-	void pousse(dls::vue_chaine const &chn);
-
-	void pousse(const char *c_str, long N);
-
-	void pousse_caractere(char c);
-
-private:
-	void ajoute_tampon();
-};
 
 struct ConstructriceCodeC {
 	ContexteGenerationCode &contexte;
