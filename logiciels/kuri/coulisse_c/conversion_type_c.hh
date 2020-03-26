@@ -24,7 +24,7 @@
 
 #pragma once
 
-struct GeneratriceCodeC;
+struct ConstructriceCodeC;
 struct Type;
 
-void cree_typedef(Type *type, GeneratriceCodeC &generatrice);
+void cree_typedef(Type *type, ConstructriceCodeC &constructrice);

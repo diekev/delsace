@@ -22,7 +22,7 @@
  *
  */
 
-#include "generatrice_code_c.hh"
+#include "constructrice_code_c.hh"
 
 Enchaineuse::Enchaineuse()
 	: tampon_courant(&m_tampon_base)
@@ -90,19 +90,19 @@ void Enchaineuse::ajoute_tampon()
 	tampon_courant = tampon;
 }
 
-GeneratriceCodeC &operator <<(GeneratriceCodeC &generatrice, const dls::vue_chaine_compacte &chn)
+ConstructriceCodeC &operator <<(ConstructriceCodeC &constructrice, const dls::vue_chaine_compacte &chn)
 {
-	generatrice.m_enchaineuse.pousse(chn.pointeur(), chn.taille());
-	return generatrice;
+	constructrice.m_enchaineuse.pousse(chn.pointeur(), chn.taille());
+	return constructrice;
 }
 
-GeneratriceCodeC &operator <<(GeneratriceCodeC &generatrice, const dls::chaine &chn)
+ConstructriceCodeC &operator <<(ConstructriceCodeC &constructrice, const dls::chaine &chn)
 {
-	generatrice.m_enchaineuse.pousse(chn.c_str(), chn.taille());
-	return generatrice;
+	constructrice.m_enchaineuse.pousse(chn.c_str(), chn.taille());
+	return constructrice;
 }
 
-GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, const char *chn)
+ConstructriceCodeC &operator << (ConstructriceCodeC &constructrice, const char *chn)
 {
 	auto ptr = chn;
 
@@ -110,12 +110,12 @@ GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, const char *chn)
 		++chn;
 	}
 
-	generatrice.m_enchaineuse.pousse(ptr, chn - ptr);
+	constructrice.m_enchaineuse.pousse(ptr, chn - ptr);
 
-	return generatrice;
+	return constructrice;
 }
 
-void GeneratriceCodeC::imprime_dans_flux(std::ostream &flux)
+void ConstructriceCodeC::imprime_dans_flux(std::ostream &flux)
 {
 	auto tampon = &m_enchaineuse.m_tampon_base;
 

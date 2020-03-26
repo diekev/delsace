@@ -29,7 +29,7 @@
 #include "contexte_generation_code.h"
 #include "typage.hh"
 
-#include "generatrice_code_c.hh"
+#include "constructrice_code_c.hh"
 
 /* À tenir synchronisé avec l'énum dans info_type.kuri
  * Nous utilisons ceci lors de la génération du code des infos types car nous ne
@@ -52,33 +52,33 @@ struct IDInfoType {
 };
 
 static auto cree_info_type_defaut_C(
-		GeneratriceCodeC &generatrice,
+		ConstructriceCodeC &constructrice,
 		const char *id_type,
 		dls::chaine const &nom_info_type,
 		unsigned taille_en_octet)
 {
-	generatrice << "static const InfoType " << nom_info_type << " = {\n";
-	generatrice << "\t.id = " << id_type << ",\n";
-	generatrice << "\t.taille_en_octet = " << taille_en_octet << '\n';
-	generatrice << "};\n";
+	constructrice << "static const InfoType " << nom_info_type << " = {\n";
+	constructrice << "\t.id = " << id_type << ",\n";
+	constructrice << "\t.taille_en_octet = " << taille_en_octet << '\n';
+	constructrice << "};\n";
 }
 
 static auto cree_info_type_entier_C(
-		GeneratriceCodeC &generatrice,
+		ConstructriceCodeC &constructrice,
 		unsigned taille_en_octet,
 		bool est_signe,
 		dls::chaine const &nom_info_type)
 {
-	generatrice << "static const InfoTypeEntier " << nom_info_type << " = {\n";
-	generatrice << "\t.id = " << IDInfoType::ENTIER << ",\n";
-	generatrice << '\t' << broye_nom_simple(".est_signé = ") << est_signe << ",\n";
-	generatrice << "\t.taille_en_octet = " << taille_en_octet << '\n';
-	generatrice << "};\n";
+	constructrice << "static const InfoTypeEntier " << nom_info_type << " = {\n";
+	constructrice << "\t.id = " << IDInfoType::ENTIER << ",\n";
+	constructrice << '\t' << broye_nom_simple(".est_signé = ") << est_signe << ",\n";
+	constructrice << "\t.taille_en_octet = " << taille_en_octet << '\n';
+	constructrice << "};\n";
 }
 
 static auto cree_info_type_structure_C(
 		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
+		ConstructriceCodeC &constructrice,
 		dls::vue_chaine_compacte const &nom_struct,
 		NoeudStruct *noeud_decl,
 		Type *type,
@@ -88,19 +88,19 @@ static auto cree_info_type_structure_C(
 
 	/* prédéclare l'infotype au cas où la structure s'incluerait elle-même via
 	 * un pointeur (p.e. listes chainées) */
-	generatrice << "static const InfoTypeStructure " << nom_info_type << ";\n";
+	constructrice << "static const InfoTypeStructure " << nom_info_type << ";\n";
 
 	/* met en place le 'pointeur' au cas où une structure s'incluerait elle-même
 	 * via un pointeur */
 	type->ptr_info_type = nom_info_type;
 
 	if (noeud_decl->est_externe) {
-		generatrice << "static const InfoTypeStructure " << nom_info_type << " = {\n";
-		generatrice << "\t.id = " << IDInfoType::STRUCTURE << ",\n";
-		generatrice << "\t.taille_en_octet = " << type->taille_octet << ",\n";
-		generatrice << "\t.nom = {.pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << "},\n";
-		generatrice << "\t.membres = {.pointeur = 0, .taille = 0 },\n";
-		generatrice << "};\n";
+		constructrice << "static const InfoTypeStructure " << nom_info_type << " = {\n";
+		constructrice << "\t.id = " << IDInfoType::STRUCTURE << ",\n";
+		constructrice << "\t.taille_en_octet = " << type->taille_octet << ",\n";
+		constructrice << "\t.nom = {.pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << "},\n";
+		constructrice << "\t.membres = {.pointeur = 0, .taille = 0 },\n";
+		constructrice << "};\n";
 		return;
 	}
 
@@ -109,7 +109,7 @@ static auto cree_info_type_structure_C(
 	POUR (noeud_decl->desc.membres) {
 		if (it.type->ptr_info_type == "") {
 			it.type->ptr_info_type = cree_info_type_C(
-						contexte, generatrice, it.type);
+						contexte, constructrice, it.type);
 		}
 	}
 
@@ -123,30 +123,30 @@ static auto cree_info_type_structure_C(
 		auto nom_info_type_membre = "__info_type_membre" + nom_info_type + dls::vers_chaine(index_membre++);
 		pointeurs.pousse(nom_info_type_membre);
 
-		generatrice << "static const InfoTypeMembreStructure " << nom_info_type_membre << " = {\n";
-		generatrice << "\t.nom = { .pointeur = \"" << it.nom << "\", .taille = " << it.nom.taille << " },\n";
-		generatrice << "\t" << broye_nom_simple(".décalage = ") << it.decalage << ",\n";
-		generatrice << "\t.id = (InfoType *)(&" << it.type->ptr_info_type << ")\n";
-		generatrice << "};\n";
+		constructrice << "static const InfoTypeMembreStructure " << nom_info_type_membre << " = {\n";
+		constructrice << "\t.nom = { .pointeur = \"" << it.nom << "\", .taille = " << it.nom.taille << " },\n";
+		constructrice << "\t" << broye_nom_simple(".décalage = ") << it.decalage << ",\n";
+		constructrice << "\t.id = (InfoType *)(&" << it.type->ptr_info_type << ")\n";
+		constructrice << "};\n";
 	}
 
-	generatrice << "static const InfoTypeMembreStructure *" << nom_tableau_membre << "[] = {\n";
+	constructrice << "static const InfoTypeMembreStructure *" << nom_tableau_membre << "[] = {\n";
 	for (auto &pointeur : pointeurs) {
-		generatrice << "&" << pointeur << ",";
+		constructrice << "&" << pointeur << ",";
 	}
-	generatrice << "};\n";
+	constructrice << "};\n";
 
 	/* crée l'info pour la structure */
-	generatrice << "static const InfoTypeStructure " << nom_info_type << " = {\n";
-	generatrice << "\t.id = " << IDInfoType::STRUCTURE << ",\n";
-	generatrice << "\t.taille_en_octet = " << type->taille_octet << ",\n";
-	generatrice << "\t.nom = {.pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << "},\n";
-	generatrice << "\t.membres = {.pointeur = " << nom_tableau_membre << ", .taille = " << nombre_membres << "},\n";
-	generatrice << "};\n";
+	constructrice << "static const InfoTypeStructure " << nom_info_type << " = {\n";
+	constructrice << "\t.id = " << IDInfoType::STRUCTURE << ",\n";
+	constructrice << "\t.taille_en_octet = " << type->taille_octet << ",\n";
+	constructrice << "\t.nom = {.pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << "},\n";
+	constructrice << "\t.membres = {.pointeur = " << nom_tableau_membre << ", .taille = " << nombre_membres << "},\n";
+	constructrice << "};\n";
 }
 
 static auto cree_info_type_enum_C(
-		GeneratriceCodeC &generatrice,
+		ConstructriceCodeC &constructrice,
 		dls::vue_chaine_compacte const &nom_struct,
 		NoeudEnum *noeud_decl,
 		dls::chaine const &nom_info_type,
@@ -158,39 +158,39 @@ static auto cree_info_type_enum_C(
 	/* crée un tableau pour les noms des énumérations */
 	auto const nom_tableau_noms = "__tableau_noms_enum" + nom_info_type;
 
-	generatrice << "static const chaine " << nom_tableau_noms << "[] = {\n";
+	constructrice << "static const chaine " << nom_tableau_noms << "[] = {\n";
 
 	POUR (noeud_decl->desc.noms) {
-		generatrice << "\t{.pointeur=\"" << it << "\", .taille=" << it.taille << "},\n";
+		constructrice << "\t{.pointeur=\"" << it << "\", .taille=" << it.taille << "},\n";
 	}
 
-	generatrice << "};\n";
+	constructrice << "};\n";
 
 	/* crée le tableau pour les valeurs */
 	auto const nom_tableau_valeurs = "__tableau_valeurs_enum" + nom_info_type;
 
-	generatrice << "static const int " << nom_tableau_valeurs << "[] = {\n\t";
+	constructrice << "static const int " << nom_tableau_valeurs << "[] = {\n\t";
 
 	POUR (noeud_decl->desc.valeurs) {
-		generatrice << it << ',';
+		constructrice << it << ',';
 	}
 
-	generatrice << "\n};\n";
+	constructrice << "\n};\n";
 
 	/* crée l'info type pour l'énum */
-	generatrice << "static const " << broye_nom_simple("InfoTypeÉnum ") << nom_info_type << " = {\n";
-	generatrice << "\t.id = " << IDInfoType::ENUM << ",\n";
-	generatrice << "\t.taille_en_octet = " << taille_octet << ",\n";
-	generatrice << "\t.est_drapeau = " << noeud_decl->desc.est_drapeau << ",\n";
-	generatrice << "\t.nom = { .pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << " },\n";
-	generatrice << "\t.noms = { .pointeur = " << nom_tableau_noms << ", .taille = " << nombre_valeurs << " },\n ";
-	generatrice << "\t.valeurs = { .pointeur = " << nom_tableau_valeurs << ", .taille = " << nombre_valeurs << " },\n ";
-	generatrice << "};\n";
+	constructrice << "static const " << broye_nom_simple("InfoTypeÉnum ") << nom_info_type << " = {\n";
+	constructrice << "\t.id = " << IDInfoType::ENUM << ",\n";
+	constructrice << "\t.taille_en_octet = " << taille_octet << ",\n";
+	constructrice << "\t.est_drapeau = " << noeud_decl->desc.est_drapeau << ",\n";
+	constructrice << "\t.nom = { .pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << " },\n";
+	constructrice << "\t.noms = { .pointeur = " << nom_tableau_noms << ", .taille = " << nombre_valeurs << " },\n ";
+	constructrice << "\t.valeurs = { .pointeur = " << nom_tableau_valeurs << ", .taille = " << nombre_valeurs << " },\n ";
+	constructrice << "};\n";
 }
 
 dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
+		ConstructriceCodeC &constructrice,
 		Type *type)
 {
 	if (type->ptr_info_type != "") {
@@ -200,7 +200,7 @@ dls::chaine cree_info_type_C(
 	auto nom_info_type = "__info_type" + nom_broye_type(type) + dls::vers_chaine(type);
 
 	if (type->genre == GenreType::ENTIER_CONSTANT) {
-		type->ptr_info_type = cree_info_type_C(contexte, generatrice, contexte.typeuse[TypeBase::Z32]);
+		type->ptr_info_type = cree_info_type_C(contexte, constructrice, contexte.typeuse[TypeBase::Z32]);
 	}
 	else {
 		type->ptr_info_type = nom_info_type;
@@ -214,32 +214,32 @@ dls::chaine cree_info_type_C(
 		}
 		case GenreType::BOOL:
 		{
-			cree_info_type_defaut_C(generatrice, IDInfoType::BOOLEEN, nom_info_type, 1);
+			cree_info_type_defaut_C(constructrice, IDInfoType::BOOLEEN, nom_info_type, 1);
 			break;
 		}
 		case GenreType::OCTET:
 		{
-			cree_info_type_defaut_C(generatrice, IDInfoType::OCTET, nom_info_type, 1);
+			cree_info_type_defaut_C(constructrice, IDInfoType::OCTET, nom_info_type, 1);
 			break;
 		}
 		case GenreType::ENTIER_CONSTANT:
 		{
-			//cree_info_type_entier_C(generatrice, 4, true, id_info_type, nom_info_type);
+			//cree_info_type_entier_C(constructrice, 4, true, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreType::ENTIER_NATUREL:
 		{
-			cree_info_type_entier_C(generatrice, type->taille_octet, false, nom_info_type);
+			cree_info_type_entier_C(constructrice, type->taille_octet, false, nom_info_type);
 			break;
 		}
 		case GenreType::ENTIER_RELATIF:
 		{
-			cree_info_type_entier_C(generatrice, type->taille_octet, true, nom_info_type);
+			cree_info_type_entier_C(constructrice, type->taille_octet, true, nom_info_type);
 			break;
 		}
 		case GenreType::REEL:
 		{
-			cree_info_type_defaut_C(generatrice, IDInfoType::REEL, nom_info_type, type->taille_octet);
+			cree_info_type_defaut_C(constructrice, IDInfoType::REEL, nom_info_type, type->taille_octet);
 			break;
 		}
 		case GenreType::REFERENCE:
@@ -248,21 +248,21 @@ dls::chaine cree_info_type_C(
 			auto type_deref = contexte.typeuse.type_dereference_pour(type);
 
 			if (type_deref && type_deref->ptr_info_type == "") {
-				type_deref->ptr_info_type = cree_info_type_C(contexte, generatrice, type_deref);
+				type_deref->ptr_info_type = cree_info_type_C(contexte, constructrice, type_deref);
 			}
 
-			generatrice << "static const InfoTypePointeur " << nom_info_type << " = {\n";
-			generatrice << ".id = " << IDInfoType::POINTEUR << ",\n";
-			generatrice << ".taille_en_octet = " << type->taille_octet << ",\n";
+			constructrice << "static const InfoTypePointeur " << nom_info_type << " = {\n";
+			constructrice << ".id = " << IDInfoType::POINTEUR << ",\n";
+			constructrice << ".taille_en_octet = " << type->taille_octet << ",\n";
 			if (type_deref) {
-				generatrice << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << type_deref->ptr_info_type << "),\n";
+				constructrice << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << type_deref->ptr_info_type << "),\n";
 			}
 			else {
-				generatrice << '\t' << broye_nom_simple(".type_pointé") << " = 0,\n";
+				constructrice << '\t' << broye_nom_simple(".type_pointé") << " = 0,\n";
 			}
-			generatrice << '\t' << broye_nom_simple(".est_référence = ")
+			constructrice << '\t' << broye_nom_simple(".est_référence = ")
 					<< (type->genre == GenreType::REFERENCE) << ",\n";
-			generatrice << "};\n";
+			constructrice << "};\n";
 
 			break;
 		}
@@ -272,7 +272,7 @@ dls::chaine cree_info_type_C(
 			auto type_enum = static_cast<TypeEnum *>(type);
 
 			cree_info_type_enum_C(
-						generatrice,
+						constructrice,
 						type_enum->nom,
 						type_enum->decl,
 						nom_info_type,
@@ -286,7 +286,7 @@ dls::chaine cree_info_type_C(
 
 			cree_info_type_structure_C(
 						contexte,
-						generatrice,
+						constructrice,
 						type_struct->nom,
 						type_struct->decl,
 						type,
@@ -300,7 +300,7 @@ dls::chaine cree_info_type_C(
 
 			cree_info_type_structure_C(
 						contexte,
-						generatrice,
+						constructrice,
 						type_struct->nom,
 						type_struct->decl,
 						type,
@@ -314,16 +314,16 @@ dls::chaine cree_info_type_C(
 			auto type_deref = type_tabl->type_pointe;
 
 			if (type_deref->ptr_info_type == "") {
-				type_deref->ptr_info_type = cree_info_type_C(contexte, generatrice, type_deref);
+				type_deref->ptr_info_type = cree_info_type_C(contexte, constructrice, type_deref);
 			}
 
-			generatrice << "static const InfoTypeTableau " << nom_info_type << " = {\n";
-			generatrice << "\t.id = " << IDInfoType::TABLEAU << ",\n";
-			generatrice << "\t.taille_en_octet = " << type->taille_octet << ",\n";
-			generatrice << "\t.est_tableau_fixe = 1,\n";
-			generatrice << "\t.taille_fixe = " << type_tabl->taille << ",\n";
-			generatrice << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << type_deref->ptr_info_type << "),\n";
-			generatrice << "};\n";
+			constructrice << "static const InfoTypeTableau " << nom_info_type << " = {\n";
+			constructrice << "\t.id = " << IDInfoType::TABLEAU << ",\n";
+			constructrice << "\t.taille_en_octet = " << type->taille_octet << ",\n";
+			constructrice << "\t.est_tableau_fixe = 1,\n";
+			constructrice << "\t.taille_fixe = " << type_tabl->taille << ",\n";
+			constructrice << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << type_deref->ptr_info_type << "),\n";
+			constructrice << "};\n";
 			break;
 		}
 		case GenreType::VARIADIQUE:
@@ -331,17 +331,17 @@ dls::chaine cree_info_type_C(
 			auto type_var = static_cast<TypeVariadique *>(type);
 
 			if (type_var->type_pointe == nullptr) {
-				generatrice << "static const InfoTypeTableau " << nom_info_type << " = {\n";
-				generatrice << "\t.id = " << IDInfoType::TABLEAU << ",\n";
-				generatrice << "\t.taille_en_octet = 0,\n";
-				generatrice << "\t.est_tableau_fixe = 0,\n";
-				generatrice << "\t.taille_fixe = 0,\n";
-				generatrice << '\t' << broye_nom_simple(".type_pointé") << " = 0,\n";
-				generatrice << "};\n";
+				constructrice << "static const InfoTypeTableau " << nom_info_type << " = {\n";
+				constructrice << "\t.id = " << IDInfoType::TABLEAU << ",\n";
+				constructrice << "\t.taille_en_octet = 0,\n";
+				constructrice << "\t.est_tableau_fixe = 0,\n";
+				constructrice << "\t.taille_fixe = 0,\n";
+				constructrice << '\t' << broye_nom_simple(".type_pointé") << " = 0,\n";
+				constructrice << "};\n";
 			}
 			else {
 				auto type_tabl = contexte.typeuse.type_tableau_dynamique(type_var->type_pointe);
-				type_var->ptr_info_type = cree_info_type_C(contexte, generatrice, type_tabl);
+				type_var->ptr_info_type = cree_info_type_C(contexte, constructrice, type_tabl);
 			}
 
 			break;
@@ -352,16 +352,16 @@ dls::chaine cree_info_type_C(
 
 			/* dans le cas des arguments variadics des fonctions externes */
 			if (type_deref->ptr_info_type == "") {
-				type_deref->ptr_info_type = cree_info_type_C(contexte, generatrice, type_deref);
+				type_deref->ptr_info_type = cree_info_type_C(contexte, constructrice, type_deref);
 			}
 
-			generatrice << "static const InfoTypeTableau " << nom_info_type << " = {\n";
-			generatrice << "\t.id = " << IDInfoType::TABLEAU << ",\n";
-			generatrice << "\t.taille_en_octet = " << type->taille_octet << ",\n";
-			generatrice << "\t.est_tableau_fixe = 0,\n";
-			generatrice << "\t.taille_fixe = 0,\n";
-			generatrice << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << type_deref->ptr_info_type << "),\n";
-			generatrice << "};\n";
+			constructrice << "static const InfoTypeTableau " << nom_info_type << " = {\n";
+			constructrice << "\t.id = " << IDInfoType::TABLEAU << ",\n";
+			constructrice << "\t.taille_en_octet = " << type->taille_octet << ",\n";
+			constructrice << "\t.est_tableau_fixe = 0,\n";
+			constructrice << "\t.taille_fixe = 0,\n";
+			constructrice << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << type_deref->ptr_info_type << "),\n";
+			constructrice << "};\n";
 
 			break;
 		}
@@ -375,7 +375,7 @@ dls::chaine cree_info_type_C(
 					continue;
 				}
 
-				cree_info_type_C(contexte, generatrice, it);
+				cree_info_type_C(contexte, constructrice, it);
 			}
 
 			POUR (type_fonc->types_sorties) {
@@ -383,58 +383,58 @@ dls::chaine cree_info_type_C(
 					continue;
 				}
 
-				cree_info_type_C(contexte, generatrice, it);
+				cree_info_type_C(contexte, constructrice, it);
 			}
 
 			/* crée tableau infos type pour les entrées */
 			auto const nom_tableau_entrees = "__types_entree" + nom_info_type;
 
-			generatrice << "static const InfoType *" << nom_tableau_entrees << "[] = {\n";
+			constructrice << "static const InfoType *" << nom_tableau_entrees << "[] = {\n";
 
 			POUR (type_fonc->types_entrees) {
-				generatrice << "(InfoType *)&" << it->ptr_info_type << ",\n";
+				constructrice << "(InfoType *)&" << it->ptr_info_type << ",\n";
 			}
 
-			generatrice << "};\n";
+			constructrice << "};\n";
 
 			/* crée tableau infos type pour les sorties */
 			auto const nom_tableau_sorties = "__types_sortie" + nom_info_type;
 
-			generatrice << "static const InfoType *" << nom_tableau_sorties << "[] = {\n";
+			constructrice << "static const InfoType *" << nom_tableau_sorties << "[] = {\n";
 
 			POUR (type_fonc->types_sorties) {
-				generatrice << "(InfoType *)&" << it->ptr_info_type << ",\n";
+				constructrice << "(InfoType *)&" << it->ptr_info_type << ",\n";
 			}
 
-			generatrice << "};\n";
+			constructrice << "};\n";
 
 			/* crée l'info type pour la fonction */
-			generatrice << "static const InfoTypeFonction " << nom_info_type << " = {\n";
-			generatrice << "\t.id = " << IDInfoType::FONCTION << ",\n";
-			generatrice << "\t.taille_en_octet = " << type->taille_octet << ",\n";
+			constructrice << "static const InfoTypeFonction " << nom_info_type << " = {\n";
+			constructrice << "\t.id = " << IDInfoType::FONCTION << ",\n";
+			constructrice << "\t.taille_en_octet = " << type->taille_octet << ",\n";
 			// À FAIRE : réusinage type
 			//os_decl << "\t.est_coroutine = " << (type.type_base() == GenreLexeme::COROUT) << ",\n";
-			generatrice << broye_nom_simple("\t.types_entrée = { .pointeur = ") << nom_tableau_entrees;
-			generatrice << ", .taille = " << type_fonc->types_entrees.taille << " },\n";
-			generatrice << broye_nom_simple("\t.types_sortie = { .pointeur = ") << nom_tableau_sorties;
-			generatrice << ", .taille = " << type_fonc->types_sorties.taille << " },\n";
-			generatrice << "};\n";
+			constructrice << broye_nom_simple("\t.types_entrée = { .pointeur = ") << nom_tableau_entrees;
+			constructrice << ", .taille = " << type_fonc->types_entrees.taille << " },\n";
+			constructrice << broye_nom_simple("\t.types_sortie = { .pointeur = ") << nom_tableau_sorties;
+			constructrice << ", .taille = " << type_fonc->types_sorties.taille << " },\n";
+			constructrice << "};\n";
 
 			break;
 		}
 		case GenreType::EINI:
 		{
-			cree_info_type_defaut_C(generatrice, IDInfoType::EINI, nom_info_type, type->taille_octet);
+			cree_info_type_defaut_C(constructrice, IDInfoType::EINI, nom_info_type, type->taille_octet);
 			break;
 		}
 		case GenreType::RIEN:
 		{
-			cree_info_type_defaut_C(generatrice, IDInfoType::RIEN, nom_info_type, 0);
+			cree_info_type_defaut_C(constructrice, IDInfoType::RIEN, nom_info_type, 0);
 			break;
 		}
 		case GenreType::CHAINE:
 		{
-			cree_info_type_defaut_C(generatrice, IDInfoType::CHAINE, nom_info_type, type->taille_octet);
+			cree_info_type_defaut_C(constructrice, IDInfoType::CHAINE, nom_info_type, type->taille_octet);
 			break;
 		}
 	}
@@ -443,7 +443,7 @@ dls::chaine cree_info_type_C(
 }
 
 dls::chaine predeclare_info_type_C(
-		GeneratriceCodeC &generatrice,
+		ConstructriceCodeC &constructrice,
 		Type *type)
 {
 	auto nom_info_type = "__info_type" + nom_broye_type(type) + dls::vers_chaine(type);
@@ -465,43 +465,43 @@ dls::chaine predeclare_info_type_C(
 		case GenreType::CHAINE:
 		case GenreType::BOOL:
 		{
-			generatrice << "static const InfoType " << nom_info_type << ";\n";
+			constructrice << "static const InfoType " << nom_info_type << ";\n";
 			break;
 		}
 		case GenreType::ENTIER_NATUREL:
 		case GenreType::ENTIER_RELATIF:
 		{
-			generatrice << "static const InfoTypeEntier " << nom_info_type << ";\n";
+			constructrice << "static const InfoTypeEntier " << nom_info_type << ";\n";
 			break;
 		}
 		case GenreType::REFERENCE:
 		case GenreType::POINTEUR:
 		{
-			generatrice << "static const InfoTypePointeur " << nom_info_type << ";\n";
+			constructrice << "static const InfoTypePointeur " << nom_info_type << ";\n";
 			break;
 		}
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
 		{
-			generatrice << "static const InfoTypexC3x89num " << nom_info_type << ";\n";
+			constructrice << "static const InfoTypexC3x89num " << nom_info_type << ";\n";
 			break;
 		}
 		case GenreType::STRUCTURE:
 		case GenreType::UNION:
 		{
-			generatrice << "static const InfoTypeStructure " << nom_info_type << ";\n";
+			constructrice << "static const InfoTypeStructure " << nom_info_type << ";\n";
 			break;
 		}
 		case GenreType::TABLEAU_FIXE:
 		case GenreType::VARIADIQUE:
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
-			generatrice << "static const InfoTypeTableau " << nom_info_type << ";\n";
+			constructrice << "static const InfoTypeTableau " << nom_info_type << ";\n";
 			break;
 		}
 		case GenreType::FONCTION:
 		{
-			generatrice << "static const InfoTypeFonction " << nom_info_type << ";\n";
+			constructrice << "static const InfoTypeFonction " << nom_info_type << ";\n";
 			break;
 		}
 	}

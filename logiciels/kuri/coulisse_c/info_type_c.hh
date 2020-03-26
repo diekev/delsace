@@ -28,18 +28,18 @@
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
+struct ConstructriceCodeC;
 struct ContexteGenerationCode;
-struct GeneratriceCodeC;
 struct NoeudEnum;
 struct Type;
 
 dls::chaine predeclare_info_type_C(
-		GeneratriceCodeC &generatrice,
+		ConstructriceCodeC &constructrice,
 		Type *type);
 
 dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
+		ConstructriceCodeC &constructrice,
 		Type *type);
 
 dls::chaine chaine_valeur_enum(

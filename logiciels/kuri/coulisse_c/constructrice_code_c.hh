@@ -62,11 +62,11 @@ private:
 	void ajoute_tampon();
 };
 
-struct GeneratriceCodeC {
+struct ConstructriceCodeC {
 	ContexteGenerationCode &contexte;
 	Enchaineuse m_enchaineuse{};
 
-	explicit GeneratriceCodeC(ContexteGenerationCode &ctx)
+	explicit ConstructriceCodeC(ContexteGenerationCode &ctx)
 		: contexte(ctx)
 	{}
 
@@ -110,27 +110,27 @@ struct GeneratriceCodeC {
 };
 
 template <typename T>
-GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, T const &valeur)
+ConstructriceCodeC &operator << (ConstructriceCodeC &constructrice, T const &valeur)
 {
 	dls::flux_chaine flux;
 	flux << valeur;
 
 	for (auto c : flux.chn()) {
-		generatrice.m_enchaineuse.pousse_caractere(c);
+		constructrice.m_enchaineuse.pousse_caractere(c);
 	}
 
-	return generatrice;
+	return constructrice;
 }
 
 template <size_t N>
-GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, const char (&c)[N])
+ConstructriceCodeC &operator << (ConstructriceCodeC &constructrice, const char (&c)[N])
 {
-	generatrice.m_enchaineuse.pousse(c, static_cast<long>(N));
-	return generatrice;
+	constructrice.m_enchaineuse.pousse(c, static_cast<long>(N));
+	return constructrice;
 }
 
-GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, dls::vue_chaine_compacte const &chn);
+ConstructriceCodeC &operator << (ConstructriceCodeC &constructrice, dls::vue_chaine_compacte const &chn);
 
-GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, dls::chaine const &chn);
+ConstructriceCodeC &operator << (ConstructriceCodeC &constructrice, dls::chaine const &chn);
 
-GeneratriceCodeC &operator << (GeneratriceCodeC &generatrice, const char *chn);
+ConstructriceCodeC &operator << (ConstructriceCodeC &constructrice, const char *chn);
