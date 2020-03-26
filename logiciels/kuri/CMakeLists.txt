@@ -33,7 +33,6 @@ endif()
 set(RACINE_INSTALLATION kuri)
 
 add_subdirectory(compilation)
-add_subdirectory(coulisse_asm)
 add_subdirectory(coulisse_c)
 add_subdirectory(executable)
 add_subdirectory(exemples)
