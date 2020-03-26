@@ -2771,6 +2771,15 @@ static void performe_validation_semantique(
 			}
 
 			POUR (decl->bloc->membres) {
+				if (it->genre == GenreNoeud::DECLARATION_STRUCTURE) {
+					performe_validation_semantique(it, contexte, true);
+					continue;
+				}
+
+				if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
+					erreur::lance_erreur("Déclaration inattendu dans le bloc de la structure", contexte, it->lexeme);
+				}
+
 				auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
 				auto decl_membre = decl_var->valeur;
 
