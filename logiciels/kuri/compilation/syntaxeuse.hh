@@ -78,7 +78,7 @@ private:
 	 */
 	[[noreturn]] void lance_erreur(
 			const dls::chaine &quoi,
-			erreur::type_erreur type = erreur::type_erreur::NORMAL);
+			erreur::type_erreur type = erreur::type_erreur::SYNTAXAGE);
 
 	void empile_etat(const char *message, DonneesLexeme *lexeme);
 

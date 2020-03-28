@@ -36,8 +36,11 @@ struct Type;
 namespace erreur {
 
 enum class type_erreur : int {
+	AUCUNE_ERREUR,
+
 	NORMAL,
 	DECOUPAGE,
+	SYNTAXAGE,
 	NOMBRE_ARGUMENT,
 	TYPE_ARGUMENT,
 	ARGUMENT_INCONNU,
@@ -59,8 +62,6 @@ enum class type_erreur : int {
 	CONTROLE_INVALIDE,
 	MODULE_INCONNU,
 	APPEL_INVALIDE,
-
-	AUCUNE_ERREUR,
 };
 
 using frappe = lng::erreur::frappe<type_erreur>;
