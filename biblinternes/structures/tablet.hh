@@ -444,6 +444,11 @@ public:
 		return m_memoire[m_taille - 1];
 	}
 
+	void pop_back()
+	{
+		m_taille -= 1;
+	}
+
 private:
 	void garantie_capacite(long cap)
 	{
