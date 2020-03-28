@@ -301,11 +301,11 @@ struct NoeudDeclarationFonction : public NoeudDeclaration {
 	kuri::tableau<NoeudDeclaration *> params{};
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 
-	dls::tableau<dls::chaine> noms_retours{};
+	kuri::tableau<dls::chaine> noms_retours{};
 
 	NoeudBloc *bloc = nullptr;
 
-	dls::tableau<dls::vue_chaine_compacte> noms_types_gabarits{};
+	kuri::tableau<dls::vue_chaine_compacte> noms_types_gabarits{};
 	bool est_coroutine = false;
 	bool est_gabarit = false;
 	bool est_variadique = false;
@@ -320,7 +320,7 @@ struct NoeudExpressionAppel : public NoeudExpression {
 
 	kuri::tableau<NoeudExpression *> params{};
 
-	dls::tableau<NoeudExpression *> exprs{};
+	kuri::tableau<NoeudExpression *> exprs{};
 
 	NoeudExpression *noeud_fonction_appelee = nullptr;
 

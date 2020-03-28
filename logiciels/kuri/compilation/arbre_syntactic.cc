@@ -461,7 +461,7 @@ NoeudExpression *copie_noeud(
 			auto expr = static_cast<NoeudDeclarationFonction *>(racine);
 			auto nexpr = static_cast<NoeudDeclarationFonction *>(nracine);
 			nexpr->params.reserve(expr->params.taille);
-			nexpr->noms_retours.reserve(expr->noms_retours.taille());
+			nexpr->noms_retours.reserve(expr->noms_retours.taille);
 
 			POUR (expr->params) {
 				auto copie = copie_noeud(assem, it, bloc_parent);

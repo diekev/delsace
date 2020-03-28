@@ -251,7 +251,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, Donnee
 	consomme(GenreLexeme::RETOUR_TYPE, "Attendu un retour de type");
 
 	while (true) {
-		noeud->noms_retours.pousse("__ret" + dls::vers_chaine(noeud->noms_retours.taille()));
+		noeud->noms_retours.pousse("__ret" + dls::vers_chaine(noeud->noms_retours.taille));
 
 		auto type_declare = analyse_declaration_type(false);
 		noeud->type_declare.types_sorties.pousse(type_declare);
@@ -1871,7 +1871,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	consomme(GenreLexeme::RETOUR_TYPE, "Attendu un retour de type");
 
 	while (true) {
-		noeud->noms_retours.pousse("__ret" + dls::vers_chaine(noeud->noms_retours.taille()));
+		noeud->noms_retours.pousse("__ret" + dls::vers_chaine(noeud->noms_retours.taille));
 
 		auto type_declare = analyse_declaration_type(false);
 		noeud->type_declare.types_sorties.pousse(type_declare);

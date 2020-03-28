@@ -1097,7 +1097,7 @@ llvm::Value *genere_code_llvm(
 
 			auto fonction = contexte.module_llvm->getFunction(b->nom_fonction_appel.c_str());
 			auto decl = static_cast<NoeudDeclarationFonction *>(expr->noeud_fonction_appelee);
-			return cree_appel(contexte, fonction, expr->exprs, expr->exprs.taille(), !decl->est_externe && !possede_drapeau(decl->drapeaux, FORCE_NULCTX));
+			return cree_appel(contexte, fonction, expr->exprs, expr->exprs.taille, !decl->est_externe && !possede_drapeau(decl->drapeaux, FORCE_NULCTX));
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
