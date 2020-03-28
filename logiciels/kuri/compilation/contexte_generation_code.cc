@@ -304,11 +304,177 @@ void ContexteGenerationCode::renseigne_membre_actif(const dls::vue_chaine_compac
 
 /* ************************************************************************** */
 
+static int hex_depuis_char(char c)
+{
+	if (c >= '0' && c <= '9') {
+		return c - '0';
+	}
+
+	if (c >= 'a' && c <= 'f') {
+		return 10 + (c - 'a');
+	}
+
+	if (c >= 'A' && c <= 'F') {
+		return 10 + (c - 'A');
+	}
+
+	return 256;
+}
+
 GeranteChaine::~GeranteChaine()
 {
 	POUR (m_table) {
 		kuri::detruit_chaine(it.second);
 	}
+}
+
+char GeranteChaine::valide_caractere(const char *ptr, int &i, bool &ok, const char *&message_erreur, int &position)
+{
+	auto c = ptr[i++];
+
+	if (c == '\\') {
+		c = ptr[i++];
+
+		if (c == 'n') {
+			c = '\n';
+		}
+		else if (c == 't') {
+			c = '\t';
+		}
+		else if (c == 'e') {
+			c = 0x1b;
+		}
+		else if (c == '\\') {
+			// RÀF
+		}
+		else if (c == '0') {
+			c = 0;
+		}
+		else if (c == '"') {
+			c = '"';
+		}
+		else if (c == '\'') {
+			c = '\'';
+		}
+		else if (c == 'r') {
+			c = '\r';
+		}
+		else if (c == 'x') {
+			auto v = 0;
+
+			for (auto j = 0; j < 2; ++j) {
+				auto n = ptr[i++];
+
+				auto c0 = hex_depuis_char(n);
+
+				if (c0 == 256) {
+					ok = false;
+					message_erreur = "Caractère invalide la séquence hexadécimale";
+					position = i - 1;
+					break;
+				}
+
+				v <<= 4;
+				v |= c0;
+			}
+
+			if (!ok) {
+				return c;
+			}
+
+			c = static_cast<char>(v);
+		}
+		else if (c == 'd') {
+			auto v = 0;
+
+			for (auto j = 0; j < 3; ++j) {
+				auto n = ptr[i++];
+
+				if (n < '0' || n > '9') {
+					ok = false;
+					message_erreur = "Caractère invalide la séquence décimale";
+					position = i - 1;
+					break;
+				}
+
+				v *= 10;
+				v += (n - '0');
+			}
+
+			if (!ok) {
+				return c;
+			}
+
+			if (v > 255) {
+				ok = false;
+				message_erreur = "Valeur décimale trop grande, le maximum est 255";
+				position = i - 3;
+				return c;
+			}
+
+			c = static_cast<char>(v);
+		}
+		else if (c == 'u') {
+			// À FAIRE : génére octets depuis UTF-32
+			auto v = 0;
+
+			for (auto j = 0; j < 4; ++j) {
+				auto n = ptr[i++];
+
+				auto c0 = hex_depuis_char(n);
+
+				if (c0 == 256) {
+					ok = false;
+					message_erreur = "Caractère invalide la séquence hexadécimale";
+					position = i - 1;
+					break;
+				}
+
+				v <<= 4;
+				v |= c0;
+			}
+
+			if (!ok) {
+				return c;
+			}
+
+			c = static_cast<char>(v);
+		}
+		else if (c == 'U') {
+			// À FAIRE : génére octets depuis UTF-32
+			auto v = 0;
+
+			for (auto j = 0; j < 8; ++j) {
+				auto n = ptr[i++];
+
+				auto c0 = hex_depuis_char(n);
+
+				if (c0 == 256) {
+					ok = false;
+					message_erreur = "Caractère invalide la séquence hexadécimale";
+					position = i - 1;
+					break;
+				}
+
+				v <<= 4;
+				v |= c0;
+			}
+
+			if (!ok) {
+				return c;
+			}
+
+			c = static_cast<char>(v);
+		}
+		else {
+			ok = false;
+			message_erreur = "Séquence d'échappement invalide";
+			position = i - 1;
+			return c;
+		}
+	}
+
+	return c;
 }
 
 GeranteChaine::Resultat GeranteChaine::ajoute_chaine(const dls::vue_chaine_compacte &chaine)
@@ -318,23 +484,6 @@ GeranteChaine::Resultat GeranteChaine::ajoute_chaine(const dls::vue_chaine_compa
 	if (iter != m_table.fin()) {
 		return { iter->second, true, "", 0 };
 	}
-
-	auto hex_depuis_char = [](char c)
-	{
-		if (c >= '0' && c <= '9') {
-			return c - '0';
-		}
-
-		if (c >= 'a' && c <= 'f') {
-			return 10 + (c - 'a');
-		}
-
-		if (c >= 'A' && c <= 'F') {
-			return 10 + (c - 'A');
-		}
-
-		return 256;
-	};
 
 	/* Séquences d'échappement du langage :
 	 * \e : insère un caractère d'échappement (par exemple pour les couleurs dans les terminaux)
@@ -358,145 +507,10 @@ GeranteChaine::Resultat GeranteChaine::ajoute_chaine(const dls::vue_chaine_compa
 	auto position = 0;
 
 	for (auto i = 0; i < chaine.taille();) {
-		auto c = ptr[i++];
+		auto c = valide_caractere(ptr, i, ok, message_erreur, position);
 
-		if (c == '\\') {
-			c = ptr[i++];
-
-			if (c == 'n') {
-				c = '\n';
-			}
-			else if (c == 't') {
-				c = '\t';
-			}
-			else if (c == 'e') {
-				c = 0x1b;
-			}
-			else if (c == '\\') {
-				// RÀF
-			}
-			else if (c == '0') {
-				c = 0;
-			}
-			else if (c == '"') {
-				c = '"';
-			}
-			else if (c == 'r') {
-				c = '\r';
-			}
-			else if (c == 'x') {
-				auto v = 0;
-
-				for (auto j = 0; j < 2; ++j) {
-					auto n = ptr[i++];
-
-					auto c0 = hex_depuis_char(n);
-
-					if (c0 == 256) {
-						ok = false;
-						message_erreur = "Caractère invalide la séquence hexadécimale";
-						position = i - 1;
-						break;
-					}
-
-					v <<= 4;
-					v |= c0;
-				}
-
-				if (!ok) {
-					break;
-				}
-
-				c = static_cast<char>(v);
-			}
-			else if (c == 'd') {
-				auto v = 0;
-
-				for (auto j = 0; j < 3; ++j) {
-					auto n = ptr[i++];
-
-					if (n < '0' || n > '9') {
-						ok = false;
-						message_erreur = "Caractère invalide la séquence décimale";
-						position = i - 1;
-						break;
-					}
-
-					v *= 10;
-					v += (n - '0');
-				}
-
-				if (!ok) {
-					break;
-				}
-
-				if (v > 255) {
-					ok = false;
-					message_erreur = "Valeur décimale trop grande, le maximum est 255";
-					position = i - 3;
-					break;
-				}
-
-				c = static_cast<char>(v);
-			}
-			else if (c == 'u') {
-				// À FAIRE : génére octets depuis UTF-32
-				auto v = 0;
-
-				for (auto j = 0; j < 4; ++j) {
-					auto n = ptr[i++];
-
-					auto c0 = hex_depuis_char(n);
-
-					if (c0 == 256) {
-						ok = false;
-						message_erreur = "Caractère invalide la séquence hexadécimale";
-						position = i - 1;
-						break;
-					}
-
-					v <<= 4;
-					v |= c0;
-				}
-
-				if (!ok) {
-					break;
-				}
-
-				c = static_cast<char>(v);
-			}
-			else if (c == 'U') {
-				// À FAIRE : génére octets depuis UTF-32
-				auto v = 0;
-
-				for (auto j = 0; j < 8; ++j) {
-					auto n = ptr[i++];
-
-					auto c0 = hex_depuis_char(n);
-
-					if (c0 == 256) {
-						ok = false;
-						message_erreur = "Caractère invalide la séquence hexadécimale";
-						position = i - 1;
-						break;
-					}
-
-					v <<= 4;
-					v |= c0;
-				}
-
-				if (!ok) {
-					break;
-				}
-
-				c = static_cast<char>(v);
-			}
-			else {
-				ok = false;
-				message_erreur = "Séquence d'échappement invalide";
-				position = i - 1;
-				break;
-			}
+		if (!ok) {
+			break;
 		}
 
 		chaine_resultat.pousse(c);
