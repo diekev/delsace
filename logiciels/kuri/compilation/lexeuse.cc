@@ -436,21 +436,19 @@ void Lexeuse::analyse_caractere_simple()
 					this->enregistre_pos_mot();
 				}
 
-				if (this->caractere_courant() == '\\') {
+				while (this->caractere_courant() != '\'') {
+					if (this->caractere_courant() == '\\') {
+						this->pousse_caractere();
+						this->avance();
+					}
+
 					this->pousse_caractere();
 					this->avance();
 				}
 
-				this->pousse_caractere();
-				this->avance();				
-
 				/* Saute la dernière apostrophe si nécessaire. */
 				if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
 					this->pousse_caractere();
-				}
-
-				if (this->caractere_courant() != '\'') {
-					lance_erreur("Plusieurs caractères détectés dans un caractère simple !\n");
 				}
 
 				this->avance();

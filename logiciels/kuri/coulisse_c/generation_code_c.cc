@@ -1764,18 +1764,17 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		{
-			auto c = b->lexeme->chaine[0];
+			auto c = std::any_cast<char>(b->valeur_calculee);
 
 			auto flux = dls::flux_chaine();
 
-			flux << '\'';
-			if (c == '\\') {
-				flux << c << b->lexeme->chaine[1];
-			}
-			else {
-				flux << c;
-			}
+			auto char_depuis_hex = [](char hex)
+			{
+				return "0123456789ABCDEF"[static_cast<int>(hex)];
+			};
 
+			flux << '\'';
+			flux << "\\x" << char_depuis_hex((c & 0xf0) >> 4) << char_depuis_hex(c & 0x0f);
 			flux << '\'';
 
 			b->valeur_calculee = dls::chaine(flux.chn());

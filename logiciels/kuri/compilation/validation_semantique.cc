@@ -1847,6 +1847,24 @@ static void performe_validation_semantique(
 			b->genre_valeur = GenreValeur::DROITE;
 			b->type = contexte.typeuse[TypeBase::Z8];
 
+			auto i = 0;
+			auto position = 0;
+			auto ok = true;
+			auto message_erreur = "";
+
+			auto c = contexte.gerante_chaine.valide_caractere(&b->lexeme->chaine[0], i, ok, message_erreur, position);
+
+			if (!ok) {
+				erreur::lance_erreur(message_erreur, contexte, b->lexeme);
+			}
+
+			if (i < b->lexeme->chaine.taille()) {
+				erreur::lance_erreur("Caractères en trop dans le caractère littéral", contexte, b->lexeme);
+			}
+
+			// À FAIRE : caractère unicode
+			b->valeur_calculee = c;
+
 			donnees_dependance.types_utilises.insere(b->type);
 			break;
 		}
