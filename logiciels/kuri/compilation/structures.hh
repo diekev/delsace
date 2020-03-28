@@ -121,6 +121,12 @@ struct tableau {
 
 	tableau() = default;
 
+	explicit tableau(long taille_initiale)
+		: pointeur(memoire::loge_tableau<T>("kuri::tableau", taille_initiale))
+		, taille(taille_initiale)
+		, capacite(taille_initiale)
+	{}
+
 	tableau(tableau const &autre)
 	{
 		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, autre.taille);
