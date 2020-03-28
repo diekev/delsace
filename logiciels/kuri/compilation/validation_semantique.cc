@@ -3367,6 +3367,8 @@ static void performe_validation_semantique(
 
 void performe_validation_semantique(ContexteGenerationCode &contexte)
 {
+	auto nombre_allocations = memoire::nombre_allocations();
+
 	auto debut_validation = dls::chrono::compte_seconde();
 
 	/* valide d'abord les types de fonctions afin de résoudre les fonctions
@@ -3381,11 +3383,15 @@ void performe_validation_semantique(ContexteGenerationCode &contexte)
 		valide_type_fonction(decl, contexte);
 	}
 
+	std::cerr << "Nombre allocations typage fonctions = " << memoire::nombre_allocations() - nombre_allocations << '\n';
+
 	POUR (contexte.file_typage) {
 		performe_validation_semantique(it, contexte, true);
 	}
 
 	contexte.temps_validation = debut_validation.temps();
+
+	std::cerr << "Nombre allocations validations sémantique = " << memoire::nombre_allocations() - nombre_allocations << '\n';
 }
 
 }  /* namespace noeud */

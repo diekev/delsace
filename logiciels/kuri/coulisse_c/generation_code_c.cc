@@ -3243,6 +3243,8 @@ void genere_code_C(
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie)
 {
+	auto nombre_allocations = memoire::nombre_allocations();
+
 	auto temps_generation = 0.0;
 
 	auto &graphe_dependance = contexte.graphe_dependance;
@@ -3280,6 +3282,8 @@ void genere_code_C(
 	contexte.temps_generation = temps_generation;
 
 	constructrice.imprime_dans_flux(fichier_sortie);
+
+	std::cerr << "Nombre allocations génération code = " << memoire::nombre_allocations() - nombre_allocations << '\n';
 }
 
 void genere_code_C_pour_execution(
