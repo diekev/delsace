@@ -1954,7 +1954,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		avance();
 	}
 
-	if (noeud->type_declare.taille() > 1) {
+	if (noeud->type_declare.types_sorties.taille() > 1) {
 		lance_erreur("Il est impossible d'avoir plusieurs de sortie pour un opérateur");
 	}
 
