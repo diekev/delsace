@@ -343,10 +343,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, Donnee
 	return noeud;
 }
 
-void Syntaxeuse::analyse_controle_si(GenreNoeud tn)
+NoeudExpression *Syntaxeuse::analyse_controle_si(GenreNoeud tn)
 {
 	auto noeud = CREE_NOEUD(NoeudSi, tn, &donnees());
-	noeud->bloc_parent->expressions.pousse(noeud);
 
 	noeud->condition = analyse_expression(GenreLexeme::ACCOLADE_OUVRANTE, GenreLexeme::SI);
 
@@ -368,11 +367,13 @@ void Syntaxeuse::analyse_controle_si(GenreNoeud tn)
 
 		if (est_identifiant(GenreLexeme::SI)) {
 			avance();
-			analyse_controle_si(GenreNoeud::INSTRUCTION_SI);
+			auto noeud_si = analyse_controle_si(GenreNoeud::INSTRUCTION_SI);
+			noeud->bloc_si_faux->expressions.pousse(noeud_si);
 		}
 		else if (est_identifiant(GenreLexeme::SAUFSI)) {
 			avance();
-			analyse_controle_si(GenreNoeud::INSTRUCTION_SAUFSI);
+			auto noeud_saufsi = analyse_controle_si(GenreNoeud::INSTRUCTION_SAUFSI);
+			noeud->bloc_si_faux->expressions.pousse(noeud_saufsi);
 		}
 		else {
 			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après 'sinon'");
@@ -384,12 +385,13 @@ void Syntaxeuse::analyse_controle_si(GenreNoeud tn)
 
 		m_fichier->module->assembleuse->depile_bloc();
 	}
+
+	return noeud;
 }
 
-void Syntaxeuse::analyse_controle_pour()
+NoeudExpression *Syntaxeuse::analyse_controle_pour()
 {
 	auto noeud = CREE_NOEUD(NoeudPour, GenreNoeud::INSTRUCTION_POUR, &donnees());
-	noeud->bloc_parent->expressions.pousse(noeud);
 
 	/* enfant 1 : déclaration variable */
 	noeud->variable = analyse_expression(GenreLexeme::DANS, GenreLexeme::POUR);
@@ -421,10 +423,17 @@ void Syntaxeuse::analyse_controle_pour()
 
 		noeud->bloc_sinon = analyse_bloc();
 	}
+
+	return noeud;
 }
 
 void Syntaxeuse::analyse_corps_fonction()
 {
+	auto bloc_courant = m_fichier->module->assembleuse->bloc_courant();
+
+	auto expressions = dls::tablet<NoeudExpression *, 32>();
+	auto membres = dls::tablet<NoeudDeclaration *, 32>();
+
 	/* Il est possible qu'une fonction soit vide, donc vérifie d'abord que
 	 * l'on n'ait pas terminé. */
 	while (!est_identifiant(GenreLexeme::ACCOLADE_FERMANTE)) {
@@ -433,7 +442,7 @@ void Syntaxeuse::analyse_corps_fonction()
 		if (est_identifiant(GenreLexeme::RETOURNE)) {
 			avance();
 			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_RETOUR, &donnees());
-			noeud->bloc_parent->expressions.pousse(noeud);
+			expressions.pousse(noeud);
 
 			/* Considération du cas où l'on ne retourne rien 'retourne;'. */
 			if (!est_identifiant(GenreLexeme::POINT_VIRGULE)) {
@@ -447,12 +456,13 @@ void Syntaxeuse::analyse_corps_fonction()
 		else if (est_identifiant(GenreLexeme::RETIENS)) {
 			avance();
 			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_RETIENS, &donnees());
-			noeud->bloc_parent->expressions.pousse(noeud);
+			expressions.pousse(noeud);
 			noeud->expr = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::RETOURNE);
 		}
 		else if (est_identifiant(GenreLexeme::POUR)) {
 			avance();
-			analyse_controle_pour();
+			auto noeud = analyse_controle_pour();
+			expressions.pousse(noeud);
 		}
 		else if (est_identifiant(GenreLexeme::BOUCLE)) {
 			avance();
@@ -460,7 +470,7 @@ void Syntaxeuse::analyse_corps_fonction()
 			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'boucle'");
 
 			auto noeud = CREE_NOEUD(NoeudBoucle, GenreNoeud::INSTRUCTION_BOUCLE, &donnees());
-			noeud->bloc_parent->expressions.pousse(noeud);
+			expressions.pousse(noeud);
 			noeud->bloc = analyse_bloc();
 		}
 		else if (est_identifiant(GenreLexeme::REPETE)) {
@@ -469,7 +479,7 @@ void Syntaxeuse::analyse_corps_fonction()
 			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'répète'");
 
 			auto noeud = CREE_NOEUD(NoeudBoucle, GenreNoeud::INSTRUCTION_REPETE, &donnees());
-			noeud->bloc_parent->expressions.pousse(noeud);
+			expressions.pousse(noeud);
 
 			noeud->bloc = analyse_bloc();
 
@@ -481,7 +491,7 @@ void Syntaxeuse::analyse_corps_fonction()
 			avance();
 
 			auto noeud = CREE_NOEUD(NoeudBoucle, GenreNoeud::INSTRUCTION_TANTQUE, &donnees());
-			noeud->bloc_parent->expressions.pousse(noeud);
+			expressions.pousse(noeud);
 
 			noeud->condition = analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::TANTQUE);
 
@@ -496,7 +506,7 @@ void Syntaxeuse::analyse_corps_fonction()
 			avance();
 
 			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE, &donnees());
-			noeud->bloc_parent->expressions.pousse(noeud);
+			expressions.pousse(noeud);
 
 			if (est_identifiant(GenreLexeme::CHAINE_CARACTERE)) {
 				avance();
@@ -511,7 +521,7 @@ void Syntaxeuse::analyse_corps_fonction()
 			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'diffère'");
 
 			auto bloc = analyse_bloc();
-			bloc->bloc_parent->expressions.pousse(bloc);
+			expressions.pousse(bloc);
 			bloc->est_differe = true;
 		}
 		else if (est_identifiant(GenreLexeme::NONSUR)) {
@@ -520,14 +530,14 @@ void Syntaxeuse::analyse_corps_fonction()
 			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'nonsûr'");
 
 			auto bloc = analyse_bloc();
-			bloc->bloc_parent->expressions.pousse(bloc);
+			expressions.pousse(bloc);
 			bloc->est_nonsur = true;
 		}
 		else if (est_identifiant(GenreLexeme::DISCR)) {
 			avance();
 
 			auto noeud_discr = CREE_NOEUD(NoeudDiscr, GenreNoeud::INSTRUCTION_DISCR, &donnees());
-			noeud_discr->bloc_parent->expressions.pousse(noeud_discr);
+			expressions.pousse(noeud_discr);
 
 			noeud_discr->expr = analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::DISCR);
 
@@ -537,6 +547,8 @@ void Syntaxeuse::analyse_corps_fonction()
 			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
 
 			auto sinon_rencontre = false;
+
+			auto paires_discr = dls::tablet<std::pair<NoeudExpression *, NoeudBloc *>, 32>();
 
 			while (!est_identifiant(GenreLexeme::ACCOLADE_FERMANTE)) {			
 				if (est_identifiant(GenreLexeme::SINON)) {
@@ -562,16 +574,18 @@ void Syntaxeuse::analyse_corps_fonction()
 
 					auto bloc = analyse_bloc();
 
-					noeud_discr->paires_discr.pousse({ expr, bloc });
+					paires_discr.pousse({ expr, bloc });
 				}
 			}
+
+			copie_tablet_tableau(paires_discr, noeud_discr->paires_discr);
 
 			consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
 		}
 		else if (est_identifiant(type_id::ACCOLADE_OUVRANTE)) {
 			avance();
 			auto bloc = analyse_bloc();
-			bloc->bloc_parent->expressions.pousse(bloc);
+			expressions.pousse(bloc);
 		}
 		else if (est_identifiant(GenreLexeme::POUSSE_CONTEXTE)) {
 			avance();
@@ -580,7 +594,7 @@ void Syntaxeuse::analyse_corps_fonction()
 			noeud->expr = analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::POUSSE_CONTEXTE);
 			noeud->bloc = analyse_bloc();
 
-			noeud->bloc_parent->expressions.pousse(noeud);
+			expressions.pousse(noeud);
 		}
 		else {
 			auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::EGAL);
@@ -590,15 +604,15 @@ void Syntaxeuse::analyse_corps_fonction()
 					auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme);
 					decl_var->valeur = noeud;
 
-					decl_var->bloc_parent->membres.pousse(decl_var);
-					decl_var->bloc_parent->expressions.pousse(decl_var);
+					membres.pousse(decl_var);
+					expressions.pousse(decl_var);
 				}
 				else if (est_declaration(noeud->genre)) {
-					noeud->bloc_parent->membres.pousse(static_cast<NoeudDeclaration *>(noeud));
-					noeud->bloc_parent->expressions.pousse(noeud);
+					membres.pousse(static_cast<NoeudDeclaration *>(noeud));
+					expressions.pousse(noeud);
 				}
 				else {
-					noeud->bloc_parent->expressions.pousse(noeud);
+					expressions.pousse(noeud);
 				}
 			}
 		}
@@ -618,6 +632,9 @@ void Syntaxeuse::analyse_corps_fonction()
 			lance_erreur("Boucle infini dans l'analyse du corps de la fonction");
 		}
 	}
+
+	copie_tablet_tableau(expressions, bloc_courant->expressions);
+	copie_tablet_tableau(membres, bloc_courant->membres);
 }
 
 NoeudBloc *Syntaxeuse::analyse_bloc()
@@ -1284,13 +1301,15 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 			}
 			case GenreLexeme::SI:
 			{
-				analyse_controle_si(GenreNoeud::INSTRUCTION_SI);
+				dernier_noeud = analyse_controle_si(GenreNoeud::INSTRUCTION_SI);
+				expressions.pousse(dernier_noeud);
 				termine_boucle = true;
 				break;
 			}
 			case GenreLexeme::SAUFSI:
 			{
-				analyse_controle_si(GenreNoeud::INSTRUCTION_SAUFSI);
+				dernier_noeud = analyse_controle_si(GenreNoeud::INSTRUCTION_SAUFSI);
+				expressions.pousse(dernier_noeud);
 				termine_boucle = true;
 				break;
 			}

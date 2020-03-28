@@ -78,8 +78,8 @@ private:
 	NoeudExpression *analyse_declaration_enum(GenreLexeme genre, DonneesLexeme &lexeme);
 	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
 	DonneesTypeDeclare analyse_declaration_type_ex();
-	void analyse_controle_si(GenreNoeud tn);
-	void analyse_controle_pour();
+	NoeudExpression *analyse_controle_si(GenreNoeud tn);
+	NoeudExpression *analyse_controle_pour();
 	NoeudExpression *analyse_construction_structure(DonneesLexeme &lexeme);
 	void analyse_directive_si();
 	NoeudExpression *analyse_declaration_operateur();
