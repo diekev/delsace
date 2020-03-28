@@ -153,6 +153,7 @@ static Type *resoud_type_final(
 		}
 		else if (type == GenreLexeme::FONC) {
 			auto types_entrees = kuri::tableau<Type *>();
+			types_entrees.reserve(type_declare.types_entrees.taille());
 
 			for (auto t = 0; t < type_declare.types_entrees.taille(); ++t) {
 				auto td = type_declare.types_entrees[t];
@@ -162,6 +163,7 @@ static Type *resoud_type_final(
 			}
 
 			auto types_sorties = kuri::tableau<Type *>();
+			types_sorties.reserve(type_declare.types_sorties.taille());
 
 			for (auto t = 0; t < type_declare.types_sorties.taille(); ++t) {
 				auto td = type_declare.types_sorties[t];
@@ -260,6 +262,8 @@ static auto valide_appel_pointeur_fonction(
 	else {
 		b->drapeaux |= FORCE_NULCTX;
 	}
+
+	b->exprs.reserve(type_fonction->types_entrees.taille - debut_params);
 
 	/* Validation des types passés en paramètre. */
 	for (auto i = debut_params; i < type_fonction->types_entrees.taille; ++i) {
