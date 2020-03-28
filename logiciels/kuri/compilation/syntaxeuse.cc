@@ -61,6 +61,26 @@ static auto trouve_chemin_si_dans_dossier(DonneesModule *module, dls::chaine con
 	return chaine;
 }
 
+template <typename T, unsigned long N>
+static auto copie_tablet_tableau(dls::tablet<T, N> const &src, kuri::tableau<T> &dst)
+{
+	dst.reserve(src.taille());
+
+	POUR (src) {
+		dst.pousse(it);
+	}
+}
+
+template <typename T, unsigned long N>
+static auto copie_tablet_tableau(dls::tablet<T, N> const &src, dls::tableau<T> &dst)
+{
+	dst.reserve(src.taille());
+
+	POUR (src) {
+		dst.pousse(it);
+	}
+}
+
 /* ************************************************************************** */
 
 /**
@@ -102,7 +122,6 @@ Syntaxeuse::Syntaxeuse(
 		dls::chaine const &racine_kuri)
 	: lng::analyseuse<DonneesLexeme>(fichier->lexemes)
 	, m_contexte(contexte)
-	, m_paires_vecteurs(PROFONDEUR_EXPRESSION_MAX)
 	, m_racine_kuri(racine_kuri)
 	, m_fichier(fichier)
 {}
@@ -230,6 +249,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, Donnee
 	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
 	/* analyse les paramètres de la fonction */
+	auto params = dls::tablet<NoeudDeclaration *, 16>();
+
 	while (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
 		auto param = analyse_expression(GenreLexeme::VIRGULE, type_id::FONC);
 
@@ -237,12 +258,14 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, Donnee
 			auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme);
 			decl_var->valeur = param;
 
-			noeud->params.pousse(decl_var);
+			params.pousse(decl_var);
 		}
 		else {
-			noeud->params.pousse(static_cast<NoeudDeclaration *>(param));
+			params.pousse(static_cast<NoeudDeclaration *>(param));
 		}
 	}
+
+	copie_tablet_tableau(params, noeud->params);
 
 	consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' à la fin des paramètres de la fonction");
 
@@ -615,15 +638,12 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 	auto profondeur = m_profondeur++;
 
-	if (profondeur >= m_paires_vecteurs.taille()) {
+	if (profondeur >= PROFONDEUR_EXPRESSION_MAX) {
 		lance_erreur("Excès de la pile d'expression autorisée");
 	}
 
-	auto &expressions = m_paires_vecteurs[profondeur].first;
-	expressions.efface();
-
-	auto &operateurs = m_paires_vecteurs[profondeur].second;
-	operateurs.efface();
+	auto expressions = dls::tablet<NoeudExpression *, 32>();
+	auto operateurs = dls::tablet<NoeudExpression *, 32>();
 
 	auto transfere_operateurs_mineures_dans_expression = [&](GenreLexeme id_operateur)
 	{
@@ -1449,13 +1469,17 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(DonneesLexeme &lexeme)
 	auto noeud = CREE_NOEUD(NoeudExpressionAppel, GenreNoeud::EXPRESSION_APPEL_FONCTION, &lexeme);
 
 	/* ici nous devons être au niveau du premier paramètre */
+	auto params = dls::tablet<NoeudExpression *, 16>();
+
 	while (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
 		 * paranthèse fermante est trouvé et que la pile est vide */
 		auto expr = analyse_expression(GenreLexeme::VIRGULE, GenreLexeme::EGAL);
-		noeud->params.pousse(expr);
+		params.pousse(expr);
 	}
+
+	copie_tablet_tableau(params, noeud->params);
 
 	consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attenu ')' à la fin des argument de l'appel");
 
@@ -1501,6 +1525,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(GenreLexeme id, Donne
 		auto bloc = m_fichier->module->assembleuse->empile_bloc();
 		consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
+		auto membres = dls::tablet<NoeudDeclaration *, 16>();
+		auto expressions = dls::tablet<NoeudExpression *, 16>();
+
 		while (!est_identifiant(GenreLexeme::ACCOLADE_FERMANTE)) {
 			auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, type_id::STRUCT);
 
@@ -1508,14 +1535,17 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(GenreLexeme id, Donne
 				auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme);
 				decl_var->valeur = noeud;
 
-				decl_var->bloc_parent->membres.pousse(decl_var);
-				decl_var->bloc_parent->expressions.pousse(decl_var);
+				membres.pousse(decl_var);
+				expressions.pousse(decl_var);
 			}
 			else {
-				bloc->membres.pousse(static_cast<NoeudDeclaration *>(noeud));
-				bloc->expressions.pousse(noeud);
+				membres.pousse(static_cast<NoeudDeclaration *>(noeud));
+				expressions.pousse(noeud);
 			}
 		}
+
+		copie_tablet_tableau(membres, bloc->membres);
+		copie_tablet_tableau(expressions, bloc->expressions);
 
 		consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de la structure");
 
@@ -1548,6 +1578,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(GenreLexeme genre, Donnees
 
 	auto bloc = m_fichier->module->assembleuse->empile_bloc();
 
+	auto membres = dls::tablet<NoeudDeclaration *, 16>();
+	auto expressions = dls::tablet<NoeudExpression *, 16>();
+
 	while (!est_identifiant(GenreLexeme::ACCOLADE_FERMANTE)) {
 		auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::EGAL);
 
@@ -1555,14 +1588,17 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(GenreLexeme genre, Donnees
 			auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme);
 			decl_var->valeur = noeud;
 
-			decl_var->bloc_parent->membres.pousse(decl_var);
-			decl_var->bloc_parent->expressions.pousse(decl_var);
+			membres.pousse(decl_var);
+			expressions.pousse(decl_var);
 		}
 		else {
-			bloc->membres.pousse(static_cast<NoeudDeclaration *>(noeud));
-			bloc->expressions.pousse(noeud);
+			membres.pousse(static_cast<NoeudDeclaration *>(noeud));
+			expressions.pousse(noeud);
 		}
 	}
+
+	copie_tablet_tableau(membres, bloc->membres);
+	copie_tablet_tableau(expressions, bloc->expressions);
 
 	m_fichier->module->assembleuse->depile_bloc();
 	noeud_decl->bloc = bloc;
@@ -1601,15 +1637,17 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)
 
 		consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu un '(' après 'fonction'");
 
+		auto types_entrees = dls::tablet<DonneesTypeDeclare, 16>();
+
 		if (!nulctx) {
 			auto dt_ctx = DonneesTypeDeclare(GenreLexeme::CHAINE_CARACTERE);
 			dt_ctx.nom_struct = "ContexteProgramme";
-			dt.types_entrees.pousse(dt_ctx);
+			types_entrees.pousse(dt_ctx);
 		}
 
 		while (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
 			auto dtd = analyse_declaration_type(false);
-			dt.types_entrees.pousse(dtd);
+			types_entrees.pousse(dtd);
 
 			if (!est_identifiant(GenreLexeme::VIRGULE)) {
 				break;
@@ -1617,6 +1655,8 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)
 
 			avance();
 		}
+
+		copie_tablet_tableau(types_entrees, dt.types_entrees);
 
 		avance();
 
@@ -1627,9 +1667,11 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)
 			eu_paren_ouvrante = true;
 		}
 
+		auto types_sorties = dls::tablet<DonneesTypeDeclare, 16>();
+
 		while (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
 			auto dtd = analyse_declaration_type(false);
-			dt.types_sorties.pousse(dtd);
+			types_sorties.pousse(dtd);
 
 			auto est_virgule = est_identifiant(GenreLexeme::VIRGULE);
 
@@ -1639,6 +1681,8 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)
 
 			avance();
 		}
+
+		copie_tablet_tableau(types_sorties, dt.types_sorties);
 
 		if (eu_paren_ouvrante && est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
 			avance();
@@ -1756,13 +1800,17 @@ NoeudExpression *Syntaxeuse::analyse_construction_structure(DonneesLexeme &lexem
 	auto noeud = CREE_NOEUD(NoeudExpressionAppel, GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE, &lexeme);
 
 	/* ici nous devons être au niveau du premier paramètre */
+	auto params = dls::tablet<NoeudExpression *, 16>();
+
 	while (!est_identifiant(GenreLexeme::ACCOLADE_FERMANTE)) {
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
 		 * paranthèse fermante est trouvé et que la pile est vide */
 		auto expr = analyse_expression(GenreLexeme::VIRGULE, GenreLexeme::EGAL);
-		noeud->params.pousse(expr);
+		params.pousse(expr);
 	}
+
+	copie_tablet_tableau(params, noeud->params);
 
 	consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la construction de la structure");
 
@@ -1829,6 +1877,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
 	/* analyse les paramètres de la fonction */
+	auto params = dls::tablet<NoeudDeclaration *, 16>();
+
 	while (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
 		auto param = analyse_expression(GenreLexeme::VIRGULE, type_id::FONC);
 
@@ -1836,12 +1886,14 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 			auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme);
 			decl_var->valeur = param;
 
-			noeud->params.pousse(decl_var);
+			params.pousse(decl_var);
 		}
 		else {
-			noeud->params.pousse(static_cast<NoeudDeclaration *>(param));
+			params.pousse(static_cast<NoeudDeclaration *>(param));
 		}
 	}
+
+	copie_tablet_tableau(params, noeud->params);
 
 	if (noeud->params.taille > 2) {
 		erreur::lance_erreur(

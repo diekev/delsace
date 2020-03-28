@@ -35,15 +35,6 @@ struct ContexteGenerationCode;
 class Syntaxeuse : public lng::analyseuse<DonneesLexeme> {
 	ContexteGenerationCode &m_contexte;
 
-	/* Ces vecteurs sont utilisés pour stocker les données des expressions
-	 * compilées au travers de 'analyse_expression_droite()'. Nous les stockons
-	 * pour pouvoir réutiliser la mémoire qu'ils allouent après leurs
-	 * utilisations. Ainsi nous n'avons pas à récréer des vecteurs à chaque
-	 * appel vers 'analyse_expression_droite()', mais cela rend la classe peu
-	 * sûre niveau multi-threading.
-	 */
-	using paire_vecteurs = std::pair<dls::tableau<NoeudExpression *>, dls::tableau<NoeudExpression *>>;
-	dls::tableau<paire_vecteurs> m_paires_vecteurs;
 	long m_profondeur = 0;
 
 	dls::chaine m_racine_kuri{};
