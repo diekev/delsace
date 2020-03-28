@@ -107,8 +107,12 @@ struct logeuse_memoire {
 		else {
 			auto res = static_cast<T *>(malloc(sizeof(T) * static_cast<size_t>(nouvelle_taille)));
 
+			for (auto i = 0; i < nouvelle_taille; ++i) {
+				new (&res[i]) T();
+			}
+
 			for (auto i = 0; i < ancienne_taille; ++i) {
-				res[i] = ptr[i];
+				res[i] = std::move(ptr[i]);
 			}
 
 			free(ptr);
