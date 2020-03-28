@@ -442,182 +442,197 @@ void Syntaxeuse::analyse_corps_fonction()
 	/* Il est possible qu'une fonction soit vide, donc vérifie d'abord que
 	 * l'on n'ait pas terminé. */
 	while (!est_identifiant(GenreLexeme::ACCOLADE_FERMANTE)) {
+		avance();
+
+		empile_etat("dans le syntaxage de l'expression", &donnees());
 		auto const pos = position();
 
-		if (est_identifiant(GenreLexeme::RETOURNE)) {
-			avance();
-			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_RETOUR, &donnees());
-			expressions.pousse(noeud);
+		auto genre_lexeme = donnees().genre;
 
-			/* Considération du cas où l'on ne retourne rien 'retourne;'. */
-			if (!est_identifiant(GenreLexeme::POINT_VIRGULE)) {
-				noeud->expr = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::RETOURNE);
-			}
-			else {
-				avance();
-			}
+		switch (genre_lexeme) {
+			case GenreLexeme::RETOURNE:
+			{
+				auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_RETOUR, &donnees());
+				expressions.pousse(noeud);
 
-		}
-		else if (est_identifiant(GenreLexeme::RETIENS)) {
-			avance();
-			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_RETIENS, &donnees());
-			expressions.pousse(noeud);
-			noeud->expr = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::RETOURNE);
-		}
-		else if (est_identifiant(GenreLexeme::POUR)) {
-			avance();
-			auto noeud = analyse_controle_pour();
-			expressions.pousse(noeud);
-		}
-		else if (est_identifiant(GenreLexeme::BOUCLE)) {
-			avance();
-
-			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'boucle'");
-
-			auto noeud = CREE_NOEUD(NoeudBoucle, GenreNoeud::INSTRUCTION_BOUCLE, &donnees());
-			expressions.pousse(noeud);
-			noeud->bloc = analyse_bloc();
-		}
-		else if (est_identifiant(GenreLexeme::REPETE)) {
-			avance();
-
-			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'répète'");
-
-			auto noeud = CREE_NOEUD(NoeudBoucle, GenreNoeud::INSTRUCTION_REPETE, &donnees());
-			expressions.pousse(noeud);
-
-			noeud->bloc = analyse_bloc();
-
-			consomme(GenreLexeme::TANTQUE, "Attendu une 'tantque' après le bloc de 'répète'");
-
-			noeud->condition = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::TANTQUE);
-		}
-		else if (est_identifiant(GenreLexeme::TANTQUE)) {
-			avance();
-
-			auto noeud = CREE_NOEUD(NoeudBoucle, GenreNoeud::INSTRUCTION_TANTQUE, &donnees());
-			expressions.pousse(noeud);
-
-			noeud->condition = analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::TANTQUE);
-
-			/* recule pour être de nouveau synchronisé */
-			recule();
-
-			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de 'tanque'");
-
-			noeud->bloc = analyse_bloc();
-		}
-		else if (est_identifiant(GenreLexeme::ARRETE) || est_identifiant(GenreLexeme::CONTINUE)) {
-			avance();
-
-			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE, &donnees());
-			expressions.pousse(noeud);
-
-			if (est_identifiant(GenreLexeme::CHAINE_CARACTERE)) {
-				avance();
-				noeud->expr = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, &donnees());
-			}
-
-			consomme(GenreLexeme::POINT_VIRGULE, "Attendu un point virgule ';'");
-		}
-		else if (est_identifiant(GenreLexeme::DIFFERE)) {
-			avance();
-
-			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'diffère'");
-
-			auto bloc = analyse_bloc();
-			expressions.pousse(bloc);
-			bloc->est_differe = true;
-		}
-		else if (est_identifiant(GenreLexeme::NONSUR)) {
-			avance();
-
-			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'nonsûr'");
-
-			auto bloc = analyse_bloc();
-			expressions.pousse(bloc);
-			bloc->est_nonsur = true;
-		}
-		else if (est_identifiant(GenreLexeme::DISCR)) {
-			avance();
-
-			auto noeud_discr = CREE_NOEUD(NoeudDiscr, GenreNoeud::INSTRUCTION_DISCR, &donnees());
-			expressions.pousse(noeud_discr);
-
-			noeud_discr->expr = analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::DISCR);
-
-			/* recule pour être de nouveau synchronisé */
-			recule();
-
-			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
-
-			auto sinon_rencontre = false;
-
-			auto paires_discr = dls::tablet<std::pair<NoeudExpression *, NoeudBloc *>, 32>();
-
-			while (!est_identifiant(GenreLexeme::ACCOLADE_FERMANTE)) {			
-				if (est_identifiant(GenreLexeme::SINON)) {
+				/* Considération du cas où l'on ne retourne rien 'retourne;'. */
+				if (!est_identifiant(GenreLexeme::POINT_VIRGULE)) {
+					noeud->expr = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::RETOURNE);
+				}
+				else {
 					avance();
-
-					if (sinon_rencontre) {
-						lance_erreur("Redéfinition d'un bloc sinon");
-					}
-
-					sinon_rencontre = true;
-
-					consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
-
-					noeud_discr->bloc_sinon = analyse_bloc();
 				}
-				else {
-					auto expr = analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::DISCR);
 
-					/* recule pour être de nouveau synchronisé */
-					recule();
-
-					consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
-
-					auto bloc = analyse_bloc();
-
-					paires_discr.pousse({ expr, bloc });
-				}
+				break;
 			}
+			case GenreLexeme::RETIENS:
+			{
+				auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_RETIENS, &donnees());
+				expressions.pousse(noeud);
+				noeud->expr = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::RETOURNE);
+				break;
+			}
+			case GenreLexeme::POUR:
+			{
+				auto noeud = analyse_controle_pour();
+				expressions.pousse(noeud);
+				break;
+			}
+			case GenreLexeme::BOUCLE:
+			{
+				consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'boucle'");
 
-			copie_tablet_tableau(paires_discr, noeud_discr->paires_discr);
+				auto noeud = CREE_NOEUD(NoeudBoucle, GenreNoeud::INSTRUCTION_BOUCLE, &donnees());
+				expressions.pousse(noeud);
+				noeud->bloc = analyse_bloc();
+				break;
+			}
+			case GenreLexeme::REPETE:
+			{
+				consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'répète'");
 
-			consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
-		}
-		else if (est_identifiant(type_id::ACCOLADE_OUVRANTE)) {
-			avance();
-			auto bloc = analyse_bloc();
-			expressions.pousse(bloc);
-		}
-		else if (est_identifiant(GenreLexeme::POUSSE_CONTEXTE)) {
-			avance();
-			auto noeud = CREE_NOEUD(NoeudPousseContexte, GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE, &donnees());
+				auto noeud = CREE_NOEUD(NoeudBoucle, GenreNoeud::INSTRUCTION_REPETE, &donnees());
+				expressions.pousse(noeud);
 
-			noeud->expr = analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::POUSSE_CONTEXTE);
-			noeud->bloc = analyse_bloc();
+				noeud->bloc = analyse_bloc();
 
-			expressions.pousse(noeud);
-		}
-		else {
-			auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::EGAL);
+				consomme(GenreLexeme::TANTQUE, "Attendu une 'tantque' après le bloc de 'répète'");
 
-			if (noeud != nullptr) {
-				if (noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-					auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme);
-					decl_var->valeur = noeud;
+				noeud->condition = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::TANTQUE);
+				break;
+			}
+			case GenreLexeme::TANTQUE:
+			{
+				auto noeud = CREE_NOEUD(NoeudBoucle, GenreNoeud::INSTRUCTION_TANTQUE, &donnees());
+				expressions.pousse(noeud);
 
-					membres.pousse(decl_var);
-					expressions.pousse(decl_var);
+				noeud->condition = analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::TANTQUE);
+
+				/* recule pour être de nouveau synchronisé */
+				recule();
+
+				consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de 'tanque'");
+
+				noeud->bloc = analyse_bloc();
+				break;
+			}
+			case GenreLexeme::CONTINUE:
+			case GenreLexeme::ARRETE:
+			{
+				auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE, &donnees());
+				expressions.pousse(noeud);
+
+				if (est_identifiant(GenreLexeme::CHAINE_CARACTERE)) {
+					avance();
+					noeud->expr = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, &donnees());
 				}
-				else if (est_declaration(noeud->genre)) {
-					membres.pousse(static_cast<NoeudDeclaration *>(noeud));
-					expressions.pousse(noeud);
+
+				consomme(GenreLexeme::POINT_VIRGULE, "Attendu un point virgule ';'");
+				break;
+			}
+			case GenreLexeme::DIFFERE:
+			{
+				consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'diffère'");
+
+				auto bloc = analyse_bloc();
+				expressions.pousse(bloc);
+				bloc->est_differe = true;
+				break;
+			}
+			case GenreLexeme::NONSUR:
+			{
+				consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'nonsûr'");
+
+				auto bloc = analyse_bloc();
+				expressions.pousse(bloc);
+				bloc->est_nonsur = true;
+				break;
+			}
+			case GenreLexeme::DISCR:
+			{
+				auto noeud_discr = CREE_NOEUD(NoeudDiscr, GenreNoeud::INSTRUCTION_DISCR, &donnees());
+				expressions.pousse(noeud_discr);
+
+				noeud_discr->expr = analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::DISCR);
+
+				/* recule pour être de nouveau synchronisé */
+				recule();
+
+				consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
+
+				auto sinon_rencontre = false;
+
+				auto paires_discr = dls::tablet<std::pair<NoeudExpression *, NoeudBloc *>, 32>();
+
+				while (!est_identifiant(GenreLexeme::ACCOLADE_FERMANTE)) {
+					if (est_identifiant(GenreLexeme::SINON)) {
+						avance();
+
+						if (sinon_rencontre) {
+							lance_erreur("Redéfinition d'un bloc sinon");
+						}
+
+						sinon_rencontre = true;
+
+						consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
+
+						noeud_discr->bloc_sinon = analyse_bloc();
+					}
+					else {
+						auto expr = analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::DISCR);
+
+						/* recule pour être de nouveau synchronisé */
+						recule();
+
+						consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
+
+						auto bloc = analyse_bloc();
+
+						paires_discr.pousse({ expr, bloc });
+					}
 				}
-				else {
-					expressions.pousse(noeud);
+
+				copie_tablet_tableau(paires_discr, noeud_discr->paires_discr);
+
+				consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
+				break;
+			}
+			case GenreLexeme::ACCOLADE_OUVRANTE:
+			{
+				auto bloc = analyse_bloc();
+				expressions.pousse(bloc);
+				break;
+			}
+			case GenreLexeme::POUSSE_CONTEXTE:
+			{
+				auto noeud = CREE_NOEUD(NoeudPousseContexte, GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE, &donnees());
+
+				noeud->expr = analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::POUSSE_CONTEXTE);
+				noeud->bloc = analyse_bloc();
+
+				expressions.pousse(noeud);
+				break;
+			}
+			default:
+			{
+				recule();
+				auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::EGAL);
+
+				if (noeud != nullptr) {
+					if (noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+						auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme);
+						decl_var->valeur = noeud;
+
+						membres.pousse(decl_var);
+						expressions.pousse(decl_var);
+					}
+					else if (est_declaration(noeud->genre)) {
+						membres.pousse(static_cast<NoeudDeclaration *>(noeud));
+						expressions.pousse(noeud);
+					}
+					else {
+						expressions.pousse(noeud);
+					}
 				}
 			}
 		}
@@ -636,6 +651,8 @@ void Syntaxeuse::analyse_corps_fonction()
 		if (pos == position()) {
 			lance_erreur("Boucle infini dans l'analyse du corps de la fonction");
 		}
+
+		depile_etat();
 	}
 
 	copie_tablet_tableau(expressions, bloc_courant->expressions);
