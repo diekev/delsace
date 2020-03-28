@@ -259,6 +259,10 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 
 	metriques.nombre_types = typeuse.nombre_de_types();
 
+	POUR (operateurs.donnees_operateurs) {
+		metriques.nombre_operateurs += it.second.taille();
+	}
+
 	for (auto fichier : fichiers) {
 		metriques.nombre_lignes += fichier->tampon.nombre_lignes();
 		metriques.memoire_tampons += fichier->tampon.taille_donnees();

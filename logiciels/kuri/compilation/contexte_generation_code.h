@@ -50,6 +50,7 @@ struct Metriques {
 	size_t memoire_types = 0ul;
 	size_t memoire_operateurs = 0ul;
 	long nombre_types = 0;
+	long nombre_operateurs = 0;
 	double temps_chargement = 0.0;
 	double temps_analyse = 0.0;
 	double temps_tampon = 0.0;

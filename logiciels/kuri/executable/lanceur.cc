@@ -327,6 +327,7 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "Arbre Syntaxique", "", "" });
 	tableau.ajoute_ligne({ "- Nombre Morceaux", formatte_nombre(metriques.nombre_lexemes), "" });
 	tableau.ajoute_ligne({ "- Nombre Noeuds", formatte_nombre(metriques.nombre_noeuds), "" });
+	tableau.ajoute_ligne({ "- Nombre Opérateurs", formatte_nombre(metriques.nombre_operateurs), "" });
 	tableau.ajoute_ligne({ "- Nombre Types", formatte_nombre(metriques.nombre_types), "" });
 
 	tableau.ajoute_ligne({ "Mémoire", "", "" });
