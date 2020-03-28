@@ -257,6 +257,8 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 	metriques.memoire_arbre += this->allocatrice_noeud.memoire_utilisee();
 	metriques.nombre_noeuds += this->allocatrice_noeud.nombre_noeuds();
 
+	metriques.nombre_types = typeuse.nombre_de_types();
+
 	for (auto fichier : fichiers) {
 		metriques.nombre_lignes += fichier->tampon.nombre_lignes();
 		metriques.memoire_tampons += fichier->tampon.taille_donnees();

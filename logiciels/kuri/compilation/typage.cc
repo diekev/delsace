@@ -657,6 +657,22 @@ size_t Typeuse::memoire_utilisee() const
 	return memoire;
 }
 
+long Typeuse::nombre_de_types() const
+{
+	auto compte = 0l;
+	compte += types_simples.taille();
+	compte += types_pointeurs.taille();
+	compte += types_references.taille();
+	compte += types_structures.taille();
+	compte += types_enums.taille();
+	compte += types_tableaux_fixes.taille();
+	compte += types_tableaux_dynamiques.taille();
+	compte += types_fonctions.taille();
+	compte += types_variadiques.taille();
+	compte += types_unions.taille();
+	return compte;
+}
+
 /* ************************************************************************** */
 
 dls::chaine chaine_type(const Type *type)
