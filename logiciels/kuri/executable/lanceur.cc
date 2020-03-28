@@ -742,6 +742,7 @@ int main(int argc, char *argv[])
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
 		est_errone = true;
+		resultat = static_cast<int>(erreur_frappe.type());
 	}
 
 	metriques.temps_nettoyage = debut_nettoyage.temps();
