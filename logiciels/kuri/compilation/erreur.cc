@@ -42,6 +42,42 @@ static void imprime_tilde(dls::flux_chaine &ss, dls::vue_chaine_compacte chaine)
 
 namespace erreur {
 
+static int nombre_chiffres(long nombre)
+{
+	auto compte = 0;
+
+	while (nombre > 0) {
+		nombre /= 10;
+		compte += 1;
+	}
+
+	return compte;
+}
+
+void imprime_ligne_avec_message(
+		dls::flux_chaine &flux,
+		Fichier *fichier,
+		DonneesLexeme *lexeme,
+		const char *message)
+{
+	flux << fichier->chemin << ':' << lexeme->ligne + 1 << ':' << lexeme->colonne + 1 << " : ";
+	flux << message << "\n";
+
+	auto nc = nombre_chiffres(lexeme->ligne + 1);
+
+	for (auto i = 0; i < 5 - nc; ++i) {
+		flux << ' ';
+	}
+
+	flux << lexeme->ligne + 1 << " | " << fichier->tampon[lexeme->ligne];
+	flux << "      | ";
+
+	lng::erreur::imprime_caractere_vide(flux, lexeme->colonne, fichier->tampon[lexeme->ligne]);
+	flux << '^';
+	lng::erreur::imprime_tilde(flux, lexeme->chaine);
+	flux << '\n';
+}
+
 void lance_erreur(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,

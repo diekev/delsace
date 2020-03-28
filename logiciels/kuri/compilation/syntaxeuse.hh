@@ -43,6 +43,18 @@ class Syntaxeuse : public lng::analyseuse<DonneesLexeme> {
 
 	dls::chrono::metre_seconde m_chrono_analyse{};
 
+	/* Pour les messages d'erreurs. */
+	struct DonneesEtatSyntaxage {
+		DonneesLexeme *lexeme = nullptr;
+		const char *message = nullptr;
+
+		DonneesEtatSyntaxage() = default;
+
+		COPIE_CONSTRUCT(DonneesEtatSyntaxage);
+	};
+
+	dls::tablet<DonneesEtatSyntaxage, 33> m_donnees_etat_syntaxage{};
+
 	bool m_global = false;
 
 public:
@@ -67,6 +79,10 @@ private:
 	[[noreturn]] void lance_erreur(
 			const dls::chaine &quoi,
 			erreur::type_erreur type = erreur::type_erreur::NORMAL);
+
+	void empile_etat(const char *message, DonneesLexeme *lexeme);
+
+	void depile_etat();
 
 	void analyse_expression_haut_niveau(std::ostream &os);
 	NoeudExpression *analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lexeme);

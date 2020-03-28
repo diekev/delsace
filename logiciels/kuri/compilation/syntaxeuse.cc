@@ -31,6 +31,7 @@
 #include "biblinternes/langage/debogage.hh"
 #include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/conditions.h"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
@@ -225,6 +226,7 @@ void Syntaxeuse::analyse_expression_haut_niveau(std::ostream &os)
 
 NoeudExpression *Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lexeme)
 {
+	empile_etat("dans le syntaxage de la fonction", &lexeme);
 	auto externe = false;
 
 	if (est_identifiant(GenreLexeme::EXTERNE)) {
@@ -340,6 +342,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, Donnee
 //		}
 	}
 
+	depile_etat();
+
 	return noeud;
 }
 
@@ -429,6 +433,7 @@ NoeudExpression *Syntaxeuse::analyse_controle_pour()
 
 void Syntaxeuse::analyse_corps_fonction()
 {
+	empile_etat("dans le syntaxage du bloc", &donnees());
 	auto bloc_courant = m_fichier->module->assembleuse->bloc_courant();
 
 	auto expressions = dls::tablet<NoeudExpression *, 32>();
@@ -635,6 +640,8 @@ void Syntaxeuse::analyse_corps_fonction()
 
 	copie_tablet_tableau(expressions, bloc_courant->expressions);
 	copie_tablet_tableau(membres, bloc_courant->membres);
+
+	depile_etat();
 }
 
 NoeudBloc *Syntaxeuse::analyse_bloc()
@@ -1507,6 +1514,8 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(DonneesLexeme &lexeme)
 
 NoeudExpression *Syntaxeuse::analyse_declaration_structure(GenreLexeme id, DonneesLexeme &lexeme)
 {
+	empile_etat("dans le syntaxage de la structure", &donnees());
+
 	auto noeud_decl = CREE_NOEUD(NoeudStruct, GenreNoeud::DECLARATION_STRUCTURE, &lexeme);
 	noeud_decl->est_union = (id == GenreLexeme::UNION);
 
@@ -1572,11 +1581,15 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(GenreLexeme id, Donne
 		noeud_decl->bloc = bloc;
 	}
 
+	depile_etat();
+
 	return noeud_decl;
 }
 
 NoeudExpression *Syntaxeuse::analyse_declaration_enum(GenreLexeme genre, DonneesLexeme &lexeme)
 {
+	empile_etat("dans le syntaxage de l'énumération", &donnees());
+
 	auto noeud_decl = CREE_NOEUD(NoeudEnum, GenreNoeud::DECLARATION_ENUM, &lexeme);
 
 	if (genre != GenreLexeme::ERREUR) {
@@ -1623,6 +1636,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(GenreLexeme genre, Donnees
 	noeud_decl->bloc = bloc;
 
 	consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
+
+	depile_etat();
 
 	return noeud_decl;
 }
@@ -1876,6 +1891,8 @@ static bool est_operateur_surchargeable(GenreLexeme genre)
 
 NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 {
+	empile_etat("dans le syntaxage de l'opérateur", &donnees());
+
 	// nous sommes au niveau du lexème de l'opérateur
 	auto id = this->identifiant_courant();
 
@@ -1989,6 +2006,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	noeud->bloc = analyse_bloc();
 	aplatis_arbre(noeud->bloc, noeud->arbre_aplatis);
 
+	depile_etat();
+
 	return noeud;
 }
 
@@ -2011,5 +2030,29 @@ void Syntaxeuse::consomme_type(const char *message)
 
 void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::type_erreur type)
 {
-	erreur::lance_erreur(quoi, m_contexte, &donnees(), type);
+	auto lexeme = &donnees();
+	auto fichier = m_contexte.fichier(static_cast<size_t>(lexeme->fichier));
+
+	auto flux = dls::flux_chaine();
+
+	flux << "\n";
+	flux << fichier->chemin << ':' << lexeme->ligne + 1 << " : erreur de syntaxage :\n";
+
+	POUR (m_donnees_etat_syntaxage) {
+		erreur::imprime_ligne_avec_message(flux, fichier, it.lexeme, it.message);
+	}
+
+	erreur::imprime_ligne_avec_message(flux, fichier, lexeme, quoi.c_str());
+
+	throw erreur::frappe(flux.chn().c_str(), type);
+}
+
+void Syntaxeuse::empile_etat(const char *message, DonneesLexeme *lexeme)
+{
+	m_donnees_etat_syntaxage.pousse({ lexeme, message });
+}
+
+void Syntaxeuse::depile_etat()
+{
+	m_donnees_etat_syntaxage.pop_back();
 }
