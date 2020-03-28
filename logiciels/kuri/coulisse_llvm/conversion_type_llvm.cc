@@ -250,10 +250,11 @@ llvm::Type *converti_type_llvm(
 		{
 			auto type_deref_llvm = converti_type_llvm(contexte, contexte.typeuse.type_dereference_pour(type));
 
-			/* type = structure { *type, n64 } */
-			std::vector<llvm::Type *> types_membres(2ul);
+			/* type = structure { *type, n64, n64 } */
+			std::vector<llvm::Type *> types_membres(3ul);
 			types_membres[0] = llvm::PointerType::get(type_deref_llvm, 0);
 			types_membres[1] = llvm::Type::getInt64Ty(contexte.contexte);
+			types_membres[2] = llvm::Type::getInt64Ty(contexte.contexte);
 
 			type->type_llvm = llvm::StructType::create(
 					   contexte.contexte,

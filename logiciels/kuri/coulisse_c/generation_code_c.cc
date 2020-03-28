@@ -626,9 +626,14 @@ static void cree_initialisation_structure(ContexteGenerationCode &contexte, Cons
 			continue;
 		}
 
-		if (type_membre->genre == GenreType::CHAINE || type_membre->genre == GenreType::TABLEAU_DYNAMIQUE) {
+		if (type_membre->genre == GenreType::CHAINE) {
 			constructrice << "pointeur->" << nom_broye_membre << ".pointeur = 0;\n";
 			constructrice << "pointeur->" << nom_broye_membre << ".taille = 0;\n";
+		}
+		else if (type_membre->genre == GenreType::TABLEAU_DYNAMIQUE) {
+			constructrice << "pointeur->" << nom_broye_membre << ".pointeur = 0;\n";
+			constructrice << "pointeur->" << nom_broye_membre << ".taille = 0;\n";
+			constructrice << "pointeur->" << nom_broye_membre << broye_nom_simple(".capacité") << " = 0;\n";
 		}
 		else if (type_membre->genre == GenreType::EINI) {
 			constructrice << "pointeur->" << nom_broye_membre << ".pointeur = 0\n;";
@@ -670,9 +675,13 @@ static void cree_initialisation_defaut_pour_constante(
 {
 	switch (type->genre) {
 		case GenreType::CHAINE:
-		case GenreType::TABLEAU_DYNAMIQUE:
 		{
 			flux << "{ .pointeur = 0, .taille = 0 }";
+			break;
+		}
+		case GenreType::TABLEAU_DYNAMIQUE:
+		{
+			flux << "{ .pointeur = 0, .taille = 0, " << broye_nom_simple(".capacité") << " }";
 			break;
 		}
 		case GenreType::BOOL:
@@ -793,7 +802,7 @@ static void genere_code_allocation(
 	auto expr_nouvelle_taille_octet = dls::chaine("");
 	auto expr_ancienne_taille_octet = dls::chaine("");
 	auto expr_nouvelle_taille = dls::chaine("");
-	auto expr_acces_taille = dls::chaine("");
+	auto expr_acces_capacite = dls::chaine("");
 	auto expr_pointeur = dls::chaine("");
 	auto chn_enfant = dls::chaine("");
 
@@ -806,6 +815,10 @@ static void genere_code_allocation(
 	else {
 		assert(mode == 0);
 		chn_enfant = constructrice.declare_variable_temp(type, index++);
+
+		if (type->genre == GenreType::TABLEAU_DYNAMIQUE) {
+			constructrice << chn_enfant << ".taille = 0;\n";
+		}
 	}
 
 	switch (type->genre) {
@@ -814,8 +827,8 @@ static void genere_code_allocation(
 			auto type_deref = contexte.typeuse.type_dereference_pour(type);
 
 			expr_pointeur = chn_enfant + ".pointeur";
-			expr_acces_taille = chn_enfant + ".taille";
-			expr_ancienne_taille_octet = expr_acces_taille;
+			expr_acces_capacite = chn_enfant + broye_nom_simple(".capacité");
+			expr_ancienne_taille_octet = expr_acces_capacite;
 			expr_ancienne_taille_octet += " * sizeof(" + nom_broye_type(type_deref) + ")";
 
 			/* allocation ou réallocation */
@@ -837,8 +850,8 @@ static void genere_code_allocation(
 		case GenreType::CHAINE:
 		{
 			expr_pointeur = chn_enfant + ".pointeur";
-			expr_acces_taille = chn_enfant + ".taille";
-			expr_ancienne_taille_octet = expr_acces_taille;
+			expr_acces_capacite = chn_enfant + ".taille";
+			expr_ancienne_taille_octet = expr_acces_capacite;
 
 			/* allocation ou réallocation */
 			if (expression != nullptr) {
@@ -921,7 +934,7 @@ static void genere_code_allocation(
 				}
 			}
 
-			if (expr_acces_taille.taille() != 0) {
+			if (expr_acces_capacite.taille() != 0) {
 				b->valeur_calculee = chn_enfant;
 			}
 			else {
@@ -945,8 +958,8 @@ static void genere_code_allocation(
 
 	/* Il faut attendre d'avoir généré le code d'ajournement de la mémoire avant
 	 * de modifier la taille. */
-	if (expr_acces_taille.taille() != 0) {
-		constructrice << expr_acces_taille << " = " << expr_nouvelle_taille <<  ";\n";
+	if (expr_acces_capacite.taille() != 0) {
+		constructrice << expr_acces_capacite << " = " << expr_nouvelle_taille <<  ";\n";
 	}
 }
 
@@ -1337,9 +1350,14 @@ void genere_code_C(
 					if (variable->type->genre == GenreType::STRUCTURE || variable->type->genre == GenreType::UNION) {
 						constructrice << "initialise_" << type->nom_broye << "(&" << nom_broye << ");\n";
 					}
-					else if (variable->type->genre == GenreType::CHAINE || variable->type->genre == GenreType::TABLEAU_DYNAMIQUE) {
+					else if (variable->type->genre == GenreType::CHAINE) {
 						constructrice << nom_broye << ".pointeur = 0;\n";
 						constructrice << nom_broye << ".taille = 0;\n";
+					}
+					else if (variable->type->genre == GenreType::TABLEAU_DYNAMIQUE) {
+						constructrice << nom_broye << ".pointeur = 0;\n";
+						constructrice << nom_broye << ".taille = 0;\n";
+						constructrice << nom_broye << broye_nom_simple(".capacité") << " = 0;\n";
 					}
 					else if (variable->type->genre == GenreType::EINI) {
 						constructrice << nom_broye << ".pointeur = 0\n;";

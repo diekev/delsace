@@ -76,6 +76,7 @@ using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
  * - trace d'appels
  * - nouvelle forme d'initialisation des structures (en utilisant expr->exprs)
  * - valeurs constantes => utilisation de la valeur de son expression
+ * - voir tous les cas d'utilisation de [].taille comme [].capacité
  */
 
 /* ************************************************************************** */
@@ -170,6 +171,7 @@ enum {
 	/* TABLEAUX */
 	POINTEUR_TABLEAU = 0,
 	TAILLE_TABLEAU = 1,
+	CAPACITE_TABLEAU = 2,
 
 	/* EINI */
 	POINTEUR_EINI = 0,
@@ -1196,6 +1198,10 @@ llvm::Value *genere_code_llvm(
 
 				if (membre->ident->nom == "pointeur") {
 					return accede_membre_structure(contexte, valeur, POINTEUR_TABLEAU, !expr_gauche);
+				}
+
+				if (membre->ident->nom == "capacité") {
+					return accede_membre_structure(contexte, valeur, CAPACITE_TABLEAU, !expr_gauche);
 				}
 
 				return accede_membre_structure(contexte, valeur, TAILLE_TABLEAU, !expr_gauche);

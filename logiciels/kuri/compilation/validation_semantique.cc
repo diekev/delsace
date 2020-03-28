@@ -404,6 +404,11 @@ static void valide_acces_membre(
 			return;
 		}
 
+		if (membre->ident->nom == "capacité") {
+			b->type = contexte.typeuse[TypeBase::Z64];
+			return;
+		}
+
 		erreur::membre_inconnu_tableau(contexte, b, structure, membre);
 	}
 

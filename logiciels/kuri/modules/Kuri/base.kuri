@@ -568,16 +568,20 @@ tableau_ajoute :: fonc (tabl: *[]$T, valeur: $T) -> rien
 {
     tmp := mémoire(tabl)
 
-    taille := tmp.taille
-    reloge tmp: [taille + 1]$T
-    tmp[taille] = valeur
+    si tmp.taille == tmp.capacité {
+        capacité := tmp.capacité
+        reloge tmp: [capacité + 1]$T
+    }
+
+    tmp.taille += 1
+    tmp[tmp.taille - 1] = valeur
 
     mémoire(tabl) = tmp
 }
 
 tableau_réserve :: fonc(tabl: *[]$T, taille: z64) -> rien
 {
-    si taille <= tabl.taille {
+    si taille <= tabl.capacité {
         retourne
     }
 
@@ -590,8 +594,9 @@ tableau_réserve :: fonc(tabl: *[]$T, taille: z64) -> rien
 
 tableau_copie :: fonc(tabl: []$T) -> []$T
 {
-	tmp := loge [tabl.taille]$T
+	tmp := loge [tabl.capacité]$T
     copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * transtype(taille_de(z64): z64))
+    tmp.taille = tabl.taille
     retourne tmp
 }
 
@@ -646,7 +651,7 @@ arguments_ligne_commande :: fonc () -> []chaine
             chn : chaine
             chn.pointeur = __ARGV[idx]
             chn.taille = strlen(__ARGV[idx])
-            tabl_args[idx] = chn
+            tableau_ajoute(@tabl_args, chn)
         }
 
         retourne tabl_args

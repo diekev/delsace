@@ -51,6 +51,7 @@ empile :: fonc(pile : &PileNoeud, noeud : *NoeudSyntaxique) -> rien
         reloge pile.données : [taille + 1]*NoeudSyntaxique
     }
 
+    pile.données.taille += 1
     pile.données[pile.curseur] = noeud
     pile.curseur += 1
 }

@@ -205,7 +205,7 @@ void cree_typedef(Type *type, ConstructriceCodeC &constructrice)
 				constructrice << nom_broye_type(type_pointe) << " *pointeur;";
 			}
 
-			constructrice << "\n\tlong taille;\n} " << nom_broye << ";\n\n";
+			constructrice << "\n\tlong taille;\n" << "\tlong " << broye_nom_simple("capacité") << ";\n} " << nom_broye << ";\n\n";
 			break;
 		}
 		case GenreType::FONCTION:

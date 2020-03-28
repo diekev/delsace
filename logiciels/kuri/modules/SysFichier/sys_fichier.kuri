@@ -167,6 +167,7 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 		taille_courante := contenu.taille
 
 		reloge contenu : [taille_courante + lu]octet
+        contenu.taille += lu
 
 		src := @tampon[0]
 		dst := @contenu[taille_courante]
