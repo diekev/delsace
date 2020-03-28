@@ -1350,7 +1350,7 @@ static void performe_validation_semantique(
 								erreur::type_erreur::NORMAL);
 				}
 
-				dls::tableau<NoeudExpression *> feuilles;
+				dls::tablet<NoeudExpression *, 10> feuilles;
 				rassemble_feuilles(variable, feuilles);
 
 				/* Utilisation du type de la fonction et non
@@ -1744,7 +1744,7 @@ static void performe_validation_semantique(
 
 			if (nombre_retour > 1) {
 				if (enfant->lexeme->genre == GenreLexeme::VIRGULE) {
-					dls::tableau<NoeudExpression *> feuilles;
+					dls::tablet<NoeudExpression *, 10> feuilles;
 					rassemble_feuilles(enfant, feuilles);
 
 					if (feuilles.taille() != nombre_retour) {
@@ -1910,7 +1910,7 @@ static void performe_validation_semantique(
 			/* À FAIRE : utilisation du type */
 //			auto df = static_cast<DonneesFonction *>(nullptr);
 
-			auto feuilles = dls::tableau<NoeudExpression *>{};
+			auto feuilles = dls::tablet<NoeudExpression *, 10>{};
 			rassemble_feuilles(enfant1, feuilles);
 
 			for (auto f : feuilles) {
@@ -2270,7 +2270,7 @@ static void performe_validation_semantique(
 			auto expr = static_cast<NoeudExpressionUnaire *>(b);
 			b->genre_valeur = GenreValeur::DROITE;
 
-			dls::tableau<NoeudExpression *> feuilles;
+			dls::tablet<NoeudExpression *, 10> feuilles;
 			rassemble_feuilles(expr->expr, feuilles);
 
 			for (auto f : feuilles) {
@@ -3104,7 +3104,7 @@ static void performe_validation_semantique(
 					auto expr_paire = inst->paires_discr[i].first;
 					auto bloc_paire = inst->paires_discr[i].second;
 
-					auto feuilles = dls::tableau<NoeudExpression *>();
+					auto feuilles = dls::tablet<NoeudExpression *, 10>();
 					rassemble_feuilles(expr_paire, feuilles);
 
 					for (auto f : feuilles) {
@@ -3181,7 +3181,7 @@ static void performe_validation_semantique(
 
 					performe_validation_semantique(bloc_paire, contexte, true);
 
-					auto feuilles = dls::tableau<NoeudExpression *>();
+					auto feuilles = dls::tablet<NoeudExpression *, 10>();
 					rassemble_feuilles(expr_paire, feuilles);
 
 					for (auto f : feuilles) {

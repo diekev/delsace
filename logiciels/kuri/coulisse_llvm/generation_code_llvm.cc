@@ -2300,7 +2300,7 @@ llvm::Value *genere_code_llvm(
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(b);
 
-			dls::tableau<NoeudExpression *> feuilles;
+			dls::tablet<NoeudExpression *, 10> feuilles;
 			rassemble_feuilles(expr->expr, feuilles);
 
 			/* alloue de la place pour le tableau */
@@ -2558,7 +2558,7 @@ llvm::Value *genere_code_llvm(
 				builder.SetInsertPoint(contexte.bloc_courant());
 
 				if (enf0 != nullptr) {
-					auto feuilles = dls::tableau<NoeudExpression *>();
+					auto feuilles = dls::tablet<NoeudExpression *, 10>();
 					rassemble_feuilles(enf0, feuilles);
 
 					// les différentes feuilles sont évaluées dans des blocs

@@ -120,36 +120,6 @@ bool est_declaration(GenreNoeud genre)
 
 /* ************************************************************************** */
 
-void rassemble_feuilles(
-		NoeudExpression *noeud_base,
-		dls::tableau<NoeudExpression *> &feuilles)
-{
-	if (noeud_base == nullptr) {
-		return;
-	}
-
-	if (noeud_base->lexeme->genre != GenreLexeme::VIRGULE) {
-		feuilles.pousse(noeud_base);
-		return;
-	}
-
-	auto expr = static_cast<NoeudExpressionBinaire *>(noeud_base);
-
-	if (expr->expr1->lexeme->genre == GenreLexeme::VIRGULE) {
-		rassemble_feuilles(expr->expr1, feuilles);
-	}
-	else {
-		feuilles.pousse(expr->expr1);
-	}
-
-	if (expr->expr2->lexeme->genre == GenreLexeme::VIRGULE) {
-		rassemble_feuilles(expr->expr2, feuilles);
-	}
-	else {
-		feuilles.pousse(expr->expr2);
-	}
-}
-
 void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 {
 	if (racine == nullptr) {

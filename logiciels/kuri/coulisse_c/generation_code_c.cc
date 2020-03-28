@@ -1281,7 +1281,7 @@ void genere_code_C(
 
 			/* a, b = foo(); -> foo(&a, &b); */
 			if (variable->lexeme->genre == GenreLexeme::VIRGULE) {
-				dls::tableau<NoeudExpression *> feuilles;
+				dls::tablet<NoeudExpression *, 10> feuilles;
 				rassemble_feuilles(variable, feuilles);
 
 				dls::liste<NoeudExpression *> noeuds;
@@ -1703,7 +1703,7 @@ void genere_code_C(
 			}
 			else if (enfant->lexeme->genre == GenreLexeme::VIRGULE) {
 				/* retourne a, b; -> *__ret1 = a; *__ret2 = b; return; */
-				dls::tableau<NoeudExpression *> feuilles;
+				dls::tablet<NoeudExpression *, 10> feuilles;
 				rassemble_feuilles(enfant, feuilles);
 
 				auto idx = 0l;
@@ -2078,7 +2078,7 @@ void genere_code_C(
 					/* À FAIRE : utilisation du type */
 					auto nombre_vars_ret = decl_fonc->type_fonc->types_sorties.taille;
 
-					auto feuilles = dls::tableau<NoeudExpression *>{};
+					auto feuilles = dls::tablet<NoeudExpression *, 10>{};
 					rassemble_feuilles(enfant1, feuilles);
 
 					auto idx = static_cast<NoeudExpression *>(nullptr);
@@ -2419,7 +2419,7 @@ void genere_code_C(
 			auto expr = static_cast<NoeudExpressionUnaire *>(b);
 			b->genre_valeur = GenreValeur::DROITE;
 
-			dls::tableau<NoeudExpression *> feuilles;
+			dls::tablet<NoeudExpression *, 10> feuilles;
 			rassemble_feuilles(expr->expr, feuilles);
 
 			for (auto f : feuilles) {
@@ -2523,7 +2523,7 @@ void genere_code_C(
 				auto enf0 = it.first;
 				auto enf1 = it.second;
 
-				auto feuilles = dls::tableau<NoeudExpression *>();
+				auto feuilles = dls::tablet<NoeudExpression *, 10>();
 				rassemble_feuilles(enf0, feuilles);
 
 				for (auto f : feuilles) {
@@ -2593,7 +2593,7 @@ void genere_code_C(
 				auto enf0 = it.first;
 				auto enf1 = it.second;
 
-				auto feuilles = dls::tableau<NoeudExpression *>();
+				auto feuilles = dls::tablet<NoeudExpression *, 10>();
 				rassemble_feuilles(enf0, feuilles);
 
 				for (auto f : feuilles) {
@@ -2683,7 +2683,7 @@ void genere_code_C(
 
 			constructrice << "pthread_mutex_lock(&__etat->mutex_coro);\n";
 
-			auto feuilles = dls::tableau<NoeudExpression *>{};
+			auto feuilles = dls::tablet<NoeudExpression *, 10>{};
 			rassemble_feuilles(enfant, feuilles);
 
 			for (auto i = 0l; i < feuilles.taille(); ++i) {
