@@ -1675,7 +1675,7 @@ void genere_code_C(
 
 			/* utilisation d'une valeur gauche (donc sans temporaire) pour le
 			 * retour de références */
-			applique_transformation(enfant, constructrice, contexte, true);
+			applique_transformation(enfant, constructrice, contexte, false);
 
 			constructrice.declare_variable(
 						b->type,
