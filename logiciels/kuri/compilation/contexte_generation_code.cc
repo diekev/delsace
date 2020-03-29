@@ -359,6 +359,12 @@ char GeranteChaine::valide_caractere(const char *ptr, int &i, bool &ok, const ch
 		else if (c == 'r') {
 			c = '\r';
 		}
+		else if (c == 'f') {
+			c = '\f';
+		}
+		else if (c == 'v') {
+			c = '\v';
+		}
 		else if (c == 'x') {
 			auto v = 0;
 
@@ -487,10 +493,13 @@ GeranteChaine::Resultat GeranteChaine::ajoute_chaine(const dls::vue_chaine_compa
 
 	/* Séquences d'échappement du langage :
 	 * \e : insère un caractère d'échappement (par exemple pour les couleurs dans les terminaux)
+	 * \f : insère un saut de page
 	 * \n : insère une nouvelle ligne
 	 * \r : insère un retour chariot
 	 * \t : insère une tabulation horizontale
+	 * \v : insère une tabulation verticale
 	 * \0 : insère un octet dont la valeur est de zéro (0)
+	 * \' : insère une apostrophe
 	 * \" : insère un guillemet
 	 * \\ : insère un slash arrière
 	 * \dnnn      : insère une valeur décimale, où n est nombre décimal
