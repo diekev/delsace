@@ -916,7 +916,6 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 			break;
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
-		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		case GenreNoeud::EXPRESSION_TRANSTYPE:
 		case GenreNoeud::EXPRESSION_INFO_DE:
@@ -936,6 +935,19 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			break;
+		}
+		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
+		{
+			auto expr = static_cast<NoeudExpressionAppel *>(racine);
+
+			POUR (expr->params) {
+				auto etendue_enfant = calcule_etendue_noeud(it, fichier);
+
+				etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+				etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+			}
 
 			break;
 		}
