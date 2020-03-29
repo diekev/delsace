@@ -202,7 +202,7 @@ struct NoeudBase {
 	GenreValeur genre_valeur{};
 	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
 	int module_appel{}; // module pour les appels de fonctions importées
-	DonneesLexeme const *lexeme = nullptr;
+	Lexeme const *lexeme = nullptr;
 	IdentifiantCode *ident = nullptr;
 	Type *type = nullptr;
 

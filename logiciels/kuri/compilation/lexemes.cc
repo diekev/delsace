@@ -156,7 +156,7 @@ static auto paires_caracteres_speciaux = dls::cree_dico(
 	dls::paire{ '~', GenreLexeme::TILDE }
 );
 
-const char *chaine_identifiant(GenreLexeme id)
+const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 {
 	switch (id) {
 		case GenreLexeme::EXCLAMATION:
@@ -267,6 +267,40 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::DEC_GAUCHE_EGAL";
 		case GenreLexeme::DEC_DROITE_EGAL:
 			return "GenreLexeme::DEC_DROITE_EGAL";
+		case GenreLexeme::NOMBRE_REEL:
+			return "GenreLexeme::NOMBRE_REEL";
+		case GenreLexeme::NOMBRE_ENTIER:
+			return "GenreLexeme::NOMBRE_ENTIER";
+		case GenreLexeme::NOMBRE_HEXADECIMAL:
+			return "GenreLexeme::NOMBRE_HEXADECIMAL";
+		case GenreLexeme::NOMBRE_OCTAL:
+			return "GenreLexeme::NOMBRE_OCTAL";
+		case GenreLexeme::NOMBRE_BINAIRE:
+			return "GenreLexeme::NOMBRE_BINAIRE";
+		case GenreLexeme::PLUS_UNAIRE:
+			return "GenreLexeme::PLUS_UNAIRE";
+		case GenreLexeme::MOINS_UNAIRE:
+			return "GenreLexeme::MOINS_UNAIRE";
+		case GenreLexeme::CHAINE_CARACTERE:
+			return "GenreLexeme::CHAINE_CARACTERE";
+		case GenreLexeme::CHAINE_LITTERALE:
+			return "GenreLexeme::CHAINE_LITTERALE";
+		case GenreLexeme::CARACTERE:
+			return "GenreLexeme::CARACTERE";
+		case GenreLexeme::POINTEUR:
+			return "GenreLexeme::POINTEUR";
+		case GenreLexeme::TABLEAU:
+			return "GenreLexeme::TABLEAU";
+		case GenreLexeme::REFERENCE:
+			return "GenreLexeme::REFERENCE";
+		case GenreLexeme::INCONNU:
+			return "GenreLexeme::INCONNU";
+		case GenreLexeme::CARACTERE_BLANC:
+			return "GenreLexeme::CARACTERE_BLANC";
+		case GenreLexeme::COMMENTAIRE:
+			return "GenreLexeme::COMMENTAIRE";
+		case GenreLexeme::EXPANSION_VARIADIQUE:
+			return "GenreLexeme::EXPANSION_VARIADIQUE";
 		case GenreLexeme::ARRETE:
 			return "GenreLexeme::ARRETE";
 		case GenreLexeme::BOOL:
@@ -391,40 +425,279 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::ENUM";
 		case GenreLexeme::ENUM_DRAPEAU:
 			return "GenreLexeme::ENUM_DRAPEAU";
+	};
+
+	return "ERREUR";
+}
+const char *chaine_du_lexeme(GenreLexeme genre)
+{
+	switch (genre) {
+		case GenreLexeme::EXCLAMATION:
+			return "!";
+		case GenreLexeme::GUILLEMET:
+			return "\"";
+		case GenreLexeme::DIRECTIVE:
+			return "#";
+		case GenreLexeme::DOLLAR:
+			return "$";
+		case GenreLexeme::POURCENT:
+			return "%";
+		case GenreLexeme::ESPERLUETTE:
+			return "&";
+		case GenreLexeme::APOSTROPHE:
+			return "\'";
+		case GenreLexeme::PARENTHESE_OUVRANTE:
+			return "(";
+		case GenreLexeme::PARENTHESE_FERMANTE:
+			return ")";
+		case GenreLexeme::FOIS:
+			return "*";
+		case GenreLexeme::PLUS:
+			return "+";
+		case GenreLexeme::VIRGULE:
+			return ",";
+		case GenreLexeme::MOINS:
+			return "-";
+		case GenreLexeme::POINT:
+			return ".";
+		case GenreLexeme::DIVISE:
+			return "/";
+		case GenreLexeme::DOUBLE_POINTS:
+			return ":";
+		case GenreLexeme::POINT_VIRGULE:
+			return ";";
+		case GenreLexeme::INFERIEUR:
+			return "<";
+		case GenreLexeme::EGAL:
+			return "=";
+		case GenreLexeme::SUPERIEUR:
+			return ">";
+		case GenreLexeme::AROBASE:
+			return "@";
+		case GenreLexeme::CROCHET_OUVRANT:
+			return "[";
+		case GenreLexeme::CROCHET_FERMANT:
+			return "]";
+		case GenreLexeme::CHAPEAU:
+			return "^";
+		case GenreLexeme::ACCOLADE_OUVRANTE:
+			return "{";
+		case GenreLexeme::BARRE:
+			return "|";
+		case GenreLexeme::ACCOLADE_FERMANTE:
+			return "}";
+		case GenreLexeme::TILDE:
+			return "~";
+		case GenreLexeme::DIFFERENCE:
+			return "!=";
+		case GenreLexeme::MODULO_EGAL:
+			return "%=";
+		case GenreLexeme::ESP_ESP:
+			return "&&";
+		case GenreLexeme::ET_EGAL:
+			return "&=";
+		case GenreLexeme::FIN_BLOC_COMMENTAIRE:
+			return "*/";
+		case GenreLexeme::MULTIPLIE_EGAL:
+			return "*=";
+		case GenreLexeme::PLUS_EGAL:
+			return "+=";
+		case GenreLexeme::MOINS_EGAL:
+			return "-=";
+		case GenreLexeme::RETOUR_TYPE:
+			return "->";
+		case GenreLexeme::DEBUT_BLOC_COMMENTAIRE:
+			return "/*";
+		case GenreLexeme::DEBUT_LIGNE_COMMENTAIRE:
+			return "//";
+		case GenreLexeme::DIVISE_EGAL:
+			return "/=";
+		case GenreLexeme::DECLARATION_CONSTANTE:
+			return "::";
+		case GenreLexeme::DECLARATION_VARIABLE:
+			return ":=";
+		case GenreLexeme::DECALAGE_GAUCHE:
+			return "<<";
+		case GenreLexeme::INFERIEUR_EGAL:
+			return "<=";
+		case GenreLexeme::EGALITE:
+			return "==";
+		case GenreLexeme::SUPERIEUR_EGAL:
+			return ">=";
+		case GenreLexeme::DECALAGE_DROITE:
+			return ">>";
+		case GenreLexeme::OUX_EGAL:
+			return "^=";
+		case GenreLexeme::OU_EGAL:
+			return "|=";
+		case GenreLexeme::BARRE_BARRE:
+			return "||";
+		case GenreLexeme::NON_INITIALISATION:
+			return "---";
+		case GenreLexeme::TROIS_POINTS:
+			return "...";
+		case GenreLexeme::DEC_GAUCHE_EGAL:
+			return "<<=";
+		case GenreLexeme::DEC_DROITE_EGAL:
+			return ">>=";
 		case GenreLexeme::NOMBRE_REEL:
-			return "GenreLexeme::NOMBRE_REEL";
+			return "1.234";
 		case GenreLexeme::NOMBRE_ENTIER:
-			return "GenreLexeme::NOMBRE_ENTIER";
+			return "123";
 		case GenreLexeme::NOMBRE_HEXADECIMAL:
-			return "GenreLexeme::NOMBRE_HEXADECIMAL";
+			return "0xFF";
 		case GenreLexeme::NOMBRE_OCTAL:
-			return "GenreLexeme::NOMBRE_OCTAL";
+			return "0o377";
 		case GenreLexeme::NOMBRE_BINAIRE:
-			return "GenreLexeme::NOMBRE_BINAIRE";
+			return "0b1010";
 		case GenreLexeme::PLUS_UNAIRE:
-			return "GenreLexeme::PLUS_UNAIRE";
+			return "-";
 		case GenreLexeme::MOINS_UNAIRE:
-			return "GenreLexeme::MOINS_UNAIRE";
+			return "+";
 		case GenreLexeme::CHAINE_CARACTERE:
-			return "GenreLexeme::CHAINE_CARACTERE";
+			return "chaine_de_caractère";
 		case GenreLexeme::CHAINE_LITTERALE:
-			return "GenreLexeme::CHAINE_LITTERALE";
+			return "chaine littérale";
 		case GenreLexeme::CARACTERE:
-			return "GenreLexeme::CARACTERE";
+			return "a";
 		case GenreLexeme::POINTEUR:
-			return "GenreLexeme::POINTEUR";
+			return "*";
 		case GenreLexeme::TABLEAU:
-			return "GenreLexeme::TABLEAU";
+			return "[]";
 		case GenreLexeme::REFERENCE:
-			return "GenreLexeme::REFERENCE";
+			return "&";
 		case GenreLexeme::INCONNU:
-			return "GenreLexeme::INCONNU";
+			return "inconnu";
 		case GenreLexeme::CARACTERE_BLANC:
-			return "GenreLexeme::CARACTERE_BLANC";
+			return " ";
 		case GenreLexeme::COMMENTAIRE:
-			return "GenreLexeme::COMMENTAIRE";
+			return "// commentaire";
 		case GenreLexeme::EXPANSION_VARIADIQUE:
-			return "GenreLexeme::EXPANSION_VARIADIQUE";
+			return "...";
+		case GenreLexeme::ARRETE:
+			return "arrête";
+		case GenreLexeme::BOOL:
+			return "bool";
+		case GenreLexeme::BOUCLE:
+			return "boucle";
+		case GenreLexeme::CHAINE:
+			return "chaine";
+		case GenreLexeme::CHARGE:
+			return "charge";
+		case GenreLexeme::CONTINUE:
+			return "continue";
+		case GenreLexeme::COROUT:
+			return "corout";
+		case GenreLexeme::DANS:
+			return "dans";
+		case GenreLexeme::DIFFERE:
+			return "diffère";
+		case GenreLexeme::DISCR:
+			return "discr";
+		case GenreLexeme::DYN:
+			return "dyn";
+		case GenreLexeme::DELOGE:
+			return "déloge";
+		case GenreLexeme::EINI:
+			return "eini";
+		case GenreLexeme::EINI_ERREUR:
+			return "eini_erreur";
+		case GenreLexeme::EMPL:
+			return "empl";
+		case GenreLexeme::ERREUR:
+			return "erreur";
+		case GenreLexeme::EXTERNE:
+			return "externe";
+		case GenreLexeme::FAUX:
+			return "faux";
+		case GenreLexeme::FONC:
+			return "fonc";
+		case GenreLexeme::GARDE:
+			return "garde";
+		case GenreLexeme::IMPORTE:
+			return "importe";
+		case GenreLexeme::INFO_DE:
+			return "info_de";
+		case GenreLexeme::LOGE:
+			return "loge";
+		case GenreLexeme::MEMOIRE:
+			return "mémoire";
+		case GenreLexeme::N16:
+			return "n16";
+		case GenreLexeme::N32:
+			return "n32";
+		case GenreLexeme::N64:
+			return "n64";
+		case GenreLexeme::N8:
+			return "n8";
+		case GenreLexeme::NONATTEIGNABLE:
+			return "nonatteignable";
+		case GenreLexeme::NONSUR:
+			return "nonsûr";
+		case GenreLexeme::NUL:
+			return "nul";
+		case GenreLexeme::OCTET:
+			return "octet";
+		case GenreLexeme::OPERATEUR:
+			return "opérateur";
+		case GenreLexeme::PIEGE:
+			return "piège";
+		case GenreLexeme::POUR:
+			return "pour";
+		case GenreLexeme::POUSSE_CONTEXTE:
+			return "pousse_contexte";
+		case GenreLexeme::R16:
+			return "r16";
+		case GenreLexeme::R32:
+			return "r32";
+		case GenreLexeme::R64:
+			return "r64";
+		case GenreLexeme::RELOGE:
+			return "reloge";
+		case GenreLexeme::RETIENS:
+			return "retiens";
+		case GenreLexeme::RETOURNE:
+			return "retourne";
+		case GenreLexeme::RIEN:
+			return "rien";
+		case GenreLexeme::REPETE:
+			return "répète";
+		case GenreLexeme::SANSARRET:
+			return "sansarrêt";
+		case GenreLexeme::SAUFSI:
+			return "saufsi";
+		case GenreLexeme::SI:
+			return "si";
+		case GenreLexeme::SINON:
+			return "sinon";
+		case GenreLexeme::STRUCT:
+			return "struct";
+		case GenreLexeme::TAILLE_DE:
+			return "taille_de";
+		case GenreLexeme::TANTQUE:
+			return "tantque";
+		case GenreLexeme::TENTE:
+			return "tente";
+		case GenreLexeme::TRANSTYPE:
+			return "transtype";
+		case GenreLexeme::TYPE_DE:
+			return "type_de";
+		case GenreLexeme::UNION:
+			return "union";
+		case GenreLexeme::VRAI:
+			return "vrai";
+		case GenreLexeme::Z16:
+			return "z16";
+		case GenreLexeme::Z32:
+			return "z32";
+		case GenreLexeme::Z64:
+			return "z64";
+		case GenreLexeme::Z8:
+			return "z8";
+		case GenreLexeme::ENUM:
+			return "énum";
+		case GenreLexeme::ENUM_DRAPEAU:
+			return "énum_drapeau";
 	};
 
 	return "ERREUR";

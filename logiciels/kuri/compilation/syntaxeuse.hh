@@ -32,7 +32,7 @@
 
 struct ContexteGenerationCode;
 
-class Syntaxeuse : public lng::analyseuse<DonneesLexeme> {
+class Syntaxeuse : public lng::analyseuse<Lexeme> {
 	ContexteGenerationCode &m_contexte;
 
 	long m_profondeur = 0;
@@ -45,7 +45,7 @@ class Syntaxeuse : public lng::analyseuse<DonneesLexeme> {
 
 	/* Pour les messages d'erreurs. */
 	struct DonneesEtatSyntaxage {
-		DonneesLexeme *lexeme = nullptr;
+		Lexeme *lexeme = nullptr;
 		const char *message = nullptr;
 
 		DonneesEtatSyntaxage() = default;
@@ -74,29 +74,29 @@ private:
 	/**
 	 * Lance une exception de type ErreurSyntactique contenant la chaine passée
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
-	 * contenues dans l'instance DonneesLexeme lui correspondant.
+	 * contenues dans l'instance Lexeme lui correspondant.
 	 */
 	[[noreturn]] void lance_erreur(
 			const dls::chaine &quoi,
 			erreur::type_erreur type = erreur::type_erreur::SYNTAXAGE);
 
-	void empile_etat(const char *message, DonneesLexeme *lexeme);
+	void empile_etat(const char *message, Lexeme *lexeme);
 
 	void depile_etat();
 
 	void analyse_expression_haut_niveau(std::ostream &os);
-	NoeudExpression *analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lexeme);
+	NoeudExpression *analyse_declaration_fonction(GenreLexeme id, Lexeme &lexeme);
 	void analyse_corps_fonction();
 	NoeudBloc *analyse_bloc();
 	NoeudExpression *analyse_expression(GenreLexeme identifiant_final, GenreLexeme racine_expr);
-	NoeudExpression *analyse_appel_fonction(DonneesLexeme &lexeme);
-	NoeudExpression *analyse_declaration_structure(GenreLexeme id, DonneesLexeme &lexeme);
-	NoeudExpression *analyse_declaration_enum(GenreLexeme genre, DonneesLexeme &lexeme);
+	NoeudExpression *analyse_appel_fonction(Lexeme &lexeme);
+	NoeudExpression *analyse_declaration_structure(GenreLexeme id, Lexeme &lexeme);
+	NoeudExpression *analyse_declaration_enum(GenreLexeme genre, Lexeme &lexeme);
 	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
 	DonneesTypeDeclare analyse_declaration_type_ex();
 	NoeudExpression *analyse_controle_si(GenreNoeud tn);
 	NoeudExpression *analyse_controle_pour();
-	NoeudExpression *analyse_construction_structure(DonneesLexeme &lexeme);
+	NoeudExpression *analyse_construction_structure(Lexeme &lexeme);
 	void analyse_directive_si();
 	NoeudExpression *analyse_declaration_operateur();
 

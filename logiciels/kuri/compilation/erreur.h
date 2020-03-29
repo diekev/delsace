@@ -29,7 +29,7 @@
 #include "biblinternes/langage/erreur.hh"
 
 struct ContexteGenerationCode;
-struct DonneesLexeme;
+struct Lexeme;
 struct NoeudBase;
 struct Type;
 
@@ -69,38 +69,38 @@ using frappe = lng::erreur::frappe<type_erreur>;
 void imprime_ligne_avec_message(
 		dls::flux_chaine &flux,
 		Fichier *fichier,
-		DonneesLexeme *lexeme,
+		Lexeme *lexeme,
 		const char *message);
 
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *morceau,
+		const Lexeme *morceau,
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void redefinition_fonction(
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *lexeme_redefinition,
-		const DonneesLexeme *lexeme_original);
+		const Lexeme *lexeme_redefinition,
+		const Lexeme *lexeme_original);
 
 [[noreturn]] void redefinition_symbole(
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *lexeme_redefinition,
-		const DonneesLexeme *lexeme_original);
+		const Lexeme *lexeme_redefinition,
+		const Lexeme *lexeme_original);
 
 [[noreturn]] void lance_erreur_plage(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *premier_morceau,
-		const DonneesLexeme *dernier_morceau,
+		const Lexeme *premier_morceau,
+		const Lexeme *dernier_morceau,
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void lance_erreur_type_arguments(
 		const Type *type_arg,
 		const Type *type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *morceau_enfant,
-		const DonneesLexeme *morceau);
+		const Lexeme *morceau_enfant,
+		const Lexeme *morceau);
 
 [[noreturn]] void lance_erreur_type_retour(
 		const Type *type_arg,
@@ -112,13 +112,13 @@ void imprime_ligne_avec_message(
 		const Type *type_gauche,
 		const Type *type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *morceau);
+		const Lexeme *morceau);
 
 [[noreturn]] void lance_erreur_type_operation(
 		const Type *type_gauche,
 		const Type *type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *morceau);
+		const Lexeme *morceau);
 
 [[noreturn]] void lance_erreur_fonction_inconnue(
 		ContexteGenerationCode const &contexte,

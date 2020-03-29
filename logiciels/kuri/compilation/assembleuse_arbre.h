@@ -32,7 +32,7 @@ enum class GenreNoeud : char;
 
 struct AllocatriceNoeud;
 struct ContexteGenerationCode;
-struct DonneesLexeme;
+struct Lexeme;
 struct NoeudBase;
 struct NoeudBloc;
 
@@ -73,7 +73,7 @@ public:
 	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
 	 * pointeur vers celui-ci.
 	 */
-	NoeudBase *cree_noeud(GenreNoeud type, DonneesLexeme const *lexeme);
+	NoeudBase *cree_noeud(GenreNoeud type, Lexeme const *lexeme);
 
 	void ajoute_inclusion(const dls::chaine &fichier);
 };

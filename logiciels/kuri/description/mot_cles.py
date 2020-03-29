@@ -141,23 +141,23 @@ trigraphes = [
 trigraphes = sorted(trigraphes)
 
 id_extra = [
-	u'NOMBRE_REEL',
-	u'NOMBRE_ENTIER',
-	u'NOMBRE_HEXADECIMAL',
-	u'NOMBRE_OCTAL',
-	u'NOMBRE_BINAIRE',
-	u'PLUS_UNAIRE',
-	u'MOINS_UNAIRE',
-    u"CHAINE_CARACTERE",
-    u"CHAINE_LITTERALE",
-    u"CARACTERE",
-    u"POINTEUR",
-    u"TABLEAU",
-    u"REFERENCE",
-	u'INCONNU',
-	u'CARACTERE_BLANC',
-	u'COMMENTAIRE',
-	u'EXPANSION_VARIADIQUE',
+	[u'1.234', u'NOMBRE_REEL'],
+	[u'123', u'NOMBRE_ENTIER'],
+	[u'0xFF', u'NOMBRE_HEXADECIMAL'],
+	[u'0o377', u'NOMBRE_OCTAL'],
+	[u'0b1010', u'NOMBRE_BINAIRE'],
+	[u'-', u'PLUS_UNAIRE'],
+	[u'+', u'MOINS_UNAIRE'],
+    [u'chaine_de_caractère', u"CHAINE_CARACTERE"],
+    [u'chaine littérale', u"CHAINE_LITTERALE"],
+    [u'a', u"CARACTERE"],
+    [u'*', u"POINTEUR"],
+    [u'[]', u"TABLEAU"],
+    [u'&', u"REFERENCE"],
+	[u'inconnu', u'INCONNU'],
+	[u' ', u'CARACTERE_BLANC'],
+	[u'// commentaire', u'COMMENTAIRE'],
+	[u'...', u'EXPANSION_VARIADIQUE'],
 ]
 
 
@@ -175,7 +175,7 @@ def enleve_accent(mot):
 
 def construit_structures():
 	structures = u''
-	structures += u'\nstruct DonneesLexeme {\n'
+	structures += u'\nstruct Lexeme {\n'
 	structures += u'\tusing type = GenreLexeme;\n'
 	structures += u'\tstatic constexpr type INCONNU = GenreLexeme::INCONNU;\n'
 	structures += u'\tdls::vue_chaine_compacte chaine;\n'
@@ -255,7 +255,10 @@ def constuit_enumeration():
 	for car in trigraphes:
 		enumeration += u'\t{},\n'.format(car[1])
 
-	for mot in mot_cles + id_extra:
+	for car in id_extra:
+		enumeration += u'\t{},\n'.format(car[1])
+
+	for mot in mot_cles:
 		m = enleve_accent(mot)
 		m = m.upper()
 
@@ -266,8 +269,8 @@ def constuit_enumeration():
 	return enumeration
 
 
-def construit_fonction_chaine_identifiant():
-	fonction = u'const char *chaine_identifiant(GenreLexeme id)\n{\n'
+def construit_fonction_chaine_du_genre_de_lexeme():
+	fonction = u'const char *chaine_du_genre_de_lexeme(GenreLexeme id)\n{\n'
 	fonction += u'\tswitch (id) {\n'
 
 	for car in caracteres_simple:
@@ -282,12 +285,54 @@ def construit_fonction_chaine_identifiant():
 		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
 		fonction += u'\t\t\treturn "GenreLexeme::{}";\n'.format(car[1])
 
-	for mot in mot_cles + id_extra:
+	for car in id_extra:
+		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "GenreLexeme::{}";\n'.format(car[1])
+
+	for mot in mot_cles:
 		m = enleve_accent(mot)
 		m = m.upper()
 
 		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(m)
 		fonction += u'\t\t\treturn "GenreLexeme::{}";\n'.format(m)
+
+	fonction += u'\t};\n'
+	fonction += u'\n\treturn "ERREUR";\n'
+	fonction += u'}\n'
+
+	return fonction
+
+
+def construit_fonction_chaine_du_lexeme():
+	fonction = u'const char *chaine_du_lexeme(GenreLexeme genre)\n{\n'
+	fonction += u'\tswitch (genre) {\n'
+
+	for car in caracteres_simple:
+		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
+
+		if car[0] == u'"':
+		    fonction += u'\t\t\treturn "\{}";\n'.format(car[0])
+		else:
+		    fonction += u'\t\t\treturn "{}";\n'.format(car[0])
+
+	for car in digraphes:
+		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "{}";\n'.format(car[0])
+
+	for car in trigraphes:
+		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "{}";\n'.format(car[0])
+
+	for car in id_extra:
+		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "{}";\n'.format(car[0])
+
+	for mot in mot_cles:
+		m = enleve_accent(mot)
+		m = m.upper()
+
+		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(m)
+		fonction += u'\t\t\treturn "{}";\n'.format(mot)
 
 	fonction += u'\t};\n'
 	fonction += u'\n\treturn "ERREUR";\n'
@@ -324,7 +369,7 @@ license_ = u"""/*
  """
 
 enumeration = constuit_enumeration()
-fonction = construit_fonction_chaine_identifiant()
+fonction = construit_fonction_chaine_du_genre_de_lexeme()
 structures = construit_structures()
 tableaux = construit_tableaux()
 
@@ -471,7 +516,9 @@ inline GenreLexeme operator>>(GenreLexeme id1, int id2)
 """
 
 declaration_fonctions = u"""
-const char *chaine_identifiant(GenreLexeme id);
+const char *chaine_du_genre_de_lexeme(GenreLexeme id);
+
+const char *chaine_du_lexeme(GenreLexeme genre);
 
 void construit_tables_caractere_speciaux();
 
@@ -500,5 +547,6 @@ with io.open(u'../compilation/lexemes.cc', u'w') as source:
 	source.write(u'#include "biblinternes/structures/dico_fixe.hh"\n\n')
 	source.write(tableaux)
 	source.write(fonction)
+	source.write(construit_fonction_chaine_du_lexeme())
 	source.write(u'\nstatic constexpr auto TAILLE_MAX_MOT_CLE = {};\n'.format(taille_max_mot_cles))
 	source.write(fonctions)

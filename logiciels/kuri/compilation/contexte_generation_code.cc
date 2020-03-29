@@ -266,7 +266,7 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 	for (auto fichier : fichiers) {
 		metriques.nombre_lignes += fichier->tampon.nombre_lignes();
 		metriques.memoire_tampons += fichier->tampon.taille_donnees();
-		metriques.memoire_lexemes += static_cast<size_t>(fichier->lexemes.taille()) * sizeof(DonneesLexeme);
+		metriques.memoire_lexemes += static_cast<size_t>(fichier->lexemes.taille()) * sizeof(Lexeme);
 		metriques.nombre_lexemes += static_cast<size_t>(fichier->lexemes.taille());
 		metriques.temps_analyse += fichier->temps_analyse;
 		metriques.temps_chargement += fichier->temps_chargement;

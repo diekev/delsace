@@ -230,13 +230,13 @@ void Lexeuse::performe_lexage()
 
 size_t Lexeuse::memoire_lexemes() const
 {
-	return static_cast<size_t>(m_fichier->lexemes.taille()) * sizeof(DonneesLexeme);
+	return static_cast<size_t>(m_fichier->lexemes.taille()) * sizeof(Lexeme);
 }
 
 void Lexeuse::imprime_lexemes(std::ostream &os)
 {
 	for (auto const &lexeme : m_fichier->lexemes) {
-		os << chaine_identifiant(lexeme.genre) << '\n';
+		os << chaine_du_genre_de_lexeme(lexeme.genre) << '\n';
 	}
 }
 

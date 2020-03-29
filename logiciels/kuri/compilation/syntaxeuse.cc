@@ -121,7 +121,7 @@ Syntaxeuse::Syntaxeuse(
 		ContexteGenerationCode &contexte,
 		Fichier *fichier,
 		dls::chaine const &racine_kuri)
-	: lng::analyseuse<DonneesLexeme>(fichier->lexemes)
+	: lng::analyseuse<Lexeme>(fichier->lexemes)
 	, m_contexte(contexte)
 	, m_racine_kuri(racine_kuri)
 	, m_fichier(fichier)
@@ -224,7 +224,7 @@ void Syntaxeuse::analyse_expression_haut_niveau(std::ostream &os)
 	}
 }
 
-NoeudExpression *Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lexeme)
+NoeudExpression *Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, Lexeme &lexeme)
 {
 	empile_etat("dans le syntaxage de la fonction", &lexeme);
 	auto externe = false;
@@ -711,7 +711,7 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 	while (!requiers_identifiant(identifiant_final)) {
 		auto &lexeme = donnees();
 
-		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(lexeme.genre) << FIN_LOG_EXPRESSION;
+		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_du_genre_de_lexeme(lexeme.genre) << FIN_LOG_EXPRESSION;
 
 		switch (lexeme.genre) {
 			case GenreLexeme::EMPL:
@@ -1415,7 +1415,7 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 	DEB_LOG_EXPRESSION << tabulations[profondeur] << "Expression :" << FIN_LOG_EXPRESSION;
 
 	for (auto noeud : expressions) {
-		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(noeud->lexeme->genre) << FIN_LOG_EXPRESSION;
+		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_du_genre_de_lexeme(noeud->lexeme->genre) << FIN_LOG_EXPRESSION;
 
 		if (noeud->genre == GenreNoeud::DECLARATION_VARIABLE) {
 			if (operateurs.taille() < 2) {
@@ -1507,7 +1507,7 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 	return noeud_expr;
 }
 
-NoeudExpression *Syntaxeuse::analyse_appel_fonction(DonneesLexeme &lexeme)
+NoeudExpression *Syntaxeuse::analyse_appel_fonction(Lexeme &lexeme)
 {
 	auto noeud = CREE_NOEUD(NoeudExpressionAppel, GenreNoeud::EXPRESSION_APPEL_FONCTION, &lexeme);
 
@@ -1529,7 +1529,7 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(DonneesLexeme &lexeme)
 	return noeud;
 }
 
-NoeudExpression *Syntaxeuse::analyse_declaration_structure(GenreLexeme id, DonneesLexeme &lexeme)
+NoeudExpression *Syntaxeuse::analyse_declaration_structure(GenreLexeme id, Lexeme &lexeme)
 {
 	empile_etat("dans le syntaxage de la structure", &donnees());
 
@@ -1603,7 +1603,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(GenreLexeme id, Donne
 	return noeud_decl;
 }
 
-NoeudExpression *Syntaxeuse::analyse_declaration_enum(GenreLexeme genre, DonneesLexeme &lexeme)
+NoeudExpression *Syntaxeuse::analyse_declaration_enum(GenreLexeme genre, Lexeme &lexeme)
 {
 	empile_etat("dans le syntaxage de l'énumération", &donnees());
 
@@ -1846,7 +1846,7 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 	return donnees_type;
 }
 
-NoeudExpression *Syntaxeuse::analyse_construction_structure(DonneesLexeme &lexeme)
+NoeudExpression *Syntaxeuse::analyse_construction_structure(Lexeme &lexeme)
 {
 	auto noeud = CREE_NOEUD(NoeudExpressionAppel, GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE, &lexeme);
 
@@ -2064,7 +2064,7 @@ void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::type_erreur type)
 	throw erreur::frappe(flux.chn().c_str(), type);
 }
 
-void Syntaxeuse::empile_etat(const char *message, DonneesLexeme *lexeme)
+void Syntaxeuse::empile_etat(const char *message, Lexeme *lexeme)
 {
 	m_donnees_etat_syntaxage.pousse({ lexeme, message });
 }

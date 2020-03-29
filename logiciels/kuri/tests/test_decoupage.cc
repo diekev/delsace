@@ -90,7 +90,7 @@ discr nombre {
 Lexeuse lexeuse(str, str + len);
 )";
 
-	const DonneesLexeme donnees_lexemes[] = {
+	const Lexeme donnees_lexemes[] = {
 		{ " ceci est une chaine française avec espaces ", GenreLexeme::CHAINE_LITTERALE },
 		{ "\n", GenreLexeme::POINT_VIRGULE },
 		{ "ceci est une chaine française sans espaces", GenreLexeme::CHAINE_LITTERALE },

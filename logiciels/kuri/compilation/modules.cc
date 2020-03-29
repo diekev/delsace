@@ -66,7 +66,7 @@ DonneesModule::~DonneesModule()
 dls::chaine charge_fichier(
 		const dls::chaine &chemin,
 		ContexteGenerationCode &contexte,
-		DonneesLexeme const &lexeme)
+		Lexeme const &lexeme)
 {
 	std::ifstream fichier;
 	fichier.open(chemin.c_str());
@@ -101,7 +101,7 @@ void charge_fichier(
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesLexeme const &lexeme)
+		Lexeme const &lexeme)
 {
 	auto chemin = module->chemin + nom + ".kuri";
 
@@ -161,7 +161,7 @@ void importe_module(
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesLexeme const &lexeme)
+		Lexeme const &lexeme)
 {
 	auto chemin = nom;
 
@@ -651,7 +651,7 @@ ResultatRecherche cherche_donnees_fonction(
 	return res;
 }
 
-PositionLexeme position_lexeme(DonneesLexeme const &lexeme)
+PositionLexeme position_lexeme(Lexeme const &lexeme)
 {
 	auto pos = PositionLexeme{};
 	pos.pos = lexeme.colonne;

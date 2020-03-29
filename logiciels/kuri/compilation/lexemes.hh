@@ -83,6 +83,23 @@ enum class GenreLexeme : unsigned int {
 	TROIS_POINTS,
 	DEC_GAUCHE_EGAL,
 	DEC_DROITE_EGAL,
+	NOMBRE_REEL,
+	NOMBRE_ENTIER,
+	NOMBRE_HEXADECIMAL,
+	NOMBRE_OCTAL,
+	NOMBRE_BINAIRE,
+	PLUS_UNAIRE,
+	MOINS_UNAIRE,
+	CHAINE_CARACTERE,
+	CHAINE_LITTERALE,
+	CARACTERE,
+	POINTEUR,
+	TABLEAU,
+	REFERENCE,
+	INCONNU,
+	CARACTERE_BLANC,
+	COMMENTAIRE,
+	EXPANSION_VARIADIQUE,
 	ARRETE,
 	BOOL,
 	BOUCLE,
@@ -145,23 +162,6 @@ enum class GenreLexeme : unsigned int {
 	Z8,
 	ENUM,
 	ENUM_DRAPEAU,
-	NOMBRE_REEL,
-	NOMBRE_ENTIER,
-	NOMBRE_HEXADECIMAL,
-	NOMBRE_OCTAL,
-	NOMBRE_BINAIRE,
-	PLUS_UNAIRE,
-	MOINS_UNAIRE,
-	CHAINE_CARACTERE,
-	CHAINE_LITTERALE,
-	CARACTERE,
-	POINTEUR,
-	TABLEAU,
-	REFERENCE,
-	INCONNU,
-	CARACTERE_BLANC,
-	COMMENTAIRE,
-	EXPANSION_VARIADIQUE,
 };
 
 inline GenreLexeme operator&(GenreLexeme id1, int id2)
@@ -189,7 +189,7 @@ inline GenreLexeme operator>>(GenreLexeme id1, int id2)
 	return static_cast<GenreLexeme>(static_cast<int>(id1) >> id2);
 }
 
-struct DonneesLexeme {
+struct Lexeme {
 	using type = GenreLexeme;
 	static constexpr type INCONNU = GenreLexeme::INCONNU;
 	dls::vue_chaine_compacte chaine;
@@ -199,7 +199,9 @@ struct DonneesLexeme {
 	int colonne = 0;
 };
 
-const char *chaine_identifiant(GenreLexeme id);
+const char *chaine_du_genre_de_lexeme(GenreLexeme id);
+
+const char *chaine_du_lexeme(GenreLexeme genre);
 
 void construit_tables_caractere_speciaux();
 

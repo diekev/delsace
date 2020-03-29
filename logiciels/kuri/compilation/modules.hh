@@ -50,7 +50,7 @@ struct Fichier {
 
 	lng::tampon_source tampon{""};
 
-	dls::tableau<DonneesLexeme> lexemes{};
+	dls::tableau<Lexeme> lexemes{};
 
 	dls::ensemble<dls::vue_chaine_compacte> modules_importes{};
 
@@ -92,14 +92,14 @@ struct DonneesModule {
 dls::chaine charge_fichier(
 		dls::chaine const &chemin,
 		ContexteGenerationCode &contexte,
-		DonneesLexeme const &lexeme);
+		Lexeme const &lexeme);
 
 void charge_fichier(std::ostream &os,
 		DonneesModule *module,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesLexeme const &lexeme);
+		Lexeme const &lexeme);
 
 /**
  * Charge le module dont le nom est spécifié.
@@ -115,7 +115,7 @@ void charge_fichier(std::ostream &os,
  * pointe pas vers un fichier Kuri, ou si le fichier ne peut être ouvert, une
  * exception est lancée.
  *
- * Les DonneesLexeme doivent être celles du nom du module et sont utilisées
+ * Les Lexeme doivent être celles du nom du module et sont utilisées
  * pour les erreurs lancées.
  *
  * Le paramètre est_racine ne doit être vrai que pour le module racine.
@@ -125,7 +125,7 @@ void importe_module(
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesLexeme const &lexeme);
+		Lexeme const &lexeme);
 
 /* ************************************************************************** */
 
@@ -178,7 +178,7 @@ struct PositionLexeme {
 	long pos = 0;
 };
 
-PositionLexeme position_lexeme(DonneesLexeme const &lexeme);
+PositionLexeme position_lexeme(Lexeme const &lexeme);
 
 /* ************************************************************************** */
 

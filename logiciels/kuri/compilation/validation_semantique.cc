@@ -57,7 +57,7 @@ static Type *resoud_type_final(
 		ContexteGenerationCode &contexte,
 		DonneesTypeDeclare &type_declare,
 		NoeudBloc *bloc,
-		DonneesLexeme const *lexeme,
+		Lexeme const *lexeme,
 		bool evalue_expr = true)
 {
 	if (type_declare.taille() == 0) {

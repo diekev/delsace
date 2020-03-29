@@ -325,12 +325,12 @@ struct arbre {
 static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 {
 #if 0
-	auto const max_lexemes = taille_tampon / sizeof(DonneesLexeme);
+	auto const max_lexemes = taille_tampon / sizeof(Lexeme);
 
-	dls::tableau<DonneesLexeme> lexemes;
+	dls::tableau<Lexeme> lexemes;
 	lexemes.reserve(max_lexemes);
 
-	auto dm = DonneesLexeme{};
+	auto dm = Lexeme{};
 	dm.chaine = "texte_test";
 	dm.ligne_pos = 0ul;
 
@@ -360,7 +360,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 	dm.genre = id_lexeme::ACCOLADE_FERMANTE;
 	lexemes.pousse(dm);
 
-	auto const taille_octet = sizeof(DonneesLexeme) * lexemes.taille();
+	auto const taille_octet = sizeof(Lexeme) * lexemes.taille();
 
 	memcpy(donnees, lexemes.donnees(), std::min(taille_tampon, taille_octet));
 #else
@@ -391,7 +391,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 
 	lexemes.pousse(GenreLexeme::ACCOLADE_FERMANTE);
 
-	auto const taille_octet = sizeof(DonneesLexeme) * static_cast<size_t>(lexemes.taille());
+	auto const taille_octet = sizeof(Lexeme) * static_cast<size_t>(lexemes.taille());
 
 	memcpy(donnees, lexemes.donnees(), std::min(taille_tampon, taille_octet));
 #endif
@@ -400,9 +400,9 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 {
 #if 0
-	auto const max_lexemes = taille_tampon / sizeof(DonneesLexeme);
+	auto const max_lexemes = taille_tampon / sizeof(Lexeme);
 
-	dls::tableau<DonneesLexeme> lexemes;
+	dls::tableau<Lexeme> lexemes;
 	lexemes.reserve(max_lexemes);
 
 	std::random_device device{};
@@ -411,7 +411,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 		static_cast<int>(id_lexeme::INCONNU)
 	};
 
-	auto dm = DonneesLexeme{};
+	auto dm = Lexeme{};
 	dm.chaine = "texte_test";
 	dm.ligne_pos = 0ul;
 
@@ -428,7 +428,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 	dm.genre = id_lexeme::ACCOLADE_FERMANTE;
 	lexemes.pousse(dm);
 
-	auto const taille_octet = sizeof(DonneesLexeme) * lexemes.taille();
+	auto const taille_octet = sizeof(Lexeme) * lexemes.taille();
 
 	memcpy(donnees, lexemes.donnees(), std::min(taille_tampon, taille_octet));
 #else
@@ -453,7 +453,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 
 	lexemes.pousse(GenreLexeme::ACCOLADE_FERMANTE);
 
-	auto const taille_octet = sizeof(DonneesLexeme) * static_cast<size_t>(lexemes.taille());
+	auto const taille_octet = sizeof(Lexeme) * static_cast<size_t>(lexemes.taille());
 
 	memcpy(donnees, lexemes.donnees(), std::min(taille_tampon, taille_octet));
 #endif
@@ -464,10 +464,10 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	auto donnees_lexemes = reinterpret_cast<const GenreLexeme *>(donnees);
 	auto nombre_lexemes = taille / sizeof(GenreLexeme);
 
-	dls::tableau<DonneesLexeme> lexemes;
+	dls::tableau<Lexeme> lexemes;
 	lexemes.reserve(static_cast<long>(nombre_lexemes));
 
-	auto dm = DonneesLexeme{};
+	auto dm = Lexeme{};
 	dm.chaine = "texte_test";
 	dm.fichier = 0;
 

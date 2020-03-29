@@ -57,7 +57,7 @@ static int nombre_chiffres(long nombre)
 void imprime_ligne_avec_message(
 		dls::flux_chaine &flux,
 		Fichier *fichier,
-		DonneesLexeme *lexeme,
+		Lexeme *lexeme,
 		const char *message)
 {
 	flux << fichier->chemin << ':' << lexeme->ligne + 1 << ':' << lexeme->colonne + 1 << " : ";
@@ -81,7 +81,7 @@ void imprime_ligne_avec_message(
 void lance_erreur(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *lexeme,
+		const Lexeme *lexeme,
 		type_erreur type)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
@@ -102,15 +102,15 @@ void lance_erreur(
 	ss << '\n';
 
 	ss << quoi;
-	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
+	ss << ", obtenu : " << chaine << " (" << chaine_du_genre_de_lexeme(identifiant) << ')';
 
 	throw erreur::frappe(ss.chn().c_str(), type);
 }
 
 void redefinition_fonction(
 		const ContexteGenerationCode &contexte,
-		DonneesLexeme const *lexeme_redefinition,
-		DonneesLexeme const *lexeme_original)
+		Lexeme const *lexeme_redefinition,
+		Lexeme const *lexeme_original)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme_redefinition->fichier));
 	auto pos = position_lexeme(*lexeme_redefinition);
@@ -147,7 +147,7 @@ void redefinition_fonction(
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::FONCTION_REDEFINIE);
 }
 
-void redefinition_symbole(const ContexteGenerationCode &contexte, const DonneesLexeme *lexeme_redefinition, const DonneesLexeme *lexeme_original)
+void redefinition_symbole(const ContexteGenerationCode &contexte, const Lexeme *lexeme_redefinition, const Lexeme *lexeme_original)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme_redefinition->fichier));
 	auto pos = position_lexeme(*lexeme_redefinition);
@@ -187,8 +187,8 @@ void redefinition_symbole(const ContexteGenerationCode &contexte, const DonneesL
 void lance_erreur_plage(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *premier_lexeme,
-		const DonneesLexeme *dernier_lexeme,
+		const Lexeme *premier_lexeme,
+		const Lexeme *dernier_lexeme,
 		type_erreur type)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(premier_lexeme->fichier));
@@ -217,8 +217,8 @@ void lance_erreur_plage(
 		const Type *type_arg,
 		const Type *type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *lexeme_enfant,
-		const DonneesLexeme *lexeme)
+		const Lexeme *lexeme_enfant,
+		const Lexeme *lexeme)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
 	auto pos = position_lexeme(*lexeme);
@@ -298,7 +298,7 @@ void lance_erreur_plage(
 		const Type *type_gauche,
 		const Type *type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *lexeme)
+		const Lexeme *lexeme)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
 	auto pos = position_lexeme(*lexeme);
@@ -325,7 +325,7 @@ void lance_erreur_type_operation(
 		const Type *type_gauche,
 		const Type *type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesLexeme *lexeme)
+		const Lexeme *lexeme)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
 	auto pos = position_lexeme(*lexeme);
