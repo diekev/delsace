@@ -422,7 +422,7 @@ struct TypeTableauDynamique : public Type {
 
 		auto type = memoire::loge<TypeTableauDynamique>("TypeTableauDynamique");
 		type->type_pointe = type_pointe;
-		type->taille_octet = 16;
+		type->taille_octet = 24;
 		type->alignement = 8;
 		return type;
 	}
