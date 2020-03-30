@@ -1,0 +1,31 @@
+// ------------------------------
+// Cas : Une boucle 'boucle' ne peut avoir une variable associée au contrôle 'arrête' ou 'continue'
+
+foo :: fonc () -> rien
+{
+	boucle {
+		continue a
+	}
+}
+
+// ------------------------------
+// Cas : La variable d'un contrôle 'arrête' ou 'continue' doit être connue
+
+foo :: fonc () -> rien
+{
+	pour i dans 0 ... 10 {
+		arrête j
+	}
+}
+
+// ------------------------------
+// Cas : La variable d'un contrôle 'arrête' ou 'continue' doit être celle d'une boucle
+
+foo :: fonc () -> rien
+{
+	a := 5
+
+	pour i dans 0 ... 10 {
+		arrête a
+	}
+}

@@ -1,0 +1,15 @@
+// ------------------------------
+// Cas : Le mot clé 'continue' ne peut apparaître hors d'une boucle
+
+foo :: fonc () -> rien
+{
+	continue
+}
+
+// ------------------------------
+// Cas : Le mot clé 'arrête' ne peut apparaître hors d'une boucle
+
+foo :: fonc () -> rien
+{
+	arrête
+}

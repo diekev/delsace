@@ -1448,6 +1448,13 @@ static void performe_validation_semantique(
 					if (expression->type->genre == GenreType::ENTIER_CONSTANT) {
 						variable->type = contexte.typeuse[TypeBase::Z32];
 					}
+					else if (expression->type->genre == GenreType::RIEN) {
+						erreur::lance_erreur(
+									"impossible d'assigner une expression de type « rien » à une variable",
+									contexte,
+									expression->lexeme,
+									erreur::type_erreur::ASSIGNATION_RIEN);
+					}
 					else {
 						variable->type = expression->type;
 					}
@@ -2411,7 +2418,8 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"La structure ne possède pas un tel membre",
 								contexte,
-								expr_assign->expr1->lexeme);
+								expr_assign->expr1->lexeme,
+								erreur::type_erreur::MEMBRE_INCONNU);
 				}
 
 				performe_validation_semantique(expr_assign->expr2, contexte, false);

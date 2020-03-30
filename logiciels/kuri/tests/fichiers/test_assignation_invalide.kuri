@@ -17,8 +17,10 @@ foo :: fonc () -> rien
 	@a = 6
 }
 
-// -------------------------------
-// Cas : On ne peut pas réassigner une valeur à une globale dynamique en-dehors d'un bloc 'nonsûr'
+//  -------------------------------
+
+/* désactivation du test, à savoir si cela est désirable avant de « corriger » le code
+//   Cas : On ne peut pas réassigner une valeur à une globale dynamique en-dehors d'un bloc 'nonsûr'
 
 PI := 3.14159
 
@@ -26,3 +28,4 @@ foo :: fonc () -> rien
 {
     PI = 3.141592653589793
 }
+*/
