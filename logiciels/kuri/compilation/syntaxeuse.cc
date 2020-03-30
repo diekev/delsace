@@ -257,7 +257,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, Lexeme
 		auto param = analyse_expression(GenreLexeme::VIRGULE, type_id::FONC);
 
 		if (param->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-			auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme);
+			auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, param->lexeme);
 			decl_var->valeur = param;
 
 			params.pousse(decl_var);
@@ -1936,7 +1936,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		auto param = analyse_expression(GenreLexeme::VIRGULE, type_id::FONC);
 
 		if (param->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-			auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme);
+			auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, param->lexeme);
 			decl_var->valeur = param;
 
 			params.pousse(decl_var);
