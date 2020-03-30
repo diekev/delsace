@@ -2755,6 +2755,11 @@ static void performe_validation_semantique(
 					}
 
 					decl_membre->type = resoud_type_final(contexte, decl_membre->type_declare, decl_membre->bloc_parent, decl_membre->lexeme);
+
+					if (decl_membre->type->genre == GenreType::RIEN) {
+						erreur::lance_erreur("Ne peut avoir un type « rien » dans une union", contexte, decl_membre->lexeme, erreur::type_erreur::TYPE_DIFFERENTS);
+					}
+
 					decl_var->type = decl_membre->type;
 
 					verifie_redefinition_membre(decl_var);
@@ -2851,6 +2856,10 @@ static void performe_validation_semantique(
 							decl_expr->transformation = transformation;
 						}
 					}
+				}
+
+				if (decl_membre->type->genre == GenreType::RIEN) {
+					erreur::lance_erreur("Ne peut avoir un type « rien » dans une structure", contexte, decl_membre->lexeme, erreur::type_erreur::TYPE_DIFFERENTS);
 				}
 
 				it->type = decl_membre->type;
