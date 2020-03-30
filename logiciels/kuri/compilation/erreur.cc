@@ -42,6 +42,43 @@ static void imprime_tilde(dls::flux_chaine &ss, dls::vue_chaine_compacte chaine)
 
 namespace erreur {
 
+const char *chaine_erreur(type_erreur te)
+{
+#define CAS_GENRE(x) case x: return #x;
+
+	switch (te) {
+		CAS_GENRE(type_erreur::AUCUNE_ERREUR)
+		CAS_GENRE(type_erreur::NORMAL)
+		CAS_GENRE(type_erreur::DECOUPAGE)
+		CAS_GENRE(type_erreur::SYNTAXAGE)
+		CAS_GENRE(type_erreur::NOMBRE_ARGUMENT)
+		CAS_GENRE(type_erreur::TYPE_ARGUMENT)
+		CAS_GENRE(type_erreur::ARGUMENT_INCONNU)
+		CAS_GENRE(type_erreur::ARGUMENT_REDEFINI)
+		CAS_GENRE(type_erreur::VARIABLE_INCONNUE)
+		CAS_GENRE(type_erreur::VARIABLE_REDEFINIE)
+		CAS_GENRE(type_erreur::FONCTION_INCONNUE)
+		CAS_GENRE(type_erreur::FONCTION_REDEFINIE)
+		CAS_GENRE(type_erreur::ASSIGNATION_RIEN)
+		CAS_GENRE(type_erreur::TYPE_INCONNU)
+		CAS_GENRE(type_erreur::TYPE_DIFFERENTS)
+		CAS_GENRE(type_erreur::STRUCTURE_INCONNUE)
+		CAS_GENRE(type_erreur::STRUCTURE_REDEFINIE)
+		CAS_GENRE(type_erreur::MEMBRE_INCONNU)
+		CAS_GENRE(type_erreur::MEMBRE_INACTIF)
+		CAS_GENRE(type_erreur::MEMBRE_REDEFINI)
+		CAS_GENRE(type_erreur::ASSIGNATION_INVALIDE)
+		CAS_GENRE(type_erreur::ASSIGNATION_MAUVAIS_TYPE)
+		CAS_GENRE(type_erreur::CONTROLE_INVALIDE)
+		CAS_GENRE(type_erreur::MODULE_INCONNU)
+		CAS_GENRE(type_erreur::APPEL_INVALIDE)
+	}
+
+#undef CAS_GENRE
+
+	return "Ceci ne devrait pas s'afficher";
+}
+
 static int nombre_chiffres(long nombre)
 {
 	auto compte = 0;

@@ -64,6 +64,8 @@ enum class type_erreur : int {
 	APPEL_INVALIDE,
 };
 
+const char *chaine_erreur(type_erreur te);
+
 using frappe = lng::erreur::frappe<type_erreur>;
 
 void imprime_ligne_avec_message(
