@@ -2388,7 +2388,8 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"expression invalide dans la construction de structure, requiers « nom = expr »",
 								contexte,
-								param->lexeme);
+								param->lexeme,
+								erreur::type_erreur::MEMBRE_INCONNU);
 				}
 
 				auto expr_assign = static_cast<NoeudExpressionBinaire *>(param);
