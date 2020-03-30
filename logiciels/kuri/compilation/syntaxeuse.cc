@@ -748,6 +748,11 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 
 					// À FAIRE, XXX - désynchronisation dans l'analyse de la construction de structure ?
 					if (racine_expr != GenreLexeme::CROCHET_OUVRANT && racine_expr != GenreLexeme::FONC) {
+						/* La lexeuse ne met pas de point-vigule après une accolade fermante */
+						if (est_identifiant(GenreLexeme::POINT_VIRGULE)) {
+							avance();
+						}
+
 						termine_boucle = true;
 					}
 
