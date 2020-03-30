@@ -171,8 +171,8 @@ static Test tests_unitaires[] = {
 	},
 	{
 		"",
-		"fichiers/test_structure_inconnue.kuri",
-		erreur::type_erreur::STRUCTURE_INCONNUE
+		"fichiers/test_type_inconnu.kuri",
+		erreur::type_erreur::TYPE_INCONNU
 	},
 	{
 		"",
