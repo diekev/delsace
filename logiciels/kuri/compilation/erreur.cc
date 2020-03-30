@@ -637,6 +637,9 @@ void lance_erreur_type_operation(
 		ss << "ou\n";
 		ss << "transtype(" << expr_droite << " : " << chaine_type(type_gauche) << ")\n";
 	}
+	else {
+		ss << "Note : les variables sont de type : " << chaine_type(type_droite) << '\n';
+	}
 
 	ss << "----------------------------------------------------------------\n";
 
