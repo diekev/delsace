@@ -63,6 +63,20 @@ tampon_source::tampon_source(dls::chaine chaine) noexcept
 	construit_lignes();
 }
 
+tampon_source::tampon_source(const tampon_source &autre)
+{
+	m_tampon = autre.m_tampon;
+	construit_lignes();
+}
+
+tampon_source &tampon_source::operator=(const tampon_source &autre)
+{
+	m_tampon = autre.m_tampon;
+	construit_lignes();
+
+	return *this;
+}
+
 const char *tampon_source::debut() const noexcept
 {
 	return &m_tampon[0];
@@ -87,6 +101,23 @@ size_t tampon_source::nombre_lignes() const noexcept
 size_t tampon_source::taille_donnees() const noexcept
 {
 	return static_cast<size_t>(m_tampon.taille()) * sizeof(char);
+}
+
+tampon_source tampon_source::sous_tampon(size_t debut, size_t fin) const
+{
+	auto pos = m_lignes[static_cast<long>(debut)].begin();
+	auto taille = 0l;
+
+	for (auto i = debut; i < fin; ++i) {
+		taille += m_lignes[static_cast<long>(i)].taille();
+	}
+
+	return tampon_source(dls::chaine(pos, taille));
+}
+
+const dls::chaine &tampon_source::chaine() const
+{
+	return m_tampon;
 }
 
 void tampon_source::construit_lignes()

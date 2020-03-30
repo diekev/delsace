@@ -47,6 +47,10 @@ public:
 	 */
 	explicit tampon_source(dls::chaine chaine) noexcept;
 
+	tampon_source(tampon_source const &autre);
+
+	tampon_source &operator=(tampon_source const &autre);
+
 	/**
 	 * Retourne un pointeur vers le début du tampon.
 	 */
@@ -75,7 +79,13 @@ public:
 	 */
 	size_t taille_donnees() const noexcept;
 
+	tampon_source sous_tampon(size_t debut, size_t fin) const;
+
+	dls::chaine const &chaine() const;
+
 private:
+	tampon_source() = default;
+
 	/**
 	 * Construit le vecteur contenant les données de chaque ligne du tampon.
 	 */
