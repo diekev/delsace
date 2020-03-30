@@ -3401,7 +3401,7 @@ void performe_validation_semantique(ContexteGenerationCode &contexte)
 		valide_type_fonction(decl, contexte);
 	}
 
-	std::cerr << "Nombre allocations typage fonctions = " << memoire::nombre_allocations() - nombre_allocations << '\n';
+	std::cout << "Nombre allocations typage fonctions = " << memoire::nombre_allocations() - nombre_allocations << '\n';
 
 	POUR (contexte.file_typage) {
 		performe_validation_semantique(it, contexte, true);
@@ -3409,7 +3409,7 @@ void performe_validation_semantique(ContexteGenerationCode &contexte)
 
 	contexte.temps_validation = debut_validation.temps();
 
-	std::cerr << "Nombre allocations validations sémantique = " << memoire::nombre_allocations() - nombre_allocations << '\n';
+	std::cout << "Nombre allocations validations sémantique = " << memoire::nombre_allocations() - nombre_allocations << '\n';
 }
 
 }  /* namespace noeud */

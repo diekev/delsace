@@ -3282,7 +3282,7 @@ void genere_code_C(
 
 	constructrice.imprime_dans_flux(fichier_sortie);
 
-	std::cerr << "Nombre allocations génération code = " << memoire::nombre_allocations() - nombre_allocations << '\n';
+	std::cout << "Nombre allocations génération code = " << memoire::nombre_allocations() - nombre_allocations << '\n';
 }
 
 void genere_code_C_pour_execution(
