@@ -1048,7 +1048,7 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 			case GenreLexeme::EGAL:
 			{
 				if (assignation && racine_expr != GenreLexeme::FONC) {
-					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
+					lance_erreur("Ne peut faire d'assignation dans une expression droite");
 				}
 
 				assignation = true;
@@ -1073,7 +1073,7 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 			case GenreLexeme::DECLARATION_VARIABLE:
 			{
 				if (assignation && racine_expr != GenreLexeme::FONC) {
-					lance_erreur("Ne peut faire de déclaration dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
+					lance_erreur("Ne peut faire de déclaration dans une expression droite");
 				}
 
 				assignation = true;
@@ -1088,7 +1088,7 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 			case GenreLexeme::DECLARATION_CONSTANTE:
 			{
 				if (assignation) {
-					lance_erreur("Ne peut faire de déclaration dans une expression droite (const)", erreur::type_erreur::ASSIGNATION_INVALIDE);
+					lance_erreur("Ne peut faire de déclaration dans une expression droite (const)");
 				}
 
 				assignation = true;
