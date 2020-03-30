@@ -465,14 +465,14 @@ void enregistre_operateurs_basiques(
 		ContexteGenerationCode &contexte,
 		Operateurs &operateurs)
 {
-	static Type *types_entiers_naturels[] = {
+	Type *types_entiers_naturels[] = {
 		contexte.typeuse[TypeBase::N8],
 		contexte.typeuse[TypeBase::N16],
 		contexte.typeuse[TypeBase::N32],
 		contexte.typeuse[TypeBase::N64],
 	};
 
-	static Type *types_entiers_relatifs[] = {
+	Type *types_entiers_relatifs[] = {
 		contexte.typeuse[TypeBase::Z8],
 		contexte.typeuse[TypeBase::Z16],
 		contexte.typeuse[TypeBase::Z32],
@@ -483,7 +483,7 @@ void enregistre_operateurs_basiques(
 	auto type_r32 = contexte.typeuse[TypeBase::R32];
 	auto type_r64 = contexte.typeuse[TypeBase::R64];
 
-	static Type *types_reels[] = {
+	Type *types_reels[] = {
 		type_r32, type_r64
 	};
 
