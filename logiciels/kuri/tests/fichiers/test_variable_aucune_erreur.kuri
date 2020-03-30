@@ -88,7 +88,7 @@ foo :: fonc (compte : z32) -> rien
 {
 	a := compte;
 
-	pour a dans 0...10 {
+	pour i dans 0...10 {
 		b := a;
 	}
 }
