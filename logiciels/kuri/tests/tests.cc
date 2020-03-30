@@ -106,8 +106,28 @@ static Test tests_unitaires[] = {
 	},
 	{
 		"",
-		"fichiers/test_appel_fonction_erreur_normale.kuri",
-		erreur::type_erreur::NORMAL
+		"fichiers/test_appel_fonction_erreur_nombre_argument.kuri",
+		erreur::type_erreur::NOMBRE_ARGUMENT
+	},
+	{
+		"",
+		"fichiers/test_appel_fonction_erreur_fonction_inconnue.kuri",
+		erreur::type_erreur::FONCTION_INCONNUE
+	},
+	{
+		"",
+		"fichiers/test_appel_fonction_erreur_argument_inconnu.kuri",
+		erreur::type_erreur::ARGUMENT_INCONNU
+	},
+	{
+		"",
+		"fichiers/test_appel_fonction_erreur_type_argument.kuri",
+		erreur::type_erreur::TYPE_ARGUMENT
+	},
+	{
+		"",
+		"fichiers/test_appel_fonction_erreur_argument_redefini.kuri",
+		erreur::type_erreur::ARGUMENT_REDEFINI
 	},
 	{
 		"",

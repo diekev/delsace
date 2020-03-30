@@ -318,14 +318,14 @@ static DonneesCandidate verifie_donnees_fonction(
 		if (nom_arg != nullptr) {
 			arguments_nommes = true;
 
-			auto param = static_cast<NoeudDeclaration *>(nullptr);
+			auto param = static_cast<NoeudDeclarationVariable *>(nullptr);
 			auto index_param = 0l;
 
 			for (auto i = 0; i < decl->params.taille; ++i) {
 				auto it = decl->params[i];
 
 				if (it->ident == nom_arg) {
-					param = it;
+					param = static_cast<NoeudDeclarationVariable *>(it);
 					index_param = i;
 					break;
 				}
@@ -355,6 +355,14 @@ static DonneesCandidate verifie_donnees_fonction(
 				slots.pousse(*iter_expr++);
 			}
 			else {
+				if (slots[index_param] != param->expression) {
+					res.etat = FONCTION_INTROUVEE;
+					res.raison = RENOMMAGE_ARG;
+					res.nom_arg = nom_arg->nom;
+					res.decl_fonc = decl;
+					return res;
+				}
+
 				slots[index_param] = *iter_expr++;
 			}
 		}

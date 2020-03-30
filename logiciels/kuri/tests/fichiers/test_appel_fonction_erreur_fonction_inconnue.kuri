@@ -1,0 +1,8 @@
+// ------------------------------
+// Cas : On ne peut appeler une variable qui n'est pas un pointeur fonction.
+
+bar :: fonc () -> rien
+{
+	x := 5;
+	y := x();
+}

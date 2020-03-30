@@ -1,0 +1,28 @@
+// ------------------------------
+// Cas : Le nombre d'arguments (nommés) passé à une fonction lors de son appel doit être le même que le nombre d'arguments de sa définition.
+
+ajouter :: fonc (a : z32, b : z32) -> z32
+{
+	retourne a + b;
+}
+
+principale :: fonc (compte : z32, arguments : z8) -> z32
+{
+	x := ajouter(a=5);
+	retourne x != 5;
+}
+
+// ------------------------------
+// Cas : Le nombre d'arguments (anonymes) passé à une fonction lors de son appel doit être le même que le nombre d'arguments de sa définition.
+
+ajouter :: fonc (a : z32, b : z32) -> z32
+{
+	retourne a + b;
+}
+
+principale :: fonc (compte : z32, arguments : z8) -> z32
+{
+	x := ajouter(5, 6, 7);
+	retourne x != 5;
+}
+
