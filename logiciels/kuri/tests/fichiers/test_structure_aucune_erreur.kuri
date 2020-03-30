@@ -1,0 +1,60 @@
+// -------------------------------------------
+// Cas : une structure doit avoir un nom unique
+
+Vecteur2D :: struct {
+	x : n32;
+	y : n32;
+}
+
+Vecteur3D :: struct {
+	x : n32;
+	y : n32;
+	z : n32;
+}
+
+// -------------------------------------------
+// Cas : une structure peut avoir une autre structure comme membre
+
+Vecteur2D :: struct {
+	x : n32;
+	y : n32;
+}
+
+Vecteur3D :: struct {
+	xy : Vecteur2D;
+	z : n32;
+}
+
+// -------------------------------------------
+// Cas : Il est possible de fournir des valeurs par défaut aux membres des structures.
+
+Vecteur2D :: struct {
+	x : n32 = 0;
+	y : n32 = 1;
+}
+
+// -------------------------------------------
+// Cas : Il est possible de construire les structures dans une expression en fournisant le nom des variables.
+
+Vecteur2D :: struct {
+	x : n32;
+	y : n32;
+}
+
+foo :: fonc () -> rien
+{
+	v := Vecteur2D{x = 0, y = 1};
+}
+
+// -----------------------------------
+// Cas : On peut accèder aux membres connus des structures.
+
+Vecteur2D :: struct {
+	x : n32;
+	y : n32;
+}
+
+accès_x :: fonc (v : Vecteur2D) -> n32
+{
+	retourne v.x;
+}

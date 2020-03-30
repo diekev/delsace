@@ -1,0 +1,28 @@
+// -------------------------------
+// Cas : Une constante ne peut être réassignée
+
+PI :: 3.14159
+
+foo :: fonc () -> rien
+{
+    PI = 3.141592653589793
+}
+
+// -------------------------------
+// Cas : L'addresse d'une variable ne peut être assignée
+
+foo :: fonc () -> rien
+{
+	a := 5
+	@a = 6
+}
+
+// -------------------------------
+// Cas : On ne peut pas réassigner une valeur à une globale dynamique en-dehors d'un bloc 'nonsûr'
+
+PI := 3.14159
+
+foo :: fonc () -> rien
+{
+    PI = 3.141592653589793
+}

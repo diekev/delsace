@@ -1,4 +1,4 @@
-fonc retourne_0() : z32
+retourne_0 :: fonc () -> z32
 {
 	retourne 0;
 }

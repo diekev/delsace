@@ -1,6 +1,9 @@
+// -----------------------------
+// Cas : La compilation de module fonctionne si le module est connu.
+
 importe "module_test"
 
-fonc principale(compte : z32, arguments : **z8) : z32
+principale :: fonc (compte : z32, arguments : **z8) -> z32
 {
 	retourne module_test.retourne_0();
 }

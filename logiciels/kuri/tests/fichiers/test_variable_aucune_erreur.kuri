@@ -1,0 +1,283 @@
+// -----------------------------------
+// Cas : Les paramètres des fonctions peuvent être accéder dans toutes les portées filles de la fonction
+
+foo :: fonc (compte: z32) -> rien
+{
+	a := compte;
+
+	si compte == 5 {
+		b := compte;
+	}
+
+	// Dans le code généré, après 'si' nous avons un nouveau bloc
+	// donc nous devons vérifier que les variables sont toujours
+	// accessibles.
+	c := compte;
+}
+
+// -----------------------------------
+// Cas : Une variable définie après une portée peut avoir le même nom qu'une variable dans la portée.
+
+foo :: fonc (compte: z32) -> rien
+{
+	a := compte;
+
+	si compte == 5 {
+		b := compte;
+	}
+
+	b := compte;
+}
+
+// -----------------------------------
+// Cas : Une variable définie avant un contrôle de flux peut être utilisée en dedans
+
+foo :: fonc (compte : z32) -> rien
+{
+	a := compte;
+
+	si compte == 5 {
+		b := a;
+	}
+}
+
+// -----------------------------------
+// Cas : Une variable définie avant un contrôle de flux peut être utilisée après lui
+
+foo :: fonc (compte : z32) -> rien
+{
+	a := compte;
+
+	si compte == 5 {
+		b := a;
+	}
+
+	b := a + compte;
+}
+
+// -----------------------------------
+// Cas : Une variable définie avant une boucle 'pour' peut être utilisée en dedans
+
+foo :: fonc (compte : z32) -> rien
+{
+	a := compte;
+
+	pour i dans 0...10 {
+		b := a;
+	}
+}
+
+// -----------------------------------
+// Cas : Une variable définie avant une boucle 'pour' peut être utilisée après
+
+foo :: fonc (compte : z32) -> rien
+{
+	a := compte;
+
+	pour i dans 0...10 {
+		b := a + i;
+	}
+
+	b := a;
+}
+
+// -----------------------------------
+// Cas : La variable itérable d'une boucle 'pour' ne peut avoir le même nom qu'une variable prédéfinie.
+
+foo :: fonc (compte : z32) -> rien
+{
+	a := compte;
+
+	pour a dans 0...10 {
+		b := a;
+	}
+}
+
+// -----------------------------------
+// Cas : Plusieurs boucles 'pour' de même portée racine peuvent avoir des variables de même nom.
+
+foo :: fonc (compte : z32) -> rien
+{
+	pour i dans 0...10 {
+		a := i;
+	}
+
+	pour i dans 0...10 {
+		a := i;
+	}
+
+	pour i dans 0...10 {
+		a := i;
+	}
+}
+
+// -----------------------------------
+// Cas : On peut définir sans problème des variables entre des boucles 'pour'.
+
+foo :: fonc (compte : z32) -> rien
+{
+	a := compte;
+
+	pour i dans 0...10 {
+		ai := i;
+	}
+
+	b := compte;
+	ba := a;
+
+	pour i dans 0...10 {
+		ai := i;
+	}
+
+	c := compte;
+	ca := b;
+	cb := a;
+	cba := ba;
+
+	pour i dans 0...10 {
+		ai := i;
+	}
+
+	d := compte;
+	da := b;
+	db := a;
+	dba := ba;
+	dca := cb;
+	dcb := ca;
+	dcba := cba;
+}
+
+// -----------------------------------
+// Cas : On peut définir sans problème des variables entre des contrôles de flux
+
+foo :: fonc (compte : z32) -> rien
+{
+	a := compte;
+
+	si a == 10 {
+		ai := a;
+	}
+	sinon {
+		ai := a;
+	}
+
+	b := compte;
+	ba := a;
+
+	si b == 10 {
+		bi := b;
+	}
+	sinon {
+		bi := a;
+	}
+
+	c := compte;
+	ca := b;
+	cb := a;
+	cba := ba;
+
+	si c == 10 {
+		ci := c;
+	}
+	sinon {
+		ci := a;
+	}
+
+	d := compte;
+	da := b;
+	db := a;
+	dba := ba;
+	dca := cb;
+	dcb := ca;
+	dcba := cba;
+}
+
+// -----------------------------------
+// Cas : On peut réassigner une variable définie avant un contrôle de flux
+
+foo :: fonc (compte : z32) -> rien
+{
+	a := compte;
+
+	si a == 10 {
+		ai := a;
+	}
+	sinon {
+		ai := a;
+	}
+
+	a = 5;
+}
+
+// -----------------------------------
+// Cas : On peut réassigner une variable définie avant une boucle 'pour'.
+
+foo :: fonc (compte : z32) -> rien
+{
+	a := compte;
+
+	pour x dans 0...10 {
+
+	}
+
+	a = 5;
+}
+
+// -----------------------------------
+// Cas : On peut réassigner une variable définie avant une boucle 'infinie'
+
+foo :: fonc (compte : z32) -> rien
+{
+	a := compte;
+
+	boucle {
+
+	}
+
+	a = 5;
+}
+
+// -----------------------------------
+// Cas : On peut retourner une variable définie avant un contrôle de flux
+
+foo :: fonc (compte : z32) -> z32
+{
+	a := compte;
+
+	si a == 10 {
+		ai := a;
+	}
+	sinon {
+		ai := a;
+	}
+
+	retourne a;
+}
+
+// -----------------------------------
+// Cas : On peut retourner une variable définie avant une boucle 'pour'.
+
+foo :: fonc (compte : z32) -> z32
+{
+	a := compte;
+
+	pour x dans 0...10 {
+
+	}
+
+	retourne a;
+}
+
+// -----------------------------------
+// Cas : On peut retourner une variable définie avant une boucle 'infinie'.
+
+foo :: fonc (compte : z32) -> z32
+{
+	a := compte;
+
+	boucle {
+
+	}
+
+	retourne a;
+}

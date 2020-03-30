@@ -1,0 +1,23 @@
+// ------------------------------
+// Cas : Une fonction ne peut avoir des types de retour et d'instruction de retour différents.
+
+foo :: fonc () -> z32
+{
+	retourne 0.0;
+}
+
+// ------------------------------
+// Cas : Une fonction dont le type de retour est de différent 'rien' ne peut ommettre une instruction de retour.
+
+foo :: fonc () -> z32
+{
+}
+
+// ------------------------------
+// Cas : Une fonction dont le type de retour est 'rien' ne peut pas retourner de valeur
+
+foo :: fonc () -> rien
+{
+	retourne 0;
+}
+

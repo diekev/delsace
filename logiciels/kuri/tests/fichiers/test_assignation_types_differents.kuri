@@ -1,0 +1,36 @@
+// -------------------------------
+// Cas : On ne peut pas assigner une valeur à un élément d'un tableau d'un type différent
+
+foo :: fonc (a : [2]z32) -> rien
+{
+	a[0] := 6.0;
+}
+
+// -------------------------------
+// Cas : On ne peut assigner une valeur scalaire à une variable de type tableau
+
+foo :: fonc (a : [2]z32) -> rien
+{
+	a := 6;
+}
+
+// -------------------------------
+// Cas : On ne peut pas réassigner une valeur d'un type différent à une variable
+
+foo :: fonc () -> rien
+{
+	a := 5.0
+	a = 6
+}
+
+// -------------------------------
+// Cas : On ne peut pas assigner une valeur scalaire à un membre de type tableau d'une structure
+
+Vecteur3D :: struct {
+	x : [2]z32;
+}
+
+foo :: fonc (v : Vecteur3D) -> rien
+{
+	v.x = 5;
+}

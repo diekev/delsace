@@ -1,0 +1,8 @@
+// ---------------------------------
+// Cas : Les membres des structures ne peuvent avoir les mêmes noms.
+
+Vecteur2D :: struct {
+	x : n32;
+	x : n32;
+}
+

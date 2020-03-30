@@ -1,0 +1,154 @@
+// ------------------------------------
+// Cas : On peut appeler sans problème un pointeur vers une fonction.
+
+bar :: fonc (a : fonc(r64, r64)(r64)) -> r64
+{
+	retourne a(0.2, 0.4);
+}
+
+// ------------------------------------
+// Cas : Les pointeurs fonction ont un typage strict (succès).
+
+ajoute_cb :: fonc (x : r64, z : r64, cb : fonc(r64, r64)(r64)) -> r64
+{
+	retourne cb(x, z);
+}
+
+ajoute_deux :: fonc (x : r64, y : r64) -> r64
+{
+	retourne x + y;
+}
+
+bar :: fonc () -> r64
+{
+	retourne ajoute_cb(1.0, 2.0, ajoute_deux);
+}
+
+// ------------------------------------
+// Cas : L'appel d'une fonction variadique n'a pas besoin de nommer les arguments.
+
+foo :: fonc externe (a : z32, b : z32, c : ...z32) -> rien;
+
+bar :: fonc () -> rien
+{
+	foo(0, 1, 2, 3, 4, 5);
+}
+
+// ------------------------------------
+// Cas : L'appel d'une fonction variadique peut nommer tous les arguments.
+
+foo :: fonc externe (a : z32, b : z32, c : ...z32) -> rien;
+
+bar :: fonc () -> rien
+{
+	foo(a=0, b=1, c=2, c=3, c=4, c=5);
+}
+
+// ------------------------------------
+// Cas : L'appel d'une fonction variadique peut éviter de renommer l'argument variadique.
+
+foo :: fonc externe (a : z32, b : z32, c : ...z32) -> rien;
+
+bar :: fonc () -> rien
+{
+	foo(a=0, b=1, c=2, 3, 4, 5);
+}
+
+// ------------------------------------
+// Cas : L'appel d'une fonction variadique peut nommer les arguments dans le désordre.
+
+foo :: fonc externe (a : z32, b : z32, c : ...z32) -> rien;
+
+bar :: fonc () -> rien
+{
+	foo(a=0, c=1, 2, 3, 4, b=5);
+}
+
+// ------------------------------------
+// Cas : Une fonction variadique dont l'argument variadic n'est pas typé peut prendre n'importe quel type.
+
+printf :: fonc externe (arguments : ...) -> rien;
+
+foo :: fonc () -> rien
+{
+	printf(0, 'z', 2.5, "chaine");
+}
+
+// ------------------------------------
+// Cas : Une fonction variadique dont l'argument variadic est typé est correct si les types passés correspondent au type défini.
+
+
+printf :: fonc externe (arguments : ...z32) -> rien;
+
+foo :: fonc () -> rien
+{
+	printf(0, 1, 2, 3, 4);
+}
+
+// ------------------------------------
+// Cas : On peut appeler des fonctions connue avec les bon nombre et types d'arguments.
+
+ne_retourne_rien :: fonc () -> rien
+{
+	retourne;
+}
+
+ajouter :: fonc (a : z32, b : z32) -> z32
+{
+	retourne a + b;
+}
+
+principale :: fonc (compte : z32, arguments : z8) -> bool
+{
+	ne_retourne_rien();
+	a := ajouter(5, 8);
+	b := ajouter(8, 5);
+	c := ajouter(ajouter(a + b, b), ajouter(b + a, a));
+	retourne c != 5;
+}
+
+// ------------------------------------
+// Cas : Il est possible de nommer les arguments passés à une fonction selon le noms des arguments de sa définition.
+
+ajouter :: fonc (a : z32, b : z32) -> z32
+{
+	retourne a + b;
+}
+
+principale :: fonc (compte : z32, arguments : z8) -> z32
+{
+	x := ajouter(a=5, b=6);
+	y := ajouter(b=5, a=6);
+	retourne x - y;
+}
+
+// ------------------------------------
+// Cas : Si un argument d'une fonction appelée est nommé, les précédents peuvent être anonymes si l'argument nommé n'a pas le nom d'un précédent argument.
+
+ajouter :: fonc (a : z32, b : z32) -> z32
+{
+	retourne a + b;
+}
+
+principale :: fonc (compte : z32, arguments : z8) -> z32
+{
+	x := ajouter(5, b=6);
+	retourne 0;
+}
+
+// ------------------------------------
+// Cas : On peut appeler une fonction en utilisant son premier argument comme objet.
+
+foo :: fonc (a : z32) -> rien
+{
+	retourne;
+}
+
+bar :: fonc () -> rien
+{
+	a := 5;
+	a.foo();
+
+	retourne;
+}
+

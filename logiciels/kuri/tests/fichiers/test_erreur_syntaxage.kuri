@@ -1,0 +1,8 @@
+// -----------------------------------
+// Cas : On ne peut avoir une assignation dans une expression droite
+
+foo :: fonc () -> rien
+{
+	a := 5.0
+	b := a = 6
+}

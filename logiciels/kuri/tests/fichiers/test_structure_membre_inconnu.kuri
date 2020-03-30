@@ -1,0 +1,39 @@
+// -----------------------------------
+// Cas : Le constructeur des structures doit nommer les membres.
+
+Vecteur2D :: struct {
+	x : n32;
+	y : n32;
+}
+
+foo :: fonc () -> rien
+{
+	v := Vecteur2D{0, 1};
+}
+
+// -----------------------------------
+// Cas : Le constructeur des structures ne peut nommer un membre inconnu.
+
+Vecteur2D :: struct {
+	x : n32;
+	y : n32;
+}
+
+foo :: fonc () -> rien
+{
+	v := Vecteur2D{x = 0, z = 1};
+}
+
+// -----------------------------------
+// Cas : On ne peut pas accèder aux membres inconnus des structures.
+
+Vecteur2D :: struct {
+	x : n32;
+	y : n32;
+}
+
+accès_x :: fonc (v : Vecteur2D) -> n32
+{
+	retourne v.z;
+}
+

@@ -1,0 +1,89 @@
+// -----------------------------------
+// Cas : Les nombres littéraux entiers peuvent être convertis en types relatifs
+
+foo :: fonc () -> rien
+{
+	x : z8  = 0;
+	y : z16 = 0;
+	z : z32 = 0;
+	w : z64 = 0;
+}
+
+// -----------------------------------
+// Cas : Les nombres littéraux entiers peuvent être convertis en types naturels
+
+foo :: fonc () -> rien
+{
+	x : n8  = 0;
+	y : n16 = 0;
+	z : n32 = 0;
+	w : n64 = 0;
+}
+
+// -----------------------------------
+// Cas : Les nombres littéraux réels peuvent être convertis en types réels
+
+foo :: fonc () -> rien
+{
+	x : r16 = 0.0;
+	y : r32 = 0.0;
+	z : r64 = 0.0;
+}
+
+// -----------------------------------
+// Cas : On peut transtyper entre types entiers relatif et naturel
+
+foo :: fonc () -> rien
+{
+	x : z32 = 0;
+	y : n32 = transtype(x : n32);
+}
+
+// -----------------------------------
+// Cas : On peut transtyper entre types entiers de tailles binaires différentes
+
+foo :: fonc () -> rien
+{
+	x : z32 = 0;
+	y : z8  = transtype(x : z8);
+}
+
+// -----------------------------------
+// Cas : On peut transtyper entre types entiers naturel et relatif de tailles binaires différentes
+
+foo :: fonc () -> rien
+{
+	x : z32 = 0;
+	y : n8  = transtype(x : n8);
+}
+
+// -----------------------------------
+// Cas : On peut transtyper entre types entiers et réels
+
+foo :: fonc () -> rien
+{
+	x : z32 = 0;
+	y : r32 = transtype(x : r32);
+	z : z32 = transtype(y : z32);
+}
+
+// -----------------------------------
+// Cas : On peut transtyper entre types entiers et réels de tailles binaires différentes
+
+foo :: fonc () -> rien
+{
+	x : z32 = 0;
+	y : r64 = transtype(x : r64);
+	z : z32 = transtype(y : z32);
+}
+
+// -----------------------------------
+// Cas : On peut transtyper le résultat des expressions
+
+foo :: fonc () -> rien
+{
+	x : z32 = 1;
+	y : z32 = 5;
+	z : z32 = transtype(x + y * 5 : z32);
+	w : z32 = transtype(x - y : z32);
+}

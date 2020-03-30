@@ -34,36 +34,13 @@ set(BIBLIOTHEQUES
 
 set(SOURCES
 	outils.h
-	test_assignation.hh
-	test_boucle.hh
+
 	test_decoupage.h
 	test_decoupage_nombres.h
-	test_expression.h
-	test_fonctions.h
-	test_modules.hh
-	test_retour.hh
-	test_structures.hh
-	test_tableaux.hh
-	test_transtype.hh
-	test_types.h
-	test_unicode.h
-	test_variables.h
-
 	outils.cc
-	test_assignation.cc
-	test_boucle.cc
+
 	test_decoupage.cc
 	test_decoupage_nombres.cc
-	test_expression.cc
-	test_fonctions.cc
-	test_modules.cc
-	test_retour.cc
-	test_structures.cc
-	test_tableaux.cc
-	test_transtype.cc
-	test_types.cc
-	test_unicode.cc
-	test_variables.cc
 	tests.cc
 )
 
@@ -101,6 +78,6 @@ set(FICHIERS_TESTS
 )
 
 install(
-	FILES ${FICHIERS_TESTS}
+	DIRECTORY fichiers
 	DESTINATION ${RACINE_INSTALLATION}/fichiers_tests
 )

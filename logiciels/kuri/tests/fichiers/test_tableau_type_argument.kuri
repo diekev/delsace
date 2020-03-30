@@ -1,0 +1,51 @@
+// -----------------------------------
+// Cas : On ne peut pas passer un tableau dynamique à une fonction attendant un tableau fixe.
+
+passe_tableau_fixe :: fonc (tabl : [3]z32) -> rien
+{
+}
+
+foo :: fonc () -> rien
+{
+	tabl : []z32;
+	passe_tableau_fixe(tabl);
+}
+
+// -----------------------------------
+// Cas : On ne peut pas passer un tableau dynamique à une fonction attendant un pointeur.
+
+passe_tableau_fixe :: fonc (tabl : *z32) -> rien
+{
+}
+
+foo :: fonc () -> rien
+{
+	tabl : []z32;
+	passe_tableau_fixe(tabl);
+}
+
+// -----------------------------------
+// Cas : On ne peut pas passer un tableau fixe d'une taille à une fonction attendant un tableau fixe d'une autre taille.
+
+passe_tableau_fixe :: fonc (tabl : [3]z32) -> rien
+{
+}
+
+foo :: fonc () -> rien
+{
+	tabl : [4]z32;
+	passe_tableau_fixe(tabl);
+}
+
+// -----------------------------------
+// Cas : On ne peut pas passer un tableau fixe à une fonction attendant un pointeur.
+
+passe_tableau_fixe :: fonc (tabl : *z32) -> rien
+{
+}
+
+foo :: fonc () -> rien
+{
+	tabl : []z32;
+	passe_tableau_fixe(tabl);
+}
