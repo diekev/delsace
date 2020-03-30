@@ -157,6 +157,9 @@ struct ContexteGenerationCode {
 
 	GeranteChaine gerante_chaine{};
 
+	/* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment. */
+	bool importe_kuri = true;
+
 	ContexteGenerationCode();
 
 	~ContexteGenerationCode();

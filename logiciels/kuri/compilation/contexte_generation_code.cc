@@ -129,6 +129,10 @@ Fichier *ContexteGenerationCode::cree_fichier(
 	fichier->nom = nom;
 	fichier->chemin = chemin;
 
+	if (importe_kuri) {
+		fichier->modules_importes.insere("Kuri");
+	}
+
 	fichiers.pousse(fichier);
 
 	return fichier;
