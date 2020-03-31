@@ -290,8 +290,6 @@ static erreur::type_erreur lance_test(lng::tampon_source &tampon)
 		lexeuse.performe_lexage();
 
 		auto analyseuse = Syntaxeuse(contexte, fichier, "");
-
-		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);
 
 		noeud::performe_validation_semantique(contexte);
