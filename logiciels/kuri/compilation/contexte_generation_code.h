@@ -116,7 +116,7 @@ struct GeranteChaine {
 
 	kuri::chaine trouve_chaine(dls::vue_chaine_compacte const &chaine);
 
-	char valide_caractere(const char *ptr, int &i, bool &ok, const char *&message_erreur, int &position);
+	int valide_caractere(const char *ptr, int &i, const char *&message_erreur, int &position, unsigned char sequence[4]);
 };
 
 struct ContexteGenerationCode {

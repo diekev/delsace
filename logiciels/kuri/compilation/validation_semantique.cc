@@ -1856,12 +1856,12 @@ static void performe_validation_semantique(
 
 			auto i = 0;
 			auto position = 0;
-			auto ok = true;
 			auto message_erreur = "";
+			unsigned char sequence[4];
 
-			auto c = contexte.gerante_chaine.valide_caractere(&b->lexeme->chaine[0], i, ok, message_erreur, position);
+			auto n = contexte.gerante_chaine.valide_caractere(&b->lexeme->chaine[0], i, message_erreur, position, sequence);
 
-			if (!ok) {
+			if (n == 0) {
 				erreur::lance_erreur(message_erreur, contexte, b->lexeme);
 			}
 
@@ -1870,7 +1870,7 @@ static void performe_validation_semantique(
 			}
 
 			// À FAIRE : caractère unicode
-			b->valeur_calculee = c;
+			b->valeur_calculee = static_cast<char>(sequence[0]);
 
 			donnees_dependance.types_utilises.insere(b->type);
 			break;

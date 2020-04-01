@@ -33,6 +33,8 @@
 #pragma GCC diagnostic pop
 #endif
 
+#include "biblinternes/langage/unicode.hh"
+
 #include "assembleuse_arbre.h"
 #include "broyage.hh"
 #include "modules.hh"
@@ -332,7 +334,7 @@ GeranteChaine::~GeranteChaine()
 	}
 }
 
-char GeranteChaine::valide_caractere(const char *ptr, int &i, bool &ok, const char *&message_erreur, int &position)
+int GeranteChaine::valide_caractere(const char *ptr, int &i, const char *&message_erreur, int &position, unsigned char sequence[4])
 {
 	auto c = ptr[i++];
 
@@ -378,18 +380,13 @@ char GeranteChaine::valide_caractere(const char *ptr, int &i, bool &ok, const ch
 				auto c0 = hex_depuis_char(n);
 
 				if (c0 == 256) {
-					ok = false;
-					message_erreur = "Caractère invalide la séquence hexadécimale";
+					message_erreur = "\\x doit prendre 2 chiffres hexadécimaux";
 					position = i - 1;
-					break;
+					return 0;
 				}
 
 				v <<= 4;
 				v |= c0;
-			}
-
-			if (!ok) {
-				return c;
 			}
 
 			c = static_cast<char>(v);
@@ -401,32 +398,25 @@ char GeranteChaine::valide_caractere(const char *ptr, int &i, bool &ok, const ch
 				auto n = ptr[i++];
 
 				if (n < '0' || n > '9') {
-					ok = false;
-					message_erreur = "Caractère invalide la séquence décimale";
+					message_erreur = "\\d doit prendre 3 chiffres décimaux";
 					position = i - 1;
-					break;
+					return 0;
 				}
 
 				v *= 10;
 				v += (n - '0');
 			}
 
-			if (!ok) {
-				return c;
-			}
-
 			if (v > 255) {
-				ok = false;
 				message_erreur = "Valeur décimale trop grande, le maximum est 255";
 				position = i - 3;
-				return c;
+				return 0;
 			}
 
 			c = static_cast<char>(v);
 		}
 		else if (c == 'u') {
-			// À FAIRE : génére octets depuis UTF-32
-			auto v = 0;
+			auto v = 0u;
 
 			for (auto j = 0; j < 4; ++j) {
 				auto n = ptr[i++];
@@ -434,25 +424,27 @@ char GeranteChaine::valide_caractere(const char *ptr, int &i, bool &ok, const ch
 				auto c0 = hex_depuis_char(n);
 
 				if (c0 == 256) {
-					ok = false;
-					message_erreur = "Caractère invalide la séquence hexadécimale";
+					message_erreur = "\\u doit prendre 4 chiffres hexadécimaux";
 					position = i - 1;
-					break;
+					return 0;
 				}
 
 				v <<= 4;
-				v |= c0;
+				v |= static_cast<unsigned int>(c0);
 			}
 
-			if (!ok) {
-				return c;
+			auto n = lng::point_de_code_vers_utf8(v, sequence);
+
+			if (n == 0) {
+				message_erreur = "Séquence Unicode invalide";
+				position = i - 1;
+				return 0;
 			}
 
-			c = static_cast<char>(v);
+			return n;
 		}
 		else if (c == 'U') {
-			// À FAIRE : génére octets depuis UTF-32
-			auto v = 0;
+			auto v = 0u;
 
 			for (auto j = 0; j < 8; ++j) {
 				auto n = ptr[i++];
@@ -460,31 +452,34 @@ char GeranteChaine::valide_caractere(const char *ptr, int &i, bool &ok, const ch
 				auto c0 = hex_depuis_char(n);
 
 				if (c0 == 256) {
-					ok = false;
-					message_erreur = "Caractère invalide la séquence hexadécimale";
+					message_erreur = "\\U doit prendre 8 chiffres hexadécimaux";
 					position = i - 1;
-					break;
+					return 0;
 				}
 
 				v <<= 4;
-				v |= c0;
+				v |= static_cast<unsigned int>(c0);
 			}
 
-			if (!ok) {
-				return c;
+			auto n = lng::point_de_code_vers_utf8(v, sequence);
+
+			if (n == 0) {
+				message_erreur = "Séquence Unicode invalide";
+				position = i - 1;
+				return 0;
 			}
 
-			c = static_cast<char>(v);
+			return n;
 		}
 		else {
-			ok = false;
 			message_erreur = "Séquence d'échappement invalide";
 			position = i - 1;
-			return c;
+			return 0;
 		}
 	}
 
-	return c;
+	sequence[0] = static_cast<unsigned char>(c);
+	return 1;
 }
 
 GeranteChaine::Resultat GeranteChaine::ajoute_chaine(const dls::vue_chaine_compacte &chaine)
@@ -518,15 +513,19 @@ GeranteChaine::Resultat GeranteChaine::ajoute_chaine(const dls::vue_chaine_compa
 	auto ok = true;
 	auto message_erreur = "";
 	auto position = 0;
+	unsigned char sequence[4];
 
 	for (auto i = 0; i < chaine.taille();) {
-		auto c = valide_caractere(ptr, i, ok, message_erreur, position);
+		auto n = valide_caractere(ptr, i, message_erreur, position, sequence);
 
-		if (!ok) {
+		if (n == 0) {
+			ok = false;
 			break;
 		}
 
-		chaine_resultat.pousse(c);
+		for (auto j = 0; j < n; ++j) {
+			chaine_resultat.pousse(static_cast<char>(sequence[j]));
+		}
 	}
 
 	if (ok) {
