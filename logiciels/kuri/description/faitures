@@ -30,7 +30,9 @@ Faitures
 - surcharge d'opérateurs
 - fonctions gabarits/polymorphiques
 - valeur par défaut des paramètres de fonctions
-- héritage de structures via un système d'emploiement
+- héritage de structures via un système d'emploi
+- évite l'initialisation via "---"
+- conversion automatique des types en unions et extraction automatique des valeurs des unions
 
 
 À faire
@@ -46,21 +48,17 @@ Faitures
 ---- caractere + chaîne    -> chaîne     # À FAIRE
 - stack canaries (coulisse LLVM)
 - coroutines en dehours de boucles
-- évite l'initialisation via "---"
 - interpreteur pour calculer le code au niveau de l'émission de code (exécuter dans le compileur, voir JAI, pour les bibliothèques externes -> chargement du .so/.dll)
 - ajoute accès membre pour les types (==> déplacer structures dans les modules)
 - ajout d'une option pour controler la génération du code d'introspection/réflexion (il faut alors également exclure les einis)
-- conversion automatique des types en unions et extraction automatique des valeurs des unions
 - infos types pour les unions
 - surcharge d'opérateurs, considération pour '='
 - surcharge transtypage
 	opér [type] (arg) : [type]
-- réusinage des tests
 - avoir une gestion de la correctitude de constance
-- gabarits (maintenir une table de symboles afin de désambiguer a < b (comparaison), et a<b> (paramètres)
+- structures gabarits
 - empl (vérifier tous les cas)
 - évaluation arbitraire du code (en cours)
-- initialisation des objets : évite d'initialiser plusieurs fois le même membre
 - alias de types
 - opérateurs implicites
 	<= implicite si > ou (< et ==) est défini
@@ -75,6 +73,13 @@ Faitures
 - types comme valeurs
 - corriger les bugs
 - ajout d'un noeud syntaxique pour les imports (simplifiant la recherche de symboles dans les expressions de type A.B.C)
+- déplacer la validation des chaines et des caractères, ainsi que l'extraction de nombres depuis les chaines, dans le lexage
+- déplacer les données des membres des structures/unions/tableaux/etc. dans les types (momentanément stockées dans les noeuds syntaxiques)
+- déplacer la trace d'appel dans le contexte implicite : un contexte par fil d'exécution nous permettra d'éviter les concurrences de types
+- avoir un « runtime » par machine cible où nous implémentons les fonctions ou instructions n'étant pas disponible sur celle-ci (voir Zig)
+- asm enligné
+- pouvoir accéder aux pointeurs des tableaux fixes (@a[0]) via a.pointeur
+- instructions SIMD
 
 
 À faire (tests)
