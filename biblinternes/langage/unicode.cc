@@ -185,4 +185,50 @@ int converti_utf32(const char *sequence, int n)
 	return 0;
 }
 
+/* Donnée un point_de_code, on écris dans sequence le code UTF-8, retournant la
+ * taille de la séquence en octets, ou zéro si point_de_code est invalide. Nous
+ * pourrions accélérer ceci avec clz, pdep, et une table de correspondance.
+ *
+ * Note: nous présumons que les substituts sont traités séparement.
+ */
+int point_de_code_vers_utf8(unsigned int point_de_code, unsigned char *sequence)
+{
+	/* caractère ASCII */
+	if (point_de_code <= 0x7F) {
+		sequence[0] = static_cast<unsigned char>(point_de_code);
+		return 1;
+	}
+
+	/* Plan universel. */
+	if (point_de_code <= 0x7FF) {
+		sequence[0] = static_cast<unsigned char>((point_de_code >> 6) + 192);
+		sequence[1] = static_cast<unsigned char>((point_de_code & 63) + 128);
+		return 2;
+	}
+
+	/* Substituts, nous pourrions avoir une assertion ici. */
+	if (0xd800 <= point_de_code && point_de_code <= 0xdfff) {
+		return 0;
+	}
+
+	if (point_de_code <= 0xFFFF) {
+		sequence[0] = static_cast<unsigned char>((point_de_code >> 12) + 224);
+		sequence[1] = static_cast<unsigned char>(((point_de_code >> 6) & 63) + 128);
+		sequence[2] = static_cast<unsigned char>((point_de_code & 63) + 128);
+		return 3;
+	}
+
+	/* ceci n'est pas nécessaire si nous savons que le point de code est valide */
+	if (point_de_code <= 0x10FFFF) {
+		sequence[0] = static_cast<unsigned char>((point_de_code >> 18) + 240);
+		sequence[1] = static_cast<unsigned char>(((point_de_code >> 12) & 63) + 128);
+		sequence[2] = static_cast<unsigned char>(((point_de_code >> 6) & 63) + 128);
+		sequence[3] = static_cast<unsigned char>((point_de_code & 63) + 128);
+		return 4;
+	}
+
+	/* Le point de code est trop large. */
+	return 0;
+}
+
 }  /* namespace lng */

@@ -78,4 +78,6 @@ dls::chaine supprime_accents(dls::chaine const &chaine);
 
 int converti_utf32(const char *sequence, int n);
 
+int point_de_code_vers_utf8(unsigned int point_de_code, unsigned char *sequence);
+
 }  /* namespace lng */
