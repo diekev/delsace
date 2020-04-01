@@ -80,7 +80,35 @@ Faitures
 - asm enligné
 - pouvoir accéder aux pointeurs des tableaux fixes (@a[0]) via a.pointeur
 - instructions SIMD
+- déplace le contexte du processus principale dans une variable globale afin de pouvoir l'utiliser via pousse_contexte dans des fonctions marquées #nulctx via pousse_contexte
+- ajout de « init_de » pour accéder à la fonction d'initialisation d'une structure
+- avoir une meilleure sécurité de type pour les einis, via discr et un transtypage automatique
+discr e {
+    ENTIER {
+        // que faire pour la taille en octet
+    }
+    STRUCTURE {
+        // ??
+    }
+}
+le compilateur doit savoir le type lors de la compilation, peut-être avoir des outils avec la métaprogrammation et le polymorphisme
 
+- transtypage automatique les unions vers le type discriminée :
+discr u {
+    z32 { u += 5 }
+    r32 { u += 6.7 }
+    ...
+}
+
+- renomme InfoType -> DescType, id_info -> Genre{Info|Desc} ?
+- ajout d'une table de table de types accessible depuis les programmes
+- correction de l'évaluation des opérateurs && ||
+- amélioration boucle pour :
+-- itération directe sur tableau via : pour tabl { ... }, le compilateur définira deux variables : it et index_it
+-- obtenir un pointeur via : pour * ...
+-- inverse la direction via : pour inverse ...
+-- controle la condition finale via : pour <= ...
+- tranche de tableaux et de chaine via : x[ D ... F ]
 
 À faire (tests)
 ---------------
