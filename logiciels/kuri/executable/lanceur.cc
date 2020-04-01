@@ -344,9 +344,9 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "Temps Scène", formatte_nombre(temps_scene * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_scene, temps_total)) });
 	tableau.ajoute_ligne({ "- Chargement", formatte_nombre(metriques.temps_chargement * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_chargement, temps_scene)) });
 	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.temps_tampon * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_tampon, temps_scene)) });
-	tableau.ajoute_ligne({ "- Découpage", formatte_nombre(metriques.temps_decoupage * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_decoupage, temps_scene)) });
-	tableau.ajoute_ligne({ "- Analyse", formatte_nombre(metriques.temps_analyse * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_analyse, temps_scene)) });
-	tableau.ajoute_ligne({ "- Validation", formatte_nombre(metriques.temps_validation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_validation, temps_scene)) });
+	tableau.ajoute_ligne({ "- Lexage", formatte_nombre(metriques.temps_decoupage * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_decoupage, temps_scene)) });
+	tableau.ajoute_ligne({ "- Syntaxage", formatte_nombre(metriques.temps_analyse * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_analyse, temps_scene)) });
+	tableau.ajoute_ligne({ "- Typage", formatte_nombre(metriques.temps_validation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_validation, temps_scene)) });
 
 	tableau.ajoute_ligne({ "Temps Coulisse", formatte_nombre(temps_coulisse * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_coulisse, temps_total)) });
 	tableau.ajoute_ligne({ "- Génération Code", formatte_nombre(metriques.temps_generation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_generation, temps_coulisse)) });
