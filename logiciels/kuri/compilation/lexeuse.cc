@@ -591,6 +591,7 @@ void Lexeuse::lexe_nombre()
 void Lexeuse::lexe_nombre_decimal()
 {
 	unsigned long long resultat_entier = 0;
+	unsigned nombre_de_chiffres = 0;
 	auto point_trouve = false;
 
 	while (!fini()) {
@@ -606,7 +607,12 @@ void Lexeuse::lexe_nombre_decimal()
 				break;
 			}
 
+			// gère triple points
 			if (c == '.') {
+				if (this->caractere_voisin() == '.' && this->caractere_voisin(2) == '.') {
+					break;
+				}
+
 				point_trouve = true;
 				this->avance();
 				break;
@@ -617,10 +623,15 @@ void Lexeuse::lexe_nombre_decimal()
 
 		resultat_entier *= 10;
 		resultat_entier += static_cast<unsigned long long>(c - '0');
+		nombre_de_chiffres += 1;
 		this->avance();
 	}
 
 	if (!point_trouve) {
+		if (nombre_de_chiffres > 20) {
+			lance_erreur("constante entière trop grande");
+		}
+
 		this->pousse_lexeme_entier(resultat_entier);
 		return;
 	}
@@ -641,7 +652,12 @@ void Lexeuse::lexe_nombre_decimal()
 				break;
 			}
 
+			// gère triple points
 			if (c == '.') {
+				if (this->caractere_voisin() == '.' && this->caractere_voisin(2) == '.') {
+					break;
+				}
+
 				lance_erreur("point superflux dans l'expression du nombre");
 			}
 
@@ -663,6 +679,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
 	this->avance(2);
 
 	unsigned long long resultat_entier = 0;
+	unsigned nombre_de_chiffres = 0;
 
 	while (!fini()) {
 		auto c = this->caractere_courant();
@@ -687,7 +704,12 @@ void Lexeuse::lexe_nombre_hexadecimal()
 
 		resultat_entier *= 16;
 		resultat_entier += chiffre;
+		nombre_de_chiffres += 1;
 		this->avance();
+	}
+
+	if (nombre_de_chiffres > 16) {
+		lance_erreur("constante entière trop grande");
 	}
 
 	this->pousse_lexeme_entier(resultat_entier);
@@ -698,6 +720,7 @@ void Lexeuse::lexe_nombre_binaire()
 	this->avance(2);
 
 	unsigned long long resultat_entier = 0;
+	unsigned nombre_de_chiffres = 0;
 
 	while (!fini()) {
 		auto c = this->caractere_courant();
@@ -719,7 +742,12 @@ void Lexeuse::lexe_nombre_binaire()
 
 		resultat_entier *= 2;
 		resultat_entier += chiffre;
+		nombre_de_chiffres += 1;
 		this->avance();
+	}
+
+	if (nombre_de_chiffres > 64) {
+		lance_erreur("constante entière trop grande");
 	}
 
 	this->pousse_lexeme_entier(resultat_entier);
@@ -730,6 +758,7 @@ void Lexeuse::lexe_nombre_octal()
 	this->avance(2);
 
 	unsigned long long resultat_entier = 0;
+	unsigned nombre_de_chiffres = 0;
 
 	while (!fini()) {
 		auto c = this->caractere_courant();
@@ -748,7 +777,12 @@ void Lexeuse::lexe_nombre_octal()
 
 		resultat_entier *= 8;
 		resultat_entier += chiffre;
+		nombre_de_chiffres += 1;
 		this->avance();
+	}
+
+	if (nombre_de_chiffres > 22) {
+		lance_erreur("constante entière trop grande");
 	}
 
 	this->pousse_lexeme_entier(resultat_entier);

@@ -23,7 +23,6 @@
  */
 
 #include "test_decoupage.h"
-#include "test_decoupage_nombres.h"
 
 #include <filesystem>
 #include <fstream>
@@ -60,6 +59,16 @@ static Test tests_unitaires[] = {
 //		"fichiers/test_fonction_inconnue_module.kuri",
 //		erreur::type_erreur::FONCTION_INCONNUE
 //	},
+	{
+		"",
+		"fichiers/test_lexage_nombre_correcte.kuri",
+		erreur::type_erreur::AUCUNE_ERREUR
+	},
+	{
+		"",
+		"fichiers/test_lexage_nombre_erreur.kuri",
+		erreur::type_erreur::LEXAGE
+	},
 	{
 		"",
 		"fichiers/test_module_inconnu.kuri",

@@ -36,11 +36,9 @@ set(SOURCES
 	outils.h
 
 	test_decoupage.h
-	test_decoupage_nombres.h
 	outils.cc
 
 	test_decoupage.cc
-	test_decoupage_nombres.cc
 	tests.cc
 )
 
