@@ -296,7 +296,7 @@ void Lexeuse::lance_erreur(const dls::chaine &quoi) const
 	ss << "^~~~\n";
 	ss << quoi;
 
-	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::DECOUPAGE);
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::LEXAGE);
 }
 
 // si caractere blanc:

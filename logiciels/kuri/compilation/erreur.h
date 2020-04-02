@@ -39,7 +39,7 @@ enum class type_erreur : int {
 	AUCUNE_ERREUR,
 
 	NORMAL,
-	DECOUPAGE,
+	LEXAGE,
 	SYNTAXAGE,
 	NOMBRE_ARGUMENT,
 	TYPE_ARGUMENT,

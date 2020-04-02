@@ -49,7 +49,7 @@ const char *chaine_erreur(type_erreur te)
 	switch (te) {
 		CAS_GENRE(type_erreur::AUCUNE_ERREUR)
 		CAS_GENRE(type_erreur::NORMAL)
-		CAS_GENRE(type_erreur::DECOUPAGE)
+		CAS_GENRE(type_erreur::LEXAGE)
 		CAS_GENRE(type_erreur::SYNTAXAGE)
 		CAS_GENRE(type_erreur::NOMBRE_ARGUMENT)
 		CAS_GENRE(type_erreur::TYPE_ARGUMENT)
