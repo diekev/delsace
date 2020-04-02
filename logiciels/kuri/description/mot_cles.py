@@ -143,9 +143,6 @@ trigraphes = sorted(trigraphes)
 id_extra = [
 	[u'1.234', u'NOMBRE_REEL'],
 	[u'123', u'NOMBRE_ENTIER'],
-	[u'0xFF', u'NOMBRE_HEXADECIMAL'],
-	[u'0o377', u'NOMBRE_OCTAL'],
-	[u'0b1010', u'NOMBRE_BINAIRE'],
 	[u'-', u'PLUS_UNAIRE'],
 	[u'+', u'MOINS_UNAIRE'],
     [u'chaine_de_caractère', u"CHAINE_CARACTERE"],
@@ -179,6 +176,12 @@ def construit_structures():
 	structures += u'\tusing type = GenreLexeme;\n'
 	structures += u'\tstatic constexpr type INCONNU = GenreLexeme::INCONNU;\n'
 	structures += u'\tdls::vue_chaine_compacte chaine;\n'
+	structures += u'\n'
+	structures += u'\tunion {\n'
+	structures += u'\t\tunsigned long long valeur_entiere;\n'
+	structures += u'\t\tdouble valeur_reelle;\n'
+	structures += u'\t};\n'
+	structures += u'\n'
 	structures += u'\tGenreLexeme genre;\n'
 	structures += u'\tint fichier = 0;\n'
 	structures += u'\tint ligne = 0;\n'

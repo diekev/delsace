@@ -25,7 +25,6 @@
 #include "validation_semantique.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
-#include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/dico_fixe.hh"
@@ -41,8 +40,6 @@
 #include "outils_lexemes.hh"
 #include "portee.hh"
 #include "typage.hh"
-
-using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
 
 namespace noeud {
 

@@ -25,7 +25,6 @@
 #include "generation_code_c.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
-#include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntactic.h"
@@ -40,8 +39,6 @@
 #include "outils_lexemes.hh"
 #include "portee.hh"
 #include "typage.hh"
-
-using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
 
 namespace noeud {
 
@@ -1391,24 +1388,12 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		{
-			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
-			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
-											 denombreuse::converti_chaine_nombre_reel(
-												 b->lexeme->chaine,
-												 b->lexeme->genre);
-
-			b->valeur_calculee = dls::vers_chaine(valeur);
+			b->valeur_calculee = dls::vers_chaine(b->lexeme->valeur_reelle);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		{
-			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
-			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
-											 denombreuse::converti_chaine_nombre_entier(
-												 b->lexeme->chaine,
-												 b->lexeme->genre);
-
-			b->valeur_calculee = dls::vers_chaine(valeur);
+			b->valeur_calculee = dls::vers_chaine(b->lexeme->valeur_entiere);
 			break;
 		}
 		case GenreNoeud::OPERATEUR_BINAIRE:

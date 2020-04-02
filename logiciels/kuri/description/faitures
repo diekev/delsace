@@ -73,7 +73,7 @@ Faitures
 - types comme valeurs
 - corriger les bugs
 - ajout d'un noeud syntaxique pour les imports (simplifiant la recherche de symboles dans les expressions de type A.B.C)
-- déplacer la validation des chaines et des caractères, ainsi que l'extraction de nombres depuis les chaines, dans le lexage
+- déplacer la validation des chaines et des caractères dans le lexage
 - déplacer les données des membres des structures/unions/tableaux/etc. dans les types (momentanément stockées dans les noeuds syntaxiques)
 - déplacer la trace d'appel dans le contexte implicite : un contexte par fil d'exécution nous permettra d'éviter les concurrences de types
 - avoir un « runtime » par machine cible où nous implémentons les fonctions ou instructions n'étant pas disponible sur celle-ci (voir Zig)

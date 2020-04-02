@@ -73,9 +73,6 @@ static bool doit_ajouter_point_virgule(GenreLexeme dernier_id)
 		case GenreLexeme::CHAINE_LITTERALE:
 		case GenreLexeme::NOMBRE_REEL:
 		case GenreLexeme::NOMBRE_ENTIER:
-		case GenreLexeme::NOMBRE_OCTAL:
-		case GenreLexeme::NOMBRE_HEXADECIMAL:
-		case GenreLexeme::NOMBRE_BINAIRE:
 		case GenreLexeme::CARACTERE:
 		case GenreLexeme::VRAI:
 		case GenreLexeme::FAUX:
@@ -465,21 +462,7 @@ void Lexeuse::analyse_caractere_simple()
 		}
 	}
 	else if (m_taille_mot_courant == 0 && lng::est_nombre_decimal(this->caractere_courant())) {
-		this->enregistre_pos_mot();
-
-		using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
-		GenreLexeme id_nombre;
-
-		/* NOTE : on utilise une variable temporaire pour stocker le compte au
-		 * lieu d'utiliser m_taille_mot_courant directement, car
-		 * m_taille_mot_courant est remis à 0 dans pousse_mot() donc on ne peut
-		 * l'utiliser en paramètre de avance() (ce qui causerait une boucle
-		 * infinie. */
-		auto const compte = denombreuse::extrait_nombre(m_debut, m_fin, id_nombre);
-		m_taille_mot_courant = static_cast<long>(compte);
-
-		this->pousse_mot(id_nombre);
-		this->avance(static_cast<int>(compte));
+		this->lexe_nombre();
 	}
 	else {
 		if (m_taille_mot_courant == 0) {
@@ -502,7 +485,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant)
 		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
 	}
 
-	m_fichier->lexemes.pousse({ mot_courant(), identifiant, static_cast<int>(m_fichier->id), static_cast<int>(m_compte_ligne), static_cast<int>(m_pos_mot) });
+	m_fichier->lexemes.pousse({ mot_courant(), { 0ull }, identifiant, static_cast<int>(m_fichier->id), static_cast<int>(m_compte_ligne), static_cast<int>(m_pos_mot) });
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }
@@ -577,4 +560,234 @@ void Lexeuse::lexe_commentaire_bloc()
 	/* Lorsqu'on inclus pas les commentaires, il faut ignorer les
 	 * caractères poussées. */
 	m_taille_mot_courant = 0;
+}
+
+void Lexeuse::lexe_nombre()
+{
+	this->enregistre_pos_mot();
+
+	if (this->caractere_courant() == '0') {
+		auto c = this->caractere_voisin();
+
+		if (c == 'b' || c == 'B') {
+			lexe_nombre_binaire();
+			return;
+		}
+
+		if (c == 'o' || c == 'O') {
+			lexe_nombre_octal();
+			return;
+		}
+
+		if (c == 'x' || c == 'X') {
+			lexe_nombre_hexadecimal();
+			return;
+		}
+	}
+
+	this->lexe_nombre_decimal();
+}
+
+void Lexeuse::lexe_nombre_decimal()
+{
+	unsigned long long resultat_entier = 0;
+	auto point_trouve = false;
+
+	while (!fini()) {
+		auto c = this->caractere_courant();
+
+		if (!lng::est_nombre_decimal(c)) {
+			if (c == '_') {
+				this->avance();
+				continue;
+			}
+
+			if (lng::est_espace_blanc(c)) {
+				break;
+			}
+
+			if (c == '.') {
+				point_trouve = true;
+				this->avance();
+				break;
+			}
+
+			break;
+		}
+
+		resultat_entier *= 10;
+		resultat_entier += static_cast<unsigned long long>(c - '0');
+		this->avance();
+	}
+
+	if (!point_trouve) {
+		this->pousse_lexeme_entier(resultat_entier);
+		return;
+	}
+
+	auto resultat_reel = static_cast<double>(resultat_entier);
+	auto dividende = 10.0;
+
+	while (!fini()) {
+		auto c = this->caractere_courant();
+
+		if (!lng::est_nombre_decimal(c)) {
+			if (c == '_') {
+				this->avance();
+				continue;
+			}
+
+			if (lng::est_espace_blanc(c)) {
+				break;
+			}
+
+			if (c == '.') {
+				lance_erreur("point superflux dans l'expression du nombre");
+			}
+
+			break;
+		}
+
+		auto chiffre = static_cast<double>(c - '0');
+
+		resultat_reel += chiffre / dividende;
+		dividende *= 10.0;
+		this->avance();
+	}
+
+	this->pousse_lexeme_reel(resultat_reel);
+}
+
+void Lexeuse::lexe_nombre_hexadecimal()
+{
+	this->avance(2);
+
+	unsigned long long resultat_entier = 0;
+
+	while (!fini()) {
+		auto c = this->caractere_courant();
+		auto chiffre = 0u;
+
+		if ('0' <= c && c <= '9') {
+			chiffre = static_cast<unsigned>(c - '0');
+		}
+		else if ('a' <= c && c <= 'f') {
+			chiffre = 10 + static_cast<unsigned>(c - 'a');
+		}
+		else if ('A' <= c && c <= 'F') {
+			chiffre = 10 + static_cast<unsigned>(c - 'A');
+		}
+		else if (c == '_') {
+			this->avance();
+			continue;
+		}
+		else {
+			break;
+		}
+
+		resultat_entier *= 16;
+		resultat_entier += chiffre;
+		this->avance();
+	}
+
+	this->pousse_lexeme_entier(resultat_entier);
+}
+
+void Lexeuse::lexe_nombre_binaire()
+{
+	this->avance(2);
+
+	unsigned long long resultat_entier = 0;
+
+	while (!fini()) {
+		auto c = this->caractere_courant();
+		auto chiffre = 0u;
+
+		if (c == '0') {
+			// chiffre est déjà 0
+		}
+		else if (c == '1') {
+			chiffre = 1;
+		}
+		else if (c == '_') {
+			this->avance();
+			continue;
+		}
+		else {
+			break;
+		}
+
+		resultat_entier *= 2;
+		resultat_entier += chiffre;
+		this->avance();
+	}
+
+	this->pousse_lexeme_entier(resultat_entier);
+}
+
+void Lexeuse::lexe_nombre_octal()
+{
+	this->avance(2);
+
+	unsigned long long resultat_entier = 0;
+
+	while (!fini()) {
+		auto c = this->caractere_courant();
+		auto chiffre = 0u;
+
+		if ('0' <= c && c <= '7') {
+			chiffre = static_cast<unsigned>(c - '0');
+		}
+		else if (c == '_') {
+			this->avance();
+			continue;
+		}
+		else {
+			break;
+		}
+
+		resultat_entier *= 8;
+		resultat_entier += chiffre;
+		this->avance();
+	}
+
+	this->pousse_lexeme_entier(resultat_entier);
+}
+
+void Lexeuse::pousse_lexeme_entier(unsigned long long valeur)
+{
+	if (m_fichier->lexemes.taille() % 128 == 0) {
+		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
+	}
+
+	auto lexeme = Lexeme{};
+	lexeme.genre = GenreLexeme::NOMBRE_ENTIER;
+	lexeme.valeur_entiere = valeur;
+	lexeme.fichier = static_cast<int>(m_fichier->id);
+	lexeme.colonne = static_cast<int>(m_pos_mot);
+	lexeme.ligne = static_cast<int>(m_compte_ligne);
+
+	m_fichier->lexemes.pousse(lexeme);
+
+	m_taille_mot_courant = 0;
+	m_dernier_id = GenreLexeme::NOMBRE_ENTIER;
+}
+
+void Lexeuse::pousse_lexeme_reel(double valeur)
+{
+	if (m_fichier->lexemes.taille() % 128 == 0) {
+		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
+	}
+
+	auto lexeme = Lexeme{};
+	lexeme.genre = GenreLexeme::NOMBRE_REEL;
+	lexeme.valeur_reelle = valeur;
+	lexeme.fichier = static_cast<int>(m_fichier->id);
+	lexeme.colonne = static_cast<int>(m_pos_mot);
+	lexeme.ligne = static_cast<int>(m_compte_ligne);
+
+	m_fichier->lexemes.pousse(lexeme);
+
+	m_taille_mot_courant = 0;
+	m_dernier_id = GenreLexeme::NOMBRE_REEL;
 }

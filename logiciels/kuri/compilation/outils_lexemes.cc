@@ -251,15 +251,7 @@ bool est_identifiant_type(GenreLexeme identifiant)
 
 bool est_nombre_entier(GenreLexeme identifiant)
 {
-	switch (identifiant) {
-		case GenreLexeme::NOMBRE_BINAIRE:
-		case GenreLexeme::NOMBRE_ENTIER:
-		case GenreLexeme::NOMBRE_HEXADECIMAL:
-		case GenreLexeme::NOMBRE_OCTAL:
-			return true;
-		default:
-			return false;
-	}
+	return identifiant == GenreLexeme::NOMBRE_ENTIER;
 }
 
 bool est_nombre(GenreLexeme identifiant)

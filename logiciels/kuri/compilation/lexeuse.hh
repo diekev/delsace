@@ -83,4 +83,13 @@ private:
 	void lexe_commentaire();
 
 	void lexe_commentaire_bloc();
+
+	void lexe_nombre();
+	void lexe_nombre_decimal();
+	void lexe_nombre_hexadecimal();
+	void lexe_nombre_binaire();
+	void lexe_nombre_octal();
+
+	void pousse_lexeme_entier(unsigned long long valeur);
+	void pousse_lexeme_reel(double valeur);
 };

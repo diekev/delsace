@@ -24,14 +24,11 @@
 
 #include "expression.h"
 
-#include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/conditions.h"
 
 #include "contexte_generation_code.h"
 #include "outils_lexemes.hh"
 #include "portee.hh"
-
-using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
 
 enum class dir_associativite : int {
 	GAUCHE,
@@ -378,7 +375,7 @@ ResultatExpression evalue_expression(
 		{
 			auto res = ResultatExpression();
 			res.type = type_expression::ENTIER;
-			res.entier = lng::decoupeuse_nombre<GenreLexeme>::converti_chaine_nombre_entier(b->lexeme->chaine, b->lexeme->genre);
+			res.entier = static_cast<long>(b->lexeme->valeur_entiere);
 
 			return res;
 		}
@@ -386,7 +383,7 @@ ResultatExpression evalue_expression(
 		{
 			auto res = ResultatExpression();
 			res.type = type_expression::REEL;
-			res.reel = lng::converti_nombre_reel(dls::vue_chaine(b->lexeme->chaine.pointeur(), b->lexeme->chaine.taille()));
+			res.reel = b->lexeme->valeur_reelle;
 
 			return res;
 		}

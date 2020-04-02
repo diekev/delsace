@@ -271,12 +271,6 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 			return "GenreLexeme::NOMBRE_REEL";
 		case GenreLexeme::NOMBRE_ENTIER:
 			return "GenreLexeme::NOMBRE_ENTIER";
-		case GenreLexeme::NOMBRE_HEXADECIMAL:
-			return "GenreLexeme::NOMBRE_HEXADECIMAL";
-		case GenreLexeme::NOMBRE_OCTAL:
-			return "GenreLexeme::NOMBRE_OCTAL";
-		case GenreLexeme::NOMBRE_BINAIRE:
-			return "GenreLexeme::NOMBRE_BINAIRE";
 		case GenreLexeme::PLUS_UNAIRE:
 			return "GenreLexeme::PLUS_UNAIRE";
 		case GenreLexeme::MOINS_UNAIRE:
@@ -544,12 +538,6 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 			return "1.234";
 		case GenreLexeme::NOMBRE_ENTIER:
 			return "123";
-		case GenreLexeme::NOMBRE_HEXADECIMAL:
-			return "0xFF";
-		case GenreLexeme::NOMBRE_OCTAL:
-			return "0o377";
-		case GenreLexeme::NOMBRE_BINAIRE:
-			return "0b1010";
 		case GenreLexeme::PLUS_UNAIRE:
 			return "-";
 		case GenreLexeme::MOINS_UNAIRE:

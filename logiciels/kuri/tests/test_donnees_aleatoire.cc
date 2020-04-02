@@ -125,10 +125,7 @@ static GenreLexeme id_operateurs_binaire[] = {
 
 static GenreLexeme id_variables[] = {
 	GenreLexeme::CHAINE_CARACTERE,
-	GenreLexeme::NOMBRE_BINAIRE,
 	GenreLexeme::NOMBRE_ENTIER,
-	GenreLexeme::NOMBRE_HEXADECIMAL,
-	GenreLexeme::NOMBRE_OCTAL,
 	GenreLexeme::NOMBRE_REEL,
 	GenreLexeme::CARACTERE,
 };

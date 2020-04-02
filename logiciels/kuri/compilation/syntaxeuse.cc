@@ -844,10 +844,7 @@ NoeudExpression *Syntaxeuse::analyse_expression(
 				expressions.pousse(dernier_noeud);
 				break;
 			}
-			case GenreLexeme::NOMBRE_BINAIRE:
 			case GenreLexeme::NOMBRE_ENTIER:
-			case GenreLexeme::NOMBRE_HEXADECIMAL:
-			case GenreLexeme::NOMBRE_OCTAL:
 			{
 				dernier_noeud = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER, &lexeme);
 				expressions.pousse(dernier_noeud);

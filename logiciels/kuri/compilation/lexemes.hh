@@ -85,9 +85,6 @@ enum class GenreLexeme : unsigned int {
 	DEC_DROITE_EGAL,
 	NOMBRE_REEL,
 	NOMBRE_ENTIER,
-	NOMBRE_HEXADECIMAL,
-	NOMBRE_OCTAL,
-	NOMBRE_BINAIRE,
 	PLUS_UNAIRE,
 	MOINS_UNAIRE,
 	CHAINE_CARACTERE,
@@ -193,6 +190,12 @@ struct Lexeme {
 	using type = GenreLexeme;
 	static constexpr type INCONNU = GenreLexeme::INCONNU;
 	dls::vue_chaine_compacte chaine;
+
+	union {
+		unsigned long long valeur_entiere;
+		double valeur_reelle;
+	};
+
 	GenreLexeme genre;
 	int fichier = 0;
 	int ligne = 0;

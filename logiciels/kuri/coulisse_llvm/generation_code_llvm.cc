@@ -25,7 +25,6 @@
 #include "generation_code_llvm.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
-#include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/conditions.h"
 
@@ -55,8 +54,6 @@ using dls::outils::possede_drapeau;
 #include "validation_semantique.hh"
 
 #include "contexte_generation_llvm.hh"
-
-using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
 
 #undef NOMME_IR
 
@@ -1310,27 +1307,15 @@ llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		{
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
-			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
-												denombreuse::converti_chaine_nombre_reel(
-													b->lexeme->chaine,
-													b->lexeme->genre);
-
 			return llvm::ConstantFP::get(
 						llvm::Type::getFloatTy(contexte.contexte),
-						valeur);
+						b->lexeme->valeur_reelle);
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		{
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
-			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
-												denombreuse::converti_chaine_nombre_entier(
-													b->lexeme->chaine,
-													b->lexeme->genre);
-
 			return llvm::ConstantInt::get(
 						converti_type_llvm(contexte, b->type),
-						static_cast<uint64_t>(valeur),
+						b->lexeme->valeur_entiere,
 						false);
 		}
 		case GenreNoeud::OPERATEUR_BINAIRE:
