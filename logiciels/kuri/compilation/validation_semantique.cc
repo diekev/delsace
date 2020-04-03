@@ -2936,7 +2936,7 @@ static void performe_validation_semantique(
 
 			contexte.operateurs.ajoute_operateur_basique_enum(decl->type);
 
-			auto noms_presents = dls::ensemble<dls::vue_chaine_compacte>();
+			auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 32>();
 
 			auto dernier_res = ResultatExpression();
 			/* utilise est_errone pour indiquer que nous sommes à la première valeur */
@@ -2962,6 +2962,12 @@ static void performe_validation_semantique(
 				if (var->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
 					erreur::lance_erreur("Expression invalide dans la déclaration du membre de l'énumération", contexte, var->lexeme);
 				}
+
+				if (noms_rencontres.possede(var->ident)) {
+					erreur::lance_erreur("Redéfinition du membre", contexte, var->lexeme);
+				}
+
+				noms_rencontres.insere(var->ident);
 
 				auto expr = decl_expr->expression;
 
