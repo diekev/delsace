@@ -27,7 +27,7 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico.hh"
-#include "biblinternes/structures/ensemble.hh"
+#include "biblinternes/structures/ensemblon.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "arbre_syntactic.h"
@@ -86,9 +86,9 @@ struct NoeudDependance {
 };
 
 struct DonneesDependance {
-	dls::ensemble<dls::vue_chaine_compacte> fonctions_utilisees{};
-	dls::ensemble<dls::vue_chaine_compacte> globales_utilisees{};
-	dls::ensemble<Type *> types_utilises{};
+	dls::ensemblon<dls::vue_chaine_compacte, 16> fonctions_utilisees{};
+	dls::ensemblon<dls::vue_chaine_compacte, 16> globales_utilisees{};
+	dls::ensemblon<Type *, 16> types_utilises{};
 };
 
 struct GrapheDependance {

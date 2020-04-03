@@ -251,20 +251,26 @@ void GrapheDependance::ajoute_dependances(
 		NoeudDependance &noeud,
 		DonneesDependance &donnees)
 {
-	for (auto type : donnees.types_utilises) {
+	dls::pour_chaque_element(donnees.types_utilises, [&](auto &type)
+	{
 		auto noeud_type = cree_noeud_type(type);
 		connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_TYPE);
-	}
+		return dls::DecisionIteration::Continue;
+	});
 
-	for (auto fonction_utilisee : donnees.fonctions_utilisees) {
+	dls::pour_chaque_element(donnees.fonctions_utilisees, [&](auto &fonction_utilisee)
+	{
 		auto noeud_type = cherche_noeud_fonction(fonction_utilisee);
 		connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_FONCTION);
-	}
+		return dls::DecisionIteration::Continue;
+	});
 
-	for (auto globale_utilisee : donnees.globales_utilisees) {
+	dls::pour_chaque_element(donnees.globales_utilisees, [&](auto &globale_utilisee)
+	{
 		auto noeud_type = cherche_noeud_globale(globale_utilisee);
 		connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_GLOBALE);
-	}
+		return dls::DecisionIteration::Continue;
+	});
 
 	/* libère la mémoire */
 	donnees.types_utilises.efface();

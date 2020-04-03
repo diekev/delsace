@@ -92,15 +92,18 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
 	}
 
 	/* cherche dans les modules importés */
-	for (auto &nom_module : fichier->modules_importes) {
+	dls::pour_chaque_element(fichier->modules_importes, [&](auto &nom_module)
+	{
 		auto module = contexte.module(nom_module);
 
 		decl = trouve_dans_bloc(module->bloc, ident);
 
 		if (decl != nullptr) {
-			return decl;
+			return dls::DecisionIteration::Arrete;
 		}
-	}
+
+		return dls::DecisionIteration::Continue;
+	});
 
 	return decl;
 }
@@ -141,15 +144,18 @@ NoeudDeclaration *trouve_type_dans_bloc_ou_module(
 	}
 
 	/* cherche dans les modules importés */
-	for (auto &nom_module : fichier->modules_importes) {
+	dls::pour_chaque_element(fichier->modules_importes, [&](auto &nom_module)
+	{
 		auto module = contexte.module(nom_module);
 
 		decl = trouve_type_dans_bloc(module->bloc, ident);
 
 		if (decl != nullptr) {
-			return decl;
+			return dls::DecisionIteration::Arrete;
 		}
-	}
+
+		return dls::DecisionIteration::Continue;
+	});
 
 	return decl;
 }

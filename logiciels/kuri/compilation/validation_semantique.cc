@@ -28,6 +28,7 @@
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/dico_fixe.hh"
+#include "biblinternes/structures/ensemblon.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/magasin.hh"
 
@@ -532,7 +533,7 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 
 	// -----------------------------------
 	if (!contexte.pour_gabarit) {
-		auto noms = dls::ensemble<IdentifiantCode *>();
+		auto noms = dls::ensemblon<IdentifiantCode *, 16>();
 		auto dernier_est_variadic = false;
 
 		POUR (decl->params) {
@@ -540,7 +541,7 @@ static void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &con
 			auto variable = param->valeur;
 			auto expression = param->expression;
 
-			if (noms.trouve(variable->ident) != noms.fin()) {
+			if (noms.possede(variable->ident)) {
 				erreur::lance_erreur(
 							"Redéfinition de l'argument",
 							contexte,
@@ -3050,13 +3051,13 @@ static void performe_validation_semantique(
 								expression->lexeme);
 				}
 
-				auto membres_rencontres = dls::ensemble<IdentifiantCode *>();
+				auto membres_rencontres = dls::ensemblon<IdentifiantCode *, 16>();
 
 				auto valide_presence_membres = [&membres_rencontres, &decl, &contexte, &expression]() {
 					auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
 
 					POUR (decl->bloc->membres) {
-						if (membres_rencontres.trouve(it->ident) == membres_rencontres.fin()) {
+						if (!membres_rencontres.possede(it->ident)) {
 							valeurs_manquantes.insere(it->lexeme->chaine);
 						}
 					}
@@ -3083,7 +3084,7 @@ static void performe_validation_semantique(
 
 					auto nom_membre = expr_paire->ident->nom;
 
-					if (membres_rencontres.trouve(expr_paire->ident) != membres_rencontres.fin()) {
+					if (membres_rencontres.possede(expr_paire->ident)) {
 						erreur::lance_erreur(
 									"Redéfinition de l'expression",
 									contexte,
@@ -3134,7 +3135,7 @@ static void performe_validation_semantique(
 			else if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
 				auto decl = static_cast<TypeEnum *>(type)->decl;
 
-				auto membres_rencontres = dls::ensemble<dls::vue_chaine_compacte>();
+				auto membres_rencontres = dls::ensemblon<dls::vue_chaine_compacte, 16>();
 				b->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
 
 				for (int i = 0; i < inst->paires_discr.taille; ++i) {
@@ -3160,7 +3161,7 @@ static void performe_validation_semantique(
 							erreur::membre_inconnu(contexte, decl->bloc, b, expression, expr_paire, type);
 						}
 
-						if (membres_rencontres.trouve(nom_membre) != membres_rencontres.fin()) {
+						if (membres_rencontres.possede(nom_membre)) {
 							erreur::lance_erreur(
 										"Redéfinition de l'expression",
 										contexte,
@@ -3177,7 +3178,7 @@ static void performe_validation_semantique(
 					auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
 
 					POUR (decl->desc.noms) {
-						if (membres_rencontres.trouve({ it.pointeur, it.taille }) == membres_rencontres.fin()) {
+						if (!membres_rencontres.possede({ it.pointeur, it.taille })) {
 							valeurs_manquantes.insere({ it.pointeur, it.taille });
 						}
 					}

@@ -40,7 +40,7 @@
 
 bool Fichier::importe_module(dls::vue_chaine_compacte const &nom_module) const
 {
-	return modules_importes.trouve(nom_module) != modules_importes.fin();
+	return modules_importes.possede(nom_module);
 }
 
 DonneesModule::DonneesModule(ContexteGenerationCode &contexte)
@@ -312,7 +312,7 @@ static DonneesCandidate verifie_donnees_fonction(
 	auto iter_expr = exprs.begin();
 	auto arguments_nommes = false;
 	auto dernier_arg_variadique = false;
-	dls::ensemble<IdentifiantCode *> args;
+	dls::ensemblon<IdentifiantCode *, 16> args;
 
 	for (auto const &nom_arg : noms_arguments) {
 		if (nom_arg != nullptr) {
@@ -339,7 +339,7 @@ static DonneesCandidate verifie_donnees_fonction(
 				return res;
 			}
 
-			if ((args.trouve(nom_arg) != args.fin()) && (param->drapeaux & EST_VARIADIQUE) == 0) {
+			if (args.possede(nom_arg) && (param->drapeaux & EST_VARIADIQUE) == 0) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = RENOMMAGE_ARG;
 				res.nom_arg = nom_arg->nom;
@@ -644,11 +644,12 @@ ResultatRecherche cherche_donnees_fonction(
 	trouve_fonctions_dans_module(contexte, module, nom, noms_arguments, exprs, res);
 
 	/* cherche dans les modules importés */
-	for (auto &nom_module : fichier->modules_importes) {
+	dls::pour_chaque_element(fichier->modules_importes, [&](auto& nom_module)
+	{
 		module = contexte.module(nom_module);
-
 		trouve_fonctions_dans_module(contexte, module, nom, noms_arguments, exprs, res);
-	}
+		return dls::DecisionIteration::Continue;
+	});
 
 	return res;
 }

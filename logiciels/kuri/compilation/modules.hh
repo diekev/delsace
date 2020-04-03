@@ -25,7 +25,7 @@
 #pragma once
 
 #include "biblinternes/langage/tampon_source.hh"
-#include "biblinternes/structures/ensemble.hh"
+#include "biblinternes/structures/ensemblon.hh"
 #include "biblinternes/structures/tablet.hh"
 
 #include "transformation_type.hh"
@@ -52,7 +52,7 @@ struct Fichier {
 
 	dls::tableau<Lexeme> lexemes{};
 
-	dls::ensemble<dls::vue_chaine_compacte> modules_importes{};
+	dls::ensemblon<dls::vue_chaine_compacte, 16> modules_importes{};
 
 	DonneesModule *module = nullptr;
 
@@ -76,7 +76,7 @@ struct DonneesModule {
 	NoeudBloc *bloc = nullptr;
 
 	dls::tableau<Fichier *> fichiers{};
-	dls::ensemble<dls::vue_chaine_compacte> fonctions_exportees{};
+	dls::ensemblon<dls::vue_chaine_compacte, 16> fonctions_exportees{};
 	size_t id = 0ul;
 	dls::chaine nom{""};
 	dls::chaine chemin{""};
