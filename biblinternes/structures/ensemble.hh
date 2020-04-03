@@ -95,6 +95,11 @@ public:
 	{
 		return m_ensemble.find(valeur);
 	}
+
+	void echange(ensemble &autre)
+	{
+		m_ensemble.swap(autre.m_ensemble);
+	}
 };
 
 template <typename Cle, typename Comparaison = std::less<Cle>>

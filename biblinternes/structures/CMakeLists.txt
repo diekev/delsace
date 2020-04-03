@@ -38,6 +38,7 @@ add_library(${NOM_CIBLE} STATIC
 	dico_desordonne.cc
 	dico_fixe.cc
 	ensemble.cc
+	ensemblon.cc
 	file.cc
 	flux_chaine.cc
 	grille_particules.cc
@@ -65,6 +66,7 @@ add_library(${NOM_CIBLE} STATIC
 	dico_desordonne.hh
 	dico_fixe.hh
 	ensemble.hh
+	ensemblon.hh
 	file.hh
 	flux_chaine.hh
 	grille_particules.hh
