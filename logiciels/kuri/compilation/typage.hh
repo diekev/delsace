@@ -343,6 +343,33 @@ struct TypeReference : public Type {
 	}
 };
 
+#if 0 // ébauche pour déplacer les données des types dans ceux-ci, et ne plus les stocker dans les noeuds des arbres syntaxiques
+struct TypeCompose : public Type {
+	struct Membre {
+		Type *type = nullptr;
+		dls::vue_chaine_compacte nom = "";
+		unsigned decalage = 0;
+	};
+
+	kuri::tableau<Membre> membres{};
+	dls::vue_chaine_compacte nom{};
+};
+
+inline bool est_type_compose(Type *type)
+{
+	return dls::outils::est_element(
+				type->genre,
+				GenreType::EINI,
+				GenreType::ENUM,
+				GenreType::ERREUR,
+				GenreType::STRUCTURE,
+				GenreType::TABLEAU_DYNAMIQUE,
+				GenreType::TABLEAU_FIXE,
+				GenreType::UNION,
+				GenreType::VARIADIQUE);
+}
+#endif
+
 struct TypeStructure : public Type {
 	TypeStructure() { genre = GenreType::STRUCTURE; }
 
