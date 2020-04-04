@@ -52,6 +52,7 @@ set(SOURCES
 	syntaxeuse.hh
 	transformation_type.hh
 	typage.hh
+	validation_expression_appel.hh
 	validation_semantique.hh
 
 	allocatrice_noeud.cc
@@ -72,6 +73,7 @@ set(SOURCES
 	syntaxeuse.cc
 	transformation_type.cc
 	typage.cc
+	validation_expression_appel.cc
 	validation_semantique.cc
 )
 

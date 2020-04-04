@@ -74,6 +74,7 @@ using dls::outils::possede_drapeau;
  * - nouvelle forme d'initialisation des structures (en utilisant expr->exprs)
  * - valeurs constantes => utilisation de la valeur de son expression
  * - voir tous les cas d'utilisation de [].taille comme [].capacité
+ * - ajournement pour le nouvel arbre syntaxique des expressions d'appels
  */
 
 /* ************************************************************************** */
@@ -1094,9 +1095,11 @@ llvm::Value *genere_code_llvm(
 				return cree_appel(contexte, charge, expr->params, expr->params.taille, true);
 			}
 
-			auto fonction = contexte.module_llvm->getFunction(b->nom_fonction_appel.c_str());
-			auto decl = static_cast<NoeudDeclarationFonction *>(expr->noeud_fonction_appelee);
-			return cree_appel(contexte, fonction, expr->exprs, expr->exprs.taille, !decl->est_externe && !possede_drapeau(decl->drapeaux, FORCE_NULCTX));
+			// À FAIRE : trouve la fonction
+//			auto fonction = contexte.module_llvm->getFunction(b->nom_fonction_appel.c_str());
+//			auto decl = static_cast<NoeudDeclarationFonction *>(expr->noeud_fonction_appelee);
+//			return cree_appel(contexte, fonction, expr->exprs, expr->exprs.taille, !decl->est_externe && !possede_drapeau(decl->drapeaux, FORCE_NULCTX));
+			return nullptr;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
@@ -1104,10 +1107,11 @@ llvm::Value *genere_code_llvm(
 
 			auto valeur = contexte.valeur(refexpr->ident);
 
-			if (valeur == nullptr && b->nom_fonction_appel != "") {
-				valeur = contexte.module_llvm->getFunction(b->nom_fonction_appel.c_str());
-				return valeur;
-			}
+			// À FAIRE : trouve la fonction -> déplace dans global
+//			if (valeur == nullptr && b->nom_fonction_appel != "") {
+//				valeur = contexte.module_llvm->getFunction(b->nom_fonction_appel.c_str());
+//				return valeur;
+//			}
 
 			if (expr_gauche || llvm::dyn_cast<llvm::PHINode>(valeur)) {
 				return valeur;
@@ -2144,10 +2148,10 @@ llvm::Value *genere_code_llvm(
 			// génération de code dans GenreNoeud::INSTRUCTION_COMPOSEE
 			return nullptr;
 		}
-		case GenreNoeud::EXPRESSION_TRANSTYPE:
+		case GenreNoeud::EXPRESSION_COMME:
 		{
-			auto inst = static_cast<NoeudExpressionUnaire *>(b);
-			auto enfant = inst->expr;
+			auto inst = static_cast<NoeudExpressionBinaire *>(b);
+			auto enfant = inst->expr1;
 			auto valeur = genere_code_llvm(enfant, contexte, false);
 			auto type_de = enfant->type;
 

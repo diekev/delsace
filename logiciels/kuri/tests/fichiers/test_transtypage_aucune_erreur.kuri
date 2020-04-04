@@ -36,7 +36,7 @@ foo :: fonc () -> rien
 foo :: fonc () -> rien
 {
 	x : z32 = 0;
-	y : n32 = transtype(x : n32);
+	y : n32 = x comme n32;
 }
 
 // -----------------------------------
@@ -45,7 +45,7 @@ foo :: fonc () -> rien
 foo :: fonc () -> rien
 {
 	x : z32 = 0;
-	y : z8  = transtype(x : z8);
+	y : z8  = x comme z8;
 }
 
 // -----------------------------------
@@ -54,7 +54,7 @@ foo :: fonc () -> rien
 foo :: fonc () -> rien
 {
 	x : z32 = 0;
-	y : n8  = transtype(x : n8);
+	y : n8  = x comme n8;
 }
 
 // -----------------------------------
@@ -63,8 +63,8 @@ foo :: fonc () -> rien
 foo :: fonc () -> rien
 {
 	x : z32 = 0;
-	y : r32 = transtype(x : r32);
-	z : z32 = transtype(y : z32);
+	y : r32 = x comme r32;
+	z : z32 = y comme z32;
 }
 
 // -----------------------------------
@@ -73,8 +73,8 @@ foo :: fonc () -> rien
 foo :: fonc () -> rien
 {
 	x : z32 = 0;
-	y : r64 = transtype(x : r64);
-	z : z32 = transtype(y : z32);
+	y : r64 = x comme r64;
+	z : z32 = y comme z32;
 }
 
 // -----------------------------------
@@ -84,6 +84,6 @@ foo :: fonc () -> rien
 {
 	x : z32 = 1;
 	y : z32 = 5;
-	z : z32 = transtype(x + y * 5 : z32);
-	w : z32 = transtype(x - y : z32);
+	z : z32 = x + y * 5 comme z32;
+	w : z32 = x - y comme z32;
 }

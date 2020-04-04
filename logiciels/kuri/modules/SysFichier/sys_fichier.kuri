@@ -7,7 +7,7 @@ CheminFichier :: struct {
 
 construit_chemin :: fonc(chn : chaine) -> CheminFichier
 {
-    chemin := CheminFichier{ chn = chn }
+    chemin := CheminFichier( chn = chn )
     retourne chemin
 }
 
@@ -184,7 +184,7 @@ contenu_fichier_texte :: fonc(chemin : &CheminFichier) -> chaine
     chn : chaine;
 
     nonsûr {
-        chn.pointeur = transtype(contenu.pointeur : *z8)
+        chn.pointeur = contenu.pointeur comme *z8
         chn.taille = contenu.taille
     }
 

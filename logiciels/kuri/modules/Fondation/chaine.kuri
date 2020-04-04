@@ -69,9 +69,9 @@ chaine_c_temp :: fonc(chn: chaine) -> *z8
 {
     tampon := logement_temp(chn.taille + 1)
     copie_mem_nonsur(src = chn.pointeur, dst = tampon, taille = chn.taille)
-    tampon[chn.taille] = transtype('\0': octet)
+    tampon[chn.taille] = '\0' comme octet
 
-    retourne transtype(tampon: *z8)
+    retourne tampon comme *z8
 }
 
 // execute une fonction pour chaque ligne du texte d'entrée
@@ -87,7 +87,7 @@ pour_chaque_ligne :: fonc(texte : chaine, donnees : eini, rappel : fonc(chaine, 
 			ligne := construit_chaine(@texte[début_chaine], taille)
 			rappel(ligne, donnees)
 
-			début_chaine = transtype(i + 1 : z64)
+			début_chaine = i + 1 comme z64
 			taille = 0
 		}
 	}
@@ -115,7 +115,7 @@ trouve_caractère :: fonc(chn : chaine, carac : z8, pos : z64) -> z64
 		}
 	}
 
-	retourne transtype(-1 : z64)
+	retourne -1 comme z64
 }
 
 découpe :: corout(texte : chaine, sep : z8) -> chaine
@@ -128,7 +128,7 @@ découpe :: corout(texte : chaine, sep : z8) -> chaine
 	    si c == sep {
 			retiens construit_chaine(@texte[début_mot], taille_mot)
 
-			début_mot = transtype(i + 1 : z64)
+			début_mot = i + 1 comme z64
 			taille_mot = 0
 			continue
 		}
@@ -152,7 +152,7 @@ divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
 			mot := construit_chaine(@ligne[début_mot], taille_mot)
             tableau_ajoute(@mots, mot)
 
-			début_mot = transtype(i + 1 : z64)
+			début_mot = i + 1 comme z64
 			taille_mot = 0
 			continue
 		}
@@ -193,7 +193,7 @@ extrait_nombre_entier :: fonc(chn : chaine) -> z64
 	}
 
 	pour c dans chn {
-        résultat = résultat * 10 + transtype(c - '0' : z64)
+        résultat = résultat * 10 + c - '0' comme z64
     }
 
 	si est_négatif {
@@ -228,10 +228,10 @@ extrait_nombre_réel :: fonc(chn : chaine) -> r64
 
 		si point_trouvé {
 			mult *= 0.1
-        	résultat += transtype(c - '0' : r64) * mult
+        	résultat += (c - '0') comme r64 * mult
 		}
 		sinon {
-        	résultat = résultat * 10.0 + transtype(c - '0' : r64)
+        	résultat = résultat * 10.0 + (c - '0') comme r64
 		}
     }
 

@@ -129,49 +129,6 @@ void importe_module(
 
 /* ************************************************************************** */
 
-enum {
-	FONCTION_TROUVEE,
-	FONCTION_INTROUVEE,
-};
-
-enum {
-	AUCUNE_RAISON,
-	METYPAGE_ARG,
-	MENOMMAGE_ARG,
-	RENOMMAGE_ARG,
-	MECOMPTAGE_ARGS,
-	MANQUE_NOM_APRES_VARIADIC,
-};
-
-struct DonneesCandidate {
-	int etat = FONCTION_INTROUVEE;
-	int raison = AUCUNE_RAISON;
-	double poids_args = 0.0;
-	dls::vue_chaine_compacte nom_arg{};
-	/* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
-	dls::tablet<NoeudExpression *, 10> exprs{};
-	Type *type1{};
-	Type *type2{};
-	NoeudBase *noeud_decl = nullptr;
-	NoeudDeclarationFonction *decl_fonc = nullptr;
-	bool arg_pointeur = false;
-	dls::tableau<TransformationType> transformations{};
-	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
-};
-
-struct ResultatRecherche {
-	dls::tablet<DonneesCandidate, 10> candidates{};
-};
-
-ResultatRecherche cherche_donnees_fonction(
-		ContexteGenerationCode &contexte,
-		IdentifiantCode *nom,
-		kuri::tableau<IdentifiantCode *> &noms_arguments,
-		kuri::tableau<NoeudExpression *> const &exprs,
-		size_t index_fichier,
-		size_t index_fichier_appel);
-
-
 struct PositionLexeme {
 	long index_ligne = 0;
 	long numero_ligne = 0;
@@ -179,6 +136,8 @@ struct PositionLexeme {
 };
 
 PositionLexeme position_lexeme(Lexeme const &lexeme);
+
+void imprime_fichier_ligne(ContexteGenerationCode &contexte, Lexeme const &lexeme);
 
 /* ************************************************************************** */
 

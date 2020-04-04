@@ -337,7 +337,7 @@ static void cree_appel(
 		ConstructriceCodeC &constructrice)
 {
 	auto expr_appel = static_cast<NoeudExpressionAppel *>(b);
-	auto decl_fonction_appelee = static_cast<NoeudDeclarationFonction *>(expr_appel->noeud_fonction_appelee);
+	auto decl_fonction_appelee = static_cast<NoeudDeclarationFonction const *>(expr_appel->noeud_fonction_appelee);
 
 	auto pour_appel_precedent = contexte.pour_appel;
 	contexte.pour_appel = static_cast<NoeudExpressionAppel *>(b);
@@ -377,7 +377,13 @@ static void cree_appel(
 		b->valeur_calculee = dls::chaine("");
 	}
 
-	constructrice << expr_appel->nom_fonction_appel;
+	if (b->aide_generation_code == APPEL_POINTEUR_FONCTION) {
+		genere_code_C(expr_appel->appelee, constructrice, contexte, true);
+		constructrice << expr_appel->appelee->chaine_calculee();
+	}
+	else {
+		constructrice << decl_fonction_appelee->nom_broye;
+	}
 
 	auto virgule = '(';
 
@@ -496,19 +502,11 @@ static void genere_code_acces_membre(
 
 			flux << ((est_pointeur) ? "->" : ".");
 
-			/* À FAIRE: variable de retour pour les appels de pointeur de fonction */
-			if (membre->genre == GenreNoeud::EXPRESSION_APPEL_FONCTION) {
-				constructrice << flux.chn();
-				membre->nom_fonction_appel = broye_chaine(membre);
-				genere_code_C(membre, constructrice, contexte, false);
+			if (membre->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+				genere_code_C(membre, constructrice, contexte, expr_gauche);
 			}
-			else {
-				if (membre->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-					genere_code_C(membre, constructrice, contexte, expr_gauche);
-				}
 
-				flux << broye_chaine(membre);
-			}
+			flux << broye_chaine(membre);
 		}
 		else {
 			genere_code_C(structure, constructrice, contexte, expr_gauche);
@@ -533,21 +531,11 @@ static void genere_code_acces_membre(
 		b->valeur_calculee = dls::chaine(flux.chn());
 	}
 	else {
-		if (membre->genre == GenreNoeud::EXPRESSION_APPEL_FONCTION) {
-			membre->nom_fonction_appel = flux.chn();
-			genere_code_C(membre, constructrice, contexte, false);
+		auto nom_var = "__var_temp_acc" + dls::vers_chaine(index++);
+		constructrice << "const ";
+		constructrice.declare_variable(b->type, nom_var, flux.chn());
 
-			constructrice.declare_variable(b->type, nom_acces, membre->chaine_calculee());
-
-			b->valeur_calculee = nom_acces;
-		}
-		else {
-			auto nom_var = "__var_temp_acc" + dls::vers_chaine(index++);
-			constructrice << "const ";
-			constructrice.declare_variable(b->type, nom_var, flux.chn());
-
-			b->valeur_calculee = nom_var;
-		}
+		b->valeur_calculee = nom_var;
 	}
 }
 
@@ -1183,32 +1171,31 @@ void genere_code_C(
 		{
 			auto flux = dls::flux_chaine();
 
-			if (b->nom_fonction_appel != "") {
-				flux << b->nom_fonction_appel;
+			auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme->fichier));
+			auto decl = trouve_dans_bloc_ou_module(contexte, b->bloc_parent, b->ident, fichier);
+
+			if (decl->drapeaux & EST_CONSTANTE) {
+				auto decl_const = static_cast<NoeudDeclarationVariable *>(decl);
+				flux << decl_const->valeur_expression.entier;
+			}
+			else if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {
+				auto decl_fonc = static_cast<NoeudDeclarationFonction *>(decl);
+				flux << decl_fonc->nom_broye;
 			}
 			else {
-				auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme->fichier));
-				auto decl = trouve_dans_bloc_ou_module(contexte, b->bloc_parent, b->ident, fichier);
+				// À FAIRE(réusinage arbre)
+				//	if (dv.est_membre_emploie) {
+				//		flux << dv.structure;
+				//	}
 
-				if (decl->drapeaux & EST_CONSTANTE) {
-					auto decl_const = static_cast<NoeudDeclarationVariable *>(decl);
-					flux << decl_const->valeur_expression.entier;
+				if ((b->drapeaux & EST_VAR_BOUCLE) != 0) {
+					flux << "(*";
 				}
-				else {
-					// À FAIRE(réusinage arbre)
-					//	if (dv.est_membre_emploie) {
-					//		flux << dv.structure;
-					//	}
 
-					if ((b->drapeaux & EST_VAR_BOUCLE) != 0) {
-						flux << "(*";
-					}
+				flux << broye_chaine(b);
 
-					flux << broye_chaine(b);
-
-					if ((b->drapeaux & EST_VAR_BOUCLE) != 0) {
-						flux << ")";
-					}
+				if ((b->drapeaux & EST_VAR_BOUCLE) != 0) {
+					flux << ")";
 				}
 			}
 
@@ -2025,7 +2012,7 @@ void genere_code_C(
 				case GENERE_BOUCLE_COROUTINE_INDEX:
 				{
 					auto expr_appel = static_cast<NoeudExpressionAppel *>(enfant2);
-					auto decl_fonc = static_cast<NoeudDeclarationFonction *>(expr_appel->noeud_fonction_appelee);
+					auto decl_fonc = static_cast<NoeudDeclarationFonction const *>(expr_appel->noeud_fonction_appelee);
 					auto nom_etat = "__etat" + dls::vers_chaine(enfant2);
 					auto nom_type_coro = "__etat_coro" + decl_fonc->nom_broye;
 
@@ -2226,10 +2213,10 @@ void genere_code_C(
 
 			break;
 		}
-		case GenreNoeud::EXPRESSION_TRANSTYPE:
+		case GenreNoeud::EXPRESSION_COMME:
 		{
-			auto inst = static_cast<NoeudExpressionUnaire *>(b);
-			auto enfant = inst->expr;
+			auto inst = static_cast<NoeudExpressionBinaire *>(b);
+			auto enfant = inst->expr1;
 			auto const &type_de = enfant->type;
 
 			genere_code_C(enfant, constructrice, contexte, false);
@@ -2321,43 +2308,51 @@ void genere_code_C(
 			auto expr = static_cast<NoeudExpressionAppel *>(b);
 			auto flux = dls::flux_chaine();
 
-			if (b->lexeme->chaine == "PositionCodeSource") {
-				genere_code_position_source(contexte, flux, b);
-			}
-			else {
+			if (expr->type->genre == GenreType::UNION) {
 				POUR (expr->exprs) {
 					if (it != nullptr) {
 						applique_transformation(it, constructrice, contexte, false);
 					}
 				}
 
-				if (b->type->genre == GenreType::UNION) {
-					auto index_membre = 0;
-					auto expression = static_cast<NoeudExpression *>(nullptr);
+				auto index_membre = 0;
+				auto expression = static_cast<NoeudExpression *>(nullptr);
 
-					POUR (expr->exprs) {
-						if (it != nullptr) {
-							expression = it;
-							break;
-						}
-
-						index_membre += 1;
+				POUR (expr->exprs) {
+					if (it != nullptr) {
+						expression = it;
+						break;
 					}
 
-					auto decl_struct = static_cast<TypeUnion *>(b->type)->decl;
-					auto &membre = decl_struct->desc.membres[index_membre];
+					index_membre += 1;
+				}
 
-					auto type_union = static_cast<TypeUnion *>(b->type);
+				auto decl_struct = static_cast<TypeUnion *>(expr->type)->decl;
+				auto &membre = decl_struct->desc.membres[index_membre];
 
-					if (type_union->est_nonsure) {
-						flux << "{ ." << broye_chaine(membre.nom) << " = " << expression->chaine_calculee() << " }";
-					}
-					else {
-						flux << "{ { ." << broye_chaine(membre.nom) << " = " << expression->chaine_calculee() << " }, .membre_actif = " << index_membre + 1 << " }";
-					}
+				auto type_union = static_cast<TypeUnion *>(expr->type);
+
+				if (type_union->est_nonsure) {
+					flux << "{ ." << broye_chaine(membre.nom) << " = " << expression->chaine_calculee() << " }";
 				}
 				else {
-					auto decl_struct = static_cast<TypeStructure *>(b->type)->decl;
+					flux << "{ { ." << broye_chaine(membre.nom) << " = " << expression->chaine_calculee() << " }, .membre_actif = " << index_membre + 1 << " }";
+				}
+			}
+			else {
+				auto type_struct = static_cast<TypeStructure *>(expr->type);
+
+				if (type_struct->nom == "PositionCodeSource") {
+					genere_code_position_source(contexte, flux, expr);
+				}
+				else {
+					POUR (expr->exprs) {
+						if (it != nullptr) {
+							applique_transformation(it, constructrice, contexte, false);
+						}
+					}
+
+					auto decl_struct = type_struct->decl;
 
 					auto index_membre = 0;
 
@@ -2386,13 +2381,13 @@ void genere_code_C(
 			}
 
 			if (expr_gauche) {
-				b->valeur_calculee = dls::chaine(flux.chn());
+				expr->valeur_calculee = dls::chaine(flux.chn());
 			}
 			else {
 				auto nom_temp = "__var_temp_struct" + dls::vers_chaine(index++);
-				constructrice.declare_variable(b->type, nom_temp, flux.chn());
+				constructrice.declare_variable(expr->type, nom_temp, flux.chn());
 
-				b->valeur_calculee = nom_temp;
+				expr->valeur_calculee = nom_temp;
 			}
 
 			break;
@@ -3279,7 +3274,7 @@ void genere_code_C_pour_execution(
 {
 	auto dir = static_cast<NoeudExpressionUnaire *>(noeud_appel);
 	auto expr = static_cast<NoeudExpressionAppel *>(dir->expr);
-	auto decl = static_cast<NoeudDeclarationFonction *>(expr->noeud_fonction_appelee);
+	auto decl = static_cast<NoeudDeclarationFonction const *>(expr->noeud_fonction_appelee);
 
 
 	auto temps_generation = 0.0;

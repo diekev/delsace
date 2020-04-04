@@ -81,16 +81,6 @@ NoeudBase *assembleuse_arbre::cree_noeud(GenreNoeud genre, Lexeme const *lexeme)
 		if (noeud->lexeme && noeud->lexeme->genre == GenreLexeme::CHAINE_CARACTERE) {
 			noeud->ident = m_contexte.table_identifiants.identifiant_pour_chaine(noeud->lexeme->chaine);
 		}
-
-		if (genre == GenreNoeud::EXPRESSION_APPEL_FONCTION) {
-			/* requis pour pouvoir renseigner le noms de arguments depuis
-			 * l'analyse. */
-			noeud->valeur_calculee = dls::liste<dls::vue_chaine_compacte>{};
-
-			/* requis pour déterminer le module dans le noeud d'accès point
-			 * À FAIRE : trouver mieux pour accéder à cette information => utilisation des blocs pour trouver des candidats */
-			noeud->module_appel = noeud->lexeme->fichier;
-		}
 	}
 
 	return noeud;

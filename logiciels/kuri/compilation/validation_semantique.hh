@@ -25,9 +25,17 @@
 #pragma once
 
 struct ContexteGenerationCode;
+struct NoeudExpression;
 
 namespace noeud {
 
 void performe_validation_semantique(ContexteGenerationCode &contexte);
+
+void performe_validation_semantique(
+	   NoeudExpression *b,
+	   ContexteGenerationCode &contexte,
+	   bool expr_gauche);
+
+void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte);
 
 }  /* namespace noeud */

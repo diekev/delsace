@@ -82,7 +82,7 @@ copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, fichier: *Fichier)
         tampon_courant = tampon_courant.suivant
     }
 
-    retourne transtype(0: ErreurFichier)
+    retourne 0 comme ErreurFichier
 }
 
 détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
@@ -164,11 +164,11 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
 
         src = @chn[chn.taille - delta]
         dst = @tampon.données[0]
-        taille = transtype(chn.taille - taille: z32)
+        taille = (chn.taille - taille) comme z32
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille)
 
-        tampon.occupé += transtype(delta: z32)
+        tampon.occupé += delta comme z32
     }
     sinon {
         src := chn.pointeur
@@ -177,7 +177,7 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille)
 
-        tampon.occupé += transtype(chn.taille: z32)
+        tampon.occupé += chn.taille comme z32
     }
 }
 
@@ -258,7 +258,7 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
 	// dans la position du 1 dans portion entière, ajoutant le décalage de l'exposant.
 	insère_bits_du_bas(
 		@part_entière,
-		transtype(valeur_mantisse : n32),
+		valeur_mantisse comme n32,
 		9 + valeur_exposant)
 
 	chn_part_entière : chaine
@@ -266,7 +266,7 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
 	// Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
 		reste := reste_de_la_division(@part_entière, 10)
-		pousse(@chn_part_entière, '0' + transtype(reste : z8))
+		pousse(@chn_part_entière, '0' + reste comme z8)
 	} tantque !est_zéro(@part_entière)
 
 	inverse(@chn_part_entière)
@@ -283,12 +283,12 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
 
 	// Quand valeur_exposant est zéro nous voulons décaler 23 bits de mantisse dans
 	// la part fractionnelle.
-	insère_bits_du_haut(@frac, transtype(valeur_mantisse : n32), 23 - valeur_exposant);
+	insère_bits_du_haut(@frac, valeur_mantisse comme n32, 23 - valeur_exposant);
 
 	// Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
 		surplus := surplus_de_la_multiplication(@frac, 10)
-		ajoute_au_tampon(enchaineuse, '0' + transtype(surplus : z8))
+		ajoute_au_tampon(enchaineuse, '0' + surplus comme z8)
 	} tantque !est_zéro(@frac)
 }
 
@@ -304,18 +304,18 @@ FormatEntier :: struct {
 
 formatte_entier :: fonc (valeur: eini, ajoute_zéros_début := faux, nombre_zéros := 0, base := 10, séparation := 0) -> FormatEntier
 {
-    retourne FormatEntier{
+    retourne FormatEntier(
         valeur = valeur,
         ajoute_zéros_début = ajoute_zéros_début,
         nombre_zéros = nombre_zéros,
         base = base,
 		séparation = séparation
-    }
+    )
 }
 
 imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEntier) -> rien
 {
-	base := transtype(format.base: n64)
+	base := format.base comme n64
 	assert(base >= 2)
 	assert(base <= 64)
 
@@ -339,7 +339,7 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
 		index_début -= 1
 	}
 
-	taille := transtype(index_fin - index_début: z32)
+	taille := index_fin - index_début comme z32
 
 	pour i dans 0 ... taille - 1 {
 		si format.séparation != 0 {
@@ -354,7 +354,7 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
 
 imprime_nombre_entier :: fonc (enchaineuse: *Enchaineuse, format: FormatEntier) -> rien
 {
-	info := transtype(format.valeur.info: *InfoTypeEntier)
+	info := format.valeur.info comme *InfoTypeEntier
 	pointeur := format.valeur.pointeur
 
 	valeur : n64
@@ -367,7 +367,7 @@ imprime_nombre_entier :: fonc (enchaineuse: *Enchaineuse, format: FormatEntier) 
 			val = -val
 		}
 
-		valeur = transtype(val: n64)
+		valeur = val comme n64
 	}
 	sinon {
 		valeur = n64_depuis_pointeur(pointeur, info.taille_en_octet)
@@ -384,20 +384,20 @@ imprime_nombre_entier :: fonc (enchaineuse: *Enchaineuse, format: FormatEntier) 
 
 z64_depuis_pointeur :: fonc (pointeur: *z8, taille: n32) -> z64
 {
-	si taille == 1 { retourne mémoire(transtype(pointeur : *z8)) }
-	si taille == 2 { retourne mémoire(transtype(pointeur : *z16)) }
-	si taille == 4 { retourne mémoire(transtype(pointeur : *z32)) }
-	si taille == 8 { retourne mémoire(transtype(pointeur : *z64)) }
+	si taille == 1 { retourne mémoire(pointeur comme *z8) }
+	si taille == 2 { retourne mémoire(pointeur comme *z16) }
+	si taille == 4 { retourne mémoire(pointeur comme *z32) }
+	si taille == 8 { retourne mémoire(pointeur comme *z64) }
 
 	retourne 0
 }
 
 n64_depuis_pointeur :: fonc (pointeur: *z8, taille: n32) -> n64
 {
-	si taille == 1 { retourne mémoire(transtype(pointeur : *n8)) }
-	si taille == 2 { retourne mémoire(transtype(pointeur : *n16)) }
-	si taille == 4 { retourne mémoire(transtype(pointeur : *n32)) }
-	si taille == 8 { retourne mémoire(transtype(pointeur : *n64)) }
+	si taille == 1 { retourne mémoire(pointeur comme *n8) }
+	si taille == 2 { retourne mémoire(pointeur comme *n16) }
+	si taille == 4 { retourne mémoire(pointeur comme *n32) }
+	si taille == 8 { retourne mémoire(pointeur comme *n64) }
 
 	retourne 0
 }
@@ -409,10 +409,10 @@ FormatRéel :: struct {
 
 formatte_réel :: fonc (valeur: eini, précision := 6) -> FormatRéel
 {
-	retourne FormatRéel{
+	retourne FormatRéel(
 		valeur = valeur,
 		précision = précision
-	}
+	)
 }
 
 imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> rien
@@ -422,15 +422,15 @@ imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> 
 	f : r32
 
 	si info.taille_en_octet == 2 {
-		x := mémoire(transtype(pointeur : *r16))
+		x := mémoire(pointeur comme *r16)
 		f = x
 	}
 	sinon si info.taille_en_octet == 4 {
-		f = mémoire(transtype(pointeur : *r32))
+		f = mémoire(pointeur comme *r32)
 	}
 	sinon si info.taille_en_octet == 8 {
-		x := mémoire(transtype(pointeur : *r64))
-		f = transtype(x : r32)
+		x := mémoire(pointeur comme *r64)
+		f = x comme r32
 	}
 
 	// Mets le nombre dans notre union magique afin d'extraire les composants
@@ -465,13 +465,13 @@ imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> 
 		x = -x
 	}
 
-	part_entière := transtype(x : n64)
+	part_entière := x comme n64
 
 	imprime_nombre_entier(enchaineuse, formatte_entier(part_entière))
 
 	ajoute_au_tampon(enchaineuse, '.')
 
-	frac := x - transtype(part_entière : r32)
+	frac := x - part_entière comme r32
 
 	chiffres := "0123456789"
 
@@ -479,11 +479,11 @@ imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> 
 
 	répète {
 		frac *= 10.0
-		chiffre := transtype(frac : z64)
+		chiffre := frac comme z64
 
 		ajoute_au_tampon(enchaineuse, chiffres[chiffre])
 
-		frac = frac - transtype(chiffre : r32)
+		frac = frac - chiffre comme r32
 		p -= 1
 	} tantque frac < 1.0 && frac != 0.0 && p >= 0
 }
@@ -519,7 +519,7 @@ imprime_valeur :: fonc(
 			imprime_nombre_réel(enchaineuse, formatte_réel(e, 6))
 		}
 		BOOLÉEN {
-			x := mémoire(transtype(pointeur : *bool))
+			x := mémoire(pointeur comme *bool)
 
             si x {
 				ajoute_au_tampon(enchaineuse, "vrai")
@@ -529,7 +529,7 @@ imprime_valeur :: fonc(
 			}
 		}
 		CHAINE {
-			x := mémoire(transtype(pointeur : *chaine))
+			x := mémoire(pointeur comme *chaine)
 
             si échappe_chn {
 				ajoute_au_tampon(enchaineuse, '"')
@@ -542,15 +542,15 @@ imprime_valeur :: fonc(
 			}
 		}
 		STRUCTURE {
-			info_arg := transtype(info : *InfoTypeStructure)
+			info_arg := info comme *InfoTypeStructure
 
-			si info_arg == info_de(FormatEntier{}) {
-				imprime_nombre_entier(enchaineuse, mémoire(transtype(pointeur: *FormatEntier)))
+			si info_arg == info_de(FormatEntier()) {
+				imprime_nombre_entier(enchaineuse, mémoire(pointeur comme *FormatEntier))
 				retourne
 			}
 
-			si info_arg == info_de(FormatRéel{}) {
-				imprime_nombre_réel(enchaineuse, mémoire(transtype(pointeur: *FormatRéel)))
+			si info_arg == info_de(FormatRéel()) {
+				imprime_nombre_réel(enchaineuse, mémoire(pointeur comme *FormatRéel))
 				retourne
 			}
 
@@ -575,33 +575,33 @@ imprime_valeur :: fonc(
             ajoute_au_tampon(enchaineuse, " }")
 		}
 		POINTEUR {
-			info_arg := transtype(info : *InfoTypePointeur)
+			info_arg := info comme *InfoTypePointeur
 
 		    // Ne pas oublier qu'il y a un niveau d'indirection.
-			x := mémoire(transtype(pointeur : **z8))
+			x := mémoire(pointeur comme **z8)
 
 			si info_arg.est_référence {
 				imprime_valeur(enchaineuse, x, info_arg.type_pointé, vrai)
 			}
 			sinon {
-				fmt := formatte_entier(transtype(x: n64), base = 16)
+				fmt := formatte_entier(x comme n64, base = 16)
 				imprime_nombre_entier(enchaineuse, fmt)
 			}
 		}
 		FONCTION {
 		    // Ne pas oublier qu'il y a un niveau d'indirection.
-			x := mémoire(transtype(pointeur : **z8))
-			fmt := formatte_entier(transtype(x: n64), base = 16)
+			x := mémoire(pointeur comme **z8)
+			fmt := formatte_entier(x comme n64, base = 16)
 			imprime_nombre_entier(enchaineuse, fmt)
 		}
 		EINI {
-			x := mémoire(transtype(pointeur : *eini))
+			x := mémoire(pointeur comme *eini)
 
             ajoute_au_tampon(enchaineuse, "eini { ptr = ")
-			fmt := formatte_entier(transtype(x.pointeur: n64), base = 16)
+			fmt := formatte_entier(x.pointeur comme n64, base = 16)
 			imprime_nombre_entier(enchaineuse, fmt)
             ajoute_au_tampon(enchaineuse, ", info = ")
-			fmt = formatte_entier(transtype(x.info: n64), base = 16)
+			fmt = formatte_entier(x.info comme n64, base = 16)
 			imprime_nombre_entier(enchaineuse, fmt)
             ajoute_au_tampon(enchaineuse, " }")
 		}
@@ -609,9 +609,9 @@ imprime_valeur :: fonc(
             ajoute_au_tampon(enchaineuse, "rien")
 		}
 		TABLEAU {
-			info_arg := transtype(info : *InfoTypeTableau)
+			info_arg := info comme *InfoTypeTableau
 
-            décalage := transtype(info_arg.type_pointé.taille_en_octet: z32)
+            décalage := info_arg.type_pointé.taille_en_octet comme z32
 
 			max_élément := 5
 
@@ -635,10 +635,10 @@ imprime_valeur :: fonc(
 				}
             }
             sinon {
-                x := mémoire(transtype(pointeur: *[]z8))
+                x := mémoire(pointeur comme *[]z8)
 
 				si x.taille < max_élément {
-					max_élément = transtype(x.taille: z32)
+					max_élément = x.taille comme z32
 				}
 
                 pour i dans 0 ... max_élément - 1 {
@@ -657,10 +657,10 @@ imprime_valeur :: fonc(
             ajoute_au_tampon(enchaineuse, "]")
 		}
 		ÉNUM {
-			info_arg := transtype(info : *InfoTypeÉnum)
+			info_arg := info comme *InfoTypeÉnum
 
 			// À FAIRE : typage selon énum
-			valeur := mémoire(transtype(pointeur : *z32))
+			valeur := mémoire(pointeur comme *z32)
 			noms := info_arg.noms
 
 			si info_arg.est_drapeau {
@@ -741,7 +741,7 @@ imprime_log :: fonc (ident: chaine, format: chaine, args: ...eini) -> rien
 // --------------------------
 
 // À FAIRE : trouve une manière de trouver la chaine de l'expression
-assert :: fonc (expr: bool, pos := PositionCodeSource{}) -> rien
+assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
 {
     si expr {
         retourne

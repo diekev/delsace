@@ -420,15 +420,15 @@ void lance_erreur_fonction_inconnue(
 	auto type_erreur = erreur::type_erreur::FONCTION_INCONNUE;
 
 	for (auto &dc : candidates) {
-		auto decl_fonc = dc.decl_fonc;
+		auto decl = dc.decl_fonc;
 		ss << "\nCandidate :";
 
-		if (decl_fonc != nullptr) {
-			auto const &lexeme_df = decl_fonc->lexeme;
+		if (decl != nullptr) {
+			auto const &lexeme_df = decl->lexeme;
 			auto fichier_df = contexte.fichier(static_cast<size_t>(lexeme_df->fichier));
 			auto pos_df = position_lexeme(*lexeme_df);
 
-			ss << ' ' << decl_fonc->ident->nom
+			ss << ' ' << decl->ident->nom
 			   << " (trouvée à " << fichier_df->chemin << ':' << pos_df.numero_ligne << ")\n";
 		}
 		else {
@@ -438,7 +438,16 @@ void lance_erreur_fonction_inconnue(
 		if (dc.raison == MECOMPTAGE_ARGS) {
 			auto noeud_appel = static_cast<NoeudExpressionAppel *>(b);
 			ss << "\tLe nombre d'arguments de la fonction est incorrect.\n";
-			ss << "\tRequiers " << decl_fonc->params.taille << " arguments\n";
+
+			if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {
+				auto decl_fonc = static_cast<NoeudDeclarationFonction const *>(decl);
+				ss << "\tRequiers " << decl_fonc->params.taille << " arguments\n";
+			}
+			else if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
+				auto decl_struct = static_cast<NoeudStruct const *>(decl);
+				ss << "\tRequiers " << decl_struct->desc.membres.taille << " arguments\n";
+			}
+
 			ss << "\tObtenu " << noeud_appel->params.taille << " arguments\n";
 			type_erreur = erreur::type_erreur::NOMBRE_ARGUMENT;
 		}
@@ -446,13 +455,27 @@ void lance_erreur_fonction_inconnue(
 		if (dc.raison == MENOMMAGE_ARG) {
 			/* À FAIRE : trouve le lexeme correspondant à l'argument. */
 			ss << "\tArgument '" << dc.nom_arg << "' inconnu !\n";
-			ss << "\tLes arguments de la fonction sont : \n";
 
-			POUR (decl_fonc->params) {
-				ss << "\t\t" << it->ident->nom << '\n';
+			if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {
+				auto decl_fonc = static_cast<NoeudDeclarationFonction const *>(decl);
+				ss << "\tLes arguments de la fonction sont : \n";
+
+				POUR (decl_fonc->params) {
+					ss << "\t\t" << it->ident->nom << '\n';
+				}
+
+				type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;
 			}
+			else if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
+				auto decl_struct = static_cast<NoeudStruct const *>(decl);
+				ss << "\tLes membres de la structure sont : \n";
 
-			type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;
+				POUR (decl_struct->desc.membres) {
+					ss << "\t\t" << it.nom << '\n';
+				}
+
+				type_erreur = erreur::type_erreur::MEMBRE_INCONNU;
+			}
 		}
 
 		if (dc.raison == RENOMMAGE_ARG) {
@@ -466,6 +489,31 @@ void lance_erreur_fonction_inconnue(
 			ss << "\tNom d'argument manquant\n";
 			ss << "\tLes arguments doivent être nommés s'ils sont précédés d'arguments déjà nommés\n";
 			type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;
+		}
+
+		if (dc.raison == NOMMAGE_ARG_POINTEUR_FONCTION) {
+			ss << "\tLes arguments d'un pointeur fonction ne peuvent être nommés\n";
+			type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;
+		}
+
+		if (dc.raison == TYPE_N_EST_PAS_FONCTION) {
+			ss << "\tAppel d'une variable n'étant pas un pointeur de fonction\n";
+			type_erreur = erreur::type_erreur::FONCTION_INCONNUE;
+		}
+
+		if (dc.raison == TROP_D_EXPRESSION_POUR_UNION) {
+			ss << "\tOn ne peut initialiser qu'un seul membre d'une union à la fois\n";
+			type_erreur = erreur::type_erreur::NORMAL;
+		}
+
+		if (dc.raison == EXPRESSION_MANQUANTE_POUR_UNION) {
+			ss << "\tOn doit initialiser au moins un membre de l'union\n";
+			type_erreur = erreur::type_erreur::NORMAL;
+		}
+
+		if (dc.raison == NOM_ARGUMENT_REQUIS) {
+			ss << "\tLe nom de l'argument est requis pour les constructions de structures\n";
+			type_erreur = erreur::type_erreur::MEMBRE_INCONNU;
 		}
 
 		if (dc.raison == METYPAGE_ARG) {
@@ -501,9 +549,9 @@ void lance_erreur_fonction_inconnue(
 
 void lance_erreur_fonction_nulctx(
 			ContexteGenerationCode const &contexte,
-			NoeudBase *appl_fonc,
-			NoeudBase *decl_fonc,
-			NoeudBase *decl_appel)
+			NoeudBase const *appl_fonc,
+			NoeudBase const *decl_fonc,
+			NoeudBase const *decl_appel)
 {
 	auto const &lexeme = appl_fonc->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));

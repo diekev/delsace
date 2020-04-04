@@ -8,7 +8,7 @@ AllocatricePile :: struct {
 
 est_aligné :: fonc(ptr: *rien, alignement: z64) -> bool
 {
-    retourne (transtype(ptr: z64) & (alignement - 1)) == 0
+    retourne (ptr comme z64 & (alignement - 1)) == 0
 }
 
 arrondis_pour_aligner :: fonc(n: z64, alignement: z64) -> z64
@@ -29,8 +29,8 @@ loge_pile :: fonc(
 {
     n := nouvelle_taille  // arrondis_pour_aligner(nouvelle_taille, 8)
 
-    f := transtype(alloc.début + alloc.données.taille: z64)
-    d := transtype(alloc.ptr: z64)
+    f := alloc.début + alloc.données.taille comme z64
+    d := alloc.ptr comme z64
 
     si n > (f - d) {
         retourne nul
@@ -51,14 +51,14 @@ allocatrice_pile :: fonc(
     info : *InfoType,
     pos: PositionCodeSource) -> *rien
 {
-    alloc := transtype(données: *AllocatricePile)
+    alloc := données comme *AllocatricePile
 
     discr mode {
         ALLOUE {
             retourne loge_pile(alloc, nouvelle_taille)
         }
         RÉALLOUE {
-            ptr := transtype(ancien_pointeur: *octet)
+            ptr := ancien_pointeur comme *octet
 
             si ptr == nul {
                 retourne loge_pile(alloc, nouvelle_taille)
@@ -76,8 +76,8 @@ allocatrice_pile :: fonc(
 
             n = delta  // arrondis_pour_aligner(delta, 8)
 
-            d := transtype(alloc.ptr: z64)
-            f := transtype(alloc.début + alloc.données.taille: z64)
+            d := alloc.ptr comme z64
+            f := alloc.début + alloc.données.taille comme z64
 
             si n > (f - d) {
                 retourne nul
@@ -89,7 +89,7 @@ allocatrice_pile :: fonc(
         }
         DÉSALLOUE {
             n := ancienne_taille  // arrondis_pour_aligner(ancienne_taille, 8)
-            ptr := transtype(ancien_pointeur: *octet)
+            ptr := ancien_pointeur comme *octet
 
             si ptr + n == alloc.ptr {
                 alloc.ptr = ptr

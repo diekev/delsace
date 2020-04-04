@@ -78,7 +78,7 @@ sous_tableau :: fonc(tabl : []octet, index : z64, taille : z64) -> []octet
 	décalage := 0
 
 	pour noeud dans chaque_noeud(magasin.dico) {
-		index_chaine := transtype(noeud.valeur : z32)
+		index_chaine := noeud.valeur comme z32
 		taille_chaine := noeud.chn.taille
 
 		sous_tampon := sous_tableau(tampon, décalage, taille_de(z32))

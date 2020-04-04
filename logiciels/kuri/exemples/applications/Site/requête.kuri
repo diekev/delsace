@@ -26,20 +26,20 @@ RéponseRequête :: struct {
 
 crée_réponse_page_non_trouvée :: fonc () -> RéponseRequête
 {
-    retourne RéponseRequête{
+    retourne RéponseRequête(
         code = CodeÉtatHTTP.NOT_FOUND,
         type_contenu = TypeContenu.TEXT_HTML,
         // À FAIRE : évite de copier la chaine
         contenu = copie_chaine("<p>La page n'existe pas</p>")
-    }
+    )
 }
 
 crée_réponse_méthode_non_autorisée :: fonc () -> RéponseRequête
 {
-    retourne RéponseRequête{
+    retourne RéponseRequête(
         code = CodeÉtatHTTP.METHOD_NOT_ALLOWED,
         type_contenu = TypeContenu.TEXT_HTML,
         // À FAIRE : évite de copier la chaine
         contenu = copie_chaine("<p>La méthode n'est pas autorisée !</p>")
-    }
+    )
 }

@@ -10,13 +10,13 @@ nombre_octets_utf8 :: fonc(caractère : *z8) -> z32
         retourne 0
     }
 
-	s0 := transtype(caractère[0] : n8)
+	s0 := caractère[0] comme n8
 
 	si 0x00 <= s0 <= 0x7F {
 		retourne 1
 	}
 
-	s1 := transtype(caractère[1] : n8)
+	s1 := caractère[1] comme n8
 
 	si 0xC2 <= s0 <= 0xDF {
 		si !(0x80 <= s1 <= 0xBF) {
@@ -39,7 +39,7 @@ nombre_octets_utf8 :: fonc(caractère : *z8) -> z32
 			retourne 0
 		}
 
-		s2 := transtype(caractère[2] : n8)
+		s2 := caractère[2] comme n8
 
 		si !(0x80 <= s2 <= 0xBF) {
 			retourne 0
@@ -61,13 +61,13 @@ nombre_octets_utf8 :: fonc(caractère : *z8) -> z32
 			retourne 0
 		}
 
-		s2 := transtype(caractère[2] : n8)
+		s2 := caractère[2] comme n8
 
 		si !(0x80 <= s2 <= 0xBF) {
 			retourne 0
 		}
 
-		s3 := transtype(caractère[3] : n8)
+		s3 := caractère[3] comme n8
 
 		si !(0x80 <= s3 <= 0xBF) {
 			retourne 0
@@ -132,37 +132,37 @@ converti_en_chaine :: fonc(rune : &Rune) -> chaine
 
 construit_rune :: fonc(pointeur : *z8, taille : z64) -> Rune
 {
-    retourne Rune{ pointeur = pointeur, taille = taille }
+    retourne Rune( pointeur = pointeur, taille = taille )
 }
 
 // Converti un caractère encodé en UTF-8 vers son équivalent UTF-32 LE
 converti_utf8_utf32 :: fonc(caractère : *z8, n : z64) -> z32
 {
-	s0 := transtype(caractère[0] : n8)
+	s0 := caractère[0] comme n8
 
 	si (n == 1) {
-		retourne transtype(s0 : z32) & 0b01111111
+		retourne s0 comme z32 & 0b01111111
 	}
 
-	s1 := transtype(caractère[1] : n8)
+	s1 := caractère[1] comme n8
 
 	si (n == 2) {
         v := (s0 & 0b00011111) << 6 | (s1 & 0b00111111)
-		retourne transtype(v : z32)
+		retourne v comme z32
 	}
 
-	s2 := transtype(caractère[2] : n8)
+	s2 := caractère[2] comme n8
 
 	si (n == 3) {
 		v := (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111)
-		retourne transtype(v : z32)
+		retourne v comme z32
 	}
 
-	s3 := transtype(caractère[3] : n8)
+	s3 := caractère[3] comme n8
 
 	si (n == 4) {
 		v := (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111)
-		retourne transtype(v : z32)
+		retourne v comme z32
 	}
 
 	retourne 0
@@ -181,36 +181,36 @@ converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
 
     résultat : z32
 
-    c0 := transtype(caractère[0] : z32)
+    c0 := caractère[0] comme z32
 
     si (c0 & 0x80) == 0x0 {
 		résultat = c0
 	}
 
 	si (c0 & 0xC0) == 0xC0 {
-        c1 := transtype(caractère[1] : z32)
-        c2 := transtype(caractère[2] : z32)
+        c1 := caractère[1] comme z32
+        c2 := caractère[2] comme z32
 		résultat = ((c0 & 0x3F) << 6) | (c1 & 0x3F)
 	}
 
 	si (c0 & 0xE0) == 0xE0 {
-        c1 := transtype(caractère[1] : z32)
-        c2 := transtype(caractère[2] : z32)
+        c1 := caractère[1] comme z32
+        c2 := caractère[2] comme z32
 		résultat = ((c0 & 0x1F) << 12) | ((c1 & 0x3F) << 6) | (c2 & 0x3F)
 	}
 
 	si (c0 & 0xF0) == 0xF0 {
-        c1 := transtype(caractère[1] : z32)
-        c2 := transtype(caractère[2] : z32)
-        c3 := transtype(caractère[3] : z32)
+        c1 := caractère[1] comme z32
+        c2 := caractère[2] comme z32
+        c3 := caractère[3] comme z32
 		résultat = ((c0 & 0x0F) << 18) | ((c1 & 0x3F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F)
 	}
 
 	si (c0 & 0xF8) == 0xF8 {
-        c1 := transtype(caractère[1] : z32)
-        c2 := transtype(caractère[2] : z32)
-        c3 := transtype(caractère[3] : z32)
-        c4 := transtype(caractère[4] : z32)
+        c1 := caractère[1] comme z32
+        c2 := caractère[2] comme z32
+        c3 := caractère[3] comme z32
+        c4 := caractère[4] comme z32
 		résultat = ((c0 & 0x07) << 24) | ((c1 & 0x3F) << 18) | ((c2 & 0x3F) << 12) | ((c3 & 0x3F) << 6) | (c4 & 0x3F)
 	}
 

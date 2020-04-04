@@ -80,12 +80,12 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
 
 crée_réponse_fichier_gabarit_manquant :: fonc () -> RéponseRequête
 {
-    retourne RéponseRequête{
+    retourne RéponseRequête(
         code = CodeÉtatHTTP.INTERNAL_SERVER_ERROR,
         type_contenu = TypeContenu.TEXT_HTML,
         // À FAIRE : évite de copier la chaine
         contenu = copie_chaine("<p>La page du gabarit n'est pas trouvable !</p>")
-    }
+    )
 }
 
 rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données: eini) -> RéponseRequête
@@ -112,9 +112,9 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
         retourne crée_réponse_fichier_gabarit_manquant()
     }
 
-    retourne RéponseRequête{
+    retourne RéponseRequête(
         code = CodeÉtatHTTP.OK,
         type_contenu = TypeContenu.TEXT_HTML,
         contenu = chaine_depuis_enchaineuse(@enchaineuse)
-    }
+    )
 }

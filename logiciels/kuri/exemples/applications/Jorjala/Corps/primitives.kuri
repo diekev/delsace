@@ -36,10 +36,10 @@ copie_primitive :: fonc (primitive: *Primitive) -> *Primitive
 {
     discr primitive.type {
         POLYGONE {
-            retourne copie_polygone(transtype(primitive: *Polygone))
+            retourne copie_polygone(primitive comme *Polygone)
         }
         SPHÈRE {
-            retourne copie_sphère(transtype(primitive: *Sphère))
+            retourne copie_sphère(primitive comme *Sphère)
         }
         sinon {
             retourne nul
@@ -53,10 +53,10 @@ détruit_primitive :: fonc (primitive: *Primitive) -> rien
 {
     discr primitive.type {
         POLYGONE {
-            détruit_polygone(transtype(primitive: *Polygone))
+            détruit_polygone(primitive comme *Polygone)
         }
         SPHÈRE {
-            détruit_sphère(transtype(primitive: *Sphère))
+            détruit_sphère(primitive comme *Sphère)
         }
         sinon {
             retourne

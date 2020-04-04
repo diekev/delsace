@@ -14,7 +14,7 @@ EntêtesHTTP :: struct {
 
 ajoute_paire_entête :: fonc (entêtes: *EntêtesHTTP, clé: chaine, valeur: chaine) -> rien
 {
-    paire := PaireEntête{ clé = clé, valeur = valeur }
+    paire := PaireEntête( clé = clé, valeur = valeur )
     tableau_ajoute(@entêtes.données, paire)
 }
 
@@ -243,7 +243,7 @@ analyse_contenu :: fonc (analyseuse: *AnalyseuseRequête) -> chaine
 
     // le contenu est le reste de la requête
     analyseuse.pointeur = analyseuse.position
-    analyseuse.taille_mot = transtype(analyseuse.requête.taille - analyseuse.position: z32)
+    analyseuse.taille_mot = (analyseuse.requête.taille - analyseuse.position) comme z32
 
     retourne analyseuse.mot_courant()
 }

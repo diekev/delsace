@@ -755,7 +755,7 @@ principale :: fonc () -> z32
     }
 
     curMask = curStat.st_mode & allMask;
-    correctMask = transtype(allMask & ~myUmask : n32);
+    correctMask = allMask & ~myUmask comme n32;
     si (curMask != correctMask)  {
 	//fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
 	exit(4);
@@ -822,7 +822,7 @@ principale :: fonc () -> z32
 
     // perms should have changed
     curMask = curStat.st_mode & allMask;
-    correctMask = transtype(userMask & ~myUmask : n32);
+    correctMask = userMask & ~myUmask comme n32;
     si (curMask != correctMask)  {
 	//fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
 	exit(26);
@@ -872,7 +872,7 @@ principale :: fonc () -> z32
 
     // perms should not have changed
     curMask = curStat.st_mode & allMask;
-    correctMask = transtype(userMask & ~myUmask : n32);
+    correctMask = userMask & ~myUmask comme n32;
     si (curMask != correctMask)  {
 	//fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
 	exit(34);
@@ -916,7 +916,7 @@ principale :: fonc () -> z32
 
     // perms should not have changed
     curMask = curStat.st_mode & allMask;
-    correctMask = transtype(userMask & ~myUmask : n32);
+    correctMask = userMask & ~myUmask comme n32;
     si (curMask != correctMask)  {
 	//fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
 	exit(44);
@@ -956,7 +956,7 @@ principale :: fonc () -> z32
 
     // perms should not have changed
     curMask = curStat.st_mode & allMask;
-    correctMask = transtype(userMask & ~myUmask : n32);
+    correctMask = userMask & ~myUmask comme n32;
     si (curMask != correctMask)  {
 	//fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
 	exit(63);
@@ -996,7 +996,7 @@ principale :: fonc () -> z32
 
     // perms should not have changed
     curMask = curStat.st_mode & allMask;
-    correctMask = transtype(userMask & ~myUmask : n32);
+    correctMask = userMask & ~myUmask comme n32;
     si (curMask != correctMask)  {
 	//fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
 	exit(73);

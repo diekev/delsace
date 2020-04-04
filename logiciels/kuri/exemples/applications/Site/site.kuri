@@ -90,11 +90,11 @@ crée_réponse_pour_requête_fichier :: fonc (chm: &CheminFichier) -> RéponseRe
 {
     contenu := contenu_fichier_texte(chm)
 
-    retourne RéponseRequête{
+    retourne RéponseRequête(
         code = CodeÉtatHTTP.OK,
         type_contenu = TypeContenu.APPLICATION_JAVASCRIPT,
         contenu = contenu
-    }
+    )
 }
 
 Cliente :: struct {
@@ -186,13 +186,13 @@ procède_requête :: fonc (
 
             trouvée = vrai
 
-            si ligne_requête.méthode == "GET" && transtype(route.méthode_get: *rien) != nul {
+            si ligne_requête.méthode == "GET" && route.méthode_get comme *rien != nul {
                 rappel := route.méthode_get
                 réponse = rappel(serveuse, @données_requête)
                 arrête
             }
 
-            si ligne_requête.méthode == "POST" && transtype(route.méthode_post: *rien) != nul {
+            si ligne_requête.méthode == "POST" && route.méthode_post comme *rien != nul {
                 rappel := route.méthode_post
                 réponse = rappel(serveuse, @données_requête)
                 arrête
@@ -270,9 +270,9 @@ PRISE_SERVEUSE := -1
 accepte :: fonc (serveuse: *Serveuse) -> Cliente
 {
     adresse : sockaddr_in
-	sin_size := transtype(taille_de(sockaddr_in) : n32)
+	sin_size := taille_de(sockaddr_in) comme n32
 
-    prise := accept(serveuse.prise, transtype(@adresse : *sockaddr), @sin_size)
+    prise := accept(serveuse.prise, (@adresse) comme *sockaddr, @sin_size)
 
     cliente : Cliente
     cliente.adresse = adresse

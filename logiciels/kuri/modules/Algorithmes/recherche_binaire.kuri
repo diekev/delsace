@@ -4,7 +4,7 @@
 // Retourne le nombre d'éléments se situant entre deux pointeurs.
 distance :: fonc (ptr1 : *$T, ptr2 : *$T) -> z64
 {
-	retourne transtype(ptr2 - ptr1: z64)
+	retourne ptr2 - ptr1 comme z64
 }
 
 // Retourne le pointeur se situant à n éléments après celui donné.

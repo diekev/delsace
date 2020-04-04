@@ -72,7 +72,7 @@ const char *chaine_genre_noeud(GenreNoeud genre)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_BOUCLE)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_REPETE)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_TANTQUE)
-		CAS_GENRE(GenreNoeud::EXPRESSION_TRANSTYPE)
+		CAS_GENRE(GenreNoeud::EXPRESSION_COMME)
 		CAS_GENRE(GenreNoeud::EXPRESSION_MEMOIRE)
 		CAS_GENRE(GenreNoeud::EXPRESSION_LITTERALE_NUL)
 		CAS_GENRE(GenreNoeud::EXPRESSION_TAILLE_DE)
@@ -197,6 +197,7 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+		case GenreNoeud::EXPRESSION_COMME:
 		{
 			auto expr = static_cast<NoeudExpressionBinaire *>(racine);
 
@@ -214,6 +215,8 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 
 			imprime_tab(os, tab);
 			os << "expr appel : " << expr->lexeme->chaine << " (ident: " << racine->ident << ")" << '\n';
+
+			imprime_arbre(expr->appelee, os, tab + 1);
 
 			POUR (expr->params) {
 				imprime_arbre(it, os, tab + 1);
@@ -236,7 +239,6 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 			break;
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
-		case GenreNoeud::EXPRESSION_TRANSTYPE:
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
@@ -380,7 +382,7 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 
 NoeudExpression *copie_noeud(
 		assembleuse_arbre *assem,
-		NoeudExpression *racine,
+		const NoeudExpression *racine,
 		NoeudBloc *bloc_parent)
 {
 	if (racine == nullptr) {
@@ -407,7 +409,7 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
-			auto bloc = static_cast<NoeudBloc *>(racine);
+			auto bloc = static_cast<NoeudBloc const *>(racine);
 			auto nbloc = static_cast<NoeudBloc *>(nracine);
 			nbloc->parent = bloc_parent;
 			nbloc->membres.reserve(bloc->membres.taille);
@@ -428,7 +430,7 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::DECLARATION_COROUTINE:
 		case GenreNoeud::DECLARATION_OPERATEUR:
 		{
-			auto expr = static_cast<NoeudDeclarationFonction *>(racine);
+			auto expr = static_cast<NoeudDeclarationFonction const *>(racine);
 			auto nexpr = static_cast<NoeudDeclarationFonction *>(nracine);
 			nexpr->params.reserve(expr->params.taille);
 			nexpr->noms_retours.reserve(expr->noms_retours.taille);
@@ -449,7 +451,7 @@ NoeudExpression *copie_noeud(
 		}
 		case GenreNoeud::DECLARATION_ENUM:
 		{
-			auto decl = static_cast<NoeudEnum *>(racine);
+			auto decl = static_cast<NoeudEnum const *>(racine);
 			auto ndecl = static_cast<NoeudEnum *>(nracine);
 
 			ndecl->drapeaux_decl = decl->drapeaux_decl;
@@ -458,7 +460,7 @@ NoeudExpression *copie_noeud(
 		}
 		case GenreNoeud::DECLARATION_STRUCTURE:
 		{
-			auto decl = static_cast<NoeudStruct *>(racine);
+			auto decl = static_cast<NoeudStruct const *>(racine);
 			auto ndecl = static_cast<NoeudStruct *>(nracine);
 
 			ndecl->drapeaux_decl = decl->drapeaux_decl;
@@ -467,7 +469,7 @@ NoeudExpression *copie_noeud(
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
 		{
-			auto expr = static_cast<NoeudDeclarationVariable *>(racine);
+			auto expr = static_cast<NoeudDeclarationVariable const *>(racine);
 			auto nexpr = static_cast<NoeudDeclarationVariable *>(nracine);
 
 			nexpr->drapeaux_decl = expr->drapeaux_decl;
@@ -483,8 +485,9 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+		case GenreNoeud::EXPRESSION_COMME:
 		{
-			auto expr = static_cast<NoeudExpressionBinaire *>(racine);
+			auto expr = static_cast<NoeudExpressionBinaire const *>(racine);
 			auto nexpr = static_cast<NoeudExpressionBinaire *>(nracine);
 
 			nexpr->expr1 = copie_noeud(assem, expr->expr1, bloc_parent);
@@ -494,8 +497,11 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
-			auto expr = static_cast<NoeudExpressionAppel *>(racine);
+			auto expr = static_cast<NoeudExpressionAppel const *>(racine);
 			auto nexpr = static_cast<NoeudExpressionAppel *>(nracine);
+
+			nexpr->appelee = copie_noeud(assem, expr->appelee, bloc_parent);
+
 			nexpr->params.reserve(expr->params.taille);
 
 			POUR (expr->params) {
@@ -508,7 +514,7 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::EXPRESSION_DELOGE:
 		case GenreNoeud::EXPRESSION_RELOGE:
 		{
-			auto expr = static_cast<NoeudExpressionLogement *>(racine);
+			auto expr = static_cast<NoeudExpressionLogement const *>(racine);
 			auto nexpr = static_cast<NoeudExpressionLogement *>(nracine);
 
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
@@ -517,7 +523,6 @@ NoeudExpression *copie_noeud(
 			break;
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
-		case GenreNoeud::EXPRESSION_TRANSTYPE:
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
@@ -530,7 +535,7 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		{
-			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
+			auto expr = static_cast<NoeudExpressionUnaire const *>(racine);
 			auto nexpr = static_cast<NoeudExpressionUnaire *>(nracine);
 
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
@@ -549,7 +554,7 @@ NoeudExpression *copie_noeud(
 		}
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
 		{
-			auto expr = static_cast<NoeudTableauArgsVariadiques *>(racine);
+			auto expr = static_cast<NoeudTableauArgsVariadiques const *>(racine);
 			auto nexpr = static_cast<NoeudTableauArgsVariadiques *>(nracine);
 			nexpr->exprs.reserve(expr->exprs.taille);
 
@@ -563,7 +568,7 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::INSTRUCTION_REPETE:
 		case GenreNoeud::INSTRUCTION_TANTQUE:
 		{
-			auto expr = static_cast<NoeudBoucle *>(racine);
+			auto expr = static_cast<NoeudBoucle const *>(racine);
 			auto nexpr = static_cast<NoeudBoucle *>(nracine);
 
 			nexpr->condition = copie_noeud(assem, expr->condition, bloc_parent);
@@ -572,7 +577,7 @@ NoeudExpression *copie_noeud(
 		}
 		case GenreNoeud::INSTRUCTION_POUR:
 		{
-			auto expr = static_cast<NoeudPour *>(racine);
+			auto expr = static_cast<NoeudPour const *>(racine);
 			auto nexpr = static_cast<NoeudPour *>(nracine);
 
 			nexpr->variable = copie_noeud(assem, expr->variable, bloc_parent);
@@ -586,7 +591,7 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
 		case GenreNoeud::INSTRUCTION_DISCR_UNION:
 		{
-			auto expr = static_cast<NoeudDiscr *>(racine);
+			auto expr = static_cast<NoeudDiscr const *>(racine);
 			auto nexpr = static_cast<NoeudDiscr *>(nracine);
 			nexpr->paires_discr.reserve(expr->paires_discr.taille);
 
@@ -605,7 +610,7 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::INSTRUCTION_SAUFSI:
 		case GenreNoeud::INSTRUCTION_SI:
 		{
-			auto expr = static_cast<NoeudSi *>(racine);
+			auto expr = static_cast<NoeudSi const *>(racine);
 			auto nexpr = static_cast<NoeudSi *>(nracine);
 
 			nexpr->condition = copie_noeud(assem, expr->condition, bloc_parent);
@@ -615,7 +620,7 @@ NoeudExpression *copie_noeud(
 		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		{
-			auto expr = static_cast<NoeudPousseContexte *>(racine);
+			auto expr = static_cast<NoeudPousseContexte const *>(racine);
 			auto nexpr = static_cast<NoeudPousseContexte *>(nracine);
 
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
@@ -625,7 +630,7 @@ NoeudExpression *copie_noeud(
 		}
 		case GenreNoeud::INSTRUCTION_TENTE:
 		{
-			auto inst = static_cast<NoeudTente *>(racine);
+			auto inst = static_cast<NoeudTente const *>(racine);
 			auto ninst = static_cast<NoeudTente *>(nracine);
 
 			ninst->expr_appel = copie_noeud(assem, inst->expr_appel, bloc_parent);
@@ -701,6 +706,7 @@ void aplatis_arbre(
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+		case GenreNoeud::EXPRESSION_COMME:
 		{
 			auto expr = static_cast<NoeudExpressionBinaire *>(racine);
 
@@ -714,6 +720,8 @@ void aplatis_arbre(
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
 			auto expr = static_cast<NoeudExpressionAppel *>(racine);
+
+			aplatis_arbre(expr->appelee, arbre_aplatis);
 
 			POUR (expr->params) {
 				aplatis_arbre(it, arbre_aplatis);
@@ -737,7 +745,6 @@ void aplatis_arbre(
 			break;
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
-		case GenreNoeud::EXPRESSION_TRANSTYPE:
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
@@ -887,6 +894,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+		case GenreNoeud::EXPRESSION_COMME:
 		{
 			auto expr = static_cast<NoeudExpressionBinaire *>(racine);
 
@@ -917,7 +925,6 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
-		case GenreNoeud::EXPRESSION_TRANSTYPE:
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::DIRECTIVE_EXECUTION:

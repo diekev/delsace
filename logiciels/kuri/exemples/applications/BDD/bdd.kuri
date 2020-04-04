@@ -94,7 +94,7 @@ prépare_instruction :: fonc (commande: chaine, inst: *Instruction) -> PrépareR
             retourne PrépareRésultat.ERREUR_SYNTAXE
         }
 
-        id := transtype(extrait_nombre_entier(mots[1]): z32)
+        id := extrait_nombre_entier(mots[1]) comme z32
         nom := mots[2]
         courriel := mots[3]
 

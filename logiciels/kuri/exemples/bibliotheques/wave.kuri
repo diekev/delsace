@@ -91,7 +91,7 @@ ajoute_fréquence :: fonc(
 
     pour i dans taille ... taille + nombre_échantillons - 3 - 1 {
         pour c dans 0 ... génératrice.format.nombre_cannaux - 1 {
-			données[i + c] = transtype(amplitude * math.sin(t * i) : n16);
+			données[i + c] = amplitude * math.sin(t * i) comme n16;
         }
     }
 

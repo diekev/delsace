@@ -73,7 +73,7 @@ enum class GenreNoeud : char {
 	EXPRESSION_RELOGE,
 	EXPRESSION_TABLEAU_ARGS_VARIADIQUES,
 	EXPRESSION_TAILLE_DE,
-	EXPRESSION_TRANSTYPE,
+	EXPRESSION_COMME,
 	INSTRUCTION_BOUCLE,
 	INSTRUCTION_COMPOSEE,
 	INSTRUCTION_CONTINUE_ARRETE,
@@ -201,7 +201,8 @@ struct NoeudBase {
 	GenreNoeud genre{};
 	GenreValeur genre_valeur{};
 	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
-	int module_appel{}; // module pour les appels de fonctions importées
+	char aide_generation_code = 0;
+	REMBOURRE(3);
 	Lexeme const *lexeme = nullptr;
 	IdentifiantCode *ident = nullptr;
 	Type *type = nullptr;
@@ -213,13 +214,11 @@ struct NoeudBase {
 	TransformationType transformation{};
 
 	std::any valeur_calculee{};
-	char aide_generation_code = 0;
 
 	/* utilisé pour déterminer les types de retour des fonctions à moultretour
 	 * car lors du besoin index_type est utilisé pour le type de retour de la
 	 *  première valeur */
 	TypeFonction *type_fonc = nullptr;
-	dls::chaine nom_fonction_appel = "";
 
 	NoeudBase() = default;
 
@@ -314,11 +313,13 @@ struct NoeudDeclarationFonction : public NoeudDeclaration {
 struct NoeudExpressionAppel : public NoeudExpression {
 	NoeudExpressionAppel() { genre = GenreNoeud::EXPRESSION_APPEL_FONCTION; }
 
+	NoeudExpression *appelee = nullptr;
+
 	kuri::tableau<NoeudExpression *> params{};
 
 	kuri::tableau<NoeudExpression *> exprs{};
 
-	NoeudExpression *noeud_fonction_appelee = nullptr;
+	NoeudExpression const *noeud_fonction_appelee = nullptr;
 
 	COPIE_CONSTRUCT(NoeudExpressionAppel);
 };
@@ -502,7 +503,7 @@ void rassemble_feuilles(
 
 NoeudExpression *copie_noeud(
 		assembleuse_arbre *assem,
-		NoeudExpression *racine,
+		NoeudExpression const *racine,
 		NoeudBloc *bloc_parent);
 
 void aplatis_arbre(

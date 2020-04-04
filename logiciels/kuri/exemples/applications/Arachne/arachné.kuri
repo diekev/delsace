@@ -54,7 +54,7 @@ ajoute_colonne :: fonc(schéma : &Schéma, nom : chaine, type : TypeDonnées) ->
 		retourne
 	}
 
-	colonne := Colonne{ nom = nom, type = type }
+	colonne := Colonne( nom = nom, type = type )
 	tableau_ajoute(@schéma.colonnes, colonne)
 }
 
@@ -113,7 +113,7 @@ crée_schéma :: fonc(arachné : &Arachné, nom : chaine, colonnes : []Colonne) 
 		retourne TypeErreur.SCHÉMA_EXISTANT
 	}
 
-	schéma := Schéma{ nom = nom, colonnes = colonnes }
+	schéma := Schéma( nom = nom, colonnes = colonnes )
 	tableau_ajoute(@arachné.schémas, schéma)
 
 	retourne TypeErreur.AUCUNE
@@ -127,7 +127,7 @@ crée_noeud :: fonc(arachné : &Arachné, nom_schéma : chaine) -> TypeErreur
 		retourne TypeErreur.SCHÉMA_INEXISTANT
 	}
 
-	noeud := Noeud{ schéma = schéma, id = arachné.noeuds.taille, id_ligne = schéma.lignes }
+	noeud := Noeud( schéma = schéma, id = arachné.noeuds.taille, id_ligne = schéma.lignes )
 	tableau_ajoute(@arachné.noeuds, noeud)
 
 	réf := mémoire(schéma)
@@ -144,7 +144,7 @@ crée_relation :: fonc(arachné : &Arachné, nom_schéma : chaine) -> TypeErreur
 		retourne TypeErreur.SCHÉMA_INEXISTANT
 	}
 
-	relation := Relation{ schéma = schéma, id = arachné.relations.taille, id_ligne = schéma.lignes }
+	relation := Relation( schéma = schéma, id = arachné.relations.taille, id_ligne = schéma.lignes )
 	tableau_ajoute(@arachné.relations, relation)
 
 	réf := mémoire(schéma)
@@ -204,7 +204,7 @@ principale :: fonc () -> z32
 {
 	arachné : Arachné
 
-	colonne := Colonne{ nom="nom", type = TypeDonnées.NOMBRE_ENTIER }
+	colonne := Colonne( nom="nom", type = TypeDonnées.NOMBRE_ENTIER )
 	colonnes := [colonne]
 	arachné.crée_schéma("FONCTION", colonnes)
 

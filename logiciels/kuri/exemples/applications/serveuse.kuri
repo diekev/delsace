@@ -19,7 +19,7 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     }
 
     mon_addresse : sockaddr_in
-	mon_addresse.sin_family = transtype(AF_INET : n16)
+	mon_addresse.sin_family = AF_INET comme n16
     mon_addresse.sin_port = htons(port)
     // trouve notre propre addresse
 	mon_addresse.sin_addr.s_addr = 0
@@ -32,7 +32,7 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     mon_addresse.sin_zero[6] = 0
     mon_addresse.sin_zero[7] = 0
 
-	err := bind(serveuse.prise, transtype(@mon_addresse : *sockaddr), transtype(taille_de(sockaddr) -> n64))
+	err := bind(serveuse.prise, @mon_addresse comme *sockaddr, taille_de(sockaddr) -> n64))
 
 	si err == -1 {
 		retourne "erreur lors de la liaison"
@@ -47,7 +47,7 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     retourne ""
 }
 
-détruit_serveuse :: fonc(serveuse : &Serveuse) -> rien
+détruit_serveuse :: fonc(serveuse comme &Serveuse -> rien
 {
     si serveuse.prise == -1 {
         retourne
@@ -98,10 +98,10 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
     }
 
     mon_addresse : sockaddr_in // Adresse du connecté
-	sin_size := transtype(taille_de(sockaddr_in) : n32)
+	sin_size := taille_de(sockaddr_in) comme n32
 
     boucle {
-        prise := accept(serveuse.prise, transtype(@mon_addresse : *sockaddr), @sin_size)
+        prise := accept(serveuse.prise, @mon_addresse comme *sockaddr, @sin_size)
 
         si prise == -1 {
             perror("accept".pointeur)

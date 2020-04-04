@@ -36,7 +36,7 @@ fonction test_plage_typée() -> rien
 	}
 	printf("\n");
 
-	debut := transtype(0.5)(r32);
+	debut := 0.5)(r32);
 	fin   := transtype(9.5)(r32);
 
 	printf("boucle de nombres réels r32 [%f, %f]:\n", debut, fin);
@@ -89,7 +89,7 @@ fonction test_génération_séquence() -> rien
 	retourne;
 }
 
-fonction principale(compte : z32, args : **z8) -> z32
+fonction principale(compte comme z32, args : **z8 -> z32
 {
 	test_génération_séquence();
 	retourne 0;

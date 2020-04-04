@@ -81,7 +81,7 @@ parse_ligne_obj :: fonc (ligne: chaine, données: eini) -> rien
     // supprime le caractère de nouvelle ligne
     ligne = recule(ligne, 1)
 
-    données_obj := transtype(données.pointeur: *DonnéesObj)
+    données_obj := données.pointeur comme *DonnéesObj
     maillage := données_obj.maillage
 
     si ligne.commence_par("f ") {
@@ -117,9 +117,9 @@ parse_ligne_obj :: fonc (ligne: chaine, données: eini) -> rien
         pousse_contexte nouveau_contexte {
             mots := divise(tmp, ' ')
 
-            vec.x = transtype(extrait_nombre_réel(mots[0]): r32)
-            vec.y = transtype(extrait_nombre_réel(mots[1]): r32)
-            vec.z = transtype(extrait_nombre_réel(mots[2]): r32)
+            vec.x = extrait_nombre_réel(mots[0]) comme r32
+            vec.y = extrait_nombre_réel(mots[1]) comme r32
+            vec.z = extrait_nombre_réel(mots[2]) comme r32
         }
 
         tableau_ajoute(@données_obj.vecteurs, vec)

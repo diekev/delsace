@@ -49,7 +49,7 @@ est_type_attribut_valide :: fonc(type : TypeAttribut) -> bool
     // enlève le type tableau au cas où
     type &= ~TypeAttribut.TABLEAU
 
-    si type == transtype(0 : TypeAttribut) {
+    si type == 0 comme TypeAttribut {
         retourne faux
     }
 
@@ -59,8 +59,8 @@ est_type_attribut_valide :: fonc(type : TypeAttribut) -> bool
 
     pour valeur dans info.valeurs {
 		// À FAIRE : typage des valeurs des énums
-		type_ := transtype(type : z32)
-		nombre_bits += transtype((type_ & valeur) != 0 : z32)
+		type_ := type comme z32
+		nombre_bits += (type_ & valeur) != 0 comme z32
     }
 
     retourne nombre_bits == 1
@@ -157,7 +157,7 @@ réserve :: fonc(attr : *Attribut, nombre_éléments : z64) -> rien
 
 est_type_tableau :: fonc(type : TypeAttribut) -> bool
 {
-	retourne (type & TypeAttribut.TABLEAU) != transtype(0 : TypeAttribut)
+	retourne (type & TypeAttribut.TABLEAU) != 0 comme TypeAttribut
 }
 
 détruit :: fonc(attr : *Attribut) -> rien
@@ -187,7 +187,7 @@ valeur_z32 :: fonc(attr : *Attribut, index : z64) -> *z32
 
 	décalage := index * taille_octet_type_attribut(attr.type)
 
-	retourne transtype(@attr.tampon.données[décalage] : *z32)
+	retourne @attr.tampon.données[décalage] comme *z32
 }
 
 valeur_r32 :: fonc(attr : *Attribut, index : z64) -> *r32
@@ -198,7 +198,7 @@ valeur_r32 :: fonc(attr : *Attribut, index : z64) -> *r32
 
 	décalage := index * taille_octet_type_attribut(attr.type)
 
-	retourne transtype(@attr.tampon.données[décalage] : *r32)
+	retourne @attr.tampon.données[décalage] comme *r32
 }
 
 tableau_r32 :: fonc(attr : *Attribut, index : z64) -> *[]r32
@@ -209,7 +209,7 @@ tableau_r32 :: fonc(attr : *Attribut, index : z64) -> *[]r32
 
 	décalage := index * taille_octet_type_attribut(attr.type)
 
-	retourne transtype(@attr.tampon.données[décalage] : *[]r32)
+	retourne @attr.tampon.données[décalage] comme *[]r32
 }
 
 taille_octet_type_attribut :: fonc(type : TypeAttribut) -> z64
@@ -253,7 +253,7 @@ taille_octet_type_attribut :: fonc(type : TypeAttribut) -> z64
         }
 	}
 
-	retourne transtype(taille : z64)
+	retourne taille comme z64
 }
 
 //fonc crée_attribut_point(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut

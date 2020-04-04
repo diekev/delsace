@@ -8,10 +8,10 @@ maintenant_sec :: fonc() -> r64
 	heure : timeval
 	gettimeofday(@heure, nul)
 
-	s := transtype(heure.tv_sec : r64)
+	s := heure.tv_sec comme r64
 
     // À FAIRE : 1e-6
-	retourne s + transtype(heure.tv_usec : r64) * 0.000001
+	retourne s + heure.tv_usec comme r64 * 0.000001
 }
 
 maintenant_local :: fonc() -> r64
@@ -20,11 +20,11 @@ maintenant_local :: fonc() -> r64
 	fuseau : timezone
 	gettimeofday(@heure, @fuseau)
 
-	s := transtype(heure.tv_sec : r64)
-	s += transtype(fuseau.tz_minuteswest : r64) * 60.0
+	s := heure.tv_sec comme r64
+	s += fuseau.tz_minuteswest comme r64 * 60.0
 
     // À FAIRE : 1e-6
-	retourne s + transtype(heure.tv_usec : r64) * 0.000001
+	retourne s + heure.tv_usec comme r64 * 0.000001
 }
 
 delta_sec :: fonc(temps : r64) -> r64
@@ -57,9 +57,9 @@ calcule_temps :: fonc() -> DonnéesTemps
 	maint := maintenant_local()
 
 	dt : DonnéesTemps
-	dt.minutes = transtype(maint / 60.0 : z32) % 60
-	dt.heures = transtype(maint / 60.0 / 60.0 : z32) % 24
-	dt.secondes = transtype(maint : z32) % 60
+	dt.minutes = (maint / 60.0) comme z32 % 60
+	dt.heures = (maint / 60.0 / 60.0) comme z32 % 24
+	dt.secondes = maint comme z32 % 60
 
 	retourne dt
 }

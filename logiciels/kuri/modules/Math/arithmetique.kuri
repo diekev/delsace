@@ -18,7 +18,7 @@ copysign :: fonc externe (a: r64, b: r64) -> r64
 
 sol :: fonc (a: r32) -> r32
 {
-    retourne transtype(floor(a): r32)
+    retourne floor(a) comme r32
 }
 
 sol :: fonc (a: r64) -> r64
@@ -28,7 +28,7 @@ sol :: fonc (a: r64) -> r64
 
 plafond :: fonc (a: r32) -> r32
 {
-    retourne transtype(ceil(a): r32)
+    retourne ceil(a) comme r32
 }
 
 plafond :: fonc (a: r64) -> r64
@@ -38,7 +38,7 @@ plafond :: fonc (a: r64) -> r64
 
 cosinus :: fonc (a: r32) -> r32
 {
-    retourne transtype(cos(a): r32)
+    retourne cos(a) comme r32
 }
 
 cosinus :: fonc (a: r64) -> r64
@@ -48,7 +48,7 @@ cosinus :: fonc (a: r64) -> r64
 
 sinus :: fonc (a: r32) -> r32
 {
-    retourne transtype(sin(a): r32)
+    retourne sin(a) comme r32
 }
 
 sinus :: fonc (a: r64) -> r64
@@ -58,7 +58,7 @@ sinus :: fonc (a: r64) -> r64
 
 puissance :: fonc (v: r32, exp: r32) -> r32
 {
-    retourne transtype(pow(v, exp): r32)
+    retourne pow(v, exp) comme r32
 }
 
 puissance :: fonc (v: r64, exp: r64) -> r64
@@ -68,7 +68,7 @@ puissance :: fonc (v: r64, exp: r64) -> r64
 
 copie_signe :: fonc (a: r32, b: r32) -> r32
 {
-    retourne transtype(copysign(a, b): r32)
+    retourne copysign(a, b) comme r32
 }
 
 copie_signe :: fonc (a: r64, b: r64) -> r64
@@ -160,7 +160,7 @@ racine_cubique :: fonc (n: r64) -> r64
 
 abs :: fonc(a : $T) -> $T #enligne
 {
-    si a < transtype(0: $T) { retourne -a } sinon { retourne a; }
+    si a < 0 comme $T { retourne -a } sinon { retourne a; }
 	//retourne si a < 0 { -a } sinon { a }
 }
 

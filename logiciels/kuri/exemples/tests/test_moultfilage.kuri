@@ -32,16 +32,16 @@ store_t :: struct {
 get_random :: fonc(max : z32) -> z32 #nulctx
 {
 	val : r64
-	val = transtype(max : r64) * rand()
+	val = max comme r64 * rand()
 	val = val / (2147483647.0 + 1.0)
 
-	retourne (transtype(val : z32))
+	retourne (val comme z32)
 }
 
 // Fonction pour le thread du magasin.
 fn_store :: fonc(p_data : *rien) -> *rien #nulctx
 {
-    store := transtype(p_data : *store_t)
+    store := p_data comme *store_t
 
 	boucle {
         pthread_mutex_lock(@store.mutex)
@@ -65,7 +65,7 @@ donnée_client_t :: struct {
 // Fonction pour les threads des clients.
 fn_clients :: fonc(p_data : *rien) -> *rien #nulctx
 {
-    donnée_client := transtype(p_data : *donnée_client_t)
+    donnée_client := p_data comme *donnée_client_t
     store := donnée_client.store
 	nb : z32 = donnée_client.index
 
@@ -146,7 +146,7 @@ principale :: fonc () -> z32
 
     //retourne 0
 
-    store := store_t{ stock = 20 }
+    store := store_t( stock = 20 )
 	ret : z32 = 0
 
 	printf("Creation du thread du magasin !\n".pointeur)

@@ -37,7 +37,7 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     }
 
     adresse_du_connecté : sockaddr_in
-	adresse_du_connecté.sin_family = transtype(AF_INET : n16)
+	adresse_du_connecté.sin_family = AF_INET comme n16
     adresse_du_connecté.sin_port = htons(port)
     // trouve notre propre adresse
 	adresse_du_connecté.sin_addr.s_addr = 0
@@ -50,7 +50,7 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     adresse_du_connecté.sin_zero[6] = 0
     adresse_du_connecté.sin_zero[7] = 0
 
-	err := bind(serveuse.prise, transtype(@adresse_du_connecté : *sockaddr), transtype(taille_de(sockaddr): n64))
+	err := bind(serveuse.prise, (@adresse_du_connecté) comme *sockaddr, taille_de(sockaddr) comme n64)
 
 	si err == -1 {
 		retourne "erreur lors de la liaison"
@@ -87,8 +87,8 @@ ajoute_route :: fonc (
 {
     route : Route
     route.url = url
-    route.méthode_get = transtype(méthode_get: fonc(*rien, *rien)(RéponseRequête))
-    route.méthode_post = transtype(méthode_post: fonc(*rien, *rien)(RéponseRequête))
+    route.méthode_get = méthode_get comme fonc(*rien, *rien)(RéponseRequête)
+    route.méthode_post = méthode_post comme fonc(*rien, *rien)(RéponseRequête)
 
     tableau_ajoute(@serveuse.routes, route)
 }

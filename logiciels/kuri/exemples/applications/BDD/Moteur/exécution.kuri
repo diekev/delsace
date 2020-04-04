@@ -90,7 +90,7 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> ErreurExé
                 retourne ErreurExécution.TypageColonneInvalide
             }
 
-            entier := transtype(extrait_nombre_entier(expr.littérale.valeur) : z32)
+            entier := extrait_nombre_entier(expr.littérale.valeur) comme z32
 
             si entier < 0 {
                 retourne ErreurExécution.NombreNégatif
@@ -129,7 +129,7 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> ErreurExé
 
     table.nombre_de_lignes += 1
 
-    retourne transtype(0: ErreurExécution)
+    retourne 0 comme ErreurExécution
 }
 
 RésultatSélection :: union {

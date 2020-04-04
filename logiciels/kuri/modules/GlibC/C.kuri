@@ -240,11 +240,11 @@ SOCK_NONBLOCK  :: 0o0004000	/* Atomically mark descriptor(s) as non-blocking.  *
 
 // netinet/in.h
 /* Address to accept any incoming messages.  */
-INADDR_ANY       :: transtype(0x00000000: n32)
+INADDR_ANY       :: 0x00000000 comme n32
 /* Address to send to all hosts.  */
-INADDR_BROADCAST :: transtype(0xffffffff: n32)
+INADDR_BROADCAST :: 0xffffffff comme n32
 /* Address indicating an error return.  */
-INADDR_NONE      :: transtype(0xffffffff: n32)
+INADDR_NONE      :: 0xffffffff comme n32
 
 hostent :: struct externe  {
     h_name : *z8

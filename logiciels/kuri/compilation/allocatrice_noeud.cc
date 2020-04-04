@@ -65,6 +65,7 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+		case GenreNoeud::EXPRESSION_COMME:
 		{
 			noeud = m_noeuds_expression_binaire.ajoute_element();
 			break;
@@ -83,7 +84,6 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 			break;
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
-		case GenreNoeud::EXPRESSION_TRANSTYPE:
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:

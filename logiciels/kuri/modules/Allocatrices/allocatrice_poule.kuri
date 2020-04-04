@@ -38,12 +38,12 @@ struct AllocatricePoule {
     données : *rien,
     info : *InfoType) -> *rien
 {
-    alloc := transtype(données: *AllocatricePoule)
+    alloc := données comme *AllocatricePoule
 
     discr mode {
         ALLOUE {
             si alloc.racine == nul {
-                bloc := transtype(malloc(transtype(taille_de(Bloc) : z64)) : *Bloc)
+                bloc := malloc(transtype(taille_de(Bloc) comme z64) : *Bloc)
                 #alloc.pointeurs_blocs.pousse(bloc)
 
                 pour i dans 0 ... 1022 {
@@ -78,7 +78,7 @@ struct AllocatricePoule {
             }
 
             alloc.allocations_courantes -= 1
-            chunk := transtype(ancien_pointeur: *Chunk)
+            chunk := ancien_pointeur comme *Chunk
             chunk.suivant = alloc.racine
             alloc.racine = chunk
         }

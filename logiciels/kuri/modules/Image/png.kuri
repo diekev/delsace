@@ -125,7 +125,7 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
 
 	// These color_type don't have an alpha channel then fill it with 0xff.
 	si (color_type == _PNG_COLOR_TYPE_RGB || color_type == _PNG_COLOR_TYPE_GRAY || color_type == _PNG_COLOR_TYPE_PALETTE) {
-		png_set_filler(png, transtype(0xFF: n32), _PNG_FILLER_AFTER)
+		png_set_filler(png, 0xFF comme n32, _PNG_FILLER_AFTER)
 	}
 
 	si (color_type == _PNG_COLOR_TYPE_GRAY || color_type == _PNG_COLOR_TYPE_GRAY_ALPHA) {
@@ -135,31 +135,31 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
 	png_read_update_info(png, info)
 
 	row_pointers := loge [hauteur]*n8
-	row_pointers.taille = transtype(hauteur: z64)
+	row_pointers.taille = hauteur comme z64
 
-	pour y dans 0 ... transtype(hauteur: z32) - 1 {
+	pour y dans 0 ... hauteur comme z32 - 1 {
         row_bytes := png_get_rowbytes(png, info)
-        row_pointers[y] = transtype(malloc(transtype(row_bytes: z64)): *n8)
+        row_pointers[y] = malloc(row_bytes comme z64) comme *n8
 	}
 
 	png_read_image(png, @row_pointers[0])
 
-    image.hauteur = transtype(hauteur: z32)
-    image.largeur = transtype(largeur: z32)
+    image.hauteur = hauteur comme z32
+    image.largeur = largeur comme z32
     image.tampon = loge [image.hauteur * image.largeur]Couleur
 	image.tampon.taille = image.hauteur * image.largeur
 
     index : z64 = 0
 
 	pour row dans row_pointers {
-        pour x dans 0 ... transtype(largeur: z32) - 1 {
+        pour x dans 0 ... largeur comme z32 - 1 {
             px := @row[x * 4]
 
             couleur : Couleur
-            couleur.r = transtype(px[0]: r32) / 255.0
-            couleur.v = transtype(px[1]: r32) / 255.0
-            couleur.b = transtype(px[2]: r32) / 255.0
-            couleur.a = transtype(px[3]: r32) / 255.0
+            couleur.r = px[0] comme r32 / 255.0
+            couleur.v = px[1] comme r32 / 255.0
+            couleur.b = px[2] comme r32 / 255.0
+            couleur.a = px[3] comme r32 / 255.0
 
             image.tampon[index] = couleur
             index += 1

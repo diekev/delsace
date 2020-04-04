@@ -466,7 +466,7 @@ insère :: fonc(arbre: *ArbreB, k: z32) -> rien
 
         // la nouvelle racine a deux enfants désormais
         // décide lequel des deux aura la nouvelle clé
-        idx := transtype(s.clés[0] < k: z32)
+        idx := s.clés[0] < k comme z32
         insère_non_plein(arbre, s.enfants[idx], k)
 
         arbre.racine = s

@@ -30,89 +30,6 @@
 #include "outils_lexemes.hh"
 #include "portee.hh"
 
-enum class dir_associativite : int {
-	GAUCHE,
-	DROITE,
-};
-
-struct DonneesPrecedence {
-	dir_associativite direction;
-	int priorite;
-};
-
-static DonneesPrecedence associativite(GenreLexeme identifiant)
-{
-	switch (identifiant) {
-		case GenreLexeme::VIRGULE:
-			return { dir_associativite::GAUCHE, 0 };
-		case GenreLexeme::TROIS_POINTS:
-			return { dir_associativite::GAUCHE, 1 };
-		case GenreLexeme::EGAL:
-		case GenreLexeme::DECLARATION_VARIABLE:
-		case GenreLexeme::DECLARATION_CONSTANTE:
-		case GenreLexeme::PLUS_EGAL:
-		case GenreLexeme::MOINS_EGAL:
-		case GenreLexeme::DIVISE_EGAL:
-		case GenreLexeme::MULTIPLIE_EGAL:
-		case GenreLexeme::MODULO_EGAL:
-		case GenreLexeme::ET_EGAL:
-		case GenreLexeme::OU_EGAL:
-		case GenreLexeme::OUX_EGAL:
-		case GenreLexeme::DEC_DROITE_EGAL:
-		case GenreLexeme::DEC_GAUCHE_EGAL:
-			return { dir_associativite::GAUCHE, 2 };
-		case GenreLexeme::BARRE_BARRE:
-			return { dir_associativite::GAUCHE, 3 };
-		case GenreLexeme::ESP_ESP:
-			return { dir_associativite::GAUCHE, 4 };
-		case GenreLexeme::BARRE:
-			return { dir_associativite::GAUCHE, 5 };
-		case GenreLexeme::CHAPEAU:
-			return { dir_associativite::GAUCHE, 6 };
-		case GenreLexeme::ESPERLUETTE:
-			return { dir_associativite::GAUCHE, 7 };
-		case GenreLexeme::DIFFERENCE:
-		case GenreLexeme::EGALITE:
-			return { dir_associativite::GAUCHE, 8 };
-		case GenreLexeme::INFERIEUR:
-		case GenreLexeme::INFERIEUR_EGAL:
-		case GenreLexeme::SUPERIEUR:
-		case GenreLexeme::SUPERIEUR_EGAL:
-			return { dir_associativite::GAUCHE, 9 };
-		case GenreLexeme::DECALAGE_GAUCHE:
-		case GenreLexeme::DECALAGE_DROITE:
-			return { dir_associativite::GAUCHE, 10 };
-		case GenreLexeme::PLUS:
-		case GenreLexeme::MOINS:
-			return { dir_associativite::GAUCHE, 11 };
-		case GenreLexeme::FOIS:
-		case GenreLexeme::DIVISE:
-		case GenreLexeme::POURCENT:
-			return { dir_associativite::GAUCHE, 12 };
-		case GenreLexeme::EXCLAMATION:
-		case GenreLexeme::TILDE:
-		case GenreLexeme::AROBASE:
-		case GenreLexeme::PLUS_UNAIRE:
-		case GenreLexeme::MOINS_UNAIRE:
-			return { dir_associativite::DROITE, 13 };
-		case GenreLexeme::POINT:
-		case GenreLexeme::CROCHET_OUVRANT:
-			return { dir_associativite::GAUCHE, 14 };
-		default:
-			assert(false);
-			return { static_cast<dir_associativite>(-1), -1 };
-	}
-}
-
-bool precedence_faible(GenreLexeme identifiant1, GenreLexeme identifiant2)
-{
-	auto p1 = associativite(identifiant1);
-	auto p2 = associativite(identifiant2);
-
-	return (p1.direction == dir_associativite::GAUCHE && p1.priorite <= p2.priorite)
-			|| ((p2.direction == dir_associativite::DROITE) && (p1.priorite < p2.priorite));
-}
-
 /* ************************************************************************** */
 
 template <typename T>
@@ -476,11 +393,11 @@ ResultatExpression evalue_expression(
 			auto inst = static_cast<NoeudExpressionUnaire *>(b);
 			return evalue_expression(contexte, bloc, inst->expr);
 		}
-		case GenreNoeud::EXPRESSION_TRANSTYPE:
+		case GenreNoeud::EXPRESSION_COMME:
 		{
 			/* À FAIRE : transtypage de l'expression constante */
-			auto inst = static_cast<NoeudExpressionUnaire *>(b);
-			return evalue_expression(contexte, bloc, inst->expr);
+			auto inst = static_cast<NoeudExpressionBinaire *>(b);
+			return evalue_expression(contexte, bloc, inst->expr1);
 		}
 	}
 }

@@ -76,10 +76,10 @@ appariement :: fonc(chn : []octet) -> rien
 {
     pour v dans chn {
         discr v {
-			'a' { v = transtype('t' : octet) }
-			'c' { v = transtype('g' : octet) }
-			'g' { v = transtype('c' : octet) }
-			't' { v = transtype('a' : octet) }
+			'a' { v = 't' comme octet }
+			'c' { v = 'g' comme octet }
+			'g' { v = 'c' comme octet }
+			't' { v = 'a' comme octet }
         }
     }
 }

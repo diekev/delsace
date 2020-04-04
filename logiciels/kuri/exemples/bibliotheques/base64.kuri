@@ -25,15 +25,15 @@ encode_impl :: fonc(chn : chaine, table : chaine) -> chaine
     longueur := chn.taille
 
     pour c dans chn {
-		char_array_3[i] = transtype(c: n8)
+		char_array_3[i] = c comme n8
 
         i += 1
 
 		si i == 3 {
-			char_array_4[0] = transtype((char_array_3[0] & 0xfc) >> 2: n8)
-			char_array_4[1] = transtype(((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4): n8)
-			char_array_4[2] = transtype(((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6): n8)
-			char_array_4[3] = transtype(char_array_3[2] & 0x3f: n8)
+			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2 comme n8
+			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4) comme n8
+			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6) comme n8
+			char_array_4[3] = char_array_3[2] & 0x3f comme n8
 
             pour j dans 0 ... 3 {
                 ajoute_au_tampon(@enchaineuse, table[char_array_4[j]])
@@ -45,12 +45,12 @@ encode_impl :: fonc(chn : chaine, table : chaine) -> chaine
 
 	si i != 0 {
         pour j dans i ... 2 {
-			char_array_3[j] = transtype('\0': n8)
+			char_array_3[j] = '\0' comme n8
         }
 
 		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2
-		char_array_4[1] = transtype(((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4): n8)
-		char_array_4[2] = transtype(((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6): n8)
+		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4) comme n8
+		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6) comme n8
 		char_array_4[3] = char_array_3[2] & 0x3f
 
         pour j dans 0 ... i {
@@ -95,20 +95,20 @@ décode_impl :: fonc(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(b
             arrête
         }
 
-        char_array_4[i] = transtype(c: n8)
+        char_array_4[i] = c comme n8
         i += 1
 
         si i == 4 {
             pour j dans 0 ... 3 {
-				char_array_4[j] = transtype(table.trouve_caractère(transtype(char_array_4[j]: z8), 0): n8)
+				char_array_4[j] = table.trouve_caractère(transtype(char_array_4[j] comme z8, 0): n8)
             }
 
-			char_array_3[0] = transtype((char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4): n8)
-			char_array_3[1] = transtype(((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2): n8)
-			char_array_3[2] = transtype(((char_array_4[2] & 0x3) << 6) + char_array_4[3]: n8)
+			char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4) comme n8
+			char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2) comme n8
+			char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3] comme n8
 
             pour j dans 0 ... 2 {
-                ajoute_au_tampon(@enchaineuse, transtype(char_array_3[j]: z8))
+                ajoute_au_tampon(@enchaineuse, char_array_3[j] comme z8)
             }
 
             i = 0
@@ -117,19 +117,19 @@ décode_impl :: fonc(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(b
 
 	si i != 0 {
 		pour j dans i ... 3 {
-			char_array_4[j] = transtype('\0': n8)
+			char_array_4[j] = '\0' comme n8
 		}
 
         pour j dans i ... 3 {
-            char_array_4[j] = transtype(table[char_array_4[j]]: n8)
+            char_array_4[j] = table[char_array_4[j]] comme n8
         }
 
-		char_array_3[0] = transtype((char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4): n8)
-		char_array_3[1] = transtype(((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2): n8)
-		char_array_3[2] = transtype(((char_array_4[2] & 0x3) << 6) + char_array_4[3]: n8)
+		char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4) comme n8
+		char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2) comme n8
+		char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3] comme n8
 
         pour j dans 0 ... i {
-			ajoute_au_tampon(@enchaineuse, transtype(table.trouve_caractère(transtype(char_array_3[j]: z8), 0): z8))
+			ajoute_au_tampon(@enchaineuse, table.trouve_caractère(transtype(char_array_3[j] comme z8, 0): z8))
         }
 	}
 

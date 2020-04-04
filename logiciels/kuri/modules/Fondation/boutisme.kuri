@@ -37,27 +37,27 @@ commute_boutisme :: fonc(val : *n64) -> rien #enligne
 
 commute_boutisme :: fonc(val : *z16) -> rien #enligne
 {
-    commute_boutisme(transtype(val: *n16))
+    commute_boutisme(val comme *n16)
 }
 
 commute_boutisme :: fonc(val : *z32) -> rien #enligne
 {
-    commute_boutisme(transtype(val: *n32))
+    commute_boutisme(val comme *n32)
 }
 
 commute_boutisme :: fonc(val : *z64) -> rien #enligne
 {
-    commute_boutisme(transtype(val: *n64))
+    commute_boutisme(val comme *n64)
 }
 
 commute_boutisme :: fonc(val : *r32) -> rien #enligne
 {
-    commute_boutisme(transtype(val: *n32))
+    commute_boutisme(val comme *n32)
 }
 
 commute_boutisme :: fonc(val : *r64) -> rien #enligne
 {
-    commute_boutisme(transtype(val: *n64))
+    commute_boutisme(val comme *n64)
 }
 
 commute_boutisme :: fonc(tabl : []$T) -> rien #enligne
@@ -70,7 +70,7 @@ commute_boutisme :: fonc(tabl : []$T) -> rien #enligne
 petit_boutisme :: fonc () -> bool
 {
     UN := 1
-    retourne mémoire(transtype(@UN: *z8)) == 1
+    retourne mémoire((@UN) comme *z8) == 1
 }
 
 grand_boutisme :: fonc () -> bool

@@ -195,7 +195,7 @@ id_mot :: fonc(chn : chaine) -> IdentifiantLexème
 
 	pour nom, idx dans info.noms {
 		si nom == chn {
-			retourne transtype(info.valeurs[idx] : IdentifiantLexème)
+			retourne info.valeurs[idx] comme IdentifiantLexème
 		}
 	}
 

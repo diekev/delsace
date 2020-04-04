@@ -102,7 +102,7 @@ système_ferme :: fonc (fd: z32) -> ErreurFichier
         }
     }
 
-    retourne transtype(0: ErreurFichier)
+    retourne 0 comme ErreurFichier
 }
 
 système_synchronise :: fonc (fd: z32) -> RésultatOpérationFichier
@@ -182,7 +182,7 @@ RésultatLecture :: union {
 
 système_lis :: fonc (fd: z32, ptr:  *z8, taille: z64) -> RésultatLecture
 {
-    résultat := read(fd, ptr, transtype(taille: n64))
+    résultat := read(fd, ptr, taille comme n64)
 
     si résultat == -1 {
         err := lis_errno()
@@ -220,7 +220,7 @@ système_positionne_fichier :: fonc (fd: z32, décalage: z32, où: z32) -> Résu
         }
     }
 
-    retourne transtype(résultat: z32)
+    retourne résultat comme z32
 }
 
 // ----------------------------------------------------------
@@ -253,7 +253,7 @@ ouvre_fichier :: fonc (chemin: chaine) -> RésultatFichier
 ferme :: fonc (fichier: *Fichier) -> ErreurFichier
 {
     si fichier.desc < 3 {
-        retourne transtype(0: ErreurFichier)
+        retourne 0 comme ErreurFichier
     }
 
     retourne système_ferme(fichier.desc)
@@ -262,7 +262,7 @@ ferme :: fonc (fichier: *Fichier) -> ErreurFichier
 lis :: fonc (fichier: *Fichier, tampon: chaine) -> ErreurFichier
 {
     si fichier.desc == -1 || fichier.desc == 1 || fichier.desc == 2 {
-        retourne transtype(0: ErreurFichier)
+        retourne 0 comme ErreurFichier
     }
 
     retourne système_lis(fichier.desc, tampon.pointeur, tampon.taille)
@@ -359,9 +359,9 @@ lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
     retourne système_écris(fichier.desc, chn.pointeur, chn.taille)
 }
 
-fichier_entrée_standarde := Fichier{ desc = 0 }
-fichier_sortie_standarde := Fichier{ desc = 1 }
-fichier_sortie_erreur    := Fichier{ desc = 2 }
+fichier_entrée_standarde := Fichier( desc = 0 )
+fichier_sortie_standarde := Fichier( desc = 1 )
+fichier_sortie_erreur    := Fichier( desc = 2 )
 
 entrée_standarde :: fonc () -> *Fichier
 {

@@ -17,8 +17,8 @@ comp_mem_ordre :: fonc(a : []octet, b : []octet, taille : z64) -> z32 #nulctx
     pour i dans 0...taille - 1 {
 		v := a[i] - b[i]
 
-        si v != transtype(0: octet) {
-			retourne transtype(v : z32)
+        si v != 0 comme octet {
+			retourne v comme z32
 		}
 	}
 
@@ -148,7 +148,7 @@ init_mem :: fonc(destination : []octet, valeur : z8, taille : z64) -> rien #nulc
 	}
 
     pour o, idx dans destination {
-		o = transtype(valeur : octet)
+		o = valeur comme octet
 	}
 }
 
@@ -164,7 +164,7 @@ cherche_mem :: fonc(source : []octet, valeur : z8, taille : z64) -> []octet #nul
 	ret.taille = 0
 
     pour i dans 0...t - 1 {
-	    si source[i] == transtype(valeur : octet) {
+	    si source[i] == valeur comme octet {
 			ret.pointeur = @source[i]
 			ret.taille = t - i
 			arrête

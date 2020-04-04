@@ -49,10 +49,10 @@ répond_post_page_accueil :: fonc (serveuse: *Serveuse, requête: *DonnéesRequ�
         //ajoute_au_tampon(@enchaineuse, "'</p>")
     }
 
-    retourne RéponseRequête{
+    retourne RéponseRequête(
         code = CodeÉtatHTTP.OK,
         type_contenu = TypeContenu.TEXT_HTML,
         // À FAIRE
         contenu = chaine_depuis_enchaineuse(@enchaineuse)
-    }
+    )
 }

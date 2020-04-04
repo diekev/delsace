@@ -62,7 +62,7 @@ allocation_gardée :: fonc(
     nouvelle_taille: z64,
     pos: PositionCodeSource) -> *rien
 {
-    taille := nouvelle_taille + transtype(taille_de(EntêteMémoire): z64)
+    taille := nouvelle_taille + taille_de(EntêteMémoire) comme z64
 
     ptr := malloc(taille)
 
@@ -70,13 +70,13 @@ allocation_gardée :: fonc(
         retourne nul
     }
 
-    ptr_entête := transtype(ptr: *EntêteMémoire)
+    ptr_entête := ptr comme *EntêteMémoire
     ptr_entête.taille_bloc = nouvelle_taille
     ptr_entête.pos = pos
 
     enliste(@allocatrice.liste_entêtes, ptr_entête)
 
-    ptr_z8 := transtype(ptr: *z8)
+    ptr_z8 := ptr comme *z8
 
     retourne ptr_z8 + taille_de(EntêteMémoire)
 }
@@ -133,7 +133,7 @@ allocatrice_gardée :: fonc(
     info : *InfoType,
     pos : PositionCodeSource) -> *rien
 {
-    alloc := transtype(données: *AllocatriceGardée)
+    alloc := données comme *AllocatriceGardée
 
     discr mode {
         ALLOUE {
@@ -144,25 +144,25 @@ allocatrice_gardée :: fonc(
                 retourne allocation_gardée(alloc, nouvelle_taille, pos)
             }
 
-            ptr_z8 := transtype(ancien_pointeur: *z8)
+            ptr_z8 := ancien_pointeur comme *z8
 
             ptr := ptr_z8 - taille_de(EntêteMémoire)
 
             {
-                ptr_entête := transtype(ptr: *EntêteMémoire)
+                ptr_entête := ptr comme *EntêteMémoire
                 déliste(@alloc.liste_entêtes, ptr_entête)
             }
 
-            taille := nouvelle_taille + transtype(taille_de(EntêteMémoire): z64)
+            taille := nouvelle_taille + taille_de(EntêteMémoire) comme z64
 
-            nptr := transtype(realloc(ptr, taille): *z8)
+            nptr := realloc(ptr, taille) comme *z8
 
             si nptr == nul {
                 retourne nul
             }
 
             {
-                ptr_entête := transtype(ptr: *EntêteMémoire)
+                ptr_entête := ptr comme *EntêteMémoire
                 ptr_entête.taille_bloc = nouvelle_taille
                 ptr_entête.pos = pos
                 enliste(@alloc.liste_entêtes, ptr_entête)
@@ -174,7 +174,7 @@ allocatrice_gardée :: fonc(
             ptr := ancien_pointeur - taille_de(EntêteMémoire)
 
             {
-                ptr_entête := transtype(ptr: *EntêteMémoire)
+                ptr_entête := ptr comme *EntêteMémoire
                 déliste(@alloc.liste_entêtes, ptr_entête)
             }
 

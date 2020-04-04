@@ -27,7 +27,7 @@ crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
     reloge tabuleuse.alignements: [titres.taille]z32
 
     pour a dans tabuleuse.alignements {
-        a = transtype(Alignement.GAUCHE: z32)
+        a = Alignement.GAUCHE comme z32
     }
 
     retourne tabuleuse
@@ -42,7 +42,7 @@ crée_tabuleuse :: fonc  (ligne_titre: LigneTabuleuse) -> Tabuleuse
     reloge tabuleuse.alignements: [ligne_titre.colonnes.taille]z32
 
     pour a dans tabuleuse.alignements {
-        a = transtype(Alignement.GAUCHE: z32)
+        a = Alignement.GAUCHE comme z32
     }
 
     retourne tabuleuse
@@ -116,7 +116,7 @@ ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, ligne: LigneTabuleuse) -> rien
 
 alignement :: fonc (tabuleuse: *Tabuleuse, idx: z64, align: Alignement) -> rien
 {
-    tabuleuse.alignements[idx] = transtype(align: z32)
+    tabuleuse.alignements[idx] = align comme z32
 }
 
 imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
@@ -196,7 +196,7 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
     pour colonne, i dans ligne.colonnes {
 	    ajoute_au_tampon(enchaineuse, "| ")
 
-		si tabuleuse.alignements[i] == transtype(Alignement.DROITE: z32) {
+		si tabuleuse.alignements[i] == Alignement.DROITE comme z32 {
             pour j dans 0 ... tailles_max_colonnes[i] - colonne.taille_unicode() - 1 {
 	            ajoute_au_tampon(enchaineuse, " ")
 			}
@@ -204,7 +204,7 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
 
         ajoute_au_tampon(enchaineuse, colonne)
 
-		si tabuleuse.alignements[i] == transtype(Alignement.GAUCHE: z32) {
+		si tabuleuse.alignements[i] == Alignement.GAUCHE comme z32 {
             pour j dans colonne.taille_unicode() ... tailles_max_colonnes[i] - 1 {
 	            ajoute_au_tampon(enchaineuse, " ")
 			}

@@ -12,7 +12,7 @@ détruit_asa :: fonc (asa: *ASA) -> rien
     pour inst dans asa.instructions {
         discr inst.genre {
             CRÉE {
-                inst_crée := transtype(inst: *InstructionCréationTable)
+                inst_crée := inst comme *InstructionCréationTable
 
                 pour déf dans inst_crée.colonnes {
                     déloge déf
@@ -22,7 +22,7 @@ détruit_asa :: fonc (asa: *ASA) -> rien
                 déloge inst_crée
             }
             SÉLECTIONNE {
-                inst_sél := transtype(inst: *InstructionSélection)
+                inst_sél := inst comme *InstructionSélection
 
                 pour expr dans inst_sél.items {
                     déloge expr
@@ -32,7 +32,7 @@ détruit_asa :: fonc (asa: *ASA) -> rien
                 déloge inst_sél
             }
             INSÈRE {
-                inst_insère := transtype(inst: *InstructionInsère)
+                inst_insère := inst comme *InstructionInsère
 
                 pour expr dans inst_insère.valeurs {
                     déloge expr

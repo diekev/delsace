@@ -22,7 +22,7 @@ noyau_clarifie_écran :: fonc (tampon: *TamponÉcran) -> rien
 		tampon.ptr[j * 2] = ' ';
 
 		// Octet d'attribut - écran noir.
-		tampon.ptr[j * 2 + 1] = transtype(AP_NOIR | TE_NOIR : z8);
+		tampon.ptr[j * 2 + 1] = AP_NOIR | TE_NOIR comme z8;
 	}
 }
 
@@ -64,7 +64,7 @@ noyau_imprime_arg :: fonc (pointeur: *z8, info: *InfoType) -> rien #nulctx
 {
     discr info.id {
         CHAINE {
-            chn := mémoire(transtype(pointeur: *chaine))
+            chn := mémoire(pointeur comme *chaine)
             noyau_imprime_chaine(chn)
         }
     }

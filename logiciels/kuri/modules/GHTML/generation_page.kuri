@@ -44,15 +44,15 @@ génère_page :: fonc(
                     ajoute_au_tampon(enchaineuse, "nul")
                 }
                 CHAINE {
-                    objet_chaine := transtype(objet_variable : *ObjetChaine)
+                    objet_chaine := objet_variable comme *ObjetChaine
                     ajoute_au_tampon(enchaineuse, objet_chaine.valeur)
                 }
                 ENTIER {
-                    objet_nombre := transtype(objet_variable : *ObjetEntier)
+                    objet_nombre := objet_variable comme *ObjetEntier
                     ajoute_au_tampon(enchaineuse, objet_nombre.valeur)
                 }
                 RÉEL {
-                    objet_nombre := transtype(objet_variable : *ObjetRéel)
+                    objet_nombre := objet_variable comme *ObjetRéel
                     ajoute_au_tampon(enchaineuse, objet_nombre.valeur)
                 }
                 LISTE,
@@ -90,7 +90,7 @@ génère_page :: fonc(
                     retourne ErreurGénérationPage.OBJET_NON_ITÉRABLE
                 }
                 LISTE {
-                    liste := transtype(objet_iter : *ObjetListe)
+                    liste := objet_iter comme *ObjetListe
 
                     pour objet dans liste.valeur {
                         dico.insère(variable, objet)
@@ -102,7 +102,7 @@ génère_page :: fonc(
                     }
                 }
                 DICTIONNAIRE {
-                    dictionnaire := transtype(objet_iter : *ObjetDictionnaire)
+                    dictionnaire := objet_iter comme *ObjetDictionnaire
 
                     pour nom, idx dans dictionnaire.noms {
                         objet_nom := gestionnaire.crée_chaine()
@@ -150,7 +150,7 @@ trouve_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembreStruc
         retourne nul
     }
 
-    info_struct := transtype(info: *InfoTypeStructure)
+    info_struct := info comme *InfoTypeStructure
 
     pour membre dans info_struct.membres {
         si membre.nom == nom_membre {
@@ -228,8 +228,8 @@ génère_page :: fonc(
                 TABLEAU {
                     pointeur := valeur.pointeur
 
-                    info_arg := transtype(valeur.info : *InfoTypeTableau)
-                    décalage := transtype(info_arg.type_pointé.taille_en_octet: z32)
+                    info_arg := valeur.info comme *InfoTypeTableau
+                    décalage := info_arg.type_pointé.taille_en_octet comme z32
 
                     si info_arg.est_tableau_fixe {
                         pour i dans 0 ... info_arg.taille_fixe - 1 {
@@ -249,7 +249,7 @@ génère_page :: fonc(
                         }
                     }
                     sinon {
-                        x := mémoire(transtype(pointeur: *[]z8))
+                        x := mémoire(pointeur comme *[]z8)
 
                         pour i dans 0 ... x.taille - 1 {
                             données.nom_variable_boucle = variable

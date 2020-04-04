@@ -1,13 +1,13 @@
 optionel :: fonc(drapeau : bool, valeur : n32) -> n32
 {
-	retourne -transtype(drapeau : n32) & valeur;
+	retourne -drapeau comme n32 & valeur;
 }
 
 // opérateur ternaire sans branche : si drapeau est vrai retourne v1, sinon v2
 ternaire :: fonc(drapeau : bool, v1 : n32, v2 : n32) -> n32
 {
-	retourne (-transtype(drapeau : n32) & v1)
-	         | ((transtype(drapeau : n32) - 1) & v2);
+	retourne (-drapeau comme n32 & v1)
+	         | ((drapeau comme n32 - 1) & v2);
 }
 
 // retourne les 4 valeurs minimales d'un tableau

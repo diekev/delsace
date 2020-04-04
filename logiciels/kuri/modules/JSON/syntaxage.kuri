@@ -110,21 +110,21 @@ analyse_valeur :: fonc(syntaxeuse : &SyntaxeuseJSON, nom_objet : chaine) -> rien
 			syntaxeuse.avance()
 
 			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.ENTIER)
-			obj_entier := transtype(obj: *ObjetEntier)
+			obj_entier := obj comme *ObjetEntier
             obj_entier.valeur = extrait_nombre_entier(syntaxeuse.données().chn)
 		}
 		NOMBRE_REEL {
 			syntaxeuse.avance()
 
 			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.RÉEL)
-			obj_réel := transtype(obj: *ObjetRéel)
+			obj_réel := obj comme *ObjetRéel
             obj_réel.valeur = extrait_nombre_réel(syntaxeuse.données().chn)
 		}
 		CHAINE_CARACTERE {
 			syntaxeuse.avance()
 
 			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.CHAINE)
-			obj_chaine := transtype(obj: *ObjetChaine)
+			obj_chaine := obj comme *ObjetChaine
             obj_chaine.valeur = syntaxeuse.données().chn
 
 			// À FAIRE: gestion des chaines allouées dynamiquement

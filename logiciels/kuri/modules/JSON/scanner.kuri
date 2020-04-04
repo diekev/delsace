@@ -344,27 +344,27 @@ lis_nombre :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 
     unités := extrait_nombre_entier(données_nombre.unités)
 
-    nombre_final = transtype(unités: r64)
+    nombre_final = unités comme r64
 
     si données_nombre.fraction.taille != 0 {
         fraction := extrait_nombre_entier(données_nombre.fraction)
 
-        nombre_final += transtype(fraction: r64) * pow(0.1, transtype(données_nombre.fraction.taille: r64))
+        nombre_final += fraction comme r64 * pow(0.1, données_nombre.fraction.taille comme r64)
     }
 
     si données_nombre.exposant.taille != 0 {
         exposant := extrait_nombre_entier(données_nombre.exposant)
 
         si exposant < 0 {
-            nombre_final *= pow(0.1, transtype(-exposant: r64))
+            nombre_final *= pow(0.1, -exposant comme r64)
         }
         sinon {
-            nombre_final *= pow(10.0, transtype(exposant: r64))
+            nombre_final *= pow(10.0, exposant comme r64)
         }
     }
 
     si lexème_nombre == LexèmeJSON.NOMBRE_ENTIER {
-        scanner.nombre_entier = transtype(nombre_final: z64)
+        scanner.nombre_entier = nombre_final comme z64
     }
     sinon {
         scanner.nombre_réel = nombre_final
@@ -485,7 +485,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
-        pointeur := transtype(valeur.pointeur: *bool)
+        pointeur := valeur.pointeur comme *bool
         mémoire(pointeur) = vrai
     }
     sinon si scanner.lexème == LexèmeJSON.FALSE {
@@ -494,7 +494,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
-        pointeur := transtype(valeur.pointeur: *bool)
+        pointeur := valeur.pointeur comme *bool
         mémoire(pointeur) = faux
     }
     sinon si scanner.lexème == LexèmeJSON.GUILLEMET {
@@ -510,7 +510,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
-        pointeur := transtype(valeur.pointeur: *chaine)
+        pointeur := valeur.pointeur comme *chaine
         mémoire(pointeur) = scanner.chaine_caractère
     }
     sinon si scanner.lexème == LexèmeJSON.NOMBRE_ENTIER {
@@ -519,7 +519,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
-        info_type_entier := transtype(valeur.info: *InfoTypeEntier)
+        info_type_entier := valeur.info comme *InfoTypeEntier
         taille_en_octet := info_type_entier.taille_en_octet
 
         si info_type_entier.est_signé {
@@ -529,20 +529,20 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
             }
 
             si taille_en_octet == 1 {
-                pointeur := transtype(valeur.pointeur: *z8)
-                mémoire(pointeur) = transtype(scanner.nombre_entier: z8)
+                pointeur := valeur.pointeur comme *z8
+                mémoire(pointeur) = scanner.nombre_entier comme z8
             }
             sinon si taille_en_octet == 2 {
-                pointeur := transtype(valeur.pointeur: *z16)
-                mémoire(pointeur) = transtype(scanner.nombre_entier: z16)
+                pointeur := valeur.pointeur comme *z16
+                mémoire(pointeur) = scanner.nombre_entier comme z16
             }
             sinon si taille_en_octet == 4 {
-                pointeur := transtype(valeur.pointeur: *z32)
-                mémoire(pointeur) = transtype(scanner.nombre_entier: z32)
+                pointeur := valeur.pointeur comme *z32
+                mémoire(pointeur) = scanner.nombre_entier comme z32
             }
             sinon si taille_en_octet == 8 {
-                pointeur := transtype(valeur.pointeur: *z64)
-                mémoire(pointeur) = transtype(scanner.nombre_entier: z64)
+                pointeur := valeur.pointeur comme *z64
+                mémoire(pointeur) = scanner.nombre_entier comme z64
             }
         }
         sinon {
@@ -557,20 +557,20 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
             }
 
             si taille_en_octet == 1 {
-                pointeur := transtype(valeur.pointeur: *n8)
-                mémoire(pointeur) = transtype(scanner.nombre_entier: n8)
+                pointeur := valeur.pointeur comme *n8
+                mémoire(pointeur) = scanner.nombre_entier comme n8
             }
             sinon si taille_en_octet == 2 {
-                pointeur := transtype(valeur.pointeur: *n16)
-                mémoire(pointeur) = transtype(scanner.nombre_entier: n16)
+                pointeur := valeur.pointeur comme *n16
+                mémoire(pointeur) = scanner.nombre_entier comme n16
             }
             sinon si taille_en_octet == 4 {
-                pointeur := transtype(valeur.pointeur: *n32)
-                mémoire(pointeur) = transtype(scanner.nombre_entier: n32)
+                pointeur := valeur.pointeur comme *n32
+                mémoire(pointeur) = scanner.nombre_entier comme n32
             }
             sinon si taille_en_octet == 8 {
-                pointeur := transtype(valeur.pointeur: *n64)
-                mémoire(pointeur) = transtype(scanner.nombre_entier: n64)
+                pointeur := valeur.pointeur comme *n64
+                mémoire(pointeur) = scanner.nombre_entier comme n64
             }
         }
     }
@@ -583,16 +583,16 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
         taille_en_octet := valeur.info.taille_en_octet
 
         si taille_en_octet == 2 {
-            pointeur := transtype(valeur.pointeur: *r16)
+            pointeur := valeur.pointeur comme *r16
             mémoire(pointeur) = scanner.nombre_réel
         }
         sinon si taille_en_octet == 4 {
-            pointeur := transtype(valeur.pointeur: *r32)
-            mémoire(pointeur) = transtype(scanner.nombre_réel: r32)
+            pointeur := valeur.pointeur comme *r32
+            mémoire(pointeur) = scanner.nombre_réel comme r32
         }
         sinon si taille_en_octet == 8 {
-            pointeur := transtype(valeur.pointeur: *r64)
-            mémoire(pointeur) = transtype(scanner.nombre_réel: r64)
+            pointeur := valeur.pointeur comme *r64
+            mémoire(pointeur) = scanner.nombre_réel comme r64
         }
     }
     sinon si scanner.lexème == LexèmeJSON.NULL {
@@ -601,7 +601,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
-        pointeur := transtype(valeur.pointeur: **z8)
+        pointeur := valeur.pointeur comme **z8
         mémoire(pointeur) = nul
     }
     sinon si scanner.lexème == LexèmeJSON.ACCOLADE_OUVRANTE {

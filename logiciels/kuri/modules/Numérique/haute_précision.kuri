@@ -41,11 +41,11 @@ insère_bits_du_bas :: fonc(
 		retourne
 	}
 
-	sous_décalage := transtype(quantité_décalage: n32) & (DÉCALAGE_MOT - 1)
-	grand_décalage := transtype(quantité_décalage: n32) / DÉCALAGE_MOT
-	résultat := transtype(valeur : n64) << sous_décalage
-	résultat_bas := transtype(résultat : n32)
-	résultat_haut := résultat >> transtype(DÉCALAGE_MOT : n64)
+	sous_décalage := quantité_décalage comme n32 & (DÉCALAGE_MOT - 1)
+	grand_décalage := quantité_décalage comme n32 / DÉCALAGE_MOT
+	résultat := valeur comme n64 << sous_décalage
+	résultat_bas := résultat comme n32
+	résultat_haut := résultat >> DÉCALAGE_MOT comme n64
 
     // Utilisation d'un type naturel pour que les nombres négatifs déviennent
     // large, rendant la vérification de la plage plus bas plus simple.
@@ -54,11 +54,11 @@ insère_bits_du_bas :: fonc(
     // Écris les résultats dans le tableau de données. Si l'index est trop
     // grand alors les données ont été décalées hors du nombre.
 	si high_index < COMPTE {
-		hp.données[high_index] |= transtype(résultat_haut: n32);
+		hp.données[high_index] |= résultat_haut comme n32;
 	}
 
 	si high_index + 1 < COMPTE {
-		hp.données[high_index + 1] |= transtype(résultat_bas: n32);
+		hp.données[high_index + 1] |= résultat_bas comme n32;
 	}
 }
 
@@ -73,7 +73,7 @@ insère_bits_du_haut :: fonc(
 	valeur : n32,
 	quantité_décalage : z32) -> rien
 {
-	insère_bits_du_bas(hp, valeur, transtype((COMPTE + 1) * DÉCALAGE_MOT: z32) - quantité_décalage);
+	insère_bits_du_bas(hp, valeur, ((COMPTE + 1) * DÉCALAGE_MOT) comme z32 - quantité_décalage);
 }
 
 // Retourne vrai si tous les éléments de hp.données sont égaux à zéro.
@@ -95,10 +95,10 @@ reste_de_la_division :: fonc(hp : *HautePrécision, diviseur : n32) -> n32
 
 	// Algorithme standard de division longue.
 	pour élément dans hp.données {
-		dividende := (transtype(reste : n64) << DÉCALAGE_MOT) + élément
+		dividende := (reste comme n64 << DÉCALAGE_MOT) + élément
 		résultat := dividende / diviseur
-		reste = transtype(dividende % diviseur : n32)
-		élément = transtype(résultat : n32)
+		reste = (dividende % diviseur) comme n32
+		élément = résultat comme n32
 	}
 
 	retourne reste
@@ -112,11 +112,11 @@ surplus_de_la_multiplication :: fonc(hp : *HautePrécision, mul : n32) -> n32
 	pour j dans 0 ... COMPTE - 1 {
 		i := COMPTE - 1 - j
 
-		résultat := transtype(mul : n64) * hp.données[i] + surplus;
+		résultat := mul comme n64 * hp.données[i] + surplus;
 
 		// Put the bottom bits of the results back.
-		hp.données[i] = transtype(résultat : n32)
-		surplus = transtype(résultat >> DÉCALAGE_MOT: n32)
+		hp.données[i] = résultat comme n32
+		surplus = (résultat >> DÉCALAGE_MOT) comme n32
 	}
 
 	retourne surplus;

@@ -14,7 +14,7 @@ Vec3r :: struct {
 
 crée_vec3r :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Vec3r
 {
-    retourne Vec3r{ x = x, y = y, z = z }
+    retourne Vec3r( x = x, y = y, z = z )
 }
 
 Vec4r :: struct {
@@ -138,7 +138,7 @@ est_supérieur_ou_égal :: fonc (v1: Vec3r, v2: Vec3r) -> bool
 
 crée_vec4r :: fonc (x := 0.0, y := 0.0, z := 0.0, w := 0.0) -> Vec4r
 {
-    retourne Vec4r{ x = x, y = y, z = z, w = w }
+    retourne Vec4r( x = x, y = y, z = z, w = w )
 }
 
 multiplie :: fonc (v1: Vec4r, v: r32) -> Vec4r
@@ -193,9 +193,9 @@ calcul_normal_normalisé :: fonc (a: Vec3r, b: Vec3r) -> Nor3r
     nor.z = a.x * b.y - a.y * b.x
 
     l := sqrt(nor.x * nor.x + nor.y * nor.y + nor.z * nor.z)
-    nor.x /= transtype(l: r32)
-    nor.y /= transtype(l: r32)
-    nor.z /= transtype(l: r32)
+    nor.x /= l comme r32
+    nor.y /= l comme r32
+    nor.z /= l comme r32
 
     retourne nor
 }
@@ -209,7 +209,7 @@ normalise :: fonc (v: *Vec3r) -> Vec3r
 
 vec_depuis_nor :: fonc (n: Nor3r) -> Vec3r
 {
-    retourne mémoire(transtype(@n: *Vec3r))
+    retourne mémoire((@n) comme *Vec3r)
 }
 
 // Calcul des coordonnées UV depuis une vecteur de direction (I) et d'un
@@ -222,7 +222,7 @@ calcul_uv_capmat :: fonc (I: *Vec3r, N: *Vec3r, inversé: bool) -> Vec2r
     b1 := crée_vec3r(1.0 - I.x * I.x * a, b, -I.x);
     b2 := crée_vec3r(b, 1.0 - I.y * I.y * a, -I.y);
 
-    uv_capmat := Vec2r{ x = produit_scalaire(b1, mémoire(N)), y = produit_scalaire(b2, mémoire(N)) }
+    uv_capmat := Vec2r( x = produit_scalaire(b1, mémoire(N)), y = produit_scalaire(b2, mémoire(N)) )
 
     si inversé {
         uv_capmat.x = -uv_capmat.x;

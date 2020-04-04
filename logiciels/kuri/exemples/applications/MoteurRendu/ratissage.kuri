@@ -16,8 +16,8 @@ dessine_ligne :: fonc(
     y2 : z32,
     couleur : Couleur) -> rien
 {
-    dx := transtype(x2 - x1 : r32);
-    dy := transtype(y2 - y1 : r32);
+    dx := (x2 - x1) comme r32;
+    dy := (y2 - y1) comme r32;
     pas : r32;
 
     si abs(dx) >= abs(dy) {
@@ -29,13 +29,13 @@ dessine_ligne :: fonc(
 
     dx /= pas;
     dy /= pas;
-    x := transtype(x1 : r32);
-    y := transtype(y1 : r32);
+    x := x1 comme r32;
+    y := y1 comme r32;
     i : r32 = 1.0;
 
     tantque i <= pas {
-        xi := transtype(x : z32);
-        yi := transtype(y : z32);
+        xi := x comme z32;
+        yi := y comme z32;
         index := xi + yi * image.largeur;
         image.tampon[index] = couleur;
 
@@ -55,16 +55,16 @@ dessine_triangle :: fonc(
     y3 : r32,
     couleur : Couleur) -> rien
 {
-    ld := transtype(image.largeur - 1 : r32);
-    hd := transtype(image.hauteur - 1 : r32);
+    ld := (image.largeur - 1) comme r32;
+    hd := (image.hauteur - 1) comme r32;
 
-    x1i := transtype(ld * x1 : z32);
-    x2i := transtype(ld * x2 : z32);
-    x3i := transtype(ld * x3 : z32);
+    x1i := (ld * x1) comme z32;
+    x2i := (ld * x2) comme z32;
+    x3i := (ld * x3) comme z32;
 
-    y1i := transtype(hd * y1 : z32);
-    y2i := transtype(hd * y2 : z32);
-    y3i := transtype(hd * y3 : z32);
+    y1i := (hd * y1) comme z32;
+    y2i := (hd * y2) comme z32;
+    y3i := (hd * y3) comme z32;
 
     dessine_ligne(image, x1i, y1i, x2i, y2i, couleur);
     dessine_ligne(image, x2i, y2i, x3i, y3i, couleur);
@@ -82,8 +82,8 @@ remplis_triangle_bas_plat :: fonc(
     v3 : Vec2r,
     couleur : Couleur) -> rien
 {
-    ld := transtype(image.largeur - 1 : r32);
-    hd := transtype(image.hauteur - 1 : r32);
+    ld := (image.largeur - 1) comme r32;
+    hd := (image.hauteur - 1) comme r32;
 
     taille_pixel := 1.0 / min(ld, hd);
 
@@ -93,8 +93,8 @@ remplis_triangle_bas_plat :: fonc(
     cur_x1 := v1.x;
     cur_x2 := v1.x;
 
-    y1 := transtype(v1.y * hd : z32);
-    y2 := transtype(v2.y * hd : z32);
+    y1 := (v1.y * hd) comme z32;
+    y2 := (v2.y * hd) comme z32;
 
     restreint(@y1, 0, image.hauteur - 1);
     restreint(@y2, 0, image.hauteur - 1);
@@ -102,8 +102,8 @@ remplis_triangle_bas_plat :: fonc(
     scanlineY := y1;
 
     tantque scanlineY <= y2 {
-        x1i := transtype(cur_x1 * ld : z32);
-        x2i := transtype(cur_x2 * ld : z32);
+        x1i := (cur_x1 * ld) comme z32;
+        x2i := (cur_x2 * ld) comme z32;
 
         restreint(@x1i, 0, image.largeur - 1);
         restreint(@x2i, 0, image.largeur - 1);
@@ -128,8 +128,8 @@ remplis_triangle_haut_plat :: fonc(
     v3 : Vec2r,
     couleur : Couleur) -> rien
 {
-    ld := transtype(image.largeur - 1 : r32);
-    hd := transtype(image.hauteur - 1 : r32);
+    ld := (image.largeur - 1) comme r32;
+    hd := (image.hauteur - 1) comme r32;
 
     taille_pixel := 1.0 / min(ld, hd);
 
@@ -139,8 +139,8 @@ remplis_triangle_haut_plat :: fonc(
     cur_x1 := v3.x;
     cur_x2 := v3.x;
 
-    y1 := transtype(v1.y * hd : z32);
-    y3 := transtype(v3.y * hd : z32);
+    y1 := (v1.y * hd) comme z32;
+    y3 := (v3.y * hd) comme z32;
 
     restreint(@y1, 0, image.hauteur - 1);
     restreint(@y3, 0, image.hauteur - 1);
@@ -148,8 +148,8 @@ remplis_triangle_haut_plat :: fonc(
     scanlineY := y3;
 
     tantque scanlineY > y1 {
-        x1i := transtype(cur_x1 * ld : z32);
-        x2i := transtype(cur_x2 * ld : z32);
+        x1i := (cur_x1 * ld) comme z32;
+        x2i := (cur_x2 * ld) comme z32;
 
         restreint(@x1i, 0, image.largeur - 1);
         restreint(@x2i, 0, image.largeur - 1);
@@ -198,9 +198,9 @@ ratisse_triangle :: fonc(
     y3 : r32,
     couleur : Couleur) -> rien
 {
-    v1 := Vec2r{ x = x1, y = y1 };
-    v2 := Vec2r{ x = x2, y = y2 };
-    v3 := Vec2r{ x = x3, y = y3 };
+    v1 := Vec2r( x = x1, y = y1 );
+    v2 := Vec2r( x = x2, y = y2 );
+    v3 := Vec2r( x = x3, y = y3 );
 
     boucle {
         si (v1.y) <= (v2.y) <= (v3.y) {
@@ -226,7 +226,7 @@ ratisse_triangle :: fonc(
         x4 := v1.x + ((v2.y - v1.y) / (v3.y - v1.y)) * (v3.x - v1.x);
         y4 := v2.y;
 
-        v4 := Vec2r{ x = x4, y = y4 };
+        v4 := Vec2r( x = x4, y = y4 );
 
         remplis_triangle_bas_plat(image, v1, v2, v4, couleur);
         remplis_triangle_haut_plat(image, v2, v4, v3, couleur);

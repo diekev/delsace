@@ -19,7 +19,6 @@ mot_cles = [
 	u'struct',
 	u'retourne',
 	u'diffère',
-	u'transtype',
 	u'vrai',
 	u'faux',
 	u'taille_de',
@@ -65,6 +64,7 @@ mot_cles = [
 	u'nonatteignable',
 	u'erreur',
 	u'eini_erreur',
+	u'comme',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)

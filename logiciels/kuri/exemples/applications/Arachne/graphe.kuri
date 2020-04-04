@@ -78,7 +78,7 @@ chaque_étiquette :: corout(liste : &ListeÉtiquette) -> *Étiquette
 	n := liste.premier
 
 	tantque n != nul {
-		retiens transtype(n.données : *Étiquette)
+		retiens n.données comme *Étiquette
 		n = n.suivant
 	}
 }
@@ -109,7 +109,7 @@ chaque_noeud :: corout(liste : &ListeNoeud) -> *Noeud
 	n := liste.premier
 
 	tantque n != nul {
-		retiens transtype(n.données : *Noeud)
+		retiens n.données comme *Noeud
 		n = n.suivant
 	}
 }
@@ -146,7 +146,7 @@ chaque_relation :: corout(liste : &ListeRelation) -> *Relation
 	n := liste.premier
 
 	tantque n != nul {
-		retiens transtype(n.données : *Relation)
+		retiens n.données comme *Relation
 		n = n.suivant
 	}
 }
@@ -176,7 +176,7 @@ chaque_propriété :: corout(liste : &ListePropriété) -> *Propriété
 	n := liste.premier
 
 	tantque n != nul {
-		retiens transtype(n.données : *Propriété)
+		retiens n.données comme *Propriété
 		n = n.suivant
 	}
 }
@@ -284,7 +284,7 @@ ajoute_propriete :: fonc(
 	}
 
 	p.suivante = nul
-	p.id_nom = transtype(graphe.noms_proprietes.ajoute_chaine(nom) : n32)
+	p.id_nom = graphe.noms_proprietes.ajoute_chaine(nom) comme n32
 	p.valeur = valeur
 	p.id = ++graphe.nombre_proprietes
 	assert(p.id != 0)
@@ -358,7 +358,7 @@ ajoute_propriete :: fonc(
 	}
 
 	p.suivante = nul
-	p.id_nom = transtype(graphe.noms_proprietes.ajoute_chaine(nom) : n32)
+	p.id_nom = graphe.noms_proprietes.ajoute_chaine(nom) comme n32
 	p.valeur = valeur
 	p.id = ++graphe.nombre_proprietes
 	assert(p.id != 0)
@@ -398,7 +398,7 @@ ajoute_relation :: fonc(
 	r.debut = debut
 	r.fin = fin
 	r.id = ++graphe.nombre_relations
-	r.type_relation = transtype(graphe.types_relations.ajoute_chaine(nom) : n32)
+	r.type_relation = graphe.types_relations.ajoute_chaine(nom) comme n32
 	r.rel_prev_debut = nul
 	r.rel_suiv_debut = nul
 	r.rel_prev_fin = nul

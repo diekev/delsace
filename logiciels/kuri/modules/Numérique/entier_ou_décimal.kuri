@@ -7,7 +7,7 @@ EntierOuDécimal :: union nonsûr {
 
 construit_entier_ou_décimal :: fonc(f : r32) -> EntierOuDécimal
 {
-	retourne EntierOuDécimal{ f = f }
+	retourne EntierOuDécimal( f = f )
 }
 
 // Extraction portable des composants

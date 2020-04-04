@@ -68,8 +68,8 @@ blurHashForPixels :: fonc (
             actualMaximumValue = max(abs(ac[i]), actualMaximumValue)
         }
 
-		quantisedMaximumValue := max(0, min(82, transtype(sol(actualMaximumValue * 166.0 - 0.5): z32)))
-		maximumValue = transtype((quantisedMaximumValue + 1): r32) / 166.0
+		quantisedMaximumValue := max(0, min(82, sol(actualMaximumValue * 166.0 - 0.5) comme z32))
+		maximumValue = (quantisedMaximumValue + 1) comme r32 / 166.0
 		ptr = encode_int(quantisedMaximumValue, 1, ptr)
 	}
     sinon {
@@ -85,7 +85,7 @@ blurHashForPixels :: fonc (
 
 	mémoire(ptr) = 0
 
-    taille_chaine := transtype(ptr - @buffer[0]: z64)
+    taille_chaine := ptr - @buffer[0] comme z64
 
     chn := construit_chaine(@buffer[0], taille_chaine)
 
@@ -113,11 +113,11 @@ multiplyBasisFunction :: fonc (
 
     pour y dans 0 ... image.hauteur - 1 {
         pour x dans 0 ... image.largeur - 1 {
-            fraction_largeur := transtype(x: r32) / transtype(image.largeur: r32)
-            fraction_hauteur := transtype(y: r32) / transtype(image.hauteur: r32)
+            fraction_largeur := x comme r32 / image.largeur comme r32
+            fraction_hauteur := y comme r32 / image.hauteur comme r32
 
-            cos_composant_x := cosinus(PI * transtype(composant_x: r32) * fraction_largeur)
-            cos_composant_y := cosinus(PI * transtype(composant_y: r32) * fraction_hauteur)
+            cos_composant_x := cosinus(PI * composant_x comme r32 * fraction_largeur)
+            cos_composant_y := cosinus(PI * composant_y comme r32 * fraction_hauteur)
 
             base := cos_composant_x * cos_composant_y
 
@@ -129,7 +129,7 @@ multiplyBasisFunction :: fonc (
         }
     }
 
-	scale := normalisation / transtype(image.largeur * image.hauteur: r32)
+	scale := normalisation / image.largeur * image.hauteur comme r32
 
 	résultat_fonction_base[0] = r * scale
 	résultat_fonction_base[1] = g * scale
@@ -143,15 +143,15 @@ linearTosRGB :: fonc (value: r32) -> z32
 	v := max(0.0, min(1.0, value))
 
     si v <= 0.0031308 {
-        retourne transtype(v * 12.92 * 255.0 + 0.5: z32)
+        retourne v * 12.92 * 255.0 + 0.5 comme z32
     }
 
-    retourne transtype((1.055 * puissance(v, 1.0 / 2.4) - 0.055) * 255.0 + 0.5: z32)
+    retourne (1.055 * puissance(v, 1.0 / 2.4) - 0.055) * 255.0 + 0.5 comme z32
 }
 
 sRGBToLinear :: fonc (value: z32) -> r32
 {
-    v := transtype(value: r32) / 255.0
+    v := value comme r32 / 255.0
     retourne sRGBToLinear(v)
 }
 
@@ -174,9 +174,9 @@ encodeDC :: fonc (r: r32, g: r32, b: r32) -> z32
 
 encodeAC :: fonc (r: r32, g: r32, b: r32, maximumValue: r32) -> z32
 {
-	quantR := transtype(max(0.0, min(18.0, floor(signPow(r / maximumValue, 0.5) * 9.0 + 9.5))): z32)
-	quantG := transtype(max(0.0, min(18.0, floor(signPow(g / maximumValue, 0.5) * 9.0 + 9.5))): z32)
-	quantB := transtype(max(0.0, min(18.0, floor(signPow(b / maximumValue, 0.5) * 9.0 + 9.5))): z32)
+	quantR := max(0.0, min(18.0, floor(signPow(r / maximumValue, 0.5) * 9.0 + 9.5))) comme z32
+	quantG := max(0.0, min(18.0, floor(signPow(g / maximumValue, 0.5) * 9.0 + 9.5))) comme z32
+	quantB := max(0.0, min(18.0, floor(signPow(b / maximumValue, 0.5) * 9.0 + 9.5))) comme z32
 
 	retourne quantR * 19 * 19 + quantG * 19 + quantB
 }

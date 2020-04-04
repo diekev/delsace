@@ -58,7 +58,7 @@ calcule_empreinte :: fonc(chn : chaine) -> n64
     empreinte : n64 = 5381
 
     pour c dans chn {
-        empreinte = ((empreinte << 5) + empreinte) + transtype(c : n64)
+        empreinte = ((empreinte << 5) + empreinte) + c comme n64
     }
 
 	retourne empreinte

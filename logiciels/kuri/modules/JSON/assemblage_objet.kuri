@@ -77,11 +77,11 @@ crée_objet :: fonc(assembleuse: &AssembleuseObjet, nom_objet: chaine, type: Typ
 		objet_haut := assembleuse.pile.haut()
 
 		si objet_haut.id == TypeObjet.DICTIONNAIRE {
-			dico := transtype(objet_haut: *ObjetDictionnaire)
+			dico := objet_haut comme *ObjetDictionnaire
 			dico.insère(nom_objet, objet)
 		}
 		sinon {
-			tabl := transtype(objet_haut: *ObjetListe)
+			tabl := objet_haut comme *ObjetListe
 			tableau_ajoute(@tabl.valeur, objet)
 		}
 	}

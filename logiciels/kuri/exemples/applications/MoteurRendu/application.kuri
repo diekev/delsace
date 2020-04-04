@@ -62,7 +62,7 @@ détruit_éditrice_vue_3d :: fonc (éditrice: *ÉditriceVue3D) -> rien
 détruit_éditrice :: fonc (éditrice: *Éditrice) -> rien
 {
     si éditrice.type == TypeÉditrice.VUE_3D {
-        éditrice_vue_3d := transtype(éditrice: *ÉditriceVue3D)
+        éditrice_vue_3d := éditrice comme *ÉditriceVue3D
         détruit_éditrice_vue_3d(éditrice_vue_3d)
     }
     sinon {
@@ -114,8 +114,8 @@ crée_éditrice_vue_3d :: fonc (app: *Application) -> *Éditrice
     caméra.yaw = 0.0
     caméra.projection = matrice_projection(
         caméra.champs_de_vue,
-        transtype(éditrice.largeur: r32),
-        transtype(éditrice.hauteur: r32),
+        éditrice.largeur comme r32,
+        éditrice.hauteur comme r32,
         caméra.plan_proche,
         caméra.plan_éloigné)
 
@@ -126,7 +126,7 @@ crée_éditrice_vue_3d :: fonc (app: *Application) -> *Éditrice
 
 dessine_vue_3d :: fonc (app: *Application, éditrice: *ÉditriceVue3D) -> rien
 {
-    remplis_image(@éditrice.image, Couleur{ r = 0.0, v = 0.0, b = 0.0, a = 1.0 })
+    remplis_image(@éditrice.image, Couleur( r = 0.0, v = 0.0, b = 0.0, a = 1.0 ))
 
     //ratisse_maillage(@éditrice.caméra, app.maillage, @éditrice.image, éditrice.matcap, theta)
     trace_maillage(éditrice.caméra, app.maillage, @éditrice.image, éditrice.matcap)
@@ -139,7 +139,7 @@ dessine_vue_3d :: fonc (app: *Application, éditrice: *ÉditriceVue3D) -> rien
 dessine :: fonc (app: *Application, éditrice: *Éditrice) -> rien
 {
     si éditrice.type == TypeÉditrice.VUE_3D {
-        éditrice_vue_3d := transtype(éditrice: *ÉditriceVue3D)
+        éditrice_vue_3d := éditrice comme *ÉditriceVue3D
         dessine_vue_3d(app, éditrice_vue_3d)
     }
     sinon {
@@ -506,11 +506,11 @@ trace_maillage :: fonc (
     caméra.hauteur = image.hauteur
     caméra.largeur = image.largeur
 
-    largeur_inverse := 1.0 / transtype(image.largeur: r32)
-    hauteur_inverse := 1.0 / transtype(image.hauteur: r32)
+    largeur_inverse := 1.0 / image.largeur comme r32
+    hauteur_inverse := 1.0 / image.hauteur comme r32
 
-    aspect := transtype(image.largeur: r32) / transtype(image.hauteur: r32)
-    échelle := transtype(tan(calcul_champs_de_vue(70.0, 35.0) * 0.5): r32)
+    aspect := image.largeur comme r32 / image.hauteur comme r32
+    échelle := tan(calcul_champs_de_vue(70.0, 35.0) * 0.5) comme r32
 
     pour j dans 0 ... image.hauteur - 1 {
         pour i dans 0 ... image.largeur - 1 {
@@ -523,8 +523,8 @@ trace_maillage :: fonc (
             direction := direction_via_pixel(caméra, @pos_pixel)
             */
 
-            x := (2.0 * (transtype(i: r32) + 0.5) * largeur_inverse - 1.0) * aspect * échelle
-            y := (1.0 - 2.0 * (transtype(j: r32) + 0.5) * hauteur_inverse) * échelle
+            x := (2.0 * (i comme r32 + 0.5) * largeur_inverse - 1.0) * aspect * échelle
+            y := (1.0 - 2.0 * (j comme r32 + 0.5) * hauteur_inverse) * échelle
 
             pos := crée_vec3r(x, y, -1.0)
 
@@ -585,13 +585,13 @@ principale2 :: fonc () -> z32
 	    imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 	}
 
-    SDL_Init(DrapeauxInit.SDL_INIT_EVERYTHING);
+   _ := SDL_Init(DrapeauxInit.SDL_INIT_EVERYTHING);
     diffère { SDL_Quit(); }
 
-    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, 1);
-    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0);
-    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8);
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, 1);
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8);
 
     largeur : z32 = 640
     hauteur : z32 = 480
@@ -702,7 +702,7 @@ principale2 :: fonc () -> z32
         theta += 1.0 * 0.016 //temps_écoulé
 
         delta := compte_ticks_ms() - début
-        fps := 1000.0 / transtype(delta: r32)
+        fps := 1000.0 / delta comme r32
 
         nouveau_titre := imprime_chaine("Moteur Rendu - % FPS", formatte_réel(fps, précision = 2))
 
@@ -738,10 +738,10 @@ initialise_jeu :: fonc (
         retourne faux
     }
 
-    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, 1)
-    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4)
-    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0)
-    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8)
+    _ := SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, 1)
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4)
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0)
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8)
 
     drapeaux := SDL_WindowFlags.SDL_WINDOW_OPENGL
 

@@ -25,11 +25,11 @@ OpenListener :: fonc(port : n16) -> z32
     addr.sin_zero[5] = 0
     addr.sin_zero[6] = 0
     addr.sin_zero[7] = 0
-    addr.sin_family = transtype(PF_INET : n16)
+    addr.sin_family = PF_INET comme n16
     addr.sin_port = htons(port)
     addr.sin_addr.s_addr = INADDR_ANY
 
-    si bind(prise, transtype(@addr : *sockaddr), transtype(taille_de(sockaddr) : n64)) != 0 {
+    si bind(prise, @addr comme *sockaddr, taille_de(sockaddr) comme n64) != 0 {
         imprime("can't bind port")
         abort()
     }
@@ -166,9 +166,9 @@ principale :: fonc () -> z32
 
     boucle {
         addr : sockaddr_in // Adresse du connecté
-	    len := transtype(taille_de(sockaddr_in) : n32)
+	    len := taille_de(sockaddr_in) comme n32
 
-        client := accept(server, transtype(@addr : *sockaddr), @len)
+        client := accept(server, @addr comme *sockaddr, @len)
         printf("Connection: %s:%d\n".pointeur,inet_ntoa(addr.sin_addr), ntohs(addr.sin_port))
 
         ssl := SSL_new(ctx)

@@ -16,28 +16,28 @@ fragmente_texte :: fonc (texte: chaine) -> []Fragment
         si c == ' ' {
             fragment : Fragment
             fragment.début = début_mot
-            fragment.taille = transtype(i: z32) - début_mot
+            fragment.taille = i comme z32 - début_mot
 
             tableau_ajoute(@fragments, fragment)
 
-            début_mot = transtype(i: z32)
+            début_mot = i comme z32
             dernier_fut_espace = vrai
         }
         sinon si dernier_fut_espace {
             fragment : Fragment
             fragment.début = début_mot
-            fragment.taille = transtype(i: z32) - début_mot
+            fragment.taille = i comme z32 - début_mot
 
             tableau_ajoute(@fragments, fragment)
 
-            début_mot = transtype(i: z32)
+            début_mot = i comme z32
             dernier_fut_espace = faux
         }
     }
 
     fragment : Fragment
     fragment.début = début_mot
-    fragment.taille = transtype(texte.taille: z32) - début_mot
+    fragment.taille = texte.taille comme z32 - début_mot
 
     tableau_ajoute(@fragments, fragment)
 
@@ -80,7 +80,7 @@ crée_document_depuis_texte :: fonc (texte: chaine) -> Document
         si ligne_courante.taille + fragment.taille > document.taille_ligne {
             tableau_ajoute(@document.lignes, ligne_courante)
 
-            ligne_courante = Ligne{}
+            ligne_courante = Ligne()
         }
 
         tableau_ajoute(@ligne_courante.fragments, fragment)
@@ -164,7 +164,7 @@ principale :: fonc () -> z32
             imprime("%", chn)
         }
 
-        pour i dans 0 ... taille_restante / 2 + transtype(est_impair: z32) {
+        pour i dans 0 ... taille_restante / 2 + est_impair comme z32 {
             imprime(" ")
         }
 

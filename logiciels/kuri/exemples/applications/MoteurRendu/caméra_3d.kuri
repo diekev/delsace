@@ -85,7 +85,7 @@ direction_via_pixel_rapide :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> V
 
 calcul_champs_de_vue :: fonc (largeur_senseur: r32, distance_focale: r32) -> r32
 {
-    retourne transtype(2.0 * atan(0.5 * largeur_senseur / distance_focale): r32)
+    retourne 2.0 * atan(0.5 * largeur_senseur / distance_focale) comme r32
 }
 
 calcul_champs_de_vue_degrés :: fonc (largeur_senseur: r32, distance_focale: r32) -> r32
@@ -110,7 +110,7 @@ matrice_projection :: fonc (
     plan_proche: r32,
     plan_éloigné: r32) -> Mat4r
 {
-    champs_de_vue_rad := transtype(tan(champs_de_vue * 0.5): r32)
+    champs_de_vue_rad := tan(champs_de_vue * 0.5) comme r32
 
     mat := construit_mat4r()
 
@@ -134,7 +134,7 @@ qprincipale :: fonc () -> z32
 
     projection := matrice_projection(
         champs_de_vue,
-        transtype(largeur: r32) / transtype(hauteur: r32),
+        largeur comme r32 / hauteur comme r32,
         plan_proche,
         plan_éloigné)
 
@@ -174,7 +174,7 @@ qprincipale :: fonc () -> z32
     pos_monde = projette_dans_monde(@caméra, @pos)
     imprime("obtenu  : %\n", pos_monde)
 
-    pos_pixel := Vec2r{ x = 0.5, y = 0.5 }
+    pos_pixel := Vec2r( x = 0.5, y = 0.5 )
     dir := direction_via_pixel(@caméra, @pos_pixel)
 
     imprime("direction : %\n", dir)

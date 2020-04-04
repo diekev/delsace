@@ -39,7 +39,7 @@ charge_programme :: fonc() -> n32
 	VertexShaderID := glCreateShader(OGL.VERTEX_SHADER)
 	FragmentShaderID := glCreateShader(OGL.FRAGMENT_SHADER)
 
-    taille_src_vertex := transtype(source_vertex.taille : z32)
+    taille_src_vertex := source_vertex.taille comme z32
 	glShaderSource(VertexShaderID, 1, @source_vertex.pointeur , @taille_src_vertex)
 	glCompileShader(VertexShaderID)
 
@@ -56,7 +56,7 @@ charge_programme :: fonc() -> n32
         déloge ProgramErrorMessage
 	}
 
-    taille_src_fragment := transtype(source_fragment.taille : z32)
+    taille_src_fragment := source_fragment.taille comme z32
 	glShaderSource(FragmentShaderID, 1, @source_fragment.pointeur , @taille_src_fragment)
 	glCompileShader(FragmentShaderID)
 
@@ -132,12 +132,12 @@ termine_dessin :: fonc() -> rien
 
     glEnableVertexAttribArray(0)
     glBindBuffer(OGL.ARRAY_BUFFER, vertexbuffer)
-	glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_sommets.taille : n64) * taille_de(z32), tabl_sommets.pointeur, OGL.STATIC_DRAW)
+	glBufferData(OGL.ARRAY_BUFFER, tabl_sommets.taille comme n64 * taille_de(z32), tabl_sommets.pointeur, OGL.STATIC_DRAW)
     glVertexAttribPointer(0, 3, OGL.FLOAT, OGL.FALSE, 0, nul)
 
     glEnableVertexAttribArray(1)
     glBindBuffer(OGL.ARRAY_BUFFER, colorbuffer)
-	glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_couleur.taille : n64) * taille_de(Couleur), tabl_couleur.pointeur, OGL.STATIC_DRAW)
+	glBufferData(OGL.ARRAY_BUFFER, tabl_couleur.taille comme n64 * taille_de(Couleur), tabl_couleur.pointeur, OGL.STATIC_DRAW)
     glVertexAttribPointer(1, 4, OGL.FLOAT, OGL.FALSE, 0, nul)
 
     glDrawArrays(OGL.TRIANGLES, 0, tabl_sommets.taille / 3)
@@ -205,7 +205,7 @@ dessine_carré_ex :: fonc(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur
 
 dessine_carré :: fonc() -> rien
 {
-    couleur := Couleur{r = 1.0, v = 1.0, b = 0.0, a = 1.0 }
+    couleur := Couleur(r = 1.0, v = 1.0, b = 0.0, a = 1.0 )
     dessine_carré_ex(-0.5, -0.5, 1.0, 1.0, couleur)
 }
 
@@ -215,14 +215,14 @@ dessine_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32) -> rien
 
     segs := 32
     phi := 0.0
-	phi_delta := 2.0 * 3.14159 / transtype(segs : r32)
+	phi_delta := 2.0 * 3.14159 / segs comme r32
 
     pour i dans 0...segs - 1 {
-        ca0 := transtype(cx + cos(phi) * rx: r32)
-        sa0 := transtype(cy + sin(phi) * ry: r32)
+        ca0 := cx + cos(phi) * rx comme r32
+        sa0 := cy + sin(phi) * ry comme r32
 
-        ca1 := transtype(cx + cos(phi + phi_delta) * rx: r32)
-        sa1 := transtype(cy + sin(phi + phi_delta) * ry: r32)
+        ca1 := cx + cos(phi + phi_delta) * rx comme r32
+        sa1 := cy + sin(phi + phi_delta) * ry comme r32
 
         ajoute_sommet(cx, cy, 0.0)
         ajoute_sommet(ca0, sa0, 0.0)
@@ -239,15 +239,15 @@ dessine_quart_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : 
     débute_dessin()
 
     segs := 8
-	phi := transtype(quadrant : r32) * (3.14159 / 2.0)
-	phi_delta := 2.0 * 3.14159 / transtype(segs * 4 : r32)
+	phi := quadrant comme r32 * (3.14159 / 2.0)
+	phi_delta := 2.0 * 3.14159 / segs * 4 comme r32
 
     pour i dans 0...segs - 1 {
-        ca0 := transtype(cx + cos(phi) * rx: r32)
-        sa0 := transtype(cy + sin(phi) * ry: r32)
+        ca0 := cx + cos(phi) * rx comme r32
+        sa0 := cy + sin(phi) * ry comme r32
 
-        ca1 := transtype(cx + cos(phi + phi_delta) * rx: r32)
-        sa1 := transtype(cy + sin(phi + phi_delta) * ry: r32)
+        ca1 := cx + cos(phi + phi_delta) * rx comme r32
+        sa1 := cy + sin(phi + phi_delta) * ry comme r32
 
         ajoute_sommet(cx, cy, 0.0)
         ajoute_sommet(ca0, sa0, 0.0)
@@ -269,7 +269,7 @@ dessine_rect_arrondi :: fonc(largeur : r32, hauteur : r32, arrondis_pixel : r32)
     tx := 2.0 - 2.0 * rx
     ty := 2.0 - 2.0 * ry
 
-    couleur := Couleur{r = 1.0, v = 1.0, b = 0.0, a = 1.0 }
+    couleur := Couleur(r = 1.0, v = 1.0, b = 0.0, a = 1.0 )
 
     // dessine centre
     dessine_carré_ex(px, py, tx, ty, couleur)

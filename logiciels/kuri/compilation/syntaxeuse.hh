@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2020 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -25,23 +25,41 @@
 #pragma once
 
 #include "biblinternes/chrono/outils.hh"
-#include "biblinternes/langage/analyseuse.hh"
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
-#include "arbre_syntactic.h"
 #include "erreur.h"
+#include "lexemes.hh"
 
 struct ContexteGenerationCode;
+struct Fichier;
+struct NoeudBloc;
+struct NoeudExpression;
 
-class Syntaxeuse : public lng::analyseuse<Lexeme> {
+enum class GenreNoeud : char;
+
+enum class Associativite : int {
+	GAUCHE,
+	DROITE,
+};
+
+struct DonneesPrecedence {
+	int precedence = 0;
+	Associativite associativite = Associativite::GAUCHE;
+};
+
+struct Syntaxeuse {
+private:
 	ContexteGenerationCode &m_contexte;
-
-	long m_profondeur = 0;
-
-	dls::chaine m_racine_kuri{};
-
-	Fichier *m_fichier;
+	Fichier *m_fichier = nullptr;
+	dls::tableau<Lexeme> &m_lexemes;
+	long m_position = 0;
 
 	dls::chrono::metre_seconde m_chrono_analyse{};
+
+	Lexeme *m_lexeme_courant{};
+
+	dls::chaine m_racine_kuri{};
 
 	/* Pour les messages d'erreurs. */
 	struct DonneesEtatSyntaxage {
@@ -55,22 +73,59 @@ class Syntaxeuse : public lng::analyseuse<Lexeme> {
 
 	dls::tablet<DonneesEtatSyntaxage, 33> m_donnees_etat_syntaxage{};
 
-	bool m_global = false;
-
 public:
-	Syntaxeuse(
-			ContexteGenerationCode &contexte,
-			Fichier *fichier,
-			dls::chaine const &racine_kuri);
+	Syntaxeuse(ContexteGenerationCode &contexte,
+			   Fichier *fichier,
+			   dls::chaine const &racine_kuri);
 
-	/* Désactive la copie, car il ne peut y avoir qu'une seule analyseuse par
-	 * module. */
-	Syntaxeuse(Syntaxeuse const &) = delete;
-	Syntaxeuse &operator=(Syntaxeuse const &) = delete;
+	COPIE_CONSTRUCT(Syntaxeuse);
 
-	void lance_analyse(std::ostream &os) override;
+	void lance_analyse(std::ostream &os);
 
 private:
+	Lexeme consomme();
+
+	Lexeme consomme(GenreLexeme genre_lexeme, const char *message);
+
+	Lexeme *lexeme_courant();
+	Lexeme const *lexeme_courant() const;
+
+	bool fini() const;
+
+	bool apparie(GenreLexeme genre_lexeme) const;
+	bool apparie_expression() const;
+	bool apparie_expression_unaire() const;
+	bool apparie_expression_secondaire() const;
+	bool apparie_instruction() const;
+
+	/* NOTE: racine_expression n'est pour le moment utiliser que pour éviter de consommer les expressions des types pour les expressions de relogement. */
+	/* NOTE: lexeme_final n'est utiliser que pour éviter de traiter les virgules comme des opérateurs dans les expressions des appels et déclarations de paramètres de fonctions. */
+	NoeudExpression *analyse_expression(DonneesPrecedence const &donnees_precedence, GenreLexeme racine_expression, GenreLexeme lexeme_final);
+	NoeudExpression *analyse_expression_unaire(GenreLexeme lexeme_final);
+	NoeudExpression *analyse_expression_primaire(GenreLexeme racine_expression, GenreLexeme lexeme_final);
+	NoeudExpression *analyse_expression_secondaire(NoeudExpression *gauche, DonneesPrecedence const &donnees_precedence, GenreLexeme racine_expression, GenreLexeme lexeme_final);
+
+	NoeudBloc *analyse_bloc();
+
+	NoeudExpression *analyse_appel_fonction(NoeudExpression *gauche);
+
+	NoeudExpression *analyse_declaration_enum(NoeudExpression *gauche);
+	NoeudExpression *analyse_declaration_fonction(NoeudExpression *gauche);
+	NoeudExpression *analyse_declaration_operateur();
+	NoeudExpression *analyse_declaration_structure(NoeudExpression *gauche);
+
+	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
+	DonneesTypeDeclare analyse_declaration_type_ex();
+
+	NoeudExpression *analyse_instruction();
+	NoeudExpression *analyse_instruction_boucle();
+	NoeudExpression *analyse_instruction_discr();
+	NoeudExpression *analyse_instruction_pour();
+	NoeudExpression *analyse_instruction_pousse_contexte();
+	NoeudExpression *analyse_instruction_repete();
+	NoeudExpression *analyse_instruction_si(GenreNoeud genre_noeud);
+	NoeudExpression *analyse_instruction_tantque();
+
 	/**
 	 * Lance une exception de type ErreurSyntactique contenant la chaine passée
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
@@ -83,23 +138,4 @@ private:
 	void empile_etat(const char *message, Lexeme *lexeme);
 
 	void depile_etat();
-
-	void analyse_expression_haut_niveau(std::ostream &os);
-	NoeudExpression *analyse_declaration_fonction(GenreLexeme id, Lexeme &lexeme);
-	void analyse_corps_fonction();
-	NoeudBloc *analyse_bloc();
-	NoeudExpression *analyse_expression(GenreLexeme identifiant_final, GenreLexeme racine_expr);
-	NoeudExpression *analyse_appel_fonction(Lexeme &lexeme);
-	NoeudExpression *analyse_declaration_structure(GenreLexeme id, Lexeme &lexeme);
-	NoeudExpression *analyse_declaration_enum(GenreLexeme genre, Lexeme &lexeme);
-	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
-	DonneesTypeDeclare analyse_declaration_type_ex();
-	NoeudExpression *analyse_controle_si(GenreNoeud tn);
-	NoeudExpression *analyse_controle_pour();
-	NoeudExpression *analyse_construction_structure(Lexeme &lexeme);
-	void analyse_directive_si();
-	NoeudExpression *analyse_declaration_operateur();
-
-	void consomme(GenreLexeme id, const char *message);
-	void consomme_type(const char *message);
 };

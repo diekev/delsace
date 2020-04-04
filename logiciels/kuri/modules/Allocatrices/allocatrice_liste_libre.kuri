@@ -26,7 +26,7 @@ allocatrice_liste_libre :: fonc(
     données : *rien,
     info : *InfoType) -> *rien
 {
-    alloc := transtype(données: *AllocatriceListeLibre)
+    alloc := données comme *AllocatriceListeLibre
 
     discr mode {
         ALLOUE {

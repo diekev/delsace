@@ -96,8 +96,8 @@ dessine_texte :: fonc (rendeuse: *RendeuseTexte, texte: chaine) -> rien
     chemin_fonte := "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
 
     // À FAIRE : passe la couleur
-    blanc := vec4{ x = 1.0, y = 1.0, z = 1.0, w = 1.0 }
-    noir  := vec4{ x = 0.0, y = 0.0, z = 0.0, w = 1.0 }
+    blanc := vec4( x = 1.0, y = 1.0, z = 1.0, w = 1.0 )
+    noir  := vec4( x = 0.0, y = 0.0, z = 0.0, w = 1.0 )
     none := blanc
 
     markup : markup_t
@@ -124,8 +124,8 @@ dessine_texte :: fonc (rendeuse: *RendeuseTexte, texte: chaine) -> rien
 
 	markup.font = rendeuse.font
 
-	pos := Vec2r{ x = 8.0, y = 8.0 + rendeuse.décalage }
-	taille := Vec2r{ x = transtype(rendeuse.largeur: r32), y = transtype(rendeuse.hauteur: r32) }
+	pos := Vec2r( x = 8.0, y = 8.0 + rendeuse.décalage )
+	taille := Vec2r( x = rendeuse.largeur comme r32, y = rendeuse.hauteur comme r32 )
 
 	markup.foreground_color = noir
 	markup.font.rendermode = rendermode_t.RENDER_OUTLINE_EDGE
@@ -143,7 +143,7 @@ dessine_texte :: fonc (rendeuse: *RendeuseTexte, texte: chaine) -> rien
 
 dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine, atlas: *texture_atlas_t, markup: *markup_t, pos: Vec2r, taille: Vec2r) -> rien
 {
-    pen := vec2{ x = pos.x, y = taille.y - pos.y - rendeuse.taille_police }
+    pen := vec2( x = pos.x, y = taille.y - pos.y - rendeuse.taille_police )
 
 	sommets : []Vec2r
 	uvs : []Vec2r
@@ -157,14 +157,13 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
         déloge indices
     }
 
-    couleur := Couleur {
+    couleur := Couleur(
         r = markup.foreground_color.x,
         v = markup.foreground_color.y,
         b = markup.foreground_color.z,
-        a = markup.foreground_color.w
-    }
+        a = markup.foreground_color.w)
 
-	inv_taille := Vec2r{ x = 1.0 / taille.x, y = 1.0 / taille.y }
+	inv_taille := Vec2r( x = 1.0 / taille.x, y = 1.0 / taille.y )
 
     dernier_caractère : *z8 = nul
 
@@ -182,16 +181,16 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 		}
 
 		pen.x += kerning
-		x0 := (pen.x + transtype(glyph.offset_x: r32)) * inv_taille.x
-		y0 := (pen.y + transtype(glyph.offset_y: r32)) * inv_taille.y
-		x1 := x0 + transtype(glyph.width: r32) * inv_taille.x
-		y1 := y0 - transtype(glyph.height: r32) * inv_taille.y
+		x0 := (pen.x + glyph.offset_x comme r32) * inv_taille.x
+		y0 := (pen.y + glyph.offset_y comme r32) * inv_taille.y
+		x1 := x0 + glyph.width comme r32 * inv_taille.x
+		y1 := y0 - glyph.height comme r32 * inv_taille.y
 		s0 := glyph.s0;
 		t0 := glyph.t0;
 		s1 := glyph.s1;
 		t1 := glyph.t1;
 
-		decalage_index := transtype(sommets.taille: z32)
+		decalage_index := sommets.taille comme z32
 		tableau_ajoute(@indices, 0 + decalage_index)
 		tableau_ajoute(@indices, 1 + decalage_index)
 		tableau_ajoute(@indices, 2 + decalage_index)
@@ -199,15 +198,15 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 		tableau_ajoute(@indices, 2 + decalage_index)
 		tableau_ajoute(@indices, 3 + decalage_index)
 
-		tableau_ajoute(@sommets, Vec2r{ x = x0, y = y0 })
-		tableau_ajoute(@sommets, Vec2r{ x = x0, y = y1 })
-		tableau_ajoute(@sommets, Vec2r{ x = x1, y = y1 })
-		tableau_ajoute(@sommets, Vec2r{ x = x1, y = y0 })
+		tableau_ajoute(@sommets, Vec2r( x = x0, y = y0 ))
+		tableau_ajoute(@sommets, Vec2r( x = x0, y = y1 ))
+		tableau_ajoute(@sommets, Vec2r( x = x1, y = y1 ))
+		tableau_ajoute(@sommets, Vec2r( x = x1, y = y0 ))
 
-		tableau_ajoute(@uvs, Vec2r{ x = s0, y = t0 })
-		tableau_ajoute(@uvs, Vec2r{ x = s0, y = t1 })
-		tableau_ajoute(@uvs, Vec2r{ x = s1, y = t1 })
-		tableau_ajoute(@uvs, Vec2r{ x = s1, y = t0 })
+		tableau_ajoute(@uvs, Vec2r( x = s0, y = t0 ))
+		tableau_ajoute(@uvs, Vec2r( x = s0, y = t1 ))
+		tableau_ajoute(@uvs, Vec2r( x = s1, y = t1 ))
+		tableau_ajoute(@uvs, Vec2r( x = s1, y = t0 ))
 
         tableau_ajoute(@couleurs, couleur)
         tableau_ajoute(@couleurs, couleur)
@@ -232,10 +231,10 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
     // --------------------------------------
 
     glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_vertex);
-	glBufferData(OGL.ARRAY_BUFFER, transtype(sommets.taille: n64) * taille_de(Vec2r), @sommets[0], OGL.STATIC_DRAW);
+	glBufferData(OGL.ARRAY_BUFFER, sommets.taille comme n64 * taille_de(Vec2r), @sommets[0], OGL.STATIC_DRAW);
 
 	glBindBuffer(OGL.ELEMENT_ARRAY_BUFFER, rendeuse.id_tampon_index);
-	glBufferData(OGL.ELEMENT_ARRAY_BUFFER, transtype(indices.taille: n64) * taille_de(z32), @indices[0], OGL.STATIC_DRAW);
+	glBufferData(OGL.ELEMENT_ARRAY_BUFFER, indices.taille comme n64 * taille_de(z32), @indices[0], OGL.STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, OGL.FLOAT, OGL.FALSE, 0, nul);
@@ -243,7 +242,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
     // --------------------------------------
 
     glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_tex_coord);
-	glBufferData(OGL.ARRAY_BUFFER, transtype(uvs.taille: n64) * taille_de(Vec2r), @uvs[0], OGL.STATIC_DRAW);
+	glBufferData(OGL.ARRAY_BUFFER, uvs.taille comme n64 * taille_de(Vec2r), @uvs[0], OGL.STATIC_DRAW);
 
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, OGL.FLOAT, OGL.FALSE, 0, nul);
@@ -251,7 +250,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
     // --------------------------------------
 
     glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_couleur);
-	glBufferData(OGL.ARRAY_BUFFER, transtype(couleurs.taille: n64) * taille_de(Vec4r), @couleurs[0], OGL.STATIC_DRAW);
+	glBufferData(OGL.ARRAY_BUFFER, couleurs.taille comme n64 * taille_de(Vec4r), @couleurs[0], OGL.STATIC_DRAW);
 
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 4, OGL.FLOAT, OGL.FALSE, 0, nul);
@@ -276,7 +275,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_MAG_FILTER, _GL_LINEAR );
 	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_MIN_FILTER, _GL_LINEAR );
 
-    glTexImage2D(_GL_TEXTURE_2D, 0, _GL_RED, transtype(atlas.width: z32), transtype(atlas.height: z32),
+    glTexImage2D(_GL_TEXTURE_2D, 0, _GL_RED, atlas.width comme z32, atlas.height comme z32,
 				  0, _GL_RED, _GL_UNSIGNED_BYTE, atlas.data )
 
 	{
@@ -286,7 +285,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
         loc := glGetUniformLocation(rendeuse.programme, "atlas".pointeur)
 	    glUniform1ui(loc, 0);
 
-		glDrawElements(OGL.TRIANGLES, transtype(indices.taille: z32), _GL_UNSIGNED_INT, nul);
+		glDrawElements(OGL.TRIANGLES, indices.taille comme z32, _GL_UNSIGNED_INT, nul);
 
         glBindVertexArray(0)
         glUseProgram(0)

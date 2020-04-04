@@ -14,7 +14,7 @@ imprime_type :: fonc(info : *InfoType) -> rien
 {
     discr info.id {
 	    ENTIER {
-		    info_arg := transtype(info : *InfoTypeEntier)
+		    info_arg := info comme *InfoTypeEntier
 
             si info_arg.est_signé {
 			    si info_arg.taille_en_octet == 8 {
@@ -63,11 +63,11 @@ imprime_type :: fonc(info : *InfoType) -> rien
 			imprime("chaine")
 		}
 		STRUCTURE {
-		    info_arg := transtype(info : *InfoTypeStructure)
+		    info_arg := info comme *InfoTypeStructure
 			imprime(info_arg.nom)
 		}
 		POINTEUR {
-		    info_arg := transtype(info : *InfoTypePointeur)
+		    info_arg := info comme *InfoTypePointeur
 
 		    si info_arg.est_référence {
 			    imprime("&")
@@ -89,12 +89,12 @@ imprime_type :: fonc(info : *InfoType) -> rien
 			imprime("rien")
 		}
 		TABLEAU {
-		    info_arg := transtype(info : *InfoTypeTableau)
+		    info_arg := info comme *InfoTypeTableau
 			imprime("[]")
 			imprime_type(info_arg.type_pointé)
 		}
 		ÉNUM {
-		    info_arg := transtype(info : *InfoTypeÉnum)
+		    info_arg := info comme *InfoTypeÉnum
 			imprime(info_arg.nom)
 		}
 	}
@@ -109,7 +109,7 @@ enregistre_noeud :: fonc(fonc_exec : eini) -> rien
         retourne
     }
 
-    info_fonc := transtype(info : *InfoTypeFonction)
+    info_fonc := info comme *InfoTypeFonction
 
     imprime("Les types d'entrée sont : \n")
 

@@ -43,7 +43,7 @@ principale :: fonc () -> type_de(N)
 
     a := 0
 
-    b := transtype(a : type_de(w))
+    b := a comme type_de(w)
 
     retourne 0
 }

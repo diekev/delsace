@@ -37,9 +37,9 @@ principale :: fonc () -> z32
         imprime("Valeur (%) : %\n", i, j)
     }
 
-    n3 := Noeud{ suiv = nul, val = 789 }
-    n2 := Noeud{ suiv = @n3, val = 456 }
-    n1 := Noeud{ suiv = @n2, val = 123 }
+    n3 := Noeud( suiv = nul, val = 789 )
+    n2 := Noeud( suiv = @n3, val = 456 )
+    n1 := Noeud( suiv = @n2, val = 123 )
 
     pour n, i dans iter_liste_noeud(@n1) {
         imprime("Valeur (%) : %\n", i, n.val)

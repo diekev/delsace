@@ -80,7 +80,7 @@ trouve_page :: fonc (paginatrice: *Paginatrice, index_page: z32) -> []octet
                 exit(1)
             }
 
-            octets_lus := read(paginatrice.descripteur_fichier, transtype(page.pointeur: *z8), transtype(TAILLE_PAGE: n64))
+            octets_lus := read(paginatrice.descripteur_fichier, page.pointeur comme *z8, TAILLE_PAGE comme n64)
 
             si octets_lus == -1 {
                 imprime("Erreur lors de la lecture du fichier !\n")
@@ -110,7 +110,7 @@ flush_paginatrice :: fonc (paginatrice: *Paginatrice, index_page: z32, taille: z
         exit(1)
     }
 
-    octets_écris := write(paginatrice.descripteur_fichier, transtype(paginatrice.pages[index_page].pointeur: *z8), taille)
+    octets_écris := write(paginatrice.descripteur_fichier, paginatrice.pages[index_page].pointeur comme *z8, taille)
 
     si octets_écris == -1 {
         imprime("Erreur lors de l'écriture !")

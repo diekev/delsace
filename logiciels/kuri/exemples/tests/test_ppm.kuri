@@ -212,9 +212,9 @@ lis_jpeg :: fonc(chemin : chaine) -> Image
 
 	jpeg_start_decompress(@info);
 
-    largeur := transtype(info.output_width : z32);
-	hauteur := transtype(info.output_height : z32);
-	channels := transtype(info.output_components : z32);
+    largeur := info.output_width comme z32;
+	hauteur := info.output_height comme z32;
+	channels := info.output_components comme z32;
 
 	image.largeur = largeur;
 	image.hauteur = hauteur;
@@ -257,8 +257,8 @@ lis_jpeg :: fonc(chemin : chaine) -> Image
 	info.err = jpeg_std_error(@jerr);
 
 	jpeg_stdio_dest(@info, file);
-	info.image_width = transtype(image.largeur : n32);
-	info.image_height = transtype(image.hauteur : n32);
+	info.image_width = image.largeur comme n32;
+	info.image_height = image.hauteur comme n32;
 	info.input_components = image.channels;
 
 	discr (info.input_components) {

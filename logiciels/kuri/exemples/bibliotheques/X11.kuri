@@ -82,7 +82,7 @@ principale :: fonc () -> z32
     largeur_bordure : n32 = 1
 
     s := DefaultScreen(d);
-    w := XCreateSimpleWindow(d, RootWindow(d, transtype(s: n64)), 10, 10, hauteur, largeur, largeur_bordure,
+    w := XCreateSimpleWindow(d, RootWindow(d, s comme n64), 10, 10, hauteur, largeur, largeur_bordure,
                            BlackPixel(d, s), WhitePixel(d, s));
 
     XSelectInput(d, w, _ExposureMask | _KeyPressMask);
@@ -95,7 +95,7 @@ principale :: fonc () -> z32
 
         si e.type == _Expose {
             XFillRectangle(d, w, DefaultGC(d, s), 20, 20, 10, 10);
-            XDrawString(d, w, DefaultGC(d, s), 10, 50, msg.pointeur, transtype(msg.taille: z32));
+            XDrawString(d, w, DefaultGC(d, s), 10, 50, msg.pointeur, msg.taille comme z32);
         }
 
         si e.type == _KeyPress {

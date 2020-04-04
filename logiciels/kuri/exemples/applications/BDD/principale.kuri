@@ -53,10 +53,10 @@ principale :: fonc () -> z32
             pour inst dans asa.instructions {
                 discr inst.genre {
                     CRÉE {
-                        crée_table(@cm, transtype(inst: *InstructionCréationTable))
+                        crée_table(@cm, inst comme *InstructionCréationTable)
                     }
                     SÉLECTIONNE {
-                        inst_sélection := transtype(inst: *InstructionSélection)
+                        inst_sélection := inst comme *InstructionSélection
 
                         résultat := tente sélectionne(@cm, inst_sélection) piège err {
                             discr err {
@@ -84,7 +84,7 @@ principale :: fonc () -> z32
                         ferme_base_de_données(résultat)
                     }
                     INSÈRE {
-                        inst_insertion := transtype(inst: *InstructionInsère)
+                        inst_insertion := inst comme *InstructionInsère
 
                         tente insère(@cm, inst_insertion) piège err {
                             discr err {

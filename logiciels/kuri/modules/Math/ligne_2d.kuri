@@ -5,7 +5,7 @@ Point2D :: struct {
 
 crée_point :: fonc(x : r64, y : r64) -> Point2D
 {
-	point := Point2D{ x = x, y = y }
+	point := Point2D( x = x, y = y )
 	retourne point
 }
 
@@ -16,7 +16,7 @@ Ligne2D :: struct {
 
 crée_ligne :: fonc(p1 : Point2D, p2 : Point2D) -> Ligne2D
 {
-	ligne := Ligne2D { p1 = p1, p2 = p2 }
+	ligne := Ligne2D(p1 = p1, p2 = p2)
 	retourne ligne
 }
 

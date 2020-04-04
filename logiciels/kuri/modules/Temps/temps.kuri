@@ -150,13 +150,13 @@ hui_système :: fonc () -> Date
     jour_semaine := ((inst.seconde / (3600 * 24)) - 3) % 7
 
     date : Date
-    date.jour = transtype(jours: z32)
+    date.jour = jours comme z32
     date.mois = mois
-    date.année = transtype(années: z32) + 1970
-    date.heure = transtype(heures: z32)
-    date.minute = transtype(minutes: z32)
-    date.seconde = transtype(seconde: z32)
-    date.jour_semaine = transtype(jour_semaine: z32)
+    date.année = années comme z32 + 1970
+    date.heure = heures comme z32
+    date.minute = minutes comme z32
+    date.seconde = seconde comme z32
+    date.jour_semaine = jour_semaine comme z32
 
     retourne date
 }

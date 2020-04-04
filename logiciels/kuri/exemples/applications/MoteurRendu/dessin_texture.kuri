@@ -66,12 +66,12 @@ crée_tampon_texture :: fonc () -> *TamponTexture
     sommets := [ 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 ]
 
 	glBindBuffer(OGL.ARRAY_BUFFER, tampon_texture.id_tampon_vertex);
-	glBufferData(OGL.ARRAY_BUFFER, transtype(sommets.taille: n64) * taille_de(r32), @sommets[0], OGL.STATIC_DRAW);
+	glBufferData(OGL.ARRAY_BUFFER, sommets.taille comme n64 * taille_de(r32), @sommets[0], OGL.STATIC_DRAW);
 
     index := [ 0, 1, 2, 0, 2, 3 ];
 
 	glBindBuffer(OGL.ELEMENT_ARRAY_BUFFER, tampon_texture.id_tampon_index);
-	glBufferData(OGL.ELEMENT_ARRAY_BUFFER, transtype(index.taille: n64) * taille_de(z32), @index[0], OGL.STATIC_DRAW);
+	glBufferData(OGL.ELEMENT_ARRAY_BUFFER, index.taille comme n64 * taille_de(z32), @index[0], OGL.STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, OGL.FLOAT, OGL.FALSE, 0, nul);

@@ -369,7 +369,7 @@ alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, nouvelle_taille: 
     }
 
     ptr := alloc.données + alloc.occupé
-    alloc.occupé += transtype(nouvelle_taille: z32)
+    alloc.occupé += nouvelle_taille comme z32
 
     si alloc.occupé > alloc.occupation_maximale {
         alloc.occupation_maximale = alloc.occupé
@@ -387,14 +387,14 @@ __stockage_temporaire :: fonc(
     info : *InfoType,
     pos : PositionCodeSource) -> *rien
 {
-    alloc := transtype(contexte.stockage_temporaire: *StockageTemporaire)
+    alloc := contexte.stockage_temporaire comme *StockageTemporaire
 
     discr mode {
         ALLOUE {
             retourne alloc_stockage_temporaire(alloc, nouvelle_taille)
         }
         RÉALLOUE {
-            ptr := transtype(ancien_pointeur: *octet)
+            ptr := ancien_pointeur comme *octet
 
             si ptr == nul {
                 retourne alloc_stockage_temporaire(alloc, nouvelle_taille)
@@ -425,7 +425,7 @@ __stockage_temporaire :: fonc(
 		    alloc.ptr += n
             */
 
-            alloc.occupé += transtype(delta: z32)
+            alloc.occupé += delta comme z32
 
             si alloc.occupé > alloc.occupation_maximale {
                 alloc.occupation_maximale = alloc.occupé
@@ -435,7 +435,7 @@ __stockage_temporaire :: fonc(
         }
         DÉSALLOUE {
             // À FAIRE
-            alloc.occupé -= transtype(ancienne_taille: z32)
+            alloc.occupé -= ancienne_taille comme z32
             retourne nul
         }
     }
@@ -595,7 +595,7 @@ tableau_réserve :: fonc(tabl: *[]$T, taille: z64) -> rien
 tableau_copie :: fonc(tabl: []$T) -> []$T
 {
 	tmp := loge [tabl.capacité]$T
-    copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * transtype(taille_de(z64): z64))
+    copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * taille_de(z64) comme z64)
     tmp.taille = tabl.taille
     retourne tmp
 }
@@ -617,7 +617,7 @@ tableau_supprime :: fonc(tabl: *[]$T, index: z32) -> rien
 
 	taille := tabl.taille
 
-	pour i dans transtype(index: z64) ... taille - 2 {
+	pour i dans index comme z64 ... taille - 2 {
 		tmp[i] = tmp[i + 1]
 	}
 

@@ -28,6 +28,8 @@
 
 #include "biblinternes/langage/erreur.hh"
 
+#include "validation_expression_appel.hh"
+
 struct ContexteGenerationCode;
 struct Lexeme;
 struct NoeudBase;
@@ -129,9 +131,9 @@ void imprime_ligne_avec_message(
 
 [[noreturn]] void lance_erreur_fonction_nulctx(
 		ContexteGenerationCode const &contexte,
-		NoeudBase *appl_fonc,
-		NoeudBase *decl_fonc,
-		NoeudBase *decl_appel);
+		NoeudBase const *appl_fonc,
+		NoeudBase const *decl_fonc,
+		NoeudBase const *decl_appel);
 
 [[noreturn]] void lance_erreur_acces_hors_limites(ContexteGenerationCode const &contexte,
 			NoeudBase *b,

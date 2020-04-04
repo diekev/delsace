@@ -60,7 +60,7 @@ charge_programme :: fonc (source_vertex: chaine, source_fragment: chaine) -> n32
 	id_nuanceur_vertex := glCreateShader(OGL.VERTEX_SHADER)
     diffère { détruit_nuanceur(id_nuanceur_vertex) }
 
-    taille_src_vertex := transtype(source_vertex.taille : z32)
+    taille_src_vertex := source_vertex.taille comme z32
 	glShaderSource(id_nuanceur_vertex, 1, @source_vertex.pointeur , @taille_src_vertex)
 	glCompileShader(id_nuanceur_vertex)
 
@@ -74,7 +74,7 @@ charge_programme :: fonc (source_vertex: chaine, source_fragment: chaine) -> n32
 	id_nuanceur_fragment := glCreateShader(OGL.FRAGMENT_SHADER)
     diffère { détruit_nuanceur(id_nuanceur_fragment) }
 
-    taille_src_fragment := transtype(source_fragment.taille : z32)
+    taille_src_fragment := source_fragment.taille comme z32
 	glShaderSource(id_nuanceur_fragment, 1, @source_fragment.pointeur , @taille_src_fragment)
 	glCompileShader(id_nuanceur_fragment)
 

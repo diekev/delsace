@@ -32,7 +32,7 @@ tri_sélection :: fonc (triangles: []Triangle) -> rien
     pour i dans 0 ... triangles.taille - 2 {
         index_min : z64 = i
 
-        pour j dans transtype(i + 1: z64) ... triangles.taille - 1 {
+        pour j dans i + 1 comme z64 ... triangles.taille - 1 {
             si condition_triangle(@triangles[j], @triangles[index_min]) {
                 index_min = j
             }

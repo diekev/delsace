@@ -8,7 +8,7 @@ test_pile :: fonc() -> rien
 {
     imprime("==========================================\n")
 
-	p := crée_pile(transtype(taille_de(z32) : z64))
+	p := crée_pile(taille_de(z32) comme z64)
     diffère {
         decrée_pile(p)
         imprime("pile décréée !\n")
@@ -35,7 +35,7 @@ test_file :: fonc() -> rien
 {
     imprime("==========================================\n")
 
-	p := crée_file(transtype(taille_de(z32) : z64))
+	p := crée_file(taille_de(z32) comme z64)
     diffère {
         decrée_file(p)
         imprime("file décréée !\n")

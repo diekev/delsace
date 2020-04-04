@@ -4,17 +4,17 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 {
     discr info.id {
 		OCTET {
-			x := mémoire(transtype(pointeur : *octet))
+			x := mémoire(pointeur comme *octet)
             chiffres_hex := "0123456789ABCDEF"
 
-			chiffre := (x >> transtype(4 : octet)) & transtype(0x0F : octet)
+			chiffre := (x >> 4 comme octet) & 0x0F comme octet
 			ajoute_au_tampon(enchaineuse, chiffres_hex[chiffre])
 
-			chiffre = x & transtype(0x0F : octet)
+			chiffre = x & 0x0F comme octet
 			ajoute_au_tampon(enchaineuse, chiffres_hex[chiffre])
 		}
 		ENTIER {
-			info_arg := transtype(info : *InfoTypeEntier)
+			info_arg := info comme *InfoTypeEntier
 
             e : eini
             e.pointeur = pointeur
@@ -26,21 +26,21 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 			y : r32
 
             si info.taille_en_octet == 2 {
-				x := mémoire(transtype(pointeur : *r16))
+				x := mémoire(pointeur comme *r16)
 				y = x
 			}
 			sinon si info.taille_en_octet == 4 {
-				y = mémoire(transtype(pointeur : *r32))
+				y = mémoire(pointeur comme *r32)
 			}
 			sinon si info.taille_en_octet == 8 {
-				x := mémoire(transtype(pointeur : *r64))
-				y = transtype(x : r32)
+				x := mémoire(pointeur comme *r64)
+				y = x comme r32
 			}
 
 			imprime_nombre_réel(enchaineuse, formatte_réel(y))
 		}
 		BOOLÉEN {
-			x := mémoire(transtype(pointeur : *bool))
+			x := mémoire(pointeur comme *bool)
 
             si x {
 				ajoute_au_tampon(enchaineuse, "true")
@@ -50,14 +50,14 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 			}
 		}
 		CHAINE {
-			x := mémoire(transtype(pointeur : *chaine))
+			x := mémoire(pointeur comme *chaine)
 
 			ajoute_au_tampon(enchaineuse, '"')
 			ajoute_au_tampon(enchaineuse, x)
 			ajoute_au_tampon(enchaineuse, '"')
 		}
 		STRUCTURE {
-			info_arg := transtype(info : *InfoTypeStructure)
+			info_arg := info comme *InfoTypeStructure
 
             ajoute_au_tampon(enchaineuse, "{")
 
@@ -81,11 +81,11 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
             ajoute_au_tampon(enchaineuse, "}")
 		}
 		TABLEAU {
-			info_arg := transtype(info : *InfoTypeTableau)
+			info_arg := info comme *InfoTypeTableau
 
             ajoute_au_tampon(enchaineuse, "[")
 
-            décalage := transtype(info_arg.type_pointé.taille_en_octet: z32)
+            décalage := info_arg.type_pointé.taille_en_octet comme z32
 
             si info_arg.est_tableau_fixe {
                 pour i dans 0 ... info_arg.taille_fixe - 1 {
@@ -97,7 +97,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
                 }
             }
             sinon {
-                x := mémoire(transtype(pointeur: *[]z8))
+                x := mémoire(pointeur comme *[]z8)
 
                 pour i dans 0 ... x.taille - 1 {
                     si i != 0 {
@@ -111,10 +111,10 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
             ajoute_au_tampon(enchaineuse, "]")
 		}
 		ÉNUM {
-			info_arg := transtype(info : *InfoTypeÉnum)
+			info_arg := info comme *InfoTypeÉnum
 
 			// À FAIRE : typage selon énum
-			valeur := mémoire(transtype(pointeur : *z32))
+			valeur := mémoire(pointeur comme *z32)
 			noms := info_arg.noms
 
 			si info_arg.est_drapeau {
@@ -250,7 +250,7 @@ analyse_valeur :: fonc(
                 retourne
             }
 
-			syntaxeuse.analyse_objet(pointeur_membre, transtype(info_membre: *InfoTypeStructure))
+			syntaxeuse.analyse_objet(pointeur_membre, info_membre comme *InfoTypeStructure)
 
 			si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.ACCOLADE_FERMANTE)) {
 				//lance_erreur("Attendu une accolade fermante '}' à la fin de l'objet")
@@ -279,8 +279,8 @@ analyse_valeur :: fonc(
             }
 
             // À FAIRE: typage
-            ptr := transtype(pointeur_membre: *z32)
-            mémoire(ptr) = transtype(extrait_nombre_entier(syntaxeuse.données().chn): z32)
+            ptr := pointeur_membre comme *z32
+            mémoire(ptr) = extrait_nombre_entier(syntaxeuse.données().chn) comme z32
 		}
 		NOMBRE_REEL {
 			syntaxeuse.avance()
@@ -290,8 +290,8 @@ analyse_valeur :: fonc(
             }
 
             // À FAIRE: typage
-            ptr := transtype(pointeur_membre: *r32)
-            mémoire(ptr) = transtype(extrait_nombre_réel(syntaxeuse.données().chn): r32)
+            ptr := pointeur_membre comme *r32
+            mémoire(ptr) = extrait_nombre_réel(syntaxeuse.données().chn) comme r32
 		}
 		CHAINE_CARACTERE {
 			syntaxeuse.avance()
@@ -300,7 +300,7 @@ analyse_valeur :: fonc(
                 retourne
             }
 
-            ptr := transtype(pointeur_membre: *chaine)
+            ptr := pointeur_membre comme *chaine
             mémoire(ptr) = syntaxeuse.données().chn
 		}
 		sinon {
@@ -322,7 +322,7 @@ lance_analyse :: fonc(syntaxeuse : *SyntaxeuseStruct, arg: eini) -> rien
 		//lance_erreur("Attendu une accolade ouvrante '{' au début du script")
 	}
 
-	syntaxeuse.analyse_objet(arg.pointeur, transtype(arg.info: *InfoTypeStructure))
+	syntaxeuse.analyse_objet(arg.pointeur, arg.info comme *InfoTypeStructure)
 
 	si (!syntaxeuse.requiers_lexème(TypeLexèmeJSON.ACCOLADE_FERMANTE)) {
 		//lance_erreur("Attendu une accolade fermante '}' à la fin du script")

@@ -43,7 +43,7 @@ Vecteur2D :: struct {
 
 foo :: fonc () -> rien
 {
-	v := Vecteur2D{x = 0, y = 1};
+	v := Vecteur2D(x = 0, y = 1);
 }
 
 // -----------------------------------

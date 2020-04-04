@@ -26,16 +26,9 @@
 
 #include "biblinternes/outils/definitions.h"
 
-enum class GenreLexeme : unsigned int;
-
+struct ContexteGenerationCode;
 struct NoeudBloc;
 struct NoeudExpression;
-
-class assembleuse_arbre;
-
-struct ContexteGenerationCode;
-
-bool precedence_faible(GenreLexeme identifiant1, GenreLexeme identifiant2);
 
 /* ************************************************************************** */
 

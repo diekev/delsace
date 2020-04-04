@@ -249,15 +249,15 @@ NET :: struct externe {
 mysql_enum_shutdown_level :: énum n32 {
 	SHUTDOWN_DEFAULT :: 0
 	// Wait for existing connections to finish
-	SHUTDOWN_WAIT_CONNECTIONS :: transtype((1 << 0) : n8)
+	SHUTDOWN_WAIT_CONNECTIONS :: (1 << 0) comme n8
 	// Wait for existing transactons to finish
-	SHUTDOWN_WAIT_TRANSACTIONS :: transtype((1 << 1) : n8)
+	SHUTDOWN_WAIT_TRANSACTIONS :: (1 << 1) comme n8
 	// Wait for existing updates to finish (=> no partial MyISAM update)
-	SHUTDOWN_WAIT_UPDATES :: transtype((1 << 3) : n8)
+	SHUTDOWN_WAIT_UPDATES :: (1 << 3) comme n8
 	// Flush InnoDB buffers and other storage engines' buffers
-	SHUTDOWN_WAIT_ALL_BUFFERS :: (transtype((1 << 3) : n8) << 1)
+	SHUTDOWN_WAIT_ALL_BUFFERS :: ((1 << 3) comme n8 << 1)
 	// Don't flush InnoDB buffers, flush other storage engines' buffers
-	SHUTDOWN_WAIT_CRITICAL_BUFFERS :: (transtype((1 << 3) : n8) << 1) + 1
+	SHUTDOWN_WAIT_CRITICAL_BUFFERS :: ((1 << 3) comme n8 << 1) + 1
 	// Query level of the KILL command
 	KILL_QUERY :: 254
 	// Connection level of the KILL command

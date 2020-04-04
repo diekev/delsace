@@ -6,17 +6,17 @@ ValeurMonnétaire :: struct {
 
 valeur_monétaire_depuis_centimes :: fonc (centimes: z64) -> ValeurMonnétaire
 {
-    retourne ValeurMonnétaire{ quantité = centimes * 100 }
+    retourne ValeurMonnétaire( quantité = centimes * 100 )
 }
 
 valeur_monétaire_depuis_unités :: fonc (unités: z64) -> ValeurMonnétaire
 {
-    retourne ValeurMonnétaire{ quantité = unités * 10000 }
+    retourne ValeurMonnétaire( quantité = unités * 10000 )
 }
 
 valeur_monétaire_depuis_unités_centimes :: fonc (unités: z64, centimes: z64) -> ValeurMonnétaire
 {
-    retourne ValeurMonnétaire{ quantité = unités * 10000 + centimes * 100 }
+    retourne ValeurMonnétaire( quantité = unités * 10000 + centimes * 100 )
 }
 
 opérateur + :: fonc (v1 : ValeurMonnétaire, v2 : ValeurMonnétaire) -> ValeurMonnétaire
@@ -184,7 +184,7 @@ principale :: fonc () -> z32
     déloge allocations
 
     imprime("reste après allocation, ")
-    imprime_valeur_monétaire(ValeurMonnétaire{ quantité = somme_redistribuée.quantité - somme_allouée })
+    imprime_valeur_monétaire(ValeurMonnétaire( quantité = somme_redistribuée.quantité - somme_allouée ))
 
     retourne 0
 }

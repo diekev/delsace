@@ -166,7 +166,7 @@ parse_info_serveur :: fonc (uri: *URI, info_serveur: chaine) -> ErreurURI
         uri.hôte = info_serveur
     }
 
-    retourne transtype(0: ErreurURI)
+    retourne 0 comme ErreurURI
 }
 
 parse_info_usager :: fonc (uri: *URI, info_usager: chaine) -> rien
@@ -206,7 +206,7 @@ parse_autorité :: fonc (uri: *URI) -> ErreurURI
         }
     }
 
-    retourne transtype(0: ErreurURI)
+    retourne 0 comme ErreurURI
 }
 
 parse_chemin :: fonc (uri: *URI) -> ErreurURI
@@ -258,7 +258,7 @@ parse_chemin :: fonc (uri: *URI) -> ErreurURI
         }
     }
 
-    retourne transtype(0: ErreurURI)
+    retourne 0 comme ErreurURI
 }
 
 parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
@@ -357,21 +357,21 @@ somme_controle :: fonc(uri : &URI) -> n64
     somme2 := 0;
 
     pour c dans uri.autorité {
-        somme1 = (somme1 + transtype(c : z32)) % 0xffffffff
+        somme1 = (somme1 + c comme z32) % 0xffffffff
         somme2 = (somme1 + somme2) % 0xffffffff
     }
 
     pour c dans uri.chemin {
-        somme1 = (somme1 + transtype(c : z32)) % 0xffffffff
+        somme1 = (somme1 + c comme z32) % 0xffffffff
         somme2 = (somme1 + somme2) % 0xffffffff
     }
 
     pour c dans uri.requête {
-        somme1 = (somme1 + transtype(c : z32)) % 0xffffffff
+        somme1 = (somme1 + c comme z32) % 0xffffffff
         somme2 = (somme1 + somme2) % 0xffffffff
     }
 
-    retourne (transtype(somme2 : n64) << 32) | transtype(somme1 : n64);
+    retourne (somme2 comme n64 << 32) | somme1 comme n64;
 }
 
 port_pour_uri :: fonc(uri : &URI) -> n16
@@ -386,5 +386,5 @@ port_pour_uri :: fonc(uri : &URI) -> n16
         }
     }
 
-    retourne transtype(extrait_nombre_entier(uri.port) : n16)
+    retourne extrait_nombre_entier(uri.port) comme n16
 }

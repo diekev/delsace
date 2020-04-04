@@ -28,15 +28,15 @@ fonction recherche_binaire(x : []z32, n : z32, v : z32) -> z32
 
 fonction distance(ptr1 : *z32, ptr2 : *z32) -> z32
 {
-	retourne transtype(ptr2 - ptr1)(z32) / taille_de(z32);
+	retourne ptr2 - ptr1)(z32) / taille_de(z32);
 }
 
-fonction suivant(ptr : *z32, n : z32) -> *z32
+fonction suivant(ptr comme *z32, n : z32 -> *z32
 {
-	retourne ptr + transtype(n * taille_de(z32))(*z32);
+	retourne ptr + n * taille_de(z32))(*z32);
 }
 
-fonction limite_basse(f : *z32, l : *z32, v : z32) -> *z32
+fonction limite_basse(f comme *z32, l : *z32, v : z32 -> *z32
 {
 	variable fl := f;
 	variable ll := l;

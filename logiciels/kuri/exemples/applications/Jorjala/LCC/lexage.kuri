@@ -248,7 +248,7 @@ performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 
 				c := converti_utf8_utf32(lexeuse.début, nombre_octet)
 
-				discr transtype(c : TypeRune) {
+				discr c comme TypeRune {
 					ESPACE_INSECABLE,
 					ESPACE_D_OGAM,
 					SEPARATEUR_VOYELLES_MONGOL,
@@ -287,7 +287,7 @@ performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 							nombre_octet = nombre_octets_utf8(lexeuse.début)
 							c = converti_utf8_utf32(lexeuse.début, nombre_octet)
 
-							si (transtype(c : TypeRune) == TypeRune.GUILLEMET_FERMANT) {
+							si (c comme TypeRune == TypeRune.GUILLEMET_FERMANT) {
 								arrête
 							}
 

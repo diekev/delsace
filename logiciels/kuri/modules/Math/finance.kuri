@@ -29,7 +29,7 @@ covariance :: fonc(
 		res += (cours1[i] - moyenne1) * (cours2[i] - moyenne2);
 	}
 
-	res /= transtype(taille : r32);
+	res /= taille comme r32;
 
 	retourne res, taille;
 }

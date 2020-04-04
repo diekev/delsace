@@ -36,7 +36,7 @@ matrice_projection :: fonc (
     plan_éloigné: r32) -> Mat4r
 {
     ratio_aspect := hauteur / largeur
-    champs_de_vue_rad := 1.0 / transtype(tan(champs_de_vue * 0.5 / 180.0 * 3.14159): r32)
+    champs_de_vue_rad := 1.0 / tan(champs_de_vue * 0.5 / 180.0 * 3.14159) comme r32
 
     mat := construit_mat4r()
 
@@ -105,10 +105,10 @@ matrice_rotation_x :: fonc (theta: r32) -> Mat4r
     résultat := construit_mat4r()
 
     résultat.m[0][0] = 1.0
-    résultat.m[1][1] = transtype(cos(theta): r32)
-    résultat.m[1][2] = transtype(sin(theta): r32)
-    résultat.m[2][1] = transtype(-sin(theta): r32)
-    résultat.m[2][2] = transtype(cos(theta): r32)
+    résultat.m[1][1] = cos(theta) comme r32
+    résultat.m[1][2] = sin(theta) comme r32
+    résultat.m[2][1] = -sin(theta) comme r32
+    résultat.m[2][2] = cos(theta) comme r32
     résultat.m[3][3] = 1.0
 
     retourne résultat
@@ -118,11 +118,11 @@ matrice_rotation_y :: fonc (theta: r32) -> Mat4r
 {
     résultat := construit_mat4r()
 
-    résultat.m[0][0] = transtype(cos(theta): r32)
-    résultat.m[0][2] = transtype(sin(theta): r32)
-    résultat.m[2][0] = transtype(-sin(theta): r32)
+    résultat.m[0][0] = cos(theta) comme r32
+    résultat.m[0][2] = sin(theta) comme r32
+    résultat.m[2][0] = -sin(theta) comme r32
     résultat.m[1][1] = 1.0
-    résultat.m[2][2] = transtype(cos(theta): r32)
+    résultat.m[2][2] = cos(theta) comme r32
     résultat.m[3][3] = 1.0
 
     retourne résultat
@@ -132,10 +132,10 @@ matrice_rotation_z :: fonc (theta: r32) -> Mat4r
 {
     résultat := construit_mat4r()
 
-    résultat.m[0][0] = transtype(cos(theta): r32)
-    résultat.m[0][1] = transtype(sin(theta): r32)
-    résultat.m[1][0] = transtype(-sin(theta): r32)
-    résultat.m[1][1] = transtype(cos(theta): r32)
+    résultat.m[0][0] = cos(theta) comme r32
+    résultat.m[0][1] = sin(theta) comme r32
+    résultat.m[1][0] = -sin(theta) comme r32
+    résultat.m[1][1] = cos(theta) comme r32
     résultat.m[2][2] = 1.0
     résultat.m[3][3] = 1.0
 

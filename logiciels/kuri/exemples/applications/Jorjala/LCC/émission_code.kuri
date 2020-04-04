@@ -37,7 +37,7 @@ extrait_entier :: fonc(chn : chaine) -> z32
 
     pour c dans chn {
         résultat *= 10
-        résultat += transtype(c - '0' : z32)
+        résultat += c - '0' comme z32
     }
 
     retourne résultat
@@ -56,16 +56,16 @@ extrait_decimal :: fonc(chn : chaine) -> r32
         }
 
         si point_trouvé {
-            résultat += transtype(c - '0' : r64) / dividende
+            résultat += c - '0' comme r64 / dividende
             dividende *= 10
         }
         sinon {
             résultat *= 10
-            résultat += transtype(c - '0' : r64)
+            résultat += c - '0' comme r64
         }
     }
 
-    retourne transtype(résultat : r32)
+    retourne résultat comme r32
 }
 
 type_pour_lexème :: fonc(type_lexème : TypeLexème) -> TypeParamètre
@@ -259,7 +259,7 @@ genere_code :: fonc(
 					rassemble_feuilles(b, @feuilles)
 
 					// À FAIRE : erreur si tableau vide, INFÉRENCE TYPE
-					type_feuille := type_var{}
+					type_feuille := type_var()
 
 					for (feuille : feuilles) {
 						genere_code(feuille, contexte_generation, cm, expr_gauche)
@@ -294,7 +294,7 @@ genere_code :: fonc(
 		}
 		TypeNoeud.FONCTION {
 			// génére le code des enfants pour avoir les données sur leurs types
-			types_params := types_entrees{}
+			types_params := types_entrees()
 
 			for (enfant : b.enfants) {
 				genere_code(enfant, contexte_generation, cm, expr_gauche)
@@ -584,7 +584,7 @@ genere_code :: fonc(
 
 				rassemble_feuilles(enfant_gauche, @feuilles)
 
-				donnees_fonc := donnees_fonction_generation{}
+				donnees_fonc := donnees_fonction_generation()
 
 				si (enfant_droite.type == TypeNoeud.ACCES_MEMBRE_POINT) {
 					noeud_fonc := enfant_droite.enfants.back()
@@ -847,7 +847,7 @@ genere_code :: fonc(
 			instructions.stocke(decalage_branche_si_vrai, static_cast<int>(instructions.taille()))
 
 			// données pour cette boucle
-			db := donnees_boucles{}
+			db := donnees_boucles()
 			contexte_generation.boucles.empile(&db)
 
 			// génère le code du bloc

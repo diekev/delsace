@@ -23,10 +23,10 @@ construit_nombre_rationnel :: fonc(n: n32, d: n32, positif: bool) -> NombreRatio
 opérateur + :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     // augmente la taille des types pour éviter les problèmes de surflot
-    a_n := transtype(a.N: n64)
-    a_d := transtype(a.D: n64)
-    b_n := transtype(b.N: n64)
-    b_d := transtype(b.D: n64)
+    a_n := a.N comme n64
+    a_d := a.D comme n64
+    b_n := b.N comme n64
+    b_d := b.D comme n64
 
     r_N : n64
     r_N0 := a_n * b_d
@@ -34,7 +34,7 @@ opérateur + :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 
     r : NombreRationnel
 
-    si transtype(a.s: z8) == transtype(b.s: z8) {
+    si a.s comme z8 == b.s comme z8 {
         r_N = r_N0 + r_N1
         r.s = a.s
     }
@@ -72,8 +72,8 @@ opérateur + :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     }
 
     // restaure la précision
-    r.N = transtype(r_N: n32)
-    r.D = transtype(r_D: n32)
+    r.N = r_N comme n32
+    r.D = r_D comme n32
 
     retourne r
 }
@@ -89,10 +89,10 @@ opérateur - :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 opérateur * :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     // augmente la taille des types pour éviter les problèmes de surflot
-    a_n := transtype(a.N: n64)
-    a_d := transtype(a.D: n64)
-    b_n := transtype(b.N: n64)
-    b_d := transtype(b.D: n64)
+    a_n := a.N comme n64
+    a_d := a.D comme n64
+    b_n := b.N comme n64
+    b_d := b.D comme n64
 
     r_N := a_n * b_n
     r_D := a_d * b_d
@@ -121,8 +121,8 @@ opérateur * :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 
     r : NombreRationnel
     // restaure la précision
-    r.N = transtype(r_N: n32)
-    r.D = transtype(r_D: n32)
+    r.N = r_N comme n32
+    r.D = r_D comme n32
     r.s = (a.s || b.s) && !(a.s && b.s)
 
     retourne r
@@ -253,5 +253,5 @@ nombre_de_bits_zéro_en_fin :: fonc(i: n64) -> n32
     y = i <<  4; si y != 0 { n = n -  4; i = y; }
     y = i <<  2; si y != 0 { n = n -  2; i = y; }
 
-	retourne n - transtype((i << 1) >> 63: n32)
+	retourne (n - (i << 1) >> 63) comme n32
 }

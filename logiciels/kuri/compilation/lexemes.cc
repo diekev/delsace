@@ -34,6 +34,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("boucle"), GenreLexeme::BOUCLE },
 	dls::paire{ dls::vue_chaine_compacte("chaine"), GenreLexeme::CHAINE },
 	dls::paire{ dls::vue_chaine_compacte("charge"), GenreLexeme::CHARGE },
+	dls::paire{ dls::vue_chaine_compacte("comme"), GenreLexeme::COMME },
 	dls::paire{ dls::vue_chaine_compacte("continue"), GenreLexeme::CONTINUE },
 	dls::paire{ dls::vue_chaine_compacte("corout"), GenreLexeme::COROUT },
 	dls::paire{ dls::vue_chaine_compacte("dans"), GenreLexeme::DANS },
@@ -81,7 +82,6 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("taille_de"), GenreLexeme::TAILLE_DE },
 	dls::paire{ dls::vue_chaine_compacte("tantque"), GenreLexeme::TANTQUE },
 	dls::paire{ dls::vue_chaine_compacte("tente"), GenreLexeme::TENTE },
-	dls::paire{ dls::vue_chaine_compacte("transtype"), GenreLexeme::TRANSTYPE },
 	dls::paire{ dls::vue_chaine_compacte("type_de"), GenreLexeme::TYPE_DE },
 	dls::paire{ dls::vue_chaine_compacte("union"), GenreLexeme::UNION },
 	dls::paire{ dls::vue_chaine_compacte("vrai"), GenreLexeme::VRAI },
@@ -305,6 +305,8 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 			return "GenreLexeme::CHAINE";
 		case GenreLexeme::CHARGE:
 			return "GenreLexeme::CHARGE";
+		case GenreLexeme::COMME:
+			return "GenreLexeme::COMME";
 		case GenreLexeme::CONTINUE:
 			return "GenreLexeme::CONTINUE";
 		case GenreLexeme::COROUT:
@@ -399,8 +401,6 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 			return "GenreLexeme::TANTQUE";
 		case GenreLexeme::TENTE:
 			return "GenreLexeme::TENTE";
-		case GenreLexeme::TRANSTYPE:
-			return "GenreLexeme::TRANSTYPE";
 		case GenreLexeme::TYPE_DE:
 			return "GenreLexeme::TYPE_DE";
 		case GenreLexeme::UNION:
@@ -572,6 +572,8 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 			return "chaine";
 		case GenreLexeme::CHARGE:
 			return "charge";
+		case GenreLexeme::COMME:
+			return "comme";
 		case GenreLexeme::CONTINUE:
 			return "continue";
 		case GenreLexeme::COROUT:
@@ -666,8 +668,6 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 			return "tantque";
 		case GenreLexeme::TENTE:
 			return "tente";
-		case GenreLexeme::TRANSTYPE:
-			return "transtype";
 		case GenreLexeme::TYPE_DE:
 			return "type_de";
 		case GenreLexeme::UNION:

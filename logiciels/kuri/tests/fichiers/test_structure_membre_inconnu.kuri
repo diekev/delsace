@@ -8,7 +8,7 @@ Vecteur2D :: struct {
 
 foo :: fonc () -> rien
 {
-	v := Vecteur2D{0, 1};
+	v := Vecteur2D(0, 1);
 }
 
 // -----------------------------------
@@ -21,7 +21,7 @@ Vecteur2D :: struct {
 
 foo :: fonc () -> rien
 {
-	v := Vecteur2D{x = 0, z = 1};
+	v := Vecteur2D(x = 0, z = 1);
 }
 
 // -----------------------------------

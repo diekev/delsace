@@ -20,7 +20,7 @@ détermine_instruction :: fonc(chn : chaine) -> Instruction
 
 	pour nom, idx dans info_inst.noms {
 		si chn == nom {
-			retourne transtype(info_inst.valeurs[idx] : Instruction)
+			retourne info_inst.valeurs[idx] comme Instruction
 		}
 	}
 

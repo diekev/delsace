@@ -10,7 +10,7 @@ possède_membre :: fonc(arg : eini, nom : chaine) -> bool
 		retourne faux
 	}
 
-	info_arg := transtype(info : *InfoTypeStructure)
+	info_arg := info comme *InfoTypeStructure
 
     pour membre dans info_arg.membres {
         si membre.nom == nom {
@@ -29,7 +29,7 @@ membres :: corout(arg : eini) -> chaine
 		retourne
 	}
 
-	info_arg := transtype(info : *InfoTypeStructure)
+	info_arg := info comme *InfoTypeStructure
 
     pour membre dans info_arg.membres {
 		retiens membre.nom
@@ -38,7 +38,7 @@ membres :: corout(arg : eini) -> chaine
 
 trouve_info_membre :: fonc (structure: eini, nom: chaine) -> *InfoTypeMembreStructure
 {
-    info := transtype(structure.info: *InfoTypeStructure)
+    info := structure.info comme *InfoTypeStructure
 
     pour membre dans info.membres {
         si membre.nom == nom {

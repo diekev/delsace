@@ -4,7 +4,7 @@ rout crée_manipulable(valeur : eini) -> &Manipulable
 		retourne nul;
 	}
 
-	info := transtype(valeur.info : &InfoTypeStructure);
+	info := valeur.info comme &InfoTypeStructure;
 
 	manipulable := loge Manipulable sinon {
 		// À FAIRE : erreur
@@ -37,7 +37,7 @@ rout ajourne_valeur(
 		retourne;
 	}
 
-	info := transtype(objet.info : &TypeInfoStructure);
+	info := objet.info comme &TypeInfoStructure;
 
 	iter membre dans info.membres {
 		si membre.nom == nom_prop {

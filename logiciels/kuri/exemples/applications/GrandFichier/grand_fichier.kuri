@@ -65,7 +65,7 @@ somme_controle :: fonc(données : []octet) -> n64
 	somme : n64
 
 	pour donnée dans données {
-		somme += transtype(données : n64)
+		somme += données comme n64
 	}
 
 	retourne somme

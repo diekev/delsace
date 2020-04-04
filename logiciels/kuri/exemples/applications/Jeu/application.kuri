@@ -51,7 +51,7 @@ défile :: fonc(q : *FileÉvènement) -> Évènement #nulctx
     si q.taille > 1 {
 	    ptr_dst := @q.tampon[0]
 		ptr_src := @q.tampon[1]
-        copie_mem_nonsur(ptr_src, ptr_dst, transtype(taille_de(Évènement): z64) * (q.taille - 1))
+        copie_mem_nonsur(ptr_src, ptr_dst, taille_de(Évènement) comme z64 * (q.taille - 1))
     }
 
     q.taille -= 1
@@ -112,8 +112,8 @@ rappel_position_souris :: fonc(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) 
 {
     évènement : Évènement
     évènement.type = type_évènement.SOURIS_BOUGEE
-    évènement.pos_x = transtype(pos_x: r32)
-    évènement.pos_y = transtype(pos_y: r32)
+    évènement.pos_x = pos_x comme r32
+    évènement.pos_y = pos_y comme r32
 
     enfile(VG_file_évènements, évènement)
 }
@@ -122,8 +122,8 @@ rappel_roulette :: fonc(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) -> 
 {
     évènement : Évènement
     évènement.type = type_évènement.SOURIS_ROULETTE
-    évènement.delta_x = transtype(delta_x: r32)
-    évènement.delta_y = transtype(delta_y: r32)
+    évènement.delta_x = delta_x comme r32
+    évènement.delta_y = delta_y comme r32
 
     enfile(VG_file_évènements, évènement)
 }
@@ -134,8 +134,8 @@ rappel_dimension :: fonc(fenetre : *GLFWwindow, x : z32, y : z32) -> rien #nulct
 
     évènement : Évènement
     évènement.type = type_évènement.REDIMENSION
-    évènement.delta_x = transtype(x: r32)
-    évènement.delta_y = transtype(y: r32)
+    évènement.delta_x = x comme r32
+    évènement.delta_y = y comme r32
 
     enfile(VG_file_évènements, évènement)
 }
@@ -186,18 +186,18 @@ dessine_fenetre :: fonc(app : &Application) -> rien
 
 	glClearColor(0.5, 0.5, 1.0, 1.0)
 
-	l := transtype(app.largeur : r32)
-	h := transtype(app.hauteur : r32)
+	l := app.largeur comme r32
+	h := app.hauteur comme r32
 
     // dessine l'arrière plan
 
     // dessine les personnages
-	taille_x := transtype(TAILLE_TUILE : r32) / transtype(TAILLE_TUILE * TUILES_X : r32)
-	taille_y := transtype(TAILLE_TUILE : r32) / transtype(TAILLE_TUILE * TUILES_Y : r32)
-	pos_x := transtype(app.personnage.pos_x : r32) / transtype(TAILLE_TUILE * TUILES_X : r32)
-	pos_y := transtype(app.personnage.pos_y : r32) / transtype(TAILLE_TUILE * TUILES_Y : r32)
+	taille_x := TAILLE_TUILE comme r32 / TAILLE_TUILE * TUILES_X comme r32
+	taille_y := TAILLE_TUILE comme r32 / TAILLE_TUILE * TUILES_Y comme r32
+	pos_x := app.personnage.pos_x comme r32 / TAILLE_TUILE * TUILES_X comme r32
+	pos_y := app.personnage.pos_y comme r32 / TAILLE_TUILE * TUILES_Y comme r32
 
-	couleur := Couleur{r = 1.0, v = 1.0, b = 1.0, a = 1.0 }
+	couleur := Couleur(r = 1.0, v = 1.0, b = 1.0, a = 1.0 )
 
 	dessine_carré_ex(pos_x, pos_y, taille_x, taille_y, couleur)
 
@@ -209,8 +209,8 @@ traite_évènement :: fonc(app : &Application, évènement : Évènement) -> rie
     //imprime(évènement, "\n");
 
     si évènement.type == type_évènement.REDIMENSION {
-        app.largeur = transtype(évènement.delta_x : z32)
-        app.hauteur = transtype(évènement.delta_y : z32)
+        app.largeur = évènement.delta_x comme z32
+        app.hauteur = évènement.delta_y comme z32
     }
 
     si évènement.type == type_évènement.CLE_PRESSEE || évènement.type == type_évènement.CLE_REPETEE {

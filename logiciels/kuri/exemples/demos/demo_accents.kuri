@@ -31,7 +31,7 @@ principale :: fonc () -> z32
     structurée0 : Structurée
     structurée0.membrée = 68
     structurée0.fn_pointée = fée
-    structurée1 := Structurée{ membrée = 123 }
+    structurée1 := Structurée( membrée = 123 )
 
     x := structurée1.membrée
     y := Énumération.LUMIÈRE
