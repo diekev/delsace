@@ -599,7 +599,6 @@ static DonneesCandidate apparie_appel_fonction(
 			 * correspondant au types des arguments. */
 			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(contexte.assembleuse->cree_noeud(
 						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, args[0].expr->lexeme));
-			noeud_tableau->valeur_calculee = slots.taille() - index_premier_var_arg;
 			noeud_tableau->drapeaux |= EST_CALCULE;
 
 			auto type_var = decl->params[decl->params.taille - 1]->type;

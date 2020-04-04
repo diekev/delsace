@@ -2248,11 +2248,6 @@ llvm::Value *genere_code_llvm(
 			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(b);
 			auto taille_tableau = noeud_tableau->exprs.taille;
 
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
-			if (est_calcule) {
-				assert(taille_tableau == std::any_cast<long>(b->valeur_calculee));
-			}
-
 			auto type = b->type;
 
 			/* alloue un tableau fixe */
