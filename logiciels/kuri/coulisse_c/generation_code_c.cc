@@ -666,7 +666,7 @@ static void cree_initialisation_defaut_pour_constante(
 		}
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
-			flux << "{ .pointeur = 0, .taille = 0, " << broye_nom_simple(".capacité") << " }";
+			flux << "{ .pointeur = 0, .taille = 0, " << broye_nom_simple(".capacité") << " = 0 }";
 			break;
 		}
 		case GenreType::BOOL:
