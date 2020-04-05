@@ -1455,7 +1455,7 @@ void genere_code_C(
 			b->valeur_calculee = nom_var;
 			break;
 		}
-		case GenreNoeud::EXPRESSION_INDICE:
+		case GenreNoeud::EXPRESSION_INDEXAGE:
 		{
 			auto expr = static_cast<NoeudExpressionBinaire *>(b);
 			auto enfant1 = expr->expr1;

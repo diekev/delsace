@@ -1524,7 +1524,7 @@ llvm::Value *genere_code_llvm(
 
 			return llvm::BinaryOperator::Create(llvm::BinaryOperator::BinaryOps::And, a_comp_b, b_comp_c, "", contexte.bloc_courant());
 		}
-		case GenreNoeud::EXPRESSION_INDICE:
+		case GenreNoeud::EXPRESSION_INDEXAGE:
 		{
 			auto expr = static_cast<NoeudExpressionBinaire *>(b);
 			auto enfant1 = expr->expr1;

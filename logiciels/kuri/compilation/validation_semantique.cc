@@ -1339,7 +1339,7 @@ void performe_validation_semantique(
 			donnees_dependance.types_utilises.insere(expr->type);
 			break;
 		}
-		case GenreNoeud::EXPRESSION_INDICE:
+		case GenreNoeud::EXPRESSION_INDEXAGE:
 		{
 			auto expr = static_cast<NoeudExpressionBinaire *>(b);
 			expr->genre_valeur = GenreValeur::TRANSCENDANTALE;

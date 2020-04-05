@@ -88,7 +88,7 @@ const char *chaine_genre_noeud(GenreNoeud genre)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_DISCR)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_SAUFSI)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_RETIENS)
-		CAS_GENRE(GenreNoeud::EXPRESSION_INDICE)
+		CAS_GENRE(GenreNoeud::EXPRESSION_INDEXAGE)
 		CAS_GENRE(GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_DISCR_ENUM)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_DISCR_UNION)
@@ -189,7 +189,7 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
-		case GenreNoeud::EXPRESSION_INDICE:
+		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
@@ -476,7 +476,7 @@ NoeudExpression *copie_noeud(
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
-		case GenreNoeud::EXPRESSION_INDICE:
+		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
@@ -696,7 +696,7 @@ void aplatis_arbre(
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
-		case GenreNoeud::EXPRESSION_INDICE:
+		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
@@ -884,7 +884,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
-		case GenreNoeud::EXPRESSION_INDICE:
+		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:

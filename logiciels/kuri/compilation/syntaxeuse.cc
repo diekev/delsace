@@ -980,7 +980,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		{
 			consomme();
 
-			auto noeud = CREE_NOEUD(NoeudExpressionBinaire, GenreNoeud::EXPRESSION_INDICE, lexeme);
+			auto noeud = CREE_NOEUD(NoeudExpressionBinaire, GenreNoeud::EXPRESSION_INDEXAGE, lexeme);
 			noeud->expr1 = gauche;
 			noeud->expr2 = analyse_expression({}, GenreLexeme::CROCHET_OUVRANT, GenreLexeme::INCONNU);
 

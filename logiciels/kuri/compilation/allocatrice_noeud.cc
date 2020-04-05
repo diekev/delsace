@@ -58,7 +58,7 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
-		case GenreNoeud::EXPRESSION_INDICE:
+		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
