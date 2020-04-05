@@ -190,6 +190,96 @@ static llvm::CmpInst::Predicate predicat_llvm_pour_operateur(
 	}
 }
 
+static TypeOp type_op_pour_lexeme(GenreLexeme genre_lexeme)
+{
+	switch (genre_lexeme) {
+		case GenreLexeme::PLUS:
+		{
+			return TypeOp::ADDITION;
+		}
+		case GenreLexeme::MOINS:
+		{
+			return TypeOp::SOUSTRACTION;
+		}
+		case GenreLexeme::FOIS:
+		{
+			return TypeOp::MULTIPLICATION;
+		}
+		case GenreLexeme::DIVISE:
+		{
+			return TypeOp::DIVISION;
+		}
+		case GenreLexeme::POURCENT:
+		{
+			return TypeOp::MODULO;
+		}
+		case GenreLexeme::DECALAGE_DROITE:
+		{
+			return TypeOp::DEC_DROITE;
+		}
+		case GenreLexeme::DECALAGE_GAUCHE:
+		{
+			return TypeOp::DEC_GAUCHE;
+		}
+		case GenreLexeme::ESP_ESP:
+		{
+			return TypeOp::ET_LOGIQUE;
+		}
+		case GenreLexeme::BARRE_BARRE:
+		{
+			return TypeOp::OU_LOGIQUE;
+		}
+		case GenreLexeme::ESPERLUETTE:
+		{
+			return TypeOp::ET_BINAIRE;
+		}
+		case GenreLexeme::BARRE:
+		{
+			return TypeOp::OU_BINAIRE;
+		}
+		case GenreLexeme::CHAPEAU:
+		{
+			return TypeOp::OUX_BINAIRE;
+		}
+		case GenreLexeme::INFERIEUR:
+		{
+			return TypeOp::COMP_INF;
+		}
+		case GenreLexeme::INFERIEUR_EGAL:
+		{
+			return TypeOp::COMP_INF_EGAL;
+		}
+		case GenreLexeme::SUPERIEUR:
+		{
+			return TypeOp::COMP_SUP;
+		}
+		case GenreLexeme::SUPERIEUR_EGAL:
+		{
+			return TypeOp::COMP_SUP_EGAL;
+		}
+		case GenreLexeme::EGALITE:
+		{
+			return TypeOp::COMP_EGAL;
+		}
+		case GenreLexeme::DIFFERENCE:
+		{
+			return TypeOp::COMP_NON_EGAL;
+		}
+		case GenreLexeme::PLUS_UNAIRE:
+		{
+			return TypeOp::PLUS_UNAIRE;
+		}
+		case GenreLexeme::MOINS_UNAIRE:
+		{
+			return TypeOp::MOINS_UNAIRE;
+		}
+		default:
+		{
+			return static_cast<TypeOp>(-1);
+		}
+	}
+}
+
 #include "contexte_generation_code.h"
 
 // types comparaisons :
@@ -241,6 +331,98 @@ static bool est_commutatif(GenreLexeme id)
 	}
 }
 
+const char *chaine_pour_type_op(TypeOp type_op)
+{
+	switch (type_op) {
+		case TypeOp::ADDITION:
+		{
+			return "ajt";
+		}
+		case TypeOp::SOUSTRACTION:
+		{
+			return "sst";
+		}
+		case TypeOp::MULTIPLICATION:
+		{
+			return "mul";
+		}
+		case TypeOp::DIVISION:
+		{
+			return "div";
+		}
+		case TypeOp::MODULO:
+		{
+			return "mod";
+		}
+		case TypeOp::COMP_EGAL:
+		{
+			return "eg";
+		}
+		case TypeOp::COMP_NON_EGAL:
+		{
+			return "neg";
+		}
+		case TypeOp::COMP_INF:
+		{
+			return "inf";
+		}
+		case TypeOp::COMP_INF_EGAL:
+		{
+			return "infeg";
+		}
+		case TypeOp::COMP_SUP:
+		{
+			return "sup";
+		}
+		case TypeOp::COMP_SUP_EGAL:
+		{
+			return "supeg";
+		}
+		case TypeOp::ET_LOGIQUE:
+		{
+			return "et";
+		}
+		case TypeOp::OU_LOGIQUE:
+		{
+			return "ou";
+		}
+		case TypeOp::ET_BINAIRE:
+		{
+			return "et";
+		}
+		case TypeOp::OU_BINAIRE:
+		{
+			return "ou";
+		}
+		case TypeOp::OUX_BINAIRE:
+		{
+			return "oux";
+		}
+		case TypeOp::NON_BINAIRE:
+		{
+			return "non";
+		}
+		case TypeOp::DEC_GAUCHE:
+		{
+			return "decg";
+		}
+		case TypeOp::DEC_DROITE:
+		{
+			return "decd";
+		}
+		case TypeOp::PLUS_UNAIRE:
+		{
+			return "plus";
+		}
+		case TypeOp::MOINS_UNAIRE:
+		{
+			return "moins";
+		}
+	}
+
+	return "inconnu";
+}
+
 Operateurs::~Operateurs()
 {
 }
@@ -277,6 +459,7 @@ void Operateurs::ajoute_basique(
 	op->type_resultat = type_resultat;
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = true;
+	op->type_operation = type_op_pour_lexeme(id);
 
 	if (raison == RaisonOp::POUR_COMPARAISON) {
 		op->est_comp_reel = indice_type == IndiceTypeOp::REEL;
@@ -307,6 +490,7 @@ void Operateurs::ajoute_perso(
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = false;
 	op->nom_fonction = nom_fonction;
+	op->type_operation = type_op_pour_lexeme(id);
 }
 
 void Operateurs::ajoute_perso_unaire(
@@ -321,6 +505,7 @@ void Operateurs::ajoute_perso_unaire(
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = false;
 	op->nom_fonction = nom_fonction;
+	op->type_operation = type_op_pour_lexeme(id);
 }
 
 void Operateurs::ajoute_operateur_basique_enum(Type *type)

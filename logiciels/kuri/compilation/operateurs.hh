@@ -58,10 +58,43 @@ enum class RaisonOp {
 	POUR_ARITHMETIQUE,
 };
 
+enum class TypeOp {
+	ADDITION,
+	SOUSTRACTION,
+	MULTIPLICATION,
+	DIVISION,
+	MODULO,
+
+	COMP_EGAL,
+	COMP_NON_EGAL,
+	COMP_INF,
+	COMP_INF_EGAL,
+	COMP_SUP,
+	COMP_SUP_EGAL,
+
+	ET_LOGIQUE,
+	OU_LOGIQUE,
+
+	ET_BINAIRE,
+	OU_BINAIRE,
+	OUX_BINAIRE,
+	NON_BINAIRE,
+
+	DEC_GAUCHE,
+	DEC_DROITE,
+
+	PLUS_UNAIRE,
+	MOINS_UNAIRE,
+};
+
+const char *chaine_pour_type_op(TypeOp type_op);
+
 struct DonneesOperateur {
 	Type *type1{};
 	Type *type2{};
 	Type *type_resultat{};
+
+	TypeOp type_operation{};
 
 	/* vrai si l'on peut sainement inverser les paramètres,
 	 * vrai pour : +, *, !=, == */
