@@ -992,7 +992,6 @@ llvm::Value *genere_code_llvm(
 	switch (b->genre) {
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::DECLARATION_ENUM:
-		case GenreNoeud::RACINE:
 		case GenreNoeud::INSTRUCTION_RETOUR:
 		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:

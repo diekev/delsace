@@ -647,7 +647,6 @@ void performe_validation_semantique(
 
 	switch (b->genre) {
 		case GenreNoeud::INSTRUCTION_SINON:
-		case GenreNoeud::RACINE:
 		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
 		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		case GenreNoeud::DECLARATION_COROUTINE:

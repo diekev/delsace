@@ -42,7 +42,6 @@ struct NoeudBloc;
 struct TypeFonction;
 
 enum class GenreNoeud : char {
-	RACINE,
 	DECLARATION_COROUTINE,
 	DECLARATION_ENUM,
 	DECLARATION_FONCTION,

@@ -29,7 +29,6 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 	auto noeud = static_cast<NoeudBase *>(nullptr);
 
 	switch (genre) {
-		case GenreNoeud::RACINE:
 		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{

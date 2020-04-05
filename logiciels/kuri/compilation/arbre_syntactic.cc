@@ -46,7 +46,6 @@ const char *chaine_genre_noeud(GenreNoeud genre)
 #define CAS_GENRE(x) case x: return #x;
 
 	switch (genre) {
-		CAS_GENRE(GenreNoeud::RACINE)
 		CAS_GENRE(GenreNoeud::DECLARATION_FONCTION)
 		CAS_GENRE(GenreNoeud::DECLARATION_COROUTINE)
 		CAS_GENRE(GenreNoeud::DECLARATION_OPERATEUR)
@@ -127,7 +126,6 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 	}
 
 	switch (racine->genre) {
-		case GenreNoeud::RACINE:
 		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
@@ -405,7 +403,6 @@ NoeudExpression *copie_noeud(
 	nracine->drapeaux = racine->drapeaux;
 
 	switch (racine->genre) {
-		case GenreNoeud::RACINE:
 		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
@@ -656,7 +653,6 @@ void aplatis_arbre(
 	}
 
 	switch (racine->genre) {
-		case GenreNoeud::RACINE:
 		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
@@ -972,7 +968,6 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 
 			break;
 		}
-		case GenreNoeud::RACINE:
 		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		case GenreNoeud::DECLARATION_FONCTION:
