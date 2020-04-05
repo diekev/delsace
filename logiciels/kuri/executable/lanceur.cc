@@ -66,6 +66,8 @@
 
 #include "coulisse_c/generation_code_c.hh"
 
+#include "representation_intermediaire/constructrice_ri.hh"
+
 #include "options.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
@@ -616,6 +618,12 @@ int main(int argc, char *argv[])
 //				std::cerr << "Arbre syntaxique pour '" << it->nom << "' :\n";
 //				imprime_arbre(it->assembleuse->bloc_courant(), std::cerr, 1);
 //			}
+
+#if 0
+			auto constructrice_ri = ConstructriceRI(contexte_generation);
+			constructrice_ri.genere_ri();
+			constructrice_ri.imprime_programme();
+#endif
 
 			std::ofstream of;
 			of.open("/tmp/compilation_kuri.c");

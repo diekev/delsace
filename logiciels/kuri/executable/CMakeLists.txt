@@ -45,6 +45,7 @@ set(BIBLIOTHEQUES
 	kuri_coulisse_c
 	kuri_coulisse_llvm
 	kuri_options
+	kuri_representation_intermediaire
 	stdc++fs
 	bib_outils
 	systeme_fichier

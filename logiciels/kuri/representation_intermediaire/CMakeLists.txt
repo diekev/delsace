@@ -14,38 +14,33 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2020 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# ------------------------------------------------------------------------------
+set(NOM_CIBLE kuri_representation_intermediaire)
 
-option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
-
-if(AVEC_LLVM)
-	find_package(LLVM REQUIRED)
-	add_definitions(-DAVEC_LLVM)
-endif()
-
-# ------------------------------------------------------------------------------
-
-set(RACINE_INSTALLATION kuri)
-
-add_subdirectory(compilation)
-add_subdirectory(coulisse_c)
-add_subdirectory(executable)
-add_subdirectory(exemples)
-add_subdirectory(modules_c/FTGL)
-add_subdirectory(modules_c/Krypto)
-add_subdirectory(representation_intermediaire)
-add_subdirectory(tests)
-
-if(AVEC_LLVM)
-	add_subdirectory(coulisse_llvm)
-endif()
-
-install(
-	DIRECTORY modules
-	DESTINATION ${RACINE_INSTALLATION}
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../compilation/
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 )
+
+set(BIBLIOTHEQUES
+	kuri_compilation
+	bib_outils
+)
+
+set(SOURCES
+    constructrice_ri.cc
+	instructions.cc
+
+    constructrice_ri.hh
+	instructions.hh
+)
+
+add_library(${NOM_CIBLE} STATIC "${SOURCES}")
+
+target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
