@@ -103,7 +103,7 @@ private:
 	InstructionLabel *reserve_label();
 	void insere_label(InstructionLabel *label);
 	InstructionRetour *cree_retour(Atome *valeur);
-	InstructionStockeMem *cree_stocke_mem(Type *type, InstructionAllocation *ou, Atome *valeur);
+	InstructionStockeMem *cree_stocke_mem(Type *type, Instruction *ou, Atome *valeur);
 	InstructionChargeMem *cree_charge_mem(Type *type, Atome *ou);
 	InstructionAppel *cree_appel(Type *type, Atome *appele, kuri::tableau<Atome *> &&args);
 
@@ -119,6 +119,8 @@ private:
 	void depile_controle_boucle();
 
 	Atome *genere_ri_pour_noeud(NoeudExpression *noeud);
+	Atome *genere_ri_transformee_pour_noeud(NoeudExpression *noeud);
+
 	void traverse_graphe(NoeudDependance *racine);
 
 	void imprime_instruction(Instruction const *inst, std::ostream &os) const;

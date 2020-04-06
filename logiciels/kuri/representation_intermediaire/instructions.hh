@@ -184,12 +184,12 @@ struct InstructionChargeMem : public Instruction {
 struct InstructionStockeMem : public Instruction {
 	InstructionStockeMem() { genre = Instruction::Genre::STOCKE_MEMOIRE; }
 
-	InstructionAllocation *ou = nullptr;
+	Instruction *ou = nullptr;
 	Atome *valeur = nullptr;
 
 	COPIE_CONSTRUCT(InstructionStockeMem);
 
-	static InstructionStockeMem *cree(Type *type, InstructionAllocation *ou, Atome *valeur);
+	static InstructionStockeMem *cree(Type *type, Instruction *ou, Atome *valeur);
 };
 
 struct InstructionLabel : public Instruction {

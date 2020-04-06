@@ -66,6 +66,7 @@
 
 #include "coulisse_c/generation_code_c.hh"
 
+#undef CRI
 #include "representation_intermediaire/constructrice_ri.hh"
 
 #include "options.hh"
@@ -528,7 +529,11 @@ int main(int argc, char *argv[])
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 
 		/* Charge d'abord le module basique. */
+#ifdef CRI
+		contexte_generation.importe_kuri = false;
+#else
 		importe_module(os, chemin_racine_kuri, "Kuri", contexte_generation, {});
+#endif
 
 		/* Change le dossier courant et lance la compilation. */
 		auto dossier = chemin.parent_path();
@@ -619,11 +624,12 @@ int main(int argc, char *argv[])
 //				imprime_arbre(it->assembleuse->bloc_courant(), std::cerr, 1);
 //			}
 
-#if 0
+#ifdef CRI
 			auto constructrice_ri = ConstructriceRI(contexte_generation);
 			constructrice_ri.genere_ri();
 			constructrice_ri.imprime_programme();
-#endif
+			est_errone = true; // desactive l'impression des stats
+#else
 
 			std::ofstream of;
 			of.open("/tmp/compilation_kuri.c");
@@ -734,6 +740,7 @@ int main(int argc, char *argv[])
 					temps_executable = debut_executable.temps();
 				}
 			}
+#endif
 		}
 
 		/* restore le dossier d'origine */

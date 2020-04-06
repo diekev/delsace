@@ -129,7 +129,7 @@ InstructionChargeMem *InstructionChargeMem::cree(Type *type, Instruction *inst_c
 	return inst;
 }
 
-InstructionStockeMem *InstructionStockeMem::cree(Type *type, InstructionAllocation *ou, Atome *valeur)
+InstructionStockeMem *InstructionStockeMem::cree(Type *type, Instruction *ou, Atome *valeur)
 {
 	auto inst = memoire::loge<InstructionStockeMem>("InstructionStockeMem");
 	inst->type = type;

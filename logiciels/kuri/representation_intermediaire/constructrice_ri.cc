@@ -514,7 +514,7 @@ InstructionRetour *ConstructriceRI::cree_retour(Atome *valeur)
 	return inst;
 }
 
-InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Type *type, InstructionAllocation *ou, Atome *valeur)
+InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Type *type, Instruction *ou, Atome *valeur)
 {
 	auto inst = InstructionStockeMem::cree(type, ou, valeur);
 	inst->numero = nombre_instructions++;
@@ -629,6 +629,10 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			table_fonctions.insere({ decl->nom_broye, atome_fonc });
 
+			if (decl->est_externe) {
+				return atome_fonc;
+			}
+
 			fonction_courante = atome_fonc;
 
 			cree_label();
@@ -661,7 +665,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			args.reserve(expr_appel->exprs.taille);
 
 			POUR (expr_appel->exprs) {
-				auto atome = genere_ri_pour_noeud(it);
+				auto atome = genere_ri_transformee_pour_noeud(it);
 				args.pousse(atome);
 			}
 
@@ -694,7 +698,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto expr_ass = static_cast<NoeudExpressionBinaire *>(noeud);
 
 			auto alloc = genere_ri_pour_noeud(expr_ass->expr1);
-			auto valeur = genere_ri_pour_noeud(expr_ass->expr2);
+			auto valeur = genere_ri_transformee_pour_noeud(expr_ass->expr2);
 			cree_stocke_mem(expr_ass->expr1->type, static_cast<InstructionAllocation *>(alloc), valeur);
 			return nullptr;
 		}
@@ -705,7 +709,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto alloc = cree_allocation(noeud->type, noeud->ident);
 
 			if (decl->expression) {
-				auto valeur = genere_ri_pour_noeud(decl->expression);
+				auto valeur = genere_ri_transformee_pour_noeud(decl->expression);
 				cree_stocke_mem(alloc->type, alloc, valeur);
 			}
 
@@ -743,8 +747,8 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto expr_bin = static_cast<NoeudExpressionBinaire *>(noeud);
 
 			if (expr_bin->op->est_basique) {
-				auto valeur_gauche = genere_ri_pour_noeud(expr_bin->expr1);
-				auto valeur_droite = genere_ri_pour_noeud(expr_bin->expr2);
+				auto valeur_gauche = genere_ri_transformee_pour_noeud(expr_bin->expr1);
+				auto valeur_droite = genere_ri_transformee_pour_noeud(expr_bin->expr2);
 				return cree_op_binaire(noeud->type, expr_bin->op, valeur_gauche, valeur_droite);
 			}
 
@@ -764,7 +768,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto expr_un = static_cast<NoeudExpressionUnaire *>(noeud);
 
 			if (expr_un->op->est_basique) {
-				auto valeur = genere_ri_pour_noeud(expr_un->expr);
+				auto valeur = genere_ri_transformee_pour_noeud(expr_un->expr);
 				return cree_op_unaire(expr_un->type, expr_un->op, valeur);
 			}
 
@@ -777,7 +781,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		{
 			auto inst_retour = static_cast<NoeudExpressionUnaire *>(noeud);
-			auto valeur = genere_ri_pour_noeud(inst_retour->expr);
+			auto valeur = genere_ri_transformee_pour_noeud(inst_retour->expr);
 			return cree_retour(valeur);
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
@@ -991,4 +995,101 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 	}
 
 	return nullptr;
+}
+
+Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud)
+{
+	auto &transformation = noeud->transformation;
+	auto valeur = genere_ri_pour_noeud(noeud);
+
+	switch (transformation.type) {
+		case TypeTransformation::INUTILE:
+		case TypeTransformation::IMPOSSIBLE:
+		{
+			break;
+		}
+		case TypeTransformation::CONVERTI_ENTIER_CONSTANT:
+		{
+			// valeur est déjà une constante, change simplement le type
+			valeur->type = transformation.type_cible;
+			break;
+		}
+		case TypeTransformation::CONSTRUIT_UNION:
+		{
+			auto alloc = cree_allocation(transformation.type_cible, nullptr);
+			auto index = cree_constante_entiere(m_contexte.typeuse[TypeBase::Z64], 0);
+			auto acces_membre = cree_acces_membre(noeud->type, alloc, index);
+			cree_stocke_mem(noeud->type, acces_membre, valeur);
+			index = cree_constante_entiere(m_contexte.typeuse[TypeBase::Z64], 1);
+			acces_membre = cree_acces_membre(m_contexte.typeuse[TypeBase::Z32], alloc, index);
+			index = cree_constante_entiere(m_contexte.typeuse[TypeBase::Z32], static_cast<unsigned long>(transformation.index_membre));
+			cree_stocke_mem(m_contexte.typeuse[TypeBase::Z32], acces_membre, index);
+			break;
+		}
+		case TypeTransformation::EXTRAIT_UNION:
+		{
+			break;
+		}
+		case TypeTransformation::CONVERTI_VERS_PTR_RIEN:
+		{
+			valeur = cree_transtype(m_contexte.typeuse[TypeBase::PTR_RIEN], valeur);
+			break;
+		}
+		case TypeTransformation::CONVERTI_VERS_TYPE_CIBLE:
+		{
+			valeur = cree_transtype(transformation.type_cible, valeur);
+			break;
+		}
+		case TypeTransformation::AUGMENTE_TAILLE_TYPE:
+		{
+			// À FAIRE : granuralise les expressions de transtypage
+			valeur = cree_transtype(transformation.type_cible, valeur);
+			break;
+		}
+		case TypeTransformation::CONSTRUIT_EINI:
+		{
+			break;
+		}
+		case TypeTransformation::EXTRAIT_EINI:
+		{
+			break;
+		}
+		case TypeTransformation::CONSTRUIT_TABL_OCTET:
+		{
+			break;
+		}
+		case TypeTransformation::CONVERTI_TABLEAU:
+		{
+			break;
+		}
+		case TypeTransformation::FONCTION:
+		{
+			auto iter_atome_fonction = table_fonctions.trouve(transformation.nom_fonction);
+			auto atome_fonction = iter_atome_fonction->second;
+
+			// À FAIRE : contexte
+			auto args = kuri::tableau<Atome *>();
+			args.pousse(valeur);
+
+			valeur = cree_appel(atome_fonction->type, atome_fonction, std::move(args));
+			break;
+		}
+		case TypeTransformation::PREND_REFERENCE:
+		{
+			break;
+		}
+		case TypeTransformation::DEREFERENCE:
+		{
+			valeur = cree_charge_mem(m_contexte.typeuse.type_dereference_pour(noeud->type), valeur);
+			break;
+		}
+		case TypeTransformation::CONVERTI_VERS_BASE:
+		{
+			// À FAIRE : décalage dans la structure
+			valeur = cree_transtype(transformation.type_cible, valeur);
+			break;
+		}
+	}
+
+	return valeur;
 }
