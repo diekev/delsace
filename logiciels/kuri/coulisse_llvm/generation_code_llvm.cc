@@ -413,7 +413,6 @@ static int trouve_index_membre(NoeudStruct *noeud_struct, dls::vue_chaine_compac
 			break;
 		}
 		case TypeTransformation::INUTILE:
-		case TypeTransformation::PREND_PTR_RIEN:
 		{
 			valeur = genere_code_llvm(b, contexte, expr_gauche);
 			break;

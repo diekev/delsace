@@ -174,7 +174,6 @@ static void applique_transformation(
 		case TypeTransformation::CONVERTI_VERS_TYPE_CIBLE:
 		case TypeTransformation::CONVERTI_ENTIER_CONSTANT:
 		case TypeTransformation::INUTILE:
-		case TypeTransformation::PREND_PTR_RIEN:
 		case TypeTransformation::AUGMENTE_TAILLE_TYPE:
 		{
 			nom_var_temp = nom_courant;
