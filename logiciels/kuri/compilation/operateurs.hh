@@ -74,6 +74,7 @@ enum class TypeOp {
 
 	ET_LOGIQUE,
 	OU_LOGIQUE,
+	NON_LOGIQUE,
 
 	ET_BINAIRE,
 	OU_BINAIRE,

@@ -3558,6 +3558,11 @@ static void genere_code_c_pour_instruction(Instruction const *inst, std::ostream
 					os << " || ";
 					break;
 				}
+				case TypeOp::NON_LOGIQUE:
+				{
+					os << "! ";
+					break;
+				}
 				case TypeOp::ET_BINAIRE:
 				{
 					os << " & ";

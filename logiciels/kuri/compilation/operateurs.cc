@@ -273,6 +273,14 @@ static TypeOp type_op_pour_lexeme(GenreLexeme genre_lexeme)
 		{
 			return TypeOp::MOINS_UNAIRE;
 		}
+		case GenreLexeme::TILDE:
+		{
+			return TypeOp::NON_BINAIRE;
+		}
+		case GenreLexeme::EXCLAMATION:
+		{
+			return TypeOp::NON_LOGIQUE;
+		}
 		default:
 		{
 			return static_cast<TypeOp>(-1);
@@ -385,6 +393,10 @@ const char *chaine_pour_type_op(TypeOp type_op)
 		case TypeOp::OU_LOGIQUE:
 		{
 			return "ou";
+		}
+		case TypeOp::NON_LOGIQUE:
+		{
+			return "non";
 		}
 		case TypeOp::ET_BINAIRE:
 		{
