@@ -40,6 +40,8 @@
 #include "portee.hh"
 #include "typage.hh"
 
+#include "representation_intermediaire/constructrice_ri.hh"
+
 namespace noeud {
 
 /* ************************************************************************** */
@@ -3328,6 +3330,366 @@ void genere_code_C_pour_execution(
 	POUR (contexte.typeuse.types_fonctions) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 	POUR (contexte.typeuse.types_variadiques) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 	POUR (contexte.typeuse.types_unions) { it->ptr_info_type = ""; it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; };
+}
+
+static void genere_code_c_pour_atome(Atome *atome, std::ostream &os)
+{
+	switch (atome->genre_atome) {
+		case Atome::Genre::FONCTION:
+		{
+			auto atome_fonc = static_cast<AtomeFonction const *>(atome);
+			os << atome_fonc->nom;
+			break;
+		}
+		case Atome::Genre::CONSTANTE:
+		{
+			auto atome_const = static_cast<AtomeConstante const *>(atome);
+
+			switch (atome_const->valeur.genre) {
+				case AtomeConstante::Valeur::Genre::NULLE:
+				{
+					os << "0";
+					break;
+				}
+				case AtomeConstante::Valeur::Genre::CHAINE:
+				{
+					os << "";
+					break;
+				}
+				case AtomeConstante::Valeur::Genre::REELLE:
+				{
+					os << atome_const->valeur.valeur_reelle;
+					break;
+				}
+				case AtomeConstante::Valeur::Genre::ENTIERE:
+				{
+					os << atome_const->valeur.valeur_entiere;
+					break;
+				}
+				case AtomeConstante::Valeur::Genre::BOOLEENNE:
+				{
+					os << atome_const->valeur.valeur_booleenne;
+					break;
+				}
+				case AtomeConstante::Valeur::Genre::CARACTERE:
+				{
+					os << atome_const->valeur.valeur_entiere;
+					break;
+				}
+				case AtomeConstante::Valeur::Genre::INDEFINIE:
+				{
+					break;
+				}
+			}
+
+			break;
+		}
+		case Atome::Genre::INSTRUCTION:
+		{
+			auto inst = static_cast<Instruction const *>(atome);
+
+			if (inst->genre == Instruction::Genre::ALLOCATION) {
+				os << inst->ident->nom;
+			}
+			else {
+				os << "val" << inst->numero;
+			}
+
+			break;
+		}
+	}
+}
+
+static void genere_code_c_pour_instruction(Instruction const *inst, std::ostream &os)
+{
+	switch (inst->genre) {
+		case Instruction::Genre::INVALIDE:
+		{
+			os << "  invalide\n";
+			break;
+		}
+		case Instruction::Genre::ALLOCATION:
+		{
+			os << "  " << nom_broye_type(inst->type) << ' ' << inst->ident->nom << ";\n";
+			break;
+		}
+		case Instruction::Genre::APPEL:
+		{
+			auto inst_appel = static_cast<InstructionAppel const *>(inst);
+
+			os << "  ";
+
+			if  (inst_appel->type->genre != GenreType::RIEN) {
+				os << nom_broye_type(inst_appel->type) << ' ' << "__ret = ";
+			}
+
+			genere_code_c_pour_atome(inst_appel->appele, os);
+
+			auto virgule = '(';
+
+			POUR (inst_appel->args) {
+				os << virgule;
+				genere_code_c_pour_atome(it, os);
+				virgule = ',';
+			}
+
+			if (inst_appel->args.taille == 0) {
+				os << virgule;
+			}
+
+			os << ");\n";
+
+			break;
+		}
+		case Instruction::Genre::BRANCHE:
+		{
+			auto inst_branche = static_cast<InstructionBranche const *>(inst);
+			os << "  goto label" << inst_branche->label->numero << ";\n";
+			break;
+		}
+		case Instruction::Genre::BRANCHE_CONDITION:
+		{
+			auto inst_branche = static_cast<InstructionBrancheCondition const *>(inst);
+			os << "  if (";
+			genere_code_c_pour_atome(inst_branche->condition, os);
+			os << ") goto label" << inst_branche->label_si_vrai->id << "; ";
+			os << "else goto label" << inst_branche->label_si_faux->id << ";\n";
+			break;
+		}
+		case Instruction::Genre::CHARGE_MEMOIRE:
+		{
+			os << "  charge\n";
+			break;
+		}
+		case Instruction::Genre::STOCKE_MEMOIRE:
+		{
+			auto inst_stocke = static_cast<InstructionStockeMem const *>(inst);
+			os << "  " << inst_stocke->ou->ident->nom << " = ";
+			genere_code_c_pour_atome(inst_stocke->valeur, os);
+			os << ";\n";
+			break;
+		}
+		case Instruction::Genre::LABEL:
+		{
+			auto inst_label = static_cast<InstructionLabel const *>(inst);
+			os << "label" << inst_label->id << ":\n";
+			break;
+		}
+		case Instruction::Genre::OPERATION_UNAIRE:
+		{
+			auto inst_un = static_cast<InstructionOpUnaire const *>(inst);
+			os << "  " << chaine_pour_type_op(inst_un->op->type_operation)
+			   << ' ' << nom_broye_type(inst_un->type);
+			genere_code_c_pour_atome(inst_un->valeur, os);
+			os << '\n';
+			break;
+		}
+		case Instruction::Genre::OPERATION_BINAIRE:
+		{
+			auto inst_bin = static_cast<InstructionOpBinaire const *>(inst);
+
+			os << "  " << nom_broye_type(inst_bin->type) << " val" << inst->numero << " = ";
+
+			genere_code_c_pour_atome(inst_bin->valeur_gauche, os);
+
+			switch (inst_bin->op->type_operation) {
+				case TypeOp::ADDITION:
+				{
+					os << " + ";
+					break;
+				}
+				case TypeOp::SOUSTRACTION:
+				{
+					os << " - ";
+					break;
+				}
+				case TypeOp::MULTIPLICATION:
+				{
+					os << " * ";
+					break;
+				}
+				case TypeOp::DIVISION:
+				{
+					os << " / ";
+					break;
+				}
+				case TypeOp::MODULO:
+				{
+					os << " % ";
+					break;
+				}
+				case TypeOp::COMP_EGAL:
+				{
+					os << " == ";
+					break;
+				}
+				case TypeOp::COMP_NON_EGAL:
+				{
+					os << " != ";
+					break;
+				}
+				case TypeOp::COMP_INF:
+				{
+					os << " < ";
+					break;
+				}
+				case TypeOp::COMP_INF_EGAL:
+				{
+					os << " <= ";
+					break;
+				}
+				case TypeOp::COMP_SUP:
+				{
+					os << " > ";
+					break;
+				}
+				case TypeOp::COMP_SUP_EGAL:
+				{
+					os << " >= ";
+					break;
+				}
+				case TypeOp::ET_LOGIQUE:
+				{
+					os << " && ";
+					break;
+				}
+				case TypeOp::OU_LOGIQUE:
+				{
+					os << " || ";
+					break;
+				}
+				case TypeOp::ET_BINAIRE:
+				{
+					os << " & ";
+					break;
+				}
+				case TypeOp::OU_BINAIRE:
+				{
+					os << " | ";
+					break;
+				}
+				case TypeOp::OUX_BINAIRE:
+				{
+					os << " ^ ";
+					break;
+				}
+				case TypeOp::NON_BINAIRE:
+				{
+					os << " ~ ";
+					break;
+				}
+				case TypeOp::DEC_GAUCHE:
+				{
+					os << " << ";
+					break;
+				}
+				case TypeOp::DEC_DROITE:
+				{
+					os << " >> ";
+					break;
+				}
+				case TypeOp::PLUS_UNAIRE:
+				{
+					os << " + ";
+					break;
+				}
+				case TypeOp::MOINS_UNAIRE:
+				{
+					os << " - ";
+					break;
+				}
+			}
+
+			genere_code_c_pour_atome(inst_bin->valeur_droite, os);
+
+			os << ";\n";
+
+			break;
+		}
+		case Instruction::Genre::RETOUR:
+		{
+			auto inst_retour = static_cast<InstructionRetour const *>(inst);
+			os << "  return ";
+			if (inst_retour->valeur != nullptr) {
+				auto atome = inst_retour->valeur;
+				genere_code_c_pour_atome(atome, os);
+			}
+			os << ";\n";
+			break;
+		}
+		case Instruction::Genre::ACCEDE_INDEX:
+		{
+			auto inst_acces = static_cast<InstructionAccedeIndex const *>(inst);
+			genere_code_c_pour_atome(inst_acces->accede, os);
+			os << '[';
+			genere_code_c_pour_atome(inst_acces->index, os);
+			os << "];\n";
+			break;
+		}
+		case Instruction::Genre::ACCEDE_MEMBRE:
+		{
+			auto inst_acces = static_cast<InstructionAccedeMembre const *>(inst);
+			genere_code_c_pour_atome(inst_acces->accede, os);
+			os << ".";
+			genere_code_c_pour_atome(inst_acces->index, os);
+			os << ";\n";
+			break;
+		}
+		case Instruction::Genre::TRANSTYPE:
+		{
+			auto inst_transtype = static_cast<InstructionTranstype const *>(inst);
+			os << "(" << nom_broye_type(inst_transtype->type) << ")(";
+			genere_code_c_pour_atome(inst_transtype->valeur, os);
+			os << ")";
+			break;
+		}
+	}
+}
+
+void genere_code_C(ConstructriceRI &contructrice_ri)
+{
+	std::ostream &os = std::cerr;
+
+	POUR (contructrice_ri.programme) {
+		switch (it->genre_atome) {
+			case Atome::Genre::FONCTION:
+			{
+				auto atome_fonc = static_cast<AtomeFonction const *>(it);
+				os << "void " << atome_fonc->nom;
+
+				auto virgule = '(';
+
+				for (auto param : atome_fonc->params_entrees) {
+					os << virgule;
+					os << chaine_type(param->type) << ' ';
+					os << param->ident->nom;
+					virgule = ',';
+				}
+
+				if (atome_fonc->params_entrees.taille == 0) {
+					os << virgule;
+				}
+
+				os << ")\n{\n";
+
+				for (auto inst : atome_fonc->instructions) {
+					genere_code_c_pour_instruction(static_cast<Instruction const *>(inst), os);
+				}
+
+				os << "}\n";
+
+				break;
+			}
+			case Atome::Genre::CONSTANTE:
+			{
+				break;
+			}
+			case Atome::Genre::INSTRUCTION:
+			{
+				break;
+			}
+		}
+	}
 }
 
 }  /* namespace noeud */

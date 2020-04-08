@@ -29,6 +29,7 @@
 
 struct assembleuse_arbre;
 struct ContexteGenerationCode;
+struct ConstructriceRI;
 struct NoeudExpression;
 
 namespace noeud {
@@ -48,5 +49,8 @@ void genere_code_C_pour_execution(
 		ContexteGenerationCode &contexte,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);
+
+void genere_code_C(
+		ConstructriceRI &contructrice_ri);
 
 }  /* namespace noeud */

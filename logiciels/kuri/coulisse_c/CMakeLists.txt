@@ -22,12 +22,14 @@
 set(NOM_CIBLE kuri_coulisse_c)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../compilation/
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 )
 
 set(BIBLIOTHEQUES
 	kuri_compilation
+	kuri_representation_intermediaire
 	bib_outils
 )
 
