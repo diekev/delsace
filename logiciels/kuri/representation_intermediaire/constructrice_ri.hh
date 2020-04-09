@@ -119,6 +119,7 @@ private:
 	void depile_controle_boucle();
 
 	Atome *genere_ri_pour_noeud(NoeudExpression *noeud);
+	Atome *genere_ri_pour_expression_droite(NoeudExpression *noeud);
 	Atome *genere_ri_transformee_pour_noeud(NoeudExpression *noeud);
 
 	void traverse_graphe(NoeudDependance *racine);

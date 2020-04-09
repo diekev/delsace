@@ -627,8 +627,8 @@ int main(int argc, char *argv[])
 #ifdef CRI
 			auto constructrice_ri = ConstructriceRI(contexte_generation);
 			constructrice_ri.genere_ri();
-			constructrice_ri.imprime_programme();
-			noeud::genere_code_C(constructrice_ri);
+			//constructrice_ri.imprime_programme();
+			//noeud::genere_code_C(constructrice_ri);
 			est_errone = true; // desactive l'impression des stats
 #else
 
