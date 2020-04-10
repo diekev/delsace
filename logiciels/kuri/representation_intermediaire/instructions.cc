@@ -69,6 +69,26 @@ AtomeConstante *AtomeConstante::cree(Type *type, const kuri::chaine &chaine)
 	return atome;
 }
 
+AtomeConstante *AtomeConstante::cree(Type *type, kuri::tableau<AtomeConstante *> &&valeurs)
+{
+	auto atome = memoire::loge<AtomeConstante>("AtomeEntierConstant");
+	atome->type = type;
+	atome->valeur.genre = Valeur::Genre::CHAINE;
+	atome->valeur.valeur_structure.pointeur = valeurs.pointeur;
+	atome->valeur.valeur_structure.taille = valeurs.taille;
+	valeurs.pointeur = nullptr;
+	valeurs.taille = 0;
+	return atome;
+}
+
+AtomeGlobale *AtomeGlobale::cree(Type *type, AtomeConstante *initialisateur)
+{
+	auto atome_globale = memoire::loge<AtomeGlobale>("AtomeGlobale");
+	atome_globale->type = type;
+	atome_globale->initialisateur = initialisateur;
+	return atome_globale;
+}
+
 AtomeFonction *AtomeFonction::cree(dls::chaine const &nom, kuri::tableau<Atome *> &&params)
 {
 	auto atome = memoire::loge<AtomeFonction>("AtomeFonction");

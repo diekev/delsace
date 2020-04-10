@@ -3380,6 +3380,10 @@ static void genere_code_c_pour_atome(Atome *atome, std::ostream &os)
 				{
 					break;
 				}
+				case AtomeConstante::Valeur::Genre::STRUCTURE:
+				{
+					break;
+				}
 			}
 
 			break;
@@ -3395,6 +3399,10 @@ static void genere_code_c_pour_atome(Atome *atome, std::ostream &os)
 				os << "val" << inst->numero;
 			}
 
+			break;
+		}
+		case Atome::Genre::GLOBALE:
+		{
 			break;
 		}
 	}
@@ -3690,6 +3698,10 @@ void genere_code_C(ConstructriceRI &contructrice_ri)
 				break;
 			}
 			case Atome::Genre::INSTRUCTION:
+			{
+				break;
+			}
+			case Atome::Genre::GLOBALE:
 			{
 				break;
 			}

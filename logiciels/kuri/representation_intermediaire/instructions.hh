@@ -39,7 +39,8 @@ struct Atome {
 	enum class Genre {
 		CONSTANTE,
 		FONCTION,
-		INSTRUCTION
+		INSTRUCTION,
+		GLOBALE,
 	};
 
 	Type *type = nullptr;
@@ -61,6 +62,7 @@ struct AtomeConstante : public Atome {
 			double valeur_reelle;
 			bool valeur_booleenne;
 			struct { char *pointeur; long taille; } valeur_chaine;
+			struct { AtomeConstante **pointeur; long taille; } valeur_structure;
 		};
 
 		enum class Genre {
@@ -71,9 +73,17 @@ struct AtomeConstante : public Atome {
 			NULLE,
 			CHAINE,
 			CARACTERE,
+			STRUCTURE,
 		};
 
 		Genre genre{};
+
+		~Valeur()
+		{
+			if (genre == Genre::STRUCTURE) {
+				memoire::deloge_tableau("kuri::tableau", valeur_structure.pointeur, valeur_structure.taille);
+			}
+		}
 	};
 
 	Valeur valeur{};
@@ -83,6 +93,17 @@ struct AtomeConstante : public Atome {
 	static AtomeConstante *cree(Type *type, bool valeur);
 	static AtomeConstante *cree(Type *type);
 	static AtomeConstante *cree(Type *type, kuri::chaine const &chaine);
+	static AtomeConstante *cree(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
+};
+
+struct AtomeGlobale : public Atome {
+	AtomeGlobale() { genre_atome = Atome::Genre::GLOBALE; }
+
+	AtomeConstante *initialisateur{};
+
+	COPIE_CONSTRUCT(AtomeGlobale);
+
+	static AtomeGlobale *cree(Type *type, AtomeConstante *initialisateur);
 };
 
 struct AtomeFonction : public Atome {

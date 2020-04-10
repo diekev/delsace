@@ -27,10 +27,13 @@
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
 #include "erreur.h"
+#include "outils_lexemes.hh"
 
 ConstructriceRI::ConstructriceRI(ContexteGenerationCode &contexte)
 	: m_contexte(contexte)
-{}
+{
+	ident_contexte = m_contexte.table_identifiants.identifiant_pour_chaine("contexte");
+}
 
 ConstructriceRI::~ConstructriceRI()
 {
@@ -41,6 +44,7 @@ ConstructriceRI::~ConstructriceRI()
 
 	DELOGE_ATOMES(AtomeFonction, atomes_fonction);
 	DELOGE_ATOMES(AtomeConstante, atomes_constante);
+	DELOGE_ATOMES(AtomeGlobale, atomes_globale);
 	DELOGE_ATOMES(InstructionAllocation, insts_allocation);
 	DELOGE_ATOMES(InstructionAppel, insts_appel);
 	DELOGE_ATOMES(InstructionBranche, insts_branche);
@@ -147,6 +151,10 @@ void ConstructriceRI::imprime_programme() const
 				imprime_instruction(inst, os);
 				break;
 			}
+			case Atome::Genre::GLOBALE:
+			{
+				break;
+			}
 		}
 
 		os << '\n';
@@ -199,6 +207,11 @@ static void imprime_atome(Atome const *atome, std::ostream &os)
 			case AtomeConstante::Valeur::Genre::INDEFINIE:
 			{
 				os << "indéfinie";
+				break;
+			}
+			case AtomeConstante::Valeur::Genre::STRUCTURE:
+			{
+				os << "à faire : structure";
 				break;
 			}
 		}
@@ -381,6 +394,7 @@ size_t ConstructriceRI::memoire_utilisee() const
 
 	COMPTE_MEMOIRE(AtomeFonction, atomes_fonction);
 	COMPTE_MEMOIRE(AtomeConstante, atomes_constante);
+	COMPTE_MEMOIRE(AtomeGlobale, atomes_globale);
 	COMPTE_MEMOIRE(InstructionAllocation, insts_allocation);
 	COMPTE_MEMOIRE(InstructionAppel, insts_appel);
 	COMPTE_MEMOIRE(InstructionBranche, insts_branche);
@@ -434,6 +448,20 @@ AtomeConstante *ConstructriceRI::cree_constante_reelle(Type *type, double valeur
 {
 	auto atome = AtomeConstante::cree(type, valeur);
 	atomes_constante.pousse(atome);
+	return atome;
+}
+
+AtomeConstante *ConstructriceRI::cree_constante_structure(Type *type, kuri::tableau<AtomeConstante *> &&valeurs)
+{
+	auto atome = AtomeConstante::cree(type, std::move(valeurs));
+	atomes_constante.pousse(atome);
+	return atome;
+}
+
+AtomeGlobale *ConstructriceRI::cree_globale(Type *type, AtomeConstante *initialisateur)
+{
+	auto atome = AtomeGlobale::cree(type, initialisateur);
+	atomes_globale.pousse(atome);
 	return atome;
 }
 
@@ -601,6 +629,10 @@ void ConstructriceRI::depile_controle_boucle()
 	insts_continue_arrete.pop_back();
 }
 
+// case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES
+// case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE
+// case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU
+// case GenreNoeud::EXPRESSION_INFO_DE
 Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 {
 	switch (noeud->genre) {
@@ -691,11 +723,13 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
-			return nullptr;
+			auto noeud_bin = static_cast<NoeudExpressionBinaire *>(noeud);
+			return genere_ri_pour_acces_membre(noeud_bin);
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
-			return nullptr;
+			auto noeud_bin = static_cast<NoeudExpressionBinaire *>(noeud);
+			return genere_ri_pour_acces_membre_union(noeud_bin);
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
@@ -711,14 +745,32 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto decl = static_cast<NoeudDeclarationVariable *>(noeud);
 
 			if (fonction_courante == nullptr) {
-				// À FAIRE : ajoute globales
-				return nullptr;
+				auto valeur = static_cast<AtomeConstante *>(nullptr);
+
+				if (decl->expression) {
+					auto valeur_expr = genere_ri_pour_noeud(decl->expression);
+					assert(valeur_expr->genre_atome == Atome::Genre::GLOBALE || valeur_expr->genre_atome == Atome::Genre::CONSTANTE);
+					valeur = static_cast<AtomeConstante *>(valeur_expr);
+				}
+				else {
+					valeur = genere_initialisation_defaut_pour_type(noeud->type);
+				}
+
+				auto atome = cree_globale(noeud->type, valeur);
+
+				table_globales.insere({ noeud->ident, atome });
+
+				return atome;
 			}
 
 			auto pointeur = cree_allocation(noeud->type, noeud->ident);
 
 			if (decl->expression) {
 				auto valeur = genere_ri_transformee_pour_noeud(decl->expression);
+				cree_stocke_mem(pointeur->type, pointeur, valeur);
+			}
+			else {
+				auto valeur = genere_initialisation_defaut_pour_type(noeud->type);
 				cree_stocke_mem(pointeur->type, pointeur, valeur);
 			}
 
@@ -786,8 +838,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		{
-			// trouve toutes les conditions, séparées par les opérateurs
-			return nullptr;
+			return genere_ri_pour_comparaison_chainee(noeud);
 		}
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		{
@@ -829,6 +880,10 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return cree_op_unaire(expr_un->type, expr_un->op, valeur);
 			}
 
+			return nullptr;
+		}
+		case GenreNoeud::INSTRUCTION_RETIENS:
+		{
 			return nullptr;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
@@ -873,7 +928,8 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::INSTRUCTION_POUR:
 		{
-			return nullptr;
+			auto noeud_pour = static_cast<NoeudPour *>(noeud);
+			return genere_ri_pour_boucle_pour(noeud_pour);
 		}
 		case GenreNoeud::INSTRUCTION_BOUCLE:
 		{
@@ -997,6 +1053,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		{
+			// À FAIRE : globales
 			return nullptr;
 		}
 		case GenreNoeud::EXPRESSION_MEMOIRE:
@@ -1007,35 +1064,30 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_LOGE:
 		{
-			return nullptr;
+			auto expr = static_cast<NoeudExpressionLogement *>(noeud);
+			return genere_ri_pour_logement(expr->type, 0, expr, expr->expr, expr->expr_chaine, expr->bloc);
 		}
 		case GenreNoeud::EXPRESSION_DELOGE:
 		{
-			return nullptr;
+			auto expr = static_cast<NoeudExpressionLogement *>(noeud);
+			return genere_ri_pour_logement(expr->expr->type, 2, expr->expr, expr->expr, expr->expr_chaine, expr->bloc);
 		}
 		case GenreNoeud::EXPRESSION_RELOGE:
 		{
-			return nullptr;
+			auto expr = static_cast<NoeudExpressionLogement *>(noeud);
+			return genere_ri_pour_logement(expr->expr->type, 1, expr, expr->expr, expr->expr_chaine, expr->bloc);
 		}
 		case GenreNoeud::DECLARATION_STRUCTURE:
 		{
-			return nullptr;
+			auto noeud_struct = static_cast<NoeudStruct *>(noeud);
+			return genere_ri_pour_declaration_structure(noeud_struct);
 		}
 		case GenreNoeud::INSTRUCTION_DISCR:
-		{
-			return nullptr;
-		}
 		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
-		{
-			return nullptr;
-		}
 		case GenreNoeud::INSTRUCTION_DISCR_UNION:
 		{
-			return nullptr;
-		}
-		case GenreNoeud::INSTRUCTION_RETIENS:
-		{
-			return nullptr;
+			auto noeud_discr = static_cast<NoeudDiscr *>(noeud);
+			return genere_ri_pour_discr(noeud_discr);
 		}
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
@@ -1043,6 +1095,14 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		{
+			auto noeud_pc = static_cast<NoeudPousseContexte *>(noeud);
+			auto atome_nouveau_contexte = genere_ri_pour_noeud(noeud_pc->expr);
+			auto atome_ancien_contexte = table_locales[ident_contexte];
+
+			table_locales[ident_contexte] = atome_nouveau_contexte;
+			genere_ri_pour_noeud(noeud_pc->bloc);
+			table_locales[ident_contexte] = atome_ancien_contexte;
+
 			return nullptr;
 		}
 		case GenreNoeud::EXPANSION_VARIADIQUE:
@@ -1051,7 +1111,8 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::INSTRUCTION_TENTE:
 		{
-			return nullptr;
+			auto noeud_tente = static_cast<NoeudTente *>(noeud);
+			return genere_ri_pour_tente(noeud_tente);
 		}
 	}
 
@@ -1159,4 +1220,249 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud)
 	}
 
 	return valeur;
+}
+
+Atome *ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
+{
+	return nullptr;
+}
+
+Atome *ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
+{
+	return nullptr;
+}
+
+Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *noeud)
+{
+	return nullptr;
+}
+
+Atome *ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpression *b, NoeudExpression *variable, NoeudExpression *expression, NoeudExpression *bloc_sinon)
+{
+	return nullptr;
+}
+
+struct DonneesComparaisonChainee {
+	NoeudExpression *operande_gauche = nullptr;
+	NoeudExpression *operande_droite = nullptr;
+	DonneesOperateur const *op = nullptr;
+
+	COPIE_CONSTRUCT(DonneesComparaisonChainee);
+};
+
+static void rassemble_operations_chainees(
+		NoeudExpression *racine,
+		kuri::tableau<DonneesComparaisonChainee> &comparaisons)
+{
+	auto expr_bin = static_cast<NoeudExpressionBinaire *>(racine);
+
+	if (est_operateur_comp(expr_bin->expr1->lexeme->genre)) {
+		rassemble_operations_chainees(expr_bin->expr1, comparaisons);
+
+		auto expr_operande = static_cast<NoeudExpressionBinaire *>(expr_bin->expr1);
+
+		auto comparaison = DonneesComparaisonChainee{};
+		comparaison.operande_gauche = expr_operande->expr2;
+		comparaison.operande_droite = expr_bin->expr2;
+		comparaison.op = expr_bin->op;
+
+		comparaisons.pousse(comparaison);
+	}
+	else {
+		auto comparaison = DonneesComparaisonChainee{};
+		comparaison.operande_gauche = expr_bin->expr1;
+		comparaison.operande_droite = expr_bin->expr2;
+		comparaison.op = expr_bin->op;
+
+		comparaisons.pousse(comparaison);
+	}
+}
+
+Atome *ConstructriceRI::genere_ri_pour_comparaison_chainee(NoeudExpression *noeud)
+{
+	auto comparaisons = kuri::tableau<DonneesComparaisonChainee>();
+	rassemble_operations_chainees(noeud, comparaisons);
+
+	// À FAIRE : bonne gestion des labels, le label si toutes les conditions
+	// sont vraies devrait venir de la génération de code des boucles ou des
+	// controles de flux.
+	auto label_si_vrai = reserve_label();
+	auto label_si_faux = reserve_label();
+
+	POUR (comparaisons) {
+		auto atome_gauche = genere_ri_transformee_pour_noeud(it.operande_gauche);
+		auto atome_droite = genere_ri_transformee_pour_noeud(it.operande_droite);
+		auto atome_op_bin = cree_op_binaire(noeud->type, it.op, atome_gauche, atome_droite);
+
+		cree_branche_condition(atome_op_bin, label_si_vrai, label_si_faux);
+	}
+
+	return nullptr;
+}
+
+Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
+{
+	// génére la fonction d'initialisation
+	return nullptr;
+}
+
+Atome *ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionBinaire *noeud)
+{
+	// À FAIRE : ceci ignore les espaces de noms.
+	auto accede = noeud->expr1;
+	auto membre = noeud->expr2;
+	auto type_structure = accede->type;
+
+	auto est_pointeur = type_structure->genre == GenreType::POINTEUR || type_structure->genre == GenreType::REFERENCE;
+
+	while (type_structure->genre == GenreType::POINTEUR || type_structure->genre == GenreType::REFERENCE) {
+		type_structure = m_contexte.typeuse.type_dereference_pour(type_structure);
+	}
+
+	if (type_structure->genre == GenreType::TABLEAU_FIXE) {
+		auto taille = static_cast<TypeTableauFixe *>(type_structure)->taille;
+		return cree_constante_entiere(noeud->type, static_cast<unsigned long>(taille));
+	}
+
+	if (type_structure->genre == GenreType::ENUM || type_structure->genre == GenreType::ERREUR) {
+		auto type_enum = static_cast<TypeEnum *>(type_structure);
+		auto decl_enum = type_enum->decl;
+
+		auto index_membre = 0;
+
+		POUR (decl_enum->bloc->membres) {
+			if (it->ident == membre->ident) {
+				break;
+			}
+
+			index_membre += 1;
+		}
+
+		auto valeur_enum = decl_enum->desc.valeurs[index_membre];
+		return cree_constante_entiere(type_enum->type_donnees, static_cast<unsigned>(valeur_enum));
+	}
+
+	auto pointeur_accede = genere_ri_pour_noeud(accede);
+
+	if (est_pointeur) {
+		pointeur_accede = cree_charge_mem(type_structure, pointeur_accede);
+	}
+
+	auto index_membre = 0u;
+
+	// À FAIRE : gestion des constantes globales (chaines)
+
+	if (type_structure->genre == GenreType::EINI) {
+		if (membre->ident->nom == "pointeur") {
+			index_membre = 0;
+		}
+		else {
+			index_membre = 1;
+		}
+	}
+	else if (type_structure->genre == GenreType::CHAINE) {
+		if (membre->ident->nom == "pointeur") {
+			index_membre = 0;
+		}
+		else {
+			index_membre = 1;
+		}
+	}
+	else if (type_structure->genre == GenreType::TABLEAU_DYNAMIQUE || type_structure->genre == GenreType::VARIADIQUE) {
+		if (membre->ident->nom == "pointeur") {
+			index_membre = 0;
+		}
+		else if (membre->ident->nom == "capacité") {
+			index_membre = 1;
+		}
+		else {
+			index_membre = 2;
+		}
+	}
+	else {
+		auto type_struct = static_cast<TypeStructure *>(type_structure);
+		auto decl_struct = type_struct->decl;
+
+		POUR (decl_struct->bloc->membres) {
+			if (it->ident == membre->ident) {
+				break;
+			}
+
+			index_membre += 1;
+		}
+	}
+
+	auto atome_index = cree_constante_entiere(m_contexte.typeuse[TypeBase::Z64], index_membre);
+	return cree_acces_membre(noeud->type, pointeur_accede, atome_index);
+}
+
+Atome *ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionBinaire *noeud)
+{
+	// À FAIRE : nous devons savoir si nous avons une expression gauche ou non
+	return nullptr;
+}
+
+AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *type)
+{
+	switch (type->genre) {
+		case GenreType::INVALIDE:
+		case GenreType::RIEN:
+		{
+			return nullptr;
+		}
+		case GenreType::BOOL:
+		{
+			return cree_constante_booleenne(type, false);
+		}
+		case GenreType::REFERENCE: /* À FAIRE : une référence ne peut être nulle ! */
+		case GenreType::POINTEUR:
+		case GenreType::FONCTION:
+		{
+			return cree_constante_nulle(type);
+		}
+		case GenreType::OCTET:
+		case GenreType::ENTIER_NATUREL:
+		case GenreType::ENTIER_RELATIF:
+		case GenreType::ENTIER_CONSTANT:
+		{
+			return cree_constante_entiere(type, 0);
+		}
+		case GenreType::REEL:
+		{
+			return cree_constante_reelle(type, 0.0);
+		}
+		case GenreType::EINI:
+		{
+			return nullptr;
+		}
+		case GenreType::STRUCTURE:
+		{
+			return nullptr;
+		}
+		case GenreType::UNION:
+		{
+			break;
+		}
+		case GenreType::CHAINE:
+		{
+			break;
+		}
+		case GenreType::TABLEAU_FIXE:
+		{
+			break;
+		}
+		case GenreType::TABLEAU_DYNAMIQUE:
+		case GenreType::VARIADIQUE:
+		{
+			break;
+		}
+		case GenreType::ENUM:
+		case GenreType::ERREUR:
+		{
+			auto type_enum = static_cast<TypeEnum *>(type);
+			return cree_constante_entiere(type_enum->type_donnees, 0);
+		}
+	}
+
+	return nullptr;
 }

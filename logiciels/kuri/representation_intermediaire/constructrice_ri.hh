@@ -32,7 +32,12 @@
 
 struct ContexteGenerationCode;
 struct NoeudDependance;
+struct NoeudDiscr;
 struct NoeudExpression;
+struct NoeudExpressionBinaire;
+struct NoeudPour;
+struct NoeudStruct;
+struct NoeudTente;
 
 template <typename T0, typename T1, typename T2>
 struct triplet {
@@ -45,6 +50,7 @@ struct ConstructriceRI {
 private:
 	kuri::tableau<AtomeFonction *> atomes_fonction{};
 	kuri::tableau<AtomeConstante *> atomes_constante{};
+	kuri::tableau<AtomeGlobale *> atomes_globale{};
 	kuri::tableau<InstructionAllocation *> insts_allocation{};
 	kuri::tableau<InstructionAppel *> insts_appel{};
 	kuri::tableau<InstructionBranche *> insts_branche{};
@@ -66,7 +72,10 @@ private:
 	int nombre_labels = 0;
 	int nombre_instructions = 0;
 
+	IdentifiantCode *ident_contexte = nullptr;
+
 	dls::dico<IdentifiantCode *, Atome *> table_locales{};
+	dls::dico<IdentifiantCode *, AtomeGlobale *> table_globales{};
 	dls::dico<dls::chaine, AtomeFonction *> table_fonctions{};
 
 	dls::tablet<triplet<IdentifiantCode *, InstructionLabel *, InstructionLabel *>, 12> insts_continue_arrete{};
@@ -95,6 +104,8 @@ private:
 	AtomeConstante *cree_constante_entiere(Type *type, unsigned long long valeur);
 	AtomeConstante *cree_constante_nulle(Type *type);
 	AtomeConstante *cree_constante_reelle(Type *type, double valeur);
+	AtomeConstante *cree_constante_structure(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
+	AtomeGlobale *cree_globale(Type *type, AtomeConstante *initialisateur);
 
 	InstructionAllocation *cree_allocation(Type *type, IdentifiantCode *ident);
 	InstructionBranche *cree_branche(InstructionLabel *label);
@@ -121,6 +132,20 @@ private:
 	Atome *genere_ri_pour_noeud(NoeudExpression *noeud);
 	Atome *genere_ri_pour_expression_droite(NoeudExpression *noeud);
 	Atome *genere_ri_transformee_pour_noeud(NoeudExpression *noeud);
+	Atome *genere_ri_pour_discr(NoeudDiscr *noeud);
+	Atome *genere_ri_pour_tente(NoeudTente *noeud);
+	Atome *genere_ri_pour_boucle_pour(NoeudPour *noeud);
+	Atome *genere_ri_pour_logement(Type *type,
+								   int mode,
+								   NoeudExpression *b,
+								   NoeudExpression *variable,
+								   NoeudExpression *expression,
+								   NoeudExpression *bloc_sinon);
+	Atome *genere_ri_pour_comparaison_chainee(NoeudExpression *noeud);
+	Atome *genere_ri_pour_declaration_structure(NoeudStruct *noeud);
+	Atome *genere_ri_pour_acces_membre(NoeudExpressionBinaire *noeud);
+	Atome *genere_ri_pour_acces_membre_union(NoeudExpressionBinaire *noeud);
+	AtomeConstante *genere_initialisation_defaut_pour_type(Type *type);
 
 	void traverse_graphe(NoeudDependance *racine);
 
