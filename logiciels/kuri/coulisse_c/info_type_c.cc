@@ -105,8 +105,9 @@ static auto cree_info_type_structure_C(
 	}
 
 	auto const nombre_membres = noeud_decl->bloc->membres.taille;
+	auto type_compose = static_cast<TypeCompose *>(type);
 
-	POUR (noeud_decl->desc.membres) {
+	POUR (type_compose->membres) {
 		if (it.type->ptr_info_type == "") {
 			it.type->ptr_info_type = cree_info_type_C(
 						contexte, constructrice, it.type);
@@ -119,12 +120,12 @@ static auto cree_info_type_structure_C(
 
 	auto index_membre = 0;
 
-	POUR (noeud_decl->desc.membres) {
+	POUR (type_compose->membres) {
 		auto nom_info_type_membre = "__info_type_membre" + nom_info_type + dls::vers_chaine(index_membre++);
 		pointeurs.pousse(nom_info_type_membre);
 
 		constructrice << "static const InfoTypeMembreStructure " << nom_info_type_membre << " = {\n";
-		constructrice << "\t.nom = { .pointeur = \"" << it.nom << "\", .taille = " << it.nom.taille << " },\n";
+		constructrice << "\t.nom = { .pointeur = \"" << it.nom << "\", .taille = " << it.nom.taille() << " },\n";
 		constructrice << "\t" << broye_nom_simple(".décalage = ") << it.decalage << ",\n";
 		constructrice << "\t.id = (InfoType *)(&" << it.type->ptr_info_type << ")\n";
 		constructrice << "};\n";
@@ -152,16 +153,17 @@ static auto cree_info_type_enum_C(
 		dls::chaine const &nom_info_type,
 		unsigned taille_octet)
 {
+	auto type_enum = static_cast<TypeEnum *>(noeud_decl->type);
 	auto nom_broye = broye_nom_simple(nom_struct);
-	auto nombre_valeurs = noeud_decl->desc.noms.taille;
+	auto nombre_valeurs = type_enum->membres.taille;
 
 	/* crée un tableau pour les noms des énumérations */
 	auto const nom_tableau_noms = "__tableau_noms_enum" + nom_info_type;
 
 	constructrice << "static const chaine " << nom_tableau_noms << "[] = {\n";
 
-	POUR (noeud_decl->desc.noms) {
-		constructrice << "\t{.pointeur=\"" << it << "\", .taille=" << it.taille << "},\n";
+	POUR (type_enum->membres) {
+		constructrice << "\t{.pointeur=\"" << it.nom << "\", .taille=" << it.nom.taille() << "},\n";
 	}
 
 	constructrice << "};\n";
@@ -171,8 +173,8 @@ static auto cree_info_type_enum_C(
 
 	constructrice << "static const int " << nom_tableau_valeurs << "[] = {\n\t";
 
-	POUR (noeud_decl->desc.valeurs) {
-		constructrice << it << ',';
+	POUR (type_enum->membres) {
+		constructrice << it.valeur << ',';
 	}
 
 	constructrice << "\n};\n";
@@ -181,7 +183,7 @@ static auto cree_info_type_enum_C(
 	constructrice << "static const " << broye_nom_simple("InfoTypeÉnum ") << nom_info_type << " = {\n";
 	constructrice << "\t.id = " << IDInfoType::ENUM << ",\n";
 	constructrice << "\t.taille_en_octet = " << taille_octet << ",\n";
-	constructrice << "\t.est_drapeau = " << noeud_decl->desc.est_drapeau << ",\n";
+	constructrice << "\t.est_drapeau = " << type_enum->est_drapeau << ",\n";
 	constructrice << "\t.nom = { .pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << " },\n";
 	constructrice << "\t.noms = { .pointeur = " << nom_tableau_noms << ", .taille = " << nombre_valeurs << " },\n ";
 	constructrice << "\t.valeurs = { .pointeur = " << nom_tableau_valeurs << ", .taille = " << nombre_valeurs << " },\n ";
@@ -512,9 +514,11 @@ dls::chaine predeclare_info_type_C(
 /* À FAIRE : bouge ça d'ici */
 dls::chaine chaine_valeur_enum(NoeudEnum *noeud_enum, const dls::vue_chaine_compacte &nom)
 {
-	for (auto i = 0; i < noeud_enum->desc.noms.taille; ++i) {
-		if (noeud_enum->desc.noms[i] == kuri::chaine(nom)) {
-			return dls::vers_chaine(noeud_enum->desc.valeurs[i]);
+	auto type_enum = static_cast<TypeEnum *>(noeud_enum->type);
+
+	POUR (type_enum->membres) {
+		if (it.nom == nom) {
+			return dls::vers_chaine(it.valeur);
 		}
 	}
 

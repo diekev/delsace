@@ -235,6 +235,7 @@ struct IDInfoType {
 		NoeudEnum *noeud_decl,
 		unsigned taille_octet)
 {
+	auto type_enum = static_cast<TypeEnum *>(noeud_decl->type);
 	auto builder = llvm::IRBuilder<>(contexte.contexte);
 
 	auto type_llvm = obtiens_type_pour(contexte, "InfoTypeÉnum");
@@ -253,7 +254,7 @@ struct IDInfoType {
 
 	auto est_drapeau = llvm::ConstantInt::get(
 				llvm::Type::getInt1Ty(contexte.contexte),
-				noeud_decl->desc.est_drapeau,
+				type_enum->est_drapeau,
 				false);
 
 	auto struct_chaine = contexte.constructrice.cree_chaine(noeud_decl->lexeme->chaine);
@@ -261,22 +262,22 @@ struct IDInfoType {
 	/* création des tableaux de valeurs et de noms */
 
 	std::vector<llvm::Constant *> valeurs_enum;
-	valeurs_enum.reserve(static_cast<size_t>(noeud_decl->desc.valeurs.taille));
+	valeurs_enum.reserve(static_cast<size_t>(type_enum->membres.taille));
 
-	POUR (noeud_decl->desc.valeurs) {
+	POUR (type_enum->membres) {
 		auto valeur = llvm::ConstantInt::get(
 					llvm::Type::getInt32Ty(contexte.contexte),
-					static_cast<uint64_t>(it),
+					static_cast<uint64_t>(it.valeur),
 					false);
 
 		valeurs_enum.push_back(valeur);
 	}
 
 	std::vector<llvm::Constant *> noms_enum;
-	noms_enum.reserve(static_cast<size_t>(noeud_decl->desc.noms.taille));
+	noms_enum.reserve(static_cast<size_t>(type_enum->membres.taille));
 
-	POUR (noeud_decl->desc.noms) {
-		auto chaine_nom = contexte.constructrice.cree_chaine(dls::chaine(it.pointeur, it.taille));
+	POUR (type_enum->membres) {
+		auto chaine_nom = contexte.constructrice.cree_chaine(dls::chaine(it.nom));
 		noms_enum.push_back(chaine_nom);
 	}
 
@@ -423,7 +424,7 @@ llvm::Value *cree_info_type(ContexteGenerationLLVM &contexte, Type *type)
 
 			std::vector<llvm::Constant *> valeurs_membres;
 
-			POUR (decl_struct->desc.membres) {
+			POUR (type_struct->membres) {
 				/* { nom: chaine, info : *InfoType, décalage } */
 				auto type_membre = it.type;
 
@@ -434,7 +435,7 @@ llvm::Value *cree_info_type(ContexteGenerationLLVM &contexte, Type *type)
 							static_cast<llvm::Constant *>(info_type),
 							obtiens_type_pour(contexte, "InfoType")->getPointerTo());
 
-				auto valeur_nom = contexte.constructrice.cree_chaine(dls::chaine(it.nom.pointeur, it.nom.taille));
+				auto valeur_nom = contexte.constructrice.cree_chaine(dls::chaine(it.nom));
 
 				auto valeur_decalage = llvm::ConstantInt::get(
 							llvm::Type::getInt64Ty(contexte.contexte),
@@ -616,9 +617,11 @@ llvm::Value *valeur_enum(
 		dls::vue_chaine_compacte const &nom,
 		llvm::IRBuilder<> &builder)
 {
-	for (auto i = 0; i < noeud_decl->desc.noms.taille; ++i) {
-		if (noeud_decl->desc.noms[i] == nom) {
-			return builder.getInt32(static_cast<unsigned>(noeud_decl->desc.valeurs[i]));
+	auto type_enum = static_cast<TypeEnum *>(noeud_decl->type);
+
+	POUR (type_enum->membres) {
+		if (it.nom == nom) {
+			return builder.getInt32(static_cast<unsigned>(it.valeur));
 		}
 	}
 

@@ -204,14 +204,6 @@ static Type *cree_type_pour_lexeme(GenreLexeme lexeme)
 		{
 			return Type::cree_reel(8);
 		}
-		case GenreLexeme::CHAINE:
-		{
-			return Type::cree_chaine();
-		}
-		case GenreLexeme::EINI:
-		{
-			return Type::cree_eini();
-		}
 		case GenreLexeme::RIEN:
 		{
 			return Type::cree_rien();
@@ -230,6 +222,9 @@ Typeuse::Typeuse(GrapheDependance &g, Operateurs &o)
 	/* initialise les types communs */
 	types_communs.redimensionne(static_cast<long>(TypeBase::TOTAL));
 
+	type_eini = TypeCompose::cree_eini();
+	type_chaine = TypeCompose::cree_chaine();
+
 	types_communs[static_cast<long>(TypeBase::N8)] = cree_type_pour_lexeme(GenreLexeme::N8);
 	types_communs[static_cast<long>(TypeBase::N16)] = cree_type_pour_lexeme(GenreLexeme::N16);
 	types_communs[static_cast<long>(TypeBase::N32)] = cree_type_pour_lexeme(GenreLexeme::N32);
@@ -241,14 +236,18 @@ Typeuse::Typeuse(GrapheDependance &g, Operateurs &o)
 	types_communs[static_cast<long>(TypeBase::R16)] = cree_type_pour_lexeme(GenreLexeme::R16);
 	types_communs[static_cast<long>(TypeBase::R32)] = cree_type_pour_lexeme(GenreLexeme::R32);
 	types_communs[static_cast<long>(TypeBase::R64)] = cree_type_pour_lexeme(GenreLexeme::R64);
-	types_communs[static_cast<long>(TypeBase::EINI)] = cree_type_pour_lexeme(GenreLexeme::EINI);
-	types_communs[static_cast<long>(TypeBase::CHAINE)] = cree_type_pour_lexeme(GenreLexeme::CHAINE);
+	types_communs[static_cast<long>(TypeBase::EINI)] = type_eini;
+	types_communs[static_cast<long>(TypeBase::CHAINE)] = type_chaine;
 	types_communs[static_cast<long>(TypeBase::RIEN)] = cree_type_pour_lexeme(GenreLexeme::RIEN);
 	types_communs[static_cast<long>(TypeBase::BOOL)] = cree_type_pour_lexeme(GenreLexeme::BOOL);
 	types_communs[static_cast<long>(TypeBase::OCTET)] = cree_type_pour_lexeme(GenreLexeme::OCTET);
 	types_communs[static_cast<long>(TypeBase::ENTIER_CONSTANT)] = Type::cree_entier_constant();
 
 	for (auto i = static_cast<long>(TypeBase::N8); i <= static_cast<long>(TypeBase::ENTIER_CONSTANT); ++i) {
+		if (i == static_cast<long>(TypeBase::EINI) || i == static_cast<long>(TypeBase::CHAINE)) {
+			continue;
+		}
+
 		types_simples.pousse(types_communs[i]);
 	}
 
@@ -277,6 +276,18 @@ Typeuse::Typeuse(GrapheDependance &g, Operateurs &o)
 
 		types_communs[idx] = type;
 	}
+
+	type_info_type_ = reserve_type_structure(nullptr);
+
+	auto membres_eini = kuri::tableau<TypeCompose::Membre>();
+	membres_eini.pousse({ types_communs[static_cast<long>(TypeBase::PTR_RIEN)], "pointeur", 0 });
+	membres_eini.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "taille", 8 });
+	type_eini->membres = std::move(membres_eini);
+
+	auto membres_chaine = kuri::tableau<TypeCompose::Membre>();
+	membres_chaine.pousse({ types_communs[static_cast<long>(TypeBase::PTR_Z8)], "pointeur", 0 });
+	membres_chaine.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "taille", 8 });
+	type_chaine->membres = std::move(membres_chaine);
 }
 
 Typeuse::~Typeuse()
@@ -296,6 +307,9 @@ Typeuse::~Typeuse()
 	DELOGE_TYPES(TypeFonction, types_fonctions);
 	DELOGE_TYPES(TypeVariadique, types_variadiques);
 	DELOGE_TYPES(TypeUnion, types_unions);
+
+	memoire::deloge("TypeCompose", type_eini);
+	memoire::deloge("TypeCompose", type_chaine);
 
 #undef DELOGE_TYPES
 }
@@ -473,7 +487,12 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 		}
 	}
 
-	auto type = TypeTableauFixe::cree(type_pointe, taille);
+	// les décalages sont à zéros car ceci n'est pas vraiment une structure
+	auto membres = kuri::tableau<TypeCompose::Membre>();
+	membres.pousse({ type_pointeur_pour(type_pointe), "pointeur", 0 });
+	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "taille", 0 });
+
+	auto type = TypeTableauFixe::cree(type_pointe, taille, std::move(membres));
 
 	graphe.connecte_type_type(type, type_pointe);
 
@@ -490,7 +509,12 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 		}
 	}
 
-	auto type = TypeTableauDynamique::cree(type_pointe);
+	auto membres = kuri::tableau<TypeCompose::Membre>();
+	membres.pousse({ type_pointeur_pour(type_pointe), "pointeur", 0 });
+	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "taille", 8 });
+	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "capacité", 16 });
+
+	auto type = TypeTableauDynamique::cree(type_pointe, std::move(membres));
 
 	graphe.connecte_type_type(type, type_pointe);
 
@@ -507,7 +531,12 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 		}
 	}
 
-	auto type = TypeVariadique::cree(type_pointe);
+	auto membres = kuri::tableau<TypeCompose::Membre>();
+	membres.pousse({ type_pointeur_pour(type_pointe), "pointeur", 0 });
+	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "taille", 8 });
+	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "capacité", 16 });
+
+	auto type = TypeVariadique::cree(type_pointe, std::move(membres));
 
 	graphe.connecte_type_type(type, type_pointe);
 
@@ -593,8 +622,12 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 TypeStructure *Typeuse::reserve_type_structure(NoeudStruct *decl)
 {
 	auto type = memoire::loge<TypeStructure>("TypeStructure");
-	type->nom = decl->lexeme->chaine;
 	type->decl = decl;
+
+	// decl peut être nulle pour la réservation du type pour InfoType
+	if (type->decl) {
+		type->nom = decl->lexeme->chaine;
+	}
 
 	types_structures.pousse(type);
 
@@ -651,6 +684,8 @@ size_t Typeuse::memoire_utilisee() const
 
 #undef COMPTE_MEMOIRE
 
+	memoire += 2 * (sizeof(TypeCompose) + sizeof(TypeCompose *)); // chaine et eini
+
 	// les types communs sont dans les types simples, ne comptons que la mémoire du tableau
 	memoire += static_cast<size_t>(types_communs.taille()) * sizeof(Type *);
 
@@ -670,6 +705,7 @@ long Typeuse::nombre_de_types() const
 	compte += types_fonctions.taille();
 	compte += types_variadiques.taille();
 	compte += types_unions.taille();
+	compte += 2; // eini et chaine
 	return compte;
 }
 

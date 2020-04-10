@@ -150,12 +150,12 @@ TransformationType cherche_transformation(
 
 		auto index_membre = 0l;
 
-		POUR (type_union->types) {
-			if (it == type_de) {
+		POUR (type_union->membres) {
+			if (it.type == type_de) {
 				return { TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre };
 			}
 
-			if (est_type_entier(it) && type_de->genre == GenreType::ENTIER_CONSTANT) {
+			if (est_type_entier(it.type) && type_de->genre == GenreType::ENTIER_CONSTANT) {
 				return { TypeTransformation::CONSTRUIT_UNION, type_vers, index_membre };
 			}
 
@@ -174,8 +174,8 @@ TransformationType cherche_transformation(
 
 		auto index_membre = 0l;
 
-		POUR (type_union->types) {
-			if (it == type_vers) {
+		POUR (type_union->membres) {
+			if (it.type == type_vers) {
 				return { TypeTransformation::EXTRAIT_UNION, type_vers, index_membre };
 			}
 

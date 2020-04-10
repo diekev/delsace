@@ -138,8 +138,7 @@ static void applique_transformation(
 
 			auto index_membre = b->transformation.index_membre;
 			auto type_union = static_cast<TypeUnion *>(b->transformation.type_cible);
-			auto decl = type_union->decl;
-			auto &membre = decl->desc.membres[index_membre];
+			auto &membre = type_union->membres[index_membre];
 
 			constructrice.declare_variable(type_union, nom_var_temp, "");
 			constructrice << nom_var_temp << "." << broye_chaine(membre.nom);
@@ -157,8 +156,7 @@ static void applique_transformation(
 			auto index_membre = b->transformation.index_membre;
 
 			auto type_union = static_cast<TypeUnion *>(type);
-			auto decl = type_union->decl;
-			auto &membre = decl->desc.membres[index_membre];
+			auto &membre = type_union->membres[index_membre];
 
 			// À FAIRE : nous pourrions avoir une erreur différente ici.
 			constructrice << "if (" << nom_courant << ".membre_actif != " << index_membre + 1 << ") {\n";
@@ -582,7 +580,9 @@ static void genere_declaration_structure(ConstructriceCodeC &constructrice, Noeu
 		constructrice << "typedef struct " << nom_broye << "{\n";
 	}
 
-	POUR (decl->desc.membres) {
+	auto type_compose = static_cast<TypeCompose *>(decl->type);
+
+	POUR (type_compose->membres) {
 		auto nom = broye_chaine(it.nom);
 		constructrice << nom_broye_type(it.type) << ' ' << nom << ";\n";
 	}
@@ -601,9 +601,11 @@ static void cree_initialisation_structure(ContexteGenerationCode &contexte, Cons
 				   << type->nom_broye << " *pointeur)\n";
 	constructrice << "{\n";
 
-	POUR (decl->desc.membres) {
+	auto type_compose = static_cast<TypeCompose *>(type);
+
+	POUR (type_compose->membres) {
 		auto type_membre = it.type;
-		auto nom_broye_membre = broye_chaine(dls::vue_chaine_compacte(it.nom.pointeur, it.nom.taille));
+		auto nom_broye_membre = broye_chaine(it.nom);
 
 		if (it.expression_valeur_defaut != nullptr) {
 			genere_code_C(it.expression_valeur_defaut, constructrice, contexte, false);
@@ -706,12 +708,9 @@ static void cree_initialisation_defaut_pour_constante(
 		case GenreType::STRUCTURE:
 		{
 			auto type_struct = static_cast<TypeStructure *>(type);
-
-			auto decl = type_struct->decl;
-
 			auto virgule = '{';
 
-			POUR (decl->desc.membres) {
+			POUR (type_struct->membres) {
 				flux << virgule << '.' << broye_chaine(it.nom) << " = ";
 
 				if (it.expression_valeur_defaut != nullptr) {
@@ -725,7 +724,7 @@ static void cree_initialisation_defaut_pour_constante(
 				virgule = ',';
 			}
 
-			if (decl->desc.membres.taille == 0) {
+			if (type_struct->membres.taille == 0) {
 				flux << "{ 0 ";
 			}
 
@@ -2327,10 +2326,8 @@ void genere_code_C(
 					index_membre += 1;
 				}
 
-				auto decl_struct = static_cast<TypeUnion *>(expr->type)->decl;
-				auto &membre = decl_struct->desc.membres[index_membre];
-
 				auto type_union = static_cast<TypeUnion *>(expr->type);
+				auto &membre = type_union->membres[index_membre];
 
 				if (type_union->est_nonsure) {
 					flux << "{ ." << broye_chaine(membre.nom) << " = " << expression->chaine_calculee() << " }";
@@ -2352,16 +2349,13 @@ void genere_code_C(
 						}
 					}
 
-					auto decl_struct = type_struct->decl;
-
 					auto index_membre = 0;
-
 					auto virgule = '{';
 
 					POUR (expr->exprs) {
 						flux << virgule;
 
-						auto &membre = decl_struct->desc.membres[index_membre];
+						auto &membre = type_struct->membres[index_membre];
 						index_membre += 1;
 
 						flux << '.' << broye_chaine(membre.nom) << '=';
@@ -2737,19 +2731,18 @@ void genere_code_C(
 			}
 			else if (inst->expr_appel->type->genre == GenreType::UNION) {
 				auto type_union = static_cast<TypeUnion *>(inst->expr_appel->type);
-				auto &desc = type_union->decl->desc;
 				auto index_membre_variable = 0;
 				auto index_membre_erreur = 0;
 
-				if (type_union->types.taille == 2) {
-					if (type_union->types[0]->genre == GenreType::ERREUR) {
-						gen_tente.type_piege = type_union->types[0];
-						gen_tente.type_variable = type_union->types[1];
+				if (type_union->membres.taille == 2) {
+					if (type_union->membres[0].type->genre == GenreType::ERREUR) {
+						gen_tente.type_piege = type_union->membres[0].type;
+						gen_tente.type_variable = type_union->membres[1].type;
 						index_membre_variable = 1;
 					}
 					else {
-						gen_tente.type_piege = type_union->types[1];
-						gen_tente.type_variable = type_union->types[0];
+						gen_tente.type_piege = type_union->membres[1].type;
+						gen_tente.type_variable = type_union->membres[0].type;
 						index_membre_erreur = 1;
 					}
 				}
@@ -2757,11 +2750,11 @@ void genere_code_C(
 					// À FAIRE(tente) : extraction des valeurs de l'union
 				}
 
-				gen_tente.acces_erreur = inst->expr_appel->chaine_calculee() + "." + broye_chaine(desc.membres[index_membre_erreur].nom);
+				gen_tente.acces_erreur = inst->expr_appel->chaine_calculee() + "." + broye_chaine(type_union->membres[index_membre_erreur].nom);
 				gen_tente.acces_erreur_pour_test = inst->expr_appel->chaine_calculee() + ".membre_actif == " + dls::vers_chaine(index_membre_erreur + 1);
 				gen_tente.acces_erreur_pour_test += " && ";
 				gen_tente.acces_erreur_pour_test += gen_tente.acces_erreur;
-				gen_tente.acces_variable = inst->expr_appel->chaine_calculee() + "." + broye_chaine(desc.membres[index_membre_variable].nom);
+				gen_tente.acces_variable = inst->expr_appel->chaine_calculee() + "." + broye_chaine(type_union->membres[index_membre_variable].nom);
 			}
 
 			constructrice << "if (" << gen_tente.acces_erreur_pour_test << " != 0) {\n";

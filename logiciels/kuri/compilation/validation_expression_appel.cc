@@ -130,10 +130,9 @@ static auto trouve_candidates_pour_fonction_appelee(
 
 			if (type_accede->genre == GenreType::STRUCTURE) {
 				auto type_struct = static_cast<TypeStructure *>(type_accede);
-				auto decl_struct = type_struct->decl;
 				auto membre_trouve = false;
 
-				POUR (decl_struct->desc.membres) {
+				POUR (type_struct->membres) {
 					if (it.nom == membre->ident->nom) {
 						acces->type = it.type;
 						membre_trouve = true;
@@ -638,6 +637,7 @@ static auto apparie_appel_structure(
 		kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
 	auto resultat = DonneesCandidate{};
+	auto type_struct = static_cast<TypeStructure *>(decl_struct->type);
 
 	if (decl_struct->est_union) {
 		if (expr->params.taille > 1) {
@@ -656,10 +656,10 @@ static auto apparie_appel_structure(
 	}
 
 	auto slots = dls::tablet<NoeudExpression *, 10>();
-	slots.redimensionne(decl_struct->desc.membres.taille);
+	slots.redimensionne(type_struct->membres.taille);
 
 	auto index_membre = 0;
-	POUR (decl_struct->desc.membres) {
+	POUR (type_struct->membres) {
 		slots[index_membre++] = it.expression_valeur_defaut;
 	}
 

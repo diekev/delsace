@@ -228,108 +228,16 @@ static void valide_acces_membre(
 		type = static_cast<TypePointeur *>(type)->type_pointe;
 	}
 
-	auto est_structure = type->genre == GenreType::STRUCTURE;
+	if (est_type_compose(type)) {
+		auto type_compose = static_cast<TypeCompose *>(type);
 
-	if (type->genre == GenreType::CHAINE) {
-		if (membre->ident->nom == "taille") {
-			b->type = contexte.typeuse[TypeBase::Z64];
-			return;
-		}
-
-		if (membre->ident->nom == "pointeur") {
-			b->type = contexte.typeuse[TypeBase::PTR_Z8];
-			return;
-		}
-
-		erreur::membre_inconnu_chaine(contexte, b, structure, membre);
-	}
-
-	if (type->genre == GenreType::EINI) {
-		if (membre->ident->nom == "info") {
-			auto type_info_type = contexte.typeuse.type_pour_nom("InfoType");
-			assert(type_info_type != nullptr);
-			b->type = contexte.typeuse.type_pointeur_pour(type_info_type);
-			return;
-		}
-
-		if (membre->ident->nom == "pointeur") {
-			b->type = contexte.typeuse[TypeBase::PTR_Z8];
-			return;
-		}
-
-		erreur::membre_inconnu_eini(contexte, b, structure, membre);
-	}
-
-	if (type->genre == GenreType::TABLEAU_DYNAMIQUE || type->genre == GenreType::VARIADIQUE) {
-#ifdef NONSUR
-		if (!contexte.non_sur() && expr_gauche) {
-			erreur::lance_erreur(
-						"Modification des membres du tableau hors d'un bloc 'nonsûr' interdite",
-						contexte,
-						b->lexeme,
-						erreur::type_erreur::ASSIGNATION_INVALIDE);
-		}
-#endif
-		if (membre->ident->nom == "pointeur") {
-			b->type = contexte.typeuse.type_pointeur_pour(contexte.typeuse.type_dereference_pour(type));
-			return;
-		}
-
-		if (membre->ident->nom == "taille") {
-			b->type = contexte.typeuse[TypeBase::Z64];
-			return;
-		}
-
-		if (membre->ident->nom == "capacité") {
-			b->type = contexte.typeuse[TypeBase::Z64];
-			return;
-		}
-
-		erreur::membre_inconnu_tableau(contexte, b, structure, membre);
-	}
-
-	if (type->genre == GenreType::TABLEAU_FIXE) {
-		if (membre->ident->nom == "pointeur") {
-			b->type = contexte.typeuse.type_pointeur_pour(contexte.typeuse.type_dereference_pour(type));
-			return;
-		}
-
-		if (membre->ident->nom == "taille") {
-			b->type = contexte.typeuse[TypeBase::Z64];
-			return;
-		}
-
-		erreur::membre_inconnu_tableau(contexte, b, structure, membre);
-	}
-
-	if (est_structure) {
-		auto noeud_struct = static_cast<TypeStructure *>(type)->decl;
 		auto membre_trouve = false;
+		auto index_membre = 0;
 
-		POUR (noeud_struct->desc.membres) {
+		POUR (type_compose->membres) {
 			if (it.nom == membre->ident->nom) {
-				membre_trouve = true;
 				b->type = it.type;
-				return;
-			}
-		}
-
-		if (membre_trouve == false) {
-			erreur::membre_inconnu(contexte, noeud_struct->bloc, b, structure, membre, type);
-		}
-
-		return;
-	}
-
-	if (type->genre == GenreType::UNION) {
-		auto noeud_struct = static_cast<TypeUnion *>(type)->decl;
-		auto membre_trouve = false;
-		auto index_membre = 0l;
-
-		POUR (noeud_struct->desc.membres) {
-			if (it.nom == membre->ident->nom) {
 				membre_trouve = true;
-				b->type = it.type;
 				break;
 			}
 
@@ -337,44 +245,37 @@ static void valide_acces_membre(
 		}
 
 		if (membre_trouve == false) {
-			erreur::membre_inconnu(contexte, noeud_struct->bloc, b, structure, membre, type);
+			erreur::membre_inconnu(contexte, b->bloc_parent, b, structure, membre, type);
 		}
 
-		if (!noeud_struct->est_nonsure) {
-			b->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
-			b->valeur_calculee = index_membre;
+		if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
+			b->genre_valeur = GenreValeur::DROITE;
+		}
+		else if (type->genre == GenreType::UNION) {
+			auto noeud_struct = static_cast<TypeUnion *>(type)->decl;
+			if (!noeud_struct->est_nonsure) {
+				b->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
+				b->valeur_calculee = index_membre;
 
-			if (expr_gauche) {
-				contexte.renseigne_membre_actif(structure->ident->nom, membre->ident->nom);
-			}
-			else {
-				auto membre_actif = contexte.trouve_membre_actif(structure->ident->nom);
+				if (expr_gauche) {
+					contexte.renseigne_membre_actif(structure->ident->nom, membre->ident->nom);
+				}
+				else {
+					auto membre_actif = contexte.trouve_membre_actif(structure->ident->nom);
 
-				/* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu */
-				if (membre_actif != "") {
-					if (membre_actif != membre->ident->nom) {
-						erreur::membre_inactif(contexte, b, structure, membre);
+					/* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu */
+					if (membre_actif != "") {
+						if (membre_actif != membre->ident->nom) {
+							erreur::membre_inactif(contexte, b, structure, membre);
+						}
+
+						/* nous savons que nous avons le bon membre actif */
+						b->aide_generation_code = IGNORE_VERIFICATION;
 					}
-
-					/* nous savons que nous avons le bon membre actif */
-					b->aide_generation_code = IGNORE_VERIFICATION;
 				}
 			}
 		}
 
-		return;
-	}
-
-	if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
-		auto noeud_enum = static_cast<TypeEnum *>(type)->decl;
-		auto noeud_membre = trouve_dans_bloc_seul(noeud_enum->bloc, membre);
-
-		if (noeud_membre == nullptr) {
-			erreur::membre_inconnu(contexte, noeud_enum->bloc, b, structure, membre, type);
-		}
-
-		b->type = noeud_enum->type;
-		b->genre_valeur = GenreValeur::DROITE;
 		return;
 	}
 
@@ -2250,9 +2151,7 @@ void performe_validation_semantique(
 			noeud_dependance->noeud_syntactique = decl;
 
 			auto type_struct = static_cast<TypeStructure *>(decl->type);
-			type_struct->types.reserve(decl->bloc->membres.taille);
-
-			decl->desc.membres.reserve(decl->bloc->membres.taille);
+			type_struct->membres.reserve(decl->bloc->membres.taille);
 
 			auto verifie_inclusion_valeur = [&decl, &contexte](NoeudBase *enf)
 			{
@@ -2294,7 +2193,7 @@ void performe_validation_semantique(
 			auto decalage = 0u;
 			auto max_alignement = 0u;
 
-			auto ajoute_donnees_membre = [&decalage, &decl, &max_alignement, &donnees_dependance, &type_struct](NoeudBase *enfant, NoeudExpression *expr_valeur)
+			auto ajoute_donnees_membre = [&decalage, &max_alignement, &donnees_dependance, &type_struct](NoeudBase *enfant, NoeudExpression *expr_valeur)
 			{
 				auto type_membre = enfant->type;
 				auto align_type = type_membre->alignement;
@@ -2302,18 +2201,11 @@ void performe_validation_semantique(
 				auto padding = (align_type - (decalage % align_type)) % align_type;
 				decalage += padding;
 
+				type_struct->membres.pousse({ enfant->type, enfant->ident->nom, decalage, 0, expr_valeur });
+
 				donnees_dependance.types_utilises.insere(type_membre);
 
-				auto desc_membre = MembreStructure();
-				desc_membre.nom = enfant->ident->nom;
-				desc_membre.decalage = decalage;
-				desc_membre.type = type_membre;
-				desc_membre.expression_valeur_defaut = expr_valeur;
-
 				decalage += type_membre->taille_octet;
-
-				decl->desc.membres.pousse(desc_membre);
-				type_struct->types.pousse(enfant->type);
 			};
 
 			if (decl->est_union) {
@@ -2461,7 +2353,7 @@ void performe_validation_semantique(
 
 					auto decl_struct_empl = type_struct_empl->decl;
 
-					decl->desc.membres.reserve(decl->desc.membres.taille + decl_struct_empl->bloc->membres.taille);
+					type_struct->membres.reserve(type_struct->membres.taille + decl_struct_empl->bloc->membres.taille);
 
 					for (auto decl_it_empl : decl_struct_empl->bloc->membres) {
 						auto it_empl = static_cast<NoeudDeclarationVariable *>(decl_it_empl);
@@ -2484,11 +2376,11 @@ void performe_validation_semantique(
 		case GenreNoeud::DECLARATION_ENUM:
 		{
 			auto decl = static_cast<NoeudEnum *>(b);
-			auto &desc = decl->desc;
 
 			auto type_enum = static_cast<TypeEnum *>(decl->type);
+			auto &membres = type_enum->membres;
 
-			if (desc.est_erreur) {
+			if (type_enum->est_erreur) {
 				type_enum->type_donnees = contexte.typeuse[TypeBase::Z32];
 			}
 			else if (!est_invalide(decl->type_declare.plage())) {
@@ -2509,9 +2401,7 @@ void performe_validation_semantique(
 			/* utilise est_errone pour indiquer que nous sommes à la première valeur */
 			dernier_res.est_errone = true;
 
-			decl->bloc->membres.reserve(decl->bloc->expressions.taille);
-			desc.noms.reserve(decl->bloc->expressions.taille);
-			desc.valeurs.reserve(decl->bloc->expressions.taille);
+			membres.reserve(decl->bloc->expressions.taille);
 
 			POUR (decl->bloc->expressions) {
 				if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
@@ -2539,7 +2429,6 @@ void performe_validation_semantique(
 				auto expr = decl_expr->expression;
 
 				it->ident = var->ident;
-				desc.noms.pousse(kuri::chaine(var->ident->nom));
 
 				auto res = ResultatExpression();
 
@@ -2562,14 +2451,14 @@ void performe_validation_semantique(
 						/* première valeur, laisse à zéro si énum normal */
 						dernier_res.est_errone = false;
 
-						if (desc.est_drapeau || desc.est_erreur) {
+						if (type_enum->est_drapeau || type_enum->est_erreur) {
 							res.type = type_expression::ENTIER;
 							res.entier = 1;
 						}
 					}
 					else {
 						if (dernier_res.type == type_expression::ENTIER) {
-							if (desc.est_drapeau) {
+							if (type_enum->est_drapeau) {
 								res.entier = dernier_res.entier * 2;
 							}
 							else {
@@ -2582,7 +2471,7 @@ void performe_validation_semantique(
 					}
 				}
 
-				desc.valeurs.pousse(static_cast<int>(res.entier));
+				membres.pousse({ type_enum, var->ident->nom, 0, static_cast<int>(res.entier) });
 
 				dernier_res = res;
 			}
@@ -2695,7 +2584,8 @@ void performe_validation_semantique(
 				}
 			}
 			else if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
-				auto decl = static_cast<TypeEnum *>(type)->decl;
+				auto type_enum = static_cast<TypeEnum *>(type);
+				auto decl = type_enum->decl;
 
 				auto membres_rencontres = dls::ensemblon<dls::vue_chaine_compacte, 16>();
 				b->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
@@ -2712,8 +2602,8 @@ void performe_validation_semantique(
 
 						auto nom_trouve = false;
 
-						POUR (decl->desc.noms) {
-							if (dls::vue_chaine_compacte(it.pointeur, it.taille) == nom_membre) {
+						POUR (type_enum->membres) {
+							if (it.nom == nom_membre) {
 								nom_trouve = true;
 								break;
 							}
@@ -2739,9 +2629,9 @@ void performe_validation_semantique(
 				if (inst->bloc_sinon == nullptr) {
 					auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
 
-					POUR (decl->desc.noms) {
-						if (!membres_rencontres.possede({ it.pointeur, it.taille })) {
-							valeurs_manquantes.insere({ it.pointeur, it.taille });
+					POUR (type_enum->membres) {
+						if (!membres_rencontres.possede(it.nom)) {
+							valeurs_manquantes.insere(it.nom);
 						}
 					}
 
@@ -2892,8 +2782,8 @@ void performe_validation_semantique(
 				auto type_union = static_cast<TypeUnion *>(inst->type);
 				auto possede_type_erreur = false;
 
-				POUR (type_union->types) {
-					if (it->genre == GenreType::ERREUR) {
+				POUR (type_union->membres) {
+					if (it.type->genre == GenreType::ERREUR) {
 						possede_type_erreur = true;
 					}
 				}
@@ -2904,14 +2794,14 @@ void performe_validation_semantique(
 										 inst->lexeme);
 				}
 
-				if (type_union->types.taille == 2) {
-					if (type_union->types[0]->genre == GenreType::ERREUR) {
-						type_de_l_erreur = type_union->types[0];
-						inst->type = type_union->types[1];
+				if (type_union->membres.taille == 2) {
+					if (type_union->membres[0].type->genre == GenreType::ERREUR) {
+						type_de_l_erreur = type_union->membres[0].type;
+						inst->type = type_union->membres[1].type;
 					}
 					else {
-						inst->type = type_union->types[0];
-						type_de_l_erreur = type_union->types[1];
+						inst->type = type_union->membres[0].type;
+						type_de_l_erreur = type_union->membres[1].type;
 					}
 				}
 			}

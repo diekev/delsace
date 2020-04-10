@@ -1441,17 +1441,18 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 	auto noeud_decl = CREE_NOEUD(NoeudEnum, GenreNoeud::DECLARATION_ENUM, gauche->lexeme);
 
 	if (lexeme->genre != GenreLexeme::ERREUR) {
-		noeud_decl->desc.est_drapeau = lexeme->genre == GenreLexeme::ENUM_DRAPEAU;
-
 		if (!apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
 			noeud_decl->type_declare = analyse_declaration_type(false);
 		}
 
-		noeud_decl->type = m_contexte.typeuse.reserve_type_enum(noeud_decl);
+		auto type = m_contexte.typeuse.reserve_type_enum(noeud_decl);
+		type->est_drapeau = lexeme->genre == GenreLexeme::ENUM_DRAPEAU;
+		noeud_decl->type = type;
 	}
 	else {
-		noeud_decl->desc.est_erreur = true;
-		noeud_decl->type = m_contexte.typeuse.reserve_type_erreur(noeud_decl);
+		auto type = m_contexte.typeuse.reserve_type_erreur(noeud_decl);
+		type->est_erreur = true;
+		noeud_decl->type = type;
 	}
 
 	consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
@@ -1761,11 +1762,18 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 	auto noeud_decl = CREE_NOEUD(NoeudStruct, GenreNoeud::DECLARATION_STRUCTURE, gauche->lexeme);
 	noeud_decl->est_union = (lexeme_mot_cle->genre == GenreLexeme::UNION);
 
-	if (noeud_decl->est_union) {
-		noeud_decl->type = m_contexte.typeuse.reserve_type_union(noeud_decl);
+	if (gauche->lexeme->chaine == "InfoType") {
+		noeud_decl->type = m_contexte.typeuse.type_info_type_;
+		m_contexte.typeuse.type_info_type_->decl = noeud_decl;
+		m_contexte.typeuse.type_info_type_->nom = noeud_decl->ident->nom;
 	}
 	else {
-		noeud_decl->type = m_contexte.typeuse.reserve_type_structure(noeud_decl);
+		if (noeud_decl->est_union) {
+			noeud_decl->type = m_contexte.typeuse.reserve_type_union(noeud_decl);
+		}
+		else {
+			noeud_decl->type = m_contexte.typeuse.reserve_type_structure(noeud_decl);
+		}
 	}
 
 	if (gauche->lexeme->chaine == "ContexteProgramme") {

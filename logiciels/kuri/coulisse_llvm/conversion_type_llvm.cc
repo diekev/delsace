@@ -192,7 +192,7 @@ llvm::Type *converti_type_llvm(
 			auto taille_max = 0u;
 			auto type_max = static_cast<Type *>(nullptr);
 
-			POUR (decl_struct->desc.membres) {
+			POUR (type_struct->membres) {
 				auto taille_type = it.type->taille_octet;
 
 				if (taille_type > taille_max) {
@@ -214,7 +214,6 @@ llvm::Type *converti_type_llvm(
 		case GenreType::STRUCTURE:
 		{
 			auto type_struct = static_cast<TypeStructure *>(type);
-			auto decl_struct = type_struct->decl;
 			auto nom = "struct." + type_struct->nom;
 
 			/* Pour les structures récursives, il faut créer un type
@@ -223,9 +222,9 @@ llvm::Type *converti_type_llvm(
 			type_struct->type_llvm = type_opaque;
 
 			std::vector<llvm::Type *> types_membres;
-			types_membres.reserve(static_cast<size_t>(decl_struct->desc.membres.taille));
+			types_membres.reserve(static_cast<size_t>(type_struct->membres.taille));
 
-			POUR (decl_struct->desc.membres) {
+			POUR (type_struct->membres) {
 				types_membres.push_back(converti_type_llvm(contexte, it.type));
 			}
 

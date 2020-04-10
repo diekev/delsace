@@ -208,7 +208,9 @@ static int trouve_index_membre(NoeudStruct *noeud_struct, dls::vue_chaine_compac
 {
 	auto idx_membre = 0;
 
-	POUR (noeud_struct->desc.membres) {
+	auto type_compose = static_cast<TypeCompose *>(noeud_struct->type);
+
+	POUR (type_compose->membres) {
 		if (it.nom == nom_membre) {
 			break;
 		}
@@ -235,8 +237,9 @@ static int trouve_index_membre(NoeudStruct *noeud_struct, dls::vue_chaine_compac
 			  contexte.bloc_courant());
 
 	auto type_membre = static_cast<Type *>(nullptr);
+	auto type_compose = static_cast<TypeCompose *>(noeud_struct->type);
 
-	POUR (noeud_struct->desc.membres) {
+	POUR (type_compose->membres) {
 		if (it.nom == nom_membre) {
 			type_membre = it.type;
 			break;
@@ -1236,7 +1239,7 @@ llvm::Value *genere_code_llvm(
 
 			if (!expr_gauche) {
 				auto charge = new llvm::LoadInst(ret, "", contexte.bloc_courant());
-				auto type_membre = decl_struct->desc.membres[index_membre].type;
+				auto type_membre = type_struct->membres[index_membre].type;
 				charge->setAlignment(type_membre->alignement);
 				ret = charge;
 			}
@@ -2422,10 +2425,10 @@ llvm::Value *genere_code_llvm(
 			auto alloc_struct = constructrice.alloue_param(nullptr, type_pointeur_struct, valeur_args);
 			auto charge_struct = constructrice.charge(alloc_struct, b->type);
 
-			auto &desc = type_struct->decl->desc;
+			auto &membres = type_struct->membres;
 
-			for (auto i = 0; i < desc.membres.taille; ++i) {
-				auto type_membre = desc.membres[i].type;
+			for (auto i = 0; i < membres.taille; ++i) {
+				auto type_membre = membres[i].type;
 				auto ptr_membre = accede_membre_structure(contexte, charge_struct, static_cast<size_t>(i));
 				auto valeur_membre = static_cast<llvm::Value *>(nullptr);
 
@@ -2444,7 +2447,7 @@ llvm::Value *genere_code_llvm(
 					// peut-être utiliser memset ?
 				}
 				else {
-					valeur_membre = constructrice.cree_valeur_defaut_pour_type(desc.membres[i].type);
+					valeur_membre = constructrice.cree_valeur_defaut_pour_type(type_membre);
 				}
 
 				if (valeur_membre != nullptr) {

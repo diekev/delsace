@@ -323,24 +323,6 @@ struct NoeudExpressionAppel : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudExpressionAppel);
 };
 
-struct MembreStructure {
-	kuri::chaine nom{};
-	/* le décalage en octets dans la struct */
-	unsigned int decalage = 0;
-	Type *type = nullptr;
-
-	NoeudExpression *expression_valeur_defaut = nullptr;
-
-	MembreStructure() = default;
-
-	COPIE_CONSTRUCT(MembreStructure);
-};
-
-struct DescriptionStructure {
-	kuri::tableau<MembreStructure> membres{};
-	unsigned int taille_octet{};
-};
-
 struct NoeudStruct : public NoeudDeclaration {
 	NoeudStruct() { genre = GenreNoeud::DECLARATION_STRUCTURE; }
 
@@ -348,27 +330,15 @@ struct NoeudStruct : public NoeudDeclaration {
 
 	NoeudBloc *bloc = nullptr;
 
-	DescriptionStructure desc{};
-
 	bool est_union = false;
 	bool est_nonsure = false;
 	bool est_externe = false;
-};
-
-struct DescriptionEnum {
-	kuri::tableau<kuri::chaine> noms;
-	kuri::tableau<int> valeurs;
-	long index_type;
-	bool est_drapeau;
-	bool est_erreur = false;
 };
 
 struct NoeudEnum : public NoeudDeclaration {
 	NoeudEnum() { genre = GenreNoeud::DECLARATION_STRUCTURE; }
 
 	NoeudBloc *bloc = nullptr;
-
-	DescriptionEnum desc{};
 
 	COPIE_CONSTRUCT(NoeudEnum);
 };

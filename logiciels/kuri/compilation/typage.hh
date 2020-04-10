@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tablet.hh"
 
@@ -262,24 +263,6 @@ struct Type {
 		return type;
 	}
 
-	static Type *cree_eini()
-	{
-		auto type = memoire::loge<Type>("Type");
-		type->genre = GenreType::EINI;
-		type->taille_octet = 16;
-		type->alignement = 8;
-		return type;
-	}
-
-	static Type *cree_chaine()
-	{
-		auto type = memoire::loge<Type>("Type");
-		type->genre = GenreType::CHAINE;
-		type->taille_octet = 16;
-		type->alignement = 8;
-		return type;
-	}
-
 	static Type *cree_rien()
 	{
 		auto type = memoire::loge<Type>("Type");
@@ -343,118 +326,6 @@ struct TypeReference : public Type {
 	}
 };
 
-#if 0 // ébauche pour déplacer les données des types dans ceux-ci, et ne plus les stocker dans les noeuds des arbres syntaxiques
-struct TypeCompose : public Type {
-	struct Membre {
-		Type *type = nullptr;
-		dls::vue_chaine_compacte nom = "";
-		unsigned decalage = 0;
-	};
-
-	kuri::tableau<Membre> membres{};
-	dls::vue_chaine_compacte nom{};
-};
-
-inline bool est_type_compose(Type *type)
-{
-	return dls::outils::est_element(
-				type->genre,
-				GenreType::EINI,
-				GenreType::ENUM,
-				GenreType::ERREUR,
-				GenreType::STRUCTURE,
-				GenreType::TABLEAU_DYNAMIQUE,
-				GenreType::TABLEAU_FIXE,
-				GenreType::UNION,
-				GenreType::VARIADIQUE);
-}
-#endif
-
-struct TypeStructure : public Type {
-	TypeStructure() { genre = GenreType::STRUCTURE; }
-
-	COPIE_CONSTRUCT(TypeStructure);
-
-	kuri::tableau<Type *> types{};
-
-	kuri::tableau<TypeStructure *> types_employes{};
-
-	NoeudStruct *decl = nullptr;
-
-	bool deja_genere = false;
-
-	dls::vue_chaine_compacte nom{};
-};
-
-struct TypeUnion : public Type {
-	TypeUnion() { genre = GenreType::UNION; }
-
-	COPIE_CONSTRUCT(TypeUnion);
-
-	kuri::tableau<Type *> types{};
-
-	Type *type_le_plus_grand = nullptr;
-
-	NoeudStruct *decl = nullptr;
-
-	bool deja_genere = false;
-	bool est_nonsure = false;
-
-	dls::vue_chaine_compacte nom{};
-};
-
-struct TypeEnum : public Type {
-	TypeEnum() { genre = GenreType::ENUM; }
-
-	COPIE_CONSTRUCT(TypeEnum);
-
-	Type *type_donnees{};
-
-	NoeudEnum *decl = nullptr;
-
-	dls::vue_chaine_compacte nom{};
-};
-
-struct TypeTableauFixe : public Type {
-	TypeTableauFixe() { genre = GenreType::TABLEAU_FIXE; }
-
-	COPIE_CONSTRUCT(TypeTableauFixe);
-
-	Type *type_pointe = nullptr;
-	long taille = 0;
-
-	static TypeTableauFixe *cree(Type *type_pointe, long taille)
-	{
-		assert(type_pointe);
-
-		auto type = memoire::loge<TypeTableauFixe>("TypeTableauFixe");
-		type->type_pointe = type_pointe;
-		type->taille = taille;
-		type->alignement = type_pointe->alignement;
-		type->taille_octet = type_pointe->taille_octet * static_cast<unsigned>(taille);
-		return type;
-	}
-};
-
-struct TypeTableauDynamique : public Type {
-	TypeTableauDynamique() { genre = GenreType::TABLEAU_DYNAMIQUE; }
-
-	COPIE_CONSTRUCT(TypeTableauDynamique);
-
-	Type *type_pointe = nullptr;
-
-	static TypeTableauDynamique *cree(Type *type_pointe)
-	{
-		assert(type_pointe);
-
-		auto type = memoire::loge<TypeTableauDynamique>("TypeTableauDynamique");
-		type->type_pointe = type_pointe;
-		type->taille_octet = 24;
-		type->alignement = 8;
-		return type;
-	}
-};
-
 struct TypeFonction : public Type {
 	TypeFonction() { genre = GenreType::FONCTION; }
 
@@ -473,18 +344,145 @@ struct TypeFonction : public Type {
 	}
 };
 
-struct TypeVariadique : public Type {
+/* Type de base pour tous les types ayant des membres (structures, énumérations, etc.).
+ */
+struct TypeCompose : public Type {
+	struct Membre {
+		Type *type = nullptr;
+		dls::vue_chaine_compacte nom = "";
+		unsigned decalage = 0;
+		int valeur = 0; // pour les énumérations
+		NoeudExpression *expression_valeur_defaut = nullptr; // pour les membres des structures
+	};
+
+	kuri::tableau<Membre> membres{};
+	dls::vue_chaine_compacte nom{};
+
+	static TypeCompose *cree_eini()
+	{
+		auto type = memoire::loge<TypeCompose>("TypeCompose");
+		type->genre = GenreType::EINI;
+		type->taille_octet = 16;
+		type->alignement = 8;
+		return type;
+	}
+
+	static TypeCompose *cree_chaine()
+	{
+		auto type = memoire::loge<TypeCompose>("TypeCompose");
+		type->genre = GenreType::CHAINE;
+		type->taille_octet = 16;
+		type->alignement = 8;
+		return type;
+	}
+};
+
+inline bool est_type_compose(Type *type)
+{
+	return dls::outils::est_element(
+				type->genre,
+				GenreType::CHAINE,
+				GenreType::EINI,
+				GenreType::ENUM,
+				GenreType::ERREUR,
+				GenreType::STRUCTURE,
+				GenreType::TABLEAU_DYNAMIQUE,
+				GenreType::TABLEAU_FIXE,
+				GenreType::UNION,
+				GenreType::VARIADIQUE);
+}
+
+struct TypeStructure final : public TypeCompose {
+	TypeStructure() { genre = GenreType::STRUCTURE; }
+
+	COPIE_CONSTRUCT(TypeStructure);
+
+	kuri::tableau<TypeStructure *> types_employes{};
+
+	NoeudStruct *decl = nullptr;
+
+	bool deja_genere = false;
+};
+
+struct TypeUnion final : public TypeCompose {
+	TypeUnion() { genre = GenreType::UNION; }
+
+	COPIE_CONSTRUCT(TypeUnion);
+
+	Type *type_le_plus_grand = nullptr;
+
+	NoeudStruct *decl = nullptr;
+
+	bool deja_genere = false;
+	bool est_nonsure = false;
+};
+
+struct TypeEnum final : public TypeCompose {
+	TypeEnum() { genre = GenreType::ENUM; }
+
+	COPIE_CONSTRUCT(TypeEnum);
+
+	Type *type_donnees{};
+
+	NoeudEnum *decl = nullptr;
+	bool est_drapeau = false;
+	bool est_erreur = false;
+};
+
+struct TypeTableauFixe final : public TypeCompose {
+	TypeTableauFixe() { genre = GenreType::TABLEAU_FIXE; }
+
+	COPIE_CONSTRUCT(TypeTableauFixe);
+
+	Type *type_pointe = nullptr;
+	long taille = 0;
+
+	static TypeTableauFixe *cree(Type*type_pointe, long taille, kuri::tableau<TypeCompose::Membre> &&membres)
+	{
+		auto type = memoire::loge<TypeTableauFixe>("TypeTableauFixe");
+		type->membres = std::move(membres);
+		type->type_pointe = type_pointe;
+		type->taille = taille;
+		type->alignement = type_pointe->alignement;
+		type->taille_octet = type_pointe->taille_octet * static_cast<unsigned>(taille);
+		return type;
+	}
+};
+
+struct TypeTableauDynamique final : public TypeCompose {
+	TypeTableauDynamique() { genre = GenreType::TABLEAU_DYNAMIQUE; }
+
+	COPIE_CONSTRUCT(TypeTableauDynamique);
+
+	Type *type_pointe = nullptr;
+
+	static TypeTableauDynamique *cree(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres)
+	{
+		assert(type_pointe);
+
+		auto type = memoire::loge<TypeTableauDynamique>("TypeTableauDynamique");
+		type->membres = std::move(membres);
+		type->type_pointe = type_pointe;
+		type->taille_octet = 24;
+		type->alignement = 8;
+		return type;
+	}
+};
+
+struct TypeVariadique final : public TypeCompose {
 	TypeVariadique() { genre = GenreType::VARIADIQUE; }
 
 	COPIE_CONSTRUCT(TypeVariadique);
 
 	Type *type_pointe = nullptr;
 
-	static TypeVariadique *cree(Type *type_pointe_)
+	static TypeVariadique *cree(Type *type_pointe_, kuri::tableau<TypeCompose::Membre> &&membres)
 	{
 		auto type = memoire::loge<TypeVariadique>("TypeVariadique");
 		type->type_pointe = type_pointe_;
-
+		type->membres = std::move(membres);
+		type->taille_octet = 24;
+		type->alignement = 8;
 		return type;
 	}
 };
@@ -505,9 +503,16 @@ struct Typeuse {
 	dls::tableau<TypeVariadique *> types_variadiques{};
 	dls::tableau<TypeUnion *> types_unions{};
 
+	TypeStructure *type_info_type_ = nullptr;
+	// séparés car nous devons désalloué selon la bonne taille et ce sont plus des types « simples »
+	TypeCompose *type_eini = nullptr;
+	TypeCompose *type_chaine = nullptr;
+
 	// -------------------------
 
 	Typeuse(GrapheDependance &g, Operateurs &o);
+
+	COPIE_CONSTRUCT(Typeuse);
 
 	~Typeuse();
 

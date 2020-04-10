@@ -1338,7 +1338,7 @@ Atome *ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionBinaire *noeu
 			index_membre += 1;
 		}
 
-		auto valeur_enum = decl_enum->desc.valeurs[index_membre];
+		auto valeur_enum = type_enum->membres[index_membre].valeur;
 		return cree_constante_entiere(type_enum->type_donnees, static_cast<unsigned>(valeur_enum));
 	}
 
