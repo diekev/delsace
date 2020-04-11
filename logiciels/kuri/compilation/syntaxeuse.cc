@@ -649,7 +649,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		case GenreLexeme::CHAINE_CARACTERE:
 		{
 			consomme();
-			auto noeud = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme);
+			auto noeud = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme);
 
 			if (apparie(GenreLexeme::DOUBLE_POINTS) && racine_expression != GenreLexeme::RELOGE) {
 				noeud->type_declare = analyse_declaration_type(true);
@@ -678,7 +678,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		{
 			consomme();
 
-			auto noeud = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme_courant());
+			auto noeud = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme_courant());
 			noeud->drapeaux |= EMPLOYE;
 
 			consomme();
@@ -693,7 +693,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		{
 			consomme();
 
-			auto noeud = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme_courant());
+			auto noeud = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme_courant());
 			noeud->drapeaux |= EST_EXTERNE;
 
 			consomme();
@@ -1117,7 +1117,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 			consomme();
 
 			if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
-				noeud->expr = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme_courant());
+				noeud->expr = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme_courant());
 				consomme();
 			}
 

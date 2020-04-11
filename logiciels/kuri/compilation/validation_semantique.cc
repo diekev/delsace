@@ -819,6 +819,7 @@ void performe_validation_semantique(
 				}
 			}
 
+			expr->decl = decl;
 			expr->type = decl->type;
 			assert(expr->type);
 

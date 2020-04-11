@@ -73,6 +73,11 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 			noeud = m_noeuds_expression_membre.ajoute_element();
 			break;
 		}
+		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+		{
+			noeud = m_noeuds_expression_reference.ajoute_element();
+			break;
+		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
@@ -109,7 +114,6 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
-		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		{
 			noeud = m_noeuds_expression.ajoute_element();
@@ -174,6 +178,7 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 	COMPTE_MEMOIRE(NoeudStruct, m_noeuds_struct);
 	COMPTE_MEMOIRE(NoeudExpressionBinaire, m_noeuds_expression_binaire);
 	COMPTE_MEMOIRE(NoeudExpressionMembre, m_noeuds_expression_membre);
+	COMPTE_MEMOIRE(NoeudExpressionReference, m_noeuds_expression_reference);
 	COMPTE_MEMOIRE(NoeudExpressionAppel, m_noeuds_appel);
 	COMPTE_MEMOIRE(NoeudExpressionLogement, m_noeuds_expression_logement);
 	COMPTE_MEMOIRE(NoeudExpressionUnaire, m_noeuds_expression_unaire);
@@ -202,6 +207,7 @@ size_t AllocatriceNoeud::nombre_noeuds() const
 	noeuds += static_cast<size_t>(m_noeuds_struct.taille());
 	noeuds += static_cast<size_t>(m_noeuds_expression_binaire.taille());
 	noeuds += static_cast<size_t>(m_noeuds_expression_membre.taille());
+	noeuds += static_cast<size_t>(m_noeuds_expression_reference.taille());
 	noeuds += static_cast<size_t>(m_noeuds_appel.taille());
 	noeuds += static_cast<size_t>(m_noeuds_expression_logement.taille());
 	noeuds += static_cast<size_t>(m_noeuds_expression_unaire.taille());

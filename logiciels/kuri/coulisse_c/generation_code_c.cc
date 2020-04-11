@@ -1168,10 +1168,9 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
+			auto expr = static_cast<NoeudExpressionReference *>(b);
+			auto decl = expr->decl;
 			auto flux = dls::flux_chaine();
-
-			auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme->fichier));
-			auto decl = trouve_dans_bloc_ou_module(contexte, b->bloc_parent, b->ident, fichier);
 
 			if (decl->drapeaux & EST_CONSTANTE) {
 				auto decl_const = static_cast<NoeudDeclarationVariable *>(decl);

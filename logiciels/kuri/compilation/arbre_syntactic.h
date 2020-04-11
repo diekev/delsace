@@ -255,6 +255,10 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 
 struct NoeudExpressionReference : public NoeudExpression {
 	NoeudExpressionReference() { genre = GenreNoeud::EXPRESSION_REFERENCE_DECLARATION; }
+
+	NoeudDeclaration *decl = nullptr;
+
+	COPIE_CONSTRUCT(NoeudExpressionReference);
 };
 
 struct NoeudExpressionUnaire : public NoeudExpression {
