@@ -1204,9 +1204,9 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
-			auto inst = static_cast<NoeudExpressionBinaire *>(b);
-			auto structure = inst->expr1;
-			auto membre = inst->expr2;
+			auto inst = static_cast<NoeudExpressionMembre *>(b);
+			auto structure = inst->accede;
+			auto membre = inst->membre;
 
 			if (b->drapeaux & EST_APPEL_SYNTAXE_UNIFORME) {
 				cree_appel(membre, contexte, constructrice);
@@ -1220,11 +1220,11 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
-			auto inst = static_cast<NoeudExpressionBinaire *>(b);
-			auto structure = inst->expr1;
-			auto membre = inst->expr2;
+			auto inst = static_cast<NoeudExpressionMembre *>(b);
+			auto structure = inst->accede;
+			auto membre = inst->membre;
 
-			auto index_membre = std::any_cast<long>(b->valeur_calculee);
+			auto index_membre = inst->index_membre;
 			auto type = structure->type;
 
 			auto est_pointeur = (type->genre == GenreType::POINTEUR);

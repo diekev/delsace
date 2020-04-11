@@ -191,8 +191,6 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		case GenreNoeud::EXPRESSION_COMME:
@@ -204,6 +202,18 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 
 			imprime_arbre(expr->expr1, os, tab + 1);
 			imprime_arbre(expr->expr2, os, tab + 1);
+			break;
+		}
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
+		{
+			auto expr = static_cast<NoeudExpressionMembre *>(racine);
+
+			imprime_tab(os, tab);
+			os << "expr membre : " << expr->lexeme->chaine << '\n';
+
+			imprime_arbre(expr->accede, os, tab + 1);
+			imprime_arbre(expr->membre, os, tab + 1);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
@@ -478,8 +488,6 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		case GenreNoeud::EXPRESSION_COMME:
@@ -489,6 +497,16 @@ NoeudExpression *copie_noeud(
 
 			nexpr->expr1 = copie_noeud(assem, expr->expr1, bloc_parent);
 			nexpr->expr2 = copie_noeud(assem, expr->expr2, bloc_parent);
+			break;
+		}
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
+		{
+			auto expr = static_cast<NoeudExpressionMembre const *>(racine);
+			auto nexpr = static_cast<NoeudExpressionMembre *>(nracine);
+
+			nexpr->accede = copie_noeud(assem, expr->accede, bloc_parent);
+			nexpr->membre = copie_noeud(assem, expr->membre, bloc_parent);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
@@ -698,8 +716,6 @@ void aplatis_arbre(
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		case GenreNoeud::EXPRESSION_COMME:
@@ -708,6 +724,17 @@ void aplatis_arbre(
 
 			aplatis_arbre(expr->expr1, arbre_aplatis);
 			aplatis_arbre(expr->expr2, arbre_aplatis);
+			arbre_aplatis.pousse(expr);
+
+			break;
+		}
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
+		{
+			auto expr = static_cast<NoeudExpressionMembre *>(racine);
+
+			aplatis_arbre(expr->accede, arbre_aplatis);
+			aplatis_arbre(expr->membre, arbre_aplatis);
 			arbre_aplatis.pousse(expr);
 
 			break;
@@ -886,8 +913,6 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		case GenreNoeud::EXPRESSION_COMME:
@@ -900,6 +925,23 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 
 			etendue_enfant = calcule_etendue_noeud(expr->expr2, fichier);
+
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			break;
+		}
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
+		{
+			auto expr = static_cast<NoeudExpressionMembre *>(racine);
+
+			auto etendue_enfant = calcule_etendue_noeud(expr->accede, fichier);
+
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			etendue_enfant = calcule_etendue_noeud(expr->membre, fichier);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);

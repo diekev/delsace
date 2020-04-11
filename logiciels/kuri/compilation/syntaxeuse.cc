@@ -1052,9 +1052,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		{
 			consomme();
 
-			auto noeud = CREE_NOEUD(NoeudExpressionBinaire, GenreNoeud::EXPRESSION_REFERENCE_MEMBRE, lexeme);
-			noeud->expr1 = gauche;
-			noeud->expr2 = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
+			auto noeud = CREE_NOEUD(NoeudExpressionMembre, GenreNoeud::EXPRESSION_REFERENCE_MEMBRE, lexeme);
+			noeud->accede = gauche;
+			noeud->membre = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
 			return noeud;
 		}
 		case GenreLexeme::TROIS_POINTS:

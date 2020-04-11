@@ -60,13 +60,17 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		case GenreNoeud::EXPRESSION_COMME:
 		{
 			noeud = m_noeuds_expression_binaire.ajoute_element();
+			break;
+		}
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
+		{
+			noeud = m_noeuds_expression_membre.ajoute_element();
 			break;
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
@@ -169,6 +173,7 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 	COMPTE_MEMOIRE(NoeudEnum, m_noeuds_enum);
 	COMPTE_MEMOIRE(NoeudStruct, m_noeuds_struct);
 	COMPTE_MEMOIRE(NoeudExpressionBinaire, m_noeuds_expression_binaire);
+	COMPTE_MEMOIRE(NoeudExpressionMembre, m_noeuds_expression_membre);
 	COMPTE_MEMOIRE(NoeudExpressionAppel, m_noeuds_appel);
 	COMPTE_MEMOIRE(NoeudExpressionLogement, m_noeuds_expression_logement);
 	COMPTE_MEMOIRE(NoeudExpressionUnaire, m_noeuds_expression_unaire);
@@ -196,6 +201,7 @@ size_t AllocatriceNoeud::nombre_noeuds() const
 	noeuds += static_cast<size_t>(m_noeuds_enum.taille());
 	noeuds += static_cast<size_t>(m_noeuds_struct.taille());
 	noeuds += static_cast<size_t>(m_noeuds_expression_binaire.taille());
+	noeuds += static_cast<size_t>(m_noeuds_expression_membre.taille());
 	noeuds += static_cast<size_t>(m_noeuds_appel.taille());
 	noeuds += static_cast<size_t>(m_noeuds_expression_logement.taille());
 	noeuds += static_cast<size_t>(m_noeuds_expression_unaire.taille());

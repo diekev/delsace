@@ -785,8 +785,8 @@ static auto trouve_candidat(
 	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
 
 	if (structure->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
-		auto noeud = static_cast<NoeudExpressionBinaire *>(structure);
-		structure = noeud->expr2;
+		auto noeud = static_cast<NoeudExpressionMembre *>(structure);
+		structure = noeud->membre;
 	}
 
 	ss << "Dans l'accès à « " << structure->ident->nom << " » :\n";

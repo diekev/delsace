@@ -214,7 +214,7 @@ static NoeudBase *derniere_instruction(NoeudBloc *b)
 
 static void valide_acces_membre(
 		ContexteGenerationCode &contexte,
-		NoeudExpression *b,
+		NoeudExpressionMembre *b,
 		NoeudExpression *structure,
 		NoeudExpression *membre,
 		bool expr_gauche)
@@ -248,6 +248,8 @@ static void valide_acces_membre(
 			erreur::membre_inconnu(contexte, b->bloc_parent, b, structure, membre, type);
 		}
 
+		b->index_membre = index_membre;
+
 		if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
 			b->genre_valeur = GenreValeur::DROITE;
 		}
@@ -255,7 +257,6 @@ static void valide_acces_membre(
 			auto noeud_struct = static_cast<TypeUnion *>(type)->decl;
 			if (!noeud_struct->est_nonsure) {
 				b->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
-				b->valeur_calculee = index_membre;
 
 				if (expr_gauche) {
 					contexte.renseigne_membre_actif(structure->ident->nom, membre->ident->nom);
@@ -844,9 +845,9 @@ void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
-			auto inst = static_cast<NoeudExpressionBinaire *>(b);
-			auto enfant1 = inst->expr1;
-			auto enfant2 = inst->expr2;
+			auto inst = static_cast<NoeudExpressionMembre *>(b);
+			auto enfant1 = inst->accede;
+			auto enfant2 = inst->membre;
 			b->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
 			if (enfant1->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {

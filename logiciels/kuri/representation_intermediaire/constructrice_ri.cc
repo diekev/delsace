@@ -723,12 +723,12 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
-			auto noeud_bin = static_cast<NoeudExpressionBinaire *>(noeud);
+			auto noeud_bin = static_cast<NoeudExpressionMembre *>(noeud);
 			return genere_ri_pour_acces_membre(noeud_bin);
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
-			auto noeud_bin = static_cast<NoeudExpressionBinaire *>(noeud);
+			auto noeud_bin = static_cast<NoeudExpressionMembre *>(noeud);
 			return genere_ri_pour_acces_membre_union(noeud_bin);
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
@@ -1667,11 +1667,10 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	return nullptr;
 }
 
-Atome *ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionBinaire *noeud)
+Atome *ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud)
 {
 	// À FAIRE : ceci ignore les espaces de noms.
-	auto accede = noeud->expr1;
-	auto membre = noeud->expr2;
+	auto accede = noeud->accede;
 	auto type_accede = accede->type;
 
 	auto est_pointeur = type_accede->genre == GenreType::POINTEUR || type_accede->genre == GenreType::REFERENCE;
@@ -1687,19 +1686,7 @@ Atome *ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionBinaire *noeu
 
 	if (type_accede->genre == GenreType::ENUM || type_accede->genre == GenreType::ERREUR) {
 		auto type_enum = static_cast<TypeEnum *>(type_accede);
-		auto decl_enum = type_enum->decl;
-
-		auto index_membre = 0;
-
-		POUR (decl_enum->bloc->membres) {
-			if (it->ident == membre->ident) {
-				break;
-			}
-
-			index_membre += 1;
-		}
-
-		auto valeur_enum = type_enum->membres[index_membre].valeur;
+		auto valeur_enum = type_enum->membres[noeud->index_membre].valeur;
 		return cree_constante_entiere(type_enum->type_donnees, static_cast<unsigned>(valeur_enum));
 	}
 
@@ -1709,26 +1696,14 @@ Atome *ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionBinaire *noeu
 		pointeur_accede = cree_charge_mem(type_accede, pointeur_accede);
 	}
 
-	auto index_membre = 0u;
-
 	// À FAIRE : gestion des constantes globales (chaines)
 	// À FAIRE : les unions nonsûres ont toujours un index à 0
 
-	auto type_compose = static_cast<TypeCompose *>(type_accede);
-
-	POUR (type_compose->membres) {
-		if (it.nom == membre->ident->nom) {
-			break;
-		}
-
-		index_membre += 1;
-	}
-
-	auto atome_index = cree_constante_entiere(m_contexte.typeuse[TypeBase::Z64], index_membre);
+	auto atome_index = cree_constante_entiere(m_contexte.typeuse[TypeBase::Z64], static_cast<unsigned>(noeud->index_membre));
 	return cree_acces_membre(noeud->type, pointeur_accede, atome_index);
 }
 
-Atome *ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionBinaire *noeud)
+Atome *ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud)
 {
 	// À FAIRE : nous devons savoir si nous avons une expression gauche ou non
 	return nullptr;

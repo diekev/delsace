@@ -280,6 +280,17 @@ struct NoeudExpressionBinaire : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudExpressionBinaire);
 };
 
+struct NoeudExpressionMembre : public NoeudExpression {
+	NoeudExpressionMembre() { genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE; }
+
+	NoeudExpression *accede = nullptr;
+	NoeudExpression *membre = nullptr;
+
+	int index_membre = 0;
+
+	COPIE_CONSTRUCT(NoeudExpressionMembre);
+};
+
 struct NoeudExpressionLogement : public NoeudExpression {
 	NoeudExpressionLogement() {}
 

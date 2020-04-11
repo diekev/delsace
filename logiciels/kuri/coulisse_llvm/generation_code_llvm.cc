@@ -1125,9 +1125,9 @@ llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		{
-			auto expr = static_cast<NoeudExpressionBinaire *>(b);
-			auto structure = expr->expr1;
-			auto membre = expr->expr2;
+			auto expr = static_cast<NoeudExpressionMembre *>(b);
+			auto structure = expr->accede;
+			auto membre = expr->membre;
 
 			if (possede_drapeau(b->drapeaux, EST_APPEL_SYNTAXE_UNIFORME)) {
 				return genere_code_llvm(membre, contexte, expr_gauche);
@@ -1248,9 +1248,9 @@ llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
-			auto expr = static_cast<NoeudExpressionBinaire *>(b);
-			auto structure = expr->expr1;
-			auto membre = expr->expr2;
+			auto expr = static_cast<NoeudExpressionMembre *>(b);
+			auto structure = expr->accede;
+			auto membre = expr->membre;
 			auto const &nom_membre = membre->ident->nom;
 
 			auto type_structure = static_cast<TypeStructure *>(structure->type);

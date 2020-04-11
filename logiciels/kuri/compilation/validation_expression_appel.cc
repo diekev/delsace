@@ -105,10 +105,10 @@ static auto trouve_candidates_pour_fonction_appelee(
 		}
 	}
 	else if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
-		auto acces = static_cast<NoeudExpressionBinaire *>(appelee);
+		auto acces = static_cast<NoeudExpressionMembre *>(appelee);
 
-		auto accede = acces->expr1;
-		auto membre = acces->expr2;
+		auto accede = acces->accede;
+		auto membre = acces->membre;
 
 		if (accede->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION && fichier->importe_module(accede->ident->nom)) {
 			auto module = contexte.module(accede->ident->nom);

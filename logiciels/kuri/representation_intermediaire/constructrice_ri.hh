@@ -35,6 +35,7 @@ struct NoeudDependance;
 struct NoeudDiscr;
 struct NoeudExpression;
 struct NoeudExpressionBinaire;
+struct NoeudExpressionMembre;
 struct NoeudPour;
 struct NoeudStruct;
 struct NoeudTente;
@@ -143,8 +144,8 @@ private:
 								   NoeudExpression *bloc_sinon);
 	Atome *genere_ri_pour_comparaison_chainee(NoeudExpression *noeud);
 	Atome *genere_ri_pour_declaration_structure(NoeudStruct *noeud);
-	Atome *genere_ri_pour_acces_membre(NoeudExpressionBinaire *noeud);
-	Atome *genere_ri_pour_acces_membre_union(NoeudExpressionBinaire *noeud);
+	Atome *genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud);
+	Atome *genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud);
 	AtomeConstante *genere_initialisation_defaut_pour_type(Type *type);
 
 	void traverse_graphe(NoeudDependance *racine);
