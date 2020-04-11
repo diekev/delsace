@@ -3479,7 +3479,7 @@ static void genere_code_c_pour_instruction(Instruction const *inst, std::ostream
 		case Instruction::Genre::OPERATION_UNAIRE:
 		{
 			auto inst_un = static_cast<InstructionOpUnaire const *>(inst);
-			os << "  " << chaine_pour_type_op(inst_un->op->type_operation)
+			os << "  " << chaine_pour_genre_op(inst_un->op)
 			   << ' ' << nom_broye_type(inst_un->type);
 			genere_code_c_pour_atome(inst_un->valeur, os);
 			os << '\n';
@@ -3493,115 +3493,100 @@ static void genere_code_c_pour_instruction(Instruction const *inst, std::ostream
 
 			genere_code_c_pour_atome(inst_bin->valeur_gauche, os);
 
-			switch (inst_bin->op->type_operation) {
-				case TypeOp::ADDITION:
+			switch (inst_bin->op) {
+				case OperateurBinaire::Genre::Addition:
 				{
 					os << " + ";
 					break;
 				}
-				case TypeOp::SOUSTRACTION:
+				case OperateurBinaire::Genre::Soustraction:
 				{
 					os << " - ";
 					break;
 				}
-				case TypeOp::MULTIPLICATION:
+				case OperateurBinaire::Genre::Multiplication:
 				{
 					os << " * ";
 					break;
 				}
-				case TypeOp::DIVISION:
+				case OperateurBinaire::Genre::Division:
 				{
 					os << " / ";
 					break;
 				}
-				case TypeOp::MODULO:
+				case OperateurBinaire::Genre::Reste:
 				{
 					os << " % ";
 					break;
 				}
-				case TypeOp::COMP_EGAL:
+				case OperateurBinaire::Genre::Comp_Egal:
 				{
 					os << " == ";
 					break;
 				}
-				case TypeOp::COMP_NON_EGAL:
+				case OperateurBinaire::Genre::Comp_Inegal:
 				{
 					os << " != ";
 					break;
 				}
-				case TypeOp::COMP_INF:
+				case OperateurBinaire::Genre::Comp_Inf:
 				{
 					os << " < ";
 					break;
 				}
-				case TypeOp::COMP_INF_EGAL:
+				case OperateurBinaire::Genre::Comp_Inf_Egal:
 				{
 					os << " <= ";
 					break;
 				}
-				case TypeOp::COMP_SUP:
+				case OperateurBinaire::Genre::Comp_Sup:
 				{
 					os << " > ";
 					break;
 				}
-				case TypeOp::COMP_SUP_EGAL:
+				case OperateurBinaire::Genre::Comp_Sup_Egal:
 				{
 					os << " >= ";
 					break;
 				}
-				case TypeOp::ET_LOGIQUE:
+				case OperateurBinaire::Genre::Et_Logique:
 				{
 					os << " && ";
 					break;
 				}
-				case TypeOp::OU_LOGIQUE:
+				case OperateurBinaire::Genre::Ou_Logique:
 				{
 					os << " || ";
 					break;
 				}
-				case TypeOp::NON_LOGIQUE:
-				{
-					os << "! ";
-					break;
-				}
-				case TypeOp::ET_BINAIRE:
+				case OperateurBinaire::Genre::Et_Binaire:
 				{
 					os << " & ";
 					break;
 				}
-				case TypeOp::OU_BINAIRE:
+				case OperateurBinaire::Genre::Ou_Binaire:
 				{
 					os << " | ";
 					break;
 				}
-				case TypeOp::OUX_BINAIRE:
+				case OperateurBinaire::Genre::Ou_Exclusif:
 				{
 					os << " ^ ";
 					break;
 				}
-				case TypeOp::NON_BINAIRE:
-				{
-					os << " ~ ";
-					break;
-				}
-				case TypeOp::DEC_GAUCHE:
+				case OperateurBinaire::Genre::Dec_Gauche:
 				{
 					os << " << ";
 					break;
 				}
-				case TypeOp::DEC_DROITE:
+				case OperateurBinaire::Genre::Dec_Droite:
 				{
 					os << " >> ";
 					break;
 				}
-				case TypeOp::PLUS_UNAIRE:
+				case OperateurBinaire::Genre::Invalide:
 				{
-					os << " + ";
-					break;
-				}
-				case TypeOp::MOINS_UNAIRE:
-				{
-					os << " - ";
+					os << " invalide ";
 					break;
 				}
 			}

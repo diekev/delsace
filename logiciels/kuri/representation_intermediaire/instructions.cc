@@ -122,7 +122,7 @@ InstructionRetour *InstructionRetour::cree(Atome *valeur)
 	return inst;
 }
 
-InstructionOpBinaire *InstructionOpBinaire::cree(Type *type, const DonneesOperateur *op, Atome *valeur_gauche, Atome *valeur_droite)
+InstructionOpBinaire *InstructionOpBinaire::cree(Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite)
 {
 	auto inst = memoire::loge<InstructionOpBinaire>("InstructionOpBinaire");
 	inst->type = type;
@@ -132,7 +132,7 @@ InstructionOpBinaire *InstructionOpBinaire::cree(Type *type, const DonneesOperat
 	return inst;
 }
 
-InstructionOpUnaire *InstructionOpUnaire::cree(Type *type, const DonneesOperateur *op, Atome *valeur)
+InstructionOpUnaire *InstructionOpUnaire::cree(Type *type, OperateurUnaire::Genre op, Atome *valeur)
 {
 	auto inst = memoire::loge<InstructionOpUnaire>("InstructionOpUnaire");
 	inst->type = type;

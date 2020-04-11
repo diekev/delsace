@@ -323,7 +323,7 @@ void ConstructriceRI::imprime_instruction(Instruction const *inst, std::ostream 
 		case Instruction::Genre::OPERATION_UNAIRE:
 		{
 			auto inst_un = static_cast<InstructionOpUnaire const *>(inst);
-			os << "  " << chaine_pour_type_op(inst_un->op->type_operation)
+			os << "  " << chaine_pour_genre_op(inst_un->op)
 			   << ' ' << chaine_type(inst_un->type);
 			imprime_atome(inst_un->valeur, os);
 			os << '\n';
@@ -332,7 +332,7 @@ void ConstructriceRI::imprime_instruction(Instruction const *inst, std::ostream 
 		case Instruction::Genre::OPERATION_BINAIRE:
 		{
 			auto inst_bin = static_cast<InstructionOpBinaire const *>(inst);
-			os << "  " << chaine_pour_type_op(inst_bin->op->type_operation)
+			os << "  " << chaine_pour_genre_op(inst_bin->op)
 			   << ' ' << chaine_type(inst_bin->type) << ' ';
 			imprime_atome(inst_bin->valeur_gauche, os);
 			os << ", ";
@@ -574,7 +574,7 @@ InstructionAppel *ConstructriceRI::cree_appel(Type *type, Atome *appele, kuri::t
 	return inst;
 }
 
-InstructionOpUnaire *ConstructriceRI::cree_op_unaire(Type *type, DonneesOperateur const *op, Atome *valeur)
+InstructionOpUnaire *ConstructriceRI::cree_op_unaire(Type *type, OperateurUnaire::Genre op, Atome *valeur)
 {
 	auto inst = InstructionOpUnaire::cree(type, op, valeur);
 	inst->numero = nombre_instructions++;
@@ -583,7 +583,7 @@ InstructionOpUnaire *ConstructriceRI::cree_op_unaire(Type *type, DonneesOperateu
 	return inst;
 }
 
-InstructionOpBinaire *ConstructriceRI::cree_op_binaire(Type *type, DonneesOperateur const *op, Atome *valeur_gauche, Atome *valeur_droite)
+InstructionOpBinaire *ConstructriceRI::cree_op_binaire(Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite)
 {
 	auto inst = InstructionOpBinaire::cree(type, op, valeur_gauche, valeur_droite);
 	inst->numero = nombre_instructions++;
@@ -815,11 +815,11 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto expr_bin = static_cast<NoeudExpressionBinaire *>(noeud);
 
-			auto traduit_operation_binaire = [&](DonneesOperateur const *op, Atome *valeur_gauche, Atome *valeur_droite) -> Atome*
+			auto traduit_operation_binaire = [&](OperateurBinaire const *op, Atome *valeur_gauche, Atome *valeur_droite) -> Atome*
 			{
 				// À FAIRE : arithmétique de pointeur, opérateurs logiques
 				if (op->est_basique) {
-					return cree_op_binaire(noeud->type, op, valeur_gauche, valeur_droite);
+					return cree_op_binaire(noeud->type, op->genre, valeur_gauche, valeur_droite);
 				}
 
 				// À FAIRE : contexte
@@ -885,7 +885,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			if (expr_un->op->est_basique) {
 				auto valeur = genere_ri_transformee_pour_noeud(expr_un->expr);
-				return cree_op_unaire(expr_un->type, expr_un->op, valeur);
+				return cree_op_unaire(expr_un->type, expr_un->op->genre, valeur);
 			}
 
 			return nullptr;
@@ -1606,7 +1606,7 @@ Atome *ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpre
 struct DonneesComparaisonChainee {
 	NoeudExpression *operande_gauche = nullptr;
 	NoeudExpression *operande_droite = nullptr;
-	DonneesOperateur const *op = nullptr;
+	OperateurBinaire const *op = nullptr;
 
 	COPIE_CONSTRUCT(DonneesComparaisonChainee);
 };
@@ -1653,7 +1653,7 @@ Atome *ConstructriceRI::genere_ri_pour_comparaison_chainee(NoeudExpression *noeu
 	POUR (comparaisons) {
 		auto atome_gauche = genere_ri_transformee_pour_noeud(it.operande_gauche);
 		auto atome_droite = genere_ri_transformee_pour_noeud(it.operande_droite);
-		auto atome_op_bin = cree_op_binaire(noeud->type, it.op, atome_gauche, atome_droite);
+		auto atome_op_bin = cree_op_binaire(noeud->type, it.op->genre, atome_gauche, atome_droite);
 
 		cree_branche_condition(atome_op_bin, label_si_vrai, label_si_faux);
 	}

@@ -190,100 +190,110 @@ static llvm::CmpInst::Predicate predicat_llvm_pour_operateur(
 	}
 }
 
-static TypeOp type_op_pour_lexeme(GenreLexeme genre_lexeme)
+static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_lexeme)
 {
 	switch (genre_lexeme) {
 		case GenreLexeme::PLUS:
 		{
-			return TypeOp::ADDITION;
+			return OperateurBinaire::Genre::Addition;
 		}
 		case GenreLexeme::MOINS:
 		{
-			return TypeOp::SOUSTRACTION;
+			return OperateurBinaire::Genre::Soustraction;
 		}
 		case GenreLexeme::FOIS:
 		{
-			return TypeOp::MULTIPLICATION;
+			return OperateurBinaire::Genre::Multiplication;
 		}
 		case GenreLexeme::DIVISE:
 		{
-			return TypeOp::DIVISION;
+			return OperateurBinaire::Genre::Division;
 		}
 		case GenreLexeme::POURCENT:
 		{
-			return TypeOp::MODULO;
+			return OperateurBinaire::Genre::Reste;
 		}
 		case GenreLexeme::DECALAGE_DROITE:
 		{
-			return TypeOp::DEC_DROITE;
+			return OperateurBinaire::Genre::Dec_Droite;
 		}
 		case GenreLexeme::DECALAGE_GAUCHE:
 		{
-			return TypeOp::DEC_GAUCHE;
+			return OperateurBinaire::Genre::Dec_Gauche;
 		}
 		case GenreLexeme::ESP_ESP:
 		{
-			return TypeOp::ET_LOGIQUE;
+			return OperateurBinaire::Genre::Et_Logique;
 		}
 		case GenreLexeme::BARRE_BARRE:
 		{
-			return TypeOp::OU_LOGIQUE;
+			return OperateurBinaire::Genre::Ou_Logique;
 		}
 		case GenreLexeme::ESPERLUETTE:
 		{
-			return TypeOp::ET_BINAIRE;
+			return OperateurBinaire::Genre::Et_Binaire;
 		}
 		case GenreLexeme::BARRE:
 		{
-			return TypeOp::OU_BINAIRE;
+			return OperateurBinaire::Genre::Ou_Binaire;
 		}
 		case GenreLexeme::CHAPEAU:
 		{
-			return TypeOp::OUX_BINAIRE;
+			return OperateurBinaire::Genre::Ou_Exclusif;
 		}
 		case GenreLexeme::INFERIEUR:
 		{
-			return TypeOp::COMP_INF;
+			return OperateurBinaire::Genre::Comp_Inf;
 		}
 		case GenreLexeme::INFERIEUR_EGAL:
 		{
-			return TypeOp::COMP_INF_EGAL;
+			return OperateurBinaire::Genre::Comp_Inf_Egal;
 		}
 		case GenreLexeme::SUPERIEUR:
 		{
-			return TypeOp::COMP_SUP;
+			return OperateurBinaire::Genre::Comp_Sup;
 		}
 		case GenreLexeme::SUPERIEUR_EGAL:
 		{
-			return TypeOp::COMP_SUP_EGAL;
+			return OperateurBinaire::Genre::Comp_Sup_Egal;
 		}
 		case GenreLexeme::EGALITE:
 		{
-			return TypeOp::COMP_EGAL;
+			return OperateurBinaire::Genre::Comp_Egal;
 		}
 		case GenreLexeme::DIFFERENCE:
 		{
-			return TypeOp::COMP_NON_EGAL;
-		}
-		case GenreLexeme::PLUS_UNAIRE:
-		{
-			return TypeOp::PLUS_UNAIRE;
-		}
-		case GenreLexeme::MOINS_UNAIRE:
-		{
-			return TypeOp::MOINS_UNAIRE;
-		}
-		case GenreLexeme::TILDE:
-		{
-			return TypeOp::NON_BINAIRE;
-		}
-		case GenreLexeme::EXCLAMATION:
-		{
-			return TypeOp::NON_LOGIQUE;
+			return OperateurBinaire::Genre::Comp_Inegal;
 		}
 		default:
 		{
-			return static_cast<TypeOp>(-1);
+			return OperateurBinaire::Genre::Invalide;
+		}
+	}
+}
+
+static OperateurUnaire::Genre genre_op_unaire_pour_lexeme(GenreLexeme genre_lexeme)
+{
+	switch (genre_lexeme) {
+		case GenreLexeme::PLUS_UNAIRE:
+		{
+			return OperateurUnaire::Genre::Positif;
+		}
+		case GenreLexeme::MOINS_UNAIRE:
+		{
+			return OperateurUnaire::Genre::Complement;
+		}
+		case GenreLexeme::TILDE:
+		{
+			return OperateurUnaire::Genre::Non_Binaire;
+		}
+		case GenreLexeme::EXCLAMATION:
+		{
+			return OperateurUnaire::Genre::Non_Logique;
+		}
+		default:
+		{
+			return OperateurUnaire::Genre::Invalide;
 		}
 	}
 }
@@ -339,96 +349,116 @@ static bool est_commutatif(GenreLexeme id)
 	}
 }
 
-const char *chaine_pour_type_op(TypeOp type_op)
+const char *chaine_pour_genre_op(OperateurBinaire::Genre genre)
 {
-	switch (type_op) {
-		case TypeOp::ADDITION:
+	switch (genre) {
+		case OperateurBinaire::Genre::Addition:
 		{
 			return "ajt";
 		}
-		case TypeOp::SOUSTRACTION:
+		case OperateurBinaire::Genre::Soustraction:
 		{
 			return "sst";
 		}
-		case TypeOp::MULTIPLICATION:
+		case OperateurBinaire::Genre::Multiplication:
 		{
 			return "mul";
 		}
-		case TypeOp::DIVISION:
+		case OperateurBinaire::Genre::Division:
 		{
 			return "div";
 		}
-		case TypeOp::MODULO:
+		case OperateurBinaire::Genre::Reste:
 		{
 			return "mod";
 		}
-		case TypeOp::COMP_EGAL:
+		case OperateurBinaire::Genre::Comp_Egal:
 		{
 			return "eg";
 		}
-		case TypeOp::COMP_NON_EGAL:
+		case OperateurBinaire::Genre::Comp_Inegal:
 		{
 			return "neg";
 		}
-		case TypeOp::COMP_INF:
+		case OperateurBinaire::Genre::Comp_Inf:
 		{
 			return "inf";
 		}
-		case TypeOp::COMP_INF_EGAL:
+		case OperateurBinaire::Genre::Comp_Inf_Egal:
 		{
 			return "infeg";
 		}
-		case TypeOp::COMP_SUP:
+		case OperateurBinaire::Genre::Comp_Sup:
 		{
 			return "sup";
 		}
-		case TypeOp::COMP_SUP_EGAL:
+		case OperateurBinaire::Genre::Comp_Sup_Egal:
 		{
 			return "supeg";
 		}
-		case TypeOp::ET_LOGIQUE:
+		case OperateurBinaire::Genre::Et_Logique:
 		{
 			return "et";
 		}
-		case TypeOp::OU_LOGIQUE:
+		case OperateurBinaire::Genre::Ou_Logique:
 		{
 			return "ou";
 		}
-		case TypeOp::NON_LOGIQUE:
-		{
-			return "non";
-		}
-		case TypeOp::ET_BINAIRE:
+		case OperateurBinaire::Genre::Et_Binaire:
 		{
 			return "et";
 		}
-		case TypeOp::OU_BINAIRE:
+		case OperateurBinaire::Genre::Ou_Binaire:
 		{
 			return "ou";
 		}
-		case TypeOp::OUX_BINAIRE:
+		case OperateurBinaire::Genre::Ou_Exclusif:
 		{
 			return "oux";
 		}
-		case TypeOp::NON_BINAIRE:
-		{
-			return "non";
-		}
-		case TypeOp::DEC_GAUCHE:
+		case OperateurBinaire::Genre::Dec_Gauche:
 		{
 			return "decg";
 		}
-		case TypeOp::DEC_DROITE:
+		case OperateurBinaire::Genre::Dec_Droite:
 		{
 			return "decd";
 		}
-		case TypeOp::PLUS_UNAIRE:
+		case OperateurBinaire::Genre::Invalide:
+		{
+			return "invalide";
+		}
+	}
+
+	return "inconnu";
+}
+
+const char *chaine_pour_genre_op(OperateurUnaire::Genre genre)
+{
+	switch (genre) {
+		case OperateurUnaire::Genre::Positif:
 		{
 			return "plus";
 		}
-		case TypeOp::MOINS_UNAIRE:
+		case OperateurUnaire::Genre::Complement:
 		{
 			return "moins";
+		}
+		case OperateurUnaire::Genre::Non_Logique:
+		{
+			return "non";
+		}
+		case OperateurUnaire::Genre::Non_Binaire:
+		{
+			return "non";
+		}
+		case OperateurUnaire::Genre::Prise_Adresse:
+		{
+			return "addr";
+		}
+		case OperateurUnaire::Genre::Invalide:
+		{
+			return "invalide";
 		}
 	}
 
@@ -439,9 +469,14 @@ Operateurs::~Operateurs()
 {
 }
 
-const Operateurs::type_conteneur &Operateurs::trouve(GenreLexeme id) const
+const Operateurs::type_conteneur_unaire &Operateurs::trouve_unaire(GenreLexeme id) const
 {
-	return donnees_operateurs.trouve(id)->second;
+	return operateurs_unaires.trouve(id)->second;
+}
+
+const Operateurs::type_conteneur_binaire &Operateurs::trouve_binaire(GenreLexeme id) const
+{
+	return operateurs_binaires.trouve(id)->second;
 }
 
 void Operateurs::ajoute_basique(
@@ -465,13 +500,13 @@ void Operateurs::ajoute_basique(
 	assert(type1);
 	assert(type2);
 
-	auto op = donnees_operateurs[id].ajoute_element();
+	auto op = operateurs_binaires[id].ajoute_element();
 	op->type1 = type1;
 	op->type2 = type2;
 	op->type_resultat = type_resultat;
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = true;
-	op->type_operation = type_op_pour_lexeme(id);
+	op->genre = genre_op_binaire_pour_lexeme(id);
 
 	if (raison == RaisonOp::POUR_COMPARAISON) {
 		op->est_comp_reel = indice_type == IndiceTypeOp::REEL;
@@ -485,7 +520,11 @@ void Operateurs::ajoute_basique(
 
 void Operateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat)
 {
-	ajoute_basique(id, type, type, type_resultat, static_cast<IndiceTypeOp>(-1), static_cast<RaisonOp>(-1));
+	auto op = operateurs_unaires[id].ajoute_element();
+	op->type_operande = type;
+	op->type_resultat = type_resultat;
+	op->est_basique = true;
+	op->genre = genre_op_unaire_pour_lexeme(id);
 }
 
 void Operateurs::ajoute_perso(
@@ -495,14 +534,14 @@ void Operateurs::ajoute_perso(
 		Type *type_resultat,
 		const dls::chaine &nom_fonction)
 {
-	auto op = donnees_operateurs[id].ajoute_element();
+	auto op = operateurs_binaires[id].ajoute_element();
 	op->type1 = type1;
 	op->type2 = type2;
 	op->type_resultat = type_resultat;
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = false;
 	op->nom_fonction = nom_fonction;
-	op->type_operation = type_op_pour_lexeme(id);
+	op->genre = genre_op_binaire_pour_lexeme(id);
 }
 
 void Operateurs::ajoute_perso_unaire(
@@ -511,13 +550,12 @@ void Operateurs::ajoute_perso_unaire(
 		Type *type_resultat,
 		const dls::chaine &nom_fonction)
 {
-	auto op = donnees_operateurs[id].ajoute_element();
-	op->type1 = type;
+	auto op = operateurs_unaires[id].ajoute_element();
+	op->type_operande = type;
 	op->type_resultat = type_resultat;
-	op->est_commutatif = est_commutatif(id);
 	op->est_basique = false;
 	op->nom_fonction = nom_fonction;
-	op->type_operation = type_op_pour_lexeme(id);
+	op->genre = genre_op_unaire_pour_lexeme(id);
 }
 
 void Operateurs::ajoute_operateur_basique_enum(Type *type)
@@ -538,10 +576,15 @@ size_t Operateurs::memoire_utilisee() const
 	auto memoire = 0ul;
 
 	// compte la mémoire des noeuds de la table de hachage
-	memoire += static_cast<size_t>(donnees_operateurs.taille()) * (sizeof(GenreLexeme) + sizeof(type_conteneur));
+	memoire += static_cast<size_t>(operateurs_unaires.taille()) * (sizeof(GenreLexeme) + sizeof(type_conteneur_unaire));
+	memoire += static_cast<size_t>(operateurs_binaires.taille()) * (sizeof(GenreLexeme) + sizeof(type_conteneur_binaire));
 
-	POUR (donnees_operateurs) {
-		memoire += static_cast<size_t>(it.second.taille()) * (sizeof(DonneesOperateur) + sizeof(DonneesOperateur *));
+	POUR (operateurs_unaires) {
+		memoire += static_cast<size_t>(it.second.taille()) * (sizeof(OperateurUnaire) + sizeof(OperateurUnaire *));
+	}
+
+	POUR (operateurs_binaires) {
+		memoire += static_cast<size_t>(it.second.taille()) * (sizeof(OperateurBinaire) + sizeof(OperateurBinaire *));
 	}
 
 	return memoire;
@@ -576,9 +619,9 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 	assert(type1);
 	assert(type2);
 
-	auto op_candidats = dls::tablet<DonneesOperateur const *, 10>();
+	auto op_candidats = dls::tablet<OperateurBinaire const *, 10>();
 
-	auto &iter = contexte.operateurs.trouve(type_op);
+	auto &iter = contexte.operateurs.trouve_binaire(type_op);
 
 	for (auto i = 0; i < iter.taille(); ++i) {
 		auto op = &iter[i];
@@ -640,17 +683,17 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 	return candidats;
 }
 
-DonneesOperateur const *cherche_operateur_unaire(
+const OperateurUnaire *cherche_operateur_unaire(
 		Operateurs const &operateurs,
 		Type *type1,
 		GenreLexeme type_op)
 {
-	auto &iter = operateurs.trouve(type_op);
+	auto &iter = operateurs.trouve_unaire(type_op);
 
 	for (auto i = 0; i < iter.taille(); ++i) {
 		auto op = &iter[i];
 
-		if (op->type1 == type1) {
+		if (op->type_operande == type1) {
 			return op;
 		}
 	}

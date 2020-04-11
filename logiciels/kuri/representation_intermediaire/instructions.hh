@@ -29,9 +29,9 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
 
+#include "operateurs.hh"
 #include "structures.hh"
 
-struct DonneesOperateur;
 struct IdentifiantCode;
 struct Type;
 
@@ -172,24 +172,24 @@ struct InstructionRetour : public Instruction {
 struct InstructionOpBinaire : public Instruction {
 	InstructionOpBinaire() { genre = Instruction::Genre::OPERATION_BINAIRE; }
 
-	DonneesOperateur const *op = nullptr;
+	OperateurBinaire::Genre op{};
 	Atome *valeur_gauche = nullptr;
 	Atome *valeur_droite = nullptr;
 
 	COPIE_CONSTRUCT(InstructionOpBinaire);
 
-	static InstructionOpBinaire *cree(Type *type, DonneesOperateur const *op, Atome *valeur_gauche, Atome *valeur_droite);
+	static InstructionOpBinaire *cree(Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
 };
 
 struct InstructionOpUnaire : public Instruction {
 	InstructionOpUnaire() { genre = Instruction::Genre::OPERATION_UNAIRE; }
 
-	DonneesOperateur const *op = nullptr;
+	OperateurUnaire::Genre op{};
 	Atome *valeur = nullptr;
 
 	COPIE_CONSTRUCT(InstructionOpUnaire);
 
-	static InstructionOpUnaire *cree(Type *type, DonneesOperateur const *op, Atome *valeur);
+	static InstructionOpUnaire *cree(Type *type, OperateurUnaire::Genre op, Atome *valeur);
 };
 
 struct InstructionChargeMem : public Instruction {

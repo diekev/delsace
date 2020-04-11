@@ -35,7 +35,8 @@
 #include "transformation_type.hh"
 
 class assembleuse_arbre;
-struct DonneesOperateur;
+struct OperateurBinaire;
+struct OperateurUnaire;
 struct Fichier;
 struct IdentifiantCode;
 struct NoeudBloc;
@@ -261,7 +262,7 @@ struct NoeudExpressionUnaire : public NoeudExpression {
 
 	NoeudExpression *expr = nullptr;
 
-	DonneesOperateur const *op = nullptr;
+	OperateurUnaire const *op = nullptr;
 
 	COPIE_CONSTRUCT(NoeudExpressionUnaire);
 };
@@ -274,7 +275,7 @@ struct NoeudExpressionBinaire : public NoeudExpression {
 	NoeudExpression *expr1 = nullptr;
 	NoeudExpression *expr2 = nullptr;
 
-	DonneesOperateur const *op = nullptr;
+	OperateurBinaire const *op = nullptr;
 
 	COPIE_CONSTRUCT(NoeudExpressionBinaire);
 };
@@ -405,7 +406,7 @@ struct NoeudDiscr : public NoeudExpression {
 
 	NoeudBloc *bloc_sinon = nullptr;
 
-	DonneesOperateur const *op = nullptr;
+	OperateurBinaire const *op = nullptr;
 
 	COPIE_CONSTRUCT(NoeudDiscr);
 };

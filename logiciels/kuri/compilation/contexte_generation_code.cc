@@ -265,7 +265,11 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 
 	metriques.nombre_types = typeuse.nombre_de_types();
 
-	POUR (operateurs.donnees_operateurs) {
+	POUR (operateurs.operateurs_unaires) {
+		metriques.nombre_operateurs += it.second.taille();
+	}
+
+	POUR (operateurs.operateurs_binaires) {
 		metriques.nombre_operateurs += it.second.taille();
 	}
 

@@ -118,8 +118,8 @@ private:
 	InstructionChargeMem *cree_charge_mem(Type *type, Atome *ou);
 	InstructionAppel *cree_appel(Type *type, Atome *appele, kuri::tableau<Atome *> &&args);
 
-	InstructionOpUnaire *cree_op_unaire(Type *type, DonneesOperateur const *op, Atome *valeur);
-	InstructionOpBinaire *cree_op_binaire(Type *type, DonneesOperateur const *op, Atome *valeur_gauche, Atome *valeur_droite);
+	InstructionOpUnaire *cree_op_unaire(Type *type, OperateurUnaire::Genre op, Atome *valeur);
+	InstructionOpBinaire *cree_op_binaire(Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
 
 	InstructionAccedeIndex *cree_acces_index(Type *type, Atome *accede, Atome *index);
 	InstructionAccedeMembre *cree_acces_membre(Type *type, Atome *accede, Atome *index);

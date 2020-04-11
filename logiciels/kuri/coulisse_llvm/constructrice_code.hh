@@ -41,7 +41,7 @@
 
 struct IdentifiantCode;
 struct ContexteGenerationLLVM;
-struct DonneesOperateur;
+struct OperateurBinaire;
 struct NoeudExpression;
 struct Type;
 
@@ -79,5 +79,5 @@ public:
 
 	llvm::Constant *valeur_pour_chaine(const dls::chaine &chn);
 
-	llvm::Value *appel_operateur(DonneesOperateur const *op, llvm::Value *valeur1, llvm::Value *valeur2);
+	llvm::Value *appel_operateur(OperateurBinaire const *op, llvm::Value *valeur1, llvm::Value *valeur2);
 };

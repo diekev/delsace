@@ -292,7 +292,7 @@ llvm::Constant *ConstructriceCode::valeur_pour_chaine(const dls::chaine &chaine)
 	return struct_chaine;
 }
 
-llvm::Value *ConstructriceCode::appel_operateur(DonneesOperateur const *op, llvm::Value *valeur1, llvm::Value *valeur2)
+llvm::Value *ConstructriceCode::appel_operateur(OperateurBinaire const *op, llvm::Value *valeur1, llvm::Value *valeur2)
 {
 	auto parametres = std::vector<llvm::Value *>(3);
 	// À FAIRE : voir si le contexte est nécessaire

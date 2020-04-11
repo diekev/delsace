@@ -443,8 +443,6 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 	contexte.donnees_dependance.types_utilises.insere(b->type);
 
 	if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
-		auto &iter_op = contexte.operateurs.trouve(decl->lexeme->genre);
-
 		auto type_resultat = decl->type_fonc->types_sorties[0];
 
 		if (type_resultat == contexte.typeuse[TypeBase::RIEN]) {
@@ -463,12 +461,13 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 		decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
 
 		if (decl->params.taille == 1) {
+			auto &iter_op = contexte.operateurs.trouve_unaire(decl->lexeme->genre);
 			auto type1 = decl->type_fonc->types_entrees[0 + possede_contexte];
 
 			for (auto i = 0; i < iter_op.taille(); ++i) {
 				auto op = &iter_op[i];
 
-				if (op->type1 == type1) {
+				if (op->type_operande == type1) {
 					// À FAIRE : stocke le noeud de déclaration, quid des opérateurs basique ?
 					erreur::lance_erreur("redéfinition de l'opérateur", contexte, decl->lexeme);
 				}
@@ -481,6 +480,7 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 						decl->nom_broye);
 		}
 		else if (decl->params.taille == 2) {
+			auto &iter_op = contexte.operateurs.trouve_binaire(decl->lexeme->genre);
 			auto type1 = decl->type_fonc->types_entrees[0 + possede_contexte];
 			auto type2 = decl->type_fonc->types_entrees[1 + possede_contexte];
 

@@ -58,50 +58,64 @@ enum class RaisonOp {
 	POUR_ARITHMETIQUE,
 };
 
-enum class TypeOp {
-	ADDITION,
-	SOUSTRACTION,
-	MULTIPLICATION,
-	DIVISION,
-	MODULO,
+struct OperateurUnaire {
+	enum class Genre : char {
+		Invalide,
 
-	COMP_EGAL,
-	COMP_NON_EGAL,
-	COMP_INF,
-	COMP_INF_EGAL,
-	COMP_SUP,
-	COMP_SUP_EGAL,
+		Positif,
+		Complement,
+		Non_Logique,
+		Non_Binaire,
+		Prise_Adresse,
+	};
 
-	ET_LOGIQUE,
-	OU_LOGIQUE,
-	NON_LOGIQUE,
+	Type *type_operande = nullptr;
+	Type *type_resultat = nullptr;
 
-	ET_BINAIRE,
-	OU_BINAIRE,
-	OUX_BINAIRE,
-	NON_BINAIRE,
-
-	DEC_GAUCHE,
-	DEC_DROITE,
-
-	PLUS_UNAIRE,
-	MOINS_UNAIRE,
+	Genre genre{};
+	bool est_basique = true;
+	dls::chaine nom_fonction = "";
 };
 
-const char *chaine_pour_type_op(TypeOp type_op);
+const char *chaine_pour_genre_op(OperateurUnaire::Genre genre);
 
-struct DonneesOperateur {
+struct OperateurBinaire {
+	enum class Genre : char {
+		Invalide,
+
+		Addition,
+		Soustraction,
+		Multiplication,
+		Division,
+		Reste,
+
+		Comp_Egal,
+		Comp_Inegal,
+		Comp_Inf,
+		Comp_Inf_Egal,
+		Comp_Sup,
+		Comp_Sup_Egal,
+
+		Et_Logique,
+		Ou_Logique,
+
+		Et_Binaire,
+		Ou_Binaire,
+		Ou_Exclusif,
+
+		Dec_Gauche,
+		Dec_Droite,
+	};
+
 	Type *type1{};
 	Type *type2{};
 	Type *type_resultat{};
 
-	TypeOp type_operation{};
+	Genre genre{};
 
 	/* vrai si l'on peut sainement inverser les paramètres,
 	 * vrai pour : +, *, !=, == */
 	bool est_commutatif = false;
-
-	bool inverse_parametres = false;
 
 	/* faux pour les opérateurs définis par l'utilisateur */
 	bool est_basique = true;
@@ -115,16 +129,21 @@ struct DonneesOperateur {
 	dls::chaine nom_fonction = "";
 };
 
-struct Operateurs {
-	using type_conteneur = tableau_page<DonneesOperateur>;
+const char *chaine_pour_genre_op(OperateurBinaire::Genre genre);
 
-	dls::dico_desordonne<GenreLexeme, type_conteneur> donnees_operateurs;
+struct Operateurs {
+	using type_conteneur_binaire = tableau_page<OperateurBinaire>;
+	using type_conteneur_unaire = tableau_page<OperateurUnaire>;
+
+	dls::dico_desordonne<GenreLexeme, type_conteneur_binaire> operateurs_binaires;
+	dls::dico_desordonne<GenreLexeme, type_conteneur_unaire> operateurs_unaires;
 
 	Type *type_bool = nullptr;
 
 	~Operateurs();
 
-	type_conteneur const &trouve(GenreLexeme id) const;
+	type_conteneur_binaire const &trouve_binaire(GenreLexeme id) const;
+	type_conteneur_unaire const &trouve_unaire(GenreLexeme id) const;
 
 	void ajoute_basique(GenreLexeme id, Type *type, Type *type_resultat, IndiceTypeOp indice_type, RaisonOp raison);
 	void ajoute_basique(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, IndiceTypeOp indice_type, RaisonOp raison);
@@ -140,7 +159,7 @@ struct Operateurs {
 	size_t memoire_utilisee() const;
 };
 
-DonneesOperateur const *cherche_operateur_unaire(
+OperateurUnaire const *cherche_operateur_unaire(
 		Operateurs const &operateurs,
 		Type *type1,
 		GenreLexeme type_op);
@@ -150,7 +169,7 @@ void enregistre_operateurs_basiques(
 	Operateurs &operateurs);
 
 struct OperateurCandidat {
-	DonneesOperateur const *op = nullptr;
+	OperateurBinaire const *op = nullptr;
 	TransformationType transformation_type1{};
 	TransformationType transformation_type2{};
 	double poids = 0.0;
