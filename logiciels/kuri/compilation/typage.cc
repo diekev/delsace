@@ -281,7 +281,7 @@ Typeuse::Typeuse(GrapheDependance &g, Operateurs &o)
 
 	auto membres_eini = kuri::tableau<TypeCompose::Membre>();
 	membres_eini.pousse({ types_communs[static_cast<long>(TypeBase::PTR_RIEN)], "pointeur", 0 });
-	membres_eini.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "taille", 8 });
+	membres_eini.pousse({ type_pointeur_pour(type_info_type_), "info", 8 });
 	type_eini->membres = std::move(membres_eini);
 
 	auto membres_chaine = kuri::tableau<TypeCompose::Membre>();
