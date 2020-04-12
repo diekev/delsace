@@ -230,7 +230,7 @@ détruit_lexeuse :: fonc(lexeuse : &Lexeuse) -> rien
 
 performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 {
-	lexeuse.taille_mot_courant := 0
+	lexeuse.taille_mot_courant = 0
 
 	tantque (!lexeuse.fini()) {
 		nombre_octet := nombre_octets_utf8(lexeuse.début)
