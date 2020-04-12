@@ -846,45 +846,6 @@ void membre_inconnu(
 	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, message);
 }
 
-void membre_inconnu_tableau(
-			ContexteGenerationCode &contexte,
-			NoeudBase *acces,
-			NoeudBase *structure,
-			NoeudBase *membre)
-{
-	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
-	membres.insere("taille");
-	membres.insere("pointeur");
-
-	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, "du tableau");
-}
-
-void membre_inconnu_chaine(
-			ContexteGenerationCode &contexte,
-			NoeudBase *acces,
-			NoeudBase *structure,
-			NoeudBase *membre)
-{
-	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
-	membres.insere("taille");
-	membres.insere("pointeur");
-
-	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, "de la chaine");
-}
-
-void membre_inconnu_eini(
-			ContexteGenerationCode &contexte,
-			NoeudBase *acces,
-			NoeudBase *structure,
-			NoeudBase *membre)
-{
-	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
-	membres.insere("info");
-	membres.insere("pointeur");
-
-	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, "de la chaine");
-}
-
 void membre_inactif(
 			ContexteGenerationCode &contexte,
 			NoeudBase *acces,

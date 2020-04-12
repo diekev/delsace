@@ -156,24 +156,6 @@ void imprime_ligne_avec_message(
 		NoeudBase *membre,
 		TypeCompose *type);
 
-[[noreturn]] void membre_inconnu_tableau(
-			ContexteGenerationCode &contexte,
-			NoeudBase *acces,
-			NoeudBase *structure,
-			NoeudBase *membre);
-
-[[noreturn]] void membre_inconnu_chaine(
-			ContexteGenerationCode &contexte,
-			NoeudBase *acces,
-			NoeudBase *structure,
-			NoeudBase *membre);
-
-[[noreturn]] void membre_inconnu_eini(
-			ContexteGenerationCode &contexte,
-			NoeudBase *acces,
-			NoeudBase *structure,
-			NoeudBase *membre);
-
 [[noreturn]] void membre_inactif(
 			ContexteGenerationCode &contexte,
 			NoeudBase *acces,
