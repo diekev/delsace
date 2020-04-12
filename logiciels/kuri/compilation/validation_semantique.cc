@@ -245,7 +245,7 @@ static void valide_acces_membre(
 		}
 
 		if (membre_trouve == false) {
-			erreur::membre_inconnu(contexte, b->bloc_parent, b, structure, membre, type);
+			erreur::membre_inconnu(contexte, b, structure, membre, type_compose);
 		}
 
 		b->index_membre = index_membre;
@@ -2495,7 +2495,8 @@ void performe_validation_semantique(
 			}
 
 			if (type->genre == GenreType::UNION) {
-				auto decl = static_cast<TypeUnion *>(type)->decl;
+				auto type_union = static_cast<TypeUnion *>(type);
+				auto decl = type_union->decl;
 
 				if (decl->est_nonsure) {
 					erreur::lance_erreur(
@@ -2549,7 +2550,7 @@ void performe_validation_semantique(
 					auto decl_var = trouve_dans_bloc_seul(decl->bloc, expr_paire);
 
 					if (decl_var == nullptr) {
-						erreur::membre_inconnu(contexte, decl->bloc, b, expression, expr_paire, type);
+						erreur::membre_inconnu(contexte, b, expression, expr_paire, type_union);
 					}
 
 					contexte.renseigne_membre_actif(expression->ident->nom, nom_membre);
@@ -2612,7 +2613,7 @@ void performe_validation_semantique(
 						}
 
 						if (!nom_trouve) {
-							erreur::membre_inconnu(contexte, decl->bloc, b, expression, expr_paire, type);
+							erreur::membre_inconnu(contexte, b, expression, expr_paire, type_enum);
 						}
 
 						if (membres_rencontres.possede(nom_membre)) {

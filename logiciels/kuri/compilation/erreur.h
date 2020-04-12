@@ -135,11 +135,12 @@ void imprime_ligne_avec_message(
 		NoeudBase const *decl_fonc,
 		NoeudBase const *decl_appel);
 
-[[noreturn]] void lance_erreur_acces_hors_limites(ContexteGenerationCode const &contexte,
-			NoeudBase *b,
-			long taille_tableau,
-			Type *type_tableau,
-			long index_acces);
+[[noreturn]] void lance_erreur_acces_hors_limites(
+		ContexteGenerationCode const &contexte,
+		NoeudBase *b,
+		long taille_tableau,
+		Type *type_tableau,
+		long index_acces);
 
 [[noreturn]] void lance_erreur_type_operation(
 			ContexteGenerationCode const &contexte,
@@ -149,13 +150,11 @@ void imprime_ligne_avec_message(
 			ContexteGenerationCode const &contexte,
 			NoeudBase *b);
 
-[[noreturn]] void membre_inconnu(
-		ContexteGenerationCode &contexte,
-		NoeudBloc *bloc,
+[[noreturn]] void membre_inconnu(ContexteGenerationCode &contexte,
 		NoeudBase *acces,
 		NoeudBase *structure,
 		NoeudBase *membre,
-		Type *type);
+		TypeCompose *type);
 
 [[noreturn]] void membre_inconnu_tableau(
 			ContexteGenerationCode &contexte,

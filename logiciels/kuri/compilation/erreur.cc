@@ -817,16 +817,15 @@ static auto trouve_candidat(
 
 void membre_inconnu(
 			ContexteGenerationCode &contexte,
-			NoeudBloc *bloc,
 			NoeudBase *acces,
 			NoeudBase *structure,
 			NoeudBase *membre,
-			Type *type)
+			TypeCompose *type)
 {
 	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
 
-	POUR (bloc->membres) {
-		membres.insere(it->ident->nom);
+	POUR (type->membres) {
+		membres.insere(it.nom);
 	}
 
 	const char *message;
