@@ -2588,7 +2588,6 @@ void performe_validation_semantique(
 			}
 			else if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
 				auto type_enum = static_cast<TypeEnum *>(type);
-				auto decl = type_enum->decl;
 
 				auto membres_rencontres = dls::ensemblon<dls::vue_chaine_compacte, 16>();
 				b->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
