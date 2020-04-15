@@ -2081,6 +2081,13 @@ void performe_validation_semantique(
 
 			if (expr_loge->bloc != nullptr) {
 				performe_validation_semantique(expr_loge->bloc, contexte, true);
+
+				auto di = derniere_instruction(expr_loge->bloc);
+				if (di == nullptr || !dls::outils::est_element(di->genre, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_RETOUR_SIMPLE, GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
+					erreur::lance_erreur("Le bloc sinon d'une instruction « loge » doit obligatoirement retourner, ou si dans une boucle, la continuer ou l'arrêter",
+										 contexte,
+										 expr_loge->lexeme);
+				}
 			}
 
 			donnees_dependance.types_utilises.insere(expr_loge->type);
@@ -2144,6 +2151,13 @@ void performe_validation_semantique(
 
 			if (expr_loge->bloc != nullptr) {
 				performe_validation_semantique(expr_loge->bloc, contexte, true);
+
+				auto di = derniere_instruction(expr_loge->bloc);
+				if (di == nullptr || !dls::outils::est_element(di->genre, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_RETOUR_SIMPLE, GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
+					erreur::lance_erreur("Le bloc sinon d'une instruction « reloge » doit obligatoirement retourner, ou si dans une boucle, la continuer ou l'arrêter",
+										 contexte,
+										 expr_loge->lexeme);
+				}
 			}
 
 			donnees_dependance.types_utilises.insere(expr_loge->type);
