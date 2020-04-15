@@ -2053,6 +2053,19 @@ void performe_validation_semantique(
 
 				performe_validation_semantique(expr, contexte, false);
 
+				auto type_cible = contexte.typeuse[TypeBase::Z64];
+				auto transformation = cherche_transformation(expr->type, type_cible);
+
+				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+					erreur::lance_erreur_assignation_type_differents(
+								expr->type,
+								type_cible,
+								contexte,
+								expr->lexeme);
+				}
+
+				expr->transformation = transformation;
+
 				auto idx_type_deref = contexte.typeuse.type_dereference_pour(b->type);
 
 				// pour la coulisse C, ajout d'une dépendance vers le type du pointeur du tableau
@@ -2089,6 +2102,19 @@ void performe_validation_semantique(
 				}
 
 				performe_validation_semantique(expr, contexte, false);
+
+				auto type_cible = contexte.typeuse[TypeBase::Z64];
+				auto transformation = cherche_transformation(expr->type, type_cible);
+
+				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+					erreur::lance_erreur_assignation_type_differents(
+								expr->type,
+								type_cible,
+								contexte,
+								expr->lexeme);
+				}
+
+				expr->transformation = transformation;
 
 				// pour la coulisse C, ajout d'une dépendance vers le type du pointeur du tableau
 				auto idx_type_deref = contexte.typeuse.type_dereference_pour(b->type);
