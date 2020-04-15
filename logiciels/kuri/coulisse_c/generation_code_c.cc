@@ -1207,13 +1207,7 @@ void genere_code_C(
 			auto structure = inst->accede;
 			auto membre = inst->membre;
 
-			if (b->drapeaux & EST_APPEL_SYNTAXE_UNIFORME) {
-				cree_appel(membre, contexte, constructrice);
-				b->valeur_calculee = membre->valeur_calculee;
-			}
-			else {
-				genere_code_acces_membre(contexte, constructrice, b, structure, membre, expr_gauche);
-			}
+			genere_code_acces_membre(contexte, constructrice, b, structure, membre, expr_gauche);
 
 			break;
 		}

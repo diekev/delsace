@@ -124,8 +124,7 @@ enum drapeaux_noeud : unsigned short {
 	EST_VARIADIQUE             = (1 << 9),
 	EST_VAR_BOUCLE             = (1 << 10),
 	EST_GLOBALE                = (1 << 11),
-	EST_APPEL_SYNTAXE_UNIFORME = (1 << 12),
-	EST_CONSTANTE              = (1 << 13),
+	EST_CONSTANTE              = (1 << 12),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)

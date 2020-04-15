@@ -1129,10 +1129,6 @@ llvm::Value *genere_code_llvm(
 			auto structure = expr->accede;
 			auto membre = expr->membre;
 
-			if (possede_drapeau(b->drapeaux, EST_APPEL_SYNTAXE_UNIFORME)) {
-				return genere_code_llvm(membre, contexte, expr_gauche);
-			}
-
 			auto type_structure = structure->type;
 
 			auto est_pointeur = type_structure->genre == GenreType::POINTEUR || type_structure->genre == GenreType::REFERENCE;
