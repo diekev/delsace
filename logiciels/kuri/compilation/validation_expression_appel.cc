@@ -423,8 +423,8 @@ static DonneesCandidate apparie_appel_fonction(
 		}
 	}
 
-	for (auto slot : slots) {
-		if (slot == nullptr) {
+	POUR (slots) {
+		if (it == nullptr) {
 			// À FAIRE : on pourrait donner les noms des arguments manquants
 			res.etat = FONCTION_INTROUVEE;
 			res.raison = MECOMPTAGE_ARGS;
@@ -741,7 +741,7 @@ static auto apparie_appel_structure(
 
 /* ************************************************************************** */
 
-ResultatRecherche trouve_candidates_pour_appel(
+static auto trouve_candidates_pour_appel(
 		ContexteGenerationCode &contexte,
 		NoeudExpressionAppel *expr,
 		kuri::tableau<IdentifiantEtExpression> &args)
@@ -772,12 +772,12 @@ ResultatRecherche trouve_candidates_pour_appel(
 
 	candidates_appel = nouvelles_candidates;
 
-	auto resultat = ResultatRecherche{};
+	auto resultat = dls::tablet<DonneesCandidate, 10>();
 
 	POUR (candidates_appel) {
 		if (it.quoi == CANDIDATE_EST_ACCES) {
 			auto dc = apparie_appel_pointeur(expr, it.decl->type, contexte, args);
-			resultat.candidates.pousse(dc);
+			resultat.pousse(dc);
 		}
 		else if (it.quoi == CANDIDATE_EST_DECLARATION) {
 			auto decl = it.decl;
@@ -785,16 +785,16 @@ ResultatRecherche trouve_candidates_pour_appel(
 			if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
 				auto decl_struct = static_cast<NoeudStruct *>(decl);
 				auto dc = apparie_appel_structure(expr, decl_struct, args);
-				resultat.candidates.pousse(dc);
+				resultat.pousse(dc);
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {
 				auto decl_fonc = static_cast<NoeudDeclarationFonction *>(decl);
 				auto dc = apparie_appel_fonction(contexte, decl_fonc, args);
-				resultat.candidates.pousse(dc);
+				resultat.pousse(dc);
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
 				auto dc = apparie_appel_pointeur(expr, decl->type, contexte, args);
-				resultat.candidates.pousse(dc);
+				resultat.pousse(dc);
 			}
 		}
 	}
@@ -818,12 +818,10 @@ void valide_appel_fonction(
 	kuri::tableau<IdentifiantEtExpression> args;
 	args.reserve(expr->params.taille);
 
-	/* Commence par valider les enfants puisqu'il nous faudra leurs
-	 * types pour déterminer la fonction à appeler. */
-	for (auto f : expr->params) {
+	POUR (expr->params) {
 		// l'argument est nommé
-		if (f->genre == GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
-			auto assign = static_cast<NoeudExpressionBinaire *>(f);
+		if (it->genre == GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
+			auto assign = static_cast<NoeudExpressionBinaire *>(it);
 			auto nom_arg = assign->expr1;
 			auto arg = assign->expr2;
 
@@ -832,33 +830,30 @@ void valide_appel_fonction(
 			args.pousse({ nom_arg->ident, arg });
 		}
 		else {
-			noeud::performe_validation_semantique(f, contexte, false);
+			noeud::performe_validation_semantique(it, contexte, false);
 
-			args.pousse({ nullptr, f });
+			args.pousse({ nullptr, it });
 		}
 	}
 
 	// ------------
 	// trouve la fonction, pour savoir ce que l'on a
 
-	auto res = trouve_candidates_pour_appel(contexte, expr, args);
+	auto candidates = trouve_candidates_pour_appel(contexte, expr, args);
 	auto candidate = static_cast<DonneesCandidate *>(nullptr);
 	auto poids = 0.0;
 
-	for (auto &dc : res.candidates) {
-		if (dc.etat == FONCTION_TROUVEE) {
-			if (dc.poids_args > poids) {
-				candidate = &dc;
-				poids = dc.poids_args;
+	POUR (candidates) {
+		if (it.etat == FONCTION_TROUVEE) {
+			if (it.poids_args > poids) {
+				candidate = &it;
+				poids = it.poids_args;
 			}
 		}
 	}
 
 	if (candidate == nullptr) {
-		erreur::lance_erreur_fonction_inconnue(
-					contexte,
-					expr,
-					res.candidates);
+		erreur::lance_erreur_fonction_inconnue(contexte, expr, candidates);
 	}
 
 	// ------------
@@ -872,10 +867,7 @@ void valide_appel_fonction(
 
 	if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {
 		if (candidate->decl_fonc == nullptr) {
-			erreur::lance_erreur_fonction_inconnue(
-						contexte,
-						expr,
-						res.candidates);
+			erreur::lance_erreur_fonction_inconnue(contexte, expr, candidates);
 		}
 
 		auto decl_fonction_appelee = static_cast<NoeudDeclarationFonction const *>(candidate->decl_fonc);
@@ -889,11 +881,7 @@ void valide_appel_fonction(
 				auto decl_appel = decl_fonction_appelee;
 
 				if (!decl_appel->est_externe && !possede_drapeau(decl_appel->drapeaux, FORCE_NULCTX)) {
-					erreur::lance_erreur_fonction_nulctx(
-								contexte,
-								expr,
-								decl_fonc,
-								decl_appel);
+					erreur::lance_erreur_fonction_nulctx(contexte, expr, decl_fonc, decl_appel);
 				}
 			}
 		}
@@ -920,7 +908,6 @@ void valide_appel_fonction(
 		auto type_fonc = static_cast<TypeFonction *>(decl_fonction_appelee->type);
 		auto type_sortie = type_fonc->types_sorties[0];
 
-		// À FAIRE : ceci ne prend pas en compte les appels de syntaxe uniforme
 		if (type_sortie->genre != GenreType::RIEN && expr_gauche) {
 			erreur::lance_erreur(
 						"Inutilisation du retour de la fonction",

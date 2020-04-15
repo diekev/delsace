@@ -33,7 +33,6 @@
 
 struct ContexteGenerationCode;
 struct NoeudBase;
-struct NoeudDeclarationFonction;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
 struct Type;
@@ -94,15 +93,6 @@ struct DonneesCandidate {
 	dls::tableau<TransformationType> transformations{};
 	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
 };
-
-struct ResultatRecherche {
-	dls::tablet<DonneesCandidate, 10> candidates{};
-};
-
-ResultatRecherche trouve_candidates_pour_appel(
-		ContexteGenerationCode &contexte,
-		NoeudExpressionAppel *expr,
-		kuri::tableau<IdentifiantEtExpression> &args);
 
 void valide_appel_fonction(
 		ContexteGenerationCode &contexte,
