@@ -45,6 +45,7 @@
 
 enum class GenreLexeme : unsigned int;
 struct ContexteGenerationCode;
+struct NoeudDeclarationFonction;
 struct Type;
 
 enum class IndiceTypeOp {
@@ -72,9 +73,10 @@ struct OperateurUnaire {
 	Type *type_operande = nullptr;
 	Type *type_resultat = nullptr;
 
+	NoeudDeclarationFonction *decl = nullptr;
+
 	Genre genre{};
 	bool est_basique = true;
-	dls::chaine nom_fonction = "";
 };
 
 const char *chaine_pour_genre_op(OperateurUnaire::Genre genre);
@@ -111,6 +113,8 @@ struct OperateurBinaire {
 	Type *type2{};
 	Type *type_resultat{};
 
+	NoeudDeclarationFonction *decl = nullptr;
+
 	Genre genre{};
 
 	/* vrai si l'on peut sainement inverser les paramètres,
@@ -125,8 +129,6 @@ struct OperateurBinaire {
 
 	llvm::Instruction::BinaryOps instr_llvm{};
 	llvm::CmpInst::Predicate predicat_llvm{};
-
-	dls::chaine nom_fonction = "";
 };
 
 const char *chaine_pour_genre_op(OperateurBinaire::Genre genre);
@@ -150,9 +152,9 @@ struct Operateurs {
 
 	void ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat);
 
-	void ajoute_perso(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, dls::chaine const &nom_fonction);
+	void ajoute_perso(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, NoeudDeclarationFonction *decl);
 
-	void ajoute_perso_unaire(GenreLexeme id, Type *type, Type *type_resultat, dls::chaine const &nom_fonction);
+	void ajoute_perso_unaire(GenreLexeme id, Type *type, Type *type_resultat, NoeudDeclarationFonction *decl);
 
 	void ajoute_operateur_basique_enum(Type *type);
 

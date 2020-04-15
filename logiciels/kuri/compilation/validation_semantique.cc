@@ -479,7 +479,7 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 						decl->lexeme->genre,
 						type1,
 						type_resultat,
-						decl->nom_broye);
+						decl);
 		}
 		else if (decl->params.taille == 2) {
 			auto &iter_op = contexte.operateurs.trouve_binaire(decl->lexeme->genre);
@@ -500,7 +500,7 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 						type1,
 						type2,
 						type_resultat,
-						decl->nom_broye);
+						decl);
 		}
 	}
 	else {
@@ -1150,7 +1150,7 @@ void performe_validation_semantique(
 				enfant2->transformation = meilleur_candidat->transformation_type2;
 
 				if (!expr->op->est_basique) {
-					donnees_dependance.fonctions_utilisees.insere(expr->op->nom_fonction);
+					donnees_dependance.fonctions_utilisees.insere(expr->op->decl->nom_broye);
 				}
 			}
 			else {
@@ -1193,7 +1193,7 @@ void performe_validation_semantique(
 				enfant2->transformation = meilleur_candidat->transformation_type2;
 
 				if (!expr->op->est_basique) {
-					donnees_dependance.fonctions_utilisees.insere(expr->op->nom_fonction);
+					donnees_dependance.fonctions_utilisees.insere(expr->op->decl->nom_broye);
 				}
 			}
 
@@ -2717,7 +2717,7 @@ void performe_validation_semantique(
 				inst->op = meilleur_candidat->op;
 
 				if (!inst->op->est_basique) {
-					donnees_dependance.fonctions_utilisees.insere(inst->op->nom_fonction);
+					donnees_dependance.fonctions_utilisees.insere(inst->op->decl->nom_broye);
 				}
 
 				for (int i = 0; i < inst->paires_discr.taille; ++i) {

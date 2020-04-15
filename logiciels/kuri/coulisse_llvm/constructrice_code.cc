@@ -301,7 +301,7 @@ llvm::Value *ConstructriceCode::appel_operateur(OperateurBinaire const *op, llvm
 	parametres[1] = valeur1;
 	parametres[2] = valeur2;
 
-	auto fonction = contexte.module_llvm->getFunction(op->nom_fonction.c_str());
+	auto fonction = contexte.module_llvm->getFunction(op->decl->nom_broye.c_str());
 	return llvm::CallInst::Create(fonction, parametres, "", contexte.bloc_courant());
 }
 

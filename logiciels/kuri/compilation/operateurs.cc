@@ -532,7 +532,7 @@ void Operateurs::ajoute_perso(
 		Type *type1,
 		Type *type2,
 		Type *type_resultat,
-		const dls::chaine &nom_fonction)
+		NoeudDeclarationFonction *decl)
 {
 	auto op = operateurs_binaires[id].ajoute_element();
 	op->type1 = type1;
@@ -540,7 +540,7 @@ void Operateurs::ajoute_perso(
 	op->type_resultat = type_resultat;
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = false;
-	op->nom_fonction = nom_fonction;
+	op->decl = decl;
 	op->genre = genre_op_binaire_pour_lexeme(id);
 }
 
@@ -548,13 +548,13 @@ void Operateurs::ajoute_perso_unaire(
 		GenreLexeme id,
 		Type *type,
 		Type *type_resultat,
-		const dls::chaine &nom_fonction)
+		NoeudDeclarationFonction *decl)
 {
 	auto op = operateurs_unaires[id].ajoute_element();
 	op->type_operande = type;
 	op->type_resultat = type_resultat;
 	op->est_basique = false;
-	op->nom_fonction = nom_fonction;
+	op->decl = decl;
 	op->genre = genre_op_unaire_pour_lexeme(id);
 }
 
@@ -719,7 +719,6 @@ void enregistre_operateurs_basiques(
 		contexte.typeuse[TypeBase::Z64],
 	};
 
-	auto type_r16 = contexte.typeuse[TypeBase::R16];
 	auto type_r32 = contexte.typeuse[TypeBase::R32];
 	auto type_r64 = contexte.typeuse[TypeBase::R64];
 
@@ -808,12 +807,4 @@ void enregistre_operateurs_basiques(
 
 	// opérateurs unaires booléens !
 	operateurs.ajoute_basique_unaire(GenreLexeme::EXCLAMATION, type_bool, type_bool);
-
-	// type r16
-
-	operateurs.ajoute_perso(GenreLexeme::EGAL, type_r16, type_r32, type_r16, "DLS_depuis_r32");
-	operateurs.ajoute_perso(GenreLexeme::EGAL, type_r16, type_r64, type_r16, "DLS_depuis_r64");
-
-	operateurs.ajoute_perso(GenreLexeme::EGAL, type_r32, type_r16, type_r32, "DLS_vers_r32");
-	operateurs.ajoute_perso(GenreLexeme::EGAL, type_r64, type_r16, type_r64, "DLS_vers_r64");
 }

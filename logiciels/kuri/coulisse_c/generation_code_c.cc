@@ -1395,7 +1395,7 @@ void genere_code_C(
 			}
 			else {
 				/* À FAIRE: gestion du contexte. */
-				flux << op->nom_fonction << '(';
+				flux << op->decl->nom_broye << '(';
 				flux << "contexte,";
 				flux << enfant1->chaine_calculee();
 				flux << ',';
@@ -1612,7 +1612,7 @@ void genere_code_C(
 					flux << b->lexeme->chaine;
 				}
 				else {
-					flux << expr->op->nom_fonction;
+					flux << expr->op->decl->nom_broye;
 				}
 
 				flux << '(';
@@ -2507,7 +2507,7 @@ void genere_code_C(
 						constructrice << f->chaine_calculee();
 					}
 					else {
-						constructrice << op->nom_fonction;
+						constructrice << op->decl->nom_broye;
 						constructrice << "(contexte,";
 						constructrice << chaine_expr;
 						constructrice << ',';

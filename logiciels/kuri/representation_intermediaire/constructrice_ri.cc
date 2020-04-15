@@ -823,7 +823,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				}
 
 				// À FAIRE : contexte
-				auto atome_fonction = table_fonctions[op->nom_fonction];
+				auto atome_fonction = table_fonctions[op->decl->nom_broye];
 				auto args = kuri::tableau<Atome *>(2);
 				args.pousse(valeur_gauche);
 				args.pousse(valeur_droite);
