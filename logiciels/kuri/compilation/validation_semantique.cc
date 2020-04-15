@@ -357,6 +357,7 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 					if (variable->type == nullptr) {
 						if (expression->type->genre == GenreType::ENTIER_CONSTANT) {
 							variable->type = contexte.typeuse[TypeBase::Z32];
+							expression->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type };
 						}
 						else {
 							variable->type = expression->type;
@@ -1025,6 +1026,7 @@ void performe_validation_semantique(
 				else if (variable->type == nullptr) {
 					if (expression->type->genre == GenreType::ENTIER_CONSTANT) {
 						variable->type = contexte.typeuse[TypeBase::Z32];
+						expression->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type };
 					}
 					else if (expression->type->genre == GenreType::RIEN) {
 						erreur::lance_erreur(
@@ -1226,6 +1228,7 @@ void performe_validation_semantique(
 				else {
 					if (type->genre == GenreType::ENTIER_CONSTANT) {
 						type = contexte.typeuse[TypeBase::Z32];
+						enfant->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type };
 					}
 
 					auto op = cherche_operateur_unaire(contexte.operateurs, type, expr->lexeme->genre);
@@ -1747,10 +1750,12 @@ void performe_validation_semantique(
 				if (type_debut->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_fin)) {
 					type_debut = type_fin;
 					enfant1->type = type_debut;
+					enfant1->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut };
 				}
 				else if (type_fin->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_debut)) {
 					type_fin = type_debut;
 					enfant2->type = type_fin;
+					enfant2->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_fin };
 				}
 				else {
 					erreur::lance_erreur_type_operation(
@@ -1762,6 +1767,8 @@ void performe_validation_semantique(
 			}
 			else if (type_debut->genre == GenreType::ENTIER_CONSTANT) {
 				type_debut = contexte.typeuse[TypeBase::Z32];
+				enfant1->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut };
+				enfant2->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut };
 			}
 
 			if (type_debut->genre != GenreType::ENTIER_NATUREL && type_debut->genre != GenreType::ENTIER_RELATIF && type_debut->genre != GenreType::REEL) {
@@ -1905,16 +1912,21 @@ void performe_validation_semantique(
 
 			if (type_feuille->genre == GenreType::ENTIER_CONSTANT) {
 				type_feuille = contexte.typeuse[TypeBase::Z32];
+				premiere_feuille->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_feuille };
 			}
 
 			for (auto f : feuilles) {
-				if (f->type != type_feuille && f->type->genre != GenreType::ENTIER_CONSTANT) {
+				auto transformation = cherche_transformation(f->type, type_feuille);
+
+				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 					erreur::lance_erreur_assignation_type_differents(
 								f->type,
 								type_feuille,
 								contexte,
 								f->lexeme);
 				}
+
+				f->transformation = transformation;
 			}
 
 			b->type = contexte.typeuse.type_tableau_fixe(type_feuille, feuilles.taille());
@@ -2302,6 +2314,7 @@ void performe_validation_semantique(
 						if (decl_membre->type == nullptr) {
 							if (decl_expr->type->genre == GenreType::ENTIER_CONSTANT) {
 								decl_membre->type = contexte.typeuse[TypeBase::Z32];
+								decl_expr->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, decl_membre->type };
 							}
 							else {
 								decl_membre->type = decl_expr->type;
@@ -2679,14 +2692,18 @@ void performe_validation_semantique(
 					for (auto f : feuilles) {
 						performe_validation_semantique(f, contexte, true);
 
-						if (f->type != expression->type && f->type->genre != GenreType::ENTIER_CONSTANT) {
+						auto transformation = cherche_transformation(f->type, expression->type);
+
+						if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 							erreur::lance_erreur_type_arguments(
 										expression->type,
-									f->type,
-									contexte,
-									f->lexeme,
-									expression->lexeme);
+										f->type,
+										contexte,
+										f->lexeme,
+										expression->lexeme);
 						}
+
+						f->transformation = transformation;
 					}
 				}
 
