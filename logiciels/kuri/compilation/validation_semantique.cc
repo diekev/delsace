@@ -1653,15 +1653,9 @@ void performe_validation_semantique(
 				enfant3->membres.pousse(decl_idx);
 			}
 
-			/* À FAIRE : ceci duplique logique coulisse. */
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
-			auto goto_brise = "__boucle_pour_brise" + dls::vers_chaine(b);
-
-			contexte.empile_goto_continue(variable->ident->nom, goto_continue);
-			contexte.empile_goto_arrete(variable->ident->nom, (enfant4 != nullptr) ? goto_brise : goto_apres);
-
+			contexte.empile_controle_boucle(variable->ident);
 			performe_validation_semantique(enfant3, contexte, true);
+			contexte.depile_controle_boucle();
 
 			if (enfant4 != nullptr) {
 				performe_validation_semantique(enfant4, contexte, true);
@@ -1670,9 +1664,6 @@ void performe_validation_semantique(
 			if (enfant5 != nullptr) {
 				performe_validation_semantique(enfant5, contexte, true);
 			}
-
-			contexte.depile_goto_continue();
-			contexte.depile_goto_arrete();
 
 			break;
 		}
@@ -1786,15 +1777,11 @@ void performe_validation_semantique(
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
 		{
 			auto inst = static_cast<NoeudExpressionUnaire *>(b);
+			auto chaine_var = inst->expr == nullptr ? nullptr : inst->expr->ident;
+			auto ok = contexte.possede_controle_boucle(chaine_var);
 
-			auto chaine_var = inst->expr == nullptr ? dls::vue_chaine_compacte{""} : inst->expr->ident->nom;
-
-			auto label_goto = (b->lexeme->genre == GenreLexeme::CONTINUE)
-					? contexte.goto_continue(chaine_var)
-					: contexte.goto_arrete(chaine_var);
-
-			if (label_goto.est_vide()) {
-				if (chaine_var.est_vide()) {
+			if (ok == false) {
+				if (chaine_var == nullptr) {
 					erreur::lance_erreur(
 								"'continue' ou 'arrête' en dehors d'une boucle",
 								contexte,
@@ -1815,41 +1802,22 @@ void performe_validation_semantique(
 		case GenreNoeud::INSTRUCTION_BOUCLE:
 		{
 			auto inst = static_cast<NoeudBoucle *>(b);
-
-			/* À FAIRE : ceci duplique logique coulisse */
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
-
-			contexte.empile_goto_continue("", goto_continue);
-			contexte.empile_goto_arrete("", goto_apres);
-
+			contexte.empile_controle_boucle(nullptr);
 			performe_validation_semantique(inst->bloc, contexte, true);
-
-			contexte.depile_goto_continue();
-			contexte.depile_goto_arrete();
-
+			contexte.depile_controle_boucle();
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_REPETE:
 		{
 			auto inst = static_cast<NoeudBoucle *>(b);
-
-			/* À FAIRE : ceci duplique logique coulisse */
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
-
-			contexte.empile_goto_continue("", goto_continue);
-			contexte.empile_goto_arrete("", goto_apres);
-
+			contexte.empile_controle_boucle(nullptr);
 			performe_validation_semantique(inst->bloc, contexte, true);
+			contexte.depile_controle_boucle();
 			performe_validation_semantique(inst->condition, contexte, false);
 
 			if (inst->condition->type == nullptr && !est_operateur_bool(inst->condition->lexeme->genre)) {
 				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, inst->condition->lexeme);
 			}
-
-			contexte.depile_goto_continue();
-			contexte.depile_goto_arrete();
 
 			break;
 		}
@@ -1868,17 +1836,9 @@ void performe_validation_semantique(
 				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, inst->condition->lexeme);
 			}
 
-			/* À FAIRE : ceci duplique logique coulisse */
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
-
-			contexte.empile_goto_continue("", goto_continue);
-			contexte.empile_goto_arrete("", goto_apres);
-
+			contexte.empile_controle_boucle(nullptr);
 			performe_validation_semantique(inst->bloc, contexte, true);
-
-			contexte.depile_goto_continue();
-			contexte.depile_goto_arrete();
+			contexte.depile_controle_boucle();
 
 			if (inst->condition->type->genre != GenreType::BOOL) {
 				erreur::lance_erreur(

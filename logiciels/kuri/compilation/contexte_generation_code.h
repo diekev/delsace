@@ -227,37 +227,11 @@ struct ContexteGenerationCode {
 
 	/* ********************************************************************** */
 
-	/**
-	 * Ajoute le bloc spécifié sur la pile de blocs de continuation de boucle.
-	 */
-	void empile_goto_continue(dls::vue_chaine_compacte chaine, dls::chaine const &bloc);
+	void empile_controle_boucle(IdentifiantCode *ident_boucle);
 
-	/**
-	 * Enlève le bloc spécifié de la pile de blocs de continuation de boucle.
-	 */
-	void depile_goto_continue();
+	void depile_controle_boucle();
 
-	/**
-	 * Retourne le bloc se trouvant au sommet de la pile de blocs de continuation
-	 * de boucle. Si la pile est vide, retourne un pointeur nul.
-	 */
-	dls::chaine goto_continue(dls::vue_chaine_compacte chaine);
-
-	/**
-	 * Ajoute le bloc spécifié sur la pile de blocs d'arrestation de boucle.
-	 */
-	void empile_goto_arrete(dls::vue_chaine_compacte chaine, dls::chaine const &bloc);
-
-	/**
-	 * Enlève le bloc spécifié de la pile de blocs d'arrestation de boucle.
-	 */
-	void depile_goto_arrete();
-
-	/**
-	 * Retourne le bloc se trouvant au sommet de la pile de blocs d'arrestation
-	 * de boucle. Si la pile est vide, retourne un pointeur nul.
-	 */
-	dls::chaine goto_arrete(dls::vue_chaine_compacte chaine);
+	bool possede_controle_boucle(IdentifiantCode *ident);
 
 	/* ********************************************************************** */
 
@@ -296,10 +270,7 @@ struct ContexteGenerationCode {
 	void renseigne_membre_actif(dls::vue_chaine_compacte const &nom_union, dls::vue_chaine_compacte const &nom_membre);
 
 private:
-	using paire_goto = std::pair<dls::vue_chaine_compacte, dls::chaine>;
-
-	dls::tableau<paire_goto> m_pile_goto_continue{};
-	dls::tableau<paire_goto> m_pile_goto_arrete{};
+	dls::tableau<IdentifiantCode *> m_pile_controle_boucle{};
 
 	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
 	dls::tableau<paire_union_membre> membres_actifs{};

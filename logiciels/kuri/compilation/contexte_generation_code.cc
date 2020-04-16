@@ -169,63 +169,34 @@ bool ContexteGenerationCode::fichier_existe(const dls::vue_chaine_compacte &nom)
 
 /* ************************************************************************** */
 
-void ContexteGenerationCode::empile_goto_continue(dls::vue_chaine_compacte chaine, dls::chaine const &bloc)
+void ContexteGenerationCode::empile_controle_boucle(IdentifiantCode *ident_boucle)
 {
-	m_pile_goto_continue.pousse({chaine, bloc});
+	m_pile_controle_boucle.pousse(ident_boucle);
 }
 
-void ContexteGenerationCode::depile_goto_continue()
+void ContexteGenerationCode::depile_controle_boucle()
 {
-	m_pile_goto_continue.pop_back();
+	m_pile_controle_boucle.pop_back();
 }
 
-dls::chaine ContexteGenerationCode::goto_continue(dls::vue_chaine_compacte chaine)
+bool ContexteGenerationCode::possede_controle_boucle(IdentifiantCode *ident)
 {
-	if (m_pile_goto_continue.est_vide()) {
-		return "";
+	if (m_pile_controle_boucle.est_vide()) {
+		return false;
 	}
 
-	if (chaine.est_vide()) {
-		return m_pile_goto_continue.back().second;
-	}
-
-	for (auto const &paire : m_pile_goto_continue) {
-		if (paire.first == chaine) {
-			return paire.second;
+	if (ident != nullptr) {
+		for (auto ctrl : m_pile_controle_boucle) {
+			if (ctrl == ident) {
+				return true;
+			}
 		}
 	}
 
-	return "";
+	return ident == nullptr;
 }
 
-void ContexteGenerationCode::empile_goto_arrete(dls::vue_chaine_compacte chaine, dls::chaine const &bloc)
-{
-	m_pile_goto_arrete.pousse({chaine, bloc});
-}
-
-void ContexteGenerationCode::depile_goto_arrete()
-{
-	m_pile_goto_arrete.pop_back();
-}
-
-dls::chaine ContexteGenerationCode::goto_arrete(dls::vue_chaine_compacte chaine)
-{
-	if (m_pile_goto_arrete.est_vide()) {
-		return "";
-	}
-
-	if (chaine.est_vide()) {
-		return m_pile_goto_arrete.back().second;
-	}
-
-	for (auto const &paire : m_pile_goto_arrete) {
-		if (paire.first == chaine) {
-			return paire.second;
-		}
-	}
-
-	return "";
-}
+/* ************************************************************************** */
 
 void ContexteGenerationCode::commence_fonction(NoeudDeclarationFonction *df)
 {
@@ -235,6 +206,7 @@ void ContexteGenerationCode::commence_fonction(NoeudDeclarationFonction *df)
 void ContexteGenerationCode::termine_fonction()
 {
 	this->donnees_fonction = nullptr;
+	m_pile_controle_boucle.efface();
 }
 
 /* ************************************************************************** */
