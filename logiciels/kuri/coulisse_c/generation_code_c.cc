@@ -1903,7 +1903,9 @@ void genere_code_C(
 				}
 			};
 
-			auto genere_code_tableau_fixe = [&constructrice](
+			auto ident_boucle = static_cast<IdentifiantCode *>(nullptr);
+
+			auto genere_code_tableau_fixe = [&constructrice, &ident_boucle](
 					ConstructriceCodeC &gen_loc,
 					ContexteGenerationCode &contexte_loc,
 					NoeudExpression *enfant_1,
@@ -1920,6 +1922,8 @@ void genere_code_C(
 					var = expr_bin->expr1;
 					idx = expr_bin->expr2;
 				}
+
+				ident_boucle = var->ident;
 
 				gen_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= "
 				   << taille_tableau << "-1; ++"<< nom_var <<") {\n";
@@ -1950,6 +1954,8 @@ void genere_code_C(
 						var = expr_bin->expr1;
 						idx = expr_bin->expr2;
 					}
+
+					ident_boucle = var->ident;
 
 					auto nom_broye = broye_chaine(var);
 
@@ -2082,8 +2088,8 @@ void genere_code_C(
 			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
 			auto goto_brise = "__boucle_pour_brise" + dls::vers_chaine(b);
 
-			contexte.empile_goto_continue(enfant1->lexeme->chaine, goto_continue);
-			contexte.empile_goto_arrete(enfant1->lexeme->chaine, (enfant_sinon != nullptr) ? goto_brise : goto_apres);
+			contexte.empile_goto_continue(ident_boucle, goto_continue);
+			contexte.empile_goto_arrete(ident_boucle, (enfant_sinon != nullptr) ? goto_brise : goto_apres);
 
 			genere_code_C(enfant3, constructrice, contexte, false);
 
@@ -2114,7 +2120,7 @@ void genere_code_C(
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
 		{
 			auto inst = static_cast<NoeudExpressionUnaire *>(b);
-			auto chaine_var = inst->expr == nullptr ? dls::vue_chaine_compacte{""} : inst->expr->ident->nom;
+			auto chaine_var = inst->expr == nullptr ? nullptr : inst->expr->ident;
 
 			auto label_goto = (b->lexeme->genre == GenreLexeme::CONTINUE)
 					? contexte.goto_continue(chaine_var)
@@ -2130,8 +2136,8 @@ void genere_code_C(
 			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
 			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
 
-			contexte.empile_goto_continue("", goto_continue);
-			contexte.empile_goto_arrete("", goto_apres);
+			contexte.empile_goto_continue(nullptr, goto_continue);
+			contexte.empile_goto_arrete(nullptr, goto_apres);
 
 			constructrice << "while (1) {\n";
 
@@ -2153,8 +2159,8 @@ void genere_code_C(
 			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
 			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
 
-			contexte.empile_goto_continue("", goto_continue);
-			contexte.empile_goto_arrete("", goto_apres);
+			contexte.empile_goto_continue(nullptr, goto_continue);
+			contexte.empile_goto_arrete(nullptr, goto_apres);
 
 			constructrice << "while (1) {\n";
 			genere_code_C(inst->bloc, constructrice, contexte, false);
@@ -2178,8 +2184,8 @@ void genere_code_C(
 			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
 			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
 
-			contexte.empile_goto_continue("", goto_continue);
-			contexte.empile_goto_arrete("", goto_apres);
+			contexte.empile_goto_continue(nullptr, goto_continue);
+			contexte.empile_goto_arrete(nullptr, goto_apres);
 
 			/* NOTE : la prépasse est susceptible de générer le code d'un appel
 			 * de fonction, donc nous utilisons

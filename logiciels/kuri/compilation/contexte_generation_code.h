@@ -233,6 +233,14 @@ struct ContexteGenerationCode {
 
 	bool possede_controle_boucle(IdentifiantCode *ident);
 
+	void empile_goto_continue(IdentifiantCode *ident_boucle, dls::chaine const &label);
+	void depile_goto_continue();
+	dls::chaine const &goto_continue(IdentifiantCode *ident_boucle);
+
+	void empile_goto_arrete(IdentifiantCode *ident_boucle, dls::chaine const &label);
+	void depile_goto_arrete();
+	dls::chaine const &goto_arrete(IdentifiantCode *ident_boucle);
+
 	/* ********************************************************************** */
 
 	/**
@@ -271,6 +279,10 @@ struct ContexteGenerationCode {
 
 private:
 	dls::tableau<IdentifiantCode *> m_pile_controle_boucle{};
+
+	using paire_goto = std::pair<IdentifiantCode *, dls::chaine>;
+	dls::tableau<paire_goto> m_goto_continue{};
+	dls::tableau<paire_goto> m_goto_arrete{};
 
 	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
 	dls::tableau<paire_union_membre> membres_actifs{};
