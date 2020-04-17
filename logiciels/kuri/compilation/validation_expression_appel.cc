@@ -894,13 +894,15 @@ void valide_appel_fonction(
 
 			contexte.pour_gabarit = true;
 			contexte.paires_expansion_gabarit = candidate->paires_expansion_gabarit;
+			auto ancienne_pile_controle = contexte.pile_controle_boucle;
+			contexte.pile_controle_boucle.efface();
 
 			noeud::valide_type_fonction(noeud_decl, contexte);
 
 			noeud::performe_validation_semantique(noeud_decl, contexte, expr_gauche);
 
 			contexte.donnees_fonction = fonction_courante;
-
+			contexte.pile_controle_boucle = ancienne_pile_controle;
 			contexte.pour_gabarit = false;
 		}
 

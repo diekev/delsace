@@ -266,9 +266,9 @@ struct ContexteGenerationCode {
 
 	void renseigne_membre_actif(dls::vue_chaine_compacte const &nom_union, dls::vue_chaine_compacte const &nom_membre);
 
-private:
-	dls::tableau<IdentifiantCode *> m_pile_controle_boucle{};
+	dls::tableau<IdentifiantCode *> pile_controle_boucle{};
 
+private:
 	using paire_goto = std::pair<IdentifiantCode *, dls::chaine>;
 	dls::tableau<paire_goto> m_goto_continue{};
 	dls::tableau<paire_goto> m_goto_arrete{};

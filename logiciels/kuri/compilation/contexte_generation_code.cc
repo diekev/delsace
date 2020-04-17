@@ -171,22 +171,22 @@ bool ContexteGenerationCode::fichier_existe(const dls::vue_chaine_compacte &nom)
 
 void ContexteGenerationCode::empile_controle_boucle(IdentifiantCode *ident_boucle)
 {
-	m_pile_controle_boucle.pousse(ident_boucle);
+	pile_controle_boucle.pousse(ident_boucle);
 }
 
 void ContexteGenerationCode::depile_controle_boucle()
 {
-	m_pile_controle_boucle.pop_back();
+	pile_controle_boucle.pop_back();
 }
 
 bool ContexteGenerationCode::possede_controle_boucle(IdentifiantCode *ident)
 {
-	if (m_pile_controle_boucle.est_vide()) {
+	if (pile_controle_boucle.est_vide()) {
 		return false;
 	}
 
 	if (ident != nullptr) {
-		for (auto ctrl : m_pile_controle_boucle) {
+		for (auto ctrl : pile_controle_boucle) {
 			if (ctrl == ident) {
 				return true;
 			}
@@ -252,7 +252,7 @@ void ContexteGenerationCode::commence_fonction(NoeudDeclarationFonction *df)
 void ContexteGenerationCode::termine_fonction()
 {
 	this->donnees_fonction = nullptr;
-	m_pile_controle_boucle.efface();
+	pile_controle_boucle.efface();
 }
 
 /* ************************************************************************** */
