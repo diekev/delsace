@@ -186,6 +186,8 @@ inline GenreLexeme operator>>(GenreLexeme id1, int id2)
 	return static_cast<GenreLexeme>(static_cast<int>(id1) >> id2);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 struct Lexeme {
 	using type = GenreLexeme;
 	static constexpr type INCONNU = GenreLexeme::INCONNU;
@@ -202,6 +204,7 @@ struct Lexeme {
 	int ligne = 0;
 	int colonne = 0;
 };
+#pragma GCC diagnostic pop
 
 const char *chaine_du_genre_de_lexeme(GenreLexeme id);
 

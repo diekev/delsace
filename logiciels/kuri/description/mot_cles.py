@@ -172,7 +172,9 @@ def enleve_accent(mot):
 
 def construit_structures():
 	structures = u''
-	structures += u'\nstruct Lexeme {\n'
+	structures += u'\n#pragma GCC diagnostic push\n'
+	structures += u'#pragma GCC diagnostic ignored "-Wpedantic"\n'
+	structures += u'struct Lexeme {\n'
 	structures += u'\tusing type = GenreLexeme;\n'
 	structures += u'\tstatic constexpr type INCONNU = GenreLexeme::INCONNU;\n'
 	structures += u'\tdls::vue_chaine_compacte chaine;\n'
@@ -188,6 +190,7 @@ def construit_structures():
 	structures += u'\tint ligne = 0;\n'
 	structures += u'\tint colonne = 0;\n'
 	structures += u'};\n'
+	structures += u'#pragma GCC diagnostic pop\n'
 
 	return structures
 
