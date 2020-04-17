@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 		auto fichier = contexte.cree_fichier("", chemin.c_str());
 		fichier->tampon = lng::tampon_source(tampon);
 
-		auto lexeuse = Lexeuse(fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
+		auto lexeuse = Lexeuse(contexte, fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
 		lexeuse.performe_lexage();
 
 		for (auto const &lexeme : fichier->lexemes) {

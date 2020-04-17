@@ -1698,7 +1698,9 @@ void genere_code_C(
 				return "0123456789ABCDEF"[static_cast<int>(hex)];
 			};
 
-			auto chaine = contexte.gerante_chaine.trouve_chaine(b->lexeme->chaine);
+			auto chaine = kuri::chaine();
+			chaine.pointeur = b->lexeme->pointeur;
+			chaine.taille = b->lexeme->taille;
 
 			POUR (chaine) {
 				flux << "\\x" << char_depuis_hex((it & 0xf0) >> 4) << char_depuis_hex(it & 0x0f);
@@ -1728,7 +1730,7 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		{
-			auto c = std::any_cast<char>(b->valeur_calculee);
+			auto c = static_cast<unsigned char>(b->lexeme->valeur_entiere);
 
 			auto flux = dls::flux_chaine();
 

@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 		auto fichier = contexte.cree_fichier("", chemin.c_str());
 		fichier->tampon = lng::tampon_source(tampon);
 
-		auto lexeuse = Lexeuse(fichier);
+		auto lexeuse = Lexeuse(contexte, fichier);
 		lexeuse.performe_lexage();
 
 		test_markov_id_simple(fichier->lexemes);

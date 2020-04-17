@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 		auto module = contexte.cree_fichier("", "");
 		auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
 		module->tampon = lng::tampon_source(dls::chaine(vue_donnees));
-		auto lexeuse = Lexeuse(module);
+		auto lexeuse = Lexeuse(contexte, module);
 		lexeuse.performe_lexage();
 	}
 	catch (erreur::frappe const &e) {

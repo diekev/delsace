@@ -101,22 +101,11 @@ public:
 };
 
 struct GeranteChaine {
-	dls::dico_desordonne<dls::vue_chaine_compacte, kuri::chaine> m_table{};
-
-	struct Resultat {
-		kuri::chaine c{};
-		bool ok = false;
-		const char *erreur = nullptr;
-		const int position = 0;
-	};
+	dls::tableau<kuri::chaine> m_table{};
 
 	~GeranteChaine();
 
-	Resultat ajoute_chaine(dls::vue_chaine_compacte const &chaine);
-
-	kuri::chaine trouve_chaine(dls::vue_chaine_compacte const &chaine);
-
-	int valide_caractere(const char *ptr, int &i, const char *&message_erreur, int &position, unsigned char sequence[4]);
+	void ajoute_chaine(kuri::chaine const &chaine);
 };
 
 struct ContexteGenerationCode {

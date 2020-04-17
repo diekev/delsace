@@ -1421,15 +1421,8 @@ void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
 		{
-			auto res = contexte.gerante_chaine.ajoute_chaine(b->lexeme->chaine);
-
-			if (!res.ok) {
-				erreur::lance_erreur(res.erreur, contexte, b->lexeme);
-			}
-
 			b->type = contexte.typeuse[TypeBase::CHAINE];
 			b->genre_valeur = GenreValeur::DROITE;
-
 			donnees_dependance.types_utilises.insere(b->type);
 			break;
 		}
@@ -1445,25 +1438,6 @@ void performe_validation_semantique(
 		{
 			b->genre_valeur = GenreValeur::DROITE;
 			b->type = contexte.typeuse[TypeBase::Z8];
-
-			auto i = 0;
-			auto position = 0;
-			auto message_erreur = "";
-			unsigned char sequence[4];
-
-			auto n = contexte.gerante_chaine.valide_caractere(&b->lexeme->chaine[0], i, message_erreur, position, sequence);
-
-			if (n == 0) {
-				erreur::lance_erreur(message_erreur, contexte, b->lexeme);
-			}
-
-			if (i < b->lexeme->chaine.taille()) {
-				erreur::lance_erreur("Caractères en trop dans le caractère littéral", contexte, b->lexeme);
-			}
-
-			// À FAIRE : caractère unicode
-			b->valeur_calculee = static_cast<char>(sequence[0]);
-
 			donnees_dependance.types_utilises.insere(b->type);
 			break;
 		}

@@ -137,7 +137,7 @@ void charge_fichier(
 	fichier->tampon = lng::tampon_source(tampon);
 	fichier->temps_tampon = debut_tampon.temps();
 
-	auto lexeuse = Lexeuse(fichier);
+	auto lexeuse = Lexeuse(contexte, fichier);
 	auto debut_decoupage = dls::chrono::compte_seconde();
 	lexeuse.performe_lexage();
 	fichier->temps_decoupage = debut_decoupage.temps();

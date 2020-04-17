@@ -295,7 +295,7 @@ static erreur::type_erreur lance_test(lng::tampon_source &tampon)
 	fichier->module = module;
 
 	try {
-		Lexeuse lexeuse(fichier);
+		Lexeuse lexeuse(contexte, fichier);
 		lexeuse.performe_lexage();
 
 		auto analyseuse = Syntaxeuse(contexte, fichier, "");

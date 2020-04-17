@@ -52,7 +52,7 @@ std::pair<bool, bool> retourne_erreur_lancee(
 	auto type_correcte = false;
 
 	try {
-		Lexeuse lexeuse(fichier);
+		Lexeuse lexeuse(contexte, fichier);
 		lexeuse.performe_lexage();
 
 		auto assembleuse = assembleuse_arbre(contexte);

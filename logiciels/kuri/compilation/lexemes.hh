@@ -194,6 +194,7 @@ struct Lexeme {
 	union {
 		unsigned long long valeur_entiere;
 		double valeur_reelle;
+		struct { char *pointeur; long taille; };
 	};
 
 	GenreLexeme genre;

@@ -796,8 +796,10 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
 		{
-			auto chaine = m_contexte.gerante_chaine.ajoute_chaine(noeud->lexeme->chaine);
-			return cree_constante_chaine(noeud->type, chaine.c);
+			auto chaine = kuri::chaine();
+			chaine.pointeur = noeud->lexeme->pointeur;
+			chaine.taille = noeud->lexeme->taille;
+			return cree_constante_chaine(noeud->type, chaine);
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		{

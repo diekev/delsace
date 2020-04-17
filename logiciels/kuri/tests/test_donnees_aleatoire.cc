@@ -54,7 +54,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto fichier = contexte.cree_fichier("", "");
 		fichier->tampon = lng::tampon_source(texte);
 
-		Lexeuse lexeuse(fichier);
+		Lexeuse lexeuse(contexte, fichier);
 		lexeuse.performe_lexage();
 
 		auto assembleuse = assembleuse_arbre(contexte);

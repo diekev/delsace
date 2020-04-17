@@ -25,7 +25,9 @@
 #pragma once
 
 #include "lexemes.hh"
+#include "structures.hh"
 
+struct ContexteGenerationCode;
 struct Fichier;
 
 enum {
@@ -34,6 +36,7 @@ enum {
 };
 
 class Lexeuse {
+	ContexteGenerationCode &m_contexte;
 	Fichier *m_fichier;
 	const char *m_debut_mot = nullptr;
 	const char *m_debut = nullptr;
@@ -48,7 +51,7 @@ class Lexeuse {
 	GenreLexeme m_dernier_id = GenreLexeme::INCONNU;
 
 public:
-	explicit Lexeuse(Fichier *fichier, int drapeaux = 0);
+	Lexeuse(ContexteGenerationCode &contexte, Fichier *fichier, int drapeaux = 0);
 
 	void performe_lexage();
 
@@ -77,6 +80,8 @@ private:
 	void pousse_caractere(int n = 1);
 
 	void pousse_mot(GenreLexeme identifiant);
+	void pousse_mot(GenreLexeme identifiant, unsigned valeur);
+	void pousse_mot(GenreLexeme identifiant, kuri::chaine valeur);
 
 	void enregistre_pos_mot();
 
@@ -89,6 +94,8 @@ private:
 	void lexe_nombre_hexadecimal();
 	void lexe_nombre_binaire();
 	void lexe_nombre_octal();
+
+	unsigned lexe_caractere_litteral(kuri::chaine *chaine);
 
 	void pousse_lexeme_entier(unsigned long long valeur);
 	void pousse_lexeme_reel(double valeur);

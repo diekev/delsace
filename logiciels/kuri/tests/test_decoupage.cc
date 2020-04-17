@@ -147,7 +147,9 @@ Lexeuse lexeuse(str, str + len);
 	auto fichier = Fichier{};
 	fichier.tampon = lng::tampon_source(texte);
 
-	Lexeuse lexeuse(&fichier);
+	auto contexte = ContexteGenerationCode();
+
+	Lexeuse lexeuse(contexte, &fichier);
 	lexeuse.performe_lexage();
 
 	return verifie_lexemes(fichier.lexemes.debut(),

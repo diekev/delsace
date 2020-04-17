@@ -95,8 +95,9 @@ static bool doit_ajouter_point_virgule(GenreLexeme dernier_id)
 
 /* ************************************************************************** */
 
-Lexeuse::Lexeuse(Fichier *fichier, int drapeaux)
-	: m_fichier(fichier)
+Lexeuse::Lexeuse(ContexteGenerationCode &contexte, Fichier *fichier, int drapeaux)
+	: m_contexte(contexte)
+	, m_fichier(fichier)
 	, m_debut_mot(fichier->tampon.debut())
 	, m_debut(fichier->tampon.debut())
 	, m_fin(fichier->tampon.fin())
@@ -401,14 +402,17 @@ void Lexeuse::analyse_caractere_simple()
 					this->enregistre_pos_mot();
 				}
 
+				kuri::chaine chaine;
+
 				while (!this->fini()) {
 					if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
 						break;
 					}
 
-					this->pousse_caractere();
-					this->avance();
+					this->lexe_caractere_litteral(&chaine);
 				}
+
+				m_contexte.gerante_chaine.ajoute_chaine(chaine);
 
 				/* Saute le dernier guillemet si nécessaire. */
 				if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
@@ -417,7 +421,7 @@ void Lexeuse::analyse_caractere_simple()
 
 				this->avance();
 
-				this->pousse_mot(GenreLexeme::CHAINE_LITTERALE);
+				this->pousse_mot(GenreLexeme::CHAINE_LITTERALE, chaine);
 				break;
 			}
 			case '\'':
@@ -433,14 +437,10 @@ void Lexeuse::analyse_caractere_simple()
 					this->enregistre_pos_mot();
 				}
 
-				while (this->caractere_courant() != '\'') {
-					if (this->caractere_courant() == '\\') {
-						this->pousse_caractere();
-						this->avance();
-					}
+				auto valeur = this->lexe_caractere_litteral(nullptr);
 
-					this->pousse_caractere();
-					this->avance();
+				if (this->caractere_courant() != '\'') {
+					lance_erreur("attendu une apostrophe");
 				}
 
 				/* Saute la dernière apostrophe si nécessaire. */
@@ -449,7 +449,7 @@ void Lexeuse::analyse_caractere_simple()
 				}
 
 				this->avance();
-				this->pousse_mot(GenreLexeme::CARACTERE);
+				this->pousse_mot(GenreLexeme::CARACTERE, valeur);
 				break;
 			}
 			default:
@@ -486,6 +486,35 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant)
 	}
 
 	m_fichier->lexemes.pousse({ mot_courant(), { 0ull }, identifiant, static_cast<int>(m_fichier->id), static_cast<int>(m_compte_ligne), static_cast<int>(m_pos_mot) });
+	m_taille_mot_courant = 0;
+	m_dernier_id = identifiant;
+}
+
+void Lexeuse::pousse_mot(GenreLexeme identifiant, unsigned valeur)
+{
+	if (m_fichier->lexemes.taille() % 128 == 0) {
+		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
+	}
+
+	m_fichier->lexemes.pousse({ mot_courant(), { valeur }, identifiant, static_cast<int>(m_fichier->id), static_cast<int>(m_compte_ligne), static_cast<int>(m_pos_mot) });
+	m_taille_mot_courant = 0;
+	m_dernier_id = identifiant;
+}
+
+void Lexeuse::pousse_mot(GenreLexeme identifiant, kuri::chaine valeur)
+{
+	if (m_fichier->lexemes.taille() % 128 == 0) {
+		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
+	}
+
+	Lexeme lexeme = {
+		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_fichier->id), static_cast<int>(m_compte_ligne), static_cast<int>(m_pos_mot)
+	};
+
+	lexeme.pointeur = valeur.pointeur;
+	lexeme.taille = valeur.taille;
+
+	m_fichier->lexemes.pousse(lexeme);
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }
@@ -786,6 +815,202 @@ void Lexeuse::lexe_nombre_octal()
 	}
 
 	this->pousse_lexeme_entier(resultat_entier);
+}
+
+static int hex_depuis_char(char c)
+{
+	if (c >= '0' && c <= '9') {
+		return c - '0';
+	}
+
+	if (c >= 'a' && c <= 'f') {
+		return 10 + (c - 'a');
+	}
+
+	if (c >= 'A' && c <= 'F') {
+		return 10 + (c - 'A');
+	}
+
+	return 256;
+}
+
+/* Séquences d'échappement du langage :
+ * \e : insère un caractère d'échappement (par exemple pour les couleurs dans les terminaux)
+ * \f : insère un saut de page
+ * \n : insère une nouvelle ligne
+ * \r : insère un retour chariot
+ * \t : insère une tabulation horizontale
+ * \v : insère une tabulation verticale
+ * \0 : insère un octet dont la valeur est de zéro (0)
+ * \' : insère une apostrophe
+ * \" : insère un guillemet
+ * \\ : insère un slash arrière
+ * \dnnn      : insère une valeur décimale, où n est nombre décimal
+ * \unnnn     : insère un caractère Unicode dont seuls les 16-bits du bas sont spécifiés, où n est un nombre hexadécimal
+ * \Unnnnnnnn : insère un caractère Unicode sur 32-bits, où n est un nombre hexadécimal
+ * \xnn       : insère une valeur hexadécimale, où n est un nombre hexadécimal
+ */
+unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
+{
+	auto c = this->caractere_courant();
+	this->avance();
+	this->pousse_caractere();
+
+	auto v = static_cast<unsigned>(c);
+
+	if (c != '\\') {
+		if (chaine) {
+			chaine->pousse(c);
+		}
+
+		return v;
+	}
+
+	c = this->caractere_courant();
+	this->avance();
+	this->pousse_caractere();
+
+	if (c == 'u') {
+		for (auto j = 0; j < 4; ++j) {
+			auto n = this->caractere_courant();
+
+			auto c0 = hex_depuis_char(n);
+
+			if (c0 == 256) {
+				lance_erreur("\\u doit prendre 4 chiffres hexadécimaux");
+			}
+
+			v <<= 4;
+			v |= static_cast<unsigned int>(c0);
+
+			this->avance();
+			this->pousse_caractere();
+		}
+
+		unsigned char sequence[4];
+		auto n = lng::point_de_code_vers_utf8(v, sequence);
+
+		if (n == 0) {
+			lance_erreur("Séquence Unicode invalide");
+		}
+
+		if (chaine) {
+			for (auto j = 0; j < n; ++j) {
+				chaine->pousse(static_cast<char>(sequence[j]));
+			}
+		}
+
+		return v;
+	}
+
+	if (c == 'U') {
+		for (auto j = 0; j < 8; ++j) {
+			auto n = this->caractere_courant();
+
+			auto c0 = hex_depuis_char(n);
+
+			if (c0 == 256) {
+				lance_erreur("\\U doit prendre 8 chiffres hexadécimaux");
+			}
+
+			v <<= 4;
+			v |= static_cast<unsigned int>(c0);
+
+			this->avance();
+			this->pousse_caractere();
+		}
+
+		unsigned char sequence[4];
+		auto n = lng::point_de_code_vers_utf8(v, sequence);
+
+		if (n == 0) {
+			lance_erreur("Séquence Unicode invalide");
+		}
+
+		if (chaine) {
+			for (auto j = 0; j < n; ++j) {
+				chaine->pousse(static_cast<char>(sequence[j]));
+			}
+		}
+
+		return v;
+	}
+
+	if (c == 'n') {
+		v = '\n';
+	}
+	else if (c == 't') {
+		v = '\t';
+	}
+	else if (c == 'e') {
+		v = 0x1b;
+	}
+	else if (c == '\\') {
+		// RÀF
+	}
+	else if (c == '0') {
+		v = 0;
+	}
+	else if (c == '"') {
+		v = '"';
+	}
+	else if (c == '\'') {
+		v = '\'';
+	}
+	else if (c == 'r') {
+		v = '\r';
+	}
+	else if (c == 'f') {
+		v = '\f';
+	}
+	else if (c == 'v') {
+		v = '\v';
+	}
+	else if (c == 'x') {
+		for (auto j = 0; j < 2; ++j) {
+			auto n = this->caractere_courant();
+
+			auto c0 = hex_depuis_char(n);
+
+			if (c0 == 256) {
+				lance_erreur("\\x doit prendre 2 chiffres hexadécimaux");
+			}
+
+			v <<= 4;
+			v |= static_cast<unsigned>(c0);
+
+			this->avance();
+			this->pousse_caractere();
+		}
+	}
+	else if (c == 'd') {
+		for (auto j = 0; j < 3; ++j) {
+			auto n = this->caractere_courant();
+
+			if (n < '0' || n > '9') {
+				lance_erreur("\\d doit prendre 3 chiffres décimaux");
+			}
+
+			v *= 10;
+			v += static_cast<unsigned>(n - '0');
+
+			this->avance();
+			this->pousse_caractere();
+		}
+
+		if (v > 255) {
+			lance_erreur("Valeur décimale trop grande, le maximum est 255");
+		}
+	}
+	else {
+		lance_erreur("Séquence d'échappement invalide");
+	}
+
+	if (chaine) {
+		chaine->pousse(static_cast<char>(v));
+	}
+
+	return v;
 }
 
 void Lexeuse::pousse_lexeme_entier(unsigned long long valeur)
