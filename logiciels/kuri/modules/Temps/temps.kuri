@@ -48,6 +48,12 @@ nanosecondes :: fonc (inst: Instantané) -> z64
     retourne inst.seconde * 1_000_000_000 + inst.nanoseconde
 }
 
+temps_écoulé_secondes :: fonc (inst: Instantané) -> z64
+{
+    m := maintenant().seconde
+    retourne m - inst.seconde
+}
+
 temps_écoulé_microsecondes :: fonc (inst: Instantané) -> z64
 {
     m := maintenant_précis().microsecondes()
