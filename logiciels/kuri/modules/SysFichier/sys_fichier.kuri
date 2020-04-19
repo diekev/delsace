@@ -1,3 +1,5 @@
+charge "fichier"
+
 importe Fondation
 importe GlibC
 
