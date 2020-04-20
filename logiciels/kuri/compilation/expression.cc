@@ -296,6 +296,14 @@ ResultatExpression evalue_expression(
 
 			return res;
 		}
+		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
+		{
+			auto res = ResultatExpression();
+			res.type = type_expression::ENTIER;
+			res.entier = static_cast<long>(b->lexeme->valeur_entiere);
+
+			return res;
+		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		{
 			auto res = ResultatExpression();
