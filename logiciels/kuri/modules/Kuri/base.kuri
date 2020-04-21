@@ -626,6 +626,19 @@ tableau_supprime :: fonc(tabl: *[]$T, index: z32) -> rien
 	mémoire(tabl) = tmp
 }
 
+tableau_supprime_index :: fonc (tabl: *[]$T, index: z64) -> rien
+{
+    tmp := mémoire(tabl)
+
+    pour i dans index + 1 ... tmp.taille - 1 {
+        tmp[i] = tmp[i + 1]
+    }
+
+    tmp.taille -= 1
+
+    mémoire(tabl) = tmp
+}
+
 // --------------------------------
 
 externe __ARGV : **z8
