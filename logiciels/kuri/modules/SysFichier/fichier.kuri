@@ -44,9 +44,9 @@ RésultatOpérationFichier :: union {
     r: z32
 }
 
-système_ouvre :: fonc (chemin: *z8, drapeaux: z32) -> RésultatOpérationFichier
+système_ouvre :: fonc (chemin: *z8, drapeaux: z32, permissions: z32) -> RésultatOpérationFichier
 {
-    résultat := open(chemin, drapeaux)
+    résultat := open(chemin, drapeaux, permissions)
 
     // À FAIRE : certaine valeur dépendent des drapeaux (création, écriture, ...)
     // il faudra atomiser l'interface, la préciser pour savoir quoi faire
@@ -241,7 +241,21 @@ ouvre_fichier :: fonc (chemin: chaine) -> RésultatFichier
 {
    	ptr_chemin := chaine_c_temp(chemin)
 
-    desc := tente système_ouvre(ptr_chemin, LECTURE_ÉCRITURE) piège err {
+    desc := tente système_ouvre(ptr_chemin, LECTURE_ÉCRITURE, 0o644) piège err {
+        retourne err
+    }
+
+    fichier: Fichier
+    fichier.desc = desc
+
+    retourne fichier
+}
+
+ouvre_fichier_crée_si_non_existant :: fonc (chemin: chaine) -> RésultatFichier
+{
+    ptr_chemin := chaine_c_temp(chemin)
+
+    desc := tente système_ouvre(ptr_chemin, LECTURE_ÉCRITURE | CREATION, 0o644) piège err {
         retourne err
     }
 
