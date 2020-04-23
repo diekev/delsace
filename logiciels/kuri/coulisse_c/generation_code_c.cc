@@ -1734,7 +1734,7 @@ void genere_code_C(
 
 			auto flux = dls::flux_chaine();
 
-			auto char_depuis_hex = [](char hex)
+			auto char_depuis_hex = [](unsigned char hex)
 			{
 				return "0123456789ABCDEF"[static_cast<int>(hex)];
 			};
