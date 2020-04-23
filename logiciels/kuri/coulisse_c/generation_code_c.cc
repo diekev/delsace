@@ -1172,11 +1172,13 @@ void genere_code_C(
 			auto decl = expr->decl;
 			auto flux = dls::flux_chaine();
 
-			if (decl->drapeaux & EST_CONSTANTE) {
+			// À FAIRE : decl peut être nulle pour les appels de pointeurs de fonctions
+
+			if (decl != nullptr && decl->drapeaux & EST_CONSTANTE) {
 				auto decl_const = static_cast<NoeudDeclarationVariable *>(decl);
 				flux << decl_const->valeur_expression.entier;
 			}
-			else if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {
+			else if (decl != nullptr && decl->genre == GenreNoeud::DECLARATION_FONCTION) {
 				auto decl_fonc = static_cast<NoeudDeclarationFonction *>(decl);
 				flux << decl_fonc->nom_broye;
 			}
