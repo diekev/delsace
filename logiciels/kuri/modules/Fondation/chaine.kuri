@@ -464,6 +464,26 @@ append :: fonc (vers: *chaine, chn: chaine) -> rien
     mémoire(vers) = tmp
 }
 
+trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine) -> z64
+{
+    pour i dans 0 ... chn.taille - motif.taille - 1 {
+        trouvé := vrai
+
+        pour m, idx dans motif {
+            si m != chn[i + idx] {
+                trouvé = faux
+                arrête
+            }
+        }
+
+        si trouvé {
+            retourne i
+        }
+    }
+
+    retourne -1
+}
+
 trouve_caractère_depuis_le_début :: fonc (chn: chaine, c: z8) -> z64
 {
     début : z64 = 0
