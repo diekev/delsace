@@ -109,6 +109,13 @@ discr u {
 -- inverse la direction via : pour inverse ...
 -- controle la condition finale via : pour <= ...
 - tranche de tableaux et de chaine via : x[ D ... F ]
+- déplace la trace d'appel dans le contexte
+- ajout d'un rappel dans le contexte pour gérer la fin d'un programme paniquant
+- utilisation d'un fichier "module.kuri" pour définir le contenu d'un module, les fichiers à charger
+- nettoyage des modules
+--- déplace table_hachage de "Fondation"
+--- ajout d'un module pour l'interface avec la compilatrice
+--- déplace "boutisme" dans un module "Ordinateur"
 
 À faire (tests)
 ---------------
