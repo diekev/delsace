@@ -66,15 +66,12 @@ Faitures
 	== implicite si != est défini
 	!= implicite si == est défini
 - validation des types des énums, et typages plus libre (énum de chaines, de structures, etc.)
-- ajout d'un mot-clé pour les types ?
 - ajout d'un type pour les retours de fonctions (ou tuple, R-uple ?)
 - ajout d'un type pour les caractères (« rune »), avec une gestion correcte des chaines UTF-8
 - finir la coulisse LLVM, avec la métaprogrammation
 - types comme valeurs
 - corriger les bugs
 - ajout d'un noeud syntaxique pour les imports (simplifiant la recherche de symboles dans les expressions de type A.B.C)
-- déplacer la validation des chaines et des caractères dans le lexage
-- déplacer les données des membres des structures/unions/tableaux/etc. dans les types (momentanément stockées dans les noeuds syntaxiques)
 - déplacer la trace d'appel dans le contexte implicite : un contexte par fil d'exécution nous permettra d'éviter les concurrences de types
 - avoir un « runtime » par machine cible où nous implémentons les fonctions ou instructions n'étant pas disponible sur celle-ci (voir Zig)
 - asm enligné
@@ -104,18 +101,25 @@ discr u {
 - ajout d'une table de table de types accessible depuis les programmes
 - correction de l'évaluation des opérateurs && ||
 - amélioration boucle pour :
--- itération directe sur tableau via : pour tabl { ... }, le compilateur définira deux variables : it et index_it
+-- variable et index implicites :
+---- pour tabl
+---- pour chn
+---- pour 0 ... 10
 -- obtenir un pointeur via : pour * ...
 -- inverse la direction via : pour inverse ...
 -- controle la condition finale via : pour <= ...
+-- itération sur plusieurs variables de même type
+---- pour chn1, chn2 { ... }, la variable implicite sera un type produit accédé via it.N ou N est un nombre
 - tranche de tableaux et de chaine via : x[ D ... F ]
-- déplace la trace d'appel dans le contexte
 - ajout d'un rappel dans le contexte pour gérer la fin d'un programme paniquant
 - utilisation d'un fichier "module.kuri" pour définir le contenu d'un module, les fichiers à charger
 - nettoyage des modules
 --- déplace table_hachage de "Fondation"
 --- ajout d'un module pour l'interface avec la compilatrice
 --- déplace "boutisme" dans un module "Ordinateur"
+- relaxation des conditions pour « si » et « saufsi »
+--- permet l'utilisation de types scalaires, une valeur de 0 est fausse, autrement vrai
+--- permet l'utilisation de tableaux et de chaines, la taille étant testée
 
 À faire (tests)
 ---------------
