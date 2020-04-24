@@ -188,7 +188,6 @@ static auto apparie_appel_pointeur(
 
 	if (type->genre != GenreType::FONCTION) {
 		resultat.etat = FONCTION_INTROUVEE;
-		resultat.poids_args = 0.0;
 		resultat.raison = TYPE_N_EST_PAS_FONCTION;
 		return resultat;
 	}
@@ -200,8 +199,7 @@ static auto apparie_appel_pointeur(
 
 		resultat.etat = FONCTION_INTROUVEE;
 		resultat.raison = NOMMAGE_ARG_POINTEUR_FONCTION;
-		resultat.poids_args = 0.0;
-		resultat.noeud_decl = it.expr;
+		resultat.noeud_erreur = it.expr;
 		return resultat;
 	}
 
@@ -249,9 +247,9 @@ static auto apparie_appel_pointeur(
 		if (poids_args == 0.0) {
 			poids_args = 0.0;
 			resultat.raison = METYPAGE_ARG;
-			resultat.type1 = contexte.typeuse.type_dereference_pour(type_prm);
-			resultat.type2 = type_enf;
-			resultat.noeud_decl = arg;
+			resultat.type_attendu = contexte.typeuse.type_dereference_pour(type_prm);
+			resultat.type_obtenu = type_enf;
+			resultat.noeud_erreur = arg;
 			break;
 		}
 
@@ -322,13 +320,13 @@ static DonneesCandidate apparie_appel_fonction(
 {
 	auto res = DonneesCandidate{};
 	res.note = CANDIDATE_EST_APPEL_FONCTION;
+	res.noeud_decl = decl;
 
 	auto const nombre_args = decl->params.taille;
 
 	if (!decl->est_variadique && (args.taille > nombre_args)) {
 		res.etat = FONCTION_INTROUVEE;
 		res.raison = MECOMPTAGE_ARGS;
-		res.decl_fonc = decl;
 		return res;
 	}
 
@@ -336,7 +334,6 @@ static DonneesCandidate apparie_appel_fonction(
 		res.poids_args = 1.0;
 		res.etat = FONCTION_TROUVEE;
 		res.raison = AUCUNE_RAISON;
-		res.decl_fonc = decl;
 		return res;
 	}
 
@@ -374,7 +371,6 @@ static DonneesCandidate apparie_appel_fonction(
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = MENOMMAGE_ARG;
 				res.nom_arg = it.ident->nom;
-				res.decl_fonc = decl;
 				return res;
 			}
 
@@ -382,7 +378,6 @@ static DonneesCandidate apparie_appel_fonction(
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = RENOMMAGE_ARG;
 				res.nom_arg = it.ident->nom;
-				res.decl_fonc = decl;
 				return res;
 			}
 
@@ -398,7 +393,6 @@ static DonneesCandidate apparie_appel_fonction(
 					res.etat = FONCTION_INTROUVEE;
 					res.raison = RENOMMAGE_ARG;
 					res.nom_arg = it.ident->nom;
-					res.decl_fonc = decl;
 					return res;
 				}
 
@@ -409,7 +403,6 @@ static DonneesCandidate apparie_appel_fonction(
 			if (arguments_nommes == true && dernier_arg_variadique == false) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = MANQUE_NOM_APRES_VARIADIC;
-				res.decl_fonc = decl;
 				return res;
 			}
 
@@ -428,7 +421,6 @@ static DonneesCandidate apparie_appel_fonction(
 			// À FAIRE : on pourrait donner les noms des arguments manquants
 			res.etat = FONCTION_INTROUVEE;
 			res.raison = MECOMPTAGE_ARGS;
-			res.decl_fonc = decl;
 			return res;
 		}
 	}
@@ -477,10 +469,9 @@ static DonneesCandidate apparie_appel_fonction(
 				if (type_gabarit == nullptr) {
 					poids_args = 0.0;
 					res.raison = METYPAGE_ARG;
-					//res.type1 = type_enf;
-					res.type2 = type_enf;
-					res.noeud_decl = slot;
-					res.decl_fonc = decl;
+					//res.type_attendu = type_enf;
+					res.type_obtenu = type_enf;
+					res.noeud_erreur = slot;
 					return res;
 				}
 
@@ -535,9 +526,9 @@ static DonneesCandidate apparie_appel_fonction(
 				if (poids_args == 0.0) {
 					poids_args = 0.0;
 					res.raison = METYPAGE_ARG;
-					res.type1 = contexte.typeuse.type_dereference_pour(type_arg);
-					res.type2 = type_enf;
-					res.noeud_decl = slot;
+					res.type_attendu = contexte.typeuse.type_dereference_pour(type_arg);
+					res.type_obtenu = type_enf;
+					res.noeud_erreur = slot;
 					break;
 				}
 
@@ -580,9 +571,9 @@ static DonneesCandidate apparie_appel_fonction(
 			if (poids_args == 0.0) {
 				poids_args = 0.0;
 				res.raison = METYPAGE_ARG;
-				res.type1 = type_arg;
-				res.type2 = type_enf;
-				res.noeud_decl = slot;
+				res.type_attendu = type_arg;
+				res.type_obtenu = type_enf;
+				res.noeud_erreur = slot;
 				break;
 			}
 
@@ -619,7 +610,6 @@ static DonneesCandidate apparie_appel_fonction(
 		}
 	}
 
-	res.decl_fonc = decl;
 	res.poids_args = poids_args;
 	res.exprs = slots;
 	res.etat = FONCTION_TROUVEE;
@@ -672,7 +662,7 @@ static auto apparie_appel_structure(
 			resultat.etat = FONCTION_TROUVEE;
 			resultat.raison = NOM_ARGUMENT_REQUIS;
 			resultat.poids_args = 0.0;
-			resultat.noeud_decl = it.expr;
+			resultat.noeud_erreur = it.expr;
 			return resultat;
 		}
 
@@ -680,7 +670,7 @@ static auto apparie_appel_structure(
 			resultat.etat = FONCTION_TROUVEE;
 			resultat.raison = RENOMMAGE_ARG;
 			resultat.poids_args = 0.0;
-			resultat.noeud_decl = it.expr;
+			resultat.noeud_erreur = it.expr;
 			return resultat;
 		}
 
@@ -704,8 +694,8 @@ static auto apparie_appel_structure(
 			resultat.etat = FONCTION_TROUVEE;
 			resultat.raison = MENOMMAGE_ARG;
 			resultat.poids_args = 0.0;
-			resultat.noeud_decl = it.expr;
-			resultat.decl_fonc = decl_struct;
+			resultat.noeud_erreur = it.expr;
+			resultat.noeud_decl = decl_struct;
 			return resultat;
 		}
 
@@ -718,9 +708,9 @@ static auto apparie_appel_structure(
 			resultat.etat = FONCTION_TROUVEE;
 			resultat.raison = METYPAGE_ARG;
 			resultat.poids_args = 0.0;
-			resultat.noeud_decl = it.expr;
-			resultat.type1 = type_membre;
-			resultat.type2 = it.expr->type;
+			resultat.noeud_erreur = it.expr;
+			resultat.type_attendu = type_membre;
+			resultat.type_obtenu = it.expr->type;
 			return resultat;
 		}
 
@@ -866,11 +856,11 @@ void valide_appel_fonction(
 	}
 
 	if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {
-		if (candidate->decl_fonc == nullptr) {
+		if (candidate->noeud_decl == nullptr) {
 			erreur::lance_erreur_fonction_inconnue(contexte, expr, candidates);
 		}
 
-		auto decl_fonction_appelee = static_cast<NoeudDeclarationFonction const *>(candidate->decl_fonc);
+		auto decl_fonction_appelee = static_cast<NoeudDeclarationFonction const *>(candidate->noeud_decl);
 
 		/* pour les directives d'exécution, la fonction courante est nulle */
 		if (fonction_courante != nullptr) {

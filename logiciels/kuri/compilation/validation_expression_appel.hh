@@ -86,10 +86,10 @@ struct DonneesCandidate {
 
 	/* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
 	dls::tablet<NoeudExpression *, 10> exprs{};
-	Type *type1{};
-	Type *type2{};
-	NoeudBase const *noeud_decl = nullptr;
-	NoeudDeclaration const *decl_fonc = nullptr;
+	Type *type_attendu{};
+	Type *type_obtenu{};
+	NoeudBase const *noeud_erreur = nullptr;
+	NoeudDeclaration const *noeud_decl = nullptr;
 	dls::tableau<TransformationType> transformations{};
 	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
 };

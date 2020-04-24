@@ -420,7 +420,7 @@ void lance_erreur_fonction_inconnue(
 	auto type_erreur = erreur::type_erreur::FONCTION_INCONNUE;
 
 	for (auto &dc : candidates) {
-		auto decl = dc.decl_fonc;
+		auto decl = dc.noeud_decl;
 		ss << "\nCandidate :";
 
 		if (decl != nullptr) {
@@ -517,11 +517,11 @@ void lance_erreur_fonction_inconnue(
 		}
 
 		if (dc.raison == METYPAGE_ARG) {
-			auto const &lexeme_enfant = dc.noeud_decl->lexeme;
+			auto const &lexeme_enfant = dc.noeud_erreur->lexeme;
 
 			ss << "\tLe type de l'argument '" << lexeme_enfant->chaine << "' ne correspond pas à celui requis !\n";
-			ss << "\tRequiers : " << chaine_type(dc.type1) << '\n';
-			ss << "\tObtenu   : " << chaine_type(dc.type2) << '\n';
+			ss << "\tRequiers : " << chaine_type(dc.type_attendu) << '\n';
+			ss << "\tObtenu   : " << chaine_type(dc.type_obtenu) << '\n';
 			/* À FAIRE */
 //			ss << '\n';
 //			ss << "Astuce :\n";
