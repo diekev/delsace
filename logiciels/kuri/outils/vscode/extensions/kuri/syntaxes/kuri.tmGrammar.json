@@ -27,7 +27,7 @@
         "directive": {
             "name": "comment.kuri",
             "begin": "#",
-            "end": " "
+            "end": "($| )"
         },
         "control-keyword": {
             "name": "keyword.control.kuri",
