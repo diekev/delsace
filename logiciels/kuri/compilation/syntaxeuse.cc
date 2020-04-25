@@ -1584,10 +1584,14 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(NoeudExpression *gauch
 		}
 		else if (chn_directive == "nulctx") {
 			noeud->drapeaux |= FORCE_NULCTX;
+			noeud->drapeaux |= FORCE_SANSTRACE;
 		}
 		else if (chn_directive == "externe") {
 			noeud->drapeaux |= EST_EXTERNE;
 			noeud->est_externe = true;
+		}
+		else if (chn_directive == "sanstrace") {
+			noeud->drapeaux |= FORCE_SANSTRACE;
 		}
 
 		consomme();

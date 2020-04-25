@@ -469,6 +469,18 @@ static bool lance_execution(ContexteGenerationCode &contexte)
 	return 0;
 }
 
+static void initialise_interface_kuri(ContexteGenerationCode &contexte)
+{
+	auto module = contexte.module("Kuri");
+	contexte.interface_kuri.decl_panique = cherche_fonction_dans_module(contexte, module, "panique");
+	contexte.interface_kuri.decl_panique_memoire = cherche_fonction_dans_module(contexte, module, "panique_hors_mémoire");
+	contexte.interface_kuri.decl_panique_tableau = cherche_fonction_dans_module(contexte, module, "panique_dépassement_limites_tableau");
+	contexte.interface_kuri.decl_panique_chaine = cherche_fonction_dans_module(contexte, module, "panique_dépassement_limites_chaine");
+	contexte.interface_kuri.decl_panique_membre_union = cherche_fonction_dans_module(contexte, module, "panique_membre_union");
+	contexte.interface_kuri.decl_panique_erreur = cherche_fonction_dans_module(contexte, module, "panique_erreur_non_gérée");
+	contexte.interface_kuri.decl_rappel_panique_defaut = cherche_fonction_dans_module(contexte, module, "__rappel_panique_défaut");
+}
+
 int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(false);
@@ -533,6 +545,7 @@ int main(int argc, char *argv[])
 		contexte_generation.importe_kuri = false;
 #else
 		importe_module(os, chemin_racine_kuri, "Kuri", contexte_generation, {});
+		initialise_interface_kuri(contexte_generation);
 #endif
 
 		/* Change le dossier courant et lance la compilation. */

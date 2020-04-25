@@ -1,0 +1,68 @@
+charge "base"
+
+// nous importons Fondation car il nous faut le code d'impression, ce serait bien de ne pas avoir à faire cela afin que Kuri soit sans aucune dépendances...
+importe Fondation
+
+// pour exit
+importe GlibC
+
+imprime_panique :: fonc () -> rien #sanstrace
+{
+    si contexte.rappel_panique != nul {
+        contexte.rappel_panique()
+    }
+
+    trace := contexte.trace_appel
+
+    tantque trace != nul {
+        info_fonction := trace.info_fonction
+        info_appel := trace.info_appel
+
+        imprime("%:%:% : dans % (%)\n", info_fonction.fichier, info_appel.ligne, info_appel.colonne, info_fonction.nom, info_fonction.adresse);
+        imprime("%\n", info_appel.texte);
+
+        pour i dans 0 ... info_appel.colonne - 1 {
+            imprime(" ");
+        }
+
+        imprime("\x1b[1;31m^\x1b[0m\n");
+
+        trace = trace.précédente
+    }
+
+    imprime("\nL'exécution du programme a été arrêtée à cause d'une panique.\n")
+    exit(1)
+}
+
+panique :: fonc (message: chaine) -> rien #sanstrace
+{
+    imprime("\n\x1b[1;31mErreur :\x1b[0m %\n\n", message)
+    imprime_panique()
+}
+
+panique_dépassement_limites_tableau :: fonc (taille: z64, index: z64) -> rien #sanstrace
+{
+   imprime("\n\x1b[1;31mErreur :\x1b[0m dépassement des limites du tableau, la taille est de % mais l'index est de %\n\n", taille, index);
+   imprime_panique();
+}
+
+panique_dépassement_limites_chaine :: fonc (taille: z64, index: z64) -> rien #sanstrace
+{
+   imprime("\n\x1b[1;31mErreur :\x1b[0m dépassement des limites de la chaine, la taille est de % mais l'index est de %\n\n", taille, index);
+   imprime_panique();
+}
+
+panique_membre_union :: fonc () -> rien #sanstrace
+{
+   panique("utilisation du membre non-actif d'une union")
+}
+
+panique_hors_mémoire :: fonc () -> rien #sanstrace
+{
+	panique("impossible d'allouer de la mémoire")
+}
+
+panique_erreur_non_gérée :: fonc () -> rien #sanstrace
+{
+	panique("une erreur n'a pas été piégée")
+}

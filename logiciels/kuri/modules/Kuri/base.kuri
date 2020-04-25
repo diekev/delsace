@@ -296,6 +296,31 @@ StockageTemporaire :: struct {
     occupation_maximale : z32
 }
 
+// ----------------------------
+
+InfoFonctionTraceAppel :: struct {
+    nom : chaine
+    fichier : chaine
+    adresse : *rien
+    // peut-être que nous pourrions avoir ceci dans le future, en fonction des besoins
+    // position: PositionCodeSource
+    // desc_type: *InfoTypeFonction
+}
+
+// redondance : peut être remplacé par PositionCodeSource
+InfoAppelTraceAppel :: struct {
+    ligne: z32
+    colonne: z32
+    texte: chaine
+}
+
+TraceAppel :: struct {
+    précédente : *TraceAppel
+    info_fonction : *InfoFonctionTraceAppel
+    info_appel : *InfoAppelTraceAppel
+    profondeur : z32
+}
+
 // Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
 // À FAIRE : permettre aux utilisateurs du langage d'ajouter des variables dans
 // cette structure.
@@ -307,9 +332,16 @@ ContexteProgramme :: struct {
     données_logueur : *rien = nul
 
     stockage_temporaire : *StockageTemporaire
+
+    trace_appel : *TraceAppel
+
+    rappel_panique := __rappel_panique_défaut
+    données_rappel_panique : *rien
 }
 
 __logueur_défaut :: fonc (message: chaine, ident: chaine, mode: ModeLogage, données: *rien) -> rien {}
+
+__rappel_panique_défaut :: fonc () -> rien {}
 
 // ----------------------------
 
@@ -671,42 +703,7 @@ arguments_ligne_commande :: fonc () -> []chaine
     }
 }
 
-/*
-avorte_dépassement_limites_tableau :: fonc (
-    taille: z64,
-    index: z64,
-    pos : PositionCodeSource) -> rien
-{
-    imprime("%:%\n", pos.fichier, pos.ligne)
-    imprime("Dépassements des limites du tableau !\n")
-    imprime("La taille est de % mais l'index est de %\n", taille, index)
-    abort()
-}
+// --------------------------------
 
-avorte_dépassement_limites_chaine :: fonc (
-    taille: z64,
-    index: z64,
-    pos : PositionCodeSource) -> rien
-{
-    imprime("%:%\n", pos.fichier, pos.ligne)
-    imprime("Dépassements des limites de la chaine !\n")
-    imprime("La taille est de % mais l'index est de %\n", taille, index)
-    abort()
-}
-
-avorte_hors_mémoire :: fonc (
-    pos : PositionCodeSource) -> rien
-{
-    imprime("%:%\n", pos.fichier, pos.ligne)
-    imprime("Impossible d'allouer de la mémoire !\n")
-    abort()
-}
-
-avorte_accès_union :: fonc (
-    pos : PositionCodeSource) -> rien
-{
-    imprime("%:%\n", pos.fichier, pos.ligne)
-    imprime("Impossible d'accèder au membre de l'union car il n'est pas actif !\n")
-    abort()
-}
-*/
+// ATTENTION : charge les fonctions de panique en dernier car il y une dépendance sur Fondation
+charge "panique"

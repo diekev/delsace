@@ -143,5 +143,10 @@ void imprime_fichier_ligne(ContexteGenerationCode &contexte, Lexeme const &lexem
 
 NoeudDeclarationFonction *cherche_fonction_dans_module(
 		ContexteGenerationCode &contexte,
+		DonneesModule *module,
+		dls::vue_chaine_compacte const &nom_fonction);
+
+NoeudDeclarationFonction *cherche_fonction_dans_module(
+		ContexteGenerationCode &contexte,
 		dls::vue_chaine_compacte const &nom_module,
 		dls::vue_chaine_compacte const &nom_fonction);

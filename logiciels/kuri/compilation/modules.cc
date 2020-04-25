@@ -218,14 +218,22 @@ PositionLexeme position_lexeme(Lexeme const &lexeme)
 
 NoeudDeclarationFonction *cherche_fonction_dans_module(
 		ContexteGenerationCode &contexte,
-		dls::vue_chaine_compacte const &nom_module,
+		DonneesModule *module,
 		dls::vue_chaine_compacte const &nom_fonction)
 {
-	auto module = contexte.module(nom_module);
 	auto ident = contexte.table_identifiants.identifiant_pour_chaine(nom_fonction);
 	auto decl = trouve_dans_bloc(module->bloc, ident);
 
 	return static_cast<NoeudDeclarationFonction *>(decl);
+}
+
+NoeudDeclarationFonction *cherche_fonction_dans_module(
+		ContexteGenerationCode &contexte,
+		dls::vue_chaine_compacte const &nom_module,
+		dls::vue_chaine_compacte const &nom_fonction)
+{
+	auto module = contexte.module(nom_module);
+	return cherche_fonction_dans_module(contexte, module, nom_fonction);
 }
 
 void imprime_fichier_ligne(ContexteGenerationCode &contexte, const Lexeme &lexeme)

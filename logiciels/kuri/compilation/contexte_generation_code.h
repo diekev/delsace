@@ -108,6 +108,17 @@ struct GeranteChaine {
 	void ajoute_chaine(kuri::chaine const &chaine);
 };
 
+// Interface avec le module « Kuri », pour certaines fonctions intéressantes
+struct InterfaceKuri {
+	NoeudDeclarationFonction *decl_panique = nullptr;
+	NoeudDeclarationFonction *decl_panique_tableau = nullptr;
+	NoeudDeclarationFonction *decl_panique_chaine = nullptr;
+	NoeudDeclarationFonction *decl_panique_membre_union = nullptr;
+	NoeudDeclarationFonction *decl_panique_memoire = nullptr;
+	NoeudDeclarationFonction *decl_panique_erreur = nullptr;
+	NoeudDeclarationFonction *decl_rappel_panique_defaut = nullptr;
+};
+
 struct ContexteGenerationCode {
 	AllocatriceNoeud allocatrice_noeud{};
 
@@ -128,6 +139,8 @@ struct ContexteGenerationCode {
 	NoeudDeclarationFonction *donnees_fonction = nullptr;
 
 	NoeudExpressionAppel *pour_appel = nullptr;
+
+	InterfaceKuri interface_kuri{};
 
 	/* Les données des dépendances d'un noeud syntaxique, utilisée lors de la
 	 * validation sémantique. */

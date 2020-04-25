@@ -71,17 +71,22 @@ static void debute_record_trace_appel(
 		ConstructriceCodeC &constructrice,
 		NoeudExpression *expr)
 {
+	if (dls::outils::possede_drapeau(contexte.donnees_fonction->drapeaux, FORCE_SANSTRACE)) {
+		return;
+	}
+
 	auto const &lexeme = expr->lexeme;
 	auto fichier = contexte.fichier(static_cast<size_t>(lexeme->fichier));
 	auto pos = position_lexeme(*lexeme);
 
 	constructrice << "DEBUTE_RECORD_TRACE_APPEL(";
-	constructrice << "\"" << fichier->nom << ".kuri\",";
 	constructrice << pos.numero_ligne << ",";
 	constructrice << pos.pos << ",";
 	constructrice << "\"";
 
-	POUR (fichier->tampon[pos.index_ligne]) {
+	auto ligne = fichier->tampon[pos.index_ligne];
+
+	POUR (ligne) {
 		if (it == '\n') {
 			continue;
 		}
@@ -93,7 +98,7 @@ static void debute_record_trace_appel(
 		constructrice.m_enchaineuse.pousse_caractere(it);
 	}
 
-	constructrice << "\"";
+	constructrice << "\", " << ligne.taille();
 	constructrice << ");\n";
 }
 
@@ -161,7 +166,7 @@ static void applique_transformation(
 			// À FAIRE : nous pourrions avoir une erreur différente ici.
 			constructrice << "if (" << nom_courant << ".membre_actif != " << index_membre + 1 << ") {\n";
 			debute_record_trace_appel(contexte, constructrice, b);
-			constructrice << "panique_membre_union();";
+			constructrice << contexte.interface_kuri.decl_panique_membre_union->nom_broye << "(contexte);\n";
 			constructrice << "}\n";
 
 			constructrice << nom_broye_type(type_cible) << " " << nom_var_temp
@@ -429,7 +434,10 @@ static void cree_appel(
 	}
 
 	constructrice << ");\n";
-	termine_record_trace_appel(constructrice);
+
+	if (!dls::outils::possede_drapeau(contexte.donnees_fonction->drapeaux, FORCE_SANSTRACE)) {
+		termine_record_trace_appel(constructrice);
+	}
 }
 
 static void genere_code_acces_membre(
@@ -553,7 +561,7 @@ static void genere_code_echec_logement(
 	else {
 		constructrice << " {\n";
 		debute_record_trace_appel(contexte, constructrice, b);
-		constructrice << "panique_hors_memoire();";
+		constructrice << contexte.interface_kuri.decl_panique_memoire->nom_broye << "(contexte);\n";
 		constructrice << "}\n";
 	}
 }
@@ -1087,8 +1095,18 @@ void genere_code_C(
 			auto decl = static_cast<NoeudDeclarationFonction *>(b);
 			contexte.commence_fonction(decl);
 
+			auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme->fichier));
+
 			constructrice << "{\n";
-			constructrice << "INITIALISE_TRACE_APPEL(\"" << b->lexeme->chaine << "\", " << decl->nom_broye << ");\n";
+
+			if (!dls::outils::possede_drapeau(contexte.donnees_fonction->drapeaux, FORCE_SANSTRACE)) {
+				constructrice << "INITIALISE_TRACE_APPEL(\""
+							  << b->lexeme->chaine << "\", "
+							  << b->lexeme->chaine.taille() << ", \""
+							  << fichier->nom << ".kuri\", "
+							  << fichier->nom.taille() + 5 << ", "
+							  << decl->nom_broye << ");\n";
+			}
 
 			/* Crée code pour le bloc. */
 			decl->bloc->est_bloc_fonction = true;
@@ -1242,7 +1260,7 @@ void genere_code_C(
 				if (b->aide_generation_code != IGNORE_VERIFICATION) {
 					constructrice << "if (" << expr_membre << " != " << index_membre + 1 << ") {\n";
 					debute_record_trace_appel(contexte, constructrice, b);
-					constructrice << "panique_membre_union();\n";
+					constructrice << contexte.interface_kuri.decl_panique_membre_union->nom_broye << "(contexte);\n";
 					constructrice << "}\n";
 				}
 			}
@@ -1502,7 +1520,7 @@ void genere_code_C(
 					constructrice << enfant1->chaine_calculee();
 					constructrice << ".taille) {\n";
 					debute_record_trace_appel(contexte, constructrice, b);
-					constructrice << "panique_depassement_limites_chaine(";
+					constructrice << contexte.interface_kuri.decl_panique_chaine->nom_broye << "(contexte, ";
 					constructrice << enfant1->chaine_calculee();
 					constructrice << ".taille,";
 					constructrice << enfant2->chaine_calculee();
@@ -1529,7 +1547,7 @@ void genere_code_C(
 						constructrice << ".taille";
 						constructrice << ") {\n";
 						debute_record_trace_appel(contexte, constructrice, b);
-						constructrice << "panique_depassement_limites_tableau(";
+						constructrice << contexte.interface_kuri.decl_panique_tableau->nom_broye << "(contexte, ";
 						constructrice << enfant1->chaine_calculee();
 						constructrice << ".taille";
 						constructrice << ",";
@@ -1557,7 +1575,7 @@ void genere_code_C(
 
 						constructrice << ") {\n";
 						debute_record_trace_appel(contexte, constructrice, b);
-						constructrice << "panique_depassement_limites_tableau(";
+						constructrice << contexte.interface_kuri.decl_panique_tableau->nom_broye << "(contexte, ";
 						constructrice << taille_tableau;
 						constructrice << ",";
 						constructrice << enfant2->chaine_calculee();
@@ -2764,7 +2782,7 @@ void genere_code_C(
 
 			if (inst->expr_piege == nullptr) {
 				debute_record_trace_appel(contexte, constructrice, inst->expr_appel);
-				constructrice << "panique_erreur_non_geree();\n";
+				constructrice << contexte.interface_kuri.decl_panique_erreur->nom_broye << "(contexte);\n";
 			}
 			else {
 				constructrice << nom_broye_type(gen_tente.type_piege) << " " << broye_chaine(inst->expr_piege) << " = " << gen_tente.acces_erreur << ";\n";
@@ -2950,6 +2968,7 @@ static void genere_infos_pour_tous_les_types(
 // ----------------------------------------------
 
 static void genere_code_debut_fichier(
+		ContexteGenerationCode &contexte,
 		ConstructriceCodeC &constructrice,
 		assembleuse_arbre const &arbre,
 		dls::chaine const &racine_kuri)
@@ -2975,103 +2994,30 @@ static int lis_errno()
 
 	constructrice <<
 R"(
-typedef struct TraceAppel {
-   struct TraceAppel *precedente;
+#define INITIALISE_TRACE_APPEL(_nom_fonction, _taille_nom, _fichier, _taille_fichier, _pointeur_fonction) \
+	static KsInfoFonctionTraceAppel mon_info = { { .pointeur = _nom_fonction, .taille = _taille_nom }, { .pointeur = _fichier, .taille = _taille_fichier }, _pointeur_fonction }; \
+	KsTraceAppel ma_trace = { 0 }; \
+	ma_trace.info_fonction = &mon_info; \
+	ma_trace.prxC3xA9cxC3xA9dente = contexte.trace_appel; \
+	ma_trace.profondeur = contexte.trace_appel->profondeur + 1;
 
-   const char *nom_fonction;
-   const char *fichier;
-   int ligne;
-   int colonne;
-   const void *pointeur_fonction;
-   const char *ligne_appel;
-} TraceAppel;
-
-typedef struct ListeTraceAppel {
-   TraceAppel *derniere;
-} ListeTraceAppel;
-
-static ListeTraceAppel _VG_liste_trace_appel = { 0 };
-
-#define INITIALISE_TRACE_APPEL(_nom_fonction, _pointeur_fonction) \
-   static TraceAppel ma_trace = { 0 }; \
-   ma_trace.nom_fonction = _nom_fonction; \
-   ma_trace.pointeur_fonction = _pointeur_fonction;
-
-#define DEBUTE_RECORD_TRACE_APPEL(_fichier, _ligne, _colonne, _ligne_appel) \
-   ma_trace.fichier = _fichier; \
-   ma_trace.ligne = _ligne; \
-   ma_trace.colonne = _colonne; \
-   ma_trace.ligne_appel = _ligne_appel; \
-   ma_trace.precedente = _VG_liste_trace_appel.derniere; \
-   _VG_liste_trace_appel.derniere = &ma_trace;
+#define DEBUTE_RECORD_TRACE_APPEL(_ligne, _colonne, _ligne_appel, _taille_ligne) \
+	static KsInfoAppelTraceAppel info_appel##_ligne##_colonne = { _ligne, _colonne, { .pointeur = _ligne_appel, .taille = _taille_ligne } }; \
+	ma_trace.info_appel = &info_appel##_ligne##_colonne; \
+	contexte.trace_appel = &ma_trace;
 
 #define TERMINE_RECORD_TRACE_APPEL \
-   _VG_liste_trace_appel.derniere = ma_trace.precedente;
+   contexte.trace_appel = ma_trace.prxC3xA9cxC3xA9dente;
+	)";
 
-static void termine_panique()
-{
-   TraceAppel *pointeur = _VG_liste_trace_appel.derniere;
-
-   while (pointeur != 0) {
-	   printf("%s:%d:%d : dans %s (%p)\n", pointeur->fichier, pointeur->ligne, pointeur->colonne, pointeur->nom_fonction, pointeur->pointeur_fonction);
-	   printf("%s\n", pointeur->ligne_appel);
-
-	   for (int i = 0; i < pointeur->colonne; ++i) {
-		   printf(" ");
-	   }
-
-	   printf("\033[1;31m^\033[0m\n");
-
-	   pointeur = pointeur->precedente;
-   }
-
-   printf("\nL'exécution du programme a été arrêtée à cause d'une panique.\n");
-   exit(1);
-}
-
-static void panique(const char *message)
-{
-   printf("\n\033[1;31mErreur :\033[0m %s\n\n", message);
-   termine_panique();
-}
-
-static void panique_depassement_limites_tableau(long taille, long index)
-{
-   printf("\n\033[1;31mErreur :\033[0m dépassement des limites du tableau, la taille est de %ld mais l'index est de %ld\n\n", taille, index);
-   termine_panique();
-}
-
-static void panique_depassement_limites_chaine(long taille, long index)
-{
-   printf("\n\033[1;31mErreur :\033[0m dépassement des limites de la chaine, la taille est de %ld mais l'index est de %ld\n\n", taille, index);
-   termine_panique();
-}
-
-static void panique_membre_union()
-{
-   panique("utilisation du membre non-actif d'une union");
-}
-
-static void panique_hors_memoire()
-{
-	panique("impossible d'allouer de la mémoire");
-}
-
-static void panique_erreur_non_geree()
-{
-	panique("une erreur n'a pas été piégée");
-}
-
-#include <signal.h>
-static void gere_erreur_segmentation(int s)
-{
-	if (s == SIGSEGV) {
-		panique("erreur de ségmentation dans une fonction");
-	}
-
-	panique("erreur inconnue");
-}
-)";
+//	constructrice << "#include <signal.h>\n";
+//	constructrice << "static void gere_erreur_segmentation(int s)\n";
+//	constructrice << "{\n";
+//	constructrice << "    if (s == SIGSEGV) {\n";
+//	constructrice << "        " << contexte.interface_kuri.decl_panique->nom_broye << "(\"erreur de ségmentation dans une fonction\");\n";
+//	constructrice << "    }\n";
+//	constructrice << "    " << contexte.interface_kuri.decl_panique->nom_broye << "(\"erreur inconnue\");\n";
+//	constructrice << "}\n";
 
 	/* déclaration des types de bases */
 	constructrice << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
@@ -3111,6 +3057,14 @@ static void ajoute_dependances_implicites(
 	auto fonc_log = cherche_fonction_dans_module(contexte, "Kuri", "__logueur_défaut");
 	auto noeud_log = graphe_dependance.cree_noeud_fonction(fonc_log->nom_broye, fonc_log);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_log);
+
+	auto fonc_panique = contexte.interface_kuri.decl_panique;
+	auto noeud_panique = graphe_dependance.cree_noeud_fonction(fonc_panique->nom_broye, fonc_panique);
+	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_panique);
+
+	auto fonc_rappel_panique = contexte.interface_kuri.decl_rappel_panique_defaut;
+	auto noeud_rappel_panique = graphe_dependance.cree_noeud_fonction(fonc_rappel_panique->nom_broye, fonc_rappel_panique);
+	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_rappel_panique);
 
 	if (pour_meta_programme) {
 		auto fonc_init = cherche_fonction_dans_module(contexte, "Kuri", "initialise_RC");
@@ -3194,12 +3148,15 @@ R"(
 	stockage_temp.occupation_maximale = 0;
 
 	KsContexteProgramme contexte;
+	contexte.trace_appel = &ma_trace;
 	contexte.stockage_temporaire = &stockage_temp;
 
 	KsBaseAllocatrice alloc_base;
 	contexte.donnxC3xA9es_allocatrice = &alloc_base;
 
 	contexte.donnxC3xA9es_logueur = 0;
+
+	contexte.donnxC3xA9es_rappel_panique = 0;
 )";
 
 	auto fonc_alloc = cherche_fonction_dans_module(contexte, "Kuri", "allocatrice_défaut");
@@ -3210,6 +3167,7 @@ R"(
 	constructrice << "contexte.allocatrice = " << fonc_alloc->nom_broye << ";\n";
 	constructrice << fonc_init_alloc->nom_broye << "(contexte, &alloc_base);\n";
 	constructrice << "contexte.logueur = " << fonc_log->nom_broye << ";\n";
+	constructrice << "contexte.rappel_panique = " << contexte.interface_kuri.decl_rappel_panique_defaut->nom_broye << ";\n";
 }
 
 void genere_code_C(
@@ -3231,7 +3189,7 @@ void genere_code_C(
 
 	auto constructrice = ConstructriceCodeC(contexte);
 
-	genere_code_debut_fichier(constructrice, arbre, racine_kuri);
+	genere_code_debut_fichier(contexte, constructrice, arbre, racine_kuri);
 
 	ajoute_dependances_implicites(contexte, noeud_fonction_principale, false);
 
@@ -3241,14 +3199,16 @@ void genere_code_C(
 
 	constructrice << "int main(int argc, char **argv)\n";
 	constructrice << "{\n";
-	constructrice << "    INITIALISE_TRACE_APPEL(\"main\", main);\n";
+	constructrice << "    static KsInfoFonctionTraceAppel mon_info = { { .pointeur = \"main\", .taille = 4 }, { .pointeur = \"???\", .taille = 3 }, main };\n";
+	constructrice << "    KsTraceAppel ma_trace = { 0 };\n";
+	constructrice << "    ma_trace.info_fonction = &mon_info;\n";
 	constructrice << "    __ARGV = argv;\n";
 	constructrice << "    __ARGC = argc;\n";
-	constructrice << "    signal(SIGSEGV, gere_erreur_segmentation);\n";
+//	constructrice << "    signal(SIGSEGV, gere_erreur_segmentation);\n";
 
 	genere_code_creation_contexte(contexte, constructrice);
 
-	constructrice << "    DEBUTE_RECORD_TRACE_APPEL(\"???\", 1, 0, \"principale(contexte);\");";
+	constructrice << "    DEBUTE_RECORD_TRACE_APPEL(1, 0, \"principale(contexte);\", 21);\n";
 	constructrice << "    return principale(contexte);";
 	constructrice << "}\n";
 
@@ -3284,7 +3244,7 @@ void genere_code_C_pour_execution(
 
 	auto constructrice = ConstructriceCodeC(contexte);
 
-	genere_code_debut_fichier(constructrice, arbre, racine_kuri);
+	genere_code_debut_fichier(contexte, constructrice, arbre, racine_kuri);
 
 	/* met en place la dépendance sur la fonction d'allocation par défaut */
 	ajoute_dependances_implicites(contexte, noeud_fonction_principale, true);

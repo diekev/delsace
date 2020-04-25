@@ -72,7 +72,6 @@ Faitures
 - types comme valeurs
 - corriger les bugs
 - ajout d'un noeud syntaxique pour les imports (simplifiant la recherche de symboles dans les expressions de type A.B.C)
-- déplacer la trace d'appel dans le contexte implicite : un contexte par fil d'exécution nous permettra d'éviter les concurrences de types
 - avoir un « runtime » par machine cible où nous implémentons les fonctions ou instructions n'étant pas disponible sur celle-ci (voir Zig)
 - asm enligné
 - pouvoir accéder aux pointeurs des tableaux fixes (@a[0]) via a.pointeur
@@ -111,7 +110,6 @@ discr u {
 -- itération sur plusieurs variables de même type
 ---- pour chn1, chn2 { ... }, la variable implicite sera un type produit accédé via it.N ou N est un nombre
 - tranche de tableaux et de chaine via : x[ D ... F ]
-- ajout d'un rappel dans le contexte pour gérer la fin d'un programme paniquant
 - utilisation d'un fichier "module.kuri" pour définir le contenu d'un module, les fichiers à charger
 - nettoyage des modules
 --- déplace table_hachage de "Fondation"

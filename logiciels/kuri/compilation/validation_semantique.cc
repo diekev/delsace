@@ -264,6 +264,8 @@ static void valide_acces_membre(
 				else {
 					auto membre_actif = contexte.trouve_membre_actif(structure->ident->nom);
 
+					contexte.donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_membre_union->nom_broye);
+
 					/* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu */
 					if (membre_actif != "") {
 						if (membre_actif != membre->ident->nom) {
@@ -1268,6 +1270,7 @@ void performe_validation_semantique(
 				case GenreType::TABLEAU_DYNAMIQUE:
 				{
 					expr->type = contexte.typeuse.type_dereference_pour(type1);
+					donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_tableau->nom_broye);
 					break;
 				}
 				case GenreType::TABLEAU_FIXE:
@@ -1292,6 +1295,7 @@ void performe_validation_semantique(
 						expr->aide_generation_code = IGNORE_VERIFICATION;
 					}
 
+					donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_tableau->nom_broye);
 					break;
 				}
 				case GenreType::POINTEUR:
@@ -1302,6 +1306,7 @@ void performe_validation_semantique(
 				case GenreType::CHAINE:
 				{
 					expr->type = contexte.typeuse[TypeBase::Z8];
+					donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_chaine->nom_broye);
 					break;
 				}
 				default:
@@ -2023,6 +2028,9 @@ void performe_validation_semantique(
 										 expr_loge->lexeme);
 				}
 			}
+			else {
+				donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_memoire->nom_broye);
+			}
 
 			donnees_dependance.types_utilises.insere(expr_loge->type);
 
@@ -2092,6 +2100,9 @@ void performe_validation_semantique(
 										 contexte,
 										 expr_loge->lexeme);
 				}
+			}
+			else {
+				donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_memoire->nom_broye);
 			}
 
 			donnees_dependance.types_utilises.insere(expr_loge->type);
@@ -2837,6 +2848,9 @@ void performe_validation_semantique(
 										 contexte,
 										 inst->lexeme);
 				}
+			}
+			else {
+				donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_erreur->nom_broye);
 			}
 
 			break;

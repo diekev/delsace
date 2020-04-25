@@ -120,11 +120,12 @@ enum drapeaux_noeud : unsigned short {
 	FORCE_ENLIGNE              = (1 << 5),
 	FORCE_HORSLIGNE            = (1 << 6),
 	FORCE_NULCTX               = (1 << 7),
-	EST_ASSIGNATION_COMPOSEE   = (1 << 8),
-	EST_VARIADIQUE             = (1 << 9),
-	EST_VAR_BOUCLE             = (1 << 10),
-	EST_GLOBALE                = (1 << 11),
-	EST_CONSTANTE              = (1 << 12),
+	FORCE_SANSTRACE            = (1 << 8),
+	EST_ASSIGNATION_COMPOSEE   = (1 << 9),
+	EST_VARIADIQUE             = (1 << 10),
+	EST_VAR_BOUCLE             = (1 << 11),
+	EST_GLOBALE                = (1 << 12),
+	EST_CONSTANTE              = (1 << 13),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
