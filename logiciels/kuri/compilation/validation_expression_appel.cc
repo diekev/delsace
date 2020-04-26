@@ -647,15 +647,23 @@ static auto apparie_appel_structure(
 
 	auto slots = dls::tablet<NoeudExpression *, 10>();
 	slots.redimensionne(type_struct->membres.taille);
+	auto transformations = dls::tableau<TransformationType>(slots.taille());
 
 	auto index_membre = 0;
 	POUR (type_struct->membres) {
-		slots[index_membre++] = it.expression_valeur_defaut;
+		slots[index_membre] = it.expression_valeur_defaut;
+
+		// dans le cas où l'expression par défaut n'est pas remplacée par une
+		// expression il faut préserver la transformation originale
+		if (it.expression_valeur_defaut) {
+			transformations[index_membre] = it.expression_valeur_defaut->transformation;
+		}
+
+		index_membre += 1;
 	}
 
 	auto noms_rencontres = dls::ensemble<IdentifiantCode *>();
 	auto poids_appariement = 1.0;
-	auto transformations = dls::tableau<TransformationType>(slots.taille());
 
 	POUR (arguments) {
 		if (it.ident == nullptr) {
