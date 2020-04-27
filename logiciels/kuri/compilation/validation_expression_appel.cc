@@ -954,6 +954,10 @@ void valide_appel_fonction(
 
 		expr->noeud_fonction_appelee = decl_fonction_appelee;
 
+		if (decl_fonction_appelee->est_externe || dls::outils::possede_drapeau(decl_fonction_appelee->drapeaux, FORCE_NULCTX)) {
+			expr->drapeaux |= FORCE_NULCTX;
+		}
+
 		if (expr->type == nullptr) {
 			/* À FAIRE: multiple type retour */
 			expr->type = decl_fonction_appelee->type_fonc->types_sorties[0];
