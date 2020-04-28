@@ -8,10 +8,6 @@ importe GlibC
 
 imprime_panique :: fonc () -> rien #sanstrace
 {
-    si contexte.rappel_panique != nul {
-        contexte.rappel_panique()
-    }
-
     trace := contexte.trace_appel
 
     tantque trace != nul {
@@ -36,33 +32,45 @@ imprime_panique :: fonc () -> rien #sanstrace
 
 panique :: fonc (message: chaine) -> rien #sanstrace
 {
+    si contexte.rappel_panique != nul {
+        contexte.rappel_panique()
+    }
+
     imprime("\n\x1b[1;31mErreur :\x1b[0m %\n\n", message)
     imprime_panique()
 }
 
 panique_dépassement_limites_tableau :: fonc (taille: z64, index: z64) -> rien #sanstrace
 {
-   imprime("\n\x1b[1;31mErreur :\x1b[0m dépassement des limites du tableau, la taille est de % mais l'index est de %\n\n", taille, index);
-   imprime_panique();
+    si contexte.rappel_panique != nul {
+        contexte.rappel_panique()
+    }
+
+    imprime("\n\x1b[1;31mErreur :\x1b[0m dépassement des limites du tableau, la taille est de % mais l'index est de %\n\n", taille, index);
+    imprime_panique();
 }
 
 panique_dépassement_limites_chaine :: fonc (taille: z64, index: z64) -> rien #sanstrace
 {
-   imprime("\n\x1b[1;31mErreur :\x1b[0m dépassement des limites de la chaine, la taille est de % mais l'index est de %\n\n", taille, index);
-   imprime_panique();
+    si contexte.rappel_panique != nul {
+        contexte.rappel_panique()
+    }
+
+    imprime("\n\x1b[1;31mErreur :\x1b[0m dépassement des limites de la chaine, la taille est de % mais l'index est de %\n\n", taille, index);
+    imprime_panique();
 }
 
 panique_membre_union :: fonc () -> rien #sanstrace
 {
-   panique("utilisation du membre non-actif d'une union")
+    panique("utilisation du membre non-actif d'une union")
 }
 
 panique_hors_mémoire :: fonc () -> rien #sanstrace
 {
-	panique("impossible d'allouer de la mémoire")
+    panique("impossible d'allouer de la mémoire")
 }
 
 panique_erreur_non_gérée :: fonc () -> rien #sanstrace
 {
-	panique("une erreur n'a pas été piégée")
+    panique("une erreur n'a pas été piégée")
 }
