@@ -77,7 +77,7 @@ static void verifie_transformation(
 }
 
 static void verifie_transformation(
-		Typeuse &typeuse,
+		Typeuse const &typeuse,
 		TypeBase type1,
 		TypeBase type2,
 		bool est_possible)

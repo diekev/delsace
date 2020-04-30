@@ -57,7 +57,7 @@ std::ostream &kuri::operator<<(std::ostream &os, const kuri::chaine &chn)
 	return os;
 }
 
-kuri::chaine kuri::copie_chaine(kuri::chaine &autre)
+kuri::chaine kuri::copie_chaine(kuri::chaine const &autre)
 {
 	chaine resultat;
 	resultat.taille = autre.taille;

@@ -49,7 +49,7 @@ struct chaine {
 
 	COPIE_CONSTRUCT(chaine);
 
-	chaine(const char *c_str)
+	explicit chaine(const char *c_str)
 		: pointeur(const_cast<char *>(c_str))
 	{
 		while (*c_str++ != '\0') {
@@ -57,7 +57,7 @@ struct chaine {
 		}
 	}
 
-	chaine(dls::vue_chaine_compacte const &chn)
+	explicit chaine(dls::vue_chaine_compacte const &chn)
 		: pointeur(const_cast<char *>(chn.pointeur()))
 		, taille(chn.taille())
 	{}
@@ -103,7 +103,7 @@ struct chaine {
 	}
 };
 
-chaine copie_chaine(chaine &autre);
+chaine copie_chaine(chaine const &autre);
 
 void detruit_chaine(chaine &chn);
 
