@@ -67,7 +67,7 @@ struct OptionsCompilation {
 
 	~OptionsCompilation()
 	{
-		if (nom_sortie != "a.out") {
+		if (nom_sortie != kuri::chaine("a.out")) {
 			detruit_chaine(nom_sortie);
 		}
 	}

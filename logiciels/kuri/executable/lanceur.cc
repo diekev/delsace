@@ -416,7 +416,7 @@ void ajourne_options_compilation(OptionsCompilation *options)
 {
 	*options_compilation = *options;
 
-	if (options_compilation->nom_sortie != "a.out") {
+	if (options_compilation->nom_sortie != kuri::chaine("a.out")) {
 		// duplique la mémoire
 		options_compilation->nom_sortie = copie_chaine(options_compilation->nom_sortie);
 	}
