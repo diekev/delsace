@@ -131,6 +131,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 			if (type_accede->genre == GenreType::STRUCTURE) {
 				auto type_struct = static_cast<TypeStructure *>(type_accede);
 				auto membre_trouve = false;
+				auto index_membre = 0;
 
 				POUR (type_struct->membres) {
 					if (it.nom == membre->ident->nom) {
@@ -138,10 +139,13 @@ static auto trouve_candidates_pour_fonction_appelee(
 						membre_trouve = true;
 						break;
 					}
+
+					index_membre += 1;
 				}
 
 				if (membre_trouve != false) {
 					candidates.pousse({ CANDIDATE_EST_ACCES, acces });
+					acces->index_membre = index_membre;
 					return candidates;
 				}
 			}
