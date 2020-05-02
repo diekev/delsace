@@ -249,16 +249,6 @@ bool est_identifiant_type(GenreLexeme identifiant)
 	}
 }
 
-bool est_nombre_entier(GenreLexeme identifiant)
-{
-	return identifiant == GenreLexeme::NOMBRE_ENTIER;
-}
-
-bool est_nombre(GenreLexeme identifiant)
-{
-	return est_nombre_entier(identifiant) || (identifiant == GenreLexeme::NOMBRE_REEL);
-}
-
 bool est_operateur_unaire(GenreLexeme identifiant)
 {
 	switch (identifiant) {
@@ -268,49 +258,6 @@ bool est_operateur_unaire(GenreLexeme identifiant)
 		case GenreLexeme::CROCHET_OUVRANT:
 		case GenreLexeme::PLUS_UNAIRE:
 		case GenreLexeme::MOINS_UNAIRE:
-			return true;
-		default:
-			return false;
-	}
-}
-
-bool est_operateur_binaire(GenreLexeme identifiant)
-{
-	switch (identifiant) {
-		case GenreLexeme::PLUS:
-		case GenreLexeme::MOINS:
-		case GenreLexeme::FOIS:
-		case GenreLexeme::DIVISE:
-		case GenreLexeme::PLUS_EGAL:
-		case GenreLexeme::MOINS_EGAL:
-		case GenreLexeme::DIVISE_EGAL:
-		case GenreLexeme::MULTIPLIE_EGAL:
-		case GenreLexeme::MODULO_EGAL:
-		case GenreLexeme::ET_EGAL:
-		case GenreLexeme::OU_EGAL:
-		case GenreLexeme::OUX_EGAL:
-		case GenreLexeme::DEC_DROITE_EGAL:
-		case GenreLexeme::DEC_GAUCHE_EGAL:
-		case GenreLexeme::ESPERLUETTE:
-		case GenreLexeme::POURCENT:
-		case GenreLexeme::INFERIEUR:
-		case GenreLexeme::INFERIEUR_EGAL:
-		case GenreLexeme::SUPERIEUR:
-		case GenreLexeme::SUPERIEUR_EGAL:
-		case GenreLexeme::DECALAGE_DROITE:
-		case GenreLexeme::DECALAGE_GAUCHE:
-		case GenreLexeme::DIFFERENCE:
-		case GenreLexeme::ESP_ESP:
-		case GenreLexeme::EGALITE:
-		case GenreLexeme::BARRE_BARRE:
-		case GenreLexeme::BARRE:
-		case GenreLexeme::CHAPEAU:
-		case GenreLexeme::POINT:
-		case GenreLexeme::EGAL:
-		case GenreLexeme::TROIS_POINTS:
-		case GenreLexeme::VIRGULE:
-		case GenreLexeme::CROCHET_OUVRANT:
-		case GenreLexeme::DECLARATION_VARIABLE:
 			return true;
 		default:
 			return false;

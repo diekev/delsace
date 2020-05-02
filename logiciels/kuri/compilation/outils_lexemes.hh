@@ -42,10 +42,4 @@ bool est_specifiant_type(GenreLexeme identifiant);
 
 bool est_identifiant_type(GenreLexeme identifiant);
 
-bool est_nombre_entier(GenreLexeme identifiant);
-
-bool est_nombre(GenreLexeme identifiant);
-
 bool est_operateur_unaire(GenreLexeme identifiant);
-
-bool est_operateur_binaire(GenreLexeme identifiant);
