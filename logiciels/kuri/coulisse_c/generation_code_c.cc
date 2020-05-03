@@ -2981,17 +2981,6 @@ static void genere_code_debut_fichier(
 
 	constructrice << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
 
-	auto lis_errno =
-R"(
-#include <errno.h>
-static int lis_errno()
-{
-	return errno;
-}
-)";
-
-	constructrice << lis_errno;
-
 	constructrice <<
 R"(
 #define INITIALISE_TRACE_APPEL(_nom_fonction, _taille_nom, _fichier, _taille_fichier, _pointeur_fonction) \

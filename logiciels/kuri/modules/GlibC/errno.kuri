@@ -1,7 +1,13 @@
 // Interface pour errno
 
-// Fonction d'accès à errno définie par le compilateur
-lis_errno :: fonc externe () -> z32
+#inclus "errno.h"
+
+__errno_location :: fonc externe () -> *z32
+
+lis_errno :: fonc () -> z32
+{
+    retourne mémoire(__errno_location())
+}
 
 // ----------------------------------------------------
 
