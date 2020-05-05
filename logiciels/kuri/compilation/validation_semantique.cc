@@ -2013,6 +2013,19 @@ void performe_validation_semantique(
 			}
 			else if (expr_loge->type->genre == GenreType::CHAINE) {
 				performe_validation_semantique(expr_loge->expr_chaine, contexte, false);
+
+				auto type_cible = contexte.typeuse[TypeBase::Z64];
+				auto transformation = cherche_transformation(expr_loge->expr_chaine->type, type_cible);
+
+				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+					erreur::lance_erreur_assignation_type_differents(
+								expr_loge->expr_chaine->type,
+								type_cible,
+								contexte,
+								expr_loge->expr_chaine->lexeme);
+				}
+
+				expr_loge->expr_chaine->transformation = transformation;
 			}
 			else {
 				expr_loge->type = contexte.typeuse.type_pointeur_pour(expr_loge->type);
@@ -2072,6 +2085,19 @@ void performe_validation_semantique(
 			}
 			else if (expr_loge->type->genre == GenreType::CHAINE) {
 				performe_validation_semantique(expr_loge->expr_chaine, contexte, false);
+
+				auto type_cible = contexte.typeuse[TypeBase::Z64];
+				auto transformation = cherche_transformation(expr_loge->expr_chaine->type, type_cible);
+
+				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+					erreur::lance_erreur_assignation_type_differents(
+								expr_loge->expr_chaine->type,
+								type_cible,
+								contexte,
+								expr_loge->expr_chaine->lexeme);
+				}
+
+				expr_loge->expr_chaine->transformation = transformation;
 			}
 			else {
 				expr_loge->type = contexte.typeuse.type_pointeur_pour(expr_loge->type);
