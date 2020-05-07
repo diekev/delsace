@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "biblinternes/structures/flux_chaine.hh"
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/vue_chaine.hh"
 
 struct Enchaineuse {
@@ -51,6 +53,34 @@ struct Enchaineuse {
 
 	void pousse_caractere(char c);
 
+	void imprime_dans_flux(std::ostream &flux);
+
 private:
 	void ajoute_tampon();
 };
+
+template <typename T>
+Enchaineuse &operator << (Enchaineuse &enchaineuse, T const &valeur)
+{
+	dls::flux_chaine flux;
+	flux << valeur;
+
+	for (auto c : flux.chn()) {
+		enchaineuse.pousse_caractere(c);
+	}
+
+	return enchaineuse;
+}
+
+template <size_t N>
+Enchaineuse &operator << (Enchaineuse &enchaineuse, const char (&c)[N])
+{
+	enchaineuse.pousse(c, static_cast<long>(N));
+	return enchaineuse;
+}
+
+Enchaineuse &operator << (Enchaineuse &enchaineuse, dls::vue_chaine_compacte const &chn);
+
+Enchaineuse &operator << (Enchaineuse &enchaineuse, dls::chaine const &chn);
+
+Enchaineuse &operator << (Enchaineuse &enchaineuse, const char *chn);

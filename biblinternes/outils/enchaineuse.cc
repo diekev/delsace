@@ -85,9 +85,44 @@ void Enchaineuse::pousse_caractere(char c)
 	tampon->donnees[tampon->occupe++] = c;
 }
 
+void Enchaineuse::imprime_dans_flux(std::ostream &flux)
+{
+	auto tampon = &m_tampon_base;
+
+	while (tampon != nullptr) {
+		flux.write(&tampon->donnees[0], tampon->occupe);
+		tampon = tampon->suivant;
+	}
+}
+
 void Enchaineuse::ajoute_tampon()
 {
 	auto tampon = memoire::loge<Tampon>("Tampon");
 	tampon_courant->suivant = tampon;
 	tampon_courant = tampon;
+}
+
+Enchaineuse &operator <<(Enchaineuse &enchaineuse, const dls::vue_chaine_compacte &chn)
+{
+	enchaineuse.pousse(chn.pointeur(), chn.taille());
+	return enchaineuse;
+}
+
+Enchaineuse &operator <<(Enchaineuse &enchaineuse, const dls::chaine &chn)
+{
+	enchaineuse.pousse(chn.c_str(), chn.taille());
+	return enchaineuse;
+}
+
+Enchaineuse &operator << (Enchaineuse &enchaineuse, const char *chn)
+{
+	auto ptr = chn;
+
+	while (*chn != '\0') {
+		++chn;
+	}
+
+	enchaineuse.pousse(ptr, chn - ptr);
+
+	return enchaineuse;
 }
