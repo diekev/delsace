@@ -20,7 +20,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
             e.pointeur = pointeur
             e.info = info_arg
 
-            imprime_nombre_entier(enchaineuse, formatte_entier(e))
+            imprime_nombre_entier(enchaineuse, FormatEntier(valeur = e))
 		}
 		RÉEL {
 			y : r32
@@ -37,7 +37,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 				y = x comme r32
 			}
 
-			imprime_nombre_réel(enchaineuse, formatte_réel(y))
+			imprime_nombre_réel(enchaineuse, FormatRéel(valeur = y))
 		}
 		BOOLÉEN {
 			x := mémoire(pointeur comme *bool)

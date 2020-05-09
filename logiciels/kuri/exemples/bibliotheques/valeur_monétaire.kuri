@@ -113,8 +113,8 @@ imprime_valeur_monétaire :: fonc (v: ValeurMonnétaire) -> rien
     centimes := (v.quantité % 10000) / 100
 
     imprime("valeur = %,%\n",
-        formatte_entier(unités, séparation = 3),
-        formatte_entier(centimes, ajoute_zéros_début = centimes < 10, nombre_zéros = 1))
+        FormatEntier(valeur = unités, séparation = 3),
+        FormatEntier(valeur = centimes, ajoute_zéros_début = centimes < 10, nombre_zéros = 1))
 }
 
 rand :: fonc externe () -> z32

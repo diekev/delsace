@@ -302,17 +302,6 @@ FormatEntier :: struct {
 	séparation := 0
 }
 
-formatte_entier :: fonc (valeur: eini, ajoute_zéros_début := faux, nombre_zéros := 0, base := 10, séparation := 0) -> FormatEntier
-{
-    retourne FormatEntier(
-        valeur = valeur,
-        ajoute_zéros_début = ajoute_zéros_début,
-        nombre_zéros = nombre_zéros,
-        base = base,
-		séparation = séparation
-    )
-}
-
 imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEntier) -> rien
 {
 	base := format.base comme n64
@@ -407,14 +396,6 @@ FormatRéel :: struct {
 	précision := 6
 }
 
-formatte_réel :: fonc (valeur: eini, précision := 6) -> FormatRéel
-{
-	retourne FormatRéel(
-		valeur = valeur,
-		précision = précision
-	)
-}
-
 imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> rien
 {
 	info := format.valeur.info
@@ -467,7 +448,7 @@ imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> 
 
 	part_entière := x comme n64
 
-	imprime_nombre_entier(enchaineuse, formatte_entier(part_entière))
+	imprime_nombre_entier(enchaineuse, FormatEntier(valeur = part_entière))
 
 	ajoute_au_tampon(enchaineuse, '.')
 
@@ -500,7 +481,7 @@ imprime_valeur :: fonc(
 			e.pointeur = pointeur
 			e.info = info
 
-			fmt := formatte_entier(e, base = 16)
+			fmt := FormatEntier(valeur = e, base = 16)
 			imprime_nombre_entier(enchaineuse, fmt)
 		}
 		ENTIER {
@@ -508,7 +489,7 @@ imprime_valeur :: fonc(
 			e.pointeur = pointeur
 			e.info = info
 
-			fmt := formatte_entier(e)
+			fmt := FormatEntier(valeur = e)
 			imprime_nombre_entier(enchaineuse, fmt)
 		}
 		RÉEL {
@@ -516,7 +497,7 @@ imprime_valeur :: fonc(
 			e.pointeur = pointeur
 			e.info = info
 
-			imprime_nombre_réel(enchaineuse, formatte_réel(e, 6))
+			imprime_nombre_réel(enchaineuse, FormatRéel(valeur = e))
 		}
 		BOOLÉEN {
 			x := mémoire(pointeur comme *bool)
@@ -584,24 +565,24 @@ imprime_valeur :: fonc(
 				imprime_valeur(enchaineuse, x, info_arg.type_pointé, vrai)
 			}
 			sinon {
-				fmt := formatte_entier(x comme n64, base = 16)
+				fmt := FormatEntier(valeur = x comme n64, base = 16)
 				imprime_nombre_entier(enchaineuse, fmt)
 			}
 		}
 		FONCTION {
 		    // Ne pas oublier qu'il y a un niveau d'indirection.
 			x := mémoire(pointeur comme **z8)
-			fmt := formatte_entier(x comme n64, base = 16)
+			fmt := FormatEntier(valeur = x comme n64, base = 16)
 			imprime_nombre_entier(enchaineuse, fmt)
 		}
 		EINI {
 			x := mémoire(pointeur comme *eini)
 
             ajoute_au_tampon(enchaineuse, "eini { ptr = ")
-			fmt := formatte_entier(x.pointeur comme n64, base = 16)
+			fmt := FormatEntier(valeur = x.pointeur comme n64, base = 16)
 			imprime_nombre_entier(enchaineuse, fmt)
             ajoute_au_tampon(enchaineuse, ", info = ")
-			fmt = formatte_entier(x.info comme n64, base = 16)
+			fmt = FormatEntier(valeur = x.info comme n64, base = 16)
 			imprime_nombre_entier(enchaineuse, fmt)
             ajoute_au_tampon(enchaineuse, " }")
 		}
