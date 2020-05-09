@@ -591,8 +591,9 @@ static DonneesCandidate apparie_appel_fonction(
 		if (slots.taille() != nombre_args || slots[index_premier_var_arg]->genre != GenreNoeud::EXPANSION_VARIADIQUE) {
 			/* Pour les fonctions variadiques interne, nous créons un tableau
 			 * correspondant au types des arguments. */
+			static Lexeme lexeme_tableau = { "", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
 			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(contexte.assembleuse->cree_noeud(
-						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, args[0].expr->lexeme));
+						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, &lexeme_tableau));
 			noeud_tableau->drapeaux |= EST_CALCULE;
 
 			auto type_var = decl->params[decl->params.taille - 1]->type;
