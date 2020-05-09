@@ -776,8 +776,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			consomme();
 			consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'taille_de'");
 
-			auto noeud = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_TAILLE_DE, lexeme);
-			noeud->valeur_calculee = analyse_declaration_type(false);
+			auto expr_type = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme);
+			expr_type->type_declare = analyse_declaration_type(false);
+
+			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::EXPRESSION_TAILLE_DE, lexeme);
+			noeud->expr = expr_type;
 
 			consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après le type de 'taille_de'");
 

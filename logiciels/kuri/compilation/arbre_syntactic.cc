@@ -257,6 +257,7 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
 		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		case GenreNoeud::INSTRUCTION_RETIENS:
+		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
@@ -267,7 +268,6 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 			imprime_arbre(expr->expr, os, tab + 1);
 			break;
 		}
-		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
@@ -548,6 +548,7 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
 		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		case GenreNoeud::INSTRUCTION_RETIENS:
+		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire const *>(racine);
@@ -556,7 +557,6 @@ NoeudExpression *copie_noeud(
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
 			break;
 		}
-		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
@@ -778,6 +778,7 @@ void aplatis_arbre(
 		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
 		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		case GenreNoeud::INSTRUCTION_RETIENS:
+		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
@@ -785,7 +786,6 @@ void aplatis_arbre(
 			arbre_aplatis.pousse(expr);
 			break;
 		}
-		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
@@ -996,6 +996,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 
 			break;
 		}
+		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
@@ -1017,7 +1018,6 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::DECLARATION_OPERATEUR:
 		case GenreNoeud::DECLARATION_ENUM:
 		case GenreNoeud::DECLARATION_STRUCTURE:
-		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:

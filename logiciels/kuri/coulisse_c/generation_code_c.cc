@@ -2263,7 +2263,8 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
-			auto type = std::any_cast<Type *>(b->valeur_calculee);
+			auto expr = static_cast<NoeudExpressionUnaire *>(b);
+			auto type = expr->expr->type;
 			b->valeur_calculee = dls::vers_chaine(type->taille_octet);
 			break;
 		}

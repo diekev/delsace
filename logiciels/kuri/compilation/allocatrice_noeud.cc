@@ -102,12 +102,12 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
 		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		case GenreNoeud::INSTRUCTION_RETIENS:
+		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		{
 			noeud = m_noeuds_expression_unaire.ajoute_element();
 			break;
 		}
-		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:

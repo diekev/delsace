@@ -1046,7 +1046,8 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
-			auto type = std::any_cast<Type *>(noeud->valeur_calculee);
+			auto expr = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto type = expr->expr->type;
 			return cree_constante_entiere(noeud->type, type->taille_octet);
 		}
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:

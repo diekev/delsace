@@ -1687,12 +1687,12 @@ void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
-			auto expr = b;
+			auto expr = static_cast<NoeudExpressionUnaire *>(b);
 			expr->genre_valeur = GenreValeur::DROITE;
 			expr->type = contexte.typeuse[TypeBase::N32];
 
-			auto type_declare = std::any_cast<DonneesTypeDeclare>(b->valeur_calculee);
-			b->valeur_calculee = resoud_type_final(contexte, type_declare, b->bloc_parent, b->lexeme);
+			auto expr_type = expr->expr;
+			expr_type->type = resoud_type_final(contexte, expr_type->type_declare, b->bloc_parent, b->lexeme);
 
 			break;
 		}

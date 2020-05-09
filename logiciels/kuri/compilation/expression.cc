@@ -272,7 +272,8 @@ ResultatExpression evalue_expression(
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
-			auto type = std::any_cast<Type *>(b->valeur_calculee);
+			auto expr_taille_de = static_cast<NoeudExpressionUnaire *>(b);
+			auto type = expr_taille_de->expr->type;
 
 			auto res = ResultatExpression();
 			res.type = type_expression::ENTIER;
