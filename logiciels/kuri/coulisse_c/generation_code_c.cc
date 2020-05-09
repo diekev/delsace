@@ -1742,9 +1742,7 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		{
-			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
-			auto const valeur = est_calcule ? std::any_cast<bool>(b->valeur_calculee)
-										   : (b->lexeme->chaine == "vrai");
+			auto const valeur = b->lexeme->chaine == "vrai";
 			b->valeur_calculee = valeur ? dls::chaine("1") : dls::chaine("0");
 			break;
 		}

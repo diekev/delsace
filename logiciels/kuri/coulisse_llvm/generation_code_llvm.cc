@@ -1604,9 +1604,7 @@ llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		{
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
-			auto const valeur = est_calcule ? std::any_cast<bool>(b->valeur_calculee)
-											  : (b->lexeme->chaine == "vrai");
+			auto const valeur = b->lexeme->chaine == "vrai";
 			return llvm::ConstantInt::get(
 						llvm::Type::getInt1Ty(contexte.contexte),
 						static_cast<uint64_t>(valeur),

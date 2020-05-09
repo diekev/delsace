@@ -594,7 +594,6 @@ static DonneesCandidate apparie_appel_fonction(
 			static Lexeme lexeme_tableau = { "", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
 			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(contexte.assembleuse->cree_noeud(
 						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, &lexeme_tableau));
-			noeud_tableau->drapeaux |= EST_CALCULE;
 
 			auto type_var = decl->params[decl->params.taille - 1]->type;
 			noeud_tableau->type = contexte.typeuse.type_dereference_pour(type_var);
