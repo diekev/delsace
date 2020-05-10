@@ -246,7 +246,7 @@ lèxe :: fonc (chn: chaine) -> []Lexème
     }
 
     pour c, idx dans chn {
-        état.curseur = idx
+        état.curseur = idx comme z32
 
         discr c {
             '\n' {

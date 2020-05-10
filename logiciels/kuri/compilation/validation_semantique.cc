@@ -1625,7 +1625,14 @@ void performe_validation_semantique(
 				auto decl_idx = static_cast<NoeudDeclarationVariable *>(contexte.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, b->lexeme));
 				decl_idx->bloc_parent = b->bloc_parent;
 				decl_idx->valeur = idx;
-				decl_idx->type = contexte.typeuse[TypeBase::Z32];
+
+				if (b->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
+					decl_idx->type = contexte.typeuse[TypeBase::Z32];
+				}
+				else {
+					decl_idx->type = contexte.typeuse[TypeBase::Z64];
+				}
+
 				decl_idx->ident = idx->ident;
 				decl_idx->lexeme = idx->lexeme;
 
