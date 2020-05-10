@@ -1537,7 +1537,7 @@ void genere_code_C(
 				case GenreType::VARIADIQUE:
 				case GenreType::TABLEAU_DYNAMIQUE:
 				{
-					if (b->aide_generation_code != IGNORE_VERIFICATION) {
+					if (!dls::outils::possede_drapeau(contexte.donnees_fonction->drapeaux, FORCE_NULCTX) && b->aide_generation_code != IGNORE_VERIFICATION) {
 						constructrice << "if (";
 						constructrice << enfant2->chaine_calculee();
 						constructrice << " < 0 || ";
@@ -1565,7 +1565,7 @@ void genere_code_C(
 				{
 					auto taille_tableau = static_cast<TypeTableauFixe *>(type1)->taille;
 
-					if (b->aide_generation_code != IGNORE_VERIFICATION) {
+					if (!dls::outils::possede_drapeau(contexte.donnees_fonction->drapeaux, FORCE_NULCTX) && b->aide_generation_code != IGNORE_VERIFICATION) {
 						constructrice << "if (";
 						constructrice << enfant2->chaine_calculee();
 						constructrice << " < 0 || ";
@@ -3053,6 +3053,10 @@ static void ajoute_dependances_implicites(
 	auto fonc_rappel_panique = contexte.interface_kuri.decl_rappel_panique_defaut;
 	auto noeud_rappel_panique = graphe_dependance.cree_noeud_fonction(fonc_rappel_panique->nom_broye, fonc_rappel_panique);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_rappel_panique);
+
+	auto fonc_panique_union = contexte.interface_kuri.decl_panique_membre_union;
+	auto noeud_panique_union = graphe_dependance.cree_noeud_fonction(fonc_panique_union->nom_broye, fonc_panique_union);
+	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_panique_union);
 
 	if (pour_meta_programme) {
 		auto fonc_init = cherche_fonction_dans_module(contexte, "Kuri", "initialise_RC");
