@@ -192,7 +192,7 @@ TransformationType cherche_transformation(
 	if (type_vers->genre == GenreType::FONCTION) {
 		/* x : fonc()rien = nul; */
 		if (type_de->genre == GenreType::POINTEUR && static_cast<TypePointeur *>(type_de)->type_pointe == nullptr) {
-			return TypeTransformation::INUTILE;
+			return { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 		}
 
 		/* Nous savons que les types sont différents, donc si l'un des deux est un
