@@ -1,0 +1,20 @@
+// crash quand une discrimination possède une expression autre qu'une référence de déclaration
+
+TypeÉnum :: énum {
+    X
+    Y
+    Z
+}
+
+principale :: fonc () -> z32
+{
+    x : TypeÉnum
+
+    discr x {
+        5 comme TypeÉnum {
+
+        }
+    }
+
+    retourne 0
+}

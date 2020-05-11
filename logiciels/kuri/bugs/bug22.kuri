@@ -1,0 +1,11 @@
+// crash quand un paramètre de fonction n'a pas de type
+
+foo :: fonc (a) -> rien
+{
+
+}
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}
