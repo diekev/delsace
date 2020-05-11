@@ -27,6 +27,7 @@
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
 struct ContexteGenerationCode;
+struct NoeudDeclarationFonction;
 struct Type;
 
 enum class TypeTransformation {
@@ -53,7 +54,7 @@ const char *chaine_transformation(TypeTransformation type);
 
 struct TransformationType {
 	TypeTransformation type{};
-	dls::vue_chaine_compacte nom_fonction{};
+	NoeudDeclarationFonction const *fonction{};
 	Type *type_cible = nullptr;
 	long index_membre = 0;
 
@@ -74,20 +75,15 @@ struct TransformationType {
 		, type_cible(type_cible_)
 	{}
 
-	TransformationType(dls::vue_chaine_compacte nom_fonction_)
+	TransformationType(NoeudDeclarationFonction const *fonction_)
 		: type(TypeTransformation::FONCTION)
-		, nom_fonction(nom_fonction_)
+		, fonction(fonction_)
 	{}
 
-	TransformationType(dls::vue_chaine_compacte nom_fonction_, Type *type_cible_)
+	TransformationType(NoeudDeclarationFonction const *fonction_, Type *type_cible_)
 		: type(TypeTransformation::FONCTION)
-		, nom_fonction(nom_fonction_)
+		, fonction(fonction_)
 		, type_cible(type_cible_)
-	{}
-
-	TransformationType(const char *nom_fonction_)
-		: type(TypeTransformation::FONCTION)
-		, nom_fonction(nom_fonction_)
 	{}
 };
 

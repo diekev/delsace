@@ -261,14 +261,14 @@ void GrapheDependance::ajoute_dependances(
 
 	dls::pour_chaque_element(donnees.fonctions_utilisees, [&](auto &fonction_utilisee)
 	{
-		auto noeud_type = cherche_noeud_fonction(fonction_utilisee);
+		auto noeud_type = cherche_noeud_fonction(fonction_utilisee->nom_broye);
 		connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_FONCTION);
 		return dls::DecisionIteration::Continue;
 	});
 
 	dls::pour_chaque_element(donnees.globales_utilisees, [&](auto &globale_utilisee)
 	{
-		auto noeud_type = cherche_noeud_globale(globale_utilisee);
+		auto noeud_type = cherche_noeud_globale(globale_utilisee->ident->nom);
 		connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_GLOBALE);
 		return dls::DecisionIteration::Continue;
 	});

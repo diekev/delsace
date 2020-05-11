@@ -969,7 +969,7 @@ void valide_appel_fonction(
 			expr->type = decl_fonction_appelee->type_fonc->types_sorties[0];
 		}
 
-		donnees_dependance.fonctions_utilisees.insere(decl_fonction_appelee->nom_broye);
+		donnees_dependance.fonctions_utilisees.insere(decl_fonction_appelee);
 
 		for (auto te : decl_fonction_appelee->type_fonc->types_entrees) {
 			donnees_dependance.types_utilises.insere(te);

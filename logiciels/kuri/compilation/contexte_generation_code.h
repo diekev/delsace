@@ -119,6 +119,10 @@ struct InterfaceKuri {
 	NoeudDeclarationFonction *decl_panique_memoire = nullptr;
 	NoeudDeclarationFonction *decl_panique_erreur = nullptr;
 	NoeudDeclarationFonction *decl_rappel_panique_defaut = nullptr;
+	NoeudDeclarationFonction *decl_dls_vers_r32 = nullptr;
+	NoeudDeclarationFonction *decl_dls_vers_r64 = nullptr;
+	NoeudDeclarationFonction *decl_dls_depuis_r32 = nullptr;
+	NoeudDeclarationFonction *decl_dls_depuis_r64 = nullptr;
 };
 
 struct ContexteGenerationCode {

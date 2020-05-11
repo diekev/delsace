@@ -482,6 +482,10 @@ static void initialise_interface_kuri(ContexteGenerationCode &contexte)
 	contexte.interface_kuri.decl_panique_membre_union = cherche_fonction_dans_module(contexte, module, "panique_membre_union");
 	contexte.interface_kuri.decl_panique_erreur = cherche_fonction_dans_module(contexte, module, "panique_erreur_non_gérée");
 	contexte.interface_kuri.decl_rappel_panique_defaut = cherche_fonction_dans_module(contexte, module, "__rappel_panique_défaut");
+	contexte.interface_kuri.decl_dls_vers_r32 = cherche_fonction_dans_module(contexte, module, "DLS_vers_r32");
+	contexte.interface_kuri.decl_dls_vers_r64 = cherche_fonction_dans_module(contexte, module, "DLS_vers_r64");
+	contexte.interface_kuri.decl_dls_depuis_r32 = cherche_fonction_dans_module(contexte, module, "DLS_depuis_r32");
+	contexte.interface_kuri.decl_dls_depuis_r64 = cherche_fonction_dans_module(contexte, module, "DLS_depuis_r64");
 }
 
 int main(int argc, char *argv[])

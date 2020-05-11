@@ -71,7 +71,7 @@ static void verifie_transformation(
 	std::cerr << chaine_transformation(transformation.type);
 
 	if (transformation.type == TypeTransformation::FONCTION) {
-		std::cerr << " (" << transformation.nom_fonction << ')';
+		std::cerr << " (" << transformation.fonction->nom_broye << ')';
 	}
 
 	std::cerr << '\n';

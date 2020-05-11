@@ -113,16 +113,20 @@ TransformationType cherche_transformation(
 	}
 
 	if (type_de->genre == GenreType::REEL && type_vers->genre == GenreType::REEL) {
+		auto retourne_fonction = [&](NoeudDeclarationFonction const *fonction) -> TransformationType
+		{
+			contexte.donnees_dependance.fonctions_utilisees.insere(fonction);
+			return { fonction, type_vers };
+		};
+
 		/* cas spéciaux pour R16 */
 		if (type_de->taille_octet == 2) {
 			if (type_vers->taille_octet == 4) {
-				contexte.donnees_dependance.fonctions_utilisees.insere("DLS_vers_r32");
-				return { "DLS_vers_r32", type_vers };
+				return retourne_fonction(contexte.interface_kuri.decl_dls_vers_r32);
 			}
 
 			if (type_vers->taille_octet == 8) {
-				contexte.donnees_dependance.fonctions_utilisees.insere("DLS_vers_r64");
-				return { "DLS_vers_r64", type_vers };
+				return retourne_fonction(contexte.interface_kuri.decl_dls_vers_r64);
 			}
 
 			return TypeTransformation::IMPOSSIBLE;
@@ -131,13 +135,11 @@ TransformationType cherche_transformation(
 		/* cas spéciaux pour R16 */
 		if (type_vers->taille_octet == 2) {
 			if (type_de->taille_octet == 4) {
-				contexte.donnees_dependance.fonctions_utilisees.insere("DLS_depuis_r32");
-				return { "DLS_depuis_r32", type_vers };
+				return retourne_fonction(contexte.interface_kuri.decl_dls_depuis_r32);
 			}
 
 			if (type_de->taille_octet == 8) {
-				contexte.donnees_dependance.fonctions_utilisees.insere("DLS_depuis_r64");
-				return { "DLS_depuis_r64", type_vers };
+				return retourne_fonction(contexte.interface_kuri.decl_dls_depuis_r64);
 			}
 
 			return TypeTransformation::IMPOSSIBLE;
@@ -182,7 +184,7 @@ TransformationType cherche_transformation(
 		POUR (type_union->membres) {
 			if (it.type == type_vers) {
 				if (!type_union->est_nonsure) {
-					contexte.donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_membre_union->nom_broye);
+					contexte.donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_membre_union);
 				}
 
 				return { TypeTransformation::EXTRAIT_UNION, type_vers, index_membre };

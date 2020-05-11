@@ -86,8 +86,8 @@ struct NoeudDependance {
 };
 
 struct DonneesDependance {
-	dls::ensemblon<dls::vue_chaine_compacte, 16> fonctions_utilisees{};
-	dls::ensemblon<dls::vue_chaine_compacte, 16> globales_utilisees{};
+	dls::ensemblon<NoeudDeclarationFonction const *, 16> fonctions_utilisees{};
+	dls::ensemblon<NoeudDeclarationVariable const *, 16> globales_utilisees{};
 	dls::ensemblon<Type *, 16> types_utilises{};
 };
 

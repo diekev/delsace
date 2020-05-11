@@ -264,7 +264,7 @@ static void valide_acces_membre(
 				else {
 					auto membre_actif = contexte.trouve_membre_actif(structure->ident->nom);
 
-					contexte.donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_membre_union->nom_broye);
+					contexte.donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_membre_union);
 
 					/* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu */
 					if (membre_actif != "") {
@@ -837,11 +837,11 @@ void performe_validation_semantique(
 
 			if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {
 				auto decl_fonc = static_cast<NoeudDeclarationFonction *>(decl);
-				donnees_dependance.fonctions_utilisees.insere(decl_fonc->nom_broye);
+				donnees_dependance.fonctions_utilisees.insere(decl_fonc);
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
 				if (decl->drapeaux & EST_GLOBALE) {
-					donnees_dependance.globales_utilisees.insere(b->lexeme->chaine);
+					donnees_dependance.globales_utilisees.insere(static_cast<NoeudDeclarationVariable *>(decl));
 				}
 			}
 
@@ -1154,7 +1154,7 @@ void performe_validation_semantique(
 				enfant2->transformation = meilleur_candidat->transformation_type2;
 
 				if (!expr->op->est_basique) {
-					donnees_dependance.fonctions_utilisees.insere(expr->op->decl->nom_broye);
+					donnees_dependance.fonctions_utilisees.insere(expr->op->decl);
 				}
 			}
 			else {
@@ -1197,7 +1197,7 @@ void performe_validation_semantique(
 				enfant2->transformation = meilleur_candidat->transformation_type2;
 
 				if (!expr->op->est_basique) {
-					donnees_dependance.fonctions_utilisees.insere(expr->op->decl->nom_broye);
+					donnees_dependance.fonctions_utilisees.insere(expr->op->decl);
 				}
 			}
 
@@ -1272,7 +1272,7 @@ void performe_validation_semantique(
 				case GenreType::TABLEAU_DYNAMIQUE:
 				{
 					expr->type = contexte.typeuse.type_dereference_pour(type1);
-					donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_tableau->nom_broye);
+					donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_tableau);
 					break;
 				}
 				case GenreType::TABLEAU_FIXE:
@@ -1297,7 +1297,7 @@ void performe_validation_semantique(
 						expr->aide_generation_code = IGNORE_VERIFICATION;
 					}
 
-					donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_tableau->nom_broye);
+					donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_tableau);
 					break;
 				}
 				case GenreType::POINTEUR:
@@ -1308,7 +1308,7 @@ void performe_validation_semantique(
 				case GenreType::CHAINE:
 				{
 					expr->type = contexte.typeuse[TypeBase::Z8];
-					donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_chaine->nom_broye);
+					donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_chaine);
 					break;
 				}
 				default:
@@ -2053,7 +2053,7 @@ void performe_validation_semantique(
 				}
 			}
 			else {
-				donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_memoire->nom_broye);
+				donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_memoire);
 			}
 
 			donnees_dependance.types_utilises.insere(expr_loge->type);
@@ -2139,7 +2139,7 @@ void performe_validation_semantique(
 				}
 			}
 			else {
-				donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_memoire->nom_broye);
+				donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_memoire);
 			}
 
 			donnees_dependance.types_utilises.insere(expr_loge->type);
@@ -2700,7 +2700,7 @@ void performe_validation_semantique(
 				inst->op = meilleur_candidat->op;
 
 				if (!inst->op->est_basique) {
-					donnees_dependance.fonctions_utilisees.insere(inst->op->decl->nom_broye);
+					donnees_dependance.fonctions_utilisees.insere(inst->op->decl);
 				}
 
 				for (int i = 0; i < inst->paires_discr.taille; ++i) {
@@ -2888,7 +2888,7 @@ void performe_validation_semantique(
 				}
 			}
 			else {
-				donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_erreur->nom_broye);
+				donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_erreur);
 			}
 
 			break;

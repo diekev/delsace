@@ -2155,8 +2155,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 		}
 		case TypeTransformation::FONCTION:
 		{
-			auto noeud_dep = m_contexte.graphe_dependance.cherche_noeud_fonction(transformation.nom_fonction);
-			auto atome_fonction = trouve_ou_insere_fonction(static_cast<NoeudDeclarationFonction *>(noeud_dep->noeud_syntactique));
+			auto atome_fonction = trouve_ou_insere_fonction(transformation.fonction);
 
 			if (valeur->est_chargeable) {
 				valeur = cree_charge_mem(valeur);
