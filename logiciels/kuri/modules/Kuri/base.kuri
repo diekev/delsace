@@ -44,22 +44,10 @@ BaseAllocatrice :: struct {
     pic_de_mémoire : z64 = 0
 
     // pour pouvoir déterminer quelle type d'allocatrice nous avons
-    infos : *InfoTypeStructure = nul
+    infos : *InfoTypeStructure = info_de(BaseAllocatrice())
 
     allocatrice_parente : *BaseAllocatrice = nul
     allocatrice_secours : *BaseAllocatrice = nul
-}
-
-initialise_base_allocatrice :: fonc (base : *BaseAllocatrice) -> rien
-{
-    base.nombre_allocations = 0
-    base.nombre_réallocations = 0
-    base.nombre_désallocations = 0
-    base.mémoire_utilisée = 0
-    base.pic_de_mémoire = 0
-    base.infos = info_de(mémoire(base))
-    base.allocatrice_parente = nul
-    base.allocatrice_secours = nul
 }
 
 allocatrice_défaut :: fonc(
