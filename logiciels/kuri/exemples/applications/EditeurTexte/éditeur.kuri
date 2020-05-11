@@ -1,0 +1,433 @@
+importe Fondation
+importe SysFichier
+importe Temps
+
+Éditeur :: struct {
+    lignes : z32
+    colonnes : z32
+
+    // pour le défilement vertical
+    décalage_ligne : z32
+
+    // pour le défilement horizontal
+    décalage_colonne : z32
+
+    rx : z32
+    cx : z32
+    cy : z32
+
+    lignes_texte: []chaine
+    lignes_rendu: []chaine
+
+    chemin_fichier: chaine
+
+    message : chaine
+    temps_message : Instantané
+
+    modifié : z32
+}
+
+éditeur_ferme :: fonc (éditeur: *Éditeur) -> rien
+{
+    déloge_tableau_ligne(@éditeur.lignes_texte)
+    déloge_tableau_ligne(@éditeur.lignes_rendu)
+    déloge éditeur.message
+    déloge éditeur.chemin_fichier
+}
+
+éditeur_ouvre :: fonc (éditeur: *Éditeur, chemin: chaine) -> rien
+{
+    chm := construit_chemin(chemin)
+    si !fichier_existe(chm) {
+        éditeur_ajourne_message_status(éditeur, "Le fichier n'existe pas !")
+        retourne
+    }
+
+    contenu := contenu_fichier_texte(chm)
+	diffère { déloge contenu; }
+
+    éditeur.chemin_fichier = chemin
+    éditeur_ajourne_message_status(éditeur, "Le fichier est ouvert !")
+
+    début_ligne : z64 = 0
+    taille_ligne := 0
+
+    pour c, idx dans contenu {
+        si c == '\r' || c == '\n' {
+            si taille_ligne != 0 {
+                ligne : chaine
+                ligne.pointeur = @contenu[début_ligne]
+                ligne.taille = taille_ligne
+
+                éditeur_ajoute_ligne(éditeur, ligne, éditeur.lignes_texte.taille)
+
+                taille_ligne = 0
+                début_ligne = idx
+            }
+            sinon {
+                éditeur_ajoute_ligne(éditeur, "", éditeur.lignes_texte.taille)
+            }
+        }
+        sinon {
+            si taille_ligne == 0 {
+                début_ligne = idx
+            }
+
+            taille_ligne += 1
+        }
+    }
+
+    si taille_ligne != 0 {
+        ligne : chaine
+        ligne.pointeur = @contenu[début_ligne]
+        ligne.taille = taille_ligne
+
+        éditeur_ajoute_ligne(éditeur, ligne, éditeur.lignes_texte.taille)
+    }
+
+    éditeur.modifié = 0
+}
+
+éditeur_ajoute_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, où: z64) -> rien
+{
+    si où < 0 || où > éditeur.lignes_texte.taille {
+        retourne
+    }
+
+    ligne = copie_chaine(ligne)
+
+    si où == éditeur.lignes_texte.taille {
+        tableau_ajoute(@éditeur.lignes_texte, ligne)
+        éditeur_ajourne_ligne(éditeur, ligne, où)
+    }
+    sinon {
+        tableau_insère_index(@éditeur.lignes_texte, ligne, où)
+
+        // chaine_nulle est utilisé car éditeur_ajourne_ligne libère
+        // la mémoire à l'index 'où', une chaine nulle ne serait pas
+        // libérer et nous n'aurons pas nous soucier de la validiter
+        // du pointeur de la chaine
+        chaine_nulle : chaine
+        tableau_insère_index(@éditeur.lignes_rendu, chaine_nulle, où)
+        éditeur_ajourne_ligne(éditeur, ligne, où)
+    }
+
+    éditeur.modifié += 1
+}
+
+éditeur_ajoute_nouvelle_ligne :: fonc (éditeur: *Éditeur) -> rien
+{
+    si éditeur.cx == 0 {
+        éditeur_ajoute_ligne(éditeur, "", éditeur.cy)
+    }
+    sinon {
+        ligne := éditeur.lignes_texte[éditeur.cy]
+        ligne = avance(ligne, éditeur.cx)
+        éditeur_ajoute_ligne(éditeur, ligne, éditeur.cy + 1)
+        reloge éditeur.lignes_texte[éditeur.cy] : chaine(éditeur.cx)
+        éditeur_ajourne_ligne(éditeur, éditeur.lignes_texte[éditeur.cy], éditeur.cy)
+        éditeur.cx = 0
+    }
+
+    éditeur.cy += 1
+}
+
+éditeur_chaine_depuis_ligne :: fonc (éditeur: *Éditeur) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
+    diffère { détruit_tampons(@enchaineuse) }
+
+    pour ligne dans éditeur.lignes_texte {
+        ajoute_au_tampon(@enchaineuse, ligne, "\n")
+    }
+
+    retourne chaine_depuis_enchaineuse(@enchaineuse)
+}
+
+éditeur_sauvegarde_fichier :: fonc (éditeur: *Éditeur, rappel_prompt : fonc()(chaine)) -> rien
+{
+    si éditeur.chemin_fichier == "" {
+        éditeur.chemin_fichier = rappel_prompt()
+
+        si éditeur.chemin_fichier.pointeur == nul {
+            éditeur_ajourne_message_status(éditeur, "Sauvegarde avortée !")
+            retourne
+        }
+    }
+
+    texte := éditeur_chaine_depuis_ligne(éditeur)
+    diffère { déloge texte }
+
+    fichier := tente ouvre_fichier_crée_si_non_existant(éditeur.chemin_fichier) piège err {
+        éditeur_ajourne_message_status(éditeur, "impossible d'ouvrir le fichier pour la sauvegarde")
+        retourne
+    }
+
+    // À FAIRE : tronque fichier
+    octets_écris := tente écris(@fichier, texte) piège err {
+        éditeur_ajourne_message_status(éditeur, "impossible d'écrire le fichier")
+        retourne
+    }
+
+    tente ferme(@fichier) piège err {
+        éditeur_ajourne_message_status(éditeur, "impossible de fermer le fichier")
+        retourne
+    }
+
+    éditeur_ajourne_message_status(éditeur, "fichier sauvegardé, écrit : ", octets_écris, " octets")
+    éditeur.modifié = 0
+}
+
+TAILLE_TABULATION :: 4
+
+éditeur_ajourne_lignes :: fonc (éditeur: *Éditeur) -> rien
+{
+    déloge_tableau_ligne(@éditeur.lignes_rendu)
+
+    pour ligne, idx dans éditeur.lignes_texte {
+        éditeur_ajourne_ligne(éditeur, ligne, idx)
+    }
+}
+
+éditeur_ajourne_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, index: z64) -> rien
+{
+    tabs := 0
+    pour c dans ligne {
+        si c == '\t' {
+            tabs += 1
+        }
+    }
+
+    nligne := loge chaine(ligne.taille + tabs * (TAILLE_TABULATION - 1))
+
+    idx := 0
+    pour c dans ligne {
+        si c == '\t' {
+            nligne[idx] = ' '
+            idx += 1
+
+            tantque idx % TAILLE_TABULATION != 0 {
+                nligne[idx] = ' '
+                idx += 1
+            }
+        }
+        sinon {
+            nligne[idx] = c
+            idx += 1
+        }
+    }
+
+    si index >= éditeur.lignes_rendu.taille {
+        tableau_ajoute(@éditeur.lignes_rendu, nligne)
+    }
+    sinon {
+        déloge éditeur.lignes_rendu[index]
+        éditeur.lignes_rendu[index] = nligne
+    }
+}
+
+éditeur_insère_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, index_ligne: z64, index_caractère: z64, caractère: z8) -> rien
+{
+    tmp := loge chaine(ligne.taille + 1)
+
+    pour i dans 0 ... index_caractère - 1 {
+        tmp[i] = ligne.pointeur[i]
+    }
+
+    //copie_mem_nonsur(src = ligne.pointeur + index_caractère, dst = ligne.pointeur + index_caractère + 1, taille = ligne.taille - index_caractère)
+    tmp[index_caractère] = caractère
+
+    pour i dans index_caractère + 1 ... ligne.taille {
+        tmp[i] = ligne.pointeur[i - 1]
+    }
+
+    déloge ligne
+    éditeur.lignes_texte[index_ligne] = tmp
+
+    éditeur_ajourne_ligne(éditeur, tmp, index_ligne)
+    éditeur.modifié += 1
+}
+
+éditeur_supprime_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, index_ligne: z64, index_caractère: z64) -> rien
+{
+    si index_caractère < 0 || index_caractère >= ligne.taille {
+        retourne
+    }
+
+    // À FAIRE : caractères unicode -> supprime le nombre d'octet adéquate
+    tmp := loge chaine(ligne.taille - 1)
+
+    pour i dans 0 ... index_caractère - 1 {
+        tmp[i] = ligne[i]
+    }
+
+    pour i dans index_caractère + 1 ... ligne.taille - 1 {
+        tmp[i - 1] = ligne[i]
+    }
+
+    déloge ligne
+    éditeur.lignes_texte[index_ligne] = tmp
+
+    éditeur_ajourne_ligne(éditeur, tmp, index_ligne)
+    éditeur.modifié += 1
+}
+
+éditeur_supprime_caractère :: fonc (éditeur: *Éditeur) -> rien
+{
+    si éditeur.cy == éditeur.lignes_texte.taille {
+        retourne
+    }
+
+    si éditeur.cx == 0 && éditeur.cy == 0 {
+        retourne
+    }
+
+    ligne := éditeur.lignes_texte[éditeur.cy]
+
+    si éditeur.cx > 0 {
+        éditeur_supprime_caractère_ligne(éditeur, ligne, éditeur.cy, éditeur.cx - 1)
+        éditeur.cx -= 1
+    }
+    sinon {
+        éditeur.cx = (éditeur.lignes_texte[éditeur.cy - 1].taille) comme z32
+        éditeur_adjoint_ligne(éditeur, éditeur.cy - 1, ligne)
+        éditeur_supprime_ligne(éditeur, éditeur.cy)
+        éditeur.cy -= 1
+    }
+}
+
+éditeur_insère_caractère :: fonc (éditeur: *Éditeur, caractère: z8) -> rien
+{
+    si éditeur.cy == éditeur.lignes_texte.taille {
+        éditeur_ajoute_ligne(éditeur, "", 0)
+    }
+
+    éditeur_insère_caractère_ligne(éditeur, éditeur.lignes_texte[éditeur.cy], éditeur.cy, éditeur.cx, caractère)
+    éditeur.cx += 1
+}
+
+éditeur_supprime_ligne :: fonc (éditeur: *Éditeur, index_ligne: z64) -> rien
+{
+    si index_ligne < 0 || index_ligne >= éditeur.lignes_texte.taille {
+        retourne
+    }
+
+    déloge éditeur.lignes_texte[index_ligne]
+    déloge éditeur.lignes_rendu[index_ligne]
+
+    tableau_supprime_index(@éditeur.lignes_texte, index_ligne)
+    tableau_supprime_index(@éditeur.lignes_rendu, index_ligne)
+
+    éditeur.modifié += 1
+}
+
+éditeur_adjoint_ligne :: fonc (éditeur: *Éditeur, index_ligne: z64, texte: chaine) -> rien
+{
+    ligne := éditeur.lignes_texte[index_ligne]
+    ancienne_taille := ligne.taille
+    nouvelle_taille := ancienne_taille + texte.taille
+
+    si nouvelle_taille == 0 {
+        retourne
+    }
+
+    reloge ligne : chaine(nouvelle_taille)
+
+    pour c, idx dans texte {
+        ligne[ancienne_taille + idx] = c
+    }
+
+    éditeur.lignes_texte[index_ligne] = ligne
+
+    éditeur_ajourne_message_status(éditeur, ligne)
+    éditeur_ajourne_ligne(éditeur, ligne, index_ligne)
+    éditeur.modifié += 1
+}
+
+éditeur_défile :: fonc (éditeur: *Éditeur) -> rien
+{
+    éditeur.rx = 0
+
+    si éditeur.cy < éditeur.lignes_texte.taille {
+        éditeur.rx = éditeur_cx_vers_rx(éditeur.lignes_texte[éditeur.cy], éditeur.cx)
+    }
+
+    si éditeur.cy < éditeur.décalage_ligne {
+        éditeur.décalage_ligne = éditeur.cy
+    }
+    sinon si éditeur.cy >= éditeur.décalage_ligne + éditeur.lignes {
+        éditeur.décalage_ligne = éditeur.cy - éditeur.lignes + 1
+    }
+
+
+    si éditeur.rx < éditeur.décalage_colonne {
+        éditeur.décalage_colonne = éditeur.rx
+    }
+    sinon si éditeur.rx >= éditeur.décalage_colonne + éditeur.colonnes {
+        éditeur.décalage_colonne = éditeur.rx - éditeur.colonnes + 1
+    }
+}
+
+éditeur_ajourne_message_status :: fonc (éditeur: *Éditeur, args: ...eini) -> rien
+{
+    déloge éditeur.message
+
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
+    diffère { détruit_tampons(@enchaineuse) }
+
+    pour arg dans args {
+        ajoute_au_tampon(@enchaineuse, arg)
+    }
+
+    éditeur.message = chaine_depuis_enchaineuse(@enchaineuse)
+    éditeur.temps_message = maintenant()
+}
+
+éditeur_cx_vers_rx :: fonc (ligne: chaine, cx: z32) -> z32
+{
+    rx := 0
+
+    pour c, idx dans ligne {
+        si idx == cx {
+            arrête
+        }
+
+        si c == '\t' {
+            rx += (TAILLE_TABULATION - 1) - (rx % TAILLE_TABULATION)
+        }
+
+        rx += 1
+    }
+
+    retourne rx
+}
+
+éditeur_rx_vers_cx :: fonc (ligne: chaine, rx: z32) -> z32
+{
+    rx_courant := 0
+
+    pour c, idx dans ligne {
+        si c == '\t' {
+            rx_courant += (TAILLE_TABULATION - 1) - (rx % TAILLE_TABULATION)
+        }
+
+        rx_courant += 1
+
+        si rx_courant > rx {
+            retourne idx comme z32
+        }
+    }
+
+    retourne ligne.taille comme z32
+}
+
+déloge_tableau_ligne :: fonc (tabl: *[]chaine) -> rien
+{
+    pour ligne dans mémoire(tabl) {
+        déloge ligne
+    }
+
+    déloge mémoire(tabl)
+}
