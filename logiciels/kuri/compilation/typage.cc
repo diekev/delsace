@@ -613,6 +613,14 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 	operateurs.ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
 	operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
 
+	POUR (type->types_entrees) {
+		graphe.connecte_type_type(type, it);
+	}
+
+	POUR (type->types_sorties) {
+		graphe.connecte_type_type(type, it);
+	}
+
 	return type;
 }
 

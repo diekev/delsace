@@ -970,14 +970,6 @@ void valide_appel_fonction(
 		}
 
 		donnees_dependance.fonctions_utilisees.insere(decl_fonction_appelee);
-
-		for (auto te : decl_fonction_appelee->type_fonc->types_entrees) {
-			donnees_dependance.types_utilises.insere(te);
-		}
-
-		for (auto ts : decl_fonction_appelee->type_fonc->types_sorties) {
-			donnees_dependance.types_utilises.insere(ts);
-		}
 	}
 	else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
 		expr->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
