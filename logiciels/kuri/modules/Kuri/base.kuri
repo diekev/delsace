@@ -635,11 +635,19 @@ tableau_copie :: fonc(tabl: []$T) -> []$T
     retourne tmp
 }
 
-tableau_insère :: fonc(tabl: *[]$T, index: z32, valeur: $T) -> rien
+tableau_insère_index :: fonc (tabl: *[]$T, valeur: $T, où: z64) -> rien
 {
-	tmp := mémoire(tabl)
-	tmp[index] = valeur
-	mémoire(tabl) = tmp
+    tmp := mémoire(tabl)
+
+    reloge tmp: [tmp.taille + 1]chaine
+
+    pour i dans où ... tmp.taille - 2 {
+        tmp[i + 1] = tmp[i]
+    }
+
+    tmp[où] = valeur
+
+    mémoire(tabl) = tmp
 }
 
 tableau_supprime :: fonc(tabl: *[]$T, index: z32) -> rien
