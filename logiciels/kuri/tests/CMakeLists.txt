@@ -33,10 +33,7 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-	outils.h
-
 	test_decoupage.h
-	outils.cc
 
 	test_decoupage.cc
 	tests.cc
