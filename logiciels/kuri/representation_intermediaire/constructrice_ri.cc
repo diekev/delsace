@@ -134,17 +134,6 @@ static void ajoute_dependances_implicites(
 {
 	auto &graphe_dependance = contexte.graphe_dependance;
 
-	auto fonc_dls_vers_r32 = cherche_fonction_dans_module(contexte, "Kuri", "DLS_vers_r32");
-	auto noeud_dls_vers_r32 = graphe_dependance.cree_noeud_fonction(fonc_dls_vers_r32->nom_broye, fonc_dls_vers_r32);
-	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_dls_vers_r32);
-
-	auto fonc_dls_vers_r64 = cherche_fonction_dans_module(contexte, "Kuri", "DLS_vers_r64");
-	auto noeud_dls_vers_r64 = graphe_dependance.cree_noeud_fonction(fonc_dls_vers_r64->nom_broye, fonc_dls_vers_r64);
-	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_dls_vers_r64);
-
-	auto noeud_panique = graphe_dependance.cree_noeud_fonction(contexte.interface_kuri.decl_panique_membre_union->nom_broye, contexte.interface_kuri.decl_panique_membre_union);
-	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_panique);
-
 	if (pour_meta_programme) {
 		auto fonc_init = cherche_fonction_dans_module(contexte, "Kuri", "initialise_RC");
 		auto noeud_init = graphe_dependance.cree_noeud_fonction(fonc_init->nom_broye, fonc_init);
@@ -2166,7 +2155,6 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 		}
 		case TypeTransformation::FONCTION:
 		{
-			// À FAIRE : ajoute les dépendances dans la validation sémantique
 			auto noeud_dep = m_contexte.graphe_dependance.cherche_noeud_fonction(transformation.nom_fonction);
 			auto atome_fonction = trouve_ou_insere_fonction(static_cast<NoeudDeclarationFonction *>(noeud_dep->noeud_syntactique));
 

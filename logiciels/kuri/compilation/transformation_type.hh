@@ -26,6 +26,7 @@
 
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
+struct ContexteGenerationCode;
 struct Type;
 
 enum class TypeTransformation {
@@ -91,5 +92,6 @@ struct TransformationType {
 };
 
 TransformationType cherche_transformation(
+		ContexteGenerationCode &contexte,
 		Type *type_de,
 		Type *type_vers);

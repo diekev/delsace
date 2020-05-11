@@ -366,7 +366,7 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 						}
 					}
 					else if (variable->type != expression->type) {
-						auto transformation = cherche_transformation(expression->type, variable->type);
+						auto transformation = cherche_transformation(contexte, expression->type, variable->type);
 
 						if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 							erreur::lance_erreur_type_arguments(
@@ -975,6 +975,7 @@ void performe_validation_semantique(
 			}
 
 			auto transformation = cherche_transformation(
+						contexte,
 						expression->type,
 						variable->type);
 
@@ -1043,6 +1044,7 @@ void performe_validation_semantique(
 				}
 				else {
 					auto transformation = cherche_transformation(
+								contexte,
 							expression->type,
 							variable->type);
 
@@ -1162,7 +1164,7 @@ void performe_validation_semantique(
 
 					// exclue les arithmétiques de pointeur
 					if (!(type1->genre == GenreType::POINTEUR && (est_type_entier(type2) || type2->genre == GenreType::ENTIER_CONSTANT))) {
-						auto transformation = cherche_transformation(type2, type1);
+						auto transformation = cherche_transformation(contexte, type2, type1);
 
 						if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 							erreur::lance_erreur_assignation_type_differents(
@@ -1367,6 +1369,7 @@ void performe_validation_semantique(
 						performe_validation_semantique(f, contexte, false);
 
 						auto transformation = cherche_transformation(
+									contexte,
 									f->type,
 									type_fonc->types_sorties[i]);
 
@@ -1407,6 +1410,7 @@ void performe_validation_semantique(
 				b->genre = GenreNoeud::INSTRUCTION_RETOUR_SIMPLE;
 
 				auto transformation = cherche_transformation(
+							contexte,
 							enfant->type,
 							b->type);
 
@@ -1862,7 +1866,7 @@ void performe_validation_semantique(
 			}
 
 			for (auto f : feuilles) {
-				auto transformation = cherche_transformation(f->type, type_feuille);
+				auto transformation = cherche_transformation(contexte, f->type, type_feuille);
 
 				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 					erreur::lance_erreur_assignation_type_differents(
@@ -2000,7 +2004,7 @@ void performe_validation_semantique(
 				performe_validation_semantique(expr, contexte, false);
 
 				auto type_cible = contexte.typeuse[TypeBase::Z64];
-				auto transformation = cherche_transformation(expr->type, type_cible);
+				auto transformation = cherche_transformation(contexte, expr->type, type_cible);
 
 				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 					erreur::lance_erreur_assignation_type_differents(
@@ -2022,7 +2026,7 @@ void performe_validation_semantique(
 				performe_validation_semantique(expr_loge->expr_chaine, contexte, false);
 
 				auto type_cible = contexte.typeuse[TypeBase::Z64];
-				auto transformation = cherche_transformation(expr_loge->expr_chaine->type, type_cible);
+				auto transformation = cherche_transformation(contexte, expr_loge->expr_chaine->type, type_cible);
 
 				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 					erreur::lance_erreur_assignation_type_differents(
@@ -2073,7 +2077,7 @@ void performe_validation_semantique(
 				performe_validation_semantique(expr, contexte, false);
 
 				auto type_cible = contexte.typeuse[TypeBase::Z64];
-				auto transformation = cherche_transformation(expr->type, type_cible);
+				auto transformation = cherche_transformation(contexte, expr->type, type_cible);
 
 				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 					erreur::lance_erreur_assignation_type_differents(
@@ -2094,7 +2098,7 @@ void performe_validation_semantique(
 				performe_validation_semantique(expr_loge->expr_chaine, contexte, false);
 
 				auto type_cible = contexte.typeuse[TypeBase::Z64];
-				auto transformation = cherche_transformation(expr_loge->expr_chaine->type, type_cible);
+				auto transformation = cherche_transformation(contexte, expr_loge->expr_chaine->type, type_cible);
 
 				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 					erreur::lance_erreur_assignation_type_differents(
@@ -2111,7 +2115,7 @@ void performe_validation_semantique(
 			}
 
 			/* pour les références */
-			auto transformation = cherche_transformation(expr_loge->expr->type, expr_loge->type);
+			auto transformation = cherche_transformation(contexte, expr_loge->expr->type, expr_loge->type);
 
 			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 				erreur::lance_erreur_type_arguments(
@@ -2340,6 +2344,7 @@ void performe_validation_semantique(
 						}
 						else {
 							auto transformation = cherche_transformation(
+										contexte,
 										decl_expr->type,
 										decl_membre->type);
 
@@ -2710,7 +2715,7 @@ void performe_validation_semantique(
 					for (auto f : feuilles) {
 						performe_validation_semantique(f, contexte, true);
 
-						auto transformation = cherche_transformation(f->type, expression->type);
+						auto transformation = cherche_transformation(contexte, f->type, expression->type);
 
 						if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 							erreur::lance_erreur_type_arguments(
@@ -2748,7 +2753,7 @@ void performe_validation_semantique(
 
 			/* À FAIRE : multiple types retours. */
 			auto type_retour = type_fonc->types_sorties[0];
-			auto transformation = cherche_transformation(inst->type, type_retour);
+			auto transformation = cherche_transformation(contexte, inst->type, type_retour);
 
 			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 				erreur::lance_erreur_type_retour(

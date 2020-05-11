@@ -158,12 +158,13 @@ static auto trouve_candidates_pour_fonction_appelee(
 }
 
 static double verifie_compatibilite(
+		ContexteGenerationCode &contexte,
 		Type *type_arg,
 		Type *type_enf,
 		NoeudBase *enfant,
 		TransformationType &transformation)
 {
-	transformation = cherche_transformation(type_enf, type_arg);
+	transformation = cherche_transformation(contexte, type_enf, type_arg);
 
 	if (transformation.type == TypeTransformation::INUTILE) {
 		return 1.0;
@@ -244,7 +245,7 @@ static auto apparie_appel_pointeur(
 		}
 
 		auto transformation = TransformationType();
-		auto poids_pour_enfant = verifie_compatibilite(type_prm, type_enf, arg, transformation);
+		auto poids_pour_enfant = verifie_compatibilite(contexte, type_prm, type_enf, arg, transformation);
 
 		poids_args *= poids_pour_enfant;
 
@@ -502,7 +503,7 @@ static DonneesCandidate apparie_appel_fonction(
 
 					auto type_deref_enf = contexte.typeuse.type_dereference_pour(type_enf);
 
-					poids_pour_enfant = verifie_compatibilite(type_deref, type_deref_enf, slot, transformation);
+					poids_pour_enfant = verifie_compatibilite(contexte, type_deref, type_deref_enf, slot, transformation);
 
 					// aucune transformation acceptée sauf si nous avons un tableau fixe qu'il faudra convertir en un tableau dynamique
 					if (poids_pour_enfant != 1.0) {
@@ -517,7 +518,7 @@ static DonneesCandidate apparie_appel_fonction(
 					expansion_rencontree = true;
 				}
 				else {
-					poids_pour_enfant = verifie_compatibilite(type_deref, type_enf, slot, transformation);
+					poids_pour_enfant = verifie_compatibilite(contexte, type_deref, type_enf, slot, transformation);
 				}
 
 				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
@@ -563,7 +564,7 @@ static DonneesCandidate apparie_appel_fonction(
 		}
 		else {
 			auto transformation = TransformationType();
-			auto poids_pour_enfant = verifie_compatibilite(type_arg, type_enf, slot, transformation);
+			auto poids_pour_enfant = verifie_compatibilite(contexte, type_arg, type_enf, slot, transformation);
 
 			// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
 			if (arg->type_declare.est_gabarit) {
@@ -626,6 +627,7 @@ static DonneesCandidate apparie_appel_fonction(
 /* ************************************************************************** */
 
 static auto apparie_appel_structure(
+		ContexteGenerationCode &contexte,
 		NoeudExpressionAppel const *expr,
 		NoeudStruct *decl_struct,
 		kuri::tableau<IdentifiantEtExpression> const &arguments)
@@ -712,7 +714,7 @@ static auto apparie_appel_structure(
 		}
 
 		auto transformation = TransformationType{};
-		auto poids_pour_enfant = verifie_compatibilite(type_membre, it.expr->type, it.expr, transformation);
+		auto poids_pour_enfant = verifie_compatibilite(contexte, type_membre, it.expr->type, it.expr, transformation);
 
 		poids_appariement *= poids_pour_enfant;
 
@@ -786,7 +788,7 @@ static auto trouve_candidates_pour_appel(
 
 			if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
 				auto decl_struct = static_cast<NoeudStruct *>(decl);
-				auto dc = apparie_appel_structure(expr, decl_struct, args);
+				auto dc = apparie_appel_structure(contexte, expr, decl_struct, args);
 				resultat.pousse(dc);
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {

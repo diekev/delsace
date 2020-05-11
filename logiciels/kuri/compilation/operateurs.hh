@@ -179,7 +179,7 @@ struct OperateurCandidat {
 };
 
 dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
-		ContexteGenerationCode const &contexte,
+		ContexteGenerationCode &contexte,
 		Type *type1,
 		Type *type2,
 		GenreLexeme type_op);
