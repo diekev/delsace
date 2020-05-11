@@ -136,7 +136,7 @@ static void ajoute_dependances_implicites(
 
 	if (pour_meta_programme) {
 		auto fonc_init = cherche_fonction_dans_module(contexte, "Kuri", "initialise_RC");
-		auto noeud_init = graphe_dependance.cree_noeud_fonction(fonc_init->nom_broye, fonc_init);
+		auto noeud_init = graphe_dependance.cree_noeud_fonction(fonc_init);
 		graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_init);
 	}
 }

@@ -538,7 +538,7 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 		}
 	}
 
-	contexte.graphe_dependance.cree_noeud_fonction(decl->nom_broye, decl);
+	contexte.graphe_dependance.cree_noeud_fonction(decl);
 }
 
 void performe_validation_semantique(
@@ -590,7 +590,7 @@ void performe_validation_semantique(
 					donnees_dependance.types_utilises.insere(variable->type);
 				}
 
-				auto noeud_dep = graphe.cree_noeud_fonction(decl->ident->nom, decl);
+				auto noeud_dep = graphe.cree_noeud_fonction(decl);
 				graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 
 				return;
@@ -663,7 +663,7 @@ void performe_validation_semantique(
 			/* vérifie le type du bloc */
 			auto bloc = decl->bloc;
 
-			auto noeud_dep = graphe.cree_noeud_fonction(decl->nom_broye, decl);
+			auto noeud_dep = graphe.cree_noeud_fonction(decl);
 
 			performe_validation_semantique(bloc, contexte, true);
 			auto inst_ret = derniere_instruction(bloc);
@@ -763,7 +763,7 @@ void performe_validation_semantique(
 			/* vérifie le type du bloc */
 			auto bloc = decl->bloc;
 
-			auto noeud_dep = graphe.cree_noeud_fonction(decl->nom_broye, decl);
+			auto noeud_dep = graphe.cree_noeud_fonction(decl);
 
 			performe_validation_semantique(bloc, contexte, true);
 			auto inst_ret = derniere_instruction(bloc);
@@ -1085,7 +1085,7 @@ void performe_validation_semantique(
 			}
 
 			if (decl->drapeaux & EST_GLOBALE) {
-				graphe.cree_noeud_globale(variable->ident->nom, b);
+				graphe.cree_noeud_globale(decl);
 			}
 
 			donnees_dependance.types_utilises.insere(decl->type);

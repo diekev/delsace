@@ -99,10 +99,10 @@ struct GrapheDependance {
 	~GrapheDependance();
 
 	// CRÉE (:FONCTION { nom = $nom })
-	NoeudDependance *cree_noeud_fonction(dls::vue_chaine_compacte const &nom, NoeudExpression *noeud_syntactique);
+	NoeudDependance *cree_noeud_fonction(NoeudDeclarationFonction *noeud_syntactique);
 
 	// CRÉE (:GLOBALE { nom = $nom })
-	NoeudDependance *cree_noeud_globale(dls::vue_chaine_compacte const &nom, NoeudExpression *noeud_syntactique);
+	NoeudDependance *cree_noeud_globale(NoeudDeclarationVariable *noeud_syntactique);
 
 	// FUSIONNE (:TYPE { index = $index })
 	NoeudDependance *cree_noeud_type(Type *type);

@@ -24,6 +24,7 @@
 
 #include "graphe_dependance.hh"
 
+#include "contexte_generation_code.h"
 #include "modules.hh"
 
 const char *chaine_type_relation(TypeRelation type)
@@ -47,15 +48,15 @@ GrapheDependance::~GrapheDependance()
 	}
 }
 
-NoeudDependance *GrapheDependance::cree_noeud_fonction(const dls::vue_chaine_compacte &nom, NoeudExpression *noeud_syntactique)
+NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationFonction *noeud_syntactique)
 {
 	/* différents modules peuvent déclarer la même fonction externe (p.e printf),
 	 * donc cherche d'abord le noeud. */
-	auto noeud = cherche_noeud_fonction(nom);
+	auto noeud = cherche_noeud_fonction(noeud_syntactique->nom_broye);
 
 	if (noeud == nullptr) {
 		noeud = memoire::loge<NoeudDependance>("NoeudDependance");
-		noeud->nom = nom;
+		noeud->nom = noeud_syntactique->nom_broye;
 		noeud->noeud_syntactique = noeud_syntactique;
 		noeud->type = TypeNoeudDependance::FONCTION;
 
@@ -65,10 +66,10 @@ NoeudDependance *GrapheDependance::cree_noeud_fonction(const dls::vue_chaine_com
 	return noeud;
 }
 
-NoeudDependance *GrapheDependance::cree_noeud_globale(const dls::vue_chaine_compacte &nom, NoeudExpression *noeud_syntactique)
+NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *noeud_syntactique)
 {
 	auto noeud = memoire::loge<NoeudDependance>("NoeudDependance");
-	noeud->nom = nom;
+	noeud->nom = noeud_syntactique->ident->nom;
 	noeud->noeud_syntactique = noeud_syntactique;
 	noeud->type = TypeNoeudDependance::GLOBALE;
 
