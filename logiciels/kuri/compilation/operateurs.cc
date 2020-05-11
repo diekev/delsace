@@ -28,194 +28,62 @@
 
 #include "lexemes.hh"
 
-static llvm::Instruction::BinaryOps instruction_llvm_pour_operateur(
-		GenreLexeme id_operateur,
+static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
+		GenreLexeme genre_lexeme,
 		IndiceTypeOp type_operandes)
-{
-	switch (id_operateur) {
-		case GenreLexeme::PLUS:
-		{
-			if (type_operandes == IndiceTypeOp::REEL) {
-				return llvm::Instruction::FAdd;
-			}
-
-			return llvm::Instruction::Add;
-		}
-		case GenreLexeme::MOINS:
-		{
-			if (type_operandes == IndiceTypeOp::REEL) {
-				return llvm::Instruction::FSub;
-			}
-
-			return llvm::Instruction::Sub;
-		}
-		case GenreLexeme::FOIS:
-		{
-			if (type_operandes == IndiceTypeOp::REEL) {
-				return llvm::Instruction::FMul;
-			}
-
-			return llvm::Instruction::Mul;
-		}
-		case GenreLexeme::DIVISE:
-		{
-			if (type_operandes == IndiceTypeOp::REEL) {
-				return llvm::Instruction::FDiv;
-			}
-
-			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
-				return llvm::Instruction::UDiv;
-			}
-
-			return llvm::Instruction::SDiv;
-		}
-		case GenreLexeme::POURCENT:
-		{
-			if (type_operandes == IndiceTypeOp::REEL) {
-				return llvm::Instruction::FRem;
-			}
-
-			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
-				return llvm::Instruction::URem;
-			}
-
-			return llvm::Instruction::SRem;
-		}
-		case GenreLexeme::DECALAGE_DROITE:
-		{
-			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
-				return llvm::Instruction::LShr;
-			}
-
-			return llvm::Instruction::AShr;
-		}
-		case GenreLexeme::DECALAGE_GAUCHE:
-		{
-			return llvm::Instruction::Shl;
-		}
-		case GenreLexeme::ESPERLUETTE:
-		case GenreLexeme::ESP_ESP:
-		{
-			return llvm::Instruction::And;
-		}
-		case GenreLexeme::BARRE:
-		case GenreLexeme::BARRE_BARRE:
-		{
-			return llvm::Instruction::Or;
-		}
-		case GenreLexeme::CHAPEAU:
-		{
-			return llvm::Instruction::Xor;
-		}
-		default:
-		{
-			return static_cast<llvm::Instruction::BinaryOps>(0);
-		}
-	}
-}
-
-static llvm::CmpInst::Predicate predicat_llvm_pour_operateur(
-		GenreLexeme id_operateur,
-		IndiceTypeOp type_operandes)
-{
-	switch (id_operateur) {
-		case GenreLexeme::INFERIEUR:
-		{
-			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
-				return llvm::CmpInst::Predicate::ICMP_ULT;
-			}
-
-			if (type_operandes == IndiceTypeOp::ENTIER_RELATIF) {
-				return llvm::CmpInst::Predicate::ICMP_SLT;
-			}
-
-			return llvm::CmpInst::Predicate::FCMP_OLT;
-		}
-		case GenreLexeme::INFERIEUR_EGAL:
-		{
-			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
-				return llvm::CmpInst::Predicate::ICMP_ULE;
-			}
-
-			if (type_operandes == IndiceTypeOp::ENTIER_RELATIF) {
-				return llvm::CmpInst::Predicate::ICMP_SLE;
-			}
-
-			return llvm::CmpInst::Predicate::FCMP_OLE;
-		}
-		case GenreLexeme::SUPERIEUR:
-		{
-			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
-				return llvm::CmpInst::Predicate::ICMP_UGT;
-			}
-
-			if (type_operandes == IndiceTypeOp::ENTIER_RELATIF) {
-				return llvm::CmpInst::Predicate::ICMP_SGT;
-			}
-
-			return llvm::CmpInst::Predicate::FCMP_OGT;
-		}
-		case GenreLexeme::SUPERIEUR_EGAL:
-		{
-			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
-				return llvm::CmpInst::Predicate::ICMP_UGE;
-			}
-
-			if (type_operandes == IndiceTypeOp::ENTIER_RELATIF) {
-				return llvm::CmpInst::Predicate::ICMP_SGE;
-			}
-
-			return llvm::CmpInst::Predicate::FCMP_OGE;
-		}
-		case GenreLexeme::EGALITE:
-		{
-			if (type_operandes == IndiceTypeOp::REEL) {
-				return llvm::CmpInst::Predicate::FCMP_OEQ;
-			}
-
-			return llvm::CmpInst::Predicate::ICMP_EQ;
-		}
-		case GenreLexeme::DIFFERENCE:
-		{
-			if (type_operandes == IndiceTypeOp::REEL) {
-				return llvm::CmpInst::Predicate::FCMP_ONE;
-			}
-
-			return llvm::CmpInst::Predicate::ICMP_NE;
-		}
-		default:
-		{
-			return static_cast<llvm::CmpInst::Predicate>(0);
-		}
-	}
-}
-
-static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_lexeme)
 {
 	switch (genre_lexeme) {
 		case GenreLexeme::PLUS:
 		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return OperateurBinaire::Genre::Addition_Reel;
+			}
+
 			return OperateurBinaire::Genre::Addition;
 		}
 		case GenreLexeme::MOINS:
 		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return OperateurBinaire::Genre::Soustraction_Reel;
+			}
+
 			return OperateurBinaire::Genre::Soustraction;
 		}
 		case GenreLexeme::FOIS:
 		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return OperateurBinaire::Genre::Multiplication_Reel;
+			}
+
 			return OperateurBinaire::Genre::Multiplication;
 		}
 		case GenreLexeme::DIVISE:
 		{
-			return OperateurBinaire::Genre::Division;
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return OperateurBinaire::Genre::Division_Reel;
+			}
+
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return OperateurBinaire::Genre::Division_Naturel;
+			}
+
+			return OperateurBinaire::Genre::Division_Relatif;
 		}
 		case GenreLexeme::POURCENT:
-		{
-			return OperateurBinaire::Genre::Reste;
+		{			
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return OperateurBinaire::Genre::Reste_Naturel;
+			}
+
+			return OperateurBinaire::Genre::Reste_Relatif;
 		}
 		case GenreLexeme::DECALAGE_DROITE:
 		{
-			return OperateurBinaire::Genre::Dec_Droite;
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return OperateurBinaire::Genre::Dec_Droite_Logique;
+			}
+
+			return OperateurBinaire::Genre::Dec_Droite_Arithm;
 		}
 		case GenreLexeme::DECALAGE_GAUCHE:
 		{
@@ -243,26 +111,64 @@ static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_le
 		}
 		case GenreLexeme::INFERIEUR:
 		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return OperateurBinaire::Genre::Comp_Inf_Reel;
+			}
+
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return OperateurBinaire::Genre::Comp_Inf_Nat;
+			}
+
 			return OperateurBinaire::Genre::Comp_Inf;
 		}
 		case GenreLexeme::INFERIEUR_EGAL:
 		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return OperateurBinaire::Genre::Comp_Inf_Egal_Reel;
+			}
+
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return OperateurBinaire::Genre::Comp_Inf_Egal_Nat;
+			}
+
 			return OperateurBinaire::Genre::Comp_Inf_Egal;
 		}
 		case GenreLexeme::SUPERIEUR:
 		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return OperateurBinaire::Genre::Comp_Sup_Reel;
+			}
+
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return OperateurBinaire::Genre::Comp_Sup_Nat;
+			}
+
 			return OperateurBinaire::Genre::Comp_Sup;
 		}
 		case GenreLexeme::SUPERIEUR_EGAL:
 		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return OperateurBinaire::Genre::Comp_Sup_Egal_Reel;
+			}
+
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return OperateurBinaire::Genre::Comp_Sup_Egal_Nat;
+			}
+
 			return OperateurBinaire::Genre::Comp_Sup_Egal;
 		}
 		case GenreLexeme::EGALITE:
 		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return OperateurBinaire::Genre::Comp_Egal_Reel;
+			}
 			return OperateurBinaire::Genre::Comp_Egal;
 		}
 		case GenreLexeme::DIFFERENCE:
 		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return OperateurBinaire::Genre::Comp_Inegal_Reel;
+			}
 			return OperateurBinaire::Genre::Comp_Inegal;
 		}
 		default:
@@ -356,21 +262,45 @@ const char *chaine_pour_genre_op(OperateurBinaire::Genre genre)
 		{
 			return "ajt";
 		}
+		case OperateurBinaire::Genre::Addition_Reel:
+		{
+			return "ajtr";
+		}
 		case OperateurBinaire::Genre::Soustraction:
 		{
 			return "sst";
+		}
+		case OperateurBinaire::Genre::Soustraction_Reel:
+		{
+			return "sstr";
 		}
 		case OperateurBinaire::Genre::Multiplication:
 		{
 			return "mul";
 		}
-		case OperateurBinaire::Genre::Division:
+		case OperateurBinaire::Genre::Multiplication_Reel:
 		{
-			return "div";
+			return "mulr";
 		}
-		case OperateurBinaire::Genre::Reste:
+		case OperateurBinaire::Genre::Division_Naturel:
 		{
-			return "mod";
+			return "divn";
+		}
+		case OperateurBinaire::Genre::Division_Relatif:
+		{
+			return "divz";
+		}
+		case OperateurBinaire::Genre::Division_Reel:
+		{
+			return "divr";
+		}
+		case OperateurBinaire::Genre::Reste_Naturel:
+		{
+			return "modn";
+		}
+		case OperateurBinaire::Genre::Reste_Relatif:
+		{
+			return "modz";
 		}
 		case OperateurBinaire::Genre::Comp_Egal:
 		{
@@ -396,6 +326,46 @@ const char *chaine_pour_genre_op(OperateurBinaire::Genre genre)
 		{
 			return "supeg";
 		}
+		case OperateurBinaire::Genre::Comp_Inf_Nat:
+		{
+			return "infn";
+		}
+		case OperateurBinaire::Genre::Comp_Inf_Egal_Nat:
+		{
+			return "infegn";
+		}
+		case OperateurBinaire::Genre::Comp_Sup_Nat:
+		{
+			return "supn";
+		}
+		case OperateurBinaire::Genre::Comp_Sup_Egal_Nat:
+		{
+			return "supegn";
+		}
+		case OperateurBinaire::Genre::Comp_Egal_Reel:
+		{
+			return "egr";
+		}
+		case OperateurBinaire::Genre::Comp_Inegal_Reel:
+		{
+			return "negr";
+		}
+		case OperateurBinaire::Genre::Comp_Inf_Reel:
+		{
+			return "infr";
+		}
+		case OperateurBinaire::Genre::Comp_Inf_Egal_Reel:
+		{
+			return "infegr";
+		}
+		case OperateurBinaire::Genre::Comp_Sup_Reel:
+		{
+			return "supr";
+		}
+		case OperateurBinaire::Genre::Comp_Sup_Egal_Reel:
+		{
+			return "supegr";
+		}
 		case OperateurBinaire::Genre::Et_Logique:
 		{
 			return "et";
@@ -420,9 +390,13 @@ const char *chaine_pour_genre_op(OperateurBinaire::Genre genre)
 		{
 			return "decg";
 		}
-		case OperateurBinaire::Genre::Dec_Droite:
+		case OperateurBinaire::Genre::Dec_Droite_Arithm:
 		{
-			return "decd";
+			return "decda";
+		}
+		case OperateurBinaire::Genre::Dec_Droite_Logique:
+		{
+			return "decdl";
 		}
 		case OperateurBinaire::Genre::Invalide:
 		{
@@ -483,10 +457,9 @@ void Operateurs::ajoute_basique(
 		GenreLexeme id,
 		Type *type,
 		Type *type_resultat,
-		IndiceTypeOp indice_type,
-		RaisonOp raison)
+		IndiceTypeOp indice_type)
 {
-	ajoute_basique(id, type, type, type_resultat, indice_type, raison);
+	ajoute_basique(id, type, type, type_resultat, indice_type);
 }
 
 void Operateurs::ajoute_basique(
@@ -494,8 +467,7 @@ void Operateurs::ajoute_basique(
 		Type *type1,
 		Type *type2,
 		Type *type_resultat,
-		IndiceTypeOp indice_type,
-		RaisonOp raison)
+		IndiceTypeOp indice_type)
 {
 	assert(type1);
 	assert(type2);
@@ -506,16 +478,7 @@ void Operateurs::ajoute_basique(
 	op->type_resultat = type_resultat;
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = true;
-	op->genre = genre_op_binaire_pour_lexeme(id);
-
-	if (raison == RaisonOp::POUR_COMPARAISON) {
-		op->est_comp_reel = indice_type == IndiceTypeOp::REEL;
-		op->est_comp_entier = !op->est_comp_reel;
-		op->predicat_llvm = predicat_llvm_pour_operateur(id, indice_type);
-	}
-	else if (raison == RaisonOp::POUR_ARITHMETIQUE) {
-		op->instr_llvm = instruction_llvm_pour_operateur(id, indice_type);
-	}
+	op->genre = genre_op_binaire_pour_lexeme(id, indice_type);
 }
 
 void Operateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat)
@@ -541,7 +504,6 @@ void Operateurs::ajoute_perso(
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = false;
 	op->decl = decl;
-	op->genre = genre_op_binaire_pour_lexeme(id);
 }
 
 void Operateurs::ajoute_perso_unaire(
@@ -562,12 +524,12 @@ void Operateurs::ajoute_operateur_basique_enum(Type *type)
 {
 	for (auto op : operateurs_comparaisons) {
 		/* À FAIRE: typage exacte de l'énumération */
-		this->ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_COMPARAISON);
+		this->ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_RELATIF);
 	}
 
 	for (auto op : operateurs_entiers) {
 		/* À FAIRE: typage exacte de l'énumération */
-		this->ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
+		this->ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF);
 	}
 }
 
@@ -733,59 +695,59 @@ void enregistre_operateurs_basiques(
 
 	for (auto op : operateurs_entiers_reels) {
 		for (auto type : types_entiers_relatifs) {
-			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
+			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF);
 		}
 
 		for (auto type : types_entiers_naturels) {
-			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_NATUREL);
 		}
 
 		for (auto type : types_reels) {
-			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::REEL, RaisonOp::POUR_ARITHMETIQUE);
+			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::REEL);
 		}
 
-		operateurs.ajoute_basique(op, type_octet, type_octet, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
-		operateurs.ajoute_basique(op, type_entier_constant, type_entier_constant, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+		operateurs.ajoute_basique(op, type_octet, type_octet, IndiceTypeOp::ENTIER_RELATIF);
+		operateurs.ajoute_basique(op, type_entier_constant, type_entier_constant, IndiceTypeOp::ENTIER_NATUREL);
 	}
 
 	for (auto op : operateurs_comparaisons) {
 		for (auto type : types_entiers_relatifs) {
-			operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_COMPARAISON);
+			operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_RELATIF);
 		}
 
 		for (auto type : types_entiers_naturels) {
-			operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_COMPARAISON);
+			operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 		}
 
 		for (auto type : types_reels) {
-			operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::REEL, RaisonOp::POUR_COMPARAISON);
+			operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::REEL);
 		}
 
-		operateurs.ajoute_basique(op, type_octet, type_bool, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_COMPARAISON);
-		operateurs.ajoute_basique(op, type_entier_constant, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_COMPARAISON);
+		operateurs.ajoute_basique(op, type_octet, type_bool, IndiceTypeOp::ENTIER_RELATIF);
+		operateurs.ajoute_basique(op, type_entier_constant, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 	}
 
 	for (auto op : operateurs_entiers) {
 		for (auto type : types_entiers_relatifs) {
-			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
+			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF);
 		}
 
 		for (auto type : types_entiers_naturels) {
-			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_NATUREL);
 		}
 
-		operateurs.ajoute_basique(op, type_octet, type_octet, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
-		operateurs.ajoute_basique(op, type_entier_constant, type_entier_constant, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+		operateurs.ajoute_basique(op, type_octet, type_octet, IndiceTypeOp::ENTIER_RELATIF);
+		operateurs.ajoute_basique(op, type_entier_constant, type_entier_constant, IndiceTypeOp::ENTIER_NATUREL);
 	}
 
 	// operateurs booléens & | ^ && || == !=
-	operateurs.ajoute_basique(GenreLexeme::CHAPEAU, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
-	operateurs.ajoute_basique(GenreLexeme::ESPERLUETTE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
-	operateurs.ajoute_basique(GenreLexeme::BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
-	operateurs.ajoute_basique(GenreLexeme::ESP_ESP, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
-	operateurs.ajoute_basique(GenreLexeme::BARRE_BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
-	operateurs.ajoute_basique(GenreLexeme::EGALITE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
-	operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+	operateurs.ajoute_basique(GenreLexeme::CHAPEAU, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+	operateurs.ajoute_basique(GenreLexeme::ESPERLUETTE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+	operateurs.ajoute_basique(GenreLexeme::BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+	operateurs.ajoute_basique(GenreLexeme::ESP_ESP, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+	operateurs.ajoute_basique(GenreLexeme::BARRE_BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+	operateurs.ajoute_basique(GenreLexeme::EGALITE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+	operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 
 	// opérateurs unaires + - ~
 	for (auto type : types_entiers_naturels) {

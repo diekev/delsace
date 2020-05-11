@@ -31,13 +31,6 @@
 #include "lexemes.hh"
 #include "structures.hh"
 
-#ifdef AVEC_LLVM
-namespace llvm {
-class Constant;
-class Type;
-}
-#endif
-
 struct GrapheDependance;
 struct Operateurs;
 struct NoeudEnum;
@@ -223,6 +216,8 @@ enum {
 	TYPEDEF_FUT_GENERE = 1
 };
 
+struct AtomeConstante;
+
 struct Type {
 	GenreType genre{};
 	unsigned taille_octet = 0;
@@ -230,12 +225,8 @@ struct Type {
 	int drapeaux = 0;
 
 	dls::chaine nom_broye{};
-	dls::chaine ptr_info_type{};
 
-#ifdef AVEC_LLVM
-	llvm::Type *type_llvm = nullptr;
-	llvm::Constant *info_type_llvm = nullptr;
-#endif
+	AtomeConstante *info_type = nullptr;
 
 	static Type *cree_entier(unsigned taille_octet, bool est_naturel)
 	{

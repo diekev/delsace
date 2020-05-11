@@ -401,37 +401,35 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 	graphe.connecte_type_type(resultat, type);
 
 	auto indice = IndiceTypeOp::ENTIER_RELATIF;
-	auto raison = RaisonOp::POUR_COMPARAISON;
 
 	auto const &idx_dt_ptr_nul = types_communs[static_cast<long>(TypeBase::PTR_NUL)];
 	auto const &idx_dt_bool = types_communs[static_cast<long>(TypeBase::BOOL)];
 
-	operateurs.ajoute_basique(GenreLexeme::EGALITE, resultat, idx_dt_ptr_nul, idx_dt_bool, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, resultat, idx_dt_ptr_nul, idx_dt_bool, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::INFERIEUR, resultat, idx_dt_bool, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::INFERIEUR_EGAL, resultat, idx_dt_bool, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::SUPERIEUR, resultat, idx_dt_bool, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::SUPERIEUR_EGAL, resultat, idx_dt_bool, indice, raison);
+	operateurs.ajoute_basique(GenreLexeme::EGALITE, resultat, idx_dt_ptr_nul, idx_dt_bool, indice);
+	operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, resultat, idx_dt_ptr_nul, idx_dt_bool, indice);
+	operateurs.ajoute_basique(GenreLexeme::INFERIEUR, resultat, idx_dt_bool, indice);
+	operateurs.ajoute_basique(GenreLexeme::INFERIEUR_EGAL, resultat, idx_dt_bool, indice);
+	operateurs.ajoute_basique(GenreLexeme::SUPERIEUR, resultat, idx_dt_bool, indice);
+	operateurs.ajoute_basique(GenreLexeme::SUPERIEUR_EGAL, resultat, idx_dt_bool, indice);
 
 	/* Pour l'arithmétique de pointeur nous n'utilisons que le type le plus
-		 * gros, la résolution de l'opérateur ajoutera une transformation afin
-		 * que le type plus petit soit transtyper à la bonne taille. */
+	 * gros, la résolution de l'opérateur ajoutera une transformation afin
+	 * que le type plus petit soit transtyper à la bonne taille. */
 	auto idx_type_entier = types_communs[static_cast<long>(TypeBase::Z64)];
-	raison = RaisonOp::POUR_ARITHMETIQUE;
 
-	operateurs.ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::MOINS, resultat, resultat, resultat, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice, raison);
+	operateurs.ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice);
+	operateurs.ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice);
+	operateurs.ajoute_basique(GenreLexeme::MOINS, resultat, resultat, resultat, indice);
+	operateurs.ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice);
+	operateurs.ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice);
 
 	idx_type_entier = types_communs[static_cast<long>(TypeBase::N64)];
 	indice = IndiceTypeOp::ENTIER_NATUREL;
 
-	operateurs.ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice, raison);
+	operateurs.ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice);
+	operateurs.ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice);
+	operateurs.ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice);
+	operateurs.ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice);
 
 	types_pointeurs.pousse(resultat);
 
@@ -608,13 +606,12 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 	types_fonctions.pousse(type);
 
 	auto indice = IndiceTypeOp::ENTIER_RELATIF;
-	auto raison = RaisonOp::POUR_COMPARAISON;
 
 	auto const &idx_dt_ptr_nul = types_communs[static_cast<long>(TypeBase::PTR_NUL)];
 	auto const &idx_dt_bool = types_communs[static_cast<long>(TypeBase::BOOL)];
 
-	operateurs.ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_ptr_nul, idx_dt_bool, indice, raison);
-	operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_ptr_nul, idx_dt_bool, indice, raison);
+	operateurs.ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
+	operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
 
 	return type;
 }

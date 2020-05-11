@@ -49,6 +49,7 @@ struct Metriques {
 	size_t memoire_contexte = 0ul;
 	size_t memoire_types = 0ul;
 	size_t memoire_operateurs = 0ul;
+	size_t memoire_ri = 0ul;
 	long nombre_types = 0;
 	long nombre_operateurs = 0;
 	double temps_chargement = 0.0;
@@ -60,6 +61,7 @@ struct Metriques {
 	double temps_fichier_objet = 0.0;
 	double temps_executable = 0.0;
 	double temps_nettoyage = 0.0;
+	double temps_ri = 0.0;
 };
 
 struct IdentifiantCode {

@@ -24,30 +24,58 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LegacyPassManager.h>
+#pragma GCC diagnostic pop
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
+
+struct Atome;
+struct InstructionLabel;
 struct ContexteGenerationCode;
-struct ContexteGenerationLLVM;
-struct NoeudExpression;
+struct ConstructriceRI;
+struct Type;
+struct TypeFonction;
+struct Instruction;
 
-namespace llvm {
-class Value;
-}
+struct GeneratriceCodeLLVM {
+	dls::dico<Atome const *, llvm::Value *> table_valeurs{};
+	dls::dico<InstructionLabel const *, llvm::BasicBlock *> table_blocs{};
+	dls::dico<Atome const *, llvm::Value *> table_globales{};
+	dls::dico_desordonne<Type *, llvm::Type *> table_types{};
+	dls::dico_desordonne<dls::chaine, llvm::Constant *> valeurs_chaines_globales{};
+	ContexteGenerationCode &m_contexte;
 
-namespace noeud {
+	llvm::Function *m_fonction_courante = nullptr;
+	llvm::LLVMContext m_contexte_llvm{};
+	llvm::Module *m_module = nullptr;
+	llvm::IRBuilder<> m_builder;
+	llvm::legacy::FunctionPassManager *manager_fonctions = nullptr;
 
-llvm::Value *genere_code_llvm(
-		NoeudExpression *b,
-		ContexteGenerationLLVM &contexte,
-		const bool expr_gauche);
+	GeneratriceCodeLLVM(ContexteGenerationCode &contexte);
 
-[[nodiscard]] llvm::Value *applique_transformation(
-		ContexteGenerationLLVM &contexte,
-		NoeudExpression *b,
-		bool expr_gauche);
-/**
- * Traverse l'arbre et génère le code LLVM.
- */
-void genere_code_llvm(
-		ContexteGenerationCode &contexte,
-		ContexteGenerationLLVM &contexte_llvm);
+	GeneratriceCodeLLVM(GeneratriceCodeLLVM const &) = delete;
+	GeneratriceCodeLLVM &operator=(const GeneratriceCodeLLVM &) = delete;
 
-}  /* namespace noeud */
+	llvm::Type *converti_type_llvm(Type *type);
+
+	llvm::FunctionType *converti_type_fonction(TypeFonction *type, bool est_externe);
+
+	llvm::Value *genere_code_pour_atome(Atome *atome, bool pour_globale);
+
+	void genere_code_pour_instruction(Instruction const *inst);
+
+	void genere_code(ConstructriceRI &constructrice_ri);
+
+	llvm::Constant *valeur_pour_chaine(const dls::chaine &chaine, long taille_chaine);
+};

@@ -22,6 +22,7 @@
 set(NOM_CIBLE kuri_coulisse_llvm)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../compilation/
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 )
@@ -32,17 +33,9 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-	constructrice_code.cc
-	contexte_generation_llvm.cc
 	generation_code_llvm.cc
-	info_type_llvm.cc
-	conversion_type_llvm.cc
 
-	constructrice_code.hh
-	contexte_generation_llvm.hh
 	generation_code_llvm.hh
-	info_type_llvm.hh
-	conversion_type_llvm.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

@@ -212,8 +212,6 @@ struct NoeudBase {
 
 	TransformationType transformation{};
 
-	std::any valeur_calculee{};
-
 	/* utilisé pour déterminer les types de retour des fonctions à moultretour
 	 * car lors du besoin index_type est utilisé pour le type de retour de la
 	 *  première valeur */
@@ -222,11 +220,6 @@ struct NoeudBase {
 	NoeudBase() = default;
 
 	COPIE_CONSTRUCT(NoeudBase);
-
-	dls::chaine chaine_calculee() const
-	{
-		return std::any_cast<dls::chaine>(this->valeur_calculee);
-	}
 };
 
 /* pour simplifier l'arbre les instructions et déclarations sont également des expressions */

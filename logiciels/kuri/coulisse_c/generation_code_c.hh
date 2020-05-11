@@ -25,7 +25,6 @@
 #pragma once
 
 #include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 
 struct assembleuse_arbre;
 struct ContexteGenerationCode;
@@ -34,12 +33,9 @@ struct NoeudExpression;
 
 namespace noeud {
 
-/**
- * Traverse l'arbre et génère le code C.
- */
 void genere_code_C(
 		assembleuse_arbre const &arbre,
-		ContexteGenerationCode &contexte,
+		ConstructriceRI &constructrice_ri,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);
 
@@ -49,8 +45,5 @@ void genere_code_C_pour_execution(
 		ContexteGenerationCode &contexte,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);
-
-void genere_code_C(
-		ConstructriceRI &contructrice_ri);
 
 }  /* namespace noeud */

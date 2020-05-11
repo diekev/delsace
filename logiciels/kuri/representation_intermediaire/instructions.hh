@@ -33,6 +33,7 @@
 #include "structures.hh"
 
 struct IdentifiantCode;
+struct Lexeme;
 struct Type;
 
 struct Atome {
@@ -47,6 +48,8 @@ struct Atome {
 	IdentifiantCode *ident = nullptr;
 
 	Genre genre_atome{};
+	// vrai si l'atome est celui d'une instruction chargeable
+	bool est_chargeable = false;
 
 	Atome() = default;
 
@@ -56,13 +59,29 @@ struct Atome {
 struct AtomeConstante : public Atome {
 	AtomeConstante() { genre_atome = Atome::Genre::CONSTANTE; }
 
+	enum class Genre {
+		GLOBALE,
+		VALEUR,
+		TRANSTYPE_CONSTANT,
+		OP_BINAIRE_CONSTANTE,
+		OP_UNAIRE_CONSTANTE,
+		ACCES_INDEX_CONSTANT,
+	};
+
+	Genre genre{};
+};
+
+struct AtomeValeurConstante : public AtomeConstante {
+	AtomeValeurConstante() { genre = Genre::VALEUR; }
+
 	struct Valeur {
 		union {
 			unsigned long long valeur_entiere;
 			double valeur_reelle;
 			bool valeur_booleenne;
-			struct { char *pointeur; long taille; } valeur_chaine;
+			struct { char *pointeur; long taille; } valeur_tdc;
 			struct { AtomeConstante **pointeur; long taille; } valeur_structure;
+			struct { AtomeConstante **pointeur; long taille; } valeur_tableau;
 		};
 
 		enum class Genre {
@@ -71,9 +90,10 @@ struct AtomeConstante : public Atome {
 			REELLE,
 			BOOLEENNE,
 			NULLE,
-			CHAINE,
 			CARACTERE,
 			STRUCTURE,
+			TABLEAU_FIXE,
+			TABLEAU_DONNEES_CONSTANTES,
 		};
 
 		Genre genre{};
@@ -83,27 +103,82 @@ struct AtomeConstante : public Atome {
 			if (genre == Genre::STRUCTURE) {
 				memoire::deloge_tableau("kuri::tableau", valeur_structure.pointeur, valeur_structure.taille);
 			}
+
+			if (genre == Genre::TABLEAU_FIXE) {
+				memoire::deloge_tableau("kuri::tableau", valeur_tableau.pointeur, valeur_tableau.taille);
+			}
 		}
 	};
 
 	Valeur valeur{};
 
-	static AtomeConstante *cree(Type *type, unsigned long long valeur);
-	static AtomeConstante *cree(Type *type, double valeur);
-	static AtomeConstante *cree(Type *type, bool valeur);
-	static AtomeConstante *cree(Type *type);
-	static AtomeConstante *cree(Type *type, kuri::chaine const &chaine);
-	static AtomeConstante *cree(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
+	static AtomeValeurConstante *cree(Type *type, unsigned long long valeur);
+	static AtomeValeurConstante *cree(Type *type, double valeur);
+	static AtomeValeurConstante *cree(Type *type, bool valeur);
+	static AtomeValeurConstante *cree(Type *type);
+	static AtomeValeurConstante *cree(Type *type, kuri::tableau<char> &&donnees_constantes);
+	static AtomeValeurConstante *cree(Type *type, char *pointeur, long taille);
+	static AtomeValeurConstante *cree(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
+	static AtomeValeurConstante *cree_tableau_fixe(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
 };
 
-struct AtomeGlobale : public Atome {
-	AtomeGlobale() { genre_atome = Atome::Genre::GLOBALE; }
+struct AtomeGlobale : public AtomeConstante {
+	AtomeGlobale() { genre = Genre::GLOBALE; genre_atome = Atome::Genre::GLOBALE; est_chargeable = true; }
 
 	AtomeConstante *initialisateur{};
+	bool est_externe = false;
+	bool est_constante = false;
 
 	COPIE_CONSTRUCT(AtomeGlobale);
 
-	static AtomeGlobale *cree(Type *type, AtomeConstante *initialisateur);
+	static AtomeGlobale *cree(Type *type, AtomeConstante *initialisateur, bool est_externe, bool est_constante);
+};
+
+struct TranstypeConstant : public AtomeConstante {
+	TranstypeConstant() { genre = Genre::TRANSTYPE_CONSTANT; }
+
+	AtomeConstante *valeur = nullptr;
+
+	COPIE_CONSTRUCT(TranstypeConstant);
+
+	static TranstypeConstant *cree(Type *type, AtomeConstante *valeur);
+};
+
+struct OpBinaireConstant : public AtomeConstante {
+	OpBinaireConstant() { genre = Genre::OP_BINAIRE_CONSTANTE; }
+
+	OperateurBinaire::Genre op{};
+	AtomeConstante *operande_gauche = nullptr;
+	AtomeConstante *operande_droite = nullptr;
+
+	COPIE_CONSTRUCT(OpBinaireConstant);
+
+	static OpBinaireConstant *cree(Type *type, OperateurBinaire::Genre op, AtomeConstante *operande_gauche, AtomeConstante *operande_droite);
+};
+
+struct OpUnaireConstant : public AtomeConstante {
+	OpUnaireConstant() { genre = Genre::OP_UNAIRE_CONSTANTE; }
+
+	OperateurUnaire::Genre op{};
+	AtomeConstante *operande = nullptr;
+
+	COPIE_CONSTRUCT(OpUnaireConstant);
+
+	static OpUnaireConstant *cree(Type *type, OperateurUnaire::Genre op, AtomeConstante *operande);
+};
+
+struct AccedeIndexConstant : public AtomeConstante {
+	AccedeIndexConstant()
+	{
+		genre = Genre::ACCES_INDEX_CONSTANT;
+	}
+
+	AtomeConstante *accede = nullptr;
+	AtomeConstante *index = nullptr;
+
+	COPIE_CONSTRUCT(AccedeIndexConstant);
+
+	static AccedeIndexConstant *cree(Type *type, AtomeConstante *accede, AtomeConstante *index);
 };
 
 struct AtomeFonction : public Atome {
@@ -114,7 +189,13 @@ struct AtomeFonction : public Atome {
 
 	kuri::tableau<Atome *> instructions{};
 
-	static AtomeFonction *cree(dls::chaine const &nom, kuri::tableau<Atome *> &&params);
+	/* pour les traces d'appels */
+	Lexeme const *lexeme = nullptr;
+
+	bool sanstrace = false;
+
+	static AtomeFonction *cree(Lexeme const *lexeme, dls::chaine const &nom);
+	static AtomeFonction *cree(Lexeme const *lexeme, dls::chaine const &nom, kuri::tableau<Atome *> &&params);
 };
 
 struct Instruction : public Atome {
@@ -147,14 +228,21 @@ struct InstructionAppel : public Instruction {
 
 	Atome *appele = nullptr;
 	kuri::tableau<Atome *> args{};
+	/* pour les traces d'appels */
+	Lexeme const *lexeme = nullptr;
 
 	COPIE_CONSTRUCT(InstructionAppel);
 
-	static InstructionAppel *cree(Type *type, Atome *appele, kuri::tableau<Atome *> &&args);
+	static InstructionAppel *cree(Lexeme const *lexeme, Atome *appele);
+	static InstructionAppel *cree(Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args);
 };
 
 struct InstructionAllocation : public Instruction {
-	InstructionAllocation() { genre = Instruction::Genre::ALLOCATION; }
+	InstructionAllocation()
+	{
+		genre = Instruction::Genre::ALLOCATION;
+		est_chargeable = true;
+	}
 
 	static InstructionAllocation *cree(Type *type, IdentifiantCode *ident);
 };
@@ -193,24 +281,28 @@ struct InstructionOpUnaire : public Instruction {
 };
 
 struct InstructionChargeMem : public Instruction {
-	InstructionChargeMem() { genre = Instruction::Genre::CHARGE_MEMOIRE; }
+	InstructionChargeMem()
+	{
+		genre = Instruction::Genre::CHARGE_MEMOIRE;
+		est_chargeable = true;
+	}
 
-	Instruction *inst_chargee = nullptr;
+	Atome *chargee = nullptr;
 
 	COPIE_CONSTRUCT(InstructionChargeMem);
 
-	static InstructionChargeMem *cree(Type *type, Instruction *inst_chargee);
+	static InstructionChargeMem *cree(Type *type, Atome *chargee);
 };
 
 struct InstructionStockeMem : public Instruction {
 	InstructionStockeMem() { genre = Instruction::Genre::STOCKE_MEMOIRE; }
 
-	Instruction *ou = nullptr;
+	Atome *ou = nullptr;
 	Atome *valeur = nullptr;
 
 	COPIE_CONSTRUCT(InstructionStockeMem);
 
-	static InstructionStockeMem *cree(Type *type, Instruction *ou, Atome *valeur);
+	static InstructionStockeMem *cree(Type *type, Atome *ou, Atome *valeur);
 };
 
 struct InstructionLabel : public Instruction {
@@ -244,7 +336,11 @@ struct InstructionBrancheCondition : public Instruction {
 };
 
 struct InstructionAccedeMembre : public Instruction {
-	InstructionAccedeMembre() { genre = Instruction::Genre::ACCEDE_MEMBRE; }
+	InstructionAccedeMembre()
+	{
+		genre = Instruction::Genre::ACCEDE_MEMBRE;
+		est_chargeable = true;
+	}
 
 	Atome *accede = nullptr;
 	Atome *index = nullptr;
@@ -255,7 +351,11 @@ struct InstructionAccedeMembre : public Instruction {
 };
 
 struct InstructionAccedeIndex : public Instruction {
-	InstructionAccedeIndex() { genre = Instruction::Genre::ACCEDE_INDEX; }
+	InstructionAccedeIndex()
+	{
+		genre = Instruction::Genre::ACCEDE_INDEX;
+		est_chargeable = true;
+	}
 
 	Atome *accede = nullptr;
 	Atome *index = nullptr;
@@ -266,7 +366,11 @@ struct InstructionAccedeIndex : public Instruction {
 };
 
 struct InstructionTranstype : public Instruction {
-	InstructionTranstype() { genre = Instruction::Genre::TRANSTYPE; }
+	InstructionTranstype()
+	{
+		genre = Instruction::Genre::TRANSTYPE;
+		est_chargeable = false; // À FAIRE : uniquement si la valeur est un pointeur
+	}
 
 	Atome *valeur = nullptr;
 

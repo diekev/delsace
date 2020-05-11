@@ -30,17 +30,6 @@
 #include "biblinternes/structures/tableau_page.hh"
 #include "biblinternes/structures/tablet.hh"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#include <llvm/IR/InstrTypes.h>
-#pragma GCC diagnostic pop
-
 #include "transformation_type.hh"
 
 enum class GenreLexeme : unsigned int;
@@ -52,11 +41,6 @@ enum class IndiceTypeOp {
 	ENTIER_NATUREL,
 	ENTIER_RELATIF,
 	REEL,
-};
-
-enum class RaisonOp {
-	POUR_COMPARAISON,
-	POUR_ARITHMETIQUE,
 };
 
 struct OperateurUnaire {
@@ -86,10 +70,16 @@ struct OperateurBinaire {
 		Invalide,
 
 		Addition,
+		Addition_Reel,
 		Soustraction,
+		Soustraction_Reel,
 		Multiplication,
-		Division,
-		Reste,
+		Multiplication_Reel,
+		Division_Naturel,
+		Division_Relatif,
+		Division_Reel,
+		Reste_Naturel,
+		Reste_Relatif,
 
 		Comp_Egal,
 		Comp_Inegal,
@@ -97,6 +87,17 @@ struct OperateurBinaire {
 		Comp_Inf_Egal,
 		Comp_Sup,
 		Comp_Sup_Egal,
+		Comp_Inf_Nat,
+		Comp_Inf_Egal_Nat,
+		Comp_Sup_Nat,
+		Comp_Sup_Egal_Nat,
+
+		Comp_Egal_Reel,
+		Comp_Inegal_Reel,
+		Comp_Inf_Reel,
+		Comp_Inf_Egal_Reel,
+		Comp_Sup_Reel,
+		Comp_Sup_Egal_Reel,
 
 		Et_Logique,
 		Ou_Logique,
@@ -106,7 +107,8 @@ struct OperateurBinaire {
 		Ou_Exclusif,
 
 		Dec_Gauche,
-		Dec_Droite,
+		Dec_Droite_Arithm,
+		Dec_Droite_Logique,
 	};
 
 	Type *type1{};
@@ -123,12 +125,6 @@ struct OperateurBinaire {
 
 	/* faux pour les opérateurs définis par l'utilisateur */
 	bool est_basique = true;
-
-	bool est_comp_entier = false;
-	bool est_comp_reel = false;
-
-	llvm::Instruction::BinaryOps instr_llvm{};
-	llvm::CmpInst::Predicate predicat_llvm{};
 };
 
 const char *chaine_pour_genre_op(OperateurBinaire::Genre genre);
@@ -147,8 +143,8 @@ struct Operateurs {
 	type_conteneur_binaire const &trouve_binaire(GenreLexeme id) const;
 	type_conteneur_unaire const &trouve_unaire(GenreLexeme id) const;
 
-	void ajoute_basique(GenreLexeme id, Type *type, Type *type_resultat, IndiceTypeOp indice_type, RaisonOp raison);
-	void ajoute_basique(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, IndiceTypeOp indice_type, RaisonOp raison);
+	void ajoute_basique(GenreLexeme id, Type *type, Type *type_resultat, IndiceTypeOp indice_type);
+	void ajoute_basique(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, IndiceTypeOp indice_type);
 
 	void ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat);
 

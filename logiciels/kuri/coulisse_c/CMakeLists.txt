@@ -34,15 +34,9 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-	constructrice_code_c.cc
 	generation_code_c.cc
-	info_type_c.cc
-	conversion_type_c.cc
 
-	constructrice_code_c.hh
 	generation_code_c.hh
-	info_type_c.hh
-	conversion_type_c.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

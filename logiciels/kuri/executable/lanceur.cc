@@ -51,7 +51,6 @@
 #include <llvm/Transforms/Scalar/GVN.h>
 #pragma GCC diagnostic pop
 
-#include "coulisse_llvm/contexte_generation_llvm.hh"
 #include "coulisse_llvm/generation_code_llvm.hh"
 #endif
 
@@ -66,7 +65,6 @@
 
 #include "coulisse_c/generation_code_c.hh"
 
-#undef CRI
 #include "representation_intermediaire/constructrice_ri.hh"
 
 #include "options.hh"
@@ -74,6 +72,7 @@
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/format.hh"
 #include "biblinternes/outils/tableau_donnees.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
 #ifdef AVEC_LLVM
@@ -148,10 +147,10 @@ static void ajoute_passes(
  */
 static void initialise_optimisation(
 		NiveauOptimisation optimisation,
-		ContexteGenerationLLVM &contexte)
+		GeneratriceCodeLLVM &contexte)
 {
 	if (contexte.manager_fonctions == nullptr) {
-		contexte.manager_fonctions = new llvm::legacy::FunctionPassManager(contexte.module_llvm);
+		contexte.manager_fonctions = new llvm::legacy::FunctionPassManager(contexte.m_module);
 	}
 
 	switch (optimisation) {
@@ -286,7 +285,8 @@ static void imprime_stats(
 							 + metriques.temps_decoupage
 							 + metriques.temps_analyse
 							 + metriques.temps_chargement
-							 + metriques.temps_validation;
+							 + metriques.temps_validation
+							 + metriques.temps_ri;
 
 	auto const temps_coulisse = metriques.temps_generation
 								+ metriques.temps_fichier_objet
@@ -304,7 +304,8 @@ static void imprime_stats(
 							+ metriques.memoire_arbre
 							+ metriques.memoire_contexte
 							+ metriques.memoire_types
-							+ metriques.memoire_operateurs;
+							+ metriques.memoire_operateurs
+							+ metriques.memoire_ri;
 
 	auto memoire_consommee = memoire::consommee();
 
@@ -340,6 +341,7 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "- Contexte", formatte_nombre(metriques.memoire_contexte), "o" });
 	tableau.ajoute_ligne({ "- Lexèmes", formatte_nombre(metriques.memoire_lexemes), "o" });
 	tableau.ajoute_ligne({ "- Opérateurs", formatte_nombre(metriques.memoire_operateurs), "o" });
+	tableau.ajoute_ligne({ "- RI", formatte_nombre(metriques.memoire_ri), "o" });
 	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.memoire_tampons), "o" });
 	tableau.ajoute_ligne({ "- Types", formatte_nombre(metriques.memoire_types), "o" });
 	tableau.ajoute_ligne({ "Nombre allocations", formatte_nombre(memoire::nombre_allocations()), "" });
@@ -350,6 +352,7 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "- Lexage", formatte_nombre(metriques.temps_decoupage * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_decoupage, temps_scene)) });
 	tableau.ajoute_ligne({ "- Syntaxage", formatte_nombre(metriques.temps_analyse * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_analyse, temps_scene)) });
 	tableau.ajoute_ligne({ "- Typage", formatte_nombre(metriques.temps_validation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_validation, temps_scene)) });
+	tableau.ajoute_ligne({ "- RI", formatte_nombre(metriques.temps_ri * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_ri, temps_scene)) });
 
 	tableau.ajoute_ligne({ "Temps Coulisse", formatte_nombre(temps_coulisse * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_coulisse, temps_total)) });
 	tableau.ajoute_ligne({ "- Génération Code", formatte_nombre(metriques.temps_generation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_generation, temps_coulisse)) });
@@ -515,6 +518,8 @@ int main(int argc, char *argv[])
 	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
 	auto temps_fichier_objet = 0.0;
 	auto temps_executable    = 0.0;
+	auto temps_ri            = 0.0;
+	auto memoire_ri          = 0ul;
 	auto est_errone = false;
 
 	auto metriques = Metriques{};
@@ -541,12 +546,8 @@ int main(int argc, char *argv[])
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 
 		/* Charge d'abord le module basique. */
-#ifdef CRI
-		contexte_generation.importe_kuri = false;
-#else
 		importe_module(os, chemin_racine_kuri, "Kuri", contexte_generation, {});
 		initialise_interface_kuri(contexte_generation);
-#endif
 
 		/* Change le dossier courant et lance la compilation. */
 		auto dossier = chemin.parent_path();
@@ -577,22 +578,29 @@ int main(int argc, char *argv[])
 									 cible->createTargetMachine(
 										 triplet_cible, CPU, feature, options_cible, RM));
 
-			auto contexte_llvm = ContexteGenerationLLVM(contexte_generation.typeuse, contexte_generation.fichiers);
-			contexte_llvm.module_llvm = nullptr;
+			auto generatrice = GeneratriceCodeLLVM(contexte_generation);
 
-			auto module_llvm = llvm::Module("Module", contexte_llvm.contexte);
+			auto module_llvm = llvm::Module("Module", generatrice.m_contexte_llvm);
 			module_llvm.setDataLayout(machine_cible->createDataLayout());
 			module_llvm.setTargetTriple(triplet_cible);
 
-			contexte_llvm.module_llvm = &module_llvm;
-
-			initialise_optimisation(ops.niveau_optimisation, contexte_llvm);
+			generatrice.m_module = &module_llvm;
 
 			os << "Validation sémantique du code..." << std::endl;
 			noeud::performe_validation_semantique(contexte_generation);
 
 			os << "Génération du code..." << std::endl;
-			noeud::genere_code_llvm(contexte_generation, contexte_llvm);
+			auto temps_generation = dls::chrono::compte_seconde();
+
+			auto constructrice_ri = ConstructriceRI(contexte_generation);
+			constructrice_ri.genere_ri();
+			constructrice_ri.imprime_programme();
+
+			initialise_optimisation(ops.niveau_optimisation, generatrice);
+
+			generatrice.genere_code(constructrice_ri);
+
+			contexte_generation.temps_generation = temps_generation.temps();
 
 #ifndef NDEBUG
 			if (!valide_llvm_ir(module_llvm)) {
@@ -624,32 +632,31 @@ int main(int argc, char *argv[])
 			os << "Validation sémantique du code..." << std::endl;
 			noeud::performe_validation_semantique(contexte_generation);
 
-			for (auto noeud: contexte_generation.noeuds_a_executer) {
-				std::ofstream of;
-				of.open("/tmp/execution_kuri.c");
+//			for (auto noeud: contexte_generation.noeuds_a_executer) {
+//				std::ofstream of;
+//				of.open("/tmp/execution_kuri.c");
 
-				noeud::genere_code_C_pour_execution(*assembleuse, noeud, contexte_generation, chemin_racine_kuri, of);
-				lance_execution(contexte_generation);
-			}
+//				noeud::genere_code_C_pour_execution(*assembleuse, noeud, contexte_generation, chemin_racine_kuri, of);
+//				lance_execution(contexte_generation);
+//			}
 
 //			POUR (contexte_generation.modules) {
 //				std::cerr << "Arbre syntaxique pour '" << it->nom << "' :\n";
 //				imprime_arbre(it->assembleuse->bloc_courant(), std::cerr, 1);
 //			}
 
-#ifdef CRI
 			auto constructrice_ri = ConstructriceRI(contexte_generation);
 			constructrice_ri.genere_ri();
 			//constructrice_ri.imprime_programme();
-			//noeud::genere_code_C(constructrice_ri);
-			est_errone = true; // desactive l'impression des stats
-#else
+
+			temps_ri = constructrice_ri.temps_generation;
+			memoire_ri = constructrice_ri.memoire_utilisee();
 
 			std::ofstream of;
 			of.open("/tmp/compilation_kuri.c");
 
 			os << "Génération du code..." << std::endl;
-			noeud::genere_code_C(*assembleuse, contexte_generation, chemin_racine_kuri, of);
+			noeud::genere_code_C(*assembleuse, constructrice_ri, chemin_racine_kuri, of);
 
 			of.close();
 
@@ -754,7 +761,6 @@ int main(int argc, char *argv[])
 					temps_executable = debut_executable.temps();
 				}
 			}
-#endif
 		}
 
 		/* restore le dossier d'origine */
@@ -764,6 +770,8 @@ int main(int argc, char *argv[])
 		metriques.memoire_contexte = contexte_generation.memoire_utilisee();
 		metriques.temps_executable = temps_executable;
 		metriques.temps_fichier_objet = temps_fichier_objet;
+		metriques.temps_ri = temps_ri;
+		metriques.memoire_ri = memoire_ri;
 
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = dls::chrono::compte_seconde();
