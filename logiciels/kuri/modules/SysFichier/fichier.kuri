@@ -283,6 +283,26 @@ lis :: fonc (fichier: *Fichier, tampon: chaine) -> ErreurFichier
     retourne système_lis(fichier.desc, tampon.pointeur, tampon.taille)
 }
 
+CaractèreOuErreurFichier :: union {
+    c: z8
+    e: ErreurFichier
+}
+
+lis_caractère :: fonc (fichier: *Fichier) -> CaractèreOuErreurFichier
+{
+	c : z8
+
+    octets_lus := tente système_lis(fichier.desc, @c, 1) piège err {
+        retourne err
+    }
+
+    si octets_lus == 0 {
+        retourne '\0'
+    }
+
+    retourne c
+}
+
 ChaineOuErreurFichier :: union {
     e: ErreurFichier
     c: chaine
