@@ -125,13 +125,6 @@ discr u {
 - test valeurs de retours multiples
 
 
-Bugs (coulisse LLVM)
---------------------
-- crash lors de la compilation de boucle contenant un 'arrête' après des blocs si/sinon
-- passer un tableau à un paramètre de type pointeur ne semble pas prendre l'ardresse du tableau (@tableau[0])
-- addition de pointeur ne retourne pas forcément de pointeur ? (Les opérateurs doivent être mieux gérés)
-
-
 Idées
 -----
 - opérateur 'chaîne' pour retourner une chaîne de caractère contenant ce qu'il y a entre ses parenthèses : par exemple chaîne(a) -> "a"
