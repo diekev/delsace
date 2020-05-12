@@ -1327,11 +1327,28 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 	auto noeud = CREE_NOEUD(NoeudPour, GenreNoeud::INSTRUCTION_POUR, lexeme_courant());
 	consomme();
 
-	noeud->variable = analyse_expression({}, GenreLexeme::POUR, GenreLexeme::INCONNU);
+	auto expression = analyse_expression({}, GenreLexeme::POUR, GenreLexeme::INCONNU);
 
-	consomme(GenreLexeme::DANS, "attendu « dans »");
+	if (apparie(GenreLexeme::DANS)) {
+		consomme();
+		noeud->variable = expression;
+		noeud->expression = analyse_expression({}, GenreLexeme::DANS, GenreLexeme::INCONNU);
+	}
+	else {
+		static Lexeme lexeme_it = { "it", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
+		auto noeud_it = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, &lexeme_it);
 
-	noeud->expression = analyse_expression({}, GenreLexeme::DANS, GenreLexeme::INCONNU);
+		static Lexeme lexeme_index = { "index_it", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
+		auto noeud_index = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, &lexeme_index);
+
+		static Lexeme lexeme_virgule = { ",", {}, GenreLexeme::VIRGULE, 0, 0, 0 };
+		auto noeud_virgule = CREE_NOEUD(NoeudExpressionBinaire, GenreNoeud::OPERATEUR_BINAIRE, &lexeme_virgule);
+		noeud_virgule->expr1 = noeud_it;
+		noeud_virgule->expr2 = noeud_index;
+
+		noeud->variable = noeud_virgule;
+		noeud->expression = expression;
+	}
 
 	noeud->bloc = analyse_bloc();
 
