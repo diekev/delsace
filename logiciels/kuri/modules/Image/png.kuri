@@ -3,8 +3,6 @@
 
 importe Couleur
 
-charge "image"
-
 #inclus "png.h"
 
 #bibliothèque_dynamique "png"

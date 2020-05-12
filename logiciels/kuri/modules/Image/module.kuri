@@ -44,3 +44,5 @@ remplis_image :: fonc (image : *Image, couleur: Couleur) -> rien
 
     retourne image.tampon[index]
 }
+
+charge "png"

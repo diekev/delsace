@@ -11,6 +11,8 @@
 #inclus "time.h"
 #inclus "unistd.h"
 
+charge "errno"
+
 //###############################################################################
 
 // Valeur des descripteurs fichiers pour les flux standards.
