@@ -1462,8 +1462,21 @@ void performe_validation_semantique(
 				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, inst->condition->lexeme);
 			}
 
-			if (type_condition->genre != GenreType::BOOL) {
-				erreur::lance_erreur("Attendu un type booléen pour l'expression 'si'",
+			auto est_type_conditionnable = [](Type *type)
+			{
+				return dls::outils::est_element(
+							type->genre,
+							GenreType::BOOL,
+							GenreType::CHAINE,
+							GenreType::ENTIER_CONSTANT,
+							GenreType::ENTIER_NATUREL,
+							GenreType::ENTIER_RELATIF,
+							GenreType::POINTEUR,
+							GenreType::TABLEAU_DYNAMIQUE);
+			};
+
+			if (!est_type_conditionnable(type_condition)) {
+				erreur::lance_erreur("Impossible de conditionner le type de l'expression 'si'",
 									 contexte,
 									 inst->condition->lexeme,
 									 erreur::type_erreur::TYPE_DIFFERENTS);
