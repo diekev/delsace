@@ -200,7 +200,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		case GenreType::EINI:
 		{
 			/* type = structure { *z8, *InfoType } */
-			auto type_info_type = m_contexte.typeuse.type_pour_nom("InfoType");
+			auto type_info_type = m_contexte.typeuse.type_info_type_;
 
 			std::vector<llvm::Type *> types_membres(2ul);
 			types_membres[0] = llvm::Type::getInt8PtrTy(m_contexte_llvm);

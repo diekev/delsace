@@ -486,6 +486,21 @@ static void initialise_interface_kuri(ContexteGenerationCode &contexte)
 	contexte.interface_kuri.decl_dls_vers_r64 = cherche_fonction_dans_module(contexte, module, "DLS_vers_r64");
 	contexte.interface_kuri.decl_dls_depuis_r32 = cherche_fonction_dans_module(contexte, module, "DLS_depuis_r32");
 	contexte.interface_kuri.decl_dls_depuis_r64 = cherche_fonction_dans_module(contexte, module, "DLS_depuis_r64");
+
+	auto &typeuse = contexte.typeuse;
+	typeuse.type_info_type_enum = cherche_symbole_dans_module(contexte, module, "InfoTypeÉnum")->type;
+	typeuse.type_info_type_structure = cherche_symbole_dans_module(contexte, module, "InfoTypeStructure")->type;
+	typeuse.type_info_type_membre_structure = cherche_symbole_dans_module(contexte, module, "InfoTypeMembreStructure")->type;
+	typeuse.type_info_type_entier = cherche_symbole_dans_module(contexte, module, "InfoTypeEntier")->type;
+	typeuse.type_info_type_tableau = cherche_symbole_dans_module(contexte, module, "InfoTypeTableau")->type;
+	typeuse.type_info_type_pointeur = cherche_symbole_dans_module(contexte, module, "InfoTypePointeur")->type;
+	typeuse.type_info_type_fonction = cherche_symbole_dans_module(contexte, module, "InfoTypeFonction")->type;
+	typeuse.type_position_code_source = cherche_symbole_dans_module(contexte, module, "PositionCodeSource")->type;
+	typeuse.type_info_fonction_trace_appel = cherche_symbole_dans_module(contexte, module, "InfoFonctionTraceAppel")->type;
+	typeuse.type_trace_appel = cherche_symbole_dans_module(contexte, module, "TraceAppel")->type;
+	typeuse.type_base_allocatrice = cherche_symbole_dans_module(contexte, module, "BaseAllocatrice")->type;
+	typeuse.type_info_appel_trace_appel = cherche_symbole_dans_module(contexte, module, "InfoAppelTraceAppel")->type;
+	typeuse.type_stockage_temporaire = cherche_symbole_dans_module(contexte, module, "StockageTemporaire")->type;
 }
 
 int main(int argc, char *argv[])

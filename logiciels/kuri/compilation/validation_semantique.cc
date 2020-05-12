@@ -1901,7 +1901,7 @@ void performe_validation_semantique(
 
 			auto type = expr->expr->type;
 
-			auto nom_struct = "InfoType";
+			auto type_info_type = static_cast<Type *>(nullptr);
 
 			switch (type->genre) {
 				case GenreType::INVALIDE:
@@ -1913,56 +1913,52 @@ void performe_validation_semantique(
 				case GenreType::RIEN:
 				case GenreType::BOOL:
 				case GenreType::OCTET:
+				case GenreType::REEL:
 				{
-					nom_struct = "InfoType";
+					type_info_type = contexte.typeuse.type_info_type_;
 					break;
 				}
 				case GenreType::ENTIER_CONSTANT:
 				case GenreType::ENTIER_NATUREL:
 				case GenreType::ENTIER_RELATIF:
 				{
-					nom_struct = "InfoTypeEntier";
-					break;
-				}
-				case GenreType::REEL:
-				{
-					nom_struct = "InfoTypeRéel";
+					type_info_type = contexte.typeuse.type_info_type_entier;
 					break;
 				}
 				case GenreType::REFERENCE:
 				case GenreType::POINTEUR:
 				{
-					nom_struct = "InfoTypePointeur";
+					type_info_type = contexte.typeuse.type_info_type_pointeur;
 					break;
 				}
 				case GenreType::UNION:
 				case GenreType::STRUCTURE:
 				{
-					nom_struct = "InfoTypeStructure";
+					type_info_type = contexte.typeuse.type_info_type_structure;
 					break;
 				}
 				case GenreType::VARIADIQUE:
 				case GenreType::TABLEAU_DYNAMIQUE:
 				case GenreType::TABLEAU_FIXE:
 				{
-					nom_struct = "InfoTypeTableau";
+					type_info_type = contexte.typeuse.type_info_type_tableau;
 					break;
 				}
 				case GenreType::FONCTION:
 				{
-					nom_struct = "InfoTypeFonction";
+					type_info_type = contexte.typeuse.type_info_type_fonction;
 					break;
 				}
 				case GenreType::ENUM:
 				case GenreType::ERREUR:
 				{
-					nom_struct = "InfoTypeÉnum";
+					type_info_type = contexte.typeuse.type_info_type_enum;
 					break;
 				}
 			}
 
 			b->genre_valeur = GenreValeur::DROITE;
-			b->type = contexte.typeuse.type_pointeur_pour(contexte.typeuse.type_pour_nom(nom_struct));
+			b->type = contexte.typeuse.type_pointeur_pour(type_info_type);
 
 			break;
 		}

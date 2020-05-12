@@ -543,29 +543,6 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 	return type;
 }
 
-Type *Typeuse::type_pour_nom(const dls::vue_chaine_compacte &chaine)
-{
-	POUR (types_structures) {
-		if (it->nom == chaine) {
-			return it;
-		}
-	}
-
-	POUR (types_enums) {
-		if (it->nom == chaine) {
-			return it;
-		}
-	}
-
-	POUR (types_unions) {
-		if (it->nom == chaine) {
-			return it;
-		}
-	}
-
-	return nullptr;
-}
-
 TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, const kuri::tableau<Type *> &entrees, const kuri::tableau<Type *> &sorties)
 {
 	if (it->types_entrees.taille != entrees.taille) {

@@ -494,7 +494,21 @@ struct Typeuse {
 	dls::tableau<TypeVariadique *> types_variadiques{};
 	dls::tableau<TypeUnion *> types_unions{};
 
+	// mise en cache de plusieurs types pour mieux les trouver
 	TypeStructure *type_info_type_ = nullptr;
+	Type *type_info_type_structure = nullptr;
+	Type *type_info_type_membre_structure = nullptr;
+	Type *type_info_type_entier = nullptr;
+	Type *type_info_type_tableau = nullptr;
+	Type *type_info_type_pointeur = nullptr;
+	Type *type_info_type_enum = nullptr;
+	Type *type_info_type_fonction = nullptr;
+	Type *type_position_code_source = nullptr;
+	Type *type_info_fonction_trace_appel = nullptr;
+	Type *type_trace_appel = nullptr;
+	Type *type_base_allocatrice = nullptr;
+	Type *type_info_appel_trace_appel = nullptr;
+	Type *type_stockage_temporaire = nullptr;
 	// séparés car nous devons désalloué selon la bonne taille et ce sont plus des types « simples »
 	TypeCompose *type_eini = nullptr;
 	TypeCompose *type_chaine = nullptr;
@@ -520,8 +534,6 @@ struct Typeuse {
 	TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe);
 
 	TypeVariadique *type_variadique(Type *type_pointe);
-
-	Type *type_pour_nom(dls::vue_chaine_compacte const &chaine);
 
 	TypeFonction *discr_type_fonction(TypeFonction *it, kuri::tableau<Type *> const &entrees, kuri::tableau<Type *> const &sorties);
 

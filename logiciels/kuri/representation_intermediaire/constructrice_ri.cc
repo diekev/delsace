@@ -2868,7 +2868,7 @@ Atome *ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpre
 
 	auto ptr_info_type = cree_info_type(type);
 	auto arg_ptr_info_type = cree_transtype(
-				m_contexte.typeuse.type_pointeur_pour(m_contexte.typeuse.type_pour_nom("InfoType")),
+				m_contexte.typeuse.type_pointeur_pour(m_contexte.typeuse.type_info_type_),
 				ptr_info_type);
 
 	auto arg_val_mode = cree_z32(static_cast<unsigned>(mode));
@@ -3455,7 +3455,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		{
 			/* { id, taille_en_octet type_pointé, est_référence } */
 
-			auto type_pointeur = m_contexte.typeuse.type_pour_nom("InfoTypePointeur");
+			auto type_pointeur = m_contexte.typeuse.type_info_type_pointeur;
 
 			auto valeur_id = cree_z32(IDInfoType::POINTEUR);
 			auto valeur_taille_octet = cree_z32(type->taille_octet);
@@ -3483,7 +3483,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		{
 			auto type_enum = static_cast<TypeEnum *>(type);
 
-			auto type_llvm = m_contexte.typeuse.type_pour_nom("InfoTypeÉnum");
+			auto type_llvm = m_contexte.typeuse.type_info_type_enum;
 
 			/* { id: e32, taille_en_octet, nom: chaine, valeurs: [], membres: [], est_drapeau: bool } */
 
@@ -3537,14 +3537,14 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			// ------------------------------------
 			// Commence par assigner une globale non-initialisée comme info type
 			// pour éviter de recréer plusieurs fois le même info type.
-			auto type_info_struct = m_contexte.typeuse.type_pour_nom("InfoTypeStructure");
+			auto type_info_struct = m_contexte.typeuse.type_info_type_structure;
 
 			auto globale = cree_globale(type_info_struct, nullptr, false, true);
 			type->info_type = globale;
 
 			// ------------------------------------
 			/* pour chaque membre cree une instance de InfoTypeMembreStructure */
-			auto type_struct_membre = m_contexte.typeuse.type_pour_nom("InfoTypeMembreStructure");
+			auto type_struct_membre = m_contexte.typeuse.type_info_type_membre_structure;
 
 			kuri::tableau<AtomeConstante *> valeurs_membres;
 
@@ -3597,7 +3597,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		{
 			/* { id, taille_en_octet, type_pointé, est_tableau_fixe, taille_fixe } */
 
-			auto type_pointeur = m_contexte.typeuse.type_pour_nom("InfoTypeTableau");
+			auto type_pointeur = m_contexte.typeuse.type_info_type_tableau;
 
 			auto valeur_id = cree_z32(IDInfoType::TABLEAU);
 			auto valeur_taille_octet = cree_z32(type->taille_octet);
@@ -3629,7 +3629,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			auto type_tableau = static_cast<TypeTableauFixe *>(type);
 			/* { id, taille_en_octet, type_pointé, est_tableau_fixe, taille_fixe } */
 
-			auto type_pointeur = m_contexte.typeuse.type_pour_nom("InfoTypeTableau");
+			auto type_pointeur = m_contexte.typeuse.type_info_type_tableau;
 
 			auto valeur_id = cree_z32(IDInfoType::TABLEAU);
 			auto valeur_taille_octet = cree_z32(type->taille_octet);
@@ -3703,7 +3703,7 @@ AtomeConstante *ConstructriceRI::cree_info_type_entier(unsigned taille_octet, bo
 	valeurs[1] = valeur_taille_octet;
 	valeurs[2] = cree_constante_booleenne(est_relatif);
 
-	auto type_info_entier = m_contexte.typeuse.type_pour_nom("InfoTypeEntier");
+	auto type_info_entier = m_contexte.typeuse.type_info_type_entier;
 	auto initialisateur = cree_constante_structure(type_info_entier, std::move(valeurs));
 
 	return cree_globale(type_info_entier, initialisateur, false, true);
@@ -3715,7 +3715,7 @@ Atome *ConstructriceRI::genere_ri_pour_position_code_source(NoeudExpression *noe
 		noeud = m_contexte.pour_appel;
 	}
 
-	auto type_position = m_contexte.typeuse.type_pour_nom("PositionCodeSource");
+	auto type_position = m_contexte.typeuse.type_position_code_source;
 
 	auto alloc = cree_allocation(type_position, nullptr);
 
@@ -3948,7 +3948,7 @@ void ConstructriceRI::genere_ri_pour_fonction_main()
 
 	// ----------------------------------
 	// création de l'information trace d'appel
-	auto type_info_trace_appel = m_contexte.typeuse.type_pour_nom("InfoFonctionTraceAppel");
+	auto type_info_trace_appel = m_contexte.typeuse.type_info_fonction_trace_appel;
 	auto alloc_info_trace_appel = cree_allocation(type_info_trace_appel, IDENT_CODE("mon_info"));
 	assigne_membre(alloc_info_trace_appel, trouve_index_membre(type_info_trace_appel, "nom"), cree_chaine("main"));
 	assigne_membre(alloc_info_trace_appel, trouve_index_membre(type_info_trace_appel, "fichier"), cree_chaine("???"));
@@ -3956,7 +3956,7 @@ void ConstructriceRI::genere_ri_pour_fonction_main()
 
 	// ----------------------------------
 	// création de la trace d'appel
-	auto type_trace_appel = m_contexte.typeuse.type_pour_nom("TraceAppel");
+	auto type_trace_appel = m_contexte.typeuse.type_trace_appel;
 	auto alloc_trace = cree_allocation(type_trace_appel, IDENT_CODE("ma_trace"));
 	cree_stocke_mem(alloc_trace, genere_initialisation_defaut_pour_type(type_trace_appel));
 	assigne_membre(alloc_trace, trouve_index_membre(type_trace_appel, "info_fonction"), alloc_info_trace_appel);
@@ -3969,7 +3969,7 @@ void ConstructriceRI::genere_ri_pour_fonction_main()
 	auto tabl_stock_temp = cree_globale(type_tabl_stock_temp, nullptr, false, false);
 	tabl_stock_temp->ident = ident_stock_temp;
 
-	auto type_stock_temp = m_contexte.typeuse.type_pour_nom("StockageTemporaire");
+	auto type_stock_temp = m_contexte.typeuse.type_stockage_temporaire;
 
 	auto alloc_stocke_temp = cree_allocation(type_stock_temp, IDENT_CODE("stockage_temporaire"));
 	auto ptr_tabl_stock_temp = cree_acces_index(tabl_stock_temp, cree_z64(0));
@@ -3981,7 +3981,7 @@ void ConstructriceRI::genere_ri_pour_fonction_main()
 
 	// ----------------------------------
 	// création de l'allocatrice de base
-	auto type_base_alloc = m_contexte.typeuse.type_pour_nom("BaseAllocatrice");
+	auto type_base_alloc = m_contexte.typeuse.type_base_allocatrice;
 	auto alloc_base_alloc = cree_allocation(type_base_alloc, IDENT_CODE("base_allocatrice"));
 
 	// ----------------------------------
@@ -4040,7 +4040,7 @@ void ConstructriceRI::genere_ri_pour_fonction_main()
 	// ----------------------------------
 	// construit l'info pour l'appel
 
-	auto type_info_appel = m_contexte.typeuse.type_pour_nom("InfoAppelTraceAppel");
+	auto type_info_appel = m_contexte.typeuse.type_info_appel_trace_appel;
 	auto alloc_info_appel = cree_allocation(type_info_appel, IDENT_CODE("info_appel"));
 	assigne_membre(alloc_info_appel, trouve_index_membre(type_info_appel, "ligne"), cree_z32(1));
 	assigne_membre(alloc_info_appel, trouve_index_membre(type_info_appel, "colonne"), cree_z32(0));
