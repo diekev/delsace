@@ -2337,6 +2337,7 @@ Atome *ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 		insere_label(donnees.bloc_si_vrai);
 
 		genere_ri_pour_noeud(enf1);
+		cree_branche(bloc_post_discr);
 	}
 
 	insere_label(bloc_post_discr);
