@@ -2,8 +2,6 @@
 
 #inclus "termios.h"
 
-STDIN_FILENO :: 0
-
 VINTR :: 0
 VQUIT :: 1
 VERASE :: 2

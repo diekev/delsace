@@ -7,7 +7,7 @@ importe Réseau
 
 rappel_erreur :: fonc(pointeur : *z8, taille : n64, user_data : *rien) -> z32 #nulctx
 {
-    write(std_err, pointeur, taille comme z64)
+    write(STDERR_FILENO, pointeur, taille comme z64)
     retourne 0
 }
 

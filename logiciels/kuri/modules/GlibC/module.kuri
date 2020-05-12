@@ -16,9 +16,9 @@ charge "errno"
 //###############################################################################
 
 // Valeur des descripteurs fichiers pour les flux standards.
-std_in  :: 0
-std_out :: 1
-std_err :: 2
+STDIN_FILENO  :: 0
+STDOUT_FILENO :: 1
+STDERR_FILENO :: 2
 
 sprintf :: fonc externe (tmp : *z8, fmt : *z8, args : ...) -> z32
 
