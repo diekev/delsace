@@ -97,8 +97,7 @@ discr u {
 }
 
 - renomme InfoType -> DescType, id_info -> Genre{Info|Desc} ?
-- ajout d'une table de table de types accessible depuis les programmes
-- correction de l'évaluation des opérateurs && ||
+- ajout d'une table de types accessible depuis les programmes
 - amélioration boucle pour :
 -- variable et index implicites :
 ---- pour tabl
@@ -108,16 +107,13 @@ discr u {
 -- inverse la direction via : pour inverse ...
 -- controle la condition finale via : pour <= ...
 -- itération sur plusieurs variables de même type
----- pour chn1, chn2 { ... }, la variable implicite sera un type produit accédé via it.N ou N est un nombre
+---- pour chn1, chn2 { ... }, la variable implicite sera un type produit accédé via it.N où N est un nombre
 - tranche de tableaux et de chaine via : x[ D ... F ]
 - utilisation d'un fichier "module.kuri" pour définir le contenu d'un module, les fichiers à charger
 - nettoyage des modules
 --- déplace table_hachage de "Fondation"
 --- ajout d'un module pour l'interface avec la compilatrice
 --- déplace "boutisme" dans un module "Ordinateur"
-- relaxation des conditions pour « si » et « saufsi »
---- permet l'utilisation de types scalaires, une valeur de 0 est fausse, autrement vrai
---- permet l'utilisation de tableaux et de chaines, la taille étant testée
 
 À faire (tests)
 ---------------
@@ -137,12 +133,11 @@ Bugs (coulisse LLVM)
 --------------------
 - crash lors de la compilation de boucle contenant un 'arrête' après des blocs si/sinon
 - passer un tableau à un paramètre de type pointeur ne semble pas prendre l'ardresse du tableau (@tableau[0])
-- addition de pointeur ne retourne pas forcément de pointeur ? (Les opérateurs doivent être mieux gérer)
+- addition de pointeur ne retourne pas forcément de pointeur ? (Les opérateurs doivent être mieux gérés)
 
 
 Idées
 -----
-- mot clés pour le nom du fichier courant, la ligne, la colonne, et le temps où la ligne a été rencontré pour la première foix (__fichier__, __ligne__, __colonne__, __temps__)
 - opérateur 'chaîne' pour retourner une chaîne de caractère contenant ce qu'il y a entre ses parenthèses : par exemple chaîne(a) -> "a"
 - utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++, ou les gestionnaires de contextes en Python avec "with")
 - héritage/polymorphisme par enlignage de structures dans d'autres
@@ -179,27 +174,6 @@ déréférencement *
 prend adresse &a
 pointeur *z32
 
-transtypage :
-
-transtype(x: z16)
-x comme z16
-
-x en z16
-
-a = x.a comme z16 + 8
-a = b + c en z16
-
-précédence
--- plus faible que + - * /
--- plus élévée que .
-
-expr unaire : a
-    expr binaire : +
-        expr binaire : comme
-            réf var : x
-            réf type : z16
-        expr : 8
-
 nombres littéraux :
 -- définis la taille minimale naturel et relative
 ---- v < 128 => z8
@@ -218,10 +192,9 @@ Zones d'ombres
 
 Sécurité/évitement des bugs
 ---------------------------
-- les variables sont constantes par défaut
 - les variables sont initialisées à zéro lors de leur déclaration
 - aucune conversion n'est implicite (sauf pour les valeurs littérales, quand cela est sensé, z32 -> z64)
-- les contrôles de flux doivent avoir des valeurs booléennes explicit
+- les contrôles de flux doivent avoir des valeurs booléennes explicites
 - l'opérateur booléen d'inversion '!' ne peut prendre qu'une valeur booléenne
 - les portées doivent être explicitement entourées de { } pour éviter que des expressions ne devant qu'être exécutées dans un contrôle de flux ne soient pas exécutées en dehors.
 - l'opérateur d'assignemet '=' ne retourne pas de valeur pour éviter toute confusion avec '==' (peut-être à réviser puisque il n'a pas de conversion implicite vers des valeurs booléennes)
