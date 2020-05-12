@@ -17,8 +17,10 @@ imprime_panique :: fonc () -> rien #sanstrace
         imprime("%:%:% : dans % (%)\n", info_fonction.fichier, info_appel.ligne, info_appel.colonne, info_fonction.nom, info_fonction.adresse);
         imprime("%\n", info_appel.texte);
 
-        pour i dans 0 ... info_appel.colonne - 1 {
-            imprime(" ");
+        i := 0
+        tantque i < info_appel.colonne {
+            imprime(" ")
+            i += nombre_octets_utf8(@info_appel.texte[i])
         }
 
         imprime("\x1b[1;31m^\x1b[0m\n");
