@@ -120,6 +120,7 @@ enum class GenreLexeme : unsigned int {
 	GARDE,
 	IMPORTE,
 	INFO_DE,
+	INIT_DE,
 	LOGE,
 	MEMOIRE,
 	N16,

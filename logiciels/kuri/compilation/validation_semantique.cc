@@ -1975,6 +1975,32 @@ void performe_validation_semantique(
 
 			break;
 		}
+		case GenreNoeud::EXPRESSION_INIT_DE:
+		{
+			auto type = resoud_type_final(contexte, b->type_declare, b->bloc_parent, b->lexeme, false);
+
+			if (type == nullptr) {
+				erreur::lance_erreur("impossible de définir le type de init_de", contexte, b->lexeme);
+			}
+
+			if (type->genre != GenreType::STRUCTURE && type->genre != GenreType::UNION) {
+				erreur::lance_erreur("init_de doit prendre le type d'une structure ou d'une union", contexte, b->lexeme);
+			}
+
+			auto types_entrees = kuri::tableau<Type *>(2);
+			types_entrees[0] = contexte.type_contexte;
+			types_entrees[1] = contexte.typeuse.type_pointeur_pour(type);
+
+			auto types_sorties = kuri::tableau<Type *>(1);
+			types_sorties[0] = contexte.typeuse[TypeBase::RIEN];
+
+			auto type_fonction = contexte.typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+			b->type = type_fonction;
+
+			donnees_dependance.types_utilises.insere(b->type);
+
+			break;
+		}
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(b);

@@ -108,6 +108,7 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 			noeud = m_noeuds_expression_unaire.ajoute_element();
 			break;
 		}
+		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:

@@ -52,6 +52,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("garde"), GenreLexeme::GARDE },
 	dls::paire{ dls::vue_chaine_compacte("importe"), GenreLexeme::IMPORTE },
 	dls::paire{ dls::vue_chaine_compacte("info_de"), GenreLexeme::INFO_DE },
+	dls::paire{ dls::vue_chaine_compacte("init_de"), GenreLexeme::INIT_DE },
 	dls::paire{ dls::vue_chaine_compacte("loge"), GenreLexeme::LOGE },
 	dls::paire{ dls::vue_chaine_compacte("mémoire"), GenreLexeme::MEMOIRE },
 	dls::paire{ dls::vue_chaine_compacte("n16"), GenreLexeme::N16 },
@@ -341,6 +342,8 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 			return "GenreLexeme::IMPORTE";
 		case GenreLexeme::INFO_DE:
 			return "GenreLexeme::INFO_DE";
+		case GenreLexeme::INIT_DE:
+			return "GenreLexeme::INIT_DE";
 		case GenreLexeme::LOGE:
 			return "GenreLexeme::LOGE";
 		case GenreLexeme::MEMOIRE:
@@ -608,6 +611,8 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 			return "importe";
 		case GenreLexeme::INFO_DE:
 			return "info_de";
+		case GenreLexeme::INIT_DE:
+			return "init_de";
 		case GenreLexeme::LOGE:
 			return "loge";
 		case GenreLexeme::MEMOIRE:

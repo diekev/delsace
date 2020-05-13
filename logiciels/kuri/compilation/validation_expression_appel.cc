@@ -71,7 +71,8 @@ static auto trouve_declarations_dans_bloc_ou_module(
 enum {
 	CANDIDATE_EST_DECLARATION,
 	CANDIDATE_EST_ACCES,
-	CANDIDATE_EST_APPEL_UNIFORME
+	CANDIDATE_EST_APPEL_UNIFORME,
+	CANDIDATE_EST_INIT_DE,
 };
 
 struct CandidateExpressionAppel {
@@ -152,6 +153,10 @@ static auto trouve_candidates_pour_fonction_appelee(
 
 			candidates.pousse({ CANDIDATE_EST_APPEL_UNIFORME, acces });
 		}
+	}
+	else if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
+		noeud::performe_validation_semantique(appelee, contexte, false);
+		candidates.pousse({ CANDIDATE_EST_INIT_DE, appelee });
 	}
 
 	return candidates;
@@ -267,6 +272,45 @@ static auto apparie_appel_pointeur(
 	resultat.type = type_fonction;
 	resultat.etat = FONCTION_TROUVEE;
 	resultat.poids_args = poids_args;
+	resultat.exprs = exprs;
+	resultat.transformations = transformations;
+
+	return resultat;
+}
+
+static auto apparie_appel_init_de(
+		NoeudExpression *expr,
+		kuri::tableau<IdentifiantEtExpression> const &args)
+{
+	auto resultat = DonneesCandidate{};
+
+	if (args.taille > 1) {
+		resultat.etat = FONCTION_INTROUVEE;
+		resultat.raison = MECOMPTAGE_ARGS;
+		return resultat;
+	}
+
+	auto type_fonction = static_cast<TypeFonction *>(expr->type);
+	auto type_pointeur = type_fonction->types_entrees[1];
+
+	if (type_pointeur != args[0].expr->type) {
+		resultat.etat = FONCTION_INTROUVEE;
+		resultat.raison = METYPAGE_ARG;
+		resultat.type_attendu = type_pointeur;
+		resultat.type_obtenu = args[0].expr->type;
+		return resultat;
+	}
+
+	auto exprs = dls::tablet<NoeudExpression *, 10>();
+	exprs.pousse(args[0].expr);
+
+	auto transformations = dls::tableau<TransformationType>(1);
+	transformations[0] = { TypeTransformation::INUTILE };
+
+	resultat.etat = FONCTION_TROUVEE;
+	resultat.note = CANDIDATE_EST_APPEL_INIT_DE;
+	resultat.type = expr->type;
+	resultat.poids_args = 1.0;
 	resultat.exprs = exprs;
 	resultat.transformations = transformations;
 
@@ -801,6 +845,11 @@ static auto trouve_candidates_pour_appel(
 				resultat.pousse(dc);
 			}
 		}
+		else if (it.quoi == CANDIDATE_EST_INIT_DE) {
+			// ici nous pourrions directement retourner si le type est correcte...
+			auto dc = apparie_appel_init_de(it.decl, args);
+			resultat.pousse(dc);
+		}
 	}
 
 	return resultat;
@@ -996,6 +1045,10 @@ void valide_appel_fonction(
 		for (auto i = 0; i < expr->exprs.taille; ++i) {
 			expr->exprs[i]->transformation = candidate->transformations[i];
 		}
+	}
+	else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
+		// le type du retour
+		expr->type = contexte.typeuse[TypeBase::RIEN];
 	}
 
 	assert(expr->type);

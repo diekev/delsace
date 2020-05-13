@@ -80,6 +80,7 @@ const char *chaine_genre_noeud(GenreNoeud genre)
 		CAS_GENRE(GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU)
 		CAS_GENRE(GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE)
 		CAS_GENRE(GenreNoeud::EXPRESSION_INFO_DE)
+		CAS_GENRE(GenreNoeud::EXPRESSION_INIT_DE)
 		CAS_GENRE(GenreNoeud::EXPRESSION_LOGE)
 		CAS_GENRE(GenreNoeud::EXPRESSION_DELOGE)
 		CAS_GENRE(GenreNoeud::EXPRESSION_RELOGE)
@@ -266,6 +267,12 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 			os << "expr unaire : " << expr->lexeme->chaine << '\n';
 
 			imprime_arbre(expr->expr, os, tab + 1);
+			break;
+		}
+		case GenreNoeud::EXPRESSION_INIT_DE:
+		{
+			imprime_tab(os, tab);
+			os << "expr init_de\n";
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
@@ -557,6 +564,7 @@ NoeudExpression *copie_noeud(
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
 			break;
 		}
+		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
@@ -786,6 +794,7 @@ void aplatis_arbre(
 			arbre_aplatis.pousse(expr);
 			break;
 		}
+		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
@@ -1018,6 +1027,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::DECLARATION_OPERATEUR:
 		case GenreNoeud::DECLARATION_ENUM:
 		case GenreNoeud::DECLARATION_STRUCTURE:
+		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:

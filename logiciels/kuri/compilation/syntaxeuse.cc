@@ -437,6 +437,7 @@ bool Syntaxeuse::apparie_expression() const
 		case GenreLexeme::FAUX:
 		case GenreLexeme::FONC:
 		case GenreLexeme::INFO_DE:
+		case GenreLexeme::INIT_DE:
 		case GenreLexeme::LOGE:
 		case GenreLexeme::MEMOIRE:
 		case GenreLexeme::NOMBRE_ENTIER:
@@ -721,6 +722,19 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			noeud->expr = analyse_expression({}, GenreLexeme::INFO_DE, GenreLexeme::INCONNU);
 
 			consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'taille_de'");
+
+			return noeud;
+		}
+		case GenreLexeme::INIT_DE:
+		{
+			consomme();
+			consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'info_de'");
+
+			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::EXPRESSION_INIT_DE, lexeme);
+
+			noeud->type_declare = analyse_declaration_type(false);
+
+			consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'init_de'");
 
 			return noeud;
 		}

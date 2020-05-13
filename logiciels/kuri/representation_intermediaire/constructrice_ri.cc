@@ -1140,6 +1140,9 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			if (expr_appel->aide_generation_code == APPEL_POINTEUR_FONCTION) {
 				atome_fonc = genere_ri_pour_expression_droite(expr_appel->appelee);
 			}
+			else if (expr_appel->appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
+				atome_fonc = genere_ri_pour_noeud(expr_appel->appelee);
+			}
 			else {
 				auto decl = static_cast<NoeudDeclarationFonction const *>(expr_appel->noeud_fonction_appelee);
 				atome_fonc = trouve_ou_insere_fonction(decl);
@@ -1727,6 +1730,8 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 				alloc = cree_allocation(type_struct, nullptr);
 
+				imprime_fichier_ligne(m_contexte, *noeud->lexeme);
+
 				POUR (expr->exprs) {
 					auto valeur = static_cast<Atome *>(nullptr);
 
@@ -1771,6 +1776,14 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto valeur = cree_info_type(enfant->type);
 			valeur->est_chargeable = false;
 			return valeur;
+		}
+		case GenreNoeud::EXPRESSION_INIT_DE:
+		{
+			auto type_fonction = static_cast<TypeFonction *>(noeud->type);
+			auto type_pointeur = type_fonction->types_entrees[1];
+			auto type_arg = static_cast<TypePointeur *>(type_pointeur)->type_pointe;
+			auto nom_fonction = "initialise_" + dls::vers_chaine(type_arg);
+			return table_fonctions[nom_fonction];
 		}
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		{

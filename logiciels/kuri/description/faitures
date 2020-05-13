@@ -77,7 +77,6 @@ Faitures
 - pouvoir accéder aux pointeurs des tableaux fixes (@a[0]) via a.pointeur
 - instructions SIMD
 - déplace le contexte du processus principale dans une variable globale afin de pouvoir l'utiliser via pousse_contexte dans des fonctions marquées #nulctx via pousse_contexte
-- ajout de « init_de » pour accéder à la fonction d'initialisation d'une structure
 - avoir une meilleure sécurité de type pour les einis, via discr et un transtypage automatique
 discr e {
     ENTIER {

@@ -65,6 +65,7 @@ mot_cles = [
 	u'erreur',
 	u'eini_erreur',
 	u'comme',
+	u'init_de',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
