@@ -637,7 +637,7 @@ void performe_validation_semantique(
 		//			auto nom_structure = dls::vue_chaine_compacte("");
 
 		//			if (type_var->genre == GenreType::POINTEUR || type_var->genre == GenreType::REFERENCE) {
-		//				type_var = contexte.typeuse.type_dereference_pour(type_var);
+		//				type_var = type_dereference_pour(type_var);
 		//				nom_structure = static_cast<TypeStructure *>(type_var)->nom;
 		//			}
 		//			else {
@@ -737,7 +737,7 @@ void performe_validation_semantique(
 		//			auto nom_structure = dls::vue_chaine_compacte("");
 
 		//			if (type_var->genre == GenreType::POINTEUR || type_var->genre == GenreType::REFERENCE) {
-		//				type_var = contexte.typeuse.type_dereference_pour(type_var);
+		//				type_var = type_dereference_pour(type_var);
 		//				nom_structure = static_cast<TypeStructure *>(type_var)->nom;
 		//			}
 		//			else {
@@ -1215,7 +1215,7 @@ void performe_validation_semantique(
 
 			if (type->genre == GenreType::REFERENCE) {
 				enfant->transformation = TypeTransformation::DEREFERENCE;
-				type = contexte.typeuse.type_dereference_pour(type);
+				type = type_dereference_pour(type);
 			}
 
 			if (expr->type == nullptr) {
@@ -1264,21 +1264,21 @@ void performe_validation_semantique(
 
 			if (type1->genre == GenreType::REFERENCE) {
 				enfant1->transformation = TypeTransformation::DEREFERENCE;
-				type1 = contexte.typeuse.type_dereference_pour(type1);
+				type1 = type_dereference_pour(type1);
 			}
 
 			switch (type1->genre) {
 				case GenreType::VARIADIQUE:
 				case GenreType::TABLEAU_DYNAMIQUE:
 				{
-					expr->type = contexte.typeuse.type_dereference_pour(type1);
+					expr->type = type_dereference_pour(type1);
 					donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_tableau);
 					break;
 				}
 				case GenreType::TABLEAU_FIXE:
 				{
 					auto type_tabl = static_cast<TypeTableauFixe *>(type1);
-					expr->type = contexte.typeuse.type_dereference_pour(type1);
+					expr->type = type_dereference_pour(type1);
 
 					auto res = evalue_expression(contexte, enfant2->bloc_parent, enfant2);
 
@@ -1302,7 +1302,7 @@ void performe_validation_semantique(
 				}
 				case GenreType::POINTEUR:
 				{
-					expr->type = contexte.typeuse.type_dereference_pour(type1);
+					expr->type = type_dereference_pour(type1);
 					break;
 				}
 				case GenreType::CHAINE:
@@ -1585,7 +1585,7 @@ void performe_validation_semantique(
 //			}
 			else {
 				if (type->genre == GenreType::TABLEAU_DYNAMIQUE || type->genre == GenreType::TABLEAU_FIXE || type->genre == GenreType::VARIADIQUE) {
-					type = contexte.typeuse.type_dereference_pour(type);
+					type = type_dereference_pour(type);
 
 					if (requiers_index) {
 						b->aide_generation_code = GENERE_BOUCLE_TABLEAU_INDEX;
@@ -2025,7 +2025,7 @@ void performe_validation_semantique(
 
 				expr->transformation = transformation;
 
-				auto idx_type_deref = contexte.typeuse.type_dereference_pour(b->type);
+				auto idx_type_deref = type_dereference_pour(b->type);
 
 				// pour la coulisse C, ajout d'une dépendance vers le type du pointeur du tableau
 				auto idx_type_pointeur = contexte.typeuse.type_pointeur_pour(idx_type_deref);
@@ -2099,7 +2099,7 @@ void performe_validation_semantique(
 				expr->transformation = transformation;
 
 				// pour la coulisse C, ajout d'une dépendance vers le type du pointeur du tableau
-				auto idx_type_deref = contexte.typeuse.type_dereference_pour(b->type);
+				auto idx_type_deref = type_dereference_pour(b->type);
 				auto idx_type_pointeur = contexte.typeuse.type_pointeur_pour(idx_type_deref);
 				donnees_dependance.types_utilises.insere(idx_type_pointeur);
 			}
@@ -2211,7 +2211,7 @@ void performe_validation_semantique(
 					auto type_base = enf->type;
 
 					if (type_base->genre == GenreType::TABLEAU_FIXE) {
-						auto type_deref = contexte.typeuse.type_dereference_pour(type_base);
+						auto type_deref = type_dereference_pour(type_base);
 
 						if (type_deref == decl->type) {
 							erreur::lance_erreur(

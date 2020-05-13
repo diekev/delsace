@@ -452,31 +452,6 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
 	return resultat;
 }
 
-Type *Typeuse::type_dereference_pour(Type *type)
-{
-	if (type->genre == GenreType::TABLEAU_FIXE) {
-		return static_cast<TypeTableauFixe *>(type)->type_pointe;
-	}
-
-	if (type->genre == GenreType::TABLEAU_DYNAMIQUE) {
-		return static_cast<TypeTableauDynamique *>(type)->type_pointe;
-	}
-
-	if (type->genre == GenreType::POINTEUR) {
-		return static_cast<TypePointeur *>(type)->type_pointe;
-	}
-
-	if (type->genre == GenreType::REFERENCE) {
-		return static_cast<TypeReference *>(type)->type_pointe;
-	}
-
-	if (type->genre == GenreType::VARIADIQUE) {
-		return static_cast<TypeVariadique *>(type)->type_pointe;
-	}
-
-	return nullptr;
-}
-
 TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 {
 	POUR (types_tableaux_fixes) {
@@ -858,4 +833,29 @@ dls::chaine chaine_type(const Type *type)
 	}
 
 	return "";
+}
+
+Type *type_dereference_pour(Type *type)
+{
+	if (type->genre == GenreType::TABLEAU_FIXE) {
+		return static_cast<TypeTableauFixe *>(type)->type_pointe;
+	}
+
+	if (type->genre == GenreType::TABLEAU_DYNAMIQUE) {
+		return static_cast<TypeTableauDynamique *>(type)->type_pointe;
+	}
+
+	if (type->genre == GenreType::POINTEUR) {
+		return static_cast<TypePointeur *>(type)->type_pointe;
+	}
+
+	if (type->genre == GenreType::REFERENCE) {
+		return static_cast<TypeReference *>(type)->type_pointe;
+	}
+
+	if (type->genre == GenreType::VARIADIQUE) {
+		return static_cast<TypeVariadique *>(type)->type_pointe;
+	}
+
+	return nullptr;
 }

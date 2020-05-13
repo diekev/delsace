@@ -912,7 +912,7 @@ InstructionAccedeIndex *ConstructriceRI::cree_acces_index(Atome *accede, Atome *
 	//std::cerr << __func__ << ", accede->type : " << chaine_type(type_pointe) << '\n';
 	assert(dls::outils::est_element(type_pointe->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE));
 
-	auto type = m_contexte.typeuse.type_pointeur_pour(m_contexte.typeuse.type_dereference_pour(type_pointe));
+	auto type = m_contexte.typeuse.type_pointeur_pour(type_dereference_pour(type_pointe));
 
 	auto inst = InstructionAccedeIndex::cree(type, accede, index);
 	inst->numero = nombre_instructions++;
@@ -1003,7 +1003,7 @@ AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *
 	//std::cerr << __func__ << ", accede->type : " << chaine_type(type_pointeur->type_pointe) << '\n';
 	assert(dls::outils::est_element(type_pointeur->type_pointe->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE));
 
-	auto type = m_contexte.typeuse.type_pointeur_pour(m_contexte.typeuse.type_dereference_pour(type_pointeur->type_pointe));
+	auto type = m_contexte.typeuse.type_pointeur_pour(type_dereference_pour(type_pointeur->type_pointe));
 
 	auto inst = AccedeIndexConstant::cree(type, accede, index);
 	fonction_courante->instructions.pousse(inst);
@@ -2783,7 +2783,7 @@ Atome *ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpre
 	switch (type->genre) {
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
-			auto type_deref = m_contexte.typeuse.type_dereference_pour(type);
+			auto type_deref = type_dereference_pour(type);
 			type_du_pointeur_retour = m_contexte.typeuse.type_pointeur_pour(type_deref);
 
 			val_acces_pointeur = cree_acces_membre(val_enfant, 0);
@@ -2843,7 +2843,7 @@ Atome *ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpre
 		{
 			val_acces_pointeur = val_enfant;
 
-			auto type_deref = m_contexte.typeuse.type_dereference_pour(type);
+			auto type_deref = type_dereference_pour(type);
 
 			auto taille_octet = type_deref->taille_octet;
 			val_ancienne_taille_octet = cree_z64(taille_octet);
@@ -2916,7 +2916,7 @@ Atome *ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpre
 			insere_label(label_si_faux);
 
 			if (mode == 0 && type->genre != GenreType::TABLEAU_DYNAMIQUE && type->genre != GenreType::CHAINE) {
-				auto type_deref = m_contexte.typeuse.type_dereference_pour(type);
+				auto type_deref = type_dereference_pour(type);
 				auto nom_fonction = "initialise_" + dls::vers_chaine(type_deref);
 				auto atome_fonction = table_fonctions[nom_fonction];
 
@@ -3148,7 +3148,7 @@ Atome *ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud
 	auto est_pointeur = type_accede->genre == GenreType::POINTEUR || type_accede->genre == GenreType::REFERENCE;
 
 	while (type_accede->genre == GenreType::POINTEUR || type_accede->genre == GenreType::REFERENCE) {
-		type_accede = m_contexte.typeuse.type_dereference_pour(type_accede);
+		type_accede = type_dereference_pour(type_accede);
 	}
 
 	if (type_accede->genre == GenreType::TABLEAU_FIXE) {
@@ -3191,7 +3191,7 @@ Atome *ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre 
 	auto type = ptr_union->type;
 
 	while (type->genre == GenreType::POINTEUR || type->genre == GenreType::REFERENCE) {
-		type = m_contexte.typeuse.type_dereference_pour(type);
+		type = type_dereference_pour(type);
 	}
 
 	auto type_union = static_cast<TypeUnion *>(type);
@@ -3500,7 +3500,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			auto valeur_id = cree_z32(IDInfoType::POINTEUR);
 			auto valeur_taille_octet = cree_z32(type->taille_octet);
 
-			auto type_deref = m_contexte.typeuse.type_dereference_pour(type);
+			auto type_deref = type_dereference_pour(type);
 			auto valeur_type_pointe = cree_info_type(type_deref);
 			valeur_type_pointe = cree_transtype_constant(
 						m_contexte.typeuse.type_pointeur_pour(m_contexte.typeuse.type_info_type_),
@@ -3642,7 +3642,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			auto valeur_id = cree_z32(IDInfoType::TABLEAU);
 			auto valeur_taille_octet = cree_z32(type->taille_octet);
 
-			auto type_deref = m_contexte.typeuse.type_dereference_pour(type);
+			auto type_deref = type_dereference_pour(type);
 
 			auto valeur_type_pointe = cree_info_type(type_deref);
 			valeur_type_pointe = cree_transtype_constant(

@@ -348,7 +348,7 @@ static void genere_typedefs_recursifs(
 	}
 
 	if (peut_etre_dereference(type)) {
-		auto type_deref = contexte.typeuse.type_dereference_pour(type);
+		auto type_deref = type_dereference_pour(type);
 
 		/* argument variadique fonction externe */
 		if (type_deref == nullptr) {

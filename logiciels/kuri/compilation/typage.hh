@@ -527,8 +527,6 @@ struct Typeuse {
 
 	TypeReference *type_reference_pour(Type *type);
 
-	Type *type_dereference_pour(Type *type);
-
 	TypeTableauFixe *type_tableau_fixe(Type *type_pointe, long taille);
 
 	TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe);
@@ -560,6 +558,8 @@ struct Typeuse {
 /* ************************************************************************** */
 
 dls::chaine chaine_type(Type const *type);
+
+Type *type_dereference_pour(Type *type);
 
 inline bool est_type_entier(Type const *type)
 {

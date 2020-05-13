@@ -125,7 +125,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 			auto type_accede = accede->type;
 
 			while (type_accede->genre == GenreType::POINTEUR || type_accede->genre == GenreType::REFERENCE) {
-				type_accede = contexte.typeuse.type_dereference_pour(type_accede);
+				type_accede = type_dereference_pour(type_accede);
 			}
 
 			if (type_accede->genre == GenreType::STRUCTURE) {
@@ -241,7 +241,7 @@ static auto apparie_appel_pointeur(
 		auto type_enf = arg->type;
 
 		if (type_prm->genre == GenreType::VARIADIQUE) {
-			type_prm = contexte.typeuse.type_dereference_pour(type_prm);
+			type_prm = type_dereference_pour(type_prm);
 		}
 
 		auto transformation = TransformationType();
@@ -252,7 +252,7 @@ static auto apparie_appel_pointeur(
 		if (poids_args == 0.0) {
 			poids_args = 0.0;
 			resultat.raison = METYPAGE_ARG;
-			resultat.type_attendu = contexte.typeuse.type_dereference_pour(type_prm);
+			resultat.type_attendu = type_dereference_pour(type_prm);
 			resultat.type_obtenu = type_enf;
 			resultat.noeud_erreur = arg;
 			break;
@@ -487,9 +487,9 @@ static DonneesCandidate apparie_appel_fonction(
 		}
 
 		if ((param->drapeaux & EST_VARIADIQUE) != 0) {
-			if (contexte.typeuse.type_dereference_pour(type_arg) != nullptr) {
+			if (type_dereference_pour(type_arg) != nullptr) {
 				auto transformation = TransformationType();
-				auto type_deref = contexte.typeuse.type_dereference_pour(type_arg);
+				auto type_deref = type_dereference_pour(type_arg);
 				auto poids_pour_enfant = 0.0;
 
 				if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
@@ -501,7 +501,7 @@ static DonneesCandidate apparie_appel_fonction(
 						erreur::lance_erreur("Ne peut utiliser qu'une seule expansion d'argument variadique", contexte, slot->lexeme);
 					}
 
-					auto type_deref_enf = contexte.typeuse.type_dereference_pour(type_enf);
+					auto type_deref_enf = type_dereference_pour(type_enf);
 
 					poids_pour_enfant = verifie_compatibilite(contexte, type_deref, type_deref_enf, slot, transformation);
 
@@ -531,7 +531,7 @@ static DonneesCandidate apparie_appel_fonction(
 				if (poids_args == 0.0) {
 					poids_args = 0.0;
 					res.raison = METYPAGE_ARG;
-					res.type_attendu = contexte.typeuse.type_dereference_pour(type_arg);
+					res.type_attendu = type_dereference_pour(type_arg);
 					res.type_obtenu = type_enf;
 					res.noeud_erreur = slot;
 					break;
@@ -597,7 +597,7 @@ static DonneesCandidate apparie_appel_fonction(
 						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, &lexeme_tableau));
 
 			auto type_var = decl->params[decl->params.taille - 1]->type;
-			noeud_tableau->type = contexte.typeuse.type_dereference_pour(type_var);
+			noeud_tableau->type = type_dereference_pour(type_var);
 			noeud_tableau->exprs.reserve(slots.taille() - index_premier_var_arg);
 
 			for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {

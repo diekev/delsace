@@ -284,7 +284,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		case GenreType::REFERENCE:
 		case GenreType::POINTEUR:
 		{
-			auto type_deref = m_contexte.typeuse.type_dereference_pour(type);
+			auto type_deref = type_dereference_pour(type);
 
 			// Les pointeurs vers rien (void) ne sont pas valides avec LLVM
 			if (type_deref->genre == GenreType::RIEN) {
@@ -363,7 +363,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		}
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
-			auto type_deref_llvm = converti_type_llvm(m_contexte.typeuse.type_dereference_pour(type));
+			auto type_deref_llvm = converti_type_llvm(type_dereference_pour(type));
 
 			/* type = structure { *type, n64, n64 } */
 			std::vector<llvm::Type *> types_membres(3ul);
@@ -380,7 +380,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		}
 		case GenreType::TABLEAU_FIXE:
 		{
-			auto type_deref_llvm = converti_type_llvm(m_contexte.typeuse.type_dereference_pour(type));
+			auto type_deref_llvm = converti_type_llvm(type_dereference_pour(type));
 			auto const taille = static_cast<TypeTableauFixe *>(type)->taille;
 
 			type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<unsigned long>(taille));
