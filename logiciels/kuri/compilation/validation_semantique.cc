@@ -2675,6 +2675,13 @@ void performe_validation_semantique(
 					rassemble_feuilles(expr_paire, feuilles);
 
 					for (auto f : feuilles) {
+						if (f->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+							erreur::lance_erreur(
+										"expression inattendue dans la discrimination, seules les références de déclarations sont supportées pour le moment",
+										contexte,
+										f->lexeme);
+						}
+
 						auto nom_membre = f->ident->nom;
 
 						auto nom_trouve = false;
