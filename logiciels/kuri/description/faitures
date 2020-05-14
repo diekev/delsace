@@ -38,17 +38,8 @@ Faitures
 À faire
 -------
 - transtypage entre types complexes
-- transtypage automatique des valeurs littérales dans les expressions ou autre
----- littérale + littérale -> littérale  # OK
----- type + littérale      -> type       # À FAIRE (OK pour Z32, R64)
----- littérale + type      -> type       # À FAIRE (OK pour Z32, R64)
----- caractere + entier    -> caractère  # À FAIRE
----- entier + caractere    -> caractère  # À FAIRE
----- chaîne + caractere    -> chaîne     # À FAIRE
----- caractere + chaîne    -> chaîne     # À FAIRE
 - stack canaries (coulisse LLVM)
-- coroutines en dehours de boucles
-- interpreteur pour calculer le code au niveau de l'émission de code (exécuter dans le compileur, voir JAI, pour les bibliothèques externes -> chargement du .so/.dll)
+- coroutines en dehors de boucles
 - ajoute accès membre pour les types (==> déplacer structures dans les modules)
 - ajout d'une option pour controler la génération du code d'introspection/réflexion (il faut alors également exclure les einis)
 - infos types pour les unions
