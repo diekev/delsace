@@ -380,6 +380,10 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 						expression->transformation = transformation;
 					}
 				}
+
+				if (variable->type == nullptr) {
+					erreur::lance_erreur("paramètre déclaré sans type", contexte, variable->lexeme);
+				}
 			}
 
 			it->type = variable->type;
