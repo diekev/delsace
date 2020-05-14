@@ -91,6 +91,11 @@ maintenant_système_précis :: fonc () -> TempsSystème
     retourne temps
 }
 
+millisecondes :: fonc (temps: TempsSystème) -> z64
+{
+    retourne temps.seconde * 1_000 + temps.nanoseconde / 1_000_000
+}
+
 secondes_par_an :: fonc () -> z32
 {
     retourne 31_556_952
