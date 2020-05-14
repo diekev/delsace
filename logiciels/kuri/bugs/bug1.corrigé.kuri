@@ -1,3 +1,5 @@
+// Bug corrigé
+
 // Les conditions des controles de flux ne sont pas court-circuitées
 // quand ont a une condition du style a && b, si a est faux nous pourrions
 // ne pas évaluer b
@@ -14,7 +16,7 @@ principale :: fonc () -> z32
 
     {
         // crash ou panique selon ce qui est déréférencé
-        si tabl.taille < 4 0 && tabl[4] == 6 {
+        si tabl.taille < 4 && tabl[4] == 6 {
             // ....
         }
 
@@ -26,7 +28,7 @@ principale :: fonc () -> z32
 
     {
         // crash ou panique selon ce qui est déréférencé
-        tantque tabl.taille < 4 0 && tabl[4] == 6 {
+        tantque tabl.taille < 4 && tabl[4] == 6 {
             arrête
         }
 
@@ -45,7 +47,7 @@ principale :: fonc () -> z32
 
             i += 1
         // crash ou panique selon ce qui est déréférencé
-        } tantque tabl.taille < 4 0 && tabl[4] == 6
+        } tantque tabl.taille < 4 && tabl[4] == 6
 
         i = 0
         répète {
