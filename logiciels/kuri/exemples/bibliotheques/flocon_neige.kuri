@@ -1,0 +1,75 @@
+importe Fondation
+importe Temps
+
+// fonction pour générer des IDS, peut-être utilisée en parallèle ou sur différent serveurs si les paramètres sont uniques
+// adapté de SnowFlake de Twitter
+
+ÉPOQUE_DLS :: 1546322400000 comme z64
+
+BITS_ID_TRAVAILLEUR :: 5
+BITS_ID_CENTRE_DONNÉES :: 5
+ID_TRAVAILLEUR_MAX :: -1 ^ (-1 << BITS_ID_TRAVAILLEUR)
+ID_CENTRE_DONNÉES_MAX :: -1 ^ (-1 << BITS_ID_CENTRE_DONNÉES)
+BITS_SÉQUENCE :: 12
+
+DÉCALAGE_ID_TRAVAILLEUR :: BITS_SÉQUENCE
+DÉCALAGE_ID_CENTRE_DONNÉES :: BITS_SÉQUENCE + BITS_ID_TRAVAILLEUR
+DÉCALAGE_GAUCHE_HORODOTAGE :: BITS_SÉQUENCE + BITS_ID_TRAVAILLEUR + BITS_ID_CENTRE_DONNÉES
+MASQUE_SÉQUENCE :: -1 ^ (-1 << BITS_SÉQUENCE)
+
+génère_temps :: fonc () -> z64
+{
+    retourne maintenant_système_précis().millisecondes()
+}
+
+// paramètres
+id_travailleur : z64 = 0
+id_centre_données : z64 = 0
+séquence : z64 = 0
+DERNIER_HORODOTAGE : z64 = -1
+
+id_suivant :: fonc () -> z64
+{
+    horodotage := génère_temps()
+
+    si horodotage < DERNIER_HORODOTAGE {
+        // @erreur
+        imprime("le temps recule, retente dans %ms\n", DERNIER_HORODOTAGE - horodotage)
+    }
+
+    si DERNIER_HORODOTAGE == horodotage {
+        séquence = (séquence + 1) & MASQUE_SÉQUENCE
+
+        si séquence == 0 {
+            horodotage = jusque_prochaine_millis(DERNIER_HORODOTAGE)
+        }
+    }
+    sinon {
+        séquence = 0
+    }
+
+    DERNIER_HORODOTAGE = horodotage
+
+    retourne ((horodotage - ÉPOQUE_DLS) << DÉCALAGE_GAUCHE_HORODOTAGE) | (id_centre_données << DÉCALAGE_ID_CENTRE_DONNÉES) | (id_travailleur << DÉCALAGE_ID_TRAVAILLEUR) | séquence
+}
+
+jusque_prochaine_millis :: fonc (dernier_horodotage: z64) -> z64
+{
+    horodotage := génère_temps()
+
+    tantque horodotage <= dernier_horodotage {
+        horodotage = génère_temps()
+    }
+
+    retourne horodotage
+}
+
+principale :: fonc () -> z32
+{
+    pour 0 ... 15 {
+        id := id_suivant()
+        imprime("id : %\n", id)
+    }
+
+    retourne 0
+}
