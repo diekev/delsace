@@ -227,6 +227,15 @@ TransformationType cherche_transformation(
 		auto type_pointe = static_cast<TypeTableauDynamique *>(type_vers)->type_pointe;
 
 		if (type_pointe->genre == GenreType::OCTET) {
+			// a : []octet = nul, voir bug19
+			if (type_de->genre == GenreType::POINTEUR) {
+				auto type_pointe_de = static_cast<TypePointeur *>(type_de)->type_pointe;
+
+				if (type_pointe_de == nullptr) {
+					return TypeTransformation::IMPOSSIBLE;
+				}
+			}
+
 			return TypeTransformation::CONSTRUIT_TABL_OCTET;
 		}
 
