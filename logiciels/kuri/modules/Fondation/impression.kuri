@@ -708,9 +708,7 @@ imprime_dans_fichier :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
 imprime_log :: fonc (ident: chaine, mode: ModeLogage, format: chaine, args: ...eini) -> rien
 {
 	message := imprime_chaine(format, ...args)
-
-	log := contexte.logueur
-    log(message, ident, mode, contexte.données_logueur)
+    contexte.logueur(message, ident, mode, contexte.données_logueur)
 	déloge message
 }
 
