@@ -35,6 +35,11 @@
 
 namespace noeud {
 
+static inline char char_depuis_hex(char hex)
+{
+	return "0123456789ABCDEF"[static_cast<int>(hex)];
+}
+
 /* ************************************************************************** */
 
 static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
@@ -643,11 +648,6 @@ struct GeneratriceCodeC {
 
 								auto resultat = dls::chaine();
 
-								auto char_depuis_hex = [](char hex)
-								{
-									return "0123456789ABCDEF"[static_cast<int>(hex)];
-								};
-
 								auto virgule = "{ ";
 
 								for (auto i = 0; i < taille_donnees; ++i) {
@@ -732,15 +732,9 @@ struct GeneratriceCodeC {
 					auto ligne = fichier->tampon[pos.index_ligne];
 
 					POUR (ligne) {
-						if (it == '\n') {
-							continue;
-						}
-
-						if (it == '"') {
-							os << '\\';
-						}
-
-						os << it;
+						os << "\\x"
+						   << char_depuis_hex((it & 0xf0) >> 4)
+						   << char_depuis_hex(it & 0x0f);
 					}
 
 					os << "\",";
