@@ -2739,6 +2739,7 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 	if (enfant_sans_arret) {
 		insere_label(bloc_sansarret);
 		genere_ri_pour_noeud(enfant_sans_arret);
+		cree_branche(bloc_apres);
 	}
 
 	if (enfant_sinon) {
