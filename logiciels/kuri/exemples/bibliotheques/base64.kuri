@@ -147,10 +147,8 @@ décode :: fonc(chn : chaine) -> chaine
 
 //#######################################
 
-principale :: fonc () -> z32
+test_codec :: fonc () -> rien
 {
-    diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
-
     chn := "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure."
 
     attendu := "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4="
@@ -173,6 +171,32 @@ principale :: fonc () -> z32
 
     déloge rés
     déloge déc
+}
+
+principale :: fonc () -> z32
+{
+    diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
+
+    args := arguments_ligne_commande()
+
+    si args.taille != 3 {
+        imprime("Utilisation : % [-encode|-décode] CHAINE\n", args[0])
+        retourne 1
+    }
+
+    si args[1] == "-encode" {
+        résultat := encode(args[2])
+        imprime("%\n", résultat)
+        déloge résultat
+    }
+    sinon si args[1] == "-décode" {
+        résultat := décode(args[2])
+        imprime("%\n", résultat)
+        déloge résultat
+    }
+    sinon {
+        imprime("Mauvais argument d'encodage/décodage, obtenu : %\n", args[1])
+    }
 
     retourne 0
 }
