@@ -1,0 +1,273 @@
+importe Fondation
+
+divise_url :: fonc (ligne: chaine) -> []chaine
+{
+    taille_mot : z64 = 0
+	début_mot : z64 = 0
+    mots : []chaine
+
+    premier_slash := vrai
+
+    pour c, i dans ligne {
+	    si c == '/' {
+            si premier_slash {
+                premier_slash = faux
+
+                mot := ligne.sous_chaine(0, 1)
+                tableau_ajoute(@mots, mot)
+
+		    	début_mot = i + 1
+			    taille_mot = 0
+                continue
+            }
+
+			mot := ligne.sous_chaine(début_mot, début_mot + taille_mot)
+            tableau_ajoute(@mots, mot)
+
+			début_mot = i + 1
+			taille_mot = 0
+			continue
+		}
+
+		taille_mot += 1
+	}
+
+    si taille_mot != 0 {
+		mot := ligne.sous_chaine(début_mot, début_mot + taille_mot)
+
+        si mot {
+            tableau_ajoute(@mots, mot)
+        }
+	}
+
+    retourne mots
+}
+
+ActionRègleRoutage :: énum {
+    Invalide
+    ApparieChaineLittérale
+    ApparieChaine
+    ApparieNombreEntier
+}
+
+RègleRoutage :: struct {
+    action: ActionRègleRoutage
+    chn: chaine
+    nom_données: chaine
+}
+
+ErreurParsage :: erreur {
+    RègleDénuéeDeNom
+    TypeActionInconnue
+    NomRègleRedéfini
+    ChevronFermantManquant
+}
+
+ErreurOuRèglesRoutage :: union {
+    e: ErreurParsage
+    r: []RègleRoutage
+}
+
+parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
+{
+    éléments := divise_url(route)
+    diffère { déloge éléments }
+
+    résultat : []RègleRoutage
+
+    pour éléments {
+        règle : RègleRoutage
+
+        si it[0] == '<' {
+            pos_double_points := trouve_caractère_depuis_le_début(it, ':')
+
+            si pos_double_points == -1 {
+                déloge résultat
+                retourne ErreurParsage.RègleDénuéeDeNom
+            }
+
+            si it[it.taille - 1] != '>' {
+                déloge résultat
+                retourne ErreurParsage.ChevronFermantManquant
+            }
+
+            nom_données := it.sous_chaine(1, pos_double_points)
+            type_action := it.sous_chaine(pos_double_points + 1, it.taille - 1)
+
+            si type_action == "entier" {
+                règle.action = ActionRègleRoutage.ApparieNombreEntier
+            }
+            sinon si type_action == "chaine" {
+                règle.action = ActionRègleRoutage.ApparieChaine
+            }
+            sinon {
+                déloge résultat
+                retourne ErreurParsage.TypeActionInconnue
+            }
+
+            pour r dans résultat {
+                si r.nom_données == nom_données {
+                    déloge résultat
+                    retourne ErreurParsage.NomRègleRedéfini
+                }
+            }
+
+            règle.nom_données = nom_données
+        }
+        sinon {
+            // ceci est également utilisé pour la racine "/"
+            règle.action = ActionRègleRoutage.ApparieChaineLittérale
+            règle.chn = it
+        }
+
+        tableau_ajoute(@résultat, règle)
+    }
+
+    retourne résultat
+}
+
+est_seulement_nombre :: fonc (chn: chaine) -> bool
+{
+    pour chn {
+        si !est_nombre_décimal(it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+ErreurAppariement :: erreur {
+    RègleInvalide
+    ÉlémentDoitÊtreUnNombre
+    ÉlémentDoitÊtreUneChaine
+    RègleEtRouteOntTaillesDifférentes
+}
+
+DonnéesAppariement :: struct {
+    nom: chaine
+    données: chaine
+}
+
+DonnéesRouteOuErreur :: union {
+    e: ErreurAppariement
+    d: []DonnéesAppariement
+}
+
+apparie_route :: fonc (règles: []RègleRoutage, route: chaine) -> DonnéesRouteOuErreur
+{
+    éléments := divise_url(route)
+    diffère { déloge éléments }
+
+    si règles.taille != éléments.taille {
+        retourne ErreurAppariement.RègleEtRouteOntTaillesDifférentes
+    }
+
+    résultat : []DonnéesAppariement
+
+    pour éléments {
+        règle := règles[index_it]
+
+        discr règle.action {
+            Invalide {
+                déloge résultat
+                retourne ErreurAppariement.RègleInvalide
+            }
+            ApparieChaine {
+                // RÀF, nous pourrions avoir une fonction de rappel
+            }
+            ApparieChaineLittérale {
+                si it != règle.chn {
+                    déloge résultat
+                    retourne ErreurAppariement.ÉlémentDoitÊtreUneChaine
+                }
+
+                données : DonnéesAppariement
+                données.nom = règle.nom_données
+                données.données = it
+
+                tableau_ajoute(@résultat, données)
+            }
+            ApparieNombreEntier {
+                si !est_seulement_nombre(it) {
+                    déloge résultat
+                    retourne ErreurAppariement.ÉlémentDoitÊtreUnNombre
+                }
+
+                données : DonnéesAppariement
+                données.nom = règle.nom_données
+                données.données = it
+
+                tableau_ajoute(@résultat, données)
+            }
+        }
+    }
+
+    retourne résultat
+}
+
+principale :: fonc () -> z32
+{
+    diffère { imprime("\nFin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
+
+    route := "/<id_utilisateur:chaine>/status/<id_post:entier>/"
+
+    éléments := divise_url(route)
+    diffère { déloge éléments }
+
+    pour éléments {
+        imprime("- élément % : %\n", index_it, it)
+    }
+
+    règles := tente parse_règles(route) piège err {
+        discr err {
+            RègleDénuéeDeNom {
+                imprime("la règle n'a pas de nom")
+            }
+            TypeActionInconnue {
+                imprime("type d'action inconnue")
+            }
+            NomRègleRedéfini {
+                imprime("nom de règle redéfini")
+            }
+            ChevronFermantManquant {
+                imprime("le chevron fermant est manquant")
+            }
+        }
+
+        retourne 1
+    }
+    diffère { déloge règles }
+
+    imprime("RègleRoutages pour \"%\"\n", route)
+
+    pour règles {
+        imprime("- règle % : %\n", index_it, it)
+    }
+
+    routes_requêtes := [
+        "/",
+        "/ramses/data/",
+        "/ramses/status/123456789/",
+        "/ramses/"
+    ]
+
+    imprime("route : %\n", route)
+    pour routes_requêtes {
+        résultat := tente apparie_route(règles, it) piège err {
+            continue
+        }
+
+        imprime("routage vers : %\n", it)
+        déloge résultat
+        arrête
+    }
+    sansarrêt {
+        imprime("aucune route ne fut trouvée !\n")
+    }
+    sinon {
+        imprime("une route fut trouvée !\n")
+    }
+
+    retourne 0
+}
