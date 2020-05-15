@@ -392,6 +392,11 @@ dernier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
 	retourne construit_chaine(ligne.pointeur + ligne.taille - taille_min, taille_min)
 }
 
+sous_chaine :: fonc (chn: chaine, pos_début: z64, pos_fin: z64) -> chaine
+{
+	retourne construit_chaine(@chn[pos_début], pos_fin - pos_début)
+}
+
 distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
 {
 	m := chn1.taille
