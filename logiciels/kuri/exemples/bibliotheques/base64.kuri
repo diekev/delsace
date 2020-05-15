@@ -1,5 +1,8 @@
 importe Fondation
 
+// table     := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+// table_url := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+
 est_base64_url :: fonc(c : z8) -> bool
 {
     retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '-') || (c == '_')
@@ -19,7 +22,7 @@ encode_impl :: fonc(chn : chaine, table : chaine) -> chaine
 	char_array_4 : [4]n8
 
     enchaineuse : Enchaineuse
-	intialise_enchaineuse(@enchaineuse)
+	initialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 
     longueur := chn.taille
@@ -80,72 +83,66 @@ encode_pour_url :: fonc(chn: chaine) -> chaine
 
 //#######################################
 
-décode_impl :: fonc(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(bool)) -> chaine
+// implémentation tirée de https://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64
+décode :: fonc(chn : chaine) -> chaine
 {
-	i := 0
-	char_array_3 : [3]n8
-	char_array_4 : [4]n8
-    longueur := chn.taille
     enchaineuse : Enchaineuse
-	intialise_enchaineuse(@enchaineuse)
+	initialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 
-    pour c dans chn {
-        si c == '=' || !rappel_est_base64(c) {
-            arrête
-        }
+    temp := 0
+    curseur := chn.pointeur
+    fin := chn.pointeur + chn.taille
 
-        char_array_4[i] = c comme n8
-        i += 1
+    tantque curseur < fin {
+        pour 0 ... 3 {
+            temp <<= 6
+            caractère := mémoire(curseur)
 
-        si i == 4 {
-            pour j dans 0 ... 3 {
-				char_array_4[j] = table.trouve_caractère(transtype(char_array_4[j] comme z8, 0): n8)
+            si caractère >= 'A' && caractère <= 'Z' {
+                temp |= caractère - 0x41
+            }
+            sinon si caractère >= 'a' && caractère <= 'z' {
+                temp |= caractère - 0x47
+            }
+            sinon si caractère >= '0' && caractère <= '9' {
+                temp |= caractère + 0x04
+            }
+            sinon si caractère == '+' || caractère == '-' {
+                temp |= 0x3E
+            }
+            sinon si caractère == '/' || caractère == '_' {
+                temp |= 0x3F
+            }
+            sinon si caractère == '=' {
+                reste := (fin - curseur) comme z64
+
+                si reste == 1 {
+                    ajoute_au_tampon(@enchaineuse, ((temp >> 16) & 0xff) comme z8)
+                    ajoute_au_tampon(@enchaineuse, ((temp >>  8) & 0xff) comme z8)
+                }
+                sinon si reste == 2 {
+                    ajoute_au_tampon(@enchaineuse, ((temp >> 10) & 0xff) comme z8)
+                }
+                sinon {
+                    // @erreur
+                }
+
+	            retourne chaine_depuis_enchaineuse(@enchaineuse)
+            }
+            sinon {
+                // @erreur
             }
 
-			char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4) comme n8
-			char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2) comme n8
-			char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3] comme n8
-
-            pour j dans 0 ... 2 {
-                ajoute_au_tampon(@enchaineuse, char_array_3[j] comme z8)
-            }
-
-            i = 0
+            curseur += 1
         }
+
+        ajoute_au_tampon(@enchaineuse, ((temp >> 16) & 0xff) comme z8)
+        ajoute_au_tampon(@enchaineuse, ((temp >>  8) & 0xff) comme z8)
+        ajoute_au_tampon(@enchaineuse, ((temp      ) & 0xff) comme z8)
     }
 
-	si i != 0 {
-		pour j dans i ... 3 {
-			char_array_4[j] = '\0' comme n8
-		}
-
-        pour j dans i ... 3 {
-            char_array_4[j] = table[char_array_4[j]] comme n8
-        }
-
-		char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4) comme n8
-		char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2) comme n8
-		char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3] comme n8
-
-        pour j dans 0 ... i {
-			ajoute_au_tampon(@enchaineuse, table.trouve_caractère(transtype(char_array_3[j] comme z8, 0): z8))
-        }
-	}
-
 	retourne chaine_depuis_enchaineuse(@enchaineuse)
-}
-
-décode :: fonc(chn: chaine) -> chaine
-{
-    table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-	retourne décode_impl(chn, table, est_base64)
-}
-
-décode_pour_url :: fonc(chn: chaine) -> chaine
-{
-    table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
-	retourne décode_impl(chn, table, est_base64_url)
 }
 
 //#######################################
@@ -160,7 +157,7 @@ principale :: fonc () -> z32
 
     rés := encode(chn)
 
-    imprime("Chaine encodée : ", rés, "\n")
+    imprime("Chaine encodée : %\n", rés)
 
     si rés != attendu {
         imprime("Le résultat n'est pas le bon")
@@ -168,7 +165,11 @@ principale :: fonc () -> z32
 
     déc := décode(rés)
 
-    imprime("Chaine décodée : ", déc, "\n")
+    imprime("Chaine décodée : %\n", déc)
+
+    si déc != chn {
+        imprime("La chaine décodée n'est pas bonne !\n")
+    }
 
     déloge rés
     déloge déc
