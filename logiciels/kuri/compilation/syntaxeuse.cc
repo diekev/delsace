@@ -671,6 +671,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU, lexeme);
 			noeud->expr = analyse_expression({}, GenreLexeme::CROCHET_OUVRANT, GenreLexeme::INCONNU);
 
+			// point-virgule implicite dans l'expression
+			if (apparie(GenreLexeme::POINT_VIRGULE)) {
+				consomme();
+			}
+
 			consomme(GenreLexeme::CROCHET_FERMANT, "Attendu un crochet fermant");
 
 			return noeud;
