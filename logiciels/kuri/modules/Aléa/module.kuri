@@ -1,0 +1,53 @@
+// Interface pour le module C Aléa
+
+#bibliothèque_statique "libmodule_c_alea.a"
+#bibliothèque_dynamique "m"
+
+#inclus "alea.h"
+
+GNA :: struct externe;
+
+ALEA_cree_gna :: fonc externe (graine: n32) -> *GNA
+ALEA_reseme_gna :: fonc externe (gna: *GNA, graine: n32) -> rien
+ALEA_detruit_gna :: fonc externe (gna: *GNA) -> rien
+
+ALEA_uniforme_r32 :: fonc externe(gna: *GNA, min: r32, max: r32) -> r32
+ALEA_uniforme_r64 :: fonc externe(gna: *GNA, min: r64, max: r64) -> r64
+
+ALEA_normale_r32 :: fonc externe(gna: *GNA, moyenne: r32, écart: r32) -> r32
+ALEA_normale_r64 :: fonc externe(gna: *GNA, moyenne: r64, écart: r64) -> r64
+
+crée_gna :: fonc (graine: n32) -> *GNA
+{
+    retourne ALEA_cree_gna(graine)
+}
+
+resème :: fonc (gna: *GNA, graine: n32) -> rien
+{
+    ALEA_reseme_gna(gna, graine)
+}
+
+détruit_gna :: fonc (gna: *GNA) -> rien
+{
+    ALEA_detruit_gna(gna)
+}
+
+uniforme :: fonc (gna: *GNA, min: r32, max: r32) -> r32
+{
+    retourne ALEA_uniforme_r32(gna, min, max)
+}
+
+uniforme :: fonc (gna: *GNA, min: r64, max: r64) -> r64
+{
+    retourne ALEA_uniforme_r64(gna, min, max)
+}
+
+normale :: fonc (gna: *GNA, moyenne: r32, écart: r32) -> r32
+{
+    retourne ALEA_normale_r32(gna, moyenne, écart)
+}
+
+normale :: fonc (gna: *GNA, moyenne: r64, écart: r64) -> r64
+{
+    retourne ALEA_normale_r64(gna, moyenne, écart)
+}

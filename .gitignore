@@ -5,4 +5,5 @@ test.db
 *.a
 config.json
 
+logiciels/kuri/modules/Aléa/*.h
 logiciels/kuri/modules/FTGL/*.h
