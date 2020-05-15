@@ -45,6 +45,19 @@
 
 namespace noeud {
 
+static bool est_type_conditionnable(Type *type)
+{
+	return dls::outils::est_element(
+				type->genre,
+				GenreType::BOOL,
+				GenreType::CHAINE,
+				GenreType::ENTIER_CONSTANT,
+				GenreType::ENTIER_NATUREL,
+				GenreType::ENTIER_RELATIF,
+				GenreType::POINTEUR,
+				GenreType::TABLEAU_DYNAMIQUE);
+}
+
 /* ************************************************************************** */
 
 static Type *resoud_type_final(
@@ -1233,6 +1246,16 @@ void performe_validation_semantique(
 
 					expr->type = contexte.typeuse.type_pointeur_pour(type);
 				}
+				else if (expr->lexeme->genre == GenreLexeme::EXCLAMATION) {
+					if (!est_type_conditionnable(enfant->type)) {
+						erreur::lance_erreur(
+									"Ne peut pas appliquer l'opérateur « ! » au type de l'expression",
+									contexte,
+									enfant->lexeme);
+					}
+
+					expr->type = contexte.typeuse[TypeBase::BOOL];
+				}
 				else {
 					if (type->genre == GenreType::ENTIER_CONSTANT) {
 						type = contexte.typeuse[TypeBase::Z32];
@@ -1465,19 +1488,6 @@ void performe_validation_semantique(
 			if (type_condition == nullptr && !est_operateur_bool(inst->condition->lexeme->genre)) {
 				erreur::lance_erreur("Attendu un opérateur booléen pour la condition", contexte, inst->condition->lexeme);
 			}
-
-			auto est_type_conditionnable = [](Type *type)
-			{
-				return dls::outils::est_element(
-							type->genre,
-							GenreType::BOOL,
-							GenreType::CHAINE,
-							GenreType::ENTIER_CONSTANT,
-							GenreType::ENTIER_NATUREL,
-							GenreType::ENTIER_RELATIF,
-							GenreType::POINTEUR,
-							GenreType::TABLEAU_DYNAMIQUE);
-			};
 
 			if (!est_type_conditionnable(type_condition)) {
 				erreur::lance_erreur("Impossible de conditionner le type de l'expression 'si'",

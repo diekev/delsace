@@ -767,7 +767,4 @@ void enregistre_operateurs_basiques(
 		operateurs.ajoute_basique_unaire(GenreLexeme::PLUS_UNAIRE, type, type);
 		operateurs.ajoute_basique_unaire(GenreLexeme::MOINS_UNAIRE, type, type);
 	}
-
-	// opérateurs unaires booléens !
-	operateurs.ajoute_basique_unaire(GenreLexeme::EXCLAMATION, type_bool, type_bool);
 }

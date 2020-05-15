@@ -1461,6 +1461,54 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return valeur;
 			}
 
+			if (noeud->lexeme->genre == GenreLexeme::EXCLAMATION) {
+				auto condition = expr_un->expr;
+				auto type_condition = condition->type;
+				auto valeur = static_cast<Atome *>(nullptr);
+
+				switch (type_condition->genre) {
+					case GenreType::ENTIER_NATUREL:
+					case GenreType::ENTIER_RELATIF:
+					case GenreType::ENTIER_CONSTANT:
+					{
+						auto valeur1 = genere_ri_transformee_pour_noeud(condition, nullptr);
+						auto valeur2 = cree_constante_entiere(type_condition, 0);
+						valeur = cree_op_comparaison(OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+						break;
+					}
+					case GenreType::BOOL:
+					{
+						auto valeur1 = genere_ri_transformee_pour_noeud(condition, nullptr);
+						auto valeur2 = cree_constante_booleenne(false);
+						valeur = cree_op_comparaison(OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+						break;
+					}
+					case GenreType::POINTEUR:
+					{
+						auto valeur1 = genere_ri_transformee_pour_noeud(condition, nullptr);
+						auto valeur2 = cree_constante_nulle(type_condition);
+						valeur = cree_op_comparaison(OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+						break;
+					}
+					case GenreType::CHAINE:
+					case GenreType::TABLEAU_DYNAMIQUE:
+					{
+						auto pointeur = genere_ri_pour_noeud(condition);
+						auto pointeur_taille = cree_acces_membre(pointeur, 1);
+						auto valeur1 = cree_charge_mem(pointeur_taille);
+						auto valeur2 = cree_z64(0);
+						valeur = cree_op_comparaison(OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+						break;
+					}
+					default:
+					{
+						break;
+					}
+				}
+
+				return valeur;
+			}
+
 			auto valeur = genere_ri_transformee_pour_noeud(expr_un->expr, nullptr);
 
 			if (expr_un->op->est_basique) {
