@@ -2493,6 +2493,13 @@ void performe_validation_semantique(
 
 				auto var = decl_expr->valeur;
 
+				if (!est_invalide(var->type_declare.plage())) {
+					erreur::lance_erreur(
+								"Expression d'énumération déclarée avec un type",
+								contexte,
+								it->lexeme);
+				}
+
 				if (var->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
 					erreur::lance_erreur("Expression invalide dans la déclaration du membre de l'énumération", contexte, var->lexeme);
 				}
