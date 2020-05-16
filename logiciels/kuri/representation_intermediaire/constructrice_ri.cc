@@ -1483,6 +1483,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 						valeur = cree_op_comparaison(OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
 						break;
 					}
+					case GenreType::FONCTION:
 					case GenreType::POINTEUR:
 					{
 						auto valeur1 = genere_ri_transformee_pour_noeud(condition, nullptr);
@@ -3440,6 +3441,7 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition, Instr
 				valeur = genere_ri_transformee_pour_noeud(condition, nullptr);
 				break;
 			}
+			case GenreType::FONCTION:
 			case GenreType::POINTEUR:
 			{
 				auto valeur1 = genere_ri_transformee_pour_noeud(condition, nullptr);

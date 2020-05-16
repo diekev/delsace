@@ -54,6 +54,7 @@ static bool est_type_conditionnable(Type *type)
 				GenreType::ENTIER_CONSTANT,
 				GenreType::ENTIER_NATUREL,
 				GenreType::ENTIER_RELATIF,
+				GenreType::FONCTION,
 				GenreType::POINTEUR,
 				GenreType::TABLEAU_DYNAMIQUE);
 }
