@@ -1,0 +1,18 @@
+// Interface pour les fonctions standardes définies par POSIX
+
+#inclus "stdlib.h"
+
+importe Fondation
+
+getenv :: fonc externe (nom: *z8) -> *z8
+
+chaine_environnement :: fonc (nom: chaine) -> chaine
+{
+    chn := getenv(nom.pointeur)
+
+    saufsi chn {
+        retourne ""
+    }
+
+    retourne converti_chaine_c(chn)
+}
