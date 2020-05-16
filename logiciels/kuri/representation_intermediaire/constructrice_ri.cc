@@ -1779,8 +1779,6 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 				alloc = cree_allocation(type_struct, nullptr);
 
-				imprime_fichier_ligne(m_contexte, *noeud->lexeme);
-
 				POUR (expr->exprs) {
 					auto valeur = static_cast<Atome *>(nullptr);
 
