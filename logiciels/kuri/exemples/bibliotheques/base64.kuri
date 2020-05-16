@@ -1,151 +1,4 @@
-importe Fondation
-
-// table     := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-// table_url := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
-
-est_base64_url :: fonc(c : z8) -> bool
-{
-    retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '-') || (c == '_')
-}
-
-est_base64 :: fonc(c : z8) -> bool
-{
-    retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '+') || (c == '/')
-}
-
-//#######################################
-
-encode_impl :: fonc(chn : chaine, table : chaine) -> chaine
-{
-	i := 0
-	char_array_3 : [3]n8
-	char_array_4 : [4]n8
-
-    enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse) }
-
-    longueur := chn.taille
-
-    pour c dans chn {
-		char_array_3[i] = c comme n8
-
-        i += 1
-
-		si i == 3 {
-			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2 comme n8
-			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4) comme n8
-			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6) comme n8
-			char_array_4[3] = char_array_3[2] & 0x3f comme n8
-
-            pour j dans 0 ... 3 {
-                ajoute_au_tampon(@enchaineuse, table[char_array_4[j]])
-            }
-
-			i = 0
-		}
-	}
-
-	si i != 0 {
-        pour j dans i ... 2 {
-			char_array_3[j] = '\0' comme n8
-        }
-
-		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2
-		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4) comme n8
-		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6) comme n8
-		char_array_4[3] = char_array_3[2] & 0x3f
-
-        pour j dans 0 ... i {
-            ajoute_au_tampon(@enchaineuse, table[char_array_4[j]])
-        }
-
-        tantque i < 3 {
-            ajoute_au_tampon(@enchaineuse, '=')
-            i += 1
-        }
-	}
-
-	retourne chaine_depuis_enchaineuse(@enchaineuse)
-}
-
-encode :: fonc(chn: chaine) -> chaine
-{
-    table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-	retourne encode_impl(chn, table)
-}
-
-encode_pour_url :: fonc(chn: chaine) -> chaine
-{
-    table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
-	retourne encode_impl(chn, table)
-}
-
-//#######################################
-
-// implémentation tirée de https://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64
-décode :: fonc(chn : chaine) -> chaine
-{
-    enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse) }
-
-    temp := 0
-    curseur := chn.pointeur
-    fin := chn.pointeur + chn.taille
-
-    tantque curseur < fin {
-        pour 0 ... 3 {
-            temp <<= 6
-            caractère := mémoire(curseur)
-
-            si caractère >= 'A' && caractère <= 'Z' {
-                temp |= caractère - 0x41
-            }
-            sinon si caractère >= 'a' && caractère <= 'z' {
-                temp |= caractère - 0x47
-            }
-            sinon si caractère >= '0' && caractère <= '9' {
-                temp |= caractère + 0x04
-            }
-            sinon si caractère == '+' || caractère == '-' {
-                temp |= 0x3E
-            }
-            sinon si caractère == '/' || caractère == '_' {
-                temp |= 0x3F
-            }
-            sinon si caractère == '=' {
-                reste := (fin - curseur) comme z64
-
-                si reste == 1 {
-                    ajoute_au_tampon(@enchaineuse, ((temp >> 16) & 0xff) comme z8)
-                    ajoute_au_tampon(@enchaineuse, ((temp >>  8) & 0xff) comme z8)
-                }
-                sinon si reste == 2 {
-                    ajoute_au_tampon(@enchaineuse, ((temp >> 10) & 0xff) comme z8)
-                }
-                sinon {
-                    // @erreur
-                }
-
-	            retourne chaine_depuis_enchaineuse(@enchaineuse)
-            }
-            sinon {
-                // @erreur
-            }
-
-            curseur += 1
-        }
-
-        ajoute_au_tampon(@enchaineuse, ((temp >> 16) & 0xff) comme z8)
-        ajoute_au_tampon(@enchaineuse, ((temp >>  8) & 0xff) comme z8)
-        ajoute_au_tampon(@enchaineuse, ((temp      ) & 0xff) comme z8)
-    }
-
-	retourne chaine_depuis_enchaineuse(@enchaineuse)
-}
-
-//#######################################
+importe CodecDonnées
 
 test_codec :: fonc () -> rien
 {
@@ -153,7 +6,7 @@ test_codec :: fonc () -> rien
 
     attendu := "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4="
 
-    rés := encode(chn)
+    rés := encode_base64(chn)
 
     imprime("Chaine encodée : %\n", rés)
 
@@ -161,7 +14,7 @@ test_codec :: fonc () -> rien
         imprime("Le résultat n'est pas le bon")
     }
 
-    déc := décode(rés)
+    déc := décode_base64(rés)
 
     imprime("Chaine décodée : %\n", déc)
 
@@ -185,12 +38,12 @@ principale :: fonc () -> z32
     }
 
     si args[1] == "-encode" {
-        résultat := encode(args[2])
+        résultat := encode_base64(args[2])
         imprime("%\n", résultat)
         déloge résultat
     }
     sinon si args[1] == "-décode" {
-        résultat := décode(args[2])
+        résultat := décode_base64(args[2])
         imprime("%\n", résultat)
         déloge résultat
     }
