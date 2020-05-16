@@ -1,0 +1,238 @@
+importe CodecDonnées
+importe Fondation
+importe GlibC
+importe SysFichier
+
+Courriel :: struct {
+    message: chaine
+    destinataire: chaine
+    expéditeur: chaine
+}
+
+ConfigurationCourriel :: struct {
+    serveur : chaine
+    port : n16 = 25 // 465 pour ssl
+    utilise_ssl := faux
+    utilisateur : chaine
+    mot_de_passe : chaine
+}
+
+lis_réponse :: fonc (prise: z32) -> chaine
+{
+    taille_max_données :: 1024
+    tampon : [taille_max_données]z8
+    réponse : chaine
+
+    boucle {
+        taille_reçue := recv(prise, @tampon[0], taille_max_données comme n64, 0)
+
+        si taille_reçue > 0 {
+            ancienne_taille := réponse.taille
+            reloge réponse : chaine(réponse.taille + taille_reçue)
+            copie_mem_nonsur(src=@tampon[0], dst=@réponse[ancienne_taille], taille=taille_reçue)
+
+            si taille_reçue < taille_max_données {
+                arrête
+            }
+        }
+        sinon si taille_reçue == 0 {
+            arrête
+        }
+        sinon si taille_reçue == -1 {
+            arrête
+        }
+    }
+
+    retourne réponse
+}
+
+envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> z32
+{
+    message := ""
+    diffère { si message { déloge message } }
+
+    si format {
+        message = imprime_chaine(format, ...args)
+        pousse(@message, '\r')
+        pousse(@message, '\n')
+    }
+
+    taille_écrite := tente fichier.écris(message) piège err {
+        retourne 0
+    }
+
+    imprime("requête: %", message)
+
+    si taille_écrite == -1 {
+        imprime("impossible d'envoyer la requête !\n")
+        retourne 0
+    }
+
+    réponse := lis_réponse(fichier.desc)
+    imprime("réponse: %\n", réponse)
+    diffère { déloge réponse }
+
+    si réponse.taille < 3 {
+        retourne 0
+    }
+
+    status := extrait_nombre_entier(réponse.sous_chaine(0, 3))
+    retourne status comme z32
+}
+
+// https://tools.ietf.org/html/rfc5322
+crée_corps_message :: fonc (courriel: Courriel) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
+    diffère { détruit_tampons(@enchaineuse) }
+
+    ajoute_au_tampon(@enchaineuse, "User-Agent: courriel_delsace\r\n")
+    // Date: Tue, 15 Jan 2008 16:02:43 -0500
+    //ajoute_au_tampon(@enchaineuse, "Date: ")
+
+    imprime_dans_enchaineuse(@enchaineuse, "From:<%>\r\n", courriel.expéditeur)
+    imprime_dans_enchaineuse(@enchaineuse, "To:<%>\r\n", courriel.destinataire)
+    ajoute_au_tampon(@enchaineuse, "Subject: Test envoie message\r\n")
+    ajoute_au_tampon(@enchaineuse, "\r\n")
+    ajoute_au_tampon(@enchaineuse, courriel.message)
+    ajoute_au_tampon(@enchaineuse, "\r\n.")
+
+    retourne chaine_depuis_enchaineuse(@enchaineuse)
+}
+
+ErreurConnexion :: erreur {
+    RésolutionHôteImpossible
+    CréationPriseImpossible
+    ConnexionPriseImpossible
+}
+
+FichierOuErreur :: union {
+    e: ErreurConnexion
+    f: Fichier
+}
+
+ouvre_connexion_serveur :: fonc (config: ConfigurationCourriel) -> FichierOuErreur
+{
+    ptr_tampon := chaine_c_temp(config.serveur)
+    he := gethostbyname(ptr_tampon)
+
+    si he == nul {
+        retourne ErreurConnexion.RésolutionHôteImpossible
+    }
+
+    prise := socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
+
+    si prise == -1 {
+        retourne ErreurConnexion.CréationPriseImpossible
+    }
+
+    their_addr : sockaddr_in
+    their_addr.sin_family = AF_INET comme n16
+    their_addr.sin_port = htons(config.port)
+    their_addr.sin_zero[0] = 0
+    their_addr.sin_zero[1] = 0
+    their_addr.sin_zero[2] = 0
+    their_addr.sin_zero[3] = 0
+    their_addr.sin_zero[4] = 0
+    their_addr.sin_zero[5] = 0
+    their_addr.sin_zero[6] = 0
+    their_addr.sin_zero[7] = 0
+
+    x := he.h_addr_list[0]
+    their_addr.sin_addr = mémoire(x comme *in_addr)
+
+	si connect(prise, (@their_addr) comme *sockaddr, taille_de(sockaddr) comme z64) == -1 {
+        retourne ErreurConnexion.ConnexionPriseImpossible
+    }
+
+    linger_option := linger(l_onoff = -1, l_linger = 2)
+    _ := setsockopt(prise, SOL_SOCKET, SO_LINGER, @linger_option, taille_de(linger))
+
+    fichier := Fichier(desc = prise)
+    retourne fichier
+}
+
+envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: Courriel) -> z32
+{
+    fichier := tente ouvre_connexion_serveur(config) piège err {
+        discr err {
+            RésolutionHôteImpossible {
+                imprime("Impossible de résoudre l'hôte selon le nom !\n")
+            }
+            CréationPriseImpossible {
+                imprime("Impossible de créer une prise !\n")
+            }
+            ConnexionPriseImpossible {
+                imprime("Impossible de se connecter à la prise !\n")
+            }
+        }
+
+        retourne 1
+    }
+
+    diffère {
+        _ := tente ferme(@fichier) piège nonatteignable
+    }
+
+    // 220 ok
+    si envoie_commande_smtp(@fichier, "") == 0 {
+        retourne 1
+    }
+
+    // 250 ok
+    si envoie_commande_smtp(@fichier, "EHLO") == 0 {
+        retourne 1
+    }
+
+    si envoie_commande_smtp(@fichier, "AUTH LOGIN") == 0 {
+        retourne 1
+    }
+
+    // réponse : 334 VXNlcm5hbWU6
+    nom_utilisateur_base64 := encode_base64(config.utilisateur)
+    diffère { déloge nom_utilisateur_base64 }
+    si envoie_commande_smtp(@fichier, "%", nom_utilisateur_base64) == 0 {
+        retourne 1
+    }
+
+    // réponse : 334 UGFzc3dvcmQ6
+    mot_passe_base64 := encode_base64(config.mot_de_passe)
+    diffère { déloge mot_passe_base64 }
+    si envoie_commande_smtp(@fichier, "%", mot_passe_base64) == 0 {
+        retourne 1
+    }
+    // 235 2.7.0 Authentication successful
+
+    // 530 5.7.1 Client was not authenticated
+    // 250 2.1.0 Ok
+    si envoie_commande_smtp(@fichier, "MAIL FROM:<%>", courriel.expéditeur) == 0 {
+        retourne 1
+    }
+
+    // 530 5.7.1 Client was not authenticated
+    // 250 2.1.0 Ok
+    si envoie_commande_smtp(@fichier, "RCPT TO:<%>", courriel.destinataire) == 0 {
+        retourne 1
+    }
+
+    // 503 Bad sequence of commands
+    // 354 End data with <CR><LF>.<CR><LF>
+    si envoie_commande_smtp(@fichier, "DATA") == 0 {
+        retourne 1
+    }
+
+    // 530 5.7.1 Client was not authenticated
+    // 250 2.0.0 Ok: queued as ...
+    message := crée_corps_message(courriel)
+    diffère { déloge message }
+    si envoie_commande_smtp(@fichier, "%", message) == 0 {
+        retourne 1
+    }
+
+    si envoie_commande_smtp(@fichier, "QUIT") == 0 {
+        retourne 1
+    }
+
+    retourne 0
+}
