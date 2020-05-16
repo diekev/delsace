@@ -1,0 +1,68 @@
+importe Fondation
+importe Routage
+
+principale :: fonc () -> z32
+{
+    diffère { imprime("\nFin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
+
+    route := "/<id_utilisateur:chaine>/status/<id_post:entier>/"
+
+    éléments := divise_url(route)
+    diffère { déloge éléments }
+
+    pour éléments {
+        imprime("- élément % : %\n", index_it, it)
+    }
+
+    règles := tente parse_règles(route) piège err {
+        discr err {
+            RègleDénuéeDeNom {
+                imprime("la règle n'a pas de nom")
+            }
+            TypeActionInconnue {
+                imprime("type d'action inconnue")
+            }
+            NomRègleRedéfini {
+                imprime("nom de règle redéfini")
+            }
+            ChevronFermantManquant {
+                imprime("le chevron fermant est manquant")
+            }
+        }
+
+        retourne 1
+    }
+    diffère { déloge règles }
+
+    imprime("RègleRoutages pour \"%\"\n", route)
+
+    pour règles {
+        imprime("- règle % : %\n", index_it, it)
+    }
+
+    routes_requêtes := [
+        "/",
+        "/ramses/data/",
+        "/ramses/status/123456789/",
+        "/ramses/"
+    ]
+
+    imprime("route : %\n", route)
+    pour routes_requêtes {
+        résultat := tente apparie_règles_et_route(règles, it) piège err {
+            continue
+        }
+
+        imprime("routage vers : %\n", it)
+        déloge résultat
+        arrête
+    }
+    sansarrêt {
+        imprime("aucune route ne fut trouvée !\n")
+    }
+    sinon {
+        imprime("une route fut trouvée !\n")
+    }
+
+    retourne 0
+}

@@ -1,3 +1,5 @@
+// Module de routage pour des services HTTP, répondant à méthodes GET ou POST
+
 importe Fondation
 
 divise_url :: fonc (ligne: chaine) -> []chaine
@@ -42,6 +44,8 @@ divise_url :: fonc (ligne: chaine) -> []chaine
 
     retourne mots
 }
+
+// Règles pour apparier les routes.
 
 ActionRègleRoutage :: énum {
     Invalide
@@ -154,7 +158,7 @@ DonnéesRouteOuErreur :: union {
     d: []DonnéesAppariement
 }
 
-apparie_route :: fonc (règles: []RègleRoutage, route: chaine) -> DonnéesRouteOuErreur
+apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> DonnéesRouteOuErreur
 {
     éléments := divise_url(route)
     diffère { déloge éléments }
@@ -206,68 +210,82 @@ apparie_route :: fonc (règles: []RègleRoutage, route: chaine) -> DonnéesRoute
     retourne résultat
 }
 
-principale :: fonc () -> z32
+// La routeuse.
+
+Route :: struct {
+    chemin: chaine
+    règles_routage: []RègleRoutage
+
+    méthode_get : fonc()(rien)
+    méthode_post : fonc()(rien)
+}
+
+Routeuse :: struct {
+    routes : []Route
+
+    rappel_page_non_trouvée: fonc()(rien)
+    rappel_méthode_non_autorisée: fonc()(rien)
+}
+
+détruit_routeuse :: fonc (routeuse: *Routeuse) -> rien
 {
-    diffère { imprime("\nFin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
+    déloge routeuse.routes
+}
 
-    route := "/<id_utilisateur:chaine>/status/<id_post:entier>/"
+ajoute_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode_get: fonc()(rien), méthode_post: fonc()(rien)) -> rien
+{
+    route : Route
+    route.chemin = chemin
+    route.méthode_get = méthode_get
+    route.méthode_post = méthode_post
 
-    éléments := divise_url(route)
-    diffère { déloge éléments }
-
-    pour éléments {
-        imprime("- élément % : %\n", index_it, it)
+    route.règles_routage = tente parse_règles(chemin) piège err {
+        retourne
     }
 
-    règles := tente parse_règles(route) piège err {
-        discr err {
-            RègleDénuéeDeNom {
-                imprime("la règle n'a pas de nom")
-            }
-            TypeActionInconnue {
-                imprime("type d'action inconnue")
-            }
-            NomRègleRedéfini {
-                imprime("nom de règle redéfini")
-            }
-            ChevronFermantManquant {
-                imprime("le chevron fermant est manquant")
-            }
-        }
+    tableau_ajoute(@routeuse.routes, route)
+}
 
-        retourne 1
-    }
-    diffère { déloge règles }
-
-    imprime("RègleRoutages pour \"%\"\n", route)
-
-    pour règles {
-        imprime("- règle % : %\n", index_it, it)
-    }
-
-    routes_requêtes := [
-        "/",
-        "/ramses/data/",
-        "/ramses/status/123456789/",
-        "/ramses/"
-    ]
-
-    imprime("route : %\n", route)
-    pour routes_requêtes {
-        résultat := tente apparie_route(règles, it) piège err {
+apparie_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode: chaine) -> rien
+{
+    pour routeuse.routes {
+        données := tente apparie_règles_et_route(it.règles_routage, chemin) piège err {
             continue
         }
 
-        imprime("routage vers : %\n", it)
-        déloge résultat
-        arrête
+        si méthode == "GET" {
+            si it.méthode_get {
+                it.méthode_get()
+                arrête
+            }
+
+            si routeuse.rappel_méthode_non_autorisée {
+                routeuse.rappel_méthode_non_autorisée()
+            }
+
+            retourne
+        }
+
+        si méthode == "POST" {
+            si it.méthode_post {
+                it.méthode_post()
+                arrête
+            }
+
+            si routeuse.rappel_méthode_non_autorisée {
+                routeuse.rappel_méthode_non_autorisée()
+            }
+
+            retourne
+        }
+
+        si routeuse.rappel_méthode_non_autorisée {
+            routeuse.rappel_méthode_non_autorisée()
+        }
     }
     sansarrêt {
-        imprime("aucune route ne fut trouvée !\n")
+        si routeuse.rappel_page_non_trouvée {
+            routeuse.rappel_page_non_trouvée()
+        }
     }
-    sinon {
-        imprime("une route fut trouvée !\n")
-    }
-
-    retourne 0
 }
