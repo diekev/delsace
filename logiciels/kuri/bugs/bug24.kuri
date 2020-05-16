@@ -1,0 +1,10 @@
+// Crash quand un bloc différé contient un retour.
+
+principale :: fonc () -> z32
+{
+    diffère {
+        retourne 1
+    }
+
+    retourne 0
+}
