@@ -1,0 +1,183 @@
+importe Fondation
+
+// implémentation de l'algorithme de Eller pour générer des labyrinthes
+// http://www.neocomputer.org/projects/eller.html
+
+PositionMur :: énum_drapeau {
+    GAUCHE
+    DROITE
+    HAUT
+    BAS
+}
+
+Cellule :: struct {
+    groupe := 0
+    position_mur : PositionMur
+}
+
+Labyrinthe :: struct {
+    hauteur := 0
+    largeur := 0
+
+    ligne : []Cellule
+    taille_groupe : []z32
+}
+
+rand :: fonc externe () -> z32
+
+nombre_aléatoire :: fonc () -> z32
+{
+    retourne rand() % 1000
+}
+
+tableau_redimensionne :: fonc (tabl : *[]$T, taille : z64) -> rien
+{
+    si tabl.capacité >= taille {
+        tabl.taille = taille
+        retourne
+    }
+
+    tmp := mémoire(tabl)
+
+    reloge tmp: [taille]$T
+    tmp.taille = taille
+
+    mémoire(tabl) = tmp
+}
+
+crée_labyrinthe :: fonc (hauteur : z32, largeur : z32) -> Labyrinthe
+{
+    labyrinthe := Labyrinthe(hauteur = hauteur, largeur = largeur)
+    tableau_redimensionne(@labyrinthe.ligne, largeur)
+    tableau_redimensionne(@labyrinthe.taille_groupe, largeur)
+
+    retourne labyrinthe
+}
+
+détruit_labyrinthe :: fonc (labyrinthe : *Labyrinthe) -> rien
+{
+    déloge labyrinthe.ligne
+    déloge labyrinthe.taille_groupe
+}
+
+imprime_ligne :: fonc (labyrinthe: *Labyrinthe) -> rien
+{
+    imprime("x")
+    pour c dans labyrinthe.ligne {
+        imprime(" ")
+
+        si (c.position_mur & PositionMur.DROITE) != (0 comme PositionMur) {
+            imprime("x")
+        }
+        sinon {
+            imprime(" ")
+        }
+    }
+    imprime("x\n")
+
+    imprime("x")
+    pour c dans labyrinthe.ligne {
+        si (c.position_mur & PositionMur.BAS) != (0 comme PositionMur) {
+            imprime("x")
+        }
+        sinon {
+            imprime(" ")
+        }
+
+        si (c.position_mur & PositionMur.DROITE) != (0 comme PositionMur) {
+            imprime("x")
+        }
+        sinon {
+            imprime(" ")
+        }
+    }
+    imprime("x\n")
+}
+
+principale :: fonc () -> z32
+{
+    labyrinthe := crée_labyrinthe(hauteur = 10, largeur = 10)
+    diffère { détruit_labyrinthe(@labyrinthe) }
+
+    // 1. première ligne
+    pour c, idx dans labyrinthe.ligne {
+        c.position_mur |= PositionMur.HAUT
+        c.groupe = 0
+    }
+
+    imprime("x")
+    pour c dans labyrinthe.ligne {
+        imprime("xx")
+    }
+    imprime("x\n")
+
+    pour i dans 0 ... labyrinthe.hauteur - 1 {
+        // 2. joint les cellules n'étant pas dans un groupe
+        pour c, idx dans labyrinthe.ligne {
+
+            si c.groupe == 0 {
+                c.groupe = idx + 1
+            }
+        }
+
+        // 3. crée les murs droit
+        pour j dans 0 ... labyrinthe.largeur - 2 {
+            cg := @labyrinthe.ligne[j]
+            cd := @labyrinthe.ligne[j + 1]
+
+            si cg.groupe == cd.groupe {
+                cg.position_mur |= PositionMur.DROITE
+                continue
+            }
+
+            si nombre_aléatoire() < 500 {
+                cg.groupe = cd.groupe
+            }
+            sinon {
+                cg.position_mur |= PositionMur.DROITE
+            }
+        }
+
+        // 4. crée les murs du bas
+
+        // 5. décide si nous ajoutons des lignes
+        si i < labyrinthe.hauteur - 1 {
+            // A. nous ajoutons une ligne
+            imprime_ligne(@labyrinthe)
+
+            pour c dans labyrinthe.ligne {
+                si (c.position_mur & PositionMur.BAS) != (0 comme PositionMur) {
+                    c.groupe = 0
+                }
+
+                c.position_mur &= ~PositionMur.DROITE
+                c.position_mur &= ~PositionMur.BAS
+            }
+        }
+        sinon {
+            // B. nous nous arrêtons
+
+            pour j dans 0 ... labyrinthe.largeur - 2 {
+                cg := @labyrinthe.ligne[j]
+                cd := @labyrinthe.ligne[j + 1]
+
+                si cg.groupe != cd.groupe {
+                    cg.position_mur &= ~PositionMur.DROITE
+                }
+
+                // À FAIRE : fusionne les ensembles
+            }
+
+            imprime_ligne(@labyrinthe)
+        }
+
+    }
+
+    imprime("x")
+    pour c dans labyrinthe.ligne {
+        imprime("xx")
+    }
+    imprime("x\n")
+
+    retourne 0
+}

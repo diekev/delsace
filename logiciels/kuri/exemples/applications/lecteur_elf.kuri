@@ -1,0 +1,342 @@
+importe Fondation
+importe SysFichier
+
+FichierELF :: struct {
+    contenu : []octet
+    curseur : z32
+}
+
+lis_z8 :: fonc (fichier: *FichierELF) -> z8
+{
+    a := fichier.contenu[fichier.curseur] comme z8
+
+    fichier.curseur += 1
+
+    retourne a
+}
+
+lis_z16 :: fonc (fichier: *FichierELF) -> z16
+{
+    a := fichier.contenu[fichier.curseur] comme z16
+    b := fichier.contenu[fichier.curseur + 1] comme z16
+
+    fichier.curseur += 2
+
+    retourne b << 8 | a
+}
+
+lis_z32 :: fonc (fichier: *FichierELF) -> z32
+{
+    a := fichier.contenu[fichier.curseur] comme z32
+    b := fichier.contenu[fichier.curseur + 1] comme z32
+    c := fichier.contenu[fichier.curseur + 2] comme z32
+    d := fichier.contenu[fichier.curseur + 3] comme z32
+
+    fichier.curseur += 4
+
+    retourne d << 24 | c << 16 | b << 8 | a
+}
+
+lis_n64 :: fonc (fichier: *FichierELF) -> n64
+{
+    a := fichier.contenu[fichier.curseur] comme n64
+    b := fichier.contenu[fichier.curseur + 1] comme n64
+    c := fichier.contenu[fichier.curseur + 2] comme n64
+    d := fichier.contenu[fichier.curseur + 3] comme n64
+    e := fichier.contenu[fichier.curseur + 4] comme n64
+    f := fichier.contenu[fichier.curseur + 5] comme n64
+    g := fichier.contenu[fichier.curseur + 6] comme n64
+    h := fichier.contenu[fichier.curseur + 7] comme n64
+
+    fichier.curseur += 8
+
+    retourne h << 56 | g << 48 | f << 40 | e << 32 | d << 24 | c << 16 | b << 8 | a
+}
+
+// http://refspecs.linuxbase.org/elf/elf.pdf
+// https://uclibc.org/docs/elf-64-gen.pdf
+
+principale :: fonc () -> z32
+{
+    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
+
+    chm := construit_chemin("/opt/bin/kuri/kuri")
+    contenu := contenu_fichier_binaire(chm)
+    diffère { déloge contenu }
+
+    imprime("Taille du fichier : %\n", contenu.taille)
+
+    // entête
+    si contenu[0] != 0x7f comme octet {
+        imprime("fichier malformé\n")
+        retourne 1
+    }
+
+    si contenu[1] != 'E' comme octet {
+        imprime("fichier malformé\n")
+        retourne 1
+    }
+
+    si contenu[2] != 'L' comme octet {
+        imprime("fichier malformé\n")
+        retourne 1
+    }
+
+    si contenu[3] != 'F' comme octet {
+        imprime("fichier malformé\n")
+        retourne 1
+    }
+
+    imprime("fichier ELF !\n")
+
+    fichier := FichierELF(contenu = contenu, curseur = 4)
+
+    bits := lis_z8(@fichier)
+
+    si bits == 0 {
+        imprime("aucun bits\n")
+    }
+    sinon si bits == 1 {
+        imprime("32-bit\n")
+    }
+    sinon si bits == 2 {
+        imprime("64-bit\n")
+    }
+    sinon {
+        imprime("bit malformé")
+        retourne 1
+    }
+
+    boutisme := lis_z8(@fichier)
+
+    si boutisme == 0 {
+        imprime("aucun boutisme\n")
+    }
+    sinon si boutisme == 1 {
+        imprime("petit boutisme\n")
+    }
+    sinon si boutisme == 2 {
+        imprime("grand boutisme\n")
+    }
+    sinon {
+        imprime("boutisme malformé")
+        retourne 1
+    }
+
+    version := lis_z8(@fichier)
+
+    imprime("version : %\n", version)
+
+    abi := lis_z8(@fichier)
+
+    discr abi {
+        0 { imprime("UNIX System V\n") }
+        1 { imprime("HP-UX\n") }
+        2 { imprime("NetBSD\n") }
+        3 { imprime("Linux\n") }
+        6 { imprime("Sun Solaris\n") }
+        7 { imprime("IBM AIX\n") }
+        8 { imprime("SGI Irix\n") }
+        9 { imprime("FreeBSD\n") }
+        10 { imprime("Compaq TRU64\n") }
+        11 { imprime("Novell Modesto\n") }
+        12 { imprime("OpenBSD\n") }
+        64 { imprime("ARM EABI\n") }
+        97 { imprime("ARM\n") }
+        255 { imprime("Standalone\n") }
+        sinon { imprime("ABI inconnue\n") }
+    }
+
+    version_abi := lis_z8(@fichier)
+
+    imprime("Version ABI : %\n", version_abi)
+
+    fichier.curseur = 0x10
+
+    // -----------------
+
+    type_fichier := lis_z16(@fichier)
+
+    discr type_fichier {
+        0 { imprime("aucun\n")  }
+        1 { imprime("repositionnable\n") }
+        2 { imprime("exécutable\n") }
+        3 { imprime("fichier partagé\n") }
+        4 { imprime("fichier core\n") }
+        sinon { imprime("type fichier inconnu : %\n", type_fichier) }
+    }
+
+    // -----------------
+
+    machine := lis_z16(@fichier)
+
+    discr machine {
+        0x00 { imprime("aucun jeu d'instruction spécifique\n")  }
+        0x02 { imprime("SPARC\n") }
+        0x03 { imprime("x86\n") }
+        0x08 { imprime("MIPS\n") }
+        0x14 { imprime("PowerPC\n") }
+        0x16 { imprime("S390\n") }
+        0x28 { imprime("ARM\n") }
+        0x2A { imprime("SuperH\n") }
+        0x32 { imprime("IA-64\n") }
+        0x3E { imprime("amd64\n") }
+        0xB7 { imprime("AArch64\n") }
+        0xF3 { imprime("RISC-V\n") }
+        sinon { imprime("jeu d'instruction inconnu : %\n", machine) }
+    }
+
+    e_version := lis_z32(@fichier)
+
+    imprime("e_version : %\n", e_version)
+
+    point_d_entrée := lis_n64(@fichier)
+
+    imprime("point d'entrée : % (%)\n", formatte_entier(point_d_entrée, base = 16), point_d_entrée)
+
+    e_phoff := lis_n64(@fichier)
+    e_shoff := lis_n64(@fichier)
+    e_flags := lis_z32(@fichier)
+    e_ehsize := lis_z16(@fichier)
+    e_phentsize := lis_z16(@fichier)
+    e_phnum := lis_z16(@fichier)
+    e_shentsize := lis_z16(@fichier)
+    e_shnum := lis_z16(@fichier)
+    e_shstrndx := lis_z16(@fichier)
+
+    taille_entête := fichier.curseur
+    imprime("taille entête : %\n", taille_entête)
+
+    imprime("nombre de sections : %\n", e_shnum)
+
+    fichier.curseur = e_shoff comme z32
+
+    déclage_table_symbole := 0 comme n64
+    nombre_symboles := 0 comme n64
+    décalage_table_noms := 0 comme n64
+
+
+
+    pour i dans 0 ... e_shnum - 1 {
+        sh_name := lis_z32(@fichier)
+        sh_type := lis_z32(@fichier)
+
+        discr sh_type {
+            0x0 { imprime("Section inutilisée\n") }
+            0x1 { imprime("Données programme\n") }
+            0x2 { imprime("Table de symboles\n") }
+            0x3 { imprime("Table de chaines\n") }
+            0x4 { imprime("Entrée de relocation\n") }
+            0x5 { imprime("Table de hachage de symbole\n") }
+            0x6 { imprime("Information de liaison dynamique\n") }
+            0x7 { imprime("Notes\n") }
+            0x8 { imprime("Espace programme sans données\n") }
+            0x9 { imprime("Entrées de relocation\n") }
+            0x0A { imprime("Réservé\n") }
+            0x0B { imprime("Table de symbol lieur dynamique\n") }
+            0x0E { imprime("Table de constructeurs\n") }
+            0x0F { imprime("Table de destructeurs\n") }
+            0x10 { imprime("Table de pré-constructeurs\n") }
+            0x11 { imprime("Groupe de section\n") }
+            0x12 { imprime("Indes de section étendue\n") }
+            0x13 { imprime("Nombre de types définis\n") }
+            sinon /* 0x60000000 */ { imprime("Système d'exploitation spécifique\n") }
+        }
+
+        imprime("-- index %\n", i)
+
+        sh_flags := lis_n64(@fichier)
+        /*
+        0x1	SHF_WRITE	Writable
+0x2	SHF_ALLOC	Occupies memory during execution
+0x4	SHF_EXECINSTR	Executable
+0x10	SHF_MERGE	Might be merged
+0x20	SHF_STRINGS	Contains nul-terminated strings
+0x40	SHF_INFO_LINK	'sh_info' contains SHT index
+0x80	SHF_LINK_ORDER	Preserve order after combining
+0x100	SHF_OS_NONCONFORMING	Non-standard OS specific handling required
+0x200	SHF_GROUP	Section is member of a group
+0x400	SHF_TLS	Section hold thread-local data
+0x0ff00000	SHF_MASKOS	OS-specific
+0xf0000000	SHF_MASKPROC	Processor-specific
+0x4000000	SHF_ORDERED	Special ordering requirement (Solaris)
+0x8000000	SHF_EXCLUDE	Section is excluded unless referenced or allocated (Solaris)
+        */
+
+        sh_addr := lis_n64(@fichier)
+        sh_offset := lis_n64(@fichier)
+        sh_size := lis_n64(@fichier)
+        sh_link := lis_z32(@fichier)
+        sh_info := lis_z32(@fichier)
+        sh_addralign := lis_n64(@fichier)
+        sh_entsize := lis_n64(@fichier)
+
+        imprime("-- décalage : %\n", formatte_entier(sh_offset, base = 16))
+        imprime("-- adresse  : %\n", formatte_entier(sh_addr, base = 16))
+
+        si sh_type == 0x3 && décalage_table_noms == 0 {
+            décalage_table_noms = sh_offset + 1
+            imprime("nombre de noms : %\n", sh_size)
+        }
+
+        si sh_type == 0x2 {
+            déclage_table_symbole = sh_offset
+            nombre_symboles = sh_size / sh_entsize
+        }
+    }
+
+    si déclage_table_symbole != 0 {
+        fichier.curseur = déclage_table_symbole comme z32
+
+        imprime("symboles : %\n", nombre_symboles)
+        imprime("curseur : %\n", formatte_entier(fichier.curseur, base = 16))
+
+        pour i dans 0 ... nombre_symboles - 1 {
+            st_name := lis_z32(@fichier)
+            st_info := lis_z8(@fichier)
+            st_other := lis_z8(@fichier)
+            st_shndx := lis_z16(@fichier)
+            st_adrr := lis_n64(@fichier)
+            st_size := lis_n64(@fichier)
+
+            décalage_nom := décalage_table_noms + st_name comme n64
+            nom_symbole := converti_chaine_c((@fichier.contenu[décalage_nom]) comme *z8)
+
+            imprime("symbole : %\n", nom_symbole)
+
+            discr st_info {
+                0 { imprime("aucun type\n") }
+                1 { imprime("object\n") }
+                2 { imprime("fonction\n") }
+                3 { imprime("section\n") }
+                4 { imprime("fichier\n") }
+                13 { imprime("loproc\n") }
+                15 { imprime("hiproc\n") }
+            }
+
+            imprime("-- st_name: %\n", st_name)
+            imprime("-- st_adrr: %\n", st_adrr)
+            imprime("-- st_size: %\n", st_size)
+            imprime("-- st_info: %\n", st_info)
+            imprime("-- st_other: %\n", st_other)
+            imprime("-- st_shndx: %\n", st_shndx)
+        }
+    }
+
+    fichier.curseur = décalage_table_noms comme z32 + 1
+
+    pour i dans 0 ... 32 {
+        imprime("%\n", lis_z8(@fichier))
+    }
+
+/*
+    fichier.curseur = point_d_entrée comme z32
+
+    pour i dans 0 ... 15 {
+        o := lis_z8(@fichier) comme n8
+
+        imprime("0x% ", formatte_entier(o, base = 16))
+    }
+*/
+    retourne 0
+}

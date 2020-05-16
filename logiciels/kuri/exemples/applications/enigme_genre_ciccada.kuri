@@ -1,0 +1,31 @@
+importe Fondation
+
+traduit_message :: fonc (message: chaine) -> chaine
+{
+    kanjis := [ "一", "丁", "万", "不", "出", "両", "乱", "並", "乗", "修", "乾", "偉", "傑", "像", "儀", "儒" ]
+
+    pour c dans message {
+        h0 := kanjis[(c >> 4) & 0xf]
+        h1 := kanjis[c & 0xf]
+
+        //imprime("%%", h0, h1)
+
+        pour o dans h0 {
+            imprime("%", formatte_entier(o comme n8, base = 16))
+        }
+
+        pour o dans h1 {
+            imprime("%", formatte_entier(o comme n8, base = 16))
+        }
+    }
+
+    imprime("\n")
+
+    retourne message
+}
+
+principale :: fonc () -> z32
+{
+    _ := traduit_message("Vous avez bien joué. Votre contacte est 123456789\n")
+    retourne 0
+}
