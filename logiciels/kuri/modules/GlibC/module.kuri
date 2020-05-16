@@ -354,6 +354,13 @@ SCM_TIMESTAMPING_PKTINFO   :: 58
 SO_PEERGROUPS              :: 59
 SO_ZEROCOPY                :: 60
 
+IPPROTO_TCP :: 6
+
+linger :: struct externe {
+    l_onoff : z32  /* Nonzero to linger on close.  */
+    l_linger : z32 /* Time to linger.  */
+}
+
 setsockopt :: fonc externe (sockfd: z32, level: z32, optname: z32, optval: *rien, optlen: n64) -> z32
 
 htonl :: fonc externe (hostlong: n32) -> n32
