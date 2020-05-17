@@ -68,24 +68,6 @@ Faitures
 - pouvoir accéder aux pointeurs des tableaux fixes (@a[0]) via a.pointeur
 - instructions SIMD
 - déplace le contexte du processus principale dans une variable globale afin de pouvoir l'utiliser via pousse_contexte dans des fonctions marquées #nulctx via pousse_contexte
-- avoir une meilleure sécurité de type pour les einis, via discr et un transtypage automatique
-discr e {
-    ENTIER {
-        // que faire pour la taille en octet
-    }
-    STRUCTURE {
-        // ??
-    }
-}
-le compilateur doit savoir le type lors de la compilation, peut-être avoir des outils avec la métaprogrammation et le polymorphisme
-
-- transtypage automatique les unions vers le type discriminée :
-discr u {
-    z32 { u += 5 }
-    r32 { u += 6.7 }
-    ...
-}
-
 - renomme InfoType -> DescType, id_info -> Genre{Info|Desc} ?
 - ajout d'une table de types accessible depuis les programmes
 - amélioration boucle pour :
@@ -98,6 +80,37 @@ discr u {
 - utilisation d'un fichier "module.kuri" pour définir le contenu d'un module, les fichiers à charger
 - diffère_err pour différer un bloc si une erreur est retournée
 - charge/données personnalisées pour les erreurs afin de transmettre plus de détails à la fonction appelante
+- possibilité de déclarer une variable dans une condition (si a := foo() { ... })
+- amélioration discr
+-- avoir une meilleure sécurité de type pour les einis, via discr et un transtypage automatique
+discr e {
+    ENTIER {
+        // que faire pour la taille en octet
+    }
+    STRUCTURE {
+        // ??
+    }
+}
+le compilateur doit savoir le type lors de la compilation, peut-être avoir des outils avec la métaprogrammation et le polymorphisme
+
+-- transtypage automatique les unions vers le type discriminée :
+discr u {
+    z32 { u += 5 }
+    r32 { u += 6.7 }
+    ...
+}
+-- possibilité d'avoir des appels de fonctions où le premier argument est celui discriminé
+discr chn {
+	commence_par("abc") {  } // équivalent à commence_par(chn, "abc")
+	finie_par("xyz") { }     // équivalent à finie_par(chn, "xyz")
+}
+-- avoir un bon système d'appariement de motif :
+discr a {
+	b | c {	} // équivalent à (a == b || b == c)
+	etc.
+}
+-- utilisation de '_' comme caractère générique pouvant être n'importe quelle valeur
+
 
 À faire (tests)
 ---------------
