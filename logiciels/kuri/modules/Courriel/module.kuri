@@ -5,8 +5,25 @@ importe SysFichier
 
 Courriel :: struct {
     message: chaine
-    destinataire: chaine
     expéditeur: chaine
+    destinataires: []chaine
+    destinataires_cc: []chaine
+}
+
+détruit_courriel :: fonc (courriel: *Courriel) -> rien
+{
+    déloge courriel.destinataires
+    déloge courriel.destinataires_cc
+}
+
+ajoute_destinataire :: fonc (courriel: *Courriel, destinataire: chaine) -> rien
+{
+    tableau_ajoute(@courriel.destinataires, destinataire)
+}
+
+ajoute_destinataire_cc :: fonc (courriel: *Courriel, destinataire: chaine) -> rien
+{
+    tableau_ajoute(@courriel.destinataires_cc, destinataire)
 }
 
 ConfigurationCourriel :: struct {
@@ -62,12 +79,34 @@ crée_corps_message :: fonc (courriel: Courriel) -> chaine
     initialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 
-    ajoute_au_tampon(@enchaineuse, "User-Agent: courriel_delsace\r\n")
+    ajoute_au_tampon(@enchaineuse, "User-Agent: courriel_kuri\r\n")
     // Date: Tue, 15 Jan 2008 16:02:43 -0500
     //ajoute_au_tampon(@enchaineuse, "Date: ")
 
     imprime_dans_enchaineuse(@enchaineuse, "From:<%>\r\n", courriel.expéditeur)
-    imprime_dans_enchaineuse(@enchaineuse, "To:<%>\r\n", courriel.destinataire)
+
+    ajoute_au_tampon(@enchaineuse, "To:")
+    virgule := "<"
+
+    pour courriel.destinataires {
+        ajoute_au_tampon(@enchaineuse, virgule)
+        ajoute_au_tampon(@enchaineuse, it)
+        virgule = ">,<"
+    }
+
+    ajoute_au_tampon(@enchaineuse, ">\r\n")
+
+    ajoute_au_tampon(@enchaineuse, "Cc:")
+    virgule = "<"
+
+    pour courriel.destinataires_cc {
+        ajoute_au_tampon(@enchaineuse, virgule)
+        ajoute_au_tampon(@enchaineuse, it)
+        virgule = ">,<"
+    }
+
+    ajoute_au_tampon(@enchaineuse, ">\r\n")
+
     ajoute_au_tampon(@enchaineuse, "Subject: Test envoie message\r\n")
     ajoute_au_tampon(@enchaineuse, "\r\n")
     ajoute_au_tampon(@enchaineuse, courriel.message)
@@ -125,6 +164,20 @@ ouvre_connexion_serveur :: fonc (config: ConfigurationCourriel) -> FichierOuErre
     _ := setsockopt(prise, SOL_SOCKET, SO_LINGER, @linger_option, taille_de(linger))
 
     retourne Fichier(desc = prise)
+}
+
+CodeRéussite :: énum {
+    Message :: 200
+	RéponseCommdeHelp :: 214
+    ServeurPrêt :: 220
+	FermetureCanalTransmission :: 221
+    ActionRequiseComplétée :: 250
+    UtilisationNonLocaleDevraProjeté :: 251
+    NePeutVérifierUtilisateurMaisDélivreraQuandMême :: 252
+}
+
+ErreurServeur :: erreur {
+    ClientNeFutPasAuthentifié :: 530
 }
 
 envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: Courriel) -> z32
@@ -186,8 +239,16 @@ envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: Courriel) -> z
 
     // 530 5.7.1 Client was not authenticated
     // 250 2.1.0 Ok
-    si envoie_commande_smtp(@fichier, "RCPT TO:<%>", courriel.destinataire) == 0 {
-        retourne 1
+    pour courriel.destinataires {
+        si envoie_commande_smtp(@fichier, "RCPT TO:<%>", it) == 0 {
+            retourne 1
+        }
+    }
+
+    pour courriel.destinataires_cc {
+        si envoie_commande_smtp(@fichier, "RCPT TO:<%>", it) == 0 {
+            retourne 1
+        }
     }
 
     // 503 Bad sequence of commands
