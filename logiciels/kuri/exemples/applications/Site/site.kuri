@@ -126,7 +126,7 @@ procède_requête :: fonc (
         _ := ferme(@cliente.fichier)
     }
 
-    requête := tente lis(@cliente.fichier) piège err {
+    requête := tente lis_tout(@cliente.fichier) piège err {
         // @erreur
         imprime("erreur lors de la lecture de la prise : %\n", err)
         retourne

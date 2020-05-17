@@ -17,35 +17,6 @@ ConfigurationCourriel :: struct {
     mot_de_passe : chaine
 }
 
-lis_réponse :: fonc (prise: z32) -> chaine
-{
-    taille_max_données :: 1024
-    tampon : [taille_max_données]z8
-    réponse : chaine
-
-    boucle {
-        taille_reçue := recv(prise, @tampon[0], taille_max_données comme n64, 0)
-
-        si taille_reçue > 0 {
-            ancienne_taille := réponse.taille
-            reloge réponse : chaine(réponse.taille + taille_reçue)
-            copie_mem_nonsur(src=@tampon[0], dst=@réponse[ancienne_taille], taille=taille_reçue)
-
-            si taille_reçue < taille_max_données {
-                arrête
-            }
-        }
-        sinon si taille_reçue == 0 {
-            arrête
-        }
-        sinon si taille_reçue == -1 {
-            arrête
-        }
-    }
-
-    retourne réponse
-}
-
 envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> z32
 {
     message := ""
@@ -68,7 +39,11 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
         retourne 0
     }
 
-    réponse := lis_réponse(fichier.desc)
+    réponse := tente lis_tout(fichier) piège err {
+        imprime("impossible de lire la réponse !\n")
+        retourne 0
+    }
+
     imprime("réponse: %\n", réponse)
     diffère { déloge réponse }
 
@@ -149,8 +124,7 @@ ouvre_connexion_serveur :: fonc (config: ConfigurationCourriel) -> FichierOuErre
     linger_option := linger(l_onoff = -1, l_linger = 2)
     _ := setsockopt(prise, SOL_SOCKET, SO_LINGER, @linger_option, taille_de(linger))
 
-    fichier := Fichier(desc = prise)
-    retourne fichier
+    retourne Fichier(desc = prise)
 }
 
 envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: Courriel) -> z32

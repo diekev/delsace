@@ -308,7 +308,7 @@ ChaineOuErreurFichier :: union {
     c: chaine
 }
 
-lis :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
+lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
     TAILLE_MAX :: 1024
 
@@ -363,7 +363,10 @@ lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
     retourne résultat
 }
 
-lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
+// fonction spécialisée pour tout lire depuis un fichier sur le disque, où l'on
+// calcule la taille du fichier avant de tout lire au lieu de faire une boucle
+// pour accumuler les données dans un tampon
+lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
     taille_fichier := tente système_positionne_fichier(fichier.desc, 0, SEEK_END) piège err {
         retourne err
