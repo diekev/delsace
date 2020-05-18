@@ -1,114 +1,20 @@
+// Application exemple d'une cliente HTTP/HTTPS pour télécharger des pages HTML.
+
 importe Fondation
-importe GlibC
 importe OpenSSL
 importe Réseau
+importe SysFichier
 
-//###############################################################################
-
-rappel_erreur :: fonc(pointeur : *z8, taille : n64, user_data : *rien) -> z32 #nulctx
+lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine
 {
-    write(STDERR_FILENO, pointeur, taille comme z64)
-    retourne 0
-}
+    réponse : chaine
 
-imprime_erreur_ssl :: fonc(ssl : *ssl_st, erreur_ : z32, message : chaine, pile : bool) -> rien
-{
-	imprime(message)
+    port : n16 = port_pour_uri(uri)
 
-	erreur_ := SSL_get_error(ssl, erreur_);
-
-	discr (erreur_) {
-		_SSL_ERROR_NONE {
-			imprime("SSL_ERROR_NONE\n")
-        }
-	    _SSL_ERROR_ZERO_RETURN {
-			imprime("SSL_ERROR_ZERO_RETURN\n")
-        }
-		_SSL_ERROR_WANT_READ {
-			imprime("SSL_ERROR_WANT_READ\n")
-        }
-		_SSL_ERROR_WANT_WRITE {
-			imprime("SSL_ERROR_WANT_WRITE\n")
-        }
-		_SSL_ERROR_WANT_CONNECT {
-			imprime("SSL_ERROR_WANT_CONNECT\n")
-        }
-		_SSL_ERROR_WANT_ACCEPT {
-			imprime("SSL_ERROR_WANT_ACCEPT\n")
-        }
-		_SSL_ERROR_WANT_X509_LOOKUP {
-			imprime("SSL_ERROR_WANT_X509_LOOKUP\n")
-        }
-		_SSL_ERROR_SYSCALL {
-			imprime("SSL_ERROR_SYSCALL\n")
-        }
-		_SSL_ERROR_SSL {
-			imprime("SSL_ERROR_SSL\n")
-        }
-	}
-
-	si (pile) {
-		//ERR_print_errors_cb(rappel_erreur, nul)
-	}
-}
-
-lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
-{
-    réponse : chaine;
-
-    si !est_valide(uri) {
-        imprime("L'uri est invalide !\n");
-        retourne réponse, 1;
+    fichier := tente ouvre_connexion_serveur(uri.hôte, port) piège err {
+        retourne réponse
     }
 
-    ptr_tampon = chaine_c_temp(uri.hôte);
-
-    he := gethostbyname(ptr_tampon);
-
-    si he == nul {
-        imprime("Ne peut pas trouver les informations de l'hôte !\n");
-        retourne réponse, 1;
-    }
-
-    prise := socket(AF_INET, SOCK_STREAM, 0);
-
-    si prise == -1 {
-        imprime("Ne peut pas créer la prise !\n");
-        retourne réponse, 1;
-    }
-
-    diffère { close(prise); }
-
-    port : n16 = port_pour_uri(uri);
-
-    their_addr : sockaddr_in;
-    their_addr.sin_family = AF_INET comme n16;
-    their_addr.sin_port = htons(port);
-    their_addr.sin_zero[0] = 0;
-    their_addr.sin_zero[1] = 0;
-    their_addr.sin_zero[2] = 0;
-    their_addr.sin_zero[3] = 0;
-    their_addr.sin_zero[4] = 0;
-    their_addr.sin_zero[5] = 0;
-    their_addr.sin_zero[6] = 0;
-    their_addr.sin_zero[7] = 0;
-
-    x := he.h_addr_list[0];
-    their_addr.sin_addr = mémoire(x comme *in_addr);
-
-    //imprime(their_addr, '\n');
-
-	si connect(prise, @their_addr comme *sockaddr, taille_de(sockaddr) comme z64) == -1 {
-        imprime("Impossible de se connecter à la prise !\n");
-        retourne réponse, 1;
-    }
-
-    //imprime("Connexion active\n");
-
-    m_ssl : *ssl_st = nul
-    diffère { si m_ssl != nul { SSL_free(m_ssl); } }
-
-    // initialise connexion SSL
     si port == 443 {
         SSL_library_init()
         OpenSSL_add_ssl_algorithms()
@@ -117,173 +23,89 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
         method := SSLv23_client_method()
 
         si method == nul {
-            imprime("Erreur lors de la création de la méthode SSL\n")
-            retourne réponse, 1
+            retourne réponse
         }
 
         ctx_ssl := SSL_CTX_new(method)
 
         si ctx_ssl == nul {
-            imprime_erreur_ssl(nul, 0, "Erreur lors de la création du contexte SSL : ", vrai)
-            retourne réponse, 1
+            //converti_erreur_ssl(nul, 0)
+            retourne réponse
         }
 
-        m_ssl := SSL_new(ctx_ssl)
+        diffère { SSL_CTX_free(ctx_ssl) }
 
-        si m_ssl == nul {
-            imprime_erreur_ssl(m_ssl, 0, "Erreur lors de la création SSL : ", vrai)
-            retourne réponse, 1
+        fichier_ssl := tente ouvre_fichier_ssl(ctx_ssl, fichier) piège err {
+            imprime("erreur lors de l'ouverture du fichier : %\n", err)
+            retourne réponse
         }
 
-        SSL_set_fd(m_ssl, prise);
-
-        connexion := SSL_connect(m_ssl);
-
-        si connexion <= 0 {
-            imprime_erreur_ssl(m_ssl, connexion, "Erreur lors de la connexion SSL : ", vrai)
-            retourne réponse, 1
+        tente écris(@fichier_ssl, requête) piège err {
+            imprime("erreur lors de l'envoie de la requête : %\n", err)
+            retourne réponse
         }
-    }
 
-    // envoie la requête
-    si port == 443 {
-        taille := SSL_write(m_ssl, requête.pointeur, requête.taille comme z32)
-
-		si taille <= 0 {
-			imprime_erreur_ssl(m_ssl, taille, "Erreur lors de l'écriture SSL : ", faux)
-            retourne réponse, 1;
-		}
-    }
-    sinon {
-        si send(prise, requête.pointeur, requête.taille comme n64, 0) == -1 {
-            imprime("Ne peut pas envoyer la reqûete !\n");
-            retourne réponse, 1;
-        }
-    }
-
-    // obtiens les données
-    taille_max_données := 1024;
-
-    si port == 443 {
-        boucle {
-            taille := SSL_read(m_ssl, @tampon[0], taille_max_données)
-
-            si taille > 0 {
-                ancienne_taille := réponse.taille;
-                reloge réponse : chaine(réponse.taille + taille);
-                copie_mem_nonsur(src=@tampon[0], dst=@réponse[ancienne_taille], taille=taille comme z64);
-            }
-            sinon {
-                erreur_ := SSL_get_error(m_ssl, taille)
-
-                si erreur_ != _SSL_ERROR_NONE || erreur_ != _SSL_ERROR_ZERO_RETURN {
-                    imprime("Erreur lors de la lecture SSL : ");
-
-                    discr (erreur_) {
-                        _SSL_ERROR_NONE {
-                            imprime("SSL_ERROR_NONE\n")
-                        }
-                        _SSL_ERROR_ZERO_RETURN {
-                            imprime("SSL_ERROR_ZERO_RETURN\n")
-                        }
-                        _SSL_ERROR_WANT_READ {
-                            imprime("SSL_ERROR_WANT_READ\n")
-                        }
-                        _SSL_ERROR_WANT_WRITE {
-                            imprime("SSL_ERROR_WANT_WRITE\n")
-                        }
-                        _SSL_ERROR_WANT_CONNECT {
-                            imprime("SSL_ERROR_WANT_CONNECT\n")
-                        }
-                        _SSL_ERROR_WANT_ACCEPT {
-                            imprime("SSL_ERROR_WANT_ACCEPT\n")
-                        }
-                        _SSL_ERROR_WANT_X509_LOOKUP {
-                            imprime("SSL_ERROR_WANT_X509_LOOKUP\n")
-                        }
-                        _SSL_ERROR_SYSCALL {
-                            imprime("SSL_ERROR_SYSCALL\n")
-                        }
-                        _SSL_ERROR_SSL {
-                            imprime("SSL_ERROR_SSL\n")
-                        }
-                    }
-                }
-
-                arrête
-            }
+        réponse = tente lis_tout(@fichier_ssl) piège err {
+            imprime("erreur lors de la réception de la réponse : %\n", err)
+            retourne réponse
         }
     }
     sinon {
-        boucle {
-            taille_reçue := recv(prise, @tampon[0], taille_max_données comme n64, 0);
-            //imprime("Reçu paquet de taille ", taille_reçue, '\n');
+        _ := écris(@fichier, requête)
 
-            si taille_reçue > 0 {
-                ancienne_taille := réponse.taille;
-                reloge réponse : chaine(réponse.taille + taille_reçue);
-                copie_mem_nonsur(src=@tampon[0], dst=@réponse[ancienne_taille], taille=taille_reçue);
-            }
-            sinon si taille_reçue == 0 {
-                arrête;
-            }
-            sinon si taille_reçue == -1 {
-                arrête;
-            }
-        }
+        réponse = lis_tout(@fichier)
+
+        _ = tente ferme(@fichier)
     }
 
-    retourne réponse, 0
+    retourne réponse
 }
 
 principale :: fonc () -> z32
 {
+    args := arguments_ligne_commande()
+
     si args.taille != 2 {
-        chn := converti_chaine_c(args[0])
-        imprime_err("Utilisation : ", chn, " URL\n")
+        imprime_err("Utilisation : % URL\n", args[0])
         retourne 1
     }
 
     // connecte vers la page
-    chn := converti_chaine_c(args[1])
-    uri := construit_uri(chn);
-
-    si !est_valide(uri) {
-        imprime("L'uri est invalide !\n");
-        retourne 1;
+    uri := tente parse_uri_standard(args[1]) piège err {
+        imprime("Erreur lors du parsage de l'URI : %\n", err)
+        retourne 1
     }
 
-    //imprime(uri, '\n', '\n');
+    //imprime(uri, '\n', '\n')
 
     enchaineuse : Enchaineuse
     initialise_enchaineuse(@enchaineuse)
 
-    diffère { détruit_tampons(@enchaineuse); }
+    diffère { détruit_tampons(@enchaineuse) }
 
     ajoute_au_tampon(@enchaineuse, "GET ")
     ajoute_au_tampon(@enchaineuse, uri.chemin)
+    ajoute_au_tampon(@enchaineuse, "?")
     ajoute_au_tampon(@enchaineuse, uri.requête)
     ajoute_au_tampon(@enchaineuse, " HTTP/1.1\r\n")
     ajoute_au_tampon(@enchaineuse, "Host:")
     ajoute_au_tampon(@enchaineuse, uri.hôte)
     ajoute_au_tampon(@enchaineuse, "\r\n")
     ajoute_au_tampon(@enchaineuse, "Accept-Encoding: identity\r\n")
-    ajoute_au_tampon(@enchaineuse, "Accept-Charset: utf-8, iso-8859-1;q=0.5\r\n")
-    ajoute_au_tampon(@enchaineuse, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/ *;q=0.8\r\n")
+    ajoute_au_tampon(@enchaineuse, "Accept-Charset: utf-8, iso-8859-1q=0.5\r\n")
+    ajoute_au_tampon(@enchaineuse, "Accept: text/html,application/xhtml+xml,application/xmlq=0.9,image/webp,image/apng,*/ *q=0.8\r\n")
     ajoute_au_tampon(@enchaineuse, "User-Agent: delsace\r\n")
     ajoute_au_tampon(@enchaineuse, "Connection: close\r\n")
     ajoute_au_tampon(@enchaineuse, "\r\n")
 
     requête := chaine_depuis_enchaineuse(@enchaineuse)
 
-    imprime("Reqûete envoyée :\n", requête, '\n');
+    imprime("Requête envoyée : %\n", requête)
 
-    réponse, erreur_ := lance_requête(uri, requête)
-    diffère { déloge réponse; déloge requête; }
+    réponse := lance_requête(uri, requête)
+    diffère { déloge réponse déloge requête }
 
-    si erreur_ == 0 {
-        imprime("Réponse :\n%\n", réponse);
-    }
+    imprime("Réponse :\n%\n", réponse)
 
-    retourne 0;
+    retourne 0
 }
