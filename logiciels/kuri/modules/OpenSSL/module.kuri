@@ -31,15 +31,15 @@ SSL_get_error :: fonc externe (ssl : *ssl_st, erreur_ : z32) -> z32
 SSL_write :: fonc externe (ssl : *ssl_st, ptr : *z8, taille : z32) -> z32
 SSL_read :: fonc externe (ssl : *ssl_st, tampon : *z8, max : z32) -> z32
 
-_SSL_ERROR_NONE :: 0
-_SSL_ERROR_SSL :: 1
-_SSL_ERROR_WANT_READ :: 2
-_SSL_ERROR_WANT_WRITE :: 3
-_SSL_ERROR_WANT_X509_LOOKUP :: 4
-_SSL_ERROR_SYSCALL :: 5
-_SSL_ERROR_ZERO_RETURN :: 6
-_SSL_ERROR_WANT_CONNECT :: 7
-_SSL_ERROR_WANT_ACCEPT :: 8
+SSL_ERROR_NONE :: 0
+SSL_ERROR_SSL :: 1
+SSL_ERROR_WANT_READ :: 2
+SSL_ERROR_WANT_WRITE :: 3
+SSL_ERROR_WANT_X509_LOOKUP :: 4
+SSL_ERROR_SYSCALL :: 5
+SSL_ERROR_ZERO_RETURN :: 6
+SSL_ERROR_WANT_CONNECT :: 7
+SSL_ERROR_WANT_ACCEPT :: 8
 
 SSL_CTX_free :: fonc externe (ssl: *ssl_st) -> rien
 SSL_accept :: fonc externe (ssl: *ssl_st) -> z32
@@ -66,11 +66,150 @@ SSL_CTX_use_certificate_file :: fonc externe (ctx: *ssl_st, CertFile: *z8, x: z3
 SSL_CTX_use_PrivateKey_file :: fonc externe (ctx: *ssl_st, KeyFile: *z8, x: z32) -> z32
 SSL_CTX_check_private_key :: fonc externe (ctx: *ssl_st) -> z32
 
-_X509_FILETYPE_PEM     :: 1
-_X509_FILETYPE_ASN1    :: 2
-_X509_FILETYPE_DEFAULT :: 3
+X509_FILETYPE_PEM     :: 1
+X509_FILETYPE_ASN1    :: 2
+X509_FILETYPE_DEFAULT :: 3
 
-_SSL_FILETYPE_ASN1 :: 2 // À FAIRE(bug compilateur)_X509_FILETYPE_ASN1
-_SSL_FILETYPE_PEM  :: 1 // À FAIRE(bug compilateur) _X509_FILETYPE_PEM
+SSL_FILETYPE_ASN1 :: 2 // À FAIRE(bug compilateur)_X509_FILETYPE_ASN1
+SSL_FILETYPE_PEM  :: 1 // À FAIRE(bug compilateur) _X509_FILETYPE_PEM
 
 ERR_print_errors_cb :: fonc externe (cb : fonc(*z8,n64,*rien)z32, u : *rien) -> rien
+
+// ----------------------------------------------------------------------------
+
+importe Fondation
+importe SysFichier
+
+ErreurSSL :: erreur {
+    LectureAttendue
+    ÉcritureAttendue
+    ConnexionAttendue
+    AcceptationAttendue
+    RécupérationX509Attendue
+    SSL
+    Aucune
+    RetourneZéro
+    AppelSystème
+}
+
+converti_erreur_ssl :: fonc (ssl : *ssl_st, code_erreur : z32) -> ErreurSSL
+{
+    erreur_ssl := SSL_get_error(ssl, code_erreur)
+
+    discr erreur_ssl {
+        SSL_ERROR_NONE {
+            retourne ErreurSSL.Aucune
+        }
+        SSL_ERROR_ZERO_RETURN {
+            retourne ErreurSSL.RetourneZéro
+        }
+        SSL_ERROR_WANT_READ {
+            retourne ErreurSSL.LectureAttendue
+        }
+        SSL_ERROR_WANT_WRITE {
+            retourne ErreurSSL.ÉcritureAttendue
+        }
+        SSL_ERROR_WANT_CONNECT {
+            retourne ErreurSSL.ConnexionAttendue
+        }
+        SSL_ERROR_WANT_ACCEPT {
+            retourne ErreurSSL.AcceptationAttendue
+        }
+        SSL_ERROR_WANT_X509_LOOKUP {
+            retourne ErreurSSL.RécupérationX509Attendue
+        }
+        SSL_ERROR_SYSCALL {
+            retourne ErreurSSL.AppelSystème
+        }
+        SSL_ERROR_SSL {
+            retourne ErreurSSL.SSL
+        }
+    }
+
+    retourne ErreurSSL.SSL
+}
+
+// Puisque sur les systèmes UNIX tout est un fichier, les prises sont des fichiers, donc utilisons
+// l'interface d'un fichier pour envelopper la logique de lecture et d'écriture pour une connexion SSL
+FichierSSL :: struct {
+    fichier: Fichier
+    ssl : *ssl_st
+}
+
+FichierOuErreurSSL :: union {
+    f: FichierSSL
+    e: ErreurSSL
+}
+
+ouvre_fichier_ssl :: fonc (ctx_ssl: *ssl_st, fichier: Fichier) -> FichierOuErreurSSL
+{
+    m_ssl := SSL_new(ctx_ssl)
+
+    si m_ssl == nul {
+        retourne converti_erreur_ssl(m_ssl, 0)
+    }
+
+    SSL_set_fd(m_ssl, fichier.desc)
+
+    connexion := SSL_connect(m_ssl)
+
+    si connexion <= 0 {
+        retourne converti_erreur_ssl(m_ssl, 0)
+    }
+
+    fichier_ssl : FichierSSL
+    fichier_ssl.fichier = fichier
+    fichier_ssl.ssl = m_ssl
+    retourne fichier_ssl
+}
+
+écris :: fonc (fichier: *FichierSSL, texte: chaine) -> ErreurSSL
+{
+    taille := SSL_write(fichier.ssl, texte.pointeur, texte.taille comme z32)
+
+    si taille <= 0 {
+        retourne converti_erreur_ssl(fichier.ssl, taille)
+    }
+
+    retourne 0 comme ErreurSSL
+}
+
+ChaineOuErreurSSL :: union {
+    c: chaine
+    e: ErreurSSL
+}
+
+lis_tout :: fonc (fichier: *FichierSSL) -> ChaineOuErreurSSL
+{
+    TAILLE_MAX_DONNÉES :: 1024
+    tampon : [TAILLE_MAX_DONNÉES]z8
+    résultat : chaine
+
+    boucle {
+        taille := SSL_read(fichier.ssl, @tampon[0], TAILLE_MAX_DONNÉES)
+
+        si taille > 0 {
+            ancienne_taille := résultat.taille
+            reloge résultat : chaine(résultat.taille + taille)
+            copie_mem_nonsur(src=@tampon[0], dst=@résultat[ancienne_taille], taille=taille comme z64)
+
+            si taille < TAILLE_MAX_DONNÉES {
+                arrête
+            }
+        }
+        sinon {
+            retourne converti_erreur_ssl(fichier.ssl, taille)
+        }
+    }
+
+    retourne résultat
+}
+
+ferme :: fonc (fichier: *FichierSSL) -> rien
+{
+    _ := tente ferme(@fichier.fichier) piège nonatteignable
+
+    si fichier.ssl {
+        SSL_free(fichier.ssl)
+    }
+}
