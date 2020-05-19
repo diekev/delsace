@@ -9,12 +9,16 @@ importe Réseau
 
 //###############################################################################
 
+prépare_réponse :: fonc () -> chaine
+{
+    retourne "<html><body><pre>%s</pre></body></html>\n\n"
+}
+
 // Sers la connextion -- moultfilable
 Servlet :: fonc(ssl: *ssl_st) -> rien
 {
     buf : [1024]z8
     reply : [1024]z8
-    HTMLecho := "<html><body><pre>%s</pre></body></html>\n\n"
 
     si SSL_accept(ssl) == -1 {
         imprime("SSL_accept a échoué !\n")
@@ -27,8 +31,10 @@ Servlet :: fonc(ssl: *ssl_st) -> rien
         si bytes > 0 {
             buf[bytes] = '\0'
             printf("Client msg: \"%s\"\n".pointeur, @buf[0])
-            sprintf(@reply[0], HTMLecho.pointeur, @buf[0])
-            SSL_write(ssl, @reply[0], 1024)
+
+            réponse := prépare_réponse()
+
+            SSL_write(ssl, réponse.pointeur, réponse.taille comme z32)
         }
         sinon {
             imprime("SSL_read a échoué !\n")
