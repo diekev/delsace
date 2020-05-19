@@ -85,8 +85,12 @@ principale :: fonc () -> z32
 
     ajoute_au_tampon(@enchaineuse, "GET ")
     ajoute_au_tampon(@enchaineuse, uri.chemin)
-    ajoute_au_tampon(@enchaineuse, "?")
-    ajoute_au_tampon(@enchaineuse, uri.requête)
+
+    si uri.requête {
+        ajoute_au_tampon(@enchaineuse, "?")
+        ajoute_au_tampon(@enchaineuse, uri.requête)
+    }
+
     ajoute_au_tampon(@enchaineuse, " HTTP/1.1\r\n")
     ajoute_au_tampon(@enchaineuse, "Host:")
     ajoute_au_tampon(@enchaineuse, uri.hôte)
