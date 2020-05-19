@@ -111,6 +111,10 @@ performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 				lexeuse.pousse_mot(TypeLexème.DÉBUT_EXPRESSION)
 				lexeuse.avance(2)
 			}
+			sinon {
+				lexeuse.pousse_caractère()
+				lexeuse.avance(1)
+			}
 		}
 		sinon si (lexeuse.caractère_courant() == '}' && lexeuse.caractère_voisin(1) == '}') {
 			si (lexeuse.taille_mot_courant != 0) {
