@@ -1,5 +1,6 @@
 importe Fondation
 importe GlibC
+importe Réseau
 importe SysFichier
 
 //https://tools.ietf.org/html/rfc5321#page-32
@@ -85,8 +86,200 @@ serveuse_envoie :: fonc (message: chaine) -> rien
 	imprime("S > %", message)
 }
 
+INTERRUTION := faux
+PRISE_SERVEUSE := -1
+
+accepte :: fonc (serveuse: *Fichier) -> Fichier
+{
+    adresse : sockaddr_in
+	sin_size := taille_de(sockaddr_in) comme n32
+
+    prise := accept(serveuse.desc, @adresse comme *sockaddr, @sin_size)
+
+    cliente : Fichier
+    cliente.desc = prise
+
+	// @erreur
+    si prise == -1 {
+        retourne cliente
+    }
+
+    retourne cliente
+}
+
+démarre :: fonc(serveuse : *Fichier) -> rien
+{
+    boucle {
+        cliente := accepte(serveuse)
+
+        si INTERRUTION {
+            arrête
+        }
+
+		// @Redondant
+        si cliente.desc == -1 {
+            perror("accept".pointeur)
+            continue
+        }
+
+        procède_requête(serveuse, @cliente)
+    }
+}
+
+ÉtatServeuse :: énum {
+	PingDébut
+	AttendHelo
+	RequiersLogin
+	RequiesNomUtilisateur
+	RequiersMotDePasse
+	RequiersCorrespondants
+	MessageAttendu
+	MessageReçu
+}
+
+procède_requête :: fonc (serveuse: *Fichier, cliente: *Fichier) -> rien
+{
+	imprime("reçu connexion... desc : %\n", cliente.desc)
+	état := ÉtatServeuse.PingDébut
+
+	boucle {
+		// À FAIRE : il faut pouvoir retourner de lis_tout si nous n'avons pas d'entrée
+		instruction := tente cliente.lis_tout() piège err {
+			arrête
+		}
+
+		imprime("instruction : %\n", instruction)
+
+		diffère { déloge instruction }
+
+		si instruction == "" && état == ÉtatServeuse.PingDébut {
+			état = ÉtatServeuse.AttendHelo
+			continue
+		}
+		sinon {
+			arrête
+		}
+
+		si instruction == "EHLO\r\n" && état == ÉtatServeuse.AttendHelo {
+			état = ÉtatServeuse.RequiersLogin
+			_ := cliente.écris("250 ok\r\n")
+			continue
+		}
+		sinon {
+			_ := cliente.écris("503 bad sequence of commands\r\n")
+			continue
+		}
+
+		si instruction == "AUTH LOGIN\r\n" && état == ÉtatServeuse.RequiersLogin {
+			état = ÉtatServeuse.RequiesNomUtilisateur
+			_ := cliente.écris("334 VXNlcm5hbWU6\r\n")
+			continue
+		}
+		sinon {
+			_ := cliente.écris("530 5.7.1 Client was not authenticated\r\n")
+			continue
+		}
+
+		si état == ÉtatServeuse.RequiesNomUtilisateur {
+			état = ÉtatServeuse.RequiersMotDePasse
+			_ := cliente.écris("334 UGFzc3dvcmQ6\r\n")
+			continue
+		}
+		sinon {
+			_ := cliente.écris("530 5.7.1 Client was not authenticated\r\n")
+			continue
+		}
+
+		si état == ÉtatServeuse.RequiersMotDePasse {
+			état = ÉtatServeuse.RequiersCorrespondants
+			_ := cliente.écris("235 2.7.0 Authentication successful\r\n")
+			continue
+		}
+		sinon {
+			_ := cliente.écris("530 5.7.1 Client was not authenticated\r\n")
+			continue
+		}
+
+		si état == ÉtatServeuse.RequiersCorrespondants {
+			si instruction.commence_par("MAIL FROM") {
+				_ := cliente.écris("250 2.1.0 Ok\r\n")
+			}
+			sinon si instruction.commence_par("RCPT TO") {
+				_ := cliente.écris("250 2.1.0 Ok\r\n")
+			}
+			sinon {
+				_ := cliente.écris("530 5.7.1 Client was not authenticated\r\n")
+			}
+
+			continue
+		}
+
+		si instruction == "DATA\r\n" {
+			état = ÉtatServeuse.MessageAttendu
+			_ := cliente.écris("354 End data with <CR><LF>.<CR><LF>\r\n")
+			continue
+		}
+
+		si état == ÉtatServeuse.MessageAttendu {
+			// accumule le message
+			si instruction.fini_par("\r\n.\r\n") {
+				état = ÉtatServeuse.MessageReçu
+				_ := cliente.écris("250 2.0.0 Ok: queued as XXXXXXX\r\n")
+			}
+
+			continue
+		}
+
+		si état == ÉtatServeuse.MessageReçu {
+			si instruction != "QUIT\r\n" {
+				_ := cliente.écris("503 bad sequence of commands\r\n")
+				continue
+			}
+
+			_ := cliente.écris("221 Closing connection\r\n")
+			arrête
+		}
+	}
+
+	_ := tente cliente.ferme() piège nonatteignable
+}
+
+rappel_interruption :: fonc (numéro_signal: z32) -> rien #nulctx
+{
+    nonsûr {
+        INTERRUTION = vrai
+    }
+
+    // débloque la prise pour pouvoir interrompre la boucle
+    flags := fcntl(PRISE_SERVEUSE, F_GETFL, 0);
+    // @erreur
+    _ := fcntl(PRISE_SERVEUSE, F_SETFL, flags | O_NONBLOCK);
+}
+
 principale :: fonc () -> z32
 {
+	serveuse := tente ouvre_connexion_serveur_pour_écoute(5005, 10) piège err {
+		imprime("erreur lors de la création de la prise : %\n", err)
+		retourne 1
+	}
+
+	enable := 1
+    si setsockopt(serveuse.desc, SOL_SOCKET, SO_REUSEADDR, @enable, taille_de(z32)) < 0 {
+        // @erreur
+        _ := close(serveuse.desc)
+        retourne 1
+    }
+
+    signal(SIGINT, rappel_interruption)
+
+	PRISE_SERVEUSE = serveuse.desc
+
+	diffère { _ := tente ferme(@serveuse) piège nonatteignable }
+
+	démarre(@serveuse)
+
+	retourne 0
+/*
 	nouveau_contexte := contexte
     nouveau_contexte.allocatrice = __stockage_temporaire
 
@@ -163,4 +356,5 @@ principale :: fonc () -> z32
 	imprime("\nEnvoie du mail :\n%\n", courriel)
 
 	retourne 0
+*/
 }
