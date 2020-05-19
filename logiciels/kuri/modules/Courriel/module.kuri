@@ -116,17 +116,6 @@ crée_corps_message :: fonc (courriel: Courriel) -> chaine
     retourne chaine_depuis_enchaineuse(@enchaineuse)
 }
 
-ErreurConnexion :: erreur {
-    RésolutionHôteImpossible
-    CréationPriseImpossible
-    ConnexionPriseImpossible
-}
-
-FichierOuErreur :: union {
-    e: ErreurConnexion
-    f: Fichier
-}
-
 ouvre_connexion_serveur :: fonc (config: ConfigurationCourriel) -> FichierOuErreur
 {
     fichier := tente ouvre_connexion_serveur(config.serveur, config.port) piège err {
@@ -165,6 +154,9 @@ envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: Courriel) -> z
             }
             ConnexionPriseImpossible {
                 imprime("Impossible de se connecter à la prise !\n")
+            }
+            sinon {
+                imprime("Erreur inattendue : %\n", err)
             }
         }
 
