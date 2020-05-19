@@ -10,7 +10,7 @@ Instruction :: énum z32 {
 
 détermine_instruction :: fonc(chn : chaine) -> Instruction
 {
-    info := info_de(Instruction.CREE)
+    info := info_de(Instruction)
 
     pour nom, idx dans info.noms {
         si nom == chn {

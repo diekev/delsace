@@ -1918,20 +1918,13 @@ void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		{
-			auto expr = static_cast<NoeudExpressionUnaire *>(b);
-
-			performe_validation_semantique(expr->expr, contexte, false);
-
-			if (expr->expr->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-				auto decl = trouve_dans_bloc(expr->bloc_parent, expr->expr->ident);
-				expr->expr->type = decl->type;
-			}
-
-			auto type = expr->expr->type;
+			auto noeud_expr = static_cast<NoeudExpressionUnaire *>(b);
+			auto expr = noeud_expr->expr;
+			expr->type = resoud_type_final(contexte, expr->type_declare, expr->bloc_parent, noeud_expr->lexeme);
 
 			auto type_info_type = static_cast<Type *>(nullptr);
 
-			switch (type->genre) {
+			switch (expr->type->genre) {
 				case GenreType::INVALIDE:
 				{
 					break;

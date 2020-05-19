@@ -44,7 +44,7 @@ BaseAllocatrice :: struct {
     pic_de_mémoire : z64 = 0
 
     // pour pouvoir déterminer quelle type d'allocatrice nous avons
-    infos : *InfoTypeStructure = info_de(BaseAllocatrice())
+    infos : *InfoTypeStructure = info_de(BaseAllocatrice)
 
     allocatrice_parente : *BaseAllocatrice = nul
     allocatrice_secours : *BaseAllocatrice = nul

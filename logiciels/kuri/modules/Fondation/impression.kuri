@@ -525,12 +525,12 @@ imprime_valeur :: fonc(
 		STRUCTURE {
 			info_arg := info comme *InfoTypeStructure
 
-			si info_arg == info_de(FormatEntier()) {
+			si info_arg == info_de(FormatEntier) {
 				imprime_nombre_entier(enchaineuse, mémoire(pointeur comme *FormatEntier))
 				retourne
 			}
 
-			si info_arg == info_de(FormatRéel()) {
+			si info_arg == info_de(FormatRéel) {
 				imprime_nombre_réel(enchaineuse, mémoire(pointeur comme *FormatRéel))
 				retourne
 			}

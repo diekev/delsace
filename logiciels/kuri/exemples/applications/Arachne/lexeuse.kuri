@@ -191,7 +191,7 @@ id_digraphe :: fonc(chn : chaine) -> IdentifiantLexème
 
 id_mot :: fonc(chn : chaine) -> IdentifiantLexème
 {
-	info := info_de(IdentifiantLexème.INVALIDE)
+	info := info_de(IdentifiantLexème)
 
 	pour nom, idx dans info.noms {
 		si nom == chn {

@@ -31,7 +31,7 @@ principale :: fonc () -> type_de(N)
     x := 5.0
     y : type_de(x)
 
-    infos := info_de(y)
+    infos := info_de(type_de(y))
 
     imprime("%\n", mémoire(infos))
 

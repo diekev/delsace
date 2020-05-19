@@ -53,7 +53,7 @@ est_type_attribut_valide :: fonc(type : TypeAttribut) -> bool
         retourne faux
     }
 
-    info := info_de(type)
+    info := info_de(TypeAttribut)
 
     nombre_bits := 0
 

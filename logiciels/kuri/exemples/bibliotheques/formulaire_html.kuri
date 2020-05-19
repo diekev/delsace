@@ -21,7 +21,7 @@ génère_formulaire_depuis_struct :: fonc (valeur: eini) -> rien
             imprime("<input type='text' name='%'>\n", membre.nom)
         }
         sinon si info_membre.id == id_info.STRUCTURE {
-            si info_membre == info_de(MotDePasse()) {
+            si info_membre == info_de(MotDePasse) {
                 imprime("<input type='password' name='%'>\n", membre.nom)
             }
         }

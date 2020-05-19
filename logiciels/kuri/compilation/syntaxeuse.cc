@@ -724,7 +724,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
 			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::EXPRESSION_INFO_DE, lexeme);
 
-			noeud->expr = analyse_expression({}, GenreLexeme::INFO_DE, GenreLexeme::INCONNU);
+			auto expr = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme);
+			expr->type_declare = analyse_declaration_type(false);
+
+			noeud->expr = expr;
 
 			consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'taille_de'");
 
