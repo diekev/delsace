@@ -4,14 +4,10 @@
 importe Fondation
 importe GlibC
 importe OpenSSL
+importe POSIX
 importe Réseau
 
 //###############################################################################
-
-isRoot :: fonc() -> bool
-{
-    retourne getuid() == 0
-}
 
 // Sers la connextion -- moultfilable
 Servlet :: fonc(ssl: *ssl_st) -> rien
@@ -49,7 +45,7 @@ Servlet :: fonc(ssl: *ssl_st) -> rien
 
 principale :: fonc () -> z32
 {
-    si !isRoot() {
+    si !est_utilisateur_racine() {
         imprime("This program must be run as root/sudo user!!\n")
         exit(0)
     }

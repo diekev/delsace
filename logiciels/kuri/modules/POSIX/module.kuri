@@ -5,6 +5,7 @@
 importe Fondation
 
 getenv :: fonc externe (nom: *z8) -> *z8
+getuid :: fonc externe () -> z32
 
 chaine_environnement :: fonc (nom: chaine) -> chaine
 {
@@ -15,4 +16,9 @@ chaine_environnement :: fonc (nom: chaine) -> chaine
     }
 
     retourne converti_chaine_c(chn)
+}
+
+est_utilisateur_racine :: fonc() -> bool
+{
+    retourne getuid() == 0
 }

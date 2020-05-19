@@ -107,7 +107,6 @@ getcwd :: fonc externe (ptr : *z8, taille : z64) -> rien
 chdir :: fonc externe (ptr : *z8) -> rien
 
 abort :: fonc externe () -> rien
-getuid :: fonc externe () -> z32
 
 rename :: fonc externe (orig : *z8, dest : *z8) -> z32
 remove :: fonc externe (chemin : *z8) -> z32
