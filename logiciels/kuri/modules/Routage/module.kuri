@@ -216,15 +216,17 @@ Route :: struct {
     chemin: chaine
     règles_routage: []RègleRoutage
 
-    méthode_get : fonc()(rien)
-    méthode_post : fonc()(rien)
+    méthode_get : fonc(*rien)(rien)
+    méthode_post : fonc(*rien)(rien)
 }
 
 Routeuse :: struct {
     routes : []Route
 
-    rappel_page_non_trouvée: fonc()(rien)
-    rappel_méthode_non_autorisée: fonc()(rien)
+    données_serveuse: *rien
+
+    rappel_page_non_trouvée: fonc(*rien)(rien)
+    rappel_méthode_non_autorisée: fonc(*rien)(rien)
 }
 
 détruit_routeuse :: fonc (routeuse: *Routeuse) -> rien
@@ -232,7 +234,7 @@ détruit_routeuse :: fonc (routeuse: *Routeuse) -> rien
     déloge routeuse.routes
 }
 
-ajoute_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode_get: fonc()(rien), méthode_post: fonc()(rien)) -> rien
+ajoute_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode_get: fonc(*rien)(rien), méthode_post: fonc(*rien)(rien)) -> rien
 {
     route : Route
     route.chemin = chemin
@@ -255,12 +257,12 @@ apparie_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode: chaine) ->
 
         si méthode == "GET" {
             si it.méthode_get {
-                it.méthode_get()
+                it.méthode_get(routeuse.données_serveuse)
                 arrête
             }
 
             si routeuse.rappel_méthode_non_autorisée {
-                routeuse.rappel_méthode_non_autorisée()
+                routeuse.rappel_méthode_non_autorisée(routeuse.données_serveuse)
             }
 
             retourne
@@ -268,24 +270,24 @@ apparie_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode: chaine) ->
 
         si méthode == "POST" {
             si it.méthode_post {
-                it.méthode_post()
+                it.méthode_post(routeuse.données_serveuse)
                 arrête
             }
 
             si routeuse.rappel_méthode_non_autorisée {
-                routeuse.rappel_méthode_non_autorisée()
+                routeuse.rappel_méthode_non_autorisée(routeuse.données_serveuse)
             }
 
             retourne
         }
 
         si routeuse.rappel_méthode_non_autorisée {
-            routeuse.rappel_méthode_non_autorisée()
+            routeuse.rappel_méthode_non_autorisée(routeuse.données_serveuse)
         }
     }
     sansarrêt {
         si routeuse.rappel_page_non_trouvée {
-            routeuse.rappel_page_non_trouvée()
+            routeuse.rappel_page_non_trouvée(routeuse.données_serveuse)
         }
     }
 }
