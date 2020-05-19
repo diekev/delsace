@@ -6,8 +6,10 @@ importe SysFichier
 
 //###################################################################################
 
+TAILLE_TAMPON_ENCHAINEUSE :: 16384
+
 TamponEnchaineuse :: struct {
-    données : [16384]z8
+    données : [TAILLE_TAMPON_ENCHAINEUSE]z8
     occupé  : z32
     suivant : *TamponEnchaineuse
 }
@@ -131,7 +133,7 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, c: z8) -> rien
 {
     tampon := enchaineuse.tampon_courant
 
-    si tampon.occupé == 16384 {
+    si tampon.occupé == TAILLE_TAMPON_ENCHAINEUSE {
 		tampon = ajoute_tampon(enchaineuse)
 		tampon.données[0] = c
 		tampon.occupé = 1
@@ -150,25 +152,34 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
 
     tampon := enchaineuse.tampon_courant
 
-    si (tampon.occupé + chn.taille) > 16384 {
-        taille := 16384 - tampon.occupé
+    si (tampon.occupé + chn.taille) > TAILLE_TAMPON_ENCHAINEUSE {
+        taille := TAILLE_TAMPON_ENCHAINEUSE - tampon.occupé
         src := chn.pointeur
         dst := @tampon.données[tampon.occupé]
         tampon.occupé += taille
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille)
 
-        tampon = ajoute_tampon(enchaineuse)
-
         delta := chn.taille - taille
 
-        src = @chn[chn.taille - delta]
-        dst = @tampon.données[0]
-        taille = (chn.taille - taille) comme z32
+		tantque delta > 0 {
+        	tampon = ajoute_tampon(enchaineuse)
 
-        copie_mem_nonsur(src = src, dst = dst, taille = taille)
+			src = @chn[chn.taille - delta]
+			dst = @tampon.données[0]
 
-        tampon.occupé += delta comme z32
+			taille = TAILLE_TAMPON_ENCHAINEUSE
+
+			si delta < taille {
+				taille = delta comme z32
+			}
+
+			copie_mem_nonsur(src = src, dst = dst, taille = taille)
+
+			tampon.occupé += taille
+
+			delta -= TAILLE_TAMPON_ENCHAINEUSE
+		}
     }
     sinon {
         src := chn.pointeur
