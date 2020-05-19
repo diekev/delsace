@@ -16,20 +16,7 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine
     }
 
     si port == 443 {
-        SSL_library_init()
-        OpenSSL_add_ssl_algorithms()
-        SSL_load_error_strings()
-
-        method := SSLv23_client_method()
-
-        si method == nul {
-            retourne réponse
-        }
-
-        ctx_ssl := SSL_CTX_new(method)
-
-        si ctx_ssl == nul {
-            //converti_erreur_ssl(nul, 0)
+        ctx_ssl := tente initialise_contexte_ssl_client() piège err {
             retourne réponse
         }
 

@@ -22,7 +22,7 @@ OpenSSL_add_ssl_algorithms :: fonc externe () -> rien
 TLSv1_2_server_method :: fonc externe () -> *ssl_method_st
 SSL_load_error_strings :: fonc externe () -> rien
 SSLv23_client_method :: fonc externe () -> *ssl_method_st
-SSL_CTX_new :: fonc externe (method : *ssl_method_st) -> *rien
+SSL_CTX_new :: fonc externe (method : *ssl_method_st) -> *ssl_st
 SSL_new :: fonc externe (ctx_s : *rien) -> *ssl_st
 SSL_set_fd :: fonc externe (ssl : *ssl_st, prise : z32) -> rien
 SSL_connect :: fonc externe (ssl : *ssl_st) -> z32
@@ -70,8 +70,8 @@ X509_FILETYPE_PEM     :: 1
 X509_FILETYPE_ASN1    :: 2
 X509_FILETYPE_DEFAULT :: 3
 
-SSL_FILETYPE_ASN1 :: 2 // À FAIRE(bug compilateur)_X509_FILETYPE_ASN1
-SSL_FILETYPE_PEM  :: 1 // À FAIRE(bug compilateur) _X509_FILETYPE_PEM
+SSL_FILETYPE_PEM  :: X509_FILETYPE_PEM
+SSL_FILETYPE_ASN1 :: X509_FILETYPE_ASN1
 
 ERR_print_errors_cb :: fonc externe (cb : fonc(*z8,n64,*rien)z32, u : *rien) -> rien
 
@@ -79,6 +79,107 @@ ERR_print_errors_cb :: fonc externe (cb : fonc(*z8,n64,*rien)z32, u : *rien) -> 
 
 importe Fondation
 importe SysFichier
+
+ErreurCertificat :: erreur {
+    FichierCertificationInvalide
+    FichierCléInvalide
+    MésappariementClésPubliquePrivée
+}
+
+charge_certificats_ssl :: fonc(ctx: *ssl_st, chemin_fichier_certificat: chaine, chemin_fichier_clé: chaine) -> ErreurCertificat
+{
+    ptr_chemin_certificat := chaine_c_temp(chemin_fichier_certificat)
+    si SSL_CTX_use_certificate_file(ctx, ptr_chemin_certificat, SSL_FILETYPE_PEM) <= 0 {
+        retourne ErreurCertificat.FichierCertificationInvalide
+    }
+
+    ptr_chemin_clé := chaine_c_temp(chemin_fichier_clé)
+    si SSL_CTX_use_PrivateKey_file(ctx, ptr_chemin_clé, SSL_FILETYPE_PEM) <= 0 {
+        retourne ErreurCertificat.FichierCléInvalide
+    }
+
+    si SSL_CTX_check_private_key(ctx) == 0 {
+        retourne ErreurCertificat.MésappariementClésPubliquePrivée
+    }
+
+    retourne 0 comme ErreurCertificat
+}
+
+imprime_certificats_ssl :: fonc(ssl: *ssl_st) -> rien
+{
+    cert := SSL_get_peer_certificate(ssl)
+
+    si cert == nul {
+        imprime("Aucun certificats !\n")
+        retourne
+    }
+
+    imprime("Certificats serveurs :\n")
+
+    line := X509_NAME_oneline(X509_get_subject_name(cert), nul, 0)
+    imprime("Sujet :\n%\n", converti_chaine_c(line))
+    free(line)
+
+    line = X509_NAME_oneline(X509_get_issuer_name(cert), nul, 0)
+    imprime("Émetteur :\n%\n", converti_chaine_c(line))
+    free(line)
+
+    X509_free(cert)
+}
+
+ErreurInitialisationSSL :: erreur {
+    NePeutCréerMéthode
+    NePeutCréerContexte
+}
+
+ErreurOuContexteSSL :: union {
+    c: *ssl_st
+    e: ErreurInitialisationSSL
+}
+
+initialise_contexte_ssl_client :: fonc () -> ErreurOuContexteSSL
+{
+    SSL_library_init()
+    OpenSSL_add_ssl_algorithms()
+    SSL_load_error_strings()
+
+    method := SSLv23_client_method()
+
+    si method == nul {
+        retourne ErreurInitialisationSSL.NePeutCréerMéthode
+    }
+
+    ctx := SSL_CTX_new(method)
+
+    si ctx == nul {
+        //converti_erreur_ssl(nul, 0)
+        retourne ErreurInitialisationSSL.NePeutCréerContexte
+    }
+
+    retourne ctx
+}
+
+initialise_contexte_ssl_serveur :: fonc () -> ErreurOuContexteSSL
+{
+    SSL_library_init()
+    OpenSSL_add_all_algorithms()
+    SSL_load_error_strings()
+
+    method := TLSv1_2_server_method()
+
+    si method == nul {
+        retourne ErreurInitialisationSSL.NePeutCréerMéthode
+    }
+
+    ctx := SSL_CTX_new(method)
+
+    si ctx == nul {
+        //converti_erreur_ssl(nul, 0)
+        retourne ErreurInitialisationSSL.NePeutCréerContexte
+    }
+
+    retourne ctx
+}
 
 ErreurSSL :: erreur {
     LectureAttendue
