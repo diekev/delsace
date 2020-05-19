@@ -181,16 +181,16 @@ static int precedence_pour_operateur(GenreLexeme genre_operateur)
 		{
 			return 13;
 		}
+		case GenreLexeme::COMME:
+		{
+			return 14;
+		}
 		case GenreLexeme::EXCLAMATION:
 		case GenreLexeme::TILDE:
 		case GenreLexeme::AROBASE:
 		case GenreLexeme::PLUS_UNAIRE:
 		case GenreLexeme::MOINS_UNAIRE:
 		case GenreLexeme::EXPANSION_VARIADIQUE:
-		{
-			return 14;
-		}
-		case GenreLexeme::COMME:
 		{
 			return 15;
 		}

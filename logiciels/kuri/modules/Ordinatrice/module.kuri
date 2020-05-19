@@ -70,7 +70,7 @@ commute_boutisme :: fonc(tabl : []$T) -> rien #enligne
 petit_boutisme :: fonc () -> bool
 {
     UN := 1
-    retourne mémoire((@UN) comme *z8) == 1
+    retourne mémoire(@UN comme *z8) == 1
 }
 
 grand_boutisme :: fonc () -> bool

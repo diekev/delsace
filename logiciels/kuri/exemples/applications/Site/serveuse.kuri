@@ -50,7 +50,7 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     adresse_du_connecté.sin_zero[6] = 0
     adresse_du_connecté.sin_zero[7] = 0
 
-	err := bind(serveuse.prise, (@adresse_du_connecté) comme *sockaddr, taille_de(sockaddr) comme n64)
+	err := bind(serveuse.prise, @adresse_du_connecté comme *sockaddr, taille_de(sockaddr) comme n64)
 
 	si err == -1 {
 		retourne "erreur lors de la liaison"

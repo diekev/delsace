@@ -272,7 +272,7 @@ accepte :: fonc (serveuse: *Serveuse) -> Cliente
     adresse : sockaddr_in
 	sin_size := taille_de(sockaddr_in) comme n32
 
-    prise := accept(serveuse.prise, (@adresse) comme *sockaddr, @sin_size)
+    prise := accept(serveuse.prise, @adresse comme *sockaddr, @sin_size)
 
     cliente : Cliente
     cliente.adresse = adresse
