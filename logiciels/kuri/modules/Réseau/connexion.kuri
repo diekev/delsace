@@ -8,6 +8,8 @@ ErreurConnexion :: erreur {
     RésolutionHôteImpossible
     CréationPriseImpossible
     ConnexionPriseImpossible
+    LiaisonPriseImpossible
+    ÉcoutePriseImpossible
 }
 
 FichierOuErreur :: union {
@@ -55,4 +57,36 @@ ouvre_connexion_serveur :: fonc (hôte: chaine, port: n16) -> FichierOuErreur
 ouvre_connexion_serveur :: fonc (uri: &URI) -> FichierOuErreur
 {
     retourne ouvre_connexion_serveur(uri.hôte, port_pour_uri(uri))
+}
+
+ouvre_connexion_serveur_pour_écoute :: fonc(port: n16, connexions_max: z32) -> FichierOuErreur
+{
+    prise := socket(PF_INET, SOCK_STREAM, 0)
+
+    si prise == -1 {
+        retourne ErreurConnexion.CréationPriseImpossible
+    }
+
+    addr : sockaddr_in
+    addr.sin_family = PF_INET comme n16
+    addr.sin_port = htons(port)
+    addr.sin_addr.s_addr = INADDR_ANY
+    addr.sin_zero[0] = 0
+    addr.sin_zero[1] = 0
+    addr.sin_zero[2] = 0
+    addr.sin_zero[3] = 0
+    addr.sin_zero[4] = 0
+    addr.sin_zero[5] = 0
+    addr.sin_zero[6] = 0
+    addr.sin_zero[7] = 0
+
+    si bind(prise, @addr comme *sockaddr, taille_de(sockaddr) comme n64) != 0 {
+        retourne ErreurConnexion.LiaisonPriseImpossible
+    }
+
+    si listen(prise, connexions_max) != 0 {
+        retourne ErreurConnexion.ÉcoutePriseImpossible
+    }
+
+    retourne Fichier(desc = prise)
 }
