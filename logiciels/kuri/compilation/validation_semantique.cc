@@ -2272,10 +2272,25 @@ void performe_validation_semantique(
 			auto decalage = 0u;
 			auto max_alignement = 0u;
 
-			auto ajoute_donnees_membre = [&decalage, &max_alignement, &donnees_dependance, &type_struct](NoeudBase *enfant, NoeudExpression *expr_valeur)
+			auto ajoute_donnees_membre = [&](NoeudBase *enfant, NoeudExpression *expr_valeur)
 			{
 				auto type_membre = enfant->type;
 				auto align_type = type_membre->alignement;
+
+				if (align_type == 0) {
+					erreur::lance_erreur(
+								"impossible de définir l'alignement du type",
+								contexte,
+								enfant->lexeme);
+				}
+
+				if (type_membre->taille_octet == 0) {
+					erreur::lance_erreur(
+								"impossible de définir la taille du type",
+								contexte,
+								enfant->lexeme);
+				}
+
 				max_alignement = std::max(align_type, max_alignement);
 				auto padding = (align_type - (decalage % align_type)) % align_type;
 				decalage += padding;
