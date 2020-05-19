@@ -192,13 +192,16 @@ lis_tout :: fonc (fichier: *FichierSSL) -> ChaineOuErreurSSL
             ancienne_taille := résultat.taille
             reloge résultat : chaine(résultat.taille + taille)
             copie_mem_nonsur(src=@tampon[0], dst=@résultat[ancienne_taille], taille=taille comme z64)
-
-            si taille < TAILLE_MAX_DONNÉES {
-                arrête
-            }
+        }
+        sinon si taille == 0 {
+            arrête
         }
         sinon {
-            retourne converti_erreur_ssl(fichier.ssl, taille)
+            err := converti_erreur_ssl(fichier.ssl, taille)
+
+            si err != ErreurSSL.Aucune && err != ErreurSSL.RetourneZéro {
+                retourne converti_erreur_ssl(fichier.ssl, taille)
+            }
         }
     }
 
