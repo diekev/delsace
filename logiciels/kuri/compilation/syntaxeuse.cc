@@ -1598,19 +1598,24 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(NoeudExpression *gauch
 	consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' à la fin des paramètres de la fonction");
 
 	/* analyse les types de retour de la fonction */
-	consomme(GenreLexeme::RETOUR_TYPE, "Attendu un retour de type");
-
-	while (true) {
-		noeud->noms_retours.pousse("__ret" + dls::vers_chaine(noeud->noms_retours.taille));
-
-		auto type_declare = analyse_declaration_type(false);
-		noeud->type_declare.types_sorties.pousse(type_declare);
-
-		if (!apparie(GenreLexeme::VIRGULE)) {
-			break;
-		}
-
+	if (apparie(GenreLexeme::RETOUR_TYPE)) {
 		consomme();
+
+		while (true) {
+			noeud->noms_retours.pousse("__ret" + dls::vers_chaine(noeud->noms_retours.taille));
+
+			auto type_declare = analyse_declaration_type(false);
+			noeud->type_declare.types_sorties.pousse(type_declare);
+
+			if (!apparie(GenreLexeme::VIRGULE)) {
+				break;
+			}
+
+			consomme();
+		}
+	}
+	else {
+		noeud->type_declare.types_sorties.pousse(DonneesTypeDeclare(GenreLexeme::RIEN));
 	}
 
 	while (apparie(GenreLexeme::DIRECTIVE)) {
