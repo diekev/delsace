@@ -643,7 +643,7 @@ AtomeFonction *ConstructriceRI::trouve_ou_insere_fonction(NoeudDeclarationFoncti
 	// À FAIRE : retours multiples
 
 	auto atome_fonc = cree_fonction(decl->lexeme, decl->nom_broye, std::move(params));
-	atome_fonc->type = decl->type_fonc;
+	atome_fonc->type = decl->type;
 
 	if (dls::outils::possede_drapeau(decl->drapeaux, FORCE_SANSTRACE)) {
 		atome_fonc->sanstrace = true;

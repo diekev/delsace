@@ -213,11 +213,6 @@ struct NoeudBase {
 
 	TransformationType transformation{};
 
-	/* utilisé pour déterminer les types de retour des fonctions à moultretour
-	 * car lors du besoin index_type est utilisé pour le type de retour de la
-	 *  première valeur */
-	TypeFonction *type_fonc = nullptr;
-
 	NoeudBase() = default;
 
 	COPIE_CONSTRUCT(NoeudBase);

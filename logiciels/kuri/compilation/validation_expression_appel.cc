@@ -1015,7 +1015,7 @@ void valide_appel_fonction(
 
 		if (expr->type == nullptr) {
 			/* À FAIRE: multiple type retour */
-			expr->type = decl_fonction_appelee->type_fonc->types_sorties[0];
+			expr->type = type_sortie;
 		}
 
 		donnees_dependance.fonctions_utilisees.insere(decl_fonction_appelee);

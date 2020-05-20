@@ -460,12 +460,12 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 		contexte.donnees_dependance.types_utilises.insere(type_sortie);
 	}
 
-	decl->type_fonc = contexte.typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
-	decl->type = decl->type_fonc;
+	auto type_fonc = contexte.typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+	decl->type = type_fonc;
 	contexte.donnees_dependance.types_utilises.insere(b->type);
 
 	if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
-		auto type_resultat = decl->type_fonc->types_sorties[0];
+		auto type_resultat = type_fonc->types_sorties[0];
 
 		if (type_resultat == contexte.typeuse[TypeBase::RIEN]) {
 			erreur::lance_erreur("Un opérateur ne peut retourner 'rien'",
@@ -484,7 +484,7 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 
 		if (decl->params.taille == 1) {
 			auto &iter_op = contexte.operateurs.trouve_unaire(decl->lexeme->genre);
-			auto type1 = decl->type_fonc->types_entrees[0 + possede_contexte];
+			auto type1 = type_fonc->types_entrees[0 + possede_contexte];
 
 			for (auto i = 0; i < iter_op.taille(); ++i) {
 				auto op = &iter_op[i];
@@ -503,8 +503,8 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 		}
 		else if (decl->params.taille == 2) {
 			auto &iter_op = contexte.operateurs.trouve_binaire(decl->lexeme->genre);
-			auto type1 = decl->type_fonc->types_entrees[0 + possede_contexte];
-			auto type2 = decl->type_fonc->types_entrees[1 + possede_contexte];
+			auto type1 = type_fonc->types_entrees[0 + possede_contexte];
+			auto type2 = type_fonc->types_entrees[1 + possede_contexte];
 
 			for (auto i = 0; i < iter_op.taille(); ++i) {
 				auto op = &iter_op[i];
@@ -1378,7 +1378,7 @@ void performe_validation_semantique(
 			}
 
 			auto enfant = inst->expr;
-			auto nombre_retour = fonction_courante->type_fonc->types_sorties.taille;
+			auto nombre_retour = type_fonc->types_sorties.taille;
 
 			if (nombre_retour > 1) {
 				if (enfant->lexeme->genre == GenreLexeme::VIRGULE) {

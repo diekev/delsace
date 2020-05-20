@@ -415,7 +415,6 @@ NoeudExpression *copie_noeud(
 
 	nracine->ident = racine->ident;
 	nracine->type = racine->type;
-	nracine->type_fonc = racine->type_fonc;
 	nracine->bloc_parent = bloc_parent;
 	nracine->drapeaux = racine->drapeaux;
 
