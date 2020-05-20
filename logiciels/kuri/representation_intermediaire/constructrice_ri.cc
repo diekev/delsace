@@ -1786,7 +1786,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 						valeur = genere_ri_transformee_pour_noeud(it, nullptr);
 					}
 					else {
-						valeur = genere_initialisation_defaut_pour_type(it->type);
+						valeur = genere_initialisation_defaut_pour_type(type_struct->membres[index_membre].type);
 					}
 
 					auto ptr = cree_acces_membre(alloc, index_membre);
