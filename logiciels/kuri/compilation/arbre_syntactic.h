@@ -458,20 +458,8 @@ void rassemble_feuilles(
 	}
 
 	auto expr = static_cast<NoeudExpressionBinaire *>(noeud_base);
-
-	if (expr->expr1->lexeme->genre == GenreLexeme::VIRGULE) {
-		rassemble_feuilles(expr->expr1, feuilles);
-	}
-	else {
-		feuilles.pousse(expr->expr1);
-	}
-
-	if (expr->expr2->lexeme->genre == GenreLexeme::VIRGULE) {
-		rassemble_feuilles(expr->expr2, feuilles);
-	}
-	else {
-		feuilles.pousse(expr->expr2);
-	}
+	rassemble_feuilles(expr->expr1, feuilles);
+	feuilles.pousse(expr->expr2);
 }
 
 NoeudExpression *copie_noeud(
