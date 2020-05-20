@@ -1615,6 +1615,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(NoeudExpression *gauch
 		}
 	}
 	else {
+		noeud->noms_retours.pousse("__ret0");
 		noeud->type_declare.types_sorties.pousse(DonneesTypeDeclare(GenreLexeme::RIEN));
 	}
 
