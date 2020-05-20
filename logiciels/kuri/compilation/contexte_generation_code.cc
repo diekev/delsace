@@ -196,52 +196,6 @@ bool ContexteGenerationCode::possede_controle_boucle(IdentifiantCode *ident)
 	return ident == nullptr;
 }
 
-void ContexteGenerationCode::empile_goto_continue(IdentifiantCode *ident_boucle, dls::chaine const &label)
-{
-	m_goto_continue.pousse({ ident_boucle, label });
-}
-
-void ContexteGenerationCode::depile_goto_continue()
-{
-	m_goto_continue.pop_back();
-}
-
-dls::chaine const &ContexteGenerationCode::goto_continue(IdentifiantCode *ident_boucle)
-{
-	if (ident_boucle != nullptr) {
-		POUR (m_goto_continue) {
-			if (it.first == ident_boucle) {
-				return it.second;
-			}
-		}
-	}
-
-	return m_goto_continue.back().second;
-}
-
-void ContexteGenerationCode::empile_goto_arrete(IdentifiantCode *ident_boucle, dls::chaine const &label)
-{
-	m_goto_arrete.pousse({ ident_boucle, label });
-}
-
-void ContexteGenerationCode::depile_goto_arrete()
-{
-	m_goto_arrete.pop_back();
-}
-
-dls::chaine const &ContexteGenerationCode::goto_arrete(IdentifiantCode *ident_boucle)
-{
-	if (ident_boucle != nullptr) {
-		POUR (m_goto_arrete) {
-			if (it.first == ident_boucle) {
-				return it.second;
-			}
-		}
-	}
-
-	return m_goto_arrete.back().second;
-}
-
 /* ************************************************************************** */
 
 void ContexteGenerationCode::commence_fonction(NoeudDeclarationFonction *df)

@@ -241,14 +241,6 @@ struct ContexteGenerationCode {
 
 	bool possede_controle_boucle(IdentifiantCode *ident);
 
-	void empile_goto_continue(IdentifiantCode *ident_boucle, dls::chaine const &label);
-	void depile_goto_continue();
-	dls::chaine const &goto_continue(IdentifiantCode *ident_boucle);
-
-	void empile_goto_arrete(IdentifiantCode *ident_boucle, dls::chaine const &label);
-	void depile_goto_arrete();
-	dls::chaine const &goto_arrete(IdentifiantCode *ident_boucle);
-
 	/* ********************************************************************** */
 
 	/**
