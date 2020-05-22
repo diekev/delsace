@@ -269,8 +269,6 @@ parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
     uri : URI
     uri.uri = chn
 
-    imprime("Chaine reçue : %\n", chn)
-
     eu_schéma := tente extrait_schéma(chn, @uri.schéma) piège err {
         retourne err
     }
