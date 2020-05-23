@@ -170,7 +170,7 @@ imprime_ligne :: fonc (ligne: *Ligne) -> rien
                     arrête
                 }
 
-                pousse(@chn_nom, c)
+               chaine_ajoute(@chn_nom, c)
             }
         }
     }
@@ -184,7 +184,7 @@ imprime_ligne :: fonc (ligne: *Ligne) -> rien
                     arrête
                 }
 
-                pousse(@chn_courriel, c)
+               chaine_ajoute(@chn_courriel, c)
             }
         }
     }

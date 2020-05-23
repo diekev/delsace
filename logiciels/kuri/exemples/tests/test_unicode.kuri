@@ -55,7 +55,7 @@ en_majuscule_utf8 :: fonc (chn: chaine) -> chaine
         }
 
         si n == 1 {
-            pousse(@résultat, en_majuscule(chn[i]))
+           chaine_ajoute(@résultat, en_majuscule(chn[i]))
         }
         sinon {
             cp := converti_utf8_utf32(@chn[i], n)
@@ -63,7 +63,7 @@ en_majuscule_utf8 :: fonc (chn: chaine) -> chaine
             maj := en_majuscule_cp(cp)
 
             pour c dans maj {
-                pousse(@résultat, c)
+               chaine_ajoute(@résultat, c)
             }
         }
 

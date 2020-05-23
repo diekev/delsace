@@ -277,7 +277,7 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
 	// Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
 		reste := reste_de_la_division(@part_entière, 10)
-		pousse(@chn_part_entière, '0' + reste comme z8)
+		chaine_ajoute(@chn_part_entière, '0' + reste comme z8)
 	} tantque !est_zéro(@part_entière)
 
 	inverse(@chn_part_entière)

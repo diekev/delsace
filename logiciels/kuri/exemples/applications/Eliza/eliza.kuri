@@ -28,7 +28,7 @@ lis_entrée :: fonc () -> chaine
                 arrête
             }
 
-            pousse(@chn, c)
+           chaine_ajoute(@chn, c)
         }
     }
 

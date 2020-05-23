@@ -3,13 +3,44 @@
 charge "memoire"
 
 // À FAIRE: ceci ne fonctionnera pas pour les chaines statiques, connues lors de la compilation
-pousse :: fonc (chn: *chaine, c: z8) -> rien
+chaine_ajoute :: fonc (chn: *chaine, c: z8)
 {
-	tmp := mémoire(chn)
+    tmp := mémoire(chn)
 
 	taille := chn.taille
 	reloge tmp: chaine(taille + 1)
 	tmp[taille] = c
+
+	mémoire(chn) = tmp
+}
+
+chaine_ajoute :: fonc (chn: *chaine, point_de_code: n32)
+{
+    tmp := mémoire(chn)
+
+	// À FAIRE : nombre d'octets Unicode pour point de code
+	taille := chn.taille
+	reloge tmp: chaine(taille + 1)
+
+	tmp[taille] = (point_de_code & 0xff) comme z8
+
+	mémoire(chn) = tmp
+}
+
+chaine_ajoute :: fonc (chn: *chaine, donnée: chaine)
+{
+    si !donnée {
+        retourne
+    }
+
+    tmp := mémoire(chn)
+
+	taille := chn.taille
+	reloge tmp: chaine(taille + donnée.taille)
+
+    pour donnée {
+        tmp[taille + index_it] = it
+    }
 
 	mémoire(chn) = tmp
 }

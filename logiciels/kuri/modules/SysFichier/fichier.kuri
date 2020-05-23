@@ -353,7 +353,7 @@ lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
             arrête
         }
 
-		pousse(@résultat, c)
+		chaine_ajoute(@résultat, c)
 
 		si c == '\n' {
 			arrête

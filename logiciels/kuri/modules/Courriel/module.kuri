@@ -42,8 +42,8 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
 
     si format {
         message = imprime_chaine(format, ...args)
-        pousse(@message, '\r')
-        pousse(@message, '\n')
+       chaine_ajoute(@message, '\r')
+       chaine_ajoute(@message, '\n')
     }
 
     taille_écrite := tente fichier.écris(message) piège err {
