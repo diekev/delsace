@@ -69,6 +69,7 @@ static bool doit_ajouter_point_virgule(GenreLexeme dernier_id)
 		case GenreLexeme::CHAINE:
 		case GenreLexeme::OCTET:
 		case GenreLexeme::CHAINE_CARACTERE:
+		case GenreLexeme::TYPE_DE_DONNEES:
 		/* littérales */
 		case GenreLexeme::CHAINE_LITTERALE:
 		case GenreLexeme::NOMBRE_REEL:

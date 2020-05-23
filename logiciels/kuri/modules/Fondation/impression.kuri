@@ -682,6 +682,9 @@ imprime_valeur :: fonc(
 				}
 			}
 		}
+		TYPE_DE_DONNÉES {
+			// À FAIRE
+		}
 	}
 }
 

@@ -170,6 +170,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 	}
 
 	switch (type->genre) {
+		case GenreType::POLYMORPHIQUE:
 		case GenreType::INVALIDE:
 		{
 			type_llvm = nullptr;
@@ -265,6 +266,11 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 				type_llvm = llvm::Type::getInt64Ty(m_contexte_llvm);
 			}
 
+			break;
+		}
+		case GenreType::TYPE_DE_DONNEES:
+		{
+			type_llvm = llvm::Type::getInt64Ty(m_contexte_llvm);
 			break;
 		}
 		case GenreType::REEL:

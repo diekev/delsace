@@ -66,6 +66,7 @@ mot_cles = [
 	u'eini_erreur',
 	u'comme',
 	u'init_de',
+	u'type_de_données',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
@@ -146,6 +147,8 @@ id_extra = [
 	[u'123', u'NOMBRE_ENTIER'],
 	[u'-', u'PLUS_UNAIRE'],
 	[u'+', u'MOINS_UNAIRE'],
+	[u'*', u'FOIS_UNAIRE'],
+	[u'&', u'ESP_UNAIRE'],
     [u'chaine_de_caractère', u"CHAINE_CARACTERE"],
     [u'chaine littérale', u"CHAINE_LITTERALE"],
     [u'a', u"CARACTERE"],

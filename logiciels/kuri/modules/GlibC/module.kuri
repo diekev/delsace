@@ -130,7 +130,11 @@ SEEK_HOLE :: 4  /* Seek to next hole. */
 lseek :: fonc externe (fd: z32, offset: z64, whence: z32) -> z64
 
 // Version 64-bit de la structure 'stat' de "sys/stat.h"
-stat :: struct externe  {
+// La structure devrait s'appeler stat mais nous avons une collision dans le langage
+// quand il s'agit de trouver la déclaration correspondant à stat (qui est également une
+// fonction), nous la renommons struct_stat jusqu'à ce que nous avons un moyen de lever
+// le conflit, l'ambigüité.
+struct_stat :: struct externe  {
     st_dev : n64         // ID of device containing file
 	st_ino : n64         // inode number
 	st_nlink : n64     // number of hard links

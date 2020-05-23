@@ -59,6 +59,9 @@ private:
 
 	Lexeme *m_lexeme_courant{};
 
+	// pour séparer les expression de la taille des tableaux pour les expressions loge et reloge
+	NoeudExpressionLogement *m_noeud_logement = nullptr;
+
 	dls::chaine m_racine_kuri{};
 
 	/* Pour les messages d'erreurs. */
@@ -110,12 +113,9 @@ private:
 	NoeudExpression *analyse_appel_fonction(NoeudExpression *gauche);
 
 	NoeudExpression *analyse_declaration_enum(NoeudExpression *gauche);
-	NoeudExpression *analyse_declaration_fonction(NoeudExpression *gauche);
+	NoeudExpression *analyse_declaration_fonction(Lexeme const *lexeme);
 	NoeudExpression *analyse_declaration_operateur();
 	NoeudExpression *analyse_declaration_structure(NoeudExpression *gauche);
-
-	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
-	DonneesTypeDeclare analyse_declaration_type_ex();
 
 	NoeudExpression *analyse_instruction();
 	NoeudExpression *analyse_instruction_boucle();

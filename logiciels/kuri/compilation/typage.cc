@@ -30,121 +30,61 @@
 
 /* ************************************************************************** */
 
-DonneesTypeDeclare::DonneesTypeDeclare(GenreLexeme i0)
-{
-	donnees.pousse(i0);
-}
-
-DonneesTypeDeclare::DonneesTypeDeclare(GenreLexeme i0, GenreLexeme i1)
-{
-	donnees.pousse(i0);
-	donnees.pousse(i1);
-}
-
-GenreLexeme DonneesTypeDeclare::type_base() const
-{
-	if (donnees.est_vide()) {
-		return GenreLexeme::INCONNU;
-	}
-
-	return donnees[0];
-}
-
-long DonneesTypeDeclare::taille() const
-{
-	return donnees.taille();
-}
-
-GenreLexeme DonneesTypeDeclare::operator[](long idx) const
-{
-	return donnees[idx];
-}
-
-void DonneesTypeDeclare::pousse(GenreLexeme id)
-{
-	donnees.pousse(id);
-}
-
-void DonneesTypeDeclare::pousse(const DonneesTypeDeclare &dtd)
-{
-	for (auto i = 0; i < dtd.donnees.taille(); ++i) {
-		donnees.pousse(dtd.donnees[i]);
-	}
-
-	for (auto i = 0; i < dtd.expressions.taille(); ++i) {
-		expressions.pousse(dtd.expressions[i]);
-	}
-}
-
-DonneesTypeDeclare::type_plage DonneesTypeDeclare::plage() const
-{
-	return type_plage(donnees.donnees(), donnees.donnees() + donnees.taille());
-}
-
-DonneesTypeDeclare::type_plage DonneesTypeDeclare::dereference() const
-{
-	auto p = plage();
-	p.effronte();
-	return p;
-}
-
-/* ************************************************************************** */
-
 struct DonneesTypeCommun {
 	TypeBase val_enum;
-	DonneesTypeDeclare dt;
+	GenreLexeme dt[2];
 };
 
 static DonneesTypeCommun donnees_types_communs[] = {
-	{ TypeBase::PTR_N8, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::N8) },
-	{ TypeBase::PTR_N16, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::N16) },
-	{ TypeBase::PTR_N32, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::N32) },
-	{ TypeBase::PTR_N64, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::N64) },
-	{ TypeBase::PTR_Z8, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::Z8) },
-	{ TypeBase::PTR_Z16, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::Z16) },
-	{ TypeBase::PTR_Z32, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::Z32) },
-	{ TypeBase::PTR_Z64, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::Z64) },
-	{ TypeBase::PTR_R16, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::R16) },
-	{ TypeBase::PTR_R32, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::R32) },
-	{ TypeBase::PTR_R64, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::R64) },
-	{ TypeBase::PTR_EINI, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::EINI) },
-	{ TypeBase::PTR_CHAINE, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::CHAINE) },
-	{ TypeBase::PTR_RIEN, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::RIEN) },
-	{ TypeBase::PTR_NUL, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::NUL) },
-	{ TypeBase::PTR_BOOL, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::BOOL) },
-	{ TypeBase::PTR_OCTET, DonneesTypeDeclare(GenreLexeme::POINTEUR, GenreLexeme::OCTET) },
+	{ TypeBase::PTR_N8, { GenreLexeme::POINTEUR, GenreLexeme::N8 } },
+	{ TypeBase::PTR_N16, { GenreLexeme::POINTEUR, GenreLexeme::N16 } },
+	{ TypeBase::PTR_N32, { GenreLexeme::POINTEUR, GenreLexeme::N32 } },
+	{ TypeBase::PTR_N64, { GenreLexeme::POINTEUR, GenreLexeme::N64 } },
+	{ TypeBase::PTR_Z8, { GenreLexeme::POINTEUR, GenreLexeme::Z8 } },
+	{ TypeBase::PTR_Z16, { GenreLexeme::POINTEUR, GenreLexeme::Z16 } },
+	{ TypeBase::PTR_Z32, { GenreLexeme::POINTEUR, GenreLexeme::Z32 } },
+	{ TypeBase::PTR_Z64, { GenreLexeme::POINTEUR, GenreLexeme::Z64 } },
+	{ TypeBase::PTR_R16, { GenreLexeme::POINTEUR, GenreLexeme::R16 } },
+	{ TypeBase::PTR_R32, { GenreLexeme::POINTEUR, GenreLexeme::R32 } },
+	{ TypeBase::PTR_R64, { GenreLexeme::POINTEUR, GenreLexeme::R64 } },
+	{ TypeBase::PTR_EINI, { GenreLexeme::POINTEUR, GenreLexeme::EINI } },
+	{ TypeBase::PTR_CHAINE, { GenreLexeme::POINTEUR, GenreLexeme::CHAINE } },
+	{ TypeBase::PTR_RIEN, { GenreLexeme::POINTEUR, GenreLexeme::RIEN } },
+	{ TypeBase::PTR_NUL, { GenreLexeme::POINTEUR, GenreLexeme::NUL } },
+	{ TypeBase::PTR_BOOL, { GenreLexeme::POINTEUR, GenreLexeme::BOOL } },
+	{ TypeBase::PTR_OCTET, { GenreLexeme::POINTEUR, GenreLexeme::OCTET } },
 
-	{ TypeBase::REF_N8, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::N8) },
-	{ TypeBase::REF_N16, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::N16) },
-	{ TypeBase::REF_N32, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::N32) },
-	{ TypeBase::REF_N64, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::N64) },
-	{ TypeBase::REF_Z8, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::Z8) },
-	{ TypeBase::REF_Z16, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::Z16) },
-	{ TypeBase::REF_Z32, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::Z32) },
-	{ TypeBase::REF_Z64, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::Z64) },
-	{ TypeBase::REF_R16, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::R16) },
-	{ TypeBase::REF_R32, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::R32) },
-	{ TypeBase::REF_R64, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::R64) },
-	{ TypeBase::REF_EINI, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::EINI) },
-	{ TypeBase::REF_CHAINE, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::CHAINE) },
-	{ TypeBase::REF_RIEN, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::RIEN) },
-	{ TypeBase::REF_BOOL, DonneesTypeDeclare(GenreLexeme::REFERENCE, GenreLexeme::BOOL) },
+	{ TypeBase::REF_N8, { GenreLexeme::REFERENCE, GenreLexeme::N8 } },
+	{ TypeBase::REF_N16, { GenreLexeme::REFERENCE, GenreLexeme::N16 } },
+	{ TypeBase::REF_N32, { GenreLexeme::REFERENCE, GenreLexeme::N32 } },
+	{ TypeBase::REF_N64, { GenreLexeme::REFERENCE, GenreLexeme::N64 } },
+	{ TypeBase::REF_Z8, { GenreLexeme::REFERENCE, GenreLexeme::Z8 } },
+	{ TypeBase::REF_Z16, { GenreLexeme::REFERENCE, GenreLexeme::Z16 } },
+	{ TypeBase::REF_Z32, { GenreLexeme::REFERENCE, GenreLexeme::Z32 } },
+	{ TypeBase::REF_Z64, { GenreLexeme::REFERENCE, GenreLexeme::Z64 } },
+	{ TypeBase::REF_R16, { GenreLexeme::REFERENCE, GenreLexeme::R16 } },
+	{ TypeBase::REF_R32, { GenreLexeme::REFERENCE, GenreLexeme::R32 } },
+	{ TypeBase::REF_R64, { GenreLexeme::REFERENCE, GenreLexeme::R64 } },
+	{ TypeBase::REF_EINI, { GenreLexeme::REFERENCE, GenreLexeme::EINI } },
+	{ TypeBase::REF_CHAINE, { GenreLexeme::REFERENCE, GenreLexeme::CHAINE } },
+	{ TypeBase::REF_RIEN, { GenreLexeme::REFERENCE, GenreLexeme::RIEN } },
+	{ TypeBase::REF_BOOL, { GenreLexeme::REFERENCE, GenreLexeme::BOOL } },
 
-	{ TypeBase::TABL_N8, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::N8) },
-	{ TypeBase::TABL_N16, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::N16) },
-	{ TypeBase::TABL_N32, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::N32) },
-	{ TypeBase::TABL_N64, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::N64) },
-	{ TypeBase::TABL_Z8, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::Z8) },
-	{ TypeBase::TABL_Z16, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::Z16) },
-	{ TypeBase::TABL_Z32, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::Z32) },
-	{ TypeBase::TABL_Z64, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::Z64) },
-	{ TypeBase::TABL_R16, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::R16) },
-	{ TypeBase::TABL_R32, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::R32) },
-	{ TypeBase::TABL_R64, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::R64) },
-	{ TypeBase::TABL_EINI, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::EINI) },
-	{ TypeBase::TABL_CHAINE, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::CHAINE) },
-	{ TypeBase::TABL_BOOL, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::BOOL) },
-	{ TypeBase::TABL_OCTET, DonneesTypeDeclare(GenreLexeme::TABLEAU, GenreLexeme::OCTET) },
+	{ TypeBase::TABL_N8, { GenreLexeme::TABLEAU, GenreLexeme::N8 } },
+	{ TypeBase::TABL_N16, { GenreLexeme::TABLEAU, GenreLexeme::N16 } },
+	{ TypeBase::TABL_N32, { GenreLexeme::TABLEAU, GenreLexeme::N32 } },
+	{ TypeBase::TABL_N64, { GenreLexeme::TABLEAU, GenreLexeme::N64 } },
+	{ TypeBase::TABL_Z8, { GenreLexeme::TABLEAU, GenreLexeme::Z8 } },
+	{ TypeBase::TABL_Z16, { GenreLexeme::TABLEAU, GenreLexeme::Z16 } },
+	{ TypeBase::TABL_Z32, { GenreLexeme::TABLEAU, GenreLexeme::Z32 } },
+	{ TypeBase::TABL_Z64, { GenreLexeme::TABLEAU, GenreLexeme::Z64 } },
+	{ TypeBase::TABL_R16, { GenreLexeme::TABLEAU, GenreLexeme::R16 } },
+	{ TypeBase::TABL_R32, { GenreLexeme::TABLEAU, GenreLexeme::R32 } },
+	{ TypeBase::TABL_R64, { GenreLexeme::TABLEAU, GenreLexeme::R64 } },
+	{ TypeBase::TABL_EINI, { GenreLexeme::TABLEAU, GenreLexeme::EINI } },
+	{ TypeBase::TABL_CHAINE, { GenreLexeme::TABLEAU, GenreLexeme::CHAINE } },
+	{ TypeBase::TABL_BOOL, { GenreLexeme::TABLEAU, GenreLexeme::BOOL } },
+	{ TypeBase::TABL_OCTET, { GenreLexeme::TABLEAU, GenreLexeme::OCTET } },
 };
 
 /* ************************************************************************** */
@@ -251,6 +191,8 @@ Typeuse::Typeuse(GrapheDependance &g, Operateurs &o)
 		types_simples.pousse(types_communs[i]);
 	}
 
+	type_type_de_donnees_ = TypeTypeDeDonnees::cree(nullptr);
+
 	// nous devons créer le pointeur nul avant les autres types, car nous en avons besoin pour définir les opérateurs pour les pointeurs
 	auto ptr_nul = TypePointeur::cree(nullptr);
 	types_pointeurs.pousse(ptr_nul);
@@ -307,11 +249,15 @@ Typeuse::~Typeuse()
 	DELOGE_TYPES(TypeFonction, types_fonctions);
 	DELOGE_TYPES(TypeVariadique, types_variadiques);
 	DELOGE_TYPES(TypeUnion, types_unions);
+	DELOGE_TYPES(TypeTypeDeDonnees, types_type_de_donnees);
+	DELOGE_TYPES(TypePolymorphique, types_polymorphiques);
 
 	memoire::deloge("TypeCompose", type_eini);
 	memoire::deloge("TypeCompose", type_chaine);
 
 #undef DELOGE_TYPES
+
+	memoire::deloge("TypeType", type_type_de_donnees_);
 }
 
 Type *Typeuse::type_pour_lexeme(GenreLexeme lexeme)
@@ -380,6 +326,10 @@ Type *Typeuse::type_pour_lexeme(GenreLexeme lexeme)
 		case GenreLexeme::RIEN:
 		{
 			return types_communs[static_cast<long>(TypeBase::RIEN)];
+		}
+		case GenreLexeme::TYPE_DE_DONNEES:
+		{
+			return type_type_de_donnees_;
 		}
 		default:
 		{
@@ -576,6 +526,25 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 	return type;
 }
 
+TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
+{
+	if (type_connu == nullptr) {
+		return type_type_de_donnees_;
+	}
+
+	POUR (types_type_de_donnees) {
+		if (it->type_connu == type_connu) {
+			return it;
+		}
+	}
+
+	auto type = TypeTypeDeDonnees::cree(type_connu);
+
+	types_type_de_donnees.pousse(type);
+
+	return type;
+}
+
 TypeStructure *Typeuse::reserve_type_structure(NoeudStruct *decl)
 {
 	auto type = memoire::loge<TypeStructure>("TypeStructure");
@@ -613,11 +582,59 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
 	return type;
 }
 
+TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
+{
+	POUR (types_unions) {
+		if (!it->est_anonyme) {
+			continue;
+		}
+
+		if (it->membres.taille != membres.taille) {
+			continue;
+		}
+
+		auto type_apparie = true;
+
+		for (auto i = 0; i < it->membres.taille; ++i) {
+			if (it->membres[i].type != membres[i].type) {
+				type_apparie = false;
+				break;
+			}
+		}
+
+		if (type_apparie) {
+			return it;
+		}
+	}
+
+	auto type = memoire::loge<TypeUnion>("TypeUnion");
+	type->nom = "anonyme";
+	type->membres = std::move(membres);
+	type->est_anonyme = true;
+
+	types_unions.pousse(type);
+
+	return type;
+}
+
 TypeEnum *Typeuse::reserve_type_erreur(NoeudEnum *decl)
 {
 	auto type = reserve_type_enum(decl);
 	type->genre = GenreType::ERREUR;
 
+	return type;
+}
+
+TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
+{
+	POUR (types_polymorphiques) {
+		if (it->ident == ident) {
+			return it;
+		}
+	}
+
+	auto type = TypePolymorphique::cree(ident);
+	types_polymorphiques.pousse(type);
 	return type;
 }
 
@@ -638,6 +655,8 @@ size_t Typeuse::memoire_utilisee() const
 	COMPTE_MEMOIRE(TypeFonction, types_fonctions);
 	COMPTE_MEMOIRE(TypeVariadique, types_variadiques);
 	COMPTE_MEMOIRE(TypeUnion, types_unions);
+	COMPTE_MEMOIRE(TypeTypeDeDonnees, types_type_de_donnees);
+	COMPTE_MEMOIRE(TypePolymorphique, types_polymorphiques);
 
 #undef COMPTE_MEMOIRE
 
@@ -662,6 +681,8 @@ long Typeuse::nombre_de_types() const
 	compte += types_fonctions.taille();
 	compte += types_variadiques.taille();
 	compte += types_unions.taille();
+	compte += types_type_de_donnees.taille();
+	compte += types_polymorphiques.taille();
 	compte += 2; // eini et chaine
 	return compte;
 }
@@ -830,6 +851,16 @@ dls::chaine chaine_type(const Type *type)
 		{
 			return static_cast<TypeEnum const *>(type)->nom;
 		}
+		case GenreType::TYPE_DE_DONNEES:
+		{
+			return "type_de_données";
+		}
+		case GenreType::POLYMORPHIQUE:
+		{
+			auto type_polymorphique = static_cast<TypePolymorphique const *>(type);
+			auto res = dls::chaine("$");
+			return res + type_polymorphique->ident->nom;
+		}
 	}
 
 	return "";
@@ -858,4 +889,13 @@ Type *type_dereference_pour(Type *type)
 	}
 
 	return nullptr;
+}
+
+dls::vue_chaine_compacte nom_type_polymorphique(Type *type)
+{
+	while (type->genre != GenreType::POLYMORPHIQUE) {
+		type = type_dereference_pour(type);
+	}
+
+	return static_cast<TypePolymorphique *>(type)->ident->nom;
 }

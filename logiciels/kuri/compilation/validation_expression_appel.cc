@@ -319,42 +319,23 @@ static auto apparie_appel_init_de(
 
 /* ************************************************************************** */
 
-static Type *apparie_type_gabarit(Type *type, DonneesTypeDeclare const &type_declare)
+static Type *apparie_type_gabarit(Type *type, Type *type_polymorphique)
 {
 	auto type_courant = type;
+	auto type_courant_poly = type_polymorphique;
 
-	for (auto i = 0; i < type_declare.taille(); ++i) {
-		auto lexeme = type_declare[i];
-
-		if (lexeme == GenreLexeme::DOLLAR) {
+	while (true) {
+		if (type_courant_poly->genre == GenreType::POLYMORPHIQUE) {
 			break;
 		}
 
-		if (lexeme == GenreLexeme::POINTEUR) {
-			if (type_courant->genre != GenreType::POINTEUR) {
-				return nullptr;
-			}
-
-			type_courant = static_cast<TypePointeur *>(type_courant)->type_pointe;
-		}
-		else if (lexeme == GenreLexeme::REFERENCE) {
-			if (type_courant->genre != GenreType::REFERENCE) {
-				return nullptr;
-			}
-
-			type_courant = static_cast<TypeReference *>(type_courant)->type_pointe;
-		}
-		else if (lexeme == GenreLexeme::TABLEAU) {
-			if (type_courant->genre != GenreType::TABLEAU_DYNAMIQUE) {
-				return nullptr;
-			}
-
-			type_courant = static_cast<TypeTableauDynamique *>(type_courant)->type_pointe;
-		}
-		// À FAIRE : type tableau fixe
-		else {
+		if (type_courant->genre != type_courant_poly->genre) {
 			return nullptr;
 		}
+
+		// À FAIRE : type tableau fixe
+		type_courant = type_dereference_pour(type_courant);
+		type_courant_poly = type_dereference_pour(type_courant_poly);
 	}
 
 	return type_courant;
@@ -497,12 +478,13 @@ static DonneesCandidate apparie_appel_fonction(
 		auto type_enf = slot->type;
 		auto type_arg = arg->type;
 
-		if (arg->type_declare.est_gabarit) {
+		if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 			// trouve l'argument
+			auto nom_gabarit = nom_type_polymorphique(arg->type);
 			auto type_trouve = false;
 			auto type_errone = false;
 			for (auto &paire : paires_expansion_gabarit) {
-				if (paire.first == arg->type_declare.nom_gabarit) {
+				if (paire.first == nom_gabarit) {
 					type_trouve = true;
 					break;
 				}
@@ -513,7 +495,7 @@ static DonneesCandidate apparie_appel_fonction(
 			}
 
 			if (!type_trouve) {
-				auto type_gabarit = apparie_type_gabarit(type_enf, arg->type_declare);
+				auto type_gabarit = apparie_type_gabarit(type_enf, arg->type);
 
 				if (type_gabarit == nullptr) {
 					poids_args = 0.0;
@@ -524,7 +506,7 @@ static DonneesCandidate apparie_appel_fonction(
 					return res;
 				}
 
-				paires_expansion_gabarit.pousse({ arg->type_declare.nom_gabarit, type_gabarit });
+				paires_expansion_gabarit.pousse({ nom_gabarit, type_gabarit });
 			}
 
 			type_arg = type_enf;
@@ -566,7 +548,7 @@ static DonneesCandidate apparie_appel_fonction(
 				}
 
 				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
-				if (arg->type_declare.est_gabarit) {
+				if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 					poids_pour_enfant *= 0.95;
 				}
 
@@ -611,7 +593,7 @@ static DonneesCandidate apparie_appel_fonction(
 			auto poids_pour_enfant = verifie_compatibilite(contexte, type_arg, type_enf, slot, transformation);
 
 			// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
-			if (arg->type_declare.est_gabarit) {
+			if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 				poids_pour_enfant *= 0.95;
 			}
 

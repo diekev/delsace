@@ -101,6 +101,8 @@ const char *chaine_genre_noeud(GenreNoeud genre)
 		CAS_GENRE(GenreNoeud::EXPANSION_VARIADIQUE)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_TENTE)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_NON_INITIALISATION)
+		CAS_GENRE(GenreNoeud::EXPRESSION_REFERENCE_TYPE)
+		CAS_GENRE(GenreNoeud::EXPRESSION_TYPE_DE)
 	}
 
 	return "erreur : GenreNoeud inconnu";
@@ -243,7 +245,7 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 			os << "expr logement : " << expr->lexeme->chaine << '\n';
 
 			imprime_arbre(expr->expr, os, tab + 1);
-			imprime_arbre(expr->expr_chaine, os, tab + 1);
+			imprime_arbre(expr->expr_taille, os, tab + 1);
 			imprime_arbre(expr->bloc, os, tab + 1);
 			break;
 		}
@@ -260,6 +262,7 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
+		case GenreNoeud::EXPRESSION_TYPE_DE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
 
@@ -282,6 +285,7 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		{
 			imprime_tab(os, tab);
 			os << "expr : " << racine->lexeme->chaine << " (ident: " << racine->ident << ")" << '\n';
@@ -405,14 +409,7 @@ NoeudExpression *copie_noeud(
 	}
 
 	auto nracine = assem->cree_noeud(racine->genre, racine->lexeme);
-	nracine->type_declare = racine->type_declare;
-
-	nracine->type_declare.expressions.efface();
-
-	POUR (racine->type_declare.expressions) {
-		nracine->type_declare.expressions.pousse(copie_noeud(assem, it, bloc_parent));
-	}
-
+	nracine->expression_type = copie_noeud(assem, racine->expression_type, bloc_parent);
 	nracine->ident = racine->ident;
 	nracine->type = racine->type;
 	nracine->bloc_parent = bloc_parent;
@@ -455,6 +452,10 @@ NoeudExpression *copie_noeud(
 
 			POUR (expr->noms_retours) {
 				nexpr->noms_retours.pousse(it);
+			}
+
+			POUR (expr->params_sorties) {
+				nexpr->params_sorties.pousse(copie_noeud(assem, it, bloc_parent));
 			}
 
 			nexpr->drapeaux_decl = expr->drapeaux_decl;
@@ -539,7 +540,7 @@ NoeudExpression *copie_noeud(
 			auto nexpr = static_cast<NoeudExpressionLogement *>(nracine);
 
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
-			nexpr->expr_chaine = copie_noeud(assem, expr->expr_chaine, bloc_parent);
+			nexpr->expr_taille = copie_noeud(assem, expr->expr_taille, bloc_parent);
 			nexpr->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, expr->bloc, bloc_parent));
 			break;
 		}
@@ -556,6 +557,7 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
+		case GenreNoeud::EXPRESSION_TYPE_DE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire const *>(racine);
 			auto nexpr = static_cast<NoeudExpressionUnaire *>(nracine);
@@ -571,6 +573,7 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		{
 			break;
 		}
@@ -768,7 +771,7 @@ void aplatis_arbre(
 			auto expr = static_cast<NoeudExpressionLogement *>(racine);
 
 			aplatis_arbre(expr->expr, arbre_aplatis);
-			aplatis_arbre(expr->expr_chaine, arbre_aplatis);
+			aplatis_arbre(expr->expr_taille, arbre_aplatis);
 			arbre_aplatis.pousse(expr);
 			aplatis_arbre(expr->bloc, arbre_aplatis);
 
@@ -787,6 +790,7 @@ void aplatis_arbre(
 		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
+		case GenreNoeud::EXPRESSION_TYPE_DE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
 			aplatis_arbre(expr->expr, arbre_aplatis);
@@ -801,6 +805,7 @@ void aplatis_arbre(
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		{
 			arbre_aplatis.pousse(racine);
 			break;
@@ -981,6 +986,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
+		case GenreNoeud::EXPRESSION_TYPE_DE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
 
@@ -1034,6 +1040,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
 		case GenreNoeud::INSTRUCTION_BOUCLE:
 		case GenreNoeud::INSTRUCTION_REPETE:

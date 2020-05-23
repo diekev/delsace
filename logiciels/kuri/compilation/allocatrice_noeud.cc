@@ -104,6 +104,7 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
+		case GenreNoeud::EXPRESSION_TYPE_DE:
 		{
 			noeud = m_noeuds_expression_unaire.ajoute_element();
 			break;
@@ -116,6 +117,7 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
+		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		{
 			noeud = m_noeuds_expression.ajoute_element();
 			break;

@@ -44,11 +44,16 @@ static inline char char_depuis_hex(char hex)
 
 static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 {
+	if (type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+		return;
+	}
+
 	auto const &nom_broye = nom_broye_type(type);
 
 	enchaineuse << "// " << chaine_type(type) << '\n';
 
 	switch (type->genre) {
+		case GenreType::POLYMORPHIQUE:
 		case GenreType::INVALIDE:
 		{
 			break;
@@ -110,6 +115,11 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 
 			break;
 		}
+		case GenreType::TYPE_DE_DONNEES:
+		{
+			enchaineuse << "typedef long " << nom_broye << ";\n";
+			break;
+		}
 		case GenreType::REEL:
 		{
 			if (type->taille_octet == 2) {
@@ -141,7 +151,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 			auto type_struct = static_cast<TypeStructure *>(type);
 			auto nom_struct = broye_nom_simple(type_struct->nom);
 
-			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t" && nom_struct != "MY_CHARSET_INFO") {
+			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t" && nom_struct != "MY_CHARSET_INFO" && nom_struct != "struct_stat") {
 				enchaineuse << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
 			}
 			else {
@@ -155,6 +165,12 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 			auto type_struct = static_cast<TypeUnion *>(type);
 			auto nom_struct = broye_nom_simple(type_struct->nom);
 			auto decl = type_struct->decl;
+
+			// union anomyme
+			if (decl == nullptr) {
+				enchaineuse << "typedef struct " << nom_struct << dls::vers_chaine(type_struct) << ' ' << nom_broye << ";\n";
+				break;
+			}
 
 			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t") {
 				if (decl->est_nonsure || decl->est_externe) {
@@ -300,40 +316,57 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 
 /* ************************************************************************** */
 
-static void genere_declaration_structure(Enchaineuse &enchaineuse, NoeudStruct *decl)
+enum {
+	STRUCTURE,
+	UNION_SURE,
+	UNION_NONSURE,
+	UNION_ANONYME,
+};
+
+static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeCompose *type_compose, int quoi)
 {
-	if (decl->est_externe) {
-		return;
-	}
+	auto nom_broye = broye_nom_simple(type_compose->nom);
 
-	auto nom_broye = broye_nom_simple(decl->ident->nom);
-
-	if (decl->est_union) {
-		if (decl->est_nonsure) {
-			enchaineuse << "typedef union " << nom_broye << "{\n";
-		}
-		else {
-			enchaineuse << "typedef struct " << nom_broye << "{\n";
-			enchaineuse << "int membre_actif;\n";
-			enchaineuse << "union {\n";
-		}
-	}
-	else {
+	if (quoi == STRUCTURE) {
 		enchaineuse << "typedef struct " << nom_broye << "{\n";
 	}
+	else if (quoi == UNION_NONSURE) {
+		enchaineuse << "typedef union " << nom_broye << "{\n";
+	}
+	else if (quoi == UNION_SURE || quoi == UNION_ANONYME) {
+		enchaineuse << "typedef struct " << nom_broye;
 
-	auto type_compose = static_cast<TypeCompose *>(decl->type);
+		if (quoi == UNION_ANONYME) {
+			enchaineuse << dls::vers_chaine(type_compose);
+		}
+
+		enchaineuse << "{\n";
+		enchaineuse << "int membre_actif;\n";
+		enchaineuse << "union {\n";
+	}
 
 	POUR (type_compose->membres) {
 		auto nom = broye_nom_simple(it.nom);
-		enchaineuse << nom_broye_type(it.type) << ' ' << nom << ";\n";
+		enchaineuse << nom_broye_type(it.type) << ' ';
+
+		if (quoi == UNION_ANONYME) {
+			enchaineuse << 'm';
+		}
+
+		enchaineuse << nom << ";\n";
 	}
 
-	if (decl->est_union && !decl->est_nonsure) {
+	if (quoi == UNION_SURE || quoi == UNION_ANONYME) {
 		enchaineuse << "};\n";
 	}
 
-	enchaineuse << "} " << nom_broye << ";\n\n";
+	enchaineuse << "} " << nom_broye;
+
+	if (quoi == UNION_ANONYME) {
+		enchaineuse << dls::vers_chaine(type_compose);
+	}
+
+	enchaineuse << ";\n\n";
 }
 
 /* ************************************************************************** */
@@ -477,6 +510,7 @@ R"(
 	enchaineuse << "typedef unsigned char octet;\n";
 	enchaineuse << "typedef void Ksnul;\n";
 	enchaineuse << "typedef struct ContexteProgramme KsContexteProgramme;\n";
+	enchaineuse << "typedef struct stat struct_stat;\n";
 	/* À FAIRE : pas beau, mais un pointeur de fonction peut être un pointeur
 	 * vers une fonction de LibC dont les arguments variadiques ne sont pas
 	 * typés */
@@ -1072,6 +1106,13 @@ struct GeneratriceCodeC {
 				auto type_pointeur = static_cast<TypePointeur *>(inst_acces->accede->type);
 				auto type_compose = static_cast<TypeCompose *>(type_pointeur->type_pointe);
 
+				auto est_acces_union_anonyme = false;
+
+				if (type_compose->genre == GenreType::UNION) {
+					auto type_union = static_cast<TypeUnion *>(type_compose);
+					est_acces_union_anonyme = type_union->est_anonyme;
+				}
+
 				auto index_membre = static_cast<long>(static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere);
 
 				if (valeur_accede[0] == '&') {
@@ -1079,7 +1120,13 @@ struct GeneratriceCodeC {
 						valeur_accede = valeur_accede + ".membre_actif";
 					}
 					else {
-						valeur_accede = valeur_accede + "." + broye_nom_simple(type_compose->membres[index_membre].nom);
+						valeur_accede = valeur_accede + ".";
+
+						if (est_acces_union_anonyme) {
+							valeur_accede += "m";
+						}
+
+						valeur_accede += broye_nom_simple(type_compose->membres[index_membre].nom);
 					}
 				}
 				else {
@@ -1087,7 +1134,13 @@ struct GeneratriceCodeC {
 						valeur_accede = "&" + valeur_accede + "->membre_actif";
 					}
 					else {
-						valeur_accede = "&" + valeur_accede + "->" + broye_nom_simple(type_compose->membres[index_membre].nom);
+						valeur_accede = "&" + valeur_accede + "->";
+
+						if (est_acces_union_anonyme) {
+							valeur_accede += "m";
+						}
+
+						valeur_accede += broye_nom_simple(type_compose->membres[index_membre].nom);
 					}
 				}
 
@@ -1313,11 +1366,16 @@ void genere_code_C(
 	auto &typeuse = constructrice_ri.contexte().typeuse;
 
 	POUR (typeuse.types_structures) {
-		genere_declaration_structure(enchaineuse, it->decl);
+		if (it->decl->est_externe) {
+			continue;
+		}
+
+		genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(it), STRUCTURE);
 	}
 
 	POUR (typeuse.types_unions) {
-		genere_declaration_structure(enchaineuse, it->decl);
+		auto quoi = it->est_nonsure ? UNION_NONSURE : it->est_anonyme ? UNION_ANONYME : UNION_SURE;
+		genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(it), quoi);
 	}
 
 	auto generatrice = GeneratriceCodeC(constructrice_ri.contexte());
@@ -1344,11 +1402,12 @@ void genere_code_pour_execution(
 	auto &typeuse = constructrice_ri.contexte().typeuse;
 
 	POUR (typeuse.types_structures) {
-		genere_declaration_structure(enchaineuse, it->decl);
+		genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(it), STRUCTURE);
 	}
 
 	POUR (typeuse.types_unions) {
-		genere_declaration_structure(enchaineuse, it->decl);
+		auto quoi = it->est_nonsure ? UNION_NONSURE : it->est_anonyme ? UNION_ANONYME : UNION_SURE;
+		genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(it), quoi);
 	}
 
 	auto generatrice = GeneratriceCodeC(constructrice_ri.contexte());
@@ -1377,6 +1436,7 @@ void genere_code_pour_execution(
 	POUR (contexte.typeuse.types_fonctions) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 	POUR (contexte.typeuse.types_variadiques) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 	POUR (contexte.typeuse.types_unions) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; };
+	POUR (contexte.typeuse.types_type_de_donnees) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 }
 
 }  /* namespace noeud */

@@ -92,6 +92,12 @@ TransformationType cherche_transformation(
 		return TypeTransformation::INUTILE;
 	}
 
+	/* nous avons un type de données pour chaque type connu lors de la
+	 * compilation, donc testons manuellement la compatibilité */
+	if (type_de->genre == GenreType::TYPE_DE_DONNEES && type_vers->genre == GenreType::TYPE_DE_DONNEES) {
+		return TypeTransformation::INUTILE;
+	}
+
 	if (type_de->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_vers)) {
 		return { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers };
 	}

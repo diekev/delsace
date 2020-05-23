@@ -243,6 +243,7 @@ bool est_identifiant_type(GenreLexeme identifiant)
 		case GenreLexeme::CHAINE:
 		case GenreLexeme::CHAINE_CARACTERE:
 		case GenreLexeme::OCTET:
+		case GenreLexeme::TYPE_DE_DONNEES:
 			return true;
 		default:
 			return false;
@@ -258,6 +259,9 @@ bool est_operateur_unaire(GenreLexeme identifiant)
 		case GenreLexeme::CROCHET_OUVRANT:
 		case GenreLexeme::PLUS_UNAIRE:
 		case GenreLexeme::MOINS_UNAIRE:
+		case GenreLexeme::FOIS_UNAIRE:
+		case GenreLexeme::ESP_UNAIRE:
+		case GenreLexeme::TABLEAU:
 			return true;
 		default:
 			return false;

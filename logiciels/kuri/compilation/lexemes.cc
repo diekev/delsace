@@ -84,6 +84,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("tantque"), GenreLexeme::TANTQUE },
 	dls::paire{ dls::vue_chaine_compacte("tente"), GenreLexeme::TENTE },
 	dls::paire{ dls::vue_chaine_compacte("type_de"), GenreLexeme::TYPE_DE },
+	dls::paire{ dls::vue_chaine_compacte("type_de_données"), GenreLexeme::TYPE_DE_DONNEES },
 	dls::paire{ dls::vue_chaine_compacte("union"), GenreLexeme::UNION },
 	dls::paire{ dls::vue_chaine_compacte("vrai"), GenreLexeme::VRAI },
 	dls::paire{ dls::vue_chaine_compacte("z16"), GenreLexeme::Z16 },
@@ -276,6 +277,10 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 			return "GenreLexeme::PLUS_UNAIRE";
 		case GenreLexeme::MOINS_UNAIRE:
 			return "GenreLexeme::MOINS_UNAIRE";
+		case GenreLexeme::FOIS_UNAIRE:
+			return "GenreLexeme::FOIS_UNAIRE";
+		case GenreLexeme::ESP_UNAIRE:
+			return "GenreLexeme::ESP_UNAIRE";
 		case GenreLexeme::CHAINE_CARACTERE:
 			return "GenreLexeme::CHAINE_CARACTERE";
 		case GenreLexeme::CHAINE_LITTERALE:
@@ -406,6 +411,8 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 			return "GenreLexeme::TENTE";
 		case GenreLexeme::TYPE_DE:
 			return "GenreLexeme::TYPE_DE";
+		case GenreLexeme::TYPE_DE_DONNEES:
+			return "GenreLexeme::TYPE_DE_DONNEES";
 		case GenreLexeme::UNION:
 			return "GenreLexeme::UNION";
 		case GenreLexeme::VRAI:
@@ -545,6 +552,10 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 			return "-";
 		case GenreLexeme::MOINS_UNAIRE:
 			return "+";
+		case GenreLexeme::FOIS_UNAIRE:
+			return "*";
+		case GenreLexeme::ESP_UNAIRE:
+			return "&";
 		case GenreLexeme::CHAINE_CARACTERE:
 			return "chaine_de_caractère";
 		case GenreLexeme::CHAINE_LITTERALE:
@@ -675,6 +686,8 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 			return "tente";
 		case GenreLexeme::TYPE_DE:
 			return "type_de";
+		case GenreLexeme::TYPE_DE_DONNEES:
+			return "type_de_données";
 		case GenreLexeme::UNION:
 			return "union";
 		case GenreLexeme::VRAI:
@@ -696,7 +709,7 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 	return "ERREUR";
 }
 
-static constexpr auto TAILLE_MAX_MOT_CLE = 15;
+static constexpr auto TAILLE_MAX_MOT_CLE = 16;
 
 static bool tables_caracteres[256] = {};
 static GenreLexeme tables_identifiants[256] = {};

@@ -453,16 +453,16 @@ const Operateurs::type_conteneur_binaire &Operateurs::trouve_binaire(GenreLexeme
 	return operateurs_binaires.trouve(id)->second;
 }
 
-void Operateurs::ajoute_basique(
+OperateurBinaire *Operateurs::ajoute_basique(
 		GenreLexeme id,
 		Type *type,
 		Type *type_resultat,
 		IndiceTypeOp indice_type)
 {
-	ajoute_basique(id, type, type, type_resultat, indice_type);
+	return ajoute_basique(id, type, type, type_resultat, indice_type);
 }
 
-void Operateurs::ajoute_basique(
+OperateurBinaire *Operateurs::ajoute_basique(
 		GenreLexeme id,
 		Type *type1,
 		Type *type2,
@@ -479,6 +479,7 @@ void Operateurs::ajoute_basique(
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = true;
 	op->genre = genre_op_binaire_pour_lexeme(id, indice_type);
+	return op;
 }
 
 void Operateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat)
@@ -767,4 +768,9 @@ void enregistre_operateurs_basiques(
 		operateurs.ajoute_basique_unaire(GenreLexeme::PLUS_UNAIRE, type, type);
 		operateurs.ajoute_basique_unaire(GenreLexeme::MOINS_UNAIRE, type, type);
 	}
+
+	auto type_type_de_donnees = contexte.typeuse.type_type_de_donnees_;
+
+	operateurs.op_comp_egal_types = operateurs.ajoute_basique(GenreLexeme::EGALITE, type_type_de_donnees, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+	operateurs.op_comp_diff_types = operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, type_type_de_donnees, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 }

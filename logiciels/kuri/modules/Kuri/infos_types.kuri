@@ -1,18 +1,19 @@
 // Structures de bases pour contenir les informations d'un type.
 
 id_info :: énum z32 {
-    ENTIER    :: 0
-	RÉEL      :: 1
-	BOOLÉEN   :: 2
-	CHAINE    :: 3
-	POINTEUR  :: 4
-	STRUCTURE :: 5
-	FONCTION  :: 6
-	TABLEAU   :: 7
-	EINI      :: 8
-	RIEN      :: 9
-	ÉNUM      :: 10
-	OCTET     :: 11
+    ENTIER          :: 0
+	RÉEL            :: 1
+	BOOLÉEN         :: 2
+	CHAINE          :: 3
+	POINTEUR        :: 4
+	STRUCTURE       :: 5
+	FONCTION        :: 6
+	TABLEAU         :: 7
+	EINI            :: 8
+	RIEN            :: 9
+	ÉNUM            :: 10
+	OCTET           :: 11
+	TYPE_DE_DONNÉES :: 12
 }
 
 InfoType :: struct {

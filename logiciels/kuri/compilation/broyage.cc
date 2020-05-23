@@ -102,6 +102,12 @@ dls::chaine const &nom_broye_type(Type *type)
 	auto flux = dls::flux_chaine();
 
 	switch (type->genre) {
+		case GenreType::POLYMORPHIQUE:
+		{
+			std::cerr << "Obtenu un type polymorphique dans le broyage !\n";
+			assert(false);
+			break;
+		}
 		case GenreType::INVALIDE:
 		{
 			flux << "Ksinvalide";
@@ -208,8 +214,15 @@ dls::chaine const &nom_broye_type(Type *type)
 		}
 		case GenreType::UNION:
 		{
+			auto type_union = static_cast<TypeUnion const *>(type);
 			flux << "Ks";
 			flux << broye_nom_simple(static_cast<TypeUnion const *>(type)->nom);
+
+			// ajout du pointeur au nom afin de différencier les différents types anonymes
+			if (type_union->est_anonyme) {
+				flux << dls::vers_chaine(type_union);
+			}
+
 			break;
 		}
 		case GenreType::STRUCTURE:
@@ -260,6 +273,11 @@ dls::chaine const &nom_broye_type(Type *type)
 			auto type_enum = static_cast<TypeEnum const *>(type);
 			flux << "Ks";
 			flux << broye_nom_simple(type_enum->nom);
+			break;
+		}
+		case GenreType::TYPE_DE_DONNEES:
+		{
+			flux << "Kstype_de_donnees";
 			break;
 		}
 	}

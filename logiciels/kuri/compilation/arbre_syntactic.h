@@ -71,9 +71,11 @@ enum class GenreNoeud : char {
 	EXPRESSION_REFERENCE_DECLARATION,
 	EXPRESSION_REFERENCE_MEMBRE,
 	EXPRESSION_REFERENCE_MEMBRE_UNION,
+	EXPRESSION_REFERENCE_TYPE,
 	EXPRESSION_RELOGE,
 	EXPRESSION_TABLEAU_ARGS_VARIADIQUES,
 	EXPRESSION_TAILLE_DE,
+	EXPRESSION_TYPE_DE,
 	EXPRESSION_COMME,
 	INSTRUCTION_BOUCLE,
 	INSTRUCTION_COMPOSEE,
@@ -126,6 +128,7 @@ enum drapeaux_noeud : unsigned short {
 	EST_VAR_BOUCLE             = (1 << 10),
 	EST_GLOBALE                = (1 << 11),
 	EST_CONSTANTE              = (1 << 12),
+	DECLARATION_TYPE_POLYMORPHIQUE = (1 << 13),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
@@ -154,6 +157,8 @@ enum {
 
 	/* instruction 'retourne' */
 	REQUIERS_CODE_EXTRA_RETOUR,
+
+	EST_NOEUD_ACCES,
 };
 
 /* Le genre d'une valeur, gauche, droite, ou transcendantale.
@@ -209,7 +214,7 @@ struct NoeudBase {
 
 	NoeudBloc *bloc_parent = nullptr;
 
-	DonneesTypeDeclare type_declare{};
+	NoeudExpression *expression_type = nullptr;
 
 	TransformationType transformation{};
 
@@ -287,7 +292,7 @@ struct NoeudExpressionLogement : public NoeudExpression {
 	NoeudExpressionLogement() {}
 
 	NoeudExpression *expr = nullptr;
-	NoeudExpression *expr_chaine = nullptr;
+	NoeudExpression *expr_taille = nullptr;
 	NoeudBloc *bloc = nullptr;
 
 	COPIE_CONSTRUCT(NoeudExpressionLogement);
@@ -297,6 +302,7 @@ struct NoeudDeclarationFonction : public NoeudDeclaration {
 	NoeudDeclarationFonction() { genre = GenreNoeud::DECLARATION_FONCTION; }
 
 	kuri::tableau<NoeudDeclaration *> params{};
+	kuri::tableau<NoeudExpression *> params_sorties{};
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 
 	kuri::tableau<dls::chaine> noms_retours{};
@@ -308,6 +314,7 @@ struct NoeudDeclarationFonction : public NoeudDeclaration {
 	bool est_gabarit = false;
 	bool est_variadique = false;
 	bool est_externe = false;
+	bool est_declaration_type = false;
 	dls::chaine nom_broye = "";
 
 	COPIE_CONSTRUCT(NoeudDeclarationFonction);

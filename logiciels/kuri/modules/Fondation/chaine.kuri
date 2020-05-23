@@ -75,7 +75,7 @@ chaine_c_temp :: fonc(chn: chaine) -> *z8
 }
 
 // execute une fonction pour chaque ligne du texte d'entrée
-pour_chaque_ligne :: fonc(texte : chaine, donnees : eini, rappel : fonc(chaine, eini)rien) -> rien
+pour_chaque_ligne :: fonc(texte : chaine, donnees : eini, rappel : fonc(chaine, eini)(rien)) -> rien
 {
 	taille : z64 = 0
 	début_chaine : z64 = 0

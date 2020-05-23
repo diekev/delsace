@@ -37,83 +37,6 @@ struct NoeudEnum;
 struct NoeudExpression;
 struct NoeudStruct;
 
-/**
- * Système de type.
- *
- * Puisque qu'il est possible d'associer des expressions aux types, le système
- * de type est basé autour de deux structures : DonneesTypeDeclare et Type.
- * La première stocke les lexèmes des types et l'arbre syntaxique de leurs
- * expressions tel qu'ils ont été écris dans le programme, alors que la seconde
- * est la représentation des types finaux, qui sont résolus lors de la valiation
- * sémantique selon le contexte où ils apparaissent.
- *
- * Par exemple, voici quelques cas où les types déclarés ont des éléments
- * différents mais pointent vers un même type final :
- * - [1024]z32 et [2 * 512]z32
- * - a : z32; et b : type_de(a);
- *
- * Ce niveau d'indirection nous permet également d'avoir un système de gabarit
- * où les types déclarés possèdent les informations sur les gabarits et nous
- * aident à résoudre leurs types finaux lors des appels.
- */
-
-/* ************************************************************************** */
-
-using type_plage_donnees_type = dls::plage_continue<const GenreLexeme>;
-
-struct DonneesTypeDeclare {
-	// 5 lexème par défaut est amplement suffisant, la plupart des types
-	// complexes sont de forme *[]T
-	dls::tablet<GenreLexeme, 5> donnees{};
-
-	// 2 expresssions par défaut, pour les types de matrices [..][..]T
-	dls::tablet<NoeudExpression *, 2> expressions{};
-
-	// nous ne pouvons pas utiliser tablet ici... car DonneesTypeDeclare est
-	// utilisé par valeur, ce qui nous une récursion pour déterminer la taille
-	// final de la structure
-	dls::tableau<DonneesTypeDeclare> types_entrees{};
-	dls::tableau<DonneesTypeDeclare> types_sorties{};
-
-	dls::vue_chaine_compacte nom_struct = "";
-	dls::vue_chaine_compacte nom_gabarit = "";
-	bool est_gabarit = false;
-
-	using type_plage = type_plage_donnees_type;
-
-	DonneesTypeDeclare() = default;
-	DonneesTypeDeclare(GenreLexeme i0);
-	DonneesTypeDeclare(GenreLexeme i0, GenreLexeme i1);
-
-	GenreLexeme type_base() const;
-
-	long taille() const;
-
-	GenreLexeme operator[](long idx) const;
-
-	void pousse(GenreLexeme id);
-
-	void pousse(DonneesTypeDeclare const &dtd);
-
-	type_plage plage() const;
-
-	/**
-	 * Retourne des données pour un type correspondant au déréférencement de ce
-	 * type. Si le type n'est ni un pointeur, ni un tableau, retourne des
-	 * données invalides.
-	 */
-	type_plage dereference() const;
-};
-
-inline bool est_invalide(type_plage_donnees_type p)
-{
-	if (p.est_finie()) {
-		return true;
-	}
-
-	return false;
-}
-
 /* ************************************************************************** */
 
 enum class TypeBase : char {
@@ -210,10 +133,13 @@ enum class GenreType : int {
 	VARIADIQUE,
 	ERREUR,
 	//EINI_ERREUR,
+	TYPE_DE_DONNEES,
+	POLYMORPHIQUE,
 };
 
 enum {
-	TYPEDEF_FUT_GENERE = 1
+	TYPEDEF_FUT_GENERE = 1,
+	TYPE_EST_POLYMORPHIQUE = 2,
 };
 
 struct AtomeConstante;
@@ -223,6 +149,7 @@ struct Type {
 	unsigned taille_octet = 0;
 	unsigned alignement = 0;
 	int drapeaux = 0;
+	unsigned index_dans_table_types = 0;
 
 	dls::chaine nom_broye{};
 
@@ -294,6 +221,11 @@ struct TypePointeur : public Type {
 		type->type_pointe = type_pointe;
 		type->taille_octet = 8;
 		type->alignement = 8;
+
+		if (type_pointe && type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+			type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+		}
+
 		return type;
 	}
 };
@@ -313,6 +245,11 @@ struct TypeReference : public Type {
 		type->type_pointe = type_pointe;
 		type->taille_octet = 8;
 		type->alignement = 8;
+
+		if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+			type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+		}
+
 		return type;
 	}
 };
@@ -332,6 +269,23 @@ struct TypeFonction : public Type {
 		type->alignement = 8;
 
 		return type;
+	}
+
+	void marque_polymorphique()
+	{
+		POUR (types_entrees) {
+			if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+				return;
+			}
+		}
+
+		POUR (types_sorties) {
+			if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+				return;
+			}
+		}
 	}
 };
 
@@ -406,6 +360,7 @@ struct TypeUnion final : public TypeCompose {
 
 	bool deja_genere = false;
 	bool est_nonsure = false;
+	bool est_anonyme = false;
 };
 
 struct TypeEnum final : public TypeCompose {
@@ -436,6 +391,11 @@ struct TypeTableauFixe final : public TypeCompose {
 		type->taille = taille;
 		type->alignement = type_pointe->alignement;
 		type->taille_octet = type_pointe->taille_octet * static_cast<unsigned>(taille);
+
+		if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+			type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+		}
+
 		return type;
 	}
 };
@@ -456,6 +416,11 @@ struct TypeTableauDynamique final : public TypeCompose {
 		type->type_pointe = type_pointe;
 		type->taille_octet = 24;
 		type->alignement = 8;
+
+		if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+			type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+		}
+
 		return type;
 	}
 };
@@ -467,16 +432,66 @@ struct TypeVariadique final : public TypeCompose {
 
 	Type *type_pointe = nullptr;
 
-	static TypeVariadique *cree(Type *type_pointe_, kuri::tableau<TypeCompose::Membre> &&membres)
+	static TypeVariadique *cree(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres)
 	{
 		auto type = memoire::loge<TypeVariadique>("TypeVariadique");
-		type->type_pointe = type_pointe_;
+		type->type_pointe = type_pointe;
+
+		if (type_pointe && type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+			type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+		}
+
 		type->membres = std::move(membres);
 		type->taille_octet = 24;
 		type->alignement = 8;
 		return type;
 	}
 };
+
+struct TypeTypeDeDonnees : public Type {
+	TypeTypeDeDonnees() { genre = GenreType::TYPE_DE_DONNEES; }
+
+	COPIE_CONSTRUCT(TypeTypeDeDonnees);
+
+	// Non-nul si le type est connu lors de la compilation.
+	Type *type_connu = nullptr;
+
+	static TypeTypeDeDonnees *cree(Type *type_connu)
+	{
+		auto type = memoire::loge<TypeTypeDeDonnees>("TypeType");
+		type->genre = GenreType::TYPE_DE_DONNEES;
+		// un type 'type' est un genre de pointeur déguisé, donc donnons lui les mêmes caractéristiques
+		type->taille_octet = 8;
+		type->alignement = 8;
+		type->type_connu = type_connu;
+		return type;
+	}
+};
+
+struct IdentifiantCode;
+
+struct TypePolymorphique : public Type {
+	TypePolymorphique()
+	{
+		genre = GenreType::POLYMORPHIQUE;
+		drapeaux = TYPE_EST_POLYMORPHIQUE;
+	}
+
+	COPIE_CONSTRUCT(TypePolymorphique);
+
+	IdentifiantCode *ident = nullptr;
+
+	static TypePolymorphique *cree(IdentifiantCode *ident)
+	{
+		assert(ident);
+
+		auto type = memoire::loge<TypePolymorphique>("TypePolymorphique");
+		type->ident = ident;
+		return type;
+	}
+};
+
+dls::vue_chaine_compacte nom_type_polymorphique(Type *type);
 
 struct Typeuse {
 	GrapheDependance &graphe;
@@ -493,8 +508,11 @@ struct Typeuse {
 	dls::tableau<TypeFonction *> types_fonctions{};
 	dls::tableau<TypeVariadique *> types_variadiques{};
 	dls::tableau<TypeUnion *> types_unions{};
+	dls::tableau<TypeTypeDeDonnees *> types_type_de_donnees{};
+	dls::tableau<TypePolymorphique *> types_polymorphiques{};
 
 	// mise en cache de plusieurs types pour mieux les trouver
+	TypeTypeDeDonnees *type_type_de_donnees_ = nullptr;
 	TypeStructure *type_info_type_ = nullptr;
 	Type *type_info_type_structure = nullptr;
 	Type *type_info_type_membre_structure = nullptr;
@@ -517,7 +535,8 @@ struct Typeuse {
 
 	Typeuse(GrapheDependance &g, Operateurs &o);
 
-	COPIE_CONSTRUCT(Typeuse);
+	Typeuse(Typeuse const &) = delete;
+	Typeuse &operator=(Typeuse const &) = delete;
 
 	~Typeuse();
 
@@ -537,13 +556,19 @@ struct Typeuse {
 
 	TypeFonction *type_fonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties);
 
+	TypeTypeDeDonnees *type_type_de_donnees(Type *type_connu);
+
 	TypeStructure *reserve_type_structure(NoeudStruct *decl);
 
 	TypeEnum *reserve_type_enum(NoeudEnum *decl);
 
 	TypeUnion *reserve_type_union(NoeudStruct *decl);
 
+	TypeUnion *union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres);
+
 	TypeEnum *reserve_type_erreur(NoeudEnum *decl);
+
+	TypePolymorphique *cree_polymorphique(IdentifiantCode *ident);
 
 	inline Type *operator[](TypeBase type_base) const
 	{

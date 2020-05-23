@@ -138,13 +138,16 @@ struct Operateurs {
 
 	Type *type_bool = nullptr;
 
+	OperateurBinaire *op_comp_egal_types = nullptr;
+	OperateurBinaire *op_comp_diff_types = nullptr;
+
 	~Operateurs();
 
 	type_conteneur_binaire const &trouve_binaire(GenreLexeme id) const;
 	type_conteneur_unaire const &trouve_unaire(GenreLexeme id) const;
 
-	void ajoute_basique(GenreLexeme id, Type *type, Type *type_resultat, IndiceTypeOp indice_type);
-	void ajoute_basique(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, IndiceTypeOp indice_type);
+	OperateurBinaire *ajoute_basique(GenreLexeme id, Type *type, Type *type_resultat, IndiceTypeOp indice_type);
+	OperateurBinaire *ajoute_basique(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, IndiceTypeOp indice_type);
 
 	void ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat);
 

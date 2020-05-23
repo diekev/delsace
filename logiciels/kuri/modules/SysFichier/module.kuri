@@ -17,7 +17,7 @@ obtiens_stmode :: fonc(chemin : &CheminFichier) -> n32
 {
 	ptr_chemin := chaine_c_temp(chemin.chn)
 
-	st : stat
+	st : struct_stat
 	ok := stat(ptr_chemin, @st)
 
 	si ok == -1 {
