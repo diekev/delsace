@@ -896,7 +896,9 @@ void valeur_manquante_discr(
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
-	ss << "Dans la discrimination de « " << expression->ident->nom << " » :\n";
+	ss << "Dans la discrimination de « ";
+	ss << dls::vue_chaine(ligne.begin() + etendue.pos_min, etendue.pos_max - etendue.pos_min);
+	ss << " » :\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
