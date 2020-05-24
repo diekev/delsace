@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "biblinternes/structures/tableau.hh"
+
 struct ContexteGenerationCode;
 struct Fichier;
 struct IdentifiantCode;
@@ -45,6 +47,18 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
 
 NoeudDeclaration *trouve_type_dans_bloc_ou_module(
 		ContexteGenerationCode const &contexte,
+		NoeudBloc *bloc,
+		IdentifiantCode *ident,
+		Fichier *fichier);
+
+void trouve_declarations_dans_bloc(
+		dls::tableau<NoeudDeclaration *> &declarations,
+		NoeudBloc *bloc,
+		IdentifiantCode *ident);
+
+void trouve_declarations_dans_bloc_ou_module(
+		ContexteGenerationCode const &contexte,
+		dls::tableau<NoeudDeclaration *> &declarations,
 		NoeudBloc *bloc,
 		IdentifiantCode *ident,
 		Fichier *fichier);

@@ -159,3 +159,39 @@ NoeudDeclaration *trouve_type_dans_bloc_ou_module(
 
 	return decl;
 }
+
+void trouve_declarations_dans_bloc(
+		dls::tableau<NoeudDeclaration *> &declarations,
+		NoeudBloc *bloc,
+		IdentifiantCode *ident)
+{
+	auto bloc_courant = bloc;
+
+	while (bloc_courant != nullptr) {
+		POUR (bloc_courant->membres) {
+			if (it->ident == ident) {
+				declarations.pousse(it);
+			}
+		}
+
+		bloc_courant = bloc_courant->parent;
+	}
+}
+
+void trouve_declarations_dans_bloc_ou_module(
+		ContexteGenerationCode const &contexte,
+		dls::tableau<NoeudDeclaration *> &declarations,
+		NoeudBloc *bloc,
+		IdentifiantCode *ident,
+		Fichier *fichier)
+{
+	trouve_declarations_dans_bloc(declarations, bloc, ident);
+
+	/* cherche dans les modules importés */
+	dls::pour_chaque_element(fichier->modules_importes, [&](auto& nom_module)
+	{
+		auto module = contexte.module(nom_module);
+		trouve_declarations_dans_bloc(declarations, module->bloc, ident);
+		return dls::DecisionIteration::Continue;
+	});
+}
