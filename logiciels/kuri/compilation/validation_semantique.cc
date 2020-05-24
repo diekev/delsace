@@ -45,20 +45,6 @@
 
 namespace noeud {
 
-static bool est_type_conditionnable(Type *type)
-{
-	return dls::outils::est_element(
-				type->genre,
-				GenreType::BOOL,
-				GenreType::CHAINE,
-				GenreType::ENTIER_CONSTANT,
-				GenreType::ENTIER_NATUREL,
-				GenreType::ENTIER_RELATIF,
-				GenreType::FONCTION,
-				GenreType::POINTEUR,
-				GenreType::TABLEAU_DYNAMIQUE);
-}
-
 /* ************************************************************************** */
 
 static Type *resoud_type_final(ContexteGenerationCode &contexte, NoeudExpression *expression_type)

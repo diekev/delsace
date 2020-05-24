@@ -899,3 +899,17 @@ dls::vue_chaine_compacte nom_type_polymorphique(Type *type)
 
 	return static_cast<TypePolymorphique *>(type)->ident->nom;
 }
+
+bool est_type_conditionnable(Type *type)
+{
+	return dls::outils::est_element(
+				type->genre,
+				GenreType::BOOL,
+				GenreType::CHAINE,
+				GenreType::ENTIER_CONSTANT,
+				GenreType::ENTIER_NATUREL,
+				GenreType::ENTIER_RELATIF,
+				GenreType::FONCTION,
+				GenreType::POINTEUR,
+				GenreType::TABLEAU_DYNAMIQUE);
+}
