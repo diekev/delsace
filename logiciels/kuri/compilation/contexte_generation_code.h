@@ -280,10 +280,6 @@ struct ContexteGenerationCode {
 	dls::tableau<IdentifiantCode *> pile_controle_boucle{};
 
 private:
-	using paire_goto = std::pair<IdentifiantCode *, dls::chaine>;
-	dls::tableau<paire_goto> m_goto_continue{};
-	dls::tableau<paire_goto> m_goto_arrete{};
-
 	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
 	dls::tableau<paire_union_membre> membres_actifs{};
 
