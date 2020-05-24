@@ -203,7 +203,7 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 	}
 
 	// -----------------------------------
-	if (!contexte.pour_gabarit) {
+	if (!decl->est_instantiation_gabarit) {
 		auto noms = dls::ensemblon<IdentifiantCode *, 16>();
 		auto dernier_est_variadic = false;
 
@@ -504,7 +504,7 @@ void performe_validation_semantique(
 				valide_type_fonction(decl, contexte);
 			}
 
-			if (decl->est_gabarit && !contexte.pour_gabarit) {
+			if (decl->est_gabarit && !decl->est_instantiation_gabarit) {
 				// nous ferons l'analyse sémantique plus tard
 				return;
 			}
@@ -731,7 +731,7 @@ void performe_validation_semantique(
 			if (expr->drapeaux & DECLARATION_TYPE_POLYMORPHIQUE) {
 				expr->genre_valeur = GenreValeur::DROITE;
 
-				if (contexte.pour_gabarit) {
+				if (contexte.donnees_fonction && contexte.donnees_fonction->est_instantiation_gabarit) {
 					auto type_instantie = static_cast<Type *>(nullptr);
 
 					for (auto &paire : contexte.paires_expansion_gabarit) {

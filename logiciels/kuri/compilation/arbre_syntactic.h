@@ -315,6 +315,7 @@ struct NoeudDeclarationFonction : public NoeudDeclaration {
 	bool est_variadique = false;
 	bool est_externe = false;
 	bool est_declaration_type = false;
+	bool est_instantiation_gabarit = false;
 	dls::chaine nom_broye = "";
 
 	COPIE_CONSTRUCT(NoeudDeclarationFonction);

@@ -889,10 +889,11 @@ void valide_appel_fonction(
 		/* ---------------------- */
 
 		if (!candidate->paires_expansion_gabarit.est_vide()) {
-			auto noeud_decl = copie_noeud(contexte.assembleuse, decl_fonction_appelee, decl_fonction_appelee->bloc_parent);
-			decl_fonction_appelee = static_cast<NoeudDeclarationFonction *>(noeud_decl);
+			auto noeud_decl = static_cast<NoeudDeclarationFonction *>(copie_noeud(contexte.assembleuse, decl_fonction_appelee, decl_fonction_appelee->bloc_parent));
+			noeud_decl->est_instantiation_gabarit = true;
+			decl_fonction_appelee = noeud_decl;
 
-			contexte.pour_gabarit = true;
+			contexte.donnees_fonction = noeud_decl;
 			contexte.paires_expansion_gabarit = candidate->paires_expansion_gabarit;
 			auto ancienne_pile_controle = contexte.pile_controle_boucle;
 			contexte.pile_controle_boucle.efface();
@@ -903,7 +904,6 @@ void valide_appel_fonction(
 
 			contexte.donnees_fonction = fonction_courante;
 			contexte.pile_controle_boucle = ancienne_pile_controle;
-			contexte.pour_gabarit = false;
 		}
 
 		// nous devons instantier les gabarits (ou avoir leurs types) avant de pouvoir faire ça
