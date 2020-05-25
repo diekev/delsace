@@ -2469,6 +2469,10 @@ void performe_validation_semantique(
 					}
 				}
 
+				if (decl_membre->type == nullptr) {
+					erreur::lance_erreur("Membre déclaré sans type", contexte, decl_membre->lexeme);
+				}
+
 				if (decl_membre->type->genre == GenreType::RIEN) {
 					erreur::lance_erreur("Ne peut avoir un type « rien » dans une structure", contexte, decl_membre->lexeme, erreur::type_erreur::TYPE_DIFFERENTS);
 				}
