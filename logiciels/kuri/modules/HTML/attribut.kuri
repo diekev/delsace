@@ -1,0 +1,4 @@
+Attribut :: struct {
+    nom: chaine
+    valeur: chaine
+}

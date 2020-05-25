@@ -1,0 +1,31 @@
+charge "élément"
+
+PileÉlémentsOuverts :: struct {
+    éléments: []*Élément
+}
+
+noeud_courant :: fonc (pile: *PileÉlémentsOuverts) -> *Élément
+{
+    retourne pile.éléments[pile.éléments.taille - 1]
+}
+
+empile :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément)
+{
+    tableau_ajoute(@pile.éléments, élément)
+}
+
+dépile :: fonc (pile: *PileÉlémentsOuverts)
+{
+    pile.éléments.taille -= 1
+}
+
+possède_dans_portée :: fonc (pile: *PileÉlémentsOuverts, nom_tag: chaine) -> bool
+{
+    pour pile.éléments {
+        si it.texte == nom_tag {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}

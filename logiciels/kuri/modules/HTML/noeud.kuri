@@ -1,0 +1,66 @@
+importe Fondation
+
+charge "attribut"
+
+GenreNoeud :: énum {
+    Invalide
+    Document
+    Commentaire
+    Élément
+    Texte
+    Doctype
+}
+
+Noeud :: struct {
+    genre : GenreNoeud
+
+    parent: *Noeud
+    enfants: []*Noeud
+
+    attributs: []Attribut
+
+    document: *Document
+}
+
+est_document :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.genre == GenreNoeud.Document
+}
+
+est_élément :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.genre == GenreNoeud.Élément
+}
+
+est_doctype :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.genre == GenreNoeud.Doctype
+}
+
+est_texte :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.genre == GenreNoeud.Texte
+}
+
+est_commentaire :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.genre == GenreNoeud.Commentaire
+}
+
+ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
+{
+    enfant.parent = parent
+    tableau_ajoute(@parent.enfants, enfant)
+}
+
+ajoute_enfant_dernier :: fonc (parent: *Noeud, enfant: *Noeud)
+{
+    enfant.parent = parent
+    tableau_ajoute(@parent.enfants, enfant)
+}
+
+ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: chaine)
+{
+    attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
+    tableau_ajoute(@noeud.attributs, attribut)
+}

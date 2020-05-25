@@ -1,0 +1,760 @@
+importe Fondation
+
+charge "document"
+charge "élément"
+charge "lexage"
+charge "noeud"
+charge "pile_éléments_ouverts"
+
+// À FAIRE : bouge ça dans un module d'outils ou autre
+fait_partie_de :: fonc (valeur: $T, liste: ...$T) -> bool
+{
+    pour liste {
+        si valeur == it {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+est_caractère_espace_blanc :: fonc (point_de_code: n32) -> bool
+{
+    retourne point_de_code == ESPACE || point_de_code == TABULATION || point_de_code == RETOUR_CHARIOT || point_de_code == NOUVELLE_LIGNE || point_de_code == 0x0C
+}
+
+ModeInsertion :: énum {
+    Initial
+    AvantHtml
+    AvantHead
+    DansHead
+    DansHeadNoScript
+    AprèsHead
+    DansBody
+    Texte
+    DansTable
+    DansTexteTable
+    DansCaption
+    DansGroupeColonne
+    DansCorpsTable
+    DansRow
+    DansCell
+    DansSelect
+    DansSelectDansTable
+    DansFrameSet
+    AprèsBody
+    AprèsAprèsBody
+    AprèsFrameSet
+    AprèsAprèsFrameSet
+}
+
+fonctions_insertions := [
+    insère_mode_Initial,
+    insère_mode_AvantHtml,
+    insère_mode_AvantHead,
+    insère_mode_DansHead,
+    insère_mode_DansHeadNoScript,
+    insère_mode_AprèsHead,
+    insère_mode_DansBody,
+    insère_mode_Texte,
+    insère_mode_DansTable,
+    insère_mode_DansTexteTable,
+    insère_mode_DansCaption,
+    insère_mode_DansGroupeColonne,
+    insère_mode_DansCorpsTable,
+    insère_mode_DansRow,
+    insère_mode_DansCell,
+    insère_mode_DansSelect,
+    insère_mode_DansSelectDansTable,
+    insère_mode_DansFrameSet,
+    insère_mode_AprèsBody,
+    insère_mode_AprèsAprèsBody,
+    insère_mode_AprèsFrameSet,
+    insère_mode_AprèsAprèsFrameSet
+]
+
+Parseuse :: struct {
+    mode_insertion : ModeInsertion
+    mode_insertion_original : ModeInsertion
+    lexeuse: Lexeuse
+    document: *Document
+
+    élément_head : *Élément
+
+    pile_éléments_ouvert : PileÉlémentsOuverts
+
+    arrête_de_parser := faux
+    adoption_activée := faux
+    scripting_flag := faux
+    frameset_ok := vrai
+}
+
+initialise_parseuse :: fonc (entrée: chaine) -> Parseuse
+{
+    parseuse: Parseuse
+    parseuse.mode_insertion = ModeInsertion.Initial
+    parseuse.lexeuse = initialise_lexeuse(entrée)
+    parseuse.document = crée_noeud_document()
+
+    retourne parseuse
+}
+
+détruit_parseuse :: fonc (parseuse: *Parseuse)
+{
+    détruit_lexeuse(@parseuse.lexeuse)
+    déloge parseuse.pile_éléments_ouvert.éléments
+}
+
+parse :: fonc (parseuse: *Parseuse)
+{
+    boucle {
+        léxème := léxème_suivant(@parseuse.lexeuse)
+
+        si léxème.genre == GenreLexème.FinDeFichier {
+            arrête
+        }
+
+        //imprime("mode_insertion : %\n", parseuse.mode_insertion)
+
+        gère_léxème_pour_mode(parseuse, parseuse.mode_insertion, léxème)
+
+        détruit_lexème(@léxème)
+
+        si parseuse.arrête_de_parser {
+            arrête
+        }
+    }
+}
+
+noeud_courant :: fonc (parseuse: *Parseuse) -> *Noeud
+{
+    // À FAIRE(langage) : bug dans la génération de la RI
+    //retourne noeud_courant(@parseuse.pile_éléments_ouvert)
+    retourne parseuse.pile_éléments_ouvert.éléments[parseuse.pile_éléments_ouvert.éléments.taille - 1]
+}
+
+crée_élément_pour :: fonc (parseuse: *Parseuse, léxème: Léxème) -> *Élément
+{
+    élément := élément_depuis_tag(parseuse.document, léxème.nom)
+
+    pour léxème.attributs {
+        élément.ajoute_attribut(it.nom, it.valeur)
+    }
+
+    retourne élément
+}
+
+gère_léxème_pour_mode :: fonc (parseuse: *Parseuse, mode: ModeInsertion, léxème: Léxème)
+{
+    fonction := fonctions_insertions[mode]
+    fonction(parseuse, léxème)
+}
+
+trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_override: *Noeud = nul) -> *Noeud
+{
+    cible : *Noeud = nul
+
+    si cible_override {
+        cible = cible_override
+    }
+    sinon {
+        cible = parseuse.noeud_courant()
+    }
+
+    si parseuse.adoption_activée {
+        panique("adotion non implémenté")
+    }
+
+    // À FAIRE : si la cible est un template, retourne le dernier enfant de son contenu
+    retourne cible
+}
+
+insère_élément_html :: fonc (parseuse: *Parseuse, léxème: Léxème) -> *Élément
+{
+    position_ajustée_d_insertion := trouve_position_appropriée_pour_insertion(parseuse)
+    élément := parseuse.crée_élément_pour(léxème)
+    // À FAIRE : vérifie s'il est possible d'insérer élément à position_ajustée_d_insertion
+    // À FAIRE : file d'évènements, voir spec
+    position_ajustée_d_insertion.ajoute_enfant(élément)
+    empile(@parseuse.pile_éléments_ouvert, élément)
+    retourne élément
+}
+
+insère_caractère :: fonc (parseuse: *Parseuse, point_de_code: n32)
+{
+    position_ajustée_d_insertion := trouve_position_appropriée_pour_insertion(parseuse)
+
+    si position_ajustée_d_insertion.genre == GenreNoeud.Document {
+        // ignore
+        retourne
+    }
+
+    noeud_texte : *NoeudTexte = nul
+
+    si position_ajustée_d_insertion.enfants.taille != 0 && position_ajustée_d_insertion.enfants[position_ajustée_d_insertion.enfants.taille - 1].genre == GenreNoeud.Texte {
+        noeud_texte = position_ajustée_d_insertion.enfants[position_ajustée_d_insertion.enfants.taille - 1] comme *NoeudTexte
+    }
+    sinon {
+        noeud_texte = crée_noeud_texte(position_ajustée_d_insertion.document)
+        position_ajustée_d_insertion.ajoute_enfant(noeud_texte)
+    }
+
+    chaine_ajoute(@noeud_texte.données, point_de_code)
+}
+
+insère_commentaire :: fonc (parseuse: *Parseuse, léxème: Léxème, position : *Noeud = nul)
+{
+    position_ajustée_d_insertion := position
+
+    si !position_ajustée_d_insertion {
+        position_ajustée_d_insertion = trouve_position_appropriée_pour_insertion(parseuse)
+    }
+
+    noeud_commentaire := crée_noeud_commentaire(position_ajustée_d_insertion.document, léxème.données)
+    position_ajustée_d_insertion.ajoute_enfant(noeud_commentaire)
+}
+
+insère_mode_Initial :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    si léxème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(léxème.point_de_code) {
+        // ignore seulement si ' ', '\t', '\n', '\a', '\r'
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Commentaire {
+        insère_commentaire(parseuse, léxème, parseuse.document)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Doctype {
+        doctype := crée_noeud_doctype(parseuse.document)
+        doctype.ajoute_attribut("name", léxème.nom)
+        parseuse.document.ajoute_enfant(doctype)
+        parseuse.mode_insertion = ModeInsertion.AvantHtml
+        retourne
+    }
+
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    si léxème.genre == GenreLexème.Doctype {
+        // erreur de parsage, ignore
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Commentaire {
+        insère_commentaire(parseuse, léxème, parseuse.document)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(léxème.point_de_code) {
+        // ignore seulement si ' ', '\t', '\n', '\a', '\r'
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.DébutTag && léxème.nom == "html" {
+        élément := parseuse.crée_élément_pour(léxème)
+        parseuse.document.ajoute_enfant(élément)
+        parseuse.mode_insertion = ModeInsertion.AvantHead
+        empile(@parseuse.pile_éléments_ouvert, élément)
+        // À FAIRE : contexte navigation, voir spec
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.FinTag && !fait_partie_de(léxème.nom, "head", "body", "html", "br") {
+        // ignore le tag
+        retourne
+    }
+
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_AvantHead :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    si léxème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(léxème.point_de_code) {
+        // ignore seulement si ' ', '\t', '\n', '\a', '\r'
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Commentaire {
+        insère_commentaire(parseuse, léxème)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Doctype {
+        // erreur de parsage, ignore
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.DébutTag {
+        si léxème.nom == "html" {
+            gère_léxème_pour_mode(parseuse, ModeInsertion.DansBody, léxème)
+            retourne
+        }
+
+        si léxème.nom == "head" {
+            élément := parseuse.insère_élément_html(léxème)
+            parseuse.élément_head = élément
+            parseuse.mode_insertion = ModeInsertion.DansHead
+            retourne
+        }
+    }
+
+    si léxème.genre == GenreLexème.FinTag && !fait_partie_de(léxème.nom, "head", "body", "html", "br") {
+        // ignore le tag
+        retourne
+    }
+
+    léxème_head := Léxème(genre = GenreLexème.DébutTag, nom = "head")
+    élément := parseuse.insère_élément_html(léxème_head)
+    parseuse.élément_head = élément
+    parseuse.mode_insertion = ModeInsertion.DansHead
+    gère_léxème_pour_mode(parseuse, parseuse.mode_insertion, léxème)
+}
+
+gère_élément_contenant_texte_cru :: fonc (parseuse: *Parseuse, léxème: Léxème, état_lexeuse: ÉtatLexage)
+{
+    _ := parseuse.insère_élément_html(léxème)
+    parseuse.lexeuse.état = état_lexeuse
+    parseuse.mode_insertion_original = parseuse.mode_insertion
+    parseuse.mode_insertion = ModeInsertion.Texte
+}
+
+insère_mode_DansHead :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    si léxème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(léxème.point_de_code) {
+        parseuse.insère_caractère(léxème.point_de_code)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Commentaire {
+        insère_commentaire(parseuse, léxème)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Doctype {
+        // erreur de parsage, ignore
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.DébutTag {
+        si léxème.nom == "html" {
+            gère_léxème_pour_mode(parseuse, ModeInsertion.DansBody, léxème)
+            retourne
+        }
+
+        si fait_partie_de(léxème.nom, "base", "basefront", "bgsound", "link") {
+            _ := parseuse.insère_élément_html(léxème)
+            dépile(@parseuse.pile_éléments_ouvert)
+            // À FAIRE : reconnait le drapeau auto-fermant du léxème si actif
+            retourne
+        }
+
+        si léxème.nom == "meta" {
+            _ := parseuse.insère_élément_html(léxème)
+            dépile(@parseuse.pile_éléments_ouvert)
+            // À FAIRE : reconnait le drapeau auto-fermant du léxème si actif
+            // À FAIRE : gère attributs charset, http-equiv, content
+            retourne
+        }
+
+        si léxème.nom == "title" {
+            gère_élément_contenant_texte_cru(parseuse, léxème, ÉtatLexage.RCDATA)
+            retourne
+        }
+
+        si léxème.nom == "style" || léxème.nom == "noframes" {
+            gère_élément_contenant_texte_cru(parseuse, léxème, ÉtatLexage.RawText)
+        }
+
+        si léxème.nom == "noscript" {
+            si parseuse.scripting_flag {
+                gère_élément_contenant_texte_cru(parseuse, léxème, ÉtatLexage.RawText)
+            }
+            sinon {
+                _ := parseuse.insère_élément_html(léxème)
+                parseuse.mode_insertion = ModeInsertion.DansHeadNoScript
+                retourne
+            }
+        }
+
+        si léxème.nom == "script" {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si léxème.nom == "template" {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si léxème.nom == "head" {
+            // ignore
+            retourne
+        }
+    }
+
+    si léxème.genre == GenreLexème.FinTag {
+        si léxème.nom == "head" {
+            dépile(@parseuse.pile_éléments_ouvert)
+            parseuse.mode_insertion = ModeInsertion.AprèsHead
+            retourne
+        }
+
+        si léxème.nom == "template" {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si !fait_partie_de(léxème.nom, "body", "html", "br") {
+            // ignore tous les autres
+            retourne
+        }
+    }
+
+    dépile(@parseuse.pile_éléments_ouvert)
+    parseuse.mode_insertion = ModeInsertion.AprèsHead
+}
+
+insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    si léxème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(léxème.point_de_code) {
+        parseuse.insère_caractère(léxème.point_de_code)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Commentaire {
+        insère_commentaire(parseuse, léxème)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Doctype {
+        // erreur de parsage, ignore
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.DébutTag {
+        si léxème.nom == "html" {
+            gère_léxème_pour_mode(parseuse, ModeInsertion.DansBody, léxème)
+            retourne
+        }
+
+        si léxème.nom == "body" {
+            _ := parseuse.insère_élément_html(léxème)
+            parseuse.frameset_ok = faux
+            parseuse.mode_insertion = ModeInsertion.DansBody
+            retourne
+        }
+
+        si léxème.nom == "frameset" {
+            _ := parseuse.insère_élément_html(léxème)
+            parseuse.mode_insertion = ModeInsertion.DansFrameSet
+            retourne
+        }
+
+        si léxème.nom == "head" {
+            // ignore
+            retourne
+        }
+
+        si fait_partie_de(léxème.nom, "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "template", "title") {
+            panique("algorithme d'insertion incomplet")
+        }
+    }
+
+    si léxème.genre == GenreLexème.FinTag {
+        si léxème.nom == "template" {
+            gère_léxème_pour_mode(parseuse, ModeInsertion.DansHead, léxème)
+            retourne
+        }
+
+        si !fait_partie_de(léxème.nom, "body", "html", "br") {
+            // ignore
+            retourne
+        }
+    }
+
+    léxème_body := Léxème(genre = GenreLexème.DébutTag, nom = "body")
+    élément := parseuse.insère_élément_html(léxème_body)
+    parseuse.mode_insertion = ModeInsertion.DansBody
+    gère_léxème_pour_mode(parseuse, parseuse.mode_insertion, léxème)
+}
+
+insère_mode_DansBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    // continue le spec à An end tag whose tag name is "p"
+
+    si léxème.genre == GenreLexème.Caractère {
+        si léxème.point_de_code == 0x0 {
+            // ignore
+            retourne
+        }
+
+        // À FAIRE : reconstruit les éléments de formattage actifs
+        parseuse.insère_caractère(léxème.point_de_code)
+
+        si !est_caractère_espace_blanc(léxème.point_de_code) {
+            parseuse.frameset_ok = faux
+        }
+
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Commentaire {
+        insère_commentaire(parseuse, léxème)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.DébutTag {
+        si léxème.nom == "html" {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si fait_partie_de(léxème.nom, "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "template", "title") {
+            gère_léxème_pour_mode(parseuse, ModeInsertion.DansHead, léxème)
+            retourne
+        }
+
+        si léxème.nom == "body" {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si léxème.nom == "frameset" {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si léxème.nom == "form" {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si léxème.nom == "li" {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si fait_partie_de(léxème.nom, "address", "article", "aside", "blockquote", "center", "details", "dialog", "dir", "div", "dl", "fieldset", "figcaption", "figure", "footer", "header", "hgroup", "main", "menu", "nav", "ol", "p", "section", "summary", "ul") {
+            // À FAIRE : If the stack of open elements has a p element in button scope, then close a p element.
+            _ := insère_élément_html(parseuse, léxème)
+            retourne
+        }
+
+        si fait_partie_de(léxème.nom, "h1", "h2", "h3", "h4", "h5", "h6") {
+            // À FAIRE : If the stack of open elements has a p element in button scope, then close a p element.
+            // si noeud_courant est un élément du même groupe, dépile le
+            _ := insère_élément_html(parseuse, léxème)
+            retourne
+        }
+
+        si fait_partie_de(léxème.nom, "pre", "listing") {
+            // À FAIRE : If the stack of open elements has a p element in button scope, then close a p element.
+            _ := insère_élément_html(parseuse, léxème)
+            // À FAIRE : ignore le token suivant si c'est un caractère de nouvelle ligne (0x0A)
+            parseuse.frameset_ok = faux
+            retourne
+        }
+
+        si fait_partie_de(léxème.nom, "dd", "dt") {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si léxème.nom == "plaintext" {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si léxème.nom == "button" {
+            panique("algorithme d'insertion incomplet")
+        }
+    }
+
+    si léxème.genre == GenreLexème.FinTag {
+        si léxème.nom == "template" {
+            gère_léxème_pour_mode(parseuse, ModeInsertion.DansHead, léxème)
+            retourne
+        }
+
+        si léxème.nom == "body" {
+            si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "body") {
+                // À FAIRE : comprendre ce que la spec veut dire
+            }
+
+            parseuse.mode_insertion = ModeInsertion.AprèsBody
+            retourne
+        }
+
+        si léxème.nom == "html" {
+            si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "body") {
+                // À FAIRE : comprendre ce que la spec veut dire
+            }
+
+            parseuse.mode_insertion = ModeInsertion.AprèsBody
+            gère_léxème_pour_mode(parseuse, parseuse.mode_insertion, léxème)
+            retourne
+        }
+
+        si fait_partie_de(léxème.nom, "address", "article", "aside", "blockquote", "button", "center", "details", "dialog", "dir", "div", "dl", "fieldset", "figcaption", "figure", "footer", "header", "hgroup", "listing", "main", "menu", "nav", "ol", "pre", "section", "summary", "ul") {
+            si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "body") {
+                // À FAIRE : comprendre ce que la spec veut dire
+                dépile(@parseuse.pile_éléments_ouvert)
+            }
+
+            retourne
+        }
+
+        si léxème.nom == "form" {
+            panique("algorithme d'insertion incomplet")
+        }
+    }
+
+    si léxème.genre == GenreLexème.FinDeFichier {
+        panique("algorithme d'insertion incomplet")
+    }
+
+    imprime("%\n", léxème)
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_Texte :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    si léxème.genre == GenreLexème.Caractère {
+        parseuse.insère_caractère(léxème.point_de_code)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.FinDeFichier {
+        // À FAIRE : gère élément script
+
+        dépile(@parseuse.pile_éléments_ouvert)
+        parseuse.mode_insertion = parseuse.mode_insertion_original
+        gère_léxème_pour_mode(parseuse, parseuse.mode_insertion, léxème)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.FinTag && léxème.nom == "script" {
+        panique("algorithme d'insertion incomplet")
+    }
+
+    dépile(@parseuse.pile_éléments_ouvert)
+    parseuse.mode_insertion = parseuse.mode_insertion_original
+}
+
+insère_mode_DansTable :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_DansTexteTable :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_DansCaption :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_DansGroupeColonne :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_DansRow :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_DansCell :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_DansSelect :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_DansSelectDansTable :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_DansFrameSet :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_AprèsBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    si léxème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(léxème.point_de_code) {
+        gère_léxème_pour_mode(parseuse, ModeInsertion.DansBody, léxème)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Commentaire {
+        // ajoute le comme enfant de l'élément html (le premier élément de la pile d'éléments ouverts)
+        insère_commentaire(parseuse, léxème, parseuse.pile_éléments_ouvert.éléments[0])
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Doctype {
+        // erreur de parsage, ignore
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.DébutTag && léxème.nom == "html" {
+        gère_léxème_pour_mode(parseuse, ModeInsertion.DansBody, léxème)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.FinTag && léxème.nom == "html" {
+        // À FAIRE : ignore si nous sommes dans un parsage de fragment html
+        parseuse.mode_insertion = ModeInsertion.AprèsAprèsBody
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.FinDeFichier {
+        parseuse.arrête_de_parser = vrai
+        retourne
+    }
+
+    parseuse.mode_insertion = ModeInsertion.DansBody
+    gère_léxème_pour_mode(parseuse, parseuse.mode_insertion, léxème)
+}
+
+insère_mode_AprèsAprèsBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    si léxème.genre == GenreLexème.Commentaire {
+        insère_commentaire(parseuse, léxème, parseuse.document)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Doctype || (léxème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(léxème.point_de_code)) || (léxème.genre == GenreLexème.DébutTag && léxème.nom == "html") {
+        gère_léxème_pour_mode(parseuse, ModeInsertion.DansBody, léxème)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.FinDeFichier {
+        parseuse.arrête_de_parser = vrai
+        retourne
+    }
+
+    parseuse.mode_insertion = ModeInsertion.DansBody
+    gère_léxème_pour_mode(parseuse, parseuse.mode_insertion, léxème)
+}
+
+insère_mode_AprèsFrameSet :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
+
+insère_mode_AprèsAprèsFrameSet :: fonc (parseuse: *Parseuse, léxème: Léxème)
+{
+    panique("algorithme d'insertion incomplet")
+}
