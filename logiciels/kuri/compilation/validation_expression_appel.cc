@@ -306,6 +306,46 @@ static Type *apparie_type_gabarit(Type *type, Type *type_polymorphique)
 	return type_courant;
 }
 
+static Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour_type)
+{
+	auto resultat = static_cast<Type *>(nullptr);
+
+	if (type_gabarit->genre == GenreType::POINTEUR) {
+		auto type_pointe = static_cast<TypePointeur *>(type_gabarit)->type_pointe;
+		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
+		resultat = typeuse.type_pointeur_pour(type_pointe_pour_type);
+	}
+	else if (type_gabarit->genre == GenreType::REFERENCE) {
+		auto type_pointe = static_cast<TypeReference *>(type_gabarit)->type_pointe;
+		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
+		resultat = typeuse.type_reference_pour(type_pointe_pour_type);
+	}
+	else if (type_gabarit->genre == GenreType::TABLEAU_DYNAMIQUE) {
+		auto type_pointe = static_cast<TypeTableauDynamique *>(type_gabarit)->type_pointe;
+		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
+		resultat = typeuse.type_tableau_dynamique(type_pointe_pour_type);
+	}
+	else if (type_gabarit->genre == GenreType::TABLEAU_FIXE) {
+		auto type_tableau_fixe = static_cast<TypeTableauFixe *>(type_gabarit);
+		auto type_pointe = type_tableau_fixe->type_pointe;
+		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
+		resultat = typeuse.type_tableau_fixe(type_pointe_pour_type, type_tableau_fixe->taille);
+	}
+	else if (type_gabarit->genre == GenreType::VARIADIQUE) {
+		auto type_pointe = static_cast<TypeVariadique *>(type_gabarit)->type_pointe;
+		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
+		resultat = typeuse.type_variadique(type_pointe_pour_type);
+	}
+	else if (type_gabarit->genre == GenreType::POLYMORPHIQUE) {
+		resultat = pour_type;
+	}
+	else {
+		assert(0);
+	}
+
+	return resultat;
+}
+
 /* ************************************************************************** */
 
 static DonneesCandidate apparie_appel_fonction(
@@ -457,16 +497,16 @@ static DonneesCandidate apparie_appel_fonction(
 		if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 			// trouve l'argument
 			auto nom_gabarit = nom_type_polymorphique(arg->type);
-			auto type_trouve = false;
+			auto type_gabarit = static_cast<Type *>(nullptr);
 			for (auto &paire : paires_expansion_gabarit) {
 				if (paire.first == nom_gabarit) {
-					type_trouve = true;
+					type_gabarit = paire.second;
 					break;
 				}
 			}
 
-			if (!type_trouve) {
-				auto type_gabarit = apparie_type_gabarit(type_de_l_expression, arg->type);
+			if (!type_gabarit) {
+				type_gabarit = apparie_type_gabarit(type_de_l_expression, arg->type);
 
 				if (type_gabarit == nullptr) {
 					poids_args = 0.0;
@@ -480,13 +520,7 @@ static DonneesCandidate apparie_appel_fonction(
 				paires_expansion_gabarit.pousse({ nom_gabarit, type_gabarit });
 			}
 
-			type_du_parametre = type_de_l_expression;
-
-			// le type_du_parametre est le type de donnée de l'argument et non
-			// le type variadique pour celui-ci, donc construit-le
-			if ((param->drapeaux & EST_VARIADIQUE) != 0) {
-				type_du_parametre = contexte.typeuse.type_variadique(type_du_parametre);
-			}
+			type_du_parametre = resoud_type_polymorphique(contexte.typeuse, type_du_parametre, type_gabarit);
 		}
 
 		if ((param->drapeaux & EST_VARIADIQUE) != 0) {
