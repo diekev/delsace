@@ -451,14 +451,13 @@ static DonneesCandidate apparie_appel_fonction(
 			continue;
 		}
 
-		auto type_enf = slot->type;
-		auto type_arg = arg->type;
+		auto type_de_l_expression = slot->type;
+		auto type_du_parametre = arg->type;
 
 		if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 			// trouve l'argument
 			auto nom_gabarit = nom_type_polymorphique(arg->type);
 			auto type_trouve = false;
-			auto type_errone = false;
 			for (auto &paire : paires_expansion_gabarit) {
 				if (paire.first == nom_gabarit) {
 					type_trouve = true;
@@ -466,18 +465,14 @@ static DonneesCandidate apparie_appel_fonction(
 				}
 			}
 
-			if (type_errone) {
-				break;
-			}
-
 			if (!type_trouve) {
-				auto type_gabarit = apparie_type_gabarit(type_enf, arg->type);
+				auto type_gabarit = apparie_type_gabarit(type_de_l_expression, arg->type);
 
 				if (type_gabarit == nullptr) {
 					poids_args = 0.0;
 					res.raison = METYPAGE_ARG;
-					//res.type_attendu = type_enf;
-					res.type_obtenu = type_enf;
+					//res.type_attendu = type_de_l_expression;
+					res.type_obtenu = type_de_l_expression;
 					res.noeud_erreur = slot;
 					return res;
 				}
@@ -485,19 +480,19 @@ static DonneesCandidate apparie_appel_fonction(
 				paires_expansion_gabarit.pousse({ nom_gabarit, type_gabarit });
 			}
 
-			type_arg = type_enf;
+			type_du_parametre = type_de_l_expression;
 
-			// le type_enf est le type de donnée de l'argument et non le type
-			// variadique pour celui-ci, donc construit-le
+			// le type_du_parametre est le type de donnée de l'argument et non
+			// le type variadique pour celui-ci, donc construit-le
 			if ((param->drapeaux & EST_VARIADIQUE) != 0) {
-				type_arg = contexte.typeuse.type_variadique(type_arg);
+				type_du_parametre = contexte.typeuse.type_variadique(type_du_parametre);
 			}
 		}
 
 		if ((param->drapeaux & EST_VARIADIQUE) != 0) {
-			if (type_dereference_pour(type_arg) != nullptr) {
+			if (type_dereference_pour(type_du_parametre) != nullptr) {
 				auto transformation = TransformationType();
-				auto type_deref = type_dereference_pour(type_arg);
+				auto type_deref = type_dereference_pour(type_du_parametre);
 				type_donnees_argument_variadique = type_deref;
 				auto poids_pour_enfant = 0.0;
 
@@ -510,7 +505,7 @@ static DonneesCandidate apparie_appel_fonction(
 						erreur::lance_erreur("Ne peut utiliser qu'une seule expansion d'argument variadique", contexte, slot->lexeme);
 					}
 
-					auto type_deref_enf = type_dereference_pour(type_enf);
+					auto type_deref_enf = type_dereference_pour(type_de_l_expression);
 
 					poids_pour_enfant = verifie_compatibilite(contexte, type_deref, type_deref_enf, slot, transformation);
 
@@ -519,7 +514,7 @@ static DonneesCandidate apparie_appel_fonction(
 						poids_pour_enfant = 0.0;
 					}
 					else {
-						if (type_enf->genre == GenreType::TABLEAU_FIXE) {
+						if (type_de_l_expression->genre == GenreType::TABLEAU_FIXE) {
 							transformation = TypeTransformation::CONVERTI_TABLEAU;
 						}
 					}
@@ -527,7 +522,7 @@ static DonneesCandidate apparie_appel_fonction(
 					expansion_rencontree = true;
 				}
 				else {
-					poids_pour_enfant = verifie_compatibilite(contexte, type_deref, type_enf, slot, transformation);
+					poids_pour_enfant = verifie_compatibilite(contexte, type_deref, type_de_l_expression, slot, transformation);
 				}
 
 				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
@@ -540,8 +535,8 @@ static DonneesCandidate apparie_appel_fonction(
 				if (poids_args == 0.0) {
 					poids_args = 0.0;
 					res.raison = METYPAGE_ARG;
-					res.type_attendu = type_dereference_pour(type_arg);
-					res.type_obtenu = type_enf;
+					res.type_attendu = type_dereference_pour(type_du_parametre);
+					res.type_obtenu = type_de_l_expression;
 					res.noeud_erreur = slot;
 					break;
 				}
@@ -573,7 +568,7 @@ static DonneesCandidate apparie_appel_fonction(
 		}
 		else {
 			auto transformation = TransformationType();
-			auto poids_pour_enfant = verifie_compatibilite(contexte, type_arg, type_enf, slot, transformation);
+			auto poids_pour_enfant = verifie_compatibilite(contexte, type_du_parametre, type_de_l_expression, slot, transformation);
 
 			// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
 			if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
@@ -585,8 +580,8 @@ static DonneesCandidate apparie_appel_fonction(
 			if (poids_args == 0.0) {
 				poids_args = 0.0;
 				res.raison = METYPAGE_ARG;
-				res.type_attendu = type_arg;
-				res.type_obtenu = type_enf;
+				res.type_attendu = type_du_parametre;
+				res.type_obtenu = type_de_l_expression;
 				res.noeud_erreur = slot;
 				break;
 			}
