@@ -430,6 +430,17 @@ static DonneesCandidate apparie_appel_fonction(
 
 	auto nombre_arg_variadiques_rencontres = 0;
 
+	// utilisé pour déterminer le type des données des arguments variadiques
+	// pour la création des tableaux ; nécessaire au cas où nous avons une
+	// fonction polymorphique, au quel cas le type serait un type polymorphique
+	auto dernier_type_parametre = decl->params[decl->params.taille - 1]->type;
+
+	if (dernier_type_parametre->genre == GenreType::VARIADIQUE) {
+		dernier_type_parametre = type_dereference_pour(dernier_type_parametre);
+	}
+
+	auto type_donnees_argument_variadique = dernier_type_parametre;
+
 	for (auto i = 0l; i < slots.taille(); ++i) {
 		auto index_arg = std::min(i, decl->params.taille - 1);
 		auto param = static_cast<NoeudDeclarationVariable *>(decl->params[index_arg]);
@@ -475,12 +486,19 @@ static DonneesCandidate apparie_appel_fonction(
 			}
 
 			type_arg = type_enf;
+
+			// le type_enf est le type de donnée de l'argument et non le type
+			// variadique pour celui-ci, donc construit-le
+			if ((param->drapeaux & EST_VARIADIQUE) != 0) {
+				type_arg = contexte.typeuse.type_variadique(type_arg);
+			}
 		}
 
 		if ((param->drapeaux & EST_VARIADIQUE) != 0) {
 			if (type_dereference_pour(type_arg) != nullptr) {
 				auto transformation = TransformationType();
 				auto type_deref = type_dereference_pour(type_arg);
+				type_donnees_argument_variadique = type_deref;
 				auto poids_pour_enfant = 0.0;
 
 				if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
@@ -587,8 +605,7 @@ static DonneesCandidate apparie_appel_fonction(
 			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(contexte.assembleuse->cree_noeud(
 						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, &lexeme_tableau));
 
-			auto type_var = decl->params[decl->params.taille - 1]->type;
-			noeud_tableau->type = type_dereference_pour(type_var);
+			noeud_tableau->type = type_donnees_argument_variadique;
 			noeud_tableau->exprs.reserve(slots.taille() - index_premier_var_arg);
 
 			for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
