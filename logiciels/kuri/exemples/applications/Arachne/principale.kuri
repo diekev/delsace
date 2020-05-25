@@ -1,0 +1,167 @@
+importe Fondation
+importe SysFichier
+
+charge "lexage"
+charge "syntaxage"
+
+Attribut :: struct {
+    nom: chaine
+    valeur: chaine
+}
+
+Noeud :: struct {
+    attributs: []Attribut
+    connexions: []Connexion
+}
+
+Connexion :: struct {
+    étiquette : chaine
+
+    noeud_début : *Noeud
+    noeud_fin : *Noeud
+}
+
+détruit_noeud :: fonc (noeud: *Noeud)
+{
+    pour noeud.attributs {
+        déloge it.nom
+        déloge it.valeur
+    }
+
+    déloge noeud.attributs
+
+    pour noeud.connexions {
+        déloge it.étiquette
+    }
+
+    déloge noeud.connexions
+
+    déloge noeud
+}
+
+Graphe :: struct {
+    noeuds: []*Noeud
+}
+
+détruit_graphe :: fonc (graphe: *Graphe)
+{
+    pour graphe.noeuds {
+        détruit_noeud(it)
+    }
+
+    déloge graphe.noeuds
+}
+
+Arachné :: struct {
+    graphe: Graphe
+}
+
+détruit_arachné :: fonc (arachné: *Arachné)
+{
+    détruit_graphe(@arachné.graphe)
+}
+
+sélectionne_noeuds :: fonc (arachné: *Arachné) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
+    diffère { détruit_tampons(@enchaineuse) }
+
+    pour arachné.graphe.noeuds {
+        virgule := ""
+
+        pour attribut dans it.attributs {
+            ajoute_au_tampon(@enchaineuse, virgule)
+            ajoute_au_tampon(@enchaineuse, attribut.nom)
+            ajoute_au_tampon(@enchaineuse, " = ")
+            ajoute_au_tampon(@enchaineuse, attribut.valeur)
+            virgule = " | "
+        }
+
+        ajoute_au_tampon(@enchaineuse, "\n")
+    }
+
+    retourne chaine_depuis_enchaineuse(@enchaineuse)
+}
+
+crée_noeud :: fonc (arachné: *Arachné, inst: *InstructionCréationNoeud)
+{
+    noeud := loge Noeud
+
+    pour inst.attributs {
+        attribut : Attribut
+        attribut.nom = copie_chaine(it.nom)
+        attribut.valeur = copie_chaine(it.valeur)
+
+        tableau_ajoute(@noeud.attributs, attribut)
+    }
+
+    tableau_ajoute(@arachné.graphe.noeuds, noeud)
+}
+
+connecte_noeud :: fonc (arachné: *Arachné)
+{
+    // pour connecter les noeuds il faut pouvoir sélectionner deux noeuds
+    // pour sélectionner deux noeuds il faut pouvoir filter les résultats de recherches
+
+    // sélectionne noeud1 si noeud1.attribut == "quelque chose";
+    // sélectionne noeud2 si noeud2.attribut == "quelque chose";
+    // connecte noeud1, noeud2 attributs(nom = valeur);
+}
+
+// -------------------------------
+
+imprime_prompt :: fonc () -> rien
+{
+    imprime("db > ")
+}
+
+// crée noeud attributs(nom = chaine, valeur = chaine);
+principale :: fonc () -> z32
+{
+    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
+
+    nouveau_contexte := contexte
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    arachné: Arachné
+    diffère { détruit_arachné(@arachné) }
+
+    boucle {
+        imprime_prompt()
+
+        entrée : chaine
+        pousse_contexte nouveau_contexte {
+            entrée = entrée_standarde().lis_ligne()
+        }
+
+        si entrée == ".noeuds\n" {
+            résultat := sélectionne_noeuds(@arachné)
+
+            imprime(résultat)
+            déloge résultat
+        }
+        sinon si entrée == ".sors\n" {
+            arrête
+        }
+        sinon {
+            asa := parse(entrée)
+
+            pour asa.instructions {
+                discr it.genre {
+                    CRÉE_NOEUD {
+                        crée_noeud(@arachné, it comme *InstructionCréationNoeud)
+                    }
+                    sinon {
+
+                        imprime("instruction non supportée !")
+                    }
+                }
+            }
+
+            détruit_asa(@asa)
+        }
+    }
+
+    retourne 0
+}

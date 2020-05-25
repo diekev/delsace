@@ -1,0 +1,162 @@
+importe Fondation
+
+charge "instructions"
+charge "lexage"
+
+ASA :: struct {
+    instructions : []*Instruction
+}
+
+détruit_asa :: fonc (asa: *ASA) -> rien
+{
+    pour asa.instructions {
+        détruit_instruction(it)
+    }
+
+    déloge asa.instructions
+}
+
+// ---------------------------------------
+
+Parseuse :: struct {
+    lexèmes: []Lexème
+    curseur : z32
+
+    asa: ASA
+}
+
+apparie :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème) -> bool
+{
+    si parseuse.curseur >= parseuse.lexèmes.taille {
+        retourne faux
+    }
+
+    retourne parseuse.lexèmes[parseuse.curseur].genre == genre_lexème
+}
+
+consomme :: fonc (parseuse: *Parseuse)
+{
+    parseuse.curseur += 1
+}
+
+consomme :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème) -> bool
+{
+    si parseuse.apparie(genre_lexème) {
+        parseuse.consomme()
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+parse :: fonc (chn: chaine) -> ASA
+{
+    lexèmes := lèxe(chn)
+
+    diffère { déloge lexèmes; }
+
+    parseuse: Parseuse
+    parseuse.lexèmes = lexèmes
+
+    tantque parseuse.curseur < parseuse.lexèmes.taille {
+        inst := parse_instruction(@parseuse)
+
+        si inst == nul {
+            imprime("Impossible de parser les lexèmes\n")
+            arrête
+        }
+
+        tableau_ajoute(@parseuse.asa.instructions, inst)
+    }
+
+    retourne parseuse.asa
+}
+
+// le type de retour est *Instruction pour l'instant, nous utiliserons un type erreur dans le future
+erreur_parsage :: fonc (parseuse: *Parseuse, message: chaine) -> *Instruction
+{
+    imprime("[Erreur de parsage] %\n", message)
+    retourne nul
+}
+
+// @amélioration : retourne une erreur (besoin d'un système d'erreur)
+parse_instruction :: fonc (parseuse: *Parseuse) -> *Instruction
+{
+    si parseuse.apparie(GenreLexème.MOT_CLÉ_CRÉE) {
+        parseuse.consomme()
+
+        si parseuse.apparie(GenreLexème.MOT_CLÉ_NOEUD) {
+            parseuse.consomme()
+            retourne parse_instruction_crée_noeud(parseuse)
+        }
+    }
+
+    // @erreur
+
+    retourne nul
+}
+
+parse_instruction_crée_noeud :: fonc (parseuse: *Parseuse) -> *Instruction
+{
+    si !parseuse.consomme(GenreLexème.MOT_CLÉ_ATTRIBUTS) {
+        retourne erreur_parsage(parseuse, "Attendu 'attributs'")
+    }
+
+    si !parseuse.consomme(GenreLexème.PARENTHÈSE_OUVRANTE) {
+        retourne erreur_parsage(parseuse, "Attendu '('")
+    }
+
+    attributs : []Attr
+    diffère { déloge attributs }
+
+    boucle {
+        si parseuse.apparie(GenreLexème.PARENTHÈSE_FERMANTE) {
+            arrête
+        }
+
+        attribut : Attr
+
+        // nom-attribut
+        si !parseuse.consomme(GenreLexème.IDENTIFIANT) {
+            retourne erreur_parsage(parseuse, "Attendu 'identifiant'")
+        }
+
+        attribut.nom = parseuse.lexèmes[parseuse.curseur - 1].valeur
+
+        si !parseuse.consomme(GenreLexème.ÉGAL) {
+            retourne erreur_parsage(parseuse, "Attendu '='")
+        }
+
+        // valeur-attribut
+        si !parseuse.consomme(GenreLexème.CHAINE) {
+            retourne erreur_parsage(parseuse, "Attendu une chaine de caractère")
+        }
+
+        attribut.valeur = parseuse.lexèmes[parseuse.curseur - 1].valeur
+
+        tableau_ajoute(@attributs, attribut)
+
+        si !parseuse.consomme(GenreLexème.VIRGULE) {
+            arrête
+        }
+    }
+
+    si !parseuse.consomme(GenreLexème.PARENTHÈSE_FERMANTE) {
+        retourne erreur_parsage(parseuse, "Attendu ')'")
+    }
+
+    si !parseuse.consomme(GenreLexème.POINT_VIRGULE) {
+        retourne erreur_parsage(parseuse, "Attendu ';'")
+    }
+
+    inst := loge InstructionCréationNoeud
+    inst.genre = GenreInstruction.CRÉE_NOEUD
+    inst.attributs = attributs
+
+    // À FAIRE : déloge uniquement les attributs en cas d'erreur
+    attributs.taille = 0
+    attributs.capacité = 0
+    attributs.pointeur = nul
+
+    retourne inst
+}

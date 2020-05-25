@@ -1,0 +1,31 @@
+charge "lexage"
+
+GenreInstruction :: énum z32 {
+    CRÉE_NOEUD
+}
+
+Instruction :: struct {
+    genre : GenreInstruction
+}
+
+Attr :: struct {
+    nom: chaine
+    valeur: chaine
+}
+
+InstructionCréationNoeud :: struct {
+    empl base : Instruction
+
+    attributs: []Attr
+}
+
+détruit_instruction :: fonc (inst: *Instruction)
+{
+    discr inst.genre {
+        CRÉE_NOEUD {
+            inst_crée := inst comme *InstructionCréationNoeud
+            déloge inst_crée.attributs
+            déloge inst_crée
+        }
+    }
+}
