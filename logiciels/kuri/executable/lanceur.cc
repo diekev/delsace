@@ -490,6 +490,7 @@ static void initialise_interface_kuri(ContexteGenerationCode &contexte)
 	auto &typeuse = contexte.typeuse;
 	typeuse.type_info_type_enum = cherche_symbole_dans_module(contexte, module, "InfoTypeÉnum")->type;
 	typeuse.type_info_type_structure = cherche_symbole_dans_module(contexte, module, "InfoTypeStructure")->type;
+	typeuse.type_info_type_union = cherche_symbole_dans_module(contexte, module, "InfoTypeUnion")->type;
 	typeuse.type_info_type_membre_structure = cherche_symbole_dans_module(contexte, module, "InfoTypeMembreStructure")->type;
 	typeuse.type_info_type_entier = cherche_symbole_dans_module(contexte, module, "InfoTypeEntier")->type;
 	typeuse.type_info_type_tableau = cherche_symbole_dans_module(contexte, module, "InfoTypeTableau")->type;

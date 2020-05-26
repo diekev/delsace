@@ -685,6 +685,37 @@ imprime_valeur :: fonc(
 		TYPE_DE_DONNÉES {
 			// À FAIRE
 		}
+		UNION {
+			info_arg := info comme *InfoTypeUnion
+
+            ajoute_au_tampon(enchaineuse, info_arg.nom)
+            ajoute_au_tampon(enchaineuse, " { ")
+
+			valeur := mémoire(pointeur comme *z32)
+
+			si info_arg.est_sûre {
+				pointeur_index := (pointeur + info_arg.décalage_index) comme *z32
+				index := mémoire(pointeur_index)
+
+				// note le membre_actif est l'index du membre + 1, 0 étant une valeur montrant que l'union est invalide
+				si index == 0 {
+					ajoute_au_tampon(enchaineuse, "union invalide")
+				}
+				sinon {
+					membre := info_arg.membres[index - 1]
+
+					ajoute_au_tampon(enchaineuse, membre.nom)
+					ajoute_au_tampon(enchaineuse, " = ")
+
+					imprime_valeur(enchaineuse, pointeur, membre.id, vrai)
+				}
+			}
+			sinon {
+				imprime_valeur(enchaineuse, pointeur, info_arg.type_le_plus_grand, faux)
+			}
+
+            ajoute_au_tampon(enchaineuse, " }")
+		}
 	}
 }
 

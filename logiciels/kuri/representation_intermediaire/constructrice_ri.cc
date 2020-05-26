@@ -3562,6 +3562,7 @@ struct IDInfoType {
 	static constexpr unsigned ENUM            = 10;
 	static constexpr unsigned OCTET           = 11;
 	static constexpr unsigned TYPE_DE_DONNEES = 12;
+	static constexpr unsigned UNION           = 13;
 };
 
 AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
@@ -3686,6 +3687,93 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			break;
 		}
 		case GenreType::UNION:
+		{
+			auto type_union = static_cast<TypeUnion *>(type);
+			auto nom_union = dls::vue_chaine_compacte();
+
+			if (type_union->est_anonyme) {
+				nom_union = "anonyme";
+			}
+			else {
+				nom_union = type_union->decl->lexeme->chaine;
+			}
+
+			// ------------------------------------
+			// Commence par assigner une globale non-initialisée comme info type
+			// pour éviter de recréer plusieurs fois le même info type.
+			auto type_info_union = m_contexte.typeuse.type_info_type_union;
+
+			auto globale = cree_globale(type_info_union, nullptr, false, true);
+			type->info_type = globale;
+
+			// ------------------------------------
+			/* pour chaque membre cree une instance de InfoTypeMembreStructure */
+			auto type_struct_membre = m_contexte.typeuse.type_info_type_membre_structure;
+
+			kuri::tableau<AtomeConstante *> valeurs_membres;
+
+			POUR (type_union->membres) {
+				/* { nom: chaine, info : *InfoType, décalage } */
+				auto type_membre = it.type;
+
+				auto info_type = cree_info_type(type_membre);
+				info_type = cree_transtype_constant(
+							m_contexte.typeuse.type_pointeur_pour(m_contexte.typeuse.type_info_type_),
+							info_type);
+
+				auto valeur_nom = cree_chaine(it.nom);
+				auto valeur_decalage = cree_z64(static_cast<uint64_t>(it.decalage));
+
+				auto valeurs = kuri::tableau<AtomeConstante *>(3);
+				valeurs[0] = valeur_nom;
+				valeurs[1] = info_type;
+				valeurs[2] = valeur_decalage;
+
+				auto initialisateur = cree_constante_structure(type_struct_membre, std::move(valeurs));
+
+				/* Création d'un InfoType globale. */
+				auto globale_membre = cree_globale(type_struct_membre, initialisateur, false, true);
+				valeurs_membres.pousse(globale_membre);
+			}
+
+			/* id : n32
+			 * taille_en_octet: z32
+			 * nom: chaine
+			 * membres : []InfoTypeMembreStructure
+			 * type_le_plus_grand : *InfoType
+			 * décalage_index : z64
+			 * est_sûre: bool
+			 */
+			auto info_type_plus_grand = cree_info_type(type_union->type_le_plus_grand);
+			info_type_plus_grand = cree_transtype_constant(
+						m_contexte.typeuse.type_pointeur_pour(m_contexte.typeuse.type_info_type_),
+						info_type_plus_grand);
+
+			auto valeur_id = cree_z32(IDInfoType::UNION);
+			auto valeur_taille_octet = cree_z32(type->taille_octet);
+			auto valeur_nom = cree_chaine(nom_union);
+			auto valeur_est_sure = cree_constante_booleenne(!type_union->est_nonsure);
+			auto valeur_type_le_plus_grand = info_type_plus_grand;
+			auto valeur_decalage_index = cree_z64(type_union->decalage_index);
+
+			// Pour les références à des globales, nous devons avoir un type pointeur.
+			auto type_membre = m_contexte.typeuse.type_pointeur_pour(type_struct_membre);
+
+			auto tableau_membre = cree_tableau_global(type_membre, std::move(valeurs_membres));
+
+			auto valeurs = kuri::tableau<AtomeConstante *>(7);
+			valeurs[0] = valeur_id;
+			valeurs[1] = valeur_taille_octet;
+			valeurs[2] = valeur_nom;
+			valeurs[3] = tableau_membre;
+			valeurs[4] = valeur_type_le_plus_grand;
+			valeurs[5] = valeur_decalage_index;
+			valeurs[6] = valeur_est_sure;
+
+			globale->initialisateur = cree_constante_structure(type_info_union, std::move(valeurs));
+
+			break;
+		}
 		case GenreType::STRUCTURE:
 		{
 			auto type_struct = static_cast<TypeStructure *>(type);

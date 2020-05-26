@@ -607,10 +607,43 @@ TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
 		}
 	}
 
+	// À FAIRE : déduplique ça avec la validation sémantique.
+	auto max_alignement = 0u;
+	auto taille_union = 0u;
+	auto type_le_plus_grand = static_cast<Type *>(nullptr);
+
+	POUR (membres) {
+		auto type_membre = it.type;
+		auto taille = type_membre->taille_octet;
+		max_alignement = std::max(taille, max_alignement);
+
+		if (taille > taille_union) {
+			type_le_plus_grand = type_membre;
+			taille_union = taille;
+		}
+	}
+
+	/* ajoute une marge d'alignement */
+	auto padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
+	taille_union += padding;
+
+	auto decalage_index = taille_union;
+
+	/* ajoute la taille du membre actif */
+	taille_union += static_cast<unsigned>(sizeof(int));
+
+	/* ajoute une marge d'alignement finale */
+	padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
+	taille_union += padding;
+
 	auto type = memoire::loge<TypeUnion>("TypeUnion");
 	type->nom = "anonyme";
 	type->membres = std::move(membres);
 	type->est_anonyme = true;
+	type->type_le_plus_grand = type_le_plus_grand;
+	type->decalage_index = decalage_index;
+	type->taille_octet = taille_union;
+	type->alignement = max_alignement;
 
 	types_unions.pousse(type);
 

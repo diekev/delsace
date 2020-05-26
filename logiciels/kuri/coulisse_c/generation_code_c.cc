@@ -341,7 +341,6 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeCompose *
 		}
 
 		enchaineuse << "{\n";
-		enchaineuse << "int membre_actif;\n";
 		enchaineuse << "union {\n";
 	}
 
@@ -358,6 +357,7 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeCompose *
 
 	if (quoi == UNION_SURE || quoi == UNION_ANONYME) {
 		enchaineuse << "};\n";
+		enchaineuse << "int membre_actif;\n";
 	}
 
 	enchaineuse << "} " << nom_broye;

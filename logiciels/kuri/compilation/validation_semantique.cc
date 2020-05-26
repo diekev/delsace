@@ -2030,10 +2030,14 @@ void performe_validation_semantique(
 					type_info_type = contexte.typeuse.type_info_type_pointeur;
 					break;
 				}
-				case GenreType::UNION:
 				case GenreType::STRUCTURE:
 				{
 					type_info_type = contexte.typeuse.type_info_type_structure;
+					break;
+				}
+				case GenreType::UNION:
+				{
+					type_info_type = contexte.typeuse.type_info_type_union;
 					break;
 				}
 				case GenreType::VARIADIQUE:
@@ -2395,6 +2399,8 @@ void performe_validation_semantique(
 					/* ajoute une marge d'alignement */
 					auto padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
 					taille_union += padding;
+
+					type_union->decalage_index = taille_union;
 
 					/* ajoute la taille du membre actif */
 					taille_union += static_cast<unsigned>(sizeof(int));

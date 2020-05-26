@@ -358,6 +358,7 @@ struct TypeUnion final : public TypeCompose {
 
 	NoeudStruct *decl = nullptr;
 
+	unsigned decalage_index = 0;
 	bool deja_genere = false;
 	bool est_nonsure = false;
 	bool est_anonyme = false;
@@ -515,6 +516,7 @@ struct Typeuse {
 	TypeTypeDeDonnees *type_type_de_donnees_ = nullptr;
 	TypeStructure *type_info_type_ = nullptr;
 	Type *type_info_type_structure = nullptr;
+	Type *type_info_type_union = nullptr;
 	Type *type_info_type_membre_structure = nullptr;
 	Type *type_info_type_entier = nullptr;
 	Type *type_info_type_tableau = nullptr;
