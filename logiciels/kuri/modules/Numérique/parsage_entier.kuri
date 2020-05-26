@@ -1,0 +1,153 @@
+// Bibliothèque de parsage de nombres entiers depuis une chaine.
+// À FAIRE : SIMD (quand supporté dans le langage)
+// À FAIRE : meilleure validation de l'entrée
+//           -- cas pour savoir s'il y a surcharge binaire
+//           -- meilleure interface ?
+//           -- nombres négatifs ?
+//           -- validation dans l'algorithme de parsage via SIMD
+
+importe Ordinatrice
+
+// converti 8 caractères en un nombre entier à la fois, avec SIMD nous pourrions
+// en parser 16 à la fois
+// source : https://kholdstare.github.io/technical/2020/05/26/faster-integer-parsing.html
+parse_8_caractères :: fonc (ptr: *z8) -> n64
+{
+    // charge les caractères dans un nombre
+    nombre_entier : n64 = mémoire(ptr comme *n64)
+
+    // commute le boutisme pour que les caractères/octets soient dans le bon ordre
+    si petit_boutisme() {
+        commute_boutisme(@nombre_entier)
+    }
+
+    // soustrait '0' de chaque caractère
+    nombre_entier -= 0x3030303030303030 // représentation binaire de la chaine "00000000"
+
+    // ici le nombre est de forme 0x0N0N_0N0N_0N0N_0N0N où est N est entre 0 et 9
+
+    // rassemble les octets en groupe de 2 : 0x00NN_00NN_00NN_00NN
+    nombre_bas := nombre_entier & 0x000f_000f_000f_000f
+    nombre_haut := ((nombre_entier & 0x0f00_0f00_0f00_0f00) >> 8) * 10
+    nombre_entier = nombre_haut + nombre_bas
+
+    // rassemble les octets en groupe de 4 : 0x0000_NNNN_0000_NNNN
+    nombre_bas = nombre_entier & 0x0000_00ff_0000_00ff
+    nombre_haut = ((nombre_entier & 0x00ff_0000_00ff_0000) >> 16) * 100
+    nombre_entier = nombre_haut + nombre_bas
+
+    // rassemble les octets en groupe de 8 : 0x0000_0000_NNNN_NNNN
+    nombre_bas = nombre_entier & 0x0000_0000_0000_ffff
+    nombre_haut = ((nombre_entier & 0x0000_ffff_0000_0000) >> 32) * 10000
+    nombre_entier = nombre_haut + nombre_bas
+
+    retourne nombre_entier
+}
+
+extrait_n64_nonsûr :: fonc (chn: chaine) -> n64
+{
+    résultat : n64 = 0
+
+    curseur := 0
+
+    caractères_restant := chn.taille % 8
+    taille := chn.taille - caractères_restant
+
+    tantque curseur < taille {
+        résultat *= 100_000_000
+        résultat += parse_8_caractères(chn.pointeur + curseur)
+        curseur += 8
+    }
+
+    pour i dans taille ... chn.taille - 1 {
+        résultat *= 10
+        résultat += (chn.pointeur[i] - '0') comme n64
+    }
+
+    retourne résultat
+}
+
+extrait_n32_nonsûr :: fonc (chn: chaine) -> n32
+{
+    retourne extrait_n64(chn) comme n32
+}
+
+extrait_n16_nonsûr :: fonc (chn: chaine) -> n16
+{
+    retourne extrait_n64(chn) comme n16
+}
+
+extrait_n8_nonsûr :: fonc (chn: chaine) -> n8
+{
+    retourne extrait_n64(chn) comme n8
+}
+
+ErreurParsageEntier :: erreur {
+    EntréeMalformée
+    EntréeTropGrande
+}
+
+chaine_ne_contiens_que_des_chiffres :: fonc (chn: chaine) -> bool
+{
+    pour chn {
+        v := (it - '0') comme n32
+
+        si v >= 10 {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+extrait_n64 :: fonc (chn: chaine) -> n64 | ErreurParsageEntier
+{
+    si !chaine_ne_contiens_que_des_chiffres(chn) {
+        retourne ErreurParsageEntier.EntréeMalformée
+    }
+
+    si chn.taille > 22 {
+        retourne ErreurParsageEntier.EntréeTropGrande
+    }
+
+    retourne extrait_n64_nonsûr(chn)
+}
+
+extrait_n32 :: fonc (chn: chaine) -> n32 | ErreurParsageEntier
+{
+    si !chaine_ne_contiens_que_des_chiffres(chn) {
+        retourne ErreurParsageEntier.EntréeMalformée
+    }
+
+    si chn.taille > 10 {
+        retourne ErreurParsageEntier.EntréeTropGrande
+    }
+
+    retourne extrait_n64(chn) comme n32
+}
+
+extrait_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
+{
+    si !chaine_ne_contiens_que_des_chiffres(chn) {
+        retourne ErreurParsageEntier.EntréeMalformée
+    }
+
+    si chn.taille > 5 {
+        retourne ErreurParsageEntier.EntréeTropGrande
+    }
+
+    retourne extrait_n64(chn) comme n16
+}
+
+extrait_n8 :: fonc (chn: chaine) -> n8 | ErreurParsageEntier
+{
+    si !chaine_ne_contiens_que_des_chiffres(chn) {
+        retourne ErreurParsageEntier.EntréeMalformée
+    }
+
+    si chn.taille > 3 {
+        retourne ErreurParsageEntier.EntréeTropGrande
+    }
+
+    retourne extrait_n64(chn) comme n8
+}
