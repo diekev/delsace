@@ -27,6 +27,7 @@
 #include "contexte_generation_code.h"
 #include "operateurs.hh"
 #include "outils_lexemes.hh"
+#include "profilage.hh"
 
 /* ************************************************************************** */
 
@@ -340,6 +341,8 @@ Type *Typeuse::type_pour_lexeme(GenreLexeme lexeme)
 
 TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 {
+	PROFILE_FONCTION;
+
 	POUR (types_pointeurs) {
 		if (it->type_pointe == type) {
 			return it;
@@ -388,6 +391,8 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 
 TypeReference *Typeuse::type_reference_pour(Type *type)
 {
+	PROFILE_FONCTION;
+
 	POUR (types_references) {
 		if (it->type_pointe == type) {
 			return it;
@@ -404,6 +409,8 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
 
 TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 {
+	PROFILE_FONCTION;
+
 	POUR (types_tableaux_fixes) {
 		if (it->type_pointe == type_pointe && it->taille == taille) {
 			return it;
@@ -426,6 +433,8 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 
 TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 {
+	PROFILE_FONCTION;
+
 	POUR (types_tableaux_dynamiques) {
 		if (it->type_pointe == type_pointe) {
 			return it;
@@ -448,6 +457,8 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 
 TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 {
+	PROFILE_FONCTION;
+
 	POUR (types_variadiques) {
 		if (it->type_pointe == type_pointe) {
 			return it;
@@ -495,6 +506,8 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, const kuri::tableau
 
 TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties)
 {
+	PROFILE_FONCTION;
+
 	POUR (types_fonctions) {
 		auto type = discr_type_fonction(it, entrees, sorties);
 
@@ -528,6 +541,8 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 
 TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
 {
+	PROFILE_FONCTION;
+
 	if (type_connu == nullptr) {
 		return type_type_de_donnees_;
 	}
@@ -584,6 +599,8 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
 
 TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
 {
+	PROFILE_FONCTION;
+
 	POUR (types_unions) {
 		if (!it->est_anonyme) {
 			continue;
@@ -660,6 +677,8 @@ TypeEnum *Typeuse::reserve_type_erreur(NoeudEnum *decl)
 
 TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
 {
+	PROFILE_FONCTION;
+
 	POUR (types_polymorphiques) {
 		if (it->ident == ident) {
 			return it;
@@ -901,6 +920,8 @@ dls::chaine chaine_type(const Type *type)
 
 Type *type_dereference_pour(Type *type)
 {
+	PROFILE_FONCTION;
+
 	if (type->genre == GenreType::TABLEAU_FIXE) {
 		return static_cast<TypeTableauFixe *>(type)->type_pointe;
 	}
