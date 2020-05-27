@@ -35,6 +35,7 @@ struct InfoProfilage {
 	InfoProfilage *precedente = nullptr;
 	double temps = 0.0;
 	const char *fonction;
+	int nombre_appels = 0;
 };
 
 extern InfoProfilage s_info_profilage;
@@ -76,6 +77,7 @@ struct ImprimeuseTemps {
 		s_info_profilage.derniere = &info_profilage; \
 	} \
 	info_profilage.fonction = __func__; \
+	info_profilage.nombre_appels += 1; \
 	auto chrono_profile = Chronometre(info_profilage);
 #else
 #define PROFILE_FONCTION

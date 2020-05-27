@@ -34,22 +34,21 @@ static void imprime_infos_profilage()
 {
 	auto premier_info = s_info_profilage.premiere;
 
-	using type_paire = std::pair<double, const char *>;
-	dls::tableau<type_paire> donnees;
+	dls::tableau<InfoProfilage *> donnees;
 
 	while (premier_info != nullptr) {
-		donnees.pousse({ premier_info->temps, premier_info->fonction });
+		donnees.pousse(premier_info);
 		//std::cerr << premier_info->fonction << " : " << premier_info->temps << "µs\n";
 		premier_info = premier_info->suivante;
 	}
 
-	std::sort(donnees.debut(), donnees.fin(), [](type_paire const &a, type_paire const &b)
+	std::sort(donnees.debut(), donnees.fin(), [](InfoProfilage const *a, InfoProfilage const *b)
 	{
-		return a.first > b.first;
+		return a->temps > b->temps;
 	});
 
-	for (auto &paire : donnees) {
-		std::cerr << paire.second << " : " << paire.first << "µs\n";
+	for (auto &info : donnees) {
+		std::cerr << info->fonction << " : " << info->temps << "µs (appels : " << info->nombre_appels << ")\n";
 	}
 }
 
