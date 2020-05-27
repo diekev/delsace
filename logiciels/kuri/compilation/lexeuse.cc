@@ -30,6 +30,7 @@
 
 #include "biblinternes/structures/flux_chaine.hh"
 
+#include "profilage.hh"
 #include "erreur.h"
 
 /* ************************************************************************** */
@@ -109,6 +110,8 @@ Lexeuse::Lexeuse(ContexteGenerationCode &contexte, Fichier *fichier, int drapeau
 
 void Lexeuse::performe_lexage()
 {
+	PROFILE_FONCTION;
+
 	m_taille_mot_courant = 0;
 
 	while (!this->fini()) {
@@ -324,6 +327,8 @@ void Lexeuse::lance_erreur(const dls::chaine &quoi) const
 //    ajoute caractere mot courant
 void Lexeuse::analyse_caractere_simple()
 {
+	PROFILE_FONCTION;
+
 	auto idc = GenreLexeme::INCONNU;
 
 	if (lng::est_espace_blanc(this->caractere_courant())) {
@@ -528,6 +533,8 @@ void Lexeuse::enregistre_pos_mot()
 
 void Lexeuse::lexe_commentaire()
 {
+	PROFILE_FONCTION;
+
 	if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
 		this->enregistre_pos_mot();
 	}
@@ -549,6 +556,8 @@ void Lexeuse::lexe_commentaire()
 
 void Lexeuse::lexe_commentaire_bloc()
 {
+	PROFILE_FONCTION;
+
 	if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
 		this->enregistre_pos_mot();
 	}
@@ -594,6 +603,8 @@ void Lexeuse::lexe_commentaire_bloc()
 
 void Lexeuse::lexe_nombre()
 {
+	PROFILE_FONCTION;
+
 	this->enregistre_pos_mot();
 
 	if (this->caractere_courant() == '0') {
@@ -620,6 +631,8 @@ void Lexeuse::lexe_nombre()
 
 void Lexeuse::lexe_nombre_decimal()
 {
+	PROFILE_FONCTION;
+
 	unsigned long long resultat_entier = 0;
 	unsigned nombre_de_chiffres = 0;
 	auto point_trouve = false;
@@ -706,6 +719,8 @@ void Lexeuse::lexe_nombre_decimal()
 
 void Lexeuse::lexe_nombre_hexadecimal()
 {
+	PROFILE_FONCTION;
+
 	this->avance(2);
 
 	unsigned long long resultat_entier = 0;
@@ -747,6 +762,8 @@ void Lexeuse::lexe_nombre_hexadecimal()
 
 void Lexeuse::lexe_nombre_binaire()
 {
+	PROFILE_FONCTION;
+
 	this->avance(2);
 
 	unsigned long long resultat_entier = 0;
@@ -785,6 +802,8 @@ void Lexeuse::lexe_nombre_binaire()
 
 void Lexeuse::lexe_nombre_octal()
 {
+	PROFILE_FONCTION;
+
 	this->avance(2);
 
 	unsigned long long resultat_entier = 0;
@@ -853,6 +872,8 @@ static int hex_depuis_char(char c)
  */
 unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 {
+	PROFILE_FONCTION;
+
 	auto c = this->caractere_courant();
 	this->avance();
 	this->pousse_caractere();

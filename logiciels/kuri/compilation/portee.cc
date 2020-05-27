@@ -29,9 +29,12 @@
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
 #include "modules.hh"
+#include "profilage.hh"
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 {
+	PROFILE_FONCTION;
+
 	auto bloc_courant = bloc;
 
 	while (bloc_courant != nullptr) {
@@ -49,6 +52,8 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl)
 {
+	PROFILE_FONCTION;
+
 	auto bloc_courant = bloc;
 
 	while (bloc_courant != nullptr) {
@@ -66,6 +71,8 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl)
 
 NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudBase *noeud)
 {
+	PROFILE_FONCTION;
+
 	POUR (bloc->membres) {
 		if (it == noeud) {
 			continue;
@@ -85,6 +92,8 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
 		IdentifiantCode *ident,
 		Fichier *fichier)
 {
+	PROFILE_FONCTION;
+
 	auto decl = trouve_dans_bloc(bloc, ident);
 
 	if (decl != nullptr) {
@@ -110,6 +119,8 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
 
 NoeudDeclaration *trouve_type_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 {
+	PROFILE_FONCTION;
+
 	auto bloc_courant = bloc;
 
 	while (bloc_courant != nullptr) {
@@ -137,6 +148,8 @@ NoeudDeclaration *trouve_type_dans_bloc_ou_module(
 		IdentifiantCode *ident,
 		Fichier *fichier)
 {
+	PROFILE_FONCTION;
+
 	auto decl = trouve_type_dans_bloc(bloc, ident);
 
 	if (decl != nullptr) {
@@ -165,6 +178,8 @@ void trouve_declarations_dans_bloc(
 		NoeudBloc *bloc,
 		IdentifiantCode *ident)
 {
+	PROFILE_FONCTION;
+
 	auto bloc_courant = bloc;
 
 	while (bloc_courant != nullptr) {
@@ -185,6 +200,8 @@ void trouve_declarations_dans_bloc_ou_module(
 		IdentifiantCode *ident,
 		Fichier *fichier)
 {
+	PROFILE_FONCTION;
+
 	trouve_declarations_dans_bloc(declarations, bloc, ident);
 
 	/* cherche dans les modules importés */

@@ -48,6 +48,7 @@ set(SOURCES
 	operateurs.hh
 	outils_lexemes.hh
 	portee.hh
+	profilage.hh
 	structures.hh
 	syntaxeuse.hh
 	transformation_type.hh
@@ -69,6 +70,7 @@ set(SOURCES
 	operateurs.cc
 	outils_lexemes.cc
 	portee.cc
+	profilage.cc
 	structures.cc
 	syntaxeuse.cc
 	transformation_type.cc

@@ -59,6 +59,7 @@
 #include "compilation/erreur.h"
 #include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
+#include "compilation/profilage.hh"
 #include "compilation/structures.hh"
 #include "compilation/syntaxeuse.hh"
 #include "compilation/validation_semantique.hh"
@@ -179,6 +180,7 @@ static void initialise_optimisation(
 
 static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module &module)
 {
+	PROFILE_FONCTION;
 #if 1
 	auto chemin_sortie = "/tmp/kuri.o";
 	std::error_code ec;
@@ -226,6 +228,7 @@ static bool valide_llvm_ir(llvm::Module &module)
 
 static bool cree_executable(const kuri::chaine &dest, const std::filesystem::path &racine_kuri)
 {
+	PROFILE_FONCTION;
 	/* Compile le fichier objet qui appelera 'fonction principale'. */
 	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
 		auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";
@@ -279,6 +282,7 @@ static void imprime_stats(
 		Metriques const &metriques,
 		dls::chrono::compte_seconde debut_compilation)
 {
+	PROFILE_FONCTION;
 	auto const temps_total = debut_compilation.temps();
 
 	auto const temps_scene = metriques.temps_tampon
@@ -474,6 +478,7 @@ static bool lance_execution(ContexteGenerationCode &contexte)
 
 static void initialise_interface_kuri(ContexteGenerationCode &contexte)
 {
+	PROFILE_FONCTION;
 	auto module = contexte.module("Kuri");
 	contexte.interface_kuri.decl_panique = cherche_fonction_dans_module(contexte, module, "panique");
 	contexte.interface_kuri.decl_panique_memoire = cherche_fonction_dans_module(contexte, module, "panique_hors_mémoire");
@@ -506,6 +511,9 @@ static void initialise_interface_kuri(ContexteGenerationCode &contexte)
 
 int main(int argc, char *argv[])
 {
+	INITIALISE_PROFILAGE;
+	PROFILE_FONCTION;
+
 	std::ios::sync_with_stdio(false);
 
 	if (argc < 2) {

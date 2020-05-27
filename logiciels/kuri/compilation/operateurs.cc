@@ -27,6 +27,7 @@
 #include "biblinternes/structures/dico_fixe.hh"
 
 #include "lexemes.hh"
+#include "profilage.hh"
 
 static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 		GenreLexeme genre_lexeme,
@@ -469,6 +470,8 @@ OperateurBinaire *Operateurs::ajoute_basique(
 		Type *type_resultat,
 		IndiceTypeOp indice_type)
 {
+	PROFILE_FONCTION;
+
 	assert(type1);
 	assert(type2);
 
@@ -484,6 +487,8 @@ OperateurBinaire *Operateurs::ajoute_basique(
 
 void Operateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat)
 {
+	PROFILE_FONCTION;
+
 	auto op = operateurs_unaires[id].ajoute_element();
 	op->type_operande = type;
 	op->type_resultat = type_resultat;
@@ -498,6 +503,8 @@ void Operateurs::ajoute_perso(
 		Type *type_resultat,
 		NoeudDeclarationFonction *decl)
 {
+	PROFILE_FONCTION;
+
 	auto op = operateurs_binaires[id].ajoute_element();
 	op->type1 = type1;
 	op->type2 = type2;
@@ -513,6 +520,8 @@ void Operateurs::ajoute_perso_unaire(
 		Type *type_resultat,
 		NoeudDeclarationFonction *decl)
 {
+	PROFILE_FONCTION;
+
 	auto op = operateurs_unaires[id].ajoute_element();
 	op->type_operande = type;
 	op->type_resultat = type_resultat;
@@ -580,6 +589,8 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		Type *type2,
 		GenreLexeme type_op)
 {
+	PROFILE_FONCTION;
+
 	assert(type1);
 	assert(type2);
 
@@ -652,6 +663,8 @@ const OperateurUnaire *cherche_operateur_unaire(
 		Type *type1,
 		GenreLexeme type_op)
 {
+	PROFILE_FONCTION;
+
 	auto &iter = operateurs.trouve_unaire(type_op);
 
 	for (auto i = 0; i < iter.taille(); ++i) {

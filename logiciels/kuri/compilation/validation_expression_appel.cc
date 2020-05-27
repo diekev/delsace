@@ -31,6 +31,7 @@
 #include "erreur.h"
 #include "modules.hh"
 #include "portee.hh"
+#include "profilage.hh"
 #include "validation_semantique.hh"
 
 enum {
@@ -49,6 +50,8 @@ static auto trouve_candidates_pour_fonction_appelee(
 		ContexteGenerationCode &contexte,
 		NoeudExpression *appelee)
 {
+	PROFILE_FONCTION;
+
 	auto candidates = dls::tableau<CandidateExpressionAppel>();
 
 	auto fichier = contexte.fichier(static_cast<size_t>(appelee->lexeme->fichier));
@@ -134,6 +137,8 @@ static double verifie_compatibilite(
 		NoeudBase *enfant,
 		TransformationType &transformation)
 {
+	PROFILE_FONCTION;
+
 	transformation = cherche_transformation(contexte, type_enf, type_arg);
 
 	if (transformation.type == TypeTransformation::INUTILE) {
@@ -159,6 +164,8 @@ static auto apparie_appel_pointeur(
 		ContexteGenerationCode &contexte,
 		kuri::tableau<IdentifiantEtExpression> const &args)
 {
+	PROFILE_FONCTION;
+
 	auto resultat = DonneesCandidate{};
 
 	if (type->genre != GenreType::FONCTION) {
@@ -247,6 +254,8 @@ static auto apparie_appel_init_de(
 		NoeudExpression *expr,
 		kuri::tableau<IdentifiantEtExpression> const &args)
 {
+	PROFILE_FONCTION;
+
 	auto resultat = DonneesCandidate{};
 
 	if (args.taille > 1) {
@@ -286,6 +295,8 @@ static auto apparie_appel_init_de(
 
 static Type *apparie_type_gabarit(Type *type, Type *type_polymorphique)
 {
+	PROFILE_FONCTION;
+
 	auto type_courant = type;
 	auto type_courant_poly = type_polymorphique;
 
@@ -353,6 +364,8 @@ static DonneesCandidate apparie_appel_fonction(
 		NoeudDeclarationFonction const *decl,
 		kuri::tableau<IdentifiantEtExpression> const &args)
 {
+	PROFILE_FONCTION;
+
 	auto res = DonneesCandidate{};
 	res.note = CANDIDATE_EST_APPEL_FONCTION;
 	res.noeud_decl = decl;
@@ -669,6 +682,8 @@ static auto apparie_appel_structure(
 		NoeudStruct *decl_struct,
 		kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
+	PROFILE_FONCTION;
+
 	auto resultat = DonneesCandidate{};
 	auto type_struct = static_cast<TypeStructure *>(decl_struct->type);
 
@@ -787,6 +802,8 @@ static auto trouve_candidates_pour_appel(
 		NoeudExpressionAppel *expr,
 		kuri::tableau<IdentifiantEtExpression> &args)
 {
+	PROFILE_FONCTION;
+
 	auto candidates_appel = trouve_candidates_pour_fonction_appelee(contexte, expr->appelee);
 
 	if (candidates_appel.taille() == 0) {
@@ -855,6 +872,8 @@ void valide_appel_fonction(
 		NoeudExpressionAppel *expr,
 		bool expr_gauche)
 {
+	PROFILE_FONCTION;
+
 	auto fonction_courante = contexte.donnees_fonction;
 	auto &donnees_dependance = contexte.donnees_dependance;
 

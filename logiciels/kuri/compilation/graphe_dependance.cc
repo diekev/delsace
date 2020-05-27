@@ -26,6 +26,7 @@
 
 #include "contexte_generation_code.h"
 #include "modules.hh"
+#include "profilage.hh"
 
 const char *chaine_type_relation(TypeRelation type)
 {
@@ -50,6 +51,8 @@ GrapheDependance::~GrapheDependance()
 
 NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationFonction *noeud_syntactique)
 {
+	PROFILE_FONCTION;
+
 	/* différents modules peuvent déclarer la même fonction externe (p.e printf),
 	 * donc cherche d'abord le noeud. */
 	auto noeud = cherche_noeud_fonction(noeud_syntactique->nom_broye);
@@ -68,6 +71,8 @@ NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationFonction 
 
 NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *noeud_syntactique)
 {
+	PROFILE_FONCTION;
+
 	auto noeud = memoire::loge<NoeudDependance>("NoeudDependance");
 	noeud->nom = noeud_syntactique->ident->nom;
 	noeud->noeud_syntactique = noeud_syntactique;
@@ -80,6 +85,8 @@ NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *
 
 NoeudDependance *GrapheDependance::cree_noeud_type(Type *type)
 {
+	PROFILE_FONCTION;
+
 	auto noeud = cherche_noeud_type(type);
 
 	if (noeud == nullptr) {
@@ -96,6 +103,8 @@ NoeudDependance *GrapheDependance::cree_noeud_type(Type *type)
 
 NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_compacte &nom) const
 {
+	PROFILE_FONCTION;
+
 	for (auto noeud : noeuds) {
 		if (noeud->type != TypeNoeudDependance::FONCTION) {
 			continue;
@@ -111,6 +120,8 @@ NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_
 
 NoeudDependance *GrapheDependance::cherche_noeud_globale(const dls::vue_chaine_compacte &nom) const
 {
+	PROFILE_FONCTION;
+
 	for (auto noeud : noeuds) {
 		if (noeud->type != TypeNoeudDependance::GLOBALE) {
 			continue;
@@ -126,6 +137,8 @@ NoeudDependance *GrapheDependance::cherche_noeud_globale(const dls::vue_chaine_c
 
 NoeudDependance *GrapheDependance::cherche_noeud_type(Type *type) const
 {
+	PROFILE_FONCTION;
+
 	auto iter = index_noeuds_type.trouve(type);
 
 	if (iter != index_noeuds_type.fin()) {
@@ -137,6 +150,8 @@ NoeudDependance *GrapheDependance::cherche_noeud_type(Type *type) const
 
 void GrapheDependance::connecte_fonction_fonction(NoeudDependance &fonction1, NoeudDependance &fonction2)
 {
+	PROFILE_FONCTION;
+
 	assert(fonction1.type == TypeNoeudDependance::FONCTION);
 	assert(fonction2.type == TypeNoeudDependance::FONCTION);
 
@@ -163,6 +178,8 @@ void GrapheDependance::connecte_fonction_globale(
 		NoeudDependance &fonction,
 		NoeudDependance &globale)
 {
+	PROFILE_FONCTION;
+
 	assert(fonction.type == TypeNoeudDependance::FONCTION);
 	assert(globale.type == TypeNoeudDependance::GLOBALE);
 
@@ -187,6 +204,8 @@ void GrapheDependance::connecte_fonction_globale(
 
 void GrapheDependance::connecte_fonction_type(NoeudDependance &fonction, NoeudDependance &type)
 {
+	PROFILE_FONCTION;
+
 	assert(fonction.type == TypeNoeudDependance::FONCTION);
 	assert(type.type == TypeNoeudDependance::TYPE);
 
@@ -201,6 +220,8 @@ void GrapheDependance::connecte_fonction_type(NoeudDependance &fonction, NoeudDe
 
 void GrapheDependance::connecte_type_type(NoeudDependance &type1, NoeudDependance &type2, TypeRelation type_rel)
 {
+	PROFILE_FONCTION;
+
 	assert(type1.type == TypeNoeudDependance::TYPE);
 	assert(type2.type == TypeNoeudDependance::TYPE);
 
@@ -239,6 +260,8 @@ void GrapheDependance::connecte_noeuds(
 		NoeudDependance &noeud2,
 		TypeRelation type_relation)
 {
+	PROFILE_FONCTION;
+
 	for (auto const &relation : noeud1.relations) {
 		if (relation.type == type_relation && relation.noeud_fin == &noeud2) {
 			return;
@@ -252,6 +275,8 @@ void GrapheDependance::ajoute_dependances(
 		NoeudDependance &noeud,
 		DonneesDependance &donnees)
 {
+	PROFILE_FONCTION;
+
 	dls::pour_chaque_element(donnees.types_utilises, [&](auto &type)
 	{
 		auto noeud_type = cree_noeud_type(type);
@@ -331,6 +356,8 @@ static void marque_chemins_atteignables(NoeudDependance &noeud)
 
 void reduction_transitive(GrapheDependance &graphe_dependance)
 {
+	PROFILE_FONCTION;
+
 	std::cout << "Réduction transitive du graphe..." << std::endl;
 
 	auto relations_supprimees = 0;

@@ -26,6 +26,7 @@
 
 #include "contexte_generation_code.h"
 #include "outils_lexemes.hh"
+#include "profilage.hh"
 
 const char *chaine_transformation(TypeTransformation type)
 {
@@ -88,6 +89,8 @@ TransformationType cherche_transformation(
 		Type *type_de,
 		Type *type_vers)
 {
+	PROFILE_FONCTION;
+
 	if (type_de == type_vers) {
 		return TypeTransformation::INUTILE;
 	}
