@@ -55,7 +55,7 @@ NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationFonction 
 
 	/* différents modules peuvent déclarer la même fonction externe (p.e printf),
 	 * donc cherche d'abord le noeud. */
-	auto noeud = cherche_noeud_fonction(noeud_syntactique->nom_broye);
+	auto noeud = cherche_noeud_fonction(noeud_syntactique);
 
 	if (noeud == nullptr) {
 		noeud = memoire::loge<NoeudDependance>("NoeudDependance");
@@ -63,6 +63,7 @@ NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationFonction 
 		noeud->noeud_syntactique = noeud_syntactique;
 		noeud->type = TypeNoeudDependance::FONCTION;
 
+		index_noeuds_fonction.insere({noeud_syntactique->nom_broye, noeud});
 		noeuds.pousse(noeud);
 	}
 
@@ -101,18 +102,27 @@ NoeudDependance *GrapheDependance::cree_noeud_type(Type *type)
 	return noeud;
 }
 
+NoeudDependance *GrapheDependance::cherche_noeud_fonction(NoeudDeclarationFonction const *noeud_syntactique) const
+{
+	PROFILE_FONCTION;
+
+	auto iter = index_noeuds_fonction.trouve(noeud_syntactique->nom_broye);
+
+	if (iter != index_noeuds_fonction.fin()) {
+		return iter->second;
+	}
+
+	return nullptr;
+}
+
 NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_compacte &nom) const
 {
 	PROFILE_FONCTION;
 
-	for (auto noeud : noeuds) {
-		if (noeud->type != TypeNoeudDependance::FONCTION) {
-			continue;
-		}
+	auto iter = index_noeuds_fonction.trouve(nom);
 
-		if (noeud->nom == nom) {
-			return noeud;
-		}
+	if (iter != index_noeuds_fonction.fin()) {
+		return iter->second;
 	}
 
 	return nullptr;
@@ -232,7 +242,7 @@ void GrapheDependance::ajoute_dependances(
 
 	dls::pour_chaque_element(donnees.fonctions_utilisees, [&](auto &fonction_utilisee)
 	{
-		auto noeud_type = cherche_noeud_fonction(fonction_utilisee->nom_broye);
+		auto noeud_type = cherche_noeud_fonction(fonction_utilisee);
 		connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_FONCTION);
 		return dls::DecisionIteration::Continue;
 	});

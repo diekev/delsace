@@ -96,6 +96,11 @@ struct GrapheDependance {
 
 	dls::dico<Type *, NoeudDependance *> index_noeuds_type{};
 
+	// À FAIRE : nous pourrions utiliser le pointeur au lieu d'une chaine, mais
+	// ceci fait échoué la génération de code depuis la RI (collision de hachage ?)
+	// D'après un profilage, ceci diviserait par deux le temps passé à faire cette requête.
+	dls::dico<dls::chaine, NoeudDependance *> index_noeuds_fonction{};
+
 	~GrapheDependance();
 
 	// CRÉE (:FONCTION { nom = $nom })
@@ -108,6 +113,7 @@ struct GrapheDependance {
 	NoeudDependance *cree_noeud_type(Type *type);
 
 	// CHERCHE (:FONCTION { nom = $nom })
+	NoeudDependance *cherche_noeud_fonction(NoeudDeclarationFonction const *noeud_syntactique) const;
 	NoeudDependance *cherche_noeud_fonction(dls::vue_chaine_compacte const &nom) const;
 
 	// CHERCHE (:GLOBALE { nom = $nom })
