@@ -1108,11 +1108,11 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     lexeuse.code_référence_caractère *= 16
                     lexeuse.code_référence_caractère += (c - 0x30)
                 }
-                sinon si est_ascii_alpha_minuscule(c) {
+                sinon si est_ascii_chiffre_hex_maj(c) {
                     lexeuse.code_référence_caractère *= 16
                     lexeuse.code_référence_caractère += (c - 0x37)
                 }
-                sinon si est_ascii_alpha_majuscule(c) {
+                sinon si est_ascii_chiffre_hex_min(c) {
                     lexeuse.code_référence_caractère *= 16
                     lexeuse.code_référence_caractère += (c - 0x57)
                 }
