@@ -1,4 +1,5 @@
 importe CodecDonnées
+importe Fondation
 
 test_codec :: fonc () -> rien
 {
