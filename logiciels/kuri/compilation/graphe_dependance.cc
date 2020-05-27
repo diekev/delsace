@@ -164,60 +164,6 @@ void GrapheDependance::connecte_fonction_fonction(NoeudDependance &fonction1, No
 	fonction1.relations.pousse({ TypeRelation::UTILISE_FONCTION, &fonction1, &fonction2 });
 }
 
-void GrapheDependance::connecte_fonction_fonction(
-		dls::vue_chaine_compacte const &fonction1,
-		dls::vue_chaine_compacte const &fonction2)
-{
-	auto noeud1 = cherche_noeud_fonction(fonction1);
-	auto noeud2 = cherche_noeud_fonction(fonction2);
-
-	connecte_fonction_fonction(*noeud1, *noeud2);
-}
-
-void GrapheDependance::connecte_fonction_globale(
-		NoeudDependance &fonction,
-		NoeudDependance &globale)
-{
-	PROFILE_FONCTION;
-
-	assert(fonction.type == TypeNoeudDependance::FONCTION);
-	assert(globale.type == TypeNoeudDependance::GLOBALE);
-
-	for (auto const &relation : fonction.relations) {
-		if (relation.type == TypeRelation::UTILISE_GLOBALE && relation.noeud_fin == &globale) {
-			return;
-		}
-	}
-
-	fonction.relations.pousse({ TypeRelation::UTILISE_GLOBALE, &fonction, &globale });
-}
-
-void GrapheDependance::connecte_fonction_globale(
-		const dls::vue_chaine_compacte &fonction,
-		const dls::vue_chaine_compacte &globale)
-{
-	auto noeud1 = cherche_noeud_fonction(fonction);
-	auto noeud2 = cherche_noeud_fonction(globale);
-
-	connecte_fonction_globale(*noeud1, *noeud2);
-}
-
-void GrapheDependance::connecte_fonction_type(NoeudDependance &fonction, NoeudDependance &type)
-{
-	PROFILE_FONCTION;
-
-	assert(fonction.type == TypeNoeudDependance::FONCTION);
-	assert(type.type == TypeNoeudDependance::TYPE);
-
-	for (auto const &relation : fonction.relations) {
-		if (relation.type == TypeRelation::UTILISE_TYPE && relation.noeud_fin == &type) {
-			return;
-		}
-	}
-
-	fonction.relations.pousse({ TypeRelation::UTILISE_TYPE, &fonction, &type });
-}
-
 void GrapheDependance::connecte_type_type(NoeudDependance &type1, NoeudDependance &type2, TypeRelation type_rel)
 {
 	PROFILE_FONCTION;

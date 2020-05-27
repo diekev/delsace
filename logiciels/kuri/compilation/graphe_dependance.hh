@@ -121,20 +121,6 @@ struct GrapheDependance {
 	// FUSIONNE (fonction1)-[:UTILISE_FONCTION]->(fonction2)
 	void connecte_fonction_fonction(NoeudDependance &fonction1, NoeudDependance &fonction2);
 
-	void connecte_fonction_fonction(const dls::vue_chaine_compacte &fonction1, const dls::vue_chaine_compacte &fonction2);
-
-	// CHERCHE (fonction :FONCTION { nom = $nom1 })
-	// CHERCHE (globale :GLOBALE { nom = $nom2 })
-	// FUSIONNE (fonction)-[:UTILISE_FONCTION]->(globale)
-	void connecte_fonction_globale(NoeudDependance &fonction, NoeudDependance &globale);
-
-	void connecte_fonction_globale(const dls::vue_chaine_compacte &fonction, const dls::vue_chaine_compacte &globale);
-
-	// CHERCHE (fonction :FONCTION { nom = $nom })
-	// CHERCHE (type :TYPE { index = $index })
-	// FUSIONNE (fonction)-[:UTILISE_TYPE]->(type)
-	void connecte_fonction_type(NoeudDependance &fonction, NoeudDependance &type);
-
 	// CHERCHE (type1 :TYPE { index = $index1 })
 	// CHERCHE (type2 :TYPE { index = $index1 })
 	// FUSIONNE (type1)-[:UTILISE_TYPE]->(type2)
