@@ -318,24 +318,19 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 }
                 sinon si est_ascii_alpha(c) {
                     lexeuse.crée_lexème(GenreLexème.DébutTag)
-                    // reconsomme
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.TagName
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.TagName)
                 }
                 sinon si c == POINT_INTERROGATION {
                     // @erreur unexpected-question-mark-instead-of-tag-name parse error
                     lexeuse.crée_lexème(GenreLexème.Commentaire)
-
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.BogusComment
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusComment)
                 }
                 sinon si c == FIN_DE_FICHIER {
                     retourne lexeuse.émet_léxème_fin_de_fichier()
                 }
                 sinon {
                     // @erreur invalid-first-character-of-tag-name parse error
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.Data
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.Data)
                     retourne lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
                 }
             }
@@ -366,9 +361,8 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
             }
             EndTagOpen {
                 si est_ascii_alpha(c) {
-                    lexeuse.curseur -= 1
                     lexeuse.crée_lexème(GenreLexème.FinTag)
-                    lexeuse.état = ÉtatLexage.TagName
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.TagName)
                 }
                 sinon si c == CHEVRON_FERMANT {
                     // @erreur missing-end-tag-name parse error
@@ -383,8 +377,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 sinon {
                     // @erreur invalid-first-character-of-tag-name parse error
                     lexeuse.crée_lexème(GenreLexème.Commentaire)
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.BogusComment
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusComment)
                 }
             }
             MarkupDeclarationOpen {
@@ -409,9 +402,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     lexeuse.état = ÉtatLexage.BeforeDOCTYPEName
                 }
                 sinon si c == CHEVRON_FERMANT {
-                    // reconsomme
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.BeforeDOCTYPEName
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BeforeDOCTYPEName)
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
@@ -424,9 +415,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 }
                 sinon {
                     // @erreur missing-whitespace-before-doctype-name parse error
-                    // reconsomme
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.DOCTYPEName
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.DOCTYPEName)
                 }
             }
             BeforeDOCTYPEName {
@@ -530,9 +519,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     // ignore
                 }
                 sinon si c == SLASH || c == CHEVRON_FERMANT || c == FIN_DE_FICHIER {
-                    // reconsomme
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.AfterAttributeName
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.AfterAttributeName)
                 }
                 sinon si c == EGAL {
                     lexeuse.état = ÉtatLexage.AttributeName
@@ -541,18 +528,14 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.nom, c)
                 }
                 sinon {
-                    // reconsomme
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.AttributeName
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.AttributeName)
 
                     ajoute_attribut(@lexeuse.lexème_courant)
                 }
             }
             AttributeName {
                 si est_espace_blanc_html(c) || c == SLASH || c == CHEVRON_FERMANT || c == FIN_DE_FICHIER {
-                    // reconsomme
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.AfterAttributeName
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.AfterAttributeName)
                 }
                 sinon si c == EGAL {
                     lexeuse.état = ÉtatLexage.BeforeAttributeValue
@@ -596,9 +579,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 }
                 sinon {
                     ajoute_attribut(@lexeuse.lexème_courant)
-
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.AttributeName
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.AttributeName)
                 }
             }
             BeforeAttributeValue {
@@ -617,8 +598,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     retourne lexeuse.émet_léxème()
                 }
                 sinon {
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.AttributeValueUnquoted
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.AttributeValueUnquoted)
                 }
             }
             AttributeValueDoubleQuoted {
@@ -702,8 +682,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 }
                 sinon {
                     // @erreur missing-whitespace-between-attributes parse error, reconsomme
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.BeforeAttributeName
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BeforeAttributeName)
                 }
             }
             SelfClosingStartTag {
@@ -718,8 +697,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 }
                 sinon {
                     // @erreur unexpected-solidus-in-tag parse error, reconsomme
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.BeforeAttributeName
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BeforeAttributeName)
                 }
             }
             RCDATA {
@@ -760,20 +738,17 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     lexeuse.état = ÉtatLexage.RCDATAEndTagOpen
                 }
                 sinon {
-                    lexeuse.état = ÉtatLexage.RCDATA
-                    lexeuse.curseur -= 1
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATA)
                     retourne lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
                 }
             }
             RCDATAEndTagOpen {
                 si est_ascii_alpha(c) {
                     lexeuse.crée_lexème(GenreLexème.FinTag)
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.RCDATAEndTagName
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATAEndTagName)
                 }
                 sinon {
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.RCDATA
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATA)
 
                     // XXX - À FAIRE : émettre plusieurs léxèmes
                     _ := lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
@@ -802,8 +777,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     chaine_ajoute(@lexeuse.tampon_temporaire, c)
                 }
                 sinon {
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.RCDATA
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATA)
 
                     // XXX - À FAIRE : émettre plusieurs léxèmes, dont un pour chaque caractère du tampon temporaire
                     _ := lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
@@ -816,20 +790,17 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     lexeuse.état = ÉtatLexage.RAWTEXTEndTagOpen
                 }
                 sinon {
-                    lexeuse.état = ÉtatLexage.RAWTEXT
-                    lexeuse.curseur -= 1
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXT)
                     retourne lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
                 }
             }
             RAWTEXTEndTagOpen {
                 si est_ascii_alpha(c) {
                     lexeuse.crée_lexème(GenreLexème.FinTag)
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.RAWTEXTEndTagName
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXTEndTagName)
                 }
                 sinon {
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.RAWTEXT
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXT)
 
                     // XXX - À FAIRE : émettre plusieurs léxèmes
                     _ := lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
@@ -858,8 +829,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     chaine_ajoute(@lexeuse.tampon_temporaire, c)
                 }
                 sinon {
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.RAWTEXT
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXT)
 
                     // XXX - À FAIRE : émettre plusieurs léxèmes, dont un pour chaque caractère du tampon temporaire
                     _ := lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
@@ -875,8 +845,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     retourne lexeuse.émet_léxème()
                 }
                 sinon {
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.Comment
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment)
                 }
             }
             CommentStartDash {
@@ -894,8 +863,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 }
                 sinon {
                     chaine_ajoute(@lexeuse.lexème_courant.données, '-')
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.Comment
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment)
                 }
             }
             Comment {
@@ -927,8 +895,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     chaine_ajoute(@lexeuse.lexème_courant.données, c)
                 }
                 sinon {
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.Comment
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment)
                 }
             }
             CommentLessThanSignBang {
@@ -936,8 +903,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     lexeuse.état = ÉtatLexage.CommentLessThanSignBangDash
                 }
                 sinon {
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.Comment
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment)
                 }
             }
             CommentLessThanSignBangDash {
@@ -945,19 +911,16 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     lexeuse.état = ÉtatLexage.CommentLessThanSignBangDashDash
                 }
                 sinon {
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.CommentEndDash
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.CommentEndDash)
                 }
             }
             CommentLessThanSignBangDashDash {
                 si c == CHEVRON_FERMANT || c == FIN_DE_FICHIER {
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.CommentEnd
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.CommentEnd)
                 }
                 sinon {
                     // @erreur nested-comment parse error
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.CommentEnd
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.CommentEnd)
                 }
             }
             CommentEndDash {
@@ -971,8 +934,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 }
                 sinon {
                     chaine_ajoute(@lexeuse.lexème_courant.données, '-')
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.Comment
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment)
                 }
             }
             CommentEnd {
@@ -993,8 +955,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 }
                 sinon {
                     chaine_ajoute(@lexeuse.lexème_courant.données, "--")
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.Comment
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment)
                 }
             }
             CommentEndBang {
@@ -1013,8 +974,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 }
                 sinon {
                     chaine_ajoute(@lexeuse.lexème_courant.données, "--!")
-                    lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.Comment
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.Comment)
                 }
             }
             CharacterReference {
