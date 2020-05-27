@@ -102,52 +102,91 @@ FIN_DE_FICHIER :: 0xffffffff comme n32
 // --------------------------------------------
 
 ÉtatLexage :: énum {
-    Données
-    DOCTYPE
-    OuvertureTag
-    FinOuvertureTag
-    RéférenceCaractère
-    OuvreDéclarationMarkup
-    AvantNomDoctype
-    NomDoctype
-    AprèsNomDoctype
-    NomTag
-    AvantNomAttribut
-    NomAttribut
-    AprèsNomAttribut
-    AvantValeurAttribut
-    ValeurAttributGuillemetDouble
-    ValeurAttributGuillemetSimple
-    ValeurAttributSansGuillemet
-    AprèsValeurAttributGuillemet
-    TagDébutAutoFermant
-    CommentaireBogus
-    AprèsDoctypeMotCléPublic
-    AprèsDoctypeMotCléSystem
-    DoctypeBogus
+    Data
     RCDATA
-    RawText
+    RAWTEXT
+    ScriptData
+    PLAINTEXT
+    TagOpen
+    EndTagOpen
+    TagName
     RCDATALessThanSign
     RCDATAEndTagOpen
     RCDATAEndTagName
-    RawTextLessThanSign
-    RawTextEndTagOpen
-    RawTextEndTagName
+    RAWTEXTLessThanSign
+    RAWTEXTEndTagOpen
+    RAWTEXTEndTagName
+    ScriptDataLessThanSign
+    ScriptDataEndTagOpen
+    ScriptDataEndTagName
+    ScriptDataEscapeStart
+    ScriptDataEscapeStartDash
+    ScriptDataEscaped
+    ScriptDataEscapedDash
+    ScriptDataEscapedDashDash
+    ScriptDataEscapedLessThanSign
+    ScriptDataEscapedEndTagOpen
+    ScriptDataEscapedEndTagName
+    ScriptDataDoubleEscapeStart
+    ScriptDataDoubleEscaped
+    ScriptDataDoubleEscapedDash
+    ScriptDataDoubleEscapedDashDash
+    ScriptDataDoubleEscapedLessThanSign
+    ScriptDataDoubleEscapeEnd
+    BeforeAttributeName
+    AttributeName
+    AfterAttributeName
+    BeforeAttributeValue
+    AttributeValueDoubleQuoted
+    AttributeValueSingleQuoted
+    AttributeValueUnquoted
+    AfterAttributeValueQuoted
+    SelfClosingStartTag
+    BogusComment
+    MarkupDeclarationOpen
     CommentStart
     CommentStartDash
     Comment
-    CommentEnd
     CommentLessThanSign
     CommentLessThanSignBang
     CommentLessThanSignBangDash
     CommentLessThanSignBangDashDash
     CommentEndDash
+    CommentEnd
     CommentEndBang
+    DOCTYPE
+    BeforeDOCTYPEName
+    DOCTYPEName
+    AfterDOCTYPEName
+    AfterDOCTYPEPublicKeyword
+    BeforeDOCTYPEPublicIdentifier
+    DOCTYPEPublicIdentifierDoubleQuoted
+    DOCTYPEPublicIdentifierSingleQuoted
+    AfterDOCTYPEPublicIdentifier
+    BetweenDOCTYPEPublicAndSystemIdentifiers
+    AfterDOCTYPESystemKeyword
+    BeforeDOCTYPESystemIdentifier
+    DOCTYPESystemIdentifierDoubleQuoted
+    DOCTYPESystemIdentifierSingleQuoted
+    AfterDOCTYPESystemIdentifier
+    BogusDOCTYPE
+    CDATASection
+    CDATASectionBracket
+    CDATASectionEnd
+    CharacterReference
+    NamedCharacterReference
+    AmbiguousAmpersand
+    NumericCharacterReference
+    HexadecimalCharacterReferenceStart
+    DecimalCharacterReferenceStart
+    HexadecimalCharacterReference
+    DecimalCharacterReference
+    NumericCharacterReferenceEnd
 }
 
 Lexeuse :: struct {
-    état := ÉtatLexage.Données
-    état_retour := ÉtatLexage.Données
+    état := ÉtatLexage.Data
+    état_retour := ÉtatLexage.Data
 
     document: chaine
     curseur := 0
@@ -260,13 +299,13 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
         c := lexeuse.point_de_code_suivant()
 
         discr lexeuse.état {
-            Données {
+            Data {
                 si c == ESPERLUETTE {
-                    lexeuse.état_retour = ÉtatLexage.Données
-                    lexeuse.état = ÉtatLexage.RéférenceCaractère
+                    lexeuse.état_retour = ÉtatLexage.Data
+                    lexeuse.état = ÉtatLexage.CharacterReference
                 }
                 sinon si c == CHEVRON_OUVRANT {
-                    lexeuse.état = ÉtatLexage.OuvertureTag
+                    lexeuse.état = ÉtatLexage.TagOpen
                 }
                 sinon si c == NUL {
                     // @erreur unexpected-null-character parse error
@@ -279,25 +318,25 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     retourne lexeuse.émet_léxème_caractère(c)
                 }
             }
-            OuvertureTag {
+            TagOpen {
                 si c == POINT_EXCLAMATION {
-                    lexeuse.état = ÉtatLexage.OuvreDéclarationMarkup
+                    lexeuse.état = ÉtatLexage.MarkupDeclarationOpen
                 }
                 sinon si c == SLASH {
-                    lexeuse.état = ÉtatLexage.FinOuvertureTag
+                    lexeuse.état = ÉtatLexage.EndTagOpen
                 }
                 sinon si est_ascii_alpha(c) {
                     lexeuse.crée_lexème(GenreLexème.DébutTag)
                     // reconsomme
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.NomTag
+                    lexeuse.état = ÉtatLexage.TagName
                 }
                 sinon si c == POINT_INTERROGATION {
                     // @erreur unexpected-question-mark-instead-of-tag-name parse error
                     lexeuse.crée_lexème(GenreLexème.Commentaire)
 
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.CommentaireBogus
+                    lexeuse.état = ÉtatLexage.BogusComment
                 }
                 sinon si c == FIN_DE_FICHIER {
                     retourne lexeuse.émet_léxème_fin_de_fichier()
@@ -305,19 +344,19 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 sinon {
                     // @erreur invalid-first-character-of-tag-name parse error
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
                 }
             }
-            NomTag {
+            TagName {
                 si est_espace_blanc_html(c) {
-                    lexeuse.état = ÉtatLexage.AvantNomAttribut
+                    lexeuse.état = ÉtatLexage.BeforeAttributeName
                 }
                 sinon si c == SLASH {
-                    lexeuse.état = ÉtatLexage.TagDébutAutoFermant
+                    lexeuse.état = ÉtatLexage.SelfClosingStartTag
                 }
                 sinon si c == CHEVRON_FERMANT {
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème()
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
@@ -334,15 +373,15 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c)
                 }
             }
-            FinOuvertureTag {
+            EndTagOpen {
                 si est_ascii_alpha(c) {
                     lexeuse.curseur -= 1
                     lexeuse.crée_lexème(GenreLexème.FinTag)
-                    lexeuse.état = ÉtatLexage.NomTag
+                    lexeuse.état = ÉtatLexage.TagName
                 }
                 sinon si c == CHEVRON_FERMANT {
                     // @erreur missing-end-tag-name parse error
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-before-tag-name parse error.
@@ -354,10 +393,10 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     // @erreur invalid-first-character-of-tag-name parse error
                     lexeuse.crée_lexème(GenreLexème.Commentaire)
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.CommentaireBogus
+                    lexeuse.état = ÉtatLexage.BogusComment
                 }
             }
-            OuvreDéclarationMarkup {
+            MarkupDeclarationOpen {
                 // ne consomme pas
                 lexeuse.curseur -= 1
 
@@ -376,12 +415,12 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
             }
             DOCTYPE {
                 si est_espace_blanc_html(c) {
-                    lexeuse.état = ÉtatLexage.AvantNomDoctype
+                    lexeuse.état = ÉtatLexage.BeforeDOCTYPEName
                 }
                 sinon si c == CHEVRON_FERMANT {
                     // reconsomme
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.AvantNomDoctype
+                    lexeuse.état = ÉtatLexage.BeforeDOCTYPEName
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
@@ -396,29 +435,29 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     // @erreur missing-whitespace-before-doctype-name parse error
                     // reconsomme
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.NomDoctype
+                    lexeuse.état = ÉtatLexage.DOCTYPEName
                 }
             }
-            AvantNomDoctype {
+            BeforeDOCTYPEName {
                 si est_espace_blanc_html(c) {
                     // ignore
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
                     lexeuse.crée_lexème(GenreLexème.Doctype)
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
-                    lexeuse.état = ÉtatLexage.NomDoctype
+                    lexeuse.état = ÉtatLexage.DOCTYPEName
                 }
                 sinon si c == NUL {
                     // @erreur unexpected-null-character parse error
                     lexeuse.crée_lexème(GenreLexème.Doctype)
                     chaine_ajoute(@lexeuse.lexème_courant.nom, CARACTÈRE_REMPLACEMENT)
-                    lexeuse.état = ÉtatLexage.NomDoctype
+                    lexeuse.état = ÉtatLexage.DOCTYPEName
                 }
                 sinon si c == CHEVRON_FERMANT {
                     // @erreur missing-doctype-name parse error
                     lexeuse.crée_lexème(GenreLexème.Doctype)
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
@@ -432,15 +471,15 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 sinon {
                     lexeuse.crée_lexème(GenreLexème.Doctype)
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c)
-                    lexeuse.état = ÉtatLexage.NomDoctype
+                    lexeuse.état = ÉtatLexage.DOCTYPEName
                 }
             }
-            NomDoctype {
+            DOCTYPEName {
                 si est_espace_blanc_html(c) {
-                    lexeuse.état = ÉtatLexage.AprèsNomDoctype
+                    lexeuse.état = ÉtatLexage.AfterDOCTYPEName
                 }
                 sinon si c == CHEVRON_FERMANT {
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème()
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
@@ -461,12 +500,12 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c)
                 }
             }
-            AprèsNomDoctype {
+            AfterDOCTYPEName {
                 si est_espace_blanc_html(c) {
                     // ignore
                 }
                 sinon si c == CHEVRON_FERMANT {
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème()
                 }
                 sinon si c == FIN_DE_FICHIER {
@@ -482,30 +521,30 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
 
                     si lexeuse.apparie("PUBLIC") {
                         lexeuse.curseur += 6
-                        lexeuse.état = ÉtatLexage.AprèsDoctypeMotCléPublic
+                        lexeuse.état = ÉtatLexage.AfterDOCTYPEPublicKeyword
                     }
                     sinon si lexeuse.apparie("SYSTEM") {
                         lexeuse.curseur += 6
-                        lexeuse.état = ÉtatLexage.AprèsDoctypeMotCléSystem
+                        lexeuse.état = ÉtatLexage.AfterDOCTYPESystemKeyword
                     }
                     sinon {
                         // @erreur invalid-character-sequence-after-doctype-name parse error
                         lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                        lexeuse.état = ÉtatLexage.DoctypeBogus
+                        lexeuse.état = ÉtatLexage.BogusDOCTYPE
                     }
                 }
             }
-            AvantNomAttribut {
+            BeforeAttributeName {
                 si est_espace_blanc_html(c) {
                     // ignore
                 }
                 sinon si c == SLASH || c == CHEVRON_FERMANT || c == FIN_DE_FICHIER {
                     // reconsomme
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.AprèsNomAttribut
+                    lexeuse.état = ÉtatLexage.AfterAttributeName
                 }
                 sinon si c == EGAL {
-                    lexeuse.état = ÉtatLexage.NomAttribut
+                    lexeuse.état = ÉtatLexage.AttributeName
 
                     ajoute_attribut(@lexeuse.lexème_courant)
                     chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.nom, c)
@@ -513,19 +552,19 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 sinon {
                     // reconsomme
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.NomAttribut
+                    lexeuse.état = ÉtatLexage.AttributeName
 
                     ajoute_attribut(@lexeuse.lexème_courant)
                 }
             }
-            NomAttribut {
+            AttributeName {
                 si est_espace_blanc_html(c) || c == SLASH || c == CHEVRON_FERMANT || c == FIN_DE_FICHIER {
                     // reconsomme
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.AprèsNomAttribut
+                    lexeuse.état = ÉtatLexage.AfterAttributeName
                 }
                 sinon si c == EGAL {
-                    lexeuse.état = ÉtatLexage.AvantValeurAttribut
+                    lexeuse.état = ÉtatLexage.BeforeAttributeValue
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
                     chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.nom, c + 0x20)
@@ -546,18 +585,18 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                  * de la liste d'attribut, mais conservera quand même le status d'attribut courant
                  */
             }
-            AprèsNomAttribut {
+            AfterAttributeName {
                 si est_espace_blanc_html(c) {
                     // ignore
                 }
                 sinon si c == SLASH {
-                    lexeuse.état = ÉtatLexage.TagDébutAutoFermant
+                    lexeuse.état = ÉtatLexage.SelfClosingStartTag
                 }
                 sinon si c == EGAL {
-                    lexeuse.état = ÉtatLexage.AvantValeurAttribut
+                    lexeuse.état = ÉtatLexage.BeforeAttributeValue
                 }
                 sinon si c == CHEVRON_FERMANT {
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème()
                 }
                 sinon si c == FIN_DE_FICHIER {
@@ -568,36 +607,36 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     ajoute_attribut(@lexeuse.lexème_courant)
 
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.NomAttribut
+                    lexeuse.état = ÉtatLexage.AttributeName
                 }
             }
-            AvantValeurAttribut {
+            BeforeAttributeValue {
                 si est_espace_blanc_html(c) {
                     // ignore
                 }
                 sinon si c == GUILLEMET {
-                    lexeuse.état = ÉtatLexage.ValeurAttributGuillemetDouble
+                    lexeuse.état = ÉtatLexage.AttributeValueDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
-                    lexeuse.état = ÉtatLexage.ValeurAttributGuillemetSimple
+                    lexeuse.état = ÉtatLexage.AttributeValueSingleQuoted
                 }
                 sinon si c == CHEVRON_FERMANT {
                     // @erreur missing-attribute-value parse error
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème()
                 }
                 sinon {
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.ValeurAttributSansGuillemet
+                    lexeuse.état = ÉtatLexage.AttributeValueUnquoted
                 }
             }
-            ValeurAttributGuillemetDouble {
+            AttributeValueDoubleQuoted {
                 si c == GUILLEMET {
-                    lexeuse.état = ÉtatLexage.AprèsValeurAttributGuillemet
+                    lexeuse.état = ÉtatLexage.AfterAttributeValueQuoted
                 }
                 sinon si c == ESPERLUETTE {
-                    lexeuse.état = ÉtatLexage.RéférenceCaractère
-                    lexeuse.état_retour = ÉtatLexage.ValeurAttributGuillemetDouble
+                    lexeuse.état = ÉtatLexage.CharacterReference
+                    lexeuse.état_retour = ÉtatLexage.AttributeValueDoubleQuoted
                 }
                 sinon si c == NUL {
                     chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, CARACTÈRE_REMPLACEMENT)
@@ -609,13 +648,13 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, c)
                 }
             }
-            ValeurAttributGuillemetSimple {
+            AttributeValueSingleQuoted {
                 si c == APOSTROPHE {
-                    lexeuse.état = ÉtatLexage.AprèsValeurAttributGuillemet
+                    lexeuse.état = ÉtatLexage.AfterAttributeValueQuoted
                 }
                 sinon si c == ESPERLUETTE {
-                    lexeuse.état = ÉtatLexage.RéférenceCaractère
-                    lexeuse.état_retour = ÉtatLexage.ValeurAttributGuillemetSimple
+                    lexeuse.état = ÉtatLexage.CharacterReference
+                    lexeuse.état_retour = ÉtatLexage.AttributeValueSingleQuoted
                 }
                 sinon si c == NUL {
                     chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, CARACTÈRE_REMPLACEMENT)
@@ -627,16 +666,16 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, c)
                 }
             }
-            ValeurAttributSansGuillemet {
+            AttributeValueUnquoted {
                 si est_espace_blanc_html(c) {
-                    lexeuse.état = ÉtatLexage.AvantNomAttribut
+                    lexeuse.état = ÉtatLexage.BeforeAttributeName
                 }
                 sinon si c == ESPERLUETTE {
-                    lexeuse.état = ÉtatLexage.RéférenceCaractère
-                    lexeuse.état_retour = ÉtatLexage.ValeurAttributSansGuillemet
+                    lexeuse.état = ÉtatLexage.CharacterReference
+                    lexeuse.état_retour = ÉtatLexage.AttributeValueUnquoted
                 }
                 sinon si c == CHEVRON_FERMANT {
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème()
                 }
                 sinon si c == NUL {
@@ -655,15 +694,15 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, c)
                 }
             }
-            AprèsValeurAttributGuillemet {
+            AfterAttributeValueQuoted {
                 si est_espace_blanc_html(c) {
-                    lexeuse.état = ÉtatLexage.AvantNomAttribut
+                    lexeuse.état = ÉtatLexage.BeforeAttributeName
                 }
                 sinon si c == SLASH {
-                    lexeuse.état = ÉtatLexage.TagDébutAutoFermant
+                    lexeuse.état = ÉtatLexage.SelfClosingStartTag
                 }
                 sinon si c == CHEVRON_FERMANT {
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème()
                 }
                 sinon si c == FIN_DE_FICHIER {
@@ -673,13 +712,13 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 sinon {
                     // @erreur missing-whitespace-between-attributes parse error, reconsomme
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.AvantNomAttribut
+                    lexeuse.état = ÉtatLexage.BeforeAttributeName
                 }
             }
-            TagDébutAutoFermant {
+            SelfClosingStartTag {
                 si c == CHEVRON_FERMANT {
                     lexeuse.lexème_courant.auto_fermant = vrai
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème()
                 }
                 sinon si c == FIN_DE_FICHIER {
@@ -689,13 +728,13 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 sinon {
                     // @erreur unexpected-solidus-in-tag parse error, reconsomme
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.AvantNomAttribut
+                    lexeuse.état = ÉtatLexage.BeforeAttributeName
                 }
             }
             RCDATA {
                 si c == ESPERLUETTE {
                     lexeuse.état_retour = ÉtatLexage.RCDATA
-                    lexeuse.état = ÉtatLexage.RéférenceCaractère
+                    lexeuse.état = ÉtatLexage.CharacterReference
                 }
                 sinon si c == CHEVRON_OUVRANT {
                     lexeuse.état = ÉtatLexage.RCDATALessThanSign
@@ -710,9 +749,9 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     retourne lexeuse.émet_léxème_caractère(c)
                 }
             }
-            RawText {
+            RAWTEXT {
                 si c == CHEVRON_OUVRANT {
-                    lexeuse.état = ÉtatLexage.RawTextLessThanSign
+                    lexeuse.état = ÉtatLexage.RAWTEXTLessThanSign
                 }
                 sinon si c == NUL {
                     retourne lexeuse.émet_léxème_caractère(0xFFFD)
@@ -753,13 +792,13 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
             RCDATAEndTagName {
                 si lexeuse.nom_dernier_tag_début == lexeuse.lexème_courant.nom {
                     si est_espace_blanc_html(c) {
-                        lexeuse.état = ÉtatLexage.AvantNomAttribut
+                        lexeuse.état = ÉtatLexage.BeforeAttributeName
                     }
                     sinon si c == SLASH {
-                        lexeuse.état = ÉtatLexage.TagDébutAutoFermant
+                        lexeuse.état = ÉtatLexage.SelfClosingStartTag
                     }
                     sinon si c == CHEVRON_FERMANT {
-                        lexeuse.état = ÉtatLexage.Données
+                        lexeuse.état = ÉtatLexage.Data
                         retourne lexeuse.émet_léxème()
                     }
                 }
@@ -780,42 +819,42 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     retourne lexeuse.émet_léxème_caractère(SLASH)
                 }
             }
-            RawTextLessThanSign {
+            RAWTEXTLessThanSign {
                 si c == SLASH {
                     déloge lexeuse.tampon_temporaire
-                    lexeuse.état = ÉtatLexage.RawTextEndTagOpen
+                    lexeuse.état = ÉtatLexage.RAWTEXTEndTagOpen
                 }
                 sinon {
-                    lexeuse.état = ÉtatLexage.RawText
+                    lexeuse.état = ÉtatLexage.RAWTEXT
                     lexeuse.curseur -= 1
                     retourne lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
                 }
             }
-            RawTextEndTagOpen {
+            RAWTEXTEndTagOpen {
                 si est_ascii_alpha(c) {
                     lexeuse.crée_lexème(GenreLexème.FinTag)
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.RawTextEndTagName
+                    lexeuse.état = ÉtatLexage.RAWTEXTEndTagName
                 }
                 sinon {
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.RawText
+                    lexeuse.état = ÉtatLexage.RAWTEXT
 
                     // XXX - À FAIRE : émettre plusieurs léxèmes
                     _ := lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
                     retourne lexeuse.émet_léxème_caractère(SLASH)
                 }
             }
-            RawTextEndTagName {
+            RAWTEXTEndTagName {
                 si lexeuse.nom_dernier_tag_début == lexeuse.lexème_courant.nom {
                     si est_espace_blanc_html(c) {
-                        lexeuse.état = ÉtatLexage.AvantNomAttribut
+                        lexeuse.état = ÉtatLexage.BeforeAttributeName
                     }
                     sinon si c == SLASH {
-                        lexeuse.état = ÉtatLexage.TagDébutAutoFermant
+                        lexeuse.état = ÉtatLexage.SelfClosingStartTag
                     }
                     sinon si c == CHEVRON_FERMANT {
-                        lexeuse.état = ÉtatLexage.Données
+                        lexeuse.état = ÉtatLexage.Data
                         retourne lexeuse.émet_léxème()
                     }
                 }
@@ -829,7 +868,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 }
                 sinon {
                     lexeuse.curseur -= 1
-                    lexeuse.état = ÉtatLexage.RawText
+                    lexeuse.état = ÉtatLexage.RAWTEXT
 
                     // XXX - À FAIRE : émettre plusieurs léxèmes, dont un pour chaque caractère du tampon temporaire
                     _ := lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
@@ -841,7 +880,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     lexeuse.état = ÉtatLexage.CommentStartDash
                 }
                 sinon si c == CHEVRON_FERMANT {
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème()
                 }
                 sinon {
@@ -854,7 +893,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     lexeuse.état = ÉtatLexage.CommentEnd
                 }
                 sinon si c == CHEVRON_FERMANT {
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème()
                 }
                 sinon si c == FIN_DE_FICHIER {
@@ -947,7 +986,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
             }
             CommentEnd {
                 si c == CHEVRON_FERMANT {
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème()
                 }
                 sinon si c == POINT_EXCLAMATION {
@@ -973,7 +1012,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     lexeuse.état = ÉtatLexage.CommentEndDash
                 }
                 sinon si c == CHEVRON_FERMANT {
-                    lexeuse.état = ÉtatLexage.Données
+                    lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_léxème()
                 }
                 sinon si c == FIN_DE_FICHIER {

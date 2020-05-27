@@ -366,12 +366,12 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, léxème: Léxème)
         }
 
         si léxème.nom == "style" || léxème.nom == "noframes" {
-            gère_élément_contenant_texte_cru(parseuse, léxème, ÉtatLexage.RawText)
+            gère_élément_contenant_texte_cru(parseuse, léxème, ÉtatLexage.RAWTEXT)
         }
 
         si léxème.nom == "noscript" {
             si parseuse.scripting_flag {
-                gère_élément_contenant_texte_cru(parseuse, léxème, ÉtatLexage.RawText)
+                gère_élément_contenant_texte_cru(parseuse, léxème, ÉtatLexage.RAWTEXT)
             }
             sinon {
                 _ := parseuse.insère_élément_html(léxème)
