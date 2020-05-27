@@ -64,3 +64,14 @@ ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: chaine)
     attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
     tableau_ajoute(@noeud.attributs, attribut)
 }
+
+possède_attribut :: fonc (noeud: *Noeud, nom: chaine) -> bool
+{
+    pour noeud.attributs {
+        si it.nom == nom {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}

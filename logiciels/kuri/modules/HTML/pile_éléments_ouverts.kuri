@@ -19,6 +19,11 @@ dépile :: fonc (pile: *PileÉlémentsOuverts)
     pile.éléments.taille -= 1
 }
 
+taille :: fonc (pile: *PileÉlémentsOuverts) -> z64
+{
+    retourne pile.éléments.taille
+}
+
 possède_dans_portée :: fonc (pile: *PileÉlémentsOuverts, nom_tag: chaine) -> bool
 {
     pour pile.éléments {

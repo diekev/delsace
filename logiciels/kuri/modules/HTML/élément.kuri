@@ -1,6 +1,8 @@
 importe Fondation
 
 GenreÉlément :: énum z32 {
+    INVALIDE
+
     A
     ABBR
     ACRONYM
@@ -286,7 +288,10 @@ initialise_élément :: fonc (élément: *Élément, document: *Document, texte:
         "wbr" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.WBR); retourne élément; }
    }
 
-    retourne nul
+    // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
+    élément := loge Élément;
+    initialise_élément(élément, document, tag, GenreÉlément.INVALIDE);
+    retourne élément
 }
 
 est_compatible_html5 :: fonc (élément: *Élément) -> bool

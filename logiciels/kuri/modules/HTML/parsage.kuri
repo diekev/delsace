@@ -134,6 +134,10 @@ crée_élément_pour :: fonc (parseuse: *Parseuse, léxème: Léxème) -> *Élé
 
 gère_léxème_pour_mode :: fonc (parseuse: *Parseuse, mode: ModeInsertion, léxème: Léxème)
 {
+    si léxème.genre != GenreLexème.Caractère {
+        imprime("gère léxème : % (%), mode insertion : %\n", léxème.nom, léxème.genre, mode)
+    }
+
     fonction := fonctions_insertions[mode]
     fonction(parseuse, léxème)
 }
@@ -355,6 +359,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, léxème: Léxème)
 
         si léxème.nom == "style" || léxème.nom == "noframes" {
             gère_élément_contenant_texte_cru(parseuse, léxème, ÉtatLexage.RAWTEXT)
+            retourne
         }
 
         si léxème.nom == "noscript" {
@@ -508,7 +513,34 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
         }
 
         si léxème.nom == "body" {
-            panique("algorithme d'insertion incomplet")
+            si taille(@parseuse.pile_éléments_ouvert) == 1 {
+                //imprime("la taille de la pile est de 1\n")
+                // ignore
+                retourne
+            }
+
+            si parseuse.pile_éléments_ouvert.éléments[1].genre_élément != GenreÉlément.BODY {
+                //imprime("le deuxième élément n'est pas un body : %\n", parseuse.pile_éléments_ouvert.éléments[1].genre_élément)
+                // ignore
+                retourne
+            }
+
+            si possède_dans_portée(@parseuse.pile_éléments_ouvert, "template") {
+                //imprime("la pile possède un template\n")
+                // ignore
+                retourne
+            }
+
+            élément_body := parseuse.pile_éléments_ouvert.éléments[1]
+            parseuse.frameset_ok = faux
+
+            pour léxème.attributs {
+                si !élément_body.possède_attribut(it.nom) {
+                    élément_body.ajoute_attribut(it.nom, it.valeur)
+                }
+            }
+
+            retourne
         }
 
         si léxème.nom == "frameset" {
@@ -555,6 +587,112 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
         si léxème.nom == "button" {
             panique("algorithme d'insertion incomplet")
         }
+
+        si léxème.nom == "a" {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si fait_partie_de(léxème.nom, "b", "big", "code", "em", "font", "i", "s", "small", "strike", "strong", "tt", "u") {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "nobr" {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si fait_partie_de(léxème.nom, "applet", "marquee", "object") {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "table" {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si fait_partie_de(léxème.nom, "area", "br", "embed", "img", "keygen", "wbr") {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "input" {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si fait_partie_de(léxème.nom, "param", "source", "track") {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "hr" {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "image" {
+            léxème.nom = copie_chaine("img")
+            gère_léxème_pour_mode(parseuse, parseuse.mode_insertion, léxème)
+            retourne
+        }
+
+        si léxème.nom == "textarea" {
+            _ := insère_élément_html(parseuse, léxème)
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "xmp" {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "iframe" {
+            parseuse.frameset_ok = faux
+            gère_élément_contenant_texte_cru(parseuse, léxème, ÉtatLexage.RAWTEXT)
+            retourne
+        }
+
+        si léxème.nom == "noembed" || (léxème.nom == "noscript" && parseuse.scripting_flag == faux) {
+            gère_élément_contenant_texte_cru(parseuse, léxème, ÉtatLexage.RAWTEXT)
+            retourne
+        }
+
+        si léxème.nom == "select" {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "optgroup" || léxème.nom == "option" {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "rb" || léxème.nom == "rtc" {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "rp" || léxème.nom == "rt" {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "math" {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "svg" {
+            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            // À FAIRE : ajuste les attributs SVG
+            // À FAIRE : ajuste les attributs étrangers
+            // À FAIRE : insère dans l'espace de nom SVG
+            _ := parseuse.insère_élément_html(léxème)
+
+            si léxème.auto_fermant {
+                // À FAIRE : reconnait le drapeau auto-fermant
+                dépile(@parseuse.pile_éléments_ouvert)
+            }
+
+            retourne
+        }
+
+        si fait_partie_de(léxème.nom, "caption", "col", "colgroup", "frame", "head", "tbody", "td", "tfoot", "th", "thead", "tr") {
+            // erreur de parsage, ignore le lexème
+            retourne
+        }
+
+        parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+        _ := parseuse.insère_élément_html(léxème)
+        retourne
     }
 
     si léxème.genre == GenreLexème.FinTag {
@@ -594,14 +732,66 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
         si léxème.nom == "form" {
             panique("algorithme d'insertion incomplet")
         }
+
+        si léxème.nom == "p" {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si léxème.nom == "li" {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si léxème.nom == "dd" || léxème.nom == "dt" {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si fait_partie_de(léxème.nom, "h1", "h2", "h3", "h4", "h5", "h6") {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si fait_partie_de(léxème.nom, "a", "b", "big", "code", "em", "font", "i", "nobr", "s", "small", "strike", "strong", "tt", "u") {
+            panique("algorithme d'insertion incomplet")
+        }
+
+        si fait_partie_de(léxème.nom, "applet", "marquee", "object") {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        si léxème.nom == "br" {
+            panique("algorithm d'insertion incomplet")
+        }
+
+        panique("algorithme d'insertion incomplet")
+
+        // À FAIRE
+        noeud := parseuse.noeud_courant()
+
+        si noeud.genre == GenreNoeud.Élément {
+            élément := noeud comme *Élément
+
+            si élément.texte == léxème.nom {
+                //parseuse.génère_tags_fin_implicites_autres_que(léxème.nom)
+
+                si noeud != parseuse.noeud_courant() {
+                    // erreur de parsage
+                }
+
+                // 3. Pop all the nodes from the current node up to node, including node : ceci devrait déjà être fait ?
+            }
+            /*
+            sinon si fait_partie_de_catégorie_spécial(élément) {
+                // erreur de parsage ignore
+                retourne
+            }
+            */
+        }
+
+        retourne
     }
 
     si léxème.genre == GenreLexème.FinDeFichier {
         panique("algorithme d'insertion incomplet")
     }
-
-    imprime("%\n", léxème)
-    panique("algorithme d'insertion incomplet")
 }
 
 insère_mode_Texte :: fonc (parseuse: *Parseuse, léxème: Léxème)
@@ -745,4 +935,19 @@ insère_mode_AprèsFrameSet :: fonc (parseuse: *Parseuse, léxème: Léxème)
 insère_mode_AprèsAprèsFrameSet :: fonc (parseuse: *Parseuse, léxème: Léxème)
 {
     panique("algorithme d'insertion incomplet")
+}
+
+reconstruit_liste_des_éléments_de_formattage_actifs :: fonc (parseuse: *Parseuse)
+{
+    // À FAIRE
+}
+
+génère_tags_fin_implicites :: fonc (parseuse: *Parseuse)
+{
+    noeud := parseuse.noeud_courant()
+
+    tantque fait_partie_de(noeud.nom, "dd", "dt", "li", "optgroup", "option", "p", "rb", "rt", "rtc") {
+        dépile(@parseuse.pile_éléments_ouvert)
+        noeud = parseuse.noeud_courant()
+    }
 }
