@@ -83,15 +83,21 @@ NOUVELLE_LIGNE :: '\n' comme n32
 RETOUR_CHARIOT :: '\r' comme n32
 ESPERLUETTE :: '&' comme n32
 A_MINUSCULE :: 'a' comme n32
+F_MINUSCULE :: 'f' comme n32
+X_MINUSCULE :: 'x' comme n32
 Z_MINUSCULE :: 'z' comme n32
 A_MAJUSCULE :: 'A' comme n32
+F_MAJUSCULE :: 'F' comme n32
+X_MAJUSCULE :: 'X' comme n32
 Z_MAJUSCULE :: 'Z' comme n32
+SIGNE_NOMBRE :: '#' comme n32
 EGAL :: '=' comme n32
 GUILLEMET :: '"' comme n32
 APOSTROPHE :: '\'' comme n32
 ACCENT_GRAVE :: '`' comme n32
 POINT_INTERROGATION :: '?' comme n32
 POINT_EXCLAMATION :: '!' comme n32
+POINT_VIRGULE :: ';' comme n32
 CHEVRON_OUVRANT :: '<' comme n32
 CHEVRON_FERMANT :: '>' comme n32
 SLASH :: '/' comme n32
@@ -196,6 +202,8 @@ Lexeuse :: struct {
     tampon_temporaire : chaine
 
     nom_dernier_tag_début : chaine
+
+    code_référence_caractère : n32
 }
 
 initialise_lexeuse :: fonc (document: chaine) -> Lexeuse
@@ -295,6 +303,8 @@ imprime_et_détruit_léxème :: fonc (lexème_courant: *Léxème)
 
 léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
 {
+    // À FAIRE : nous devrions vérifier si la parseuse est en pause, si oui, retourner
+
     boucle {
         c := lexeuse.point_de_code_suivant()
 
@@ -806,7 +816,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
                     chaine_ajoute(@lexeuse.tampon_temporaire, c)
                 }
-                sinon si est_ascii_alpha_miniscule(c) {
+                sinon si est_ascii_alpha_minuscule(c) {
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c)
                     chaine_ajoute(@lexeuse.tampon_temporaire, c)
                 }
@@ -862,7 +872,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
                     chaine_ajoute(@lexeuse.tampon_temporaire, c)
                 }
-                sinon si est_ascii_alpha_miniscule(c) {
+                sinon si est_ascii_alpha_minuscule(c) {
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c)
                     chaine_ajoute(@lexeuse.tampon_temporaire, c)
                 }
@@ -1026,13 +1036,193 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     lexeuse.état = ÉtatLexage.Comment
                 }
             }
+            CharacterReference {
+                déloge lexeuse.tampon_temporaire
+                chaine_ajoute(@lexeuse.tampon_temporaire, '&')
+
+                si est_ascii_alphanumérique(c) {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.NamedCharacterReference)
+                }
+                sinon si c == SIGNE_NOMBRE {
+                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    lexeuse.état  = ÉtatLexage.NumericCharacterReference
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(lexeuse.état_retour)
+
+                    // détermine si nous somme dans un attribut
+                    si lexeuse.état_retour == ÉtatLexage.AttributeValueDoubleQuoted || lexeuse.état_retour == ÉtatLexage.AttributeValueSingleQuoted || lexeuse.état == ÉtatLexage.AttributeValueUnquoted {
+                        pour lexeuse.tampon_temporaire {
+                            chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, it)
+                        }
+                    }
+                    sinon {
+                        pour lexeuse.tampon_temporaire {
+                            // XXX - À FAIRE : émet plusieurs léxèmes
+                            retourne lexeuse.émet_léxème_caractère(it comme n32)
+                        }
+                    }
+                }
+            }
+            NamedCharacterReference {
+                panique("état non implémenté")
+            }
+            NumericCharacterReference {
+                lexeuse.code_référence_caractère = 0
+
+                si c == X_MINUSCULE || c == X_MAJUSCULE {
+                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    lexeuse.état = ÉtatLexage.HexadecimalCharacterReferenceStart
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.DecimalCharacterReferenceStart)
+                }
+            }
+            HexadecimalCharacterReferenceStart {
+                si est_ascii_hexadecimal(c) {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.HexadecimalCharacterReference)
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(lexeuse.état_retour)
+
+                    // À FAIRE : déduplique
+                    // détermine si nous somme dans un attribut
+                    si lexeuse.état_retour == ÉtatLexage.AttributeValueDoubleQuoted || lexeuse.état_retour == ÉtatLexage.AttributeValueSingleQuoted || lexeuse.état == ÉtatLexage.AttributeValueUnquoted {
+                        pour lexeuse.tampon_temporaire {
+                            chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, it)
+                        }
+                    }
+                    sinon {
+                        pour lexeuse.tampon_temporaire {
+                            // XXX - À FAIRE : émet plusieurs léxèmes
+                            retourne lexeuse.émet_léxème_caractère(it comme n32)
+                        }
+                    }
+                }
+            }
+            DecimalCharacterReferenceStart {
+                si est_ascii_décimal(c) {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.DecimalCharacterReference)
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(lexeuse.état_retour)
+
+                    // À FAIRE : déduplique
+                    // détermine si nous somme dans un attribut
+                    si lexeuse.état_retour == ÉtatLexage.AttributeValueDoubleQuoted || lexeuse.état_retour == ÉtatLexage.AttributeValueSingleQuoted || lexeuse.état == ÉtatLexage.AttributeValueUnquoted {
+                        pour lexeuse.tampon_temporaire {
+                            chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, it)
+                        }
+                    }
+                    sinon {
+                        pour lexeuse.tampon_temporaire {
+                            // XXX - À FAIRE : émet plusieurs léxèmes
+                            retourne lexeuse.émet_léxème_caractère(it comme n32)
+                        }
+                    }
+                }
+            }
+            HexadecimalCharacterReference {
+                si est_ascii_chiffre(c) {
+                    lexeuse.code_référence_caractère *= 16
+                    lexeuse.code_référence_caractère += (c - 0x30)
+                }
+                sinon si est_ascii_alpha_minuscule(c) {
+                    lexeuse.code_référence_caractère *= 16
+                    lexeuse.code_référence_caractère += (c - 0x37)
+                }
+                sinon si est_ascii_alpha_majuscule(c) {
+                    lexeuse.code_référence_caractère *= 16
+                    lexeuse.code_référence_caractère += (c - 0x57)
+                }
+                sinon si c == POINT_VIRGULE {
+                    lexeuse.état = ÉtatLexage.NumericCharacterReferenceEnd
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.NumericCharacterReferenceEnd)
+                }
+            }
+            DecimalCharacterReference {
+                si est_ascii_chiffre(c) {
+                    lexeuse.code_référence_caractère *= 10
+                    lexeuse.code_référence_caractère += (c - 0x30)
+                }
+                sinon si c == POINT_VIRGULE {
+                    lexeuse.état = ÉtatLexage.NumericCharacterReferenceEnd
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.NumericCharacterReferenceEnd)
+                }
+            }
+            NumericCharacterReferenceEnd {
+                // ne consomme pas
+                lexeuse.curseur -= 1
+
+                si lexeuse.code_référence_caractère == 0x0 {
+                    lexeuse.code_référence_caractère = CARACTÈRE_REMPLACEMENT
+                }
+                sinon si lexeuse.code_référence_caractère > 0x10FFFF {
+                    lexeuse.code_référence_caractère = CARACTÈRE_REMPLACEMENT
+                }
+                sinon si 0xD800 <= lexeuse.code_référence_caractère <= 0xDFFF {
+                    // surrogate
+                    lexeuse.code_référence_caractère = CARACTÈRE_REMPLACEMENT
+                }
+                sinon si est_noncaractère(c) {
+                    panique("état partiellement implémenté")
+                }
+                sinon si c == 0x0D || (est_ascii_controle(lexeuse.code_référence_caractère) && !est_ascii_espace_blanc(lexeuse.code_référence_caractère)) {
+                    panique("état partiellement implémenté")
+                }
+
+                déloge lexeuse.tampon_temporaire
+                chaine_ajoute(@lexeuse.tampon_temporaire, lexeuse.code_référence_caractère)
+
+                lexeuse.état = lexeuse.état_retour
+
+                // À FAIRE : déduplique
+                // détermine si nous somme dans un attribut
+                si lexeuse.état_retour == ÉtatLexage.AttributeValueDoubleQuoted || lexeuse.état_retour == ÉtatLexage.AttributeValueSingleQuoted || lexeuse.état == ÉtatLexage.AttributeValueUnquoted {
+                    pour lexeuse.tampon_temporaire {
+                        chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, it)
+                    }
+                }
+                sinon {
+                    pour lexeuse.tampon_temporaire {
+                        // XXX - À FAIRE : émet plusieurs léxèmes
+                        retourne lexeuse.émet_léxème_caractère(it comme n32)
+                    }
+                }
+            }
             sinon {
+                imprime("état : %\n", lexeuse.état)
                 panique("état non implémenté")
             }
         }
     }
 
     retourne lexeuse.émet_léxème_fin_de_fichier()
+}
+
+est_noncaractère :: fonc (c: n32) -> bool
+{
+    retourne faux
+}
+
+est_ascii_controle :: fonc (c: n32) -> bool
+{
+    retourne faux
+}
+
+est_ascii_espace_blanc :: fonc (c: n32) -> bool
+{
+    retourne faux
+}
+
+reconsomme_dans_état :: fonc (lexeuse: *Lexeuse, état_cible: ÉtatLexage)
+{
+    lexeuse.curseur -= 1
+    lexeuse.état = état_cible
 }
 
 apparie :: fonc (lexeuse: *Lexeuse, chn: chaine) -> bool
@@ -1068,7 +1258,7 @@ est_ascii_alpha :: fonc (point_de_code: n32) -> bool
     retourne A_MAJUSCULE <= point_de_code <= Z_MAJUSCULE || A_MINUSCULE <= point_de_code <= Z_MINUSCULE
 }
 
-est_ascii_alpha_miniscule :: fonc (point_de_code: n32) -> bool
+est_ascii_alpha_minuscule :: fonc (point_de_code: n32) -> bool
 {
     retourne A_MINUSCULE <= point_de_code <= Z_MINUSCULE
 }
@@ -1081,4 +1271,34 @@ est_ascii_alpha_majuscule :: fonc (point_de_code: n32) -> bool
 est_espace_blanc_html :: fonc (c: n32) -> bool
 {
     retourne c == 0x09 || c == 0x0A || c == 0x0C || c == 0x20
+}
+
+est_ascii_alphanumérique :: fonc (c: n32) -> bool
+{
+    retourne est_ascii_alpha(c) || est_ascii_chiffre(c)
+}
+
+est_ascii_décimal :: fonc (c: n32) -> bool
+{
+    retourne (0x30 <= c <= 0x39)
+}
+
+est_ascii_hexadecimal :: fonc (c: n32) -> bool
+{
+    retourne est_ascii_chiffre(c) || est_ascii_chiffre_hex_min(c) || est_ascii_chiffre_hex_maj(c)
+}
+
+est_ascii_chiffre :: fonc (c: n32) -> bool
+{
+    retourne (0x30 <= c <= 0x39)
+}
+
+est_ascii_chiffre_hex_min :: fonc (c: n32) -> bool
+{
+    retourne (A_MINUSCULE <= c <= F_MINUSCULE)
+}
+
+est_ascii_chiffre_hex_maj :: fonc (c: n32) -> bool
+{
+    retourne (A_MAJUSCULE <= c <= F_MAJUSCULE)
 }
