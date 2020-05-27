@@ -68,6 +68,7 @@ Parseuse :: struct {
     document: *Document
 
     élément_head : *Élément
+    élément_form : *Élément
 
     pile_éléments_ouvert : PileÉlémentsOuverts
 
@@ -114,11 +115,9 @@ parse :: fonc (parseuse: *Parseuse)
     }
 }
 
-noeud_courant :: fonc (parseuse: *Parseuse) -> *Noeud
+noeud_courant :: fonc (parseuse: *Parseuse) -> *Élément
 {
-    // À FAIRE(langage) : bug dans la génération de la RI
-    //retourne noeud_courant(@parseuse.pile_éléments_ouvert)
-    retourne parseuse.pile_éléments_ouvert.éléments[parseuse.pile_éléments_ouvert.éléments.taille - 1]
+    retourne noeud_courant(@parseuse.pile_éléments_ouvert)
 }
 
 crée_élément_pour :: fonc (parseuse: *Parseuse, léxème: Léxème) -> *Élément
@@ -150,7 +149,10 @@ trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_o
         cible = cible_override
     }
     sinon {
-        cible = parseuse.noeud_courant()
+        // À FAIRE(langage) : bug dans la génération de la RI
+        //cible = parseuse.noeud_courant()
+        élément := parseuse.noeud_courant()
+        cible = élément
     }
 
     si parseuse.adoption_activée {
@@ -374,7 +376,18 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, léxème: Léxème)
         }
 
         si léxème.nom == "script" {
-            panique("algorithme d'insertion incomplet")
+            position_ajustée_d_insertion := trouve_position_appropriée_pour_insertion(parseuse)
+            élément := parseuse.crée_élément_pour(léxème)
+            // À FAIRE : élément_script.document_parseur = parseuse.document
+            // À FAIRE : élément_script.non_blocant = faux
+            // À FAIRE : élément_script.déjà_lancé = parseuse.créée_depuis_parsage_fragment
+            // À FAIRE : document.write()
+            position_ajustée_d_insertion.ajoute_enfant(élément)
+            empile(@parseuse.pile_éléments_ouvert, élément)
+            parseuse.lexeuse.état = ÉtatLexage.ScriptData
+            parseuse.mode_insertion_original = parseuse.mode_insertion
+            parseuse.mode_insertion = ModeInsertion.Texte
+            retourne
         }
 
         si léxème.nom == "template" {
@@ -548,7 +561,22 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
         }
 
         si léxème.nom == "form" {
-            panique("algorithme d'insertion incomplet")
+            template_dans_portée := possède_dans_portée(@parseuse.pile_éléments_ouvert, "template")
+
+            si parseuse.élément_head != nul && !template_dans_portée {
+                // parser error, ignore le lexème
+                retourne
+            }
+
+            // À FAIRE : si la pile d'éléments ouverts a un élément p dans une portée bouton, ferme un élément p
+
+            élément := parseuse.insère_élément_html(léxème)
+
+            si !template_dans_portée {
+                parseuse.élément_form = élément
+            }
+
+            retourne
         }
 
         si léxème.nom == "li" {
@@ -609,11 +637,22 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
         }
 
         si fait_partie_de(léxème.nom, "area", "br", "embed", "img", "keygen", "wbr") {
-            panique("algorithm d'insertion incomplet")
+            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            _ := parseuse.insère_élément_html(léxème)
+            dépile(@parseuse.pile_éléments_ouvert)
+            // À FAIRE : reconnait le drapeau auto-fermant
+            parseuse.frameset_ok = faux
+            retourne
         }
 
         si léxème.nom == "input" {
-            panique("algorithm d'insertion incomplet")
+            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            _ := parseuse.insère_élément_html(léxème)
+            dépile(@parseuse.pile_éléments_ouvert)
+            // À FAIRE : reconnait le drapeau auto-fermant
+            // À FAIRE : parseuse.frameset_ok = !élément.possède_attribut("type") || élément.attribut("type") == "hidden" // case-insensitive
+            //parseuse.frameset_ok = faux
+            retourne
         }
 
         si fait_partie_de(léxème.nom, "param", "source", "track") {
@@ -730,7 +769,44 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
         }
 
         si léxème.nom == "form" {
-            panique("algorithme d'insertion incomplet")
+            template_dans_portée := possède_dans_portée(@parseuse.pile_éléments_ouvert, "template")
+
+            si !template_dans_portée {
+                noeud := parseuse.élément_form
+                parseuse.élément_form = nul
+
+                si noeud == nul || !possède_dans_portée(@parseuse.pile_éléments_ouvert, noeud) {
+                    // erreur de parsage ignore
+                    retourne
+                }
+
+                parseuse.génère_tags_fin_implicites()
+
+                si noeud != parseuse.noeud_courant() {
+                    // erreur de parsage
+                }
+
+                // À FAIRE : enlève le noeud peu importe où il se trouve
+                dépile(@parseuse.pile_éléments_ouvert)
+            }
+            sinon {
+                si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "form") {
+                    // erreur de parsage, ignore
+                    retourne
+                }
+
+                parseuse.génère_tags_fin_implicites()
+
+                noeud := parseuse.noeud_courant()
+                // si noeud n'est pas un form, c'est une erreur de parsage
+
+                tantque noeud.texte != "form" {
+                    dépile(@parseuse.pile_éléments_ouvert)
+                    noeud = parseuse.noeud_courant()
+                }
+            }
+
+            retourne
         }
 
         si léxème.nom == "p" {
@@ -761,29 +837,32 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
             panique("algorithm d'insertion incomplet")
         }
 
-        panique("algorithme d'insertion incomplet")
+//        panique("algorithme d'insertion incomplet")
 
-        // À FAIRE
-        noeud := parseuse.noeud_courant()
+        élément := parseuse.noeud_courant()
 
-        si noeud.genre == GenreNoeud.Élément {
-            élément := noeud comme *Élément
-
+        boucle {
+            // À FAIRE : vérifier si nous avons un élément HTML, la spec suggère que nous pourrions avoir autre chose
             si élément.texte == léxème.nom {
-                //parseuse.génère_tags_fin_implicites_autres_que(léxème.nom)
+                parseuse.génère_tags_fin_implicites_autres_que(léxème.nom)
 
-                si noeud != parseuse.noeud_courant() {
+                si élément != parseuse.noeud_courant() {
                     // erreur de parsage
                 }
 
                 // 3. Pop all the nodes from the current node up to node, including node : ceci devrait déjà être fait ?
+                tantque élément != parseuse.noeud_courant() {
+                    dépile(@parseuse.pile_éléments_ouvert)
+                }
+
+                arrête
             }
-            /*
-            sinon si fait_partie_de_catégorie_spécial(élément) {
+            sinon si fait_partie_de_catégorie_spécial(élément.texte) {
                 // erreur de parsage ignore
                 retourne
             }
-            */
+
+            élément = noeud_précédent(@parseuse.pile_éléments_ouvert)
         }
 
         retourne
@@ -946,8 +1025,24 @@ génère_tags_fin_implicites :: fonc (parseuse: *Parseuse)
 {
     noeud := parseuse.noeud_courant()
 
-    tantque fait_partie_de(noeud.nom, "dd", "dt", "li", "optgroup", "option", "p", "rb", "rt", "rtc") {
+    tantque fait_partie_de(noeud.texte, "dd", "dt", "li", "optgroup", "option", "p", "rb", "rt", "rtc") {
         dépile(@parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
+}
+
+génère_tags_fin_implicites_autres_que :: fonc (parseuse: *Parseuse, tag: chaine)
+{
+    noeud := parseuse.noeud_courant()
+
+    tantque noeud.texte != tag && fait_partie_de(noeud.texte, "dd", "dt", "li", "optgroup", "option", "p", "rb", "rt", "rtc") {
+        dépile(@parseuse.pile_éléments_ouvert)
+        noeud = parseuse.noeud_courant()
+    }
+}
+
+fait_partie_de_catégorie_spécial :: fonc (nom: chaine) -> bool
+{
+    // À FAIRE : utilisation d'une recherche binaire
+    retourne fait_partie_de(nom, "address", "applet", "area", "article", "aside", "base", "basefont", "bgsound", "blockquote", "body", "br", "button", "caption", "center", "col", "colgroup", "dd", "details", "dir", "div", "dl", "dt", "embed", "fieldset", "figcaption", "figure", "footer", "form", "frame", "frameset", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "iframe", "img", "input", "keygen", "li", "link", "listing", "main", "marquee", "menu", "meta", "nav", "noembed", "noframes", "noscript", "object", "ol", "p", "param", "plaintext", "pre", "script", "section", "select", "source", "style", "summary", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "title", "tr", "track", "ul", "wbr", "xmp", "mi", "mo", "mn", "ms", "mtext", "annotation-xml", "foreignObject", "desc", "title")
 }

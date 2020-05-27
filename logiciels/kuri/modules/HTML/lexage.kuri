@@ -1135,6 +1135,179 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     }
                 }
             }
+            ScriptData {
+                si c == CHEVRON_OUVRANT {
+                    lexeuse.état = ÉtatLexage.ScriptDataLessThanSign
+                }
+                sinon si c == NUL {
+                    retourne lexeuse.émet_léxème_caractère(CARACTÈRE_REMPLACEMENT)
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    retourne lexeuse.émet_léxème_fin_de_fichier()
+                }
+                sinon {
+                    retourne lexeuse.émet_léxème_caractère(c)
+                }
+            }
+            ScriptDataLessThanSign {
+                si c == SLASH {
+                    déloge lexeuse.tampon_temporaire
+                    lexeuse.état = ÉtatLexage.ScriptDataEndTagOpen
+                }
+                sinon si c == POINT_EXCLAMATION {
+                    lexeuse.état = ÉtatLexage.ScriptDataEscapeStart
+                    // XXX - À FAIRE
+                    _ := lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
+                    retourne lexeuse.émet_léxème_caractère(POINT_EXCLAMATION)
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData)
+                    retourne lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
+                }
+            }
+            ScriptDataEndTagOpen {
+                si est_ascii_alpha(c) {
+                    lexeuse.crée_lexème(GenreLexème.FinTag)
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEndTagName)
+                }
+                sinon {
+                    // XXX - À FAIRE
+                    _ := lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
+                    retourne lexeuse.émet_léxème_caractère(SLASH)
+                }
+            }
+            ScriptDataEndTagName {
+                si lexeuse.nom_dernier_tag_début == lexeuse.lexème_courant.nom {
+                    si est_espace_blanc_html(c) {
+                        lexeuse.état = ÉtatLexage.BeforeAttributeName
+                    }
+                    sinon si c == SLASH {
+                        lexeuse.état = ÉtatLexage.SelfClosingStartTag
+                    }
+                    sinon si c == CHEVRON_FERMANT {
+                        lexeuse.état = ÉtatLexage.Data
+                    }
+                }
+                sinon si est_ascii_alpha_majuscule(c) {
+                    chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
+                    continue
+                }
+                sinon si est_ascii_alpha_minuscule(c) {
+                    chaine_ajoute(@lexeuse.lexème_courant.nom, c)
+                    continue
+                }
+
+                lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData)
+                // XXX - À FAIRE, émet également un caractère pour chaque caractère dans le tampon temporaire
+                _ := lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
+                retourne lexeuse.émet_léxème_caractère(SLASH)
+            }
+            ScriptDataEscapeStart {
+                si c == MOINS {
+                    lexeuse.état = ÉtatLexage.ScriptDataEscapeStartDash
+                    retourne lexeuse.émet_léxème_caractère(MOINS)
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData)
+                }
+            }
+            ScriptDataEscapeStartDash {
+                si c == MOINS {
+                    lexeuse.état = ÉtatLexage.ScriptDataEscapedDashDash
+                    retourne lexeuse.émet_léxème_caractère(MOINS)
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData)
+                }
+            }
+            ScriptDataEscaped {
+                si c == MOINS {
+                    lexeuse.état = ÉtatLexage.ScriptDataEscapedDash
+                }
+                sinon si c == CHEVRON_OUVRANT {
+                    lexeuse.état = ÉtatLexage.ScriptDataEscapedLessThanSign
+                }
+                sinon si c == NUL {
+                    retourne lexeuse.émet_léxème_caractère(CARACTÈRE_REMPLACEMENT)
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    retourne lexeuse.émet_léxème_fin_de_fichier()
+                }
+                sinon {
+                    retourne lexeuse.émet_léxème_caractère(c)
+                }
+            }
+            ScriptDataEscapedDash {
+                si c == MOINS {
+                    lexeuse.état = ÉtatLexage.ScriptDataEscapedDashDash
+                    retourne lexeuse.émet_léxème_caractère(MOINS)
+                }
+                sinon si c == CHEVRON_OUVRANT {
+                    lexeuse.état = ÉtatLexage.ScriptDataEscapedLessThanSign
+                }
+                sinon si c == NUL {
+                    retourne lexeuse.émet_léxème_caractère(CARACTÈRE_REMPLACEMENT)
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    retourne lexeuse.émet_léxème_fin_de_fichier()
+                }
+                sinon {
+                    lexeuse.état = ÉtatLexage.ScriptDataEscaped
+                    retourne lexeuse.émet_léxème_caractère(c)
+                }
+            }
+            ScriptDataEscapedDashDash {
+                si c == MOINS {
+                    retourne lexeuse.émet_léxème_caractère(MOINS)
+                }
+                sinon si c == CHEVRON_OUVRANT {
+                    lexeuse.état = ÉtatLexage.ScriptDataEscapedLessThanSign
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    lexeuse.état = ÉtatLexage.ScriptData
+                    retourne lexeuse.émet_léxème_caractère(CHEVRON_FERMANT)
+                }
+                sinon si c == NUL {
+                    retourne lexeuse.émet_léxème_caractère(CARACTÈRE_REMPLACEMENT)
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    retourne lexeuse.émet_léxème_fin_de_fichier()
+                }
+                sinon {
+                    lexeuse.état = ÉtatLexage.ScriptDataEscaped
+                    retourne lexeuse.émet_léxème_caractère(c)
+                }
+            }
+            ScriptDataEscapedLessThanSign {
+                si c == SLASH {
+                    déloge lexeuse.tampon_temporaire
+                    lexeuse.état = ÉtatLexage.ScriptDataEscapedEndTagOpen
+                }
+                sinon si est_ascii_alpha(c) {
+                    déloge lexeuse.tampon_temporaire
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataDoubleEscapeStart)
+                    retourne lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped)
+                    retourne lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
+                }
+            }
+            ScriptDataEscapedEndTagOpen {
+                si est_ascii_alpha(c) {
+                    lexeuse.crée_lexème(GenreLexème.FinTag)
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscapedEndTagName)
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped)
+                    // XXX - À FAIRE
+                    _ := lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
+                    retourne lexeuse.émet_léxème_caractère(SLASH)
+                }
+            }
+            ScriptDataEscapedEndTagName {
+
+            }
             sinon {
                 imprime("état : %\n", lexeuse.état)
                 panique("état non implémenté")

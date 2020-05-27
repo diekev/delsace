@@ -9,6 +9,11 @@ noeud_courant :: fonc (pile: *PileÉlémentsOuverts) -> *Élément
     retourne pile.éléments[pile.éléments.taille - 1]
 }
 
+noeud_précédent :: fonc (pile: *PileÉlémentsOuverts) -> *Élément
+{
+    retourne pile.éléments[pile.éléments.taille - 2]
+}
+
 empile :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément)
 {
     tableau_ajoute(@pile.éléments, élément)
@@ -28,6 +33,17 @@ possède_dans_portée :: fonc (pile: *PileÉlémentsOuverts, nom_tag: chaine) ->
 {
     pour pile.éléments {
         si it.texte == nom_tag {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+possède_dans_portée :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) -> bool
+{
+    pour pile.éléments {
+        si it == élément {
             retourne vrai
         }
     }
