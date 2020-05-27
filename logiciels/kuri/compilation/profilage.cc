@@ -24,6 +24,8 @@
 
 #include "profilage.hh"
 
+#include "biblinternes/structures/tableau.hh"
+
 #include <iostream>
 
 InfoProfilage s_info_profilage;
@@ -32,9 +34,22 @@ static void imprime_infos_profilage()
 {
 	auto premier_info = s_info_profilage.premiere;
 
+	using type_paire = std::pair<double, const char *>;
+	dls::tableau<type_paire> donnees;
+
 	while (premier_info != nullptr) {
-		std::cerr << premier_info->fonction << " : " << premier_info->temps << "µs\n";
+		donnees.pousse({ premier_info->temps, premier_info->fonction });
+		//std::cerr << premier_info->fonction << " : " << premier_info->temps << "µs\n";
 		premier_info = premier_info->suivante;
+	}
+
+	std::sort(donnees.debut(), donnees.fin(), [](type_paire const &a, type_paire const &b)
+	{
+		return a.first > b.first;
+	});
+
+	for (auto &paire : donnees) {
+		std::cerr << paire.second << " : " << paire.first << "µs\n";
 	}
 }
 
