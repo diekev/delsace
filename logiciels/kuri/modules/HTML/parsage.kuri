@@ -6,18 +6,6 @@ charge "lexage"
 charge "noeud"
 charge "pile_éléments_ouverts"
 
-// À FAIRE : bouge ça dans un module d'outils ou autre
-fait_partie_de :: fonc (valeur: $T, liste: ...$T) -> bool
-{
-    pour liste {
-        si valeur == it {
-            retourne vrai
-        }
-    }
-
-    retourne faux
-}
-
 est_caractère_espace_blanc :: fonc (point_de_code: n32) -> bool
 {
     retourne point_de_code == ESPACE || point_de_code == TABULATION || point_de_code == RETOUR_CHARIOT || point_de_code == NOUVELLE_LIGNE || point_de_code == 0x0C

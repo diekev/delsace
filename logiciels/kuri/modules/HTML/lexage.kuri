@@ -1,6 +1,17 @@
 importe Fondation
 
 charge "attribut"
+charge "point_de_code"
+
+est_espace_blanc_html :: fonc (c: z8) -> bool
+{
+    retourne c == ' ' || c == '\t' || c == 0x0C || c == '\n'
+}
+
+est_espace_blanc_html :: fonc (c: n32) -> bool
+{
+    retourne c == 0x20 || c == 0x09 || c == 0x0C || c == 0x0A
+}
 
 GenreLexème :: énum {
     Doctype
@@ -74,38 +85,8 @@ détruit_lexème :: fonc (lexème: *Léxème)
 }
 
 // --------------------------------------------
-// Les différents caractères spéciaux sous forme de point de code
 
-NUL :: 0x0 comme n32
-TABULATION :: '\t' comme n32
-ESPACE :: ' ' comme n32
-NOUVELLE_LIGNE :: '\n' comme n32
-RETOUR_CHARIOT :: '\r' comme n32
-ESPERLUETTE :: '&' comme n32
-A_MINUSCULE :: 'a' comme n32
-F_MINUSCULE :: 'f' comme n32
-X_MINUSCULE :: 'x' comme n32
-Z_MINUSCULE :: 'z' comme n32
-A_MAJUSCULE :: 'A' comme n32
-F_MAJUSCULE :: 'F' comme n32
-X_MAJUSCULE :: 'X' comme n32
-Z_MAJUSCULE :: 'Z' comme n32
-SIGNE_NOMBRE :: '#' comme n32
-EGAL :: '=' comme n32
-GUILLEMET :: '"' comme n32
-APOSTROPHE :: '\'' comme n32
-ACCENT_GRAVE :: '`' comme n32
-POINT_INTERROGATION :: '?' comme n32
-POINT_EXCLAMATION :: '!' comme n32
-POINT_VIRGULE :: ';' comme n32
-CHEVRON_OUVRANT :: '<' comme n32
-CHEVRON_FERMANT :: '>' comme n32
-SLASH :: '/' comme n32
-MOINS :: '-' comme n32
-CARACTÈRE_REMPLACEMENT :: 0xFFFD comme n32
 FIN_DE_FICHIER :: 0xffffffff comme n32
-
-// --------------------------------------------
 
 ÉtatLexage :: énum {
     Data
@@ -1101,7 +1082,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 }
             }
             DecimalCharacterReferenceStart {
-                si est_ascii_décimal(c) {
+                si est_ascii_chiffre(c) {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.DecimalCharacterReference)
                 }
                 sinon {
@@ -1171,7 +1152,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 sinon si est_noncaractère(c) {
                     panique("état partiellement implémenté")
                 }
-                sinon si c == 0x0D || (est_ascii_controle(lexeuse.code_référence_caractère) && !est_ascii_espace_blanc(lexeuse.code_référence_caractère)) {
+                sinon si c == 0x0D || (est_controle(lexeuse.code_référence_caractère) && !est_ascii_espace_blanc(lexeuse.code_référence_caractère)) {
                     panique("état partiellement implémenté")
                 }
 
@@ -1204,21 +1185,6 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
     retourne lexeuse.émet_léxème_fin_de_fichier()
 }
 
-est_noncaractère :: fonc (c: n32) -> bool
-{
-    retourne faux
-}
-
-est_ascii_controle :: fonc (c: n32) -> bool
-{
-    retourne faux
-}
-
-est_ascii_espace_blanc :: fonc (c: n32) -> bool
-{
-    retourne faux
-}
-
 reconsomme_dans_état :: fonc (lexeuse: *Lexeuse, état_cible: ÉtatLexage)
 {
     lexeuse.curseur -= 1
@@ -1246,59 +1212,4 @@ apparie :: fonc (lexeuse: *Lexeuse, chn: chaine) -> bool
     }
 
     retourne vrai
-}
-
-est_espace_blanc_html :: fonc (c: z8) -> bool
-{
-    retourne c == ' ' || c == '\t' || c == 0x0C || c == '\n'
-}
-
-est_ascii_alpha :: fonc (point_de_code: n32) -> bool
-{
-    retourne A_MAJUSCULE <= point_de_code <= Z_MAJUSCULE || A_MINUSCULE <= point_de_code <= Z_MINUSCULE
-}
-
-est_ascii_alpha_minuscule :: fonc (point_de_code: n32) -> bool
-{
-    retourne A_MINUSCULE <= point_de_code <= Z_MINUSCULE
-}
-
-est_ascii_alpha_majuscule :: fonc (point_de_code: n32) -> bool
-{
-    retourne A_MAJUSCULE <= point_de_code <= Z_MAJUSCULE
-}
-
-est_espace_blanc_html :: fonc (c: n32) -> bool
-{
-    retourne c == 0x09 || c == 0x0A || c == 0x0C || c == 0x20
-}
-
-est_ascii_alphanumérique :: fonc (c: n32) -> bool
-{
-    retourne est_ascii_alpha(c) || est_ascii_chiffre(c)
-}
-
-est_ascii_décimal :: fonc (c: n32) -> bool
-{
-    retourne (0x30 <= c <= 0x39)
-}
-
-est_ascii_hexadecimal :: fonc (c: n32) -> bool
-{
-    retourne est_ascii_chiffre(c) || est_ascii_chiffre_hex_min(c) || est_ascii_chiffre_hex_maj(c)
-}
-
-est_ascii_chiffre :: fonc (c: n32) -> bool
-{
-    retourne (0x30 <= c <= 0x39)
-}
-
-est_ascii_chiffre_hex_min :: fonc (c: n32) -> bool
-{
-    retourne (A_MINUSCULE <= c <= F_MINUSCULE)
-}
-
-est_ascii_chiffre_hex_maj :: fonc (c: n32) -> bool
-{
-    retourne (A_MAJUSCULE <= c <= F_MAJUSCULE)
 }
