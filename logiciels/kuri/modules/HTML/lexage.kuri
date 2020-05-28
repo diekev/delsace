@@ -1208,6 +1208,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     }
                     sinon si c == CHEVRON_FERMANT {
                         lexeuse.état = ÉtatLexage.Data
+                        retourne lexeuse.émet_léxème()
                     }
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
@@ -1330,7 +1331,153 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 }
             }
             ScriptDataEscapedEndTagName {
+                si lexeuse.nom_dernier_tag_début == lexeuse.lexème_courant.nom {
+                    si est_espace_blanc_html(c) {
+                        lexeuse.état = ÉtatLexage.BeforeAttributeName
+                    }
+                    sinon si c == SLASH {
+                        lexeuse.état = ÉtatLexage.SelfClosingStartTag
+                    }
+                    sinon si c == CHEVRON_FERMANT {
+                        lexeuse.état = ÉtatLexage.Data
+                        retourne lexeuse.émet_léxème()
+                    }
+                }
+                sinon si est_ascii_alpha_majuscule(c) {
+                    chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
+                    continue
+                }
+                sinon si est_ascii_alpha_minuscule(c) {
+                    chaine_ajoute(@lexeuse.lexème_courant.nom, c)
+                    continue
+                }
 
+                lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped)
+
+                enfile(@lexeuse.file_lexèmes, lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT))
+                enfile(@lexeuse.file_lexèmes, lexeuse.émet_léxème_caractère(SLASH))
+                lexeuse.enfile_lexèmes_pour_tampon_temporaire()
+                retourne défile(@lexeuse.file_lexèmes)
+            }
+            ScriptDataDoubleEscapeStart {
+                si est_espace_blanc_html(c) || c == SLASH || c == CHEVRON_FERMANT {
+                    si lexeuse.tampon_temporaire == "script" {
+                        lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped
+                    }
+                    sinon {
+                        lexeuse.état = ÉtatLexage.ScriptDataEscaped
+                        retourne lexeuse.émet_léxème_caractère(c)
+                    }
+                }
+                sinon si est_ascii_alpha_majuscule(c) {
+                    chaine_ajoute(@lexeuse.tampon_temporaire, c + 0x20)
+                    retourne lexeuse.émet_léxème_caractère(c)
+                }
+                sinon si est_ascii_alpha_minuscule(c) {
+                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    retourne lexeuse.émet_léxème_caractère(c)
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped)
+                }
+            }
+            ScriptDataDoubleEscaped {
+                si c == MOINS {
+                    lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapedDash
+                    retourne lexeuse.émet_léxème_caractère(MOINS)
+                }
+
+                si c == CHEVRON_OUVRANT {
+                    lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapedLessThanSign
+                    retourne lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
+                }
+
+                si c == NUL {
+                    retourne lexeuse.émet_léxème_caractère(CARACTÈRE_REMPLACEMENT)
+                }
+
+                retourne lexeuse.émet_léxème_caractère(c)
+            }
+            ScriptDataDoubleEscapedDash {
+                si c == MOINS {
+                    lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapedDashDash
+                    retourne lexeuse.émet_léxème_caractère(MOINS)
+                }
+
+                si c == CHEVRON_OUVRANT {
+                    lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapedLessThanSign
+                    retourne lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
+                }
+
+                si c == NUL {
+                    lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped
+                    retourne lexeuse.émet_léxème_caractère(CARACTÈRE_REMPLACEMENT)
+                }
+
+                si c == FIN_DE_FICHIER {
+                    retourne lexeuse.émet_léxème_fin_de_fichier()
+                }
+
+                lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped
+                retourne lexeuse.émet_léxème_caractère(c)
+            }
+            ScriptDataDoubleEscapedDashDash {
+                si c == MOINS {
+                    retourne lexeuse.émet_léxème_caractère(MOINS)
+                }
+
+                si c == CHEVRON_OUVRANT {
+                    lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapedLessThanSign
+                    retourne lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
+                }
+
+                si c == CHEVRON_FERMANT {
+                    lexeuse.état = ÉtatLexage.ScriptData
+                    retourne lexeuse.émet_léxème_caractère(CHEVRON_OUVRANT)
+                }
+
+                si c == NUL {
+                    lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped
+                    retourne lexeuse.émet_léxème_caractère(CARACTÈRE_REMPLACEMENT)
+                }
+
+                si c == FIN_DE_FICHIER {
+                    retourne lexeuse.émet_léxème_fin_de_fichier()
+                }
+
+                lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped
+                retourne lexeuse.émet_léxème_caractère(c)
+            }
+            ScriptDataDoubleEscapedLessThanSign {
+                si c == SLASH {
+                    déloge lexeuse.tampon_temporaire
+                    lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapeEnd
+                    retourne lexeuse.émet_léxème_caractère(SLASH)
+                }
+
+                lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataDoubleEscaped)
+            }
+            ScriptDataDoubleEscapeEnd {
+                si est_espace_blanc_html(c) || c == SLASH || c == CHEVRON_FERMANT {
+                    si lexeuse.tampon_temporaire == "script" {
+                        lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped
+                    }
+                    sinon {
+                        lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped
+                        retourne lexeuse.émet_léxème_caractère(c)
+                    }
+                }
+                sinon si est_ascii_alpha_majuscule(c) {
+                    chaine_ajoute(@lexeuse.tampon_temporaire, c + 0x20)
+                    retourne lexeuse.émet_léxème_caractère(c)
+                }
+                sinon si est_ascii_alpha_minuscule(c) {
+                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    retourne lexeuse.émet_léxème_caractère(c)
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataDoubleEscaped)
+                }
             }
             sinon {
                 imprime("état : %\n", lexeuse.état)
