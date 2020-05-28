@@ -28,6 +28,8 @@
 
 #include "biblinternes/structures/dico_fixe.hh"
 
+#include "profilage.hh"
+
 static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("arrête"), GenreLexeme::ARRETE },
 	dls::paire{ dls::vue_chaine_compacte("bool"), GenreLexeme::BOOL },
@@ -767,6 +769,8 @@ void construit_tables_caractere_speciaux()
 
 bool est_caractere_special(char c, GenreLexeme &i)
 {
+    PROFILE_FONCTION;
+
 	if (!tables_caracteres[static_cast<int>(c)]) {
 		return false;
 	}
@@ -777,6 +781,8 @@ bool est_caractere_special(char c, GenreLexeme &i)
 
 GenreLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
 {
+    PROFILE_FONCTION;
+
 	if (!tables_digraphes[int(chaine[0])]) {
 		return GenreLexeme::INCONNU;
 	}
@@ -792,6 +798,8 @@ GenreLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
 
 GenreLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
 {
+    PROFILE_FONCTION;
+
 	if (!tables_trigraphes[int(chaine[0])]) {
 		return GenreLexeme::INCONNU;
 	}
@@ -807,6 +815,8 @@ GenreLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
 
 GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
 {
+    PROFILE_FONCTION;
+
 	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
 		return GenreLexeme::CHAINE_CARACTERE;
 	}

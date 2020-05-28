@@ -39,6 +39,7 @@
 #include "erreur.h"
 #include "expression.h"
 #include "outils_lexemes.hh"
+#include "profilage.hh"
 #include "portee.hh"
 #include "typage.hh"
 #include "validation_expression_appel.hh"
@@ -49,6 +50,8 @@ namespace noeud {
 
 static Type *resoud_type_final(ContexteGenerationCode &contexte, NoeudExpression *expression_type)
 {
+	PROFILE_FONCTION;
+
 	if (expression_type == nullptr) {
 		return nullptr;
 	}
@@ -74,6 +77,8 @@ static Type *resoud_type_final(ContexteGenerationCode &contexte, NoeudExpression
 
 static NoeudBase *derniere_instruction(NoeudBloc *b)
 {
+	PROFILE_FONCTION;
+
 	if (b->expressions.taille == 0) {
 		return static_cast<NoeudBase *>(nullptr);
 	}
@@ -111,6 +116,8 @@ static void valide_acces_membre(
 		NoeudExpression *membre,
 		bool expr_gauche)
 {
+	PROFILE_FONCTION;
+
 	structure->aide_generation_code = EST_NOEUD_ACCES;
 	performe_validation_semantique(structure, contexte, expr_gauche);
 
@@ -189,6 +196,8 @@ static void valide_acces_membre(
 
 void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 {
+	PROFILE_FONCTION;
+
 	// certaines fonctions sont validées 2 fois...
 	if (b->type != nullptr) {
 		return;
@@ -440,6 +449,8 @@ void performe_validation_semantique(
 		ContexteGenerationCode &contexte,
 		bool expr_gauche)
 {
+	PROFILE_FONCTION;
+
 	auto &graphe = contexte.graphe_dependance;
 	auto &donnees_dependance = contexte.donnees_dependance;
 	auto fonction_courante = contexte.donnees_fonction;

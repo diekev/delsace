@@ -441,6 +441,8 @@ void construit_tables_caractere_speciaux()
 
 bool est_caractere_special(char c, GenreLexeme &i)
 {
+    PROFILE_FONCTION;
+
 	if (!tables_caracteres[static_cast<int>(c)]) {
 		return false;
 	}
@@ -451,6 +453,8 @@ bool est_caractere_special(char c, GenreLexeme &i)
 
 GenreLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
 {
+    PROFILE_FONCTION;
+
 	if (!tables_digraphes[int(chaine[0])]) {
 		return GenreLexeme::INCONNU;
 	}
@@ -466,6 +470,8 @@ GenreLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
 
 GenreLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
 {
+    PROFILE_FONCTION;
+
 	if (!tables_trigraphes[int(chaine[0])]) {
 		return GenreLexeme::INCONNU;
 	}
@@ -481,6 +487,8 @@ GenreLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
 
 GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
 {
+    PROFILE_FONCTION;
+
 	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
 		return GenreLexeme::CHAINE_CARACTERE;
 	}
@@ -556,6 +564,7 @@ with io.open(u'../compilation/lexemes.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "lexemes.hh"\n\n')
 	source.write(u'#include "biblinternes/structures/dico_fixe.hh"\n\n')
+	source.write(u'#include "profilage.hh"\n\n')
 	source.write(tableaux)
 	source.write(fonction)
 	source.write(construit_fonction_chaine_du_lexeme())
