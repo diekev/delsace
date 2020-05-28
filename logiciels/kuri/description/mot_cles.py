@@ -215,42 +215,6 @@ def construit_tableaux():
 
 	tableaux += u'\n);\n\n'
 
-	tableaux += u'static auto paires_digraphes = dls::cree_dico(\n'
-
-	virgule = ''
-
-	for c in digraphes:
-		tableaux += virgule
-		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), GenreLexeme::{} }}'.format(c[0], c[1])
-		virgule = ',\n'
-
-	tableaux += u'\n);\n\n'
-
-	tableaux += u'static auto paires_trigraphes = dls::cree_dico(\n'
-
-	virgule = ''
-
-	for c in trigraphes:
-		tableaux += virgule
-		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), GenreLexeme::{} }}'.format(c[0], c[1])
-		virgule = ',\n'
-
-	tableaux += u'\n);\n\n'
-
-	tableaux += u'static auto paires_caracteres_speciaux = dls::cree_dico(\n'
-
-	virgule = ''
-
-	for c in caracteres_simple:
-		tableaux += virgule
-		if c[0] == "'":
-			c[0] = "\\'"
-
-		tableaux += u"\tdls::paire{{ '{}', GenreLexeme::{} }}".format(c[0], c[1])
-		virgule = ',\n'
-
-	tableaux += u'\n);\n\n'
-
 	return tableaux
 
 
@@ -385,48 +349,12 @@ structures = construit_structures()
 tableaux = construit_tableaux()
 
 fonctions = u"""
-static bool tables_caracteres[256] = {};
-static GenreLexeme tables_identifiants[256] = {};
-static bool tables_digraphes[256] = {};
-static bool tables_trigraphes[256] = {};
 static bool tables_mots_cles[256] = {};
 
 void construit_tables_caractere_speciaux()
 {
 	for (int i = 0; i < 256; ++i) {
-		tables_caracteres[i] = false;
-		tables_digraphes[i] = false;
-		tables_trigraphes[i] = false;
 		tables_mots_cles[i] = false;
-		tables_identifiants[i] = GenreLexeme::INCONNU;
-	}
-
-    {
-	    auto plg = paires_caracteres_speciaux.plage();
-
-	    while (!plg.est_finie()) {
-		    tables_caracteres[int(plg.front().premier)] = true;
-		    tables_identifiants[int(plg.front().premier)] = plg.front().second;
-	   		plg.effronte();
-	    }
-	}
-
-    {
-	    auto plg = paires_digraphes.plage();
-
-	    while (!plg.est_finie()) {
-		    tables_digraphes[int(plg.front().premier[0])] = true;
-	   		plg.effronte();
-	    }
-	}
-
-    {
-	    auto plg = paires_trigraphes.plage();
-
-	    while (!plg.est_finie()) {
-		    tables_trigraphes[int(plg.front().premier[0])] = true;
-	   		plg.effronte();
-	    }
 	}
 
     {
@@ -437,52 +365,6 @@ void construit_tables_caractere_speciaux()
 	   		plg.effronte();
 	    }
 	}
-}
-
-bool est_caractere_special(char c, GenreLexeme &i)
-{
-    PROFILE_FONCTION;
-
-	if (!tables_caracteres[static_cast<int>(c)]) {
-		return false;
-	}
-
-	i = tables_identifiants[static_cast<int>(c)];
-	return true;
-}
-
-GenreLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
-{
-    PROFILE_FONCTION;
-
-	if (!tables_digraphes[int(chaine[0])]) {
-		return GenreLexeme::INCONNU;
-	}
-
-	auto iterateur = paires_digraphes.trouve_binaire(chaine);
-
-	if (!iterateur.est_finie()) {
-		return iterateur.front().second;
-	}
-
-	return GenreLexeme::INCONNU;
-}
-
-GenreLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
-{
-    PROFILE_FONCTION;
-
-	if (!tables_trigraphes[int(chaine[0])]) {
-		return GenreLexeme::INCONNU;
-	}
-
-	auto iterateur = paires_trigraphes.trouve_binaire(chaine);
-
-	if (!iterateur.est_finie()) {
-		return iterateur.front().second;
-	}
-
-	return GenreLexeme::INCONNU;
 }
 
 GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
@@ -540,12 +422,6 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id);
 const char *chaine_du_lexeme(GenreLexeme genre);
 
 void construit_tables_caractere_speciaux();
-
-bool est_caractere_special(char c, GenreLexeme &i);
-
-GenreLexeme id_digraphe(const dls::vue_chaine_compacte &chaine);
-
-GenreLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine);
 
 GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine);
 """

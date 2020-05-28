@@ -304,180 +304,300 @@ void Lexeuse::lance_erreur(const dls::chaine &quoi) const
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::LEXAGE);
 }
 
-// si caractere blanc:
-//    ajoute mot
-// sinon si caractere speciale:
-//    ajoute mot
-//    si caractere suivant constitue caractere double
-//        ajoute mot caractere double
-//    sinon
-//        si caractere est '.':
-//            decoupe trois point
-//        sinon si caractere est '"':
-//            decoupe chaine caractere littérale
-//        sinon si caractere est '#':
-//            decoupe commentaire
-//        sinon si caractere est '\'':
-//            decoupe caractere
-//        sinon:
-//        	ajoute mot caractere simple
-// sinon si nombre et mot est vide:
-//    decoupe nombre
-// sinon:
-//    ajoute caractere mot courant
 void Lexeuse::analyse_caractere_simple()
 {
 	PROFILE_FONCTION;
 
-	auto idc = GenreLexeme::INCONNU;
+#define POUSSE_CARACTERE(id) \
+	this->enregistre_pos_mot(); \
+	this->pousse_caractere(); \
+	this->pousse_mot(id); \
+	this->avance(); \
 
-	if (lng::est_espace_blanc(this->caractere_courant())) {
-		if (m_taille_mot_courant != 0) {
-			this->pousse_mot(id_chaine(this->mot_courant()));
+#define POUSSE_MOT_SI_NECESSAIRE \
+	if (m_taille_mot_courant != 0) { \
+		this->pousse_mot(id_chaine(this->mot_courant())); \
+	}
+
+#define CAS_CARACTERE(c, id) \
+	case c: \
+	{ \
+		POUSSE_MOT_SI_NECESSAIRE; \
+		POUSSE_CARACTERE(id); \
+		break; \
+	}
+
+#define CAS_CARACTERE_EGAL(c, id_sans_egal, id_avec_egal) \
+	case c: \
+	{ \
+		POUSSE_MOT_SI_NECESSAIRE; \
+		if (this->caractere_voisin(1) == '=') { \
+			this->enregistre_pos_mot(); \
+			this->pousse_caractere(); \
+			this->pousse_caractere(); \
+			this->pousse_mot(id_avec_egal); \
+			this->avance(2); \
+		} \
+		else { \
+			POUSSE_CARACTERE(id_sans_egal); \
+		} \
+		break; \
+	}
+
+#define APPARIE_SUIVANT(c, id) \
+	if (this->caractere_voisin(1) == c) { \
+		this->enregistre_pos_mot(); \
+		this->pousse_caractere(); \
+		this->pousse_caractere(); \
+		this->pousse_mot(id); \
+		this->avance(2); \
+		return; \
+	}
+
+#define APPARIE_2_SUIVANTS(c1, c2, id) \
+	if (this->caractere_voisin(1) == c1 && this->caractere_voisin(2) == c2) { \
+		this->enregistre_pos_mot(); \
+		this->pousse_caractere(); \
+		this->pousse_caractere(); \
+		this->pousse_caractere(); \
+		this->pousse_mot(id); \
+		this->avance(3); \
+		return; \
+	}
+
+	switch (this->caractere_courant()) {
+		default:
+		{
+			if (m_taille_mot_courant == 0 && lng::est_nombre_decimal(this->caractere_courant())) {
+				this->lexe_nombre();
+			}
+			else {
+				if (m_taille_mot_courant == 0) {
+					this->enregistre_pos_mot();
+				}
+
+				this->pousse_caractere();
+				this->avance();
+			}
+
+			break;
 		}
+		case '\t':
+		case '\r':
+		case '\v':
+		case '\f':
+		case '\n':
+		case ' ':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
 
-		if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-			this->enregistre_pos_mot();
-			this->pousse_caractere();
-			this->pousse_mot(GenreLexeme::CARACTERE_BLANC);
-		}
-
-		if (this->caractere_courant() == '\n') {
-			if (doit_ajouter_point_virgule(m_dernier_id)) {
+			if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
 				this->enregistre_pos_mot();
 				this->pousse_caractere();
-				this->pousse_mot(GenreLexeme::POINT_VIRGULE);
-			}
-		}
-
-		this->avance();
-	}
-	else if (est_caractere_special(this->caractere_courant(), idc)) {
-		if (m_taille_mot_courant != 0) {
-			this->pousse_mot(id_chaine(this->mot_courant()));
-		}
-
-		this->enregistre_pos_mot();
-
-		auto id = id_trigraphe(dls::vue_chaine_compacte(m_debut, 3));
-
-		if (id != GenreLexeme::INCONNU) {
-			this->pousse_caractere(3);
-			this->pousse_mot(id);
-			this->avance(3);
-			return;
-		}
-
-		id = id_digraphe(dls::vue_chaine_compacte(m_debut, 2));
-
-		if (id != GenreLexeme::INCONNU) {
-			if (id == GenreLexeme::DEBUT_LIGNE_COMMENTAIRE) {
-				lexe_commentaire();
-				return;
+				this->pousse_mot(GenreLexeme::CARACTERE_BLANC);
 			}
 
-			if (id == GenreLexeme::DEBUT_BLOC_COMMENTAIRE) {
+			if (this->caractere_courant() == '\n') {
+				if (doit_ajouter_point_virgule(m_dernier_id)) {
+					this->enregistre_pos_mot();
+					this->pousse_caractere();
+					this->pousse_mot(GenreLexeme::POINT_VIRGULE);
+				}
+			}
+
+			this->avance();
+			break;
+		}
+		case '"':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
+
+			/* Saute le premier guillemet si nécessaire. */
+			if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+				this->enregistre_pos_mot();
+				this->pousse_caractere();
+				this->avance();
+			}
+			else {
+				this->avance();
+				this->enregistre_pos_mot();
+			}
+
+			kuri::chaine chaine;
+
+			while (!this->fini()) {
+				if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
+					break;
+				}
+
+				this->lexe_caractere_litteral(&chaine);
+			}
+
+			m_contexte.gerante_chaine.ajoute_chaine(chaine);
+
+			/* Saute le dernier guillemet si nécessaire. */
+			if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+				this->pousse_caractere();
+			}
+
+			this->avance();
+
+			this->pousse_mot(GenreLexeme::CHAINE_LITTERALE, chaine);
+			break;
+		}
+		case '\'':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
+
+			/* Saute la première apostrophe si nécessaire. */
+			if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+				this->enregistre_pos_mot();
+				this->pousse_caractere();
+				this->avance();
+			}
+			else {
+				this->avance();
+				this->enregistre_pos_mot();
+			}
+
+			auto valeur = this->lexe_caractere_litteral(nullptr);
+
+			if (this->caractere_courant() != '\'') {
+				lance_erreur("attendu une apostrophe");
+			}
+
+			/* Saute la dernière apostrophe si nécessaire. */
+			if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+				this->pousse_caractere();
+			}
+
+			this->avance();
+			this->pousse_mot(GenreLexeme::CARACTERE, valeur);
+			break;
+		}
+		CAS_CARACTERE('~', GenreLexeme::TILDE)
+		CAS_CARACTERE('[', GenreLexeme::CROCHET_OUVRANT)
+		CAS_CARACTERE(']', GenreLexeme::CROCHET_FERMANT)
+		CAS_CARACTERE('{', GenreLexeme::ACCOLADE_OUVRANTE)
+		CAS_CARACTERE('}', GenreLexeme::ACCOLADE_FERMANTE)
+		CAS_CARACTERE('@', GenreLexeme::AROBASE)
+		CAS_CARACTERE(',', GenreLexeme::VIRGULE)
+		CAS_CARACTERE(';', GenreLexeme::POINT_VIRGULE)
+		CAS_CARACTERE('#', GenreLexeme::DIRECTIVE)
+		CAS_CARACTERE('$', GenreLexeme::DOLLAR)
+		CAS_CARACTERE('(', GenreLexeme::PARENTHESE_OUVRANTE)
+		CAS_CARACTERE(')', GenreLexeme::PARENTHESE_FERMANTE)
+		CAS_CARACTERE_EGAL('+', GenreLexeme::PLUS, GenreLexeme::PLUS_EGAL)
+		CAS_CARACTERE_EGAL('!', GenreLexeme::EXCLAMATION, GenreLexeme::DIFFERENCE)
+		CAS_CARACTERE_EGAL('=', GenreLexeme::EGAL, GenreLexeme::EGALITE)
+		CAS_CARACTERE_EGAL('%', GenreLexeme::POURCENT, GenreLexeme::MODULO_EGAL)
+		CAS_CARACTERE_EGAL('^', GenreLexeme::CHAPEAU, GenreLexeme::OUX_EGAL)
+		case '*':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
+
+			if (this->caractere_voisin(1) == '/') {
+				lance_erreur("fin de commentaire bloc en dehors d'un commentaire");
+			}
+
+			APPARIE_SUIVANT('=', GenreLexeme::MULTIPLIE_EGAL);
+			POUSSE_CARACTERE(GenreLexeme::FOIS);
+			break;
+		}
+		case '/':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
+
+			if (this->caractere_voisin(1) == '*') {
 				lexe_commentaire_bloc();
-				return;
+				break;
 			}
 
-			this->pousse_caractere(2);
-			this->pousse_mot(id);
-			this->avance(2);
-			return;
+			if (this->caractere_voisin(1) == '/') {
+				lexe_commentaire();
+				break;
+			}
+
+			APPARIE_SUIVANT('=', GenreLexeme::DIVISE_EGAL);
+			POUSSE_CARACTERE(GenreLexeme::DIVISE);
+			break;
 		}
+		case '-':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
 
-		switch (this->caractere_courant()) {
-			case '.':
-			{
-				this->pousse_caractere();
-				this->pousse_mot(GenreLexeme::POINT);
-				this->avance();
-				break;
-			}
-			case '"':
-			{
-				/* Saute le premier guillemet si nécessaire. */
-				if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-					this->enregistre_pos_mot();
-					this->pousse_caractere();
-					this->avance();
-				}
-				else {
-					this->avance();
-					this->enregistre_pos_mot();
-				}
+			// '-' ou -= ou ---
+			APPARIE_2_SUIVANTS('-', '-', GenreLexeme::NON_INITIALISATION);
+			APPARIE_SUIVANT('=', GenreLexeme::MOINS_EGAL);
+			APPARIE_SUIVANT('>', GenreLexeme::RETOUR_TYPE);
+			POUSSE_CARACTERE(GenreLexeme::MOINS);
+			break;
+		}
+		case '.':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
 
-				kuri::chaine chaine;
+			// . ou ...
+			APPARIE_2_SUIVANTS('.', '.', GenreLexeme::TROIS_POINTS);
+			POUSSE_CARACTERE(GenreLexeme::POINT);
+			break;
+		}
+		case '<':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
 
-				while (!this->fini()) {
-					if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
-						break;
-					}
+			// <, <=, << ou <<=
+			APPARIE_2_SUIVANTS('<', '=', GenreLexeme::DEC_GAUCHE_EGAL);
+			APPARIE_SUIVANT('<', GenreLexeme::DECALAGE_GAUCHE);
+			APPARIE_SUIVANT('=', GenreLexeme::INFERIEUR_EGAL);
+			POUSSE_CARACTERE(GenreLexeme::INFERIEUR);
+			break;
+		}
+		case '>':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
 
-					this->lexe_caractere_litteral(&chaine);
-				}
+			// >, >=, >> ou >>=
+			APPARIE_2_SUIVANTS('>', '=', GenreLexeme::DEC_DROITE_EGAL);
+			APPARIE_SUIVANT('>', GenreLexeme::DECALAGE_DROITE);
+			APPARIE_SUIVANT('=', GenreLexeme::SUPERIEUR_EGAL);
+			POUSSE_CARACTERE(GenreLexeme::SUPERIEUR);
+			break;
+		}
+		case ':':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
 
-				m_contexte.gerante_chaine.ajoute_chaine(chaine);
+			// :, :=, ::
+			APPARIE_SUIVANT(':', GenreLexeme::DECLARATION_CONSTANTE);
+			APPARIE_SUIVANT('=', GenreLexeme::DECLARATION_VARIABLE);
+			POUSSE_CARACTERE(GenreLexeme::DOUBLE_POINTS);
+			break;
+		}
+		case '&':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
 
-				/* Saute le dernier guillemet si nécessaire. */
-				if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-					this->pousse_caractere();
-				}
+			APPARIE_SUIVANT('&', GenreLexeme::ESP_ESP);
+			APPARIE_SUIVANT('=', GenreLexeme::ET_EGAL);
+			POUSSE_CARACTERE(GenreLexeme::ESPERLUETTE);
+			break;
+		}
+		case '|':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
 
-				this->avance();
-
-				this->pousse_mot(GenreLexeme::CHAINE_LITTERALE, chaine);
-				break;
-			}
-			case '\'':
-			{
-				/* Saute la première apostrophe si nécessaire. */
-				if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-					this->enregistre_pos_mot();
-					this->pousse_caractere();
-					this->avance();
-				}
-				else {
-					this->avance();
-					this->enregistre_pos_mot();
-				}
-
-				auto valeur = this->lexe_caractere_litteral(nullptr);
-
-				if (this->caractere_courant() != '\'') {
-					lance_erreur("attendu une apostrophe");
-				}
-
-				/* Saute la dernière apostrophe si nécessaire. */
-				if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-					this->pousse_caractere();
-				}
-
-				this->avance();
-				this->pousse_mot(GenreLexeme::CARACTERE, valeur);
-				break;
-			}
-			default:
-			{
-				this->pousse_caractere();
-				this->pousse_mot(idc);
-				this->avance();
-				break;
-			}
+			APPARIE_SUIVANT('|', GenreLexeme::BARRE_BARRE);
+			APPARIE_SUIVANT('=', GenreLexeme::OU_EGAL);
+			POUSSE_CARACTERE(GenreLexeme::BARRE);
+			break;
 		}
 	}
-	else if (m_taille_mot_courant == 0 && lng::est_nombre_decimal(this->caractere_courant())) {
-		this->lexe_nombre();
-	}
-	else {
-		if (m_taille_mot_courant == 0) {
-			this->enregistre_pos_mot();
-		}
 
-		this->pousse_caractere();
-		this->avance();
-	}
+#undef CAS_CARACTERE
+#undef CAS_CARACTERE_EGAL
+#undef APPARIE_SUIVANT
+#undef APPARIE_2_SUIVANTS
 }
 
 void Lexeuse::pousse_caractere(int n)

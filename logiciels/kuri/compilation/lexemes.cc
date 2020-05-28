@@ -97,69 +97,6 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("énum_drapeau"), GenreLexeme::ENUM_DRAPEAU }
 );
 
-static auto paires_digraphes = dls::cree_dico(
-	dls::paire{ dls::vue_chaine_compacte("!="), GenreLexeme::DIFFERENCE },
-	dls::paire{ dls::vue_chaine_compacte("%="), GenreLexeme::MODULO_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("&&"), GenreLexeme::ESP_ESP },
-	dls::paire{ dls::vue_chaine_compacte("&="), GenreLexeme::ET_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("*/"), GenreLexeme::FIN_BLOC_COMMENTAIRE },
-	dls::paire{ dls::vue_chaine_compacte("*="), GenreLexeme::MULTIPLIE_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("+="), GenreLexeme::PLUS_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("-="), GenreLexeme::MOINS_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("->"), GenreLexeme::RETOUR_TYPE },
-	dls::paire{ dls::vue_chaine_compacte("/*"), GenreLexeme::DEBUT_BLOC_COMMENTAIRE },
-	dls::paire{ dls::vue_chaine_compacte("//"), GenreLexeme::DEBUT_LIGNE_COMMENTAIRE },
-	dls::paire{ dls::vue_chaine_compacte("/="), GenreLexeme::DIVISE_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("::"), GenreLexeme::DECLARATION_CONSTANTE },
-	dls::paire{ dls::vue_chaine_compacte(":="), GenreLexeme::DECLARATION_VARIABLE },
-	dls::paire{ dls::vue_chaine_compacte("<<"), GenreLexeme::DECALAGE_GAUCHE },
-	dls::paire{ dls::vue_chaine_compacte("<="), GenreLexeme::INFERIEUR_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("=="), GenreLexeme::EGALITE },
-	dls::paire{ dls::vue_chaine_compacte(">="), GenreLexeme::SUPERIEUR_EGAL },
-	dls::paire{ dls::vue_chaine_compacte(">>"), GenreLexeme::DECALAGE_DROITE },
-	dls::paire{ dls::vue_chaine_compacte("^="), GenreLexeme::OUX_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("|="), GenreLexeme::OU_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("||"), GenreLexeme::BARRE_BARRE }
-);
-
-static auto paires_trigraphes = dls::cree_dico(
-	dls::paire{ dls::vue_chaine_compacte("---"), GenreLexeme::NON_INITIALISATION },
-	dls::paire{ dls::vue_chaine_compacte("..."), GenreLexeme::TROIS_POINTS },
-	dls::paire{ dls::vue_chaine_compacte("<<="), GenreLexeme::DEC_GAUCHE_EGAL },
-	dls::paire{ dls::vue_chaine_compacte(">>="), GenreLexeme::DEC_DROITE_EGAL }
-);
-
-static auto paires_caracteres_speciaux = dls::cree_dico(
-	dls::paire{ '!', GenreLexeme::EXCLAMATION },
-	dls::paire{ '"', GenreLexeme::GUILLEMET },
-	dls::paire{ '#', GenreLexeme::DIRECTIVE },
-	dls::paire{ '$', GenreLexeme::DOLLAR },
-	dls::paire{ '%', GenreLexeme::POURCENT },
-	dls::paire{ '&', GenreLexeme::ESPERLUETTE },
-	dls::paire{ '\'', GenreLexeme::APOSTROPHE },
-	dls::paire{ '(', GenreLexeme::PARENTHESE_OUVRANTE },
-	dls::paire{ ')', GenreLexeme::PARENTHESE_FERMANTE },
-	dls::paire{ '*', GenreLexeme::FOIS },
-	dls::paire{ '+', GenreLexeme::PLUS },
-	dls::paire{ ',', GenreLexeme::VIRGULE },
-	dls::paire{ '-', GenreLexeme::MOINS },
-	dls::paire{ '.', GenreLexeme::POINT },
-	dls::paire{ '/', GenreLexeme::DIVISE },
-	dls::paire{ ':', GenreLexeme::DOUBLE_POINTS },
-	dls::paire{ ';', GenreLexeme::POINT_VIRGULE },
-	dls::paire{ '<', GenreLexeme::INFERIEUR },
-	dls::paire{ '=', GenreLexeme::EGAL },
-	dls::paire{ '>', GenreLexeme::SUPERIEUR },
-	dls::paire{ '@', GenreLexeme::AROBASE },
-	dls::paire{ '[', GenreLexeme::CROCHET_OUVRANT },
-	dls::paire{ ']', GenreLexeme::CROCHET_FERMANT },
-	dls::paire{ '^', GenreLexeme::CHAPEAU },
-	dls::paire{ '{', GenreLexeme::ACCOLADE_OUVRANTE },
-	dls::paire{ '|', GenreLexeme::BARRE },
-	dls::paire{ '}', GenreLexeme::ACCOLADE_FERMANTE },
-	dls::paire{ '~', GenreLexeme::TILDE }
-);
-
 const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 {
 	switch (id) {
@@ -451,7 +388,7 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 		case GenreLexeme::ESPERLUETTE:
 			return "&";
 		case GenreLexeme::APOSTROPHE:
-			return "\'";
+			return "'";
 		case GenreLexeme::PARENTHESE_OUVRANTE:
 			return "(";
 		case GenreLexeme::PARENTHESE_FERMANTE:
@@ -713,48 +650,12 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 
 static constexpr auto TAILLE_MAX_MOT_CLE = 16;
 
-static bool tables_caracteres[256] = {};
-static GenreLexeme tables_identifiants[256] = {};
-static bool tables_digraphes[256] = {};
-static bool tables_trigraphes[256] = {};
 static bool tables_mots_cles[256] = {};
 
 void construit_tables_caractere_speciaux()
 {
 	for (int i = 0; i < 256; ++i) {
-		tables_caracteres[i] = false;
-		tables_digraphes[i] = false;
-		tables_trigraphes[i] = false;
 		tables_mots_cles[i] = false;
-		tables_identifiants[i] = GenreLexeme::INCONNU;
-	}
-
-    {
-	    auto plg = paires_caracteres_speciaux.plage();
-
-	    while (!plg.est_finie()) {
-		    tables_caracteres[int(plg.front().premier)] = true;
-		    tables_identifiants[int(plg.front().premier)] = plg.front().second;
-	   		plg.effronte();
-	    }
-	}
-
-    {
-	    auto plg = paires_digraphes.plage();
-
-	    while (!plg.est_finie()) {
-		    tables_digraphes[int(plg.front().premier[0])] = true;
-	   		plg.effronte();
-	    }
-	}
-
-    {
-	    auto plg = paires_trigraphes.plage();
-
-	    while (!plg.est_finie()) {
-		    tables_trigraphes[int(plg.front().premier[0])] = true;
-	   		plg.effronte();
-	    }
 	}
 
     {
@@ -765,52 +666,6 @@ void construit_tables_caractere_speciaux()
 	   		plg.effronte();
 	    }
 	}
-}
-
-bool est_caractere_special(char c, GenreLexeme &i)
-{
-    PROFILE_FONCTION;
-
-	if (!tables_caracteres[static_cast<int>(c)]) {
-		return false;
-	}
-
-	i = tables_identifiants[static_cast<int>(c)];
-	return true;
-}
-
-GenreLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
-{
-    PROFILE_FONCTION;
-
-	if (!tables_digraphes[int(chaine[0])]) {
-		return GenreLexeme::INCONNU;
-	}
-
-	auto iterateur = paires_digraphes.trouve_binaire(chaine);
-
-	if (!iterateur.est_finie()) {
-		return iterateur.front().second;
-	}
-
-	return GenreLexeme::INCONNU;
-}
-
-GenreLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
-{
-    PROFILE_FONCTION;
-
-	if (!tables_trigraphes[int(chaine[0])]) {
-		return GenreLexeme::INCONNU;
-	}
-
-	auto iterateur = paires_trigraphes.trouve_binaire(chaine);
-
-	if (!iterateur.est_finie()) {
-		return iterateur.front().second;
-	}
-
-	return GenreLexeme::INCONNU;
 }
 
 GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine)

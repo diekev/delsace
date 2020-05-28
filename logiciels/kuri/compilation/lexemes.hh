@@ -216,10 +216,4 @@ const char *chaine_du_lexeme(GenreLexeme genre);
 
 void construit_tables_caractere_speciaux();
 
-bool est_caractere_special(char c, GenreLexeme &i);
-
-GenreLexeme id_digraphe(const dls::vue_chaine_compacte &chaine);
-
-GenreLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine);
-
 GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine);
