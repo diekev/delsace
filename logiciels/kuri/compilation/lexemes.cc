@@ -670,7 +670,7 @@ void construit_tables_caractere_speciaux()
 
 GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
 {
-    PROFILE_FONCTION;
+	PROFILE_FONCTION;
 
 	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
 		return GenreLexeme::CHAINE_CARACTERE;
@@ -682,7 +682,7 @@ GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
 
 	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
 
-	if (!iterateur.est_finie()) {
+	if (!iterateur.est_finie() /*&& iterateur.front().premier == chaine*/) {
 		return iterateur.front().second;
 	}
 

@@ -93,6 +93,23 @@ public:
 	{
 		auto plg = this->plage();
 
+#if 0
+		auto debut = &m_donnees[0];
+		auto fin = &m_donnees[N];
+
+		while (debut != fin) {
+			auto milieu = debut + (fin - debut) / 2;
+
+			if (milieu->premier < v) {
+				debut = milieu + 1;
+			}
+			else {
+				fin = milieu;
+			}
+		}
+
+		return plage_valeur(debut, fin);
+#else
 		while (!plg.est_finie()) {
 			auto m = plg.deuxieme_moitie();
 
@@ -112,6 +129,7 @@ public:
 		}
 
 		return plg;
+#endif
 	}
 
 	plage_valeur plage()
