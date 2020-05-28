@@ -249,17 +249,8 @@ bool Lexeuse::fini() const
 
 void Lexeuse::avance(int n)
 {
-	for (int i = 0; i < n; ++i) {
-		if (this->caractere_courant() == '\n') {
-			++m_compte_ligne;
-			m_position_ligne = 0;
-		}
-		else {
-			++m_position_ligne;
-		}
-
-		++m_debut;
-	}
+	m_debut += n;
+	m_position_ligne += n;
 }
 
 char Lexeuse::caractere_courant() const
@@ -386,7 +377,6 @@ void Lexeuse::analyse_caractere_simple()
 		case '\r':
 		case '\v':
 		case '\f':
-		case '\n':
 		case ' ':
 		{
 			POUSSE_MOT_SI_NECESSAIRE;
@@ -397,15 +387,29 @@ void Lexeuse::analyse_caractere_simple()
 				this->pousse_mot(GenreLexeme::CARACTERE_BLANC);
 			}
 
-			if (this->caractere_courant() == '\n') {
-				if (doit_ajouter_point_virgule(m_dernier_id)) {
-					this->enregistre_pos_mot();
-					this->pousse_caractere();
-					this->pousse_mot(GenreLexeme::POINT_VIRGULE);
-				}
+			this->avance();
+			break;
+		}
+		case '\n':
+		{
+			POUSSE_MOT_SI_NECESSAIRE;
+
+			if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+				this->enregistre_pos_mot();
+				this->pousse_caractere();
+				this->pousse_mot(GenreLexeme::CARACTERE_BLANC);
 			}
 
+			if (doit_ajouter_point_virgule(m_dernier_id)) {
+				this->enregistre_pos_mot();
+				this->pousse_caractere();
+				this->pousse_mot(GenreLexeme::POINT_VIRGULE);
+			}
+
+			++m_compte_ligne;
 			this->avance();
+			// avance() change m_position_ligne doic réinit après
+			m_position_ligne = 0;
 			break;
 		}
 		case '"':
