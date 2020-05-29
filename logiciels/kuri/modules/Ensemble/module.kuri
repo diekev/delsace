@@ -63,6 +63,54 @@ ensemble_possède :: fonc (ensemble: *[]$T, donnée: $T) -> bool
     retourne faux
 }
 
+RésultatRecherche :: struct {
+    index: z64
+    partiel := faux
+    trouvé := faux
+}
+
+/*
+ * Recherche dans l'ensemble une valeur donnée, et retourne des informations sur la recherche.
+ * Si la donnée fut trouvée exactement, le résultat retourné possèdera l'index où se trouve la donnée,
+ * et le drapeau trouvé sera activé.
+ * Si la donnée ne fut pas trouvée, mais que la valeur à l'index courrant est valide, rappel sera appelé,
+ * et s'il retourne vrai, le résultat retourné possèdera l'index courrant, et ses drapeaux trouvé et partiel
+ * seront activés.
+ * Autrement, le résultat retourné n'aura aucun drapeau activé.
+ */
+ensemble_possède_rappel_si_possible :: fonc (ensemble: *[]$T, donnée: $T, rappel: fonc($T, $T)(bool)) -> RésultatRecherche
+{
+    résultat : RésultatRecherche
+
+    si ensemble.taille == 0 {
+        résultat.trouvé = faux
+        retourne résultat
+    }
+
+    début := ensemble.pointeur
+    fin   := début + ensemble.taille
+
+    limite := limite_basse(début, fin, donnée)
+
+    si limite < fin {
+        si mémoire(limite) == donnée {
+            résultat.trouvé = vrai
+            résultat.partiel = faux
+            résultat.index = distance(début, limite)
+            retourne résultat
+        }
+
+        si rappel(mémoire(limite), donnée) {
+            résultat.trouvé = vrai
+            résultat.partiel = vrai
+            résultat.index = distance(début, limite)
+            retourne résultat
+        }
+    }
+
+    retourne résultat
+}
+
 /*
 ensemble_imprime :: fonc (ensemble: *[]$T) -> rien
 {
