@@ -493,7 +493,7 @@ struct TypePolymorphique : public Type {
 	}
 };
 
-dls::vue_chaine_compacte nom_type_polymorphique(Type *type);
+void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine_compacte> &noms);
 
 struct Typeuse {
 	GrapheDependance &graphe;

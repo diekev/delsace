@@ -295,6 +295,7 @@ static auto apparie_appel_init_de(
 
 static Type *apparie_type_gabarit(Type *type, Type *type_polymorphique)
 {
+	std::cerr << __func__ << ", appariement pour " << chaine_type(type) << '\n';
 	PROFILE_FONCTION;
 
 	auto type_courant = type;
@@ -349,6 +350,37 @@ static Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Typ
 	}
 	else if (type_gabarit->genre == GenreType::POLYMORPHIQUE) {
 		resultat = pour_type;
+	}
+	else if (type_gabarit->genre == GenreType::FONCTION) {
+		auto type_fonction = static_cast<TypeFonction *>(type_gabarit);
+
+		auto types_entrees = kuri::tableau<Type *>();
+		types_entrees.reserve(type_fonction->types_entrees.taille);
+
+		POUR (type_fonction->types_entrees) {
+			if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				auto type_param = resoud_type_polymorphique(typeuse, it, pour_type);
+				types_entrees.pousse(type_param);
+			}
+			else {
+				types_entrees.pousse(it);
+			}
+		}
+
+		auto types_sorties = kuri::tableau<Type *>();
+		types_sorties.reserve(type_fonction->types_sorties.taille);
+
+		POUR (type_fonction->types_sorties) {
+			if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				auto type_param = resoud_type_polymorphique(typeuse, it, pour_type);
+				types_sorties.pousse(type_param);
+			}
+			else {
+				types_sorties.pousse(it);
+			}
+		}
+
+		resultat = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
 	}
 	else {
 		assert(0);
@@ -509,14 +541,28 @@ static DonneesCandidate apparie_appel_fonction(
 
 		if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 			// trouve l'argument
-			auto nom_gabarit = nom_type_polymorphique(arg->type);
-			auto type_gabarit = static_cast<Type *>(nullptr);
-			for (auto &paire : paires_expansion_gabarit) {
-				if (paire.first == nom_gabarit) {
-					type_gabarit = paire.second;
-					break;
+			kuri::tableau<dls::vue_chaine_compacte> noms_polymorphiqes;
+			rassemble_noms_type_polymorphique(arg->type, noms_polymorphiqes);
+
+			kuri::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_appariement_gabarit;
+			paires_appariement_gabarit.reserve(noms_polymorphiqes.taille);
+
+			for (auto &nom_polymorphique : noms_polymorphiqes) {
+				auto paire_appariement = std::pair<dls::vue_chaine_compacte, Type *>(nom_polymorphique, nullptr);
+
+				for (auto &paire : paires_expansion_gabarit) {
+					if (paire.first == nom_polymorphique) {
+						paire_appariement.second = paire.second;
+						break;
+					}
 				}
+
+				paires_appariement_gabarit.pousse(paire_appariement);
 			}
+
+			// À FAIRE : gère les cas où nous avons plus d'un argument polymorphiques
+			auto type_gabarit = paires_appariement_gabarit[0].second;
+			auto nom_gabarit = paires_appariement_gabarit[0].first;
 
 			if (!type_gabarit) {
 				type_gabarit = apparie_type_gabarit(type_de_l_expression, arg->type);

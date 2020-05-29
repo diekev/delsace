@@ -242,8 +242,7 @@ void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte)
 			}
 
 			if (variable->type && variable->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-				auto nom = nom_type_polymorphique(variable->type);
-				decl->noms_types_gabarits.pousse(nom);
+				rassemble_noms_type_polymorphique(variable->type, decl->noms_types_gabarits);
 				decl->est_gabarit = true;
 			}
 			else {

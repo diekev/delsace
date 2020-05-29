@@ -945,13 +945,31 @@ Type *type_dereference_pour(Type *type)
 	return nullptr;
 }
 
-dls::vue_chaine_compacte nom_type_polymorphique(Type *type)
+void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine_compacte> &noms)
 {
+	if (type->genre == GenreType::FONCTION) {
+		auto type_fonction = static_cast<TypeFonction *>(type);
+
+		POUR (type_fonction->types_entrees) {
+			if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				rassemble_noms_type_polymorphique(it, noms);
+			}
+		}
+
+		POUR (type_fonction->types_sorties) {
+			if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				rassemble_noms_type_polymorphique(it, noms);
+			}
+		}
+
+		return;
+	}
+
 	while (type->genre != GenreType::POLYMORPHIQUE) {
 		type = type_dereference_pour(type);
 	}
 
-	return static_cast<TypePolymorphique *>(type)->ident->nom;
+	noms.pousse(static_cast<TypePolymorphique *>(type)->ident->nom);
 }
 
 bool est_type_conditionnable(Type *type)
