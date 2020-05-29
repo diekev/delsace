@@ -1176,6 +1176,44 @@ struct GeneratriceCodeC {
 			os << ";\n";
 		}
 
+		// prédéclare ensuite les fonction pour éviter les problèmes de
+		// dépendances cycliques, mais aussi pour prendre en compte les cas où
+		// les globales utilises des fonctions dans leurs initialisations
+		POUR (constructrice_ri.fonctions) {
+			if (it->genre_atome != Atome::Genre::FONCTION) {
+				continue;
+			}
+
+			auto atome_fonc = static_cast<AtomeFonction const *>(it);
+
+			if (atome_fonc->instructions.taille == 0) {
+				// ignore les fonctions externes
+				continue;
+			}
+
+			auto type_fonction = static_cast<TypeFonction *>(atome_fonc->type);
+			os << nom_broye_type(type_fonction->types_sorties[0]) << " " << atome_fonc->nom;
+
+			auto virgule = "(";
+
+			for (auto param : atome_fonc->params_entrees) {
+				os << virgule;
+
+				auto type_pointeur = static_cast<TypePointeur *>(param->type);
+				os << nom_broye_type(type_pointeur->type_pointe) << ' ';
+				os << broye_nom_simple(param->ident->nom);
+
+				virgule = ", ";
+			}
+
+			if (atome_fonc->params_entrees.taille == 0) {
+				os << virgule;
+			}
+
+			os << ");\n\n";
+		}
+
+		// définis ensuite les globales
 		POUR (constructrice_ri.globales) {
 			auto valeur_globale = static_cast<AtomeGlobale const *>(it);
 
@@ -1213,40 +1251,7 @@ struct GeneratriceCodeC {
 			os << ";\n";
 		}
 
-		POUR (constructrice_ri.fonctions) {
-			if (it->genre_atome != Atome::Genre::FONCTION) {
-				continue;
-			}
-
-			auto atome_fonc = static_cast<AtomeFonction const *>(it);
-
-			if (atome_fonc->instructions.taille == 0) {
-				// ignore les fonctions externes
-				continue;
-			}
-
-			auto type_fonction = static_cast<TypeFonction *>(atome_fonc->type);
-			os << nom_broye_type(type_fonction->types_sorties[0]) << " " << atome_fonc->nom;
-
-			auto virgule = "(";
-
-			for (auto param : atome_fonc->params_entrees) {
-				os << virgule;
-
-				auto type_pointeur = static_cast<TypePointeur *>(param->type);
-				os << nom_broye_type(type_pointeur->type_pointe) << ' ';
-				os << broye_nom_simple(param->ident->nom);
-
-				virgule = ", ";
-			}
-
-			if (atome_fonc->params_entrees.taille == 0) {
-				os << virgule;
-			}
-
-			os << ");\n\n";
-		}
-
+		// définis enfin les fonction
 		POUR (constructrice_ri.fonctions) {
 			switch (it->genre_atome) {
 				case Atome::Genre::FONCTION:
