@@ -34,7 +34,7 @@ struct InfoProfilage {
 	InfoProfilage *suivante = nullptr;
 	InfoProfilage *precedente = nullptr;
 	double temps = 0.0;
-	const char *fonction;
+	const char *fonction = nullptr;
 	int nombre_appels = 0;
 };
 
