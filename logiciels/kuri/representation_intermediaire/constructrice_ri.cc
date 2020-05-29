@@ -735,10 +735,17 @@ AtomeConstante *ConstructriceRI::cree_tableau_global(Type *type, kuri::tableau<A
 	auto taille_tableau = valeurs.taille;
 	auto type_tableau = m_contexte.typeuse.type_tableau_fixe(type, taille_tableau);
 	auto tableau_fixe = cree_constante_tableau_fixe(type_tableau, std::move(valeurs));
-	auto globale_tableau_fixe = cree_globale(type_tableau, tableau_fixe, false, true);
+
+	return cree_tableau_global(tableau_fixe);
+}
+
+AtomeConstante *ConstructriceRI::cree_tableau_global(AtomeConstante *tableau_fixe)
+{
+	auto type_tableau_fixe = static_cast<TypeTableauFixe *>(tableau_fixe->type);
+	auto globale_tableau_fixe = cree_globale(type_tableau_fixe, tableau_fixe, false, true);
 	auto ptr_premier_element = cree_acces_index_constant(globale_tableau_fixe, cree_z64(0));
-	auto valeur_taille = cree_z64(static_cast<unsigned long>(taille_tableau));
-	auto type_tableau_dyn = m_contexte.typeuse.type_tableau_dynamique(type);
+	auto valeur_taille = cree_z64(static_cast<unsigned long>(type_tableau_fixe->taille));
+	auto type_tableau_dyn = m_contexte.typeuse.type_tableau_dynamique(type_tableau_fixe->type_pointe);
 
 	auto membres = kuri::tableau<AtomeConstante *>(3);
 	membres[0] = ptr_premier_element;
@@ -1022,7 +1029,11 @@ AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *
 	auto type = m_contexte.typeuse.type_pointeur_pour(type_dereference_pour(type_pointeur->type_pointe));
 
 	auto inst = AccedeIndexConstant::cree(type, accede, index);
-	fonction_courante->instructions.pousse(inst);
+
+	if (fonction_courante) {
+		fonction_courante->instructions.pousse(inst);
+	}
+
 	accede_index_constants.pousse(inst);
 	return inst;
 }
@@ -1252,7 +1263,12 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				atome->ident = noeud->ident;
 
 				if (decl->expression) {
-					constructeurs_globaux.pousse({ atome, decl->expression });
+					if (decl->expression->genre == GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU) {
+						valeur = static_cast<AtomeConstante *>(genere_ri_transformee_pour_noeud(decl->expression, nullptr));
+					}
+					else {
+						constructeurs_globaux.pousse({ atome, decl->expression });
+					}
 				}
 				else if (!est_externe) {
 					valeur = genere_initialisation_defaut_pour_type(noeud->type);
@@ -1846,6 +1862,20 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			dls::tablet<NoeudExpression *, 10> feuilles;
 			rassemble_feuilles(expr->expr, feuilles);
 
+			if (fonction_courante == nullptr) {
+				auto type_tableau_fixe = static_cast<TypeTableauFixe *>(expr->type);
+				kuri::tableau<AtomeConstante *> valeurs;
+				valeurs.reserve(feuilles.taille());
+
+				POUR (feuilles) {
+					auto valeur = genere_ri_pour_noeud(it);
+					valeurs.pousse(static_cast<AtomeConstante *>(valeur));
+				}
+
+				auto tableau_constant = cree_constante_tableau_fixe(type_tableau_fixe, std::move(valeurs));
+				return tableau_constant;
+			}
+
 			auto pointeur_tableau = cree_allocation(expr->type, nullptr);
 
 			auto index = 0ul;
@@ -2254,6 +2284,11 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 		}
 		case TypeTransformation::CONVERTI_TABLEAU:
 		{
+			if (fonction_courante == nullptr) {
+				auto valeur_tableau_fixe = static_cast<AtomeConstante *>(valeur);
+				return cree_tableau_global(valeur_tableau_fixe);
+			}
+
 			valeur = converti_vers_tableau_dyn(valeur, static_cast<TypeTableauFixe *>(noeud->type), place);
 
 			if (place == nullptr) {

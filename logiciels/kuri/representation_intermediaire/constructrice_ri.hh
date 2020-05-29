@@ -144,6 +144,7 @@ private:
 	AtomeConstante *cree_constante_tableau_donnees_constantes(Type *type, char *pointeur, long taille);
 	AtomeGlobale *cree_globale(Type *type, AtomeConstante *initialisateur, bool est_externe, bool est_constante);
 	AtomeConstante *cree_tableau_global(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
+	AtomeConstante *cree_tableau_global(AtomeConstante *tableau_fixe);
 
 	InstructionAllocation *cree_allocation(Type *type, IdentifiantCode *ident);
 	InstructionBranche *cree_branche(InstructionLabel *label);
