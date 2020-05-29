@@ -426,7 +426,56 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, léxème: Léxème)
 
 insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, léxème: Léxème)
 {
-    panique("algorithme d'insertion incomplet")
+    si léxème.genre == GenreLexème.Doctype {
+        // erreur de parsage, ignore le lexème
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Commentaire {
+        gère_léxème_pour_mode(parseuse, ModeInsertion.DansHead, léxème)
+        retourne
+    }
+
+    si léxème.genre == GenreLexème.Caractère {
+        si est_caractère_espace_blanc(léxème.point_de_code) {
+            gère_léxème_pour_mode(parseuse, ModeInsertion.DansHead, léxème)
+            retourne
+        }
+    }
+
+    si léxème.genre == GenreLexème.DébutTag {
+        si léxème.nom == "html" {
+            gère_léxème_pour_mode(parseuse, ModeInsertion.DansBody, léxème)
+            retourne
+        }
+
+        si léxème.nom == "head" || léxème.nom == "noscript" {
+            // erreur de parsage, ignore le lexème
+            retourne
+        }
+
+        si fait_partie_de(léxème.nom, "bgsound", "link", "meta", "noframes", "style") {
+            gère_léxème_pour_mode(parseuse, ModeInsertion.DansHead, léxème)
+            retourne
+        }
+    }
+
+    si léxème.genre == GenreLexème.FinTag {
+        si léxème.nom == "noscript" {
+            dépile(@parseuse.pile_éléments_ouvert)
+            parseuse.mode_insertion = ModeInsertion.DansHead
+            retourne
+        }
+
+        si léxème.nom != "br" {
+            // erreur de parsage, ignore le lexème
+            retourne
+        }
+    }
+
+    dépile(@parseuse.pile_éléments_ouvert)
+    parseuse.mode_insertion = ModeInsertion.DansHead
+    gère_léxème_pour_mode(parseuse, parseuse.mode_insertion, léxème)
 }
 
 insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, léxème: Léxème)
