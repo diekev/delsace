@@ -65,11 +65,19 @@ void Enchaineuse::pousse(const char *c_str, long N)
 			taille_a_ecrire -= taille_max;
 		}
 
-		ajoute_tampon();
-		tampon = tampon_courant;
+		auto decalage = taille_max;
+		while (taille_a_ecrire > 0) {
+			ajoute_tampon();
+			tampon = tampon_courant;
 
-		memcpy(&tampon->donnees[0], c_str + taille_max, static_cast<size_t>(taille_a_ecrire));
-		tampon->occupe += static_cast<int>(taille_a_ecrire);
+			auto taille_ecrite = std::min(taille_a_ecrire, static_cast<long>(TAILLE_TAMPON));
+
+			memcpy(&tampon->donnees[0], c_str + decalage, static_cast<size_t>(taille_ecrite));
+			tampon->occupe += static_cast<int>(taille_ecrite);
+
+			taille_a_ecrire -= taille_ecrite;
+			decalage += static_cast<int>(taille_ecrite);
+		}
 	}
 }
 
