@@ -1036,6 +1036,23 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                     retourne défile(@lexeuse.file_lexèmes)
                 }
             }
+            AmbiguousAmpersand {
+                si est_ascii_alphanumérique(c) {
+                    si nous_sommes_dans_attribut(lexeuse) {
+                        chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, c)
+                    }
+                    sinon {
+                        retourne lexeuse.émet_léxème_caractère(c)
+                    }
+                }
+                sinon si c == POINT_VIRGULE {
+                    // @erreur unknown-named-character-reference parse error
+                    lexeuse.reconsomme_dans_état(lexeuse.état_retour)
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(lexeuse.état_retour)
+                }
+            }
             NumericCharacterReference {
                 lexeuse.code_référence_caractère = 0
 
