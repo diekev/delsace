@@ -266,7 +266,8 @@ struct TypeFonction : public Type {
 		type->types_entrees = std::move(entrees);
 		type->types_sorties = std::move(sorties);
 		type->taille_octet = 8;
-		type->alignement = 8;
+		type->alignement = 8;		
+		type->marque_polymorphique();
 
 		return type;
 	}
