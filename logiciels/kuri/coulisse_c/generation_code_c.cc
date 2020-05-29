@@ -224,18 +224,8 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 			}
 
 			enchaineuse << "typedef struct Tableau_" << nom_broye;
-
 			enchaineuse << "{\n\t";
-
-			if (type_pointe->genre == GenreType::TABLEAU_FIXE) {
-				auto type_tabl = static_cast<TypeTableauFixe *>(type_pointe);
-				auto taille_tableau = type_tabl->taille;
-				enchaineuse << nom_broye_type(type_tabl->type_pointe) << " *pointeur[" << taille_tableau << "];";
-			}
-			else {
-				enchaineuse << nom_broye_type(type_pointe) << " *pointeur;";
-			}
-
+			enchaineuse << nom_broye_type(type_pointe) << " *pointeur;";
 			enchaineuse << "\n\tlong taille;\n" << "\tlong " << broye_nom_simple("capacité") << ";\n} " << nom_broye << ";\n\n";
 			break;
 		}
