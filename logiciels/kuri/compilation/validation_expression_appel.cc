@@ -295,7 +295,6 @@ static auto apparie_appel_init_de(
 
 static Type *apparie_type_gabarit(Type *type, Type *type_polymorphique)
 {
-	std::cerr << __func__ << ", appariement pour " << chaine_type(type) << '\n';
 	PROFILE_FONCTION;
 
 	auto type_courant = type;
