@@ -1,0 +1,151 @@
+// script utilisé pour générer entités.kuri depuis les données JSON de :
+// https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
+
+importe Fondation
+importe SysFichier
+
+DonnéesSymbole :: struct {
+    symbole: chaine
+    points_de_code : [2]n32
+}
+
+TableSymboles :: struct {
+    symboles: []DonnéesSymbole
+}
+
+rappel_pour_chaque_ligne :: fonc (ligne: chaine, données: eini)
+{
+    table := mémoire(données.pointeur comme **TableSymboles)
+
+    // "symbole" :
+    si ligne.taille == 0 {
+        retourne
+    }
+
+    tantque ligne[0] != '"' {
+        ligne = avance(ligne, 1)
+    }
+    ligne = avance(ligne, 1)
+
+    symbole := ligne
+    symbole.taille = 0
+
+    tantque ligne[0] != '"' {
+        ligne = avance(ligne, 1)
+        symbole.taille += 1
+    }
+
+    données_symbole : DonnéesSymbole
+    données_symbole.symbole = symbole
+
+    tantque ligne[0] != '[' {
+        ligne = avance(ligne, 1)
+    }
+    ligne = avance(ligne, 1)
+
+    chn_point_de_code := ligne
+    chn_point_de_code.taille = 0
+
+    point_de_code_rencontré := faux
+    point_de_code_final := 0
+
+    tantque ligne[0] != ']' {
+
+        si ligne[0] == ' ' {
+            ligne = avance(ligne, 1)
+            chn_point_de_code = ligne
+            chn_point_de_code.taille = 0
+            continue
+        }
+
+        si ligne[0] == ',' {
+            ligne = avance(ligne, 1)
+
+            point_de_code := extrait_nombre_entier(chn_point_de_code)
+
+            données_symbole.points_de_code[0] = point_de_code comme n32
+
+            point_de_code_rencontré = vrai
+
+            // code_point
+            chn_point_de_code = ligne
+            chn_point_de_code.taille = 0
+
+            continue
+        }
+
+        chn_point_de_code.taille += 1
+        ligne = avance(ligne, 1)
+    }
+    ligne = avance(ligne, 1)
+
+    point_de_code := extrait_nombre_entier(chn_point_de_code)
+
+    si point_de_code_rencontré {
+       données_symbole.points_de_code[1] = point_de_code comme n32
+    }
+    sinon {
+       données_symbole.points_de_code[0] = point_de_code comme n32
+       données_symbole.points_de_code[1] = 0
+    }
+
+    tableau_ajoute(@table.symboles, données_symbole)
+}
+
+principale :: fonc () -> z32
+{
+    fichier := "entities.json"
+    chemin := CheminFichier(chn = fichier)
+    contenu := contenu_fichier_texte(chemin)
+    diffère { déloge contenu }
+
+    données: TableSymboles
+    ptr_données := @données
+
+    pour_chaque_ligne(contenu, ptr_données, rappel_pour_chaque_ligne)
+
+    imprime("nombre de symboles : %\n", données.symboles.taille)
+
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
+
+    ajoute_au_tampon(@enchaineuse, "symboles_entités : []chaine = ")
+
+    virgule := "["
+
+    pour données.symboles {
+        ajoute_au_tampon(@enchaineuse, virgule)
+        ajoute_au_tampon(@enchaineuse, "\"")
+        ajoute_au_tampon(@enchaineuse, it.symbole)
+        ajoute_au_tampon(@enchaineuse, "\"")
+        virgule = ","
+    }
+
+    ajoute_au_tampon(@enchaineuse, "]\n\n")
+
+    // À FAIRE : ceci devrait être un tableau de n32, mais notre code pour définir le type des entiers constants utilise z32 par défaut
+    ajoute_au_tampon(@enchaineuse, "points_de_code_entités : [][2]z32 = ")
+
+    virgule = "[ "
+
+    pour données.symboles {
+        ajoute_au_tampon(@enchaineuse, virgule)
+        ajoute_au_tampon(@enchaineuse, "[0x")
+        ajoute_au_tampon(@enchaineuse, FormatEntier(valeur = it.points_de_code[0], base = 16))
+        ajoute_au_tampon(@enchaineuse, ",0x")
+        ajoute_au_tampon(@enchaineuse, FormatEntier(valeur = it.points_de_code[1], base = 16))
+        ajoute_au_tampon(@enchaineuse, "]")
+        virgule = ","
+    }
+
+    ajoute_au_tampon(@enchaineuse, "]\n")
+
+    fichier_sortie := tente ouvre_fichier_crée_si_non_existant("entités.kuri") piège nonatteignable
+    x := copie_enchaineuse_fichier(@enchaineuse, @fichier_sortie)
+
+    _ := tente ferme(@fichier_sortie) piège nonatteignable
+    détruit_tampons(@enchaineuse)
+    déloge données.symboles
+
+    retourne 0
+}

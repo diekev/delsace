@@ -1,7 +1,9 @@
 importe Fondation
+importe Ensemble
 
 charge "attribut"
 charge "point_de_code"
+charge "entités"
 
 est_espace_blanc_html :: fonc (c: z8) -> bool
 {
@@ -1021,20 +1023,18 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 sinon {
                     lexeuse.reconsomme_dans_état(lexeuse.état_retour)
 
-                    // détermine si nous somme dans un attribut
-                    si lexeuse.état_retour == ÉtatLexage.AttributeValueDoubleQuoted || lexeuse.état_retour == ÉtatLexage.AttributeValueSingleQuoted || lexeuse.état == ÉtatLexage.AttributeValueUnquoted {
-                        pour lexeuse.tampon_temporaire {
-                            chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, it)
-                        }
-                    }
-                    sinon {
-                        lexeuse.enfile_lexèmes_pour_tampon_temporaire()
+                    si flush_points_de_code_référence_caractère(lexeuse) {
                         retourne défile(@lexeuse.file_lexèmes)
                     }
                 }
             }
             NamedCharacterReference {
-                panique("état non implémenté")
+                // ne consomme pas
+                lexeuse.curseur -= 1
+
+                si cherche_référence_caractère_nommé(lexeuse) {
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
             }
             NumericCharacterReference {
                 lexeuse.code_référence_caractère = 0
@@ -1054,15 +1054,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 sinon {
                     lexeuse.reconsomme_dans_état(lexeuse.état_retour)
 
-                    // À FAIRE : déduplique
-                    // détermine si nous somme dans un attribut
-                    si lexeuse.état_retour == ÉtatLexage.AttributeValueDoubleQuoted || lexeuse.état_retour == ÉtatLexage.AttributeValueSingleQuoted || lexeuse.état == ÉtatLexage.AttributeValueUnquoted {
-                        pour lexeuse.tampon_temporaire {
-                            chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, it)
-                        }
-                    }
-                    sinon {
-                        lexeuse.enfile_lexèmes_pour_tampon_temporaire()
+                    si flush_points_de_code_référence_caractère(lexeuse) {
                         retourne défile(@lexeuse.file_lexèmes)
                     }
                 }
@@ -1074,15 +1066,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
                 sinon {
                     lexeuse.reconsomme_dans_état(lexeuse.état_retour)
 
-                    // À FAIRE : déduplique
-                    // détermine si nous somme dans un attribut
-                    si lexeuse.état_retour == ÉtatLexage.AttributeValueDoubleQuoted || lexeuse.état_retour == ÉtatLexage.AttributeValueSingleQuoted || lexeuse.état == ÉtatLexage.AttributeValueUnquoted {
-                        pour lexeuse.tampon_temporaire {
-                            chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, it)
-                        }
-                    }
-                    sinon {
-                        lexeuse.enfile_lexèmes_pour_tampon_temporaire()
+                    si flush_points_de_code_référence_caractère(lexeuse) {
                         retourne défile(@lexeuse.file_lexèmes)
                     }
                 }
@@ -1145,15 +1129,7 @@ léxème_suivant :: fonc (lexeuse: *Lexeuse) -> Léxème
 
                 lexeuse.état = lexeuse.état_retour
 
-                // À FAIRE : déduplique
-                // détermine si nous somme dans un attribut
-                si lexeuse.état_retour == ÉtatLexage.AttributeValueDoubleQuoted || lexeuse.état_retour == ÉtatLexage.AttributeValueSingleQuoted || lexeuse.état == ÉtatLexage.AttributeValueUnquoted {
-                    pour lexeuse.tampon_temporaire {
-                        chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, it)
-                    }
-                }
-                sinon {
-                    lexeuse.enfile_lexèmes_pour_tampon_temporaire()
+                si flush_points_de_code_référence_caractère(lexeuse) {
                     retourne défile(@lexeuse.file_lexèmes)
                 }
             }
@@ -1523,4 +1499,78 @@ apparie :: fonc (lexeuse: *Lexeuse, chn: chaine) -> bool
     }
 
     retourne vrai
+}
+
+nous_sommes_dans_attribut :: fonc (lexeuse: *Lexeuse) -> bool
+{
+    retourne lexeuse.état_retour == ÉtatLexage.AttributeValueDoubleQuoted || lexeuse.état_retour == ÉtatLexage.AttributeValueSingleQuoted || lexeuse.état == ÉtatLexage.AttributeValueUnquoted
+}
+
+flush_points_de_code_référence_caractère :: fonc (lexeuse: *Lexeuse) -> bool
+{
+    // détermine si nous somme dans un attribut
+    si nous_sommes_dans_attribut(lexeuse) {
+        pour lexeuse.tampon_temporaire {
+            chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, it)
+        }
+
+        retourne faux
+    }
+
+    lexeuse.enfile_lexèmes_pour_tampon_temporaire()
+
+    retourne vrai
+}
+
+cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
+{
+    dernier_résultat : RésultatRecherche
+    dernier_caractère_apparié : n32
+
+    boucle {
+        caractère_suivant := lexeuse.point_de_code_suivant()
+        chaine_ajoute(@lexeuse.tampon_temporaire, caractère_suivant)
+
+        résultat := ensemble_possède_rappel_si_possible(@symboles_entités, lexeuse.tampon_temporaire, commence_par)
+
+        si !résultat.trouvé {
+            lexeuse.curseur -= 1
+            arrête
+        }
+
+        dernier_caractère_apparié = caractère_suivant
+        dernier_résultat = résultat
+    }
+
+    si !dernier_résultat.trouvé {
+        lexeuse.état = ÉtatLexage.AmbiguousAmpersand
+        retourne flush_points_de_code_référence_caractère(lexeuse)
+    }
+
+    si nous_sommes_dans_attribut(lexeuse) && dernier_caractère_apparié != POINT_VIRGULE {
+        caractère_suivant := lexeuse.point_de_code_suivant()
+        lexeuse.curseur -= 1
+
+        si caractère_suivant == EGAL || est_ascii_alphanumérique(caractère_suivant) {
+            lexeuse.état = lexeuse.état_retour
+            retourne flush_points_de_code_référence_caractère(lexeuse)
+        }
+    }
+
+    si dernier_caractère_apparié != POINT_VIRGULE {
+        // @erreur missing-semicolon-after-character-reference parse error.
+    }
+
+    déloge lexeuse.tampon_temporaire
+
+    points_de_code := points_de_code_entités[dernier_résultat.index]
+
+    chaine_ajoute(@lexeuse.tampon_temporaire, points_de_code[0] comme n32)
+
+    si points_de_code[1] != 0x0 {
+        chaine_ajoute(@lexeuse.tampon_temporaire, points_de_code[1] comme n32)
+    }
+
+    lexeuse.état = lexeuse.état_retour
+    retourne flush_points_de_code_référence_caractère(lexeuse)
 }
