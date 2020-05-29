@@ -152,6 +152,10 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
 
     tampon := enchaineuse.tampon_courant
 
+	si tampon.occupé == TAILLE_TAMPON_ENCHAINEUSE {
+		tampon = ajoute_tampon(enchaineuse)
+	}
+
     si (tampon.occupé + chn.taille) > TAILLE_TAMPON_ENCHAINEUSE {
         taille := TAILLE_TAMPON_ENCHAINEUSE - tampon.occupé
         src := chn.pointeur
