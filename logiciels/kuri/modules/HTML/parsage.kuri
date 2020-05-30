@@ -638,7 +638,42 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "li" {
-            panique("algorithme d'insertion incomplet")
+            parseuse.frameset_ok = vrai
+
+            noeud := parseuse.noeud_courant()
+
+            boucle {
+                si noeud.texte == "li" {
+                    parseuse.génère_tags_fin_implicites_autres_que("li")
+
+                    noeud = parseuse.noeud_courant()
+
+                    si noeud.texte != "li" {
+                        erreur_de_parsage("le noeud courant n'est pas un <li>")
+                    }
+
+                    tantque noeud.texte != "li" {
+                        dépile(@parseuse.pile_éléments_ouvert)
+                        noeud = parseuse.noeud_courant()
+                    }
+                    dépile(@parseuse.pile_éléments_ouvert)
+
+                    arrête
+                }
+
+                si fait_partie_de_catégorie_spécial(noeud.texte) && !fait_partie_de(noeud.texte, "address", "div", "p") {
+                    arrête
+                }
+
+                noeud = noeud_précédent(@parseuse.pile_éléments_ouvert)
+            }
+
+            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+                ferme_un_élément_p(parseuse)
+            }
+
+            _ := insère_élément_html(parseuse, lexème)
+            retourne
         }
 
         si fait_partie_de(lexème.nom, "address", "article", "aside", "blockquote", "center", "details", "dialog", "dir", "div", "dl", "fieldset", "figcaption", "figure", "footer", "header", "hgroup", "main", "menu", "nav", "ol", "p", "section", "summary", "ul") {
@@ -927,7 +962,26 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "li" {
-            panique("algorithme d'insertion incomplet")
+            si !possède_dans_portée_list_item(@parseuse.pile_éléments_ouvert, "li") {
+                erreur_de_parsage("aucun <li> dans portée list item")
+                retourne
+            }
+
+            parseuse.génère_tags_fin_implicites_autres_que("li")
+
+            noeud := parseuse.noeud_courant()
+
+            si noeud.texte != "li" {
+                erreur_de_parsage("le noeud courant n'est pas un <li>")
+            }
+
+            tantque noeud.texte != "li" {
+                dépile(@parseuse.pile_éléments_ouvert)
+                noeud = parseuse.noeud_courant()
+            }
+            dépile(@parseuse.pile_éléments_ouvert)
+
+            retourne
         }
 
         si lexème.nom == "dd" || lexème.nom == "dt" {
