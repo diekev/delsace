@@ -4,6 +4,8 @@ charge "noeud"
 
 Document :: struct {
     empl base: Noeud
+
+    quirks_mode := faux
 }
 
 crée_noeud_document :: fonc () -> *Document
