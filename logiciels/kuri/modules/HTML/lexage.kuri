@@ -431,6 +431,21 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.reconsomme_dans_état(ÉtatLexage.BogusComment)
                 }
             }
+            BogusComment {
+                si c == CHEVRON_FERMANT {
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    retourne lexeuse.émet_lexème_fin_de_fichier()
+                }
+                sinon si c == NUL {
+                    chaine_ajoute(@lexeuse.lexème_courant.données, CARACTÈRE_REMPLACEMENT)
+                }
+                sinon {
+                    chaine_ajoute(@lexeuse.lexème_courant.données, CARACTÈRE_REMPLACEMENT)
+                }
+            }
             MarkupDeclarationOpen {
                 // ne consomme pas
                 lexeuse.curseur -= 1
@@ -559,6 +574,357 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                         lexeuse.lexème_courant.drapeau_force_quirks = vrai
                         lexeuse.état = ÉtatLexage.BogusDOCTYPE
                     }
+                }
+            }
+            AfterDOCTYPEPublicKeyword {
+                si est_espace_blanc_html(c) {
+                    lexeuse.état = ÉtatLexage.BeforeDOCTYPEPublicIdentifier
+                }
+                sinon si c == GUILLEMET {
+                    // @erreur missing-whitespace-after-doctype-public-keyword
+                    déloge lexeuse.lexème_courant.identifiant_public_doctype
+                    lexeuse.état = ÉtatLexage.DOCTYPEPublicIdentifierDoubleQuoted
+                }
+                sinon si c == APOSTROPHE {
+                    // @erreur missing-whitespace-after-doctype-public-keyword
+                    déloge lexeuse.lexème_courant.identifiant_public_doctype
+                    lexeuse.état = ÉtatLexage.DOCTYPEPublicIdentifierSingleQuoted
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    // @erreur missing-doctype-public-identifier
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    // @erreur eof-in-doctype parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
+                sinon {
+                    // @erreur missing-quote-before-doctype-public-identifier parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE)
+                }
+            }
+            BeforeDOCTYPEPublicIdentifier {
+                si est_espace_blanc_html(c) {
+                    // ignore
+                }
+                sinon si c == GUILLEMET {
+                    déloge lexeuse.lexème_courant.identifiant_public_doctype
+                    lexeuse.état = ÉtatLexage.DOCTYPEPublicIdentifierDoubleQuoted
+                }
+                sinon si c == APOSTROPHE {
+                    déloge lexeuse.lexème_courant.identifiant_public_doctype
+                    lexeuse.état = ÉtatLexage.DOCTYPEPublicIdentifierSingleQuoted
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    // @erreur missing-doctype-public-identifier
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    // @erreur eof-in-doctype parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
+                sinon {
+                    // @erreur missing-quote-before-doctype-public-identifier parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE)
+                }
+            }
+            DOCTYPEPublicIdentifierDoubleQuoted {
+                si c == GUILLEMET {
+                    lexeuse.état = ÉtatLexage.AfterDOCTYPEPublicIdentifier
+                }
+                sinon si c == NUL {
+                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_public_doctype, CARACTÈRE_REMPLACEMENT)
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    // @erreur eof-in-doctype parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
+                sinon {
+                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_public_doctype, c)
+                }
+            }
+            DOCTYPEPublicIdentifierSingleQuoted {
+                si c == APOSTROPHE {
+                    lexeuse.état = ÉtatLexage.AfterDOCTYPEPublicIdentifier
+                }
+                sinon si c == NUL {
+                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_public_doctype, CARACTÈRE_REMPLACEMENT)
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    // @erreur eof-in-doctype parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
+                sinon {
+                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_public_doctype, c)
+                }
+            }
+            AfterDOCTYPEPublicIdentifier {
+                si est_espace_blanc_html(c) {
+                    lexeuse.état = ÉtatLexage.BetweenDOCTYPEPublicAndSystemIdentifiers
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == GUILLEMET {
+                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierDoubleQuoted
+                }
+                sinon si c == APOSTROPHE {
+                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierSingleQuoted
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    // @erreur eof-in-doctype parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
+                sinon {
+                    // @erreur missing-quote-before-doctype-système-identifier parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE)
+                }
+            }
+            BetweenDOCTYPEPublicAndSystemIdentifiers {
+                si est_espace_blanc_html(c) {
+                    // ignore
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == GUILLEMET {
+                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierDoubleQuoted
+                }
+                sinon si c == APOSTROPHE {
+                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierSingleQuoted
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    // @erreur eof-in-doctype parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
+                sinon {
+                    // @erreur missing-quote-before-doctype-système-identifier parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE)
+                }
+            }
+            AfterDOCTYPESystemKeyword {
+                si est_espace_blanc_html(c) {
+                    lexeuse.état = ÉtatLexage.BeforeDOCTYPESystemIdentifier
+                }
+                sinon si c == GUILLEMET {
+                    // @erreur missing-whitespace-after-doctype-system-keyword
+                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierDoubleQuoted
+                }
+                sinon si c == APOSTROPHE {
+                    // @erreur missing-whitespace-after-doctype-system-keyword
+                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierSingleQuoted
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    // @erreur missing-doctype-system-identifier
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    // @erreur eof-in-doctype parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
+                sinon {
+                    // @erreur missing-quote-before-doctype-system-identifier parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE)
+                }
+            }
+            BeforeDOCTYPESystemIdentifier {
+                si est_espace_blanc_html(c) {
+                    // ignore
+                }
+                sinon si c == GUILLEMET {
+                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierDoubleQuoted
+                }
+                sinon si c == APOSTROPHE {
+                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierSingleQuoted
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    // @erreur missing-doctype-system-identifier
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    // @erreur eof-in-doctype parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
+                sinon {
+                    // @erreur missing-quote-before-doctype-system-identifier parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE)
+                }
+            }
+            DOCTYPESystemIdentifierDoubleQuoted {
+                si c == GUILLEMET {
+                    lexeuse.état = ÉtatLexage.AfterDOCTYPESystemIdentifier
+                }
+                sinon si c == NUL {
+                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_système_doctype, CARACTÈRE_REMPLACEMENT)
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    // @erreur eof-in-doctype parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
+                sinon {
+                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_système_doctype, c)
+                }
+            }
+            DOCTYPESystemIdentifierSingleQuoted {
+                si c == APOSTROPHE {
+                    lexeuse.état = ÉtatLexage.AfterDOCTYPESystemIdentifier
+                }
+                sinon si c == NUL {
+                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_système_doctype, CARACTÈRE_REMPLACEMENT)
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    // @erreur eof-in-doctype parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
+                sinon {
+                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_système_doctype, c)
+                }
+            }
+            AfterDOCTYPESystemIdentifier {
+                si est_espace_blanc_html(c) {
+                    // ignore
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    // @erreur eof-in-doctype parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
+                sinon {
+                    // @erreur missing-quote-before-doctype-system-identifier parse error
+                    lexeuse.lexème_courant.drapeau_force_quirks = vrai
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BogusDOCTYPE)
+                }
+            }
+            BogusDOCTYPE {
+                si c == CHEVRON_FERMANT {
+                    lexeuse.état = ÉtatLexage.Data
+                    retourne lexeuse.émet_lexème()
+                }
+                sinon si c == NUL {
+                    // ignore
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(@lexeuse.file_lexèmes)
+                }
+                sinon {
+                    // ignore
+                }
+            }
+            CDATASection {
+                si c == CROCHET_FERMANT {
+                    lexeuse.état = ÉtatLexage.CDATASectionBracket
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    // @erreur eof-in-cdata parse error
+                    retourne lexeuse.émet_lexème_fin_de_fichier()
+                }
+                sinon {
+                    retourne lexeuse.émet_lexème_caractère(c)
+                }
+            }
+            CDATASectionBracket {
+                si c == CROCHET_FERMANT {
+                    lexeuse.état = ÉtatLexage.CDATASectionEnd
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.CDATASection)
+                    retourne lexeuse.émet_lexème_caractère(CROCHET_FERMANT)
+                }
+            }
+            CDATASectionEnd {
+                si c == CROCHET_FERMANT {
+                    retourne lexeuse.émet_lexème_caractère(CROCHET_FERMANT)
+                }
+                sinon si c == CHEVRON_FERMANT {
+                    lexeuse.état = ÉtatLexage.Data
+                }
+                sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.CDATASection)
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CROCHET_FERMANT))
+                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CROCHET_FERMANT))
+                    retourne défile(@lexeuse.file_lexèmes)
                 }
             }
             BeforeAttributeName {
@@ -1490,9 +1856,19 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataDoubleEscaped)
                 }
             }
-            sinon {
-                imprime("état : %\n", lexeuse.état)
-                panique("état non implémenté")
+            PLAINTEXT {
+                si c == CHEVRON_OUVRANT {
+                    lexeuse.état = ÉtatLexage.ScriptDataLessThanSign
+                }
+                sinon si c == NUL {
+                    retourne lexeuse.émet_lexème_caractère(CARACTÈRE_REMPLACEMENT)
+                }
+                sinon si c == FIN_DE_FICHIER {
+                    retourne lexeuse.émet_lexème_fin_de_fichier()
+                }
+                sinon {
+                    retourne lexeuse.émet_lexème_caractère(c)
+                }
             }
         }
     }

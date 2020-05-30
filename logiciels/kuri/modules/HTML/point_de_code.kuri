@@ -18,6 +18,8 @@ F_MAJUSCULE :: 'F' comme n32
 X_MAJUSCULE :: 'X' comme n32
 Z_MAJUSCULE :: 'Z' comme n32
 SIGNE_NOMBRE :: '#' comme n32
+CROCHET_OUVRANT :: '[' comme n32
+CROCHET_FERMANT :: ']' comme n32
 EGAL :: '=' comme n32
 GUILLEMET :: '"' comme n32
 APOSTROPHE :: '\'' comme n32
