@@ -112,7 +112,7 @@ possède :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément
     i := liste.entrées.taille - 1
     élément_trouvé : *Élément = nul
 
-    tantque i > 0 {
+    tantque i >= 0 {
         entrée := liste.entrées[i]
 
         si entrée.élément == nul {
@@ -135,10 +135,22 @@ supprime_élément :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: 
 
     pour liste.entrées {
         si it.élément == élément {
+            détruit_lexème(@it.lexème)
             index = index_it
             arrête
         }
     }
 
     tableau_supprime_index(@liste.entrées, index)
+}
+
+index_élément_formattage :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément) -> z64
+{
+    pour liste.entrées {
+        si it.élément == élément {
+            retourne index_it;
+        }
+    }
+
+    retourne -1
 }

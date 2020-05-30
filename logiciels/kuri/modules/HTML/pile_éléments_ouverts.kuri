@@ -111,3 +111,35 @@ supprime_élément :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément)
 
     tableau_supprime_index(@pile.éléments, index)
 }
+
+élément_précédent :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) -> *Élément
+{
+    élément_préc : *Élément = nul
+
+    pour pile.éléments {
+        si it == élément {
+            arrête
+        }
+
+        élément_préc = it
+    }
+
+    retourne élément_préc
+}
+
+élément_spécial_précédent :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) -> *Élément
+{
+    élément_préc : *Élément = nul
+
+    pour pile.éléments {
+        si it == élément {
+            arrête
+        }
+
+        si fait_partie_de_catégorie_spécial(it.texte) {
+            élément_préc = it
+        }
+    }
+
+    retourne élément_préc
+}
