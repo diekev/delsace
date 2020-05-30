@@ -377,8 +377,9 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
             sinon {
                 _ := parseuse.insère_élément_html(lexème)
                 parseuse.mode_insertion = ModeInsertion.DansHeadNoScript
-                retourne
             }
+
+            retourne
         }
 
         si lexème.nom == "script" {
@@ -751,7 +752,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             retourne
         }
 
-        si lexème.nom == "noembed" || (lexème.nom == "noscript" && parseuse.scripting_flag == faux) {
+        si lexème.nom == "noembed" || (lexème.nom == "noscript" && parseuse.scripting_flag == vrai) {
             gère_élément_contenant_texte_cru(parseuse, lexème, ÉtatLexage.RAWTEXT)
             retourne
         }
