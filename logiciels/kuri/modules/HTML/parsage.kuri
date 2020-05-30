@@ -754,7 +754,10 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "b", "big", "code", "em", "font", "i", "s", "small", "strike", "strong", "tt", "u") {
-            panique("algorithm d'insertion incomplet")
+            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            élément := insère_élément_html(parseuse, lexème)
+            pousse_sur_liste_éléments_actifs(parseuse, élément, lexème)
+            retourne
         }
 
         si lexème.nom == "nobr" {
@@ -1003,7 +1006,21 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "h1", "h2", "h3", "h4", "h5", "h6") {
-            panique("algorithme d'insertion incomplet")
+            si !possède_dans_portée(@parseuse.pile_éléments_ouvert, lexème.nom) {
+                erreur_de_parsage("aucun élément <h> dans la porté")
+                retourne
+            }
+
+            parseuse.génère_tags_fin_implicites()
+
+            noeud := parseuse.noeud_courant()
+
+            si noeud.texte != lexème.nom {
+                erreur_de_parsage("le noeud courant n'a pas de balise <h>")
+            }
+
+            dépile_tous_les_éléments_jusque(parseuse, lexème.nom)
+            retourne
         }
 
         si fait_partie_de(lexème.nom, "a", "b", "big", "code", "em", "font", "i", "nobr", "s", "small", "strike", "strong", "tt", "u") {
