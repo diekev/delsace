@@ -624,7 +624,9 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 retourne
             }
 
-            // À FAIRE : si la pile d'éléments ouverts a un élément p dans une portée bouton, ferme un élément p
+            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+                ferme_un_élément_p(parseuse)
+            }
 
             élément := parseuse.insère_élément_html(lexème)
 
@@ -640,20 +642,34 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "address", "article", "aside", "blockquote", "center", "details", "dialog", "dir", "div", "dl", "fieldset", "figcaption", "figure", "footer", "header", "hgroup", "main", "menu", "nav", "ol", "p", "section", "summary", "ul") {
-            // À FAIRE : If the stack of open elements has a p element in button scope, then close a p element.
+            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+                ferme_un_élément_p(parseuse)
+            }
+
             _ := insère_élément_html(parseuse, lexème)
             retourne
         }
 
         si fait_partie_de(lexème.nom, "h1", "h2", "h3", "h4", "h5", "h6") {
-            // À FAIRE : If the stack of open elements has a p element in button scope, then close a p element.
-            // si noeud_courant est un élément du même groupe, dépile le
+            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+                ferme_un_élément_p(parseuse)
+            }
+
+            noeud := parseuse.noeud_courant()
+            si fait_partie_de(noeud.texte, "h1", "h2", "h3", "h4", "h5", "h6") {
+                erreur_de_parsage("élément <h> ouvert quand un autre <h> s'ouvre")
+                dépile(@parseuse.pile_éléments_ouvert)
+            }
+
             _ := insère_élément_html(parseuse, lexème)
             retourne
         }
 
         si fait_partie_de(lexème.nom, "pre", "listing") {
-            // À FAIRE : If the stack of open elements has a p element in button scope, then close a p element.
+            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+                ferme_un_élément_p(parseuse)
+            }
+
             _ := insère_élément_html(parseuse, lexème)
             // À FAIRE : ignore le token suivant si c'est un caractère de nouvelle ligne (0x0A)
             parseuse.frameset_ok = faux
@@ -669,7 +685,23 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "button" {
-            panique("algorithme d'insertion incomplet")
+            si possède_dans_portée(@parseuse.pile_éléments_ouvert, "button") {
+                erreur_de_parsage("<button> déjà ouvert lors de l'ouverture d'un <button>")
+                génère_tags_fin_implicites(parseuse)
+
+                noeud := parseuse.noeud_courant()
+                tantque noeud.texte != "button" {
+                    dépile(@parseuse.pile_éléments_ouvert)
+                    noeud = parseuse.noeud_courant()
+                }
+                dépile(@parseuse.pile_éléments_ouvert)
+            }
+
+            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+
+            _ := insère_élément_html(parseuse, lexème)
+            parseuse.frameset_ok = faux
+            retourne
         }
 
         si lexème.nom == "a" {
@@ -881,7 +913,17 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "p" {
-            panique("algorithme d'insertion incomplet")
+            si !possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+                erreur_de_parsage("aucun <p> ouvert dans une portée <button>")
+
+                lexème_p : Lexème
+                lexème_p.genre = GenreLexème.DébutTag
+                lexème_p.nom = "p"
+                _ := insère_élément_html(parseuse, lexème_p)
+            }
+
+            ferme_un_élément_p(parseuse)
+            retourne
         }
 
         si lexème.nom == "li" {
@@ -1238,6 +1280,23 @@ tout_autre_tag_fin_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         élément = noeud_précédent(@parseuse.pile_éléments_ouvert)
     }
+}
+
+ferme_un_élément_p :: fonc (parseuse: *Parseuse)
+{
+    génère_tags_fin_implicites_autres_que(parseuse, "p")
+
+    noeud := parseuse.noeud_courant()
+
+    si noeud.texte != "p" {
+        erreur_de_parsage("l'élément courant n'est pas un <p>")
+    }
+
+    tantque noeud.texte != "p" {
+        dépile(@parseuse.pile_éléments_ouvert)
+        noeud = parseuse.noeud_courant()
+    }
+    dépile(@parseuse.pile_éléments_ouvert)
 }
 
 erreur_de_parsage :: fonc (message: chaine)
