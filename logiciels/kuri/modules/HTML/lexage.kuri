@@ -55,6 +55,21 @@ ajoute_attribut :: fonc (lexème: *Léxème)
     lexème.attribut_courant = @lexème.attributs[lexème.attributs.taille - 1]
 }
 
+copie_lexème :: fonc (lexème: *Léxème) -> Léxème
+{
+    nouveau_lexème : Léxème
+    nouveau_lexème.genre = lexème.genre
+    nouveau_lexème.nom = copie_chaine(lexème.nom)
+
+    pour lexème.attributs {
+        ajoute_attribut(@nouveau_lexème)
+        nouveau_lexème.attribut_courant.nom = copie_chaine(it.nom)
+        nouveau_lexème.attribut_courant.valeur = copie_chaine(it.valeur)
+    }
+
+    retourne nouveau_lexème
+}
+
 détruit_lexème :: fonc (lexème: *Léxème)
 {
     discr lexème.genre {

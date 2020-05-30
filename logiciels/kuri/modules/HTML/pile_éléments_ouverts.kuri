@@ -50,3 +50,28 @@ possède_dans_portée :: fonc (pile: *PileÉlémentsOuverts, élément: *Éléme
 
     retourne faux
 }
+
+possède :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) -> bool
+{
+    pour pile.éléments {
+        si it == élément {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+supprime_élément :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément)
+{
+    index : z64 = 0
+
+    pour pile.éléments {
+        si it == élément {
+            index = index_it
+            arrête
+        }
+    }
+
+    tableau_supprime_index(@pile.éléments, index)
+}
