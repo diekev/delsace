@@ -48,6 +48,17 @@ Lexème :: struct {
     attribut_courant : *Attribut
 }
 
+cherche_attribut :: fonc (lexème: *Lexème, nom: chaine) -> *Attribut
+{
+    pour lexème.attributs {
+        si it.nom == nom {
+            retourne @lexème.attributs[index_it]
+        }
+    }
+
+    retourne nul
+}
+
 ajoute_attribut :: fonc (lexème: *Lexème)
 {
     attribut : Attribut

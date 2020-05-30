@@ -9,3 +9,24 @@ fait_partie_de :: fonc (valeur: $T, liste: ...$T) -> bool
 
     retourne faux
 }
+
+compare_ascii_insensible_à_la_casse :: fonc (chn1: chaine, chn2: chaine) -> bool
+{
+    si chn1.taille != chn2.taille {
+        retourne faux
+    }
+
+    pour chn1 {
+        c2 := chn2[index_it]
+
+        si 'A' <= c2 <= 'Z' {
+            c2 += 0x20
+        }
+
+        si it != c2 {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}

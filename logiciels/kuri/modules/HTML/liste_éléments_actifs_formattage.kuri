@@ -154,3 +154,19 @@ index_élément_formattage :: fonc (liste: *ListeÉlémentsActifsFormattage, él
 
     retourne -1
 }
+
+enlève_éléments_jusqu_au_dernier_marqueur :: fonc (liste: *ListeÉlémentsActifsFormattage)
+{
+    index := liste.entrées.taille - 1
+
+    boucle {
+        entrée := liste.entrées[index]
+        tableau_supprime_index(@liste.entrées, index)
+
+        si entrée.élément == nul {
+            arrête
+        }
+
+        index -= 1
+    }
+}
