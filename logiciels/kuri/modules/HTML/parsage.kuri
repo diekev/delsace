@@ -762,7 +762,11 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "nobr" {
-            panique("algorithm d'insertion incomplet")
+            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            _ := parseuse.insère_élément_html(lexème)
+            ajoute_marqueur(@parseuse.liste_éléments_actifs_formattage)
+            parseuse.frameset_ok = faux
+            retourne
         }
 
         si fait_partie_de(lexème.nom, "applet", "marquee", "object") {
@@ -800,11 +804,22 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "param", "source", "track") {
-            panique("algorithm d'insertion incomplet")
+            _ := parseuse.insère_élément_html(lexème)
+            dépile(@parseuse.pile_éléments_ouvert)
+            // À FAIRE : reconnait auto-fermant
+            retourne
         }
 
         si lexème.nom == "hr" {
-            panique("algorithm d'insertion incomplet")
+            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+                parseuse.ferme_un_élément_p()
+            }
+
+            _ := parseuse.insère_élément_html(lexème)
+            dépile(@parseuse.pile_éléments_ouvert)
+            // À FAIRE : reconnait auto-fermant
+            parseuse.frameset_ok = faux
+            retourne
         }
 
         si lexème.nom == "image" {
@@ -833,7 +848,14 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "xmp" {
-            panique("algorithm d'insertion incomplet")
+            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+                parseuse.ferme_un_élément_p()
+            }
+
+            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            parseuse.frameset_ok = faux
+            parseuse.gère_élément_contenant_texte_cru(lexème, ÉtatLexage.RCDATA)
+            retourne
         }
 
         si lexème.nom == "iframe" {
@@ -848,19 +870,54 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "select" {
-            panique("algorithm d'insertion incomplet")
+            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            _ := parseuse.insère_élément_html(lexème)
+            parseuse.frameset_ok = faux
+
+            si fait_partie_de(parseuse.mode_insertion, ModeInsertion.DansTable, ModeInsertion.DansCaption, ModeInsertion.DansCorpsTable, ModeInsertion.DansRow, ModeInsertion.DansCell) {
+                parseuse.mode_insertion = ModeInsertion.DansSelectDansTable
+            }
+            sinon {
+                parseuse.mode_insertion = ModeInsertion.DansSelect
+            }
+
+            retourne
         }
 
         si lexème.nom == "optgroup" || lexème.nom == "option" {
-            panique("algorithm d'insertion incomplet")
+            si parseuse.noeud_courant().texte == "option" {
+                dépile(@parseuse.pile_éléments_ouvert)
+            }
+
+            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            _ := parseuse.insère_élément_html(lexème)
+            retourne
         }
 
         si lexème.nom == "rb" || lexème.nom == "rtc" {
-            panique("algorithm d'insertion incomplet")
+            si possède_dans_portée(@parseuse.pile_éléments_ouvert, "ruby") {
+                parseuse.génère_tags_fin_implicites()
+
+                si parseuse.noeud_courant().texte != "ruby" {
+                    erreur_de_parsage("attendu un élément <ruby>")
+                }
+
+                _ := parseuse.insère_élément_html(lexème)
+                retourne
+            }
         }
 
         si lexème.nom == "rp" || lexème.nom == "rt" {
-            panique("algorithm d'insertion incomplet")
+            si possède_dans_portée(@parseuse.pile_éléments_ouvert, "ruby") {
+                parseuse.génère_tags_fin_implicites_autres_que("rtc")
+
+                si !fait_partie_de(parseuse.noeud_courant().texte, "ruby", "rtc") {
+                    erreur_de_parsage("attendu un élément <ruby> ou <rtc>")
+                }
+
+                _ := parseuse.insère_élément_html(lexème)
+                retourne
+            }
         }
 
         si lexème.nom == "math" {
