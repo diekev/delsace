@@ -1378,7 +1378,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 				auto decl = op->decl;
 				auto requiers_contexte = !decl->est_externe && !dls::outils::possede_drapeau(decl->drapeaux, FORCE_NULCTX);
-				auto atome_fonction = table_fonctions[decl->nom_broye];
+				auto atome_fonction = trouve_ou_insere_fonction(decl);
 				auto args = kuri::tableau<Atome *>(2 + requiers_contexte);
 
 				if (requiers_contexte) {
