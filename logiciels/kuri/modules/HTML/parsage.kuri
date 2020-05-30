@@ -850,7 +850,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
                 parseuse.génère_tags_fin_implicites()
 
                 si noeud != parseuse.noeud_courant() {
-                    // erreur de parsage
+                    erreur_de_parsage("l'élément <form> n'est pas le noeud courrant")
                 }
 
                 // À FAIRE : enlève le noeud peu importe où il se trouve
@@ -858,14 +858,17 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
             }
             sinon {
                 si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "form") {
-                    // erreur de parsage, ignore
+                    erreur_de_parsage("<form> n'est pas la dans la portée")
                     retourne
                 }
 
                 parseuse.génère_tags_fin_implicites()
 
                 noeud := parseuse.noeud_courant()
-                // si noeud n'est pas un form, c'est une erreur de parsage
+
+                si noeud.texte != "form" {
+                    erreur_de_parsage("attendu un élément <form>")
+                }
 
                 tantque noeud.texte != "form" {
                     dépile(@parseuse.pile_éléments_ouvert)
@@ -1016,7 +1019,7 @@ insère_mode_AprèsBody :: fonc (parseuse: *Parseuse, léxème: Léxème)
     }
 
     si léxème.genre == GenreLexème.Doctype {
-        // erreur de parsage, ignore
+        erreur_de_parsage("obtenu doctype après body")
         retourne
     }
 
