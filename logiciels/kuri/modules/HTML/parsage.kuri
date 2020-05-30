@@ -804,7 +804,21 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "textarea" {
             _ := insère_élément_html(parseuse, lexème)
-            panique("algorithm d'insertion incomplet")
+
+            curseur := parseuse.lexeuse.curseur
+            lexème_suiv := lexème_suivant(@parseuse.lexeuse)
+
+            si lexème_suiv.genre != GenreLexème.Caractère || lexème_suiv.point_de_code != NOUVELLE_LIGNE {
+                // si nous n'avons pas de nouvelle ligne restaure l'état de la lexeuse, car celles-ci sont ignorées par convénience
+                détruit_lexème(@lexème_suiv)
+                parseuse.lexeuse.curseur = curseur
+            }
+
+            parseuse.lexeuse.état = ÉtatLexage.RCDATA
+            parseuse.mode_insertion_original = parseuse.mode_insertion
+            parseuse.mode_insertion = ModeInsertion.Texte
+            parseuse.frameset_ok = faux
+            retourne
         }
 
         si lexème.nom == "xmp" {
