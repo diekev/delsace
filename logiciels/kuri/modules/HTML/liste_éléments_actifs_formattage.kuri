@@ -3,7 +3,7 @@ charge "lexage"
 
 EntréeFormattage :: struct {
     élément: *Élément
-    lexème: Léxème
+    lexème: Lexème
 }
 
 est_marqueur :: fonc (entrée: EntréeFormattage) -> bool
@@ -81,7 +81,7 @@ entrée_suivante :: fonc (liste: *ListeÉlémentsActifsFormattage, entrée: Entr
     retourne liste.entrées[index]
 }
 
-ajoute :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément, lexème: Léxème)
+ajoute :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément, lexème: Lexème)
 {
     entrée : EntréeFormattage = ---
     entrée.élément = élément
