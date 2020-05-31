@@ -876,6 +876,12 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(Atome *ou)
 	assert(ou->type->genre == GenreType::POINTEUR || ou->type->genre == GenreType::REFERENCE);
 	auto type_pointeur = static_cast<TypePointeur *>(ou->type);
 
+	POUR (charge_mems) {
+		if (it->chargee == ou) {
+			return it;
+		}
+	}
+
 	assert(ou->genre_atome == Atome::Genre::INSTRUCTION || ou->genre_atome == Atome::Genre::GLOBALE);
 	//std::cerr << __func__ << ", type instruction : " << static_cast<int>(inst_chargee->genre) << '\n';
 	//assert(dls::outils::est_element(inst_chargee->genre, Instruction::Genre::ALLOCATION, Instruction::Genre::ACCEDE_MEMBRE, Instruction::Genre::ACCEDE_INDEX));
@@ -884,6 +890,7 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(Atome *ou)
 	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	insts_charge_memoire.pousse(inst);
+	charge_mems.pousse(inst);
 	return inst;
 }
 
@@ -960,6 +967,12 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(Atome *accede, long 
 	auto type_pointeur = static_cast<TypePointeur *>(accede->type);
 	assert(est_type_compose(type_pointeur->type_pointe));
 
+	POUR (acces_membres) {
+		if (it->accede == accede && static_cast<AtomeValeurConstante *>(it->index)->valeur.valeur_entiere == static_cast<unsigned>(index)) {
+			return it;
+		}
+	}
+
 	auto type_compose = static_cast<TypeCompose *>(type_pointeur->type_pointe);
 	auto type = static_cast<Type *>(nullptr);
 
@@ -982,6 +995,7 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(Atome *accede, long 
 	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	insts_accede_membre.pousse(inst);
+	acces_membres.pousse(inst);
 	return inst;
 }
 
@@ -1088,6 +1102,8 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			fonction_courante = atome_fonc;
 			table_locales.efface();
+			acces_membres.taille = 0;
+			charge_mems.taille = 0;
 
 			POUR (atome_fonc->params_entrees) {
 				table_locales.insere({ it->ident, it });
@@ -3175,6 +3191,8 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 
 	auto ancienne_table = table_locales;
 	table_locales.efface();
+	acces_membres.taille = 0;
+	charge_mems.taille = 0;
 	auto ancienne_fonction = fonction_courante;
 	fonction_courante = nullptr;
 	auto ancien_nombre_instruction = nombre_instructions;

@@ -78,6 +78,8 @@ private:
 	ContexteGenerationCode &m_contexte;
 
 	AtomeFonction *fonction_courante = nullptr;
+	kuri::tableau<InstructionAccedeMembre *> acces_membres{};
+	kuri::tableau<InstructionChargeMem *> charge_mems{};
 
 	int nombre_labels = 0;
 	int nombre_instructions = 0;
