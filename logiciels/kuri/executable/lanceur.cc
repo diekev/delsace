@@ -334,7 +334,7 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "Débit par seconde", formatte_nombre(debit_seconde), "o/s" });
 
 	tableau.ajoute_ligne({ "Arbre Syntaxique", "", "" });
-	tableau.ajoute_ligne({ "- Nombre Morceaux", formatte_nombre(metriques.nombre_lexemes), "" });
+	tableau.ajoute_ligne({ "- Nombre Lexèmes", formatte_nombre(metriques.nombre_lexemes), "" });
 	tableau.ajoute_ligne({ "- Nombre Noeuds", formatte_nombre(metriques.nombre_noeuds), "" });
 	tableau.ajoute_ligne({ "- Nombre Noeuds Déps", formatte_nombre(metriques.nombre_noeuds_deps), "" });
 	tableau.ajoute_ligne({ "- Nombre Opérateurs", formatte_nombre(metriques.nombre_operateurs), "" });
