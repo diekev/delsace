@@ -1,0 +1,46 @@
+importe Fondation
+
+ChaineUTF32 :: struct {
+    points_de_code : []n32
+}
+
+détruit_chaine :: fonc (chn: *ChaineUTF32)
+{
+    déloge chn.points_de_code
+    chn.points_de_code.taille = 0
+    chn.points_de_code.capacité = 0
+}
+
+taille :: fonc (chn: ChaineUTF32) -> z64
+{
+    retourne chn.points_de_code.taille
+}
+
+chaine_ajoute :: fonc (chn: *ChaineUTF32, point_de_code: n32)
+{
+    tableau_ajoute(@chn.points_de_code, point_de_code)
+}
+
+compare_avec_chaine :: fonc (chn: ChaineUTF32, chn2: chaine) -> bool
+{
+    si chn.taille() != chn2.taille {
+        retourne faux
+    }
+
+    pour chn.points_de_code {
+        si it != chn2[index_it] comme n32 {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+converti_vers_chaine :: fonc (chn: ChaineUTF32) -> chaine
+{
+    résultat : chaine
+    pour chn.points_de_code {
+        chaine_ajoute(@résultat, it)
+    }
+    retourne résultat
+}

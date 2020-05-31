@@ -2,6 +2,7 @@ importe Fondation
 importe Ensemble
 
 charge "attribut"
+charge "chaine_utf32"
 charge "point_de_code"
 charge "entités"
 
@@ -243,7 +244,7 @@ Lexeuse :: struct {
 
     lexème_courant : Lexème
 
-    tampon_temporaire : chaine
+    tampon_temporaire : ChaineUTF32
 
     nom_dernier_tag_début : chaine
 
@@ -259,7 +260,7 @@ initialise_lexeuse :: fonc (document: chaine) -> Lexeuse
 
 détruit_lexeuse :: fonc (lexeuse: *Lexeuse)
 {
-    déloge lexeuse.tampon_temporaire
+    détruit_chaine(@lexeuse.tampon_temporaire)
     déloge lexeuse.nom_dernier_tag_début
     déloge lexeuse.file_lexèmes.lexèmes
 }
@@ -1174,7 +1175,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             RCDATALessThanSign {
                 si c == SLASH {
-                    déloge lexeuse.tampon_temporaire
+                    détruit_chaine(@lexeuse.tampon_temporaire)
                     lexeuse.état = ÉtatLexage.RCDATAEndTagOpen
                 }
                 sinon {
@@ -1231,7 +1232,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             RAWTEXTLessThanSign {
                 si c == SLASH {
-                    déloge lexeuse.tampon_temporaire
+                    détruit_chaine(@lexeuse.tampon_temporaire)
                     lexeuse.état = ÉtatLexage.RAWTEXTEndTagOpen
                 }
                 sinon {
@@ -1428,8 +1429,8 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             CharacterReference {
-                déloge lexeuse.tampon_temporaire
-                chaine_ajoute(@lexeuse.tampon_temporaire, '&')
+                détruit_chaine(@lexeuse.tampon_temporaire)
+                chaine_ajoute(@lexeuse.tampon_temporaire, ESPERLUETTE)
 
                 si est_ascii_alphanumérique(c) {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.NamedCharacterReference)
@@ -1559,7 +1560,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     panique("état partiellement implémenté")
                 }
 
-                déloge lexeuse.tampon_temporaire
+                détruit_chaine(@lexeuse.tampon_temporaire)
                 chaine_ajoute(@lexeuse.tampon_temporaire, lexeuse.code_référence_caractère)
 
                 lexeuse.état = lexeuse.état_retour
@@ -1584,7 +1585,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             ScriptDataLessThanSign {
                 si c == SLASH {
-                    déloge lexeuse.tampon_temporaire
+                    détruit_chaine(@lexeuse.tampon_temporaire)
                     lexeuse.état = ÉtatLexage.ScriptDataEndTagOpen
                 }
                 sinon si c == POINT_EXCLAMATION {
@@ -1723,11 +1724,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             ScriptDataEscapedLessThanSign {
                 si c == SLASH {
-                    déloge lexeuse.tampon_temporaire
+                    détruit_chaine(@lexeuse.tampon_temporaire)
                     lexeuse.état = ÉtatLexage.ScriptDataEscapedEndTagOpen
                 }
                 sinon si est_ascii_alpha(c) {
-                    déloge lexeuse.tampon_temporaire
+                    détruit_chaine(@lexeuse.tampon_temporaire)
                     lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataDoubleEscapeStart)
                     retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT)
                 }
@@ -1785,7 +1786,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             ScriptDataDoubleEscapeStart {
                 si est_espace_blanc_html(c) || c == SLASH || c == CHEVRON_FERMANT {
-                    si lexeuse.tampon_temporaire == "script" {
+                    si compare_avec_chaine(lexeuse.tampon_temporaire, "script") {
                         lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped
                     }
                     sinon {
@@ -1874,7 +1875,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             ScriptDataDoubleEscapedLessThanSign {
                 si c == SLASH {
-                    déloge lexeuse.tampon_temporaire
+                    détruit_chaine(@lexeuse.tampon_temporaire)
                     lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapeEnd
                     retourne lexeuse.émet_lexème_caractère(SLASH)
                 }
@@ -1883,7 +1884,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             ScriptDataDoubleEscapeEnd {
                 si est_espace_blanc_html(c) || c == SLASH || c == CHEVRON_FERMANT {
-                    si lexeuse.tampon_temporaire == "script" {
+                    si compare_avec_chaine(lexeuse.tampon_temporaire, "script") {
                         lexeuse.état = ÉtatLexage.ScriptDataDoubleEscaped
                     }
                     sinon {
@@ -1925,8 +1926,8 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
 
 enfile_lexèmes_pour_tampon_temporaire :: fonc (lexeuse: *Lexeuse)
 {
-    pour lexeuse.tampon_temporaire {
-        enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(it comme n32))
+    pour lexeuse.tampon_temporaire.points_de_code {
+        enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(it))
     }
 }
 
@@ -1968,7 +1969,7 @@ flush_points_de_code_référence_caractère :: fonc (lexeuse: *Lexeuse) -> bool
 {
     // détermine si nous somme dans un attribut
     si nous_sommes_dans_attribut(lexeuse) {
-        pour lexeuse.tampon_temporaire {
+        pour lexeuse.tampon_temporaire.points_de_code {
             chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, it)
         }
 
@@ -1989,7 +1990,12 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
         caractère_suivant := lexeuse.point_de_code_suivant()
         chaine_ajoute(@lexeuse.tampon_temporaire, caractère_suivant)
 
-        résultat := ensemble_possède_rappel_si_possible(@symboles_entités, lexeuse.tampon_temporaire, commence_par)
+        // XXX - À FAIRE
+        chn_temp := converti_vers_chaine(lexeuse.tampon_temporaire)
+
+        résultat := ensemble_possède_rappel_si_possible(@symboles_entités, chn_temp, commence_par)
+
+        déloge chn_temp
 
         si !résultat.trouvé {
             lexeuse.curseur -= 1
@@ -2019,7 +2025,7 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
         // @erreur missing-semicolon-after-character-reference parse error.
     }
 
-    déloge lexeuse.tampon_temporaire
+    détruit_chaine(@lexeuse.tampon_temporaire)
 
     points_de_code := points_de_code_entités[dernier_résultat.index]
 
