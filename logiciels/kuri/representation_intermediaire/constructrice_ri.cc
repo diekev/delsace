@@ -620,6 +620,34 @@ size_t ConstructriceRI::memoire_utilisee() const
 
 #undef COMPTE_MEMOIRE
 
+#if 0
+#define NOMBRE_INSTRUCTIONS(Tableau) \
+	std::cerr << #Tableau << " : " << Tableau.taille << '\n';
+
+	NOMBRE_INSTRUCTIONS(atomes_fonction);
+	NOMBRE_INSTRUCTIONS(atomes_constante);
+	NOMBRE_INSTRUCTIONS(atomes_globale);
+	NOMBRE_INSTRUCTIONS(insts_allocation);
+	NOMBRE_INSTRUCTIONS(insts_appel);
+	NOMBRE_INSTRUCTIONS(insts_branche);
+	NOMBRE_INSTRUCTIONS(insts_branche_condition);
+	NOMBRE_INSTRUCTIONS(insts_charge_memoire);
+	NOMBRE_INSTRUCTIONS(insts_label);
+	NOMBRE_INSTRUCTIONS(insts_opbinaire);
+	NOMBRE_INSTRUCTIONS(insts_opunaire);
+	NOMBRE_INSTRUCTIONS(insts_stocke_memoire);
+	NOMBRE_INSTRUCTIONS(insts_retour);
+	NOMBRE_INSTRUCTIONS(insts_accede_index);
+	NOMBRE_INSTRUCTIONS(insts_accede_membre);
+	NOMBRE_INSTRUCTIONS(insts_transtype);
+	NOMBRE_INSTRUCTIONS(transtypes_constants);
+	NOMBRE_INSTRUCTIONS(op_binaires_constants);
+	NOMBRE_INSTRUCTIONS(op_unaires_constants);
+	NOMBRE_INSTRUCTIONS(accede_index_constants);
+
+#undef NOMBRE_INSTRUCTIONS
+#endif
+
 	return memoire;
 }
 
