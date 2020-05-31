@@ -1,6 +1,7 @@
 // Fonctions de manipulation de chaines.
 
 charge "memoire"
+charge "unicode"
 
 // À FAIRE: ceci ne fonctionnera pas pour les chaines statiques, connues lors de la compilation
 chaine_ajoute :: fonc (chn: *chaine, c: z8)
@@ -18,11 +19,20 @@ chaine_ajoute :: fonc (chn: *chaine, point_de_code: n32)
 {
     tmp := mémoire(chn)
 
-	// À FAIRE : nombre d'octets Unicode pour point de code
-	taille := chn.taille
-	reloge tmp: chaine(taille + 1)
+	séquence : [4]n8
+	nombre_octets := point_de_code_vers_utf8(point_de_code, @séquence[0])
 
-	tmp[taille] = (point_de_code & 0xff) comme z8
+	si nombre_octets == 0 {
+		// À FAIRE : que faire ici ?
+		retourne
+	}
+
+	taille := chn.taille
+	reloge tmp: chaine(taille + nombre_octets)
+
+	pour 0 ... nombre_octets - 1 {
+		tmp[taille + it] = séquence[it] comme z8
+	}
 
 	mémoire(chn) = tmp
 }
