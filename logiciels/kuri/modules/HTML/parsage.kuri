@@ -31,6 +31,7 @@ ModeInsertion :: énum {
     DansSelect
     DansSelectDansTable
     DansFrameSet
+    DansTemplate
     AprèsBody
     AprèsAprèsBody
     AprèsFrameSet
@@ -56,6 +57,7 @@ fonctions_insertions := [
     insère_mode_DansSelect,
     insère_mode_DansSelectDansTable,
     insère_mode_DansFrameSet,
+    insère_mode_DansTemplate,
     insère_mode_AprèsBody,
     insère_mode_AprèsAprèsBody,
     insère_mode_AprèsFrameSet,
@@ -65,7 +67,7 @@ fonctions_insertions := [
 Parseuse :: struct {
     mode_insertion : ModeInsertion
     mode_insertion_original : ModeInsertion
-    mode_insertion_courant_template : ModeInsertion
+    pile_insertion_template : []ModeInsertion
     lexeuse: Lexeuse
     document: *Document
 
@@ -99,6 +101,7 @@ détruit_parseuse :: fonc (parseuse: *Parseuse)
     détruit_lexeuse(@parseuse.lexeuse)
     détruit_liste(@parseuse.liste_éléments_actifs_formattage)
     déloge parseuse.pile_éléments_ouvert.éléments
+    déloge parseuse.pile_insertion_template
 }
 
 parse :: fonc (parseuse: *Parseuse)
@@ -140,9 +143,9 @@ crée_élément_pour :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *Éléme
 
 gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: ModeInsertion, lexème: Lexème)
 {
-    si lexème.genre != GenreLexème.Caractère {
-        imprime("gère lexème : % (%), mode insertion : %\n", lexème.nom, lexème.genre, mode)
-    }
+    // si lexème.genre != GenreLexème.Caractère {
+    //     imprime("gère lexème : % (%), mode insertion : %\n", lexème.nom, lexème.genre, mode)
+    // }
 
     fonction := fonctions_insertions[mode]
     fonction(parseuse, lexème)
@@ -399,7 +402,12 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "template" {
-            panique("algorithme d'insertion incomplet")
+            _ := parseuse.insère_élément_html(lexème)
+            ajoute_marqueur(@parseuse.liste_éléments_actifs_formattage)
+            parseuse.frameset_ok = faux
+            parseuse.mode_insertion = ModeInsertion.DansTemplate
+            tableau_ajoute(@parseuse.pile_insertion_template, ModeInsertion.DansTemplate)
+            retourne
         }
 
         si lexème.nom == "head" {
@@ -416,7 +424,21 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "template" {
-            panique("algorithme d'insertion incomplet")
+            si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "template") {
+                erreur_de_parsage("aucun <template> dans la pile d'éléments ouverts")
+                retourne
+            }
+
+            parseuse.génère_tags_fin_implicites_attentivement()
+
+            si parseuse.noeud_courant().texte != "template" {
+                erreur_de_parsage("le noeud courant n'est pas un <template>")
+            }
+
+            parseuse.dépile_tous_les_éléments_jusque("template")
+            parseuse.pile_insertion_template.taille -= 1
+            parseuse.restaure_mode_insertion_appropriemment()
+            retourne
         }
 
         si !fait_partie_de(lexème.nom, "body", "html", "br") {
@@ -1528,6 +1550,79 @@ insère_mode_DansFrameSet :: fonc (parseuse: *Parseuse, lexème: Lexème)
     panique("algorithme d'insertion incomplet")
 }
 
+insère_mode_DansTemplate :: fonc (parseuse: *Parseuse, lexème: Lexème)
+{
+    si lexème.genre == GenreLexème.Caractère || lexème.genre == GenreLexème.Commentaire || lexème.genre == GenreLexème.Doctype {
+        parseuse.gère_lexème_pour_mode(ModeInsertion.DansBody, lexème)
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.DébutTag {
+        si fait_partie_de(lexème.nom,  "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "template", "title") {
+            parseuse.gère_lexème_pour_mode(ModeInsertion.DansHead, lexème)
+            retourne
+        }
+
+        si fait_partie_de(lexème.nom, "caption", "colgroup", "tbody", "tfoot", "thead") {
+            parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = ModeInsertion.DansTable
+            parseuse.mode_insertion = ModeInsertion.DansTable
+            parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
+            retourne
+        }
+
+        si lexème.nom == "col" {
+            parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = ModeInsertion.DansGroupeColonne
+            parseuse.mode_insertion = ModeInsertion.DansGroupeColonne
+            parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
+            retourne
+        }
+
+        si lexème.nom == "tr" {
+            parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = ModeInsertion.DansCorpsTable
+            parseuse.mode_insertion = ModeInsertion.DansCorpsTable
+            parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
+            retourne
+        }
+
+        si lexème.nom == "td" || lexème.nom == "th" {
+            parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = ModeInsertion.DansRow
+            parseuse.mode_insertion = ModeInsertion.DansRow
+            parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
+            retourne
+        }
+
+        parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = ModeInsertion.DansBody
+        parseuse.mode_insertion = ModeInsertion.DansBody
+        parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.FinTag {
+        si lexème.nom == "template" {
+            parseuse.gère_lexème_pour_mode(ModeInsertion.DansHead, lexème)
+            retourne
+        }
+
+        erreur_de_parsage("fin de tag invalide dans <template>")
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.FinDeFichier {
+        si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "template") {
+            parseuse.arrête_de_parser = vrai
+            retourne
+        }
+
+        erreur_de_parsage("fin de fichier dans <template>")
+        parseuse.dépile_tous_les_éléments_jusque("template")
+        enlève_éléments_jusqu_au_dernier_marqueur(@parseuse.liste_éléments_actifs_formattage)
+        parseuse.pile_insertion_template.taille -= 1
+        parseuse.restaure_mode_insertion_appropriemment()
+        parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
+        retourne
+    }
+}
+
 insère_mode_AprèsBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(lexème.point_de_code) {
@@ -1667,6 +1762,16 @@ génère_tags_fin_implicites_autres_que :: fonc (parseuse: *Parseuse, tag: chain
     noeud := parseuse.noeud_courant()
 
     tantque noeud.texte != tag && fait_partie_de(noeud.texte, "dd", "dt", "li", "optgroup", "option", "p", "rb", "rt", "rtc") {
+        dépile(@parseuse.pile_éléments_ouvert)
+        noeud = parseuse.noeud_courant()
+    }
+}
+
+génère_tags_fin_implicites_attentivement :: fonc (parseuse: *Parseuse)
+{
+    noeud := parseuse.noeud_courant()
+
+    tantque fait_partie_de(noeud.texte, "caption", "colgroup", "dd", "dt", "li", "optgroup", "option", "p", "rb", "rp", "rt", "rtc", "tbody", "td", "tfoot", "th", "thead", "tr") {
         dépile(@parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
@@ -1932,7 +2037,7 @@ restaure_mode_insertion_appropriemment :: fonc (parseuse: *Parseuse)
 
         si noeud.texte == "template" {
             // À FAIRE : pile de mode d'insertion pour les templates
-            parseuse.mode_insertion = parseuse.mode_insertion_courant_template
+            parseuse.mode_insertion = parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1]
             retourne
         }
 
