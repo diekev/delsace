@@ -75,3 +75,16 @@ possède_attribut :: fonc (noeud: *Noeud, nom: chaine) -> bool
 
     retourne faux
 }
+
+cherche_attribut :: fonc (noeud: *Noeud, nom: chaine) -> *Attribut
+{
+    pour noeud.attributs {
+        si it.nom != nom {
+            continue
+        }
+
+        retourne @noeud.attributs[index_it]
+    }
+
+    retourne nul
+}

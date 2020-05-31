@@ -51,6 +51,27 @@ imprime_document :: fonc (document: *Document)
     }
 }
 
+rassemble_texte_noeud :: fonc (noeud: *Noeud, rappel_pour_texte: fonc(*NoeudTexte,eini)(rien), données: eini)
+{
+    pour noeud.enfants {
+        si it.genre == GenreNoeud.Texte {
+            texte := it comme *NoeudTexte
+            rappel_pour_texte(texte, données)
+        }
+        sinon {
+            rassemble_texte_noeud(it, rappel_pour_texte, données)
+        }
+    }
+}
+
+traverse_noeud :: fonc (noeud: *Noeud, rappel_traverse: fonc(*Noeud, eini)(rien), données: eini)
+{
+    pour noeud.enfants {
+        rappel_traverse(it, données)
+        traverse_noeud(it, rappel_traverse, données)
+    }
+}
+
 // ces fonctions devraient plutôt être dans noeud.kuri, mais nous avons des
 // dépendances cycliques entre les modules que le langage ne sait pas encore gérer
 détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
