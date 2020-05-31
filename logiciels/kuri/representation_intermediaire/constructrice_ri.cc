@@ -609,6 +609,15 @@ size_t ConstructriceRI::memoire_utilisee() const
 	COMPTE_MEMOIRE(OpUnaireConstant, op_unaires_constants);
 	COMPTE_MEMOIRE(AccedeIndexConstant, accede_index_constants);
 
+	POUR (atomes_fonction) {
+		memoire += static_cast<size_t>(it->params_entrees.taille) * sizeof(Atome *);
+		memoire += static_cast<size_t>(it->params_sorties.taille) * sizeof(Atome *);
+	}
+
+	POUR (insts_appel) {
+		memoire += static_cast<size_t>(it->args.taille) * sizeof(Atome *);
+	}
+
 #undef COMPTE_MEMOIRE
 
 	return memoire;

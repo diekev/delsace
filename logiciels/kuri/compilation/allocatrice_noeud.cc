@@ -194,6 +194,44 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 	COMPTE_MEMOIRE(NoeudTableauArgsVariadiques, m_noeuds_tableau_args_variadiques);
 	COMPTE_MEMOIRE(NoeudTente, m_noeuds_tente);
 
+	pour_chaque_element(m_noeuds_bloc, [&](NoeudBloc const &noeud)
+	{
+		memoire += static_cast<size_t>(noeud.membres.taille) * sizeof(NoeudDeclaration *);
+		memoire += static_cast<size_t>(noeud.expressions.taille) * sizeof(NoeudExpression *);
+		memoire += static_cast<size_t>(noeud.noeuds_differes.taille) * sizeof(NoeudBloc *);
+	});
+
+	pour_chaque_element(m_noeuds_declaration_fonction, [&](NoeudDeclarationFonction const &noeud)
+	{
+		memoire += static_cast<size_t>(noeud.params.taille) * sizeof(NoeudDeclaration *);
+		memoire += static_cast<size_t>(noeud.params_sorties.taille) * sizeof(NoeudExpression *);
+		memoire += static_cast<size_t>(noeud.arbre_aplatis.taille) * sizeof(NoeudExpression *);
+		memoire += static_cast<size_t>(noeud.noms_retours.taille) * sizeof(dls::chaine);
+		memoire += static_cast<size_t>(noeud.noms_types_gabarits.taille) * sizeof(dls::vue_chaine_compacte);
+
+		POUR (noeud.noms_retours) {
+			memoire += static_cast<size_t>(it.taille());
+		}
+
+		memoire += static_cast<size_t>(noeud.nom_broye.taille());
+	});
+
+	pour_chaque_element(m_noeuds_appel, [&](NoeudExpressionAppel const &noeud)
+	{
+		memoire += static_cast<size_t>(noeud.params.taille) * sizeof(NoeudExpression *);
+		memoire += static_cast<size_t>(noeud.exprs.taille) * sizeof(NoeudExpression *);
+	});
+
+	pour_chaque_element(m_noeuds_discr, [&](NoeudDiscr const &noeud)
+	{
+		memoire += static_cast<size_t>(noeud.paires_discr.taille) * sizeof(std::pair<NoeudExpression *, NoeudBloc *>);
+	});
+
+	pour_chaque_element(m_noeuds_tableau_args_variadiques, [&](NoeudTableauArgsVariadiques const &noeud)
+	{
+		memoire += static_cast<size_t>(noeud.exprs.taille) * sizeof(NoeudExpression *);
+	});
+
 #undef COMPTE_MEMOIRE
 
 	return memoire;

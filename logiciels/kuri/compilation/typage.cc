@@ -717,6 +717,38 @@ size_t Typeuse::memoire_utilisee() const
 	// les types communs sont dans les types simples, ne comptons que la mémoire du tableau
 	memoire += static_cast<size_t>(types_communs.taille()) * sizeof(Type *);
 
+	POUR (types_structures) {
+		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
+	}
+
+	POUR (types_enums) {
+		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
+	}
+
+	POUR (types_unions) {
+		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
+	}
+
+	POUR (types_tableaux_fixes) {
+		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
+	}
+
+	POUR (types_tableaux_dynamiques) {
+		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
+	}
+
+	POUR (types_variadiques) {
+		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
+	}
+
+	memoire += static_cast<size_t>(type_eini->membres.taille) * sizeof(TypeCompose::Membre);
+	memoire += static_cast<size_t>(type_chaine->membres.taille) * sizeof(TypeCompose::Membre);
+
+	POUR (types_fonctions) {
+		memoire += static_cast<size_t>(it->types_entrees.taille) * sizeof(Type *);
+		memoire += static_cast<size_t>(it->types_sorties.taille) * sizeof(Type *);
+	}
+
 	return memoire;
 }
 
