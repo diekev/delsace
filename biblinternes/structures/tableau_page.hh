@@ -107,3 +107,13 @@ struct tableau_page {
 		return pages[idx_page].donnees[idx_elem];
 	}
 };
+
+template <typename T, size_t TAILLE_PAGE, typename Rappel>
+void pour_chaque_element(tableau_page<T, TAILLE_PAGE> const &tableau, Rappel rappel)
+{
+	for (auto &it : tableau.pages) {
+		for (auto i = 0; i < it.occupe; ++i) {
+			rappel(it.donnees[i]);
+		}
+	}
+}
