@@ -37,6 +37,7 @@ Lexème :: struct {
 
     // tag début ou fin
     auto_fermant := faux
+    drapeau_auto_fermant_reconnu := faux
     attributs: []Attribut
 
     // caractère
@@ -57,6 +58,11 @@ cherche_attribut :: fonc (lexème: *Lexème, nom: chaine) -> *Attribut
     }
 
     retourne nul
+}
+
+reconnait_drapeau_auto_fermant :: fonc (lexème: *Lexème)
+{
+    lexème.drapeau_auto_fermant_reconnu = lexème.auto_fermant
 }
 
 ajoute_attribut :: fonc (lexème: *Lexème)

@@ -221,7 +221,6 @@ insère_commentaire :: fonc (parseuse: *Parseuse, lexème: Lexème, position : *
 insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(lexème.point_de_code) {
-        // ignore seulement si ' ', '\t', '\n', '\a', '\r'
         retourne
     }
 
@@ -244,7 +243,7 @@ insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
 insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Doctype {
-        // erreur de parsage, ignore
+        erreur_de_parsage("<doctype> inattendu")
         retourne
     }
 
@@ -254,7 +253,6 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(lexème.point_de_code) {
-        // ignore seulement si ' ', '\t', '\n', '\a', '\r'
         retourne
     }
 
@@ -268,7 +266,6 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.FinTag && !fait_partie_de(lexème.nom, "head", "body", "html", "br") {
-        // ignore le tag
         retourne
     }
 
@@ -278,7 +275,6 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
 insère_mode_AvantHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(lexème.point_de_code) {
-        // ignore seulement si ' ', '\t', '\n', '\a', '\r'
         retourne
     }
 
@@ -288,7 +284,7 @@ insère_mode_AvantHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype {
-        // erreur de parsage, ignore
+        erreur_de_parsage("<doctype> avant <head>")
         retourne
     }
 
@@ -307,7 +303,6 @@ insère_mode_AvantHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.FinTag && !fait_partie_de(lexème.nom, "head", "body", "html", "br") {
-        // ignore le tag
         retourne
     }
 
@@ -339,7 +334,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype {
-        // erreur de parsage, ignore
+        erreur_de_parsage("<doctype> dans <head>")
         retourne
     }
 
@@ -352,14 +347,14 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si fait_partie_de(lexème.nom, "base", "basefront", "bgsound", "link") {
             _ := parseuse.insère_élément_html(lexème)
             dépile(@parseuse.pile_éléments_ouvert)
-            // À FAIRE : reconnait le drapeau auto-fermant du lexème si actif
+            reconnait_drapeau_auto_fermant(@lexème)
             retourne
         }
 
         si lexème.nom == "meta" {
             _ := parseuse.insère_élément_html(lexème)
             dépile(@parseuse.pile_éléments_ouvert)
-            // À FAIRE : reconnait le drapeau auto-fermant du lexème si actif
+            reconnait_drapeau_auto_fermant(@lexème)
             // À FAIRE : gère attributs charset, http-equiv, content
             retourne
         }
@@ -411,7 +406,6 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "head" {
-            // ignore
             retourne
         }
     }
@@ -442,7 +436,6 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si !fait_partie_de(lexème.nom, "body", "html", "br") {
-            // ignore tous les autres
             retourne
         }
     }
@@ -454,7 +447,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Doctype {
-        // erreur de parsage, ignore le lexème
+        erreur_de_parsage("<doctype> dans <noscript>")
         retourne
     }
 
@@ -477,7 +470,7 @@ insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "head" || lexème.nom == "noscript" {
-            // erreur de parsage, ignore le lexème
+            erreur_de_parsage("<head> ou <noscript> dans <noscript>")
             retourne
         }
 
@@ -495,7 +488,7 @@ insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom != "br" {
-            // erreur de parsage, ignore le lexème
+            erreur_de_parsage("élément inattendu dans <noscript>")
             retourne
         }
     }
@@ -518,7 +511,7 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype {
-        // erreur de parsage, ignore
+        erreur_de_parsage("<doctype> après <head>")
         retourne
     }
 
@@ -542,7 +535,6 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "head" {
-            // ignore
             retourne
         }
 
@@ -558,7 +550,6 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si !fait_partie_de(lexème.nom, "body", "html", "br") {
-            // ignore
             retourne
         }
     }
@@ -606,20 +597,14 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "body" {
             si taille(@parseuse.pile_éléments_ouvert) == 1 {
-                //imprime("la taille de la pile est de 1\n")
-                // ignore
                 retourne
             }
 
             si parseuse.pile_éléments_ouvert.éléments[1].genre_élément != GenreÉlément.BODY {
-                //imprime("le deuxième élément n'est pas un body : %\n", parseuse.pile_éléments_ouvert.éléments[1].genre_élément)
-                // ignore
                 retourne
             }
 
             si possède_dans_portée(@parseuse.pile_éléments_ouvert, "template") {
-                //imprime("la pile possède un template\n")
-                // ignore
                 retourne
             }
 
@@ -848,7 +833,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
             _ := parseuse.insère_élément_html(lexème)
             dépile(@parseuse.pile_éléments_ouvert)
-            // À FAIRE : reconnait le drapeau auto-fermant
+            reconnait_drapeau_auto_fermant(@lexème)
             parseuse.frameset_ok = faux
             retourne
         }
@@ -857,7 +842,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
             _ := parseuse.insère_élément_html(lexème)
             dépile(@parseuse.pile_éléments_ouvert)
-            // À FAIRE : reconnait le drapeau auto-fermant
+            reconnait_drapeau_auto_fermant(@lexème)
             // À FAIRE : parseuse.frameset_ok = !élément.possède_attribut("type") || élément.attribut("type") == "hidden" // case-insensitive
             //parseuse.frameset_ok = faux
             retourne
@@ -866,7 +851,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si fait_partie_de(lexème.nom, "param", "source", "track") {
             _ := parseuse.insère_élément_html(lexème)
             dépile(@parseuse.pile_éléments_ouvert)
-            // À FAIRE : reconnait auto-fermant
+            reconnait_drapeau_auto_fermant(@lexème)
             retourne
         }
 
@@ -877,7 +862,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             _ := parseuse.insère_élément_html(lexème)
             dépile(@parseuse.pile_éléments_ouvert)
-            // À FAIRE : reconnait auto-fermant
+            reconnait_drapeau_auto_fermant(@lexème)
             parseuse.frameset_ok = faux
             retourne
         }
@@ -992,7 +977,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             _ := parseuse.insère_élément_html(lexème)
 
             si lexème.auto_fermant {
-                // À FAIRE : reconnait le drapeau auto-fermant
+                reconnait_drapeau_auto_fermant(@lexème)
                 dépile(@parseuse.pile_éléments_ouvert)
             }
 
@@ -1320,7 +1305,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             _ := parseuse.insère_élément_html(lexème)
             dépile(@parseuse.pile_éléments_ouvert)
-            // À FAIRE : reconnait drapeau auto-fermant
+            reconnait_drapeau_auto_fermant(@lexème)
             retourne
         }
 
