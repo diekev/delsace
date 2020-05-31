@@ -1056,8 +1056,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                     erreur_de_parsage("l'élément <form> n'est pas le noeud courrant")
                 }
 
-                // À FAIRE : enlève le noeud peu importe où il se trouve
-                dépile(@parseuse.pile_éléments_ouvert)
+                supprime_élément(@parseuse.pile_éléments_ouvert, noeud)
             }
             sinon {
                 si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "form") {
