@@ -139,6 +139,8 @@ struct GrapheDependance {
 	Type *trouve_type(Type *type_racine, TypeRelation type) const;
 
 	void connecte_noeuds(NoeudDependance &noeud1, NoeudDependance &noeud2, TypeRelation type_relation);
+
+	size_t memoire_utilisee() const;
 };
 
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance);

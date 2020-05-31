@@ -231,10 +231,11 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 	metriques.temps_generation = this->temps_generation;
 	metriques.memoire_types = this->typeuse.memoire_utilisee();
 	metriques.memoire_operateurs = this->operateurs.memoire_utilisee();
-
+	metriques.memoire_graphe = this->graphe_dependance.memoire_utilisee();
 	metriques.memoire_arbre += this->allocatrice_noeud.memoire_utilisee();
 	metriques.nombre_noeuds += this->allocatrice_noeud.nombre_noeuds();
 
+	metriques.nombre_noeuds_deps = static_cast<size_t>(this->graphe_dependance.noeuds.taille());
 	metriques.nombre_types = typeuse.nombre_de_types();
 
 	POUR (operateurs.operateurs_unaires) {

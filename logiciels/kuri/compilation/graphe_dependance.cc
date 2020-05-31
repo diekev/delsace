@@ -227,6 +227,20 @@ void GrapheDependance::connecte_noeuds(
 	noeud1.relations.pousse({ type_relation, &noeud1, &noeud2 });
 }
 
+size_t GrapheDependance::memoire_utilisee() const
+{
+	auto total = 0ul;
+	total += static_cast<size_t>(noeuds.taille()) * (sizeof(NoeudDependance *) + sizeof(NoeudDependance));
+	total += static_cast<size_t>(index_noeuds_type.taille()) * (sizeof(dls::vue_chaine_compacte) + sizeof(NoeudDependance *));
+	total += static_cast<size_t>(index_noeuds_fonction.taille()) * (sizeof(dls::vue_chaine_compacte) + sizeof(NoeudDependance *));
+
+	POUR (noeuds) {
+		total += static_cast<size_t>(it->relations.taille()) * sizeof(Relation);
+	}
+
+	return total;
+}
+
 void GrapheDependance::ajoute_dependances(
 		NoeudDependance &noeud,
 		DonneesDependance &donnees)

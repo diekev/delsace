@@ -43,6 +43,7 @@ struct Metriques {
 	size_t nombre_lignes = 0ul;
 	size_t nombre_lexemes = 0ul;
 	size_t nombre_noeuds = 0ul;
+	size_t nombre_noeuds_deps = 0ul;
 	size_t memoire_tampons = 0ul;
 	size_t memoire_lexemes = 0ul;
 	size_t memoire_arbre = 0ul;
@@ -50,6 +51,7 @@ struct Metriques {
 	size_t memoire_types = 0ul;
 	size_t memoire_operateurs = 0ul;
 	size_t memoire_ri = 0ul;
+	size_t memoire_graphe = 0ul;
 	long nombre_types = 0;
 	long nombre_operateurs = 0;
 	double temps_chargement = 0.0;

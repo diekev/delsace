@@ -307,6 +307,7 @@ static void imprime_stats(
 							+ metriques.memoire_lexemes
 							+ metriques.memoire_arbre
 							+ metriques.memoire_contexte
+							+ metriques.memoire_graphe
 							+ metriques.memoire_types
 							+ metriques.memoire_operateurs
 							+ metriques.memoire_ri;
@@ -335,6 +336,7 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "Arbre Syntaxique", "", "" });
 	tableau.ajoute_ligne({ "- Nombre Morceaux", formatte_nombre(metriques.nombre_lexemes), "" });
 	tableau.ajoute_ligne({ "- Nombre Noeuds", formatte_nombre(metriques.nombre_noeuds), "" });
+	tableau.ajoute_ligne({ "- Nombre Noeuds Déps", formatte_nombre(metriques.nombre_noeuds_deps), "" });
 	tableau.ajoute_ligne({ "- Nombre Opérateurs", formatte_nombre(metriques.nombre_operateurs), "" });
 	tableau.ajoute_ligne({ "- Nombre Types", formatte_nombre(metriques.nombre_types), "" });
 
@@ -343,6 +345,7 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "- Effective", formatte_nombre(memoire_consommee), "o" });
 	tableau.ajoute_ligne({ "- Arbre", formatte_nombre(metriques.memoire_arbre), "o" });
 	tableau.ajoute_ligne({ "- Contexte", formatte_nombre(metriques.memoire_contexte), "o" });
+	tableau.ajoute_ligne({ "- Graphe", formatte_nombre(metriques.memoire_graphe), "o" });
 	tableau.ajoute_ligne({ "- Lexèmes", formatte_nombre(metriques.memoire_lexemes), "o" });
 	tableau.ajoute_ligne({ "- Opérateurs", formatte_nombre(metriques.memoire_operateurs), "o" });
 	tableau.ajoute_ligne({ "- RI", formatte_nombre(metriques.memoire_ri), "o" });
