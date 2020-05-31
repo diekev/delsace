@@ -92,6 +92,8 @@ détruit_lexème :: fonc (lexème: *Lexème)
     discr lexème.genre {
         Doctype {
             déloge lexème.nom
+            déloge lexème.identifiant_public_doctype
+            déloge lexème.identifiant_système_doctype
         }
         DébutTag {
             déloge lexème.nom
@@ -1210,6 +1212,8 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     continue
                 }
 
+                déloge lexeuse.lexème_courant.nom
+
                 lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATA)
 
                 enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
@@ -1243,9 +1247,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 si lexeuse.nom_dernier_tag_début == lexeuse.lexème_courant.nom {
                     si est_espace_blanc_html(c) {
                         lexeuse.état = ÉtatLexage.BeforeAttributeName
+                        continue
                     }
                     sinon si c == SLASH {
                         lexeuse.état = ÉtatLexage.SelfClosingStartTag
+                        continue
                     }
                     sinon si c == CHEVRON_FERMANT {
                         lexeuse.état = ÉtatLexage.Data
@@ -1255,19 +1261,22 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si est_ascii_alpha_majuscule(c) {
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
                     chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    continue
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c)
                     chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    continue
                 }
-                sinon {
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXT)
 
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
-                    lexeuse.enfile_lexèmes_pour_tampon_temporaire()
-                    retourne défile(@lexeuse.file_lexèmes)
-                }
+                déloge lexeuse.lexème_courant.nom
+
+                lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXT)
+
+                enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
+                enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
+                lexeuse.enfile_lexèmes_pour_tampon_temporaire()
+                retourne défile(@lexeuse.file_lexèmes)
             }
             CommentStart {
                 si c == MOINS {
@@ -1587,6 +1596,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEndTagName)
                 }
                 sinon {
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData)
                     enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
                     enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
                     retourne défile(@lexeuse.file_lexèmes)
@@ -1596,9 +1606,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 si lexeuse.nom_dernier_tag_début == lexeuse.lexème_courant.nom {
                     si est_espace_blanc_html(c) {
                         lexeuse.état = ÉtatLexage.BeforeAttributeName
+                        continue
                     }
                     sinon si c == SLASH {
                         lexeuse.état = ÉtatLexage.SelfClosingStartTag
+                        continue
                     }
                     sinon si c == CHEVRON_FERMANT {
                         lexeuse.état = ÉtatLexage.Data
@@ -1607,12 +1619,16 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
                     continue
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
                     continue
                 }
+
+                déloge lexeuse.lexème_courant.nom
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData)
 
@@ -1728,9 +1744,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 si lexeuse.nom_dernier_tag_début == lexeuse.lexème_courant.nom {
                     si est_espace_blanc_html(c) {
                         lexeuse.état = ÉtatLexage.BeforeAttributeName
+                        continue
                     }
                     sinon si c == SLASH {
                         lexeuse.état = ÉtatLexage.SelfClosingStartTag
+                        continue
                     }
                     sinon si c == CHEVRON_FERMANT {
                         lexeuse.état = ÉtatLexage.Data
@@ -1739,12 +1757,16 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
                     continue
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
                     chaine_ajoute(@lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
                     continue
                 }
+
+                déloge lexeuse.lexème_courant.nom
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped)
 
