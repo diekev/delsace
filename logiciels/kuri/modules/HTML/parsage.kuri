@@ -738,7 +738,45 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "dd", "dt") {
-            panique("algorithme d'insertion incomplet")
+            parseuse.frameset_ok = faux
+            index := parseuse.pile_éléments_ouvert.éléments.taille - 1
+
+            boucle {
+                noeud := parseuse.pile_éléments_ouvert.éléments[index]
+
+                si noeud.texte == "dd" {
+                    parseuse.génère_tags_fin_implicites_autres_que("dd")
+
+                    si parseuse.noeud_courant().texte != "dd" {
+                        erreur_de_parsage("le noeud courant doit être un <dd>")
+                    }
+
+                    parseuse.dépile_tous_les_éléments_jusque("dd")
+                    arrête
+                }
+                sinon si noeud.texte == "dt" {
+                    parseuse.génère_tags_fin_implicites_autres_que("dt")
+
+                    si parseuse.noeud_courant().texte != "dt" {
+                        erreur_de_parsage("le noeud courant doit être un <dt>")
+                    }
+
+                    parseuse.dépile_tous_les_éléments_jusque("dt")
+                    arrête
+                }
+                sinon si fait_partie_de_catégorie_spécial(noeud.texte) && !fait_partie_de("address", "div", "p") {
+                    arrête
+                }
+
+                index -= 1
+            }
+
+            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+                parseuse.ferme_un_élément_p()
+            }
+
+            _ := parseuse.insère_élément_html(lexème)
+            retourne
         }
 
         si lexème.nom == "plaintext" {
@@ -1089,7 +1127,19 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "dd" || lexème.nom == "dt" {
-            panique("algorithme d'insertion incomplet")
+            si !possède_dans_portée(@parseuse.pile_éléments_ouvert, lexème.nom) {
+                erreur_de_parsage("aucun <dd> ou <dt> dans la portée")
+                retourne
+            }
+
+            parseuse.génère_tags_fin_implicites_autres_que(lexème.nom)
+
+            si parseuse.noeud_courant().texte != lexème.nom {
+                erreur_de_parsage("le noeud courant n'est ni un <dd> ni un <dt>")
+            }
+
+            parseuse.dépile_tous_les_éléments_jusque(lexème.nom)
+            retourne
         }
 
         si fait_partie_de(lexème.nom, "h1", "h2", "h3", "h4", "h5", "h6") {
