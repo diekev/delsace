@@ -1,0 +1,25 @@
+// la génération de la RI ou du code C est mauvaise pour les déréférencement de tableau fixe
+
+importe Fondation
+
+remplis_tableau :: fonc (tabl: *[3]z32)
+{
+    mémoire(tabl)[0] = 1
+    mémoire(tabl)[1] = 2
+    mémoire(tabl)[2] = 3
+
+    // ceci fonctionne
+    // tabl[0][0] = 1
+    // tabl[0][1] = 2
+    // tabl[0][2] = 3
+}
+
+principale :: fonc () -> z32
+{
+    tabl : [3]z32
+    remplis_tableau(@tabl)
+
+    imprime("tabl : %\n", tabl)
+
+    retourne 0
+}
