@@ -75,9 +75,6 @@ struct NoeudDependance {
 	// pour tous les noeuds
 	NoeudExpression *noeud_syntactique{};
 
-	// pour le graphe de dépendance syntaxique
-	dls::tableau<NoeudExpression *> noeuds_syntaxiques{};
-
 	bool fut_visite = false;
 	bool deja_genere = false;
 
