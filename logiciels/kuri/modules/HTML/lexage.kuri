@@ -271,8 +271,16 @@ point_de_code_suivant :: fonc (lexeuse: *Lexeuse) -> n32
     }
 
     position := lexeuse.curseur
-    lexeuse.curseur += 1
-    retourne lexeuse.document[position] comme n32
+
+    no := nombre_octets_utf8_rapide(@lexeuse.document[position])
+
+    si no == 0 {
+        lexeuse.curseur += 1
+        retourne 0x0
+    }
+
+    lexeuse.curseur += no comme z32
+    retourne converti_utf8_utf32(@lexeuse.document[position]) comme n32
 }
 
 a_fini :: fonc (lexeuse: *Lexeuse) -> bool
