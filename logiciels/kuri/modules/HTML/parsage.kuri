@@ -143,9 +143,9 @@ crée_élément_pour :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *Éléme
 
 gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: ModeInsertion, lexème: Lexème)
 {
-    // si lexème.genre != GenreLexème.Caractère {
-    //     imprime("gère lexème : % (%), mode insertion : %\n", lexème.nom, lexème.genre, mode)
-    // }
+    si lexème.genre != GenreLexème.Caractère {
+        imprime("gère lexème : % (%), mode insertion : %\n", lexème.nom, lexème.genre, mode)
+    }
 
     fonction := fonctions_insertions[mode]
     fonction(parseuse, lexème)
@@ -237,7 +237,10 @@ insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
         retourne
     }
 
-    panique("algorithme d'insertion incomplet")
+    // À FAIRE : vérifie si nous avons un iframe srcdoc
+
+    parseuse.mode_insertion = ModeInsertion.AvantHtml
+    parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
 }
 
 insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
@@ -269,7 +272,16 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
         retourne
     }
 
-    panique("algorithme d'insertion incomplet")
+    lexème_html : Lexème
+    lexème_html.nom = "html"
+    élément := parseuse.crée_élément_pour(lexème_html)
+    parseuse.document.ajoute_enfant(élément)
+    empile(@parseuse.pile_éléments_ouvert, élément)
+
+    // À FAIRE : si document est chargé dans un contexte navigation...
+
+    parseuse.mode_insertion = ModeInsertion.AvantHead
+    parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
 }
 
 insère_mode_AvantHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
@@ -539,7 +551,12 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "template", "title") {
-            panique("algorithme d'insertion incomplet")
+            erreur_de_parsage("élément inattendu après <head>")
+
+            empile(@parseuse.pile_éléments_ouvert, parseuse.élément_head)
+            parseuse.gère_lexème_pour_mode(ModeInsertion.DansHead, lexème)
+            supprime_élément(@parseuse.pile_éléments_ouvert, parseuse.élément_head)
+            retourne
         }
     }
 
