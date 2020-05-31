@@ -143,9 +143,9 @@ crée_élément_pour :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *Éléme
 
 gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: ModeInsertion, lexème: Lexème)
 {
-    si lexème.genre != GenreLexème.Caractère {
-        imprime("gère lexème : % (%), mode insertion : %\n", lexème.nom, lexème.genre, mode)
-    }
+    // si lexème.genre != GenreLexème.Caractère {
+    //     imprime("gère lexème : % (%), mode insertion : %\n", lexème.nom, lexème.genre, mode)
+    // }
 
     fonction := fonctions_insertions[mode]
     fonction(parseuse, lexème)
