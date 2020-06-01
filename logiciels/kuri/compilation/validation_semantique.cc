@@ -2894,12 +2894,12 @@ void performe_validation_semantique(
 
 			/* À FAIRE : multiple types retours. */
 			auto type_retour = type_fonc->types_sorties[0];
-			auto transformation = cherche_transformation(contexte, inst->type, type_retour);
+			auto transformation = cherche_transformation(contexte, inst->expr->type, type_retour);
 
 			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 				erreur::lance_erreur_type_retour(
 							type_retour,
-							inst->type,
+							inst->expr->type,
 							contexte,
 							b);
 			}
