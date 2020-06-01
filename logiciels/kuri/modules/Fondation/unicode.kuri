@@ -262,7 +262,7 @@ point_de_code_vers_utf8 :: fonc (point_de_code: n32, séquence: *n8) -> z32
 // Retourne le nombre de caractères Unicode (UTF-8) distincts de la chaine.
 taille_unicode :: fonc(chn : chaine) -> z64
 {
-    taille : z64 := 0
+    taille : z64 = 0
     i := 0
 
     tantque i < chn.taille {

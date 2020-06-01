@@ -347,7 +347,7 @@ chaque_chemin_récursif :: corout(chemin : &CheminFichier) -> CheminFichier
     enfile(file, d)
 
     tantque !est_vide(file) {
-        d := défile(file)
+        d = défile(file)
 
         boucle {
             dir := readdir(d)

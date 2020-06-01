@@ -1,0 +1,8 @@
+// une expression de type x : z32 := 0 devrait résulter en une erreur de compilation, ou
+// nous devrions régler l'arbre syntaxique
+
+principale :: fonc () -> z32
+{
+    x : z32 := 0
+    retourne 0
+}

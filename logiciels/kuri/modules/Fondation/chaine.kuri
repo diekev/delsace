@@ -80,7 +80,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 // Retourne la taille d'une chaine C, c'est à  dire nul-terminé.
 taille_chaine_c :: fonc(ch : *z8) -> z64 #nulctx
 {
-	index : z64 := 0
+	index : z64 = 0
 
     tantque ch[index] != '\0' {
 		index += 1
@@ -223,7 +223,7 @@ recule :: fonc (ligne: chaine, compte: z64) -> chaine
 // La fonction présume que la chaine est entièrement composée de caractères numériques
 extrait_nombre_entier :: fonc(chn : chaine) -> z64
 {
-    résultat : z64 := 0
+    résultat : z64 = 0
 	est_négatif := chn[0] == '-'
 
 	si est_négatif {
