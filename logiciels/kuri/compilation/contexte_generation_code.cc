@@ -169,48 +169,6 @@ bool ContexteGenerationCode::fichier_existe(const dls::vue_chaine_compacte &nom)
 
 /* ************************************************************************** */
 
-void ContexteGenerationCode::empile_controle_boucle(IdentifiantCode *ident_boucle)
-{
-	pile_controle_boucle.pousse(ident_boucle);
-}
-
-void ContexteGenerationCode::depile_controle_boucle()
-{
-	pile_controle_boucle.pop_back();
-}
-
-bool ContexteGenerationCode::possede_controle_boucle(IdentifiantCode *ident)
-{
-	if (pile_controle_boucle.est_vide()) {
-		return false;
-	}
-
-	if (ident != nullptr) {
-		for (auto ctrl : pile_controle_boucle) {
-			if (ctrl == ident) {
-				return true;
-			}
-		}
-	}
-
-	return ident == nullptr;
-}
-
-/* ************************************************************************** */
-
-void ContexteGenerationCode::commence_fonction(NoeudDeclarationFonction *df)
-{
-	this->donnees_fonction = df;
-}
-
-void ContexteGenerationCode::termine_fonction()
-{
-	this->donnees_fonction = nullptr;
-	pile_controle_boucle.efface();
-}
-
-/* ************************************************************************** */
-
 size_t ContexteGenerationCode::memoire_utilisee() const
 {
 	auto memoire = sizeof(ContexteGenerationCode);
@@ -258,31 +216,6 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 	}
 
 	return metriques;
-}
-
-/* ************************************************************************** */
-
-dls::vue_chaine_compacte ContexteGenerationCode::trouve_membre_actif(const dls::vue_chaine_compacte &nom_union)
-{
-	for (auto const &paire : membres_actifs) {
-		if (paire.first == nom_union) {
-			return paire.second;
-		}
-	}
-
-	return "";
-}
-
-void ContexteGenerationCode::renseigne_membre_actif(const dls::vue_chaine_compacte &nom_union, const dls::vue_chaine_compacte &nom_membre)
-{
-	for (auto &paire : membres_actifs) {
-		if (paire.first == nom_union) {
-			paire.second = nom_membre;
-			return;
-		}
-	}
-
-	membres_actifs.pousse({ nom_union, nom_membre });
 }
 
 /* ************************************************************************** */

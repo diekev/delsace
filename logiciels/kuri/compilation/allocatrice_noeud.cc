@@ -194,6 +194,11 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 	COMPTE_MEMOIRE(NoeudTableauArgsVariadiques, m_noeuds_tableau_args_variadiques);
 	COMPTE_MEMOIRE(NoeudTente, m_noeuds_tente);
 
+	pour_chaque_element(m_noeuds_struct, [&](NoeudStruct const &noeud)
+	{
+		memoire += static_cast<size_t>(noeud.arbre_aplatis.taille) * sizeof(NoeudExpression *);
+	});
+
 	pour_chaque_element(m_noeuds_bloc, [&](NoeudBloc const &noeud)
 	{
 		memoire += static_cast<size_t>(noeud.membres.taille) * sizeof(NoeudDeclaration *);
@@ -206,6 +211,7 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 		memoire += static_cast<size_t>(noeud.params.taille) * sizeof(NoeudDeclaration *);
 		memoire += static_cast<size_t>(noeud.params_sorties.taille) * sizeof(NoeudExpression *);
 		memoire += static_cast<size_t>(noeud.arbre_aplatis.taille) * sizeof(NoeudExpression *);
+		memoire += static_cast<size_t>(noeud.arbre_aplatis_entete.taille) * sizeof(NoeudExpression *);
 		memoire += static_cast<size_t>(noeud.noms_retours.taille) * sizeof(dls::chaine);
 		memoire += static_cast<size_t>(noeud.noms_types_gabarits.taille) * sizeof(dls::vue_chaine_compacte);
 

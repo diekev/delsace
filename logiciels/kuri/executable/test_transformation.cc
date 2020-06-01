@@ -24,6 +24,7 @@
 
 #include "compilation/contexte_generation_code.h"
 #include "compilation/typage.hh"
+#include "compilation/validation_semantique.hh"
 
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/file.hh"
@@ -35,7 +36,8 @@ static void verifie_transformation(
 		Type *type2,
 		bool est_possible)
 {
-	auto transformation = cherche_transformation(contexte, type1, type2);
+	auto contexte_validation = noeud::ContexteValidationCode(contexte);
+	auto transformation = cherche_transformation(contexte, contexte_validation, type1, type2);
 
 	if (est_possible && transformation.type == TypeTransformation::IMPOSSIBLE) {
 		std::cerr << "ERREUR la transformation entre ";

@@ -31,7 +31,9 @@
 #include "contexte_generation_code.h"
 #include "structures.hh"
 
-struct ContexteGenerationCode;
+namespace noeud {
+struct ContexteValidationCode;
+}
 struct NoeudBase;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
@@ -97,5 +99,10 @@ struct DonneesCandidate {
 
 void valide_appel_fonction(
 		ContexteGenerationCode &contexte,
-		NoeudExpressionAppel *expr,
-		bool expr_gauche);
+		noeud::ContexteValidationCode &contexte_validation,
+		NoeudExpressionAppel *expr);
+
+void valide_appel_fonction(
+		ContexteGenerationCode &contexte,
+		noeud::ContexteValidationCode &contexte_validation,
+		NoeudExpressionAppel *expr);

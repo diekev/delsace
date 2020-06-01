@@ -129,6 +129,7 @@ enum drapeaux_noeud : unsigned short {
 	EST_GLOBALE                = (1 << 11),
 	EST_CONSTANTE              = (1 << 12),
 	DECLARATION_TYPE_POLYMORPHIQUE = (1 << 13),
+	DROITE_ASSIGNATION         = (1 << 14),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
@@ -303,6 +304,7 @@ struct NoeudDeclarationFonction : public NoeudDeclaration {
 
 	kuri::tableau<NoeudDeclaration *> params{};
 	kuri::tableau<NoeudExpression *> params_sorties{};
+	kuri::tableau<NoeudExpression *> arbre_aplatis_entete{};
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 
 	kuri::tableau<dls::chaine> noms_retours{};
@@ -341,6 +343,7 @@ struct NoeudStruct : public NoeudDeclaration {
 	COPIE_CONSTRUCT(NoeudStruct);
 
 	NoeudBloc *bloc = nullptr;
+	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 
 	bool est_union = false;
 	bool est_nonsure = false;
@@ -391,10 +394,7 @@ struct NoeudBloc : public NoeudExpression {
 
 	NoeudBloc *parent = nullptr;
 
-	NoeudStruct *appartiens_a_struct = nullptr;
-	NoeudEnum   *appartiens_a_enum = nullptr;
-	NoeudSi     *appartiens_a_boucle = nullptr;
-	NoeudStruct *appartiens_a_discr = nullptr;
+	NoeudExpression *appartiens_a_boucle = nullptr;
 
 	kuri::tableau<NoeudDeclaration *> membres{};
 	kuri::tableau<NoeudExpression *>  expressions{};
@@ -477,7 +477,8 @@ NoeudExpression *copie_noeud(
 
 void aplatis_arbre(
 		NoeudExpression *racine,
-		kuri::tableau<NoeudExpression *> &arbre_aplatis);
+		kuri::tableau<NoeudExpression *> &arbre_aplatis,
+		drapeaux_noeud drapeau);
 
 struct Etendue {
 	long pos_min = 0;

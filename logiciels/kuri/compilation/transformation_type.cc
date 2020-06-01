@@ -27,6 +27,7 @@
 #include "contexte_generation_code.h"
 #include "outils_lexemes.hh"
 #include "profilage.hh"
+#include "validation_semantique.hh"
 
 const char *chaine_transformation(TypeTransformation type)
 {
@@ -86,6 +87,7 @@ static bool est_type_de_base(TypeStructure *type_de, TypeStructure *type_vers)
  */
 TransformationType cherche_transformation(
 		ContexteGenerationCode &contexte,
+		noeud::ContexteValidationCode &contexte_validation,
 		Type *type_de,
 		Type *type_vers)
 {
@@ -124,7 +126,7 @@ TransformationType cherche_transformation(
 	if (type_de->genre == GenreType::REEL && type_vers->genre == GenreType::REEL) {
 		auto retourne_fonction = [&](NoeudDeclarationFonction const *fonction) -> TransformationType
 		{
-			contexte.donnees_dependance.fonctions_utilisees.insere(fonction);
+			contexte_validation.donnees_dependance.fonctions_utilisees.insere(fonction);
 			return { fonction, type_vers };
 		};
 
@@ -193,7 +195,7 @@ TransformationType cherche_transformation(
 		POUR (type_union->membres) {
 			if (it.type == type_vers) {
 				if (!type_union->est_nonsure) {
-					contexte.donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_membre_union);
+					contexte_validation.donnees_dependance.fonctions_utilisees.insere(contexte.interface_kuri.decl_panique_membre_union);
 				}
 
 				return { TypeTransformation::EXTRAIT_UNION, type_vers, index_membre };

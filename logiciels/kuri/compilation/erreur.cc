@@ -30,6 +30,7 @@
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
 #include "lexemes.hh"
+#include "validation_semantique.hh"
 
 namespace lng::erreur {
 
@@ -848,6 +849,7 @@ void membre_inconnu(
 
 void membre_inactif(
 			ContexteGenerationCode &contexte,
+			noeud::ContexteValidationCode &contexte_validation,
 			NoeudBase *acces,
 			NoeudBase *structure,
 			NoeudBase *membre)
@@ -874,7 +876,7 @@ void membre_inactif(
 
 	ss << '\n';
 	ss << "Le membre « " << membre->ident->nom << " » est inactif dans ce contexte !\n";
-	ss << "Le membre actif dans ce contexte est « " << contexte.trouve_membre_actif(structure->ident->nom) << " ».\n";
+	ss << "Le membre actif dans ce contexte est « " << contexte_validation.trouve_membre_actif(structure->ident->nom) << " ».\n";
 	ss << "----------------------------------------------------------------\n";
 
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);

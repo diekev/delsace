@@ -212,3 +212,24 @@ void trouve_declarations_dans_bloc_ou_module(
 		return dls::DecisionIteration::Continue;
 	});
 }
+
+bool bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle)
+{
+	while (bloc->parent) {
+		if (bloc->appartiens_a_boucle) {
+			auto boucle = bloc->appartiens_a_boucle;
+
+			if (ident_boucle == nullptr) {
+				return true;
+			}
+
+			if (boucle->genre == GenreNoeud::INSTRUCTION_POUR && boucle->ident == ident_boucle) {
+				return true;
+			}
+		}
+
+		bloc = bloc->parent;
+	}
+
+	return false;
+}

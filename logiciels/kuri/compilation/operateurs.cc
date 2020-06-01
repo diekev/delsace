@@ -564,11 +564,12 @@ size_t Operateurs::memoire_utilisee() const
 
 static double verifie_compatibilite(
 		ContexteGenerationCode &contexte,
+		noeud::ContexteValidationCode &contexte_validation,
 		Type *type_arg,
 		Type *type_enf,
 		TransformationType &transformation)
 {
-	transformation = cherche_transformation(contexte, type_enf, type_arg);
+	transformation = cherche_transformation(contexte, contexte_validation, type_enf, type_arg);
 
 	if (transformation.type == TypeTransformation::INUTILE) {
 		return 1.0;
@@ -585,6 +586,7 @@ static double verifie_compatibilite(
 
 dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		ContexteGenerationCode &contexte,
+		noeud::ContexteValidationCode &contexte_validation,
 		Type *type1,
 		Type *type2,
 		GenreLexeme type_op)
@@ -621,8 +623,8 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		auto seq1 = TransformationType{};
 		auto seq2 = TransformationType{};
 
-		auto poids1 = verifie_compatibilite(contexte, op->type1, type1, seq1);
-		auto poids2 = verifie_compatibilite(contexte, op->type2, type2, seq2);
+		auto poids1 = verifie_compatibilite(contexte, contexte_validation, op->type1, type1, seq1);
+		auto poids2 = verifie_compatibilite(contexte, contexte_validation, op->type2, type2, seq2);
 
 		auto poids = poids1 * poids2;
 
@@ -637,8 +639,8 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		}
 
 		if (op->est_commutatif && poids != 1.0) {
-			poids1 = verifie_compatibilite(contexte, op->type1, type2, seq2);
-			poids2 = verifie_compatibilite(contexte, op->type2, type1, seq1);
+			poids1 = verifie_compatibilite(contexte, contexte_validation, op->type1, type2, seq2);
+			poids2 = verifie_compatibilite(contexte, contexte_validation, op->type2, type1, seq1);
 
 			poids = poids1 * poids2;
 

@@ -144,15 +144,9 @@ struct ContexteGenerationCode {
 
 	TableIdentifiant table_identifiants{};
 
-	NoeudDeclarationFonction *donnees_fonction = nullptr;
-
 	NoeudExpressionAppel *pour_appel = nullptr;
 
 	InterfaceKuri interface_kuri{};
-
-	/* Les données des dépendances d'un noeud syntaxique, utilisée lors de la
-	 * validation sémantique. */
-	DonneesDependance donnees_dependance{};
 
 	Type *type_contexte = nullptr;
 
@@ -236,30 +230,6 @@ struct ContexteGenerationCode {
 
 	/* ********************************************************************** */
 
-	void empile_controle_boucle(IdentifiantCode *ident_boucle);
-
-	void depile_controle_boucle();
-
-	bool possede_controle_boucle(IdentifiantCode *ident);
-
-	/* ********************************************************************** */
-
-	/**
-	 * Indique le début d'une nouvelle fonction. Le compteur et le vecteur de
-	 * variables sont remis à zéro. Le pointeur passé en paramètre est celui de
-	 * la fonction courant.
-	 */
-	void commence_fonction(NoeudDeclarationFonction *df);
-
-	/**
-	 * Indique la fin de la fonction courant. Le compteur et le vecteur de
-	 * variables sont remis à zéro. Le bloc courant et la fonction courant sont
-	 * désormais égaux à 'nullptr'.
-	 */
-	void termine_fonction();
-
-	/* ********************************************************************** */
-
 	size_t memoire_utilisee() const;
 
 	/**
@@ -268,21 +238,6 @@ struct ContexteGenerationCode {
 	 * chaque fois.
 	 */
 	Metriques rassemble_metriques() const;
-
-	/* gestion des membres actifs des unions :
-	 * cas à considérer :
-	 * -- les portées des variables
-	 * -- les unions dans les structures (accès par '.')
-	 */
-	dls::vue_chaine_compacte trouve_membre_actif(dls::vue_chaine_compacte const &nom_union);
-
-	void renseigne_membre_actif(dls::vue_chaine_compacte const &nom_union, dls::vue_chaine_compacte const &nom_membre);
-
-	dls::tableau<IdentifiantCode *> pile_controle_boucle{};
-
-private:
-	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
-	dls::tableau<paire_union_membre> membres_actifs{};
 
 public:
 	/* À FAIRE : bouge ça d'ici. */

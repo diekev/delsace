@@ -89,8 +89,6 @@ static auto trouve_candidates_pour_fonction_appelee(
 			}
 		}
 		else {
-			noeud::performe_validation_semantique(accede, contexte, false);
-
 			auto type_accede = accede->type;
 
 			while (type_accede->genre == GenreType::POINTEUR || type_accede->genre == GenreType::REFERENCE) {
@@ -123,7 +121,6 @@ static auto trouve_candidates_pour_fonction_appelee(
 		}
 	}
 	else if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
-		noeud::performe_validation_semantique(appelee, contexte, false);
 		candidates.pousse({ CANDIDATE_EST_INIT_DE, appelee });
 	}
 
@@ -132,6 +129,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 
 static double verifie_compatibilite(
 		ContexteGenerationCode &contexte,
+		noeud::ContexteValidationCode &contexte_validation,
 		Type *type_arg,
 		Type *type_enf,
 		NoeudBase *enfant,
@@ -139,7 +137,7 @@ static double verifie_compatibilite(
 {
 	PROFILE_FONCTION;
 
-	transformation = cherche_transformation(contexte, type_enf, type_arg);
+	transformation = cherche_transformation(contexte, contexte_validation, type_enf, type_arg);
 
 	if (transformation.type == TypeTransformation::INUTILE) {
 		return 1.0;
@@ -162,6 +160,7 @@ static auto apparie_appel_pointeur(
 		NoeudExpressionAppel const *b,
 		Type *type,
 		ContexteGenerationCode &contexte,
+		noeud::ContexteValidationCode &contexte_validation,
 		kuri::tableau<IdentifiantEtExpression> const &args)
 {
 	PROFILE_FONCTION;
@@ -194,7 +193,7 @@ static auto apparie_appel_pointeur(
 	if (type_fonction->types_entrees.taille != 0 && type_fonction->types_entrees[0] == contexte.type_contexte) {
 		debut_params = 1;
 
-		auto fonc_courante = contexte.donnees_fonction;
+		auto fonc_courante = contexte_validation.fonction_courante;
 
 		if (fonc_courante != nullptr && dls::outils::possede_drapeau(fonc_courante->drapeaux, FORCE_NULCTX)) {
 			erreur::lance_erreur_fonction_nulctx(contexte, b, b, fonc_courante);
@@ -222,7 +221,7 @@ static auto apparie_appel_pointeur(
 		}
 
 		auto transformation = TransformationType();
-		auto poids_pour_enfant = verifie_compatibilite(contexte, type_prm, type_enf, arg, transformation);
+		auto poids_pour_enfant = verifie_compatibilite(contexte, contexte_validation, type_prm, type_enf, arg, transformation);
 
 		poids_args *= poids_pour_enfant;
 
@@ -392,6 +391,7 @@ static Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Typ
 
 static DonneesCandidate apparie_appel_fonction(
 		ContexteGenerationCode &contexte,
+		noeud::ContexteValidationCode &contexte_validation,
 		NoeudDeclarationFonction const *decl,
 		kuri::tableau<IdentifiantEtExpression> const &args)
 {
@@ -599,7 +599,7 @@ static DonneesCandidate apparie_appel_fonction(
 
 					auto type_deref_enf = type_dereference_pour(type_de_l_expression);
 
-					poids_pour_enfant = verifie_compatibilite(contexte, type_deref, type_deref_enf, slot, transformation);
+					poids_pour_enfant = verifie_compatibilite(contexte, contexte_validation, type_deref, type_deref_enf, slot, transformation);
 
 					// aucune transformation acceptée sauf si nous avons un tableau fixe qu'il faudra convertir en un tableau dynamique
 					if (poids_pour_enfant != 1.0) {
@@ -614,7 +614,7 @@ static DonneesCandidate apparie_appel_fonction(
 					expansion_rencontree = true;
 				}
 				else {
-					poids_pour_enfant = verifie_compatibilite(contexte, type_deref, type_de_l_expression, slot, transformation);
+					poids_pour_enfant = verifie_compatibilite(contexte, contexte_validation, type_deref, type_de_l_expression, slot, transformation);
 				}
 
 				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
@@ -660,7 +660,7 @@ static DonneesCandidate apparie_appel_fonction(
 		}
 		else {
 			auto transformation = TransformationType();
-			auto poids_pour_enfant = verifie_compatibilite(contexte, type_du_parametre, type_de_l_expression, slot, transformation);
+			auto poids_pour_enfant = verifie_compatibilite(contexte, contexte_validation, type_du_parametre, type_de_l_expression, slot, transformation);
 
 			// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
 			if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
@@ -723,6 +723,7 @@ static DonneesCandidate apparie_appel_fonction(
 
 static auto apparie_appel_structure(
 		ContexteGenerationCode &contexte,
+		noeud::ContexteValidationCode &contexte_validation,
 		NoeudExpressionAppel const *expr,
 		NoeudStruct *decl_struct,
 		kuri::tableau<IdentifiantEtExpression> const &arguments)
@@ -811,7 +812,7 @@ static auto apparie_appel_structure(
 		}
 
 		auto transformation = TransformationType{};
-		auto poids_pour_enfant = verifie_compatibilite(contexte, type_membre, it.expr->type, it.expr, transformation);
+		auto poids_pour_enfant = verifie_compatibilite(contexte, contexte_validation, type_membre, it.expr->type, it.expr, transformation);
 
 		poids_appariement *= poids_pour_enfant;
 
@@ -844,6 +845,7 @@ static auto apparie_appel_structure(
 
 static auto trouve_candidates_pour_appel(
 		ContexteGenerationCode &contexte,
+		noeud::ContexteValidationCode &contexte_validation,
 		NoeudExpressionAppel *expr,
 		kuri::tableau<IdentifiantEtExpression> &args)
 {
@@ -879,7 +881,7 @@ static auto trouve_candidates_pour_appel(
 
 	POUR (candidates_appel) {
 		if (it.quoi == CANDIDATE_EST_ACCES) {
-			auto dc = apparie_appel_pointeur(expr, it.decl->type, contexte, args);
+			auto dc = apparie_appel_pointeur(expr, it.decl->type, contexte, contexte_validation, args);
 			resultat.pousse(dc);
 		}
 		else if (it.quoi == CANDIDATE_EST_DECLARATION) {
@@ -887,16 +889,16 @@ static auto trouve_candidates_pour_appel(
 
 			if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
 				auto decl_struct = static_cast<NoeudStruct *>(decl);
-				auto dc = apparie_appel_structure(contexte, expr, decl_struct, args);
+				auto dc = apparie_appel_structure(contexte, contexte_validation, expr, decl_struct, args);
 				resultat.pousse(dc);
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {
 				auto decl_fonc = static_cast<NoeudDeclarationFonction *>(decl);
-				auto dc = apparie_appel_fonction(contexte, decl_fonc, args);
+				auto dc = apparie_appel_fonction(contexte, contexte_validation, decl_fonc, args);
 				resultat.pousse(dc);
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
-				auto dc = apparie_appel_pointeur(expr, decl->type, contexte, args);
+				auto dc = apparie_appel_pointeur(expr, decl->type, contexte, contexte_validation, args);
 				resultat.pousse(dc);
 			}
 		}
@@ -914,13 +916,13 @@ static auto trouve_candidates_pour_appel(
 
 void valide_appel_fonction(
 		ContexteGenerationCode &contexte,
-		NoeudExpressionAppel *expr,
-		bool expr_gauche)
+		noeud::ContexteValidationCode &contexte_validation,
+		NoeudExpressionAppel *expr)
 {
 	PROFILE_FONCTION;
 
-	auto fonction_courante = contexte.donnees_fonction;
-	auto &donnees_dependance = contexte.donnees_dependance;
+	auto fonction_courante = contexte_validation.fonction_courante;
+	auto &donnees_dependance = contexte_validation.donnees_dependance;
 
 	// ------------
 	// valide d'abord les expressions, leurs types sont nécessaire pour trouver les candidates
@@ -935,13 +937,9 @@ void valide_appel_fonction(
 			auto nom_arg = assign->expr1;
 			auto arg = assign->expr2;
 
-			noeud::performe_validation_semantique(arg, contexte, false);
-
 			args.pousse({ nom_arg->ident, arg });
 		}
 		else {
-			noeud::performe_validation_semantique(it, contexte, false);
-
 			args.pousse({ nullptr, it });
 		}
 	}
@@ -949,7 +947,7 @@ void valide_appel_fonction(
 	// ------------
 	// trouve la fonction, pour savoir ce que l'on a
 
-	auto candidates = trouve_candidates_pour_appel(contexte, expr, args);
+	auto candidates = trouve_candidates_pour_appel(contexte, contexte_validation, expr, args);
 	auto candidate = static_cast<DonneesCandidate *>(nullptr);
 	auto poids = 0.0;
 
@@ -1001,25 +999,25 @@ void valide_appel_fonction(
 		if (!candidate->paires_expansion_gabarit.est_vide()) {
 			auto noeud_decl = static_cast<NoeudDeclarationFonction *>(copie_noeud(contexte.assembleuse, decl_fonction_appelee, decl_fonction_appelee->bloc_parent));
 			noeud_decl->est_instantiation_gabarit = true;
-			decl_fonction_appelee = noeud_decl;
 
-			contexte.donnees_fonction = noeud_decl;
 			contexte.paires_expansion_gabarit = candidate->paires_expansion_gabarit;
-			auto ancienne_pile_controle = contexte.pile_controle_boucle;
-			contexte.pile_controle_boucle.efface();
 
-			noeud::valide_type_fonction(noeud_decl, contexte);
+			// À FAIRE  : pousse dans la file
+			auto contexte_validation_ = noeud::ContexteValidationCode(contexte);
+			contexte_validation_.commence_fonction(noeud_decl);
+			noeud::valide_type_fonction(noeud_decl, contexte, contexte_validation_);
+			contexte_validation_.valide_fonction(noeud_decl);
+			contexte_validation_.termine_fonction();
 
-			noeud::performe_validation_semantique(noeud_decl, contexte, expr_gauche);
-
-			contexte.donnees_fonction = fonction_courante;
-			contexte.pile_controle_boucle = ancienne_pile_controle;
+			decl_fonction_appelee = noeud_decl;
 		}
 
 		// nous devons instantier les gabarits (ou avoir leurs types) avant de pouvoir faire ça
 		auto type_fonc = static_cast<TypeFonction *>(decl_fonction_appelee->type);
 		auto type_sortie = type_fonc->types_sorties[0];
 
+		// À FAIRE(validation) : expr_gauche
+		auto expr_gauche = (expr->drapeaux & DROITE_ASSIGNATION) == 0;
 		if (type_sortie->genre != GenreType::RIEN && expr_gauche) {
 			erreur::lance_erreur(
 						"Inutilisation du retour de la fonction",
