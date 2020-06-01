@@ -235,7 +235,7 @@ chaque_chemin :: corout(chemin : &CheminFichier) -> CheminFichier
         retiens chemin_pour_dirname(dir)
     }
 
-    closedir(d)
+    _ := closedir(d)
 }
 
 //###############################################################################
@@ -363,7 +363,7 @@ chaque_chemin_récursif :: corout(chemin : &CheminFichier) -> CheminFichier
             retiens chemin_pour_dirname(dir)
         }
 
-        closedir(d)
+        _ := closedir(d)
     }
 
     decrée_file(file)
