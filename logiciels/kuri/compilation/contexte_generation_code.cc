@@ -184,10 +184,58 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 {
 	auto memoire = sizeof(ContexteGenerationCode);
 
-	/* À FAIRE : réusinage arbre */
-//	for (auto module : modules) {
-//		memoire += module->memoire_utilisee();
-//	}
+	memoire += static_cast<size_t>(deja_inclus.taille()) * sizeof(dls::chaine);
+	POUR (deja_inclus) {
+		memoire += static_cast<size_t>(it.taille());
+	}
+
+	memoire += static_cast<size_t>(inclusions.taille()) * sizeof(dls::chaine);
+	POUR (inclusions) {
+		memoire += static_cast<size_t>(it.taille());
+	}
+
+	memoire += static_cast<size_t>(bibliotheques_dynamiques.taille()) * sizeof(dls::chaine);
+	POUR (bibliotheques_dynamiques) {
+		memoire += static_cast<size_t>(it.taille());
+	}
+
+	memoire += static_cast<size_t>(bibliotheques_statiques.taille()) * sizeof(dls::chaine);
+	POUR (bibliotheques_statiques) {
+		memoire += static_cast<size_t>(it.taille());
+	}
+
+	memoire += static_cast<size_t>(chemins.taille()) * sizeof(dls::vue_chaine_compacte);
+	memoire += static_cast<size_t>(definitions.taille()) * sizeof(dls::vue_chaine_compacte);
+	memoire += static_cast<size_t>(modules.taille()) * sizeof(DonneesModule *);
+	memoire += static_cast<size_t>(fichiers.taille()) * sizeof(Fichier *);
+
+	POUR (modules) {
+		memoire += static_cast<size_t>(it->fichiers.taille()) * sizeof(Fichier *);
+		memoire += static_cast<size_t>(it->nom.taille());
+		memoire += static_cast<size_t>(it->chemin.taille());
+
+		if (!it->fonctions_exportees.est_stocke_dans_classe()) {
+			memoire += static_cast<size_t>(it->fonctions_exportees.taille()) * sizeof(dls::vue_chaine_compacte);
+		}
+	}
+
+	POUR (fichiers) {
+		// les autres membres sont gérés dans rassemble_metriques()
+		if (!it->modules_importes.est_stocke_dans_classe()) {
+			memoire += static_cast<size_t>(it->modules_importes.taille()) * sizeof(dls::vue_chaine_compacte);
+		}
+	}
+
+	memoire += static_cast<size_t>(file_typage.taille()) * sizeof(NoeudExpression *);
+	memoire += static_cast<size_t>(noeuds_a_executer.taille()) * sizeof(NoeudExpression *);
+	memoire += table_identifiants.memoire_utilisee();
+
+	memoire += static_cast<size_t>(gerante_chaine.m_table.taille()) * sizeof(dls::chaine);
+	POUR (gerante_chaine.m_table) {
+		memoire += static_cast<size_t>(it.taille);
+	}
+
+	memoire += static_cast<size_t>(paires_expansion_gabarit.taille()) * (sizeof (Type *) + sizeof (dls::vue_chaine_compacte));
 
 	return memoire;
 }

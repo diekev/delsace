@@ -100,6 +100,19 @@ public:
 
 		return ident;
 	}
+
+	long taille() const
+	{
+		return table.taille();
+	}
+
+	size_t memoire_utilisee() const
+	{
+		auto memoire = 0ul;
+		memoire += static_cast<size_t>(identifiants.taille()) * sizeof (IdentifiantCode *);
+		memoire += static_cast<size_t>(table.taille()) * (sizeof (dls::vue_chaine_compacte) + sizeof(IdentifiantCode *));
+		return memoire;
+	}
 };
 
 struct GeranteChaine {
