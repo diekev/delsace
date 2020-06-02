@@ -26,14 +26,14 @@
 
 #include "graphe_dependance.hh"
 
-struct ContexteGenerationCode;
+struct Compilatrice;
 struct NoeudDeclarationFonction;
 struct NoeudExpression;
 
 namespace noeud {
 
 struct ContexteValidationCode {
-	ContexteGenerationCode &m_contexte;
+	Compilatrice &m_compilatrice;
 	NoeudDeclarationFonction *fonction_courante = nullptr;
 
 	/* Les données des dépendances d'un noeud syntaxique. */
@@ -42,7 +42,7 @@ struct ContexteValidationCode {
 	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
 	dls::tableau<paire_union_membre> membres_actifs{};
 
-	ContexteValidationCode(ContexteGenerationCode &contexte);
+	ContexteValidationCode(Compilatrice &compilatrice);
 
 	COPIE_CONSTRUCT(ContexteValidationCode);
 
@@ -67,8 +67,8 @@ struct ContexteValidationCode {
 	void valide_structure(NoeudStruct *);
 };
 
-void performe_validation_semantique(ContexteGenerationCode &contexte);
+void performe_validation_semantique(Compilatrice &compilatrice);
 
-void valide_type_fonction(NoeudExpression *b, ContexteGenerationCode &contexte, ContexteValidationCode &contexte_validation);
+void valide_type_fonction(NoeudExpression *b, Compilatrice &compilatrice, ContexteValidationCode &contexte);
 
 }  /* namespace noeud */

@@ -30,7 +30,7 @@
 
 #include "arbre_syntactic.h"
 #include "assembleuse_arbre.h"
-#include "contexte_generation_code.h"
+#include "compilatrice.hh"
 #include "modules.hh"
 #include "outils_lexemes.hh"
 #include "profilage.hh"
@@ -268,10 +268,10 @@ static Associativite associativite_pour_operateur(GenreLexeme genre_operateur)
 #define CREE_NOEUD(Type, Genre, Lexeme) static_cast<Type *>(m_fichier->module->assembleuse->cree_noeud(Genre, Lexeme))
 
 Syntaxeuse::Syntaxeuse(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Fichier *fichier,
 		const dls::chaine &racine_kuri)
-	: m_contexte(contexte)
+	: m_compilatrice(compilatrice)
 	, m_fichier(fichier)
 	, m_lexemes(fichier->lexemes)
 	, m_racine_kuri(racine_kuri)
@@ -316,7 +316,7 @@ void Syntaxeuse::lance_analyse(std::ostream &os)
 			 * également en compte le chargement, le découpage, et l'analyse du
 			 * module importé */
 			m_fichier->temps_analyse += m_chrono_analyse.arrete();
-			importe_module(os, m_racine_kuri, dls::chaine(nom_module), m_contexte, *lexeme_courant());
+			importe_module(os, m_racine_kuri, dls::chaine(nom_module), m_compilatrice, *lexeme_courant());
 			m_chrono_analyse.reprend();
 
 			consomme();
@@ -334,7 +334,7 @@ void Syntaxeuse::lance_analyse(std::ostream &os)
 			 * également en compte le chargement, le découpage, et l'analyse du
 			 * fichier chargé */
 			m_fichier->temps_analyse += m_chrono_analyse.arrete();
-			charge_fichier(os, m_fichier->module, m_racine_kuri, dls::chaine(nom_fichier), m_contexte, *lexeme_courant());
+			charge_fichier(os, m_fichier->module, m_racine_kuri, dls::chaine(nom_fichier), m_compilatrice, *lexeme_courant());
 			m_chrono_analyse.reprend();
 
 			consomme();
@@ -352,17 +352,17 @@ void Syntaxeuse::lance_analyse(std::ostream &os)
 					decl_var->bloc_parent->membres.pousse(decl_var);
 					decl_var->bloc_parent->expressions.pousse(decl_var);
 					decl_var->drapeaux |= EST_GLOBALE;
-					m_contexte.file_typage.pousse(decl_var);
+					m_compilatrice.file_typage.pousse(decl_var);
 				}
 				else if (est_declaration(noeud->genre)) {
 					noeud->bloc_parent->membres.pousse(static_cast<NoeudDeclaration *>(noeud));
 					noeud->bloc_parent->expressions.pousse(noeud);
 					noeud->drapeaux |= EST_GLOBALE;
-					m_contexte.file_typage.pousse(noeud);
+					m_compilatrice.file_typage.pousse(noeud);
 				}
 				else {
 					noeud->bloc_parent->expressions.pousse(noeud);
-					m_contexte.file_typage.pousse(noeud);
+					m_compilatrice.file_typage.pousse(noeud);
 				}
 			}
 		}
@@ -953,33 +953,33 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_inclus);
-					m_contexte.ajoute_inclusion(chaine);
+					m_compilatrice.ajoute_inclusion(chaine);
 				}
 				else if (directive == "bibliothèque_dynamique") {
 					auto chaine_bib = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
-					m_contexte.bibliotheques_dynamiques.pousse(chaine);
+					m_compilatrice.bibliotheques_dynamiques.pousse(chaine);
 				}
 				else if (directive == "bibliothèque_statique") {
 					auto chaine_bib = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
-					m_contexte.bibliotheques_statiques.pousse(chaine);
+					m_compilatrice.bibliotheques_statiques.pousse(chaine);
 				}
 				else if (directive == "def") {
 					auto chaine = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-					m_contexte.definitions.pousse(chaine);
+					m_compilatrice.definitions.pousse(chaine);
 				}
 				else if (directive == "exécute") {
 					auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
 					noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
 
-					m_contexte.noeuds_a_executer.pousse(noeud);
+					m_compilatrice.noeuds_a_executer.pousse(noeud);
 
 					return noeud;
 				}
@@ -987,7 +987,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 					auto chaine = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-					m_contexte.chemins.pousse(chaine);
+					m_compilatrice.chemins.pousse(chaine);
 				}
 				else if (directive == "nulctx") {
 					lexeme = lexeme_courant();
@@ -1604,12 +1604,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 			noeud_decl->expression_type = analyse_expression_primaire(GenreLexeme::ENUM, GenreLexeme::INCONNU);
 		}
 
-		auto type = m_contexte.typeuse.reserve_type_enum(noeud_decl);
+		auto type = m_compilatrice.typeuse.reserve_type_enum(noeud_decl);
 		type->est_drapeau = lexeme->genre == GenreLexeme::ENUM_DRAPEAU;
 		noeud_decl->type = type;
 	}
 	else {
-		auto type = m_contexte.typeuse.reserve_type_erreur(noeud_decl);
+		auto type = m_compilatrice.typeuse.reserve_type_erreur(noeud_decl);
 		type->est_erreur = true;
 		noeud_decl->type = type;
 	}
@@ -1806,9 +1806,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 				consomme();
 			}
 
-			auto nombre_noeuds_alloues = m_contexte.allocatrice_noeud.nombre_noeuds();
+			auto nombre_noeuds_alloues = m_compilatrice.allocatrice_noeud.nombre_noeuds();
 			noeud->bloc = analyse_bloc();
-			nombre_noeuds_alloues = m_contexte.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
+			nombre_noeuds_alloues = m_compilatrice.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 
 			/* À FAIRE : quand nous aurons des fonctions dans des fonctions, il
 			 * faudra soustraire le nombre de noeuds des fonctions enfants. Il
@@ -1885,7 +1885,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	if (noeud->params.taille > 2) {
 		erreur::lance_erreur(
 					"La surcharge d'opérateur ne peut prendre au plus 2 paramètres",
-					m_contexte,
+					m_compilatrice,
 					lexeme);
 	}
 	else if (noeud->params.taille == 1) {
@@ -1898,7 +1898,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		else if (genre_operateur != GenreLexeme::TILDE && genre_operateur != GenreLexeme::EXCLAMATION) {
 			erreur::lance_erreur(
 						"La surcharge d'opérateur unaire n'est possible que pour '+', '-', '~', ou '!'",
-						m_contexte,
+						m_compilatrice,
 						lexeme);
 		}
 	}
@@ -1976,21 +1976,21 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 	noeud_decl->est_union = (lexeme_mot_cle->genre == GenreLexeme::UNION);
 
 	if (gauche->lexeme->chaine == "InfoType") {
-		noeud_decl->type = m_contexte.typeuse.type_info_type_;
-		m_contexte.typeuse.type_info_type_->decl = noeud_decl;
-		m_contexte.typeuse.type_info_type_->nom = noeud_decl->ident->nom;
+		noeud_decl->type = m_compilatrice.typeuse.type_info_type_;
+		m_compilatrice.typeuse.type_info_type_->decl = noeud_decl;
+		m_compilatrice.typeuse.type_info_type_->nom = noeud_decl->ident->nom;
 	}
 	else {
 		if (noeud_decl->est_union) {
-			noeud_decl->type = m_contexte.typeuse.reserve_type_union(noeud_decl);
+			noeud_decl->type = m_compilatrice.typeuse.reserve_type_union(noeud_decl);
 		}
 		else {
-			noeud_decl->type = m_contexte.typeuse.reserve_type_structure(noeud_decl);
+			noeud_decl->type = m_compilatrice.typeuse.reserve_type_structure(noeud_decl);
 		}
 	}
 
 	if (gauche->lexeme->chaine == "ContexteProgramme") {
-		m_contexte.type_contexte = noeud_decl->type;
+		m_compilatrice.type_contexte = noeud_decl->type;
 	}
 
 	if (apparie(GenreLexeme::EXTERNE)) {
@@ -2064,7 +2064,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::type_erreur type)
 {
 	auto lexeme = lexeme_courant();
-	auto fichier = m_contexte.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = m_compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
 
 	auto flux = dls::flux_chaine();
 

@@ -26,7 +26,7 @@
 
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
-struct ContexteGenerationCode;
+struct Compilatrice;
 struct NoeudDeclarationFonction;
 struct Type;
 
@@ -92,7 +92,7 @@ struct TransformationType {
 };
 
 TransformationType cherche_transformation(
-		ContexteGenerationCode &contexte,
-		noeud::ContexteValidationCode &contexte_validation,
+		Compilatrice &compilatrice,
+		noeud::ContexteValidationCode &contexte,
 		Type *type_de,
 		Type *type_vers);

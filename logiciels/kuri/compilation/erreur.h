@@ -30,7 +30,7 @@
 
 #include "validation_expression_appel.hh"
 
-struct ContexteGenerationCode;
+struct Compilatrice;
 struct Lexeme;
 struct NoeudBase;
 struct Type;
@@ -78,23 +78,23 @@ void imprime_ligne_avec_message(
 
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,
-		const ContexteGenerationCode &contexte,
+		const Compilatrice &compilatrice,
 		const Lexeme *morceau,
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void redefinition_fonction(
-		const ContexteGenerationCode &contexte,
+		const Compilatrice &compilatrice,
 		const Lexeme *lexeme_redefinition,
 		const Lexeme *lexeme_original);
 
 [[noreturn]] void redefinition_symbole(
-		const ContexteGenerationCode &contexte,
+		const Compilatrice &compilatrice,
 		const Lexeme *lexeme_redefinition,
 		const Lexeme *lexeme_original);
 
 [[noreturn]] void lance_erreur_plage(
 		const dls::chaine &quoi,
-		const ContexteGenerationCode &contexte,
+		const Compilatrice &compilatrice,
 		const Lexeme *premier_morceau,
 		const Lexeme *dernier_morceau,
 		type_erreur type = type_erreur::NORMAL);
@@ -102,69 +102,69 @@ void imprime_ligne_avec_message(
 [[noreturn]] void lance_erreur_type_arguments(
 		const Type *type_arg,
 		const Type *type_enf,
-		const ContexteGenerationCode &contexte,
+		const Compilatrice &compilatrice,
 		const Lexeme *morceau_enfant,
 		const Lexeme *morceau);
 
 [[noreturn]] void lance_erreur_type_retour(
 		const Type *type_arg,
 		const Type *type_enf,
-		const ContexteGenerationCode &contexte,
+		const Compilatrice &compilatrice,
 		NoeudBase *racine);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const Type *type_gauche,
 		const Type *type_droite,
-		const ContexteGenerationCode &contexte,
+		const Compilatrice &compilatrice,
 		const Lexeme *morceau);
 
 [[noreturn]] void lance_erreur_type_operation(
 		const Type *type_gauche,
 		const Type *type_droite,
-		const ContexteGenerationCode &contexte,
+		const Compilatrice &compilatrice,
 		const Lexeme *morceau);
 
 [[noreturn]] void lance_erreur_fonction_inconnue(
-		ContexteGenerationCode const &contexte,
+		Compilatrice const &compilatrice,
 		NoeudBase *n,
 		dls::tablet<DonneesCandidate, 10> const &candidates);
 
 [[noreturn]] void lance_erreur_fonction_nulctx(
-		ContexteGenerationCode const &contexte,
+		Compilatrice const &compilatrice,
 		NoeudBase const *appl_fonc,
 		NoeudBase const *decl_fonc,
 		NoeudBase const *decl_appel);
 
 [[noreturn]] void lance_erreur_acces_hors_limites(
-		ContexteGenerationCode const &contexte,
+		Compilatrice const &compilatrice,
 		NoeudBase *b,
 		long taille_tableau,
 		Type *type_tableau,
 		long index_acces);
 
 [[noreturn]] void lance_erreur_type_operation(
-			ContexteGenerationCode const &contexte,
+			Compilatrice const &compilatrice,
 			NoeudBase *b);
 
 [[noreturn]] void lance_erreur_type_operation_unaire(
-			ContexteGenerationCode const &contexte,
+			Compilatrice const &compilatrice,
 			NoeudBase *b);
 
-[[noreturn]] void membre_inconnu(ContexteGenerationCode &contexte,
+[[noreturn]] void membre_inconnu(Compilatrice &compilatrice,
 		NoeudBase *acces,
 		NoeudBase *structure,
 		NoeudBase *membre,
 		TypeCompose *type);
 
 [[noreturn]] void membre_inactif(
-			ContexteGenerationCode &contexte,
-			noeud::ContexteValidationCode &contexte_validation,
+			Compilatrice &compilatrice,
+			noeud::ContexteValidationCode &contexte,
 			NoeudBase *acces,
 			NoeudBase *structure,
 			NoeudBase *membre);
 
 [[noreturn]] void valeur_manquante_discr(
-			ContexteGenerationCode &contexte,
+			Compilatrice &compilatrice,
 			NoeudBase *expression,
 			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes);
 

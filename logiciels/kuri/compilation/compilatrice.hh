@@ -45,7 +45,7 @@ struct Metriques {
 	size_t memoire_tampons = 0ul;
 	size_t memoire_lexemes = 0ul;
 	size_t memoire_arbre = 0ul;
-	size_t memoire_contexte = 0ul;
+	size_t memoire_compilatrice = 0ul;
 	size_t memoire_types = 0ul;
 	size_t memoire_operateurs = 0ul;
 	size_t memoire_ri = 0ul;
@@ -138,7 +138,7 @@ struct InterfaceKuri {
 	NoeudDeclarationFonction *decl_dls_depuis_r64 = nullptr;
 };
 
-struct ContexteGenerationCode {
+struct Compilatrice {
 	AllocatriceNoeud allocatrice_noeud{};
 
 	/* À FAIRE : supprime ceci */
@@ -189,16 +189,16 @@ struct ContexteGenerationCode {
 
 	/* ********************************************************************** */
 
-	ContexteGenerationCode();
+	Compilatrice();
 
-	~ContexteGenerationCode();
+	~Compilatrice();
 
 	/* ********************************************************************** */
 
 	/* Désactive la copie, car il ne peut y avoir qu'un seul contexte par
 	 * compilation. */
-	ContexteGenerationCode(const ContexteGenerationCode &) = delete;
-	ContexteGenerationCode &operator=(const ContexteGenerationCode &) = delete;
+	Compilatrice(const Compilatrice &) = delete;
+	Compilatrice &operator=(const Compilatrice &) = delete;
 
 	/* ********************************************************************** */
 

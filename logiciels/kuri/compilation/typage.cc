@@ -24,7 +24,7 @@
 
 #include "typage.hh"
 
-#include "contexte_generation_code.h"
+#include "compilatrice.hh"
 #include "operateurs.hh"
 #include "outils_lexemes.hh"
 #include "profilage.hh"

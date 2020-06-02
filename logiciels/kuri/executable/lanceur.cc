@@ -55,7 +55,7 @@
 #endif
 
 #include "compilation/assembleuse_arbre.h"
-#include "compilation/contexte_generation_code.h"
+#include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
 #include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
@@ -306,7 +306,7 @@ static void imprime_stats(
 	auto const mem_totale = metriques.memoire_tampons
 							+ metriques.memoire_lexemes
 							+ metriques.memoire_arbre
-							+ metriques.memoire_contexte
+							+ metriques.memoire_compilatrice
 							+ metriques.memoire_graphe
 							+ metriques.memoire_types
 							+ metriques.memoire_operateurs
@@ -344,7 +344,7 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "- Suivie", formatte_nombre(mem_totale), "o" });
 	tableau.ajoute_ligne({ "- Effective", formatte_nombre(memoire_consommee), "o" });
 	tableau.ajoute_ligne({ "- Arbre", formatte_nombre(metriques.memoire_arbre), "o" });
-	tableau.ajoute_ligne({ "- Contexte", formatte_nombre(metriques.memoire_contexte), "o" });
+	tableau.ajoute_ligne({ "- Compilatrice", formatte_nombre(metriques.memoire_compilatrice), "o" });
 	tableau.ajoute_ligne({ "- Graphe", formatte_nombre(metriques.memoire_graphe), "o" });
 	tableau.ajoute_ligne({ "- Lexèmes", formatte_nombre(metriques.memoire_lexemes), "o" });
 	tableau.ajoute_ligne({ "- Opérateurs", formatte_nombre(metriques.memoire_operateurs), "o" });
@@ -432,7 +432,7 @@ void ajourne_options_compilation(OptionsCompilation *options)
 	}
 }
 
-static bool lance_execution(ContexteGenerationCode &contexte)
+static bool lance_execution(Compilatrice &compilatrice)
 {
 	// crée un fichier objet
 	auto commande = "gcc -Wno-discarded-qualifiers -Wno-format-security -shared -fPIC -o /tmp/test_execution.so /tmp/execution_kuri.c /tmp/r16_tables.o";
@@ -447,7 +447,7 @@ static bool lance_execution(ContexteGenerationCode &contexte)
 	// charge le fichier
 	auto so = dls::systeme_fichier::shared_library("/tmp/test_execution.so");
 
-	auto decl_fonc_init = cherche_fonction_dans_module(contexte, "Kuri", "initialise_RC");
+	auto decl_fonc_init = cherche_fonction_dans_module(compilatrice, "Kuri", "initialise_RC");
 	auto symbole_init = so(decl_fonc_init->nom_broye);
 	auto fonc_init = dls::systeme_fichier::dso_function<
 			void(
@@ -479,37 +479,37 @@ static bool lance_execution(ContexteGenerationCode &contexte)
 	return 0;
 }
 
-static void initialise_interface_kuri(ContexteGenerationCode &contexte)
+static void initialise_interface_kuri(Compilatrice &compilatrice)
 {
 	PROFILE_FONCTION;
-	auto module = contexte.module("Kuri");
-	contexte.interface_kuri.decl_panique = cherche_fonction_dans_module(contexte, module, "panique");
-	contexte.interface_kuri.decl_panique_memoire = cherche_fonction_dans_module(contexte, module, "panique_hors_mémoire");
-	contexte.interface_kuri.decl_panique_tableau = cherche_fonction_dans_module(contexte, module, "panique_dépassement_limites_tableau");
-	contexte.interface_kuri.decl_panique_chaine = cherche_fonction_dans_module(contexte, module, "panique_dépassement_limites_chaine");
-	contexte.interface_kuri.decl_panique_membre_union = cherche_fonction_dans_module(contexte, module, "panique_membre_union");
-	contexte.interface_kuri.decl_panique_erreur = cherche_fonction_dans_module(contexte, module, "panique_erreur_non_gérée");
-	contexte.interface_kuri.decl_rappel_panique_defaut = cherche_fonction_dans_module(contexte, module, "__rappel_panique_défaut");
-	contexte.interface_kuri.decl_dls_vers_r32 = cherche_fonction_dans_module(contexte, module, "DLS_vers_r32");
-	contexte.interface_kuri.decl_dls_vers_r64 = cherche_fonction_dans_module(contexte, module, "DLS_vers_r64");
-	contexte.interface_kuri.decl_dls_depuis_r32 = cherche_fonction_dans_module(contexte, module, "DLS_depuis_r32");
-	contexte.interface_kuri.decl_dls_depuis_r64 = cherche_fonction_dans_module(contexte, module, "DLS_depuis_r64");
+	auto module = compilatrice.module("Kuri");
+	compilatrice.interface_kuri.decl_panique = cherche_fonction_dans_module(compilatrice, module, "panique");
+	compilatrice.interface_kuri.decl_panique_memoire = cherche_fonction_dans_module(compilatrice, module, "panique_hors_mémoire");
+	compilatrice.interface_kuri.decl_panique_tableau = cherche_fonction_dans_module(compilatrice, module, "panique_dépassement_limites_tableau");
+	compilatrice.interface_kuri.decl_panique_chaine = cherche_fonction_dans_module(compilatrice, module, "panique_dépassement_limites_chaine");
+	compilatrice.interface_kuri.decl_panique_membre_union = cherche_fonction_dans_module(compilatrice, module, "panique_membre_union");
+	compilatrice.interface_kuri.decl_panique_erreur = cherche_fonction_dans_module(compilatrice, module, "panique_erreur_non_gérée");
+	compilatrice.interface_kuri.decl_rappel_panique_defaut = cherche_fonction_dans_module(compilatrice, module, "__rappel_panique_défaut");
+	compilatrice.interface_kuri.decl_dls_vers_r32 = cherche_fonction_dans_module(compilatrice, module, "DLS_vers_r32");
+	compilatrice.interface_kuri.decl_dls_vers_r64 = cherche_fonction_dans_module(compilatrice, module, "DLS_vers_r64");
+	compilatrice.interface_kuri.decl_dls_depuis_r32 = cherche_fonction_dans_module(compilatrice, module, "DLS_depuis_r32");
+	compilatrice.interface_kuri.decl_dls_depuis_r64 = cherche_fonction_dans_module(compilatrice, module, "DLS_depuis_r64");
 
-	auto &typeuse = contexte.typeuse;
-	typeuse.type_info_type_enum = cherche_symbole_dans_module(contexte, module, "InfoTypeÉnum")->type;
-	typeuse.type_info_type_structure = cherche_symbole_dans_module(contexte, module, "InfoTypeStructure")->type;
-	typeuse.type_info_type_union = cherche_symbole_dans_module(contexte, module, "InfoTypeUnion")->type;
-	typeuse.type_info_type_membre_structure = cherche_symbole_dans_module(contexte, module, "InfoTypeMembreStructure")->type;
-	typeuse.type_info_type_entier = cherche_symbole_dans_module(contexte, module, "InfoTypeEntier")->type;
-	typeuse.type_info_type_tableau = cherche_symbole_dans_module(contexte, module, "InfoTypeTableau")->type;
-	typeuse.type_info_type_pointeur = cherche_symbole_dans_module(contexte, module, "InfoTypePointeur")->type;
-	typeuse.type_info_type_fonction = cherche_symbole_dans_module(contexte, module, "InfoTypeFonction")->type;
-	typeuse.type_position_code_source = cherche_symbole_dans_module(contexte, module, "PositionCodeSource")->type;
-	typeuse.type_info_fonction_trace_appel = cherche_symbole_dans_module(contexte, module, "InfoFonctionTraceAppel")->type;
-	typeuse.type_trace_appel = cherche_symbole_dans_module(contexte, module, "TraceAppel")->type;
-	typeuse.type_base_allocatrice = cherche_symbole_dans_module(contexte, module, "BaseAllocatrice")->type;
-	typeuse.type_info_appel_trace_appel = cherche_symbole_dans_module(contexte, module, "InfoAppelTraceAppel")->type;
-	typeuse.type_stockage_temporaire = cherche_symbole_dans_module(contexte, module, "StockageTemporaire")->type;
+	auto &typeuse = compilatrice.typeuse;
+	typeuse.type_info_type_enum = cherche_symbole_dans_module(compilatrice, module, "InfoTypeÉnum")->type;
+	typeuse.type_info_type_structure = cherche_symbole_dans_module(compilatrice, module, "InfoTypeStructure")->type;
+	typeuse.type_info_type_union = cherche_symbole_dans_module(compilatrice, module, "InfoTypeUnion")->type;
+	typeuse.type_info_type_membre_structure = cherche_symbole_dans_module(compilatrice, module, "InfoTypeMembreStructure")->type;
+	typeuse.type_info_type_entier = cherche_symbole_dans_module(compilatrice, module, "InfoTypeEntier")->type;
+	typeuse.type_info_type_tableau = cherche_symbole_dans_module(compilatrice, module, "InfoTypeTableau")->type;
+	typeuse.type_info_type_pointeur = cherche_symbole_dans_module(compilatrice, module, "InfoTypePointeur")->type;
+	typeuse.type_info_type_fonction = cherche_symbole_dans_module(compilatrice, module, "InfoTypeFonction")->type;
+	typeuse.type_position_code_source = cherche_symbole_dans_module(compilatrice, module, "PositionCodeSource")->type;
+	typeuse.type_info_fonction_trace_appel = cherche_symbole_dans_module(compilatrice, module, "InfoFonctionTraceAppel")->type;
+	typeuse.type_trace_appel = cherche_symbole_dans_module(compilatrice, module, "TraceAppel")->type;
+	typeuse.type_base_allocatrice = cherche_symbole_dans_module(compilatrice, module, "BaseAllocatrice")->type;
+	typeuse.type_info_appel_trace_appel = cherche_symbole_dans_module(compilatrice, module, "InfoAppelTraceAppel")->type;
+	typeuse.type_stockage_temporaire = cherche_symbole_dans_module(compilatrice, module, "StockageTemporaire")->type;
 }
 
 int main(int argc, char *argv[])
@@ -569,21 +569,21 @@ int main(int argc, char *argv[])
 
 		auto nom_fichier = chemin.stem();
 
-		auto contexte_generation = ContexteGenerationCode{};
-		contexte_generation.bit32 = ops.architecture_cible == ArchitectureCible::X86;
+		auto compilatrice = Compilatrice{};
+		compilatrice.bit32 = ops.architecture_cible == ArchitectureCible::X86;
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 
 		/* Charge d'abord le module basique. */
-		importe_module(os, chemin_racine_kuri, "Kuri", contexte_generation, {});
-		initialise_interface_kuri(contexte_generation);
+		importe_module(os, chemin_racine_kuri, "Kuri", compilatrice, {});
+		initialise_interface_kuri(compilatrice);
 
 		/* Change le dossier courant et lance la compilation. */
 		auto dossier = chemin.parent_path();
 		std::filesystem::current_path(dossier);
 
-		auto module = contexte_generation.cree_module("", dossier.c_str());
-		charge_fichier(os, module, chemin_racine_kuri, nom_fichier.c_str(), contexte_generation, {});
+		auto module = compilatrice.cree_module("", dossier.c_str());
+		charge_fichier(os, module, chemin_racine_kuri, nom_fichier.c_str(), compilatrice, {});
 
 #ifdef AVEC_LLVM
 		if (ops.type_coulisse == TypeCoulisse::LLVM) {
@@ -607,7 +607,7 @@ int main(int argc, char *argv[])
 									 cible->createTargetMachine(
 										 triplet_cible, CPU, feature, options_cible, RM));
 
-			auto generatrice = GeneratriceCodeLLVM(contexte_generation);
+			auto generatrice = GeneratriceCodeLLVM(compilatrice);
 
 			auto module_llvm = llvm::Module("Module", generatrice.m_contexte_llvm);
 			module_llvm.setDataLayout(machine_cible->createDataLayout());
@@ -616,12 +616,12 @@ int main(int argc, char *argv[])
 			generatrice.m_module = &module_llvm;
 
 			os << "Validation sémantique du code..." << std::endl;
-			noeud::performe_validation_semantique(contexte_generation);
+			noeud::performe_validation_semantique(compilatrice);
 
 			os << "Génération du code..." << std::endl;
 			auto temps_generation = dls::chrono::compte_seconde();
 
-			auto constructrice_ri = ConstructriceRI(contexte_generation);
+			auto constructrice_ri = ConstructriceRI(compilatrice);
 			constructrice_ri.genere_ri();
 			constructrice_ri.imprime_programme();
 
@@ -629,7 +629,7 @@ int main(int argc, char *argv[])
 
 			generatrice.genere_code(constructrice_ri);
 
-			contexte_generation.temps_generation = temps_generation.temps();
+			compilatrice.temps_generation = temps_generation.temps();
 
 #ifndef NDEBUG
 			if (!valide_llvm_ir(module_llvm)) {
@@ -659,22 +659,22 @@ int main(int argc, char *argv[])
 #endif
 		{
 			os << "Validation sémantique du code..." << std::endl;
-			noeud::performe_validation_semantique(contexte_generation);
+			noeud::performe_validation_semantique(compilatrice);
 
-//			for (auto noeud: contexte_generation.noeuds_a_executer) {
+//			for (auto noeud: compilatrice.noeuds_a_executer) {
 //				std::ofstream of;
 //				of.open("/tmp/execution_kuri.c");
 
-//				noeud::genere_code_C_pour_execution(noeud, contexte_generation, chemin_racine_kuri, of);
-//				lance_execution(contexte_generation);
+//				noeud::genere_code_C_pour_execution(noeud, compilatrice, chemin_racine_kuri, of);
+//				lance_execution(compilatrice);
 //			}
 
-//			POUR (contexte_generation.modules) {
+//			POUR (compilatrice.modules) {
 //				std::cerr << "Arbre syntaxique pour '" << it->nom << "' :\n";
 //				imprime_arbre(it->assembleuse->bloc_courant(), std::cerr, 1);
 //			}
 
-			auto constructrice_ri = ConstructriceRI(contexte_generation);
+			auto constructrice_ri = ConstructriceRI(compilatrice);
 			constructrice_ri.genere_ri();
 			//constructrice_ri.imprime_programme();
 
@@ -737,11 +737,11 @@ int main(int argc, char *argv[])
 					commande += "-m32 ";
 				}
 
-				for (auto const &def : contexte_generation.definitions) {
+				for (auto const &def : compilatrice.definitions) {
 					commande += " -D" + dls::chaine(def);
 				}
 
-				for (auto const &chm : contexte_generation.chemins) {
+				for (auto const &chm : compilatrice.chemins) {
 					commande += " ";
 					commande += chm;
 				}
@@ -762,16 +762,16 @@ int main(int argc, char *argv[])
 					auto debut_executable = dls::chrono::compte_seconde();
 					commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
 
-					for (auto const &chm : contexte_generation.chemins) {
+					for (auto const &chm : compilatrice.chemins) {
 						commande += " ";
 						commande += chm;
 					}
 
-					for (auto const &bib : contexte_generation.bibliotheques_statiques) {
+					for (auto const &bib : compilatrice.bibliotheques_statiques) {
 						commande += " " + bib;
 					}
 
-					for (auto const &bib : contexte_generation.bibliotheques_dynamiques) {
+					for (auto const &bib : compilatrice.bibliotheques_dynamiques) {
 						commande += " -l" + bib;
 					}
 
@@ -795,8 +795,8 @@ int main(int argc, char *argv[])
 		/* restore le dossier d'origine */
 		std::filesystem::current_path(dossier_origine);
 
-		metriques = contexte_generation.rassemble_metriques();
-		metriques.memoire_contexte = contexte_generation.memoire_utilisee();
+		metriques = compilatrice.rassemble_metriques();
+		metriques.memoire_compilatrice = compilatrice.memoire_utilisee();
 		metriques.temps_executable = temps_executable;
 		metriques.temps_fichier_objet = temps_fichier_objet;
 		metriques.temps_ri = temps_ri;

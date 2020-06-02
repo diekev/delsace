@@ -28,7 +28,7 @@
 #include "biblinternes/structures/tablet.hh"
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
-#include "contexte_generation_code.h"
+#include "compilatrice.hh"
 #include "structures.hh"
 
 namespace noeud {
@@ -98,11 +98,11 @@ struct DonneesCandidate {
 };
 
 void valide_appel_fonction(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		noeud::ContexteValidationCode &contexte_validation,
 		NoeudExpressionAppel *expr);
 
 void valide_appel_fonction(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		noeud::ContexteValidationCode &contexte_validation,
 		NoeudExpressionAppel *expr);

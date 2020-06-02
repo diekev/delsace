@@ -31,7 +31,7 @@
 #include "biblinternes/outils/conditions.h"
 
 #include "assembleuse_arbre.h"
-#include "contexte_generation_code.h"
+#include "compilatrice.hh"
 #include "lexeuse.hh"
 #include "portee.hh"
 #include "syntaxeuse.hh"
@@ -43,8 +43,8 @@ bool Fichier::importe_module(dls::vue_chaine_compacte const &nom_module) const
 	return modules_importes.possede(nom_module);
 }
 
-DonneesModule::DonneesModule(ContexteGenerationCode &contexte)
-	: assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", contexte))
+DonneesModule::DonneesModule(Compilatrice &compilatrice)
+	: assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", compilatrice))
 	, bloc(assembleuse->bloc_courant())
 {
 	assert(bloc != nullptr);
@@ -59,7 +59,7 @@ DonneesModule::~DonneesModule()
 
 dls::chaine charge_fichier(
 		const dls::chaine &chemin,
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Lexeme const &lexeme)
 {
 	std::ifstream fichier;
@@ -68,7 +68,7 @@ dls::chaine charge_fichier(
 	if (!fichier.is_open()) {
 		erreur::lance_erreur(
 					"Impossible d'ouvrir le fichier correspondant au module",
-					contexte,
+					compilatrice,
 					&lexeme,
 					erreur::type_erreur::MODULE_INCONNU);
 	}
@@ -94,7 +94,7 @@ void charge_fichier(
 		DonneesModule *module,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Lexeme const &lexeme)
 {
 	auto chemin = module->chemin + nom + ".kuri";
@@ -102,7 +102,7 @@ void charge_fichier(
 	if (!std::filesystem::exists(chemin.c_str())) {
 		erreur::lance_erreur(
 					"Impossible de trouver le fichier correspondant au module",
-					contexte,
+					compilatrice,
 					&lexeme,
 					erreur::type_erreur::MODULE_INCONNU);
 	}
@@ -110,7 +110,7 @@ void charge_fichier(
 	if (!std::filesystem::is_regular_file(chemin.c_str())) {
 		erreur::lance_erreur(
 					"Le nom du fichier ne pointe pas vers un fichier régulier",
-					contexte,
+					compilatrice,
 					&lexeme,
 					erreur::type_erreur::MODULE_INCONNU);
 	}
@@ -118,7 +118,7 @@ void charge_fichier(
 	/* trouve le chemin absolu du fichier */
 	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
 
-	auto fichier = contexte.cree_fichier(nom.c_str(), chemin_absolu.c_str());
+	auto fichier = compilatrice.cree_fichier(nom.c_str(), chemin_absolu.c_str());
 
 	if (fichier == nullptr) {
 		/* le fichier a déjà été chargé */
@@ -130,20 +130,20 @@ void charge_fichier(
 	fichier->module = module;
 
 	auto debut_chargement = dls::chrono::compte_seconde();
-	auto tampon = charge_fichier(chemin, contexte, lexeme);
+	auto tampon = charge_fichier(chemin, compilatrice, lexeme);
 	fichier->temps_chargement = debut_chargement.temps();
 
 	auto debut_tampon = dls::chrono::compte_seconde();
 	fichier->tampon = lng::tampon_source(tampon);
 	fichier->temps_tampon = debut_tampon.temps();
 
-	auto lexeuse = Lexeuse(contexte, fichier);
+	auto lexeuse = Lexeuse(compilatrice, fichier);
 	auto debut_decoupage = dls::chrono::compte_seconde();
 	lexeuse.performe_lexage();
 	fichier->temps_decoupage = debut_decoupage.temps();
 
 	auto analyseuse = Syntaxeuse(
-						  contexte,
+						  compilatrice,
 						  fichier,
 						  racine_kuri);
 
@@ -154,7 +154,7 @@ void importe_module(
 		std::ostream &os,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Lexeme const &lexeme)
 {
 	auto chemin = nom;
@@ -166,7 +166,7 @@ void importe_module(
 		if (!std::filesystem::exists(chemin.c_str())) {
 			erreur::lance_erreur(
 						"Impossible de trouver le dossier correspondant au module",
-						contexte,
+						compilatrice,
 						&lexeme,
 						erreur::type_erreur::MODULE_INCONNU);
 		}
@@ -175,14 +175,14 @@ void importe_module(
 	if (!std::filesystem::is_directory(chemin.c_str())) {
 		erreur::lance_erreur(
 					"Le nom du module ne pointe pas vers un dossier",
-					contexte,
+					compilatrice,
 					&lexeme,
 					erreur::type_erreur::MODULE_INCONNU);
 	}
 
 	/* trouve le chemin absolu du module */
 	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
-	auto module = contexte.cree_module(nom.c_str(), chemin_absolu.c_str());
+	auto module = compilatrice.cree_module(nom.c_str(), chemin_absolu.c_str());
 
 	if (module->importe) {
 		return;
@@ -203,7 +203,7 @@ void importe_module(
 			continue;
 		}
 
-		charge_fichier(os, module, racine_kuri, chemin_entree.stem().c_str(), contexte, {});
+		charge_fichier(os, module, racine_kuri, chemin_entree.stem().c_str(), compilatrice, {});
 	}
 }
 
@@ -217,47 +217,47 @@ PositionLexeme position_lexeme(Lexeme const &lexeme)
 }
 
 NoeudDeclarationFonction *cherche_fonction_dans_module(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		DonneesModule *module,
 		dls::vue_chaine_compacte const &nom_fonction)
 {
-	auto ident = contexte.table_identifiants.identifiant_pour_chaine(nom_fonction);
+	auto ident = compilatrice.table_identifiants.identifiant_pour_chaine(nom_fonction);
 	auto decl = trouve_dans_bloc(module->bloc, ident);
 
 	return static_cast<NoeudDeclarationFonction *>(decl);
 }
 
 NoeudDeclarationFonction *cherche_fonction_dans_module(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		dls::vue_chaine_compacte const &nom_module,
 		dls::vue_chaine_compacte const &nom_fonction)
 {
-	auto module = contexte.module(nom_module);
-	return cherche_fonction_dans_module(contexte, module, nom_fonction);
+	auto module = compilatrice.module(nom_module);
+	return cherche_fonction_dans_module(compilatrice, module, nom_fonction);
 }
 
 NoeudDeclarationFonction *cherche_symbole_dans_module(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		DonneesModule *module,
 		dls::vue_chaine_compacte const &nom_fonction)
 {
-	auto ident = contexte.table_identifiants.identifiant_pour_chaine(nom_fonction);
+	auto ident = compilatrice.table_identifiants.identifiant_pour_chaine(nom_fonction);
 	auto decl = trouve_dans_bloc(module->bloc, ident);
 
 	return static_cast<NoeudDeclarationFonction *>(decl);
 }
 
 NoeudDeclarationFonction *cherche_symbole_dans_module(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		dls::vue_chaine_compacte const &nom_module,
 		dls::vue_chaine_compacte const &nom_fonction)
 {
-	auto module = contexte.module(nom_module);
-	return cherche_fonction_dans_module(contexte, module, nom_fonction);
+	auto module = compilatrice.module(nom_module);
+	return cherche_fonction_dans_module(compilatrice, module, nom_fonction);
 }
 
-void imprime_fichier_ligne(ContexteGenerationCode &contexte, const Lexeme &lexeme)
+void imprime_fichier_ligne(Compilatrice &compilatrice, const Lexeme &lexeme)
 {
-	auto fichier = contexte.fichier(static_cast<size_t>(lexeme.fichier));
+	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme.fichier));
 	std::cerr << fichier->chemin << ':' << lexeme.ligne + 1 << '\n';
 }

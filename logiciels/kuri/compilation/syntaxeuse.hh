@@ -31,7 +31,7 @@
 #include "erreur.h"
 #include "lexemes.hh"
 
-struct ContexteGenerationCode;
+struct Compilatrice;
 struct Fichier;
 struct NoeudBloc;
 struct NoeudExpression;
@@ -50,7 +50,7 @@ struct DonneesPrecedence {
 
 struct Syntaxeuse {
 private:
-	ContexteGenerationCode &m_contexte;
+	Compilatrice &m_compilatrice;
 	Fichier *m_fichier = nullptr;
 	dls::tableau<Lexeme> &m_lexemes;
 	long m_position = 0;
@@ -77,7 +77,7 @@ private:
 	dls::tablet<DonneesEtatSyntaxage, 33> m_donnees_etat_syntaxage{};
 
 public:
-	Syntaxeuse(ContexteGenerationCode &contexte,
+	Syntaxeuse(Compilatrice &compilatrice,
 			   Fichier *fichier,
 			   dls::chaine const &racine_kuri);
 

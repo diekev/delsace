@@ -30,7 +30,7 @@
 #include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/tablet.hh"
 
-struct ContexteGenerationCode;
+struct Compilatrice;
 struct NoeudBloc;
 struct NoeudDependance;
 struct NoeudDiscr;
@@ -76,7 +76,7 @@ private:
 	kuri::tableau<OpUnaireConstant *> op_unaires_constants{};
 	kuri::tableau<AccedeIndexConstant *> accede_index_constants{};
 
-	ContexteGenerationCode &m_contexte;
+	Compilatrice &m_compilatrice;
 
 	AtomeFonction *fonction_courante = nullptr;
 	kuri::tableau<InstructionAccedeMembre *> acces_membres{};
@@ -112,7 +112,7 @@ public:
 
 	double temps_generation = 0.0;
 
-	ConstructriceRI(ContexteGenerationCode &contexte);
+	ConstructriceRI(Compilatrice &compilatrice);
 
 	COPIE_CONSTRUCT(ConstructriceRI);
 
@@ -124,9 +124,9 @@ public:
 
 	size_t memoire_utilisee() const;
 
-	ContexteGenerationCode &contexte() const
+	Compilatrice &compilatrice() const
 	{
-		return m_contexte;
+		return m_compilatrice;
 	}
 
 private:

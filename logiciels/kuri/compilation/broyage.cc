@@ -28,7 +28,7 @@
 #include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "contexte_generation_code.h"
+#include "compilatrice.hh"
 #include "modules.hh"
 
 dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)

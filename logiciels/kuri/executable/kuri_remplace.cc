@@ -28,7 +28,7 @@
 
 #include "biblinternes/json/json.hh"
 
-#include "compilation/contexte_generation_code.h"
+#include "compilation/compilatrice.hh"
 #include "compilation/lexeuse.hh"
 #include "compilation/erreur.h"
 #include "compilation/outils_lexemes.hh"
@@ -133,12 +133,12 @@ static void reecris_fichier(
 			chemin = std::filesystem::absolute(chemin);
 		}
 
-		auto contexte = ContexteGenerationCode{};
-		auto tampon = charge_fichier(chemin.c_str(), contexte, {});
-		auto fichier = contexte.cree_fichier("", chemin.c_str());
+		auto compilatrice = Compilatrice{};
+		auto tampon = charge_fichier(chemin.c_str(), compilatrice, {});
+		auto fichier = compilatrice.cree_fichier("", chemin.c_str());
 		fichier->tampon = lng::tampon_source(tampon);
 
-		auto lexeuse = Lexeuse(contexte, fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
+		auto lexeuse = Lexeuse(compilatrice, fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
 		lexeuse.performe_lexage();
 
 		auto os = std::ofstream(chemin);

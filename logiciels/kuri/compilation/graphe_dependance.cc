@@ -24,7 +24,7 @@
 
 #include "graphe_dependance.hh"
 
-#include "contexte_generation_code.h"
+#include "compilatrice.hh"
 #include "modules.hh"
 #include "profilage.hh"
 

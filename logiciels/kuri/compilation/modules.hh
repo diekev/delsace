@@ -34,7 +34,7 @@
 
 class assembleuse_arbre;
 
-struct ContexteGenerationCode;
+struct Compilatrice;
 struct DonneesModule;
 struct IdentifiantCode;
 struct NoeudBase;
@@ -82,7 +82,7 @@ struct DonneesModule {
 	dls::chaine chemin{""};
 	bool importe = false;
 
-	DonneesModule(ContexteGenerationCode &contexte);
+	DonneesModule(Compilatrice &compilatrice);
 
 	~DonneesModule();
 
@@ -91,14 +91,14 @@ struct DonneesModule {
 
 dls::chaine charge_fichier(
 		dls::chaine const &chemin,
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Lexeme const &lexeme);
 
 void charge_fichier(std::ostream &os,
 		DonneesModule *module,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Lexeme const &lexeme);
 
 /**
@@ -124,7 +124,7 @@ void importe_module(
 		std::ostream &os,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Lexeme const &lexeme);
 
 /* ************************************************************************** */
@@ -137,26 +137,26 @@ struct PositionLexeme {
 
 PositionLexeme position_lexeme(Lexeme const &lexeme);
 
-void imprime_fichier_ligne(ContexteGenerationCode &contexte, Lexeme const &lexeme);
+void imprime_fichier_ligne(Compilatrice &compilatrice, Lexeme const &lexeme);
 
 /* ************************************************************************** */
 
 NoeudDeclarationFonction *cherche_fonction_dans_module(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		DonneesModule *module,
 		dls::vue_chaine_compacte const &nom_fonction);
 
 NoeudDeclarationFonction *cherche_fonction_dans_module(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		dls::vue_chaine_compacte const &nom_module,
 		dls::vue_chaine_compacte const &nom_fonction);
 
 NoeudDeclarationFonction *cherche_symbole_dans_module(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		DonneesModule *module,
 		dls::vue_chaine_compacte const &nom_fonction);
 
 NoeudDeclarationFonction *cherche_symbole_dans_module(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		dls::vue_chaine_compacte const &nom_module,
 		dls::vue_chaine_compacte const &nom_fonction);

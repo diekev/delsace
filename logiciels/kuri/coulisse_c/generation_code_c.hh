@@ -26,7 +26,7 @@
 
 #include "biblinternes/structures/chaine.hh"
 
-struct ContexteGenerationCode;
+struct Compilatrice;
 struct ConstructriceRI;
 struct NoeudExpression;
 
@@ -38,7 +38,7 @@ void genere_code_C(ConstructriceRI &constructrice_ri,
 
 void genere_code_C_pour_execution(
 		NoeudExpression *noeud_appel,
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);
 

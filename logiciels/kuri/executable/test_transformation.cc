@@ -22,7 +22,7 @@
  *
  */
 
-#include "compilation/contexte_generation_code.h"
+#include "compilation/compilatrice.hh"
 #include "compilation/typage.hh"
 #include "compilation/validation_semantique.hh"
 
@@ -31,13 +31,13 @@
 #include "biblinternes/structures/dico_fixe.hh"
 
 static void verifie_transformation(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Type *type1,
 		Type *type2,
 		bool est_possible)
 {
-	auto contexte_validation = noeud::ContexteValidationCode(contexte);
-	auto transformation = cherche_transformation(contexte, contexte_validation, type1, type2);
+	auto contexte = noeud::ContexteValidationCode(compilatrice);
+	auto transformation = cherche_transformation(compilatrice, contexte, type1, type2);
 
 	if (est_possible && transformation.type == TypeTransformation::IMPOSSIBLE) {
 		std::cerr << "ERREUR la transformation entre ";
@@ -80,64 +80,64 @@ static void verifie_transformation(
 }
 
 static void verifie_transformation(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Typeuse const &typeuse,
 		TypeBase type1,
 		TypeBase type2,
 		bool est_possible)
 {
-	verifie_transformation(contexte, typeuse[type1], typeuse[type2], est_possible);
+	verifie_transformation(compilatrice, typeuse[type1], typeuse[type2], est_possible);
 }
 
 int main()
 {
-	auto contexte = ContexteGenerationCode();
-	auto &typeuse = contexte.typeuse;
+	auto compilatrice = Compilatrice();
+	auto &typeuse = compilatrice.typeuse;
 
 	auto dt_tabl_fixe = typeuse.type_tableau_fixe(typeuse[TypeBase::Z32], 8);
 	auto dt_tabl_dyn = typeuse.type_tableau_dynamique(typeuse[TypeBase::Z32]);
 
-	verifie_transformation(contexte, typeuse, TypeBase::N8, TypeBase::N8, true);
-	verifie_transformation(contexte, typeuse, TypeBase::N8, TypeBase::REF_N8, true);
-	verifie_transformation(contexte, typeuse, TypeBase::REF_N8, TypeBase::N8, true);
-	verifie_transformation(contexte, typeuse, TypeBase::N8, TypeBase::PTR_N8, false);
-	verifie_transformation(contexte, typeuse, TypeBase::PTR_N8, TypeBase::N8, false);
-	verifie_transformation(contexte, typeuse, TypeBase::N8, TypeBase::Z8, false);
-	verifie_transformation(contexte, typeuse, TypeBase::N8, TypeBase::REF_Z8, false);
-	verifie_transformation(contexte, typeuse, TypeBase::N8, TypeBase::PTR_Z8, false);
-	verifie_transformation(contexte, typeuse, TypeBase::N8, TypeBase::N64, true);
-	verifie_transformation(contexte, typeuse, TypeBase::N8, TypeBase::REF_N64, false);
-	verifie_transformation(contexte, typeuse, TypeBase::N8, TypeBase::CHAINE, false);
-	verifie_transformation(contexte, typeuse, TypeBase::R64, TypeBase::N8, false);
-	verifie_transformation(contexte, typeuse, TypeBase::R64, TypeBase::EINI, true);
-	verifie_transformation(contexte, typeuse, TypeBase::EINI, TypeBase::R64, true);
-	verifie_transformation(contexte, typeuse, TypeBase::EINI, TypeBase::EINI, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::N8, TypeBase::N8, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::N8, TypeBase::REF_N8, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::REF_N8, TypeBase::N8, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::N8, TypeBase::PTR_N8, false);
+	verifie_transformation(compilatrice, typeuse, TypeBase::PTR_N8, TypeBase::N8, false);
+	verifie_transformation(compilatrice, typeuse, TypeBase::N8, TypeBase::Z8, false);
+	verifie_transformation(compilatrice, typeuse, TypeBase::N8, TypeBase::REF_Z8, false);
+	verifie_transformation(compilatrice, typeuse, TypeBase::N8, TypeBase::PTR_Z8, false);
+	verifie_transformation(compilatrice, typeuse, TypeBase::N8, TypeBase::N64, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::N8, TypeBase::REF_N64, false);
+	verifie_transformation(compilatrice, typeuse, TypeBase::N8, TypeBase::CHAINE, false);
+	verifie_transformation(compilatrice, typeuse, TypeBase::R64, TypeBase::N8, false);
+	verifie_transformation(compilatrice, typeuse, TypeBase::R64, TypeBase::EINI, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::EINI, TypeBase::R64, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::EINI, TypeBase::EINI, true);
 	// test []octet -> eini => CONSTRUIT_EINI et non EXTRAIT_TABL_OCTET
-	verifie_transformation(contexte, typeuse, TypeBase::TABL_OCTET, TypeBase::EINI, true);
-	verifie_transformation(contexte, typeuse, TypeBase::EINI, TypeBase::TABL_OCTET, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::TABL_OCTET, TypeBase::EINI, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::EINI, TypeBase::TABL_OCTET, true);
 
-	verifie_transformation(contexte, typeuse, TypeBase::PTR_Z8, TypeBase::PTR_NUL, true);
-	verifie_transformation(contexte, typeuse, TypeBase::PTR_Z8, TypeBase::PTR_RIEN, true);
-	verifie_transformation(contexte, typeuse, TypeBase::PTR_Z8, TypeBase::PTR_OCTET, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::PTR_Z8, TypeBase::PTR_NUL, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::PTR_Z8, TypeBase::PTR_RIEN, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::PTR_Z8, TypeBase::PTR_OCTET, true);
 
-	verifie_transformation(contexte, typeuse, TypeBase::PTR_NUL, TypeBase::PTR_Z8, true);
-	verifie_transformation(contexte, typeuse, TypeBase::PTR_RIEN, TypeBase::PTR_Z8, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::PTR_NUL, TypeBase::PTR_Z8, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::PTR_RIEN, TypeBase::PTR_Z8, true);
 
 	// test [4]z32 -> []z32 et [4]z32 -> eini
-	verifie_transformation(contexte, typeuse, TypeBase::TABL_N8, TypeBase::TABL_OCTET, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::TABL_N8, TypeBase::TABL_OCTET, true);
 
-	verifie_transformation(contexte, dt_tabl_fixe, dt_tabl_dyn, true);
+	verifie_transformation(compilatrice, dt_tabl_fixe, dt_tabl_dyn, true);
 
 	auto dt_eini = typeuse[TypeBase::EINI];
 
-	verifie_transformation(contexte, dt_tabl_fixe, dt_eini, true);
+	verifie_transformation(compilatrice, dt_tabl_fixe, dt_eini, true);
 
 	auto dt_tabl_octet = typeuse[TypeBase::TABL_OCTET];
-	verifie_transformation(contexte, dt_tabl_fixe, dt_tabl_octet, true);
+	verifie_transformation(compilatrice, dt_tabl_fixe, dt_tabl_octet, true);
 
 	/* test : appel fonction */
-	verifie_transformation(contexte, typeuse, TypeBase::R16, TypeBase::R32, true);
-	verifie_transformation(contexte, typeuse, TypeBase::R32, TypeBase::R16, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::R16, TypeBase::R32, true);
+	verifie_transformation(compilatrice, typeuse, TypeBase::R32, TypeBase::R16, true);
 
 	// test nul -> fonc()
 

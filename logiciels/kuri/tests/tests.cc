@@ -33,7 +33,7 @@
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "compilation/assembleuse_arbre.h"
-#include "compilation/contexte_generation_code.h"
+#include "compilation/compilatrice.hh"
 #include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 #include "compilation/syntaxeuse.hh"
@@ -282,26 +282,26 @@ static erreur::type_erreur lance_test(lng::tampon_source &tampon)
 	std::filesystem::current_path("/opt/bin/kuri/fichiers_tests/fichiers/");
 
 	auto const &chemin_racine_kuri = getenv("RACINE_KURI");
-	auto contexte = ContexteGenerationCode{};
+	auto compilatrice = Compilatrice{};
 
 	/* Charge d'abord le module basique, car nous en avons besoin pour le type ContexteProgramme. */
 	auto os = std::ostream(nullptr);
-	importe_module(os, chemin_racine_kuri, "Kuri", contexte, {});
+	importe_module(os, chemin_racine_kuri, "Kuri", compilatrice, {});
 
 	/* Ne nomme pas le module, car c'est le module racine. */
-	auto module = contexte.cree_module("", "");
-	auto fichier = contexte.cree_fichier("", "");
+	auto module = compilatrice.cree_module("", "");
+	auto fichier = compilatrice.cree_fichier("", "");
 	fichier->tampon = tampon;
 	fichier->module = module;
 
 	try {
-		Lexeuse lexeuse(contexte, fichier);
+		Lexeuse lexeuse(compilatrice, fichier);
 		lexeuse.performe_lexage();
 
-		auto analyseuse = Syntaxeuse(contexte, fichier, "");
+		auto analyseuse = Syntaxeuse(compilatrice, fichier, "");
 		analyseuse.lance_analyse(os);
 
-		noeud::performe_validation_semantique(contexte);
+		noeud::performe_validation_semantique(compilatrice);
 	}
 	catch (const erreur::frappe &e) {
 		std::filesystem::current_path(chemin_courant);
@@ -383,10 +383,10 @@ int main()
 		auto chemin = std::filesystem::path("fichiers_tests/") / it.source;
 
 		if (std::filesystem::exists(chemin)) {
-			auto contexte = ContexteGenerationCode{};
-			contexte.importe_kuri = false;
+			auto compilatrice = Compilatrice{};
+			compilatrice.importe_kuri = false;
 
-			auto contenu_fichier = charge_fichier(chemin.c_str(), contexte, {});
+			auto contenu_fichier = charge_fichier(chemin.c_str(), compilatrice, {});
 			auto tampon = lng::tampon_source(contenu_fichier);
 
 			if (tampon.nombre_lignes() == 0) {

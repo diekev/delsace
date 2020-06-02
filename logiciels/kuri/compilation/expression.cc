@@ -26,7 +26,7 @@
 
 #include "biblinternes/outils/conditions.h"
 
-#include "contexte_generation_code.h"
+#include "compilatrice.hh"
 #include "outils_lexemes.hh"
 #include "portee.hh"
 
@@ -221,7 +221,7 @@ static auto applique_operateur_binaire_comp(GenreLexeme id, T a, T b)
  * étape sera de pouvoir évaluer des fonctions entières.
  */
 ResultatExpression evalue_expression(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		NoeudBloc *bloc,
 		NoeudExpression *b)
 {
@@ -268,7 +268,7 @@ ResultatExpression evalue_expression(
 			}
 
 			// À FAIRE : stockage de la valeur
-			return evalue_expression(contexte, decl->bloc_parent, decl_var->expression);
+			return evalue_expression(compilatrice, decl->bloc_parent, decl_var->expression);
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
@@ -318,7 +318,7 @@ ResultatExpression evalue_expression(
 		{
 			auto inst = static_cast<NoeudSi *>(b);
 
-			auto res = evalue_expression(contexte, bloc, inst->condition);
+			auto res = evalue_expression(compilatrice, bloc, inst->condition);
 
 			if (res.est_errone) {
 				return res;
@@ -332,11 +332,11 @@ ResultatExpression evalue_expression(
 			}
 
 			if (res.condition == (b->genre == GenreNoeud::INSTRUCTION_SI)) {
-				res = evalue_expression(contexte, bloc, inst->bloc_si_vrai);
+				res = evalue_expression(compilatrice, bloc, inst->bloc_si_vrai);
 			}
 			else {
 				if (inst->bloc_si_faux) {
-					res = evalue_expression(contexte, bloc, inst->bloc_si_faux);
+					res = evalue_expression(compilatrice, bloc, inst->bloc_si_faux);
 				}
 			}
 
@@ -345,7 +345,7 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
 			auto inst = static_cast<NoeudExpressionUnaire *>(b);
-			auto res = evalue_expression(contexte, bloc, inst->expr);
+			auto res = evalue_expression(compilatrice, bloc, inst->expr);
 
 			if (res.est_errone) {
 				return res;
@@ -363,13 +363,13 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		{
 			auto inst = static_cast<NoeudExpressionBinaire *>(b);
-			auto res1 = evalue_expression(contexte, bloc, inst->expr1);
+			auto res1 = evalue_expression(compilatrice, bloc, inst->expr1);
 
 			if (res1.est_errone) {
 				return res1;
 			}
 
-			auto res2 = evalue_expression(contexte, bloc, inst->expr2);
+			auto res2 = evalue_expression(compilatrice, bloc, inst->expr2);
 
 			if (res2.est_errone) {
 				return res2;
@@ -400,13 +400,13 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
 			auto inst = static_cast<NoeudExpressionUnaire *>(b);
-			return evalue_expression(contexte, bloc, inst->expr);
+			return evalue_expression(compilatrice, bloc, inst->expr);
 		}
 		case GenreNoeud::EXPRESSION_COMME:
 		{
 			/* À FAIRE : transtypage de l'expression constante */
 			auto inst = static_cast<NoeudExpressionBinaire *>(b);
-			return evalue_expression(contexte, bloc, inst->expr1);
+			return evalue_expression(compilatrice, bloc, inst->expr1);
 		}
 	}
 }

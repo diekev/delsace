@@ -42,7 +42,7 @@
 
 struct Atome;
 struct InstructionLabel;
-struct ContexteGenerationCode;
+struct Compilatrice;
 struct ConstructriceRI;
 struct Type;
 struct TypeFonction;
@@ -54,7 +54,7 @@ struct GeneratriceCodeLLVM {
 	dls::dico<Atome const *, llvm::Value *> table_globales{};
 	dls::dico_desordonne<Type *, llvm::Type *> table_types{};
 	dls::dico_desordonne<dls::chaine, llvm::Constant *> valeurs_chaines_globales{};
-	ContexteGenerationCode &m_contexte;
+	Compilatrice &m_compilatrice;
 
 	llvm::Function *m_fonction_courante = nullptr;
 	llvm::LLVMContext m_contexte_llvm{};
@@ -62,7 +62,7 @@ struct GeneratriceCodeLLVM {
 	llvm::IRBuilder<> m_builder;
 	llvm::legacy::FunctionPassManager *manager_fonctions = nullptr;
 
-	GeneratriceCodeLLVM(ContexteGenerationCode &contexte);
+	GeneratriceCodeLLVM(Compilatrice &compilatrice);
 
 	GeneratriceCodeLLVM(GeneratriceCodeLLVM const &) = delete;
 	GeneratriceCodeLLVM &operator=(const GeneratriceCodeLLVM &) = delete;

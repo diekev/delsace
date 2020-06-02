@@ -26,7 +26,7 @@
 
 #include <cstring>
 
-#include "compilation/contexte_generation_code.h"  // pour DonneesModule
+#include "compilation/compilatrice.hh"  // pour DonneesModule
 #include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 
@@ -147,9 +147,9 @@ Lexeuse lexeuse(str, str + len);
 	auto fichier = Fichier{};
 	fichier.tampon = lng::tampon_source(texte);
 
-	auto contexte = ContexteGenerationCode();
+	auto compilatrice = Compilatrice();
 
-	Lexeuse lexeuse(contexte, &fichier);
+	Lexeuse lexeuse(compilatrice, &fichier);
 	lexeuse.performe_lexage();
 
 	return verifie_lexemes(fichier.lexemes.debut(),

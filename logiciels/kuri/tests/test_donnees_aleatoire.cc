@@ -24,7 +24,7 @@
 
 #include "compilation/syntaxeuse.hh"
 #include "compilation/assembleuse_arbre.h"
-#include "compilation/contexte_generation_code.h"
+#include "compilation/compilatrice.hh"
 #include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 
@@ -50,16 +50,16 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 			texte.pousse(donnees_char[i]);
 		}
 
-		auto contexte = ContexteGenerationCode{};
-		auto fichier = contexte.cree_fichier("", "");
+		auto compilatrice = Compilatrice{};
+		auto fichier = compilatrice.cree_fichier("", "");
 		fichier->tampon = lng::tampon_source(texte);
 
-		Lexeuse lexeuse(contexte, fichier);
+		Lexeuse lexeuse(compilatrice, fichier);
 		lexeuse.performe_lexage();
 
-		auto assembleuse = assembleuse_arbre(contexte);
-		contexte.assembleuse = &assembleuse;
-		auto analyseuse = Syntaxeuse(contexte, fichier, "");
+		auto assembleuse = assembleuse_arbre(compilatrice);
+		compilatrice.assembleuse = &assembleuse;
+		auto analyseuse = Syntaxeuse(compilatrice, fichier, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);
@@ -474,13 +474,13 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	}
 
 	try {
-		auto contexte = ContexteGenerationCode{};
-		auto fichier = contexte.cree_fichier("", "");
+		auto compilatrice = Compilatrice{};
+		auto fichier = compilatrice.cree_fichier("", "");
 		fichier->tampon = lng::tampon_source("texte_test");
 		fichier->lexemes = lexemes;
-		auto assembleuse = assembleuse_arbre(contexte);
-		contexte.assembleuse = &assembleuse;
-		auto analyseuse = Syntaxeuse(contexte, fichier, "");
+		auto assembleuse = assembleuse_arbre(compilatrice);
+		compilatrice.assembleuse = &assembleuse;
+		auto analyseuse = Syntaxeuse(compilatrice, fichier, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);

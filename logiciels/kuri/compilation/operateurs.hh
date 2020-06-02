@@ -33,7 +33,7 @@
 #include "transformation_type.hh"
 
 enum class GenreLexeme : unsigned int;
-struct ContexteGenerationCode;
+struct Compilatrice;
 struct NoeudDeclarationFonction;
 struct Type;
 
@@ -166,7 +166,7 @@ OperateurUnaire const *cherche_operateur_unaire(
 		GenreLexeme type_op);
 
 void enregistre_operateurs_basiques(
-	ContexteGenerationCode &contexte,
+	Compilatrice &compilatrice,
 	Operateurs &operateurs);
 
 struct OperateurCandidat {
@@ -182,8 +182,8 @@ struct OperateurCandidat {
 };
 
 dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
-		ContexteGenerationCode &contexte,
-		noeud::ContexteValidationCode &contexte_validation,
+		Compilatrice &compilatrice,
+		noeud::ContexteValidationCode &contexte,
 		Type *type1,
 		Type *type2,
 		GenreLexeme type_op);

@@ -38,7 +38,7 @@ set(SOURCES
 	arbre_syntactic.h
 	assembleuse_arbre.h
 	broyage.hh
-	contexte_generation_code.h
+	compilatrice.hh
 	erreur.h
 	expression.h
 	graphe_dependance.hh
@@ -60,7 +60,7 @@ set(SOURCES
 	arbre_syntactic.cc
 	assembleuse_arbre.cc
 	broyage.cc
-	contexte_generation_code.cc
+	compilatrice.cc
 	erreur.cc
 	expression.cc
 	graphe_dependance.cc

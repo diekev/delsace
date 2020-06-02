@@ -27,7 +27,7 @@
 #include "lexemes.hh"
 #include "structures.hh"
 
-struct ContexteGenerationCode;
+struct Compilatrice;
 struct Fichier;
 
 enum {
@@ -36,7 +36,7 @@ enum {
 };
 
 class Lexeuse {
-	ContexteGenerationCode &m_contexte;
+	Compilatrice &m_compilatrice;
 	Fichier *m_fichier;
 	const char *m_debut_mot = nullptr;
 	const char *m_debut = nullptr;
@@ -51,7 +51,7 @@ class Lexeuse {
 	GenreLexeme m_dernier_id = GenreLexeme::INCONNU;
 
 public:
-	Lexeuse(ContexteGenerationCode &contexte, Fichier *fichier, int drapeaux = 0);
+	Lexeuse(Compilatrice &compilatrice, Fichier *fichier, int drapeaux = 0);
 
 	void performe_lexage();
 

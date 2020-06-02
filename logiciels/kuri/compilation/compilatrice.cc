@@ -22,12 +22,12 @@
  *
  */
 
-#include "contexte_generation_code.h"
+#include "compilatrice.hh"
 
 #include "assembleuse_arbre.h"
 #include "modules.hh"
 
-ContexteGenerationCode::ContexteGenerationCode()
+Compilatrice::Compilatrice()
 	: assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", *this))
 	, typeuse(graphe_dependance, this->operateurs)
 {
@@ -45,7 +45,7 @@ ContexteGenerationCode::ContexteGenerationCode()
 	this->definitions.pousse("_REENTRANT");
 }
 
-ContexteGenerationCode::~ContexteGenerationCode()
+Compilatrice::~Compilatrice()
 {
 	for (auto module : modules) {
 		memoire::deloge("DonneesModule", module);
@@ -60,7 +60,7 @@ ContexteGenerationCode::~ContexteGenerationCode()
 
 /* ************************************************************************** */
 
-DonneesModule *ContexteGenerationCode::cree_module(
+DonneesModule *Compilatrice::cree_module(
 		dls::chaine const &nom,
 		dls::chaine const &chemin)
 {
@@ -86,12 +86,12 @@ DonneesModule *ContexteGenerationCode::cree_module(
 	return module;
 }
 
-DonneesModule *ContexteGenerationCode::module(size_t index) const
+DonneesModule *Compilatrice::module(size_t index) const
 {
 	return modules[static_cast<long>(index)];
 }
 
-DonneesModule *ContexteGenerationCode::module(const dls::vue_chaine_compacte &nom) const
+DonneesModule *Compilatrice::module(const dls::vue_chaine_compacte &nom) const
 {
 	for (auto module : modules) {
 		if (module->nom == nom) {
@@ -102,7 +102,7 @@ DonneesModule *ContexteGenerationCode::module(const dls::vue_chaine_compacte &no
 	return nullptr;
 }
 
-bool ContexteGenerationCode::module_existe(const dls::vue_chaine_compacte &nom) const
+bool Compilatrice::module_existe(const dls::vue_chaine_compacte &nom) const
 {
 	for (auto module : modules) {
 		if (module->nom == nom) {
@@ -115,7 +115,7 @@ bool ContexteGenerationCode::module_existe(const dls::vue_chaine_compacte &nom) 
 
 /* ************************************************************************** */
 
-Fichier *ContexteGenerationCode::cree_fichier(
+Fichier *Compilatrice::cree_fichier(
 		dls::chaine const &nom,
 		dls::chaine const &chemin)
 {
@@ -139,12 +139,12 @@ Fichier *ContexteGenerationCode::cree_fichier(
 	return fichier;
 }
 
-Fichier *ContexteGenerationCode::fichier(size_t index) const
+Fichier *Compilatrice::fichier(size_t index) const
 {
 	return fichiers[static_cast<long>(index)];
 }
 
-Fichier *ContexteGenerationCode::fichier(const dls::vue_chaine_compacte &nom) const
+Fichier *Compilatrice::fichier(const dls::vue_chaine_compacte &nom) const
 {
 	for (auto fichier : fichiers) {
 		if (fichier->nom == nom) {
@@ -155,7 +155,7 @@ Fichier *ContexteGenerationCode::fichier(const dls::vue_chaine_compacte &nom) co
 	return nullptr;
 }
 
-bool ContexteGenerationCode::fichier_existe(const dls::vue_chaine_compacte &nom) const
+bool Compilatrice::fichier_existe(const dls::vue_chaine_compacte &nom) const
 {
 	for (auto fichier : fichiers) {
 		if (fichier->nom == nom) {
@@ -168,7 +168,7 @@ bool ContexteGenerationCode::fichier_existe(const dls::vue_chaine_compacte &nom)
 
 /* ************************************************************************** */
 
-void ContexteGenerationCode::ajoute_inclusion(const dls::chaine &fichier)
+void Compilatrice::ajoute_inclusion(const dls::chaine &fichier)
 {
 	if (deja_inclus.trouve(fichier) != deja_inclus.fin()) {
 		return;
@@ -180,9 +180,9 @@ void ContexteGenerationCode::ajoute_inclusion(const dls::chaine &fichier)
 
 /* ************************************************************************** */
 
-size_t ContexteGenerationCode::memoire_utilisee() const
+size_t Compilatrice::memoire_utilisee() const
 {
-	auto memoire = sizeof(ContexteGenerationCode);
+	auto memoire = sizeof(Compilatrice);
 
 	memoire += static_cast<size_t>(deja_inclus.taille()) * sizeof(dls::chaine);
 	POUR (deja_inclus) {
@@ -240,7 +240,7 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 	return memoire;
 }
 
-Metriques ContexteGenerationCode::rassemble_metriques() const
+Metriques Compilatrice::rassemble_metriques() const
 {
 	auto metriques = Metriques{};
 	metriques.nombre_modules  = static_cast<size_t>(modules.taille());

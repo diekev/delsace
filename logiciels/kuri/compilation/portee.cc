@@ -27,7 +27,7 @@
 #include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntactic.h"
-#include "contexte_generation_code.h"
+#include "compilatrice.hh"
 #include "modules.hh"
 #include "profilage.hh"
 
@@ -87,7 +87,7 @@ NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudBase *noeud)
 }
 
 NoeudDeclaration *trouve_dans_bloc_ou_module(
-		ContexteGenerationCode const &contexte,
+		Compilatrice const &compilatrice,
 		NoeudBloc *bloc,
 		IdentifiantCode *ident,
 		Fichier *fichier)
@@ -103,7 +103,7 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
 	/* cherche dans les modules importés */
 	dls::pour_chaque_element(fichier->modules_importes, [&](auto &nom_module)
 	{
-		auto module = contexte.module(nom_module);
+		auto module = compilatrice.module(nom_module);
 
 		decl = trouve_dans_bloc(module->bloc, ident);
 
@@ -143,7 +143,7 @@ NoeudDeclaration *trouve_type_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 }
 
 NoeudDeclaration *trouve_type_dans_bloc_ou_module(
-		ContexteGenerationCode const &contexte,
+		Compilatrice const &compilatrice,
 		NoeudBloc *bloc,
 		IdentifiantCode *ident,
 		Fichier *fichier)
@@ -159,7 +159,7 @@ NoeudDeclaration *trouve_type_dans_bloc_ou_module(
 	/* cherche dans les modules importés */
 	dls::pour_chaque_element(fichier->modules_importes, [&](auto &nom_module)
 	{
-		auto module = contexte.module(nom_module);
+		auto module = compilatrice.module(nom_module);
 
 		decl = trouve_type_dans_bloc(module->bloc, ident);
 
@@ -194,7 +194,7 @@ void trouve_declarations_dans_bloc(
 }
 
 void trouve_declarations_dans_bloc_ou_module(
-		ContexteGenerationCode const &contexte,
+		Compilatrice const &compilatrice,
 		dls::tableau<NoeudDeclaration *> &declarations,
 		NoeudBloc *bloc,
 		IdentifiantCode *ident,
@@ -207,7 +207,7 @@ void trouve_declarations_dans_bloc_ou_module(
 	/* cherche dans les modules importés */
 	dls::pour_chaque_element(fichier->modules_importes, [&](auto& nom_module)
 	{
-		auto module = contexte.module(nom_module);
+		auto module = compilatrice.module(nom_module);
 		trouve_declarations_dans_bloc(declarations, module->bloc, ident);
 		return dls::DecisionIteration::Continue;
 	});

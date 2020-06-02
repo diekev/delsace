@@ -28,7 +28,7 @@
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/matrice_eparse.hh"
 
-#include "compilation/contexte_generation_code.h"
+#include "compilation/compilatrice.hh"
 #include "compilation/lexeuse.hh"
 #include "compilation/erreur.h"
 #include "compilation/modules.hh"
@@ -137,12 +137,12 @@ int main(int argc, char **argv)
 			chemin = std::filesystem::absolute(chemin);
 		}
 
-		auto contexte = ContexteGenerationCode{};
-		auto tampon = charge_fichier(chemin.c_str(), contexte, {});
-		auto fichier = contexte.cree_fichier("", chemin.c_str());
+		auto compilatrice = Compilatrice{};
+		auto tampon = charge_fichier(chemin.c_str(), compilatrice, {});
+		auto fichier = compilatrice.cree_fichier("", chemin.c_str());
 		fichier->tampon = lng::tampon_source(tampon);
 
-		auto lexeuse = Lexeuse(contexte, fichier);
+		auto lexeuse = Lexeuse(compilatrice, fichier);
 		lexeuse.performe_lexage();
 
 		test_markov_id_simple(fichier->lexemes);

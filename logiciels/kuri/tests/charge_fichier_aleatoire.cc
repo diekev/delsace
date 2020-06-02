@@ -26,7 +26,7 @@
 #include <iostream>
 
 #include "compilation/syntaxeuse.hh"
-#include "compilation/contexte_generation_code.h"
+#include "compilation/compilatrice.hh"
 #include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 
@@ -49,11 +49,11 @@ int main(int argc, char *argv[])
 
 #if 1
 	try {
-		auto contexte = ContexteGenerationCode{};
-		auto module = contexte.cree_fichier("", "");
+		auto compilatrice = Compilatrice{};
+		auto module = compilatrice.cree_fichier("", "");
 		auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
 		module->tampon = lng::tampon_source(dls::chaine(vue_donnees));
-		auto lexeuse = Lexeuse(contexte, module);
+		auto lexeuse = Lexeuse(compilatrice, module);
 		lexeuse.performe_lexage();
 	}
 	catch (erreur::frappe const &e) {
@@ -80,13 +80,13 @@ int main(int argc, char *argv[])
 	std::cerr << "Il y a " << nombre_morceaux << " morceaux.\n";
 
 	try {
-		auto contexte = ContexteGenerationCode{};
-		auto module = contexte.cree_module("", "");
+		auto compilatrice = Compilatrice{};
+		auto module = compilatrice.cree_module("", "");
 		module->tampon = lng::tampon_source("texte_test");
 		module->morceaux = morceaux;
-		auto assembleuse = assembleuse_arbre(contexte);
-		contexte.assembleuse = &assembleuse;
-		auto analyseuse = Syntaxeuse(contexte, module, "");
+		auto assembleuse = assembleuse_arbre(compilatrice);
+		compilatrice.assembleuse = &assembleuse;
+		auto analyseuse = Syntaxeuse(compilatrice, module, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);

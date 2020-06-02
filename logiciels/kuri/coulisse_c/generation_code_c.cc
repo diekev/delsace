@@ -362,7 +362,7 @@ static bool peut_etre_dereference(Type *type)
 }
 
 static void genere_typedefs_recursifs(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Type *type,
 		Enchaineuse &enchaineuse)
 {
@@ -390,7 +390,7 @@ static void genere_typedefs_recursifs(
 		}
 
 		if ((type_deref->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-			genere_typedefs_recursifs(contexte, type_deref, enchaineuse);
+			genere_typedefs_recursifs(compilatrice, type_deref, enchaineuse);
 		}
 
 		type_deref->drapeaux |= TYPEDEF_FUT_GENERE;
@@ -401,7 +401,7 @@ static void genere_typedefs_recursifs(
 
 		POUR (type_fonc->types_entrees) {
 			if ((it->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-				genere_typedefs_recursifs(contexte, it, enchaineuse);
+				genere_typedefs_recursifs(compilatrice, it, enchaineuse);
 			}
 
 			it->drapeaux |= TYPEDEF_FUT_GENERE;
@@ -409,7 +409,7 @@ static void genere_typedefs_recursifs(
 
 		POUR (type_fonc->types_sorties) {
 			if ((it->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-				genere_typedefs_recursifs(contexte, it, enchaineuse);
+				genere_typedefs_recursifs(compilatrice, it, enchaineuse);
 			}
 
 			it->drapeaux |= TYPEDEF_FUT_GENERE;
@@ -421,28 +421,28 @@ static void genere_typedefs_recursifs(
 }
 
 static void genere_typedefs_pour_tous_les_types(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Enchaineuse &enchaineuse)
 {
-	POUR (contexte.typeuse.types_simples) genere_typedefs_recursifs(contexte, it, enchaineuse);
-	POUR (contexte.typeuse.types_structures) genere_typedefs_recursifs(contexte, it, enchaineuse);
-	POUR (contexte.typeuse.types_enums) genere_typedefs_recursifs(contexte, it, enchaineuse);
-	POUR (contexte.typeuse.types_tableaux_fixes) genere_typedefs_recursifs(contexte, it, enchaineuse);
-	POUR (contexte.typeuse.types_tableaux_dynamiques) genere_typedefs_recursifs(contexte, it, enchaineuse);
-	POUR (contexte.typeuse.types_pointeurs) genere_typedefs_recursifs(contexte, it, enchaineuse);
-	POUR (contexte.typeuse.types_references) genere_typedefs_recursifs(contexte, it, enchaineuse);
-	POUR (contexte.typeuse.types_fonctions) genere_typedefs_recursifs(contexte, it, enchaineuse);
-	POUR (contexte.typeuse.types_unions) genere_typedefs_recursifs(contexte, it, enchaineuse);
+	POUR (compilatrice.typeuse.types_simples) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
+	POUR (compilatrice.typeuse.types_structures) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
+	POUR (compilatrice.typeuse.types_enums) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
+	POUR (compilatrice.typeuse.types_tableaux_fixes) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
+	POUR (compilatrice.typeuse.types_tableaux_dynamiques) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
+	POUR (compilatrice.typeuse.types_pointeurs) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
+	POUR (compilatrice.typeuse.types_references) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
+	POUR (compilatrice.typeuse.types_fonctions) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
+	POUR (compilatrice.typeuse.types_unions) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
 }
 
 // ----------------------------------------------
 
 static void genere_code_debut_fichier(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Enchaineuse &enchaineuse,
 		dls::chaine const &racine_kuri)
 {
-	for (auto const &inc : contexte.inclusions) {
+	for (auto const &inc : compilatrice.inclusions) {
 		enchaineuse << "#include <" << inc << ">\n";
 	}
 
@@ -479,9 +479,9 @@ R"(
 	enchaineuse << "static void gere_erreur_segmentation(int s)\n";
 	enchaineuse << "{\n";
 	enchaineuse << "    if (s == SIGSEGV) {\n";
-	enchaineuse << "        " << contexte.interface_kuri.decl_panique->nom_broye << "(\"erreur de ségmentation dans une fonction\");\n";
+	enchaineuse << "        " << compilatrice.interface_kuri.decl_panique->nom_broye << "(\"erreur de ségmentation dans une fonction\");\n";
 	enchaineuse << "    }\n";
-	enchaineuse << "    " << contexte.interface_kuri.decl_panique->nom_broye << "(\"erreur inconnue\");\n";
+	enchaineuse << "    " << compilatrice.interface_kuri.decl_panique->nom_broye << "(\"erreur inconnue\");\n";
 	enchaineuse << "}\n";
 #endif
 
@@ -504,7 +504,7 @@ R"(
 struct GeneratriceCodeC {
 	dls::dico<Atome const *, dls::chaine> table_valeurs{};
 	dls::dico<Atome const *, dls::chaine> table_globales{};
-	ContexteGenerationCode &m_contexte;
+	Compilatrice &m_compilatrice;
 	AtomeFonction const *m_fonction_courante = nullptr;
 
 	// les atomes pour les chaines peuvent être générés plusieurs fois (notamment
@@ -512,8 +512,8 @@ struct GeneratriceCodeC {
 	// index pour les rendre uniques
 	int index_chaine = 0;
 
-	GeneratriceCodeC(ContexteGenerationCode &contexte)
-		: m_contexte(contexte)
+	GeneratriceCodeC(Compilatrice &compilatrice)
+		: m_compilatrice(compilatrice)
 	{}
 
 	COPIE_CONSTRUCT(GeneratriceCodeC);
@@ -738,7 +738,7 @@ struct GeneratriceCodeC {
 				auto inst_appel = static_cast<InstructionAppel const *>(inst);
 
 				auto const &lexeme = inst_appel->lexeme;
-				auto fichier = m_contexte.fichier(static_cast<size_t>(lexeme->fichier));
+				auto fichier = m_compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
 				auto pos = position_lexeme(*lexeme);
 
 				if (!m_fonction_courante->sanstrace) {
@@ -1295,7 +1295,7 @@ struct GeneratriceCodeC {
 						os << "INITIALISE_TRACE_APPEL(\"";
 
 						if (atome_fonc->lexeme != nullptr) {
-							auto fichier = m_contexte.fichier(static_cast<size_t>(atome_fonc->lexeme->fichier));
+							auto fichier = m_compilatrice.fichier(static_cast<size_t>(atome_fonc->lexeme->fichier));
 							os << atome_fonc->lexeme->chaine << "\", "
 							   << atome_fonc->lexeme->chaine.taille() << ", \""
 							   << fichier->nom << ".kuri\", "
@@ -1348,10 +1348,10 @@ void genere_code_C(
 
 	Enchaineuse enchaineuse;
 
-	genere_code_debut_fichier(constructrice_ri.contexte(), enchaineuse, racine_kuri);
-	genere_typedefs_pour_tous_les_types(constructrice_ri.contexte(), enchaineuse);
+	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
+	genere_typedefs_pour_tous_les_types(constructrice_ri.compilatrice(), enchaineuse);
 
-	auto &typeuse = constructrice_ri.contexte().typeuse;
+	auto &typeuse = constructrice_ri.compilatrice().typeuse;
 
 	POUR (typeuse.types_structures) {
 		if (it->decl->est_externe) {
@@ -1366,27 +1366,27 @@ void genere_code_C(
 		genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(it), quoi);
 	}
 
-	auto generatrice = GeneratriceCodeC(constructrice_ri.contexte());
+	auto generatrice = GeneratriceCodeC(constructrice_ri.compilatrice());
 	generatrice.genere_code(constructrice_ri, enchaineuse);
 
 	enchaineuse.imprime_dans_flux(fichier_sortie);
 
-	constructrice_ri.contexte().temps_generation = debut_generation.temps();
+	constructrice_ri.compilatrice().temps_generation = debut_generation.temps();
 }
 
 void genere_code_pour_execution(
 		ConstructriceRI &constructrice_ri,
 		NoeudExpression *noeud_appel,
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie)
 {
 	Enchaineuse enchaineuse;
 
-	genere_code_debut_fichier(constructrice_ri.contexte(), enchaineuse, racine_kuri);
-	genere_typedefs_pour_tous_les_types(constructrice_ri.contexte(), enchaineuse);
+	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
+	genere_typedefs_pour_tous_les_types(constructrice_ri.compilatrice(), enchaineuse);
 
-	auto &typeuse = constructrice_ri.contexte().typeuse;
+	auto &typeuse = constructrice_ri.compilatrice().typeuse;
 
 	POUR (typeuse.types_structures) {
 		genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(it), STRUCTURE);
@@ -1397,33 +1397,33 @@ void genere_code_pour_execution(
 		genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(it), quoi);
 	}
 
-	auto generatrice = GeneratriceCodeC(constructrice_ri.contexte());
+	auto generatrice = GeneratriceCodeC(constructrice_ri.compilatrice());
 	generatrice.genere_code(constructrice_ri, enchaineuse);
 
-	//genere_code_programme(contexte, constructrice, noeud_fonction_principale, debut_generation);
+	//genere_code_programme(compilatrice, constructrice, noeud_fonction_principale, debut_generation);
 
 	enchaineuse << "void lance_execution()\n";
 	enchaineuse << "{\n";
 
 	// À FAIRE : génère code pour l'expression
-	//genere_code_creation_contexte(contexte, enchaineuse);
+	//genere_code_creation_contexte(compilatrice, enchaineuse);
 
 	enchaineuse << "    return;\n";
 	enchaineuse << "}\n";
 
 	enchaineuse.imprime_dans_flux(fichier_sortie);
 
-	POUR (contexte.typeuse.types_simples) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (contexte.typeuse.types_pointeurs) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (contexte.typeuse.types_references) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (contexte.typeuse.types_structures) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; }
-	POUR (contexte.typeuse.types_enums) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (contexte.typeuse.types_tableaux_fixes) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (contexte.typeuse.types_tableaux_dynamiques) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (contexte.typeuse.types_fonctions) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (contexte.typeuse.types_variadiques) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (contexte.typeuse.types_unions) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; };
-	POUR (contexte.typeuse.types_type_de_donnees) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (compilatrice.typeuse.types_simples) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (compilatrice.typeuse.types_pointeurs) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (compilatrice.typeuse.types_references) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (compilatrice.typeuse.types_structures) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; }
+	POUR (compilatrice.typeuse.types_enums) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (compilatrice.typeuse.types_tableaux_fixes) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (compilatrice.typeuse.types_tableaux_dynamiques) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (compilatrice.typeuse.types_fonctions) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (compilatrice.typeuse.types_variadiques) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (compilatrice.typeuse.types_unions) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; };
+	POUR (compilatrice.typeuse.types_type_de_donnees) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 }
 
 }  /* namespace noeud */

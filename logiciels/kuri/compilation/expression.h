@@ -26,7 +26,7 @@
 
 #include "biblinternes/outils/definitions.h"
 
-struct ContexteGenerationCode;
+struct Compilatrice;
 struct NoeudBloc;
 struct NoeudExpression;
 
@@ -55,6 +55,6 @@ struct ResultatExpression {
 };
 
 ResultatExpression evalue_expression(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		NoeudBloc *bloc,
 		NoeudExpression *b);

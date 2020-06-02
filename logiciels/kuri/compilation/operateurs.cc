@@ -26,6 +26,7 @@
 
 #include "biblinternes/structures/dico_fixe.hh"
 
+#include "compilatrice.hh"
 #include "lexemes.hh"
 #include "profilage.hh"
 
@@ -204,8 +205,6 @@ static OperateurUnaire::Genre genre_op_unaire_pour_lexeme(GenreLexeme genre_lexe
 		}
 	}
 }
-
-#include "contexte_generation_code.h"
 
 // types comparaisons :
 // ==, !=, <, >, <=, =>
@@ -563,13 +562,13 @@ size_t Operateurs::memoire_utilisee() const
 }
 
 static double verifie_compatibilite(
-		ContexteGenerationCode &contexte,
-		noeud::ContexteValidationCode &contexte_validation,
+		Compilatrice &compilatrice,
+		noeud::ContexteValidationCode &contexte,
 		Type *type_arg,
 		Type *type_enf,
 		TransformationType &transformation)
 {
-	transformation = cherche_transformation(contexte, contexte_validation, type_enf, type_arg);
+	transformation = cherche_transformation(compilatrice, contexte, type_enf, type_arg);
 
 	if (transformation.type == TypeTransformation::INUTILE) {
 		return 1.0;
@@ -585,8 +584,8 @@ static double verifie_compatibilite(
 }
 
 dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
-		ContexteGenerationCode &contexte,
-		noeud::ContexteValidationCode &contexte_validation,
+		Compilatrice &compilatrice,
+		noeud::ContexteValidationCode &contexte,
 		Type *type1,
 		Type *type2,
 		GenreLexeme type_op)
@@ -598,7 +597,7 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 
 	auto op_candidats = dls::tablet<OperateurBinaire const *, 10>();
 
-	auto &iter = contexte.operateurs.trouve_binaire(type_op);
+	auto &iter = compilatrice.operateurs.trouve_binaire(type_op);
 
 	for (auto i = 0; i < iter.taille(); ++i) {
 		auto op = &iter[i];
@@ -623,8 +622,8 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		auto seq1 = TransformationType{};
 		auto seq2 = TransformationType{};
 
-		auto poids1 = verifie_compatibilite(contexte, contexte_validation, op->type1, type1, seq1);
-		auto poids2 = verifie_compatibilite(contexte, contexte_validation, op->type2, type2, seq2);
+		auto poids1 = verifie_compatibilite(compilatrice, contexte, op->type1, type1, seq1);
+		auto poids2 = verifie_compatibilite(compilatrice, contexte, op->type2, type2, seq2);
 
 		auto poids = poids1 * poids2;
 
@@ -639,8 +638,8 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		}
 
 		if (op->est_commutatif && poids != 1.0) {
-			poids1 = verifie_compatibilite(contexte, contexte_validation, op->type1, type2, seq2);
-			poids2 = verifie_compatibilite(contexte, contexte_validation, op->type2, type1, seq1);
+			poids1 = verifie_compatibilite(compilatrice, contexte, op->type1, type2, seq2);
+			poids2 = verifie_compatibilite(compilatrice, contexte, op->type2, type1, seq1);
 
 			poids = poids1 * poids2;
 
@@ -681,33 +680,33 @@ const OperateurUnaire *cherche_operateur_unaire(
 }
 
 void enregistre_operateurs_basiques(
-		ContexteGenerationCode &contexte,
+		Compilatrice &compilatrice,
 		Operateurs &operateurs)
 {
 	Type *types_entiers_naturels[] = {
-		contexte.typeuse[TypeBase::N8],
-		contexte.typeuse[TypeBase::N16],
-		contexte.typeuse[TypeBase::N32],
-		contexte.typeuse[TypeBase::N64],
+		compilatrice.typeuse[TypeBase::N8],
+		compilatrice.typeuse[TypeBase::N16],
+		compilatrice.typeuse[TypeBase::N32],
+		compilatrice.typeuse[TypeBase::N64],
 	};
 
 	Type *types_entiers_relatifs[] = {
-		contexte.typeuse[TypeBase::Z8],
-		contexte.typeuse[TypeBase::Z16],
-		contexte.typeuse[TypeBase::Z32],
-		contexte.typeuse[TypeBase::Z64],
+		compilatrice.typeuse[TypeBase::Z8],
+		compilatrice.typeuse[TypeBase::Z16],
+		compilatrice.typeuse[TypeBase::Z32],
+		compilatrice.typeuse[TypeBase::Z64],
 	};
 
-	auto type_r32 = contexte.typeuse[TypeBase::R32];
-	auto type_r64 = contexte.typeuse[TypeBase::R64];
+	auto type_r32 = compilatrice.typeuse[TypeBase::R32];
+	auto type_r64 = compilatrice.typeuse[TypeBase::R64];
 
 	Type *types_reels[] = {
 		type_r32, type_r64
 	};
 
-	auto type_entier_constant = contexte.typeuse[TypeBase::ENTIER_CONSTANT];
-	auto type_octet = contexte.typeuse[TypeBase::OCTET];
-	auto type_bool = contexte.typeuse[TypeBase::BOOL];
+	auto type_entier_constant = compilatrice.typeuse[TypeBase::ENTIER_CONSTANT];
+	auto type_octet = compilatrice.typeuse[TypeBase::OCTET];
+	auto type_bool = compilatrice.typeuse[TypeBase::BOOL];
 	operateurs.type_bool = type_bool;
 
 	for (auto op : operateurs_entiers_reels) {
@@ -784,7 +783,7 @@ void enregistre_operateurs_basiques(
 		operateurs.ajoute_basique_unaire(GenreLexeme::MOINS_UNAIRE, type, type);
 	}
 
-	auto type_type_de_donnees = contexte.typeuse.type_type_de_donnees_;
+	auto type_type_de_donnees = compilatrice.typeuse.type_type_de_donnees_;
 
 	operateurs.op_comp_egal_types = operateurs.ajoute_basique(GenreLexeme::EGALITE, type_type_de_donnees, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 	operateurs.op_comp_diff_types = operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, type_type_de_donnees, type_bool, IndiceTypeOp::ENTIER_NATUREL);

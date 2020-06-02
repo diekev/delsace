@@ -24,11 +24,11 @@
 
 #include "assembleuse_arbre.h"
 
-#include "contexte_generation_code.h"
+#include "compilatrice.hh"
 
-assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
-	: m_contexte(contexte)
-	, m_allocatrice_noeud(contexte.allocatrice_noeud)
+assembleuse_arbre::assembleuse_arbre(Compilatrice &compilatrice)
+	: m_compilatrice(compilatrice)
+	, m_allocatrice_noeud(compilatrice.allocatrice_noeud)
 {
 	this->empile_bloc();
 }
@@ -68,7 +68,7 @@ NoeudBase *assembleuse_arbre::cree_noeud(GenreNoeud genre, Lexeme const *lexeme)
 		noeud->bloc_parent = bloc_courant();
 
 		if (noeud->lexeme && noeud->lexeme->genre == GenreLexeme::CHAINE_CARACTERE) {
-			noeud->ident = m_contexte.table_identifiants.identifiant_pour_chaine(noeud->lexeme->chaine);
+			noeud->ident = m_compilatrice.table_identifiants.identifiant_pour_chaine(noeud->lexeme->chaine);
 		}
 	}
 
