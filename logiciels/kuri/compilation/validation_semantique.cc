@@ -1527,7 +1527,7 @@ void ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			expr->type = m_compilatrice.typeuse[TypeBase::N32];
 
 			auto expr_type = expr->expr;
-			expr_type->type = resoud_type_final(m_compilatrice, expr_type->expression_type);
+			expr_type->type = resoud_type_final(m_compilatrice, expr_type);
 
 			break;
 		}
