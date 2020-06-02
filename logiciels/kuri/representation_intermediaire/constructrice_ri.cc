@@ -1192,8 +1192,8 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				args.pousse(cree_charge_mem(table_locales[ident_contexte]));
 			}
 
-			auto ancien_pour_appel = m_contexte.pour_appel;
-			m_contexte.pour_appel = expr_appel;
+			auto ancien_pour_appel = m_noeud_pour_appel;
+			m_noeud_pour_appel = expr_appel;
 
 			POUR (expr_appel->exprs) {
 				if (est_expression_logique(it)) {
@@ -1218,7 +1218,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				}
 			}
 
-			m_contexte.pour_appel = ancien_pour_appel;
+			m_noeud_pour_appel = ancien_pour_appel;
 
 			auto atome_fonc = static_cast<Atome *>(nullptr);
 
@@ -4051,8 +4051,8 @@ AtomeConstante *ConstructriceRI::cree_info_type_entier(unsigned taille_octet, bo
 
 Atome *ConstructriceRI::genere_ri_pour_position_code_source(NoeudExpression *noeud)
 {
-	if (m_contexte.pour_appel) {
-		noeud = m_contexte.pour_appel;
+	if (m_noeud_pour_appel) {
+		noeud = m_noeud_pour_appel;
 	}
 
 	auto type_position = m_contexte.typeuse.type_position_code_source;

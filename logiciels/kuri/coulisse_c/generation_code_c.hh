@@ -26,21 +26,17 @@
 
 #include "biblinternes/structures/chaine.hh"
 
-struct assembleuse_arbre;
 struct ContexteGenerationCode;
 struct ConstructriceRI;
 struct NoeudExpression;
 
 namespace noeud {
 
-void genere_code_C(
-		assembleuse_arbre const &arbre,
-		ConstructriceRI &constructrice_ri,
+void genere_code_C(ConstructriceRI &constructrice_ri,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);
 
 void genere_code_C_pour_execution(
-		assembleuse_arbre const &arbre,
 		NoeudExpression *noeud_appel,
 		ContexteGenerationCode &contexte,
 		dls::chaine const &racine_kuri,

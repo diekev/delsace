@@ -24,19 +24,7 @@
 
 #include "contexte_generation_code.h"
 
-#ifdef AVEC_LLVM
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#include <llvm/IR/LegacyPassManager.h>
-#pragma GCC diagnostic pop
-#endif
-
-#include "biblinternes/langage/unicode.hh"
-
 #include "assembleuse_arbre.h"
-#include "broyage.hh"
 #include "modules.hh"
 
 ContexteGenerationCode::ContexteGenerationCode()
@@ -44,6 +32,17 @@ ContexteGenerationCode::ContexteGenerationCode()
 	, typeuse(graphe_dependance, this->operateurs)
 {
 	enregistre_operateurs_basiques(*this, this->operateurs);
+
+	/* Pour fprintf dans les messages d'erreurs, nous incluons toujours "stdio.h". */
+	this->ajoute_inclusion("stdio.h");
+	/* Pour malloc/free, nous incluons toujours "stdlib.h". */
+	this->ajoute_inclusion("stdlib.h");
+	/* Pour strlen, nous incluons toujours "string.h". */
+	this->ajoute_inclusion("string.h");
+	/* Pour les coroutines nous incluons toujours pthread */
+	this->ajoute_inclusion("pthread.h");
+	this->bibliotheques_dynamiques.pousse("pthread");
+	this->definitions.pousse("_REENTRANT");
 }
 
 ContexteGenerationCode::~ContexteGenerationCode()
@@ -165,6 +164,18 @@ bool ContexteGenerationCode::fichier_existe(const dls::vue_chaine_compacte &nom)
 	}
 
 	return false;
+}
+
+/* ************************************************************************** */
+
+void ContexteGenerationCode::ajoute_inclusion(const dls::chaine &fichier)
+{
+	if (deja_inclus.trouve(fichier) != deja_inclus.fin()) {
+		return;
+	}
+
+	deja_inclus.insere(fichier);
+	inclusions.pousse(fichier);
 }
 
 /* ************************************************************************** */

@@ -963,27 +963,27 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_inclus);
-					m_contexte.assembleuse->ajoute_inclusion(chaine);
+					m_contexte.ajoute_inclusion(chaine);
 				}
 				else if (directive == "bibliothèque_dynamique") {
 					auto chaine_bib = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
-					m_contexte.assembleuse->bibliotheques_dynamiques.pousse(chaine);
+					m_contexte.bibliotheques_dynamiques.pousse(chaine);
 				}
 				else if (directive == "bibliothèque_statique") {
 					auto chaine_bib = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
-					m_contexte.assembleuse->bibliotheques_statiques.pousse(chaine);
+					m_contexte.bibliotheques_statiques.pousse(chaine);
 				}
 				else if (directive == "def") {
 					auto chaine = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-					m_contexte.assembleuse->definitions.pousse(chaine);
+					m_contexte.definitions.pousse(chaine);
 				}
 				else if (directive == "exécute") {
 					auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
@@ -997,7 +997,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 					auto chaine = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-					m_contexte.assembleuse->chemins.pousse(chaine);
+					m_contexte.chemins.pousse(chaine);
 				}
 				else if (directive == "nulctx") {
 					lexeme = lexeme_courant();

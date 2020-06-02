@@ -27,7 +27,6 @@
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/enchaineuse.hh"
 
-#include "compilation/assembleuse_arbre.h"
 #include "compilation/broyage.hh"
 #include "compilation/erreur.h"
 
@@ -445,10 +444,9 @@ static void genere_typedefs_pour_tous_les_types(
 static void genere_code_debut_fichier(
 		ContexteGenerationCode &contexte,
 		Enchaineuse &enchaineuse,
-		assembleuse_arbre const &arbre,
 		dls::chaine const &racine_kuri)
 {
-	for (auto const &inc : arbre.inclusions) {
+	for (auto const &inc : contexte.inclusions) {
 		enchaineuse << "#include <" << inc << ">\n";
 	}
 
@@ -1346,7 +1344,6 @@ struct GeneratriceCodeC {
 };
 
 void genere_code_C(
-		assembleuse_arbre const &arbre,
 		ConstructriceRI &constructrice_ri,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie)
@@ -1355,7 +1352,7 @@ void genere_code_C(
 
 	Enchaineuse enchaineuse;
 
-	genere_code_debut_fichier(constructrice_ri.contexte(), enchaineuse, arbre, racine_kuri);
+	genere_code_debut_fichier(constructrice_ri.contexte(), enchaineuse, racine_kuri);
 	genere_typedefs_pour_tous_les_types(constructrice_ri.contexte(), enchaineuse);
 
 	auto &typeuse = constructrice_ri.contexte().typeuse;
@@ -1383,7 +1380,6 @@ void genere_code_C(
 
 void genere_code_pour_execution(
 		ConstructriceRI &constructrice_ri,
-		assembleuse_arbre const &arbre,
 		NoeudExpression *noeud_appel,
 		ContexteGenerationCode &contexte,
 		dls::chaine const &racine_kuri,
@@ -1391,7 +1387,7 @@ void genere_code_pour_execution(
 {
 	Enchaineuse enchaineuse;
 
-	genere_code_debut_fichier(constructrice_ri.contexte(), enchaineuse, arbre, racine_kuri);
+	genere_code_debut_fichier(constructrice_ri.contexte(), enchaineuse, racine_kuri);
 	genere_typedefs_pour_tous_les_types(constructrice_ri.contexte(), enchaineuse);
 
 	auto &typeuse = constructrice_ri.contexte().typeuse;

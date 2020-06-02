@@ -24,12 +24,10 @@
 
 #pragma once
 
-#include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/liste.hh"
 
 #include "allocatrice_noeud.hh"
 #include "operateurs.hh"
-#include "expression.h"
 #include "graphe_dependance.hh"
 #include "typage.hh"
 
@@ -144,8 +142,6 @@ struct ContexteGenerationCode {
 
 	TableIdentifiant table_identifiants{};
 
-	NoeudExpressionAppel *pour_appel = nullptr;
-
 	InterfaceKuri interface_kuri{};
 
 	Type *type_contexte = nullptr;
@@ -162,6 +158,23 @@ struct ContexteGenerationCode {
 
 	/* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment. */
 	bool importe_kuri = true;
+
+	dls::ensemble<dls::chaine> deja_inclus{};
+	/* certains fichiers d'entête requiers d'être inclus dans un certain ordre,
+	 * par exemple pour OpenGL, donc les inclusions finales sont stockées dans
+	 * un tableau dans l'ordre dans lequel elles apparaissent dans le code */
+	dls::tableau<dls::chaine> inclusions{};
+
+	dls::tableau<dls::chaine> bibliotheques_dynamiques{};
+
+	dls::tableau<dls::chaine> bibliotheques_statiques{};
+
+	dls::tableau<dls::vue_chaine_compacte> chemins{};
+
+	/* définitions passées au compilateur C pour modifier les fichiers d'entête */
+	dls::tableau<dls::vue_chaine_compacte> definitions{};
+
+	/* ********************************************************************** */
 
 	ContexteGenerationCode();
 
@@ -230,6 +243,10 @@ struct ContexteGenerationCode {
 
 	/* ********************************************************************** */
 
+	void ajoute_inclusion(const dls::chaine &fichier);
+
+	/* ********************************************************************** */
+
 	size_t memoire_utilisee() const;
 
 	/**
@@ -243,7 +260,4 @@ public:
 	/* À FAIRE : bouge ça d'ici. */
 	double temps_validation = 0.0;
 	double temps_generation = 0.0;
-
-	// pour les variables des boucles
-	bool est_coulisse_llvm = false;
 };

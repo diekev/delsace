@@ -35,6 +35,7 @@ struct NoeudBloc;
 struct NoeudDependance;
 struct NoeudDiscr;
 struct NoeudExpression;
+struct NoeudExpressionAppel;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionMembre;
 struct NoeudPour;
@@ -85,6 +86,8 @@ private:
 	int nombre_instructions = 0;
 
 	IdentifiantCode *ident_contexte = nullptr;
+
+	NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
 
 	dls::dico<IdentifiantCode *, Atome *> table_locales{};
 	dls::dico<IdentifiantCode *, AtomeGlobale *> table_globales{};

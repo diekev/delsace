@@ -45,21 +45,6 @@ class assembleuse_arbre {
 	dls::pile<NoeudBloc *> m_blocs{};
 
 public:
-	dls::ensemble<dls::chaine> deja_inclus{};
-	/* certains fichiers d'entête requiers d'être inclus dans un certain ordre,
-	 * par exemple pour OpenGL, donc les inclusions finales sont stockées dans
-	 * un tableau dans l'ordre dans lequel elles apparaissent dans le code */
-	dls::tableau<dls::chaine> inclusions{};
-
-	dls::tableau<dls::chaine> bibliotheques_dynamiques{};
-
-	dls::tableau<dls::chaine> bibliotheques_statiques{};
-
-	dls::tableau<dls::vue_chaine_compacte> chemins{};
-
-	/* définitions passées au compilateur C pour modifier les fichiers d'entête */
-	dls::tableau<dls::vue_chaine_compacte> definitions{};
-
 	explicit assembleuse_arbre(ContexteGenerationCode &contexte);
 	~assembleuse_arbre() = default;
 
@@ -74,6 +59,4 @@ public:
 	 * pointeur vers celui-ci.
 	 */
 	NoeudBase *cree_noeud(GenreNoeud type, Lexeme const *lexeme);
-
-	void ajoute_inclusion(const dls::chaine &fichier);
 };

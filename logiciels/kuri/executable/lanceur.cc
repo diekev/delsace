@@ -571,8 +571,6 @@ int main(int argc, char *argv[])
 
 		auto contexte_generation = ContexteGenerationCode{};
 		contexte_generation.bit32 = ops.architecture_cible == ArchitectureCible::X86;
-		contexte_generation.est_coulisse_llvm = ops.type_coulisse == TypeCoulisse::LLVM;
-		auto assembleuse = contexte_generation.assembleuse;
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 
@@ -588,7 +586,7 @@ int main(int argc, char *argv[])
 		charge_fichier(os, module, chemin_racine_kuri, nom_fichier.c_str(), contexte_generation, {});
 
 #ifdef AVEC_LLVM
-		if (contexte_generation.est_coulisse_llvm) {
+		if (ops.type_coulisse == TypeCoulisse::LLVM) {
 			auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
 			initialise_llvm();
@@ -667,7 +665,7 @@ int main(int argc, char *argv[])
 //				std::ofstream of;
 //				of.open("/tmp/execution_kuri.c");
 
-//				noeud::genere_code_C_pour_execution(*assembleuse, noeud, contexte_generation, chemin_racine_kuri, of);
+//				noeud::genere_code_C_pour_execution(noeud, contexte_generation, chemin_racine_kuri, of);
 //				lance_execution(contexte_generation);
 //			}
 
@@ -687,7 +685,7 @@ int main(int argc, char *argv[])
 			of.open("/tmp/compilation_kuri.c");
 
 			os << "Génération du code..." << std::endl;
-			noeud::genere_code_C(*assembleuse, constructrice_ri, chemin_racine_kuri, of);
+			noeud::genere_code_C(constructrice_ri, chemin_racine_kuri, of);
 
 			of.close();
 
@@ -739,11 +737,11 @@ int main(int argc, char *argv[])
 					commande += "-m32 ";
 				}
 
-				for (auto const &def : assembleuse->definitions) {
+				for (auto const &def : contexte_generation.definitions) {
 					commande += " -D" + dls::chaine(def);
 				}
 
-				for (auto const &chm : assembleuse->chemins) {
+				for (auto const &chm : contexte_generation.chemins) {
 					commande += " ";
 					commande += chm;
 				}
@@ -764,16 +762,16 @@ int main(int argc, char *argv[])
 					auto debut_executable = dls::chrono::compte_seconde();
 					commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
 
-					for (auto const &chm : assembleuse->chemins) {
+					for (auto const &chm : contexte_generation.chemins) {
 						commande += " ";
 						commande += chm;
 					}
 
-					for (auto const &bib : assembleuse->bibliotheques_statiques) {
+					for (auto const &bib : contexte_generation.bibliotheques_statiques) {
 						commande += " " + bib;
 					}
 
-					for (auto const &bib : assembleuse->bibliotheques_dynamiques) {
+					for (auto const &bib : contexte_generation.bibliotheques_dynamiques) {
 						commande += " -l" + bib;
 					}
 

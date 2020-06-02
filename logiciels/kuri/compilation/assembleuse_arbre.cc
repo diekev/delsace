@@ -31,17 +31,6 @@ assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
 	, m_allocatrice_noeud(contexte.allocatrice_noeud)
 {
 	this->empile_bloc();
-
-	/* Pour fprintf dans les messages d'erreurs, nous incluons toujours "stdio.h". */
-	this->ajoute_inclusion("stdio.h");
-	/* Pour malloc/free, nous incluons toujours "stdlib.h". */
-	this->ajoute_inclusion("stdlib.h");
-	/* Pour strlen, nous incluons toujours "string.h". */
-	this->ajoute_inclusion("string.h");
-	/* Pour les coroutines nous incluons toujours pthread */
-	this->ajoute_inclusion("pthread.h");
-	this->bibliotheques_dynamiques.pousse("pthread");
-	this->definitions.pousse("_REENTRANT");
 }
 
 NoeudBloc *assembleuse_arbre::empile_bloc()
@@ -84,14 +73,4 @@ NoeudBase *assembleuse_arbre::cree_noeud(GenreNoeud genre, Lexeme const *lexeme)
 	}
 
 	return noeud;
-}
-
-void assembleuse_arbre::ajoute_inclusion(const dls::chaine &fichier)
-{
-	if (deja_inclus.trouve(fichier) != deja_inclus.fin()) {
-		return;
-	}
-
-	deja_inclus.insere(fichier);
-	inclusions.pousse(fichier);
 }
