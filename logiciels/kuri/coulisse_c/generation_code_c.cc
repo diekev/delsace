@@ -1351,19 +1351,44 @@ void genere_code_C(
 	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
 	genere_typedefs_pour_tous_les_types(constructrice_ri.compilatrice(), enchaineuse);
 
-	auto &typeuse = constructrice_ri.compilatrice().typeuse;
+	auto &compilatrice = constructrice_ri.compilatrice();
+	POUR (compilatrice.graphe_dependance.noeuds) {
+		it->fut_visite = it->type != TypeNoeudDependance::TYPE;
+	}
 
-	POUR (typeuse.types_structures) {
-		if (it->decl->est_externe) {
+	POUR (compilatrice.graphe_dependance.noeuds) {
+		if (it->type != TypeNoeudDependance::TYPE) {
 			continue;
 		}
 
-		genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(it), STRUCTURE);
-	}
+		if (it->fut_visite) {
+			continue;
+		}
 
-	POUR (typeuse.types_unions) {
-		auto quoi = it->est_nonsure ? UNION_NONSURE : it->est_anonyme ? UNION_ANONYME : UNION_SURE;
-		genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(it), quoi);
+		traverse_graphe(it, [&](NoeudDependance *noeud)
+		{
+			if (noeud->type_ == nullptr) {
+				return;
+			}
+
+			if (noeud->type_->genre == GenreType::STRUCTURE) {
+				auto type_struct = static_cast<TypeStructure *>(noeud->type_);
+
+				if (type_struct->decl->est_externe) {
+					return;
+				}
+
+				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_struct), STRUCTURE);
+				return;
+			}
+
+			if (noeud->type_->genre == GenreType::UNION) {
+				auto type_union = static_cast<TypeUnion *>(noeud->type_);
+				auto quoi = type_union->est_nonsure ? UNION_NONSURE : type_union->est_anonyme ? UNION_ANONYME : UNION_SURE;
+				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_union), quoi);
+				return;
+			}
+		});
 	}
 
 	auto generatrice = GeneratriceCodeC(constructrice_ri.compilatrice());
