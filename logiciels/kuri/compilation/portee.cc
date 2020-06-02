@@ -233,3 +233,35 @@ bool bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle)
 
 	return false;
 }
+
+NoeudBase *derniere_instruction(NoeudBloc *b)
+{
+	PROFILE_FONCTION;
+
+	if (b->expressions.taille == 0) {
+		return static_cast<NoeudBase *>(nullptr);
+	}
+
+	auto di = b->expressions[b->expressions.taille - 1];
+
+	if (est_instruction_retour(di->genre) || (di->genre == GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
+		return di;
+	}
+
+	if (di->genre == GenreNoeud::INSTRUCTION_SI) {
+		auto inst = static_cast<NoeudSi *>(di);
+
+		if (inst->bloc_si_faux == nullptr) {
+			return static_cast<NoeudBase *>(nullptr);
+		}
+
+		return derniere_instruction(inst->bloc_si_faux);
+	}
+
+	if (di->genre == GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE) {
+		auto inst = static_cast<NoeudPousseContexte *>(di);
+		return derniere_instruction(inst->bloc);
+	}
+
+	return static_cast<NoeudBase *>(nullptr);
+}
