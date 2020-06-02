@@ -25,16 +25,11 @@
 #include "broyage.hh"
 
 #include "biblinternes/langage/unicode.hh"
-
+#include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "contexte_generation_code.h"
 #include "modules.hh"
-
-static char char_depuis_hex(char hex)
-{
-	return "0123456789ABCDEF"[static_cast<int>(hex)];
-}
 
 dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)
 {
@@ -61,8 +56,8 @@ dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)
 			{
 				for (int i = 0; i < no; ++i) {
 					ret += 'x';
-					ret += char_depuis_hex(static_cast<char>((debut[i] & 0xf0) >> 4));
-					ret += char_depuis_hex(static_cast<char>(debut[i] & 0x0f));
+					ret += dls::num::char_depuis_hex(static_cast<char>((debut[i] & 0xf0) >> 4));
+					ret += dls::num::char_depuis_hex(static_cast<char>(debut[i] & 0x0f));
 				}
 
 				break;

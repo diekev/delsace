@@ -27,6 +27,7 @@
 #include <fstream>
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/outils/numerique.hh"
 
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
@@ -271,25 +272,9 @@ void ConstructriceRI::imprime_programme() const
 				os << chaine_type(atome_fonc->type);
 				os << '\n';
 
-				auto nombre_chiffres = [](long nombre)
-				{
-					if (nombre == 0) {
-						return 1;
-					}
-
-					auto compte = 0;
-
-					while (nombre > 0) {
-						nombre /= 10;
-						compte += 1;
-					}
-
-					return compte;
-				};
-
 				for (auto atome : atome_fonc->instructions) {
 					auto inst = static_cast<Instruction const *>(atome);
-					auto nombre_zero_avant_numero = nombre_chiffres(atome_fonc->instructions.taille) - nombre_chiffres(inst->numero);
+					auto nombre_zero_avant_numero = dls::num::nombre_de_chiffres(atome_fonc->instructions.taille) - dls::num::nombre_de_chiffres(inst->numero);
 
 					for (auto i = 0; i < nombre_zero_avant_numero; ++i) {
 						os << ' ';

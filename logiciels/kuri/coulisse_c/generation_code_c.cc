@@ -26,6 +26,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/enchaineuse.hh"
+#include "biblinternes/outils/numerique.hh"
 
 #include "compilation/broyage.hh"
 #include "compilation/erreur.h"
@@ -33,11 +34,6 @@
 #include "representation_intermediaire/constructrice_ri.hh"
 
 namespace noeud {
-
-static inline char char_depuis_hex(char hex)
-{
-	return "0123456789ABCDEF"[static_cast<int>(hex)];
-}
 
 /* ************************************************************************** */
 
@@ -676,8 +672,8 @@ struct GeneratriceCodeC {
 									auto octet = pointeur_donnnees[i];
 									resultat += virgule;
 									resultat += "0x";
-									resultat.append(char_depuis_hex((octet & 0xf0) >> 4));
-									resultat.append(char_depuis_hex(octet & 0x0f));
+									resultat.append(dls::num::char_depuis_hex((octet & 0xf0) >> 4));
+									resultat.append(dls::num::char_depuis_hex(octet & 0x0f));
 									virgule = ", ";
 								}
 
@@ -755,8 +751,8 @@ struct GeneratriceCodeC {
 
 					POUR (ligne) {
 						os << "\\x"
-						   << char_depuis_hex((it & 0xf0) >> 4)
-						   << char_depuis_hex(it & 0x0f);
+						   << dls::num::char_depuis_hex((it & 0xf0) >> 4)
+						   << dls::num::char_depuis_hex(it & 0x0f);
 					}
 
 					os << "\",";

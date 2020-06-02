@@ -44,6 +44,9 @@
 #define PRAGMA_IMPL(x) _Pragma(#x)
 #define A_FAIRE(x) PRAGMA_IMPL(message("À FAIRE : " CHAINE(x)))
 
+#define PROBABLE(x) (__builtin_expect((x), 1))
+#define IMPROBABLE(x) (__builtin_expect((x), 0))
+
 #define REMBOURRE(x) \
 	_Pragma("clang diagnostic push") \
 	_Pragma("clang diagnostic ignored \"-Wunused-private-field\"")  \

@@ -26,12 +26,11 @@
 #include "chronometre_de_portee.hh"
 #include "pointeur_chronometre.hh"
 
+#include "biblinternes/outils/numerique.hh"
+
 #include <iostream>
 
 #include <unistd.h>
-
-#define PROBABLE(x) (__builtin_expect((x), 1))
-#define IMPROBABLE(x) (__builtin_expect((x), 0))
 
 /* ************************************************************************** */
 
@@ -103,84 +102,20 @@ static void test_char_vers_int(std::ostream &os, const char *nombre)
 
 /* ************************************************************************** */
 
-static uint32_t nombre_chiffre_base_10(uint64_t v)
-{
-	uint32_t resultat = 0;
-
-	do {
-		++resultat;
-		v /= 10;
-	} while (v);
-
-	return resultat;
-}
-
-static uint32_t nombre_chiffre_base_10_opt(uint64_t v)
-{
-	uint32_t resultat = 1;
-
-	for (;;) {
-		if (v < 10) {
-			return resultat;
-		}
-
-		if (v < 100) {
-			return resultat + 1;
-		}
-
-		if (v < 1000) {
-			return resultat + 2;
-		}
-
-		if (v < 10000) {
-			return resultat + 3;
-		}
-
-		resultat += 4;
-		v /= 1000U;
-	}
-}
-
-static uint32_t nombre_chiffre_base_10_pro(uint64_t v)
-{
-	uint32_t resultat = 1;
-
-	for (;;) {
-		if (PROBABLE(v < 10)) {
-			return resultat;
-		}
-
-		if (PROBABLE(v < 100)) {
-			return resultat + 1;
-		}
-
-		if (PROBABLE(v < 1000)) {
-			return resultat + 2;
-		}
-
-		if (PROBABLE(v < 10000)) {
-			return resultat + 3;
-		}
-
-		resultat += 4;
-		v /= 1000U;
-	}
-}
-
 static void test_compte_chiffre(std::ostream &os, uint64_t nombre)
 {
 	using namespace dls::chrono;
 
 	os << "Temps d'exécution : "
-	   << chronometre_boucle_epoque(1000000, 1000, false, nombre_chiffre_base_10, nombre)
+	   << chronometre_boucle_epoque(1000000, 1000, false, dls::num::nombre_chiffre_base_10, nombre)
 	   << '\n';
 
 	os << "Temps d'exécution : "
-	   << chronometre_boucle_epoque(1000000, 1000, false, nombre_chiffre_base_10_opt, nombre)
+	   << chronometre_boucle_epoque(1000000, 1000, false, dls::num::nombre_chiffre_base_10_opt, nombre)
 	   << '\n';
 
 	os << "Temps d'exécution : "
-	   << chronometre_boucle_epoque(1000000, 1000, false, nombre_chiffre_base_10_pro, nombre)
+	   << chronometre_boucle_epoque(1000000, 1000, false, dls::num::nombre_chiffre_base_10_pro, nombre)
 	   << '\n';
 }
 
@@ -219,7 +154,7 @@ static void test_nombre_vers_ascii(std::ostream &os, uint64_t nombre)
 	{
 		char *dst = tampon;
 
-		const uint32_t resultat = nombre_chiffre_base_10_opt(v);
+		const uint32_t resultat = dls::num::nombre_chiffre_base_10_opt(v);
 		uint32_t pos = resultat - 1;
 
 		while (v >= 10) {

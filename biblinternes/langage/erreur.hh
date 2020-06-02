@@ -62,6 +62,8 @@ void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine);
 
 void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine, long debut, long fin);
 
+void imprime_tilde(dls::flux_chaine &ss, dls::vue_chaine_compacte chaine);
+
 void imprime_ligne_entre(
 		dls::flux_chaine &os,
 		const dls::vue_chaine &chaine,

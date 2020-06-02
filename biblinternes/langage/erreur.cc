@@ -69,4 +69,9 @@ void imprime_ligne_entre(dls::flux_chaine &os, const dls::vue_chaine &chaine, lo
 	}
 }
 
+void imprime_tilde(dls::flux_chaine &ss, dls::vue_chaine_compacte chaine)
+{
+	imprime_tilde(ss, dls::vue_chaine(chaine.pointeur(), chaine.taille()));
+}
+
 }  /* namespace lng::erreur */

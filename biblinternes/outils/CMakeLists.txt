@@ -47,6 +47,7 @@ set(ENTETES
 	indexeuse.hh
 	iterateurs.h
 	masque_binaire.h
+	numerique.hh
 	parametres.hh
 	tableau_donnees.hh
 	temps.hh
@@ -64,6 +65,7 @@ set(SOURCES
 	garde_portee.cc
 	indexeuse.cc
 	iterateurs.cc
+	numerique.cc
 	parametres.cc
 	tableau_donnees.cc
 	temps.cc

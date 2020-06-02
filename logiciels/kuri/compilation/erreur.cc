@@ -25,21 +25,13 @@
 #include "erreur.h"
 
 #include "biblinternes/outils/chaine.hh"
+#include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
 #include "lexemes.hh"
 #include "validation_semantique.hh"
-
-namespace lng::erreur {
-
-static void imprime_tilde(dls::flux_chaine &ss, dls::vue_chaine_compacte chaine)
-{
-	imprime_tilde(ss, dls::vue_chaine(chaine.pointeur(), chaine.taille()));
-}
-
-}
 
 namespace erreur {
 
@@ -80,18 +72,6 @@ const char *chaine_erreur(type_erreur te)
 	return "Ceci ne devrait pas s'afficher";
 }
 
-static int nombre_chiffres(long nombre)
-{
-	auto compte = 0;
-
-	while (nombre > 0) {
-		nombre /= 10;
-		compte += 1;
-	}
-
-	return compte;
-}
-
 void imprime_ligne_avec_message(
 		dls::flux_chaine &flux,
 		Fichier *fichier,
@@ -101,7 +81,7 @@ void imprime_ligne_avec_message(
 	flux << fichier->chemin << ':' << lexeme->ligne + 1 << ':' << lexeme->colonne + 1 << " : ";
 	flux << message << "\n";
 
-	auto nc = nombre_chiffres(lexeme->ligne + 1);
+	auto nc = dls::num::nombre_de_chiffres(lexeme->ligne + 1);
 
 	for (auto i = 0; i < 5 - nc; ++i) {
 		flux << ' ';
