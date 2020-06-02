@@ -90,6 +90,205 @@ static DonneesTypeCommun donnees_types_communs[] = {
 
 /* ************************************************************************** */
 
+Type *Type::cree_entier(unsigned taille_octet, bool est_naturel)
+{
+	auto type = memoire::loge<Type>("Type");
+	type->genre = est_naturel ? GenreType::ENTIER_NATUREL : GenreType::ENTIER_RELATIF;
+	type->taille_octet = taille_octet;
+	type->alignement = taille_octet;
+	return type;
+}
+
+Type *Type::cree_entier_constant()
+{
+	auto type = memoire::loge<Type>("Type");
+	type->genre = GenreType::ENTIER_CONSTANT;
+
+	return type;
+}
+
+Type *Type::cree_reel(unsigned taille_octet)
+{
+	auto type = memoire::loge<Type>("Type");
+	type->genre = GenreType::REEL;
+	type->taille_octet = taille_octet;
+	type->alignement = taille_octet;
+	return type;
+}
+
+Type *Type::cree_rien()
+{
+	auto type = memoire::loge<Type>("Type");
+	type->genre = GenreType::RIEN;
+	type->taille_octet = 0;
+	return type;
+}
+
+Type *Type::cree_bool()
+{
+	auto type = memoire::loge<Type>("Type");
+	type->genre = GenreType::BOOL;
+	type->taille_octet = 1;
+	type->alignement = 1;
+	return type;
+}
+
+Type *Type::cree_octet()
+{
+	auto type = memoire::loge<Type>("Type");
+	type->genre = GenreType::OCTET;
+	type->taille_octet = 1;
+	type->alignement = 1;
+	return type;
+}
+
+TypePointeur *TypePointeur::cree(Type *type_pointe)
+{
+	auto type = memoire::loge<TypePointeur>("TypePointeur");
+	type->type_pointe = type_pointe;
+	type->taille_octet = 8;
+	type->alignement = 8;
+
+	if (type_pointe && type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+	}
+
+	return type;
+}
+
+TypeReference *TypeReference::cree(Type *type_pointe)
+{
+	assert(type_pointe);
+
+	auto type = memoire::loge<TypeReference>("TypeReference");
+	type->type_pointe = type_pointe;
+	type->taille_octet = 8;
+	type->alignement = 8;
+
+	if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+	}
+
+	return type;
+}
+
+TypeFonction *TypeFonction::cree(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties)
+{
+	auto type = memoire::loge<TypeFonction>("TypeFonction");
+	type->types_entrees = std::move(entrees);
+	type->types_sorties = std::move(sorties);
+	type->taille_octet = 8;
+	type->alignement = 8;
+	type->marque_polymorphique();
+
+	return type;
+}
+
+void TypeFonction::marque_polymorphique()
+{
+	POUR (types_entrees) {
+		if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+			this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+			return;
+		}
+	}
+
+	POUR (types_sorties) {
+		if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+			this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+			return;
+		}
+	}
+}
+
+TypeCompose *TypeCompose::cree_eini()
+{
+	auto type = memoire::loge<TypeCompose>("TypeCompose");
+	type->genre = GenreType::EINI;
+	type->taille_octet = 16;
+	type->alignement = 8;
+	return type;
+}
+
+TypeCompose *TypeCompose::cree_chaine()
+{
+	auto type = memoire::loge<TypeCompose>("TypeCompose");
+	type->genre = GenreType::CHAINE;
+	type->taille_octet = 16;
+	type->alignement = 8;
+	return type;
+}
+
+TypeTableauFixe *TypeTableauFixe::cree(Type *type_pointe, long taille, kuri::tableau<TypeCompose::Membre> &&membres)
+{
+	auto type = memoire::loge<TypeTableauFixe>("TypeTableauFixe");
+	type->membres = std::move(membres);
+	type->type_pointe = type_pointe;
+	type->taille = taille;
+	type->alignement = type_pointe->alignement;
+	type->taille_octet = type_pointe->taille_octet * static_cast<unsigned>(taille);
+
+	if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+	}
+
+	return type;
+}
+
+TypeTableauDynamique *TypeTableauDynamique::cree(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres)
+{
+	assert(type_pointe);
+
+	auto type = memoire::loge<TypeTableauDynamique>("TypeTableauDynamique");
+	type->membres = std::move(membres);
+	type->type_pointe = type_pointe;
+	type->taille_octet = 24;
+	type->alignement = 8;
+
+	if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+	}
+
+	return type;
+}
+
+TypeVariadique *TypeVariadique::cree(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres)
+{
+	auto type = memoire::loge<TypeVariadique>("TypeVariadique");
+	type->type_pointe = type_pointe;
+
+	if (type_pointe && type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+	}
+
+	type->membres = std::move(membres);
+	type->taille_octet = 24;
+	type->alignement = 8;
+	return type;
+}
+
+TypeTypeDeDonnees *TypeTypeDeDonnees::cree(Type *type_connu)
+{
+	auto type = memoire::loge<TypeTypeDeDonnees>("TypeType");
+	type->genre = GenreType::TYPE_DE_DONNEES;
+	// un type 'type' est un genre de pointeur déguisé, donc donnons lui les mêmes caractéristiques
+	type->taille_octet = 8;
+	type->alignement = 8;
+	type->type_connu = type_connu;
+	return type;
+}
+
+TypePolymorphique *TypePolymorphique::cree(IdentifiantCode *ident)
+{
+	assert(ident);
+
+	auto type = memoire::loge<TypePolymorphique>("TypePolymorphique");
+	type->ident = ident;
+	return type;
+}
+
+/* ************************************************************************** */
+
 static Type *cree_type_pour_lexeme(GenreLexeme lexeme)
 {
 	switch (lexeme) {
@@ -1016,4 +1215,99 @@ bool est_type_conditionnable(Type *type)
 				GenreType::FONCTION,
 				GenreType::POINTEUR,
 				GenreType::TABLEAU_DYNAMIQUE);
+}
+
+Type *apparie_type_gabarit(Type *type, Type *type_polymorphique)
+{
+	PROFILE_FONCTION;
+
+	auto type_courant = type;
+	auto type_courant_poly = type_polymorphique;
+
+	while (true) {
+		if (type_courant_poly->genre == GenreType::POLYMORPHIQUE) {
+			break;
+		}
+
+		if (type_courant->genre != type_courant_poly->genre) {
+			return nullptr;
+		}
+
+		// À FAIRE : type tableau fixe
+		type_courant = type_dereference_pour(type_courant);
+		type_courant_poly = type_dereference_pour(type_courant_poly);
+	}
+
+	return type_courant;
+}
+
+Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour_type)
+{
+	auto resultat = static_cast<Type *>(nullptr);
+
+	if (type_gabarit->genre == GenreType::POINTEUR) {
+		auto type_pointe = static_cast<TypePointeur *>(type_gabarit)->type_pointe;
+		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
+		resultat = typeuse.type_pointeur_pour(type_pointe_pour_type);
+	}
+	else if (type_gabarit->genre == GenreType::REFERENCE) {
+		auto type_pointe = static_cast<TypeReference *>(type_gabarit)->type_pointe;
+		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
+		resultat = typeuse.type_reference_pour(type_pointe_pour_type);
+	}
+	else if (type_gabarit->genre == GenreType::TABLEAU_DYNAMIQUE) {
+		auto type_pointe = static_cast<TypeTableauDynamique *>(type_gabarit)->type_pointe;
+		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
+		resultat = typeuse.type_tableau_dynamique(type_pointe_pour_type);
+	}
+	else if (type_gabarit->genre == GenreType::TABLEAU_FIXE) {
+		auto type_tableau_fixe = static_cast<TypeTableauFixe *>(type_gabarit);
+		auto type_pointe = type_tableau_fixe->type_pointe;
+		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
+		resultat = typeuse.type_tableau_fixe(type_pointe_pour_type, type_tableau_fixe->taille);
+	}
+	else if (type_gabarit->genre == GenreType::VARIADIQUE) {
+		auto type_pointe = static_cast<TypeVariadique *>(type_gabarit)->type_pointe;
+		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
+		resultat = typeuse.type_variadique(type_pointe_pour_type);
+	}
+	else if (type_gabarit->genre == GenreType::POLYMORPHIQUE) {
+		resultat = pour_type;
+	}
+	else if (type_gabarit->genre == GenreType::FONCTION) {
+		auto type_fonction = static_cast<TypeFonction *>(type_gabarit);
+
+		auto types_entrees = kuri::tableau<Type *>();
+		types_entrees.reserve(type_fonction->types_entrees.taille);
+
+		POUR (type_fonction->types_entrees) {
+			if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				auto type_param = resoud_type_polymorphique(typeuse, it, pour_type);
+				types_entrees.pousse(type_param);
+			}
+			else {
+				types_entrees.pousse(it);
+			}
+		}
+
+		auto types_sorties = kuri::tableau<Type *>();
+		types_sorties.reserve(type_fonction->types_sorties.taille);
+
+		POUR (type_fonction->types_sorties) {
+			if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				auto type_param = resoud_type_polymorphique(typeuse, it, pour_type);
+				types_sorties.pousse(type_param);
+			}
+			else {
+				types_sorties.pousse(it);
+			}
+		}
+
+		resultat = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+	}
+	else {
+		assert(0);
+	}
+
+	return resultat;
 }

@@ -31,7 +31,9 @@
 #include "lexemes.hh"
 #include "structures.hh"
 
+struct AtomeConstante;
 struct GrapheDependance;
+struct IdentifiantCode;
 struct Operateurs;
 struct NoeudEnum;
 struct NoeudExpression;
@@ -142,8 +144,6 @@ enum {
 	TYPE_EST_POLYMORPHIQUE = 2,
 };
 
-struct AtomeConstante;
-
 struct Type {
 	GenreType genre{};
 	unsigned taille_octet = 0;
@@ -155,57 +155,12 @@ struct Type {
 
 	AtomeConstante *info_type = nullptr;
 
-	static Type *cree_entier(unsigned taille_octet, bool est_naturel)
-	{
-		auto type = memoire::loge<Type>("Type");
-		type->genre = est_naturel ? GenreType::ENTIER_NATUREL : GenreType::ENTIER_RELATIF;
-		type->taille_octet = taille_octet;
-		type->alignement = taille_octet;
-		return type;
-	}
-
-	static Type *cree_entier_constant()
-	{
-		auto type = memoire::loge<Type>("Type");
-		type->genre = GenreType::ENTIER_CONSTANT;
-
-		return type;
-	}
-
-	static Type *cree_reel(unsigned taille_octet)
-	{
-		auto type = memoire::loge<Type>("Type");
-		type->genre = GenreType::REEL;
-		type->taille_octet = taille_octet;
-		type->alignement = taille_octet;
-		return type;
-	}
-
-	static Type *cree_rien()
-	{
-		auto type = memoire::loge<Type>("Type");
-		type->genre = GenreType::RIEN;
-		type->taille_octet = 0;
-		return type;
-	}
-
-	static Type *cree_bool()
-	{
-		auto type = memoire::loge<Type>("Type");
-		type->genre = GenreType::BOOL;
-		type->taille_octet = 1;
-		type->alignement = 1;
-		return type;
-	}
-
-	static Type *cree_octet()
-	{
-		auto type = memoire::loge<Type>("Type");
-		type->genre = GenreType::OCTET;
-		type->taille_octet = 1;
-		type->alignement = 1;
-		return type;
-	}
+	static Type *cree_entier(unsigned taille_octet, bool est_naturel);
+	static Type *cree_entier_constant();
+	static Type *cree_reel(unsigned taille_octet);
+	static Type *cree_rien();
+	static Type *cree_bool();
+	static Type *cree_octet();
 };
 
 struct TypePointeur : public Type {
@@ -215,19 +170,7 @@ struct TypePointeur : public Type {
 
 	Type *type_pointe = nullptr;
 
-	static TypePointeur *cree(Type *type_pointe)
-	{
-		auto type = memoire::loge<TypePointeur>("TypePointeur");
-		type->type_pointe = type_pointe;
-		type->taille_octet = 8;
-		type->alignement = 8;
-
-		if (type_pointe && type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-			type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-		}
-
-		return type;
-	}
+	static TypePointeur *cree(Type *type_pointe);
 };
 
 struct TypeReference : public Type {
@@ -237,21 +180,7 @@ struct TypeReference : public Type {
 
 	Type *type_pointe = nullptr;
 
-	static TypeReference *cree(Type *type_pointe)
-	{
-		assert(type_pointe);
-
-		auto type = memoire::loge<TypeReference>("TypeReference");
-		type->type_pointe = type_pointe;
-		type->taille_octet = 8;
-		type->alignement = 8;
-
-		if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-			type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-		}
-
-		return type;
-	}
+	static TypeReference *cree(Type *type_pointe);
 };
 
 struct TypeFonction : public Type {
@@ -260,34 +189,9 @@ struct TypeFonction : public Type {
 	kuri::tableau<Type *> types_entrees{};
 	kuri::tableau<Type *> types_sorties{};
 
-	static TypeFonction *cree(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties)
-	{
-		auto type = memoire::loge<TypeFonction>("TypeFonction");
-		type->types_entrees = std::move(entrees);
-		type->types_sorties = std::move(sorties);
-		type->taille_octet = 8;
-		type->alignement = 8;		
-		type->marque_polymorphique();
+	static TypeFonction *cree(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties);
 
-		return type;
-	}
-
-	void marque_polymorphique()
-	{
-		POUR (types_entrees) {
-			if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-				this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-				return;
-			}
-		}
-
-		POUR (types_sorties) {
-			if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-				this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-				return;
-			}
-		}
-	}
+	void marque_polymorphique();
 };
 
 /* Type de base pour tous les types ayant des membres (structures, énumérations, etc.).
@@ -304,23 +208,9 @@ struct TypeCompose : public Type {
 	kuri::tableau<Membre> membres{};
 	dls::vue_chaine_compacte nom{};
 
-	static TypeCompose *cree_eini()
-	{
-		auto type = memoire::loge<TypeCompose>("TypeCompose");
-		type->genre = GenreType::EINI;
-		type->taille_octet = 16;
-		type->alignement = 8;
-		return type;
-	}
+	static TypeCompose *cree_eini();
 
-	static TypeCompose *cree_chaine()
-	{
-		auto type = memoire::loge<TypeCompose>("TypeCompose");
-		type->genre = GenreType::CHAINE;
-		type->taille_octet = 16;
-		type->alignement = 8;
-		return type;
-	}
+	static TypeCompose *cree_chaine();
 };
 
 inline bool est_type_compose(Type *type)
@@ -385,21 +275,7 @@ struct TypeTableauFixe final : public TypeCompose {
 	Type *type_pointe = nullptr;
 	long taille = 0;
 
-	static TypeTableauFixe *cree(Type*type_pointe, long taille, kuri::tableau<TypeCompose::Membre> &&membres)
-	{
-		auto type = memoire::loge<TypeTableauFixe>("TypeTableauFixe");
-		type->membres = std::move(membres);
-		type->type_pointe = type_pointe;
-		type->taille = taille;
-		type->alignement = type_pointe->alignement;
-		type->taille_octet = type_pointe->taille_octet * static_cast<unsigned>(taille);
-
-		if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-			type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-		}
-
-		return type;
-	}
+	static TypeTableauFixe *cree(Type*type_pointe, long taille, kuri::tableau<TypeCompose::Membre> &&membres);
 };
 
 struct TypeTableauDynamique final : public TypeCompose {
@@ -409,22 +285,7 @@ struct TypeTableauDynamique final : public TypeCompose {
 
 	Type *type_pointe = nullptr;
 
-	static TypeTableauDynamique *cree(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres)
-	{
-		assert(type_pointe);
-
-		auto type = memoire::loge<TypeTableauDynamique>("TypeTableauDynamique");
-		type->membres = std::move(membres);
-		type->type_pointe = type_pointe;
-		type->taille_octet = 24;
-		type->alignement = 8;
-
-		if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-			type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-		}
-
-		return type;
-	}
+	static TypeTableauDynamique *cree(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres);
 };
 
 struct TypeVariadique final : public TypeCompose {
@@ -434,20 +295,7 @@ struct TypeVariadique final : public TypeCompose {
 
 	Type *type_pointe = nullptr;
 
-	static TypeVariadique *cree(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres)
-	{
-		auto type = memoire::loge<TypeVariadique>("TypeVariadique");
-		type->type_pointe = type_pointe;
-
-		if (type_pointe && type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-			type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-		}
-
-		type->membres = std::move(membres);
-		type->taille_octet = 24;
-		type->alignement = 8;
-		return type;
-	}
+	static TypeVariadique *cree(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres);
 };
 
 struct TypeTypeDeDonnees : public Type {
@@ -458,19 +306,8 @@ struct TypeTypeDeDonnees : public Type {
 	// Non-nul si le type est connu lors de la compilation.
 	Type *type_connu = nullptr;
 
-	static TypeTypeDeDonnees *cree(Type *type_connu)
-	{
-		auto type = memoire::loge<TypeTypeDeDonnees>("TypeType");
-		type->genre = GenreType::TYPE_DE_DONNEES;
-		// un type 'type' est un genre de pointeur déguisé, donc donnons lui les mêmes caractéristiques
-		type->taille_octet = 8;
-		type->alignement = 8;
-		type->type_connu = type_connu;
-		return type;
-	}
+	static TypeTypeDeDonnees *cree(Type *type_connu);
 };
-
-struct IdentifiantCode;
 
 struct TypePolymorphique : public Type {
 	TypePolymorphique()
@@ -483,14 +320,7 @@ struct TypePolymorphique : public Type {
 
 	IdentifiantCode *ident = nullptr;
 
-	static TypePolymorphique *cree(IdentifiantCode *ident)
-	{
-		assert(ident);
-
-		auto type = memoire::loge<TypePolymorphique>("TypePolymorphique");
-		type->ident = ident;
-		return type;
-	}
+	static TypePolymorphique *cree(IdentifiantCode *ident);
 };
 
 void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine_compacte> &noms);
@@ -595,3 +425,7 @@ inline bool est_type_entier(Type const *type)
 }
 
 bool est_type_conditionnable(Type *type);
+
+Type *apparie_type_gabarit(Type *type, Type *type_polymorphique);
+
+Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour_type);
