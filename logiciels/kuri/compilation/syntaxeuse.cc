@@ -66,16 +66,6 @@ static auto copie_tablet_tableau(dls::tablet<T, N> const &src, kuri::tableau<T> 
 	}
 }
 
-template <typename T, unsigned long N>
-static auto copie_tablet_tableau(dls::tablet<T, N> const &src, dls::tableau<T> &dst)
-{
-	dst.reserve(src.taille());
-
-	POUR (src) {
-		dst.pousse(it);
-	}
-}
-
 static bool est_operateur_surchargeable(GenreLexeme genre)
 {
 	switch (genre) {
