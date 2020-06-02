@@ -397,6 +397,11 @@ lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
     retourne système_écris(fichier.desc, chn.pointeur, chn.taille)
 }
 
+écris :: fonc (fichier: *Fichier, octets: []octet) -> RésultatOpérationFichier
+{
+    retourne système_écris(fichier.desc, octets.pointeur comme *z8, octets.taille)
+}
+
 fichier_entrée_standarde := Fichier( desc = 0 )
 fichier_sortie_standarde := Fichier( desc = 1 )
 fichier_sortie_erreur    := Fichier( desc = 2 )
