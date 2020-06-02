@@ -143,3 +143,27 @@ struct GrapheDependance {
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance);
 
 void reduction_transitive(GrapheDependance &graphe_dependance);
+
+template <typename Rappel>
+void traverse_graphe(NoeudDependance *racine, Rappel rappel)
+{
+	racine->fut_visite = true;
+
+	for (auto const &relation : racine->relations) {
+		auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
+		accepte |= relation.type == TypeRelation::UTILISE_FONCTION;
+		accepte |= relation.type == TypeRelation::UTILISE_GLOBALE;
+
+		if (!accepte) {
+			continue;
+		}
+
+		if (relation.noeud_fin->fut_visite) {
+			continue;
+		}
+
+		traverse_graphe(relation.noeud_fin, rappel);
+	}
+
+	rappel(racine);
+}
