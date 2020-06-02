@@ -37,7 +37,7 @@
 #include "typage.hh"
 
 // Pour les bibliothèques externes ou les inclusions, détermine le chemin absolu selon le fichier courant, au cas où la bibliothèque serait dans le même dossier que le fichier
-static auto trouve_chemin_si_dans_dossier(DonneesModule *module, dls::chaine const &chaine)
+static auto trouve_chemin_si_dans_dossier(Module *module, dls::chaine const &chaine)
 {
 	/* vérifie si le chemin est relatif ou absolu */
 	auto chemin = std::filesystem::path(chaine.c_str());

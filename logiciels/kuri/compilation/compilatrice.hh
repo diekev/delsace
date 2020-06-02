@@ -33,7 +33,7 @@
 
 class assembleuse_arbre;
 
-struct DonneesModule;
+struct Module;
 struct Fichier;
 
 struct Metriques {
@@ -144,7 +144,7 @@ struct Compilatrice {
 	/* À FAIRE : supprime ceci */
 	assembleuse_arbre *assembleuse = nullptr;
 
-	dls::tableau<DonneesModule *> modules{};
+	dls::tableau<Module *> modules{};
 	dls::tableau<Fichier *> fichiers{};
 
 	GrapheDependance graphe_dependance{};
@@ -207,19 +207,19 @@ struct Compilatrice {
 	 * module ainsi créé. Si un module avec le même chemin existe, il est
 	 * retourné sans qu'un nouveau module ne soit créé.
 	 */
-	DonneesModule *cree_module(dls::chaine const &nom, dls::chaine const &chemin);
+	Module *cree_module(dls::chaine const &nom, dls::chaine const &chemin);
 
 	/**
 	 * Retourne un pointeur vers le module à l'index indiqué. Si l'index est
 	 * en dehors de portée, le programme crashera.
 	 */
-	DonneesModule *module(size_t index) const;
+	Module *module(size_t index) const;
 
 	/**
 	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
 	 * module n'a ce nom, retourne nullptr.
 	 */
-	DonneesModule *module(const dls::vue_chaine_compacte &nom) const;
+	Module *module(const dls::vue_chaine_compacte &nom) const;
 
 	/**
 	 * Retourne vrai si le module dont le nom est spécifié existe dans la liste

@@ -43,14 +43,14 @@ bool Fichier::importe_module(dls::vue_chaine_compacte const &nom_module) const
 	return modules_importes.possede(nom_module);
 }
 
-DonneesModule::DonneesModule(Compilatrice &compilatrice)
+Module::Module(Compilatrice &compilatrice)
 	: assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", compilatrice))
 	, bloc(assembleuse->bloc_courant())
 {
 	assert(bloc != nullptr);
 }
 
-DonneesModule::~DonneesModule()
+Module::~Module()
 {
 	memoire::deloge("assembleuse_arbre", assembleuse);
 }
@@ -91,7 +91,7 @@ dls::chaine charge_fichier(
 
 void charge_fichier(
 		std::ostream &os,
-		DonneesModule *module,
+		Module *module,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		Compilatrice &compilatrice,
@@ -218,7 +218,7 @@ PositionLexeme position_lexeme(Lexeme const &lexeme)
 
 NoeudDeclarationFonction *cherche_fonction_dans_module(
 		Compilatrice &compilatrice,
-		DonneesModule *module,
+		Module *module,
 		dls::vue_chaine_compacte const &nom_fonction)
 {
 	auto ident = compilatrice.table_identifiants.identifiant_pour_chaine(nom_fonction);
@@ -238,7 +238,7 @@ NoeudDeclarationFonction *cherche_fonction_dans_module(
 
 NoeudDeclarationFonction *cherche_symbole_dans_module(
 		Compilatrice &compilatrice,
-		DonneesModule *module,
+		Module *module,
 		dls::vue_chaine_compacte const &nom_fonction)
 {
 	auto ident = compilatrice.table_identifiants.identifiant_pour_chaine(nom_fonction);

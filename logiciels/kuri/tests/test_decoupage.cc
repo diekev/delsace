@@ -26,7 +26,7 @@
 
 #include <cstring>
 
-#include "compilation/compilatrice.hh"  // pour DonneesModule
+#include "compilation/compilatrice.hh"  // pour Module
 #include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 

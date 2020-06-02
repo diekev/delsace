@@ -48,7 +48,7 @@ Compilatrice::Compilatrice()
 Compilatrice::~Compilatrice()
 {
 	for (auto module : modules) {
-		memoire::deloge("DonneesModule", module);
+		memoire::deloge("Module", module);
 	}
 
 	for (auto fichier : fichiers) {
@@ -60,7 +60,7 @@ Compilatrice::~Compilatrice()
 
 /* ************************************************************************** */
 
-DonneesModule *Compilatrice::cree_module(
+Module *Compilatrice::cree_module(
 		dls::chaine const &nom,
 		dls::chaine const &chemin)
 {
@@ -76,7 +76,7 @@ DonneesModule *Compilatrice::cree_module(
 		}
 	}
 
-	auto module = memoire::loge<DonneesModule>("DonneesModule", *this);
+	auto module = memoire::loge<Module>("Module", *this);
 	module->id = static_cast<size_t>(modules.taille());
 	module->nom = nom;
 	module->chemin = chemin_corrige;
@@ -86,12 +86,12 @@ DonneesModule *Compilatrice::cree_module(
 	return module;
 }
 
-DonneesModule *Compilatrice::module(size_t index) const
+Module *Compilatrice::module(size_t index) const
 {
 	return modules[static_cast<long>(index)];
 }
 
-DonneesModule *Compilatrice::module(const dls::vue_chaine_compacte &nom) const
+Module *Compilatrice::module(const dls::vue_chaine_compacte &nom) const
 {
 	for (auto module : modules) {
 		if (module->nom == nom) {
@@ -206,7 +206,7 @@ size_t Compilatrice::memoire_utilisee() const
 
 	memoire += static_cast<size_t>(chemins.taille()) * sizeof(dls::vue_chaine_compacte);
 	memoire += static_cast<size_t>(definitions.taille()) * sizeof(dls::vue_chaine_compacte);
-	memoire += static_cast<size_t>(modules.taille()) * sizeof(DonneesModule *);
+	memoire += static_cast<size_t>(modules.taille()) * sizeof(Module *);
 	memoire += static_cast<size_t>(fichiers.taille()) * sizeof(Fichier *);
 
 	POUR (modules) {

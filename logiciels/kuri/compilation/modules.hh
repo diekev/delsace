@@ -35,7 +35,7 @@
 class assembleuse_arbre;
 
 struct Compilatrice;
-struct DonneesModule;
+struct Module;
 struct IdentifiantCode;
 struct NoeudBase;
 struct NoeudBloc;
@@ -54,7 +54,7 @@ struct Fichier {
 
 	dls::ensemblon<dls::vue_chaine_compacte, 16> modules_importes{};
 
-	DonneesModule *module = nullptr;
+	Module *module = nullptr;
 
 	size_t id = 0ul;
 	dls::chaine nom{""};
@@ -70,7 +70,7 @@ struct Fichier {
 	bool importe_module(dls::vue_chaine_compacte const &nom_module) const;
 };
 
-struct DonneesModule {
+struct Module {
 	/* utilisation d'un pointeur à cause de dépendances cycliques entre les entêtes */
 	assembleuse_arbre *assembleuse{};
 	NoeudBloc *bloc = nullptr;
@@ -82,11 +82,11 @@ struct DonneesModule {
 	dls::chaine chemin{""};
 	bool importe = false;
 
-	DonneesModule(Compilatrice &compilatrice);
+	Module(Compilatrice &compilatrice);
 
-	~DonneesModule();
+	~Module();
 
-	COPIE_CONSTRUCT(DonneesModule);
+	COPIE_CONSTRUCT(Module);
 };
 
 dls::chaine charge_fichier(
@@ -95,7 +95,7 @@ dls::chaine charge_fichier(
 		Lexeme const &lexeme);
 
 void charge_fichier(std::ostream &os,
-		DonneesModule *module,
+		Module *module,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		Compilatrice &compilatrice,
@@ -143,7 +143,7 @@ void imprime_fichier_ligne(Compilatrice &compilatrice, Lexeme const &lexeme);
 
 NoeudDeclarationFonction *cherche_fonction_dans_module(
 		Compilatrice &compilatrice,
-		DonneesModule *module,
+		Module *module,
 		dls::vue_chaine_compacte const &nom_fonction);
 
 NoeudDeclarationFonction *cherche_fonction_dans_module(
@@ -153,7 +153,7 @@ NoeudDeclarationFonction *cherche_fonction_dans_module(
 
 NoeudDeclarationFonction *cherche_symbole_dans_module(
 		Compilatrice &compilatrice,
-		DonneesModule *module,
+		Module *module,
 		dls::vue_chaine_compacte const &nom_fonction);
 
 NoeudDeclarationFonction *cherche_symbole_dans_module(
