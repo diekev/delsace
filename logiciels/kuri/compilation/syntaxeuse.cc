@@ -97,6 +97,8 @@ static bool est_operateur_surchargeable(GenreLexeme genre)
 	}
 }
 
+static constexpr int PRECEDENCE_TYPE = 4;
+
 static int precedence_pour_operateur(GenreLexeme genre_operateur)
 {
 	switch (genre_operateur) {
@@ -124,57 +126,60 @@ static int precedence_pour_operateur(GenreLexeme genre_operateur)
 		{
 			return 3;
 		}
+		// La précédence de 4 est réservée pour les déclarations de type après ':' où nous devons nous
+		// arrêter avant le '=' ou la ',' ; arrêt réalisé via une précédence plus forte. Par contre
+		// nous ne désidérons transformer ':' en un opérateur.
 		case GenreLexeme::BARRE_BARRE:
-		{
-			return 4;
-		}
-		case GenreLexeme::ESP_ESP:
 		{
 			return 5;
 		}
-		case GenreLexeme::BARRE:
+		case GenreLexeme::ESP_ESP:
 		{
 			return 6;
 		}
-		case GenreLexeme::CHAPEAU:
+		case GenreLexeme::BARRE:
 		{
 			return 7;
 		}
-		case GenreLexeme::ESPERLUETTE:
+		case GenreLexeme::CHAPEAU:
 		{
 			return 8;
+		}
+		case GenreLexeme::ESPERLUETTE:
+		{
+			return 9;
 		}
 		case GenreLexeme::DIFFERENCE:
 		case GenreLexeme::EGALITE:
 		{
-			return 9;
+			return 10;
 		}
 		case GenreLexeme::INFERIEUR:
 		case GenreLexeme::INFERIEUR_EGAL:
 		case GenreLexeme::SUPERIEUR:
 		case GenreLexeme::SUPERIEUR_EGAL:
 		{
-			return 10;
+			return 11;
 		}
 		case GenreLexeme::DECALAGE_GAUCHE:
 		case GenreLexeme::DECALAGE_DROITE:
 		{
-			return 11;
+			return 12;
 		}
 		case GenreLexeme::PLUS:
 		case GenreLexeme::MOINS:
 		{
-			return 12;
+			return 13;
 		}
 		case GenreLexeme::FOIS:
 		case GenreLexeme::DIVISE:
 		case GenreLexeme::POURCENT:
 		{
-			return 13;
+			return 14;
 		}
 		case GenreLexeme::COMME:
 		{
-			return 14;
+			return 15;
 		}
 		case GenreLexeme::EXCLAMATION:
 		case GenreLexeme::TILDE:
@@ -185,13 +190,13 @@ static int precedence_pour_operateur(GenreLexeme genre_operateur)
 		case GenreLexeme::ESP_UNAIRE:
 		case GenreLexeme::EXPANSION_VARIADIQUE:
 		{
-			return 15;
+			return 16;
 		}
 		case GenreLexeme::PARENTHESE_OUVRANTE:
 		case GenreLexeme::POINT:
 		case GenreLexeme::CROCHET_OUVRANT:
 		{
-			return 16;
+			return 17;
 		}
 		default:
 		{
@@ -676,7 +681,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
 			if (apparie(GenreLexeme::DOUBLE_POINTS) && racine_expression != GenreLexeme::RELOGE) {
 				consomme();
-				noeud->expression_type = analyse_expression_primaire(GenreLexeme::DOUBLE_POINTS, GenreLexeme::INCONNU);
+				noeud->expression_type = analyse_expression({ PRECEDENCE_TYPE, Associativite::GAUCHE }, GenreLexeme::DOUBLE_POINTS, GenreLexeme::INCONNU);
 			}
 
 			return noeud;
