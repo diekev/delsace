@@ -1098,7 +1098,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // @erreur eof-in-tag parse error
                     retourne lexeuse.émet_lexème_fin_de_fichier()
                 }
-                sinon si c == APOSTROPHE || c == GUILLEMET || c == ACCENT_GRAVE || c == CHEVRON_OUVRANT || c == SLASH {
+                sinon si c == APOSTROPHE || c == GUILLEMET || c == ACCENT_GRAVE || c == CHEVRON_OUVRANT || c == EGAL {
                     // @erreur unexpected-character-in-unquoted-attribute-value parse error
                     chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, c)
                 }
