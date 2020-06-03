@@ -372,7 +372,7 @@ void Syntaxeuse::lance_analyse(std::ostream &os)
 			}
 		}
 		else {
-			lance_erreur("attenu une expression ou une instruction");
+			lance_erreur("attendu une expression ou une instruction");
 		}
 	}
 
@@ -2042,6 +2042,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 					membres.pousse(static_cast<NoeudDeclaration *>(noeud));
 					expressions.pousse(noeud);
 				}
+			}
+			else {
+				lance_erreur("attendu une expression ou une instruction");
 			}
 		}
 
