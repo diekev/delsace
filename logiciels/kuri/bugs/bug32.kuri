@@ -1,0 +1,17 @@
+// ne peut pas utiliser une accès de type dans l'entête d'une fonction
+
+Struct :: struct {
+    SousStruct :: struct {
+        x : z32
+    }
+    x : z32
+}
+
+foo :: fonc (ss: Struct.SousStruct)
+{
+}
+
+principale :: fonc () -> z32
+{
+   retourne 0
+}

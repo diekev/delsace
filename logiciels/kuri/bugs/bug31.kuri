@@ -1,0 +1,11 @@
+// les types variadiques n'ayant pas de types tableaux correspondant ne sont pas convertis en C
+
+Struct :: struct {
+    x : z32
+}
+
+principale :: fonc () -> z32
+{
+    x : ...Struct
+    retourne 0
+}
