@@ -3242,6 +3242,11 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 		auto pointeur_struct = cree_charge_mem(fonction->params_entrees[1]);
 
 		POUR (type_struct->membres) {
+			if (it.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
+				index_membre += 1;
+				continue;
+			}
+
 			auto valeur = static_cast<Atome *>(nullptr);
 			auto pointeur = cree_acces_membre(pointeur_struct, index_membre);
 
@@ -3323,6 +3328,23 @@ Atome *ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud
 		auto type_enum = static_cast<TypeEnum *>(type_accede);
 		auto valeur_enum = type_enum->membres[noeud->index_membre].valeur;
 		return cree_constante_entiere(type_enum, static_cast<unsigned>(valeur_enum));
+	}
+
+	if (noeud->type->genre == GenreType::TYPE_DE_DONNEES) {
+		auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(noeud->type);
+
+		if (type_de_donnees->type_connu) {
+			return cree_constante_entiere(m_compilatrice.typeuse.type_type_de_donnees_, type_de_donnees->type_connu->index_dans_table_types);
+		}
+
+		return cree_constante_entiere(m_compilatrice.typeuse.type_type_de_donnees_, type_de_donnees->index_dans_table_types);
+	}
+
+	auto type_compose = static_cast<TypeCompose *>(type_accede);
+	auto &membre = type_compose->membres[noeud->index_membre];
+
+	if (membre.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
+		return genere_ri_transformee_pour_noeud(membre.expression_valeur_defaut, nullptr);
 	}
 
 	auto pointeur_accede = genere_ri_pour_noeud(accede);
@@ -3764,7 +3786,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			kuri::tableau<AtomeConstante *> valeurs_membres;
 
 			POUR (type_union->membres) {
-				/* { nom: chaine, info : *InfoType, décalage } */
+				/* { nom: chaine, info : *InfoType, décalage, drapeaux } */
 				auto type_membre = it.type;
 
 				auto info_type = cree_info_type(type_membre);
@@ -3774,11 +3796,13 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 
 				auto valeur_nom = cree_chaine(it.nom);
 				auto valeur_decalage = cree_z64(static_cast<uint64_t>(it.decalage));
+				auto valeur_drapeaux = cree_z32(static_cast<unsigned>(it.drapeaux));
 
-				auto valeurs = kuri::tableau<AtomeConstante *>(3);
+				auto valeurs = kuri::tableau<AtomeConstante *>(4);
 				valeurs[0] = valeur_nom;
 				valeurs[1] = info_type;
 				valeurs[2] = valeur_decalage;
+				valeurs[3] = valeur_drapeaux;
 
 				auto initialisateur = cree_constante_structure(type_struct_membre, std::move(valeurs));
 
@@ -3845,7 +3869,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			kuri::tableau<AtomeConstante *> valeurs_membres;
 
 			POUR (type_struct->membres) {
-				/* { nom: chaine, info : *InfoType, décalage } */
+				/* { nom: chaine, info : *InfoType, décalage, drapeaux } */
 				auto type_membre = it.type;
 
 				auto info_type = cree_info_type(type_membre);
@@ -3855,11 +3879,13 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 
 				auto valeur_nom = cree_chaine(it.nom);
 				auto valeur_decalage = cree_z64(static_cast<uint64_t>(it.decalage));
+				auto valeur_drapeaux = cree_z32(static_cast<unsigned>(it.drapeaux));
 
-				auto valeurs = kuri::tableau<AtomeConstante *>(3);
+				auto valeurs = kuri::tableau<AtomeConstante *>(4);
 				valeurs[0] = valeur_nom;
 				valeurs[1] = info_type;
 				valeurs[2] = valeur_decalage;
+				valeurs[3] = valeur_drapeaux;
 
 				auto initialisateur = cree_constante_structure(type_struct_membre, std::move(valeurs));
 

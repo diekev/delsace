@@ -82,16 +82,30 @@ static void valide_acces_membre(
 		type = static_cast<TypePointeur *>(type)->type_pointe;
 	}
 
+	// Il est possible d'avoir une chaine de type : Struct1.Struct2.Struct3...
+	if (type->genre == GenreType::TYPE_DE_DONNEES) {
+		auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(type);
+
+		if (type_de_donnees->type_connu != nullptr) {
+			type = type_de_donnees->type_connu;
+			// change le type de la structure également pour simplifier la génération
+			// de la RI (nous nous basons sur le type pour ça)
+			structure->type = type;
+		}
+	}
+
 	if (est_type_compose(type)) {
 		auto type_compose = static_cast<TypeCompose *>(type);
 
 		auto membre_trouve = false;
 		auto index_membre = 0;
+		auto membre_est_constant = false;;
 
 		POUR (type_compose->membres) {
 			if (it.nom == membre->ident->nom) {
 				b->type = it.type;
 				membre_trouve = true;
+				membre_est_constant = it.drapeaux == TypeCompose::Membre::EST_CONSTANT;
 				break;
 			}
 
@@ -104,7 +118,7 @@ static void valide_acces_membre(
 
 		b->index_membre = index_membre;
 
-		if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
+		if (membre_est_constant || type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
 			b->genre_valeur = GenreValeur::DROITE;
 		}
 		else if (type->genre == GenreType::UNION) {
@@ -2811,7 +2825,14 @@ void ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	}
 
 	POUR (decl->bloc->membres) {
-		if (it->genre == GenreNoeud::DECLARATION_STRUCTURE) {
+		if (dls::outils::est_element(it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
+			verifie_redefinition_membre(it);
+			// utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
+			auto type_de_donnees = m_compilatrice.typeuse.type_type_de_donnees(it->type);
+			type_struct->membres.pousse({ type_de_donnees, it->ident->nom, decalage, 0, nullptr, TypeCompose::Membre::EST_CONSTANT });
+
+			// l'utilisation d'un type de données brise le graphe de dépendance
+			donnees_dependance.types_utilises.insere(it->type);
 			continue;
 		}
 
@@ -2821,6 +2842,12 @@ void ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 		auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
 		auto decl_membre = decl_var->valeur;
+
+		if (decl_var->drapeaux & EST_CONSTANTE) {
+			verifie_redefinition_membre(it);
+			type_struct->membres.pousse({ it->type, it->ident->nom, decalage, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
+			continue;
+		}
 
 		if (decl_membre->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
 			erreur::lance_erreur("Expression invalide dans la déclaration du membre de la structure", m_compilatrice, decl_membre->lexeme);

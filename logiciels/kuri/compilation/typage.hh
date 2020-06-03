@@ -198,11 +198,16 @@ struct TypeFonction : public Type {
  */
 struct TypeCompose : public Type {
 	struct Membre {
+		enum {
+			EST_CONSTANT = 1, // si le membre est une constante
+		};
+
 		Type *type = nullptr;
 		dls::vue_chaine_compacte nom = "";
 		unsigned decalage = 0;
 		int valeur = 0; // pour les énumérations
 		NoeudExpression *expression_valeur_defaut = nullptr; // pour les membres des structures
+		int drapeaux = 0;
 	};
 
 	kuri::tableau<Membre> membres{};

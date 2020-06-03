@@ -44,10 +44,15 @@ InfoTypeTableau :: struct {
 }
 
 InfoTypeMembreStructure :: struct {
+	// À FAIRE : crash dans la génération des infos types (RI)
+	// Drapeaux :: énum {
+	// 	EST_CONSTANT
+	// }
+
 	nom : chaine
 	id : *InfoType
 	décalage : z64 // décalage en octets dans la structure
-	//drapeaux : n32
+	drapeaux : z32
 }
 
 InfoTypeStructure :: struct {

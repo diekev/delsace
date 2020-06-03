@@ -330,6 +330,10 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeCompose *
 	}
 
 	POUR (type_compose->membres) {
+		if (it.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
+			continue;
+		}
+
 		auto nom = broye_nom_simple(it.nom);
 		enchaineuse << nom_broye_type(it.type) << ' ';
 

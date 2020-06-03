@@ -40,7 +40,6 @@ Faitures
 - transtypage entre types complexes
 - stack canaries (coulisse LLVM)
 - coroutines en dehors de boucles
-- ajoute accès membre pour les types (==> déplacer structures dans les modules)
 - ajout d'une option pour controler la génération du code d'introspection/réflexion (il faut alors également exclure les einis)
 - surcharge d'opérateurs, considération pour '='
 - surcharge transtypage
