@@ -2247,6 +2247,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 					}
 					else*/ {
 						valeur_pointeur = cree_acces_membre_et_charge(valeur, 0);
+						valeur_pointeur = cree_transtype(type_cible, valeur_pointeur);
 						valeur_taille = cree_acces_membre_et_charge(valeur, 1);
 					}
 
