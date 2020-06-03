@@ -150,7 +150,7 @@ void charge_fichier(
 	analyseuse.lance_analyse(os);
 }
 
-void importe_module(
+Module *importe_module(
 		std::ostream &os,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
@@ -180,17 +180,19 @@ void importe_module(
 					erreur::type_erreur::MODULE_INCONNU);
 	}
 
-	/* trouve le chemin absolu du module */
-	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
-	auto module = compilatrice.cree_module(nom.c_str(), chemin_absolu.c_str());
+	/* trouve le chemin absolu du module (cannonique pour supprimer les "../../" */
+	auto chemin_absolu = std::filesystem::canonical(std::filesystem::absolute(chemin.c_str()));
+	auto nom_dossier = chemin_absolu.filename();
+
+	auto module = compilatrice.cree_module(nom_dossier.c_str(), chemin_absolu.c_str());
 
 	if (module->importe) {
-		return;
+		return module;
 	}
 
 	module->importe = true;
 
-	os << "Importation du module : " << nom << " (" << chemin_absolu << ")" << std::endl;
+	os << "Importation du module : " << nom_dossier << " (" << chemin_absolu << ")" << std::endl;
 
 	for (auto const &entree : std::filesystem::directory_iterator(chemin_absolu)) {
 		auto chemin_entree = entree.path();
@@ -205,6 +207,8 @@ void importe_module(
 
 		charge_fichier(os, module, racine_kuri, chemin_entree.stem().c_str(), compilatrice, {});
 	}
+
+	return module;
 }
 
 PositionLexeme position_lexeme(Lexeme const &lexeme)

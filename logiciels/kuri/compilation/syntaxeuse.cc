@@ -315,13 +315,13 @@ void Syntaxeuse::lance_analyse(std::ostream &os)
 			}
 
 			auto const nom_module = lexeme_courant()->chaine;
-			m_fichier->modules_importes.insere(nom_module);
 
 			/* désactive le 'chronomètre' car sinon le temps d'analyse prendra
 			 * également en compte le chargement, le découpage, et l'analyse du
 			 * module importé */
 			m_fichier->temps_analyse += m_chrono_analyse.arrete();
-			importe_module(os, m_racine_kuri, dls::chaine(nom_module), m_compilatrice, *lexeme_courant());
+			auto module = importe_module(os, m_racine_kuri, dls::chaine(nom_module), m_compilatrice, *lexeme_courant());
+			m_fichier->modules_importes.insere(module->nom);
 			m_chrono_analyse.reprend();
 
 			consomme();

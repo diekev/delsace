@@ -120,7 +120,7 @@ void charge_fichier(std::ostream &os,
  *
  * Le paramètre est_racine ne doit être vrai que pour le module racine.
  */
-void importe_module(
+Module *importe_module(
 		std::ostream &os,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
