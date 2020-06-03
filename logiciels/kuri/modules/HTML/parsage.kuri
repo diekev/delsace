@@ -1155,6 +1155,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             si noeud.texte != lexème.nom {
                 erreur_de_parsage("le noeud courant n'a pas de balise <h>")
+                imprime("balise : <%>\n", lexème.nom)
             }
 
             dépile_tous_les_éléments_jusque(parseuse, lexème.nom)
@@ -1588,7 +1589,134 @@ insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
 insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
-    panique("algorithme d'insertion incomplet")
+    si lexème.genre == GenreLexème.Caractère {
+        si lexème.point_de_code == NUL {
+            erreur_de_parsage("caractère nul dans <select>")
+            retourne
+        }
+
+        parseuse.insère_caractère(lexème.point_de_code)
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.Commentaire {
+        parseuse.insère_commentaire(lexème)
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.Doctype {
+        erreur_de_parsage("<doctype> dans <select>")
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.DébutTag {
+        si lexème.nom == "html" {
+            parseuse.gère_lexème_pour_mode(ModeInsertion.DansBody, lexème)
+            retourne
+        }
+
+        si lexème.nom == "option" {
+            si parseuse.noeud_courant().texte == "option" {
+                dépile(@parseuse.pile_éléments_ouvert)
+            }
+
+            _ := parseuse.insère_élément_html(lexème)
+            retourne
+        }
+
+        si lexème.nom == "optgroup" {
+            si parseuse.noeud_courant().texte == "option" {
+                dépile(@parseuse.pile_éléments_ouvert)
+            }
+
+            si parseuse.noeud_courant().texte == "optgroup" {
+                dépile(@parseuse.pile_éléments_ouvert)
+            }
+
+            _ := parseuse.insère_élément_html(lexème)
+            retourne
+        }
+
+        si lexème.nom == "select" {
+            erreur_de_parsage("<select> inattendu")
+
+            si !possède_dans_portée_select(@parseuse.pile_éléments_ouvert, "select") {
+                erreur_de_parsage("aucun <select> dans la portée <select>")
+                retourne
+            }
+
+            parseuse.dépile_tous_les_éléments_jusque("select")
+            parseuse.restaure_mode_insertion_appropriemment()
+            retourne
+        }
+
+        si fait_partie_de(lexème.nom, "input", "keygen", "textarea") {
+            erreur_de_parsage("élément inattendu dans <select>")
+
+            si !possède_dans_portée_select(@parseuse.pile_éléments_ouvert, "select") {
+                erreur_de_parsage("aucun <select> dans la portée <select>")
+                retourne
+            }
+
+            parseuse.dépile_tous_les_éléments_jusque("select")
+            parseuse.restaure_mode_insertion_appropriemment()
+            retourne
+        }
+
+        si fait_partie_de(lexème.nom, "script", "template") {
+            parseuse.gère_lexème_pour_mode(ModeInsertion.DansHead, lexème)
+            retourne
+        }
+    }
+
+    si lexème.genre == GenreLexème.FinTag {
+        si lexème.nom == "optgroup" {
+            si parseuse.noeud_courant().texte == "option" && parseuse.pile_éléments_ouvert.éléments[parseuse.pile_éléments_ouvert.éléments.taille - 1].texte == "optgroup" {
+                dépile(@parseuse.pile_éléments_ouvert)
+            }
+
+            si parseuse.noeud_courant().texte != "optgroup" {
+                erreur_de_parsage("attendu <optgroup> sur la pile d'éléments ouverts")
+                retourne
+            }
+
+            dépile(@parseuse.pile_éléments_ouvert)
+            retourne
+        }
+
+        si lexème.nom == "option" {
+            si parseuse.noeud_courant().texte != "option"  {
+                erreur_de_parsage("attendu <option> sur la pile d'éléments ouverts")
+                retourne
+            }
+
+            dépile(@parseuse.pile_éléments_ouvert)
+            retourne
+        }
+
+        si lexème.nom == "select" {
+            si !possède_dans_portée_select(@parseuse.pile_éléments_ouvert, "select") {
+                erreur_de_parsage("aucun <select> dans la portée <select>")
+                retourne
+            }
+
+            parseuse.dépile_tous_les_éléments_jusque("select")
+            parseuse.restaure_mode_insertion_appropriemment()
+            retourne
+        }
+
+        si fait_partie_de(lexème.nom, "template") {
+            parseuse.gère_lexème_pour_mode(ModeInsertion.DansHead, lexème)
+            retourne
+        }
+    }
+
+    si lexème.genre == GenreLexème.FinDeFichier {
+        parseuse.gère_lexème_pour_mode(ModeInsertion.DansBody, lexème)
+        retourne
+    }
+
+    erreur_de_parsage("lexème inattendu dans <select>")
 }
 
 insère_mode_DansSelectDansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
