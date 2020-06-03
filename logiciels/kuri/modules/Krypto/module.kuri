@@ -48,3 +48,65 @@ SHA256_genere_empreinte :: fonc (entree: chaine) -> chaine
 
     retourne résultat
 }
+
+HMAC_genere_empreinte :: fonc externe (cle: *n8, taille_cle: z64, message: *n8, taille_message: z64)
+
+HMAC_genere_empreinte :: fonc (clé: chaine, message: chaine)
+{
+    HMAC_genere_empreinte(clé.pointeur comme *n8, clé.taille, message.pointeur comme *n8, message.taille)
+}
+
+// implémentation de la méthode HMAC
+// https://tools.ietf.org/html/rfc2104.html
+hmac :: fonc (clé: chaine, message: chaine) -> chaine
+{
+    si clé.taille > SHA256_taille_tampon() {
+        clé = SHA256_genere_empreinte(clé)
+    }
+    sinon si clé.taille < SHA256_taille_tampon() {
+        clé = copie_chaine(clé)
+
+        marge := SHA256_taille_tampon() - clé.taille
+
+        pour 0 ... marge - 1 {
+            chaine_ajoute(@clé, 0)
+        }
+    }
+    sinon {
+        clé = copie_chaine(clé)
+    }
+
+    o_clé := copie_chaine(clé)
+    i_clé := copie_chaine(clé)
+
+    imprime("o_clé : %\n", o_clé)
+
+    pour o_clé {
+        it ^= 0x5c
+    }
+
+    imprime("o_clé : %\n", o_clé)
+
+    pour i_clé {
+        it ^= 0x36
+    }
+
+    xi := copie_chaine(i_clé)
+    chaine_ajoute(@xi, message)
+
+    hxi := SHA256_genere_empreinte(xi)
+
+    xo := copie_chaine(o_clé)
+    chaine_ajoute(@xo, hxi)
+
+    résultat := SHA256_genere_empreinte(xo)
+
+    déloge o_clé
+    déloge i_clé
+    déloge clé
+    déloge xi
+    déloge hxi
+    déloge xo
+
+    retourne résultat
+}

@@ -38,6 +38,8 @@ long SHA256_taille_tampon();
 
 void SHA256_genere_empreinte(char *entree, long taille, char *sortie);
 
+void HMAC_genere_empreinte(unsigned char *cle, long taille_cle, unsigned char *message, long taille_message);
+
 #ifdef __cplusplus
 }
 #endif
