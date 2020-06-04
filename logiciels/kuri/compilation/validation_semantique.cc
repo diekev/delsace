@@ -835,6 +835,23 @@ void ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				graphe.cree_noeud_globale(decl);
 			}
 
+			if (variable->drapeaux & EMPLOYE) {
+				if (decl->type->genre != GenreType::STRUCTURE) {
+					erreur::lance_erreur("impossible d'employé une variable n'étant pas une structure", m_compilatrice, decl->lexeme);
+				}
+
+				auto type_structure = static_cast<TypeStructure *>(decl->type);
+
+				POUR (type_structure->membres) {
+					auto decl_membre = m_compilatrice.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme);
+					decl_membre->ident = m_compilatrice.table_identifiants.identifiant_pour_chaine(it.nom);
+					decl_membre->type = it.type;
+					decl_membre->bloc_parent = decl->bloc_parent;
+
+					decl->bloc_parent->membres.pousse(static_cast<NoeudDeclaration *>(decl_membre));
+				}
+			}
+
 			donnees_dependance.types_utilises.insere(decl->type);
 
 			break;
@@ -2824,7 +2841,7 @@ void ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		return;
 	}
 
-	POUR (decl->bloc->membres) {
+	POUR (decl->bloc->expressions) {
 		if (dls::outils::est_element(it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
 			verifie_redefinition_membre(it);
 			// utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
