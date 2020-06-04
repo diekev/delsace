@@ -2619,17 +2619,6 @@ void ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 	};
 
-	auto verifie_redefinition_membre = [&decl, this](NoeudBase *enf)
-	{
-		if (trouve_dans_bloc_seul(decl->bloc, enf) != nullptr) {
-			erreur::lance_erreur(
-						"Redéfinition du membre",
-						m_compilatrice,
-						enf->lexeme,
-						erreur::type_erreur::MEMBRE_REDEFINI);
-		}
-	};
-
 	auto decalage = 0u;
 	auto max_alignement = 0u;
 
@@ -2679,15 +2668,10 @@ void ContexteValidationCode::valide_structure(NoeudStruct *decl)
 				erreur::lance_erreur("Expression invalide dans la déclaration du membre de l'union", m_compilatrice, decl_membre->lexeme);
 			}
 
-			decl_membre->type = resoud_type_final(m_compilatrice, decl_membre->expression_type);
-
 			if (decl_membre->type->genre == GenreType::RIEN) {
 				erreur::lance_erreur("Ne peut avoir un type « rien » dans une union", m_compilatrice, decl_membre->lexeme, erreur::type_erreur::TYPE_DIFFERENTS);
 			}
 
-			decl_var->type = decl_membre->type;
-
-			verifie_redefinition_membre(decl_var);
 			verifie_inclusion_valeur(decl_var);
 
 			ajoute_donnees_membre(decl_membre, decl_var->expression);
@@ -2731,7 +2715,6 @@ void ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 	POUR (decl->bloc->expressions) {
 		if (dls::outils::est_element(it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
-			verifie_redefinition_membre(it);
 			// utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
 			auto type_de_donnees = m_compilatrice.typeuse.type_type_de_donnees(it->type);
 			type_struct->membres.pousse({ type_de_donnees, it->ident->nom, decalage, 0, nullptr, TypeCompose::Membre::EST_CONSTANT });
@@ -2762,7 +2745,6 @@ void ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		auto decl_membre = decl_var->valeur;
 
 		if (decl_var->drapeaux & EST_CONSTANTE) {
-			verifie_redefinition_membre(it);
 			type_struct->membres.pousse({ it->type, it->ident->nom, decalage, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
 			continue;
 		}
@@ -2771,17 +2753,9 @@ void ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			erreur::lance_erreur("Expression invalide dans la déclaration du membre de la structure", m_compilatrice, decl_membre->lexeme);
 		}
 
-		auto decl_expr = decl_var->expression;
-
-		it->ident = decl_membre->ident;
-
-		verifie_redefinition_membre(decl_var);
-
 		if (decl_membre->type->genre == GenreType::RIEN) {
 			erreur::lance_erreur("Ne peut avoir un type « rien » dans une structure", m_compilatrice, decl_membre->lexeme, erreur::type_erreur::TYPE_DIFFERENTS);
 		}
-
-		it->type = decl_membre->type;
 
 		verifie_inclusion_valeur(decl_membre);
 
@@ -2814,7 +2788,7 @@ void ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			}
 		}
 		else {
-			ajoute_donnees_membre(decl_membre, decl_expr);
+			ajoute_donnees_membre(decl_membre, decl_var->expression);
 		}
 	}
 
