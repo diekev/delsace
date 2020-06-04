@@ -491,7 +491,7 @@ void ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					expression->transformation = transformation;
 				}
 
-				if (decl->drapeaux & EST_CONSTANTE) {
+				if (decl->drapeaux & EST_CONSTANTE && expression->type->genre != GenreType::TYPE_DE_DONNEES) {
 					auto res_exec = evalue_expression(m_compilatrice, decl->bloc_parent, expression);
 
 					if (res_exec.est_errone) {
