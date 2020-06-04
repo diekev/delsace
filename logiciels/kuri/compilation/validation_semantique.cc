@@ -291,7 +291,7 @@ void ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			auto inst = static_cast<NoeudExpressionMembre *>(noeud);
 			auto enfant1 = inst->accede;
-			auto enfant2 = inst->membre;
+			//auto enfant2 = inst->membre;
 			noeud->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
 			if (enfant1->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
