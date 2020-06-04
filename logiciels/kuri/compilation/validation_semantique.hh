@@ -61,6 +61,7 @@ struct ContexteValidationCode {
 
 	void valide_semantique_noeud(NoeudExpression *);
 
+	void valide_type_fonction(NoeudDeclarationFonction *);
 	void valide_fonction(NoeudDeclarationFonction *);
 	void valide_operateur(NoeudDeclarationFonction *);
 	void valide_enum(NoeudEnum *);
@@ -68,7 +69,5 @@ struct ContexteValidationCode {
 };
 
 void performe_validation_semantique(Compilatrice &compilatrice);
-
-void valide_type_fonction(NoeudExpression *b, Compilatrice &compilatrice, ContexteValidationCode &contexte);
 
 }  /* namespace noeud */

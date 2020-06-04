@@ -908,7 +908,7 @@ void valide_appel_fonction(
 			// À FAIRE  : pousse dans la file
 			auto contexte_ = noeud::ContexteValidationCode(compilatrice);
 			contexte_.commence_fonction(noeud_decl);
-			noeud::valide_type_fonction(noeud_decl, compilatrice, contexte_);
+			contexte_.valide_type_fonction(noeud_decl);
 			contexte_.valide_fonction(noeud_decl);
 			contexte_.termine_fonction();
 

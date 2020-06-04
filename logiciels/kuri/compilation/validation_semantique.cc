@@ -164,224 +164,6 @@ static void valide_acces_membre(
 				erreur::type_erreur::TYPE_DIFFERENTS);
 }
 
-void valide_type_fonction(NoeudExpression *b, Compilatrice &compilatrice, ContexteValidationCode &contexte)
-{
-	PROFILE_FONCTION;
-
-	auto decl = static_cast<NoeudDeclarationFonction *>(b);
-
-	if (decl->est_coroutine) {
-		decl->genre = GenreNoeud::DECLARATION_COROUTINE;
-	}
-
-	POUR (decl->arbre_aplatis_entete) {
-		contexte.valide_semantique_noeud(it);
-	}
-
-	// -----------------------------------
-	if (!decl->est_instantiation_gabarit) {
-		auto noms = dls::ensemblon<IdentifiantCode *, 16>();
-		auto dernier_est_variadic = false;
-
-		POUR (decl->params) {
-			auto param = static_cast<NoeudDeclarationVariable *>(it);
-			auto variable = param->valeur;
-			auto expression = param->expression;
-
-			if (noms.possede(variable->ident)) {
-				erreur::lance_erreur(
-							"Redéfinition de l'argument",
-							compilatrice,
-							variable->lexeme,
-							erreur::type_erreur::ARGUMENT_REDEFINI);
-			}
-
-			if (dernier_est_variadic) {
-				erreur::lance_erreur(
-							"Argument déclaré après un argument variadic",
-							compilatrice,
-							variable->lexeme,
-							erreur::type_erreur::NORMAL);
-			}
-
-			if (variable->type && variable->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-				rassemble_noms_type_polymorphique(variable->type, decl->noms_types_gabarits);
-				decl->est_gabarit = true;
-			}
-			else {
-				if (expression != nullptr) {
-					if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
-						erreur::lance_erreur("Un paramètre d'une surcharge d'opérateur ne peut avoir de valeur par défaut",
-											 compilatrice,
-											 param->lexeme);
-					}
-				}
-			}
-
-			noms.insere(variable->ident);
-
-			if (it->type->genre == GenreType::VARIADIQUE) {
-				it->drapeaux |= EST_VARIADIQUE;
-				decl->est_variadique = true;
-				dernier_est_variadic = true;
-
-				auto type_var = static_cast<TypeVariadique *>(it->type);
-
-				if (!decl->est_externe && type_var->type_pointe == nullptr) {
-					erreur::lance_erreur(
-								"La déclaration de fonction variadique sans type n'est"
-								" implémentée que pour les fonctions externes",
-								compilatrice,
-								it->lexeme);
-				}
-			}
-		}
-
-		if (decl->est_gabarit) {
-			return;
-		}
-	}
-	else {
-		POUR (decl->params) {
-			auto variable = static_cast<NoeudDeclarationVariable *>(it)->valeur;
-			variable->type = resoud_type_final(compilatrice, it->expression_type);
-			it->type = variable->type;
-		}
-	}
-
-	// -----------------------------------
-
-	kuri::tableau<Type *> types_entrees;
-	auto possede_contexte = !decl->est_externe && !possede_drapeau(b->drapeaux, FORCE_NULCTX);
-	types_entrees.reserve(decl->params.taille + possede_contexte);
-
-	if (possede_contexte) {
-		types_entrees.pousse(compilatrice.type_contexte);
-	}
-
-	POUR (decl->params) {
-		types_entrees.pousse(it->type);
-		contexte.donnees_dependance.types_utilises.insere(it->type);
-	}
-
-	kuri::tableau<Type *> types_sorties;
-	types_sorties.reserve(decl->params_sorties.taille);
-
-	for (auto &type_declare : decl->params_sorties) {
-		auto type_sortie = resoud_type_final(compilatrice, type_declare);
-		types_sorties.pousse(type_sortie);
-		contexte.donnees_dependance.types_utilises.insere(type_sortie);
-	}
-
-	auto type_fonc = compilatrice.typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
-	decl->type = type_fonc;
-	contexte.donnees_dependance.types_utilises.insere(b->type);
-
-	if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
-		auto type_resultat = type_fonc->types_sorties[0];
-
-		if (type_resultat == compilatrice.typeuse[TypeBase::RIEN]) {
-			erreur::lance_erreur("Un opérateur ne peut retourner 'rien'",
-								 compilatrice,
-								 decl->lexeme);
-		}
-
-		if (est_operateur_bool(decl->lexeme->genre) && type_resultat != compilatrice.typeuse[TypeBase::BOOL]) {
-			erreur::lance_erreur("Un opérateur de comparaison doit retourner 'bool'",
-								 compilatrice,
-								 decl->lexeme);
-		}
-
-		auto fichier = compilatrice.fichier(static_cast<size_t>(decl->lexeme->fichier));
-		decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
-
-		if (decl->params.taille == 1) {
-			auto &iter_op = compilatrice.operateurs.trouve_unaire(decl->lexeme->genre);
-			auto type1 = type_fonc->types_entrees[0 + possede_contexte];
-
-			for (auto i = 0; i < iter_op.taille(); ++i) {
-				auto op = &iter_op[i];
-
-				if (op->type_operande == type1) {
-					if (op->est_basique) {
-						erreur::lance_erreur("redéfinition de l'opérateur basique", compilatrice, decl->lexeme);
-					}
-					else {
-						// À FAIRE : inclus la position où l'opérateur fut défini
-						erreur::lance_erreur("redéfinition de l'opérateur", compilatrice, decl->lexeme);
-					}
-				}
-			}
-
-			compilatrice.operateurs.ajoute_perso_unaire(
-						decl->lexeme->genre,
-						type1,
-						type_resultat,
-						decl);
-		}
-		else if (decl->params.taille == 2) {
-			auto &iter_op = compilatrice.operateurs.trouve_binaire(decl->lexeme->genre);
-			auto type1 = type_fonc->types_entrees[0 + possede_contexte];
-			auto type2 = type_fonc->types_entrees[1 + possede_contexte];
-
-			for (auto i = 0; i < iter_op.taille(); ++i) {
-				auto op = &iter_op[i];
-
-				if (op->type1 == type1 && op->type2 == type2) {
-					if (op->est_basique) {
-						erreur::lance_erreur("redéfinition de l'opérateur basique", compilatrice, decl->lexeme);
-					}
-					else {
-						// À FAIRE : inclus la position où l'opérateur fut défini
-						erreur::lance_erreur("redéfinition de l'opérateur", compilatrice, decl->lexeme);
-					}
-				}
-			}
-
-			compilatrice.operateurs.ajoute_perso(
-						decl->lexeme->genre,
-						type1,
-						type2,
-						type_resultat,
-						decl);
-		}
-	}
-	else {
-		POUR (decl->bloc_parent->membres) {
-			if (it == decl) {
-				continue;
-			}
-
-			if (it->genre != GenreNoeud::DECLARATION_FONCTION && it->genre != GenreNoeud::DECLARATION_COROUTINE) {
-				continue;
-			}
-
-			if (it->ident != decl->ident) {
-				continue;
-			}
-
-			if (it->type == decl->type) {
-				erreur::redefinition_fonction(
-							compilatrice,
-							it->lexeme,
-							decl->lexeme);
-			}
-		}
-
-		/* nous devons attendre d'avoir les types des arguments avant de
-		 * pouvoir broyer le nom de la fonction */
-		if (decl->lexeme->chaine != "principale" && !possede_drapeau(b->drapeaux, EST_EXTERNE)) {
-			auto fichier = compilatrice.fichier(static_cast<size_t>(decl->lexeme->fichier));
-			decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
-		}
-		else {
-			decl->nom_broye = decl->lexeme->chaine;
-		}
-	}
-
-	compilatrice.graphe_dependance.cree_noeud_fonction(decl);
-}
-
 ContexteValidationCode::ContexteValidationCode(Compilatrice &compilatrice)
 	: m_compilatrice(compilatrice)
 {}
@@ -2353,6 +2135,222 @@ void ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 	}
 }
 
+void ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl)
+{
+	PROFILE_FONCTION;
+
+	if (decl->est_coroutine) {
+		decl->genre = GenreNoeud::DECLARATION_COROUTINE;
+	}
+
+	POUR (decl->arbre_aplatis_entete) {
+		valide_semantique_noeud(it);
+	}
+
+	// -----------------------------------
+	if (!decl->est_instantiation_gabarit) {
+		auto noms = dls::ensemblon<IdentifiantCode *, 16>();
+		auto dernier_est_variadic = false;
+
+		POUR (decl->params) {
+			auto param = static_cast<NoeudDeclarationVariable *>(it);
+			auto variable = param->valeur;
+			auto expression = param->expression;
+
+			if (noms.possede(variable->ident)) {
+				erreur::lance_erreur(
+							"Redéfinition de l'argument",
+							m_compilatrice,
+							variable->lexeme,
+							erreur::type_erreur::ARGUMENT_REDEFINI);
+			}
+
+			if (dernier_est_variadic) {
+				erreur::lance_erreur(
+							"Argument déclaré après un argument variadic",
+							m_compilatrice,
+							variable->lexeme,
+							erreur::type_erreur::NORMAL);
+			}
+
+			if (variable->type && variable->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				rassemble_noms_type_polymorphique(variable->type, decl->noms_types_gabarits);
+				decl->est_gabarit = true;
+			}
+			else {
+				if (expression != nullptr) {
+					if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
+						erreur::lance_erreur("Un paramètre d'une surcharge d'opérateur ne peut avoir de valeur par défaut",
+											 m_compilatrice,
+											 param->lexeme);
+					}
+				}
+			}
+
+			noms.insere(variable->ident);
+
+			if (it->type->genre == GenreType::VARIADIQUE) {
+				it->drapeaux |= EST_VARIADIQUE;
+				decl->est_variadique = true;
+				dernier_est_variadic = true;
+
+				auto type_var = static_cast<TypeVariadique *>(it->type);
+
+				if (!decl->est_externe && type_var->type_pointe == nullptr) {
+					erreur::lance_erreur(
+								"La déclaration de fonction variadique sans type n'est"
+								" implémentée que pour les fonctions externes",
+								m_compilatrice,
+								it->lexeme);
+				}
+			}
+		}
+
+		if (decl->est_gabarit) {
+			return;
+		}
+	}
+	else {
+		POUR (decl->params) {
+			auto variable = static_cast<NoeudDeclarationVariable *>(it)->valeur;
+			variable->type = resoud_type_final(m_compilatrice, it->expression_type);
+			it->type = variable->type;
+		}
+	}
+
+	// -----------------------------------
+
+	kuri::tableau<Type *> types_entrees;
+	auto possede_contexte = !decl->est_externe && !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
+	types_entrees.reserve(decl->params.taille + possede_contexte);
+
+	if (possede_contexte) {
+		types_entrees.pousse(m_compilatrice.type_contexte);
+	}
+
+	POUR (decl->params) {
+		types_entrees.pousse(it->type);
+		donnees_dependance.types_utilises.insere(it->type);
+	}
+
+	kuri::tableau<Type *> types_sorties;
+	types_sorties.reserve(decl->params_sorties.taille);
+
+	for (auto &type_declare : decl->params_sorties) {
+		auto type_sortie = resoud_type_final(m_compilatrice, type_declare);
+		types_sorties.pousse(type_sortie);
+		donnees_dependance.types_utilises.insere(type_sortie);
+	}
+
+	auto type_fonc = m_compilatrice.typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+	decl->type = type_fonc;
+	donnees_dependance.types_utilises.insere(decl->type);
+
+	if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
+		auto type_resultat = type_fonc->types_sorties[0];
+
+		if (type_resultat == m_compilatrice.typeuse[TypeBase::RIEN]) {
+			erreur::lance_erreur("Un opérateur ne peut retourner 'rien'",
+								 m_compilatrice,
+								 decl->lexeme);
+		}
+
+		if (est_operateur_bool(decl->lexeme->genre) && type_resultat != m_compilatrice.typeuse[TypeBase::BOOL]) {
+			erreur::lance_erreur("Un opérateur de comparaison doit retourner 'bool'",
+								 m_compilatrice,
+								 decl->lexeme);
+		}
+
+		auto fichier = m_compilatrice.fichier(static_cast<size_t>(decl->lexeme->fichier));
+		decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
+
+		if (decl->params.taille == 1) {
+			auto &iter_op = m_compilatrice.operateurs.trouve_unaire(decl->lexeme->genre);
+			auto type1 = type_fonc->types_entrees[0 + possede_contexte];
+
+			for (auto i = 0; i < iter_op.taille(); ++i) {
+				auto op = &iter_op[i];
+
+				if (op->type_operande == type1) {
+					if (op->est_basique) {
+						erreur::lance_erreur("redéfinition de l'opérateur basique", m_compilatrice, decl->lexeme);
+					}
+					else {
+						// À FAIRE : inclus la position où l'opérateur fut défini
+						erreur::lance_erreur("redéfinition de l'opérateur", m_compilatrice, decl->lexeme);
+					}
+				}
+			}
+
+			m_compilatrice.operateurs.ajoute_perso_unaire(
+						decl->lexeme->genre,
+						type1,
+						type_resultat,
+						decl);
+		}
+		else if (decl->params.taille == 2) {
+			auto &iter_op = m_compilatrice.operateurs.trouve_binaire(decl->lexeme->genre);
+			auto type1 = type_fonc->types_entrees[0 + possede_contexte];
+			auto type2 = type_fonc->types_entrees[1 + possede_contexte];
+
+			for (auto i = 0; i < iter_op.taille(); ++i) {
+				auto op = &iter_op[i];
+
+				if (op->type1 == type1 && op->type2 == type2) {
+					if (op->est_basique) {
+						erreur::lance_erreur("redéfinition de l'opérateur basique", m_compilatrice, decl->lexeme);
+					}
+					else {
+						// À FAIRE : inclus la position où l'opérateur fut défini
+						erreur::lance_erreur("redéfinition de l'opérateur", m_compilatrice, decl->lexeme);
+					}
+				}
+			}
+
+			m_compilatrice.operateurs.ajoute_perso(
+						decl->lexeme->genre,
+						type1,
+						type2,
+						type_resultat,
+						decl);
+		}
+	}
+	else {
+		POUR (decl->bloc_parent->membres) {
+			if (it == decl) {
+				continue;
+			}
+
+			if (it->genre != GenreNoeud::DECLARATION_FONCTION && it->genre != GenreNoeud::DECLARATION_COROUTINE) {
+				continue;
+			}
+
+			if (it->ident != decl->ident) {
+				continue;
+			}
+
+			if (it->type == decl->type) {
+				erreur::redefinition_fonction(
+							m_compilatrice,
+							it->lexeme,
+							decl->lexeme);
+			}
+		}
+
+		/* nous devons attendre d'avoir les types des arguments avant de
+		 * pouvoir broyer le nom de la fonction */
+		if (decl->lexeme->chaine != "principale" && !possede_drapeau(decl->drapeaux, EST_EXTERNE)) {
+			auto fichier = m_compilatrice.fichier(static_cast<size_t>(decl->lexeme->fichier));
+			decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
+		}
+		else {
+			decl->nom_broye = decl->lexeme->chaine;
+		}
+	}
+
+	m_compilatrice.graphe_dependance.cree_noeud_fonction(decl);
+}
+
 void ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 {
 	if (decl->est_gabarit && !decl->est_instantiation_gabarit) {
@@ -2422,7 +2420,7 @@ void ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 
 void ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 {
-	valide_type_fonction(decl, m_compilatrice, *this);
+	valide_type_fonction(decl);
 
 	commence_fonction(decl);
 
@@ -2826,7 +2824,7 @@ void performe_validation_semantique(Compilatrice &compilatrice)
 
 		auto decl = static_cast<NoeudDeclarationFonction *>(it);
 
-		valide_type_fonction(decl, compilatrice, contexte);
+		contexte.valide_type_fonction(decl);
 	}
 
 	//std::cout << "Nombre allocations typage fonctions = " << memoire::nombre_allocations() - nombre_allocations << '\n';
