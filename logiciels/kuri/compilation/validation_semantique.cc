@@ -2853,8 +2853,21 @@ void ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			continue;
 		}
 
-		if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
+		if (it->genre != GenreNoeud::DECLARATION_VARIABLE && it->genre != GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
 			erreur::lance_erreur("Déclaration inattendu dans le bloc de la structure", m_compilatrice, it->lexeme);
+		}
+
+		if (it->genre == GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
+			auto expr_assign = static_cast<NoeudExpressionBinaire *>(it);
+			auto variable = expr_assign->expr1;
+
+			for (auto &membre : type_struct->membres) {
+				if (membre.nom == variable->ident->nom) {
+					membre.expression_valeur_defaut = expr_assign->expr2;
+				}
+			}
+
+			continue;
 		}
 
 		auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
