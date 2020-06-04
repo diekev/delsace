@@ -303,8 +303,13 @@ void valide_type_fonction(NoeudExpression *b, Compilatrice &compilatrice, Contex
 				auto op = &iter_op[i];
 
 				if (op->type_operande == type1) {
-					// À FAIRE : stocke le noeud de déclaration, quid des opérateurs basique ?
-					erreur::lance_erreur("redéfinition de l'opérateur", compilatrice, decl->lexeme);
+					if (op->est_basique) {
+						erreur::lance_erreur("redéfinition de l'opérateur basique", compilatrice, decl->lexeme);
+					}
+					else {
+						// À FAIRE : inclus la position où l'opérateur fut défini
+						erreur::lance_erreur("redéfinition de l'opérateur", compilatrice, decl->lexeme);
+					}
 				}
 			}
 
@@ -323,8 +328,13 @@ void valide_type_fonction(NoeudExpression *b, Compilatrice &compilatrice, Contex
 				auto op = &iter_op[i];
 
 				if (op->type1 == type1 && op->type2 == type2) {
-					// À FAIRE : stocke le noeud de déclaration, quid des opérateurs basique ?
-					erreur::lance_erreur("redéfinition de l'opérateur", compilatrice, decl->lexeme);
+					if (op->est_basique) {
+						erreur::lance_erreur("redéfinition de l'opérateur basique", compilatrice, decl->lexeme);
+					}
+					else {
+						// À FAIRE : inclus la position où l'opérateur fut défini
+						erreur::lance_erreur("redéfinition de l'opérateur", compilatrice, decl->lexeme);
+					}
 				}
 			}
 
