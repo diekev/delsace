@@ -129,7 +129,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 
 static double verifie_compatibilite(
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte,
+		ContexteValidationCode &contexte,
 		Type *type_arg,
 		Type *type_enf,
 		NoeudBase *enfant,
@@ -160,7 +160,7 @@ static auto apparie_appel_pointeur(
 		NoeudExpressionAppel const *b,
 		Type *type,
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte,
+		ContexteValidationCode &contexte,
 		kuri::tableau<IdentifiantEtExpression> const &args)
 {
 	PROFILE_FONCTION;
@@ -294,7 +294,7 @@ static auto apparie_appel_init_de(
 
 static DonneesCandidate apparie_appel_fonction(
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte,
+		ContexteValidationCode &contexte,
 		NoeudDeclarationFonction const *decl,
 		kuri::tableau<IdentifiantEtExpression> const &args)
 {
@@ -626,7 +626,7 @@ static DonneesCandidate apparie_appel_fonction(
 
 static auto apparie_appel_structure(
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte,
+		ContexteValidationCode &contexte,
 		NoeudExpressionAppel const *expr,
 		NoeudStruct *decl_struct,
 		kuri::tableau<IdentifiantEtExpression> const &arguments)
@@ -748,7 +748,7 @@ static auto apparie_appel_structure(
 
 static auto trouve_candidates_pour_appel(
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte,
+		ContexteValidationCode &contexte,
 		NoeudExpressionAppel *expr,
 		kuri::tableau<IdentifiantEtExpression> &args)
 {
@@ -819,7 +819,7 @@ static auto trouve_candidates_pour_appel(
 
 void valide_appel_fonction(
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte,
+		ContexteValidationCode &contexte,
 		NoeudExpressionAppel *expr)
 {
 	PROFILE_FONCTION;
@@ -906,7 +906,7 @@ void valide_appel_fonction(
 			compilatrice.paires_expansion_gabarit = candidate->paires_expansion_gabarit;
 
 			// À FAIRE  : pousse dans la file
-			auto contexte_ = noeud::ContexteValidationCode(compilatrice);
+			auto contexte_ = ContexteValidationCode(compilatrice);
 			contexte_.commence_fonction(noeud_decl);
 			contexte_.valide_type_fonction(noeud_decl);
 			contexte_.valide_fonction(noeud_decl);

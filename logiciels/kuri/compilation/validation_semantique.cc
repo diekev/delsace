@@ -38,8 +38,6 @@
 
 using dls::outils::possede_drapeau;
 
-namespace noeud {
-
 /* ************************************************************************** */
 
 static Type *resoud_type_final(Compilatrice &compilatrice, NoeudExpression *expression_type)
@@ -2874,5 +2872,3 @@ void performe_validation_semantique(Compilatrice &compilatrice)
 
 	//std::cout << "Nombre allocations validations sémantique = " << memoire::nombre_allocations() - nombre_allocations << '\n';
 }
-
-}  /* namespace noeud */

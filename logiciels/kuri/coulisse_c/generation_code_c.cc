@@ -33,8 +33,6 @@
 
 #include "representation_intermediaire/constructrice_ri.hh"
 
-namespace noeud {
-
 /* ************************************************************************** */
 
 static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
@@ -1454,5 +1452,3 @@ void genere_code_pour_execution(
 	POUR (compilatrice.typeuse.types_unions) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; };
 	POUR (compilatrice.typeuse.types_type_de_donnees) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 }
-
-}  /* namespace noeud */

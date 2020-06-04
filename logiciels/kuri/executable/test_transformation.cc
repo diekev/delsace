@@ -36,7 +36,7 @@ static void verifie_transformation(
 		Type *type2,
 		bool est_possible)
 {
-	auto contexte = noeud::ContexteValidationCode(compilatrice);
+	auto contexte = ContexteValidationCode(compilatrice);
 	auto transformation = cherche_transformation(compilatrice, contexte, type1, type2);
 
 	if (est_possible && transformation.type == TypeTransformation::IMPOSSIBLE) {

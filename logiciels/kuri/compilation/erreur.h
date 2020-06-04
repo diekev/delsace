@@ -158,7 +158,7 @@ void imprime_ligne_avec_message(
 
 [[noreturn]] void membre_inactif(
 			Compilatrice &compilatrice,
-			noeud::ContexteValidationCode &contexte,
+			ContexteValidationCode &contexte,
 			NoeudBase *acces,
 			NoeudBase *structure,
 			NoeudBase *membre);

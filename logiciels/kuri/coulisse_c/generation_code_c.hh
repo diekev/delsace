@@ -30,8 +30,6 @@ struct Compilatrice;
 struct ConstructriceRI;
 struct NoeudExpression;
 
-namespace noeud {
-
 void genere_code_C(ConstructriceRI &constructrice_ri,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);
@@ -41,5 +39,3 @@ void genere_code_C_pour_execution(
 		Compilatrice &compilatrice,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);
-
-}  /* namespace noeud */

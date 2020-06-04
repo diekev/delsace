@@ -30,9 +30,7 @@ struct Compilatrice;
 struct NoeudDeclarationFonction;
 struct Type;
 
-namespace noeud {
 struct ContexteValidationCode;
-}
 
 enum class TypeTransformation {
 	INUTILE,
@@ -93,6 +91,6 @@ struct TransformationType {
 
 TransformationType cherche_transformation(
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte,
+		ContexteValidationCode &contexte,
 		Type *type_de,
 		Type *type_vers);

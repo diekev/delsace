@@ -829,7 +829,7 @@ void membre_inconnu(
 
 void membre_inactif(
 			Compilatrice &compilatrice,
-			noeud::ContexteValidationCode &contexte,
+			ContexteValidationCode &contexte,
 			NoeudBase *acces,
 			NoeudBase *structure,
 			NoeudBase *membre)

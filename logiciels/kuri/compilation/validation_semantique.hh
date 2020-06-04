@@ -30,8 +30,6 @@ struct Compilatrice;
 struct NoeudDeclarationFonction;
 struct NoeudExpression;
 
-namespace noeud {
-
 struct ContexteValidationCode {
 	Compilatrice &m_compilatrice;
 	NoeudDeclarationFonction *fonction_courante = nullptr;
@@ -70,5 +68,3 @@ struct ContexteValidationCode {
 };
 
 void performe_validation_semantique(Compilatrice &compilatrice);
-
-}  /* namespace noeud */

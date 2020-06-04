@@ -31,9 +31,7 @@
 #include "compilatrice.hh"
 #include "structures.hh"
 
-namespace noeud {
 struct ContexteValidationCode;
-}
 struct NoeudBase;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
@@ -99,10 +97,10 @@ struct DonneesCandidate {
 
 void valide_appel_fonction(
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte_validation,
+		ContexteValidationCode &contexte_validation,
 		NoeudExpressionAppel *expr);
 
 void valide_appel_fonction(
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte_validation,
+		ContexteValidationCode &contexte_validation,
 		NoeudExpressionAppel *expr);

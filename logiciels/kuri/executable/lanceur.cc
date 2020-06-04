@@ -616,7 +616,7 @@ int main(int argc, char *argv[])
 			generatrice.m_module = &module_llvm;
 
 			os << "Validation sémantique du code..." << std::endl;
-			noeud::performe_validation_semantique(compilatrice);
+			performe_validation_semantique(compilatrice);
 
 			os << "Génération du code..." << std::endl;
 			auto temps_generation = dls::chrono::compte_seconde();
@@ -659,13 +659,13 @@ int main(int argc, char *argv[])
 #endif
 		{
 			os << "Validation sémantique du code..." << std::endl;
-			noeud::performe_validation_semantique(compilatrice);
+			performe_validation_semantique(compilatrice);
 
 //			for (auto noeud: compilatrice.noeuds_a_executer) {
 //				std::ofstream of;
 //				of.open("/tmp/execution_kuri.c");
 
-//				noeud::genere_code_C_pour_execution(noeud, compilatrice, chemin_racine_kuri, of);
+//				genere_code_C_pour_execution(noeud, compilatrice, chemin_racine_kuri, of);
 //				lance_execution(compilatrice);
 //			}
 
@@ -685,7 +685,7 @@ int main(int argc, char *argv[])
 			of.open("/tmp/compilation_kuri.c");
 
 			os << "Génération du code..." << std::endl;
-			noeud::genere_code_C(constructrice_ri, chemin_racine_kuri, of);
+			genere_code_C(constructrice_ri, chemin_racine_kuri, of);
 
 			of.close();
 

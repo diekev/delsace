@@ -87,7 +87,7 @@ static bool est_type_de_base(TypeStructure *type_de, TypeStructure *type_vers)
  */
 TransformationType cherche_transformation(
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte,
+		ContexteValidationCode &contexte,
 		Type *type_de,
 		Type *type_vers)
 {

@@ -563,7 +563,7 @@ size_t Operateurs::memoire_utilisee() const
 
 static double verifie_compatibilite(
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte,
+		ContexteValidationCode &contexte,
 		Type *type_arg,
 		Type *type_enf,
 		TransformationType &transformation)
@@ -585,7 +585,7 @@ static double verifie_compatibilite(
 
 dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte,
+		ContexteValidationCode &contexte,
 		Type *type1,
 		Type *type2,
 		GenreLexeme type_op)

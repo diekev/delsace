@@ -183,7 +183,7 @@ struct OperateurCandidat {
 
 dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		Compilatrice &compilatrice,
-		noeud::ContexteValidationCode &contexte,
+		ContexteValidationCode &contexte,
 		Type *type1,
 		Type *type2,
 		GenreLexeme type_op);

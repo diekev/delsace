@@ -301,7 +301,7 @@ static erreur::type_erreur lance_test(lng::tampon_source &tampon)
 		auto analyseuse = Syntaxeuse(compilatrice, fichier, "");
 		analyseuse.lance_analyse(os);
 
-		noeud::performe_validation_semantique(compilatrice);
+		performe_validation_semantique(compilatrice);
 	}
 	catch (const erreur::frappe &e) {
 		std::filesystem::current_path(chemin_courant);
