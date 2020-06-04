@@ -36,6 +36,8 @@
 #include "portee.hh"
 #include "validation_expression_appel.hh"
 
+using dls::outils::possede_drapeau;
+
 namespace noeud {
 
 /* ************************************************************************** */
@@ -165,13 +167,6 @@ static void valide_acces_membre(
 void valide_type_fonction(NoeudExpression *b, Compilatrice &compilatrice, ContexteValidationCode &contexte)
 {
 	PROFILE_FONCTION;
-
-	// certaines fonctions sont validées 2 fois...
-	if (b->type != nullptr) {
-		return;
-	}
-
-	using dls::outils::possede_drapeau;
 
 	auto decl = static_cast<NoeudDeclarationFonction *>(b);
 
@@ -443,7 +438,6 @@ void ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		case GenreNoeud::DECLARATION_FONCTION:
 		{
 			auto decl = static_cast<NoeudDeclarationFonction *>(noeud);
-			using dls::outils::possede_drapeau;
 
 			if (decl->est_declaration_type) {
 				POUR (decl->arbre_aplatis_entete) {
@@ -2351,33 +2345,12 @@ void ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 void ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 {
-	using dls::outils::possede_drapeau;
-	auto &graphe = m_compilatrice.graphe_dependance;
-
-	/* Il est possible que certaines fonctions ne soient pas connectées
-	 * dans le graphe de symboles alors que nous avons besoin d'elles,
-	 * voir dans la fonction plus bas. */
-	if (decl->type == nullptr && !decl->est_gabarit) {
-		valide_type_fonction(decl, m_compilatrice, *this);
-	}
-
 	if (decl->est_gabarit && !decl->est_instantiation_gabarit) {
 		// nous ferons l'analyse sémantique plus tard
 		return;
 	}
 
 	if (decl->est_externe) {
-		POUR (decl->params) {
-			auto variable = static_cast<NoeudDeclarationVariable *>(it)->valeur;
-
-			variable->type = resoud_type_final(m_compilatrice, variable->expression_type);
-			it->type = variable->type;
-			donnees_dependance.types_utilises.insere(variable->type);
-		}
-
-		auto noeud_dep = graphe.cree_noeud_fonction(decl);
-		graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
-
 		return;
 	}
 
@@ -2400,60 +2373,18 @@ void ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 		decl_ctx->ident = val_ctx->ident;
 
 		decl->bloc->membres.pousse(decl_ctx);
-
-		donnees_dependance.types_utilises.insere(m_compilatrice.type_contexte);
 	}
 
-	/* Pousse les paramètres sur la pile. */
 	POUR (decl->params) {
 		auto argument = static_cast<NoeudDeclarationVariable *>(it);
-
-		auto variable = argument->valeur;
-		argument->ident = variable->ident;
-		argument->type = variable->type;
-
-		donnees_dependance.types_utilises.insere(argument->type);
-
 		decl->bloc->membres.pousse(argument);
-
-		/* À FAIRE(réusinage arbre) */
-//		if (argument.est_employe) {
-//			auto type_var = argument.type;
-//			auto nom_structure = dls::vue_chaine_compacte("");
-
-//			if (type_var->genre == GenreType::POINTEUR || type_var->genre == GenreType::REFERENCE) {
-//				type_var = type_dereference_pour(type_var);
-//				nom_structure = static_cast<TypeStructure *>(type_var)->nom;
-//			}
-//			else {
-//				nom_structure = static_cast<TypeStructure *>(type_var)->nom;
-//			}
-
-//			auto &ds = m_compilatrice.donnees_structure(nom_structure);
-
-//			/* pousse chaque membre de la structure sur la pile */
-
-//			for (auto &dm : ds.donnees_membres) {
-//				auto type_membre = ds.types[dm.second.index_membre];
-
-//				donnees_var.type = type_membre;
-//				donnees_var.est_argument = true;
-//				donnees_var.est_membre_emploie = true;
-
-//				m_compilatrice.pousse_locale(dm.first, donnees_var);
-//			}
-//		}
 	}
-
-	/* vérifie le type du bloc */
-	auto bloc = decl->bloc;
-
-	auto noeud_dep = graphe.cree_noeud_fonction(decl);
 
 	for (auto noeud : decl->arbre_aplatis) {
 		valide_semantique_noeud(noeud);
 	}
 
+	auto bloc = decl->bloc;
 	auto inst_ret = derniere_instruction(bloc);
 
 	/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
@@ -2472,6 +2403,8 @@ void ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 		decl->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
 	}
 
+	auto &graphe = m_compilatrice.graphe_dependance;
+	auto noeud_dep = graphe.cree_noeud_fonction(decl);
 	graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 
 	termine_fonction();
@@ -2479,9 +2412,6 @@ void ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 
 void ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 {
-	using dls::outils::possede_drapeau;
-	auto &graphe = m_compilatrice.graphe_dependance;
-
 	valide_type_fonction(decl, m_compilatrice, *this);
 
 	commence_fonction(decl);
@@ -2503,63 +2433,19 @@ void ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 		decl_ctx->ident = val_ctx->ident;
 
 		decl->bloc->membres.pousse(decl_ctx);
-
-		donnees_dependance.types_utilises.insere(m_compilatrice.type_contexte);
 	}
 
-	/* Pousse les paramètres sur la pile. */
 	POUR (decl->params) {
 		auto argument = static_cast<NoeudDeclarationVariable *>(it);
-
-		auto variable = argument->valeur;
-		argument->ident = variable->ident;
-		argument->type = variable->type;
-
-		donnees_dependance.types_utilises.insere(argument->type);
-
 		decl->bloc->membres.pousse(argument);
-
-		/* À FAIRE(réusinage arbre) */
-//		if (argument.est_employe) {
-//			auto type_var = argument.type;
-//			auto nom_structure = dls::vue_chaine_compacte("");
-
-//			if (type_var->genre == GenreType::POINTEUR || type_var->genre == GenreType::REFERENCE) {
-//				type_var = type_dereference_pour(type_var);
-//				nom_structure = static_cast<TypeStructure *>(type_var)->nom;
-//			}
-//			else {
-//				nom_structure = static_cast<TypeStructure *>(type_var)->nom;
-//			}
-
-//			auto &ds = m_compilatrice.donnees_structure(nom_structure);
-
-//			/* pousse chaque membre de la structure sur la pile */
-
-//			for (auto &dm : ds.donnees_membres) {
-//				auto type_membre = ds.types[dm.second.index_membre];
-
-//				donnees_var.type = type_membre;
-//				donnees_var.est_argument = true;
-//				donnees_var.est_membre_emploie = true;
-
-//				m_compilatrice.pousse_locale(dm.first, donnees_var);
-//			}
-//		}
 	}
-
-	/* vérifie le type du bloc */
-	auto bloc = decl->bloc;
-
-	auto noeud_dep = graphe.cree_noeud_fonction(decl);
 
 	for (auto noeud : decl->arbre_aplatis) {
 		valide_semantique_noeud(noeud);
 	}
 
-	auto inst_ret = derniere_instruction(bloc);
+	auto inst_ret = derniere_instruction(decl->bloc);
 
-	/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
 	if (inst_ret == nullptr) {
 		erreur::lance_erreur(
 					"Instruction de retour manquante",
@@ -2568,6 +2454,8 @@ void ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 					erreur::type_erreur::TYPE_DIFFERENTS);
 	}
 
+	auto &graphe = m_compilatrice.graphe_dependance;
+	auto noeud_dep = graphe.cree_noeud_fonction(decl);
 	graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 
 	termine_fonction();
