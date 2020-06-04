@@ -12,11 +12,13 @@ GenreLexème :: énum z32 {
     MOT_CLÉ_NOEUD
     MOT_CLÉ_ATTRIBUTS
     MOT_CLÉ_SÉLECTIONNE
+    MOT_CLÉ_SI
 
     PARENTHÈSE_OUVRANTE
     PARENTHÈSE_FERMANTE
     VIRGULE
     POINT_VIRGULE
+    POINT
     ÉGAL
 
     ESPACE
@@ -161,6 +163,11 @@ finalise_mot_clé :: fonc (lexème: *Lexème) -> bool
         retourne vrai
     }
 
+    si lexème.valeur == "si" {
+        lexème.genre = GenreLexème.MOT_CLÉ_SI
+        retourne vrai
+    }
+
     retourne faux
 }
 
@@ -245,6 +252,11 @@ lèxe :: fonc (chn: chaine) -> []Lexème
             }
             ';' {
                 si !finalise_courant(@état, GenreLexème.POINT_VIRGULE) {
+                    arrête
+                }
+            }
+            '.' {
+                si !finalise_courant(@état, GenreLexème.POINT) {
                     arrête
                 }
             }

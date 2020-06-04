@@ -3,6 +3,11 @@ importe Fondation
 charge "instructions"
 charge "lexage"
 
+Associativité :: énum {
+    Gauche
+    Droite
+}
+
 ASA :: struct {
     instructions : []*Instruction
 }
@@ -37,6 +42,11 @@ apparie :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème) -> bool
 consomme :: fonc (parseuse: *Parseuse)
 {
     parseuse.curseur += 1
+}
+
+lexème_courant :: fonc (parseuse: *Parseuse) -> Lexème
+{
+    retourne parseuse.lexèmes[parseuse.curseur]
 }
 
 consomme :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème) -> bool
@@ -89,6 +99,11 @@ parse_instruction :: fonc (parseuse: *Parseuse) -> *Instruction
             parseuse.consomme()
             retourne parse_instruction_crée_noeud(parseuse)
         }
+    }
+
+    si parseuse.apparie(GenreLexème.MOT_CLÉ_SÉLECTIONNE) {
+        parseuse.consomme()
+        retourne parseuse.parse_instruction_sélectionne()
     }
 
     // @erreur
@@ -150,7 +165,6 @@ parse_instruction_crée_noeud :: fonc (parseuse: *Parseuse) -> *Instruction
     }
 
     inst := loge InstructionCréationNoeud
-    inst.genre = GenreInstruction.CRÉE_NOEUD
     inst.attributs = attributs
 
     // À FAIRE : déloge uniquement les attributs en cas d'erreur
@@ -159,4 +173,168 @@ parse_instruction_crée_noeud :: fonc (parseuse: *Parseuse) -> *Instruction
     attributs.pointeur = nul
 
     retourne inst
+}
+
+parse_instruction_sélectionne :: fonc (parseuse: *Parseuse) -> *Instruction
+{
+    si !parseuse.consomme(GenreLexème.IDENTIFIANT) {
+        retourne erreur_parsage(parseuse, "Attendu un identifiant")
+    }
+
+    nom := parseuse.lexèmes[parseuse.curseur - 1].valeur
+
+    si !parseuse.consomme(GenreLexème.MOT_CLÉ_SI) {
+        retourne erreur_parsage(parseuse, "Attendu le mot-clé « si »")
+    }
+
+    si !parseuse.apparie_expression_primaire() {
+        retourne erreur_parsage(parseuse, "Attendu une expression après « si »")
+    }
+
+    expr := parseuse.parse_expression(0, Associativité.Gauche)
+
+    diffère {
+        si expr {
+            détruit_expression(expr)
+        }
+    }
+
+    si !parseuse.consomme(GenreLexème.POINT_VIRGULE) {
+        retourne erreur_parsage(parseuse, "Attendu ';'")
+    }
+
+    inst := loge InstructionSélectionneNoeud
+    inst.nom = nom
+    inst.expr = expr
+
+    // À FAIRE : diffère_err
+    expr = nul
+
+    retourne inst
+}
+
+apparie_expression_primaire :: fonc (parseuse: *Parseuse) -> bool
+{
+    lexème := parseuse.lexème_courant()
+
+    si lexème.genre == GenreLexème.IDENTIFIANT {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+apparie_expression_secondaire :: fonc (parseuse: *Parseuse) -> bool
+{
+    lexème := parseuse.lexème_courant()
+
+    si lexème.genre == GenreLexème.ÉGAL {
+        retourne vrai
+    }
+
+    si lexème.genre == GenreLexème.POINT {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+parse_expression :: fonc (parseuse: *Parseuse, précédence : z32, associativité : Associativité) -> *Expression
+{
+    expr := parseuse.parse_expression_primaire()
+
+    saufsi expr {
+        retourne nul
+    }
+
+    tantque parseuse.apparie_expression_secondaire() {
+        lexème := parseuse.lexème_courant()
+
+        nouvelle_précédence := précédence_pour_opérateur(lexème.genre)
+
+        si nouvelle_précédence < précédence {
+            arrête
+        }
+
+        si nouvelle_précédence == précédence && associativité == Associativité.Gauche {
+            arrête
+        }
+
+        nouvelle_associativité := associativité_pour_opérateur(lexème.genre)
+        expr = parseuse.parse_expression_secondaire(expr, nouvelle_précédence, nouvelle_associativité)
+
+        saufsi expr {
+            arrête
+        }
+    }
+
+    retourne expr
+}
+
+parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    lexème := parseuse.lexème_courant()
+
+    si lexème.genre == GenreLexème.IDENTIFIANT {
+        parseuse.consomme()
+
+        expr := loge ExpressionRéférenceDéclaration
+        expr.chn = lexème.valeur
+        retourne expr
+    }
+
+    retourne nul
+}
+
+parse_expression_secondaire :: fonc (parseuse: *Parseuse, expr_gauche: *Expression, précédence: z32, associativité: Associativité) -> *Expression
+{
+    lexème := parseuse.lexème_courant()
+
+    si lexème.genre == GenreLexème.POINT {
+        parseuse.consomme()
+
+        expr := loge ExpressionBinaire
+        expr.genre = GenreExpression.AccèsMembre
+        expr.gauche = expr_gauche
+        expr.droite = parseuse.parse_expression(précédence, associativité)
+        retourne expr
+    }
+
+    si lexème.genre == GenreLexème.ÉGAL {
+        parseuse.consomme()
+
+        expr := loge ExpressionBinaire
+        expr.genre = GenreExpression.OpComparaison
+        expr.gauche = expr_gauche
+        expr.droite = parseuse.parse_expression(précédence, associativité)
+        retourne expr
+    }
+
+    retourne nul
+}
+
+associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
+{
+    si genre == GenreLexème.ÉGAL {
+        retourne Associativité.Gauche
+    }
+
+    si genre == GenreLexème.POINT {
+        retourne Associativité.Gauche
+    }
+
+    retourne Associativité.Gauche
+}
+
+précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
+{
+    si genre == GenreLexème.ÉGAL {
+        retourne 1
+    }
+
+    si genre == GenreLexème.POINT {
+        retourne 2
+    }
+
+    retourne 0
 }

@@ -99,6 +99,15 @@ crée_noeud :: fonc (arachné: *Arachné, inst: *InstructionCréationNoeud)
     tableau_ajoute(@arachné.graphe.noeuds, noeud)
 }
 
+sélectionne_noeud :: fonc (arachné: *Arachné, inst: *InstructionSélectionneNoeud)
+{
+    imprime("sélectionne un noeud pour le groupe : %\n", inst.nom)
+
+    pour arachné.graphe.noeuds {
+
+    }
+}
+
 connecte_noeud :: fonc (arachné: *Arachné)
 {
     // pour connecter les noeuds il faut pouvoir sélectionner deux noeuds
@@ -151,6 +160,9 @@ principale :: fonc () -> z32
                 discr it.genre {
                     CRÉE_NOEUD {
                         crée_noeud(@arachné, it comme *InstructionCréationNoeud)
+                    }
+                    SÉLECTIONNE_NOEUD {
+                        sélectionne_noeud(@arachné, it comme *InstructionSélectionneNoeud)
                     }
                     sinon {
 
