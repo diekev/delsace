@@ -437,6 +437,25 @@ entête_section :: fonc (fichier: *FichierELF, index: n16 /* Elf32_Half */) -> *
     retourne (fichier.contenu.pointeur + entête.e_shoff + index * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
 }
 
+trouve_section :: fonc (fichier: *FichierELF, nom: chaine) -> *EntêteSectionELF64
+{
+    entête := fichier.entête_fichier()
+    table_symbole_entêtes := fichier.entête_section(entête.e_shstrndx)
+    nombre_de_sections := entête.e_shnum
+
+    pour 0 ... nombre_de_sections - 1 {
+        section := fichier.entête_section(it comme Elf64_Half)
+        nom_section_c := (fichier.contenu.pointeur + table_symbole_entêtes.sh_offset + section.sh_name) comme *z8
+        nom_section := converti_chaine_c(nom_section_c)
+
+        si nom_section == nom {
+            retourne section
+        }
+    }
+
+    retourne nul
+}
+
 imprime_symboles :: fonc (fichier: *FichierELF)
 {
     entête := fichier.entête_fichier()
@@ -445,18 +464,7 @@ imprime_symboles :: fonc (fichier: *FichierELF)
     nombre_de_sections := entête.e_shnum
 
     entête_section_table_symbole : *EntêteSectionELF64
-    tableur_chaines_symboles : *EntêteSectionELF64
-
-    pour 0 ... nombre_de_sections - 1 {
-        section := fichier.entête_section(it comme Elf64_Half)
-        nom_section_c := (fichier.contenu.pointeur + table_symbole_entêtes.sh_offset + section.sh_name) comme *z8
-        nom_section := converti_chaine_c(nom_section_c)
-
-        si nom_section == ".strtab" {
-            tableur_chaines_symboles = section
-            arrête
-        }
-    }
+    tableur_chaines_symboles := fichier.trouve_section(".strtab")
 
     pour 0 ... nombre_de_sections - 1 {
         section := fichier.entête_section(it comme Elf64_Half)
@@ -523,8 +531,8 @@ principale :: fonc () -> z32
     fichier := FichierELF(contenu = contenu)
 
     examine(@fichier)
-    //imprime_noms_sections(@fichier)
-    imprime_symboles(@fichier)
+    imprime_noms_sections(@fichier)
+    //imprime_symboles(@fichier)
 
     retourne 0
 }
