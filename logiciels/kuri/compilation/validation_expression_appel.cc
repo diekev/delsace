@@ -919,7 +919,6 @@ void valide_appel_fonction(
 		auto type_fonc = static_cast<TypeFonction *>(decl_fonction_appelee->type);
 		auto type_sortie = type_fonc->types_sorties[0];
 
-		// À FAIRE(validation) : expr_gauche
 		auto expr_gauche = (expr->drapeaux & DROITE_ASSIGNATION) == 0;
 		if (type_sortie->genre != GenreType::RIEN && expr_gauche) {
 			erreur::lance_erreur(
