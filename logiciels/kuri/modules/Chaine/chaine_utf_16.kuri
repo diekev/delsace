@@ -1,0 +1,154 @@
+// https://tc39.es/ecma262/#sec-ecmascript-language-types-string-type
+// https://infra.spec.whatwg.org/#string-is
+ChaineUTF16 :: struct {
+    unités : []n16
+}
+
+ajoute :: fonc (chn: *ChaineUTF16, unité: n16)
+{
+    tableau_ajoute(@chn.unités, unité)
+}
+
+taille :: fonc (chn: ChaineUTF16) -> z64
+{
+    retourne chn.unités.taille
+}
+
+taille_points_de_code :: fonc (chn: ChaineUTF16) -> z64
+{
+    // À FAIRE
+    retourne 0
+}
+
+est_valeur_scalaire :: fonc (unité: n16) -> bool
+{
+    retourne unité < 0xD800 || unité > 0xDFFF
+}
+
+est_leading_surrogate :: fonc (unité: n16) -> bool
+{
+    retourne 0xD800 <= unité <= 0xDBFF
+}
+
+est_trailling_surrogate :: fonc (unité: n16) -> bool
+{
+    retourne 0xDC00 <= unité <= 0xDFFF
+}
+
+utf16_depuis_point_de_code :: fonc (point_de_code: n32, résultat: *[2]n16) -> z32
+{
+    //assert(point_de_code <= 0x10FFFF)
+
+    si point_de_code <= 0xFFFF {
+        mémoire(résultat)[0] = point_de_code comme n16
+        retourne 1
+    }
+
+    uc1 := ((point_de_code - 0x10000) / 0x400) + 0xD800
+    uc2 := ((point_de_code - 0x10000) % 0x400) + 0xDC00
+
+    mémoire(résultat)[0] = uc1 comme n16
+    mémoire(résultat)[1] = uc2 comme n16
+
+    retourne 2
+}
+
+utf16_décode_paire_surrogate :: fonc (lead: n16, trail: n16) -> n32
+{
+    l := lead comme n32
+    t := trail comme n32
+
+    retourne (l - 0xD800) * 0x400 + (t - 0xDC00) + 0x10000
+}
+
+est_valeur_scalaire :: fonc (chn: ChaineUTF16) -> bool
+{
+    pour chn.unités {
+        si !est_valeur_scalaire(it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+// À CONSIDÉRER : utilisation d'un type spécifique pour les chaines scalaires
+converti_vers_scalaire :: fonc (chn: ChaineUTF16) -> ChaineUTF16
+{
+    résultat : ChaineUTF16
+
+    pour chn.unités {
+        si !est_valeur_scalaire(it) {
+            ajoute(@résultat, 0xFFFD)
+        }
+        sinon {
+            ajoute(@résultat, it)
+        }
+    }
+
+    retourne résultat
+}
+
+est_préfixe_de :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF16) -> bool
+{
+    i := 0
+
+    boucle {
+        a : n16 = 0
+        si i < chn1.taille() {
+            a = chn1.unités[i]
+        }
+
+        b : n16 = 0
+        si i < chn2.taille() {
+            b = chn2.unités[i]
+        }
+
+        si b == 0 {
+            retourne faux
+        }
+
+        si a != b {
+            retourne faux
+        }
+
+        i += 1
+    }
+
+    retourne vrai
+}
+
+opérateur == :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
+{
+    // À FAIRE
+    retourne faux
+}
+
+opérateur != :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
+{
+    retourne !(a == b)
+}
+
+opérateur < :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
+{
+    si b.est_préfixe_de(a) {
+        retourne faux
+    }
+
+    si a.est_préfixe_de(b) {
+        retourne vrai
+    }
+
+    // trouve l'index le plus petit du n-ième unité de code différent entre les chaines
+    n := 0
+
+    boucle {
+        si a.unités[n] != b.unités[n] {
+            arrête
+        }
+
+        n += 1
+    }
+
+    retourne a.unités[n] < b.unités[n]
+}
