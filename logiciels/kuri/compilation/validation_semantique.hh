@@ -60,6 +60,7 @@ struct ContexteValidationCode {
 	void renseigne_membre_actif(dls::vue_chaine_compacte const &nom_union, dls::vue_chaine_compacte const &nom_membre);
 
 	void valide_semantique_noeud(NoeudExpression *);
+	void valide_acces_membre(NoeudExpressionMembre *expression_membre);
 
 	void valide_type_fonction(NoeudDeclarationFonction *);
 	void valide_fonction(NoeudDeclarationFonction *);

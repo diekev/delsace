@@ -67,103 +67,6 @@ static Type *resoud_type_final(Compilatrice &compilatrice, NoeudExpression *expr
 
 /* ************************************************************************** */
 
-static void valide_acces_membre(
-		Compilatrice &compilatrice,
-		ContexteValidationCode &contexte,
-		NoeudExpressionMembre *b,
-		NoeudExpression *structure,
-		NoeudExpression *membre,
-		bool expr_gauche)
-{
-	PROFILE_FONCTION;
-
-	auto type = structure->type;
-
-	/* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
-	while (type->genre == GenreType::POINTEUR || type->genre == GenreType::REFERENCE) {
-		type = static_cast<TypePointeur *>(type)->type_pointe;
-	}
-
-	// Il est possible d'avoir une chaine de type : Struct1.Struct2.Struct3...
-	if (type->genre == GenreType::TYPE_DE_DONNEES) {
-		auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(type);
-
-		if (type_de_donnees->type_connu != nullptr) {
-			type = type_de_donnees->type_connu;
-			// change le type de la structure également pour simplifier la génération
-			// de la RI (nous nous basons sur le type pour ça)
-			structure->type = type;
-		}
-	}
-
-	if (est_type_compose(type)) {
-		auto type_compose = static_cast<TypeCompose *>(type);
-
-		auto membre_trouve = false;
-		auto index_membre = 0;
-		auto membre_est_constant = false;;
-
-		POUR (type_compose->membres) {
-			if (it.nom == membre->ident->nom) {
-				b->type = it.type;
-				membre_trouve = true;
-				membre_est_constant = it.drapeaux == TypeCompose::Membre::EST_CONSTANT;
-				break;
-			}
-
-			index_membre += 1;
-		}
-
-		if (membre_trouve == false) {
-			erreur::membre_inconnu(compilatrice, b, structure, membre, type_compose);
-		}
-
-		b->index_membre = index_membre;
-
-		if (membre_est_constant || type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
-			b->genre_valeur = GenreValeur::DROITE;
-		}
-		else if (type->genre == GenreType::UNION) {
-			auto noeud_struct = static_cast<TypeUnion *>(type)->decl;
-			if (!noeud_struct->est_nonsure) {
-				b->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
-
-				if (expr_gauche) {
-					contexte.renseigne_membre_actif(structure->ident->nom, membre->ident->nom);
-				}
-				else {
-					auto membre_actif = contexte.trouve_membre_actif(structure->ident->nom);
-
-					contexte.donnees_dependance.fonctions_utilisees.insere(compilatrice.interface_kuri.decl_panique_membre_union);
-
-					/* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu */
-					if (membre_actif != "") {
-						if (membre_actif != membre->ident->nom) {
-							erreur::membre_inactif(compilatrice, contexte, b, structure, membre);
-						}
-
-						/* nous savons que nous avons le bon membre actif */
-						b->aide_generation_code = IGNORE_VERIFICATION;
-					}
-				}
-			}
-		}
-
-		return;
-	}
-
-	auto flux = dls::flux_chaine();
-	flux << "Impossible d'accéder au membre d'un objet n'étant pas une structure";
-	flux << ", le type est ";
-	flux << chaine_type(type);
-
-	erreur::lance_erreur(
-				flux.chn(),
-				compilatrice,
-				structure->lexeme,
-				erreur::type_erreur::TYPE_DIFFERENTS);
-}
-
 ContexteValidationCode::ContexteValidationCode(Compilatrice &compilatrice)
 	: m_compilatrice(compilatrice)
 {}
@@ -430,10 +333,8 @@ void ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 			}
 
-			valide_acces_membre(m_compilatrice, *this, inst, enfant1, enfant2, false);
-
-			donnees_dependance.types_utilises.insere(noeud->type);
-
+			valide_acces_membre(inst);
+			donnees_dependance.types_utilises.insere(inst->type);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
@@ -2133,6 +2034,99 @@ void ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			break;
 		}
 	}
+}
+
+void ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expression_membre)
+{
+	PROFILE_FONCTION;
+
+	auto structure = expression_membre->accede;
+	auto membre = expression_membre->membre;
+	auto type = structure->type;
+
+	/* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
+	while (type->genre == GenreType::POINTEUR || type->genre == GenreType::REFERENCE) {
+		type = static_cast<TypePointeur *>(type)->type_pointe;
+	}
+
+	// Il est possible d'avoir une chaine de type : Struct1.Struct2.Struct3...
+	if (type->genre == GenreType::TYPE_DE_DONNEES) {
+		auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(type);
+
+		if (type_de_donnees->type_connu != nullptr) {
+			type = type_de_donnees->type_connu;
+			// change le type de la structure également pour simplifier la génération
+			// de la RI (nous nous basons sur le type pour ça)
+			structure->type = type;
+		}
+	}
+
+	if (est_type_compose(type)) {
+		auto type_compose = static_cast<TypeCompose *>(type);
+
+		auto membre_trouve = false;
+		auto index_membre = 0;
+		auto membre_est_constant = false;;
+
+		POUR (type_compose->membres) {
+			if (it.nom == membre->ident->nom) {
+				expression_membre->type = it.type;
+				membre_trouve = true;
+				membre_est_constant = it.drapeaux == TypeCompose::Membre::EST_CONSTANT;
+				break;
+			}
+
+			index_membre += 1;
+		}
+
+		if (membre_trouve == false) {
+			erreur::membre_inconnu(m_compilatrice, expression_membre, structure, membre, type_compose);
+		}
+
+		expression_membre->index_membre = index_membre;
+
+		if (membre_est_constant || type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
+			expression_membre->genre_valeur = GenreValeur::DROITE;
+		}
+		else if (type->genre == GenreType::UNION) {
+			auto noeud_struct = static_cast<TypeUnion *>(type)->decl;
+			if (!noeud_struct->est_nonsure) {
+				expression_membre->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
+
+				if ((expression_membre->drapeaux & DROITE_ASSIGNATION) == 0) {
+					renseigne_membre_actif(structure->ident->nom, membre->ident->nom);
+				}
+				else {
+					auto membre_actif = trouve_membre_actif(structure->ident->nom);
+
+					donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri.decl_panique_membre_union);
+
+					/* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu */
+					if (membre_actif != "") {
+						if (membre_actif != membre->ident->nom) {
+							erreur::membre_inactif(m_compilatrice, *this, expression_membre, structure, membre);
+						}
+
+						/* nous savons que nous avons le bon membre actif */
+						expression_membre->aide_generation_code = IGNORE_VERIFICATION;
+					}
+				}
+			}
+		}
+
+		return;
+	}
+
+	auto flux = dls::flux_chaine();
+	flux << "Impossible d'accéder au membre d'un objet n'étant pas une structure";
+	flux << ", le type est ";
+	flux << chaine_type(type);
+
+	erreur::lance_erreur(
+				flux.chn(),
+				m_compilatrice,
+				structure->lexeme,
+				erreur::type_erreur::TYPE_DIFFERENTS);
 }
 
 void ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl)
