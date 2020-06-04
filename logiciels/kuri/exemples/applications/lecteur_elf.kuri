@@ -53,20 +53,90 @@ lis_n64 :: fonc (fichier: *FichierELF) -> n64
     retourne h << 56 | g << 48 | f << 40 | e << 32 | d << 24 | c << 16 | b << 8 | a
 }
 
+// références :
+// -- https://github.com/galabra/ELF-viewer/blob/master/myELF.c
+// -- https://github.com/mattfischer/elfview/tree/master/src
 // http://refspecs.linuxbase.org/elf/elf.pdf
 // https://uclibc.org/docs/elf-64-gen.pdf
 
-principale :: fonc () -> z32
+EI_NIDENT :: 16
+
+Elf32_Half :: n16
+Elf64_Half :: n16
+
+/* Types for signed and unsigned 32-bit quantities.  */
+Elf32_Word :: n32
+Elf32_Sword :: z32
+Elf64_Word :: n32
+Elf64_Sword :: z32
+
+/* Types for signed and unsigned 64-bit quantities.  */
+Elf32_Xword :: n64
+Elf32_Sxword :: z64
+Elf64_Xword :: n64
+Elf64_Sxword :: z64
+
+/* Type of addresses.  */
+Elf32_Addr :: n32
+Elf64_Addr :: n64
+
+/* Type of file offsets.  */
+Elf32_Off :: n32
+Elf64_Off :: n64
+
+/* Type for section indices, which are 16-bit quantities.  */
+Elf32_Section :: n16
+Elf64_Section :: n16
+
+/* Type for version symbol information.  */
+Elf32_Versym :: Elf32_Half
+Elf64_Versym :: Elf64_Half
+
+EntêteELF64 :: struct {
+    e_ident : [EI_NIDENT]n8  /* nombre magique et d'autres trucs */
+    e_type : Elf64_Half      /* type de fichier objet */
+    e_machine : Elf64_Half   /* architecture */
+    e_version : Elf64_Word   /* Object file version */
+    e_entry : Elf64_Addr     /* Entry point virtual address */
+    e_phoff : Elf64_Off      /* Program header table file offset */
+    e_shoff : Elf64_Off      /* Section header table file offset */
+    e_flags : Elf64_Word     /* Processor-specific flags */
+    e_ehsize : Elf64_Half    /* ELF header size in bytes */
+    e_phentsize : Elf64_Half /* Program header table entry size */
+    e_phnum : Elf64_Half     /* Program header table entry count */
+    e_shentsize : Elf64_Half /* Section header table entry size */
+    e_shnum : Elf64_Half     /* Section header table entry count */
+    e_shstrndx : Elf64_Half  /* Section header string table index */
+}
+
+EntêteSectionELF64 :: struct {
+  	sh_name : Elf64_Word		/* Section name (string tbl index) */
+  	sh_type : Elf64_Word		/* Section type */
+  	sh_flags : Elf64_Xword		/* Section flags */
+  	sh_addr : Elf64_Addr		/* Section virtual addr at execution */
+  	sh_offset : Elf64_Off		/* Section file offset */
+  	sh_size : Elf64_Xword		/* Section size in bytes */
+  	sh_link : Elf64_Word		/* Link to another section */
+  	sh_info : Elf64_Word		/* Additional section information */
+  	sh_addralign : Elf64_Xword		/* Section alignment */
+  	sh_entsize : Elf64_Xword	/* Entry size if section holds table */
+}
+
+SymboleELF64 :: struct {
+    st_name : Elf64_Word		/* Symbol name (string tbl index) */
+    st_info : n8		/* Symbol type and binding */
+    st_other : n8		/* Symbol visibility */
+    st_shndx : Elf64_Section		/* Section index */
+    st_value : Elf64_Addr		/* Symbol value */
+    st_size : Elf64_Xword		/* Symbol size */
+}
+
+examine :: fonc (fichier: *FichierELF)
 {
-    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
+    entête := mémoire(fichier.contenu.pointeur comme *EntêteELF64)
+    imprime("entête : %\n", entête)
 
-    chm := construit_chemin("/opt/bin/kuri/kuri")
-    contenu := contenu_fichier_binaire(chm)
-    diffère { déloge contenu }
-
-    imprime("Taille du fichier : %\n", contenu.taille)
-
-    // entête
+    /*
     si contenu[0] != 0x7f comme octet {
         imprime("fichier malformé\n")
         retourne 1
@@ -86,12 +156,9 @@ principale :: fonc () -> z32
         imprime("fichier malformé\n")
         retourne 1
     }
+    */
 
-    imprime("fichier ELF !\n")
-
-    fichier := FichierELF(contenu = contenu, curseur = 4)
-
-    bits := lis_z8(@fichier)
+    bits := entête.e_ident[4]
 
     si bits == 0 {
         imprime("aucun bits\n")
@@ -104,10 +171,10 @@ principale :: fonc () -> z32
     }
     sinon {
         imprime("bit malformé")
-        retourne 1
+        retourne
     }
 
-    boutisme := lis_z8(@fichier)
+    boutisme := entête.e_ident[5]
 
     si boutisme == 0 {
         imprime("aucun boutisme\n")
@@ -120,14 +187,14 @@ principale :: fonc () -> z32
     }
     sinon {
         imprime("boutisme malformé")
-        retourne 1
+        retourne
     }
 
-    version := lis_z8(@fichier)
+    version := entête.e_ident[6]
 
     imprime("version : %\n", version)
 
-    abi := lis_z8(@fichier)
+    abi := entête.e_ident[7]
 
     discr abi {
         0 { imprime("UNIX System V\n") }
@@ -147,9 +214,12 @@ principale :: fonc () -> z32
         sinon { imprime("ABI inconnue\n") }
     }
 
-    version_abi := lis_z8(@fichier)
+    version_abi := entête.e_ident[8]
 
     imprime("Version ABI : %\n", version_abi)
+
+    /*
+
 
     fichier.curseur = 0x10
 
@@ -192,7 +262,7 @@ principale :: fonc () -> z32
 
     point_d_entrée := lis_n64(@fichier)
 
-    imprime("point d'entrée : % (%)\n", formatte_entier(point_d_entrée, base = 16), point_d_entrée)
+    imprime("point d'entrée : % (%)\n", FormatEntier(valeur = point_d_entrée, base = 16), point_d_entrée)
 
     e_phoff := lis_n64(@fichier)
     e_shoff := lis_n64(@fichier)
@@ -240,28 +310,29 @@ principale :: fonc () -> z32
             0x11 { imprime("Groupe de section\n") }
             0x12 { imprime("Indes de section étendue\n") }
             0x13 { imprime("Nombre de types définis\n") }
-            sinon /* 0x60000000 */ { imprime("Système d'exploitation spécifique\n") }
+            // 0x60000000
+            sinon  { imprime("Système d'exploitation spécifique\n") }
         }
 
         imprime("-- index %\n", i)
 
         sh_flags := lis_n64(@fichier)
-        /*
-        0x1	SHF_WRITE	Writable
-0x2	SHF_ALLOC	Occupies memory during execution
-0x4	SHF_EXECINSTR	Executable
-0x10	SHF_MERGE	Might be merged
-0x20	SHF_STRINGS	Contains nul-terminated strings
-0x40	SHF_INFO_LINK	'sh_info' contains SHT index
-0x80	SHF_LINK_ORDER	Preserve order after combining
-0x100	SHF_OS_NONCONFORMING	Non-standard OS specific handling required
-0x200	SHF_GROUP	Section is member of a group
-0x400	SHF_TLS	Section hold thread-local data
-0x0ff00000	SHF_MASKOS	OS-specific
-0xf0000000	SHF_MASKPROC	Processor-specific
-0x4000000	SHF_ORDERED	Special ordering requirement (Solaris)
-0x8000000	SHF_EXCLUDE	Section is excluded unless referenced or allocated (Solaris)
-        */
+
+    //         0x1	SHF_WRITE	Writable
+    // 0x2	SHF_ALLOC	Occupies memory during execution
+    // 0x4	SHF_EXECINSTR	Executable
+    // 0x10	SHF_MERGE	Might be merged
+    // 0x20	SHF_STRINGS	Contains nul-terminated strings
+    // 0x40	SHF_INFO_LINK	'sh_info' contains SHT index
+    // 0x80	SHF_LINK_ORDER	Preserve order after combining
+    // 0x100	SHF_OS_NONCONFORMING	Non-standard OS specific handling required
+    // 0x200	SHF_GROUP	Section is member of a group
+    // 0x400	SHF_TLS	Section hold thread-local data
+    // 0x0ff00000	SHF_MASKOS	OS-specific
+    // 0xf0000000	SHF_MASKPROC	Processor-specific
+    // 0x4000000	SHF_ORDERED	Special ordering requirement (Solaris)
+    // 0x8000000	SHF_EXCLUDE	Section is excluded unless referenced or allocated (Solaris)
+
 
         sh_addr := lis_n64(@fichier)
         sh_offset := lis_n64(@fichier)
@@ -271,8 +342,8 @@ principale :: fonc () -> z32
         sh_addralign := lis_n64(@fichier)
         sh_entsize := lis_n64(@fichier)
 
-        imprime("-- décalage : %\n", formatte_entier(sh_offset, base = 16))
-        imprime("-- adresse  : %\n", formatte_entier(sh_addr, base = 16))
+        imprime("-- décalage : %\n", FormatEntier(valeur = sh_offset, base = 16))
+        imprime("-- adresse  : %\n", FormatEntier(valeur = sh_addr, base = 16))
 
         si sh_type == 0x3 && décalage_table_noms == 0 {
             décalage_table_noms = sh_offset + 1
@@ -289,7 +360,7 @@ principale :: fonc () -> z32
         fichier.curseur = déclage_table_symbole comme z32
 
         imprime("symboles : %\n", nombre_symboles)
-        imprime("curseur : %\n", formatte_entier(fichier.curseur, base = 16))
+        imprime("curseur : %\n", FormatEntier(valeur = fichier.curseur, base = 16))
 
         pour i dans 0 ... nombre_symboles - 1 {
             st_name := lis_z32(@fichier)
@@ -329,14 +400,131 @@ principale :: fonc () -> z32
         imprime("%\n", lis_z8(@fichier))
     }
 
-/*
-    fichier.curseur = point_d_entrée comme z32
 
-    pour i dans 0 ... 15 {
-        o := lis_z8(@fichier) comme n8
+    */
+}
 
-        imprime("0x% ", formatte_entier(o, base = 16))
+imprime_noms_sections :: fonc (fichier: *FichierELF)
+{
+    entête := fichier.contenu.pointeur comme *EntêteELF64
+    table_symbole := (fichier.contenu.pointeur + entête.e_shoff + entête.e_shstrndx * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+
+    nombre_de_sections := entête.e_shnum
+
+    imprime("il y a % sections :\n", nombre_de_sections)
+
+    pour 0 ... nombre_de_sections - 1 {
+        entête_section := (fichier.contenu.pointeur + entête.e_shoff + it * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+
+        nom_section_c := (fichier.contenu.pointeur + table_symbole.sh_offset + entête_section.sh_name) comme *z8
+        nom_section := converti_chaine_c(nom_section_c)
+        imprime("[%] %\n", it, nom_section)
+        imprime("-- adresse  : %\n", FormatEntier(valeur = entête_section.sh_addr, base = 16))
+        imprime("-- décalage : %\n", FormatEntier(valeur = entête_section.sh_offset, base = 16))
+        imprime("-- taille   : %\n", FormatEntier(valeur = entête_section.sh_size, base = 16))
+        imprime("-- type     : %\n", FormatEntier(valeur = entête_section.sh_type, base = 16))
     }
-*/
+}
+
+entête_fichier :: fonc (fichier: *FichierELF) -> *EntêteELF64
+{
+    retourne fichier.contenu.pointeur comme *EntêteELF64
+}
+
+entête_section :: fonc (fichier: *FichierELF, index: n16 /* Elf32_Half */) -> *EntêteSectionELF64
+{
+    entête := fichier.entête_fichier()
+    retourne (fichier.contenu.pointeur + entête.e_shoff + index * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+}
+
+imprime_symboles :: fonc (fichier: *FichierELF)
+{
+    entête := fichier.entête_fichier()
+    table_symbole_entêtes := fichier.entête_section(entête.e_shstrndx)
+
+    nombre_de_sections := entête.e_shnum
+
+    entête_section_table_symbole : *EntêteSectionELF64
+    tableur_chaines_symboles : *EntêteSectionELF64
+
+    pour 0 ... nombre_de_sections - 1 {
+        section := fichier.entête_section(it comme Elf64_Half)
+        nom_section_c := (fichier.contenu.pointeur + table_symbole_entêtes.sh_offset + section.sh_name) comme *z8
+        nom_section := converti_chaine_c(nom_section_c)
+
+        si nom_section == ".strtab" {
+            tableur_chaines_symboles = section
+            arrête
+        }
+    }
+
+    pour 0 ... nombre_de_sections - 1 {
+        section := fichier.entête_section(it comme Elf64_Half)
+
+        si section.sh_type == 2 {
+            entête_section_table_symbole = section
+            arrête
+        }
+    }
+
+    //printf("Symbols:\n  [Nr] Value             Index  SectionName         SymbolName\n");
+
+    nombre_de_symboles := entête_section_table_symbole.sh_size / taille_de(SymboleELF64)
+
+    imprime("nombre de symboles : %\n", nombre_de_symboles)
+
+    pour 0 ... 50 {
+        table_symbole := (fichier.contenu.pointeur + entête_section_table_symbole.sh_offset + (it comme n32) * taille_de(SymboleELF64)) comme *SymboleELF64
+        nom_section : chaine
+
+        valeur_symbole := table_symbole.st_value
+        index_symbole := table_symbole.st_shndx
+        index_section := table_symbole.st_shndx
+
+        si index_symbole == 0xfff1 {
+            nom_section = "ABS"
+        }
+        sinon {
+            section := fichier.entête_section(index_symbole)
+            nom_section_c := (fichier.contenu.pointeur + table_symbole_entêtes.sh_offset + section.sh_name) comme *z8
+            nom_section = converti_chaine_c(nom_section_c)
+        }
+
+        nom_symbole_c := (fichier.contenu.pointeur + tableur_chaines_symboles.sh_offset + table_symbole.st_name)
+        nom_symbole := converti_chaine_c(nom_symbole_c comme *z8)
+
+        imprime("  [%] %  ", it, valeur_symbole)
+
+        si index_symbole == 0xfff1 {
+            imprime("  ABS  ")
+        }
+        sinon si index_symbole < 10 {
+            imprime("    %  ", index_symbole)
+        }
+        sinon si index_symbole < 100 {
+            imprime("   %  ", index_symbole)
+        }
+        sinon {
+            imprime("  %  ", index_symbole)
+        }
+
+        imprime("% %\n", nom_section, nom_symbole)
+    }
+}
+
+principale :: fonc () -> z32
+{
+    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
+
+    chm := construit_chemin("/opt/bin/kuri/kuri")
+    contenu := contenu_fichier_binaire(chm)
+    diffère { déloge contenu }
+
+    fichier := FichierELF(contenu = contenu)
+
+    examine(@fichier)
+    //imprime_noms_sections(@fichier)
+    imprime_symboles(@fichier)
+
     retourne 0
 }
