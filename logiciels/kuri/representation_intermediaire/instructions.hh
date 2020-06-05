@@ -217,8 +217,13 @@ struct Instruction : public Atome {
 		TRANSTYPE,
 	};
 
+	enum {
+		SUPPRIME_INSTRUCTION = 1,
+	};
+
 	Genre genre = Genre::INVALIDE;
 	int numero = 0;
+	int drapeaux = 0;
 
 	Instruction() { genre_atome = Atome::Genre::INSTRUCTION; }
 };

@@ -34,9 +34,11 @@ set(BIBLIOTHEQUES
 set(SOURCES
     constructrice_ri.cc
 	instructions.cc
+	optimisations.cc
 
     constructrice_ri.hh
 	instructions.hh
+	optimisations.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

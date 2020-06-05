@@ -33,6 +33,7 @@
 #include "compilatrice.hh"
 #include "erreur.h"
 #include "outils_lexemes.hh"
+#include "optimisations.hh"
 
 /* À FAIRE : (représentation intermédiaire, non-urgent)
  * - copie les tableaux fixes quand nous les assignations (a = b -> copie_mem(a, b))
@@ -1105,6 +1106,8 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			if (decl->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
 				cree_retour(nullptr);
 			}
+
+			corrige_labels(atome_fonc);
 
 			fonction_courante = nullptr;
 
