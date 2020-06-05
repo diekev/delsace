@@ -92,13 +92,6 @@ void imprime_ligne_avec_message(
 		const Lexeme *lexeme_redefinition,
 		const Lexeme *lexeme_original);
 
-[[noreturn]] void lance_erreur_plage(
-		const dls::chaine &quoi,
-		const Compilatrice &compilatrice,
-		const Lexeme *premier_morceau,
-		const Lexeme *dernier_morceau,
-		type_erreur type = type_erreur::NORMAL);
-
 [[noreturn]] void lance_erreur_type_arguments(
 		const Type *type_arg,
 		const Type *type_enf,

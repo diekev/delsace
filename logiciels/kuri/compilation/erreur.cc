@@ -202,35 +202,6 @@ void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::VARIABLE_REDEFINIE);
 }
 
-void lance_erreur_plage(
-		const dls::chaine &quoi,
-		const Compilatrice &compilatrice,
-		const Lexeme *premier_lexeme,
-		const Lexeme *dernier_lexeme,
-		type_erreur type)
-{
-	auto fichier = compilatrice.fichier(static_cast<size_t>(premier_lexeme->fichier));
-	auto pos = position_lexeme(*premier_lexeme);
-	auto const pos_premier = pos.pos;
-
-	auto const pos_dernier = position_lexeme(*dernier_lexeme).pos;
-
-	auto ligne_courante = fichier->tampon[pos.index_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
-	ss << ligne_courante;
-
-	lng::erreur::imprime_caractere_vide(ss, pos_premier, ligne_courante);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, ligne_courante, pos_premier, pos_dernier + 1);
-	ss << '\n';
-
-	ss << quoi;
-
-	throw erreur::frappe(ss.chn().c_str(), type);
-}
-
 [[noreturn]] void lance_erreur_type_arguments(
 		const Type *type_arg,
 		const Type *type_enf,
