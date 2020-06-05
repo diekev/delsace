@@ -1042,11 +1042,6 @@ AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *
 	auto type = m_compilatrice.typeuse.type_pointeur_pour(type_dereference_pour(type_pointeur->type_pointe));
 
 	auto inst = AccedeIndexConstant::cree(type, accede, index);
-
-	if (fonction_courante) {
-		fonction_courante->instructions.pousse(inst);
-	}
-
 	accede_index_constants.pousse(inst);
 	return inst;
 }
