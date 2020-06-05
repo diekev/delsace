@@ -444,6 +444,9 @@ void ConstructriceRI::imprime_instruction(Instruction const *inst, std::ostream 
 			if (charge->genre_atome == Atome::Genre::GLOBALE) {
 				os << " @globale" << charge;
 			}
+			else if (charge->genre_atome == Atome::Genre::CONSTANTE) {
+				os << " @constante" << charge;
+			}
 			else {
 				auto inst_chargee = static_cast<Instruction const *>(charge);
 				os << " %" << inst_chargee->numero;
