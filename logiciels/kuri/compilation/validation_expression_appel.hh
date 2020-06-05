@@ -99,8 +99,3 @@ void valide_appel_fonction(
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte_validation,
 		NoeudExpressionAppel *expr);
-
-void valide_appel_fonction(
-		Compilatrice &compilatrice,
-		ContexteValidationCode &contexte_validation,
-		NoeudExpressionAppel *expr);
