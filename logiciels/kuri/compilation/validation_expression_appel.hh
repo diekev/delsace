@@ -60,6 +60,11 @@ enum {
 	RENOMMAGE_ARG,
 	TROP_D_EXPRESSION_POUR_UNION,
 	TYPE_N_EST_PAS_FONCTION,
+	CONTEXTE_MANQUANT,
+	EXPANSION_VARIADIQUE_FONCTION_EXTERNE,
+	MULTIPLE_EXPANSIONS_VARIADIQUES,
+	EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES,
+	ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES,
 };
 
 enum {
@@ -95,7 +100,7 @@ struct DonneesCandidate {
 	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
 };
 
-void valide_appel_fonction(
+bool valide_appel_fonction(
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte_validation,
 		NoeudExpressionAppel *expr);

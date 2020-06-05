@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -26,9 +26,15 @@
 
 #include "graphe_dependance.hh"
 
+#include "validation_expression_appel.hh"
+
 struct Compilatrice;
 struct NoeudDeclarationFonction;
 struct NoeudExpression;
+
+namespace erreur {
+enum class type_erreur : int;
+}
 
 struct ContexteValidationCode {
 	Compilatrice &m_compilatrice;
@@ -57,14 +63,32 @@ struct ContexteValidationCode {
 
 	void renseigne_membre_actif(dls::vue_chaine_compacte const &nom_union, dls::vue_chaine_compacte const &nom_membre);
 
-	void valide_semantique_noeud(NoeudExpression *);
-	void valide_acces_membre(NoeudExpressionMembre *expression_membre);
+	bool valide_semantique_noeud(NoeudExpression *);
+	bool valide_acces_membre(NoeudExpressionMembre *expression_membre);
 
-	void valide_type_fonction(NoeudDeclarationFonction *);
-	void valide_fonction(NoeudDeclarationFonction *);
-	void valide_operateur(NoeudDeclarationFonction *);
-	void valide_enum(NoeudEnum *);
-	void valide_structure(NoeudStruct *);
+	bool valide_type_fonction(NoeudDeclarationFonction *);
+	bool valide_fonction(NoeudDeclarationFonction *);
+	bool valide_operateur(NoeudDeclarationFonction *);
+	bool valide_enum(NoeudEnum *);
+	bool valide_structure(NoeudStruct *);
+	bool resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
+
+	void rapporte_erreur(const char *message, NoeudExpression *noeud);
+	void rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::type_erreur type_erreur);
+	void rapporte_erreur_redefinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec);
+	void rapporte_erreur_redefinition_fonction(NoeudDeclarationFonction *decl, NoeudDeclaration *decl_prec);
+	void rapporte_erreur_type_arguments(NoeudExpression *type_arg, NoeudExpression *type_enf);
+	void rapporte_erreur_type_retour(const Type *type_arg, const Type *type_enf, NoeudBase *racine);
+	void rapporte_erreur_assignation_type_differents(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud);
+	void rapporte_erreur_type_operation(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud);
+	void rapporte_erreur_type_operation(NoeudExpression *noeud);
+	void rapporte_erreur_type_operation_unaire(NoeudExpression *noeud);
+	void rapporte_erreur_acces_hors_limites(NoeudBase *b, TypeTableauFixe *type_tableau, long index_acces);
+	void rapporte_erreur_membre_inconnu(NoeudBase *acces, NoeudBase *structure, NoeudBase *membre, TypeCompose *type);
+	void rapporte_erreur_membre_inactif(NoeudBase *acces, NoeudBase *structure, NoeudBase *membre);
+	void rapporte_erreur_valeur_manquante_discr(NoeudBase *expression, dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes);
+	void rapporte_erreur_fonction_inconnue(NoeudBase *b, dls::tablet<DonneesCandidate, 10> const &candidates);
+	void rapporte_erreur_fonction_nulctx(NoeudBase const *appl_fonc, NoeudBase const *decl_fonc, NoeudBase const *decl_appel);
 };
 
 void performe_validation_semantique(Compilatrice &compilatrice);

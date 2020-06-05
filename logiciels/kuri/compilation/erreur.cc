@@ -468,6 +468,27 @@ void lance_erreur_fonction_inconnue(
 			type_erreur = erreur::type_erreur::MEMBRE_INCONNU;
 		}
 
+		if (dc.raison == CONTEXTE_MANQUANT) {
+			ss << "\tNe peut appeler une fonction avec contexte dans un bloc n'ayant pas de contexte\n";
+			type_erreur = erreur::type_erreur::NORMAL;
+		}
+		else if (dc.raison == EXPANSION_VARIADIQUE_FONCTION_EXTERNE) {
+			ss << "\tImpossible d'utiliser une expansion variadique dans une fonction variadique externe\n";
+			type_erreur = erreur::type_erreur::NORMAL;
+		}
+		else if (dc.raison == MULTIPLE_EXPANSIONS_VARIADIQUES) {
+			ss << "\tPlusieurs expansions variadiques trouvées\n";
+			type_erreur = erreur::type_erreur::NORMAL;
+		}
+		else if (dc.raison == EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES) {
+			ss << "\tTentative d'utiliser une expansion d'arguments variadiques alors que d'autres arguments ont déjà été précisés\n";
+			type_erreur = erreur::type_erreur::NORMAL;
+		}
+		else if (dc.raison == ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES) {
+			ss << "\tTentative d'ajouter des arguments variadiques supplémentaire alors qu'une expansion est également utilisée\n";
+			type_erreur = erreur::type_erreur::NORMAL;
+		}
+
 		if (dc.raison == METYPAGE_ARG) {
 			auto const &lexeme_enfant = dc.noeud_erreur->lexeme;
 

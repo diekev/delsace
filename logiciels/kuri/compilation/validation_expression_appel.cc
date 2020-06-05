@@ -196,7 +196,10 @@ static auto apparie_appel_pointeur(
 		auto fonc_courante = contexte.fonction_courante;
 
 		if (fonc_courante != nullptr && dls::outils::possede_drapeau(fonc_courante->drapeaux, FORCE_NULCTX)) {
-			erreur::lance_erreur_fonction_nulctx(compilatrice, b, b, fonc_courante);
+			resultat.noeud_erreur = b;
+			resultat.etat = FONCTION_INTROUVEE;
+			resultat.raison = CONTEXTE_MANQUANT;
+			return resultat;
 		}
 	}
 	else {
@@ -493,11 +496,15 @@ static DonneesCandidate apparie_appel_fonction(
 
 				if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
 					if (!fonction_variadique_interne) {
-						erreur::lance_erreur("Impossible d'utiliser une expansion variadique dans une fonction variadique externe", compilatrice, slot->lexeme);
+						res.etat = FONCTION_INTROUVEE;
+						res.raison = EXPANSION_VARIADIQUE_FONCTION_EXTERNE;
+						return res;
 					}
 
 					if (expansion_rencontree) {
-						erreur::lance_erreur("Ne peut utiliser qu'une seule expansion d'argument variadique", compilatrice, slot->lexeme);
+						res.etat = FONCTION_INTROUVEE;
+						res.raison = MULTIPLE_EXPANSIONS_VARIADIQUES;
+						return res;
 					}
 
 					auto type_deref_enf = type_dereference_pour(type_de_l_expression);
@@ -539,11 +546,14 @@ static DonneesCandidate apparie_appel_fonction(
 				if (fonction_variadique_interne) {
 					if (expansion_rencontree && nombre_arg_variadiques_rencontres != 0) {
 						if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
-							erreur::lance_erreur("Tentative d'utiliser une expansion d'arguments variadiques alors que d'autres arguments ont déjà été précisés", compilatrice, slot->lexeme);
+							res.raison = EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES;
 						}
 						else {
-							erreur::lance_erreur("Tentative d'ajouter des arguments variadiques supplémentaire alors qu'une expansion est également utilisée", compilatrice, slot->lexeme);
+							res.raison = ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES;
 						}
+
+						res.etat = FONCTION_INTROUVEE;
+						return res;
 					}
 				}
 
@@ -552,7 +562,9 @@ static DonneesCandidate apparie_appel_fonction(
 			else {
 				if (slot->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
 					if (!fonction_variadique_interne) {
-						erreur::lance_erreur("Impossible d'utiliser une expansion variadique dans une fonction variadique externe", compilatrice, slot->lexeme);
+						res.etat = FONCTION_INTROUVEE;
+						res.raison = EXPANSION_VARIADIQUE_FONCTION_EXTERNE;
+						return res;
 					}
 				}
 
@@ -756,8 +768,10 @@ static auto trouve_candidates_pour_appel(
 
 	auto candidates_appel = trouve_candidates_pour_fonction_appelee(compilatrice, expr->appelee);
 
+	auto resultat = dls::tablet<DonneesCandidate, 10>();
+
 	if (candidates_appel.taille() == 0) {
-		erreur::lance_erreur("fonction inconnue", compilatrice, expr->appelee->lexeme);
+		return resultat;
 	}
 
 	auto nouvelles_candidates = dls::tableau<CandidateExpressionAppel>();
@@ -779,8 +793,6 @@ static auto trouve_candidates_pour_appel(
 	}
 
 	candidates_appel = nouvelles_candidates;
-
-	auto resultat = dls::tablet<DonneesCandidate, 10>();
 
 	POUR (candidates_appel) {
 		if (it.quoi == CANDIDATE_EST_ACCES) {
@@ -817,7 +829,7 @@ static auto trouve_candidates_pour_appel(
 
 /* ************************************************************************** */
 
-void valide_appel_fonction(
+bool valide_appel_fonction(
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte,
 		NoeudExpressionAppel *expr)
@@ -864,7 +876,8 @@ void valide_appel_fonction(
 	}
 
 	if (candidate == nullptr) {
-		erreur::lance_erreur_fonction_inconnue(compilatrice, expr, candidates);
+		contexte.rapporte_erreur_fonction_inconnue(expr, candidates);
+		return true;
 	}
 
 	// ------------
@@ -877,8 +890,10 @@ void valide_appel_fonction(
 	}
 
 	if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {
+		// @vérifie si utile
 		if (candidate->noeud_decl == nullptr) {
-			erreur::lance_erreur_fonction_inconnue(compilatrice, expr, candidates);
+			contexte.rapporte_erreur_fonction_inconnue(expr, candidates);
+			return true;
 		}
 
 		auto decl_fonction_appelee = static_cast<NoeudDeclarationFonction const *>(candidate->noeud_decl);
@@ -892,7 +907,8 @@ void valide_appel_fonction(
 				auto decl_appel = decl_fonction_appelee;
 
 				if (!decl_appel->est_externe && !possede_drapeau(decl_appel->drapeaux, FORCE_NULCTX)) {
-					erreur::lance_erreur_fonction_nulctx(compilatrice, expr, decl_fonc, decl_appel);
+					contexte.rapporte_erreur_fonction_nulctx(expr, decl_fonc, decl_appel);
+					return false;
 				}
 			}
 		}
@@ -908,8 +924,15 @@ void valide_appel_fonction(
 			// À FAIRE  : pousse dans la file
 			auto contexte_ = ContexteValidationCode(compilatrice);
 			contexte_.commence_fonction(noeud_decl);
-			contexte_.valide_type_fonction(noeud_decl);
-			contexte_.valide_fonction(noeud_decl);
+
+			if (contexte_.valide_type_fonction(noeud_decl)) {
+				return true;
+			}
+
+			if (contexte_.valide_fonction(noeud_decl)) {
+				return true;
+			}
+
 			contexte_.termine_fonction();
 
 			decl_fonction_appelee = noeud_decl;
@@ -921,10 +944,8 @@ void valide_appel_fonction(
 
 		auto expr_gauche = (expr->drapeaux & DROITE_ASSIGNATION) == 0;
 		if (type_sortie->genre != GenreType::RIEN && expr_gauche) {
-			erreur::lance_erreur(
-						"Inutilisation du retour de la fonction",
-						compilatrice,
-						expr->lexeme);
+			contexte.rapporte_erreur("Inutilisation du retour de la fonction", expr);
+			return true;
 		}
 
 		/* met en place les drapeaux sur les enfants */
@@ -1009,4 +1030,5 @@ void valide_appel_fonction(
 	}
 
 	assert(expr->type);
+	return false;
 }
