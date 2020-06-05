@@ -2222,7 +2222,6 @@ void ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 
 	POUR (decl->params) {
 		types_entrees.pousse(it->type);
-		donnees_dependance.types_utilises.insere(it->type);
 	}
 
 	kuri::tableau<Type *> types_sorties;
@@ -2231,7 +2230,6 @@ void ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 	for (auto &type_declare : decl->params_sorties) {
 		auto type_sortie = resoud_type_final(m_compilatrice, type_declare);
 		types_sorties.pousse(type_sortie);
-		donnees_dependance.types_utilises.insere(type_sortie);
 	}
 
 	auto type_fonc = m_compilatrice.typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
@@ -2340,7 +2338,8 @@ void ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 		}
 	}
 
-	m_compilatrice.graphe_dependance.cree_noeud_fonction(decl);
+	auto noeud_dep = m_compilatrice.graphe_dependance.cree_noeud_fonction(decl);
+	m_compilatrice.graphe_dependance.ajoute_dependances(*noeud_dep, donnees_dependance);
 }
 
 void ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
