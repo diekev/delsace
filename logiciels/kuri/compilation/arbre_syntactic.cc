@@ -118,6 +118,7 @@ bool est_declaration(GenreNoeud genre)
 				GenreNoeud::DECLARATION_FONCTION,
 				GenreNoeud::DECLARATION_COROUTINE,
 				GenreNoeud::DECLARATION_ENUM,
+				GenreNoeud::DECLARATION_OPERATEUR,
 				GenreNoeud::DECLARATION_STRUCTURE);
 }
 
