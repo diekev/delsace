@@ -119,6 +119,8 @@ public:
 	~ConstructriceRI();
 
 	void genere_ri();
+	void genere_ri_a_partir_de(NoeudDeclarationFonction *noeud);
+	void genere_ri_pour_fonction_metaprogramme(NoeudDeclarationFonction *noeud);
 
 	void imprime_programme() const;
 
@@ -183,6 +185,7 @@ private:
 	void depile_controle_boucle();
 
 	void genere_ri_pour_fonction_main();
+	Atome *genere_ri_pour_creation_contexte(AtomeFonction *fonction);
 	Atome *genere_ri_pour_noeud(NoeudExpression *noeud);
 	Atome *genere_ri_pour_expression_droite(NoeudExpression *noeud);
 	Atome *genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place);

@@ -980,9 +980,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 				else if (directive == "exécute") {
 					auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
 					noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-
-					m_compilatrice.noeuds_a_executer.pousse(noeud);
-
 					return noeud;
 				}
 				else if (directive == "chemin") {

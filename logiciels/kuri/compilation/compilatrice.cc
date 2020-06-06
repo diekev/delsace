@@ -227,7 +227,7 @@ size_t Compilatrice::memoire_utilisee() const
 	}
 
 	memoire += static_cast<size_t>(file_typage.taille()) * sizeof(NoeudExpression *);
-	memoire += static_cast<size_t>(noeuds_a_executer.taille()) * sizeof(NoeudExpression *);
+	memoire += static_cast<size_t>(noeuds_a_executer.taille()) * sizeof(NoeudDeclarationFonction *);
 	memoire += table_identifiants.memoire_utilisee();
 
 	memoire += static_cast<size_t>(gerante_chaine.m_table.taille()) * sizeof(dls::chaine);

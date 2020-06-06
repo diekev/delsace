@@ -432,7 +432,7 @@ void ajourne_options_compilation(OptionsCompilation *options)
 	}
 }
 
-static bool lance_execution(Compilatrice &compilatrice)
+static bool lance_execution(Compilatrice &compilatrice, NoeudDeclarationFonction *noeud)
 {
 	// crée un fichier objet
 	auto commande = "gcc -Wno-discarded-qualifiers -Wno-format-security -shared -fPIC -o /tmp/test_execution.so /tmp/execution_kuri.c /tmp/r16_tables.o";
@@ -447,7 +447,7 @@ static bool lance_execution(Compilatrice &compilatrice)
 	// charge le fichier
 	auto so = dls::systeme_fichier::shared_library("/tmp/test_execution.so");
 
-	auto decl_fonc_init = cherche_fonction_dans_module(compilatrice, "Kuri", "initialise_RC");
+	auto decl_fonc_init = cherche_fonction_dans_module(compilatrice, "Compilatrice", "initialise_RC");
 	auto symbole_init = so(decl_fonc_init->nom_broye);
 	auto fonc_init = dls::systeme_fichier::dso_function<
 			void(
@@ -466,7 +466,9 @@ static bool lance_execution(Compilatrice &compilatrice)
 			  obtiens_options_compilation,
 			  ajourne_options_compilation);
 
-	auto dso = so("lance_execution");
+	auto nom_fonction = "lance_execution" + dls::vers_chaine(noeud);
+
+	auto dso = so(nom_fonction);
 
 	auto fonc = dls::systeme_fichier::dso_function<void()>(dso);
 
@@ -660,21 +662,25 @@ int main(int argc, char *argv[])
 		{
 			os << "Validation sémantique du code..." << std::endl;
 			performe_validation_semantique(compilatrice);
+			auto constructrice_ri = ConstructriceRI(compilatrice);
 
-//			for (auto noeud: compilatrice.noeuds_a_executer) {
-//				std::ofstream of;
-//				of.open("/tmp/execution_kuri.c");
+			for (auto noeud: compilatrice.noeuds_a_executer) {
+				std::ofstream of;
+				of.open("/tmp/execution_kuri.c");
 
-//				genere_code_C_pour_execution(noeud, compilatrice, chemin_racine_kuri, of);
-//				lance_execution(compilatrice);
-//			}
+				constructrice_ri.genere_ri_a_partir_de(noeud);
+				constructrice_ri.genere_ri_pour_fonction_metaprogramme(noeud);
+				constructrice_ri.imprime_programme();
+
+				genere_code_C_pour_execution(compilatrice, constructrice_ri, chemin_racine_kuri, of);
+				lance_execution(compilatrice, noeud);
+			}
 
 //			POUR (compilatrice.modules) {
 //				std::cerr << "Arbre syntaxique pour '" << it->nom << "' :\n";
 //				imprime_arbre(it->assembleuse->bloc_courant(), std::cerr, 1);
 //			}
 
-			auto constructrice_ri = ConstructriceRI(compilatrice);
 			constructrice_ri.genere_ri();
 			//constructrice_ri.imprime_programme();
 

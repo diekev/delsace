@@ -129,20 +129,6 @@ ConstructriceRI::~ConstructriceRI()
 #undef DELOGE_ATOMES
 }
 
-static void ajoute_dependances_implicites(
-		Compilatrice &compilatrice,
-		NoeudDependance *noeud_fonction_principale,
-		bool pour_meta_programme)
-{
-	auto &graphe_dependance = compilatrice.graphe_dependance;
-
-	if (pour_meta_programme) {
-		auto fonc_init = cherche_fonction_dans_module(compilatrice, "Kuri", "initialise_RC");
-		auto noeud_init = graphe_dependance.cree_noeud_fonction(fonc_init);
-		graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_init);
-	}
-}
-
 void ConstructriceRI::genere_ri()
 {
 	auto &graphe_dependance = m_compilatrice.graphe_dependance;
@@ -151,8 +137,6 @@ void ConstructriceRI::genere_ri()
 	if (noeud_fonction_principale == nullptr) {
 		erreur::fonction_principale_manquante();
 	}
-
-	ajoute_dependances_implicites(m_compilatrice, noeud_fonction_principale, false);
 
 	reduction_transitive(graphe_dependance);
 
@@ -211,6 +195,46 @@ void ConstructriceRI::genere_ri()
 	genere_ri_pour_fonction_main();
 
 	temps_generation = debut_generation.temps();
+}
+
+void ConstructriceRI::genere_ri_a_partir_de(NoeudDeclarationFonction *noeud)
+{
+	// table type
+	auto index_type = 0u;
+	m_compilatrice.typeuse.type_type_de_donnees_->index_dans_table_types = index_type++;
+	m_compilatrice.typeuse.type_chaine->index_dans_table_types = index_type++;
+	m_compilatrice.typeuse.type_eini->index_dans_table_types = index_type++;
+	POUR (m_compilatrice.typeuse.types_simples) { it->index_dans_table_types = index_type++; }
+	POUR (m_compilatrice.typeuse.types_pointeurs) { it->index_dans_table_types = index_type++; }
+	POUR (m_compilatrice.typeuse.types_references) { it->index_dans_table_types = index_type++; }
+	POUR (m_compilatrice.typeuse.types_structures) { it->index_dans_table_types = index_type++; }
+	POUR (m_compilatrice.typeuse.types_enums) { it->index_dans_table_types = index_type++; }
+	POUR (m_compilatrice.typeuse.types_tableaux_fixes) { it->index_dans_table_types = index_type++; }
+	POUR (m_compilatrice.typeuse.types_tableaux_dynamiques) { it->index_dans_table_types = index_type++; }
+	POUR (m_compilatrice.typeuse.types_fonctions) { it->index_dans_table_types = index_type++; }
+	POUR (m_compilatrice.typeuse.types_variadiques) { it->index_dans_table_types = index_type++; }
+	POUR (m_compilatrice.typeuse.types_unions) { it->index_dans_table_types = index_type++; }
+
+	auto noeud_dependance = m_compilatrice.graphe_dependance.cree_noeud_fonction(noeud);
+
+	traverse_graphe(noeud_dependance, [this](NoeudDependance *racine)
+	{
+#ifdef DEBOGUE_PROGRESSION_RI
+		m_noeuds_traites += 1;
+		std::cerr << "-----------------------------------------\n";
+		std::cerr << "Génére code pour le noeud " << m_noeuds_traites << " / " << m_noeuds_a_traiter << '\n';
+#endif
+
+		if (racine->type == TypeNoeudDependance::TYPE) {
+			if (racine->noeud_syntactique != nullptr) {
+				genere_ri_pour_noeud(racine->noeud_syntactique);
+			}
+		}
+		else {
+			//imprime_arbre(racine->noeud_syntactique, std::cerr, 0);
+			genere_ri_pour_noeud(racine->noeud_syntactique);
+		}
+	});
 }
 
 void ConstructriceRI::imprime_programme() const
@@ -4269,6 +4293,66 @@ void ConstructriceRI::genere_ri_pour_fonction_main()
 		cree_stocke_mem(valeur_ARGV, charge_argv);
 	}
 
+	auto alloc_contexte = genere_ri_pour_creation_contexte(fonction);
+
+	// ----------------------------------
+	// appel notre fonction principale en passant le contexte et le tableau
+	auto fonc_princ = table_fonctions["principale"];
+
+	auto params_principale = kuri::tableau<Atome *>(1);
+	params_principale[0] = cree_charge_mem(alloc_contexte);
+
+	static Lexeme lexeme_appel_principale = { "principale", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
+
+	auto valeur_princ = cree_appel(&lexeme_appel_principale, fonc_princ, std::move(params_principale));
+
+	// return
+	cree_retour(valeur_princ);
+}
+
+void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationFonction *noeud)
+{
+	auto fonc_init = cherche_fonction_dans_module(m_compilatrice, "Compilatrice", "initialise_RC");
+	genere_ri_a_partir_de(fonc_init);
+
+	// déclare une fonction de type void(void) appelée lance_execution_XXX
+	auto type_rien = m_compilatrice.typeuse[TypeBase::RIEN];
+
+	auto types_entrees = kuri::tableau<Type *>(1);
+	types_entrees[0] = type_rien;
+
+	auto types_sorties = kuri::tableau<Type *>(1);
+	types_sorties[0] = type_rien;
+
+	auto type_fonction = m_compilatrice.typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+
+	auto fonction = cree_fonction(nullptr, "lance_execution" + dls::vers_chaine(noeud));
+	fonction->type = type_fonction;
+	fonction->sanstrace = true;
+
+	fonction_courante = fonction;
+
+	cree_label();
+
+	auto alloc_contexte = genere_ri_pour_creation_contexte(fonction);
+
+	// ----------------------------------
+	// appel notre fonction principale en passant le contexte et le tableau
+	auto fonc_metaprogramme = table_fonctions[noeud->nom_broye];
+
+	auto params_metaprogramme = kuri::tableau<Atome *>(1);
+	params_metaprogramme[0] = cree_charge_mem(alloc_contexte);
+
+	static Lexeme lexeme_appel_principale = { "lance_execution", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
+
+	cree_appel(&lexeme_appel_principale, fonc_metaprogramme, std::move(params_metaprogramme));
+	cree_retour(nullptr);
+
+	fonction_courante = nullptr;
+}
+
+Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction)
+{
 	auto assigne_membre = [this](Atome *structure, unsigned index, Atome *valeur)
 	{
 		auto ptr = cree_acces_membre(structure, index);
@@ -4377,17 +4461,5 @@ void ConstructriceRI::genere_ri_pour_fonction_main()
 
 	assigne_membre(alloc_trace, trouve_index_membre(type_trace_appel, "info_appel"), alloc_info_appel);
 
-	// ----------------------------------
-	// appel notre fonction principale en passant le contexte et le tableau
-	auto fonc_princ = table_fonctions["principale"];
-
-	auto params_principale = kuri::tableau<Atome *>(1);
-	params_principale[0] = cree_charge_mem(alloc_contexte);
-
-	static Lexeme lexeme_appel_principale = { "principale", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-
-	auto valeur_princ = cree_appel(&lexeme_appel_principale, fonc_princ, std::move(params_principale));
-
-	// return
-	cree_retour(valeur_princ);
+	return alloc_contexte;
 }

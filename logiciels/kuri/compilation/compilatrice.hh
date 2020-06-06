@@ -161,7 +161,7 @@ struct Compilatrice {
 
 	bool bit32 = false;
 
-	dls::tableau<NoeudExpression *> noeuds_a_executer{};
+	dls::tableau<NoeudDeclarationFonction *> noeuds_a_executer{};
 
 	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
 

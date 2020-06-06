@@ -97,7 +97,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
-		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
 		case GenreNoeud::INSTRUCTION_BOUCLE:
 		{
@@ -171,6 +170,37 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto expr = static_cast<NoeudExpressionAppel *>(noeud);
 			expr->genre_valeur = GenreValeur::DROITE;
 			return valide_appel_fonction(m_compilatrice, *this, expr);
+		}
+		case GenreNoeud::DIRECTIVE_EXECUTION:
+		{
+			auto noeud_directive = static_cast<NoeudExpressionUnaire *>(noeud);
+
+			// crée une fonction pour l'exécution
+			auto noeud_decl = static_cast<NoeudDeclarationFonction *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::DECLARATION_FONCTION, noeud->lexeme));
+			noeud_decl->bloc_parent = noeud->bloc_parent;
+
+			noeud_decl->nom_broye = "metaprogamme" + dls::vers_chaine(noeud_directive);
+
+			// le type de la fonction est (contexte) -> (type_expression)
+			auto types_entrees = kuri::tableau<Type *>(1);
+			types_entrees[0] = m_compilatrice.type_contexte;
+
+			auto types_sorties = kuri::tableau<Type *>(1);
+			types_sorties[0] = noeud_directive->expr->type;
+
+			auto type_fonction = m_compilatrice.typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+			noeud_decl->type = type_fonction;
+
+			noeud_decl->bloc = static_cast<NoeudBloc *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, noeud->lexeme));
+			noeud_decl->bloc->expressions.pousse(noeud_directive->expr);
+			// À FAIRE : instruction de retour
+
+			auto noeud_dep = m_compilatrice.graphe_dependance.cree_noeud_fonction(noeud_decl);
+			m_compilatrice.graphe_dependance.ajoute_dependances(*noeud_dep, donnees_dependance);
+
+			m_compilatrice.noeuds_a_executer.pousse(noeud_decl);
+
+			break;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
@@ -2893,6 +2923,23 @@ void performe_validation_semantique(Compilatrice &compilatrice)
 				auto decl = static_cast<NoeudDeclarationVariable *>(it);
 				auto arbre_aplatis = kuri::tableau<NoeudExpression *>();
 				aplatis_arbre(decl, arbre_aplatis, drapeaux_noeud::AUCUN);
+
+				for (auto &n : arbre_aplatis) {
+					if (contexte.valide_semantique_noeud(n)) {
+						return;
+					}
+				}
+
+				break;
+			}
+			case GenreNoeud::DIRECTIVE_EXECUTION:
+			{
+				contexte.donnees_dependance.types_utilises.efface();
+				contexte.donnees_dependance.fonctions_utilisees.efface();
+				contexte.donnees_dependance.globales_utilisees.efface();
+
+				auto arbre_aplatis = kuri::tableau<NoeudExpression *>();
+				aplatis_arbre(it, arbre_aplatis, drapeaux_noeud::AUCUN);
 
 				for (auto &n : arbre_aplatis) {
 					if (contexte.valide_semantique_noeud(n)) {

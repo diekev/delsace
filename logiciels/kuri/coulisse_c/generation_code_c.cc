@@ -1401,10 +1401,9 @@ void genere_code_C(
 	constructrice_ri.compilatrice().temps_generation = debut_generation.temps();
 }
 
-void genere_code_pour_execution(
-		ConstructriceRI &constructrice_ri,
-		NoeudExpression *noeud_appel,
+void genere_code_C_pour_execution(
 		Compilatrice &compilatrice,
+		ConstructriceRI &constructrice_ri,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie)
 {
@@ -1413,33 +1412,52 @@ void genere_code_pour_execution(
 	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
 	genere_typedefs_pour_tous_les_types(constructrice_ri.compilatrice(), enchaineuse);
 
-	auto &typeuse = constructrice_ri.compilatrice().typeuse;
-
-	POUR (typeuse.types_structures) {
-		genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(it), STRUCTURE);
+	POUR (compilatrice.graphe_dependance.noeuds) {
+		it->fut_visite = it->type != TypeNoeudDependance::TYPE;
 	}
 
-	POUR (typeuse.types_unions) {
-		auto quoi = it->est_nonsure ? UNION_NONSURE : it->est_anonyme ? UNION_ANONYME : UNION_SURE;
-		genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(it), quoi);
+	POUR (compilatrice.graphe_dependance.noeuds) {
+		if (it->type != TypeNoeudDependance::TYPE) {
+			continue;
+		}
+
+		if (it->fut_visite) {
+			continue;
+		}
+
+		traverse_graphe(it, [&](NoeudDependance *noeud)
+		{
+			if (noeud->type_ == nullptr) {
+				return;
+			}
+
+			if (noeud->type_->genre == GenreType::STRUCTURE) {
+				auto type_struct = static_cast<TypeStructure *>(noeud->type_);
+
+				if (type_struct->decl->est_externe) {
+					return;
+				}
+
+				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_struct), STRUCTURE);
+				return;
+			}
+
+			if (noeud->type_->genre == GenreType::UNION) {
+				auto type_union = static_cast<TypeUnion *>(noeud->type_);
+				auto quoi = type_union->est_nonsure ? UNION_NONSURE : type_union->est_anonyme ? UNION_ANONYME : UNION_SURE;
+				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_union), quoi);
+				return;
+			}
+		});
 	}
 
 	auto generatrice = GeneratriceCodeC(constructrice_ri.compilatrice());
 	generatrice.genere_code(constructrice_ri, enchaineuse);
 
-	//genere_code_programme(compilatrice, constructrice, noeud_fonction_principale, debut_generation);
-
-	enchaineuse << "void lance_execution()\n";
-	enchaineuse << "{\n";
-
-	// À FAIRE : génère code pour l'expression
-	//genere_code_creation_contexte(compilatrice, enchaineuse);
-
-	enchaineuse << "    return;\n";
-	enchaineuse << "}\n";
-
 	enchaineuse.imprime_dans_flux(fichier_sortie);
 
+	compilatrice.typeuse.type_chaine->drapeaux &= ~TYPEDEF_FUT_GENERE;
+	compilatrice.typeuse.type_eini->drapeaux &= ~TYPEDEF_FUT_GENERE;
 	POUR (compilatrice.typeuse.types_simples) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 	POUR (compilatrice.typeuse.types_pointeurs) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 	POUR (compilatrice.typeuse.types_references) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };

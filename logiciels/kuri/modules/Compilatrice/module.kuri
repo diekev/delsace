@@ -1,7 +1,5 @@
 // Bibliothèque pour faire le pont entre le Compilateur et le programme compilé
 
-charge "base"
-
 // ----------------------------------------------------------------------------
 
 // Ces structures doivent être tenues synchronisées avec celles dans options.hh

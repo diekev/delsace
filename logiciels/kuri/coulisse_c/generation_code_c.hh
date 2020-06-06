@@ -28,14 +28,12 @@
 
 struct Compilatrice;
 struct ConstructriceRI;
-struct NoeudExpression;
 
 void genere_code_C(ConstructriceRI &constructrice_ri,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);
 
-void genere_code_C_pour_execution(
-		NoeudExpression *noeud_appel,
-		Compilatrice &compilatrice,
+void genere_code_C_pour_execution(Compilatrice &compilatrice,
+		ConstructriceRI &constructrice_ri,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);
