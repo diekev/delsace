@@ -24,8 +24,6 @@ Faitures
 - accès à la mémoire actuellement allouée
 - association/switch
 - surcharge de fonction avec des types différents
-- générateurs/coroutines permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
-- plusieurs valeur de retour
 - point-virgule implicite (à la fin des expressions)
 - surcharge d'opérateurs
 - fonctions gabarits/polymorphiques
@@ -33,10 +31,16 @@ Faitures
 - héritage de structures via un système d'emploi
 - évite l'initialisation via "---"
 - conversion automatique des types en unions et extraction automatique des valeurs des unions
+- héritage/polymorphisme par emploi de structures dans d'autres
+- types comme valeurs
 
 
 À faire
 -------
+- fonction sans contexte : utilisation du bloc pour définir si nous avons un contexte
+---- pour les initialisation de structures, il nous faudra savoir là où la structure est initialisé si nous avons un contexte si une fonction utilisée dans l'initialisation requiers un tel contexte
+- générateurs/coroutines permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
+- plusieurs valeur de retour
 - transtypage entre types complexes
 - stack canaries (coulisse LLVM)
 - coroutines en dehors de boucles
@@ -58,7 +62,6 @@ Faitures
 - ajout d'un type pour les retours de fonctions (ou tuple, R-uple ?)
 - ajout d'un type pour les caractères (« rune »), avec une gestion correcte des chaines UTF-8
 - finir la coulisse LLVM, avec la métaprogrammation
-- types comme valeurs
 - corriger les bugs
 - ajout d'un noeud syntaxique pour les imports (simplifiant la recherche de symboles dans les expressions de type A.B.C)
 - avoir un « runtime » par machine cible où nous implémentons les fonctions ou instructions n'étant pas disponible sur celle-ci (voir Zig)
@@ -128,7 +131,6 @@ Idées
 -----
 - opérateur 'chaîne' pour retourner une chaîne de caractère contenant ce qu'il y a entre ses parenthèses : par exemple chaîne(a) -> "a"
 - utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++, ou les gestionnaires de contextes en Python avec "with")
-- héritage/polymorphisme par enlignage de structures dans d'autres
 - fonction membres de structures similaire à Python avec 'self' explicit, ou appel explicit en passant l'objet en premier paramètre
 - passer uniquement par référence, ou utilisation d'un mot-clé spécifique pour dire qu'un paramètre peut-être nul
 - mot-clés pour des tests unitaires, avec maintenance des fonctions auxilliaires des tests par le compileur
