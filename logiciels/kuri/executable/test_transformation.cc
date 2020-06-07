@@ -37,7 +37,13 @@ static void verifie_transformation(
 		bool est_possible)
 {
 	auto contexte = ContexteValidationCode(compilatrice);
-	auto transformation = cherche_transformation(compilatrice, contexte, type1, type2);
+	auto unite = UniteCompilation();
+	contexte.unite = &unite;
+	auto transformation = TransformationType();
+
+	if (cherche_transformation(compilatrice, contexte, type1, type2, transformation)) {
+		// ignore pour le test
+	}
 
 	if (est_possible && transformation.type == TypeTransformation::IMPOSSIBLE) {
 		std::cerr << "ERREUR la transformation entre ";

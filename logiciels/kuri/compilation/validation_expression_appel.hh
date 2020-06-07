@@ -95,7 +95,7 @@ struct DonneesCandidate {
 	Type *type_attendu{};
 	Type *type_obtenu{};
 	NoeudBase const *noeud_erreur = nullptr;
-	NoeudDeclaration const *noeud_decl = nullptr;
+	NoeudDeclaration *noeud_decl = nullptr;
 	dls::tableau<TransformationType> transformations{};
 	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
 };

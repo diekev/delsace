@@ -24,7 +24,13 @@
 
 #include "compilatrice.hh"
 
+#include <filesystem>
+
+#include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/flux/outils.h"
+
 #include "assembleuse_arbre.h"
+#include "erreur.h"
 #include "modules.hh"
 
 Compilatrice::Compilatrice()
@@ -56,6 +62,62 @@ Compilatrice::~Compilatrice()
 	}
 
 	memoire::deloge("assembleuse_arbre", assembleuse);
+}
+
+Module *Compilatrice::importe_module(const dls::chaine &nom, const Lexeme &lexeme)
+{
+	auto chemin = nom;
+
+	if (!std::filesystem::exists(chemin.c_str())) {
+		/* essaie dans la racine kuri */
+		chemin = racine_kuri + "/modules/" + chemin;
+
+		if (!std::filesystem::exists(chemin.c_str())) {
+			erreur::lance_erreur(
+						"Impossible de trouver le dossier correspondant au module",
+						*this,
+						&lexeme,
+						erreur::type_erreur::MODULE_INCONNU);
+		}
+	}
+
+	if (!std::filesystem::is_directory(chemin.c_str())) {
+		erreur::lance_erreur(
+					"Le nom du module ne pointe pas vers un dossier",
+					*this,
+					&lexeme,
+					erreur::type_erreur::MODULE_INCONNU);
+	}
+
+	/* trouve le chemin absolu du module (cannonique pour supprimer les "../../" */
+	auto chemin_absolu = std::filesystem::canonical(std::filesystem::absolute(chemin.c_str()));
+	auto nom_dossier = chemin_absolu.filename();
+
+	auto module = cree_module(nom_dossier.c_str(), chemin_absolu.c_str());
+
+	if (module->importe) {
+		return module;
+	}
+
+	module->importe = true;
+
+	std::cout << "Importation du module : " << nom_dossier << " (" << chemin_absolu << ")" << std::endl;
+
+	for (auto const &entree : std::filesystem::directory_iterator(chemin_absolu)) {
+		auto chemin_entree = entree.path();
+
+		if (!std::filesystem::is_regular_file(chemin_entree)) {
+			continue;
+		}
+
+		if (chemin_entree.extension() != ".kuri") {
+			continue;
+		}
+
+		ajoute_fichier_a_la_compilation(chemin_entree.stem().c_str(), module, {});
+	}
+
+	return module;
 }
 
 /* ************************************************************************** */
@@ -114,6 +176,87 @@ bool Compilatrice::module_existe(const dls::vue_chaine_compacte &nom) const
 }
 
 /* ************************************************************************** */
+
+dls::chaine charge_fichier(
+		const dls::chaine &chemin,
+		Compilatrice &compilatrice,
+		Lexeme const &lexeme)
+{
+	std::ifstream fichier;
+	fichier.open(chemin.c_str());
+
+	if (!fichier.is_open()) {
+		erreur::lance_erreur(
+					"Impossible d'ouvrir le fichier correspondant au module",
+					compilatrice,
+					&lexeme,
+					erreur::type_erreur::MODULE_INCONNU);
+	}
+
+	fichier.seekg(0, fichier.end);
+	auto const taille_fichier = fichier.tellg();
+	fichier.seekg(0, fichier.beg);
+
+	dls::chaine res;
+	res.reserve(taille_fichier);
+
+	dls::flux::pour_chaque_ligne(fichier, [&](dls::chaine const &ligne)
+	{
+		res += ligne;
+		res.pousse('\n');
+	});
+
+	return res;
+}
+
+void Compilatrice::ajoute_fichier_a_la_compilation(const dls::chaine &nom, Module *module, const Lexeme &lexeme)
+{
+	auto chemin = module->chemin + nom + ".kuri";
+
+	if (!std::filesystem::exists(chemin.c_str())) {
+		erreur::lance_erreur(
+					"Impossible de trouver le fichier correspondant au module",
+					*this,
+					&lexeme,
+					erreur::type_erreur::MODULE_INCONNU);
+	}
+
+	if (!std::filesystem::is_regular_file(chemin.c_str())) {
+		erreur::lance_erreur(
+					"Le nom du fichier ne pointe pas vers un fichier régulier",
+					*this,
+					&lexeme,
+					erreur::type_erreur::MODULE_INCONNU);
+	}
+
+	/* trouve le chemin absolu du fichier */
+	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
+
+	auto fichier = cree_fichier(nom.c_str(), chemin_absolu.c_str());
+
+	if (fichier == nullptr) {
+		/* le fichier a déjà été chargé */
+		return;
+	}
+
+	std::cout << "Chargement du fichier : " << chemin << std::endl;
+
+	fichier->module = module;
+
+	auto debut_chargement = dls::chrono::compte_seconde();
+	auto tampon = charge_fichier(chemin, *this, lexeme);
+	fichier->temps_chargement = debut_chargement.temps();
+
+	auto debut_tampon = dls::chrono::compte_seconde();
+	fichier->tampon = lng::tampon_source(tampon);
+	fichier->temps_tampon = debut_tampon.temps();
+
+	auto unite = UniteCompilation();
+	unite.fichier = fichier;
+	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
+
+	file_compilation.pousse(unite);
+}
 
 Fichier *Compilatrice::cree_fichier(
 		dls::chaine const &nom,
@@ -178,6 +321,31 @@ void Compilatrice::ajoute_inclusion(const dls::chaine &fichier)
 	inclusions.pousse(fichier);
 }
 
+bool Compilatrice::compilation_terminee() const
+{
+	return file_compilation.est_vide();
+}
+
+/* ************************************************************************** */
+
+void Compilatrice::ajoute_unite_compilation_pour_typage(NoeudExpression *expression)
+{
+	auto unite = UniteCompilation();
+	unite.noeud = expression;
+	unite.etat = UniteCompilation::Etat::TYPAGE_ATTENDU;
+
+	file_compilation.pousse(unite);
+}
+
+void Compilatrice::ajoute_unite_compilation_entete_fonction(NoeudDeclarationFonction *decl)
+{
+	auto unite = UniteCompilation();
+	unite.noeud = decl;
+	unite.etat = UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU;
+
+	file_compilation.pousse(unite);
+}
+
 /* ************************************************************************** */
 
 size_t Compilatrice::memoire_utilisee() const
@@ -226,7 +394,7 @@ size_t Compilatrice::memoire_utilisee() const
 		}
 	}
 
-	memoire += static_cast<size_t>(file_typage.taille()) * sizeof(NoeudExpression *);
+	memoire += static_cast<size_t>(file_compilation.taille()) * sizeof(UniteCompilation);
 	memoire += static_cast<size_t>(noeuds_a_executer.taille()) * sizeof(NoeudDeclarationFonction *);
 	memoire += table_identifiants.memoire_utilisee();
 
@@ -234,8 +402,6 @@ size_t Compilatrice::memoire_utilisee() const
 	POUR (gerante_chaine.m_table) {
 		memoire += static_cast<size_t>(it.taille);
 	}
-
-	memoire += static_cast<size_t>(paires_expansion_gabarit.taille()) * (sizeof (Type *) + sizeof (dls::vue_chaine_compacte));
 
 	return memoire;
 }

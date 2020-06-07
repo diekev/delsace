@@ -30,6 +30,7 @@
 #include "operateurs.hh"
 #include "graphe_dependance.hh"
 #include "typage.hh"
+#include "unite_compilation.hh"
 
 class assembleuse_arbre;
 
@@ -163,9 +164,7 @@ struct Compilatrice {
 
 	dls::tableau<NoeudDeclarationFonction *> noeuds_a_executer{};
 
-	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
-
-	dls::liste<NoeudExpression *> file_typage{};
+	dls::liste<UniteCompilation> file_compilation{};
 
 	GeranteChaine gerante_chaine{};
 
@@ -187,6 +186,8 @@ struct Compilatrice {
 	/* définitions passées au compilateur C pour modifier les fichiers d'entête */
 	dls::tableau<dls::vue_chaine_compacte> definitions{};
 
+	dls::chaine racine_kuri{};
+
 	/* ********************************************************************** */
 
 	Compilatrice();
@@ -201,6 +202,27 @@ struct Compilatrice {
 	Compilatrice &operator=(const Compilatrice &) = delete;
 
 	/* ********************************************************************** */
+
+	/**
+	 * Charge le module dont le nom est spécifié.
+	 *
+	 * Le nom doit être celui d'un fichier s'appelant '<nom>.kuri' et se trouvant
+	 * dans le dossier du module racine.
+	 *
+	 * Les fonctions contenues dans le module auront leurs noms préfixés par le nom
+	 * du module, sauf pour le module racine.
+	 *
+	 * Le std::ostream est un flux de sortie où sera imprimé le nom du module ouvert
+	 * pour tenir compte de la progression de la compilation. Si un nom de module ne
+	 * pointe pas vers un fichier Kuri, ou si le fichier ne peut être ouvert, une
+	 * exception est lancée.
+	 *
+	 * Les Lexeme doivent être celles du nom du module et sont utilisées
+	 * pour les erreurs lancées.
+	 *
+	 * Le paramètre est_racine ne doit être vrai que pour le module racine.
+	 */
+	Module *importe_module(dls::chaine const &nom, Lexeme const &lexeme);
 
 	/**
 	 * Crée un module avec le nom spécifié, et retourne un pointeur vers le
@@ -229,6 +251,8 @@ struct Compilatrice {
 
 	/* ********************************************************************** */
 
+	void ajoute_fichier_a_la_compilation(dls::chaine const &chemin, Module *module, Lexeme const &lexeme);
+
 	/**
 	 * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
 	 * fichier ainsi créé. Aucune vérification n'est faite quant à la présence
@@ -256,7 +280,14 @@ struct Compilatrice {
 
 	/* ********************************************************************** */
 
+	void ajoute_unite_compilation_pour_typage(NoeudExpression *expression);
+	void ajoute_unite_compilation_entete_fonction(NoeudDeclarationFonction *decl);
+
+	/* ********************************************************************** */
+
 	void ajoute_inclusion(const dls::chaine &fichier);
+
+	bool compilation_terminee() const;
 
 	/* ********************************************************************** */
 
@@ -274,3 +305,8 @@ public:
 	double temps_validation = 0.0;
 	double temps_generation = 0.0;
 };
+
+dls::chaine charge_fichier(
+		dls::chaine const &chemin,
+		Compilatrice &compilatrice,
+		Lexeme const &lexeme);

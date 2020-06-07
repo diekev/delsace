@@ -181,9 +181,10 @@ struct OperateurCandidat {
 	COPIE_CONSTRUCT(OperateurCandidat);
 };
 
-dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
+bool cherche_candidats_operateurs(
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte,
 		Type *type1,
 		Type *type2,
-		GenreLexeme type_op);
+		GenreLexeme type_op,
+		dls::tablet<OperateurCandidat, 10> &candidats);

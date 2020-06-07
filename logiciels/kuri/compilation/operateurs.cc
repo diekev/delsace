@@ -561,34 +561,37 @@ size_t Operateurs::memoire_utilisee() const
 	return memoire;
 }
 
-static double verifie_compatibilite(
+static std::pair<bool, double> verifie_compatibilite(
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte,
 		Type *type_arg,
 		Type *type_enf,
 		TransformationType &transformation)
 {
-	transformation = cherche_transformation(compilatrice, contexte, type_enf, type_arg);
+	if (cherche_transformation(compilatrice, contexte, type_enf, type_arg, transformation)) {
+		return { true, 0.0 };
+	}
 
 	if (transformation.type == TypeTransformation::INUTILE) {
-		return 1.0;
+		return { false, 1.0 };
 	}
 
 	if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-		return 0.0;
+		return { false, 0.0 };
 	}
 
 	/* nous savons que nous devons transformer la valeur (par ex. eini), donc
 	 * donne un mi-poids à l'argument */
-	return 0.5;
+	return { false, 0.5 };
 }
 
-dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
+bool cherche_candidats_operateurs(
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte,
 		Type *type1,
 		Type *type2,
-		GenreLexeme type_op)
+		GenreLexeme type_op,
+		dls::tablet<OperateurCandidat, 10> &candidats)
 {
 	PROFILE_FONCTION;
 
@@ -616,14 +619,21 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		}
 	}
 
-	auto candidats = dls::tablet<OperateurCandidat, 10>();
-
 	for (auto const op : op_candidats) {
 		auto seq1 = TransformationType{};
 		auto seq2 = TransformationType{};
 
-		auto poids1 = verifie_compatibilite(compilatrice, contexte, op->type1, type1, seq1);
-		auto poids2 = verifie_compatibilite(compilatrice, contexte, op->type2, type2, seq2);
+		auto [erreur_dep1, poids1] = verifie_compatibilite(compilatrice, contexte, op->type1, type1, seq1);
+
+		if (erreur_dep1) {
+			return true;
+		}
+
+		auto [erreur_dep2, poids2] = verifie_compatibilite(compilatrice, contexte, op->type2, type2, seq2);
+
+		if (erreur_dep2) {
+			return true;
+		}
 
 		auto poids = poids1 * poids2;
 
@@ -638,10 +648,19 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		}
 
 		if (op->est_commutatif && poids != 1.0) {
-			poids1 = verifie_compatibilite(compilatrice, contexte, op->type1, type2, seq2);
-			poids2 = verifie_compatibilite(compilatrice, contexte, op->type2, type1, seq1);
+			auto [erreur_dep3, poids3] = verifie_compatibilite(compilatrice, contexte, op->type1, type2, seq2);
 
-			poids = poids1 * poids2;
+			if (erreur_dep3) {
+				return true;
+			}
+
+			auto [erreur_dep4, poids4] = verifie_compatibilite(compilatrice, contexte, op->type2, type1, seq1);
+
+			if (erreur_dep4) {
+				return true;
+			}
+
+			poids = poids3 * poids4;
 
 			if (poids != 0.0) {
 				auto candidat = OperateurCandidat{};
@@ -656,7 +675,7 @@ dls::tablet<OperateurCandidat, 10> cherche_candidats_operateurs(
 		}
 	}
 
-	return candidats;
+	return false;
 }
 
 const OperateurUnaire *cherche_operateur_unaire(

@@ -130,6 +130,7 @@ enum drapeaux_noeud : unsigned short {
 	EST_CONSTANTE              = (1 << 12),
 	DECLARATION_TYPE_POLYMORPHIQUE = (1 << 13),
 	DROITE_ASSIGNATION         = (1 << 14),
+	DECLARATION_FUT_VALIDEE    = (1 << 15),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
@@ -319,6 +320,15 @@ struct NoeudDeclarationFonction : public NoeudDeclaration {
 	bool est_declaration_type = false;
 	bool est_instantiation_gabarit = false;
 	dls::chaine nom_broye = "";
+
+	using tableau_paire_expansion = dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>>;
+
+	// À FAIRE : ceci duplique la mémoire du tableau en-bas, peut-êre pourrions nous avoir un tableau référencé, ou un vue_tableau
+	tableau_paire_expansion paires_expansion_gabarit{};
+
+	// mise en cache des expansions polymorphiques déjà existantes afin de ne pas les recréer
+	// devra être protégé par un mutex quand le typage sera asynchrone
+	dls::tableau<std::pair<tableau_paire_expansion, NoeudDeclarationFonction *>> epandu_pour{};
 
 	COPIE_CONSTRUCT(NoeudDeclarationFonction);
 };

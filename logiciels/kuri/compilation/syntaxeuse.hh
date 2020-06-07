@@ -83,7 +83,7 @@ public:
 
 	COPIE_CONSTRUCT(Syntaxeuse);
 
-	void lance_analyse(std::ostream &os);
+	void lance_analyse();
 
 private:
 	Lexeme consomme();

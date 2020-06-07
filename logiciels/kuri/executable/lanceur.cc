@@ -62,7 +62,7 @@
 #include "compilation/profilage.hh"
 #include "compilation/structures.hh"
 #include "compilation/syntaxeuse.hh"
-#include "compilation/validation_semantique.hh"
+#include "compilation/tacheronne.hh"
 
 #include "coulisse_c/generation_code_c.hh"
 
@@ -539,19 +539,47 @@ int main(int argc, char *argv[])
 		auto nom_fichier = chemin.stem();
 
 		auto compilatrice = Compilatrice{};
+		compilatrice.racine_kuri = chemin_racine_kuri;
 		compilatrice.bit32 = ops.architecture_cible == ArchitectureCible::X86;
 
-		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
-
 		/* Charge d'abord le module basique. */
-		importe_module(os, chemin_racine_kuri, "Kuri", compilatrice, {});
+		compilatrice.importe_module("Kuri", {});
 
-		/* Change le dossier courant et lance la compilation. */
 		auto dossier = chemin.parent_path();
 		std::filesystem::current_path(dossier);
 
+		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
+
 		auto module = compilatrice.cree_module("", dossier.c_str());
-		charge_fichier(os, module, chemin_racine_kuri, nom_fichier.c_str(), compilatrice, {});
+		compilatrice.ajoute_fichier_a_la_compilation(nom_fichier.c_str(), module, {});
+
+		auto tacheronne = Tacheronne(compilatrice);
+
+		while (!compilatrice.compilation_terminee()) {
+			tacheronne.gere_tache();
+		}
+
+		auto constructrice_ri = ConstructriceRI(compilatrice);
+
+		for (auto noeud: compilatrice.noeuds_a_executer) {
+			std::ofstream of;
+			of.open("/tmp/execution_kuri.c");
+
+			constructrice_ri.genere_ri_a_partir_de(noeud);
+			constructrice_ri.genere_ri_pour_fonction_metaprogramme(noeud);
+			constructrice_ri.imprime_programme();
+
+			genere_code_C_pour_execution(compilatrice, constructrice_ri, chemin_racine_kuri, of);
+			lance_execution(compilatrice, noeud);
+		}
+
+		constructrice_ri.genere_ri();
+		//constructrice_ri.imprime_programme();
+
+		temps_ri = constructrice_ri.temps_generation;
+		memoire_ri = constructrice_ri.memoire_utilisee();
+
+		/* Change le dossier courant et lance la compilation. */
 
 #ifdef AVEC_LLVM
 		if (ops.type_coulisse == TypeCoulisse::LLVM) {
@@ -583,15 +611,8 @@ int main(int argc, char *argv[])
 
 			generatrice.m_module = &module_llvm;
 
-			os << "Validation sémantique du code..." << std::endl;
-			performe_validation_semantique(compilatrice);
-
 			os << "Génération du code..." << std::endl;
 			auto temps_generation = dls::chrono::compte_seconde();
-
-			auto constructrice_ri = ConstructriceRI(compilatrice);
-			constructrice_ri.genere_ri();
-			constructrice_ri.imprime_programme();
 
 			initialise_optimisation(ops.niveau_optimisation, generatrice);
 
@@ -626,33 +647,6 @@ int main(int argc, char *argv[])
 		else
 #endif
 		{
-			os << "Validation sémantique du code..." << std::endl;
-			performe_validation_semantique(compilatrice);
-			auto constructrice_ri = ConstructriceRI(compilatrice);
-
-			for (auto noeud: compilatrice.noeuds_a_executer) {
-				std::ofstream of;
-				of.open("/tmp/execution_kuri.c");
-
-				constructrice_ri.genere_ri_a_partir_de(noeud);
-				constructrice_ri.genere_ri_pour_fonction_metaprogramme(noeud);
-				constructrice_ri.imprime_programme();
-
-				genere_code_C_pour_execution(compilatrice, constructrice_ri, chemin_racine_kuri, of);
-				lance_execution(compilatrice, noeud);
-			}
-
-//			POUR (compilatrice.modules) {
-//				std::cerr << "Arbre syntaxique pour '" << it->nom << "' :\n";
-//				imprime_arbre(it->assembleuse->bloc_courant(), std::cerr, 1);
-//			}
-
-			constructrice_ri.genere_ri();
-			//constructrice_ri.imprime_programme();
-
-			temps_ri = constructrice_ri.temps_generation;
-			memoire_ri = constructrice_ri.memoire_utilisee();
-
 			std::ofstream of;
 			of.open("/tmp/compilation_kuri.c");
 
@@ -773,6 +767,8 @@ int main(int argc, char *argv[])
 		metriques.temps_fichier_objet = temps_fichier_objet;
 		metriques.temps_ri = temps_ri;
 		metriques.memoire_ri = memoire_ri;
+		metriques.temps_decoupage = tacheronne.temps_lexage;
+		metriques.temps_validation = tacheronne.temps_validation;
 
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = dls::chrono::compte_seconde();

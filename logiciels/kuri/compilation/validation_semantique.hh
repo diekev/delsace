@@ -43,6 +43,8 @@ struct ContexteValidationCode {
 	/* Les données des dépendances d'un noeud syntaxique. */
 	DonneesDependance donnees_dependance{};
 
+	UniteCompilation *unite = nullptr;
+
 	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
 	dls::tableau<paire_union_membre> membres_actifs{};
 
@@ -90,5 +92,3 @@ struct ContexteValidationCode {
 	void rapporte_erreur_fonction_inconnue(NoeudBase *b, dls::tablet<DonneesCandidate, 10> const &candidates);
 	void rapporte_erreur_fonction_nulctx(NoeudBase const *appl_fonc, NoeudBase const *decl_fonc, NoeudBase const *decl_appel);
 };
-
-void performe_validation_semantique(Compilatrice &compilatrice);

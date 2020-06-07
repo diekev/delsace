@@ -47,12 +47,12 @@ struct CandidateExpressionAppel {
 };
 
 static auto trouve_candidates_pour_fonction_appelee(
+		ContexteValidationCode &contexte,
 		Compilatrice &compilatrice,
-		NoeudExpression *appelee)
+		NoeudExpression *appelee,
+		dls::tableau<CandidateExpressionAppel> &candidates)
 {
 	PROFILE_FONCTION;
-
-	auto candidates = dls::tableau<CandidateExpressionAppel>();
 
 	auto fichier = compilatrice.fichier(static_cast<size_t>(appelee->lexeme->fichier));
 
@@ -96,6 +96,11 @@ static auto trouve_candidates_pour_fonction_appelee(
 			}
 
 			if (type_accede->genre == GenreType::STRUCTURE) {
+				if ((type_accede->drapeaux & TYPE_FUT_VALIDE) == 0) {
+					contexte.unite->attend_sur_type(type_accede);
+					return true;
+				}
+
 				auto type_struct = static_cast<TypeStructure *>(type_accede);
 				auto membre_trouve = false;
 				auto index_membre = 0;
@@ -113,7 +118,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 				if (membre_trouve != false) {
 					candidates.pousse({ CANDIDATE_EST_ACCES, acces });
 					acces->index_membre = index_membre;
-					return candidates;
+					return false;
 				}
 			}
 
@@ -124,10 +129,10 @@ static auto trouve_candidates_pour_fonction_appelee(
 		candidates.pousse({ CANDIDATE_EST_INIT_DE, appelee });
 	}
 
-	return candidates;
+	return false;
 }
 
-static double verifie_compatibilite(
+static std::pair<bool, double> verifie_compatibilite(
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte,
 		Type *type_arg,
@@ -137,23 +142,25 @@ static double verifie_compatibilite(
 {
 	PROFILE_FONCTION;
 
-	transformation = cherche_transformation(compilatrice, contexte, type_enf, type_arg);
+	if (cherche_transformation(compilatrice, contexte, type_enf, type_arg, transformation)) {
+		return { true, 0.0 };
+	}
 
 	if (transformation.type == TypeTransformation::INUTILE) {
-		return 1.0;
+		return { false, 1.0 };
 	}
 
 	if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-		return 0.0;
+		return { false, 0.0 };
 	}
 
 	if (transformation.type == TypeTransformation::PREND_REFERENCE) {
-		return est_valeur_gauche(enfant->genre_valeur) ? 1.0 : 0.0;
+		return { false, est_valeur_gauche(enfant->genre_valeur) ? 1.0 : 0.0 };
 	}
 
 	/* nous savons que nous devons transformer la valeur (par ex. eini), donc
 	 * donne un mi-poids à l'argument */
-	return 0.5;
+	return { false, 0.5 };
 }
 
 static auto apparie_appel_pointeur(
@@ -161,16 +168,15 @@ static auto apparie_appel_pointeur(
 		Type *type,
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte,
-		kuri::tableau<IdentifiantEtExpression> const &args)
+		kuri::tableau<IdentifiantEtExpression> const &args,
+		DonneesCandidate &resultat)
 {
 	PROFILE_FONCTION;
-
-	auto resultat = DonneesCandidate{};
 
 	if (type->genre != GenreType::FONCTION) {
 		resultat.etat = FONCTION_INTROUVEE;
 		resultat.raison = TYPE_N_EST_PAS_FONCTION;
-		return resultat;
+		return false;
 	}
 
 	POUR (args) {
@@ -181,7 +187,7 @@ static auto apparie_appel_pointeur(
 		resultat.etat = FONCTION_INTROUVEE;
 		resultat.raison = NOMMAGE_ARG_POINTEUR_FONCTION;
 		resultat.noeud_erreur = it.expr;
-		return resultat;
+		return false;
 	}
 
 	/* vérifie la compatibilité des arguments pour déterminer
@@ -199,7 +205,7 @@ static auto apparie_appel_pointeur(
 			resultat.noeud_erreur = b;
 			resultat.etat = FONCTION_INTROUVEE;
 			resultat.raison = CONTEXTE_MANQUANT;
-			return resultat;
+			return false;
 		}
 	}
 	else {
@@ -224,7 +230,11 @@ static auto apparie_appel_pointeur(
 		}
 
 		auto transformation = TransformationType();
-		auto poids_pour_enfant = verifie_compatibilite(compilatrice, contexte, type_prm, type_enf, arg, transformation);
+		auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(compilatrice, contexte, type_prm, type_enf, arg, transformation);
+
+		if (erreur_dep) {
+			return true;
+		}
 
 		poids_args *= poids_pour_enfant;
 
@@ -249,7 +259,7 @@ static auto apparie_appel_pointeur(
 	resultat.exprs = exprs;
 	resultat.transformations = transformations;
 
-	return resultat;
+	return false;
 }
 
 static auto apparie_appel_init_de(
@@ -295,15 +305,15 @@ static auto apparie_appel_init_de(
 
 /* ************************************************************************** */
 
-static DonneesCandidate apparie_appel_fonction(
+static auto apparie_appel_fonction(
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte,
-		NoeudDeclarationFonction const *decl,
-		kuri::tableau<IdentifiantEtExpression> const &args)
+		NoeudDeclarationFonction *decl,
+		kuri::tableau<IdentifiantEtExpression> const &args,
+		DonneesCandidate &res)
 {
 	PROFILE_FONCTION;
 
-	auto res = DonneesCandidate{};
 	res.note = CANDIDATE_EST_APPEL_FONCTION;
 	res.noeud_decl = decl;
 
@@ -312,14 +322,14 @@ static DonneesCandidate apparie_appel_fonction(
 	if (!decl->est_variadique && (args.taille > nombre_args)) {
 		res.etat = FONCTION_INTROUVEE;
 		res.raison = MECOMPTAGE_ARGS;
-		return res;
+		return false;
 	}
 
 	if (nombre_args == 0 && args.taille == 0) {
 		res.poids_args = 1.0;
 		res.etat = FONCTION_TROUVEE;
 		res.raison = AUCUNE_RAISON;
-		return res;
+		return false;
 	}
 
 	dls::tablet<NoeudExpression *, 10> slots;
@@ -356,14 +366,14 @@ static DonneesCandidate apparie_appel_fonction(
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = MENOMMAGE_ARG;
 				res.nom_arg = it.ident->nom;
-				return res;
+				return false;
 			}
 
 			if ((args_rencontres.trouve(it.ident) != args_rencontres.fin()) && (param->drapeaux & EST_VARIADIQUE) == 0) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = RENOMMAGE_ARG;
 				res.nom_arg = it.ident->nom;
-				return res;
+				return false;
 			}
 
 			dernier_arg_variadique = (param->drapeaux & EST_VARIADIQUE) != 0;
@@ -378,7 +388,7 @@ static DonneesCandidate apparie_appel_fonction(
 					res.etat = FONCTION_INTROUVEE;
 					res.raison = RENOMMAGE_ARG;
 					res.nom_arg = it.ident->nom;
-					return res;
+					return false;
 				}
 
 				slots[index_param] = it.expr;
@@ -388,7 +398,7 @@ static DonneesCandidate apparie_appel_fonction(
 			if (arguments_nommes == true && dernier_arg_variadique == false) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = MANQUE_NOM_APRES_VARIADIC;
-				return res;
+				return false;
 			}
 
 			if (dernier_arg_variadique || index >= slots.taille()) {
@@ -406,7 +416,7 @@ static DonneesCandidate apparie_appel_fonction(
 			// À FAIRE : on pourrait donner les noms des arguments manquants
 			res.etat = FONCTION_INTROUVEE;
 			res.raison = MECOMPTAGE_ARGS;
-			return res;
+			return false;
 		}
 	}
 
@@ -478,7 +488,7 @@ static DonneesCandidate apparie_appel_fonction(
 					//res.type_attendu = type_de_l_expression;
 					res.type_obtenu = type_de_l_expression;
 					res.noeud_erreur = slot;
-					return res;
+					return false;
 				}
 
 				paires_expansion_gabarit.pousse({ nom_gabarit, type_gabarit });
@@ -498,18 +508,24 @@ static DonneesCandidate apparie_appel_fonction(
 					if (!fonction_variadique_interne) {
 						res.etat = FONCTION_INTROUVEE;
 						res.raison = EXPANSION_VARIADIQUE_FONCTION_EXTERNE;
-						return res;
+						return false;
 					}
 
 					if (expansion_rencontree) {
 						res.etat = FONCTION_INTROUVEE;
 						res.raison = MULTIPLE_EXPANSIONS_VARIADIQUES;
-						return res;
+						return false;
 					}
 
 					auto type_deref_enf = type_dereference_pour(type_de_l_expression);
 
-					poids_pour_enfant = verifie_compatibilite(compilatrice, contexte, type_deref, type_deref_enf, slot, transformation);
+					auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(compilatrice, contexte, type_deref, type_deref_enf, slot, transformation);
+
+					if (erreur_dep) {
+						return true;
+					}
+
+					poids_pour_enfant = poids_pour_enfant_;
 
 					// aucune transformation acceptée sauf si nous avons un tableau fixe qu'il faudra convertir en un tableau dynamique
 					if (poids_pour_enfant != 1.0) {
@@ -524,7 +540,13 @@ static DonneesCandidate apparie_appel_fonction(
 					expansion_rencontree = true;
 				}
 				else {
-					poids_pour_enfant = verifie_compatibilite(compilatrice, contexte, type_deref, type_de_l_expression, slot, transformation);
+					auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(compilatrice, contexte, type_deref, type_de_l_expression, slot, transformation);
+
+					if (erreur_dep) {
+						return true;
+					}
+
+					poids_pour_enfant = poids_pour_enfant_;
 				}
 
 				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
@@ -553,7 +575,7 @@ static DonneesCandidate apparie_appel_fonction(
 						}
 
 						res.etat = FONCTION_INTROUVEE;
-						return res;
+						return false;
 					}
 				}
 
@@ -564,7 +586,7 @@ static DonneesCandidate apparie_appel_fonction(
 					if (!fonction_variadique_interne) {
 						res.etat = FONCTION_INTROUVEE;
 						res.raison = EXPANSION_VARIADIQUE_FONCTION_EXTERNE;
-						return res;
+						return false;
 					}
 				}
 
@@ -575,7 +597,11 @@ static DonneesCandidate apparie_appel_fonction(
 		}
 		else {
 			auto transformation = TransformationType();
-			auto poids_pour_enfant = verifie_compatibilite(compilatrice, contexte, type_du_parametre, type_de_l_expression, slot, transformation);
+			auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(compilatrice, contexte, type_du_parametre, type_de_l_expression, slot, transformation);
+
+			if (erreur_dep) {
+				return true;
+			}
 
 			// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
 			if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
@@ -631,7 +657,7 @@ static DonneesCandidate apparie_appel_fonction(
 	res.transformations = transformations;
 	res.paires_expansion_gabarit = paires_expansion_gabarit;
 
-	return res;
+	return false;
 }
 
 /* ************************************************************************** */
@@ -641,11 +667,11 @@ static auto apparie_appel_structure(
 		ContexteValidationCode &contexte,
 		NoeudExpressionAppel const *expr,
 		NoeudStruct *decl_struct,
-		kuri::tableau<IdentifiantEtExpression> const &arguments)
+		kuri::tableau<IdentifiantEtExpression> const &arguments,
+		DonneesCandidate &resultat)
 {
 	PROFILE_FONCTION;
 
-	auto resultat = DonneesCandidate{};
 	auto type_struct = static_cast<TypeStructure *>(decl_struct->type);
 
 	if (decl_struct->est_union) {
@@ -653,14 +679,14 @@ static auto apparie_appel_structure(
 			resultat.etat = FONCTION_TROUVEE;
 			resultat.raison = TROP_D_EXPRESSION_POUR_UNION;
 			resultat.poids_args = 0.0;
-			return resultat;
+			return false;
 		}
 
 		if (expr->params.taille == 0) {
 			resultat.etat = FONCTION_TROUVEE;
 			resultat.raison = EXPRESSION_MANQUANTE_POUR_UNION;
 			resultat.poids_args = 0.0;
-			return resultat;
+			return false;
 		}
 	}
 
@@ -690,7 +716,7 @@ static auto apparie_appel_structure(
 			resultat.raison = NOM_ARGUMENT_REQUIS;
 			resultat.poids_args = 0.0;
 			resultat.noeud_erreur = it.expr;
-			return resultat;
+			return false;
 		}
 
 		if (noms_rencontres.trouve(it.ident) != noms_rencontres.fin()) {
@@ -698,7 +724,7 @@ static auto apparie_appel_structure(
 			resultat.raison = RENOMMAGE_ARG;
 			resultat.poids_args = 0.0;
 			resultat.noeud_erreur = it.expr;
-			return resultat;
+			return false;
 		}
 
 		auto type_membre = static_cast<Type *>(nullptr);
@@ -723,11 +749,15 @@ static auto apparie_appel_structure(
 			resultat.poids_args = 0.0;
 			resultat.noeud_erreur = it.expr;
 			resultat.noeud_decl = decl_struct;
-			return resultat;
+			return false;
 		}
 
 		auto transformation = TransformationType{};
-		auto poids_pour_enfant = verifie_compatibilite(compilatrice, contexte, type_membre, it.expr->type, it.expr, transformation);
+		auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(compilatrice, contexte, type_membre, it.expr->type, it.expr, transformation);
+
+		if (erreur_dep) {
+			return true;
+		}
 
 		poids_appariement *= poids_pour_enfant;
 
@@ -738,7 +768,7 @@ static auto apparie_appel_structure(
 			resultat.noeud_erreur = it.expr;
 			resultat.type_attendu = type_membre;
 			resultat.type_obtenu = it.expr->type;
-			return resultat;
+			return false;
 		}
 
 		slots[index_membre] = it.expr;
@@ -753,7 +783,7 @@ static auto apparie_appel_structure(
 	resultat.exprs = slots;
 	resultat.transformations = transformations;
 
-	return resultat;
+	return false;
 }
 
 /* ************************************************************************** */
@@ -762,16 +792,18 @@ static auto trouve_candidates_pour_appel(
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte,
 		NoeudExpressionAppel *expr,
-		kuri::tableau<IdentifiantEtExpression> &args)
+		kuri::tableau<IdentifiantEtExpression> &args,
+		dls::tablet<DonneesCandidate, 10> &resultat)
 {
 	PROFILE_FONCTION;
 
-	auto candidates_appel = trouve_candidates_pour_fonction_appelee(compilatrice, expr->appelee);
-
-	auto resultat = dls::tablet<DonneesCandidate, 10>();
+	auto candidates_appel = dls::tableau<CandidateExpressionAppel>();
+	if (trouve_candidates_pour_fonction_appelee(contexte, compilatrice, expr->appelee, candidates_appel)) {
+		return true;
+	}
 
 	if (candidates_appel.taille() == 0) {
-		return resultat;
+		return true;
 	}
 
 	auto nouvelles_candidates = dls::tableau<CandidateExpressionAppel>();
@@ -779,7 +811,10 @@ static auto trouve_candidates_pour_appel(
 	POUR (candidates_appel) {
 		if (it.quoi == CANDIDATE_EST_APPEL_UNIFORME) {
 			auto acces = static_cast<NoeudExpressionBinaire *>(it.decl);
-			auto candidates = trouve_candidates_pour_fonction_appelee(compilatrice, acces->expr2);
+			auto candidates = dls::tableau<CandidateExpressionAppel>();
+			if (trouve_candidates_pour_fonction_appelee(contexte, compilatrice, acces->expr2, candidates)) {
+				return true;
+			}
 
 			args.pousse_front({ nullptr, acces->expr1 });
 
@@ -796,7 +831,10 @@ static auto trouve_candidates_pour_appel(
 
 	POUR (candidates_appel) {
 		if (it.quoi == CANDIDATE_EST_ACCES) {
-			auto dc = apparie_appel_pointeur(expr, it.decl->type, compilatrice, contexte, args);
+			auto dc = DonneesCandidate();
+			if (apparie_appel_pointeur(expr, it.decl->type, compilatrice, contexte, args, dc)) {
+				return true;
+			}
 			resultat.pousse(dc);
 		}
 		else if (it.quoi == CANDIDATE_EST_DECLARATION) {
@@ -804,16 +842,37 @@ static auto trouve_candidates_pour_appel(
 
 			if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
 				auto decl_struct = static_cast<NoeudStruct *>(decl);
-				auto dc = apparie_appel_structure(compilatrice, contexte, expr, decl_struct, args);
+
+				if ((decl->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+					contexte.unite->attend_sur_type(decl->type);
+					return true;
+				}
+
+				auto dc = DonneesCandidate();
+				if (apparie_appel_structure(compilatrice, contexte, expr, decl_struct, args, dc)) {
+					return true;
+				}
 				resultat.pousse(dc);
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {
 				auto decl_fonc = static_cast<NoeudDeclarationFonction *>(decl);
-				auto dc = apparie_appel_fonction(compilatrice, contexte, decl_fonc, args);
+
+				if ((decl_fonc->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
+					contexte.unite->attend_sur_declaration(decl_fonc);
+					return true;
+				}
+
+				auto dc = DonneesCandidate();
+				if (apparie_appel_fonction(compilatrice, contexte, decl_fonc, args, dc)) {
+					return true;
+				}
 				resultat.pousse(dc);
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
-				auto dc = apparie_appel_pointeur(expr, decl->type, compilatrice, contexte, args);
+				auto dc = DonneesCandidate();
+				if (apparie_appel_pointeur(expr, decl->type, compilatrice, contexte, args, dc)) {
+					return true;
+				}
 				resultat.pousse(dc);
 			}
 		}
@@ -824,7 +883,47 @@ static auto trouve_candidates_pour_appel(
 		}
 	}
 
-	return resultat;
+	return false;
+}
+
+/* ************************************************************************** */
+
+static std::pair<NoeudDeclarationFonction *, bool> trouve_fonction_epandue_ou_crees_en_une(
+		Compilatrice &compilatrice,
+		NoeudDeclarationFonction *decl,
+		NoeudDeclarationFonction::tableau_paire_expansion const &paires)
+{
+	POUR (decl->epandu_pour) {
+		if (it.first.taille() != paires.taille()) {
+			continue;
+		}
+
+		auto trouve = true;
+
+		for (auto i = 0; i < paires.taille(); ++i) {
+			if (it.first[i] != paires[i]) {
+				trouve = false;
+				break;
+			}
+		}
+
+		if (!trouve) {
+			continue;
+		}
+
+		return { it.second, false };
+	}
+
+	auto noeud_decl = static_cast<NoeudDeclarationFonction *>(copie_noeud(compilatrice.assembleuse, decl, decl->bloc_parent));
+	noeud_decl->est_instantiation_gabarit = true;
+	noeud_decl->paires_expansion_gabarit = paires;
+
+	decl->epandu_pour.pousse({ paires, noeud_decl });
+
+	compilatrice.ajoute_unite_compilation_entete_fonction(noeud_decl);
+	compilatrice.ajoute_unite_compilation_pour_typage(noeud_decl);
+
+	return { noeud_decl, true };
 }
 
 /* ************************************************************************** */
@@ -862,7 +961,12 @@ bool valide_appel_fonction(
 	// ------------
 	// trouve la fonction, pour savoir ce que l'on a
 
-	auto candidates = trouve_candidates_pour_appel(compilatrice, contexte, expr, args);
+	auto candidates = dls::tablet<DonneesCandidate, 10>();
+
+	if (trouve_candidates_pour_appel(compilatrice, contexte, expr, args, candidates)) {
+		return true;
+	}
+
 	auto candidate = static_cast<DonneesCandidate *>(nullptr);
 	auto poids = 0.0;
 
@@ -896,7 +1000,7 @@ bool valide_appel_fonction(
 			return true;
 		}
 
-		auto decl_fonction_appelee = static_cast<NoeudDeclarationFonction const *>(candidate->noeud_decl);
+		auto decl_fonction_appelee = static_cast<NoeudDeclarationFonction *>(candidate->noeud_decl);
 
 		/* pour les directives d'exécution, la fonction courante est nulle */
 		if (fonction_courante != nullptr) {
@@ -916,24 +1020,13 @@ bool valide_appel_fonction(
 		/* ---------------------- */
 
 		if (!candidate->paires_expansion_gabarit.est_vide()) {
-			auto noeud_decl = static_cast<NoeudDeclarationFonction *>(copie_noeud(compilatrice.assembleuse, decl_fonction_appelee, decl_fonction_appelee->bloc_parent));
-			noeud_decl->est_instantiation_gabarit = true;
+			auto [noeud_decl, doit_epandre] = trouve_fonction_epandue_ou_crees_en_une(compilatrice, decl_fonction_appelee, std::move(candidate->paires_expansion_gabarit));
 
-			compilatrice.paires_expansion_gabarit = candidate->paires_expansion_gabarit;
-
-			// À FAIRE  : pousse dans la file
-			auto contexte_ = ContexteValidationCode(compilatrice);
-			contexte_.commence_fonction(noeud_decl);
-
-			if (contexte_.valide_type_fonction(noeud_decl)) {
+			if (doit_epandre || (noeud_decl->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
+				contexte.unite->etat = UniteCompilation::Etat::ATTEND_SUR_DECLARATION;
+				contexte.unite->declaration_attendue = noeud_decl;
 				return true;
 			}
-
-			if (contexte_.valide_fonction(noeud_decl)) {
-				return true;
-			}
-
-			contexte_.termine_fonction();
 
 			decl_fonction_appelee = noeud_decl;
 		}

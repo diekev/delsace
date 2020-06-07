@@ -89,44 +89,6 @@ struct Module {
 	COPIE_CONSTRUCT(Module);
 };
 
-dls::chaine charge_fichier(
-		dls::chaine const &chemin,
-		Compilatrice &compilatrice,
-		Lexeme const &lexeme);
-
-void charge_fichier(std::ostream &os,
-		Module *module,
-		dls::chaine const &racine_kuri,
-		dls::chaine const &nom,
-		Compilatrice &compilatrice,
-		Lexeme const &lexeme);
-
-/**
- * Charge le module dont le nom est spécifié.
- *
- * Le nom doit être celui d'un fichier s'appelant '<nom>.kuri' et se trouvant
- * dans le dossier du module racine.
- *
- * Les fonctions contenues dans le module auront leurs noms préfixés par le nom
- * du module, sauf pour le module racine.
- *
- * Le std::ostream est un flux de sortie où sera imprimé le nom du module ouvert
- * pour tenir compte de la progression de la compilation. Si un nom de module ne
- * pointe pas vers un fichier Kuri, ou si le fichier ne peut être ouvert, une
- * exception est lancée.
- *
- * Les Lexeme doivent être celles du nom du module et sont utilisées
- * pour les erreurs lancées.
- *
- * Le paramètre est_racine ne doit être vrai que pour le module racine.
- */
-Module *importe_module(
-		std::ostream &os,
-		dls::chaine const &racine_kuri,
-		dls::chaine const &nom,
-		Compilatrice &compilatrice,
-		Lexeme const &lexeme);
-
 /* ************************************************************************** */
 
 struct PositionLexeme {

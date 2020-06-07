@@ -416,6 +416,7 @@ NoeudExpression *copie_noeud(
 	nracine->type = racine->type;
 	nracine->bloc_parent = bloc_parent;
 	nracine->drapeaux = racine->drapeaux;
+	nracine->drapeaux &= ~DECLARATION_FUT_VALIDEE;
 
 	switch (racine->genre) {
 		case GenreNoeud::INSTRUCTION_SINON:

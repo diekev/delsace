@@ -336,7 +336,7 @@ Syntaxeuse::Syntaxeuse(
 	}
 }
 
-void Syntaxeuse::lance_analyse(std::ostream &os)
+void Syntaxeuse::lance_analyse()
 {
 	PROFILE_FONCTION;
 
@@ -367,10 +367,9 @@ void Syntaxeuse::lance_analyse(std::ostream &os)
 			auto const nom_module = lexeme_courant()->chaine;
 
 			/* désactive le 'chronomètre' car sinon le temps d'analyse prendra
-			 * également en compte le chargement, le découpage, et l'analyse du
-			 * module importé */
+			 * également en compte le chargement du module importé */
 			m_fichier->temps_analyse += m_chrono_analyse.arrete();
-			auto module = importe_module(os, m_racine_kuri, dls::chaine(nom_module), m_compilatrice, *lexeme_courant());
+			auto module = m_compilatrice.importe_module(dls::chaine(nom_module), *lexeme_courant());
 			m_fichier->modules_importes.insere(module->nom);
 			m_chrono_analyse.reprend();
 
@@ -386,10 +385,9 @@ void Syntaxeuse::lance_analyse(std::ostream &os)
 			auto const nom_fichier = lexeme_courant()->chaine;
 
 			/* désactive le 'chronomètre' car sinon le temps d'analyse prendra
-			 * également en compte le chargement, le découpage, et l'analyse du
-			 * fichier chargé */
+			 * également en compte le chargement du fichier chargé */
 			m_fichier->temps_analyse += m_chrono_analyse.arrete();
-			charge_fichier(os, m_fichier->module, m_racine_kuri, dls::chaine(nom_fichier), m_compilatrice, *lexeme_courant());
+			m_compilatrice.ajoute_fichier_a_la_compilation(nom_fichier, m_fichier->module, *lexeme_courant());
 			m_chrono_analyse.reprend();
 
 			consomme();
@@ -407,17 +405,20 @@ void Syntaxeuse::lance_analyse(std::ostream &os)
 					decl_var->bloc_parent->membres.pousse(decl_var);
 					decl_var->bloc_parent->expressions.pousse(decl_var);
 					decl_var->drapeaux |= EST_GLOBALE;
-					m_compilatrice.file_typage.pousse(decl_var);
+					m_compilatrice.ajoute_unite_compilation_pour_typage(decl_var);
 				}
 				else if (est_declaration(noeud->genre)) {
 					noeud->bloc_parent->membres.pousse(static_cast<NoeudDeclaration *>(noeud));
 					noeud->bloc_parent->expressions.pousse(noeud);
 					noeud->drapeaux |= EST_GLOBALE;
-					m_compilatrice.file_typage.pousse(noeud);
+
+					if (!dls::outils::est_element(noeud->genre, GenreNoeud::DECLARATION_FONCTION, GenreNoeud::DECLARATION_OPERATEUR, GenreNoeud::DECLARATION_COROUTINE)) {
+						m_compilatrice.ajoute_unite_compilation_pour_typage(noeud);
+					}
 				}
 				else {
 					noeud->bloc_parent->expressions.pousse(noeud);
-					m_compilatrice.file_typage.pousse(noeud);
+					m_compilatrice.ajoute_unite_compilation_pour_typage(noeud);
 				}
 			}
 		}
@@ -1854,12 +1855,16 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 			if (noeud->params_sorties.taille > 1) {
 				lance_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
 			}
+
+			m_compilatrice.ajoute_unite_compilation_entete_fonction(noeud);
 		}
 		else {
 			/* ignore les points-virgules implicites */
 			if (apparie(GenreLexeme::POINT_VIRGULE)) {
 				consomme();
 			}
+
+			m_compilatrice.ajoute_unite_compilation_entete_fonction(noeud);
 
 			auto nombre_noeuds_alloues = m_compilatrice.allocatrice_noeud.nombre_noeuds();
 			noeud->bloc = analyse_bloc();
@@ -1871,6 +1876,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 			 */
 			noeud->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
 			aplatis_arbre(noeud->bloc, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
+
+			m_compilatrice.ajoute_unite_compilation_pour_typage(noeud);
 
 //			std::cerr << "Abre aplatis pour fonction " << noeud->ident->nom << " :\n";
 
@@ -2011,8 +2018,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		consomme();
 	}
 
+	m_compilatrice.ajoute_unite_compilation_entete_fonction(noeud);
+
 	noeud->bloc = analyse_bloc();
 	aplatis_arbre(noeud->bloc, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
+
+	m_compilatrice.ajoute_unite_compilation_pour_typage(noeud);
 
 	depile_etat();
 

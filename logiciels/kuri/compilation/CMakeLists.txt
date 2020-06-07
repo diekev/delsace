@@ -51,8 +51,10 @@ set(SOURCES
 	profilage.hh
 	structures.hh
 	syntaxeuse.hh
+	tacheronne.hh
 	transformation_type.hh
 	typage.hh
+	unite_compilation.hh
 	validation_expression_appel.hh
 	validation_semantique.hh
 
@@ -73,8 +75,10 @@ set(SOURCES
 	profilage.cc
 	structures.cc
 	syntaxeuse.cc
+	tacheronne.cc
 	transformation_type.cc
 	typage.cc
+	unite_compilation.cc
 	validation_expression_appel.cc
 	validation_semantique.cc
 )

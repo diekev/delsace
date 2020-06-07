@@ -214,9 +214,15 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 		memoire += static_cast<size_t>(noeud.arbre_aplatis_entete.taille) * sizeof(NoeudExpression *);
 		memoire += static_cast<size_t>(noeud.noms_retours.taille) * sizeof(dls::chaine);
 		memoire += static_cast<size_t>(noeud.noms_types_gabarits.taille) * sizeof(dls::vue_chaine_compacte);
+		memoire += static_cast<size_t>(noeud.paires_expansion_gabarit.taille()) * (sizeof (Type *) + sizeof (dls::vue_chaine_compacte));
 
 		POUR (noeud.noms_retours) {
 			memoire += static_cast<size_t>(it.taille());
+		}
+
+		memoire += static_cast<size_t>(noeud.epandu_pour.taille()) * (sizeof(NoeudDeclarationFonction::tableau_paire_expansion) + sizeof(NoeudDeclarationFonction *));
+		POUR (noeud.epandu_pour) {
+			memoire += static_cast<size_t>(it.first.taille()) * (sizeof (Type *) + sizeof (dls::vue_chaine_compacte));
 		}
 
 		memoire += static_cast<size_t>(noeud.nom_broye.taille());

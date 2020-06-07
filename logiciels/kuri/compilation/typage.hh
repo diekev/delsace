@@ -142,6 +142,7 @@ enum class GenreType : int {
 enum {
 	TYPEDEF_FUT_GENERE = 1,
 	TYPE_EST_POLYMORPHIQUE = 2,
+	TYPE_FUT_VALIDE = 4,
 };
 
 struct Type {

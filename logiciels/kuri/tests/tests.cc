@@ -34,10 +34,8 @@
 
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/compilatrice.hh"
-#include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
-#include "compilation/syntaxeuse.hh"
-#include "compilation/validation_semantique.hh"
+#include "compilation/tacheronne.hh"
 
 #include "compilation/erreur.h"
 
@@ -281,12 +279,11 @@ static erreur::type_erreur lance_test(lng::tampon_source &tampon)
 	auto chemin_courant = std::filesystem::current_path();
 	std::filesystem::current_path("/opt/bin/kuri/fichiers_tests/fichiers/");
 
-	auto const &chemin_racine_kuri = getenv("RACINE_KURI");
 	auto compilatrice = Compilatrice{};
+	compilatrice.racine_kuri = getenv("RACINE_KURI");
 
 	/* Charge d'abord le module basique, car nous en avons besoin pour le type ContexteProgramme. */
-	auto os = std::ostream(nullptr);
-	importe_module(os, chemin_racine_kuri, "Kuri", compilatrice, {});
+	compilatrice.importe_module("Kuri", {});
 
 	/* Ne nomme pas le module, car c'est le module racine. */
 	auto module = compilatrice.cree_module("", "");
@@ -294,14 +291,17 @@ static erreur::type_erreur lance_test(lng::tampon_source &tampon)
 	fichier->tampon = tampon;
 	fichier->module = module;
 
+	auto unite = UniteCompilation();
+	unite.fichier = fichier;
+	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
+	compilatrice.file_compilation.pousse(unite);
+
 	try {
-		Lexeuse lexeuse(compilatrice, fichier);
-		lexeuse.performe_lexage();
+		auto tacheronne = Tacheronne(compilatrice);
 
-		auto analyseuse = Syntaxeuse(compilatrice, fichier, "");
-		analyseuse.lance_analyse(os);
-
-		performe_validation_semantique(compilatrice);
+		while (!compilatrice.compilation_terminee()) {
+			tacheronne.gere_tache();
+		}
 	}
 	catch (const erreur::frappe &e) {
 		std::filesystem::current_path(chemin_courant);

@@ -62,7 +62,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto analyseuse = Syntaxeuse(compilatrice, fichier, "");
 
 		std::ostream os(nullptr);
-		analyseuse.lance_analyse(os);
+		analyseuse.lance_analyse();
 	}
 	catch (...) {
 
@@ -483,7 +483,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto analyseuse = Syntaxeuse(compilatrice, fichier, "");
 
 		std::ostream os(nullptr);
-		analyseuse.lance_analyse(os);
+		analyseuse.lance_analyse();
 	}
 	catch (...) {
 

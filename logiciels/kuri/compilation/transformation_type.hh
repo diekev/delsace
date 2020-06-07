@@ -89,8 +89,9 @@ struct TransformationType {
 	{}
 };
 
-TransformationType cherche_transformation(
+bool cherche_transformation(
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte,
 		Type *type_de,
-		Type *type_vers);
+		Type *type_vers,
+		TransformationType &transformation);
