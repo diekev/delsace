@@ -74,12 +74,15 @@ NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *
 {
 	PROFILE_FONCTION;
 
-	auto noeud = memoire::loge<NoeudDependance>("NoeudDependance");
-	noeud->nom = noeud_syntactique->ident->nom;
-	noeud->noeud_syntactique = noeud_syntactique;
-	noeud->type = TypeNoeudDependance::GLOBALE;
+	auto noeud = cherche_noeud_globale(noeud_syntactique->ident->nom);
 
-	noeuds.pousse(noeud);
+	if (noeud == nullptr) {
+		noeud = memoire::loge<NoeudDependance>("NoeudDependance");
+		noeud->nom = noeud_syntactique->ident->nom;
+		noeud->noeud_syntactique = noeud_syntactique;
+		noeud->type = TypeNoeudDependance::GLOBALE;
+		noeuds.pousse(noeud);
+	}
 
 	return noeud;
 }
