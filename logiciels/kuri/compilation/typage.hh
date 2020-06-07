@@ -350,7 +350,7 @@ struct Typeuse {
 
 	// mise en cache de plusieurs types pour mieux les trouver
 	TypeTypeDeDonnees *type_type_de_donnees_ = nullptr;
-	TypeStructure *type_info_type_ = nullptr;
+	Type *type_info_type_ = nullptr;
 	Type *type_info_type_structure = nullptr;
 	Type *type_info_type_union = nullptr;
 	Type *type_info_type_membre_structure = nullptr;

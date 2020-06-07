@@ -481,39 +481,6 @@ static bool lance_execution(Compilatrice &compilatrice, NoeudDeclarationFonction
 	return 0;
 }
 
-static void initialise_interface_kuri(Compilatrice &compilatrice)
-{
-	PROFILE_FONCTION;
-	auto module = compilatrice.module("Kuri");
-	compilatrice.interface_kuri.decl_panique = cherche_fonction_dans_module(compilatrice, module, "panique");
-	compilatrice.interface_kuri.decl_panique_memoire = cherche_fonction_dans_module(compilatrice, module, "panique_hors_mémoire");
-	compilatrice.interface_kuri.decl_panique_tableau = cherche_fonction_dans_module(compilatrice, module, "panique_dépassement_limites_tableau");
-	compilatrice.interface_kuri.decl_panique_chaine = cherche_fonction_dans_module(compilatrice, module, "panique_dépassement_limites_chaine");
-	compilatrice.interface_kuri.decl_panique_membre_union = cherche_fonction_dans_module(compilatrice, module, "panique_membre_union");
-	compilatrice.interface_kuri.decl_panique_erreur = cherche_fonction_dans_module(compilatrice, module, "panique_erreur_non_gérée");
-	compilatrice.interface_kuri.decl_rappel_panique_defaut = cherche_fonction_dans_module(compilatrice, module, "__rappel_panique_défaut");
-	compilatrice.interface_kuri.decl_dls_vers_r32 = cherche_fonction_dans_module(compilatrice, module, "DLS_vers_r32");
-	compilatrice.interface_kuri.decl_dls_vers_r64 = cherche_fonction_dans_module(compilatrice, module, "DLS_vers_r64");
-	compilatrice.interface_kuri.decl_dls_depuis_r32 = cherche_fonction_dans_module(compilatrice, module, "DLS_depuis_r32");
-	compilatrice.interface_kuri.decl_dls_depuis_r64 = cherche_fonction_dans_module(compilatrice, module, "DLS_depuis_r64");
-
-	auto &typeuse = compilatrice.typeuse;
-	typeuse.type_info_type_enum = cherche_symbole_dans_module(compilatrice, module, "InfoTypeÉnum")->type;
-	typeuse.type_info_type_structure = cherche_symbole_dans_module(compilatrice, module, "InfoTypeStructure")->type;
-	typeuse.type_info_type_union = cherche_symbole_dans_module(compilatrice, module, "InfoTypeUnion")->type;
-	typeuse.type_info_type_membre_structure = cherche_symbole_dans_module(compilatrice, module, "InfoTypeMembreStructure")->type;
-	typeuse.type_info_type_entier = cherche_symbole_dans_module(compilatrice, module, "InfoTypeEntier")->type;
-	typeuse.type_info_type_tableau = cherche_symbole_dans_module(compilatrice, module, "InfoTypeTableau")->type;
-	typeuse.type_info_type_pointeur = cherche_symbole_dans_module(compilatrice, module, "InfoTypePointeur")->type;
-	typeuse.type_info_type_fonction = cherche_symbole_dans_module(compilatrice, module, "InfoTypeFonction")->type;
-	typeuse.type_position_code_source = cherche_symbole_dans_module(compilatrice, module, "PositionCodeSource")->type;
-	typeuse.type_info_fonction_trace_appel = cherche_symbole_dans_module(compilatrice, module, "InfoFonctionTraceAppel")->type;
-	typeuse.type_trace_appel = cherche_symbole_dans_module(compilatrice, module, "TraceAppel")->type;
-	typeuse.type_base_allocatrice = cherche_symbole_dans_module(compilatrice, module, "BaseAllocatrice")->type;
-	typeuse.type_info_appel_trace_appel = cherche_symbole_dans_module(compilatrice, module, "InfoAppelTraceAppel")->type;
-	typeuse.type_stockage_temporaire = cherche_symbole_dans_module(compilatrice, module, "StockageTemporaire")->type;
-}
-
 int main(int argc, char *argv[])
 {
 	INITIALISE_PROFILAGE;
@@ -578,7 +545,6 @@ int main(int argc, char *argv[])
 
 		/* Charge d'abord le module basique. */
 		importe_module(os, chemin_racine_kuri, "Kuri", compilatrice, {});
-		initialise_interface_kuri(compilatrice);
 
 		/* Change le dossier courant et lance la compilation. */
 		auto dossier = chemin.parent_path();

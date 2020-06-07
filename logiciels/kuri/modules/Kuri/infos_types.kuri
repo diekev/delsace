@@ -17,25 +17,25 @@ id_info :: énum z32 {
 	UNION           :: 13
 }
 
-InfoType :: struct {
+InfoType :: struct #interface {
 	id : id_info
 	taille_en_octet : n32
 }
 
-InfoTypeEntier :: struct {
+InfoTypeEntier :: struct #interface {
 	empl base : InfoType
 
 	est_signé : bool
 }
 
-InfoTypePointeur :: struct {
+InfoTypePointeur :: struct #interface {
 	empl base : InfoType
 
 	type_pointé : *InfoType
 	est_référence : bool
 }
 
-InfoTypeTableau :: struct {
+InfoTypeTableau :: struct #interface {
 	empl base : InfoType
 
 	type_pointé : *InfoType
@@ -43,7 +43,7 @@ InfoTypeTableau :: struct {
 	taille_fixe : z32
 }
 
-InfoTypeMembreStructure :: struct {
+InfoTypeMembreStructure :: struct #interface {
 	// À FAIRE : crash dans la génération des infos types (RI)
 	// Drapeaux :: énum {
 	// 	EST_CONSTANT
@@ -55,14 +55,14 @@ InfoTypeMembreStructure :: struct {
 	drapeaux : z32
 }
 
-InfoTypeStructure :: struct {
+InfoTypeStructure :: struct #interface {
 	empl base : InfoType
 
 	nom : chaine
 	membres : []*InfoTypeMembreStructure
 }
 
-InfoTypeUnion :: struct {
+InfoTypeUnion :: struct #interface {
 	empl base : InfoType
 
 	nom : chaine
@@ -72,7 +72,7 @@ InfoTypeUnion :: struct {
 	est_sûre : bool
 }
 
-InfoTypeFonction :: struct {
+InfoTypeFonction :: struct #interface {
 	empl base : InfoType
 
 	types_entrée : []*InfoType
@@ -80,7 +80,7 @@ InfoTypeFonction :: struct {
 	est_coroutine : bool
 }
 
-InfoTypeÉnum :: struct {
+InfoTypeÉnum :: struct #interface {
 	empl base : InfoType
 
 	nom : chaine

@@ -1,10 +1,10 @@
-DLS_vers_r32 :: fonc externe (h: r16) -> r32
+DLS_vers_r32 :: fonc externe (h: r16) -> r32 #interface
 
-DLS_vers_r64 :: fonc externe (a: r16) -> r64
+DLS_vers_r64 :: fonc externe (a: r16) -> r64 #interface
 
-DLS_depuis_r32 :: fonc externe (v: r32) -> r16
+DLS_depuis_r32 :: fonc externe (v: r32) -> r16 #interface
 
-DLS_depuis_r64 :: fonc externe (v: r64) -> r16
+DLS_depuis_r64 :: fonc externe (v: r64) -> r16 #interface
 
 /* ************* opérateurs unaires ************* */
 

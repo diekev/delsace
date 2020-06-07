@@ -17,7 +17,7 @@ free :: fonc externe (ptr : *rien) -> rien
 // compilateur remplis les membres de cette structure avec les valeurs
 // correspondantes de la position du lexème dans le fichier où se fait ladite
 // construction.
-PositionCodeSource :: struct {
+PositionCodeSource :: struct #interface {
     // le nom du fichier où se trouve l'objet
     fichier : chaine
     // le nom de la fonction où se trouve l'objet, vide si variable globale
@@ -36,7 +36,7 @@ ModeAllocatrice :: énum z32 {
     DÉSALLOUE
 }
 
-BaseAllocatrice :: struct {
+BaseAllocatrice :: struct #interface {
     nombre_allocations : z64 = 0
     nombre_réallocations : z64 = 0
     nombre_désallocations : z64 = 0
@@ -277,7 +277,7 @@ ModeLogage :: énum z32 {
 // une certaine taille dans l'exécutable où mettre des données temporaire.
 // À FAIRE : option de compilation pour définir la taille du stockage temporaire
 // on attendra que la métoprogrammation soit ici pour passer les options par celle-ci
-StockageTemporaire :: struct {
+StockageTemporaire :: struct #interface {
     données : *octet
     taille : z32
     occupé : z32
@@ -286,7 +286,7 @@ StockageTemporaire :: struct {
 
 // ----------------------------
 
-InfoFonctionTraceAppel :: struct {
+InfoFonctionTraceAppel :: struct #interface {
     nom : chaine
     fichier : chaine
     adresse : *rien
@@ -296,13 +296,13 @@ InfoFonctionTraceAppel :: struct {
 }
 
 // redondance : peut être remplacé par PositionCodeSource
-InfoAppelTraceAppel :: struct {
+InfoAppelTraceAppel :: struct #interface {
     ligne: z32
     colonne: z32
     texte: chaine
 }
 
-TraceAppel :: struct {
+TraceAppel :: struct #interface {
     précédente : *TraceAppel
     info_fonction : *InfoFonctionTraceAppel
     info_appel : *InfoAppelTraceAppel

@@ -56,6 +56,56 @@ static auto trouve_chemin_si_dans_dossier(Module *module, dls::chaine const &cha
 	return chaine;
 }
 
+static auto renseigne_fonction_interface(InterfaceKuri &interface, NoeudDeclarationFonction *noeud)
+{
+#define INIT_MEMBRE(membre, nom) \
+	if (noeud->lexeme->chaine == nom) { \
+		interface.membre = noeud; \
+		return; \
+	}
+
+	INIT_MEMBRE(decl_panique, "panique");
+	INIT_MEMBRE(decl_panique_memoire, "panique_hors_mémoire");
+	INIT_MEMBRE(decl_panique_tableau, "panique_dépassement_limites_tableau");
+	INIT_MEMBRE(decl_panique_chaine, "panique_dépassement_limites_chaine");
+	INIT_MEMBRE(decl_panique_membre_union, "panique_membre_union");
+	INIT_MEMBRE(decl_panique_erreur, "panique_erreur_non_gérée");
+	INIT_MEMBRE(decl_rappel_panique_defaut, "__rappel_panique_défaut");
+	INIT_MEMBRE(decl_dls_vers_r32, "DLS_vers_r32");
+	INIT_MEMBRE(decl_dls_vers_r64, "DLS_vers_r64");
+	INIT_MEMBRE(decl_dls_depuis_r32, "DLS_depuis_r32");
+	INIT_MEMBRE(decl_dls_depuis_r64, "DLS_depuis_r64");
+
+#undef INIT_MEMBRE
+}
+
+static auto renseigne_type_interface(Typeuse &typeuse, dls::vue_chaine_compacte nom_struct, Type *type)
+{
+#define INIT_TYPE(membre, nom) \
+	if (nom_struct == nom) { \
+		typeuse.membre = type; \
+		return; \
+	}
+
+	INIT_TYPE(type_info_type_, "InfoType");
+	INIT_TYPE(type_info_type_enum, "InfoTypeÉnum");
+	INIT_TYPE(type_info_type_structure, "InfoTypeStructure");
+	INIT_TYPE(type_info_type_union, "InfoTypeUnion");
+	INIT_TYPE(type_info_type_membre_structure, "InfoTypeMembreStructure");
+	INIT_TYPE(type_info_type_entier, "InfoTypeEntier");
+	INIT_TYPE(type_info_type_tableau, "InfoTypeTableau");
+	INIT_TYPE(type_info_type_pointeur, "InfoTypePointeur");
+	INIT_TYPE(type_info_type_fonction, "InfoTypeFonction");
+	INIT_TYPE(type_position_code_source, "PositionCodeSource");
+	INIT_TYPE(type_info_fonction_trace_appel, "InfoFonctionTraceAppel");
+	INIT_TYPE(type_trace_appel, "TraceAppel");
+	INIT_TYPE(type_base_allocatrice, "BaseAllocatrice");
+	INIT_TYPE(type_info_appel_trace_appel, "InfoAppelTraceAppel");
+	INIT_TYPE(type_stockage_temporaire, "StockageTemporaire");
+
+#undef INIT_TYPE
+}
+
 template <typename T, unsigned long N>
 static auto copie_tablet_tableau(dls::tablet<T, N> const &src, kuri::tableau<T> &dst)
 {
@@ -1791,6 +1841,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 			else if (chn_directive == "sanstrace") {
 				noeud->drapeaux |= FORCE_SANSTRACE;
 			}
+			else if (chn_directive == "interface") {
+				renseigne_fonction_interface(m_compilatrice.interface_kuri, noeud);
+			}
 
 			consomme();
 		}
@@ -1979,8 +2032,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 	if (gauche->lexeme->chaine == "InfoType") {
 		noeud_decl->type = m_compilatrice.typeuse.type_info_type_;
-		m_compilatrice.typeuse.type_info_type_->decl = noeud_decl;
-		m_compilatrice.typeuse.type_info_type_->nom = noeud_decl->ident->nom;
+		auto type_info_type = static_cast<TypeStructure *>(m_compilatrice.typeuse.type_info_type_);
+		type_info_type->decl = noeud_decl;
+		type_info_type->nom = noeud_decl->ident->nom;
 	}
 	else {
 		if (noeud_decl->est_union) {
@@ -2012,6 +2066,17 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 			consomme();
 			analyse_membres = false;
 		}
+	}
+
+	if (apparie(GenreLexeme::DIRECTIVE)) {
+		consomme();
+
+		auto chn_directive = lexeme_courant()->chaine;
+		if (chn_directive == "interface") {
+			renseigne_type_interface(m_compilatrice.typeuse, noeud_decl->ident->nom, noeud_decl->type);
+		}
+
+		consomme();
 	}
 
 	if (analyse_membres) {
