@@ -1,0 +1,17 @@
+// boucle infinie quand nous utilisons une expression de style fonctions[0]()
+
+fonctions := [ foo, bar ]
+
+foo :: fonc ()
+{
+}
+
+bar :: fonc ()
+{
+}
+
+principale :: fonc () -> z32
+{
+    fonctions[0]()
+    retourne 0
+}

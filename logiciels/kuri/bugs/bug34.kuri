@@ -1,0 +1,11 @@
+// crash quand nous appelons un pointeur de fonction avec des paramètres ménombrés
+
+foo :: fonc ()
+
+principale :: fonc () -> z32
+{
+    ptr := foo
+    ptr(5)
+
+    retourne 0
+}

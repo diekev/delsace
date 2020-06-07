@@ -1,0 +1,8 @@
+// r16 est utilisé dans certaines conversions entre r32 et r64
+
+principale :: fonc () -> z32
+{
+    a : r64 = 30.0
+    b := a / 60.0 // transformera le 60.0 en un r16, et le résultat r16 en r64 ce que nous devrions éviter...
+    retourne 0
+}
