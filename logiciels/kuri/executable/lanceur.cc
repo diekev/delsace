@@ -57,11 +57,8 @@
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
-#include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 #include "compilation/profilage.hh"
-#include "compilation/structures.hh"
-#include "compilation/syntaxeuse.hh"
 #include "compilation/tacheronne.hh"
 
 #include "coulisse_c/generation_code_c.hh"
@@ -70,7 +67,6 @@
 
 #include "options.hh"
 
-#include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/format.hh"
 #include "biblinternes/outils/tableau_donnees.hh"
 #include "biblinternes/structures/flux_chaine.hh"
