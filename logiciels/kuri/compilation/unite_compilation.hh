@@ -53,6 +53,7 @@ struct UniteCompilation {
 	};
 
 	Etat etat{};
+	Etat etat_original{};
 	REMBOURRE(4);
 	Fichier *fichier = nullptr;
 	NoeudExpression *noeud = nullptr;

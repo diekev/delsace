@@ -94,9 +94,12 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 			contexte.unite = &unite;
 			auto decl = static_cast<NoeudDeclarationFonction *>(unite.noeud);
 
-			//std::cerr << "-- valide entête fonction : " << decl->lexeme->chaine << '\n';
+//			std::cerr << "-- valide entête fonction : " << decl->lexeme->chaine << '\n';
 			if (contexte.valide_type_fonction(decl)) {
-				//std::cerr << "-- Une erreur est survenue\n";
+//				std::cerr << "-- une erreur est survenue\n";
+//				std::cerr << "-- regère dans état : " << unite.etat << '\n';
+//				std::cerr << "-- état original    : " << unite.etat_original << '\n';
+				unite.etat_original = UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU;
 				compilatrice.file_compilation.pousse(unite);
 			}
 
@@ -231,7 +234,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 			auto type = unite.type_attendu;
 
 			if ((type->drapeaux & TYPE_FUT_VALIDE) != 0) {
-				unite.etat = UniteCompilation::Etat::TYPAGE_ATTENDU;
+				unite.etat = unite.etat_original;
 				unite.type_attendu = nullptr;
 				gere_unite(unite);
 			}
@@ -250,11 +253,12 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 //					  << unite.declaration_attendue->lexeme->chaine
 //					  << " (" << unite.declaration_attendue << ")\n";
 //			std::cerr << "-- cycle : " << unite.cycle << '\n';
+//			std::cerr << "-- état original : " << unite.etat_original << '\n';
 
 			auto declaration = unite.declaration_attendue;
 
-			if ((declaration->drapeaux & DECLARATION_FUT_VALIDEE) != 0) {
-				unite.etat = UniteCompilation::Etat::TYPAGE_ATTENDU;
+			if ((declaration->drapeaux & DECLARATION_FUT_VALIDEE) != 0 || unite.etat_original == UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU) {
+				unite.etat = unite.etat_original;
 				unite.declaration_attendue = nullptr;
 				gere_unite(unite);
 			}
@@ -268,7 +272,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 		case UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI:
 		{
 			unite.cycle += 1;
-			unite.etat = UniteCompilation::Etat::TYPAGE_ATTENDU;
+			unite.etat = unite.etat_original;
 			//std::cerr << "-- regère unité attendant sur interface kuri\n";
 			//std::cerr << "-- cycle : " << unite.cycle << '\n';
 			gere_unite(unite);
@@ -277,7 +281,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 		case UniteCompilation::Etat::ATTEND_SUR_SYMBOLE:
 		{
 			unite.cycle += 1;
-			unite.etat = UniteCompilation::Etat::TYPAGE_ATTENDU;
+			unite.etat = unite.etat_original;
 			//std::cerr << "-- regère unité attendant sur symbole\n";
 			//std::cerr << "-- cycle : " << unite.cycle << '\n';
 			gere_unite(unite);

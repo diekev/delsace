@@ -333,6 +333,7 @@ void Compilatrice::ajoute_unite_compilation_pour_typage(NoeudExpression *express
 	auto unite = UniteCompilation();
 	unite.noeud = expression;
 	unite.etat = UniteCompilation::Etat::TYPAGE_ATTENDU;
+	unite.etat_original = UniteCompilation::Etat::TYPAGE_ATTENDU;
 
 	file_compilation.pousse(unite);
 }
@@ -342,6 +343,7 @@ void Compilatrice::ajoute_unite_compilation_entete_fonction(NoeudDeclarationFonc
 	auto unite = UniteCompilation();
 	unite.noeud = decl;
 	unite.etat = UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU;
+	unite.etat_original = UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU;
 
 	file_compilation.pousse(unite);
 }
