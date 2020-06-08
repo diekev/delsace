@@ -44,6 +44,7 @@ add_library(${NOM_CIBLE} STATIC
 	grille_particules.cc
 	hachage_spatiale.cc
 	liste.cc
+	liste_recyclee.cc
 	magasin.cc
 	pile.cc
 	plage.cc
@@ -72,6 +73,7 @@ add_library(${NOM_CIBLE} STATIC
 	grille_particules.hh
 	hachage_spatiale.hh
 	liste.hh
+	liste_recyclee.hh
 	magasin.hh
 	matrice_eparse.hh
 	pile.hh
