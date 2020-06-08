@@ -41,6 +41,7 @@ struct Fichier;
 struct IdentifiantCode;
 struct NoeudBloc;
 struct TypeFonction;
+struct NoeudDependance;
 
 #define ENUMERE_GENRES_NOEUD \
 	ENUMERE_GENRE_NOEUD_EX(DECLARATION_COROUTINE) \
@@ -236,6 +237,7 @@ struct NoeudExpression : public NoeudBase {
 };
 
 struct NoeudDeclaration : public NoeudExpression {
+	NoeudDependance *noeud_dependance = nullptr;
 	drapeaux_noeud drapeaux_decl = {};
 };
 

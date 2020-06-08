@@ -555,7 +555,9 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 
 	auto resultat = TypePointeur::cree(type);
 
-	graphe.connecte_type_type(resultat, type);
+	if (type != nullptr) {
+		graphe.connecte_type_type(resultat, type);
+	}
 
 	auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
@@ -676,7 +678,9 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 
 	auto type = TypeVariadique::cree(type_pointe, std::move(membres));
 
-	graphe.connecte_type_type(type, type_pointe);
+	if (type_pointe != nullptr) {
+		graphe.connecte_type_type(type, type_pointe);
+	}
 
 	types_variadiques.pousse(type);
 

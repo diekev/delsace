@@ -75,9 +75,6 @@ struct NoeudDependance {
 	// pour les types
 	Type *type_{};
 
-	// pour les fonctions ou variables globales
-	dls::vue_chaine_compacte nom{};
-
 	// pour tous les noeuds
 	NoeudExpression *noeud_syntactique{};
 
@@ -97,13 +94,6 @@ struct DonneesDependance {
 struct GrapheDependance {
 	dls::tableau<NoeudDependance *> noeuds{};
 
-	dls::dico<Type *, NoeudDependance *> index_noeuds_type{};
-
-	// À FAIRE : nous pourrions utiliser le pointeur au lieu d'une chaine, mais
-	// ceci fait échoué la génération de code depuis la RI (collision de hachage ?)
-	// D'après un profilage, ceci diviserait par deux le temps passé à faire cette requête.
-	dls::dico<dls::chaine, NoeudDependance *> index_noeuds_fonction{};
-
 	~GrapheDependance();
 
 	// CRÉE (:FONCTION { nom = $nom })
@@ -116,19 +106,7 @@ struct GrapheDependance {
 	NoeudDependance *cree_noeud_type(Type *type);
 
 	// CHERCHE (:FONCTION { nom = $nom })
-	NoeudDependance *cherche_noeud_fonction(NoeudDeclarationFonction const *noeud_syntactique) const;
 	NoeudDependance *cherche_noeud_fonction(dls::vue_chaine_compacte const &nom) const;
-
-	// CHERCHE (:GLOBALE { nom = $nom })
-	NoeudDependance *cherche_noeud_globale(dls::vue_chaine_compacte const &nom) const;
-
-	// CHERCHE (:TYPE { index = $index })
-	NoeudDependance *cherche_noeud_type(Type *type) const;
-
-	// CHERCHE (fonction1 :FONCTION { nom = $nom1 })
-	// CHERCHE (fonction2 :FONCTION { nom = $nom2 })
-	// FUSIONNE (fonction1)-[:UTILISE_FONCTION]->(fonction2)
-	void connecte_fonction_fonction(NoeudDependance &fonction1, NoeudDependance &fonction2);
 
 	// CHERCHE (type1 :TYPE { index = $index1 })
 	// CHERCHE (type2 :TYPE { index = $index1 })
@@ -138,8 +116,6 @@ struct GrapheDependance {
 	void connecte_type_type(Type *type1, Type *type2, TypeRelation type_rel = TypeRelation::UTILISE_TYPE);
 
 	void ajoute_dependances(NoeudDependance &noeud, DonneesDependance &donnees);
-
-	Type *trouve_type(Type *type_racine, TypeRelation type) const;
 
 	void connecte_noeuds(NoeudDependance &noeud1, NoeudDependance &noeud2, TypeRelation type_relation);
 
