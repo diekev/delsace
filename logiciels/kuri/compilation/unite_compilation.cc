@@ -23,3 +23,21 @@
  */
 
 #include "unite_compilation.hh"
+
+const char *chaine_etat_unite(UniteCompilation::Etat etat)
+{
+#define ENUMERE_ETAT_UNITE_EX(etat) \
+	case UniteCompilation::Etat::etat: return #etat;
+	switch (etat) {
+		ENUMERE_ETATS_UNITE
+	}
+#undef ENUMERE_ETAT_UNITE_EX
+
+	return "erreur";
+}
+
+std::ostream &operator<<(std::ostream &os, UniteCompilation::Etat etat)
+{
+	os << chaine_etat_unite(etat);
+	return os;
+}

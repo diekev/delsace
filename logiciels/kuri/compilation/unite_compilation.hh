@@ -26,24 +26,30 @@
 
 #include "biblinternes/outils/definitions.h"
 
+#include <iostream>
+
 struct Fichier;
 struct Lexeme;
 struct NoeudDeclaration;
 struct NoeudExpression;
 struct Type;
 
-struct UniteCompilation {
-	enum Etat {
-		PARSAGE_ATTENDU,
-		TYPAGE_ENTETE_FONCTION_ATTENDU,
-		TYPAGE_ATTENDU,
-		RI_ATTENDUE,
-		CODE_MACHINE_ATTENDU,
+#define ENUMERE_ETATS_UNITE \
+	ENUMERE_ETAT_UNITE_EX(PARSAGE_ATTENDU) \
+	ENUMERE_ETAT_UNITE_EX(TYPAGE_ENTETE_FONCTION_ATTENDU) \
+	ENUMERE_ETAT_UNITE_EX(TYPAGE_ATTENDU) \
+	ENUMERE_ETAT_UNITE_EX(RI_ATTENDUE) \
+	ENUMERE_ETAT_UNITE_EX(CODE_MACHINE_ATTENDU) \
+	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_TYPE) \
+	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_DECLARATION) \
+	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_INTERFACE_KURI) \
+	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_SYMBOLE)
 
-		ATTEND_SUR_TYPE,
-		ATTEND_SUR_DECLARATION,
-		ATTEND_SUR_INTERFACE_KURI,
-		ATTEND_SUR_SYMBOLE,
+struct UniteCompilation {
+	enum class Etat {
+#define ENUMERE_ETAT_UNITE_EX(etat) etat,
+		ENUMERE_ETATS_UNITE
+#undef ENUMERE_ETAT_UNITE_EX
 	};
 
 	Etat etat{};
@@ -81,3 +87,7 @@ struct UniteCompilation {
 		this->lexeme_attendu = lexeme;
 	}
 };
+
+const char *chaine_etat_unite(UniteCompilation::Etat etat);
+
+std::ostream &operator<<(std::ostream &os, UniteCompilation::Etat etat);
