@@ -206,18 +206,38 @@ void GrapheDependance::ajoute_dependances(
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 {
 	auto nombre_fonctions = 0;
-	auto nombre_inutilisees = 0;
+	auto nombre_utilisees = 0;
 
-	for (auto noeud : graphe_dependance.noeuds) {
-		if (noeud->type == TypeNoeudDependance::FONCTION) {
-			auto decl_fonction = static_cast<NoeudDeclarationFonction *>(noeud->noeud_syntactique);
-			std::cerr << "Fonction inutilisée : " << decl_fonction->nom_broye << '\n';
-			nombre_fonctions += 1;
-			nombre_inutilisees += !noeud->fut_visite;
-		}
+	POUR (graphe_dependance.noeuds) {
+		it->fut_visite = false;
+		nombre_fonctions += (it->type == TypeNoeudDependance::FONCTION);
 	}
 
-	std::cerr << nombre_inutilisees << " fonctions sont inutilisées sur " << nombre_fonctions << '\n';
+	auto noeud_dependance = graphe_dependance.cherche_noeud_fonction("principale");
+
+	traverse_graphe(noeud_dependance, [&](NoeudDependance *noeud)
+	{
+		if (noeud->type != TypeNoeudDependance::FONCTION) {
+			return;
+		}
+
+		nombre_utilisees += 1;
+	});
+
+	POUR (graphe_dependance.noeuds) {
+		if (it->type != TypeNoeudDependance::FONCTION) {
+			continue;
+		}
+
+		if (it->fut_visite) {
+			continue;
+		}
+
+		auto decl_fonction = static_cast<NoeudDeclarationFonction *>(it->noeud_syntactique);
+		std::cerr << "Fonction inutilisée : " << decl_fonction->nom_broye << '\n';
+	}
+
+	std::cerr << (nombre_fonctions - nombre_utilisees) << " fonctions sont inutilisées sur " << nombre_fonctions << '\n';
 }
 
 /**
