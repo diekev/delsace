@@ -45,8 +45,7 @@ void Tacheronne::gere_tache()
 
 		//std::cerr << "-----------------------------------------\n";
 		//std::cerr << "-- taille file compilation : " << compilatrice.file_compilation.taille() << '\n';
-		auto unite = compilatrice.file_compilation.front();
-		compilatrice.file_compilation.effronte();
+		auto unite = compilatrice.file_compilation.effronte();
 
 		if (unite.cycle <= 10) {
 			gere_unite(unite);
@@ -62,8 +61,7 @@ void Tacheronne::gere_tache()
 				break;
 			}
 
-			unite = compilatrice.file_compilation.front();
-			compilatrice.file_compilation.effronte();
+			unite = compilatrice.file_compilation.effronte();
 		}
 
 		static Lexeme lexeme = { "", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
