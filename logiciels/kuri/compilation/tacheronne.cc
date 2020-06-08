@@ -38,16 +38,21 @@ Tacheronne::Tacheronne(Compilatrice &comp)
 
 void Tacheronne::gere_tache()
 {
-	if (compilatrice.file_compilation.est_vide()) {
-		return;
-	}
+	while (true) {
+		if (compilatrice.file_compilation.est_vide()) {
+			break;
+		}
 
-	//std::cerr << "-----------------------------------------\n";
-	//std::cerr << "-- taille file compilation : " << compilatrice.file_compilation.taille() << '\n';
-	auto unite = compilatrice.file_compilation.front();
-	compilatrice.file_compilation.effronte();
+		//std::cerr << "-----------------------------------------\n";
+		//std::cerr << "-- taille file compilation : " << compilatrice.file_compilation.taille() << '\n';
+		auto unite = compilatrice.file_compilation.front();
+		compilatrice.file_compilation.effronte();
 
-	if (unite.cycle > 10) {
+		if (unite.cycle <= 10) {
+			gere_unite(unite);
+			continue;
+		}
+
 		while (true) {
 			if (unite.etat == UniteCompilation::Etat::ATTEND_SUR_SYMBOLE) {
 				erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un symbole inconnu", compilatrice, unite.lexeme_attendu);
@@ -65,8 +70,6 @@ void Tacheronne::gere_tache()
 		erreur::lance_erreur("Trop de cycles : arrêt de la compilation", compilatrice, &lexeme);
 		return;
 	}
-
-	gere_unite(unite);
 }
 
 void Tacheronne::gere_unite(UniteCompilation unite)

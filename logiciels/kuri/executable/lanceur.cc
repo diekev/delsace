@@ -554,10 +554,7 @@ int main(int argc, char *argv[])
 		compilatrice.ajoute_fichier_a_la_compilation(nom_fichier.c_str(), module, {});
 
 		auto tacheronne = Tacheronne(compilatrice);
-
-		while (!compilatrice.compilation_terminee()) {
-			tacheronne.gere_tache();
-		}
+		tacheronne.gere_tache();
 
 		auto constructrice_ri = ConstructriceRI(compilatrice);
 
