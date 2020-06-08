@@ -31,28 +31,18 @@
 
 const char *chaine_transformation(TypeTransformation type)
 {
-#define CAS_TYPE(x) case TypeTransformation::x: return #x;
 	switch (type) {
-		CAS_TYPE(INUTILE)
-		CAS_TYPE(IMPOSSIBLE)
-		CAS_TYPE(CONSTRUIT_UNION)
-		CAS_TYPE(EXTRAIT_UNION)
-		CAS_TYPE(CONSTRUIT_EINI)
-		CAS_TYPE(EXTRAIT_EINI)
-		CAS_TYPE(CONSTRUIT_TABL_OCTET)
-		CAS_TYPE(CONVERTI_TABLEAU)
-		CAS_TYPE(FONCTION)
-		CAS_TYPE(PREND_REFERENCE)
-		CAS_TYPE(DEREFERENCE)
-		CAS_TYPE(AUGMENTE_TAILLE_TYPE)
-		CAS_TYPE(CONVERTI_VERS_BASE)
-		CAS_TYPE(CONVERTI_ENTIER_CONSTANT)
-		CAS_TYPE(CONVERTI_VERS_PTR_RIEN)
-		CAS_TYPE(CONVERTI_VERS_TYPE_CIBLE)
+#define ENUMERE_TYPE_TRANSFORMATION_EX(type) case TypeTransformation::type: return #type;
+		ENUMERE_TYPES_TRANSFORMATION
+#undef ENUMERE_TYPE_TRANSFORMATION_EX
 	}
-
 	return "ERREUR";
-#undef CAS_TYPE
+}
+
+std::ostream &operator<<(std::ostream &os, TypeTransformation type)
+{
+	os << chaine_transformation(type);
+	return os;
 }
 
 static bool est_type_de_base(TypeStructure *type_de, TypeStructure *type_vers)

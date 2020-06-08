@@ -30,16 +30,18 @@
 
 const char *chaine_type_relation(TypeRelation type)
 {
-#define CAS_TYPE(x) case TypeRelation::x: return #x;
 	switch (type) {
-		CAS_TYPE(INVALIDE)
-		CAS_TYPE(UTILISE_TYPE)
-		CAS_TYPE(UTILISE_FONCTION)
-		CAS_TYPE(UTILISE_GLOBALE)
+#define ENUMERE_TYPE_RELATION_EX(type) case TypeRelation::type: return #type;
+	ENUMERE_TYPES_RELATION
+#undef ENUMERE_TYPE_RELATION_EX
 	}
-
 	return "erreur : relation inconnue";
-#undef CAS_TYPE
+}
+
+std::ostream &operator<<(std::ostream &os, TypeRelation type)
+{
+	os << chaine_type_relation(type);
+	return os;
 }
 
 GrapheDependance::~GrapheDependance()

@@ -43,14 +43,20 @@ enum class TypeNoeudDependance {
 	GLOBALE,
 };
 
+#define ENUMERE_TYPES_RELATION \
+	ENUMERE_TYPE_RELATION_EX(INVALIDE) \
+	ENUMERE_TYPE_RELATION_EX(UTILISE_TYPE) \
+	ENUMERE_TYPE_RELATION_EX(UTILISE_FONCTION) \
+	ENUMERE_TYPE_RELATION_EX(UTILISE_GLOBALE)
+
 enum class TypeRelation : int {
-	INVALIDE,
-	UTILISE_TYPE,
-	UTILISE_FONCTION,
-	UTILISE_GLOBALE,
+#define ENUMERE_TYPE_RELATION_EX(type) type,
+	ENUMERE_TYPES_RELATION
+#undef ENUMERE_TYPE_RELATION_EX
 };
 
 const char *chaine_type_relation(TypeRelation type);
+std::ostream &operator<<(std::ostream &os, TypeRelation type);
 
 struct NoeudDependance;
 
