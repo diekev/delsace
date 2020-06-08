@@ -2832,6 +2832,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	decl->type->taille_octet = decalage;
 	decl->type->alignement = max_alignement;
 	decl->type->drapeaux |= TYPE_FUT_VALIDE;
+	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
 	graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
 	return false;
