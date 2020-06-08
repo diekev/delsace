@@ -59,9 +59,11 @@ public:
 		m_liste.push_front(v);
 	}
 
-	void effronte()
+	type_valeur effronte()
 	{
+		auto v = m_liste.front();
 		m_liste.pop_front();
+		return v;
 	}
 
 	void push_front(type_valeur &&v)
