@@ -96,6 +96,7 @@ Type *Type::cree_entier(unsigned taille_octet, bool est_naturel)
 	type->genre = est_naturel ? GenreType::ENTIER_NATUREL : GenreType::ENTIER_RELATIF;
 	type->taille_octet = taille_octet;
 	type->alignement = taille_octet;
+	type->drapeaux |= TYPE_FUT_VALIDE;
 	return type;
 }
 
@@ -103,7 +104,7 @@ Type *Type::cree_entier_constant()
 {
 	auto type = memoire::loge<Type>("Type");
 	type->genre = GenreType::ENTIER_CONSTANT;
-
+	type->drapeaux |= TYPE_FUT_VALIDE;
 	return type;
 }
 
@@ -113,6 +114,7 @@ Type *Type::cree_reel(unsigned taille_octet)
 	type->genre = GenreType::REEL;
 	type->taille_octet = taille_octet;
 	type->alignement = taille_octet;
+	type->drapeaux |= TYPE_FUT_VALIDE;
 	return type;
 }
 
@@ -121,6 +123,7 @@ Type *Type::cree_rien()
 	auto type = memoire::loge<Type>("Type");
 	type->genre = GenreType::RIEN;
 	type->taille_octet = 0;
+	type->drapeaux |= TYPE_FUT_VALIDE;
 	return type;
 }
 
@@ -130,6 +133,7 @@ Type *Type::cree_bool()
 	type->genre = GenreType::BOOL;
 	type->taille_octet = 1;
 	type->alignement = 1;
+	type->drapeaux |= TYPE_FUT_VALIDE;
 	return type;
 }
 
@@ -139,6 +143,7 @@ Type *Type::cree_octet()
 	type->genre = GenreType::OCTET;
 	type->taille_octet = 1;
 	type->alignement = 1;
+	type->drapeaux |= TYPE_FUT_VALIDE;
 	return type;
 }
 
@@ -148,6 +153,7 @@ TypePointeur *TypePointeur::cree(Type *type_pointe)
 	type->type_pointe = type_pointe;
 	type->taille_octet = 8;
 	type->alignement = 8;
+	type->drapeaux |= TYPE_FUT_VALIDE;
 
 	if (type_pointe && type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
@@ -164,6 +170,7 @@ TypeReference *TypeReference::cree(Type *type_pointe)
 	type->type_pointe = type_pointe;
 	type->taille_octet = 8;
 	type->alignement = 8;
+	type->drapeaux |= TYPE_FUT_VALIDE;
 
 	if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
@@ -180,6 +187,7 @@ TypeFonction *TypeFonction::cree(kuri::tableau<Type *> &&entrees, kuri::tableau<
 	type->taille_octet = 8;
 	type->alignement = 8;
 	type->marque_polymorphique();
+	type->drapeaux |= TYPE_FUT_VALIDE;
 
 	return type;
 }
@@ -278,6 +286,7 @@ TypeTypeDeDonnees *TypeTypeDeDonnees::cree(Type *type_connu)
 	type->taille_octet = 8;
 	type->alignement = 8;
 	type->type_connu = type_connu;
+	type->drapeaux |= TYPE_FUT_VALIDE;
 	return type;
 }
 
@@ -287,6 +296,7 @@ TypePolymorphique *TypePolymorphique::cree(IdentifiantCode *ident)
 
 	auto type = memoire::loge<TypePolymorphique>("TypePolymorphique");
 	type->ident = ident;
+	type->drapeaux |= TYPE_FUT_VALIDE;
 	return type;
 }
 
