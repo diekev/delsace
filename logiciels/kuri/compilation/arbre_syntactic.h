@@ -120,7 +120,7 @@ bool est_declaration(GenreNoeud genre);
 
 /* ************************************************************************** */
 
-enum drapeaux_noeud : unsigned short {
+enum drapeaux_noeud : unsigned int {
 	AUCUN                      = 0,
 	EMPLOYE                    = (1 << 0),
 	DECLARATION                = (1 << 1),
@@ -214,9 +214,9 @@ inline bool est_valeur_droite(GenreValeur type_valeur)
 struct NoeudBase {
 	GenreNoeud genre{};
 	GenreValeur genre_valeur{};
-	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
 	char aide_generation_code = 0;
-	REMBOURRE(3);
+	REMBOURRE(1);
+	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
 	Lexeme const *lexeme = nullptr;
 	IdentifiantCode *ident = nullptr;
 	Type *type = nullptr;
