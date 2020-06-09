@@ -2581,6 +2581,11 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 {
 	auto &graphe = m_compilatrice.graphe_dependance;
+
+	auto noeud_dependance = graphe.cree_noeud_type(decl->type);
+	noeud_dependance->noeud_syntactique = decl;
+	decl->noeud_dependance = noeud_dependance;
+
 	if (decl->est_externe && decl->bloc == nullptr) {
 		return false;
 	}
@@ -2598,9 +2603,6 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		rapporte_erreur_redefinition_symbole(decl, decl_precedente);
 		return true;
 	}
-
-	auto noeud_dependance = graphe.cree_noeud_type(decl->type);
-	noeud_dependance->noeud_syntactique = decl;
 
 	auto type_struct = static_cast<TypeStructure *>(decl->type);
 	// @réinitialise en cas d'erreurs passées
