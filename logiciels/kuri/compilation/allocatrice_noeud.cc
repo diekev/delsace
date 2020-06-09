@@ -95,7 +95,6 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
-		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
 		case GenreNoeud::INSTRUCTION_RETOUR:
@@ -107,6 +106,11 @@ NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::EXPRESSION_TYPE_DE:
 		{
 			noeud = m_noeuds_expression_unaire.ajoute_element();
+			break;
+		}
+		case GenreNoeud::DIRECTIVE_EXECUTION:
+		{
+			noeud = m_noeuds_directive_execution.ajoute_element();
 			break;
 		}
 		case GenreNoeud::EXPRESSION_INIT_DE:
@@ -193,6 +197,7 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 	COMPTE_MEMOIRE(NoeudPousseContexte, m_noeuds_pousse_contexte);
 	COMPTE_MEMOIRE(NoeudTableauArgsVariadiques, m_noeuds_tableau_args_variadiques);
 	COMPTE_MEMOIRE(NoeudTente, m_noeuds_tente);
+	COMPTE_MEMOIRE(NoeudDirectiveExecution, m_noeuds_directive_execution);
 
 	pour_chaque_element(m_noeuds_struct, [&](NoeudStruct const &noeud)
 	{
@@ -271,6 +276,7 @@ size_t AllocatriceNoeud::nombre_noeuds() const
 	noeuds += static_cast<size_t>(m_noeuds_si.taille());
 	noeuds += static_cast<size_t>(m_noeuds_pousse_contexte.taille());
 	noeuds += static_cast<size_t>(m_noeuds_tableau_args_variadiques.taille());
+	noeuds += static_cast<size_t>(m_noeuds_directive_execution.taille());
 
 	return noeuds;
 }

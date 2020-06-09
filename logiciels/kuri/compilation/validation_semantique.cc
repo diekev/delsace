@@ -181,7 +181,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
-			auto noeud_directive = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto noeud_directive = static_cast<NoeudDirectiveExecution *>(noeud);
 
 			// crée une fonction pour l'exécution
 			auto noeud_decl = static_cast<NoeudDeclarationFonction *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::DECLARATION_FONCTION, noeud->lexeme));
@@ -205,6 +205,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			auto noeud_dep = m_compilatrice.graphe_dependance.cree_noeud_fonction(noeud_decl);
 			m_compilatrice.graphe_dependance.ajoute_dependances(*noeud_dep, donnees_dependance);
+
+			noeud_directive->fonction = noeud_decl;
+			noeud_decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
 			m_compilatrice.noeuds_a_executer.pousse(noeud_decl);
 

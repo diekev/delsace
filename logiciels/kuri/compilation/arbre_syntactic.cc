@@ -203,7 +203,6 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
-		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
 		case GenreNoeud::INSTRUCTION_RETOUR:
@@ -218,6 +217,16 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 
 			imprime_tab(os, tab);
 			os << "expr unaire : " << expr->lexeme->chaine << '\n';
+
+			imprime_arbre(expr->expr, os, tab + 1);
+			break;
+		}
+		case GenreNoeud::DIRECTIVE_EXECUTION:
+		{
+			auto expr = static_cast<NoeudDirectiveExecution *>(racine);
+
+			imprime_tab(os, tab);
+			os << "dir exécution :\n";
 
 			imprime_arbre(expr->expr, os, tab + 1);
 			break;
@@ -508,7 +517,6 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
-		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
 		case GenreNoeud::INSTRUCTION_RETOUR:
@@ -523,6 +531,15 @@ NoeudExpression *copie_noeud(
 			auto nexpr = static_cast<NoeudExpressionUnaire *>(nracine);
 
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
+			break;
+		}
+		case GenreNoeud::DIRECTIVE_EXECUTION:
+		{
+			auto expr = static_cast<NoeudDirectiveExecution const *>(racine);
+			auto nexpr = static_cast<NoeudDirectiveExecution *>(nracine);
+
+			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
+			nexpr->fonction = static_cast<NoeudDeclarationFonction *>(copie_noeud(assem, expr->fonction, bloc_parent));
 			break;
 		}
 		case GenreNoeud::EXPRESSION_INIT_DE:
@@ -800,7 +817,6 @@ void aplatis_arbre(
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
-		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
 		case GenreNoeud::INSTRUCTION_RETOUR:
@@ -818,6 +834,14 @@ void aplatis_arbre(
 				drapeau |= drapeaux_noeud::DROITE_ASSIGNATION;
 			}
 
+			aplatis_arbre(expr->expr, arbre_aplatis, drapeau);
+			arbre_aplatis.pousse(expr);
+			break;
+		}
+		case GenreNoeud::DIRECTIVE_EXECUTION:
+		{
+			auto expr = static_cast<NoeudDirectiveExecution *>(racine);
+			expr->drapeaux |= drapeau;
 			aplatis_arbre(expr->expr, arbre_aplatis, drapeau);
 			arbre_aplatis.pousse(expr);
 			break;
@@ -1012,7 +1036,6 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
-		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
 		case GenreNoeud::INSTRUCTION_RETOUR:
@@ -1029,6 +1052,14 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 
+			break;
+		}
+		case GenreNoeud::DIRECTIVE_EXECUTION:
+		{
+			auto dir = static_cast<NoeudDirectiveExecution *>(racine);
+			auto etendue_enfant = calcule_etendue_noeud(dir->expr, fichier);
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:

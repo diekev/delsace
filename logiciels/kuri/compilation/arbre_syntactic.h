@@ -467,6 +467,15 @@ struct NoeudTente : public NoeudExpression {
 	NoeudBloc *bloc = nullptr;
 };
 
+struct NoeudDirectiveExecution : NoeudExpression {
+	NoeudDirectiveExecution() { genre = GenreNoeud::DIRECTIVE_EXECUTION; }
+
+	COPIE_CONSTRUCT(NoeudDirectiveExecution);
+
+	NoeudExpression *expr = nullptr;
+	NoeudDeclarationFonction *fonction = nullptr;
+};
+
 void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab);
 
 template <unsigned long N>

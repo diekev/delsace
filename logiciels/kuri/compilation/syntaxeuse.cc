@@ -1029,7 +1029,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 					m_compilatrice.definitions.pousse(chaine);
 				}
 				else if (directive == "exécute") {
-					auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
+					auto noeud = CREE_NOEUD(NoeudDirectiveExecution, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
 					noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
 					return noeud;
 				}
