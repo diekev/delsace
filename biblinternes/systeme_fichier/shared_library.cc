@@ -57,6 +57,7 @@ public:
 };
 
 static dynamic_loading_category erreur_chargement;
+static dynamic_loading_category erreur_symbole;
 
 static void *get_symbol(void *handle, const dls::chaine &name, std::error_code &ec)
 {
@@ -66,7 +67,7 @@ static void *get_symbol(void *handle, const dls::chaine &name, std::error_code &
 
 	const auto err = dlerror();
 	if (err != nullptr) {
-		ec.assign(1, dynamic_loading_category());
+		ec.assign(1, erreur_symbole);
 	}
 
 	return sym;
