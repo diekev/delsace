@@ -669,6 +669,10 @@ AtomeFonction *ConstructriceRI::trouve_ou_insere_fonction(NoeudDeclarationFoncti
 		return iter_fonc->second;
 	}
 
+	// nous ne voulons pas que les allocations des paramètres se retrouvent dans la fonction courante
+	auto fonction = fonction_courante;
+	fonction_courante = nullptr;
+
 	auto params = kuri::tableau<Atome *>();
 	params.reserve(decl->params.taille);
 
@@ -692,6 +696,8 @@ AtomeFonction *ConstructriceRI::trouve_ou_insere_fonction(NoeudDeclarationFoncti
 	}
 
 	table_fonctions.insere({ decl->nom_broye, atome_fonc });
+
+	fonction_courante = fonction;
 
 	return atome_fonc;
 }
@@ -1103,6 +1109,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return cree_constante_entiere(m_compilatrice.typeuse.type_type_de_donnees_, decl->type->index_dans_table_types);
 			}
 
+			fonction_courante = nullptr;
 			nombre_instructions = 0;
 			nombre_labels = 0;
 
