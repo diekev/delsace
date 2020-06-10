@@ -483,8 +483,13 @@ static bool lance_execution(Compilatrice &compilatrice, NoeudDirectiveExecution 
 
 void lance_tacheronne(Compilatrice *compilatrice)
 {
-	auto tacheronne = Tacheronne(*compilatrice);
-	tacheronne.gere_tache();
+	try {
+		auto tacheronne = Tacheronne(*compilatrice);
+		tacheronne.gere_tache();
+	}
+	catch (const erreur::frappe &e) {
+		std::cerr << e.message() << '\n';
+	}
 }
 
 void lance_file_execution(Compilatrice *compilatrice)
