@@ -57,7 +57,7 @@ initialise_RC :: fonc(
     rappel_ajoute_chaine: #nulctx fonc(chaine)(rien),
     rappel_ajoute_fichier: #nulctx fonc(chaine)(rien),
     rappel_obtiens_options : #nulctx fonc()(*OptionsCompilation),
-    rappel_ajourne_options : #nulctx fonc(*OptionsCompilation)(rien)) -> rien #nulctx
+    rappel_ajourne_options : #nulctx fonc(*OptionsCompilation)(rien)) -> rien #nulctx #interface
 {
     nonsûr {
         _RC.rappel_ajout_chaine_à_la_compilation = rappel_ajoute_chaine

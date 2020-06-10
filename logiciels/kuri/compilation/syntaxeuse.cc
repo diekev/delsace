@@ -75,6 +75,7 @@ static auto renseigne_fonction_interface(InterfaceKuri &interface, NoeudDeclarat
 	INIT_MEMBRE(decl_dls_vers_r64, "DLS_vers_r64");
 	INIT_MEMBRE(decl_dls_depuis_r32, "DLS_depuis_r32");
 	INIT_MEMBRE(decl_dls_depuis_r64, "DLS_depuis_r64");
+	INIT_MEMBRE(decl_initialise_rc, "initialise_RC");
 
 #undef INIT_MEMBRE
 }

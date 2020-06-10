@@ -295,8 +295,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 		return; \
 	}
 
-#define ATTEND_SUR_DECL_SI_NECESSAIRE(nom, module, nom_symbole) \
-	auto nom = cherche_symbole_dans_module(compilatrice, module, nom_symbole); \
+#define ATTEND_SUR_DECL_SI_NECESSAIRE(nom) \
 	if (nom == nullptr) { \
 		compilatrice.file_compilation->pousse(unite); \
 		return; \
@@ -315,8 +314,9 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_info_appel_trace_appel);
 				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_info_fonction_trace_appel);
 
-				ATTEND_SUR_DECL_SI_NECESSAIRE(decl_rc, "Compilatrice", "_RC");
-				ATTEND_SUR_DECL_SI_NECESSAIRE(decl_initialise_rc, "Compilatrice", "initialise_RC");
+				auto decl_rc = cherche_symbole_dans_module(compilatrice, "Compilatrice", "_RC");
+				ATTEND_SUR_DECL_SI_NECESSAIRE(decl_rc);
+				ATTEND_SUR_DECL_SI_NECESSAIRE(compilatrice.interface_kuri.decl_initialise_rc);
 
 				if (!dependances_eurent_ri_generees(noeud_dir->fonction->noeud_dependance)) {
 					compilatrice.file_compilation->pousse(unite);
