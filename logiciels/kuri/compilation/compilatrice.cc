@@ -324,7 +324,7 @@ void Compilatrice::ajoute_inclusion(const dls::chaine &fichier)
 
 bool Compilatrice::compilation_terminee() const
 {
-	return file_compilation.est_vide();
+	return file_compilation.est_vide() && file_execution->est_vide();
 }
 
 /* ************************************************************************** */

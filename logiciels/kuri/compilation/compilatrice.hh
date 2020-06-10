@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/structures/liste.hh"
 
 #include "allocatrice_noeud.hh"
@@ -170,6 +171,9 @@ struct Compilatrice {
 
 	dls::liste<UniteCompilation> file_compilation{};
 
+	using TypeFileExecution = dls::liste<NoeudDirectiveExecution *>;
+	dls::outils::Synchrone<TypeFileExecution> file_execution{};
+
 	GeranteChaine gerante_chaine{};
 
 	/* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment. */
@@ -305,9 +309,9 @@ struct Compilatrice {
 	Metriques rassemble_metriques() const;
 
 public:
-	/* À FAIRE : bouge ça d'ici. */
-	double temps_validation = 0.0;
 	double temps_generation = 0.0;
+	double temps_validation = 0.0;
+	double temps_lexage = 0.0;
 };
 
 dls::chaine charge_fichier(

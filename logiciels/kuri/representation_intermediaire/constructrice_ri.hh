@@ -26,6 +26,7 @@
 
 #include "instructions.hh"
 
+#include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/tablet.hh"
@@ -89,7 +90,8 @@ private:
 	NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
 
 	dls::dico<IdentifiantCode *, Atome *> table_locales{};
-	dls::dico<IdentifiantCode *, AtomeGlobale *> table_globales{};
+	using TypeDicoGlobales = dls::dico<IdentifiantCode *, AtomeGlobale *>;
+	dls::outils::Synchrone<TypeDicoGlobales> table_globales{};
 	dls::dico<dls::chaine, AtomeConstante *> table_chaines{};
 
 	dls::tablet<triplet<IdentifiantCode *, InstructionLabel *, InstructionLabel *>, 12> insts_continue_arrete{};
@@ -99,7 +101,8 @@ private:
 	bool expression_gauche = true;
 
 public:
-	dls::dico_desordonne<dls::chaine, AtomeFonction *> table_fonctions{};
+	using TypeDicoFonction = dls::dico<dls::chaine, AtomeFonction *>;
+	dls::outils::Synchrone<TypeDicoFonction> table_fonctions{};
 
 	// stocke les atomes des fonctions et des variables globales
 	kuri::tableau<Atome *> globales{};

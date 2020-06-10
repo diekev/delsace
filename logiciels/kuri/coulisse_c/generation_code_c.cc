@@ -1412,9 +1412,11 @@ void genere_code_C(
 
 	traverse_graphe(fonction_principale, [&](NoeudDependance *noeud)
 	{
+		auto table = constructrice_ri.table_fonctions.verrou_lecture();
+
 		if (noeud->type == TypeNoeudDependance::FONCTION) {
 			auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(noeud->noeud_syntactique);
-			auto atome_fonction = constructrice_ri.table_fonctions[noeud_fonction->nom_broye];
+			auto atome_fonction = table->trouve(noeud_fonction->nom_broye)->second;
 			assert(atome_fonction);
 			fonctions.pousse(atome_fonction);
 		}
@@ -1423,10 +1425,9 @@ void genere_code_C(
 
 			if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
 				auto nom_fonction_init = "initialise_" + dls::vers_chaine(type);
+				auto atome_fonction = table->trouve(nom_fonction_init);
 
-				auto atome_fonction = constructrice_ri.table_fonctions.trouve(nom_fonction_init);
-
-				if (atome_fonction != constructrice_ri.table_fonctions.fin()) {
+				if (atome_fonction != table->fin()) {
 					fonctions.pousse(atome_fonction->second);
 				}
 			}
@@ -1502,9 +1503,11 @@ void genere_code_C_pour_execution(
 
 	traverse_graphe(noeud_directive->fonction->noeud_dependance, [&](NoeudDependance *noeud)
 	{
+		auto table = constructrice_ri.table_fonctions.verrou_lecture();
+
 		if (noeud->type == TypeNoeudDependance::FONCTION) {
 			auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(noeud->noeud_syntactique);
-			auto atome_fonction = constructrice_ri.table_fonctions[noeud_fonction->nom_broye];
+			auto atome_fonction = table->trouve(noeud_fonction->nom_broye)->second;
 			assert(atome_fonction);
 			fonctions.pousse(atome_fonction);
 		}
@@ -1513,10 +1516,9 @@ void genere_code_C_pour_execution(
 
 			if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
 				auto nom_fonction_init = "initialise_" + dls::vers_chaine(type);
+				auto atome_fonction = table->trouve(nom_fonction_init);
 
-				auto atome_fonction = constructrice_ri.table_fonctions.trouve(nom_fonction_init);
-
-				if (atome_fonction != constructrice_ri.table_fonctions.fin()) {
+				if (atome_fonction != table->fin()) {
 					fonctions.pousse(atome_fonction->second);
 				}
 			}
@@ -1525,11 +1527,12 @@ void genere_code_C_pour_execution(
 
 	fonctions.pousse(noeud_directive->fonction_ri_pour_appel);
 
-	auto fonction_init = cherche_fonction_dans_module(compilatrice, "Compilatrice", "initialise_RC");;
-	auto atome_fonc_init = constructrice_ri.table_fonctions[fonction_init->nom_broye];
+	auto fonction_init = cherche_fonction_dans_module(compilatrice, "Compilatrice", "initialise_RC");
+	auto atome_fonc_init = constructrice_ri.table_fonctions->trouve(fonction_init->nom_broye)->second;
 
 	fonctions.pousse(atome_fonc_init);
 
+	// À FAIRE(moulfilage) : protection des globales
 	auto generatrice = GeneratriceCodeC(constructrice_ri.compilatrice());
 	generatrice.genere_code(constructrice_ri.globales, fonctions, enchaineuse);
 

@@ -68,6 +68,9 @@ void Tacheronne::gere_tache()
 		erreur::lance_erreur("Trop de cycles : arrêt de la compilation", compilatrice, &lexeme);
 		return;
 	}
+
+	compilatrice.temps_lexage = temps_lexage;
+	compilatrice.temps_validation = temps_validation;
 }
 
 static bool dependances_directes_eurent_ri_generee(NoeudDependance *noeud)
@@ -322,6 +325,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 
 				compilatrice.constructrice_ri.genere_ri_pour_noeud(noeud_dir->fonction);
 				compilatrice.constructrice_ri.genere_ri_pour_fonction_metaprogramme(noeud_dir);
+				compilatrice.file_execution->pousse(noeud_dir);
 			}
 
 			compilatrice.constructrice_ri.temps_generation += debut_generation.temps();

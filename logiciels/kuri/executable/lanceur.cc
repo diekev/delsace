@@ -54,6 +54,8 @@
 #include "coulisse_llvm/generation_code_llvm.hh"
 #endif
 
+#include <thread>
+
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
@@ -71,6 +73,8 @@
 #include "biblinternes/outils/tableau_donnees.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
+
+#define AVEC_THREADS
 
 #ifdef AVEC_LLVM
 static void initialise_llvm()
@@ -477,6 +481,30 @@ static bool lance_execution(Compilatrice &compilatrice, NoeudDirectiveExecution 
 	return 0;
 }
 
+void lance_tacheronne(Compilatrice *compilatrice)
+{
+	auto tacheronne = Tacheronne(*compilatrice);
+	tacheronne.gere_tache();
+}
+
+void lance_file_execution(Compilatrice *compilatrice)
+{
+	while (!compilatrice->compilation_terminee()) {
+		if (compilatrice->file_execution->est_vide()) {
+			continue;
+		}
+
+		// À FAIRE : il faut vérifier que toutes les dépendances soient satisfaites
+
+		auto noeud = compilatrice->file_execution->effronte();
+		std::ofstream of;
+		of.open("/tmp/execution_kuri.c");
+
+		genere_code_C_pour_execution(*compilatrice, noeud, compilatrice->racine_kuri, of);
+		lance_execution(*compilatrice, noeud);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	INITIALISE_PROFILAGE;
@@ -538,6 +566,8 @@ int main(int argc, char *argv[])
 		compilatrice.racine_kuri = chemin_racine_kuri;
 		compilatrice.bit32 = ops.architecture_cible == ArchitectureCible::X86;
 
+		auto &constructrice_ri = compilatrice.constructrice_ri;
+
 		/* Charge d'abord le module basique. */
 		compilatrice.importe_module("Kuri", {});
 
@@ -549,18 +579,16 @@ int main(int argc, char *argv[])
 		auto module = compilatrice.cree_module("", dossier.c_str());
 		compilatrice.ajoute_fichier_a_la_compilation(nom_fichier.c_str(), module, {});
 
-		auto tacheronne = Tacheronne(compilatrice);
-		tacheronne.gere_tache();
+#ifdef AVEC_THREADS
+		std::thread file_tacheronne(lance_tacheronne, &compilatrice);
+		std::thread file_execution(lance_file_execution, &compilatrice);
 
-		auto &constructrice_ri = compilatrice.constructrice_ri;
-
-		for (auto noeud: compilatrice.noeuds_a_executer) {
-			std::ofstream of;
-			of.open("/tmp/execution_kuri.c");
-
-			genere_code_C_pour_execution(compilatrice, noeud, chemin_racine_kuri, of);
-			lance_execution(compilatrice, noeud);
-		}
+		file_tacheronne.join();
+		file_execution.join();
+#else
+		lance_tacheronne(&compilatrice);
+		lance_file_execution(&compilatrice);
+#endif
 
 		temps_ri = constructrice_ri.temps_generation;
 		memoire_ri = constructrice_ri.memoire_utilisee();
@@ -753,8 +781,8 @@ int main(int argc, char *argv[])
 		metriques.temps_fichier_objet = temps_fichier_objet;
 		metriques.temps_ri = temps_ri;
 		metriques.memoire_ri = memoire_ri;
-		metriques.temps_decoupage = tacheronne.temps_lexage;
-		metriques.temps_validation = tacheronne.temps_validation;
+		metriques.temps_decoupage = compilatrice.temps_lexage;
+		metriques.temps_validation = compilatrice.temps_validation;
 
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = dls::chrono::compte_seconde();
