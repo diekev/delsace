@@ -141,7 +141,7 @@ enum drapeaux_noeud : unsigned int {
 	DECLARATION_FUT_VALIDEE    = (1 << 15),
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
+DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned int)
 
 enum {
 	/* instruction 'pour' */
