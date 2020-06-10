@@ -38,14 +38,14 @@ Tacheronne::Tacheronne(Compilatrice &comp)
 
 void Tacheronne::gere_tache()
 {
-	while (true) {
-		if (compilatrice.file_compilation.est_vide()) {
-			break;
+	while (!compilatrice.compilation_terminee()) {
+		if (compilatrice.file_compilation->taille() == 0) {
+			continue;
 		}
 
 		//std::cerr << "-----------------------------------------\n";
-		//std::cerr << "-- taille file compilation : " << compilatrice.file_compilation.taille() << '\n';
-		auto unite = compilatrice.file_compilation.effronte();
+		//std::cerr << "-- taille file compilation : " << compilatrice.file_compilation->taille() << '\n';
+		auto unite = compilatrice.file_compilation->effronte();
 
 		if (unite.cycle <= 10) {
 			gere_unite(unite);
@@ -57,11 +57,11 @@ void Tacheronne::gere_tache()
 				erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un symbole inconnu", compilatrice, unite.lexeme_attendu);
 			}
 
-			if (compilatrice.file_compilation.est_vide()) {
+			if (compilatrice.file_compilation->est_vide()) {
 				break;
 			}
 
-			unite = compilatrice.file_compilation.effronte();
+			unite = compilatrice.file_compilation->effronte();
 		}
 
 		static Lexeme lexeme = { "", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
@@ -137,7 +137,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 //				std::cerr << "-- regère dans état : " << unite.etat << '\n';
 //				std::cerr << "-- état original    : " << unite.etat_original << '\n';
 				unite.etat_original = UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU;
-				compilatrice.file_compilation.pousse(unite);
+				compilatrice.file_compilation->pousse(unite);
 			}
 
 			temps_validation += debut_validation.temps();
@@ -160,19 +160,19 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						//std::cerr << "-- l'entête de la fonction ne fut pas encore validé\n";
 						unite.etat = UniteCompilation::Etat::ATTEND_SUR_DECLARATION;
 						unite.declaration_attendue = decl;
-						compilatrice.file_compilation.pousse(unite);
+						compilatrice.file_compilation->pousse(unite);
 						return;
 					}
 
 					if (contexte.valide_fonction(decl)) {
 						//std::cerr << "-- Une erreur est survenue\n";
-						compilatrice.file_compilation.pousse(unite);
+						compilatrice.file_compilation->pousse(unite);
 						return;
 					}
 
 					if (!decl->est_gabarit || decl->est_instantiation_gabarit) {
 						unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
-						compilatrice.file_compilation.pousse(unite);
+						compilatrice.file_compilation->pousse(unite);
 					}
 
 					break;
@@ -183,12 +183,12 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 					//std::cerr << "-- valide opérateur : " << decl->lexeme->chaine << '\n';
 					if (contexte.valide_operateur(decl)) {
 						//std::cerr << "-- Une erreur est survenue\n";
-						compilatrice.file_compilation.pousse(unite);
+						compilatrice.file_compilation->pousse(unite);
 						return;
 					}
 
 					unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
-					compilatrice.file_compilation.pousse(unite);
+					compilatrice.file_compilation->pousse(unite);
 
 					break;
 				}
@@ -198,7 +198,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 					//std::cerr << "-- valide énum : " << decl->lexeme->chaine << '\n';
 					if (contexte.valide_enum(decl)) {
 						//std::cerr << "-- Une erreur est survenue\n";
-						compilatrice.file_compilation.pousse(unite);
+						compilatrice.file_compilation->pousse(unite);
 						return;
 					}
 					break;
@@ -209,12 +209,12 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 					//std::cerr << "-- valide structure : " << decl->lexeme->chaine << '\n';
 					if (contexte.valide_structure(decl)) {
 						//std::cerr << "-- Une erreur est survenue\n";
-						compilatrice.file_compilation.pousse(unite);
+						compilatrice.file_compilation->pousse(unite);
 						return;
 					}
 
 					unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
-					compilatrice.file_compilation.pousse(unite);
+					compilatrice.file_compilation->pousse(unite);
 					break;
 				}
 				case GenreNoeud::DECLARATION_VARIABLE:
@@ -227,7 +227,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 					for (auto &n : arbre_aplatis) {
 						if (contexte.valide_semantique_noeud(n)) {
 							//std::cerr << "-- Une erreur est survenue\n";
-							compilatrice.file_compilation.pousse(unite);
+							compilatrice.file_compilation->pousse(unite);
 							return;
 						}
 					}
@@ -236,7 +236,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 					compilatrice.graphe_dependance.ajoute_dependances(*noeud_dependance, contexte.donnees_dependance);
 
 					unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
-					compilatrice.file_compilation.pousse(unite);
+					compilatrice.file_compilation->pousse(unite);
 
 					break;
 				}
@@ -249,13 +249,13 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 					for (auto &n : arbre_aplatis) {
 						if (contexte.valide_semantique_noeud(n)) {
 							//std::cerr << "-- Une erreur est survenue\n";
-							compilatrice.file_compilation.pousse(unite);
+							compilatrice.file_compilation->pousse(unite);
 							return;
 						}
 					}
 
 					unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
-					compilatrice.file_compilation.pousse(unite);
+					compilatrice.file_compilation->pousse(unite);
 
 					break;
 				}
@@ -285,26 +285,26 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 
 #define ATTEND_SUR_TYPE_SI_NECESSAIRE(type) \
 	if (type == nullptr) { \
-		compilatrice.file_compilation.pousse(unite); \
+		compilatrice.file_compilation->pousse(unite); \
 		return; \
 	} \
 	if ((type->drapeaux & RI_TYPE_FUT_GENEREE) == 0) { \
 		unite.etat_original = UniteCompilation::Etat::RI_ATTENDUE; \
 		unite.attend_sur_type(type); \
-		compilatrice.file_compilation.pousse(unite); \
+		compilatrice.file_compilation->pousse(unite); \
 		return; \
 	}
 
 #define ATTEND_SUR_DECL_SI_NECESSAIRE(nom, module, nom_symbole) \
 	auto nom = cherche_symbole_dans_module(compilatrice, module, nom_symbole); \
 	if (nom == nullptr) { \
-		compilatrice.file_compilation.pousse(unite); \
+		compilatrice.file_compilation->pousse(unite); \
 		return; \
 	} \
 	if ((nom->drapeaux & RI_FUT_GENEREE) == 0) { \
 		unite.etat_original = UniteCompilation::Etat::RI_ATTENDUE; \
 		unite.attend_sur_declaration(nom); \
-		compilatrice.file_compilation.pousse(unite); \
+		compilatrice.file_compilation->pousse(unite); \
 		return; \
 	}
 
@@ -319,7 +319,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 				ATTEND_SUR_DECL_SI_NECESSAIRE(decl_initialise_rc, "Compilatrice", "initialise_RC");
 
 				if (!dependances_eurent_ri_generees(noeud_dir->fonction->noeud_dependance)) {
-					compilatrice.file_compilation.pousse(unite);
+					compilatrice.file_compilation->pousse(unite);
 					return;
 				}
 
@@ -352,7 +352,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 			}
 			else {
 				//std::cerr << "-- le type ne fut pas validée\n";
-				compilatrice.file_compilation.pousse(unite);
+				compilatrice.file_compilation->pousse(unite);
 			}
 
 			break;
@@ -376,7 +376,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 			}
 			else {
 				//std::cerr << "-- la déclaration ne fut pas validée\n";
-				compilatrice.file_compilation.pousse(unite);
+				compilatrice.file_compilation->pousse(unite);
 			}
 
 			break;

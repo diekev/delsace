@@ -4008,7 +4008,7 @@ Atome *ConstructriceRI::genere_ri_pour_position_code_source(NoeudExpression *noe
 	auto alloc = cree_allocation(type_position, nullptr);
 
 	// fichier
-	auto fichier = m_compilatrice.fichiers[noeud->lexeme->fichier];
+	auto fichier = m_compilatrice.fichiers->a(noeud->lexeme->fichier);
 	auto chaine_nom_fichier = cree_chaine(fichier->nom);
 	auto ptr_fichier = cree_acces_membre(alloc, 0);
 	cree_stocke_mem(ptr_fichier, chaine_nom_fichier);

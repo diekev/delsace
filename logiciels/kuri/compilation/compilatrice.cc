@@ -54,11 +54,13 @@ Compilatrice::Compilatrice()
 
 Compilatrice::~Compilatrice()
 {
-	for (auto module : modules) {
+	auto modules_ = modules.verrou_lecture();
+	for (auto module : *modules_) {
 		memoire::deloge("Module", module);
 	}
 
-	for (auto fichier : fichiers) {
+	auto fichiers_ = fichiers.verrou_lecture();
+	for (auto fichier : *fichiers_) {
 		memoire::deloge("Fichier", fichier);
 	}
 
@@ -133,30 +135,32 @@ Module *Compilatrice::cree_module(
 		chemin_corrige.append('/');
 	}
 
-	for (auto module : modules) {
+	auto modules_ = modules.verrou_ecriture();
+	for (auto module : *modules_) {
 		if (module->chemin == chemin_corrige) {
 			return module;
 		}
 	}
 
 	auto module = memoire::loge<Module>("Module", *this);
-	module->id = static_cast<size_t>(modules.taille());
+	module->id = static_cast<size_t>(modules_->taille());
 	module->nom = nom;
 	module->chemin = chemin_corrige;
 
-	modules.pousse(module);
+	modules_->pousse(module);
 
 	return module;
 }
 
 Module *Compilatrice::module(size_t index) const
 {
-	return modules[static_cast<long>(index)];
+	return modules->a(static_cast<long>(index));
 }
 
 Module *Compilatrice::module(const dls::vue_chaine_compacte &nom) const
 {
-	for (auto module : modules) {
+	auto modules_ = modules.verrou_lecture();
+	for (auto module : *modules_) {
 		if (module->nom == nom) {
 			return module;
 		}
@@ -167,7 +171,8 @@ Module *Compilatrice::module(const dls::vue_chaine_compacte &nom) const
 
 bool Compilatrice::module_existe(const dls::vue_chaine_compacte &nom) const
 {
-	for (auto module : modules) {
+	auto modules_ = modules.verrou_lecture();
+	for (auto module : *modules_) {
 		if (module->nom == nom) {
 			return true;
 		}
@@ -256,21 +261,23 @@ void Compilatrice::ajoute_fichier_a_la_compilation(const dls::chaine &nom, Modul
 	unite.fichier = fichier;
 	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
 
-	file_compilation.pousse(unite);
+	file_compilation->pousse(unite);
 }
 
 Fichier *Compilatrice::cree_fichier(
 		dls::chaine const &nom,
 		dls::chaine const &chemin)
 {
-	for (auto fichier : fichiers) {
+	auto fichiers_ = fichiers.verrou_ecriture();
+
+	for (auto fichier : *fichiers_) {
 		if (fichier->chemin == chemin) {
 			return nullptr;
 		}
 	}
 
 	auto fichier = memoire::loge<Fichier>("Fichier");
-	fichier->id = static_cast<size_t>(fichiers.taille());
+	fichier->id = static_cast<size_t>(fichiers_->taille());
 	fichier->nom = nom;
 	fichier->chemin = chemin;
 
@@ -278,19 +285,21 @@ Fichier *Compilatrice::cree_fichier(
 		fichier->modules_importes.insere("Kuri");
 	}
 
-	fichiers.pousse(fichier);
+	fichiers_->pousse(fichier);
 
 	return fichier;
 }
 
 Fichier *Compilatrice::fichier(size_t index) const
 {
-	return fichiers[static_cast<long>(index)];
+	return fichiers->a(static_cast<long>(index));
 }
 
 Fichier *Compilatrice::fichier(const dls::vue_chaine_compacte &nom) const
 {
-	for (auto fichier : fichiers) {
+	auto fichiers_ = fichiers.verrou_lecture();
+
+	for (auto fichier : *fichiers_) {
 		if (fichier->nom == nom) {
 			return fichier;
 		}
@@ -301,7 +310,9 @@ Fichier *Compilatrice::fichier(const dls::vue_chaine_compacte &nom) const
 
 bool Compilatrice::fichier_existe(const dls::vue_chaine_compacte &nom) const
 {
-	for (auto fichier : fichiers) {
+	auto fichiers_ = fichiers.verrou_lecture();
+
+	for (auto fichier : *fichiers_) {
 		if (fichier->nom == nom) {
 			return true;
 		}
@@ -324,7 +335,7 @@ void Compilatrice::ajoute_inclusion(const dls::chaine &fichier)
 
 bool Compilatrice::compilation_terminee() const
 {
-	return file_compilation.est_vide() && file_execution->est_vide();
+	return file_compilation->est_vide() && file_execution->est_vide();
 }
 
 /* ************************************************************************** */
@@ -336,7 +347,7 @@ void Compilatrice::ajoute_unite_compilation_pour_typage(NoeudExpression *express
 	unite.etat = UniteCompilation::Etat::TYPAGE_ATTENDU;
 	unite.etat_original = UniteCompilation::Etat::TYPAGE_ATTENDU;
 
-	file_compilation.pousse(unite);
+	file_compilation->pousse(unite);
 }
 
 void Compilatrice::ajoute_unite_compilation_entete_fonction(NoeudDeclarationFonction *decl)
@@ -346,7 +357,7 @@ void Compilatrice::ajoute_unite_compilation_entete_fonction(NoeudDeclarationFonc
 	unite.etat = UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU;
 	unite.etat_original = UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU;
 
-	file_compilation.pousse(unite);
+	file_compilation->pousse(unite);
 }
 
 /* ************************************************************************** */
@@ -377,10 +388,11 @@ size_t Compilatrice::memoire_utilisee() const
 
 	memoire += static_cast<size_t>(chemins.taille()) * sizeof(dls::vue_chaine_compacte);
 	memoire += static_cast<size_t>(definitions.taille()) * sizeof(dls::vue_chaine_compacte);
-	memoire += static_cast<size_t>(modules.taille()) * sizeof(Module *);
-	memoire += static_cast<size_t>(fichiers.taille()) * sizeof(Fichier *);
+	memoire += static_cast<size_t>(modules->taille()) * sizeof(Module *);
+	memoire += static_cast<size_t>(fichiers->taille()) * sizeof(Fichier *);
 
-	POUR (modules) {
+	auto modules_ = modules.verrou_lecture();
+	POUR (*modules_) {
 		memoire += static_cast<size_t>(it->fichiers.taille()) * sizeof(Fichier *);
 		memoire += static_cast<size_t>(it->nom.taille());
 		memoire += static_cast<size_t>(it->chemin.taille());
@@ -390,14 +402,15 @@ size_t Compilatrice::memoire_utilisee() const
 		}
 	}
 
-	POUR (fichiers) {
+	auto fichiers_ = fichiers.verrou_lecture();
+	POUR (*fichiers_) {
 		// les autres membres sont gérés dans rassemble_metriques()
 		if (!it->modules_importes.est_stocke_dans_classe()) {
 			memoire += static_cast<size_t>(it->modules_importes.taille()) * sizeof(dls::vue_chaine_compacte);
 		}
 	}
 
-	memoire += static_cast<size_t>(file_compilation.taille()) * sizeof(UniteCompilation);
+	memoire += static_cast<size_t>(file_compilation->taille()) * sizeof(UniteCompilation);
 	memoire += static_cast<size_t>(noeuds_a_executer.taille()) * sizeof(NoeudDeclarationFonction *);
 	memoire += table_identifiants.memoire_utilisee();
 
@@ -412,7 +425,7 @@ size_t Compilatrice::memoire_utilisee() const
 Metriques Compilatrice::rassemble_metriques() const
 {
 	auto metriques = Metriques{};
-	metriques.nombre_modules  = static_cast<size_t>(modules.taille());
+	metriques.nombre_modules  = static_cast<size_t>(modules->taille());
 	metriques.temps_validation = this->temps_validation;
 	metriques.temps_generation = this->temps_generation;
 	metriques.memoire_types = this->typeuse.memoire_utilisee();
@@ -432,7 +445,8 @@ Metriques Compilatrice::rassemble_metriques() const
 		metriques.nombre_operateurs += it.second.taille();
 	}
 
-	for (auto fichier : fichiers) {
+	auto fichiers_ = fichiers.verrou_lecture();
+	for (auto fichier : *fichiers_) {
 		metriques.nombre_lignes += fichier->tampon.nombre_lignes();
 		metriques.memoire_tampons += fichier->tampon.taille_donnees();
 		metriques.memoire_lexemes += static_cast<size_t>(fichier->lexemes.taille()) * sizeof(Lexeme);

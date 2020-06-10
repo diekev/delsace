@@ -148,8 +148,8 @@ struct Compilatrice {
 	/* À FAIRE : supprime ceci */
 	assembleuse_arbre *assembleuse = nullptr;
 
-	dls::tableau<Module *> modules{};
-	dls::tableau<Fichier *> fichiers{};
+	dls::outils::Synchrone<dls::tableau<Module *>> modules{};
+	dls::outils::Synchrone<dls::tableau<Fichier *>> fichiers{};
 
 	GrapheDependance graphe_dependance{};
 
@@ -169,7 +169,8 @@ struct Compilatrice {
 
 	dls::tableau<NoeudDirectiveExecution *> noeuds_a_executer{};
 
-	dls::liste<UniteCompilation> file_compilation{};
+	using TypeFileUC = dls::liste<UniteCompilation>;
+	dls::outils::Synchrone<TypeFileUC> file_compilation{};
 
 	using TypeFileExecution = dls::liste<NoeudDirectiveExecution *>;
 	dls::outils::Synchrone<TypeFileExecution> file_execution{};

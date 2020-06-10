@@ -399,12 +399,23 @@ static void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri
 	std::cout << "Compilation réussie !" << std::endl;
 }
 
+static Compilatrice *ptr_compilatrice = nullptr;
+
 void ajoute_chaine_compilation(kuri::chaine c)
 {
-	std::cerr << "Chaine ajoutée à la compilation :\n";
+	auto chaine = dls::chaine(c.pointeur, c.taille);
 
-	auto vue = dls::vue_chaine(c.pointeur, c.taille);
-	std::cerr << "-- " << vue << '\n';
+	auto module = ptr_compilatrice->cree_module("", "");
+	auto fichier = ptr_compilatrice->cree_fichier("métaprogramme", "");
+	fichier->tampon = lng::tampon_source(chaine);
+	fichier->module = module;
+	module->fichiers.pousse(fichier);
+
+	auto unite = UniteCompilation();
+	unite.fichier = fichier;
+	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
+
+	ptr_compilatrice->file_compilation->pousse(unite);
 }
 
 void ajoute_fichier_compilation(kuri::chaine c)
@@ -499,14 +510,15 @@ void lance_file_execution(Compilatrice *compilatrice)
 			continue;
 		}
 
-		// À FAIRE : il faut vérifier que toutes les dépendances soient satisfaites
-
-		auto noeud = compilatrice->file_execution->effronte();
+		// N'effronte pas sinon les autres threads pourraient s'arrêter alors que le métaprogramme pourrait ajouter des choses à compiler.
+		auto noeud = compilatrice->file_execution->front();
 		std::ofstream of;
 		of.open("/tmp/execution_kuri.c");
 
 		genere_code_C_pour_execution(*compilatrice, noeud, compilatrice->racine_kuri, of);
 		lance_execution(*compilatrice, noeud);
+
+		compilatrice->file_execution->effronte();
 	}
 }
 
@@ -568,6 +580,8 @@ int main(int argc, char *argv[])
 		auto nom_fichier = chemin.stem();
 
 		auto compilatrice = Compilatrice{};
+		ptr_compilatrice = &compilatrice;
+
 		compilatrice.racine_kuri = chemin_racine_kuri;
 		compilatrice.bit32 = ops.architecture_cible == ArchitectureCible::X86;
 
