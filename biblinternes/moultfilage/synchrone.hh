@@ -105,6 +105,11 @@ public:
 		{
 			return m_parent ? &m_parent->m_donnee : nullptr;
 		}
+
+		T &operator*()
+		{
+			return m_parent->m_donnee;
+		}
 	};
 
 	/* Cet opérateur va appelé PointeurVerrouille::operator->() de manière
@@ -191,6 +196,11 @@ public:
 		T const *operator->() const
 		{
 			return m_parent ? &m_parent->m_donnee : nullptr;
+		}
+
+		T const &operator*() const
+		{
+			return m_parent->m_donnee;
 		}
 	};
 
