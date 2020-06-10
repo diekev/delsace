@@ -28,12 +28,14 @@
 
 struct Compilatrice;
 struct ConstructriceRI;
+struct NoeudDirectiveExecution;
 
 void genere_code_C(ConstructriceRI &constructrice_ri,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);
 
-void genere_code_C_pour_execution(Compilatrice &compilatrice,
-		ConstructriceRI &constructrice_ri,
+void genere_code_C_pour_execution(
+		Compilatrice &compilatrice,
+		NoeudDirectiveExecution *noeud_directive,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);

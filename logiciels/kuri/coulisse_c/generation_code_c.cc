@@ -1144,10 +1144,10 @@ struct GeneratriceCodeC {
 		}
 	}
 
-	void genere_code(ConstructriceRI &constructrice_ri, Enchaineuse &os)
+	void genere_code(kuri::tableau<Atome *> const &globales, kuri::tableau<Atome *> const &fonctions, Enchaineuse &os)
 	{
 		// prédéclare les globales pour éviter les problèmes de références cycliques
-		POUR (constructrice_ri.globales) {
+		POUR (globales) {
 			auto valeur_globale = static_cast<AtomeGlobale const *>(it);
 
 			if (!valeur_globale->est_constante) {
@@ -1175,7 +1175,7 @@ struct GeneratriceCodeC {
 		// prédéclare ensuite les fonction pour éviter les problèmes de
 		// dépendances cycliques, mais aussi pour prendre en compte les cas où
 		// les globales utilises des fonctions dans leurs initialisations
-		POUR (constructrice_ri.fonctions) {
+		POUR (fonctions) {
 			if (it->genre_atome != Atome::Genre::FONCTION) {
 				continue;
 			}
@@ -1210,7 +1210,7 @@ struct GeneratriceCodeC {
 		}
 
 		// définis ensuite les globales
-		POUR (constructrice_ri.globales) {
+		POUR (globales) {
 			auto valeur_globale = static_cast<AtomeGlobale const *>(it);
 
 			auto valeur_initialisateur = dls::chaine();
@@ -1248,7 +1248,7 @@ struct GeneratriceCodeC {
 		}
 
 		// définis enfin les fonction
-		POUR (constructrice_ri.fonctions) {
+		POUR (fonctions) {
 			switch (it->genre_atome) {
 				case Atome::Genre::FONCTION:
 				{
@@ -1339,6 +1339,11 @@ struct GeneratriceCodeC {
 			}
 		}
 	}
+
+	void genere_code(ConstructriceRI const &constructrice_ri, Enchaineuse &os)
+	{
+		genere_code(constructrice_ri.globales, constructrice_ri.fonctions, os);
+	}
 };
 
 void genere_code_C(
@@ -1349,6 +1354,10 @@ void genere_code_C(
 	auto debut_generation = dls::chrono::compte_seconde();
 
 	Enchaineuse enchaineuse;
+
+	// nous devons générer la fonction main ici, car elle défini le type du tableau de
+	// stockage temporaire, et les typedefs pour les types sont générés avant les fonctions.
+	auto atome_main = constructrice_ri.genere_ri_pour_fonction_main();
 
 	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
 	genere_typedefs_pour_tous_les_types(constructrice_ri.compilatrice(), enchaineuse);
@@ -1393,8 +1402,41 @@ void genere_code_C(
 		});
 	}
 
+	auto fonction_principale = compilatrice.graphe_dependance.cherche_noeud_fonction("principale");
+
+	POUR (compilatrice.graphe_dependance.noeuds) {
+		it->fut_visite = false;
+	}
+
+	kuri::tableau<Atome *> fonctions;
+
+	traverse_graphe(fonction_principale, [&](NoeudDependance *noeud)
+	{
+		if (noeud->type == TypeNoeudDependance::FONCTION) {
+			auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(noeud->noeud_syntactique);
+			auto atome_fonction = constructrice_ri.table_fonctions[noeud_fonction->nom_broye];
+			assert(atome_fonction);
+			fonctions.pousse(atome_fonction);
+		}
+		else if (noeud->type == TypeNoeudDependance::TYPE) {
+			auto type = noeud->type_;
+
+			if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
+				auto nom_fonction_init = "initialise_" + dls::vers_chaine(type);
+
+				auto atome_fonction = constructrice_ri.table_fonctions.trouve(nom_fonction_init);
+
+				if (atome_fonction != constructrice_ri.table_fonctions.fin()) {
+					fonctions.pousse(atome_fonction->second);
+				}
+			}
+		}
+	});
+
+	fonctions.pousse(atome_main);
+
 	auto generatrice = GeneratriceCodeC(constructrice_ri.compilatrice());
-	generatrice.genere_code(constructrice_ri, enchaineuse);
+	generatrice.genere_code(constructrice_ri.globales, fonctions, enchaineuse);
 
 	enchaineuse.imprime_dans_flux(fichier_sortie);
 
@@ -1403,10 +1445,11 @@ void genere_code_C(
 
 void genere_code_C_pour_execution(
 		Compilatrice &compilatrice,
-		ConstructriceRI &constructrice_ri,
+		NoeudDirectiveExecution *noeud_directive,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie)
 {
+	auto &constructrice_ri = compilatrice.constructrice_ri;
 	Enchaineuse enchaineuse;
 
 	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
@@ -1451,8 +1494,44 @@ void genere_code_C_pour_execution(
 		});
 	}
 
+	POUR (compilatrice.graphe_dependance.noeuds) {
+		it->fut_visite = false;
+	}
+
+	kuri::tableau<Atome *> fonctions;
+
+	traverse_graphe(noeud_directive->fonction->noeud_dependance, [&](NoeudDependance *noeud)
+	{
+		if (noeud->type == TypeNoeudDependance::FONCTION) {
+			auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(noeud->noeud_syntactique);
+			auto atome_fonction = constructrice_ri.table_fonctions[noeud_fonction->nom_broye];
+			assert(atome_fonction);
+			fonctions.pousse(atome_fonction);
+		}
+		else if (noeud->type == TypeNoeudDependance::TYPE) {
+			auto type = noeud->type_;
+
+			if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
+				auto nom_fonction_init = "initialise_" + dls::vers_chaine(type);
+
+				auto atome_fonction = constructrice_ri.table_fonctions.trouve(nom_fonction_init);
+
+				if (atome_fonction != constructrice_ri.table_fonctions.fin()) {
+					fonctions.pousse(atome_fonction->second);
+				}
+			}
+		}
+	});
+
+	fonctions.pousse(noeud_directive->fonction_ri_pour_appel);
+
+	auto fonction_init = cherche_fonction_dans_module(compilatrice, "Compilatrice", "initialise_RC");;
+	auto atome_fonc_init = constructrice_ri.table_fonctions[fonction_init->nom_broye];
+
+	fonctions.pousse(atome_fonc_init);
+
 	auto generatrice = GeneratriceCodeC(constructrice_ri.compilatrice());
-	generatrice.genere_code(constructrice_ri, enchaineuse);
+	generatrice.genere_code(constructrice_ri.globales, fonctions, enchaineuse);
 
 	enchaineuse.imprime_dans_flux(fichier_sortie);
 

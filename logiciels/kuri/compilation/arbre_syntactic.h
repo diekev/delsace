@@ -35,6 +35,7 @@
 #include "transformation_type.hh"
 
 class assembleuse_arbre;
+struct AtomeFonction;
 struct OperateurBinaire;
 struct OperateurUnaire;
 struct Fichier;
@@ -474,6 +475,7 @@ struct NoeudDirectiveExecution : NoeudExpression {
 
 	NoeudExpression *expr = nullptr;
 	NoeudDeclarationFonction *fonction = nullptr;
+	AtomeFonction *fonction_ri_pour_appel = nullptr;
 };
 
 void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab);

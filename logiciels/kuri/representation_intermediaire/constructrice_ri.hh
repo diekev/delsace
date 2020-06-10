@@ -33,6 +33,7 @@
 struct Compilatrice;
 struct NoeudBloc;
 struct NoeudDependance;
+struct NoeudDirectiveExecution;
 struct NoeudDiscr;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
@@ -50,8 +51,6 @@ struct triplet {
 	T1 t1;
 	T2 t2;
 };
-
-#undef DEBOGUE_PROGRESSION_RI
 
 struct ConstructriceRI {
 private:
@@ -91,7 +90,6 @@ private:
 
 	dls::dico<IdentifiantCode *, Atome *> table_locales{};
 	dls::dico<IdentifiantCode *, AtomeGlobale *> table_globales{};
-	dls::dico_desordonne<dls::chaine, AtomeFonction *> table_fonctions{};
 	dls::dico<dls::chaine, AtomeConstante *> table_chaines{};
 
 	dls::tablet<triplet<IdentifiantCode *, InstructionLabel *, InstructionLabel *>, 12> insts_continue_arrete{};
@@ -100,12 +98,9 @@ private:
 
 	bool expression_gauche = true;
 
-#ifdef DEBOGUE_PROGRESSION_RI
-	int m_noeuds_a_traiter = 0;
-	int m_noeuds_traites = 0;
-#endif
-
 public:
+	dls::dico_desordonne<dls::chaine, AtomeFonction *> table_fonctions{};
+
 	// stocke les atomes des fonctions et des variables globales
 	kuri::tableau<Atome *> globales{};
 	kuri::tableau<Atome *> fonctions{};
@@ -118,9 +113,9 @@ public:
 
 	~ConstructriceRI();
 
-	void genere_ri();
-	void genere_ri_a_partir_de(NoeudDeclarationFonction *noeud);
-	void genere_ri_pour_fonction_metaprogramme(NoeudDeclarationFonction *noeud);
+	Atome *genere_ri_pour_noeud(NoeudExpression *noeud);
+	void genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecution *noeud);
+	AtomeFonction *genere_ri_pour_fonction_main();
 
 	void imprime_programme() const;
 
@@ -130,6 +125,8 @@ public:
 	{
 		return m_compilatrice;
 	}
+
+	void construit_table_types();
 
 private:
 	void cree_interface_programme();
@@ -184,9 +181,8 @@ private:
 	void empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_arrete);
 	void depile_controle_boucle();
 
-	void genere_ri_pour_fonction_main();
+	Atome *genere_ri_pour_noeud_ex(NoeudExpression *noeud);
 	Atome *genere_ri_pour_creation_contexte(AtomeFonction *fonction);
-	Atome *genere_ri_pour_noeud(NoeudExpression *noeud);
 	Atome *genere_ri_pour_expression_droite(NoeudExpression *noeud);
 	Atome *genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place);
 	Atome *genere_ri_pour_discr(NoeudDiscr *noeud);

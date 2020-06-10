@@ -36,6 +36,7 @@
 Compilatrice::Compilatrice()
 	: assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", *this))
 	, typeuse(graphe_dependance, this->operateurs)
+	, constructrice_ri(*this)
 {
 	enregistre_operateurs_basiques(*this, this->operateurs);
 

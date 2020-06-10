@@ -428,7 +428,7 @@ void ajourne_options_compilation(OptionsCompilation *options)
 	}
 }
 
-static bool lance_execution(Compilatrice &compilatrice, NoeudDeclarationFonction *noeud)
+static bool lance_execution(Compilatrice &compilatrice, NoeudDirectiveExecution *noeud)
 {
 	// crée un fichier objet
 	auto commande = "gcc -Wno-discarded-qualifiers -Wno-format-security -shared -fPIC -o /tmp/test_execution.so /tmp/execution_kuri.c /tmp/r16_tables.o";
@@ -552,22 +552,18 @@ int main(int argc, char *argv[])
 		auto tacheronne = Tacheronne(compilatrice);
 		tacheronne.gere_tache();
 
-		auto constructrice_ri = ConstructriceRI(compilatrice);
+		auto &constructrice_ri = compilatrice.constructrice_ri;
 
 		for (auto noeud: compilatrice.noeuds_a_executer) {
 			std::ofstream of;
 			of.open("/tmp/execution_kuri.c");
 
-			constructrice_ri.genere_ri_a_partir_de(noeud);
 			constructrice_ri.genere_ri_pour_fonction_metaprogramme(noeud);
-			constructrice_ri.imprime_programme();
+			//constructrice_ri.imprime_programme();
 
-			genere_code_C_pour_execution(compilatrice, constructrice_ri, chemin_racine_kuri, of);
+			genere_code_C_pour_execution(compilatrice, noeud, chemin_racine_kuri, of);
 			lance_execution(compilatrice, noeud);
 		}
-
-		constructrice_ri.genere_ri();
-		//constructrice_ri.imprime_programme();
 
 		temps_ri = constructrice_ri.temps_generation;
 		memoire_ri = constructrice_ri.memoire_utilisee();

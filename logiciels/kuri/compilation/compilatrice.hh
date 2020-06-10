@@ -32,6 +32,8 @@
 #include "typage.hh"
 #include "unite_compilation.hh"
 
+#include "../representation_intermediaire/constructrice_ri.hh"
+
 class assembleuse_arbre;
 
 struct Module;
@@ -160,9 +162,11 @@ struct Compilatrice {
 
 	Type *type_contexte = nullptr;
 
+	ConstructriceRI constructrice_ri;
+
 	bool bit32 = false;
 
-	dls::tableau<NoeudDeclarationFonction *> noeuds_a_executer{};
+	dls::tableau<NoeudDirectiveExecution *> noeuds_a_executer{};
 
 	dls::liste<UniteCompilation> file_compilation{};
 

@@ -209,7 +209,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			noeud_directive->fonction = noeud_decl;
 			noeud_decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-			m_compilatrice.noeuds_a_executer.pousse(noeud_decl);
+			m_compilatrice.noeuds_a_executer.pousse(noeud_directive);
 
 			break;
 		}

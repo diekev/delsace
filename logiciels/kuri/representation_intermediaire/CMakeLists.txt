@@ -22,6 +22,7 @@
 set(NOM_CIBLE kuri_representation_intermediaire)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../compilation/
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 )

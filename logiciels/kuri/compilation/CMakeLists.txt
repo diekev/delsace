@@ -23,6 +23,7 @@ set(NOM_CIBLE kuri_compilation)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
+	${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
 set(BIBLIOTHEQUES

@@ -29,8 +29,8 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
 
-#include "operateurs.hh"
-#include "structures.hh"
+#include "compilation/operateurs.hh"
+#include "compilation/structures.hh"
 
 struct IdentifiantCode;
 struct Lexeme;

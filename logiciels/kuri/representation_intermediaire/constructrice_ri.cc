@@ -129,112 +129,32 @@ ConstructriceRI::~ConstructriceRI()
 #undef DELOGE_ATOMES
 }
 
-void ConstructriceRI::genere_ri()
+void ConstructriceRI::construit_table_types()
 {
-	auto &graphe_dependance = m_compilatrice.graphe_dependance;
-	auto noeud_fonction_principale = graphe_dependance.cherche_noeud_fonction("principale");
+	/* À FAIRE(table type) : idéalement nous devrions générer une table de type uniquement pour les types utilisés
+	 * dans le programme final (ignorant les types générés par la constructrice, comme les pointeurs pour les arguments).
+	 * Pour ce faire, nous ne devrions assigner un index qu'à la fin de la génération de code, mais celui-ci requiers les
+	 * index pour les expressions sur les types. Nous devrions peut-être avoir un système de patch où nous rassemblons
+	 * les différentes instructions utilisant les index des types pour les ajourner avec le bon index à la fin de la compilation.
+	 */
 
-	if (noeud_fonction_principale == nullptr) {
-		erreur::fonction_principale_manquante();
-	}
+#define ASSIGNE_INDEX(type) \
+	if (type->index_dans_table_types == 0u) type->index_dans_table_types = index_type++
 
-	reduction_transitive(graphe_dependance);
-
-	auto debut_generation = dls::chrono::compte_seconde();
-
-#ifdef DEBOGUE_PROGRESSION_RI
-	m_noeuds_a_traiter = 0;
-
-	traverse_graphe(noeud_fonction_principale, [this](NoeudDependance *)
-	{
-		m_noeuds_a_traiter += 1;
-	});
-
-	POUR (graphe_dependance.noeuds) {
-		it->fut_visite = false;
-	}
-
-	m_noeuds_traites = 0;
-#endif
-
-	// table type
-	auto index_type = 0u;
-	m_compilatrice.typeuse.type_type_de_donnees_->index_dans_table_types = index_type++;
-	m_compilatrice.typeuse.type_chaine->index_dans_table_types = index_type++;
-	m_compilatrice.typeuse.type_eini->index_dans_table_types = index_type++;
-	POUR (m_compilatrice.typeuse.types_simples) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_pointeurs) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_references) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_structures) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_enums) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_tableaux_fixes) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_tableaux_dynamiques) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_fonctions) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_variadiques) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_unions) { it->index_dans_table_types = index_type++; }
-
-	traverse_graphe(noeud_fonction_principale, [this](NoeudDependance *racine)
-	{
-#ifdef DEBOGUE_PROGRESSION_RI
-		m_noeuds_traites += 1;
-		std::cerr << "-----------------------------------------\n";
-		std::cerr << "Génére code pour le noeud " << m_noeuds_traites << " / " << m_noeuds_a_traiter << '\n';
-#endif
-
-		if (racine->type == TypeNoeudDependance::TYPE) {
-			if (racine->noeud_syntactique != nullptr) {
-				genere_ri_pour_noeud(racine->noeud_syntactique);
-			}
-		}
-		else {
-			//imprime_arbre(racine->noeud_syntactique, std::cerr, 0);
-			genere_ri_pour_noeud(racine->noeud_syntactique);
-		}
-	});
-
-	genere_ri_pour_fonction_main();
-
-	temps_generation = debut_generation.temps();
-}
-
-void ConstructriceRI::genere_ri_a_partir_de(NoeudDeclarationFonction *noeud)
-{
-	// table type
-	auto index_type = 0u;
-	m_compilatrice.typeuse.type_type_de_donnees_->index_dans_table_types = index_type++;
-	m_compilatrice.typeuse.type_chaine->index_dans_table_types = index_type++;
-	m_compilatrice.typeuse.type_eini->index_dans_table_types = index_type++;
-	POUR (m_compilatrice.typeuse.types_simples) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_pointeurs) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_references) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_structures) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_enums) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_tableaux_fixes) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_tableaux_dynamiques) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_fonctions) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_variadiques) { it->index_dans_table_types = index_type++; }
-	POUR (m_compilatrice.typeuse.types_unions) { it->index_dans_table_types = index_type++; }
-
-	auto noeud_dependance = m_compilatrice.graphe_dependance.cree_noeud_fonction(noeud);
-
-	traverse_graphe(noeud_dependance, [this](NoeudDependance *racine)
-	{
-#ifdef DEBOGUE_PROGRESSION_RI
-		m_noeuds_traites += 1;
-		std::cerr << "-----------------------------------------\n";
-		std::cerr << "Génére code pour le noeud " << m_noeuds_traites << " / " << m_noeuds_a_traiter << '\n';
-#endif
-
-		if (racine->type == TypeNoeudDependance::TYPE) {
-			if (racine->noeud_syntactique != nullptr) {
-				genere_ri_pour_noeud(racine->noeud_syntactique);
-			}
-		}
-		else {
-			//imprime_arbre(racine->noeud_syntactique, std::cerr, 0);
-			genere_ri_pour_noeud(racine->noeud_syntactique);
-		}
-	});
+	auto index_type = 1u;
+	ASSIGNE_INDEX(m_compilatrice.typeuse.type_type_de_donnees_);
+	ASSIGNE_INDEX(m_compilatrice.typeuse.type_chaine);
+	ASSIGNE_INDEX(m_compilatrice.typeuse.type_eini);
+	POUR (m_compilatrice.typeuse.types_simples) { ASSIGNE_INDEX(it); }
+	POUR (m_compilatrice.typeuse.types_pointeurs) { ASSIGNE_INDEX(it); }
+	POUR (m_compilatrice.typeuse.types_references) { ASSIGNE_INDEX(it); }
+	POUR (m_compilatrice.typeuse.types_structures) { ASSIGNE_INDEX(it); }
+	POUR (m_compilatrice.typeuse.types_enums) { ASSIGNE_INDEX(it); }
+	POUR (m_compilatrice.typeuse.types_tableaux_fixes) { ASSIGNE_INDEX(it); }
+	POUR (m_compilatrice.typeuse.types_tableaux_dynamiques) { ASSIGNE_INDEX(it); }
+	POUR (m_compilatrice.typeuse.types_fonctions) { ASSIGNE_INDEX(it); }
+	POUR (m_compilatrice.typeuse.types_variadiques) { ASSIGNE_INDEX(it); }
+	POUR (m_compilatrice.typeuse.types_unions) { ASSIGNE_INDEX(it); }
 }
 
 void ConstructriceRI::imprime_programme() const
@@ -1090,6 +1010,12 @@ void ConstructriceRI::depile_controle_boucle()
 }
 
 Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
+{
+	construit_table_types();
+	return genere_ri_pour_noeud_ex(noeud);
+}
+
+Atome *ConstructriceRI::genere_ri_pour_noeud_ex(NoeudExpression *noeud)
 {
 	switch (noeud->genre) {
 		case GenreNoeud::DECLARATION_ENUM:
@@ -4244,7 +4170,7 @@ AtomeConstante *ConstructriceRI::cree_chaine(dls::vue_chaine_compacte const &cha
 	return constante_chaine;
 }
 
-void ConstructriceRI::genere_ri_pour_fonction_main()
+AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 {
 	nombre_labels = 0;
 	nombre_instructions = 0;
@@ -4315,13 +4241,12 @@ void ConstructriceRI::genere_ri_pour_fonction_main()
 
 	// return
 	cree_retour(valeur_princ);
+
+	return fonction;
 }
 
-void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationFonction *noeud)
+void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecution *noeud)
 {
-	auto fonc_init = cherche_fonction_dans_module(m_compilatrice, "Compilatrice", "initialise_RC");
-	genere_ri_a_partir_de(fonc_init);
-
 	// déclare une fonction de type void(void) appelée lance_execution_XXX
 	auto type_rien = m_compilatrice.typeuse[TypeBase::RIEN];
 
@@ -4345,7 +4270,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationFonc
 
 	// ----------------------------------
 	// appel notre fonction principale en passant le contexte et le tableau
-	auto fonc_metaprogramme = table_fonctions[noeud->nom_broye];
+	auto fonc_metaprogramme = table_fonctions[noeud->fonction->nom_broye];
 
 	auto params_metaprogramme = kuri::tableau<Atome *>(1);
 	params_metaprogramme[0] = cree_charge_mem(alloc_contexte);
@@ -4355,6 +4280,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationFonc
 	cree_appel(&lexeme_appel_principale, fonc_metaprogramme, std::move(params_metaprogramme));
 	cree_retour(nullptr);
 
+	noeud->fonction_ri_pour_appel = fonction_courante;
 	fonction_courante = nullptr;
 }
 

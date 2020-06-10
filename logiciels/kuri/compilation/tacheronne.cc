@@ -133,6 +133,12 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						compilatrice.file_compilation.pousse(unite);
 						return;
 					}
+
+					if (!decl->est_gabarit || decl->est_instantiation_gabarit) {
+						unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
+						compilatrice.file_compilation.pousse(unite);
+					}
+
 					break;
 				}
 				case GenreNoeud::DECLARATION_OPERATEUR:
@@ -144,6 +150,10 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						compilatrice.file_compilation.pousse(unite);
 						return;
 					}
+
+					unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
+					compilatrice.file_compilation.pousse(unite);
+
 					break;
 				}
 				case GenreNoeud::DECLARATION_ENUM:
@@ -166,6 +176,9 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						compilatrice.file_compilation.pousse(unite);
 						return;
 					}
+
+					unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
+					compilatrice.file_compilation.pousse(unite);
 					break;
 				}
 				case GenreNoeud::DECLARATION_VARIABLE:
@@ -186,6 +199,9 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 					auto noeud_dependance = compilatrice.graphe_dependance.cree_noeud_globale(decl);
 					compilatrice.graphe_dependance.ajoute_dependances(*noeud_dependance, contexte.donnees_dependance);
 
+					unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
+					compilatrice.file_compilation.pousse(unite);
+
 					break;
 				}
 				case GenreNoeud::DIRECTIVE_EXECUTION:
@@ -202,6 +218,9 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						}
 					}
 
+					unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
+					compilatrice.file_compilation.pousse(unite);
+
 					break;
 				}
 				default:
@@ -212,13 +231,26 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 			}
 
 			temps_validation += debut_validation.temps();
-
-//			unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
-//			compilatrice.file_compilation.pousse(unite);
 			break;
 		}
 		case UniteCompilation::Etat::RI_ATTENDUE:
 		{
+			auto noeud = unite.noeud;
+
+			auto debut_generation = dls::chrono::compte_seconde();
+
+			if (est_declaration(noeud->genre)) {
+				compilatrice.constructrice_ri.genere_ri_pour_noeud(noeud);
+			}
+			else if (noeud->genre == GenreNoeud::DIRECTIVE_EXECUTION) {
+				auto noeud_dir = static_cast<NoeudDirectiveExecution *>(noeud);
+				compilatrice.constructrice_ri.genere_ri_pour_noeud(noeud_dir->fonction);
+				// À FAIRE : il faut attendre sur les différents types pour construire le contexte
+				//compilatrice.constructrice_ri.genere_ri_pour_fonction_metaprogramme(noeud_dir);
+			}
+
+			compilatrice.constructrice_ri.temps_generation += debut_generation.temps();
+
 			break;
 		}
 		case UniteCompilation::Etat::CODE_MACHINE_ATTENDU:
