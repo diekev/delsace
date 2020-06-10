@@ -1557,7 +1557,15 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				expr_loge->expr_taille->transformation = transformation;
 			}
 			else {
-				expr_loge->type = m_compilatrice.typeuse.type_pointeur_pour(expr_loge->type);
+				auto type_loge = expr_loge->type;
+
+				/* attend sur le type car nous avons besoin de sa validation pour la génération de RI pour l'expression de logement */
+				if ((type_loge->drapeaux & TYPE_FUT_VALIDE) == 0) {
+					unite->attend_sur_type(type_loge);
+					return true;
+				}
+
+				expr_loge->type = m_compilatrice.typeuse.type_pointeur_pour(type_loge);
 			}
 
 			if (expr_loge->bloc != nullptr) {
@@ -1604,7 +1612,15 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				expr_loge->expr_taille->transformation = transformation;
 			}
 			else {
-				expr_loge->type = m_compilatrice.typeuse.type_pointeur_pour(expr_loge->type);
+				auto type_loge = expr_loge->type;
+
+				/* attend sur le type car nous avons besoin de sa validation pour la génération de RI pour l'expression de logement */
+				if ((type_loge->drapeaux & TYPE_FUT_VALIDE) == 0) {
+					unite->attend_sur_type(type_loge);
+					return true;
+				}
+
+				expr_loge->type = m_compilatrice.typeuse.type_pointeur_pour(type_loge);
 			}
 
 			/* pour les références */
