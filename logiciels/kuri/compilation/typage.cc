@@ -96,7 +96,7 @@ Type *Type::cree_entier(unsigned taille_octet, bool est_naturel)
 	type->genre = est_naturel ? GenreType::ENTIER_NATUREL : GenreType::ENTIER_RELATIF;
 	type->taille_octet = taille_octet;
 	type->alignement = taille_octet;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 	return type;
 }
 
@@ -104,7 +104,7 @@ Type *Type::cree_entier_constant()
 {
 	auto type = memoire::loge<Type>("Type");
 	type->genre = GenreType::ENTIER_CONSTANT;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 	return type;
 }
 
@@ -114,7 +114,7 @@ Type *Type::cree_reel(unsigned taille_octet)
 	type->genre = GenreType::REEL;
 	type->taille_octet = taille_octet;
 	type->alignement = taille_octet;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 	return type;
 }
 
@@ -123,7 +123,7 @@ Type *Type::cree_rien()
 	auto type = memoire::loge<Type>("Type");
 	type->genre = GenreType::RIEN;
 	type->taille_octet = 0;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 	return type;
 }
 
@@ -133,7 +133,7 @@ Type *Type::cree_bool()
 	type->genre = GenreType::BOOL;
 	type->taille_octet = 1;
 	type->alignement = 1;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 	return type;
 }
 
@@ -143,7 +143,7 @@ Type *Type::cree_octet()
 	type->genre = GenreType::OCTET;
 	type->taille_octet = 1;
 	type->alignement = 1;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 	return type;
 }
 
@@ -153,7 +153,7 @@ TypePointeur *TypePointeur::cree(Type *type_pointe)
 	type->type_pointe = type_pointe;
 	type->taille_octet = 8;
 	type->alignement = 8;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 
 	if (type_pointe && type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
@@ -170,7 +170,7 @@ TypeReference *TypeReference::cree(Type *type_pointe)
 	type->type_pointe = type_pointe;
 	type->taille_octet = 8;
 	type->alignement = 8;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 
 	if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
@@ -187,7 +187,7 @@ TypeFonction *TypeFonction::cree(kuri::tableau<Type *> &&entrees, kuri::tableau<
 	type->taille_octet = 8;
 	type->alignement = 8;
 	type->marque_polymorphique();
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 
 	return type;
 }
@@ -235,7 +235,7 @@ TypeTableauFixe *TypeTableauFixe::cree(Type *type_pointe, long taille, kuri::tab
 	type->taille = taille;
 	type->alignement = type_pointe->alignement;
 	type->taille_octet = type_pointe->taille_octet * static_cast<unsigned>(taille);
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 
 	if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
@@ -253,7 +253,7 @@ TypeTableauDynamique *TypeTableauDynamique::cree(Type *type_pointe, kuri::tablea
 	type->type_pointe = type_pointe;
 	type->taille_octet = 24;
 	type->alignement = 8;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 
 	if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
@@ -274,7 +274,7 @@ TypeVariadique *TypeVariadique::cree(Type *type_pointe, kuri::tableau<TypeCompos
 	type->membres = std::move(membres);
 	type->taille_octet = 24;
 	type->alignement = 8;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 	return type;
 }
 
@@ -286,7 +286,7 @@ TypeTypeDeDonnees *TypeTypeDeDonnees::cree(Type *type_connu)
 	type->taille_octet = 8;
 	type->alignement = 8;
 	type->type_connu = type_connu;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 	return type;
 }
 
@@ -296,7 +296,7 @@ TypePolymorphique *TypePolymorphique::cree(IdentifiantCode *ident)
 
 	auto type = memoire::loge<TypePolymorphique>("TypePolymorphique");
 	type->ident = ident;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 	return type;
 }
 
@@ -438,13 +438,13 @@ Typeuse::Typeuse(GrapheDependance &g, Operateurs &o)
 	membres_eini.pousse({ types_communs[static_cast<long>(TypeBase::PTR_RIEN)], "pointeur", 0 });
 	membres_eini.pousse({ type_pointeur_pour(type_info_type_), "info", 8 });
 	type_eini->membres = std::move(membres_eini);
-	type_eini->drapeaux |= TYPE_FUT_VALIDE;
+	type_eini->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 
 	auto membres_chaine = kuri::tableau<TypeCompose::Membre>();
 	membres_chaine.pousse({ types_communs[static_cast<long>(TypeBase::PTR_Z8)], "pointeur", 0 });
 	membres_chaine.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "taille", 8 });
 	type_chaine->membres = std::move(membres_chaine);
-	type_chaine->drapeaux |= TYPE_FUT_VALIDE;
+	type_chaine->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 }
 
 Typeuse::~Typeuse()
@@ -879,7 +879,7 @@ TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
 	type->decalage_index = decalage_index;
 	type->taille_octet = taille_union;
 	type->alignement = max_alignement;
-	type->drapeaux |= TYPE_FUT_VALIDE;
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 
 	types_unions.pousse(type);
 

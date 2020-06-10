@@ -558,9 +558,6 @@ int main(int argc, char *argv[])
 			std::ofstream of;
 			of.open("/tmp/execution_kuri.c");
 
-			constructrice_ri.genere_ri_pour_fonction_metaprogramme(noeud);
-			//constructrice_ri.imprime_programme();
-
 			genere_code_C_pour_execution(compilatrice, noeud, chemin_racine_kuri, of);
 			lance_execution(compilatrice, noeud);
 		}

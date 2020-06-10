@@ -70,6 +70,39 @@ void Tacheronne::gere_tache()
 	}
 }
 
+static bool dependances_directes_eurent_ri_generee(NoeudDependance *noeud)
+{
+	POUR (noeud->relations) {
+		auto noeud_fin = it.noeud_fin;
+
+		if (noeud_fin->type == TypeNoeudDependance::TYPE) {
+			if ((noeud_fin->type_->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {
+				return false;
+			}
+		}
+		else {
+			auto noeud_syntaxique = noeud_fin->noeud_syntactique;
+
+			if ((noeud_syntaxique->drapeaux & RI_FUT_GENEREE) == 0) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+static bool dependances_eurent_ri_generees(NoeudDependance *noeud)
+{
+	auto resultat = true;
+	traverse_graphe(noeud, [&](NoeudDependance *noeud_dep)
+	{
+		resultat &= dependances_directes_eurent_ri_generee(noeud_dep);
+	});
+
+	return resultat;
+}
+
 void Tacheronne::gere_unite(UniteCompilation unite)
 {
 	switch (unite.etat) {
@@ -241,12 +274,54 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 
 			if (est_declaration(noeud->genre)) {
 				compilatrice.constructrice_ri.genere_ri_pour_noeud(noeud);
+				noeud->drapeaux |= RI_FUT_GENEREE;
+				noeud->type->drapeaux |= RI_TYPE_FUT_GENEREE;
 			}
 			else if (noeud->genre == GenreNoeud::DIRECTIVE_EXECUTION) {
 				auto noeud_dir = static_cast<NoeudDirectiveExecution *>(noeud);
+
+#define ATTEND_SUR_TYPE_SI_NECESSAIRE(type) \
+	if (type == nullptr) { \
+		compilatrice.file_compilation.pousse(unite); \
+		return; \
+	} \
+	if ((type->drapeaux & RI_TYPE_FUT_GENEREE) == 0) { \
+		unite.etat_original = UniteCompilation::Etat::RI_ATTENDUE; \
+		unite.attend_sur_type(type); \
+		compilatrice.file_compilation.pousse(unite); \
+		return; \
+	}
+
+#define ATTEND_SUR_DECL_SI_NECESSAIRE(nom, module, nom_symbole) \
+	auto nom = cherche_symbole_dans_module(compilatrice, module, nom_symbole); \
+	if (nom == nullptr) { \
+		compilatrice.file_compilation.pousse(unite); \
+		return; \
+	} \
+	if ((nom->drapeaux & RI_FUT_GENEREE) == 0) { \
+		unite.etat_original = UniteCompilation::Etat::RI_ATTENDUE; \
+		unite.attend_sur_declaration(nom); \
+		compilatrice.file_compilation.pousse(unite); \
+		return; \
+	}
+
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.type_contexte);
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_base_allocatrice);
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_stockage_temporaire);
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_trace_appel);
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_info_appel_trace_appel);
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_info_fonction_trace_appel);
+
+				ATTEND_SUR_DECL_SI_NECESSAIRE(decl_rc, "Compilatrice", "_RC");
+				ATTEND_SUR_DECL_SI_NECESSAIRE(decl_initialise_rc, "Compilatrice", "initialise_RC");
+
+				if (!dependances_eurent_ri_generees(noeud_dir->fonction->noeud_dependance)) {
+					compilatrice.file_compilation.pousse(unite);
+					return;
+				}
+
 				compilatrice.constructrice_ri.genere_ri_pour_noeud(noeud_dir->fonction);
-				// À FAIRE : il faut attendre sur les différents types pour construire le contexte
-				//compilatrice.constructrice_ri.genere_ri_pour_fonction_metaprogramme(noeud_dir);
+				compilatrice.constructrice_ri.genere_ri_pour_fonction_metaprogramme(noeud_dir);
 			}
 
 			compilatrice.constructrice_ri.temps_generation += debut_generation.temps();

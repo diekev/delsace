@@ -139,6 +139,7 @@ enum drapeaux_noeud : unsigned int {
 	DECLARATION_TYPE_POLYMORPHIQUE = (1 << 13),
 	DROITE_ASSIGNATION         = (1 << 14),
 	DECLARATION_FUT_VALIDEE    = (1 << 15),
+	RI_FUT_GENEREE             = (1 << 16),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned int)
