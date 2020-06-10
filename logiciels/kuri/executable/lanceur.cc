@@ -420,10 +420,27 @@ void ajoute_chaine_compilation(kuri::chaine c)
 
 void ajoute_fichier_compilation(kuri::chaine c)
 {
-	std::cerr << "Fichier ajouté à la compilation :\n";
+	auto vue = dls::chaine(c.pointeur, c.taille);
+	auto chemin = std::filesystem::current_path() / vue.c_str();
 
-	auto vue = dls::vue_chaine(c.pointeur, c.taille);
-	std::cerr << "-- " << vue << '\n';
+	if (!std::filesystem::exists(chemin)) {
+		std::cerr << "Le fichier " << chemin << " n'existe pas !\n";
+		// À FAIRE : erreur
+		return;
+	}
+
+	auto module = ptr_compilatrice->cree_module("", "");
+	auto tampon = charge_fichier(chemin.c_str(), *ptr_compilatrice, {});
+	auto fichier = ptr_compilatrice->cree_fichier(vue, chemin.c_str());
+	fichier->tampon = lng::tampon_source(tampon);
+	fichier->module = module;
+	module->fichiers.pousse(fichier);
+
+	auto unite = UniteCompilation();
+	unite.fichier = fichier;
+	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
+
+	ptr_compilatrice->file_compilation->pousse(unite);
 }
 
 static OptionsCompilation *options_compilation = nullptr;
