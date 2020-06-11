@@ -57,6 +57,7 @@ struct UniteCompilation {
 	REMBOURRE(4);
 	Fichier *fichier = nullptr;
 	NoeudExpression *noeud = nullptr;
+	int index_reprise = 0;
 
 	int cycle = 0;
 

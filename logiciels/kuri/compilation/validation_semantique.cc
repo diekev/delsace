@@ -2154,14 +2154,20 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 
 	commence_fonction(decl);
 
+	auto &graphe = m_compilatrice.graphe_dependance;
+	auto noeud_dep = graphe.cree_noeud_fonction(decl);
+
 	if (decl->est_coroutine) {
 		decl->genre = GenreNoeud::DECLARATION_COROUTINE;
 	}
 
-	POUR (decl->arbre_aplatis_entete) {
-		if (valide_semantique_noeud(it)) {
+	for (auto i = unite->index_reprise; i < decl->arbre_aplatis_entete.taille; ++i) {
+		if (valide_semantique_noeud(decl->arbre_aplatis_entete[i])) {
+			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 			return true;
 		}
+
+		unite->index_reprise += 1;
 	}
 
 	// -----------------------------------
@@ -2360,8 +2366,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 		}
 	}
 
-	auto noeud_dep = m_compilatrice.graphe_dependance.cree_noeud_fonction(decl);
-	m_compilatrice.graphe_dependance.ajoute_dependances(*noeud_dep, donnees_dependance);
+	graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 	return false;
 }
@@ -2375,35 +2380,43 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 
 	commence_fonction(decl);
 
-	auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
+	auto &graphe = m_compilatrice.graphe_dependance;
+	auto noeud_dep = graphe.cree_noeud_fonction(decl);
 
-	decl->bloc->membres.reserve(decl->params.taille + requiers_contexte);
+	if (unite->index_reprise == 0) {
+		auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
 
-	if (requiers_contexte) {
-		auto val_ctx = static_cast<NoeudExpressionReference *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
-		val_ctx->type = m_compilatrice.type_contexte;
-		val_ctx->bloc_parent = decl->bloc_parent;
-		val_ctx->ident = m_compilatrice.table_identifiants.identifiant_pour_chaine("contexte");
+		decl->bloc->membres.reserve(decl->params.taille + requiers_contexte);
 
-		auto decl_ctx = static_cast<NoeudDeclarationVariable *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
-		decl_ctx->bloc_parent = decl->bloc_parent;
-		decl_ctx->valeur = val_ctx;
-		decl_ctx->type = val_ctx->type;
-		decl_ctx->ident = val_ctx->ident;
-		decl_ctx->drapeaux |= DECLARATION_FUT_VALIDEE;
+		if (requiers_contexte) {
+			auto val_ctx = static_cast<NoeudExpressionReference *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
+			val_ctx->type = m_compilatrice.type_contexte;
+			val_ctx->bloc_parent = decl->bloc_parent;
+			val_ctx->ident = m_compilatrice.table_identifiants.identifiant_pour_chaine("contexte");
 
-		decl->bloc->membres.pousse(decl_ctx);
+			auto decl_ctx = static_cast<NoeudDeclarationVariable *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
+			decl_ctx->bloc_parent = decl->bloc_parent;
+			decl_ctx->valeur = val_ctx;
+			decl_ctx->type = val_ctx->type;
+			decl_ctx->ident = val_ctx->ident;
+			decl_ctx->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+			decl->bloc->membres.pousse(decl_ctx);
+		}
+
+		POUR (decl->params) {
+			auto argument = static_cast<NoeudDeclarationVariable *>(it);
+			decl->bloc->membres.pousse(argument);
+		}
 	}
 
-	POUR (decl->params) {
-		auto argument = static_cast<NoeudDeclarationVariable *>(it);
-		decl->bloc->membres.pousse(argument);
-	}
-
-	for (auto noeud : decl->arbre_aplatis) {
-		if (valide_semantique_noeud(noeud)) {
+	for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
+		if (valide_semantique_noeud(decl->arbre_aplatis[i])) {
+			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 			return true;
 		}
+
+		unite->index_reprise += 1;
 	}
 
 	auto bloc = decl->bloc;
@@ -2422,8 +2435,6 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 		decl->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
 	}
 
-	auto &graphe = m_compilatrice.graphe_dependance;
-	auto noeud_dep = graphe.cree_noeud_fonction(decl);
 	graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 
 	termine_fonction();
@@ -2434,35 +2445,43 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 {
 	commence_fonction(decl);
 
-	auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
+	auto &graphe = m_compilatrice.graphe_dependance;
+	auto noeud_dep = graphe.cree_noeud_fonction(decl);
 
-	decl->bloc->membres.reserve(decl->params.taille + requiers_contexte);
+	if (unite->index_reprise == 0) {
+		auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
 
-	if (requiers_contexte) {
-		auto val_ctx = static_cast<NoeudExpressionReference *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
-		val_ctx->type = m_compilatrice.type_contexte;
-		val_ctx->bloc_parent = decl->bloc_parent;
-		val_ctx->ident = m_compilatrice.table_identifiants.identifiant_pour_chaine("contexte");
+		decl->bloc->membres.reserve(decl->params.taille + requiers_contexte);
 
-		auto decl_ctx = static_cast<NoeudDeclarationVariable *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
-		decl_ctx->bloc_parent = decl->bloc_parent;
-		decl_ctx->valeur = val_ctx;
-		decl_ctx->type = val_ctx->type;
-		decl_ctx->ident = val_ctx->ident;
-		decl_ctx->drapeaux |= DECLARATION_FUT_VALIDEE;
+		if (requiers_contexte) {
+			auto val_ctx = static_cast<NoeudExpressionReference *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
+			val_ctx->type = m_compilatrice.type_contexte;
+			val_ctx->bloc_parent = decl->bloc_parent;
+			val_ctx->ident = m_compilatrice.table_identifiants.identifiant_pour_chaine("contexte");
 
-		decl->bloc->membres.pousse(decl_ctx);
+			auto decl_ctx = static_cast<NoeudDeclarationVariable *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
+			decl_ctx->bloc_parent = decl->bloc_parent;
+			decl_ctx->valeur = val_ctx;
+			decl_ctx->type = val_ctx->type;
+			decl_ctx->ident = val_ctx->ident;
+			decl_ctx->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+			decl->bloc->membres.pousse(decl_ctx);
+		}
+
+		POUR (decl->params) {
+			auto argument = static_cast<NoeudDeclarationVariable *>(it);
+			decl->bloc->membres.pousse(argument);
+		}
 	}
 
-	POUR (decl->params) {
-		auto argument = static_cast<NoeudDeclarationVariable *>(it);
-		decl->bloc->membres.pousse(argument);
-	}
-
-	for (auto noeud : decl->arbre_aplatis) {
-		if (valide_semantique_noeud(noeud)) {
+	for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
+		if (valide_semantique_noeud(decl->arbre_aplatis[i])) {
+			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 			return true;
 		}
+
+		unite->index_reprise += 1;
 	}
 
 	auto inst_ret = derniere_instruction(decl->bloc);
@@ -2472,8 +2491,6 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 		return true;
 	}
 
-	auto &graphe = m_compilatrice.graphe_dependance;
-	auto noeud_dep = graphe.cree_noeud_fonction(decl);
 	graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 
 	termine_fonction();
@@ -2674,10 +2691,13 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		return false;
 	};
 
-	POUR (decl->arbre_aplatis) {
-		if (valide_semantique_noeud(it)) {
+	for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
+		if (valide_semantique_noeud(decl->arbre_aplatis[i])) {
+			graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
 			return true;
 		}
+
+		unite->index_reprise += 1;
 	}
 
 	if (decl->est_union) {
