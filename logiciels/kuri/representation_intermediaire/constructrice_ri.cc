@@ -1063,7 +1063,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud_ex(NoeudExpression *noeud)
 				cree_retour(nullptr);
 			}
 
-			corrige_labels(atome_fonc);
+			//corrige_labels(atome_fonc);
 
 			fonction_courante = nullptr;
 
