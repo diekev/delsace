@@ -425,7 +425,7 @@ void ajoute_fichier_compilation(kuri::chaine c)
 
 	if (!std::filesystem::exists(chemin)) {
 		std::cerr << "Le fichier " << chemin << " n'existe pas !\n";
-		// À FAIRE : erreur
+		ptr_compilatrice->possede_erreur = true;
 		return;
 	}
 
@@ -517,6 +517,7 @@ void lance_tacheronne(Compilatrice *compilatrice)
 	}
 	catch (const erreur::frappe &e) {
 		std::cerr << e.message() << '\n';
+		ptr_compilatrice->possede_erreur = true;
 	}
 }
 
@@ -537,6 +538,194 @@ void lance_file_execution(Compilatrice *compilatrice)
 
 		compilatrice->file_execution->effronte();
 	}
+}
+
+static int genere_code_coulisse(
+		Compilatrice &compilatrice,
+		OptionsCompilation const &ops,
+		double &temps_executable,
+		double &temps_fichier_objet)
+{
+#ifdef AVEC_LLVM
+	if (ops.type_coulisse == TypeCoulisse::LLVM) {
+		auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
+
+		initialise_llvm();
+
+		auto erreur = std::string{""};
+		auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
+
+		if (!cible) {
+			std::cerr << erreur << '\n';
+			return 1;
+		}
+
+		auto CPU = "generic";
+		auto feature = "";
+		auto options_cible = llvm::TargetOptions{};
+		auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
+		auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
+					cible->createTargetMachine(
+						triplet_cible, CPU, feature, options_cible, RM));
+
+		auto generatrice = GeneratriceCodeLLVM(compilatrice);
+
+		auto module_llvm = llvm::Module("Module", generatrice.m_contexte_llvm);
+		module_llvm.setDataLayout(machine_cible->createDataLayout());
+		module_llvm.setTargetTriple(triplet_cible);
+
+		generatrice.m_module = &module_llvm;
+
+		std::cout << "Génération du code..." << std::endl;
+		auto temps_generation = dls::chrono::compte_seconde();
+
+		initialise_optimisation(ops.niveau_optimisation, generatrice);
+
+		generatrice.genere_code(compilatrice.constructrice_ri);
+
+		compilatrice.temps_generation = temps_generation.temps();
+
+#ifndef NDEBUG
+		if (!valide_llvm_ir(module_llvm)) {
+			compilatrice.possede_erreur = true;
+		}
+#endif
+
+		/* définition du fichier de sortie */
+		if (!compilatrice.possede_erreur && ops.cree_executable) {
+			std::cout << "Écriture du code dans un fichier..." << std::endl;
+			auto debut_fichier_objet = dls::chrono::compte_seconde();
+			if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
+				compilatrice.possede_erreur = true;
+				return 1;
+			}
+			temps_fichier_objet = debut_fichier_objet.temps();
+
+			auto debut_executable = dls::chrono::compte_seconde();
+			if (!cree_executable(ops.nom_sortie, compilatrice.racine_kuri.c_str())) {
+				compilatrice.possede_erreur = true;
+				return 1;
+			}
+
+			temps_executable = debut_executable.temps();
+		}
+	}
+	else
+#endif
+	{
+		std::ofstream of;
+		of.open("/tmp/compilation_kuri.c");
+
+		std::cout << "Génération du code..." << std::endl;
+		genere_code_C(compilatrice.constructrice_ri, compilatrice.racine_kuri, of);
+
+		of.close();
+
+		if (ops.cree_executable) {
+			auto debut_fichier_objet = dls::chrono::compte_seconde();
+			auto commande = dls::chaine("gcc -c /tmp/compilation_kuri.c ");
+
+			/* désactivation des erreurs concernant le manque de "const" quand
+				 * on passe des variables générés temporairement par la coulisse à
+				 * des fonctions qui dont les paramètres ne sont pas constants */
+			commande += "-Wno-discarded-qualifiers ";
+			/* désactivation des avertissements de passage d'une variable au
+				 * lieu d'une chaine littérale à printf et al. */
+			commande += "-Wno-format-security ";
+
+			switch (ops.niveau_optimisation) {
+				case NiveauOptimisation::AUCUN:
+				case NiveauOptimisation::O0:
+				{
+					commande += "-O0 ";
+					break;
+				}
+				case NiveauOptimisation::O1:
+				{
+					commande += "-O1 ";
+					break;
+				}
+				case NiveauOptimisation::O2:
+				{
+					commande += "-O2 ";
+					break;
+				}
+				case NiveauOptimisation::Os:
+				{
+					commande += "-Os ";
+					break;
+				}
+					/* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
+					 * plus proche. */
+				case NiveauOptimisation::Oz:
+				case NiveauOptimisation::O3:
+				{
+					commande += "-O3 ";
+					break;
+				}
+			}
+
+			if (ops.architecture_cible == ArchitectureCible::X86) {
+				commande += "-m32 ";
+			}
+
+			for (auto const &def : compilatrice.definitions) {
+				commande += " -D" + dls::chaine(def);
+			}
+
+			for (auto const &chm : compilatrice.chemins) {
+				commande += " ";
+				commande += chm;
+			}
+
+			commande += " -o /tmp/compilation_kuri.o";
+
+			std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+			auto err = system(commande.c_str());
+
+			temps_fichier_objet = debut_fichier_objet.temps();
+
+			if (err != 0) {
+				std::cerr << "Ne peut pas créer le fichier objet !\n";
+				compilatrice.possede_erreur = true;
+			}
+			else {
+				auto debut_executable = dls::chrono::compte_seconde();
+				commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
+
+				for (auto const &chm : compilatrice.chemins) {
+					commande += " ";
+					commande += chm;
+				}
+
+				for (auto const &bib : compilatrice.bibliotheques_statiques) {
+					commande += " " + bib;
+				}
+
+				for (auto const &bib : compilatrice.bibliotheques_dynamiques) {
+					commande += " -l" + bib;
+				}
+
+				commande += " -o ";
+				commande += dls::chaine(ops.nom_sortie.pointeur, ops.nom_sortie.taille);
+
+				std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+				err = system(commande.c_str());
+
+				if (err != 0) {
+					std::cerr << "Ne peut pas créer l'exécutable !\n";
+					compilatrice.possede_erreur = true;
+					return 1;
+				}
+
+				temps_executable = debut_executable.temps();
+			}
+		}
+	}
+
+	return 0;
 }
 
 int main(int argc, char *argv[])
@@ -578,9 +767,11 @@ int main(int argc, char *argv[])
 	auto temps_executable    = 0.0;
 	auto temps_ri            = 0.0;
 	auto memoire_ri          = 0ul;
-	auto est_errone = false;
 
 	auto metriques = Metriques{};
+
+	auto compilatrice = Compilatrice{};
+	ptr_compilatrice = &compilatrice;
 
 	try {
 		precompile_objet_r16(chemin_racine_kuri);
@@ -595,9 +786,6 @@ int main(int argc, char *argv[])
 		}
 
 		auto nom_fichier = chemin.stem();
-
-		auto compilatrice = Compilatrice{};
-		ptr_compilatrice = &compilatrice;
 
 		compilatrice.racine_kuri = chemin_racine_kuri;
 		compilatrice.bit32 = ops.architecture_cible == ArchitectureCible::X86;
@@ -629,183 +817,8 @@ int main(int argc, char *argv[])
 		temps_ri = constructrice_ri.temps_generation;
 		memoire_ri = constructrice_ri.memoire_utilisee();
 
-		/* Change le dossier courant et lance la compilation. */
-
-#ifdef AVEC_LLVM
-		if (ops.type_coulisse == TypeCoulisse::LLVM) {
-			auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
-
-			initialise_llvm();
-
-			auto erreur = std::string{""};
-			auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
-
-			if (!cible) {
-				std::cerr << erreur << '\n';
-				return 1;
-			}
-
-			auto CPU = "generic";
-			auto feature = "";
-			auto options_cible = llvm::TargetOptions{};
-			auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
-			auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
-									 cible->createTargetMachine(
-										 triplet_cible, CPU, feature, options_cible, RM));
-
-			auto generatrice = GeneratriceCodeLLVM(compilatrice);
-
-			auto module_llvm = llvm::Module("Module", generatrice.m_contexte_llvm);
-			module_llvm.setDataLayout(machine_cible->createDataLayout());
-			module_llvm.setTargetTriple(triplet_cible);
-
-			generatrice.m_module = &module_llvm;
-
-			os << "Génération du code..." << std::endl;
-			auto temps_generation = dls::chrono::compte_seconde();
-
-			initialise_optimisation(ops.niveau_optimisation, generatrice);
-
-			generatrice.genere_code(constructrice_ri);
-
-			compilatrice.temps_generation = temps_generation.temps();
-
-#ifndef NDEBUG
-			if (!valide_llvm_ir(module_llvm)) {
-				est_errone = true;
-			}
-#endif
-
-			/* définition du fichier de sortie */
-			if (!est_errone && ops.cree_executable) {
-				os << "Écriture du code dans un fichier..." << std::endl;
-				auto debut_fichier_objet = dls::chrono::compte_seconde();
-				if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
-					resultat = 1;
-					est_errone = true;
-				}
-				temps_fichier_objet = debut_fichier_objet.temps();
-
-				auto debut_executable = dls::chrono::compte_seconde();
-				if (!cree_executable(ops.nom_sortie, chemin_racine_kuri)) {
-					est_errone = true;
-				}
-
-				temps_executable = debut_executable.temps();
-			}
-		}
-		else
-#endif
-		{
-			std::ofstream of;
-			of.open("/tmp/compilation_kuri.c");
-
-			os << "Génération du code..." << std::endl;
-			genere_code_C(constructrice_ri, chemin_racine_kuri, of);
-
-			of.close();
-
-			if (ops.cree_executable) {
-				auto debut_fichier_objet = dls::chrono::compte_seconde();
-				auto commande = dls::chaine("gcc -c /tmp/compilation_kuri.c ");
-
-				/* désactivation des erreurs concernant le manque de "const" quand
-				 * on passe des variables générés temporairement par la coulisse à
-				 * des fonctions qui dont les paramètres ne sont pas constants */
-				commande += "-Wno-discarded-qualifiers ";
-				/* désactivation des avertissements de passage d'une variable au
-				 * lieu d'une chaine littérale à printf et al. */
-				commande += "-Wno-format-security ";
-
-				switch (ops.niveau_optimisation) {
-					case NiveauOptimisation::AUCUN:
-					case NiveauOptimisation::O0:
-					{
-						commande += "-O0 ";
-						break;
-					}
-					case NiveauOptimisation::O1:
-					{
-						commande += "-O1 ";
-						break;
-					}
-					case NiveauOptimisation::O2:
-					{
-						commande += "-O2 ";
-						break;
-					}
-					case NiveauOptimisation::Os:
-					{
-						commande += "-Os ";
-						break;
-					}
-					/* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
-					 * plus proche. */
-					case NiveauOptimisation::Oz:
-					case NiveauOptimisation::O3:
-					{
-						commande += "-O3 ";
-						break;
-					}
-				}
-
-				if (ops.architecture_cible == ArchitectureCible::X86) {
-					commande += "-m32 ";
-				}
-
-				for (auto const &def : compilatrice.definitions) {
-					commande += " -D" + dls::chaine(def);
-				}
-
-				for (auto const &chm : compilatrice.chemins) {
-					commande += " ";
-					commande += chm;
-				}
-
-				commande += " -o /tmp/compilation_kuri.o";
-
-				os << "Exécution de la commande '" << commande << "'..." << std::endl;
-
-				auto err = system(commande.c_str());
-
-				temps_fichier_objet = debut_fichier_objet.temps();
-
-				if (err != 0) {
-					std::cerr << "Ne peut pas créer le fichier objet !\n";
-					est_errone = true;
-				}
-				else {
-					auto debut_executable = dls::chrono::compte_seconde();
-					commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
-
-					for (auto const &chm : compilatrice.chemins) {
-						commande += " ";
-						commande += chm;
-					}
-
-					for (auto const &bib : compilatrice.bibliotheques_statiques) {
-						commande += " " + bib;
-					}
-
-					for (auto const &bib : compilatrice.bibliotheques_dynamiques) {
-						commande += " -l" + bib;
-					}
-
-					commande += " -o ";
-					commande += dls::chaine(ops.nom_sortie.pointeur, ops.nom_sortie.taille);
-
-					os << "Exécution de la commande '" << commande << "'..." << std::endl;
-
-					err = system(commande.c_str());
-
-					if (err != 0) {
-						std::cerr << "Ne peut pas créer l'exécutable !\n";
-						est_errone = true;
-					}
-
-					temps_executable = debut_executable.temps();
-				}
-			}
+		if (!compilatrice.possede_erreur && genere_code_coulisse(compilatrice, ops, temps_executable, temps_fichier_objet)) {
+			compilatrice.possede_erreur = true;
 		}
 
 		/* restore le dossier d'origine */
@@ -825,13 +838,13 @@ int main(int argc, char *argv[])
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
-		est_errone = true;
+		compilatrice.possede_erreur = true;
 		resultat = static_cast<int>(erreur_frappe.type());
 	}
 
 	metriques.temps_nettoyage = debut_nettoyage.temps();
 
-	if (!est_errone) {
+	if (!compilatrice.possede_erreur) {
 		imprime_stats(metriques, debut_compilation);
 	}
 

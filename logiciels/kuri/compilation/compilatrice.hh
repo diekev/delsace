@@ -167,6 +167,7 @@ struct Compilatrice {
 	ConstructriceRI constructrice_ri;
 
 	bool bit32 = false;
+	bool possede_erreur = false;
 
 	dls::tableau<NoeudDirectiveExecution *> noeuds_a_executer{};
 
