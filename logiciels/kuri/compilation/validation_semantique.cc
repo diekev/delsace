@@ -2163,11 +2163,10 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 
 	for (auto i = unite->index_reprise; i < decl->arbre_aplatis_entete.taille; ++i) {
 		if (valide_semantique_noeud(decl->arbre_aplatis_entete[i])) {
+			unite->index_reprise = i;
 			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 			return true;
 		}
-
-		unite->index_reprise += 1;
 	}
 
 	// -----------------------------------
@@ -2412,11 +2411,10 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 
 	for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
 		if (valide_semantique_noeud(decl->arbre_aplatis[i])) {
+			unite->index_reprise = i;
 			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 			return true;
 		}
-
-		unite->index_reprise += 1;
 	}
 
 	auto bloc = decl->bloc;
@@ -2477,11 +2475,10 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 
 	for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
 		if (valide_semantique_noeud(decl->arbre_aplatis[i])) {
+			unite->index_reprise = i;
 			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 			return true;
 		}
-
-		unite->index_reprise += 1;
 	}
 
 	auto inst_ret = derniere_instruction(decl->bloc);
@@ -2693,11 +2690,10 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 	for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
 		if (valide_semantique_noeud(decl->arbre_aplatis[i])) {
+			unite->index_reprise = i;
 			graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
 			return true;
 		}
-
-		unite->index_reprise += 1;
 	}
 
 	if (decl->est_union) {
