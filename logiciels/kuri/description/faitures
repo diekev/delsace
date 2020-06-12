@@ -112,6 +112,25 @@ discr a {
 }
 -- utilisation de '_' comme caractère générique pouvant être n'importe quelle valeur
 
+// pouvoir instantié une fonction polymorphique lorsqu'on la passe à une autre
+
+ajoute :: fonc (a: $T, b : $T) -> $T
+{
+    retourne a + b
+}
+
+fais_le :: fonc (a : z32, b : z32, f : fonc (z32, z32)(z32)) -> z32
+{
+    retourne f(a, b)
+}
+
+fais_le(0, 5, ajoute) // ceci détecte que ajoute est une fonction polymorphique et l'instantie pour le bon type
+
+lambdas
+
+x => x.nom // crée une fonction foo :: (x: $T) -> chaine { retourne x.nom }
+
+
 
 À faire (tests)
 ---------------
