@@ -75,6 +75,7 @@ static bool est_type_de_base(TypeStructure *type_de, TypeStructure *type_vers)
  * Cette méthode est limitée, mais largement plus rapide que celle utilisant un
  * graphe, qui sera sans doute révisée plus tard.
  */
+template <bool POUR_TRANSTYPAGE>
 bool cherche_transformation(
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte,
@@ -96,15 +97,49 @@ bool cherche_transformation(
 		return false;
 	}
 
-	if (type_de->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_vers)) {
+	if (type_de->genre == GenreType::ENTIER_CONSTANT && (est_type_entier(type_vers) || type_vers->genre == GenreType::OCTET)) {
 		transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers };
 		return false;
+	}
+
+	if (POUR_TRANSTYPAGE) {
+		if (est_type_entier(type_vers) && type_de->genre == GenreType::OCTET) {
+			if (type_vers->taille_octet > type_de->taille_octet) {
+				transformation = { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
+				return false;
+			}
+
+			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			return false;
+		}
+
+		if (est_type_entier(type_de) && type_vers->genre == GenreType::OCTET) {
+			if (type_vers->taille_octet < type_de->taille_octet) {
+				transformation = { TypeTransformation::REDUIT_TAILLE_TYPE, type_vers };
+				return false;
+			}
+
+			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			return false;
+		}
+
+		if (type_vers->genre == GenreType::ERREUR && type_de->genre == GenreType::ENTIER_CONSTANT) {
+			transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers };
+			return false;
+		}
 	}
 
 	if (type_de->genre == GenreType::ENTIER_NATUREL && type_vers->genre == GenreType::ENTIER_NATUREL) {
 		if (type_de->taille_octet < type_vers->taille_octet) {
 			transformation = { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
 			return false;
+		}
+
+		if (POUR_TRANSTYPAGE) {
+			if (type_de->taille_octet > type_vers->taille_octet) {
+				transformation = { TypeTransformation::REDUIT_TAILLE_TYPE, type_vers };
+				return false;
+			}
 		}
 
 		transformation = TypeTransformation::IMPOSSIBLE;
@@ -117,8 +152,33 @@ bool cherche_transformation(
 			return false;
 		}
 
+		if (POUR_TRANSTYPAGE) {
+			if (type_de->taille_octet > type_vers->taille_octet) {
+				transformation = { TypeTransformation::REDUIT_TAILLE_TYPE, type_vers };
+				return false;
+			}
+		}
+
 		transformation = TypeTransformation::IMPOSSIBLE;
 		return false;
+	}
+
+	if (POUR_TRANSTYPAGE) {
+		if (est_type_entier(type_de) && type_vers->genre == GenreType::REEL) {
+			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			return false;
+		}
+
+		if (est_type_entier(type_vers) && type_de->genre == GenreType::REEL) {
+			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			return false;
+		}
+
+		// converti relatif <-> naturel
+		if (est_type_entier(type_de) && est_type_entier(type_vers)) {
+			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			return false;
+		}
 	}
 
 	if (type_de->genre == GenreType::REEL && type_vers->genre == GenreType::REEL) {
@@ -165,6 +225,13 @@ bool cherche_transformation(
 		if (type_de->taille_octet < type_vers->taille_octet) {
 			transformation = { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
 			return false;
+		}
+
+		if (POUR_TRANSTYPAGE) {
+			if (type_de->taille_octet > type_vers->taille_octet) {
+				transformation = { TypeTransformation::REDUIT_TAILLE_TYPE, type_vers };
+				return false;
+			}
 		}
 
 		transformation = TypeTransformation::IMPOSSIBLE;
@@ -354,9 +421,54 @@ bool cherche_transformation(
 				transformation = { TypeTransformation::CONVERTI_VERS_BASE, type_vers };
 				return false;
 			}
+
+			if (POUR_TRANSTYPAGE) {
+				if (est_type_de_base(ts_vers, ts_de)) {
+					transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+					return false;
+				}
+			}
+		}
+
+		if (POUR_TRANSTYPAGE) {
+			if (type_pointe_de->genre == GenreType::OCTET && (type_pointe_vers == compilatrice.typeuse[TypeBase::Z8] || type_pointe_vers == compilatrice.typeuse[TypeBase::N8])) {
+				transformation = TypeTransformation::INUTILE;
+				return false;
+			}
+
+			// À FAIRE : pour les einis, nous devrions avoir une meilleure sûreté de type
+			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			return false;
+		}
+	}
+
+	if (POUR_TRANSTYPAGE) {
+		if (type_de->genre == GenreType::POINTEUR && est_type_entier(type_vers) && type_vers->taille_octet == 8) {
+			transformation = TypeTransformation::INUTILE;
+			return false;
 		}
 	}
 
 	transformation = TypeTransformation::IMPOSSIBLE;
 	return false;
+}
+
+bool cherche_transformation(
+		Compilatrice &compilatrice,
+		ContexteValidationCode &contexte,
+		Type *type_de,
+		Type *type_vers,
+		TransformationType &transformation)
+{
+	return cherche_transformation<false>(compilatrice, contexte, type_de, type_vers, transformation);
+}
+
+bool cherche_transformation_pour_transtypage(
+		Compilatrice &compilatrice,
+		ContexteValidationCode &contexte,
+		Type *type_de,
+		Type *type_vers,
+		TransformationType &transformation)
+{
+	return cherche_transformation<true>(compilatrice, contexte, type_de, type_vers, transformation);
 }

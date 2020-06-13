@@ -69,17 +69,17 @@ extrait_n64_nonsûr :: fonc (chn: chaine) -> n64
 
 extrait_n32_nonsûr :: fonc (chn: chaine) -> n32
 {
-    retourne extrait_n64(chn) comme n32
+    retourne extrait_n64_nonsûr(chn) comme n32
 }
 
 extrait_n16_nonsûr :: fonc (chn: chaine) -> n16
 {
-    retourne extrait_n64(chn) comme n16
+    retourne extrait_n64_nonsûr(chn) comme n16
 }
 
 extrait_n8_nonsûr :: fonc (chn: chaine) -> n8
 {
-    retourne extrait_n64(chn) comme n8
+    retourne extrait_n64_nonsûr(chn) comme n8
 }
 
 ErreurParsageEntier :: erreur {
@@ -123,7 +123,11 @@ extrait_n32 :: fonc (chn: chaine) -> n32 | ErreurParsageEntier
         retourne ErreurParsageEntier.EntréeTropGrande
     }
 
-    retourne extrait_n64(chn) comme n32
+    résultat := tente extrait_n64(chn) piège err {
+        retourne err
+    }
+
+    retourne résultat comme n32
 }
 
 extrait_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
@@ -136,7 +140,11 @@ extrait_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
         retourne ErreurParsageEntier.EntréeTropGrande
     }
 
-    retourne extrait_n64(chn) comme n16
+    résultat := tente extrait_n64(chn) piège err {
+        retourne err
+    }
+
+    retourne résultat comme n16
 }
 
 extrait_n8 :: fonc (chn: chaine) -> n8 | ErreurParsageEntier
@@ -149,5 +157,9 @@ extrait_n8 :: fonc (chn: chaine) -> n8 | ErreurParsageEntier
         retourne ErreurParsageEntier.EntréeTropGrande
     }
 
-    retourne extrait_n64(chn) comme n8
+    résultat := tente extrait_n64(chn) piège err {
+        retourne err
+    }
+
+    retourne résultat comme n8
 }

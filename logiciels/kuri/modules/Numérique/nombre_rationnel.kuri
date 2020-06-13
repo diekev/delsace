@@ -34,7 +34,7 @@ opérateur + :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 
     r : NombreRationnel
 
-    si a.s comme z8 == b.s comme z8 {
+    si a.s == b.s {
         r_N = r_N0 + r_N1
         r.s = a.s
     }

@@ -45,6 +45,7 @@ struct ContexteValidationCode;
 	ENUMERE_TYPE_TRANSFORMATION_EX(PREND_REFERENCE) \
 	ENUMERE_TYPE_TRANSFORMATION_EX(DEREFERENCE) \
 	ENUMERE_TYPE_TRANSFORMATION_EX(AUGMENTE_TAILLE_TYPE) \
+	ENUMERE_TYPE_TRANSFORMATION_EX(REDUIT_TAILLE_TYPE) \
 	ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_VERS_BASE) \
 	ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_ENTIER_CONSTANT) \
 	ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_VERS_PTR_RIEN) \
@@ -95,6 +96,13 @@ struct TransformationType {
 };
 
 bool cherche_transformation(
+		Compilatrice &compilatrice,
+		ContexteValidationCode &contexte,
+		Type *type_de,
+		Type *type_vers,
+		TransformationType &transformation);
+
+bool cherche_transformation_pour_transtypage(
 		Compilatrice &compilatrice,
 		ContexteValidationCode &contexte,
 		Type *type_de,

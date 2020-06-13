@@ -1215,8 +1215,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			/* À FAIRE : vérifie compatibilité */
-
 			if (noeud->type == nullptr) {
 				rapporte_erreur("Ne peut transtyper vers un type invalide", expr, erreur::type_erreur::TYPE_INCONNU);
 				return true;
@@ -1229,6 +1227,19 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				rapporte_erreur("Ne peut calculer le type d'origine", enfant, erreur::type_erreur::TYPE_INCONNU);
 				return true;
 			}
+
+			auto transformation = TransformationType();
+
+			if (cherche_transformation_pour_transtypage(m_compilatrice, *this, expr->expr1->type, noeud->type, transformation)) {
+				return true;
+			}
+
+			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+				rapporte_erreur_type_arguments(noeud, expr->expr1);
+				return true;
+			}
+
+			expr->expr1->transformation = transformation;
 
 			break;
 		}

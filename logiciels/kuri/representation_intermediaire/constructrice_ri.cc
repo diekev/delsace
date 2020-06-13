@@ -2111,6 +2111,15 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 			valeur = cree_transtype(transformation.type_cible, valeur);
 			break;
 		}
+		case TypeTransformation::REDUIT_TAILLE_TYPE:
+		{
+			if (valeur->est_chargeable) {
+				valeur = cree_charge_mem(valeur);
+			}
+
+			valeur = cree_transtype(transformation.type_cible, valeur);
+			break;
+		}
 		case TypeTransformation::CONSTRUIT_EINI:
 		{
 			auto alloc_eini = place;
