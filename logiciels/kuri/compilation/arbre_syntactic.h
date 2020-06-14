@@ -481,6 +481,8 @@ struct NoeudDirectiveExecution : NoeudExpression {
 
 void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab);
 
+bool est_expression_logique(NoeudExpression *noeud);
+
 template <unsigned long N>
 void rassemble_feuilles(
 		NoeudExpression *noeud_base,
