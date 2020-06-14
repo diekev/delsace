@@ -921,6 +921,31 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 			}
 
+			auto type_cible = m_compilatrice.typeuse[TypeBase::Z64];
+			auto type_index = enfant2->type;
+
+			if (type_index->genre == GenreType::ENUM) {
+				type_index = static_cast<TypeEnum *>(type_index)->type_donnees;
+			}
+
+			auto transformation = TransformationType();
+
+			if (cherche_transformation(m_compilatrice, *this, type_index, type_cible, transformation)) {
+				return true;
+			}
+
+			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+				if (enfant2->type->genre == GenreType::ENTIER_NATUREL) {
+					transformation = TransformationType(TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible);
+				}
+				else {
+					rapporte_erreur_type_indexage(enfant2);
+					return true;
+				}
+			}
+
+			enfant2->transformation = transformation;
+
 			donnees_dependance.types_utilises.insere(expr->type);
 			break;
 		}
@@ -2951,6 +2976,11 @@ void ContexteValidationCode::rapporte_erreur_assignation_type_differents(const T
 void ContexteValidationCode::rapporte_erreur_type_operation(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud)
 {
 	erreur::lance_erreur_type_operation(type_gauche, type_droite, m_compilatrice, noeud->lexeme);
+}
+
+void ContexteValidationCode::rapporte_erreur_type_indexage(NoeudExpression *noeud)
+{
+	erreur::type_indexage(m_compilatrice, noeud);
 }
 
 void ContexteValidationCode::rapporte_erreur_type_operation(NoeudExpression *noeud)

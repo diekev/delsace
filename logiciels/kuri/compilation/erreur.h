@@ -140,6 +140,10 @@ void imprime_ligne_avec_message(
 		Type *type_tableau,
 		long index_acces);
 
+[[noreturn]] void type_indexage(
+		const Compilatrice &compilatrice,
+		const NoeudExpression *noeud);
+
 [[noreturn]] void lance_erreur_type_operation(
 			Compilatrice const &compilatrice,
 			NoeudBase *b);

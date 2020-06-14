@@ -84,6 +84,7 @@ struct ContexteValidationCode {
 	void rapporte_erreur_assignation_type_differents(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud);
 	void rapporte_erreur_type_operation(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud);
 	void rapporte_erreur_type_operation(NoeudExpression *noeud);
+	void rapporte_erreur_type_indexage(NoeudExpression *noeud);
 	void rapporte_erreur_type_operation_unaire(NoeudExpression *noeud);
 	void rapporte_erreur_acces_hors_limites(NoeudBase *b, TypeTableauFixe *type_tableau, long index_acces);
 	void rapporte_erreur_membre_inconnu(NoeudBase *acces, NoeudBase *structure, NoeudBase *membre, TypeCompose *type);

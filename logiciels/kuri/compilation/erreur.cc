@@ -316,6 +316,32 @@ void lance_erreur_type_operation(
 	throw frappe(ss.chn().c_str(), type_erreur::TYPE_DIFFERENTS);
 }
 
+void type_indexage(
+		const Compilatrice &compilatrice,
+		const NoeudExpression *noeud)
+{
+	auto lexeme = noeud->lexeme;
+	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto pos = position_lexeme(*lexeme);
+	auto const pos_mot = pos.pos;
+	auto ligne = fichier->tampon[pos.index_ligne];
+
+	dls::flux_chaine ss;
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, lexeme->chaine);
+	ss << '\n';
+
+	ss << "Le type de l'expression d'indexage est invalide !\n";
+	ss << "Requiers : z64\n";
+	ss << "Obtenu   : " << chaine_type(noeud->type) << '\n';
+
+	throw frappe(ss.chn().c_str(), type_erreur::TYPE_DIFFERENTS);
+}
+
 void lance_erreur_fonction_inconnue(
 		Compilatrice const &compilatrice,
 		NoeudBase *b,
