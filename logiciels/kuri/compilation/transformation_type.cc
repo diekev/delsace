@@ -127,6 +127,17 @@ bool cherche_transformation(
 			transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers };
 			return false;
 		}
+
+		if (type_de->genre == GenreType::BOOL && est_type_entier(type_vers)) {
+			if (type_vers->taille_octet > type_de->taille_octet) {
+				transformation = { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
+			}
+			else {
+				transformation = TypeTransformation::INUTILE;
+			}
+
+			return false;
+		}
 	}
 
 	if (type_de->genre == GenreType::ENTIER_NATUREL && type_vers->genre == GenreType::ENTIER_NATUREL) {
