@@ -44,6 +44,7 @@ set(SOURCES
 	erreur.h
 	expression.h
 	graphe_dependance.hh
+	identifiant.hh
 	lexemes.hh
 	lexeuse.hh
 	modules.hh
@@ -68,6 +69,7 @@ set(SOURCES
 	erreur.cc
 	expression.cc
 	graphe_dependance.cc
+	identifiant.cc
 	lexemes.cc
 	lexeuse.cc
 	modules.cc

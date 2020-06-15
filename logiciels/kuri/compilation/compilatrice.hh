@@ -30,6 +30,7 @@
 #include "allocatrice_noeud.hh"
 #include "operateurs.hh"
 #include "graphe_dependance.hh"
+#include "identifiant.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
 
@@ -66,57 +67,6 @@ struct Metriques {
 	double temps_executable = 0.0;
 	double temps_nettoyage = 0.0;
 	double temps_ri = 0.0;
-};
-
-struct IdentifiantCode {
-	dls::vue_chaine_compacte nom{};
-};
-
-struct TableIdentifiant {
-private:
-	// À FAIRE : il serait bien d'utiliser un dico simple car plus rapide, ne
-	// nécissitant pas de hachage, mais dico échoue lors des comparaisons de
-	// vue_chaine_compacte par manque de caractère nul à la fin des chaines
-	dls::dico_desordonne<dls::vue_chaine_compacte, IdentifiantCode *> table{};
-	dls::tableau<IdentifiantCode *> identifiants{};
-
-public:
-	~TableIdentifiant()
-	{
-		for (auto ident : identifiants) {
-			memoire::deloge("IdentifiantCode", ident);
-		}
-	}
-
-	IdentifiantCode *identifiant_pour_chaine(dls::vue_chaine_compacte const &nom)
-	{
-		auto iter = table.trouve(nom);
-
-		if (iter != table.fin()) {
-			return iter->second;
-		}
-
-		auto ident = memoire::loge<IdentifiantCode>("IdentifiantCode");
-		ident->nom = nom;
-
-		table.insere({ nom, ident });
-		identifiants.pousse(ident);
-
-		return ident;
-	}
-
-	long taille() const
-	{
-		return table.taille();
-	}
-
-	size_t memoire_utilisee() const
-	{
-		auto memoire = 0ul;
-		memoire += static_cast<size_t>(identifiants.taille()) * sizeof (IdentifiantCode *);
-		memoire += static_cast<size_t>(table.taille()) * (sizeof (dls::vue_chaine_compacte) + sizeof(IdentifiantCode *));
-		return memoire;
-	}
 };
 
 struct GeranteChaine {

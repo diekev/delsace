@@ -85,8 +85,6 @@ private:
 	int nombre_labels = 0;
 	int nombre_instructions = 0;
 
-	IdentifiantCode *ident_contexte = nullptr;
-
 	NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
 
 	dls::dico<IdentifiantCode *, Atome *> table_locales{};

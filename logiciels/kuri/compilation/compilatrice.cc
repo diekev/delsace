@@ -38,6 +38,7 @@ Compilatrice::Compilatrice()
 	, typeuse(graphe_dependance, this->operateurs)
 	, constructrice_ri(*this)
 {
+	initialise_identifiants(this->table_identifiants);
 	enregistre_operateurs_basiques(*this, this->operateurs);
 
 	/* Pour fprintf dans les messages d'erreurs, nous incluons toujours "stdio.h". */

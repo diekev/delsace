@@ -59,50 +59,50 @@ static auto trouve_chemin_si_dans_dossier(Module *module, dls::chaine const &cha
 static auto renseigne_fonction_interface(InterfaceKuri &interface, NoeudDeclarationFonction *noeud)
 {
 #define INIT_MEMBRE(membre, nom) \
-	if (noeud->lexeme->chaine == nom) { \
+	if (noeud->ident == nom) { \
 		interface.membre = noeud; \
 		return; \
 	}
 
-	INIT_MEMBRE(decl_panique, "panique");
-	INIT_MEMBRE(decl_panique_memoire, "panique_hors_mémoire");
-	INIT_MEMBRE(decl_panique_tableau, "panique_dépassement_limites_tableau");
-	INIT_MEMBRE(decl_panique_chaine, "panique_dépassement_limites_chaine");
-	INIT_MEMBRE(decl_panique_membre_union, "panique_membre_union");
-	INIT_MEMBRE(decl_panique_erreur, "panique_erreur_non_gérée");
-	INIT_MEMBRE(decl_rappel_panique_defaut, "__rappel_panique_défaut");
-	INIT_MEMBRE(decl_dls_vers_r32, "DLS_vers_r32");
-	INIT_MEMBRE(decl_dls_vers_r64, "DLS_vers_r64");
-	INIT_MEMBRE(decl_dls_depuis_r32, "DLS_depuis_r32");
-	INIT_MEMBRE(decl_dls_depuis_r64, "DLS_depuis_r64");
-	INIT_MEMBRE(decl_initialise_rc, "initialise_RC");
+	INIT_MEMBRE(decl_panique, ID::panique);
+	INIT_MEMBRE(decl_panique_memoire, ID::panique_hors_memoire);
+	INIT_MEMBRE(decl_panique_tableau, ID::panique_depassement_limites_tableau);
+	INIT_MEMBRE(decl_panique_chaine, ID::panique_depassement_limites_chaine);
+	INIT_MEMBRE(decl_panique_membre_union, ID::panique_membre_union);
+	INIT_MEMBRE(decl_panique_erreur, ID::panique_erreur_non_geree);
+	INIT_MEMBRE(decl_rappel_panique_defaut, ID::__rappel_panique_defaut);
+	INIT_MEMBRE(decl_dls_vers_r32, ID::DLS_vers_r32);
+	INIT_MEMBRE(decl_dls_vers_r64, ID::DLS_vers_r64);
+	INIT_MEMBRE(decl_dls_depuis_r32, ID::DLS_depuis_r32);
+	INIT_MEMBRE(decl_dls_depuis_r64, ID::DLS_depuis_r64);
+	INIT_MEMBRE(decl_initialise_rc, ID::initialise_RC);
 
 #undef INIT_MEMBRE
 }
 
-static auto renseigne_type_interface(Typeuse &typeuse, dls::vue_chaine_compacte nom_struct, Type *type)
+static auto renseigne_type_interface(Typeuse &typeuse, IdentifiantCode *ident, Type *type)
 {
 #define INIT_TYPE(membre, nom) \
-	if (nom_struct == nom) { \
+	if (ident == nom) { \
 		typeuse.membre = type; \
 		return; \
 	}
 
-	INIT_TYPE(type_info_type_, "InfoType");
-	INIT_TYPE(type_info_type_enum, "InfoTypeÉnum");
-	INIT_TYPE(type_info_type_structure, "InfoTypeStructure");
-	INIT_TYPE(type_info_type_union, "InfoTypeUnion");
-	INIT_TYPE(type_info_type_membre_structure, "InfoTypeMembreStructure");
-	INIT_TYPE(type_info_type_entier, "InfoTypeEntier");
-	INIT_TYPE(type_info_type_tableau, "InfoTypeTableau");
-	INIT_TYPE(type_info_type_pointeur, "InfoTypePointeur");
-	INIT_TYPE(type_info_type_fonction, "InfoTypeFonction");
-	INIT_TYPE(type_position_code_source, "PositionCodeSource");
-	INIT_TYPE(type_info_fonction_trace_appel, "InfoFonctionTraceAppel");
-	INIT_TYPE(type_trace_appel, "TraceAppel");
-	INIT_TYPE(type_base_allocatrice, "BaseAllocatrice");
-	INIT_TYPE(type_info_appel_trace_appel, "InfoAppelTraceAppel");
-	INIT_TYPE(type_stockage_temporaire, "StockageTemporaire");
+	INIT_TYPE(type_info_type_, ID::InfoType);
+	INIT_TYPE(type_info_type_enum, ID::InfoTypeEnum);
+	INIT_TYPE(type_info_type_structure, ID::InfoTypeStructure);
+	INIT_TYPE(type_info_type_union, ID::InfoTypeUnion);
+	INIT_TYPE(type_info_type_membre_structure, ID::InfoTypeMembreStructure);
+	INIT_TYPE(type_info_type_entier, ID::InfoTypeEntier);
+	INIT_TYPE(type_info_type_tableau, ID::InfoTypeTableau);
+	INIT_TYPE(type_info_type_pointeur, ID::InfoTypePointeur);
+	INIT_TYPE(type_info_type_fonction, ID::InfoTypeFonction);
+	INIT_TYPE(type_position_code_source, ID::PositionCodeSource);
+	INIT_TYPE(type_info_fonction_trace_appel, ID::InfoFonctionTraceAppel);
+	INIT_TYPE(type_trace_appel, ID::TraceAppel);
+	INIT_TYPE(type_base_allocatrice, ID::BaseAllocatrice);
+	INIT_TYPE(type_info_appel_trace_appel, ID::InfoAppelTraceAppel);
+	INIT_TYPE(type_stockage_temporaire, ID::StockageTemporaire);
 
 #undef INIT_TYPE
 }
@@ -2042,7 +2042,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 	auto noeud_decl = CREE_NOEUD(NoeudStruct, GenreNoeud::DECLARATION_STRUCTURE, gauche->lexeme);
 	noeud_decl->est_union = (lexeme_mot_cle->genre == GenreLexeme::UNION);
 
-	if (gauche->lexeme->chaine == "InfoType") {
+	if (gauche->ident == ID::InfoType) {
 		noeud_decl->type = m_compilatrice.typeuse.type_info_type_;
 		auto type_info_type = static_cast<TypeStructure *>(m_compilatrice.typeuse.type_info_type_);
 		type_info_type->decl = noeud_decl;
@@ -2057,7 +2057,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		}
 	}
 
-	if (gauche->lexeme->chaine == "ContexteProgramme") {
+	if (gauche->ident == ID::ContexteProgramme) {
 		m_compilatrice.type_contexte = noeud_decl->type;
 	}
 
@@ -2085,7 +2085,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 		auto chn_directive = lexeme_courant()->chaine;
 		if (chn_directive == "interface") {
-			renseigne_type_interface(m_compilatrice.typeuse, noeud_decl->ident->nom, noeud_decl->type);
+			renseigne_type_interface(m_compilatrice.typeuse, noeud_decl->ident, noeud_decl->type);
 		}
 
 		consomme();
