@@ -12,62 +12,10 @@ est_caractère_espace_blanc :: fonc (point_de_code: n32) -> bool
     retourne point_de_code == ESPACE || point_de_code == TABULATION || point_de_code == RETOUR_CHARIOT || point_de_code == NOUVELLE_LIGNE || point_de_code == 0x0C
 }
 
-ModeInsertion :: énum {
-    Initial
-    AvantHtml
-    AvantHead
-    DansHead
-    DansHeadNoScript
-    AprèsHead
-    DansBody
-    Texte
-    DansTable
-    DansTexteTable
-    DansCaption
-    DansGroupeColonne
-    DansCorpsTable
-    DansRow
-    DansCell
-    DansSelect
-    DansSelectDansTable
-    DansFrameSet
-    DansTemplate
-    AprèsBody
-    AprèsAprèsBody
-    AprèsFrameSet
-    AprèsAprèsFrameSet
-}
-
-fonctions_insertions := [
-    insère_mode_Initial,
-    insère_mode_AvantHtml,
-    insère_mode_AvantHead,
-    insère_mode_DansHead,
-    insère_mode_DansHeadNoScript,
-    insère_mode_AprèsHead,
-    insère_mode_DansBody,
-    insère_mode_Texte,
-    insère_mode_DansTable,
-    insère_mode_DansTexteTable,
-    insère_mode_DansCaption,
-    insère_mode_DansGroupeColonne,
-    insère_mode_DansCorpsTable,
-    insère_mode_DansRow,
-    insère_mode_DansCell,
-    insère_mode_DansSelect,
-    insère_mode_DansSelectDansTable,
-    insère_mode_DansFrameSet,
-    insère_mode_DansTemplate,
-    insère_mode_AprèsBody,
-    insère_mode_AprèsAprèsBody,
-    insère_mode_AprèsFrameSet,
-    insère_mode_AprèsAprèsFrameSet
-]
-
 Parseuse :: struct {
-    mode_insertion : ModeInsertion
-    mode_insertion_original : ModeInsertion
-    pile_insertion_template : []ModeInsertion
+    mode_insertion : fonc(*Parseuse, Lexème)(rien)
+    mode_insertion_original : fonc(*Parseuse, Lexème)(rien)
+    pile_insertion_template : []fonc(*Parseuse, Lexème)(rien)
     lexeuse: Lexeuse
     document: *Document
 
@@ -89,7 +37,7 @@ Parseuse :: struct {
 initialise_parseuse :: fonc (entrée: chaine) -> Parseuse
 {
     parseuse: Parseuse
-    parseuse.mode_insertion = ModeInsertion.Initial
+    parseuse.mode_insertion = insère_mode_Initial
     parseuse.lexeuse = initialise_lexeuse(entrée)
     parseuse.document = crée_noeud_document()
 
@@ -141,14 +89,13 @@ crée_élément_pour :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *Éléme
     retourne élément
 }
 
-gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: ModeInsertion, lexème: Lexème)
+gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: fonc(*Parseuse, Lexème)(rien), lexème: Lexème)
 {
     // si lexème.genre != GenreLexème.Caractère {
     //     imprime("gère lexème : % (%), mode insertion : %\n", lexème.nom, lexème.genre, mode)
     // }
 
-    fonction := fonctions_insertions[mode]
-    fonction(parseuse, lexème)
+    mode(parseuse, lexème)
 }
 
 trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_override: *Noeud = nul) -> *Noeud
@@ -233,13 +180,13 @@ insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
         doctype := crée_noeud_doctype(parseuse.document)
         doctype.ajoute_attribut("name", lexème.nom)
         parseuse.document.ajoute_enfant(doctype)
-        parseuse.mode_insertion = ModeInsertion.AvantHtml
+        parseuse.mode_insertion = insère_mode_AvantHtml
         retourne
     }
 
     // À FAIRE : vérifie si nous avons un iframe srcdoc
 
-    parseuse.mode_insertion = ModeInsertion.AvantHtml
+    parseuse.mode_insertion = insère_mode_AvantHtml
     parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
 }
 
@@ -262,7 +209,7 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.DébutTag && lexème.nom == "html" {
         élément := parseuse.crée_élément_pour(lexème)
         parseuse.document.ajoute_enfant(élément)
-        parseuse.mode_insertion = ModeInsertion.AvantHead
+        parseuse.mode_insertion = insère_mode_AvantHead
         empile(@parseuse.pile_éléments_ouvert, élément)
         // À FAIRE : contexte navigation, voir spec
         retourne
@@ -280,7 +227,7 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     // À FAIRE : si document est chargé dans un contexte navigation...
 
-    parseuse.mode_insertion = ModeInsertion.AvantHead
+    parseuse.mode_insertion = insère_mode_AvantHead
     parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
 }
 
@@ -302,14 +249,14 @@ insère_mode_AvantHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.DébutTag {
         si lexème.nom == "html" {
-            gère_lexème_pour_mode(parseuse, ModeInsertion.DansBody, lexème)
+            gère_lexème_pour_mode(parseuse, insère_mode_DansBody, lexème)
             retourne
         }
 
         si lexème.nom == "head" {
             élément := parseuse.insère_élément_html(lexème)
             parseuse.élément_head = élément
-            parseuse.mode_insertion = ModeInsertion.DansHead
+            parseuse.mode_insertion = insère_mode_DansHead
             retourne
         }
     }
@@ -321,7 +268,7 @@ insère_mode_AvantHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     lexème_head := Lexème(genre = GenreLexème.DébutTag, nom = "head")
     élément := parseuse.insère_élément_html(lexème_head)
     parseuse.élément_head = élément
-    parseuse.mode_insertion = ModeInsertion.DansHead
+    parseuse.mode_insertion = insère_mode_DansHead
     gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
 }
 
@@ -330,7 +277,7 @@ gère_élément_contenant_texte_cru :: fonc (parseuse: *Parseuse, lexème: Lexè
     _ := parseuse.insère_élément_html(lexème)
     parseuse.lexeuse.état = état_lexeuse
     parseuse.mode_insertion_original = parseuse.mode_insertion
-    parseuse.mode_insertion = ModeInsertion.Texte
+    parseuse.mode_insertion = insère_mode_Texte
 }
 
 insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
@@ -352,7 +299,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.DébutTag {
         si lexème.nom == "html" {
-            gère_lexème_pour_mode(parseuse, ModeInsertion.DansBody, lexème)
+            gère_lexème_pour_mode(parseuse, insère_mode_DansBody, lexème)
             retourne
         }
 
@@ -387,7 +334,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
             }
             sinon {
                 _ := parseuse.insère_élément_html(lexème)
-                parseuse.mode_insertion = ModeInsertion.DansHeadNoScript
+                parseuse.mode_insertion = insère_mode_DansHeadNoScript
             }
 
             retourne
@@ -404,7 +351,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
             empile(@parseuse.pile_éléments_ouvert, élément)
             parseuse.lexeuse.état = ÉtatLexage.ScriptData
             parseuse.mode_insertion_original = parseuse.mode_insertion
-            parseuse.mode_insertion = ModeInsertion.Texte
+            parseuse.mode_insertion = insère_mode_Texte
             retourne
         }
 
@@ -412,8 +359,8 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
             _ := parseuse.insère_élément_html(lexème)
             ajoute_marqueur(@parseuse.liste_éléments_actifs_formattage)
             parseuse.frameset_ok = faux
-            parseuse.mode_insertion = ModeInsertion.DansTemplate
-            tableau_ajoute(@parseuse.pile_insertion_template, ModeInsertion.DansTemplate)
+            parseuse.mode_insertion = insère_mode_DansTemplate
+            tableau_ajoute(@parseuse.pile_insertion_template, insère_mode_DansTemplate)
             retourne
         }
 
@@ -425,7 +372,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == "head" {
             dépile(@parseuse.pile_éléments_ouvert)
-            parseuse.mode_insertion = ModeInsertion.AprèsHead
+            parseuse.mode_insertion = insère_mode_AprèsHead
             retourne
         }
 
@@ -453,7 +400,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     dépile(@parseuse.pile_éléments_ouvert)
-    parseuse.mode_insertion = ModeInsertion.AprèsHead
+    parseuse.mode_insertion = insère_mode_AprèsHead
 }
 
 insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
@@ -464,20 +411,20 @@ insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Commentaire {
-        gère_lexème_pour_mode(parseuse, ModeInsertion.DansHead, lexème)
+        gère_lexème_pour_mode(parseuse, insère_mode_DansHead, lexème)
         retourne
     }
 
     si lexème.genre == GenreLexème.Caractère {
         si est_caractère_espace_blanc(lexème.point_de_code) {
-            gère_lexème_pour_mode(parseuse, ModeInsertion.DansHead, lexème)
+            gère_lexème_pour_mode(parseuse, insère_mode_DansHead, lexème)
             retourne
         }
     }
 
     si lexème.genre == GenreLexème.DébutTag {
         si lexème.nom == "html" {
-            gère_lexème_pour_mode(parseuse, ModeInsertion.DansBody, lexème)
+            gère_lexème_pour_mode(parseuse, insère_mode_DansBody, lexème)
             retourne
         }
 
@@ -487,7 +434,7 @@ insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "bgsound", "link", "meta", "noframes", "style") {
-            gère_lexème_pour_mode(parseuse, ModeInsertion.DansHead, lexème)
+            gère_lexème_pour_mode(parseuse, insère_mode_DansHead, lexème)
             retourne
         }
     }
@@ -495,7 +442,7 @@ insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == "noscript" {
             dépile(@parseuse.pile_éléments_ouvert)
-            parseuse.mode_insertion = ModeInsertion.DansHead
+            parseuse.mode_insertion = insère_mode_DansHead
             retourne
         }
 
@@ -506,7 +453,7 @@ insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     dépile(@parseuse.pile_éléments_ouvert)
-    parseuse.mode_insertion = ModeInsertion.DansHead
+    parseuse.mode_insertion = insère_mode_DansHead
     gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
 }
 
@@ -529,20 +476,20 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.DébutTag {
         si lexème.nom == "html" {
-            gère_lexème_pour_mode(parseuse, ModeInsertion.DansBody, lexème)
+            gère_lexème_pour_mode(parseuse, insère_mode_DansBody, lexème)
             retourne
         }
 
         si lexème.nom == "body" {
             _ := parseuse.insère_élément_html(lexème)
             parseuse.frameset_ok = faux
-            parseuse.mode_insertion = ModeInsertion.DansBody
+            parseuse.mode_insertion = insère_mode_DansBody
             retourne
         }
 
         si lexème.nom == "frameset" {
             _ := parseuse.insère_élément_html(lexème)
-            parseuse.mode_insertion = ModeInsertion.DansFrameSet
+            parseuse.mode_insertion = insère_mode_DansFrameSet
             retourne
         }
 
@@ -554,7 +501,7 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
             erreur_de_parsage("élément inattendu après <head>")
 
             empile(@parseuse.pile_éléments_ouvert, parseuse.élément_head)
-            parseuse.gère_lexème_pour_mode(ModeInsertion.DansHead, lexème)
+            parseuse.gère_lexème_pour_mode(insère_mode_DansHead, lexème)
             supprime_élément(@parseuse.pile_éléments_ouvert, parseuse.élément_head)
             retourne
         }
@@ -562,7 +509,7 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == "template" {
-            gère_lexème_pour_mode(parseuse, ModeInsertion.DansHead, lexème)
+            gère_lexème_pour_mode(parseuse, insère_mode_DansHead, lexème)
             retourne
         }
 
@@ -573,7 +520,7 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     lexème_body := Lexème(genre = GenreLexème.DébutTag, nom = "body")
     élément := parseuse.insère_élément_html(lexème_body)
-    parseuse.mode_insertion = ModeInsertion.DansBody
+    parseuse.mode_insertion = insère_mode_DansBody
     gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
 }
 
@@ -608,7 +555,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "template", "title") {
-            gère_lexème_pour_mode(parseuse, ModeInsertion.DansHead, lexème)
+            gère_lexème_pour_mode(parseuse, insère_mode_DansHead, lexème)
             retourne
         }
 
@@ -842,7 +789,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             _ := insère_élément_html(parseuse, lexème)
             parseuse.frameset_ok = faux
-            parseuse.mode_insertion = ModeInsertion.DansTable
+            parseuse.mode_insertion = insère_mode_DansTable
             retourne
         }
 
@@ -904,7 +851,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.lexeuse.état = ÉtatLexage.RCDATA
             parseuse.mode_insertion_original = parseuse.mode_insertion
-            parseuse.mode_insertion = ModeInsertion.Texte
+            parseuse.mode_insertion = insère_mode_Texte
             parseuse.frameset_ok = faux
             retourne
         }
@@ -936,11 +883,11 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             _ := parseuse.insère_élément_html(lexème)
             parseuse.frameset_ok = faux
 
-            si fait_partie_de(parseuse.mode_insertion, ModeInsertion.DansTable, ModeInsertion.DansCaption, ModeInsertion.DansCorpsTable, ModeInsertion.DansRow, ModeInsertion.DansCell) {
-                parseuse.mode_insertion = ModeInsertion.DansSelectDansTable
+            si fait_partie_de(parseuse.mode_insertion, insère_mode_DansTable, insère_mode_DansCaption, insère_mode_DansCorpsTable, insère_mode_DansRow, insère_mode_DansCell) {
+                parseuse.mode_insertion = insère_mode_DansSelectDansTable
             }
             sinon {
-                parseuse.mode_insertion = ModeInsertion.DansSelect
+                parseuse.mode_insertion = insère_mode_DansSelect
             }
 
             retourne
@@ -1013,7 +960,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == "template" {
-            gère_lexème_pour_mode(parseuse, ModeInsertion.DansHead, lexème)
+            gère_lexème_pour_mode(parseuse, insère_mode_DansHead, lexème)
             retourne
         }
 
@@ -1022,7 +969,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 // À FAIRE : comprendre ce que la spec veut dire
             }
 
-            parseuse.mode_insertion = ModeInsertion.AprèsBody
+            parseuse.mode_insertion = insère_mode_AprèsBody
             retourne
         }
 
@@ -1031,7 +978,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 // À FAIRE : comprendre ce que la spec veut dire
             }
 
-            parseuse.mode_insertion = ModeInsertion.AprèsBody
+            parseuse.mode_insertion = insère_mode_AprèsBody
             gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
             retourne
         }
@@ -1247,14 +1194,14 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si lexème.nom == "caption" {
             parseuse.dépile_vers_contexte_table()
             _ := parseuse.insère_élément_html(lexème)
-            parseuse.mode_insertion = ModeInsertion.DansCaption
+            parseuse.mode_insertion = insère_mode_DansCaption
             retourne
         }
 
         si lexème.nom == "colgroup" {
             parseuse.dépile_vers_contexte_table()
             _ := parseuse.insère_élément_html(lexème)
-            parseuse.mode_insertion = ModeInsertion.DansGroupeColonne
+            parseuse.mode_insertion = insère_mode_DansGroupeColonne
             retourne
         }
 
@@ -1266,7 +1213,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
             lexème_col.genre = GenreLexème.DébutTag
             _ := parseuse.insère_élément_html(lexème_col)
 
-            parseuse.mode_insertion = ModeInsertion.DansGroupeColonne
+            parseuse.mode_insertion = insère_mode_DansGroupeColonne
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
@@ -1274,7 +1221,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si fait_partie_de(lexème.nom, "tbody", "tfoot", "thead") {
             parseuse.dépile_vers_contexte_table()
             _ := parseuse.insère_élément_html(lexème)
-            parseuse.mode_insertion = ModeInsertion.DansCorpsTable
+            parseuse.mode_insertion = insère_mode_DansCorpsTable
             retourne
         }
 
@@ -1286,7 +1233,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
             lexème_tbody.genre = GenreLexème.DébutTag
             _ := parseuse.insère_élément_html(lexème_tbody)
 
-            parseuse.mode_insertion = ModeInsertion.DansCorpsTable
+            parseuse.mode_insertion = insère_mode_DansCorpsTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
@@ -1305,7 +1252,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "style", "script", "template") {
-            parseuse.gère_lexème_pour_mode(ModeInsertion.DansHead, lexème)
+            parseuse.gère_lexème_pour_mode(insère_mode_DansHead, lexème)
             retourne
         }
 
@@ -1315,7 +1262,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
             si attr == nul || !compare_ascii_insensible_à_la_casse(attr.valeur, "hidden") {
                 erreur_de_parsage("lexème inattendu dans table")
                 parseuse.adoption_activée = vrai
-                parseuse.gère_lexème_pour_mode(ModeInsertion.DansBody, lexème)
+                parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
                 parseuse.adoption_activée = faux
                 retourne
             }
@@ -1358,19 +1305,19 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "template" {
-            parseuse.gère_lexème_pour_mode(ModeInsertion.DansHead, lexème)
+            parseuse.gère_lexème_pour_mode(insère_mode_DansHead, lexème)
             retourne
         }
     }
 
     si lexème.genre == GenreLexème.FinDeFichier {
-        parseuse.gère_lexème_pour_mode(ModeInsertion.DansBody, lexème)
+        parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
         retourne
     }
 
     erreur_de_parsage("lexème inattendu dans table")
     parseuse.adoption_activée = vrai
-    parseuse.gère_lexème_pour_mode(ModeInsertion.DansBody, lexème)
+    parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
     parseuse.adoption_activée = faux
 }
 
@@ -1395,7 +1342,7 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si lexème.nom == "tr" {
             parseuse.dépile_vers_contexte_table_body()
             _ := parseuse.insère_élément_html(lexème)
-            parseuse.mode_insertion = ModeInsertion.DansRow
+            parseuse.mode_insertion = insère_mode_DansRow
             retourne
         }
 
@@ -1408,7 +1355,7 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
             lexème_tr.nom = "tr"
             _ := parseuse.insère_élément_html(lexème)
 
-            parseuse.mode_insertion = ModeInsertion.DansRow
+            parseuse.mode_insertion = insère_mode_DansRow
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
@@ -1418,7 +1365,7 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.dépile_vers_contexte_table_body()
             dépile(@parseuse.pile_éléments_ouvert)
-            parseuse.mode_insertion = ModeInsertion.DansTable
+            parseuse.mode_insertion = insère_mode_DansTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
@@ -1434,7 +1381,7 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.dépile_vers_contexte_table_body()
             dépile(@parseuse.pile_éléments_ouvert)
-            parseuse.mode_insertion = ModeInsertion.DansTable
+            parseuse.mode_insertion = insère_mode_DansTable
             retourne
         }
 
@@ -1443,7 +1390,7 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.dépile_vers_contexte_table_body()
             dépile(@parseuse.pile_éléments_ouvert)
-            parseuse.mode_insertion = ModeInsertion.DansTable
+            parseuse.mode_insertion = insère_mode_DansTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
@@ -1453,7 +1400,7 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
     }
 
-    parseuse.gère_lexème_pour_mode(ModeInsertion.DansTable, lexème)
+    parseuse.gère_lexème_pour_mode(insère_mode_DansTable, lexème)
 }
 
 insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
@@ -1462,7 +1409,7 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si fait_partie_de(lexème.nom, "th", "td") {
             parseuse.dépile_vers_contexte_table_row()
             _ := parseuse.insère_élément_html(lexème)
-            parseuse.mode_insertion = ModeInsertion.DansCell
+            parseuse.mode_insertion = insère_mode_DansCell
             ajoute_marqueur(@parseuse.liste_éléments_actifs_formattage)
             retourne
         }
@@ -1475,7 +1422,7 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.dépile_vers_contexte_table_row()
             dépile(@parseuse.pile_éléments_ouvert)
-            parseuse.mode_insertion = ModeInsertion.DansCorpsTable
+            parseuse.mode_insertion = insère_mode_DansCorpsTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
@@ -1490,7 +1437,7 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.dépile_vers_contexte_table_row()
             dépile(@parseuse.pile_éléments_ouvert)
-            parseuse.mode_insertion = ModeInsertion.DansCorpsTable
+            parseuse.mode_insertion = insère_mode_DansCorpsTable
             retourne
         }
 
@@ -1502,7 +1449,7 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.dépile_vers_contexte_table_row()
             dépile(@parseuse.pile_éléments_ouvert)
-            parseuse.mode_insertion = ModeInsertion.DansCorpsTable
+            parseuse.mode_insertion = insère_mode_DansCorpsTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
@@ -1519,7 +1466,7 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.dépile_vers_contexte_table_row()
             dépile(@parseuse.pile_éléments_ouvert)
-            parseuse.mode_insertion = ModeInsertion.DansCorpsTable
+            parseuse.mode_insertion = insère_mode_DansCorpsTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
@@ -1530,7 +1477,7 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
     }
 
-    parseuse.gère_lexème_pour_mode(ModeInsertion.DansTable, lexème)
+    parseuse.gère_lexème_pour_mode(insère_mode_DansTable, lexème)
 }
 
 insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
@@ -1550,7 +1497,7 @@ insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.dépile_tous_les_éléments_jusque(lexème.nom)
             enlève_éléments_jusqu_au_dernier_marqueur(@parseuse.liste_éléments_actifs_formattage)
-            parseuse.mode_insertion = ModeInsertion.DansRow
+            parseuse.mode_insertion = insère_mode_DansRow
             retourne
         }
 
@@ -1584,7 +1531,7 @@ insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
     }
 
-    parseuse.gère_lexème_pour_mode(ModeInsertion.DansBody, lexème)
+    parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
 }
 
 insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
@@ -1611,7 +1558,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.DébutTag {
         si lexème.nom == "html" {
-            parseuse.gère_lexème_pour_mode(ModeInsertion.DansBody, lexème)
+            parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
             retourne
         }
 
@@ -1664,7 +1611,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "script", "template") {
-            parseuse.gère_lexème_pour_mode(ModeInsertion.DansHead, lexème)
+            parseuse.gère_lexème_pour_mode(insère_mode_DansHead, lexème)
             retourne
         }
     }
@@ -1706,13 +1653,13 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "template") {
-            parseuse.gère_lexème_pour_mode(ModeInsertion.DansHead, lexème)
+            parseuse.gère_lexème_pour_mode(insère_mode_DansHead, lexème)
             retourne
         }
     }
 
     si lexème.genre == GenreLexème.FinDeFichier {
-        parseuse.gère_lexème_pour_mode(ModeInsertion.DansBody, lexème)
+        parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
         retourne
     }
 
@@ -1732,53 +1679,53 @@ insère_mode_DansFrameSet :: fonc (parseuse: *Parseuse, lexème: Lexème)
 insère_mode_DansTemplate :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Caractère || lexème.genre == GenreLexème.Commentaire || lexème.genre == GenreLexème.Doctype {
-        parseuse.gère_lexème_pour_mode(ModeInsertion.DansBody, lexème)
+        parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
         retourne
     }
 
     si lexème.genre == GenreLexème.DébutTag {
         si fait_partie_de(lexème.nom,  "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "template", "title") {
-            parseuse.gère_lexème_pour_mode(ModeInsertion.DansHead, lexème)
+            parseuse.gère_lexème_pour_mode(insère_mode_DansHead, lexème)
             retourne
         }
 
         si fait_partie_de(lexème.nom, "caption", "colgroup", "tbody", "tfoot", "thead") {
-            parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = ModeInsertion.DansTable
-            parseuse.mode_insertion = ModeInsertion.DansTable
+            parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = insère_mode_DansTable
+            parseuse.mode_insertion = insère_mode_DansTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
 
         si lexème.nom == "col" {
-            parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = ModeInsertion.DansGroupeColonne
-            parseuse.mode_insertion = ModeInsertion.DansGroupeColonne
+            parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = insère_mode_DansGroupeColonne
+            parseuse.mode_insertion = insère_mode_DansGroupeColonne
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
 
         si lexème.nom == "tr" {
-            parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = ModeInsertion.DansCorpsTable
-            parseuse.mode_insertion = ModeInsertion.DansCorpsTable
+            parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = insère_mode_DansCorpsTable
+            parseuse.mode_insertion = insère_mode_DansCorpsTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
 
         si lexème.nom == "td" || lexème.nom == "th" {
-            parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = ModeInsertion.DansRow
-            parseuse.mode_insertion = ModeInsertion.DansRow
+            parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = insère_mode_DansRow
+            parseuse.mode_insertion = insère_mode_DansRow
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
 
-        parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = ModeInsertion.DansBody
-        parseuse.mode_insertion = ModeInsertion.DansBody
+        parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1] = insère_mode_DansBody
+        parseuse.mode_insertion = insère_mode_DansBody
         parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
         retourne
     }
 
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == "template" {
-            parseuse.gère_lexème_pour_mode(ModeInsertion.DansHead, lexème)
+            parseuse.gère_lexème_pour_mode(insère_mode_DansHead, lexème)
             retourne
         }
 
@@ -1805,7 +1752,7 @@ insère_mode_DansTemplate :: fonc (parseuse: *Parseuse, lexème: Lexème)
 insère_mode_AprèsBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(lexème.point_de_code) {
-        gère_lexème_pour_mode(parseuse, ModeInsertion.DansBody, lexème)
+        gère_lexème_pour_mode(parseuse, insère_mode_DansBody, lexème)
         retourne
     }
 
@@ -1821,13 +1768,13 @@ insère_mode_AprèsBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.DébutTag && lexème.nom == "html" {
-        gère_lexème_pour_mode(parseuse, ModeInsertion.DansBody, lexème)
+        gère_lexème_pour_mode(parseuse, insère_mode_DansBody, lexème)
         retourne
     }
 
     si lexème.genre == GenreLexème.FinTag && lexème.nom == "html" {
         // À FAIRE : ignore si nous sommes dans un parsage de fragment html
-        parseuse.mode_insertion = ModeInsertion.AprèsAprèsBody
+        parseuse.mode_insertion = insère_mode_AprèsAprèsBody
         retourne
     }
 
@@ -1836,7 +1783,7 @@ insère_mode_AprèsBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         retourne
     }
 
-    parseuse.mode_insertion = ModeInsertion.DansBody
+    parseuse.mode_insertion = insère_mode_DansBody
     gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
 }
 
@@ -1848,7 +1795,7 @@ insère_mode_AprèsAprèsBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.Doctype || (lexème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(lexème.point_de_code)) || (lexème.genre == GenreLexème.DébutTag && lexème.nom == "html") {
-        gère_lexème_pour_mode(parseuse, ModeInsertion.DansBody, lexème)
+        gère_lexème_pour_mode(parseuse, insère_mode_DansBody, lexème)
         retourne
     }
 
@@ -1857,7 +1804,7 @@ insère_mode_AprèsAprèsBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         retourne
     }
 
-    parseuse.mode_insertion = ModeInsertion.DansBody
+    parseuse.mode_insertion = insère_mode_DansBody
     gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
 }
 
@@ -2172,7 +2119,7 @@ restaure_mode_insertion_appropriemment :: fonc (parseuse: *Parseuse)
                     }
 
                     si ancêtre.texte == "table" {
-                        parseuse.mode_insertion = ModeInsertion.DansSelectDansTable
+                        parseuse.mode_insertion = insère_mode_DansSelectDansTable
                         retourne
                     }
 
@@ -2180,37 +2127,37 @@ restaure_mode_insertion_appropriemment :: fonc (parseuse: *Parseuse)
                 }
             }
 
-            parseuse.mode_insertion = ModeInsertion.DansSelect
+            parseuse.mode_insertion = insère_mode_DansSelect
             retourne
         }
 
         si noeud.texte == "td" || noeud.texte == "th" {
-            parseuse.mode_insertion = ModeInsertion.DansCell
+            parseuse.mode_insertion = insère_mode_DansCell
             retourne
         }
 
         si noeud.texte == "tr" {
-            parseuse.mode_insertion = ModeInsertion.DansRow
+            parseuse.mode_insertion = insère_mode_DansRow
             retourne
         }
 
         si fait_partie_de(noeud.texte, "tbody", "thead", "tfoot") {
-            parseuse.mode_insertion = ModeInsertion.DansCorpsTable
+            parseuse.mode_insertion = insère_mode_DansCorpsTable
             retourne
         }
 
         si noeud.texte == "caption" {
-            parseuse.mode_insertion = ModeInsertion.DansCaption
+            parseuse.mode_insertion = insère_mode_DansCaption
             retourne
         }
 
         si noeud.texte == "colgroup" {
-            parseuse.mode_insertion = ModeInsertion.DansGroupeColonne
+            parseuse.mode_insertion = insère_mode_DansGroupeColonne
             retourne
         }
 
         si noeud.texte == "table" {
-            parseuse.mode_insertion = ModeInsertion.DansTable
+            parseuse.mode_insertion = insère_mode_DansTable
             retourne
         }
 
@@ -2221,33 +2168,33 @@ restaure_mode_insertion_appropriemment :: fonc (parseuse: *Parseuse)
         }
 
         si noeud.texte == "head" && !dernier {
-            parseuse.mode_insertion = ModeInsertion.DansHead
+            parseuse.mode_insertion = insère_mode_DansHead
             retourne
         }
 
         si noeud.texte == "body" {
-            parseuse.mode_insertion = ModeInsertion.DansBody
+            parseuse.mode_insertion = insère_mode_DansBody
             retourne
         }
 
         si noeud.texte == "frameset" {
-            parseuse.mode_insertion = ModeInsertion.DansFrameSet
+            parseuse.mode_insertion = insère_mode_DansFrameSet
             retourne
         }
 
         si noeud.texte == "html" {
             si parseuse.élément_head == nul {
-                parseuse.mode_insertion = ModeInsertion.AvantHead
+                parseuse.mode_insertion = insère_mode_AvantHead
             }
             sinon {
-                parseuse.mode_insertion = ModeInsertion.AprèsHead
+                parseuse.mode_insertion = insère_mode_AprèsHead
             }
 
             retourne
         }
 
         si dernier {
-            parseuse.mode_insertion = ModeInsertion.DansBody
+            parseuse.mode_insertion = insère_mode_DansBody
             retourne
         }
 
@@ -2273,5 +2220,5 @@ ferme_la_cellule :: fonc (parseuse: *Parseuse)
 
     enlève_éléments_jusqu_au_dernier_marqueur(@parseuse.liste_éléments_actifs_formattage)
 
-    parseuse.mode_insertion = ModeInsertion.DansRow
+    parseuse.mode_insertion = insère_mode_DansRow
 }
