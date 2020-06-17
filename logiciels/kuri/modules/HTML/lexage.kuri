@@ -508,7 +508,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon {
                     // @erreur missing-whitespace-before-doctype-name parse error
-                    lexeuse.reconsomme_dans_état(ÉtatLexage.DOCTYPEName)
+                    lexeuse.reconsomme_dans_état(ÉtatLexage.BeforeDOCTYPEName)
                 }
             }
             BeforeDOCTYPEName {
