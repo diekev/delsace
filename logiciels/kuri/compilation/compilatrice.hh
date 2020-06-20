@@ -43,6 +43,7 @@ struct Fichier;
 
 struct Metriques {
 	size_t nombre_modules = 0ul;
+	size_t nombre_identifiants = 0ul;
 	size_t nombre_lignes = 0ul;
 	size_t nombre_lexemes = 0ul;
 	size_t nombre_noeuds = 0ul;

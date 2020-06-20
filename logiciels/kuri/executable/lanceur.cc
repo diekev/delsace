@@ -334,6 +334,7 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "Débit par seconde", formatte_nombre(debit_seconde), "o/s" });
 
 	tableau.ajoute_ligne({ "Arbre Syntaxique", "", "" });
+	tableau.ajoute_ligne({ "- Nombre Identifiants", formatte_nombre(metriques.nombre_identifiants), "" });
 	tableau.ajoute_ligne({ "- Nombre Lexèmes", formatte_nombre(metriques.nombre_lexemes), "" });
 	tableau.ajoute_ligne({ "- Nombre Noeuds", formatte_nombre(metriques.nombre_noeuds), "" });
 	tableau.ajoute_ligne({ "- Nombre Noeuds Déps", formatte_nombre(metriques.nombre_noeuds_deps), "" });
@@ -832,6 +833,7 @@ int main(int argc, char *argv[])
 		metriques.memoire_ri = memoire_ri;
 		metriques.temps_decoupage = compilatrice.temps_lexage;
 		metriques.temps_validation = compilatrice.temps_validation;
+		metriques.nombre_identifiants = static_cast<size_t>(compilatrice.table_identifiants.taille());
 
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = dls::chrono::compte_seconde();
