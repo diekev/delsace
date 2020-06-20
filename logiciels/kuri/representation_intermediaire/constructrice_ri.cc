@@ -1781,7 +1781,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud_ex(NoeudExpression *noeud)
 				}
 			}
 			else {
-				if (noeud->lexeme->chaine == "PositionCodeSource") {
+				if (noeud->ident == ID::PositionCodeSource) {
 					return genere_ri_pour_position_code_source(noeud);
 				}
 
