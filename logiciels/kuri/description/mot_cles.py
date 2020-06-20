@@ -187,6 +187,7 @@ def construit_structures():
 	structures += u'\t\tunsigned long long valeur_entiere;\n'
 	structures += u'\t\tdouble valeur_reelle;\n'
 	structures += u'\t\tstruct { char *pointeur; long taille; };\n'
+	structures += u'\t\tIdentifiantCode *ident;\n'
 	structures += u'\t};\n'
 	structures += u'\n'
 	structures += u'\tGenreLexeme genre;\n'
@@ -429,6 +430,7 @@ GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine);
 with io.open(u"../compilation/lexemes.hh", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
+	entete.write(u'struct IdentifiantCode;\n\n')
 	entete.write(u'#include "biblinternes/structures/chaine.hh"\n\n')
 	entete.write(enumeration)
 	entete.write(fonctions_enumeration)

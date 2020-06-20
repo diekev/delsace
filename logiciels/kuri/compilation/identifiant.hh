@@ -81,6 +81,12 @@ extern IdentifiantCode *DLS_vers_r64;
 extern IdentifiantCode *DLS_depuis_r32;
 extern IdentifiantCode *DLS_depuis_r64;
 extern IdentifiantCode *initialise_RC;
+extern IdentifiantCode *it;
+extern IdentifiantCode *index_it;
+extern IdentifiantCode *principale;
+extern IdentifiantCode *lance_execution;
+extern IdentifiantCode *initialise_contexte;
+extern IdentifiantCode *initialise_alloc;
 
 }
 

@@ -1516,9 +1516,12 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 	}
 	else {
 		static Lexeme lexeme_it = { "it", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
+		lexeme_it.ident = ID::it;
 		auto noeud_it = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, &lexeme_it);
 
 		static Lexeme lexeme_index = { "index_it", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
+		lexeme_index.ident = ID::index_it;
+
 		auto noeud_index = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, &lexeme_index);
 
 		static Lexeme lexeme_virgule = { ",", {}, GenreLexeme::VIRGULE, 0, 0, 0 };

@@ -26,6 +26,8 @@
  
 #pragma once
 
+struct IdentifiantCode;
+
 #include "biblinternes/structures/chaine.hh"
 
 enum class GenreLexeme : unsigned int {
@@ -201,6 +203,7 @@ struct Lexeme {
 		unsigned long long valeur_entiere;
 		double valeur_reelle;
 		struct { char *pointeur; long taille; };
+		IdentifiantCode *ident;
 	};
 
 	GenreLexeme genre;

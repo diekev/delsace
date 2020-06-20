@@ -4232,6 +4232,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 	params_principale[0] = cree_charge_mem(alloc_contexte);
 
 	static Lexeme lexeme_appel_principale = { "principale", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
+	lexeme_appel_principale.ident = ID::principale;
 
 	auto valeur_princ = cree_appel(&lexeme_appel_principale, fonc_princ, std::move(params_principale));
 
@@ -4272,6 +4273,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecut
 	params_metaprogramme[0] = cree_charge_mem(alloc_contexte);
 
 	static Lexeme lexeme_appel_principale = { "lance_execution", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
+	lexeme_appel_principale.ident = ID::lance_execution;
 
 	cree_appel(&lexeme_appel_principale, fonc_metaprogramme, std::move(params_metaprogramme));
 	cree_retour(nullptr);
@@ -4343,6 +4345,7 @@ Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction
 		params_init[1] = alloc_contexte;
 
 		static Lexeme lexeme_appel_init = { "initialise_contexte", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
+		lexeme_appel_init.ident = ID::initialise_contexte;
 
 		cree_appel(&lexeme_appel_init, fonction_init, std::move(params_init));
 	}
@@ -4367,6 +4370,7 @@ Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction
 		params_init[1] = alloc_base_alloc;
 
 		static Lexeme lexeme_appel_init = { "initialise_alloc", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
+		lexeme_appel_init.ident = ID::initialise_alloc;
 
 		cree_appel(&lexeme_appel_init, fonction_init, std::move(params_init));
 	}

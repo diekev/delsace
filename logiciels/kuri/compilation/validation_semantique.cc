@@ -2392,7 +2392,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 
 		/* nous devons attendre d'avoir les types des arguments avant de
 		 * pouvoir broyer le nom de la fonction */
-		if (decl->lexeme->chaine != "principale" && !possede_drapeau(decl->drapeaux, EST_EXTERNE)) {
+		if (decl->ident != ID::principale && !possede_drapeau(decl->drapeaux, EST_EXTERNE)) {
 			auto fichier = m_compilatrice.fichier(static_cast<size_t>(decl->lexeme->fichier));
 			decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
 		}

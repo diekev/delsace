@@ -611,7 +611,15 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant)
 		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
 	}
 
-	m_fichier->lexemes.pousse({ mot_courant(), { 0ull }, identifiant, static_cast<int>(m_fichier->id), static_cast<int>(m_compte_ligne), static_cast<int>(m_pos_mot) });
+	Lexeme lexeme = {
+		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_fichier->id), static_cast<int>(m_compte_ligne), static_cast<int>(m_pos_mot)
+	};
+
+	if (identifiant == GenreLexeme::CHAINE_CARACTERE) {
+		lexeme.ident = m_compilatrice.table_identifiants.identifiant_pour_chaine(lexeme.chaine);
+	}
+
+	m_fichier->lexemes.pousse(lexeme);
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }

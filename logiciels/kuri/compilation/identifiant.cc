@@ -94,6 +94,12 @@ IdentifiantCode *DLS_vers_r64;
 IdentifiantCode *DLS_depuis_r32;
 IdentifiantCode *DLS_depuis_r64;
 IdentifiantCode *initialise_RC;
+IdentifiantCode *it;
+IdentifiantCode *index_it;
+IdentifiantCode *principale;
+IdentifiantCode *lance_execution;
+IdentifiantCode *initialise_contexte;
+IdentifiantCode *initialise_alloc;
 
 }
 
@@ -128,4 +134,10 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::DLS_depuis_r32 = table.identifiant_pour_chaine("DLS_depuis_r32");
 	ID::DLS_depuis_r64 = table.identifiant_pour_chaine("DLS_depuis_r64");
 	ID::initialise_RC = table.identifiant_pour_chaine("initialise_RC");
+	ID::it = table.identifiant_pour_chaine("it");
+	ID::index_it = table.identifiant_pour_chaine("index_it");
+	ID::principale = table.identifiant_pour_chaine("principale");
+	ID::lance_execution = table.identifiant_pour_chaine("lance_execution");
+	ID::initialise_contexte = table.identifiant_pour_chaine("initialise_contexte");
+	ID::initialise_alloc = table.identifiant_pour_chaine("initialise_alloc");
 }

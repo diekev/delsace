@@ -68,7 +68,7 @@ NoeudBase *assembleuse_arbre::cree_noeud(GenreNoeud genre, Lexeme const *lexeme)
 		noeud->bloc_parent = bloc_courant();
 
 		if (noeud->lexeme && noeud->lexeme->genre == GenreLexeme::CHAINE_CARACTERE) {
-			noeud->ident = m_compilatrice.table_identifiants.identifiant_pour_chaine(noeud->lexeme->chaine);
+			noeud->ident = lexeme->ident;
 		}
 	}
 
