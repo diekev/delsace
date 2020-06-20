@@ -100,6 +100,18 @@ IdentifiantCode *principale;
 IdentifiantCode *lance_execution;
 IdentifiantCode *initialise_contexte;
 IdentifiantCode *initialise_alloc;
+IdentifiantCode *enligne;
+IdentifiantCode *horsligne;
+IdentifiantCode *nulctx;
+IdentifiantCode *externe;
+IdentifiantCode *sanstrace;
+IdentifiantCode *interface;
+IdentifiantCode *inclus;
+IdentifiantCode *bibliotheque_dynamique;
+IdentifiantCode *bibliotheque_statique;
+IdentifiantCode *def;
+IdentifiantCode *execute;
+IdentifiantCode *chemin;
 
 }
 
@@ -140,4 +152,16 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::lance_execution = table.identifiant_pour_chaine("lance_execution");
 	ID::initialise_contexte = table.identifiant_pour_chaine("initialise_contexte");
 	ID::initialise_alloc = table.identifiant_pour_chaine("initialise_alloc");
+	ID::enligne = table.identifiant_pour_chaine("enligne");
+	ID::horsligne = table.identifiant_pour_chaine("horsligne");
+	ID::nulctx = table.identifiant_pour_chaine("nulctx");
+	ID::externe = table.identifiant_pour_chaine("externe");
+	ID::sanstrace = table.identifiant_pour_chaine("sanstrace");
+	ID::interface = table.identifiant_pour_chaine("interface");
+	ID::inclus = table.identifiant_pour_chaine("inclus");
+	ID::bibliotheque_dynamique = table.identifiant_pour_chaine("bibliothèque_dynamique");
+	ID::bibliotheque_statique = table.identifiant_pour_chaine("bibliothèque_statique");
+	ID::def = table.identifiant_pour_chaine("def");
+	ID::execute = table.identifiant_pour_chaine("exécute");
+	ID::chemin = table.identifiant_pour_chaine("chemin");
 }

@@ -615,7 +615,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant)
 		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_fichier->id), static_cast<int>(m_compte_ligne), static_cast<int>(m_pos_mot)
 	};
 
-	if (identifiant == GenreLexeme::CHAINE_CARACTERE) {
+	if (identifiant == GenreLexeme::CHAINE_CARACTERE || identifiant == GenreLexeme::EXTERNE) {
 		lexeme.ident = m_compilatrice.table_identifiants.identifiant_pour_chaine(lexeme.chaine);
 	}
 

@@ -87,6 +87,18 @@ extern IdentifiantCode *principale;
 extern IdentifiantCode *lance_execution;
 extern IdentifiantCode *initialise_contexte;
 extern IdentifiantCode *initialise_alloc;
+extern IdentifiantCode *enligne;
+extern IdentifiantCode *horsligne;
+extern IdentifiantCode *nulctx;
+extern IdentifiantCode *externe;
+extern IdentifiantCode *sanstrace;
+extern IdentifiantCode *interface;
+extern IdentifiantCode *inclus;
+extern IdentifiantCode *bibliotheque_dynamique;
+extern IdentifiantCode *bibliotheque_statique;
+extern IdentifiantCode *def;
+extern IdentifiantCode *execute;
+extern IdentifiantCode *chemin;
 
 }
 

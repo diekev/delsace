@@ -998,49 +998,49 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			consomme();
 
 			if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
-				auto directive = lexeme_courant()->chaine;
+				auto directive = lexeme_courant()->ident;
 
 				consomme();
 
-				if (directive == "inclus") {
+				if (directive == ID::inclus) {
 					auto chaine_inclus = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_inclus);
 					m_compilatrice.ajoute_inclusion(chaine);
 				}
-				else if (directive == "bibliothèque_dynamique") {
+				else if (directive == ID::bibliotheque_dynamique) {
 					auto chaine_bib = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
 					m_compilatrice.bibliotheques_dynamiques.pousse(chaine);
 				}
-				else if (directive == "bibliothèque_statique") {
+				else if (directive == ID::bibliotheque_statique) {
 					auto chaine_bib = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
 					m_compilatrice.bibliotheques_statiques.pousse(chaine);
 				}
-				else if (directive == "def") {
+				else if (directive == ID::def) {
 					auto chaine = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					m_compilatrice.definitions.pousse(chaine);
 				}
-				else if (directive == "exécute") {
+				else if (directive == ID::execute) {
 					auto noeud = CREE_NOEUD(NoeudDirectiveExecution, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
 					noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
 					return noeud;
 				}
-				else if (directive == "chemin") {
+				else if (directive == ID::chemin) {
 					auto chaine = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					m_compilatrice.chemins.pousse(chaine);
 				}
-				else if (directive == "nulctx") {
+				else if (directive == ID::nulctx) {
 					lexeme = lexeme_courant();
 					auto noeud_fonc = analyse_declaration_fonction(lexeme);
 					noeud_fonc->drapeaux |= FORCE_NULCTX;
@@ -1827,26 +1827,26 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 		while (apparie(GenreLexeme::DIRECTIVE)) {
 			consomme();
 
-			auto chn_directive = lexeme_courant()->chaine;
+			auto ident_directive = lexeme_courant()->ident;
 
-			if (chn_directive == "enligne") {
+			if (ident_directive == ID::enligne) {
 				noeud->drapeaux |= FORCE_ENLIGNE;
 			}
-			else if (chn_directive == "horsligne") {
+			else if (ident_directive == ID::horsligne) {
 				noeud->drapeaux |= FORCE_HORSLIGNE;
 			}
-			else if (chn_directive == "nulctx") {
+			else if (ident_directive == ID::nulctx) {
 				noeud->drapeaux |= FORCE_NULCTX;
 				noeud->drapeaux |= FORCE_SANSTRACE;
 			}
-			else if (chn_directive == "externe") {
+			else if (ident_directive == ID::externe) {
 				noeud->drapeaux |= EST_EXTERNE;
 				noeud->est_externe = true;
 			}
-			else if (chn_directive == "sanstrace") {
+			else if (ident_directive == ID::sanstrace) {
 				noeud->drapeaux |= FORCE_SANSTRACE;
 			}
-			else if (chn_directive == "interface") {
+			else if (ident_directive == ID::interface) {
 				renseigne_fonction_interface(m_compilatrice.interface_kuri, noeud);
 			}
 
@@ -2000,20 +2000,16 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		consomme();
 		consomme();
 
-		auto chn_directive = lexeme_courant()->chaine;
+		auto directive = lexeme_courant()->ident;
 
-		if (chn_directive == "enligne") {
+		if (directive == ID::enligne) {
 			noeud->drapeaux |= FORCE_ENLIGNE;
 		}
-		else if (chn_directive == "horsligne") {
+		else if (directive == ID::horsligne) {
 			noeud->drapeaux |= FORCE_HORSLIGNE;
 		}
-		else if (chn_directive == "nulctx") {
+		else if (directive == ID::nulctx) {
 			noeud->drapeaux |= FORCE_NULCTX;
-		}
-		else if (chn_directive == "externe") {
-			noeud->drapeaux |= EST_EXTERNE;
-			noeud->est_externe = true;
 		}
 	}
 
@@ -2086,8 +2082,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 	if (apparie(GenreLexeme::DIRECTIVE)) {
 		consomme();
 
-		auto chn_directive = lexeme_courant()->chaine;
-		if (chn_directive == "interface") {
+		if (lexeme_courant()->ident == ID::interface) {
 			renseigne_type_interface(m_compilatrice.typeuse, noeud_decl->ident, noeud_decl->type);
 		}
 
