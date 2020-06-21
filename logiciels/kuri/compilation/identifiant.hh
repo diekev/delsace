@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/outils/enchaineuse.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau_page.hh"
 #include "biblinternes/structures/vue_chaine_compacte.hh"
@@ -40,12 +41,19 @@ private:
 	dls::dico_desordonne<dls::vue_chaine_compacte, IdentifiantCode *> table{};
 	tableau_page<IdentifiantCode, 1024> identifiants{};
 
+	Enchaineuse enchaineuse{};
+
 public:
 	IdentifiantCode *identifiant_pour_chaine(dls::vue_chaine_compacte const &nom);
+
+	IdentifiantCode *identifiant_pour_nouvelle_chaine(dls::chaine const &nom);
 
 	long taille() const;
 
 	size_t memoire_utilisee() const;
+
+private:
+	IdentifiantCode *ajoute_identifiant(dls::vue_chaine_compacte const &nom);
 };
 
 namespace ID {

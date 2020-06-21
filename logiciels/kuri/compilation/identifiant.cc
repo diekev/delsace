@@ -32,12 +32,29 @@ IdentifiantCode *TableIdentifiant::identifiant_pour_chaine(const dls::vue_chaine
 		return iter->second;
 	}
 
-	auto ident =identifiants.ajoute_element();
-	ident->nom = nom;
+	return ajoute_identifiant(nom);
+}
 
-	table.insere({ nom, ident });
+IdentifiantCode *TableIdentifiant::identifiant_pour_nouvelle_chaine(dls::chaine const &nom)
+{
+	auto iter = table.trouve(nom);
 
-	return ident;
+	if (iter != table.fin()) {
+		return iter->second;
+	}
+
+	auto tampon_courant = enchaineuse.tampon_courant;
+
+	if (tampon_courant->occupe + nom.taille() > Enchaineuse::TAILLE_TAMPON) {
+		enchaineuse.ajoute_tampon();
+		tampon_courant = enchaineuse.tampon_courant;
+	}
+
+	auto ptr = &tampon_courant->donnees[tampon_courant->occupe];
+	enchaineuse.pousse(nom);
+
+	auto vue_nom = dls::vue_chaine_compacte(ptr, nom.taille());
+	return ajoute_identifiant(vue_nom);
 }
 
 long TableIdentifiant::taille() const
@@ -51,6 +68,16 @@ size_t TableIdentifiant::memoire_utilisee() const
 	memoire += static_cast<size_t>(identifiants.pages.taille()) * (sizeof(IdentifiantCode) * 1024 + sizeof (tableau_page<IdentifiantCode>::page));
 	memoire += static_cast<size_t>(table.taille()) * (sizeof (dls::vue_chaine_compacte) + sizeof(IdentifiantCode *));
 	return memoire;
+}
+
+IdentifiantCode *TableIdentifiant::ajoute_identifiant(const dls::vue_chaine_compacte &nom)
+{
+	auto ident = identifiants.ajoute_element();
+	ident->nom = nom;
+
+	table.insere({ nom, ident });
+
+	return ident;
 }
 
 /* ************************************************************************** */

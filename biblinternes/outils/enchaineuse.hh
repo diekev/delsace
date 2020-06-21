@@ -55,7 +55,6 @@ struct Enchaineuse {
 
 	void imprime_dans_flux(std::ostream &flux);
 
-private:
 	void ajoute_tampon();
 };
 
