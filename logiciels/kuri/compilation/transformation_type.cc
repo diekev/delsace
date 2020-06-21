@@ -138,6 +138,13 @@ bool cherche_transformation(
 
 			return false;
 		}
+
+		if (type_de->genre == GenreType::ENUM) {
+			if (type_vers == static_cast<TypeEnum *>(type_de)->type_donnees) {
+				transformation = TypeTransformation::INUTILE;
+				return false;
+			}
+		}
 	}
 
 	if (type_de->genre == GenreType::ENTIER_NATUREL && type_vers->genre == GenreType::ENTIER_NATUREL) {
