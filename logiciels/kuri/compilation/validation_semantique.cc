@@ -292,6 +292,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (decl->genre == GenreNoeud::DECLARATION_FONCTION && !static_cast<NoeudDeclarationFonction *>(decl)->est_gabarit) {
+				noeud->genre_valeur = GenreValeur::DROITE;
 				auto decl_fonc = static_cast<NoeudDeclarationFonction *>(decl);
 				donnees_dependance.fonctions_utilisees.insere(decl_fonc);
 			}
@@ -1524,6 +1525,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			donnees_dependance.types_utilises.insere(noeud->type);
 
+			noeud->genre_valeur = GenreValeur::DROITE;
 			break;
 		}
 		case GenreNoeud::EXPRESSION_TYPE_DE:
