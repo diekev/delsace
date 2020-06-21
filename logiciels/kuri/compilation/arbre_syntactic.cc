@@ -865,6 +865,11 @@ void aplatis_arbre(
 			break;
 		}
 		case GenreNoeud::EXPRESSION_INIT_DE:
+		{
+			arbre_aplatis.pousse(racine->expression_type);
+			arbre_aplatis.pousse(racine);
+			break;
+		}
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
