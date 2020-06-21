@@ -24,13 +24,6 @@
 
 #include "identifiant.hh"
 
-TableIdentifiant::~TableIdentifiant()
-{
-	for (auto ident : identifiants) {
-		memoire::deloge("IdentifiantCode", ident);
-	}
-}
-
 IdentifiantCode *TableIdentifiant::identifiant_pour_chaine(const dls::vue_chaine_compacte &nom)
 {
 	auto iter = table.trouve(nom);
@@ -39,11 +32,10 @@ IdentifiantCode *TableIdentifiant::identifiant_pour_chaine(const dls::vue_chaine
 		return iter->second;
 	}
 
-	auto ident = memoire::loge<IdentifiantCode>("IdentifiantCode");
+	auto ident =identifiants.ajoute_element();
 	ident->nom = nom;
 
 	table.insere({ nom, ident });
-	identifiants.pousse(ident);
 
 	return ident;
 }
@@ -56,7 +48,7 @@ long TableIdentifiant::taille() const
 size_t TableIdentifiant::memoire_utilisee() const
 {
 	auto memoire = 0ul;
-	memoire += static_cast<size_t>(identifiants.taille()) * sizeof (IdentifiantCode *);
+	memoire += static_cast<size_t>(identifiants.pages.taille()) * (sizeof(IdentifiantCode) * 1024 + sizeof (tableau_page<IdentifiantCode>::page));
 	memoire += static_cast<size_t>(table.taille()) * (sizeof (dls::vue_chaine_compacte) + sizeof(IdentifiantCode *));
 	return memoire;
 }

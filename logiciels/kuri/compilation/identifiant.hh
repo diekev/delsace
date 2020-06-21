@@ -25,7 +25,7 @@
 #pragma once
 
 #include "biblinternes/structures/dico_desordonne.hh"
-#include "biblinternes/structures/tableau.hh"
+#include "biblinternes/structures/tableau_page.hh"
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
 struct IdentifiantCode {
@@ -38,11 +38,9 @@ private:
 	// nécissitant pas de hachage, mais dico échoue lors des comparaisons de
 	// vue_chaine_compacte par manque de caractère nul à la fin des chaines
 	dls::dico_desordonne<dls::vue_chaine_compacte, IdentifiantCode *> table{};
-	dls::tableau<IdentifiantCode *> identifiants{};
+	tableau_page<IdentifiantCode, 1024> identifiants{};
 
 public:
-	~TableIdentifiant();
-
 	IdentifiantCode *identifiant_pour_chaine(dls::vue_chaine_compacte const &nom);
 
 	long taille() const;
