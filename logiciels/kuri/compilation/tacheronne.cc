@@ -45,10 +45,11 @@ void Tacheronne::gere_tache()
 
 		//std::cerr << "-----------------------------------------\n";
 		//std::cerr << "-- taille file compilation : " << compilatrice.file_compilation->taille() << '\n';
-		auto unite = compilatrice.file_compilation->effronte();
+		auto unite = compilatrice.file_compilation->front();
 
 		if (unite.cycle <= 10) {
 			gere_unite(unite);
+			compilatrice.file_compilation->effronte();
 			continue;
 		}
 
