@@ -55,26 +55,26 @@ struct triplet {
 
 struct ConstructriceRI {
 private:
-	kuri::tableau<AtomeFonction *> atomes_fonction{};
-	kuri::tableau<AtomeValeurConstante *> atomes_constante{};
-	kuri::tableau<AtomeGlobale *> atomes_globale{};
-	kuri::tableau<InstructionAllocation *> insts_allocation{};
-	kuri::tableau<InstructionAppel *> insts_appel{};
-	kuri::tableau<InstructionBranche *> insts_branche{};
-	kuri::tableau<InstructionBrancheCondition *> insts_branche_condition{};
-	kuri::tableau<InstructionChargeMem *> insts_charge_memoire{};
-	kuri::tableau<InstructionLabel *> insts_label{};
-	kuri::tableau<InstructionOpBinaire *> insts_opbinaire{};
-	kuri::tableau<InstructionOpUnaire *> insts_opunaire{};
-	kuri::tableau<InstructionRetour *> insts_retour{};
-	kuri::tableau<InstructionStockeMem *> insts_stocke_memoire{};
-	kuri::tableau<InstructionAccedeIndex *> insts_accede_index{};
-	kuri::tableau<InstructionAccedeMembre *> insts_accede_membre{};
-	kuri::tableau<InstructionTranstype *> insts_transtype{};
-	kuri::tableau<TranstypeConstant *> transtypes_constants{};
-	kuri::tableau<OpBinaireConstant *> op_binaires_constants{};
-	kuri::tableau<OpUnaireConstant *> op_unaires_constants{};
-	kuri::tableau<AccedeIndexConstant *> accede_index_constants{};
+	tableau_page<AtomeFonction> atomes_fonction{};
+	tableau_page<AtomeValeurConstante> atomes_constante{};
+	tableau_page<AtomeGlobale> atomes_globale{};
+	tableau_page<InstructionAllocation> insts_allocation{};
+	tableau_page<InstructionAppel> insts_appel{};
+	tableau_page<InstructionBranche> insts_branche{};
+	tableau_page<InstructionBrancheCondition> insts_branche_condition{};
+	tableau_page<InstructionChargeMem> insts_charge_memoire{};
+	tableau_page<InstructionLabel> insts_label{};
+	tableau_page<InstructionOpBinaire> insts_opbinaire{};
+	tableau_page<InstructionOpUnaire> insts_opunaire{};
+	tableau_page<InstructionRetour> insts_retour{};
+	tableau_page<InstructionStockeMem> insts_stocke_memoire{};
+	tableau_page<InstructionAccedeIndex> insts_accede_index{};
+	tableau_page<InstructionAccedeMembre> insts_accede_membre{};
+	tableau_page<InstructionTranstype> insts_transtype{};
+	tableau_page<TranstypeConstant> transtypes_constants{};
+	tableau_page<OpBinaireConstant> op_binaires_constants{};
+	tableau_page<OpUnaireConstant> op_unaires_constants{};
+	tableau_page<AccedeIndexConstant> accede_index_constants{};
 
 	Compilatrice &m_compilatrice;
 

@@ -112,14 +112,13 @@ struct AtomeValeurConstante : public AtomeConstante {
 
 	Valeur valeur{};
 
-	static AtomeValeurConstante *cree(Type *type, unsigned long long valeur);
-	static AtomeValeurConstante *cree(Type *type, double valeur);
-	static AtomeValeurConstante *cree(Type *type, bool valeur);
-	static AtomeValeurConstante *cree(Type *type);
-	static AtomeValeurConstante *cree(Type *type, kuri::tableau<char> &&donnees_constantes);
-	static AtomeValeurConstante *cree(Type *type, char *pointeur, long taille);
-	static AtomeValeurConstante *cree(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
-	static AtomeValeurConstante *cree_tableau_fixe(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
+	AtomeValeurConstante(Type *type, unsigned long long valeur);
+	AtomeValeurConstante(Type *type, double valeur);
+	AtomeValeurConstante(Type *type, bool valeur);
+	AtomeValeurConstante(Type *type);
+	AtomeValeurConstante(Type *type, kuri::tableau<char> &&donnees_constantes);
+	AtomeValeurConstante(Type *type, char *pointeur, long taille);
+	AtomeValeurConstante(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
 };
 
 struct AtomeGlobale : public AtomeConstante {
@@ -131,7 +130,7 @@ struct AtomeGlobale : public AtomeConstante {
 
 	COPIE_CONSTRUCT(AtomeGlobale);
 
-	static AtomeGlobale *cree(Type *type, AtomeConstante *initialisateur, bool est_externe, bool est_constante);
+	AtomeGlobale(Type *type, AtomeConstante *initialisateur, bool est_externe, bool est_constante);
 };
 
 struct TranstypeConstant : public AtomeConstante {
@@ -141,7 +140,7 @@ struct TranstypeConstant : public AtomeConstante {
 
 	COPIE_CONSTRUCT(TranstypeConstant);
 
-	static TranstypeConstant *cree(Type *type, AtomeConstante *valeur);
+	TranstypeConstant(Type *type, AtomeConstante *valeur);
 };
 
 struct OpBinaireConstant : public AtomeConstante {
@@ -153,7 +152,7 @@ struct OpBinaireConstant : public AtomeConstante {
 
 	COPIE_CONSTRUCT(OpBinaireConstant);
 
-	static OpBinaireConstant *cree(Type *type, OperateurBinaire::Genre op, AtomeConstante *operande_gauche, AtomeConstante *operande_droite);
+	OpBinaireConstant(Type *type, OperateurBinaire::Genre op, AtomeConstante *operande_gauche, AtomeConstante *operande_droite);
 };
 
 struct OpUnaireConstant : public AtomeConstante {
@@ -164,7 +163,7 @@ struct OpUnaireConstant : public AtomeConstante {
 
 	COPIE_CONSTRUCT(OpUnaireConstant);
 
-	static OpUnaireConstant *cree(Type *type, OperateurUnaire::Genre op, AtomeConstante *operande);
+	OpUnaireConstant(Type *type, OperateurUnaire::Genre op, AtomeConstante *operande);
 };
 
 struct AccedeIndexConstant : public AtomeConstante {
@@ -178,7 +177,7 @@ struct AccedeIndexConstant : public AtomeConstante {
 
 	COPIE_CONSTRUCT(AccedeIndexConstant);
 
-	static AccedeIndexConstant *cree(Type *type, AtomeConstante *accede, AtomeConstante *index);
+	AccedeIndexConstant(Type *type, AtomeConstante *accede, AtomeConstante *index);
 };
 
 struct AtomeFonction : public Atome {
@@ -194,8 +193,10 @@ struct AtomeFonction : public Atome {
 
 	bool sanstrace = false;
 
-	static AtomeFonction *cree(Lexeme const *lexeme, dls::chaine const &nom);
-	static AtomeFonction *cree(Lexeme const *lexeme, dls::chaine const &nom, kuri::tableau<Atome *> &&params);
+	AtomeFonction(Lexeme const *lexeme, dls::chaine const &nom);
+	AtomeFonction(Lexeme const *lexeme, dls::chaine const &nom, kuri::tableau<Atome *> &&params);
+
+	COPIE_CONSTRUCT(AtomeFonction);
 };
 
 struct Instruction : public Atome {
@@ -238,8 +239,8 @@ struct InstructionAppel : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionAppel);
 
-	static InstructionAppel *cree(Lexeme const *lexeme, Atome *appele);
-	static InstructionAppel *cree(Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args);
+	InstructionAppel(Lexeme const *lexeme, Atome *appele);
+	InstructionAppel(Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args);
 };
 
 struct InstructionAllocation : public Instruction {
@@ -249,7 +250,7 @@ struct InstructionAllocation : public Instruction {
 		est_chargeable = true;
 	}
 
-	static InstructionAllocation *cree(Type *type, IdentifiantCode *ident);
+	InstructionAllocation(Type *type, IdentifiantCode *ident);
 };
 
 struct InstructionRetour : public Instruction {
@@ -259,7 +260,7 @@ struct InstructionRetour : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionRetour);
 
-	static InstructionRetour *cree(Atome *valeur);
+	InstructionRetour(Atome *valeur);
 };
 
 struct InstructionOpBinaire : public Instruction {
@@ -271,7 +272,7 @@ struct InstructionOpBinaire : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionOpBinaire);
 
-	static InstructionOpBinaire *cree(Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
+	InstructionOpBinaire(Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
 };
 
 struct InstructionOpUnaire : public Instruction {
@@ -282,7 +283,7 @@ struct InstructionOpUnaire : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionOpUnaire);
 
-	static InstructionOpUnaire *cree(Type *type, OperateurUnaire::Genre op, Atome *valeur);
+	InstructionOpUnaire(Type *type, OperateurUnaire::Genre op, Atome *valeur);
 };
 
 struct InstructionChargeMem : public Instruction {
@@ -296,7 +297,7 @@ struct InstructionChargeMem : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionChargeMem);
 
-	static InstructionChargeMem *cree(Type *type, Atome *chargee);
+	InstructionChargeMem(Type *type, Atome *chargee);
 };
 
 struct InstructionStockeMem : public Instruction {
@@ -307,7 +308,7 @@ struct InstructionStockeMem : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionStockeMem);
 
-	static InstructionStockeMem *cree(Type *type, Atome *ou, Atome *valeur);
+	InstructionStockeMem(Type *type, Atome *ou, Atome *valeur);
 };
 
 struct InstructionLabel : public Instruction {
@@ -315,7 +316,7 @@ struct InstructionLabel : public Instruction {
 
 	int id = 0;
 
-	static InstructionLabel *cree(int id);
+	InstructionLabel(int id);
 };
 
 struct InstructionBranche : public Instruction {
@@ -325,7 +326,7 @@ struct InstructionBranche : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionBranche);
 
-	static InstructionBranche *cree(InstructionLabel *label);
+	InstructionBranche(InstructionLabel *label);
 };
 
 struct InstructionBrancheCondition : public Instruction {
@@ -337,7 +338,7 @@ struct InstructionBrancheCondition : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionBrancheCondition);
 
-	static InstructionBrancheCondition *cree(Atome *condition, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
+	InstructionBrancheCondition(Atome *condition, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
 };
 
 struct InstructionAccedeMembre : public Instruction {
@@ -352,7 +353,7 @@ struct InstructionAccedeMembre : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionAccedeMembre);
 
-	static InstructionAccedeMembre *cree(Type *type, Atome *accede, Atome *index);
+	InstructionAccedeMembre(Type *type, Atome *accede, Atome *index);
 };
 
 struct InstructionAccedeIndex : public Instruction {
@@ -367,7 +368,7 @@ struct InstructionAccedeIndex : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionAccedeIndex);
 
-	static InstructionAccedeIndex *cree(Type *type, Atome *accede, Atome *index);
+	InstructionAccedeIndex(Type *type, Atome *accede, Atome *index);
 };
 
 struct InstructionTranstype : public Instruction {
@@ -381,5 +382,5 @@ struct InstructionTranstype : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionTranstype);
 
-	static InstructionTranstype *cree(Type *type, Atome *valeur);
+	InstructionTranstype(Type *type, Atome *valeur);
 };

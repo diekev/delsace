@@ -26,267 +26,222 @@
 
 #include "typage.hh"
 
-AtomeValeurConstante *AtomeValeurConstante::cree(Type *type, unsigned long long valeur)
+AtomeValeurConstante::AtomeValeurConstante(Type *type_, unsigned long long valeur_)
+	: AtomeValeurConstante()
 {
-	auto atome = memoire::loge<AtomeValeurConstante>("AtomeEntierConstant");
-	atome->type = type;
-	atome->valeur.genre = Valeur::Genre::ENTIERE;
-	atome->valeur.valeur_entiere = valeur;
-	return atome;
+	this->type = type_;
+	this->valeur.genre = Valeur::Genre::ENTIERE;
+	this->valeur.valeur_entiere = valeur_;
 }
 
-AtomeValeurConstante *AtomeValeurConstante::cree(Type *type, double valeur)
+AtomeValeurConstante::AtomeValeurConstante(Type *type_, double valeur_)
+	: AtomeValeurConstante()
 {
-	auto atome = memoire::loge<AtomeValeurConstante>("AtomeEntierConstant");
-	atome->type = type;
-	atome->valeur.genre = Valeur::Genre::REELLE;
-	atome->valeur.valeur_reelle = valeur;
-	return atome;
+	this->type = type_;
+	this->valeur.genre = Valeur::Genre::REELLE;
+	this->valeur.valeur_reelle = valeur_;
 }
 
-AtomeValeurConstante *AtomeValeurConstante::cree(Type *type, bool valeur)
+AtomeValeurConstante::AtomeValeurConstante(Type *type_, bool valeur_)
+	: AtomeValeurConstante()
 {
-	auto atome = memoire::loge<AtomeValeurConstante>("AtomeEntierConstant");
-	atome->type = type;
-	atome->valeur.genre = Valeur::Genre::BOOLEENNE;
-	atome->valeur.valeur_booleenne = valeur;
-	return atome;
+	this->type = type_;
+	this->valeur.genre = Valeur::Genre::BOOLEENNE;
+	this->valeur.valeur_booleenne = valeur_;
 }
 
-AtomeValeurConstante *AtomeValeurConstante::cree(Type *type)
+AtomeValeurConstante::AtomeValeurConstante(Type *type_)
+	: AtomeValeurConstante()
 {
-	auto atome = memoire::loge<AtomeValeurConstante>("AtomeEntierConstant");
-	atome->type = type;
-	atome->valeur.genre = Valeur::Genre::NULLE;
-	return atome;
+	this->type = type_;
+	this->valeur.genre = Valeur::Genre::NULLE;
 }
 
-AtomeValeurConstante *AtomeValeurConstante::cree(Type *type, kuri::tableau<char> &&donnees_constantes)
+AtomeValeurConstante::AtomeValeurConstante(Type *type_, kuri::tableau<char> &&donnees_constantes)
+	: AtomeValeurConstante()
 {
-	auto atome = memoire::loge<AtomeValeurConstante>("AtomeEntierConstant");
-	atome->type = type;
-	atome->valeur.genre = Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
-	atome->valeur.valeur_tdc.pointeur = donnees_constantes.pointeur;
-	atome->valeur.valeur_tdc.taille = donnees_constantes.taille;
-	return atome;
+	this->type = type_;
+	this->valeur.genre = Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
+	this->valeur.valeur_tdc.pointeur = donnees_constantes.pointeur;
+	this->valeur.valeur_tdc.taille = donnees_constantes.taille;
 }
 
-AtomeValeurConstante *AtomeValeurConstante::cree(Type *type, char *pointeur, long taille)
+AtomeValeurConstante::AtomeValeurConstante(Type *type_, char *pointeur, long taille)
+	: AtomeValeurConstante()
 {
-	auto atome = memoire::loge<AtomeValeurConstante>("AtomeEntierConstant");
-	atome->type = type;
-	atome->valeur.genre = Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
-	atome->valeur.valeur_tdc.pointeur = pointeur;
-	atome->valeur.valeur_tdc.taille = taille;
-	return atome;
+	this->type = type_;
+	this->valeur.genre = Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
+	this->valeur.valeur_tdc.pointeur = pointeur;
+	this->valeur.valeur_tdc.taille = taille;
 }
 
-AtomeValeurConstante *AtomeValeurConstante::cree(Type *type, kuri::tableau<AtomeConstante *> &&valeurs)
+AtomeValeurConstante::AtomeValeurConstante(Type *type_, kuri::tableau<AtomeConstante *> &&valeurs)
+	: AtomeValeurConstante()
 {
-	auto atome = memoire::loge<AtomeValeurConstante>("AtomeEntierConstant");
-	atome->type = type;
-	atome->valeur.genre = Valeur::Genre::STRUCTURE;
-	atome->valeur.valeur_structure.pointeur = valeurs.pointeur;
-	atome->valeur.valeur_structure.taille = valeurs.taille;
+	this->type = type_;
+	this->valeur.genre = Valeur::Genre::STRUCTURE;
+	this->valeur.valeur_structure.pointeur = valeurs.pointeur;
+	this->valeur.valeur_structure.taille = valeurs.taille;
 	valeurs.pointeur = nullptr;
 	valeurs.taille = 0;
-	return atome;
 }
 
-AtomeValeurConstante *AtomeValeurConstante::cree_tableau_fixe(Type *type, kuri::tableau<AtomeConstante *> &&valeurs)
+AtomeGlobale::AtomeGlobale(Type *type_, AtomeConstante *initialisateur_, bool est_externe_, bool est_constante_)
+	: AtomeGlobale()
 {
-	auto atome = memoire::loge<AtomeValeurConstante>("AtomeEntierConstant");
-	atome->type = type;
-	atome->valeur.genre = Valeur::Genre::TABLEAU_FIXE;
-	atome->valeur.valeur_tableau.pointeur = valeurs.pointeur;
-	atome->valeur.valeur_tableau.taille = valeurs.taille;
-	valeurs.pointeur = nullptr;
-	valeurs.taille = 0;
-	return atome;
+	this->type = type_;
+	this->initialisateur = initialisateur_;
+	this->est_externe = est_externe_;
+	this->est_constante = est_constante_;
 }
 
-AtomeGlobale *AtomeGlobale::cree(Type *type, AtomeConstante *initialisateur, bool est_externe, bool est_constante)
+TranstypeConstant::TranstypeConstant(Type *type_, AtomeConstante *valeur_)
+	: TranstypeConstant()
 {
-	auto atome_globale = memoire::loge<AtomeGlobale>("AtomeGlobale");
-	atome_globale->type = type;
-	atome_globale->initialisateur = initialisateur;
-	atome_globale->est_externe = est_externe;
-	atome_globale->est_constante = est_constante;
-	return atome_globale;
+	this->type = type_;
+	this->valeur = valeur_;
 }
 
-TranstypeConstant *TranstypeConstant::cree(Type *type, AtomeConstante *valeur)
+OpBinaireConstant::OpBinaireConstant(Type *type_, OperateurBinaire::Genre op_, AtomeConstante *operande_gauche_, AtomeConstante *operande_droite_)
+	: OpBinaireConstant()
 {
-	auto atome = memoire::loge<TranstypeConstant>("TranstypeConstant");
-	atome->type = type;
-	atome->valeur = valeur;
-	return atome;
+	this->type = type_;
+	this->op = op_;
+	this->operande_gauche = operande_gauche_;
+	this->operande_droite = operande_droite_;
 }
 
-OpBinaireConstant *OpBinaireConstant::cree(Type *type, OperateurBinaire::Genre op, AtomeConstante *operande_gauche, AtomeConstante *operande_droite)
+OpUnaireConstant::OpUnaireConstant(Type *type_, OperateurUnaire::Genre op_, AtomeConstante *operande_)
+	: OpUnaireConstant()
 {
-	auto atome = memoire::loge<OpBinaireConstant>("OpBinaireConstante");
-	atome->type = type;
-	atome->op = op;
-	atome->operande_gauche = operande_gauche;
-	atome->operande_droite = operande_droite;
-	return atome;
+	this->type = type_;
+	this->op = op_;
+	this->operande = operande_;
 }
 
-OpUnaireConstant *OpUnaireConstant::cree(Type *type, OperateurUnaire::Genre op, AtomeConstante *operande)
+AccedeIndexConstant::AccedeIndexConstant(Type *type_, AtomeConstante *accede_, AtomeConstante *index_)
+	: AccedeIndexConstant()
 {
-	auto atome = memoire::loge<OpUnaireConstant>("OpUnaireConstante");
-	atome->type = type;
-	atome->op = op;
-	atome->operande = operande;
-	return atome;
+	this->type = type_;
+	this->accede = accede_;
+	this->index = index_;
 }
 
-AccedeIndexConstant *AccedeIndexConstant::cree(Type *type, AtomeConstante *accede, AtomeConstante *index)
+AtomeFonction::AtomeFonction(Lexeme const *lexeme_, dls::chaine const &nom_)
+	: nom(nom_)
+	, lexeme(lexeme_)
 {
-	auto atome = memoire::loge<AccedeIndexConstant>("InstructionAccedeIndex");
-	atome->type = type;
-	atome->accede = accede;
-	atome->index = index;
-	return atome;
+	genre_atome = Atome::Genre::FONCTION;
 }
 
-AtomeFonction *AtomeFonction::cree(Lexeme const *lexeme, dls::chaine const &nom)
+AtomeFonction::AtomeFonction(Lexeme const *lexeme_, dls::chaine const &nom_, kuri::tableau<Atome *> &&params_)
+	: AtomeFonction(lexeme_, nom_)
 {
-	auto atome = memoire::loge<AtomeFonction>("AtomeFonction");
-	atome->genre_atome = Atome::Genre::FONCTION;
-	atome->nom = nom;
-	atome->lexeme = lexeme;
-	return atome;
+	this->params_entrees = std::move(params_);
 }
 
-AtomeFonction *AtomeFonction::cree(Lexeme const *lexeme, dls::chaine const &nom, kuri::tableau<Atome *> &&params)
+InstructionAppel::InstructionAppel(Lexeme const *lexeme_, Atome *appele_)
+	: InstructionAppel()
 {
-	auto atome = memoire::loge<AtomeFonction>("AtomeFonction");
-	atome->genre_atome = Atome::Genre::FONCTION;
-	atome->nom = nom;
-	atome->params_entrees = std::move(params);
-	atome->lexeme = lexeme;
-	return atome;
-}
-
-InstructionAppel *InstructionAppel::cree(Lexeme const *lexeme, Atome *appele)
-{
-	auto inst = memoire::loge<InstructionAppel>("InstructionAppel");
-
-	auto type_fonction = static_cast<TypeFonction *>(appele->type);
+	auto type_fonction = static_cast<TypeFonction *>(appele_->type);
 	// À FAIRE : retours multiples
-	inst->type = type_fonction->types_sorties[0];
+	this->type = type_fonction->types_sorties[0];
 
-	inst->appele = appele;
-	inst->lexeme = lexeme;
-	return inst;
+	this->appele = appele_;
+	this->lexeme = lexeme_;
 }
 
-InstructionAppel *InstructionAppel::cree(Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args)
+InstructionAppel::InstructionAppel(Lexeme const *lexeme_, Atome *appele_, kuri::tableau<Atome *> &&args_)
+	: InstructionAppel(lexeme_, appele_)
 {
-	auto inst = InstructionAppel::cree(lexeme, appele);
-	inst->args = std::move(args);
-	return inst;
+	this->args = std::move(args_);
 }
 
-InstructionAllocation *InstructionAllocation::cree(Type *type, IdentifiantCode *ident)
+InstructionAllocation::InstructionAllocation(Type *type_, IdentifiantCode *ident_)
+	: InstructionAllocation()
 {
-	auto inst = memoire::loge<InstructionAllocation>("InstructionAllocation");
-	inst->type = type;
-	inst->ident = ident;
-	return inst;
+	this->type = type_;
+	this->ident = ident_;
 }
 
-InstructionRetour *InstructionRetour::cree(Atome *valeur)
+InstructionRetour::InstructionRetour(Atome *valeur_)
+	: InstructionRetour()
 {
-	auto inst = memoire::loge<InstructionRetour>("InstructionRetour");
-	inst->valeur = valeur;
-	return inst;
+	this->valeur = valeur_;
 }
 
-InstructionOpBinaire *InstructionOpBinaire::cree(Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite)
+InstructionOpBinaire::InstructionOpBinaire(Type *type_, OperateurBinaire::Genre op_, Atome *valeur_gauche_, Atome *valeur_droite_)
+	: InstructionOpBinaire()
 {
-	auto inst = memoire::loge<InstructionOpBinaire>("InstructionOpBinaire");
-	inst->type = type;
-	inst->op = op;
-	inst->valeur_gauche = valeur_gauche;
-	inst->valeur_droite = valeur_droite;
-	return inst;
+	this->type = type_;
+	this->op = op_;
+	this->valeur_gauche = valeur_gauche_;
+	this->valeur_droite = valeur_droite_;
 }
 
-InstructionOpUnaire *InstructionOpUnaire::cree(Type *type, OperateurUnaire::Genre op, Atome *valeur)
+InstructionOpUnaire::InstructionOpUnaire(Type *type_, OperateurUnaire::Genre op_, Atome *valeur_)
+	: InstructionOpUnaire()
 {
-	auto inst = memoire::loge<InstructionOpUnaire>("InstructionOpUnaire");
-	inst->type = type;
-	inst->op = op;
-	inst->valeur = valeur;
-	return inst;
+	this->type = type_;
+	this->op = op_;
+	this->valeur = valeur_;
 }
 
-InstructionChargeMem *InstructionChargeMem::cree(Type *type, Atome *chargee)
+InstructionChargeMem::InstructionChargeMem(Type *type_, Atome *chargee_)
+	: InstructionChargeMem()
 {
-	auto inst = memoire::loge<InstructionChargeMem>("InstructionChargeMem");
-	inst->type = type;
-	inst->chargee = chargee;
-	inst->est_chargeable = type->genre == GenreType::POINTEUR;
-	return inst;
+	this->type = type_;
+	this->chargee = chargee_;
+	this->est_chargeable = type->genre == GenreType::POINTEUR;
 }
 
-InstructionStockeMem *InstructionStockeMem::cree(Type *type, Atome *ou, Atome *valeur)
+InstructionStockeMem::InstructionStockeMem(Type *type_, Atome *ou_, Atome *valeur_)
+	: InstructionStockeMem()
 {
-	auto inst = memoire::loge<InstructionStockeMem>("InstructionStockeMem");
-	inst->type = type;
-	inst->ou = ou;
-	inst->valeur = valeur;
-	return inst;
+	this->type = type_;
+	this->ou = ou_;
+	this->valeur = valeur_;
 }
 
-InstructionLabel *InstructionLabel::cree(int id)
+InstructionLabel::InstructionLabel(int id_)
+	: InstructionLabel()
 {
-	auto inst = memoire::loge<InstructionLabel>("InstructionLabel");
-	inst->id = id;
-	return inst;
+	this->id = id_;
 }
 
-InstructionBranche *InstructionBranche::cree(InstructionLabel *label)
+InstructionBranche::InstructionBranche(InstructionLabel *label_)
+	: InstructionBranche()
 {
-	auto inst = memoire::loge<InstructionBranche>("InstructionBranche");
-	inst->label = label;
-	return inst;
+	this->label = label_;
 }
 
-InstructionBrancheCondition *InstructionBrancheCondition::cree(Atome *condition, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux)
+InstructionBrancheCondition::InstructionBrancheCondition(Atome *condition_, InstructionLabel *label_si_vrai_, InstructionLabel *label_si_faux_)
+	: InstructionBrancheCondition()
 {
-	auto inst = memoire::loge<InstructionBrancheCondition>("InstructionBrancheCondition");
-	inst->condition = condition;
-	inst->label_si_vrai = label_si_vrai;
-	inst->label_si_faux = label_si_faux;
-	return inst;
+	this->condition = condition_;
+	this->label_si_vrai = label_si_vrai_;
+	this->label_si_faux = label_si_faux_;
 }
 
-InstructionAccedeMembre *InstructionAccedeMembre::cree(Type *type, Atome *accede, Atome *index)
+InstructionAccedeMembre::InstructionAccedeMembre(Type *type_, Atome *accede_, Atome *index_)
+	: InstructionAccedeMembre()
 {
-	auto inst = memoire::loge<InstructionAccedeMembre>("InstructionAccedeMembre");
-	inst->type = type;
-	inst->accede = accede;
-	inst->index = index;
-	return inst;
+	this->type = type_;
+	this->accede = accede_;
+	this->index = index_;
 }
 
-InstructionAccedeIndex *InstructionAccedeIndex::cree(Type *type, Atome *accede, Atome *index)
+InstructionAccedeIndex::InstructionAccedeIndex(Type *type_, Atome *accede_, Atome *index_)
+	: InstructionAccedeIndex()
 {
-	auto inst = memoire::loge<InstructionAccedeIndex>("InstructionAccedeIndex");
-	inst->type = type;
-	inst->accede = accede;
-	inst->index = index;
-	return inst;
+	this->type = type_;
+	this->accede = accede_;
+	this->index = index_;
 }
 
-InstructionTranstype *InstructionTranstype::cree(Type *type, Atome *valeur)
+InstructionTranstype::InstructionTranstype(Type *type_, Atome *valeur_)
+	: InstructionTranstype()
 {
-	auto inst = memoire::loge<InstructionTranstype>("InstructionTranstype");
-	inst->type = type;
-	inst->valeur = valeur;
-	return inst;
+	this->type = type_;
+	this->valeur = valeur_;
 }
