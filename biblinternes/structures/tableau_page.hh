@@ -65,7 +65,8 @@ struct tableau_page {
 		page_courante = &pages.back();
 	}
 
-	T *ajoute_element()
+	template <typename... Args>
+	T *ajoute_element(Args &&...args)
 	{
 		if (page_courante->occupe == TAILLE_PAGE) {
 			ajoute_page();
@@ -75,7 +76,7 @@ struct tableau_page {
 		page_courante->occupe += 1;
 		nombre_elements += 1;
 
-		new (ptr) T;
+		new (ptr) T(std::move(args)...);
 
 		return ptr;
 	}
