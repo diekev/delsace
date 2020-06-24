@@ -1363,20 +1363,20 @@ void genere_code_C(
 	genere_typedefs_pour_tous_les_types(constructrice_ri.compilatrice(), enchaineuse);
 
 	auto &compilatrice = constructrice_ri.compilatrice();
-	POUR (compilatrice.graphe_dependance.noeuds) {
-		it->fut_visite = it->type != TypeNoeudDependance::TYPE;
+	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
+		it.fut_visite = it.type != TypeNoeudDependance::TYPE;
 	}
 
-	POUR (compilatrice.graphe_dependance.noeuds) {
-		if (it->type != TypeNoeudDependance::TYPE) {
+	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
+		if (it.type != TypeNoeudDependance::TYPE) {
 			continue;
 		}
 
-		if (it->fut_visite) {
+		if (it.fut_visite) {
 			continue;
 		}
 
-		traverse_graphe(it, [&](NoeudDependance *noeud)
+		traverse_graphe(&it, [&](NoeudDependance *noeud)
 		{
 			if (noeud->type_ == nullptr) {
 				return;
@@ -1404,8 +1404,8 @@ void genere_code_C(
 
 	auto fonction_principale = compilatrice.graphe_dependance.cherche_noeud_fonction("principale");
 
-	POUR (compilatrice.graphe_dependance.noeuds) {
-		it->fut_visite = false;
+	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
+		it.fut_visite = false;
 	}
 
 	kuri::tableau<Atome *> fonctions;
@@ -1456,20 +1456,20 @@ void genere_code_C_pour_execution(
 	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
 	genere_typedefs_pour_tous_les_types(constructrice_ri.compilatrice(), enchaineuse);
 
-	POUR (compilatrice.graphe_dependance.noeuds) {
-		it->fut_visite = it->type != TypeNoeudDependance::TYPE;
+	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
+		it.fut_visite = it.type != TypeNoeudDependance::TYPE;
 	}
 
-	POUR (compilatrice.graphe_dependance.noeuds) {
-		if (it->type != TypeNoeudDependance::TYPE) {
+	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
+		if (it.type != TypeNoeudDependance::TYPE) {
 			continue;
 		}
 
-		if (it->fut_visite) {
+		if (it.fut_visite) {
 			continue;
 		}
 
-		traverse_graphe(it, [&](NoeudDependance *noeud)
+		traverse_graphe(&it, [&](NoeudDependance *noeud)
 		{
 			if (noeud->type_ == nullptr) {
 				return;
@@ -1495,8 +1495,8 @@ void genere_code_C_pour_execution(
 		});
 	}
 
-	POUR (compilatrice.graphe_dependance.noeuds) {
-		it->fut_visite = false;
+	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
+		it.fut_visite = false;
 	}
 
 	kuri::tableau<Atome *> fonctions;

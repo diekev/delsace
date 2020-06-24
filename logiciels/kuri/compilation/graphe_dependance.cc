@@ -44,24 +44,16 @@ std::ostream &operator<<(std::ostream &os, TypeRelation type)
 	return os;
 }
 
-GrapheDependance::~GrapheDependance()
-{
-	for (auto noeud : noeuds) {
-		memoire::deloge("NoeudDependance", noeud);
-	}
-}
-
 NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationFonction *noeud_syntactique)
 {
 	PROFILE_FONCTION;
 
 	if (noeud_syntactique->noeud_dependance == nullptr) {
-		auto noeud = memoire::loge<NoeudDependance>("NoeudDependance");
+		auto noeud = noeuds.ajoute_element();
 		noeud->noeud_syntactique = noeud_syntactique;
 		noeud->type = TypeNoeudDependance::FONCTION;
 
 		noeud_syntactique->noeud_dependance = noeud;
-		noeuds.pousse(noeud);
 	}
 
 	return noeud_syntactique->noeud_dependance;
@@ -72,12 +64,11 @@ NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *
 	PROFILE_FONCTION;
 
 	if (noeud_syntactique->noeud_dependance == nullptr) {
-		auto noeud = memoire::loge<NoeudDependance>("NoeudDependance");
+		auto noeud = noeuds.ajoute_element();
 		noeud->noeud_syntactique = noeud_syntactique;
 		noeud->type = TypeNoeudDependance::GLOBALE;
 
 		noeud_syntactique->noeud_dependance = noeud;
-		noeuds.pousse(noeud);
 	}
 
 	return noeud_syntactique->noeud_dependance;
@@ -88,12 +79,11 @@ NoeudDependance *GrapheDependance::cree_noeud_type(Type *type)
 	PROFILE_FONCTION;
 
 	if (type->noeud_dependance == nullptr) {
-		auto noeud = memoire::loge<NoeudDependance>("NoeudDependance");
+		auto noeud = noeuds.ajoute_element();
 		noeud->type_ = type;
 		noeud->type = TypeNoeudDependance::TYPE;
 
 		type->noeud_dependance = noeud;
-		noeuds.pousse(noeud);
 	}
 
 	return type->noeud_dependance;
@@ -103,15 +93,15 @@ NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_
 {
 	PROFILE_FONCTION;
 
-	POUR (noeuds) {
-		if (it->type != TypeNoeudDependance::FONCTION) {
+	POUR_TABLEAU_PAGE(noeuds) {
+		if (it.type != TypeNoeudDependance::FONCTION) {
 			continue;
 		}
 
-		auto decl_fonction = static_cast<NoeudDeclarationFonction *>(it->noeud_syntactique);
+		auto decl_fonction = static_cast<NoeudDeclarationFonction *>(it.noeud_syntactique);
 
 		if (decl_fonction->nom_broye == nom) {
-			return it;
+			return const_cast<NoeudDependance *>(&it);
 		}
 	}
 
@@ -161,10 +151,10 @@ void GrapheDependance::connecte_noeuds(
 size_t GrapheDependance::memoire_utilisee() const
 {
 	auto total = 0ul;
-	total += static_cast<size_t>(noeuds.taille()) * (sizeof(NoeudDependance *) + sizeof(NoeudDependance));
+	total += static_cast<size_t>(noeuds.taille()) * (sizeof(NoeudDependance));
 
-	POUR (noeuds) {
-		total += static_cast<size_t>(it->relations.taille()) * sizeof(Relation);
+	POUR_TABLEAU_PAGE(noeuds) {
+		total += static_cast<size_t>(it.relations.taille()) * sizeof(Relation);
 	}
 
 	return total;
@@ -208,9 +198,9 @@ void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 	auto nombre_fonctions = 0;
 	auto nombre_utilisees = 0;
 
-	POUR (graphe_dependance.noeuds) {
-		it->fut_visite = false;
-		nombre_fonctions += (it->type == TypeNoeudDependance::FONCTION);
+	POUR_TABLEAU_PAGE(graphe_dependance.noeuds) {
+		it.fut_visite = false;
+		nombre_fonctions += (it.type == TypeNoeudDependance::FONCTION);
 	}
 
 	auto noeud_dependance = graphe_dependance.cherche_noeud_fonction("principale");
@@ -224,16 +214,16 @@ void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 		nombre_utilisees += 1;
 	});
 
-	POUR (graphe_dependance.noeuds) {
-		if (it->type != TypeNoeudDependance::FONCTION) {
+	POUR_TABLEAU_PAGE(graphe_dependance.noeuds) {
+		if (it.type != TypeNoeudDependance::FONCTION) {
 			continue;
 		}
 
-		if (it->fut_visite) {
+		if (it.fut_visite) {
 			continue;
 		}
 
-		auto decl_fonction = static_cast<NoeudDeclarationFonction *>(it->noeud_syntactique);
+		auto decl_fonction = static_cast<NoeudDeclarationFonction *>(it.noeud_syntactique);
 		std::cerr << "Fonction inutilisée : " << decl_fonction->nom_broye << '\n';
 	}
 
@@ -285,24 +275,24 @@ void reduction_transitive(GrapheDependance &graphe_dependance)
 
 	auto relations_filtrees = dls::tableau<Relation>();
 
-	for (auto cible : graphe_dependance.noeuds) {
+	POUR_TABLEAU_PAGE_NOMME(cible, graphe_dependance.noeuds) {
 		/* Réinitialisation des drapeaux. */
-		for (auto noeud : graphe_dependance.noeuds) {
-			noeud->drapeaux = 0;
+		POUR_TABLEAU_PAGE_NOMME(noeud, graphe_dependance.noeuds) {
+			noeud.drapeaux = 0;
 		}
 
 		/* Marque les noeuds que nous pouvons atteindre depuis la cible.
 		 * Commence avec les enfants, afin que la cible et ses enfants ne soient
 		 * pas marqués.
 		 */
-		cible->drapeaux |= VISITE;
-		for (auto &relation : cible->relations) {
+		cible.drapeaux |= VISITE;
+		for (auto &relation : cible.relations) {
 			marque_chemins_atteignables(*relation.noeud_fin);
 		}
 
-		relations_filtrees = cible->relations;
+		relations_filtrees = cible.relations;
 
-		for (auto &relation : cible->relations) {
+		for (auto &relation : cible.relations) {
 			++relations_totales;
 
 			if ((relation.noeud_fin->drapeaux & ATTEIGNABLE) != 0) {
@@ -313,7 +303,7 @@ void reduction_transitive(GrapheDependance &graphe_dependance)
 			relations_filtrees.pousse(relation);
 		}
 
-		cible->relations = relations_filtrees;
+		cible.relations = relations_filtrees;
 	}
 
 	std::cout << "Nombre de relations supprimées : "

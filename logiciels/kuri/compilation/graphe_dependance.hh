@@ -29,6 +29,7 @@
 #include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/ensemblon.hh"
 #include "biblinternes/structures/tableau.hh"
+#include "biblinternes/structures/tableau_page.hh"
 
 #include "arbre_syntactic.h"
 
@@ -92,9 +93,7 @@ struct DonneesDependance {
 };
 
 struct GrapheDependance {
-	dls::tableau<NoeudDependance *> noeuds{};
-
-	~GrapheDependance();
+	tableau_page<NoeudDependance> noeuds{};
 
 	// CRÉE (:FONCTION { nom = $nom })
 	NoeudDependance *cree_noeud_fonction(NoeudDeclarationFonction *noeud_syntactique);
