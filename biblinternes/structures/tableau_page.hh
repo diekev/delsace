@@ -31,6 +31,26 @@ struct tableau_page {
 	struct page {
 		T *donnees = nullptr;
 		long occupe = 0;
+
+		T *begin()
+		{
+			return donnees;
+		}
+
+		T const *begin() const
+		{
+			return donnees;
+		}
+
+		T *end()
+		{
+			return donnees + occupe;
+		}
+
+		T const *end() const
+		{
+			return donnees + occupe;
+		}
 	};
 
 	dls::tableau<page> pages{};
@@ -109,12 +129,18 @@ struct tableau_page {
 	}
 };
 
+#define POUR_TABLEAU_PAGE(x) \
+	for (auto &p : x.pages) \
+		for (auto &it : p)
+
+#define POUR_TABLEAU_PAGE_NOMME(nom_iter, x) \
+	for (auto &p##nom_iter : x.pages) \
+		for (auto &nom_iter : p##nom_iter)
+
 template <typename T, size_t TAILLE_PAGE, typename Rappel>
 void pour_chaque_element(tableau_page<T, TAILLE_PAGE> const &tableau, Rappel rappel)
 {
-	for (auto &it : tableau.pages) {
-		for (auto i = 0; i < it.occupe; ++i) {
-			rappel(it.donnees[i]);
-		}
+	POUR_TABLEAU_PAGE(tableau) {
+		rappel(it);
 	}
 }
