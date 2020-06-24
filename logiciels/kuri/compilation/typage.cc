@@ -155,8 +155,12 @@ TypePointeur *TypePointeur::cree(Type *type_pointe)
 	type->alignement = 8;
 	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 
-	if (type_pointe && type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+	if (type_pointe) {
+		if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+			type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+		}
+
+		type_pointe->drapeaux |= POSSEDE_TYPE_POINTEUR;
 	}
 
 	return type;
@@ -175,6 +179,8 @@ TypeReference *TypeReference::cree(Type *type_pointe)
 	if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
 	}
+
+	type_pointe->drapeaux |= POSSEDE_TYPE_REFERENCE;
 
 	return type;
 }
@@ -241,6 +247,8 @@ TypeTableauFixe *TypeTableauFixe::cree(Type *type_pointe, long taille, kuri::tab
 		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
 	}
 
+	type_pointe->drapeaux |= POSSEDE_TYPE_TABLEAU_FIXE;
+
 	return type;
 }
 
@@ -258,6 +266,8 @@ TypeTableauDynamique *TypeTableauDynamique::cree(Type *type_pointe, kuri::tablea
 	if (type_pointe->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 		type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
 	}
+
+	type_pointe->drapeaux |= POSSEDE_TYPE_TABLEAU_DYNAMIQUE;
 
 	return type;
 }
@@ -287,6 +297,11 @@ TypeTypeDeDonnees *TypeTypeDeDonnees::cree(Type *type_connu)
 	type->alignement = 8;
 	type->type_connu = type_connu;
 	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+
+	if (type_connu) {
+		type_connu->drapeaux |= POSSEDE_TYPE_TYPE_DE_DONNEES;
+	}
+
 	return type;
 }
 
@@ -557,9 +572,11 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 {
 	PROFILE_FONCTION;
 
-	POUR (types_pointeurs) {
-		if (it->type_pointe == type) {
-			return it;
+	if (type && (type->drapeaux & POSSEDE_TYPE_POINTEUR) != 0) {
+		POUR (types_pointeurs) {
+			if (it->type_pointe == type) {
+				return it;
+			}
 		}
 	}
 
@@ -609,9 +626,11 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
 {
 	PROFILE_FONCTION;
 
-	POUR (types_references) {
-		if (it->type_pointe == type) {
-			return it;
+	if ((type->drapeaux & POSSEDE_TYPE_REFERENCE) != 0) {
+		POUR (types_references) {
+			if (it->type_pointe == type) {
+				return it;
+			}
 		}
 	}
 
@@ -627,9 +646,11 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 {
 	PROFILE_FONCTION;
 
-	POUR (types_tableaux_fixes) {
-		if (it->type_pointe == type_pointe && it->taille == taille) {
-			return it;
+	if ((type_pointe->drapeaux & POSSEDE_TYPE_TABLEAU_FIXE) != 0) {
+		POUR (types_tableaux_fixes) {
+			if (it->type_pointe == type_pointe && it->taille == taille) {
+				return it;
+			}
 		}
 	}
 
@@ -651,9 +672,11 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 {
 	PROFILE_FONCTION;
 
-	POUR (types_tableaux_dynamiques) {
-		if (it->type_pointe == type_pointe) {
-			return it;
+	if ((type_pointe->drapeaux & POSSEDE_TYPE_TABLEAU_DYNAMIQUE) != 0) {
+		POUR (types_tableaux_dynamiques) {
+			if (it->type_pointe == type_pointe) {
+				return it;
+			}
 		}
 	}
 
@@ -768,9 +791,11 @@ TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
 		return type_type_de_donnees_;
 	}
 
-	POUR (types_type_de_donnees) {
-		if (it->type_connu == type_connu) {
-			return it;
+	if ((type_connu->drapeaux & POSSEDE_TYPE_TYPE_DE_DONNEES) != 0) {
+		POUR (types_type_de_donnees) {
+			if (it->type_connu == type_connu) {
+				return it;
+			}
 		}
 	}
 
