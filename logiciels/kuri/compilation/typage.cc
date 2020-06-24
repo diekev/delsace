@@ -990,6 +990,25 @@ long Typeuse::nombre_de_types() const
 	compte += types_type_de_donnees.taille();
 	compte += types_polymorphiques.taille();
 	compte += 2; // eini et chaine
+
+#if 0
+#define IMPRIME_NOMBRE_TYPE(x) \
+	std::cerr << #x" : " << x.taille() << '\n'
+
+	IMPRIME_NOMBRE_TYPE(types_simples);
+	IMPRIME_NOMBRE_TYPE(types_pointeurs);
+	IMPRIME_NOMBRE_TYPE(types_references);
+	IMPRIME_NOMBRE_TYPE(types_structures);
+	IMPRIME_NOMBRE_TYPE(types_enums);
+	IMPRIME_NOMBRE_TYPE(types_tableaux_fixes);
+	IMPRIME_NOMBRE_TYPE(types_tableaux_dynamiques);
+	IMPRIME_NOMBRE_TYPE(types_fonctions);
+	IMPRIME_NOMBRE_TYPE(types_variadiques);
+	IMPRIME_NOMBRE_TYPE(types_unions);
+	IMPRIME_NOMBRE_TYPE(types_type_de_donnees);
+	IMPRIME_NOMBRE_TYPE(types_polymorphiques);
+#endif
+
 	return compte;
 }
 
