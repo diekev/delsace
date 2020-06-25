@@ -868,10 +868,10 @@ Instruction *ConstructriceRI::cree_acces_membre_et_charge(Atome *accede, long in
 	return cree_charge_mem(inst);
 }
 
-InstructionTranstype *ConstructriceRI::cree_transtype(Type *type, Atome *valeur)
+InstructionTranstype *ConstructriceRI::cree_transtype(Type *type, Atome *valeur, TypeTranstypage op)
 {
 	//std::cerr << __func__ << ", type : " << chaine_type(type) << ", valeur " << chaine_type(valeur->type) << '\n';
-	auto inst = insts_transtype.ajoute_element(type, valeur);
+	auto inst = insts_transtype.ajoute_element(type, valeur, op);
 	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
@@ -1652,7 +1652,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud_ex(NoeudExpression *noeud)
 				valeur_enfant = cree_charge_mem(valeur_enfant);
 			}
 
-			return cree_transtype(inst->type, valeur_enfant);
+			return cree_transtype(inst->type, valeur_enfant, TypeTranstypage::DEFAUT);
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
@@ -1691,7 +1691,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud_ex(NoeudExpression *noeud)
 
 						if (it->type != type_union->type_le_plus_grand) {
 							auto ptr = static_cast<InstructionChargeMem *>(valeur)->chargee;
-							valeur = cree_transtype(m_compilatrice.typeuse.type_pointeur_pour(type_union->type_le_plus_grand), ptr);
+							valeur = cree_transtype(m_compilatrice.typeuse.type_pointeur_pour(type_union->type_le_plus_grand), ptr, TypeTranstypage::BITS);
 							valeur = cree_charge_mem(valeur);
 						}
 
@@ -1975,7 +1975,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 			}
 
 			auto membre = cree_acces_membre(valeur, 0);
-			valeur = cree_transtype(m_compilatrice.typeuse.type_pointeur_pour(transformation.type_cible), membre);
+			valeur = cree_transtype(m_compilatrice.typeuse.type_pointeur_pour(transformation.type_cible), membre, TypeTranstypage::BITS);
 			valeur = cree_charge_mem(valeur);
 			break;
 		}
@@ -1986,7 +1986,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 			}
 
 			if (noeud->genre != GenreNoeud::EXPRESSION_LITTERALE_NUL) {
-				valeur = cree_transtype(m_compilatrice.typeuse[TypeBase::PTR_RIEN], valeur);
+				valeur = cree_transtype(m_compilatrice.typeuse[TypeBase::PTR_RIEN], valeur, TypeTranstypage::BITS);
 			}
 
 			break;
@@ -1997,7 +1997,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				valeur = cree_charge_mem(valeur);
 			}
 
-			valeur = cree_transtype(transformation.type_cible, valeur);
+			valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::DEFAUT);
 			break;
 		}
 		case TypeTransformation::AUGMENTE_TAILLE_TYPE:
@@ -2018,7 +2018,19 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 //				valeur = builder.CreateLoad(valeur, "");
 //			}
 
-			valeur = cree_transtype(transformation.type_cible, valeur);
+			if (noeud->type->genre == GenreType::REEL) {
+				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_REEL);
+			}
+			else if (noeud->type->genre == GenreType::ENTIER_NATUREL) {
+				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
+			}
+			else if (noeud->type->genre == GenreType::ENTIER_RELATIF) {
+				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_RELATIF);
+			}
+			else if (noeud->type->genre == GenreType::BOOL) {
+				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
+			}
+
 			break;
 		}
 		case TypeTransformation::REDUIT_TAILLE_TYPE:
@@ -2027,7 +2039,19 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				valeur = cree_charge_mem(valeur);
 			}
 
-			valeur = cree_transtype(transformation.type_cible, valeur);
+			if (noeud->type->genre == GenreType::REEL) {
+				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::DIMINUE_REEL);
+			}
+			else if (noeud->type->genre == GenreType::ENTIER_NATUREL) {
+				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::DIMINUE_NATUREL);
+			}
+			else if (noeud->type->genre == GenreType::ENTIER_RELATIF) {
+				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::DIMINUE_RELATIF);
+			}
+			else if (noeud->type->genre == GenreType::BOOL) {
+				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::DIMINUE_NATUREL);
+			}
+
 			break;
 		}
 		case TypeTransformation::CONSTRUIT_EINI:
@@ -2048,7 +2072,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				valeur = alloc_tmp;
 			}
 
-			auto transtype = cree_transtype(m_compilatrice.typeuse[TypeBase::PTR_RIEN], valeur);
+			auto transtype = cree_transtype(m_compilatrice.typeuse[TypeBase::PTR_RIEN], valeur, TypeTranstypage::BITS);
 			cree_stocke_mem(ptr_eini, transtype);
 
 			/* copie le pointeur vers les infos du type du eini */
@@ -2073,7 +2097,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 		{
 			valeur = cree_acces_membre(valeur, 0);
 			auto type_cible = m_compilatrice.typeuse.type_pointeur_pour(transformation.type_cible);
-			valeur = cree_transtype(type_cible, valeur);
+			valeur = cree_transtype(type_cible, valeur, TypeTranstypage::BITS);
 			valeur = cree_charge_mem(valeur);
 			break;
 		}
@@ -2095,7 +2119,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 //						valeur = alloc_const;
 //					}
 
-					valeur = cree_transtype(type_cible, valeur);
+					valeur = cree_transtype(type_cible, valeur, TypeTranstypage::BITS);
 					valeur_pointeur = valeur;
 
 					if (noeud->type->genre == GenreType::ENTIER_CONSTANT) {
@@ -2110,7 +2134,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				case GenreType::POINTEUR:
 				{
 					auto type_pointe = static_cast<TypePointeur *>(noeud->type)->type_pointe;
-					valeur = cree_transtype(type_cible, valeur);
+					valeur = cree_transtype(type_cible, valeur, TypeTranstypage::BITS);
 					valeur_pointeur = valeur;
 					auto taille_type = type_pointe->taille_octet;
 					valeur_taille = cree_z64(taille_type);
@@ -2126,7 +2150,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 					}
 					else*/ {
 						valeur_pointeur = cree_acces_membre_et_charge(valeur, 0);
-						valeur_pointeur = cree_transtype(type_cible, valeur_pointeur);
+						valeur_pointeur = cree_transtype(type_cible, valeur_pointeur, TypeTranstypage::BITS);
 						valeur_taille = cree_acces_membre_et_charge(valeur, 1);
 					}
 
@@ -2137,7 +2161,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 					auto type_pointer = static_cast<TypeTableauDynamique *>(noeud->type)->type_pointe;
 
 					valeur_pointeur = cree_acces_membre_et_charge(valeur, 0);
-					valeur_pointeur = cree_transtype(type_cible, valeur_pointeur);
+					valeur_pointeur = cree_transtype(type_cible, valeur_pointeur, TypeTranstypage::BITS);
 					valeur_taille = cree_acces_membre_et_charge(valeur, 1);
 
 					auto taille_type = type_pointer->taille_octet;
@@ -2157,7 +2181,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 					auto taille_type = type_pointe->taille_octet;
 
 					valeur_pointeur = cree_acces_index(valeur, cree_z64(0ul));
-					valeur_pointeur = cree_transtype(type_cible, valeur_pointeur);
+					valeur_pointeur = cree_transtype(type_cible, valeur_pointeur, TypeTranstypage::BITS);
 					valeur_taille = cree_z64(static_cast<unsigned>(type_tabl->taille) * taille_type);
 
 					break;
@@ -2223,7 +2247,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 		{
 			// À FAIRE : décalage dans la structure
 			valeur = cree_charge_mem(valeur);
-			valeur = cree_transtype(transformation.type_cible, valeur);
+			valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::BITS);
 			break;
 		}
 	}
@@ -2910,13 +2934,15 @@ Atome *ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpre
 	auto ptr_info_type = cree_info_type(type);
 	auto arg_ptr_info_type = cree_transtype(
 				m_compilatrice.typeuse.type_pointeur_pour(m_compilatrice.typeuse.type_info_type_),
-				ptr_info_type);
+				ptr_info_type,
+				TypeTranstypage::BITS);
 
 	auto arg_val_mode = cree_z32(static_cast<unsigned>(mode));
 
 	auto arg_val_ancien_ptr = cree_transtype(
 				m_compilatrice.typeuse[TypeBase::PTR_RIEN],
-				cree_charge_mem(val_acces_pointeur));
+				cree_charge_mem(val_acces_pointeur),
+			TypeTranstypage::BITS);
 
 	auto arg_position = genere_ri_pour_position_code_source(noeud);
 
@@ -2931,7 +2957,7 @@ Atome *ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpre
 	parametres.pousse(cree_charge_mem(arg_position));
 
 	auto ret_pointeur = cree_appel(noeud->lexeme, arg_ptr_allocatrice, std::move(parametres));
-	auto ptr_transtype = cree_transtype(type_du_pointeur_retour, ret_pointeur);
+	auto ptr_transtype = cree_transtype(type_du_pointeur_retour, ret_pointeur, TypeTranstypage::BITS);
 
 	switch (mode) {
 		case 0:
@@ -4228,7 +4254,7 @@ Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction
 	auto alloc_info_trace_appel = cree_allocation(type_info_trace_appel, IDENT_CODE("mon_info"));
 	assigne_membre(alloc_info_trace_appel, trouve_index_membre(type_info_trace_appel, "nom"), cree_chaine("main"));
 	assigne_membre(alloc_info_trace_appel, trouve_index_membre(type_info_trace_appel, "fichier"), cree_chaine("???"));
-	assigne_membre(alloc_info_trace_appel, trouve_index_membre(type_info_trace_appel, "adresse"), cree_transtype(m_compilatrice.typeuse[TypeBase::PTR_RIEN], fonction));
+	assigne_membre(alloc_info_trace_appel, trouve_index_membre(type_info_trace_appel, "adresse"), cree_transtype(m_compilatrice.typeuse[TypeBase::PTR_RIEN], fonction, TypeTranstypage::BITS));
 
 	// ----------------------------------
 	// création de la trace d'appel

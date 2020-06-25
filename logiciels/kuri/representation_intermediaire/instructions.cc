@@ -239,9 +239,10 @@ InstructionAccedeIndex::InstructionAccedeIndex(Type *type_, Atome *accede_, Atom
 	this->index = index_;
 }
 
-InstructionTranstype::InstructionTranstype(Type *type_, Atome *valeur_)
+InstructionTranstype::InstructionTranstype(Type *type_, Atome *valeur_, TypeTranstypage op_)
 	: InstructionTranstype()
 {
 	this->type = type_;
 	this->valeur = valeur_;
+	this->op = op_;
 }

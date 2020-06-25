@@ -171,7 +171,7 @@ private:
 	InstructionAccedeMembre *cree_acces_membre(Atome *accede, long index);
 	Instruction *cree_acces_membre_et_charge(Atome *accede, long index);
 
-	InstructionTranstype *cree_transtype(Type *type, Atome *valeur);
+	InstructionTranstype *cree_transtype(Type *type, Atome *valeur, TypeTranstypage op);
 
 	TranstypeConstant *cree_transtype_constant(Type *type, AtomeConstante *valeur);
 	OpUnaireConstant *cree_op_unaire_constant(Type *type, OperateurUnaire::Genre op, AtomeConstante *valeur);

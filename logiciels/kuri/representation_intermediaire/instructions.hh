@@ -372,6 +372,21 @@ struct InstructionAccedeIndex : public Instruction {
 	InstructionAccedeIndex(Type *type, Atome *accede, Atome *index);
 };
 
+enum TypeTranstypage {
+	AUGMENTE_NATUREL,
+	AUGMENTE_RELATIF,
+	AUGMENTE_REEL,
+	DIMINUE_NATUREL,
+	DIMINUE_RELATIF,
+	DIMINUE_REEL,
+	POINTEUR_VERS_ENTIER,
+	ENTIER_VERS_POINTEUR,
+	REEL_VERS_ENTIER,
+	ENTIER_VERS_REEL,
+	BITS,
+	DEFAUT, // À SUPPRIMER
+};
+
 struct InstructionTranstype : public Instruction {
 	InstructionTranstype()
 	{
@@ -380,8 +395,9 @@ struct InstructionTranstype : public Instruction {
 	}
 
 	Atome *valeur = nullptr;
+	TypeTranstypage op{};
 
 	COPIE_CONSTRUCT(InstructionTranstype);
 
-	InstructionTranstype(Type *type, Atome *valeur);
+	InstructionTranstype(Type *type, Atome *valeur, TypeTranstypage op_);
 };
