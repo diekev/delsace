@@ -33,6 +33,7 @@
 #include "compilation/structures.hh"
 
 struct IdentifiantCode;
+struct Instruction;
 struct Lexeme;
 struct Type;
 
@@ -186,7 +187,7 @@ struct AtomeFonction : public Atome {
 	kuri::tableau<Atome *> params_entrees{};
 	kuri::tableau<Atome *> params_sorties{};
 
-	kuri::tableau<Atome *> instructions{};
+	kuri::tableau<Instruction *> instructions{};
 
 	/* pour les traces d'appels */
 	Lexeme const *lexeme = nullptr;

@@ -1315,7 +1315,7 @@ struct GeneratriceCodeC {
 					m_fonction_courante = atome_fonc;
 
 					for (auto inst : atome_fonc->instructions) {
-						genere_code_pour_instruction(static_cast<Instruction const *>(inst), os);
+						genere_code_pour_instruction(inst, os);
 					}
 
 					m_fonction_courante = nullptr;

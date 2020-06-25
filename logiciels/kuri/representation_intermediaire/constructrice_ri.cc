@@ -146,8 +146,7 @@ void ConstructriceRI::imprime_programme() const
 				os << chaine_type(atome_fonc->type);
 				os << '\n';
 
-				for (auto atome : atome_fonc->instructions) {
-					auto inst = static_cast<Instruction const *>(atome);
+				for (auto inst : atome_fonc->instructions) {
 					auto nombre_zero_avant_numero = dls::num::nombre_de_chiffres(atome_fonc->instructions.taille) - dls::num::nombre_de_chiffres(inst->numero);
 
 					for (auto i = 0; i < nombre_zero_avant_numero; ++i) {
@@ -1000,7 +999,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud_ex(NoeudExpression *noeud)
 
 			auto derniere_instruction = *(fonction_courante->instructions.end() - 1);
 
-			if (derniere_instruction->genre_atome == Atome::Genre::INSTRUCTION && static_cast<Instruction *>(derniere_instruction)->genre != Instruction::Genre::RETOUR) {
+			if (derniere_instruction->genre != Instruction::Genre::RETOUR) {
 				/* génère le code pour tous les noeuds différés de ce bloc */
 				for (auto i = noeud_bloc->noeuds_differes.taille - 1; i >= 0; --i) {
 					auto bloc_differe = noeud_bloc->noeuds_differes[i];

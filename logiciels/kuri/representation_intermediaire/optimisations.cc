@@ -50,14 +50,8 @@ void corrige_labels(AtomeFonction *atome_fonc)
 	Instruction::Genre derniere_instruction = Instruction::Genre::INVALIDE;
 
 	POUR (atome_fonc->instructions) {
-		if (it->genre_atome != Atome::Genre::INSTRUCTION) {
-			continue;
-		}
-
-		auto inst = static_cast<Instruction *>(it);
-
-		if (inst->genre == Instruction::Genre::LABEL) {
-			auto label = static_cast<InstructionLabel *>(inst);
+		if (it->genre == Instruction::Genre::LABEL) {
+			auto label = static_cast<InstructionLabel *>(it);
 
 			if (!branche_ou_retour_rencontre) {
 				paires_labels.pousse({ label_courant, label });
@@ -74,30 +68,30 @@ void corrige_labels(AtomeFonction *atome_fonc)
 			continue;
 		}
 
-		if (inst->genre == Instruction::Genre::BRANCHE) {
+		if (it->genre == Instruction::Genre::BRANCHE) {
 			if (derniere_instruction == Instruction::Genre::RETOUR) {
-				inst->drapeaux |= Instruction::SUPPRIME_INSTRUCTION;
+				it->drapeaux |= Instruction::SUPPRIME_INSTRUCTION;
 				instructions_a_supprimer += 1;
 			}
 			else {
-				auto branche = static_cast<InstructionBranche *>(inst);
+				auto branche = static_cast<InstructionBranche *>(it);
 				paires_labels.pousse({ label_courant, branche->label });
 				branche_ou_retour_rencontre = true;
 			}
 		}
-		else if (inst->genre == Instruction::Genre::BRANCHE_CONDITION) {
-			auto branche = static_cast<InstructionBrancheCondition *>(inst);
+		else if (it->genre == Instruction::Genre::BRANCHE_CONDITION) {
+			auto branche = static_cast<InstructionBrancheCondition *>(it);
 			paires_labels.pousse({ label_courant, branche->label_si_vrai });
 			paires_labels.pousse({ label_courant, branche->label_si_faux });
 			branche_ou_retour_rencontre = true;
 		}
-		else if (inst->genre == Instruction::Genre::RETOUR) {
+		else if (it->genre == Instruction::Genre::RETOUR) {
 			paires_labels.pousse({ label_courant, nullptr });
 			branche_ou_retour_rencontre = true;
 		}
 
 		nombre_instructions_label += 1;
-		derniere_instruction = inst->genre;
+		derniere_instruction = it->genre;
 	}
 
 	dls::tablet<std::pair<InstructionLabel *, InstructionLabel *>, 16> paires_remplacement;
@@ -116,13 +110,7 @@ void corrige_labels(AtomeFonction *atome_fonc)
 	}
 
 	POUR (paires_remplacement) {
-		for (auto &atm : atome_fonc->instructions) {
-			if (atm->genre_atome != Atome::Genre::INSTRUCTION) {
-				continue;
-			}
-
-			auto inst = static_cast<Instruction *>(atm);
-
+		for (auto &inst : atome_fonc->instructions) {
 			if (inst->genre == Instruction::Genre::BRANCHE) {
 				auto branche = static_cast<InstructionBranche *>(inst);
 
@@ -144,17 +132,11 @@ void corrige_labels(AtomeFonction *atome_fonc)
 	}
 
 	if (instructions_a_supprimer != 0) {
-		auto nouvelles_instructions = kuri::tableau<Atome *>();
+		auto nouvelles_instructions = kuri::tableau<Instruction *>();
 		nouvelles_instructions.reserve(atome_fonc->instructions.taille - instructions_a_supprimer);
 
 		POUR (atome_fonc->instructions) {
-			if (it->genre_atome != Atome::Genre::INSTRUCTION) {
-				nouvelles_instructions.pousse(it);
-				continue;
-			}
-
-			auto inst = static_cast<Instruction *>(it);
-			if ((inst->drapeaux & Instruction::SUPPRIME_INSTRUCTION) == 0) {
+			if ((it->drapeaux & Instruction::SUPPRIME_INSTRUCTION) == 0) {
 				nouvelles_instructions.pousse(it);
 			}
 		}

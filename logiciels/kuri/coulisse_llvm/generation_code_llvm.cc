@@ -1037,9 +1037,7 @@ void GeneratriceCodeLLVM::genere_code(ConstructriceRI &constructrice_ri)
 //				}
 
 				/* génère d'abord tous les blocs depuis les labels */
-				for (auto atome_inst : atome_fonc->instructions) {
-					auto inst = static_cast<Instruction const *>(atome_inst);
-
+				for (auto inst : atome_fonc->instructions) {
 					if (inst->genre != Instruction::Genre::LABEL) {
 						continue;
 					}
@@ -1047,9 +1045,7 @@ void GeneratriceCodeLLVM::genere_code(ConstructriceRI &constructrice_ri)
 					genere_code_pour_instruction(inst);
 				}
 
-				for (auto atome_inst : atome_fonc->instructions) {
-					auto inst = static_cast<Instruction const *>(atome_inst);
-
+				for (auto inst : atome_fonc->instructions) {
 					if (inst->genre == Instruction::Genre::LABEL) {
 						continue;
 					}
