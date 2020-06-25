@@ -1355,14 +1355,19 @@ void genere_code_C(
 
 	Enchaineuse enchaineuse;
 
+	auto &compilatrice = constructrice_ri.compilatrice();
+	auto fonction_principale = compilatrice.graphe_dependance.cherche_noeud_fonction("principale");
+
+	if (fonction_principale == nullptr) {
+		erreur::fonction_principale_manquante();
+	}
+
 	// nous devons générer la fonction main ici, car elle défini le type du tableau de
 	// stockage temporaire, et les typedefs pour les types sont générés avant les fonctions.
 	auto atome_main = constructrice_ri.genere_ri_pour_fonction_main();
 
-	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
-	genere_typedefs_pour_tous_les_types(constructrice_ri.compilatrice(), enchaineuse);
-
-	auto &compilatrice = constructrice_ri.compilatrice();
+	genere_code_debut_fichier(compilatrice, enchaineuse, racine_kuri);
+	genere_typedefs_pour_tous_les_types(compilatrice, enchaineuse);
 	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
 		it.fut_visite = it.type != TypeNoeudDependance::TYPE;
 	}
@@ -1401,8 +1406,6 @@ void genere_code_C(
 			}
 		});
 	}
-
-	auto fonction_principale = compilatrice.graphe_dependance.cherche_noeud_fonction("principale");
 
 	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
 		it.fut_visite = false;
