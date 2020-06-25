@@ -57,6 +57,14 @@ AtomeValeurConstante::AtomeValeurConstante(Type *type_)
 	this->valeur.genre = Valeur::Genre::NULLE;
 }
 
+AtomeValeurConstante::AtomeValeurConstante(Type *type_, Type *pointeur_type)
+	: AtomeValeurConstante()
+{
+	this->type = type_;
+	this->valeur.genre = Valeur::Genre::TYPE;
+	this->valeur.type = pointeur_type;
+}
+
 AtomeValeurConstante::AtomeValeurConstante(Type *type_, kuri::tableau<char> &&donnees_constantes)
 	: AtomeValeurConstante()
 {

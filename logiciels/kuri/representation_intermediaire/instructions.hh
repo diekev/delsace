@@ -83,6 +83,7 @@ struct AtomeValeurConstante : public AtomeConstante {
 			struct { char *pointeur; long taille; } valeur_tdc;
 			struct { AtomeConstante **pointeur; long taille; } valeur_structure;
 			struct { AtomeConstante **pointeur; long taille; } valeur_tableau;
+			Type *type;
 		};
 
 		enum class Genre {
@@ -95,6 +96,7 @@ struct AtomeValeurConstante : public AtomeConstante {
 			STRUCTURE,
 			TABLEAU_FIXE,
 			TABLEAU_DONNEES_CONSTANTES,
+			TYPE,
 		};
 
 		Genre genre{};
@@ -117,6 +119,7 @@ struct AtomeValeurConstante : public AtomeConstante {
 	AtomeValeurConstante(Type *type, double valeur);
 	AtomeValeurConstante(Type *type, bool valeur);
 	AtomeValeurConstante(Type *type);
+	AtomeValeurConstante(Type *type, Type *pointeur_type);
 	AtomeValeurConstante(Type *type, kuri::tableau<char> &&donnees_constantes);
 	AtomeValeurConstante(Type *type, char *pointeur, long taille);
 	AtomeValeurConstante(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);

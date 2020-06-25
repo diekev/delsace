@@ -490,6 +490,10 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 						{
 							return llvm::ConstantFP::get(type_llvm, valeur_const->valeur.valeur_reelle);
 						}
+						case AtomeValeurConstante::Valeur::Genre::TYPE:
+						{
+							return llvm::ConstantInt::get(type_llvm, valeur_const->valeur.type->index_dans_table_types);
+						}
 						case AtomeValeurConstante::Valeur::Genre::ENTIERE:
 						{
 							return llvm::ConstantInt::get(type_llvm, valeur_const->valeur.valeur_entiere);
@@ -934,6 +938,8 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
 void GeneratriceCodeLLVM::genere_code(ConstructriceRI &constructrice_ri)
 {
+	constructrice_ri.construit_table_types();
+
 	POUR (constructrice_ri.globales) {
 		auto valeur_globale = static_cast<AtomeGlobale const *>(it);
 

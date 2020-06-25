@@ -139,6 +139,7 @@ private:
 	AtomeConstante *cree_constante_booleenne(bool valeur);
 	AtomeConstante *cree_constante_caractere(Type *type, unsigned long long valeur);
 	AtomeConstante *cree_constante_entiere(Type *type, unsigned long long valeur);
+	AtomeConstante *cree_constante_type(Type *pointeur_type);
 	AtomeConstante *cree_z32(unsigned long long valeur);
 	AtomeConstante *cree_z64(unsigned long long valeur);
 	AtomeConstante *cree_constante_nulle(Type *type);
@@ -182,7 +183,6 @@ private:
 	void empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_arrete);
 	void depile_controle_boucle();
 
-	Atome *genere_ri_pour_noeud_ex(NoeudExpression *noeud);
 	Atome *genere_ri_pour_creation_contexte(AtomeFonction *fonction);
 	Atome *genere_ri_pour_expression_droite(NoeudExpression *noeud);
 	Atome *genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place);

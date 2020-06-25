@@ -573,6 +573,10 @@ struct GeneratriceCodeC {
 							{
 								return "0";
 							}
+							case AtomeValeurConstante::Valeur::Genre::TYPE:
+							{
+								return dls::vers_chaine(valeur_const->valeur.type->index_dans_table_types);
+							}
 							case AtomeValeurConstante::Valeur::Genre::REELLE:
 							{
 								return dls::vers_chaine(valeur_const->valeur.valeur_reelle);
@@ -1353,6 +1357,8 @@ void genere_code_C(
 {
 	auto debut_generation = dls::chrono::compte_seconde();
 
+	constructrice_ri.construit_table_types();
+
 	Enchaineuse enchaineuse;
 
 	auto &compilatrice = constructrice_ri.compilatrice();
@@ -1455,6 +1461,8 @@ void genere_code_C_pour_execution(
 {
 	auto &constructrice_ri = compilatrice.constructrice_ri;
 	Enchaineuse enchaineuse;
+
+	constructrice_ri.construit_table_types();
 
 	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
 	genere_typedefs_pour_tous_les_types(constructrice_ri.compilatrice(), enchaineuse);
