@@ -3416,11 +3416,13 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition, Instr
 		auto expr_unaire = static_cast<NoeudExpressionUnaire *>(condition);
 		genere_ri_pour_condition(expr_unaire->expr, label_si_faux, label_si_vrai);
 	}
-	else if (genre_lexeme == GenreLexeme::VRAI) {
-		cree_branche(label_si_vrai);
-	}
-	else if (genre_lexeme == GenreLexeme::FAUX) {
-		cree_branche(label_si_faux);
+	else if (genre_lexeme == GenreLexeme::BOOL) {
+		if (condition->lexeme->chaine == "vrai") {
+			cree_branche(label_si_vrai);
+		}
+		else {
+			cree_branche(label_si_faux);
+		}
 	}
 	else if (condition->genre == GenreNoeud::EXPRESSION_PARENTHESE) {
 		auto expr_unaire = static_cast<NoeudExpressionUnaire *>(condition);
