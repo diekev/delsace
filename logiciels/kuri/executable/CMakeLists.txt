@@ -125,20 +125,6 @@ install(
 
 ################################################################################
 
-add_executable(interpreteuse
-	interpreteuse.cc
-)
-
-target_include_directories(interpreteuse PUBLIC "${INCLUSIONS}")
-
-target_link_libraries(interpreteuse "${BIBLIOTHEQUES}")
-
-install(
-	TARGETS interpreteuse RUNTIME DESTINATION ${RACINE_INSTALLATION}
-)
-
-################################################################################
-
 set(NOM_PROJET parcer)
 
 find_package(LLVM REQUIRED)
