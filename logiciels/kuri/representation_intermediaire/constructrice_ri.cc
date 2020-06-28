@@ -1286,7 +1286,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto alloc = cree_allocation(expr_bin->type, nullptr);
 			cree_stocke_mem(alloc, resultat);
 			return alloc;
-		}t
+		}
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		{
 			// Ce noeud devrait être géré au niveau du parent, soit lors d'une
