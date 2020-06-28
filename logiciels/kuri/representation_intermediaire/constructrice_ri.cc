@@ -110,69 +110,52 @@ void ConstructriceRI::construit_table_types()
 	POUR (m_compilatrice.typeuse.types_unions) { ASSIGNE_INDEX(it); }
 }
 
+void ConstructriceRI::imprime_fonction(AtomeFonction *atome_fonc, std::ostream &os) const
+{
+	os << "fonction " << atome_fonc->nom;
+
+	auto virgule = "(";
+
+	for (auto param : atome_fonc->params_entrees) {
+		os << virgule;
+		os << param->ident->nom << ' ';
+
+		auto type_pointeur = static_cast<TypePointeur *>(param->type);
+		os << chaine_type(type_pointeur->type_pointe);
+
+		virgule = ", ";
+	}
+
+	if (atome_fonc->params_entrees.taille == 0) {
+		os << virgule;
+	}
+
+	os << ") -> ";
+	os << chaine_type(atome_fonc->type);
+	os << '\n';
+
+	for (auto inst : atome_fonc->instructions) {
+		auto nombre_zero_avant_numero = dls::num::nombre_de_chiffres(atome_fonc->instructions.taille) - dls::num::nombre_de_chiffres(inst->numero);
+
+		for (auto i = 0; i < nombre_zero_avant_numero; ++i) {
+			os << ' ';
+		}
+
+		os << "%" << inst->numero << ' ';
+
+		imprime_instruction(inst, os);
+	}
+
+	os << '\n';
+}
+
 void ConstructriceRI::imprime_programme() const
 {
 	std::ofstream os;
 	os.open("/tmp/ri_programme.kr");
 
 	POUR (fonctions) {
-		switch (it->genre_atome) {
-			case Atome::Genre::CONSTANTE:
-			{
-				break;
-			}
-			case Atome::Genre::FONCTION:
-			{
-				auto atome_fonc = static_cast<AtomeFonction const *>(it);
-				os << "fonction " << atome_fonc->nom;
-
-				auto virgule = "(";
-
-				for (auto param : atome_fonc->params_entrees) {
-					os << virgule;
-					os << param->ident->nom << ' ';
-
-					auto type_pointeur = static_cast<TypePointeur *>(param->type);
-					os << chaine_type(type_pointeur->type_pointe);
-
-					virgule = ", ";
-				}
-
-				if (atome_fonc->params_entrees.taille == 0) {
-					os << virgule;
-				}
-
-				os << ") -> ";
-				os << chaine_type(atome_fonc->type);
-				os << '\n';
-
-				for (auto inst : atome_fonc->instructions) {
-					auto nombre_zero_avant_numero = dls::num::nombre_de_chiffres(atome_fonc->instructions.taille) - dls::num::nombre_de_chiffres(inst->numero);
-
-					for (auto i = 0; i < nombre_zero_avant_numero; ++i) {
-						os << ' ';
-					}
-
-					os << "%" << inst->numero << ' ';
-
-					imprime_instruction(inst, os);
-				}
-
-				break;
-			}
-			case Atome::Genre::INSTRUCTION:
-			{
-				auto inst = static_cast<Instruction const *>(it);
-				imprime_instruction(inst, os);
-				break;
-			}
-			case Atome::Genre::GLOBALE:
-			{
-				break;
-			}
-		}
-
-		os << '\n';
+		imprime_fonction(static_cast<AtomeFonction *>(it), os);
 	}
 }
 

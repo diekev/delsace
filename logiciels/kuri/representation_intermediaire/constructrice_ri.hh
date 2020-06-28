@@ -119,6 +119,7 @@ public:
 	AtomeFonction *genere_ri_pour_fonction_main();
 
 	void imprime_programme() const;
+	void imprime_fonction(AtomeFonction *atome_fonc, std::ostream &os) const;
 
 	size_t memoire_utilisee() const;
 
