@@ -1860,9 +1860,10 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 Atome *ConstructriceRI::genere_ri_pour_expression_droite(NoeudExpression *noeud)
 {
+	auto ancienne_expression_gauche = expression_gauche;
 	expression_gauche = false;
 	auto atome = genere_ri_pour_noeud(noeud);
-	expression_gauche = true;
+	expression_gauche = ancienne_expression_gauche;
 
 	if (!atome->est_chargeable) {
 		return atome;
@@ -1874,9 +1875,10 @@ Atome *ConstructriceRI::genere_ri_pour_expression_droite(NoeudExpression *noeud)
 Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place)
 {
 	auto &transformation = noeud->transformation;
+	auto ancienne_expression_gauche = expression_gauche;
 	expression_gauche = false;
 	auto valeur = genere_ri_pour_noeud(noeud);
-	expression_gauche = true;
+	expression_gauche = ancienne_expression_gauche;
 
 	auto place_fut_utilisee = false;
 
