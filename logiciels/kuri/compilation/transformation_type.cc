@@ -396,7 +396,7 @@ bool cherche_transformation(
 
 		/* x : *z8 = y (*rien) */
 		if (type_pointe_de->genre == GenreType::RIEN) {
-			transformation = TypeTransformation::INUTILE;
+			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 			return false;
 		}
 
@@ -413,8 +413,9 @@ bool cherche_transformation(
 		}
 
 		/* x : *octet = y; */
+		// À FAIRE : pour transtypage uniquement
 		if (type_pointe_vers->genre == GenreType::OCTET) {
-			transformation = TypeTransformation::INUTILE;
+			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 			return false;
 		}
 
@@ -449,11 +450,6 @@ bool cherche_transformation(
 		}
 
 		if (POUR_TRANSTYPAGE) {
-			if (type_pointe_de->genre == GenreType::OCTET && (type_pointe_vers == compilatrice.typeuse[TypeBase::Z8] || type_pointe_vers == compilatrice.typeuse[TypeBase::N8])) {
-				transformation = TypeTransformation::INUTILE;
-				return false;
-			}
-
 			// À FAIRE : pour les einis, nous devrions avoir une meilleure sûreté de type
 			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 			return false;
@@ -462,7 +458,8 @@ bool cherche_transformation(
 
 	if (POUR_TRANSTYPAGE) {
 		if (type_de->genre == GenreType::POINTEUR && est_type_entier(type_vers) && type_vers->taille_octet == 8) {
-			transformation = TypeTransformation::INUTILE;
+			// À FAIRE : POINTEUR_VERS_ENTIER
+			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 			return false;
 		}
 	}
