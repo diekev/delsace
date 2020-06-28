@@ -136,7 +136,14 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		case GenreType::POINTEUR:
 		{
 			auto type_pointe = static_cast<TypePointeur *>(type)->type_pointe;
-			enchaineuse << "typedef " << nom_broye_type(type_pointe) << "* " << nom_broye << ";\n";
+
+			if (type_pointe) {
+				enchaineuse << "typedef " << nom_broye_type(type_pointe) << "* " << nom_broye << ";\n";
+			}
+			else {
+				enchaineuse << "typedef Ksnul *" << nom_broye << ";\n";
+			}
+
 			break;
 		}
 		case GenreType::STRUCTURE:
@@ -377,25 +384,28 @@ static void genere_typedefs_recursifs(
 
 		/* argument variadique fonction externe */
 		if (type_deref == nullptr) {
-			return;
-		}
-
-		if (type_deref->genre == GenreType::VARIADIQUE) {
-			type_deref = static_cast<TypeVariadique *>(type_deref)->type_pointe;
-
-			/* dans la RI nous créons un pointeur vers le type des arguments ce
-			 * qui peut inclure un pointeur vers un type variadique externe sans
-			 * type */
-			if (type_deref == nullptr) {
+			if (type->genre != GenreType::POINTEUR) {
 				return;
 			}
 		}
+		else {
+			if (type_deref->genre == GenreType::VARIADIQUE) {
+				type_deref = static_cast<TypeVariadique *>(type_deref)->type_pointe;
 
-		if ((type_deref->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-			genere_typedefs_recursifs(compilatrice, type_deref, enchaineuse);
+				/* dans la RI nous créons un pointeur vers le type des arguments ce
+				 * qui peut inclure un pointeur vers un type variadique externe sans
+				 * type */
+				if (type_deref == nullptr) {
+					return;
+				}
+			}
+
+			if ((type_deref->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
+				genere_typedefs_recursifs(compilatrice, type_deref, enchaineuse);
+			}
+
+			type_deref->drapeaux |= TYPEDEF_FUT_GENERE;
 		}
-
-		type_deref->drapeaux |= TYPEDEF_FUT_GENERE;
 	}
 	/* ajoute les types des paramètres et de retour des fonctions */
 	else if (type->genre == GenreType::FONCTION) {
