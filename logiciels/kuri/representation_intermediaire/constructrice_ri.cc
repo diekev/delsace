@@ -3081,6 +3081,7 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	fonction_courante = nullptr;
 	auto ancien_nombre_instruction = nombre_instructions;
 	nombre_instructions = 0;
+	auto ancien_nombre_labels = nombre_labels;
 	nombre_labels = 0;
 
 	auto types_entrees = kuri::tableau<Type *>(2);
@@ -3177,6 +3178,7 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 
 	cree_retour(nullptr);
 
+	nombre_labels = ancien_nombre_labels;
 	table_locales = ancienne_table;
 	fonction_courante = ancienne_fonction;
 	nombre_instructions = ancien_nombre_instruction;
