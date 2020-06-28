@@ -1050,7 +1050,15 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				atome_fonc = trouve_ou_insere_fonction(decl);
 			}
 
-			return cree_appel(noeud->lexeme, atome_fonc, std::move(args));
+			auto valeur = cree_appel(noeud->lexeme, atome_fonc, std::move(args));
+
+			if (expr_appel->type->genre != GenreType::RIEN) {
+				auto alloc = cree_allocation(expr_appel->type, nullptr);
+				cree_stocke_mem(alloc, valeur);
+				return alloc;
+			}
+
+			return valeur;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
@@ -1273,8 +1281,12 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			auto valeur_gauche = genere_ri_transformee_pour_noeud(expr_bin->expr1, nullptr);
 			auto valeur_droite = genere_ri_transformee_pour_noeud(expr_bin->expr2, nullptr);
-			return traduit_operation_binaire(expr_bin->op, valeur_gauche, valeur_droite);
-		}
+			auto resultat = traduit_operation_binaire(expr_bin->op, valeur_gauche, valeur_droite);
+
+			auto alloc = cree_allocation(expr_bin->type, nullptr);
+			cree_stocke_mem(alloc, resultat);
+			return alloc;
+		}t
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		{
 			// Ce noeud devrait être géré au niveau du parent, soit lors d'une
@@ -1386,6 +1398,13 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				if (expr_un->expr->type->genre == GenreType::REFERENCE) {
 					valeur = cree_charge_mem(valeur);
 				}
+
+				if (!expression_gauche) {
+					auto alloc = cree_allocation(expr_un->type, nullptr);
+					cree_stocke_mem(alloc, valeur);
+					valeur = alloc;
+				}
+
 				return valeur;
 			}
 
@@ -1626,20 +1645,15 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_COMME:
 		{
 			auto inst = static_cast<NoeudExpressionBinaire *>(noeud);
-			auto enfant = inst->expr1;
-			auto const &type_de = enfant->type;
+			auto expr = inst->expr1;
 
-			auto valeur_enfant = genere_ri_pour_noeud(enfant);
-
-			if (type_de == inst->type) {
-				return valeur_enfant;
+			if (expr->type == inst->type) {
+				return genere_ri_pour_noeud(expr);
 			}
 
-			if (valeur_enfant->est_chargeable && enfant->lexeme->genre != GenreLexeme::AROBASE && enfant->genre_valeur != GenreValeur::DROITE) {
-				valeur_enfant = cree_charge_mem(valeur_enfant);
-			}
-
-			return cree_transtype(inst->type, valeur_enfant, TypeTranstypage::DEFAUT);
+			auto alloc = cree_allocation(inst->type, nullptr);
+			genere_ri_transformee_pour_noeud(expr, alloc);
+			return alloc;
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
@@ -1790,16 +1804,22 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto inst_mem = static_cast<NoeudExpressionUnaire *>(noeud);
 			auto valeur = genere_ri_pour_noeud(inst_mem->expr);
 
-			if (valeur->genre_atome == Atome::Genre::INSTRUCTION
-					&& dls::outils::est_element(static_cast<Instruction *>(valeur)->genre, Instruction::Genre::ALLOCATION, Instruction::Genre::ACCEDE_MEMBRE, Instruction::Genre::ACCEDE_INDEX)
-					&& !expression_gauche)
-			{
+			if (!expression_gauche) {
+				auto alloc = cree_allocation(inst_mem->type, nullptr);
+				// déréférence la locale
 				valeur = cree_charge_mem(valeur);
+				// déréférence le pointeur
+				valeur = cree_charge_mem(valeur);
+				cree_stocke_mem(alloc, valeur);
+				return alloc;
 			}
 
-			valeur = cree_charge_mem(valeur);
-			valeur->est_chargeable = false;
-			return valeur;
+			// mémoire(@expr) = ...
+			if (inst_mem->expr->genre_valeur == GenreValeur::DROITE) {
+				return valeur;
+			}
+
+			return cree_charge_mem(valeur);
 		}
 		case GenreNoeud::EXPRESSION_LOGE:
 		{
@@ -1830,7 +1850,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
-			return genere_ri_transformee_pour_noeud(static_cast<NoeudExpressionParenthese *>(noeud)->expr, nullptr);
+			return genere_ri_pour_noeud(static_cast<NoeudExpressionParenthese *>(noeud)->expr);
 		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		{
@@ -1894,7 +1914,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 		}
 		case TypeTransformation::INUTILE:
 		{
-			if (valeur->est_chargeable && noeud->lexeme->genre != GenreLexeme::AROBASE) {
+			if (valeur->est_chargeable) {
 				valeur = cree_charge_mem(valeur);
 			}
 
@@ -1903,7 +1923,15 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 		case TypeTransformation::CONVERTI_ENTIER_CONSTANT:
 		{
 			// valeur est déjà une constante, change simplement le type
-			valeur->type = transformation.type_cible;
+			if (valeur->genre_atome == Atome::Genre::CONSTANTE) {
+				valeur->type = transformation.type_cible;
+			}
+			// nous avons une temporaire créée lors d'une opération binaire
+			else {
+				valeur = cree_charge_mem(valeur);
+				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::DEFAUT);
+			}
+
 			assert(valeur->type->genre != GenreType::ENTIER_CONSTANT);
 			break;
 		}
@@ -1970,7 +1998,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 		}
 		case TypeTransformation::CONVERTI_VERS_PTR_RIEN:
 		{
-			if (valeur->est_chargeable && noeud->lexeme->genre != GenreLexeme::AROBASE && noeud->genre != GenreNoeud::EXPRESSION_COMME) {
+			if (valeur->est_chargeable) {
 				valeur = cree_charge_mem(valeur);
 			}
 
@@ -2017,6 +2045,9 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_RELATIF);
 			}
 			else if (noeud->type->genre == GenreType::BOOL) {
+				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
+			}
+			else if (noeud->type->genre == GenreType::OCTET) {
 				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
 			}
 
@@ -3255,15 +3286,6 @@ Atome *ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud
 		return initialisateur->valeur.valeur_structure.pointeur[noeud->index_membre];
 	}
 
-	// dans le cas où nous avons une expression de type foo().membre, la valeur
-	// foo() n'est pas un pointeur sur la pile comme pour foo.membre, donc passe
-	// par une variable temporaire
-	if (accede->genre_valeur == GenreValeur::DROITE) {
-		auto alloc = cree_allocation(type_accede, nullptr);
-		cree_stocke_mem(alloc, pointeur_accede);
-		pointeur_accede = alloc;
-	}
-
 	return cree_acces_membre(pointeur_accede, noeud->index_membre);
 }
 
@@ -3405,7 +3427,7 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition, Instr
 			genere_ri_pour_comparaison_chainee(condition, label_si_vrai, label_si_faux);
 		}
 		else {
-			auto valeur = genere_ri_pour_noeud(condition);
+			auto valeur = genere_ri_pour_expression_droite(condition);
 			cree_branche_condition(valeur, label_si_vrai, label_si_faux);
 		}
 	}
