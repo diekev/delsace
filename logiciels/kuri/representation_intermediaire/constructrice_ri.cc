@@ -1218,7 +1218,11 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto chaine = kuri::chaine();
 			chaine.pointeur = noeud->lexeme->pointeur;
 			chaine.taille = noeud->lexeme->taille;
-			return cree_chaine(dls::vue_chaine_compacte(chaine.pointeur, chaine.taille));
+			auto constante = cree_chaine(dls::vue_chaine_compacte(chaine.pointeur, chaine.taille));
+
+			auto alloc = cree_allocation(m_compilatrice.typeuse.type_chaine, nullptr);
+			cree_stocke_mem(alloc, constante);
+			return alloc;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		{
@@ -2665,16 +2669,6 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 			}
 			else {
 				pointeur_tableau = genere_ri_pour_noeud(enfant2);
-
-				// À FAIRE : ici ce serait bien de pouvoir accéder directement
-				// aux membres de la constante, mais la génération de code C
-				// échoue avec une telle approche, à vérifier avec LLVM.
-				if (pointeur_tableau->genre_atome == Atome::Genre::CONSTANTE) {
-					auto alloc = cree_allocation(enfant2->type, nullptr);
-					cree_stocke_mem(alloc, pointeur_tableau);
-					pointeur_tableau = alloc;
-				}
-
 				valeur_fin = cree_acces_membre(pointeur_tableau, 1);
 				valeur_fin = cree_charge_mem(valeur_fin);
 			}
