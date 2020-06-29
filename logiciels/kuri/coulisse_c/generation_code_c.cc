@@ -1289,14 +1289,7 @@ struct GeneratriceCodeC {
 				os << virgule;
 			}
 
-			os << ")";
-
-			if (atome_fonc->instructions.est_vide()) {
-				os << ";\n\n";
-				break;
-			}
-
-			os << "\n{\n";
+			os << ")\n{\n";
 
 			if (!atome_fonc->sanstrace) {
 				os << "INITIALISE_TRACE_APPEL(\"";
