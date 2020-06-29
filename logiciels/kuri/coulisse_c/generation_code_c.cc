@@ -1263,7 +1263,7 @@ struct GeneratriceCodeC {
 
 			if (atome_fonc->instructions.taille == 0) {
 				// ignore les fonctions externes
-				break;
+				continue;
 			}
 
 			//std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
