@@ -1509,21 +1509,32 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto inst_retour = static_cast<NoeudExpressionUnaire *>(noeud);
 			auto expr = inst_retour->expr;
 
+			auto type_fonction = static_cast<TypeFonction *>(fonction_courante->type);
+			auto locale_retour = cree_allocation(type_fonction->types_sorties[0], nullptr);
+
 			if (est_expression_logique(expr)) {
 				auto label_si_vrai = reserve_label();
 				auto label_si_faux = reserve_label();
 
 				genere_ri_pour_condition(expr, label_si_vrai, label_si_faux);
+
 				insere_label(label_si_vrai);
-				cree_retour(cree_constante_booleenne(true));
+				auto vrai = cree_constante_booleenne(true);
+				cree_stocke_mem(locale_retour, vrai);
+				auto charge = cree_charge_mem(locale_retour);
+				cree_retour(charge);
+
 				insere_label(label_si_faux);
-				cree_retour(cree_constante_booleenne(false));
+				auto faux = cree_constante_booleenne(false);
+				cree_stocke_mem(locale_retour, faux);
+				cree_retour(charge);
 				return nullptr;
 			}
 
 			auto valeur = genere_ri_transformee_pour_noeud(inst_retour->expr, nullptr);
 			genere_ri_blocs_differes(noeud->bloc_parent);
-			return cree_retour(valeur);
+			cree_stocke_mem(locale_retour, valeur);
+			return cree_retour(cree_charge_mem(locale_retour));
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
 		{
