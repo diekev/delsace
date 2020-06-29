@@ -826,6 +826,7 @@ TypeEnum *Typeuse::reserve_type_enum(NoeudEnum *decl)
 	auto type = memoire::loge<TypeEnum>("TypeEnum");
 	type->nom = decl->lexeme->chaine;
 	type->decl = decl;
+	type->drapeaux |= (RI_TYPE_FUT_GENEREE);
 
 	types_enums.pousse(type);
 
