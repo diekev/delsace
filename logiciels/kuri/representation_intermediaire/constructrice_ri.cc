@@ -960,6 +960,8 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				cree_retour(nullptr);
 			}
 
+			noeud->drapeaux |= RI_FUT_GENEREE;
+
 			//corrige_labels(atome_fonc);
 
 			fonction_courante = nullptr;
@@ -3201,6 +3203,8 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 		type_struct->deja_genere = true;
 	}
 
+	type->drapeaux |= RI_TYPE_FUT_GENEREE;
+
 	cree_retour(nullptr);
 
 	nombre_labels = ancien_nombre_labels;
@@ -4045,6 +4049,7 @@ void ConstructriceRI::genere_ri_pour_coroutine(NoeudDeclarationFonction *decl)
 	constructrice << "}\n";
 
 	compilatrice.termine_fonction();
+	noeud->drapeaux |= RI_FUT_GENEREE;
 #endif
 }
 
