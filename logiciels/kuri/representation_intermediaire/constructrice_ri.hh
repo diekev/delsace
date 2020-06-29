@@ -104,7 +104,7 @@ public:
 
 	// stocke les atomes des fonctions et des variables globales
 	kuri::tableau<Atome *> globales{};
-	kuri::tableau<Atome *> fonctions{};
+	kuri::tableau<AtomeFonction *> fonctions{};
 
 	double temps_generation = 0.0;
 

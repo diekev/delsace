@@ -155,7 +155,7 @@ void ConstructriceRI::imprime_programme() const
 	os.open("/tmp/ri_programme.kr");
 
 	POUR (fonctions) {
-		imprime_fonction(static_cast<AtomeFonction *>(it), os);
+		imprime_fonction(it, os);
 	}
 }
 

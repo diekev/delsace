@@ -1158,7 +1158,7 @@ struct GeneratriceCodeC {
 		}
 	}
 
-	void genere_code(kuri::tableau<Atome *> const &globales, kuri::tableau<Atome *> const &fonctions, Enchaineuse &os)
+	void genere_code(kuri::tableau<Atome *> const &globales, kuri::tableau<AtomeFonction *> const &fonctions, Enchaineuse &os)
 	{
 		// prédéclare les globales pour éviter les problèmes de références cycliques
 		POUR (globales) {
@@ -1190,11 +1190,7 @@ struct GeneratriceCodeC {
 		// dépendances cycliques, mais aussi pour prendre en compte les cas où
 		// les globales utilises des fonctions dans leurs initialisations
 		POUR (fonctions) {
-			if (it->genre_atome != Atome::Genre::FONCTION) {
-				continue;
-			}
-
-			auto atome_fonc = static_cast<AtomeFonction const *>(it);
+			auto atome_fonc = it;
 
 			if (atome_fonc->instructions.taille == 0) {
 				// ignore les fonctions externes
@@ -1263,94 +1259,73 @@ struct GeneratriceCodeC {
 
 		// définis enfin les fonction
 		POUR (fonctions) {
-			switch (it->genre_atome) {
-				case Atome::Genre::FONCTION:
-				{
-					table_valeurs.efface();
+			auto atome_fonc = it;
 
-					auto atome_fonc = static_cast<AtomeFonction const *>(it);
-
-					if (atome_fonc->instructions.taille == 0) {
-						// ignore les fonctions externes
-						break;
-					}
-
-					//std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
-
-					auto type_fonction = static_cast<TypeFonction *>(atome_fonc->type);
-					os << nom_broye_type(type_fonction->types_sorties[0]) << " " << atome_fonc->nom;
-
-					auto virgule = "(";
-
-					for (auto param : atome_fonc->params_entrees) {
-						os << virgule;
-
-						auto type_pointeur = static_cast<TypePointeur *>(param->type);
-						os << nom_broye_type(type_pointeur->type_pointe) << ' ';
-						os << broye_nom_simple(param->ident->nom);
-
-						table_valeurs.insere({ param, "&" + broye_nom_simple(param->ident->nom) });
-
-						virgule = ", ";
-					}
-
-					if (atome_fonc->params_entrees.taille == 0) {
-						os << virgule;
-					}
-
-					os << ")";
-
-					if (atome_fonc->instructions.est_vide()) {
-						os << ";\n\n";
-						break;
-					}
-
-					os << "\n{\n";
-
-					if (!atome_fonc->sanstrace) {
-						os << "INITIALISE_TRACE_APPEL(\"";
-
-						if (atome_fonc->lexeme != nullptr) {
-							auto fichier = m_compilatrice.fichier(static_cast<size_t>(atome_fonc->lexeme->fichier));
-							os << atome_fonc->lexeme->chaine << "\", "
-							   << atome_fonc->lexeme->chaine.taille() << ", \""
-							   << fichier->nom << ".kuri\", "
-							   << fichier->nom.taille() + 5 << ", ";
-						}
-						else {
-							os << atome_fonc->nom << "\", "
-							   << atome_fonc->nom.taille() << ", "
-							   << "\"???\", 3, ";
-						}
-
-						os << atome_fonc->nom << ");\n";
-					}
-
-					m_fonction_courante = atome_fonc;
-
-					for (auto inst : atome_fonc->instructions) {
-						genere_code_pour_instruction(inst, os);
-					}
-
-					m_fonction_courante = nullptr;
-
-					os << "}\n\n";
-
-					break;
-				}
-				case Atome::Genre::CONSTANTE:
-				{
-					break;
-				}
-				case Atome::Genre::INSTRUCTION:
-				{
-					break;
-				}
-				case Atome::Genre::GLOBALE:
-				{
-					break;
-				}
+			if (atome_fonc->instructions.taille == 0) {
+				// ignore les fonctions externes
+				break;
 			}
+
+			//std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
+
+			auto type_fonction = static_cast<TypeFonction *>(atome_fonc->type);
+			os << nom_broye_type(type_fonction->types_sorties[0]) << " " << atome_fonc->nom;
+
+			auto virgule = "(";
+
+			for (auto param : atome_fonc->params_entrees) {
+				os << virgule;
+
+				auto type_pointeur = static_cast<TypePointeur *>(param->type);
+				os << nom_broye_type(type_pointeur->type_pointe) << ' ';
+				os << broye_nom_simple(param->ident->nom);
+
+				table_valeurs.insere({ param, "&" + broye_nom_simple(param->ident->nom) });
+
+				virgule = ", ";
+			}
+
+			if (atome_fonc->params_entrees.taille == 0) {
+				os << virgule;
+			}
+
+			os << ")";
+
+			if (atome_fonc->instructions.est_vide()) {
+				os << ";\n\n";
+				break;
+			}
+
+			os << "\n{\n";
+
+			if (!atome_fonc->sanstrace) {
+				os << "INITIALISE_TRACE_APPEL(\"";
+
+				if (atome_fonc->lexeme != nullptr) {
+					auto fichier = m_compilatrice.fichier(static_cast<size_t>(atome_fonc->lexeme->fichier));
+					os << atome_fonc->lexeme->chaine << "\", "
+					   << atome_fonc->lexeme->chaine.taille() << ", \""
+					   << fichier->nom << ".kuri\", "
+					   << fichier->nom.taille() + 5 << ", ";
+				}
+				else {
+					os << atome_fonc->nom << "\", "
+					   << atome_fonc->nom.taille() << ", "
+					   << "\"???\", 3, ";
+				}
+
+				os << atome_fonc->nom << ");\n";
+			}
+
+			m_fonction_courante = atome_fonc;
+
+			for (auto inst : atome_fonc->instructions) {
+				genere_code_pour_instruction(inst, os);
+			}
+
+			m_fonction_courante = nullptr;
+
+			os << "}\n\n";
 		}
 	}
 
@@ -1427,7 +1402,7 @@ void genere_code_C(
 		it.fut_visite = false;
 	}
 
-	kuri::tableau<Atome *> fonctions;
+	kuri::tableau<AtomeFonction *> fonctions;
 
 	traverse_graphe(fonction_principale, [&](NoeudDependance *noeud)
 	{
@@ -1520,7 +1495,7 @@ void genere_code_C_pour_execution(
 		it.fut_visite = false;
 	}
 
-	kuri::tableau<Atome *> fonctions;
+	kuri::tableau<AtomeFonction *> fonctions;
 
 	traverse_graphe(noeud_directive->fonction->noeud_dependance, [&](NoeudDependance *noeud)
 	{
