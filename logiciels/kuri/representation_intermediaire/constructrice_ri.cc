@@ -1015,26 +1015,8 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			m_noeud_pour_appel = expr_appel;
 
 			POUR (expr_appel->exprs) {
-				if (est_expression_logique(it)) {
-					auto bloc_si_vrai = reserve_label();
-					auto bloc_si_faux = reserve_label();
-					auto bloc_apres_faux = reserve_label();
-
-					auto atome = cree_allocation(m_compilatrice.typeuse[TypeBase::BOOL], nullptr);
-					genere_ri_pour_condition(it, bloc_si_vrai, bloc_si_faux);
-					insere_label(bloc_si_vrai);
-					cree_stocke_mem(atome, cree_constante_booleenne(true));
-					cree_branche(bloc_apres_faux);
-					insere_label(bloc_si_faux);
-					cree_stocke_mem(atome, cree_constante_booleenne(false));
-					insere_label(bloc_apres_faux);
-
-					args.pousse(cree_charge_mem(atome));
-				}
-				else {
-					auto atome = genere_ri_transformee_pour_noeud(it, nullptr);
-					args.pousse(atome);
-				}
+				auto atome = genere_ri_transformee_pour_noeud(it, nullptr);
+				args.pousse(atome);
 			}
 
 			m_noeud_pour_appel = ancien_pour_appel;
@@ -1105,28 +1087,8 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
 			auto expr_ass = static_cast<NoeudExpressionBinaire *>(noeud);
-			auto expression = expr_ass->expr2;
-
 			auto pointeur = genere_ri_pour_noeud(expr_ass->expr1);
-
-			if (est_expression_logique(expression)) {
-				auto label_si_vrai = reserve_label();
-				auto label_si_faux = reserve_label();
-				auto label_apres_faux = reserve_label();
-
-				genere_ri_pour_condition(expression, label_si_vrai, label_si_faux);
-
-				insere_label(label_si_vrai);
-				cree_stocke_mem(pointeur, cree_constante_booleenne(true));
-				cree_branche(label_apres_faux);
-				insere_label(label_si_faux);
-				cree_stocke_mem(pointeur, cree_constante_booleenne(false));
-				insere_label(label_apres_faux);
-			}
-			else {
-				genere_ri_transformee_pour_noeud(expr_ass->expr2, pointeur);
-			}
-
+			genere_ri_transformee_pour_noeud(expr_ass->expr2, pointeur);
 			return nullptr;
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
@@ -1165,21 +1127,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto pointeur = cree_allocation(noeud->type, noeud->ident);
 
 			if (decl->expression) {
-				if (est_expression_logique(decl->expression)) {
-					auto label_si_vrai = reserve_label();
-					auto label_si_faux = reserve_label();
-					auto label_apres_faux = reserve_label();
-
-					genere_ri_pour_condition(decl->expression, label_si_vrai, label_si_faux);
-
-					insere_label(label_si_vrai);
-					cree_stocke_mem(pointeur, cree_constante_booleenne(true));
-					cree_branche(label_apres_faux);
-					insere_label(label_si_faux);
-					cree_stocke_mem(pointeur, cree_constante_booleenne(false));
-					insere_label(label_apres_faux);
-				}
-				else if (decl->expression->genre != GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
+				if (decl->expression->genre != GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
 					genere_ri_transformee_pour_noeud(decl->expression, pointeur);
 				}
 			}
@@ -1285,6 +1233,10 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return cree_stocke_mem(pointeur, valeur);
 			}
 
+			if (expr_bin->op->est_basique && dls::outils::est_element(noeud->lexeme->genre, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
+				return genere_ri_pour_expression_logique(noeud, nullptr);
+			}
+
 			auto valeur_gauche = genere_ri_transformee_pour_noeud(expr_bin->expr1, nullptr);
 			auto valeur_droite = genere_ri_transformee_pour_noeud(expr_bin->expr2, nullptr);
 			auto resultat = traduit_operation_binaire(expr_bin->op, valeur_gauche, valeur_droite);
@@ -1295,23 +1247,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		{
-			auto alloc = cree_allocation(m_compilatrice.typeuse[TypeBase::BOOL], nullptr);
-			auto label_si_vrai = reserve_label();
-			auto label_si_faux = reserve_label();
-			auto label_apres   = reserve_label();
-
-			genere_ri_pour_comparaison_chainee(noeud, label_si_vrai, label_si_faux);
-
-			insere_label(label_si_vrai);
-			cree_stocke_mem(alloc, cree_constante_booleenne(true));
-			cree_branche(label_apres);
-
-			insere_label(label_si_faux);
-			cree_stocke_mem(alloc, cree_constante_booleenne(false));
-
-			insere_label(label_apres);
-
-			return alloc;
+			return genere_ri_pour_expression_logique(noeud, nullptr);
 		}
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		{
@@ -1508,32 +1444,10 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto inst_retour = static_cast<NoeudExpressionUnaire *>(noeud);
 			auto expr = inst_retour->expr;
-
 			auto type_fonction = static_cast<TypeFonction *>(fonction_courante->type);
 			auto locale_retour = cree_allocation(type_fonction->types_sorties[0], nullptr);
-
-			if (est_expression_logique(expr)) {
-				auto label_si_vrai = reserve_label();
-				auto label_si_faux = reserve_label();
-
-				genere_ri_pour_condition(expr, label_si_vrai, label_si_faux);
-
-				insere_label(label_si_vrai);
-				auto vrai = cree_constante_booleenne(true);
-				cree_stocke_mem(locale_retour, vrai);
-				auto charge = cree_charge_mem(locale_retour);
-				cree_retour(charge);
-
-				insere_label(label_si_faux);
-				auto faux = cree_constante_booleenne(false);
-				cree_stocke_mem(locale_retour, faux);
-				cree_retour(charge);
-				return nullptr;
-			}
-
-			auto valeur = genere_ri_transformee_pour_noeud(inst_retour->expr, nullptr);
+			genere_ri_transformee_pour_noeud(expr, locale_retour);
 			genere_ri_blocs_differes(noeud->bloc_parent);
-			cree_stocke_mem(locale_retour, valeur);
 			return cree_retour(cree_charge_mem(locale_retour));
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
@@ -3533,6 +3447,30 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition, Instr
 
 		cree_branche_condition(valeur, label_si_vrai, label_si_faux);
 	}
+}
+
+Atome *ConstructriceRI::genere_ri_pour_expression_logique(NoeudExpression *noeud, Atome *place)
+{
+	auto label_si_vrai = reserve_label();
+	auto label_si_faux = reserve_label();
+	auto label_apres_faux = reserve_label();
+
+	if (place == nullptr) {
+		place = cree_allocation(m_compilatrice.typeuse[TypeBase::BOOL], nullptr);
+	}
+
+	genere_ri_pour_condition(noeud, label_si_vrai, label_si_faux);
+
+	insere_label(label_si_vrai);
+	cree_stocke_mem(place, cree_constante_booleenne(true));
+	cree_branche(label_apres_faux);
+
+	insere_label(label_si_faux);
+	cree_stocke_mem(place, cree_constante_booleenne(false));
+
+	insere_label(label_apres_faux);
+
+	return place;
 }
 
 void ConstructriceRI::genere_ri_blocs_differes(NoeudBloc *bloc)

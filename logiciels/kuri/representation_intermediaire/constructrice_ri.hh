@@ -202,6 +202,7 @@ private:
 	Atome *genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud);
 	AtomeConstante *genere_initialisation_defaut_pour_type(Type *type);
 	void genere_ri_pour_condition(NoeudExpression *condition, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
+	Atome *genere_ri_pour_expression_logique(NoeudExpression *noeud, Atome *place);
 	void genere_ri_blocs_differes(NoeudBloc *bloc);
 	Atome *genere_ri_pour_position_code_source(NoeudExpression *noeud);
 
