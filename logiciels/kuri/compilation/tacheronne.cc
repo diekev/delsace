@@ -25,6 +25,7 @@
 #include "tacheronne.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/structures/file.hh"
 
 #include "compilatrice.hh"
 #include "lexeuse.hh"
@@ -74,37 +75,43 @@ void Tacheronne::gere_tache()
 	compilatrice.temps_validation = temps_validation;
 }
 
-static bool dependances_directes_eurent_ri_generee(NoeudDependance *noeud)
+static bool dependances_eurent_ri_generees(NoeudDependance *noeud)
 {
-	POUR (noeud->relations) {
-		auto noeud_fin = it.noeud_fin;
+	auto visite = dls::ensemblon<NoeudDependance *, 32>();
+	auto a_visiter = dls::file<NoeudDependance *>();
 
-		if (noeud_fin->type == TypeNoeudDependance::TYPE) {
-			if ((noeud_fin->type_->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {
-				return false;
-			}
-		}
-		else {
-			auto noeud_syntaxique = noeud_fin->noeud_syntactique;
+	a_visiter.enfile(noeud);
 
-			if ((noeud_syntaxique->drapeaux & RI_FUT_GENEREE) == 0) {
-				return false;
+	while (!a_visiter.est_vide()) {
+		auto n = a_visiter.defile();
+
+		visite.insere(n);
+
+		POUR (n->relations) {
+			auto noeud_fin = it.noeud_fin;
+
+			if (noeud_fin->type == TypeNoeudDependance::TYPE) {
+				if ((noeud_fin->type_->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {
+					return false;
+				}
 			}
+			else {
+				auto noeud_syntaxique = noeud_fin->noeud_syntactique;
+
+				if ((noeud_syntaxique->drapeaux & RI_FUT_GENEREE) == 0) {
+					return false;
+				}
+			}
+
+			if (visite.possede(noeud_fin)) {
+				continue;
+			}
+
+			a_visiter.enfile(noeud_fin);
 		}
 	}
 
 	return true;
-}
-
-static bool dependances_eurent_ri_generees(NoeudDependance *noeud)
-{
-	auto resultat = true;
-	traverse_graphe(noeud, [&](NoeudDependance *noeud_dep)
-	{
-		resultat &= dependances_directes_eurent_ri_generee(noeud_dep);
-	});
-
-	return resultat;
 }
 
 void Tacheronne::gere_unite(UniteCompilation unite)
