@@ -1295,11 +1295,23 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		{
-			// Ce noeud devrait être géré au niveau du parent, soit lors d'une
-			// condition pour une boucle, soit lors d'une assignation booléenne.
-			imprime_fichier_ligne(m_compilatrice, *noeud->lexeme);
-			assert(false);
-			return nullptr;
+			auto alloc = cree_allocation(m_compilatrice.typeuse[TypeBase::BOOL], nullptr);
+			auto label_si_vrai = reserve_label();
+			auto label_si_faux = reserve_label();
+			auto label_apres   = reserve_label();
+
+			genere_ri_pour_comparaison_chainee(noeud, label_si_vrai, label_si_faux);
+
+			insere_label(label_si_vrai);
+			cree_stocke_mem(alloc, cree_constante_booleenne(true));
+			cree_branche(label_apres);
+
+			insere_label(label_si_faux);
+			cree_stocke_mem(alloc, cree_constante_booleenne(false));
+
+			insere_label(label_apres);
+
+			return alloc;
 		}
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		{
