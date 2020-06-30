@@ -2215,12 +2215,12 @@ Atome *ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 	struct DonneesPaireDiscr {
 		NoeudExpression *expr = nullptr;
 		NoeudBloc *bloc = nullptr;
-		InstructionLabel *bloc_de_la_condition = nullptr;
-		InstructionLabel *bloc_si_vrai = nullptr;
-		InstructionLabel *bloc_si_faux = nullptr;
+		InstructionLabel *label_de_la_condition = nullptr;
+		InstructionLabel *label_si_vrai = nullptr;
+		InstructionLabel *label_si_faux = nullptr;
 	};
 
-	auto bloc_post_discr = reserve_label();
+	auto label_post_discr = reserve_label();
 
 	dls::tableau<DonneesPaireDiscr> donnees_paires;
 	donnees_paires.reserve(noeud->paires_discr.taille + noeud->bloc_sinon != nullptr);
@@ -2229,11 +2229,11 @@ Atome *ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 		auto donnees = DonneesPaireDiscr();
 		donnees.expr = it.first;
 		donnees.bloc = it.second;
-		donnees.bloc_de_la_condition = reserve_label();
-		donnees.bloc_si_vrai = reserve_label();
+		donnees.label_de_la_condition = reserve_label();
+		donnees.label_si_vrai = reserve_label();
 
 		if (!donnees_paires.est_vide()) {
-			donnees_paires.back().bloc_si_faux = donnees.bloc_de_la_condition;
+			donnees_paires.back().label_si_faux = donnees.label_de_la_condition;
 		}
 
 		donnees_paires.pousse(donnees);
@@ -2242,16 +2242,16 @@ Atome *ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 	if (noeud->bloc_sinon) {
 		auto donnees = DonneesPaireDiscr();
 		donnees.bloc = noeud->bloc_sinon;
-		donnees.bloc_si_vrai = reserve_label();
+		donnees.label_si_vrai = reserve_label();
 
 		if (!donnees_paires.est_vide()) {
-			donnees_paires.back().bloc_si_faux = donnees.bloc_si_vrai;
+			donnees_paires.back().label_si_faux = donnees.label_si_vrai;
 		}
 
 		donnees_paires.pousse(donnees);
 	}
 
-	donnees_paires.back().bloc_si_faux = bloc_post_discr;
+	donnees_paires.back().label_si_faux = label_post_discr;
 
 	auto valeur_expression = static_cast<Atome *>(nullptr);
 	auto ptr_structure = static_cast<Atome *>(nullptr);
@@ -2268,14 +2268,14 @@ Atome *ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 		ptr_structure = valeur_expression;
 	}
 
-	cree_branche(donnees_paires.front().bloc_de_la_condition);
+	cree_branche(donnees_paires.front().label_de_la_condition);
 
 	for (auto &donnees : donnees_paires) {
 		auto enf0 = donnees.expr;
 		auto enf1 = donnees.bloc;
 
 		if (enf0 != nullptr) {
-			insere_label(donnees.bloc_de_la_condition);
+			insere_label(donnees.label_de_la_condition);
 
 			auto feuilles = dls::tablet<NoeudExpression *, 10>();
 			rassemble_feuilles(enf0, feuilles);
@@ -2285,10 +2285,10 @@ Atome *ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 			// dès qu'une condition est vraie, nous allons dans le bloc_si_vrai
 			// sinon nous allons dans le bloc pour la feuille suivante
 			for (auto f : feuilles) {
-				auto bloc_si_faux = donnees.bloc_si_faux;
+				auto label_si_faux = donnees.label_si_faux;
 
 				if (f != feuilles.back()) {
-					bloc_si_faux = reserve_label();
+					label_si_faux = reserve_label();
 				}
 
 				auto valeur_f = static_cast<Atome *>(nullptr);
@@ -2316,7 +2316,7 @@ Atome *ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 								valeur_expression,
 								valeur_f);
 
-					cree_branche_condition(condition, donnees.bloc_si_vrai, bloc_si_faux);
+					cree_branche_condition(condition, donnees.label_si_vrai, label_si_faux);
 				}
 				else {
 					auto decl = op->decl;
@@ -2332,22 +2332,22 @@ Atome *ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 					args[1 + requiers_contexte] = valeur_f;
 
 					auto condition = cree_appel(noeud->lexeme, atome_fonction, std::move(args));
-					cree_branche_condition(condition, donnees.bloc_si_vrai, bloc_si_faux);
+					cree_branche_condition(condition, donnees.label_si_vrai, label_si_faux);
 				}
 
 				if (f != feuilles.back()) {
-					insere_label(bloc_si_faux);
+					insere_label(label_si_faux);
 				}
 			}
 		}
 
-		insere_label(donnees.bloc_si_vrai);
+		insere_label(donnees.label_si_vrai);
 
 		genere_ri_pour_noeud(enf1);
-		cree_branche(bloc_post_discr);
+		cree_branche(label_post_discr);
 	}
 
-	insere_label(bloc_post_discr);
+	insere_label(label_post_discr);
 
 	return nullptr;
 }
@@ -2468,23 +2468,23 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 	auto type = enfant2->type;
 	enfant1->type = type;
 
-	/* création des blocs */
-	auto bloc_boucle = reserve_label();
-	auto bloc_corps = reserve_label();
-	auto bloc_inc = reserve_label();
+	/* création des labels */
+	auto label_boucle = reserve_label();
+	auto label_corps = reserve_label();
+	auto label_inc = reserve_label();
 
-	auto bloc_sansarret = static_cast<InstructionLabel *>(nullptr);
-	auto bloc_sinon = static_cast<InstructionLabel *>(nullptr);
+	auto label_sansarret = static_cast<InstructionLabel *>(nullptr);
+	auto label_sinon = static_cast<InstructionLabel *>(nullptr);
 
 	if (enfant_sans_arret) {
-		bloc_sansarret = reserve_label();
+		label_sansarret = reserve_label();
 	}
 
 	if (enfant_sinon) {
-		bloc_sinon = reserve_label();
+		label_sinon = reserve_label();
 	}
 
-	auto bloc_apres = reserve_label();
+	auto label_apres = reserve_label();
 
 	auto var = enfant1;
 	auto idx = static_cast<NoeudExpression *>(nullptr);
@@ -2495,7 +2495,7 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 		idx = expr_bin->expr2;
 	}
 
-	empile_controle_boucle(var->ident, bloc_inc, (bloc_sinon != nullptr) ? bloc_sinon : bloc_apres);
+	empile_controle_boucle(var->ident, label_inc, (label_sinon != nullptr) ? label_sinon : label_apres);
 
 	auto type_de_la_variable = static_cast<Type *>(nullptr);
 	auto type_de_l_index = static_cast<Type *>(nullptr);
@@ -2526,8 +2526,8 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 		cree_stocke_mem(valeur_debut, cree_z64(0));
 	}
 
-	/* bloc_boucle */
-	insere_label(bloc_boucle);
+	/* boucle */
+	insere_label(label_boucle);
 
 	auto pointeur_tableau = static_cast<Atome *>(nullptr);
 
@@ -2544,7 +2544,7 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 					cree_charge_mem(valeur_debut),
 					valeur_fin);
 
-			cree_branche_condition(condition, bloc_corps, (bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres);
+			cree_branche_condition(condition, label_corps, (label_sansarret != nullptr) ? label_sansarret : label_apres);
 
 			table_locales[var->ident] = valeur_debut;
 			if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
@@ -2552,12 +2552,12 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 			}
 
 			/* corps */
-			insere_label(bloc_corps);
+			insere_label(label_corps);
 
 			genere_ri_pour_noeud(enfant3);
 
 			/* suivant */
-			insere_label(bloc_inc);
+			insere_label(label_inc);
 
 			cree_incrementation_valeur(type_de_la_variable, valeur_debut);
 
@@ -2565,7 +2565,7 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 				cree_incrementation_valeur(type_de_l_index, valeur_index);
 			}
 
-			cree_branche(bloc_boucle);
+			cree_branche(label_boucle);
 
 			break;
 		}
@@ -2597,10 +2597,10 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 
 			cree_branche_condition(
 						condition,
-						bloc_corps,
-						(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres);
+						label_corps,
+						(label_sansarret != nullptr) ? label_sansarret : label_apres);
 
-			insere_label(bloc_corps);
+			insere_label(label_corps);
 
 			auto valeur_arg = static_cast<Atome *>(nullptr);
 
@@ -2622,7 +2622,7 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 			genere_ri_pour_noeud(enfant3);
 
 			/* suivant */
-			insere_label(bloc_inc);
+			insere_label(label_inc);
 
 			cree_incrementation_valeur(type_de_la_variable, valeur_debut);
 
@@ -2630,7 +2630,7 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 				cree_incrementation_valeur(type_de_l_index, valeur_index);
 			}
 
-			cree_branche(bloc_boucle);
+			cree_branche(label_boucle);
 
 			break;
 		}
@@ -2720,17 +2720,17 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 	depile_controle_boucle();
 
 	if (enfant_sans_arret) {
-		insere_label(bloc_sansarret);
+		insere_label(label_sansarret);
 		genere_ri_pour_noeud(enfant_sans_arret);
-		cree_branche(bloc_apres);
+		cree_branche(label_apres);
 	}
 
 	if (enfant_sinon) {
-		insere_label(bloc_sinon);
+		insere_label(label_sinon);
 		genere_ri_pour_noeud(enfant_sinon);
 	}
 
-	insere_label(bloc_apres);
+	insere_label(label_apres);
 
 	return nullptr;
 }
