@@ -3572,7 +3572,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		{
 			auto type_enum = static_cast<TypeEnum *>(type);
 
-			auto type_llvm = m_compilatrice.typeuse.type_info_type_enum;
+			auto type_info_type_enum = m_compilatrice.typeuse.type_info_type_enum;
 
 			/* { id: e32, taille_en_octet, nom: chaine, valeurs: [], membres: [], est_drapeau: bool } */
 
@@ -3613,8 +3613,8 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			valeurs[4] = tableau_noms;
 			valeurs[5] = est_drapeau;
 
-			auto initialisateur = cree_constante_structure(type_llvm, std::move(valeurs));
-			type->info_type = cree_globale(type_llvm, initialisateur, false, true);
+			auto initialisateur = cree_constante_structure(type_info_type_enum, std::move(valeurs));
+			type->info_type = cree_globale(type_info_type_enum, initialisateur, false, true);
 			break;
 		}
 		case GenreType::UNION:
