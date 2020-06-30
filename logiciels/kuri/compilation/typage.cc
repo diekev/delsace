@@ -908,7 +908,7 @@ TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
 	type->decalage_index = decalage_index;
 	type->taille_octet = taille_union;
 	type->alignement = max_alignement;
-	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+	type->drapeaux |= (TYPE_FUT_VALIDE);
 
 	types_unions.pousse(type);
 

@@ -672,6 +672,19 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						auto type_union = m_compilatrice.typeuse.union_anonyme(std::move(membres));
 						expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_union);
 						donnees_dependance.types_utilises.insere(type_union);
+
+						// @concurrence critique
+						if (type_union->decl == nullptr) {
+							static Lexeme lexeme_union = { "anonyme", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
+							auto decl_struct = static_cast<NoeudStruct *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::DECLARATION_STRUCTURE, &lexeme_union));
+							decl_struct->type = type_union;
+
+							type_union->decl = decl_struct;
+
+							auto unite_decl = UniteCompilation::cree_pour_ri(decl_struct);
+							m_compilatrice.file_compilation->pousse(unite_decl);
+						}
+
 						return false;
 					}
 					case GenreLexeme::EGALITE:

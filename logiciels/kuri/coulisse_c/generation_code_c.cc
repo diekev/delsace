@@ -167,7 +167,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 			auto decl = type_struct->decl;
 
 			// union anomyme
-			if (decl == nullptr) {
+			if (type_struct->est_anonyme) {
 				enchaineuse << "typedef struct " << nom_struct << dls::vers_chaine(type_struct) << ' ' << nom_broye << ";\n";
 				break;
 			}

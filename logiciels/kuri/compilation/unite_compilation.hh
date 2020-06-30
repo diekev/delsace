@@ -66,6 +66,14 @@ struct UniteCompilation {
 	NoeudDeclaration *declaration_attendue = nullptr;
 	Lexeme const *lexeme_attendu = nullptr;
 
+	static inline UniteCompilation cree_pour_ri(NoeudExpression *noeud)
+	{
+		auto unite = UniteCompilation();
+		unite.noeud = noeud;
+		unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
+		return unite;
+	}
+
 	inline void attend_sur_type(Type *type)
 	{
 		this->etat = UniteCompilation::Etat::ATTEND_SUR_TYPE;
