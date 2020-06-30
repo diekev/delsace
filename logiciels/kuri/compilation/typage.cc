@@ -1398,3 +1398,82 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
 	type_structure->nom = this->nom;
 	type_structure->est_anonyme = this->est_anonyme;
 }
+
+// Les types unions doivent être normalisés pour être soit le type le plus grand pour les nonsûres, soit la structure implicite pour les sûres
+Type *normalise_type(Typeuse &typeuse, Type *type)
+{
+	if (type == nullptr) {
+		return type;
+	}
+
+	auto resultat = type;
+
+	if (type->genre == GenreType::UNION) {
+		auto type_union = static_cast<TypeUnion *>(type);
+
+		if (type_union->est_nonsure) {
+			resultat = type_union->type_le_plus_grand;
+		}
+		else {
+			resultat = type_union->type_structure;
+		}
+	}
+	else if (type->genre == GenreType::TABLEAU_FIXE) {
+		auto type_tableau_fixe = static_cast<TypeTableauFixe *>(type);
+		resultat = normalise_type(typeuse, type_tableau_fixe->type_pointe);
+		resultat = typeuse.type_tableau_fixe(type_tableau_fixe->type_pointe, type_tableau_fixe->taille);
+	}
+	else if (type->genre == GenreType::TABLEAU_DYNAMIQUE) {
+		auto type_tableau_dyn = static_cast<TypeTableauDynamique *>(type);
+		auto type_normalise = normalise_type(typeuse, type_tableau_dyn->type_pointe);
+
+		if (type_normalise != type_tableau_dyn->type_pointe) {
+			resultat = typeuse.type_tableau_dynamique(type_tableau_dyn->type_pointe);
+		}
+	}
+	else if (type->genre == GenreType::VARIADIQUE) {
+		auto type_variadique = static_cast<TypeVariadique *>(type);
+		auto type_normalise = normalise_type(typeuse, type_variadique->type_pointe);
+
+		if (type_normalise != type_variadique) {
+			resultat = typeuse.type_variadique(type_variadique->type_pointe);
+		}
+	}
+	else if (type->genre == GenreType::POINTEUR) {
+		auto type_pointeur = static_cast<TypePointeur *>(type);
+		auto type_normalise = normalise_type(typeuse, type_pointeur->type_pointe);
+
+		if (type_normalise != type_pointeur) {
+			resultat = typeuse.type_pointeur_pour(type_pointeur->type_pointe);
+		}
+	}
+	else if (type->genre == GenreType::REFERENCE) {
+		auto type_reference = static_cast<TypeReference *>(type);
+		auto type_normalise = normalise_type(typeuse, type_reference->type_pointe);
+
+		if (type_normalise != type_reference) {
+			resultat = typeuse.type_reference_pour(type_reference->type_pointe);
+		}
+	}
+	else if (type->genre == GenreType::FONCTION) {
+		auto type_fonction = static_cast<TypeFonction *>(type);
+
+		auto types_entrees = kuri::tableau<Type *>();
+		types_entrees.reserve(type_fonction->types_entrees.taille);
+
+		POUR (type_fonction->types_entrees) {
+			types_entrees.pousse(normalise_type(typeuse, it));
+		}
+
+		auto types_sorties = kuri::tableau<Type *>();
+		types_sorties.reserve(type_fonction->types_entrees.taille);
+
+		POUR (type_fonction->types_sorties) {
+			types_sorties.pousse(normalise_type(typeuse, it));
+		}
+
+		resultat = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+	}
+
+	return resultat;
+}

@@ -448,3 +448,5 @@ bool est_type_conditionnable(Type *type);
 Type *apparie_type_gabarit(Type *type, Type *type_polymorphique);
 
 Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour_type);
+
+Type *normalise_type(Typeuse &typeuse, Type *type);
