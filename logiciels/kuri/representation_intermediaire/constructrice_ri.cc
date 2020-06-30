@@ -1966,18 +1966,6 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				valeur = cree_charge_mem(valeur);
 			}
 
-			// À FAIRE(ri) : granularise les expressions de transtypage
-
-//			if (llvm::isa<llvm::Constant>(valeur)) {
-//				auto type_donnees_llvm = converti_type_llvm(compilatrice, b->type);
-//				auto alloc_const = builder.CreateAlloca(type_donnees_llvm, 0u);
-//				builder.CreateStore(valeur, alloc_const);
-//				valeur = builder.CreateLoad(alloc_const, "");
-//			}
-//			else if (llvm::isa<llvm::AllocaInst>(valeur) || llvm::isa<llvm::GetElementPtrInst>(valeur)) {
-//				valeur = builder.CreateLoad(valeur, "");
-//			}
-
 			if (noeud->type->genre == GenreType::REEL) {
 				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_REEL);
 			}
@@ -2105,18 +2093,9 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				}
 				case GenreType::CHAINE:
 				{
-					// À FAIRE(ri)
-					/*if (llvm::isa<llvm::Constant>(valeur_chaine)) {
-						auto const_struct = static_cast<llvm::ConstantStruct *>(valeur_chaine);
-						valeur_pointeur = const_struct->getAggregateElement(0u);
-						valeur_taille = const_struct->getAggregateElement(1);
-					}
-					else*/ {
-						valeur_pointeur = cree_acces_membre_et_charge(valeur, 0);
-						valeur_pointeur = cree_transtype(type_cible, valeur_pointeur, TypeTranstypage::BITS);
-						valeur_taille = cree_acces_membre_et_charge(valeur, 1);
-					}
-
+					valeur_pointeur = cree_acces_membre_et_charge(valeur, 0);
+					valeur_pointeur = cree_transtype(type_cible, valeur_pointeur, TypeTranstypage::BITS);
+					valeur_taille = cree_acces_membre_et_charge(valeur, 1);
 					break;
 				}
 				case GenreType::TABLEAU_DYNAMIQUE:
@@ -2548,7 +2527,6 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 	}
 
 	/* bloc_boucle */
-	/* on crée une branche explicite dans le bloc */
 	insere_label(bloc_boucle);
 
 	auto pointeur_tableau = static_cast<Atome *>(nullptr);
