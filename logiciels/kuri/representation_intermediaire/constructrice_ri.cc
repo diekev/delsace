@@ -2062,13 +2062,11 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 			switch (noeud->type->genre) {
 				default:
 				{
-					// À FAIRE(ri)
-//					if (llvm::isa<llvm::Constant>(valeur)) {
-//						auto type_donnees_llvm = converti_type_llvm(compilatrice, noeud->type);
-//						auto alloc_const = builder.CreateAlloca(type_donnees_llvm, 0u);
-//						builder.CreateStore(valeur, alloc_const);
-//						valeur = alloc_const;
-//					}
+					if (valeur->genre_atome == Atome::Genre::CONSTANTE) {
+						auto alloc = cree_allocation(noeud->type, nullptr);
+						cree_stocke_mem(alloc, valeur);
+						valeur = alloc;
+					}
 
 					valeur = cree_transtype(type_cible, valeur, TypeTranstypage::BITS);
 					valeur_pointeur = valeur;
