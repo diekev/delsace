@@ -39,6 +39,7 @@ struct NoeudDependance;
 struct NoeudEnum;
 struct NoeudExpression;
 struct NoeudStruct;
+struct Typeuse;
 
 /* ************************************************************************** */
 
@@ -252,6 +253,7 @@ struct TypeStructure final : public TypeCompose {
 	NoeudStruct *decl = nullptr;
 
 	bool deja_genere = false;
+	bool est_anonyme = false;
 };
 
 struct TypeUnion final : public TypeCompose {
@@ -260,6 +262,7 @@ struct TypeUnion final : public TypeCompose {
 	COPIE_CONSTRUCT(TypeUnion);
 
 	Type *type_le_plus_grand = nullptr;
+	TypeStructure *type_structure = nullptr;
 
 	NoeudStruct *decl = nullptr;
 
@@ -267,6 +270,8 @@ struct TypeUnion final : public TypeCompose {
 	bool deja_genere = false;
 	bool est_nonsure = false;
 	bool est_anonyme = false;
+
+	void cree_type_structure(Typeuse &typeuse, unsigned alignement_membre_actif);
 };
 
 struct TypeEnum final : public TypeCompose {

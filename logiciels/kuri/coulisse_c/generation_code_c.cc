@@ -151,6 +151,12 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 			auto type_struct = static_cast<TypeStructure *>(type);
 			auto nom_struct = broye_nom_simple(type_struct->nom);
 
+			// struct anomyme
+			if (type_struct->est_anonyme) {
+				enchaineuse << "typedef struct " << nom_struct << dls::vers_chaine(type_struct) << ' ' << nom_broye << ";\n";
+				break;
+			}
+
 			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t" && nom_struct != "MY_CHARSET_INFO" && nom_struct != "struct_stat") {
 				enchaineuse << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
 			}
@@ -308,9 +314,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 
 enum {
 	STRUCTURE,
-	UNION_SURE,
-	UNION_NONSURE,
-	UNION_ANONYME,
+	STRUCTURE_ANONYME,
 };
 
 static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeCompose *type_compose, int quoi)
@@ -320,18 +324,10 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeCompose *
 	if (quoi == STRUCTURE) {
 		enchaineuse << "typedef struct " << nom_broye << "{\n";
 	}
-	else if (quoi == UNION_NONSURE) {
-		enchaineuse << "typedef union " << nom_broye << "{\n";
-	}
-	else if (quoi == UNION_SURE || quoi == UNION_ANONYME) {
+	else if (quoi == STRUCTURE_ANONYME) {
 		enchaineuse << "typedef struct " << nom_broye;
-
-		if (quoi == UNION_ANONYME) {
-			enchaineuse << dls::vers_chaine(type_compose);
-		}
-
+		enchaineuse << dls::vers_chaine(type_compose);
 		enchaineuse << "{\n";
-		enchaineuse << "union {\n";
 	}
 
 	POUR (type_compose->membres) {
@@ -341,22 +337,12 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeCompose *
 
 		auto nom = broye_nom_simple(it.nom);
 		enchaineuse << nom_broye_type(it.type) << ' ';
-
-		if (quoi == UNION_ANONYME) {
-			enchaineuse << 'm';
-		}
-
 		enchaineuse << nom << ";\n";
-	}
-
-	if (quoi == UNION_SURE || quoi == UNION_ANONYME) {
-		enchaineuse << "};\n";
-		enchaineuse << "int membre_actif;\n";
 	}
 
 	enchaineuse << "} " << nom_broye;
 
-	if (quoi == UNION_ANONYME) {
+	if (quoi == STRUCTURE_ANONYME) {
 		enchaineuse << dls::vers_chaine(type_compose);
 	}
 
@@ -1105,44 +1091,16 @@ struct GeneratriceCodeC {
 
 				auto type_pointeur = static_cast<TypePointeur *>(inst_acces->accede->type);
 				auto type_compose = static_cast<TypeCompose *>(type_pointeur->type_pointe);
-
-				auto est_acces_union_anonyme = false;
-
-				if (type_compose->genre == GenreType::UNION) {
-					auto type_union = static_cast<TypeUnion *>(type_compose);
-					est_acces_union_anonyme = type_union->est_anonyme;
-				}
-
 				auto index_membre = static_cast<long>(static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere);
 
 				if (valeur_accede[0] == '&') {
-					if (index_membre == type_compose->membres.taille) {
-						valeur_accede = valeur_accede + ".membre_actif";
-					}
-					else {
-						valeur_accede = valeur_accede + ".";
-
-						if (est_acces_union_anonyme) {
-							valeur_accede += "m";
-						}
-
-						valeur_accede += broye_nom_simple(type_compose->membres[index_membre].nom);
-					}
+					valeur_accede = valeur_accede + ".";
 				}
 				else {
-					if (index_membre == type_compose->membres.taille) {
-						valeur_accede = "&" + valeur_accede + "->membre_actif";
-					}
-					else {
-						valeur_accede = "&" + valeur_accede + "->";
-
-						if (est_acces_union_anonyme) {
-							valeur_accede += "m";
-						}
-
-						valeur_accede += broye_nom_simple(type_compose->membres[index_membre].nom);
-					}
+					valeur_accede = "&" + valeur_accede + "->";
 				}
+
+				valeur_accede += broye_nom_simple(type_compose->membres[index_membre].nom);
 
 				table_valeurs[inst_acces] = valeur_accede;
 				break;
@@ -1374,18 +1332,12 @@ void genere_code_C(
 			if (noeud->type_->genre == GenreType::STRUCTURE) {
 				auto type_struct = static_cast<TypeStructure *>(noeud->type_);
 
-				if (type_struct->decl->est_externe) {
+				if (type_struct->decl && type_struct->decl->est_externe) {
 					return;
 				}
 
-				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_struct), STRUCTURE);
-				return;
-			}
-
-			if (noeud->type_->genre == GenreType::UNION) {
-				auto type_union = static_cast<TypeUnion *>(noeud->type_);
-				auto quoi = type_union->est_nonsure ? UNION_NONSURE : type_union->est_anonyme ? UNION_ANONYME : UNION_SURE;
-				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_union), quoi);
+				auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
+				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_struct), quoi);
 				return;
 			}
 		});
@@ -1472,13 +1424,6 @@ void genere_code_C_pour_execution(
 				}
 
 				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_struct), STRUCTURE);
-				return;
-			}
-
-			if (noeud->type_->genre == GenreType::UNION) {
-				auto type_union = static_cast<TypeUnion *>(noeud->type_);
-				auto quoi = type_union->est_nonsure ? UNION_NONSURE : type_union->est_anonyme ? UNION_ANONYME : UNION_SURE;
-				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_union), quoi);
 				return;
 			}
 		});

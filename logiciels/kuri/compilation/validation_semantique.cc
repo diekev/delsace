@@ -2161,9 +2161,9 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 		}
 		else if (type->genre == GenreType::UNION) {
 			auto noeud_struct = static_cast<TypeUnion *>(type)->decl;
-			if (!noeud_struct->est_nonsure) {
-				expression_membre->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
+			expression_membre->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
 
+			if (!noeud_struct->est_nonsure) {
 				if ((expression_membre->drapeaux & DROITE_ASSIGNATION) == 0) {
 					renseigne_membre_actif(structure->ident->nom, membre->ident->nom);
 				}
@@ -2794,6 +2794,9 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			}
 		}
 
+		decl->type->taille_octet = taille_union;
+		decl->type->alignement = max_alignement;
+
 		/* Pour les unions sûres, il nous faut prendre en compte le
 		 * membre supplémentaire. */
 		if (!decl->est_nonsure) {
@@ -2809,10 +2812,12 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			/* ajoute une marge d'alignement finale */
 			padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
 			taille_union += padding;
+
+			decl->type->taille_octet = taille_union;
+			decl->type->alignement = max_alignement;
+			type_union->cree_type_structure(m_compilatrice.typeuse, type_union->decalage_index);
 		}
 
-		decl->type->taille_octet = taille_union;
-		decl->type->alignement = max_alignement;
 		decl->type->drapeaux |= TYPE_FUT_VALIDE;
 
 		graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);

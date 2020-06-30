@@ -70,6 +70,85 @@ static auto trouve_index_membre(NoeudStruct *noeud_struct, dls::vue_chaine_compa
 	return trouve_index_membre(type_compose, nom_membre);
 }
 
+// Les types unions doivent être normalisés pour être soit le type le plus grand pour les nonsûres, soit la structure implicite pour les sûres
+static Type *normalise_type(Typeuse &typeuse, Type *type)
+{
+	if (type == nullptr) {
+		return type;
+	}
+
+	auto resultat = type;
+
+	if (type->genre == GenreType::UNION) {
+		auto type_union = static_cast<TypeUnion *>(type);
+
+		if (type_union->est_nonsure) {
+			resultat = type_union->type_le_plus_grand;
+		}
+		else {
+			resultat = type_union->type_structure;
+		}
+	}
+	else if (type->genre == GenreType::TABLEAU_FIXE) {
+		auto type_tableau_fixe = static_cast<TypeTableauFixe *>(type);
+		resultat = normalise_type(typeuse, type_tableau_fixe->type_pointe);
+		resultat = typeuse.type_tableau_fixe(type_tableau_fixe->type_pointe, type_tableau_fixe->taille);
+	}
+	else if (type->genre == GenreType::TABLEAU_DYNAMIQUE) {
+		auto type_tableau_dyn = static_cast<TypeTableauDynamique *>(type);
+		auto type_normalise = normalise_type(typeuse, type_tableau_dyn->type_pointe);
+
+		if (type_normalise != type_tableau_dyn->type_pointe) {
+			resultat = typeuse.type_tableau_dynamique(type_tableau_dyn->type_pointe);
+		}
+	}
+	else if (type->genre == GenreType::VARIADIQUE) {
+		auto type_variadique = static_cast<TypeVariadique *>(type);
+		auto type_normalise = normalise_type(typeuse, type_variadique->type_pointe);
+
+		if (type_normalise != type_variadique) {
+			resultat = typeuse.type_variadique(type_variadique->type_pointe);
+		}
+	}
+	else if (type->genre == GenreType::POINTEUR) {
+		auto type_pointeur = static_cast<TypePointeur *>(type);
+		auto type_normalise = normalise_type(typeuse, type_pointeur->type_pointe);
+
+		if (type_normalise != type_pointeur) {
+			resultat = typeuse.type_pointeur_pour(type_pointeur->type_pointe);
+		}
+	}
+	else if (type->genre == GenreType::REFERENCE) {
+		auto type_reference = static_cast<TypeReference *>(type);
+		auto type_normalise = normalise_type(typeuse, type_reference->type_pointe);
+
+		if (type_normalise != type_reference) {
+			resultat = typeuse.type_reference_pour(type_reference->type_pointe);
+		}
+	}
+	else if (type->genre == GenreType::FONCTION) {
+		auto type_fonction = static_cast<TypeFonction *>(type);
+
+		auto types_entrees = kuri::tableau<Type *>();
+		types_entrees.reserve(type_fonction->types_entrees.taille);
+
+		POUR (type_fonction->types_entrees) {
+			types_entrees.pousse(normalise_type(typeuse, it));
+		}
+
+		auto types_sorties = kuri::tableau<Type *>();
+		types_sorties.reserve(type_fonction->types_entrees.taille);
+
+		POUR (type_fonction->types_sorties) {
+			types_sorties.pousse(normalise_type(typeuse, it));
+		}
+
+		resultat = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+	}
+
+	return resultat;
+}
+
 /* ************************************************************************** */
 
 #define IDENT_CODE(x) m_compilatrice.table_identifiants.identifiant_pour_chaine((x))
@@ -550,7 +629,7 @@ AtomeFonction *ConstructriceRI::trouve_ou_insere_fonction(NoeudDeclarationFoncti
 	// À FAIRE : retours multiples
 
 	auto atome_fonc = cree_fonction(decl->lexeme, decl->nom_broye, std::move(params));
-	atome_fonc->type = decl->type;
+	atome_fonc->type = normalise_type(m_compilatrice.typeuse, decl->type);
 
 	if (dls::outils::possede_drapeau(decl->drapeaux, FORCE_SANSTRACE)) {
 		atome_fonc->sanstrace = true;
@@ -704,6 +783,7 @@ InstructionRetour *ConstructriceRI::cree_retour(Atome *valeur)
 InstructionAllocation *ConstructriceRI::cree_allocation(Type *type, IdentifiantCode *ident)
 {
 	/* le résultat d'une instruction d'allocation est l'adresse de la variable. */
+	type = normalise_type(m_compilatrice.typeuse, type);
 	auto type_pointeur = m_compilatrice.typeuse.type_pointeur_pour(type);
 	auto inst = insts_allocation.ajoute_element(type_pointeur, ident);
 	inst->numero = nombre_instructions++;
@@ -823,6 +903,7 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(Atome *accede, long 
 	assert(accede->type->genre == GenreType::POINTEUR || accede->type->genre == GenreType::REFERENCE);
 	auto type_pointeur = static_cast<TypePointeur *>(accede->type);
 	assert(est_type_compose(type_pointeur->type_pointe));
+	assert(type_pointeur->type_pointe->genre != GenreType::UNION);
 
 	POUR (acces_membres) {
 		if (it->accede == accede && static_cast<AtomeValeurConstante *>(it->index)->valeur.valeur_entiere == static_cast<unsigned>(index)) {
@@ -831,19 +912,7 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(Atome *accede, long 
 	}
 
 	auto type_compose = static_cast<TypeCompose *>(type_pointeur->type_pointe);
-	auto type = static_cast<Type *>(nullptr);
-
-	if (type_compose->genre == GenreType::UNION) {
-		if (index < type_compose->membres.taille) {
-			type = type_compose->membres[index].type;
-		}
-		else {
-			type = m_compilatrice.typeuse[TypeBase::Z32];
-		}
-	}
-	else {
-		type = type_compose->membres[index].type;
-	}
+	auto type = type_compose->membres[index].type;
 
 	/* nous retournons un pointeur vers le membre */
 	type = m_compilatrice.typeuse.type_pointeur_pour(type);
@@ -1135,7 +1204,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				if (noeud->type->genre == GenreType::TABLEAU_FIXE) {
 					// À FAIRE(ri) : valeur défaut pour tableau fixe
 				}
-				else if (noeud->type->genre == GenreType::STRUCTURE) {
+				else if (noeud->type->genre == GenreType::STRUCTURE || noeud->type->genre == GenreType::UNION) {
 					auto nom_fonction = "initialise_" + dls::vers_chaine(noeud->type);
 					auto atome_fonction = table_fonctions->trouve(nom_fonction)->second;
 
@@ -1646,11 +1715,15 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				}
 
 				alloc = cree_allocation(type_union, nullptr);
-				auto ptr_valeur = cree_acces_membre(alloc, 0);
-				cree_stocke_mem(ptr_valeur, valeur);
 
 				if (type_union->est_nonsure) {
-					auto ptr_index = cree_acces_membre(alloc, 0);
+					cree_stocke_mem(alloc, valeur);
+				}
+				else {
+					auto ptr_valeur = cree_acces_membre(alloc, 0);
+					cree_stocke_mem(ptr_valeur, valeur);
+
+					auto ptr_index = cree_acces_membre(alloc, 1);
 					cree_stocke_mem(ptr_index, cree_z32(index_membre + 1));
 				}
 			}
@@ -1882,21 +1955,25 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 		{
 			auto type_union = static_cast<TypeUnion *>(transformation.type_cible);
 
+			if (!valeur->est_chargeable) {
+				auto alloc_valeur = cree_allocation(noeud->type, nullptr);
+				cree_stocke_mem(alloc_valeur, valeur);
+				valeur = alloc_valeur;
+			}
+
 			auto alloc = cree_allocation(type_union, nullptr);
 
-		/*	if (type_union->type_le_plus_grand != noeud->type) {
-				valeur = cree_transtype(m_compilatrice.typeuse.type_pointeur_pour(type_union->type_le_plus_grand), valeur);
-				valeur = cree_charge_mem(valeur);
-			}
-			else*/ if (valeur->est_chargeable) {
-				valeur = cree_charge_mem(valeur);
-			}
+			valeur = cree_transtype(m_compilatrice.typeuse.type_pointeur_pour(type_union->type_le_plus_grand), valeur, TypeTranstypage::BITS);
+			valeur = cree_charge_mem(valeur);
 
-			auto acces_membre = cree_acces_membre(alloc, transformation.index_membre);
-			cree_stocke_mem(acces_membre, valeur);
+			if (type_union->est_nonsure) {
+				cree_stocke_mem(alloc, valeur);
+			}
+			else {
+				auto acces_membre = cree_acces_membre(alloc, 0);
+				cree_stocke_mem(acces_membre, valeur);
 
-			if (!type_union->est_nonsure) {
-				acces_membre = cree_acces_membre(alloc, type_union->membres.taille);
+				acces_membre = cree_acces_membre(alloc, 1);
 				auto index = cree_constante_entiere(m_compilatrice.typeuse[TypeBase::Z32], static_cast<unsigned long>(transformation.index_membre + 1));
 				cree_stocke_mem(acces_membre, index);
 			}
@@ -1915,7 +1992,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 			}
 
 			if (!type_union->est_nonsure) {
-				auto membre_actif = cree_acces_membre_et_charge(valeur, type_union->membres.taille);
+				auto membre_actif = cree_acces_membre_et_charge(valeur, 1);
 
 				auto label_si_vrai = reserve_label();
 				auto label_si_faux = reserve_label();
@@ -1932,11 +2009,13 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				params[0] = cree_charge_mem(table_locales[ID::contexte]);
 				cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri.decl_panique_membre_union), std::move(params));
 				insere_label(label_si_faux);
+
+				valeur = cree_acces_membre(valeur, 0);
 			}
 
-			auto membre = cree_acces_membre(valeur, 0);
-			valeur = cree_transtype(m_compilatrice.typeuse.type_pointeur_pour(transformation.type_cible), membre, TypeTranstypage::BITS);
+			valeur = cree_transtype(m_compilatrice.typeuse.type_pointeur_pour(transformation.type_cible), valeur, TypeTranstypage::BITS);
 			valeur = cree_charge_mem(valeur);
+
 			break;
 		}
 		case TypeTransformation::CONVERTI_VERS_PTR_RIEN:
@@ -2401,14 +2480,12 @@ Atome *ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 	}
 	else if (noeud->expr_appel->type->genre == GenreType::UNION) {
 		auto type_union = static_cast<TypeUnion *>(noeud->expr_appel->type);
-		auto index_membre_variable = 0;
 		auto index_membre_erreur = 0;
 
 		if (type_union->membres.taille == 2) {
 			if (type_union->membres[0].type->genre == GenreType::ERREUR) {
 				gen_tente.type_piege = type_union->membres[0].type;
 				gen_tente.type_variable = type_union->membres[1].type;
-				index_membre_variable = 1;
 			}
 			else {
 				gen_tente.type_piege = type_union->membres[1].type;
@@ -2427,7 +2504,7 @@ Atome *ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 		auto valeur_union = cree_allocation(noeud->expr_appel->type, nullptr);
 		cree_stocke_mem(valeur_union, valeur_expression);
 
-		auto acces_membre_actif = cree_acces_membre_et_charge(valeur_union, type_union->membres.taille);
+		auto acces_membre_actif = cree_acces_membre_et_charge(valeur_union, 1);
 
 		auto condition_membre_actif = cree_op_comparaison(
 					OperateurBinaire::Genre::Comp_Egal,
@@ -2443,12 +2520,17 @@ Atome *ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 			cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri.decl_panique_erreur), std::move(params));
 		}
 		else {
-			table_locales[noeud->expr_piege->ident] = cree_acces_membre(valeur_union, index_membre_erreur);
+			Instruction *membre_erreur = cree_acces_membre(valeur_union, 0);
+			membre_erreur = cree_transtype(m_compilatrice.typeuse.type_pointeur_pour(gen_tente.type_piege), membre_erreur, TypeTranstypage::BITS);
+			membre_erreur->est_chargeable = true;
+			table_locales[noeud->expr_piege->ident] = membre_erreur;
 			genere_ri_pour_noeud(noeud->bloc);
 		}
 
 		insere_label(label_si_faux);
-		valeur_expression = cree_acces_membre(valeur_union, index_membre_variable);
+		valeur_expression = cree_acces_membre(valeur_union, 0);
+		valeur_expression = cree_transtype(m_compilatrice.typeuse.type_pointeur_pour(gen_tente.type_variable), valeur_expression, TypeTranstypage::BITS);
+		valeur_expression->est_chargeable = true;
 	}
 
 	return valeur_expression;
@@ -3026,7 +3108,7 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 
 	auto types_entrees = kuri::tableau<Type *>(2);
 	types_entrees[0] = m_compilatrice.type_contexte;
-	types_entrees[1] = m_compilatrice.typeuse.type_pointeur_pour(type);
+	types_entrees[1] = m_compilatrice.typeuse.type_pointeur_pour(normalise_type(m_compilatrice.typeuse, type));
 
 	auto types_sorties = kuri::tableau<Type *>(1);
 	types_sorties[0] = m_compilatrice.typeuse[TypeBase::RIEN];
@@ -3049,6 +3131,7 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 		auto index_membre = 0u;
 		auto pointeur_union = cree_charge_mem(fonction->params_entrees[1]);
 
+		// À FAIRE(union) : test proprement cette logique
 		POUR (type_union->membres) {
 			if (it.type != type_union->type_le_plus_grand) {
 				index_membre += 1;
@@ -3066,9 +3149,19 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 
 			// valeur peut être nulle pour les initialisations de tableaux fixes
 			if (valeur) {
-				auto pointeur = cree_acces_membre(pointeur_union, index_membre);
-				cree_stocke_mem(pointeur, valeur);
+				if (type_union->est_nonsure) {
+					cree_stocke_mem(pointeur_union, valeur);
+				}
+				else {
+					auto pointeur = cree_acces_membre(pointeur_union, 0);
+					cree_stocke_mem(pointeur, valeur);
+
+					pointeur = cree_acces_membre(pointeur_union, 1);
+					cree_stocke_mem(pointeur, cree_z32(index_membre + 1));
+				}
 			}
+
+			break;
 		}
 
 		type_union->deja_genere = true;
@@ -3203,42 +3296,59 @@ Atome *ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud
 Atome *ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud)
 {
 	auto ptr_union = genere_ri_pour_noeud(noeud->accede);
-	auto type = ptr_union->type;
+	auto type = noeud->accede->type;
 
+	// À FAIRE(union) : doit déréférencer le pointeur
 	while (type->genre == GenreType::POINTEUR || type->genre == GenreType::REFERENCE) {
 		type = type_dereference_pour(type);
 	}
 
 	auto type_union = static_cast<TypeUnion *>(type);
+	auto index_membre = noeud->index_membre;
+	auto type_membre = type_union->membres[index_membre].type;
 
 	if (type_union->est_nonsure) {
-		if (expression_gauche) {
-			// ajourne l'index du membre
-			auto membre_actif = cree_acces_membre(ptr_union, 1);
-			cree_stocke_mem(membre_actif, cree_z32(static_cast<unsigned>(noeud->index_membre + 1)));
+		if (type_membre != type_union->type_le_plus_grand) {
+			ptr_union = cree_transtype(m_compilatrice.typeuse.type_pointeur_pour(type_membre), ptr_union, TypeTranstypage::BITS);
+			ptr_union->est_chargeable = true;
 		}
-		else {
-			// vérifie l'index du membre
-			auto membre_actif = cree_acces_membre_et_charge(ptr_union, 1);
 
-			auto label_si_vrai = reserve_label();
-			auto label_si_faux = reserve_label();
-
-			auto condition = cree_op_comparaison(
-						OperateurBinaire::Genre::Comp_Inegal,
-						membre_actif,
-						cree_z32(static_cast<unsigned>(noeud->index_membre + 1)));
-
-			cree_branche_condition(condition, label_si_vrai, label_si_faux);
-			insere_label(label_si_vrai);
-			auto params = kuri::tableau<Atome *>(1);
-			params[0] = cree_charge_mem(table_locales[ID::contexte]);
-			cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri.decl_panique_membre_union), std::move(params));
-			insere_label(label_si_faux);
-		}
+		return ptr_union;
 	}
 
-	return cree_acces_membre(ptr_union, 0);
+	if (expression_gauche) {
+		// ajourne l'index du membre
+		auto membre_actif = cree_acces_membre(ptr_union, 1);
+		cree_stocke_mem(membre_actif, cree_z32(static_cast<unsigned>(noeud->index_membre + 1)));
+	}
+	else {
+		// vérifie l'index du membre
+		auto membre_actif = cree_acces_membre_et_charge(ptr_union, 1);
+
+		auto label_si_vrai = reserve_label();
+		auto label_si_faux = reserve_label();
+
+		auto condition = cree_op_comparaison(
+					OperateurBinaire::Genre::Comp_Inegal,
+					membre_actif,
+					cree_z32(static_cast<unsigned>(noeud->index_membre + 1)));
+
+		cree_branche_condition(condition, label_si_vrai, label_si_faux);
+		insere_label(label_si_vrai);
+		auto params = kuri::tableau<Atome *>(1);
+		params[0] = cree_charge_mem(table_locales[ID::contexte]);
+		cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri.decl_panique_membre_union), std::move(params));
+		insere_label(label_si_faux);
+	}
+
+	Instruction *pointeur_membre = cree_acces_membre(ptr_union, 0);
+
+	if (type_membre != type_union->type_le_plus_grand) {
+		pointeur_membre = cree_transtype(m_compilatrice.typeuse.type_pointeur_pour(type_membre), pointeur_membre, TypeTranstypage::BITS);
+		pointeur_membre->est_chargeable = true;
+	}
+
+	return pointeur_membre;
 }
 
 AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *type)
@@ -3708,7 +3818,6 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		case GenreType::STRUCTURE:
 		{
 			auto type_struct = static_cast<TypeStructure *>(type);
-			auto decl_struct = type_struct->decl;
 
 			// ------------------------------------
 			// Commence par assigner une globale non-initialisée comme info type
@@ -3754,7 +3863,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 
 			auto valeur_id = cree_z32(IDInfoType::STRUCTURE);
 			auto valeur_taille_octet = cree_z32(type->taille_octet);
-			auto valeur_nom = cree_chaine(decl_struct->lexeme->chaine);
+			auto valeur_nom = cree_chaine(type_struct->nom);
 
 			// Pour les références à des globales, nous devons avoir un type pointeur.
 			auto type_membre = m_compilatrice.typeuse.type_pointeur_pour(type_struct_membre);

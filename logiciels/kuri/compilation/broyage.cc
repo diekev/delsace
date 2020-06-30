@@ -222,8 +222,15 @@ dls::chaine const &nom_broye_type(Type *type)
 		}
 		case GenreType::STRUCTURE:
 		{
+			auto type_structure = static_cast<TypeStructure const *>(type);
 			flux << "Ks";
 			flux << broye_nom_simple(static_cast<TypeStructure const *>(type)->nom);
+
+			// ajout du pointeur au nom afin de différencier les différents types anonymes
+			if (type_structure->est_anonyme) {
+				flux << dls::vers_chaine(type_structure);
+			}
+
 			break;
 		}
 		case GenreType::VARIADIQUE:

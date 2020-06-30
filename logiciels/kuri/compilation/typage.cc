@@ -910,6 +910,8 @@ TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
 	type->alignement = max_alignement;
 	type->drapeaux |= (TYPE_FUT_VALIDE);
 
+	type->cree_type_structure(*this, decalage_index);
+
 	types_unions.pousse(type);
 
 	return type;
@@ -1378,4 +1380,21 @@ Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour
 	}
 
 	return resultat;
+}
+
+void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre_actif)
+{
+	assert(type_le_plus_grand);
+	assert(!est_nonsure);
+
+	auto membres_ = kuri::tableau<TypeCompose::Membre>(2);
+	membres_[0] = { type_le_plus_grand, "valeur", 0 };
+	membres_[1] = { typeuse[TypeBase::Z32], "membre_actif", alignement_membre_actif };
+
+	type_structure = typeuse.reserve_type_structure(nullptr);
+	type_structure->membres = std::move(membres_);
+	type_structure->taille_octet = this->taille_octet;
+	type_structure->alignement = this->alignement;
+	type_structure->nom = this->nom;
+	type_structure->est_anonyme = this->est_anonyme;
 }
