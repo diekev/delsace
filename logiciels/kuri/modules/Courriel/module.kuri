@@ -4,6 +4,27 @@ importe GlibC
 importe Réseau
 importe SysFichier
 
+/* Module d'envoie de courriel.
+ *
+ * Exemple d'utilisation :
+ *
+ * config : ConfigurationCourriel
+ * config.serveur = "adresse.serveur.domaine"
+ * config.utilisateur = "utilisateur@courri.el"
+ * config.mot_de_passe = "Mot!DeP#s53"
+ *
+ * courriel : Courriel
+ * diffère { détruit_courriel(@courriel) }
+ *
+ * courriel.expéditeur = "expéditeur@courri.el"
+ * courriel.message = "Le Message"
+ *
+ * ajoute_destinataire(@courriel, "destinataire@courri.el")
+ * ajoute_destinataire_cc(@courriel, "detinataire.cc@courri.el")
+ *
+ * retourne envoie_courriel(config, courriel)
+ */
+
 Courriel :: struct {
     message: chaine
     expéditeur: chaine
