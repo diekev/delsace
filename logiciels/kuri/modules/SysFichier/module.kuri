@@ -40,7 +40,7 @@ est_dossier :: fonc(chemin : &CheminFichier) -> bool
 		retourne faux
 	}
 
-    retourne S_ISDIR(mode)
+    retourne (mode & __S_IFMT) == __S_IFDIR
 }
 
 est_fichier_régulier :: fonc(chemin : &CheminFichier) -> bool
@@ -51,7 +51,7 @@ est_fichier_régulier :: fonc(chemin : &CheminFichier) -> bool
 		retourne faux
 	}
 
-    retourne S_ISREG(mode)
+    retourne (mode & __S_IFMT) == __S_IFREG
 }
 
 est_prise :: fonc(chemin : &CheminFichier) -> bool
@@ -62,7 +62,7 @@ est_prise :: fonc(chemin : &CheminFichier) -> bool
 		retourne faux
 	}
 
-    retourne S_IFSOCK(mode)
+    retourne (mode & __S_IFMT) == __S_IFSOCK
 }
 
 est_lien_symbolique :: fonc(chemin : &CheminFichier) -> bool
@@ -73,7 +73,7 @@ est_lien_symbolique :: fonc(chemin : &CheminFichier) -> bool
 		retourne faux
 	}
 
-    retourne S_IFLNK(mode)
+    retourne (mode & __S_IFMT) == __S_IFLNK
 }
 
 est_fichier_périphérique :: fonc(chemin : &CheminFichier) -> bool
@@ -84,7 +84,7 @@ est_fichier_périphérique :: fonc(chemin : &CheminFichier) -> bool
 		retourne faux
 	}
 
-    retourne S_IFBLK(mode)
+    retourne (mode & __S_IFMT) == __S_IFBLK
 }
 
 est_fichier_caractère :: fonc(chemin : &CheminFichier) -> bool
@@ -95,7 +95,7 @@ est_fichier_caractère :: fonc(chemin : &CheminFichier) -> bool
 		retourne faux
 	}
 
-    retourne S_IFCHR(mode)
+    retourne (mode & __S_IFMT) == __S_IFCHR
 }
 
 est_pipe :: fonc(chemin : &CheminFichier) -> bool
@@ -106,7 +106,7 @@ est_pipe :: fonc(chemin : &CheminFichier) -> bool
 		retourne faux
 	}
 
-    retourne S_IFIFO(mode)
+    retourne (mode & __S_IFMT) == __S_IFIFO
 }
 
 ouvre_fichier :: fonc(chemin : &CheminFichier) -> z32

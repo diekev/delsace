@@ -98,7 +98,6 @@ open :: fonc externe (chemin : *z8, drapeaux : z32, args : ...) -> z32
 close :: fonc externe (fd : z32) -> z32
 read :: fonc externe (fd : z32, tampon : *z8, taille : n64) -> z64
 write :: fonc externe (fd : z32, tampon : *z8, taille : z64) -> z32
-stat :: fonc externe (chemin : *z8, buf : *rien) -> z32
 
 fsync :: fonc externe (fd: z32) -> z32
 fdatasync :: fonc externe (fd: z32) -> z32
@@ -111,14 +110,17 @@ abort :: fonc externe () -> rien
 rename :: fonc externe (orig : *z8, dest : *z8) -> z32
 remove :: fonc externe (chemin : *z8) -> z32
 
-// Ceci sont des macros
-S_ISREG :: fonc externe (mode : n32) -> bool
-S_ISDIR :: fonc externe (mode : n32) -> bool
-S_IFSOCK :: fonc externe (mode : n32) -> bool
-S_IFLNK :: fonc externe (mode : n32) -> bool
-S_IFBLK :: fonc externe (mode : n32) -> bool
-S_IFCHR :: fonc externe (mode : n32) -> bool
-S_IFIFO :: fonc externe (mode : n32) -> bool
+// bits pour déterminer le type de fichier
+__S_IFMT	:: 0o170000 comme n32
+
+/* Types de fichier  */
+__S_IFDIR	:: 0o040000 comme n32	/* Directory.  */
+__S_IFCHR	:: 0o020000 comme n32	/* Character device.  */
+__S_IFBLK	:: 0o060000 comme n32	/* Block device.  */
+__S_IFREG	:: 0o100000 comme n32	/* Regular file.  */
+__S_IFIFO	:: 0o010000 comme n32	/* FIFO.  */
+__S_IFLNK	:: 0o120000 comme n32	/* Symbolic link.  */
+__S_IFSOCK	:: 0o140000 comme n32	/* Socket.  */
 
 SEEK_SET  :: 0	/* Seek from beginning of file.  */
 SEEK_CUR  :: 1	/* Seek from current position.  */
@@ -149,6 +151,21 @@ struct_stat :: struct externe  {
 	st_atime : z64      // time of last access
 	st_mtime : z64      // time of last modification
 	st_ctime : z64      // time of last status change
+}
+
+// NOTE : puisque stat n'est pas dans l'interface binaire de la bibliothèque C, nous ne pouvons ni trouver son symbole dans libc
+//        ni l'appeler dans les métaprogrammes, donc nous utilisons __xstat qui se trouve dans l'interface binaire, mais non dans
+//        l'interface de programme
+//        Voir http://refspecs.linux-foundation.org/LSB_4.0.0/LSB-Core-generic/LSB-Core-generic/baselib---xstat.html
+__xstat :: fonc externe (__ver: z32, __filename: *z8, __stat_buf: *struct_stat) -> z32
+
+_STAT_VER_KERNEL :: 0
+_STAT_VER_LINUX  :: 1
+_STAT_VER        :: _STAT_VER_LINUX
+
+stat :: fonc (chemin : *z8, buf : *rien) -> z32
+{
+    retourne __xstat(_STAT_VER, chemin, buf)
 }
 
 DIR :: struct externe
