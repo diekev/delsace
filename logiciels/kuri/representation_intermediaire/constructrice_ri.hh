@@ -30,6 +30,7 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/tablet.hh"
+#include "biblinternes/structures/tuples.hh"
 
 struct Compilatrice;
 struct NoeudBloc;
@@ -43,13 +44,6 @@ struct NoeudStruct;
 struct NoeudTente;
 struct TypeEnum;
 struct TypeTableauFixe;
-
-template <typename T0, typename T1, typename T2>
-struct triplet {
-	T0 t0;
-	T1 t1;
-	T2 t2;
-};
 
 struct ConstructriceRI {
 private:
@@ -90,7 +84,7 @@ private:
 	dls::outils::Synchrone<TypeDicoGlobales> table_globales{};
 	dls::dico<dls::chaine, AtomeConstante *> table_chaines{};
 
-	dls::tablet<triplet<IdentifiantCode *, InstructionLabel *, InstructionLabel *>, 12> insts_continue_arrete{};
+	dls::tablet<dls::triplet<IdentifiantCode *, InstructionLabel *, InstructionLabel *>, 12> insts_continue_arrete{};
 
 	dls::tableau<std::pair<AtomeGlobale *, NoeudExpression *>> constructeurs_globaux{};
 

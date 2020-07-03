@@ -86,6 +86,7 @@ add_library(${NOM_CIBLE} STATIC
 	tableau_page.hh
 	tableau_simple_compact.hh
 	tablet.hh
+	tuples.hh
 	vue_chaine.hh
 	vue_chaine_compacte.hh
 )
