@@ -612,6 +612,8 @@ struct GeneratriceCodeC {
 								auto resultat = dls::chaine();
 
 								auto virgule = "{ ";
+								// ceci car il peut n'y avoir qu'un seul membre de type tableau qui n'est pas initialisé
+								auto virgule_placee = false;
 
 								for (auto i = 0; i < type->membres.taille; ++i) {
 									// les tableaux fixes ont une initialisation nulle
@@ -620,6 +622,7 @@ struct GeneratriceCodeC {
 									}
 
 									resultat += virgule;
+									virgule_placee = true;
 
 									resultat += ".";
 									resultat += broye_nom_simple(type->membres[i].nom);
@@ -627,6 +630,10 @@ struct GeneratriceCodeC {
 									resultat += genere_code_pour_atome(tableau_valeur[i], os, pour_globale);
 
 									virgule = ", ";
+								}
+
+								if (!virgule_placee) {
+									resultat += "{ 0";
 								}
 
 								resultat += " }";
