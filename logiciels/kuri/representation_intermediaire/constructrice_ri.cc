@@ -4148,9 +4148,6 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 
 	if (valeur_ARGC != table_globales_->fin()) {
 		auto charge_argc = cree_charge_mem(alloc_argc);
-		if (alloc_argc == nullptr) {
-			std::cerr << "alloc_argc est nul\n";
-		}
 		cree_stocke_mem(valeur_ARGC->second, charge_argc);
 	}
 

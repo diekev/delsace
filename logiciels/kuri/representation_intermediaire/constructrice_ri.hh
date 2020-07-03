@@ -33,12 +33,10 @@
 
 struct Compilatrice;
 struct NoeudBloc;
-struct NoeudDependance;
 struct NoeudDirectiveExecution;
 struct NoeudDiscr;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
-struct NoeudExpressionBinaire;
 struct NoeudExpressionMembre;
 struct NoeudPour;
 struct NoeudStruct;
@@ -131,8 +129,6 @@ public:
 	void construit_table_types();
 
 private:
-	void cree_interface_programme();
-
 	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom);
 	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom, kuri::tableau<Atome *> &&params);
 	AtomeFonction *trouve_ou_insere_fonction(NoeudDeclarationFonction const *decl);
