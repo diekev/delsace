@@ -1799,7 +1799,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 					renseigne_membre_actif(expression->ident->nom, nom_membre);
 
-					auto decl_prec = trouve_dans_bloc(inst->bloc_parent, expression->ident);
+					auto decl_prec = trouve_dans_bloc(inst->bloc_parent, expr_paire->ident);
 
 					/* Pousse la variable comme étant employée, puisque nous savons ce qu'elle est */
 					if (decl_prec != nullptr) {
@@ -1808,12 +1808,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 
 					/* pousse la variable dans le bloc suivant */
-					auto decl_expr = static_cast<NoeudDeclaration *>(nullptr);
-					decl_expr->ident = expression->ident;
-					decl_expr->lexeme = expression->lexeme;
+					auto decl_expr = static_cast<NoeudDeclaration *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, expr_paire->lexeme));
+					decl_expr->ident = expr_paire->ident;
+					decl_expr->lexeme = expr_paire->lexeme;
 					decl_expr->bloc_parent = bloc_paire;
 					decl_expr->drapeaux_decl |= EMPLOYE;
-					decl_expr->type = expression->type;
+					decl_expr->type = expr_paire->type;
 					// À FAIRE: mise en place des informations d'emploie
 
 					bloc_paire->membres.pousse(decl_expr);

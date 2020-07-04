@@ -2210,7 +2210,7 @@ Atome *ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 	auto decl_struct = static_cast<NoeudStruct *>(nullptr);
 
 	if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
-		auto type_struct = static_cast<TypeStructure *>(expression->type);
+		auto type_struct = static_cast<TypeUnion *>(expression->type);
 		decl_struct = type_struct->decl;
 	}
 
