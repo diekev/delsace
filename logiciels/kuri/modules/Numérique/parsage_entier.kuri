@@ -163,3 +163,34 @@ extrait_n8 :: fonc (chn: chaine) -> n8 | ErreurParsageEntier
 
     retourne résultat comme n8
 }
+
+parse_hexadécimal_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
+{
+    résultat : n64
+
+    pour chn {
+        v : n64
+
+        si '0' <= it <= '9' {
+            v = (it - '0') comme n64
+        }
+        sinon si 'a' <= it <= 'f' {
+            v = 10 + (it - 'a') comme n64
+        }
+        sinon si 'A' <= it <= 'F' {
+            v = 10 + (it - 'A') comme n64
+        }
+        sinon {
+            retourne ErreurParsageEntier.EntréeMalformée
+        }
+
+        résultat *= 16
+        résultat += v
+    }
+
+    si résultat > 65535 {
+        retourne ErreurParsageEntier.EntréeTropGrande
+    }
+
+    retourne résultat comme n16
+}
