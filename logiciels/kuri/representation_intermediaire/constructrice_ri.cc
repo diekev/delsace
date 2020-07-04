@@ -3069,7 +3069,7 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 				valeur = genere_ri_transformee_pour_noeud(it.expression_valeur_defaut, nullptr);
 			}
 			else {
-				valeur = genere_initialisation_defaut_pour_type(it.type);
+				valeur = genere_initialisation_defaut_pour_type(normalise_type(m_compilatrice.typeuse, it.type));
 			}
 
 			// valeur peut être nulle pour les initialisations de tableaux fixes
