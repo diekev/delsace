@@ -1,5 +1,3 @@
-charge "lexage"
-
 importe Fondation
 
 TypeNoeud :: énum z32 {

@@ -1,4 +1,3 @@
-charge "élément"
 
 PileÉlémentsOuverts :: struct {
     éléments: []*Élément

@@ -4,8 +4,6 @@ importe Fondation
 importe Math
 importe OpenGL
 
-charge "programme"
-
 RendeuseTexte :: struct {
     hauteur := 0
     largeur := 0

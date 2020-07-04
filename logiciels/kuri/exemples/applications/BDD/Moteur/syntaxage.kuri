@@ -1,8 +1,5 @@
 importe Fondation
 
-charge "instructions"
-charge "lexage"
-
 ASA :: struct {
     instructions : []*Instruction
 }

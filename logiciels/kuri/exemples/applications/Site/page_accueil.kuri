@@ -1,7 +1,3 @@
-charge "entete_http"
-charge "rendeuse_page"
-charge "serveuse"
-
 importe Fondation
 importe Réseau
 

@@ -1,3 +1,4 @@
+importe Fondation // pour chaine_c_temp
 importe GlibC
 
 // ----------------------------------------------------------
@@ -232,8 +233,6 @@ RésultatFichier :: union {
     e: ErreurFichier
     f: Fichier
 }
-
-importe Fondation // pour chaine_c_temp
 
 // ouvre_fichier_existant
 // ouvre_fichier_existant_crée_sinon

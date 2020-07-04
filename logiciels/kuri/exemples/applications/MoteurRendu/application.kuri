@@ -1,10 +1,3 @@
-charge "sdl2"
-charge "caméra_3d"
-charge "dessin_texture"
-charge "maillage"
-charge "ratissage"
-charge "dessin_texte"
-
 importe Couleur
 importe Fondation
 importe Image

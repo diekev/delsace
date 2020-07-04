@@ -1,8 +1,6 @@
 importe Fondation
 importe Réseau
 
-charge "entete_http"
-
 DonnéesRequête :: struct {
     uri : URI
     entêtes : EntêtesHTTP

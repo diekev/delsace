@@ -2,8 +2,6 @@ importe Couleur
 importe Fondation
 importe OpenGL
 
-charge "programme"
-
 TamponTexture :: struct {
     programme : n32
 

@@ -2,8 +2,6 @@ importe Fondation
 importe Math
 importe SysFichier
 
-charge "triangle"
-
 Maillage :: struct {
     tris : []Triangle
 }

@@ -4,8 +4,6 @@ importe SysFichier
 importe Temps
 importe Terminal
 
-charge "éditeur"
-
 // -------------------------------
 
 // tiré de https://viewsourcecode.org/snaptoken/kilo/

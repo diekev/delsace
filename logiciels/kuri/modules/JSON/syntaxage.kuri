@@ -1,9 +1,6 @@
 importe Fondation
 importe Tori
 
-charge "assemblage_objet"
-charge "lexage"
-
 SyntaxeuseJSON :: struct {
 	lexèmes : []DonneesLexèmeJSON
     assembleuse : AssembleuseObjet

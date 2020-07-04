@@ -1,12 +1,5 @@
 importe Fondation
 
-charge "document"
-charge "élément"
-charge "lexage"
-charge "liste_éléments_actifs_formattage"
-charge "noeud"
-charge "pile_éléments_ouverts"
-
 est_caractère_espace_blanc :: fonc (point_de_code: n32) -> bool
 {
     retourne point_de_code == ESPACE || point_de_code == TABULATION || point_de_code == RETOUR_CHARIOT || point_de_code == NOUVELLE_LIGNE || point_de_code == 0x0C

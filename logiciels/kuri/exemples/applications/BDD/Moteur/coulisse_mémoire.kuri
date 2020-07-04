@@ -1,5 +1,3 @@
-charge "table"
-
 CoulisseMémoire :: struct {
     noms_tables : []chaine
     tables : []*Table

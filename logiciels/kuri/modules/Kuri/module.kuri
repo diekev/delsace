@@ -1,15 +1,13 @@
-charge "infos_types"
-
-malloc :: fonc externe (taille : z64) -> *rien
-realloc :: fonc externe (ptr : *rien, taille : z64) -> *rien
-free :: fonc externe (ptr : *rien) -> rien
-
 // Ce fichier est utiliser pour définir des variables et fonctions de
 // bases (« connus par le compilateur ») que tous les modules doivent importer.
 // Ceci nous évite d'avoir à manuellement spécifier ces choses dans le
 // code du compilateur.
 // Par contre, ce fichier ne devrait pas pouvoir être modifié par les
 // utilisateurs du langage.
+
+malloc :: fonc externe (taille : z64) -> *rien
+realloc :: fonc externe (ptr : *rien, taille : z64) -> *rien
+free :: fonc externe (ptr : *rien) -> rien
 
 // --------------------------
 
@@ -713,8 +711,3 @@ arguments_ligne_commande :: fonc () -> []chaine
         retourne tabl_args
     }
 }
-
-// --------------------------------
-
-// ATTENTION : charge les fonctions de panique en dernier car il y une dépendance sur Fondation
-charge "panique"

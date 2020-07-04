@@ -1,5 +1,3 @@
-charge "vecteur"
-
 Mat4r :: struct {
     m : [4][4]r32
 }

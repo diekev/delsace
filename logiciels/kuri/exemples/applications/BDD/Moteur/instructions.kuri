@@ -1,5 +1,3 @@
-charge "lexage"
-
 GenreInstruction :: énum z32 {
     CRÉE
     SÉLECTIONNE

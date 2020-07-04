@@ -1,7 +1,5 @@
 importe Fondation
 
-charge "noeud"
-
 Document :: struct {
     empl base: Noeud
 

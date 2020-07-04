@@ -7,8 +7,6 @@ importe OpenGL
 
 #bibliothèque_dynamique "glfw"
 
-charge "evenements"
-
 GLFWwindow :: struct externe
 
 glfwGetVideoMode :: fonc externe (desktop : *rien) -> *rien

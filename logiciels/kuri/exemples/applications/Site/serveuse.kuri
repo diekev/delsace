@@ -1,9 +1,5 @@
 importe GlibC
 
-charge "requête"
-charge "rendeuse_page"
-charge "catalogue_fichier"
-
 CONNEXIONS_MAX := 1000
 
 Route :: struct {

@@ -1,7 +1,5 @@
 importe Fondation
 
-charge "attribut"
-
 GenreNoeud :: énum {
     Invalide
     Document

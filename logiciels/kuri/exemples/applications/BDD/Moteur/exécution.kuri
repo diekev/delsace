@@ -1,9 +1,5 @@
 importe Fondation
 
-charge "coulisse_mémoire"
-charge "instructions"
-charge "table"
-
 crée_table :: fonc (cm: *CoulisseMémoire, inst: *InstructionCréationTable) -> rien
 {
     colonnes : []Colonne

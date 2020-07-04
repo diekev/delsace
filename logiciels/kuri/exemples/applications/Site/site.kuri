@@ -5,13 +5,6 @@ importe Réseau
 importe SysFichier
 importe Temps
 
-charge "catalogue_fichier"
-charge "entete_http"
-charge "page_accueil"
-charge "rendeuse_page"
-charge "requête"
-charge "serveuse"
-
 chaine_jour_pour_tm :: fonc (tm_wday: z32) -> chaine
 {
     discr tm_wday {

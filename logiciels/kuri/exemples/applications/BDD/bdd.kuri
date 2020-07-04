@@ -2,9 +2,6 @@ importe Fondation
 importe GlibC
 importe SysFichier
 
-charge "curseur"
-charge "paginatrice"
-
 // https://cstack.github.io/db_tutorial/
 // continuation : https://cstack.github.io/db_tutorial/parts/part5.html
 

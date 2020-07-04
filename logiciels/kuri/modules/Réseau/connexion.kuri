@@ -2,8 +2,6 @@ importe Fondation
 importe GlibC
 importe SysFichier
 
-charge "uri"
-
 ErreurConnexion :: erreur {
     RésolutionHôteImpossible
     CréationPriseImpossible

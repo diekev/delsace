@@ -1,7 +1,5 @@
 // Bibliothèque d'introspection.
 
-charge "chaine"
-
 possède_membre :: fonc(arg : eini, nom : chaine) -> bool
 {
 	info := arg.info

@@ -1,11 +1,6 @@
 importe Fondation
 importe Ensemble
 
-charge "attribut"
-charge "chaine_utf32"
-charge "point_de_code"
-charge "entités"
-
 est_espace_blanc_html :: fonc (c: z8) -> bool
 {
     retourne c == ' ' || c == '\t' || c == 0x0C || c == '\n'

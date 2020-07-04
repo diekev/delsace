@@ -1,7 +1,5 @@
 importe Fondation
 
-charge "mysql"
-
 ConfigurationMySQL :: struct {
 	hôte : chaine
 	utilisateur : chaine

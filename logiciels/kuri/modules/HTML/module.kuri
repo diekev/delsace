@@ -3,12 +3,6 @@
 
 importe Fondation
 
-charge "document"
-charge "élément"
-charge "lexage"
-charge "noeud"
-charge "parsage"
-
 imprime_noeud :: fonc (noeud: *Noeud, tab : z32) -> rien
 {
     pour 1 ... tab {
