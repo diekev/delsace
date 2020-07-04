@@ -418,21 +418,6 @@ static void genere_typedefs_recursifs(
 	type->drapeaux |= TYPEDEF_FUT_GENERE;
 }
 
-static void genere_typedefs_pour_tous_les_types(
-		Compilatrice &compilatrice,
-		Enchaineuse &enchaineuse)
-{
-	POUR (compilatrice.typeuse.types_simples) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
-	POUR (compilatrice.typeuse.types_structures) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
-	POUR (compilatrice.typeuse.types_enums) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
-	POUR (compilatrice.typeuse.types_tableaux_fixes) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
-	POUR (compilatrice.typeuse.types_tableaux_dynamiques) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
-	POUR (compilatrice.typeuse.types_pointeurs) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
-	POUR (compilatrice.typeuse.types_references) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
-	POUR (compilatrice.typeuse.types_fonctions) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
-	POUR (compilatrice.typeuse.types_unions) genere_typedefs_recursifs(compilatrice, it, enchaineuse);
-}
-
 // ----------------------------------------------
 
 static void genere_code_debut_fichier(
@@ -1316,10 +1301,6 @@ void genere_code_C(
 	auto atome_main = constructrice_ri.genere_ri_pour_fonction_main();
 
 	genere_code_debut_fichier(compilatrice, enchaineuse, racine_kuri);
-	genere_typedefs_pour_tous_les_types(compilatrice, enchaineuse);
-	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
-		it.fut_visite = it.type != TypeNoeudDependance::TYPE;
-	}
 
 	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
 		if (it.type != TypeNoeudDependance::TYPE) {
@@ -1332,20 +1313,31 @@ void genere_code_C(
 
 		traverse_graphe(&it, [&](NoeudDependance *noeud)
 		{
-			if (noeud->type_ == nullptr) {
+			if (noeud->type != TypeNoeudDependance::TYPE) {
 				return;
 			}
 
-			if (noeud->type_->genre == GenreType::STRUCTURE) {
+			auto type = noeud->type_;
+
+			if (type && type->genre == GenreType::TYPE_DE_DONNEES) {
+				return;
+			}
+
+			genere_typedefs_recursifs(compilatrice, type, enchaineuse);
+
+			if (type && (type->genre == GenreType::STRUCTURE)) {
 				auto type_struct = static_cast<TypeStructure *>(noeud->type_);
 
 				if (type_struct->decl && type_struct->decl->est_externe) {
 					return;
 				}
 
+				for (auto &membre : type_struct->membres) {
+					genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
+				}
+
 				auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
 				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_struct), quoi);
-				return;
 			}
 		});
 	}
@@ -1402,11 +1394,6 @@ void genere_code_C_pour_execution(
 	constructrice_ri.construit_table_types();
 
 	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
-	genere_typedefs_pour_tous_les_types(constructrice_ri.compilatrice(), enchaineuse);
-
-	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
-		it.fut_visite = it.type != TypeNoeudDependance::TYPE;
-	}
 
 	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
 		if (it.type != TypeNoeudDependance::TYPE) {
@@ -1419,19 +1406,31 @@ void genere_code_C_pour_execution(
 
 		traverse_graphe(&it, [&](NoeudDependance *noeud)
 		{
-			if (noeud->type_ == nullptr) {
+			if (noeud->type != TypeNoeudDependance::TYPE) {
 				return;
 			}
 
-			if (noeud->type_->genre == GenreType::STRUCTURE) {
+			auto type = noeud->type_;
+
+			if (type && type->genre == GenreType::TYPE_DE_DONNEES) {
+				return;
+			}
+
+			genere_typedefs_recursifs(compilatrice, type, enchaineuse);
+
+			if (type && (type->genre == GenreType::STRUCTURE)) {
 				auto type_struct = static_cast<TypeStructure *>(noeud->type_);
 
-				if (type_struct->decl->est_externe) {
+				if (type_struct->decl && type_struct->decl->est_externe) {
 					return;
 				}
 
-				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_struct), STRUCTURE);
-				return;
+				for (auto &membre : type_struct->membres) {
+					genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
+				}
+
+				auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
+				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_struct), quoi);
 			}
 		});
 	}

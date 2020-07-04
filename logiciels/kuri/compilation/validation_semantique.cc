@@ -2566,6 +2566,9 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 		type_enum->type_donnees = m_compilatrice.typeuse[TypeBase::Z32];
 	}
 
+	auto &graphe = m_compilatrice.graphe_dependance;
+	graphe.connecte_type_type(type_enum, type_enum->type_donnees);
+
 	type_enum->taille_octet = type_enum->type_donnees->taille_octet;
 	type_enum->alignement = type_enum->type_donnees->alignement;
 
@@ -2820,6 +2823,10 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 		decl->type->drapeaux |= TYPE_FUT_VALIDE;
 
+		POUR (type_struct->membres) {
+			graphe.connecte_type_type(type_struct, it.type);
+		}
+
 		graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
 		return false;
 	}
@@ -2924,6 +2931,10 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	decl->type->alignement = max_alignement;
 	decl->type->drapeaux |= TYPE_FUT_VALIDE;
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+	POUR (type_struct->membres) {
+		graphe.connecte_type_type(type_struct, it.type);
+	}
 
 	graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
 	return false;
