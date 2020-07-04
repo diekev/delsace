@@ -1,0 +1,431 @@
+importe Fondation
+importe Numérique
+
+// Module de travail sur les adresses IP v4 et v6
+// RFCs pour IPv6 :
+// https://tools.ietf.org/html/rfc4291
+// https://tools.ietf.org/html/rfc5952
+
+// À FAIRE : parser les adresses IPv6 contenant une adresse IPv4 (x:x:x:x:x:x:255.255.255.255)
+// À FAIRE : représenter les adresses IPv4 dans les chaines IPv6
+// À FAIRE : parser les adresses IPv4 et IPv6 avec préfixes
+
+ErreurParsageIP :: erreur {
+    NombreÉlémentsIncorrect
+    CaracètreInvalide
+}
+
+AdresseIPv4 :: struct {
+    données : [4]octet
+}
+
+AdresseIPv6 :: struct {
+    données: [8]n16
+}
+
+AdresseIP :: union {
+    ipv4 : AdresseIPv4
+    ipv6 : AdresseIPv6
+}
+
+// À FAIRE(bug langage) : les types ne sont pas normalisés recursivement pour les structures...
+// parse_ip :: fonc (chn: chaine) -> AdresseIP | ErreurParsageIP
+// {
+//     ipv4 := tente parse_ipv4(chn) piège err_ipv4 {
+//         ipv6 := tente parse_ipv6(chn) piège err_ipv6 {
+//             retourne err_ipv6
+//         }
+
+//         retourne AdresseIP(ipv6 = ipv6)
+//     }
+
+//     retourne AdresseIP(ipv4 = ipv4)
+// }
+
+parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
+{
+    // il ne peut y avoir qu'un seul :: par chaine
+    morceaux := divise(chn, "::")
+    diffère { déloge morceaux }
+
+    si morceaux.taille > 2 {
+        retourne ErreurParsageIP.NombreÉlémentsIncorrect
+    }
+
+    possède_raccourci := morceaux.taille == 2
+
+    morceaux_nombre := divise(morceaux[0], ':')
+    diffère { déloge morceaux_nombre }
+
+    si !possède_raccourci && morceaux_nombre.taille < 8 {
+        retourne ErreurParsageIP.NombreÉlémentsIncorrect
+    }
+
+    chaines : [8]chaine
+
+    pour chaines {
+        it = ""
+    }
+
+    pour morceaux_nombre {
+        chaines[index_it] = it
+    }
+
+    si possède_raccourci {
+        déloge morceaux_nombre
+        morceaux_nombre = divise(morceaux[1], ':')
+        index_début := 8 - morceaux_nombre.taille
+
+        pour morceaux_nombre {
+            chaines[index_début + index_it] = it
+        }
+    }
+
+    données : [8]n16
+
+    pour données {
+        it = 0
+    }
+
+    pour chaines {
+        si !it {
+            continue
+        }
+
+        données[index_it] = tente parse_hexadécimal_n16(it) piège err {
+            // À FAIRE : erreur pour les dépassements de limites
+            retourne ErreurParsageIP.CaracètreInvalide
+        }
+    }
+
+    retourne AdresseIPv6(données = données)
+}
+
+chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
+{
+    // les champs doivent être écrits sans 0 au début
+    // OK     : 2001:db8::1
+    // Pas OK : 2001:0db8::0001
+
+    // les caractères doivent être en minuscule
+
+    // les suites de zéros doivent être raccourcis
+    // 2001:db8:0:0:0:0:2:1 -> 2001:db8::2:1 mais non 2001:db8::0:1
+
+    // on ne peut raccourcir un seul 0
+    // 2001:db8:0:1:1:1:1:1 n'est pas changé -> 2001:db8::1:1:1:1:1 est incorrect
+
+    // s'il y a plusieurs série de zéros, seule la plus longue devrait être remplacée par ::
+    // 2001:0:0:1:0:0:0:1 -> 2001:0:0:1::1 et non 2001::1:0:0:0:1
+
+    // s'il y a plusieurs séquences de zéros de même taille, la première doit être raccourcie
+    // 2001:db8:0:0:1:0:0:1 -> 2001:db8::1:0:0:1
+
+    Séquence :: struct {
+        index_début  : z64
+        index_fin    : z64
+        nombre_zéros : z32
+    }
+
+    // il ne peut y avoir qu'au maximum 4 séquences de 1 zéros :
+    // 1:0:1:0:1:0:1:0
+    // 0:1:0:1:0:1:0:1
+    séquences : [4]Séquence
+
+    nombre_zéros := 0
+
+    séquence : Séquence
+    nombre_de_séquences : z64 = 0
+
+    pour ipv6.données {
+        si it == 0 {
+            si nombre_zéros == 0 {
+                séquence.index_début = index_it
+            }
+
+            nombre_zéros += 1
+        }
+        sinon si nombre_zéros != 0 {
+            séquence.nombre_zéros = nombre_zéros
+            séquence.index_fin = index_it
+
+            séquences[nombre_de_séquences] = séquence
+            nombre_de_séquences += 1
+            nombre_zéros = 0
+        }
+    }
+
+    si nombre_zéros != 0 {
+        séquence.nombre_zéros = nombre_zéros
+        séquence.index_fin = 8
+
+        séquences[nombre_de_séquences] = séquence
+        nombre_de_séquences += 1
+    }
+
+    séquence_la_plus_longue := séquences[0]
+
+    pour 1 ... nombre_de_séquences - 1 {
+        si séquences[it].nombre_zéros > séquence_la_plus_longue.nombre_zéros {
+            séquence_la_plus_longue = séquences[it]
+        }
+    }
+
+    si séquence_la_plus_longue.nombre_zéros == 8 {
+        retourne copie_chaine("::")
+    }
+
+    si séquence_la_plus_longue.nombre_zéros < 2 {
+        séquence_la_plus_longue.nombre_zéros = 0
+        séquence_la_plus_longue.index_début = 0
+        séquence_la_plus_longue.index_fin = 0
+    }
+
+    tampon : [39]z8
+    taille_tampon : z64
+
+    double_points := '\0'
+    caractères_hex := "0123456789abcdef"
+
+    pour 0 ... séquence_la_plus_longue.index_début - 1 {
+        tampon[taille_tampon] = double_points
+        taille_tampon += 1
+
+        v := ipv6.données[it]
+
+        si v == 0 {
+            tampon[taille_tampon] = '0'
+            taille_tampon += 1
+            double_points = ':'
+            continue
+        }
+
+        a := (v >> 12) & 0xf
+
+        si a != 0 {
+            tampon[taille_tampon] = caractères_hex[a]
+            taille_tampon += 1
+        }
+
+        b := (v >> 8) & 0xf
+
+        si b != 0 || a != 0 {
+            tampon[taille_tampon] = caractères_hex[b]
+            taille_tampon += 1
+        }
+
+        c := (v >> 4) & 0xf
+
+        si c != 0 || b != 0 || a != 0 {
+            tampon[taille_tampon] = caractères_hex[c]
+            taille_tampon += 1
+        }
+
+        d := v & 0xf
+
+        tampon[taille_tampon] = caractères_hex[d]
+        taille_tampon += 1
+
+        double_points = ':'
+    }
+
+    si séquence_la_plus_longue.nombre_zéros != 0 {
+        double_points = ':'
+        tampon[taille_tampon] = double_points
+        taille_tampon += 1
+    }
+
+    si séquence_la_plus_longue.index_fin == 8 {
+        tampon[taille_tampon] = double_points
+        taille_tampon += 1
+    }
+
+    pour séquence_la_plus_longue.index_fin ... 7 {
+        tampon[taille_tampon] = double_points
+        taille_tampon += 1
+
+        v := ipv6.données[it]
+
+        si v == 0 {
+            tampon[taille_tampon] = '0'
+            taille_tampon += 1
+            double_points = ':'
+            continue
+        }
+
+        a := (v >> 12) & 0xf
+
+        si a != 0 {
+            tampon[taille_tampon] = caractères_hex[a]
+            taille_tampon += 1
+        }
+
+        b := (v >> 8) & 0xf
+
+        si b != 0 || a != 0 {
+            tampon[taille_tampon] = caractères_hex[b]
+            taille_tampon += 1
+        }
+
+        c := (v >> 4) & 0xf
+
+        si c != 0 || b != 0 || a != 0 {
+            tampon[taille_tampon] = caractères_hex[c]
+            taille_tampon += 1
+        }
+
+        d := v & 0xf
+
+        tampon[taille_tampon] = caractères_hex[d]
+        taille_tampon += 1
+
+        double_points = ':'
+    }
+
+    ptr_tampon := @tampon[0]
+
+    si tampon[0] == '\0' {
+        taille_tampon -= 1
+        ptr_tampon += 1
+    }
+
+    résultat := loge chaine(taille_tampon)
+    copie_mem_nonsur(src = ptr_tampon, dst = résultat.pointeur, taille = taille_tampon)
+    retourne résultat
+}
+
+parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
+{
+    morceaux := divise(chn, '.')
+    diffère { déloge morceaux }
+
+    si morceaux.taille != 4 {
+        retourne ErreurParsageIP.NombreÉlémentsIncorrect
+    }
+
+    données : [4]octet
+
+    pour morceaux {
+        valeur := tente extrait_n8(it) piège err {
+            // À FAIRE : erreur spéciale en cas de dépassement de la taille du nombre
+            retourne ErreurParsageIP.CaracètreInvalide
+        }
+
+        données[index_it] = valeur comme octet
+    }
+
+    retourne AdresseIPv4(données = données)
+}
+
+chaine_depuis_ipv4 :: fonc (ipv4: AdresseIPv4) -> chaine
+{
+    tampon : [15]z8
+    taille_tampon := 0
+
+    pour ipv4.données {
+        d := it
+        centaine := it / 100
+
+        si centaine != 0 {
+            tampon[taille_tampon] = (centaine + 0x30) comme z8
+            taille_tampon += 1
+            d %= 100
+        }
+
+        dizaine := d / 10
+
+        si dizaine != 0 || centaine != 0 {
+            tampon[taille_tampon] = (dizaine + 0x30) comme z8
+            taille_tampon += 1
+            d %= 10
+        }
+
+        tampon[taille_tampon] = (d + 0x30) comme z8
+        taille_tampon += 1
+
+        si index_it < 3 {
+            tampon[taille_tampon] = '.'
+            taille_tampon += 1
+        }
+    }
+
+    résultat := loge chaine(taille_tampon)
+    copie_mem_nonsur(src = @tampon[0], dst = résultat.pointeur, taille = taille_tampon)
+    retourne résultat
+}
+
+ErreurConversionIP :: erreur {
+    AdresseIPv6NEstPasIPv4
+}
+
+ipv4_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> AdresseIPv4 | ErreurConversionIP
+{
+    pour 0 ... 4 {
+        si ipv6.données[it] != 0 {
+            retourne ErreurConversionIP.AdresseIPv6NEstPasIPv4
+        }
+    }
+
+    si ipv6.données[5] != 0xffff {
+        retourne ErreurConversionIP.AdresseIPv6NEstPasIPv4
+    }
+
+    ipv4 : AdresseIPv4 = ---
+
+    ipv4.données[0] = (ipv6.données[6] >> 8) comme octet
+    ipv4.données[1] = ((ipv6.données[6] >> 8) & 0xff) comme octet
+    ipv4.données[2] = (ipv6.données[7] >> 8) comme octet
+    ipv4.données[3] = ((ipv6.données[7] >> 8) & 0xff) comme octet
+
+    retourne ipv4
+}
+
+// 127.0.0.1 -> 0:0:0:0:0:ffff:127.0.0.1 ou 0:0:0:0:0:ffff:7f00:1
+ipv6_depuis_ipv4 :: fonc (ipv4: AdresseIPv4) -> AdresseIPv6
+{
+    ipv6 : AdresseIPv6 = ---
+
+    pour 0 ... 4 {
+        ipv6.données[it] = 0
+    }
+
+    ipv6.données[5] = 0xffff
+    ipv6.données[6] = ipv4.données[0] comme n16 << 8 | ipv4.données[1] comme n16
+    ipv6.données[7] = ipv4.données[2] comme n16 << 8 | ipv4.données[3] comme n16
+
+    retourne ipv6
+}
+
+test_raccourcissement_ipv6 :: fonc (donnée: chaine, espérée: chaine)
+{
+    ipv6 := tente parse_ipv6(donnée) piège err {
+        discr err {
+            NombreÉlémentsIncorrect {
+                imprime("Attendu 8 éléments pour l'adresse IPv6 !\n")
+            }
+            CaracètreInvalide {
+                imprime("Attendu des nombres hexadécimaux pour l'adresse IPv8 !\n")
+            }
+        }
+
+        retourne
+    }
+
+    chn_ipv6 := chaine_depuis_ipv6(ipv6)
+
+    si chn_ipv6 != espérée {
+        imprime("erreur : % != %\n", chn_ipv6, espérée)
+    }
+}
+
+// test_raccourcissement_ipv6("2001:db8:0:0:1:1:1:1", "2001:db8::1:1:1:1")
+// test_raccourcissement_ipv6("2001:db8:0:0:1:0:0:1", "2001:db8::1:0:0:1")
+// test_raccourcissement_ipv6("0:1:0:1:0:1:0:1", "0:1:0:1:0:1:0:1")
+// test_raccourcissement_ipv6("1:0:1:0:1:0:1:0", "1:0:1:0:1:0:1:0")
+// test_raccourcissement_ipv6("0:0:0:0:0:0:0:0", "::")
+// test_raccourcissement_ipv6("1:0:0:0:0:0:0:0", "1::")
+// test_raccourcissement_ipv6("0:0:0:0:0:0:0:1", "::1")
+// test_raccourcissement_ipv6("ff01:0:0:0:0:0:0:101", "ff01::101")
+// test_raccourcissement_ipv6("0:0:0:0:0:ffff:7f00:1", "::ffff:7f00:1")
+// test_raccourcissement_ipv6("2001:0:0:1:0:0:0:1", "2001:0:0:1::1")
+// test_raccourcissement_ipv6("2001:0:0:1::1", "2001:0:0:1::1")
