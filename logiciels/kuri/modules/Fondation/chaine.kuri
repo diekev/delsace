@@ -209,6 +209,34 @@ divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
     retourne mots
 }
 
+divise :: fonc (chn: chaine, séparation: chaine) -> []chaine
+{
+    résultat : []chaine
+
+    index_début : z64 = 0
+    index_fin : z64 = 0
+
+    boucle {
+        index_fin = trouve_motif_dans_chaine(chn, séparation, index_début)
+
+        si index_fin == -1 {
+            arrête
+        }
+
+        c := sous_chaine(chn, index_début, index_fin)
+        tableau_ajoute(@résultat, c)
+
+        index_début = index_fin + séparation.taille
+    }
+
+    si index_début < chn.taille {
+        c := sous_chaine(chn, index_début, chn.taille)
+        tableau_ajoute(@résultat, c)
+    }
+
+    retourne résultat
+}
+
 avance :: fonc (ligne: chaine, compte: z64) -> chaine
 {
     retourne construit_chaine(ligne.pointeur + compte, ligne.taille - compte)
@@ -510,9 +538,9 @@ append :: fonc (vers: *chaine, chn: chaine) -> rien
     mémoire(vers) = tmp
 }
 
-trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine) -> z64
+trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine, index_début : z64 = 0) -> z64
 {
-    pour i dans 0 ... chn.taille - motif.taille - 1 {
+    pour i dans index_début ... chn.taille - motif.taille - 1 {
         trouvé := vrai
 
         pour m, idx dans motif {
