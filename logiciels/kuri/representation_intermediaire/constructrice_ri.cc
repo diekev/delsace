@@ -1160,6 +1160,10 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			chaine.taille = noeud->lexeme->taille;
 			auto constante = cree_chaine(dls::vue_chaine_compacte(chaine.pointeur, chaine.taille));
 
+			if (fonction_courante == nullptr) {
+				return constante;
+			}
+
 			auto alloc = cree_allocation(m_compilatrice.typeuse.type_chaine, nullptr);
 			cree_stocke_mem(alloc, constante);
 			return alloc;
