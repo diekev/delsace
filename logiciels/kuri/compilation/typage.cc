@@ -1399,7 +1399,11 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
 	type_structure->est_anonyme = this->est_anonyme;
 }
 
-// Les types unions doivent être normalisés pour être soit le type le plus grand pour les nonsûres, soit la structure implicite pour les sûres
+/* Pour la génération de RI, les types doivent être normalisés afin de se rapprocher de la manière dont ceux-ci sont « représenter » dans la machine.
+ * Ceci se fait en :
+ * - remplaçant les références par des pointeurs
+ * - convertissant les unions en leurs « types machines » : une structure pour les unions sûres, le type le plus grand pour les sûres
+ */
 Type *normalise_type(Typeuse &typeuse, Type *type)
 {
 	if (type == nullptr) {
@@ -1450,10 +1454,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 	else if (type->genre == GenreType::REFERENCE) {
 		auto type_reference = static_cast<TypeReference *>(type);
 		auto type_normalise = normalise_type(typeuse, type_reference->type_pointe);
-
-		if (type_normalise != type_reference) {
-			resultat = typeuse.type_reference_pour(type_reference->type_pointe);
-		}
+		resultat = typeuse.type_pointeur_pour(type_normalise);
 	}
 	else if (type->genre == GenreType::FONCTION) {
 		auto type_fonction = static_cast<TypeFonction *>(type);
