@@ -723,8 +723,8 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Atome *ou, Atome *valeur)
 {
 	assert(ou->type->genre == GenreType::POINTEUR);
 	auto type_pointeur = static_cast<TypePointeur *>(ou->type);
-//	std::cerr << __func__ << ", type_pointeur->type_pointe : " << chaine_type(type_pointeur->type_pointe)
-//			  << ", valeur->type : " << chaine_type(valeur->type) << '\n';
+//	std::cerr << __func__ << ", type_pointeur->type_pointe : " << chaine_type(type_pointeur->type_pointe) << " (" << type_pointeur->type_pointe << ") "
+//			  << ", valeur->type : " << chaine_type(valeur->type) << " (" << valeur->type << ") " << '\n';
 	assert(type_pointeur->type_pointe == valeur->type || (type_pointeur->type_pointe->genre == GenreType::TYPE_DE_DONNEES && type_pointeur->type_pointe->genre == valeur->type->genre));
 
 	auto inst = insts_stocke_memoire.ajoute_element(valeur->type, ou, valeur);
