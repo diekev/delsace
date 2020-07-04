@@ -94,8 +94,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 	switch (noeud->genre) {
 		case GenreNoeud::INSTRUCTION_SINON:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		case GenreNoeud::DECLARATION_COROUTINE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
@@ -964,6 +962,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
+		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
+		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		{
 			auto inst = static_cast<NoeudExpressionUnaire *>(noeud);
 			noeud->genre_valeur = GenreValeur::DROITE;
