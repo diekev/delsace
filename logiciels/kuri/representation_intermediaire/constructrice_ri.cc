@@ -2410,11 +2410,11 @@ Atome *ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 		if (type_union->membres.taille == 2) {
 			if (type_union->membres[0].type->genre == GenreType::ERREUR) {
 				gen_tente.type_piege = type_union->membres[0].type;
-				gen_tente.type_variable = type_union->membres[1].type;
+				gen_tente.type_variable = normalise_type(m_compilatrice.typeuse, type_union->membres[1].type);
 			}
 			else {
 				gen_tente.type_piege = type_union->membres[1].type;
-				gen_tente.type_variable = type_union->membres[0].type;
+				gen_tente.type_variable = normalise_type(m_compilatrice.typeuse, type_union->membres[0].type);
 				index_membre_erreur = 1;
 			}
 		}
