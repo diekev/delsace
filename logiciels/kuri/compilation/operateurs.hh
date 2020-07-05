@@ -132,6 +132,7 @@ struct OperateurBinaire {
 
 const char *chaine_pour_genre_op(OperateurBinaire::Genre genre);
 
+// À FAIRE : considère synchroniser les conteneurs des opérateurs au lieu de la structure, il faudra sans doute revoir l'interface afin de ne pas avoir à trop prendre de verrous
 struct Operateurs {
 	using type_conteneur_binaire = tableau_page<OperateurBinaire>;
 	using type_conteneur_unaire = tableau_page<OperateurUnaire>;

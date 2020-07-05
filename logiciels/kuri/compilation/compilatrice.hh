@@ -95,6 +95,7 @@ struct InterfaceKuri {
 };
 
 struct Compilatrice {
+	// À FAIRE : ceci devrait être déplacé dans les tacheronnes quand nous en aurons plus d'une
 	AllocatriceNoeud allocatrice_noeud{};
 
 	/* À FAIRE : supprime ceci */
