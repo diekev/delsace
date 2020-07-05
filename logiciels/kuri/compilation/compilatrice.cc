@@ -428,6 +428,7 @@ size_t Compilatrice::memoire_utilisee() const
 Metriques Compilatrice::rassemble_metriques() const
 {
 	auto operateurs_ = operateurs.verrou_lecture();
+	auto graphe = graphe_dependance.verrou_lecture();
 
 	auto metriques = Metriques{};
 	metriques.nombre_modules  = static_cast<size_t>(modules->taille());
@@ -435,11 +436,11 @@ Metriques Compilatrice::rassemble_metriques() const
 	metriques.temps_generation = this->temps_generation;
 	metriques.memoire_types = this->typeuse.memoire_utilisee();
 	metriques.memoire_operateurs = operateurs_->memoire_utilisee();
-	metriques.memoire_graphe = this->graphe_dependance.memoire_utilisee();
+	metriques.memoire_graphe = graphe->memoire_utilisee();
 	metriques.memoire_arbre += this->allocatrice_noeud.memoire_utilisee();
 	metriques.nombre_noeuds += this->allocatrice_noeud.nombre_noeuds();
 
-	metriques.nombre_noeuds_deps = static_cast<size_t>(this->graphe_dependance.noeuds.taille());
+	metriques.nombre_noeuds_deps = static_cast<size_t>(graphe->noeuds.taille());
 	metriques.nombre_types = typeuse.nombre_de_types();
 
 	POUR (operateurs_->operateurs_unaires) {

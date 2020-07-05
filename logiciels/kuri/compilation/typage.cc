@@ -383,8 +383,8 @@ static Type *cree_type_pour_lexeme(GenreLexeme lexeme)
 	}
 }
 
-Typeuse::Typeuse(GrapheDependance &g, dls::outils::Synchrone<Operateurs> &o)
-	: graphe(g)
+Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synchrone<Operateurs> &o)
+	: graphe_(g)
 	, operateurs_(o)
 {
 	/* initialise les types communs */
@@ -583,7 +583,8 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 	auto resultat = TypePointeur::cree(type);
 
 	if (type != nullptr) {
-		graphe.connecte_type_type(resultat, type);
+		auto graphe = graphe_.verrou_ecriture();
+		graphe->connecte_type_type(resultat, type);
 	}
 
 	auto indice = IndiceTypeOp::ENTIER_RELATIF;
@@ -639,7 +640,8 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
 	auto resultat = TypeReference::cree(type);
 	types_references.pousse(resultat);
 
-	graphe.connecte_type_type(resultat, type);
+	auto graphe = graphe_.verrou_ecriture();
+	graphe->connecte_type_type(resultat, type);
 
 	return resultat;
 }
@@ -663,7 +665,8 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 
 	auto type = TypeTableauFixe::cree(type_pointe, taille, std::move(membres));
 
-	graphe.connecte_type_type(type, type_pointe);
+	auto graphe = graphe_.verrou_ecriture();
+	graphe->connecte_type_type(type, type_pointe);
 
 	types_tableaux_fixes.pousse(type);
 
@@ -689,7 +692,8 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 
 	auto type = TypeTableauDynamique::cree(type_pointe, std::move(membres));
 
-	graphe.connecte_type_type(type, type_pointe);
+	auto graphe = graphe_.verrou_ecriture();
+	graphe->connecte_type_type(type, type_pointe);
 
 	types_tableaux_dynamiques.pousse(type);
 
@@ -714,7 +718,8 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 	auto type = TypeVariadique::cree(type_pointe, std::move(membres));
 
 	if (type_pointe != nullptr) {
-		graphe.connecte_type_type(type, type_pointe);
+		auto graphe = graphe_.verrou_ecriture();
+		graphe->connecte_type_type(type, type_pointe);
 	}
 
 	types_variadiques.pousse(type);
@@ -776,12 +781,14 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 	operateurs->ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_bool, indice);
 	operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_bool, indice);
 
+	auto graphe = graphe_.verrou_ecriture();
+
 	POUR (type->types_entrees) {
-		graphe.connecte_type_type(type, it);
+		graphe->connecte_type_type(type, it);
 	}
 
 	POUR (type->types_sorties) {
-		graphe.connecte_type_type(type, it);
+		graphe->connecte_type_type(type, it);
 	}
 
 	return type;

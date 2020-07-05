@@ -1290,7 +1290,10 @@ void genere_code_C(
 	Enchaineuse enchaineuse;
 
 	auto &compilatrice = constructrice_ri.compilatrice();
-	auto fonction_principale = compilatrice.graphe_dependance.cherche_noeud_fonction("principale");
+
+	// NOTE : on ne prend pas de verrou ici car genere_ri_pour_fonction_main reprendra un verrou du graphe via la Typeuse -> verrou mort
+	auto &graphe = compilatrice.graphe_dependance;
+	auto fonction_principale = graphe->cherche_noeud_fonction("principale");
 
 	if (fonction_principale == nullptr) {
 		erreur::fonction_principale_manquante();
@@ -1302,7 +1305,7 @@ void genere_code_C(
 
 	genere_code_debut_fichier(compilatrice, enchaineuse, racine_kuri);
 
-	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
+	POUR_TABLEAU_PAGE(graphe->noeuds) {
 		if (it.type != TypeNoeudDependance::TYPE) {
 			continue;
 		}
@@ -1342,7 +1345,7 @@ void genere_code_C(
 		});
 	}
 
-	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
+	POUR_TABLEAU_PAGE(graphe->noeuds) {
 		it.fut_visite = false;
 	}
 
@@ -1395,7 +1398,9 @@ void genere_code_C_pour_execution(
 
 	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
 
-	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
+	auto &graphe = compilatrice.graphe_dependance;
+
+	POUR_TABLEAU_PAGE(graphe->noeuds) {
 		if (it.type != TypeNoeudDependance::TYPE) {
 			continue;
 		}
@@ -1435,7 +1440,7 @@ void genere_code_C_pour_execution(
 		});
 	}
 
-	POUR_TABLEAU_PAGE(compilatrice.graphe_dependance.noeuds) {
+	POUR_TABLEAU_PAGE(graphe->noeuds) {
 		it.fut_visite = false;
 	}
 

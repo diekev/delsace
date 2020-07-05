@@ -103,7 +103,7 @@ struct Compilatrice {
 	dls::outils::Synchrone<dls::tableau<Module *>> modules{};
 	dls::outils::Synchrone<dls::tableau<Fichier *>> fichiers{};
 
-	GrapheDependance graphe_dependance{};
+	dls::outils::Synchrone<GrapheDependance> graphe_dependance{};
 
 	dls::outils::Synchrone<Operateurs> operateurs{};
 

@@ -240,8 +240,9 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						}
 					}
 
-					auto noeud_dependance = compilatrice.graphe_dependance.cree_noeud_globale(decl);
-					compilatrice.graphe_dependance.ajoute_dependances(*noeud_dependance, contexte.donnees_dependance);
+					auto graphe = compilatrice.graphe_dependance.verrou_ecriture();
+					auto noeud_dependance = graphe->cree_noeud_globale(decl);
+					graphe->ajoute_dependances(*noeud_dependance, contexte.donnees_dependance);
 
 					unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
 					compilatrice.file_compilation->pousse(unite);

@@ -346,7 +346,7 @@ struct TypePolymorphique : public Type {
 void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine_compacte> &noms);
 
 struct Typeuse {
-	GrapheDependance &graphe;
+	dls::outils::Synchrone<GrapheDependance> &graphe_;
 	dls::outils::Synchrone<Operateurs> &operateurs_;
 
 	dls::tableau<Type *> types_communs{};
@@ -386,7 +386,7 @@ struct Typeuse {
 
 	// -------------------------
 
-	Typeuse(GrapheDependance &g, dls::outils::Synchrone<Operateurs> &o);
+	Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synchrone<Operateurs> &o);
 
 	Typeuse(Typeuse const &) = delete;
 	Typeuse &operator=(Typeuse const &) = delete;

@@ -90,8 +90,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 {
 	PROFILE_FONCTION;
 
-	auto &graphe = m_compilatrice.graphe_dependance;
-
 	switch (noeud->genre) {
 		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
@@ -197,8 +195,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			noeud_decl->bloc->expressions.pousse(noeud_directive->expr);
 			// À FAIRE : instruction de retour
 
-			auto noeud_dep = m_compilatrice.graphe_dependance.cree_noeud_fonction(noeud_decl);
-			m_compilatrice.graphe_dependance.ajoute_dependances(*noeud_dep, donnees_dependance);
+			auto graphe = m_compilatrice.graphe_dependance.verrou_ecriture();
+			auto noeud_dep = graphe->cree_noeud_fonction(noeud_decl);
+			graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 
 			noeud_directive->fonction = noeud_decl;
 			noeud_decl->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -519,7 +518,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (decl->drapeaux & EST_GLOBALE) {
-				graphe.cree_noeud_globale(decl);
+				auto graphe = m_compilatrice.graphe_dependance.verrou_ecriture();
+				graphe->cree_noeud_globale(decl);
 			}
 
 			if (variable->drapeaux & EMPLOYE) {
@@ -2209,7 +2209,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 	commence_fonction(decl);
 
 	auto &graphe = m_compilatrice.graphe_dependance;
-	auto noeud_dep = graphe.cree_noeud_fonction(decl);
+	auto noeud_dep = graphe->cree_noeud_fonction(decl);
 
 	if (decl->est_coroutine) {
 		decl->genre = GenreNoeud::DECLARATION_COROUTINE;
@@ -2218,7 +2218,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 	for (auto i = unite->index_reprise; i < decl->arbre_aplatis_entete.taille; ++i) {
 		if (valide_semantique_noeud(decl->arbre_aplatis_entete[i])) {
 			unite->index_reprise = i;
-			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
+			graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 			return true;
 		}
 	}
@@ -2421,7 +2421,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 		}
 	}
 
-	graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
+	graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 	return false;
 }
@@ -2436,7 +2436,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 	commence_fonction(decl);
 
 	auto &graphe = m_compilatrice.graphe_dependance;
-	auto noeud_dep = graphe.cree_noeud_fonction(decl);
+	auto noeud_dep = graphe->cree_noeud_fonction(decl);
 
 	if (unite->index_reprise == 0) {
 		auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
@@ -2468,7 +2468,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 	for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
 		if (valide_semantique_noeud(decl->arbre_aplatis[i])) {
 			unite->index_reprise = i;
-			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
+			graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 			return true;
 		}
 	}
@@ -2489,7 +2489,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 		decl->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
 	}
 
-	graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
+	graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 
 	termine_fonction();
 	return false;
@@ -2500,7 +2500,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 	commence_fonction(decl);
 
 	auto &graphe = m_compilatrice.graphe_dependance;
-	auto noeud_dep = graphe.cree_noeud_fonction(decl);
+	auto noeud_dep = graphe->cree_noeud_fonction(decl);
 
 	if (unite->index_reprise == 0) {
 		auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
@@ -2532,7 +2532,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 	for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
 		if (valide_semantique_noeud(decl->arbre_aplatis[i])) {
 			unite->index_reprise = i;
-			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
+			graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 			return true;
 		}
 	}
@@ -2544,7 +2544,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 		return true;
 	}
 
-	graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
+	graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 
 	termine_fonction();
 	return false;
@@ -2572,7 +2572,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 	}
 
 	auto &graphe = m_compilatrice.graphe_dependance;
-	graphe.connecte_type_type(type_enum, type_enum->type_donnees);
+	graphe->connecte_type_type(type_enum, type_enum->type_donnees);
 
 	type_enum->taille_octet = type_enum->type_donnees->taille_octet;
 	type_enum->alignement = type_enum->type_donnees->alignement;
@@ -2669,7 +2669,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 {
 	auto &graphe = m_compilatrice.graphe_dependance;
 
-	auto noeud_dependance = graphe.cree_noeud_type(decl->type);
+	auto noeud_dependance = graphe->cree_noeud_type(decl->type);
 	noeud_dependance->noeud_syntactique = decl;
 	decl->noeud_dependance = noeud_dependance;
 
@@ -2750,7 +2750,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
 		if (valide_semantique_noeud(decl->arbre_aplatis[i])) {
 			unite->index_reprise = i;
-			graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
+			graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
 			return true;
 		}
 	}
@@ -2829,10 +2829,10 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		decl->type->drapeaux |= TYPE_FUT_VALIDE;
 
 		POUR (type_struct->membres) {
-			graphe.connecte_type_type(type_struct, it.type);
+			graphe->connecte_type_type(type_struct, it.type);
 		}
 
-		graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
+		graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
 		return false;
 	}
 
@@ -2938,10 +2938,10 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
 	POUR (type_struct->membres) {
-		graphe.connecte_type_type(type_struct, it.type);
+		graphe->connecte_type_type(type_struct, it.type);
 	}
 
-	graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
+	graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
 	return false;
 }
 
