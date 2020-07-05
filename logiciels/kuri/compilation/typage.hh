@@ -353,6 +353,9 @@ struct Typeuse {
 	template <typename T>
 	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
 
+	// NOTE : nous synchronisons les tableaux individuellement et non la Typeuse
+	// dans son entièreté afin que différents threads puissent accéder librement
+	// à différents types de types.
 	dls::tableau<Type *> types_communs{};
 	tableau_synchrone<Type *> types_simples{};
 	tableau_synchrone<TypePointeur *> types_pointeurs{};
