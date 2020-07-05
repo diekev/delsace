@@ -3503,7 +3503,7 @@ void ConstructriceRI::genere_ri_blocs_differes(NoeudBloc *bloc)
 			bloc_differe->est_differe = true;
 		}
 
-		bloc = bloc->parent;
+		bloc = bloc->bloc_parent;
 	}
 }
 

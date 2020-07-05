@@ -44,7 +44,7 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 			}
 		}
 
-		bloc_courant = bloc_courant->parent;
+		bloc_courant = bloc_courant->bloc_parent;
 	}
 
 	return nullptr;
@@ -63,7 +63,7 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl)
 			}
 		}
 
-		bloc_courant = bloc_courant->parent;
+		bloc_courant = bloc_courant->bloc_parent;
 	}
 
 	return nullptr;
@@ -136,7 +136,7 @@ NoeudDeclaration *trouve_type_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 			return it;
 		}
 
-		bloc_courant = bloc_courant->parent;
+		bloc_courant = bloc_courant->bloc_parent;
 	}
 
 	return nullptr;
@@ -189,7 +189,7 @@ void trouve_declarations_dans_bloc(
 			}
 		}
 
-		bloc_courant = bloc_courant->parent;
+		bloc_courant = bloc_courant->bloc_parent;
 	}
 }
 
@@ -215,7 +215,7 @@ void trouve_declarations_dans_bloc_ou_module(
 
 bool bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle)
 {
-	while (bloc->parent) {
+	while (bloc->bloc_parent) {
 		if (bloc->appartiens_a_boucle) {
 			auto boucle = bloc->appartiens_a_boucle;
 
@@ -228,7 +228,7 @@ bool bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle)
 			}
 		}
 
-		bloc = bloc->parent;
+		bloc = bloc->bloc_parent;
 	}
 
 	return false;

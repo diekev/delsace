@@ -412,8 +412,6 @@ struct NoeudBoucle : public NoeudExpression {
 struct NoeudBloc : public NoeudExpression {
 	NoeudBloc() { genre = GenreNoeud::INSTRUCTION_COMPOSEE; }
 
-	NoeudBloc *parent = nullptr;
-
 	NoeudExpression *appartiens_a_boucle = nullptr;
 
 	kuri::tableau<NoeudDeclaration *> membres{};

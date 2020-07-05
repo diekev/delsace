@@ -36,7 +36,6 @@ assembleuse_arbre::assembleuse_arbre(Compilatrice &compilatrice)
 NoeudBloc *assembleuse_arbre::empile_bloc()
 {
 	auto bloc = static_cast<NoeudBloc *>(cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, nullptr));
-	bloc->parent = bloc_courant();
 	bloc->bloc_parent = bloc_courant();
 
 	m_blocs.empile(bloc);

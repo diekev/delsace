@@ -399,7 +399,6 @@ NoeudExpression *copie_noeud(
 		{
 			auto bloc = static_cast<NoeudBloc const *>(racine);
 			auto nbloc = static_cast<NoeudBloc *>(nracine);
-			nbloc->parent = bloc_parent;
 			nbloc->membres.reserve(bloc->membres.taille);
 			nbloc->expressions.reserve(bloc->expressions.taille);
 
