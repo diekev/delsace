@@ -146,6 +146,12 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 //				std::cerr << "-- état original    : " << unite.etat_original << '\n';
 				unite.etat_original = UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU;
 				compilatrice.file_compilation->pousse(unite);
+				return;
+			}
+
+			if (decl->est_externe) {
+				unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
+				compilatrice.file_compilation->pousse(unite);
 			}
 
 			temps_validation += debut_validation.temps();
