@@ -124,7 +124,7 @@ struct Compilatrice {
 	using TypeFileExecution = dls::liste<NoeudDirectiveExecution *>;
 	dls::outils::Synchrone<TypeFileExecution> file_execution{};
 
-	GeranteChaine gerante_chaine{};
+	dls::outils::Synchrone<GeranteChaine> gerante_chaine{};
 
 	/* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment. */
 	bool importe_kuri = true;

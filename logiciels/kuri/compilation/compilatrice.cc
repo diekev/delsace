@@ -418,8 +418,8 @@ size_t Compilatrice::memoire_utilisee() const
 	memoire += static_cast<size_t>(file_execution->taille()) * sizeof(NoeudDirectiveExecution *);
 	memoire += table_identifiants->memoire_utilisee();
 
-	memoire += static_cast<size_t>(gerante_chaine.m_table.taille()) * sizeof(dls::chaine);
-	POUR (gerante_chaine.m_table) {
+	memoire += static_cast<size_t>(gerante_chaine->m_table.taille()) * sizeof(dls::chaine);
+	POUR (gerante_chaine->m_table) {
 		memoire += static_cast<size_t>(it.taille);
 	}
 

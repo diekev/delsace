@@ -433,7 +433,7 @@ void Lexeuse::analyse_caractere_simple()
 				this->lexe_caractere_litteral(&chaine);
 			}
 
-			m_compilatrice.gerante_chaine.ajoute_chaine(chaine);
+			m_compilatrice.gerante_chaine->ajoute_chaine(chaine);
 
 			/* Saute le dernier guillemet si nécessaire. */
 			if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
