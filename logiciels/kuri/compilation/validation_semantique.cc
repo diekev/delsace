@@ -685,7 +685,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 					case GenreLexeme::EGALITE:
 					{
-						auto op = m_compilatrice.operateurs.op_comp_egal_types;
+						// XXX - aucune raison de prendre un verrou ici
+						auto op = m_compilatrice.operateurs->op_comp_egal_types;
 						expr->type = op->type_resultat;
 						expr->op = op;
 						donnees_dependance.types_utilises.insere(expr->type);
@@ -693,7 +694,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 					case GenreLexeme::DIFFERENCE:
 					{
-						auto op = m_compilatrice.operateurs.op_comp_diff_types;
+						// XXX - aucune raison de prendre un verrou ici
+						auto op = m_compilatrice.operateurs->op_comp_diff_types;
 						expr->type = op->type_resultat;
 						expr->op = op;
 						donnees_dependance.types_utilises.insere(expr->type);
@@ -849,7 +851,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						enfant->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type };
 					}
 
-					auto op = cherche_operateur_unaire(m_compilatrice.operateurs, type, expr->lexeme->genre);
+					auto operateurs = m_compilatrice.operateurs.verrou_lecture();
+					auto op = cherche_operateur_unaire(*operateurs, type, expr->lexeme->genre);
 
 					if (op == nullptr) {
 						rapporte_erreur_type_operation_unaire(expr);
@@ -2332,8 +2335,10 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 		auto fichier = m_compilatrice.fichier(static_cast<size_t>(decl->lexeme->fichier));
 		decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
 
-		if (decl->params.taille == 1) {
-			auto &iter_op = m_compilatrice.operateurs.trouve_unaire(decl->lexeme->genre);
+		auto operateurs = m_compilatrice.operateurs.verrou_ecriture();
+
+		if (decl->params.taille == 1) {			
+			auto &iter_op = operateurs->trouve_unaire(decl->lexeme->genre);
 			auto type1 = type_fonc->types_entrees[0 + possede_contexte];
 
 			for (auto i = 0; i < iter_op.taille(); ++i) {
@@ -2351,14 +2356,14 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 				}
 			}
 
-			m_compilatrice.operateurs.ajoute_perso_unaire(
+			operateurs->ajoute_perso_unaire(
 						decl->lexeme->genre,
 						type1,
 						type_resultat,
 						decl);
 		}
 		else if (decl->params.taille == 2) {
-			auto &iter_op = m_compilatrice.operateurs.trouve_binaire(decl->lexeme->genre);
+			auto &iter_op = operateurs->trouve_binaire(decl->lexeme->genre);
 			auto type1 = type_fonc->types_entrees[0 + possede_contexte];
 			auto type2 = type_fonc->types_entrees[1 + possede_contexte];
 
@@ -2377,7 +2382,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 				}
 			}
 
-			m_compilatrice.operateurs.ajoute_perso(
+			operateurs->ajoute_perso(
 						decl->lexeme->genre,
 						type1,
 						type2,
@@ -2572,7 +2577,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 	type_enum->taille_octet = type_enum->type_donnees->taille_octet;
 	type_enum->alignement = type_enum->type_donnees->alignement;
 
-	m_compilatrice.operateurs.ajoute_operateur_basique_enum(decl->type);
+	m_compilatrice.operateurs->ajoute_operateur_basique_enum(decl->type);
 
 	auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 32>();
 

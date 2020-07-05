@@ -600,7 +600,7 @@ bool cherche_candidats_operateurs(
 
 	auto op_candidats = dls::tablet<OperateurBinaire const *, 10>();
 
-	auto &iter = compilatrice.operateurs.trouve_binaire(type_op);
+	auto &iter = compilatrice.operateurs->trouve_binaire(type_op);
 
 	for (auto i = 0; i < iter.taille(); ++i) {
 		auto op = &iter[i];

@@ -39,7 +39,9 @@ Compilatrice::Compilatrice()
 	, constructrice_ri(*this)
 {
 	initialise_identifiants(this->table_identifiants);
-	enregistre_operateurs_basiques(*this, this->operateurs);
+
+	auto ops = operateurs.verrou_ecriture();
+	enregistre_operateurs_basiques(*this, *ops);
 
 	/* Pour fprintf dans les messages d'erreurs, nous incluons toujours "stdio.h". */
 	this->ajoute_inclusion("stdio.h");
@@ -425,12 +427,14 @@ size_t Compilatrice::memoire_utilisee() const
 
 Metriques Compilatrice::rassemble_metriques() const
 {
+	auto operateurs_ = operateurs.verrou_lecture();
+
 	auto metriques = Metriques{};
 	metriques.nombre_modules  = static_cast<size_t>(modules->taille());
 	metriques.temps_validation = this->temps_validation;
 	metriques.temps_generation = this->temps_generation;
 	metriques.memoire_types = this->typeuse.memoire_utilisee();
-	metriques.memoire_operateurs = this->operateurs.memoire_utilisee();
+	metriques.memoire_operateurs = operateurs_->memoire_utilisee();
 	metriques.memoire_graphe = this->graphe_dependance.memoire_utilisee();
 	metriques.memoire_arbre += this->allocatrice_noeud.memoire_utilisee();
 	metriques.nombre_noeuds += this->allocatrice_noeud.nombre_noeuds();
@@ -438,11 +442,11 @@ Metriques Compilatrice::rassemble_metriques() const
 	metriques.nombre_noeuds_deps = static_cast<size_t>(this->graphe_dependance.noeuds.taille());
 	metriques.nombre_types = typeuse.nombre_de_types();
 
-	POUR (operateurs.operateurs_unaires) {
+	POUR (operateurs_->operateurs_unaires) {
 		metriques.nombre_operateurs += it.second.taille();
 	}
 
-	POUR (operateurs.operateurs_binaires) {
+	POUR (operateurs_->operateurs_binaires) {
 		metriques.nombre_operateurs += it.second.taille();
 	}
 

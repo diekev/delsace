@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tablet.hh"
@@ -346,7 +347,7 @@ void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine
 
 struct Typeuse {
 	GrapheDependance &graphe;
-	Operateurs &operateurs;
+	dls::outils::Synchrone<Operateurs> &operateurs_;
 
 	dls::tableau<Type *> types_communs{};
 	dls::tableau<Type *> types_simples{};
@@ -385,7 +386,7 @@ struct Typeuse {
 
 	// -------------------------
 
-	Typeuse(GrapheDependance &g, Operateurs &o);
+	Typeuse(GrapheDependance &g, dls::outils::Synchrone<Operateurs> &o);
 
 	Typeuse(Typeuse const &) = delete;
 	Typeuse &operator=(Typeuse const &) = delete;
