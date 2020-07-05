@@ -120,8 +120,6 @@ struct Compilatrice {
 	bool bit32 = false;
 	bool possede_erreur = false;
 
-	dls::tableau<NoeudDirectiveExecution *> noeuds_a_executer{};
-
 	using TypeFileUC = dls::liste<UniteCompilation>;
 	dls::outils::Synchrone<TypeFileUC> file_compilation{};
 
