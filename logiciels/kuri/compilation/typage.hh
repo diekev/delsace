@@ -345,23 +345,27 @@ struct TypePolymorphique : public Type {
 
 void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine_compacte> &noms);
 
+// À FAIRE : il peut y avoir une concurrence critique pour l'assignation d'index aux types
 struct Typeuse {
 	dls::outils::Synchrone<GrapheDependance> &graphe_;
 	dls::outils::Synchrone<Operateurs> &operateurs_;
 
+	template <typename T>
+	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
+
 	dls::tableau<Type *> types_communs{};
-	dls::tableau<Type *> types_simples{};
-	dls::tableau<TypePointeur *> types_pointeurs{};
-	dls::tableau<TypeReference *> types_references{};
-	dls::tableau<TypeStructure *> types_structures{};
-	dls::tableau<TypeEnum *> types_enums{};
-	dls::tableau<TypeTableauFixe *> types_tableaux_fixes{};
-	dls::tableau<TypeTableauDynamique *> types_tableaux_dynamiques{};
-	dls::tableau<TypeFonction *> types_fonctions{};
-	dls::tableau<TypeVariadique *> types_variadiques{};
-	dls::tableau<TypeUnion *> types_unions{};
-	dls::tableau<TypeTypeDeDonnees *> types_type_de_donnees{};
-	dls::tableau<TypePolymorphique *> types_polymorphiques{};
+	tableau_synchrone<Type *> types_simples{};
+	tableau_synchrone<TypePointeur *> types_pointeurs{};
+	tableau_synchrone<TypeReference *> types_references{};
+	tableau_synchrone<TypeStructure *> types_structures{};
+	tableau_synchrone<TypeEnum *> types_enums{};
+	tableau_synchrone<TypeTableauFixe *> types_tableaux_fixes{};
+	tableau_synchrone<TypeTableauDynamique *> types_tableaux_dynamiques{};
+	tableau_synchrone<TypeFonction *> types_fonctions{};
+	tableau_synchrone<TypeVariadique *> types_variadiques{};
+	tableau_synchrone<TypeUnion *> types_unions{};
+	tableau_synchrone<TypeTypeDeDonnees *> types_type_de_donnees{};
+	tableau_synchrone<TypePolymorphique *> types_polymorphiques{};
 
 	// mise en cache de plusieurs types pour mieux les trouver
 	TypeTypeDeDonnees *type_type_de_donnees_ = nullptr;

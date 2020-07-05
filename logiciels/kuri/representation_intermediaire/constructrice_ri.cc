@@ -98,16 +98,16 @@ void ConstructriceRI::construit_table_types()
 	ASSIGNE_INDEX(m_compilatrice.typeuse.type_type_de_donnees_);
 	ASSIGNE_INDEX(m_compilatrice.typeuse.type_chaine);
 	ASSIGNE_INDEX(m_compilatrice.typeuse.type_eini);
-	POUR (m_compilatrice.typeuse.types_simples) { ASSIGNE_INDEX(it); }
-	POUR (m_compilatrice.typeuse.types_pointeurs) { ASSIGNE_INDEX(it); }
-	POUR (m_compilatrice.typeuse.types_references) { ASSIGNE_INDEX(it); }
-	POUR (m_compilatrice.typeuse.types_structures) { ASSIGNE_INDEX(it); }
-	POUR (m_compilatrice.typeuse.types_enums) { ASSIGNE_INDEX(it); }
-	POUR (m_compilatrice.typeuse.types_tableaux_fixes) { ASSIGNE_INDEX(it); }
-	POUR (m_compilatrice.typeuse.types_tableaux_dynamiques) { ASSIGNE_INDEX(it); }
-	POUR (m_compilatrice.typeuse.types_fonctions) { ASSIGNE_INDEX(it); }
-	POUR (m_compilatrice.typeuse.types_variadiques) { ASSIGNE_INDEX(it); }
-	POUR (m_compilatrice.typeuse.types_unions) { ASSIGNE_INDEX(it); }
+	POUR (*m_compilatrice.typeuse.types_simples.verrou_ecriture()) { ASSIGNE_INDEX(it); }
+	POUR (*m_compilatrice.typeuse.types_pointeurs.verrou_ecriture()) { ASSIGNE_INDEX(it); }
+	POUR (*m_compilatrice.typeuse.types_references.verrou_ecriture()) { ASSIGNE_INDEX(it); }
+	POUR (*m_compilatrice.typeuse.types_structures.verrou_ecriture()) { ASSIGNE_INDEX(it); }
+	POUR (*m_compilatrice.typeuse.types_enums.verrou_ecriture()) { ASSIGNE_INDEX(it); }
+	POUR (*m_compilatrice.typeuse.types_tableaux_fixes.verrou_ecriture()) { ASSIGNE_INDEX(it); }
+	POUR (*m_compilatrice.typeuse.types_tableaux_dynamiques.verrou_ecriture()) { ASSIGNE_INDEX(it); }
+	POUR (*m_compilatrice.typeuse.types_fonctions.verrou_ecriture()) { ASSIGNE_INDEX(it); }
+	POUR (*m_compilatrice.typeuse.types_variadiques.verrou_ecriture()) { ASSIGNE_INDEX(it); }
+	POUR (*m_compilatrice.typeuse.types_unions.verrou_ecriture()) { ASSIGNE_INDEX(it); }
 }
 
 void ConstructriceRI::imprime_fonction(AtomeFonction *atome_fonc, std::ostream &os) const

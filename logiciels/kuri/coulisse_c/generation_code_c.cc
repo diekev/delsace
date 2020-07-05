@@ -1485,15 +1485,15 @@ void genere_code_C_pour_execution(
 
 	compilatrice.typeuse.type_chaine->drapeaux &= ~TYPEDEF_FUT_GENERE;
 	compilatrice.typeuse.type_eini->drapeaux &= ~TYPEDEF_FUT_GENERE;
-	POUR (compilatrice.typeuse.types_simples) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (compilatrice.typeuse.types_pointeurs) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (compilatrice.typeuse.types_references) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (compilatrice.typeuse.types_structures) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; }
-	POUR (compilatrice.typeuse.types_enums) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (compilatrice.typeuse.types_tableaux_fixes) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (compilatrice.typeuse.types_tableaux_dynamiques) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (compilatrice.typeuse.types_fonctions) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (compilatrice.typeuse.types_variadiques) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (compilatrice.typeuse.types_unions) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; };
-	POUR (compilatrice.typeuse.types_type_de_donnees) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (*compilatrice.typeuse.types_simples.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (*compilatrice.typeuse.types_pointeurs.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (*compilatrice.typeuse.types_references.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (*compilatrice.typeuse.types_structures.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; }
+	POUR (*compilatrice.typeuse.types_enums.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (*compilatrice.typeuse.types_tableaux_fixes.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (*compilatrice.typeuse.types_tableaux_dynamiques.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (*compilatrice.typeuse.types_fonctions.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (*compilatrice.typeuse.types_variadiques.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	POUR (*compilatrice.typeuse.types_unions.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; };
+	POUR (*compilatrice.typeuse.types_type_de_donnees.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
 }

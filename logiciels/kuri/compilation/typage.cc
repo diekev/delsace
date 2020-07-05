@@ -416,14 +416,14 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synch
 			continue;
 		}
 
-		types_simples.pousse(types_communs[i]);
+		types_simples->pousse(types_communs[i]);
 	}
 
 	type_type_de_donnees_ = TypeTypeDeDonnees::cree(nullptr);
 
 	// nous devons créer le pointeur nul avant les autres types, car nous en avons besoin pour définir les opérateurs pour les pointeurs
 	auto ptr_nul = TypePointeur::cree(nullptr);
-	types_pointeurs.pousse(ptr_nul);
+	types_pointeurs->pousse(ptr_nul);
 
 	types_communs[static_cast<long>(TypeBase::PTR_NUL)] = ptr_nul;
 
@@ -465,11 +465,11 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synch
 Typeuse::~Typeuse()
 {
 #define DELOGE_TYPES(Type, Tableau) \
-	for (auto ptr : Tableau) {\
+	for (auto ptr : *Tableau.verrou_lecture()) {\
 	memoire::deloge(#Type, ptr); \
 }
 
-	DELOGE_TYPES(Type, types_simples);
+	DELOGE_TYPES(TypePointeur, types_simples);
 	DELOGE_TYPES(TypePointeur, types_pointeurs);
 	DELOGE_TYPES(TypeReference, types_references);
 	DELOGE_TYPES(TypeStructure, types_structures);
@@ -572,8 +572,10 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 {
 	PROFILE_FONCTION;
 
+	auto types_pointeurs_ = types_pointeurs.verrou_ecriture();
+
 	if (type && (type->drapeaux & POSSEDE_TYPE_POINTEUR) != 0) {
-		POUR (types_pointeurs) {
+		POUR (*types_pointeurs_) {
 			if (it->type_pointe == type) {
 				return it;
 			}
@@ -620,7 +622,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 	operateurs->ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice);
 	operateurs->ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice);
 
-	types_pointeurs.pousse(resultat);
+	types_pointeurs_->pousse(resultat);
 
 	return resultat;
 }
@@ -629,8 +631,10 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
 {
 	PROFILE_FONCTION;
 
+	auto types_references_ = types_references.verrou_ecriture();
+
 	if ((type->drapeaux & POSSEDE_TYPE_REFERENCE) != 0) {
-		POUR (types_references) {
+		POUR (*types_references_) {
 			if (it->type_pointe == type) {
 				return it;
 			}
@@ -638,7 +642,7 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
 	}
 
 	auto resultat = TypeReference::cree(type);
-	types_references.pousse(resultat);
+	types_references_->pousse(resultat);
 
 	auto graphe = graphe_.verrou_ecriture();
 	graphe->connecte_type_type(resultat, type);
@@ -650,8 +654,10 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 {
 	PROFILE_FONCTION;
 
+	auto types_tableaux_fixes_ = types_tableaux_fixes.verrou_ecriture();
+
 	if ((type_pointe->drapeaux & POSSEDE_TYPE_TABLEAU_FIXE) != 0) {
-		POUR (types_tableaux_fixes) {
+		POUR (*types_tableaux_fixes_) {
 			if (it->type_pointe == type_pointe && it->taille == taille) {
 				return it;
 			}
@@ -668,7 +674,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 	auto graphe = graphe_.verrou_ecriture();
 	graphe->connecte_type_type(type, type_pointe);
 
-	types_tableaux_fixes.pousse(type);
+	types_tableaux_fixes_->pousse(type);
 
 	return type;
 }
@@ -677,8 +683,10 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 {
 	PROFILE_FONCTION;
 
+	auto types_tableaux_dynamiques_ = types_tableaux_dynamiques.verrou_ecriture();
+
 	if ((type_pointe->drapeaux & POSSEDE_TYPE_TABLEAU_DYNAMIQUE) != 0) {
-		POUR (types_tableaux_dynamiques) {
+		POUR (*types_tableaux_dynamiques_) {
 			if (it->type_pointe == type_pointe) {
 				return it;
 			}
@@ -695,7 +703,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 	auto graphe = graphe_.verrou_ecriture();
 	graphe->connecte_type_type(type, type_pointe);
 
-	types_tableaux_dynamiques.pousse(type);
+	types_tableaux_dynamiques_->pousse(type);
 
 	return type;
 }
@@ -704,7 +712,9 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 {
 	PROFILE_FONCTION;
 
-	POUR (types_variadiques) {
+	auto types_variadiques_ = types_variadiques.verrou_ecriture();
+
+	POUR (*types_variadiques_) {
 		if (it->type_pointe == type_pointe) {
 			return it;
 		}
@@ -722,7 +732,7 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 		graphe->connecte_type_type(type, type_pointe);
 	}
 
-	types_variadiques.pousse(type);
+	types_variadiques_->pousse(type);
 
 	return type;
 }
@@ -756,7 +766,9 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 {
 	PROFILE_FONCTION;
 
-	POUR (types_fonctions) {
+	auto types_fonctions_ = types_fonctions.verrou_ecriture();
+
+	POUR (*types_fonctions_) {
 		auto type = discr_type_fonction(it, entrees, sorties);
 
 		if (type != nullptr) {
@@ -766,7 +778,7 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 
 	auto type = TypeFonction::cree(std::move(entrees), std::move(sorties));
 
-	types_fonctions.pousse(type);
+	types_fonctions_->pousse(type);
 
 	auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
@@ -802,8 +814,10 @@ TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
 		return type_type_de_donnees_;
 	}
 
+	auto types_type_de_donnees_ = types_type_de_donnees.verrou_ecriture();
+
 	if ((type_connu->drapeaux & POSSEDE_TYPE_TYPE_DE_DONNEES) != 0) {
-		POUR (types_type_de_donnees) {
+		POUR (*types_type_de_donnees_) {
 			if (it->type_connu == type_connu) {
 				return it;
 			}
@@ -812,7 +826,7 @@ TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
 
 	auto type = TypeTypeDeDonnees::cree(type_connu);
 
-	types_type_de_donnees.pousse(type);
+	types_type_de_donnees_->pousse(type);
 
 	return type;
 }
@@ -827,7 +841,7 @@ TypeStructure *Typeuse::reserve_type_structure(NoeudStruct *decl)
 		type->nom = decl->lexeme->chaine;
 	}
 
-	types_structures.pousse(type);
+	types_structures->pousse(type);
 
 	return type;
 }
@@ -839,7 +853,7 @@ TypeEnum *Typeuse::reserve_type_enum(NoeudEnum *decl)
 	type->decl = decl;
 	type->drapeaux |= (RI_TYPE_FUT_GENEREE);
 
-	types_enums.pousse(type);
+	types_enums->pousse(type);
 
 	return type;
 }
@@ -850,7 +864,7 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
 	type->nom = decl->lexeme->chaine;
 	type->decl = decl;
 
-	types_unions.pousse(type);
+	types_unions->pousse(type);
 
 	return type;
 }
@@ -859,7 +873,9 @@ TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
 {
 	PROFILE_FONCTION;
 
-	POUR (types_unions) {
+	auto types_unions_ = types_unions.verrou_ecriture();
+
+	POUR (*types_unions_) {
 		if (!it->est_anonyme) {
 			continue;
 		}
@@ -923,7 +939,7 @@ TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
 
 	type->cree_type_structure(*this, decalage_index);
 
-	types_unions.pousse(type);
+	types_unions_->pousse(type);
 
 	return type;
 }
@@ -940,14 +956,16 @@ TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
 {
 	PROFILE_FONCTION;
 
-	POUR (types_polymorphiques) {
+	auto types_polymorphiques_ = types_polymorphiques.verrou_ecriture();
+
+	POUR (*types_polymorphiques_) {
 		if (it->ident == ident) {
 			return it;
 		}
 	}
 
 	auto type = TypePolymorphique::cree(ident);
-	types_polymorphiques.pousse(type);
+	types_polymorphiques_->pousse(type);
 	return type;
 }
 
@@ -956,7 +974,7 @@ size_t Typeuse::memoire_utilisee() const
 	auto memoire = 0ul;
 
 #define COMPTE_MEMOIRE(Type, Tableau) \
-	memoire += static_cast<size_t>(Tableau.taille()) * (sizeof(Type *) + sizeof(Type))
+	memoire += static_cast<size_t>(Tableau->taille()) * (sizeof(Type *) + sizeof(Type))
 
 	COMPTE_MEMOIRE(Type, types_simples);
 	COMPTE_MEMOIRE(TypePointeur, types_pointeurs);
@@ -978,34 +996,34 @@ size_t Typeuse::memoire_utilisee() const
 	// les types communs sont dans les types simples, ne comptons que la mémoire du tableau
 	memoire += static_cast<size_t>(types_communs.taille()) * sizeof(Type *);
 
-	POUR (types_structures) {
+	POUR (*types_structures.verrou_lecture()) {
 		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
 	}
 
-	POUR (types_enums) {
+	POUR (*types_enums.verrou_lecture()) {
 		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
 	}
 
-	POUR (types_unions) {
+	POUR (*types_unions.verrou_lecture()) {
 		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
 	}
 
-	POUR (types_tableaux_fixes) {
+	POUR (*types_tableaux_fixes.verrou_lecture()) {
 		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
 	}
 
-	POUR (types_tableaux_dynamiques) {
+	POUR (*types_tableaux_dynamiques.verrou_lecture()) {
 		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
 	}
 
-	POUR (types_variadiques) {
+	POUR (*types_variadiques.verrou_lecture()) {
 		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
 	}
 
 	memoire += static_cast<size_t>(type_eini->membres.taille) * sizeof(TypeCompose::Membre);
 	memoire += static_cast<size_t>(type_chaine->membres.taille) * sizeof(TypeCompose::Membre);
 
-	POUR (types_fonctions) {
+	POUR (*types_fonctions.verrou_lecture()) {
 		memoire += static_cast<size_t>(it->types_entrees.taille) * sizeof(Type *);
 		memoire += static_cast<size_t>(it->types_sorties.taille) * sizeof(Type *);
 	}
@@ -1016,23 +1034,23 @@ size_t Typeuse::memoire_utilisee() const
 long Typeuse::nombre_de_types() const
 {
 	auto compte = 0l;
-	compte += types_simples.taille();
-	compte += types_pointeurs.taille();
-	compte += types_references.taille();
-	compte += types_structures.taille();
-	compte += types_enums.taille();
-	compte += types_tableaux_fixes.taille();
-	compte += types_tableaux_dynamiques.taille();
-	compte += types_fonctions.taille();
-	compte += types_variadiques.taille();
-	compte += types_unions.taille();
-	compte += types_type_de_donnees.taille();
-	compte += types_polymorphiques.taille();
+	compte += types_simples->taille();
+	compte += types_pointeurs->taille();
+	compte += types_references->taille();
+	compte += types_structures->taille();
+	compte += types_enums->taille();
+	compte += types_tableaux_fixes->taille();
+	compte += types_tableaux_dynamiques->taille();
+	compte += types_fonctions->taille();
+	compte += types_variadiques->taille();
+	compte += types_unions->taille();
+	compte += types_type_de_donnees->taille();
+	compte += types_polymorphiques->taille();
 	compte += 2; // eini et chaine
 
 #if 0
 #define IMPRIME_NOMBRE_TYPE(x) \
-	std::cerr << #x" : " << x.taille() << '\n'
+	std::cerr << #x" : " << x->taille() << '\n'
 
 	IMPRIME_NOMBRE_TYPE(types_simples);
 	IMPRIME_NOMBRE_TYPE(types_pointeurs);
