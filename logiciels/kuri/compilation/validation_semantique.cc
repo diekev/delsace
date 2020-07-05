@@ -2447,7 +2447,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 			auto val_ctx = static_cast<NoeudExpressionReference *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
 			val_ctx->type = m_compilatrice.typeuse.type_contexte;
 			val_ctx->bloc_parent = decl->bloc_parent;
-			val_ctx->ident = m_compilatrice.table_identifiants.identifiant_pour_chaine("contexte");
+			val_ctx->ident = ID::contexte;
 
 			auto decl_ctx = static_cast<NoeudDeclarationVariable *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
 			decl_ctx->bloc_parent = decl->bloc_parent;
@@ -2511,7 +2511,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 			auto val_ctx = static_cast<NoeudExpressionReference *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
 			val_ctx->type = m_compilatrice.typeuse.type_contexte;
 			val_ctx->bloc_parent = decl->bloc_parent;
-			val_ctx->ident = m_compilatrice.table_identifiants.identifiant_pour_chaine("contexte");
+			val_ctx->ident = ID::contexte;
 
 			auto decl_ctx = static_cast<NoeudDeclarationVariable *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
 			decl_ctx->bloc_parent = decl->bloc_parent;
