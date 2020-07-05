@@ -132,12 +132,19 @@ x => x.nom // crée une fonction foo :: (x: $T) -> chaine { retourne x.nom }
 
 - interfaces/traits (besoin de tables virtuelles)
 
+- appel les fonctions d'initialisation pour les constructions de structure si un membre est une structure
+- généralisation de l'utilisation de temporaires pour simplifier la génération de la RI, supprimant les cas spéciaux
+-- paramètres des appels
+- supprime les entiers constants des coulisses
+
 
 À faire (architecture)
 ----------------------
 - préparsage pour construire une table de symbole
 - utilisation de pluriseurs tacheronnes
 - génération de code sur plusieurs threads (LLVM -> un module par thread + liaison finale de tous les modules)
+- ajout d'espaces de travaux
+- réduction des allocations
 
 
 À faire (tests)
