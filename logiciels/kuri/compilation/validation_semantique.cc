@@ -94,11 +94,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 	switch (noeud->genre) {
 		case GenreNoeud::INSTRUCTION_SINON:
-		case GenreNoeud::DECLARATION_COROUTINE:
-		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
-		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
-		case GenreNoeud::INSTRUCTION_DISCR_UNION:
-		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
@@ -106,6 +101,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			break;
 		}
+		case GenreNoeud::DECLARATION_COROUTINE:
 		case GenreNoeud::DECLARATION_FONCTION:
 		{
 			auto decl = static_cast<NoeudDeclarationFonction *>(noeud);
@@ -310,6 +306,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			break;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
 			auto inst = static_cast<NoeudExpressionMembre *>(noeud);
 			auto enfant1 = inst->accede;
@@ -571,6 +568,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			break;
 		}
 		case GenreNoeud::OPERATEUR_BINAIRE:
+		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		{
 			auto expr = static_cast<NoeudExpressionBinaire *>(noeud);
 			expr->genre_valeur = GenreValeur::DROITE;
@@ -1728,6 +1726,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			return valide_enum(static_cast<NoeudEnum *>(noeud));
 		}
 		case GenreNoeud::INSTRUCTION_DISCR:
+		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
+		case GenreNoeud::INSTRUCTION_DISCR_UNION:
 		{
 			auto inst = static_cast<NoeudDiscr *>(noeud);
 
