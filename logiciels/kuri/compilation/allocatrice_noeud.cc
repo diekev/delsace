@@ -206,8 +206,8 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 
 	pour_chaque_element(m_noeuds_bloc, [&](NoeudBloc const &noeud)
 	{
-		memoire += static_cast<size_t>(noeud.membres.taille) * sizeof(NoeudDeclaration *);
-		memoire += static_cast<size_t>(noeud.expressions.taille) * sizeof(NoeudExpression *);
+		memoire += static_cast<size_t>(noeud.membres->taille) * sizeof(NoeudDeclaration *);
+		memoire += static_cast<size_t>(noeud.expressions->taille) * sizeof(NoeudExpression *);
 		memoire += static_cast<size_t>(noeud.noeuds_differes.taille) * sizeof(NoeudBloc *);
 	});
 

@@ -237,6 +237,16 @@ struct tableau {
 	{
 		return this->begin() + this->taille;
 	}
+
+	T &a(long index)
+	{
+		return this->pointeur[index];
+	}
+
+	T const &a(long index)  const
+	{
+		return this->pointeur[index];
+	}
 };
 
 template <typename T>

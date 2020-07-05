@@ -731,7 +731,7 @@ static auto apparie_appel_structure(
 		auto decl_membre = static_cast<NoeudDeclaration *>(nullptr);
 		index_membre = 0;
 
-		for (auto &membre : decl_struct->bloc->membres) {
+		for (auto &membre : *decl_struct->bloc->membres.verrou_lecture()) {
 			if (membre->ident == it.ident) {
 				type_membre = membre->type;
 				decl_membre = membre;

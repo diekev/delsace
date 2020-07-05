@@ -414,8 +414,11 @@ struct NoeudBloc : public NoeudExpression {
 
 	NoeudExpression *appartiens_a_boucle = nullptr;
 
-	kuri::tableau<NoeudDeclaration *> membres{};
-	kuri::tableau<NoeudExpression *>  expressions{};
+	template <typename T>
+	using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T>>;
+
+	tableau_synchrone<NoeudDeclaration *> membres{};
+	tableau_synchrone<NoeudExpression *>  expressions{};
 
 	kuri::tableau<NoeudBloc *> noeuds_differes{};
 

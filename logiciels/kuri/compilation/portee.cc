@@ -38,7 +38,8 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 	auto bloc_courant = bloc;
 
 	while (bloc_courant != nullptr) {
-		POUR (bloc_courant->membres) {
+		auto membres = bloc_courant->membres.verrou_lecture();
+		POUR (*membres) {
 			if (it->ident == ident) {
 				return it;
 			}
@@ -57,7 +58,8 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl)
 	auto bloc_courant = bloc;
 
 	while (bloc_courant != nullptr) {
-		POUR (bloc_courant->membres) {
+		auto membres = bloc_courant->membres.verrou_lecture();
+		POUR (*membres) {
 			if (it != decl && it->ident == decl->ident) {
 				return it;
 			}
@@ -73,7 +75,8 @@ NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudBase *noeud)
 {
 	PROFILE_FONCTION;
 
-	POUR (bloc->membres) {
+	auto membres = bloc->membres.verrou_lecture();
+	POUR (*membres) {
 		if (it == noeud) {
 			continue;
 		}
@@ -124,7 +127,8 @@ NoeudDeclaration *trouve_type_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 	auto bloc_courant = bloc;
 
 	while (bloc_courant != nullptr) {
-		POUR (bloc_courant->membres) {
+		auto membres = bloc_courant->membres.verrou_lecture();
+		POUR (*membres) {
 			if (it->ident != ident) {
 				continue;
 			}
@@ -183,7 +187,8 @@ void trouve_declarations_dans_bloc(
 	auto bloc_courant = bloc;
 
 	while (bloc_courant != nullptr) {
-		POUR (bloc_courant->membres) {
+		auto membres = bloc_courant->membres.verrou_lecture();
+		POUR (*membres) {
 			if (it->ident == ident) {
 				declarations.pousse(it);
 			}
@@ -238,11 +243,14 @@ NoeudBase *derniere_instruction(NoeudBloc *b)
 {
 	PROFILE_FONCTION;
 
-	if (b->expressions.taille == 0) {
+	auto expressions = b->expressions.verrou_lecture();
+	auto taille = expressions->taille;
+
+	if (taille == 0) {
 		return static_cast<NoeudBase *>(nullptr);
 	}
 
-	auto di = b->expressions[b->expressions.taille - 1];
+	auto di = expressions->a(taille - 1);
 
 	if (est_instruction_retour(di->genre) || (di->genre == GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
 		return di;

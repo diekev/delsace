@@ -192,7 +192,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			noeud_decl->type = type_fonction;
 
 			noeud_decl->bloc = static_cast<NoeudBloc *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, noeud->lexeme));
-			noeud_decl->bloc->expressions.pousse(noeud_directive->expr);
+			noeud_decl->bloc->expressions->pousse(noeud_directive->expr);
 			// À FAIRE : instruction de retour
 
 			auto graphe = m_compilatrice.graphe_dependance.verrou_ecriture();
@@ -542,7 +542,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					decl_membre->bloc_parent = decl->bloc_parent;
 					decl_membre->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-					decl->bloc_parent->membres.pousse(static_cast<NoeudDeclaration *>(decl_membre));
+					decl->bloc_parent->membres->pousse(static_cast<NoeudDeclaration *>(decl_membre));
 				}
 			}
 
@@ -1096,11 +1096,13 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			auto inst = static_cast<NoeudBloc *>(noeud);
 
-			if (inst->expressions.est_vide()) {
+			auto expressions = inst->expressions.verrou_lecture();
+
+			if (expressions->est_vide()) {
 				noeud->type = m_compilatrice.typeuse[TypeBase::RIEN];
 			}
 			else {
-				noeud->type = inst->expressions[inst->expressions.taille - 1]->type;
+				noeud->type = expressions->a(expressions->taille - 1)->type;
 			}
 
 			break;
@@ -1200,7 +1202,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			donnees_dependance.types_utilises.insere(type);
-			enfant3->membres.reserve(feuilles.taille());
+			enfant3->membres->reserve(feuilles.taille());
 
 			auto nombre_feuilles = feuilles.taille() - requiers_index;
 
@@ -1220,7 +1222,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					f->drapeaux |= EST_VAR_BOUCLE;
 				}
 
-				enfant3->membres.pousse(decl_f);
+				enfant3->membres->pousse(decl_f);
 			}
 
 			if (requiers_index) {
@@ -1241,7 +1243,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				decl_idx->lexeme = idx->lexeme;
 				decl_idx->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-				enfant3->membres.pousse(decl_idx);
+				enfant3->membres->pousse(decl_idx);
 			}
 
 			break;
@@ -1757,7 +1759,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				auto valide_presence_membres = [&membres_rencontres, &decl, this, &expression]() {
 					auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
 
-					POUR (decl->bloc->membres) {
+					POUR (*decl->bloc->membres.verrou_lecture()) {
 						if (!membres_rencontres.possede(it->ident)) {
 							valeurs_manquantes.insere(it->lexeme->chaine);
 						}
@@ -1819,7 +1821,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					decl_expr->type = expr_paire->type;
 					// À FAIRE: mise en place des informations d'emploie
 
-					bloc_paire->membres.pousse(decl_expr);
+					bloc_paire->membres->pousse(decl_expr);
 				}
 
 				if (inst->bloc_sinon == nullptr) {
@@ -2083,7 +2085,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				decl_var_piege->drapeaux |= DECLARATION_FUT_VALIDEE;
 
 				// ne l'ajoute pas aux expressions, car nous devons l'initialiser manuellement
-				inst->bloc->membres.pousse_front(decl_var_piege);
+				inst->bloc->membres->pousse_front(decl_var_piege);
 
 				auto di = derniere_instruction(inst->bloc);
 
@@ -2391,7 +2393,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 		}
 	}
 	else {
-		POUR (decl->bloc_parent->membres) {
+		POUR (*decl->bloc_parent->membres.verrou_lecture()) {
 			if (it == decl) {
 				continue;
 			}
@@ -2441,7 +2443,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 	if (unite->index_reprise == 0) {
 		auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
 
-		decl->bloc->membres.reserve(decl->params.taille + requiers_contexte);
+		decl->bloc->membres->reserve(decl->params.taille + requiers_contexte);
 
 		if (requiers_contexte) {
 			auto val_ctx = static_cast<NoeudExpressionReference *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
@@ -2456,12 +2458,12 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 			decl_ctx->ident = val_ctx->ident;
 			decl_ctx->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-			decl->bloc->membres.pousse(decl_ctx);
+			decl->bloc->membres->pousse(decl_ctx);
 		}
 
 		POUR (decl->params) {
 			auto argument = static_cast<NoeudDeclarationVariable *>(it);
-			decl->bloc->membres.pousse(argument);
+			decl->bloc->membres->pousse(argument);
 		}
 	}
 
@@ -2505,7 +2507,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 	if (unite->index_reprise == 0) {
 		auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
 
-		decl->bloc->membres.reserve(decl->params.taille + requiers_contexte);
+		decl->bloc->membres->reserve(decl->params.taille + requiers_contexte);
 
 		if (requiers_contexte) {
 			auto val_ctx = static_cast<NoeudExpressionReference *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
@@ -2520,12 +2522,12 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 			decl_ctx->ident = val_ctx->ident;
 			decl_ctx->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-			decl->bloc->membres.pousse(decl_ctx);
+			decl->bloc->membres->pousse(decl_ctx);
 		}
 
 		POUR (decl->params) {
 			auto argument = static_cast<NoeudDeclarationVariable *>(it);
-			decl->bloc->membres.pousse(argument);
+			decl->bloc->membres->pousse(argument);
 		}
 	}
 
@@ -2585,9 +2587,9 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 	/* utilise est_errone pour indiquer que nous sommes à la première valeur */
 	dernier_res.est_errone = true;
 
-	membres.reserve(decl->bloc->expressions.taille);
+	membres.reserve(decl->bloc->expressions->taille);
 
-	POUR (decl->bloc->expressions) {
+	POUR (*decl->bloc->expressions.verrou_ecriture()) {
 		if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
 			rapporte_erreur("Type d'expression inattendu dans l'énum", it);
 			return true;
@@ -2677,7 +2679,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		return false;
 	}
 
-	if (decl->bloc->membres.est_vide()) {
+	if (decl->bloc->membres->est_vide()) {
 		rapporte_erreur("Bloc vide pour la déclaration de structure", decl);
 		return true;
 	}
@@ -2694,7 +2696,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	auto type_struct = static_cast<TypeStructure *>(decl->type);
 	// @réinitialise en cas d'erreurs passées
 	type_struct->membres = kuri::tableau<TypeCompose::Membre>();
-	type_struct->membres.reserve(decl->bloc->membres.taille);
+	type_struct->membres.reserve(decl->bloc->membres->taille);
 
 	auto verifie_inclusion_valeur = [&decl, this](NoeudExpression *enf)
 	{
@@ -2759,7 +2761,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		auto type_union = static_cast<TypeUnion *>(decl->type);
 		type_union->est_nonsure = decl->est_nonsure;
 
-		POUR (decl->bloc->membres) {
+		POUR (*decl->bloc->membres.verrou_ecriture()) {
 			auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
 			auto decl_membre = decl_var->valeur;
 
@@ -2792,7 +2794,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 		auto taille_union = 0u;
 
-		POUR (decl->bloc->membres) {
+		POUR (*decl->bloc->membres.verrou_lecture()) {
 			auto type_membre = it->type;
 			auto taille = type_membre->taille_octet;
 
@@ -2836,7 +2838,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		return false;
 	}
 
-	POUR (decl->bloc->expressions) {
+	POUR (*decl->bloc->expressions.verrou_ecriture()) {
 		if (dls::outils::est_element(it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
 			// utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
 			auto type_de_donnees = m_compilatrice.typeuse.type_type_de_donnees(it->type);
@@ -2914,9 +2916,9 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 			auto decl_struct_empl = type_struct_empl->decl;
 
-			type_struct->membres.reserve(type_struct->membres.taille + decl_struct_empl->bloc->membres.taille);
+			type_struct->membres.reserve(type_struct->membres.taille + decl_struct_empl->bloc->membres->taille);
 
-			for (auto decl_it_empl : decl_struct_empl->bloc->membres) {
+			for (auto decl_it_empl : *decl_struct_empl->bloc->membres.verrou_lecture()) {
 				auto it_empl = static_cast<NoeudDeclarationVariable *>(decl_it_empl);
 				if (ajoute_donnees_membre(it_empl->valeur, it_empl->expression)) {
 					return true;

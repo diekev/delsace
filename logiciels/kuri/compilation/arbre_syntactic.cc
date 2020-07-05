@@ -103,9 +103,9 @@ void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
 			auto bloc = static_cast<NoeudBloc *>(racine);
 
 			imprime_tab(os, tab);
-			os << "bloc : " << bloc->expressions.taille << " expression(s)\n";
+			os << "bloc : " << bloc->expressions->taille << " expression(s)\n";
 
-			POUR (bloc->expressions) {
+			POUR (*bloc->expressions.verrou_lecture()) {
 				imprime_arbre(it, os, tab + 1);
 			}
 
@@ -399,15 +399,15 @@ NoeudExpression *copie_noeud(
 		{
 			auto bloc = static_cast<NoeudBloc const *>(racine);
 			auto nbloc = static_cast<NoeudBloc *>(nracine);
-			nbloc->membres.reserve(bloc->membres.taille);
-			nbloc->expressions.reserve(bloc->expressions.taille);
+			nbloc->membres->reserve(bloc->membres->taille);
+			nbloc->expressions->reserve(bloc->expressions->taille);
 
-			POUR (bloc->expressions) {
+			POUR (*bloc->expressions.verrou_lecture()) {
 				auto nexpr = copie_noeud(assem, it, nbloc);
-				nbloc->expressions.pousse(nexpr);
+				nbloc->expressions->pousse(nexpr);
 
 				if (est_declaration(nexpr->genre)) {
-					nbloc->membres.pousse(static_cast<NoeudDeclaration *>(nexpr));
+					nbloc->membres->pousse(static_cast<NoeudDeclaration *>(nexpr));
 				}
 			}
 
@@ -683,7 +683,7 @@ void aplatis_arbre(
 		{
 			auto bloc = static_cast<NoeudBloc *>(racine);
 
-			POUR (bloc->expressions) {
+			POUR (*bloc->expressions.verrou_lecture()) {
 				aplatis_arbre(it, arbre_aplatis, drapeau);
 			}
 

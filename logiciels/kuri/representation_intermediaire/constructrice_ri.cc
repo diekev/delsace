@@ -972,7 +972,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return nullptr;
 			}
 
-			POUR (noeud_bloc->expressions) {
+			POUR (*noeud_bloc->expressions.verrou_lecture()) {
 				genere_ri_pour_noeud(it);
 			}
 
@@ -3152,7 +3152,7 @@ Atome *ConstructriceRI::valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident)
 
 	auto index_membre = 0;
 
-	POUR (decl_enum->bloc->membres) {
+	POUR (*decl_enum->bloc->membres.verrou_lecture()) {
 		if (it->ident == ident) {
 			break;
 		}

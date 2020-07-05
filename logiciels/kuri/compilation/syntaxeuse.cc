@@ -403,14 +403,14 @@ void Syntaxeuse::lance_analyse()
 					decl_var->expression_type = noeud->expression_type;
 					decl_var->valeur = noeud;
 
-					decl_var->bloc_parent->membres.pousse(decl_var);
-					decl_var->bloc_parent->expressions.pousse(decl_var);
+					decl_var->bloc_parent->membres->pousse(decl_var);
+					decl_var->bloc_parent->expressions->pousse(decl_var);
 					decl_var->drapeaux |= EST_GLOBALE;
 					m_compilatrice.ajoute_unite_compilation_pour_typage(decl_var);
 				}
 				else if (est_declaration(noeud->genre)) {
-					noeud->bloc_parent->membres.pousse(static_cast<NoeudDeclaration *>(noeud));
-					noeud->bloc_parent->expressions.pousse(noeud);
+					noeud->bloc_parent->membres->pousse(static_cast<NoeudDeclaration *>(noeud));
+					noeud->bloc_parent->expressions->pousse(noeud);
 					noeud->drapeaux |= EST_GLOBALE;
 
 					if (!dls::outils::est_element(noeud->genre, GenreNoeud::DECLARATION_FONCTION, GenreNoeud::DECLARATION_OPERATEUR, GenreNoeud::DECLARATION_COROUTINE)) {
@@ -418,7 +418,7 @@ void Syntaxeuse::lance_analyse()
 					}
 				}
 				else {
-					noeud->bloc_parent->expressions.pousse(noeud);
+					noeud->bloc_parent->expressions->pousse(noeud);
 					m_compilatrice.ajoute_unite_compilation_pour_typage(noeud);
 				}
 			}
@@ -1401,8 +1401,8 @@ NoeudBloc *Syntaxeuse::analyse_bloc()
 		}
 	}
 
-	copie_tablet_tableau(membres, bloc->membres);
-	copie_tablet_tableau(expressions, bloc->expressions);
+	copie_tablet_tableau(membres, *bloc->membres.verrou_ecriture());
+	copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 	m_fichier->module->assembleuse->depile_bloc();
 
 	consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}'");
@@ -1610,7 +1610,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 			noeud->bloc_si_faux = m_fichier->module->assembleuse->empile_bloc();
 
 			auto noeud_si = analyse_instruction_si(GenreNoeud::INSTRUCTION_SI);
-			noeud->bloc_si_faux->expressions.pousse(noeud_si);
+			noeud->bloc_si_faux->expressions->pousse(noeud_si);
 
 			m_fichier->module->assembleuse->depile_bloc();
 		}
@@ -1618,7 +1618,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 			noeud->bloc_si_faux = m_fichier->module->assembleuse->empile_bloc();
 
 			auto noeud_saufsi = analyse_instruction_si(GenreNoeud::INSTRUCTION_SAUFSI);
-			noeud->bloc_si_faux->expressions.pousse(noeud_saufsi);
+			noeud->bloc_si_faux->expressions->pousse(noeud_saufsi);
 
 			m_fichier->module->assembleuse->depile_bloc();
 		}
@@ -1702,8 +1702,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 		}
 	}
 
-	copie_tablet_tableau(membres, bloc->membres);
-	copie_tablet_tableau(expressions, bloc->expressions);
+	copie_tablet_tableau(membres, *bloc->membres.verrou_ecriture());
+	copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 
 	m_fichier->module->assembleuse->depile_bloc();
 	noeud_decl->bloc = bloc;
@@ -2125,10 +2125,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 			}
 		}
 
-		copie_tablet_tableau(membres, bloc->membres);
-		copie_tablet_tableau(expressions, bloc->expressions);
+		copie_tablet_tableau(membres, *bloc->membres.verrou_ecriture());
+		copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 
-		POUR (bloc->membres) {
+		POUR (*bloc->membres.verrou_lecture()) {
 			aplatis_arbre(it, noeud_decl->arbre_aplatis, drapeaux_noeud::AUCUN);
 		}
 
