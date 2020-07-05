@@ -37,8 +37,24 @@ add_library(${NOM_PROJET} STATIC
 	crypt_blowfish.c
 	crypt_gensalt.c
 	krypto.cc
-	sha256.cc
 	wrapper.c
+
+	crc32.cpp
+	#digest.cpp
+	#keccak.cpp
+	md5.cpp
+	sha1.cpp
+	sha3.cpp
+    sha256.cpp
+
+    crc32.h
+    hash.h
+    hmac.h
+    keccak.h
+    md5.h
+    sha1.h
+    sha3.h
+    sha256.h
 
 	bcrypt.h
 	crypt.h
@@ -46,7 +62,6 @@ add_library(${NOM_PROJET} STATIC
 	crypt_gensalt.h
 	krypto.hh
 	ow-crypt.h
-	sha256.hh
 
 	x86.S
 )

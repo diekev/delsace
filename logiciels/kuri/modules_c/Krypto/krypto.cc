@@ -29,7 +29,13 @@
 #include <string.h>
 
 #include "bcrypt.h"
-#include "sha256.hh"
+#include "keccak.h"
+#include "hmac.h"
+#include "crc32.h"
+#include "md5.h"
+#include "sha1.h"
+#include "sha256.h"
+#include "sha3.h"
 
 extern "C" {
 
@@ -64,127 +70,114 @@ int BCrypt_compare_empreinte(char *mot_de_passe, char *empreinte)
 	return bcrypt_checkpw(mot_de_passe, empreinte);
 }
 
+static void converti_hash_chaine_hex(char *sortie, unsigned char *hash_cru, int taille)
+{
+	static const char dec2hex[16+1] = "0123456789abcdef";
+
+	for (int i = 0; i < taille; i++) {
+		*sortie++ = dec2hex[(hash_cru[i] >> 4) & 15];
+		*sortie++ = dec2hex[ hash_cru[i]       & 15];
+	}
+}
+
+long CRC32_taille_tampon()
+{
+	return 2 * CRC32::HashBytes;
+}
+
+void CRC32_genere_empreinte(char *entree, long taille, char *sortie)
+{
+	auto sha256 = CRC32();
+	sha256.add(entree, static_cast<unsigned long>(taille));
+
+	unsigned char rawHash[CRC32::HashBytes];
+	sha256.getHash(rawHash);
+
+	converti_hash_chaine_hex(sortie, rawHash, CRC32::HashBytes);
+}
+
+long MD5_taille_tampon()
+{
+	return 2 * MD5::HashBytes;
+}
+
+void MD5_genere_empreinte(char *entree, long taille, char *sortie)
+{
+	auto sha256 = MD5();
+	sha256.add(entree, static_cast<unsigned long>(taille));
+
+	unsigned char rawHash[MD5::HashBytes];
+	sha256.getHash(rawHash);
+
+	converti_hash_chaine_hex(sortie, rawHash, MD5::HashBytes);
+}
+
+long SHA1_taille_tampon()
+{
+	return 2 * SHA1::HashBytes;
+}
+
+void SHA1_genere_empreinte(char *entree, long taille, char *sortie)
+{
+	auto sha1 = SHA1();
+	sha1.add(entree, static_cast<unsigned long>(taille));
+
+	unsigned char rawHash[SHA1::HashBytes];
+	sha1.getHash(rawHash);
+
+	converti_hash_chaine_hex(sortie, rawHash, SHA1::HashBytes);
+}
+
 long SHA256_taille_tampon()
 {
-	return 2 * sha256::SHA256::DIGEST_SIZE;
+	return 2 * SHA256::HashBytes;
 }
 
 void SHA256_genere_empreinte(char *entree, long taille, char *sortie)
 {
-	using namespace sha256;
+	auto sha256 = SHA256();
+	sha256.add(entree, static_cast<unsigned long>(taille));
 
-	uint8 digest[SHA256::DIGEST_SIZE];
-	memset(digest, 0, SHA256::DIGEST_SIZE);
+	unsigned char rawHash[SHA256::HashBytes];
+	sha256.getHash(rawHash);
 
-	auto ctx = SHA256{};
-	ctx.init();
-	ctx.update(reinterpret_cast<const unsigned char*>(entree), static_cast<unsigned>(taille));
-	ctx.final(digest);
-
-	char buf[2 * SHA256::DIGEST_SIZE + 1];
-	buf[2 * SHA256::DIGEST_SIZE] = 0;
-
-	for (auto i = 0u; i < SHA256::DIGEST_SIZE; i++) {
-		sprintf(buf+i*2, "%02x", digest[i]);
-	}
-
-	strncpy(sortie, buf, 2 * SHA256::DIGEST_SIZE);
+	converti_hash_chaine_hex(sortie, rawHash, SHA256::HashBytes);
 }
 
-}
-
-void HMAC_genere_empreinte(unsigned char *cle, long taille_cle, unsigned char *message, long taille_message)
+long SHA384_taille_tampon()
 {
-	// initialize key with zeros
-	unsigned char usedKey[2 * sha256::SHA256::DIGEST_SIZE] = {0};
+	return SHA3::Bits384 / 4;
+}
 
-	// adjust length of key: must contain exactly blockSize bytes
-	if (taille_cle <= 2 * sha256::SHA256::DIGEST_SIZE) {
-		// copy key
-		memcpy(usedKey, cle, static_cast<size_t>(taille_cle));
-	}
-	else {
-		// shorten key: usedKey = hashed(key)
-		using namespace sha256;
-		auto ctx = SHA256{};
-		ctx.init();
-		ctx.update(cle, static_cast<unsigned>(taille_cle));
-		ctx.final(usedKey);
-		//SHA256_genere_empreinte(reinterpret_cast<char *>(cle), taille_cle, reinterpret_cast<char *>(usedKey));
-	}
+void SHA384_genere_empreinte(char *entree, long taille, char *sortie)
+{
+	auto sha3 = SHA3(SHA3::Bits384);
+	sha3.add(entree, static_cast<unsigned long>(taille));
+	sha3.getHash(sortie);
+}
 
-	// create initial XOR padding
-	for (size_t i = 0; i < 2 * sha256::SHA256::DIGEST_SIZE; i++)
-		usedKey[i] ^= 0x36;
+long SHA512_taille_tampon()
+{
+	return SHA3::Bits512 / 4;
+}
 
-	printf("--------------------------\n");
-	printf("résultat IPAD : \n");
+void SHA512_genere_empreinte(char *entree, long taille, char *sortie)
+{
+	auto sha3 = SHA3(SHA3::Bits512);
+	sha3.add(entree, static_cast<unsigned long>(taille));
+	sha3.getHash(sortie);
+}
 
-	for (auto i = 0u; i < 2 * sha256::SHA256::DIGEST_SIZE; ++i) {
-		printf("%c", usedKey[i]);
-	}
+long HMAC_taille_tampon()
+{
+	return 2 * SHA256::HashBytes;
+}
 
-	printf("\n--------------------------\n");
+void HMAC_genere_empreinte(unsigned char *cle, long taille_cle, unsigned char *message, long taille_message, char *sortie)
+{
+	unsigned char rawHash[SHA256::HashBytes];
+	hmac<SHA256>(cle, static_cast<unsigned long>(taille_cle), message, static_cast<unsigned long>(taille_message), rawHash);
+	converti_hash_chaine_hex(sortie, rawHash, SHA256::HashBytes);
+}
 
-	// inside = hash((usedKey ^ 0x36) + data)
-	unsigned char inside[2 * sha256::SHA256::DIGEST_SIZE];
-	{
-		using namespace sha256;
-		auto ctx = SHA256{};
-		ctx.init();
-		ctx.update(usedKey, 2 * sha256::SHA256::DIGEST_SIZE);
-		ctx.update(message, static_cast<unsigned>(taille_message));
-		ctx.final(inside);
-
-//		char buf[2 * SHA256::DIGEST_SIZE + 1];
-//		buf[2 * SHA256::DIGEST_SIZE] = 0;
-
-//		for (auto i = 0u; i < SHA256::DIGEST_SIZE; i++) {
-//			sprintf(buf+i*2, "%02x", inside[i]);
-//		}
-
-//		memcpy(inside, buf, 2 * SHA256::DIGEST_SIZE);
-	}
-
-	// undo usedKey's previous 0x36 XORing and apply a XOR by 0x5C
-	for (size_t i = 0; i < 2 * sha256::SHA256::DIGEST_SIZE; i++)
-		usedKey[i] ^= 0x5C ^ 0x36;
-
-	printf("--------------------------\n");
-	printf("résultat OPAD : \n");
-
-	for (auto i = 0u; i < 2 * sha256::SHA256::DIGEST_SIZE; ++i) {
-		printf("%c", usedKey[i]);
-	}
-
-	printf("\n--------------------------\n");
-
-	// hash((usedKey ^ 0x5C) + hash((usedKey ^ 0x36) + data))
-	unsigned char resultat[2 * sha256::SHA256::DIGEST_SIZE];
-	{
-		using namespace sha256;
-		auto ctx = SHA256{};
-		ctx.init();
-		ctx.update(usedKey, 2 * sha256::SHA256::DIGEST_SIZE);
-		ctx.update(inside, 2 * sha256::SHA256::DIGEST_SIZE);
-		ctx.final(resultat);
-
-//		char buf[2 * SHA256::DIGEST_SIZE + 1];
-//		buf[2 * SHA256::DIGEST_SIZE] = 0;
-
-//		for (auto i = 0u; i < SHA256::DIGEST_SIZE; i++) {
-//			sprintf(buf+i*2, "%02x", resultat[i]);
-//		}
-
-//		memcpy(resultat, buf, 2 * SHA256::DIGEST_SIZE);
-	}
-
-	printf("--------------------------\n");
-	printf("résultat HMAC C : \n");
-
-	for (auto i = 0u; i < 2 * sha256::SHA256::DIGEST_SIZE; ++i) {
-		printf("%c", resultat[i]);
-	}
-
-	printf("\n--------------------------\n");
 }

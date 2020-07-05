@@ -34,11 +34,33 @@ void BCrypt_genere_empreinte(char *mot_de_passe, int charge_travail, char *sorti
 
 int BCrypt_compare_empreinte(char *mot_de_passe, char *empreinte);
 
+long CRC32_taille_tampon();
+
+void CRC32_genere_empreinte(char *entree, long taille, char *sortie);
+
+long MD5_taille_tampon();
+
+void MD5_genere_empreinte(char *entree, long taille, char *sortie);
+
+long SHA1_taille_tampon();
+
+void SHA1_genere_empreinte(char *entree, long taille, char *sortie);
+
 long SHA256_taille_tampon();
 
 void SHA256_genere_empreinte(char *entree, long taille, char *sortie);
 
-void HMAC_genere_empreinte(unsigned char *cle, long taille_cle, unsigned char *message, long taille_message);
+long SHA384_taille_tampon();
+
+void SHA384_genere_empreinte(char *entree, long taille, char *sortie);
+
+long SHA512_taille_tampon();
+
+void SHA512_genere_empreinte(char *entree, long taille, char *sortie);
+
+long HMAC_taille_tampon();
+
+void HMAC_genere_empreinte(unsigned char *cle, long taille_cle, unsigned char *message, long taille_message, char *sortie);
 
 #ifdef __cplusplus
 }
