@@ -124,7 +124,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				auto types_entrees = kuri::tableau<Type *>(decl->params.taille + requiers_contexte);
 
 				if (requiers_contexte) {
-					types_entrees[0] = m_compilatrice.type_contexte;
+					types_entrees[0] = m_compilatrice.typeuse.type_contexte;
 				}
 
 				for (auto i = 0; i < decl->params.taille; ++i) {
@@ -183,7 +183,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			// le type de la fonction est (contexte) -> (type_expression)
 			auto types_entrees = kuri::tableau<Type *>(1);
-			types_entrees[0] = m_compilatrice.type_contexte;
+			types_entrees[0] = m_compilatrice.typeuse.type_contexte;
 
 			auto types_sorties = kuri::tableau<Type *>(1);
 			types_sorties[0] = noeud_directive->expr->type;
@@ -1528,7 +1528,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			auto types_entrees = kuri::tableau<Type *>(2);
-			types_entrees[0] = m_compilatrice.type_contexte;
+			types_entrees[0] = m_compilatrice.typeuse.type_contexte;
 			types_entrees[1] = m_compilatrice.typeuse.type_pointeur_pour(type);
 
 			auto types_sorties = kuri::tableau<Type *>(1);
@@ -2297,7 +2297,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 	types_entrees.reserve(decl->params.taille + possede_contexte);
 
 	if (possede_contexte) {
-		types_entrees.pousse(m_compilatrice.type_contexte);
+		types_entrees.pousse(m_compilatrice.typeuse.type_contexte);
 	}
 
 	POUR (decl->params) {
@@ -2445,7 +2445,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 
 		if (requiers_contexte) {
 			auto val_ctx = static_cast<NoeudExpressionReference *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
-			val_ctx->type = m_compilatrice.type_contexte;
+			val_ctx->type = m_compilatrice.typeuse.type_contexte;
 			val_ctx->bloc_parent = decl->bloc_parent;
 			val_ctx->ident = m_compilatrice.table_identifiants.identifiant_pour_chaine("contexte");
 
@@ -2509,7 +2509,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 
 		if (requiers_contexte) {
 			auto val_ctx = static_cast<NoeudExpressionReference *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
-			val_ctx->type = m_compilatrice.type_contexte;
+			val_ctx->type = m_compilatrice.typeuse.type_contexte;
 			val_ctx->bloc_parent = decl->bloc_parent;
 			val_ctx->ident = m_compilatrice.table_identifiants.identifiant_pour_chaine("contexte");
 

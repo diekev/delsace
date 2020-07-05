@@ -447,6 +447,7 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synch
 		types_communs[idx] = type;
 	}
 
+	type_contexte = reserve_type_structure(nullptr);
 	type_info_type_ = reserve_type_structure(nullptr);
 
 	auto membres_eini = kuri::tableau<TypeCompose::Membre>();

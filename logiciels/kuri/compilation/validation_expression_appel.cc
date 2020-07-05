@@ -196,7 +196,7 @@ static auto apparie_appel_pointeur(
 
 	auto debut_params = 0l;
 
-	if (type_fonction->types_entrees.taille != 0 && type_fonction->types_entrees[0] == compilatrice.type_contexte) {
+	if (type_fonction->types_entrees.taille != 0 && type_fonction->types_entrees[0] == compilatrice.typeuse.type_contexte) {
 		debut_params = 1;
 
 		auto fonc_courante = contexte.fonction_courante;

@@ -113,8 +113,6 @@ struct Compilatrice {
 
 	InterfaceKuri interface_kuri{};
 
-	Type *type_contexte = nullptr;
-
 	ConstructriceRI constructrice_ri;
 
 	bool bit32 = false;

@@ -538,7 +538,7 @@ AtomeFonction *ConstructriceRI::trouve_ou_insere_fonction(NoeudDeclarationFoncti
 	params.reserve(decl->params.taille);
 
 	if (!decl->est_externe && !dls::outils::possede_drapeau(decl->drapeaux, FORCE_NULCTX)) {
-		auto atome = cree_allocation(m_compilatrice.type_contexte, ID::contexte);
+		auto atome = cree_allocation(m_compilatrice.typeuse.type_contexte, ID::contexte);
 		params.pousse(atome);
 	}
 
@@ -3032,7 +3032,7 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	nombre_labels = 0;
 
 	auto types_entrees = kuri::tableau<Type *>(2);
-	types_entrees[0] = m_compilatrice.type_contexte;
+	types_entrees[0] = m_compilatrice.typeuse.type_contexte;
 	types_entrees[1] = m_compilatrice.typeuse.type_pointeur_pour(normalise_type(m_compilatrice.typeuse, type));
 
 	auto types_sorties = kuri::tableau<Type *>(1);
@@ -4269,13 +4269,13 @@ Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction
 	// ----------------------------------
 	// construit le contexte du programme
 
-	auto alloc_contexte = cree_allocation(m_compilatrice.type_contexte, ID::contexte);
+	auto alloc_contexte = cree_allocation(m_compilatrice.typeuse.type_contexte, ID::contexte);
 
 	// À FAIRE : la trace d'appel est réinitialisée après l'initialisation
-	assigne_membre(alloc_contexte, trouve_index_membre(m_compilatrice.type_contexte, "trace_appel"), alloc_trace);
+	assigne_membre(alloc_contexte, trouve_index_membre(m_compilatrice.typeuse.type_contexte, "trace_appel"), alloc_trace);
 
 	{
-		auto nom_fonction_init = "initialise_" + dls::vers_chaine(m_compilatrice.type_contexte);
+		auto nom_fonction_init = "initialise_" + dls::vers_chaine(m_compilatrice.typeuse.type_contexte);
 		auto fonction_init = table_fonctions->trouve(nom_fonction_init)->second;
 
 		auto params_init = kuri::tableau<Atome *>(2);
@@ -4293,9 +4293,9 @@ Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction
 	// - données allocatrice
 	// - stockage temporaire
 	// - trace appel
-	assigne_membre(alloc_contexte, trouve_index_membre(m_compilatrice.type_contexte, "données_allocatrice"), alloc_base_alloc);
-	assigne_membre(alloc_contexte, trouve_index_membre(m_compilatrice.type_contexte, "stockage_temporaire"), alloc_stocke_temp);
-	assigne_membre(alloc_contexte, trouve_index_membre(m_compilatrice.type_contexte, "trace_appel"), alloc_trace);
+	assigne_membre(alloc_contexte, trouve_index_membre(m_compilatrice.typeuse.type_contexte, "données_allocatrice"), alloc_base_alloc);
+	assigne_membre(alloc_contexte, trouve_index_membre(m_compilatrice.typeuse.type_contexte, "stockage_temporaire"), alloc_stocke_temp);
+	assigne_membre(alloc_contexte, trouve_index_membre(m_compilatrice.typeuse.type_contexte, "trace_appel"), alloc_trace);
 
 	// ----------------------------------
 	// initialise l'allocatrice défaut

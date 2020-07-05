@@ -2047,6 +2047,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		type_info_type->decl = noeud_decl;
 		type_info_type->nom = noeud_decl->ident->nom;
 	}
+	else if (gauche->ident == ID::ContexteProgramme) {
+		auto type_contexte = static_cast<TypeStructure *>(m_compilatrice.typeuse.type_contexte);
+		noeud_decl->type = type_contexte;
+		type_contexte->decl = noeud_decl;
+		type_contexte->nom = noeud_decl->ident->nom;
+	}
 	else {
 		if (noeud_decl->est_union) {
 			noeud_decl->type = m_compilatrice.typeuse.reserve_type_union(noeud_decl);
@@ -2054,10 +2060,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		else {
 			noeud_decl->type = m_compilatrice.typeuse.reserve_type_structure(noeud_decl);
 		}
-	}
-
-	if (gauche->ident == ID::ContexteProgramme) {
-		m_compilatrice.type_contexte = noeud_decl->type;
 	}
 
 	if (apparie(GenreLexeme::EXTERNE)) {

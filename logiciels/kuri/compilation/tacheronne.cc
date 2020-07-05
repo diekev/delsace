@@ -316,7 +316,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 		return; \
 	}
 
-				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.type_contexte);
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_contexte);
 				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_base_allocatrice);
 				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_stockage_temporaire);
 				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_trace_appel);
