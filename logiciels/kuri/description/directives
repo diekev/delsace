@@ -1,0 +1,16 @@
+Les directives servent à controler le comportement du compilateur.
+
+Directives pour le compilateur
+
+#bibliothèque_statique  indique le chemin d'une bibliothèque statique pour lier le programme final (.a sur GNU/Linux)
+#bibliothèque_dynamique indique le chemin d'une bibliothèque dynamique pour lier le programme final (.so sur GNU/Linux)
+#chemin                 indique un chemin où chercher les bibliothèques ou autres fichiers
+#compilatrice           indique qu'une fonction est définie par la compilatrice, ne peut être que dans le module Kuri ou Compilatrice
+#def                    indique une définition de macro pour la coulisse C
+#enligne                indique qu'une fonction doit être considérée pour l'enlignage
+#externe                indique qu'une fonction ou un symbole est défini dans un fichier objet externe, externe peut-être suivie d'une chaine de caractère contenant le nom du symbole dans la bibliothèque statique ou dynamique
+#horsligne              indique qu'une fonction ne doit pas être considérée pour l'enlignage
+#inclus                 indique un fichier à inclure pour la coulisse C
+#interface              indique qu'une fonction ou structure fait partie de l'interface entre la compilatrice et le programme, ne peut être utilisé qu'au sein du module Kuri
+#nulctx                 indique que la fonction ou le type de fonction ne prend pas le contexte implicite en paramètre
+#sanstrace              indique qu'une fonction n'a pas de trace d'appel
