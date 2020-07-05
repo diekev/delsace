@@ -130,6 +130,14 @@ lambdas
 
 x => x.nom // crée une fonction foo :: (x: $T) -> chaine { retourne x.nom }
 
+- interfaces/traits (besoin de tables virtuelles)
+
+
+À faire (architecture)
+----------------------
+- préparsage pour construire une table de symbole
+- utilisation de pluriseurs tacheronnes
+- génération de code sur plusieurs threads (LLVM -> un module par thread + liaison finale de tous les modules)
 
 
 À faire (tests)
