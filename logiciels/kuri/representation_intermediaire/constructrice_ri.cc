@@ -1307,7 +1307,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				if (table_locales[ID::contexte] != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
 					auto type_tableau_fixe = static_cast<TypeTableauFixe *>(type_gauche);
 					auto acces_taille = cree_z64(static_cast<unsigned long>(type_tableau_fixe->taille));
-					genere_protection_limites(acces_taille, valeur, trouve_ou_insere_fonction(m_compilatrice.interface_kuri.decl_panique_tableau));
+					genere_protection_limites(acces_taille, valeur, trouve_ou_insere_fonction(m_compilatrice.interface_kuri->decl_panique_tableau));
 				}
 				return cree_acces_index(pointeur, valeur);
 			}
@@ -1315,7 +1315,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			if (type_gauche->genre == GenreType::TABLEAU_DYNAMIQUE || type_gauche->genre == GenreType::VARIADIQUE) {
 				if (table_locales[ID::contexte] != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
 					auto acces_taille = cree_acces_membre_et_charge(pointeur, 1);
-					genere_protection_limites(acces_taille, valeur, trouve_ou_insere_fonction(m_compilatrice.interface_kuri.decl_panique_tableau));
+					genere_protection_limites(acces_taille, valeur, trouve_ou_insere_fonction(m_compilatrice.interface_kuri->decl_panique_tableau));
 				}
 				pointeur = cree_acces_membre(pointeur, 0);
 				return cree_acces_index(pointeur, valeur);
@@ -1324,7 +1324,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			if (type_gauche->genre == GenreType::CHAINE) {
 				if (table_locales[ID::contexte] != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
 					auto acces_taille = cree_acces_membre_et_charge(pointeur, 1);
-					genere_protection_limites(acces_taille, valeur, trouve_ou_insere_fonction(m_compilatrice.interface_kuri.decl_panique_chaine));
+					genere_protection_limites(acces_taille, valeur, trouve_ou_insere_fonction(m_compilatrice.interface_kuri->decl_panique_chaine));
 				}
 				pointeur = cree_acces_membre(pointeur, 0);
 				return cree_acces_index(pointeur, valeur);
@@ -1932,7 +1932,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				// À FAIRE : nous pourrions avoir une erreur différente ici.
 				auto params = kuri::tableau<Atome *>(1);
 				params[0] = cree_charge_mem(table_locales[ID::contexte]);
-				cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri.decl_panique_membre_union), std::move(params));
+				cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri->decl_panique_membre_union), std::move(params));
 				insere_label(label_si_faux);
 
 				valeur = cree_acces_membre(valeur, 0);
@@ -2391,7 +2391,7 @@ Atome *ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 		if (noeud->expr_piege == nullptr) {
 			auto params = kuri::tableau<Atome *>(1);
 			params[0] = cree_charge_mem(table_locales[ID::contexte]);
-			cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri.decl_panique_erreur), std::move(params));
+			cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri->decl_panique_erreur), std::move(params));
 		}
 		else {
 			auto var_expr_piege = cree_allocation(gen_tente.type_piege, noeud->expr_piege->ident);
@@ -2442,7 +2442,7 @@ Atome *ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 		if (noeud->expr_piege == nullptr) {
 			auto params = kuri::tableau<Atome *>(1);
 			params[0] = cree_charge_mem(table_locales[ID::contexte]);
-			cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri.decl_panique_erreur), std::move(params));
+			cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri->decl_panique_erreur), std::move(params));
 		}
 		else {
 			Instruction *membre_erreur = cree_acces_membre(valeur_union, 0);
@@ -2913,7 +2913,7 @@ Atome *ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpre
 			else {
 				auto params = kuri::tableau<Atome *>(1);
 				params[0] = cree_charge_mem(table_locales[ID::contexte]);
-				cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri.decl_panique_memoire), std::move(params));
+				cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri->decl_panique_memoire), std::move(params));
 			}
 
 			insere_label(label_si_faux);
@@ -3262,7 +3262,7 @@ Atome *ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre 
 		insere_label(label_si_vrai);
 		auto params = kuri::tableau<Atome *>(1);
 		params[0] = cree_charge_mem(table_locales[ID::contexte]);
-		cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri.decl_panique_membre_union), std::move(params));
+		cree_appel(noeud->lexeme, trouve_ou_insere_fonction(m_compilatrice.interface_kuri->decl_panique_membre_union), std::move(params));
 		insere_label(label_si_faux);
 	}
 

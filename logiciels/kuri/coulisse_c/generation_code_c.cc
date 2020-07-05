@@ -425,7 +425,7 @@ static void genere_code_debut_fichier(
 		Enchaineuse &enchaineuse,
 		dls::chaine const &racine_kuri)
 {
-	for (auto const &inc : compilatrice.inclusions) {
+	for (auto const &inc : compilatrice.infos_inclusions->inclusions) {
 		enchaineuse << "#include <" << inc << ">\n";
 	}
 

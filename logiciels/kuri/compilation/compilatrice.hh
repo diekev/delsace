@@ -111,7 +111,7 @@ struct Compilatrice {
 
 	dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
 
-	InterfaceKuri interface_kuri{};
+	dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
 
 	ConstructriceRI constructrice_ri;
 
@@ -128,20 +128,27 @@ struct Compilatrice {
 	bool bit32 = false;
 	bool possede_erreur = false;
 
-	dls::ensemble<dls::chaine> deja_inclus{};
-	/* certains fichiers d'entête requiers d'être inclus dans un certain ordre,
-	 * par exemple pour OpenGL, donc les inclusions finales sont stockées dans
-	 * un tableau dans l'ordre dans lequel elles apparaissent dans le code */
-	dls::tableau<dls::chaine> inclusions{};
+	struct InformationsInclusions {
+		dls::ensemble<dls::chaine> deja_inclus{};
+		/* certains fichiers d'entête requiers d'être inclus dans un certain ordre,
+		 * par exemple pour OpenGL, donc les inclusions finales sont stockées dans
+		 * un tableau dans l'ordre dans lequel elles apparaissent dans le code */
+		dls::tableau<dls::chaine> inclusions{};
+	};
 
-	dls::tableau<dls::chaine> bibliotheques_dynamiques{};
+	dls::outils::Synchrone<InformationsInclusions> infos_inclusions{};
 
-	dls::tableau<dls::chaine> bibliotheques_statiques{};
+	template <typename T>
+	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
 
-	dls::tableau<dls::vue_chaine_compacte> chemins{};
+	tableau_synchrone<dls::chaine> bibliotheques_dynamiques{};
+
+	tableau_synchrone<dls::chaine> bibliotheques_statiques{};
+
+	tableau_synchrone<dls::vue_chaine_compacte> chemins{};
 
 	/* définitions passées au compilateur C pour modifier les fichiers d'entête */
-	dls::tableau<dls::vue_chaine_compacte> definitions{};
+	tableau_synchrone<dls::vue_chaine_compacte> definitions{};
 
 	dls::chaine racine_kuri{};
 

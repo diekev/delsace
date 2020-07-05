@@ -41,7 +41,7 @@ using dls::outils::possede_drapeau;
 /* ************************************************************************** */
 
 #define VERIFIE_INTERFACE_KURI_CHARGEE(nom) \
-	if (m_compilatrice.interface_kuri.nom == nullptr) {\
+	if (m_compilatrice.interface_kuri->nom == nullptr) {\
 		unite->attend_sur_interface_kuri(); \
 		return true; \
 	}
@@ -887,7 +887,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				{
 					expr->type = type_dereference_pour(type1);
 					VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_tableau);
-					donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri.decl_panique_tableau);
+					donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri->decl_panique_tableau);
 					break;
 				}
 				case GenreType::TABLEAU_FIXE:
@@ -909,7 +909,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 
 					VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_tableau);
-					donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri.decl_panique_tableau);
+					donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri->decl_panique_tableau);
 					break;
 				}
 				case GenreType::POINTEUR:
@@ -921,7 +921,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				{
 					expr->type = m_compilatrice.typeuse[TypeBase::Z8];
 					VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_chaine);
-					donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri.decl_panique_chaine);
+					donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri->decl_panique_chaine);
 					break;
 				}
 				default:
@@ -1627,7 +1627,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 			else {
 				VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_memoire);
-				donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri.decl_panique_memoire);
+				donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri->decl_panique_memoire);
 			}
 
 			donnees_dependance.types_utilises.insere(expr_loge->type);
@@ -1695,7 +1695,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 			else {
 				VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_memoire);
-				donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri.decl_panique_memoire);
+				donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri->decl_panique_memoire);
 			}
 
 			donnees_dependance.types_utilises.insere(expr_loge->type);
@@ -2094,7 +2094,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 			else {
 				VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_erreur);
-				donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri.decl_panique_erreur);
+				donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri->decl_panique_erreur);
 			}
 
 			break;
@@ -2174,7 +2174,7 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 					auto membre_actif = trouve_membre_actif(structure->ident->nom);
 
 					VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_membre_union);
-					donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri.decl_panique_membre_union);
+					donnees_dependance.fonctions_utilisees.insere(m_compilatrice.interface_kuri->decl_panique_membre_union);
 
 					/* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu */
 					if (membre_actif != "") {

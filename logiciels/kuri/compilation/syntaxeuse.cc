@@ -56,11 +56,11 @@ static auto trouve_chemin_si_dans_dossier(Module *module, dls::chaine const &cha
 	return chaine;
 }
 
-static auto renseigne_fonction_interface(InterfaceKuri &interface, NoeudDeclarationFonction *noeud)
+static auto renseigne_fonction_interface(dls::outils::Synchrone<InterfaceKuri> &interface, NoeudDeclarationFonction *noeud)
 {
 #define INIT_MEMBRE(membre, nom) \
 	if (noeud->ident == nom) { \
-		interface.membre = noeud; \
+		interface->membre = noeud; \
 		return; \
 	}
 
@@ -1014,20 +1014,20 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
-					m_compilatrice.bibliotheques_dynamiques.pousse(chaine);
+					m_compilatrice.bibliotheques_dynamiques->pousse(chaine);
 				}
 				else if (directive == ID::bibliotheque_statique) {
 					auto chaine_bib = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
-					m_compilatrice.bibliotheques_statiques.pousse(chaine);
+					m_compilatrice.bibliotheques_statiques->pousse(chaine);
 				}
 				else if (directive == ID::def) {
 					auto chaine = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-					m_compilatrice.definitions.pousse(chaine);
+					m_compilatrice.definitions->pousse(chaine);
 				}
 				else if (directive == ID::execute) {
 					auto noeud = CREE_NOEUD(NoeudDirectiveExecution, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
@@ -1038,7 +1038,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 					auto chaine = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-					m_compilatrice.chemins.pousse(chaine);
+					m_compilatrice.chemins->pousse(chaine);
 				}
 				else if (directive == ID::nulctx) {
 					lexeme = lexeme_courant();

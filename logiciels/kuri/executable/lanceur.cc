@@ -670,11 +670,11 @@ static int genere_code_coulisse(
 				commande += "-m32 ";
 			}
 
-			for (auto const &def : compilatrice.definitions) {
+			for (auto const &def : *compilatrice.definitions.verrou_lecture()) {
 				commande += " -D" + dls::chaine(def);
 			}
 
-			for (auto const &chm : compilatrice.chemins) {
+			for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
 				commande += " ";
 				commande += chm;
 			}
@@ -695,16 +695,16 @@ static int genere_code_coulisse(
 				auto debut_executable = dls::chrono::compte_seconde();
 				commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
 
-				for (auto const &chm : compilatrice.chemins) {
+				for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
 					commande += " ";
 					commande += chm;
 				}
 
-				for (auto const &bib : compilatrice.bibliotheques_statiques) {
+				for (auto const &bib : *compilatrice.bibliotheques_statiques.verrou_lecture()) {
 					commande += " " + bib;
 				}
 
-				for (auto const &bib : compilatrice.bibliotheques_dynamiques) {
+				for (auto const &bib : *compilatrice.bibliotheques_dynamiques.verrou_lecture()) {
 					commande += " -l" + bib;
 				}
 

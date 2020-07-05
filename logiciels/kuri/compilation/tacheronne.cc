@@ -325,7 +325,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 
 				auto decl_rc = cherche_symbole_dans_module(compilatrice, "Compilatrice", "_RC");
 				ATTEND_SUR_DECL_SI_NECESSAIRE(decl_rc);
-				ATTEND_SUR_DECL_SI_NECESSAIRE(compilatrice.interface_kuri.decl_initialise_rc);
+				ATTEND_SUR_DECL_SI_NECESSAIRE(compilatrice.interface_kuri->decl_initialise_rc);
 
 				if (!dependances_eurent_ri_generees(noeud_dir->fonction->noeud_dependance)) {
 					compilatrice.file_compilation->pousse(unite);

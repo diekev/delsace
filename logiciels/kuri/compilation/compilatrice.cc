@@ -52,8 +52,8 @@ Compilatrice::Compilatrice()
 	this->ajoute_inclusion("string.h");
 	/* Pour les coroutines nous incluons toujours pthread */
 	this->ajoute_inclusion("pthread.h");
-	this->bibliotheques_dynamiques.pousse("pthread");
-	this->definitions.pousse("_REENTRANT");
+	this->bibliotheques_dynamiques->pousse("pthread");
+	this->definitions->pousse("_REENTRANT");
 }
 
 Compilatrice::~Compilatrice()
@@ -329,12 +329,14 @@ bool Compilatrice::fichier_existe(const dls::vue_chaine_compacte &nom) const
 
 void Compilatrice::ajoute_inclusion(const dls::chaine &fichier)
 {
-	if (deja_inclus.trouve(fichier) != deja_inclus.fin()) {
+	auto infos = infos_inclusions.verrou_ecriture();
+
+	if (infos->deja_inclus.trouve(fichier) != infos->deja_inclus.fin()) {
 		return;
 	}
 
-	deja_inclus.insere(fichier);
-	inclusions.pousse(fichier);
+	infos->deja_inclus.insere(fichier);
+	infos->inclusions.pousse(fichier);
 }
 
 bool Compilatrice::compilation_terminee() const
@@ -370,28 +372,30 @@ size_t Compilatrice::memoire_utilisee() const
 {
 	auto memoire = sizeof(Compilatrice);
 
-	memoire += static_cast<size_t>(deja_inclus.taille()) * sizeof(dls::chaine);
-	POUR (deja_inclus) {
+	auto infos = infos_inclusions.verrou_lecture();
+
+	memoire += static_cast<size_t>(infos->deja_inclus.taille()) * sizeof(dls::chaine);
+	POUR (infos->deja_inclus) {
 		memoire += static_cast<size_t>(it.taille());
 	}
 
-	memoire += static_cast<size_t>(inclusions.taille()) * sizeof(dls::chaine);
-	POUR (inclusions) {
+	memoire += static_cast<size_t>(infos->inclusions.taille()) * sizeof(dls::chaine);
+	POUR (infos->inclusions) {
 		memoire += static_cast<size_t>(it.taille());
 	}
 
-	memoire += static_cast<size_t>(bibliotheques_dynamiques.taille()) * sizeof(dls::chaine);
-	POUR (bibliotheques_dynamiques) {
+	memoire += static_cast<size_t>(bibliotheques_dynamiques->taille()) * sizeof(dls::chaine);
+	POUR (*bibliotheques_dynamiques.verrou_lecture()) {
 		memoire += static_cast<size_t>(it.taille());
 	}
 
-	memoire += static_cast<size_t>(bibliotheques_statiques.taille()) * sizeof(dls::chaine);
-	POUR (bibliotheques_statiques) {
+	memoire += static_cast<size_t>(bibliotheques_statiques->taille()) * sizeof(dls::chaine);
+	POUR (*bibliotheques_statiques.verrou_lecture()) {
 		memoire += static_cast<size_t>(it.taille());
 	}
 
-	memoire += static_cast<size_t>(chemins.taille()) * sizeof(dls::vue_chaine_compacte);
-	memoire += static_cast<size_t>(definitions.taille()) * sizeof(dls::vue_chaine_compacte);
+	memoire += static_cast<size_t>(chemins->taille()) * sizeof(dls::vue_chaine_compacte);
+	memoire += static_cast<size_t>(definitions->taille()) * sizeof(dls::vue_chaine_compacte);
 	memoire += static_cast<size_t>(modules->taille()) * sizeof(Module *);
 	memoire += static_cast<size_t>(fichiers->taille()) * sizeof(Fichier *);
 
