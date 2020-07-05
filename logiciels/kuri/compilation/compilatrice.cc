@@ -38,7 +38,8 @@ Compilatrice::Compilatrice()
 	, typeuse(graphe_dependance, this->operateurs)
 	, constructrice_ri(*this)
 {
-	initialise_identifiants(this->table_identifiants);
+	auto table = table_identifiants.verrou_ecriture();
+	initialise_identifiants(*table);
 
 	auto ops = operateurs.verrou_ecriture();
 	enregistre_operateurs_basiques(*this, *ops);
@@ -415,7 +416,7 @@ size_t Compilatrice::memoire_utilisee() const
 
 	memoire += static_cast<size_t>(file_compilation->taille()) * sizeof(UniteCompilation);
 	memoire += static_cast<size_t>(file_execution->taille()) * sizeof(NoeudDirectiveExecution *);
-	memoire += table_identifiants.memoire_utilisee();
+	memoire += table_identifiants->memoire_utilisee();
 
 	memoire += static_cast<size_t>(gerante_chaine.m_table.taille()) * sizeof(dls::chaine);
 	POUR (gerante_chaine.m_table) {

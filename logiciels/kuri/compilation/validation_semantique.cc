@@ -537,7 +537,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 				POUR (type_structure->membres) {
 					auto decl_membre = m_compilatrice.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme);
-					decl_membre->ident = m_compilatrice.table_identifiants.identifiant_pour_chaine(it.nom);
+					decl_membre->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(it.nom);
 					decl_membre->type = it.type;
 					decl_membre->bloc_parent = decl->bloc_parent;
 					decl_membre->drapeaux |= DECLARATION_FUT_VALIDEE;

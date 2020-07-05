@@ -616,7 +616,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant)
 	};
 
 	if (identifiant == GenreLexeme::CHAINE_CARACTERE || identifiant == GenreLexeme::EXTERNE) {
-		lexeme.ident = m_compilatrice.table_identifiants.identifiant_pour_chaine(lexeme.chaine);
+		lexeme.ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(lexeme.chaine);
 	}
 
 	m_fichier->lexemes.pousse(lexeme);

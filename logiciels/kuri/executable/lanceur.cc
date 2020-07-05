@@ -833,7 +833,7 @@ int main(int argc, char *argv[])
 		metriques.memoire_ri = memoire_ri;
 		metriques.temps_decoupage = compilatrice.temps_lexage;
 		metriques.temps_validation = compilatrice.temps_validation;
-		metriques.nombre_identifiants = static_cast<size_t>(compilatrice.table_identifiants.taille());
+		metriques.nombre_identifiants = static_cast<size_t>(compilatrice.table_identifiants->taille());
 
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = dls::chrono::compte_seconde();

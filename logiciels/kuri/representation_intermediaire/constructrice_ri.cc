@@ -72,7 +72,7 @@ static auto trouve_index_membre(NoeudStruct *noeud_struct, dls::vue_chaine_compa
 
 /* ************************************************************************** */
 
-#define IDENT_CODE(x) m_compilatrice.table_identifiants.identifiant_pour_chaine((x))
+#define IDENT_CODE(x) m_compilatrice.table_identifiants->identifiant_pour_chaine((x))
 
 ConstructriceRI::ConstructriceRI(Compilatrice &compilatrice)
 	: m_compilatrice(compilatrice)
@@ -4124,8 +4124,8 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 
 	auto type_fonction = m_compilatrice.typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
 
-	auto ident_argc = m_compilatrice.table_identifiants.identifiant_pour_chaine("argc");
-	auto ident_argv = m_compilatrice.table_identifiants.identifiant_pour_chaine("argv");
+	auto ident_argc = m_compilatrice.table_identifiants->identifiant_pour_chaine("argc");
+	auto ident_argv = m_compilatrice.table_identifiants->identifiant_pour_chaine("argv");
 
 	auto alloc_argc = cree_allocation(type_argc, ident_argc);
 	auto alloc_argv = cree_allocation(type_argv, ident_argv);

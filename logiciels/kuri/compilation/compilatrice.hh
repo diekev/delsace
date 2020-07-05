@@ -109,7 +109,7 @@ struct Compilatrice {
 
 	Typeuse typeuse;
 
-	TableIdentifiant table_identifiants{};
+	dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
 
 	InterfaceKuri interface_kuri{};
 
