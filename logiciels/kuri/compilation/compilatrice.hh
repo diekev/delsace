@@ -115,9 +115,6 @@ struct Compilatrice {
 
 	ConstructriceRI constructrice_ri;
 
-	bool bit32 = false;
-	bool possede_erreur = false;
-
 	using TypeFileUC = dls::liste<UniteCompilation>;
 	dls::outils::Synchrone<TypeFileUC> file_compilation{};
 
@@ -128,6 +125,8 @@ struct Compilatrice {
 
 	/* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment. */
 	bool importe_kuri = true;
+	bool bit32 = false;
+	bool possede_erreur = false;
 
 	dls::ensemble<dls::chaine> deja_inclus{};
 	/* certains fichiers d'entête requiers d'être inclus dans un certain ordre,
