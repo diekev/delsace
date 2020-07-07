@@ -203,7 +203,22 @@ static void imprime_atome(Atome const *atome, std::ostream &os)
 					}
 					case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
 					{
-						os << "À FAIRE(ri) : structure";
+						auto type = static_cast<TypeCompose *>(atome->type);
+						auto tableau_valeur = valeur_constante->valeur.valeur_structure.pointeur;
+
+						auto virgule = "{ ";
+
+						auto index_membre = 0;
+
+						POUR (type->membres) {
+							os << virgule;
+							os << it.nom << " = ";
+							imprime_atome(tableau_valeur[index_membre], os);
+							index_membre += 1;
+							virgule = ", ";
+						}
+
+						os << " }";
 						break;
 					}
 					case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
