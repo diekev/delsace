@@ -82,34 +82,6 @@ ConstructriceRI::~ConstructriceRI()
 {
 }
 
-void ConstructriceRI::construit_table_types()
-{
-	/* À FAIRE(table type) : idéalement nous devrions générer une table de type uniquement pour les types utilisés
-	 * dans le programme final (ignorant les types générés par la constructrice, comme les pointeurs pour les arguments).
-	 * Pour ce faire, nous ne devrions assigner un index qu'à la fin de la génération de code, mais celui-ci requiers les
-	 * index pour les expressions sur les types. Nous devrions peut-être avoir un système de patch où nous rassemblons
-	 * les différentes instructions utilisant les index des types pour les ajourner avec le bon index à la fin de la compilation.
-	 */
-
-#define ASSIGNE_INDEX(type) \
-	if (type->index_dans_table_types == 0u) type->index_dans_table_types = index_type++
-
-	auto index_type = 1u;
-	ASSIGNE_INDEX(m_compilatrice.typeuse.type_type_de_donnees_);
-	ASSIGNE_INDEX(m_compilatrice.typeuse.type_chaine);
-	ASSIGNE_INDEX(m_compilatrice.typeuse.type_eini);
-	POUR (*m_compilatrice.typeuse.types_simples.verrou_ecriture()) { ASSIGNE_INDEX(it); }
-	POUR (*m_compilatrice.typeuse.types_pointeurs.verrou_ecriture()) { ASSIGNE_INDEX(it); }
-	POUR (*m_compilatrice.typeuse.types_references.verrou_ecriture()) { ASSIGNE_INDEX(it); }
-	POUR (*m_compilatrice.typeuse.types_structures.verrou_ecriture()) { ASSIGNE_INDEX(it); }
-	POUR (*m_compilatrice.typeuse.types_enums.verrou_ecriture()) { ASSIGNE_INDEX(it); }
-	POUR (*m_compilatrice.typeuse.types_tableaux_fixes.verrou_ecriture()) { ASSIGNE_INDEX(it); }
-	POUR (*m_compilatrice.typeuse.types_tableaux_dynamiques.verrou_ecriture()) { ASSIGNE_INDEX(it); }
-	POUR (*m_compilatrice.typeuse.types_fonctions.verrou_ecriture()) { ASSIGNE_INDEX(it); }
-	POUR (*m_compilatrice.typeuse.types_variadiques.verrou_ecriture()) { ASSIGNE_INDEX(it); }
-	POUR (*m_compilatrice.typeuse.types_unions.verrou_ecriture()) { ASSIGNE_INDEX(it); }
-}
-
 void ConstructriceRI::imprime_fonction(AtomeFonction *atome_fonc, std::ostream &os) const
 {
 	os << "fonction " << atome_fonc->nom;

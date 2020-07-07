@@ -439,6 +439,8 @@ struct Typeuse {
 	size_t memoire_utilisee() const;
 
 	long nombre_de_types() const;
+
+	void construit_table_types();
 };
 
 /* ************************************************************************** */

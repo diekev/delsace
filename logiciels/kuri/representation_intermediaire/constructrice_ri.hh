@@ -120,8 +120,6 @@ public:
 		return m_compilatrice;
 	}
 
-	void construit_table_types();
-
 private:
 	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom);
 	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom, kuri::tableau<Atome *> &&params);

@@ -1285,11 +1285,10 @@ void genere_code_C(
 {
 	auto debut_generation = dls::chrono::compte_seconde();
 
-	constructrice_ri.construit_table_types();
-
 	Enchaineuse enchaineuse;
 
 	auto &compilatrice = constructrice_ri.compilatrice();
+	compilatrice.typeuse.construit_table_types();
 
 	// NOTE : on ne prend pas de verrou ici car genere_ri_pour_fonction_main reprendra un verrou du graphe via la Typeuse -> verrou mort
 	auto &graphe = compilatrice.graphe_dependance;
@@ -1394,7 +1393,7 @@ void genere_code_C_pour_execution(
 	auto &constructrice_ri = compilatrice.constructrice_ri;
 	Enchaineuse enchaineuse;
 
-	constructrice_ri.construit_table_types();
+	compilatrice.typeuse.construit_table_types();
 
 	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
 

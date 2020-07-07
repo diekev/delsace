@@ -938,7 +938,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
 void GeneratriceCodeLLVM::genere_code(ConstructriceRI &constructrice_ri)
 {
-	constructrice_ri.construit_table_types();
+	constructrice_ri.compilatrice().typeuse.construit_table_types();
 
 	POUR (constructrice_ri.globales) {
 		auto valeur_globale = static_cast<AtomeGlobale const *>(it);
