@@ -434,29 +434,26 @@ size_t ConstructriceRI::memoire_utilisee() const
 {
 	auto memoire = 0ul;
 
-#define COMPTE_MEMOIRE(Type, Tableau) \
-	memoire += static_cast<size_t>(Tableau.taille()) * (sizeof(Type))
-
-	COMPTE_MEMOIRE(AtomeFonction, atomes_fonction);
-	COMPTE_MEMOIRE(AtomeValeurConstante, atomes_constante);
-	COMPTE_MEMOIRE(AtomeGlobale, atomes_globale);
-	COMPTE_MEMOIRE(InstructionAllocation, insts_allocation);
-	COMPTE_MEMOIRE(InstructionAppel, insts_appel);
-	COMPTE_MEMOIRE(InstructionBranche, insts_branche);
-	COMPTE_MEMOIRE(InstructionBrancheCondition, insts_branche_condition);
-	COMPTE_MEMOIRE(InstructionChargeMem, insts_charge_memoire);
-	COMPTE_MEMOIRE(InstructionLabel, insts_label);
-	COMPTE_MEMOIRE(InstructionOpBinaire, insts_opbinaire);
-	COMPTE_MEMOIRE(InstructionOpUnaire, insts_opunaire);
-	COMPTE_MEMOIRE(InstructionStockeMem, insts_stocke_memoire);
-	COMPTE_MEMOIRE(InstructionRetour, insts_retour);
-	COMPTE_MEMOIRE(InstructionAccedeIndex, insts_accede_index);
-	COMPTE_MEMOIRE(InstructionAccedeMembre, insts_accede_membre);
-	COMPTE_MEMOIRE(InstructionTranstype, insts_transtype);
-	COMPTE_MEMOIRE(TranstypeConstant, transtypes_constants);
-	COMPTE_MEMOIRE(OpBinaireConstant, op_binaires_constants);
-	COMPTE_MEMOIRE(OpUnaireConstant, op_unaires_constants);
-	COMPTE_MEMOIRE(AccedeIndexConstant, accede_index_constants);
+	memoire += atomes_fonction.memoire_utilisee();
+	memoire += atomes_constante.memoire_utilisee();
+	memoire += atomes_globale.memoire_utilisee();
+	memoire += insts_allocation.memoire_utilisee();
+	memoire += insts_appel.memoire_utilisee();
+	memoire += insts_branche.memoire_utilisee();
+	memoire += insts_branche_condition.memoire_utilisee();
+	memoire += insts_charge_memoire.memoire_utilisee();
+	memoire += insts_label.memoire_utilisee();
+	memoire += insts_opbinaire.memoire_utilisee();
+	memoire += insts_opunaire.memoire_utilisee();
+	memoire += insts_stocke_memoire.memoire_utilisee();
+	memoire += insts_retour.memoire_utilisee();
+	memoire += insts_accede_index.memoire_utilisee();
+	memoire += insts_accede_membre.memoire_utilisee();
+	memoire += insts_transtype.memoire_utilisee();
+	memoire += transtypes_constants.memoire_utilisee();
+	memoire += op_binaires_constants.memoire_utilisee();
+	memoire += op_unaires_constants.memoire_utilisee();
+	memoire += accede_index_constants.memoire_utilisee();
 
 	pour_chaque_element(atomes_fonction, [&](AtomeFonction const &it)
 	{

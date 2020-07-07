@@ -175,29 +175,26 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 {
 	auto memoire = 0ul;
 
-#define COMPTE_MEMOIRE(Type, Tableau) \
-	memoire += static_cast<size_t>(Tableau.pages.taille()) * 128 * sizeof(Type)
-
-	COMPTE_MEMOIRE(NoeudBloc, m_noeuds_bloc);
-	COMPTE_MEMOIRE(NoeudDeclarationVariable, m_noeuds_declaration_variable);
-	COMPTE_MEMOIRE(NoeudDeclarationFonction, m_noeuds_declaration_fonction);
-	COMPTE_MEMOIRE(NoeudEnum, m_noeuds_enum);
-	COMPTE_MEMOIRE(NoeudStruct, m_noeuds_struct);
-	COMPTE_MEMOIRE(NoeudExpressionBinaire, m_noeuds_expression_binaire);
-	COMPTE_MEMOIRE(NoeudExpressionMembre, m_noeuds_expression_membre);
-	COMPTE_MEMOIRE(NoeudExpressionReference, m_noeuds_expression_reference);
-	COMPTE_MEMOIRE(NoeudExpressionAppel, m_noeuds_appel);
-	COMPTE_MEMOIRE(NoeudExpressionLogement, m_noeuds_expression_logement);
-	COMPTE_MEMOIRE(NoeudExpressionUnaire, m_noeuds_expression_unaire);
-	COMPTE_MEMOIRE(NoeudExpression, m_noeuds_expression);
-	COMPTE_MEMOIRE(NoeudBoucle, m_noeuds_boucle);
-	COMPTE_MEMOIRE(NoeudPour, m_noeuds_pour);
-	COMPTE_MEMOIRE(NoeudDiscr, m_noeuds_discr);
-	COMPTE_MEMOIRE(NoeudSi, m_noeuds_si);
-	COMPTE_MEMOIRE(NoeudPousseContexte, m_noeuds_pousse_contexte);
-	COMPTE_MEMOIRE(NoeudTableauArgsVariadiques, m_noeuds_tableau_args_variadiques);
-	COMPTE_MEMOIRE(NoeudTente, m_noeuds_tente);
-	COMPTE_MEMOIRE(NoeudDirectiveExecution, m_noeuds_directive_execution);
+	memoire += m_noeuds_bloc.memoire_utilisee();
+	memoire += m_noeuds_declaration_variable.memoire_utilisee();
+	memoire += m_noeuds_declaration_fonction.memoire_utilisee();
+	memoire += m_noeuds_enum.memoire_utilisee();
+	memoire += m_noeuds_struct.memoire_utilisee();
+	memoire += m_noeuds_expression_binaire.memoire_utilisee();
+	memoire += m_noeuds_expression_membre.memoire_utilisee();
+	memoire += m_noeuds_expression_reference.memoire_utilisee();
+	memoire += m_noeuds_appel.memoire_utilisee();
+	memoire += m_noeuds_expression_logement.memoire_utilisee();
+	memoire += m_noeuds_expression_unaire.memoire_utilisee();
+	memoire += m_noeuds_expression.memoire_utilisee();
+	memoire += m_noeuds_boucle.memoire_utilisee();
+	memoire += m_noeuds_pour.memoire_utilisee();
+	memoire += m_noeuds_discr.memoire_utilisee();
+	memoire += m_noeuds_si.memoire_utilisee();
+	memoire += m_noeuds_pousse_contexte.memoire_utilisee();
+	memoire += m_noeuds_tableau_args_variadiques.memoire_utilisee();
+	memoire += m_noeuds_tente.memoire_utilisee();
+	memoire += m_noeuds_directive_execution.memoire_utilisee();
 
 	pour_chaque_element(m_noeuds_struct, [&](NoeudStruct const &noeud)
 	{

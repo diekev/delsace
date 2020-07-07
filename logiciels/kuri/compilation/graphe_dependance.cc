@@ -151,7 +151,7 @@ void GrapheDependance::connecte_noeuds(
 size_t GrapheDependance::memoire_utilisee() const
 {
 	auto total = 0ul;
-	total += static_cast<size_t>(noeuds.taille()) * (sizeof(NoeudDependance));
+	total += noeuds.memoire_utilisee();
 
 	POUR_TABLEAU_PAGE(noeuds) {
 		total += static_cast<size_t>(it.relations.taille()) * sizeof(Relation);

@@ -551,11 +551,11 @@ size_t Operateurs::memoire_utilisee() const
 	memoire += static_cast<size_t>(operateurs_binaires.taille()) * (sizeof(GenreLexeme) + sizeof(type_conteneur_binaire));
 
 	POUR (operateurs_unaires) {
-		memoire += static_cast<size_t>(it.second.taille()) * (sizeof(OperateurUnaire) + sizeof(OperateurUnaire *));
+		memoire += it.second.memoire_utilisee();
 	}
 
 	POUR (operateurs_binaires) {
-		memoire += static_cast<size_t>(it.second.taille()) * (sizeof(OperateurBinaire) + sizeof(OperateurBinaire *));
+		memoire += it.second.memoire_utilisee();
 	}
 
 	return memoire;

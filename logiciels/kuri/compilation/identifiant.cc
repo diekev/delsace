@@ -65,7 +65,7 @@ long TableIdentifiant::taille() const
 size_t TableIdentifiant::memoire_utilisee() const
 {
 	auto memoire = 0ul;
-	memoire += static_cast<size_t>(identifiants.pages.taille()) * (sizeof(IdentifiantCode) * 1024 + sizeof (tableau_page<IdentifiantCode>::page));
+	memoire += identifiants.memoire_utilisee();
 	memoire += static_cast<size_t>(table.taille()) * (sizeof (dls::vue_chaine_compacte) + sizeof(IdentifiantCode *));
 	return memoire;
 }
