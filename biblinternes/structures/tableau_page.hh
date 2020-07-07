@@ -106,6 +106,11 @@ struct tableau_page {
 		return nombre_elements;
 	}
 
+	unsigned long memoire_utilisee() const
+	{
+		return static_cast<size_t>(pages.taille()) * (TAILLE_PAGE * sizeof(T) + sizeof(page));
+	}
+
 	T &operator[](long i)
 	{
 		assert(i >= 0);
