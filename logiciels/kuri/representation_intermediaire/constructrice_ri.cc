@@ -2902,7 +2902,7 @@ Atome *ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpre
 
 			insere_label(label_si_faux);
 
-			if (mode == 0 && type->genre != GenreType::TABLEAU_DYNAMIQUE && type->genre != GenreType::CHAINE) {
+			if (mode == 0 && (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION)) {
 				auto type_deref = type_dereference_pour(type);
 				auto nom_fonction = "initialise_" + dls::vers_chaine(type_deref);
 				auto atome_fonction = table_fonctions->trouve(nom_fonction)->second;
