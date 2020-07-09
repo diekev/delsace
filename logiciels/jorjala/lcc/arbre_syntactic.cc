@@ -24,6 +24,7 @@
 
 #include "arbre_syntactic.h"
 
+#include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "contexte_generation_code.h"
@@ -540,7 +541,9 @@ int genere_code(
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
 
-			genere_code(enfant1, contexte_generation, compileuse, expr_gauche);
+			auto expr_gauche_ = expr_gauche || dls::outils::est_element(b->identifiant(), id_morceau::PLUS_EGAL, id_morceau::MOINS_EGAL, id_morceau::FOIS_EGAL, id_morceau::DIVISE_EGAL);
+
+			genere_code(enfant1, contexte_generation, compileuse, expr_gauche_);
 			genere_code(enfant2, contexte_generation, compileuse, expr_gauche);
 
 			auto decalage1 = enfant1->pointeur_donnees;
