@@ -301,6 +301,10 @@ Noeud *noeud_base_hierarchie(Noeud *noeud)
 			break;
 		}
 
+		if (parent->graphe.type == type_graphe::RACINE_RENDU) {
+			break;
+		}
+
 		noeud = parent;
 	}
 

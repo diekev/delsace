@@ -30,6 +30,7 @@
 #include "coeur/composite.h"
 #include "coeur/objet.h"
 #include "coeur/operatrice_image.h"
+#include "coeur/rendu.hh"
 
 #include "outils.hh"
 
@@ -187,6 +188,10 @@ void CompilatriceReseau::compile_reseau(
 
 	for (auto composite : bdd->composites()) {
 		cree_noeud(composite->noeud);
+	}
+
+	for (auto rendu : bdd->rendus()) {
+		cree_noeud(&rendu->noeud);
 	}
 
 	/* crée les dépendances */
