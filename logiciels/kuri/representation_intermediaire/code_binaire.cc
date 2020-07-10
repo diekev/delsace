@@ -1245,6 +1245,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
 		}
 		case AtomeConstante::Genre::GLOBALE:
 		{
+			genere_code_binaire_pour_atome(constante, chunk, true);
+			break;
+		}
+		case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
+		{
+			auto transtype = static_cast<TranstypeConstant *>(constante);
+			genere_code_binaire_pour_constante(transtype->valeur, chunk);
 			break;
 		}
 		default:
