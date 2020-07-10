@@ -522,7 +522,12 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
 		}
 		case OP_ALLOUE:
 		{
-			return instruction_2d<Type *, IdentifiantCode *>(chunk, chaine_code_operation(instruction), decalage, os);
+			decalage += 1;
+			auto v1 = *reinterpret_cast<Type **>(&chunk.code[decalage]);
+			decalage += static_cast<long >(sizeof(Type *));
+			auto v2 = *reinterpret_cast<IdentifiantCode **>(&chunk.code[decalage]);
+			os << chaine_code_operation(instruction) << ' ' << chaine_type(v1) << ", " << v2 << "\n";
+			return decalage + static_cast<long >(sizeof(IdentifiantCode *));
 		}
 		case OP_APPEL:
 		case OP_APPEL_EXTERNE:
