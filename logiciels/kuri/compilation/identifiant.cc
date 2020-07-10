@@ -131,6 +131,7 @@ IdentifiantCode *bibliotheque_statique;
 IdentifiantCode *def;
 IdentifiantCode *execute;
 IdentifiantCode *chemin;
+IdentifiantCode *creation_contexte;
 
 }
 
@@ -183,4 +184,5 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::def = table.identifiant_pour_chaine("def");
 	ID::execute = table.identifiant_pour_chaine("exécute");
 	ID::chemin = table.identifiant_pour_chaine("chemin");
+	ID::creation_contexte = table.identifiant_pour_chaine("création_contexte");
 }

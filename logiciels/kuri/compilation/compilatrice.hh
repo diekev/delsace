@@ -92,6 +92,7 @@ struct InterfaceKuri {
 	NoeudDeclarationFonction *decl_dls_depuis_r32 = nullptr;
 	NoeudDeclarationFonction *decl_dls_depuis_r64 = nullptr;
 	NoeudDeclarationFonction *decl_initialise_rc = nullptr;
+	NoeudDeclarationFonction *decl_creation_contexte = nullptr;
 };
 
 struct Compilatrice {

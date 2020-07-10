@@ -711,3 +711,28 @@ arguments_ligne_commande :: fonc () -> []chaine
         retourne tabl_args
     }
 }
+
+crée_contexte :: fonc () -> rien #création_contexte
+{
+    // À FAIRE : déplace cela dans une globale mise en place par la compilatrice
+    info_trace_appel := InfoFonctionTraceAppel(nom = "main", fichier = "module.kuri", adresse = nul)
+
+    trace_appel := TraceAppel(info_fonction = @info_trace_appel)
+
+    contexte : ContexteProgramme = ---
+    base_allocatrice : BaseAllocatrice = ---
+
+    pousse_contexte contexte {
+        contexte.trace_appel = @trace_appel
+        init_de(ContexteProgramme)(@contexte)
+
+        contexte.données_allocatrice = @base_allocatrice
+
+        // contexte.stockage_temporaire = @stockage_temporaire
+
+        // init_de(ContexteProgramme) remet à zéro la trace_appel
+        contexte.trace_appel = @trace_appel
+
+        init_de(BaseAllocatrice)(@base_allocatrice)
+    }
+}

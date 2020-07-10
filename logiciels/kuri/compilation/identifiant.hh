@@ -105,6 +105,7 @@ extern IdentifiantCode *bibliotheque_statique;
 extern IdentifiantCode *def;
 extern IdentifiantCode *execute;
 extern IdentifiantCode *chemin;
+extern IdentifiantCode *creation_contexte;
 
 }
 

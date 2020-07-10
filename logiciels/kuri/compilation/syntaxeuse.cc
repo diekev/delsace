@@ -1849,6 +1849,11 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 			else if (ident_directive == ID::interface) {
 				renseigne_fonction_interface(m_compilatrice.interface_kuri, noeud);
 			}
+			else if (ident_directive == ID::creation_contexte) {
+				noeud->drapeaux |= FORCE_NULCTX;
+				noeud->drapeaux |= FORCE_SANSTRACE;
+				m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
+			}
 
 			consomme();
 		}
