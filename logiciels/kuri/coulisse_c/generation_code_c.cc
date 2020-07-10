@@ -707,6 +707,11 @@ struct GeneratriceCodeC {
 				os << "  invalide\n";
 				break;
 			}
+			case Instruction::Genre::ENREGISTRE_LOCALES:
+			case Instruction::Genre::RESTAURE_LOCALES:
+			{
+				break;
+			}
 			case Instruction::Genre::ALLOCATION:
 			{
 				auto type_pointeur = static_cast<TypePointeur *>(inst->type);
@@ -1108,11 +1113,11 @@ struct GeneratriceCodeC {
 		}
 	}
 
-	void genere_code(kuri::tableau<Atome *> const &globales, kuri::tableau<AtomeFonction *> const &fonctions, Enchaineuse &os)
+	void genere_code(tableau_page<AtomeGlobale> const &globales, kuri::tableau<AtomeFonction *> const &fonctions, Enchaineuse &os)
 	{
 		// prédéclare les globales pour éviter les problèmes de références cycliques
-		POUR (globales) {
-			auto valeur_globale = static_cast<AtomeGlobale const *>(it);
+		POUR_TABLEAU_PAGE (globales) {
+			auto valeur_globale = &it;
 
 			if (!valeur_globale->est_constante) {
 				continue;
@@ -1170,8 +1175,8 @@ struct GeneratriceCodeC {
 		}
 
 		// définis ensuite les globales
-		POUR (globales) {
-			auto valeur_globale = static_cast<AtomeGlobale const *>(it);
+		POUR_TABLEAU_PAGE (globales) {
+			auto valeur_globale = &it;
 
 			auto valeur_initialisateur = dls::chaine();
 
@@ -1271,15 +1276,10 @@ struct GeneratriceCodeC {
 			os << "}\n\n";
 		}
 	}
-
-	void genere_code(ConstructriceRI const &constructrice_ri, Enchaineuse &os)
-	{
-		genere_code(constructrice_ri.globales, constructrice_ri.fonctions, os);
-	}
 };
 
 void genere_code_C(
-		ConstructriceRI &constructrice_ri,
+		Compilatrice &compilatrice,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie)
 {
@@ -1287,7 +1287,6 @@ void genere_code_C(
 
 	Enchaineuse enchaineuse;
 
-	auto &compilatrice = constructrice_ri.compilatrice();
 	compilatrice.typeuse.construit_table_types();
 
 	// NOTE : on ne prend pas de verrou ici car genere_ri_pour_fonction_main reprendra un verrou du graphe via la Typeuse -> verrou mort
@@ -1300,7 +1299,7 @@ void genere_code_C(
 
 	// nous devons générer la fonction main ici, car elle défini le type du tableau de
 	// stockage temporaire, et les typedefs pour les types sont générés avant les fonctions.
-	auto atome_main = constructrice_ri.genere_ri_pour_fonction_main();
+	auto atome_main = compilatrice.constructrice_ri.genere_ri_pour_fonction_main();
 
 	genere_code_debut_fichier(compilatrice, enchaineuse, racine_kuri);
 
@@ -1352,7 +1351,7 @@ void genere_code_C(
 
 	traverse_graphe(fonction_principale, [&](NoeudDependance *noeud)
 	{
-		auto table = constructrice_ri.table_fonctions.verrou_lecture();
+		auto table = compilatrice.table_fonctions.verrou_lecture();
 
 		if (noeud->type == TypeNoeudDependance::FONCTION) {
 			auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(noeud->noeud_syntactique);
@@ -1376,123 +1375,10 @@ void genere_code_C(
 
 	fonctions.pousse(atome_main);
 
-	auto generatrice = GeneratriceCodeC(constructrice_ri.compilatrice());
-	generatrice.genere_code(constructrice_ri.globales, fonctions, enchaineuse);
+	auto generatrice = GeneratriceCodeC(compilatrice);
+	generatrice.genere_code(compilatrice.globales, fonctions, enchaineuse);
 
 	enchaineuse.imprime_dans_flux(fichier_sortie);
 
-	constructrice_ri.compilatrice().temps_generation = debut_generation.temps();
-}
-
-void genere_code_C_pour_execution(
-		Compilatrice &compilatrice,
-		NoeudDirectiveExecution *noeud_directive,
-		dls::chaine const &racine_kuri,
-		std::ostream &fichier_sortie)
-{
-	auto &constructrice_ri = compilatrice.constructrice_ri;
-	Enchaineuse enchaineuse;
-
-	compilatrice.typeuse.construit_table_types();
-
-	genere_code_debut_fichier(constructrice_ri.compilatrice(), enchaineuse, racine_kuri);
-
-	auto &graphe = compilatrice.graphe_dependance;
-
-	POUR_TABLEAU_PAGE(graphe->noeuds) {
-		if (it.type != TypeNoeudDependance::TYPE) {
-			continue;
-		}
-
-		if (it.fut_visite) {
-			continue;
-		}
-
-		traverse_graphe(&it, [&](NoeudDependance *noeud)
-		{
-			if (noeud->type != TypeNoeudDependance::TYPE) {
-				return;
-			}
-
-			auto type = noeud->type_;
-
-			if (type && type->genre == GenreType::TYPE_DE_DONNEES) {
-				return;
-			}
-
-			genere_typedefs_recursifs(compilatrice, type, enchaineuse);
-
-			if (type && (type->genre == GenreType::STRUCTURE)) {
-				auto type_struct = static_cast<TypeStructure *>(noeud->type_);
-
-				if (type_struct->decl && type_struct->decl->est_externe) {
-					return;
-				}
-
-				for (auto &membre : type_struct->membres) {
-					genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
-				}
-
-				auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
-				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_struct), quoi);
-			}
-		});
-	}
-
-	POUR_TABLEAU_PAGE(graphe->noeuds) {
-		it.fut_visite = false;
-	}
-
-	kuri::tableau<AtomeFonction *> fonctions;
-
-	traverse_graphe(noeud_directive->fonction->noeud_dependance, [&](NoeudDependance *noeud)
-	{
-		auto table = constructrice_ri.table_fonctions.verrou_lecture();
-
-		if (noeud->type == TypeNoeudDependance::FONCTION) {
-			auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(noeud->noeud_syntactique);
-			auto atome_fonction = table->trouve(noeud_fonction->nom_broye)->second;
-			assert(atome_fonction);
-			fonctions.pousse(atome_fonction);
-		}
-		else if (noeud->type == TypeNoeudDependance::TYPE) {
-			auto type = noeud->type_;
-
-			if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
-				auto nom_fonction_init = "initialise_" + dls::vers_chaine(type);
-				auto atome_fonction = table->trouve(nom_fonction_init);
-
-				if (atome_fonction != table->fin()) {
-					fonctions.pousse(atome_fonction->second);
-				}
-			}
-		}
-	});
-
-	fonctions.pousse(noeud_directive->fonction_ri_pour_appel);
-
-	auto fonction_init = cherche_fonction_dans_module(compilatrice, "Compilatrice", "initialise_RC");
-	auto atome_fonc_init = constructrice_ri.table_fonctions->trouve(fonction_init->nom_broye)->second;
-
-	fonctions.pousse(atome_fonc_init);
-
-	// À FAIRE(moulfilage) : protection des globales
-	auto generatrice = GeneratriceCodeC(constructrice_ri.compilatrice());
-	generatrice.genere_code(constructrice_ri.globales, fonctions, enchaineuse);
-
-	enchaineuse.imprime_dans_flux(fichier_sortie);
-
-	compilatrice.typeuse.type_chaine->drapeaux &= ~TYPEDEF_FUT_GENERE;
-	compilatrice.typeuse.type_eini->drapeaux &= ~TYPEDEF_FUT_GENERE;
-	POUR (*compilatrice.typeuse.types_simples.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (*compilatrice.typeuse.types_pointeurs.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (*compilatrice.typeuse.types_references.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (*compilatrice.typeuse.types_structures.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; }
-	POUR (*compilatrice.typeuse.types_enums.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (*compilatrice.typeuse.types_tableaux_fixes.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (*compilatrice.typeuse.types_tableaux_dynamiques.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (*compilatrice.typeuse.types_fonctions.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (*compilatrice.typeuse.types_variadiques.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
-	POUR (*compilatrice.typeuse.types_unions.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; it->deja_genere = false; };
-	POUR (*compilatrice.typeuse.types_type_de_donnees.verrou_ecriture()) { it->drapeaux &= ~TYPEDEF_FUT_GENERE; };
+	compilatrice.temps_generation = debut_generation.temps();
 }

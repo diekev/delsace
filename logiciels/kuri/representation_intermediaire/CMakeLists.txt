@@ -25,20 +25,28 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../compilation/
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
+	${INCLUSIONS_LIBFFI}
 )
 
 set(BIBLIOTHEQUES
 	kuri_compilation
 	bib_outils
+	systeme_fichier
+	${BIBLIOTHEQUES_LIBFFI}
+	dl
 )
 
 set(SOURCES
+	code_binaire.cc
     constructrice_ri.cc
 	instructions.cc
+	machine_virtuelle.cc
 	optimisations.cc
 
+	code_binaire.hh
     constructrice_ri.hh
 	instructions.hh
+	machine_virtuelle.hh
 	optimisations.hh
 )
 

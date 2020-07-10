@@ -27,15 +27,7 @@
 #include "biblinternes/structures/chaine.hh"
 
 struct Compilatrice;
-struct ConstructriceRI;
-struct NoeudDirectiveExecution;
 
-void genere_code_C(ConstructriceRI &constructrice_ri,
-		dls::chaine const &racine_kuri,
-		std::ostream &fichier_sortie);
-
-void genere_code_C_pour_execution(
-		Compilatrice &compilatrice,
-		NoeudDirectiveExecution *noeud_directive,
+void genere_code_C(Compilatrice &compilatrice,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);

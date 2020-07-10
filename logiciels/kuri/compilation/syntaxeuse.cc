@@ -75,7 +75,6 @@ static auto renseigne_fonction_interface(dls::outils::Synchrone<InterfaceKuri> &
 	INIT_MEMBRE(decl_dls_vers_r64, ID::DLS_vers_r64);
 	INIT_MEMBRE(decl_dls_depuis_r32, ID::DLS_depuis_r32);
 	INIT_MEMBRE(decl_dls_depuis_r64, ID::DLS_depuis_r64);
-	INIT_MEMBRE(decl_initialise_rc, ID::initialise_RC);
 
 #undef INIT_MEMBRE
 }
@@ -1029,8 +1028,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
 					m_compilatrice.definitions->pousse(chaine);
 				}
-				else if (directive == ID::execute) {
+				else if (directive == ID::execute || directive == ID::assert_ || directive == ID::test) {
 					auto noeud = CREE_NOEUD(NoeudDirectiveExecution, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
+					noeud->ident = directive;
 					noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
 					return noeud;
 				}
@@ -1853,6 +1853,11 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 				noeud->drapeaux |= FORCE_NULCTX;
 				noeud->drapeaux |= FORCE_SANSTRACE;
 				m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
+			}
+			else if (ident_directive == ID::compilatrice) {
+				noeud->drapeaux |= (FORCE_SANSTRACE | FORCE_NULCTX | COMPILATRICE);
+				noeud->est_externe = true;
+				externe = true;
 			}
 
 			consomme();

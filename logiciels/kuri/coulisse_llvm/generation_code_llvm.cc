@@ -569,6 +569,8 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 {
 	switch (inst->genre) {
 		case Instruction::Genre::INVALIDE:
+		case Instruction::Genre::ENREGISTRE_LOCALES:
+		case Instruction::Genre::RESTAURE_LOCALES:
 		{
 			break;
 		}
@@ -936,12 +938,12 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 	}
 }
 
-void GeneratriceCodeLLVM::genere_code(ConstructriceRI &constructrice_ri)
+void GeneratriceCodeLLVM::genere_code()
 {
-	constructrice_ri.compilatrice().typeuse.construit_table_types();
+	m_compilatrice.typeuse.construit_table_types();
 
-	POUR (constructrice_ri.globales) {
-		auto valeur_globale = static_cast<AtomeGlobale const *>(it);
+	POUR_TABLEAU_PAGE (m_compilatrice.globales) {
+		auto valeur_globale = &it;
 
 		auto valeur_initialisateur = static_cast<llvm::Constant *>(nullptr);
 
@@ -969,8 +971,8 @@ void GeneratriceCodeLLVM::genere_code(ConstructriceRI &constructrice_ri)
 		table_globales[valeur_globale] = globale;
 	}
 
-	POUR (constructrice_ri.fonctions) {
-		auto atome_fonc = it;
+	POUR_TABLEAU_PAGE (m_compilatrice.fonctions) {
+		auto atome_fonc = &it;
 
 		auto type_fonction = static_cast<TypeFonction *>(atome_fonc->type);
 		auto type_llvm = converti_type_fonction(
@@ -984,8 +986,8 @@ void GeneratriceCodeLLVM::genere_code(ConstructriceRI &constructrice_ri)
 					m_module);
 	}
 
-	POUR (constructrice_ri.fonctions) {
-		auto atome_fonc = it;
+	POUR_TABLEAU_PAGE (m_compilatrice.fonctions) {
+		auto atome_fonc = &it;
 		table_valeurs.efface();
 		table_blocs.efface();
 

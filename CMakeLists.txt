@@ -413,6 +413,10 @@ if(REQUIERS_BOOST)
 	set(INCLUSIONS_BOOST /opt/lib/boost/include)
 endif()
 
+if(AVEC_KURI)
+	find_package(LibFFI REQUIRED)
+endif()
+
 # ------------------------------------------------------------------------------
 
 add_subdirectory(biblexternes)

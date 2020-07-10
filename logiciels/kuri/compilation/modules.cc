@@ -78,24 +78,13 @@ NoeudDeclarationFonction *cherche_fonction_dans_module(
 	return cherche_fonction_dans_module(compilatrice, module, nom_fonction);
 }
 
-NoeudDeclarationFonction *cherche_symbole_dans_module(
-		Compilatrice &compilatrice,
-		Module *module,
-		dls::vue_chaine_compacte const &nom_fonction)
-{
-	auto ident = compilatrice.table_identifiants->identifiant_pour_chaine(nom_fonction);
-	auto decl = trouve_dans_bloc(module->bloc, ident);
-
-	return static_cast<NoeudDeclarationFonction *>(decl);
-}
-
-NoeudDeclarationFonction *cherche_symbole_dans_module(
+NoeudDeclaration *cherche_symbole_dans_module(
 		Compilatrice &compilatrice,
 		dls::vue_chaine_compacte const &nom_module,
-		dls::vue_chaine_compacte const &nom_fonction)
+		IdentifiantCode *ident)
 {
 	auto module = compilatrice.module(nom_module);
-	return cherche_fonction_dans_module(compilatrice, module, nom_fonction);
+	return trouve_dans_bloc(module->bloc, ident);
 }
 
 void imprime_fichier_ligne(Compilatrice &compilatrice, const Lexeme &lexeme)

@@ -25,6 +25,7 @@
 #include "compilatrice.hh"
 
 #include <filesystem>
+#include <stdarg.h>
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/flux/outils.h"
@@ -32,6 +33,10 @@
 #include "assembleuse_arbre.h"
 #include "erreur.h"
 #include "modules.hh"
+
+#include "../executable/options.hh"
+
+static Compilatrice *ptr_compilatrice = nullptr;
 
 Compilatrice::Compilatrice()
 	: assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", *this))
@@ -54,6 +59,8 @@ Compilatrice::Compilatrice()
 	this->ajoute_inclusion("pthread.h");
 	this->bibliotheques_dynamiques->pousse("pthread");
 	this->definitions->pousse("_REENTRANT");
+
+	ptr_compilatrice = this;
 }
 
 Compilatrice::~Compilatrice()
@@ -427,6 +434,18 @@ size_t Compilatrice::memoire_utilisee() const
 		memoire += static_cast<size_t>(it.taille);
 	}
 
+	memoire += fonctions.memoire_utilisee();
+	memoire += globales.memoire_utilisee();
+
+	pour_chaque_element(fonctions, [&](AtomeFonction const &it)
+	{
+		memoire += static_cast<size_t>(it.params_entrees.taille) * sizeof(Atome *);
+		memoire += static_cast<size_t>(it.params_sorties.taille) * sizeof(Atome *);
+		memoire += static_cast<size_t>(it.chunk.capacite);
+		memoire += static_cast<size_t>(it.chunk.locales.taille()) * sizeof(Locale);
+		memoire += static_cast<size_t>(it.chunk.decalages_labels.taille()) * sizeof(int);
+	});
+
 	return memoire;
 }
 
@@ -468,7 +487,132 @@ Metriques Compilatrice::rassemble_metriques() const
 		metriques.temps_decoupage += fichier->temps_decoupage;
 	}
 
+	auto memoire_mv = 0ul;
+	memoire_mv += static_cast<size_t>(mv.globales.taille()) * sizeof(Globale);
+	memoire_mv += static_cast<size_t>(mv.donnees_constantes.taille());
+	memoire_mv += static_cast<size_t>(mv.donnees_globales.taille());
+	memoire_mv += static_cast<size_t>(mv.patchs_donnees_constantes.taille()) * sizeof(PatchDonneesConstantes);
+	memoire_mv += static_cast<size_t>(mv.bibliotheques.taille()) * sizeof(BibliothequePartagee);
+
+	metriques.memoire_mv = memoire_mv;
+
 	return metriques;
+}
+
+AtomeFonction *Compilatrice::cree_fonction(const Lexeme *lexeme, const dls::chaine &nom)
+{
+	auto table = table_fonctions.verrou_ecriture();
+	auto atome_fonc = fonctions.ajoute_element(lexeme, nom);
+	table->insere({ nom, atome_fonc });
+	return atome_fonc;
+}
+
+AtomeFonction *Compilatrice::cree_fonction(const Lexeme *lexeme, const dls::chaine &nom, kuri::tableau<Atome *> &&params)
+{
+	auto table = table_fonctions.verrou_ecriture();
+	auto atome_fonc = fonctions.ajoute_element(lexeme, nom, std::move(params));
+	table->insere({ nom, atome_fonc });
+	return atome_fonc;
+}
+
+/* Il existe des dépendances cycliques entre les fonctions qui nous empêche de
+ * générer le code linéairement. Cette fonction nous sers soit à trouver le
+ * pointeur vers l'atome d'une fonction si nous l'avons déjà généré, soit de le
+ * créer en préparation de la génération de la RI de son corps.
+ */
+AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &constructrice, const NoeudDeclarationFonction *decl)
+{
+	auto table = table_fonctions.verrou_ecriture();
+	auto iter_fonc = table->trouve(decl->nom_broye);
+
+	if (iter_fonc != table->fin()) {
+		return iter_fonc->second;
+	}
+
+	auto fonction_courante = constructrice.fonction_courante;
+	constructrice.fonction_courante = nullptr;
+
+	auto params = kuri::tableau<Atome *>();
+	params.reserve(decl->params.taille);
+
+	if (!decl->est_externe && !dls::outils::possede_drapeau(decl->drapeaux, FORCE_NULCTX)) {
+		auto atome = constructrice.cree_allocation(typeuse.type_contexte, ID::contexte);
+		params.pousse(atome);
+	}
+
+	POUR (decl->params) {
+		auto atome = constructrice.cree_allocation(it->type, it->ident);
+		params.pousse(atome);
+	}
+
+	// À FAIRE : retours multiples
+
+	auto atome_fonc = fonctions.ajoute_element(decl->lexeme, decl->nom_broye, std::move(params));
+	atome_fonc->type = normalise_type(typeuse, decl->type);
+	atome_fonc->est_externe = decl->est_externe;
+
+	if (dls::outils::possede_drapeau(decl->drapeaux, FORCE_SANSTRACE)) {
+		atome_fonc->sanstrace = true;
+	}
+
+	atome_fonc->decl = decl;
+
+	table->insere({ decl->nom_broye, atome_fonc });
+
+	constructrice.fonction_courante = fonction_courante;
+
+	return atome_fonc;
+}
+
+AtomeFonction *Compilatrice::trouve_fonction(const dls::chaine &nom)
+{
+	auto table = table_fonctions.verrou_lecture();
+
+	auto iter = table->trouve(nom);
+
+	if (iter != table->fin()) {
+		return iter->second;
+	}
+
+	return nullptr;
+}
+
+AtomeGlobale *Compilatrice::cree_globale(Type *type, AtomeConstante *initialisateur, bool est_externe, bool est_constante)
+{
+	return globales.ajoute_element(typeuse.type_pointeur_pour(type), initialisateur, est_externe, est_constante);
+}
+
+void Compilatrice::ajoute_globale(NoeudDeclaration *decl, AtomeGlobale *atome)
+{
+	auto table = table_globales.verrou_ecriture();
+	table->insere({ decl, atome });
+}
+
+AtomeGlobale *Compilatrice::trouve_globale(NoeudDeclaration *decl)
+{
+	auto table = table_globales.verrou_lecture();
+	auto iter = table->trouve(decl);
+
+	if (iter != table->fin()) {
+		return iter->second;
+	}
+
+	return nullptr;
+}
+
+AtomeGlobale *Compilatrice::trouve_ou_insere_globale(NoeudDeclaration *decl)
+{
+	auto table = table_globales.verrou_ecriture();
+	auto iter = table->trouve(decl);
+
+	if (iter != table->fin()) {
+		return iter->second;
+	}
+
+	auto atome = cree_globale(decl->type, nullptr, false, false);
+	table->insere({ decl, atome });
+
+	return atome;
 }
 
 /* ************************************************************************** */
@@ -483,4 +627,90 @@ GeranteChaine::~GeranteChaine()
 void GeranteChaine::ajoute_chaine(const kuri::chaine &chaine)
 {
 	m_table.pousse(chaine);
+}
+
+/* ************************************************************************** */
+
+static OptionsCompilation *options_compilation = nullptr;
+
+void initialise_options_compilation(OptionsCompilation &option)
+{
+	options_compilation = &option;
+}
+
+OptionsCompilation *obtiens_options_compilation()
+{
+	return options_compilation;
+}
+
+void ajourne_options_compilation(OptionsCompilation *options)
+{
+	*options_compilation = *options;
+
+	if (options_compilation->nom_sortie != kuri::chaine("a.out")) {
+		// duplique la mémoire
+		options_compilation->nom_sortie = copie_chaine(options_compilation->nom_sortie);
+	}
+}
+
+void compilatrice_ajoute_chaine_compilation(kuri::chaine c)
+{
+	auto chaine = dls::chaine(c.pointeur, c.taille);
+
+	auto module = ptr_compilatrice->cree_module("", "");
+	auto fichier = ptr_compilatrice->cree_fichier("métaprogramme", "");
+	fichier->tampon = lng::tampon_source(chaine);
+	fichier->module = module;
+	module->fichiers.pousse(fichier);
+
+	auto unite = UniteCompilation();
+	unite.fichier = fichier;
+	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
+
+	ptr_compilatrice->file_compilation->pousse(unite);
+}
+
+void compilatrice_ajoute_fichier_compilation(kuri::chaine c)
+{
+	auto vue = dls::chaine(c.pointeur, c.taille);
+	auto chemin = std::filesystem::current_path() / vue.c_str();
+
+	if (!std::filesystem::exists(chemin)) {
+		std::cerr << "Le fichier " << chemin << " n'existe pas !\n";
+		ptr_compilatrice->possede_erreur = true;
+		return;
+	}
+
+	auto module = ptr_compilatrice->cree_module("", "");
+	auto tampon = charge_fichier(chemin.c_str(), *ptr_compilatrice, {});
+	auto fichier = ptr_compilatrice->cree_fichier(vue, chemin.c_str());
+	fichier->tampon = lng::tampon_source(tampon);
+	fichier->module = module;
+	module->fichiers.pousse(fichier);
+
+	auto unite = UniteCompilation();
+	unite.fichier = fichier;
+	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
+
+	ptr_compilatrice->file_compilation->pousse(unite);
+}
+
+// fonction pour tester les appels de fonctions variadiques externe dans la machine virtuelle
+int fonction_test_variadique_externe(int sentinel, ...)
+{
+	va_list ap;
+	va_start(ap, sentinel);
+
+	int i = 0;
+	for (;; ++i) {
+		int t = va_arg(ap, int);
+
+		if (t == sentinel) {
+			break;
+		}
+	}
+
+	va_end(ap);
+
+	return i;
 }

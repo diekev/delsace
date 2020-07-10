@@ -39,6 +39,7 @@ struct Module;
 struct IdentifiantCode;
 struct NoeudBase;
 struct NoeudBloc;
+struct NoeudDeclaration;
 struct NoeudDeclarationFonction;
 struct NoeudExpression;
 
@@ -113,12 +114,7 @@ NoeudDeclarationFonction *cherche_fonction_dans_module(
 		dls::vue_chaine_compacte const &nom_module,
 		dls::vue_chaine_compacte const &nom_fonction);
 
-NoeudDeclarationFonction *cherche_symbole_dans_module(
-		Compilatrice &compilatrice,
-		Module *module,
-		dls::vue_chaine_compacte const &nom_fonction);
-
-NoeudDeclarationFonction *cherche_symbole_dans_module(
+NoeudDeclaration *cherche_symbole_dans_module(
 		Compilatrice &compilatrice,
 		dls::vue_chaine_compacte const &nom_module,
-		dls::vue_chaine_compacte const &nom_fonction);
+		IdentifiantCode *ident);

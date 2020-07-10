@@ -291,7 +291,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 			auto debut_generation = dls::chrono::compte_seconde();
 
 			if (est_declaration(noeud->genre)) {
-				compilatrice.constructrice_ri.genere_ri_pour_noeud(noeud);
+				constructrice_ri.genere_ri_pour_noeud(noeud);
 				noeud->drapeaux |= RI_FUT_GENEREE;
 				noeud->type->drapeaux |= RI_TYPE_FUT_GENEREE;
 			}
@@ -310,18 +310,6 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 		return; \
 	}
 
-#define ATTEND_SUR_DECL_SI_NECESSAIRE(nom) \
-	if (nom == nullptr) { \
-		compilatrice.file_compilation->pousse(unite); \
-		return; \
-	} \
-	if ((nom->drapeaux & RI_FUT_GENEREE) == 0) { \
-		unite.etat_original = UniteCompilation::Etat::RI_ATTENDUE; \
-		unite.attend_sur_declaration(nom); \
-		compilatrice.file_compilation->pousse(unite); \
-		return; \
-	}
-
 				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_contexte);
 				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_base_allocatrice);
 				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_stockage_temporaire);
@@ -329,21 +317,30 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_info_appel_trace_appel);
 				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_info_fonction_trace_appel);
 
-				auto decl_rc = cherche_symbole_dans_module(compilatrice, "Compilatrice", "_RC");
-				ATTEND_SUR_DECL_SI_NECESSAIRE(decl_rc);
-				ATTEND_SUR_DECL_SI_NECESSAIRE(compilatrice.interface_kuri->decl_initialise_rc);
+				if (compilatrice.interface_kuri->decl_creation_contexte == nullptr) {
+					unite.etat_original = UniteCompilation::Etat::RI_ATTENDUE;
+					unite.attend_sur_interface_kuri();
+					compilatrice.file_compilation->pousse(unite);
+					return;
+				}
+
+				if ((compilatrice.interface_kuri->decl_creation_contexte->drapeaux & RI_FUT_GENEREE) == 0) {
+					unite.etat_original = UniteCompilation::Etat::RI_ATTENDUE;
+					unite.attend_sur_declaration(compilatrice.interface_kuri->decl_creation_contexte);
+					compilatrice.file_compilation->pousse(unite);
+					return;
+				}
 
 				if (!dependances_eurent_ri_generees(noeud_dir->fonction->noeud_dependance)) {
 					compilatrice.file_compilation->pousse(unite);
 					return;
 				}
 
-				compilatrice.constructrice_ri.genere_ri_pour_noeud(noeud_dir->fonction);
-				compilatrice.constructrice_ri.genere_ri_pour_fonction_metaprogramme(noeud_dir);
+				constructrice_ri.genere_ri_pour_fonction_metaprogramme(noeud_dir);
 				compilatrice.file_execution->pousse(noeud_dir);
 			}
 
-			compilatrice.constructrice_ri.temps_generation += debut_generation.temps();
+			constructrice_ri.temps_generation += debut_generation.temps();
 
 			break;
 		}

@@ -290,6 +290,7 @@ static void imprime_stats(
 							 + metriques.temps_analyse
 							 + metriques.temps_chargement
 							 + metriques.temps_validation
+							 + metriques.temps_metaprogrammes
 							 + metriques.temps_ri;
 
 	auto const temps_coulisse = metriques.temps_generation
@@ -348,16 +349,19 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "- Compilatrice", formatte_nombre(metriques.memoire_compilatrice), "o" });
 	tableau.ajoute_ligne({ "- Graphe", formatte_nombre(metriques.memoire_graphe), "o" });
 	tableau.ajoute_ligne({ "- Lexèmes", formatte_nombre(metriques.memoire_lexemes), "o" });
+	tableau.ajoute_ligne({ "- MV", formatte_nombre(metriques.memoire_mv), "o" });
 	tableau.ajoute_ligne({ "- Opérateurs", formatte_nombre(metriques.memoire_operateurs), "o" });
 	tableau.ajoute_ligne({ "- RI", formatte_nombre(metriques.memoire_ri), "o" });
 	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.memoire_tampons), "o" });
 	tableau.ajoute_ligne({ "- Types", formatte_nombre(metriques.memoire_types), "o" });
 	tableau.ajoute_ligne({ "Nombre allocations", formatte_nombre(memoire::nombre_allocations()), "" });
+	tableau.ajoute_ligne({ "Nombre métaprogrammes", formatte_nombre(metriques.nombre_metaprogrammes_executes), "" });
 
 	tableau.ajoute_ligne({ "Temps Scène", formatte_nombre(temps_scene * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_scene, temps_total)) });
 	tableau.ajoute_ligne({ "- Chargement", formatte_nombre(metriques.temps_chargement * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_chargement, temps_scene)) });
 	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.temps_tampon * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_tampon, temps_scene)) });
 	tableau.ajoute_ligne({ "- Lexage", formatte_nombre(metriques.temps_decoupage * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_decoupage, temps_scene)) });
+	tableau.ajoute_ligne({ "- Métaprogrammes", formatte_nombre(metriques.temps_metaprogrammes * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_analyse, temps_scene)) });
 	tableau.ajoute_ligne({ "- Syntaxage", formatte_nombre(metriques.temps_analyse * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_analyse, temps_scene)) });
 	tableau.ajoute_ligne({ "- Typage", formatte_nombre(metriques.temps_validation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_validation, temps_scene)) });
 	tableau.ajoute_ligne({ "- RI", formatte_nombre(metriques.temps_ri * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_ri, temps_scene)) });
@@ -376,154 +380,74 @@ static void imprime_stats(
 
 static void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri)
 {
-	auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
-	auto chemin_objet = "/tmp/r16_tables.o";
+	// objet pour la liaison statique de la bibliothèque
+	{
+		auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
+		auto chemin_objet = "/tmp/r16_tables.o";
 
-	if (std::filesystem::exists(chemin_objet)) {
-		return;
+		if (!std::filesystem::exists(chemin_objet)) {
+			auto commande = dls::chaine("g++ -c ");
+			commande += chemin_fichier.c_str();
+			commande += " -o /tmp/r16_tables.o";
+
+			std::cout << "Compilation des tables de conversion R16...\n";
+			std::cout << "Exécution de la commande " << commande << std::endl;
+
+			auto err = system(commande.c_str());
+
+			if (err != 0) {
+				std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
+				return;
+			}
+
+			std::cout << "Compilation du fichier statique réussie !" << std::endl;
+		}
 	}
 
-	auto commande = dls::chaine("g++ -c ");
-	commande += chemin_fichier.c_str();
-	commande += " -o /tmp/r16_tables.o";
+	// objet pour la liaison dynamique de la bibliothèque, pour les métaprogrammes
+	{
+		auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
+		auto chemin_objet = "/tmp/r16_tables.so";
 
-	std::cout << "Compilation des tables de conversion R16...\n";
-	std::cout << "Exécution de la commande " << commande << std::endl;
+		if (!std::filesystem::exists(chemin_objet)) {
+			auto commande = dls::chaine("g++ -shared -fPIC ");
+			commande += chemin_fichier.c_str();
+			commande += " -o /tmp/r16_tables.so";
 
-	auto err = system(commande.c_str());
+			std::cout << "Compilation des tables de conversion R16...\n";
+			std::cout << "Exécution de la commande " << commande << std::endl;
 
-	if (err != 0) {
-		std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
-		return;
-	}
+			auto err = system(commande.c_str());
 
-	std::cout << "Compilation réussie !" << std::endl;
-}
+			if (err != 0) {
+				std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
+				return;
+			}
 
-static Compilatrice *ptr_compilatrice = nullptr;
-
-void ajoute_chaine_compilation(kuri::chaine c)
-{
-	auto chaine = dls::chaine(c.pointeur, c.taille);
-
-	auto module = ptr_compilatrice->cree_module("", "");
-	auto fichier = ptr_compilatrice->cree_fichier("métaprogramme", "");
-	fichier->tampon = lng::tampon_source(chaine);
-	fichier->module = module;
-	module->fichiers.pousse(fichier);
-
-	auto unite = UniteCompilation();
-	unite.fichier = fichier;
-	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
-
-	ptr_compilatrice->file_compilation->pousse(unite);
-}
-
-void ajoute_fichier_compilation(kuri::chaine c)
-{
-	auto vue = dls::chaine(c.pointeur, c.taille);
-	auto chemin = std::filesystem::current_path() / vue.c_str();
-
-	if (!std::filesystem::exists(chemin)) {
-		std::cerr << "Le fichier " << chemin << " n'existe pas !\n";
-		ptr_compilatrice->possede_erreur = true;
-		return;
-	}
-
-	auto module = ptr_compilatrice->cree_module("", "");
-	auto tampon = charge_fichier(chemin.c_str(), *ptr_compilatrice, {});
-	auto fichier = ptr_compilatrice->cree_fichier(vue, chemin.c_str());
-	fichier->tampon = lng::tampon_source(tampon);
-	fichier->module = module;
-	module->fichiers.pousse(fichier);
-
-	auto unite = UniteCompilation();
-	unite.fichier = fichier;
-	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
-
-	ptr_compilatrice->file_compilation->pousse(unite);
-}
-
-static OptionsCompilation *options_compilation = nullptr;
-
-OptionsCompilation *obtiens_options_compilation()
-{
-	return options_compilation;
-}
-
-void ajourne_options_compilation(OptionsCompilation *options)
-{
-	*options_compilation = *options;
-
-	if (options_compilation->nom_sortie != kuri::chaine("a.out")) {
-		// duplique la mémoire
-		options_compilation->nom_sortie = copie_chaine(options_compilation->nom_sortie);
+			std::cout << "Compilation du fichier dynamique réussie !" << std::endl;
+		}
 	}
 }
 
-static bool lance_execution(Compilatrice &compilatrice, NoeudDirectiveExecution *noeud)
-{
-	// crée un fichier objet
-	auto commande = "gcc -Wno-discarded-qualifiers -Wno-format-security -shared -fPIC -o /tmp/test_execution.so /tmp/execution_kuri.c /tmp/r16_tables.o";
-
-	auto err = system(commande);
-
-	if (err != 0) {
-		std::cerr << "Impossible de compiler la bibliothèque !\n";
-		return 1;
-	}
-
-	// charge le fichier
-	auto so = dls::systeme_fichier::shared_library("/tmp/test_execution.so");
-
-	auto decl_fonc_init = cherche_fonction_dans_module(compilatrice, "Compilatrice", "initialise_RC");
-	auto symbole_init = so(decl_fonc_init->nom_broye);
-	auto fonc_init = dls::systeme_fichier::dso_function<
-			void(
-				void(*)(kuri::chaine),
-				void(*)(kuri::chaine),
-				OptionsCompilation*(*)(void),
-				void(*)(OptionsCompilation *))>(symbole_init);
-
-	if (!fonc_init) {
-		std::cerr << "Impossible de trouver le symbole de la fonction d'initialisation !\n";
-		return 1;
-	}
-
-	fonc_init(ajoute_chaine_compilation,
-			  ajoute_fichier_compilation,
-			  obtiens_options_compilation,
-			  ajourne_options_compilation);
-
-	auto nom_fonction = "lance_execution" + dls::vers_chaine(noeud);
-
-	auto dso = so(nom_fonction);
-
-	auto fonc = dls::systeme_fichier::dso_function<void()>(dso);
-
-	if (!fonc) {
-		std::cerr << "Impossible de trouver le symbole !\n";
-	}
-
-	fonc();
-
-	return 0;
-}
-
-void lance_tacheronne(Compilatrice *compilatrice)
+void lance_tacheronne(Tacheronne *tacheronne)
 {
 	try {
-		auto tacheronne = Tacheronne(*compilatrice);
-		tacheronne.gere_tache();
+		tacheronne->gere_tache();
 	}
 	catch (const erreur::frappe &e) {
 		std::cerr << e.message() << '\n';
-		ptr_compilatrice->possede_erreur = true;
+		tacheronne->compilatrice.possede_erreur = true;
 	}
 }
 
 void lance_file_execution(Compilatrice *compilatrice)
 {
+	auto constructrice_ri = ConstructriceRI(*compilatrice);
+
+	// en dehors de la boucle pour réutiliser la mémoire
+	dls::tableau<AtomeGlobale *> globales;
+	dls::tableau<AtomeFonction *> fonctions;
+
 	while (!compilatrice->compilation_terminee()) {
 		if (compilatrice->file_execution->est_vide()) {
 			continue;
@@ -531,11 +455,104 @@ void lance_file_execution(Compilatrice *compilatrice)
 
 		// N'effronte pas sinon les autres threads pourraient s'arrêter alors que le métaprogramme pourrait ajouter des choses à compiler.
 		auto noeud = compilatrice->file_execution->front();
-		std::ofstream of;
-		of.open("/tmp/execution_kuri.c");
 
-		genere_code_C_pour_execution(*compilatrice, noeud, compilatrice->racine_kuri, of);
-		lance_execution(*compilatrice, noeud);
+		auto index_dans_table_type = 1u;
+
+		globales.efface();
+		fonctions.efface();
+
+		traverse_graphe(noeud->fonction->noeud_dependance, [&](NoeudDependance *noeud_dep)
+		{
+			if (noeud_dep->type == TypeNoeudDependance::FONCTION) {
+				auto decl_noeud = static_cast<NoeudDeclarationFonction *>(noeud_dep->noeud_syntactique);
+
+				if ((decl_noeud->drapeaux & CODE_BINAIRE_FUT_GENERE) != 0) {
+					return;
+				}
+
+				auto atome_fonction = compilatrice->trouve_fonction(decl_noeud->nom_broye);
+				fonctions.pousse(atome_fonction);
+				decl_noeud->drapeaux |= CODE_BINAIRE_FUT_GENERE;
+			}
+			else if (noeud_dep->type == TypeNoeudDependance::TYPE) {
+				auto type = noeud_dep->type_;
+
+				if ((type->drapeaux & CODE_BINAIRE_TYPE_FUT_GENERE) != 0) {
+					return;
+				}
+
+				type->index_dans_table_types = index_dans_table_type++;
+
+				if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
+					auto nom_fonction = "initialise_" + dls::vers_chaine(type);
+					auto atome_fonction = compilatrice->trouve_fonction(nom_fonction);
+					fonctions.pousse(atome_fonction);
+					type->drapeaux |= CODE_BINAIRE_TYPE_FUT_GENERE;
+				}
+			}
+			else if (noeud_dep->type == TypeNoeudDependance::GLOBALE) {
+				auto decl_noeud = static_cast<NoeudDeclaration *>(noeud_dep->noeud_syntactique);
+
+				if ((decl_noeud->drapeaux & EST_CONSTANTE) != 0) {
+					return;
+				}
+
+				if ((decl_noeud->drapeaux & CODE_BINAIRE_FUT_GENERE) != 0) {
+					return;
+				}
+
+				auto atome_globale = compilatrice->trouve_globale(decl_noeud);
+
+				if (atome_globale->index == -1) {
+					atome_globale->index = compilatrice->mv.ajoute_globale(decl_noeud->type, decl_noeud->ident);
+				}
+
+				globales.pousse(atome_globale);
+
+				decl_noeud->drapeaux |= CODE_BINAIRE_FUT_GENERE;
+			}
+		});
+
+		POUR_TABLEAU_PAGE (compilatrice->graphe_dependance->noeuds) {
+			it.fut_visite = false;
+		}
+
+		auto fonction = compilatrice->trouve_fonction(noeud->fonction->nom_broye);
+
+		if (!fonction) {
+			std::cerr << "Impossible de trouver la fonction métaprogramme pour " << noeud->fonction->nom_broye << '\n';
+			imprime_fichier_ligne(*compilatrice, *noeud->lexeme);
+		}
+
+		//desassemble(fonction->chunk, noeud->fonction->nom_broye.c_str(), std::cout);
+
+		if (globales.taille() != 0) {
+			auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(globales, fonction);
+			fonctions.pousse(fonc_init);
+		}
+
+		POUR (fonctions) {
+			genere_code_binaire_pour_fonction(it, &compilatrice->mv);
+		}
+
+		auto res = compilatrice->mv.interprete(fonction);
+
+		if (res == MachineVirtuelle::ResultatInterpretation::ERREUR) {
+			// À FAIRE : erreur de compilation si une erreur d'exécution
+			std::cerr << "Erreur lors de l'exécution du métaprogramme !\n-- ";
+			imprime_fichier_ligne(*compilatrice, *noeud->lexeme);
+		}
+		else {
+			if (noeud->ident == ID::assert_) {
+				auto resultat = *reinterpret_cast<bool *>(compilatrice->mv.pointeur_pile);
+
+				if (!resultat) {
+					// À FAIRE : erreur de compilation si une assertion échoue
+					std::cerr << "Échec de l'assertion !\n-- ";
+					imprime_fichier_ligne(*compilatrice, *noeud->lexeme);
+				}
+			}
+		}
 
 		compilatrice->file_execution->effronte();
 	}
@@ -582,7 +599,7 @@ static int genere_code_coulisse(
 
 		initialise_optimisation(ops.niveau_optimisation, generatrice);
 
-		generatrice.genere_code(compilatrice.constructrice_ri);
+		generatrice.genere_code();
 
 		compilatrice.temps_generation = temps_generation.temps();
 
@@ -618,7 +635,7 @@ static int genere_code_coulisse(
 		of.open("/tmp/compilation_kuri.c");
 
 		std::cout << "Génération du code..." << std::endl;
-		genere_code_C(compilatrice.constructrice_ri, compilatrice.racine_kuri, of);
+		genere_code_C(compilatrice, compilatrice.racine_kuri, of);
 
 		of.close();
 
@@ -757,7 +774,7 @@ int main(int argc, char *argv[])
 	}
 
 	auto ops = OptionsCompilation();
-	options_compilation = &ops;
+	initialise_options_compilation(ops);
 
 	std::ostream &os = std::cout;
 
@@ -766,17 +783,13 @@ int main(int argc, char *argv[])
 	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
 	auto temps_fichier_objet = 0.0;
 	auto temps_executable    = 0.0;
-	auto temps_ri            = 0.0;
-	auto memoire_ri          = 0ul;
+
+	precompile_objet_r16(chemin_racine_kuri);
 
 	auto metriques = Metriques{};
-
 	auto compilatrice = Compilatrice{};
-	ptr_compilatrice = &compilatrice;
 
 	try {
-		precompile_objet_r16(chemin_racine_kuri);
-
 		/* enregistre le dossier d'origine */
 		auto dossier_origine = std::filesystem::current_path();
 
@@ -804,23 +817,25 @@ int main(int argc, char *argv[])
 		auto module = compilatrice.cree_module("", dossier.c_str());
 		compilatrice.ajoute_fichier_a_la_compilation(nom_fichier.c_str(), module, {});
 
+		auto tacheronne = Tacheronne(compilatrice);
+
 #ifdef AVEC_THREADS
-		std::thread file_tacheronne(lance_tacheronne, &compilatrice);
+		std::thread file_tacheronne(lance_tacheronne, &tacheronne);
 		std::thread file_execution(lance_file_execution, &compilatrice);
 
 		file_tacheronne.join();
 		file_execution.join();
 #else
-		lance_tacheronne(&compilatrice);
+		lance_tacheronne(&tacheronne);
 		lance_file_execution(&compilatrice);
 #endif
-
-		temps_ri = constructrice_ri.temps_generation;
-		memoire_ri = constructrice_ri.memoire_utilisee();
 
 		if (!compilatrice.possede_erreur && genere_code_coulisse(compilatrice, ops, temps_executable, temps_fichier_objet)) {
 			compilatrice.possede_erreur = true;
 		}
+
+		auto temps_ri = constructrice_ri.temps_generation + tacheronne.constructrice_ri.temps_generation;
+		auto memoire_ri = constructrice_ri.memoire_utilisee() + tacheronne.constructrice_ri.memoire_utilisee();
 
 		/* restore le dossier d'origine */
 		std::filesystem::current_path(dossier_origine);
@@ -834,6 +849,8 @@ int main(int argc, char *argv[])
 		metriques.temps_decoupage = compilatrice.temps_lexage;
 		metriques.temps_validation = compilatrice.temps_validation;
 		metriques.nombre_identifiants = static_cast<size_t>(compilatrice.table_identifiants->taille());
+		metriques.temps_metaprogrammes = compilatrice.mv.temps_execution_metaprogammes;
+		metriques.nombre_metaprogrammes_executes = static_cast<size_t>(compilatrice.mv.nombre_de_metaprogrammes_executes);
 
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = dls::chrono::compte_seconde();

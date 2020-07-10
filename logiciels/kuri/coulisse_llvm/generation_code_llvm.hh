@@ -43,7 +43,6 @@
 struct Atome;
 struct InstructionLabel;
 struct Compilatrice;
-struct ConstructriceRI;
 struct Type;
 struct TypeFonction;
 struct Instruction;
@@ -75,7 +74,7 @@ struct GeneratriceCodeLLVM {
 
 	void genere_code_pour_instruction(Instruction const *inst);
 
-	void genere_code(ConstructriceRI &constructrice_ri);
+	void genere_code();
 
 	llvm::Constant *valeur_pour_chaine(const dls::chaine &chaine, long taille_chaine);
 };

@@ -14,3 +14,11 @@ Directives pour le compilateur
 #interface              indique qu'une fonction ou structure fait partie de l'interface entre la compilatrice et le programme, ne peut être utilisé qu'au sein du module Kuri
 #nulctx                 indique que la fonction ou le type de fonction ne prend pas le contexte implicite en paramètre
 #sanstrace              indique qu'une fonction n'a pas de trace d'appel
+
+Directive pour la métaprogrammation
+
+#assert      évalue une expression booléenne lors de la compilation, si le résultat est faux la compilation doit s'arrêter
+#exécute     exécute un métaprogramme et retourne le résultat
+#si          évalue une expression booléenne, et ne compile la branche que si l'expression est vraie
+#test        comme #assert mais seulement évaluée si les tests sont activés
+#texte_corps pour les fonctions et les structures, exécute le corps de la fonction qui doit retourner une chaine définissant le corps de la structure ou de la fonction, si la fonction ou structure est polymorphique, ne lance le code que lors de l'instantiation

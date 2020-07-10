@@ -27,6 +27,7 @@
 #include "biblinternes/outils/conditions.h"
 
 #include "assembleuse_arbre.h"
+#include "identifiant.hh"
 #include "modules.hh"
 #include "outils_lexemes.hh"
 #include "typage.hh"
@@ -859,6 +860,11 @@ void aplatis_arbre(
 		{
 			auto expr = static_cast<NoeudDirectiveExecution *>(racine);
 			expr->drapeaux |= drapeau;
+
+			if (expr->ident == ID::assert_ || expr->ident == ID::test) {
+				drapeau |= DROITE_ASSIGNATION;
+			}
+
 			aplatis_arbre(expr->expr, arbre_aplatis, drapeau);
 			arbre_aplatis.pousse(expr);
 			break;

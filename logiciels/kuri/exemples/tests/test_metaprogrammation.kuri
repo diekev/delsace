@@ -1,0 +1,98 @@
+importe Compilatrice
+importe Fondation
+
+// les différentes instructions à implémenter
+// -- constantes des tableaux
+// -- tableaux globaux
+// -- chaines globales
+
+// À FAIRE : pas d'erreur de compilation quand nous avons plusieurs fonctions principales
+// À FAIRE : bug dans la génération de code binaire pour les PositionCodeSource
+// À FAIRE : trouve une bonne manière de sauvegarder et restaurer l'état des fonctions courante dans la ConstructriceRI pour éviter les bugs
+lance_compilation :: fonc ()
+{
+    ajoute_fichier_à_la_compilation("assertions.kuri")
+
+    //options := compilatrice_obtiens_options()
+    //options.crée_exécutable = faux
+
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
+
+    ajoute_au_tampon(@enchaineuse, "principale :: fonc () -> z32\n")
+    ajoute_au_tampon(@enchaineuse, "{\n")
+    ajoute_au_tampon(@enchaineuse, "    retourne 32\n")
+    ajoute_au_tampon(@enchaineuse, "}\n")
+
+    chn_principale := chaine_depuis_enchaineuse(@enchaineuse)
+
+    ajoute_chaine_à_la_compilation(chn_principale)
+
+    déloge chn_principale
+}
+
+#exécute lance_compilation()
+
+test_transtype :: fonc ()
+{
+}
+
+test_eini :: fonc ()
+{
+}
+
+test_références :: fonc ()
+{
+}
+
+// principale :: fonc () -> z32
+// {
+//     retourne 0
+// }
+
+/*
+GenreMessage :: énum z32 {
+    INVALIDE
+
+    FICHIER_OUVERT
+    FICHIER_FERMÉ
+    FONCTION_TYPÉE
+    STRUCTURE_TYPÉE
+    COMPILATION_TERMINÉE
+}
+
+Message :: struct {
+    genre : GenreMessage
+}
+
+MessageFichier :: struct {
+    empl base : Message
+
+    chemin: chaine
+}
+
+MessageFonctionTypée :: struct {
+    empl base : Message
+
+    nom : chaine
+}
+
+MessageStructureTypée :: struct {
+    empl base : Message
+
+    nom: chaine
+}
+
+compilatrice_attend_message :: fonc (espace: *EspaceDeTravail) -> *Message #nulctx
+{
+    retourne _RC.rappel_compilatrice_attent_message(espace)
+}
+
+EspaceDeTravail :: struct {
+    nom : chaine
+    id : z32
+}
+
+compilatrice_démarre_un_espace_de_travail :: fonc (nom: chaine) -> *EspaceDeTravail
+
+*/

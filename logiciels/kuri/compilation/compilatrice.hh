@@ -35,11 +35,13 @@
 #include "unite_compilation.hh"
 
 #include "../representation_intermediaire/constructrice_ri.hh"
+#include "../representation_intermediaire/machine_virtuelle.hh"
 
 class assembleuse_arbre;
 
 struct Module;
 struct Fichier;
+struct OptionsCompilation;
 
 struct Metriques {
 	size_t nombre_modules = 0ul;
@@ -48,6 +50,7 @@ struct Metriques {
 	size_t nombre_lexemes = 0ul;
 	size_t nombre_noeuds = 0ul;
 	size_t nombre_noeuds_deps = 0ul;
+	size_t nombre_metaprogrammes_executes = 0ul;
 	size_t memoire_tampons = 0ul;
 	size_t memoire_lexemes = 0ul;
 	size_t memoire_arbre = 0ul;
@@ -56,6 +59,7 @@ struct Metriques {
 	size_t memoire_operateurs = 0ul;
 	size_t memoire_ri = 0ul;
 	size_t memoire_graphe = 0ul;
+	size_t memoire_mv = 0ul;
 	long nombre_types = 0;
 	long nombre_operateurs = 0;
 	double temps_chargement = 0.0;
@@ -68,6 +72,7 @@ struct Metriques {
 	double temps_executable = 0.0;
 	double temps_nettoyage = 0.0;
 	double temps_ri = 0.0;
+	double temps_metaprogrammes = 0.0;
 };
 
 struct GeranteChaine {
@@ -91,7 +96,6 @@ struct InterfaceKuri {
 	NoeudDeclarationFonction *decl_dls_vers_r64 = nullptr;
 	NoeudDeclarationFonction *decl_dls_depuis_r32 = nullptr;
 	NoeudDeclarationFonction *decl_dls_depuis_r64 = nullptr;
-	NoeudDeclarationFonction *decl_initialise_rc = nullptr;
 	NoeudDeclarationFonction *decl_creation_contexte = nullptr;
 };
 
@@ -116,6 +120,7 @@ struct Compilatrice {
 	dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
 
 	ConstructriceRI constructrice_ri;
+	MachineVirtuelle mv{};
 
 	using TypeFileUC = dls::liste<UniteCompilation>;
 	dls::outils::Synchrone<TypeFileUC> file_compilation{};
@@ -153,6 +158,20 @@ struct Compilatrice {
 	tableau_synchrone<dls::vue_chaine_compacte> definitions{};
 
 	dls::chaine racine_kuri{};
+
+	using TypeDicoFonction = dls::dico<dls::chaine, AtomeFonction *>;
+	dls::outils::Synchrone<TypeDicoFonction> table_fonctions{};
+	tableau_page<AtomeFonction> fonctions{};
+
+	using TypeDicoGlobale = dls::dico<NoeudDeclaration *, AtomeGlobale *>;
+	dls::outils::Synchrone<TypeDicoGlobale> table_globales{};
+	tableau_page<AtomeGlobale> globales{};
+
+	using ConteneurConstructeursGlobales = dls::tableau<std::pair<AtomeGlobale *, NoeudExpression *>>;
+	dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
+
+	using TableChaine = dls::dico<dls::chaine, AtomeConstante *>;
+	dls::outils::Synchrone<TableChaine> table_chaines{};
 
 	/* ********************************************************************** */
 
@@ -266,6 +285,16 @@ struct Compilatrice {
 	 */
 	Metriques rassemble_metriques() const;
 
+	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom);
+	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom, kuri::tableau<Atome *> &&params);
+	AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationFonction const *decl);
+	AtomeFonction *trouve_fonction(dls::chaine const &nom);
+
+	AtomeGlobale *cree_globale(Type *type, AtomeConstante *valeur, bool initialisateur, bool est_constante);
+	void ajoute_globale(NoeudDeclaration *decl, AtomeGlobale *atome);
+	AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
+	AtomeGlobale *trouve_ou_insere_globale(NoeudDeclaration *decl);
+
 public:
 	double temps_generation = 0.0;
 	double temps_validation = 0.0;
@@ -276,3 +305,10 @@ dls::chaine charge_fichier(
 		dls::chaine const &chemin,
 		Compilatrice &compilatrice,
 		Lexeme const &lexeme);
+
+void initialise_options_compilation(OptionsCompilation &option);
+OptionsCompilation *obtiens_options_compilation();
+void ajourne_options_compilation(OptionsCompilation *options);
+void compilatrice_ajoute_chaine_compilation(kuri::chaine c);
+void compilatrice_ajoute_fichier_compilation(kuri::chaine c);
+int fonction_test_variadique_externe(int sentinel, ...);

@@ -32,6 +32,8 @@
 #include "compilation/operateurs.hh"
 #include "compilation/structures.hh"
 
+#include "code_binaire.hh"
+
 struct IdentifiantCode;
 struct Instruction;
 struct Lexeme;
@@ -132,6 +134,9 @@ struct AtomeGlobale : public AtomeConstante {
 	bool est_externe = false;
 	bool est_constante = false;
 
+	// index de la globale pour le code binaire
+	int index = -1;
+
 	COPIE_CONSTRUCT(AtomeGlobale);
 
 	AtomeGlobale(Type *type, AtomeConstante *initialisateur, bool est_externe, bool est_constante);
@@ -196,6 +201,21 @@ struct AtomeFonction : public Atome {
 	Lexeme const *lexeme = nullptr;
 
 	bool sanstrace = false;
+	bool est_externe = false;
+	NoeudDeclarationFonction const *decl = nullptr;
+
+	// Pour les exécutions
+	Chunk chunk{};
+
+	long decalage_appel_init_globale = 0;
+
+	struct DonneesFonctionExterne {
+		dls::tablet<ffi_type *, 6> types_entrees{};
+		ffi_cif cif{};
+		void (*ptr_fonction)() = nullptr;
+	};
+
+	DonneesFonctionExterne donnees_externe{};
 
 	AtomeFonction(Lexeme const *lexeme, dls::chaine const &nom);
 	AtomeFonction(Lexeme const *lexeme, dls::chaine const &nom, kuri::tableau<Atome *> &&params);
@@ -220,6 +240,11 @@ struct Instruction : public Atome {
 		ACCEDE_MEMBRE,
 		ACCEDE_INDEX,
 		TRANSTYPE,
+
+		// ces deux types d'instructions sont utilisées pour tenir trace du nombre de locales dans les blocs pour le code binaire
+		// à l'entrée d'un bloc nous enregistrons le nombre de locales, et le restaurons à la sortie, afin de réutiliser la mémoire des locales du blocs
+		ENREGISTRE_LOCALES,
+		RESTAURE_LOCALES,
 	};
 
 	enum {
@@ -253,6 +278,9 @@ struct InstructionAllocation : public Instruction {
 		genre = Instruction::Genre::ALLOCATION;
 		est_chargeable = true;
 	}
+
+	// pour la génération de code binaire, mise en place lors de la génération de celle-ci
+	int index_locale = 0;
 
 	InstructionAllocation(Type *type, IdentifiantCode *ident);
 };

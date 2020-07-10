@@ -106,6 +106,14 @@ extern IdentifiantCode *def;
 extern IdentifiantCode *execute;
 extern IdentifiantCode *chemin;
 extern IdentifiantCode *creation_contexte;
+extern IdentifiantCode *ajoute_chaine_a_la_compilation;
+extern IdentifiantCode *ajoute_fichier_a_la_compilation;
+extern IdentifiantCode *compilatrice;
+extern IdentifiantCode *compilatrice_obtiens_options;
+extern IdentifiantCode *compilatrice_ajourne_options;
+extern IdentifiantCode *fonction_test_variadique_externe;
+extern IdentifiantCode *test;
+extern IdentifiantCode *assert_;
 
 }
 

@@ -192,8 +192,19 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			noeud_decl->type = type_fonction;
 
 			noeud_decl->bloc = static_cast<NoeudBloc *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, noeud->lexeme));
-			noeud_decl->bloc->expressions->pousse(noeud_directive->expr);
-			// À FAIRE : instruction de retour
+
+			static Lexeme lexeme_retourne = { "retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0 };
+			auto expr_ret = static_cast<NoeudExpressionUnaire *>(m_compilatrice.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_RETOUR, &lexeme_retourne));
+
+			if (noeud_directive->expr->type != m_compilatrice.typeuse[TypeBase::RIEN]) {
+				expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR_SIMPLE;
+				expr_ret->expr = noeud_directive->expr;
+			}
+			else {
+				noeud_decl->bloc->expressions->pousse(noeud_directive->expr);
+			}
+
+			noeud_decl->bloc->expressions->pousse(expr_ret);
 
 			auto graphe = m_compilatrice.graphe_dependance.verrou_ecriture();
 			auto noeud_dep = graphe->cree_noeud_fonction(noeud_decl);
@@ -2488,7 +2499,9 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 			return true;
 		}
 
-		decl->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
+		if (decl != m_compilatrice.interface_kuri->decl_creation_contexte) {
+			decl->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
+		}
 	}
 
 	graphe->ajoute_dependances(*noeud_dep, donnees_dependance);

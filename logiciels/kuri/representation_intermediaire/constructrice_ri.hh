@@ -47,9 +47,8 @@ struct TypeTableauFixe;
 
 struct ConstructriceRI {
 private:
-	tableau_page<AtomeFonction> atomes_fonction{};
 	tableau_page<AtomeValeurConstante> atomes_constante{};
-	tableau_page<AtomeGlobale> atomes_globale{};
+	tableau_page<Instruction> insts_simples{};
 	tableau_page<InstructionAllocation> insts_allocation{};
 	tableau_page<InstructionAppel> insts_appel{};
 	tableau_page<InstructionBranche> insts_branche{};
@@ -70,7 +69,6 @@ private:
 
 	Compilatrice &m_compilatrice;
 
-	AtomeFonction *fonction_courante = nullptr;
 	kuri::tableau<InstructionAccedeMembre *> acces_membres{};
 	kuri::tableau<InstructionChargeMem *> charge_mems{};
 
@@ -80,23 +78,13 @@ private:
 	NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
 
 	dls::dico<IdentifiantCode *, Atome *> table_locales{};
-	using TypeDicoGlobales = dls::dico<IdentifiantCode *, AtomeGlobale *>;
-	dls::outils::Synchrone<TypeDicoGlobales> table_globales{};
-	dls::dico<dls::chaine, AtomeConstante *> table_chaines{};
 
 	dls::tablet<dls::triplet<IdentifiantCode *, InstructionLabel *, InstructionLabel *>, 12> insts_continue_arrete{};
-
-	dls::tableau<std::pair<AtomeGlobale *, NoeudExpression *>> constructeurs_globaux{};
 
 	bool expression_gauche = true;
 
 public:
-	using TypeDicoFonction = dls::dico<dls::chaine, AtomeFonction *>;
-	dls::outils::Synchrone<TypeDicoFonction> table_fonctions{};
-
-	// stocke les atomes des fonctions et des variables globales
-	kuri::tableau<Atome *> globales{};
-	kuri::tableau<AtomeFonction *> fonctions{};
+	AtomeFonction *fonction_courante = nullptr;
 
 	double temps_generation = 0.0;
 
@@ -120,10 +108,11 @@ public:
 		return m_compilatrice;
 	}
 
+	InstructionAllocation *cree_allocation(Type *type, IdentifiantCode *ident);
+
+	AtomeFonction *genere_fonction_init_globales_et_appel(const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
+
 private:
-	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom);
-	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom, kuri::tableau<Atome *> &&params);
-	AtomeFonction *trouve_ou_insere_fonction(NoeudDeclarationFonction const *decl);
 
 	AtomeConstante *cree_constante_booleenne(bool valeur);
 	AtomeConstante *cree_constante_caractere(Type *type, unsigned long long valeur);
@@ -141,7 +130,6 @@ private:
 	AtomeConstante *cree_tableau_global(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
 	AtomeConstante *cree_tableau_global(AtomeConstante *tableau_fixe);
 
-	InstructionAllocation *cree_allocation(Type *type, IdentifiantCode *ident);
 	InstructionBranche *cree_branche(InstructionLabel *label);
 	InstructionBrancheCondition *cree_branche_condition(Atome *valeur, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
 	InstructionLabel *cree_label();

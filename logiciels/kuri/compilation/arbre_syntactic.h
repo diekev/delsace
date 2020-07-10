@@ -140,6 +140,8 @@ enum drapeaux_noeud : unsigned int {
 	DROITE_ASSIGNATION         = (1 << 14),
 	DECLARATION_FUT_VALIDEE    = (1 << 15),
 	RI_FUT_GENEREE             = (1 << 16),
+	CODE_BINAIRE_FUT_GENERE    = (1 << 17),
+	COMPILATRICE               = (1 << 18),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned int)

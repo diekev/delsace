@@ -42,48 +42,10 @@ OptionsCompilation :: struct {
 
 // ----------------------------------------------------------------------------
 
-RappelCompilateur :: struct {
-    rappel_ajout_chaine_à_la_compilation : #nulctx fonc(chaine)(rien)
-    rappel_ajout_fichier_à_la_compilation : #nulctx fonc(chaine)(rien)
-    rappel_obtiens_options : #nulctx fonc()(*OptionsCompilation)
-    rappel_ajourne_options : #nulctx fonc(*OptionsCompilation)(rien)
-}
+ajoute_chaine_à_la_compilation :: fonc(c: chaine) -> rien #compilatrice
 
-// Il nous faudrait un système pour définir un symbole interne à un module
-// afin d'éviter que les gens manipulent ceci
-_RC : RappelCompilateur
+ajoute_fichier_à_la_compilation :: fonc(c: chaine) -> rien #compilatrice
 
-initialise_RC :: fonc(
-    rappel_ajoute_chaine: #nulctx fonc(chaine)(rien),
-    rappel_ajoute_fichier: #nulctx fonc(chaine)(rien),
-    rappel_obtiens_options : #nulctx fonc()(*OptionsCompilation),
-    rappel_ajourne_options : #nulctx fonc(*OptionsCompilation)(rien)) -> rien #nulctx #interface
-{
-    nonsûr {
-        _RC.rappel_ajout_chaine_à_la_compilation = rappel_ajoute_chaine
-        _RC.rappel_ajout_fichier_à_la_compilation = rappel_ajoute_fichier
-        _RC.rappel_obtiens_options = rappel_obtiens_options
-        _RC.rappel_ajourne_options = rappel_ajourne_options
-    }
-}
+compilatrice_obtiens_options :: fonc () -> *OptionsCompilation #compilatrice
 
-ajoute_chaine_à_la_compilation :: fonc(c: chaine) -> rien #nulctx
-{
-    _RC.rappel_ajout_chaine_à_la_compilation(c)
-}
-
-ajoute_fichier_à_la_compilation :: fonc(c: chaine) -> rien #nulctx
-{
-    _RC.rappel_ajout_fichier_à_la_compilation(c)
-}
-
-compilatrice_obtiens_options :: fonc () -> *OptionsCompilation #nulctx
-{
-    ptr := _RC.rappel_obtiens_options
-    retourne ptr()
-}
-
-compilatrice_ajourne_options :: fonc (options: *OptionsCompilation) -> rien #nulctx
-{
-    _RC.rappel_ajourne_options(options)
-}
+compilatrice_ajourne_options :: fonc (options: *OptionsCompilation) -> rien #compilatrice
