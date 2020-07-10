@@ -370,7 +370,7 @@ static void imprime_instruction(Instruction const *inst, std::ostream &os)
 		case Instruction::Genre::TRANSTYPE:
 		{
 			auto inst_transtype = static_cast<InstructionTranstype const *>(inst);
-			os << "  transtype ";
+			os << "  transtype (" << static_cast<int>(inst_transtype->op) << ") ";
 			imprime_atome(inst_transtype->valeur, os);
 			os << " vers " << chaine_type(inst_transtype->type) << '\n';
 			break;
@@ -1859,7 +1859,17 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 			// nous avons une temporaire créée lors d'une opération binaire
 			else {
 				valeur = cree_charge_mem(valeur);
-				valeur = cree_transtype(transformation.type_cible, valeur, TypeTranstypage::DEFAUT);
+
+				TypeTranstypage type_transtypage;
+
+				if (transformation.type_cible->taille_octet > 4) {
+					type_transtypage = AUGMENTE_NATUREL;
+				}
+				else {
+					type_transtypage = DIMINUE_NATUREL;
+				}
+
+				valeur = cree_transtype(transformation.type_cible, valeur, type_transtypage);
 			}
 
 			assert(valeur->type->genre != GenreType::ENTIER_CONSTANT);
