@@ -26,6 +26,7 @@
 
 #include "biblinternes/memoire/logeuse_gardee.hh"
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
 /**
@@ -57,7 +58,12 @@ struct chaine {
 		}
 	}
 
-	explicit chaine(dls::vue_chaine_compacte const &chn)
+	chaine(dls::chaine const &chn)
+		: pointeur(const_cast<char *>(chn.c_str()))
+		, taille(chn.taille())
+	{}
+
+	chaine(dls::vue_chaine_compacte const &chn)
 		: pointeur(const_cast<char *>(chn.pointeur()))
 		, taille(chn.taille())
 	{}

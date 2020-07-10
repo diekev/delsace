@@ -31,6 +31,7 @@
 #include "operateurs.hh"
 #include "graphe_dependance.hh"
 #include "identifiant.hh"
+#include "message.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
 
@@ -129,6 +130,8 @@ struct Compilatrice {
 	dls::outils::Synchrone<TypeFileExecution> file_execution{};
 
 	dls::outils::Synchrone<GeranteChaine> gerante_chaine{};
+
+	dls::outils::Synchrone<Messagere> messagere{};
 
 	/* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment. */
 	bool importe_kuri = true;
@@ -276,6 +279,13 @@ struct Compilatrice {
 
 	/* ********************************************************************** */
 
+	void ajoute_message_fichier_ouvert(kuri::chaine const &chemin);
+	void ajoute_message_fichier_ferme(kuri::chaine const &chemin);
+	void ajoute_message_module_ouvert(kuri::chaine const &chemin);
+	void ajoute_message_module_ferme(kuri::chaine const &chemin);
+
+	/* ********************************************************************** */
+
 	size_t memoire_utilisee() const;
 
 	/**
@@ -312,3 +322,5 @@ void ajourne_options_compilation(OptionsCompilation *options);
 void compilatrice_ajoute_chaine_compilation(kuri::chaine c);
 void compilatrice_ajoute_fichier_compilation(kuri::chaine c);
 int fonction_test_variadique_externe(int sentinel, ...);
+
+Message const *compilatrice_attend_message();

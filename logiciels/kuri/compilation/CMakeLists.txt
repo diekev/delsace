@@ -47,6 +47,7 @@ set(SOURCES
 	identifiant.hh
 	lexemes.hh
 	lexeuse.hh
+	message.hh
 	modules.hh
 	operateurs.hh
 	outils_lexemes.hh
@@ -72,6 +73,7 @@ set(SOURCES
 	identifiant.cc
 	lexemes.cc
 	lexeuse.cc
+	message.cc
 	modules.cc
 	operateurs.cc
 	outils_lexemes.cc

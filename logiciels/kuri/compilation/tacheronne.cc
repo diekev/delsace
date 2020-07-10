@@ -189,6 +189,8 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						compilatrice.file_compilation->pousse(unite);
 					}
 
+					compilatrice.messagere->ajoute_message_typage_fonction(decl->lexeme->chaine);
+
 					break;
 				}
 				case GenreNoeud::DECLARATION_OPERATEUR:
@@ -200,6 +202,8 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						compilatrice.file_compilation->pousse(unite);
 						return;
 					}
+
+					compilatrice.messagere->ajoute_message_typage_fonction(decl->lexeme->chaine);
 
 					unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
 					compilatrice.file_compilation->pousse(unite);
@@ -215,6 +219,9 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						compilatrice.file_compilation->pousse(unite);
 						return;
 					}
+
+					compilatrice.messagere->ajoute_message_typage_type(decl->lexeme->chaine);
+
 					break;
 				}
 				case GenreNoeud::DECLARATION_STRUCTURE:
@@ -229,6 +236,8 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 
 					unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
 					compilatrice.file_compilation->pousse(unite);
+
+					compilatrice.messagere->ajoute_message_typage_type(decl->lexeme->chaine);
 					break;
 				}
 				case GenreNoeud::DECLARATION_VARIABLE:

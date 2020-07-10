@@ -115,7 +115,7 @@ Module *Compilatrice::importe_module(const dls::chaine &nom, const Lexeme &lexem
 
 	module->importe = true;
 
-	std::cout << "Importation du module : " << nom_dossier << " (" << chemin_absolu << ")" << std::endl;
+	ajoute_message_module_ouvert(module->chemin);
 
 	for (auto const &entree : std::filesystem::directory_iterator(chemin_absolu)) {
 		auto chemin_entree = entree.path();
@@ -130,6 +130,8 @@ Module *Compilatrice::importe_module(const dls::chaine &nom, const Lexeme &lexem
 
 		ajoute_fichier_a_la_compilation(chemin_entree.stem().c_str(), module, {});
 	}
+
+	ajoute_message_module_ferme(module->chemin);
 
 	return module;
 }
@@ -256,7 +258,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(const dls::chaine &nom, Modul
 		return;
 	}
 
-	std::cout << "Chargement du fichier : " << chemin << std::endl;
+	ajoute_message_fichier_ouvert(fichier->chemin);
 
 	fichier->module = module;
 
@@ -271,6 +273,8 @@ void Compilatrice::ajoute_fichier_a_la_compilation(const dls::chaine &nom, Modul
 	auto unite = UniteCompilation();
 	unite.fichier = fichier;
 	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
+
+	ajoute_message_fichier_ferme(fichier->chemin);
 
 	file_compilation->pousse(unite);
 }
@@ -446,6 +450,8 @@ size_t Compilatrice::memoire_utilisee() const
 		memoire += static_cast<size_t>(it.chunk.decalages_labels.taille()) * sizeof(int);
 	});
 
+	memoire += messagere->memoire_utilisee();
+
 	return memoire;
 }
 
@@ -617,6 +623,28 @@ AtomeGlobale *Compilatrice::trouve_ou_insere_globale(NoeudDeclaration *decl)
 
 /* ************************************************************************** */
 
+void Compilatrice::ajoute_message_fichier_ouvert(const kuri::chaine &chemin)
+{
+	messagere->ajoute_message_fichier_ouvert(chemin);
+}
+
+void Compilatrice::ajoute_message_fichier_ferme(const kuri::chaine &chemin)
+{
+	messagere->ajoute_message_fichier_ferme(chemin);
+}
+
+void Compilatrice::ajoute_message_module_ouvert(const kuri::chaine &chemin)
+{
+	messagere->ajoute_message_module_ouvert(chemin);
+}
+
+void Compilatrice::ajoute_message_module_ferme(const kuri::chaine &chemin)
+{
+	messagere->ajoute_message_module_ferme(chemin);
+}
+
+/* ************************************************************************** */
+
 GeranteChaine::~GeranteChaine()
 {
 	POUR (m_table) {
@@ -684,6 +712,8 @@ void compilatrice_ajoute_fichier_compilation(kuri::chaine c)
 	auto module = ptr_compilatrice->cree_module("", "");
 	auto tampon = charge_fichier(chemin.c_str(), *ptr_compilatrice, {});
 	auto fichier = ptr_compilatrice->cree_fichier(vue, chemin.c_str());
+	ptr_compilatrice->ajoute_message_fichier_ouvert(fichier->chemin);
+
 	fichier->tampon = lng::tampon_source(tampon);
 	fichier->module = module;
 	module->fichiers.pousse(fichier);
@@ -692,6 +722,7 @@ void compilatrice_ajoute_fichier_compilation(kuri::chaine c)
 	unite.fichier = fichier;
 	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
 
+	ptr_compilatrice->ajoute_message_fichier_ferme(fichier->chemin);
 	ptr_compilatrice->file_compilation->pousse(unite);
 }
 
@@ -713,4 +744,15 @@ int fonction_test_variadique_externe(int sentinel, ...)
 	va_end(ap);
 
 	return i;
+}
+
+Message const *compilatrice_attend_message()
+{
+	auto messagere = ptr_compilatrice->messagere.verrou_ecriture();
+
+	if (!messagere->possede_message()) {
+		return nullptr;
+	}
+
+	return messagere->defile();
 }

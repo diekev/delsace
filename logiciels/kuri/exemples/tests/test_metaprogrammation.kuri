@@ -11,10 +11,53 @@ importe Fondation
 // À FAIRE : trouve une bonne manière de sauvegarder et restaurer l'état des fonctions courante dans la ConstructriceRI pour éviter les bugs
 lance_compilation :: fonc ()
 {
-    ajoute_fichier_à_la_compilation("assertions.kuri")
+    //ajoute_fichier_à_la_compilation("assertions.kuri")
 
     //options := compilatrice_obtiens_options()
     //options.crée_exécutable = faux
+
+    boucle {
+        message := compilatrice_attend_message()
+
+        si !message {
+            imprime("Arrêt de la boucle car message est nul !\n")
+            arrête
+        }
+
+        discr message.genre {
+            INVALIDE {
+                imprime("Le message est invalide !\n")
+            }
+            FICHIER_OUVERT {
+                // message_fichier := message comme *MessageFichier
+                // imprime("Ouverture du fichier : %\n", message_fichier.chemin)
+            }
+            FICHIER_FERMÉ {
+                // message_fichier := message comme *MessageFichier
+                // imprime("Fermeture du fichier : %\n", message_fichier.chemin)
+            }
+            MODULE_OUVERT {
+                // message_fichier := message comme *MessageFichier
+                // imprime("Ouverture du module : %\n", message_fichier.chemin)
+            }
+            MODULE_FERMÉ {
+                // message_fichier := message comme *MessageFichier
+                // imprime("Fermeture du module : %\n", message_fichier.chemin)
+            }
+            FONCTION_TYPÉE {
+                // message_fonction := message comme *MessageTypageFonctionTerminé
+                // imprime("Une fonction fut typée : % !\n", message_fonction.nom)
+            }
+            STRUCTURE_TYPÉE {
+                // message_type := message comme *MessageTypageTypeTerminé
+                // imprime("Une structure fut typée : % !\n", message_type.nom)
+            }
+            COMPILATION_TERMINÉE {
+                imprime("Compilation terminée !\n")
+                arrête
+            }
+        }
+    }
 
     enchaineuse : Enchaineuse
     initialise_enchaineuse(@enchaineuse)
@@ -51,25 +94,6 @@ test_références :: fonc ()
 // }
 
 /*
-GenreMessage :: énum z32 {
-    INVALIDE
-
-    FICHIER_OUVERT
-    FICHIER_FERMÉ
-    FONCTION_TYPÉE
-    STRUCTURE_TYPÉE
-    COMPILATION_TERMINÉE
-}
-
-Message :: struct {
-    genre : GenreMessage
-}
-
-MessageFichier :: struct {
-    empl base : Message
-
-    chemin: chaine
-}
 
 MessageFonctionTypée :: struct {
     empl base : Message

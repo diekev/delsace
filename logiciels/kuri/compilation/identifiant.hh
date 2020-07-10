@@ -111,6 +111,7 @@ extern IdentifiantCode *ajoute_fichier_a_la_compilation;
 extern IdentifiantCode *compilatrice;
 extern IdentifiantCode *compilatrice_obtiens_options;
 extern IdentifiantCode *compilatrice_ajourne_options;
+extern IdentifiantCode *compilatrice_attend_message;
 extern IdentifiantCode *fonction_test_variadique_externe;
 extern IdentifiantCode *test;
 extern IdentifiantCode *assert_;

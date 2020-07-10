@@ -41,6 +41,45 @@ OptionsCompilation :: struct {
 }
 
 // ----------------------------------------------------------------------------
+// structures des Messages, celles-ci doivent être tenues synchronisées avec celles de message.hh
+
+GenreMessage :: énum z32 {
+    INVALIDE
+
+    FICHIER_OUVERT
+    FICHIER_FERMÉ
+    MODULE_OUVERT
+    MODULE_FERMÉ
+    FONCTION_TYPÉE
+    STRUCTURE_TYPÉE
+
+    // ce type de message n'a pas l'air évident à géré, la compilation ne peut être marqué comme terminée tant que le métaprogramme est en cours d'exécution
+    COMPILATION_TERMINÉE
+}
+
+Message :: struct {
+    genre : GenreMessage
+}
+
+MessageFichier :: struct {
+    empl base : Message
+
+    chemin: chaine
+}
+
+MessageTypageFonctionTerminé :: struct {
+    empl base : Message
+
+    nom : chaine
+}
+
+MessageTypageTypeTerminé :: struct {
+    empl base : Message
+
+    nom : chaine
+}
+
+// ----------------------------------------------------------------------------
 
 ajoute_chaine_à_la_compilation :: fonc(c: chaine) -> rien #compilatrice
 
@@ -49,3 +88,5 @@ ajoute_fichier_à_la_compilation :: fonc(c: chaine) -> rien #compilatrice
 compilatrice_obtiens_options :: fonc () -> *OptionsCompilation #compilatrice
 
 compilatrice_ajourne_options :: fonc (options: *OptionsCompilation) -> rien #compilatrice
+
+compilatrice_attend_message :: fonc () -> *Message #compilatrice
