@@ -82,55 +82,6 @@ ConstructriceRI::~ConstructriceRI()
 {
 }
 
-void ConstructriceRI::imprime_fonction(AtomeFonction *atome_fonc, std::ostream &os) const
-{
-	os << "fonction " << atome_fonc->nom;
-
-	auto virgule = "(";
-
-	for (auto param : atome_fonc->params_entrees) {
-		os << virgule;
-		os << param->ident->nom << ' ';
-
-		auto type_pointeur = static_cast<TypePointeur *>(param->type);
-		os << chaine_type(type_pointeur->type_pointe);
-
-		virgule = ", ";
-	}
-
-	if (atome_fonc->params_entrees.taille == 0) {
-		os << virgule;
-	}
-
-	os << ") -> ";
-	os << chaine_type(atome_fonc->type);
-	os << '\n';
-
-	for (auto inst : atome_fonc->instructions) {
-		auto nombre_zero_avant_numero = dls::num::nombre_de_chiffres(atome_fonc->instructions.taille) - dls::num::nombre_de_chiffres(inst->numero);
-
-		for (auto i = 0; i < nombre_zero_avant_numero; ++i) {
-			os << ' ';
-		}
-
-		os << "%" << inst->numero << ' ';
-
-		imprime_instruction(inst, os);
-	}
-
-	os << '\n';
-}
-
-void ConstructriceRI::imprime_programme() const
-{
-	std::ofstream os;
-	os.open("/tmp/ri_programme.kr");
-
-	POUR_TABLEAU_PAGE(compilatrice().fonctions) {
-		imprime_fonction(&it, os);
-	}
-}
-
 static void imprime_atome(Atome const *atome, std::ostream &os)
 {
 	if (atome->genre_atome == Atome::Genre::CONSTANTE) {
@@ -245,7 +196,7 @@ static void imprime_atome(Atome const *atome, std::ostream &os)
 	}
 }
 
-void ConstructriceRI::imprime_instruction(Instruction const *inst, std::ostream &os) const
+static void imprime_instruction(Instruction const *inst, std::ostream &os)
 {
 	switch (inst->genre) {
 		case Instruction::Genre::INVALIDE:
@@ -426,6 +377,56 @@ void ConstructriceRI::imprime_instruction(Instruction const *inst, std::ostream 
 		}
 	}
 }
+
+void imprime_fonction(AtomeFonction *atome_fonc, std::ostream &os)
+{
+	os << "fonction " << atome_fonc->nom;
+
+	auto virgule = "(";
+
+	for (auto param : atome_fonc->params_entrees) {
+		os << virgule;
+		os << param->ident->nom << ' ';
+
+		auto type_pointeur = static_cast<TypePointeur *>(param->type);
+		os << chaine_type(type_pointeur->type_pointe);
+
+		virgule = ", ";
+	}
+
+	if (atome_fonc->params_entrees.taille == 0) {
+		os << virgule;
+	}
+
+	os << ") -> ";
+	os << chaine_type(atome_fonc->type);
+	os << '\n';
+
+	for (auto inst : atome_fonc->instructions) {
+		auto nombre_zero_avant_numero = dls::num::nombre_de_chiffres(atome_fonc->instructions.taille) - dls::num::nombre_de_chiffres(inst->numero);
+
+		for (auto i = 0; i < nombre_zero_avant_numero; ++i) {
+			os << ' ';
+		}
+
+		os << "%" << inst->numero << ' ';
+
+		imprime_instruction(inst, os);
+	}
+
+	os << '\n';
+}
+
+void ConstructriceRI::imprime_programme() const
+{
+	std::ofstream os;
+	os.open("/tmp/ri_programme.kr");
+
+	POUR_TABLEAU_PAGE(compilatrice().fonctions) {
+		imprime_fonction(&it, os);
+	}
+}
+
 
 size_t ConstructriceRI::memoire_utilisee() const
 {
