@@ -970,11 +970,7 @@ void GeneratriceCodeLLVM::genere_code(ConstructriceRI &constructrice_ri)
 	}
 
 	POUR (constructrice_ri.fonctions) {
-		if (it->genre_atome != Atome::Genre::FONCTION) {
-			continue;
-		}
-
-		auto atome_fonc = static_cast<AtomeFonction const *>(it);
+		auto atome_fonc = it;
 
 		auto type_fonction = static_cast<TypeFonction *>(atome_fonc->type);
 		auto type_llvm = converti_type_fonction(
@@ -989,97 +985,77 @@ void GeneratriceCodeLLVM::genere_code(ConstructriceRI &constructrice_ri)
 	}
 
 	POUR (constructrice_ri.fonctions) {
-		switch (it->genre_atome) {
-			case Atome::Genre::FONCTION:
-			{
-				table_valeurs.efface();
-				table_blocs.efface();
+		auto atome_fonc = it;
+		table_valeurs.efface();
+		table_blocs.efface();
 
-				auto atome_fonc = static_cast<AtomeFonction const *>(it);
+		//std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
 
-				//std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
+		auto fonction = m_module->getFunction(atome_fonc->nom.c_str());
 
-				auto fonction = m_module->getFunction(atome_fonc->nom.c_str());
+		m_fonction_courante = fonction;
 
-				m_fonction_courante = fonction;
+		auto valeurs_args = fonction->arg_begin();
 
-				auto valeurs_args = fonction->arg_begin();
+		for (auto &param : atome_fonc->params_entrees) {
+			auto const &nom_argument = param->ident->nom;
 
-				for (auto &param : atome_fonc->params_entrees) {
-					auto const &nom_argument = param->ident->nom;
+			auto valeur = &(*valeurs_args++);
+			valeur->setName(dls::chaine(nom_argument).c_str());
 
-					auto valeur = &(*valeurs_args++);
-					valeur->setName(dls::chaine(nom_argument).c_str());
+			auto type = static_cast<TypePointeur *>(param->type)->type_pointe;
+			auto type_llvm = converti_type_llvm(type);
 
-					auto type = static_cast<TypePointeur *>(param->type)->type_pointe;
-					auto type_llvm = converti_type_llvm(type);
+			auto alloc = m_builder.CreateAlloca(type_llvm, 0u);
+			alloc->setAlignment(type->alignement);
 
-					auto alloc = m_builder.CreateAlloca(type_llvm, 0u);
-					alloc->setAlignment(type->alignement);
+			auto store = m_builder.CreateStore(valeur, alloc);
+			store->setAlignment(type->alignement);
 
-					auto store = m_builder.CreateStore(valeur, alloc);
-					store->setAlignment(type->alignement);
-
-					table_valeurs[param] = alloc;
-				}
-
-//				if (!atome_fonc->sanstrace) {
-//					os << "INITIALISE_TRACE_APPEL(\"";
-
-//					if (atome_fonc->lexeme != nullptr) {
-//						auto fichier = m_contexte.fichier(static_cast<size_t>(atome_fonc->lexeme->fichier));
-//						os << atome_fonc->lexeme->chaine << "\", "
-//						   << atome_fonc->lexeme->chaine.taille() << ", \""
-//						   << fichier->nom << ".kuri\", "
-//						   << fichier->nom.taille() + 5 << ", ";
-//					}
-//					else {
-//						os << atome_fonc->nom << "\", "
-//						   << atome_fonc->nom.taille() << ", "
-//						   << "\"???\", 3, ";
-//					}
-
-//					os << atome_fonc->nom << ");\n";
-//				}
-
-				/* génère d'abord tous les blocs depuis les labels */
-				for (auto inst : atome_fonc->instructions) {
-					if (inst->genre != Instruction::Genre::LABEL) {
-						continue;
-					}
-
-					genere_code_pour_instruction(inst);
-				}
-
-				for (auto inst : atome_fonc->instructions) {
-					if (inst->genre == Instruction::Genre::LABEL) {
-						continue;
-					}
-
-					genere_code_pour_instruction(inst);
-				}
-
-				if (manager_fonctions) {
-					manager_fonctions->run(*m_fonction_courante);
-				}
-
-				m_fonction_courante = nullptr;
-
-				break;
-			}
-			case Atome::Genre::CONSTANTE:
-			{
-				break;
-			}
-			case Atome::Genre::INSTRUCTION:
-			{
-				break;
-			}
-			case Atome::Genre::GLOBALE:
-			{
-				break;
-			}
+			table_valeurs[param] = alloc;
 		}
+
+//		if (!atome_fonc->sanstrace) {
+//			os << "INITIALISE_TRACE_APPEL(\"";
+
+//			if (atome_fonc->lexeme != nullptr) {
+//				auto fichier = m_contexte.fichier(static_cast<size_t>(atome_fonc->lexeme->fichier));
+//				os << atome_fonc->lexeme->chaine << "\", "
+//				   << atome_fonc->lexeme->chaine.taille() << ", \""
+//				   << fichier->nom << ".kuri\", "
+//				   << fichier->nom.taille() + 5 << ", ";
+//			}
+//			else {
+//				os << atome_fonc->nom << "\", "
+//				   << atome_fonc->nom.taille() << ", "
+//				   << "\"???\", 3, ";
+//			}
+
+//			os << atome_fonc->nom << ");\n";
+//		}
+
+		/* génère d'abord tous les blocs depuis les labels */
+		for (auto inst : atome_fonc->instructions) {
+			if (inst->genre != Instruction::Genre::LABEL) {
+				continue;
+			}
+
+			genere_code_pour_instruction(inst);
+		}
+
+		for (auto inst : atome_fonc->instructions) {
+			if (inst->genre == Instruction::Genre::LABEL) {
+				continue;
+			}
+
+			genere_code_pour_instruction(inst);
+		}
+
+		if (manager_fonctions) {
+			manager_fonctions->run(*m_fonction_courante);
+		}
+
+		m_fonction_courante = nullptr;
 	}
 }
 
