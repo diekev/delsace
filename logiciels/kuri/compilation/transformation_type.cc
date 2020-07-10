@@ -195,10 +195,10 @@ bool cherche_transformation(
 		// converti relatif <-> naturel
 		if (est_type_entier(type_de) && est_type_entier(type_vers)) {
 			if (type_de->taille_octet > type_vers->taille_octet) {
-				transformation = { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
+				transformation = { TypeTransformation::REDUIT_TAILLE_TYPE, type_vers };
 			}
 			else if (type_de->taille_octet < type_vers->taille_octet) {
-				transformation = { TypeTransformation::REDUIT_TAILLE_TYPE, type_vers };
+				transformation = { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
 			}
 			else {
 				transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
