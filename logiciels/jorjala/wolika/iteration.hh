@@ -33,32 +33,34 @@
 
 namespace wlk {
 
-class IteratricePosition {
-	limites3i m_lim;
-	dls::math::vec3i m_etat;
+template <typename type_vec>
+struct IteratriceCoordonnees {
+private:
+	using TypeVecteur = type_vec;
+	static constexpr auto DIMS = TypeVecteur::nombre_composants;
+
+	limites<TypeVecteur> m_lim{};
+	TypeVecteur m_etat;
 
 public:
-	IteratricePosition(limites3i const &lim)
+	IteratriceCoordonnees(limites<TypeVecteur> const &lim)
 		: m_lim(lim)
 		, m_etat(lim.min)
 	{}
 
-	dls::math::vec3i suivante()
+	TypeVecteur suivante()
 	{
 		auto etat = m_etat;
 
-		m_etat.x += 1;
+		m_etat[0] += 1;
 
-		if (m_etat.x >= m_lim.max.x) {
-			m_etat.x = m_lim.min.x;
-
-			m_etat.y += 1;
-
-			if (m_etat.y >= m_lim.max.y) {
-				m_etat.y = m_lim.min.y;
-
-				m_etat.z += 1;
+		for (auto i = 0u; i < DIMS - 1; ++i) {
+			if (m_etat[i] < m_lim.max[i + 1]) {
+				break;
 			}
+
+			m_etat[i] = m_lim.min[i];
+			m_etat[i + 1] += 1;
 		}
 
 		return etat;
@@ -66,36 +68,38 @@ public:
 
 	bool fini() const
 	{
-		return m_etat.z >= m_lim.max.z;
+		return m_etat[DIMS - 1] >= m_lim.max[DIMS - 1];
 	}
 };
 
-class IteratricePositionInv {
-	limites3i m_lim;
-	dls::math::vec3i m_etat;
+template <typename type_vec>
+struct IteratriceCoordonneesInv {
+private:
+	using TypeVecteur = type_vec;
+	static constexpr auto DIMS = TypeVecteur::nombre_composants;
+
+	limites<TypeVecteur> m_lim{};
+	TypeVecteur m_etat;
 
 public:
-	IteratricePositionInv(limites3i const &lim)
+	IteratriceCoordonneesInv(limites<TypeVecteur> const &lim)
 		: m_lim(lim)
 		, m_etat(lim.max)
 	{}
 
-	dls::math::vec3i suivante()
+	TypeVecteur suivante()
 	{
 		auto etat = m_etat;
 
-		m_etat.x -= 1;
+		m_etat[0] -= 1;
 
-		if (m_etat.x < m_lim.min.x) {
-			m_etat.x = m_lim.max.x - 1;
-
-			m_etat.y -= 1;
-
-			if (m_etat.y < m_lim.min.y) {
-				m_etat.y = m_lim.max.y - 1;
-
-				m_etat.z -= 1;
+		for (auto i = 0u; i < DIMS - 1; ++i) {
+			if (m_etat[i] >= m_lim.min[i + 1]) {
+				break;
 			}
+
+			m_etat[i] = m_lim.max[i] - 1;
+			m_etat[i + 1] -= 1;
 		}
 
 		return etat;
@@ -103,9 +107,12 @@ public:
 
 	bool fini() const
 	{
-		return m_etat.z < m_lim.min.z;
+		return m_etat[DIMS - 1] < m_lim.min[DIMS - 1];
 	}
 };
+
+using IteratricePosition = IteratriceCoordonnees<dls::math::vec3i>;
+using IteratricePositionInv = IteratriceCoordonneesInv<dls::math::vec3i>;
 
 template <typename T, typename Op>
 auto pour_chaque_voxel_parallele(
