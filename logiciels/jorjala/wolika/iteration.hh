@@ -114,6 +114,42 @@ public:
 using IteratricePosition = IteratriceCoordonnees<dls::math::vec3i>;
 using IteratricePositionInv = IteratriceCoordonneesInv<dls::math::vec3i>;
 
+#if 0
+template <template <typename> typename type_vec>
+struct IndexeuseCoordonnees {
+	using TypeVecteur = type_vec<int>;
+	static constexpr auto DIMS = TypeVecteur::DIMS;
+
+	int res[DIMS];
+	int poids[DIMS];
+
+	IndexeuseCoordonnees(TypeVecteur r)
+	{
+		for (auto i = 0u; i < DIMS; ++i) {
+			res[i] = r[i];
+			poids[i] = 1;
+		}
+
+		for (auto i = 1u; i < DIMS; ++i) {
+			for (auto j = 0u; j < i; ++j) {
+				poids[i] *= res[j];
+			}
+		}
+	}
+
+	long index(TypeVecteur const &co)
+	{
+		long idx = co[0];
+
+		for (auto i = 1u; i < DIMS; ++i) {
+			idx += co[i] * poids[i];
+		}
+
+		return idx;
+	}
+};
+#endif
+
 template <typename T, typename Op>
 auto pour_chaque_voxel_parallele(
 		grille_dense_3d<T> &grille,
