@@ -1023,8 +1023,7 @@ bool valide_appel_fonction(
 			auto [noeud_decl, doit_epandre] = trouve_fonction_epandue_ou_crees_en_une(compilatrice, decl_fonction_appelee, std::move(candidate->paires_expansion_gabarit));
 
 			if (doit_epandre || (noeud_decl->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
-				contexte.unite->etat = UniteCompilation::Etat::ATTEND_SUR_DECLARATION;
-				contexte.unite->declaration_attendue = noeud_decl;
+				contexte.unite->attend_sur_declaration(noeud_decl);
 				return true;
 			}
 

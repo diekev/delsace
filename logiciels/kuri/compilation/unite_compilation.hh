@@ -53,7 +53,7 @@ struct UniteCompilation {
 #undef ENUMERE_ETAT_UNITE_EX
 	};
 
-	Etat etat{};
+	Etat etat_{};
 	Etat etat_original{};
 	REMBOURRE(4);
 	Fichier *fichier = nullptr;
@@ -67,34 +67,50 @@ struct UniteCompilation {
 	NoeudDeclaration *declaration_attendue = nullptr;
 	Lexeme const *lexeme_attendu = nullptr;
 
+	Etat etat() const
+	{
+		return etat_;
+	}
+
+	inline void restaure_etat_original()
+	{
+		this->etat_ = this->etat_original;
+	}
+
+	inline void change_etat(Etat etat_vers)
+	{
+		this->etat_ = etat_vers;
+		this->cycle = 0;
+	}
+
 	static inline UniteCompilation cree_pour_ri(NoeudExpression *noeud)
 	{
 		auto unite = UniteCompilation();
 		unite.noeud = noeud;
-		unite.etat = UniteCompilation::Etat::RI_ATTENDUE;
+		unite.change_etat(UniteCompilation::Etat::RI_ATTENDUE);
 		return unite;
 	}
 
 	inline void attend_sur_type(Type *type)
 	{
-		this->etat = UniteCompilation::Etat::ATTEND_SUR_TYPE;
+		this->change_etat(UniteCompilation::Etat::ATTEND_SUR_TYPE);
 		this->type_attendu = type;
 	}
 
 	inline void attend_sur_interface_kuri()
 	{
-		this->etat = UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI;
+		this->change_etat(UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI);
 	}
 
 	inline void attend_sur_declaration(NoeudDeclaration *decl)
 	{
-		this->etat = UniteCompilation::Etat::ATTEND_SUR_DECLARATION;
+		this->change_etat(UniteCompilation::Etat::ATTEND_SUR_DECLARATION);
 		this->declaration_attendue = decl;
 	}
 
 	inline void attend_sur_symbole(Lexeme const *lexeme)
 	{
-		this->etat = UniteCompilation::Etat::ATTEND_SUR_SYMBOLE;
+		this->change_etat(UniteCompilation::Etat::ATTEND_SUR_SYMBOLE);
 		this->lexeme_attendu = lexeme;
 	}
 };

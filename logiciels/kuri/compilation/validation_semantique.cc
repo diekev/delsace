@@ -2790,8 +2790,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 			if (decl_membre->type->genre == GenreType::STRUCTURE || decl_membre->type->genre == GenreType::UNION) {
 				if ((decl_membre->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-					unite->etat = UniteCompilation::Etat::ATTEND_SUR_TYPE;
-					unite->type_attendu = decl_membre->type;
+					unite->attend_sur_type(decl_membre->type);
 					return true;
 				}
 			}
@@ -2900,8 +2899,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 		if (decl_membre->type->genre == GenreType::STRUCTURE || decl_membre->type->genre == GenreType::UNION) {
 			if ((decl_membre->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-				unite->etat = UniteCompilation::Etat::ATTEND_SUR_TYPE;
-				unite->type_attendu = decl_membre->type;
+				unite->attend_sur_type(decl_membre->type);
 				return true;
 			}
 		}

@@ -293,7 +293,7 @@ static erreur::type_erreur lance_test(lng::tampon_source &tampon)
 
 	auto unite = UniteCompilation();
 	unite.fichier = fichier;
-	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
+	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
 	compilatrice.file_compilation->pousse(unite);
 
 	try {

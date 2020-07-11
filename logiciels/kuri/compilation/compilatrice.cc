@@ -272,7 +272,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(const dls::chaine &nom, Modul
 
 	auto unite = UniteCompilation();
 	unite.fichier = fichier;
-	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
+	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
 
 	ajoute_message_fichier_ferme(fichier->chemin);
 
@@ -361,7 +361,7 @@ void Compilatrice::ajoute_unite_compilation_pour_typage(NoeudExpression *express
 {
 	auto unite = UniteCompilation();
 	unite.noeud = expression;
-	unite.etat = UniteCompilation::Etat::TYPAGE_ATTENDU;
+	unite.change_etat(UniteCompilation::Etat::TYPAGE_ATTENDU);
 	unite.etat_original = UniteCompilation::Etat::TYPAGE_ATTENDU;
 
 	file_compilation->pousse(unite);
@@ -371,7 +371,7 @@ void Compilatrice::ajoute_unite_compilation_entete_fonction(NoeudDeclarationFonc
 {
 	auto unite = UniteCompilation();
 	unite.noeud = decl;
-	unite.etat = UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU;
+	unite.change_etat(UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU);
 	unite.etat_original = UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU;
 
 	file_compilation->pousse(unite);
@@ -693,7 +693,7 @@ void compilatrice_ajoute_chaine_compilation(kuri::chaine c)
 
 	auto unite = UniteCompilation();
 	unite.fichier = fichier;
-	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
+	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
 
 	ptr_compilatrice->file_compilation->pousse(unite);
 }
@@ -720,7 +720,7 @@ void compilatrice_ajoute_fichier_compilation(kuri::chaine c)
 
 	auto unite = UniteCompilation();
 	unite.fichier = fichier;
-	unite.etat = UniteCompilation::Etat::PARSAGE_ATTENDU;
+	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
 
 	ptr_compilatrice->ajoute_message_fichier_ferme(fichier->chemin);
 	ptr_compilatrice->file_compilation->pousse(unite);
