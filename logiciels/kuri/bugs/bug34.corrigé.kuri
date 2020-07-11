@@ -1,6 +1,8 @@
 // crash quand nous appelons un pointeur de fonction avec des paramètres ménombrés
 
 foo :: fonc ()
+{
+}
 
 principale :: fonc () -> z32
 {

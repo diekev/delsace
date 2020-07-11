@@ -222,6 +222,14 @@ static auto apparie_appel_pointeur(
 		resultat.requiers_contexte = false;
 	}
 
+	if (type_fonction->types_entrees.taille - debut_params != args.taille) {
+		resultat.noeud_erreur = b;
+		resultat.type = type;
+		resultat.etat = FONCTION_INTROUVEE;
+		resultat.raison = MECOMPTAGE_ARGS;
+		return false;
+	}
+
 	auto exprs = dls::tablet<NoeudExpression *, 10>();
 	exprs.reserve(type_fonction->types_entrees.taille - debut_params);
 

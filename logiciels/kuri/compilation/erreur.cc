@@ -396,13 +396,17 @@ void lance_erreur_fonction_inconnue(
 			auto noeud_appel = static_cast<NoeudExpressionAppel *>(b);
 			ss << "\tLe nombre d'arguments de la fonction est incorrect.\n";
 
-			if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {
+			if (decl && decl->genre == GenreNoeud::DECLARATION_FONCTION) {
 				auto decl_fonc = static_cast<NoeudDeclarationFonction const *>(decl);
 				ss << "\tRequiers " << decl_fonc->params.taille << " arguments\n";
 			}
-			else if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
+			else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
 				auto type_struct = static_cast<TypeStructure *>(static_cast<NoeudStruct const *>(decl)->type);
 				ss << "\tRequiers " << type_struct->membres.taille << " arguments\n";
+			}
+			else {
+				auto type_fonc = static_cast<TypeFonction *>(dc.type);
+				ss << "\tRequiers " << type_fonc->types_entrees.taille - dc.requiers_contexte << " arguments\n";
 			}
 
 			ss << "\tObtenu " << noeud_appel->params.taille << " arguments\n";
