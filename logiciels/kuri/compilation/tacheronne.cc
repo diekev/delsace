@@ -59,6 +59,10 @@ void Tacheronne::gere_tache()
 				erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un symbole inconnu", compilatrice, unite.lexeme_attendu);
 			}
 
+			if (unite.etat() == UniteCompilation::Etat::ATTEND_SUR_DECLARATION) {
+				erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un déclaration non validée", compilatrice, unite.declaration_attendue->lexeme);
+			}
+
 			if (compilatrice.file_compilation->est_vide()) {
 				break;
 			}
