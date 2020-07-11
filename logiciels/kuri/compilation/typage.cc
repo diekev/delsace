@@ -899,46 +899,15 @@ TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
 		}
 	}
 
-	// À FAIRE : déduplique ça avec la validation sémantique.
-	auto max_alignement = 0u;
-	auto taille_union = 0u;
-	auto type_le_plus_grand = static_cast<Type *>(nullptr);
-
-	POUR (membres) {
-		auto type_membre = it.type;
-		auto taille = type_membre->taille_octet;
-		max_alignement = std::max(taille, max_alignement);
-
-		if (taille > taille_union) {
-			type_le_plus_grand = type_membre;
-			taille_union = taille;
-		}
-	}
-
-	/* ajoute une marge d'alignement */
-	auto padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
-	taille_union += padding;
-
-	auto decalage_index = taille_union;
-
-	/* ajoute la taille du membre actif */
-	taille_union += static_cast<unsigned>(sizeof(int));
-
-	/* ajoute une marge d'alignement finale */
-	padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
-	taille_union += padding;
-
 	auto type = memoire::loge<TypeUnion>("TypeUnion");
 	type->nom = "anonyme";
 	type->membres = std::move(membres);
 	type->est_anonyme = true;
-	type->type_le_plus_grand = type_le_plus_grand;
-	type->decalage_index = decalage_index;
-	type->taille_octet = taille_union;
-	type->alignement = max_alignement;
 	type->drapeaux |= (TYPE_FUT_VALIDE);
 
-	type->cree_type_structure(*this, decalage_index);
+	calcule_taille_type_compose(type);
+
+	type->cree_type_structure(*this, type->decalage_index);
 
 	types_unions_->pousse(type);
 
@@ -1535,4 +1504,68 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 	}
 
 	return resultat;
+}
+
+void calcule_taille_type_compose(TypeCompose *type)
+{
+	if (type->genre == GenreType::UNION) {
+		auto type_union = static_cast<TypeUnion *>(type);
+
+		auto max_alignement = 0u;
+		auto taille_union = 0u;
+		auto type_le_plus_grand = static_cast<Type *>(nullptr);
+
+		POUR (type->membres) {
+			auto type_membre = it.type;
+			auto taille = type_membre->taille_octet;
+			max_alignement = std::max(taille, max_alignement);
+
+			if (taille > taille_union) {
+				type_le_plus_grand = type_membre;
+				taille_union = taille;
+			}
+		}
+
+		/* Pour les unions sûres, il nous faut prendre en compte le
+		 * membre supplémentaire. */
+		if (!type_union->est_nonsure) {
+			/* ajoute une marge d'alignement */
+			auto padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
+			taille_union += padding;
+
+			type_union->decalage_index = taille_union;
+
+			/* ajoute la taille du membre actif */
+			taille_union += static_cast<unsigned>(sizeof(int));
+
+			/* ajoute une marge d'alignement finale */
+			padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
+			taille_union += padding;
+		}
+
+		type_union->type_le_plus_grand = type_le_plus_grand;
+		type_union->taille_octet = taille_union;
+	}
+	else if (type->genre == GenreType::STRUCTURE) {
+		auto decalage = 0u;
+		auto max_alignement = 0u;
+
+		POUR (type->membres) {
+			auto align_type = it.type->alignement;
+			max_alignement = std::max(align_type, max_alignement);
+
+			auto padding = (align_type - (decalage % align_type)) % align_type;
+			decalage += padding;
+
+			it.decalage = decalage;
+
+			decalage += it.type->taille_octet;
+		}
+
+		auto padding = (max_alignement - (decalage % max_alignement)) % max_alignement;
+		decalage += padding;
+
+		type->taille_octet = decalage;
+		type->alignement = max_alignement;
+	}
 }

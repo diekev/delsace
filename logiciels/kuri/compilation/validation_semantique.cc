@@ -2732,8 +2732,6 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		return false;
 	};
 
-	auto decalage = 0u;
-	auto max_alignement = 0u;
 
 	auto ajoute_donnees_membre = [&, this](NoeudExpression *enfant, NoeudExpression *expr_valeur)
 	{
@@ -2750,15 +2748,10 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			return true;
 		}
 
-		max_alignement = std::max(align_type, max_alignement);
-		auto padding = (align_type - (decalage % align_type)) % align_type;
-		decalage += padding;
-
-		type_struct->membres.pousse({ enfant->type, enfant->ident->nom, decalage, 0, expr_valeur });
+		type_struct->membres.pousse({ enfant->type, enfant->ident->nom, 0, 0, expr_valeur });
 
 		donnees_dependance.types_utilises.insere(type_membre);
 
-		decalage += type_membre->taille_octet;
 		return false;
 	};
 
@@ -2804,39 +2797,9 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			}
 		}
 
-		auto taille_union = 0u;
+		calcule_taille_type_compose(type_union);
 
-		POUR (*decl->bloc->membres.verrou_lecture()) {
-			auto type_membre = it->type;
-			auto taille = type_membre->taille_octet;
-
-			if (taille > taille_union) {
-				type_union->type_le_plus_grand = type_membre;
-				taille_union = taille;
-			}
-		}
-
-		decl->type->taille_octet = taille_union;
-		decl->type->alignement = max_alignement;
-
-		/* Pour les unions sûres, il nous faut prendre en compte le
-		 * membre supplémentaire. */
 		if (!decl->est_nonsure) {
-			/* ajoute une marge d'alignement */
-			auto padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
-			taille_union += padding;
-
-			type_union->decalage_index = taille_union;
-
-			/* ajoute la taille du membre actif */
-			taille_union += static_cast<unsigned>(sizeof(int));
-
-			/* ajoute une marge d'alignement finale */
-			padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
-			taille_union += padding;
-
-			decl->type->taille_octet = taille_union;
-			decl->type->alignement = max_alignement;
 			type_union->cree_type_structure(m_compilatrice.typeuse, type_union->decalage_index);
 		}
 
@@ -2854,7 +2817,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		if (dls::outils::est_element(it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
 			// utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
 			auto type_de_donnees = m_compilatrice.typeuse.type_type_de_donnees(it->type);
-			type_struct->membres.pousse({ type_de_donnees, it->ident->nom, decalage, 0, nullptr, TypeCompose::Membre::EST_CONSTANT });
+			type_struct->membres.pousse({ type_de_donnees, it->ident->nom, 0, 0, nullptr, TypeCompose::Membre::EST_CONSTANT });
 
 			// l'utilisation d'un type de données brise le graphe de dépendance
 			donnees_dependance.types_utilises.insere(it->type);
@@ -2883,7 +2846,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		auto decl_membre = decl_var->valeur;
 
 		if (decl_var->drapeaux & EST_CONSTANTE) {
-			type_struct->membres.pousse({ it->type, it->ident->nom, decalage, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
+			type_struct->membres.pousse({ it->type, it->ident->nom, 0, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
 			continue;
 		}
 
@@ -2943,10 +2906,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 	}
 
-	auto padding = (max_alignement - (decalage % max_alignement)) % max_alignement;
-	decalage += padding;
-	decl->type->taille_octet = decalage;
-	decl->type->alignement = max_alignement;
+	calcule_taille_type_compose(type_struct);
 	decl->type->drapeaux |= TYPE_FUT_VALIDE;
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 

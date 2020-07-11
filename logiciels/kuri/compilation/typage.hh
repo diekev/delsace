@@ -462,3 +462,5 @@ Type *apparie_type_gabarit(Type *type, Type *type_polymorphique);
 Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour_type);
 
 Type *normalise_type(Typeuse &typeuse, Type *type);
+
+void calcule_taille_type_compose(TypeCompose *type);
