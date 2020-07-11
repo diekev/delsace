@@ -39,6 +39,7 @@ enum {
 	CANDIDATE_EST_ACCES,
 	CANDIDATE_EST_APPEL_UNIFORME,
 	CANDIDATE_EST_INIT_DE,
+	CANDIDATE_EST_EXPRESSION_QUELCONQUE,
 };
 
 struct CandidateExpressionAppel {
@@ -127,6 +128,15 @@ static auto trouve_candidates_pour_fonction_appelee(
 	}
 	else if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
 		candidates.pousse({ CANDIDATE_EST_INIT_DE, appelee });
+	}
+	else {
+		if (appelee->type->genre == GenreType::FONCTION) {
+			candidates.pousse({ CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelee });
+		}
+		else {
+			contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelee);
+			return true;
+		}
 	}
 
 	return false;
@@ -879,6 +889,13 @@ static auto trouve_candidates_pour_appel(
 		else if (it.quoi == CANDIDATE_EST_INIT_DE) {
 			// ici nous pourrions directement retourner si le type est correcte...
 			auto dc = apparie_appel_init_de(it.decl, args);
+			resultat.pousse(dc);
+		}
+		else if (it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
+			auto dc = DonneesCandidate();
+			if (apparie_appel_pointeur(expr, it.decl->type, compilatrice, contexte, args, dc)) {
+				return true;
+			}
 			resultat.pousse(dc);
 		}
 	}
