@@ -1,0 +1,12 @@
+// Impossible de compiler un programme quand nous avons une constante de type de fonction
+
+TypeFonction :: fonc(z32)(rien)
+
+Struct :: struct {
+    pointeur : TypeFonction
+}
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}
