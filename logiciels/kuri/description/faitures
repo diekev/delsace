@@ -33,6 +33,8 @@ Faitures
 - conversion automatique des types en unions et extraction automatique des valeurs des unions
 - héritage/polymorphisme par emploi de structures dans d'autres
 - types comme valeurs
+- évaluation arbitraire du code
+- assertions statiques lors de la compilation
 
 
 À faire
@@ -51,7 +53,6 @@ Faitures
 - avoir une gestion de la correctitude de constance
 - structures gabarits
 - empl (vérifier tous les cas)
-- évaluation arbitraire du code (en cours)
 - alias de types
 - opérateurs implicites
 	<= implicite si > ou (< et ==) est défini
@@ -136,15 +137,20 @@ x => x.nom // crée une fonction foo :: (x: $T) -> chaine { retourne x.nom }
 - généralisation de l'utilisation de temporaires pour simplifier la génération de la RI, supprimant les cas spéciaux
 -- paramètres des appels
 - supprime les entiers constants des coulisses
+- système de test unitaires
+- normalisation de tous les types pour supprimer les unions et les entiers constants de la RI
+- optimisations de l'accès aux membres des blocs (table de hachage avec tableau continu, en cours)
+- passe les arbres syntaxiques aux métaprogrammes
 
 
 À faire (architecture)
 ----------------------
 - préparsage pour construire une table de symbole
-- utilisation de pluriseurs tacheronnes
+- utilisation de plusieurs tacheronnes (en cours)
 - génération de code sur plusieurs threads (LLVM -> un module par thread + liaison finale de tous les modules)
 - ajout d'espaces de travaux
 - réduction des allocations
+- déplace la génération de la fonction main dans une unité de compilation
 
 Bugs
 ----
@@ -170,8 +176,6 @@ Idées
 - utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++, ou les gestionnaires de contextes en Python avec "with")
 - fonction membres de structures similaire à Python avec 'self' explicit, ou appel explicit en passant l'objet en premier paramètre
 - passer uniquement par référence, ou utilisation d'un mot-clé spécifique pour dire qu'un paramètre peut-être nul
-- mot-clés pour des tests unitaires, avec maintenance des fonctions auxilliaires des tests par le compileur
-- mot-clés pour des tests fuzzés, avec maintenance des fonctions auxilliaires des tests par le compileur
 - mot-clés pour un mutli-threading par système de tâches concurrentes, avec maintenance des fonctions auxilliaires par le compileur
 - transformer les messages d'erreur en tutoriaux
 - ajout de nom et valeur par défaut au type de retour
@@ -211,6 +215,7 @@ lit + var
 var + lit
 lit + lit
 
+- controler la génération d'exécutable depuis les métaprogrammes
 
 Zones d'ombres
 --------------
