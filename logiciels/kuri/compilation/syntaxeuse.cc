@@ -1179,9 +1179,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 			}
 
 			auto noeud = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, lexeme);
-			// À FAIRE : nous devrions mettre en place l'identifiant pour trouver la déclartion dans le typage des entêtes de fonctions,
-			// mais ces dernières sont typées avant le reste...
-			//noeud->ident = gauche->ident;
+			noeud->ident = gauche->ident;
 			noeud->valeur = gauche;
 			noeud->expression = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
 			noeud->drapeaux |= EST_CONSTANTE;
