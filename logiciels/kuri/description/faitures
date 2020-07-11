@@ -146,6 +146,9 @@ x => x.nom // crée une fonction foo :: (x: $T) -> chaine { retourne x.nom }
 - ajout d'espaces de travaux
 - réduction des allocations
 
+Bugs
+----
+- crash dans l'impression de la RI de tous le programmes, la cause étant que la ConstructriceRI utilisé par la file d'exécution est détruite avant la fin du programme, il faudra sans doute déplacer la MachineVirtuelle dans les ConstructriceRI afin de pouvoir exécuter des programmes en parallèle
 
 À faire (tests)
 ---------------
