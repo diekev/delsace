@@ -398,8 +398,18 @@ void imprime_fonction(AtomeFonction *atome_fonc, std::ostream &os)
 		os << virgule;
 	}
 
-	os << ") -> ";
-	os << chaine_type(atome_fonc->type);
+	auto type_fonction = static_cast<TypeFonction *>(atome_fonc->type);
+
+	virgule = ") -> ";
+
+	POUR (type_fonction->types_sorties) {
+		os << virgule;
+		os << chaine_type(it);
+		virgule = ", ";
+	}
+
+	os << chaine_type(type_fonction->types_sorties[0]);
+
 	os << '\n';
 
 	for (auto inst : atome_fonc->instructions) {
