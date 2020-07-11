@@ -1163,7 +1163,20 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 				case GenreLexeme::COROUT:
 				case GenreLexeme::FONC:
 				{
-					return analyse_declaration_fonction(gauche->lexeme);
+					auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(analyse_declaration_fonction(gauche->lexeme));
+
+					if (noeud_fonction->est_declaration_type) {
+						auto noeud = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, lexeme);
+						noeud->ident = gauche->ident;
+						noeud->valeur = gauche;
+						noeud->expression = noeud_fonction;
+						noeud->drapeaux |= EST_CONSTANTE;
+						gauche->drapeaux |= EST_CONSTANTE;
+
+						return noeud;
+					}
+
+					return noeud_fonction;
 				}
 				case GenreLexeme::STRUCT:
 				case GenreLexeme::UNION:
