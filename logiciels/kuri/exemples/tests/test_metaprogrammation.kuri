@@ -95,21 +95,44 @@ test_références :: fonc ()
 
 /*
 
-MessageFonctionTypée :: struct {
-    empl base : Message
-
-    nom : chaine
+Code :: struct {
+    genre : z32
 }
 
-MessageStructureTypée :: struct {
-    empl base : Message
+CodeFonction :: struct {
+    empl base : Code
 
     nom: chaine
+    bloc : *CodeBloc
+
+    params_entrée : *CodeDéclaration
+    params_sortie : *CodeDéclaration
 }
 
-compilatrice_attend_message :: fonc (espace: *EspaceDeTravail) -> *Message #nulctx
-{
-    retourne _RC.rappel_compilatrice_attent_message(espace)
+CodeAssignation :: struct {
+    empl base : Code
+
+    assigné : *CodeDéclaration
+    expression : *Code
+}
+
+CodeDéclaration :: struct {
+    empl base : Code
+}
+
+CodeOpérationUnaire :: struct {
+    empl base : Code
+}
+
+CodeOpérationBinaire :: struct {
+    empl base : Code
+}
+
+CodeBloc :: struct {
+    empl base : Code
+
+    expressions : []*Code
+    membres : []*CodeDéclaration
 }
 
 EspaceDeTravail :: struct {
