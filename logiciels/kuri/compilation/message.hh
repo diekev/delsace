@@ -29,6 +29,8 @@
 
 #include "structures.hh"
 
+struct NoeudCode;
+
 enum class GenreMessage : int {
 	INVALIDE,
 
@@ -50,7 +52,7 @@ struct MessageFichier : public Message {
 };
 
 struct MessageTypageFonctionTermine : public Message {
-	kuri::chaine nom{};
+	NoeudCode *noeud_code;
 };
 
 struct MessageTypageTypeTermine : public Message {
@@ -71,7 +73,7 @@ public:
 	void ajoute_message_fichier_ferme(kuri::chaine const &chemin);
 	void ajoute_message_module_ouvert(kuri::chaine const &chemin);
 	void ajoute_message_module_ferme(kuri::chaine const &chemin);
-	void ajoute_message_typage_fonction(kuri::chaine const &nom);
+	void ajoute_message_typage_fonction(NoeudCode *noeud_code);
 	void ajoute_message_typage_type(kuri::chaine const &nom);
 
 	size_t memoire_utilisee() const;

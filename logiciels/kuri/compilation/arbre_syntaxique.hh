@@ -41,6 +41,7 @@ struct OperateurUnaire;
 struct Fichier;
 struct IdentifiantCode;
 struct NoeudBloc;
+struct NoeudCode;
 struct TypeFonction;
 struct NoeudDependance;
 
@@ -230,6 +231,8 @@ struct NoeudBase {
 	NoeudExpression *expression_type = nullptr;
 
 	TransformationType transformation{};
+
+	NoeudCode *noeud_code = nullptr;
 
 	NoeudBase() = default;
 

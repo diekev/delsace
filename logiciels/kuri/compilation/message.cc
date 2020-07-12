@@ -64,11 +64,11 @@ void Messagere::ajoute_message_module_ferme(const kuri::chaine &chemin)
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
-void Messagere::ajoute_message_typage_fonction(const kuri::chaine &nom)
+void Messagere::ajoute_message_typage_fonction(NoeudCode *noeud_code)
 {
 	auto message = messages_typage_fonction.ajoute_element();
 	message->genre = GenreMessage::TYPAGE_FONCTION;
-	message->nom = nom;
+	message->noeud_code = noeud_code;
 
 	file_message.enfile(message);
 	pic_de_message = std::max(file_message.taille(), pic_de_message);

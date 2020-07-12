@@ -41,6 +41,115 @@ OptionsCompilation :: struct {
 }
 
 // ----------------------------------------------------------------------------
+// structures pour l'arbre syntaxique des programmes, à tenir synchronisé avec noeud_code.hh
+// GenreNoeudCode est une copie carbone de l'énumération de arbre_syntaxique.hh
+
+GenreNoeudCode :: énum z32 {
+    DECLARATION_COROUTINE
+	DECLARATION_ENUM
+	DECLARATION_FONCTION
+	DECLARATION_OPERATEUR
+	DECLARATION_STRUCTURE
+	DECLARATION_VARIABLE
+	DIRECTIVE_EXECUTION
+	EXPRESSION_APPEL_FONCTION
+	EXPRESSION_ASSIGNATION_VARIABLE
+	EXPRESSION_CONSTRUCTION_STRUCTURE
+	EXPRESSION_CONSTRUCTION_TABLEAU
+	EXPRESSION_DELOGE
+	EXPRESSION_INDEXAGE
+	EXPRESSION_INFO_DE
+	EXPRESSION_INIT_DE
+	EXPRESSION_LITTERALE_BOOLEEN
+	EXPRESSION_LITTERALE_CARACTERE
+	EXPRESSION_LITTERALE_CHAINE
+	EXPRESSION_LITTERALE_NOMBRE_REEL
+	EXPRESSION_LITTERALE_NOMBRE_ENTIER
+	EXPRESSION_LITTERALE_NUL
+	EXPRESSION_LOGE
+	EXPRESSION_MEMOIRE
+	EXPRESSION_PARENTHESE
+	EXPRESSION_PLAGE
+	EXPRESSION_REFERENCE_DECLARATION
+	EXPRESSION_REFERENCE_MEMBRE
+	EXPRESSION_REFERENCE_MEMBRE_UNION
+	EXPRESSION_REFERENCE_TYPE
+	EXPRESSION_RELOGE
+	EXPRESSION_TABLEAU_ARGS_VARIADIQUES
+	EXPRESSION_TAILLE_DE
+	EXPRESSION_TYPE_DE
+	EXPRESSION_COMME
+	INSTRUCTION_BOUCLE
+	INSTRUCTION_COMPOSEE
+	INSTRUCTION_CONTINUE_ARRETE
+	INSTRUCTION_DISCR
+	INSTRUCTION_DISCR_ENUM
+	INSTRUCTION_DISCR_UNION
+	INSTRUCTION_NON_INITIALISATION
+	INSTRUCTION_POUR
+	INSTRUCTION_POUSSE_CONTEXTE
+	INSTRUCTION_REPETE
+	INSTRUCTION_RETIENS
+	INSTRUCTION_RETOUR
+	INSTRUCTION_RETOUR_MULTIPLE
+	INSTRUCTION_RETOUR_SIMPLE
+	INSTRUCTION_SAUFSI
+	INSTRUCTION_SI
+	INSTRUCTION_SINON
+	INSTRUCTION_TANTQUE
+	INSTRUCTION_TENTE
+	OPERATEUR_BINAIRE
+	OPERATEUR_COMPARAISON_CHAINEE
+	OPERATEUR_UNAIRE
+	EXPANSION_VARIADIQUE
+}
+
+NoeudCode :: struct {
+    genre : GenreNoeudCode
+}
+
+NoeudCodeFonction :: struct {
+    empl base : NoeudCode
+
+    nom: chaine
+    bloc : *NoeudCodeBloc
+
+    params_entrée : *NoeudCodeDéclaration
+    params_sortie : *NoeudCodeDéclaration
+}
+
+NoeudCodeAssignation :: struct {
+    empl base : NoeudCode
+
+    assigné : *NoeudCodeDéclaration
+    expression : *NoeudCode
+}
+
+NoeudCodeDéclaration :: struct {
+    empl base : NoeudCode
+}
+
+NoeudCodeOpérationUnaire :: struct {
+    empl base : NoeudCode
+
+    opérande : *NoeudCode
+}
+
+NoeudCodeOpérationBinaire :: struct {
+    empl base : NoeudCode
+
+    opérande_gauche : *NoeudCode
+    opérande_droite : *NoeudCode
+}
+
+NoeudCodeBloc :: struct {
+    empl base : NoeudCode
+
+    expressions : []*NoeudCode
+    membres : []*NoeudCodeDéclaration
+}
+
+// ----------------------------------------------------------------------------
 // structures des Messages, celles-ci doivent être tenues synchronisées avec celles de message.hh
 
 GenreMessage :: énum z32 {
@@ -70,7 +179,7 @@ MessageFichier :: struct {
 MessageTypageFonctionTerminé :: struct {
     empl base : Message
 
-    nom : chaine
+    code : *NoeudCodeFonction
 }
 
 MessageTypageTypeTerminé :: struct {

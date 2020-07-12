@@ -7,7 +7,7 @@ importe Fondation
 // -- chaines globales
 
 // À FAIRE : pas d'erreur de compilation quand nous avons plusieurs fonctions principales
-// À FAIRE : bug dans la génération de code binaire pour les PositionCodeSource
+// À FAIRE : bug dans la génération de code binaire pour les PositionNoeudCodeSource
 // À FAIRE : trouve une bonne manière de sauvegarder et restaurer l'état des fonctions courante dans la ConstructriceRI pour éviter les bugs
 lance_compilation :: fonc ()
 {
@@ -45,8 +45,8 @@ lance_compilation :: fonc ()
                 // imprime("Fermeture du module : %\n", message_fichier.chemin)
             }
             FONCTION_TYPÉE {
-                // message_fonction := message comme *MessageTypageFonctionTerminé
-                // imprime("Une fonction fut typée : % !\n", message_fonction.nom)
+                message_fonction := message comme *MessageTypageFonctionTerminé
+                imprime("Une fonction fut typée : % !\n", message_fonction.code.nom)
             }
             STRUCTURE_TYPÉE {
                 // message_type := message comme *MessageTypageTypeTerminé
@@ -94,46 +94,6 @@ test_références :: fonc ()
 // }
 
 /*
-
-Code :: struct {
-    genre : z32
-}
-
-CodeFonction :: struct {
-    empl base : Code
-
-    nom: chaine
-    bloc : *CodeBloc
-
-    params_entrée : *CodeDéclaration
-    params_sortie : *CodeDéclaration
-}
-
-CodeAssignation :: struct {
-    empl base : Code
-
-    assigné : *CodeDéclaration
-    expression : *Code
-}
-
-CodeDéclaration :: struct {
-    empl base : Code
-}
-
-CodeOpérationUnaire :: struct {
-    empl base : Code
-}
-
-CodeOpérationBinaire :: struct {
-    empl base : Code
-}
-
-CodeBloc :: struct {
-    empl base : Code
-
-    expressions : []*Code
-    membres : []*CodeDéclaration
-}
 
 EspaceDeTravail :: struct {
     nom : chaine

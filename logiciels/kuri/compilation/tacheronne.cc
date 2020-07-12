@@ -195,7 +195,8 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						compilatrice.file_compilation->pousse(unite);
 					}
 
-					compilatrice.messagere->ajoute_message_typage_fonction(decl->lexeme->chaine);
+					convertisseuse_noeud_code.converti_noeud_syntaxique(decl);
+					compilatrice.messagere->ajoute_message_typage_fonction(decl->noeud_code);
 
 					break;
 				}
@@ -209,7 +210,8 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						return;
 					}
 
-					compilatrice.messagere->ajoute_message_typage_fonction(decl->lexeme->chaine);
+					convertisseuse_noeud_code.converti_noeud_syntaxique(decl);
+					compilatrice.messagere->ajoute_message_typage_fonction(decl->noeud_code);
 
 					unite.change_etat(UniteCompilation::Etat::RI_ATTENDUE);
 					compilatrice.file_compilation->pousse(unite);

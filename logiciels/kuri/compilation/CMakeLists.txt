@@ -49,6 +49,7 @@ set(SOURCES
 	lexeuse.hh
 	message.hh
 	modules.hh
+	noeud_code.hh
 	operateurs.hh
 	outils_lexemes.hh
 	portee.hh
@@ -75,6 +76,7 @@ set(SOURCES
 	lexeuse.cc
 	message.cc
 	modules.cc
+	noeud_code.cc
 	operateurs.cc
 	outils_lexemes.cc
 	portee.cc
