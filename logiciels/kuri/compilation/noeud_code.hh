@@ -61,6 +61,7 @@ struct NoeudCodeAssignation : public NoeudCode {
 };
 
 struct NoeudCodeDeclaration : public NoeudCode {
+	kuri::chaine nom{};
 };
 
 struct NoeudCodeOperationUnaire : public NoeudCode {
@@ -77,6 +78,17 @@ struct NoeudCodeBloc : public NoeudCode {
 	kuri::tableau<NoeudCodeDeclaration *> membres{};
 };
 
+struct NoeudCodeSi : public NoeudCode {
+	NoeudCode *condition = nullptr;
+	NoeudCodeBloc *bloc_si_vrai = nullptr;
+	NoeudCodeBloc *bloc_si_faux = nullptr;
+};
+
+struct NoeudCodeBoucle : public NoeudCode {
+	NoeudCode *condition = nullptr;
+	NoeudCode *bloc = nullptr;
+};
+
 struct ConvertisseuseNoeudCode {
 	tableau_page<NoeudCode> noeuds_codes{};
 	tableau_page<NoeudCodeFonction> noeuds_fonctions{};
@@ -85,6 +97,8 @@ struct ConvertisseuseNoeudCode {
 	tableau_page<NoeudCodeOperationUnaire> noeuds_operations_unaire{};
 	tableau_page<NoeudCodeOperationBinaire> noeuds_operations_binaire{};
 	tableau_page<NoeudCodeBloc> noeuds_blocs{};
+	tableau_page<NoeudCodeSi> noeuds_sis{};
+	tableau_page<NoeudCodeBoucle> noeuds_boucles{};
 
 	NoeudCode *converti_noeud_syntaxique(NoeudExpression *noeud_expression);
 };

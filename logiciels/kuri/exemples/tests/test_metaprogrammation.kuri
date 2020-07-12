@@ -6,6 +6,99 @@ importe Fondation
 // -- tableaux globaux
 // -- chaines globales
 
+converti_fonction_C :: fonc (code_fonction: *NoeudCodeFonction) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
+
+    imprime_dans_enchaineuse(@enchaineuse, "\nlong %", code_fonction.nom)
+
+    virgule := "("
+
+    pour code_fonction.params_entrée {
+        imprime_dans_enchaineuse(@enchaineuse, "%long %", virgule, it.nom)
+        virgule = ", "
+    }
+
+    ajoute_au_tampon(@enchaineuse, ")\n{\n")
+
+    pour code_fonction.bloc.membres {
+        imprime("-- membre : %\n", it.nom)
+    }
+
+    converti_code_c(@enchaineuse, code_fonction.bloc)
+
+    ajoute_au_tampon(@enchaineuse, "}\n\n")
+
+    retourne chaine_depuis_enchaineuse(@enchaineuse)
+}
+
+converti_code_c :: fonc (enchaineuse: *Enchaineuse, code: *NoeudCode)
+{
+    si code == nul {
+        retourne
+    }
+
+    discr code.genre {
+        DECLARATION_VARIABLE {
+            code_déclaration := code comme *NoeudCodeDéclaration
+            imprime_dans_enchaineuse(enchaineuse, "\tlong %;\n", code_déclaration.nom)
+        }
+        INSTRUCTION_SI {
+            code_si := code comme *NoeudCodeSi
+
+            ajoute_au_tampon(enchaineuse, "\tif condition {\n")
+            converti_code_c(enchaineuse, code_si.bloc_si_vrai)
+            ajoute_au_tampon(enchaineuse, "\t}\n")
+
+            si code_si.bloc_si_faux {
+                ajoute_au_tampon(enchaineuse, "\telse {\n")
+                converti_code_c(enchaineuse, code_si.bloc_si_faux)
+                ajoute_au_tampon(enchaineuse, "\t}\n")
+            }
+
+            ajoute_au_tampon(enchaineuse, "\n")
+        }
+        INSTRUCTION_COMPOSEE {
+            bloc := code comme *NoeudCodeBloc
+
+            pour bloc.expressions {
+                converti_code_c(enchaineuse, it)
+            }
+        }
+        INSTRUCTION_RETOUR {
+            ajoute_au_tampon(enchaineuse, "return;")
+        }
+        INSTRUCTION_RETOUR_SIMPLE {
+            code_retour := code comme *NoeudCodeOpérationUnaire
+            ajoute_au_tampon(enchaineuse, "\t\treturn ")
+            converti_code_c(enchaineuse, code_retour.opérande)
+            ajoute_au_tampon(enchaineuse, ";\n")
+        }
+        INSTRUCTION_BOUCLE {
+            code_boucle := code comme *NoeudCodeBoucle
+            ajoute_au_tampon(enchaineuse, "\twhile (1) {\n")
+            converti_code_c(enchaineuse, code_boucle.bloc)
+            ajoute_au_tampon(enchaineuse, "\t}\n\n")
+        }
+        INSTRUCTION_TANTQUE {
+            code_boucle := code comme *NoeudCodeBoucle
+            ajoute_au_tampon(enchaineuse, "\twhile condition {\n")
+            converti_code_c(enchaineuse, code_boucle.bloc)
+            ajoute_au_tampon(enchaineuse, "\t}\n\n")
+        }
+        INSTRUCTION_REPETE {
+            code_boucle := code comme *NoeudCodeBoucle
+            ajoute_au_tampon(enchaineuse, "\tdo {\n")
+            converti_code_c(enchaineuse, code_boucle.bloc)
+            ajoute_au_tampon(enchaineuse, "\t} while condition;\n\n")
+        }
+        sinon {
+
+        }
+    }
+}
+
 // À FAIRE : pas d'erreur de compilation quand nous avons plusieurs fonctions principales
 // À FAIRE : bug dans la génération de code binaire pour les PositionNoeudCodeSource
 // À FAIRE : trouve une bonne manière de sauvegarder et restaurer l'état des fonctions courante dans la ConstructriceRI pour éviter les bugs
@@ -46,7 +139,15 @@ lance_compilation :: fonc ()
             }
             FONCTION_TYPÉE {
                 message_fonction := message comme *MessageTypageFonctionTerminé
-                imprime("Une fonction fut typée : % !\n", message_fonction.code.nom)
+                //imprime("Une fonction fut typée : % !\n", message_fonction.code.nom)
+
+                code := message_fonction.code
+
+                si code.nom == "pgdc" {
+                    code_c := converti_fonction_C(code)
+                    imprime("%\n", code_c)
+                    déloge code_c
+                }
             }
             STRUCTURE_TYPÉE {
                 // message_type := message comme *MessageTypageTypeTerminé
@@ -59,6 +160,11 @@ lance_compilation :: fonc ()
         }
     }
 
+    génère_fonction_principale()
+}
+
+génère_fonction_principale :: fonc ()
+{
     enchaineuse : Enchaineuse
     initialise_enchaineuse(@enchaineuse)
 

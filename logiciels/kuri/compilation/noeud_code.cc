@@ -25,10 +25,15 @@
 #include "noeud_code.hh"
 
 #include "arbre_syntaxique.hh"
+#include "identifiant.hh"
 
 NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *noeud_expression)
 {
 	auto noeud_code = static_cast<NoeudCode *>(nullptr);
+
+	if (noeud_expression == nullptr) {
+		return nullptr;
+	}
 
 	switch (noeud_expression->genre) {
 		case GenreNoeud::DECLARATION_FONCTION:
@@ -43,19 +48,24 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 			n->nom.pointeur = const_cast<char *>(decl->lexeme->chaine.pointeur());
 			n->nom.taille = decl->lexeme->chaine.taille();
 
-			n->bloc = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(decl->bloc));
-
 			POUR (decl->params) {
 				auto n_param = converti_noeud_syntaxique(it);
 				n->params_entree.pousse(static_cast<NoeudCodeDeclaration *>(n_param));
 			}
+
+			n->bloc = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(decl->bloc));
 
 			noeud_code = n;
 			break;
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
 		{
-			auto n = noeuds_assignations.ajoute_element();
+			auto decl = static_cast<NoeudDeclarationVariable *>(noeud_expression);
+
+			auto n = noeuds_declarations.ajoute_element();
+			n->nom.pointeur = const_cast<char *>(decl->ident->nom.pointeur());
+			n->nom.taille = decl->ident->nom.taille();
+
 			noeud_code = n;
 			break;
 		}
@@ -72,6 +82,19 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 				n->expressions.pousse(converti_noeud_syntaxique(it));
 			}
 
+			auto membres = noeud_bloc->membres.verrou_lecture();
+			n->membres.reserve(membres->taille);
+
+			POUR (*membres) {
+				// le noeud_code peut être nul pour le contexte implicite
+				if (it->noeud_code == nullptr) {
+					converti_noeud_syntaxique(it);
+				}
+
+				n->membres.pousse(static_cast<NoeudCodeDeclaration *>(it->noeud_code));
+			}
+
+			noeud_code = n;
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
@@ -132,6 +155,32 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 			noeud_code = n;
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_SAUFSI:
+		case GenreNoeud::INSTRUCTION_SI:
+		{
+			auto noeud_si = static_cast<NoeudSi *>(noeud_expression);
+
+			auto n = noeuds_sis.ajoute_element();
+			n->condition = converti_noeud_syntaxique(noeud_si->condition);
+			n->bloc_si_vrai = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(noeud_si->bloc_si_vrai));
+			n->bloc_si_faux = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(noeud_si->bloc_si_faux));
+
+			noeud_code = n;
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_BOUCLE:
+		case GenreNoeud::INSTRUCTION_REPETE:
+		case GenreNoeud::INSTRUCTION_TANTQUE:
+		{
+			auto noeud_boucle = static_cast<NoeudBoucle *>(noeud_expression);
+
+			auto n = noeuds_boucles.ajoute_element();
+			n->condition = converti_noeud_syntaxique(noeud_boucle->condition);
+			n->bloc = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(noeud_boucle->bloc));
+
+			noeud_code = n;
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::DECLARATION_ENUM:
 		case GenreNoeud::DECLARATION_STRUCTURE:
@@ -145,15 +194,10 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
-		case GenreNoeud::INSTRUCTION_BOUCLE:
-		case GenreNoeud::INSTRUCTION_REPETE:
-		case GenreNoeud::INSTRUCTION_TANTQUE:
 		case GenreNoeud::INSTRUCTION_POUR:
 		case GenreNoeud::INSTRUCTION_DISCR:
 		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
 		case GenreNoeud::INSTRUCTION_DISCR_UNION:
-		case GenreNoeud::INSTRUCTION_SAUFSI:
-		case GenreNoeud::INSTRUCTION_SI:
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		case GenreNoeud::INSTRUCTION_TENTE:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
