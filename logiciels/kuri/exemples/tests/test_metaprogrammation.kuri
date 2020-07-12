@@ -6,6 +6,10 @@ importe Fondation
 // -- tableaux globaux
 // -- chaines globales
 
+// À FAIRE (métaprogrammation) : ajout de fonctions d'interface pour dire à la compilatrice quand commencer à et arrêter d'envoyer des messages (compilatrice_commence/termine_interception)
+// À FAIRE (métaprogrammation) : ajout des infos types à NoeudCode
+// À CONSIDÉRER : ajout d'une interface pour requerir l'arbre syntaxique au lieu de toujours le générer
+
 converti_fonction_C :: fonc (code_fonction: *NoeudCodeFonction) -> chaine
 {
     enchaineuse : Enchaineuse
