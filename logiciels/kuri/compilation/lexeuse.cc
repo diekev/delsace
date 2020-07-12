@@ -51,7 +51,52 @@ enum {
 	CARACTERE_CHIFFRE_DECIMAL     = (1 << 3),
 };
 
-static short table_drapeaux_caracteres[256] = {};
+static constexpr auto table_drapeaux_caracteres = [] {
+	std::array<short, 256> t{};
+
+	for (auto i = 0u; i < 256; ++i) {
+		t[i] = 0;
+
+		if ('0' <= i && i <= '7') {
+			t[i] |= CARACTERE_CHIFFRE_OCTAL;
+		}
+
+		if ('0' <= i && i <= '9') {
+			t[i] |= (CARACTERE_CHIFFRE_DECIMAL);
+		}
+
+		switch (i) {
+			case 'o':
+			case 'O':
+			case 'x':
+			case 'X':
+			case 'b':
+			case 'B':
+			{
+				t[i] |= CARACTERE_PEUT_SUIVRE_ZERO;
+				break;
+			}
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+			case '_':
+			case '.':
+			{
+				t[i] |= (CARACTERE_PEUT_SUIVRE_ZERO | CARACTERE_PEUT_SUIVRE_CHIFFRE);
+				break;
+			}
+		}
+	}
+
+	return t;
+}();
 
 ENLIGNE_TOUJOURS static bool peut_suivre_zero(char c)
 {
@@ -71,50 +116,6 @@ ENLIGNE_TOUJOURS static bool est_caractere_octal(char c)
 ENLIGNE_TOUJOURS static bool est_caractere_decimal(char c)
 {
 	return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] & CARACTERE_CHIFFRE_DECIMAL) != 0;
-}
-
-static void genere_table_drapeaux_caracteres()
-{
-	for (auto i = 0; i < 256; ++i) {
-		table_drapeaux_caracteres[i] = 0;
-
-		if ('0' <= i && i <= '7') {
-			table_drapeaux_caracteres[i] |= CARACTERE_CHIFFRE_OCTAL;
-		}
-
-		if ('0' <= i && i <= '9') {
-			table_drapeaux_caracteres[i] |= (CARACTERE_CHIFFRE_DECIMAL);
-		}
-
-		switch (i) {
-			case 'o':
-			case 'O':
-			case 'x':
-			case 'X':
-			case 'b':
-			case 'B':
-			{
-				table_drapeaux_caracteres[i] |= CARACTERE_PEUT_SUIVRE_ZERO;
-				break;
-			}
-			case '0':
-			case '1':
-			case '2':
-			case '3':
-			case '4':
-			case '5':
-			case '6':
-			case '7':
-			case '8':
-			case '9':
-			case '_':
-			case '.':
-			{
-				table_drapeaux_caracteres[i] |= (CARACTERE_PEUT_SUIVRE_ZERO | CARACTERE_PEUT_SUIVRE_CHIFFRE);
-				break;
-			}
-		}
-	}
 }
 
 /* ************************************************************************** */
@@ -190,7 +191,6 @@ Lexeuse::Lexeuse(Compilatrice &compilatrice, Fichier *fichier, int drapeaux)
 	, m_drapeaux(drapeaux)
 {
 	construit_tables_caractere_speciaux();
-	genere_table_drapeaux_caracteres();
 }
 
 void Lexeuse::performe_lexage()
