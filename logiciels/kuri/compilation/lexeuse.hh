@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "biblinternes/outils/definitions.h"
+
 #include "lexemes.hh"
 #include "structures.hh"
 
@@ -38,14 +40,15 @@ enum {
 class Lexeuse {
 	Compilatrice &m_compilatrice;
 	Fichier *m_fichier;
+
 	const char *m_debut_mot = nullptr;
 	const char *m_debut = nullptr;
 	const char *m_fin = nullptr;
 
-	long m_position_ligne = 0;
-	long m_compte_ligne = 0;
-	long m_pos_mot = 0;
-	long m_taille_mot_courant = 0;
+	int m_position_ligne = 0;
+	int m_compte_ligne = 0;
+	int m_pos_mot = 0;
+	int m_taille_mot_courant = 0;
 
 	int m_drapeaux = 0;
 	GenreLexeme m_dernier_id = GenreLexeme::INCONNU;
@@ -63,13 +66,29 @@ public:
 	void imprime_lexemes(std::ostream &os);
 
 private:
-	bool fini() const;
+	ENLIGNE_TOUJOURS bool fini() const
+	{
+		return m_debut >= m_fin;
+	}
+
+	template <int N>
+	void avance_fixe()
+	{
+		m_position_ligne += N;
+		m_debut += N;
+	}
 
 	void avance(int n = 1);
 
-	char caractere_courant() const;
+	ENLIGNE_TOUJOURS char caractere_courant() const
+	{
+		return *m_debut;
+	}
 
-	char caractere_voisin(int n = 1) const;
+	ENLIGNE_TOUJOURS char caractere_voisin(int n = 1) const
+	{
+		return *(m_debut + n);
+	}
 
 	dls::vue_chaine_compacte mot_courant() const;
 
@@ -77,13 +96,20 @@ private:
 
 	void analyse_caractere_simple();
 
-	void pousse_caractere(int n = 1);
+	ENLIGNE_TOUJOURS void pousse_caractere(int n = 1)
+	{
+		m_taille_mot_courant += n;
+	}
 
 	void pousse_mot(GenreLexeme identifiant);
 	void pousse_mot(GenreLexeme identifiant, unsigned valeur);
 	void pousse_mot(GenreLexeme identifiant, kuri::chaine valeur);
 
-	void enregistre_pos_mot();
+	ENLIGNE_TOUJOURS void enregistre_pos_mot()
+	{
+		m_pos_mot = m_position_ligne;
+		m_debut_mot = m_debut;
+	}
 
 	void lexe_commentaire();
 

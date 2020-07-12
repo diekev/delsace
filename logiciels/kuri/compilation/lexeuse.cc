@@ -242,11 +242,6 @@ void Lexeuse::imprime_lexemes(std::ostream &os)
 	}
 }
 
-bool Lexeuse::fini() const
-{
-	return m_debut >= m_fin;
-}
-
 void Lexeuse::avance(int n)
 {
 	for (int i = 0; i < n; ++i) {
@@ -260,16 +255,6 @@ void Lexeuse::avance(int n)
 
 		++m_debut;
 	}
-}
-
-char Lexeuse::caractere_courant() const
-{
-	return *m_debut;
-}
-
-char Lexeuse::caractere_voisin(int n) const
-{
-	return *(m_debut + n);
 }
 
 dls::vue_chaine_compacte Lexeuse::mot_courant() const
@@ -312,7 +297,7 @@ void Lexeuse::analyse_caractere_simple()
 	this->enregistre_pos_mot(); \
 	this->pousse_caractere(); \
 	this->pousse_mot(id); \
-	this->avance(); \
+	this->avance_fixe<1>(); \
 
 #define POUSSE_MOT_SI_NECESSAIRE \
 	if (m_taille_mot_courant != 0) { \
@@ -336,7 +321,7 @@ void Lexeuse::analyse_caractere_simple()
 			this->pousse_caractere(); \
 			this->pousse_caractere(); \
 			this->pousse_mot(id_avec_egal); \
-			this->avance(2); \
+			this->avance_fixe<2>(); \
 		} \
 		else { \
 			POUSSE_CARACTERE(id_sans_egal); \
@@ -350,7 +335,7 @@ void Lexeuse::analyse_caractere_simple()
 		this->pousse_caractere(); \
 		this->pousse_caractere(); \
 		this->pousse_mot(id); \
-		this->avance(2); \
+		this->avance_fixe<2>(); \
 		return; \
 	}
 
@@ -361,7 +346,7 @@ void Lexeuse::analyse_caractere_simple()
 		this->pousse_caractere(); \
 		this->pousse_caractere(); \
 		this->pousse_mot(id); \
-		this->avance(3); \
+		this->avance_fixe<3>(); \
 		return; \
 	}
 
@@ -377,7 +362,7 @@ void Lexeuse::analyse_caractere_simple()
 				}
 
 				this->pousse_caractere();
-				this->avance();
+				this->avance_fixe<1>();
 			}
 
 			break;
@@ -403,9 +388,23 @@ void Lexeuse::analyse_caractere_simple()
 					this->pousse_caractere();
 					this->pousse_mot(GenreLexeme::POINT_VIRGULE);
 				}
+
+				++m_debut;
+				++m_compte_ligne;
+				m_position_ligne = 0;
+
+				// idée de micro-optimisation provenant de D, saute 4 espaces à la fois
+				// https://github.com/dlang/dmd/pull/11095
+				// 0x20 == ' '
+				while (*reinterpret_cast<uint const *>(m_debut) == 0x20202020) {
+					m_debut += 4;
+					m_position_ligne += 4;
+				}
+
+				break;
 			}
 
-			this->avance();
+			this->avance_fixe<1>();
 			break;
 		}
 		case '"':
@@ -416,10 +415,10 @@ void Lexeuse::analyse_caractere_simple()
 			if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
 				this->enregistre_pos_mot();
 				this->pousse_caractere();
-				this->avance();
+				this->avance_fixe<1>();
 			}
 			else {
-				this->avance();
+				this->avance_fixe<1>();
 				this->enregistre_pos_mot();
 			}
 
@@ -440,7 +439,7 @@ void Lexeuse::analyse_caractere_simple()
 				this->pousse_caractere();
 			}
 
-			this->avance();
+			this->avance_fixe<1>();
 
 			this->pousse_mot(GenreLexeme::CHAINE_LITTERALE, chaine);
 			break;
@@ -453,10 +452,10 @@ void Lexeuse::analyse_caractere_simple()
 			if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
 				this->enregistre_pos_mot();
 				this->pousse_caractere();
-				this->avance();
+				this->avance_fixe<1>();
 			}
 			else {
-				this->avance();
+				this->avance_fixe<1>();
 				this->enregistre_pos_mot();
 			}
 
@@ -471,7 +470,7 @@ void Lexeuse::analyse_caractere_simple()
 				this->pousse_caractere();
 			}
 
-			this->avance();
+			this->avance_fixe<1>();
 			this->pousse_mot(GenreLexeme::CARACTERE, valeur);
 			break;
 		}
@@ -600,11 +599,6 @@ void Lexeuse::analyse_caractere_simple()
 #undef APPARIE_2_SUIVANTS
 }
 
-void Lexeuse::pousse_caractere(int n)
-{
-	m_taille_mot_courant += n;
-}
-
 void Lexeuse::pousse_mot(GenreLexeme identifiant)
 {
 	if (m_fichier->lexemes.taille() % 128 == 0) {
@@ -612,7 +606,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant)
 	}
 
 	Lexeme lexeme = {
-		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_fichier->id), static_cast<int>(m_compte_ligne), static_cast<int>(m_pos_mot)
+		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_fichier->id), m_compte_ligne, m_pos_mot
 	};
 
 	if (identifiant == GenreLexeme::CHAINE_CARACTERE || identifiant == GenreLexeme::EXTERNE) {
@@ -630,7 +624,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant, unsigned valeur)
 		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
 	}
 
-	m_fichier->lexemes.pousse({ mot_courant(), { valeur }, identifiant, static_cast<int>(m_fichier->id), static_cast<int>(m_compte_ligne), static_cast<int>(m_pos_mot) });
+	m_fichier->lexemes.pousse({ mot_courant(), { valeur }, identifiant, static_cast<int>(m_fichier->id), m_compte_ligne, m_pos_mot });
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }
@@ -642,7 +636,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant, kuri::chaine valeur)
 	}
 
 	Lexeme lexeme = {
-		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_fichier->id), static_cast<int>(m_compte_ligne), static_cast<int>(m_pos_mot)
+		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_fichier->id), m_compte_ligne, m_pos_mot
 	};
 
 	lexeme.pointeur = valeur.pointeur;
@@ -651,12 +645,6 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant, kuri::chaine valeur)
 	m_fichier->lexemes.pousse(lexeme);
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
-}
-
-void Lexeuse::enregistre_pos_mot()
-{
-	m_pos_mot = m_position_ligne;
-	m_debut_mot = m_debut;
 }
 
 void Lexeuse::lexe_commentaire()
@@ -669,7 +657,7 @@ void Lexeuse::lexe_commentaire()
 
 	/* ignore commentaire */
 	while (this->caractere_courant() != '\n') {
-		this->avance();
+		this->avance_fixe<1>();
 		this->pousse_caractere();
 	}
 
@@ -690,7 +678,7 @@ void Lexeuse::lexe_commentaire_bloc()
 		this->enregistre_pos_mot();
 	}
 
-	this->avance(2);
+	this->avance_fixe<2>();
 	this->pousse_caractere(2);
 
 	// permet d'avoir des blocs de commentaires nichés
@@ -698,14 +686,14 @@ void Lexeuse::lexe_commentaire_bloc()
 
 	while (!this->fini()) {
 		if (this->caractere_courant() == '/' && this->caractere_voisin(1) == '*') {
-			this->avance(2);
+			this->avance_fixe<2>();
 			this->pousse_caractere(2);
 			compte_blocs += 1;
 			continue;
 		}
 
 		if (this->caractere_courant() == '*' && this->caractere_voisin(1) == '/') {
-			this->avance(2);
+			this->avance_fixe<2>();
 			this->pousse_caractere(2);
 
 			if (compte_blocs == 0) {
@@ -715,7 +703,7 @@ void Lexeuse::lexe_commentaire_bloc()
 			compte_blocs -= 1;
 		}
 		else {
-			this->avance();
+			this->avance_fixe<1>();
 			this->pousse_caractere();
 		}
 	}
@@ -770,7 +758,7 @@ void Lexeuse::lexe_nombre_decimal()
 
 		if (!lng::est_nombre_decimal(c)) {
 			if (c == '_') {
-				this->avance();
+				this->avance_fixe<1>();
 				continue;
 			}
 
@@ -785,7 +773,7 @@ void Lexeuse::lexe_nombre_decimal()
 				}
 
 				point_trouve = true;
-				this->avance();
+				this->avance_fixe<1>();
 				break;
 			}
 
@@ -795,7 +783,7 @@ void Lexeuse::lexe_nombre_decimal()
 		resultat_entier *= 10;
 		resultat_entier += static_cast<unsigned long long>(c - '0');
 		nombre_de_chiffres += 1;
-		this->avance();
+		this->avance_fixe<1>();
 	}
 
 	if (!point_trouve) {
@@ -815,7 +803,7 @@ void Lexeuse::lexe_nombre_decimal()
 
 		if (!lng::est_nombre_decimal(c)) {
 			if (c == '_') {
-				this->avance();
+				this->avance_fixe<1>();
 				continue;
 			}
 
@@ -839,7 +827,7 @@ void Lexeuse::lexe_nombre_decimal()
 
 		resultat_reel += chiffre / dividende;
 		dividende *= 10.0;
-		this->avance();
+		this->avance_fixe<1>();
 	}
 
 	this->pousse_lexeme_reel(resultat_reel);
@@ -849,7 +837,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
 {
 	PROFILE_FONCTION;
 
-	this->avance(2);
+	this->avance_fixe<2>();
 
 	unsigned long long resultat_entier = 0;
 	unsigned nombre_de_chiffres = 0;
@@ -868,7 +856,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
 			chiffre = 10 + static_cast<unsigned>(c - 'A');
 		}
 		else if (c == '_') {
-			this->avance();
+			this->avance_fixe<1>();
 			continue;
 		}
 		else {
@@ -878,7 +866,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
 		resultat_entier *= 16;
 		resultat_entier += chiffre;
 		nombre_de_chiffres += 1;
-		this->avance();
+		this->avance_fixe<1>();
 	}
 
 	if (nombre_de_chiffres > 16) {
@@ -892,7 +880,7 @@ void Lexeuse::lexe_nombre_binaire()
 {
 	PROFILE_FONCTION;
 
-	this->avance(2);
+	this->avance_fixe<2>();
 
 	unsigned long long resultat_entier = 0;
 	unsigned nombre_de_chiffres = 0;
@@ -908,7 +896,7 @@ void Lexeuse::lexe_nombre_binaire()
 			chiffre = 1;
 		}
 		else if (c == '_') {
-			this->avance();
+			this->avance_fixe<1>();
 			continue;
 		}
 		else {
@@ -918,7 +906,7 @@ void Lexeuse::lexe_nombre_binaire()
 		resultat_entier *= 2;
 		resultat_entier += chiffre;
 		nombre_de_chiffres += 1;
-		this->avance();
+		this->avance_fixe<1>();
 	}
 
 	if (nombre_de_chiffres > 64) {
@@ -932,7 +920,7 @@ void Lexeuse::lexe_nombre_octal()
 {
 	PROFILE_FONCTION;
 
-	this->avance(2);
+	this->avance_fixe<2>();
 
 	unsigned long long resultat_entier = 0;
 	unsigned nombre_de_chiffres = 0;
@@ -945,7 +933,7 @@ void Lexeuse::lexe_nombre_octal()
 			chiffre = static_cast<unsigned>(c - '0');
 		}
 		else if (c == '_') {
-			this->avance();
+			this->avance_fixe<1>();
 			continue;
 		}
 		else {
@@ -955,7 +943,7 @@ void Lexeuse::lexe_nombre_octal()
 		resultat_entier *= 8;
 		resultat_entier += chiffre;
 		nombre_de_chiffres += 1;
-		this->avance();
+		this->avance_fixe<1>();
 	}
 
 	if (nombre_de_chiffres > 22) {
@@ -1003,7 +991,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 	PROFILE_FONCTION;
 
 	auto c = this->caractere_courant();
-	this->avance();
+	this->avance_fixe<1>();
 	this->pousse_caractere();
 
 	auto v = static_cast<unsigned>(c);
@@ -1017,7 +1005,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 	}
 
 	c = this->caractere_courant();
-	this->avance();
+	this->avance_fixe<1>();
 	this->pousse_caractere();
 
 	if (c == 'u') {
@@ -1033,7 +1021,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 			v <<= 4;
 			v |= static_cast<unsigned int>(c0);
 
-			this->avance();
+			this->avance_fixe<1>();
 			this->pousse_caractere();
 		}
 
@@ -1066,7 +1054,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 			v <<= 4;
 			v |= static_cast<unsigned int>(c0);
 
-			this->avance();
+			this->avance_fixe<1>();
 			this->pousse_caractere();
 		}
 
@@ -1129,7 +1117,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 			v <<= 4;
 			v |= static_cast<unsigned>(c0);
 
-			this->avance();
+			this->avance_fixe<1>();
 			this->pousse_caractere();
 		}
 	}
@@ -1144,7 +1132,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 			v *= 10;
 			v += static_cast<unsigned>(n - '0');
 
-			this->avance();
+			this->avance_fixe<1>();
 			this->pousse_caractere();
 		}
 
@@ -1173,8 +1161,8 @@ void Lexeuse::pousse_lexeme_entier(unsigned long long valeur)
 	lexeme.genre = GenreLexeme::NOMBRE_ENTIER;
 	lexeme.valeur_entiere = valeur;
 	lexeme.fichier = static_cast<int>(m_fichier->id);
-	lexeme.colonne = static_cast<int>(m_pos_mot);
-	lexeme.ligne = static_cast<int>(m_compte_ligne);
+	lexeme.colonne = m_pos_mot;
+	lexeme.ligne = m_compte_ligne;
 
 	m_fichier->lexemes.pousse(lexeme);
 
@@ -1192,8 +1180,8 @@ void Lexeuse::pousse_lexeme_reel(double valeur)
 	lexeme.genre = GenreLexeme::NOMBRE_REEL;
 	lexeme.valeur_reelle = valeur;
 	lexeme.fichier = static_cast<int>(m_fichier->id);
-	lexeme.colonne = static_cast<int>(m_pos_mot);
-	lexeme.ligne = static_cast<int>(m_compte_ligne);
+	lexeme.colonne = m_pos_mot;
+	lexeme.ligne = m_compte_ligne;
 
 	m_fichier->lexemes.pousse(lexeme);
 
