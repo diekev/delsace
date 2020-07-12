@@ -1237,6 +1237,14 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
 							// --> pointeur de la chaine
 						}
 					}
+					else {
+						auto type_compose = static_cast<TypeCompose *>(type);
+
+						for (auto i = 0; i < type_compose->membres.taille; ++i) {
+							// À FAIRE : type tableau fixe
+							genere_code_binaire_pour_atome(tableau_valeur[i], chunk, true);
+						}
+					}
 
 					break;
 				}
