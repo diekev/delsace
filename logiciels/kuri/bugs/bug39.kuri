@@ -1,0 +1,21 @@
+// L'impression de la valeur des énumérations ne fonctionnent pas dans les métaprogrammes
+
+importe Fondation
+
+MonÉnum :: énum z32 {
+    VALEUR
+}
+
+test_impression_énum :: fonc ()
+{
+    a := MonÉnum.VALEUR
+    imprime("%\n", a)
+}
+
+#exécute test_impression_énum()
+
+principale :: fonc () -> z32
+{
+    test_impression_énum()
+    retourne 0
+}
