@@ -37,7 +37,7 @@
 
 /* Point-virgule implicite.
  *
- * Un point-virgule est ajouter quand nous rencontrons une nouvelle ligne si le
+ * Un point-virgule est ajouté quand nous rencontrons une nouvelle ligne si le
  * dernier identifiant correspond à l'un des cas suivants :
  *
  * - une chaine de caractère (nom de variable) ou un type

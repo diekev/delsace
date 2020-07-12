@@ -101,8 +101,8 @@ private:
 	bool apparie_expression_secondaire() const;
 	bool apparie_instruction() const;
 
-	/* NOTE: racine_expression n'est pour le moment utiliser que pour éviter de consommer les expressions des types pour les expressions de relogement. */
-	/* NOTE: lexeme_final n'est utiliser que pour éviter de traiter les virgules comme des opérateurs dans les expressions des appels et déclarations de paramètres de fonctions. */
+	/* NOTE: racine_expression n'est pour le moment utilisé que pour éviter de consommer les expressions des types pour les expressions de relogement. */
+	/* NOTE: lexeme_final n'est utilisé que pour éviter de traiter les virgules comme des opérateurs dans les expressions des appels et déclarations de paramètres de fonctions. */
 	NoeudExpression *analyse_expression(DonneesPrecedence const &donnees_precedence, GenreLexeme racine_expression, GenreLexeme lexeme_final);
 	NoeudExpression *analyse_expression_unaire(GenreLexeme lexeme_final);
 	NoeudExpression *analyse_expression_primaire(GenreLexeme racine_expression, GenreLexeme lexeme_final);
