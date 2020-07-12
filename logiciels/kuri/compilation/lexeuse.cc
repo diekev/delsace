@@ -35,14 +35,87 @@
 
 /**
  * Idées pour des optimisations :
- * - cas de nombres simples
- * -- https://github.com/dlang/dmd/pull/5207
  * - cas de caractères simples
  * -- https://github.com/dlang/dmd/pull/5208
  * - utilisation d'un hachage parfait pour savoir si nous avons un mot-clé
  * - utilisation d'une table pour définir quand arrêter de scanner une chaine
  * -- https://v8.dev/blog/scanner
  */
+
+/* ************************************************************************** */
+
+enum {
+	CARACTERE_PEUT_SUIVRE_ZERO    = (1 << 0),
+	CARACTERE_PEUT_SUIVRE_CHIFFRE = (1 << 1),
+	CARACTERE_CHIFFRE_OCTAL       = (1 << 2),
+	CARACTERE_CHIFFRE_DECIMAL     = (1 << 3),
+};
+
+static short table_drapeaux_caracteres[256] = {};
+
+ENLIGNE_TOUJOURS static bool peut_suivre_zero(char c)
+{
+	return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] & CARACTERE_PEUT_SUIVRE_ZERO) != 0;
+}
+
+ENLIGNE_TOUJOURS static bool peut_suivre_chiffre(char c)
+{
+	return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] & CARACTERE_PEUT_SUIVRE_CHIFFRE) != 0;
+}
+
+ENLIGNE_TOUJOURS static bool est_caractere_octal(char c)
+{
+	return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] & CARACTERE_CHIFFRE_OCTAL) != 0;
+}
+
+ENLIGNE_TOUJOURS static bool est_caractere_decimal(char c)
+{
+	return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] & CARACTERE_CHIFFRE_DECIMAL) != 0;
+}
+
+static void genere_table_drapeaux_caracteres()
+{
+	for (auto i = 0; i < 256; ++i) {
+		table_drapeaux_caracteres[i] = 0;
+
+		if ('0' <= i && i <= '7') {
+			table_drapeaux_caracteres[i] |= CARACTERE_CHIFFRE_OCTAL;
+		}
+
+		if ('0' <= i && i <= '9') {
+			table_drapeaux_caracteres[i] |= (CARACTERE_CHIFFRE_DECIMAL);
+		}
+
+		switch (i) {
+			case 'o':
+			case 'O':
+			case 'x':
+			case 'X':
+			case 'b':
+			case 'B':
+			{
+				table_drapeaux_caracteres[i] |= CARACTERE_PEUT_SUIVRE_ZERO;
+				break;
+			}
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+			case '_':
+			case '.':
+			{
+				table_drapeaux_caracteres[i] |= (CARACTERE_PEUT_SUIVRE_ZERO | CARACTERE_PEUT_SUIVRE_CHIFFRE);
+				break;
+			}
+		}
+	}
+}
 
 /* ************************************************************************** */
 
@@ -117,6 +190,7 @@ Lexeuse::Lexeuse(Compilatrice &compilatrice, Fichier *fichier, int drapeaux)
 	, m_drapeaux(drapeaux)
 {
 	construit_tables_caractere_speciaux();
+	genere_table_drapeaux_caracteres();
 }
 
 void Lexeuse::performe_lexage()
@@ -374,6 +448,27 @@ void Lexeuse::analyse_caractere_simple()
 			break;
 		}
 		case '0':
+		{
+			if (m_taille_mot_courant == 0) {
+				if (!peut_suivre_zero(m_debut[1])) {
+					auto v = static_cast<unsigned>(this->caractere_courant() - '0');
+
+					this->enregistre_pos_mot();
+					this->pousse_caractere();
+					this->avance_fixe<1>();
+					this->pousse_lexeme_entier(v);
+					break;
+				}
+
+				this->lexe_nombre();
+			}
+			else {
+				this->pousse_caractere();
+				this->avance_fixe<1>();
+			}
+
+			break;
+		}
 		case '1':
 		case '2':
 		case '3':
@@ -385,6 +480,16 @@ void Lexeuse::analyse_caractere_simple()
 		case '9':
 		{
 			if (m_taille_mot_courant == 0) {
+				if (!peut_suivre_chiffre(m_debut[1])) {
+					auto v = static_cast<unsigned>(this->caractere_courant() - '0');
+
+					this->enregistre_pos_mot();
+					this->pousse_caractere();
+					this->avance_fixe<1>();
+					this->pousse_lexeme_entier(v);
+					break;
+				}
+
 				this->lexe_nombre();
 			}
 			else {
@@ -828,26 +933,22 @@ void Lexeuse::lexe_nombre_decimal()
 	while (!fini()) {
 		auto c = this->caractere_courant();
 
-		if (!lng::est_nombre_decimal(c)) {
-			if (c == '_') {
-				this->avance_fixe<1>();
-				continue;
-			}
+		if (!peut_suivre_chiffre(c)) {
+			break;
+		}
 
-			if (lng::est_espace_blanc(c)) {
+		if (c == '_') {
+			this->avance_fixe<1>();
+			continue;
+		}
+
+		// gère triple points
+		if (c == '.') {
+			if (this->caractere_voisin() == '.' && this->caractere_voisin(2) == '.') {
 				break;
 			}
 
-			// gère triple points
-			if (c == '.') {
-				if (this->caractere_voisin() == '.' && this->caractere_voisin(2) == '.') {
-					break;
-				}
-
-				lance_erreur("point superflux dans l'expression du nombre");
-			}
-
-			break;
+			lance_erreur("point superflux dans l'expression du nombre");
 		}
 
 		auto chiffre = static_cast<double>(c - '0');
@@ -873,7 +974,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
 		auto c = this->caractere_courant();
 		auto chiffre = 0u;
 
-		if ('0' <= c && c <= '9') {
+		if (est_caractere_decimal(c)) {
 			chiffre = static_cast<unsigned>(c - '0');
 		}
 		else if ('a' <= c && c <= 'f') {
@@ -956,7 +1057,7 @@ void Lexeuse::lexe_nombre_octal()
 		auto c = this->caractere_courant();
 		auto chiffre = 0u;
 
-		if ('0' <= c && c <= '7') {
+		if (est_caractere_octal(c)) {
 			chiffre = static_cast<unsigned>(c - '0');
 		}
 		else if (c == '_') {
@@ -982,7 +1083,7 @@ void Lexeuse::lexe_nombre_octal()
 
 static int hex_depuis_char(char c)
 {
-	if (c >= '0' && c <= '9') {
+	if (est_caractere_decimal(c)) {
 		return c - '0';
 	}
 
