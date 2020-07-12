@@ -62,6 +62,7 @@ struct OptionsCompilation {
 	OptionsLangage options_langage = OptionsLangage::TOUT;
 
 	bool cree_executable = true;
+	bool emets_metriques = true;
 
 	OptionsCompilation() = default;
 

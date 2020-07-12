@@ -38,6 +38,7 @@ OptionsCompilation :: struct {
     options_langage : OptionsLangage
 
     crée_exécutable := vrai
+    émets_métriques := vrai
 }
 
 // ----------------------------------------------------------------------------

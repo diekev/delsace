@@ -863,7 +863,7 @@ int main(int argc, char *argv[])
 
 	metriques.temps_nettoyage = debut_nettoyage.temps();
 
-	if (!compilatrice.possede_erreur) {
+	if (!compilatrice.possede_erreur && ops.emets_metriques) {
 		imprime_stats(metriques, debut_compilation);
 	}
 
