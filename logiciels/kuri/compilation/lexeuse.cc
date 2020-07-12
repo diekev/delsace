@@ -33,6 +33,17 @@
 #include "profilage.hh"
 #include "erreur.h"
 
+/**
+ * Idées pour des optimisations :
+ * - cas de nombres simples
+ * -- https://github.com/dlang/dmd/pull/5207
+ * - cas de caractères simples
+ * -- https://github.com/dlang/dmd/pull/5208
+ * - utilisation d'un hachage parfait pour savoir si nous avons un mot-clé
+ * - utilisation d'une table pour définir quand arrêter de scanner une chaine
+ * -- https://v8.dev/blog/scanner
+ */
+
 /* ************************************************************************** */
 
 /* Point-virgule implicite.
