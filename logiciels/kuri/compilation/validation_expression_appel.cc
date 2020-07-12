@@ -27,7 +27,7 @@
 #include "biblinternes/outils/conditions.h"
 
 #include "assembleuse_arbre.h"
-#include "arbre_syntactic.h"
+#include "arbre_syntaxique.hh"
 #include "erreur.h"
 #include "modules.hh"
 #include "portee.hh"

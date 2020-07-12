@@ -27,7 +27,7 @@
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "arbre_syntactic.h"
+#include "arbre_syntaxique.hh"
 #include "assembleuse_arbre.h"
 #include "broyage.hh"
 #include "erreur.h"
@@ -2685,7 +2685,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	auto &graphe = m_compilatrice.graphe_dependance;
 
 	auto noeud_dependance = graphe->cree_noeud_type(decl->type);
-	noeud_dependance->noeud_syntactique = decl;
+	noeud_dependance->noeud_syntaxique = decl;
 	decl->noeud_dependance = noeud_dependance;
 
 	if (decl->est_externe && decl->bloc == nullptr) {

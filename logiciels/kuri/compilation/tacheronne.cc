@@ -100,7 +100,7 @@ static bool dependances_eurent_ri_generees(NoeudDependance *noeud)
 				}
 			}
 			else {
-				auto noeud_syntaxique = noeud_fin->noeud_syntactique;
+				auto noeud_syntaxique = noeud_fin->noeud_syntaxique;
 
 				if ((noeud_syntaxique->drapeaux & RI_FUT_GENEREE) == 0) {
 					return false;

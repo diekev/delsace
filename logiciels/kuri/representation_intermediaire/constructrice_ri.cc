@@ -29,7 +29,7 @@
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/numerique.hh"
 
-#include "arbre_syntactic.h"
+#include "arbre_syntaxique.hh"
 #include "compilatrice.hh"
 #include "erreur.h"
 #include "outils_lexemes.hh"

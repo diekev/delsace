@@ -26,7 +26,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 
-#include "compilation/arbre_syntactic.h"
+#include "compilation/arbre_syntaxique.hh"
 #include "compilation/identifiant.hh"
 #include "compilation/broyage.hh"
 #include "compilation/structures.hh"

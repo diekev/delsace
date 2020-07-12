@@ -26,7 +26,7 @@
 
 #include "biblinternes/structures/tableau_page.hh"
 
-#include "arbre_syntactic.h"
+#include "arbre_syntaxique.hh"
 
 struct AllocatriceNoeud {
 	tableau_page<NoeudExpression> m_noeuds_expression{};

@@ -464,7 +464,7 @@ void lance_file_execution(Compilatrice *compilatrice)
 		traverse_graphe(noeud->fonction->noeud_dependance, [&](NoeudDependance *noeud_dep)
 		{
 			if (noeud_dep->type == TypeNoeudDependance::FONCTION) {
-				auto decl_noeud = static_cast<NoeudDeclarationFonction *>(noeud_dep->noeud_syntactique);
+				auto decl_noeud = static_cast<NoeudDeclarationFonction *>(noeud_dep->noeud_syntaxique);
 
 				if ((decl_noeud->drapeaux & CODE_BINAIRE_FUT_GENERE) != 0) {
 					return;
@@ -491,7 +491,7 @@ void lance_file_execution(Compilatrice *compilatrice)
 				}
 			}
 			else if (noeud_dep->type == TypeNoeudDependance::GLOBALE) {
-				auto decl_noeud = static_cast<NoeudDeclaration *>(noeud_dep->noeud_syntactique);
+				auto decl_noeud = static_cast<NoeudDeclaration *>(noeud_dep->noeud_syntaxique);
 
 				if ((decl_noeud->drapeaux & EST_CONSTANTE) != 0) {
 					return;

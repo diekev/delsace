@@ -1354,7 +1354,7 @@ void genere_code_C(
 		auto table = compilatrice.table_fonctions.verrou_lecture();
 
 		if (noeud->type == TypeNoeudDependance::FONCTION) {
-			auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(noeud->noeud_syntactique);
+			auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(noeud->noeud_syntaxique);
 			auto atome_fonction = table->trouve(noeud_fonction->nom_broye)->second;
 			assert(atome_fonction);
 			fonctions.pousse(atome_fonction);

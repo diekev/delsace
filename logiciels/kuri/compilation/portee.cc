@@ -26,7 +26,7 @@
 
 #include "biblinternes/outils/conditions.h"
 
-#include "arbre_syntactic.h"
+#include "arbre_syntaxique.hh"
 #include "compilatrice.hh"
 #include "modules.hh"
 #include "profilage.hh"

@@ -28,7 +28,7 @@
 #include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "arbre_syntactic.h"
+#include "arbre_syntaxique.hh"
 #include "compilatrice.hh"
 #include "lexemes.hh"
 #include "validation_semantique.hh"

@@ -31,7 +31,7 @@
 #include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
-#include "arbre_syntactic.h"
+#include "arbre_syntaxique.hh"
 
 /**
  * GrapheDependance de dépendance entre les fonctions et les types.
@@ -77,7 +77,7 @@ struct NoeudDependance {
 	Type *type_{};
 
 	// pour tous les noeuds
-	NoeudExpression *noeud_syntactique{};
+	NoeudExpression *noeud_syntaxique{};
 
 	bool fut_visite = false;
 	bool deja_genere = false;
@@ -96,10 +96,10 @@ struct GrapheDependance {
 	tableau_page<NoeudDependance> noeuds{};
 
 	// CRÉE (:FONCTION { nom = $nom })
-	NoeudDependance *cree_noeud_fonction(NoeudDeclarationFonction *noeud_syntactique);
+	NoeudDependance *cree_noeud_fonction(NoeudDeclarationFonction *noeud_syntaxique);
 
 	// CRÉE (:GLOBALE { nom = $nom })
-	NoeudDependance *cree_noeud_globale(NoeudDeclarationVariable *noeud_syntactique);
+	NoeudDependance *cree_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique);
 
 	// FUSIONNE (:TYPE { index = $index })
 	NoeudDependance *cree_noeud_type(Type *type);

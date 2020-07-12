@@ -30,7 +30,7 @@
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
-#include "compilation/arbre_syntactic.h"
+#include "compilation/arbre_syntaxique.hh"
 #include "compilation/compilatrice.hh"
 #include "compilation/operateurs.hh"
 #include "compilation/outils_lexemes.hh"

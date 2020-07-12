@@ -22,7 +22,7 @@
  *
  */
 
-#include "arbre_syntactic.h"
+#include "arbre_syntaxique.hh"
 
 #include "biblinternes/outils/conditions.h"
 

@@ -44,34 +44,34 @@ std::ostream &operator<<(std::ostream &os, TypeRelation type)
 	return os;
 }
 
-NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationFonction *noeud_syntactique)
+NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationFonction *noeud_syntaxique)
 {
 	PROFILE_FONCTION;
 
-	if (noeud_syntactique->noeud_dependance == nullptr) {
+	if (noeud_syntaxique->noeud_dependance == nullptr) {
 		auto noeud = noeuds.ajoute_element();
-		noeud->noeud_syntactique = noeud_syntactique;
+		noeud->noeud_syntaxique = noeud_syntaxique;
 		noeud->type = TypeNoeudDependance::FONCTION;
 
-		noeud_syntactique->noeud_dependance = noeud;
+		noeud_syntaxique->noeud_dependance = noeud;
 	}
 
-	return noeud_syntactique->noeud_dependance;
+	return noeud_syntaxique->noeud_dependance;
 }
 
-NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *noeud_syntactique)
+NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique)
 {
 	PROFILE_FONCTION;
 
-	if (noeud_syntactique->noeud_dependance == nullptr) {
+	if (noeud_syntaxique->noeud_dependance == nullptr) {
 		auto noeud = noeuds.ajoute_element();
-		noeud->noeud_syntactique = noeud_syntactique;
+		noeud->noeud_syntaxique = noeud_syntaxique;
 		noeud->type = TypeNoeudDependance::GLOBALE;
 
-		noeud_syntactique->noeud_dependance = noeud;
+		noeud_syntaxique->noeud_dependance = noeud;
 	}
 
-	return noeud_syntactique->noeud_dependance;
+	return noeud_syntaxique->noeud_dependance;
 }
 
 NoeudDependance *GrapheDependance::cree_noeud_type(Type *type)
@@ -98,7 +98,7 @@ NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_
 			continue;
 		}
 
-		auto decl_fonction = static_cast<NoeudDeclarationFonction *>(it.noeud_syntactique);
+		auto decl_fonction = static_cast<NoeudDeclarationFonction *>(it.noeud_syntaxique);
 
 		if (decl_fonction->nom_broye == nom) {
 			return const_cast<NoeudDependance *>(&it);
@@ -223,7 +223,7 @@ void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 			continue;
 		}
 
-		auto decl_fonction = static_cast<NoeudDeclarationFonction *>(it.noeud_syntactique);
+		auto decl_fonction = static_cast<NoeudDeclarationFonction *>(it.noeud_syntaxique);
 		std::cerr << "Fonction inutilisée : " << decl_fonction->nom_broye << '\n';
 	}
 

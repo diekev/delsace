@@ -127,7 +127,7 @@ private:
 	NoeudExpression *analyse_instruction_tantque();
 
 	/**
-	 * Lance une exception de type ErreurSyntactique contenant la chaine passée
+	 * Lance une exception de type ErreurSyntaxique contenant la chaine passée
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
 	 * contenues dans l'instance Lexeme lui correspondant.
 	 */

@@ -28,7 +28,7 @@
 
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "arbre_syntactic.h"
+#include "arbre_syntaxique.hh"
 #include "assembleuse_arbre.h"
 #include "compilatrice.hh"
 #include "modules.hh"
@@ -1609,7 +1609,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 		/* Si le 'sinon' contient un « si » ou un « saufsi », nous ajoutons un
 		 * bloc pour créer un niveau d'indirection. Car dans le cas où nous
 		 * avons un contrôle du type si/sinon si dans une boucle, la génération
-		 * de blocs LLVM dans l'arbre syntactic devient plus compliquée sans
+		 * de blocs LLVM dans l'arbre syntaxic devient plus compliquée sans
 		 * cette indirection : certaines instructions de branchage ne sont pas
 		 * ajoutées alors qu'elles devraient l'être et la logique pour
 		 * correctement traiter ce cas sans l'indirection semble être complexe.
