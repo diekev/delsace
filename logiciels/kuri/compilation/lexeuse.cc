@@ -353,14 +353,30 @@ void Lexeuse::analyse_caractere_simple()
 	switch (this->caractere_courant()) {
 		default:
 		{
-			if (m_taille_mot_courant == 0 && lng::est_nombre_decimal(this->caractere_courant())) {
+			if (m_taille_mot_courant == 0) {
+				this->enregistre_pos_mot();
+			}
+
+			this->pousse_caractere();
+			this->avance_fixe<1>();
+
+			break;
+		}
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+		{
+			if (m_taille_mot_courant == 0) {
 				this->lexe_nombre();
 			}
 			else {
-				if (m_taille_mot_courant == 0) {
-					this->enregistre_pos_mot();
-				}
-
 				this->pousse_caractere();
 				this->avance_fixe<1>();
 			}
@@ -396,7 +412,7 @@ void Lexeuse::analyse_caractere_simple()
 				// idée de micro-optimisation provenant de D, saute 4 espaces à la fois
 				// https://github.com/dlang/dmd/pull/11095
 				// 0x20 == ' '
-				while (*reinterpret_cast<uint const *>(m_debut) == 0x20202020) {
+				while (m_debut <= m_fin - 4 && *reinterpret_cast<uint const *>(m_debut) == 0x20202020) {
 					m_debut += 4;
 					m_position_ligne += 4;
 				}
