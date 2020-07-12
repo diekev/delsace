@@ -98,22 +98,22 @@ static constexpr auto table_drapeaux_caracteres = [] {
 	return t;
 }();
 
-ENLIGNE_TOUJOURS static bool peut_suivre_zero(char c)
+inline static bool peut_suivre_zero(char c)
 {
 	return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] & CARACTERE_PEUT_SUIVRE_ZERO) != 0;
 }
 
-ENLIGNE_TOUJOURS static bool peut_suivre_chiffre(char c)
+inline static bool peut_suivre_chiffre(char c)
 {
 	return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] & CARACTERE_PEUT_SUIVRE_CHIFFRE) != 0;
 }
 
-ENLIGNE_TOUJOURS static bool est_caractere_octal(char c)
+inline static bool est_caractere_octal(char c)
 {
 	return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] & CARACTERE_CHIFFRE_OCTAL) != 0;
 }
 
-ENLIGNE_TOUJOURS static bool est_caractere_decimal(char c)
+inline static bool est_caractere_decimal(char c)
 {
 	return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] & CARACTERE_CHIFFRE_DECIMAL) != 0;
 }
