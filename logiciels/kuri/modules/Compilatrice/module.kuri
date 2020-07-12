@@ -107,6 +107,7 @@ GenreNoeudCode :: énum z32 {
 
 NoeudCode :: struct {
     genre : GenreNoeudCode
+    type : *InfoType
 }
 
 NoeudCodeFonction :: struct {

@@ -209,9 +209,226 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 	// À FAIRE : supprime cela quand nous gérerons tous les cas
 	if (noeud_code) {
 		noeud_code->genre = static_cast<int>(noeud_expression->genre);
+
+		if (noeud_expression->type) {
+			noeud_code->info_type = cree_info_type_pour(noeud_expression->type);
+		}
 	}
 
 	noeud_expression->noeud_code = noeud_code;
 
 	return noeud_code;
+}
+
+InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
+{
+	auto cree_info_type_entier = [this](uint taille_en_octet, bool est_signe)
+	{
+		auto info_type = infos_types_entiers.ajoute_element();
+		info_type->genre = GenreInfoType::ENTIER;
+		info_type->taille_en_octet = taille_en_octet;
+		info_type->est_signe = est_signe;
+
+		return info_type;
+	};
+
+	if (type->info_type != nullptr) {
+		return type->info_type;
+	}
+
+	switch (type->genre) {
+		case GenreType::INVALIDE:
+		case GenreType::POLYMORPHIQUE:
+		{
+			return nullptr;
+		}
+		case GenreType::OCTET:
+		{
+			auto info_type = infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::OCTET;
+			info_type->taille_en_octet = type->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::BOOL:
+		{
+			auto info_type = infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::BOOLEEN;
+			info_type->taille_en_octet = type->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::CHAINE:
+		{
+			auto info_type = infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::CHAINE;
+			info_type->taille_en_octet = type->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::EINI:
+		{
+			auto info_type = infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::EINI;
+			info_type->taille_en_octet = type->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::VARIADIQUE:
+		case GenreType::TABLEAU_DYNAMIQUE:
+		{
+			auto type_tableau = static_cast<TypeTableauDynamique *>(type);
+
+			auto info_type = infos_types_tableaux.ajoute_element();
+			info_type->genre = GenreInfoType::TABLEAU;
+			info_type->taille_en_octet = type->taille_octet;
+			info_type->est_tableau_fixe = false;
+			info_type->taille_fixe = 0;
+			info_type->type_pointe = cree_info_type_pour(type_tableau->type_pointe);
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::TABLEAU_FIXE:
+		{
+			auto type_tableau = static_cast<TypeTableauFixe *>(type);
+
+			auto info_type = infos_types_tableaux.ajoute_element();
+			info_type->genre = GenreInfoType::TABLEAU;
+			info_type->taille_en_octet = type->taille_octet;
+			info_type->est_tableau_fixe = true;
+			info_type->taille_fixe = static_cast<int>(type_tableau->taille);
+			info_type->type_pointe = cree_info_type_pour(type_tableau->type_pointe);
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::ENTIER_CONSTANT:
+		{
+			type->info_type = cree_info_type_entier(4, true);
+			break;
+		}
+		case GenreType::ENTIER_NATUREL:
+		{
+			type->info_type = cree_info_type_entier(type->taille_octet, false);
+			break;
+		}
+		case GenreType::ENTIER_RELATIF:
+		{
+			type->info_type = cree_info_type_entier(type->taille_octet, true);
+			break;
+		}
+		case GenreType::REEL:
+		{
+			auto info_type = infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::REEL;
+			info_type->taille_en_octet = type->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::RIEN:
+		{
+			auto info_type = infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::RIEN;
+			info_type->taille_en_octet = 0;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::TYPE_DE_DONNEES:
+		{
+			auto info_type = infos_types.ajoute_element();
+			info_type->genre = GenreInfoType::TYPE_DE_DONNEES;
+			info_type->taille_en_octet = type->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::POINTEUR:
+		case GenreType::REFERENCE:
+		{
+			auto info_type = infos_types_pointeurs.ajoute_element();
+			info_type->genre = GenreInfoType::POINTEUR;
+			info_type->type_pointe = cree_info_type_pour(type_dereference_pour(type));
+			info_type->taille_en_octet = type->taille_octet;
+			info_type->est_reference = type->genre == GenreType::REFERENCE;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::STRUCTURE:
+		{
+			auto type_struct = static_cast<TypeStructure *>(type);
+			// À FAIRE : membre
+
+			auto info_type = infos_types_structures.ajoute_element();
+			info_type->genre = GenreInfoType::STRUCTURE;
+			info_type->taille_en_octet = type->taille_octet;
+			info_type->nom = type_struct->nom;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::UNION:
+		{
+			auto type_union = static_cast<TypeUnion *>(type);
+			// À FAIRE : valeurs, membres
+
+			auto info_type = infos_types_unions.ajoute_element();
+			info_type->genre = GenreInfoType::UNION;
+			info_type->est_sure = !type_union->est_nonsure;
+			info_type->type_le_plus_grand = cree_info_type_pour(type_union->type_le_plus_grand);
+			info_type->decalage_index = type_union->decalage_index;
+			info_type->taille_en_octet = type_union->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::ENUM:
+		case GenreType::ERREUR:
+		{
+			auto type_enum = static_cast<TypeEnum *>(type);
+			// À FAIRE : valeurs, membres
+
+			auto info_type = infos_types_enums.ajoute_element();
+			info_type->genre = GenreInfoType::ENUM;
+			info_type->nom = type_enum->nom;
+			info_type->est_drapeau = type_enum->est_drapeau;
+			info_type->taille_en_octet = type_enum->taille_octet;
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::FONCTION:
+		{
+			auto type_fonction = static_cast<TypeFonction *>(type);
+
+			auto info_type = infos_types_fonctions.ajoute_element();
+			info_type->genre = GenreInfoType::FONCTION;
+			info_type->est_coroutine = false;
+			info_type->taille_en_octet = type->taille_octet;
+
+			info_type->types_entrees.reserve(type_fonction->types_entrees.taille);
+
+			POUR (type_fonction->types_entrees) {
+				info_type->types_entrees.pousse(cree_info_type_pour(it));
+			}
+
+			info_type->types_sorties.reserve(type_fonction->types_sorties.taille);
+
+			POUR (type_fonction->types_sorties) {
+				info_type->types_sorties.pousse(cree_info_type_pour(it));
+			}
+
+			type->info_type = info_type;
+			break;
+		}
+	}
+
+	return type->info_type;
 }

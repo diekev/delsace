@@ -38,12 +38,15 @@
  * Ces structures doivent être synchronisé avec celles du module Compilatrice.
  */
 
+struct InfoType;
 struct NoeudCodeBloc;
 struct NoeudCodeDeclaration;
 struct NoeudExpression;
+struct Type;
 
 struct NoeudCode {
-	int genre;
+	int genre = 0;
+	InfoType *info_type = nullptr;
 };
 
 struct NoeudCodeFonction : public NoeudCode {
@@ -89,6 +92,85 @@ struct NoeudCodeBoucle : public NoeudCode {
 	NoeudCode *bloc = nullptr;
 };
 
+/* Structures utilisées pour passer les informations des types au métaprogrammes.
+ * Celles-ci sont les pendantes de celles dans le module Kuri et doivent être
+ * synchronisées avec elles.
+ */
+
+enum GenreInfoType : int {
+	ENTIER,
+	REEL,
+	BOOLEEN,
+	CHAINE,
+	POINTEUR,
+	STRUCTURE,
+	FONCTION,
+	TABLEAU,
+	EINI,
+	RIEN,
+	ENUM,
+	OCTET,
+	TYPE_DE_DONNEES,
+	UNION,
+};
+
+struct InfoType {
+	GenreInfoType genre{};
+	uint taille_en_octet = 0;
+};
+
+struct InfoTypeEntier : public InfoType {
+	bool est_signe = false;
+};
+
+struct InfoTypePointeur : public InfoType {
+	InfoType *type_pointe = nullptr;
+	bool est_reference = false;
+};
+
+struct InfoTypeTableau : public InfoType {
+	InfoType *type_pointe = nullptr;
+	bool est_tableau_fixe = false;
+	int taille_fixe = 0;
+};
+
+struct InfoTypeMembreStructure : public InfoType {
+	// À FAIRE : crash dans la génération des infos types (RI)
+	// Drapeaux :: énum {
+	// 	EST_CONSTANT
+	// }
+
+	InfoType *info = nullptr;
+	long decalage = 0;  // décalage en octets dans la structure
+	int drapeaux = 0;
+};
+
+struct InfoTypeStructure : public InfoType {
+	kuri::chaine nom{};
+	kuri::tableau<InfoTypeMembreStructure *> membres{};
+};
+
+struct InfoTypeUnion : public InfoType {
+	kuri::chaine nom{};
+	kuri::tableau<InfoTypeMembreStructure *> membres{};
+	InfoType *type_le_plus_grand = nullptr;
+	long decalage_index = 0;
+	bool est_sure = false;
+};
+
+struct InfoTypeFonction : public InfoType {
+	kuri::tableau<InfoType *> types_entrees{};
+	kuri::tableau<InfoType *> types_sorties{};
+	bool est_coroutine = false;
+};
+
+struct InfoTypeEnum : public InfoType {
+	kuri::chaine nom{};
+	kuri::tableau<int> valeurs{}; // À FAIRE typage selon énum
+	kuri::tableau<kuri::chaine> noms{};
+	bool est_drapeau = false;
+};
+
 struct ConvertisseuseNoeudCode {
 	tableau_page<NoeudCode> noeuds_codes{};
 	tableau_page<NoeudCodeFonction> noeuds_fonctions{};
@@ -100,5 +182,17 @@ struct ConvertisseuseNoeudCode {
 	tableau_page<NoeudCodeSi> noeuds_sis{};
 	tableau_page<NoeudCodeBoucle> noeuds_boucles{};
 
+	tableau_page<InfoType> infos_types{};
+	tableau_page<InfoTypeEntier> infos_types_entiers{};
+	tableau_page<InfoTypeEnum> infos_types_enums{};
+	tableau_page<InfoTypeFonction> infos_types_fonctions{};
+	tableau_page<InfoTypeMembreStructure> infos_types_membres_structures{};
+	tableau_page<InfoTypePointeur> infos_types_pointeurs{};
+	tableau_page<InfoTypeStructure> infos_types_structures{};
+	tableau_page<InfoTypeTableau> infos_types_tableaux{};
+	tableau_page<InfoTypeUnion> infos_types_unions{};
+
 	NoeudCode *converti_noeud_syntaxique(NoeudExpression *noeud_expression);
+
+	InfoType *cree_info_type_pour(Type *type);
 };

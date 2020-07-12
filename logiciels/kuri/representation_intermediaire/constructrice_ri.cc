@@ -3539,8 +3539,8 @@ struct IDInfoType {
 
 AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 {
-	if (type->info_type != nullptr) {
-		return type->info_type;
+	if (type->atome_info_type != nullptr) {
+		return type->atome_info_type;
 	}
 
 	switch (type->genre) {
@@ -3552,32 +3552,32 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		}
 		case GenreType::BOOL:
 		{
-			type->info_type = cree_info_type_defaut(IDInfoType::BOOLEEN, type->taille_octet);
+			type->atome_info_type = cree_info_type_defaut(IDInfoType::BOOLEEN, type->taille_octet);
 			break;
 		}
 		case GenreType::OCTET:
 		{
-			type->info_type = cree_info_type_defaut(IDInfoType::OCTET, type->taille_octet);
+			type->atome_info_type = cree_info_type_defaut(IDInfoType::OCTET, type->taille_octet);
 			break;
 		}
 		case GenreType::ENTIER_CONSTANT:
 		{
-			type->info_type = cree_info_type_entier(4, true);
+			type->atome_info_type = cree_info_type_entier(4, true);
 			break;
 		}
 		case GenreType::ENTIER_NATUREL:
 		{
-			type->info_type = cree_info_type_entier(type->taille_octet, false);
+			type->atome_info_type = cree_info_type_entier(type->taille_octet, false);
 			break;
 		}
 		case GenreType::ENTIER_RELATIF:
 		{
-			type->info_type = cree_info_type_entier(type->taille_octet, true);
+			type->atome_info_type = cree_info_type_entier(type->taille_octet, true);
 			break;
 		}
 		case GenreType::REEL:
 		{
-			type->info_type = cree_info_type_defaut(IDInfoType::REEL, type->taille_octet);
+			type->atome_info_type = cree_info_type_defaut(IDInfoType::REEL, type->taille_octet);
 			break;
 		}
 		case GenreType::REFERENCE:
@@ -3605,7 +3605,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			valeurs[3] = est_reference;
 
 			auto initialisateur = cree_constante_structure(type_pointeur, std::move(valeurs));
-			type->info_type = cree_globale(type_pointeur, initialisateur, false, true);
+			type->atome_info_type = cree_globale(type_pointeur, initialisateur, false, true);
 			break;
 		}
 		case GenreType::ENUM:
@@ -3655,7 +3655,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			valeurs[5] = est_drapeau;
 
 			auto initialisateur = cree_constante_structure(type_info_type_enum, std::move(valeurs));
-			type->info_type = cree_globale(type_info_type_enum, initialisateur, false, true);
+			type->atome_info_type = cree_globale(type_info_type_enum, initialisateur, false, true);
 			break;
 		}
 		case GenreType::UNION:
@@ -3676,7 +3676,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			auto type_info_union = m_compilatrice.typeuse.type_info_type_union;
 
 			auto globale = cree_globale(type_info_union, nullptr, false, true);
-			type->info_type = globale;
+			type->atome_info_type = globale;
 
 			// ------------------------------------
 			/* pour chaque membre cree une instance de InfoTypeMembreStructure */
@@ -3758,7 +3758,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			auto type_info_struct = m_compilatrice.typeuse.type_info_type_structure;
 
 			auto globale = cree_globale(type_info_struct, nullptr, false, true);
-			type->info_type = globale;
+			type->atome_info_type = globale;
 
 			// ------------------------------------
 			/* pour chaque membre cree une instance de InfoTypeMembreStructure */
@@ -3841,7 +3841,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 
 			auto initialisateur = cree_constante_structure(type_pointeur, std::move(valeurs));
 
-			type->info_type = cree_globale(type_pointeur, initialisateur, false, true);
+			type->atome_info_type = cree_globale(type_pointeur, initialisateur, false, true);
 			break;
 		}
 		case GenreType::TABLEAU_FIXE:
@@ -3871,37 +3871,37 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 
 			auto initialisateur = cree_constante_structure(type_pointeur, std::move(valeurs));
 
-			type->info_type = cree_globale(type_pointeur, initialisateur, false, true);
+			type->atome_info_type = cree_globale(type_pointeur, initialisateur, false, true);
 			break;
 		}
 		case GenreType::FONCTION:
 		{
-			type->info_type = cree_info_type_defaut(IDInfoType::FONCTION, type->taille_octet);
+			type->atome_info_type = cree_info_type_defaut(IDInfoType::FONCTION, type->taille_octet);
 			break;
 		}
 		case GenreType::EINI:
 		{
-			type->info_type = cree_info_type_defaut(IDInfoType::EINI, type->taille_octet);
+			type->atome_info_type = cree_info_type_defaut(IDInfoType::EINI, type->taille_octet);
 			break;
 		}
 		case GenreType::RIEN:
 		{
-			type->info_type = cree_info_type_defaut(IDInfoType::RIEN, type->taille_octet);
+			type->atome_info_type = cree_info_type_defaut(IDInfoType::RIEN, type->taille_octet);
 			break;
 		}
 		case GenreType::CHAINE:
 		{
-			type->info_type = cree_info_type_defaut(IDInfoType::CHAINE, type->taille_octet);
+			type->atome_info_type = cree_info_type_defaut(IDInfoType::CHAINE, type->taille_octet);
 			break;
 		}
 		case GenreType::TYPE_DE_DONNEES:
 		{
-			type->info_type = cree_info_type_defaut(IDInfoType::TYPE_DE_DONNEES, type->taille_octet);
+			type->atome_info_type = cree_info_type_defaut(IDInfoType::TYPE_DE_DONNEES, type->taille_octet);
 			break;
 		}
 	}
 
-	return type->info_type;
+	return type->atome_info_type;
 }
 
 AtomeConstante *ConstructriceRI::cree_info_type_defaut(unsigned index, unsigned taille_octet)

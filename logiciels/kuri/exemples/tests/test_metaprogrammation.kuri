@@ -10,6 +10,26 @@ importe Fondation
 // À FAIRE (métaprogrammation) : ajout des infos types à NoeudCode
 // À CONSIDÉRER : ajout d'une interface pour requerir l'arbre syntaxique au lieu de toujours le générer
 
+converti_type_c :: fonc (info: *InfoType) -> chaine
+{
+    si info.id == id_info.ENTIER {
+        si info.taille_en_octet == 1 {
+            retourne "char"
+        }
+        sinon si info.taille_en_octet == 2 {
+            retourne "short"
+        }
+        sinon si info.taille_en_octet == 4 {
+            retourne "int"
+        }
+        sinon si info.taille_en_octet == 8 {
+            retourne "long"
+        }
+    }
+
+    retourne "type_inconnu"
+}
+
 converti_fonction_C :: fonc (code_fonction: *NoeudCodeFonction) -> chaine
 {
     enchaineuse : Enchaineuse
@@ -27,7 +47,7 @@ converti_fonction_C :: fonc (code_fonction: *NoeudCodeFonction) -> chaine
     ajoute_au_tampon(@enchaineuse, ")\n{\n")
 
     pour code_fonction.bloc.membres {
-        imprime("-- membre : %\n", it.nom)
+        imprime("-- membre : % %\n", converti_type_c(it.type), it.nom)
     }
 
     converti_code_c(@enchaineuse, code_fonction.bloc)
