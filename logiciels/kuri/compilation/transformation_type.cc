@@ -141,7 +141,8 @@ bool cherche_transformation(
 
 		if (type_de->genre == GenreType::ENUM) {
 			if (type_vers == static_cast<TypeEnum *>(type_de)->type_donnees) {
-				transformation = TypeTransformation::INUTILE;
+				// on pourrait se passer de la conversion, ou normaliser le type
+				transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 				return false;
 			}
 		}
