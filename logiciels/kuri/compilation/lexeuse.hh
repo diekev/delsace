@@ -94,8 +94,6 @@ private:
 
 	[[noreturn]] void lance_erreur(const dls::chaine &quoi) const;
 
-	void analyse_caractere_simple();
-
 	ENLIGNE_TOUJOURS void pousse_caractere(int n = 1)
 	{
 		m_taille_mot_courant += n;
