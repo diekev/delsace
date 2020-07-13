@@ -34,7 +34,7 @@ class GNA {
 	std::mt19937 m_gna;
 
 public:
-	explicit GNA(int graine = 1);
+	explicit GNA(unsigned long graine = 1);
 
 	/* distribution uniforme */
 

@@ -65,8 +65,6 @@ struct Relation {
 	TypeRelation type = TypeRelation::INVALIDE;
 	NoeudDependance *noeud_debut  = nullptr;
 	NoeudDependance *noeud_fin  = nullptr;
-
-	COPIE_CONSTRUCT(Relation);
 };
 
 struct NoeudDependance {

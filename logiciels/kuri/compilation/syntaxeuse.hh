@@ -68,10 +68,6 @@ private:
 	struct DonneesEtatSyntaxage {
 		Lexeme *lexeme = nullptr;
 		const char *message = nullptr;
-
-		DonneesEtatSyntaxage() = default;
-
-		COPIE_CONSTRUCT(DonneesEtatSyntaxage);
 	};
 
 	dls::tablet<DonneesEtatSyntaxage, 33> m_donnees_etat_syntaxage{};

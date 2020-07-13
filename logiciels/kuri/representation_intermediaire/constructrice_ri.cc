@@ -2956,8 +2956,6 @@ struct DonneesComparaisonChainee {
 	NoeudExpression *operande_gauche = nullptr;
 	NoeudExpression *operande_droite = nullptr;
 	OperateurBinaire const *op = nullptr;
-
-	COPIE_CONSTRUCT(DonneesComparaisonChainee);
 };
 
 static void rassemble_operations_chainees(

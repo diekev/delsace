@@ -24,7 +24,7 @@
 
 #include "gna.hh"
 
-GNA::GNA(int graine)
+GNA::GNA(unsigned long graine)
 	: m_gna(graine)
 {}
 

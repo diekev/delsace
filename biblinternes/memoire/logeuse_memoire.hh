@@ -49,6 +49,8 @@ struct logeuse_memoire {
 	dls::dico<const char *, std::atomic_long> tableau_allocation;
 #endif
 
+	logeuse_memoire() = default;
+
 	~logeuse_memoire();
 
 	logeuse_memoire(logeuse_memoire const &) = delete;
