@@ -58,6 +58,26 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 			noeud_code = n;
 			break;
 		}
+		case GenreNoeud::DECLARATION_ENUM:
+		{
+			auto decl = static_cast<NoeudEnum *>(noeud_expression);
+
+			auto n = noeuds_codes.ajoute_element();
+			n->info_type = cree_info_type_pour(decl->type);
+
+			noeud_code = n;
+			break;
+		}
+		case GenreNoeud::DECLARATION_STRUCTURE:
+		{
+			auto decl = static_cast<NoeudStruct *>(noeud_expression);
+
+			auto n = noeuds_codes.ajoute_element();
+			n->info_type = cree_info_type_pour(decl->type);
+
+			noeud_code = n;
+			break;
+		}
 		case GenreNoeud::DECLARATION_VARIABLE:
 		{
 			auto decl = static_cast<NoeudDeclarationVariable *>(noeud_expression);
@@ -182,8 +202,6 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_SINON:
-		case GenreNoeud::DECLARATION_ENUM:
-		case GenreNoeud::DECLARATION_STRUCTURE:
 		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
@@ -364,20 +382,31 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		case GenreType::STRUCTURE:
 		{
 			auto type_struct = static_cast<TypeStructure *>(type);
-			// À FAIRE : membre
 
 			auto info_type = infos_types_structures.ajoute_element();
+			type->info_type = info_type;
+
 			info_type->genre = GenreInfoType::STRUCTURE;
 			info_type->taille_en_octet = type->taille_octet;
 			info_type->nom = type_struct->nom;
 
-			type->info_type = info_type;
+			info_type->membres.reserve(type_struct->membres.taille);
+
+			POUR (type_struct->membres) {
+				auto info_type_membre = infos_types_membres_structures.ajoute_element();
+				info_type_membre->info = cree_info_type_pour(it.type);
+				info_type_membre->decalage = it.decalage;
+				info_type_membre->nom = it.nom;
+				info_type_membre->drapeaux = it.drapeaux;
+
+				info_type->membres.pousse(info_type_membre);
+			}
+
 			break;
 		}
 		case GenreType::UNION:
 		{
 			auto type_union = static_cast<TypeUnion *>(type);
-			// À FAIRE : valeurs, membres
 
 			auto info_type = infos_types_unions.ajoute_element();
 			info_type->genre = GenreInfoType::UNION;
@@ -386,6 +415,18 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->decalage_index = type_union->decalage_index;
 			info_type->taille_en_octet = type_union->taille_octet;
 
+			info_type->membres.reserve(type_union->membres.taille);
+
+			POUR (type_union->membres) {
+				auto info_type_membre = infos_types_membres_structures.ajoute_element();
+				info_type_membre->info = cree_info_type_pour(it.type);
+				info_type_membre->decalage = it.decalage;
+				info_type_membre->nom = it.nom;
+				info_type_membre->drapeaux = it.drapeaux;
+
+				info_type->membres.pousse(info_type_membre);
+			}
+
 			type->info_type = info_type;
 			break;
 		}
@@ -393,13 +434,20 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		case GenreType::ERREUR:
 		{
 			auto type_enum = static_cast<TypeEnum *>(type);
-			// À FAIRE : valeurs, membres
 
 			auto info_type = infos_types_enums.ajoute_element();
 			info_type->genre = GenreInfoType::ENUM;
 			info_type->nom = type_enum->nom;
 			info_type->est_drapeau = type_enum->est_drapeau;
 			info_type->taille_en_octet = type_enum->taille_octet;
+
+			info_type->noms.reserve(type_enum->membres.taille);
+			info_type->valeurs.reserve(type_enum->membres.taille);
+
+			POUR (type_enum->membres) {
+				info_type->noms.pousse(it.nom);
+				info_type->valeurs.pousse(it.valeur);
+			}
 
 			type->info_type = info_type;
 			break;

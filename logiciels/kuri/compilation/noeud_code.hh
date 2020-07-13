@@ -134,12 +134,13 @@ struct InfoTypeTableau : public InfoType {
 	int taille_fixe = 0;
 };
 
-struct InfoTypeMembreStructure : public InfoType {
+struct InfoTypeMembreStructure {
 	// À FAIRE : crash dans la génération des infos types (RI)
 	// Drapeaux :: énum {
 	// 	EST_CONSTANT
 	// }
 
+	kuri::chaine nom{};
 	InfoType *info = nullptr;
 	long decalage = 0;  // décalage en octets dans la structure
 	int drapeaux = 0;

@@ -175,6 +175,24 @@ lance_compilation :: fonc ()
                         déloge code_c
                     }
                 }
+                sinon si code.genre == GenreNoeudCode.DECLARATION_STRUCTURE {
+                    // type := code.type comme *InfoTypeStructure
+
+                    // imprime("structure.nom = %\n", type.nom)
+
+                    // pour type.membres {
+                    //     imprime("membre structure : %\n", it.nom)
+                    // }
+                }
+                sinon si code.genre == GenreNoeudCode.DECLARATION_ENUM {
+                    // type := code.type comme *InfoTypeÉnum
+
+                    // imprime("énum.nom = %\n", type.nom)
+
+                    // pour type.noms {
+                    //     imprime("-- %\n", it)
+                    // }
+                }
             }
             COMPILATION_TERMINÉE {
                 imprime("Compilation terminée !\n")
