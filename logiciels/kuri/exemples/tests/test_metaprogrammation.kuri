@@ -161,21 +161,20 @@ lance_compilation :: fonc ()
                 // message_fichier := message comme *MessageFichier
                 // imprime("Fermeture du module : %\n", message_fichier.chemin)
             }
-            FONCTION_TYPÉE {
-                message_fonction := message comme *MessageTypageFonctionTerminé
+            TYPAGE_CODE_TERMINÉ {
+                message_fonction := message comme *MessageTypageCodeTerminé
                 //imprime("Une fonction fut typée : % !\n", message_fonction.code.nom)
 
                 code := message_fonction.code
 
-                si code.nom == "pgdc" {
-                    code_c := converti_fonction_C(code)
-                    imprime("%\n", code_c)
-                    déloge code_c
+                si code.genre == GenreNoeudCode.DECLARATION_FONCTION {
+                    code_fonction := code comme *NoeudCodeFonction
+                    si code_fonction.nom == "pgdc" {
+                        code_c := converti_fonction_C(code_fonction)
+                        imprime("%\n", code_c)
+                        déloge code_c
+                    }
                 }
-            }
-            STRUCTURE_TYPÉE {
-                // message_type := message comme *MessageTypageTypeTerminé
-                // imprime("Une structure fut typée : % !\n", message_type.nom)
             }
             COMPILATION_TERMINÉE {
                 imprime("Compilation terminée !\n")

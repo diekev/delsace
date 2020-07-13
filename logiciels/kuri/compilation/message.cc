@@ -64,21 +64,11 @@ void Messagere::ajoute_message_module_ferme(const kuri::chaine &chemin)
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
-void Messagere::ajoute_message_typage_fonction(NoeudCode *noeud_code)
+void Messagere::ajoute_message_typage_code(NoeudCode *noeud_code)
 {
-	auto message = messages_typage_fonction.ajoute_element();
-	message->genre = GenreMessage::TYPAGE_FONCTION;
+	auto message = messages_typage_code.ajoute_element();
+	message->genre = GenreMessage::TYPAGE_CODE_TERMINE;
 	message->noeud_code = noeud_code;
-
-	file_message.enfile(message);
-	pic_de_message = std::max(file_message.taille(), pic_de_message);
-}
-
-void Messagere::ajoute_message_typage_type(const kuri::chaine &nom)
-{
-	auto message = messages_typage_type.ajoute_element();
-	message->genre = GenreMessage::TYPAGE_TYPE;
-	message->nom = nom;
 
 	file_message.enfile(message);
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
@@ -88,8 +78,7 @@ size_t Messagere::memoire_utilisee() const
 {
 	auto memoire = 0ul;
 	memoire += messages_fichiers.memoire_utilisee();
-	memoire += messages_typage_type.memoire_utilisee();
-	memoire += messages_typage_fonction.memoire_utilisee();
+	memoire += messages_typage_code.memoire_utilisee();
 	memoire += static_cast<size_t>(pic_de_message) * sizeof(void *);
 	return memoire;
 }

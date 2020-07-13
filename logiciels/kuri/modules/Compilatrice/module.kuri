@@ -178,8 +178,7 @@ GenreMessage :: énum z32 {
     FICHIER_FERMÉ
     MODULE_OUVERT
     MODULE_FERMÉ
-    FONCTION_TYPÉE
-    STRUCTURE_TYPÉE
+    TYPAGE_CODE_TERMINÉ
 
     // ce type de message n'a pas l'air évident à géré, la compilation ne peut être marqué comme terminée tant que le métaprogramme est en cours d'exécution
     COMPILATION_TERMINÉE
@@ -195,16 +194,10 @@ MessageFichier :: struct {
     chemin: chaine
 }
 
-MessageTypageFonctionTerminé :: struct {
+MessageTypageCodeTerminé :: struct {
     empl base : Message
 
-    code : *NoeudCodeFonction
-}
-
-MessageTypageTypeTerminé :: struct {
-    empl base : Message
-
-    nom : chaine
+    code : *NoeudCode
 }
 
 // ----------------------------------------------------------------------------

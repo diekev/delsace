@@ -38,8 +38,7 @@ enum class GenreMessage : int {
 	FICHIER_FERME,
 	MODULE_OUVERT,
 	MODULE_FERME,
-	TYPAGE_FONCTION,
-	TYPAGE_TYPE,
+	TYPAGE_CODE_TERMINE,
 	COMPILATION_TERMINEE,
 };
 
@@ -51,19 +50,14 @@ struct MessageFichier : public Message {
 	kuri::chaine chemin{};
 };
 
-struct MessageTypageFonctionTermine : public Message {
+struct MessageTypageCodeTermine : public Message {
 	NoeudCode *noeud_code;
-};
-
-struct MessageTypageTypeTermine : public Message {
-	kuri::chaine nom{};
 };
 
 struct Messagere {
 private:
 	tableau_page<MessageFichier> messages_fichiers{};
-	tableau_page<MessageTypageFonctionTermine> messages_typage_fonction{};
-	tableau_page<MessageTypageTypeTermine> messages_typage_type{};
+	tableau_page<MessageTypageCodeTermine> messages_typage_code{};
 	dls::file<Message *> file_message{};
 
 	long pic_de_message = 0;
@@ -73,8 +67,7 @@ public:
 	void ajoute_message_fichier_ferme(kuri::chaine const &chemin);
 	void ajoute_message_module_ouvert(kuri::chaine const &chemin);
 	void ajoute_message_module_ferme(kuri::chaine const &chemin);
-	void ajoute_message_typage_fonction(NoeudCode *noeud_code);
-	void ajoute_message_typage_type(kuri::chaine const &nom);
+	void ajoute_message_typage_code(NoeudCode *noeud_code);
 
 	size_t memoire_utilisee() const;
 
