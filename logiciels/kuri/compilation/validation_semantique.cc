@@ -251,7 +251,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			assert(bloc != nullptr);
 
 			/* À FAIRE : pour une fonction, trouve la selon le type */
-			auto fichier = m_compilatrice.fichier(static_cast<size_t>(expr->lexeme->fichier));
+			auto fichier = m_compilatrice.fichier(expr->lexeme->fichier);
 			auto decl = trouve_dans_bloc_ou_module(m_compilatrice, bloc, expr->ident, fichier);
 
 			if (decl == nullptr) {
@@ -324,7 +324,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			noeud->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
 			if (enfant1->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-				auto fichier = m_compilatrice.fichier(static_cast<size_t>(noeud->lexeme->fichier));
+				auto fichier = m_compilatrice.fichier(noeud->lexeme->fichier);
 
 				auto const nom_symbole = enfant1->ident->nom;
 				if (fichier->importe_module(nom_symbole)) {
@@ -2345,7 +2345,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 			return true;
 		}
 
-		auto fichier = m_compilatrice.fichier(static_cast<size_t>(decl->lexeme->fichier));
+		auto fichier = m_compilatrice.fichier(decl->lexeme->fichier);
 		decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
 
 		auto operateurs = m_compilatrice.operateurs.verrou_ecriture();
@@ -2426,7 +2426,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 		/* nous devons attendre d'avoir les types des arguments avant de
 		 * pouvoir broyer le nom de la fonction */
 		if (decl->ident != ID::principale && !possede_drapeau(decl->drapeaux, EST_EXTERNE)) {
-			auto fichier = m_compilatrice.fichier(static_cast<size_t>(decl->lexeme->fichier));
+			auto fichier = m_compilatrice.fichier(decl->lexeme->fichier);
 			decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
 		}
 		else {

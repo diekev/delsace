@@ -81,7 +81,7 @@ void lance_erreur(
 		const Lexeme *lexeme,
 		type_erreur type)
 {
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto const identifiant = lexeme->genre;
@@ -109,7 +109,7 @@ void redefinition_fonction(
 		Lexeme const *lexeme_redefinition,
 		Lexeme const *lexeme_original)
 {
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme_redefinition->fichier));
+	auto fichier = compilatrice.fichier(lexeme_redefinition->fichier);
 	auto pos = position_lexeme(*lexeme_redefinition);
 	auto pos_mot = pos.pos;
 	auto chaine = lexeme_redefinition->chaine;
@@ -128,7 +128,7 @@ void redefinition_fonction(
 	ss << "Redéfinition de la fonction !\n";
 	ss << "La fonction fût déjà définie ici :\n";
 
-	fichier = compilatrice.fichier(static_cast<size_t>(lexeme_original->fichier));
+	fichier = compilatrice.fichier(lexeme_original->fichier);
 	pos = position_lexeme(*lexeme_original);
 	pos_mot = pos.pos;
 	chaine = lexeme_original->chaine;
@@ -146,7 +146,7 @@ void redefinition_fonction(
 
 void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme_redefinition, const Lexeme *lexeme_original)
 {
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme_redefinition->fichier));
+	auto fichier = compilatrice.fichier(lexeme_redefinition->fichier);
 	auto pos = position_lexeme(*lexeme_redefinition);
 	auto pos_mot = pos.pos;
 	auto chaine = lexeme_redefinition->chaine;
@@ -165,7 +165,7 @@ void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme
 	ss << "Redéfinition du symbole !\n";
 	ss << "Le symbole fût déjà défini ici :\n";
 
-	fichier = compilatrice.fichier(static_cast<size_t>(lexeme_original->fichier));
+	fichier = compilatrice.fichier(lexeme_original->fichier);
 	pos = position_lexeme(*lexeme_original);
 	pos_mot = pos.pos;
 	chaine = lexeme_original->chaine;
@@ -188,7 +188,7 @@ void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme
 		const Lexeme *lexeme_enfant,
 		const Lexeme *lexeme)
 {
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -227,7 +227,7 @@ void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme
 {
 	auto inst = static_cast<NoeudExpressionUnaire *>(racine);
 	auto lexeme = inst->expr->lexeme;
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -268,7 +268,7 @@ void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme
 		const Compilatrice &compilatrice,
 		const Lexeme *lexeme)
 {
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -295,7 +295,7 @@ void lance_erreur_type_operation(
 		const Compilatrice &compilatrice,
 		const Lexeme *lexeme)
 {
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -321,7 +321,7 @@ void type_indexage(
 		const NoeudExpression *noeud)
 {
 	auto lexeme = noeud->lexeme;
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -348,7 +348,7 @@ void lance_erreur_fonction_inconnue(
 		dls::tablet<DonneesCandidate, 10> const &candidates)
 {
 	auto const &lexeme = b->lexeme;
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -382,7 +382,7 @@ void lance_erreur_fonction_inconnue(
 
 		if (decl != nullptr) {
 			auto const &lexeme_df = decl->lexeme;
-			auto fichier_df = compilatrice.fichier(static_cast<size_t>(lexeme_df->fichier));
+			auto fichier_df = compilatrice.fichier(lexeme_df->fichier);
 			auto pos_df = position_lexeme(*lexeme_df);
 
 			ss << ' ' << decl->ident->nom
@@ -536,7 +536,7 @@ void lance_erreur_fonction_nulctx(
 			NoeudExpression const *decl_appel)
 {
 	auto const &lexeme = appl_fonc->lexeme;
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -559,13 +559,13 @@ void lance_erreur_fonction_nulctx(
 	   << " qui a été déclarée sans contexte via #!nulctx.\n";
 
 	ss << "\n« " << decl_fonc->ident->nom << " » est déclarée ici :\n";
-	fichier = compilatrice.fichier(static_cast<size_t>(decl_fonc->lexeme->fichier));
+	fichier = compilatrice.fichier(decl_fonc->lexeme->fichier);
 	auto pos_decl = position_lexeme(*decl_fonc->lexeme);
 	ss << fichier->chemin << ':' << pos_decl.numero_ligne << '\n' << '\n';
 	ss << fichier->tampon[pos_decl.index_ligne];
 
 	ss << "\n« " << appl_fonc->ident->nom << " » est déclarée ici :\n";
-	fichier = compilatrice.fichier(static_cast<size_t>(decl_appel->lexeme->fichier));
+	fichier = compilatrice.fichier(decl_appel->lexeme->fichier);
 	auto pos_appel = position_lexeme(*decl_appel->lexeme);
 	ss << fichier->chemin << ':' << pos_appel.numero_ligne << '\n' << '\n';
 	ss << fichier->tampon[pos_appel.index_ligne];
@@ -583,7 +583,7 @@ void lance_erreur_acces_hors_limites(
 			long index_acces)
 {
 	auto const &lexeme = b->lexeme;
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -619,7 +619,7 @@ void lance_erreur_type_operation(
 	// soit l'opérateur n'est pas défini pour le type
 
 	auto const &lexeme = b->lexeme;
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -685,7 +685,7 @@ void lance_erreur_type_operation_unaire(
 	// soit l'opérateur n'est pas défini pour le type
 
 	auto const &lexeme = b->lexeme;
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -755,7 +755,7 @@ static auto trouve_candidat(
 	auto candidat = trouve_candidat(membres, membre->ident->nom);
 
 	auto const &lexeme = acces->lexeme;
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -836,7 +836,7 @@ void membre_inactif(
 			NoeudExpression *membre)
 {
 	auto const &lexeme = acces->lexeme;
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -869,7 +869,7 @@ void valeur_manquante_discr(
 			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes)
 {
 	auto const &lexeme = expression->lexeme;
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = compilatrice.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];

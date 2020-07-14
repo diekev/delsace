@@ -2170,7 +2170,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::type_erreur type)
 {
 	auto lexeme = lexeme_courant();
-	auto fichier = m_compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+	auto fichier = m_compilatrice.fichier(lexeme->fichier);
 
 	auto flux = dls::flux_chaine();
 

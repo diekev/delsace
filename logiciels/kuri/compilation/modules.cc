@@ -89,6 +89,6 @@ NoeudDeclaration *cherche_symbole_dans_module(
 
 void imprime_fichier_ligne(Compilatrice &compilatrice, const Lexeme &lexeme)
 {
-	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme.fichier));
+	auto fichier = compilatrice.fichier(lexeme.fichier);
 	std::cerr << fichier->chemin << ':' << lexeme.ligne + 1 << '\n';
 }

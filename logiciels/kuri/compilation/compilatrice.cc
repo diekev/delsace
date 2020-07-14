@@ -287,9 +287,9 @@ Fichier *Compilatrice::cree_fichier(
 	return fichier;
 }
 
-Fichier *Compilatrice::fichier(size_t index) const
+Fichier *Compilatrice::fichier(long index) const
 {
-	return const_cast<Fichier *>(&fichiers->a_l_index(static_cast<long>(index)));
+	return const_cast<Fichier *>(&fichiers->a_l_index(index));
 }
 
 Fichier *Compilatrice::fichier(const dls::vue_chaine_compacte &nom) const

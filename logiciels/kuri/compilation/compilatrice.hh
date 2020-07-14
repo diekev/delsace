@@ -246,7 +246,7 @@ struct Compilatrice {
 	 * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
 	 * en dehors de portée, le programme crashera.
 	 */
-	Fichier *fichier(size_t index) const;
+	Fichier *fichier(long index) const;
 
 	/**
 	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun

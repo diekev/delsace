@@ -55,7 +55,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 {
 	PROFILE_FONCTION;
 
-	auto fichier = compilatrice.fichier(static_cast<size_t>(appelee->lexeme->fichier));
+	auto fichier = compilatrice.fichier(appelee->lexeme->fichier);
 
 	if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
 		auto declarations = dls::tableau<NoeudDeclaration *>();

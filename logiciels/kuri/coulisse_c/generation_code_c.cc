@@ -737,7 +737,7 @@ struct GeneratriceCodeC {
 				auto inst_appel = static_cast<InstructionAppel const *>(inst);
 
 				auto const &lexeme = inst_appel->lexeme;
-				auto fichier = m_compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
+				auto fichier = m_compilatrice.fichier(lexeme->fichier);
 				auto pos = position_lexeme(*lexeme);
 
 				if (!m_fonction_courante->sanstrace) {
@@ -1250,7 +1250,7 @@ struct GeneratriceCodeC {
 				os << "INITIALISE_TRACE_APPEL(\"";
 
 				if (atome_fonc->lexeme != nullptr) {
-					auto fichier = m_compilatrice.fichier(static_cast<size_t>(atome_fonc->lexeme->fichier));
+					auto fichier = m_compilatrice.fichier(atome_fonc->lexeme->fichier);
 					os << atome_fonc->lexeme->chaine << "\", "
 					   << atome_fonc->lexeme->chaine.taille() << ", \""
 					   << fichier->nom << ".kuri\", "
