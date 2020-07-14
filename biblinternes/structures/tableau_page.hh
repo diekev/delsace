@@ -111,6 +111,16 @@ struct tableau_page {
 		return static_cast<size_t>(pages.taille()) * (TAILLE_PAGE * sizeof(T) + sizeof(page));
 	}
 
+	T &a_l_index(long index)
+	{
+		return this->operator[](index);
+	}
+
+	T const &a_l_index(long index) const
+	{
+		return this->operator[](index);
+	}
+
 	T &operator[](long i)
 	{
 		assert(i >= 0);
