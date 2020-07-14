@@ -37,7 +37,7 @@ class assembleuse_arbre;
 struct Compilatrice;
 struct Module;
 struct IdentifiantCode;
-struct NoeudBase;
+struct NoeudExpression;
 struct NoeudBloc;
 struct NoeudDeclaration;
 struct NoeudDeclarationFonction;

@@ -2972,7 +2972,7 @@ void ContexteValidationCode::rapporte_erreur_type_arguments(NoeudExpression *typ
 	erreur::lance_erreur_type_arguments(type_arg->type, type_enf->type, m_compilatrice, type_enf->lexeme, type_arg->lexeme);
 }
 
-void ContexteValidationCode::rapporte_erreur_type_retour(const Type *type_arg, const Type *type_enf, NoeudBase *racine)
+void ContexteValidationCode::rapporte_erreur_type_retour(const Type *type_arg, const Type *type_enf, NoeudExpression *racine)
 {
 	erreur::lance_erreur_type_retour(type_arg, type_enf, m_compilatrice, racine);
 }
@@ -3002,32 +3002,32 @@ void ContexteValidationCode::rapporte_erreur_type_operation_unaire(NoeudExpressi
 	erreur::lance_erreur_type_operation_unaire(m_compilatrice, noeud);
 }
 
-void ContexteValidationCode::rapporte_erreur_acces_hors_limites(NoeudBase *b, TypeTableauFixe *type_tableau, long index_acces)
+void ContexteValidationCode::rapporte_erreur_acces_hors_limites(NoeudExpression *b, TypeTableauFixe *type_tableau, long index_acces)
 {
 	erreur::lance_erreur_acces_hors_limites(m_compilatrice, b, type_tableau->taille, type_tableau, index_acces);
 }
 
-void ContexteValidationCode::rapporte_erreur_membre_inconnu(NoeudBase *acces, NoeudBase *structure, NoeudBase *membre, TypeCompose *type)
+void ContexteValidationCode::rapporte_erreur_membre_inconnu(NoeudExpression *acces, NoeudExpression *structure, NoeudExpression *membre, TypeCompose *type)
 {
 	erreur::membre_inconnu(m_compilatrice, acces, structure, membre, type);
 }
 
-void ContexteValidationCode::rapporte_erreur_membre_inactif(NoeudBase *acces, NoeudBase *structure, NoeudBase *membre)
+void ContexteValidationCode::rapporte_erreur_membre_inactif(NoeudExpression *acces, NoeudExpression *structure, NoeudExpression *membre)
 {
 	erreur::membre_inactif(m_compilatrice, *this, acces, structure, membre);
 }
 
-void ContexteValidationCode::rapporte_erreur_valeur_manquante_discr(NoeudBase *expression, dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes)
+void ContexteValidationCode::rapporte_erreur_valeur_manquante_discr(NoeudExpression *expression, dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes)
 {
 	erreur::valeur_manquante_discr(m_compilatrice, expression, valeurs_manquantes);
 }
 
-void ContexteValidationCode::rapporte_erreur_fonction_inconnue(NoeudBase *b, const dls::tablet<DonneesCandidate, 10> &candidates)
+void ContexteValidationCode::rapporte_erreur_fonction_inconnue(NoeudExpression *b, const dls::tablet<DonneesCandidate, 10> &candidates)
 {
 	erreur::lance_erreur_fonction_inconnue(m_compilatrice, b, candidates);
 }
 
-void ContexteValidationCode::rapporte_erreur_fonction_nulctx(const NoeudBase *appl_fonc, const NoeudBase *decl_fonc, const NoeudBase *decl_appel)
+void ContexteValidationCode::rapporte_erreur_fonction_nulctx(const NoeudExpression *appl_fonc, const NoeudExpression *decl_fonc, const NoeudExpression *decl_appel)
 {
 	erreur::lance_erreur_fonction_nulctx(m_compilatrice, appl_fonc, decl_fonc, decl_appel);
 }

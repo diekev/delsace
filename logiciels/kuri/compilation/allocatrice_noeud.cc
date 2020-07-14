@@ -24,9 +24,9 @@
 
 #include "allocatrice_noeud.hh"
 
-NoeudBase *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
+NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 {
-	auto noeud = static_cast<NoeudBase *>(nullptr);
+	auto noeud = static_cast<NoeudExpression *>(nullptr);
 
 	switch (genre) {
 		case GenreNoeud::INSTRUCTION_SINON:

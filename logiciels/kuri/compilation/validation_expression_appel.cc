@@ -147,7 +147,7 @@ static std::pair<bool, double> verifie_compatibilite(
 		ContexteValidationCode &contexte,
 		Type *type_arg,
 		Type *type_enf,
-		NoeudBase *enfant,
+		NoeudExpression *enfant,
 		TransformationType &transformation)
 {
 	PROFILE_FONCTION;

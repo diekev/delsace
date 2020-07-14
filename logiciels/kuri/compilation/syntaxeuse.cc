@@ -322,6 +322,9 @@ static Associativite associativite_pour_operateur(GenreLexeme genre_operateur)
 
 #define CREE_NOEUD(Type, Genre, Lexeme) static_cast<Type *>(m_fichier->module->assembleuse->cree_noeud(Genre, Lexeme))
 
+// sans transtypage pour éviter les erreurs de compilations avec drapeaux stricts
+#define CREE_NOEUD_EXPRESSION(Genre, Lexeme) m_fichier->module->assembleuse->cree_noeud(Genre, Lexeme)
+
 Syntaxeuse::Syntaxeuse(
 		Compilatrice &compilatrice,
 		Fichier *fichier,
@@ -723,7 +726,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		case GenreLexeme::CARACTERE:
 		{
 			consomme();
-			return CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_LITTERALE_CARACTERE, lexeme);
+			return CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_LITTERALE_CARACTERE, lexeme);
 		}
 		case GenreLexeme::CHAINE_CARACTERE:
 		{
@@ -740,7 +743,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		case GenreLexeme::CHAINE_LITTERALE:
 		{
 			consomme();
-			return CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_LITTERALE_CHAINE, lexeme);
+			return CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_LITTERALE_CHAINE, lexeme);
 		}
 		case GenreLexeme::CROCHET_OUVRANT:
 		{
@@ -817,7 +820,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		{
 			lexeme->genre = GenreLexeme::BOOL;
 			consomme();
-			return CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN, lexeme);
+			return CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN, lexeme);
 		}
 		case GenreLexeme::INFO_DE:
 		{
@@ -836,7 +839,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			consomme();
 			consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'init_de'");
 
-			auto noeud = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_INIT_DE, lexeme);
+			auto noeud = CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_INIT_DE, lexeme);
 			noeud->expression_type = analyse_expression_primaire(GenreLexeme::INIT_DE, GenreLexeme::INCONNU);
 
 			consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'init_de'");
@@ -858,22 +861,22 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		case GenreLexeme::NOMBRE_ENTIER:
 		{
 			consomme();
-			return CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER, lexeme);
+			return CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER, lexeme);
 		}
 		case GenreLexeme::NOMBRE_REEL:
 		{
 			consomme();
-			return CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL, lexeme);
+			return CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL, lexeme);
 		}
 		case GenreLexeme::NON_INITIALISATION:
 		{
 			consomme();
-			return CREE_NOEUD(NoeudExpression, GenreNoeud::INSTRUCTION_NON_INITIALISATION, lexeme);
+			return CREE_NOEUD_EXPRESSION(GenreNoeud::INSTRUCTION_NON_INITIALISATION, lexeme);
 		}
 		case GenreLexeme::NUL:
 		{
 			consomme();
-			return CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_LITTERALE_NUL, lexeme);
+			return CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_LITTERALE_NUL, lexeme);
 		}
 		case GenreLexeme::OPERATEUR:
 		{
@@ -1063,7 +1066,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
 			consomme(GenreLexeme::CHAINE_CARACTERE, "attendu une chaine de caractère après '$'");
 
-			auto noeud = CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme);
+			auto noeud = CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme);
 			noeud->drapeaux |= DECLARATION_TYPE_POLYMORPHIQUE;
 			return noeud;
 		}
@@ -1087,7 +1090,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		{
 			if (est_identifiant_type(lexeme->genre)) {
 				consomme();
-				return CREE_NOEUD(NoeudExpression, GenreNoeud::EXPRESSION_REFERENCE_TYPE, lexeme);
+				return CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_REFERENCE_TYPE, lexeme);
 			}
 
 			lance_erreur("attendu une expression primaire");

@@ -216,7 +216,7 @@ inline bool est_valeur_droite(GenreValeur type_valeur)
 	return (type_valeur & GenreValeur::DROITE) != GenreValeur::INVALIDE;
 }
 
-struct NoeudBase {
+struct NoeudExpression {
 	GenreNoeud genre{};
 	GenreValeur genre_valeur{};
 	char aide_generation_code = 0;
@@ -234,13 +234,9 @@ struct NoeudBase {
 
 	NoeudCode *noeud_code = nullptr;
 
-	NoeudBase() = default;
+	NoeudExpression() = default;
 
-	COPIE_CONSTRUCT(NoeudBase);
-};
-
-/* pour simplifier l'arbre les instructions et déclarations sont également des expressions */
-struct NoeudExpression : public NoeudBase {
+	COPIE_CONSTRUCT(NoeudExpression);
 };
 
 struct NoeudDeclaration : public NoeudExpression {
@@ -485,7 +481,7 @@ struct NoeudDirectiveExecution : NoeudExpression {
 	AtomeFonction *fonction_ri_pour_appel = nullptr;
 };
 
-void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab);
+void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab);
 
 bool est_expression_logique(NoeudExpression *noeud);
 

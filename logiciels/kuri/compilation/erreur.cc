@@ -223,7 +223,7 @@ void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme
 		const Type *type_arg,
 		const Type *type_enf,
 		const Compilatrice &compilatrice,
-		NoeudBase *racine)
+		NoeudExpression *racine)
 {
 	auto inst = static_cast<NoeudExpressionUnaire *>(racine);
 	auto lexeme = inst->expr->lexeme;
@@ -344,7 +344,7 @@ void type_indexage(
 
 void lance_erreur_fonction_inconnue(
 		Compilatrice const &compilatrice,
-		NoeudBase *b,
+		NoeudExpression *b,
 		dls::tablet<DonneesCandidate, 10> const &candidates)
 {
 	auto const &lexeme = b->lexeme;
@@ -531,9 +531,9 @@ void lance_erreur_fonction_inconnue(
 
 void lance_erreur_fonction_nulctx(
 			Compilatrice const &compilatrice,
-			NoeudBase const *appl_fonc,
-			NoeudBase const *decl_fonc,
-			NoeudBase const *decl_appel)
+			NoeudExpression const *appl_fonc,
+			NoeudExpression const *decl_fonc,
+			NoeudExpression const *decl_appel)
 {
 	auto const &lexeme = appl_fonc->lexeme;
 	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
@@ -577,7 +577,7 @@ void lance_erreur_fonction_nulctx(
 
 void lance_erreur_acces_hors_limites(
 			Compilatrice const &compilatrice,
-			NoeudBase *b,
+			NoeudExpression *b,
 			long taille_tableau,
 			Type *type_tableau,
 			long index_acces)
@@ -612,7 +612,7 @@ void lance_erreur_acces_hors_limites(
 
 void lance_erreur_type_operation(
 			Compilatrice const &compilatrice,
-			NoeudBase *b)
+			NoeudExpression *b)
 {
 	// soit l'opérateur n'a pas de surcharge (le typage n'est pas bon)
 	// soit l'opérateur n'est pas commutatif
@@ -624,7 +624,7 @@ void lance_erreur_type_operation(
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
-	auto etendue = calcule_etendue_noeud(static_cast<NoeudExpression *>(b), fichier);
+	auto etendue = calcule_etendue_noeud(b, fichier);
 
 	auto inst = static_cast<NoeudExpressionBinaire *>(b);
 	auto enfant_gauche = inst->expr1;
@@ -678,7 +678,7 @@ void lance_erreur_type_operation(
 
 void lance_erreur_type_operation_unaire(
 			Compilatrice const &compilatrice,
-			NoeudBase *b)
+			NoeudExpression *b)
 {
 	// soit l'opérateur n'a pas de surcharge (le typage n'est pas bon)
 	// soit l'opérateur n'est pas commutatif
@@ -746,9 +746,9 @@ static auto trouve_candidat(
 
 [[noreturn]] static void genere_erreur_membre_inconnu(
 			Compilatrice &compilatrice,
-			NoeudBase *acces,
-			NoeudBase *structure,
-			NoeudBase *membre,
+			NoeudExpression *acces,
+			NoeudExpression *structure,
+			NoeudExpression *membre,
 			dls::ensemble<dls::vue_chaine_compacte> const &membres,
 			const char *chaine_structure)
 {
@@ -760,7 +760,7 @@ static auto trouve_candidat(
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
-	auto etendue = calcule_etendue_noeud(static_cast<NoeudExpression *>(acces), fichier);
+	auto etendue = calcule_etendue_noeud(acces, fichier);
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
@@ -799,9 +799,9 @@ static auto trouve_candidat(
 
 void membre_inconnu(
 			Compilatrice &compilatrice,
-			NoeudBase *acces,
-			NoeudBase *structure,
-			NoeudBase *membre,
+			NoeudExpression *acces,
+			NoeudExpression *structure,
+			NoeudExpression *membre,
 			TypeCompose *type)
 {
 	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
@@ -831,9 +831,9 @@ void membre_inconnu(
 void membre_inactif(
 			Compilatrice &compilatrice,
 			ContexteValidationCode &contexte,
-			NoeudBase *acces,
-			NoeudBase *structure,
-			NoeudBase *membre)
+			NoeudExpression *acces,
+			NoeudExpression *structure,
+			NoeudExpression *membre)
 {
 	auto const &lexeme = acces->lexeme;
 	auto fichier = compilatrice.fichier(static_cast<size_t>(lexeme->fichier));
@@ -841,7 +841,7 @@ void membre_inactif(
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
-	auto etendue = calcule_etendue_noeud(static_cast<NoeudExpression *>(acces), fichier);
+	auto etendue = calcule_etendue_noeud(acces, fichier);
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
@@ -865,7 +865,7 @@ void membre_inactif(
 
 void valeur_manquante_discr(
 			Compilatrice &compilatrice,
-			NoeudBase *expression,
+			NoeudExpression *expression,
 			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes)
 {
 	auto const &lexeme = expression->lexeme;
@@ -874,7 +874,7 @@ void valeur_manquante_discr(
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
 
-	auto etendue = calcule_etendue_noeud(static_cast<NoeudExpression *>(expression), fichier);
+	auto etendue = calcule_etendue_noeud(expression, fichier);
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";

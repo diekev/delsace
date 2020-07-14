@@ -33,7 +33,7 @@ enum class GenreNoeud : char;
 struct AllocatriceNoeud;
 struct Compilatrice;
 struct Lexeme;
-struct NoeudBase;
+struct NoeudExpression;
 struct NoeudBloc;
 
 class assembleuse_arbre {
@@ -57,5 +57,5 @@ public:
 	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
 	 * pointeur vers celui-ci.
 	 */
-	NoeudBase *cree_noeud(GenreNoeud type, Lexeme const *lexeme);
+	NoeudExpression *cree_noeud(GenreNoeud type, Lexeme const *lexeme);
 };

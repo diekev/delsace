@@ -56,7 +56,7 @@ void assembleuse_arbre::depile_bloc()
 	m_blocs.depile();
 }
 
-NoeudBase *assembleuse_arbre::cree_noeud(GenreNoeud genre, Lexeme const *lexeme)
+NoeudExpression *assembleuse_arbre::cree_noeud(GenreNoeud genre, Lexeme const *lexeme)
 {
 	auto noeud = m_allocatrice_noeud.cree_noeud(genre);
 

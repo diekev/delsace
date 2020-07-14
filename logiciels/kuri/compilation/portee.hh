@@ -29,7 +29,7 @@
 struct Compilatrice;
 struct Fichier;
 struct IdentifiantCode;
-struct NoeudBase;
+struct NoeudExpression;
 struct NoeudBloc;
 struct NoeudDeclaration;
 
@@ -37,7 +37,7 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident);
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl);
 
-NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudBase *noeud);
+NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression *noeud);
 
 NoeudDeclaration *trouve_dans_bloc_ou_module(
 		Compilatrice const &compilatrice,
@@ -65,4 +65,4 @@ void trouve_declarations_dans_bloc_ou_module(
 
 bool bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle);
 
-NoeudBase *derniere_instruction(NoeudBloc *b);
+NoeudExpression *derniere_instruction(NoeudBloc *b);

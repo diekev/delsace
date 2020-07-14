@@ -91,7 +91,7 @@ bool est_expression_logique(NoeudExpression *noeud)
 
 /* ************************************************************************** */
 
-void imprime_arbre(NoeudBase *racine, std::ostream &os, int tab)
+void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 {
 	if (racine == nullptr) {
 		return;
@@ -666,7 +666,7 @@ NoeudExpression *copie_noeud(
 		}
 	}
 
-	return static_cast<NoeudExpression *>(nracine);
+	return nracine;
 }
 
 void aplatis_arbre(

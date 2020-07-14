@@ -71,7 +71,7 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl)
 	return nullptr;
 }
 
-NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudBase *noeud)
+NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression *noeud)
 {
 	PROFILE_FONCTION;
 
@@ -239,7 +239,7 @@ bool bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle)
 	return false;
 }
 
-NoeudBase *derniere_instruction(NoeudBloc *b)
+NoeudExpression *derniere_instruction(NoeudBloc *b)
 {
 	PROFILE_FONCTION;
 
@@ -247,7 +247,7 @@ NoeudBase *derniere_instruction(NoeudBloc *b)
 	auto taille = expressions->taille;
 
 	if (taille == 0) {
-		return static_cast<NoeudBase *>(nullptr);
+		return static_cast<NoeudExpression *>(nullptr);
 	}
 
 	auto di = expressions->a(taille - 1);
@@ -260,7 +260,7 @@ NoeudBase *derniere_instruction(NoeudBloc *b)
 		auto inst = static_cast<NoeudSi *>(di);
 
 		if (inst->bloc_si_faux == nullptr) {
-			return static_cast<NoeudBase *>(nullptr);
+			return static_cast<NoeudExpression *>(nullptr);
 		}
 
 		return derniere_instruction(inst->bloc_si_faux);
@@ -271,5 +271,5 @@ NoeudBase *derniere_instruction(NoeudBloc *b)
 		return derniere_instruction(inst->bloc);
 	}
 
-	return static_cast<NoeudBase *>(nullptr);
+	return static_cast<NoeudExpression *>(nullptr);
 }

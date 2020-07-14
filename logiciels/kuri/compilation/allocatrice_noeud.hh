@@ -53,7 +53,7 @@ struct AllocatriceNoeud {
 	AllocatriceNoeud() = default;
 	~AllocatriceNoeud() = default;
 
-	NoeudBase *cree_noeud(GenreNoeud genre);
+	NoeudExpression *cree_noeud(GenreNoeud genre);
 
 	/**
 	 * Retourne la quantité de mémoire utilisée pour créer et stocker les noeuds

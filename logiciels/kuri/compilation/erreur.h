@@ -32,7 +32,7 @@
 
 struct Compilatrice;
 struct Lexeme;
-struct NoeudBase;
+struct NoeudExpression;
 struct Type;
 
 namespace erreur {
@@ -108,7 +108,7 @@ void imprime_ligne_avec_message(
 		const Type *type_arg,
 		const Type *type_enf,
 		const Compilatrice &compilatrice,
-		NoeudBase *racine);
+		NoeudExpression *racine);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const Type *type_gauche,
@@ -124,18 +124,18 @@ void imprime_ligne_avec_message(
 
 [[noreturn]] void lance_erreur_fonction_inconnue(
 		Compilatrice const &compilatrice,
-		NoeudBase *n,
+		NoeudExpression *n,
 		dls::tablet<DonneesCandidate, 10> const &candidates);
 
 [[noreturn]] void lance_erreur_fonction_nulctx(
 		Compilatrice const &compilatrice,
-		NoeudBase const *appl_fonc,
-		NoeudBase const *decl_fonc,
-		NoeudBase const *decl_appel);
+		NoeudExpression const *appl_fonc,
+		NoeudExpression const *decl_fonc,
+		NoeudExpression const *decl_appel);
 
 [[noreturn]] void lance_erreur_acces_hors_limites(
 		Compilatrice const &compilatrice,
-		NoeudBase *b,
+		NoeudExpression *b,
 		long taille_tableau,
 		Type *type_tableau,
 		long index_acces);
@@ -146,28 +146,28 @@ void imprime_ligne_avec_message(
 
 [[noreturn]] void lance_erreur_type_operation(
 			Compilatrice const &compilatrice,
-			NoeudBase *b);
+			NoeudExpression *b);
 
 [[noreturn]] void lance_erreur_type_operation_unaire(
 			Compilatrice const &compilatrice,
-			NoeudBase *b);
+			NoeudExpression *b);
 
 [[noreturn]] void membre_inconnu(Compilatrice &compilatrice,
-		NoeudBase *acces,
-		NoeudBase *structure,
-		NoeudBase *membre,
+		NoeudExpression *acces,
+		NoeudExpression *structure,
+		NoeudExpression *membre,
 		TypeCompose *type);
 
 [[noreturn]] void membre_inactif(
 			Compilatrice &compilatrice,
 			ContexteValidationCode &contexte,
-			NoeudBase *acces,
-			NoeudBase *structure,
-			NoeudBase *membre);
+			NoeudExpression *acces,
+			NoeudExpression *structure,
+			NoeudExpression *membre);
 
 [[noreturn]] void valeur_manquante_discr(
 			Compilatrice &compilatrice,
-			NoeudBase *expression,
+			NoeudExpression *expression,
 			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes);
 
 [[noreturn]] void fonction_principale_manquante();
