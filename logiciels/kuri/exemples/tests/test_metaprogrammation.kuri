@@ -7,7 +7,6 @@ importe Fondation
 // -- chaines globales
 
 // À FAIRE (métaprogrammation) : ajout de fonctions d'interface pour dire à la compilatrice quand commencer à et arrêter d'envoyer des messages (compilatrice_commence/termine_interception)
-// À FAIRE (métaprogrammation) : ajout des infos types à NoeudCode
 // À CONSIDÉRER : ajout d'une interface pour requerir l'arbre syntaxique au lieu de toujours le générer
 
 converti_type_c :: fonc (info: *InfoType) -> chaine
