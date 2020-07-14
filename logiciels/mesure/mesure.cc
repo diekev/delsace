@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <filesystem>
+#include <set>
 
 #include "biblinternes/chrono/chronometre_de_portee.hh"
 #include "biblinternes/flux/outils.h"
@@ -30,8 +31,24 @@
 #include "biblinternes/outils/format.hh"
 #include "biblinternes/outils/tableau_donnees.hh"
 #include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico.hh"
+#include "biblinternes/structures/tableau_page.hh"
 
 namespace filesystem = std::filesystem;
+
+struct Fichier {
+	std::filesystem::path chemin{};
+	dls::tableau<dls::chaine> inclusions{};
+	int nombre_de_lignes = 0;
+	int nombre_de_lignes_de_commentaires = 0;
+	int nombre_de_lignes_vides = 0;
+	bool est_fichier_source = false;
+};
+
+struct DonneesFichier {
+	dls::dico<std::string, Fichier *> table_fichiers{};
+	tableau_page<Fichier> fichiers{};
+};
 
 static auto commence_par(dls::chaine const &ligne, dls::chaine const &motif)
 {
@@ -81,7 +98,7 @@ static auto est_ligne_vide(dls::chaine const &ligne)
 	return true;
 }
 
-static auto compte_lignes(std::ifstream &is)
+static auto compte_lignes(std::ifstream &is, Fichier *fichier)
 {
 	auto nombre_lignes = 0;
 	auto nombre_commentaires = 0;
@@ -101,6 +118,20 @@ static auto compte_lignes(std::ifstream &is)
 			}
 
 			nombre_commentaires++;
+			return;
+		}
+
+		if (commence_par(ligne, "#include ")) {
+			auto inclusion = ligne.sous_chaine(10, ligne.taille() - 10 - 1);
+
+			auto pos_dernier_slash = inclusion.trouve_dernier_de('/');
+
+			if (pos_dernier_slash != -1) {
+				inclusion = inclusion.sous_chaine(pos_dernier_slash + 1);
+			}
+
+			fichier->inclusions.pousse(inclusion);
+			nombre_lignes++;
 			return;
 		}
 
@@ -125,6 +156,10 @@ static auto compte_lignes(std::ifstream &is)
 
 		nombre_lignes++;
 	});
+
+	fichier->nombre_de_lignes = nombre_lignes + nombre_commentaires + nombre_inutiles;
+	fichier->nombre_de_lignes_de_commentaires = nombre_commentaires;
+	fichier->nombre_de_lignes_vides = nombre_inutiles;
 
 	return std::pair<int, int>(nombre_lignes, nombre_commentaires);
 }
@@ -198,7 +233,7 @@ void calcul_stats_total()
 			continue;
 		}
 
-		auto const nombre_lignes = compte_lignes(fichier);
+		auto const nombre_lignes = compte_lignes(fichier, nullptr);
 		nombre_total_lignes += nombre_lignes.first;
 		nombre_total_commentaires += nombre_lignes.second;
 
@@ -255,6 +290,45 @@ void calcul_stats_total()
 	imprime_tableau(tableau);
 }
 
+static int nombre_de_lignes_incluses(Fichier &it, DonneesFichier const &donnees_fichiers, std::set<std::string> &visites, int &n_manquants)
+{
+	auto nombre_de_lignes_apres_inclusion = it.nombre_de_lignes;
+
+	visites.insert(it.chemin.filename());
+
+	for (auto &inclusions : it.inclusions) {
+		auto iter = donnees_fichiers.table_fichiers.trouve(inclusions.c_str());
+
+		if (iter == donnees_fichiers.table_fichiers.fin()) {
+//			if (index < 100) {
+//				std::cerr << "Ne peut trouver " << inclusions << '\n';
+//			}
+			n_manquants += 1;
+			continue;
+		}
+
+		if (iter->second == nullptr) {
+			continue;
+		}
+
+		if (visites.find(iter->second->chemin) != visites.end()) {
+			continue;
+		}
+
+		nombre_de_lignes_apres_inclusion += nombre_de_lignes_incluses(*iter->second, donnees_fichiers, visites, n_manquants);
+	}
+
+	return nombre_de_lignes_apres_inclusion;
+}
+
+/*
+ * pour chaque fichier (.c, .cc, .cpp, .h, .hh, .hpp)
+	-- résoud le chemin
+	-- résoud le nombre d'inclusions
+	-- résoud le chemin de chaque inclusion
+	-- résoud la taille du fichier
+ */
+
 int main()
 {
 	std::ostream &os = std::cout;
@@ -267,6 +341,8 @@ int main()
 
 	using type_donnees = std::pair<dls::chaine, std::pair<int, int>>;
 	dls::tableau<type_donnees> table;
+
+	auto donnees_fichiers = DonneesFichier{};
 
 	for (const auto &entree : filesystem::recursive_directory_iterator(filesystem::current_path())) {
 		const auto chemin_fichier = entree.path();
@@ -290,26 +366,77 @@ int main()
 			continue;
 		}
 
-		auto const nombre_lignes = compte_lignes(fichier);
+		auto f = donnees_fichiers.fichiers.ajoute_element();
+		f->chemin = chemin_fichier;
+		f->est_fichier_source = type == FICHIER_SOURCE;
+
+		donnees_fichiers.table_fichiers.insere({ chemin_fichier.filename(), f });
+
+		auto const nombre_lignes = compte_lignes(fichier, f);
 		nombre_total_lignes += nombre_lignes.first;
 		nombre_total_commentaires += nombre_lignes.second;
 
-		table.pousse({ dls::chaine(chemin_fichier.filename().c_str()	), nombre_lignes });
+		//table.pousse({ dls::chaine(chemin_fichier.filename().c_str()	), nombre_lignes });
 	}
 
-	std::sort(table.debut(), table.fin(), [](type_donnees const &a, type_donnees const &b)
-	{
-		return a.second.first > b.second.first;
-	});
+	auto index = 0;
+	auto n_fichier = 0;
+	auto n_total = 0;
+	auto n_manquants = 0;
 
-	auto tableau = Tableau({ "Fichiers", "Sources", "Commentaires" });
-	tableau.alignement(1, Alignement::DROITE);
-	tableau.alignement(2, Alignement::DROITE);
+	POUR_TABLEAU_PAGE (donnees_fichiers.fichiers) {
+		if (!it.est_fichier_source) {
+			continue;
+		}
 
-	for (auto i = 0; i < 30; ++i) {
-		auto &ligne = table[i];
-		tableau.ajoute_ligne({ ligne.first, dls::vers_chaine(ligne.second.first), dls::vers_chaine(ligne.second.second) });
+//		if (index == 10) {
+//			break;
+//		}
+
+#if 0
+		auto visites = std::set<std::string>();
+		auto nombre_de_lignes_apres_inclusion = nombre_de_lignes_incluses(it, donnees_fichiers, visites, n_manquants);
+#else
+		auto nombre_de_lignes_apres_inclusion = it.nombre_de_lignes;
+
+		for (auto &inclusions : it.inclusions) {
+			auto iter = donnees_fichiers.table_fichiers.trouve(inclusions.c_str());
+
+			if (iter == donnees_fichiers.table_fichiers.fin()) {
+				if (index < 100) {
+					std::cerr << "Ne peut trouver " << inclusions << '\n';
+				}
+				n_manquants += 1;
+				continue;
+			}
+
+			nombre_de_lignes_apres_inclusion += iter->second->nombre_de_lignes;
+		}
+#endif
+
+		n_fichier += it.nombre_de_lignes;
+		n_total += nombre_de_lignes_apres_inclusion;
+
+		//std::cerr << "Fichier : " << it.chemin.filename() << ", inclusions : " << it.inclusions.taille() << ", lignes " << it.nombre_de_lignes << ", inclus : " << nombre_de_lignes_apres_inclusion << '\n';
+
+		index += 1;
 	}
 
-	imprime_tableau(tableau);
+	std::cerr << "Total : " << n_fichier << ", après inclusions " << n_total << ", fichiers manquants " << n_manquants << '\n';
+
+//	std::sort(table.debut(), table.fin(), [](type_donnees const &a, type_donnees const &b)
+//	{
+//		return a.second.first > b.second.first;
+//	});
+
+//	auto tableau = Tableau({ "Fichiers", "Sources", "Commentaires" });
+//	tableau.alignement(1, Alignement::DROITE);
+//	tableau.alignement(2, Alignement::DROITE);
+
+//	for (auto i = 0; i < 30; ++i) {
+//		auto &ligne = table[i];
+//		tableau.ajoute_ligne({ ligne.first, dls::vers_chaine(ligne.second.first), dls::vers_chaine(ligne.second.second) });
+//	}
+
+//	imprime_tableau(tableau);
 }
