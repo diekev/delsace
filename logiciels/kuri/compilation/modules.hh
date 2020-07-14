@@ -83,7 +83,7 @@ struct Module {
 	dls::chaine chemin{""};
 	bool importe = false;
 
-	Module(Compilatrice &compilatrice);
+	Module(Compilatrice const &compilatrice);
 
 	~Module();
 

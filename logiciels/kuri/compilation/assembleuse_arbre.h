@@ -37,7 +37,6 @@ struct NoeudBase;
 struct NoeudBloc;
 
 class assembleuse_arbre {
-	Compilatrice &m_compilatrice;
 	AllocatriceNoeud &m_allocatrice_noeud;
 
 	size_t m_memoire_utilisee = 0;

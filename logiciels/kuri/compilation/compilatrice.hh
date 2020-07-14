@@ -31,6 +31,7 @@
 #include "graphe_dependance.hh"
 #include "identifiant.hh"
 #include "message.hh"
+#include "modules.hh"
 #include "operateurs.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
@@ -38,8 +39,6 @@
 #include "../representation_intermediaire/constructrice_ri.hh"
 #include "../representation_intermediaire/machine_virtuelle.hh"
 
-struct Module;
-struct Fichier;
 struct OptionsCompilation;
 
 struct Metriques {
@@ -105,8 +104,11 @@ struct Compilatrice {
 	/* À FAIRE : supprime ceci */
 	assembleuse_arbre *assembleuse = nullptr;
 
-	dls::outils::Synchrone<dls::tableau<Module *>> modules{};
-	dls::outils::Synchrone<dls::tableau<Fichier *>> fichiers{};
+	template <typename T>
+	using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
+
+	tableau_page_synchrone<Module> modules{};
+	tableau_page_synchrone<Fichier> fichiers{};
 
 	dls::outils::Synchrone<GrapheDependance> graphe_dependance{};
 

@@ -35,8 +35,8 @@ bool Fichier::importe_module(dls::vue_chaine_compacte const &nom_module) const
 	return modules_importes.possede(nom_module);
 }
 
-Module::Module(Compilatrice &compilatrice)
-	: assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", compilatrice))
+Module::Module(const Compilatrice &compilatrice)
+	: assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", const_cast<Compilatrice &>(compilatrice)))
 	, bloc(assembleuse->bloc_courant())
 {
 	assert(bloc != nullptr);

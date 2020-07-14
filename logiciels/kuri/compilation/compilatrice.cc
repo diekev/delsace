@@ -65,16 +65,6 @@ Compilatrice::Compilatrice()
 
 Compilatrice::~Compilatrice()
 {
-	auto modules_ = modules.verrou_lecture();
-	for (auto module : *modules_) {
-		memoire::deloge("Module", module);
-	}
-
-	auto fichiers_ = fichiers.verrou_lecture();
-	for (auto fichier : *fichiers_) {
-		memoire::deloge("Fichier", fichier);
-	}
-
 	memoire::deloge("assembleuse_arbre", assembleuse);
 }
 
@@ -149,18 +139,17 @@ Module *Compilatrice::cree_module(
 	}
 
 	auto modules_ = modules.verrou_ecriture();
-	for (auto module : *modules_) {
-		if (module->chemin == chemin_corrige) {
-			return module;
+
+	POUR_TABLEAU_PAGE ((*modules_)) {
+		if (it.chemin == chemin_corrige) {
+			return &it;
 		}
 	}
 
-	auto module = memoire::loge<Module>("Module", *this);
-	module->id = static_cast<size_t>(modules_->taille());
+	auto module = modules_->ajoute_element(*this);
+	module->id = static_cast<size_t>(modules_->taille() - 1);
 	module->nom = nom;
 	module->chemin = chemin_corrige;
-
-	modules_->pousse(module);
 
 	return module;
 }
@@ -168,9 +157,9 @@ Module *Compilatrice::cree_module(
 Module *Compilatrice::module(const dls::vue_chaine_compacte &nom) const
 {
 	auto modules_ = modules.verrou_lecture();
-	for (auto module : *modules_) {
-		if (module->nom == nom) {
-			return module;
+	POUR_TABLEAU_PAGE ((*modules_)) {
+		if (it.nom == nom) {
+			return const_cast<Module *>(&it);
 		}
 	}
 
@@ -180,8 +169,8 @@ Module *Compilatrice::module(const dls::vue_chaine_compacte &nom) const
 bool Compilatrice::module_existe(const dls::vue_chaine_compacte &nom) const
 {
 	auto modules_ = modules.verrou_lecture();
-	for (auto module : *modules_) {
-		if (module->nom == nom) {
+	POUR_TABLEAU_PAGE ((*modules_)) {
+		if (it.nom == nom) {
 			return true;
 		}
 	}
@@ -280,14 +269,14 @@ Fichier *Compilatrice::cree_fichier(
 {
 	auto fichiers_ = fichiers.verrou_ecriture();
 
-	for (auto fichier : *fichiers_) {
-		if (fichier->chemin == chemin) {
+	POUR_TABLEAU_PAGE ((*fichiers_)) {
+		if (it.chemin == chemin) {
 			return nullptr;
 		}
 	}
 
-	auto fichier = memoire::loge<Fichier>("Fichier");
-	fichier->id = static_cast<size_t>(fichiers_->taille());
+	auto fichier = fichiers_->ajoute_element();
+	fichier->id = static_cast<size_t>(fichiers_->taille() - 1);
 	fichier->nom = nom;
 	fichier->chemin = chemin;
 
@@ -295,23 +284,21 @@ Fichier *Compilatrice::cree_fichier(
 		fichier->modules_importes.insere("Kuri");
 	}
 
-	fichiers_->pousse(fichier);
-
 	return fichier;
 }
 
 Fichier *Compilatrice::fichier(size_t index) const
 {
-	return fichiers->a(static_cast<long>(index));
+	return const_cast<Fichier *>(&fichiers->a_l_index(static_cast<long>(index)));
 }
 
 Fichier *Compilatrice::fichier(const dls::vue_chaine_compacte &nom) const
 {
 	auto fichiers_ = fichiers.verrou_lecture();
 
-	for (auto fichier : *fichiers_) {
-		if (fichier->nom == nom) {
-			return fichier;
+	POUR_TABLEAU_PAGE ((*fichiers_)) {
+		if (it.nom == nom) {
+			return const_cast<Fichier *>(&it);
 		}
 	}
 
@@ -322,8 +309,8 @@ bool Compilatrice::fichier_existe(const dls::vue_chaine_compacte &nom) const
 {
 	auto fichiers_ = fichiers.verrou_lecture();
 
-	for (auto fichier : *fichiers_) {
-		if (fichier->nom == nom) {
+	POUR_TABLEAU_PAGE ((*fichiers_)) {
+		if (it.nom == nom) {
 			return true;
 		}
 	}
@@ -406,21 +393,21 @@ size_t Compilatrice::memoire_utilisee() const
 	memoire += static_cast<size_t>(fichiers->taille()) * sizeof(Fichier *);
 
 	auto modules_ = modules.verrou_lecture();
-	POUR (*modules_) {
-		memoire += static_cast<size_t>(it->fichiers.taille()) * sizeof(Fichier *);
-		memoire += static_cast<size_t>(it->nom.taille());
-		memoire += static_cast<size_t>(it->chemin.taille());
+	POUR_TABLEAU_PAGE ((*modules_)) {
+		memoire += static_cast<size_t>(it.fichiers.taille()) * sizeof(Fichier *);
+		memoire += static_cast<size_t>(it.nom.taille());
+		memoire += static_cast<size_t>(it.chemin.taille());
 
-		if (!it->fonctions_exportees.est_stocke_dans_classe()) {
-			memoire += static_cast<size_t>(it->fonctions_exportees.taille()) * sizeof(dls::vue_chaine_compacte);
+		if (!it.fonctions_exportees.est_stocke_dans_classe()) {
+			memoire += static_cast<size_t>(it.fonctions_exportees.taille()) * sizeof(dls::vue_chaine_compacte);
 		}
 	}
 
 	auto fichiers_ = fichiers.verrou_lecture();
-	POUR (*fichiers_) {
+	POUR_TABLEAU_PAGE ((*fichiers_)) {
 		// les autres membres sont gérés dans rassemble_metriques()
-		if (!it->modules_importes.est_stocke_dans_classe()) {
-			memoire += static_cast<size_t>(it->modules_importes.taille()) * sizeof(dls::vue_chaine_compacte);
+		if (!it.modules_importes.est_stocke_dans_classe()) {
+			memoire += static_cast<size_t>(it.modules_importes.taille()) * sizeof(dls::vue_chaine_compacte);
 		}
 	}
 
@@ -477,15 +464,15 @@ Metriques Compilatrice::rassemble_metriques() const
 	}
 
 	auto fichiers_ = fichiers.verrou_lecture();
-	for (auto fichier : *fichiers_) {
-		metriques.nombre_lignes += fichier->tampon.nombre_lignes();
-		metriques.memoire_tampons += fichier->tampon.taille_donnees();
-		metriques.memoire_lexemes += static_cast<size_t>(fichier->lexemes.taille()) * sizeof(Lexeme);
-		metriques.nombre_lexemes += static_cast<size_t>(fichier->lexemes.taille());
-		metriques.temps_analyse += fichier->temps_analyse;
-		metriques.temps_chargement += fichier->temps_chargement;
-		metriques.temps_tampon += fichier->temps_tampon;
-		metriques.temps_decoupage += fichier->temps_decoupage;
+	POUR_TABLEAU_PAGE ((*fichiers_)) {
+		metriques.nombre_lignes += it.tampon.nombre_lignes();
+		metriques.memoire_tampons += it.tampon.taille_donnees();
+		metriques.memoire_lexemes += static_cast<size_t>(it.lexemes.taille()) * sizeof(Lexeme);
+		metriques.nombre_lexemes += static_cast<size_t>(it.lexemes.taille());
+		metriques.temps_analyse += it.temps_analyse;
+		metriques.temps_chargement += it.temps_chargement;
+		metriques.temps_tampon += it.temps_tampon;
+		metriques.temps_decoupage += it.temps_decoupage;
 	}
 
 	auto memoire_mv = 0ul;

@@ -27,8 +27,7 @@
 #include "compilatrice.hh"
 
 assembleuse_arbre::assembleuse_arbre(Compilatrice &compilatrice)
-	: m_compilatrice(compilatrice)
-	, m_allocatrice_noeud(compilatrice.allocatrice_noeud)
+	: m_allocatrice_noeud(compilatrice.allocatrice_noeud)
 {
 	this->empile_bloc();
 }
