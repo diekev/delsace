@@ -165,11 +165,6 @@ Module *Compilatrice::cree_module(
 	return module;
 }
 
-Module *Compilatrice::module(size_t index) const
-{
-	return modules->a(static_cast<long>(index));
-}
-
 Module *Compilatrice::module(const dls::vue_chaine_compacte &nom) const
 {
 	auto modules_ = modules.verrou_lecture();

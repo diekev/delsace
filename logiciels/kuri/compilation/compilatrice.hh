@@ -218,12 +218,6 @@ struct Compilatrice {
 	Module *cree_module(dls::chaine const &nom, dls::chaine const &chemin);
 
 	/**
-	 * Retourne un pointeur vers le module à l'index indiqué. Si l'index est
-	 * en dehors de portée, le programme crashera.
-	 */
-	Module *module(size_t index) const;
-
-	/**
 	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
 	 * module n'a ce nom, retourne nullptr.
 	 */
