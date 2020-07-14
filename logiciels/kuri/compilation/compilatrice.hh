@@ -28,17 +28,15 @@
 #include "biblinternes/structures/liste.hh"
 
 #include "allocatrice_noeud.hh"
-#include "operateurs.hh"
 #include "graphe_dependance.hh"
 #include "identifiant.hh"
 #include "message.hh"
+#include "operateurs.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
 
 #include "../representation_intermediaire/constructrice_ri.hh"
 #include "../representation_intermediaire/machine_virtuelle.hh"
-
-class assembleuse_arbre;
 
 struct Module;
 struct Fichier;
