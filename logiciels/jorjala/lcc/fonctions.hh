@@ -59,8 +59,6 @@ struct donnees_fonction {
 	lcc::ctx_script ctx{};
 	req_fonc requete{};
 	char pad{};
-
-	donnees_fonction() = default;
 };
 
 /* ************************************************************************** */

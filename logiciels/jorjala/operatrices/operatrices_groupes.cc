@@ -62,7 +62,7 @@ void echantillonne_groupe(
 	 * inférieur à params.n en cas de choix sur la moitié paire ou impaire */
 	auto const n = index_possibles.taille();
 
-	auto gna = GNA(params.graine);
+	auto gna = GNA(static_cast<unsigned long>(params.graine));
 	auto const k = static_cast<long>(static_cast<float>(n) * params.probabilite);
 	groupe.reserve(k);
 

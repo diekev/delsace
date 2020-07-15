@@ -323,7 +323,7 @@ static void simule_ocean(
 	boucle_parallele(tbb::blocked_range<int>(0, o.res_x),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
-		auto gna = GNA(o.graine + plage.begin());
+		auto gna = GNA(static_cast<unsigned long>(o.graine + plage.begin()));
 
 		for (int i = plage.begin(); i < plage.end(); ++i) {
 			/* note the <= _N/2 here, see the fftw doco about the mechanics of the complex->real fft storage */
@@ -741,7 +741,7 @@ public:
 		auto grille_ecume = dynamic_cast<wlk::grille_dense_2d<float> *>(m_ecume_precedente.tampon());
 
 		OceanResult ocr;
-		auto gna = GNA{graine};
+		auto gna = GNA{static_cast<unsigned long>(graine)};
 
 		for (auto j = 0; j < m_ocean.res_y; ++j) {
 			for (auto i = 0; i < m_ocean.res_y; ++i) {

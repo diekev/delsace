@@ -79,6 +79,16 @@ std::filesystem::path chemin_repertoire_poubelle()
 	return {};
 }
 
+// probablement faux, voir https://stackoverflow.com/questions/61030383/how-to-convert-stdfilesystemfile-time-type-to-time-t
+template <typename TP>
+std::time_t to_time_t(TP tp)
+{
+	using namespace std::chrono;
+	auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now()
+			  + system_clock::now());
+	return system_clock::to_time_t(sctp);
+}
+
 void mettre_poubelle(const std::filesystem::path &chemin)
 {
 	auto chemin_poubelle = chemin_repertoire_poubelle();
@@ -111,7 +121,7 @@ void mettre_poubelle(const std::filesystem::path &chemin)
 
 	/* get deletion date and time */
 	auto ftemps = std::filesystem::file_time_type::clock::now();
-	auto temps = std::filesystem::file_time_type::clock::to_time_t(ftemps);
+	auto temps = to_time_t(ftemps);
 	char tampon[32];
 	std::strftime(tampon, sizeof(tampon), "%Y-%m-%dT%H:%M:%S", std::localtime(&temps));
 

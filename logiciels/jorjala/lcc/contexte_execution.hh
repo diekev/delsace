@@ -138,6 +138,7 @@ struct ctx_exec {
 	/* Si contexte topologie primitive. */
 	//dls::tableau<Corps const *> corps_entrees;
 
+	ctx_exec() = default;
 	COPIE_CONSTRUCT(ctx_exec);
 
 	void reinitialise()

@@ -1620,7 +1620,7 @@ static type_image_grise simule_grain_image(
 	auto const delta = 1.0f / std::ceil(1.0f / rayon_max);
 	auto const delta_inv = 1.0f / delta;
 
-	auto gna = GNA(graine);
+	auto gna = GNA(static_cast<unsigned long>(graine));
 
 	/* précalcul des lambdas */
 	dls::tableau<float> lambdas(MAX_NIVEAU_GRIS + 1);
@@ -1646,7 +1646,7 @@ static type_image_grise simule_grain_image(
 	boucle_parallele(tbb::blocked_range<int>(0, res_y),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
-		auto gna_local = GNA(graine + plage.begin());
+		auto gna_local = GNA(static_cast<unsigned long>(graine + plage.begin()));
 
 		auto rayon_courant = 0.0f;
 		auto rayon_courant2 = rayon_grain2;

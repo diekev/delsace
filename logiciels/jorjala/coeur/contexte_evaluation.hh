@@ -69,6 +69,7 @@ struct ContexteEvaluation {
 	StatistiquesRendu *stats_rendu = nullptr; // un pointeur c'est pas beau
 	bool rendu_final = false;
 
+	ContexteEvaluation() = default;
 	ContexteEvaluation(ContexteEvaluation const &) = default;
 	ContexteEvaluation &operator=(ContexteEvaluation const &) = default;
 };

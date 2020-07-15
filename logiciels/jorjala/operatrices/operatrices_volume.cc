@@ -437,7 +437,7 @@ static res_exec ratisse_primitives(
 
 	limites.etends(marge * rayon);
 
-	auto gna = GNA(graine);
+	auto gna = GNA(static_cast<unsigned long>(graine));
 
 	auto desc = wlk::desc_grille_3d{};
 	desc.etendue = limites;

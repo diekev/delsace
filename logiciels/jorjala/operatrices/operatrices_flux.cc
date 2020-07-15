@@ -230,6 +230,7 @@ struct DonneesChargementImg {
 	Image *image = nullptr;
 	ChefExecution *chef = nullptr;
 
+	DonneesChargementImg() = default;
 	DonneesChargementImg(DonneesChargementImg const &) = default;
 	DonneesChargementImg &operator=(DonneesChargementImg const &) = default;
 };

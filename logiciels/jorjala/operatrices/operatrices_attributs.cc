@@ -317,7 +317,7 @@ auto applique_randomisation(
 		Attribut &attr,
 		params_randomisation const &params)
 {
-	auto gna = GNA(params.graine);
+	auto gna = GNA(static_cast<unsigned long>(params.graine));
 
 	if (params.distribution == "constante") {
 		transforme_attr<T>(attr, [&](T *ptr)
@@ -653,7 +653,7 @@ public:
 			}
 		}
 		else if (methode == "aléatoire") {
-			auto gna = GNA(graine);
+			auto gna = GNA(static_cast<unsigned long>(graine));
 
 			for (auto index : iter) {
 				assigne(attrib->r32(index), gna.uniforme_vec3(0.0f, 1.0f));

@@ -1101,7 +1101,7 @@ public:
 		conf.start.x = 0.0f;
 		conf.start.y = 0.0f;
 
-		auto gna = GNA(graine);
+		auto gna = GNA(static_cast<unsigned long>(graine));
 
 		auto vertices = dls::tableau<dls::math::vec2f>();
 

@@ -46,9 +46,6 @@ struct DonneesInterface {
 	Manipulable *manipulable = nullptr;
 	RepondantBouton *repondant_bouton = nullptr;
 	ConteneurControles *conteneur = nullptr;
-
-	DonneesInterface(DonneesInterface const &) = default;
-	DonneesInterface &operator=(DonneesInterface const &) = default;
 };
 
 struct DonneesAction {
@@ -57,6 +54,7 @@ struct DonneesAction {
 	dls::chaine metadonnee{};
 	RepondantBouton *repondant_bouton = nullptr;
 
+	DonneesAction() = default;
 	DonneesAction(DonneesAction const &) = default;
 	DonneesAction &operator=(DonneesAction const &) = default;
 };

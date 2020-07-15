@@ -57,6 +57,10 @@
 	x(x const &) = default; \
 	x &operator=(x const &) = default
 
+#define COPIE_CONSTRUCT_MOUV(x) \
+	x(x &&) = default; \
+	x &operator=(x &&) = default
+
 #define DEFINIE_OPERATEURS_DRAPEAU(_type_drapeau_, _type_) \
 	inline constexpr auto operator&(_type_drapeau_ lhs, _type_drapeau_ rhs) \
 	{ \

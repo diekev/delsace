@@ -44,8 +44,6 @@ struct ObjetRendu {
 
 	/* matrices pour définir où instancier l'objet */
 	dls::tableau<dls::math::mat4x4f> matrices{};
-
-	COPIE_CONSTRUCT(ObjetRendu);
 };
 
 /* Concernant ce déléguée_scène :

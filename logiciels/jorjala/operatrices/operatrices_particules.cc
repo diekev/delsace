@@ -413,7 +413,7 @@ public:
 		auto const anime_graine = evalue_bool("anime_graine");
 		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
 
-		auto gna = GNA(graine);
+		auto gna = GNA(static_cast<unsigned long>(graine));
 
 		for (auto i = 0; i < nombre_points; ++i) {
 			auto pos_x = gna.uniforme(min.x, max.x);
@@ -484,7 +484,7 @@ public:
 		auto const anime_graine = evalue_bool("anime_graine");
 		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
 
-		auto gna = GNA(graine);
+		auto gna = GNA(static_cast<unsigned long>(graine));
 
 		for (Triangle const &triangle : triangles) {
 			auto const v0 = corps_entree->transformation(dls::math::point3d(triangle.v0));
@@ -925,7 +925,7 @@ public:
 
 		auto const graine = evalue_entier("graine");
 
-		auto gna = GNA(graine);
+		auto gna = GNA(static_cast<unsigned long>(graine));
 
 		auto grille_particule = GrilleParticules(limites_min, limites_max, distance);
 
@@ -1480,7 +1480,7 @@ public:
 		/* À FAIRE : pondérer selon un attribut, genre taille de point d'une
 		 * opératrice de création de points. */
 
-		auto gna = GNA(graine);
+		auto gna = GNA(static_cast<unsigned long>(graine));
 		auto min = -0.5f * taille;
 		auto max =  0.5f * taille;
 

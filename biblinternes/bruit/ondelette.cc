@@ -129,7 +129,7 @@ static void genere_tuile_bruit(float *&bruit, int n)
 	boucle_parallele(tbb::blocked_range<long>(0, sz),
 					 [&](tbb::blocked_range<long> const &plage)
 	{
-		auto gna = GNA{static_cast<int>(plage.begin())};
+		auto gna = GNA{static_cast<unsigned long>(plage.begin())};
 
 		for (auto i = plage.begin(); i < plage.end(); i++) {
 			bruit[i] = gna.normale(0.0f, 1.0f);

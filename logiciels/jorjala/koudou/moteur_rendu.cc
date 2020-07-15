@@ -267,7 +267,7 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tab
 	tbb::parallel_for(tbb::blocked_range<long>(0, carreaux.taille()),
 					  [&](tbb::blocked_range<long> const &plage)
 	{
-		auto gna = GNA(17771 + static_cast<int>(plage.begin() * (echantillon + 1)));
+  auto gna = GNA(static_cast<unsigned long>(17771 + plage.begin() * (echantillon + 1)));
 
 		for (auto j = plage.begin(); j < plage.end(); ++j) {
 			auto const &carreau = carreaux[j];
