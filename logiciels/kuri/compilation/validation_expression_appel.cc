@@ -49,17 +49,17 @@ struct CandidateExpressionAppel {
 
 static auto trouve_candidates_pour_fonction_appelee(
 		ContexteValidationCode &contexte,
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		NoeudExpression *appelee,
 		dls::tableau<CandidateExpressionAppel> &candidates)
 {
 	PROFILE_FONCTION;
 
-	auto fichier = compilatrice.fichier(appelee->lexeme->fichier);
+	auto fichier = espace.fichier(appelee->lexeme->fichier);
 
 	if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
 		auto declarations = dls::tableau<NoeudDeclaration *>();
-		trouve_declarations_dans_bloc_ou_module(compilatrice, declarations, appelee->bloc_parent, appelee->ident, fichier);
+		trouve_declarations_dans_bloc_ou_module(espace, declarations, appelee->bloc_parent, appelee->ident, fichier);
 
 		POUR (declarations) {
 			// À FAIRE : on peut avoir des expressions du genre invere := inverse(matrice),
@@ -81,7 +81,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 		auto membre = acces->membre;
 
 		if (accede->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION && fichier->importe_module(accede->ident->nom)) {
-			auto module = compilatrice.module(accede->ident->nom);
+			auto module = espace.module(accede->ident->nom);
 			auto declarations = dls::tableau<NoeudDeclaration *>();
 			trouve_declarations_dans_bloc(declarations, module->bloc, membre->ident);
 
@@ -143,7 +143,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 }
 
 static std::pair<bool, double> verifie_compatibilite(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		Type *type_arg,
 		Type *type_enf,
@@ -152,7 +152,7 @@ static std::pair<bool, double> verifie_compatibilite(
 {
 	PROFILE_FONCTION;
 
-	if (cherche_transformation(compilatrice, contexte, type_enf, type_arg, transformation)) {
+	if (cherche_transformation(espace, contexte, type_enf, type_arg, transformation)) {
 		return { true, 0.0 };
 	}
 
@@ -176,7 +176,7 @@ static std::pair<bool, double> verifie_compatibilite(
 static auto apparie_appel_pointeur(
 		NoeudExpressionAppel const *b,
 		Type *type,
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		kuri::tableau<IdentifiantEtExpression> const &args,
 		DonneesCandidate &resultat)
@@ -206,7 +206,7 @@ static auto apparie_appel_pointeur(
 
 	auto debut_params = 0l;
 
-	if (type_fonction->types_entrees.taille != 0 && type_fonction->types_entrees[0] == compilatrice.typeuse.type_contexte) {
+	if (type_fonction->types_entrees.taille != 0 && type_fonction->types_entrees[0] == espace.typeuse.type_contexte) {
 		debut_params = 1;
 
 		auto fonc_courante = contexte.fonction_courante;
@@ -248,7 +248,7 @@ static auto apparie_appel_pointeur(
 		}
 
 		auto transformation = TransformationType();
-		auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(compilatrice, contexte, type_prm, type_enf, arg, transformation);
+		auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(espace, contexte, type_prm, type_enf, arg, transformation);
 
 		if (erreur_dep) {
 			return true;
@@ -324,7 +324,7 @@ static auto apparie_appel_init_de(
 /* ************************************************************************** */
 
 static auto apparie_appel_fonction(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		NoeudDeclarationFonction *decl,
 		kuri::tableau<IdentifiantEtExpression> const &args,
@@ -512,7 +512,7 @@ static auto apparie_appel_fonction(
 				paires_expansion_gabarit.pousse({ nom_gabarit, type_gabarit });
 			}
 
-			type_du_parametre = resoud_type_polymorphique(compilatrice.typeuse, type_du_parametre, type_gabarit);
+			type_du_parametre = resoud_type_polymorphique(espace.typeuse, type_du_parametre, type_gabarit);
 		}
 
 		if ((param->drapeaux & EST_VARIADIQUE) != 0) {
@@ -537,7 +537,7 @@ static auto apparie_appel_fonction(
 
 					auto type_deref_enf = type_dereference_pour(type_de_l_expression);
 
-					auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(compilatrice, contexte, type_deref, type_deref_enf, slot, transformation);
+					auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(espace, contexte, type_deref, type_deref_enf, slot, transformation);
 
 					if (erreur_dep) {
 						return true;
@@ -558,7 +558,7 @@ static auto apparie_appel_fonction(
 					expansion_rencontree = true;
 				}
 				else {
-					auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(compilatrice, contexte, type_deref, type_de_l_expression, slot, transformation);
+					auto [erreur_dep, poids_pour_enfant_] = verifie_compatibilite(espace, contexte, type_deref, type_de_l_expression, slot, transformation);
 
 					if (erreur_dep) {
 						return true;
@@ -615,7 +615,7 @@ static auto apparie_appel_fonction(
 		}
 		else {
 			auto transformation = TransformationType();
-			auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(compilatrice, contexte, type_du_parametre, type_de_l_expression, slot, transformation);
+			auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(espace, contexte, type_du_parametre, type_de_l_expression, slot, transformation);
 
 			if (erreur_dep) {
 				return true;
@@ -648,7 +648,7 @@ static auto apparie_appel_fonction(
 			/* Pour les fonctions variadiques interne, nous créons un tableau
 			 * correspondant au types des arguments. */
 			static Lexeme lexeme_tableau = { "", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(compilatrice.assembleuse->cree_noeud(
+			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(espace.assembleuse->cree_noeud(
 						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, &lexeme_tableau));
 
 			noeud_tableau->type = type_donnees_argument_variadique;
@@ -681,7 +681,7 @@ static auto apparie_appel_fonction(
 /* ************************************************************************** */
 
 static auto apparie_appel_structure(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		NoeudExpressionAppel const *expr,
 		NoeudStruct *decl_struct,
@@ -771,7 +771,7 @@ static auto apparie_appel_structure(
 		}
 
 		auto transformation = TransformationType{};
-		auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(compilatrice, contexte, type_membre, it.expr->type, it.expr, transformation);
+		auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(espace, contexte, type_membre, it.expr->type, it.expr, transformation);
 
 		if (erreur_dep) {
 			return true;
@@ -807,7 +807,7 @@ static auto apparie_appel_structure(
 /* ************************************************************************** */
 
 static auto trouve_candidates_pour_appel(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		NoeudExpressionAppel *expr,
 		kuri::tableau<IdentifiantEtExpression> &args,
@@ -816,7 +816,7 @@ static auto trouve_candidates_pour_appel(
 	PROFILE_FONCTION;
 
 	auto candidates_appel = dls::tableau<CandidateExpressionAppel>();
-	if (trouve_candidates_pour_fonction_appelee(contexte, compilatrice, expr->appelee, candidates_appel)) {
+	if (trouve_candidates_pour_fonction_appelee(contexte, espace, expr->appelee, candidates_appel)) {
 		return true;
 	}
 
@@ -830,7 +830,7 @@ static auto trouve_candidates_pour_appel(
 		if (it.quoi == CANDIDATE_EST_APPEL_UNIFORME) {
 			auto acces = static_cast<NoeudExpressionBinaire *>(it.decl);
 			auto candidates = dls::tableau<CandidateExpressionAppel>();
-			if (trouve_candidates_pour_fonction_appelee(contexte, compilatrice, acces->expr2, candidates)) {
+			if (trouve_candidates_pour_fonction_appelee(contexte, espace, acces->expr2, candidates)) {
 				return true;
 			}
 
@@ -850,7 +850,7 @@ static auto trouve_candidates_pour_appel(
 	POUR (candidates_appel) {
 		if (it.quoi == CANDIDATE_EST_ACCES) {
 			auto dc = DonneesCandidate();
-			if (apparie_appel_pointeur(expr, it.decl->type, compilatrice, contexte, args, dc)) {
+			if (apparie_appel_pointeur(expr, it.decl->type, espace, contexte, args, dc)) {
 				return true;
 			}
 			resultat.pousse(dc);
@@ -867,7 +867,7 @@ static auto trouve_candidates_pour_appel(
 				}
 
 				auto dc = DonneesCandidate();
-				if (apparie_appel_structure(compilatrice, contexte, expr, decl_struct, args, dc)) {
+				if (apparie_appel_structure(espace, contexte, expr, decl_struct, args, dc)) {
 					return true;
 				}
 				resultat.pousse(dc);
@@ -881,14 +881,14 @@ static auto trouve_candidates_pour_appel(
 				}
 
 				auto dc = DonneesCandidate();
-				if (apparie_appel_fonction(compilatrice, contexte, decl_fonc, args, dc)) {
+				if (apparie_appel_fonction(espace, contexte, decl_fonc, args, dc)) {
 					return true;
 				}
 				resultat.pousse(dc);
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
 				auto dc = DonneesCandidate();
-				if (apparie_appel_pointeur(expr, decl->type, compilatrice, contexte, args, dc)) {
+				if (apparie_appel_pointeur(expr, decl->type, espace, contexte, args, dc)) {
 					return true;
 				}
 				resultat.pousse(dc);
@@ -901,7 +901,7 @@ static auto trouve_candidates_pour_appel(
 		}
 		else if (it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
 			auto dc = DonneesCandidate();
-			if (apparie_appel_pointeur(expr, it.decl->type, compilatrice, contexte, args, dc)) {
+			if (apparie_appel_pointeur(expr, it.decl->type, espace, contexte, args, dc)) {
 				return true;
 			}
 			resultat.pousse(dc);
@@ -915,6 +915,7 @@ static auto trouve_candidates_pour_appel(
 
 static std::pair<NoeudDeclarationFonction *, bool> trouve_fonction_epandue_ou_crees_en_une(
 		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		NoeudDeclarationFonction *decl,
 		NoeudDeclarationFonction::tableau_paire_expansion const &paires)
 {
@@ -939,14 +940,14 @@ static std::pair<NoeudDeclarationFonction *, bool> trouve_fonction_epandue_ou_cr
 		return { it.second, false };
 	}
 
-	auto noeud_decl = static_cast<NoeudDeclarationFonction *>(copie_noeud(compilatrice.assembleuse, decl, decl->bloc_parent));
+	auto noeud_decl = static_cast<NoeudDeclarationFonction *>(copie_noeud(espace.assembleuse, decl, decl->bloc_parent));
 	noeud_decl->est_instantiation_gabarit = true;
 	noeud_decl->paires_expansion_gabarit = paires;
 
 	decl->epandu_pour.pousse({ paires, noeud_decl });
 
-	compilatrice.ajoute_unite_compilation_entete_fonction(noeud_decl);
-	compilatrice.ajoute_unite_compilation_pour_typage(noeud_decl);
+	compilatrice.ajoute_unite_compilation_entete_fonction(&espace, noeud_decl);
+	compilatrice.ajoute_unite_compilation_pour_typage(&espace, noeud_decl);
 
 	return { noeud_decl, true };
 }
@@ -955,6 +956,7 @@ static std::pair<NoeudDeclarationFonction *, bool> trouve_fonction_epandue_ou_cr
 
 bool valide_appel_fonction(
 		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		NoeudExpressionAppel *expr)
 {
@@ -988,7 +990,7 @@ bool valide_appel_fonction(
 
 	auto candidates = dls::tablet<DonneesCandidate, 10>();
 
-	if (trouve_candidates_pour_appel(compilatrice, contexte, expr, args, candidates)) {
+	if (trouve_candidates_pour_appel(espace, contexte, expr, args, candidates)) {
 		return true;
 	}
 
@@ -1045,7 +1047,7 @@ bool valide_appel_fonction(
 		/* ---------------------- */
 
 		if (!candidate->paires_expansion_gabarit.est_vide()) {
-			auto [noeud_decl, doit_epandre] = trouve_fonction_epandue_ou_crees_en_une(compilatrice, decl_fonction_appelee, std::move(candidate->paires_expansion_gabarit));
+			auto [noeud_decl, doit_epandre] = trouve_fonction_epandue_ou_crees_en_une(compilatrice, espace, decl_fonction_appelee, std::move(candidate->paires_expansion_gabarit));
 
 			if (doit_epandre || (noeud_decl->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
 				contexte.unite->attend_sur_declaration(noeud_decl);
@@ -1080,7 +1082,7 @@ bool valide_appel_fonction(
 			auto taille_tableau = noeud_tabl->exprs.taille;
 			auto &type_tabl = noeud_tabl->type;
 
-			auto type_tfixe = compilatrice.typeuse.type_tableau_fixe(type_tabl, taille_tableau);
+			auto type_tfixe = espace.typeuse.type_tableau_fixe(type_tabl, taille_tableau);
 			donnees_dependance.types_utilises.insere(type_tfixe);
 		}
 
@@ -1143,7 +1145,7 @@ bool valide_appel_fonction(
 	}
 	else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
 		// le type du retour
-		expr->type = compilatrice.typeuse[TypeBase::RIEN];
+		expr->type = espace.typeuse[TypeBase::RIEN];
 	}
 
 	assert(expr->type);

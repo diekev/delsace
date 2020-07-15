@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/moultfilage/synchrone.hh"
+#include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/liste.hh"
 
 #include "allocatrice_noeud.hh"
@@ -35,6 +36,8 @@
 #include "operateurs.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
+
+#include "../executable/options.hh"
 
 #include "../representation_intermediaire/constructrice_ri.hh"
 #include "../representation_intermediaire/machine_virtuelle.hh"
@@ -97,7 +100,21 @@ struct InterfaceKuri {
 	NoeudDeclarationFonction *decl_creation_contexte = nullptr;
 };
 
-struct Compilatrice {
+/* IPA :
+ * - crée_un_espace_de_travail
+ * - espace_de_travail_défaut
+ *
+ * Problèmes :
+ * - les modules ne sont ouvert qu'une seule fois
+ * - il faudra stocker les modules pour chaque espace de travail, et partager les données constantes des fichiers
+ * - séparer les données constantes des données dynamiques
+ * -- données constantes : tampon du fichier, lexèmes
+ * -- données dynamiques : arbres syntaxiques, types, noeuds dépendances
+ */
+struct EspaceDeTravail {
+	dls::chaine nom{};
+	OptionsCompilation options{};
+
 	// À FAIRE : ceci devrait être déplacé dans les tacheronnes quand nous en aurons plus d'une
 	AllocatriceNoeud allocatrice_noeud{};
 
@@ -116,9 +133,79 @@ struct Compilatrice {
 
 	Typeuse typeuse;
 
-	dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
-
 	dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
+
+	using TypeDicoFonction = dls::dico<dls::chaine, AtomeFonction *>;
+	dls::outils::Synchrone<TypeDicoFonction> table_fonctions{};
+	tableau_page<AtomeFonction> fonctions{};
+
+	using TypeDicoGlobale = dls::dico<NoeudDeclaration *, AtomeGlobale *>;
+	dls::outils::Synchrone<TypeDicoGlobale> table_globales{};
+	tableau_page<AtomeGlobale> globales{};
+
+	using ConteneurConstructeursGlobales = dls::tableau<std::pair<AtomeGlobale *, NoeudExpression *>>;
+	dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
+
+	explicit EspaceDeTravail(OptionsCompilation opts);
+
+	COPIE_CONSTRUCT(EspaceDeTravail);
+
+	~EspaceDeTravail();
+
+	/**
+	 * Crée un module avec le nom spécifié, et retourne un pointeur vers le
+	 * module ainsi créé. Si un module avec le même chemin existe, il est
+	 * retourné sans qu'un nouveau module ne soit créé.
+	 */
+	Module *cree_module(dls::chaine const &nom_module, dls::chaine const &chemin);
+
+	/**
+	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
+	 * module n'a ce nom, retourne nullptr.
+	 */
+	Module *module(const dls::vue_chaine_compacte &nom_module) const;
+
+	/**
+	 * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
+	 * fichier ainsi créé. Aucune vérification n'est faite quant à la présence
+	 * d'un fichier avec un nom similaire pour l'instant.
+	 */
+	Fichier *cree_fichier(dls::chaine const &nom_fichier, dls::chaine const &chemin, bool importe_kuri);
+
+	/**
+	 * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
+	 * en dehors de portée, le programme crashera.
+	 */
+	Fichier *fichier(long index) const;
+
+	/**
+	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
+	 * fichier n'a ce nom, retourne nullptr.
+	 */
+	Fichier *fichier(const dls::vue_chaine_compacte &nom_fichier) const;
+
+	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction);
+	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction, kuri::tableau<Atome *> &&params);
+	AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationFonction const *decl);
+	AtomeFonction *trouve_fonction(dls::chaine const &nom_fonction);
+
+	AtomeGlobale *cree_globale(Type *type, AtomeConstante *valeur, bool initialisateur, bool est_constante);
+	void ajoute_globale(NoeudDeclaration *decl, AtomeGlobale *atome);
+	AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
+	AtomeGlobale *trouve_ou_insere_globale(NoeudDeclaration *decl);
+
+	size_t memoire_utilisee() const;
+
+	void rassemble_metriques(Metriques &metriques) const;
+};
+
+struct UniteExecution {
+	EspaceDeTravail *espace = nullptr;
+	NoeudDirectiveExecution *noeud = nullptr;
+};
+
+struct Compilatrice {
+	dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
 
 	ConstructriceRI constructrice_ri;
 	MachineVirtuelle mv{};
@@ -126,7 +213,7 @@ struct Compilatrice {
 	using TypeFileUC = dls::liste<UniteCompilation>;
 	dls::outils::Synchrone<TypeFileUC> file_compilation{};
 
-	using TypeFileExecution = dls::liste<NoeudDirectiveExecution *>;
+	using TypeFileExecution = dls::liste<UniteExecution>;
 	dls::outils::Synchrone<TypeFileExecution> file_execution{};
 
 	dls::outils::Synchrone<GeranteChaine> gerante_chaine{};
@@ -160,18 +247,12 @@ struct Compilatrice {
 	/* définitions passées au compilateur C pour modifier les fichiers d'entête */
 	tableau_synchrone<dls::vue_chaine_compacte> definitions{};
 
+	template <typename T>
+	using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
+
+	tableau_page_synchrone<EspaceDeTravail> espaces_de_travail{};
+
 	dls::chaine racine_kuri{};
-
-	using TypeDicoFonction = dls::dico<dls::chaine, AtomeFonction *>;
-	dls::outils::Synchrone<TypeDicoFonction> table_fonctions{};
-	tableau_page<AtomeFonction> fonctions{};
-
-	using TypeDicoGlobale = dls::dico<NoeudDeclaration *, AtomeGlobale *>;
-	dls::outils::Synchrone<TypeDicoGlobale> table_globales{};
-	tableau_page<AtomeGlobale> globales{};
-
-	using ConteneurConstructeursGlobales = dls::tableau<std::pair<AtomeGlobale *, NoeudExpression *>>;
-	dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
 	using TableChaine = dls::dico<dls::chaine, AtomeConstante *>;
 	dls::outils::Synchrone<TableChaine> table_chaines{};
@@ -179,8 +260,6 @@ struct Compilatrice {
 	/* ********************************************************************** */
 
 	Compilatrice();
-
-	~Compilatrice();
 
 	/* ********************************************************************** */
 
@@ -210,60 +289,16 @@ struct Compilatrice {
 	 *
 	 * Le paramètre est_racine ne doit être vrai que pour le module racine.
 	 */
-	Module *importe_module(dls::chaine const &nom, Lexeme const &lexeme);
-
-	/**
-	 * Crée un module avec le nom spécifié, et retourne un pointeur vers le
-	 * module ainsi créé. Si un module avec le même chemin existe, il est
-	 * retourné sans qu'un nouveau module ne soit créé.
-	 */
-	Module *cree_module(dls::chaine const &nom, dls::chaine const &chemin);
-
-	/**
-	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
-	 * module n'a ce nom, retourne nullptr.
-	 */
-	Module *module(const dls::vue_chaine_compacte &nom) const;
-
-	/**
-	 * Retourne vrai si le module dont le nom est spécifié existe dans la liste
-	 * de module de ce contexte.
-	 */
-	bool module_existe(const dls::vue_chaine_compacte &nom) const;
+	Module *importe_module(EspaceDeTravail *espace, dls::chaine const &nom, Lexeme const &lexeme);
 
 	/* ********************************************************************** */
 
-	void ajoute_fichier_a_la_compilation(dls::chaine const &chemin, Module *module, Lexeme const &lexeme);
-
-	/**
-	 * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
-	 * fichier ainsi créé. Aucune vérification n'est faite quant à la présence
-	 * d'un fichier avec un nom similaire pour l'instant.
-	 */
-	Fichier *cree_fichier(dls::chaine const &nom, dls::chaine const &chemin);
-
-	/**
-	 * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
-	 * en dehors de portée, le programme crashera.
-	 */
-	Fichier *fichier(long index) const;
-
-	/**
-	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
-	 * fichier n'a ce nom, retourne nullptr.
-	 */
-	Fichier *fichier(const dls::vue_chaine_compacte &nom) const;
-
-	/**
-	 * Retourne vrai si le fichier dont le nom est spécifié existe dans la liste
-	 * de fichier de ce contexte.
-	 */
-	bool fichier_existe(const dls::vue_chaine_compacte &nom) const;
+	void ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, dls::chaine const &chemin, Module *module, Lexeme const &lexeme);
 
 	/* ********************************************************************** */
 
-	void ajoute_unite_compilation_pour_typage(NoeudExpression *expression);
-	void ajoute_unite_compilation_entete_fonction(NoeudDeclarationFonction *decl);
+	void ajoute_unite_compilation_pour_typage(EspaceDeTravail *espace, NoeudExpression *expression);
+	void ajoute_unite_compilation_entete_fonction(EspaceDeTravail *espace, NoeudDeclarationFonction *decl);
 
 	/* ********************************************************************** */
 
@@ -280,6 +315,10 @@ struct Compilatrice {
 
 	/* ********************************************************************** */
 
+	EspaceDeTravail *demarre_un_espace_de_travail(OptionsCompilation const &options, dls::chaine const &nom);
+
+	/* ********************************************************************** */
+
 	size_t memoire_utilisee() const;
 
 	/**
@@ -289,16 +328,6 @@ struct Compilatrice {
 	 */
 	Metriques rassemble_metriques() const;
 
-	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom);
-	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom, kuri::tableau<Atome *> &&params);
-	AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationFonction const *decl);
-	AtomeFonction *trouve_fonction(dls::chaine const &nom);
-
-	AtomeGlobale *cree_globale(Type *type, AtomeConstante *valeur, bool initialisateur, bool est_constante);
-	void ajoute_globale(NoeudDeclaration *decl, AtomeGlobale *atome);
-	AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
-	AtomeGlobale *trouve_ou_insere_globale(NoeudDeclaration *decl);
-
 public:
 	double temps_generation = 0.0;
 	double temps_validation = 0.0;
@@ -307,14 +336,14 @@ public:
 
 dls::chaine charge_fichier(
 		dls::chaine const &chemin,
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		Lexeme const &lexeme);
 
 void initialise_options_compilation(OptionsCompilation &option);
 OptionsCompilation *obtiens_options_compilation();
 void ajourne_options_compilation(OptionsCompilation *options);
-void compilatrice_ajoute_chaine_compilation(kuri::chaine c);
-void compilatrice_ajoute_fichier_compilation(kuri::chaine c);
+void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine c);
+void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine c);
 int fonction_test_variadique_externe(int sentinel, ...);
 
 Message const *compilatrice_attend_message();

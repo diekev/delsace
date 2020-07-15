@@ -52,6 +52,7 @@ struct Syntaxeuse {
 private:
 	Compilatrice &m_compilatrice;
 	Fichier *m_fichier = nullptr;
+	UniteCompilation *m_unite = nullptr;
 	dls::tableau<Lexeme> &m_lexemes;
 	long m_position = 0;
 
@@ -75,6 +76,7 @@ private:
 public:
 	Syntaxeuse(Compilatrice &compilatrice,
 			   Fichier *fichier,
+			   UniteCompilation *unite,
 			   dls::chaine const &racine_kuri);
 
 	COPIE_CONSTRUCT(Syntaxeuse);

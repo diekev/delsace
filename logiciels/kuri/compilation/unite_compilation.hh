@@ -28,6 +28,7 @@
 
 #include <iostream>
 
+struct EspaceDeTravail;
 struct Fichier;
 struct Lexeme;
 struct NoeudDeclaration;
@@ -53,9 +54,13 @@ struct UniteCompilation {
 #undef ENUMERE_ETAT_UNITE_EX
 	};
 
+	explicit UniteCompilation(EspaceDeTravail *esp)
+		: espace(esp)
+	{}
+
 	Etat etat_{};
 	Etat etat_original{};
-	REMBOURRE(4);
+	EspaceDeTravail *espace = nullptr;
 	Fichier *fichier = nullptr;
 	NoeudExpression *noeud = nullptr;
 	int index_reprise = 0;
@@ -83,9 +88,9 @@ struct UniteCompilation {
 		this->cycle = 0;
 	}
 
-	static inline UniteCompilation cree_pour_ri(NoeudExpression *noeud)
+	static inline UniteCompilation cree_pour_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
 	{
-		auto unite = UniteCompilation();
+		auto unite = UniteCompilation(espace);
 		unite.noeud = noeud;
 		unite.change_etat(UniteCompilation::Etat::RI_ATTENDUE);
 		return unite;

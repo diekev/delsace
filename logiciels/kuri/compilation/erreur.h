@@ -30,7 +30,7 @@
 
 #include "validation_expression_appel.hh"
 
-struct Compilatrice;
+struct EspaceDeTravail;
 struct Lexeme;
 struct NoeudExpression;
 struct Type;
@@ -83,90 +83,91 @@ void imprime_ligne_avec_message(
 
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		const Lexeme *morceau,
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void redefinition_fonction(
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		const Lexeme *lexeme_redefinition,
 		const Lexeme *lexeme_original);
 
 [[noreturn]] void redefinition_symbole(
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		const Lexeme *lexeme_redefinition,
 		const Lexeme *lexeme_original);
 
 [[noreturn]] void lance_erreur_type_arguments(
 		const Type *type_arg,
 		const Type *type_enf,
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		const Lexeme *morceau_enfant,
 		const Lexeme *morceau);
 
 [[noreturn]] void lance_erreur_type_retour(
 		const Type *type_arg,
 		const Type *type_enf,
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		NoeudExpression *racine);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const Type *type_gauche,
 		const Type *type_droite,
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		const Lexeme *morceau);
 
 [[noreturn]] void lance_erreur_type_operation(
 		const Type *type_gauche,
 		const Type *type_droite,
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		const Lexeme *morceau);
 
 [[noreturn]] void lance_erreur_fonction_inconnue(
-		Compilatrice const &compilatrice,
+		EspaceDeTravail const &espace,
 		NoeudExpression *n,
 		dls::tablet<DonneesCandidate, 10> const &candidates);
 
 [[noreturn]] void lance_erreur_fonction_nulctx(
-		Compilatrice const &compilatrice,
+		EspaceDeTravail const &espace,
 		NoeudExpression const *appl_fonc,
 		NoeudExpression const *decl_fonc,
 		NoeudExpression const *decl_appel);
 
 [[noreturn]] void lance_erreur_acces_hors_limites(
-		Compilatrice const &compilatrice,
+		EspaceDeTravail const &espace,
 		NoeudExpression *b,
 		long taille_tableau,
 		Type *type_tableau,
 		long index_acces);
 
 [[noreturn]] void type_indexage(
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		const NoeudExpression *noeud);
 
 [[noreturn]] void lance_erreur_type_operation(
-			Compilatrice const &compilatrice,
+			EspaceDeTravail const &espace,
 			NoeudExpression *b);
 
 [[noreturn]] void lance_erreur_type_operation_unaire(
-			Compilatrice const &compilatrice,
+			EspaceDeTravail const &espace,
 			NoeudExpression *b);
 
-[[noreturn]] void membre_inconnu(Compilatrice &compilatrice,
+[[noreturn]] void membre_inconnu(
+		EspaceDeTravail const &espace,
 		NoeudExpression *acces,
 		NoeudExpression *structure,
 		NoeudExpression *membre,
 		TypeCompose *type);
 
 [[noreturn]] void membre_inactif(
-			Compilatrice &compilatrice,
+			EspaceDeTravail const &espace,
 			ContexteValidationCode &contexte,
 			NoeudExpression *acces,
 			NoeudExpression *structure,
 			NoeudExpression *membre);
 
 [[noreturn]] void valeur_manquante_discr(
-			Compilatrice &compilatrice,
+			EspaceDeTravail const &espace,
 			NoeudExpression *expression,
 			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes);
 

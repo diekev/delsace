@@ -487,7 +487,7 @@ R"(
 struct GeneratriceCodeC {
 	dls::dico<Atome const *, dls::chaine> table_valeurs{};
 	dls::dico<Atome const *, dls::chaine> table_globales{};
-	Compilatrice &m_compilatrice;
+	EspaceDeTravail &m_espace;
 	AtomeFonction const *m_fonction_courante = nullptr;
 
 	// les atomes pour les chaines peuvent être générés plusieurs fois (notamment
@@ -495,8 +495,8 @@ struct GeneratriceCodeC {
 	// index pour les rendre uniques
 	int index_chaine = 0;
 
-	GeneratriceCodeC(Compilatrice &compilatrice)
-		: m_compilatrice(compilatrice)
+	GeneratriceCodeC(EspaceDeTravail &espace)
+		: m_espace(espace)
 	{}
 
 	COPIE_CONSTRUCT(GeneratriceCodeC);
@@ -737,7 +737,7 @@ struct GeneratriceCodeC {
 				auto inst_appel = static_cast<InstructionAppel const *>(inst);
 
 				auto const &lexeme = inst_appel->lexeme;
-				auto fichier = m_compilatrice.fichier(lexeme->fichier);
+				auto fichier = m_espace.fichier(lexeme->fichier);
 				auto pos = position_lexeme(*lexeme);
 
 				if (!m_fonction_courante->sanstrace) {
@@ -1250,7 +1250,7 @@ struct GeneratriceCodeC {
 				os << "INITIALISE_TRACE_APPEL(\"";
 
 				if (atome_fonc->lexeme != nullptr) {
-					auto fichier = m_compilatrice.fichier(atome_fonc->lexeme->fichier);
+					auto fichier = m_espace.fichier(atome_fonc->lexeme->fichier);
 					os << atome_fonc->lexeme->chaine << "\", "
 					   << atome_fonc->lexeme->chaine.taille() << ", \""
 					   << fichier->nom << ".kuri\", "
@@ -1280,6 +1280,7 @@ struct GeneratriceCodeC {
 
 void genere_code_C(
 		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie)
 {
@@ -1287,10 +1288,10 @@ void genere_code_C(
 
 	Enchaineuse enchaineuse;
 
-	compilatrice.typeuse.construit_table_types();
+	espace.typeuse.construit_table_types();
 
 	// NOTE : on ne prend pas de verrou ici car genere_ri_pour_fonction_main reprendra un verrou du graphe via la Typeuse -> verrou mort
-	auto &graphe = compilatrice.graphe_dependance;
+	auto &graphe = espace.graphe_dependance;
 	auto fonction_principale = graphe->cherche_noeud_fonction("principale");
 
 	if (fonction_principale == nullptr) {
@@ -1299,7 +1300,7 @@ void genere_code_C(
 
 	// nous devons générer la fonction main ici, car elle défini le type du tableau de
 	// stockage temporaire, et les typedefs pour les types sont générés avant les fonctions.
-	auto atome_main = compilatrice.constructrice_ri.genere_ri_pour_fonction_main();
+	auto atome_main = compilatrice.constructrice_ri.genere_ri_pour_fonction_main(&espace);
 
 	genere_code_debut_fichier(compilatrice, enchaineuse, racine_kuri);
 
@@ -1351,7 +1352,7 @@ void genere_code_C(
 
 	traverse_graphe(fonction_principale, [&](NoeudDependance *noeud)
 	{
-		auto table = compilatrice.table_fonctions.verrou_lecture();
+		auto table = espace.table_fonctions.verrou_lecture();
 
 		if (noeud->type == TypeNoeudDependance::FONCTION) {
 			auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(noeud->noeud_syntaxique);
@@ -1375,8 +1376,8 @@ void genere_code_C(
 
 	fonctions.pousse(atome_main);
 
-	auto generatrice = GeneratriceCodeC(compilatrice);
-	generatrice.genere_code(compilatrice.globales, fonctions, enchaineuse);
+	auto generatrice = GeneratriceCodeC(espace);
+	generatrice.genere_code(espace.globales, fonctions, enchaineuse);
 
 	enchaineuse.imprime_dans_flux(fichier_sortie);
 

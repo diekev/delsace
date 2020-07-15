@@ -26,8 +26,8 @@
 
 #include "compilatrice.hh"
 
-assembleuse_arbre::assembleuse_arbre(Compilatrice &compilatrice)
-	: m_allocatrice_noeud(compilatrice.allocatrice_noeud)
+assembleuse_arbre::assembleuse_arbre(EspaceDeTravail &espace)
+	: m_allocatrice_noeud(espace.allocatrice_noeud)
 {
 	this->empile_bloc();
 }

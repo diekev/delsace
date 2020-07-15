@@ -102,5 +102,6 @@ struct DonneesCandidate {
 
 bool valide_appel_fonction(
 		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte_validation,
 		NoeudExpressionAppel *expr);

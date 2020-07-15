@@ -31,7 +31,7 @@
 enum class GenreNoeud : char;
 
 struct AllocatriceNoeud;
-struct Compilatrice;
+struct EspaceDeTravail;
 struct Lexeme;
 struct NoeudExpression;
 struct NoeudBloc;
@@ -44,7 +44,7 @@ class assembleuse_arbre {
 	dls::pile<NoeudBloc *> m_blocs{};
 
 public:
-	explicit assembleuse_arbre(Compilatrice &compilatrice);
+	explicit assembleuse_arbre(EspaceDeTravail &espace);
 	~assembleuse_arbre() = default;
 
 	NoeudBloc *empile_bloc();

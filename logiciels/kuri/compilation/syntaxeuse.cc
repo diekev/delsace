@@ -328,9 +328,11 @@ static Associativite associativite_pour_operateur(GenreLexeme genre_operateur)
 Syntaxeuse::Syntaxeuse(
 		Compilatrice &compilatrice,
 		Fichier *fichier,
+		UniteCompilation *unite,
 		const dls::chaine &racine_kuri)
 	: m_compilatrice(compilatrice)
 	, m_fichier(fichier)
+	, m_unite(unite)
 	, m_lexemes(fichier->lexemes)
 	, m_racine_kuri(racine_kuri)
 {
@@ -372,7 +374,7 @@ void Syntaxeuse::lance_analyse()
 			/* désactive le 'chronomètre' car sinon le temps d'analyse prendra
 			 * également en compte le chargement du module importé */
 			m_fichier->temps_analyse += m_chrono_analyse.arrete();
-			auto module = m_compilatrice.importe_module(dls::chaine(nom_module), *lexeme_courant());
+			auto module = m_compilatrice.importe_module(m_unite->espace, dls::chaine(nom_module), *lexeme_courant());
 			m_fichier->modules_importes.insere(module->nom);
 			m_chrono_analyse.reprend();
 
@@ -390,7 +392,7 @@ void Syntaxeuse::lance_analyse()
 			/* désactive le 'chronomètre' car sinon le temps d'analyse prendra
 			 * également en compte le chargement du fichier chargé */
 			m_fichier->temps_analyse += m_chrono_analyse.arrete();
-			m_compilatrice.ajoute_fichier_a_la_compilation(nom_fichier, m_fichier->module, *lexeme_courant());
+			m_compilatrice.ajoute_fichier_a_la_compilation(m_unite->espace, nom_fichier, m_fichier->module, *lexeme_courant());
 			m_chrono_analyse.reprend();
 
 			consomme();
@@ -408,7 +410,7 @@ void Syntaxeuse::lance_analyse()
 					decl_var->bloc_parent->membres->pousse(decl_var);
 					decl_var->bloc_parent->expressions->pousse(decl_var);
 					decl_var->drapeaux |= EST_GLOBALE;
-					m_compilatrice.ajoute_unite_compilation_pour_typage(decl_var);
+					m_compilatrice.ajoute_unite_compilation_pour_typage(m_unite->espace, decl_var);
 				}
 				else if (est_declaration(noeud->genre)) {
 					noeud->bloc_parent->membres->pousse(static_cast<NoeudDeclaration *>(noeud));
@@ -416,12 +418,12 @@ void Syntaxeuse::lance_analyse()
 					noeud->drapeaux |= EST_GLOBALE;
 
 					if (!dls::outils::est_element(noeud->genre, GenreNoeud::DECLARATION_FONCTION, GenreNoeud::DECLARATION_OPERATEUR, GenreNoeud::DECLARATION_COROUTINE)) {
-						m_compilatrice.ajoute_unite_compilation_pour_typage(noeud);
+						m_compilatrice.ajoute_unite_compilation_pour_typage(m_unite->espace, noeud);
 					}
 				}
 				else {
 					noeud->bloc_parent->expressions->pousse(noeud);
-					m_compilatrice.ajoute_unite_compilation_pour_typage(noeud);
+					m_compilatrice.ajoute_unite_compilation_pour_typage(m_unite->espace, noeud);
 				}
 			}
 		}
@@ -1675,12 +1677,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 			noeud_decl->expression_type = analyse_expression_primaire(GenreLexeme::ENUM, GenreLexeme::INCONNU);
 		}
 
-		auto type = m_compilatrice.typeuse.reserve_type_enum(noeud_decl);
+		auto type = m_unite->espace->typeuse.reserve_type_enum(noeud_decl);
 		type->est_drapeau = lexeme->genre == GenreLexeme::ENUM_DRAPEAU;
 		noeud_decl->type = type;
 	}
 	else {
-		auto type = m_compilatrice.typeuse.reserve_type_erreur(noeud_decl);
+		auto type = m_unite->espace->typeuse.reserve_type_erreur(noeud_decl);
 		type->est_erreur = true;
 		noeud_decl->type = type;
 	}
@@ -1861,12 +1863,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 				noeud->drapeaux |= FORCE_SANSTRACE;
 			}
 			else if (ident_directive == ID::interface) {
-				renseigne_fonction_interface(m_compilatrice.interface_kuri, noeud);
+				renseigne_fonction_interface(m_unite->espace->interface_kuri, noeud);
 			}
 			else if (ident_directive == ID::creation_contexte) {
 				noeud->drapeaux |= FORCE_NULCTX;
 				noeud->drapeaux |= FORCE_SANSTRACE;
-				m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
+				m_unite->espace->interface_kuri->decl_creation_contexte = noeud;
 			}
 			else if (ident_directive == ID::compilatrice) {
 				noeud->drapeaux |= (FORCE_SANSTRACE | FORCE_NULCTX | COMPILATRICE);
@@ -1884,7 +1886,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 				lance_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
 			}
 
-			m_compilatrice.ajoute_unite_compilation_entete_fonction(noeud);
+			m_compilatrice.ajoute_unite_compilation_entete_fonction(m_unite->espace, noeud);
 		}
 		else {
 			/* ignore les points-virgules implicites */
@@ -1892,11 +1894,11 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 				consomme();
 			}
 
-			m_compilatrice.ajoute_unite_compilation_entete_fonction(noeud);
+			m_compilatrice.ajoute_unite_compilation_entete_fonction(m_unite->espace, noeud);
 
-			auto nombre_noeuds_alloues = m_compilatrice.allocatrice_noeud.nombre_noeuds();
+			auto nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
 			noeud->bloc = analyse_bloc();
-			nombre_noeuds_alloues = m_compilatrice.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
+			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 
 			/* À FAIRE : quand nous aurons des fonctions dans des fonctions, il
 			 * faudra soustraire le nombre de noeuds des fonctions enfants. Il
@@ -1905,7 +1907,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 			noeud->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
 			aplatis_arbre(noeud->bloc, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 
-			m_compilatrice.ajoute_unite_compilation_pour_typage(noeud);
+			m_compilatrice.ajoute_unite_compilation_pour_typage(m_unite->espace, noeud);
 
 //			std::cerr << "Abre aplatis pour fonction " << noeud->ident->nom << " :\n";
 
@@ -1975,7 +1977,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	if (noeud->params.taille > 2) {
 		erreur::lance_erreur(
 					"La surcharge d'opérateur ne peut prendre au plus 2 paramètres",
-					m_compilatrice,
+					*m_unite->espace,
 					lexeme);
 	}
 	else if (noeud->params.taille == 1) {
@@ -1988,7 +1990,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		else if (genre_operateur != GenreLexeme::TILDE && genre_operateur != GenreLexeme::EXCLAMATION) {
 			erreur::lance_erreur(
 						"La surcharge d'opérateur unaire n'est possible que pour '+', '-', '~', ou '!'",
-						m_compilatrice,
+						*m_unite->espace,
 						lexeme);
 		}
 	}
@@ -2042,12 +2044,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		consomme();
 	}
 
-	m_compilatrice.ajoute_unite_compilation_entete_fonction(noeud);
+	m_compilatrice.ajoute_unite_compilation_entete_fonction(m_unite->espace, noeud);
 
 	noeud->bloc = analyse_bloc();
 	aplatis_arbre(noeud->bloc, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 
-	m_compilatrice.ajoute_unite_compilation_pour_typage(noeud);
+	m_compilatrice.ajoute_unite_compilation_pour_typage(m_unite->espace, noeud);
 
 	depile_etat();
 
@@ -2066,23 +2068,23 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 	noeud_decl->est_union = (lexeme_mot_cle->genre == GenreLexeme::UNION);
 
 	if (gauche->ident == ID::InfoType) {
-		noeud_decl->type = m_compilatrice.typeuse.type_info_type_;
-		auto type_info_type = static_cast<TypeStructure *>(m_compilatrice.typeuse.type_info_type_);
+		noeud_decl->type = m_unite->espace->typeuse.type_info_type_;
+		auto type_info_type = static_cast<TypeStructure *>(m_unite->espace->typeuse.type_info_type_);
 		type_info_type->decl = noeud_decl;
 		type_info_type->nom = noeud_decl->ident->nom;
 	}
 	else if (gauche->ident == ID::ContexteProgramme) {
-		auto type_contexte = static_cast<TypeStructure *>(m_compilatrice.typeuse.type_contexte);
+		auto type_contexte = static_cast<TypeStructure *>(m_unite->espace->typeuse.type_contexte);
 		noeud_decl->type = type_contexte;
 		type_contexte->decl = noeud_decl;
 		type_contexte->nom = noeud_decl->ident->nom;
 	}
 	else {
 		if (noeud_decl->est_union) {
-			noeud_decl->type = m_compilatrice.typeuse.reserve_type_union(noeud_decl);
+			noeud_decl->type = m_unite->espace->typeuse.reserve_type_union(noeud_decl);
 		}
 		else {
-			noeud_decl->type = m_compilatrice.typeuse.reserve_type_structure(noeud_decl);
+			noeud_decl->type = m_unite->espace->typeuse.reserve_type_structure(noeud_decl);
 		}
 	}
 
@@ -2109,7 +2111,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		consomme();
 
 		if (lexeme_courant()->ident == ID::interface) {
-			renseigne_type_interface(m_compilatrice.typeuse, noeud_decl->ident, noeud_decl->type);
+			renseigne_type_interface(m_unite->espace->typeuse, noeud_decl->ident, noeud_decl->type);
 		}
 
 		consomme();
@@ -2170,7 +2172,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::type_erreur type)
 {
 	auto lexeme = lexeme_courant();
-	auto fichier = m_compilatrice.fichier(lexeme->fichier);
+	auto fichier = m_unite->espace->fichier(lexeme->fichier);
 
 	auto flux = dls::flux_chaine();
 

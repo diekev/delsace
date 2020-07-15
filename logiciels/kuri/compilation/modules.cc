@@ -35,8 +35,8 @@ bool Fichier::importe_module(dls::vue_chaine_compacte const &nom_module) const
 	return modules_importes.possede(nom_module);
 }
 
-Module::Module(const Compilatrice &compilatrice)
-	: assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", const_cast<Compilatrice &>(compilatrice)))
+Module::Module(const EspaceDeTravail &espace)
+	: assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", const_cast<EspaceDeTravail &>(espace)))
 	, bloc(assembleuse->bloc_courant())
 {
 	assert(bloc != nullptr);
@@ -71,24 +71,25 @@ NoeudDeclarationFonction *cherche_fonction_dans_module(
 
 NoeudDeclarationFonction *cherche_fonction_dans_module(
 		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		dls::vue_chaine_compacte const &nom_module,
 		dls::vue_chaine_compacte const &nom_fonction)
 {
-	auto module = compilatrice.module(nom_module);
+	auto module = espace.module(nom_module);
 	return cherche_fonction_dans_module(compilatrice, module, nom_fonction);
 }
 
 NoeudDeclaration *cherche_symbole_dans_module(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		dls::vue_chaine_compacte const &nom_module,
 		IdentifiantCode *ident)
 {
-	auto module = compilatrice.module(nom_module);
+	auto module = espace.module(nom_module);
 	return trouve_dans_bloc(module->bloc, ident);
 }
 
-void imprime_fichier_ligne(Compilatrice &compilatrice, const Lexeme &lexeme)
+void imprime_fichier_ligne(EspaceDeTravail &espace, const Lexeme &lexeme)
 {
-	auto fichier = compilatrice.fichier(lexeme.fichier);
+	auto fichier = espace.fichier(lexeme.fichier);
 	std::cerr << fichier->chemin << ':' << lexeme.ligne + 1 << '\n';
 }

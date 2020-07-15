@@ -562,13 +562,13 @@ size_t Operateurs::memoire_utilisee() const
 }
 
 static std::pair<bool, double> verifie_compatibilite(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		Type *type_arg,
 		Type *type_enf,
 		TransformationType &transformation)
 {
-	if (cherche_transformation(compilatrice, contexte, type_enf, type_arg, transformation)) {
+	if (cherche_transformation(espace, contexte, type_enf, type_arg, transformation)) {
 		return { true, 0.0 };
 	}
 
@@ -586,7 +586,7 @@ static std::pair<bool, double> verifie_compatibilite(
 }
 
 bool cherche_candidats_operateurs(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		Type *type1,
 		Type *type2,
@@ -600,7 +600,7 @@ bool cherche_candidats_operateurs(
 
 	auto op_candidats = dls::tablet<OperateurBinaire const *, 10>();
 
-	auto &iter = compilatrice.operateurs->trouve_binaire(type_op);
+	auto &iter = espace.operateurs->trouve_binaire(type_op);
 
 	for (auto i = 0; i < iter.taille(); ++i) {
 		auto op = &iter[i];
@@ -623,13 +623,13 @@ bool cherche_candidats_operateurs(
 		auto seq1 = TransformationType{};
 		auto seq2 = TransformationType{};
 
-		auto [erreur_dep1, poids1] = verifie_compatibilite(compilatrice, contexte, op->type1, type1, seq1);
+		auto [erreur_dep1, poids1] = verifie_compatibilite(espace, contexte, op->type1, type1, seq1);
 
 		if (erreur_dep1) {
 			return true;
 		}
 
-		auto [erreur_dep2, poids2] = verifie_compatibilite(compilatrice, contexte, op->type2, type2, seq2);
+		auto [erreur_dep2, poids2] = verifie_compatibilite(espace, contexte, op->type2, type2, seq2);
 
 		if (erreur_dep2) {
 			return true;
@@ -648,13 +648,13 @@ bool cherche_candidats_operateurs(
 		}
 
 		if (op->est_commutatif && poids != 1.0) {
-			auto [erreur_dep3, poids3] = verifie_compatibilite(compilatrice, contexte, op->type1, type2, seq2);
+			auto [erreur_dep3, poids3] = verifie_compatibilite(espace, contexte, op->type1, type2, seq2);
 
 			if (erreur_dep3) {
 				return true;
 			}
 
-			auto [erreur_dep4, poids4] = verifie_compatibilite(compilatrice, contexte, op->type2, type1, seq1);
+			auto [erreur_dep4, poids4] = verifie_compatibilite(espace, contexte, op->type2, type1, seq1);
 
 			if (erreur_dep4) {
 				return true;
@@ -699,33 +699,33 @@ const OperateurUnaire *cherche_operateur_unaire(
 }
 
 void enregistre_operateurs_basiques(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		Operateurs &operateurs)
 {
 	Type *types_entiers_naturels[] = {
-		compilatrice.typeuse[TypeBase::N8],
-		compilatrice.typeuse[TypeBase::N16],
-		compilatrice.typeuse[TypeBase::N32],
-		compilatrice.typeuse[TypeBase::N64],
+		espace.typeuse[TypeBase::N8],
+		espace.typeuse[TypeBase::N16],
+		espace.typeuse[TypeBase::N32],
+		espace.typeuse[TypeBase::N64],
 	};
 
 	Type *types_entiers_relatifs[] = {
-		compilatrice.typeuse[TypeBase::Z8],
-		compilatrice.typeuse[TypeBase::Z16],
-		compilatrice.typeuse[TypeBase::Z32],
-		compilatrice.typeuse[TypeBase::Z64],
+		espace.typeuse[TypeBase::Z8],
+		espace.typeuse[TypeBase::Z16],
+		espace.typeuse[TypeBase::Z32],
+		espace.typeuse[TypeBase::Z64],
 	};
 
-	auto type_r32 = compilatrice.typeuse[TypeBase::R32];
-	auto type_r64 = compilatrice.typeuse[TypeBase::R64];
+	auto type_r32 = espace.typeuse[TypeBase::R32];
+	auto type_r64 = espace.typeuse[TypeBase::R64];
 
 	Type *types_reels[] = {
 		type_r32, type_r64
 	};
 
-	auto type_entier_constant = compilatrice.typeuse[TypeBase::ENTIER_CONSTANT];
-	auto type_octet = compilatrice.typeuse[TypeBase::OCTET];
-	auto type_bool = compilatrice.typeuse[TypeBase::BOOL];
+	auto type_entier_constant = espace.typeuse[TypeBase::ENTIER_CONSTANT];
+	auto type_octet = espace.typeuse[TypeBase::OCTET];
+	auto type_bool = espace.typeuse[TypeBase::BOOL];
 	operateurs.type_bool = type_bool;
 
 	for (auto op : operateurs_entiers_reels) {
@@ -802,7 +802,7 @@ void enregistre_operateurs_basiques(
 		operateurs.ajoute_basique_unaire(GenreLexeme::MOINS_UNAIRE, type, type);
 	}
 
-	auto type_type_de_donnees = compilatrice.typeuse.type_type_de_donnees_;
+	auto type_type_de_donnees = espace.typeuse.type_type_de_donnees_;
 
 	operateurs.op_comp_egal_types = operateurs.ajoute_basique(GenreLexeme::EGALITE, type_type_de_donnees, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 	operateurs.op_comp_diff_types = operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, type_type_de_donnees, type_bool, IndiceTypeOp::ENTIER_NATUREL);

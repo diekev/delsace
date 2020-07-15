@@ -26,7 +26,7 @@
 
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
-struct Compilatrice;
+struct EspaceDeTravail;
 struct NoeudDeclarationFonction;
 struct Type;
 
@@ -96,14 +96,14 @@ struct TransformationType {
 };
 
 bool cherche_transformation(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		Type *type_de,
 		Type *type_vers,
 		TransformationType &transformation);
 
 bool cherche_transformation_pour_transtypage(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		Type *type_de,
 		Type *type_vers,

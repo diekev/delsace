@@ -454,7 +454,9 @@ void lance_file_execution(Compilatrice *compilatrice)
 		}
 
 		// N'effronte pas sinon les autres threads pourraient s'arrêter alors que le métaprogramme pourrait ajouter des choses à compiler.
-		auto noeud = compilatrice->file_execution->front();
+		auto unite = compilatrice->file_execution->front();
+		auto noeud = unite.noeud;
+		auto espace = unite.espace;
 
 		auto index_dans_table_type = 1u;
 
@@ -470,7 +472,7 @@ void lance_file_execution(Compilatrice *compilatrice)
 					return;
 				}
 
-				auto atome_fonction = compilatrice->trouve_fonction(decl_noeud->nom_broye);
+				auto atome_fonction = espace->trouve_fonction(decl_noeud->nom_broye);
 				fonctions.pousse(atome_fonction);
 				decl_noeud->drapeaux |= CODE_BINAIRE_FUT_GENERE;
 			}
@@ -485,7 +487,7 @@ void lance_file_execution(Compilatrice *compilatrice)
 
 				if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
 					auto nom_fonction = "initialise_" + dls::vers_chaine(type);
-					auto atome_fonction = compilatrice->trouve_fonction(nom_fonction);
+					auto atome_fonction = espace->trouve_fonction(nom_fonction);
 					fonctions.pousse(atome_fonction);
 					type->drapeaux |= CODE_BINAIRE_TYPE_FUT_GENERE;
 				}
@@ -501,7 +503,7 @@ void lance_file_execution(Compilatrice *compilatrice)
 					return;
 				}
 
-				auto atome_globale = compilatrice->trouve_globale(decl_noeud);
+				auto atome_globale = espace->trouve_globale(decl_noeud);
 
 				if (atome_globale->index == -1) {
 					atome_globale->index = compilatrice->mv.ajoute_globale(decl_noeud->type, decl_noeud->ident);
@@ -513,15 +515,15 @@ void lance_file_execution(Compilatrice *compilatrice)
 			}
 		});
 
-		POUR_TABLEAU_PAGE (compilatrice->graphe_dependance->noeuds) {
+		POUR_TABLEAU_PAGE (espace->graphe_dependance->noeuds) {
 			it.fut_visite = false;
 		}
 
-		auto fonction = compilatrice->trouve_fonction(noeud->fonction->nom_broye);
+		auto fonction = espace->trouve_fonction(noeud->fonction->nom_broye);
 
 		if (!fonction) {
 			std::cerr << "Impossible de trouver la fonction métaprogramme pour " << noeud->fonction->nom_broye << '\n';
-			imprime_fichier_ligne(*compilatrice, *noeud->lexeme);
+			imprime_fichier_ligne(*espace, *noeud->lexeme);
 		}
 
 		//desassemble(fonction->chunk, noeud->fonction->nom_broye.c_str(), std::cout);
@@ -540,7 +542,7 @@ void lance_file_execution(Compilatrice *compilatrice)
 		if (res == MachineVirtuelle::ResultatInterpretation::ERREUR) {
 			// À FAIRE : erreur de compilation si une erreur d'exécution
 			std::cerr << "Erreur lors de l'exécution du métaprogramme !\n-- ";
-			imprime_fichier_ligne(*compilatrice, *noeud->lexeme);
+			imprime_fichier_ligne(*espace, *noeud->lexeme);
 		}
 		else {
 			if (noeud->ident == ID::assert_) {
@@ -549,7 +551,7 @@ void lance_file_execution(Compilatrice *compilatrice)
 				if (!resultat) {
 					// À FAIRE : erreur de compilation si une assertion échoue
 					std::cerr << "Échec de l'assertion !\n-- ";
-					imprime_fichier_ligne(*compilatrice, *noeud->lexeme);
+					imprime_fichier_ligne(*espace, *noeud->lexeme);
 				}
 			}
 		}
@@ -560,6 +562,7 @@ void lance_file_execution(Compilatrice *compilatrice)
 
 static int genere_code_coulisse(
 		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		OptionsCompilation const &ops,
 		double &temps_executable,
 		double &temps_fichier_objet)
@@ -586,7 +589,7 @@ static int genere_code_coulisse(
 					cible->createTargetMachine(
 						triplet_cible, CPU, feature, options_cible, RM));
 
-		auto generatrice = GeneratriceCodeLLVM(compilatrice);
+		auto generatrice = GeneratriceCodeLLVM(espace);
 
 		auto module_llvm = llvm::Module("Module", generatrice.m_contexte_llvm);
 		module_llvm.setDataLayout(machine_cible->createDataLayout());
@@ -635,7 +638,7 @@ static int genere_code_coulisse(
 		of.open("/tmp/compilation_kuri.c");
 
 		std::cout << "Génération du code..." << std::endl;
-		genere_code_C(compilatrice, compilatrice.racine_kuri, of);
+		genere_code_C(compilatrice, espace, compilatrice.racine_kuri, of);
 
 		of.close();
 
@@ -807,15 +810,15 @@ int main(int argc, char *argv[])
 		auto &constructrice_ri = compilatrice.constructrice_ri;
 
 		/* Charge d'abord le module basique. */
-		compilatrice.importe_module("Kuri", {});
+		auto espace_defaut = compilatrice.demarre_un_espace_de_travail(ops, "Espace 1");
 
 		auto dossier = chemin.parent_path();
 		std::filesystem::current_path(dossier);
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 
-		auto module = compilatrice.cree_module("", dossier.c_str());
-		compilatrice.ajoute_fichier_a_la_compilation(nom_fichier.c_str(), module, {});
+		auto module = espace_defaut->cree_module("", dossier.c_str());
+		compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier.c_str(), module, {});
 
 		auto tacheronne = Tacheronne(compilatrice);
 
@@ -830,7 +833,7 @@ int main(int argc, char *argv[])
 		lance_file_execution(&compilatrice);
 #endif
 
-		if (!compilatrice.possede_erreur && genere_code_coulisse(compilatrice, ops, temps_executable, temps_fichier_objet)) {
+		if (!compilatrice.possede_erreur && genere_code_coulisse(compilatrice, *espace_defaut, ops, temps_executable, temps_fichier_objet)) {
 			compilatrice.possede_erreur = true;
 		}
 

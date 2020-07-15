@@ -282,16 +282,18 @@ static erreur::type_erreur lance_test(lng::tampon_source &tampon)
 	auto compilatrice = Compilatrice{};
 	compilatrice.racine_kuri = getenv("RACINE_KURI");
 
+	auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
+
 	/* Charge d'abord le module basique, car nous en avons besoin pour le type ContexteProgramme. */
-	compilatrice.importe_module("Kuri", {});
+	compilatrice.importe_module(espace, "Kuri", {});
 
 	/* Ne nomme pas le module, car c'est le module racine. */
-	auto module = compilatrice.cree_module("", "");
-	auto fichier = compilatrice.cree_fichier("", "");
+	auto module = espace->cree_module("", "");
+	auto fichier = espace->cree_fichier("", "", compilatrice.importe_kuri);
 	fichier->tampon = tampon;
 	fichier->module = module;
 
-	auto unite = UniteCompilation();
+	auto unite = UniteCompilation(espace);
 	unite.fichier = fichier;
 	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
 	compilatrice.file_compilation->pousse(unite);
@@ -385,8 +387,9 @@ int main()
 		if (std::filesystem::exists(chemin)) {
 			auto compilatrice = Compilatrice{};
 			compilatrice.importe_kuri = false;
+			auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
 
-			auto contenu_fichier = charge_fichier(chemin.c_str(), compilatrice, {});
+			auto contenu_fichier = charge_fichier(chemin.c_str(), *espace, {});
 			auto tampon = lng::tampon_source(contenu_fichier);
 
 			if (tampon.nombre_lignes() == 0) {

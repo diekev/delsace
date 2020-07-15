@@ -44,11 +44,12 @@ struct ContexteValidationCode {
 	DonneesDependance donnees_dependance{};
 
 	UniteCompilation *unite = nullptr;
+	EspaceDeTravail *espace = nullptr;
 
 	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
 	dls::tableau<paire_union_membre> membres_actifs{};
 
-	ContexteValidationCode(Compilatrice &compilatrice);
+	ContexteValidationCode(Compilatrice &compilatrice, UniteCompilation &unite);
 
 	COPIE_CONSTRUCT(ContexteValidationCode);
 

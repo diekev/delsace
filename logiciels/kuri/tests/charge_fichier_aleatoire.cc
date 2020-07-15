@@ -50,7 +50,8 @@ int main(int argc, char *argv[])
 #if 1
 	try {
 		auto compilatrice = Compilatrice{};
-		auto module = compilatrice.cree_fichier("", "");
+		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
+		auto module = espace->cree_fichier("", "", true);
 		auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
 		module->tampon = lng::tampon_source(dls::chaine(vue_donnees));
 		auto lexeuse = Lexeuse(compilatrice, module);

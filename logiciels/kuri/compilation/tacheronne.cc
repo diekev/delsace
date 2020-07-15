@@ -56,11 +56,11 @@ void Tacheronne::gere_tache()
 
 		while (true) {
 			if (unite.etat() == UniteCompilation::Etat::ATTEND_SUR_SYMBOLE) {
-				erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un symbole inconnu", compilatrice, unite.lexeme_attendu);
+				erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un symbole inconnu", *unite.espace, unite.lexeme_attendu);
 			}
 
 			if (unite.etat() == UniteCompilation::Etat::ATTEND_SUR_DECLARATION) {
-				erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un déclaration non validée", compilatrice, unite.declaration_attendue->lexeme);
+				erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un déclaration non validée", *unite.espace, unite.declaration_attendue->lexeme);
 			}
 
 			if (compilatrice.file_compilation->est_vide()) {
@@ -71,7 +71,7 @@ void Tacheronne::gere_tache()
 		}
 
 		static Lexeme lexeme = { "", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-		erreur::lance_erreur("Trop de cycles : arrêt de la compilation", compilatrice, &lexeme);
+		erreur::lance_erreur("Trop de cycles : arrêt de la compilation", *unite.espace, &lexeme);
 		return;
 	}
 
@@ -133,7 +133,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 
 			//std::cerr << "-- parse fichier : " << unite.fichier->chemin << '\n';
 			auto debut_parsage = dls::chrono::compte_seconde();
-			auto syntaxeuse = Syntaxeuse(compilatrice, unite.fichier, compilatrice.racine_kuri);
+			auto syntaxeuse = Syntaxeuse(compilatrice, unite.fichier, &unite, compilatrice.racine_kuri);
 			syntaxeuse.lance_analyse();
 			temps_parsage += debut_parsage.temps();
 			break;
@@ -141,8 +141,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 		case UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU:
 		{
 			auto debut_validation = dls::chrono::compte_seconde();
-			auto contexte = ContexteValidationCode(compilatrice);
-			contexte.unite = &unite;
+			auto contexte = ContexteValidationCode(compilatrice, unite);
 			auto decl = static_cast<NoeudDeclarationFonction *>(unite.noeud);
 
 //			std::cerr << "-- valide entête fonction : " << decl->lexeme->chaine << '\n';
@@ -166,8 +165,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 		case UniteCompilation::Etat::TYPAGE_ATTENDU:
 		{
 			auto debut_validation = dls::chrono::compte_seconde();
-			auto contexte = ContexteValidationCode(compilatrice);
-			contexte.unite = &unite;
+			auto contexte = ContexteValidationCode(compilatrice, unite);
 
 			switch (unite.noeud->genre) {
 				case GenreNoeud::DECLARATION_COROUTINE:
@@ -265,7 +263,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						}
 					}
 
-					auto graphe = compilatrice.graphe_dependance.verrou_ecriture();
+					auto graphe = unite.espace->graphe_dependance.verrou_ecriture();
 					auto noeud_dependance = graphe->cree_noeud_globale(decl);
 					graphe->ajoute_dependances(*noeud_dependance, contexte.donnees_dependance);
 
@@ -310,7 +308,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 			auto debut_generation = dls::chrono::compte_seconde();
 
 			if (est_declaration(noeud->genre)) {
-				constructrice_ri.genere_ri_pour_noeud(noeud);
+				constructrice_ri.genere_ri_pour_noeud(unite.espace, noeud);
 				noeud->drapeaux |= RI_FUT_GENEREE;
 				noeud->type->drapeaux |= RI_TYPE_FUT_GENEREE;
 			}
@@ -329,23 +327,23 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 		return; \
 	}
 
-				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_contexte);
-				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_base_allocatrice);
-				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_stockage_temporaire);
-				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_trace_appel);
-				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_info_appel_trace_appel);
-				ATTEND_SUR_TYPE_SI_NECESSAIRE(compilatrice.typeuse.type_info_fonction_trace_appel);
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(unite.espace->typeuse.type_contexte);
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(unite.espace->typeuse.type_base_allocatrice);
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(unite.espace->typeuse.type_stockage_temporaire);
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(unite.espace->typeuse.type_trace_appel);
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(unite.espace->typeuse.type_info_appel_trace_appel);
+				ATTEND_SUR_TYPE_SI_NECESSAIRE(unite.espace->typeuse.type_info_fonction_trace_appel);
 
-				if (compilatrice.interface_kuri->decl_creation_contexte == nullptr) {
+				if (unite.espace->interface_kuri->decl_creation_contexte == nullptr) {
 					unite.etat_original = UniteCompilation::Etat::RI_ATTENDUE;
 					unite.attend_sur_interface_kuri();
 					compilatrice.file_compilation->pousse(unite);
 					return;
 				}
 
-				if ((compilatrice.interface_kuri->decl_creation_contexte->drapeaux & RI_FUT_GENEREE) == 0) {
+				if ((unite.espace->interface_kuri->decl_creation_contexte->drapeaux & RI_FUT_GENEREE) == 0) {
 					unite.etat_original = UniteCompilation::Etat::RI_ATTENDUE;
-					unite.attend_sur_declaration(compilatrice.interface_kuri->decl_creation_contexte);
+					unite.attend_sur_declaration(unite.espace->interface_kuri->decl_creation_contexte);
 					compilatrice.file_compilation->pousse(unite);
 					return;
 				}
@@ -355,8 +353,8 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 					return;
 				}
 
-				constructrice_ri.genere_ri_pour_fonction_metaprogramme(noeud_dir);
-				compilatrice.file_execution->pousse(noeud_dir);
+				constructrice_ri.genere_ri_pour_fonction_metaprogramme(unite.espace, noeud_dir);
+				compilatrice.file_execution->pousse({ unite.espace, noeud_dir });
 			}
 
 			constructrice_ri.temps_generation += debut_generation.temps();

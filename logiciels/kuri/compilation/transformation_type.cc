@@ -77,7 +77,7 @@ static bool est_type_de_base(TypeStructure *type_de, TypeStructure *type_vers)
  */
 template <bool POUR_TRANSTYPAGE>
 bool cherche_transformation(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		Type *type_de,
 		Type *type_vers,
@@ -225,11 +225,11 @@ bool cherche_transformation(
 		/* cas spéciaux pour R16 */
 		if (type_de->taille_octet == 2) {
 			if (type_vers->taille_octet == 4) {
-				return retourne_fonction(compilatrice.interface_kuri->decl_dls_vers_r32);
+				return retourne_fonction(espace.interface_kuri->decl_dls_vers_r32);
 			}
 
 			if (type_vers->taille_octet == 8) {
-				return retourne_fonction(compilatrice.interface_kuri->decl_dls_vers_r64);
+				return retourne_fonction(espace.interface_kuri->decl_dls_vers_r64);
 			}
 
 			transformation = TypeTransformation::IMPOSSIBLE;
@@ -239,11 +239,11 @@ bool cherche_transformation(
 		/* cas spéciaux pour R16 */
 		if (type_vers->taille_octet == 2) {
 			if (type_de->taille_octet == 4) {
-				return retourne_fonction(compilatrice.interface_kuri->decl_dls_depuis_r32);
+				return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r32);
 			}
 
 			if (type_de->taille_octet == 8) {
-				return retourne_fonction(compilatrice.interface_kuri->decl_dls_depuis_r64);
+				return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r64);
 			}
 
 			transformation = TypeTransformation::IMPOSSIBLE;
@@ -312,12 +312,12 @@ bool cherche_transformation(
 		POUR (type_union->membres) {
 			if (it.type == type_vers) {
 				if (!type_union->est_nonsure) {
-					if (compilatrice.interface_kuri->decl_panique_membre_union == nullptr) {
+					if (espace.interface_kuri->decl_panique_membre_union == nullptr) {
 						contexte.unite->attend_sur_interface_kuri();
 						return true;
 					}
 
-					contexte.donnees_dependance.fonctions_utilisees.insere(compilatrice.interface_kuri->decl_panique_membre_union);
+					contexte.donnees_dependance.fonctions_utilisees.insere(espace.interface_kuri->decl_panique_membre_union);
 				}
 
 				transformation = { TypeTransformation::EXTRAIT_UNION, type_vers, index_membre };
@@ -479,21 +479,21 @@ bool cherche_transformation(
 }
 
 bool cherche_transformation(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		Type *type_de,
 		Type *type_vers,
 		TransformationType &transformation)
 {
-	return cherche_transformation<false>(compilatrice, contexte, type_de, type_vers, transformation);
+	return cherche_transformation<false>(espace, contexte, type_de, type_vers, transformation);
 }
 
 bool cherche_transformation_pour_transtypage(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		Type *type_de,
 		Type *type_vers,
 		TransformationType &transformation)
 {
-	return cherche_transformation<true>(compilatrice, contexte, type_de, type_vers, transformation);
+	return cherche_transformation<true>(espace, contexte, type_de, type_vers, transformation);
 }

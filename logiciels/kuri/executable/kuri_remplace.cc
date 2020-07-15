@@ -134,8 +134,9 @@ static void reecris_fichier(
 		}
 
 		auto compilatrice = Compilatrice{};
-		auto tampon = charge_fichier(chemin.c_str(), compilatrice, {});
-		auto fichier = compilatrice.cree_fichier("", chemin.c_str());
+		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
+		auto tampon = charge_fichier(chemin.c_str(), *espace, {});
+		auto fichier = espace->cree_fichier("", chemin.c_str(), true);
 		fichier->tampon = lng::tampon_source(tampon);
 
 		auto lexeuse = Lexeuse(compilatrice, fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);

@@ -26,7 +26,7 @@
 
 #include "biblinternes/structures/tableau.hh"
 
-struct Compilatrice;
+struct EspaceDeTravail;
 struct Fichier;
 struct IdentifiantCode;
 struct NoeudExpression;
@@ -40,13 +40,13 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl);
 NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression *noeud);
 
 NoeudDeclaration *trouve_dans_bloc_ou_module(
-		Compilatrice const &compilatrice,
+		EspaceDeTravail const &espace,
 		NoeudBloc *bloc,
 		IdentifiantCode *ident,
 		Fichier *fichier);
 
 NoeudDeclaration *trouve_type_dans_bloc_ou_module(
-		Compilatrice const &compilatrice,
+		EspaceDeTravail const &espace,
 		NoeudBloc *bloc,
 		IdentifiantCode *ident,
 		Fichier *fichier);
@@ -57,7 +57,7 @@ void trouve_declarations_dans_bloc(
 		IdentifiantCode *ident);
 
 void trouve_declarations_dans_bloc_ou_module(
-		Compilatrice const &compilatrice,
+		EspaceDeTravail const &espace,
 		dls::tableau<NoeudDeclaration *> &declarations,
 		NoeudBloc *bloc,
 		IdentifiantCode *ident,

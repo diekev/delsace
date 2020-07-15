@@ -33,7 +33,7 @@
 #include "transformation_type.hh"
 
 enum class GenreLexeme : unsigned int;
-struct Compilatrice;
+struct EspaceDeTravail;
 struct NoeudDeclarationFonction;
 struct Type;
 
@@ -169,9 +169,7 @@ OperateurUnaire const *cherche_operateur_unaire(
 		Type *type1,
 		GenreLexeme type_op);
 
-void enregistre_operateurs_basiques(
-	Compilatrice &compilatrice,
-	Operateurs &operateurs);
+void enregistre_operateurs_basiques(EspaceDeTravail &espace, Operateurs &operateurs);
 
 struct OperateurCandidat {
 	OperateurBinaire const *op = nullptr;
@@ -186,7 +184,7 @@ struct OperateurCandidat {
 };
 
 bool cherche_candidats_operateurs(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		Type *type1,
 		Type *type2,

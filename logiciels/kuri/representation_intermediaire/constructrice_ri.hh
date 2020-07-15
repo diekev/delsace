@@ -83,6 +83,8 @@ private:
 
 	bool expression_gauche = true;
 
+	EspaceDeTravail *m_espace = nullptr;
+
 public:
 	AtomeFonction *fonction_courante = nullptr;
 
@@ -94,11 +96,11 @@ public:
 
 	~ConstructriceRI();
 
-	Atome *genere_ri_pour_noeud(NoeudExpression *noeud);
-	void genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecution *noeud);
-	AtomeFonction *genere_ri_pour_fonction_main();
+	void genere_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
+	void genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace, NoeudDirectiveExecution *noeud);
+	AtomeFonction *genere_ri_pour_fonction_main(EspaceDeTravail *espace);
 
-	void imprime_programme() const;
+	void imprime_programme(EspaceDeTravail *espace) const;
 
 	size_t memoire_utilisee() const;
 
@@ -159,6 +161,9 @@ private:
 	void empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_arrete);
 	void depile_controle_boucle();
 
+	Atome *genere_ri_pour_noeud(NoeudExpression *noeud);
+	void genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecution *noeud);
+	AtomeFonction *genere_ri_pour_fonction_main();
 	Atome *genere_ri_pour_creation_contexte(AtomeFonction *fonction);
 	Atome *genere_ri_pour_expression_droite(NoeudExpression *noeud);
 	Atome *genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place);

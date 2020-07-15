@@ -77,11 +77,11 @@ void imprime_ligne_avec_message(
 
 void lance_erreur(
 		const dls::chaine &quoi,
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		const Lexeme *lexeme,
 		type_erreur type)
 {
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto const identifiant = lexeme->genre;
@@ -105,11 +105,11 @@ void lance_erreur(
 }
 
 void redefinition_fonction(
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		Lexeme const *lexeme_redefinition,
 		Lexeme const *lexeme_original)
 {
-	auto fichier = compilatrice.fichier(lexeme_redefinition->fichier);
+	auto fichier = espace.fichier(lexeme_redefinition->fichier);
 	auto pos = position_lexeme(*lexeme_redefinition);
 	auto pos_mot = pos.pos;
 	auto chaine = lexeme_redefinition->chaine;
@@ -128,7 +128,7 @@ void redefinition_fonction(
 	ss << "Redéfinition de la fonction !\n";
 	ss << "La fonction fût déjà définie ici :\n";
 
-	fichier = compilatrice.fichier(lexeme_original->fichier);
+	fichier = espace.fichier(lexeme_original->fichier);
 	pos = position_lexeme(*lexeme_original);
 	pos_mot = pos.pos;
 	chaine = lexeme_original->chaine;
@@ -144,9 +144,9 @@ void redefinition_fonction(
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::FONCTION_REDEFINIE);
 }
 
-void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme_redefinition, const Lexeme *lexeme_original)
+void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_redefinition, const Lexeme *lexeme_original)
 {
-	auto fichier = compilatrice.fichier(lexeme_redefinition->fichier);
+	auto fichier = espace.fichier(lexeme_redefinition->fichier);
 	auto pos = position_lexeme(*lexeme_redefinition);
 	auto pos_mot = pos.pos;
 	auto chaine = lexeme_redefinition->chaine;
@@ -165,7 +165,7 @@ void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme
 	ss << "Redéfinition du symbole !\n";
 	ss << "Le symbole fût déjà défini ici :\n";
 
-	fichier = compilatrice.fichier(lexeme_original->fichier);
+	fichier = espace.fichier(lexeme_original->fichier);
 	pos = position_lexeme(*lexeme_original);
 	pos_mot = pos.pos;
 	chaine = lexeme_original->chaine;
@@ -184,11 +184,11 @@ void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme
 [[noreturn]] void lance_erreur_type_arguments(
 		const Type *type_arg,
 		const Type *type_enf,
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		const Lexeme *lexeme_enfant,
 		const Lexeme *lexeme)
 {
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -222,12 +222,12 @@ void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme
 [[noreturn]] void lance_erreur_type_retour(
 		const Type *type_arg,
 		const Type *type_enf,
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		NoeudExpression *racine)
 {
 	auto inst = static_cast<NoeudExpressionUnaire *>(racine);
 	auto lexeme = inst->expr->lexeme;
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -265,10 +265,10 @@ void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const Type *type_gauche,
 		const Type *type_droite,
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		const Lexeme *lexeme)
 {
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -292,10 +292,10 @@ void redefinition_symbole(const Compilatrice &compilatrice, const Lexeme *lexeme
 void lance_erreur_type_operation(
 		const Type *type_gauche,
 		const Type *type_droite,
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		const Lexeme *lexeme)
 {
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -317,11 +317,11 @@ void lance_erreur_type_operation(
 }
 
 void type_indexage(
-		const Compilatrice &compilatrice,
+		EspaceDeTravail const &espace,
 		const NoeudExpression *noeud)
 {
 	auto lexeme = noeud->lexeme;
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -343,12 +343,12 @@ void type_indexage(
 }
 
 void lance_erreur_fonction_inconnue(
-		Compilatrice const &compilatrice,
+		EspaceDeTravail const &espace,
 		NoeudExpression *b,
 		dls::tablet<DonneesCandidate, 10> const &candidates)
 {
 	auto const &lexeme = b->lexeme;
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -382,7 +382,7 @@ void lance_erreur_fonction_inconnue(
 
 		if (decl != nullptr) {
 			auto const &lexeme_df = decl->lexeme;
-			auto fichier_df = compilatrice.fichier(lexeme_df->fichier);
+			auto fichier_df = espace.fichier(lexeme_df->fichier);
 			auto pos_df = position_lexeme(*lexeme_df);
 
 			ss << ' ' << decl->ident->nom
@@ -516,7 +516,7 @@ void lance_erreur_fonction_inconnue(
 		}
 
 #ifdef NON_SUR
-		if (candidate->arg_pointeur && !compilatrice.non_sur()) {
+		if (candidate->arg_pointeur && !espace.non_sur()) {
 			/* À FAIRE : trouve le lexeme correspondant à l'argument. */
 			ss << "\tNe peut appeler une fonction avec un argument pointé hors d'un bloc 'nonsûr'\n"
 			type_erreur = erreur::type_erreur::APPEL_INVALIDE
@@ -530,13 +530,13 @@ void lance_erreur_fonction_inconnue(
 }
 
 void lance_erreur_fonction_nulctx(
-			Compilatrice const &compilatrice,
+			EspaceDeTravail const &espace,
 			NoeudExpression const *appl_fonc,
 			NoeudExpression const *decl_fonc,
 			NoeudExpression const *decl_appel)
 {
 	auto const &lexeme = appl_fonc->lexeme;
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -559,13 +559,13 @@ void lance_erreur_fonction_nulctx(
 	   << " qui a été déclarée sans contexte via #!nulctx.\n";
 
 	ss << "\n« " << decl_fonc->ident->nom << " » est déclarée ici :\n";
-	fichier = compilatrice.fichier(decl_fonc->lexeme->fichier);
+	fichier = espace.fichier(decl_fonc->lexeme->fichier);
 	auto pos_decl = position_lexeme(*decl_fonc->lexeme);
 	ss << fichier->chemin << ':' << pos_decl.numero_ligne << '\n' << '\n';
 	ss << fichier->tampon[pos_decl.index_ligne];
 
 	ss << "\n« " << appl_fonc->ident->nom << " » est déclarée ici :\n";
-	fichier = compilatrice.fichier(decl_appel->lexeme->fichier);
+	fichier = espace.fichier(decl_appel->lexeme->fichier);
 	auto pos_appel = position_lexeme(*decl_appel->lexeme);
 	ss << fichier->chemin << ':' << pos_appel.numero_ligne << '\n' << '\n';
 	ss << fichier->tampon[pos_appel.index_ligne];
@@ -576,14 +576,14 @@ void lance_erreur_fonction_nulctx(
 }
 
 void lance_erreur_acces_hors_limites(
-			Compilatrice const &compilatrice,
+			EspaceDeTravail const &espace,
 			NoeudExpression *b,
 			long taille_tableau,
 			Type *type_tableau,
 			long index_acces)
 {
 	auto const &lexeme = b->lexeme;
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -611,7 +611,7 @@ void lance_erreur_acces_hors_limites(
 }
 
 void lance_erreur_type_operation(
-			Compilatrice const &compilatrice,
+			EspaceDeTravail const &espace,
 			NoeudExpression *b)
 {
 	// soit l'opérateur n'a pas de surcharge (le typage n'est pas bon)
@@ -619,7 +619,7 @@ void lance_erreur_type_operation(
 	// soit l'opérateur n'est pas défini pour le type
 
 	auto const &lexeme = b->lexeme;
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -677,7 +677,7 @@ void lance_erreur_type_operation(
 }
 
 void lance_erreur_type_operation_unaire(
-			Compilatrice const &compilatrice,
+			EspaceDeTravail const &espace,
 			NoeudExpression *b)
 {
 	// soit l'opérateur n'a pas de surcharge (le typage n'est pas bon)
@@ -685,7 +685,7 @@ void lance_erreur_type_operation_unaire(
 	// soit l'opérateur n'est pas défini pour le type
 
 	auto const &lexeme = b->lexeme;
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -745,7 +745,7 @@ static auto trouve_candidat(
 }
 
 [[noreturn]] static void genere_erreur_membre_inconnu(
-			Compilatrice &compilatrice,
+			EspaceDeTravail const &espace,
 			NoeudExpression *acces,
 			NoeudExpression *structure,
 			NoeudExpression *membre,
@@ -755,7 +755,7 @@ static auto trouve_candidat(
 	auto candidat = trouve_candidat(membres, membre->ident->nom);
 
 	auto const &lexeme = acces->lexeme;
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -798,7 +798,7 @@ static auto trouve_candidat(
 }
 
 void membre_inconnu(
-			Compilatrice &compilatrice,
+			EspaceDeTravail const &espace,
 			NoeudExpression *acces,
 			NoeudExpression *structure,
 			NoeudExpression *membre,
@@ -825,18 +825,18 @@ void membre_inconnu(
 		message = "de la structure";
 	}
 
-	genere_erreur_membre_inconnu(compilatrice, acces, structure, membre, membres, message);
+	genere_erreur_membre_inconnu(espace, acces, structure, membre, membres, message);
 }
 
 void membre_inactif(
-			Compilatrice &compilatrice,
+			EspaceDeTravail const &espace,
 			ContexteValidationCode &contexte,
 			NoeudExpression *acces,
 			NoeudExpression *structure,
 			NoeudExpression *membre)
 {
 	auto const &lexeme = acces->lexeme;
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];
@@ -864,12 +864,12 @@ void membre_inactif(
 }
 
 void valeur_manquante_discr(
-			Compilatrice &compilatrice,
+			EspaceDeTravail const &espace,
 			NoeudExpression *expression,
 			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes)
 {
 	auto const &lexeme = expression->lexeme;
-	auto fichier = compilatrice.fichier(lexeme->fichier);
+	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
 	auto ligne = fichier->tampon[pos.index_ligne];

@@ -90,7 +90,7 @@ NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression *noeud)
 }
 
 NoeudDeclaration *trouve_dans_bloc_ou_module(
-		Compilatrice const &compilatrice,
+		EspaceDeTravail const &espace,
 		NoeudBloc *bloc,
 		IdentifiantCode *ident,
 		Fichier *fichier)
@@ -106,7 +106,7 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
 	/* cherche dans les modules importés */
 	dls::pour_chaque_element(fichier->modules_importes, [&](auto &nom_module)
 	{
-		auto module = compilatrice.module(nom_module);
+		auto module = espace.module(nom_module);
 
 		decl = trouve_dans_bloc(module->bloc, ident);
 
@@ -147,7 +147,7 @@ NoeudDeclaration *trouve_type_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 }
 
 NoeudDeclaration *trouve_type_dans_bloc_ou_module(
-		Compilatrice const &compilatrice,
+		EspaceDeTravail const &espace,
 		NoeudBloc *bloc,
 		IdentifiantCode *ident,
 		Fichier *fichier)
@@ -163,7 +163,7 @@ NoeudDeclaration *trouve_type_dans_bloc_ou_module(
 	/* cherche dans les modules importés */
 	dls::pour_chaque_element(fichier->modules_importes, [&](auto &nom_module)
 	{
-		auto module = compilatrice.module(nom_module);
+		auto module = espace.module(nom_module);
 
 		decl = trouve_type_dans_bloc(module->bloc, ident);
 
@@ -199,7 +199,7 @@ void trouve_declarations_dans_bloc(
 }
 
 void trouve_declarations_dans_bloc_ou_module(
-		Compilatrice const &compilatrice,
+		EspaceDeTravail const &espace,
 		dls::tableau<NoeudDeclaration *> &declarations,
 		NoeudBloc *bloc,
 		IdentifiantCode *ident,
@@ -212,7 +212,7 @@ void trouve_declarations_dans_bloc_ou_module(
 	/* cherche dans les modules importés */
 	dls::pour_chaque_element(fichier->modules_importes, [&](auto& nom_module)
 	{
-		auto module = compilatrice.module(nom_module);
+		auto module = espace.module(nom_module);
 		trouve_declarations_dans_bloc(declarations, module->bloc, ident);
 		return dls::DecisionIteration::Continue;
 	});

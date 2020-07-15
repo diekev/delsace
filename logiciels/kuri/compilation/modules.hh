@@ -83,7 +83,7 @@ struct Module {
 	dls::chaine chemin{""};
 	bool importe = false;
 
-	Module(Compilatrice const &compilatrice);
+	Module(EspaceDeTravail const &espace);
 
 	~Module();
 
@@ -100,7 +100,7 @@ struct PositionLexeme {
 
 PositionLexeme position_lexeme(Lexeme const &lexeme);
 
-void imprime_fichier_ligne(Compilatrice &compilatrice, Lexeme const &lexeme);
+void imprime_fichier_ligne(EspaceDeTravail &espace, Lexeme const &lexeme);
 
 /* ************************************************************************** */
 
@@ -111,10 +111,11 @@ NoeudDeclarationFonction *cherche_fonction_dans_module(
 
 NoeudDeclarationFonction *cherche_fonction_dans_module(
 		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		dls::vue_chaine_compacte const &nom_module,
 		dls::vue_chaine_compacte const &nom_fonction);
 
 NoeudDeclaration *cherche_symbole_dans_module(
-		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
 		dls::vue_chaine_compacte const &nom_module,
 		IdentifiantCode *ident);
