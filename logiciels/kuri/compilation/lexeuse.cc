@@ -195,7 +195,7 @@ Lexeuse::Lexeuse(Compilatrice &compilatrice, Fichier *fichier, int drapeaux)
 
 void Lexeuse::performe_lexage()
 {
-	PROFILE_FONCTION;
+	Prof(performe_lexage);
 
 #define POUSSE_CARACTERE(id) \
 	this->enregistre_pos_mot(); \
@@ -770,7 +770,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant, kuri::chaine valeur)
 
 void Lexeuse::lexe_commentaire()
 {
-	PROFILE_FONCTION;
+	Prof(lexe_commentaire);
 
 	if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
 		this->enregistre_pos_mot();
@@ -793,7 +793,7 @@ void Lexeuse::lexe_commentaire()
 
 void Lexeuse::lexe_commentaire_bloc()
 {
-	PROFILE_FONCTION;
+	Prof(lexe_commentaire_bloc);
 
 	if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
 		this->enregistre_pos_mot();
@@ -840,7 +840,7 @@ void Lexeuse::lexe_commentaire_bloc()
 
 void Lexeuse::lexe_nombre()
 {
-	PROFILE_FONCTION;
+	Prof(lexe_nombre);
 
 	this->enregistre_pos_mot();
 
@@ -868,7 +868,7 @@ void Lexeuse::lexe_nombre()
 
 void Lexeuse::lexe_nombre_decimal()
 {
-	PROFILE_FONCTION;
+	Prof(lexe_nombre_decimal);
 
 	unsigned long long resultat_entier = 0;
 	unsigned nombre_de_chiffres = 0;
@@ -952,7 +952,7 @@ void Lexeuse::lexe_nombre_decimal()
 
 void Lexeuse::lexe_nombre_hexadecimal()
 {
-	PROFILE_FONCTION;
+	Prof(lexe_nombre_hexadecimal);
 
 	this->avance_fixe<2>();
 
@@ -995,7 +995,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
 
 void Lexeuse::lexe_nombre_binaire()
 {
-	PROFILE_FONCTION;
+	Prof(lexe_nombre_binaire);
 
 	this->avance_fixe<2>();
 
@@ -1035,7 +1035,7 @@ void Lexeuse::lexe_nombre_binaire()
 
 void Lexeuse::lexe_nombre_octal()
 {
-	PROFILE_FONCTION;
+	Prof(lexe_nombre_octal);
 
 	this->avance_fixe<2>();
 
@@ -1105,7 +1105,7 @@ static int hex_depuis_char(char c)
  */
 unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 {
-	PROFILE_FONCTION;
+	Prof(lexe_caractere_litteral);
 
 	auto c = this->caractere_courant();
 	this->avance_fixe<1>();

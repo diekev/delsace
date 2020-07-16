@@ -24,46 +24,35 @@
 
 #include "profilage.hh"
 
-#include "biblinternes/structures/tableau.hh"
-
-#include <iostream>
-
-InfoProfilage s_info_profilage;
-
-static void imprime_infos_profilage()
+void imprime_profilage(std::ostream &os)
 {
-	auto premier_info = s_info_profilage.premiere;
+	Prof_update(1);
 
-	dls::tableau<InfoProfilage *> donnees;
+	Prof_set_report_mode(Prof_Report_Mode::Prof_SELF_TIME);
 
-	while (premier_info != nullptr) {
-		donnees.pousse(premier_info);
-		//std::cerr << premier_info->fonction << " : " << premier_info->temps << "µs\n";
-		premier_info = premier_info->suivante;
+	auto pob = Prof_create_report();
+
+	for (auto i = 0; i < pob->num_record; ++i) {
+		auto record = pob->record[i];
+
+		for (auto j = 0; j < record.indent; ++j) {
+			os << ' ';
+		}
+
+		if (record.prefix) {
+			os << record.prefix << ' ';
+		}
+
+		os << record.name << ' ';
+
+		for (auto j = 0; j < 4; ++j) {
+			if (record.value_flag & (1 << j)) {
+				os << record.values[j] * 100.0 << ' ';
+			}
+		}
+
+		os << '\n';
 	}
 
-	std::sort(donnees.debut(), donnees.fin(), [](InfoProfilage const *a, InfoProfilage const *b)
-	{
-		return a->temps > b->temps;
-	});
-
-	for (auto &info : donnees) {
-		std::cerr << info->fonction << " : " << info->temps << "µs (appels : " << info->nombre_appels << ")\n";
-	}
-}
-
-Chronometre::Chronometre(InfoProfilage &info)
-	: m_info(info)
-{
-	m_temps.commence();
-}
-
-Chronometre::~Chronometre()
-{
-	m_info.temps += m_temps.temps();
-}
-
-ImprimeuseTemps::~ImprimeuseTemps()
-{
-	imprime_infos_profilage();
+	Prof_free_report(pob);
 }

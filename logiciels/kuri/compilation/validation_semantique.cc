@@ -90,7 +90,7 @@ void ContexteValidationCode::renseigne_membre_actif(const dls::vue_chaine_compac
 
 bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 {
-	PROFILE_FONCTION;
+	Prof(valide_semantique_noeud);
 
 	switch (noeud->genre) {
 		case GenreNoeud::INSTRUCTION_SINON:
@@ -2121,7 +2121,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expression_membre)
 {
-	PROFILE_FONCTION;
+	Prof(valide_acces_membre);
 
 	auto structure = expression_membre->accede;
 	auto membre = expression_membre->membre;
@@ -2219,7 +2219,7 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 
 bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl)
 {
-	PROFILE_FONCTION;
+	Prof(valide_type_fonction);
 
 	commence_fonction(decl);
 
@@ -2924,7 +2924,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 bool ContexteValidationCode::resoud_type_final(NoeudExpression *expression_type, Type *&type_final)
 {
-	PROFILE_FONCTION;
+	Prof(resoud_type_final);
 
 	if (expression_type == nullptr) {
 		type_final = nullptr;

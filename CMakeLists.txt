@@ -157,6 +157,7 @@ set(REQUIERS_DOCOPT ON) # 'ON' par défaut pour l'instant car besoin dans les bi
 set(REQUIERS_KELVINLET OFF)
 set(REQUIERS_PATATE OFF)
 set(REQUIERS_VORO OFF)
+set(REQUIERS_IPROF ON)
 
 # Options pour les bibliothèques internes
 set(REQUIERS_BIB_BRUIT OFF)

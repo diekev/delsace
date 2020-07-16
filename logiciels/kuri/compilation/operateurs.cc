@@ -469,7 +469,7 @@ OperateurBinaire *Operateurs::ajoute_basique(
 		Type *type_resultat,
 		IndiceTypeOp indice_type)
 {
-	PROFILE_FONCTION;
+	Prof(Operateurs_ajoute_basique);
 
 	assert(type1);
 	assert(type2);
@@ -486,7 +486,7 @@ OperateurBinaire *Operateurs::ajoute_basique(
 
 void Operateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat)
 {
-	PROFILE_FONCTION;
+	Prof(Operateurs_ajoute_basique_unaire);
 
 	auto op = operateurs_unaires[id].ajoute_element();
 	op->type_operande = type;
@@ -502,7 +502,7 @@ void Operateurs::ajoute_perso(
 		Type *type_resultat,
 		NoeudDeclarationFonction *decl)
 {
-	PROFILE_FONCTION;
+	Prof(Operateurs_ajoute_perso);
 
 	auto op = operateurs_binaires[id].ajoute_element();
 	op->type1 = type1;
@@ -519,7 +519,7 @@ void Operateurs::ajoute_perso_unaire(
 		Type *type_resultat,
 		NoeudDeclarationFonction *decl)
 {
-	PROFILE_FONCTION;
+	Prof(Operateurs_ajoute_unaire);
 
 	auto op = operateurs_unaires[id].ajoute_element();
 	op->type_operande = type;
@@ -593,7 +593,7 @@ bool cherche_candidats_operateurs(
 		GenreLexeme type_op,
 		dls::tablet<OperateurCandidat, 10> &candidats)
 {
-	PROFILE_FONCTION;
+	Prof(cherche_candidats_operateurs);
 
 	assert(type1);
 	assert(type2);
@@ -683,7 +683,7 @@ const OperateurUnaire *cherche_operateur_unaire(
 		Type *type1,
 		GenreLexeme type_op)
 {
-	PROFILE_FONCTION;
+	Prof(cherche_operateur_unaire);
 
 	auto &iter = operateurs.trouve_unaire(type_op);
 

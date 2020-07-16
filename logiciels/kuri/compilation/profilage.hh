@@ -24,61 +24,14 @@
 
 #pragma once
 
-#include "biblinternes/chrono/chronometrage.hh"
+#include <iostream>
 
 #undef PROFILAGE
 
-struct InfoProfilage {
-	InfoProfilage *premiere = nullptr;
-	InfoProfilage *derniere = nullptr;
-	InfoProfilage *suivante = nullptr;
-	InfoProfilage *precedente = nullptr;
-	double temps = 0.0;
-	const char *fonction = nullptr;
-	int nombre_appels = 0;
-};
-
-extern InfoProfilage s_info_profilage;
-
-struct Chronometre {
-	dls::chrono::compte_microseconde m_temps{};
-	InfoProfilage &m_info;
-
-	Chronometre(InfoProfilage &info);
-
-	~Chronometre();
-};
-
-struct ImprimeuseTemps {
-	ImprimeuseTemps() = default;
-
-	~ImprimeuseTemps();
-};
-
 #ifdef PROFILAGE
-#define INITIALISE_PROFILAGE \
-	auto imprimeuse = ImprimeuseTemps()
-#else
-#define INITIALISE_PROFILAGE
+#define Prof_ENABLED
 #endif
 
-#ifdef PROFILAGE
-#define PROFILE_FONCTION \
-	static InfoProfilage info_profilage; \
-	if (s_info_profilage.premiere == nullptr) { \
-		s_info_profilage.premiere = &info_profilage; \
-		s_info_profilage.derniere = &info_profilage; \
-	} \
-	else if (info_profilage.precedente == nullptr) { \
-		if (s_info_profilage.derniere != nullptr) { \
-			s_info_profilage.derniere->suivante = &info_profilage; \
-		} \
-		info_profilage.precedente = s_info_profilage.derniere; \
-		s_info_profilage.derniere = &info_profilage; \
-	} \
-	info_profilage.fonction = __func__; \
-	info_profilage.nombre_appels += 1; \
-	auto chrono_profile = Chronometre(info_profilage);
-#else
-#define PROFILE_FONCTION
-#endif
+#include "biblexternes/iprof/prof.h"
+
+void imprime_profilage(std::ostream &os);

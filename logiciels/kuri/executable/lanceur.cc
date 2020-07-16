@@ -54,6 +54,8 @@
 #include "coulisse_llvm/generation_code_llvm.hh"
 #endif
 
+#include "biblexternes/iprof/prof.h"
+
 #include <thread>
 
 #include "compilation/assembleuse_arbre.h"
@@ -69,6 +71,7 @@
 
 #include "options.hh"
 
+#include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/format.hh"
 #include "biblinternes/outils/tableau_donnees.hh"
 #include "biblinternes/structures/flux_chaine.hh"
@@ -180,7 +183,7 @@ static void initialise_optimisation(
 
 static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module &module)
 {
-	PROFILE_FONCTION;
+	Prof(ecris_fichier_objet);
 #if 1
 	auto chemin_sortie = "/tmp/kuri.o";
 	std::error_code ec;
@@ -228,7 +231,7 @@ static bool valide_llvm_ir(llvm::Module &module)
 
 static bool cree_executable(const kuri::chaine &dest, const std::filesystem::path &racine_kuri)
 {
-	PROFILE_FONCTION;
+	Prof(cree_executable);
 	/* Compile le fichier objet qui appelera 'fonction principale'. */
 	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
 		auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";
@@ -282,7 +285,7 @@ static void imprime_stats(
 		Metriques const &metriques,
 		dls::chrono::compte_seconde debut_compilation)
 {
-	PROFILE_FONCTION;
+	Prof(imprime_stats);
 	auto const temps_total = debut_compilation.temps();
 
 	auto const temps_scene = metriques.temps_tampon
@@ -751,8 +754,7 @@ static int genere_code_coulisse(
 
 int main(int argc, char *argv[])
 {
-	INITIALISE_PROFILAGE;
-	PROFILE_FONCTION;
+	Prof(main);
 
 	std::ios::sync_with_stdio(false);
 
@@ -872,6 +874,10 @@ int main(int argc, char *argv[])
 
 #ifdef AVEC_LLVM
 	issitialise_llvm();
+#endif
+
+#ifdef PROFILAGE
+	imprime_profilage(std::cerr);
 #endif
 
 	return resultat;

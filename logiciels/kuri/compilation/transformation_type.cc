@@ -83,7 +83,7 @@ bool cherche_transformation(
 		Type *type_vers,
 		TransformationType &transformation)
 {
-	PROFILE_FONCTION;
+	Prof(cherche_transformation);
 
 	if (type_de == type_vers) {
 		transformation = TypeTransformation::INUTILE;

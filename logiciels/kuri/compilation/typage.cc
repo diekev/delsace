@@ -571,7 +571,7 @@ Type *Typeuse::type_pour_lexeme(GenreLexeme lexeme)
 
 TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 {
-	PROFILE_FONCTION;
+	Prof(type_pointeur_pour);
 
 	auto types_pointeurs_ = types_pointeurs.verrou_ecriture();
 
@@ -630,7 +630,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 
 TypeReference *Typeuse::type_reference_pour(Type *type)
 {
-	PROFILE_FONCTION;
+	Prof(type_reference_pour);
 
 	auto types_references_ = types_references.verrou_ecriture();
 
@@ -653,7 +653,7 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
 
 TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 {
-	PROFILE_FONCTION;
+	Prof(type_tableau_fixe);
 
 	auto types_tableaux_fixes_ = types_tableaux_fixes.verrou_ecriture();
 
@@ -682,7 +682,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 
 TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 {
-	PROFILE_FONCTION;
+	Prof(type_tableau_dynamique);
 
 	auto types_tableaux_dynamiques_ = types_tableaux_dynamiques.verrou_ecriture();
 
@@ -711,7 +711,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 
 TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 {
-	PROFILE_FONCTION;
+	Prof(type_variadique);
 
 	auto types_variadiques_ = types_variadiques.verrou_ecriture();
 
@@ -765,7 +765,7 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, const kuri::tableau
 
 TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties)
 {
-	PROFILE_FONCTION;
+	Prof(type_fonction);
 
 	auto types_fonctions_ = types_fonctions.verrou_ecriture();
 
@@ -809,7 +809,7 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 
 TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
 {
-	PROFILE_FONCTION;
+	Prof(type_type_de_donnees);
 
 	if (type_connu == nullptr) {
 		return type_type_de_donnees_;
@@ -872,7 +872,7 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
 
 TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
 {
-	PROFILE_FONCTION;
+	Prof(union_anonyme);
 
 	auto types_unions_ = types_unions.verrou_ecriture();
 
@@ -924,7 +924,7 @@ TypeEnum *Typeuse::reserve_type_erreur(NoeudEnum *decl)
 
 TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
 {
-	PROFILE_FONCTION;
+	Prof(cree_polymorphique);
 
 	auto types_polymorphiques_ = types_polymorphiques.verrou_ecriture();
 
@@ -1248,7 +1248,7 @@ dls::chaine chaine_type(const Type *type)
 
 Type *type_dereference_pour(Type *type)
 {
-	PROFILE_FONCTION;
+	Prof(type_dereference_pour);
 
 	if (type->genre == GenreType::TABLEAU_FIXE) {
 		return static_cast<TypeTableauFixe *>(type)->type_pointe;
@@ -1316,7 +1316,7 @@ bool est_type_conditionnable(Type *type)
 
 Type *apparie_type_gabarit(Type *type, Type *type_polymorphique)
 {
-	PROFILE_FONCTION;
+	Prof(apparie_type_gabarit);
 
 	auto type_courant = type;
 	auto type_courant_poly = type_polymorphique;

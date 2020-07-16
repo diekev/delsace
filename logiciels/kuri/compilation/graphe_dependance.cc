@@ -46,7 +46,7 @@ std::ostream &operator<<(std::ostream &os, TypeRelation type)
 
 NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationFonction *noeud_syntaxique)
 {
-	PROFILE_FONCTION;
+	Prof(cree_noeud_fonction);
 
 	if (noeud_syntaxique->noeud_dependance == nullptr) {
 		auto noeud = noeuds.ajoute_element();
@@ -61,7 +61,7 @@ NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationFonction 
 
 NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique)
 {
-	PROFILE_FONCTION;
+	Prof(cree_noeud_globale);
 
 	if (noeud_syntaxique->noeud_dependance == nullptr) {
 		auto noeud = noeuds.ajoute_element();
@@ -76,7 +76,7 @@ NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *
 
 NoeudDependance *GrapheDependance::cree_noeud_type(Type *type)
 {
-	PROFILE_FONCTION;
+	Prof(cree_noeud_type);
 
 	if (type->noeud_dependance == nullptr) {
 		auto noeud = noeuds.ajoute_element();
@@ -91,7 +91,7 @@ NoeudDependance *GrapheDependance::cree_noeud_type(Type *type)
 
 NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_compacte &nom) const
 {
-	PROFILE_FONCTION;
+	Prof(cherche_noeud_fonction);
 
 	POUR_TABLEAU_PAGE(noeuds) {
 		if (it.type != TypeNoeudDependance::FONCTION) {
@@ -110,7 +110,7 @@ NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_
 
 void GrapheDependance::connecte_type_type(NoeudDependance &type1, NoeudDependance &type2, TypeRelation type_rel)
 {
-	PROFILE_FONCTION;
+	Prof(connecte_type_type);
 
 	assert(type1.type == TypeNoeudDependance::TYPE);
 	assert(type2.type == TypeNoeudDependance::TYPE);
@@ -137,7 +137,7 @@ void GrapheDependance::connecte_noeuds(
 		NoeudDependance &noeud2,
 		TypeRelation type_relation)
 {
-	PROFILE_FONCTION;
+	Prof(connecte_noeuds);
 
 	for (auto const &relation : noeud1.relations) {
 		if (relation.type == type_relation && relation.noeud_fin == &noeud2) {
@@ -164,7 +164,7 @@ void GrapheDependance::ajoute_dependances(
 		NoeudDependance &noeud,
 		DonneesDependance &donnees)
 {
-	PROFILE_FONCTION;
+	Prof(ajoute_dependances);
 
 	dls::pour_chaque_element(donnees.types_utilises, [&](auto &type)
 	{
@@ -266,7 +266,7 @@ static void marque_chemins_atteignables(NoeudDependance &noeud)
 
 void reduction_transitive(GrapheDependance &graphe_dependance)
 {
-	PROFILE_FONCTION;
+	Prof(reduction_transitive);
 
 	std::cout << "Réduction transitive du graphe..." << std::endl;
 

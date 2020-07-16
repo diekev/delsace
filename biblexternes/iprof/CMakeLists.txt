@@ -14,13 +14,26 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2019 Kévin Dietrich.
+# The Original Code is Copyright (C) 2020 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-ajoute_sousdossier(REQUIERS_DOCOPT docopt)
-ajoute_sousdossier(REQUIERS_KELVINLET kelvinlet)
-ajoute_sousdossier(REQUIERS_PATATE Patate)
-ajoute_sousdossier(REQUIERS_VORO voro)
-ajoute_sousdossier(REQUIERS_IPROF iprof)
+set(NOM_BIBLIOTHEQUE iprof)
+
+set(SOURCES
+    prof.h
+    prof_draw.c
+    prof_gather.c
+    prof_gather.h
+    prof_internal.h
+    prof_process.c
+)
+
+add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES})
+
+get_target_property(EXTLIB_COMPILE_FLAGS ${NOM_BIBLIOTHEQUE} COMPILE_OPTIONS)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Werror)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wimplicit-int)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wunused-variable)
+set_target_properties(${NOM_BIBLIOTHEQUE} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")

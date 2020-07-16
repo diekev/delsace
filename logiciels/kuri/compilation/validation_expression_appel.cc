@@ -53,7 +53,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 		NoeudExpression *appelee,
 		dls::tableau<CandidateExpressionAppel> &candidates)
 {
-	PROFILE_FONCTION;
+	Prof(trouve_candidates_pour_fonction_appelee);
 
 	auto fichier = espace.fichier(appelee->lexeme->fichier);
 
@@ -150,7 +150,7 @@ static std::pair<bool, double> verifie_compatibilite(
 		NoeudExpression *enfant,
 		TransformationType &transformation)
 {
-	PROFILE_FONCTION;
+	Prof(verifie_compatibilite_appel);
 
 	if (cherche_transformation(espace, contexte, type_enf, type_arg, transformation)) {
 		return { true, 0.0 };
@@ -181,7 +181,7 @@ static auto apparie_appel_pointeur(
 		kuri::tableau<IdentifiantEtExpression> const &args,
 		DonneesCandidate &resultat)
 {
-	PROFILE_FONCTION;
+	Prof(apparie_appel_pointeur);
 
 	if (type->genre != GenreType::FONCTION) {
 		resultat.etat = FONCTION_INTROUVEE;
@@ -284,7 +284,7 @@ static auto apparie_appel_init_de(
 		NoeudExpression *expr,
 		kuri::tableau<IdentifiantEtExpression> const &args)
 {
-	PROFILE_FONCTION;
+	Prof(apparie_appel_init_de);
 
 	auto resultat = DonneesCandidate{};
 
@@ -330,7 +330,7 @@ static auto apparie_appel_fonction(
 		kuri::tableau<IdentifiantEtExpression> const &args,
 		DonneesCandidate &res)
 {
-	PROFILE_FONCTION;
+	Prof(apparie_appel_fonction);
 
 	res.note = CANDIDATE_EST_APPEL_FONCTION;
 	res.noeud_decl = decl;
@@ -688,7 +688,7 @@ static auto apparie_appel_structure(
 		kuri::tableau<IdentifiantEtExpression> const &arguments,
 		DonneesCandidate &resultat)
 {
-	PROFILE_FONCTION;
+	Prof(apparie_appel_structure);
 
 	auto type_struct = static_cast<TypeStructure *>(decl_struct->type);
 
@@ -813,7 +813,7 @@ static auto trouve_candidates_pour_appel(
 		kuri::tableau<IdentifiantEtExpression> &args,
 		dls::tablet<DonneesCandidate, 10> &resultat)
 {
-	PROFILE_FONCTION;
+	Prof(trouve_candidates_pour_appel);
 
 	auto candidates_appel = dls::tableau<CandidateExpressionAppel>();
 	if (trouve_candidates_pour_fonction_appelee(contexte, espace, expr->appelee, candidates_appel)) {
@@ -960,7 +960,7 @@ bool valide_appel_fonction(
 		ContexteValidationCode &contexte,
 		NoeudExpressionAppel *expr)
 {
-	PROFILE_FONCTION;
+	Prof(valide_appel_fonction);
 
 	auto fonction_courante = contexte.fonction_courante;
 	auto &donnees_dependance = contexte.donnees_dependance;

@@ -33,7 +33,7 @@
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 {
-	PROFILE_FONCTION;
+	Prof(trouve_ident_dans_bloc);
 
 	auto bloc_courant = bloc;
 
@@ -53,7 +53,7 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl)
 {
-	PROFILE_FONCTION;
+	Prof(trouve_decl_dans_bloc);
 
 	auto bloc_courant = bloc;
 
@@ -73,7 +73,7 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl)
 
 NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression *noeud)
 {
-	PROFILE_FONCTION;
+	Prof(trouve_decl_dans_bloc_seul);
 
 	auto membres = bloc->membres.verrou_lecture();
 	POUR (*membres) {
@@ -95,7 +95,7 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
 		IdentifiantCode *ident,
 		Fichier *fichier)
 {
-	PROFILE_FONCTION;
+	Prof(trouve_ident_dans_bloc_ou_module);
 
 	auto decl = trouve_dans_bloc(bloc, ident);
 
@@ -122,7 +122,7 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
 
 NoeudDeclaration *trouve_type_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 {
-	PROFILE_FONCTION;
+	Prof(trouve_type_dans_bloc);
 
 	auto bloc_courant = bloc;
 
@@ -152,7 +152,7 @@ NoeudDeclaration *trouve_type_dans_bloc_ou_module(
 		IdentifiantCode *ident,
 		Fichier *fichier)
 {
-	PROFILE_FONCTION;
+	Prof(trouve_type_dans_bloc_ou_module);
 
 	auto decl = trouve_type_dans_bloc(bloc, ident);
 
@@ -182,7 +182,7 @@ void trouve_declarations_dans_bloc(
 		NoeudBloc *bloc,
 		IdentifiantCode *ident)
 {
-	PROFILE_FONCTION;
+	Prof(trouve_declarations_dans_bloc);
 
 	auto bloc_courant = bloc;
 
@@ -205,7 +205,7 @@ void trouve_declarations_dans_bloc_ou_module(
 		IdentifiantCode *ident,
 		Fichier *fichier)
 {
-	PROFILE_FONCTION;
+	Prof(trouve_declarations_dans_bloc_ou_module);
 
 	trouve_declarations_dans_bloc(declarations, bloc, ident);
 
@@ -241,7 +241,7 @@ bool bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle)
 
 NoeudExpression *derniere_instruction(NoeudBloc *b)
 {
-	PROFILE_FONCTION;
+	Prof(derniere_instruction);
 
 	auto expressions = b->expressions.verrou_lecture();
 	auto taille = expressions->taille;

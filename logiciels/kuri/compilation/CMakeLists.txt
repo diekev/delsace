@@ -33,6 +33,7 @@ set(BIBLIOTHEQUES
 	bib_moultfilage
 	bib_structures
 	memoire
+	iprof
 )
 
 set(SOURCES
