@@ -27,6 +27,7 @@
 #include <mutex>
 
 #include "biblinternes/moultfilage/boucle.hh"
+#include "biblinternes/nombre_decimaux/quatification.h"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
@@ -759,6 +760,140 @@ public:
 		}
 
 		calcul_normaux(m_corps, location, pesee, inverse_normaux);
+
+		return res_exec::REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+// quantifie et déquantifie sur 15-bits (32768 = 2 ^ 15)
+inline unsigned short quantifie(float f)
+{
+	return static_cast<unsigned short>(f * (32768.0f - 1.0f)) & 0x7fff;
+}
+
+inline auto dequantifie(unsigned short i)
+{
+	return static_cast<float>(i) * (1.0f / (32768.0f - 1.0f));
+}
+
+// https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/
+// https://johnwhite3d.blogspot.com/2017/10/signed-octahedron-normal-encoding.html
+class OperatriceCompressionNormaux final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Compression Normaux";
+	static constexpr auto AIDE = "Compresse les normaux dans un nouvel attribut pour les maillages par une projection octahédrale.";
+
+	OperatriceCompressionNormaux(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_3d_compression_normaux.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		auto chaine_nom_attribut_entree = evalue_chaine("nom_attribut_entrée");
+		auto chaine_nom_attribut_sortie = evalue_chaine("nom_attribut_sortie");
+		auto visualise = evalue_bool("visualise");
+
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
+			return res_exec::ECHOUEE;
+		}
+
+		auto attr_N = m_corps.attribut(chaine_nom_attribut_entree);
+
+		if (attr_N == nullptr) {
+			this->ajoute_avertissement("Aucun attribut d'entrée de ce nom !");
+			return res_exec::ECHOUEE;
+		}
+
+		auto nattr_N = m_corps.ajoute_attribut(chaine_nom_attribut_sortie, type_attribut::N32, 1, attr_N->portee);
+		nattr_N->redimensionne(attr_N->taille());
+
+		auto encode = [](dls::math::vec3f n)
+		{
+			n /= (abs(n.x) + abs(n.y) + abs(n.z));
+
+			auto ny = n.y * 0.5f + 0.5f;
+			auto nx = n.x * 0.5f + ny;
+			ny = n.x * -0.5f + ny;
+
+			auto nz = dls::math::restreint(n.z * std::numeric_limits<float>::max(), 0.0f, 1.0f);
+			return dls::math::vec3f(nx, ny, nz);
+		};
+
+		auto decode = [](dls::math::vec3f n)
+		{
+			dls::math::vec3f resultat;
+			resultat.x = (n.x - n.y);
+			resultat.y = (n.x + n.y) - 1.0f;
+			resultat.z = n.z * 2.0f - 1.0f;
+			resultat.z = resultat.z * (1.0f - abs(resultat.x) - abs(resultat.y));
+			return normalise(resultat);
+		};
+
+		auto quantifie_vec3 = [](dls::math::vec3f const &v)
+		{
+			auto qx = static_cast<unsigned int>(quantifie(v.x));
+			auto qy = static_cast<unsigned int>(quantifie(v.y));
+			auto qz = (v.z > 0.0f) ? 0u : 1u;
+
+			return (qx << 17 | qy << 2 | qz);
+		};
+
+		auto dequantifie_vec3 = [](unsigned int q)
+		{
+			auto ix = (q >> 17) & 0x7fff;
+			auto iy = (q >>  2) & 0x7fff;
+			auto iz = q & 0x3;
+
+			auto x = dequantifie(static_cast<unsigned short>(ix));
+			auto y = dequantifie(static_cast<unsigned short>(iy));
+			auto z = (iz) ? 0.0f : 1.0f;
+
+			return dls::math::vec3f(x, y, z);
+		};
+
+		for (auto i = 0; i < attr_N->taille(); ++i) {
+			auto ptr = attr_N->r32(i);
+			auto n = dls::math::vec3f(ptr[0], ptr[1], ptr[2]);
+			auto r = encode(n);
+			auto q = quantifie_vec3(r);
+			assigne(nattr_N->n32(i), q);
+		}
+
+		if (visualise) {
+			auto nattr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, attr_N->portee);
+			nattr_C->reinitialise();
+			nattr_C->redimensionne(attr_N->taille());
+
+			for (auto i = 0; i < nattr_N->taille(); ++i) {
+				auto ptr = nattr_N->n32(i);
+				auto w = dequantifie_vec3(ptr[0]);
+				auto c = decode(w);
+				assigne(nattr_C->r32(i), c);
+			}
+		}
 
 		return res_exec::REUSSIE;
 	}
@@ -1766,6 +1901,7 @@ void enregistre_operatrices_attributs(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceSuppressionAttribut>());
 	usine.enregistre_type(cree_desc<OperatriceRandomisationAttribut>());
 	usine.enregistre_type(cree_desc<OperatriceCreationNormaux>());
+	usine.enregistre_type(cree_desc<OperatriceCompressionNormaux>());
 	usine.enregistre_type(cree_desc<OpTransfereAttributs>());
 	usine.enregistre_type(cree_desc<OpPromeutAttribut>());
 	usine.enregistre_type(cree_desc<OpVisibiliteCamera>());

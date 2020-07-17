@@ -97,6 +97,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/objet_camera.jo
 	scripts_danjo/objet_lumiere.jo
 	scripts_danjo/operatrice_3d_cercle.jo
+	scripts_danjo/operatrice_3d_compression_normaux.jo
 	scripts_danjo/operatrice_3d_cone.jo
 	scripts_danjo/operatrice_3d_creation_attribut.jo
 	scripts_danjo/operatrice_3d_creation_courbes.jo
