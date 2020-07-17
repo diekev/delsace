@@ -106,7 +106,7 @@ struct ctx_local {
 
 struct ctx_exec {
 	/* Le corps dans notre contexte. */
-	dls::synchronise<Corps *> ptr_corps;
+	dls::synchronise<Corps *> ptr_corps{};
 
 	/* Le corps d'entrée */
 	Corps const *corps = nullptr;
@@ -118,22 +118,22 @@ struct ctx_exec {
 	arbre_3df arbre_kd{};
 
 	/* Toutes les images. */
-	dls::tableau<Image const *> images;
+	dls::tableau<Image const *> images{};
 
 	/* Toutes les caméras. */
-	dls::tableau<vision::Camera3D const *> cameras;
+	dls::tableau<vision::Camera3D const *> cameras{};
 
 	/* Toutes les courbes couleur. */
-	dls::tableau<CourbeCouleur const *> courbes_couleur;
+	dls::tableau<CourbeCouleur const *> courbes_couleur{};
 
 	/* Toutes les courbes valeur. */
-	dls::tableau<CourbeBezier const *> courbes_valeur;
+	dls::tableau<CourbeBezier const *> courbes_valeur{};
 
 	/* Toutes les rampes couleur. */
-	dls::tableau<RampeCouleur const *> rampes_couleur;
+	dls::tableau<RampeCouleur const *> rampes_couleur{};
 
 	/* Toutes les chaines. */
-	dls::tableau<dls::chaine> chaines;
+	dls::tableau<dls::chaine> chaines{};
 
 	/* Si contexte topologie primitive. */
 	//dls::tableau<Corps const *> corps_entrees;

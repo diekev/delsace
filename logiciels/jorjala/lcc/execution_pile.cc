@@ -942,7 +942,7 @@ void execute_pile(
 		int graine)
 {
 	auto compteur = 0;
-	std::mt19937 gna(graine);
+	std::mt19937 gna(static_cast<unsigned long>(graine));
 
 	while (compteur != insts.taille()) {
 		auto inst = insts.charge_inst(compteur);

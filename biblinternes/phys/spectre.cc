@@ -652,7 +652,10 @@ SpectreRGB::SpectreRGB(SpectreRGB const &spectre, TypeSpectre type)
 	: SpectreCoefficient<3>()
 {
 	INUTILISE(type);
-	*this = spectre;
+
+	for (auto i = 0; i < 3; ++i) {
+		m_coefficients[i] = spectre.m_coefficients[i];
+	}
 }
 
 SpectreRGB SpectreRGB::depuis_rgb(float r, float g, float b, TypeSpectre type)
