@@ -82,7 +82,8 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
 	add_compile_options(-Wnull-dereference)
 	# Conditions
 	add_compile_options(-Wduplicated-cond)
-	add_compile_options(-Wduplicated-branches)
+	#add_compile_options(-Wduplicated-branches)
+	add_compile_options(-Wno-error=duplicated-branches)
 	# Operations
 	add_compile_options(-Wlogical-op)
 	# Autres
@@ -114,6 +115,7 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
 	add_compile_options(-fdiagnostics-color=always)
 	add_compile_options(-fsanitize=address)
 	add_compile_options(-fuse-ld=gold)
+	add_compile_options(-Wno-error=deprecated-copy)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address -fuse-ld=gold")
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address -fuse-ld=gold")
 elseif(CMAKE_BUILD_TYPE MATCHES "Profile")
