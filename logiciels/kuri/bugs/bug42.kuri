@@ -1,0 +1,7 @@
+// aucune erreur n'est lancée/compilation infinie quand on accède à une valeur inconnue
+
+principale :: fonc () -> z32
+{
+    a := MonÉnum.Valeur
+    retourne 0
+}
