@@ -78,7 +78,7 @@ using frappe = lng::erreur::frappe<type_erreur>;
 void imprime_ligne_avec_message(
 		dls::flux_chaine &flux,
 		Fichier *fichier,
-		Lexeme *lexeme,
+		Lexeme const *lexeme,
 		const char *message);
 
 [[noreturn]] void lance_erreur(

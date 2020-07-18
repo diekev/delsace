@@ -54,7 +54,7 @@ std::ostream &operator<<(std::ostream &os, type_erreur te)
 void imprime_ligne_avec_message(
 		dls::flux_chaine &flux,
 		Fichier *fichier,
-		Lexeme *lexeme,
+		Lexeme const *lexeme,
 		const char *message)
 {
 	flux << fichier->chemin << ':' << lexeme->ligne + 1 << ':' << lexeme->colonne + 1 << " : ";
