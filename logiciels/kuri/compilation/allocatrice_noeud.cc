@@ -275,5 +275,32 @@ size_t AllocatriceNoeud::nombre_noeuds() const
 	noeuds += static_cast<size_t>(m_noeuds_tableau_args_variadiques.taille());
 	noeuds += static_cast<size_t>(m_noeuds_directive_execution.taille());
 
+#if 0
+#define IMPRIME_NOMBRE_DE_NOEUDS(tableau) \
+	std::cerr << "nombre de "#tableau" : " << tableau.taille() << '\n'
+
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_bloc);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_declaration_variable);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_declaration_fonction);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_enum);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_struct);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_binaire);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_membre);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_reference);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_appel);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_logement);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_unaire);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_boucle);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_pour);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_discr);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_si);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_pousse_contexte);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_tableau_args_variadiques);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_directive_execution);
+
+#undef IMPRIME_NOMBRE_DE_NOEUDS
+#endif
+
 	return noeuds;
 }
