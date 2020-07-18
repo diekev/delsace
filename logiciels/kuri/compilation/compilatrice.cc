@@ -676,6 +676,8 @@ void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chain
 {
 	auto chaine = dls::chaine(c.pointeur, c.taille);
 
+	ptr_compilatrice->chaines_ajoutees_a_la_compilation->pousse(chaine);
+
 	auto module = espace->cree_module("", "");
 	auto fichier = espace->cree_fichier("métaprogramme", "", ptr_compilatrice->importe_kuri);
 	fichier->tampon = lng::tampon_source(chaine);

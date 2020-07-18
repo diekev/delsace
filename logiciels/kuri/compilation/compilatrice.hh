@@ -250,6 +250,8 @@ struct Compilatrice {
 	/* définitions passées au compilateur C pour modifier les fichiers d'entête */
 	tableau_synchrone<dls::vue_chaine_compacte> definitions{};
 
+	tableau_synchrone<dls::chaine> chaines_ajoutees_a_la_compilation{};
+
 	template <typename T>
 	using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
 

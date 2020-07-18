@@ -69,6 +69,7 @@
 
 #include "representation_intermediaire/constructrice_ri.hh"
 
+#include "date.hh"
 #include "options.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
@@ -837,6 +838,20 @@ int main(int argc, char *argv[])
 
 		if (!compilatrice.possede_erreur && genere_code_coulisse(compilatrice, *espace_defaut, ops, temps_executable, temps_fichier_objet)) {
 			compilatrice.possede_erreur = true;
+		}
+
+		if (compilatrice.chaines_ajoutees_a_la_compilation->taille()) {
+			auto fichier_chaines = std::ofstream(".chaines_ajoutées");
+
+			auto d = hui_systeme();
+
+			fichier_chaines << "Fichier créé le " << d.jour << "/" << d.mois << "/" << d.annee
+							<< " à " << d.heure << ':' << d.minute << ':' << d.seconde << "\n\n";
+
+			POUR (*compilatrice.chaines_ajoutees_a_la_compilation.verrou_lecture()) {
+				fichier_chaines << it;
+				fichier_chaines << '\n';
+			}
 		}
 
 		auto temps_ri = constructrice_ri.temps_generation + tacheronne.constructrice_ri.temps_generation;
