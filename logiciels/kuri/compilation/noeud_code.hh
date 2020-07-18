@@ -97,7 +97,7 @@ struct NoeudCodeBoucle : public NoeudCode {
  * synchronisées avec elles.
  */
 
-enum GenreInfoType : int {
+enum class GenreInfoType : int {
 	ENTIER,
 	REEL,
 	BOOLEEN,
