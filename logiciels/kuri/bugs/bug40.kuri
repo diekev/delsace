@@ -1,0 +1,14 @@
+// Ce code ne devrait pas compiler car nous ne pouvons pas savoir s'il faut appeler la fonction ou le pointeur de fonction
+
+foo :: fonc ()
+{
+
+}
+
+foo := foo
+
+principale :: fonc () -> z32
+{
+    foo()
+    retourne 0
+}
