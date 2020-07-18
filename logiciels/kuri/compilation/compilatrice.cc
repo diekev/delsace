@@ -630,25 +630,18 @@ void GeranteChaine::ajoute_chaine(const kuri::chaine &chaine)
 
 /* ************************************************************************** */
 
-static OptionsCompilation *options_compilation = nullptr;
-
-void initialise_options_compilation(OptionsCompilation &option)
-{
-	options_compilation = &option;
-}
-
 OptionsCompilation *obtiens_options_compilation()
 {
-	return options_compilation;
+	return &ptr_compilatrice->espace_de_travail_defaut->options;
 }
 
 void ajourne_options_compilation(OptionsCompilation *options)
 {
-	*options_compilation = *options;
+	ptr_compilatrice->espace_de_travail_defaut->options = *options;
 
-	if (options_compilation->nom_sortie != kuri::chaine("a.out")) {
+	if (options->nom_sortie != kuri::chaine("a.out")) {
 		// duplique la mémoire
-		options_compilation->nom_sortie = copie_chaine(options_compilation->nom_sortie);
+		options->nom_sortie = copie_chaine(options->nom_sortie);
 	}
 }
 

@@ -256,6 +256,7 @@ struct Compilatrice {
 	using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
 
 	tableau_page_synchrone<EspaceDeTravail> espaces_de_travail{};
+	EspaceDeTravail *espace_de_travail_defaut = nullptr;
 
 	dls::chaine racine_kuri{};
 
@@ -334,9 +335,10 @@ dls::chaine charge_fichier(
 		EspaceDeTravail &espace,
 		Lexeme const &lexeme);
 
-void initialise_options_compilation(OptionsCompilation &option);
+/* manipule les options de compilation pour l'espace de travail défaut */
 OptionsCompilation *obtiens_options_compilation();
 void ajourne_options_compilation(OptionsCompilation *options);
+
 void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine c);
 void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine c);
 int fonction_test_variadique_externe(int sentinel, ...);

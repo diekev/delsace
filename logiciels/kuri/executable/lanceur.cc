@@ -782,9 +782,6 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	auto ops = OptionsCompilation();
-	initialise_options_compilation(ops);
-
 	std::ostream &os = std::cout;
 
 	auto resultat = 0;
@@ -811,12 +808,12 @@ int main(int argc, char *argv[])
 		auto nom_fichier = chemin.stem();
 
 		compilatrice.racine_kuri = chemin_racine_kuri;
-		compilatrice.bit32 = ops.architecture_cible == ArchitectureCible::X86;
 
 		auto &constructrice_ri = compilatrice.constructrice_ri;
 
 		/* Charge d'abord le module basique. */
-		auto espace_defaut = compilatrice.demarre_un_espace_de_travail(ops, "Espace 1");
+		auto espace_defaut = compilatrice.demarre_un_espace_de_travail({}, "Espace 1");
+		compilatrice.espace_de_travail_defaut = espace_defaut;
 
 		auto dossier = chemin.parent_path();
 		std::filesystem::current_path(dossier);
@@ -891,7 +888,7 @@ int main(int argc, char *argv[])
 
 	metriques.temps_nettoyage = debut_nettoyage.temps();
 
-	if (!compilatrice.possede_erreur && ops.emets_metriques) {
+	if (!compilatrice.possede_erreur && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
 		imprime_stats(metriques, debut_compilation);
 	}
 
