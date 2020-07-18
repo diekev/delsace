@@ -5,10 +5,12 @@ est_caractère_espace_blanc :: fonc (point_de_code: n32) -> bool
     retourne point_de_code == ESPACE || point_de_code == TABULATION || point_de_code == RETOUR_CHARIOT || point_de_code == NOUVELLE_LIGNE || point_de_code == 0x0C
 }
 
+TypeFonctionModeInsertion :: fonc(*Parseuse, Lexème)(rien)
+
 Parseuse :: struct {
-    mode_insertion : fonc(*Parseuse, Lexème)(rien)
-    mode_insertion_original : fonc(*Parseuse, Lexème)(rien)
-    pile_insertion_template : []fonc(*Parseuse, Lexème)(rien)
+    mode_insertion : TypeFonctionModeInsertion
+    mode_insertion_original : TypeFonctionModeInsertion
+    pile_insertion_template : []TypeFonctionModeInsertion
     lexeuse: Lexeuse
     document: *Document
 
@@ -82,7 +84,7 @@ crée_élément_pour :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *Éléme
     retourne élément
 }
 
-gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: fonc(*Parseuse, Lexème)(rien), lexème: Lexème)
+gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: TypeFonctionModeInsertion, lexème: Lexème)
 {
     // si lexème.genre != GenreLexème.Caractère {
     //     imprime("gère lexème : % (%), mode insertion : %\n", lexème.nom, lexème.genre, mode)
