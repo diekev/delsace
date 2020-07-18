@@ -225,7 +225,6 @@ struct Compilatrice {
 
 	/* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment. */
 	bool importe_kuri = true;
-	bool bit32 = false;
 	bool possede_erreur = false;
 
 	struct InformationsInclusions {
