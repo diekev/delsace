@@ -146,6 +146,9 @@ struct EspaceDeTravail {
 	using ConteneurConstructeursGlobales = dls::tableau<std::pair<AtomeGlobale *, NoeudExpression *>>;
 	dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
+	using TableChaine = dls::dico<dls::chaine, AtomeConstante *>;
+	dls::outils::Synchrone<TableChaine> table_chaines{};
+
 	explicit EspaceDeTravail(OptionsCompilation opts);
 
 	COPIE_CONSTRUCT(EspaceDeTravail);
@@ -253,9 +256,6 @@ struct Compilatrice {
 	tableau_page_synchrone<EspaceDeTravail> espaces_de_travail{};
 
 	dls::chaine racine_kuri{};
-
-	using TableChaine = dls::dico<dls::chaine, AtomeConstante *>;
-	dls::outils::Synchrone<TableChaine> table_chaines{};
 
 	/* ********************************************************************** */
 

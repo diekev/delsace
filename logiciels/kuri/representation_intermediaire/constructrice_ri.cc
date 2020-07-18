@@ -4100,7 +4100,7 @@ Atome *ConstructriceRI::converti_vers_tableau_dyn(Atome *pointeur_tableau_fixe, 
 
 AtomeConstante *ConstructriceRI::cree_chaine(dls::vue_chaine_compacte const &chaine)
 {
-	auto table_chaines = m_compilatrice.table_chaines.verrou_ecriture();
+	auto table_chaines = m_espace->table_chaines.verrou_ecriture();
 	auto iter = table_chaines->trouve(chaine);
 
 	if (iter != table_chaines->fin()) {
