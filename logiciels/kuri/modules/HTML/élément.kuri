@@ -1,127 +1,5 @@
 importe Fondation
 
-GenreÉlément :: énum z32 {
-    INVALIDE
-
-    A
-    ABBR
-    ACRONYM
-    ADDRESS
-    APPLET
-    AREA
-    ARTICLE
-    ASIDE
-    AUDIO
-    B
-    BASE
-    BASEFONT
-    BDI
-    BDO
-    BIG
-    BLOCKQUOTE
-    BODY
-    BR
-    BUTTON
-    CANVAS
-    CAPTION
-    CENTER
-    CITE
-    CODE
-    COL
-    COLGROUP
-    DATA
-    DATALIST
-    DD
-    DEL
-    DETAILS
-    DFN
-    DIALOG
-    DIR
-    DIV
-    DL
-    DT
-    EM
-    EMBED
-    FIELDSET
-    FIGCAPTION
-    FIGURE
-    FONT
-    FOOTER
-    FORM
-    FRAME
-    FRAMESET
-    HEAD
-    HEADER
-    H
-    HR
-    HTML
-    I
-    IFRAME
-    IMG
-    INPUT
-    INS
-    KBD
-    LABEL
-    LEGEND
-    LI
-    LINK
-    MAIN
-    MAP
-    MARK
-    META
-    METER
-    NAV
-    NOFRAMES
-    NOSCRIPT
-    OBJECT
-    OL
-    OPTGROUP
-    OPTION
-    OUTPUT
-    P
-    PARAM
-    PICTURE
-    PRE
-    PROGRESS
-    Q
-    RP
-    RT
-    RUBY
-    S
-    SAMP
-    SCRIPT
-    SECTION
-    SELECT
-    SMALL
-    SOURCE
-    SPAN
-    STRIKE
-    STRONG
-    STYLE
-    SUB
-    SUMMARY
-    SUP
-    SVG
-    TABLE
-    TBODY
-    TD
-    TEMPLATE
-    TEXTAREA
-    TFOOT
-    TH
-    THEAD
-    TIME
-    TITLE
-    TR
-    TRACK
-    TT
-    U
-    UL
-    VAR
-    VIDEO
-    WBR
-}
-
 est_tag_auto_fermant :: fonc (tag: chaine) -> bool
 {
     discr tag {
@@ -149,166 +27,39 @@ est_tag_auto_fermant :: fonc (tag: chaine) -> bool
 Élément :: struct {
     empl base: Noeud
 
-    genre_élément : GenreÉlément
     texte : chaine
 }
 
-initialise_élément :: fonc (élément: *Élément, document: *Document, texte: chaine, type: GenreÉlément) -> rien
+initialise_élément :: fonc (élément: *Élément, document: *Document, texte: chaine) -> rien
 {
     élément.genre = GenreNoeud.Élément
     élément.document = document
     élément.texte = copie_chaine(texte)
-    élément.genre_élément = type
 }
 
-élément_depuis_tag :: fonc (document: *Document, tag: chaine) -> *Élément
+crée_élément_avec_tag :: fonc (document: *Document, tag: chaine) -> *Élément
 {
-    discr tag {
-        "a" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.A); retourne élément; }
-        "abbr" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.ABBR); retourne élément; }
-        "acronym" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.ACRONYM); retourne élément; }
-        "address" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.ADDRESS); retourne élément; }
-        "applet" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.APPLET); retourne élément; }
-        "area" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.AREA); retourne élément; }
-        "article" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.ARTICLE); retourne élément; }
-        "aside" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.ASIDE); retourne élément; }
-        "audio" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.AUDIO); retourne élément; }
-        "b" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.B); retourne élément; }
-        "base" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.BASE); retourne élément; }
-        "basefont" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.BASEFONT); retourne élément; }
-        "bdi" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.BDI); retourne élément; }
-        "bdo" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.BDO); retourne élément; }
-        "big" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.BIG); retourne élément; }
-        "blockquote" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.BLOCKQUOTE); retourne élément; }
-        "body" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.BODY); retourne élément; }
-        "br" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.BR); retourne élément; }
-        "button" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.BUTTON); retourne élément; }
-        "canvas" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.CANVAS); retourne élément; }
-        "caption" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.CAPTION); retourne élément; }
-        "center" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.CENTER); retourne élément; }
-        "cite" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.CITE); retourne élément; }
-        "code" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.CODE); retourne élément; }
-        "col" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.COL); retourne élément; }
-        "colgroup" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.COLGROUP); retourne élément; }
-        "data" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.DATA); retourne élément; }
-        "datalist" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.DATALIST); retourne élément; }
-        "dd" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.DD); retourne élément; }
-        "del" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.DEL); retourne élément; }
-        "details" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.DETAILS); retourne élément; }
-        "dfn" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.DFN); retourne élément; }
-        "dialog" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.DIALOG); retourne élément; }
-        "dir" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.DIR); retourne élément; }
-        "div" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.DIV); retourne élément; }
-        "dl" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.DL); retourne élément; }
-        "dt" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.DT); retourne élément; }
-        "em" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.EM); retourne élément; }
-        "embed" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.EMBED); retourne élément; }
-        "fieldset" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.FIELDSET); retourne élément; }
-        "figcaption" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.FIGCAPTION); retourne élément; }
-        "figure" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.FIGURE); retourne élément; }
-        "font" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.FONT); retourne élément; }
-        "footer" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.FOOTER); retourne élément; }
-        "form" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.FORM); retourne élément; }
-        "frame" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.FRAME); retourne élément; }
-        "frameset" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.FRAMESET); retourne élément; }
-        "head" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.HEAD); retourne élément; }
-        "header" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.HEADER); retourne élément; }
-        "h1",
-        "h2",
-        "h3",
-        "h4",
-        "h5",
-        "h6" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.H); retourne élément; }
-        "hr" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.HR); retourne élément; }
-        "html" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.HTML); retourne élément; }
-        "i" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.I); retourne élément; }
-        "iframe" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.IFRAME); retourne élément; }
-        "img" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.IMG); retourne élément; }
-        "input" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.INPUT); retourne élément; }
-        "ins" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.INS); retourne élément; }
-        "kbd" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.KBD); retourne élément; }
-        "label" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.LABEL); retourne élément; }
-        "legend" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.LEGEND); retourne élément; }
-        "li" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.LI); retourne élément; }
-        "link" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.LINK); retourne élément; }
-        "main" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.MAIN); retourne élément; }
-        "map" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.MAP); retourne élément; }
-        "mark" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.MARK); retourne élément; }
-        "meta" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.META); retourne élément; }
-        "meter" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.METER); retourne élément; }
-        "nav" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.NAV); retourne élément; }
-        "noframes" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.NOFRAMES); retourne élément; }
-        "noscript" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.NOSCRIPT); retourne élément; }
-        "object" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.OBJECT); retourne élément; }
-        "ol" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.OL); retourne élément; }
-        "optgroup" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.OPTGROUP); retourne élément; }
-        "option" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.OPTION); retourne élément; }
-        "output" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.OUTPUT); retourne élément; }
-        "p" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.P); retourne élément; }
-        "param" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.PARAM); retourne élément; }
-        "picture" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.PICTURE); retourne élément; }
-        "pre" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.PRE); retourne élément; }
-        "progress" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.PROGRESS); retourne élément; }
-        "q" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.Q); retourne élément; }
-        "rp" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.RP); retourne élément; }
-        "rt" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.RT); retourne élément; }
-        "ruby" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.RUBY); retourne élément; }
-        "s" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.S); retourne élément; }
-        "samp" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.SAMP); retourne élément; }
-        "script" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.SCRIPT); retourne élément; }
-        "section" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.SECTION); retourne élément; }
-        "select" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.SELECT); retourne élément; }
-        "small" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.SMALL); retourne élément; }
-        "source" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.SOURCE); retourne élément; }
-        "span" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.SPAN); retourne élément; }
-        "strike" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.STRIKE); retourne élément; }
-        "strong" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.STRONG); retourne élément; }
-        "style" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.STYLE); retourne élément; }
-        "sub" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.SUB); retourne élément; }
-        "summary" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.SUMMARY); retourne élément; }
-        "sup" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.SUP); retourne élément; }
-        "svg" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.SVG); retourne élément; }
-        "table" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.TABLE); retourne élément; }
-        "tbody" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.TBODY); retourne élément; }
-        "td" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.TD); retourne élément; }
-        "template" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.TEMPLATE); retourne élément; }
-        "textarea" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.TEXTAREA); retourne élément; }
-        "tfoot" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.TFOOT); retourne élément; }
-        "th" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.TH); retourne élément; }
-        "thead" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.THEAD); retourne élément; }
-        "time" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.TIME); retourne élément; }
-        "title" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.TITLE); retourne élément; }
-        "tr" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.TR); retourne élément; }
-        "track" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.TRACK); retourne élément; }
-        "tt" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.TT); retourne élément; }
-        "u" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.U); retourne élément; }
-        "ul" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.UL); retourne élément; }
-        "var" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.VAR); retourne élément; }
-        "video" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.VIDEO); retourne élément; }
-        "wbr" { élément := loge Élément;     initialise_élément(élément, document, tag, GenreÉlément.WBR); retourne élément; }
-   }
-
     // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
     élément := loge Élément;
-    initialise_élément(élément, document, tag, GenreÉlément.INVALIDE);
+    initialise_élément(élément, document, tag);
     retourne élément
 }
 
 est_compatible_html5 :: fonc (élément: *Élément) -> bool
 {
-    discr élément.genre_élément {
-        ACRONYM,
-        APPLET,
-        BASEFONT,
-        BIG,
-        CENTER,
-        DIR,
-        FONT,
-        FRAME,
-        FRAMESET,
-        NOFRAMES,
-        STRIKE,
-        TT {
+    discr élément.texte {
+        "acronym",
+        "applet",
+        "basefont",
+        "big",
+        "center",
+        "dir",
+        "font",
+        "frame",
+        "frameset",
+        "noframes",
+        "strike",
+        "tt" {
             retourne faux
         }
         sinon {

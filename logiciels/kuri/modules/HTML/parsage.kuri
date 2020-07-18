@@ -73,7 +73,7 @@ noeud_courant :: fonc (parseuse: *Parseuse) -> *Élément
 
 crée_élément_pour :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *Élément
 {
-    élément := élément_depuis_tag(parseuse.document, lexème.nom)
+    élément := crée_élément_avec_tag(parseuse.document, lexème.nom)
 
     pour lexème.attributs {
         élément.ajoute_attribut(it.nom, it.valeur)
@@ -99,10 +99,7 @@ trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_o
         cible = cible_override
     }
     sinon {
-        // À FAIRE(langage) : bug dans la génération de la RI
-        //cible = parseuse.noeud_courant()
-        élément := parseuse.noeud_courant()
-        cible = élément
+        cible = parseuse.noeud_courant()
     }
 
     si parseuse.adoption_activée {
@@ -557,7 +554,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 retourne
             }
 
-            si parseuse.pile_éléments_ouvert.éléments[1].genre_élément != GenreÉlément.BODY {
+            si parseuse.pile_éléments_ouvert.éléments[1].texte != "body" {
                 retourne
             }
 
