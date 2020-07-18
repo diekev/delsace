@@ -216,4 +216,8 @@ compilatrice_ajourne_options :: fonc (options: *OptionsCompilation) -> rien #com
 
 compilatrice_attend_message :: fonc () -> *Message #compilatrice
 
+compilatrice_commence_interception :: fonc (espace: *EspaceDeTravail) #compilatrice
+
+compilatrice_termine_interception :: fonc (espace: *EspaceDeTravail) #compilatrice
+
 démarre_un_espace_de_travail :: fonc (nom: chaine, options: *OptionsCompilation) -> *EspaceDeTravail #compilatrice

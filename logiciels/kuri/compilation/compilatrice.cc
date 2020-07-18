@@ -754,3 +754,13 @@ EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine nom, OptionsCompilati
 {
 	return ptr_compilatrice->demarre_un_espace_de_travail(*options, dls::chaine(nom.pointeur, nom.taille));
 }
+
+void compilatrice_commence_interception(EspaceDeTravail *espace)
+{
+	ptr_compilatrice->messagere->commence_interception(espace);
+}
+
+void compilatrice_termine_interception(EspaceDeTravail *espace)
+{
+	ptr_compilatrice->messagere->termine_interception(espace);
+}

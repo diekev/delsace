@@ -24,8 +24,14 @@
 
 #include "message.hh"
 
+#include "arbre_syntaxique.hh"
+
 void Messagere::ajoute_message_fichier_ouvert(const kuri::chaine &chemin)
 {
+	if (!interception_commencee) {
+		return;
+	}
+
 	auto message = messages_fichiers.ajoute_element();
 	message->genre = GenreMessage::FICHIER_OUVERT;
 	message->chemin = chemin;
@@ -36,6 +42,10 @@ void Messagere::ajoute_message_fichier_ouvert(const kuri::chaine &chemin)
 
 void Messagere::ajoute_message_fichier_ferme(const kuri::chaine &chemin)
 {
+	if (!interception_commencee) {
+		return;
+	}
+
 	auto message = messages_fichiers.ajoute_element();
 	message->genre = GenreMessage::FICHIER_FERME;
 	message->chemin = chemin;
@@ -46,6 +56,10 @@ void Messagere::ajoute_message_fichier_ferme(const kuri::chaine &chemin)
 
 void Messagere::ajoute_message_module_ouvert(const kuri::chaine &chemin)
 {
+	if (!interception_commencee) {
+		return;
+	}
+
 	auto message = messages_fichiers.ajoute_element();
 	message->genre = GenreMessage::MODULE_OUVERT;
 	message->chemin = chemin;
@@ -56,6 +70,10 @@ void Messagere::ajoute_message_module_ouvert(const kuri::chaine &chemin)
 
 void Messagere::ajoute_message_module_ferme(const kuri::chaine &chemin)
 {
+	if (!interception_commencee) {
+		return;
+	}
+
 	auto message = messages_fichiers.ajoute_element();
 	message->genre = GenreMessage::MODULE_FERME;
 	message->chemin = chemin;
@@ -64,11 +82,17 @@ void Messagere::ajoute_message_module_ferme(const kuri::chaine &chemin)
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
-void Messagere::ajoute_message_typage_code(NoeudCode *noeud_code)
+void Messagere::ajoute_message_typage_code(NoeudDeclaration *noeud_decl)
 {
+	if (!interception_commencee) {
+		return;
+	}
+
+	convertisseuse_noeud_code.converti_noeud_syntaxique(noeud_decl);
+
 	auto message = messages_typage_code.ajoute_element();
 	message->genre = GenreMessage::TYPAGE_CODE_TERMINE;
-	message->noeud_code = noeud_code;
+	message->noeud_code = noeud_decl->noeud_code;
 
 	file_message.enfile(message);
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
@@ -85,5 +109,19 @@ size_t Messagere::memoire_utilisee() const
 
 Message const *Messagere::defile()
 {
+	if (!interception_commencee) {
+		return nullptr;
+	}
+
 	return file_message.defile();
+}
+
+void Messagere::commence_interception(EspaceDeTravail */*espace*/)
+{
+	interception_commencee = true;
+}
+
+void Messagere::termine_interception(EspaceDeTravail */*espace*/)
+{
+	interception_commencee = false;
 }

@@ -138,6 +138,8 @@ IdentifiantCode *compilatrice;
 IdentifiantCode *compilatrice_obtiens_options;
 IdentifiantCode *compilatrice_ajourne_options;
 IdentifiantCode *compilatrice_attend_message;
+IdentifiantCode *compilatrice_commence_interception;
+IdentifiantCode *compilatrice_termine_interception;
 IdentifiantCode *demarre_un_espace_de_travail;
 IdentifiantCode *fonction_test_variadique_externe;
 IdentifiantCode *test;
@@ -201,6 +203,8 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::compilatrice_obtiens_options = table.identifiant_pour_chaine("compilatrice_obtiens_options");
 	ID::compilatrice_ajourne_options = table.identifiant_pour_chaine("compilatrice_ajourne_options");
 	ID::compilatrice_attend_message = table.identifiant_pour_chaine("compilatrice_attend_message");
+	ID::compilatrice_commence_interception = table.identifiant_pour_chaine("compilatrice_commence_interception");
+	ID::compilatrice_termine_interception = table.identifiant_pour_chaine("compilatrice_termine_interception");
 	ID::demarre_un_espace_de_travail = table.identifiant_pour_chaine("démarre_un_espace_de_travail");
 	ID::fonction_test_variadique_externe = table.identifiant_pour_chaine("fonction_test_variadique_externe");
 	ID::test = table.identifiant_pour_chaine("test");

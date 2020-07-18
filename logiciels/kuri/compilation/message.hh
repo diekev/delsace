@@ -27,9 +27,11 @@
 #include "biblinternes/structures/file.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "noeud_code.hh"
 #include "structures.hh"
 
-struct NoeudCode;
+struct EspaceDeTravail;
+struct NoeudDeclaration;
 
 enum class GenreMessage : int {
 	INVALIDE,
@@ -62,12 +64,16 @@ private:
 
 	long pic_de_message = 0;
 
+	bool interception_commencee = false;
+
+	ConvertisseuseNoeudCode convertisseuse_noeud_code{};
+
 public:
 	void ajoute_message_fichier_ouvert(kuri::chaine const &chemin);
 	void ajoute_message_fichier_ferme(kuri::chaine const &chemin);
 	void ajoute_message_module_ouvert(kuri::chaine const &chemin);
 	void ajoute_message_module_ferme(kuri::chaine const &chemin);
-	void ajoute_message_typage_code(NoeudCode *noeud_code);
+	void ajoute_message_typage_code(NoeudDeclaration *noeud_decl);
 
 	size_t memoire_utilisee() const;
 
@@ -77,4 +83,8 @@ public:
 	}
 
 	Message const *defile();
+
+	void commence_interception(EspaceDeTravail *espace);
+
+	void termine_interception(EspaceDeTravail *espace);
 };
