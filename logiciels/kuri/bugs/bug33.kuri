@@ -1,6 +1,5 @@
 // ambigüité entre des fonctions de mêmes noms et de même paramètres si l'une des deux fonctions est
 // variadique mais aucun argument variadique n'est spécifié dans l'appel
-// bug visible seulement si la fonction sans paramètre variadique fut définie après la variadique
 
 importe Fondation
 
