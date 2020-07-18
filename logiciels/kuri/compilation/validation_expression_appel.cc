@@ -953,6 +953,7 @@ static std::pair<NoeudDeclarationFonction *, bool> trouve_fonction_epandue_ou_cr
 
 /* ************************************************************************** */
 
+// À FAIRE : ajout d'un état de résolution des appels afin de savoir à quelle étape nous nous arrêté en cas d'erreur recouvrable (typage fait, tri des arguments fait, etc.)
 bool valide_appel_fonction(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
