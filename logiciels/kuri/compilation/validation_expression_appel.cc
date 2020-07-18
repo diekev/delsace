@@ -62,11 +62,10 @@ static auto trouve_candidates_pour_fonction_appelee(
 		trouve_declarations_dans_bloc_ou_module(espace, declarations, appelee->bloc_parent, appelee->ident, fichier);
 
 		POUR (declarations) {
-			// À FAIRE : on peut avoir des expressions du genre invere := inverse(matrice),
-			// auquel cas il faut exclure la déclaration de la variable, mais le test si
-			//dessous exclus également les variables globales
+			// on peut avoir des expressions du genre inverse := inverse(matrice),
+			// À FAIRE : si nous enlevons la vérification du drapeau EST_GLOBALE, la compilation est bloquée dans une boucle infinie, il nous faudra un état pour dire qu'aucune candidate n'a été trouvée
 			if (it->genre == GenreNoeud::DECLARATION_VARIABLE) {
-				if (it->lexeme->fichier == appelee->lexeme->fichier && it->lexeme->ligne >= appelee->lexeme->ligne) {
+				if (it->lexeme->fichier == appelee->lexeme->fichier && it->lexeme->ligne >= appelee->lexeme->ligne && ((it->drapeaux & EST_GLOBALE) == 0)) {
 					continue;
 				}
 			}
