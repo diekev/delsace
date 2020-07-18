@@ -237,14 +237,3 @@ test_références :: fonc ()
 // {
 //     retourne 0
 // }
-
-/*
-
-EspaceDeTravail :: struct {
-    nom : chaine
-    id : z32
-}
-
-compilatrice_démarre_un_espace_de_travail :: fonc (nom: chaine) -> *EspaceDeTravail
-
-*/
