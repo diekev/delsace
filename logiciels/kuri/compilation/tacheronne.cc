@@ -193,7 +193,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						compilatrice.file_compilation->pousse(unite);
 					}
 
-					compilatrice.messagere->ajoute_message_typage_code(decl);
+					compilatrice.messagere->ajoute_message_typage_code(unite.espace, decl);
 
 					break;
 				}
@@ -207,7 +207,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						return;
 					}
 
-					compilatrice.messagere->ajoute_message_typage_code(decl);
+					compilatrice.messagere->ajoute_message_typage_code(unite.espace, decl);
 
 					unite.change_etat(UniteCompilation::Etat::RI_ATTENDUE);
 					compilatrice.file_compilation->pousse(unite);
@@ -224,7 +224,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 						return;
 					}
 
-					compilatrice.messagere->ajoute_message_typage_code(decl);
+					compilatrice.messagere->ajoute_message_typage_code(unite.espace, decl);
 
 					break;
 				}
@@ -241,7 +241,7 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 					unite.change_etat(UniteCompilation::Etat::RI_ATTENDUE);
 					compilatrice.file_compilation->pousse(unite);
 
-					compilatrice.messagere->ajoute_message_typage_code(decl);
+					compilatrice.messagere->ajoute_message_typage_code(unite.espace, decl);
 					break;
 				}
 				case GenreNoeud::DECLARATION_VARIABLE:

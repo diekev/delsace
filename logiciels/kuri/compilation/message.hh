@@ -46,6 +46,7 @@ enum class GenreMessage : int {
 
 struct Message {
 	GenreMessage genre;
+	EspaceDeTravail *espace;
 };
 
 struct MessageFichier : public Message {
@@ -69,11 +70,11 @@ private:
 	ConvertisseuseNoeudCode convertisseuse_noeud_code{};
 
 public:
-	void ajoute_message_fichier_ouvert(kuri::chaine const &chemin);
-	void ajoute_message_fichier_ferme(kuri::chaine const &chemin);
-	void ajoute_message_module_ouvert(kuri::chaine const &chemin);
-	void ajoute_message_module_ferme(kuri::chaine const &chemin);
-	void ajoute_message_typage_code(NoeudDeclaration *noeud_decl);
+	void ajoute_message_fichier_ouvert(EspaceDeTravail *espace, kuri::chaine const &chemin);
+	void ajoute_message_fichier_ferme(EspaceDeTravail *espace, kuri::chaine const &chemin);
+	void ajoute_message_module_ouvert(EspaceDeTravail *espace, kuri::chaine const &chemin);
+	void ajoute_message_module_ferme(EspaceDeTravail *espace, kuri::chaine const &chemin);
+	void ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclaration *noeud_decl);
 
 	size_t memoire_utilisee() const;
 

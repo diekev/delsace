@@ -310,13 +310,6 @@ struct Compilatrice {
 
 	/* ********************************************************************** */
 
-	void ajoute_message_fichier_ouvert(kuri::chaine const &chemin);
-	void ajoute_message_fichier_ferme(kuri::chaine const &chemin);
-	void ajoute_message_module_ouvert(kuri::chaine const &chemin);
-	void ajoute_message_module_ferme(kuri::chaine const &chemin);
-
-	/* ********************************************************************** */
-
 	EspaceDeTravail *demarre_un_espace_de_travail(OptionsCompilation const &options, dls::chaine const &nom);
 
 	/* ********************************************************************** */

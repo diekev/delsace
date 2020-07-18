@@ -383,7 +383,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 
 	module->importe = true;
 
-	ajoute_message_module_ouvert(module->chemin);
+	messagere->ajoute_message_module_ouvert(espace, module->chemin);
 
 	for (auto const &entree : std::filesystem::directory_iterator(chemin_absolu)) {
 		auto chemin_entree = entree.path();
@@ -399,7 +399,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 		ajoute_fichier_a_la_compilation(espace, chemin_entree.stem().c_str(), module, {});
 	}
 
-	ajoute_message_module_ferme(module->chemin);
+	messagere->ajoute_message_module_ferme(espace, module->chemin);
 
 	return module;
 }
@@ -469,7 +469,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 		return;
 	}
 
-	ajoute_message_fichier_ouvert(fichier->chemin);
+	messagere->ajoute_message_fichier_ouvert(espace, fichier->chemin);
 
 	fichier->module = module;
 
@@ -485,7 +485,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 	unite.fichier = fichier;
 	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
 
-	ajoute_message_fichier_ferme(fichier->chemin);
+	messagere->ajoute_message_fichier_ferme(espace, fichier->chemin);
 
 	file_compilation->pousse(unite);
 }
@@ -604,26 +604,6 @@ Metriques Compilatrice::rassemble_metriques() const
 
 /* ************************************************************************** */
 
-void Compilatrice::ajoute_message_fichier_ouvert(const kuri::chaine &chemin)
-{
-	messagere->ajoute_message_fichier_ouvert(chemin);
-}
-
-void Compilatrice::ajoute_message_fichier_ferme(const kuri::chaine &chemin)
-{
-	messagere->ajoute_message_fichier_ferme(chemin);
-}
-
-void Compilatrice::ajoute_message_module_ouvert(const kuri::chaine &chemin)
-{
-	messagere->ajoute_message_module_ouvert(chemin);
-}
-
-void Compilatrice::ajoute_message_module_ferme(const kuri::chaine &chemin)
-{
-	messagere->ajoute_message_module_ferme(chemin);
-}
-
 EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation const &options, const dls::chaine &nom)
 {
 	auto espace = espaces_de_travail->ajoute_element(options);
@@ -705,7 +685,7 @@ void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chai
 	auto module = espace->cree_module("", "");
 	auto tampon = charge_fichier(chemin.c_str(), *espace, {});
 	auto fichier = espace->cree_fichier(vue, chemin.c_str(), ptr_compilatrice->importe_kuri);
-	ptr_compilatrice->ajoute_message_fichier_ouvert(fichier->chemin);
+	ptr_compilatrice->messagere->ajoute_message_fichier_ouvert(espace, fichier->chemin);
 
 	fichier->tampon = lng::tampon_source(tampon);
 	fichier->module = module;
@@ -715,7 +695,7 @@ void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chai
 	unite.fichier = fichier;
 	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
 
-	ptr_compilatrice->ajoute_message_fichier_ferme(fichier->chemin);
+	ptr_compilatrice->messagere->ajoute_message_fichier_ferme(espace, fichier->chemin);
 	ptr_compilatrice->file_compilation->pousse(unite);
 }
 

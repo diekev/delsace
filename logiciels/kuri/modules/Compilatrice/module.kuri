@@ -169,6 +169,10 @@ NoeudCodeBoucle :: struct {
 }
 
 // ----------------------------------------------------------------------------
+
+EspaceDeTravail :: struct externe;
+
+// ----------------------------------------------------------------------------
 // structures des Messages, celles-ci doivent être tenues synchronisées avec celles de message.hh
 
 GenreMessage :: énum z32 {
@@ -186,6 +190,7 @@ GenreMessage :: énum z32 {
 
 Message :: struct {
     genre : GenreMessage
+	espace : *EspaceDeTravail
 }
 
 MessageFichier :: struct {
@@ -199,10 +204,6 @@ MessageTypageCodeTerminé :: struct {
 
     code : *NoeudCode
 }
-
-// ----------------------------------------------------------------------------
-
-EspaceDeTravail :: struct externe;
 
 // ----------------------------------------------------------------------------
 

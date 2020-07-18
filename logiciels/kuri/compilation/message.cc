@@ -26,7 +26,7 @@
 
 #include "arbre_syntaxique.hh"
 
-void Messagere::ajoute_message_fichier_ouvert(const kuri::chaine &chemin)
+void Messagere::ajoute_message_fichier_ouvert(EspaceDeTravail *espace, const kuri::chaine &chemin)
 {
 	if (!interception_commencee) {
 		return;
@@ -34,13 +34,14 @@ void Messagere::ajoute_message_fichier_ouvert(const kuri::chaine &chemin)
 
 	auto message = messages_fichiers.ajoute_element();
 	message->genre = GenreMessage::FICHIER_OUVERT;
+	message->espace = espace;
 	message->chemin = chemin;
 
 	file_message.enfile(message);
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
-void Messagere::ajoute_message_fichier_ferme(const kuri::chaine &chemin)
+void Messagere::ajoute_message_fichier_ferme(EspaceDeTravail *espace, const kuri::chaine &chemin)
 {
 	if (!interception_commencee) {
 		return;
@@ -48,13 +49,14 @@ void Messagere::ajoute_message_fichier_ferme(const kuri::chaine &chemin)
 
 	auto message = messages_fichiers.ajoute_element();
 	message->genre = GenreMessage::FICHIER_FERME;
+	message->espace = espace;
 	message->chemin = chemin;
 
 	file_message.enfile(message);
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
-void Messagere::ajoute_message_module_ouvert(const kuri::chaine &chemin)
+void Messagere::ajoute_message_module_ouvert(EspaceDeTravail *espace, const kuri::chaine &chemin)
 {
 	if (!interception_commencee) {
 		return;
@@ -62,13 +64,14 @@ void Messagere::ajoute_message_module_ouvert(const kuri::chaine &chemin)
 
 	auto message = messages_fichiers.ajoute_element();
 	message->genre = GenreMessage::MODULE_OUVERT;
+	message->espace = espace;
 	message->chemin = chemin;
 
 	file_message.enfile(message);
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
-void Messagere::ajoute_message_module_ferme(const kuri::chaine &chemin)
+void Messagere::ajoute_message_module_ferme(EspaceDeTravail *espace, const kuri::chaine &chemin)
 {
 	if (!interception_commencee) {
 		return;
@@ -76,13 +79,14 @@ void Messagere::ajoute_message_module_ferme(const kuri::chaine &chemin)
 
 	auto message = messages_fichiers.ajoute_element();
 	message->genre = GenreMessage::MODULE_FERME;
+	message->espace = espace;
 	message->chemin = chemin;
 
 	file_message.enfile(message);
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
-void Messagere::ajoute_message_typage_code(NoeudDeclaration *noeud_decl)
+void Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclaration *noeud_decl)
 {
 	if (!interception_commencee) {
 		return;
@@ -92,6 +96,7 @@ void Messagere::ajoute_message_typage_code(NoeudDeclaration *noeud_decl)
 
 	auto message = messages_typage_code.ajoute_element();
 	message->genre = GenreMessage::TYPAGE_CODE_TERMINE;
+	message->espace = espace;
 	message->noeud_code = noeud_decl->noeud_code;
 
 	file_message.enfile(message);
