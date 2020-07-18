@@ -256,6 +256,9 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 	NoeudExpression *expression = nullptr;
 
 	ResultatExpression valeur_expression{};
+
+	// pour les variables globales
+	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 };
 
 struct NoeudExpressionReference : public NoeudExpression {
@@ -478,6 +481,8 @@ struct NoeudDirectiveExecution : NoeudExpression {
 	NoeudExpression *expr = nullptr;
 	NoeudDeclarationFonction *fonction = nullptr;
 	AtomeFonction *fonction_ri_pour_appel = nullptr;
+
+	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 };
 
 void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab);

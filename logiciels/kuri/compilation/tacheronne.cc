@@ -251,12 +251,10 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 				case GenreNoeud::DECLARATION_VARIABLE:
 				{
 					auto decl = static_cast<NoeudDeclarationVariable *>(unite.noeud);
-					auto arbre_aplatis = kuri::tableau<NoeudExpression *>();
-					aplatis_arbre(decl, arbre_aplatis, drapeaux_noeud::AUCUN);
 
 					//std::cerr << "-- valide globale : " << decl->valeur->lexeme->chaine << '\n';
-					for (auto &n : arbre_aplatis) {
-						if (contexte.valide_semantique_noeud(n)) {
+					POUR (decl->arbre_aplatis) {
+						if (contexte.valide_semantique_noeud(it)) {
 							//std::cerr << "-- Une erreur est survenue\n";
 							compilatrice.file_compilation->pousse(unite);
 							return;
@@ -274,12 +272,11 @@ void Tacheronne::gere_unite(UniteCompilation unite)
 				}
 				case GenreNoeud::DIRECTIVE_EXECUTION:
 				{
-					auto arbre_aplatis = kuri::tableau<NoeudExpression *>();
-					aplatis_arbre(unite.noeud, arbre_aplatis, drapeaux_noeud::AUCUN);
+					auto dir = static_cast<NoeudDirectiveExecution *>(unite.noeud);
 
 					//std::cerr << "-- valide directive exécution\n";
-					for (auto &n : arbre_aplatis) {
-						if (contexte.valide_semantique_noeud(n)) {
+					POUR (dir->arbre_aplatis) {
+						if (contexte.valide_semantique_noeud(it)) {
 							//std::cerr << "-- Une erreur est survenue\n";
 							compilatrice.file_compilation->pousse(unite);
 							return;

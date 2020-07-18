@@ -410,6 +410,7 @@ void Syntaxeuse::lance_analyse()
 					decl_var->bloc_parent->membres->pousse(decl_var);
 					decl_var->bloc_parent->expressions->pousse(decl_var);
 					decl_var->drapeaux |= EST_GLOBALE;
+					aplatis_arbre(decl_var, decl_var->arbre_aplatis, drapeaux_noeud::AUCUN);
 					m_compilatrice.ajoute_unite_compilation_pour_typage(m_unite->espace, decl_var);
 				}
 				else if (est_declaration(noeud->genre)) {
@@ -418,6 +419,11 @@ void Syntaxeuse::lance_analyse()
 					noeud->drapeaux |= EST_GLOBALE;
 
 					if (!dls::outils::est_element(noeud->genre, GenreNoeud::DECLARATION_FONCTION, GenreNoeud::DECLARATION_OPERATEUR, GenreNoeud::DECLARATION_COROUTINE)) {
+						if (noeud->genre == GenreNoeud::DECLARATION_VARIABLE) {
+							auto decl_var = static_cast<NoeudDeclarationVariable *>(noeud);
+							aplatis_arbre(decl_var, decl_var->arbre_aplatis, drapeaux_noeud::AUCUN);
+						}
+
 						m_compilatrice.ajoute_unite_compilation_pour_typage(m_unite->espace, noeud);
 					}
 				}
@@ -1037,6 +1043,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 					auto noeud = CREE_NOEUD(NoeudDirectiveExecution, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
 					noeud->ident = directive;
 					noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
+					aplatis_arbre(noeud, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 					return noeud;
 				}
 				else if (directive == ID::chemin) {
