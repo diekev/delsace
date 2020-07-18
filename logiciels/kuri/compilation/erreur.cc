@@ -771,7 +771,7 @@ static auto trouve_candidat(
 		structure = noeud->membre;
 	}
 
-	ss << "Dans l'accès à « " << structure->ident->nom << " » :\n";
+	ss << "Dans l'expression d'accès de membre :\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
