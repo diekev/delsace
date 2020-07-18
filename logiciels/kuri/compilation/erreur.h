@@ -173,3 +173,22 @@ void imprime_ligne_avec_message(
 
 [[noreturn]] void fonction_principale_manquante();
 }
+
+struct Erreur {
+	EspaceDeTravail *espace = nullptr;
+	dls::chaine message{};
+
+	Erreur(EspaceDeTravail *espace_);
+
+	COPIE_CONSTRUCT(Erreur);
+
+	[[noreturn]] ~Erreur() noexcept(false);
+
+	Erreur &ajoute_message(dls::chaine const &m);
+
+	Erreur &ajoute_site(NoeudExpression *site);
+
+	Erreur &ajoute_conseil(dls::chaine const &c);
+};
+
+Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, dls::chaine const &message);

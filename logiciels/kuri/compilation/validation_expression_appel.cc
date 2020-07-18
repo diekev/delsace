@@ -1036,8 +1036,11 @@ bool valide_appel_fonction(
 		}
 
 		if (it.poids_args == poids) {
-			// À FAIRE : meilleure message d'essage, le système d'erreur devra être réusiné proprement
-			erreur::lance_erreur("fonction ambigüe", espace, expr->lexeme);
+			rapporte_erreur(&espace, expr, "Je ne peux pas déterminer quelle fonction appeler car plusieurs fonctions correspondent à l'expression d'appel.")
+					.ajoute_message("Candidate possible :\n")
+					.ajoute_site(it.noeud_decl)
+					.ajoute_message("Candidate possible :\n")
+					.ajoute_site(candidate->noeud_decl);
 			return true;
 		}
 	}
@@ -1094,7 +1097,11 @@ bool valide_appel_fonction(
 
 		auto expr_gauche = (expr->drapeaux & DROITE_ASSIGNATION) == 0;
 		if (type_sortie->genre != GenreType::RIEN && expr_gauche) {
-			contexte.rapporte_erreur("Inutilisation du retour de la fonction", expr);
+			rapporte_erreur(&espace, expr, "La valeur de retour de la fonction n'est pas utilisée. Il est important de toujours utiliser les valeurs retournées par les fonctions, par exemple pour ne pas oublier de vérifier si une erreur existe.")
+					.ajoute_message("La fonction a été déclarée comme retournant une valeur :\n")
+					.ajoute_site(decl_fonction_appelee)
+					.ajoute_conseil("si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « _ » comme identifiant pour la capturer et l'ignorer :\n")
+					.ajoute_message("\t_ := appel_mais_ignore_le_retour()\n");
 			return true;
 		}
 

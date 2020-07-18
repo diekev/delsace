@@ -919,3 +919,62 @@ void fonction_principale_manquante()
 }
 
 }
+
+/* ************************************************************************** */
+
+Erreur::Erreur(EspaceDeTravail *espace_)
+	: espace(espace_)
+{}
+
+Erreur::~Erreur() noexcept(false)
+{
+	throw erreur::frappe(message.c_str(), erreur::type_erreur::NORMAL);
+}
+
+Erreur &Erreur::ajoute_message(const dls::chaine &m)
+{
+	message += m;
+	return *this;
+}
+
+Erreur &Erreur::ajoute_site(NoeudExpression *site)
+{
+	assert(espace);
+
+	auto fichier = espace->fichier(site->lexeme->fichier);
+	auto flux = dls::flux_chaine();
+	flux << message;
+
+	erreur::imprime_ligne_avec_message(flux, fichier, site->lexeme, "");
+	flux << '\n';
+
+	message = flux.chn();
+	return *this;
+}
+
+Erreur &Erreur::ajoute_conseil(const dls::chaine &c)
+{
+	auto flux = dls::flux_chaine();
+	flux << message;
+	flux << "\033[4mConseil\033[00m : " << c;
+
+	message = flux.chn();
+	return *this;
+}
+
+Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, const dls::chaine &message)
+{
+	auto fichier = espace->fichier(site->lexeme->fichier);
+
+	auto flux = dls::flux_chaine();
+	flux << "\nErreur : ";
+	erreur::imprime_ligne_avec_message(flux, fichier, site->lexeme, "");
+	flux << '\n';
+	flux << message;
+	flux << '\n';
+	flux << '\n';
+
+	auto erreur = Erreur(espace);
+	erreur.message = flux.chn();
+	return erreur;
+}
