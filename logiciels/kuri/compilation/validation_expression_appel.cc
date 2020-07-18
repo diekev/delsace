@@ -42,6 +42,8 @@ enum {
 	CANDIDATE_EST_EXPRESSION_QUELCONQUE,
 };
 
+static constexpr auto TAILLE_CANDIDATES_DEFAUT = 10;
+
 struct CandidateExpressionAppel {
 	int quoi = 0;
 	NoeudExpression *decl = nullptr;
@@ -51,14 +53,14 @@ static auto trouve_candidates_pour_fonction_appelee(
 		ContexteValidationCode &contexte,
 		EspaceDeTravail &espace,
 		NoeudExpression *appelee,
-		dls::tableau<CandidateExpressionAppel> &candidates)
+		dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT> &candidates)
 {
 	Prof(trouve_candidates_pour_fonction_appelee);
 
 	auto fichier = espace.fichier(appelee->lexeme->fichier);
 
 	if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-		auto declarations = dls::tableau<NoeudDeclaration *>();
+		auto declarations = dls::tablet<NoeudDeclaration *, 10>();
 		trouve_declarations_dans_bloc_ou_module(espace, declarations, appelee->bloc_parent, appelee->ident, fichier);
 
 		POUR (declarations) {
@@ -81,7 +83,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 
 		if (accede->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION && fichier->importe_module(accede->ident->nom)) {
 			auto module = espace.module(accede->ident->nom);
-			auto declarations = dls::tableau<NoeudDeclaration *>();
+			auto declarations = dls::tablet<NoeudDeclaration *, 10>();
 			trouve_declarations_dans_bloc(declarations, module->bloc, membre->ident);
 
 			POUR (declarations) {
@@ -832,7 +834,7 @@ static auto trouve_candidates_pour_appel(
 {
 	Prof(trouve_candidates_pour_appel);
 
-	auto candidates_appel = dls::tableau<CandidateExpressionAppel>();
+	auto candidates_appel = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>();
 	if (trouve_candidates_pour_fonction_appelee(contexte, espace, expr->appelee, candidates_appel)) {
 		return true;
 	}
@@ -841,12 +843,12 @@ static auto trouve_candidates_pour_appel(
 		return true;
 	}
 
-	auto nouvelles_candidates = dls::tableau<CandidateExpressionAppel>();
+	auto nouvelles_candidates = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>();
 
 	POUR (candidates_appel) {
 		if (it.quoi == CANDIDATE_EST_APPEL_UNIFORME) {
 			auto acces = static_cast<NoeudExpressionBinaire *>(it.decl);
-			auto candidates = dls::tableau<CandidateExpressionAppel>();
+			auto candidates = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>();
 			if (trouve_candidates_pour_fonction_appelee(contexte, espace, acces->expr2, candidates)) {
 				return true;
 			}

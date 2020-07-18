@@ -76,7 +76,7 @@ struct Module {
 	assembleuse_arbre *assembleuse{};
 	NoeudBloc *bloc = nullptr;
 
-	dls::tableau<Fichier *> fichiers{};
+	dls::tablet<Fichier *, 16> fichiers{};
 	dls::ensemblon<dls::vue_chaine_compacte, 16> fonctions_exportees{};
 	size_t id = 0ul;
 	dls::chaine nom{""};

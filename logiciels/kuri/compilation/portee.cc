@@ -178,7 +178,7 @@ NoeudDeclaration *trouve_type_dans_bloc_ou_module(
 }
 
 void trouve_declarations_dans_bloc(
-		dls::tableau<NoeudDeclaration *> &declarations,
+		dls::tablet<NoeudDeclaration *, 10> &declarations,
 		NoeudBloc *bloc,
 		IdentifiantCode *ident)
 {
@@ -200,7 +200,7 @@ void trouve_declarations_dans_bloc(
 
 void trouve_declarations_dans_bloc_ou_module(
 		EspaceDeTravail const &espace,
-		dls::tableau<NoeudDeclaration *> &declarations,
+		dls::tablet<NoeudDeclaration *, 10> &declarations,
 		NoeudBloc *bloc,
 		IdentifiantCode *ident,
 		Fichier *fichier)
