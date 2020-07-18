@@ -1010,6 +1010,19 @@ bool valide_appel_fonction(
 		return true;
 	}
 
+	POUR (candidates) {
+		// À FAIRE : nous avons plusieurs fois les mêmes fonctions ?
+		if (it.noeud_decl == candidate->noeud_decl) {
+			continue;
+		}
+
+		if (it.poids_args == poids) {
+			// À FAIRE : meilleure message d'essage, le système d'erreur devra être réusiné proprement
+			erreur::lance_erreur("fonction ambigüe", espace, expr->lexeme);
+			return true;
+		}
+	}
+
 	// ------------
 	// copie les données
 
