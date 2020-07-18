@@ -641,6 +641,24 @@ static auto apparie_appel_fonction(
 	}
 
 	if (fonction_variadique_interne) {
+		/* Il y a des collisions entre les fonctions variadiques et les fonctions non-variadiques quand le nombre d'arguments correspond pour tous les cas.
+		 *
+		 * Par exemple :
+		 *
+		 * passe_une_chaine       :: fonc (a : chaine)
+		 * passe_plusieurs_chaine :: fonc (args : ...chaine)
+		 * sont ambigües si la variadique n'est appelée qu'avec un seul élément
+		 *
+		 * et
+		 *
+		 * ne_passe_rien           :: fonc ()
+		 * ne_passe_peut_être_rien :: fonc (args: ...z32)
+		 * sont ambigües si la variadique est appelée sans arguments
+		 *
+		 * Donc diminue le poids pour les fonctions variadiques.
+		 */
+		poids_args *= 0.95;
+
 		auto index_premier_var_arg = nombre_args - 1;
 
 		if (slots.taille() != nombre_args || slots[index_premier_var_arg]->genre != GenreNoeud::EXPANSION_VARIADIQUE) {
