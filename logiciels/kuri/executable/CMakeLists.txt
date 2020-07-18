@@ -54,6 +54,9 @@ set(BIBLIOTHEQUES
 
 add_executable(kuri
     lanceur.cc
+	date.cc
+
+	date.hh
 )
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
