@@ -263,7 +263,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			if (decl->lexeme->fichier == expr->lexeme->fichier && decl->genre == GenreNoeud::DECLARATION_VARIABLE && ((decl->drapeaux_decl & EST_GLOBALE) == 0)) {
+			if (decl->lexeme->fichier == expr->lexeme->fichier && decl->genre == GenreNoeud::DECLARATION_VARIABLE && ((decl->drapeaux & EST_GLOBALE) == 0)) {
 				if (decl->lexeme->ligne > expr->lexeme->ligne) {
 					rapporte_erreur("Utilisation d'une variable avant sa déclaration", expr);
 					return true;
@@ -525,7 +525,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			decl->type = variable->type;
 
-			if (decl->drapeaux_decl & EST_EXTERNE) {
+			if (decl->drapeaux & EST_EXTERNE) {
 				rapporte_erreur("Ne peut pas assigner une variable globale externe dans sa déclaration", noeud);
 				return true;
 			}
@@ -1830,7 +1830,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					decl_expr->ident = expr_paire->ident;
 					decl_expr->lexeme = expr_paire->lexeme;
 					decl_expr->bloc_parent = bloc_paire;
-					decl_expr->drapeaux_decl |= EMPLOYE;
+					decl_expr->drapeaux |= EMPLOYE;
 					decl_expr->type = expr_paire->type;
 					// À FAIRE: mise en place des informations d'emploie
 

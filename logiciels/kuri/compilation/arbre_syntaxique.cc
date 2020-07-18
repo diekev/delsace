@@ -442,7 +442,6 @@ NoeudExpression *copie_noeud(
 				aplatis_arbre(copie, nexpr->arbre_aplatis_entete, drapeaux_noeud::AUCUN);
 			}
 
-			nexpr->drapeaux_decl = expr->drapeaux_decl;
 			nexpr->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, expr->bloc, bloc_parent));
 
 			aplatis_arbre(nexpr->bloc, nexpr->arbre_aplatis, drapeaux_noeud::AUCUN);
@@ -454,7 +453,6 @@ NoeudExpression *copie_noeud(
 			auto decl = static_cast<NoeudEnum const *>(racine);
 			auto ndecl = static_cast<NoeudEnum *>(nracine);
 
-			ndecl->drapeaux_decl = decl->drapeaux_decl;
 			ndecl->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, decl->bloc, bloc_parent));
 			break;
 		}
@@ -463,7 +461,6 @@ NoeudExpression *copie_noeud(
 			auto decl = static_cast<NoeudStruct const *>(racine);
 			auto ndecl = static_cast<NoeudStruct *>(nracine);
 
-			ndecl->drapeaux_decl = decl->drapeaux_decl;
 			ndecl->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, decl->bloc, bloc_parent));
 			break;
 		}
@@ -472,7 +469,6 @@ NoeudExpression *copie_noeud(
 			auto expr = static_cast<NoeudDeclarationVariable const *>(racine);
 			auto nexpr = static_cast<NoeudDeclarationVariable *>(nracine);
 
-			nexpr->drapeaux_decl = expr->drapeaux_decl;
 			nexpr->valeur = copie_noeud(assem, expr->valeur, bloc_parent);
 			nexpr->expression = copie_noeud(assem, expr->expression, bloc_parent);
 			nexpr->expression_type = nexpr->valeur->expression_type;

@@ -241,7 +241,6 @@ struct NoeudExpression {
 
 struct NoeudDeclaration : public NoeudExpression {
 	NoeudDependance *noeud_dependance = nullptr;
-	drapeaux_noeud drapeaux_decl = {};
 };
 
 struct NoeudDeclarationVariable final : public NoeudDeclaration {
