@@ -749,3 +749,8 @@ Message const *compilatrice_attend_message()
 
 	return messagere->defile();
 }
+
+EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine nom, OptionsCompilation *options)
+{
+	return ptr_compilatrice->demarre_un_espace_de_travail(*options, dls::chaine(nom.pointeur, nom.taille));
+}

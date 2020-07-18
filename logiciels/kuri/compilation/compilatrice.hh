@@ -348,4 +348,6 @@ void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chain
 void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine c);
 int fonction_test_variadique_externe(int sentinel, ...);
 
+EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine nom, OptionsCompilation *options);
+
 Message const *compilatrice_attend_message();

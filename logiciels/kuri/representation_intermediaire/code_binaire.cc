@@ -731,6 +731,7 @@ static auto trouve_fonction_compilatrice(IdentifiantCode *ident)
 	COMPARE_IDENT(ID::compilatrice_obtiens_options, obtiens_options_compilation);
 	COMPARE_IDENT(ID::fonction_test_variadique_externe, fonction_test_variadique_externe);
 	COMPARE_IDENT(ID::compilatrice_attend_message, compilatrice_attend_message);
+	COMPARE_IDENT(ID::demarre_un_espace_de_travail, demarre_un_espace_de_travail);
 
 	std::cerr << "Fonction compilatrice inconnue !\n";
 	return static_cast<void(*)()>(nullptr);

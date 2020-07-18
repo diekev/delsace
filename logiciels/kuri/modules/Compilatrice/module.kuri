@@ -31,10 +31,10 @@ OptionsLangage :: énum_drapeau z32 {
 }
 
 OptionsCompilation :: struct {
-    nom_sortie : chaine
-    type_coulisse : TypeCoulisse
-    niveau_optimisation : NiveauOptimisation
-    architecture_cible : ArchitectureCible
+    nom_sortie := "a.out"
+    type_coulisse := TypeCoulisse.C
+    niveau_optimisation := NiveauOptimisation.AUCUN
+    architecture_cible := ArchitectureCible.X64
     options_langage : OptionsLangage
 
     crée_exécutable := vrai
@@ -215,3 +215,5 @@ compilatrice_obtiens_options :: fonc () -> *OptionsCompilation #compilatrice
 compilatrice_ajourne_options :: fonc (options: *OptionsCompilation) -> rien #compilatrice
 
 compilatrice_attend_message :: fonc () -> *Message #compilatrice
+
+démarre_un_espace_de_travail :: fonc (nom: chaine, options: *OptionsCompilation) -> *EspaceDeTravail #compilatrice
