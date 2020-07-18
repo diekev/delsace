@@ -25,9 +25,10 @@
 #include "noeud_code.hh"
 
 #include "arbre_syntaxique.hh"
+#include "compilatrice.hh"
 #include "identifiant.hh"
 
-NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *noeud_expression)
+NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression *noeud_expression)
 {
 	auto noeud_code = static_cast<NoeudCode *>(nullptr);
 
@@ -49,11 +50,11 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 			n->nom.taille = decl->lexeme->chaine.taille();
 
 			POUR (decl->params) {
-				auto n_param = converti_noeud_syntaxique(it);
+				auto n_param = converti_noeud_syntaxique(espace, it);
 				n->params_entree.pousse(static_cast<NoeudCodeDeclaration *>(n_param));
 			}
 
-			n->bloc = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(decl->bloc));
+			n->bloc = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, decl->bloc));
 
 			noeud_code = n;
 			break;
@@ -99,7 +100,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 			n->expressions.reserve(expressions->taille);
 
 			POUR (*expressions) {
-				n->expressions.pousse(converti_noeud_syntaxique(it));
+				n->expressions.pousse(converti_noeud_syntaxique(espace, it));
 			}
 
 			auto membres = noeud_bloc->membres.verrou_lecture();
@@ -108,7 +109,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 			POUR (*membres) {
 				// le noeud_code peut être nul pour le contexte implicite
 				if (it->noeud_code == nullptr) {
-					converti_noeud_syntaxique(it);
+					converti_noeud_syntaxique(espace, it);
 				}
 
 				n->membres.pousse(static_cast<NoeudCodeDeclaration *>(it->noeud_code));
@@ -127,8 +128,8 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 			auto noeud_op_bin = static_cast<NoeudExpressionBinaire *>(noeud_expression);
 
 			auto n = noeuds_operations_binaire.ajoute_element();
-			n->operande_gauche = converti_noeud_syntaxique(noeud_op_bin->expr1);
-			n->operande_droite = converti_noeud_syntaxique(noeud_op_bin->expr2);
+			n->operande_gauche = converti_noeud_syntaxique(espace, noeud_op_bin->expr1);
+			n->operande_droite = converti_noeud_syntaxique(espace, noeud_op_bin->expr2);
 
 			noeud_code = n;
 			break;
@@ -170,7 +171,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 			auto expr = static_cast<NoeudExpressionUnaire *>(noeud_expression);
 
 			auto n = noeuds_operations_unaire.ajoute_element();
-			n->operande = converti_noeud_syntaxique(expr->expr);
+			n->operande = converti_noeud_syntaxique(espace, expr->expr);
 
 			noeud_code = n;
 			break;
@@ -181,9 +182,9 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 			auto noeud_si = static_cast<NoeudSi *>(noeud_expression);
 
 			auto n = noeuds_sis.ajoute_element();
-			n->condition = converti_noeud_syntaxique(noeud_si->condition);
-			n->bloc_si_vrai = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(noeud_si->bloc_si_vrai));
-			n->bloc_si_faux = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(noeud_si->bloc_si_faux));
+			n->condition = converti_noeud_syntaxique(espace, noeud_si->condition);
+			n->bloc_si_vrai = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, noeud_si->bloc_si_vrai));
+			n->bloc_si_faux = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, noeud_si->bloc_si_faux));
 
 			noeud_code = n;
 			break;
@@ -195,8 +196,8 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 			auto noeud_boucle = static_cast<NoeudBoucle *>(noeud_expression);
 
 			auto n = noeuds_boucles.ajoute_element();
-			n->condition = converti_noeud_syntaxique(noeud_boucle->condition);
-			n->bloc = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(noeud_boucle->bloc));
+			n->condition = converti_noeud_syntaxique(espace, noeud_boucle->condition);
+			n->bloc = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, noeud_boucle->bloc));
 
 			noeud_code = n;
 			break;
@@ -231,6 +232,14 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(NoeudExpression *n
 		if (noeud_expression->type) {
 			noeud_code->info_type = cree_info_type_pour(noeud_expression->type);
 		}
+
+		auto lexeme = noeud_expression->lexeme;
+		auto fichier = espace->fichier(lexeme->fichier);
+
+		noeud_code->chemin_fichier = fichier->chemin;
+		noeud_code->nom_fichier = fichier->nom;
+		noeud_code->numero_ligne = lexeme->ligne;
+		noeud_code->numero_colonne = lexeme->colonne;
 	}
 
 	noeud_expression->noeud_code = noeud_code;

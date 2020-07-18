@@ -38,6 +38,7 @@
  * Ces structures doivent être synchronisé avec celles du module Compilatrice.
  */
 
+struct EspaceDeTravail;
 struct InfoType;
 struct NoeudCodeBloc;
 struct NoeudCodeDeclaration;
@@ -47,6 +48,11 @@ struct Type;
 struct NoeudCode {
 	int genre = 0;
 	InfoType *info_type = nullptr;
+
+	kuri::chaine chemin_fichier{};
+	kuri::chaine nom_fichier{};
+	int numero_ligne = 0;
+	int numero_colonne = 0;
 };
 
 struct NoeudCodeFonction : public NoeudCode {
@@ -193,7 +199,7 @@ struct ConvertisseuseNoeudCode {
 	tableau_page<InfoTypeTableau> infos_types_tableaux{};
 	tableau_page<InfoTypeUnion> infos_types_unions{};
 
-	NoeudCode *converti_noeud_syntaxique(NoeudExpression *noeud_expression);
+	NoeudCode *converti_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression *noeud_expression);
 
 	InfoType *cree_info_type_pour(Type *type);
 };

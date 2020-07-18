@@ -92,7 +92,7 @@ void Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclara
 		return;
 	}
 
-	convertisseuse_noeud_code.converti_noeud_syntaxique(noeud_decl);
+	convertisseuse_noeud_code.converti_noeud_syntaxique(espace, noeud_decl);
 
 	auto message = messages_typage_code.ajoute_element();
 	message->genre = GenreMessage::TYPAGE_CODE_TERMINE;
