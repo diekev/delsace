@@ -115,7 +115,9 @@ struct UniteCompilation {
 
 	inline void attend_sur_symbole(Lexeme const *lexeme)
 	{
-		this->change_etat(UniteCompilation::Etat::ATTEND_SUR_SYMBOLE);
+		// ne remet pas le compte de cycle à zéro car il n'y a aucune vérification sur l'existance du symbole dans
+		// la tâcheronne qui remet immédiatement le compte de cycle à zéro et nous bloquerait dans une boucle infinie
+		this->etat_ = UniteCompilation::Etat::ATTEND_SUR_SYMBOLE;
 		this->lexeme_attendu = lexeme;
 	}
 };
