@@ -807,14 +807,14 @@ void Lexeuse::lexe_commentaire_bloc()
 
 	while (!this->fini()) {
 		if (this->caractere_courant() == '/' && this->caractere_voisin(1) == '*') {
-			this->avance_fixe<2>();
+			this->avance(2);
 			this->pousse_caractere(2);
 			compte_blocs += 1;
 			continue;
 		}
 
 		if (this->caractere_courant() == '*' && this->caractere_voisin(1) == '/') {
-			this->avance_fixe<2>();
+			this->avance(2);
 			this->pousse_caractere(2);
 
 			if (compte_blocs == 0) {
@@ -824,7 +824,7 @@ void Lexeuse::lexe_commentaire_bloc()
 			compte_blocs -= 1;
 		}
 		else {
-			this->avance_fixe<1>();
+			this->avance(1);
 			this->pousse_caractere();
 		}
 	}
