@@ -100,6 +100,12 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main(EspaceDeTravail *es
 	return genere_ri_pour_fonction_main();
 }
 
+AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(EspaceDeTravail *espace, const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour)
+{
+	m_espace = espace;
+	return genere_fonction_init_globales_et_appel(globales, fonction_pour);
+}
+
 static void imprime_atome(Atome const *atome, std::ostream &os)
 {
 	if (atome->genre_atome == Atome::Genre::CONSTANTE) {

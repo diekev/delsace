@@ -99,6 +99,7 @@ public:
 	void genere_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
 	void genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace, NoeudDirectiveExecution *noeud);
 	AtomeFonction *genere_ri_pour_fonction_main(EspaceDeTravail *espace);
+	AtomeFonction *genere_fonction_init_globales_et_appel(EspaceDeTravail *espace, const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
 
 	void imprime_programme(EspaceDeTravail *espace) const;
 
@@ -111,9 +112,9 @@ public:
 
 	InstructionAllocation *cree_allocation(Type *type, IdentifiantCode *ident);
 
-	AtomeFonction *genere_fonction_init_globales_et_appel(const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
 
 private:
+	AtomeFonction *genere_fonction_init_globales_et_appel(const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
 
 	AtomeConstante *cree_constante_booleenne(bool valeur);
 	AtomeConstante *cree_constante_caractere(Type *type, unsigned long long valeur);

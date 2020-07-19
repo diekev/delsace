@@ -533,7 +533,7 @@ void lance_file_execution(Compilatrice *compilatrice)
 		//desassemble(fonction->chunk, noeud->fonction->nom_broye.c_str(), std::cout);
 
 		if (globales.taille() != 0) {
-			auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(globales, fonction);
+			auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(espace, globales, fonction);
 			fonctions.pousse(fonc_init);
 		}
 
