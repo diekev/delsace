@@ -2965,10 +2965,11 @@ Atome *ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpre
 
 			insere_label(label_si_faux);
 
-			if (mode == 0 && (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION)) {
-				auto type_deref = type_dereference_pour(type);
+			auto type_deref = type_dereference_pour(type);
+
+			if (mode == 0 && type_deref && (type_deref->genre == GenreType::STRUCTURE || type_deref->genre == GenreType::UNION)) {
 				auto nom_fonction = "initialise_" + dls::vers_chaine(type_deref);
-				auto atome_fonction =m_espace->trouve_fonction(nom_fonction);
+				auto atome_fonction = m_espace->trouve_fonction(nom_fonction);
 
 				auto params_init = kuri::tableau<Atome *>(2);
 				params_init[0] = cree_charge_mem(ptr_contexte);
