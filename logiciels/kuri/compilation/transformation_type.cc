@@ -146,6 +146,18 @@ bool cherche_transformation(
 				return false;
 			}
 		}
+
+		if (type_vers->genre == GenreType::ENUM && static_cast<TypeEnum *>(type_vers)->type_donnees == type_de) {
+			// on pourrait se passer de la conversion, ou normaliser le type
+			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			return false;
+		}
+	}
+
+	if (type_de->genre == GenreType::ENTIER_CONSTANT && type_vers->genre == GenreType::ENUM) {
+		// on pourrait se passer de la conversion, ou normaliser le type
+		transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+		return false;
 	}
 
 	if (type_de->genre == GenreType::ENTIER_NATUREL && type_vers->genre == GenreType::ENTIER_NATUREL) {
