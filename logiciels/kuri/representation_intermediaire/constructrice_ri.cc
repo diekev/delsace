@@ -715,6 +715,7 @@ InstructionAllocation *ConstructriceRI::cree_allocation(Type *type, IdentifiantC
 {
 	/* le résultat d'une instruction d'allocation est l'adresse de la variable. */
 	type = normalise_type(m_espace->typeuse, type);
+	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
 	auto type_pointeur = m_espace->typeuse.type_pointeur_pour(type);
 	auto inst = insts_allocation.ajoute_element(type_pointeur, ident);
 	inst->numero = nombre_instructions++;
@@ -737,7 +738,10 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Atome *ou, Atome *valeur)
 //			  << ", valeur->type : " << chaine_type(valeur->type) << " (" << valeur->type << ") " << '\n';
 	assert(type_pointeur->type_pointe == valeur->type || (type_pointeur->type_pointe->genre == GenreType::TYPE_DE_DONNEES && type_pointeur->type_pointe->genre == valeur->type->genre));
 
-	auto inst = insts_stocke_memoire.ajoute_element(valeur->type, ou, valeur);
+	auto type = valeur->type;
+	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
+
+	auto inst = insts_stocke_memoire.ajoute_element(type, ou, valeur);
 	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
@@ -760,7 +764,10 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(Atome *ou)
 	//std::cerr << __func__ << ", type instruction : " << static_cast<int>(inst_chargee->genre) << '\n';
 	//assert(dls::outils::est_element(inst_chargee->genre, Instruction::Genre::ALLOCATION, Instruction::Genre::ACCEDE_MEMBRE, Instruction::Genre::ACCEDE_INDEX));
 
-	auto inst = insts_charge_memoire.ajoute_element(type_pointeur->type_pointe, ou);
+	auto type = type_pointeur->type_pointe;
+	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
+
+	auto inst = insts_charge_memoire.ajoute_element(type, ou);
 	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	charge_mems.pousse(inst);
@@ -822,6 +829,8 @@ InstructionAccedeIndex *ConstructriceRI::cree_acces_index(Atome *accede, Atome *
 
 	auto type = m_espace->typeuse.type_pointeur_pour(type_dereference_pour(type_pointe));
 
+	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
+
 	auto inst = insts_accede_index.ajoute_element(type, accede, index);
 	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
@@ -847,6 +856,7 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(Atome *accede, long 
 
 	/* nous retournons un pointeur vers le membre */
 	type = m_espace->typeuse.type_pointeur_pour(type);
+	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
 
 	auto inst = insts_accede_membre.ajoute_element(type, accede, cree_z64(static_cast<unsigned>(index)));
 	inst->numero = nombre_instructions++;

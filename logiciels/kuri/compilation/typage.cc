@@ -115,7 +115,7 @@ Type *Type::cree_entier(unsigned taille_octet, bool est_naturel)
 	type->genre = est_naturel ? GenreType::ENTIER_NATUREL : GenreType::ENTIER_RELATIF;
 	type->taille_octet = taille_octet;
 	type->alignement = taille_octet;
-	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
 	return type;
 }
 
@@ -133,7 +133,7 @@ Type *Type::cree_reel(unsigned taille_octet)
 	type->genre = GenreType::REEL;
 	type->taille_octet = taille_octet;
 	type->alignement = taille_octet;
-	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
 	return type;
 }
 
@@ -142,7 +142,7 @@ Type *Type::cree_rien()
 	auto type = memoire::loge<Type>("Type");
 	type->genre = GenreType::RIEN;
 	type->taille_octet = 0;
-	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
 	return type;
 }
 
@@ -152,7 +152,7 @@ Type *Type::cree_bool()
 	type->genre = GenreType::BOOL;
 	type->taille_octet = 1;
 	type->alignement = 1;
-	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
 	return type;
 }
 
@@ -162,7 +162,7 @@ Type *Type::cree_octet()
 	type->genre = GenreType::OCTET;
 	type->taille_octet = 1;
 	type->alignement = 1;
-	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
 	return type;
 }
 
@@ -240,6 +240,7 @@ TypeCompose *TypeCompose::cree_eini()
 	type->genre = GenreType::EINI;
 	type->taille_octet = 16;
 	type->alignement = 8;
+	type->drapeaux = (TYPE_EST_NORMALISE);
 	return type;
 }
 
@@ -249,6 +250,7 @@ TypeCompose *TypeCompose::cree_chaine()
 	type->genre = GenreType::CHAINE;
 	type->taille_octet = 16;
 	type->alignement = 8;
+	type->drapeaux = (TYPE_EST_NORMALISE);
 	return type;
 }
 
@@ -1456,6 +1458,10 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 		return type;
 	}
 
+	if ((type->drapeaux & TYPE_EST_NORMALISE) != 0) {
+		return type;
+	}
+
 	auto resultat = type;
 
 	if (type->genre == GenreType::UNION) {
@@ -1521,6 +1527,8 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 
 		resultat = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
 	}
+
+	resultat->drapeaux |= TYPE_EST_NORMALISE;
 
 	return resultat;
 }
