@@ -90,6 +90,25 @@ static DonneesTypeCommun donnees_types_communs[] = {
 
 /* ************************************************************************** */
 
+const char *chaine_genre_type(GenreType genre)
+{
+#define ENUMERE_GENRE_TYPE_EX(genre) case GenreType::genre: { return #genre; }
+	switch (genre) {
+		ENUMERE_GENRES_TYPES
+	}
+#undef ENUMERE_GENRE_TYPE_EX
+
+	return "erreur, ceci ne devrait pas s'afficher";
+}
+
+std::ostream &operator<<(std::ostream &os, GenreType genre)
+{
+	os << chaine_genre_type(genre);
+	return os;
+}
+
+/* ************************************************************************** */
+
 Type *Type::cree_entier(unsigned taille_octet, bool est_naturel)
 {
 	auto type = memoire::loge<Type>("Type");
