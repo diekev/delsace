@@ -1086,6 +1086,10 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return m_espace->trouve_ou_insere_fonction(*this, static_cast<NoeudDeclarationFonction *>(decl_ref));
 			}
 
+			if (dls::outils::est_element(decl_ref->genre, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE)) {
+				return cree_constante_type(decl_ref->type);
+			}
+
 			if (decl_ref->drapeaux & EST_GLOBALE) {
 				return m_espace->trouve_ou_insere_globale(decl_ref);
 			}

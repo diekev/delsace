@@ -272,6 +272,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			if (dls::outils::est_element(decl->genre, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE) && expr->aide_generation_code != EST_NOEUD_ACCES) {
 				expr->type = espace->typeuse.type_type_de_donnees(decl->type);
+				expr->decl = decl;
 			}
 			else {				
 				if ((decl->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
