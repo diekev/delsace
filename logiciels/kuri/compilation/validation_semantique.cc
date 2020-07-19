@@ -1872,7 +1872,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						}
 
 						if (!nom_trouve) {
-							rapporte_erreur_membre_inconnu(noeud, expression, expr_paire, type_enum);
+							rapporte_erreur_membre_inconnu(noeud, expression, f, type_enum);
 							return true;
 						}
 
