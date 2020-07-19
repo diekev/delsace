@@ -63,13 +63,4 @@ struct OptionsCompilation {
 
 	bool cree_executable = true;
 	bool emets_metriques = true;
-
-	OptionsCompilation() = default;
-
-	~OptionsCompilation()
-	{
-		if (nom_sortie != kuri::chaine("a.out")) {
-			detruit_chaine(nom_sortie);
-		}
-	}
 };
