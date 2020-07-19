@@ -687,7 +687,13 @@ imprime_valeur :: fonc(
 			}
 		}
 		TYPE_DE_DONNÉES {
-			// À FAIRE
+			// XXX - ceci est un hack, il faudra plutôt imprimer le nom du type via une table de types
+			e : eini
+			e.pointeur = pointeur
+			e.info = info
+
+			fmt := FormatEntier(valeur = e)
+			imprime_nombre_entier(enchaineuse, fmt)
 		}
 		UNION {
 			info_arg := info comme *InfoTypeUnion
