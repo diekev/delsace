@@ -1917,7 +1917,15 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				if (meilleur_candidat == nullptr) {
-					rapporte_erreur_type_operation(noeud);
+					::rapporte_erreur(unite->espace, noeud,
+									  "Je ne peux pas valider l'expression de discrimination car je n'arrive à trouver un opérateur de comparaison pour le "
+									  "type de l'expression. ")
+							.ajoute_message("Le type de l'expression est : ")
+							.ajoute_message(chaine_type(type))
+							.ajoute_message(".\n\n")
+							.ajoute_conseil("Les discriminations ont besoin d'un opérateur « == » défini pour le type afin de pouvoir comparer les valeurs,"
+											" donc si vous voulez utiliser une discrimination sur un type personnalisé, vous pouvez définir l'opérateur comme ceci :\n\n"
+											"\topérateur == :: fonc (a: MonType, b: MonType) -> bool\n\t{\n\t\t /* logique de comparaison */\n\t}\n");
 					return true;
 				}
 
