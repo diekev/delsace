@@ -340,6 +340,20 @@ void MachineVirtuelle::depile(long n)
 	pointeur_pile -= n;
 }
 
+template <typename T>
+void MachineVirtuelle::empile(T valeur)
+{
+	*reinterpret_cast<T *>(this->pointeur_pile) = valeur;
+	this->pointeur_pile += static_cast<long>(sizeof(T));
+}
+
+template <typename T>
+T MachineVirtuelle::depile()
+{
+	this->pointeur_pile -= static_cast<long>(sizeof(T));
+	return *reinterpret_cast<T *>(this->pointeur_pile);
+}
+
 bool MachineVirtuelle::appel(AtomeFonction *fonction, int /*taille_argument*/)
 {
 	auto frame = &frames[profondeur_appel++];

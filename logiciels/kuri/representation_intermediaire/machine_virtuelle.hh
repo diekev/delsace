@@ -98,18 +98,10 @@ struct MachineVirtuelle {
 	void reinitialise_pile();
 
 	template <typename T>
-	void empile(T valeur)
-	{
-		*reinterpret_cast<T *>(this->pointeur_pile) = valeur;
-		this->pointeur_pile += static_cast<long>(sizeof(T));
-	}
+	void empile(T valeur);
 
 	template <typename T>
-	T depile()
-	{
-		this->pointeur_pile -= static_cast<long>(sizeof(T));
-		return *reinterpret_cast<T *>(this->pointeur_pile);
-	}
+	T depile();
 
 	long depile();
 
