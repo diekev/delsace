@@ -1901,8 +1901,13 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 			}
 			else {
+				auto type_pour_la_recherche = type;
+				if (type->genre == GenreType::TYPE_DE_DONNEES) {
+					type_pour_la_recherche = espace->typeuse.type_type_de_donnees_;
+				}
+
 				auto candidats = dls::tablet<OperateurCandidat, 10>();
-				if (cherche_candidats_operateurs(*espace, *this, type, type, GenreLexeme::EGALITE, candidats)) {
+				if (cherche_candidats_operateurs(*espace, *this, type_pour_la_recherche, type_pour_la_recherche, GenreLexeme::EGALITE, candidats)) {
 					return true;
 				}
 
