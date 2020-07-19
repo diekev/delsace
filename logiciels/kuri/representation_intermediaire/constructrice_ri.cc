@@ -3232,7 +3232,7 @@ Atome *ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud
 		return cree_constante_entiere(type_enum, static_cast<unsigned>(valeur_enum));
 	}
 
-	if (noeud->type->genre == GenreType::TYPE_DE_DONNEES) {
+	if (noeud->type->genre == GenreType::TYPE_DE_DONNEES && noeud->genre_valeur == GenreValeur::DROITE) {
 		auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(noeud->type);
 
 		if (type_de_donnees->type_connu) {
