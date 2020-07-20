@@ -1013,7 +1013,6 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				auto pointeur_struct = table_locales[ident_var_employee];
 
 				if (pointeur_struct == nullptr) {
-					imprime_fichier_ligne(*m_espace, *decl_var->lexeme);
 					pointeur_struct = cree_allocation(decl_var->declaration_vient_d_un_emploi->type, ident_var_employee);
 					// utilise table_locales[] car son utilisation au-dessus insère une entrée pour ident_var_employee ce qui ferait échouer un appel à « insere »
 					table_locales[ident_var_employee] = pointeur_struct;
