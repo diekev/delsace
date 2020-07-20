@@ -134,6 +134,7 @@ IdentifiantCode *chemin;
 IdentifiantCode *creation_contexte;
 IdentifiantCode *ajoute_chaine_a_la_compilation;
 IdentifiantCode *ajoute_fichier_a_la_compilation;
+IdentifiantCode *ajoute_chaine_au_module;
 IdentifiantCode *compilatrice;
 IdentifiantCode *compilatrice_obtiens_options;
 IdentifiantCode *compilatrice_ajourne_options;
@@ -199,6 +200,7 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::creation_contexte = table.identifiant_pour_chaine("création_contexte");
 	ID::ajoute_chaine_a_la_compilation = table.identifiant_pour_chaine("ajoute_chaine_à_la_compilation");
 	ID::ajoute_fichier_a_la_compilation = table.identifiant_pour_chaine("ajoute_fichier_à_la_compilation");
+	ID::ajoute_chaine_au_module = table.identifiant_pour_chaine("ajoute_chaine_au_module");
 	ID::compilatrice = table.identifiant_pour_chaine("compilatrice");
 	ID::compilatrice_obtiens_options = table.identifiant_pour_chaine("compilatrice_obtiens_options");
 	ID::compilatrice_ajourne_options = table.identifiant_pour_chaine("compilatrice_ajourne_options");

@@ -727,6 +727,7 @@ static auto trouve_fonction_compilatrice(IdentifiantCode *ident)
 
 	COMPARE_IDENT(ID::ajoute_chaine_a_la_compilation, compilatrice_ajoute_chaine_compilation);
 	COMPARE_IDENT(ID::ajoute_fichier_a_la_compilation, compilatrice_ajoute_fichier_compilation);
+	COMPARE_IDENT(ID::ajoute_chaine_au_module, ajoute_chaine_au_module);
 	COMPARE_IDENT(ID::compilatrice_ajourne_options, ajourne_options_compilation);
 	COMPARE_IDENT(ID::compilatrice_obtiens_options, obtiens_options_compilation);
 	COMPARE_IDENT(ID::fonction_test_variadique_externe, fonction_test_variadique_externe);

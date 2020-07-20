@@ -219,6 +219,8 @@ ajoute_chaine_à_la_compilation :: fonc(espace: *EspaceDeTravail, c: chaine) -> 
 
 ajoute_fichier_à_la_compilation :: fonc(espace: *EspaceDeTravail, c: chaine) -> rien #compilatrice
 
+ajoute_chaine_au_module :: fonc (espace: *EspaceDeTravail, module: *Module, c: chaine) #compilatrice
+
 compilatrice_obtiens_options :: fonc () -> *OptionsCompilation #compilatrice
 
 compilatrice_ajourne_options :: fonc (options: *OptionsCompilation) -> rien #compilatrice

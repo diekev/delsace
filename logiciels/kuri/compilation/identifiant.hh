@@ -108,6 +108,7 @@ extern IdentifiantCode *chemin;
 extern IdentifiantCode *creation_contexte;
 extern IdentifiantCode *ajoute_chaine_a_la_compilation;
 extern IdentifiantCode *ajoute_fichier_a_la_compilation;
+extern IdentifiantCode *ajoute_chaine_au_module;
 extern IdentifiantCode *compilatrice;
 extern IdentifiantCode *compilatrice_obtiens_options;
 extern IdentifiantCode *compilatrice_ajourne_options;

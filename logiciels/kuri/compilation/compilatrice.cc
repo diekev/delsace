@@ -664,6 +664,24 @@ void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chain
 	ptr_compilatrice->file_compilation->pousse(unite);
 }
 
+void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine c)
+{
+	auto chaine = dls::chaine(c.pointeur, c.taille);
+
+	ptr_compilatrice->chaines_ajoutees_a_la_compilation->pousse(chaine);
+
+	auto fichier = espace->cree_fichier("métaprogramme", "", ptr_compilatrice->importe_kuri);
+	fichier->tampon = lng::tampon_source(chaine);
+	fichier->module = module;
+	module->fichiers.pousse(fichier);
+
+	auto unite = UniteCompilation(espace);
+	unite.fichier = fichier;
+	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
+
+	ptr_compilatrice->file_compilation->pousse(unite);
+}
+
 void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine c)
 {
 	auto vue = dls::chaine(c.pointeur, c.taille);
