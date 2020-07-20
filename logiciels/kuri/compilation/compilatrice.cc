@@ -383,7 +383,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 
 	module->importe = true;
 
-	messagere->ajoute_message_module_ouvert(espace, module->chemin);
+	messagere->ajoute_message_module_ouvert(espace, module);
 
 	for (auto const &entree : std::filesystem::directory_iterator(chemin_absolu)) {
 		auto chemin_entree = entree.path();
@@ -399,7 +399,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 		ajoute_fichier_a_la_compilation(espace, chemin_entree.stem().c_str(), module, {});
 	}
 
-	messagere->ajoute_message_module_ferme(espace, module->chemin);
+	messagere->ajoute_message_module_ferme(espace, module);
 
 	return module;
 }

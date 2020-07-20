@@ -31,6 +31,7 @@
 #include "structures.hh"
 
 struct EspaceDeTravail;
+struct Module;
 struct NoeudDeclaration;
 
 enum class GenreMessage : int {
@@ -53,6 +54,11 @@ struct MessageFichier : public Message {
 	kuri::chaine chemin{};
 };
 
+struct MessageModule : public Message {
+	kuri::chaine chemin{};
+	Module *module = nullptr;
+};
+
 struct MessageTypageCodeTermine : public Message {
 	NoeudCode *noeud_code;
 };
@@ -60,6 +66,7 @@ struct MessageTypageCodeTermine : public Message {
 struct Messagere {
 private:
 	tableau_page<MessageFichier> messages_fichiers{};
+	tableau_page<MessageModule> messages_modules{};
 	tableau_page<MessageTypageCodeTermine> messages_typage_code{};
 	dls::file<Message *> file_message{};
 
@@ -72,8 +79,8 @@ private:
 public:
 	void ajoute_message_fichier_ouvert(EspaceDeTravail *espace, kuri::chaine const &chemin);
 	void ajoute_message_fichier_ferme(EspaceDeTravail *espace, kuri::chaine const &chemin);
-	void ajoute_message_module_ouvert(EspaceDeTravail *espace, kuri::chaine const &chemin);
-	void ajoute_message_module_ferme(EspaceDeTravail *espace, kuri::chaine const &chemin);
+	void ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module);
+	void ajoute_message_module_ferme(EspaceDeTravail *espace, Module *module);
 	void ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclaration *noeud_decl);
 
 	size_t memoire_utilisee() const;

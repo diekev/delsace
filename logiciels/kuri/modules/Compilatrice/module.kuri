@@ -171,6 +171,7 @@ NoeudCodeBoucle :: struct {
 // ----------------------------------------------------------------------------
 
 EspaceDeTravail :: struct externe;
+Module :: struct externe;
 
 // ----------------------------------------------------------------------------
 // structures des Messages, celles-ci doivent être tenues synchronisées avec celles de message.hh
@@ -197,6 +198,13 @@ MessageFichier :: struct {
     empl base : Message
 
     chemin: chaine
+}
+
+MessageModule :: struct {
+    empl base : Message
+
+    chemin: chaine
+    module: *Module
 }
 
 MessageTypageCodeTerminé :: struct {
