@@ -537,8 +537,19 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (variable->drapeaux & EMPLOYE) {
-				if (decl->type->genre != GenreType::STRUCTURE) {
-					rapporte_erreur("impossible d'employé une variable n'étant pas une structure", decl);
+				decl->drapeaux |= EMPLOYE;
+				auto type_employe = decl->type;
+
+				// permet le déréférencement de pointeur, mais uniquement sur un niveau
+				if (type_employe->genre == GenreType::POINTEUR) {
+					type_employe = static_cast<TypePointeur *>(type_employe)->type_pointe;
+				}
+
+				if (type_employe->genre != GenreType::STRUCTURE) {
+					::rapporte_erreur(unite->espace, decl, "Impossible d'employer une variable n'étant pas une structure.")
+							.ajoute_message("Le type de la variable est : ")
+							.ajoute_message(chaine_type(type_employe))
+							.ajoute_message(".\n\n");
 					return true;
 				}
 
@@ -547,16 +558,29 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					return true;
 				}
 
-				auto type_structure = static_cast<TypeStructure *>(decl->type);
+				auto type_structure = static_cast<TypeStructure *>(type_employe);
+
+				auto index_membre = 0;
+
+				// pour les structures, prend le bloc_parent qui sera celui de la structure
+				auto bloc_parent = decl->bloc_parent;
+
+				// pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la fonction (ce qui est le cas pour les paramètres...)
+				if (fonction_courante && bloc_parent == fonction_courante->bloc->bloc_parent) {
+					bloc_parent = fonction_courante->bloc;
+				}
 
 				POUR (type_structure->membres) {
-					auto decl_membre = espace->assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme);
+					auto decl_membre = static_cast<NoeudDeclarationVariable *>(espace->assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
 					decl_membre->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(it.nom);
 					decl_membre->type = it.type;
-					decl_membre->bloc_parent = decl->bloc_parent;
+					decl_membre->bloc_parent = bloc_parent;
 					decl_membre->drapeaux |= DECLARATION_FUT_VALIDEE;
+					decl_membre->declaration_vient_d_un_emploi = decl;
+					decl_membre->index_membre_employe = index_membre++;
 
-					decl->bloc_parent->membres->pousse(static_cast<NoeudDeclaration *>(decl_membre));
+					// mets-les au début du bloc afin de pouvoir vérifier les redéfinitions
+					bloc_parent->membres->pousse_front(decl_membre);
 				}
 			}
 

@@ -1,0 +1,47 @@
+importe Fondation
+
+Vecteur :: struct {
+    x := 0
+    y := 0
+    z := 0
+}
+
+modifie_vecteur :: fonc (empl v: *Vecteur)
+{
+    x = 1
+    y = 2
+    z = 3
+}
+
+ne_modifie_pas_vecteur :: fonc (empl v: Vecteur)
+{
+    x = 4
+    y = 5
+    z = 6
+}
+
+principale :: fonc () -> z32
+{
+    v : Vecteur
+
+    imprime("%\n", v)
+
+    modifie_vecteur(@v)
+
+    imprime("%\n", v)
+
+    ne_modifie_pas_vecteur(v)
+
+    imprime("%\n", v)
+
+    {
+        empl w : Vecteur
+        x = 5
+        y = 6
+        z = 7
+
+        imprime("y = %\n", w)
+    }
+
+    retourne 0
+}

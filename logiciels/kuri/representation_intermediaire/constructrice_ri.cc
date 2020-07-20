@@ -998,6 +998,30 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return nullptr;
 			}
 
+			POUR (*noeud_bloc->membres.verrou_lecture()) {
+				auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
+
+				if (!decl_var->declaration_vient_d_un_emploi) {
+					continue;
+				}
+
+				auto ident_var_employee = decl_var->declaration_vient_d_un_emploi->ident;
+				auto pointeur_struct = table_locales[ident_var_employee];
+
+				if (pointeur_struct == nullptr) {
+					pointeur_struct = cree_allocation(decl_var->declaration_vient_d_un_emploi->type, ident_var_employee);
+					// utilise table_locales[] car son utilisation au-dessus insère une entrée pour ident_var_employee ce qui ferait échouer un appel à « insere »
+					table_locales[ident_var_employee] = pointeur_struct;
+				}
+
+				if (decl_var->declaration_vient_d_un_emploi->type->genre == GenreType::POINTEUR) {
+					pointeur_struct = cree_charge_mem(pointeur_struct);
+				}
+
+				auto valeur = cree_acces_membre(pointeur_struct, decl_var->index_membre_employe);
+				table_locales.insere({ decl_var->ident, valeur });
+			}
+
 			auto inst = insts_simples.ajoute_element();
 			inst->genre = Instruction::Genre::ENREGISTRE_LOCALES;
 			inst->numero = nombre_instructions++;
@@ -1151,7 +1175,16 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return atome;
 			}
 
-			auto pointeur = cree_allocation(noeud->type, noeud->ident);
+			Atome *pointeur = nullptr;
+
+			// les allocations pour les variables employées sont créées lors de la génération de code pour les blocs
+			if (decl->drapeaux & EMPLOYE) {
+				pointeur = table_locales[decl->ident];
+				assert(pointeur != nullptr);
+			}
+			else {
+				pointeur = cree_allocation(noeud->type, noeud->ident);
+			}
 
 			if (decl->expression) {
 				if (decl->expression->genre != GenreNoeud::INSTRUCTION_NON_INITIALISATION) {

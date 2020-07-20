@@ -257,6 +257,9 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 
 	ResultatExpression valeur_expression{};
 
+	NoeudDeclaration *declaration_vient_d_un_emploi = nullptr;
+	int index_membre_employe = 0;
+
 	// pour les variables globales
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 };
