@@ -68,6 +68,7 @@ add_library(${NOM_PROJET} STATIC
 
 get_target_property(EXTLIB_COMPILE_FLAGS ${NOM_PROJET} COMPILE_OPTIONS)
 list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=class-memaccess)
+list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=deprecated-copy)
 list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
 list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wold-style-cast)
 list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wuseless-cast)
