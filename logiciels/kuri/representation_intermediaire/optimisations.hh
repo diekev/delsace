@@ -27,3 +27,5 @@
 struct AtomeFonction;
 
 void corrige_labels(AtomeFonction *atome_fonc);
+
+void supprime_code_mort(AtomeFonction *atome_fonc);

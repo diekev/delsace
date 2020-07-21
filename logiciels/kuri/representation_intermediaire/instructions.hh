@@ -54,6 +54,11 @@ struct Atome {
 	// vrai si l'atome est celui d'une instruction chargeable
 	bool est_chargeable = false;
 
+	int nombre_utilisations = 0;
+
+	// machine à état utilisée pour déterminer si un atome a été utilisé ou non
+	int etat = 0;
+
 	Atome() = default;
 
 	COPIE_CONSTRUCT(Atome);

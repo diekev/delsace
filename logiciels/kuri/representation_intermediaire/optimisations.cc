@@ -26,6 +26,7 @@
 
 #include "biblinternes/structures/tablet.hh"
 
+#include "impression.hh"
 #include "instructions.hh"
 
 /* Supprime les labels ne contenant aucune instruction, et remplace ceux-ci dans
@@ -143,4 +144,214 @@ void corrige_labels(AtomeFonction *atome_fonc)
 
 		atome_fonc->instructions = nouvelles_instructions;
 	}
+}
+
+static auto decremente_nombre_utilisations_recursif(Atome *racine) -> void
+{
+	// déjà à zéro, ça ne sers à rien de continuer à récurser
+	if (racine->nombre_utilisations == 0) {
+		return;
+	}
+
+	racine->nombre_utilisations -= 1;
+
+	switch (racine->genre_atome) {
+		case Atome::Genre::GLOBALE:
+		case Atome::Genre::FONCTION:
+		case Atome::Genre::CONSTANTE:
+		{
+			break;
+		}
+		case Atome::Genre::INSTRUCTION:
+		{
+			auto inst = static_cast<Instruction *>(racine);
+
+			switch (inst->genre) {
+				case Instruction::Genre::APPEL:
+				{
+					auto appel = static_cast<InstructionAppel *>(inst);
+
+					POUR (appel->args) {
+						decremente_nombre_utilisations_recursif(it);
+					}
+
+					break;
+				}
+				case Instruction::Genre::CHARGE_MEMOIRE:
+				{
+					auto charge = static_cast<InstructionChargeMem *>(inst);
+					decremente_nombre_utilisations_recursif(charge->chargee);
+					break;
+				}
+				case Instruction::Genre::STOCKE_MEMOIRE:
+				{
+					auto stocke = static_cast<InstructionStockeMem *>(inst);
+					decremente_nombre_utilisations_recursif(stocke->valeur);
+					decremente_nombre_utilisations_recursif(stocke->ou);
+					break;
+				}
+				case Instruction::Genre::OPERATION_UNAIRE:
+				{
+					auto op = static_cast<InstructionOpUnaire *>(inst);
+					decremente_nombre_utilisations_recursif(op->valeur);
+					break;
+				}
+				case Instruction::Genre::OPERATION_BINAIRE:
+				{
+					auto op = static_cast<InstructionOpBinaire *>(inst);
+					decremente_nombre_utilisations_recursif(op->valeur_droite);
+					decremente_nombre_utilisations_recursif(op->valeur_gauche);
+					break;
+				}
+				case Instruction::Genre::ACCEDE_INDEX:
+				{
+					auto acces = static_cast<InstructionAccedeIndex *>(inst);
+					decremente_nombre_utilisations_recursif(acces->index);
+					decremente_nombre_utilisations_recursif(acces->accede);
+					break;
+				}
+				case Instruction::Genre::ACCEDE_MEMBRE:
+				{
+					auto acces = static_cast<InstructionAccedeMembre *>(inst);
+					decremente_nombre_utilisations_recursif(acces->index);
+					decremente_nombre_utilisations_recursif(acces->accede);
+					break;
+				}
+				case Instruction::Genre::TRANSTYPE:
+				{
+					auto transtype = static_cast<InstructionTranstype *>(inst);
+					decremente_nombre_utilisations_recursif(transtype->valeur);
+					break;
+				}
+				case Instruction::Genre::ENREGISTRE_LOCALES:
+				case Instruction::Genre::RESTAURE_LOCALES:
+				case Instruction::Genre::ALLOCATION:
+				case Instruction::Genre::INVALIDE:
+				case Instruction::Genre::BRANCHE:
+				case Instruction::Genre::BRANCHE_CONDITION:
+				case Instruction::Genre::RETOUR:
+				case Instruction::Genre::LABEL:
+				{
+					break;
+				}
+			}
+
+			break;
+		}
+	}
+}
+
+/* Petit algorithme de suppression de code mort.
+ *
+ * Le code est pour le moment défini comme étant une allocation n'étant pas utilisée. Nous vérifions son état lors des stockages de mémoire.
+ *
+ * Il faudra gérer les cas suivants :
+ * - inutilisation du retour d'une fonction, mais dont la fonction a des effets secondaires : supprime la temporaire, mais garde la fonction
+ * - modification, via un déréférencement, d'un paramètre d'une fonction, sans utiliser celui-ci dans la fonction
+ * - modification, via un déréférenecement, d'un pointeur venant d'une fonction sans retourner le pointeur d'une fonction
+ * - détecter quand nous avons une variable qui est réassignée
+ */
+void supprime_code_mort(AtomeFonction *atome_fonc)
+{
+	std::cerr << "Vérifie code pour : " << atome_fonc->nom << '\n';
+
+	POUR (atome_fonc->instructions) {
+		if (it->nombre_utilisations == 0) {
+			//std::cerr << "-- l'instruction n'est pas utilisée !\n";
+			std::cerr << "\033[1m";
+		}
+		std::cerr << "%" << it->numero << ' ';
+		imprime_instruction(it, std::cerr);
+		if (it->nombre_utilisations == 0) {
+			std::cerr << "\033[0m";
+		}
+	}
+
+	// détecte les réassignations avant utilisation
+	using paire_atomes = std::pair<InstructionAllocation *, InstructionStockeMem *>;
+	auto anciennes_valeurs = dls::tablet<paire_atomes, 16>();
+
+	enum {
+		VALEUR_NE_FUT_PAS_INITIALISEE,
+		VALEUR_FUT_UTILISEE,
+		VALEUR_FUT_INITIALISEE,
+	};
+
+	POUR (atome_fonc->instructions) {
+		if (it->genre == Instruction::Genre::STOCKE_MEMOIRE) {
+			auto stocke_mem = static_cast<InstructionStockeMem *>(it);
+			auto ou = stocke_mem->ou;
+
+			if (ou->genre_atome != Atome::Genre::INSTRUCTION) {
+				continue;
+			}
+
+			if (ou->etat == VALEUR_NE_FUT_PAS_INITIALISEE) {
+				anciennes_valeurs.pousse({ static_cast<InstructionAllocation *>(ou), stocke_mem });
+				ou->etat = VALEUR_FUT_INITIALISEE;
+			}
+			else if (ou->etat == VALEUR_FUT_INITIALISEE) {
+				// la valeur n'a pas encore été utilisée
+				for (auto &p : anciennes_valeurs) {
+					if (p.first == ou) {
+						std::cerr << "La valeur ne fut pas encore utilisée !\n";
+						decremente_nombre_utilisations_recursif(p.second);
+						p.second = stocke_mem;
+						ou->etat = VALEUR_FUT_INITIALISEE;
+						break;
+					}
+				}
+			}
+		}
+		else if (it->genre == Instruction::Genre::CHARGE_MEMOIRE) {
+			auto charge_mem = static_cast<InstructionChargeMem *>(it);
+			charge_mem->chargee->etat = VALEUR_FUT_UTILISEE;
+		}
+	}
+
+	// nous partons de la fin de la fonction, pour ne pas avoir à récurser
+	for (auto i = atome_fonc->instructions.taille - 1; i >= 0; --i) {
+		auto it = atome_fonc->instructions[i];
+
+		if (it->genre == Instruction::Genre::STOCKE_MEMOIRE) {
+			auto stocke_mem = static_cast<InstructionStockeMem *>(it);
+
+			if (stocke_mem->ou->nombre_utilisations <= 1) {
+				decremente_nombre_utilisations_recursif(stocke_mem);
+			}
+		}
+		else if (it->genre == Instruction::Genre::CHARGE_MEMOIRE && it->nombre_utilisations == 0) {
+			auto charge_mem = static_cast<InstructionChargeMem *>(it);
+			decremente_nombre_utilisations_recursif(charge_mem->chargee);
+		}
+	}
+
+//	POUR (atome_fonc->instructions) {
+//		if (it->nombre_utilisations <= 0) {
+//			//std::cerr << "-- l'instruction n'est pas utilisée !\n";
+//			std::cerr << "\033[1m";
+//		}
+//		std::cerr << '(' << it->nombre_utilisations << ')' << "%" << it->numero << ' ';
+//		imprime_instruction(it, std::cerr);
+//		if (it->nombre_utilisations <= 0) {
+//			std::cerr << "\033[0m";
+//		}
+//	}
+
+	auto nouvelles_instructions = kuri::tableau<Instruction *>();
+
+	auto numero_instruction = static_cast<int>(atome_fonc->params_entrees.taille);
+
+	POUR (atome_fonc->instructions) {
+		if (it->nombre_utilisations == 0) {
+			continue;
+		}
+
+		it->numero = numero_instruction++;
+		nouvelles_instructions.pousse(it);
+	}
+
+	atome_fonc->instructions = nouvelles_instructions;
+
+	imprime_fonction(atome_fonc, std::cerr);
 }
