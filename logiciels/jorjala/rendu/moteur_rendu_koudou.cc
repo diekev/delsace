@@ -129,7 +129,13 @@ static void ajoute_quad(
 	maillage->normaux_quads.pousse(decalage_normal);
 	maillage->normaux_quads.pousse(decalage_normal);
 
-	maillage->normaux.pousse(dls::math::converti_type<float>(quads_normals[i]));
+	auto normal = dls::math::converti_type<float>(quads_normals[i]);
+
+#ifdef COMPRESSE_NORMAUX
+	maillage->normaux.pousse(kdo::encode_et_quantifie(normal));
+#else
+	maillage->normaux.pousse(normal);
+#endif
 }
 
 /* ************************************************************************** */
@@ -266,7 +272,12 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 		for (auto j = 0; j < attr_N->taille(); ++j) {
 			auto n = dls::math::vec3f();
 			extrait(attr_N->r32(j), n);
+
+#ifdef COMPRESSE_NORMAUX
+			maillage->normaux.pousse(kdo::encode_et_quantifie(n));
+#else
 			maillage->normaux.pousse(n);
+#endif
 		}
 
 		taille_indices_normaux = kdo::tableau_index::octets_pour_taille(attr_N->taille());
@@ -333,7 +344,11 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 				n2 = n0;
 				n3 = n0;
 
+#ifdef COMPRESSE_NORMAUX
+				maillage->normaux.pousse(kdo::encode_et_quantifie(N));
+#else
 				maillage->normaux.pousse(N);
+#endif
 			}
 
 			maillage->normaux_quads.pousse(n0);
@@ -383,7 +398,11 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 					n1 = n0;
 					n2 = n0;
 
+#ifdef COMPRESSE_NORMAUX
+					maillage->normaux.pousse(kdo::encode_et_quantifie(N));
+#else
 					maillage->normaux.pousse(N);
+#endif
 				}
 
 				maillage->normaux_triangles.pousse(n0);
@@ -511,6 +530,21 @@ void MoteurRenduKoudou::calcule_rendu(
 	}
 
 	/* ********************************************************************** */
+
+	auto memoire_normaux = 0l;
+
+	for (auto &m : scene_koudou.noeuds) {
+		if (m->type == kdo::type_noeud::MAILLAGE) {
+			auto mail = static_cast<kdo::maillage *>(m);
+#ifdef COMPRESSE_NORMAUX
+			memoire_normaux += mail->normaux.taille() * static_cast<long>(sizeof (uint));
+#else
+			memoire_normaux += mail->normaux.taille() * static_cast<long>(sizeof (dls::math::vec3f));
+#endif
+		}
+	}
+
+	std::cerr << "Mémoire normaux : " << memoire_normaux << '\n';
 
 	auto moteur_rendu = m_koudou->moteur_rendu;
 	auto nombre_echantillons = 4; //m_koudou->parametres_rendu.nombre_echantillons;

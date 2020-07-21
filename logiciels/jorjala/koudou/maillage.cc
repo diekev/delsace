@@ -89,9 +89,23 @@ dls::phys::esectd delegue_maillage::intersecte_element(long idx, const dls::phys
 				entresection.type = ESECT_OBJET_TYPE_TRIANGLE;
 				entresection.touche = true;
 
-				auto n0 = dls::math::converti_type<double>(ptr_maillage.normaux[ptr_maillage.normaux_triangles[idx_tri    ]]);
-				auto n1 = dls::math::converti_type<double>(ptr_maillage.normaux[ptr_maillage.normaux_triangles[idx_tri + 1]]);
-				auto n2 = dls::math::converti_type<double>(ptr_maillage.normaux[ptr_maillage.normaux_triangles[idx_tri + 2]]);
+				auto in0 = ptr_maillage.normaux_triangles[idx_tri    ];
+				auto in1 = ptr_maillage.normaux_triangles[idx_tri + 1];
+				auto in2 = ptr_maillage.normaux_triangles[idx_tri + 2];
+
+#ifdef COMPRESSE_NORMAUX
+				auto n0q = dequantifie_vec3(ptr_maillage.normaux[in0]);
+				auto n1q = dequantifie_vec3(ptr_maillage.normaux[in1]);
+				auto n2q = dequantifie_vec3(ptr_maillage.normaux[in2]);
+
+				auto n0 = dls::math::converti_type<double>(decode(n0q));
+				auto n1 = dls::math::converti_type<double>(decode(n1q));
+				auto n2 = dls::math::converti_type<double>(decode(n2q));
+#else
+				auto n0 = dls::math::converti_type<double>(ptr_maillage.normaux[in0]);
+				auto n1 = dls::math::converti_type<double>(ptr_maillage.normaux[in1]);
+				auto n2 = dls::math::converti_type<double>(ptr_maillage.normaux[in2]);
+#endif
 
 				auto w = 1.0 - u - v;
 				auto N = w * n0 + u * n1 + v * n2;
@@ -118,10 +132,23 @@ dls::phys::esectd delegue_maillage::intersecte_element(long idx, const dls::phys
 				entresection.type = ESECT_OBJET_TYPE_TRIANGLE;
 				entresection.touche = true;
 
-				auto n0 = dls::math::converti_type<double>(ptr_maillage.normaux[ptr_maillage.normaux_quads[idx_quad    ]]);
-				auto n1 = dls::math::converti_type<double>(ptr_maillage.normaux[ptr_maillage.normaux_quads[idx_quad + 1]]);
-				auto n2 = dls::math::converti_type<double>(ptr_maillage.normaux[ptr_maillage.normaux_quads[idx_quad + 2]]);
+				auto in0 = ptr_maillage.normaux_quads[idx_quad    ];
+				auto in1 = ptr_maillage.normaux_quads[idx_quad + 1];
+				auto in2 = ptr_maillage.normaux_quads[idx_quad + 2];
 
+#ifdef COMPRESSE_NORMAUX
+				auto n0q = dequantifie_vec3(ptr_maillage.normaux[in0]);
+				auto n1q = dequantifie_vec3(ptr_maillage.normaux[in1]);
+				auto n2q = dequantifie_vec3(ptr_maillage.normaux[in2]);
+
+				auto n0 = dls::math::converti_type<double>(decode(n0q));
+				auto n1 = dls::math::converti_type<double>(decode(n1q));
+				auto n2 = dls::math::converti_type<double>(decode(n2q));
+#else
+				auto n0 = dls::math::converti_type<double>(ptr_maillage.normaux[in0]);
+				auto n1 = dls::math::converti_type<double>(ptr_maillage.normaux[in1]);
+				auto n2 = dls::math::converti_type<double>(ptr_maillage.normaux[in2]);
+#endif
 				auto w = 1.0 - u - v;
 				auto N = w * n0 + u * n1 + v * n2;
 				entresection.normal = N;
@@ -138,10 +165,23 @@ dls::phys::esectd delegue_maillage::intersecte_element(long idx, const dls::phys
 				entresection.type = ESECT_OBJET_TYPE_TRIANGLE;
 				entresection.touche = true;
 
-				auto n0 = dls::math::converti_type<double>(ptr_maillage.normaux[ptr_maillage.normaux_quads[idx_quad    ]]);
-				auto n1 = dls::math::converti_type<double>(ptr_maillage.normaux[ptr_maillage.normaux_quads[idx_quad + 2]]);
-				auto n2 = dls::math::converti_type<double>(ptr_maillage.normaux[ptr_maillage.normaux_quads[idx_quad + 3]]);
+				auto in0 = ptr_maillage.normaux_quads[idx_quad    ];
+				auto in1 = ptr_maillage.normaux_quads[idx_quad + 2];
+				auto in2 = ptr_maillage.normaux_quads[idx_quad + 3];
 
+#ifdef COMPRESSE_NORMAUX
+				auto n0q = dequantifie_vec3(ptr_maillage.normaux[in0]);
+				auto n1q = dequantifie_vec3(ptr_maillage.normaux[in1]);
+				auto n2q = dequantifie_vec3(ptr_maillage.normaux[in2]);
+
+				auto n0 = dls::math::converti_type<double>(decode(n0q));
+				auto n1 = dls::math::converti_type<double>(decode(n1q));
+				auto n2 = dls::math::converti_type<double>(decode(n2q));
+#else
+				auto n0 = dls::math::converti_type<double>(ptr_maillage.normaux[in0]);
+				auto n1 = dls::math::converti_type<double>(ptr_maillage.normaux[in1]);
+				auto n2 = dls::math::converti_type<double>(ptr_maillage.normaux[in2]);
+#endif
 				auto w = 1.0 - u - v;
 				auto N = w * n0 + u * n1 + v * n2;
 				entresection.normal = N;
