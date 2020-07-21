@@ -202,5 +202,3 @@ private:
 	Atome *valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident);
 	void cree_incrementation_valeur(Type *type, Atome *valeur);
 };
-
-void imprime_fonction(AtomeFonction *atome_fonc, std::ostream &os);

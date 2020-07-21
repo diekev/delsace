@@ -39,12 +39,14 @@ set(BIBLIOTHEQUES
 set(SOURCES
 	code_binaire.cc
     constructrice_ri.cc
+	impression.cc
 	instructions.cc
 	machine_virtuelle.cc
 	optimisations.cc
 
 	code_binaire.hh
     constructrice_ri.hh
+	impression.hh
 	instructions.hh
 	machine_virtuelle.hh
 	optimisations.hh
