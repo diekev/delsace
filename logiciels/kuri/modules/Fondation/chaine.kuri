@@ -644,3 +644,100 @@ recule_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> chaine
 
     retourne construit_chaine(chn.pointeur, début + 1)
 }
+
+apparie_chaine :: fonc (chn1: chaine, chn2: chaine, n: z64) -> bool
+{
+    i := n - 1
+
+    si i >= chn1.taille || i >= chn2.taille {
+        retourne faux
+    }
+
+    tantque chn1[i] == chn2[i] {
+        si i == 0 {
+            retourne vrai
+        }
+
+        i -= 1
+    }
+
+    retourne faux
+}
+
+// Algorithmes de recherche de motifs dans des chaines (« chercher une aiguille dans une botte de foin »)
+//
+// Why GNU grep is fast
+// https://news.ycombinator.com/item?id=23923645
+//
+// Exact string matching algorithms
+// https://www-igm.univ-mlv.fr/~lecroq/string/index.html
+
+ChercheAiguillePar :: énum {
+    ForceBrute
+    BoyerMooreHorspool
+}
+
+// Algorithme de force brute
+cherche_aiguille_par_force_brute :: fonc (botte_de_foin: chaine, aiguille: chaine) -> z64
+{
+    si aiguille.taille > botte_de_foin.taille {
+        retourne -1
+    }
+
+    pour 0 ... botte_de_foin.taille - aiguille.taille {
+        bdf := avance(botte_de_foin, it)
+
+        si commence_par(bdf, aiguille) {
+            retourne it
+        }
+    }
+
+    retourne -1
+}
+
+// Algorithme de Boyer-Moore-Horspool
+// https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore%E2%80%93Horspool_algorithm
+cherche_aiguille_par_boyer_moore_horspool :: fonc (botte_de_foin: chaine, aiguille: chaine) -> z64
+{
+    // crée une table pour définir le nombre de caractères sûrement omissible
+    table : [256]z32
+
+    pour table {
+        it = aiguille.taille comme z32
+    }
+
+    pour 0 ... aiguille.taille - 2 {
+        index_pour_caractère := aiguille[it] comme n8
+        table[index_pour_caractère] = (aiguille.taille - 1 - it) comme z32
+    }
+
+    // recherche
+    index := 0
+
+    tantque (botte_de_foin.taille - index) >= aiguille.taille {
+        bdf := avance(botte_de_foin, index)
+
+        si apparie_chaine(bdf, aiguille, aiguille.taille) {
+            retourne index
+        }
+
+        index_pour_caractère := botte_de_foin[index + aiguille.taille - 1] comme n8
+        index += table[index_pour_caractère]
+    }
+
+    retourne -1
+}
+
+cherche_aiguille :: fonc (botte_de_foin: chaine, aiguille: chaine, par: ChercheAiguillePar) -> z64
+{
+    discr par {
+        ForceBrute {
+            retourne cherche_aiguille_par_force_brute(botte_de_foin, aiguille)
+        }
+        BoyerMooreHorspool {
+            retourne cherche_aiguille_par_boyer_moore_horspool(botte_de_foin, aiguille)
+        }
+    }
+
+    retourne -1
+}
