@@ -235,6 +235,11 @@ public:
 		: m_donnee(std::move(rhs.m_donnee))
 	{}
 
+	template <typename... Args>
+	Synchrone(Args... args)
+		: m_donnee(args...)
+	{}
+
 	explicit Synchrone(const T &rhs) noexcept(std::is_nothrow_copy_constructible<T>::value)
 		: m_donnee(rhs)
 	{}
