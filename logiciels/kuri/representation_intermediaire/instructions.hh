@@ -77,6 +77,11 @@ struct Atome {
 	COPIE_CONSTRUCT(Atome);
 
 	inline Instruction *comme_instruction();
+
+	inline bool est_constante() const { return genre_atome == Genre::CONSTANTE; }
+	inline bool est_fonction() const { return genre_atome == Genre::CONSTANTE; }
+	inline bool est_globale() const { return genre_atome == Genre::CONSTANTE; }
+	inline bool est_instruction() const { return genre_atome == Genre::CONSTANTE; }
 };
 
 struct AtomeConstante : public Atome {
