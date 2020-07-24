@@ -250,6 +250,22 @@ static auto decremente_nombre_utilisations_recursif(Atome *racine) -> void
  * - modification, via un déréférencement, d'un paramètre d'une fonction, sans utiliser celui-ci dans la fonction
  * - modification, via un déréférenecement, d'un pointeur venant d'une fonction sans retourner le pointeur d'une fonction
  * - détecter quand nous avons une variable qui est réassignée
+ *
+ * une fonction possède des effets secondaires si :
+ * -- elle modifie l'un de ses paramètres
+ * -- elle possède une boucle ou un controle de flux non constant
+ * -- elle est une fonction externe
+ * -- elle appel une fonction ayant des effets secondaires
+ *
+ * une variable peut être supprimée si :
+ * -- son compte d'utilisation est de deux (stocke et charge)
+ * -- elle n'a aucun identifiant
+ * -- cas pour les temporaires de conversions ?
+ *
+ * erreur non-utilisation d'une variable
+ * -- si la variable fût définie par l'utilisateur
+ * -- variable définie par le compilateur : les temporaires dans la RI, le contexte implicite, les it et index_it des boucles pour
+ *
  */
 void supprime_code_mort(AtomeFonction *atome_fonc)
 {
