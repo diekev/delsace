@@ -77,6 +77,19 @@ tampon_source &tampon_source::operator=(const tampon_source &autre)
 	return *this;
 }
 
+tampon_source::tampon_source(tampon_source &&autre)
+{
+	m_tampon.echange(autre.m_tampon);
+	m_lignes.echange(autre.m_lignes);
+}
+
+tampon_source &tampon_source::operator=(tampon_source &&autre)
+{
+	m_tampon.echange(autre.m_tampon);
+	m_lignes.echange(autre.m_lignes);
+	return *this;
+}
+
 const char *tampon_source::debut() const noexcept
 {
 	return &m_tampon[0];
@@ -122,6 +135,18 @@ const dls::chaine &tampon_source::chaine() const
 
 void tampon_source::construit_lignes()
 {
+	if (m_tampon.taille() == 0) {
+		return;
+	}
+
+	auto nombre_de_lignes = 0;
+
+	for (auto i = 0l; i < m_tampon.taille(); ++i) {
+		nombre_de_lignes += m_tampon[i] == '\n';
+	}
+
+	m_lignes.reserve(nombre_de_lignes);
+
 	for (auto i = 0l; i < m_tampon.taille();) {
 		auto pos = &m_tampon[i];
 		auto taille = trouve_fin_ligne(pos, this->fin());

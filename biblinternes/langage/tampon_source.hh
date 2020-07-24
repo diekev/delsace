@@ -51,6 +51,9 @@ public:
 
 	tampon_source &operator=(tampon_source const &autre);
 
+	tampon_source(tampon_source &&autre);
+	tampon_source &operator=(tampon_source &&autre);
+
 	/**
 	 * Retourne un pointeur vers le début du tampon.
 	 */
