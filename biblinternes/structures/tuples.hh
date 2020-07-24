@@ -26,6 +26,22 @@
 
 namespace dls {
 
+template <typename T1, typename T2>
+struct paire {
+	T1 premier{};
+	T2 second{};
+
+	paire() = default;
+
+	paire(T1 const &p, T2 const &s)
+		: premier(p)
+		, second(s)
+	{}
+
+	paire(paire const &) = default;
+	paire &operator=(paire const &) = default;
+};
+
 template <typename T0, typename T1, typename T2>
 struct triplet {
 	T0 t0;
