@@ -278,6 +278,7 @@ InstructionBranche *ConstructriceRI::cree_branche(InstructionLabel *label, bool 
 	label->nombre_utilisations += 1;
 	auto inst = insts_branche.ajoute_element(label);
 	inst->numero = nombre_instructions++;
+	inst->nombre_utilisations = 1;
 
 	if (!cree_seulement) {
 		fonction_courante->instructions.pousse(inst);
@@ -292,6 +293,7 @@ InstructionBrancheCondition *ConstructriceRI::cree_branche_condition(Atome *vale
 	label_si_faux->nombre_utilisations += 1;
 	auto inst = insts_branche_condition.ajoute_element(valeur, label_si_vrai, label_si_faux);
 	inst->numero = nombre_instructions++;
+	inst->nombre_utilisations = 1;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
 }
