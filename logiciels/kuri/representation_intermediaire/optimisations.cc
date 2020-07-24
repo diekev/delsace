@@ -156,14 +156,9 @@ void corrige_labels(AtomeFonction *atome_fonc)
 	}
 }
 
-static auto decremente_nombre_utilisations_recursif(Atome *racine) -> void
+static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
 {
-	// déjà à zéro, ça ne sers à rien de continuer à récurser
-	if (racine->nombre_utilisations == 0) {
-		return;
-	}
-
-	racine->nombre_utilisations -= 1;
+	racine->nombre_utilisations += 1;
 
 	switch (racine->genre_atome) {
 		case Atome::Genre::GLOBALE:
@@ -182,7 +177,7 @@ static auto decremente_nombre_utilisations_recursif(Atome *racine) -> void
 					auto appel = static_cast<InstructionAppel *>(inst);
 
 					POUR (appel->args) {
-						decremente_nombre_utilisations_recursif(it);
+						incremente_nombre_utilisations_recursif(it);
 					}
 
 					break;
@@ -190,47 +185,63 @@ static auto decremente_nombre_utilisations_recursif(Atome *racine) -> void
 				case Instruction::Genre::CHARGE_MEMOIRE:
 				{
 					auto charge = static_cast<InstructionChargeMem *>(inst);
-					decremente_nombre_utilisations_recursif(charge->chargee);
+					incremente_nombre_utilisations_recursif(charge->chargee);
 					break;
 				}
 				case Instruction::Genre::STOCKE_MEMOIRE:
 				{
 					auto stocke = static_cast<InstructionStockeMem *>(inst);
-					decremente_nombre_utilisations_recursif(stocke->valeur);
-					decremente_nombre_utilisations_recursif(stocke->ou);
+					incremente_nombre_utilisations_recursif(stocke->valeur);
+					incremente_nombre_utilisations_recursif(stocke->ou);
 					break;
 				}
 				case Instruction::Genre::OPERATION_UNAIRE:
 				{
 					auto op = static_cast<InstructionOpUnaire *>(inst);
-					decremente_nombre_utilisations_recursif(op->valeur);
+					incremente_nombre_utilisations_recursif(op->valeur);
 					break;
 				}
 				case Instruction::Genre::OPERATION_BINAIRE:
 				{
 					auto op = static_cast<InstructionOpBinaire *>(inst);
-					decremente_nombre_utilisations_recursif(op->valeur_droite);
-					decremente_nombre_utilisations_recursif(op->valeur_gauche);
+					incremente_nombre_utilisations_recursif(op->valeur_droite);
+					incremente_nombre_utilisations_recursif(op->valeur_gauche);
 					break;
 				}
 				case Instruction::Genre::ACCEDE_INDEX:
 				{
 					auto acces = static_cast<InstructionAccedeIndex *>(inst);
-					decremente_nombre_utilisations_recursif(acces->index);
-					decremente_nombre_utilisations_recursif(acces->accede);
+					incremente_nombre_utilisations_recursif(acces->index);
+					incremente_nombre_utilisations_recursif(acces->accede);
 					break;
 				}
 				case Instruction::Genre::ACCEDE_MEMBRE:
 				{
 					auto acces = static_cast<InstructionAccedeMembre *>(inst);
-					decremente_nombre_utilisations_recursif(acces->index);
-					decremente_nombre_utilisations_recursif(acces->accede);
+					incremente_nombre_utilisations_recursif(acces->index);
+					incremente_nombre_utilisations_recursif(acces->accede);
 					break;
 				}
 				case Instruction::Genre::TRANSTYPE:
 				{
 					auto transtype = static_cast<InstructionTranstype *>(inst);
-					decremente_nombre_utilisations_recursif(transtype->valeur);
+					incremente_nombre_utilisations_recursif(transtype->valeur);
+					break;
+				}
+				case Instruction::Genre::BRANCHE_CONDITION:
+				{
+					auto branche = inst->comme_branche_cond();
+					incremente_nombre_utilisations_recursif(branche->condition);
+					break;
+				}
+				case Instruction::Genre::RETOUR:
+				{
+					auto retour = inst->comme_retour();
+
+					if (retour->valeur) {
+						incremente_nombre_utilisations_recursif(retour->valeur);
+					}
+
 					break;
 				}
 				case Instruction::Genre::ENREGISTRE_LOCALES:
@@ -238,8 +249,6 @@ static auto decremente_nombre_utilisations_recursif(Atome *racine) -> void
 				case Instruction::Genre::ALLOCATION:
 				case Instruction::Genre::INVALIDE:
 				case Instruction::Genre::BRANCHE:
-				case Instruction::Genre::BRANCHE_CONDITION:
-				case Instruction::Genre::RETOUR:
 				case Instruction::Genre::LABEL:
 				{
 					break;
@@ -249,6 +258,29 @@ static auto decremente_nombre_utilisations_recursif(Atome *racine) -> void
 			break;
 		}
 	}
+}
+
+static bool est_utilise(Atome *atome)
+{
+	if (atome->est_instruction()) {
+		auto inst = atome->comme_instruction();
+
+		if (inst->genre == Instruction::Genre::ALLOCATION) {
+			return inst->nombre_utilisations != 0;
+		}
+
+		if (inst->genre == Instruction::Genre::ACCEDE_INDEX) {
+			auto acces = inst->comme_acces_index();
+			return est_utilise(acces->accede);
+		}
+
+		if (inst->genre == Instruction::Genre::ACCEDE_MEMBRE) {
+			auto acces = inst->comme_acces_membre();
+			return est_utilise(acces->accede);
+		}
+	}
+
+	return atome->nombre_utilisations != 0;
 }
 
 /* Petit algorithme de suppression de code mort.
@@ -282,6 +314,51 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 	std::cerr << "Vérifie code pour : " << atome_fonc->nom << '\n';
 
 	POUR (atome_fonc->instructions) {
+		it->nombre_utilisations = 0;
+	}
+
+	for (auto i = atome_fonc->instructions.taille - 1; i >= 0; --i) {
+		auto it = atome_fonc->instructions[i];
+		switch (it->genre) {
+			case Instruction::Genre::BRANCHE:
+			case Instruction::Genre::BRANCHE_CONDITION:
+			case Instruction::Genre::ENREGISTRE_LOCALES:
+			case Instruction::Genre::RESTAURE_LOCALES:
+			case Instruction::Genre::LABEL:
+			case Instruction::Genre::RETOUR:
+			{
+				incremente_nombre_utilisations_recursif(it);
+				break;
+			}
+			case Instruction::Genre::APPEL:
+			{
+				auto appel = it->comme_appel();
+
+				if (appel->type->genre == GenreType::RIEN) {
+					incremente_nombre_utilisations_recursif(it);
+				}
+
+				break;
+			}
+			case Instruction::Genre::STOCKE_MEMOIRE:
+			{
+				auto stocke = it->comme_stocke_mem();
+
+				if (est_utilise(stocke->ou)) {
+					incremente_nombre_utilisations_recursif(stocke);
+				}
+
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+	}
+
+	POUR (atome_fonc->instructions) {
+		std::cerr << '(' << it->nombre_utilisations << ") ";
 		if (it->nombre_utilisations == 0) {
 			//std::cerr << "-- l'instruction n'est pas utilisée !\n";
 			std::cerr << "\033[1m";
@@ -293,6 +370,24 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 		}
 	}
 
+	auto nouvelles_instructions = kuri::tableau<Instruction *>();
+
+	auto numero_instruction = static_cast<int>(atome_fonc->params_entrees.taille);
+
+	POUR (atome_fonc->instructions) {
+		if (it->nombre_utilisations == 0) {
+			continue;
+		}
+
+		it->numero = numero_instruction++;
+		nouvelles_instructions.pousse(it);
+	}
+
+	atome_fonc->instructions = nouvelles_instructions;
+
+	imprime_fonction(atome_fonc, std::cerr);
+
+#if 0
 	// détecte les réassignations avant utilisation
 	using paire_atomes = std::pair<InstructionAllocation *, InstructionStockeMem *>;
 	auto anciennes_valeurs = dls::tablet<paire_atomes, 16>();
@@ -334,52 +429,7 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 			charge_mem->chargee->etat = VALEUR_FUT_UTILISEE;
 		}
 	}
-
-	// nous partons de la fin de la fonction, pour ne pas avoir à récurser
-	for (auto i = atome_fonc->instructions.taille - 1; i >= 0; --i) {
-		auto it = atome_fonc->instructions[i];
-
-		if (it->genre == Instruction::Genre::STOCKE_MEMOIRE) {
-			auto stocke_mem = static_cast<InstructionStockeMem *>(it);
-
-			if (stocke_mem->ou->nombre_utilisations <= 1) {
-				decremente_nombre_utilisations_recursif(stocke_mem);
-			}
-		}
-		else if (it->genre == Instruction::Genre::CHARGE_MEMOIRE && it->nombre_utilisations == 0) {
-			auto charge_mem = static_cast<InstructionChargeMem *>(it);
-			decremente_nombre_utilisations_recursif(charge_mem->chargee);
-		}
-	}
-
-//	POUR (atome_fonc->instructions) {
-//		if (it->nombre_utilisations <= 0) {
-//			//std::cerr << "-- l'instruction n'est pas utilisée !\n";
-//			std::cerr << "\033[1m";
-//		}
-//		std::cerr << '(' << it->nombre_utilisations << ')' << "%" << it->numero << ' ';
-//		imprime_instruction(it, std::cerr);
-//		if (it->nombre_utilisations <= 0) {
-//			std::cerr << "\033[0m";
-//		}
-//	}
-
-	auto nouvelles_instructions = kuri::tableau<Instruction *>();
-
-	auto numero_instruction = static_cast<int>(atome_fonc->params_entrees.taille);
-
-	POUR (atome_fonc->instructions) {
-		if (it->nombre_utilisations == 0) {
-			continue;
-		}
-
-		it->numero = numero_instruction++;
-		nouvelles_instructions.pousse(it);
-	}
-
-	atome_fonc->instructions = nouvelles_instructions;
-
-	imprime_fonction(atome_fonc, std::cerr);
+#endif
 }
 
 void performe_enlignage(
@@ -435,7 +485,6 @@ void performe_enlignage(
 			for (auto &p : substitution) {
 				if (p.first == charge_loc->chargee) {
 					charge_loc->chargee = p.second;
-					p.second->nombre_utilisations += 1;
 					break;
 				}
 			}
@@ -446,7 +495,6 @@ void performe_enlignage(
 			for (auto &p : substitution) {
 				if (p.first == charge_loc->ou) {
 					charge_loc->ou = p.second;
-					p.second->nombre_utilisations += 1;
 					break;
 				}
 			}
@@ -501,9 +549,7 @@ public:
 
 				POUR (substitutions) {
 					if (it.original == charge->chargee && (it.substitut_dans & SubstitutDans::CHARGE) != SubstitutDans::ZERO) {
-						charge->chargee->nombre_utilisations -= 1;
 						charge->chargee = it.substitut;
-						it.substitut->nombre_utilisations += 1;
 						break;
 					}
 				}
@@ -517,11 +563,9 @@ public:
 				POUR (substitutions) {
 					if (it.original == stocke->ou && (it.substitut_dans & SubstitutDans::ADRESSE_STOCKEE) != SubstitutDans::ZERO) {
 						stocke->ou = it.substitut;
-						it.substitut->nombre_utilisations += 1;
 					}
 					else if (it.original == stocke->valeur && (it.substitut_dans & SubstitutDans::VALEUR_STOCKEE) != SubstitutDans::ZERO) {
 						stocke->valeur = it.substitut;
-						it.substitut->nombre_utilisations += 1;
 					}
 				}
 
@@ -534,11 +578,9 @@ public:
 				POUR (substitutions) {
 					if (it.original == op->valeur_gauche) {
 						op->valeur_gauche = it.substitut;
-						it.substitut->nombre_utilisations += 1;
 					}
 					else if (it.original == op->valeur_droite) {
 						op->valeur_droite = it.substitut;
-						it.substitut->nombre_utilisations += 1;
 					}
 				}
 
@@ -643,10 +685,6 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
 		performe_enlignage(constructrice, nouvelle_instructions, instructions, atome_fonc_appelee, appel->args, nombre_labels, label_post, adresse_retour);
 
-		for (auto arg : appel->args) {
-			arg->nombre_utilisations -= 1;
-		}
-
 		atome_fonc_appelee->nombre_utilisations -= 1;
 
 		nouvelle_instructions.pousse(label_post);
@@ -696,15 +734,8 @@ void propage_constantes_et_temporaires(AtomeFonction *atome_fonc)
 		if (it->genre == Instruction::Genre::STOCKE_MEMOIRE) {
 			auto stocke = it->comme_stocke_mem();
 
-			auto valeur = substitutrice.valeur_substituee(stocke->valeur);
-
-			if (valeur != stocke->valeur) {
-				stocke->valeur->nombre_utilisations -= 1;
-				valeur->nombre_utilisations += 1;
-			}
-
-			stocke->valeur = valeur;
-			renseigne_derniere_valeur(stocke->ou, valeur);
+			stocke->valeur = substitutrice.valeur_substituee(stocke->valeur);
+			renseigne_derniere_valeur(stocke->ou, stocke->valeur);
 			nouvelle_instructions.pousse(it);
 		}
 		else if (it->genre == Instruction::Genre::CHARGE_MEMOIRE) {

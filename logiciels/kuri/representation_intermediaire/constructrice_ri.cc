@@ -666,8 +666,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				table_locales.insere({ it->ident, it });
 			}
 
-			auto label0 = cree_label();
-			label0->nombre_utilisations += 1;
+			cree_label();
 
 			genere_ri_pour_noeud(decl->bloc);
 
@@ -728,7 +727,6 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto inst = insts_simples.ajoute_element();
 			inst->genre = Instruction::Genre::ENREGISTRE_LOCALES;
 			inst->numero = nombre_instructions++;
-			inst->nombre_utilisations += 1;
 			fonction_courante->instructions.pousse(inst);
 
 			POUR (*noeud_bloc->expressions.verrou_lecture()) {
@@ -738,7 +736,6 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			inst = insts_simples.ajoute_element();
 			inst->genre = Instruction::Genre::RESTAURE_LOCALES;
 			inst->numero = nombre_instructions++;
-			inst->nombre_utilisations += 1;
 			fonction_courante->instructions.pousse(inst);
 
 			auto derniere_instruction = *(fonction_courante->instructions.end() - 1);
