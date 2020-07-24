@@ -219,6 +219,16 @@ struct tableau {
 		this->capacite = nombre;
 	}
 
+	void reserve_delta(long delta)
+	{
+		if (capacite >= (taille + delta)) {
+			return;
+		}
+
+		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->capacite, this->capacite + delta);
+		this->capacite += delta;
+	}
+
 	bool est_vide() const
 	{
 		return this->taille == 0;
