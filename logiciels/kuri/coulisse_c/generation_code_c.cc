@@ -1214,6 +1214,10 @@ struct GeneratriceCodeC {
 
 		// définis enfin les fonction
 		POUR (fonctions) {
+			if (it->nombre_utilisations == 0) {
+				continue;
+			}
+
 			auto atome_fonc = it;
 
 			if (atome_fonc->instructions.taille == 0) {

@@ -452,6 +452,7 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(Atome *ou)
 
 InstructionAppel *ConstructriceRI::cree_appel(Lexeme const *lexeme, Atome *appele)
 {
+	appele->nombre_utilisations += 1;
 	auto inst = insts_appel.ajoute_element(lexeme, appele);
 	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
@@ -460,6 +461,8 @@ InstructionAppel *ConstructriceRI::cree_appel(Lexeme const *lexeme, Atome *appel
 
 InstructionAppel *ConstructriceRI::cree_appel(Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args)
 {
+	appele->nombre_utilisations += 1;
+
 	POUR (args) {
 		it->nombre_utilisations += 1;
 	}
