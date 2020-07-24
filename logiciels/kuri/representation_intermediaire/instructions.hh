@@ -79,9 +79,9 @@ struct Atome {
 	inline Instruction *comme_instruction();
 
 	inline bool est_constante() const { return genre_atome == Genre::CONSTANTE; }
-	inline bool est_fonction() const { return genre_atome == Genre::CONSTANTE; }
-	inline bool est_globale() const { return genre_atome == Genre::CONSTANTE; }
-	inline bool est_instruction() const { return genre_atome == Genre::CONSTANTE; }
+	inline bool est_fonction() const { return genre_atome == Genre::FONCTION; }
+	inline bool est_globale() const { return genre_atome == Genre::GLOBALE; }
+	inline bool est_instruction() const { return genre_atome == Genre::INSTRUCTION; }
 };
 
 struct AtomeConstante : public Atome {
