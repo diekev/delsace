@@ -357,8 +357,6 @@ void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os)
 		virgule = ", ";
 	}
 
-	os << chaine_type(type_fonction->types_sorties[0]);
-
 	os << '\n';
 
 	for (auto inst : atome_fonc->instructions) {
