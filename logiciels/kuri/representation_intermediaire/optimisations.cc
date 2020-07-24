@@ -421,6 +421,7 @@ void performe_enlignage(
 			for (auto &p : substitution) {
 				if (p.first == charge_loc->chargee) {
 					charge_loc->chargee = p.second;
+					p.second->nombre_utilisations += 1;
 					break;
 				}
 			}
@@ -431,6 +432,7 @@ void performe_enlignage(
 			for (auto &p : substitution) {
 				if (p.first == charge_loc->ou) {
 					charge_loc->ou = p.second;
+					p.second->nombre_utilisations += 1;
 					break;
 				}
 			}
@@ -509,6 +511,10 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 		label_post->id = nombre_labels++;
 
 		performe_enlignage(constructrice, nouvelle_instructions, instructions, atome_fonc_appelee, appel->args, nombre_labels, label_post);
+
+		for (auto arg : appel->args) {
+			arg->nombre_utilisations -= 1;
+		}
 
 		atome_fonc_appelee->nombre_utilisations -= 1;
 
