@@ -132,7 +132,7 @@ private:
 	AtomeConstante *cree_tableau_global(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
 	AtomeConstante *cree_tableau_global(AtomeConstante *tableau_fixe);
 
-	InstructionBranche *cree_branche(InstructionLabel *label);
+	InstructionBranche *cree_branche(InstructionLabel *label, bool cree_seulement = false);
 	InstructionBrancheCondition *cree_branche_condition(Atome *valeur, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
 	InstructionLabel *cree_label();
 	InstructionLabel *reserve_label();
@@ -201,4 +201,13 @@ private:
 	void imprime_instruction(Instruction const *inst, std::ostream &os) const;
 	Atome *valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident);
 	void cree_incrementation_valeur(Type *type, Atome *valeur);
+
+	friend void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc);
+	friend void performe_enlignage(
+			ConstructriceRI &constructrice,
+			kuri::tableau<Instruction *> &nouvelles_instructions,
+			kuri::tableau<Instruction *> const &instructions,
+			AtomeFonction *fonction_appelee,
+			kuri::tableau<Atome *> const &arguments, int &nombre_labels,
+			InstructionLabel *label_post);
 };

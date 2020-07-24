@@ -26,6 +26,9 @@
 
 #include "biblinternes/structures/tablet.hh"
 
+#include "compilation/arbre_syntaxique.hh"
+
+#include "constructrice_ri.hh"
 #include "impression.hh"
 #include "instructions.hh"
 
@@ -368,6 +371,158 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 	}
 
 	atome_fonc->instructions = nouvelles_instructions;
+
+	imprime_fonction(atome_fonc, std::cerr);
+}
+
+void performe_enlignage(
+		ConstructriceRI &constructrice,
+		kuri::tableau<Instruction *> &nouvelles_instructions,
+		kuri::tableau<Instruction *> const &instructions,
+		AtomeFonction *fonction_appelee,
+		kuri::tableau<Atome *> const &arguments,
+		int &nombre_labels,
+		InstructionLabel *label_post)
+{
+	using TypePaireSubstitution = std::pair<Atome *, Atome *>;
+	dls::tablet<TypePaireSubstitution, 16> substitution;
+
+	for (auto i = 0; i < fonction_appelee->params_entrees.taille; ++i) {
+		auto atome = arguments[i];
+
+		// À FAIRE : il faudrait que tous les arguments des fonctions soient des instructions (-> utilisation de temporaire)
+		if (atome->genre_atome == Atome::Genre::INSTRUCTION) {
+			auto inst = atome->comme_instruction();
+
+			if (inst->genre == Instruction::Genre::CHARGE_MEMOIRE) {
+				atome = inst->comme_charge()->chargee;
+			}
+		}
+
+		substitution.pousse({ fonction_appelee->params_entrees[i], atome });
+	}
+
+	// À FAIRE : il faut copier les instructions... pour changer les pointeurs sûrement
+	// À FAIRE : pour les paramètres il nous faudrait plutôt les adresses des variables chargées...
+	POUR (instructions) {
+		if (it->genre == Instruction::Genre::LABEL) {
+			auto label = it->comme_label();
+			label->id = nombre_labels++;
+		}
+		else if (it->genre == Instruction::Genre::RETOUR) {
+			// À FAIRE : valeur de retour
+			auto branche = constructrice.cree_branche(label_post, true);
+			nouvelles_instructions.pousse(branche);
+			continue;
+		}
+		else if (it->genre == Instruction::Genre::CHARGE_MEMOIRE) {
+			auto charge_loc = it->comme_charge();
+
+			for (auto &p : substitution) {
+				if (p.first == charge_loc->chargee) {
+					charge_loc->chargee = p.second;
+					break;
+				}
+			}
+		}
+		else if (it->genre == Instruction::Genre::STOCKE_MEMOIRE) {
+			auto charge_loc = it->comme_stocke_mem();
+
+			for (auto &p : substitution) {
+				if (p.first == charge_loc->ou) {
+					charge_loc->ou = p.second;
+					break;
+				}
+			}
+		}
+
+		nouvelles_instructions.pousse(it);
+	}
+}
+
+void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
+{
+	auto nouvelle_instructions = kuri::tableau<Instruction *>();
+	nouvelle_instructions.reserve(atome_fonc->instructions.taille);
+
+	auto nombre_labels = 0;
+
+	POUR (atome_fonc->instructions) {
+		nombre_labels += it->genre == Instruction::Genre::LABEL;
+	}
+
+	POUR (atome_fonc->instructions) {
+		if (it->genre != Instruction::Genre::APPEL) {
+			nouvelle_instructions.pousse(it);
+			continue;
+		}
+
+		auto appel = static_cast<InstructionAppel *>(it);
+		auto appele = appel->appele;
+
+		if (appele->genre_atome != Atome::Genre::FONCTION) {
+			nouvelle_instructions.pousse(it);
+			continue;
+		}
+
+		auto atome_fonc_appelee = static_cast<AtomeFonction *>(appele);
+
+		if (atome_fonc_appelee->decl) {
+			if (atome_fonc_appelee->decl->est_externe) {
+				nouvelle_instructions.pousse(it);
+				continue;
+			}
+
+			if ((atome_fonc_appelee->decl->drapeaux & FORCE_ENLIGNE) == 0) {
+				nouvelle_instructions.pousse(it);
+				continue;
+			}
+			else if ((atome_fonc_appelee->decl->drapeaux & FORCE_HORSLIGNE) != 0) {
+				nouvelle_instructions.pousse(it);
+				continue;
+			}
+		}
+
+		if (atome_fonc_appelee->decl && atome_fonc_appelee->decl->est_externe) {
+			nouvelle_instructions.pousse(it);
+			continue;
+		}
+
+		auto &instructions = atome_fonc_appelee->instructions;
+
+		// À FAIRE : attend que les fonctions soient disponibles
+		// À FAIRE : les instructions ne pourraient être composées que de retour « rien » et de labels
+		if (instructions.est_vide()) {
+			nouvelle_instructions.pousse(it);
+			continue;
+		}
+
+		// À FAIRE : définis de bonnes heuristiques pour l'enlignage
+		if (instructions.taille >= 32) {
+			nouvelle_instructions.pousse(it);
+			continue;
+		}
+
+		nouvelle_instructions.reserve_delta(instructions.taille + 1);
+
+		auto label_post = constructrice.reserve_label();
+		label_post->id = nombre_labels++;
+
+		performe_enlignage(constructrice, nouvelle_instructions, instructions, atome_fonc_appelee, appel->args, nombre_labels, label_post);
+
+		atome_fonc_appelee->nombre_utilisations -= 1;
+
+		nouvelle_instructions.pousse(label_post);
+	}
+
+	imprime_fonction(atome_fonc, std::cerr);
+	atome_fonc->instructions = nouvelle_instructions;
+
+	auto numero = static_cast<int>(atome_fonc->params_entrees.taille);
+
+	POUR (atome_fonc->instructions) {
+		it->numero = numero++;
+	}
 
 	imprime_fonction(atome_fonc, std::cerr);
 }

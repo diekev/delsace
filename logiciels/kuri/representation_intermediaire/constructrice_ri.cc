@@ -273,12 +273,16 @@ AtomeConstante *ConstructriceRI::cree_constante_nulle(Type *type)
 	return atomes_constante.ajoute_element(type);
 }
 
-InstructionBranche *ConstructriceRI::cree_branche(InstructionLabel *label)
+InstructionBranche *ConstructriceRI::cree_branche(InstructionLabel *label, bool cree_seulement)
 {
 	label->nombre_utilisations += 1;
 	auto inst = insts_branche.ajoute_element(label);
 	inst->numero = nombre_instructions++;
-	fonction_courante->instructions.pousse(inst);
+
+	if (!cree_seulement) {
+		fonction_courante->instructions.pousse(inst);
+	}
+
 	return inst;
 }
 

@@ -24,8 +24,11 @@
 
 #pragma once
 
+struct ConstructriceRI;
 struct AtomeFonction;
 
 void corrige_labels(AtomeFonction *atome_fonc);
 
 void supprime_code_mort(AtomeFonction *atome_fonc);
+
+void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc);
