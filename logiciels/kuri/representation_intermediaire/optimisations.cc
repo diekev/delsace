@@ -527,11 +527,39 @@ public:
 
 				return stocke;
 			}
+			case Instruction::Genre::OPERATION_BINAIRE:
+			{
+				auto op = instruction->comme_op_binaire();
+
+				POUR (substitutions) {
+					if (it.original == op->valeur_gauche) {
+						op->valeur_gauche = it.substitut;
+						it.substitut->nombre_utilisations += 1;
+					}
+					else if (it.original == op->valeur_droite) {
+						op->valeur_droite = it.substitut;
+						it.substitut->nombre_utilisations += 1;
+					}
+				}
+
+				return op;
+			}
 			default:
 			{
 				return instruction;
 			}
 		}
+	}
+
+	Atome *valeur_substituee(Atome *original)
+	{
+		POUR (substitutions) {
+			if (it.original == original) {
+				return it.substitut;
+			}
+		}
+
+		return original;
 	}
 };
 
@@ -641,4 +669,70 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 	}
 
 	imprime_fonction(atome_fonc, std::cerr);
+}
+
+void propage_constantes_et_temporaires(AtomeFonction *atome_fonc)
+{
+	auto nouvelle_instructions = kuri::tableau<Instruction *>();
+	nouvelle_instructions.reserve(atome_fonc->instructions.taille);
+
+	dls::tableau<std::pair<Atome *, Atome *>> dernieres_valeurs;
+
+	auto renseigne_derniere_valeur = [&](Atome *ptr, Atome *valeur)
+	{
+		POUR (dernieres_valeurs) {
+			if (it.first == ptr) {
+				it.second = valeur;
+				return;
+			}
+		}
+
+		dernieres_valeurs.pousse({ ptr, valeur });
+	};
+
+	auto substitutrice = Substitutrice();
+
+	POUR (atome_fonc->instructions) {
+		if (it->genre == Instruction::Genre::STOCKE_MEMOIRE) {
+			auto stocke = it->comme_stocke_mem();
+
+			auto valeur = substitutrice.valeur_substituee(stocke->valeur);
+
+			if (valeur != stocke->valeur) {
+				stocke->valeur->nombre_utilisations -= 1;
+				valeur->nombre_utilisations += 1;
+			}
+
+			stocke->valeur = valeur;
+			renseigne_derniere_valeur(stocke->ou, valeur);
+			nouvelle_instructions.pousse(it);
+		}
+		else if (it->genre == Instruction::Genre::CHARGE_MEMOIRE) {
+			auto charge = it->comme_charge();
+
+			for (auto dv : dernieres_valeurs) {
+				if (dv.first == charge->chargee) {
+					substitutrice.ajoute_substitution(it, dv.second, SubstitutDans::TOUT);
+					break;
+				}
+			}
+
+			nouvelle_instructions.pousse(it);
+		}
+		else {
+			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+		}
+	}
+
+	atome_fonc->instructions = nouvelle_instructions;
+
+	auto numero = static_cast<int>(atome_fonc->params_entrees.taille);
+
+	POUR (atome_fonc->instructions) {
+		it->numero = numero++;
+	}
+
+	imprime_fonction(atome_fonc, std::cerr);
+
+	supprime_code_mort(atome_fonc);
 }
