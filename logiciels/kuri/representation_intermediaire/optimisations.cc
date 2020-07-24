@@ -389,7 +389,8 @@ void performe_enlignage(
 		AtomeFonction *fonction_appelee,
 		kuri::tableau<Atome *> const &arguments,
 		int &nombre_labels,
-		InstructionLabel *label_post)
+		InstructionLabel *label_post,
+		InstructionAllocation *adresse_retour)
 {
 	using TypePaireSubstitution = std::pair<Atome *, Atome *>;
 	dls::tablet<TypePaireSubstitution, 16> substitution;
@@ -417,7 +418,13 @@ void performe_enlignage(
 			label->id = nombre_labels++;
 		}
 		else if (it->genre == Instruction::Genre::RETOUR) {
-			// À FAIRE : valeur de retour
+			auto retour = it->comme_retour();
+
+			if (retour->valeur) {
+				auto stockage = constructrice.cree_stocke_mem(adresse_retour, retour->valeur, true);
+				nouvelles_instructions.pousse(stockage);
+			}
+
 			auto branche = constructrice.cree_branche(label_post, true);
 			nouvelles_instructions.pousse(branche);
 			continue;
@@ -449,10 +456,91 @@ void performe_enlignage(
 	}
 }
 
+// pour une instruction de charge -> substitut la chargee
+enum class SubstitutDans : int {
+	ZERO = 0,
+	CHARGE = (1 << 0),
+	VALEUR_STOCKEE = (1 << 1),
+	ADRESSE_STOCKEE = (1 << 2),
+
+	TOUT   = (CHARGE | VALEUR_STOCKEE | ADRESSE_STOCKEE),
+};
+
+DEFINIE_OPERATEURS_DRAPEAU(SubstitutDans, int)
+
+struct Substitutrice {
+private:
+	struct DonneesSubstitution {
+		Atome *original = nullptr;
+		Atome *substitut = nullptr;
+		SubstitutDans substitut_dans = SubstitutDans::TOUT;
+	};
+
+	dls::tableau<DonneesSubstitution> substitutions{};
+
+public:
+	void ajoute_substitution(Atome *original, Atome *substitut, SubstitutDans substitut_dans)
+	{
+		POUR (substitutions) {
+			if (it.original == original) {
+				it.substitut = substitut;
+				it.substitut_dans = substitut_dans;
+				return;
+			}
+		}
+
+		substitutions.pousse({ original, substitut, substitut_dans });
+	}
+
+	Instruction *instruction_substituee(Instruction *instruction)
+	{
+		switch (instruction->genre) {
+			case Instruction::Genre::CHARGE_MEMOIRE:
+			{
+				auto charge = instruction->comme_charge();
+
+				POUR (substitutions) {
+					if (it.original == charge->chargee && (it.substitut_dans & SubstitutDans::CHARGE) != SubstitutDans::ZERO) {
+						charge->chargee->nombre_utilisations -= 1;
+						charge->chargee = it.substitut;
+						it.substitut->nombre_utilisations += 1;
+						break;
+					}
+				}
+
+				return charge;
+			}
+			case Instruction::Genre::STOCKE_MEMOIRE:
+			{
+				auto stocke = instruction->comme_stocke_mem();
+
+				POUR (substitutions) {
+					if (it.original == stocke->ou && (it.substitut_dans & SubstitutDans::ADRESSE_STOCKEE) != SubstitutDans::ZERO) {
+						stocke->ou = it.substitut;
+						it.substitut->nombre_utilisations += 1;
+					}
+					else if (it.original == stocke->valeur && (it.substitut_dans & SubstitutDans::VALEUR_STOCKEE) != SubstitutDans::ZERO) {
+						stocke->valeur = it.substitut;
+						it.substitut->nombre_utilisations += 1;
+					}
+				}
+
+				return stocke;
+			}
+			default:
+			{
+				return instruction;
+			}
+		}
+	}
+};
+
 void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
 {
 	auto nouvelle_instructions = kuri::tableau<Instruction *>();
 	nouvelle_instructions.reserve(atome_fonc->instructions.taille);
+
+	auto substitutrice = Substitutrice();
 
 	auto nombre_labels = 0;
 
@@ -462,7 +550,7 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
 	POUR (atome_fonc->instructions) {
 		if (it->genre != Instruction::Genre::APPEL) {
-			nouvelle_instructions.pousse(it);
+			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
 			continue;
 		}
 
@@ -470,7 +558,7 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 		auto appele = appel->appele;
 
 		if (appele->genre_atome != Atome::Genre::FONCTION) {
-			nouvelle_instructions.pousse(it);
+			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
 			continue;
 		}
 
@@ -478,22 +566,22 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
 		if (atome_fonc_appelee->decl) {
 			if (atome_fonc_appelee->decl->est_externe) {
-				nouvelle_instructions.pousse(it);
+				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
 				continue;
 			}
 
 			if ((atome_fonc_appelee->decl->drapeaux & FORCE_ENLIGNE) == 0) {
-				nouvelle_instructions.pousse(it);
+				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
 				continue;
 			}
 			else if ((atome_fonc_appelee->decl->drapeaux & FORCE_HORSLIGNE) != 0) {
-				nouvelle_instructions.pousse(it);
+				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
 				continue;
 			}
 		}
 
 		if (atome_fonc_appelee->decl && atome_fonc_appelee->decl->est_externe) {
-			nouvelle_instructions.pousse(it);
+			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
 			continue;
 		}
 
@@ -502,22 +590,30 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 		// À FAIRE : attend que les fonctions soient disponibles
 		// À FAIRE : les instructions ne pourraient être composées que de retour « rien » et de labels
 		if (instructions.est_vide()) {
-			nouvelle_instructions.pousse(it);
+			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
 			continue;
 		}
 
 		// À FAIRE : définis de bonnes heuristiques pour l'enlignage
 		if (instructions.taille >= 32) {
-			nouvelle_instructions.pousse(it);
+			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
 			continue;
 		}
 
 		nouvelle_instructions.reserve_delta(instructions.taille + 1);
 
+		// crée une nouvelle adresse retour pour faciliter la suppression de l'instruction de stockage de la valeur de retour dans l'ancienne adresse
+		auto adresse_retour = static_cast<InstructionAllocation *>(nullptr);
+
+		if (appel->type->genre != GenreType::RIEN) {
+			adresse_retour = constructrice.cree_allocation(appel->type, nullptr, true);
+			nouvelle_instructions.pousse(adresse_retour);
+		}
+
 		auto label_post = constructrice.reserve_label();
 		label_post->id = nombre_labels++;
 
-		performe_enlignage(constructrice, nouvelle_instructions, instructions, atome_fonc_appelee, appel->args, nombre_labels, label_post);
+		performe_enlignage(constructrice, nouvelle_instructions, instructions, atome_fonc_appelee, appel->args, nombre_labels, label_post, adresse_retour);
 
 		for (auto arg : appel->args) {
 			arg->nombre_utilisations -= 1;
@@ -526,6 +622,13 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 		atome_fonc_appelee->nombre_utilisations -= 1;
 
 		nouvelle_instructions.pousse(label_post);
+
+		if (adresse_retour) {
+			// nous ne substituons l'adresse que pour le chargement de sa valeur, ainsi lors du stockage de la valeur
+			// l'ancienne adresse aura un compte d'utilisation de zéro et l'instruction de stockage sera supprimée avec
+			// l'ancienne adresse dans la passe de suppression de code mort
+			substitutrice.ajoute_substitution(appel->adresse_retour, adresse_retour, SubstitutDans::CHARGE);
+		}
 	}
 
 	imprime_fonction(atome_fonc, std::cerr);

@@ -311,6 +311,8 @@ struct InstructionAppel : public Instruction {
 	/* pour les traces d'appels */
 	Lexeme const *lexeme = nullptr;
 
+	InstructionAllocation *adresse_retour = nullptr;
+
 	COPIE_CONSTRUCT(InstructionAppel);
 
 	InstructionAppel(Lexeme const *lexeme, Atome *appele);

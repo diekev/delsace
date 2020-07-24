@@ -387,7 +387,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const dls
 	return fonction;
 }
 
-InstructionAllocation *ConstructriceRI::cree_allocation(Type *type, IdentifiantCode *ident)
+InstructionAllocation *ConstructriceRI::cree_allocation(Type *type, IdentifiantCode *ident, bool cree_seulement)
 {
 	/* le résultat d'une instruction d'allocation est l'adresse de la variable. */
 	type = normalise_type(m_espace->typeuse, type);
@@ -399,14 +399,14 @@ InstructionAllocation *ConstructriceRI::cree_allocation(Type *type, IdentifiantC
 	/* Nous utilisons pour l'instant cree_allocation pour les paramètres des
 	 * fonctions, et la fonction_courante est nulle lors de cette opération.
 	 */
-	if (fonction_courante) {
+	if (fonction_courante && !cree_seulement) {
 		fonction_courante->instructions.pousse(inst);
 	}
 
 	return inst;
 }
 
-InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Atome *ou, Atome *valeur)
+InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Atome *ou, Atome *valeur, bool cree_seulement)
 {
 	ou->nombre_utilisations += 1;
 	valeur->nombre_utilisations += 1;
@@ -423,7 +423,11 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Atome *ou, Atome *valeur)
 	auto inst = insts_stocke_memoire.ajoute_element(type, ou, valeur);
 	inst->numero = nombre_instructions++;
 	inst->nombre_utilisations += 1;
-	fonction_courante->instructions.pousse(inst);
+
+	if (!cree_seulement) {
+		fonction_courante->instructions.pousse(inst);
+	}
+
 	return inst;
 }
 
@@ -785,12 +789,18 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl);
 			}
 
+			auto adresse_retour = static_cast<InstructionAllocation *>(nullptr);
+
+			if (expr_appel->type->genre != GenreType::RIEN) {
+				adresse_retour = cree_allocation(expr_appel->type, nullptr);
+			}
+
 			auto valeur = cree_appel(noeud->lexeme, atome_fonc, std::move(args));
 
 			if (expr_appel->type->genre != GenreType::RIEN) {
-				auto alloc = cree_allocation(expr_appel->type, nullptr);
-				cree_stocke_mem(alloc, valeur);
-				return alloc;
+				valeur->adresse_retour = adresse_retour;
+				cree_stocke_mem(valeur->adresse_retour, valeur);
+				return valeur->adresse_retour;
 			}
 
 			return valeur;

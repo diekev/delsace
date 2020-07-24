@@ -110,7 +110,7 @@ public:
 		return m_compilatrice;
 	}
 
-	InstructionAllocation *cree_allocation(Type *type, IdentifiantCode *ident);
+	InstructionAllocation *cree_allocation(Type *type, IdentifiantCode *ident, bool cree_seulement = false);
 
 
 private:
@@ -138,7 +138,7 @@ private:
 	InstructionLabel *reserve_label();
 	void insere_label(InstructionLabel *label);
 	InstructionRetour *cree_retour(Atome *valeur);
-	InstructionStockeMem *cree_stocke_mem(Atome *ou, Atome *valeur);
+	InstructionStockeMem *cree_stocke_mem(Atome *ou, Atome *valeur, bool cree_seulement = false);
 	InstructionChargeMem *cree_charge_mem(Atome *ou);
 	InstructionAppel *cree_appel(Lexeme const *lexeme, Atome *appele);
 	InstructionAppel *cree_appel(Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args);
@@ -209,5 +209,6 @@ private:
 			kuri::tableau<Instruction *> const &instructions,
 			AtomeFonction *fonction_appelee,
 			kuri::tableau<Atome *> const &arguments, int &nombre_labels,
-			InstructionLabel *label_post);
+			InstructionLabel *label_post,
+			InstructionAllocation *adresse_retour);
 };
