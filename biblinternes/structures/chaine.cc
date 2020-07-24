@@ -243,6 +243,11 @@ chaine &chaine::operator+=(const chaine &autre)
 	return *this;
 }
 
+void chaine::echange(chaine &autre)
+{
+	m_chaine.swap(autre.m_chaine);
+}
+
 dls::chaine::operator vue_chaine() const
 {
 	return vue_chaine(this->c_str(), this->taille());

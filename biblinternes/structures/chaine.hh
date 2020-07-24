@@ -156,6 +156,8 @@ public:
 	operator vue_chaine() const;
 
 	operator vue_chaine_compacte() const;
+
+	void echange(chaine &autre);
 };
 
 /* ************************************************************************** */
