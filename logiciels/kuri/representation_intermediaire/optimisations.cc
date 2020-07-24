@@ -32,6 +32,13 @@
 #include "impression.hh"
 #include "instructions.hh"
 
+/* À FAIRE(optimisations) : non-urgent
+ * - structures de blocs basiques
+ * - Substitutrice, pour généraliser les substitions d'instructions
+ * - copie des instructions (requiers de séparer les allocations des instructions de la ConstructriceRI)
+ * - supprime les caches d'accès et de charges de la ConstructionRI, ils ne prenent pas en compte les blocs
+ */
+
 /* Supprime les labels ne contenant aucune instruction, et remplace ceux-ci dans
  * les branches les utilisant.
  * Supprime les labels immédiatement après une instruction de retour (nous pourrions
