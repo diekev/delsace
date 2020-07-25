@@ -291,7 +291,9 @@ static bool est_utilise(Atome *atome)
 
 /* Petit algorithme de suppression de code mort.
  *
- * Le code est pour le moment défini comme étant une allocation n'étant pas utilisée. Nous vérifions son état lors des stockages de mémoire.
+ * Le code mort est pour le moment défini comme étant toute instruction ne participant pas au résultat final, ou à une branche conditionnelle.
+ * Les fonctions ne retournant rien sont considérées comme utile pour le moment, il faudra avoir un système pour détecter les effets secondaire.
+ * Les fonctions dont la valeur de retour est ignorée sont supprimées malheureusement, il faudra changer cela avant de tenter d'activer ce code.
  *
  * Il faudra gérer les cas suivants :
  * - inutilisation du retour d'une fonction, mais dont la fonction a des effets secondaires : supprime la temporaire, mais garde la fonction
