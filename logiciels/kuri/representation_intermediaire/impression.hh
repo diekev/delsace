@@ -29,5 +29,5 @@
 struct AtomeFonction;
 struct Instruction;
 
-void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os);
+void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os, bool inclus_nombre_utilisations = false, bool surligne_inutilisees = false);
 void imprime_instruction(Instruction const *inst, std::ostream &os);

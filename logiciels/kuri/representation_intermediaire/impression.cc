@@ -327,7 +327,7 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
 	}
 }
 
-void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os)
+void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os, bool inclus_nombre_utilisations, bool surligne_inutilisees)
 {
 	os << "fonction " << atome_fonc->nom;
 
@@ -359,16 +359,45 @@ void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os)
 
 	os << '\n';
 
-	for (auto inst : atome_fonc->instructions) {
-		auto nombre_zero_avant_numero = dls::num::nombre_de_chiffres(atome_fonc->instructions.taille) - dls::num::nombre_de_chiffres(inst->numero);
+	auto numero_instruction = static_cast<int>(atome_fonc->params_entrees.taille);
+	auto max_utilisations = 0;
+
+	POUR (atome_fonc->instructions) {
+		it->numero = numero_instruction++;
+		max_utilisations = std::max(max_utilisations, it->nombre_utilisations);
+	}
+
+	using dls::num::nombre_de_chiffres;
+
+	POUR (atome_fonc->instructions) {
+		if (surligne_inutilisees && it->nombre_utilisations == 0) {
+			std::cerr << "\033[0;31m";
+		}
+
+		if (inclus_nombre_utilisations) {
+			auto nombre_zero_avant_numero = nombre_de_chiffres(max_utilisations) - nombre_de_chiffres(it->nombre_utilisations);
+			os << '(';
+
+			for (auto i = 0; i < nombre_zero_avant_numero; ++i) {
+				os << ' ';
+			}
+
+			os << it->nombre_utilisations << ") ";
+		}
+
+		auto nombre_zero_avant_numero = nombre_de_chiffres(atome_fonc->instructions.taille) - nombre_de_chiffres(it->numero);
 
 		for (auto i = 0; i < nombre_zero_avant_numero; ++i) {
 			os << ' ';
 		}
 
-		os << "%" << inst->numero << ' ';
+		os << "%" << it->numero << ' ';
 
-		imprime_instruction(inst, os);
+		imprime_instruction(it, os);
+
+		if (surligne_inutilisees && it->nombre_utilisations == 0) {
+			std::cerr << "\033[0m";
+		}
 	}
 
 	os << '\n';
