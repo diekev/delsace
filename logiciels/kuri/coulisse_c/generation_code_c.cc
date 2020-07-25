@@ -54,7 +54,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		case GenreType::ERREUR:
 		case GenreType::ENUM:
 		{
-			auto type_enum = static_cast<TypeEnum *>(type);
+			auto type_enum = type->comme_enum();
 			auto nom_broye_type_donnees = nom_broye_type(type_enum->type_donnees);
 
 			enchaineuse << "typedef " << nom_broye_type_donnees << ' ' << nom_broye << ";\n";
@@ -129,13 +129,13 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		}
 		case GenreType::REFERENCE:
 		{
-			auto type_pointe = static_cast<TypeReference *>(type)->type_pointe;
+			auto type_pointe = type->comme_reference()->type_pointe;
 			enchaineuse << "typedef " << nom_broye_type(type_pointe) << "* " << nom_broye << ";\n";
 			break;
 		}
 		case GenreType::POINTEUR:
 		{
-			auto type_pointe = static_cast<TypePointeur *>(type)->type_pointe;
+			auto type_pointe = type->comme_pointeur()->type_pointe;
 
 			if (type_pointe) {
 				enchaineuse << "typedef " << nom_broye_type(type_pointe) << "* " << nom_broye << ";\n";
@@ -148,7 +148,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		}
 		case GenreType::STRUCTURE:
 		{
-			auto type_struct = static_cast<TypeStructure *>(type);
+			auto type_struct = type->comme_structure();
 			auto nom_struct = broye_nom_simple(type_struct->nom);
 
 			// struct anomyme
@@ -168,7 +168,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		}
 		case GenreType::UNION:
 		{
-			auto type_struct = static_cast<TypeUnion *>(type);
+			auto type_struct = type->comme_union();
 			auto nom_struct = broye_nom_simple(type_struct->nom);
 			auto decl = type_struct->decl;
 
@@ -194,23 +194,23 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		}
 		case GenreType::TABLEAU_FIXE:
 		{
-			auto type_pointe = static_cast<TypeTableauFixe *>(type)->type_pointe;
+			auto type_pointe = type->comme_tableau_fixe()->type_pointe;
 
 			// [X][X]Type
 			if (type_pointe->genre == GenreType::TABLEAU_FIXE) {
-				auto type_tabl = static_cast<TypeTableauFixe *>(type_pointe);
+				auto type_tabl = type_pointe->comme_tableau_fixe();
 				auto taille_tableau = type_tabl->taille;
 
 				enchaineuse << "typedef " << nom_broye_type(type_tabl->type_pointe);
 				enchaineuse << "(" << nom_broye << ')';
-				enchaineuse << '[' << static_cast<TypeTableauFixe *>(type)->taille << ']';
+				enchaineuse << '[' << type->comme_tableau_fixe()->taille << ']';
 				enchaineuse << '[' << taille_tableau << ']';
 				enchaineuse << ";\n\n";
 			}
 			else {
 				enchaineuse << "typedef " << nom_broye_type(type_pointe);
 				enchaineuse << ' ' << nom_broye;
-				enchaineuse << '[' << static_cast<TypeTableauFixe *>(type)->taille << ']';
+				enchaineuse << '[' << type->comme_tableau_fixe()->taille << ']';
 				enchaineuse << ";\n\n";
 			}
 
@@ -223,7 +223,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		}
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
-			auto type_pointe = static_cast<TypeTableauDynamique *>(type)->type_pointe;
+			auto type_pointe = type->comme_tableau_dynamique()->type_pointe;
 
 			if (type_pointe == nullptr) {
 				return;
@@ -237,7 +237,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		}
 		case GenreType::FONCTION:
 		{
-			auto type_fonc = static_cast<TypeFonction *>(type);
+			auto type_fonc = type->comme_fonction();
 
 			auto prefixe = dls::chaine("");
 			auto suffixe = dls::chaine("");
@@ -376,7 +376,7 @@ static void genere_typedefs_recursifs(
 		}
 		else {
 			if (type_deref->genre == GenreType::VARIADIQUE) {
-				type_deref = static_cast<TypeVariadique *>(type_deref)->type_pointe;
+				type_deref = type_deref->comme_variadique()->type_pointe;
 
 				/* dans la RI nous créons un pointeur vers le type des arguments ce
 				 * qui peut inclure un pointeur vers un type variadique externe sans
@@ -395,7 +395,7 @@ static void genere_typedefs_recursifs(
 	}
 	/* ajoute les types des paramètres et de retour des fonctions */
 	else if (type->genre == GenreType::FONCTION) {
-		auto type_fonc = static_cast<TypeFonction *>(type);
+		auto type_fonc = type->comme_fonction();
 
 		POUR (type_fonc->types_entrees) {
 			if ((it->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
@@ -714,7 +714,7 @@ struct GeneratriceCodeC {
 			}
 			case Instruction::Genre::ALLOCATION:
 			{
-				auto type_pointeur = static_cast<TypePointeur *>(inst->type);
+				auto type_pointeur = inst->type->comme_pointeur();
 				os << "  " << nom_broye_type(type_pointeur->type_pointe);
 
 				// les portées ne sont plus respectées : deux variables avec le même nom dans deux portées différentes auront le même nom ici dans la même portée
@@ -1086,7 +1086,7 @@ struct GeneratriceCodeC {
 					valeur_accede = broye_nom_simple(table_globales[accede]);
 				}
 
-				auto type_pointeur = static_cast<TypePointeur *>(inst_acces->accede->type);
+				auto type_pointeur = inst_acces->accede->type->comme_pointeur();
 				auto type_compose = static_cast<TypeCompose *>(type_pointeur->type_pointe);
 				auto index_membre = static_cast<long>(static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere);
 
@@ -1123,7 +1123,7 @@ struct GeneratriceCodeC {
 				continue;
 			}
 
-			auto type = static_cast<TypePointeur *>(valeur_globale->type)->type_pointe;
+			auto type = valeur_globale->type->comme_pointeur()->type_pointe;
 
 			os << "static const " << nom_broye_type(type) << ' ';
 
@@ -1152,7 +1152,7 @@ struct GeneratriceCodeC {
 				continue;
 			}
 
-			auto type_fonction = static_cast<TypeFonction *>(atome_fonc->type);
+			auto type_fonction = atome_fonc->type->comme_fonction();
 			os << nom_broye_type(type_fonction->types_sorties[0]) << " " << atome_fonc->nom;
 
 			auto virgule = "(";
@@ -1160,7 +1160,7 @@ struct GeneratriceCodeC {
 			for (auto param : atome_fonc->params_entrees) {
 				os << virgule;
 
-				auto type_pointeur = static_cast<TypePointeur *>(param->type);
+				auto type_pointeur = param->type->comme_pointeur();
 				os << nom_broye_type(type_pointeur->type_pointe) << ' ';
 				os << broye_nom_simple(param->ident->nom);
 
@@ -1184,7 +1184,7 @@ struct GeneratriceCodeC {
 				valeur_initialisateur = genere_code_pour_atome(valeur_globale->initialisateur, os, true);
 			}
 
-			auto type = static_cast<TypePointeur *>(valeur_globale->type)->type_pointe;
+			auto type = valeur_globale->type->comme_pointeur()->type_pointe;
 
 			os << "static ";
 
@@ -1227,7 +1227,7 @@ struct GeneratriceCodeC {
 
 			//std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
 
-			auto type_fonction = static_cast<TypeFonction *>(atome_fonc->type);
+			auto type_fonction = atome_fonc->type->comme_fonction();
 			os << nom_broye_type(type_fonction->types_sorties[0]) << " " << atome_fonc->nom;
 
 			auto virgule = "(";
@@ -1235,7 +1235,7 @@ struct GeneratriceCodeC {
 			for (auto param : atome_fonc->params_entrees) {
 				os << virgule;
 
-				auto type_pointeur = static_cast<TypePointeur *>(param->type);
+				auto type_pointeur = param->type->comme_pointeur();
 				os << nom_broye_type(type_pointeur->type_pointe) << ' ';
 				os << broye_nom_simple(param->ident->nom);
 
@@ -1335,7 +1335,7 @@ static void genere_code_C_depuis_fonction_principale(
 			genere_typedefs_recursifs(compilatrice, type, enchaineuse);
 
 			if (type && (type->genre == GenreType::STRUCTURE)) {
-				auto type_struct = static_cast<TypeStructure *>(noeud->type_);
+				auto type_struct = noeud->type_->comme_structure();
 
 				if (type_struct->decl && type_struct->decl->est_externe) {
 					return;
@@ -1418,7 +1418,7 @@ static void genere_code_C_pour_tout(
 		genere_typedefs_recursifs(compilatrice, type, enchaineuse);
 
 		if (type && (type->genre == GenreType::STRUCTURE)) {
-			auto type_struct = static_cast<TypeStructure *>(type);
+			auto type_struct = type->comme_structure();
 
 			if (type_struct->decl && type_struct->decl->est_externe) {
 				continue;

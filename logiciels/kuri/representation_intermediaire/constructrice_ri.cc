@@ -242,7 +242,7 @@ AtomeConstante *ConstructriceRI::cree_tableau_global(Type *type, kuri::tableau<A
 
 AtomeConstante *ConstructriceRI::cree_tableau_global(AtomeConstante *tableau_fixe)
 {
-	auto type_tableau_fixe = static_cast<TypeTableauFixe *>(tableau_fixe->type);
+	auto type_tableau_fixe = tableau_fixe->type->comme_tableau_fixe();
 	auto globale_tableau_fixe = cree_globale(type_tableau_fixe, tableau_fixe, false, true);
 	auto ptr_premier_element = cree_acces_index_constant(globale_tableau_fixe, cree_z64(0));
 	auto valeur_taille = cree_z64(static_cast<unsigned long>(type_tableau_fixe->taille));
@@ -394,7 +394,7 @@ InstructionAllocation *ConstructriceRI::cree_allocation(Type *type, IdentifiantC
 InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Atome *ou, Atome *valeur, bool cree_seulement)
 {
 	assert(ou->type->genre == GenreType::POINTEUR);
-	auto type_pointeur = static_cast<TypePointeur *>(ou->type);
+	auto type_pointeur = ou->type->comme_pointeur();
 //	std::cerr << __func__ << ", type_pointeur->type_pointe : " << chaine_type(type_pointeur->type_pointe) << " (" << type_pointeur->type_pointe << ") "
 //			  << ", valeur->type : " << chaine_type(valeur->type) << " (" << valeur->type << ") " << '\n';
 	assert(type_pointeur->type_pointe == valeur->type || (type_pointeur->type_pointe->genre == GenreType::TYPE_DE_DONNEES && type_pointeur->type_pointe->genre == valeur->type->genre));
@@ -416,7 +416,7 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(Atome *ou)
 	/* nous chargeons depuis une adresse en mémoire, donc nous devons avoir un pointeur */
 	//std::cerr << __func__ << ", type atome : " << chaine_type(ou->type) << '\n';
 	assert(ou->type->genre == GenreType::POINTEUR || ou->type->genre == GenreType::REFERENCE);
-	auto type_pointeur = static_cast<TypePointeur *>(ou->type);
+	auto type_pointeur = ou->type->comme_pointeur();
 
 	POUR (charge_mems) {
 		if (it->chargee == ou) {
@@ -485,7 +485,7 @@ InstructionAccedeIndex *ConstructriceRI::cree_acces_index(Atome *accede, Atome *
 	else {
 		//std::cerr << __func__ << ", type accede : " << chaine_type(accede->type) << '\n';
 		assert(accede->type->genre == GenreType::POINTEUR);
-		auto type_pointeur = static_cast<TypePointeur *>(accede->type);
+		auto type_pointeur = accede->type->comme_pointeur();
 		type_pointe = type_pointeur->type_pointe;
 	}
 
@@ -505,7 +505,7 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(Atome *accede, long 
 {
 	//std::cerr << __func__ << ", accede->type : " << chaine_type(accede->type) << '\n';
 	assert(accede->type->genre == GenreType::POINTEUR || accede->type->genre == GenreType::REFERENCE);
-	auto type_pointeur = static_cast<TypePointeur *>(accede->type);
+	auto type_pointeur = accede->type->comme_pointeur();
 	assert(est_type_compose(type_pointeur->type_pointe));
 	assert(type_pointeur->type_pointe->genre != GenreType::UNION);
 
@@ -566,7 +566,7 @@ AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *
 {
 	//std::cerr << __func__ << ", type accede : " << chaine_type(accede->type) << '\n';
 	assert(accede->type->genre == GenreType::POINTEUR);
-	auto type_pointeur = static_cast<TypePointeur *>(accede->type);
+	auto type_pointeur = accede->type->comme_pointeur();
 	//std::cerr << __func__ << ", accede->type : " << chaine_type(type_pointeur->type_pointe) << '\n';
 	assert(dls::outils::est_element(type_pointeur->type_pointe->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE));
 
@@ -798,7 +798,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		{
-			auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(noeud->type);
+			auto type_de_donnees = noeud->type->comme_type_de_donnees();
 			return cree_constante_type(type_de_donnees->type_connu);
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
@@ -923,7 +923,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto expr_bin = static_cast<NoeudExpressionBinaire *>(noeud);
 
 			if (expr_bin->type->genre == GenreType::TYPE_DE_DONNEES) {
-				auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(expr_bin->type);
+				auto type_de_donnees = expr_bin->type->comme_type_de_donnees();
 
 				if (type_de_donnees->type_connu) {
 					return cree_constante_type(type_de_donnees->type_connu);
@@ -1041,7 +1041,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			if (type_gauche->genre == GenreType::TABLEAU_FIXE) {
 				if (table_locales[ID::contexte] != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
-					auto type_tableau_fixe = static_cast<TypeTableauFixe *>(type_gauche);
+					auto type_tableau_fixe = type_gauche->comme_tableau_fixe();
 					auto acces_taille = cree_z64(static_cast<unsigned long>(type_tableau_fixe->taille));
 					genere_protection_limites(acces_taille, valeur, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_tableau));
 				}
@@ -1073,7 +1073,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto expr_un = static_cast<NoeudExpressionUnaire *>(noeud);
 
 			if (expr_un->type->genre == GenreType::TYPE_DE_DONNEES) {
-				auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(expr_un->type);
+				auto type_de_donnees = expr_un->type->comme_type_de_donnees();
 				return cree_constante_type(type_de_donnees->type_connu);
 			}
 
@@ -1174,7 +1174,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto inst_retour = static_cast<NoeudExpressionUnaire *>(noeud);
 			auto expr = inst_retour->expr;
-			auto type_fonction = static_cast<TypeFonction *>(fonction_courante->type);
+			auto type_fonction = fonction_courante->type->comme_fonction();
 			auto locale_retour = cree_allocation(type_fonction->types_sorties[0], nullptr);
 			genere_ri_transformee_pour_noeud(expr, locale_retour);
 			genere_ri_blocs_differes(noeud->bloc_parent);
@@ -1357,7 +1357,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			if (expr->type->genre == GenreType::UNION) {
 				auto index_membre = 0u;
 				auto valeur = static_cast<Atome *>(nullptr);
-				auto type_union = static_cast<TypeUnion *>(expr->type);
+				auto type_union = expr->type->comme_union();
 
 				POUR (expr->exprs) {
 					if (it != nullptr) {
@@ -1393,7 +1393,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					return genere_ri_pour_position_code_source(noeud);
 				}
 
-				auto type_struct = static_cast<TypeStructure *>(noeud->type);
+				auto type_struct = noeud->type->comme_structure();
 				auto index_membre = 0u;
 
 				alloc = cree_allocation(type_struct, nullptr);
@@ -1425,7 +1425,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			rassemble_feuilles(expr->expr, feuilles);
 
 			if (fonction_courante == nullptr) {
-				auto type_tableau_fixe = static_cast<TypeTableauFixe *>(expr->type);
+				auto type_tableau_fixe = expr->type->comme_tableau_fixe();
 				kuri::tableau<AtomeConstante *> valeurs;
 				valeurs.reserve(feuilles.taille());
 
@@ -1459,16 +1459,16 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_INIT_DE:
 		{
-			auto type_fonction = static_cast<TypeFonction *>(noeud->type);
+			auto type_fonction = noeud->type->comme_fonction();
 			auto type_pointeur = type_fonction->types_entrees[1];
-			auto type_arg = static_cast<TypePointeur *>(type_pointeur)->type_pointe;
+			auto type_arg = type_pointeur->comme_pointeur()->type_pointe;
 			auto nom_fonction = "initialise_" + dls::vers_chaine(type_arg);
 			return m_espace->trouve_fonction(nom_fonction);
 		}
 		case GenreNoeud::EXPRESSION_TYPE_DE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(noeud);
-			auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(expr->type);
+			auto type_de_donnees = expr->type->comme_type_de_donnees();
 
 			if (type_de_donnees->type_connu == nullptr) {
 				return cree_constante_type(type_de_donnees);
@@ -1624,7 +1624,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 		}
 		case TypeTransformation::CONSTRUIT_UNION:
 		{
-			auto type_union = static_cast<TypeUnion *>(transformation.type_cible);
+			auto type_union = transformation.type_cible->comme_union();
 
 			if (!valeur->est_chargeable) {
 				auto alloc_valeur = cree_allocation(noeud->type, nullptr);
@@ -1654,7 +1654,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 		}
 		case TypeTransformation::EXTRAIT_UNION:
 		{
-			auto type_union = static_cast<TypeUnion *>(noeud->type);
+			auto type_union = noeud->type->comme_union();
 
 			if (!valeur->est_chargeable) {
 				auto alloc = cree_allocation(valeur->type, nullptr);
@@ -1832,7 +1832,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				}
 				case GenreType::POINTEUR:
 				{
-					auto type_pointe = static_cast<TypePointeur *>(noeud->type)->type_pointe;
+					auto type_pointe = noeud->type->comme_pointeur()->type_pointe;
 					valeur = cree_transtype(type_cible, valeur, TypeTranstypage::BITS);
 					valeur_pointeur = valeur;
 					auto taille_type = type_pointe->taille_octet;
@@ -1848,7 +1848,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				}
 				case GenreType::TABLEAU_DYNAMIQUE:
 				{
-					auto type_pointer = static_cast<TypeTableauDynamique *>(noeud->type)->type_pointe;
+					auto type_pointer = noeud->type->comme_tableau_dynamique()->type_pointe;
 
 					valeur_pointeur = cree_acces_membre_et_charge(valeur, 0);
 					valeur_pointeur = cree_transtype(type_cible, valeur_pointeur, TypeTranstypage::BITS);
@@ -1866,7 +1866,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				}
 				case GenreType::TABLEAU_FIXE:
 				{
-					auto type_tabl = static_cast<TypeTableauFixe *>(noeud->type);
+					auto type_tabl = noeud->type->comme_tableau_fixe();
 					auto type_pointe = type_tabl->type_pointe;
 					auto taille_type = type_pointe->taille_octet;
 
@@ -1897,7 +1897,7 @@ Atome *ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 				return cree_tableau_global(valeur_tableau_fixe);
 			}
 
-			valeur = converti_vers_tableau_dyn(valeur, static_cast<TypeTableauFixe *>(noeud->type), place);
+			valeur = converti_vers_tableau_dyn(valeur, noeud->type->comme_tableau_fixe(), place);
 
 			if (place == nullptr) {
 				valeur = cree_charge_mem(valeur);
@@ -1956,7 +1956,7 @@ Atome *ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 	auto decl_struct = static_cast<NoeudStruct *>(nullptr);
 
 	if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
-		auto type_struct = static_cast<TypeUnion *>(expression->type);
+		auto type_struct = expression->type->comme_union();
 		decl_struct = type_struct->decl;
 	}
 
@@ -2042,7 +2042,7 @@ Atome *ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 				auto valeur_f = static_cast<Atome *>(nullptr);
 
 				if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_ENUM) {
-					valeur_f = valeur_enum(static_cast<TypeEnum *>(expression->type), f->ident);
+					valeur_f = valeur_enum(expression->type->comme_enum(), f->ident);
 				}
 				else if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
 					auto idx_membre = trouve_index_membre(decl_struct, f->ident->nom);
@@ -2150,7 +2150,7 @@ Atome *ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 		return valeur_expression;
 	}
 	else if (noeud->expr_appel->type->genre == GenreType::UNION) {
-		auto type_union = static_cast<TypeUnion *>(noeud->expr_appel->type);
+		auto type_union = noeud->expr_appel->type->comme_union();
 		auto index_membre_erreur = 0;
 
 		if (type_union->membres.taille == 2) {
@@ -2327,7 +2327,7 @@ Atome *ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 			auto taille_tableau = 0l;
 
 			if (type->genre == GenreType::TABLEAU_FIXE) {
-				taille_tableau = static_cast<TypeTableauFixe *>(type)->taille;
+				taille_tableau = type->comme_tableau_fixe()->taille;
 			}
 
 			auto valeur_fin = static_cast<Atome *>(nullptr);
@@ -2755,13 +2755,11 @@ void ConstructriceRI::genere_ri_pour_comparaison_chainee(NoeudExpression *noeud,
 Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 {
 	auto type = noeud->type;
-	auto type_union = static_cast<TypeUnion *>(type);
-	auto type_struct = static_cast<TypeStructure *>(type);
 
-	if (type->genre == GenreType::UNION && type_union->deja_genere) {
+	if (type->genre == GenreType::UNION && type->comme_union()->deja_genere) {
 		return nullptr;
 	}
-	else if (type->genre == GenreType::STRUCTURE && type_struct->deja_genere) {
+	else if (type->genre == GenreType::STRUCTURE && type->comme_structure()->deja_genere) {
 		return nullptr;
 	}
 
@@ -2795,6 +2793,7 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	cree_label();
 
 	if (type->genre == GenreType::UNION) {
+		auto type_union = type->comme_union();
 		auto index_membre = 0u;
 		auto pointeur_union = cree_charge_mem(fonction->params_entrees[1]);
 
@@ -2834,6 +2833,7 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 		type_union->deja_genere = true;
 	}
 	else if (type->genre == GenreType::STRUCTURE) {
+		auto type_struct = type->comme_structure();
 		auto index_membre = 0u;
 		auto pointeur_struct = cree_charge_mem(fonction->params_entrees[1]);
 
@@ -2918,18 +2918,18 @@ Atome *ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud
 	}
 
 	if (type_accede->genre == GenreType::TABLEAU_FIXE) {
-		auto taille = static_cast<TypeTableauFixe *>(type_accede)->taille;
+		auto taille = type_accede->comme_tableau_fixe()->taille;
 		return cree_constante_entiere(noeud->type, static_cast<unsigned long>(taille));
 	}
 
 	if (type_accede->genre == GenreType::ENUM || type_accede->genre == GenreType::ERREUR) {
-		auto type_enum = static_cast<TypeEnum *>(type_accede);
+		auto type_enum = type_accede->comme_enum();
 		auto valeur_enum = type_enum->membres[noeud->index_membre].valeur;
 		return cree_constante_entiere(type_enum, static_cast<unsigned>(valeur_enum));
 	}
 
 	if (noeud->type->genre == GenreType::TYPE_DE_DONNEES && noeud->genre_valeur == GenreValeur::DROITE) {
-		auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(noeud->type);
+		auto type_de_donnees = noeud->type->comme_type_de_donnees();
 
 		if (type_de_donnees->type_connu) {
 			return cree_constante_type(type_de_donnees->type_connu);
@@ -2969,7 +2969,7 @@ Atome *ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre 
 		type = type_dereference_pour(type);
 	}
 
-	auto type_union = static_cast<TypeUnion *>(type);
+	auto type_union = type->comme_union();
 	auto index_membre = noeud->index_membre;
 	auto type_membre = type_union->membres[index_membre].type;
 
@@ -3062,7 +3062,7 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
 		}
 		case GenreType::UNION:
 		{
-			auto type_union = static_cast<TypeUnion *>(type);
+			auto type_union = type->comme_union();
 
 			if (type_union->est_nonsure) {
 				return genere_initialisation_defaut_pour_type(type_union->type_le_plus_grand);
@@ -3096,7 +3096,7 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
 		{
-			auto type_enum = static_cast<TypeEnum *>(type);
+			auto type_enum = type->comme_enum();
 			return cree_constante_entiere(type_enum, 0);
 		}
 	}
@@ -3344,7 +3344,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
 		{
-			auto type_enum = static_cast<TypeEnum *>(type);
+			auto type_enum = type->comme_enum();
 
 			auto type_info_type_enum = m_espace->typeuse.type_info_type_enum;
 
@@ -3393,7 +3393,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		}
 		case GenreType::UNION:
 		{
-			auto type_union = static_cast<TypeUnion *>(type);
+			auto type_union = type->comme_union();
 			auto nom_union = dls::vue_chaine_compacte();
 
 			if (type_union->est_anonyme) {
@@ -3483,7 +3483,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		}
 		case GenreType::STRUCTURE:
 		{
-			auto type_struct = static_cast<TypeStructure *>(type);
+			auto type_struct = type->comme_structure();
 
 			// ------------------------------------
 			// Commence par assigner une globale non-initialisée comme info type
@@ -3579,7 +3579,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		}
 		case GenreType::TABLEAU_FIXE:
 		{
-			auto type_tableau = static_cast<TypeTableauFixe *>(type);
+			auto type_tableau = type->comme_tableau_fixe();
 			/* { id, taille_en_octet, type_pointé, est_tableau_fixe, taille_fixe } */
 
 			auto type_pointeur = m_espace->typeuse.type_info_type_tableau;

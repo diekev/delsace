@@ -401,11 +401,11 @@ void lance_erreur_fonction_inconnue(
 				ss << "\tRequiers " << decl_fonc->params.taille << " arguments\n";
 			}
 			else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
-				auto type_struct = static_cast<TypeStructure *>(static_cast<NoeudStruct const *>(decl)->type);
+				auto type_struct = static_cast<NoeudStruct const *>(decl)->type->comme_structure();
 				ss << "\tRequiers " << type_struct->membres.taille << " arguments\n";
 			}
 			else {
-				auto type_fonc = static_cast<TypeFonction *>(dc.type);
+				auto type_fonc = dc.type->comme_fonction();
 				ss << "\tRequiers " << type_fonc->types_entrees.taille - dc.requiers_contexte << " arguments\n";
 			}
 
@@ -428,7 +428,7 @@ void lance_erreur_fonction_inconnue(
 				type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
-				auto type_struct = static_cast<TypeStructure *>(static_cast<NoeudStruct const *>(decl)->type);
+				auto type_struct = static_cast<NoeudStruct const *>(decl)->type->comme_structure();
 				ss << "\tLes membres de la structure sont : \n";
 
 				POUR (type_struct->membres) {

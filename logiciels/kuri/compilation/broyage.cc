@@ -189,14 +189,14 @@ dls::chaine const &nom_broye_type(Type *type)
 		case GenreType::REFERENCE:
 		{
 			flux << "KR";
-			flux << nom_broye_type(static_cast<TypeReference *>(type)->type_pointe);
+			flux << nom_broye_type(type->comme_reference()->type_pointe);
 			break;
 		}
 		case GenreType::POINTEUR:
 		{
 			flux << "KP";
 
-			auto type_pointe = static_cast<TypePointeur *>(type)->type_pointe;
+			auto type_pointe = type->comme_pointeur()->type_pointe;
 
 			if (type_pointe == nullptr) {
 				flux << "nul";
@@ -235,7 +235,7 @@ dls::chaine const &nom_broye_type(Type *type)
 		}
 		case GenreType::VARIADIQUE:
 		{
-			auto type_pointe = static_cast<TypeVariadique *>(type)->type_pointe;
+			auto type_pointe = type->comme_variadique()->type_pointe;
 
 			// les arguments variadiques sont transformés en tableaux, donc utilise Kt
 			if (type_pointe != nullptr) {
@@ -251,16 +251,16 @@ dls::chaine const &nom_broye_type(Type *type)
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
 			flux << "Kt";
-			flux << nom_broye_type(static_cast<TypeTableauDynamique *>(type)->type_pointe);
+			flux << nom_broye_type(type->comme_tableau_dynamique()->type_pointe);
 			break;
 		}
 		case GenreType::TABLEAU_FIXE:
 		{
-			auto type_tabl = static_cast<TypeTableauFixe *>(type);
+			auto type_tabl = type->comme_tableau_fixe();
 
 			flux << "KT";
 			flux << type_tabl->taille;
-			flux << nom_broye_type(static_cast<TypeTableauFixe *>(type)->type_pointe);
+			flux << nom_broye_type(type_tabl->type_pointe);
 			break;
 		}
 		case GenreType::FONCTION:
@@ -308,7 +308,7 @@ dls::chaine broye_nom_fonction(
 		NoeudDeclarationFonction *decl,
 		dls::chaine const &nom_module)
 {
-	auto type_fonc = static_cast<TypeFonction *>(decl->type);
+	auto type_fonc = decl->type->comme_fonction();
 	auto ret = dls::chaine("_K");
 
 	ret += decl->est_coroutine ? "C" : "F";

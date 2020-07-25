@@ -179,7 +179,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		}
 		case GenreType::FONCTION:
 		{
-			auto type_fonc = static_cast<TypeFonction *>(type);
+			auto type_fonc = type->comme_fonction();
 
 			std::vector<llvm::Type *> parametres;
 			POUR (type_fonc->types_entrees) {
@@ -303,7 +303,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		}
 		case GenreType::UNION:
 		{
-			auto type_struct = static_cast<TypeUnion *>(type);
+			auto type_struct = type->comme_union();
 			auto decl_struct = type_struct->decl;
 			auto nom_nonsur = "union_nonsure." + type_struct->nom;
 			auto nom = "union." + type_struct->nom;
@@ -334,7 +334,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		}
 		case GenreType::STRUCTURE:
 		{
-			auto type_struct = static_cast<TypeStructure *>(type);
+			auto type_struct = type->comme_structure();
 			auto nom = "struct." + type_struct->nom;
 
 			/* Pour les structures récursives, il faut créer un type
@@ -356,7 +356,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		}
 		case GenreType::VARIADIQUE:
 		{
-			auto type_var = static_cast<TypeVariadique *>(type);
+			auto type_var = type->comme_variadique();
 
 			// Utilise le type de tableau dynamique afin que le code IR LLVM
 			// soit correcte (pointe vers le même type)
@@ -387,7 +387,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		case GenreType::TABLEAU_FIXE:
 		{
 			auto type_deref_llvm = converti_type_llvm(type_dereference_pour(type));
-			auto const taille = static_cast<TypeTableauFixe *>(type)->taille;
+			auto const taille = type->comme_tableau_fixe()->taille;
 
 			type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<unsigned long>(taille));
 			break;
@@ -395,7 +395,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
 		{
-			auto type_enum = static_cast<TypeEnum *>(type);
+			auto type_enum = type->comme_enum();
 			type_llvm = converti_type_llvm(type_enum->type_donnees);
 			break;
 		}
@@ -418,7 +418,7 @@ llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction *ty
 
 			/* les arguments variadiques sont transformés en un tableau */
 			if (!est_externe) {
-				auto type_var = static_cast<TypeVariadique *>(it);
+				auto type_var = it->comme_variadique();
 				auto type_tabl = m_espace.typeuse.type_tableau_dynamique(type_var->type_pointe);
 				parametres.push_back(converti_type_llvm(type_tabl));
 			}
@@ -576,7 +576,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 		}
 		case Instruction::Genre::ALLOCATION:
 		{
-			auto type_pointeur = static_cast<TypePointeur *>(inst->type);
+			auto type_pointeur = inst->type->comme_pointeur();
 			auto type_llvm = converti_type_llvm(type_pointeur->type_pointe);
 			auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
 			alloca->setAlignment(type_pointeur->type_pointe->alignement);
@@ -951,7 +951,7 @@ void GeneratriceCodeLLVM::genere_code()
 			valeur_initialisateur = static_cast<llvm::Constant *>(genere_code_pour_atome(valeur_globale->initialisateur, true));
 		}
 
-		auto type = static_cast<TypePointeur *>(valeur_globale->type)->type_pointe;
+		auto type = valeur_globale->type->comme_pointeur()->type_pointe;
 		auto type_llvm = converti_type_llvm(type);
 
 		auto nom_globale = llvm::StringRef();
@@ -974,7 +974,7 @@ void GeneratriceCodeLLVM::genere_code()
 	POUR_TABLEAU_PAGE (m_espace.fonctions) {
 		auto atome_fonc = &it;
 
-		auto type_fonction = static_cast<TypeFonction *>(atome_fonc->type);
+		auto type_fonction = atome_fonc->type->comme_fonction();
 		auto type_llvm = converti_type_fonction(
 					type_fonction,
 					atome_fonc->instructions.taille == 0);
@@ -1005,7 +1005,7 @@ void GeneratriceCodeLLVM::genere_code()
 			auto valeur = &(*valeurs_args++);
 			valeur->setName(dls::chaine(nom_argument).c_str());
 
-			auto type = static_cast<TypePointeur *>(param->type)->type_pointe;
+			auto type = param->type->comme_pointeur()->type_pointe;
 			auto type_llvm = converti_type_llvm(type);
 
 			auto alloc = m_builder.CreateAlloca(type_llvm, 0u);

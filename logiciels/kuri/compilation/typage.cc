@@ -1272,23 +1272,23 @@ Type *type_dereference_pour(Type *type)
 	Prof(type_dereference_pour);
 
 	if (type->genre == GenreType::TABLEAU_FIXE) {
-		return static_cast<TypeTableauFixe *>(type)->type_pointe;
+		return type->comme_tableau_fixe()->type_pointe;
 	}
 
 	if (type->genre == GenreType::TABLEAU_DYNAMIQUE) {
-		return static_cast<TypeTableauDynamique *>(type)->type_pointe;
+		return type->comme_tableau_dynamique()->type_pointe;
 	}
 
 	if (type->genre == GenreType::POINTEUR) {
-		return static_cast<TypePointeur *>(type)->type_pointe;
+		return type->comme_pointeur()->type_pointe;
 	}
 
 	if (type->genre == GenreType::REFERENCE) {
-		return static_cast<TypeReference *>(type)->type_pointe;
+		return type->comme_reference()->type_pointe;
 	}
 
 	if (type->genre == GenreType::VARIADIQUE) {
-		return static_cast<TypeVariadique *>(type)->type_pointe;
+		return type->comme_variadique()->type_pointe;
 	}
 
 	return nullptr;
@@ -1297,7 +1297,7 @@ Type *type_dereference_pour(Type *type)
 void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine_compacte> &noms)
 {
 	if (type->genre == GenreType::FONCTION) {
-		auto type_fonction = static_cast<TypeFonction *>(type);
+		auto type_fonction = type->comme_fonction();
 
 		POUR (type_fonction->types_entrees) {
 			if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
@@ -1318,7 +1318,7 @@ void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine
 		type = type_dereference_pour(type);
 	}
 
-	noms.pousse(static_cast<TypePolymorphique *>(type)->ident->nom);
+	noms.pousse(type->comme_polymorphique()->ident->nom);
 }
 
 bool est_type_conditionnable(Type *type)
@@ -1364,28 +1364,28 @@ Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour
 	auto resultat = static_cast<Type *>(nullptr);
 
 	if (type_gabarit->genre == GenreType::POINTEUR) {
-		auto type_pointe = static_cast<TypePointeur *>(type_gabarit)->type_pointe;
+		auto type_pointe = type_gabarit->comme_pointeur()->type_pointe;
 		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
 		resultat = typeuse.type_pointeur_pour(type_pointe_pour_type);
 	}
 	else if (type_gabarit->genre == GenreType::REFERENCE) {
-		auto type_pointe = static_cast<TypeReference *>(type_gabarit)->type_pointe;
+		auto type_pointe = type_gabarit->comme_reference()->type_pointe;
 		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
 		resultat = typeuse.type_reference_pour(type_pointe_pour_type);
 	}
 	else if (type_gabarit->genre == GenreType::TABLEAU_DYNAMIQUE) {
-		auto type_pointe = static_cast<TypeTableauDynamique *>(type_gabarit)->type_pointe;
+		auto type_pointe = type_gabarit->comme_tableau_dynamique()->type_pointe;
 		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
 		resultat = typeuse.type_tableau_dynamique(type_pointe_pour_type);
 	}
 	else if (type_gabarit->genre == GenreType::TABLEAU_FIXE) {
-		auto type_tableau_fixe = static_cast<TypeTableauFixe *>(type_gabarit);
+		auto type_tableau_fixe = type_gabarit->comme_tableau_fixe();
 		auto type_pointe = type_tableau_fixe->type_pointe;
 		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
 		resultat = typeuse.type_tableau_fixe(type_pointe_pour_type, type_tableau_fixe->taille);
 	}
 	else if (type_gabarit->genre == GenreType::VARIADIQUE) {
-		auto type_pointe = static_cast<TypeVariadique *>(type_gabarit)->type_pointe;
+		auto type_pointe = type_gabarit->comme_variadique()->type_pointe;
 		auto type_pointe_pour_type = resoud_type_polymorphique(typeuse, type_pointe, pour_type);
 		resultat = typeuse.type_variadique(type_pointe_pour_type);
 	}
@@ -1393,7 +1393,7 @@ Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour
 		resultat = pour_type;
 	}
 	else if (type_gabarit->genre == GenreType::FONCTION) {
-		auto type_fonction = static_cast<TypeFonction *>(type_gabarit);
+		auto type_fonction = type_gabarit->comme_fonction();
 
 		auto types_entrees = kuri::tableau<Type *>();
 		types_entrees.reserve(type_fonction->types_entrees.taille);
@@ -1465,7 +1465,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 	auto resultat = type;
 
 	if (type->genre == GenreType::UNION) {
-		auto type_union = static_cast<TypeUnion *>(type);
+		auto type_union = type->comme_union();
 
 		if (type_union->est_nonsure) {
 			resultat = type_union->type_le_plus_grand;
@@ -1475,12 +1475,12 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 		}
 	}
 	else if (type->genre == GenreType::TABLEAU_FIXE) {
-		auto type_tableau_fixe = static_cast<TypeTableauFixe *>(type);
+		auto type_tableau_fixe = type->comme_tableau_fixe();
 		resultat = normalise_type(typeuse, type_tableau_fixe->type_pointe);
 		resultat = typeuse.type_tableau_fixe(type_tableau_fixe->type_pointe, type_tableau_fixe->taille);
 	}
 	else if (type->genre == GenreType::TABLEAU_DYNAMIQUE) {
-		auto type_tableau_dyn = static_cast<TypeTableauDynamique *>(type);
+		auto type_tableau_dyn = type->comme_tableau_dynamique();
 		auto type_normalise = normalise_type(typeuse, type_tableau_dyn->type_pointe);
 
 		if (type_normalise != type_tableau_dyn->type_pointe) {
@@ -1488,7 +1488,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 		}
 	}
 	else if (type->genre == GenreType::VARIADIQUE) {
-		auto type_variadique = static_cast<TypeVariadique *>(type);
+		auto type_variadique = type->comme_variadique();
 		auto type_normalise = normalise_type(typeuse, type_variadique->type_pointe);
 
 		if (type_normalise != type_variadique) {
@@ -1496,7 +1496,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 		}
 	}
 	else if (type->genre == GenreType::POINTEUR) {
-		auto type_pointeur = static_cast<TypePointeur *>(type);
+		auto type_pointeur = type->comme_pointeur();
 		auto type_normalise = normalise_type(typeuse, type_pointeur->type_pointe);
 
 		if (type_normalise != type_pointeur) {
@@ -1504,12 +1504,12 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 		}
 	}
 	else if (type->genre == GenreType::REFERENCE) {
-		auto type_reference = static_cast<TypeReference *>(type);
+		auto type_reference = type->comme_reference();
 		auto type_normalise = normalise_type(typeuse, type_reference->type_pointe);
 		resultat = typeuse.type_pointeur_pour(type_normalise);
 	}
 	else if (type->genre == GenreType::FONCTION) {
-		auto type_fonction = static_cast<TypeFonction *>(type);
+		auto type_fonction = type->comme_fonction();
 
 		auto types_entrees = kuri::tableau<Type *>();
 		types_entrees.reserve(type_fonction->types_entrees.taille);
@@ -1536,7 +1536,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 void calcule_taille_type_compose(TypeCompose *type)
 {
 	if (type->genre == GenreType::UNION) {
-		auto type_union = static_cast<TypeUnion *>(type);
+		auto type_union = type->comme_union();
 
 		auto max_alignement = 0u;
 		auto taille_union = 0u;

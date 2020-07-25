@@ -685,7 +685,7 @@ ffi_type *converti_type_ffi(Type *type)
 		}
 		case GenreType::UNION:
 		{
-			auto type_union = static_cast<TypeUnion *>(type);
+			auto type_union = type->comme_union();
 
 			if (type_union->est_nonsure) {
 				return converti_type_ffi(type_union->type_le_plus_grand);
@@ -697,7 +697,7 @@ ffi_type *converti_type_ffi(Type *type)
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
 		{
-			return converti_type_ffi(static_cast<TypeEnum *>(type)->type_donnees);
+			return converti_type_ffi(type->comme_enum()->type_donnees);
 		}
 		case GenreType::VARIADIQUE:
 		{
@@ -778,7 +778,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 			return;
 		}
 
-		auto type_fonction = static_cast<TypeFonction *>(fonction->type);
+		auto type_fonction = fonction->type->comme_fonction();
 		donnees_externe.types_entrees.reserve(type_fonction->types_entrees.taille);
 
 		POUR (type_fonction->types_entrees) {
@@ -805,7 +805,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 
 	POUR (fonction->params_entrees) {
 		auto alloc = static_cast<InstructionAllocation *>(it);
-		auto type_pointe = static_cast<TypePointeur *>(alloc->type)->type_pointe;
+		auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
 		auto adresse = chunk.emets_allocation(type_pointe, alloc->ident);
 		alloc->index_locale = static_cast<int>(chunk.locales.taille());
 		chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
@@ -888,7 +888,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				chunk.emets_reference_variable(alloc->index_locale);
 			}
 			else {
-				auto type_pointe = static_cast<TypePointeur *>(alloc->type)->type_pointe;
+				auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
 				auto adresse = chunk.emets_allocation(type_pointe, alloc->ident);
 				alloc->index_locale = static_cast<int>(chunk.locales.taille());
 				chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
@@ -1030,13 +1030,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		case Instruction::Genre::ACCEDE_INDEX:
 		{
 			auto index = static_cast<InstructionAccedeIndex *>(instruction);
-			auto type_pointeur = static_cast<TypePointeur *>(index->type);
+			auto type_pointeur = index->type->comme_pointeur();
 			genere_code_binaire_pour_atome(index->index, chunk, true);
 			genere_code_binaire_pour_atome(index->accede, chunk, true);
 
 			if (index->accede->genre_atome == Atome::Genre::INSTRUCTION) {
 				auto accede =  static_cast<Instruction *>(index->accede);
-				auto type_accede = static_cast<TypePointeur *>(accede->type)->type_pointe;
+				auto type_accede = accede->type->comme_pointeur()->type_pointe;
 
 				// l'accédé est le pointeur vers le pointeur, donc déréférence-le
 				if (type_accede->genre == GenreType::POINTEUR) {
@@ -1052,7 +1052,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 			auto membre = static_cast<InstructionAccedeMembre *>(instruction);
 			auto index_membre = static_cast<long>(static_cast<AtomeValeurConstante *>(membre->index)->valeur.valeur_entiere);
 
-			auto type_pointeur = static_cast<TypePointeur *>(membre->accede->type);
+			auto type_pointeur = membre->accede->type->comme_pointeur();
 			auto type_compose = static_cast<TypeCompose *>(type_pointeur->type_pointe);
 
 			auto decalage = type_compose->membres[index_membre].decalage;
@@ -1416,7 +1416,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 							auto pointeur = tableau->valeur.valeur_tableau.pointeur;
 							auto taille = tableau->valeur.valeur_tableau.taille;
 
-							auto type_tableau = static_cast<TypeTableauFixe *>(tableau->type);
+							auto type_tableau = tableau->type->comme_tableau_fixe();
 							auto type_pointe  = type_tableau->type_pointe;
 							auto decalage_valeur = static_cast<int>(mv->donnees_constantes.taille());
 							auto adresse_tableau = decalage_valeur;
@@ -1456,7 +1456,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 			auto atome_globale = static_cast<AtomeGlobale *>(constante);
 
 			if (atome_globale->index == -1) {
-				auto type_globale = static_cast<TypePointeur *>(atome_globale->type)->type_pointe;
+				auto type_globale = atome_globale->type->comme_pointeur()->type_pointe;
 				atome_globale->index = mv->ajoute_globale(type_globale, atome_globale->ident);
 
 				if (atome_globale->est_constante) {
@@ -1501,7 +1501,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk
 			auto atome_globale = static_cast<AtomeGlobale *>(atome);
 
 			if (atome_globale->index == -1) {
-				auto type_globale = static_cast<TypePointeur *>(atome_globale->type)->type_pointe;
+				auto type_globale = atome_globale->type->comme_pointeur()->type_pointe;
 				atome_globale->index = mv->ajoute_globale(type_globale, atome_globale->ident);
 
 				if (atome_globale->est_constante) {

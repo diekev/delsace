@@ -312,7 +312,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		case GenreType::VARIADIQUE:
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
-			auto type_tableau = static_cast<TypeTableauDynamique *>(type);
+			auto type_tableau = type->comme_tableau_dynamique();
 
 			auto info_type = infos_types_tableaux.ajoute_element();
 			info_type->genre = GenreInfoType::TABLEAU;
@@ -326,7 +326,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		}
 		case GenreType::TABLEAU_FIXE:
 		{
-			auto type_tableau = static_cast<TypeTableauFixe *>(type);
+			auto type_tableau = type->comme_tableau_fixe();
 
 			auto info_type = infos_types_tableaux.ajoute_element();
 			info_type->genre = GenreInfoType::TABLEAU;
@@ -394,7 +394,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		}
 		case GenreType::STRUCTURE:
 		{
-			auto type_struct = static_cast<TypeStructure *>(type);
+			auto type_struct = type->comme_structure();
 
 			auto info_type = infos_types_structures.ajoute_element();
 			type->info_type = info_type;
@@ -419,7 +419,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		}
 		case GenreType::UNION:
 		{
-			auto type_union = static_cast<TypeUnion *>(type);
+			auto type_union = type->comme_union();
 
 			auto info_type = infos_types_unions.ajoute_element();
 			info_type->genre = GenreInfoType::UNION;
@@ -446,7 +446,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
 		{
-			auto type_enum = static_cast<TypeEnum *>(type);
+			auto type_enum = type->comme_enum();
 
 			auto info_type = infos_types_enums.ajoute_element();
 			info_type->genre = GenreInfoType::ENUM;
@@ -467,7 +467,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		}
 		case GenreType::FONCTION:
 		{
-			auto type_fonction = static_cast<TypeFonction *>(type);
+			auto type_fonction = type->comme_fonction();
 
 			auto info_type = infos_types_fonctions.ajoute_element();
 			info_type->genre = GenreInfoType::FONCTION;

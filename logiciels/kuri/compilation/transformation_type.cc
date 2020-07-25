@@ -140,14 +140,14 @@ bool cherche_transformation(
 		}
 
 		if (type_de->genre == GenreType::ENUM) {
-			if (type_vers == static_cast<TypeEnum *>(type_de)->type_donnees) {
+			if (type_vers == type_de->comme_enum()->type_donnees) {
 				// on pourrait se passer de la conversion, ou normaliser le type
 				transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 				return false;
 			}
 		}
 
-		if (type_vers->genre == GenreType::ENUM && static_cast<TypeEnum *>(type_vers)->type_donnees == type_de) {
+		if (type_vers->genre == GenreType::ENUM && type_vers->comme_enum()->type_donnees == type_de) {
 			// on pourrait se passer de la conversion, ou normaliser le type
 			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 			return false;
@@ -279,7 +279,7 @@ bool cherche_transformation(
 	}
 
 	if (type_vers->genre == GenreType::UNION) {
-		auto type_union = static_cast<TypeUnion *>(type_vers);
+		auto type_union = type_vers->comme_union();
 
 		if ((type_vers->drapeaux & TYPE_FUT_VALIDE) == 0) {
 			contexte.unite->attend_sur_type(type_vers);
@@ -312,7 +312,7 @@ bool cherche_transformation(
 	}
 
 	if (type_de->genre == GenreType::UNION) {
-		auto type_union = static_cast<TypeUnion *>(type_de);
+		auto type_union = type_de->comme_union();
 
 		if ((type_union->drapeaux & TYPE_FUT_VALIDE) == 0) {
 			contexte.unite->attend_sur_type(type_union);
@@ -350,7 +350,7 @@ bool cherche_transformation(
 
 	if (type_vers->genre == GenreType::FONCTION) {
 		/* x : fonc()rien = nul; */
-		if (type_de->genre == GenreType::POINTEUR && static_cast<TypePointeur *>(type_de)->type_pointe == nullptr) {
+		if (type_de->genre == GenreType::POINTEUR && type_de->comme_pointeur()->type_pointe == nullptr) {
 			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 			return false;
 		}
@@ -362,26 +362,26 @@ bool cherche_transformation(
 	}
 
 	if (type_vers->genre == GenreType::REFERENCE) {
-		if (static_cast<TypeReference *>(type_vers)->type_pointe == type_de) {
+		if (type_vers->comme_reference()->type_pointe == type_de) {
 			transformation = TypeTransformation::PREND_REFERENCE;
 			return false;
 		}
 	}
 
 	if (type_de->genre == GenreType::REFERENCE) {
-		if (static_cast<TypeReference *>(type_de)->type_pointe == type_vers) {
+		if (type_de->comme_reference()->type_pointe == type_vers) {
 			transformation = TypeTransformation::DEREFERENCE;
 			return false;
 		}
 	}
 
 	if (type_vers->genre == GenreType::TABLEAU_DYNAMIQUE) {
-		auto type_pointe = static_cast<TypeTableauDynamique *>(type_vers)->type_pointe;
+		auto type_pointe = type_vers->comme_tableau_dynamique()->type_pointe;
 
 		if (type_pointe->genre == GenreType::OCTET) {
 			// a : []octet = nul, voir bug19
 			if (type_de->genre == GenreType::POINTEUR) {
-				auto type_pointe_de = static_cast<TypePointeur *>(type_de)->type_pointe;
+				auto type_pointe_de = type_de->comme_pointeur()->type_pointe;
 
 				if (type_pointe_de == nullptr) {
 					transformation = TypeTransformation::IMPOSSIBLE;
@@ -397,7 +397,7 @@ bool cherche_transformation(
 			return false;
 		}
 
-		if (type_pointe == static_cast<TypeTableauFixe *>(type_de)->type_pointe) {
+		if (type_pointe == type_de->comme_tableau_fixe()->type_pointe) {
 			transformation = TypeTransformation::CONVERTI_TABLEAU;
 			return false;
 		}
@@ -407,8 +407,8 @@ bool cherche_transformation(
 	}
 
 	if (type_vers->genre == GenreType::POINTEUR && type_de->genre == GenreType::POINTEUR) {
-		auto type_pointe_de = static_cast<TypePointeur *>(type_de)->type_pointe;
-		auto type_pointe_vers = static_cast<TypePointeur *>(type_vers)->type_pointe;
+		auto type_pointe_de = type_de->comme_pointeur()->type_pointe;
+		auto type_pointe_vers = type_vers->comme_pointeur()->type_pointe;
 
 		/* x = nul; */
 		if (type_pointe_de == nullptr) {
@@ -442,8 +442,8 @@ bool cherche_transformation(
 		}
 
 		if (type_pointe_de->genre == GenreType::STRUCTURE && type_pointe_vers->genre == GenreType::STRUCTURE) {
-			auto ts_de = static_cast<TypeStructure *>(type_pointe_de);
-			auto ts_vers = static_cast<TypeStructure *>(type_pointe_vers);
+			auto ts_de = type_pointe_de->comme_structure();
+			auto ts_vers = type_pointe_vers->comme_structure();
 
 			if ((ts_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
 				contexte.unite->attend_sur_type(ts_de);

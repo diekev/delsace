@@ -103,7 +103,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 					return true;
 				}
 
-				auto type_struct = static_cast<TypeStructure *>(type_accede);
+				auto type_struct = type_accede->comme_structure();
 				auto membre_trouve = false;
 				auto index_membre = 0;
 
@@ -203,7 +203,7 @@ static auto apparie_appel_pointeur(
 
 	/* vérifie la compatibilité des arguments pour déterminer
 	 * s'il y aura besoin d'une transformation. */
-	auto type_fonction = static_cast<TypeFonction *>(type);
+	auto type_fonction = type->comme_fonction();
 
 	auto debut_params = 0l;
 
@@ -295,7 +295,7 @@ static auto apparie_appel_init_de(
 		return resultat;
 	}
 
-	auto type_fonction = static_cast<TypeFonction *>(expr->type);
+	auto type_fonction = expr->type->comme_fonction();
 	auto type_pointeur = type_fonction->types_entrees[1];
 
 	if (type_pointeur != args[0].expr->type) {
@@ -709,7 +709,7 @@ static auto apparie_appel_structure(
 {
 	Prof(apparie_appel_structure);
 
-	auto type_struct = static_cast<TypeStructure *>(decl_struct->type);
+	auto type_compose = decl_struct->type->comme_compose();
 
 	if (decl_struct->est_union) {
 		if (expr->params.taille > 1) {
@@ -728,11 +728,11 @@ static auto apparie_appel_structure(
 	}
 
 	auto slots = dls::tablet<NoeudExpression *, 10>();
-	slots.redimensionne(type_struct->membres.taille);
+	slots.redimensionne(type_compose->membres.taille);
 	auto transformations = dls::tableau<TransformationType>(slots.taille());
 
 	auto index_membre = 0;
-	POUR (type_struct->membres) {
+	POUR (type_compose->membres) {
 		slots[index_membre] = it.expression_valeur_defaut;
 
 		// dans le cas où l'expression par défaut n'est pas remplacée par une
@@ -1094,7 +1094,7 @@ bool valide_appel_fonction(
 		}
 
 		// nous devons instantier les gabarits (ou avoir leurs types) avant de pouvoir faire ça
-		auto type_fonc = static_cast<TypeFonction *>(decl_fonction_appelee->type);
+		auto type_fonc = decl_fonction_appelee->type->comme_fonction();
 		auto type_sortie = type_fonc->types_sorties[0];
 
 		auto expr_gauche = (expr->drapeaux & DROITE_ASSIGNATION) == 0;
@@ -1176,7 +1176,7 @@ bool valide_appel_fonction(
 
 		if (expr->type == nullptr) {
 			/* À FAIRE: multiple type retour */
-			expr->type = static_cast<TypeFonction *>(candidate->type)->types_sorties[0];
+			expr->type = candidate->type->comme_fonction()->types_sorties[0];
 		}
 
 		for (auto i = 0; i < expr->exprs.taille; ++i) {

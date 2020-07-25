@@ -165,7 +165,7 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
 		}
 		case Instruction::Genre::ALLOCATION:
 		{
-			auto type_pointeur = static_cast<TypePointeur *>(inst->type);
+			auto type_pointeur = inst->type->comme_pointeur();
 			os << "  alloue " << chaine_type(type_pointeur->type_pointe) << ' ';
 
 			if (inst->ident != nullptr) {
@@ -337,7 +337,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os, bool in
 		os << virgule;
 		os << param->ident->nom << ' ';
 
-		auto type_pointeur = static_cast<TypePointeur *>(param->type);
+		auto type_pointeur = param->type->comme_pointeur();
 		os << chaine_type(type_pointeur->type_pointe);
 
 		virgule = ", ";
@@ -347,7 +347,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os, bool in
 		os << virgule;
 	}
 
-	auto type_fonction = static_cast<TypeFonction *>(atome_fonc->type);
+	auto type_fonction = atome_fonc->type->comme_fonction();
 
 	virgule = ") -> ";
 

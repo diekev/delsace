@@ -209,7 +209,7 @@ static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
 		}
 		case GenreType::STRUCTURE:
 		{
-			auto type_structure = static_cast<TypeStructure *>(type);
+			auto type_structure = type->comme_structure();
 
 			auto virgule = "{ ";
 
@@ -307,7 +307,7 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std
 		}
 
 		os << " = ";
-		lis_valeur(pointeur_locale, static_cast<TypePointeur *>(it.type)->type_pointe, std::cerr);
+		lis_valeur(pointeur_locale, it.type->comme_pointeur()->type_pointe, std::cerr);
 		os << '\n';
 	}
 }
@@ -411,7 +411,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 		pointeur_pile -= taille_argument;
 
 #ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
-		imprime_valeurs_entrees(pointeur_pile, static_cast<TypeFonction *>(ptr_fonction->type), ptr_fonction->nom, profondeur_appel);
+		imprime_valeurs_entrees(pointeur_pile, ptr_fonction->type->comme_fonction(), ptr_fonction->nom, profondeur_appel);
 #endif
 
 		if (!appel(ptr_fonction, taille_argument)) {
@@ -424,7 +424,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 
 	auto appel_fonction_externe = [this](AtomeFonction *ptr_fonction, int taille_argument, InstructionAppel *inst_appel)
 	{
-		auto type_fonction = static_cast<TypeFonction *>(ptr_fonction->decl->type);
+		auto type_fonction = ptr_fonction->decl->type->comme_fonction();
 		auto &donnees_externe = ptr_fonction->donnees_externe;
 
 		auto pointeur_arguments = pointeur_pile - taille_argument;
@@ -783,7 +783,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 			}
 			case OP_RETOURNE:
 			{
-				auto type_fonction = static_cast<TypeFonction *>(frame->fonction->type);
+				auto type_fonction = frame->fonction->type->comme_fonction();
 				auto taille_retour = 0;
 
 				POUR (type_fonction->types_sorties) {

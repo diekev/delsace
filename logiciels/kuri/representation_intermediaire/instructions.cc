@@ -151,7 +151,7 @@ AtomeFonction::AtomeFonction(Lexeme const *lexeme_, dls::chaine const &nom_, kur
 InstructionAppel::InstructionAppel(Lexeme const *lexeme_, Atome *appele_)
 	: InstructionAppel()
 {
-	auto type_fonction = static_cast<TypeFonction *>(appele_->type);
+	auto type_fonction = appele_->type->comme_fonction();
 	// À FAIRE : retours multiples
 	this->type = type_fonction->types_sorties[0];
 

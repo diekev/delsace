@@ -404,7 +404,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				/* Utilisation du type de la fonction et non
 				 * DonneesFonction::idx_types_retour car les pointeurs de
 				 * fonctions n'ont pas de DonneesFonction. */
-				auto type_fonc = static_cast<TypeFonction *>(expression->type);
+				auto type_fonc = expression->type->comme_fonction();
 
 				if (feuilles.taille() != type_fonc->types_sorties.taille) {
 					rapporte_erreur("L'ignorance d'une valeur de retour non implémentée.", variable, erreur::type_erreur::NORMAL);
@@ -542,7 +542,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 				// permet le déréférencement de pointeur, mais uniquement sur un niveau
 				if (type_employe->genre == GenreType::POINTEUR) {
-					type_employe = static_cast<TypePointeur *>(type_employe)->type_pointe;
+					type_employe = type_employe->comme_pointeur()->type_pointe;
 				}
 
 				if (type_employe->genre != GenreType::STRUCTURE) {
@@ -558,7 +558,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					return true;
 				}
 
-				auto type_structure = static_cast<TypeStructure *>(type_employe);
+				auto type_structure = type_employe->comme_structure();
 
 				auto index_membre = 0;
 
@@ -625,7 +625,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					return true;
 				}
 
-				auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(type2);
+				auto type_de_donnees = type2->comme_type_de_donnees();
 				auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
 
 				auto taille_tableau = 0l;
@@ -673,8 +673,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					return true;
 				}
 
-				auto type_type1 = static_cast<TypeTypeDeDonnees *>(type1);
-				auto type_type2 = static_cast<TypeTypeDeDonnees *>(type2);
+				auto type_type1 = type1->comme_type_de_donnees();
+				auto type_type2 = type2->comme_type_de_donnees();
 
 				if (type_type1->type_connu == nullptr) {
 					rapporte_erreur("Opération impossible car le type n'est pas connu", enfant1);
@@ -842,7 +842,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					return true;
 				}
 
-				auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(type);
+				auto type_de_donnees = type->comme_type_de_donnees();
 				auto type_connu = type_de_donnees->type_connu;
 
 				if (type_connu == nullptr) {
@@ -929,7 +929,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 				case GenreType::TABLEAU_FIXE:
 				{
-					auto type_tabl = static_cast<TypeTableauFixe *>(type1);
+					auto type_tabl = type1->comme_tableau_fixe();
 					expr->type = type_dereference_pour(type1);
 
 					auto res = evalue_expression(m_compilatrice, enfant2->bloc_parent, enfant2);
@@ -975,7 +975,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type_index = enfant2->type;
 
 			if (type_index->genre == GenreType::ENUM) {
-				type_index = static_cast<TypeEnum *>(type_index)->type_donnees;
+				type_index = type_index->comme_enum()->type_donnees;
 			}
 
 			auto transformation = TransformationType();
@@ -1006,7 +1006,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto inst = static_cast<NoeudExpressionUnaire *>(noeud);
 			noeud->genre_valeur = GenreValeur::DROITE;
 
-			auto type_fonc = static_cast<TypeFonction *>(fonction_courante->type);
+			auto type_fonc = fonction_courante->type->comme_fonction();
 
 			if (inst->expr == nullptr) {
 				noeud->type = espace->typeuse[TypeBase::RIEN];
@@ -1611,7 +1611,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			auto type_pointeur = static_cast<TypePointeur *>(type);
+			auto type_pointeur = type->comme_pointeur();
 			noeud->genre_valeur = GenreValeur::TRANSCENDANTALE;
 			noeud->type = type_pointeur->type_pointe;
 
@@ -1748,7 +1748,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			if (type->genre == GenreType::REFERENCE) {
 				expr_loge->expr->transformation = TypeTransformation::DEREFERENCE;
-				type = static_cast<TypeReference *>(type)->type_pointe;
+				type = type->comme_reference()->type_pointe;
 			}
 
 			if (!dls::outils::est_element(type->genre, GenreType::POINTEUR, GenreType::TABLEAU_DYNAMIQUE, GenreType::CHAINE)) {
@@ -1778,12 +1778,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type = expression->type;
 
 			if (type->genre == GenreType::REFERENCE) {
-				type = static_cast<TypeReference *>(type)->type_pointe;
+				type = type->comme_reference()->type_pointe;
 				noeud->transformation = TypeTransformation::DEREFERENCE;
 			}
 
 			if (type->genre == GenreType::UNION) {
-				auto type_union = static_cast<TypeUnion *>(type);
+				auto type_union = type->comme_union();
 				auto decl = type_union->decl;
 
 				if (decl->est_nonsure) {
@@ -1866,7 +1866,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 			}
 			else if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
-				auto type_enum = static_cast<TypeEnum *>(type);
+				auto type_enum = type->comme_enum();
 
 				auto membres_rencontres = dls::ensemblon<dls::vue_chaine_compacte, 16>();
 				noeud->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
@@ -1998,7 +1998,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			auto type_fonc = static_cast<TypeFonction *>(fonction_courante->type);
+			auto type_fonc = fonction_courante->type->comme_fonction();
 
 			auto inst = static_cast<NoeudExpressionUnaire *>(noeud);
 
@@ -2054,7 +2054,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type_expr = expr->expr->type;
 
 			if (type_expr->genre == GenreType::TYPE_DE_DONNEES) {
-				auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(type_expr);
+				auto type_de_donnees = type_expr->comme_type_de_donnees();
 				auto type_var = espace->typeuse.type_variadique(type_de_donnees->type_connu);
 				expr->type = espace->typeuse.type_type_de_donnees(type_var);
 			}
@@ -2081,7 +2081,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				type_de_l_erreur = inst->type;
 			}
 			else if (inst->type->genre == GenreType::UNION) {
-				auto type_union = static_cast<TypeUnion *>(inst->type);
+				auto type_union = inst->type->comme_union();
 				auto possede_type_erreur = false;
 
 				POUR (type_union->membres) {
@@ -2166,12 +2166,12 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 
 	/* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
 	while (type->genre == GenreType::POINTEUR || type->genre == GenreType::REFERENCE) {
-		type = static_cast<TypePointeur *>(type)->type_pointe;
+		type = type_dereference_pour(type);
 	}
 
 	// Il est possible d'avoir une chaine de type : Struct1.Struct2.Struct3...
 	if (type->genre == GenreType::TYPE_DE_DONNEES) {
-		auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(type);
+		auto type_de_donnees = type->comme_type_de_donnees();
 
 		if (type_de_donnees->type_connu != nullptr) {
 			type = type_de_donnees->type_connu;
@@ -2215,7 +2215,7 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 			expression_membre->genre_valeur = GenreValeur::DROITE;
 		}
 		else if (type->genre == GenreType::UNION) {
-			auto noeud_struct = static_cast<TypeUnion *>(type)->decl;
+			auto noeud_struct = type->comme_union()->decl;
 			expression_membre->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
 
 			if (!noeud_struct->est_nonsure) {
@@ -2315,7 +2315,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 				decl->est_variadique = true;
 				dernier_est_variadic = true;
 
-				auto type_var = static_cast<TypeVariadique *>(it->type);
+				auto type_var = it->type->comme_variadique();
 
 				if (!decl->est_externe && type_var->type_pointe == nullptr) {
 					rapporte_erreur(
@@ -2531,7 +2531,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 	/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
 	if (inst_ret == nullptr) {
 		assert(decl->type->genre == GenreType::FONCTION);
-		auto type_fonc = static_cast<TypeFonction *>(decl->type);
+		auto type_fonc = decl->type->comme_fonction();
 
 		if (type_fonc->types_sorties[0]->genre != GenreType::RIEN && !decl->est_coroutine) {
 			rapporte_erreur("Instruction de retour manquante", decl, erreur::type_erreur::TYPE_DIFFERENTS);
@@ -2606,7 +2606,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 
 bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 {
-	auto type_enum = static_cast<TypeEnum *>(decl->type);
+	auto type_enum = decl->type->comme_enum();
 	auto &membres = type_enum->membres;
 
 	if (type_enum->est_erreur) {
@@ -2745,10 +2745,10 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		return true;
 	}
 
-	auto type_struct = static_cast<TypeStructure *>(decl->type);
+	auto type_compose = decl->type->comme_compose();
 	// @réinitialise en cas d'erreurs passées
-	type_struct->membres = kuri::tableau<TypeCompose::Membre>();
-	type_struct->membres.reserve(decl->bloc->membres->taille);
+	type_compose->membres = kuri::tableau<TypeCompose::Membre>();
+	type_compose->membres.reserve(decl->bloc->membres->taille);
 
 	auto verifie_inclusion_valeur = [&decl, this](NoeudExpression *enf)
 	{
@@ -2787,7 +2787,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			return true;
 		}
 
-		type_struct->membres.pousse({ enfant->type, enfant->ident->nom, 0, 0, expr_valeur });
+		type_compose->membres.pousse({ enfant->type, enfant->ident->nom, 0, 0, expr_valeur });
 
 		donnees_dependance.types_utilises.insere(type_membre);
 
@@ -2803,7 +2803,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	}
 
 	if (decl->est_union) {
-		auto type_union = static_cast<TypeUnion *>(decl->type);
+		auto type_union = decl->type->comme_union();
 		type_union->est_nonsure = decl->est_nonsure;
 
 		POUR (*decl->bloc->membres.verrou_ecriture()) {
@@ -2844,19 +2844,21 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 		decl->type->drapeaux |= TYPE_FUT_VALIDE;
 
-		POUR (type_struct->membres) {
-			graphe->connecte_type_type(type_struct, it.type);
+		POUR (type_compose->membres) {
+			graphe->connecte_type_type(type_compose, it.type);
 		}
 
 		graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
 		return false;
 	}
 
+	auto type_struct = type_compose->comme_structure();
+
 	POUR (*decl->bloc->expressions.verrou_ecriture()) {
 		if (dls::outils::est_element(it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
 			// utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
 			auto type_de_donnees = espace->typeuse.type_type_de_donnees(it->type);
-			type_struct->membres.pousse({ type_de_donnees, it->ident->nom, 0, 0, nullptr, TypeCompose::Membre::EST_CONSTANT });
+			type_compose->membres.pousse({ type_de_donnees, it->ident->nom, 0, 0, nullptr, TypeCompose::Membre::EST_CONSTANT });
 
 			// l'utilisation d'un type de données brise le graphe de dépendance
 			donnees_dependance.types_utilises.insere(it->type);
@@ -2872,7 +2874,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			auto expr_assign = static_cast<NoeudExpressionBinaire *>(it);
 			auto variable = expr_assign->expr1;
 
-			for (auto &membre : type_struct->membres) {
+			for (auto &membre : type_compose->membres) {
 				if (membre.nom == variable->ident->nom) {
 					membre.expression_valeur_defaut = expr_assign->expr2;
 				}
@@ -2885,7 +2887,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		auto decl_membre = decl_var->valeur;
 
 		if (decl_var->drapeaux & EST_CONSTANTE) {
-			type_struct->membres.pousse({ it->type, it->ident->nom, 0, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
+			type_compose->membres.pousse({ it->type, it->ident->nom, 0, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
 			continue;
 		}
 
@@ -2924,12 +2926,12 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 				}
 			}
 
-			auto type_struct_empl = static_cast<TypeStructure *>(decl_membre->type);
+			auto type_struct_empl = decl_membre->type->comme_structure();
 			type_struct->types_employes.pousse(type_struct_empl);
 
 			auto decl_struct_empl = type_struct_empl->decl;
 
-			type_struct->membres.reserve(type_struct->membres.taille + decl_struct_empl->bloc->membres->taille);
+			type_compose->membres.reserve(type_compose->membres.taille + decl_struct_empl->bloc->membres->taille);
 
 			for (auto decl_it_empl : *decl_struct_empl->bloc->membres.verrou_lecture()) {
 				auto it_empl = static_cast<NoeudDeclarationVariable *>(decl_it_empl);
@@ -2945,12 +2947,12 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 	}
 
-	calcule_taille_type_compose(type_struct);
+	calcule_taille_type_compose(type_compose);
 	decl->type->drapeaux |= TYPE_FUT_VALIDE;
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-	POUR (type_struct->membres) {
-		graphe->connecte_type_type(type_struct, it.type);
+	POUR (type_compose->membres) {
+		graphe->connecte_type_type(type_compose, it.type);
 	}
 
 	graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
@@ -2975,7 +2977,7 @@ bool ContexteValidationCode::resoud_type_final(NoeudExpression *expression_type,
 		return true;
 	}
 
-	auto type_de_donnees = static_cast<TypeTypeDeDonnees *>(type_var);
+	auto type_de_donnees = type_var->comme_type_de_donnees();
 
 	if (type_de_donnees->type_connu == nullptr) {
 		rapporte_erreur("impossible de définir le type selon l'expression", expression_type);
