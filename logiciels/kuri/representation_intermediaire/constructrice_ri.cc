@@ -275,9 +275,7 @@ AtomeConstante *ConstructriceRI::cree_constante_nulle(Type *type)
 
 InstructionBranche *ConstructriceRI::cree_branche(InstructionLabel *label, bool cree_seulement)
 {
-	label->nombre_utilisations += 1;
 	auto inst = insts_branche.ajoute_element(label);
-	inst->nombre_utilisations = 1;
 
 	if (!cree_seulement) {
 		fonction_courante->instructions.pousse(inst);
@@ -288,10 +286,7 @@ InstructionBranche *ConstructriceRI::cree_branche(InstructionLabel *label, bool 
 
 InstructionBrancheCondition *ConstructriceRI::cree_branche_condition(Atome *valeur, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux)
 {
-	label_si_vrai->nombre_utilisations += 1;
-	label_si_faux->nombre_utilisations += 1;
 	auto inst = insts_branche_condition.ajoute_element(valeur, label_si_vrai, label_si_faux);
-	inst->nombre_utilisations = 1;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
 }
@@ -315,12 +310,7 @@ void ConstructriceRI::insere_label(InstructionLabel *label)
 
 InstructionRetour *ConstructriceRI::cree_retour(Atome *valeur)
 {
-	if (valeur) {
-		valeur->nombre_utilisations += 1;
-	}
-
 	auto inst = insts_retour.ajoute_element(valeur);
-	inst->nombre_utilisations += 1;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
 }
@@ -403,9 +393,6 @@ InstructionAllocation *ConstructriceRI::cree_allocation(Type *type, IdentifiantC
 
 InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Atome *ou, Atome *valeur, bool cree_seulement)
 {
-	ou->nombre_utilisations += 1;
-	valeur->nombre_utilisations += 1;
-
 	assert(ou->type->genre == GenreType::POINTEUR);
 	auto type_pointeur = static_cast<TypePointeur *>(ou->type);
 //	std::cerr << __func__ << ", type_pointeur->type_pointe : " << chaine_type(type_pointeur->type_pointe) << " (" << type_pointeur->type_pointe << ") "
@@ -416,7 +403,6 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Atome *ou, Atome *valeur,
 	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
 
 	auto inst = insts_stocke_memoire.ajoute_element(type, ou, valeur);
-	inst->nombre_utilisations += 1;
 
 	if (!cree_seulement) {
 		fonction_courante->instructions.pousse(inst);
@@ -427,8 +413,6 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Atome *ou, Atome *valeur,
 
 InstructionChargeMem *ConstructriceRI::cree_charge_mem(Atome *ou)
 {
-	ou->nombre_utilisations += 1;
-
 	/* nous chargeons depuis une adresse en mémoire, donc nous devons avoir un pointeur */
 	//std::cerr << __func__ << ", type atome : " << chaine_type(ou->type) << '\n';
 	assert(ou->type->genre == GenreType::POINTEUR || ou->type->genre == GenreType::REFERENCE);
@@ -455,6 +439,9 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(Atome *ou)
 
 InstructionAppel *ConstructriceRI::cree_appel(Lexeme const *lexeme, Atome *appele)
 {
+	// incrémente le nombre d'utilisation au cas où nous appelerions une fonction
+	// lorsque que nous enlignons une fonction, son nombre d'utilisations sera décrémentée,
+	// et si à 0, nous pourrons ignorer la génération de code final pour celle-ci
 	appele->nombre_utilisations += 1;
 	auto inst = insts_appel.ajoute_element(lexeme, appele);
 	fonction_courante->instructions.pousse(inst);
@@ -463,12 +450,8 @@ InstructionAppel *ConstructriceRI::cree_appel(Lexeme const *lexeme, Atome *appel
 
 InstructionAppel *ConstructriceRI::cree_appel(Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args)
 {
+	// voir commentaire plus haut
 	appele->nombre_utilisations += 1;
-
-	POUR (args) {
-		it->nombre_utilisations += 1;
-	}
-
 	auto inst = insts_appel.ajoute_element(lexeme, appele, std::move(args));
 	fonction_courante->instructions.pousse(inst);
 	return inst;
@@ -476,7 +459,6 @@ InstructionAppel *ConstructriceRI::cree_appel(Lexeme const *lexeme, Atome *appel
 
 InstructionOpUnaire *ConstructriceRI::cree_op_unaire(Type *type, OperateurUnaire::Genre op, Atome *valeur)
 {
-	valeur->nombre_utilisations += 1;
 	auto inst = insts_opunaire.ajoute_element(type, op, valeur);
 	fonction_courante->instructions.pousse(inst);
 	return inst;
@@ -484,8 +466,6 @@ InstructionOpUnaire *ConstructriceRI::cree_op_unaire(Type *type, OperateurUnaire
 
 InstructionOpBinaire *ConstructriceRI::cree_op_binaire(Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite)
 {
-	valeur_gauche->nombre_utilisations += 1;
-	valeur_droite->nombre_utilisations += 1;
 	auto inst = insts_opbinaire.ajoute_element(type, op, valeur_gauche, valeur_droite);
 	fonction_courante->instructions.pousse(inst);
 	return inst;
@@ -493,14 +473,11 @@ InstructionOpBinaire *ConstructriceRI::cree_op_binaire(Type *type, OperateurBina
 
 InstructionOpBinaire *ConstructriceRI::cree_op_comparaison(OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite)
 {
-	valeur_gauche->nombre_utilisations += 1;
-	valeur_droite->nombre_utilisations += 1;
 	return cree_op_binaire(m_espace->typeuse[TypeBase::BOOL], op, valeur_gauche, valeur_droite);
 }
 
 InstructionAccedeIndex *ConstructriceRI::cree_acces_index(Atome *accede, Atome *index)
 {
-	index->nombre_utilisations += 1;
 	auto type_pointe = static_cast<Type *>(nullptr);
 	if (accede->genre_atome == Atome::Genre::CONSTANTE) {
 		type_pointe = accede->type;
@@ -559,7 +536,6 @@ Instruction *ConstructriceRI::cree_acces_membre_et_charge(Atome *accede, long in
 
 InstructionTranstype *ConstructriceRI::cree_transtype(Type *type, Atome *valeur, TypeTranstypage op)
 {
-	valeur->nombre_utilisations += 1;
 	//std::cerr << __func__ << ", type : " << chaine_type(type) << ", valeur " << chaine_type(valeur->type) << '\n';
 	auto inst = insts_transtype.ajoute_element(type, valeur, op);
 	fonction_courante->instructions.pousse(inst);
@@ -568,20 +544,16 @@ InstructionTranstype *ConstructriceRI::cree_transtype(Type *type, Atome *valeur,
 
 TranstypeConstant *ConstructriceRI::cree_transtype_constant(Type *type, AtomeConstante *valeur)
 {
-	valeur->nombre_utilisations += 1;
 	return transtypes_constants.ajoute_element(type, valeur);
 }
 
 OpUnaireConstant *ConstructriceRI::cree_op_unaire_constant(Type *type, OperateurUnaire::Genre op, AtomeConstante *valeur)
 {
-	valeur->nombre_utilisations += 1;
 	return op_unaires_constants.ajoute_element(type, op, valeur);
 }
 
 OpBinaireConstant *ConstructriceRI::cree_op_binaire_constant(Type *type, OperateurBinaire::Genre op, AtomeConstante *valeur_gauche, AtomeConstante *valeur_droite)
 {
-	valeur_gauche->nombre_utilisations += 1;
-	valeur_droite->nombre_utilisations += 1;
 	return op_binaires_constants.ajoute_element(type, op, valeur_gauche, valeur_droite);
 }
 
@@ -798,7 +770,10 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			}
 
 			if (decl_ref != nullptr && decl_ref->genre == GenreNoeud::DECLARATION_FONCTION) {
-				return m_espace->trouve_ou_insere_fonction(*this, static_cast<NoeudDeclarationFonction *>(decl_ref));
+				auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, static_cast<NoeudDeclarationFonction *>(decl_ref));
+				// voir commentaire dans cree_appel
+				atome_fonc->nombre_utilisations += 1;
+				return atome_fonc;
 			}
 
 			if (dls::outils::est_element(decl_ref->genre, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE)) {
@@ -3903,6 +3878,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 	auto fonction = m_espace->cree_fonction(nullptr, "main", std::move(params));
 	fonction->type = type_fonction;
 	fonction->sanstrace = true;
+	fonction->nombre_utilisations = 1;
 
 	fonction_courante = fonction;
 
