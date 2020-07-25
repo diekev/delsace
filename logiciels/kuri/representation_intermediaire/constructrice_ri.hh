@@ -211,4 +211,6 @@ private:
 			kuri::tableau<Atome *> const &arguments, int &nombre_labels,
 			InstructionLabel *label_post,
 			InstructionAllocation *adresse_retour);
+
+	friend Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome);
 };

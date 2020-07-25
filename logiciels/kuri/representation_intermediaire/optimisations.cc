@@ -363,18 +363,18 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 		}
 	}
 
-	POUR (atome_fonc->instructions) {
-		std::cerr << '(' << it->nombre_utilisations << ") ";
-		if (it->nombre_utilisations == 0) {
-			//std::cerr << "-- l'instruction n'est pas utilisée !\n";
-			std::cerr << "\033[1m";
-		}
-		std::cerr << "%" << it->numero << ' ';
-		imprime_instruction(it, std::cerr);
-		if (it->nombre_utilisations == 0) {
-			std::cerr << "\033[0m";
-		}
-	}
+//	POUR (atome_fonc->instructions) {
+//		std::cerr << '(' << it->nombre_utilisations << ") ";
+//		if (it->nombre_utilisations == 0) {
+//			//std::cerr << "-- l'instruction n'est pas utilisée !\n";
+//			std::cerr << "\033[1m";
+//		}
+//		std::cerr << "%" << it->numero << ' ';
+//		imprime_instruction(it, std::cerr);
+//		if (it->nombre_utilisations == 0) {
+//			std::cerr << "\033[0m";
+//		}
+//	}
 
 	auto nouvelles_instructions = kuri::tableau<Instruction *>();
 
@@ -391,7 +391,7 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 
 	atome_fonc->instructions = nouvelles_instructions;
 
-	imprime_fonction(atome_fonc, std::cerr);
+	//imprime_fonction(atome_fonc, std::cerr);
 
 #if 0
 	// détecte les réassignations avant utilisation
@@ -438,6 +438,162 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 #endif
 }
 
+Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
+{
+	if (atome == nullptr) {
+		return nullptr;
+	}
+
+	// les constantes et les globales peuvent être partagées
+	if (!atome->est_instruction()) {
+		return atome;
+	}
+
+	auto inst = atome->comme_instruction();
+	auto nouvelle_inst = static_cast<Instruction *>(nullptr);
+
+	switch (inst->genre) {
+		case Instruction::Genre::APPEL:
+		{
+			auto appel = inst->comme_appel();
+			auto nouvelle_appel = constructrice.insts_appel.ajoute_element();
+			nouvelle_appel->drapeaux = appel->drapeaux;
+			nouvelle_appel->appele = copie_atome(constructrice, appel->appele);
+			nouvelle_appel->lexeme = appel->lexeme;
+			//nouvelle_appel->adresse_retour // XXX - À FAIRE
+
+			nouvelle_appel->args.reserve(appel->args.taille);
+
+			POUR (appel->args) {
+				nouvelle_appel->args.pousse(copie_atome(constructrice, it));
+			}
+
+			break;
+		}
+		case Instruction::Genre::CHARGE_MEMOIRE:
+		{
+			auto charge = inst->comme_charge();
+			auto n_charge = constructrice.insts_charge_memoire.ajoute_element();
+			n_charge->chargee = copie_atome(constructrice, charge->chargee);
+			nouvelle_inst = n_charge;
+			break;
+		}
+		case Instruction::Genre::STOCKE_MEMOIRE:
+		{
+			auto stocke = inst->comme_stocke_mem();
+			auto n_stocke = constructrice.insts_stocke_memoire.ajoute_element();
+			n_stocke->ou = copie_atome(constructrice, stocke->ou);
+			n_stocke->valeur = copie_atome(constructrice, stocke->valeur);
+			nouvelle_inst = n_stocke;
+			break;
+		}
+		case Instruction::Genre::OPERATION_UNAIRE:
+		{
+			auto op = inst->comme_op_unaire();
+			auto n_op = constructrice.insts_opunaire.ajoute_element();
+			n_op->op = op->op;
+			n_op->valeur = copie_atome(constructrice, op->valeur);
+			nouvelle_inst = n_op;
+			break;
+		}
+		case Instruction::Genre::OPERATION_BINAIRE:
+		{
+			auto op = inst->comme_op_binaire();
+			auto n_op = constructrice.insts_opbinaire.ajoute_element();
+			n_op->op = op->op;
+			n_op->valeur_gauche = copie_atome(constructrice, op->valeur_gauche);
+			n_op->valeur_droite = copie_atome(constructrice, op->valeur_droite);
+			nouvelle_inst = n_op;
+			break;
+		}
+		case Instruction::Genre::ACCEDE_INDEX:
+		{
+			auto acces = inst->comme_acces_index();
+			auto n_acces = constructrice.insts_accede_index.ajoute_element();
+			n_acces->index = copie_atome(constructrice, acces->index);
+			n_acces->accede = copie_atome(constructrice, acces->accede);
+			nouvelle_inst = n_acces;
+			break;
+		}
+		case Instruction::Genre::ACCEDE_MEMBRE:
+		{
+			auto acces = inst->comme_acces_membre();
+			auto n_acces = constructrice.insts_accede_membre.ajoute_element();
+			n_acces->index = copie_atome(constructrice, acces->index);
+			n_acces->accede = copie_atome(constructrice, acces->accede);
+			nouvelle_inst = n_acces;
+			break;
+		}
+		case Instruction::Genre::TRANSTYPE:
+		{
+			auto transtype = inst->comme_transtype();
+			auto n_transtype = constructrice.insts_transtype.ajoute_element();
+			n_transtype->op = transtype->op;
+			n_transtype->valeur = copie_atome(constructrice, transtype->valeur);
+			nouvelle_inst = n_transtype;
+			break;
+		}
+		case Instruction::Genre::BRANCHE_CONDITION:
+		{
+			auto branche = inst->comme_branche_cond();
+			auto n_branche = constructrice.insts_branche_condition.ajoute_element();
+			n_branche->condition = copie_atome(constructrice, branche->condition);
+			n_branche->label_si_faux = static_cast<InstructionLabel *>(copie_atome(constructrice, branche->label_si_faux));
+			n_branche->label_si_vrai = static_cast<InstructionLabel *>(copie_atome(constructrice, branche->label_si_vrai));
+			nouvelle_inst = n_branche;
+			break;
+		}
+		case Instruction::Genre::BRANCHE:
+		{
+			auto branche = inst->comme_branche();
+			auto n_branche = constructrice.insts_branche.ajoute_element();
+			n_branche->label = static_cast<InstructionLabel *>(copie_atome(constructrice, branche->label));
+			nouvelle_inst = n_branche;
+			break;
+		}
+		case Instruction::Genre::RETOUR:
+		{
+			auto retour = inst->comme_retour();
+			auto n_retour = constructrice.insts_retour.ajoute_element();
+			n_retour->valeur = copie_atome(constructrice, retour->valeur);
+			nouvelle_inst = n_retour;
+			break;
+		}
+		case Instruction::Genre::ENREGISTRE_LOCALES:
+		case Instruction::Genre::RESTAURE_LOCALES:
+		{
+			nouvelle_inst = inst;
+			break;
+		}
+		case Instruction::Genre::ALLOCATION:
+		{
+			auto alloc = inst->comme_alloc();
+			auto n_alloc = constructrice.insts_allocation.ajoute_element();
+			n_alloc->ident = alloc->ident;
+			nouvelle_inst = n_alloc;
+			break;
+		}
+		case Instruction::Genre::LABEL:
+		{
+			auto label = inst->comme_label();
+			auto n_label = constructrice.insts_label.ajoute_element();
+			n_label->id = label->id;
+			nouvelle_inst = n_label;
+			break;
+		}
+		case Instruction::Genre::INVALIDE:
+		{
+			break;
+		}
+	}
+
+	if (nouvelle_inst) {
+		nouvelle_inst->type = inst->type;
+	}
+
+	return nouvelle_inst;
+}
+
 void performe_enlignage(
 		ConstructriceRI &constructrice,
 		kuri::tableau<Instruction *> &nouvelles_instructions,
@@ -461,20 +617,45 @@ void performe_enlignage(
 			if (inst->genre == Instruction::Genre::CHARGE_MEMOIRE) {
 				atome = inst->comme_charge()->chargee;
 			}
+			// À FAIRE : détection des pointeurs locaux plus robuste
+			// détecte les cas où nous avons une référence à une variable
+			else if (inst->est_alloc()) {
+				auto type_pointe = static_cast<TypePointeur *>(inst->type)->type_pointe;
+				if (type_pointe != atome->type) {
+					// remplace l'instruction de déréférence par l'atome
+					POUR (fonction_appelee->instructions) {
+						if (it->est_charge()) {
+							auto charge = it->comme_charge();
+
+							if (charge->chargee == fonction_appelee->params_entrees[i]) {
+								substitution.pousse({ charge, atome });
+							}
+						}
+					}
+				}
+			}
 		}
 
 		substitution.pousse({ fonction_appelee->params_entrees[i], atome });
 	}
 
-	// À FAIRE : il faut copier les instructions... pour changer les pointeurs sûrement
 	// À FAIRE : pour les paramètres il nous faudrait plutôt les adresses des variables chargées...
 	POUR (instructions) {
-		if (it->genre == Instruction::Genre::LABEL) {
-			auto label = it->comme_label();
+		// À FAIRE : auto n_it = copie_atome(constructrice, it)->comme_instruction();
+		auto n_it = it;
+
+		if (n_it->genre == Instruction::Genre::LABEL) {
+			auto label = n_it->comme_label();
+
+			// saute le label d'entrée de la fonction
+			if (label->id == 0) {
+				continue;
+			}
+
 			label->id = nombre_labels++;
 		}
-		else if (it->genre == Instruction::Genre::RETOUR) {
-			auto retour = it->comme_retour();
+		else if (n_it->genre == Instruction::Genre::RETOUR) {
+			auto retour = n_it->comme_retour();
 
 			if (retour->valeur) {
 				auto stockage = constructrice.cree_stocke_mem(adresse_retour, retour->valeur, true);
@@ -485,8 +666,8 @@ void performe_enlignage(
 			nouvelles_instructions.pousse(branche);
 			continue;
 		}
-		else if (it->genre == Instruction::Genre::CHARGE_MEMOIRE) {
-			auto charge_loc = it->comme_charge();
+		else if (n_it->genre == Instruction::Genre::CHARGE_MEMOIRE) {
+			auto charge_loc = n_it->comme_charge();
 
 			for (auto &p : substitution) {
 				if (p.first == charge_loc->chargee) {
@@ -495,8 +676,8 @@ void performe_enlignage(
 				}
 			}
 		}
-		else if (it->genre == Instruction::Genre::STOCKE_MEMOIRE) {
-			auto charge_loc = it->comme_stocke_mem();
+		else if (n_it->genre == Instruction::Genre::STOCKE_MEMOIRE) {
+			auto charge_loc = n_it->comme_stocke_mem();
 
 			for (auto &p : substitution) {
 				if (p.first == charge_loc->ou) {
@@ -505,8 +686,8 @@ void performe_enlignage(
 				}
 			}
 		}
-		else if (it->genre == Instruction::Genre::ACCEDE_MEMBRE) {
-			auto acces = it->comme_acces_membre();
+		else if (n_it->genre == Instruction::Genre::ACCEDE_MEMBRE) {
+			auto acces = n_it->comme_acces_membre();
 
 			for (auto &p : substitution) {
 				if (p.first == acces->accede) {
@@ -516,7 +697,7 @@ void performe_enlignage(
 			}
 		}
 
-		nouvelles_instructions.pousse(it);
+		nouvelles_instructions.pousse(n_it);
 	}
 }
 
@@ -687,12 +868,12 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 			// À FAIRE : pour les enlignages des fonctions d'initialisations, ou de n'importe
 			// quelle fonction prenant un pointeur, il faudra convertir les types pour enlever le pointeur
 			// si le pointeur est l'adresse de la variable
-//			if (instructions.taille >= 32) {
-//				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
-//				continue;
-//			}
-			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
-			continue;
+			if (instructions.taille >= 32) {
+				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+				continue;
+			}
+//			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+//			continue;
 		}
 
 		// À FAIRE : attend que les fonctions soient disponibles
@@ -729,7 +910,7 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 		}
 	}
 
-	imprime_fonction(atome_fonc, std::cerr);
+	//imprime_fonction(atome_fonc, std::cerr);
 	atome_fonc->instructions = nouvelle_instructions;
 
 	auto numero = static_cast<int>(atome_fonc->params_entrees.taille);
@@ -738,7 +919,7 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 		it->numero = numero++;
 	}
 
-	imprime_fonction(atome_fonc, std::cerr);
+	//imprime_fonction(atome_fonc, std::cerr);
 }
 
 void propage_constantes_et_temporaires(AtomeFonction *atome_fonc)
@@ -748,6 +929,7 @@ void propage_constantes_et_temporaires(AtomeFonction *atome_fonc)
 
 	dls::tableau<std::pair<Atome *, Atome *>> dernieres_valeurs;
 
+	// À FAIRE : renseigne la dernière valeur des membres
 	auto renseigne_derniere_valeur = [&](Atome *ptr, Atome *valeur)
 	{
 		POUR (dernieres_valeurs) {
