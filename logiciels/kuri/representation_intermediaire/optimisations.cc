@@ -843,6 +843,8 @@ public:
 	}
 };
 
+#undef DEBOGUE_ENLIGNAGE
+
 void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
 {
 	auto nouvelle_instructions = kuri::tableau<Instruction *>();
@@ -936,17 +938,20 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 		}
 	}
 
-	//imprime_fonction(atome_fonc, std::cerr);
+#ifdef DEBOGUE_ENLIGNAGE
+	std::cerr << "===== avant enlignage =====\n";
+	imprime_fonction(atome_fonc, std::cerr);
+#endif
+
 	atome_fonc->instructions = nouvelle_instructions;
 
-	auto numero = static_cast<int>(atome_fonc->params_entrees.taille);
-
-	POUR (atome_fonc->instructions) {
-		it->numero = numero++;
-	}
-
-	//imprime_fonction(atome_fonc, std::cerr);
+#ifdef DEBOGUE_ENLIGNAGE
+	std::cerr << "===== après enlignage =====\n";
+	imprime_fonction(atome_fonc, std::cerr);
+#endif
 }
+
+#undef DEBOGUE_PROPAGATION
 
 void propage_constantes_et_temporaires(AtomeFonction *atome_fonc)
 {
@@ -995,15 +1000,17 @@ void propage_constantes_et_temporaires(AtomeFonction *atome_fonc)
 		}
 	}
 
+#ifdef DEBOGUE_PROPAGATION
+	std::cerr << "===== avant propagation =====\n";
+	imprime_fonction(atome_fonc, std::cerr);
+#endif
+
 	atome_fonc->instructions = nouvelle_instructions;
 
-	auto numero = static_cast<int>(atome_fonc->params_entrees.taille);
-
-	POUR (atome_fonc->instructions) {
-		it->numero = numero++;
-	}
-
+#ifdef DEBOGUE_PROPAGATION
+	std::cerr << "===== après propagation =====\n";
 	imprime_fonction(atome_fonc, std::cerr);
+#endif
 
 	supprime_code_mort(atome_fonc);
 }
