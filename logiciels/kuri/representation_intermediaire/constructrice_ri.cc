@@ -277,7 +277,6 @@ InstructionBranche *ConstructriceRI::cree_branche(InstructionLabel *label, bool 
 {
 	label->nombre_utilisations += 1;
 	auto inst = insts_branche.ajoute_element(label);
-	inst->numero = nombre_instructions++;
 	inst->nombre_utilisations = 1;
 
 	if (!cree_seulement) {
@@ -292,7 +291,6 @@ InstructionBrancheCondition *ConstructriceRI::cree_branche_condition(Atome *vale
 	label_si_vrai->nombre_utilisations += 1;
 	label_si_faux->nombre_utilisations += 1;
 	auto inst = insts_branche_condition.ajoute_element(valeur, label_si_vrai, label_si_faux);
-	inst->numero = nombre_instructions++;
 	inst->nombre_utilisations = 1;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
@@ -312,7 +310,6 @@ InstructionLabel *ConstructriceRI::reserve_label()
 
 void ConstructriceRI::insere_label(InstructionLabel *label)
 {
-	label->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(label);
 }
 
@@ -323,7 +320,6 @@ InstructionRetour *ConstructriceRI::cree_retour(Atome *valeur)
 	}
 
 	auto inst = insts_retour.ajoute_element(valeur);
-	inst->numero = nombre_instructions++;
 	inst->nombre_utilisations += 1;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
@@ -394,7 +390,6 @@ InstructionAllocation *ConstructriceRI::cree_allocation(Type *type, IdentifiantC
 	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
 	auto type_pointeur = m_espace->typeuse.type_pointeur_pour(type);
 	auto inst = insts_allocation.ajoute_element(type_pointeur, ident);
-	inst->numero = nombre_instructions++;
 
 	/* Nous utilisons pour l'instant cree_allocation pour les paramètres des
 	 * fonctions, et la fonction_courante est nulle lors de cette opération.
@@ -421,7 +416,6 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Atome *ou, Atome *valeur,
 	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
 
 	auto inst = insts_stocke_memoire.ajoute_element(type, ou, valeur);
-	inst->numero = nombre_instructions++;
 	inst->nombre_utilisations += 1;
 
 	if (!cree_seulement) {
@@ -454,7 +448,6 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(Atome *ou)
 	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
 
 	auto inst = insts_charge_memoire.ajoute_element(type, ou);
-	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	charge_mems.pousse(inst);
 	return inst;
@@ -464,7 +457,6 @@ InstructionAppel *ConstructriceRI::cree_appel(Lexeme const *lexeme, Atome *appel
 {
 	appele->nombre_utilisations += 1;
 	auto inst = insts_appel.ajoute_element(lexeme, appele);
-	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
 }
@@ -478,7 +470,6 @@ InstructionAppel *ConstructriceRI::cree_appel(Lexeme const *lexeme, Atome *appel
 	}
 
 	auto inst = insts_appel.ajoute_element(lexeme, appele, std::move(args));
-	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
 }
@@ -487,7 +478,6 @@ InstructionOpUnaire *ConstructriceRI::cree_op_unaire(Type *type, OperateurUnaire
 {
 	valeur->nombre_utilisations += 1;
 	auto inst = insts_opunaire.ajoute_element(type, op, valeur);
-	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
 }
@@ -497,7 +487,6 @@ InstructionOpBinaire *ConstructriceRI::cree_op_binaire(Type *type, OperateurBina
 	valeur_gauche->nombre_utilisations += 1;
 	valeur_droite->nombre_utilisations += 1;
 	auto inst = insts_opbinaire.ajoute_element(type, op, valeur_gauche, valeur_droite);
-	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
 }
@@ -531,7 +520,6 @@ InstructionAccedeIndex *ConstructriceRI::cree_acces_index(Atome *accede, Atome *
 	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
 
 	auto inst = insts_accede_index.ajoute_element(type, accede, index);
-	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
 }
@@ -558,7 +546,6 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(Atome *accede, long 
 	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
 
 	auto inst = insts_accede_membre.ajoute_element(type, accede, cree_z64(static_cast<unsigned>(index)));
-	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	acces_membres.pousse(inst);
 	return inst;
@@ -575,7 +562,6 @@ InstructionTranstype *ConstructriceRI::cree_transtype(Type *type, Atome *valeur,
 	valeur->nombre_utilisations += 1;
 	//std::cerr << __func__ << ", type : " << chaine_type(type) << ", valeur " << chaine_type(valeur->type) << '\n';
 	auto inst = insts_transtype.ajoute_element(type, valeur, op);
-	inst->numero = nombre_instructions++;
 	fonction_courante->instructions.pousse(inst);
 	return inst;
 }
@@ -648,7 +634,6 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			}
 
 			fonction_courante = nullptr;
-			nombre_instructions = 0;
 			nombre_labels = 0;
 
 			auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl);
@@ -726,7 +711,6 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			auto inst = insts_simples.ajoute_element();
 			inst->genre = Instruction::Genre::ENREGISTRE_LOCALES;
-			inst->numero = nombre_instructions++;
 			fonction_courante->instructions.pousse(inst);
 
 			POUR (*noeud_bloc->expressions.verrou_lecture()) {
@@ -735,7 +719,6 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			inst = insts_simples.ajoute_element();
 			inst->genre = Instruction::Genre::RESTAURE_LOCALES;
-			inst->numero = nombre_instructions++;
 			fonction_courante->instructions.pousse(inst);
 
 			auto derniere_instruction = *(fonction_courante->instructions.end() - 1);
@@ -2813,8 +2796,6 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	charge_mems.taille = 0;
 	auto ancienne_fonction = fonction_courante;
 	fonction_courante = nullptr;
-	auto ancien_nombre_instruction = nombre_instructions;
-	nombre_instructions = 0;
 	auto ancien_nombre_labels = nombre_labels;
 	nombre_labels = 0;
 
@@ -2927,7 +2908,6 @@ Atome *ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	nombre_labels = ancien_nombre_labels;
 	table_locales = ancienne_table;
 	fonction_courante = ancienne_fonction;
-	nombre_instructions = ancien_nombre_instruction;
 
 	return nullptr;
 }
@@ -3892,7 +3872,6 @@ AtomeConstante *ConstructriceRI::cree_chaine(dls::vue_chaine_compacte const &cha
 AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 {
 	nombre_labels = 0;
-	nombre_instructions = 0;
 
 	// déclare une fonction de type int(int, char**) appelée main
 	auto type_int = m_espace->typeuse[TypeBase::Z32];

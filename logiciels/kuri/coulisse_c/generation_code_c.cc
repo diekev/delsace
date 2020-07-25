@@ -1271,7 +1271,10 @@ struct GeneratriceCodeC {
 
 			m_fonction_courante = atome_fonc;
 
+			auto numero_inst = static_cast<int>(atome_fonc->params_entrees.taille);
+
 			for (auto inst : atome_fonc->instructions) {
+				inst->numero = numero_inst++;
 				genere_code_pour_instruction(inst, os);
 			}
 

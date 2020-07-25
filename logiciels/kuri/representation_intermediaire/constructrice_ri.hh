@@ -73,7 +73,6 @@ private:
 	kuri::tableau<InstructionChargeMem *> charge_mems{};
 
 	int nombre_labels = 0;
-	int nombre_instructions = 0;
 
 	NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
 
