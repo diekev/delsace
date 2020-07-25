@@ -1285,7 +1285,7 @@ struct GeneratriceCodeC {
 	}
 };
 
-void genere_code_C(
+static void genere_code_C_depuis_fonction_principale(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
 		dls::chaine const &racine_kuri,
@@ -1389,4 +1389,75 @@ void genere_code_C(
 	enchaineuse.imprime_dans_flux(fichier_sortie);
 
 	compilatrice.temps_generation = debut_generation.temps();
+}
+
+static void genere_code_C_pour_tout(
+		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
+		std::ostream &fichier_sortie)
+{
+	auto debut_generation = dls::chrono::compte_seconde();
+
+	Enchaineuse enchaineuse;
+
+	espace.typeuse.construit_table_types();
+
+	genere_code_debut_fichier(compilatrice, enchaineuse, compilatrice.racine_kuri);
+
+	POUR_TABLEAU_PAGE (espace.graphe_dependance->noeuds) {
+		if (it.type != TypeNoeudDependance::TYPE) {
+			continue;
+		}
+
+		auto type = it.type_;
+
+		if (type && type->genre == GenreType::TYPE_DE_DONNEES) {
+			continue;
+		}
+
+		genere_typedefs_recursifs(compilatrice, type, enchaineuse);
+
+		if (type && (type->genre == GenreType::STRUCTURE)) {
+			auto type_struct = static_cast<TypeStructure *>(type);
+
+			if (type_struct->decl && type_struct->decl->est_externe) {
+				continue;
+			}
+
+			for (auto &membre : type_struct->membres) {
+				genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
+			}
+
+			auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
+			genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_struct), quoi);
+		}
+	}
+
+	kuri::tableau<AtomeFonction *> fonctions;
+	fonctions.reserve(espace.fonctions.taille());
+
+	POUR_TABLEAU_PAGE (espace.fonctions) {
+		fonctions.pousse(&it);
+	}
+
+	auto generatrice = GeneratriceCodeC(espace);
+	generatrice.genere_code(espace.globales, fonctions, enchaineuse);
+
+	enchaineuse.imprime_dans_flux(fichier_sortie);
+
+	compilatrice.temps_generation = debut_generation.temps();
+}
+
+void genere_code_C(
+		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
+		dls::chaine const &racine_kuri,
+		std::ostream &fichier_sortie)
+{
+	if (espace.options.objet_genere == ObjetGenere::Executable) {
+		genere_code_C_depuis_fonction_principale(compilatrice, espace, racine_kuri, fichier_sortie);
+	}
+	else {
+		genere_code_C_pour_tout(compilatrice, espace, fichier_sortie);
+	}
 }

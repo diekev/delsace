@@ -449,6 +449,80 @@ void lance_tacheronne_metaprogramme(Tacheronne *tacheronne)
 	tacheronne->gere_tache_metaprogramme();
 }
 
+static dls::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, OptionsCompilation const &ops)
+{
+	auto commande = dls::chaine("gcc -c /tmp/compilation_kuri.c ");
+
+	// À FAIRE : comment lié les tables pour un fichier objet ?
+//	if (ops.objet_genere == ObjetGenere::FichierObjet) {
+//		commande += "/tmp/tables_r16.o ";
+//	}
+
+	/* désactivation des erreurs concernant le manque de "const" quand
+	 * on passe des variables générés temporairement par la coulisse à
+	 * des fonctions qui dont les paramètres ne sont pas constants */
+	commande += "-Wno-discarded-qualifiers ";
+	/* désactivation des avertissements de passage d'une variable au
+	 * lieu d'une chaine littérale à printf et al. */
+	commande += "-Wno-format-security ";
+
+	switch (ops.niveau_optimisation) {
+		case NiveauOptimisation::AUCUN:
+		case NiveauOptimisation::O0:
+		{
+			commande += "-O0 ";
+			break;
+		}
+		case NiveauOptimisation::O1:
+		{
+			commande += "-O1 ";
+			break;
+		}
+		case NiveauOptimisation::O2:
+		{
+			commande += "-O2 ";
+			break;
+		}
+		case NiveauOptimisation::Os:
+		{
+			commande += "-Os ";
+			break;
+		}
+		/* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
+		 * plus proche. */
+		case NiveauOptimisation::Oz:
+		case NiveauOptimisation::O3:
+		{
+			commande += "-O3 ";
+			break;
+		}
+	}
+
+	if (ops.architecture_cible == ArchitectureCible::X86) {
+		commande += "-m32 ";
+	}
+
+	for (auto const &def : *compilatrice.definitions.verrou_lecture()) {
+		commande += " -D" + dls::chaine(def);
+	}
+
+	for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
+		commande += " ";
+		commande += chm;
+	}
+
+	if (ops.objet_genere == ObjetGenere::FichierObjet) {
+		commande += " -o ";
+		commande += dls::chaine(ops.nom_sortie.pointeur, ops.nom_sortie.taille);
+		commande += ".o";
+	}
+	else {
+		commande += " -o /tmp/compilation_kuri.o";
+	}
+
+	return commande;
+}
+
 static int genere_code_coulisse(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
@@ -457,7 +531,7 @@ static int genere_code_coulisse(
 {
 	auto const &ops = espace.options;
 
-	if (!ops.cree_executable) {
+	if (ops.objet_genere == ObjetGenere::Rien) {
 		return 0;
 	}
 
@@ -507,7 +581,7 @@ static int genere_code_coulisse(
 #endif
 
 		/* définition du fichier de sortie */
-		if (!compilatrice.possede_erreur && ops.cree_executable) {
+		if (!compilatrice.possede_erreur && ops.objet_genere == ObjetGenere::Executable) {
 			std::cout << "Écriture du code dans un fichier..." << std::endl;
 			auto debut_fichier_objet = dls::chrono::compte_seconde();
 			if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
@@ -537,62 +611,8 @@ static int genere_code_coulisse(
 		of.close();
 
 		auto debut_fichier_objet = dls::chrono::compte_seconde();
-		auto commande = dls::chaine("gcc -c /tmp/compilation_kuri.c ");
 
-		/* désactivation des erreurs concernant le manque de "const" quand
-		 * on passe des variables générés temporairement par la coulisse à
-		 * des fonctions qui dont les paramètres ne sont pas constants */
-		commande += "-Wno-discarded-qualifiers ";
-		/* désactivation des avertissements de passage d'une variable au
-		 * lieu d'une chaine littérale à printf et al. */
-		commande += "-Wno-format-security ";
-
-		switch (ops.niveau_optimisation) {
-			case NiveauOptimisation::AUCUN:
-			case NiveauOptimisation::O0:
-			{
-				commande += "-O0 ";
-				break;
-			}
-			case NiveauOptimisation::O1:
-			{
-				commande += "-O1 ";
-				break;
-			}
-			case NiveauOptimisation::O2:
-			{
-				commande += "-O2 ";
-				break;
-			}
-			case NiveauOptimisation::Os:
-			{
-				commande += "-Os ";
-				break;
-			}
-				/* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
-					 * plus proche. */
-			case NiveauOptimisation::Oz:
-			case NiveauOptimisation::O3:
-			{
-				commande += "-O3 ";
-				break;
-			}
-		}
-
-		if (ops.architecture_cible == ArchitectureCible::X86) {
-			commande += "-m32 ";
-		}
-
-		for (auto const &def : *compilatrice.definitions.verrou_lecture()) {
-			commande += " -D" + dls::chaine(def);
-		}
-
-		for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
-			commande += " ";
-			commande += chm;
-		}
-
-		commande += " -o /tmp/compilation_kuri.o";
+		auto commande = genere_commande_fichier_objet(compilatrice, ops);
 
 		std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
@@ -603,6 +623,26 @@ static int genere_code_coulisse(
 		if (err != 0) {
 			std::cerr << "Ne peut pas créer le fichier objet !\n";
 			compilatrice.possede_erreur = true;
+			return 1;
+		}
+
+		if (ops.objet_genere == ObjetGenere::FichierObjet) {
+//			// copie le fichier objet dans la sortie
+//			auto debut_executable = dls::chrono::compte_seconde();
+//			commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o -o ");
+//			commande += dls::chaine(ops.nom_sortie.pointeur, ops.nom_sortie.taille);
+//			commande += ".o";
+
+//			std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+//			err = system(commande.c_str());
+
+//			if (err != 0) {
+//				std::cerr << "Ne peut pas créer l'exécutable !\n";
+//				compilatrice.possede_erreur = true;
+//				return 1;
+//			}
+
+//			temps_executable = debut_executable.temps();
 		}
 		else {
 			auto debut_executable = dls::chrono::compte_seconde();

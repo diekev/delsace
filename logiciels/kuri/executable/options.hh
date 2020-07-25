@@ -54,13 +54,19 @@ enum class OptionsLangage : int {
 	TOUT = (ACTIVE_COROUTINE | ACTIVE_INTROSPECTION)
 };
 
+enum class ObjetGenere : int {
+	Executable,
+	FichierObjet,
+	Rien,
+};
+
 struct OptionsCompilation {
 	kuri::chaine nom_sortie = kuri::chaine("a.out");
 	TypeCoulisse type_coulisse = TypeCoulisse::C;
 	NiveauOptimisation niveau_optimisation = NiveauOptimisation::AUCUN;
 	ArchitectureCible architecture_cible = ArchitectureCible::X64;
 	OptionsLangage options_langage = OptionsLangage::TOUT;
+	ObjetGenere objet_genere = ObjetGenere::Executable;
 
-	bool cree_executable = true;
 	bool emets_metriques = true;
 };

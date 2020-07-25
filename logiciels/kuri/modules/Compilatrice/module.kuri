@@ -30,14 +30,20 @@ OptionsLangage :: énum_drapeau z32 {
 	//TOUT :: (ACTIVE_COROUTINE | ACTIVE_INTROSPECTION)
 }
 
+ObjetGénéré :: énum {
+	Exécutable
+	FichierObjet
+	Rien
+}
+
 OptionsCompilation :: struct {
     nom_sortie := "a.out"
     type_coulisse := TypeCoulisse.C
     niveau_optimisation := NiveauOptimisation.AUCUN
     architecture_cible := ArchitectureCible.X64
     options_langage : OptionsLangage
+    objet_généré : ObjetGénéré
 
-    crée_exécutable := vrai
     émets_métriques := vrai
 }
 
