@@ -42,6 +42,19 @@ struct NoeudEnum;
 struct NoeudExpression;
 struct NoeudStruct;
 struct Typeuse;
+struct TypeCompose;
+struct TypeEnum;
+struct TypeEnum;
+struct TypeFonction;
+struct TypePointeur;
+struct TypePolymorphique;
+struct TypeReference;
+struct TypeStructure;
+struct TypeTableauDynamique;
+struct TypeTableauFixe;
+struct TypeTypeDeDonnees;
+struct TypeUnion;
+struct TypeVariadique;
 
 /* ************************************************************************** */
 
@@ -184,6 +197,43 @@ struct Type {
 	static Type *cree_rien();
 	static Type *cree_bool();
 	static Type *cree_octet();
+
+	inline bool est_bool() const { return genre == GenreType::BOOL; }
+	inline bool est_chaine() const { return genre == GenreType::CHAINE; }
+	inline bool est_eini() const { return genre == GenreType::EINI; }
+	inline bool est_entier_constant() const { return genre == GenreType::ENTIER_CONSTANT; }
+	inline bool est_entier_naturel() const { return genre == GenreType::ENTIER_NATUREL; }
+	inline bool est_entier_relatif() const { return genre == GenreType::ENTIER_RELATIF; }
+	inline bool est_enum() const { return genre == GenreType::ENUM; }
+	inline bool est_erreur() const { return genre == GenreType::ERREUR; }
+	inline bool est_fonction() const { return genre == GenreType::FONCTION; }
+	inline bool est_invalide() const { return genre == GenreType::INVALIDE; }
+	inline bool est_octet() const { return genre == GenreType::OCTET; }
+	inline bool est_pointeur() const { return genre == GenreType::POINTEUR; }
+	inline bool est_polymorphique() const { return genre == GenreType::POLYMORPHIQUE; }
+	inline bool est_reel() const { return genre == GenreType::REEL; }
+	inline bool est_reference() const { return genre == GenreType::REFERENCE; }
+	inline bool est_rien() const { return genre == GenreType::RIEN; }
+	inline bool est_structure() const { return genre == GenreType::STRUCTURE; }
+	inline bool est_tableau_dynamique() const { return genre == GenreType::TABLEAU_DYNAMIQUE; }
+	inline bool est_tableau_fixe() const { return genre == GenreType::TABLEAU_FIXE; }
+	inline bool est_type_de_donnees() const { return genre == GenreType::TYPE_DE_DONNEES; }
+	inline bool est_union() const { return genre == GenreType::UNION; }
+	inline bool est_variadique() const { return genre == GenreType::VARIADIQUE; }
+
+	inline TypeCompose *comme_compose();
+	inline TypeEnum *comme_enum();
+	inline TypeEnum *comme_erreur();
+	inline TypeFonction *comme_fonction();
+	inline TypePointeur *comme_pointeur();
+	inline TypePolymorphique *comme_polymorphique();
+	inline TypeReference *comme_reference();
+	inline TypeStructure *comme_structure();
+	inline TypeTableauDynamique *comme_tableau_dynamique();
+	inline TypeTableauFixe *comme_tableau_fixe();
+	inline TypeTypeDeDonnees *comme_type_de_donnees();
+	inline TypeUnion *comme_union();
+	inline TypeVariadique *comme_variadique();
 };
 
 struct TypePointeur : public Type {
@@ -354,6 +404,88 @@ struct TypePolymorphique : public Type {
 
 	static TypePolymorphique *cree(IdentifiantCode *ident);
 };
+
+/* ************************************************************************** */
+
+inline TypePointeur *Type::comme_pointeur()
+{
+	assert(genre == GenreType::POINTEUR);
+	return static_cast<TypePointeur *>(this);
+}
+
+inline TypeStructure *Type::comme_structure()
+{
+	assert(genre == GenreType::STRUCTURE);
+	return static_cast<TypeStructure *>(this);
+}
+
+inline TypeCompose *Type::comme_compose()
+{
+	assert(est_type_compose(this));
+	return static_cast<TypeCompose *>(this);
+}
+
+inline TypeReference *Type::comme_reference()
+{
+	assert(genre == GenreType::REFERENCE);
+	return static_cast<TypeReference *>(this);
+}
+
+inline TypeTableauFixe *Type::comme_tableau_fixe()
+{
+	assert(genre == GenreType::TABLEAU_FIXE);
+	return static_cast<TypeTableauFixe *>(this);
+}
+
+inline TypeTableauDynamique *Type::comme_tableau_dynamique()
+{
+	assert(genre == GenreType::TABLEAU_DYNAMIQUE);
+	return static_cast<TypeTableauDynamique *>(this);
+}
+
+inline TypeUnion *Type::comme_union()
+{
+	assert(genre == GenreType::UNION);
+	return static_cast<TypeUnion *>(this);
+}
+
+inline TypeFonction *Type::comme_fonction()
+{
+	assert(genre == GenreType::FONCTION);
+	return static_cast<TypeFonction *>(this);
+}
+
+inline TypeEnum *Type::comme_enum()
+{
+	assert(genre == GenreType::ENUM || genre == GenreType::ERREUR);
+	return static_cast<TypeEnum *>(this);
+}
+
+inline TypeEnum *Type::comme_erreur()
+{
+	assert(genre == GenreType::ERREUR);
+	return static_cast<TypeEnum *>(this);
+}
+
+inline TypeVariadique *Type::comme_variadique()
+{
+	assert(genre == GenreType::VARIADIQUE);
+	return static_cast<TypeVariadique *>(this);
+}
+
+inline TypeTypeDeDonnees *Type::comme_type_de_donnees()
+{
+	assert(genre == GenreType::TYPE_DE_DONNEES);
+	return static_cast<TypeTypeDeDonnees *>(this);
+}
+
+inline TypePolymorphique *Type::comme_polymorphique()
+{
+	assert(genre == GenreType::POLYMORPHIQUE);
+	return static_cast<TypePolymorphique *>(this);
+}
+
+/* ************************************************************************** */
 
 void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine_compacte> &noms);
 
