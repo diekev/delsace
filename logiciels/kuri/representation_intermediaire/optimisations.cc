@@ -305,11 +305,6 @@ static bool est_utilise(Atome *atome)
  * -- elle est une fonction externe
  * -- elle appel une fonction ayant des effets secondaires
  *
- * une variable peut être supprimée si :
- * -- son compte d'utilisation est de deux (stocke et charge)
- * -- elle n'a aucun identifiant
- * -- cas pour les temporaires de conversions ?
- *
  * erreur non-utilisation d'une variable
  * -- si la variable fût définie par l'utilisateur
  * -- variable définie par le compilateur : les temporaires dans la RI, le contexte implicite, les it et index_it des boucles pour
@@ -363,10 +358,10 @@ static void marque_instructions_utilisees(kuri::tableau<Instruction *> &instruct
 	}
 }
 
+#undef DEBOGUE_SUPPRESSION_CODE_MORT
+
 void supprime_code_mort(AtomeFonction *atome_fonc)
 {
-	std::cerr << "Vérifie code pour : " << atome_fonc->nom << '\n';
-
 	POUR (atome_fonc->instructions) {
 		it->nombre_utilisations = 0;
 	}
@@ -379,24 +374,34 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 	marque_instructions_utilisees(atome_fonc->instructions);
 	marque_instructions_utilisees(atome_fonc->instructions);
 
-//	POUR (atome_fonc->instructions) {
-//		std::cerr << '(' << it->nombre_utilisations << ") ";
-//		if (it->nombre_utilisations == 0) {
-//			//std::cerr << "-- l'instruction n'est pas utilisée !\n";
-//			std::cerr << "\033[1m";
-//		}
-//		std::cerr << "%" << it->numero << ' ';
-//		imprime_instruction(it, std::cerr);
-//		if (it->nombre_utilisations == 0) {
-//			std::cerr << "\033[0m";
-//		}
-//	}
-
-	auto nouvelles_instructions = kuri::tableau<Instruction *>();
-
-	auto numero_instruction = static_cast<int>(atome_fonc->params_entrees.taille);
+	/* élimine les branches superflues, et compte les instructions restantes */
+	auto instructions_restantes = 0;
 	auto index = 0;
 	auto derniere_instruction = atome_fonc->instructions[atome_fonc->instructions.taille - 1];
+
+	POUR (atome_fonc->instructions) {
+		if (it->est_branche() && it != derniere_instruction) {
+			auto branche = it->comme_branche();
+
+			if (branche->label == atome_fonc->instructions[index + 1]) {
+				branche->label->nombre_utilisations -= 1;
+				branche->nombre_utilisations = 0;
+				instructions_restantes -= 1;
+			}
+		}
+
+		instructions_restantes += 1;
+
+		index += 1;
+	}
+
+#ifdef DEBOGUE_SUPPRESSION_CODE_MORT
+	std::cerr << "======== avant suppression code mort ========\n"
+	imprime_fonction(atome_fonc, std::cerr, true, true);
+#endif
+
+	auto nouvelles_instructions = kuri::tableau<Instruction *>();
+	nouvelles_instructions.reserve(instructions_restantes);
 
 	POUR (atome_fonc->instructions) {
 		if (it->nombre_utilisations == 0) {
@@ -404,25 +409,15 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 			continue;
 		}
 
-		// élimine les brances superflues
-		if (it->est_branche() && it != derniere_instruction) {
-			auto branche = it->comme_branche();
-
-			if (branche->label == atome_fonc->instructions[index + 1]) {
-				branche->label->nombre_utilisations -= 1;
-				index += 1;
-				continue;
-			}
-		}
-
-		index += 1;
-		it->numero = numero_instruction++;
 		nouvelles_instructions.pousse(it);
 	}
 
 	atome_fonc->instructions = nouvelles_instructions;
 
-	//imprime_fonction(atome_fonc, std::cerr);
+#ifdef DEBOGUE_SUPPRESSION_CODE_MORT
+	std::cerr << "======== après suppression code mort ========\n"
+	imprime_fonction(atome_fonc, std::cerr);
+#endif
 
 #if 0
 	// détecte les réassignations avant utilisation
