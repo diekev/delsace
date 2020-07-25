@@ -278,6 +278,12 @@ static bool est_utilise(Atome *atome)
 			auto acces = inst->comme_acces_membre();
 			return est_utilise(acces->accede);
 		}
+
+		// pour les déréférencements de pointeurs
+		if (inst->genre == Instruction::Genre::CHARGE_MEMOIRE) {
+			auto charge = inst->comme_charge();
+			return est_utilise(charge->chargee);
+		}
 	}
 
 	return atome->nombre_utilisations != 0;
@@ -499,12 +505,21 @@ void performe_enlignage(
 				}
 			}
 		}
+		else if (it->genre == Instruction::Genre::ACCEDE_MEMBRE) {
+			auto acces = it->comme_acces_membre();
+
+			for (auto &p : substitution) {
+				if (p.first == acces->accede) {
+					acces->accede = p.second;
+					break;
+				}
+			}
+		}
 
 		nouvelles_instructions.pousse(it);
 	}
 }
 
-// pour une instruction de charge -> substitut la chargee
 enum class SubstitutDans : int {
 	ZERO = 0,
 	CHARGE = (1 << 0),
@@ -586,6 +601,22 @@ public:
 
 				return op;
 			}
+			case Instruction::Genre::RETOUR:
+			{
+				auto retour = instruction->comme_retour();
+
+				if (retour->valeur) {
+					retour->valeur = valeur_substituee(retour->valeur);
+				}
+
+				return retour;
+			}
+			case Instruction::Genre::ACCEDE_MEMBRE:
+			{
+				auto acces = instruction->comme_acces_membre();
+				acces->accede = valeur_substituee(acces->accede);
+				return acces;
+			}
 			default:
 			{
 				return instruction;
@@ -634,6 +665,8 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
 		auto atome_fonc_appelee = static_cast<AtomeFonction *>(appele);
 
+		auto &instructions = atome_fonc_appelee->instructions;
+
 		if (atome_fonc_appelee->decl) {
 			if (atome_fonc_appelee->decl->est_externe) {
 				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
@@ -649,23 +682,22 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 				continue;
 			}
 		}
-
-		if (atome_fonc_appelee->decl && atome_fonc_appelee->decl->est_externe) {
+		else {
+			// À FAIRE : définis de bonnes heuristiques pour l'enlignage
+			// À FAIRE : pour les enlignages des fonctions d'initialisations, ou de n'importe
+			// quelle fonction prenant un pointeur, il faudra convertir les types pour enlever le pointeur
+			// si le pointeur est l'adresse de la variable
+//			if (instructions.taille >= 32) {
+//				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+//				continue;
+//			}
 			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
 			continue;
 		}
-
-		auto &instructions = atome_fonc_appelee->instructions;
 
 		// À FAIRE : attend que les fonctions soient disponibles
 		// À FAIRE : les instructions ne pourraient être composées que de retour « rien » et de labels
 		if (instructions.est_vide()) {
-			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
-			continue;
-		}
-
-		// À FAIRE : définis de bonnes heuristiques pour l'enlignage
-		if (instructions.taille >= 32) {
 			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
 			continue;
 		}
