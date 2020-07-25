@@ -484,6 +484,12 @@ bool cherche_transformation(
 			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 			return false;
 		}
+
+		// À FAIRE : ENTIER_VERS_POINTEUR
+		if (type_vers->genre == GenreType::POINTEUR && (est_type_entier(type_de) || type_de->genre == GenreType::ENTIER_CONSTANT)) {
+			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			return false;
+		}
 	}
 
 	transformation = TypeTransformation::IMPOSSIBLE;
