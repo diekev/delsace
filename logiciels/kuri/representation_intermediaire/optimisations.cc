@@ -315,16 +315,15 @@ static bool est_utilise(Atome *atome)
  * -- variable définie par le compilateur : les temporaires dans la RI, le contexte implicite, les it et index_it des boucles pour
  *
  */
-void supprime_code_mort(AtomeFonction *atome_fonc)
+static void marque_instructions_utilisees(kuri::tableau<Instruction *> &instructions)
 {
-	std::cerr << "Vérifie code pour : " << atome_fonc->nom << '\n';
+	for (auto i = instructions.taille - 1; i >= 0; --i) {
+		auto it = instructions[i];
 
-	POUR (atome_fonc->instructions) {
-		it->nombre_utilisations = 0;
-	}
+		if (it->nombre_utilisations != 0) {
+			continue;
+		}
 
-	for (auto i = atome_fonc->instructions.taille - 1; i >= 0; --i) {
-		auto it = atome_fonc->instructions[i];
 		switch (it->genre) {
 			case Instruction::Genre::BRANCHE:
 			case Instruction::Genre::BRANCHE_CONDITION:
@@ -362,6 +361,23 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 			}
 		}
 	}
+}
+
+void supprime_code_mort(AtomeFonction *atome_fonc)
+{
+	std::cerr << "Vérifie code pour : " << atome_fonc->nom << '\n';
+
+	POUR (atome_fonc->instructions) {
+		it->nombre_utilisations = 0;
+	}
+
+	/* performe deux passes, car les boucles « pour » verraient les incrémentations de
+	 * leurs variables supprimées puisque nous ne marquons la variable comme utilisée
+	 * que lors de la visite de la condition du bloc après les incrémentations (nous
+	 * traversons les intructions en arrière pour que seules les dépendances du retour
+	 * soient considérées) */
+	marque_instructions_utilisees(atome_fonc->instructions);
+	marque_instructions_utilisees(atome_fonc->instructions);
 
 //	POUR (atome_fonc->instructions) {
 //		std::cerr << '(' << it->nombre_utilisations << ") ";
@@ -379,12 +395,27 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 	auto nouvelles_instructions = kuri::tableau<Instruction *>();
 
 	auto numero_instruction = static_cast<int>(atome_fonc->params_entrees.taille);
+	auto index = 0;
+	auto derniere_instruction = atome_fonc->instructions[atome_fonc->instructions.taille - 1];
 
 	POUR (atome_fonc->instructions) {
 		if (it->nombre_utilisations == 0) {
+			index += 1;
 			continue;
 		}
 
+		// élimine les brances superflues
+		if (it->est_branche() && it != derniere_instruction) {
+			auto branche = it->comme_branche();
+
+			if (branche->label == atome_fonc->instructions[index + 1]) {
+				branche->label->nombre_utilisations -= 1;
+				index += 1;
+				continue;
+			}
+		}
+
+		index += 1;
 		it->numero = numero_instruction++;
 		nouvelles_instructions.pousse(it);
 	}
