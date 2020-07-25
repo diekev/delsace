@@ -411,7 +411,7 @@ void Syntaxeuse::lance_analyse()
 					decl_var->bloc_parent->expressions->pousse(decl_var);
 					decl_var->drapeaux |= EST_GLOBALE;
 					aplatis_arbre(decl_var, decl_var->arbre_aplatis, drapeaux_noeud::AUCUN);
-					m_compilatrice.ajoute_unite_compilation_pour_typage(m_unite->espace, decl_var);
+					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, decl_var);
 				}
 				else if (est_declaration(noeud->genre)) {
 					noeud->bloc_parent->membres->pousse(static_cast<NoeudDeclaration *>(noeud));
@@ -424,12 +424,12 @@ void Syntaxeuse::lance_analyse()
 							aplatis_arbre(decl_var, decl_var->arbre_aplatis, drapeaux_noeud::AUCUN);
 						}
 
-						m_compilatrice.ajoute_unite_compilation_pour_typage(m_unite->espace, noeud);
+						m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 					}
 				}
 				else {
 					noeud->bloc_parent->expressions->pousse(noeud);
-					m_compilatrice.ajoute_unite_compilation_pour_typage(m_unite->espace, noeud);
+					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 				}
 			}
 		}
@@ -1893,7 +1893,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 				lance_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
 			}
 
-			m_compilatrice.ajoute_unite_compilation_entete_fonction(m_unite->espace, noeud);
+			m_compilatrice.ordonnanceuse->cree_tache_pour_typage_fonction(m_unite->espace, noeud);
 		}
 		else {
 			/* ignore les points-virgules implicites */
@@ -1901,7 +1901,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 				consomme();
 			}
 
-			m_compilatrice.ajoute_unite_compilation_entete_fonction(m_unite->espace, noeud);
+			m_compilatrice.ordonnanceuse->cree_tache_pour_typage_fonction(m_unite->espace, noeud);
 
 			auto nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
 			noeud->bloc = analyse_bloc();
@@ -1914,7 +1914,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 			noeud->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
 			aplatis_arbre(noeud->bloc, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 
-			m_compilatrice.ajoute_unite_compilation_pour_typage(m_unite->espace, noeud);
+			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 
 //			std::cerr << "Abre aplatis pour fonction " << noeud->ident->nom << " :\n";
 
@@ -2051,12 +2051,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		consomme();
 	}
 
-	m_compilatrice.ajoute_unite_compilation_entete_fonction(m_unite->espace, noeud);
+	m_compilatrice.ordonnanceuse->cree_tache_pour_typage_fonction(m_unite->espace, noeud);
 
 	noeud->bloc = analyse_bloc();
 	aplatis_arbre(noeud->bloc, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 
-	m_compilatrice.ajoute_unite_compilation_pour_typage(m_unite->espace, noeud);
+	m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 
 	depile_etat();
 

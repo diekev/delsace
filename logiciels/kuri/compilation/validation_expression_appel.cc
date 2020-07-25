@@ -965,8 +965,8 @@ static std::pair<NoeudDeclarationFonction *, bool> trouve_fonction_epandue_ou_cr
 
 	decl->epandu_pour.pousse({ paires, noeud_decl });
 
-	compilatrice.ajoute_unite_compilation_entete_fonction(&espace, noeud_decl);
-	compilatrice.ajoute_unite_compilation_pour_typage(&espace, noeud_decl);
+	compilatrice.ordonnanceuse->cree_tache_pour_typage_fonction(&espace, noeud_decl);
+	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, noeud_decl);
 
 	return { noeud_decl, true };
 }

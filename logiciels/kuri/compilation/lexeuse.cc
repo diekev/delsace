@@ -659,6 +659,8 @@ void Lexeuse::performe_lexage()
 #undef CAS_CARACTERE_EGAL
 #undef APPARIE_SUIVANT
 #undef APPARIE_2_SUIVANTS
+
+	m_fichier->fut_lexe = true;
 }
 
 size_t Lexeuse::memoire_lexemes() const

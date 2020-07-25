@@ -106,12 +106,28 @@ void Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclara
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
+void Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace, PhaseCompilation phase)
+{
+	if (!interception_commencee) {
+		return;
+	}
+
+	auto message = messages_phase_compilation.ajoute_element();
+	message->genre = GenreMessage::PHASE_COMPILATION;
+	message->espace = espace;
+	message->phase = phase;
+
+	file_message.enfile(message);
+	pic_de_message = std::max(file_message.taille(), pic_de_message);
+}
+
 size_t Messagere::memoire_utilisee() const
 {
 	auto memoire = 0ul;
 	memoire += messages_fichiers.memoire_utilisee();
 	memoire += messages_modules.memoire_utilisee();
 	memoire += messages_typage_code.memoire_utilisee();
+	memoire += messages_phase_compilation.memoire_utilisee();
 	memoire += static_cast<size_t>(pic_de_message) * sizeof(void *);
 	return memoire;
 }

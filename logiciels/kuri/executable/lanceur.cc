@@ -444,124 +444,9 @@ void lance_tacheronne(Tacheronne *tacheronne)
 	}
 }
 
-void lance_file_execution(Compilatrice *compilatrice)
+void lance_tacheronne_metaprogramme(Tacheronne *tacheronne)
 {
-	auto constructrice_ri = ConstructriceRI(*compilatrice);
-
-	// en dehors de la boucle pour réutiliser la mémoire
-	dls::tableau<AtomeGlobale *> globales;
-	dls::tableau<AtomeFonction *> fonctions;
-
-	while (!compilatrice->compilation_terminee()) {
-		if (compilatrice->file_execution->est_vide()) {
-			continue;
-		}
-
-		// N'effronte pas sinon les autres threads pourraient s'arrêter alors que le métaprogramme pourrait ajouter des choses à compiler.
-		auto unite = compilatrice->file_execution->front();
-		auto noeud = unite.noeud;
-		auto espace = unite.espace;
-
-		auto index_dans_table_type = 1u;
-
-		globales.efface();
-		fonctions.efface();
-
-		traverse_graphe(noeud->fonction->noeud_dependance, [&](NoeudDependance *noeud_dep)
-		{
-			if (noeud_dep->type == TypeNoeudDependance::FONCTION) {
-				auto decl_noeud = static_cast<NoeudDeclarationFonction *>(noeud_dep->noeud_syntaxique);
-
-				if ((decl_noeud->drapeaux & CODE_BINAIRE_FUT_GENERE) != 0) {
-					return;
-				}
-
-				auto atome_fonction = espace->trouve_fonction(decl_noeud->nom_broye);
-				fonctions.pousse(atome_fonction);
-				decl_noeud->drapeaux |= CODE_BINAIRE_FUT_GENERE;
-			}
-			else if (noeud_dep->type == TypeNoeudDependance::TYPE) {
-				auto type = noeud_dep->type_;
-
-				if ((type->drapeaux & CODE_BINAIRE_TYPE_FUT_GENERE) != 0) {
-					return;
-				}
-
-				type->index_dans_table_types = index_dans_table_type++;
-
-				if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
-					auto nom_fonction = "initialise_" + dls::vers_chaine(type);
-					auto atome_fonction = espace->trouve_fonction(nom_fonction);
-					fonctions.pousse(atome_fonction);
-					type->drapeaux |= CODE_BINAIRE_TYPE_FUT_GENERE;
-				}
-			}
-			else if (noeud_dep->type == TypeNoeudDependance::GLOBALE) {
-				auto decl_noeud = static_cast<NoeudDeclaration *>(noeud_dep->noeud_syntaxique);
-
-				if ((decl_noeud->drapeaux & EST_CONSTANTE) != 0) {
-					return;
-				}
-
-				if ((decl_noeud->drapeaux & CODE_BINAIRE_FUT_GENERE) != 0) {
-					return;
-				}
-
-				auto atome_globale = espace->trouve_globale(decl_noeud);
-
-				if (atome_globale->index == -1) {
-					atome_globale->index = compilatrice->mv.ajoute_globale(decl_noeud->type, decl_noeud->ident);
-				}
-
-				globales.pousse(atome_globale);
-
-				decl_noeud->drapeaux |= CODE_BINAIRE_FUT_GENERE;
-			}
-		});
-
-		POUR_TABLEAU_PAGE (espace->graphe_dependance->noeuds) {
-			it.fut_visite = false;
-		}
-
-		auto fonction = espace->trouve_fonction(noeud->fonction->nom_broye);
-
-		if (!fonction) {
-			std::cerr << "Impossible de trouver la fonction métaprogramme pour " << noeud->fonction->nom_broye << '\n';
-			imprime_fichier_ligne(*espace, *noeud->lexeme);
-		}
-
-		//desassemble(fonction->chunk, noeud->fonction->nom_broye.c_str(), std::cout);
-
-		if (globales.taille() != 0) {
-			auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(espace, globales, fonction);
-			fonctions.pousse(fonc_init);
-		}
-
-		POUR (fonctions) {
-			genere_code_binaire_pour_fonction(it, &compilatrice->mv);
-		}
-
-		auto res = compilatrice->mv.interprete(fonction);
-
-		if (res == MachineVirtuelle::ResultatInterpretation::ERREUR) {
-			// À FAIRE : erreur de compilation si une erreur d'exécution
-			std::cerr << "Erreur lors de l'exécution du métaprogramme !\n-- ";
-			imprime_fichier_ligne(*espace, *noeud->lexeme);
-		}
-		else {
-			if (noeud->ident == ID::assert_) {
-				auto resultat = *reinterpret_cast<bool *>(compilatrice->mv.pointeur_pile);
-
-				if (!resultat) {
-					// À FAIRE : erreur de compilation si une assertion échoue
-					std::cerr << "Échec de l'assertion !\n-- ";
-					imprime_fichier_ligne(*espace, *noeud->lexeme);
-				}
-			}
-		}
-
-		compilatrice->file_execution->effronte();
-	}
+	tacheronne->gere_tache_metaprogramme();
 }
 
 static int genere_code_coulisse(
@@ -824,16 +709,17 @@ int main(int argc, char *argv[])
 		compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier.c_str(), module, {});
 
 		auto tacheronne = Tacheronne(compilatrice);
+		auto tacheronne_mp = Tacheronne(compilatrice);
 
 #ifdef AVEC_THREADS
 		std::thread file_tacheronne(lance_tacheronne, &tacheronne);
-		std::thread file_execution(lance_file_execution, &compilatrice);
+		std::thread file_execution(lance_tacheronne_metaprogramme, &tacheronne_mp);
 
 		file_tacheronne.join();
 		file_execution.join();
 #else
 		lance_tacheronne(&tacheronne);
-		lance_file_execution(&compilatrice);
+		lance_tacheronne_metaprogramme(&tacheronne_mp);
 #endif
 
 		if (!compilatrice.possede_erreur) {

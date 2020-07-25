@@ -36,11 +36,7 @@ struct NoeudExpression;
 struct Type;
 
 #define ENUMERE_ETATS_UNITE \
-	ENUMERE_ETAT_UNITE_EX(PARSAGE_ATTENDU) \
-	ENUMERE_ETAT_UNITE_EX(TYPAGE_ENTETE_FONCTION_ATTENDU) \
-	ENUMERE_ETAT_UNITE_EX(TYPAGE_ATTENDU) \
-	ENUMERE_ETAT_UNITE_EX(RI_ATTENDUE) \
-	ENUMERE_ETAT_UNITE_EX(CODE_MACHINE_ATTENDU) \
+	ENUMERE_ETAT_UNITE_EX(PRETE) \
 	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_TYPE) \
 	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_DECLARATION) \
 	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_INTERFACE_KURI) \
@@ -57,6 +53,8 @@ struct UniteCompilation {
 	explicit UniteCompilation(EspaceDeTravail *esp)
 		: espace(esp)
 	{}
+
+	UniteCompilation *depend_sur = nullptr;
 
 	Etat etat_{};
 	Etat etat_original{};
@@ -86,14 +84,6 @@ struct UniteCompilation {
 	{
 		this->etat_ = etat_vers;
 		this->cycle = 0;
-	}
-
-	static inline UniteCompilation cree_pour_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
-	{
-		auto unite = UniteCompilation(espace);
-		unite.noeud = noeud;
-		unite.change_etat(UniteCompilation::Etat::RI_ATTENDUE);
-		return unite;
 	}
 
 	inline void attend_sur_type(Type *type)

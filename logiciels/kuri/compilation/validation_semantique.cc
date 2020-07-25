@@ -715,8 +715,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 							type_union->decl = decl_struct;
 
-							auto unite_decl = UniteCompilation::cree_pour_ri(espace, decl_struct);
-							m_compilatrice.file_compilation->pousse(unite_decl);
+							m_compilatrice.ordonnanceuse->cree_tache_pour_generation_ri(espace, decl_struct);
 						}
 
 						return false;

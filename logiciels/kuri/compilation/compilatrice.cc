@@ -327,6 +327,7 @@ static Compilatrice *ptr_compilatrice = nullptr;
 
 Compilatrice::Compilatrice()
 	: constructrice_ri(*this)
+	, ordonnanceuse(this)
 {
 	auto table = table_identifiants.verrou_ecriture();
 	initialise_identifiants(*table);
@@ -481,13 +482,9 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 	fichier->tampon = lng::tampon_source(tampon);
 	fichier->temps_tampon = debut_tampon.temps();
 
-	auto unite = UniteCompilation(espace);
-	unite.fichier = fichier;
-	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
+	ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 
 	messagere->ajoute_message_fichier_ferme(espace, fichier->chemin);
-
-	file_compilation->pousse(unite);
 }
 
 /* ************************************************************************** */
@@ -502,33 +499,6 @@ void Compilatrice::ajoute_inclusion(const dls::chaine &fichier)
 
 	infos->deja_inclus.insere(fichier);
 	infos->inclusions.pousse(fichier);
-}
-
-bool Compilatrice::compilation_terminee() const
-{
-	return possede_erreur || (file_compilation->est_vide() && file_execution->est_vide());
-}
-
-/* ************************************************************************** */
-
-void Compilatrice::ajoute_unite_compilation_pour_typage(EspaceDeTravail *espace, NoeudExpression *expression)
-{
-	auto unite = UniteCompilation(espace);
-	unite.noeud = expression;
-	unite.change_etat(UniteCompilation::Etat::TYPAGE_ATTENDU);
-	unite.etat_original = UniteCompilation::Etat::TYPAGE_ATTENDU;
-
-	file_compilation->pousse(unite);
-}
-
-void Compilatrice::ajoute_unite_compilation_entete_fonction(EspaceDeTravail *espace, NoeudDeclarationFonction *decl)
-{
-	auto unite = UniteCompilation(espace);
-	unite.noeud = decl;
-	unite.change_etat(UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU);
-	unite.etat_original = UniteCompilation::Etat::TYPAGE_ENTETE_FONCTION_ATTENDU;
-
-	file_compilation->pousse(unite);
 }
 
 /* ************************************************************************** */
@@ -562,8 +532,7 @@ size_t Compilatrice::memoire_utilisee() const
 	memoire += static_cast<size_t>(chemins->taille()) * sizeof(dls::vue_chaine_compacte);
 	memoire += static_cast<size_t>(definitions->taille()) * sizeof(dls::vue_chaine_compacte);
 
-	memoire += static_cast<size_t>(file_compilation->taille()) * sizeof(UniteCompilation);
-	memoire += static_cast<size_t>(file_execution->taille()) * sizeof(NoeudDirectiveExecution *);
+	memoire += static_cast<size_t>(ordonnanceuse->memoire_utilisee());
 	memoire += table_identifiants->memoire_utilisee();
 
 	memoire += static_cast<size_t>(gerante_chaine->m_table.taille()) * sizeof(dls::chaine);
@@ -657,11 +626,7 @@ void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chain
 	fichier->module = module;
 	module->fichiers.pousse(fichier);
 
-	auto unite = UniteCompilation(espace);
-	unite.fichier = fichier;
-	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
-
-	ptr_compilatrice->file_compilation->pousse(unite);
+	ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 }
 
 void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine c)
@@ -675,11 +640,7 @@ void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chai
 	fichier->module = module;
 	module->fichiers.pousse(fichier);
 
-	auto unite = UniteCompilation(espace);
-	unite.fichier = fichier;
-	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
-
-	ptr_compilatrice->file_compilation->pousse(unite);
+	ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 }
 
 void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine c)
@@ -702,12 +663,9 @@ void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chai
 	fichier->module = module;
 	module->fichiers.pousse(fichier);
 
-	auto unite = UniteCompilation(espace);
-	unite.fichier = fichier;
-	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
+	ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 
 	ptr_compilatrice->messagere->ajoute_message_fichier_ferme(espace, fichier->chemin);
-	ptr_compilatrice->file_compilation->pousse(unite);
 }
 
 // fonction pour tester les appels de fonctions variadiques externe dans la machine virtuelle

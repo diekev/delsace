@@ -34,6 +34,7 @@
 #include "message.hh"
 #include "modules.hh"
 #include "operateurs.hh"
+#include "tacheronne.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
 
@@ -149,6 +150,11 @@ struct EspaceDeTravail {
 	using TableChaine = dls::dico<dls::chaine, AtomeConstante *>;
 	dls::outils::Synchrone<TableChaine> table_chaines{};
 
+	std::atomic<int> nombre_taches_parsage = 0;
+	std::atomic<int> nombre_taches_typage = 0;
+	std::atomic<int> nombre_taches_ri = 0;
+	std::atomic<int> nombre_taches_execution = 0;
+
 	explicit EspaceDeTravail(OptionsCompilation opts);
 
 	COPIE_CONSTRUCT(EspaceDeTravail);
@@ -202,22 +208,13 @@ struct EspaceDeTravail {
 	void rassemble_metriques(Metriques &metriques) const;
 };
 
-struct UniteExecution {
-	EspaceDeTravail *espace = nullptr;
-	NoeudDirectiveExecution *noeud = nullptr;
-};
-
 struct Compilatrice {
 	dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
 
 	ConstructriceRI constructrice_ri;
 	MachineVirtuelle mv{};
 
-	using TypeFileUC = dls::liste<UniteCompilation>;
-	dls::outils::Synchrone<TypeFileUC> file_compilation{};
-
-	using TypeFileExecution = dls::liste<UniteExecution>;
-	dls::outils::Synchrone<TypeFileExecution> file_execution{};
+	dls::outils::Synchrone<OrdonnanceuseTache> ordonnanceuse;
 
 	dls::outils::Synchrone<GeranteChaine> gerante_chaine{};
 
@@ -305,8 +302,6 @@ struct Compilatrice {
 	/* ********************************************************************** */
 
 	void ajoute_inclusion(const dls::chaine &fichier);
-
-	bool compilation_terminee() const;
 
 	/* ********************************************************************** */
 

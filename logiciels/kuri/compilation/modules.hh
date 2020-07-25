@@ -61,6 +61,8 @@ struct Fichier {
 	dls::chaine nom{""};
 	dls::chaine chemin{""};
 
+	bool fut_lexe = false;
+
 	Fichier() = default;
 
 	COPIE_CONSTRUCT(Fichier);

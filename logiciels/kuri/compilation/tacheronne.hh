@@ -24,11 +24,89 @@
 
 #pragma once
 
+#include "biblinternes/structures/file.hh"
+
 #include "unite_compilation.hh"
 
 #include "../representation_intermediaire/constructrice_ri.hh"
 
 struct Compilatrice;
+
+#define ENUMERE_GENRES_TACHE \
+	ENUMERE_GENRE_TACHE_EX(DORS) \
+	ENUMERE_GENRE_TACHE_EX(COMPILATION_TERMINEE) \
+	ENUMERE_GENRE_TACHE_EX(LEXE) \
+	ENUMERE_GENRE_TACHE_EX(PARSE) \
+	ENUMERE_GENRE_TACHE_EX(TYPAGE_ENTETE_FONCTION) \
+	ENUMERE_GENRE_TACHE_EX(TYPAGE) \
+	ENUMERE_GENRE_TACHE_EX(GENERE_RI) \
+	ENUMERE_GENRE_TACHE_EX(EXECUTE)
+
+enum class GenreTache {
+#define ENUMERE_GENRE_TACHE_EX(etat) etat,
+		ENUMERE_GENRES_TACHE
+#undef ENUMERE_GENRE_TACHE_EX
+};
+
+const char *chaine_genre_tache(GenreTache genre);
+
+std::ostream &operator<<(std::ostream &os, GenreTache genre);
+
+struct Tache {
+	GenreTache genre = GenreTache::DORS;
+	UniteCompilation *unite = nullptr;
+
+	static Tache dors();
+
+	static Tache compilation_terminee();
+};
+
+struct OrdonnanceuseTache {
+private:
+	Compilatrice *m_compilatrice = nullptr;
+
+	dls::file<Tache> taches_lexage{};
+	dls::file<Tache> taches_parsage{};
+	dls::file<Tache> taches_typage{};
+	dls::file<Tache> taches_generation_ri{};
+	dls::file<Tache> taches_execution{};
+
+	tableau_page<UniteCompilation> unites{};
+
+	/* utilsé pour définir ce que fait chaque tâcheronne afin de savoir si tout le
+	 * monde fait quelque : si tout le monde dors, il n'y a plus rien à faire donc
+	 * la compilation est terminée */
+	dls::tablet<GenreTache, 16> etats_tacheronnes{};
+
+	int nombre_de_taches_en_proces = 0;
+	bool compilation_terminee = false;
+
+public:
+	OrdonnanceuseTache() = default;
+	OrdonnanceuseTache(Compilatrice *compilatrice);
+
+	OrdonnanceuseTache(OrdonnanceuseTache const &) = delete;
+	OrdonnanceuseTache &operator=(OrdonnanceuseTache const &) = delete;
+
+	void cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier *fichier);
+	void cree_tache_pour_parsage(EspaceDeTravail *espace, Fichier *fichier);
+	void cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud);
+	void cree_tache_pour_typage_fonction(EspaceDeTravail *espace, NoeudDeclarationFonction *noeud);
+	void cree_tache_pour_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
+	void cree_tache_pour_execution(EspaceDeTravail *espace, NoeudDirectiveExecution *noeud);
+
+	Tache tache_suivante(Tache const &tache_terminee, bool tache_completee, int id, bool premiere);
+	Tache tache_metaprogramme_suivante(Tache const &tache_terminee, int id, bool premiere);
+
+	long memoire_utilisee() const;
+
+private:
+	void cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud, GenreTache genre_tache);
+
+	void renseigne_etat_tacheronne(int id, GenreTache genre_tache);
+
+	bool toutes_les_tacheronnes_dorment() const;
+};
 
 struct Tacheronne {
 	Compilatrice &compilatrice;
@@ -39,22 +117,15 @@ struct Tacheronne {
 	double temps_lexage = 0.0;
 	double temps_parsage = 0.0;
 
+	int id = 0;
+
 	Tacheronne(Compilatrice &comp);
 
 	void gere_tache();
+	void gere_tache_metaprogramme();
 
-	void gere_unite(UniteCompilation unite);
-
-//	// données par thread
-//	Lexeuse lexeuse;
-//	Syntaxeuse syntaxeuse;
-//	ConstructriceRI constructrice_ri;
-//	ValideuseSyntaxe valideuse;
-//	Coulisse coulisse;
-
-//	// données globales
-//	Compilatrice compilatrice;
-//	Typeuse typeuse;
-//	Operateur operateurs;
-//	NormalisatriceNom normalisatrice_nom;
+private:
+	bool gere_unite_pour_typage(UniteCompilation *unite);
+	bool gere_unite_pour_ri(UniteCompilation *unite);
+	void gere_unite_pour_execution(UniteCompilation *unite);
 };

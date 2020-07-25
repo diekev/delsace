@@ -44,6 +44,7 @@ struct NoeudBloc;
 struct NoeudCode;
 struct TypeFonction;
 struct NoeudDependance;
+struct UniteCompilation;
 
 #define ENUMERE_GENRES_NOEUD \
 	ENUMERE_GENRE_NOEUD_EX(DECLARATION_COROUTINE) \
@@ -232,6 +233,7 @@ struct NoeudExpression {
 
 	TransformationType transformation{};
 
+	UniteCompilation *unite = nullptr;
 	NoeudCode *noeud_code = nullptr;
 
 	NoeudExpression() = default;

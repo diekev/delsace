@@ -34,6 +34,12 @@ struct EspaceDeTravail;
 struct Module;
 struct NoeudDeclaration;
 
+enum class PhaseCompilation : int {
+	PARSAGE_TERMINE,
+	TYPAGE_TERMINE,
+	GENRERATION_CODE_TERMINEE,
+};
+
 enum class GenreMessage : int {
 	INVALIDE,
 
@@ -42,6 +48,8 @@ enum class GenreMessage : int {
 	MODULE_OUVERT,
 	MODULE_FERME,
 	TYPAGE_CODE_TERMINE,
+	PHASE_COMPILATION,
+
 	COMPILATION_TERMINEE,
 };
 
@@ -63,11 +71,16 @@ struct MessageTypageCodeTermine : public Message {
 	NoeudCode *noeud_code;
 };
 
+struct MessagePhaseCompilation : public Message {
+	PhaseCompilation phase;
+};
+
 struct Messagere {
 private:
 	tableau_page<MessageFichier> messages_fichiers{};
 	tableau_page<MessageModule> messages_modules{};
 	tableau_page<MessageTypageCodeTermine> messages_typage_code{};
+	tableau_page<MessagePhaseCompilation> messages_phase_compilation{};
 	dls::file<Message *> file_message{};
 
 	long pic_de_message = 0;
@@ -82,6 +95,7 @@ public:
 	void ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module);
 	void ajoute_message_module_ferme(EspaceDeTravail *espace, Module *module);
 	void ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclaration *noeud_decl);
+	void ajoute_message_phase_compilation(EspaceDeTravail *espace, PhaseCompilation phase);
 
 	size_t memoire_utilisee() const;
 

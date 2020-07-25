@@ -293,17 +293,11 @@ static erreur::type_erreur lance_test(lng::tampon_source &tampon)
 	fichier->tampon = tampon;
 	fichier->module = module;
 
-	auto unite = UniteCompilation(espace);
-	unite.fichier = fichier;
-	unite.change_etat(UniteCompilation::Etat::PARSAGE_ATTENDU);
-	compilatrice.file_compilation->pousse(unite);
+	compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 
 	try {
 		auto tacheronne = Tacheronne(compilatrice);
-
-		while (!compilatrice.compilation_terminee()) {
-			tacheronne.gere_tache();
-		}
+		tacheronne.gere_tache();
 	}
 	catch (const erreur::frappe &e) {
 		std::filesystem::current_path(chemin_courant);
