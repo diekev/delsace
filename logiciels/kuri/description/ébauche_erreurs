@@ -1,0 +1,63 @@
+ébauche pour un nouveau système d'erreur
+l'idée est d'automatiser le plus possible la génération des messages d'erreur, et de fournir le plus de données possible aux utilisateurs afin de pouvoir les aider à régler leurs problèmes
+ceci utilise un système de gabarit pour imprimer les messages
+les variables commençant par '%' seront tirées du contexte où l'erreur est survenue
+
+
+: erreur "unité_attend_sur_opérateur"
+catégorie typage
+
+Je ne peux pas continuer la compilation car je n'arrive pas à déterminer quel opérateur appeler.
+
+%site
+
+%note : Le type à droite est %type1 (défini dans module %type1.module)
+%note : Le typa à gauche est %type2 (défini dans module %type2.module)
+
+%solution : Avez-vous oublié d'importer le module ?
+
+%solution : Vous pouvez définir vos propres opérateurs avec la syntaxe suivante
+
+    opérateur %site.lexème :: fonc (a: %type1, b: %type2) -> %site.lexème.type_attaché
+    {
+        // ...
+    }
+
+
+: erreur "parsage"
+catégorie parsage
+
+Je ne peux pas continuer la compilation car je n'arrive pas à parser le code.
+
+%site
+
+: erreur "symbole_inconnu"
+
+: erreur "membre_inconnu"
+
+: erreur "module_inconnu"
+
+: erreur "fichier_inconnu"
+
+: erreur "fonction_redéfinie"
+
+: erreur "opérateur_redéfini"
+
+: erreur "contexte_manquant"
+
+: erreur "type_incompatible"
+
+: erreur "appel_fonction_irresolvable"
+
+// il nous faut des données
+
+%itér candidates
+  %cas "ménombrage_arguments"
+
+    J'ai voulus choisir la fonction %site, mais le nombre d'arguments ne correspond pas
+    La fonction requiers %nombre_arguments_voulus, mais l'appel en possède %nombre_arguments_donnés
+
+  %cas "métypage_arguments
+
+    J'ai voulus choir la fonction %site, mais le type de l'argument %index_argument ne correspond pas à celui désiré.
+
