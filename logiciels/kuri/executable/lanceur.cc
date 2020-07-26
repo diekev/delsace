@@ -606,7 +606,7 @@ static int genere_code_coulisse(
 		of.open("/tmp/compilation_kuri.c");
 
 		std::cout << "Génération du code..." << std::endl;
-		genere_code_C(compilatrice, espace, compilatrice.racine_kuri, of);
+		genere_code_C(compilatrice, espace, of);
 
 		of.close();
 

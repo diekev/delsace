@@ -1275,7 +1275,6 @@ struct GeneratriceCodeC {
 static void genere_code_C_depuis_fonction_principale(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
-		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie)
 {
 	auto debut_generation = dls::chrono::compte_seconde();
@@ -1296,7 +1295,7 @@ static void genere_code_C_depuis_fonction_principale(
 	// stockage temporaire, et les typedefs pour les types sont générés avant les fonctions.
 	auto atome_main = compilatrice.constructrice_ri.genere_ri_pour_fonction_main(&espace);
 
-	genere_code_debut_fichier(enchaineuse, racine_kuri);
+	genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
 	POUR_TABLEAU_PAGE(graphe->noeuds) {
 		if (it.type != TypeNoeudDependance::TYPE) {
@@ -1434,11 +1433,10 @@ static void genere_code_C_pour_tout(
 void genere_code_C(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
-		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie)
 {
 	if (espace.options.objet_genere == ObjetGenere::Executable) {
-		genere_code_C_depuis_fonction_principale(compilatrice, espace, racine_kuri, fichier_sortie);
+		genere_code_C_depuis_fonction_principale(compilatrice, espace, fichier_sortie);
 	}
 	else {
 		genere_code_C_pour_tout(compilatrice, espace, fichier_sortie);

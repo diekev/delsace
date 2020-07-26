@@ -32,5 +32,4 @@ struct EspaceDeTravail;
 void genere_code_C(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
-		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);
