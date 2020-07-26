@@ -1881,6 +1881,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 			else if (ident_directive == ID::racine) {
 				noeud->drapeaux |= (EST_RACINE);
 			}
+			else {
+				lance_erreur("Directive inconnue");
+			}
 
 			consomme();
 		}
@@ -2043,6 +2046,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		else if (directive == ID::nulctx) {
 			noeud->drapeaux |= FORCE_NULCTX;
 		}
+		else {
+			lance_erreur("Directive inconnue");
+		}
 	}
 
 	/* ignore les points-virgules implicites */
@@ -2118,6 +2124,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 		if (lexeme_courant()->ident == ID::interface) {
 			renseigne_type_interface(m_unite->espace->typeuse, noeud_decl->ident, noeud_decl->type);
+		}
+		else {
+			lance_erreur("Directive inconnue");
 		}
 
 		consomme();
