@@ -382,17 +382,19 @@ static void imprime_stats(
 	return;
 }
 
+/* À FAIRE : il faudra proprement gérer les architectures pour les r16, ou trouver des algorithmes pour supprimer les tables */
 static void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri)
 {
 	// objet pour la liaison statique de la bibliothèque
 	{
 		auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
-		auto chemin_objet = "/tmp/r16_tables.o";
+		auto chemin_objet = "/tmp/r16_tables_x64.o";
 
 		if (!std::filesystem::exists(chemin_objet)) {
 			auto commande = dls::chaine("g++ -c ");
 			commande += chemin_fichier.c_str();
-			commande += " -o /tmp/r16_tables.o";
+			commande += " -o ";
+			commande += chemin_objet;
 
 			std::cout << "Compilation des tables de conversion R16...\n";
 			std::cout << "Exécution de la commande " << commande << std::endl;
@@ -411,12 +413,13 @@ static void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri
 	// objet pour la liaison dynamique de la bibliothèque, pour les métaprogrammes
 	{
 		auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
-		auto chemin_objet = "/tmp/r16_tables.so";
+		auto chemin_objet = "/tmp/r16_tables_x64.so";
 
 		if (!std::filesystem::exists(chemin_objet)) {
 			auto commande = dls::chaine("g++ -shared -fPIC ");
 			commande += chemin_fichier.c_str();
-			commande += " -o /tmp/r16_tables.so";
+			commande += " -o ";
+			commande += chemin_objet;
 
 			std::cout << "Compilation des tables de conversion R16...\n";
 			std::cout << "Exécution de la commande " << commande << std::endl;
@@ -429,6 +432,38 @@ static void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri
 			}
 
 			std::cout << "Compilation du fichier dynamique réussie !" << std::endl;
+		}
+	}
+}
+
+static void compile_objet_r16(std::filesystem::path const &chemin_racine_kuri, ArchitectureCible architecture_cible)
+{
+	if (architecture_cible == ArchitectureCible::X64) {
+		// nous devrions déjà l'avoir
+		return;
+	}
+
+	{
+		auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
+		auto chemin_objet = "/tmp/r16_tables_x86.o";
+
+		if (!std::filesystem::exists(chemin_objet)) {
+			auto commande = dls::chaine("g++ -c -m32 ");
+			commande += chemin_fichier.c_str();
+			commande += " -o ";
+			commande += chemin_objet;
+
+			std::cout << "Compilation des tables de conversion R16...\n";
+			std::cout << "Exécution de la commande " << commande << std::endl;
+
+			auto err = system(commande.c_str());
+
+			if (err != 0) {
+				std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
+				return;
+			}
+
+			std::cout << "Compilation du fichier statique réussie !" << std::endl;
 		}
 	}
 }
@@ -632,8 +667,17 @@ static int genere_code_coulisse(
 		}
 
 		if (ops.objet_genere == ObjetGenere::Executable) {
+			compile_objet_r16(compilatrice.racine_kuri.c_str(), ops.architecture_cible);
+
 			auto debut_executable = dls::chrono::compte_seconde();
-			commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
+			commande = dls::chaine("gcc /tmp/compilation_kuri.o ");
+
+			if (ops.architecture_cible == ArchitectureCible::X86) {
+				commande += " /tmp/r16_tables_x86.o ";
+			}
+			else {
+				commande += " /tmp/r16_tables_x64.o ";
+			}
 
 			for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
 				commande += " ";
