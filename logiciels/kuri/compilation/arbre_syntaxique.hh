@@ -145,6 +145,7 @@ enum drapeaux_noeud : unsigned int {
 	CODE_BINAIRE_FUT_GENERE    = (1 << 17),
 	COMPILATRICE               = (1 << 18),
 	FORCE_SANSBROYAGE          = (1 << 19),
+	EST_RACINE                 = (1 << 20),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned int)

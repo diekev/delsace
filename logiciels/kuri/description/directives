@@ -13,6 +13,7 @@ Directives pour le compilateur
 #inclus                 indique un fichier à inclure pour la coulisse C
 #interface              indique qu'une fonction ou structure fait partie de l'interface entre la compilatrice et le programme, ne peut être utilisé qu'au sein du module Kuri
 #nulctx                 indique que la fonction ou le type de fonction ne prend pas le contexte implicite en paramètre
+#racine                 indique les fonctions racines qui seront considérées pour la compilation de fichiers objets, si aucune fonction n'est marquée comme racine, le fichier objet sera vide
 #sansbroyage            indique que le nom de la fonction ne doit pas être "broyé", c'est à dire que le nom sera utilisé tel quel dans le fichier objet ou l'exécutable généré
 #sanstrace              indique qu'une fonction n'a pas de trace d'appel
 

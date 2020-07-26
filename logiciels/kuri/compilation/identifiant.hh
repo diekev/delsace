@@ -119,6 +119,7 @@ extern IdentifiantCode *fonction_test_variadique_externe;
 extern IdentifiantCode *test;
 extern IdentifiantCode *assert_;
 extern IdentifiantCode *sansbroyage;
+extern IdentifiantCode *racine;
 
 }
 

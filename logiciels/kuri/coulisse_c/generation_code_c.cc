@@ -1272,31 +1272,8 @@ struct GeneratriceCodeC {
 	}
 };
 
-static void genere_code_C_depuis_fonction_principale(
-		Compilatrice &compilatrice,
-		EspaceDeTravail &espace,
-		std::ostream &fichier_sortie)
+static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Synchrone<GrapheDependance> &graphe, Enchaineuse &enchaineuse)
 {
-	auto debut_generation = dls::chrono::compte_seconde();
-
-	Enchaineuse enchaineuse;
-
-	espace.typeuse.construit_table_types();
-
-	// NOTE : on ne prend pas de verrou ici car genere_ri_pour_fonction_main reprendra un verrou du graphe via la Typeuse -> verrou mort
-	auto &graphe = espace.graphe_dependance;
-	auto fonction_principale = graphe->cherche_noeud_fonction("principale");
-
-	if (fonction_principale == nullptr) {
-		erreur::fonction_principale_manquante();
-	}
-
-	// nous devons générer la fonction main ici, car elle défini le type du tableau de
-	// stockage temporaire, et les typedefs pour les types sont générés avant les fonctions.
-	auto atome_main = compilatrice.constructrice_ri.genere_ri_pour_fonction_main(&espace);
-
-	genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
-
 	POUR_TABLEAU_PAGE(graphe->noeuds) {
 		if (it.type != TypeNoeudDependance::TYPE) {
 			continue;
@@ -1336,10 +1313,11 @@ static void genere_code_C_depuis_fonction_principale(
 	POUR_TABLEAU_PAGE(graphe->noeuds) {
 		it.fut_visite = false;
 	}
+}
 
-	kuri::tableau<AtomeFonction *> fonctions;
-
-	traverse_graphe(fonction_principale, [&](NoeudDependance *noeud)
+static void rassemble_fonctions_utilisees(NoeudDependance *racine, EspaceDeTravail &espace, kuri::tableau<AtomeFonction *> &fonctions)
+{
+	traverse_graphe(racine, [&](NoeudDependance *noeud)
 	{
 		auto table = espace.table_fonctions.verrou_lecture();
 
@@ -1362,6 +1340,37 @@ static void genere_code_C_depuis_fonction_principale(
 			}
 		}
 	});
+}
+
+static void genere_code_C_depuis_fonction_principale(
+		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
+		std::ostream &fichier_sortie)
+{
+	auto debut_generation = dls::chrono::compte_seconde();
+
+	Enchaineuse enchaineuse;
+
+	espace.typeuse.construit_table_types();
+
+	// NOTE : on ne prend pas de verrou ici car genere_ri_pour_fonction_main reprendra un verrou du graphe via la Typeuse -> verrou mort
+	auto &graphe = espace.graphe_dependance;
+	auto fonction_principale = graphe->cherche_noeud_fonction("principale");
+
+	if (fonction_principale == nullptr) {
+		erreur::fonction_principale_manquante();
+	}
+
+	// nous devons générer la fonction main ici, car elle défini le type du tableau de
+	// stockage temporaire, et les typedefs pour les types sont générés avant les fonctions.
+	auto atome_main = compilatrice.constructrice_ri.genere_ri_pour_fonction_main(&espace);
+
+	genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
+
+	genere_code_pour_types(compilatrice, graphe, enchaineuse);
+
+	kuri::tableau<AtomeFonction *> fonctions;
+	rassemble_fonctions_utilisees(fonction_principale, espace, fonctions);
 
 	fonctions.pousse(atome_main);
 
@@ -1373,7 +1382,7 @@ static void genere_code_C_depuis_fonction_principale(
 	compilatrice.temps_generation = debut_generation.temps();
 }
 
-static void genere_code_C_pour_tout(
+static void genere_code_C_depuis_fonctions_racines(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
 		std::ostream &fichier_sortie)
@@ -1384,39 +1393,27 @@ static void genere_code_C_pour_tout(
 
 	espace.typeuse.construit_table_types();
 
+	auto &graphe = espace.graphe_dependance;
 	genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
+	genere_code_pour_types(compilatrice, graphe, enchaineuse);
 
-	POUR_TABLEAU_PAGE (espace.graphe_dependance->noeuds) {
-		if (it.type != TypeNoeudDependance::TYPE) {
-			continue;
-		}
+	kuri::tableau<AtomeFonction *> fonctions_racines;
+	fonctions_racines.reserve(espace.fonctions.taille());
 
-		auto type = it.type_;
-
-		if (type && type->genre == GenreType::TYPE_DE_DONNEES) {
-			continue;
-		}
-
-		genere_typedefs_recursifs(compilatrice, type, enchaineuse);
-
-		if (type && (type->genre == GenreType::STRUCTURE)) {
-			auto type_struct = type->comme_structure();
-
-			for (auto &membre : type_struct->membres) {
-				genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
-			}
-
-			auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
-			genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_struct), quoi);
+	POUR_TABLEAU_PAGE (espace.fonctions) {
+		if (it.decl && dls::outils::possede_drapeau(it.decl->drapeaux, EST_RACINE)) {
+			it.nombre_utilisations = 1;
+			fonctions_racines.pousse(&it);
 		}
 	}
 
-	kuri::tableau<AtomeFonction *> fonctions;
-	fonctions.reserve(espace.fonctions.taille());
+	// À FAIRE : erreur, nécessite un site pour imprimer quelque chose
 
-	POUR_TABLEAU_PAGE (espace.fonctions) {
-		it.nombre_utilisations = 1;
-		fonctions.pousse(&it);
+	kuri::tableau<AtomeFonction *> fonctions;
+
+	POUR (fonctions_racines) {
+		auto noeud_dep = it->decl->noeud_dependance;
+		rassemble_fonctions_utilisees(noeud_dep, espace, fonctions);
 	}
 
 	auto generatrice = GeneratriceCodeC(espace);
@@ -1436,6 +1433,6 @@ void genere_code_C(
 		genere_code_C_depuis_fonction_principale(compilatrice, espace, fichier_sortie);
 	}
 	else {
-		genere_code_C_pour_tout(compilatrice, espace, fichier_sortie);
+		genere_code_C_depuis_fonctions_racines(compilatrice, espace, fichier_sortie);
 	}
 }

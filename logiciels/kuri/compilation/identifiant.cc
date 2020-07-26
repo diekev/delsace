@@ -145,6 +145,7 @@ IdentifiantCode *fonction_test_variadique_externe;
 IdentifiantCode *test;
 IdentifiantCode *assert_;
 IdentifiantCode *sansbroyage;
+IdentifiantCode *racine;
 
 }
 
@@ -211,4 +212,5 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::test = table.identifiant_pour_chaine("test");
 	ID::assert_ = table.identifiant_pour_chaine("assert");
 	ID::sansbroyage = table.identifiant_pour_chaine("sansbroyage");
+	ID::racine = table.identifiant_pour_chaine("racine");
 }

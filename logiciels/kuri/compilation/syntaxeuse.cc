@@ -1878,6 +1878,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 			else if (ident_directive == ID::sansbroyage) {
 				noeud->drapeaux |= (FORCE_SANSBROYAGE);
 			}
+			else if (ident_directive == ID::racine) {
+				noeud->drapeaux |= (EST_RACINE);
+			}
 
 			consomme();
 		}
