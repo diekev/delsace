@@ -125,7 +125,6 @@ IdentifiantCode *nulctx;
 IdentifiantCode *externe;
 IdentifiantCode *sanstrace;
 IdentifiantCode *interface;
-IdentifiantCode *inclus;
 IdentifiantCode *bibliotheque_dynamique;
 IdentifiantCode *bibliotheque_statique;
 IdentifiantCode *def;
@@ -191,7 +190,6 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::externe = table.identifiant_pour_chaine("externe");
 	ID::sanstrace = table.identifiant_pour_chaine("sanstrace");
 	ID::interface = table.identifiant_pour_chaine("interface");
-	ID::inclus = table.identifiant_pour_chaine("inclus");
 	ID::bibliotheque_dynamique = table.identifiant_pour_chaine("bibliothèque_dynamique");
 	ID::bibliotheque_statique = table.identifiant_pour_chaine("bibliothèque_statique");
 	ID::def = table.identifiant_pour_chaine("def");

@@ -1,7 +1,5 @@
 // Interface pour la bibliothèque SDL2
 
-#inclus "SDL2/SDL.h"
-
 #bibliothèque_dynamique "SDL2"
 
 DrapeauxInit :: énum_drapeau n32 {

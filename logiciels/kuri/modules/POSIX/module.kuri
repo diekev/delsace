@@ -1,7 +1,5 @@
 // Interface pour les fonctions standardes définies par POSIX
 
-#inclus "stdlib.h"
-
 importe Fondation
 
 getenv :: fonc externe (nom: *z8) -> *z8

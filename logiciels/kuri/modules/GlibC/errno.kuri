@@ -1,7 +1,5 @@
 // Interface pour errno
 
-#inclus "errno.h"
-
 __errno_location :: fonc externe () -> *z32
 
 lis_errno :: fonc () -> z32

@@ -99,7 +99,6 @@ extern IdentifiantCode *nulctx;
 extern IdentifiantCode *externe;
 extern IdentifiantCode *sanstrace;
 extern IdentifiantCode *interface;
-extern IdentifiantCode *inclus;
 extern IdentifiantCode *bibliotheque_dynamique;
 extern IdentifiantCode *bibliotheque_statique;
 extern IdentifiantCode *def;

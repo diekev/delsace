@@ -1012,14 +1012,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
 				consomme();
 
-				if (directive == ID::inclus) {
-					auto chaine_inclus = lexeme_courant()->chaine;
-					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
-
-					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_inclus);
-					m_compilatrice.ajoute_inclusion(chaine);
-				}
-				else if (directive == ID::bibliotheque_dynamique) {
+				if (directive == ID::bibliotheque_dynamique) {
 					auto chaine_bib = lexeme_courant()->chaine;
 					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 

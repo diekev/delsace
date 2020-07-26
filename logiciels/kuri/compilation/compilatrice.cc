@@ -332,14 +332,6 @@ Compilatrice::Compilatrice()
 	auto table = table_identifiants.verrou_ecriture();
 	initialise_identifiants(*table);
 
-	/* Pour fprintf dans les messages d'erreurs, nous incluons toujours "stdio.h". */
-	this->ajoute_inclusion("stdio.h");
-	/* Pour malloc/free, nous incluons toujours "stdlib.h". */
-	this->ajoute_inclusion("stdlib.h");
-	/* Pour strlen, nous incluons toujours "string.h". */
-	this->ajoute_inclusion("string.h");
-	/* Pour les coroutines nous incluons toujours pthread */
-	this->ajoute_inclusion("pthread.h");
 	this->bibliotheques_dynamiques->pousse("pthread");
 	this->definitions->pousse("_REENTRANT");
 
@@ -489,35 +481,9 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 
 /* ************************************************************************** */
 
-void Compilatrice::ajoute_inclusion(const dls::chaine &fichier)
-{
-	auto infos = infos_inclusions.verrou_ecriture();
-
-	if (infos->deja_inclus.trouve(fichier) != infos->deja_inclus.fin()) {
-		return;
-	}
-
-	infos->deja_inclus.insere(fichier);
-	infos->inclusions.pousse(fichier);
-}
-
-/* ************************************************************************** */
-
 size_t Compilatrice::memoire_utilisee() const
 {
 	auto memoire = sizeof(Compilatrice);
-
-	auto infos = infos_inclusions.verrou_lecture();
-
-	memoire += static_cast<size_t>(infos->deja_inclus.taille()) * sizeof(dls::chaine);
-	POUR (infos->deja_inclus) {
-		memoire += static_cast<size_t>(it.taille());
-	}
-
-	memoire += static_cast<size_t>(infos->inclusions.taille()) * sizeof(dls::chaine);
-	POUR (infos->inclusions) {
-		memoire += static_cast<size_t>(it.taille());
-	}
 
 	memoire += static_cast<size_t>(bibliotheques_dynamiques->taille()) * sizeof(dls::chaine);
 	POUR (*bibliotheques_dynamiques.verrou_lecture()) {

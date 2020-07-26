@@ -224,16 +224,6 @@ struct Compilatrice {
 	bool importe_kuri = true;
 	bool possede_erreur = false;
 
-	struct InformationsInclusions {
-		dls::ensemble<dls::chaine> deja_inclus{};
-		/* certains fichiers d'entête requiers d'être inclus dans un certain ordre,
-		 * par exemple pour OpenGL, donc les inclusions finales sont stockées dans
-		 * un tableau dans l'ordre dans lequel elles apparaissent dans le code */
-		dls::tableau<dls::chaine> inclusions{};
-	};
-
-	dls::outils::Synchrone<InformationsInclusions> infos_inclusions{};
-
 	template <typename T>
 	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
 
@@ -298,10 +288,6 @@ struct Compilatrice {
 
 	void ajoute_unite_compilation_pour_typage(EspaceDeTravail *espace, NoeudExpression *expression);
 	void ajoute_unite_compilation_entete_fonction(EspaceDeTravail *espace, NoeudDeclarationFonction *decl);
-
-	/* ********************************************************************** */
-
-	void ajoute_inclusion(const dls::chaine &fichier);
 
 	/* ********************************************************************** */
 

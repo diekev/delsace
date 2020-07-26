@@ -3,8 +3,6 @@
 
 importe Couleur
 
-#inclus "png.h"
-
 #bibliothèque_dynamique "png"
 
 png_struct_def :: struct externe;

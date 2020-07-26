@@ -3,8 +3,6 @@
 #bibliothèque_statique "libmodule_c_alea.a"
 #bibliothèque_dynamique "m"
 
-#inclus "alea.h"
-
 GNA :: struct externe;
 
 ALEA_cree_gna :: fonc externe (graine: n32) -> *GNA

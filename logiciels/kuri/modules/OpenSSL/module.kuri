@@ -1,8 +1,5 @@
 // Interface pour la bibliothèque OpenSSL
 
-#inclus "openssl/err.h"
-#inclus "openssl/ssl.h"
-
 #bibliothèque_dynamique "ssl"
 #bibliothèque_dynamique "crypto"
 

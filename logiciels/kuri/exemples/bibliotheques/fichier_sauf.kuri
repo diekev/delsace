@@ -15,13 +15,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#inclus "sys/types.h"
-#inclus "sys/stat.h"
-#inclus "fcntl.h"
-#inclus "unistd.h"
-#inclus "errno.h"
-#inclus "stdio.h"
-
 // Replacement functions for open.  These functions differ in the following
 // ways:
 //

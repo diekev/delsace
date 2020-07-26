@@ -1,16 +1,5 @@
 // définitions des interfaces de la bibliothèques C pour GNU/Linux
 
-#inclus "arpa/inet.h"
-#inclus "dirent.h"
-#inclus "fcntl.h"
-#inclus "netdb.h"
-#inclus "stdio.h"
-#inclus "sys/stat.h"
-#inclus "sys/time.h"
-#inclus "sys/wait.h"
-#inclus "time.h"
-#inclus "unistd.h"
-
 //###############################################################################
 
 // Valeur des descripteurs fichiers pour les flux standards.

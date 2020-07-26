@@ -2,8 +2,6 @@
 
 #bibliothèque_statique "libkrypto.a"
 
-#inclus "krypto.hh"
-
 importe Fondation
 
 // À FAIRE : implémente avec notre langage toutes ces fonctions (il semble qu'il y a un problème de boutisme ou de signe dans le langage)

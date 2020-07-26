@@ -1,8 +1,6 @@
 
 #bibliothèque_dynamique "X11"
 
-#inclus "X11/Xlib.h"
-
 Display :: struct externe;
 _XEvent :: union externe nonsûr {
     type : z32

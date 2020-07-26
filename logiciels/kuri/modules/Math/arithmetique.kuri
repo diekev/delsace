@@ -1,6 +1,5 @@
 // À FAIRE : implémente les fonctions suivantes avec notre langage
 
-#inclus "math.h"
 #bibliothèque_dynamique "m"
 
 sqrt :: fonc externe (v: r64) -> r64

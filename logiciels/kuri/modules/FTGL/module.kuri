@@ -1,10 +1,6 @@
 #bibliothèque_statique "libmodule_c_ftgl.a"
 #bibliothèque_dynamique "freetype"
 
-#inclus "freetype-gl.h"
-#inclus "markup.h"
-#inclus "vec234.h"
-
 vec2 :: struct externe {
     x := 0.0
     y := 0.0

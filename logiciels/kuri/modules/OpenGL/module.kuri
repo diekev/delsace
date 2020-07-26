@@ -1,5 +1,3 @@
-#inclus "GL/glew.h"
-
 #bibliothèque_dynamique "GL"
 #bibliothèque_dynamique "GLEW"
 

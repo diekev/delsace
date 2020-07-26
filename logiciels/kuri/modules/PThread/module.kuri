@@ -7,7 +7,6 @@ __clockid_t :: struct externe { d: z32; } // z32
 pthread_once_t :: struct externe { d: z32; } // z32
 pthread_spinlock_t :: struct externe { d: z32; } // z32
 
-#inclus "pthread.h"
 #bibliothèque_dynamique "pthread"
 #def "_REENTRANT"
 

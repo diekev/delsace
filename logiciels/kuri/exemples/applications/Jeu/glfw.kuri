@@ -3,8 +3,6 @@
 // fichiers d'entêtes devant être dans le bon ordre.
 importe OpenGL
 
-#inclus "GLFW/glfw3.h"
-
 #bibliothèque_dynamique "glfw"
 
 GLFWwindow :: struct externe

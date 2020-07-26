@@ -1,4 +1,3 @@
-#inclus "mysql.h"
 #bibliothèque_dynamique "mysqlclient"
 
 #chemin "-L/opt/lib/mysql/lib/"

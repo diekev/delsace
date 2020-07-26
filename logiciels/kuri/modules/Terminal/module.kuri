@@ -1,7 +1,5 @@
 // Module d'interface avec le terminal/la console
 
-#inclus "termios.h"
-
 VINTR :: 0
 VQUIT :: 1
 VERASE :: 2
@@ -71,13 +69,9 @@ termios :: struct externe {
 tcgetattr :: fonc externe (fd: z32, t: *termios) -> rien
 tcsetattr :: fonc externe (fd: z32, drapeaux: z32, t: *termios) -> rien
 
-#inclus "ctype.h"
-
 iscntrl :: fonc externe (c: z8) -> bool
 
 // -------------------------------
-
-#inclus "sys/ioctl.h"
 
 winsize :: struct externe {
     ws_row : n16

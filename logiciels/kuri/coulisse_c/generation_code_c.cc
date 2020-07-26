@@ -157,12 +157,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 				break;
 			}
 
-			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t" && nom_struct != "MY_CHARSET_INFO" && nom_struct != "struct_stat") {
-				enchaineuse << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
-			}
-			else {
-				enchaineuse << "typedef " << nom_struct << ' ' << nom_broye << ";\n";
-			}
+			enchaineuse << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
 
 			break;
 		}
@@ -178,16 +173,11 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 				break;
 			}
 
-			if (nom_struct != "pthread_mutex_t" && nom_struct != "pthread_cond_t") {
-				if (decl->est_nonsure || decl->est_externe) {
-					enchaineuse << "typedef union " << nom_struct << ' ' << nom_broye << ";\n";
-				}
-				else {
-					enchaineuse << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
-				}
+			if (decl->est_nonsure || decl->est_externe) {
+				enchaineuse << "typedef union " << nom_struct << ' ' << nom_broye << ";\n";
 			}
 			else {
-				enchaineuse << "typedef " << nom_struct << ' ' << nom_broye << ";\n";
+				enchaineuse << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
 			}
 
 			break;
@@ -421,16 +411,9 @@ static void genere_typedefs_recursifs(
 // ----------------------------------------------
 
 static void genere_code_debut_fichier(
-		Compilatrice &compilatrice,
 		Enchaineuse &enchaineuse,
 		dls::chaine const &racine_kuri)
 {
-	for (auto const &inc : compilatrice.infos_inclusions->inclusions) {
-		enchaineuse << "#include <" << inc << ">\n";
-	}
-
-	enchaineuse << "\n";
-
 	enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
 
 	enchaineuse <<
@@ -477,11 +460,13 @@ R"(
 	enchaineuse << "typedef unsigned char octet;\n";
 	enchaineuse << "typedef void Ksnul;\n";
 	enchaineuse << "typedef struct ContexteProgramme KsContexteProgramme;\n";
-	enchaineuse << "typedef struct stat struct_stat;\n";
 	/* À FAIRE : pas beau, mais un pointeur de fonction peut être un pointeur
 	 * vers une fonction de LibC dont les arguments variadiques ne sont pas
 	 * typés */
 	enchaineuse << "#define Kv ...\n\n";
+
+	/* défini memcpy puisque nous l'utilisons pour copier les tableaux fixes */
+	enchaineuse << "void *memcpy(void *__restrict dest, const void *__restrict src, unsigned long n) __attribute__ ((__nonnull__ (1, 2)));\n";
 }
 
 struct GeneratriceCodeC {
@@ -1147,11 +1132,6 @@ struct GeneratriceCodeC {
 		POUR (fonctions) {
 			auto atome_fonc = it;
 
-			if (atome_fonc->instructions.taille == 0) {
-				// ignore les fonctions externes
-				continue;
-			}
-
 			auto type_fonction = atome_fonc->type->comme_fonction();
 			os << nom_broye_type(type_fonction->types_sorties[0]) << " " << atome_fonc->nom;
 
@@ -1161,7 +1141,14 @@ struct GeneratriceCodeC {
 				os << virgule;
 
 				auto type_pointeur = param->type->comme_pointeur();
-				os << nom_broye_type(type_pointeur->type_pointe) << ' ';
+				auto type_param = type_pointeur->type_pointe;
+				os << nom_broye_type(type_param) << ' ';
+
+				// dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé (void fonction(...)), n'imprime pas de nom
+				if (type_param->est_variadique() && type_param->comme_variadique()->type_pointe == nullptr) {
+					continue;
+				}
+
 				os << broye_nom_simple(param->ident->nom);
 
 				virgule = ", ";
@@ -1309,7 +1296,7 @@ static void genere_code_C_depuis_fonction_principale(
 	// stockage temporaire, et les typedefs pour les types sont générés avant les fonctions.
 	auto atome_main = compilatrice.constructrice_ri.genere_ri_pour_fonction_main(&espace);
 
-	genere_code_debut_fichier(compilatrice, enchaineuse, racine_kuri);
+	genere_code_debut_fichier(enchaineuse, racine_kuri);
 
 	POUR_TABLEAU_PAGE(graphe->noeuds) {
 		if (it.type != TypeNoeudDependance::TYPE) {
@@ -1336,10 +1323,6 @@ static void genere_code_C_depuis_fonction_principale(
 
 			if (type && (type->genre == GenreType::STRUCTURE)) {
 				auto type_struct = noeud->type_->comme_structure();
-
-				if (type_struct->decl && type_struct->decl->est_externe) {
-					return;
-				}
 
 				for (auto &membre : type_struct->membres) {
 					genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
@@ -1402,7 +1385,7 @@ static void genere_code_C_pour_tout(
 
 	espace.typeuse.construit_table_types();
 
-	genere_code_debut_fichier(compilatrice, enchaineuse, compilatrice.racine_kuri);
+	genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
 	POUR_TABLEAU_PAGE (espace.graphe_dependance->noeuds) {
 		if (it.type != TypeNoeudDependance::TYPE) {
