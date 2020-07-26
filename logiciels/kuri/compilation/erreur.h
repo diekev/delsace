@@ -191,4 +191,4 @@ struct Erreur {
 	Erreur &ajoute_conseil(dls::chaine const &c);
 };
 
-Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, dls::chaine const &message);
+Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, dls::chaine const &message, erreur::type_erreur type = erreur::type_erreur::NORMAL);

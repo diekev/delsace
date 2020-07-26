@@ -962,11 +962,52 @@ Erreur &Erreur::ajoute_conseil(const dls::chaine &c)
 	return *this;
 }
 
-Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, const dls::chaine &message)
+static dls::chaine chaine_pour_erreur(erreur::type_erreur type)
+{
+	switch (type) {
+		default:
+		{
+			return "ERREUR";
+		}
+		case erreur::type_erreur::LEXAGE:
+		{
+			return "ERREUR DE LEXAGE";
+		}
+		case erreur::type_erreur::SYNTAXAGE:
+		{
+			return "ERREUR DE LEXAGE";
+		}
+		case erreur::type_erreur::TYPE_INCONNU:
+		case erreur::type_erreur::TYPE_DIFFERENTS:
+		case erreur::type_erreur::TYPE_ARGUMENT:
+		{
+			return "ERREUR DE TYPAGE";
+		}
+	}
+
+	return "ERREUR";
+}
+
+#define COULEUR_NORMALE "\033[0m"
+#define COULEUR_CYAN_GRAS "\033[1;36m"
+
+Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, const dls::chaine &message, erreur::type_erreur type)
 {
 	auto fichier = espace->fichier(site->lexeme->fichier);
 
 	auto flux = dls::flux_chaine();
+	flux << COULEUR_CYAN_GRAS << "-- ";
+
+	auto chaine_erreur = chaine_pour_erreur(type);
+	flux << chaine_erreur << ' ';
+
+	for (auto i = 0; i < 76 - chaine_erreur.taille(); ++i) {
+		flux << '-';
+	}
+
+	flux << "\n\n" << COULEUR_NORMALE;
+
+	flux << "Dans l'espace de travail \"" << espace->nom << "\" :\n";
 	flux << "\nErreur : ";
 	erreur::imprime_ligne_avec_message(flux, fichier, site->lexeme, "");
 	flux << '\n';
