@@ -648,6 +648,10 @@ static int genere_code_coulisse(
 				commande += " -l" + bib;
 			}
 
+			if (ops.architecture_cible == ArchitectureCible::X86) {
+				commande += " -m32 ";
+			}
+
 			commande += " -o ";
 			commande += dls::chaine(ops.nom_sortie.pointeur, ops.nom_sortie.taille);
 
