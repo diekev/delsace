@@ -1415,6 +1415,7 @@ static void genere_code_C_pour_tout(
 	fonctions.reserve(espace.fonctions.taille());
 
 	POUR_TABLEAU_PAGE (espace.fonctions) {
+		it.nombre_utilisations = 1;
 		fonctions.pousse(&it);
 	}
 
