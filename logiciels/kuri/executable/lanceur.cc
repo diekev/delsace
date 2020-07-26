@@ -466,6 +466,11 @@ static dls::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, Opt
 	 * lieu d'une chaine littérale à printf et al. */
 	commande += "-Wno-format-security ";
 
+	if (ops.objet_genere == ObjetGenere::FichierObjet) {
+		/* À FAIRE : désactivation temporaire du protecteur de pile en attendant d'avoir une manière de le faire depuis les métaprogrammes */
+		commande += "-fno-stack-protector ";
+	}
+
 	switch (ops.niveau_optimisation) {
 		case NiveauOptimisation::AUCUN:
 		case NiveauOptimisation::O0:
