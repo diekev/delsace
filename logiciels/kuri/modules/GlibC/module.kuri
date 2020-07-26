@@ -395,8 +395,8 @@ inet_ntoa :: fonc externe (addr : in_addr) -> *z8
 
 printf :: fonc externe (fmt: *z8, args: ...) -> z32
 
-memset :: fonc externe (ptr: *rien, valeur: z32, taille: n64) -> rien
-memcpy :: fonc externe (ptr: *rien, src: *rien, taille: n64) -> rien
+memset :: fonc externe (ptr: *rien, valeur: z32, taille: n64) -> *rien
+memcpy :: fonc externe (ptr: *rien, src: *rien, taille: n64) -> *rien
 
 // -------------------------------------
 

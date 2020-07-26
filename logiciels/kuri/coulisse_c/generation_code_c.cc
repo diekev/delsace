@@ -466,7 +466,7 @@ R"(
 	enchaineuse << "#define Kv ...\n\n";
 
 	/* défini memcpy puisque nous l'utilisons pour copier les tableaux fixes */
-	enchaineuse << "void *memcpy(void *__restrict dest, const void *__restrict src, unsigned long n) __attribute__ ((__nonnull__ (1, 2)));\n";
+	enchaineuse << "void *memcpy(void *dest, void *src, unsigned long n);\n";
 }
 
 struct GeneratriceCodeC {
