@@ -945,8 +945,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						expr->aide_generation_code = IGNORE_VERIFICATION;
 					}
 
-					VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_tableau);
-					donnees_dependance.fonctions_utilisees.insere(espace->interface_kuri->decl_panique_tableau);
+					if (expr->aide_generation_code != IGNORE_VERIFICATION) {
+						VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_tableau);
+						donnees_dependance.fonctions_utilisees.insere(espace->interface_kuri->decl_panique_tableau);
+					}
+
 					break;
 				}
 				case GenreType::POINTEUR:
