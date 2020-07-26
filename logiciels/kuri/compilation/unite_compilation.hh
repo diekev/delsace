@@ -40,7 +40,8 @@ struct Type;
 	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_TYPE) \
 	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_DECLARATION) \
 	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_INTERFACE_KURI) \
-	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_SYMBOLE)
+	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_SYMBOLE) \
+	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_OPERATEUR)
 
 // À FAIRE : les unités devront également dépendre sur les opérateurs quand nous en aurons plus d'une tacheronne
 struct UniteCompilation {
@@ -61,6 +62,7 @@ struct UniteCompilation {
 	EspaceDeTravail *espace = nullptr;
 	Fichier *fichier = nullptr;
 	NoeudExpression *noeud = nullptr;
+	NoeudExpression *operateur_attendu = nullptr;
 	int index_reprise = 0;
 
 	int cycle = 0;
@@ -109,6 +111,12 @@ struct UniteCompilation {
 		// la tâcheronne qui remet immédiatement le compte de cycle à zéro et nous bloquerait dans une boucle infinie
 		this->etat_ = UniteCompilation::Etat::ATTEND_SUR_SYMBOLE;
 		this->lexeme_attendu = lexeme;
+	}
+
+	inline void attend_sur_operateur(NoeudExpression *expr)
+	{
+		this->etat_ = Etat::ATTEND_SUR_OPERATEUR;
+		this->operateur_attendu = expr;
 	}
 };
 

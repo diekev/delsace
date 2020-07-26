@@ -460,6 +460,30 @@ void Tacheronne::gere_tache()
 						erreur::lance_erreur("Trop de cycles : arrêt de la compilation car une déclaration attend sur une interface de Kuri", *unite->espace, unite->noeud->lexeme);
 					}
 
+					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_OPERATEUR) {
+						if (unite->operateur_attendu->genre == GenreNoeud::OPERATEUR_BINAIRE) {
+							auto expression_operation = static_cast<NoeudExpressionBinaire *>(unite->operateur_attendu);
+							auto type1 = expression_operation->expr1->type;
+							auto type2 = expression_operation->expr2->type;
+							rapporte_erreur(unite->espace, unite->operateur_attendu, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer quel opérateur appelé.", erreur::type_erreur::TYPE_INCONNU)
+									.ajoute_message("Le type à gauche de l'opérateur est ")
+									.ajoute_message(chaine_type(type1))
+									.ajoute_message("\nLe type à droite de l'opérateur est ")
+									.ajoute_message(chaine_type(type2))
+									.ajoute_message("\n\nMais aucun opérateur ne correspond à ces types-là.\n\n")
+									.ajoute_conseil("Si vous voulez performer une opération sur des types non-communs, vous pouvez définir vos propres opérateurs avec la syntaxe suivante :\n\nopérateur op :: fonc (a: type1, b: type2) -> type_retour\n{\n\t...\n}\n");
+						}
+						else {
+							auto expression_operation = static_cast<NoeudExpressionUnaire *>(unite->operateur_attendu);
+							auto type = expression_operation->expr->type;
+							rapporte_erreur(unite->espace, unite->operateur_attendu, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer quel opérateur appelé.", erreur::type_erreur::TYPE_INCONNU)
+									.ajoute_message("\nLe type à droite de l'opérateur est ")
+									.ajoute_message(chaine_type(type))
+									.ajoute_message("\n\nMais aucun opérateur ne correspond à ces types-là.\n\n")
+									.ajoute_conseil("Si vous voulez performer une opération sur des types non-communs, vous pouvez définir vos propres opérateurs avec la syntaxe suivante :\n\nopérateur op :: fonc (a: type) -> type_retour\n{\n\t...\n}\n");
+						}
+					}
+
 					break;
 				}
 
@@ -636,6 +660,12 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 		{
 			unite->restaure_etat_original();
 			unite->declaration_attendue = nullptr;
+			return gere_unite_pour_typage(unite);
+		}
+		case UniteCompilation::Etat::ATTEND_SUR_OPERATEUR:
+		{
+			unite->restaure_etat_original();
+			unite->operateur_attendu = nullptr;
 			return gere_unite_pour_typage(unite);
 		}
 		case UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI:

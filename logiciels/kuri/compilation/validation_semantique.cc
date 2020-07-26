@@ -764,7 +764,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				if (meilleur_candidat == nullptr) {
-					rapporte_erreur_type_operation(noeud);
+					unite->attend_sur_operateur(noeud);
 					return true;
 				}
 
@@ -811,7 +811,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				if (meilleur_candidat == nullptr) {
-					rapporte_erreur_type_operation(noeud);
+					unite->attend_sur_operateur(noeud);
 					return true;
 				}
 
@@ -892,7 +892,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					auto op = cherche_operateur_unaire(*operateurs, type, expr->lexeme->genre);
 
 					if (op == nullptr) {
-						rapporte_erreur_type_operation_unaire(expr);
+						unite->attend_sur_operateur(noeud);
 						return true;
 					}
 
