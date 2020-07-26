@@ -479,7 +479,7 @@ bool cherche_transformation(
 	}
 
 	if (POUR_TRANSTYPAGE) {
-		if (type_de->genre == GenreType::POINTEUR && est_type_entier(type_vers) && type_vers->taille_octet == 8) {
+		if ((type_de->est_pointeur() || type_de->est_fonction()) && est_type_entier(type_vers) && type_vers->taille_octet == 8) {
 			// À FAIRE : POINTEUR_VERS_ENTIER
 			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 			return false;
