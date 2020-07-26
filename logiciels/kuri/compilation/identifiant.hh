@@ -118,6 +118,7 @@ extern IdentifiantCode *demarre_un_espace_de_travail;
 extern IdentifiantCode *fonction_test_variadique_externe;
 extern IdentifiantCode *test;
 extern IdentifiantCode *assert_;
+extern IdentifiantCode *sansbroyage;
 
 }
 

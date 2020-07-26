@@ -1875,6 +1875,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 				noeud->est_externe = true;
 				externe = true;
 			}
+			else if (ident_directive == ID::sansbroyage) {
+				noeud->drapeaux |= (FORCE_SANSBROYAGE);
+			}
 
 			consomme();
 		}

@@ -144,6 +144,7 @@ IdentifiantCode *demarre_un_espace_de_travail;
 IdentifiantCode *fonction_test_variadique_externe;
 IdentifiantCode *test;
 IdentifiantCode *assert_;
+IdentifiantCode *sansbroyage;
 
 }
 
@@ -209,4 +210,5 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::fonction_test_variadique_externe = table.identifiant_pour_chaine("fonction_test_variadique_externe");
 	ID::test = table.identifiant_pour_chaine("test");
 	ID::assert_ = table.identifiant_pour_chaine("assert");
+	ID::sansbroyage = table.identifiant_pour_chaine("sansbroyage");
 }
