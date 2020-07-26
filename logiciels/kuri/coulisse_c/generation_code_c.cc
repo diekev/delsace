@@ -1402,10 +1402,6 @@ static void genere_code_C_pour_tout(
 		if (type && (type->genre == GenreType::STRUCTURE)) {
 			auto type_struct = type->comme_structure();
 
-			if (type_struct->decl && type_struct->decl->est_externe) {
-				continue;
-			}
-
 			for (auto &membre : type_struct->membres) {
 				genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
 			}
