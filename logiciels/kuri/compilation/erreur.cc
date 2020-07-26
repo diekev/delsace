@@ -564,7 +564,7 @@ void lance_erreur_fonction_nulctx(
 	ss << fichier->chemin << ':' << pos_decl.numero_ligne << '\n' << '\n';
 	ss << fichier->tampon[pos_decl.index_ligne];
 
-	ss << "\n« " << appl_fonc->ident->nom << " » est déclarée ici :\n";
+	ss << "\n« " << decl_appel->ident->nom << " » est déclarée ici :\n";
 	fichier = espace.fichier(decl_appel->lexeme->fichier);
 	auto pos_appel = position_lexeme(*decl_appel->lexeme);
 	ss << fichier->chemin << ':' << pos_appel.numero_ligne << '\n' << '\n';
