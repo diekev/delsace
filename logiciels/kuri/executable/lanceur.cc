@@ -631,25 +631,7 @@ static int genere_code_coulisse(
 			return 1;
 		}
 
-		if (ops.objet_genere == ObjetGenere::FichierObjet) {
-//			// copie le fichier objet dans la sortie
-//			auto debut_executable = dls::chrono::compte_seconde();
-//			commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o -o ");
-//			commande += dls::chaine(ops.nom_sortie.pointeur, ops.nom_sortie.taille);
-//			commande += ".o";
-
-//			std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
-//			err = system(commande.c_str());
-
-//			if (err != 0) {
-//				std::cerr << "Ne peut pas créer l'exécutable !\n";
-//				compilatrice.possede_erreur = true;
-//				return 1;
-//			}
-
-//			temps_executable = debut_executable.temps();
-		}
-		else {
+		if (ops.objet_genere == ObjetGenere::Executable) {
 			auto debut_executable = dls::chrono::compte_seconde();
 			commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
 
