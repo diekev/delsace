@@ -147,8 +147,12 @@ struct_stat :: struct externe  {
 	st_blksize : z64 // blocksize for file system I/O
 	st_blocks : z64
 	st_atime : z64      // time of last access
+    st_atimensec : z64  // Nsecs of last access
 	st_mtime : z64      // time of last modification
+    st_mtimensec : z64  // Nsecs of last modification
 	st_ctime : z64      // time of last status change
+    st_ctimensec : z64  // Nsecs of last status change
+    __glibc_reserved : [3]z64
 }
 
 // NOTE : puisque stat n'est pas dans l'interface binaire de la bibliothèque C, nous ne pouvons ni trouver son symbole dans libc
