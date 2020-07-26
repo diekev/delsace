@@ -159,6 +159,11 @@ x => x.nom // crée une fonction foo :: (x: $T) -> chaine { retourne x.nom }
 - réduction des allocations
 - déplace la génération de la fonction main dans une unité de compilation
 
+À faire (32-bits)
+-----------------
+- version des biblithèques sur 32-bit (définir une convention de nommage)
+- proprement définir les types (taille des entiers et des pointeurs)
+
 Bugs
 ----
 - crash dans l'impression de la RI de tous le programmes, la cause étant que la ConstructriceRI utilisé par la file d'exécution est détruite avant la fin du programme, il faudra sans doute déplacer la MachineVirtuelle dans les ConstructriceRI afin de pouvoir exécuter des programmes en parallèle
