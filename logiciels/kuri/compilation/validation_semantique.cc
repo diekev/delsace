@@ -2989,6 +2989,12 @@ bool ContexteValidationCode::resoud_type_final(NoeudExpression *expression_type,
 
 	auto type_var = expression_type->type;
 
+	// À FAIRE : l'expression du type peut être un retour multiple (donc avec une virgule...)
+	if (type_var == nullptr) {
+		::rapporte_erreur(espace, expression_type, "Les retours multiples ne sont plus supportés pour le moment");
+		return true;
+	}
+
 	if (type_var->genre != GenreType::TYPE_DE_DONNEES) {
 		rapporte_erreur("attendu un type de données", expression_type);
 		return true;
