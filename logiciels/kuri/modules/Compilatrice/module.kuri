@@ -23,7 +23,7 @@ NiveauOptimisation :: énum z32 {
 	O3
 }
 
-OptionsLangage :: énum_drapeau z32 {
+OptionsLangage :: énum_drapeau n32 {
     ACTIVE_INTROSPECTION
     ACTIVE_COROUTINE
 

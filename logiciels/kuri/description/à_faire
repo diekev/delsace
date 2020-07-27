@@ -185,8 +185,6 @@ erreur générique pouvant passer des erreurs de fonction à fonction
 
 avoir une gestion de la correctitude de constance
 
-utilise un type entier naturel pour les énums drapeaux, et vérifie que le type soit naturel si précisé par l'utilisateur
-
 
 // --------------------------- Discriminations
 

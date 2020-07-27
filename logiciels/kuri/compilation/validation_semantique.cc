@@ -2627,6 +2627,16 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 		if (resoud_type_final(decl->expression_type, type_enum->type_donnees)) {
 			return true;
 		}
+
+		/* les énum_drapeaux doivent être des types naturels pour éviter les problèmes d'arithmétiques binaire */
+		if (type_enum->est_drapeau && !type_enum->type_donnees->est_entier_naturel()) {
+			::rapporte_erreur(espace, decl->expression_type, "Les énum_drapeaux doivent être de type entier naturel (n8, n16, n32, ou n64).\n", erreur::type_erreur::TYPE_DIFFERENTS)
+					.ajoute_message("Note : un entier naturel est requis car certaines manipulations de bits en complément à deux, par exemple les décalages à droite avec l'opérateur >>, préserve le signe de la valeur. "
+									"Un décalage à droite sur l'octet de type relatif 10101010 produirait 10010101 et non 01010101 comme attendu. Ainsi, pour que je puisse garantir un programme bienformé, un type naturel doit être utilisé.\n");
+		}
+	}
+	else if (type_enum->est_drapeau) {
+		type_enum->type_donnees = espace->typeuse[TypeBase::N32];
 	}
 	else {
 		type_enum->type_donnees = espace->typeuse[TypeBase::Z32];
