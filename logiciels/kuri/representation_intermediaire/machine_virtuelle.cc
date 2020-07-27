@@ -320,8 +320,8 @@ MachineVirtuelle::MachineVirtuelle()
 	auto objet = dls::systeme_fichier::shared_library("/lib/x86_64-linux-gnu/libc.so.6");
 	bibliotheques.pousse(BibliothequePartagee{ std::move(objet), "/lib/x86_64-linux-gnu/libc.so.6" });
 
-	objet = dls::systeme_fichier::shared_library("/tmp/r16_tables.so");
-	bibliotheques.pousse(BibliothequePartagee{ std::move(objet), "/tmp/r16_tables.so" });
+	objet = dls::systeme_fichier::shared_library("/tmp/r16_tables_x64.so");
+	bibliotheques.pousse(BibliothequePartagee{ std::move(objet), "/tmp/r16_tables_x64.so" });
 }
 
 void MachineVirtuelle::reinitialise_pile()
