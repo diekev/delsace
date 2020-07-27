@@ -540,6 +540,8 @@ void Operateurs::ajoute_operateur_basique_enum(Type *type)
 		/* À FAIRE: typage exacte de l'énumération */
 		this->ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF);
 	}
+
+	this->ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
 }
 
 size_t Operateurs::memoire_utilisee() const
