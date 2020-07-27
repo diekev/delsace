@@ -47,7 +47,7 @@ enum class NiveauOptimisation : int {
 	O3,
 };
 
-enum class OptionsLangage : int {
+enum class OptionsLangage : unsigned int {
 	ACTIVE_INTROSPECTION = (1 << 0),
 	ACTIVE_COROUTINE     = (1 << 1),
 
