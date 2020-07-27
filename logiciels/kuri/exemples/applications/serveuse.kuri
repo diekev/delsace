@@ -32,7 +32,7 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     mon_addresse.sin_zero[6] = 0
     mon_addresse.sin_zero[7] = 0
 
-	err := bind(serveuse.prise, @mon_addresse comme *sockaddr, taille_de(sockaddr) -> n64))
+	err := bind(serveuse.prise, @mon_addresse comme *sockaddr, taille_de(sockaddr) comme n64)
 
 	si err == -1 {
 		retourne "erreur lors de la liaison"
@@ -47,26 +47,26 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     retourne ""
 }
 
-détruit_serveuse :: fonc(serveuse comme &Serveuse -> rien
+détruit_serveuse :: fonc(serveuse: &Serveuse)
 {
     si serveuse.prise == -1 {
         retourne
     }
 
-    close(serveuse.prise)
+    _ := close(serveuse.prise)
 }
 
 charge_donnees_requete :: fonc(prise : z32, mon_addresse : &sockaddr_in) -> chaine
 {
     //ip = converti_chaine_c(inet_ntoa(mon_addresse.sin_addr))
     //imprime("serveur: Reçu connexion de ", ip, '\n')
-    MAXDATASIZE : n64 = 1024
+    MAXDATASIZE : z64 = 1024
 
     tampon : [1024]z8
     requete : chaine
 
     boucle {
-        taille_reçue := recv(prise, @tampon[0], MAXDATASIZE, 0)
+        taille_reçue := recv(prise, @tampon[0], MAXDATASIZE comme n64, 0)
 
         si taille_reçue > 0 {
             ancienne_taille := requete.taille
@@ -137,12 +137,12 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
 
             déloge chaine_reponse
 
-            close(prise)
+            _ := close(prise)
             exit(0)
         }
 
         // le parent n'a pas besoin de cela
-        close(prise)
+        _ := close(prise)
 
         // nettoyage des processus fils
         tantque waitpid(-1, nul, WNOHANG) > 0 {}
@@ -155,7 +155,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
 principale :: fonc () -> z32
 {
     serveuse : Serveuse
-    construit_serveuse(serveuse, 5009)
+    _ := construit_serveuse(serveuse, 5009)
 
     démarre(serveuse)
 

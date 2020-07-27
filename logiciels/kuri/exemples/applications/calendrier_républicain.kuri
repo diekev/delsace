@@ -9,23 +9,6 @@ temps_millis_depuis_époque :: fonc (date: Date) -> z64
     retourne millis_jours + date.heure * 60 * 60 * 1000 + date.minute * 60 * 1000 + date.seconde * 1000
 }
 
-est_année_bissextile :: fonc (année: z64) -> bool
-{
-    si année % 400 == 0 {
-        retourne vrai
-    }
-
-    si année % 100 == 0 {
-        retourne faux
-    }
-
-    si année % 4 == 0 {
-        retourne vrai
-    }
-
-    retourne faux
-}
-
 opérateur < :: fonc (date1: Date, date2: Date) -> bool
 {
     si date1.année < date2.année {

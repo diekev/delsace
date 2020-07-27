@@ -30,21 +30,6 @@ nombre_aléatoire :: fonc () -> z32
     retourne rand() % 1000
 }
 
-tableau_redimensionne :: fonc (tabl : *[]$T, taille : z64) -> rien
-{
-    si tabl.capacité >= taille {
-        tabl.taille = taille
-        retourne
-    }
-
-    tmp := mémoire(tabl)
-
-    reloge tmp: [taille]$T
-    tmp.taille = taille
-
-    mémoire(tabl) = tmp
-}
-
 crée_labyrinthe :: fonc (hauteur : z32, largeur : z32) -> Labyrinthe
 {
     labyrinthe := Labyrinthe(hauteur = hauteur, largeur = largeur)
@@ -116,7 +101,7 @@ principale :: fonc () -> z32
         pour c, idx dans labyrinthe.ligne {
 
             si c.groupe == 0 {
-                c.groupe = idx + 1
+                c.groupe = (idx + 1) comme z32
             }
         }
 

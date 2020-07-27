@@ -70,7 +70,7 @@ X509_FILETYPE_DEFAULT :: 3
 SSL_FILETYPE_PEM  :: X509_FILETYPE_PEM
 SSL_FILETYPE_ASN1 :: X509_FILETYPE_ASN1
 
-ERR_print_errors_cb :: fonc externe (cb : fonc(*z8,n64,*rien)z32, u : *rien) -> rien
+ERR_print_errors_cb :: fonc externe (cb : fonc(*z8,n64,*rien)(z32), u : *rien) -> rien
 
 // ----------------------------------------------------------------------------
 

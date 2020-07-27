@@ -5,6 +5,13 @@ importe Réseau
 importe SysFichier
 importe Temps
 
+charge "entete_http"
+charge "fichier_texte"
+charge "page_accueil"
+charge "rendeuse_page"
+charge "requête"
+charge "serveuse"
+
 chaine_jour_pour_tm :: fonc (tm_wday: z32) -> chaine
 {
     discr tm_wday {
@@ -15,9 +22,8 @@ chaine_jour_pour_tm :: fonc (tm_wday: z32) -> chaine
         4 { retourne "Thu" }
         5 { retourne "Fri" }
         6 { retourne "Sat" }
+        sinon { retourne "erreur" }
     }
-
-    retourne ""
 }
 
 chaine_mois_pour_tm :: fonc (tm_mon: z32) -> chaine
@@ -35,9 +41,8 @@ chaine_mois_pour_tm :: fonc (tm_mon: z32) -> chaine
          9 { retourne "Oct" }
         10 { retourne "Nov" }
         11 { retourne "Dec" }
+        sinon { retourne "erreur" }
     }
-
-    retourne ""
 }
 
 chaine_pour_aujourdhui :: fonc (enchaineuse : *Enchaineuse) -> rien

@@ -30,11 +30,11 @@ Servlet :: fonc(ssl: *ssl_st) -> rien
 
         si bytes > 0 {
             buf[bytes] = '\0'
-            printf("Client msg: \"%s\"\n".pointeur, @buf[0])
+            _ := printf("Client msg: \"%s\"\n".pointeur, @buf[0])
 
             réponse := prépare_réponse()
 
-            SSL_write(ssl, réponse.pointeur, réponse.taille comme z32)
+            __ := SSL_write(ssl, réponse.pointeur, réponse.taille comme z32)
         }
         sinon {
             imprime("SSL_read a échoué !\n")
@@ -44,20 +44,22 @@ Servlet :: fonc(ssl: *ssl_st) -> rien
 
     sd := SSL_get_fd(ssl)
     SSL_free(ssl)
-    close(sd)
+    _ := close(sd)
 }
 
 //###############################################################################
 
 principale :: fonc () -> z32
 {
+    args := arguments_ligne_commande()
+
     si !est_utilisateur_racine() {
         imprime("This program must be run as root/sudo user!!\n")
         exit(0)
     }
 
     si args.taille != 2 {
-        printf("Usage: %s <portnum>\n".pointeur, args[0])
+        imprime("Usage: s <portnum>\n", args[0])
         exit(0)
     }
 
@@ -75,7 +77,11 @@ principale :: fonc () -> z32
         retourne 1
     }
 
-    serveur := ouvre_connexion_serveur_pour_écoute(5005, 10)
+    serveur := tente ouvre_connexion_serveur_pour_écoute(5005, 10) piège err {
+        imprime("erreur lors de ouvre_connexion_serveur_pour_écoute : %\n", err)
+        retourne 1
+    }
+
     diffère { _ := tente ferme(@serveur) piège nonatteignable }
 
     boucle {
@@ -83,7 +89,7 @@ principale :: fonc () -> z32
 	    len := taille_de(sockaddr_in) comme n32
 
         client := accept(server, @addr comme *sockaddr, @len)
-        printf("Connection: %s:%d\n".pointeur,inet_ntoa(addr.sin_addr), ntohs(addr.sin_port))
+        imprime("Connection: %s:%d\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port))
 
         ssl := SSL_new(ctx)
         SSL_set_fd(ssl, client)

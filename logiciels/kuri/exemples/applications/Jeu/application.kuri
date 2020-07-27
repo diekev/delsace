@@ -1,6 +1,8 @@
 importe Fondation
 importe OpenGL
 
+charge "glfw"
+
 // À FAIRE : rendu texte, chargement image
 
 //###############################################################################

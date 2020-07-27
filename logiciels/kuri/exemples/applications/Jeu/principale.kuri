@@ -1,5 +1,7 @@
 importe Fondation
 
+charge "application"
+
 //###############################################################################
 
 principale :: fonc () -> z32

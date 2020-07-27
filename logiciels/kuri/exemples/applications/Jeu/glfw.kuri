@@ -35,11 +35,11 @@ glfwGetPrimaryMonitor :: fonc externe () -> *rien
 
 glfwGetMonitorWorkarea :: fonc externe (monitor : *rien, xpos : *z32, ypos : *z32, width : *z32, height : *z32) -> rien
 
-glfwSetKeyCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, type_cle, z32, z32, type_mod)rien) -> rien
-glfwSetCursorPosCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, r64, r64)rien) -> rien
-glfwSetMouseButtonCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, bouton_souris, z32, type_mod)rien) -> rien
-glfwSetScrollCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, r64, r64)rien) -> rien
-glfwSetWindowSizeCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, z32, z32)rien) -> rien
+glfwSetKeyCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, type_cle, z32, z32, type_mod)(rien)) -> rien
+glfwSetCursorPosCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, r64, r64)(rien)) -> rien
+glfwSetMouseButtonCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, bouton_souris, z32, type_mod)(rien)) -> rien
+glfwSetScrollCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, r64, r64)(rien)) -> rien
+glfwSetWindowSizeCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, z32, z32)(rien)) -> rien
 
 glfwSetWindowShouldClose :: fonc externe (fenetre : *GLFWwindow, v : z32) -> rien
 

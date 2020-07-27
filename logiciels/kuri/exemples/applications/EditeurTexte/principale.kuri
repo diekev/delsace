@@ -4,6 +4,8 @@ importe SysFichier
 importe Temps
 importe Terminal
 
+charge "éditeur"
+
 // -------------------------------
 
 // tiré de https://viewsourcecode.org/snaptoken/kilo/
@@ -73,10 +75,10 @@ console_affiche_prompt :: fonc (prompt: chaine, rappel: fonc(chaine, CléConsole
                 retourne tampon
             }
         }
-        sinon si (!iscntrl(c comme z8) && c <= CléConsole.Retour) {
+        sinon si (!iscntrl(c comme z32 comme z8) && c <= CléConsole.Retour) {
             // À FAIRE : optimise ceci
             reloge tampon: chaine(tampon.taille + 1)
-            tampon[taille_écrite] = c comme z8
+            tampon[taille_écrite] = c comme z32 comme z8
             taille_écrite += 1
         }
 
@@ -206,14 +208,14 @@ restaure_terminal :: fonc () -> rien
 
 CLÉ_CONTROLE :: fonc (c: z8) -> CléConsole
 {
-    retourne (c & 0x1f) comme CléConsole
+    retourne ((c & 0x1f) comme z32) comme CléConsole
 }
 
 console_lis_clé :: fonc () -> CléConsole
 {
     c := tente entrée_standarde().lis_caractère() piège err {
         imprime("une erreur est survenue lors de la lecture de l'entrée !\n")
-        retourne '\0' comme CléConsole
+        retourne 0 comme CléConsole
     }
 
     si c == '\x1b' {
@@ -249,7 +251,7 @@ console_lis_clé :: fonc () -> CléConsole
         }
     }
 
-    retourne c comme CléConsole
+    retourne c comme z32 comme CléConsole
 }
 
 ActionÉditeur :: énum {
@@ -337,7 +339,7 @@ console_gère_clé_pressée :: fonc () -> ActionÉditeur
             éditeur_sauvegarde_fichier(@E, rappel_prompt_sauvegarde_fichier)
         }
         sinon {
-            éditeur_insère_caractère(@E, c comme z8)
+            éditeur_insère_caractère(@E, c comme z32 comme z8)
         }
     }
 
