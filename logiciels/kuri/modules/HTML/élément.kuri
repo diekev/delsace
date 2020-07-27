@@ -19,6 +19,9 @@ est_tag_auto_fermant :: fonc (tag: chaine) -> bool
         "wbr" {
             retourne vrai
         }
+        sinon {
+            retourne faux
+        }
     }
 
     retourne faux

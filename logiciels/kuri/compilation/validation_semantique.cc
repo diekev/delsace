@@ -1990,6 +1990,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						f->transformation = transformation;
 					}
 				}
+
+				if (inst->bloc_sinon == nullptr) {
+					::rapporte_erreur(espace, noeud, "Les discriminations de valeurs scalaires doivent avoir un bloc « sinon »");
+				}
 			}
 
 			break;

@@ -37,6 +37,7 @@ est_caractère_spécial :: fonc(c : z8) -> bool, TypeLexèmeJSON
         ']' { retourne vrai, TypeLexèmeJSON.CROCHET_FERMANT }
         '{' { retourne vrai, TypeLexèmeJSON.ACCOLADE_OUVRANTE }
         '}' { retourne vrai, TypeLexèmeJSON.ACCOLADE_FERMANTE }
+		sinon { retourne faux, TypeLexèmeJSON.INCONNU }
     }
 
     retourne faux, TypeLexèmeJSON.INCONNU

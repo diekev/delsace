@@ -222,6 +222,9 @@ converti_erreur_ssl :: fonc (ssl : *ssl_st, code_erreur : z32) -> ErreurSSL
         SSL_ERROR_SSL {
             retourne ErreurSSL.SSL
         }
+        sinon {
+            retourne ErreurSSL.SSL
+        }
     }
 
     retourne ErreurSSL.SSL

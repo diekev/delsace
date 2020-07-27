@@ -59,6 +59,7 @@ décode_adn :: fonc(valeurs : []octet) -> chaine
 			'c' { val |= (0b01 << décalage) }
 			'g' { val |= (0b10 << décalage) }
 			't' { val |= (0b11 << décalage) }
+			sinon { /* @erreur */ }
         }
 
         si idx == 3 {
@@ -80,6 +81,7 @@ appariement :: fonc(chn : []octet) -> rien
 			'c' { v = 'g' comme octet }
 			'g' { v = 'c' comme octet }
 			't' { v = 'a' comme octet }
+			sinon { /* @erreur */ }
         }
     }
 }

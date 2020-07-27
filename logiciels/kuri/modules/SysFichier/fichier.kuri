@@ -79,6 +79,7 @@ système_ouvre :: fonc (chemin: *z8, drapeaux: z32, permissions: z32) -> Résult
             EROFS        { retourne ErreurFichier.FichierEstLectureSeul; } // dépend du drapeau
             ETXTBSY      { retourne ErreurFichier.ImageEnLecture; } // dépend du drapeau
             EWOULDBLOCK  { retourne ErreurFichier.OuverturePeutBloquer; } // dépend du drapeau
+            sinon        { retourne ErreurFichier.Inconnue }
         }
     }
 
