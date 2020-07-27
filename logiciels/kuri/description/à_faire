@@ -136,6 +136,8 @@ ajout d'une propriété "compte" aux énums pour trouver le nombre d'éléments 
 
 ajout d'une propriété "pointeur" aux tableaux fixes pour obtenir le pointeur vers le premier élément (au lien de @x[0])
 
+ajout d'une propriété "capacité" aux chaines
+
 ajout de tranches pour les tableaux et les chaines
 
     chn1 := "une chaine"
@@ -184,6 +186,9 @@ charge/données personnalisées pour les erreurs afin de transmettre plus de dé
 erreur générique pouvant passer des erreurs de fonction à fonction
 
 avoir une gestion de la correctitude de constance
+
+investigue l'utilisation des types entiers, des représentations binaires et des opérations
+    https://stackoverflow.com/questions/13224273/difference-between-signed-and-unsigned-on-bitwise-operations
 
 
 // --------------------------- Discriminations
@@ -299,6 +304,10 @@ avoir un « runtime » par machine cible où nous implémentons les fonctions ou
 asm enligné
 
 instructions SIMD
+
+implémente la directive #si pour la compilation sélective
+    commence par avoir des condtions définies par la compilatrice (LINUX, WINDOWS, MACOS, 32BITS, 64BITS, ...)
+    utilisation de constantes globales ou locales, et des expressions pouvant être exécutées
 
 
 - générateurs/coroutines permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
