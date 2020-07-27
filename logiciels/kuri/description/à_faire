@@ -23,7 +23,18 @@ ajout de l'information de présence de contexte aux blocs afin de pouvoir défin
 
 réétablir le retour de plusieurs valeurs
 
-pouvoir instantié une fonction polymorphique lorsqu'on la passe à une autre
+vérifie que toutes les branches des fonctions retournes, pour éviter d'avoir à préciser un retour
+    discr -> est exhaustif, ou possède sinon
+    si -> possède un sinon, ou la branche est constante
+    détecte dans la RI
+
+directive #procédure_d_appel pour trouver la surcharge d'une fonction
+    a := #procédure_d_appel ma_fonction(5)  // renvoie le pointeur sur ma_fonction(z32)
+
+
+// --------------------------- Polymorphie / Monophismisation
+
+pouvoir instantier une fonction polymorphique lorsqu'on la passe à une autre
 
     ajoute :: fonc (a: $T, b : $T) -> $T
     {
@@ -47,6 +58,67 @@ avoir un système de détermination de contraintes pour les fonctions polymorphi
     ajoute :: fonc (a: $T/TypeOuInterface) // force T à être un dérivé de TypeOuInterface
         comment faire pour contraindre sur des types scalaires (entier ou réél)
 
+supporte les structures polymorphiques / gabarits
+
+De Jorjala/attribut.kuri
+// À FAIRE : définir une bonne interface pour accéder aux valeurs sans gabarits
+//
+// Idée tirée de JAI :
+//
+// déclaration d'un type gabarit    => x : $T
+// déclaration d'une valeur gabarit => $x : T
+// La valeur gabarit est l'équivalent des valeurs littérales des templates en C++
+// template <int N>, mais en plus flexible
+//
+// Une instruction #bake sers à instantier les fonctions selon les valeurs gabarits
+// par exemple (avec notre syntaxe)
+//
+// fonc nouveau_tableau_fixe($N : Type_de_N, x : $Type_du_tableau) : [N]$Type_du_tableau
+// crée_tableau_dix_éléments = #cuis nouveau_tableau_fixe($N = 10)
+//
+// On peut alors appeler : crée_tableau_dix_éléments(z32) pour créer un [10]z32
+//
+// Pour les attributs nous pourrions avoir un système similaire
+//
+// fonc valeur(attr : *Attribut, index : z64, $Type_de_valeur : Type, $T : TypeAttribut)
+//
+// valeur_z32 = #cuis valeur(Type_de_valeur = z32, T = TypeAttribut.Z32)
+// valeur_r32 = #cuis valeur(Type_de_valeur = r32, T = TypeAttribut.R32)
+// ....
+//
+// Ceci pourrait aisément remplacer le combo template + macro utilisé en C++
+
+currying
+    #cuis_constantes ma_fonction(T = z32)  // crée une nouvelle fonction ou le paramètre polymorphique T est remplacé par le type z32
+    #cuis_valeurs    ma_fonction(x = 5)  // crée une nouvelle fonction ou le paramètre x est remplacé par la constante 5
+
+
+// --------------------------- Métaprogramme
+
+crée une IPA pour les métaprogramme afin de simplifier leurs créations et exécution
+    MachineVirtuelle::lance_métaprogramme
+
+exécute plusieurs métaprogrammes à la fois
+    système similaire à celui des systèmes d'exploitation (exécute le métaprogramme pendant X nanosecondes et passe au suivant)
+    ou alors plusieurs tacheronnes
+    dans tous les cas, il faudra n'exécuter qu'un seul métaprogramme à la fois pour ne pas modifier les globales
+
+permet de modifier la valeur des globales via les métaprogrammes, la génération de code final devra pendre les valeurs se trouvant dans le code binaire
+    complexe
+
+directive #exécute dans les fonctions
+    UnitéCompilation::attend_sur_métaprogramme(métaprogramme)
+    tiré le résultat et son type
+    le métaprogramme devra avoir des constantes comme entrée
+
+vérifie que les entrées des métaprogrammes soit des constantes
+
+directive #corps_texte pour définir le corps d'une fonction via un texte
+
+    principale :: fonc () -> z32
+    #corps_texte {
+        retourne "retourne 0"
+    }
 
 // --------------------------- Opérateurs
 
@@ -78,8 +150,6 @@ ajout de tranches pour les tableaux et les chaines
 // --------------------------- Types
 
 ajout de types produits (tuples) avec accès par x.0, x.1, etc...
-
-supporte les structures polymorphiques / gabarits
 
 avoir un bon système d'alias de type, avec sûreté de typage, pour ne avoir à déclarer des structures ne contenant qu'un seul membre
 
@@ -119,6 +189,8 @@ charge/données personnalisées pour les erreurs afin de transmettre plus de dé
 erreur générique pouvant passer des erreurs de fonction à fonction
 
 avoir une gestion de la correctitude de constance
+
+utilise un type entier naturel pour les énums drapeaux, et vérifie que le type soit naturel si précisé par l'utilisateur
 
 
 // --------------------------- Discriminations
@@ -259,6 +331,7 @@ instructions SIMD
 - nettoie la génération de code de création de contexte pour la fonction principale pour utiliser le noeud de la création de contexte du module Kuri
 - avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
 - utilisation de fonctions définies dans la compilatrice pour remplacer malloc, realloc, et free lors de l'exécution des métaprogrammes
+- pouvoir utiliser un #! en début de fichier pour utiliser les programmes comme des scripts (cela compilera et exécutera l'exécutable ou alors juste les métaprogrammes, #! n'est pas cohérent sur toutes les plateformes...)
 
 
 À faire (architecture)
