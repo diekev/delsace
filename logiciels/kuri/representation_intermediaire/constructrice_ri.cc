@@ -693,7 +693,8 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			inst->genre = Instruction::Genre::RESTAURE_LOCALES;
 			fonction_courante->instructions.pousse(inst);
 
-			auto derniere_instruction = *(fonction_courante->instructions.end() - 1);
+			/* -2 car la dernière instruction est une instruction de restauration de locales */
+			auto derniere_instruction = *(fonction_courante->instructions.end() - 2);
 
 			if (derniere_instruction->genre != Instruction::Genre::RETOUR) {
 				/* génère le code pour tous les noeuds différés de ce bloc */
