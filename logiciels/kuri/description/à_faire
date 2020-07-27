@@ -23,11 +23,6 @@ ajout de l'information de présence de contexte aux blocs afin de pouvoir défin
 
 réétablir le retour de plusieurs valeurs
 
-vérifie que toutes les branches des fonctions retournes, pour éviter d'avoir à préciser un retour
-    discr -> est exhaustif, ou possède sinon
-    si -> possède un sinon, ou la branche est constante
-    détecte dans la RI
-
 directive #procédure_d_appel pour trouver la surcharge d'une fonction
     a := #procédure_d_appel ma_fonction(5)  // renvoie le pointeur sur ma_fonction(z32)
 

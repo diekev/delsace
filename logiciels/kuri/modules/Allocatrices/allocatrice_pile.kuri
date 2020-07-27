@@ -98,6 +98,4 @@ allocatrice_pile :: fonc(
             retourne nul
         }
     }
-
-    retourne nul
 }

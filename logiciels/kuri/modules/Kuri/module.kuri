@@ -87,8 +87,6 @@ allocatrice_défaut :: fonc(
             retourne nul
         }
     }
-
-    retourne nul
 }
 
 /*
@@ -457,8 +455,6 @@ __stockage_temporaire :: fonc(
             retourne nul
         }
     }
-
-    retourne nul
 }
 
 // fonction de convénience pour loge un tampon dans le stockage temporaire

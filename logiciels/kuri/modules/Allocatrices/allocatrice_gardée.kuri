@@ -182,6 +182,4 @@ allocatrice_gardée :: fonc(
             retourne nul
         }
     }
-
-    retourne nul
 }

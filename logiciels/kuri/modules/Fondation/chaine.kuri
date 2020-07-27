@@ -738,6 +738,4 @@ cherche_aiguille :: fonc (botte_de_foin: chaine, aiguille: chaine, par: ChercheA
             retourne cherche_aiguille_par_boyer_moore_horspool(botte_de_foin, aiguille)
         }
     }
-
-    retourne -1
 }

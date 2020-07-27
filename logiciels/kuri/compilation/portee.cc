@@ -271,5 +271,24 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 		return derniere_instruction(inst->bloc);
 	}
 
+	if (di->est_discr()) {
+		auto discr = di->comme_discr();
+
+		if (discr->bloc_sinon) {
+			return derniere_instruction(discr->bloc_sinon);
+		}
+
+		/* vérifie que toutes les branches retournes */
+		POUR (discr->paires_discr) {
+			di = derniere_instruction(it.second);
+
+			if (di == nullptr || !di->est_retour()) {
+				break;
+			}
+		}
+
+		return di;
+	}
+
 	return static_cast<NoeudExpression *>(nullptr);
 }

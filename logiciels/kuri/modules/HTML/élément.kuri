@@ -23,8 +23,6 @@ est_tag_auto_fermant :: fonc (tag: chaine) -> bool
             retourne faux
         }
     }
-
-    retourne faux
 }
 
 Élément :: struct {
@@ -69,8 +67,6 @@ est_compatible_html5 :: fonc (élément: *Élément) -> bool
             retourne vrai
         }
     }
-
-    retourne vrai
 }
 
 fait_partie_de_catégorie_spécial :: fonc (nom: chaine) -> bool

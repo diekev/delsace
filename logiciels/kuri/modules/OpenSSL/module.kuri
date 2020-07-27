@@ -226,8 +226,6 @@ converti_erreur_ssl :: fonc (ssl : *ssl_st, code_erreur : z32) -> ErreurSSL
             retourne ErreurSSL.SSL
         }
     }
-
-    retourne ErreurSSL.SSL
 }
 
 // Puisque sur les systèmes UNIX tout est un fichier, les prises sont des fichiers, donc utilisons
