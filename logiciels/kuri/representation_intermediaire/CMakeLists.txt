@@ -37,6 +37,7 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
+	analyse.cc
 	code_binaire.cc
     constructrice_ri.cc
 	impression.cc
@@ -44,6 +45,7 @@ set(SOURCES
 	machine_virtuelle.cc
 	optimisations.cc
 
+	analyse.hh
 	code_binaire.hh
     constructrice_ri.hh
 	impression.hh

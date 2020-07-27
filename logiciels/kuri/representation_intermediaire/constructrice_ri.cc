@@ -33,6 +33,7 @@
 #include "erreur.h"
 #include "outils_lexemes.hh"
 
+#include "analyse.hh"
 #include "impression.hh"
 #include "optimisations.hh"
 
@@ -634,6 +635,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			noeud->drapeaux |= RI_FUT_GENEREE;
 
 			//corrige_labels(atome_fonc);
+			//analyse_ri(*m_espace, atome_fonc);
 
 			fonction_courante = nullptr;
 
