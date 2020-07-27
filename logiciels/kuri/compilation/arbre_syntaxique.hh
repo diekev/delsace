@@ -42,6 +42,7 @@ struct Fichier;
 struct IdentifiantCode;
 struct NoeudBloc;
 struct NoeudCode;
+struct NoeudDiscr;
 struct TypeFonction;
 struct NoeudDependance;
 struct UniteCompilation;
@@ -241,6 +242,18 @@ struct NoeudExpression {
 	NoeudExpression() = default;
 
 	COPIE_CONSTRUCT(NoeudExpression);
+
+	inline bool est_discr() const
+	{
+		return genre == GenreNoeud::INSTRUCTION_DISCR || genre == GenreNoeud::INSTRUCTION_DISCR_ENUM || genre == GenreNoeud::INSTRUCTION_DISCR_UNION;
+	}
+
+	inline bool est_retour() const
+	{
+		return genre == GenreNoeud::INSTRUCTION_RETOUR || genre == GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE || genre == GenreNoeud::INSTRUCTION_RETOUR_SIMPLE;
+	}
+
+	inline NoeudDiscr *comme_discr();
 };
 
 struct NoeudDeclaration : public NoeudExpression {
@@ -491,6 +504,12 @@ struct NoeudDirectiveExecution : NoeudExpression {
 
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 };
+
+inline NoeudDiscr *NoeudExpression::comme_discr()
+{
+	assert(est_discr());
+	return static_cast<NoeudDiscr *>(this);
+}
 
 void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab);
 
