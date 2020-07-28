@@ -385,7 +385,6 @@ listen :: fonc externe (prise : z32, connexions : z32) -> z32
 accept :: fonc externe (prise : z32, addr : *sockaddr, taille : *n32) -> z32
 perror :: fonc externe (ptr : *z8) -> rien
 exit :: fonc externe (id : z32) -> rien
-send :: fonc externe (prise : z32, pointeur : *z8, taille : z64, options : z32) -> z32
 inet_ntoa :: fonc externe (addr : in_addr) -> *z8
 
 // -------------------------------------

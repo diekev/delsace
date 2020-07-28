@@ -131,7 +131,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
 
             //chaine_reponse = construit_reponse(reponse)
 
-            si send(prise, chaine_reponse.pointeur, chaine_reponse.taille, 0) == -1 {
+            si send(prise, chaine_reponse.pointeur, chaine_reponse.taille comme n64, 0) == -1 {
                 perror("send".pointeur)
             }
 
