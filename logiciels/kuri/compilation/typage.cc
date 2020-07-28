@@ -632,7 +632,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 
 	operateurs->ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice);
 	operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice);
-	operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, resultat, resultat, indice);
+	operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, resultat, idx_type_entier, indice);
 	operateurs->ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice);
 	operateurs->ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice);
 
