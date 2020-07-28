@@ -2089,6 +2089,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			// - si erreur seule -> il faudra vérifier l'erreur
 			// - si union -> voir si l'union est sûre et contient une erreur, dépaquete celle-ci dans le génération de code
 
+			if ((inst->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+				unite->attend_sur_type(inst->type);
+				return true;
+			}
+
 			if (inst->type->genre == GenreType::ERREUR) {
 				type_de_l_erreur = inst->type;
 			}
