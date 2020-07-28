@@ -398,7 +398,9 @@ void Syntaxeuse::lance_analyse()
 			consomme();
 		}
 		else if (apparie_expression()) {
+			auto nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
 			auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
+			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 
 			// noeud peut-être nul si nous avons une directive
 			if (noeud != nullptr) {
@@ -410,6 +412,7 @@ void Syntaxeuse::lance_analyse()
 					decl_var->bloc_parent->membres->pousse(decl_var);
 					decl_var->bloc_parent->expressions->pousse(decl_var);
 					decl_var->drapeaux |= EST_GLOBALE;
+					decl_var->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues + 1));
 					aplatis_arbre(decl_var, decl_var->arbre_aplatis, drapeaux_noeud::AUCUN);
 					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, decl_var);
 				}
@@ -421,6 +424,7 @@ void Syntaxeuse::lance_analyse()
 					if (!dls::outils::est_element(noeud->genre, GenreNoeud::DECLARATION_FONCTION, GenreNoeud::DECLARATION_OPERATEUR, GenreNoeud::DECLARATION_COROUTINE)) {
 						if (noeud->genre == GenreNoeud::DECLARATION_VARIABLE) {
 							auto decl_var = static_cast<NoeudDeclarationVariable *>(noeud);
+							decl_var->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
 							aplatis_arbre(decl_var, decl_var->arbre_aplatis, drapeaux_noeud::AUCUN);
 						}
 
@@ -1767,6 +1771,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 
 	/* analyse les paramètres de la fonction */
 	auto params = dls::tablet<NoeudDeclaration *, 16>();
+	auto nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
 
 	while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
 		auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
@@ -1789,6 +1794,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 		consomme();
 	}
 
+	nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
+	noeud->arbre_aplatis_entete.reserve(static_cast<long>(nombre_noeuds_alloues));
+
 	copie_tablet_tableau(params, noeud->params);
 
 	POUR (noeud->params) {
@@ -1804,7 +1812,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 		consomme();
 
 		while (true) {
+			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
 			auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::INCONNU);
+			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
+			noeud->arbre_aplatis_entete.reserve_delta(static_cast<long>(nombre_noeuds_alloues));
 			noeud->params_sorties.pousse(type_declare);
 			aplatis_arbre(type_declare, noeud->arbre_aplatis_entete, drapeaux_noeud::AUCUN);
 
@@ -1825,7 +1836,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 			while (true) {
 				noeud->noms_retours.pousse("__ret" + dls::vers_chaine(noeud->noms_retours.taille));
 
+				nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
 				auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::INCONNU);
+				nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
+				noeud->arbre_aplatis_entete.reserve_delta(static_cast<long>(nombre_noeuds_alloues));
 				noeud->params_sorties.pousse(type_declare);
 				aplatis_arbre(type_declare, noeud->arbre_aplatis_entete, drapeaux_noeud::AUCUN);
 
@@ -1963,6 +1977,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 	/* analyse les paramètres de la fonction */
 	auto params = dls::tablet<NoeudDeclaration *, 16>();
+	auto nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
 
 	while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
 		auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
@@ -2007,6 +2022,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 						lexeme);
 		}
 	}
+
+	nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
+	noeud->arbre_aplatis_entete.reserve(static_cast<long>(nombre_noeuds_alloues));
 
 	POUR (noeud->params) {
 		aplatis_arbre(it, noeud->arbre_aplatis_entete, drapeaux_noeud::AUCUN);
