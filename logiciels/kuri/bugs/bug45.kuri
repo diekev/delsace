@@ -1,0 +1,13 @@
+// aucune erreur quand la valeur de retour d'un appel n'est pas utilisée
+
+fonction :: fonc () -> z32
+{
+    retourne 0
+}
+
+principale :: fonc () -> z32
+{
+    ptr := fonction
+    ptr()
+    retourne 0
+}
