@@ -1,4 +1,4 @@
-importe "flux"
+importe Fondation
 
 boucle_avec_plage :: fonc() -> rien
 {

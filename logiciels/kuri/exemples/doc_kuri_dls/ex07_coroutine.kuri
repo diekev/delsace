@@ -1,4 +1,4 @@
-importe "flux"
+importe Fondation
 
 plage :: corout(début : z32, fin : z32, pas : z32) -> z32
 {

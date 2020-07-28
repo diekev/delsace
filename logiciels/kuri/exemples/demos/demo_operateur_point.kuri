@@ -1,4 +1,4 @@
-importe "flux"
+importe Fondation
 
 TEST :: struct {
     m := "Membre de la structure"

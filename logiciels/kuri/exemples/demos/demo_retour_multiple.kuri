@@ -1,7 +1,4 @@
-importe "flux"
-
-importe "structures"
-
+importe Fondation
 // Problème : les fonctions chainées via '.' vont colésées avec les multiples types retours.
 
 ext_indirection1 :: fonc externe () -> z32
@@ -97,7 +94,7 @@ appel_ptr_moult_ret :: fonc() -> z32, bool
     retourne ptr()
 }
 
-test___ :: fonc(x : fonc(z32)z32, y : fonc(z32)(z32),z : fonc(z32)(z32,z32), w : z32) -> rien
+test___ :: fonc(x : fonc(z32)(z32), y : fonc(z32)(z32),z : fonc(z32)(z32,z32), w : z32) -> rien
 {
 }
 
@@ -106,7 +103,7 @@ test_ptr_fonction_ret_moult :: fonc() -> rien
     imprime("---------------------------\n")
     imprime("pointeur fonc ret multiple\n")
 
-    x : fonc(z32)z32 = nul
+    x : fonc(z32)(z32) = nul
     y : fonc(z32)(z32) = nul
     z : fonc(z32)(z32,z32) = nul
 

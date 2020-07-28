@@ -1,9 +1,9 @@
 // démonstration de la surchage de fonctions.
 
-importe "flux"
+importe Fondation
 
 TEST :: struct {
-    fonction : fonc(eini)z32
+    fonction : fonc(eini)(z32)
 }
 
 foo :: fonc(args : eini) -> z32
@@ -33,8 +33,8 @@ principale :: fonc () -> z32
 
     ptr("je ne sais pas")
 
-    foo(1)
-    foo("nouvelle chaine")
+    _ := foo(1)
+    _ = foo("nouvelle chaine")
 
     retourne 0
 }

@@ -1,7 +1,7 @@
 importe Fondation
 importe GlibC
 
-passe_args :: fonc (args: ... *z8) -> rien
+passe_args :: fonc (args: ...chaine) -> rien
 {
 
 }
@@ -15,8 +15,10 @@ imprime_films :: fonc (fmt: chaine, args: ...chaine) -> rien
     }
 }
 
-principale :: fonc () : z32
+principale :: fonc () -> z32
 {
+    args := arguments_ligne_commande()
+
     imprime("% % % % %\n", "test", 1, 2, 3, 4)
 
     // test expansion fonction externe -> erreur de compilation attendue

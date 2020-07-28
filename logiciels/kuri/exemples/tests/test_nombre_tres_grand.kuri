@@ -4,7 +4,7 @@
 // nombres. Javascript donne 36028797018963970 alors que la bonne réponse est
 // 36028797018963968 (à 2 près).
 
-importe "flux"
+importe Fondation
 
 ajoute :: fonc(a : n64, b : n64) -> n64
 {

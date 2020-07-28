@@ -1,5 +1,5 @@
 importe "chaine"
-importe "flux"
+importe Fondation
 importe "table_hachage"
 
 principale :: fonc () -> z32

@@ -1,4 +1,4 @@
-importe "flux"
+importe Fondation
 importe "sys_fichier"
 
 //###############################################################################

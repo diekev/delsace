@@ -1,5 +1,5 @@
 importe "memoire"
-importe "flux"
+importe Fondation
 
 test_echange_memoire :: fonc() -> rien
 {

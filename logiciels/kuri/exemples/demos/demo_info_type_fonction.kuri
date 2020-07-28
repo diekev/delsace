@@ -1,5 +1,4 @@
-importe "info_type"
-importe "flux"
+importe Fondation
 
 Objet :: struct {
     nom := "objet"

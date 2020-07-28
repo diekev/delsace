@@ -1,4 +1,4 @@
-importe "flux"
+importe Fondation
 
 ajoute :: fonc(a : z32, b : z32) -> z32
 {
