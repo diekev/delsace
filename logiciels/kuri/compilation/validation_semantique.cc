@@ -1785,6 +1785,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				noeud->transformation = TypeTransformation::DEREFERENCE;
 			}
 
+			if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+				unite->attend_sur_type(type);
+				return true;
+			}
+
 			if (type->genre == GenreType::UNION) {
 				auto type_union = type->comme_union();
 				auto decl = type_union->decl;
