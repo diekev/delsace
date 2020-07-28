@@ -2117,6 +2117,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						type_de_l_erreur = type_union->membres[1].type;
 					}
 				}
+				else {
+					::rapporte_erreur(espace, inst, "Les instructions tentes ne sont pas encore définies pour les unions n'ayant pas 2 membres uniquement.")
+							.ajoute_message("Le type du l'union est ")
+							.ajoute_message(chaine_type(type_union))
+							.ajoute_message("\n");
+				}
 			}
 			else {
 				rapporte_erreur("Utilisation de « tente » sur une fonction qui ne retourne pas d'erreur", inst);
