@@ -52,7 +52,32 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/doc_kuri_dls/ex04_tableau.kuri" \
           "exemples/doc_kuri_dls/ex05_fonc_variadique.kuri" \
           "exemples/doc_kuri_dls/ex06_introspection.kuri" \
-          "exemples/doc_kuri_dls/ex07_coroutine.kuri")
+          "exemples/doc_kuri_dls/ex07_coroutine.kuri"
+          "exemples/tests/test_alloc.kuri" \
+          "exemples/tests/test_boucle_pour.kuri" \
+          "exemples/tests/test_cgi.kuri" \
+          "exemples/tests/test_couleur_terminal.kuri" \
+          "exemples/tests/test_dessin_texte.kuri" \
+          "exemples/tests/test_emploi.kuri" \
+          "exemples/tests/test_énum_drapeau.kuri" \
+          "exemples/tests/test_erreur.kuri" \
+          "exemples/tests/test_fichier.kuri" \
+          "exemples/tests/test_ghtml.kuri" \
+          "exemples/tests/test_logement.kuri" \
+          "exemples/tests/test_memoire.kuri" \
+          "exemples/tests/test_metaprogrammation.kuri" \
+          "exemples/tests/test_moultfilage.kuri" \
+          "exemples/tests/test_nombre_tres_grand.kuri" \
+          "exemples/tests/test_operateur.kuri" \
+          "exemples/tests/test_plage_boucle.kuri" \
+          "exemples/tests/test_ppm.kuri" \
+          "exemples/tests/test_recherche.kuri" \
+          "exemples/tests/test_routage.kuri" \
+          "exemples/tests/test_sys_fichier.kuri" \
+          "exemples/tests/test_table_hachage.kuri" \
+          "exemples/tests/test_tri.kuri" \
+          "exemples/tests/test_unicode.kuri" \
+          "exemples/tests/test_uri.kuri")
 
 for fichier in ${FICHIERS[@]}; do
     echo "Compilation de :" $fichier
