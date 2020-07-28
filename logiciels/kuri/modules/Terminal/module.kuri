@@ -69,7 +69,7 @@ termios :: struct externe {
 tcgetattr :: fonc externe (fd: z32, t: *termios) -> rien
 tcsetattr :: fonc externe (fd: z32, drapeaux: z32, t: *termios) -> rien
 
-iscntrl :: fonc externe (c: z8) -> bool
+iscntrl :: fonc externe (c: z32) -> z32
 
 // -------------------------------
 
