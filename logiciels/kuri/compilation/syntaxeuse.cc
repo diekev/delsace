@@ -1207,6 +1207,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		}
 		case GenreLexeme::DECLARATION_VARIABLE:
 		{
+			if (gauche->expression_type) {
+				lance_erreur("Utilisation de « := » alors qu'un type fut déclaré avec « : »");
+			}
+
 			consomme();
 
 			auto noeud = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, lexeme);
