@@ -48,7 +48,7 @@ répond_post_page_accueil :: fonc (serveuse: *Serveuse, requête: *DonnéesRequ�
     retourne RéponseRequête(
         code = CodeÉtatHTTP.OK,
         type_contenu = TypeContenu.TEXT_HTML,
-        // À FAIRE
+        // À FAIRE : évite de copier la chaine
         contenu = chaine_depuis_enchaineuse(@enchaineuse)
     )
 }

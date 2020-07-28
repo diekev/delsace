@@ -203,10 +203,7 @@ DIRECT	         ::    0o40000
 NOATIME          ::  0o1000000
 PATH             :: 0o10000000
 DSYNC	         ::    0o10000
-// À FAIRE : les expressions utilisent des variables temporaires lors de la
-// génération du code, ce qui n'est pas possible pour les variables globales ou
-// encore les énum. L'expression devrait être (0o20000000 | 0o200000)
-TMPFILE          :: 0o20200000
+TMPFILE          :: (0o20000000 | 0o200000)
 
 O_NONBLOCK :: 0o04000
 

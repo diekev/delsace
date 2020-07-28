@@ -69,8 +69,7 @@ consomme_ligne_suivante :: fonc (gérant: *Gérant_Fichier_Texte) -> chaine, boo
 
         ligne = consomme_espaces(ligne)
 
-        // À FAIRE: langage raccourcis d'opérateurs booléen -> chaine, nombres, pointeurs
-        si ligne.taille == 0 {
+        saufsi ligne {
             continue
         }
 
@@ -80,7 +79,7 @@ consomme_ligne_suivante :: fonc (gérant: *Gérant_Fichier_Texte) -> chaine, boo
             si trouvée {
                 ligne = lhs
 
-                si ligne.taille == 0 {
+                saufsi ligne {
                     continue
                 }
             }

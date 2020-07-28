@@ -9,7 +9,7 @@ NoeudArbreB :: struct {
     // Degré minimum pour définir la plage pour le nombre de clés
     t : z32
 
-    // nombre de clé (À FAIRE(langage) : ajout d'une propriété « capacité » aux tableaux)
+    // nombre de clé (nous pourrions utiliser la propriété « capacité » du tableau)
     n : z32
 
     enfants : []*NoeudArbreB

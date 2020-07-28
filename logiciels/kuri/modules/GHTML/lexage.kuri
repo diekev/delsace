@@ -38,7 +38,6 @@ id_identifiant :: fonc(identifiant : chaine) -> TypeLexème
 
 //######################################
 
-// À FAIRE(compilateur) : l'énumération n'est pas dans le graphe de symboles
 ÉtatLexage :: énum z32 {
     // L'état quand nous sommes dans un script de contrôle du gabarit
 	SCRIPT

@@ -304,9 +304,6 @@ traite_évènements :: fonc(app : &Application) -> rien
 boucle_principale :: fonc(app : &Application) -> rien
 {
     tantque glfwWindowShouldClose(app.fenetre) == 0 {
-        // À FAIRE : l'impression de chaines contenant des caractères échappés
-        // ont un déborderment de tampon car l'échappement est compté comme un
-        // caractère en soi.
         imprime("%\n\n", app)
         imprime("Mémoire utilisée : %o\n\n", mémoire_utilisée())
 

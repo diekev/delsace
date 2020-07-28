@@ -4,6 +4,8 @@
 utilisation d'une référence pour passer le contexte entre les fonctions, nous devrons correctement gérer les références dans ce cas
 
 utilisation d'une variable globale pour le contexte du thread principale
+    -- mention À FAIRE dans test_moultfilage.kuri
+    -- mention À FAIRE dans Jeu/application.kuri "imprime n'a pas de contexte"
 
 ajout de l'information de présence de contexte aux blocs afin de pouvoir définir si nous avons un contexte ou non
 
@@ -22,6 +24,7 @@ ajout de l'information de présence de contexte aux blocs afin de pouvoir défin
 // --------------------------- Fonctions
 
 réétablir le retour de plusieurs valeurs
+    -- déclaration de plusieurs valeurs, mentions À FAIRE dans JSON/lexage.kuri
 
 directive #procédure_d_appel pour trouver la surcharge d'une fonction
     a := #procédure_d_appel ma_fonction(5)  // renvoie le pointeur sur ma_fonction(z32)
@@ -192,6 +195,29 @@ investigue l'utilisation des types entiers, des représentations binaires et des
 
 passe en revue les arithmétiques de pointeurs
 
+amélioration du typage des expressions de tableaux constants
+    plusieurs problèmes de l'approche courrante
+    - le premier élément défini le type du tableau ce qui fait échoué les tableaux mélangeant des constantes de nombre et de caractère (voir Noyau)
+    - les nombres constants sont définis comme z32, nous ne pouvons avoir un tableau de n32 par exemple avec uniquement des constantes
+        -- mention À FAIRE dans HTML/Autres/parse_entite.kuri
+
+normalisation de tous les types pour supprimer les unions et les entiers constants de la RI
+    -- mention À FAIRE dans Internet/module.kuri
+
+déclaration d'énum, de structures, et d'unions anonymes :
+    énum {
+        X
+        Y
+        Z
+    }
+
+    struct {
+        x, y, z
+    }
+
+    également dans les expressions des types :
+        a : struct { x, y, z }  // il faudra définir comment initialisé via une expression
+        b : énum ...
 
 // --------------------------- Discriminations
 
@@ -326,7 +352,6 @@ implémente la directive #si pour la compilation sélective
 - généralisation de l'utilisation de temporaires pour simplifier la génération de la RI, supprimant les cas spéciaux
 -- paramètres des appels
 - système de test unitaires
-- normalisation de tous les types pour supprimer les unions et les entiers constants de la RI
 - optimisations de l'accès aux membres des blocs (table de hachage avec tableau continu, en cours)
 - pouvoir passer des expressions à exécuter à la ligne de commande (kuri -exec "..." fichier.kuri)
 - considère parser les expressions se terminant par une virgule (p.e. f(x, ))

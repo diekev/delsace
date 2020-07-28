@@ -377,16 +377,14 @@ st_mysql_client_plugin :: struct externe {
 	options : #nulctx fonc(*z8,*rien)(z32)
 }
 
-// À FAIRE: structures dans structures...
-anonyme5 :: énum n32 {
-	MYSQL_VIO_INVALID
-	MYSQL_VIO_TCP
-	MYSQL_VIO_SOCKET
-	MYSQL_VIO_PIPE
-	MYSQL_VIO_MEMORY
-}
-
 MYSQL_PLUGIN_VIO_INFO :: struct externe {
+	anonyme5 :: énum n32 {
+		MYSQL_VIO_INVALID
+		MYSQL_VIO_TCP
+		MYSQL_VIO_SOCKET
+		MYSQL_VIO_PIPE
+		MYSQL_VIO_MEMORY
+	}
 
 	protocol : anonyme5
 	// it's set, if the protocol is SOCKET or TCP

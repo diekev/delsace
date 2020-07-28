@@ -145,11 +145,8 @@ termine_dessin :: fonc() -> rien
 
     glUseProgram(0)
 
-    nonsûr {
-        // À FAIRE : propriété « alloué »
-        déloge tabl_sommets
-        déloge tabl_couleur
-    }
+    tabl_sommets.taille = 0
+    tabl_couleur.taille = 0
 
     glBindVertexArray(0)
 }

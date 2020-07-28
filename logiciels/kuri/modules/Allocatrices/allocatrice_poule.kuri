@@ -1,5 +1,4 @@
 
-# À FAIRE: union dans les structures, etc...
 union Chunk nonsûr {
     suivant: *Chunk
     # À FAIRE: paramètre gabarit de taille
