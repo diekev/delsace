@@ -23,13 +23,13 @@ cd $DOSSIER_COURANT
 # cas pour les fichiers simples
 
 # À FAIRE : exemples/applications/jeu_chaos.kuri
-# À FAIRE : "exemples/applications/json.kuri" \ crash typage retours multiples
 # À FAIRE : "exemples/applications/client_smtp.kuri" \ tente piège err n'a pas de type
 # À FAIRE : "exemples/applications/serveuse_ssl.kuri" \ tente piège err n'a pas de type
 # À FAIRE : "exemples/applications/cliente.kuri" \ tente piège err retourn mauvais type
 FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/applications/calendrier_républicain.kuri" \
           "exemples/applications/crée_test_compilateur.kuri" \
+          "exemples/applications/json.kuri" \
           "exemples/applications/labyrinthe.kuri" \
           "exemples/applications/serveuse.kuri")
 
