@@ -1,6 +1,8 @@
 importe Fondation
 importe OpenGL
 
+charge "dessin_opengl"
+charge "evenements"
 charge "glfw"
 
 // À FAIRE : rendu texte, chargement image
@@ -152,7 +154,7 @@ Entite :: struct {
 //###############################################################################
 
 Application :: struct {
-    fenetre : *GLFWwindow := nul
+    fenetre : *GLFWwindow = nul
     hauteur : z32 = 0
     largeur : z32 = 0
     souris_x := 0.0

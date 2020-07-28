@@ -165,10 +165,10 @@ type_mod :: énum z32 {
 }
 
 Évènement :: struct {
-    type : type_évènement := type_évènement.NUL
-	mods : type_mod := type_mod.AUCUN
-	cle : type_cle := type_cle.INCONNU
-	souris : bouton_souris := bouton_souris.AUCUN
+    type := type_évènement.NUL
+	mods := type_mod.AUCUN
+	cle := type_cle.INCONNU
+	souris := bouton_souris.AUCUN
 
 	// position de la souris
 	pos_x := 0.0
