@@ -779,7 +779,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 				auto noeud = CREE_NOEUD(NoeudExpressionBinaire, GenreNoeud::OPERATEUR_BINAIRE, lexeme);
 
 				if (m_noeud_logement) {
-					m_noeud_logement->expr_taille = expression_entre_crochets;
+					// pour les expressions du genre loge [expr][]z32, il ne faut pas surécrire expr_taille
+					// À FAIRE : détecte les cas où nous avons plusieurs expressions [a][b]z32, il faudra que b soit une constante
+					if (m_noeud_logement->expr_taille == nullptr) {
+						m_noeud_logement->expr_taille = expression_entre_crochets;
+					}
+					else {
+						lance_erreur("déclaration d'une expression pour l'expression de logement");
+					}
 				}
 				else {
 					noeud->expr1 = expression_entre_crochets;
