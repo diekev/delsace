@@ -891,7 +891,7 @@ static auto trouve_candidates_pour_appel(
 				}
 				resultat.pousse(dc);
 			}
-			else if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {
+			else if (decl->genre == GenreNoeud::DECLARATION_FONCTION || decl->genre == GenreNoeud::DECLARATION_COROUTINE) {
 				auto decl_fonc = static_cast<NoeudDeclarationFonction *>(decl);
 
 				if ((decl_fonc->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
