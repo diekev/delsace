@@ -1,4 +1,4 @@
-importe "chaine"
+importe Fondation
 
 FILE_MODE := 0600;
 
@@ -16,10 +16,10 @@ crée_fichier :: fonc(chemin : chaine) -> z32
 
 ouvre_fichier_append :: fonc(chemin : chaine) -> z32
 {
-
+    retourne -1
 }
 
-possède_drapeaux :: fonc(drapeaux : z32, valeurs : ...z32) -> z32
+possède_drapeaux :: fonc(drapeaux : z32, valeurs : ...z32) -> bool
 {
     pour val dans valeurs {
         si (drapeaux & val) != 0 {
@@ -42,8 +42,6 @@ ouvre_fichier_sans_créer :: fonc(chemin : chaine, drapeaux : z32) -> z32
         fd := open(chemin, drapeaux);
         lstat(chemin);
         fstat(fd);
-
-        si
     }
 
     retourne -1;
@@ -62,6 +60,7 @@ ouvre_fichier :: fonc(chemin : chaine, drapeaux : z32, mode : z32) -> z32
     retourne ouvre_fichier_sans_créer(chaine, drapeaux);
 }
 
+/*
 safe_open_wrapper(filename, flags, perms)
 safe_open_no_create
 safe_create_fail_if_exists
@@ -71,3 +70,4 @@ safe_create_replace_if_exists
 safe_open_wrapper_follow
 safe_open_no_create_follow
 safe_open_keep_if_exists_follow
+*/

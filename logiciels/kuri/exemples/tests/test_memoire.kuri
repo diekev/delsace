@@ -1,4 +1,3 @@
-importe "memoire"
 importe Fondation
 
 test_echange_memoire :: fonc() -> rien

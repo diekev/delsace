@@ -1,6 +1,6 @@
 importe Fondation
 
-Drapeau :: énum_drapeau z32 {
+Drapeau :: énum_drapeau n32 {
     FA
     FB
     FC
@@ -24,16 +24,16 @@ principale :: fonc () -> z32
 
     drapeau |= Drapeau.FA
 
-    imprime("drapeau = % (%)\n", drapeau, drapeau comme z32)
+    imprime("drapeau = % (%)\n", drapeau, drapeau comme n32)
 
     drapeau |= Drapeau.FB
 
-    imprime("drapeau = % (%)\n", drapeau, drapeau comme z32)
+    imprime("drapeau = % (%)\n", drapeau, drapeau comme n32)
 
     drapeau |= Drapeau.FE
     drapeau |= Drapeau.FD
 
-    imprime("drapeau = % (%)\n", drapeau, drapeau comme z32)
+    imprime("drapeau = % (%)\n", drapeau, drapeau comme n32)
 
     normal : Normal
 

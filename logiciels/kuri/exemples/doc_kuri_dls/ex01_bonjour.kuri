@@ -5,9 +5,10 @@ principale :: fonc () -> z32
     imprime("Bonjour, tout le monde !\n")
     imprime("Nous allons imprimer les arguments :\n")
 
+    args := arguments_ligne_commande()
+
     pour arg, index dans args {
-        chn := converti_chaine_c(arg)
-        imprime("Argument % = %\n", index, chn)
+        imprime("Argument % = %\n", index, arg)
     }
 
     retourne 0

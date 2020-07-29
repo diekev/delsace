@@ -8,7 +8,7 @@ boucle_avec_plage :: fonc() -> rien
 		imprime("%\n", i);
 	}
 
-	imprime('\n');
+	imprime("\n");
 }
 
 boucle_avec_args_varidics :: fonc(args : ...z32) -> rien
@@ -19,7 +19,7 @@ boucle_avec_args_varidics :: fonc(args : ...z32) -> rien
 		imprime("%\n", arg);
 	}
 
-	imprime('\n');
+	imprime("\n");
 }
 
 boucle_avec_tableau :: fonc(tableau : [10]z32) -> rien
@@ -30,7 +30,7 @@ boucle_avec_tableau :: fonc(tableau : [10]z32) -> rien
 		imprime("%\n", v);
 	}
 
-	imprime('\n');
+	imprime("\n");
 }
 
 principale :: fonc () -> z32

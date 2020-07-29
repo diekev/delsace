@@ -217,7 +217,9 @@ génère_fonction_principale :: fonc ()
 
     chn_principale := chaine_depuis_enchaineuse(@enchaineuse)
 
-    ajoute_chaine_à_la_compilation(chn_principale)
+    espace := espace_défaut_compilation()
+
+    ajoute_chaine_à_la_compilation(espace, chn_principale)
 
     déloge chn_principale
 }

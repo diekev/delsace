@@ -1,6 +1,6 @@
-exemple :: fonc(args : ...r64) -> r64
+exemple :: fonc(args : ...r32) -> r32
 {
-	résultat := 0.0
+	résultat : r32 = 0.0
 
 	pour x dans args {
 		pour y dans args {
@@ -8,5 +8,11 @@ exemple :: fonc(args : ...r64) -> r64
 		}
 	}
 
-	retourne résultat / (args.taille)
+	retourne résultat / (args.taille comme r32)
+}
+
+principale :: fonc () -> z32
+{
+	_ := exemple(0.0, 1.0, 2.5, 45.7, 7.9, 8.1)
+	retourne 0
 }

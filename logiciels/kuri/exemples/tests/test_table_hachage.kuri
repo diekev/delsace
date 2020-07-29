@@ -1,6 +1,5 @@
-importe "chaine"
 importe Fondation
-importe "table_hachage"
+importe TableHachage
 
 principale :: fonc () -> z32
 {

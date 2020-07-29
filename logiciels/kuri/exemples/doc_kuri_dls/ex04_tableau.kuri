@@ -1,4 +1,4 @@
-exemple :: fonc() -> rien
+principale :: fonc() -> z32
 {
 	// Déclaration d'un tableau de 12 nombre entier relatif 32-bit
 	tabl : [12]z32
@@ -10,4 +10,6 @@ exemple :: fonc() -> rien
 		val = début
 		début *= 2
 	}
+
+	retourne 0
 }

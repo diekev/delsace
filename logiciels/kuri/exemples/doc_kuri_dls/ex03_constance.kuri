@@ -1,4 +1,4 @@
-exemple :: fonc() -> rien
+principale :: fonc() -> z32
 {
 	// Déclaration d'une variable constante qui ne peut être modifiée.
 	x := 1
@@ -9,4 +9,6 @@ exemple :: fonc() -> rien
 	y := x
 
 	y = 5 // OK.
+
+	retourne 0
 }

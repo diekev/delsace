@@ -1,6 +1,6 @@
 importe Fondation
 
-plage :: corout(début : z32, fin : z32, pas : z32) -> z32
+ma_plage :: corout(début : z32, fin : z32, pas : z32) -> z32
 {
     taille := (fin - début) / pas
     val := début
@@ -15,7 +15,7 @@ plage :: corout(début : z32, fin : z32, pas : z32) -> z32
 
 principale :: fonc () -> z32
 {
-    pour i dans plage(0, 10, 1) {
+    pour i dans ma_plage(0, 10, 1) {
         imprime("Valeur = %\n", i)
     }
 

@@ -1,7 +1,7 @@
 importe Fondation
 importe GlibC
 
-imprime_tableau :: fonc(tabl : []r64) -> rien
+imprime_tableau :: fonc(tabl : []r32) -> rien
 {
     imprime("imprime_tableau...\n");
     imprime("tabl.taille = %\n", tabl.taille);
@@ -14,9 +14,9 @@ imprime_tableau :: fonc(tabl : []r64) -> rien
 }
 
 Vecteur :: struct {
-    x : r64;
-    y : r64;
-    z : r64;
+    x : r32;
+    y : r32;
+    z : r32;
 }
 
 test :: fonc() -> rien
@@ -33,7 +33,7 @@ test :: fonc() -> rien
 
     imprime("taille_de(z32) = %\n", taille_de(z32));
     imprime("taille_de([]z32) = %\n", taille_de([]z32));
-    imprime("taille_de([]r64) = %\n", taille_de([]r64));
+    imprime("taille_de([]r32) = %\n", taille_de([]r32));
     imprime("taille_de(eini) = %\n", taille_de(eini));
 
     imprime("=========================================\n");
@@ -72,7 +72,7 @@ logement_tableau :: fonc() -> rien
     imprime("=========================================\n");
     imprime("            logements tableau            \n");
 
-    tabl := loge [32]r64;
+    tabl := loge [32]r32;
 
     imprime("Tableau logé à l'addresse : %\n", tabl.pointeur);
     imprime("Taille tableau : %\n", tabl.taille);
@@ -153,11 +153,11 @@ principale :: fonc () -> z32
     imprime("=========================================\n");
     imprime("                arguments                \n");
 
+    args := arguments_ligne_commande()
     imprime("nombre d'arguments = %\n", args.taille);
 
     pour arg, i dans args {
-        nom_arg := converti_chaine_c(arg);
-        imprime("argument %: %\n", i, nom_arg);
+        imprime("argument %: %\n", i, arg);
     }
 
     logement_tableau();

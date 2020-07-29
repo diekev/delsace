@@ -1,96 +1,96 @@
-fonction externe printf(format : *z8, args : ...) -> z32;
+importe Fondation
 
-fonction test_plage_typée() -> rien
+test_plage_typée :: fonc () -> rien
 {
-	printf("boucle de caractères :\n");
+	imprime("boucle de caractères :\n")
 
 	pour i dans 'a'...'z' {
-		printf("%c\n", i);
+		imprime("% ", i)
 	}
 
-	printf("\n");
+	imprime("\n")
 
-	printf("boucle de nombres entier r32 :\n");
+	imprime("boucle de nombres entier r32 :\n")
 
 	pour i dans 0 ... 10 {
-		printf("%d\n", i);
+		imprime("% ", i)
 	}
 
-	printf("\n");
+	imprime("\n")
 
-	printf("boucle de nombres entier n32 :\n");
+	imprime("boucle de nombres entier n32 :\n")
 
-	debutn32 : n32 = 0;
-	finn32 : n32 = 10;
+	debutn32 : n32 = 0
+	finn32 : n32 = 10
 
 	pour i dans debutn32 ... finn32 {
-		printf("%d\n", i);
+		imprime("% ", i)
 	}
 
-	printf("\n");
+	imprime("\n")
 
-	printf("boucle de nombres réels r64 :\n");
+	imprime("boucle de nombres réels r64 :\n")
 
 	pour i dans 0.5...25.5 {
-		printf("%f\n", i);
+		imprime("% ", i)
 	}
-	printf("\n");
+	imprime("\n")
 
-	debut := 0.5)(r32);
-	fin   := transtype(9.5)(r32);
+	debut := 0.5 comme r32
+	fin   := 9.5 comme r32
 
-	printf("boucle de nombres réels r32 [%f, %f]:\n", debut, fin);
+	imprime("boucle de nombres réels r32 [%, %]:\n", debut, fin)
 	pour i dans debut...fin {
-		printf("%f\n", i);
+		imprime("% ", i)
 	}
-	printf("\n");
+	imprime("\n")
 
-	retourne;
+	retourne
 }
 
-fonction test_génération_séquence() -> rien
+test_génération_séquence :: fonc () -> rien
 {
-	debut := 10;
-	fin   := 0;
+	debut := 10
+	fin   := 0
 
-	printf(format="Plage de %d à %d\n", args=debut, fin);
-
-	pour x dans debut...fin {
-		printf("%d\n", x);
-	}
-
-	printf("\n");
-
-	debut = 0;
-	fin   = 10;
-
-	printf(format="Plage de %d à %d\n", args=fin, args=debut);
+	imprime(format="Plage de % à %\n", args=debut, fin)
 
 	pour x dans debut...fin {
-		printf("%d\n", fin - x);
+		imprime("% ", x)
 	}
 
-	printf("\n");
+	imprime("\n")
 
-	debut = 0;
-	fin   = 10;
+	debut = 0
+	fin   = 10
 
-	plage := (fin - debut);
-	demi_plage = plage / 2;
-
-	printf(args=-demi_plage, demi_plage, format="Plage de %d à %d\n");
+	imprime(format="Plage de % à %\n", args=fin, args=debut)
 
 	pour x dans debut...fin {
-		printf("%d\n", x - demi_plage);
+		imprime("% ", fin - x)
 	}
 
-	printf("\n");
+	imprime("\n")
 
-	retourne;
+	debut = 0
+	fin   = 10
+
+	plage := (fin - debut)
+	demi_plage := plage / 2
+
+	imprime(args=-demi_plage, demi_plage, format="Plage de % à %\n")
+
+	pour x dans debut...fin {
+		imprime("% ", x - demi_plage)
+	}
+
+	imprime("\n")
+
+	retourne
 }
 
-fonction principale(compte comme z32, args : **z8 -> z32
+principale :: fonc () -> z32
 {
-	test_génération_séquence();
-	retourne 0;
+	test_génération_séquence()
+	retourne 0
 }

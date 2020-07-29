@@ -111,7 +111,7 @@ Tâche :: struct {
     id : z32
 }
 
-#fonc_tâche lance_tâche :: fonc (tâche: *Tâche) -> rien
+lance_tâche :: fonc (tâche: *Tâche) -> rien
 {
     // contexte.id_tâche = tâche.id
     tâche.rappel(tâche.données_rappel)
