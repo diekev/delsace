@@ -1,0 +1,10 @@
+// les paramètres des fonctions ne sont pas reconnus via type_de
+
+fonction :: foo (a : z32, b : type_de(a))
+{
+}
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}
