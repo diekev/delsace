@@ -1572,6 +1572,7 @@ void calcule_taille_type_compose(TypeCompose *type)
 
 		type_union->type_le_plus_grand = type_le_plus_grand;
 		type_union->taille_octet = taille_union;
+		type_union->alignement = max_alignement;
 	}
 	else if (type->genre == GenreType::STRUCTURE) {
 		auto decalage = 0u;
