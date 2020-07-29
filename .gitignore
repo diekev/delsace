@@ -7,3 +7,5 @@ config.json
 
 logiciels/kuri/modules/Aléa/*.h
 logiciels/kuri/modules/FTGL/*.h
+
+.chaines_ajoutées
