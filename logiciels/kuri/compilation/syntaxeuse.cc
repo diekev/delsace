@@ -1923,7 +1923,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 
 			m_compilatrice.ordonnanceuse->cree_tache_pour_typage_fonction(m_unite->espace, noeud);
 
-			auto nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
+			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
 			noeud->bloc = analyse_bloc();
 			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 
