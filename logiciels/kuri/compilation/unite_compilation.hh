@@ -82,33 +82,25 @@ struct UniteCompilation {
 		this->etat_ = this->etat_original;
 	}
 
-	inline void change_etat(Etat etat_vers)
-	{
-		this->etat_ = etat_vers;
-		this->cycle = 0;
-	}
-
 	inline void attend_sur_type(Type *type)
 	{
-		this->change_etat(UniteCompilation::Etat::ATTEND_SUR_TYPE);
+		this->etat_ = (UniteCompilation::Etat::ATTEND_SUR_TYPE);
 		this->type_attendu = type;
 	}
 
 	inline void attend_sur_interface_kuri()
 	{
-		this->change_etat(UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI);
+		this->etat_ = (UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI);
 	}
 
 	inline void attend_sur_declaration(NoeudDeclaration *decl)
 	{
-		this->change_etat(UniteCompilation::Etat::ATTEND_SUR_DECLARATION);
+		this->etat_ = UniteCompilation::Etat::ATTEND_SUR_DECLARATION;
 		this->declaration_attendue = decl;
 	}
 
 	inline void attend_sur_symbole(Lexeme const *lexeme)
 	{
-		// ne remet pas le compte de cycle à zéro car il n'y a aucune vérification sur l'existance du symbole dans
-		// la tâcheronne qui remet immédiatement le compte de cycle à zéro et nous bloquerait dans une boucle infinie
 		this->etat_ = UniteCompilation::Etat::ATTEND_SUR_SYMBOLE;
 		this->lexeme_attendu = lexeme;
 	}
