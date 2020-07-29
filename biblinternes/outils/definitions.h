@@ -94,3 +94,5 @@
 	{ \
 		return (lhs = lhs ^ rhs); \
 	}
+
+#define taille_de(x) static_cast<long>(sizeof(x))
