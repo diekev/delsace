@@ -44,6 +44,8 @@ private:
 	Enchaineuse enchaineuse{};
 
 public:
+	TableIdentifiant();
+
 	IdentifiantCode *identifiant_pour_chaine(dls::vue_chaine_compacte const &nom);
 
 	IdentifiantCode *identifiant_pour_nouvelle_chaine(dls::chaine const &nom);

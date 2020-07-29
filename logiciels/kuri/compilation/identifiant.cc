@@ -24,6 +24,11 @@
 
 #include "identifiant.hh"
 
+TableIdentifiant::TableIdentifiant()
+{
+	initialise_identifiants(*this);
+}
+
 IdentifiantCode *TableIdentifiant::identifiant_pour_chaine(const dls::vue_chaine_compacte &nom)
 {
 	auto iter = table.trouve(nom);

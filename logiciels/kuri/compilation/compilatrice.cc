@@ -329,9 +329,6 @@ Compilatrice::Compilatrice()
 	: constructrice_ri(*this)
 	, ordonnanceuse(this)
 {
-	auto table = table_identifiants.verrou_ecriture();
-	initialise_identifiants(*table);
-
 	this->bibliotheques_dynamiques->pousse("pthread");
 	this->definitions->pousse("_REENTRANT");
 
