@@ -196,6 +196,9 @@ lance_compilation :: fonc ()
                 imprime("Compilation terminée !\n")
                 arrête
             }
+            PHASE_COMPILATION {
+
+            }
         }
     }
 

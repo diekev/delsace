@@ -20,7 +20,7 @@ ajoute :: fonc (index: *IndexTrigraphe, donnée: chaine) -> rien
 {
     idx := index.index.taille
 
-    tableau_ajoute(@index.index, idx)
+    tableau_ajoute(@index.index, idx comme z32)
     tableau_ajoute(@index.trigraphes, donnée)
 }
 

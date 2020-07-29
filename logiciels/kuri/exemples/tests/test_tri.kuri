@@ -69,7 +69,7 @@ construit_gna :: fonc(graine : z32) -> GNASimple
 	retourne gna_simple;
 }
 
-nombre_aléatoire :: fonc(variable gna_simple : *GNASimple) -> z32
+nombre_aléatoire :: fonc(gna_simple : *GNASimple) -> z32
 {
 	gna_simple.z = 36969 * (gna_simple.z & 655535) + (gna_simple.z >> 16);
 	gna_simple.w = 36969 * (gna_simple.w & 655535) + (gna_simple.w >> 16);

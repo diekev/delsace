@@ -13,7 +13,7 @@ ajoute :: fonc(a : n64, b : n64) -> n64
 
 principale :: fonc () -> z32
 {
-	x := 18014398509481984;
+	x : n64 = 18014398509481984;
 	y := ajoute(x, x);
 
 	imprime("% + % = %\n", x, y);
