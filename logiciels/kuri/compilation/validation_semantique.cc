@@ -1191,8 +1191,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					noeud->aide_generation_code = GENERE_BOUCLE_PLAGE;
 				}
 			}
-			// À FAIRE (réusinage arbre)
-//			else if (enfant2->genre == GenreNoeud::EXPRESSION_APPEL_FONCTION && enfant2->df->est_coroutine) {
+			else if (enfant2->genre == GenreNoeud::EXPRESSION_APPEL_FONCTION && static_cast<NoeudExpressionAppel *>(enfant2)->noeud_fonction_appelee->genre == GenreNoeud::DECLARATION_COROUTINE) {
+				::rapporte_erreur(espace, enfant2, "Les coroutines ne sont plus supportés dans le langage pour le moment");
 //				enfant1->type = enfant2->type;
 
 //				df = enfant2->df;
@@ -1212,7 +1212,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 //								compilatrice,
 //								*enfant1->lexeme);
 //				}
-//			}
+			}
 			else {
 				if (type->genre == GenreType::TABLEAU_DYNAMIQUE || type->genre == GenreType::TABLEAU_FIXE || type->genre == GenreType::VARIADIQUE) {
 					type = type_dereference_pour(type);
@@ -1236,6 +1236,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 				}
 				else {
+					std::cerr << "enfant2->genre : " << enfant2->genre << '\n';
 					rapporte_erreur("La variable n'est ni un argument variadic, ni un tableau, ni une chaine", enfant2);
 					return true;
 				}
