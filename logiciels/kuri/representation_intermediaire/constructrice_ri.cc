@@ -1392,7 +1392,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				}
 			}
 			else {
-				if (noeud->ident == ID::PositionCodeSource) {
+				if (expr->appelee->ident == ID::PositionCodeSource) {
 					return genere_ri_pour_position_code_source(noeud);
 				}
 
