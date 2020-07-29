@@ -133,12 +133,14 @@
 
 /* ************************************************************************** */
 
+#if defined(DEBOGUE_VALEURS_ENTREE_SORTIE) || defined (DEBOGUE_LOCALES) || defined(DEBOGUE_INTERPRETEUSE)
 static auto imprime_tab(std::ostream &os, int n)
 {
 	for (auto i = 0; i < n - 1; ++i) {
 		os << ' ';
 	}
 }
+#endif
 
 #if defined(DEBOGUE_VALEURS_ENTREE_SORTIE) || defined (DEBOGUE_LOCALES)
 static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
