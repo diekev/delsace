@@ -1,0 +1,11 @@
+// pas d'erreur de compilation si une expression d'appel possède un typage d'un paramètre
+
+// puisque fonc est malécrit, ceci est considéré comme un appel, mais les appels ne doivent pas pouvoir déclarer de type !
+fonction :: fon (a: z32)
+{
+}
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}
