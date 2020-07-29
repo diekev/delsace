@@ -453,10 +453,14 @@ void Tacheronne::gere_tache()
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_DECLARATION) {
 						auto decl = unite->declaration_attendue;
 						auto unite_decl = decl->unite;
-						rapporte_erreur(unite->espace, unite->declaration_attendue, "Je ne peux pas continuer la compilation car une déclaration ne peut être typée.")
-								.ajoute_message("Note : la déclaration ne peut être typée car elle attend sur ")
-								.ajoute_message(chaine_etat_unite(unite_decl->etat()))
-								.ajoute_message("\n");
+						auto erreur = rapporte_erreur(unite->espace, unite->declaration_attendue, "Je ne peux pas continuer la compilation car une déclaration ne peut être typée.");
+
+						// À FAIRE : ne devrait pas arriver
+						if (unite_decl) {
+							erreur.ajoute_message("Note : la déclaration ne peut être typée car elle attend sur ")
+									.ajoute_message(chaine_etat_unite(unite_decl->etat()))
+									.ajoute_message("\n");
+						}
 					}
 
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_TYPE) {
