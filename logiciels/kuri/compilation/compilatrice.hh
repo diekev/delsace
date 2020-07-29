@@ -319,6 +319,7 @@ dls::chaine charge_fichier(
 OptionsCompilation *obtiens_options_compilation();
 void ajourne_options_compilation(OptionsCompilation *options);
 
+EspaceDeTravail *espace_defaut_compilation();
 void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine c);
 void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine c);
 void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine c);

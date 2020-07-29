@@ -146,6 +146,7 @@ IdentifiantCode *test;
 IdentifiantCode *assert_;
 IdentifiantCode *sansbroyage;
 IdentifiantCode *racine;
+IdentifiantCode *espace_defaut_compilation;
 
 }
 
@@ -208,6 +209,7 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::compilatrice_commence_interception = table.identifiant_pour_chaine("compilatrice_commence_interception");
 	ID::compilatrice_termine_interception = table.identifiant_pour_chaine("compilatrice_termine_interception");
 	ID::demarre_un_espace_de_travail = table.identifiant_pour_chaine("démarre_un_espace_de_travail");
+	ID::espace_defaut_compilation = table.identifiant_pour_chaine("espace_défaut_compilation");
 	ID::fonction_test_variadique_externe = table.identifiant_pour_chaine("fonction_test_variadique_externe");
 	ID::test = table.identifiant_pour_chaine("test");
 	ID::assert_ = table.identifiant_pour_chaine("assert");

@@ -735,6 +735,7 @@ static auto trouve_fonction_compilatrice(IdentifiantCode *ident)
 	COMPARE_IDENT(ID::compilatrice_commence_interception, compilatrice_commence_interception);
 	COMPARE_IDENT(ID::compilatrice_termine_interception, compilatrice_termine_interception);
 	COMPARE_IDENT(ID::demarre_un_espace_de_travail, demarre_un_espace_de_travail);
+	COMPARE_IDENT(ID::espace_defaut_compilation, espace_defaut_compilation);
 
 	std::cerr << "Fonction compilatrice inconnue !\n";
 	return static_cast<void(*)()>(nullptr);

@@ -679,3 +679,8 @@ void compilatrice_termine_interception(EspaceDeTravail *espace)
 {
 	ptr_compilatrice->messagere->termine_interception(espace);
 }
+
+EspaceDeTravail *espace_defaut_compilation()
+{
+	return ptr_compilatrice->espace_de_travail_defaut;
+}

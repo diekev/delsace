@@ -251,3 +251,5 @@ compilatrice_commence_interception :: fonc (espace: *EspaceDeTravail) #compilatr
 compilatrice_termine_interception :: fonc (espace: *EspaceDeTravail) #compilatrice
 
 démarre_un_espace_de_travail :: fonc (nom: chaine, options: *OptionsCompilation) -> *EspaceDeTravail #compilatrice
+
+espace_défaut_compilation :: fonc () -> *EspaceDeTravail #compilatrice
