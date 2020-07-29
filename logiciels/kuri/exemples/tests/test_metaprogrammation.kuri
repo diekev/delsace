@@ -126,7 +126,8 @@ converti_code_c :: fonc (enchaineuse: *Enchaineuse, code: *NoeudCode)
 // À FAIRE : trouve une bonne manière de sauvegarder et restaurer l'état des fonctions courante dans la ConstructriceRI pour éviter les bugs
 lance_compilation :: fonc ()
 {
-    //ajoute_fichier_à_la_compilation("assertions.kuri")
+    //espace := espace_défaut_compilation()
+    //ajoute_fichier_à_la_compilation(espace, "assertions.kuri")
 
     //options := compilatrice_obtiens_options()
     //options.crée_exécutable = faux
