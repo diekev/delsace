@@ -31,9 +31,24 @@
 struct AtomeFonction;
 struct TypeFonction;
 
-struct BibliothequePartagee {
-	dls::systeme_fichier::shared_library bib{};
-	dls::chaine chemin{};
+struct GestionnaireBibliotheques {
+	struct BibliothequePartagee {
+		dls::systeme_fichier::shared_library bib{};
+		dls::chaine chemin{};
+	};
+
+	using type_fonction = void(*)();
+
+private:
+	dls::tableau<BibliothequePartagee> bibliotheques{};
+	dls::dico<IdentifiantCode *, type_fonction> symboles_et_fonctions{};
+
+public:
+	void ajoute_bibliotheque(dls::chaine const &chemin);
+	void ajoute_fonction_pour_symbole(IdentifiantCode *symbole, type_fonction fonction);
+	type_fonction fonction_pour_symbole(IdentifiantCode *symbole);
+
+	long memoire_utilisee() const;
 };
 
 struct FrameAppel {
@@ -81,7 +96,7 @@ struct MachineVirtuelle {
 	FrameAppel frames[TAILLE_FRAMES_APPEL];
 	int profondeur_appel = 0;
 
-	dls::tableau<BibliothequePartagee> bibliotheques{};
+	GestionnaireBibliotheques gestionnaire_bibliotheques{};
 
 	int nombre_de_metaprogrammes_executes = 0;
 	double temps_execution_metaprogammes = 0;
@@ -117,7 +132,7 @@ struct MachineVirtuelle {
 
 	typedef void (*fonction_symbole)();
 
-	fonction_symbole trouve_symbole(dls::chaine &symbole);
+	fonction_symbole trouve_symbole(IdentifiantCode *symbole);
 
 	int ajoute_globale(Type *type, IdentifiantCode *ident);
 };

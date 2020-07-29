@@ -315,13 +315,50 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std
 
 /* ************************************************************************** */
 
+void GestionnaireBibliotheques::ajoute_bibliotheque(dls::chaine const &chemin)
+{
+	auto objet = dls::systeme_fichier::shared_library(chemin.c_str());
+	bibliotheques.pousse({ std::move(objet), chemin });
+}
+
+void GestionnaireBibliotheques::ajoute_fonction_pour_symbole(IdentifiantCode *symbole, GestionnaireBibliotheques::type_fonction fonction)
+{
+	symboles_et_fonctions.insere({ symbole, fonction });
+}
+
+GestionnaireBibliotheques::type_fonction GestionnaireBibliotheques::fonction_pour_symbole(IdentifiantCode *symbole)
+{
+	auto iter = symboles_et_fonctions.trouve(symbole);
+
+	if (iter != symboles_et_fonctions.fin()) {
+		return iter->second;
+	}
+
+	POUR (bibliotheques) {
+		try {
+			auto ptr_symbole = it.bib(symbole->nom);
+			auto fonction = reinterpret_cast<MachineVirtuelle::fonction_symbole>(ptr_symbole.ptr());
+			ajoute_fonction_pour_symbole(symbole, fonction);
+			return fonction;
+		}
+		catch (...) {
+			continue;
+		}
+	}
+
+	//std::cerr << "Impossible de trouver le symbole : " << symbole << '\n';
+	return nullptr;
+}
+
+long GestionnaireBibliotheques::memoire_utilisee() const
+{
+	return bibliotheques.taille() * taille_de(BibliothequePartagee);
+}
+
 MachineVirtuelle::MachineVirtuelle()
 {
-	auto objet = dls::systeme_fichier::shared_library("/lib/x86_64-linux-gnu/libc.so.6");
-	bibliotheques.pousse(BibliothequePartagee{ std::move(objet), "/lib/x86_64-linux-gnu/libc.so.6" });
-
-	objet = dls::systeme_fichier::shared_library("/tmp/r16_tables_x64.so");
-	bibliotheques.pousse(BibliothequePartagee{ std::move(objet), "/tmp/r16_tables_x64.so" });
+	gestionnaire_bibliotheques.ajoute_bibliotheque("/lib/x86_64-linux-gnu/libc.so.6");
+	gestionnaire_bibliotheques.ajoute_bibliotheque("/tmp/r16_tables_x64.so");
 }
 
 void MachineVirtuelle::reinitialise_pile()
@@ -1007,20 +1044,9 @@ void MachineVirtuelle::empile_constante(FrameAppel *frame)
 #undef EMPILE_CONSTANTE
 }
 
-MachineVirtuelle::fonction_symbole MachineVirtuelle::trouve_symbole(dls::chaine &symbole)
+MachineVirtuelle::fonction_symbole MachineVirtuelle::trouve_symbole(IdentifiantCode *symbole)
 {
-	POUR (bibliotheques) {
-		try {
-			auto ptr_symbole = it.bib(symbole.c_str());
-			return reinterpret_cast<MachineVirtuelle::fonction_symbole>(ptr_symbole.ptr());
-		}
-		catch (...) {
-			continue;
-		}
-	}
-
-	//std::cerr << "Impossible de trouver le symbole : " << symbole << '\n';
-	return nullptr;
+	return gestionnaire_bibliotheques.fonction_pour_symbole(symbole);
 }
 
 int MachineVirtuelle::ajoute_globale(Type *type, IdentifiantCode *ident)

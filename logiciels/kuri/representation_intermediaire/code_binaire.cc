@@ -771,7 +771,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 			donnees_externe.ptr_fonction = trouve_fonction_compilatrice(fonction->decl->ident);
 		}
 		else {
-			donnees_externe.ptr_fonction = mv->trouve_symbole(fonction->nom);
+			donnees_externe.ptr_fonction = mv->trouve_symbole(fonction->decl->ident);
 		}
 
 		if (fonction->decl->est_variadique) {

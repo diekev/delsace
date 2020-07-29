@@ -530,7 +530,7 @@ Metriques Compilatrice::rassemble_metriques() const
 	memoire_mv += static_cast<size_t>(mv.donnees_constantes.taille());
 	memoire_mv += static_cast<size_t>(mv.donnees_globales.taille());
 	memoire_mv += static_cast<size_t>(mv.patchs_donnees_constantes.taille()) * sizeof(PatchDonneesConstantes);
-	memoire_mv += static_cast<size_t>(mv.bibliotheques.taille()) * sizeof(BibliothequePartagee);
+	memoire_mv += static_cast<size_t>(mv.gestionnaire_bibliotheques.memoire_utilisee());
 
 	metriques.memoire_mv = memoire_mv;
 
