@@ -113,14 +113,21 @@ bool cherche_transformation(
 			return false;
 		}
 
-		if (est_type_entier(type_de) && type_vers->genre == GenreType::OCTET) {
-			if (type_vers->taille_octet < type_de->taille_octet) {
-				transformation = { TypeTransformation::REDUIT_TAILLE_TYPE, type_vers };
+		if (est_type_entier(type_de)) {
+			if (type_vers->genre == GenreType::OCTET) {
+				if (type_vers->taille_octet < type_de->taille_octet) {
+					transformation = { TypeTransformation::REDUIT_TAILLE_TYPE, type_vers };
+					return false;
+				}
+
+				transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 				return false;
 			}
 
-			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
-			return false;
+			if (type_vers->genre == GenreType::BOOL) {
+				transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+				return false;
+			}
 		}
 
 		if (type_vers->genre == GenreType::ERREUR && type_de->genre == GenreType::ENTIER_CONSTANT) {
