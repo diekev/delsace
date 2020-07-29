@@ -85,6 +85,7 @@ open :: fonc externe (chemin : *z8, drapeaux : z32, args : ...) -> z32
 close :: fonc externe (fd : z32) -> z32
 read :: fonc externe (fd : z32, tampon : *z8, taille : n64) -> z64
 write :: fonc externe (fd : z32, tampon : *z8, taille : z64) -> z32
+unlink :: fonc externe (chemin: *z8) -> z32
 
 fsync :: fonc externe (fd: z32) -> z32
 fdatasync :: fonc externe (fd: z32) -> z32

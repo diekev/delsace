@@ -1,13 +1,14 @@
 importe Fondation
+importe GlibC
 
 FILE_MODE := 0600;
 
 crée_fichier :: fonc(chemin : chaine) -> z32
 {
-    ptr_chaine_c := chaine_c_temp(tampon, chemin);
+    ptr_chaine_c := chaine_c_temp(chemin);
 
     // Supprime les liens symbolics potentiels, pour éviter les attaques.
-    unlink(ptr_chaine_c);
+    _ := unlink(ptr_chaine_c);
 
     fd := open(ptr_chaine_c, O_WRONLY|O_CREAT|O_EXCL, FILE_MODE);
 

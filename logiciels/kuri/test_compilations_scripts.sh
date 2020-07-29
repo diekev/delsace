@@ -26,6 +26,7 @@ cd $DOSSIER_COURANT
 # À FAIRE : exemples/demos/demo_coroutine.kuri
 # À FAIRE : exemples/demos/demo_coro_nombre_premier.kuri
 # À FAIRE : "exemples/tests/test_tri.kuri" \
+# À FAIRE : "exemples/tests/test_fichier.kuri" \
 FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/applications/calendrier_républicain.kuri" \
           "exemples/applications/cliente.kuri" \
@@ -62,7 +63,6 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/tests/test_emploi.kuri" \
           "exemples/tests/test_énum_drapeau.kuri" \
           "exemples/tests/test_erreur.kuri" \
-          "exemples/tests/test_fichier.kuri" \
           "exemples/tests/test_ghtml.kuri" \
           "exemples/tests/test_logement.kuri" \
           "exemples/tests/test_memoire.kuri" \
