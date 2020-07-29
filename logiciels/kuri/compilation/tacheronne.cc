@@ -113,6 +113,8 @@ void OrdonnanceuseTache::cree_tache_pour_typage(EspaceDeTravail *espace, NoeudEx
 
 void OrdonnanceuseTache::cree_tache_pour_typage_fonction(EspaceDeTravail *espace, NoeudDeclarationFonction *noeud)
 {
+	// À FAIRE : il nous faut deux unités : une pour le typage de l'entête, et une pour le typage du corps
+	//           puisque nous n'avons qu'une seule unité par noeud, le noeud interfère avec l'état de l'unité
 	cree_tache_pour_typage(espace, noeud, GenreTache::TYPAGE_ENTETE_FONCTION);
 }
 
