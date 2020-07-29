@@ -333,6 +333,22 @@ asm enligné
 
 instructions SIMD
 
+directive #symbole pour les fonctions externes définissant leurs symboles (si différent du nom, pour les fonctions C qui sont en réalité des macros)
+directive #externe au lieu du mot-clé externe, prenant un argument définissant la bibliothèque où trouver le symbole
+
+phase de compilation pour la préécriture est la postécriture des fichiers objets
+phase de compilation pour la préliaison des fichiers objets en un exécutable
+génère des statitiques pour chaque espace de travail si demandé, au lieu de statistiques pour toute la compilation
+    -- imprime quand même la durée de compilation à la fin?
+
+
+considération des assertions statiques lors de la compilation de plusieurs espaces de travail
+    elles seront éxecutées pour chaque espace
+    vraiment un espace de travail ne définit que ce que l'exécutable final contiendra, et il nous le faut pour les versions 32-bit
+    peut-être qu'un espace devra pouvoir partager le code avec les autres
+    un espace peut avoir un type contexte différent des autres... => stocke le type contexte dans l'espace, mais le code partagé ne pourra pas l'utiliser...
+
+
 implémente la directive #si pour la compilation sélective
     commence par avoir des condtions définies par la compilatrice (LINUX, WINDOWS, MACOS, 32BITS, 64BITS, ...)
     utilisation de constantes globales ou locales, et des expressions pouvant être exécutées
