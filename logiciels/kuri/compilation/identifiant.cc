@@ -152,6 +152,9 @@ IdentifiantCode *assert_;
 IdentifiantCode *sansbroyage;
 IdentifiantCode *racine;
 IdentifiantCode *espace_defaut_compilation;
+IdentifiantCode *malloc_;
+IdentifiantCode *realloc_;
+IdentifiantCode *free_;
 
 }
 
@@ -220,4 +223,7 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::assert_ = table.identifiant_pour_chaine("assert");
 	ID::sansbroyage = table.identifiant_pour_chaine("sansbroyage");
 	ID::racine = table.identifiant_pour_chaine("racine");
+	ID::malloc_ = table.identifiant_pour_chaine("malloc");
+	ID::realloc_ = table.identifiant_pour_chaine("realloc");
+	ID::free_ = table.identifiant_pour_chaine("free");
 }

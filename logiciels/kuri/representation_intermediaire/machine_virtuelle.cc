@@ -315,6 +315,28 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std
 
 /* ************************************************************************** */
 
+/* Redéfini certaines fonction afin de pouvoir controler leurs comportements.
+ * Par exemple, pour les fonctions d'allocations nous voudrions pouvoir libérer
+ * la mémoire de notre coté, ou encore vérifier qu'il n'y ait pas de fuite de
+ * mémoire dans les métaprogrammes.
+ */
+static void *notre_malloc(size_t n)
+{
+	return malloc(n);
+}
+
+static void *notre_realloc(void *ptr, size_t taille)
+{
+	return realloc(ptr, taille);
+}
+
+static void notre_free(void *ptr)
+{
+	free(ptr);
+}
+
+/* ************************************************************************** */
+
 void GestionnaireBibliotheques::ajoute_bibliotheque(dls::chaine const &chemin)
 {
 	auto objet = dls::systeme_fichier::shared_library(chemin.c_str());
@@ -359,6 +381,10 @@ MachineVirtuelle::MachineVirtuelle()
 {
 	gestionnaire_bibliotheques.ajoute_bibliotheque("/lib/x86_64-linux-gnu/libc.so.6");
 	gestionnaire_bibliotheques.ajoute_bibliotheque("/tmp/r16_tables_x64.so");
+
+	gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(ID::malloc_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_malloc));
+	gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(ID::realloc_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_realloc));
+	gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(ID::free_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_free));
 }
 
 void MachineVirtuelle::reinitialise_pile()

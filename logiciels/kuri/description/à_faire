@@ -375,7 +375,6 @@ implémente la directive #si pour la compilation sélective
 - proprement définir ce qu'on doit faire si un métaprogramme demande un message alors qu'il n'a pas commencer à les intercepter
 - nettoie la génération de code de création de contexte pour la fonction principale pour utiliser le noeud de la création de contexte du module Kuri
 - avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
-- utilisation de fonctions définies dans la compilatrice pour remplacer malloc, realloc, et free lors de l'exécution des métaprogrammes
 - pouvoir utiliser un #! en début de fichier pour utiliser les programmes comme des scripts (cela compilera et exécutera l'exécutable ou alors juste les métaprogrammes, #! n'est pas cohérent sur toutes les plateformes...)
 
 

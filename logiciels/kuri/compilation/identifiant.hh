@@ -123,6 +123,9 @@ extern IdentifiantCode *test;
 extern IdentifiantCode *assert_;
 extern IdentifiantCode *sansbroyage;
 extern IdentifiantCode *racine;
+extern IdentifiantCode *malloc_;
+extern IdentifiantCode *realloc_;
+extern IdentifiantCode *free_;
 
 }
 
