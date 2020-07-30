@@ -41,8 +41,25 @@ struct OperateurUnaire;
 struct Fichier;
 struct IdentifiantCode;
 struct NoeudBloc;
+struct NoeudBoucle;
 struct NoeudCode;
+struct NoeudDeclarationVariable;
+struct NoeudDirectiveExecution;
 struct NoeudDiscr;
+struct NoeudEnum;
+struct NoeudExpressionAppel;
+struct NoeudExpressionBinaire;
+struct NoeudExpressionLogement;
+struct NoeudExpressionMembre;
+struct NoeudExpressionReference;
+struct NoeudExpressionUnaire;
+struct NoeudPour;
+struct NoeudPousseContexte;
+struct NoeudSi;
+struct NoeudStruct;
+struct NoeudTableauArgsVariadiques;
+struct NoeudTente;
+struct NoeudExpressionAppel;
 struct TypeFonction;
 struct NoeudDependance;
 struct UniteCompilation;
@@ -243,17 +260,119 @@ struct NoeudExpression {
 
 	COPIE_CONSTRUCT(NoeudExpression);
 
-	inline bool est_discr() const
-	{
-		return genre == GenreNoeud::INSTRUCTION_DISCR || genre == GenreNoeud::INSTRUCTION_DISCR_ENUM || genre == GenreNoeud::INSTRUCTION_DISCR_UNION;
+#define EST_NOEUD_GENRE(genre_, ...) \
+	inline bool est_##genre_() const \
+	{ \
+		return dls::outils::est_element(this->genre, __VA_ARGS__); \
 	}
 
-	inline bool est_retour() const
-	{
-		return genre == GenreNoeud::INSTRUCTION_RETOUR || genre == GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE || genre == GenreNoeud::INSTRUCTION_RETOUR_SIMPLE;
-	}
+	EST_NOEUD_GENRE(appel, GenreNoeud::EXPRESSION_APPEL_FONCTION)
+	EST_NOEUD_GENRE(args_variadiques, GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES)
+	EST_NOEUD_GENRE(assignation, GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE)
+	EST_NOEUD_GENRE(bloc, GenreNoeud::INSTRUCTION_COMPOSEE)
+	EST_NOEUD_GENRE(booleen, GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN)
+	EST_NOEUD_GENRE(boucle, GenreNoeud::INSTRUCTION_BOUCLE)
+	EST_NOEUD_GENRE(caractere, GenreNoeud::EXPRESSION_LITTERALE_CARACTERE)
+	EST_NOEUD_GENRE(chaine, GenreNoeud::EXPRESSION_LITTERALE_CHAINE)
+	EST_NOEUD_GENRE(comme, GenreNoeud::EXPRESSION_COMME)
+	EST_NOEUD_GENRE(comparaison_chainee, GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE)
+	EST_NOEUD_GENRE(construction_struct, GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE)
+	EST_NOEUD_GENRE(construction_tableau, GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU)
+	EST_NOEUD_GENRE(controle_boucle, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)
+	EST_NOEUD_GENRE(coroutine, GenreNoeud::DECLARATION_COROUTINE)
+	EST_NOEUD_GENRE(decl_discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
+	EST_NOEUD_GENRE(decl_var, GenreNoeud::DECLARATION_VARIABLE)
+	EST_NOEUD_GENRE(deloge, GenreNoeud::EXPRESSION_DELOGE)
+	EST_NOEUD_GENRE(discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
+	EST_NOEUD_GENRE(enum, GenreNoeud::DECLARATION_ENUM)
+	EST_NOEUD_GENRE(execute, GenreNoeud::DIRECTIVE_EXECUTION)
+	EST_NOEUD_GENRE(expansion_variadique, GenreNoeud::EXPANSION_VARIADIQUE)
+	EST_NOEUD_GENRE(fonction, GenreNoeud::DECLARATION_FONCTION)
+	EST_NOEUD_GENRE(indexage, GenreNoeud::EXPRESSION_INDEXAGE)
+	EST_NOEUD_GENRE(info_de, GenreNoeud::EXPRESSION_INFO_DE)
+	EST_NOEUD_GENRE(init_de, GenreNoeud::EXPRESSION_INIT_DE)
+	EST_NOEUD_GENRE(loge, GenreNoeud::EXPRESSION_LOGE)
+	EST_NOEUD_GENRE(memoire, GenreNoeud::EXPRESSION_MEMOIRE)
+	EST_NOEUD_GENRE(nombre_entier, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER)
+	EST_NOEUD_GENRE(nombre_reel, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL)
+	EST_NOEUD_GENRE(non_initialisation, GenreNoeud::INSTRUCTION_NON_INITIALISATION)
+	EST_NOEUD_GENRE(nul, GenreNoeud::EXPRESSION_LITTERALE_NUL)
+	EST_NOEUD_GENRE(operateur, GenreNoeud::DECLARATION_OPERATEUR)
+	EST_NOEUD_GENRE(operateur_binaire, GenreNoeud::OPERATEUR_BINAIRE)
+	EST_NOEUD_GENRE(operateur_unaire, GenreNoeud::OPERATEUR_UNAIRE)
+	EST_NOEUD_GENRE(parenthese, GenreNoeud::EXPRESSION_PARENTHESE)
+	EST_NOEUD_GENRE(plage, GenreNoeud::EXPRESSION_PLAGE)
+	EST_NOEUD_GENRE(pour, GenreNoeud::INSTRUCTION_POUR)
+	EST_NOEUD_GENRE(pousse_contexte, GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE)
+	EST_NOEUD_GENRE(ref_decl, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION)
+	EST_NOEUD_GENRE(ref_membre, GenreNoeud::EXPRESSION_REFERENCE_MEMBRE)
+	EST_NOEUD_GENRE(ref_membre_union, GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION)
+	EST_NOEUD_GENRE(ref_type, GenreNoeud::EXPRESSION_REFERENCE_TYPE)
+	EST_NOEUD_GENRE(reloge, GenreNoeud::EXPRESSION_RELOGE)
+	EST_NOEUD_GENRE(repete, GenreNoeud::INSTRUCTION_REPETE)
+	EST_NOEUD_GENRE(retiens, GenreNoeud::INSTRUCTION_RETIENS)
+	EST_NOEUD_GENRE(retour, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE, GenreNoeud::INSTRUCTION_RETOUR_SIMPLE)
+	EST_NOEUD_GENRE(saufsi, GenreNoeud::INSTRUCTION_SAUFSI)
+	EST_NOEUD_GENRE(si, GenreNoeud::INSTRUCTION_SI)
+	EST_NOEUD_GENRE(sinon, GenreNoeud::INSTRUCTION_SINON)
+	EST_NOEUD_GENRE(structure, GenreNoeud::DECLARATION_STRUCTURE)
+	EST_NOEUD_GENRE(taille, GenreNoeud::EXPRESSION_TAILLE_DE)
+	EST_NOEUD_GENRE(tantque, GenreNoeud::INSTRUCTION_TANTQUE)
+	EST_NOEUD_GENRE(tente, GenreNoeud::INSTRUCTION_TENTE)
+	EST_NOEUD_GENRE(type_de, GenreNoeud::EXPRESSION_TYPE_DE)
 
-	inline NoeudDiscr *comme_discr();
+#undef EST_NOEUD_GENRE
+
+#define COMME_NOEUD(genre, type_noeud) \
+	inline type_noeud *comme_##genre(); \
+	inline type_noeud const *comme_##genre() const;
+
+	COMME_NOEUD(appel, NoeudExpressionAppel)
+	COMME_NOEUD(args_variadiques, NoeudTableauArgsVariadiques)
+	COMME_NOEUD(assignation, NoeudExpressionBinaire)
+	COMME_NOEUD(bloc, NoeudBloc)
+	COMME_NOEUD(boucle, NoeudBoucle)
+	COMME_NOEUD(comme, NoeudExpressionBinaire)
+	COMME_NOEUD(comparaison_chainee, NoeudExpressionBinaire)
+	COMME_NOEUD(construction_struct, NoeudExpressionAppel)
+	COMME_NOEUD(construction_tableau, NoeudExpressionUnaire)
+	COMME_NOEUD(controle_boucle, NoeudExpressionUnaire)
+	COMME_NOEUD(coroutine, NoeudDeclarationFonction)
+	COMME_NOEUD(decl_discr, NoeudDiscr)
+	COMME_NOEUD(decl_var, NoeudDeclarationVariable)
+	COMME_NOEUD(deloge, NoeudExpressionLogement)
+	COMME_NOEUD(discr, NoeudDiscr)
+	COMME_NOEUD(enum, NoeudEnum)
+	COMME_NOEUD(execute, NoeudDirectiveExecution)
+	COMME_NOEUD(expansion_variadique, NoeudExpressionUnaire)
+	COMME_NOEUD(fonction, NoeudDeclarationFonction)
+	COMME_NOEUD(indexage, NoeudExpressionBinaire)
+	COMME_NOEUD(info_de, NoeudExpressionUnaire)
+	COMME_NOEUD(loge, NoeudExpressionLogement)
+	COMME_NOEUD(memoire, NoeudExpressionUnaire)
+	COMME_NOEUD(operateur, NoeudDeclarationFonction)
+	COMME_NOEUD(operateur_binaire, NoeudExpressionBinaire)
+	COMME_NOEUD(operateur_unaire, NoeudExpressionUnaire)
+	COMME_NOEUD(parenthese, NoeudExpressionUnaire)
+	COMME_NOEUD(plage, NoeudExpressionBinaire)
+	COMME_NOEUD(pour, NoeudPour)
+	COMME_NOEUD(pousse_contexte, NoeudPousseContexte)
+	COMME_NOEUD(ref_decl, NoeudExpressionReference)
+	COMME_NOEUD(ref_membre, NoeudExpressionMembre)
+	COMME_NOEUD(ref_membre_union, NoeudExpressionMembre)
+	COMME_NOEUD(reloge, NoeudExpressionLogement)
+	COMME_NOEUD(repete, NoeudBoucle)
+	COMME_NOEUD(retiens, NoeudExpressionUnaire)
+	COMME_NOEUD(retour, NoeudExpressionUnaire)
+	COMME_NOEUD(saufsi, NoeudSi)
+	COMME_NOEUD(si, NoeudSi)
+	COMME_NOEUD(structure, NoeudStruct)
+	COMME_NOEUD(taille, NoeudExpressionUnaire)
+	COMME_NOEUD(tantque, NoeudBoucle)
+	COMME_NOEUD(tente, NoeudTente)
+	COMME_NOEUD(type_de, NoeudExpressionUnaire)
+
+#undef COMME_NOEUD
 };
 
 struct NoeudDeclaration : public NoeudExpression {
@@ -505,11 +624,64 @@ struct NoeudDirectiveExecution : NoeudExpression {
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 };
 
-inline NoeudDiscr *NoeudExpression::comme_discr()
-{
-	assert(est_discr());
-	return static_cast<NoeudDiscr *>(this);
-}
+#define COMME_NOEUD(genre, type_noeud) \
+	inline type_noeud *NoeudExpression::comme_##genre() \
+	{ \
+		assert(est_##genre()); \
+		return static_cast<type_noeud *>(this); \
+	} \
+	inline type_noeud const *NoeudExpression::comme_##genre() const \
+	{ \
+		assert(est_##genre()); \
+		return static_cast<type_noeud const *>(this); \
+	}
+
+	COMME_NOEUD(appel, NoeudExpressionAppel)
+	COMME_NOEUD(args_variadiques, NoeudTableauArgsVariadiques)
+	COMME_NOEUD(assignation, NoeudExpressionBinaire)
+	COMME_NOEUD(bloc, NoeudBloc)
+	COMME_NOEUD(boucle, NoeudBoucle)
+	COMME_NOEUD(comme, NoeudExpressionBinaire)
+	COMME_NOEUD(comparaison_chainee, NoeudExpressionBinaire)
+	COMME_NOEUD(construction_struct, NoeudExpressionAppel)
+	COMME_NOEUD(construction_tableau, NoeudExpressionUnaire)
+	COMME_NOEUD(controle_boucle, NoeudExpressionUnaire)
+	COMME_NOEUD(coroutine, NoeudDeclarationFonction)
+	COMME_NOEUD(decl_discr, NoeudDiscr)
+	COMME_NOEUD(decl_var, NoeudDeclarationVariable)
+	COMME_NOEUD(deloge, NoeudExpressionLogement)
+	COMME_NOEUD(discr, NoeudDiscr)
+	COMME_NOEUD(enum, NoeudEnum)
+	COMME_NOEUD(execute, NoeudDirectiveExecution)
+	COMME_NOEUD(expansion_variadique, NoeudExpressionUnaire)
+	COMME_NOEUD(fonction, NoeudDeclarationFonction)
+	COMME_NOEUD(indexage, NoeudExpressionBinaire)
+	COMME_NOEUD(info_de, NoeudExpressionUnaire)
+	COMME_NOEUD(loge, NoeudExpressionLogement)
+	COMME_NOEUD(memoire, NoeudExpressionUnaire)
+	COMME_NOEUD(operateur, NoeudDeclarationFonction)
+	COMME_NOEUD(operateur_binaire, NoeudExpressionBinaire)
+	COMME_NOEUD(operateur_unaire, NoeudExpressionUnaire)
+	COMME_NOEUD(parenthese, NoeudExpressionUnaire)
+	COMME_NOEUD(plage, NoeudExpressionBinaire)
+	COMME_NOEUD(pour, NoeudPour)
+	COMME_NOEUD(pousse_contexte, NoeudPousseContexte)
+	COMME_NOEUD(ref_decl, NoeudExpressionReference)
+	COMME_NOEUD(ref_membre, NoeudExpressionMembre)
+	COMME_NOEUD(ref_membre_union, NoeudExpressionMembre)
+	COMME_NOEUD(reloge, NoeudExpressionLogement)
+	COMME_NOEUD(repete, NoeudBoucle)
+	COMME_NOEUD(retiens, NoeudExpressionUnaire)
+	COMME_NOEUD(retour, NoeudExpressionUnaire)
+	COMME_NOEUD(saufsi, NoeudSi)
+	COMME_NOEUD(si, NoeudSi)
+	COMME_NOEUD(structure, NoeudStruct)
+	COMME_NOEUD(taille, NoeudExpressionUnaire)
+	COMME_NOEUD(tantque, NoeudBoucle)
+	COMME_NOEUD(tente, NoeudTente)
+	COMME_NOEUD(type_de, NoeudExpressionUnaire)
+
+#undef COMME_NOEUD
 
 void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab);
 
