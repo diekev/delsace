@@ -2042,11 +2042,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto inst = noeud->comme_pousse_contexte();
 			auto variable = inst->expr;
 
-			// @vérifie si redondant
-			auto decl = trouve_dans_bloc(inst->bloc_parent, variable->ident);
-
-			if (decl == nullptr) {
-				rapporte_erreur("variable inconnu", variable);
+			if (variable->type != espace->typeuse.type_contexte) {
+				::rapporte_erreur(espace, variable, "La variable doit être de type ContexteProgramme")
+						.ajoute_message("Note : la variable est de type ")
+						.ajoute_message(chaine_type(variable->type))
+						.ajoute_message("\n");
 				return true;
 			}
 
