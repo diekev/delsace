@@ -5,6 +5,7 @@ importe Fondation
 getenv :: fonc externe (nom: *z8) -> *z8
 getuid :: fonc externe () -> z32
 system :: fonc externe (command: *z8) -> z32
+usleep :: fonc externe (µsec: n32) -> z32
 
 chaine_environnement :: fonc (nom: chaine) -> chaine
 {
@@ -42,4 +43,17 @@ exécute_commande_externe :: fonc (args: ...chaine) -> bool
     }
 
     retourne vrai
+}
+
+dors_millisecondes :: fonc (millisecondes: z32)
+{
+    si millisecondes < 0 {
+        retourne
+    }
+
+    si millisecondes == 0 {
+        retourne
+    }
+
+    _ := usleep((millisecondes * 1000) comme n32)
 }
