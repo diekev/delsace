@@ -309,7 +309,6 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			type->info_type = info_type;
 			break;
 		}
-		case GenreType::VARIADIQUE:
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
 			auto type_tableau = type->comme_tableau_dynamique();
@@ -320,6 +319,20 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->est_tableau_fixe = false;
 			info_type->taille_fixe = 0;
 			info_type->type_pointe = cree_info_type_pour(type_tableau->type_pointe);
+
+			type->info_type = info_type;
+			break;
+		}
+		case GenreType::VARIADIQUE:
+		{
+			auto type_variadique = type->comme_variadique();
+
+			auto info_type = infos_types_tableaux.ajoute_element();
+			info_type->genre = GenreInfoType::TABLEAU;
+			info_type->taille_en_octet = type->taille_octet;
+			info_type->est_tableau_fixe = false;
+			info_type->taille_fixe = 0;
+			info_type->type_pointe = cree_info_type_pour(type_variadique->type_pointe);
 
 			type->info_type = info_type;
 			break;
