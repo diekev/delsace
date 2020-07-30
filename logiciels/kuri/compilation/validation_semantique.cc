@@ -104,13 +104,13 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		case GenreNoeud::DECLARATION_COROUTINE:
 		case GenreNoeud::DECLARATION_FONCTION:
 		{
-			auto decl = static_cast<NoeudDeclarationFonction *>(noeud);
+			auto decl = noeud->comme_fonction();
 
 			if (decl->est_declaration_type) {
 				POUR (decl->arbre_aplatis_entete) {
 					// voir commentaire plus bas
-					if (it->genre == GenreNoeud::DECLARATION_VARIABLE) {
-						auto valeur = static_cast<NoeudDeclarationVariable *>(it)->valeur;
+					if (it->est_decl_var()) {
+						auto valeur = it->comme_decl_var()->valeur;
 						if (valide_semantique_noeud(valeur)) {
 							return true;
 						}
@@ -137,8 +137,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					// le noeud de référence à la variable afin de valider correctement le type
 					NoeudExpression *type_entree = decl->params[i];
 
-					if (type_entree->genre == GenreNoeud::DECLARATION_VARIABLE) {
-						type_entree = static_cast<NoeudDeclarationVariable *>(type_entree)->valeur;
+					if (type_entree->est_decl_var()) {
+						type_entree = type_entree->comme_decl_var()->valeur;
 					}
 
 					if (resoud_type_final(type_entree, types_entrees[i + requiers_contexte])) {
@@ -163,11 +163,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::DECLARATION_OPERATEUR:
 		{
-			return valide_operateur(static_cast<NoeudDeclarationFonction *>(noeud));
+			return valide_operateur(noeud->comme_operateur());
 		}
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
-			auto expr = static_cast<NoeudExpressionAppel *>(noeud);
+			auto expr = noeud->comme_appel();
 			expr->genre_valeur = GenreValeur::DROITE;
 			// @réinitialise en cas d'erreurs passées
 			expr->exprs = kuri::tableau<NoeudExpression *>();
@@ -175,7 +175,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
-			auto noeud_directive = static_cast<NoeudDirectiveExecution *>(noeud);
+			auto noeud_directive = noeud->comme_execute();
 
 			// crée une fonction pour l'exécution
 			auto noeud_decl = static_cast<NoeudDeclarationFonction *>(espace->assembleuse->cree_noeud(GenreNoeud::DECLARATION_FONCTION, noeud->lexeme));
@@ -219,7 +219,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
-			auto expr = static_cast<NoeudExpressionReference *>(noeud);
+			auto expr = noeud->comme_ref_decl();
 
 			if (expr->drapeaux & DECLARATION_TYPE_POLYMORPHIQUE) {
 				expr->genre_valeur = GenreValeur::DROITE;
@@ -298,14 +298,14 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				donnees_dependance.types_utilises.insere(expr->type);
 			}
 
-			if (decl->genre == GenreNoeud::DECLARATION_FONCTION && !static_cast<NoeudDeclarationFonction *>(decl)->est_gabarit) {
+			if (decl->est_fonction() && !decl->comme_fonction()->est_gabarit) {
 				noeud->genre_valeur = GenreValeur::DROITE;
-				auto decl_fonc = static_cast<NoeudDeclarationFonction *>(decl);
+				auto decl_fonc = decl->comme_fonction();
 				donnees_dependance.fonctions_utilisees.insere(decl_fonc);
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
 				if (decl->drapeaux & EST_GLOBALE) {
-					donnees_dependance.globales_utilisees.insere(static_cast<NoeudDeclarationVariable *>(decl));
+					donnees_dependance.globales_utilisees.insere(decl->comme_decl_var());
 				}
 			}
 
@@ -321,7 +321,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
-			auto inst = static_cast<NoeudExpressionMembre *>(noeud);
+			auto inst = noeud->comme_ref_membre();
 			auto enfant1 = inst->accede;
 			//auto enfant2 = inst->membre;
 			noeud->genre_valeur = GenreValeur::TRANSCENDANTALE;
@@ -372,11 +372,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			auto inst = static_cast<NoeudExpressionBinaire *>(noeud);
+			auto inst = noeud->comme_assignation();
 			auto variable = inst->expr1;
 			auto expression = inst->expr2;
 
-			if (expression->genre == GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
+			if (expression->est_non_initialisation()) {
 				rapporte_erreur("Impossible d'utiliser '---' dans une expression d'assignation", expression);
 				return true;
 			}
@@ -393,7 +393,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			/* a, b = foo() */
 			if (variable->lexeme->genre == GenreLexeme::VIRGULE) {
-				if (expression->genre != GenreNoeud::EXPRESSION_APPEL_FONCTION) {
+				if (!expression->est_appel()) {
 					rapporte_erreur("Une virgule ne peut se trouver qu'à gauche d'un appel de fonction.", variable, erreur::type_erreur::NORMAL);
 					return true;
 				}
@@ -443,12 +443,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
 		{
-			auto decl = static_cast<NoeudDeclarationVariable *>(noeud);
+			auto decl = noeud->comme_decl_var();
 			auto variable = decl->valeur;
 			auto expression = decl->expression;
 
 			// À FAIRE : cas où nous avons plusieurs variables déclarées
-			if (variable->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+			if (!variable->est_ref_decl()) {
 				rapporte_erreur("Expression inattendue à gauche de la déclaration", variable);
 				return true;
 			}
@@ -830,7 +830,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
-			auto expr = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto expr = noeud->comme_operateur_unaire();
 			expr->genre_valeur = GenreValeur::DROITE;
 
 			auto enfant = expr->expr;
@@ -1134,7 +1134,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
-			auto inst = static_cast<NoeudBloc *>(noeud);
+			auto inst = noeud->comme_bloc();
 
 			auto expressions = inst->expressions.verrou_lecture();
 
@@ -1149,7 +1149,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::INSTRUCTION_POUR:
 		{
-			auto inst = static_cast<NoeudPour *>(noeud);
+			auto inst = noeud->comme_pour();
 
 			/* on génère d'abord le type de la variable */
 			auto enfant1 = inst->variable;
@@ -1291,7 +1291,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_COMME:
 		{
-			auto expr = static_cast<NoeudExpressionBinaire *>(noeud);
+			auto expr = noeud->comme_comme();
 			expr->genre_valeur = GenreValeur::DROITE;
 
 			if (resoud_type_final(expr->expr2, expr->type)) {
@@ -1336,7 +1336,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
-			auto expr = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto expr = noeud->comme_taille();
 			expr->genre_valeur = GenreValeur::DROITE;
 			expr->type = espace->typeuse[TypeBase::N32];
 
@@ -1349,7 +1349,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_PLAGE:
 		{
-			auto inst = static_cast<NoeudExpressionBinaire *>(noeud);
+			auto inst = noeud->comme_plage();
 			auto enfant1 = inst->expr1;
 			auto enfant2 = inst->expr2;
 
@@ -1394,7 +1394,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
 		{
-			auto inst = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto inst = noeud->comme_controle_boucle();
 			auto chaine_var = inst->expr == nullptr ? nullptr : inst->expr->ident;
 			auto ok = bloc_est_dans_boucle(noeud->bloc_parent, chaine_var);
 
@@ -1412,7 +1412,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::INSTRUCTION_REPETE:
 		{
-			auto inst = static_cast<NoeudBoucle *>(noeud);
+			auto inst = noeud->comme_repete();
 			if (inst->condition->type == nullptr && !est_operateur_bool(inst->condition->lexeme->genre)) {
 				rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
 				return true;
@@ -1422,7 +1422,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::INSTRUCTION_TANTQUE:
 		{
-			auto inst = static_cast<NoeudBoucle *>(noeud);
+			auto inst = noeud->comme_tantque();
 
 			if (inst->condition->type == nullptr && !est_operateur_bool(inst->condition->lexeme->genre)) {
 				rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
@@ -1438,7 +1438,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		{
-			auto expr = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto expr = noeud->comme_construction_tableau();
 			noeud->genre_valeur = GenreValeur::DROITE;
 
 			dls::tablet<NoeudExpression *, 10> feuilles;
@@ -1482,7 +1482,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		{
-			auto noeud_expr = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto noeud_expr = noeud->comme_info_de();
 			auto expr = noeud_expr->expr;
 
 			if (resoud_type_final(noeud_expr->expr, expr->type)) {
@@ -1587,7 +1587,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_TYPE_DE:
 		{
-			auto expr = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto expr = noeud->comme_type_de();
 			auto expr_type = expr->expr;
 
 			if (expr_type->type == nullptr) {
@@ -1606,7 +1606,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		{
-			auto expr = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto expr = noeud->comme_memoire();
 
 			auto type = expr->expr->type;
 
@@ -1623,7 +1623,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_LOGE:
 		{
-			auto expr_loge = static_cast<NoeudExpressionLogement *>(noeud);
+			auto expr_loge = noeud->comme_loge();
 			expr_loge->genre_valeur = GenreValeur::DROITE;
 
 			if (resoud_type_final(expr_loge->expression_type, expr_loge->type)) {
@@ -1679,7 +1679,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_RELOGE:
 		{
-			auto expr_loge = static_cast<NoeudExpressionLogement *>(noeud);
+			auto expr_loge = noeud->comme_reloge();
 
 			if (resoud_type_final(expr_loge->expression_type, expr_loge->type)) {
 				return true;
@@ -1747,7 +1747,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_DELOGE:
 		{
-			auto expr_loge = static_cast<NoeudExpressionLogement *>(noeud);
+			auto expr_loge = noeud->comme_deloge();
 			auto type = expr_loge->expr->type;
 
 			if (type->genre == GenreType::REFERENCE) {
@@ -1764,18 +1764,17 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::DECLARATION_STRUCTURE:
 		{
-			auto decl = static_cast<NoeudStruct *>(noeud);
-			return valide_structure(decl);
+			return valide_structure(noeud->comme_structure());
 		}
 		case GenreNoeud::DECLARATION_ENUM:
 		{
-			return valide_enum(static_cast<NoeudEnum *>(noeud));
+			return valide_enum(noeud->comme_enum());
 		}
 		case GenreNoeud::INSTRUCTION_DISCR:
 		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
 		case GenreNoeud::INSTRUCTION_DISCR_UNION:
 		{
-			auto inst = static_cast<NoeudDiscr *>(noeud);
+			auto inst = noeud->comme_discr();
 
 			auto expression = inst->expr;
 
@@ -2013,7 +2012,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			auto type_fonc = fonction_courante->type->comme_fonction();
 
-			auto inst = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto inst = noeud->comme_retiens();
 
 			/* À FAIRE : multiple types retours. */
 			auto type_retour = type_fonc->types_sorties[0];			
@@ -2033,14 +2032,14 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
-			auto expr = static_cast<NoeudExpressionParenthese *>(noeud);
+			auto expr = noeud->comme_parenthese();
 			noeud->type = expr->expr->type;
 			noeud->genre_valeur = expr->expr->genre_valeur;
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		{
-			auto inst = static_cast<NoeudPousseContexte *>(noeud);
+			auto inst = noeud->comme_pousse_contexte();
 			auto variable = inst->expr;
 
 			// @vérifie si redondant
@@ -2055,7 +2054,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		{
-			auto expr = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto expr = noeud->comme_expansion_variadique();
 
 			if (expr->expr == nullptr) {
 				// nous avons un type variadique
@@ -2079,7 +2078,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::INSTRUCTION_TENTE:
 		{
-			auto inst = static_cast<NoeudTente *>(noeud);
+			auto inst = noeud->comme_tente();
 			inst->type = inst->expr_appel->type;
 			inst->genre_valeur = GenreValeur::DROITE;
 
@@ -2141,7 +2140,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					return true;
 				}
 
-				auto var_piege = static_cast<NoeudExpressionReference *>(inst->expr_piege);
+				auto var_piege = inst->expr_piege->comme_ref_decl();
 
 				auto decl = trouve_dans_bloc(var_piege->bloc_parent, var_piege->ident);
 
@@ -2305,7 +2304,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 		auto dernier_est_variadic = false;
 
 		POUR (decl->params) {
-			auto param = static_cast<NoeudDeclarationVariable *>(it);
+			auto param = it->comme_decl_var();
 			auto variable = param->valeur;
 			auto expression = param->expression;
 
@@ -2358,7 +2357,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 	}
 	else {
 		POUR (decl->params) {
-			auto variable = static_cast<NoeudDeclarationVariable *>(it)->valeur;
+			auto variable = it->comme_decl_var()->valeur;
 			if (resoud_type_final(it->expression_type, variable->type)) {
 				return true;
 			}
@@ -2536,7 +2535,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 		}
 
 		POUR (decl->params) {
-			auto argument = static_cast<NoeudDeclarationVariable *>(it);
+			auto argument = it->comme_decl_var();
 			decl->bloc->membres->pousse(argument);
 		}
 	}
@@ -2602,7 +2601,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 		}
 
 		POUR (decl->params) {
-			auto argument = static_cast<NoeudDeclarationVariable *>(it);
+			auto argument = it->comme_decl_var();
 			decl->bloc->membres->pousse(argument);
 		}
 	}
@@ -2681,7 +2680,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 			return true;
 		}
 
-		auto decl_expr = static_cast<NoeudDeclarationVariable *>(it);
+		auto decl_expr = it->comme_decl_var();
 		decl_expr->type = type_enum->type_donnees;
 
 		auto var = decl_expr->valeur;
@@ -2841,7 +2840,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		type_union->est_nonsure = decl->est_nonsure;
 
 		POUR (*decl->bloc->membres.verrou_ecriture()) {
-			auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
+			auto decl_var = it->comme_decl_var();
 			auto decl_membre = decl_var->valeur;
 
 			if (decl_membre->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
@@ -2905,7 +2904,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 
 		if (it->genre == GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
-			auto expr_assign = static_cast<NoeudExpressionBinaire *>(it);
+			auto expr_assign = it->comme_assignation();
 			auto variable = expr_assign->expr1;
 
 			for (auto &membre : type_compose->membres) {
@@ -2917,7 +2916,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			continue;
 		}
 
-		auto decl_var = static_cast<NoeudDeclarationVariable *>(it);
+		auto decl_var = it->comme_decl_var();
 		auto decl_membre = decl_var->valeur;
 
 		if (decl_var->drapeaux & EST_CONSTANTE) {
@@ -2968,7 +2967,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			type_compose->membres.reserve(type_compose->membres.taille + decl_struct_empl->bloc->membres->taille);
 
 			for (auto decl_it_empl : *decl_struct_empl->bloc->membres.verrou_lecture()) {
-				auto it_empl = static_cast<NoeudDeclarationVariable *>(decl_it_empl);
+				auto it_empl = decl_it_empl->comme_decl_var();
 				if (ajoute_donnees_membre(it_empl->valeur, it_empl->expression)) {
 					return true;
 				}
