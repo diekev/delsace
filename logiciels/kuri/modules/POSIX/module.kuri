@@ -4,6 +4,7 @@ importe Fondation
 
 getenv :: fonc externe (nom: *z8) -> *z8
 getuid :: fonc externe () -> z32
+system :: fonc externe (command: *z8) -> z32
 
 chaine_environnement :: fonc (nom: chaine) -> chaine
 {
@@ -19,4 +20,26 @@ chaine_environnement :: fonc (nom: chaine) -> chaine
 est_utilisateur_racine :: fonc() -> bool
 {
     retourne getuid() == 0
+}
+
+exécute_commande_externe :: fonc (args: ...chaine) -> bool
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(@enchaineuse)
+
+    pour args {
+        ajoute_au_tampon(@enchaineuse, it)
+        ajoute_au_tampon(@enchaineuse, " ")
+    }
+
+    ajoute_au_tampon(@enchaineuse, "\0")
+
+    commande := chaine_depuis_enchaineuse(@enchaineuse)
+    diffère { déloge commande }
+
+    si system(commande.pointeur) != 0 {
+        retourne faux
+    }
+
+    retourne vrai
 }
