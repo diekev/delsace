@@ -1801,7 +1801,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 		consomme();
 	}
 
-	nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
+	nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 	noeud->arbre_aplatis_entete.reserve(static_cast<long>(nombre_noeuds_alloues));
 
 	copie_tablet_tableau(params, noeud->params);
@@ -2030,7 +2030,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		}
 	}
 
-	nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
+	nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 	noeud->arbre_aplatis_entete.reserve(static_cast<long>(nombre_noeuds_alloues));
 
 	POUR (noeud->params) {
