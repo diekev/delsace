@@ -72,6 +72,7 @@ size_t TableIdentifiant::memoire_utilisee() const
 	auto memoire = 0ul;
 	memoire += identifiants.memoire_utilisee();
 	memoire += static_cast<size_t>(table.taille()) * (sizeof (dls::vue_chaine_compacte) + sizeof(IdentifiantCode *));
+	memoire += static_cast<size_t>(enchaineuse.nombre_tampons_alloues() * Enchaineuse::TAILLE_TAMPON);
 	return memoire;
 }
 
