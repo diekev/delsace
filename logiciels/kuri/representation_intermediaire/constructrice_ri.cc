@@ -2641,7 +2641,13 @@ Atome *ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpre
 	parametres.pousse(arg_ptr_info_type);
 	parametres.pousse(cree_charge_mem(arg_position));
 
-	auto ret_pointeur = cree_appel(noeud->lexeme, arg_ptr_allocatrice, std::move(parametres));
+	Instruction *ret_pointeur = cree_appel(noeud->lexeme, arg_ptr_allocatrice, std::move(parametres));
+
+	/* ajout d'un niveau d'indirection pour éviter de compiler plusieurs fois l'appel dans le code binaire */
+	auto alloc_pointeur = cree_allocation(ret_pointeur->type, nullptr);
+	cree_stocke_mem(alloc_pointeur, ret_pointeur);
+	ret_pointeur = cree_charge_mem(alloc_pointeur);
+
 	auto ptr_transtype = cree_transtype(type_du_pointeur_retour, ret_pointeur, TypeTranstypage::BITS);
 
 	switch (mode) {
