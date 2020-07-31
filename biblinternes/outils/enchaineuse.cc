@@ -110,6 +110,24 @@ void Enchaineuse::ajoute_tampon()
 	tampon_courant = tampon;
 }
 
+int Enchaineuse::nombre_tampons() const
+{
+	auto compte = 1;
+	auto tampon = m_tampon_base.suivant;
+
+	while (tampon != nullptr) {
+		compte += 1;
+		tampon = tampon->suivant;
+	}
+
+	return compte;
+}
+
+int Enchaineuse::nombre_tampons_alloues() const
+{
+	return nombre_tampons() - 1;
+}
+
 Enchaineuse &operator <<(Enchaineuse &enchaineuse, const dls::vue_chaine_compacte &chn)
 {
 	enchaineuse.pousse(chn.pointeur(), chn.taille());

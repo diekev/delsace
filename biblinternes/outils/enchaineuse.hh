@@ -56,6 +56,10 @@ struct Enchaineuse {
 	void imprime_dans_flux(std::ostream &flux);
 
 	void ajoute_tampon();
+
+	int nombre_tampons() const;
+
+	int nombre_tampons_alloues() const;
 };
 
 template <typename T>
