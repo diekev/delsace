@@ -202,4 +202,6 @@ struct ConvertisseuseNoeudCode {
 	NoeudCode *converti_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression *noeud_expression);
 
 	InfoType *cree_info_type_pour(Type *type);
+
+	long memoire_utilisee() const;
 };

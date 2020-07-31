@@ -129,6 +129,7 @@ size_t Messagere::memoire_utilisee() const
 	memoire += messages_typage_code.memoire_utilisee();
 	memoire += messages_phase_compilation.memoire_utilisee();
 	memoire += static_cast<size_t>(pic_de_message) * sizeof(void *);
+	memoire += static_cast<size_t>(convertisseuse_noeud_code.memoire_utilisee());
 	return memoire;
 }
 

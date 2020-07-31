@@ -506,3 +506,30 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
 	return type->info_type;
 }
+
+long ConvertisseuseNoeudCode::memoire_utilisee() const
+{
+	auto memoire = 0ul;
+
+	memoire += noeuds_codes.memoire_utilisee();
+	memoire += noeuds_fonctions.memoire_utilisee();
+	memoire += noeuds_assignations.memoire_utilisee();
+	memoire += noeuds_declarations.memoire_utilisee();
+	memoire += noeuds_operations_unaire.memoire_utilisee();
+	memoire += noeuds_operations_binaire.memoire_utilisee();
+	memoire += noeuds_blocs.memoire_utilisee();
+	memoire += noeuds_sis.memoire_utilisee();
+	memoire += noeuds_boucles.memoire_utilisee();
+
+	memoire += infos_types.memoire_utilisee();
+	memoire += infos_types_entiers.memoire_utilisee();
+	memoire += infos_types_enums.memoire_utilisee();
+	memoire += infos_types_fonctions.memoire_utilisee();
+	memoire += infos_types_membres_structures.memoire_utilisee();
+	memoire += infos_types_pointeurs.memoire_utilisee();
+	memoire += infos_types_structures.memoire_utilisee();
+	memoire += infos_types_tableaux.memoire_utilisee();
+	memoire += infos_types_unions.memoire_utilisee();
+
+	return static_cast<long>(memoire);
+}
