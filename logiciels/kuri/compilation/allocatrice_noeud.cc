@@ -156,6 +156,11 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 			noeud = m_noeuds_si.ajoute_element();
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
+		{
+			noeud = m_noeuds_si_statique.ajoute_element();
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		{
 			noeud = m_noeuds_pousse_contexte.ajoute_element();
@@ -191,6 +196,7 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 	memoire += m_noeuds_pour.memoire_utilisee();
 	memoire += m_noeuds_discr.memoire_utilisee();
 	memoire += m_noeuds_si.memoire_utilisee();
+	memoire += m_noeuds_si_statique.memoire_utilisee();
 	memoire += m_noeuds_pousse_contexte.memoire_utilisee();
 	memoire += m_noeuds_tableau_args_variadiques.memoire_utilisee();
 	memoire += m_noeuds_tente.memoire_utilisee();
@@ -295,6 +301,7 @@ size_t AllocatriceNoeud::nombre_noeuds() const
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_pour);
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_discr);
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_si);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_si_statique);
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_pousse_contexte);
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_tableau_args_variadiques);
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_directive_execution);

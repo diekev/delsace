@@ -189,6 +189,10 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			noeud_code = n;
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
+		{
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_BOUCLE:
 		case GenreNoeud::INSTRUCTION_REPETE:
 		case GenreNoeud::INSTRUCTION_TANTQUE:

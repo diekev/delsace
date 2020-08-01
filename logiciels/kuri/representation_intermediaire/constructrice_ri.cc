@@ -1222,6 +1222,19 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			return nullptr;
 		}
+		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
+		{
+			auto inst = noeud->comme_si_statique();
+
+			if (inst->condition_est_vraie) {
+				genere_ri_pour_noeud(inst->bloc_si_vrai);
+			}
+			else {
+				genere_ri_pour_noeud(inst->bloc_si_faux);
+			}
+
+			return nullptr;
+		}
 		case GenreNoeud::INSTRUCTION_POUR:
 		{
 			auto noeud_pour = static_cast<NoeudPour *>(noeud);

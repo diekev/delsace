@@ -1132,6 +1132,33 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
+		{
+			auto inst = noeud->comme_si_statique();
+
+			if (inst->visite == false) {
+				auto res = evalue_expression(m_compilatrice, inst->bloc_parent, inst->condition);
+
+				if (res.est_errone) {
+					rapporte_erreur(res.message_erreur, res.noeud_erreur, erreur::type_erreur::VARIABLE_REDEFINIE);
+					return true;
+				}
+
+				auto condition_est_vraie = res.entier != 0;
+				inst->condition_est_vraie = condition_est_vraie;
+
+				if (!condition_est_vraie) {
+					// dis à l'unité de sauter les instructions jusqu'au prochain point
+					unite->index_courant = inst->index_bloc_si_faux;
+				}
+			}
+			else {
+				// dis à l'unité de sauter les instructions jusqu'au prochain point
+				unite->index_courant = inst->index_apres;
+			}
+
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
 			auto inst = noeud->comme_bloc();
@@ -2513,8 +2540,8 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 
 bool ContexteValidationCode::valide_arbre_aplatis(kuri::tableau<NoeudExpression *> &arbre_aplatis)
 {
-	for (auto i = 0; i < arbre_aplatis.taille; ++i) {
-		auto noeud_enfant = arbre_aplatis[i];
+	for (; unite->index_courant < arbre_aplatis.taille; ++unite->index_courant) {
+		auto noeud_enfant = arbre_aplatis[unite->index_courant];
 
 		if (noeud_enfant->est_structure()) {
 			// les structures ont leurs propres unités de compilation
@@ -2527,7 +2554,6 @@ bool ContexteValidationCode::valide_arbre_aplatis(kuri::tableau<NoeudExpression 
 		}
 
 		if (valide_semantique_noeud(noeud_enfant)) {
-			unite->index_reprise = i;
 			return true;
 		}
 	}
@@ -2547,7 +2573,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 	auto &graphe = espace->graphe_dependance;
 	auto noeud_dep = graphe->cree_noeud_fonction(decl);
 
-	if (unite->index_reprise == 0) {
+	if (unite->index_courant == 0) {
 		auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
 
 		decl->bloc->membres->reserve(decl->params.taille + requiers_contexte);
@@ -2610,7 +2636,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 	auto &graphe = espace->graphe_dependance;
 	auto noeud_dep = graphe->cree_noeud_fonction(decl);
 
-	if (unite->index_reprise == 0) {
+	if (unite->index_courant == 0) {
 		auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
 
 		decl->bloc->membres->reserve(decl->params.taille + requiers_contexte);

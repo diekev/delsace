@@ -56,6 +56,7 @@ struct NoeudExpressionUnaire;
 struct NoeudPour;
 struct NoeudPousseContexte;
 struct NoeudSi;
+struct NoeudSiStatique;
 struct NoeudStruct;
 struct NoeudTableauArgsVariadiques;
 struct NoeudTente;
@@ -115,6 +116,7 @@ struct UniteCompilation;
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_RETOUR_SIMPLE) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_SAUFSI) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_SI) \
+	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_SI_STATIQUE) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_SINON) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_TANTQUE) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_TENTE) \
@@ -314,6 +316,7 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(retour, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE, GenreNoeud::INSTRUCTION_RETOUR_SIMPLE)
 	EST_NOEUD_GENRE(saufsi, GenreNoeud::INSTRUCTION_SAUFSI)
 	EST_NOEUD_GENRE(si, GenreNoeud::INSTRUCTION_SI)
+	EST_NOEUD_GENRE(si_statique, GenreNoeud::INSTRUCTION_SI_STATIQUE)
 	EST_NOEUD_GENRE(sinon, GenreNoeud::INSTRUCTION_SINON)
 	EST_NOEUD_GENRE(structure, GenreNoeud::DECLARATION_STRUCTURE)
 	EST_NOEUD_GENRE(taille, GenreNoeud::EXPRESSION_TAILLE_DE)
@@ -366,6 +369,7 @@ struct NoeudExpression {
 	COMME_NOEUD(retour, NoeudExpressionUnaire)
 	COMME_NOEUD(saufsi, NoeudSi)
 	COMME_NOEUD(si, NoeudSi)
+	COMME_NOEUD(si_statique, NoeudSiStatique)
 	COMME_NOEUD(structure, NoeudStruct)
 	COMME_NOEUD(taille, NoeudExpressionUnaire)
 	COMME_NOEUD(tantque, NoeudBoucle)
@@ -530,6 +534,21 @@ struct NoeudSi : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudSi);
 };
 
+struct NoeudSiStatique : public NoeudExpression {
+	NoeudSiStatique() { genre = GenreNoeud::INSTRUCTION_SI_STATIQUE; }
+
+	NoeudExpression *condition = nullptr;
+	NoeudBloc *bloc_si_vrai = nullptr;
+	NoeudBloc *bloc_si_faux = nullptr;
+
+	int index_bloc_si_faux = 0;
+	int index_apres = 0;
+	bool condition_est_vraie = false;
+	bool visite = false;
+
+	COPIE_CONSTRUCT(NoeudSiStatique);
+};
+
 struct NoeudPour : public NoeudExpression {
 	NoeudPour() { genre = GenreNoeud::INSTRUCTION_POUR; }
 
@@ -675,6 +694,7 @@ struct NoeudDirectiveExecution : NoeudExpression {
 	COMME_NOEUD(retour, NoeudExpressionUnaire)
 	COMME_NOEUD(saufsi, NoeudSi)
 	COMME_NOEUD(si, NoeudSi)
+	COMME_NOEUD(si_statique, NoeudSiStatique)
 	COMME_NOEUD(structure, NoeudStruct)
 	COMME_NOEUD(taille, NoeudExpressionUnaire)
 	COMME_NOEUD(tantque, NoeudBoucle)

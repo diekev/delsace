@@ -345,6 +345,16 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
+		{
+			auto inst = racine->comme_si_statique();
+			imprime_tab(os, tab);
+			os << "controle : #si\n";
+			imprime_arbre(inst->condition, os, tab + 1);
+			imprime_arbre(inst->bloc_si_vrai, os, tab + 1);
+			imprime_arbre(inst->bloc_si_faux, os, tab + 1);
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		{
 			auto expr = static_cast<NoeudPousseContexte *>(racine);
@@ -634,6 +644,15 @@ NoeudExpression *copie_noeud(
 			nexpr->condition = copie_noeud(assem, expr->condition, bloc_parent);
 			nexpr->bloc_si_vrai = static_cast<NoeudBloc	*>(copie_noeud(assem, expr->bloc_si_vrai, bloc_parent));
 			nexpr->bloc_si_faux = static_cast<NoeudBloc	*>(copie_noeud(assem, expr->bloc_si_faux, bloc_parent));
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
+		{
+			auto inst = racine->comme_si_statique();
+			auto ninst = nracine->comme_si_statique();
+			ninst->condition = copie_noeud(assem, inst->condition, bloc_parent);
+			ninst->bloc_si_vrai = static_cast<NoeudBloc	*>(copie_noeud(assem, inst->bloc_si_vrai, bloc_parent));
+			ninst->bloc_si_faux = static_cast<NoeudBloc	*>(copie_noeud(assem, inst->bloc_si_faux, bloc_parent));
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
@@ -943,6 +962,17 @@ void aplatis_arbre(
 
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
+		{
+			auto inst = racine->comme_si_statique();
+			arbre_aplatis.pousse(inst);
+			aplatis_arbre(inst->bloc_si_vrai, arbre_aplatis, drapeaux_noeud::AUCUN);
+			arbre_aplatis.pousse(inst); // insère une deuxième fois pour pouvoir sauter le code du bloc_si_faux si la condition évalue à « vrai »
+			inst->index_bloc_si_faux = static_cast<int>(arbre_aplatis.taille);
+			aplatis_arbre(inst->bloc_si_faux, arbre_aplatis, drapeaux_noeud::AUCUN);
+			inst->index_apres = static_cast<int>(arbre_aplatis.taille);
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		{
 			auto expr = static_cast<NoeudPousseContexte *>(racine);
@@ -1140,6 +1170,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::INSTRUCTION_DISCR_UNION:
 		case GenreNoeud::INSTRUCTION_SAUFSI:
 		case GenreNoeud::INSTRUCTION_SI:
+		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		case GenreNoeud::INSTRUCTION_TENTE:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:

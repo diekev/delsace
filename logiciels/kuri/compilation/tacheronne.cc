@@ -687,9 +687,8 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 				{
 					auto decl = static_cast<NoeudDeclarationVariable *>(unite->noeud);
 
-					for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
-						if (contexte.valide_semantique_noeud(decl->arbre_aplatis[i])) {
-							unite->index_reprise = i;
+					for (; unite->index_courant < decl->arbre_aplatis.taille; ++unite->index_courant) {
+						if (contexte.valide_semantique_noeud(decl->arbre_aplatis[unite->index_courant])) {
 							auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
 							auto noeud_dependance = graphe->cree_noeud_globale(decl);
 							graphe->ajoute_dependances(*noeud_dependance, contexte.donnees_dependance);
@@ -708,9 +707,8 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 					auto dir = static_cast<NoeudDirectiveExecution *>(unite->noeud);
 
 					// À FAIRE : ne peut pas préserver les dépendances si nous échouons avant la fin
-					for (auto i = 0; i < dir->arbre_aplatis.taille; ++i) {
-						if (contexte.valide_semantique_noeud(dir->arbre_aplatis[i])) {
-							unite->index_reprise = i;
+					for (unite->index_courant = 0; unite->index_courant < dir->arbre_aplatis.taille; ++unite->index_courant) {
+						if (contexte.valide_semantique_noeud(dir->arbre_aplatis[unite->index_courant])) {
 							return false;
 						}
 					}

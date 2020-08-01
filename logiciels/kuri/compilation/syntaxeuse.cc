@@ -1013,53 +1013,52 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		{
 			consomme();
 
-			if (apparie(GenreLexeme::CHAINE_CARACTERE)) {
-				auto directive = lexeme_courant()->ident;
+			lexeme = lexeme_courant();
+			auto directive = lexeme->ident;
 
-				consomme();
+			consomme();
 
-				if (directive == ID::bibliotheque_dynamique) {
-					auto chaine_bib = lexeme_courant()->chaine;
-					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
+			if (directive == ID::bibliotheque_dynamique) {
+				auto chaine_bib = lexeme_courant()->chaine;
+				consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
-					m_compilatrice.bibliotheques_dynamiques->pousse(chaine);
-				}
-				else if (directive == ID::bibliotheque_statique) {
-					auto chaine_bib = lexeme_courant()->chaine;
-					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
+				auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
+				m_compilatrice.bibliotheques_dynamiques->pousse(chaine);
+			}
+			else if (directive == ID::bibliotheque_statique) {
+				auto chaine_bib = lexeme_courant()->chaine;
+				consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-					auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
-					m_compilatrice.bibliotheques_statiques->pousse(chaine);
-				}
-				else if (directive == ID::def) {
-					auto chaine = lexeme_courant()->chaine;
-					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
+				auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
+				m_compilatrice.bibliotheques_statiques->pousse(chaine);
+			}
+			else if (directive == ID::def) {
+				auto chaine = lexeme_courant()->chaine;
+				consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-					m_compilatrice.definitions->pousse(chaine);
-				}
-				else if (directive == ID::execute || directive == ID::assert_ || directive == ID::test) {
-					auto noeud = CREE_NOEUD(NoeudDirectiveExecution, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
-					noeud->ident = directive;
-					noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-					aplatis_arbre(noeud, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
-					return noeud;
-				}
-				else if (directive == ID::chemin) {
-					auto chaine = lexeme_courant()->chaine;
-					consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
+				m_compilatrice.definitions->pousse(chaine);
+			}
+			else if (directive == ID::execute || directive == ID::assert_ || directive == ID::test) {
+				auto noeud = CREE_NOEUD(NoeudDirectiveExecution, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
+				noeud->ident = directive;
+				noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
+				aplatis_arbre(noeud, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
+				return noeud;
+			}
+			else if (directive == ID::chemin) {
+				auto chaine = lexeme_courant()->chaine;
+				consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-					m_compilatrice.chemins->pousse(chaine);
-				}
-				else if (directive == ID::nulctx) {
-					lexeme = lexeme_courant();
-					auto noeud_fonc = analyse_declaration_fonction(lexeme);
-					noeud_fonc->drapeaux |= FORCE_NULCTX;
-					return noeud_fonc;
-				}
-				else {
-					lance_erreur("Directive inconnue");
-				}
+				m_compilatrice.chemins->pousse(chaine);
+			}
+			else if (directive == ID::nulctx) {
+				lexeme = lexeme_courant();
+				auto noeud_fonc = analyse_declaration_fonction(lexeme);
+				noeud_fonc->drapeaux |= FORCE_NULCTX;
+				return noeud_fonc;
+			}
+			else if (directive == ID::si) {
+				return analyse_instruction_si_statique(lexeme);
 			}
 			else {
 				lance_erreur("Directive inconnue");
@@ -1651,6 +1650,28 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 		else {
 			noeud->bloc_si_faux = analyse_bloc();
 		}
+	}
+
+	depile_etat();
+
+	return noeud;
+}
+
+NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexeme *lexeme)
+{
+	Prof(Syntaxeuse_analyse_instruction_si_statique);
+
+	empile_etat("dans l'analyse de l'instruction #si", lexeme);
+
+	auto noeud = CREE_NOEUD(NoeudSiStatique, GenreNoeud::INSTRUCTION_SI_STATIQUE, lexeme);
+
+	noeud->condition = analyse_expression({}, GenreLexeme::SI, GenreLexeme::INCONNU);
+
+	noeud->bloc_si_vrai = analyse_bloc();
+
+	if (apparie(GenreLexeme::SINON)) {
+		consomme();
+		noeud->bloc_si_faux = analyse_bloc();
 	}
 
 	depile_etat();

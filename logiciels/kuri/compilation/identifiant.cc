@@ -157,6 +157,7 @@ IdentifiantCode *espace_defaut_compilation;
 IdentifiantCode *malloc_;
 IdentifiantCode *realloc_;
 IdentifiantCode *free_;
+IdentifiantCode *si;
 
 }
 
@@ -229,4 +230,5 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::malloc_ = table.identifiant_pour_chaine("malloc");
 	ID::realloc_ = table.identifiant_pour_chaine("realloc");
 	ID::free_ = table.identifiant_pour_chaine("free");
+	ID::si = table.identifiant_pour_chaine("si");
 }

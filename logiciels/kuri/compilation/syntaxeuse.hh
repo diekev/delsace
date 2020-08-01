@@ -122,6 +122,7 @@ private:
 	NoeudExpression *analyse_instruction_pousse_contexte();
 	NoeudExpression *analyse_instruction_repete();
 	NoeudExpression *analyse_instruction_si(GenreNoeud genre_noeud);
+	NoeudExpression *analyse_instruction_si_statique(Lexeme *lexeme);
 	NoeudExpression *analyse_instruction_tantque();
 
 	/**

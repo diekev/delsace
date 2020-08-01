@@ -40,6 +40,7 @@ struct AllocatriceNoeud {
 	tableau_page<NoeudStruct> m_noeuds_struct{};
 	tableau_page<NoeudEnum> m_noeuds_enum{};
 	tableau_page<NoeudSi> m_noeuds_si{};
+	tableau_page<NoeudSiStatique> m_noeuds_si_statique{};
 	tableau_page<NoeudPour> m_noeuds_pour{};
 	tableau_page<NoeudBoucle> m_noeuds_boucle{};
 	tableau_page<NoeudBloc> m_noeuds_bloc{};

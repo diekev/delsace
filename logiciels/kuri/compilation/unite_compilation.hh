@@ -63,7 +63,7 @@ struct UniteCompilation {
 	Fichier *fichier = nullptr;
 	NoeudExpression *noeud = nullptr;
 	NoeudExpression *operateur_attendu = nullptr;
-	int index_reprise = 0;
+	int index_courant = 0;
 
 	int cycle = 0;
 
