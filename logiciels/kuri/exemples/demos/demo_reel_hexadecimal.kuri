@@ -1,0 +1,33 @@
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    // Pour mieux controler la représentation binaire des nombres réels, il est possible
+    // de les écrire sous forme héxadécimale. Ceci peut être utile pour approximer les
+    // nombres et réduire leurs tailles dans les alogoirithmes de compressions de données,
+    // par exemple en faisant en sorte que tous les 16 derniers bits d'un nombre r32 soient
+    // égaux à zéro (p.e. https://iquilezles.org/www/articles/float4k/float4k.htm).
+
+    // commençons par 0
+    r0 := 0r00000000
+    imprime("r0 = %\n", r0)
+
+    // environ 2.0
+    r2 := 0r3fff0000
+    imprime("r2 = %\n", r2)
+
+    // nous pouvons mieux définir les constantes extrêmes réelles
+    R32_MIN               :: 0r00800000
+    R32_MAX               :: 0r7f7fffff
+    R32_INFINITÉ          :: 0r7f800000
+    R32_INFINITÉ_NÉGATIVE :: 0rff800000
+
+    R64_MIN               :: 0r0010000000000000
+    R64_MAX               :: 0r7fefffffffffffff
+    R64_INFINITÉ          :: 0r7ff0000000000000
+    R64_INFINITÉ_NÉGATIVE :: 0rfff0000000000000
+
+    imprime("R32_MIN est %, R32_MAX est %\n", R32_MIN, R32_MAX)
+
+    retourne 0
+}

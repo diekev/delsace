@@ -118,6 +118,7 @@ private:
 	void lexe_nombre_hexadecimal();
 	void lexe_nombre_binaire();
 	void lexe_nombre_octal();
+	void lexe_nombre_reel_hexadecimal();
 
 	unsigned lexe_caractere_litteral(kuri::chaine *chaine);
 

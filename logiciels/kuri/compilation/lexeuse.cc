@@ -72,6 +72,8 @@ static constexpr auto table_drapeaux_caracteres = [] {
 			case 'X':
 			case 'b':
 			case 'B':
+			case 'r':
+			case 'R':
 			{
 				t[i] |= CARACTERE_PEUT_SUIVRE_ZERO;
 				break;
@@ -869,6 +871,11 @@ void Lexeuse::lexe_nombre()
 			lexe_nombre_hexadecimal();
 			return;
 		}
+
+		if (c == 'r' || c == 'R') {
+			lexe_nombre_reel_hexadecimal();
+			return;
+		}
 	}
 
 	this->lexe_nombre_decimal();
@@ -999,6 +1006,57 @@ void Lexeuse::lexe_nombre_hexadecimal()
 	}
 
 	this->pousse_lexeme_entier(resultat_entier);
+}
+
+#include <iomanip>
+
+void Lexeuse::lexe_nombre_reel_hexadecimal()
+{
+	Prof(lexe_nombre_reel_hexadecimal);
+
+	this->avance_fixe<2>();
+
+	unsigned long long resultat_entier = 0;
+	unsigned nombre_de_chiffres = 0;
+
+	while (!fini()) {
+		auto c = this->caractere_courant();
+		auto chiffre = 0u;
+
+		if (est_caractere_decimal(c)) {
+			chiffre = static_cast<unsigned>(c - '0');
+		}
+		else if ('a' <= c && c <= 'f') {
+			chiffre = 10 + static_cast<unsigned>(c - 'a');
+		}
+		else if ('A' <= c && c <= 'F') {
+			chiffre = 10 + static_cast<unsigned>(c - 'A');
+		}
+		else if (c == '_') {
+			this->avance_fixe<1>();
+			continue;
+		}
+		else {
+			break;
+		}
+
+		resultat_entier *= 16;
+		resultat_entier += chiffre;
+		nombre_de_chiffres += 1;
+		this->avance_fixe<1>();
+	}
+
+	if (nombre_de_chiffres % 8 != 0 || nombre_de_chiffres > 16) {
+		lance_erreur("Une constante réelle hexadécimale doit avoir 8 ou 16 chiffres");
+	}
+
+	if (nombre_de_chiffres == 8) {
+		unsigned int v = static_cast<unsigned>(resultat_entier);
+		this->pousse_lexeme_reel(*reinterpret_cast<float *>(&v));
+	}
+	else {
+		this->pousse_lexeme_reel(*reinterpret_cast<double *>(&resultat_entier));
+	}
 }
 
 void Lexeuse::lexe_nombre_binaire()
