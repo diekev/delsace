@@ -438,6 +438,7 @@ Tacheronne::Tacheronne(Compilatrice &comp)
 
 void Tacheronne::gere_tache()
 {
+	auto temps_debut = dls::chrono::compte_seconde();
 	auto tache = Tache::dors();
 	auto premiere = true;
 	auto tache_fut_completee = true;
@@ -582,10 +583,12 @@ void Tacheronne::gere_tache()
 
 	compilatrice.temps_lexage = temps_lexage;
 	compilatrice.temps_validation = temps_validation;
+	temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
 }
 
 void Tacheronne::gere_tache_metaprogramme()
 {
+	auto temps_debut = dls::chrono::compte_seconde();
 	auto tache = Tache::dors();
 	auto premiere = true;
 	auto &ordonnanceuse = compilatrice.ordonnanceuse;
@@ -605,6 +608,8 @@ void Tacheronne::gere_tache_metaprogramme()
 
 		gere_unite_pour_execution(tache.unite);
 	}
+
+	temps_scene = temps_debut.temps();
 }
 
 static bool dependances_eurent_ri_generees(NoeudDependance *noeud)

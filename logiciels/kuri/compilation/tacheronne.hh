@@ -124,6 +124,7 @@ struct Tacheronne {
 	double temps_parsage = 0.0;	
 	double temps_executable = 0.0;
 	double temps_fichier_objet = 0.0;
+	double temps_scene = 0.0;
 
 	int id = 0;
 
