@@ -2071,6 +2071,19 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				expr->type = espace->typeuse.type_type_de_donnees(type_var);
 			}
 			else {
+				if (!dls::outils::est_element(type_expr->genre, GenreType::TABLEAU_FIXE, GenreType::TABLEAU_DYNAMIQUE, GenreType::VARIADIQUE)) {
+					::rapporte_erreur(espace, expr, "Type invalide pour l'expansion variadique, je requiers un type de tableau ou un type variadique")
+							.ajoute_message("Note : le type de l'expression est ")
+							.ajoute_message(chaine_type(type_expr))
+							.ajoute_message("\n");
+				}
+
+				if (type_expr->est_tableau_fixe()) {
+					expr->expr->transformation = TypeTransformation::CONVERTI_TABLEAU;
+					auto type_tableau_fixe = type_expr->comme_tableau_fixe();
+					type_expr = espace->typeuse.type_tableau_dynamique(type_tableau_fixe->type_pointe);
+				}
+
 				expr->type = type_expr;
 			}
 

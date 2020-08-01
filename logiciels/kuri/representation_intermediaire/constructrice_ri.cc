@@ -1546,7 +1546,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		{
-			return genere_ri_pour_expression_droite(static_cast<NoeudExpressionUnaire *>(noeud)->expr);
+			return genere_ri_transformee_pour_noeud(static_cast<NoeudExpressionUnaire *>(noeud)->expr, nullptr);
 		}
 		case GenreNoeud::INSTRUCTION_TENTE:
 		{

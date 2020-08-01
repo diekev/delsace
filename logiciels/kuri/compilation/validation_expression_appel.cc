@@ -550,11 +550,6 @@ static auto apparie_appel_fonction(
 					if (poids_pour_enfant != 1.0) {
 						poids_pour_enfant = 0.0;
 					}
-					else {
-						if (type_de_l_expression->genre == GenreType::TABLEAU_FIXE) {
-							transformation = TypeTransformation::CONVERTI_TABLEAU;
-						}
-					}
 
 					expansion_rencontree = true;
 				}
