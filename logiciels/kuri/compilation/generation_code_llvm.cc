@@ -65,11 +65,6 @@ static bool est_plus_petit(Type *type1, Type *type2)
 	return type1->taille_octet < type2->taille_octet;
 }
 
-static bool est_type_entier(Type *type)
-{
-	return type->genre == GenreType::ENTIER_NATUREL || type->genre == GenreType::ENTIER_RELATIF;
-}
-
 static auto inst_llvm_depuis_operateur(OperateurBinaire::Genre genre)
 {
 	using Genre = OperateurBinaire::Genre;
