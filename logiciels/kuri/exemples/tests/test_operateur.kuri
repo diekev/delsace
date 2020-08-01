@@ -4,19 +4,17 @@ Vecteur3D :: struct {
 	z : n32;
 }
 
-#si faux
 racine_carré :: fonc(x : n32) -> n32
 {
-#si vrai
 	num := x;
-	res := 0;
+	res : n32 = 0;
 
 	// Le second bit est mis en place
 	// n8  : 1 << 6
 	// n16 : 1 << 14
 	// n32 : 1 << 30
 	// n64 : 1 << 62
-	bit := 1 << 30;
+	bit : n32 = 1 << 30;
 
 	boucle {
 		si bit <= num {
@@ -41,7 +39,7 @@ racine_carré :: fonc(x : n32) -> n32
 	}
 
 	retourne res;
-#sinon
+/*
 	si (x == 0) || (x == 1) {
 		retourne x;
 	}
@@ -59,7 +57,7 @@ racine_carré :: fonc(x : n32) -> n32
 	}
 
 	retourne i - 1;
-#finsi
+*/
 }
 
 carré :: fonc(x : n32) -> n32
@@ -77,9 +75,9 @@ longueur :: fonc(x : n32, y : n32, z : n32) -> n32
 	retourne racine_carré(carré(x) + carré(y) + carré(z));
 }
 
-principale :: fonc(compte : n32, arguments : []*c8) -> n32
+principale :: fonc() -> n32
 {
-	retourne longueur(compte, compte, compte);
+	retourne 0 // longueur(compte, compte, compte);
 }
 
 foo :: fonc(compte : [2][2]n32) -> n32
@@ -88,9 +86,7 @@ foo :: fonc(compte : [2][2]n32) -> n32
 	b := @compte;
 	retourne 1;
 }
-#finsi
 
-#si faux
 principale1 :: fonc()
 {
 	t0 := 5 + 2;
@@ -121,4 +117,3 @@ principale3 :: fonc()
 	t5 := vrai != vrai;
 	t6 := faux == faux;
 }
-#finsi
