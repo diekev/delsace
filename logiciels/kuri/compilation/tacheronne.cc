@@ -585,7 +585,6 @@ void Tacheronne::gere_tache()
 
 void Tacheronne::gere_tache_metaprogramme()
 {
-	auto temps_debut = dls::chrono::compte_seconde();
 	auto tache = Tache::dors();
 	auto premiere = true;
 	auto &ordonnanceuse = compilatrice.ordonnanceuse;
@@ -605,8 +604,6 @@ void Tacheronne::gere_tache_metaprogramme()
 
 		gere_unite_pour_execution(tache.unite);
 	}
-
-	temps_scene = temps_debut.temps();
 }
 
 static bool dependances_eurent_ri_generees(NoeudDependance *noeud)

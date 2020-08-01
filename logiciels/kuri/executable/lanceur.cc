@@ -91,7 +91,7 @@ static void imprime_stats(
 
 	auto const lignes_double = static_cast<double>(metriques.nombre_lignes);
 	auto const debit_lignes = static_cast<int>(lignes_double / temps_aggrege);
-	auto const debit_lignes_scene = static_cast<int>(lignes_double / metriques.temps_scene);
+	auto const debit_lignes_scene = static_cast<int>(lignes_double / temps_scene);
 	auto const debit_lignes_coulisse = static_cast<int>(lignes_double / temps_coulisse);
 	auto const debit_seconde = static_cast<int>(static_cast<double>(memoire_consommee) / temps_aggrege);
 
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
 		metriques.memoire_ri = memoire_ri;
 		metriques.temps_decoupage = tacheronne.temps_lexage;
 		metriques.temps_validation = tacheronne.temps_validation;
-		metriques.temps_scene = std::max(tacheronne.temps_scene, tacheronne_mp.temps_scene);
+		metriques.temps_scene = tacheronne.temps_scene;
 		metriques.nombre_identifiants = static_cast<size_t>(compilatrice.table_identifiants->taille());
 		metriques.temps_metaprogrammes = compilatrice.mv.temps_execution_metaprogammes;
 		metriques.nombre_metaprogrammes_executes = static_cast<size_t>(compilatrice.mv.nombre_de_metaprogrammes_executes);
