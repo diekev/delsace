@@ -1020,3 +1020,29 @@ Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, const dls
 	erreur.message = flux.chn();
 	return erreur;
 }
+
+Erreur rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne, kuri::chaine message)
+{
+	auto flux = dls::flux_chaine();
+	flux << COULEUR_CYAN_GRAS << "-- ";
+
+	auto chaine_erreur = dls::chaine("ERREUR");
+	flux << chaine_erreur << ' ';
+
+	for (auto i = 0; i < 76 - chaine_erreur.taille(); ++i) {
+		flux << '-';
+	}
+
+	flux << "\n\n" << COULEUR_NORMALE;
+
+	flux << "Dans l'espace de travail \"" << espace->nom << "\" :\n";
+	flux << "\nErreur : " << fichier << ":" << ligne << '\n';
+	flux << '\n';
+	flux << message;
+	flux << '\n';
+	flux << '\n';
+
+	auto erreur = Erreur(espace);
+	erreur.message = flux.chn();
+	return erreur;
+}

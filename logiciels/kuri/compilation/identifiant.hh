@@ -116,6 +116,7 @@ extern IdentifiantCode *compilatrice_ajourne_options;
 extern IdentifiantCode *compilatrice_attend_message;
 extern IdentifiantCode *compilatrice_commence_interception;
 extern IdentifiantCode *compilatrice_termine_interception;
+extern IdentifiantCode *compilatrice_rapporte_erreur;
 extern IdentifiantCode *demarre_un_espace_de_travail;
 extern IdentifiantCode *espace_defaut_compilation;
 extern IdentifiantCode *fonction_test_variadique_externe;

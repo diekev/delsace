@@ -192,3 +192,5 @@ struct Erreur {
 };
 
 Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, dls::chaine const &message, erreur::type_erreur type = erreur::type_erreur::NORMAL);
+
+Erreur rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne, kuri::chaine message);

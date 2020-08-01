@@ -677,3 +677,8 @@ EspaceDeTravail *espace_defaut_compilation()
 {
 	return ptr_compilatrice->espace_de_travail_defaut;
 }
+
+void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne, kuri::chaine message)
+{
+	::rapporte_erreur(espace, fichier, ligne, message);
+}

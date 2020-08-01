@@ -327,3 +327,5 @@ EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine nom, OptionsCompilati
 Message const *compilatrice_attend_message();
 void compilatrice_commence_interception(EspaceDeTravail *espace);
 void compilatrice_termine_interception(EspaceDeTravail *espace);
+
+void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne, kuri::chaine message);

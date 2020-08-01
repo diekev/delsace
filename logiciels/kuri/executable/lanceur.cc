@@ -165,7 +165,13 @@ void lance_tacheronne(Tacheronne *tacheronne)
 
 void lance_tacheronne_metaprogramme(Tacheronne *tacheronne)
 {
-	tacheronne->gere_tache_metaprogramme();
+	try {
+		tacheronne->gere_tache_metaprogramme();
+	}
+	catch (const erreur::frappe &e) {
+		std::cerr << e.message() << '\n';
+		tacheronne->compilatrice.possede_erreur = true;
+	}
 }
 
 int main(int argc, char *argv[])
