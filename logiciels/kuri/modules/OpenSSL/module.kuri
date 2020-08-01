@@ -14,8 +14,8 @@ X509_REQ :: struct externe
 X509_CRL :: struct externe
 
 SSL_library_init :: fonc externe () -> rien
-OpenSSL_add_all_algorithms :: fonc externe () -> rien
-OpenSSL_add_ssl_algorithms :: fonc externe () -> rien
+OPENSSL_add_all_algorithms_conf :: fonc externe () -> rien
+OPENSSL_add_all_algorithms_noconf :: fonc externe () -> rien
 TLSv1_2_server_method :: fonc externe () -> *ssl_method_st
 SSL_load_error_strings :: fonc externe () -> rien
 SSLv23_client_method :: fonc externe () -> *ssl_method_st
@@ -27,6 +27,23 @@ SSL_free :: fonc externe (ssl : *ssl_st) -> rien
 SSL_get_error :: fonc externe (ssl : *ssl_st, erreur_ : z32) -> z32
 SSL_write :: fonc externe (ssl : *ssl_st, ptr : *z8, taille : z32) -> z32
 SSL_read :: fonc externe (ssl : *ssl_st, tampon : *z8, max : z32) -> z32
+
+// ceci est un macro en C
+OpenSSL_add_all_algorithms :: fonc () -> rien
+{
+//#si OPENSSL_LOAD_CONF {
+//    OPENSSL_add_all_algorithms_conf()
+//}
+//#sinon {
+    OPENSSL_add_all_algorithms_noconf()
+//}
+}
+
+// ceci est un macro en C
+OpenSSL_add_ssl_algorithms :: fonc ()
+{
+    SSL_library_init()
+}
 
 SSL_ERROR_NONE :: 0
 SSL_ERROR_SSL :: 1
