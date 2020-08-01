@@ -333,11 +333,10 @@ asm enligné
 
 instructions SIMD
 
-directive #symbole pour les fonctions externes définissant leurs symboles (si différent du nom, pour les fonctions C qui sont en réalité des macros)
 directive #externe au lieu du mot-clé externe, prenant un argument définissant la bibliothèque où trouver le symbole
+- libc :: #bibiliothèque_externe "c"
+- write :: fonc (...) -> z32 #externe libc
 
-phase de compilation pour la préécriture est la postécriture des fichiers objets
-phase de compilation pour la préliaison des fichiers objets en un exécutable
 génère des statitiques pour chaque espace de travail si demandé, au lieu de statistiques pour toute la compilation
     -- imprime quand même la durée de compilation à la fin?
 
@@ -371,11 +370,12 @@ implémente la directive #si pour la compilation sélective
 - optimisations de l'accès aux membres des blocs (table de hachage avec tableau continu, en cours)
 - pouvoir passer des expressions à exécuter à la ligne de commande (kuri -exec "..." fichier.kuri)
 - considère parser les expressions se terminant par une virgule (p.e. f(x, ))
-- ajout d'une fonction d'interface compilatrice pour rapporter une erreur depuis les métaprogrammes
 - proprement définir ce qu'on doit faire si un métaprogramme demande un message alors qu'il n'a pas commencer à les intercepter
 - nettoie la génération de code de création de contexte pour la fonction principale pour utiliser le noeud de la création de contexte du module Kuri
 - avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
 - pouvoir utiliser un #! en début de fichier pour utiliser les programmes comme des scripts (cela compilera et exécutera l'exécutable ou alors juste les métaprogrammes, #! n'est pas cohérent sur toutes les plateformes...)
+- pouvoir renommer les symboles d'un import pour une utilisation locale (importe Fondation ma_fonction_de_renommage) ?
+
 
 
 À faire (architecture)
