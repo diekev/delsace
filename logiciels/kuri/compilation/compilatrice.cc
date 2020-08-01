@@ -513,8 +513,6 @@ size_t Compilatrice::memoire_utilisee() const
 Metriques Compilatrice::rassemble_metriques() const
 {
 	auto metriques = Metriques{};
-	metriques.temps_validation = this->temps_validation;
-	metriques.temps_generation = this->temps_generation;
 
 	POUR_TABLEAU_PAGE ((*espaces_de_travail.verrou_lecture())) {
 		it.rassemble_metriques(metriques);

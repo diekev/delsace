@@ -68,7 +68,7 @@ struct Metriques {
 	double temps_tampon = 0.0;
 	double temps_decoupage = 0.0;
 	double temps_validation = 0.0;
-	double temps_generation = 0.0;
+	double temps_generation_code = 0.0;
 	double temps_fichier_objet = 0.0;
 	double temps_executable = 0.0;
 	double temps_nettoyage = 0.0;
@@ -305,11 +305,6 @@ struct Compilatrice {
 	 * chaque fois.
 	 */
 	Metriques rassemble_metriques() const;
-
-public:
-	double temps_generation = 0.0;
-	double temps_validation = 0.0;
-	double temps_lexage = 0.0;
 };
 
 dls::chaine charge_fichier(

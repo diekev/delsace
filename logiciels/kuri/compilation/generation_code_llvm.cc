@@ -1359,7 +1359,12 @@ static bool cree_executable(const kuri::chaine &dest, const std::filesystem::pat
 	return true;
 }
 
-bool coulisse_llvm_cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace, double &temps_executable, double &temps_fichier_objet)
+bool coulisse_llvm_cree_executable(
+		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
+		double &temps_generation_code,
+		double &temps_executable,
+		double &temps_fichier_objet)
 {
 	auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
@@ -1392,13 +1397,13 @@ bool coulisse_llvm_cree_executable(Compilatrice &compilatrice, EspaceDeTravail &
 	generatrice.m_module = &module_llvm;
 
 	std::cout << "Génération du code..." << std::endl;
-	auto temps_generation = dls::chrono::compte_seconde();
+	auto debut_generation_code = dls::chrono::compte_seconde();
 
 	initialise_optimisation(espace.options.niveau_optimisation, generatrice);
 
 	generatrice.genere_code();
 
-	compilatrice.temps_generation = temps_generation.temps();
+	temps_generation_code = debut_generation_code.temps();
 
 #ifndef NDEBUG
 	if (!valide_llvm_ir(module_llvm)) {

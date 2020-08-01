@@ -67,7 +67,7 @@ static void imprime_stats(
 							 + metriques.temps_metaprogrammes
 							 + metriques.temps_ri;
 
-	auto const temps_coulisse = metriques.temps_generation
+	auto const temps_coulisse = metriques.temps_generation_code
 								+ metriques.temps_fichier_objet
 								+ metriques.temps_executable;
 
@@ -141,7 +141,7 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "- RI", formatte_nombre(metriques.temps_ri * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_ri, temps_scene)) });
 
 	tableau.ajoute_ligne({ "Temps Coulisse", formatte_nombre(temps_coulisse * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_coulisse, temps_total)) });
-	tableau.ajoute_ligne({ "- Génération Code", formatte_nombre(metriques.temps_generation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_generation, temps_coulisse)) });
+	tableau.ajoute_ligne({ "- Génération Code", formatte_nombre(metriques.temps_generation_code * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_generation_code, temps_coulisse)) });
 	tableau.ajoute_ligne({ "- Fichier Objet", formatte_nombre(metriques.temps_fichier_objet * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_fichier_objet, temps_coulisse)) });
 	tableau.ajoute_ligne({ "- Exécutable", formatte_nombre(metriques.temps_executable * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_executable, temps_coulisse)) });
 
@@ -271,10 +271,11 @@ int main(int argc, char *argv[])
 		metriques.memoire_compilatrice = compilatrice.memoire_utilisee();
 		metriques.temps_executable = tacheronne.temps_executable;
 		metriques.temps_fichier_objet = tacheronne.temps_fichier_objet;
+		metriques.temps_generation_code = tacheronne.temps_generation_code;
 		metriques.temps_ri = temps_ri;
 		metriques.memoire_ri = memoire_ri;
-		metriques.temps_decoupage = compilatrice.temps_lexage;
-		metriques.temps_validation = compilatrice.temps_validation;
+		metriques.temps_decoupage = tacheronne.temps_lexage;
+		metriques.temps_validation = tacheronne.temps_validation;
 		metriques.temps_scene = std::max(tacheronne.temps_scene, tacheronne_mp.temps_scene);
 		metriques.nombre_identifiants = static_cast<size_t>(compilatrice.table_identifiants->taille());
 		metriques.temps_metaprogrammes = compilatrice.mv.temps_execution_metaprogammes;

@@ -33,5 +33,6 @@ void issitialise_llvm();
 bool coulisse_llvm_cree_executable(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
+		double &temps_generation_code,
 		double &temps_executable,
 		double &temps_fichier_objet);

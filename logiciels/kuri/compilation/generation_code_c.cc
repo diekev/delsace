@@ -1350,8 +1350,6 @@ static void genere_code_C_depuis_fonction_principale(
 		EspaceDeTravail &espace,
 		std::ostream &fichier_sortie)
 {
-	auto debut_generation = dls::chrono::compte_seconde();
-
 	Enchaineuse enchaineuse;
 
 	espace.typeuse.construit_table_types();
@@ -1381,8 +1379,6 @@ static void genere_code_C_depuis_fonction_principale(
 	generatrice.genere_code(espace.globales, fonctions, enchaineuse);
 
 	enchaineuse.imprime_dans_flux(fichier_sortie);
-
-	compilatrice.temps_generation = debut_generation.temps();
 }
 
 static void genere_code_C_depuis_fonctions_racines(
@@ -1390,8 +1386,6 @@ static void genere_code_C_depuis_fonctions_racines(
 		EspaceDeTravail &espace,
 		std::ostream &fichier_sortie)
 {
-	auto debut_generation = dls::chrono::compte_seconde();
-
 	Enchaineuse enchaineuse;
 
 	espace.typeuse.construit_table_types();
@@ -1423,8 +1417,6 @@ static void genere_code_C_depuis_fonctions_racines(
 	generatrice.genere_code(espace.globales, fonctions, enchaineuse);
 
 	enchaineuse.imprime_dans_flux(fichier_sortie);
-
-	compilatrice.temps_generation = debut_generation.temps();
 }
 
 void genere_code_C(
@@ -1522,13 +1514,16 @@ static dls::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, Opt
 bool coulisse_C_cree_fichier_objet(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
+		double &temps_generation_code,
 		double &temps_fichier_objet)
 {
 	std::ofstream of;
 	of.open("/tmp/compilation_kuri.c");
 
 	std::cout << "Génération du code..." << std::endl;
+	auto debut_generation_code = dls::chrono::compte_seconde();
 	genere_code_C(compilatrice, espace, of);
+	temps_generation_code = debut_generation_code.temps();
 
 	of.close();
 

@@ -451,8 +451,7 @@ void Tacheronne::gere_tache()
 		switch (tache.genre) {
 			case GenreTache::COMPILATION_TERMINEE:
 			{
-				compilatrice.temps_lexage = temps_lexage;
-				compilatrice.temps_validation = temps_validation;
+				temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
 				return;
 			}
 			case GenreTache::DORS:
@@ -568,7 +567,7 @@ void Tacheronne::gere_tache()
 			}
 			case GenreTache::GENERE_FICHIER_OBJET:
 			{
-				coulisse_C_cree_fichier_objet(compilatrice, *tache.unite->espace, temps_fichier_objet);
+				coulisse_C_cree_fichier_objet(compilatrice, *tache.unite->espace, temps_generation_code, temps_fichier_objet);
 				tache_fut_completee = true;
 				break;
 			}
@@ -581,8 +580,6 @@ void Tacheronne::gere_tache()
 		}
 	}
 
-	compilatrice.temps_lexage = temps_lexage;
-	compilatrice.temps_validation = temps_validation;
 	temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
 }
 

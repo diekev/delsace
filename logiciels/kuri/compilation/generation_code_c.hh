@@ -30,6 +30,7 @@ struct EspaceDeTravail;
 bool coulisse_C_cree_fichier_objet(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
+		double &temps_generation_code,
 		double &temps_fichier_objet);
 
 bool coulisse_C_cree_executable(
