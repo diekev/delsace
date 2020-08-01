@@ -1008,8 +1008,6 @@ void Lexeuse::lexe_nombre_hexadecimal()
 	this->pousse_lexeme_entier(resultat_entier);
 }
 
-#include <iomanip>
-
 void Lexeuse::lexe_nombre_reel_hexadecimal()
 {
 	Prof(lexe_nombre_reel_hexadecimal);
