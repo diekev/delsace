@@ -74,6 +74,7 @@ struct ContexteValidationCode {
 	bool valide_operateur(NoeudDeclarationFonction *);
 	bool valide_enum(NoeudEnum *);
 	bool valide_structure(NoeudStruct *);
+	bool valide_arbre_aplatis(kuri::tableau<NoeudExpression *> &arbre_aplatis);
 	bool resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
 	void rapporte_erreur(const char *message, NoeudExpression *noeud);

@@ -421,7 +421,7 @@ void Syntaxeuse::lance_analyse()
 					noeud->bloc_parent->expressions->pousse(noeud);
 					noeud->drapeaux |= EST_GLOBALE;
 
-					if (!dls::outils::est_element(noeud->genre, GenreNoeud::DECLARATION_FONCTION, GenreNoeud::DECLARATION_OPERATEUR, GenreNoeud::DECLARATION_COROUTINE)) {
+					if (!dls::outils::est_element(noeud->genre, GenreNoeud::DECLARATION_FONCTION, GenreNoeud::DECLARATION_OPERATEUR, GenreNoeud::DECLARATION_COROUTINE, GenreNoeud::DECLARATION_STRUCTURE)) {
 						if (noeud->genre == GenreNoeud::DECLARATION_VARIABLE) {
 							auto decl_var = static_cast<NoeudDeclarationVariable *>(noeud);
 							decl_var->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
@@ -2202,6 +2202,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		m_fichier->module->assembleuse->depile_bloc();
 		noeud_decl->bloc = bloc;
 	}
+
+	m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_decl);
 
 	depile_etat();
 

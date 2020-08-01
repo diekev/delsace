@@ -2303,12 +2303,9 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 		decl->genre = GenreNoeud::DECLARATION_COROUTINE;
 	}
 
-	for (auto i = unite->index_reprise; i < decl->arbre_aplatis_entete.taille; ++i) {
-		if (valide_semantique_noeud(decl->arbre_aplatis_entete[i])) {
-			unite->index_reprise = i;
-			graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
-			return true;
-		}
+	if (valide_arbre_aplatis(decl->arbre_aplatis_entete)) {
+		graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
+		return true;
 	}
 
 	// -----------------------------------
@@ -2514,6 +2511,30 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 	return false;
 }
 
+bool ContexteValidationCode::valide_arbre_aplatis(kuri::tableau<NoeudExpression *> &arbre_aplatis)
+{
+	for (auto i = 0; i < arbre_aplatis.taille; ++i) {
+		auto noeud_enfant = arbre_aplatis[i];
+
+		if (noeud_enfant->est_structure()) {
+			// les structures ont leurs propres unités de compilation
+			if ((noeud_enfant->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
+				unite->attend_sur_declaration(noeud_enfant->comme_structure());
+				return true;
+			}
+
+			continue;
+		}
+
+		if (valide_semantique_noeud(noeud_enfant)) {
+			unite->index_reprise = i;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 {
 	if (decl->est_gabarit && !decl->est_instantiation_gabarit) {
@@ -2553,12 +2574,9 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 		}
 	}
 
-	for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
-		if (valide_semantique_noeud(decl->arbre_aplatis[i])) {
-			unite->index_reprise = i;
-			graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
-			return true;
-		}
+	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
+		graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
+		return true;
 	}
 
 	auto bloc = decl->bloc;
@@ -2619,12 +2637,9 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 		}
 	}
 
-	for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
-		if (valide_semantique_noeud(decl->arbre_aplatis[i])) {
-			unite->index_reprise = i;
-			graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
-			return true;
-		}
+	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
+		graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
+		return true;
 	}
 
 	auto inst_ret = derniere_instruction(decl->bloc);
@@ -2840,12 +2855,9 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		return false;
 	};
 
-	for (auto i = unite->index_reprise; i < decl->arbre_aplatis.taille; ++i) {
-		if (valide_semantique_noeud(decl->arbre_aplatis[i])) {
-			unite->index_reprise = i;
-			graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
-			return true;
-		}
+	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
+		graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
+		return true;
 	}
 
 	if (decl->est_union) {
