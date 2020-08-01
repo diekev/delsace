@@ -193,10 +193,6 @@ lance_compilation :: fonc ()
                     // }
                 }
             }
-            COMPILATION_TERMINÉE {
-                imprime("Compilation terminée !\n")
-                arrête
-            }
             PHASE_COMPILATION {
 
             }
