@@ -769,6 +769,11 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			if (decl_ref != nullptr && decl_ref->drapeaux & EST_CONSTANTE) {
 				auto decl_const = static_cast<NoeudDeclarationVariable *>(decl_ref);
+
+				if (decl_ref->type->est_reel()) {
+					return cree_constante_reelle(decl_ref->type, decl_const->valeur_expression.reel);
+				}
+
 				return cree_constante_entiere(decl_ref->type, static_cast<unsigned long>(decl_const->valeur_expression.entier));
 			}
 
