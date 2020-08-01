@@ -34,11 +34,10 @@
 #include "message.hh"
 #include "modules.hh"
 #include "operateurs.hh"
+#include "options.hh"
 #include "tacheronne.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
-
-#include "../executable/options.hh"
 
 #include "../representation_intermediaire/constructrice_ri.hh"
 #include "../representation_intermediaire/machine_virtuelle.hh"
@@ -154,6 +153,8 @@ struct EspaceDeTravail {
 	std::atomic<int> nombre_taches_typage = 0;
 	std::atomic<int> nombre_taches_ri = 0;
 	std::atomic<int> nombre_taches_execution = 0;
+
+	PhaseCompilation phase{};
 
 	explicit EspaceDeTravail(OptionsCompilation opts);
 

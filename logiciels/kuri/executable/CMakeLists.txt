@@ -28,23 +28,10 @@ set(INCLUSIONS
 
 ################################################################################
 
-set(NOM_PROJET kuri_options)
-
-add_library(${NOM_PROJET} STATIC options.cc options.hh)
-
-target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
-
-target_link_libraries(${NOM_PROJET} kuri_compilation)
-
-################################################################################
-
 set(NOM_PROJET kuri)
 
 set(BIBLIOTHEQUES
 	kuri_compilation
-	kuri_coulisse_c
-	kuri_coulisse_llvm
-	kuri_options
 	kuri_representation_intermediaire
 	stdc++fs
 	bib_outils

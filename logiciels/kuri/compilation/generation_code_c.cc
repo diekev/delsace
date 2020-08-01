@@ -24,12 +24,15 @@
 
 #include "generation_code_c.hh"
 
+#include <fstream>
+
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/enchaineuse.hh"
 #include "biblinternes/outils/numerique.hh"
 
-#include "compilation/broyage.hh"
-#include "compilation/erreur.h"
+#include "broyage.hh"
+#include "environnement.hh"
+#include "erreur.h"
 
 #include "representation_intermediaire/constructrice_ri.hh"
 
@@ -1358,7 +1361,7 @@ static void genere_code_C_depuis_fonction_principale(
 	auto fonction_principale = graphe->cherche_noeud_fonction("principale");
 
 	if (fonction_principale == nullptr) {
-		erreur::fonction_principale_manquante();
+		erreur::fonction_principale_manquante(espace);
 	}
 
 	// nous devons générer la fonction main ici, car elle défini le type du tableau de
@@ -1435,4 +1438,166 @@ void genere_code_C(
 	else {
 		genere_code_C_depuis_fonctions_racines(compilatrice, espace, fichier_sortie);
 	}
+}
+
+static dls::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, OptionsCompilation const &ops)
+{
+	auto commande = dls::chaine("gcc -c /tmp/compilation_kuri.c ");
+
+	// À FAIRE : comment lié les tables pour un fichier objet ?
+//	if (ops.objet_genere == ObjetGenere::FichierObjet) {
+//		commande += "/tmp/tables_r16.o ";
+//	}
+
+	/* désactivation des erreurs concernant le manque de "const" quand
+	 * on passe des variables générés temporairement par la coulisse à
+	 * des fonctions qui dont les paramètres ne sont pas constants */
+	commande += "-Wno-discarded-qualifiers ";
+	/* désactivation des avertissements de passage d'une variable au
+	 * lieu d'une chaine littérale à printf et al. */
+	commande += "-Wno-format-security ";
+
+	if (ops.objet_genere == ObjetGenere::FichierObjet) {
+		/* À FAIRE : désactivation temporaire du protecteur de pile en attendant d'avoir une manière de le faire depuis les métaprogrammes */
+		commande += "-fno-stack-protector ";
+	}
+
+	switch (ops.niveau_optimisation) {
+		case NiveauOptimisation::AUCUN:
+		case NiveauOptimisation::O0:
+		{
+			commande += "-O0 ";
+			break;
+		}
+		case NiveauOptimisation::O1:
+		{
+			commande += "-O1 ";
+			break;
+		}
+		case NiveauOptimisation::O2:
+		{
+			commande += "-O2 ";
+			break;
+		}
+		case NiveauOptimisation::Os:
+		{
+			commande += "-Os ";
+			break;
+		}
+		/* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
+		 * plus proche. */
+		case NiveauOptimisation::Oz:
+		case NiveauOptimisation::O3:
+		{
+			commande += "-O3 ";
+			break;
+		}
+	}
+
+	if (ops.architecture_cible == ArchitectureCible::X86) {
+		commande += "-m32 ";
+	}
+
+	for (auto const &def : *compilatrice.definitions.verrou_lecture()) {
+		commande += " -D" + dls::chaine(def);
+	}
+
+	for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
+		commande += " ";
+		commande += chm;
+	}
+
+	if (ops.objet_genere == ObjetGenere::FichierObjet) {
+		commande += " -o ";
+		commande += dls::chaine(ops.nom_sortie.pointeur, ops.nom_sortie.taille);
+		commande += ".o";
+	}
+	else {
+		commande += " -o /tmp/compilation_kuri.o";
+	}
+
+	return commande;
+}
+
+bool coulisse_C_cree_fichier_objet(
+		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
+		double &temps_fichier_objet)
+{
+	std::ofstream of;
+	of.open("/tmp/compilation_kuri.c");
+
+	std::cout << "Génération du code..." << std::endl;
+	genere_code_C(compilatrice, espace, of);
+
+	of.close();
+
+	auto debut_fichier_objet = dls::chrono::compte_seconde();
+
+	auto commande = genere_commande_fichier_objet(compilatrice, espace.options);
+
+	std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+	auto err = system(commande.c_str());
+
+	temps_fichier_objet = debut_fichier_objet.temps();
+
+	if (err != 0) {
+		std::cerr << "Ne peut pas créer le fichier objet !\n";
+		compilatrice.possede_erreur = true;
+		return false;
+	}
+
+	return true;
+}
+
+bool coulisse_C_cree_executable(
+		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
+		double &temps_executable)
+{
+	compile_objet_r16(compilatrice.racine_kuri.c_str(), espace.options.architecture_cible);
+
+	auto debut_executable = dls::chrono::compte_seconde();
+	auto commande = dls::chaine("gcc /tmp/compilation_kuri.o ");
+
+	if (espace.options.architecture_cible == ArchitectureCible::X86) {
+		commande += " /tmp/r16_tables_x86.o ";
+	}
+	else {
+		commande += " /tmp/r16_tables_x64.o ";
+	}
+
+	for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
+		commande += " ";
+		commande += chm;
+	}
+
+	for (auto const &bib : *compilatrice.bibliotheques_statiques.verrou_lecture()) {
+		commande += " " + bib;
+	}
+
+	for (auto const &bib : *compilatrice.bibliotheques_dynamiques.verrou_lecture()) {
+		commande += " -l" + bib;
+	}
+
+	if (espace.options.architecture_cible == ArchitectureCible::X86) {
+		commande += " -m32 ";
+	}
+
+	commande += " -o ";
+	commande += dls::chaine(espace.options.nom_sortie.pointeur, espace.options.nom_sortie.taille);
+
+	std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+	auto err = system(commande.c_str());
+
+	if (err != 0) {
+		std::cerr << "Ne peut pas créer l'exécutable !\n";
+		compilatrice.possede_erreur = true;
+		return false;
+	}
+
+	temps_executable = debut_executable.temps();
+	return true;
 }

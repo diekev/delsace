@@ -908,10 +908,11 @@ void valeur_manquante_discr(
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);
 }
 
-void fonction_principale_manquante()
+void fonction_principale_manquante(EspaceDeTravail const &espace)
 {
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
+	ss << "Dans l'espace de travail « " << espace.nom << " » :\n";
 	ss << "Erreur : impossible de trouver la fonction principale\n";
 	ss << "Veuillez vérifier qu'elle soit bien présente dans un module\n";
 	ss << "\n----------------------------------------------------------------\n";

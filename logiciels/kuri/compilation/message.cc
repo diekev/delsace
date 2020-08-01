@@ -25,6 +25,7 @@
 #include "message.hh"
 
 #include "arbre_syntaxique.hh"
+#include "compilatrice.hh"
 #include "modules.hh"
 
 void Messagere::ajoute_message_fichier_ouvert(EspaceDeTravail *espace, const kuri::chaine &chemin)
@@ -108,6 +109,8 @@ void Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclara
 
 void Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace, PhaseCompilation phase)
 {
+	espace->phase = phase;
+
 	if (!interception_commencee) {
 		return;
 	}

@@ -34,8 +34,6 @@
 #include "erreur.h"
 #include "modules.hh"
 
-#include "../executable/options.hh"
-
 /* ************************************************************************** */
 
 EspaceDeTravail::EspaceDeTravail(OptionsCompilation opts)

@@ -26,51 +26,23 @@
 #include <fstream>
 #include <iostream>
 
-#ifdef AVEC_LLVM
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#include <llvm/InitializePasses.h>
-#include <llvm/IR/LegacyPassManager.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/TargetRegistry.h>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/Target/TargetMachine.h>
-#include <llvm/Target/TargetOptions.h>
-#include <llvm/Transforms/InstCombine/InstCombine.h>
-#include <llvm/Transforms/IPO.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
-#include <llvm/Transforms/Scalar.h>
-#include <llvm/Transforms/Scalar/GVN.h>
-#pragma GCC diagnostic pop
-
-#include "coulisse_llvm/generation_code_llvm.hh"
-#endif
-
 #include "biblexternes/iprof/prof.h"
 
 #include <thread>
 
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/compilatrice.hh"
+#include "compilation/environnement.hh"
 #include "compilation/erreur.h"
+#include "compilation/generation_code_llvm.hh"
 #include "compilation/modules.hh"
+#include "compilation/options.hh"
 #include "compilation/profilage.hh"
 #include "compilation/tacheronne.hh"
-
-#include "coulisse_c/generation_code_c.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
 
 #include "date.hh"
-#include "options.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/format.hh"
@@ -79,208 +51,6 @@
 #include "biblinternes/systeme_fichier/shared_library.h"
 
 #define AVEC_THREADS
-
-#ifdef AVEC_LLVM
-static void initialise_llvm()
-{
-	if (llvm::InitializeNativeTarget()
-			|| llvm::InitializeNativeTargetAsmParser()
-			|| llvm::InitializeNativeTargetAsmPrinter())
-	{
-		std::cerr << "Ne peut pas initialiser LLVM !\n";
-		exit(EXIT_FAILURE);
-	}
-
-	/* Initialise les passes. */
-	auto &registre = *llvm::PassRegistry::getPassRegistry();
-	llvm::initializeCore(registre);
-	llvm::initializeScalarOpts(registre);
-	llvm::initializeObjCARCOpts(registre);
-	llvm::initializeVectorization(registre);
-	llvm::initializeIPO(registre);
-	llvm::initializeAnalysis(registre);
-	llvm::initializeTransformUtils(registre);
-	llvm::initializeInstCombine(registre);
-	llvm::initializeInstrumentation(registre);
-	llvm::initializeTarget(registre);
-
-	/* Pour les passes de transformation de code, seuls celles d'IR à IR sont
-	 * supportées. */
-	llvm::initializeCodeGenPreparePass(registre);
-	llvm::initializeAtomicExpandPass(registre);
-	llvm::initializeWinEHPreparePass(registre);
-	llvm::initializeDwarfEHPreparePass(registre);
-	llvm::initializeSjLjEHPreparePass(registre);
-	llvm::initializePreISelIntrinsicLoweringLegacyPassPass(registre);
-	llvm::initializeGlobalMergePass(registre);
-	llvm::initializeInterleavedAccessPass(registre);
-	llvm::initializeUnreachableBlockElimLegacyPassPass(registre);
-}
-
-static void issitialise_llvm()
-{
-	llvm::llvm_shutdown();
-}
-
-/**
- * Ajoute les passes d'optimisation au ménageur en fonction du niveau
- * d'optimisation.
- */
-static void ajoute_passes(
-		llvm::legacy::FunctionPassManager &manager_fonctions,
-		uint niveau_optimisation,
-		uint niveau_taille)
-{
-	llvm::PassManagerBuilder builder;
-	builder.OptLevel = niveau_optimisation;
-	builder.SizeLevel = niveau_taille;
-	builder.DisableUnrollLoops = (niveau_optimisation == 0);
-
-	/* À FAIRE : enlignage. */
-
-	/* Pour plus d'informations sur les vectoriseurs, suivre le lien :
-	 * http://llvm.org/docs/Vectorizers.html */
-	builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
-	builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
-
-	builder.populateFunctionPassManager(manager_fonctions);
-}
-
-/**
- * Initialise le ménageur de passes fonctions du contexte selon le niveau
- * d'optimisation.
- */
-static void initialise_optimisation(
-		NiveauOptimisation optimisation,
-		GeneratriceCodeLLVM &contexte)
-{
-	if (contexte.manager_fonctions == nullptr) {
-		contexte.manager_fonctions = new llvm::legacy::FunctionPassManager(contexte.m_module);
-	}
-
-	switch (optimisation) {
-		case NiveauOptimisation::AUCUN:
-			break;
-		case NiveauOptimisation::O0:
-			ajoute_passes(*contexte.manager_fonctions, 0, 0);
-			break;
-		case NiveauOptimisation::O1:
-			ajoute_passes(*contexte.manager_fonctions, 1, 0);
-			break;
-		case NiveauOptimisation::O2:
-			ajoute_passes(*contexte.manager_fonctions, 2, 0);
-			break;
-		case NiveauOptimisation::Os:
-			ajoute_passes(*contexte.manager_fonctions, 2, 1);
-			break;
-		case NiveauOptimisation::Oz:
-			ajoute_passes(*contexte.manager_fonctions, 2, 2);
-			break;
-		case NiveauOptimisation::O3:
-			ajoute_passes(*contexte.manager_fonctions, 3, 0);
-			break;
-	}
-}
-
-static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module &module)
-{
-	Prof(ecris_fichier_objet);
-#if 1
-	auto chemin_sortie = "/tmp/kuri.o";
-	std::error_code ec;
-
-	llvm::raw_fd_ostream dest(chemin_sortie, ec, llvm::sys::fs::F_None);
-
-	if (ec) {
-		std::cerr << "Ne put pas ouvrir le fichier '" << chemin_sortie << "'\n";
-		return false;
-	}
-
-	llvm::legacy::PassManager pass;
-	auto type_fichier = llvm::TargetMachine::CGFT_ObjectFile;
-
-	if (machine_cible->addPassesToEmitFile(pass, dest, type_fichier)) {
-		std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
-		return false;
-	}
-
-	pass.run(module);
-	dest.flush();
-#else
-	// https://stackoverflow.com/questions/1419139/llvm-linking-problem?rq=1
-	std::error_code ec;
-	llvm::raw_fd_ostream dest("/tmp/kuri.ll", ec, llvm::sys::fs::F_None);
-	module.print(dest, nullptr);
-
-	system("llvm-as /tmp/kuri.ll -o /tmp/kuri.bc");
-	system("llc /tmp/kuri.bc -o /tmp/kuri.s");
-#endif
-	return true;
-}
-
-#ifndef NDEBUG
-static bool valide_llvm_ir(llvm::Module &module)
-{
-	std::error_code ec;
-	llvm::raw_fd_ostream dest("/tmp/kuri.ll", ec, llvm::sys::fs::F_None);
-	module.print(dest, nullptr);
-
-	auto err = system("llvm-as /tmp/kuri.ll -o /tmp/kuri.bc");
-	return err == 0;
-}
-#endif
-
-static bool cree_executable(const kuri::chaine &dest, const std::filesystem::path &racine_kuri)
-{
-	Prof(cree_executable);
-	/* Compile le fichier objet qui appelera 'fonction principale'. */
-	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
-		auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";
-
-		dls::flux_chaine ss;
-		ss << "as -o /tmp/execution_kuri.o ";
-		ss << chemin_execution_S;
-
-		auto err = system(ss.chn().c_str());
-
-		if (err != 0) {
-			std::cerr << "Ne peut pas créer /tmp/execution_kuri.o !\n";
-			return false;
-		}
-	}
-
-	if (!std::filesystem::exists("/tmp/kuri.o")) {
-		std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
-		return false;
-	}
-
-	dls::flux_chaine ss;
-#if 1
-	ss << "gcc ";
-	ss << racine_kuri / "fichiers/point_d_entree.c";
-	ss << " /tmp/kuri.o /tmp/r16_tables.o -o " << dest;
-#else
-	ss << "ld ";
-	/* ce qui chargera le programme */
-	ss << "-dynamic-linker /lib64/ld-linux-x86-64.so.2 ";
-	ss << "-m elf_x86_64 ";
-	ss << "--hash-style=gnu ";
-	ss << "-lc ";
-	ss << "/tmp/execution_kuri.o ";
-	ss << "/tmp/kuri.o ";
-	ss << "-o " << dest;
-#endif
-
-	auto err = system(ss.chn().c_str());
-
-	if (err != 0) {
-		std::cerr << "Ne peut pas créer l'executable !\n";
-		return false;
-	}
-
-	return true;
-}
-#endif
 
 static void imprime_stats(
 		Metriques const &metriques,
@@ -382,92 +152,6 @@ static void imprime_stats(
 	return;
 }
 
-/* À FAIRE : il faudra proprement gérer les architectures pour les r16, ou trouver des algorithmes pour supprimer les tables */
-static void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri)
-{
-	// objet pour la liaison statique de la bibliothèque
-	{
-		auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
-		auto chemin_objet = "/tmp/r16_tables_x64.o";
-
-		if (!std::filesystem::exists(chemin_objet)) {
-			auto commande = dls::chaine("g++ -c ");
-			commande += chemin_fichier.c_str();
-			commande += " -o ";
-			commande += chemin_objet;
-
-			std::cout << "Compilation des tables de conversion R16...\n";
-			std::cout << "Exécution de la commande " << commande << std::endl;
-
-			auto err = system(commande.c_str());
-
-			if (err != 0) {
-				std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
-				return;
-			}
-
-			std::cout << "Compilation du fichier statique réussie !" << std::endl;
-		}
-	}
-
-	// objet pour la liaison dynamique de la bibliothèque, pour les métaprogrammes
-	{
-		auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
-		auto chemin_objet = "/tmp/r16_tables_x64.so";
-
-		if (!std::filesystem::exists(chemin_objet)) {
-			auto commande = dls::chaine("g++ -shared -fPIC ");
-			commande += chemin_fichier.c_str();
-			commande += " -o ";
-			commande += chemin_objet;
-
-			std::cout << "Compilation des tables de conversion R16...\n";
-			std::cout << "Exécution de la commande " << commande << std::endl;
-
-			auto err = system(commande.c_str());
-
-			if (err != 0) {
-				std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
-				return;
-			}
-
-			std::cout << "Compilation du fichier dynamique réussie !" << std::endl;
-		}
-	}
-}
-
-static void compile_objet_r16(std::filesystem::path const &chemin_racine_kuri, ArchitectureCible architecture_cible)
-{
-	if (architecture_cible == ArchitectureCible::X64) {
-		// nous devrions déjà l'avoir
-		return;
-	}
-
-	{
-		auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
-		auto chemin_objet = "/tmp/r16_tables_x86.o";
-
-		if (!std::filesystem::exists(chemin_objet)) {
-			auto commande = dls::chaine("g++ -c -m32 ");
-			commande += chemin_fichier.c_str();
-			commande += " -o ";
-			commande += chemin_objet;
-
-			std::cout << "Compilation des tables de conversion R16...\n";
-			std::cout << "Exécution de la commande " << commande << std::endl;
-
-			auto err = system(commande.c_str());
-
-			if (err != 0) {
-				std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
-				return;
-			}
-
-			std::cout << "Compilation du fichier statique réussie !" << std::endl;
-		}
-	}
-}
-
 void lance_tacheronne(Tacheronne *tacheronne)
 {
 	try {
@@ -482,238 +166,6 @@ void lance_tacheronne(Tacheronne *tacheronne)
 void lance_tacheronne_metaprogramme(Tacheronne *tacheronne)
 {
 	tacheronne->gere_tache_metaprogramme();
-}
-
-static dls::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, OptionsCompilation const &ops)
-{
-	auto commande = dls::chaine("gcc -c /tmp/compilation_kuri.c ");
-
-	// À FAIRE : comment lié les tables pour un fichier objet ?
-//	if (ops.objet_genere == ObjetGenere::FichierObjet) {
-//		commande += "/tmp/tables_r16.o ";
-//	}
-
-	/* désactivation des erreurs concernant le manque de "const" quand
-	 * on passe des variables générés temporairement par la coulisse à
-	 * des fonctions qui dont les paramètres ne sont pas constants */
-	commande += "-Wno-discarded-qualifiers ";
-	/* désactivation des avertissements de passage d'une variable au
-	 * lieu d'une chaine littérale à printf et al. */
-	commande += "-Wno-format-security ";
-
-	if (ops.objet_genere == ObjetGenere::FichierObjet) {
-		/* À FAIRE : désactivation temporaire du protecteur de pile en attendant d'avoir une manière de le faire depuis les métaprogrammes */
-		commande += "-fno-stack-protector ";
-	}
-
-	switch (ops.niveau_optimisation) {
-		case NiveauOptimisation::AUCUN:
-		case NiveauOptimisation::O0:
-		{
-			commande += "-O0 ";
-			break;
-		}
-		case NiveauOptimisation::O1:
-		{
-			commande += "-O1 ";
-			break;
-		}
-		case NiveauOptimisation::O2:
-		{
-			commande += "-O2 ";
-			break;
-		}
-		case NiveauOptimisation::Os:
-		{
-			commande += "-Os ";
-			break;
-		}
-		/* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
-		 * plus proche. */
-		case NiveauOptimisation::Oz:
-		case NiveauOptimisation::O3:
-		{
-			commande += "-O3 ";
-			break;
-		}
-	}
-
-	if (ops.architecture_cible == ArchitectureCible::X86) {
-		commande += "-m32 ";
-	}
-
-	for (auto const &def : *compilatrice.definitions.verrou_lecture()) {
-		commande += " -D" + dls::chaine(def);
-	}
-
-	for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
-		commande += " ";
-		commande += chm;
-	}
-
-	if (ops.objet_genere == ObjetGenere::FichierObjet) {
-		commande += " -o ";
-		commande += dls::chaine(ops.nom_sortie.pointeur, ops.nom_sortie.taille);
-		commande += ".o";
-	}
-	else {
-		commande += " -o /tmp/compilation_kuri.o";
-	}
-
-	return commande;
-}
-
-static int genere_code_coulisse(
-		Compilatrice &compilatrice,
-		EspaceDeTravail &espace,
-		double &temps_executable,
-		double &temps_fichier_objet)
-{
-	auto const &ops = espace.options;
-
-	if (ops.objet_genere == ObjetGenere::Rien) {
-		return 0;
-	}
-
-#ifdef AVEC_LLVM
-	if (ops.type_coulisse == TypeCoulisse::LLVM) {
-		auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
-
-		initialise_llvm();
-
-		auto erreur = std::string{""};
-		auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
-
-		if (!cible) {
-			std::cerr << erreur << '\n';
-			return 1;
-		}
-
-		auto CPU = "generic";
-		auto feature = "";
-		auto options_cible = llvm::TargetOptions{};
-		auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
-		auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
-					cible->createTargetMachine(
-						triplet_cible, CPU, feature, options_cible, RM));
-
-		auto generatrice = GeneratriceCodeLLVM(espace);
-
-		auto module_llvm = llvm::Module("Module", generatrice.m_contexte_llvm);
-		module_llvm.setDataLayout(machine_cible->createDataLayout());
-		module_llvm.setTargetTriple(triplet_cible);
-
-		generatrice.m_module = &module_llvm;
-
-		std::cout << "Génération du code..." << std::endl;
-		auto temps_generation = dls::chrono::compte_seconde();
-
-		initialise_optimisation(ops.niveau_optimisation, generatrice);
-
-		generatrice.genere_code();
-
-		compilatrice.temps_generation = temps_generation.temps();
-
-#ifndef NDEBUG
-		if (!valide_llvm_ir(module_llvm)) {
-			compilatrice.possede_erreur = true;
-		}
-#endif
-
-		/* définition du fichier de sortie */
-		if (!compilatrice.possede_erreur && ops.objet_genere == ObjetGenere::Executable) {
-			std::cout << "Écriture du code dans un fichier..." << std::endl;
-			auto debut_fichier_objet = dls::chrono::compte_seconde();
-			if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
-				compilatrice.possede_erreur = true;
-				return 1;
-			}
-			temps_fichier_objet = debut_fichier_objet.temps();
-
-			auto debut_executable = dls::chrono::compte_seconde();
-			if (!cree_executable(ops.nom_sortie, compilatrice.racine_kuri.c_str())) {
-				compilatrice.possede_erreur = true;
-				return 1;
-			}
-
-			temps_executable = debut_executable.temps();
-		}
-	}
-	else
-#endif
-	{
-		std::ofstream of;
-		of.open("/tmp/compilation_kuri.c");
-
-		std::cout << "Génération du code..." << std::endl;
-		genere_code_C(compilatrice, espace, of);
-
-		of.close();
-
-		auto debut_fichier_objet = dls::chrono::compte_seconde();
-
-		auto commande = genere_commande_fichier_objet(compilatrice, ops);
-
-		std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
-
-		auto err = system(commande.c_str());
-
-		temps_fichier_objet = debut_fichier_objet.temps();
-
-		if (err != 0) {
-			std::cerr << "Ne peut pas créer le fichier objet !\n";
-			compilatrice.possede_erreur = true;
-			return 1;
-		}
-
-		if (ops.objet_genere == ObjetGenere::Executable) {
-			compile_objet_r16(compilatrice.racine_kuri.c_str(), ops.architecture_cible);
-
-			auto debut_executable = dls::chrono::compte_seconde();
-			commande = dls::chaine("gcc /tmp/compilation_kuri.o ");
-
-			if (ops.architecture_cible == ArchitectureCible::X86) {
-				commande += " /tmp/r16_tables_x86.o ";
-			}
-			else {
-				commande += " /tmp/r16_tables_x64.o ";
-			}
-
-			for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
-				commande += " ";
-				commande += chm;
-			}
-
-			for (auto const &bib : *compilatrice.bibliotheques_statiques.verrou_lecture()) {
-				commande += " " + bib;
-			}
-
-			for (auto const &bib : *compilatrice.bibliotheques_dynamiques.verrou_lecture()) {
-				commande += " -l" + bib;
-			}
-
-			if (ops.architecture_cible == ArchitectureCible::X86) {
-				commande += " -m32 ";
-			}
-
-			commande += " -o ";
-			commande += dls::chaine(ops.nom_sortie.pointeur, ops.nom_sortie.taille);
-
-			std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
-
-			err = system(commande.c_str());
-
-			if (err != 0) {
-				std::cerr << "Ne peut pas créer l'exécutable !\n";
-				compilatrice.possede_erreur = true;
-				return 1;
-			}
-
-			temps_executable = debut_executable.temps();
-		}
-	}
-
-	return 0;
 }
 
 int main(int argc, char *argv[])
@@ -747,8 +199,6 @@ int main(int argc, char *argv[])
 	auto resultat = 0;
 	auto debut_compilation   = dls::chrono::compte_seconde();
 	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
-	auto temps_fichier_objet = 0.0;
-	auto temps_executable    = 0.0;
 
 	precompile_objet_r16(chemin_racine_kuri);
 
@@ -797,15 +247,6 @@ int main(int argc, char *argv[])
 		lance_tacheronne_metaprogramme(&tacheronne_mp);
 #endif
 
-		if (!compilatrice.possede_erreur) {
-			POUR_TABLEAU_PAGE ((*compilatrice.espaces_de_travail.verrou_ecriture())) {
-				if (genere_code_coulisse(compilatrice, it, temps_executable, temps_fichier_objet)) {
-					compilatrice.possede_erreur = true;
-					break;
-				}
-			}
-		}
-
 		if (compilatrice.chaines_ajoutees_a_la_compilation->taille()) {
 			auto fichier_chaines = std::ofstream(".chaines_ajoutées");
 
@@ -828,8 +269,8 @@ int main(int argc, char *argv[])
 
 		metriques = compilatrice.rassemble_metriques();
 		metriques.memoire_compilatrice = compilatrice.memoire_utilisee();
-		metriques.temps_executable = temps_executable;
-		metriques.temps_fichier_objet = temps_fichier_objet;
+		metriques.temps_executable = tacheronne.temps_executable;
+		metriques.temps_fichier_objet = tacheronne.temps_fichier_objet;
 		metriques.temps_ri = temps_ri;
 		metriques.memoire_ri = memoire_ri;
 		metriques.temps_decoupage = compilatrice.temps_lexage;

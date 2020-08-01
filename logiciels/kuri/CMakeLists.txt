@@ -33,7 +33,6 @@ endif()
 set(RACINE_INSTALLATION kuri)
 
 add_subdirectory(compilation)
-add_subdirectory(coulisse_c)
 add_subdirectory(executable)
 add_subdirectory(exemples)
 add_subdirectory(modules_c/Aléa)
@@ -41,10 +40,6 @@ add_subdirectory(modules_c/FTGL)
 add_subdirectory(modules_c/Krypto)
 add_subdirectory(representation_intermediaire)
 add_subdirectory(tests)
-
-if(AVEC_LLVM)
-	add_subdirectory(coulisse_llvm)
-endif()
 
 install(
 	DIRECTORY modules

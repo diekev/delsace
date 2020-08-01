@@ -27,6 +27,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+	kuri_representation_intermediaire
 	stdc++fs
 	langage
 	bib_outils
@@ -42,8 +43,10 @@ set(SOURCES
 	assembleuse_arbre.h
 	broyage.hh
 	compilatrice.hh
+	environnement.hh
 	erreur.h
 	expression.h
+	generation_code_c.hh
 	graphe_dependance.hh
 	identifiant.hh
 	lexemes.hh
@@ -51,6 +54,7 @@ set(SOURCES
 	message.hh
 	modules.hh
 	noeud_code.hh
+	options.hh
 	operateurs.hh
 	outils_lexemes.hh
 	portee.hh
@@ -69,8 +73,10 @@ set(SOURCES
 	assembleuse_arbre.cc
 	broyage.cc
 	compilatrice.cc
+	environnement.cc
 	erreur.cc
 	expression.cc
+	generation_code_c.cc
 	graphe_dependance.cc
 	identifiant.cc
 	lexemes.cc
@@ -79,6 +85,7 @@ set(SOURCES
 	modules.cc
 	noeud_code.cc
 	operateurs.cc
+	options.cc
 	outils_lexemes.cc
 	portee.cc
 	profilage.cc
@@ -91,6 +98,11 @@ set(SOURCES
 	validation_expression_appel.cc
 	validation_semantique.cc
 )
+
+if(AVEC_LLVM)
+	set(BIBLIOTHEQUES "${BIBLIOTHEQUES}" /usr/lib/llvm-6.0/lib/libLLVM.so) # À FAIRE
+	set(SOURCES "${SOURCES}" generation_code_llvm.cc generation_code_llvm.hh)
+endif()
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
 

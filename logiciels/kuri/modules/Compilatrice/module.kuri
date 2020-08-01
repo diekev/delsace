@@ -191,15 +191,17 @@ GenreMessage :: énum z32 {
     MODULE_FERMÉ
     TYPAGE_CODE_TERMINÉ
     PHASE_COMPILATION
-
-    // ce type de message n'a pas l'air évident à géré, la compilation ne peut être marqué comme terminée tant que le métaprogramme est en cours d'exécution
-    COMPILATION_TERMINÉE
 }
 
 PhaseCompilation :: énum {
 	PARSAGE_TERMINÉ
 	TYPAGE_TERMINÉ
 	GÉNÉRATION_CODE_TERMINÉE
+	AVANT_GÉNÉRATION_OBJET
+	APRÈS_GÉNÉRATION_OBJET
+	AVANT_LIAISON_EXÉCUTABLE
+	APRÈS_LIAISON_EXÉCUTABLE
+	COMPILATION_TERMINÉE
 }
 
 Message :: struct {

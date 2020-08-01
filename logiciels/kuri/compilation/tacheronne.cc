@@ -30,6 +30,8 @@
 #include "biblinternes/structures/file.hh"
 
 #include "compilatrice.hh"
+#include "generation_code_c.hh"
+#include "generation_code_llvm.hh"
 #include "lexeuse.hh"
 #include "modules.hh"
 #include "syntaxeuse.hh"
@@ -72,6 +74,22 @@ Tache Tache::compilation_terminee()
 {
 	Tache t;
 	t.genre = GenreTache::COMPILATION_TERMINEE;
+	return t;
+}
+
+Tache Tache::genere_fichier_objet(UniteCompilation *unite_)
+{
+	Tache t;
+	t.genre = GenreTache::GENERE_FICHIER_OBJET;
+	t.unite = unite_;
+	return t;
+}
+
+Tache Tache::liaison_objet(UniteCompilation *unite_)
+{
+	Tache t;
+	t.genre = GenreTache::LIAISON_EXECUTABLE;
+	t.unite = unite_;
 	return t;
 }
 
@@ -300,6 +318,27 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 			}
 			break;
 		}
+		case GenreTache::GENERE_FICHIER_OBJET:
+		{
+			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::APRES_GENERATION_OBJET);
+
+			if (espace->options.objet_genere == ObjetGenere::Executable) {
+				m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
+				renseigne_etat_tacheronne(id, GenreTache::LIAISON_EXECUTABLE);
+				return Tache::liaison_objet(unite);
+			}
+			else {
+				m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::COMPILATION_TERMINEE);
+			}
+
+			break;
+		}
+		case GenreTache::LIAISON_EXECUTABLE:
+		{
+			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::APRES_LIAISON_EXECUTABLE);
+			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::COMPILATION_TERMINEE);
+			break;
+		}
 	}
 
 	// au début de la compilation les tâcheronnes nous donne une Tache::DORS qu'elles ont achevées (ceci pour avoir une IPA simple)
@@ -331,6 +370,18 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::GENERE_RI);
 		return taches_generation_ri.defile();
+	}
+
+	if (espace && espace->phase == PhaseCompilation::GENRERATION_CODE_TERMINEE && espace->nombre_taches_execution == 0) {
+		if (espace->options.objet_genere == ObjetGenere::Rien) {
+			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::COMPILATION_TERMINEE);
+		}
+		else {
+			m_compilatrice->messagere->ajoute_message_phase_compilation(unite->espace, PhaseCompilation::AVANT_GENERATION_OBJET);
+			renseigne_etat_tacheronne(id, GenreTache::GENERE_FICHIER_OBJET);
+			nombre_de_taches_en_proces += 1;
+			return Tache::genere_fichier_objet(unite);
+		}
 	}
 
 	// À FAIRE : plusieurs tacheronnes pour exécuter le code
@@ -512,6 +563,18 @@ void Tacheronne::gere_tache()
 			}
 			case GenreTache::EXECUTE:
 			{
+				break;
+			}
+			case GenreTache::GENERE_FICHIER_OBJET:
+			{
+				coulisse_C_cree_fichier_objet(compilatrice, *tache.unite->espace, temps_fichier_objet);
+				tache_fut_completee = true;
+				break;
+			}
+			case GenreTache::LIAISON_EXECUTABLE:
+			{
+				coulisse_C_cree_executable(compilatrice, *tache.unite->espace, temps_executable);
+				tache_fut_completee = true;
 				break;
 			}
 		}
@@ -850,4 +913,6 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 			}
 		}
 	}
+
+	unite->espace->nombre_taches_execution -= 1;
 }

@@ -25,15 +25,33 @@
 #include "generation_code_llvm.hh"
 
 #pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
+#include <llvm/InitializePasses.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
+#include <llvm/Transforms/IPO.h>
+#include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <llvm/Transforms/InstCombine/InstCombine.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/Scalar/GVN.h>
 #pragma GCC diagnostic pop
+
+#include "biblexternes/iprof/prof.h"
+
+#include "biblinternes/chrono/chronometrage.hh"
 
 #include "compilatrice.hh"
 
@@ -147,6 +165,38 @@ static auto cmp_llvm_depuis_operateur(OperateurBinaire::Genre genre)
 }
 
 /* ************************************************************************** */
+
+struct GeneratriceCodeLLVM {
+	dls::dico<Atome const *, llvm::Value *> table_valeurs{};
+	dls::dico<InstructionLabel const *, llvm::BasicBlock *> table_blocs{};
+	dls::dico<Atome const *, llvm::Value *> table_globales{};
+	dls::dico_desordonne<Type *, llvm::Type *> table_types{};
+	dls::dico_desordonne<dls::chaine, llvm::Constant *> valeurs_chaines_globales{};
+	EspaceDeTravail &m_espace;
+
+	llvm::Function *m_fonction_courante = nullptr;
+	llvm::LLVMContext m_contexte_llvm{};
+	llvm::Module *m_module = nullptr;
+	llvm::IRBuilder<> m_builder;
+	llvm::legacy::FunctionPassManager *manager_fonctions = nullptr;
+
+	GeneratriceCodeLLVM(EspaceDeTravail &espace);
+
+	GeneratriceCodeLLVM(GeneratriceCodeLLVM const &) = delete;
+	GeneratriceCodeLLVM &operator=(const GeneratriceCodeLLVM &) = delete;
+
+	llvm::Type *converti_type_llvm(Type *type);
+
+	llvm::FunctionType *converti_type_fonction(TypeFonction *type, bool est_externe);
+
+	llvm::Value *genere_code_pour_atome(Atome *atome, bool pour_globale);
+
+	void genere_code_pour_instruction(Instruction const *inst);
+
+	void genere_code();
+
+	llvm::Constant *valeur_pour_chaine(const dls::chaine &chaine, long taille_chaine);
+};
 
 GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace)
 	: m_espace(espace)
@@ -1110,4 +1160,275 @@ llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const dls::chaine &chain
 	valeurs_chaines_globales.insere({ chaine, struct_chaine });
 
 	return struct_chaine;
+}
+
+bool initialise_llvm()
+{
+	if (llvm::InitializeNativeTarget()
+			|| llvm::InitializeNativeTargetAsmParser()
+			|| llvm::InitializeNativeTargetAsmPrinter())
+	{
+		std::cerr << "Ne peut pas initialiser LLVM !\n";
+		return false;
+	}
+
+	/* Initialise les passes. */
+	auto &registre = *llvm::PassRegistry::getPassRegistry();
+	llvm::initializeCore(registre);
+	llvm::initializeScalarOpts(registre);
+	llvm::initializeObjCARCOpts(registre);
+	llvm::initializeVectorization(registre);
+	llvm::initializeIPO(registre);
+	llvm::initializeAnalysis(registre);
+	llvm::initializeTransformUtils(registre);
+	llvm::initializeInstCombine(registre);
+	llvm::initializeInstrumentation(registre);
+	llvm::initializeTarget(registre);
+
+	/* Pour les passes de transformation de code, seuls celles d'IR à IR sont
+	 * supportées. */
+	llvm::initializeCodeGenPreparePass(registre);
+	llvm::initializeAtomicExpandPass(registre);
+	llvm::initializeWinEHPreparePass(registre);
+	llvm::initializeDwarfEHPreparePass(registre);
+	llvm::initializeSjLjEHPreparePass(registre);
+	llvm::initializePreISelIntrinsicLoweringLegacyPassPass(registre);
+	llvm::initializeGlobalMergePass(registre);
+	llvm::initializeInterleavedAccessPass(registre);
+	llvm::initializeUnreachableBlockElimLegacyPassPass(registre);
+
+	return true;
+}
+
+void issitialise_llvm()
+{
+	llvm::llvm_shutdown();
+}
+
+/**
+ * Ajoute les passes d'optimisation au ménageur en fonction du niveau
+ * d'optimisation.
+ */
+static void ajoute_passes(
+		llvm::legacy::FunctionPassManager &manager_fonctions,
+		uint niveau_optimisation,
+		uint niveau_taille)
+{
+	llvm::PassManagerBuilder builder;
+	builder.OptLevel = niveau_optimisation;
+	builder.SizeLevel = niveau_taille;
+	builder.DisableUnrollLoops = (niveau_optimisation == 0);
+
+	/* À FAIRE : enlignage. */
+
+	/* Pour plus d'informations sur les vectoriseurs, suivre le lien :
+	 * http://llvm.org/docs/Vectorizers.html */
+	builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
+	builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
+
+	builder.populateFunctionPassManager(manager_fonctions);
+}
+
+/**
+ * Initialise le ménageur de passes fonctions du contexte selon le niveau
+ * d'optimisation.
+ */
+static void initialise_optimisation(
+		NiveauOptimisation optimisation,
+		GeneratriceCodeLLVM &contexte)
+{
+	if (contexte.manager_fonctions == nullptr) {
+		contexte.manager_fonctions = new llvm::legacy::FunctionPassManager(contexte.m_module);
+	}
+
+	switch (optimisation) {
+		case NiveauOptimisation::AUCUN:
+			break;
+		case NiveauOptimisation::O0:
+			ajoute_passes(*contexte.manager_fonctions, 0, 0);
+			break;
+		case NiveauOptimisation::O1:
+			ajoute_passes(*contexte.manager_fonctions, 1, 0);
+			break;
+		case NiveauOptimisation::O2:
+			ajoute_passes(*contexte.manager_fonctions, 2, 0);
+			break;
+		case NiveauOptimisation::Os:
+			ajoute_passes(*contexte.manager_fonctions, 2, 1);
+			break;
+		case NiveauOptimisation::Oz:
+			ajoute_passes(*contexte.manager_fonctions, 2, 2);
+			break;
+		case NiveauOptimisation::O3:
+			ajoute_passes(*contexte.manager_fonctions, 3, 0);
+			break;
+	}
+}
+
+static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module &module)
+{
+	Prof(ecris_fichier_objet);
+#if 1
+	auto chemin_sortie = "/tmp/kuri.o";
+	std::error_code ec;
+
+	llvm::raw_fd_ostream dest(chemin_sortie, ec, llvm::sys::fs::F_None);
+
+	if (ec) {
+		std::cerr << "Ne put pas ouvrir le fichier '" << chemin_sortie << "'\n";
+		return false;
+	}
+
+	llvm::legacy::PassManager pass;
+	auto type_fichier = llvm::TargetMachine::CGFT_ObjectFile;
+
+	if (machine_cible->addPassesToEmitFile(pass, dest, type_fichier)) {
+		std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
+		return false;
+	}
+
+	pass.run(module);
+	dest.flush();
+#else
+	// https://stackoverflow.com/questions/1419139/llvm-linking-problem?rq=1
+	std::error_code ec;
+	llvm::raw_fd_ostream dest("/tmp/kuri.ll", ec, llvm::sys::fs::F_None);
+	module.print(dest, nullptr);
+
+	system("llvm-as /tmp/kuri.ll -o /tmp/kuri.bc");
+	system("llc /tmp/kuri.bc -o /tmp/kuri.s");
+#endif
+	return true;
+}
+
+#ifndef NDEBUG
+static bool valide_llvm_ir(llvm::Module &module)
+{
+	std::error_code ec;
+	llvm::raw_fd_ostream dest("/tmp/kuri.ll", ec, llvm::sys::fs::F_None);
+	module.print(dest, nullptr);
+
+	auto err = system("llvm-as /tmp/kuri.ll -o /tmp/kuri.bc");
+	return err == 0;
+}
+#endif
+
+static bool cree_executable(const kuri::chaine &dest, const std::filesystem::path &racine_kuri)
+{
+	Prof(cree_executable);
+	/* Compile le fichier objet qui appelera 'fonction principale'. */
+	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
+		auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";
+
+		dls::flux_chaine ss;
+		ss << "as -o /tmp/execution_kuri.o ";
+		ss << chemin_execution_S;
+
+		auto err = system(ss.chn().c_str());
+
+		if (err != 0) {
+			std::cerr << "Ne peut pas créer /tmp/execution_kuri.o !\n";
+			return false;
+		}
+	}
+
+	if (!std::filesystem::exists("/tmp/kuri.o")) {
+		std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
+		return false;
+	}
+
+	dls::flux_chaine ss;
+#if 1
+	ss << "gcc ";
+	ss << racine_kuri / "fichiers/point_d_entree.c";
+	ss << " /tmp/kuri.o /tmp/r16_tables.o -o " << dest;
+#else
+	ss << "ld ";
+	/* ce qui chargera le programme */
+	ss << "-dynamic-linker /lib64/ld-linux-x86-64.so.2 ";
+	ss << "-m elf_x86_64 ";
+	ss << "--hash-style=gnu ";
+	ss << "-lc ";
+	ss << "/tmp/execution_kuri.o ";
+	ss << "/tmp/kuri.o ";
+	ss << "-o " << dest;
+#endif
+
+	auto err = system(ss.chn().c_str());
+
+	if (err != 0) {
+		std::cerr << "Ne peut pas créer l'executable !\n";
+		return false;
+	}
+
+	return true;
+}
+
+bool coulisse_llvm_cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace, double &temps_executable, double &temps_fichier_objet)
+{
+	auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
+
+	if (!initialise_llvm()) {
+		return false;
+	}
+
+	auto erreur = std::string{""};
+	auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
+
+	if (!cible) {
+		std::cerr << erreur << '\n';
+		return 1;
+	}
+
+	auto CPU = "generic";
+	auto feature = "";
+	auto options_cible = llvm::TargetOptions{};
+	auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
+	auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
+				cible->createTargetMachine(
+					triplet_cible, CPU, feature, options_cible, RM));
+
+	auto generatrice = GeneratriceCodeLLVM(espace);
+
+	auto module_llvm = llvm::Module("Module", generatrice.m_contexte_llvm);
+	module_llvm.setDataLayout(machine_cible->createDataLayout());
+	module_llvm.setTargetTriple(triplet_cible);
+
+	generatrice.m_module = &module_llvm;
+
+	std::cout << "Génération du code..." << std::endl;
+	auto temps_generation = dls::chrono::compte_seconde();
+
+	initialise_optimisation(espace.options.niveau_optimisation, generatrice);
+
+	generatrice.genere_code();
+
+	compilatrice.temps_generation = temps_generation.temps();
+
+#ifndef NDEBUG
+	if (!valide_llvm_ir(module_llvm)) {
+		return false;
+	}
+#endif
+
+	/* définition du fichier de sortie */
+	if (espace.options.objet_genere == ObjetGenere::Executable) {
+		std::cout << "Écriture du code dans un fichier..." << std::endl;
+		auto debut_fichier_objet = dls::chrono::compte_seconde();
+		if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
+			compilatrice.possede_erreur = true;
+			return 1;
+		}
+		temps_fichier_objet = debut_fichier_objet.temps();
+
+		auto debut_executable = dls::chrono::compte_seconde();
+		if (!cree_executable(espace.options.nom_sortie, compilatrice.racine_kuri.c_str())) {
+			compilatrice.possede_erreur = true;
+			return false;
+		}
+
+		temps_executable = debut_executable.temps();
+	}
+
+	return true;
 }

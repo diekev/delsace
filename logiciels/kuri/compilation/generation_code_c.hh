@@ -24,12 +24,15 @@
 
 #pragma once
 
-#include "biblinternes/structures/chaine.hh"
-
 struct Compilatrice;
 struct EspaceDeTravail;
 
-void genere_code_C(
+bool coulisse_C_cree_fichier_objet(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
-		std::ostream &fichier_sortie);
+		double &temps_fichier_objet);
+
+bool coulisse_C_cree_executable(
+		Compilatrice &compilatrice,
+		EspaceDeTravail &espace,
+		double &temps_executable);

@@ -40,7 +40,9 @@ struct Compilatrice;
 	ENUMERE_GENRE_TACHE_EX(TYPAGE_ENTETE_FONCTION) \
 	ENUMERE_GENRE_TACHE_EX(TYPAGE) \
 	ENUMERE_GENRE_TACHE_EX(GENERE_RI) \
-	ENUMERE_GENRE_TACHE_EX(EXECUTE)
+	ENUMERE_GENRE_TACHE_EX(EXECUTE) \
+	ENUMERE_GENRE_TACHE_EX(LIAISON_EXECUTABLE) \
+	ENUMERE_GENRE_TACHE_EX(GENERE_FICHIER_OBJET)
 
 enum class GenreTache {
 #define ENUMERE_GENRE_TACHE_EX(etat) etat,
@@ -59,6 +61,10 @@ struct Tache {
 	static Tache dors();
 
 	static Tache compilation_terminee();
+
+	static Tache genere_fichier_objet(UniteCompilation *unite_);
+
+	static Tache liaison_objet(UniteCompilation *unite_);
 };
 
 struct OrdonnanceuseTache {
@@ -115,7 +121,9 @@ struct Tacheronne {
 
 	double temps_validation = 0.0;
 	double temps_lexage = 0.0;
-	double temps_parsage = 0.0;
+	double temps_parsage = 0.0;	
+	double temps_executable = 0.0;
+	double temps_fichier_objet = 0.0;
 
 	int id = 0;
 

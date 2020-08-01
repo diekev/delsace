@@ -171,7 +171,7 @@ void imprime_ligne_avec_message(
 			NoeudExpression *expression,
 			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes);
 
-[[noreturn]] void fonction_principale_manquante();
+[[noreturn]] void fonction_principale_manquante(EspaceDeTravail const &espace);
 }
 
 struct Erreur {
