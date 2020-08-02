@@ -31,10 +31,12 @@
 #include "compilatrice.hh"
 #include "modules.hh"
 
-dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)
-{
-	auto ret = dls::chaine{};
+// À FAIRE : supprime les derniers appels à broye_nom_simple dans la génération des noms broyés pour les fonctions
+//           il faudra trouver comment calculer la taille de la chaine pour la préfixer (peut-être en prébroyant
+//           le nom broyé et en le stockant dans IdentifiantCode ?)
 
+static void broye_nom_simple(Enchaineuse &enchaineuse, dls::vue_chaine_compacte const &nom)
+{
 	auto debut = &nom[0];
 	auto fin   = &nom[nom.taille()];
 
@@ -49,15 +51,15 @@ dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)
 			}
 			case 1:
 			{
-				ret += *debut;
+				enchaineuse.pousse_caractere(*debut);
 				break;
 			}
 			default:
 			{
 				for (int i = 0; i < no; ++i) {
-					ret += 'x';
-					ret += dls::num::char_depuis_hex(static_cast<char>((debut[i] & 0xf0) >> 4));
-					ret += dls::num::char_depuis_hex(static_cast<char>(debut[i] & 0x0f));
+					enchaineuse.pousse_caractere('x');
+					enchaineuse.pousse_caractere(dls::num::char_depuis_hex(static_cast<char>((debut[i] & 0xf0) >> 4)));
+					enchaineuse.pousse_caractere(dls::num::char_depuis_hex(static_cast<char>(debut[i] & 0x0f)));
 				}
 
 				break;
@@ -66,8 +68,13 @@ dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)
 
 		debut += no;
 	}
+}
 
-	return ret;
+dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)
+{
+	Enchaineuse enchaineuse;
+	broye_nom_simple(enchaineuse, nom);
+	return enchaineuse.chaine();
 }
 
 /* Broye le nom d'un type.
@@ -88,14 +95,8 @@ dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)
  * *z8 devient KPKsz8
  * &[]Foo devient KRKtKsFoo
  */
-dls::chaine const &nom_broye_type(Type *type)
+static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 {
-	if (type->nom_broye != "") {
-		return type->nom_broye;
-	}
-
-	auto flux = dls::flux_chaine();
-
 	switch (type->genre) {
 		case GenreType::POLYMORPHIQUE:
 		{
@@ -105,52 +106,52 @@ dls::chaine const &nom_broye_type(Type *type)
 		}
 		case GenreType::INVALIDE:
 		{
-			flux << "Ksinvalide";
+			enchaineuse << "Ksinvalide";
 			break;
 		}
 		case GenreType::EINI:
 		{
-			flux << "Kseini";
+			enchaineuse << "Kseini";
 			break;
 		}
 		case GenreType::CHAINE:
 		{
-			flux << "Kschaine";
+			enchaineuse << "Kschaine";
 			break;
 		}
 		case GenreType::RIEN:
 		{
-			flux << "Ksrien";
+			enchaineuse << "Ksrien";
 			break;
 		}
 		case GenreType::BOOL:
 		{
-			flux << "Ksbool";
+			enchaineuse << "Ksbool";
 			break;
 		}
 		case GenreType::OCTET:
 		{
-			flux << "Ksoctet";
+			enchaineuse << "Ksoctet";
 			break;
 		}
 		case GenreType::ENTIER_CONSTANT:
 		{
-			flux << "Ksz32";
+			enchaineuse << "Ksz32";
 			break;
 		}
 		case GenreType::ENTIER_NATUREL:
 		{
 			if (type->taille_octet == 1) {
-				flux << "Ksn8";
+				enchaineuse << "Ksn8";
 			}
 			else if (type->taille_octet == 2) {
-				flux << "Ksn16";
+				enchaineuse << "Ksn16";
 			}
 			else if (type->taille_octet == 4) {
-				flux << "Ksn32";
+				enchaineuse << "Ksn32";
 			}
 			else if (type->taille_octet == 8) {
-				flux << "Ksn64";
+				enchaineuse << "Ksn64";
 			}
 
 			break;
@@ -158,16 +159,16 @@ dls::chaine const &nom_broye_type(Type *type)
 		case GenreType::ENTIER_RELATIF:
 		{
 			if (type->taille_octet == 1) {
-				flux << "Ksz8";
+				enchaineuse << "Ksz8";
 			}
 			else if (type->taille_octet == 2) {
-				flux << "Ksz16";
+				enchaineuse << "Ksz16";
 			}
 			else if (type->taille_octet == 4) {
-				flux << "Ksz32";
+				enchaineuse << "Ksz32";
 			}
 			else if (type->taille_octet == 8) {
-				flux << "Ksz64";
+				enchaineuse << "Ksz64";
 			}
 
 			break;
@@ -175,34 +176,34 @@ dls::chaine const &nom_broye_type(Type *type)
 		case GenreType::REEL:
 		{
 			if (type->taille_octet == 2) {
-				flux << "Ksr16";
+				enchaineuse << "Ksr16";
 			}
 			else if (type->taille_octet == 4) {
-				flux << "Ksr32";
+				enchaineuse << "Ksr32";
 			}
 			else if (type->taille_octet == 8) {
-				flux << "Ksr64";
+				enchaineuse << "Ksr64";
 			}
 
 			break;
 		}
 		case GenreType::REFERENCE:
 		{
-			flux << "KR";
-			flux << nom_broye_type(type->comme_reference()->type_pointe);
+			enchaineuse << "KR";
+			nom_broye_type(enchaineuse, type->comme_reference()->type_pointe);
 			break;
 		}
 		case GenreType::POINTEUR:
 		{
-			flux << "KP";
+			enchaineuse << "KP";
 
 			auto type_pointe = type->comme_pointeur()->type_pointe;
 
 			if (type_pointe == nullptr) {
-				flux << "nul";
+				enchaineuse << "nul";
 			}
 			else {
-				flux << nom_broye_type(type_pointe);
+				nom_broye_type(enchaineuse, type_pointe);
 			}
 
 			break;
@@ -210,12 +211,12 @@ dls::chaine const &nom_broye_type(Type *type)
 		case GenreType::UNION:
 		{
 			auto type_union = static_cast<TypeUnion const *>(type);
-			flux << "Ks";
-			flux << broye_nom_simple(static_cast<TypeUnion const *>(type)->nom);
+			enchaineuse << "Ks";
+			broye_nom_simple(enchaineuse, static_cast<TypeUnion const *>(type)->nom);
 
 			// ajout du pointeur au nom afin de différencier les différents types anonymes
 			if (type_union->est_anonyme) {
-				flux << dls::vers_chaine(type_union);
+				enchaineuse << type_union;
 			}
 
 			break;
@@ -223,12 +224,12 @@ dls::chaine const &nom_broye_type(Type *type)
 		case GenreType::STRUCTURE:
 		{
 			auto type_structure = static_cast<TypeStructure const *>(type);
-			flux << "Ks";
-			flux << broye_nom_simple(static_cast<TypeStructure const *>(type)->nom);
+			enchaineuse << "Ks";
+			broye_nom_simple(enchaineuse, static_cast<TypeStructure const *>(type)->nom);
 
 			// ajout du pointeur au nom afin de différencier les différents types anonymes
 			if (type_structure->est_anonyme) {
-				flux << dls::vers_chaine(type_structure);
+				enchaineuse << type_structure;
 			}
 
 			break;
@@ -239,52 +240,62 @@ dls::chaine const &nom_broye_type(Type *type)
 
 			// les arguments variadiques sont transformés en tableaux, donc utilise Kt
 			if (type_pointe != nullptr) {
-				flux << "Kt";
-				flux << nom_broye_type(type_pointe);
+				enchaineuse << "Kt";
+				nom_broye_type(enchaineuse, type_pointe);
 			}
 			else {
-				flux << "Kv";
+				enchaineuse << "Kv";
 			}
 
 			break;
 		}
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
-			flux << "Kt";
-			flux << nom_broye_type(type->comme_tableau_dynamique()->type_pointe);
+			enchaineuse << "Kt";
+			nom_broye_type(enchaineuse, type->comme_tableau_dynamique()->type_pointe);
 			break;
 		}
 		case GenreType::TABLEAU_FIXE:
 		{
 			auto type_tabl = type->comme_tableau_fixe();
 
-			flux << "KT";
-			flux << type_tabl->taille;
-			flux << nom_broye_type(type_tabl->type_pointe);
+			enchaineuse << "KT";
+			enchaineuse << type_tabl->taille;
+			nom_broye_type(enchaineuse, type_tabl->type_pointe);
 			break;
 		}
 		case GenreType::FONCTION:
 		{
-			// À FAIRE : types des paramètres, coroutine
-			flux << "Kf";
+			enchaineuse << "Kf";
+			enchaineuse << type;
 			break;
 		}
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
 		{
 			auto type_enum = static_cast<TypeEnum const *>(type);
-			flux << "Ks";
-			flux << broye_nom_simple(type_enum->nom);
+			enchaineuse << "Ks";
+			broye_nom_simple(enchaineuse, type_enum->nom);
 			break;
 		}
 		case GenreType::TYPE_DE_DONNEES:
 		{
-			flux << "Kstype_de_donnees";
+			enchaineuse << "Kstype_de_donnees";
 			break;
 		}
 	}
+}
 
-	type->nom_broye = flux.chn();
+dls::chaine const &nom_broye_type(Type *type)
+{
+	if (type->nom_broye != "") {
+		return type->nom_broye;
+	}
+
+	Enchaineuse enchaineuse;
+	nom_broye_type(enchaineuse, type);
+
+	type->nom_broye = enchaineuse.chaine();
 
 	return type->nom_broye;
 }
@@ -308,20 +319,22 @@ dls::chaine broye_nom_fonction(
 		NoeudDeclarationFonction *decl,
 		dls::chaine const &nom_module)
 {
+	Enchaineuse enchaineuse;
 	auto type_fonc = decl->type->comme_fonction();
-	auto ret = dls::chaine("_K");
+	enchaineuse << "_K";
 
-	ret += decl->est_coroutine ? "C" : "F";
+	enchaineuse << (decl->est_coroutine ? "C" : "F");
 
 	/* module */
 	auto nom_ascii = broye_nom_simple(nom_module);
 
-	ret += dls::vers_chaine(nom_ascii.taille());
-	ret += nom_ascii;
+	enchaineuse << nom_ascii.taille();
+	enchaineuse << nom_ascii;
 
 	/* nom de la fonction */
 	if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
-		nom_ascii = "operateur";
+		// XXX - ici ce devrait être nom_ascii, mais sauvons quelques allocations
+		enchaineuse << "operateur";
 
 		switch (decl->lexeme->genre) {
 			default:
@@ -331,102 +344,102 @@ dls::chaine broye_nom_fonction(
 			}
 			case GenreLexeme::INFERIEUR:
 			{
-				nom_ascii += "inf";
+				enchaineuse << "inf";
 				break;
 			}
 			case GenreLexeme::INFERIEUR_EGAL:
 			{
-				nom_ascii += "infeg";
+				enchaineuse << "infeg";
 				break;
 			}
 			case GenreLexeme::SUPERIEUR:
 			{
-				nom_ascii += "sup";
+				enchaineuse << "sup";
 				break;
 			}
 			case GenreLexeme::SUPERIEUR_EGAL:
 			{
-				nom_ascii += "supeg";
+				enchaineuse << "supeg";
 				break;
 			}
 			case GenreLexeme::DIFFERENCE:
 			{
-				nom_ascii += "dif";
+				enchaineuse << "dif";
 				break;
 			}
 			case GenreLexeme::EGALITE:
 			{
-				nom_ascii += "egl";
+				enchaineuse << "egl";
 				break;
 			}
 			case GenreLexeme::PLUS:
 			{
-				nom_ascii += "plus";
+				enchaineuse << "plus";
 				break;
 			}
 			case GenreLexeme::PLUS_UNAIRE:
 			{
-				nom_ascii += "pls_unr";
+				enchaineuse << "pls_unr";
 				break;
 			}
 			case GenreLexeme::MOINS:
 			{
-				nom_ascii += "moins";
+				enchaineuse << "moins";
 				break;
 			}
 			case GenreLexeme::MOINS_UNAIRE:
 			{
-				nom_ascii += "mns_unr";
+				enchaineuse << "mns_unr";
 				break;
 			}
 			case GenreLexeme::FOIS:
 			{
-				nom_ascii += "mul";
+				enchaineuse << "mul";
 				break;
 			}
 			case GenreLexeme::DIVISE:
 			{
-				nom_ascii += "div";
+				enchaineuse << "div";
 				break;
 			}
 			case GenreLexeme::DECALAGE_DROITE:
 			{
-				nom_ascii += "dcd";
+				enchaineuse << "dcd";
 				break;
 			}
 			case GenreLexeme::DECALAGE_GAUCHE:
 			{
-				nom_ascii += "dcg";
+				enchaineuse << "dcg";
 				break;
 			}
 			case GenreLexeme::POURCENT:
 			{
-				nom_ascii += "mod";
+				enchaineuse << "mod";
 				break;
 			}
 			case GenreLexeme::ESPERLUETTE:
 			{
-				nom_ascii += "et";
+				enchaineuse << "et";
 				break;
 			}
 			case GenreLexeme::BARRE:
 			{
-				nom_ascii += "ou";
+				enchaineuse << "ou";
 				break;
 			}
 			case GenreLexeme::TILDE:
 			{
-				nom_ascii += "non";
+				enchaineuse << "non";
 				break;
 			}
 			case GenreLexeme::EXCLAMATION:
 			{
-				nom_ascii += "excl";
+				enchaineuse << "excl";
 				break;
 			}
 			case GenreLexeme::CHAPEAU:
 			{
-				nom_ascii += "oux";
+				enchaineuse << "oux";
 				break;
 			}
 		}
@@ -435,38 +448,38 @@ dls::chaine broye_nom_fonction(
 		nom_ascii = broye_nom_simple(decl->lexeme->chaine);
 	}
 
-	ret += dls::vers_chaine(nom_ascii.taille());
-	ret += nom_ascii;
+	enchaineuse << nom_ascii.taille();
+	enchaineuse << nom_ascii;
 
 	/* paramètres */
 
 	/* entrées */
-	ret += "_E";
-	ret += dls::vers_chaine(decl->params.taille);
-	ret += "_";
+	enchaineuse << "_E";
+	enchaineuse << decl->params.taille;
+	enchaineuse << "_";
 
 	/* À FAIRE(réusinage arbre) : ajout du contexte */
 	POUR (decl->params) {
 		auto param = static_cast<NoeudDeclarationVariable *>(it);
 		nom_ascii = broye_nom_simple(param->valeur->ident->nom);
-		ret += dls::vers_chaine(nom_ascii.taille());
-		ret += nom_ascii;
+		enchaineuse << nom_ascii.taille();
+		enchaineuse << nom_ascii;
 
 		auto const &nom_broye = nom_broye_type(it->type);
-		ret += dls::vers_chaine(nom_broye.taille());
-		ret += nom_broye;
+		enchaineuse << nom_broye.taille();
+		enchaineuse << nom_broye;
 	}
 
 	/* sorties */
-	ret += "_S";
-	ret += dls::vers_chaine(type_fonc->types_sorties.taille);
-	ret += "_";
+	enchaineuse << "_S";
+	enchaineuse << type_fonc->types_sorties.taille;
+	enchaineuse << "_";
 
 	POUR (type_fonc->types_sorties) {
 		auto const &nom_broye = nom_broye_type(it);
-		ret += dls::vers_chaine(nom_broye.taille());
-		ret += nom_broye;
+		enchaineuse << nom_broye.taille();
+		enchaineuse << nom_broye;
 	}
 
-	return ret;
+	return enchaineuse.chaine();
 }
