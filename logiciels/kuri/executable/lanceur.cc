@@ -91,7 +91,7 @@ static void imprime_stats(
 
 	auto const lignes_double = static_cast<double>(metriques.nombre_lignes);
 	auto const debit_lignes = static_cast<int>(lignes_double / temps_aggrege);
-	auto const debit_lignes_scene = static_cast<int>(lignes_double / temps_scene);
+	auto const debit_lignes_scene = static_cast<int>(lignes_double / (temps_scene - metriques.temps_metaprogrammes));
 	auto const debit_lignes_coulisse = static_cast<int>(lignes_double / temps_coulisse);
 	auto const debit_seconde = static_cast<int>(static_cast<double>(memoire_consommee) / temps_aggrege);
 
