@@ -54,7 +54,7 @@ Module *EspaceDeTravail::cree_module(dls::chaine const &nom_module, dls::chaine 
 {
 	auto chemin_corrige = chemin;
 
-	if (chemin_corrige[chemin_corrige.taille() - 1] != '/') {
+	if (chemin_corrige.taille() > 0 && chemin_corrige[chemin_corrige.taille() - 1] != '/') {
 		chemin_corrige.append('/');
 	}
 
