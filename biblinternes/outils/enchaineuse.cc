@@ -24,6 +24,8 @@
 
 #include "enchaineuse.hh"
 
+#include <string>
+
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
 Enchaineuse::Enchaineuse()
@@ -126,6 +128,42 @@ int Enchaineuse::nombre_tampons() const
 int Enchaineuse::nombre_tampons_alloues() const
 {
 	return nombre_tampons() - 1;
+}
+
+long Enchaineuse::taille_chaine() const
+{
+	auto taille = 0l;
+	auto tampon = &m_tampon_base;
+
+	while (tampon) {
+		taille += tampon->occupe;
+		tampon = tampon->suivant;
+	}
+
+	return taille;
+}
+
+dls::chaine Enchaineuse::chaine() const
+{
+	auto taille = taille_chaine();
+
+	if (taille == 0) {
+		return "";
+	}
+
+	auto resultat = dls::chaine();
+	resultat.redimensionne(taille);
+
+	auto tampon = &m_tampon_base;
+	auto decalage = 0;
+
+	while (tampon) {
+		memcpy(&resultat[decalage], &tampon->donnees[0], static_cast<size_t>(tampon->occupe));
+		decalage += tampon->occupe;
+		tampon = tampon->suivant;
+	}
+
+	return resultat;
 }
 
 Enchaineuse &operator <<(Enchaineuse &enchaineuse, const dls::vue_chaine_compacte &chn)

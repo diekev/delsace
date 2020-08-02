@@ -60,6 +60,10 @@ struct Enchaineuse {
 	int nombre_tampons() const;
 
 	int nombre_tampons_alloues() const;
+
+	long taille_chaine() const;
+
+	dls::chaine chaine() const;
 };
 
 template <typename T>
