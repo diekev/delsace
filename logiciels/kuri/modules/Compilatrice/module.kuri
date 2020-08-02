@@ -257,3 +257,11 @@ compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, fichier: chaine,
 démarre_un_espace_de_travail :: fonc (nom: chaine, options: *OptionsCompilation) -> *EspaceDeTravail #compilatrice
 
 espace_défaut_compilation :: fonc () -> *EspaceDeTravail #compilatrice
+
+// ----------------------------------------------------------------------------
+
+désactive_compilation_espace_défaut :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.objet_généré = ObjetGénéré.Rien
+}
