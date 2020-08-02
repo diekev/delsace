@@ -1234,7 +1234,7 @@ Atome *ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			if (inst->condition_est_vraie) {
 				genere_ri_pour_noeud(inst->bloc_si_vrai);
 			}
-			else {
+			else if (inst->bloc_si_faux) {
 				genere_ri_pour_noeud(inst->bloc_si_faux);
 			}
 
