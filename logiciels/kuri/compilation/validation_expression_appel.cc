@@ -563,7 +563,7 @@ static auto apparie_appel_fonction(
 					poids_pour_enfant = poids_pour_enfant_;
 				}
 
-				// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
+				// allège les instantiations pour que les versions déjà instantiées soient préférées pour la selection de la meilleure candidate
 				if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 					poids_pour_enfant *= 0.95;
 				}
@@ -617,7 +617,7 @@ static auto apparie_appel_fonction(
 				return true;
 			}
 
-			// À FAIRE: trouve une manière de trouver les fonctions gabarits déjà instantiées
+			// allège les instantiations pour que les versions déjà instantiées soient préférées pour la selection de la meilleure candidate
 			if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 				poids_pour_enfant *= 0.95;
 			}

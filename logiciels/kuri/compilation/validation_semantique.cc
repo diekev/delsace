@@ -258,8 +258,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			if (decl == nullptr) {
 				unite->attend_sur_symbole(expr->lexeme);
-				// À FAIRE(erreur) : détermine comment proprement lancer l'erreur (si la compilation n'est pas terminée)
-				//rapporte_erreur("Variable inconnue", noeud, erreur::type_erreur::VARIABLE_INCONNUE);
 				return true;
 			}
 
