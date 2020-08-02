@@ -35,7 +35,7 @@ void precompile_objet_r16(const std::filesystem::path &chemin_racine_kuri)
 		auto chemin_objet = "/tmp/r16_tables_x64.o";
 
 		if (!std::filesystem::exists(chemin_objet)) {
-			auto commande = dls::chaine("g++ -c ");
+			auto commande = dls::chaine("/usr/bin/g++-9 -c ");
 			commande += chemin_fichier.c_str();
 			commande += " -o ";
 			commande += chemin_objet;
@@ -60,7 +60,7 @@ void precompile_objet_r16(const std::filesystem::path &chemin_racine_kuri)
 		auto chemin_objet = "/tmp/r16_tables_x64.so";
 
 		if (!std::filesystem::exists(chemin_objet)) {
-			auto commande = dls::chaine("g++ -shared -fPIC ");
+			auto commande = dls::chaine("/usr/bin/g++-9 -shared -fPIC ");
 			commande += chemin_fichier.c_str();
 			commande += " -o ";
 			commande += chemin_objet;
@@ -92,7 +92,7 @@ void compile_objet_r16(const std::filesystem::path &chemin_racine_kuri, Architec
 		auto chemin_objet = "/tmp/r16_tables_x86.o";
 
 		if (!std::filesystem::exists(chemin_objet)) {
-			auto commande = dls::chaine("g++ -c -m32 ");
+			auto commande = dls::chaine("/usr/bin/g++-9 -c -m32 ");
 			commande += chemin_fichier.c_str();
 			commande += " -o ";
 			commande += chemin_objet;

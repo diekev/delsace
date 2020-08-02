@@ -1434,7 +1434,7 @@ void genere_code_C(
 
 static dls::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, OptionsCompilation const &ops)
 {
-	auto commande = dls::chaine("gcc -c /tmp/compilation_kuri.c ");
+	auto commande = dls::chaine("/usr/bin/gcc-9 -c /tmp/compilation_kuri.c ");
 
 	// À FAIRE : comment lié les tables pour un fichier objet ?
 //	if (ops.objet_genere == ObjetGenere::FichierObjet) {
@@ -1554,7 +1554,7 @@ bool coulisse_C_cree_executable(
 	compile_objet_r16(compilatrice.racine_kuri.c_str(), espace.options.architecture_cible);
 
 	auto debut_executable = dls::chrono::compte_seconde();
-	auto commande = dls::chaine("gcc /tmp/compilation_kuri.o ");
+	auto commande = dls::chaine("/usr/bin/gcc-9 /tmp/compilation_kuri.o ");
 
 	if (espace.options.architecture_cible == ArchitectureCible::X86) {
 		commande += " /tmp/r16_tables_x86.o ";
