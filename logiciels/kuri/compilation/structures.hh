@@ -103,9 +103,22 @@ struct chaine {
 	void pousse(char c)
 	{
 		memoire::reloge_tableau("chaine", this->pointeur, this->taille, this->taille + 1);
+		pousse_reserve(c);
+	}
 
+	void pousse_reserve(char c)
+	{
 		this->pointeur[this->taille] = c;
 		this->taille += 1;
+	}
+
+	void reserve(long nouvelle_taille)
+	{
+		if (nouvelle_taille <= this->taille) {
+			return;
+		}
+
+		memoire::reloge_tableau("chaine", this->pointeur, this->taille, this->taille + nouvelle_taille);
 	}
 };
 

@@ -481,13 +481,28 @@ void Lexeuse::performe_lexage()
 					this->enregistre_pos_mot();
 				}
 
-				kuri::chaine chaine;
+				auto taille_mot = 0;
+				auto position_ligne = this->m_position_ligne;
+				auto debut_chaine = this->m_debut;
 
 				while (!this->fini()) {
 					if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
 						break;
 					}
 
+					++taille_mot;
+					this->avance_fixe<1>();
+				}
+
+				auto fin_chaine = this->m_debut;
+
+				kuri::chaine chaine;
+				chaine.reserve(taille_mot);
+
+				this->m_position_ligne = position_ligne;
+				this->m_debut = debut_chaine;
+
+				while (m_debut != fin_chaine) {
 					this->lexe_caractere_litteral(&chaine);
 				}
 
@@ -1179,7 +1194,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 
 	if (c != '\\') {
 		if (chaine) {
-			chaine->pousse(c);
+			chaine->pousse_reserve(c);
 		}
 
 		return v;
@@ -1215,7 +1230,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 
 		if (chaine) {
 			for (auto j = 0; j < n; ++j) {
-				chaine->pousse(static_cast<char>(sequence[j]));
+				chaine->pousse_reserve(static_cast<char>(sequence[j]));
 			}
 		}
 
@@ -1248,7 +1263,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 
 		if (chaine) {
 			for (auto j = 0; j < n; ++j) {
-				chaine->pousse(static_cast<char>(sequence[j]));
+				chaine->pousse_reserve(static_cast<char>(sequence[j]));
 			}
 		}
 
@@ -1326,7 +1341,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 	}
 
 	if (chaine) {
-		chaine->pousse(static_cast<char>(v));
+		chaine->pousse_reserve(static_cast<char>(v));
 	}
 
 	return v;
