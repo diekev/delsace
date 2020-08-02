@@ -30,6 +30,7 @@
 
 #include "biblinternes/structures/flux_chaine.hh"
 
+#include "empreinte_parfaite.hh"
 #include "profilage.hh"
 #include "erreur.h"
 
@@ -37,7 +38,6 @@
  * Idées pour des optimisations :
  * - cas de caractères simples
  * -- https://github.com/dlang/dmd/pull/5208
- * - utilisation d'un hachage parfait pour savoir si nous avons un mot-clé
  * - utilisation d'une table pour définir quand arrêter de scanner une chaine
  * -- https://v8.dev/blog/scanner
  */
@@ -207,7 +207,7 @@ void Lexeuse::performe_lexage()
 
 #define POUSSE_MOT_SI_NECESSAIRE \
 	if (m_taille_mot_courant != 0) { \
-		this->pousse_mot(id_chaine(this->mot_courant())); \
+		this->pousse_mot(lexeme_pour_chaine(this->mot_courant())); \
 	}
 
 #define CAS_CARACTERE(c, id) \
@@ -303,7 +303,7 @@ void Lexeuse::performe_lexage()
 							case ESPACE_INSECABLE_SANS_CHASSE:
 							{
 								if (m_taille_mot_courant != 0) {
-									this->pousse_mot(id_chaine(this->mot_courant()));
+									this->pousse_mot(lexeme_pour_chaine(this->mot_courant()));
 								}
 
 								if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
@@ -319,7 +319,7 @@ void Lexeuse::performe_lexage()
 							case GUILLEMET_OUVRANT:
 							{
 								if (m_taille_mot_courant != 0) {
-									this->pousse_mot(id_chaine(this->mot_courant()));
+									this->pousse_mot(lexeme_pour_chaine(this->mot_courant()));
 								}
 
 								/* Saute le premier guillemet si nécessaire. */

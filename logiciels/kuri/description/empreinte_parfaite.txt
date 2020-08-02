@@ -1,0 +1,78 @@
+%struct-type
+%global-table
+%language=C++
+%define initializer-suffix ,GenreLexeme::CHAINE_CARACTERE
+%define hash-function-name calcule_empreinte
+%define class-name EmpreinteParfaite
+%define lookup-function-name lexeme_pour_chaine
+%readonly-tables
+%compare-lengths
+%enum
+%compare-strncmp
+
+struct EntreeTable {  const char *nom; GenreLexeme genre;  };
+%%
+"arrête", GenreLexeme::ARRETE
+"bool", GenreLexeme::BOOL
+"boucle", GenreLexeme::BOUCLE
+"chaine", GenreLexeme::CHAINE
+"charge", GenreLexeme::CHARGE
+"comme", GenreLexeme::COMME
+"continue", GenreLexeme::CONTINUE
+"corout", GenreLexeme::COROUT
+"dans", GenreLexeme::DANS
+"diffère", GenreLexeme::DIFFERE
+"discr", GenreLexeme::DISCR
+"dyn", GenreLexeme::DYN
+"déloge", GenreLexeme::DELOGE
+"eini", GenreLexeme::EINI
+"eini_erreur", GenreLexeme::EINI_ERREUR
+"empl", GenreLexeme::EMPL
+"erreur", GenreLexeme::ERREUR
+"externe", GenreLexeme::EXTERNE
+"faux", GenreLexeme::FAUX
+"fonc", GenreLexeme::FONC
+"garde", GenreLexeme::GARDE
+"importe", GenreLexeme::IMPORTE
+"info_de", GenreLexeme::INFO_DE
+"init_de", GenreLexeme::INIT_DE
+"loge", GenreLexeme::LOGE
+"mémoire", GenreLexeme::MEMOIRE
+"n16", GenreLexeme::N16
+"n32", GenreLexeme::N32
+"n64", GenreLexeme::N64
+"n8", GenreLexeme::N8
+"nonatteignable", GenreLexeme::NONATTEIGNABLE
+"nonsûr", GenreLexeme::NONSUR
+"nul", GenreLexeme::NUL
+"octet", GenreLexeme::OCTET
+"opérateur", GenreLexeme::OPERATEUR
+"piège", GenreLexeme::PIEGE
+"pour", GenreLexeme::POUR
+"pousse_contexte", GenreLexeme::POUSSE_CONTEXTE
+"r16", GenreLexeme::R16
+"r32", GenreLexeme::R32
+"r64", GenreLexeme::R64
+"reloge", GenreLexeme::RELOGE
+"retiens", GenreLexeme::RETIENS
+"retourne", GenreLexeme::RETOURNE
+"rien", GenreLexeme::RIEN
+"répète", GenreLexeme::REPETE
+"sansarrêt", GenreLexeme::SANSARRET
+"saufsi", GenreLexeme::SAUFSI
+"si", GenreLexeme::SI
+"sinon", GenreLexeme::SINON
+"struct", GenreLexeme::STRUCT
+"taille_de", GenreLexeme::TAILLE_DE
+"tantque", GenreLexeme::TANTQUE
+"tente", GenreLexeme::TENTE
+"type_de", GenreLexeme::TYPE_DE
+"type_de_données", GenreLexeme::TYPE_DE_DONNEES
+"union", GenreLexeme::UNION
+"vrai", GenreLexeme::VRAI
+"z16", GenreLexeme::Z16
+"z32", GenreLexeme::Z32
+"z64", GenreLexeme::Z64
+"z8", GenreLexeme::Z8
+"énum", GenreLexeme::ENUM
+"énum_drapeau", GenreLexeme::ENUM_DRAPEAU

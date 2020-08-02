@@ -43,6 +43,7 @@ set(SOURCES
 	assembleuse_arbre.h
 	broyage.hh
 	compilatrice.hh
+	empreinte_parfaite.hh
 	environnement.hh
 	erreur.h
 	expression.h
