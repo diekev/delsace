@@ -98,7 +98,6 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 	}
 
 	switch (racine->genre) {
-		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
 			auto bloc = static_cast<NoeudBloc *>(racine);
@@ -405,7 +404,6 @@ NoeudExpression *copie_noeud(
 	nracine->drapeaux &= ~DECLARATION_FUT_VALIDEE;
 
 	switch (racine->genre) {
-		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
 			auto bloc = static_cast<NoeudBloc const *>(racine);
@@ -694,7 +692,6 @@ void aplatis_arbre(
 	}
 
 	switch (racine->genre) {
-		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
 			auto bloc = static_cast<NoeudBloc *>(racine);
@@ -1144,7 +1141,6 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		case GenreNoeud::DECLARATION_FONCTION:
 		case GenreNoeud::DECLARATION_COROUTINE:

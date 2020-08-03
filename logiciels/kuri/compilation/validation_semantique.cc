@@ -93,7 +93,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 	Prof(valide_semantique_noeud);
 
 	switch (noeud->genre) {
-		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:

@@ -29,7 +29,6 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 	auto noeud = static_cast<NoeudExpression *>(nullptr);
 
 	switch (genre) {
-		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
 			noeud = m_noeuds_bloc.ajoute_element();

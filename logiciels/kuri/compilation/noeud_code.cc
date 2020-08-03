@@ -206,7 +206,6 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			noeud_code = n;
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_SINON:
 		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:

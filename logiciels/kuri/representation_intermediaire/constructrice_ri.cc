@@ -595,7 +595,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
-		case GenreNoeud::INSTRUCTION_SINON:
 		{
 			break;
 		}
