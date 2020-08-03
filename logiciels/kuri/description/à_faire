@@ -373,6 +373,15 @@ implémente la directive #si pour la compilation sélective
 - avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
 - pouvoir utiliser un #! en début de fichier pour utiliser les programmes comme des scripts (cela compilera et exécutera l'exécutable ou alors juste les métaprogrammes, #! n'est pas cohérent sur toutes les plateformes...)
 - pouvoir renommer les symboles d'un import pour une utilisation locale (importe Fondation ma_fonction_de_renommage) ?
+- ajout des arbres aplatis aux noeuds codes déclarations
+- documentation des instructions via kuri --manuel|-m inst
+- type les expressions constantes (a :: 0x1) lors du parsage ?
+- supprime les arbres aplatis et utilise un autre algorithme pour stopper/arrêter la compilation ?
+    perte de l'arbre aplatis dans le code utilisateur
+- défini une bonne sémantique pour compilatrice_commence_interception
+    - dit à la compilatrice qu'un espace de travail devient le défaut ?
+    - que l'on écoute des messages ? chaque espace de travail aura sa propre file de messages et la compilatrice mettra tous les messages dans celle-ci
+        peut-on ne pas avoir les messages d'autres espaces ?
 
 
 
@@ -388,7 +397,8 @@ implémente la directive #si pour la compilation sélective
     il faudra pouvoir remplacer le noeud de l'expression dans le bloc parent
         expr->bloc_parent->remplace(expr, transtype)
     réfléchis pour les arguments variadiques, les nombres constants, les littérales, etc.
-
+- met l'allocatrice de noeuds dans les tâcheronnes pour éviter les problèmes de concurrences critiques
+- parser les expressions se finissant par une virgule (f(x,)) ; peut simplifier la métaprogrammation
 
 À faire (32-bits)
 -----------------
