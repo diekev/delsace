@@ -1,5 +1,6 @@
 # Fichiers QtCreator.
 *.user
+*.user.*
 a.out
 test.db
 *.a
