@@ -84,6 +84,11 @@ private:
 
 	EspaceDeTravail *m_espace = nullptr;
 
+	/* cette pile est utilisée pour stocker les valeurs des noeuds, quand nous
+	 * appelons les genere_ri_*, il faut dépiler la valeur que nous désirons, si
+	 * nous en désirons une */
+	dls::tablet<Atome *, 8> m_pile{};
+
 public:
 	AtomeFonction *fonction_courante = nullptr;
 
@@ -161,30 +166,30 @@ private:
 	void empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_arrete);
 	void depile_controle_boucle();
 
-	Atome *genere_ri_pour_noeud(NoeudExpression *noeud);
+	void genere_ri_pour_noeud(NoeudExpression *noeud);
 	void genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecution *noeud);
 	AtomeFonction *genere_ri_pour_fonction_main();
 	Atome *genere_ri_pour_creation_contexte(AtomeFonction *fonction);
-	Atome *genere_ri_pour_expression_droite(NoeudExpression *noeud);
-	Atome *genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place);
-	Atome *genere_ri_pour_discr(NoeudDiscr *noeud);
-	Atome *genere_ri_pour_tente(NoeudTente *noeud);
-	Atome *genere_ri_pour_boucle_pour(NoeudPour *noeud);
-	Atome *genere_ri_pour_logement(Type *type,
+	void genere_ri_pour_expression_droite(NoeudExpression *noeud);
+	void genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place);
+	void genere_ri_pour_discr(NoeudDiscr *noeud);
+	void genere_ri_pour_tente(NoeudTente *noeud);
+	void genere_ri_pour_boucle_pour(NoeudPour *noeud);
+	void genere_ri_pour_logement(Type *type,
 								   int mode,
 								   NoeudExpression *b,
 								   NoeudExpression *variable,
 								   NoeudExpression *expression,
 								   NoeudExpression *bloc_sinon);
 	void genere_ri_pour_comparaison_chainee(NoeudExpression *noeud, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
-	Atome *genere_ri_pour_declaration_structure(NoeudStruct *noeud);
-	Atome *genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud);
-	Atome *genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud);
+	void genere_ri_pour_declaration_structure(NoeudStruct *noeud);
+	void genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud);
+	void genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud);
 	AtomeConstante *genere_initialisation_defaut_pour_type(Type *type);
 	void genere_ri_pour_condition(NoeudExpression *condition, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
-	Atome *genere_ri_pour_expression_logique(NoeudExpression *noeud, Atome *place);
+	void genere_ri_pour_expression_logique(NoeudExpression *noeud, Atome *place);
 	void genere_ri_blocs_differes(NoeudBloc *bloc);
-	Atome *genere_ri_pour_position_code_source(NoeudExpression *noeud);
+	void genere_ri_pour_position_code_source(NoeudExpression *noeud);
 
 	void genere_ri_pour_coroutine(NoeudDeclarationFonction *noeud);
 	void genere_ri_pour_retiens(NoeudExpression *noeud);
@@ -200,6 +205,9 @@ private:
 	void imprime_instruction(Instruction const *inst, std::ostream &os) const;
 	Atome *valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident);
 	void cree_incrementation_valeur(Type *type, Atome *valeur);
+
+	void empile_valeur(Atome *valeur);
+	Atome *depile_valeur();
 
 	friend void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc);
 	friend void performe_enlignage(
