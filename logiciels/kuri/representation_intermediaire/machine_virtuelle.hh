@@ -80,12 +80,10 @@ struct PatchDonneesConstantes {
 std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch);
 
 struct MachineVirtuelle {
-	static constexpr auto TAILLE_PILE = 64 * 1024;
-
 	dls::tableau<Globale> globales{};
 	dls::tableau<unsigned char> donnees_globales{};
 
-	octet_t pile[TAILLE_PILE];
+	octet_t *pile = nullptr;
 	octet_t *pointeur_pile = nullptr;
 
 	dls::tableau<unsigned char> donnees_constantes{};
@@ -107,6 +105,7 @@ struct MachineVirtuelle {
 	};
 
 	MachineVirtuelle();
+	~MachineVirtuelle();
 
 	COPIE_CONSTRUCT(MachineVirtuelle);
 

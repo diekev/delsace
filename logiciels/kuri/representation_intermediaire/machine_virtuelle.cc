@@ -379,6 +379,8 @@ long GestionnaireBibliotheques::memoire_utilisee() const
 	return bibliotheques.taille() * taille_de(BibliothequePartagee);
 }
 
+static constexpr auto TAILLE_PILE = 1024 * 1024;
+
 MachineVirtuelle::MachineVirtuelle()
 {
 	gestionnaire_bibliotheques.ajoute_bibliotheque("/lib/x86_64-linux-gnu/libc.so.6");
@@ -387,6 +389,13 @@ MachineVirtuelle::MachineVirtuelle()
 	gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(ID::malloc_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_malloc));
 	gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(ID::realloc_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_realloc));
 	gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(ID::free_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_free));
+
+	pile = memoire::loge_tableau<octet_t>("MachineVirtuelle::pile", TAILLE_PILE);
+}
+
+MachineVirtuelle::~MachineVirtuelle()
+{
+	memoire::deloge_tableau("MachineVirtuelle::pile", pile, TAILLE_PILE);
 }
 
 void MachineVirtuelle::reinitialise_pile()
