@@ -1305,24 +1305,29 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 		case AtomeConstante::Genre::VALEUR:
 		{
 			auto valeur_constante = static_cast<AtomeValeurConstante *>(constante);
+			unsigned char *donnees = nullptr;
+
+			if (ou_patcher == DONNEES_GLOBALES) {
+				donnees = mv->donnees_globales.donnees() + decalage;
+			}
+			else {
+				donnees = mv->donnees_constantes.donnees() + decalage;
+			}
 
 			switch (valeur_constante->valeur.genre) {
 				case AtomeValeurConstante::Valeur::Genre::NULLE:
 				{
-					auto donnees = mv->donnees_globales.donnees() + decalage;
 					*reinterpret_cast<unsigned long *>(donnees) = 0;
 					break;
 				}
 				case AtomeValeurConstante::Valeur::Genre::TYPE:
 				{
-					auto donnees = mv->donnees_globales.donnees() + decalage;
 					auto valeur_type = valeur_constante->valeur.type->index_dans_table_types;
 					*reinterpret_cast<long *>(donnees) = static_cast<long>(valeur_type);
 					break;
 				}
 				case AtomeValeurConstante::Valeur::Genre::ENTIERE:
 				{
-					auto donnees = mv->donnees_globales.donnees() + decalage;
 					auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
 					auto type = constante->type;
 
@@ -1362,7 +1367,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 				}
 				case AtomeValeurConstante::Valeur::Genre::REELLE:
 				{
-					auto donnees = mv->donnees_globales.donnees() + decalage;
 					auto valeur_reele = valeur_constante->valeur.valeur_reelle;
 					auto type = constante->type;
 
@@ -1389,7 +1393,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 				}
 				case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
 				{
-					auto donnees = mv->donnees_globales.donnees() + decalage;
 					auto valeur_bool = valeur_constante->valeur.valeur_booleenne;
 					*reinterpret_cast<char *>(donnees) = static_cast<char>(valeur_bool);
 					break;
@@ -1426,9 +1429,9 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 							chaine.pointeur = tableau->valeur.valeur_tdc.pointeur;
 							chaine.taille = tableau->valeur.valeur_tdc.taille;
 
-							auto donnees = mv->donnees_globales.donnees() + decalage + static_cast<int>(decalage_membre);
-							*reinterpret_cast<char **>(donnees) = chaine.pointeur;
-							*reinterpret_cast<long *>(donnees + 8) = chaine.taille;
+							auto donnees_ = mv->donnees_globales.donnees() + decalage + static_cast<int>(decalage_membre);
+							*reinterpret_cast<char **>(donnees_) = chaine.pointeur;
+							*reinterpret_cast<long *>(donnees_ + 8) = chaine.taille;
 						}
 						else if (type_membre->genre == GenreType::TABLEAU_DYNAMIQUE) {
 							auto valeur_tableau = static_cast<AtomeValeurConstante *>(tableau_valeur[i]);
@@ -1461,8 +1464,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
 							mv->patchs_donnees_constantes.pousse(patch);
 
-							auto donnees = mv->donnees_globales.donnees() + decalage + static_cast<int>(decalage_membre);
-							*reinterpret_cast<long *>(donnees + 8) = taille;
+							auto donnees_ = mv->donnees_globales.donnees() + decalage + static_cast<int>(decalage_membre);
+							*reinterpret_cast<long *>(donnees_ + 8) = taille;
 						}
 						else {
 							genere_code_binaire_pour_initialisation_globale(tableau_valeur[i], decalage + static_cast<int>(decalage_membre), DONNEES_GLOBALES);
