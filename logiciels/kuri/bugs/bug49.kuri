@@ -1,0 +1,20 @@
+// les index_it des tableaux et des chaines ne sont pas incrémentés dans le code binaire
+
+importe Fondation
+
+imprime_index_it :: fonc ()
+{
+    table := [ 0, 2, 4, 8, 16, 32, 64, 128 ]
+
+    pour table {
+        imprime("%\n", index_it)
+    }
+
+    chn := "kuri"
+
+    pour chn {
+        imprime("%\n", index_it)
+    }
+}
+
+#exécute imprime_index_it()
