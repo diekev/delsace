@@ -86,6 +86,11 @@ void Chunk::agrandis_si_necessaire(long taille)
 
 int Chunk::emets_allocation(Type *type, IdentifiantCode *ident)
 {
+	// XXX - À FAIRE : normalise les entiers constants
+	if (type->genre == GenreType::ENTIER_CONSTANT) {
+		type->taille_octet = 4;
+	}
+	assert(type->taille_octet);
 	emets(OP_ALLOUE);
 	emets(type);
 	emets(ident);
@@ -97,18 +102,21 @@ int Chunk::emets_allocation(Type *type, IdentifiantCode *ident)
 
 void Chunk::emets_assignation(Type *type)
 {
+	assert(type->taille_octet);
 	emets(OP_ASSIGNE);
 	emets(type->taille_octet);
 }
 
 void Chunk::emets_charge(Type *type)
 {
+	assert(type->taille_octet);
 	emets(OP_CHARGE);
 	emets(type->taille_octet);
 }
 
 void Chunk::emets_charge_variable(int pointeur, Type *type)
 {
+	assert(type->taille_octet);
 	emets_reference_variable(pointeur);
 	emets_charge(type);
 }
@@ -156,6 +164,7 @@ void Chunk::emets_appel_pointeur(unsigned taille_arguments, InstructionAppel *in
 
 void Chunk::emets_acces_index(Type *type)
 {
+	assert(type->taille_octet);
 	emets(OP_ACCEDE_INDEX);
 	emets(type->taille_octet);
 }
