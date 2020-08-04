@@ -388,6 +388,19 @@ static long instruction_2d(Chunk const &chunk, const char *nom, long decalage, s
 	return decalage + static_cast<long >(sizeof(T2));
 }
 
+template <typename T1, typename T2, typename T3>
+static long instruction_3d(Chunk const &chunk, const char *nom, long decalage, std::ostream &os)
+{
+	decalage += 1;
+	auto v1 = *reinterpret_cast<T1 *>(&chunk.code[decalage]);
+	decalage += static_cast<long >(sizeof(T1));
+	auto v2 = *reinterpret_cast<T2 *>(&chunk.code[decalage]);
+	decalage += static_cast<long >(sizeof(T2));
+	auto v3 = *reinterpret_cast<T3 *>(&chunk.code[decalage]);
+	os << nom << ' ' << v1 << ", " << v2 << ", " << v3 << "\n";
+	return decalage + static_cast<long >(sizeof(T3));
+}
+
 long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os)
 {
 	os << std::setfill('0') << std::setw(4) << decalage << ' ';
@@ -541,7 +554,7 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
 		case OP_APPEL:
 		case OP_APPEL_EXTERNE:
 		{
-			return instruction_2d<void *, int>(chunk, chaine_code_operation(instruction), decalage, os);
+			return instruction_3d<void *, int, void *>(chunk, chaine_code_operation(instruction), decalage, os);
 		}
 		case OP_AUGMENTE_NATUREL:
 		case OP_DIMINUE_NATUREL:
