@@ -1897,6 +1897,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 				noeud->drapeaux |= FORCE_SANSTRACE;
 			}
 			else if (ident_directive == ID::externe) {
+				externe = true;
 				noeud->drapeaux |= EST_EXTERNE;
 				noeud->est_externe = true;
 			}
