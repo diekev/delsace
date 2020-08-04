@@ -1421,6 +1421,16 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(noeud);
 			auto taille_tableau = noeud_tableau->exprs.taille;
+
+			if (taille_tableau == 0) {
+				auto type_tableau_dyn = m_espace->typeuse.type_tableau_dynamique(noeud->type);
+				auto alloc = cree_allocation(type_tableau_dyn, nullptr);
+				auto init = genere_initialisation_defaut_pour_type(type_tableau_dyn);
+				cree_stocke_mem(alloc, init);
+				empile_valeur(alloc);
+				return;
+			}
+
 			auto type_tableau_fixe = m_espace->typeuse.type_tableau_fixe(noeud->type, taille_tableau);
 			auto pointeur_tableau = cree_allocation(type_tableau_fixe, nullptr);
 
