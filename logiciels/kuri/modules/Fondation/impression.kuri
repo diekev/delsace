@@ -26,6 +26,18 @@ initialise_enchaineuse :: fonc (enchaineuse : *Enchaineuse) -> rien
     enchaineuse.tampon_courant.suivant = nul
 }
 
+réinitialise_enchaineuse :: fonc (enchaineuse : *Enchaineuse) -> rien
+{
+	tampon_courant := @enchaineuse.tampon
+
+	tantque tampon_courant != nul {
+		tampon_courant.occupé = 0
+		tampon_courant = tampon_courant.suivant
+	}
+
+    enchaineuse.tampon_courant = @enchaineuse.tampon
+}
+
 taille_chaine :: fonc (enchaineuse: *Enchaineuse) -> z64
 {
     taille : z64 = 0
