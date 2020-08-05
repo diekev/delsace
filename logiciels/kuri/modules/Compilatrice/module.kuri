@@ -113,6 +113,11 @@ GenreNoeudCode :: énum z32 {
 NoeudCode :: struct {
     genre : GenreNoeudCode
     type : *InfoType
+
+	chemin_fichier : chaine
+	nom_fichier : chaine
+	numero_ligne := 0
+	numero_colonne := 0
 }
 
 NoeudCodeFonction :: struct {
