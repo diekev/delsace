@@ -1318,7 +1318,7 @@ static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Sync
 	}
 }
 
-static void rassemble_fonctions_utilisees(NoeudDependance *racine, EspaceDeTravail &espace, kuri::tableau<AtomeFonction *> &fonctions)
+static void rassemble_fonctions_utilisees(NoeudDependance *racine, EspaceDeTravail &espace, kuri::tableau<AtomeFonction *> &fonctions, dls::ensemble<AtomeFonction *> &utilises)
 {
 	traverse_graphe(racine, [&](NoeudDependance *noeud)
 	{
@@ -1328,7 +1328,14 @@ static void rassemble_fonctions_utilisees(NoeudDependance *racine, EspaceDeTrava
 			auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(noeud->noeud_syntaxique);
 			auto atome_fonction = table->trouve(noeud_fonction->nom_broye)->second;
 			assert(atome_fonction);
+
+			if (utilises.trouve(atome_fonction) != utilises.fin()) {
+				return;
+			}
+
 			fonctions.pousse(atome_fonction);
+
+			utilises.insere(atome_fonction);
 		}
 		else if (noeud->type == TypeNoeudDependance::TYPE) {
 			auto type = noeud->type_;
@@ -1370,8 +1377,9 @@ static void genere_code_C_depuis_fonction_principale(
 
 	genere_code_pour_types(compilatrice, graphe, enchaineuse);
 
+	dls::ensemble<AtomeFonction *> utilises;
 	kuri::tableau<AtomeFonction *> fonctions;
-	rassemble_fonctions_utilisees(fonction_principale, espace, fonctions);
+	rassemble_fonctions_utilisees(fonction_principale, espace, fonctions, utilises);
 
 	fonctions.pousse(atome_main);
 
@@ -1408,9 +1416,11 @@ static void genere_code_C_depuis_fonctions_racines(
 
 	kuri::tableau<AtomeFonction *> fonctions;
 
+	// À FAIRE : parfois les fonctions peuvent être incluses plusieurs fois ? c'est pourquoi nous avons un ensemble « utilises »
+	dls::ensemble<AtomeFonction *> utilises;
 	POUR (fonctions_racines) {
 		auto noeud_dep = it->decl->noeud_dependance;
-		rassemble_fonctions_utilisees(noeud_dep, espace, fonctions);
+		rassemble_fonctions_utilisees(noeud_dep, espace, fonctions, utilises);
 	}
 
 	auto generatrice = GeneratriceCodeC(espace);
