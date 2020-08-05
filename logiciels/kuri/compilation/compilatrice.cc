@@ -610,6 +610,7 @@ void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chai
 	if (!std::filesystem::exists(chemin)) {
 		std::cerr << "Le fichier " << chemin << " n'existe pas !\n";
 		ptr_compilatrice->possede_erreur = true;
+		ptr_compilatrice->mv.stop = true;
 		return;
 	}
 

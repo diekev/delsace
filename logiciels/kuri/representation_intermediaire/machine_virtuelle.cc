@@ -564,7 +564,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 		pointeur_pile = pointeur_arguments + taille_type_retour;
 	};
 
-	for (;;) {
+	while (!stop) {
 #ifdef DEBOGUE_INTERPRETEUSE
 		auto &sortie = std::cerr;
 		imprime_tab(sortie, profondeur_appel);
@@ -1021,6 +1021,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 			}
 		}
 	}
+
+	return ResultatInterpretation::ERREUR;
 }
 
 void MachineVirtuelle::empile_constante(FrameAppel *frame)

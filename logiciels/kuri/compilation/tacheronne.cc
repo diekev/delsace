@@ -497,6 +497,9 @@ void Tacheronne::gere_tache()
 				auto unite = tache.unite;
 
 				if (unite->cycle > 10) {
+					compilatrice.mv.stop = true;
+					compilatrice.possede_erreur = true;
+
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_SYMBOLE) {
 						erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un symbole inconnu", *unite->espace, unite->lexeme_attendu);
 					}

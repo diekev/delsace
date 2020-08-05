@@ -99,6 +99,8 @@ struct MachineVirtuelle {
 	int nombre_de_metaprogrammes_executes = 0;
 	double temps_execution_metaprogammes = 0;
 
+	bool stop = false;
+
 	enum ResultatInterpretation {
 		OK,
 		ERREUR,

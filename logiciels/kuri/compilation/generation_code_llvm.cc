@@ -1417,6 +1417,7 @@ bool coulisse_llvm_cree_executable(
 		auto debut_fichier_objet = dls::chrono::compte_seconde();
 		if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
 			compilatrice.possede_erreur = true;
+			compilatrice.mv.stop = true;
 			return 1;
 		}
 		temps_fichier_objet = debut_fichier_objet.temps();
@@ -1424,6 +1425,7 @@ bool coulisse_llvm_cree_executable(
 		auto debut_executable = dls::chrono::compte_seconde();
 		if (!cree_executable(espace.options.nom_sortie, compilatrice.racine_kuri.c_str())) {
 			compilatrice.possede_erreur = true;
+			compilatrice.mv.stop = true;
 			return false;
 		}
 

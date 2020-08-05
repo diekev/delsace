@@ -160,6 +160,7 @@ void lance_tacheronne(Tacheronne *tacheronne)
 	catch (const erreur::frappe &e) {
 		std::cerr << e.message() << '\n';
 		tacheronne->compilatrice.possede_erreur = true;
+		tacheronne->compilatrice.mv.stop = true;
 	}
 }
 
@@ -171,6 +172,7 @@ void lance_tacheronne_metaprogramme(Tacheronne *tacheronne)
 	catch (const erreur::frappe &e) {
 		std::cerr << e.message() << '\n';
 		tacheronne->compilatrice.possede_erreur = true;
+		tacheronne->compilatrice.mv.stop = true;
 	}
 }
 
