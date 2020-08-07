@@ -42,7 +42,7 @@ struct InstructionAppel;
 struct MachineVirtuelle;
 struct NoeudBloc;
 struct NoeudDeclaration;
-struct NoeudDeclarationFonction;
+struct NoeudDeclarationCorpsFonction;
 struct NoeudDiscr;
 struct NoeudExpression;
 struct NoeudExpressionAppel;

@@ -147,7 +147,7 @@ AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const dls::c
  * pointeur vers l'atome d'une fonction si nous l'avons déjà généré, soit de le
  * créer en préparation de la génération de la RI de son corps.
  */
-AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &constructrice, const NoeudDeclarationFonction *decl)
+AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationEnteteFonction const *decl)
 {
 	auto table = table_fonctions.verrou_ecriture();
 	auto iter_fonc = table->trouve(decl->nom_broye);

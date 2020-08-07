@@ -85,7 +85,7 @@ struct NoeudDependance {
 };
 
 struct DonneesDependance {
-	dls::ensemblon<NoeudDeclarationFonction const *, 16> fonctions_utilisees{};
+	dls::ensemblon<NoeudDeclarationEnteteFonction const *, 16> fonctions_utilisees{};
 	dls::ensemblon<NoeudDeclarationVariable const *, 16> globales_utilisees{};
 	dls::ensemblon<Type *, 16> types_utilises{};
 };
@@ -94,7 +94,7 @@ struct GrapheDependance {
 	tableau_page<NoeudDependance> noeuds{};
 
 	// CRÉE (:FONCTION { nom = $nom })
-	NoeudDependance *cree_noeud_fonction(NoeudDeclarationFonction *noeud_syntaxique);
+	NoeudDependance *cree_noeud_fonction(NoeudDeclarationEnteteFonction *noeud_syntaxique);
 
 	// CRÉE (:GLOBALE { nom = $nom })
 	NoeudDependance *cree_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique);

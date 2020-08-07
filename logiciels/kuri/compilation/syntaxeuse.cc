@@ -56,7 +56,7 @@ static auto trouve_chemin_si_dans_dossier(Module *module, dls::chaine const &cha
 	return chaine;
 }
 
-static auto renseigne_fonction_interface(dls::outils::Synchrone<InterfaceKuri> &interface, NoeudDeclarationFonction *noeud)
+static auto renseigne_fonction_interface(dls::outils::Synchrone<InterfaceKuri> &interface, NoeudDeclarationEnteteFonction *noeud)
 {
 #define INIT_MEMBRE(membre, nom) \
 	if (noeud->ident == nom) { \
@@ -421,7 +421,7 @@ void Syntaxeuse::lance_analyse()
 					noeud->bloc_parent->expressions->pousse(noeud);
 					noeud->drapeaux |= EST_GLOBALE;
 
-					if (!dls::outils::est_element(noeud->genre, GenreNoeud::DECLARATION_FONCTION, GenreNoeud::DECLARATION_OPERATEUR, GenreNoeud::DECLARATION_COROUTINE, GenreNoeud::DECLARATION_STRUCTURE)) {
+					if (!dls::outils::est_element(noeud->genre, GenreNoeud::DECLARATION_ENTETE_FONCTION, GenreNoeud::DECLARATION_STRUCTURE)) {
 						if (noeud->genre == GenreNoeud::DECLARATION_VARIABLE) {
 							auto decl_var = static_cast<NoeudDeclarationVariable *>(noeud);
 							decl_var->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
@@ -1173,7 +1173,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 				case GenreLexeme::COROUT:
 				case GenreLexeme::FONC:
 				{
-					auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(analyse_declaration_fonction(gauche->lexeme));
+					auto noeud_fonction = analyse_declaration_fonction(gauche->lexeme);
 
 					if (noeud_fonction->est_declaration_type) {
 						auto noeud = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, lexeme);
@@ -1762,7 +1762,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 	return noeud_decl;
 }
 
-NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
+NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 {
 	Prof(Syntaxeuse_analyse_declaration_fonction);
 
@@ -1782,7 +1782,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 		}
 	}
 
-	auto noeud = CREE_NOEUD(NoeudDeclarationFonction, GenreNoeud::DECLARATION_FONCTION, lexeme);
+	auto noeud = CREE_NOEUD(NoeudDeclarationEnteteFonction, GenreNoeud::DECLARATION_ENTETE_FONCTION, lexeme);
 	noeud->est_coroutine = lexeme_mot_cle->genre == GenreLexeme::COROUT;
 
 	if (externe) {
@@ -1818,12 +1818,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 	}
 
 	nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-	noeud->arbre_aplatis_entete.reserve(static_cast<long>(nombre_noeuds_alloues));
+	noeud->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
 
 	copie_tablet_tableau(params, noeud->params);
 
 	POUR (noeud->params) {
-		aplatis_arbre(it, noeud->arbre_aplatis_entete, drapeaux_noeud::AUCUN);
+		aplatis_arbre(it, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 	}
 
 	consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' à la fin des paramètres de la fonction");
@@ -1838,9 +1838,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
 			auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::INCONNU);
 			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-			noeud->arbre_aplatis_entete.reserve_delta(static_cast<long>(nombre_noeuds_alloues));
+			noeud->arbre_aplatis.reserve_delta(static_cast<long>(nombre_noeuds_alloues));
 			noeud->params_sorties.pousse(type_declare);
-			aplatis_arbre(type_declare, noeud->arbre_aplatis_entete, drapeaux_noeud::AUCUN);
+			aplatis_arbre(type_declare, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 
 			if (!apparie(GenreLexeme::VIRGULE)) {
 				break;
@@ -1862,9 +1862,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 				nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
 				auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::INCONNU);
 				nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-				noeud->arbre_aplatis_entete.reserve_delta(static_cast<long>(nombre_noeuds_alloues));
+				noeud->arbre_aplatis.reserve_delta(static_cast<long>(nombre_noeuds_alloues));
 				noeud->params_sorties.pousse(type_declare);
-				aplatis_arbre(type_declare, noeud->arbre_aplatis_entete, drapeaux_noeud::AUCUN);
+				aplatis_arbre(type_declare, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 
 				if (!apparie(GenreLexeme::VIRGULE)) {
 					break;
@@ -1878,7 +1878,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 			auto type_declare = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_TYPE, &lexeme_rien);
 			noeud->noms_retours.pousse("__ret0");
 			noeud->params_sorties.pousse(type_declare);
-			aplatis_arbre(type_declare, noeud->arbre_aplatis_entete, drapeaux_noeud::AUCUN);
+			aplatis_arbre(type_declare, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 		}
 
 		while (apparie(GenreLexeme::DIRECTIVE)) {
@@ -1930,14 +1930,14 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 			consomme();
 		}
 
+		m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
+
 		if (externe) {
 			consomme(GenreLexeme::POINT_VIRGULE, "Attendu un point-virgule ';' après la déclaration de la fonction externe");
 
 			if (noeud->params_sorties.taille > 1) {
 				lance_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
 			}
-
-			m_compilatrice.ordonnanceuse->cree_tache_pour_typage_fonction(m_unite->espace, noeud);
 		}
 		else {
 			/* ignore les points-virgules implicites */
@@ -1945,20 +1945,20 @@ NoeudExpression *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 				consomme();
 			}
 
-			m_compilatrice.ordonnanceuse->cree_tache_pour_typage_fonction(m_unite->espace, noeud);
+			auto noeud_corps = noeud->corps;
 
 			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
-			noeud->bloc = analyse_bloc();
+			noeud_corps->bloc = analyse_bloc();
 			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 
 			/* À FAIRE : quand nous aurons des fonctions dans des fonctions, il
 			 * faudra soustraire le nombre de noeuds des fonctions enfants. Il
 			 * faudra également faire attention au moultfilage futur.
 			 */
-			noeud->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
-			aplatis_arbre(noeud->bloc, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
+			noeud_corps->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
+			aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, drapeaux_noeud::AUCUN);
 
-			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
+			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
 
 //			std::cerr << "Abre aplatis pour fonction " << noeud->ident->nom << " :\n";
 
@@ -1995,7 +1995,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	consomme(GenreLexeme::DECLARATION_CONSTANTE, "Attendu :: après la déclaration de l'opérateur");
 	consomme(GenreLexeme::FONC, "Attendu fonc après ::");
 
-	auto noeud = CREE_NOEUD(NoeudDeclarationFonction, GenreNoeud::DECLARATION_OPERATEUR, lexeme);
+	auto noeud = CREE_NOEUD(NoeudDeclarationEnteteFonction, GenreNoeud::DECLARATION_ENTETE_FONCTION, lexeme);
+	noeud->est_operateur = true;
 
 	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
@@ -2048,10 +2049,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	}
 
 	nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-	noeud->arbre_aplatis_entete.reserve(static_cast<long>(nombre_noeuds_alloues));
+	noeud->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
 
 	POUR (noeud->params) {
-		aplatis_arbre(it, noeud->arbre_aplatis_entete, drapeaux_noeud::AUCUN);
+		aplatis_arbre(it, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 	}
 
 	consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' à la fin des paramètres de la fonction");
@@ -2064,7 +2065,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 		auto type_declare = analyse_expression_primaire(GenreLexeme::OPERATEUR, GenreLexeme::INCONNU);
 		noeud->params_sorties.pousse(type_declare);
-		aplatis_arbre(type_declare, noeud->arbre_aplatis_entete, drapeaux_noeud::AUCUN);
+		aplatis_arbre(type_declare, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 
 		if (!apparie(GenreLexeme::VIRGULE)) {
 			break;
@@ -2102,12 +2103,13 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		consomme();
 	}
 
-	m_compilatrice.ordonnanceuse->cree_tache_pour_typage_fonction(m_unite->espace, noeud);
-
-	noeud->bloc = analyse_bloc();
-	aplatis_arbre(noeud->bloc, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
-
 	m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
+
+	auto noeud_corps = noeud->corps;
+	noeud_corps->bloc = analyse_bloc();
+	aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, drapeaux_noeud::AUCUN);
+
+	m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
 
 	depile_etat();
 

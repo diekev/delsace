@@ -44,7 +44,7 @@ std::ostream &operator<<(std::ostream &os, TypeRelation type)
 	return os;
 }
 
-NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationFonction *noeud_syntaxique)
+NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationEnteteFonction *noeud_syntaxique)
 {
 	Prof(cree_noeud_fonction);
 
@@ -98,7 +98,7 @@ NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_
 			continue;
 		}
 
-		auto decl_fonction = static_cast<NoeudDeclarationFonction *>(it.noeud_syntaxique);
+		auto decl_fonction = it.noeud_syntaxique->comme_entete_fonction();
 
 		if (decl_fonction->nom_broye == nom) {
 			return const_cast<NoeudDependance *>(&it);
@@ -175,7 +175,7 @@ void GrapheDependance::ajoute_dependances(
 
 	dls::pour_chaque_element(donnees.fonctions_utilisees, [&](auto &fonction_utilisee)
 	{
-		auto noeud_type = cree_noeud_fonction(const_cast<NoeudDeclarationFonction *>(fonction_utilisee));
+		auto noeud_type = cree_noeud_fonction(const_cast<NoeudDeclarationEnteteFonction *>(fonction_utilisee));
 		connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_FONCTION);
 		return dls::DecisionIteration::Continue;
 	});
@@ -223,7 +223,7 @@ void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 			continue;
 		}
 
-		auto decl_fonction = static_cast<NoeudDeclarationFonction *>(it.noeud_syntaxique);
+		auto decl_fonction = it.noeud_syntaxique->comme_entete_fonction();
 		std::cerr << "Fonction inutilisée : " << decl_fonction->nom_broye << '\n';
 	}
 

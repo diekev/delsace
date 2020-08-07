@@ -64,10 +64,9 @@ bool est_declaration(GenreNoeud genre)
 	return dls::outils::est_element(
 				genre,
 				GenreNoeud::DECLARATION_VARIABLE,
-				GenreNoeud::DECLARATION_FONCTION,
-				GenreNoeud::DECLARATION_COROUTINE,
+				GenreNoeud::DECLARATION_CORPS_FONCTION,
+				GenreNoeud::DECLARATION_ENTETE_FONCTION,
 				GenreNoeud::DECLARATION_ENUM,
-				GenreNoeud::DECLARATION_OPERATEUR,
 				GenreNoeud::DECLARATION_STRUCTURE);
 }
 
@@ -111,11 +110,9 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 
 			break;
 		}
-		case GenreNoeud::DECLARATION_FONCTION:
-		case GenreNoeud::DECLARATION_COROUTINE:
-		case GenreNoeud::DECLARATION_OPERATEUR:
+		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
 		{
-			auto expr = static_cast<NoeudDeclarationFonction *>(racine);
+			auto expr = racine->comme_entete_fonction();
 
 			imprime_tab(os, tab);
 			os << "fonc : " << racine->lexeme->chaine << " (ident: " << racine->ident << ")" << '\n';
@@ -124,8 +121,14 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 				imprime_arbre(it, os, tab + 1);
 			}
 
-			imprime_arbre(expr->bloc, os, tab + 1);
+			imprime_arbre(expr->corps, os, tab + 1);
 
+			break;
+		}
+		case GenreNoeud::DECLARATION_CORPS_FONCTION:
+		{
+			auto expr = static_cast<NoeudDeclarationCorpsFonction *>(racine);
+			imprime_arbre(expr->bloc, os, tab);
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENUM:
@@ -422,22 +425,20 @@ NoeudExpression *copie_noeud(
 
 			break;
 		}
-		case GenreNoeud::DECLARATION_FONCTION:
-		case GenreNoeud::DECLARATION_COROUTINE:
-		case GenreNoeud::DECLARATION_OPERATEUR:
+		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
 		{
-			auto expr = static_cast<NoeudDeclarationFonction const *>(racine);
-			auto nexpr = static_cast<NoeudDeclarationFonction *>(nracine);
+			auto expr  = racine->comme_entete_fonction();
+			auto nexpr = nracine->comme_entete_fonction();
+
 			nexpr->params.reserve(expr->params.taille);
 			nexpr->noms_retours.reserve(expr->noms_retours.taille);
 			nexpr->arbre_aplatis.reserve(expr->arbre_aplatis.taille);
-			nexpr->arbre_aplatis_entete.reserve(expr->arbre_aplatis_entete.taille);
 			nexpr->est_declaration_type = expr->est_declaration_type;
 
 			POUR (expr->params) {
 				auto copie = copie_noeud(assem, it, bloc_parent);
 				nexpr->params.pousse(static_cast<NoeudDeclaration *>(copie));
-				aplatis_arbre(copie, nexpr->arbre_aplatis_entete, drapeaux_noeud::AUCUN);
+				aplatis_arbre(copie, nexpr->arbre_aplatis, drapeaux_noeud::AUCUN);
 			}
 
 			POUR (expr->noms_retours) {
@@ -447,13 +448,32 @@ NoeudExpression *copie_noeud(
 			POUR (expr->params_sorties) {
 				auto copie = copie_noeud(assem, it, bloc_parent);
 				nexpr->params_sorties.pousse(copie);
-				aplatis_arbre(copie, nexpr->arbre_aplatis_entete, drapeaux_noeud::AUCUN);
+				aplatis_arbre(copie, nexpr->arbre_aplatis, drapeaux_noeud::AUCUN);
 			}
 
-			nexpr->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, expr->bloc, bloc_parent));
+			/* copie le corps du noeud directement */
+			{
+				auto expr_corps = expr->corps;
+				auto nexpr_corps = nexpr->corps;
 
-			aplatis_arbre(nexpr->bloc, nexpr->arbre_aplatis, drapeaux_noeud::AUCUN);
+				nexpr_corps->ident = expr_corps->ident;
+				nexpr_corps->type = expr_corps->type;
+				nexpr_corps->bloc_parent = bloc_parent;
+				nexpr_corps->drapeaux = expr_corps->drapeaux;
+				nexpr_corps->drapeaux &= ~DECLARATION_FUT_VALIDEE;
 
+				nexpr_corps->arbre_aplatis.reserve(expr_corps->arbre_aplatis.taille);
+				nexpr_corps->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, expr_corps->bloc, bloc_parent));
+
+				aplatis_arbre(nexpr_corps->bloc, nexpr_corps->arbre_aplatis, drapeaux_noeud::AUCUN);
+			}
+
+			break;
+		}
+		case GenreNoeud::DECLARATION_CORPS_FONCTION:
+		{
+			/* assert faux car les noeuds de corps et d'entêtes sont alloués en même temps */
+			assert(false);
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENUM:
@@ -561,7 +581,7 @@ NoeudExpression *copie_noeud(
 			auto nexpr = static_cast<NoeudDirectiveExecution *>(nracine);
 
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
-			nexpr->fonction = static_cast<NoeudDeclarationFonction *>(copie_noeud(assem, expr->fonction, bloc_parent));
+			nexpr->fonction = static_cast<NoeudDeclarationEnteteFonction *>(copie_noeud(assem, expr->fonction, bloc_parent));
 			break;
 		}
 		case GenreNoeud::EXPRESSION_INIT_DE:
@@ -705,9 +725,8 @@ void aplatis_arbre(
 
 			break;
 		}
-		case GenreNoeud::DECLARATION_FONCTION:
-		case GenreNoeud::DECLARATION_COROUTINE:
-		case GenreNoeud::DECLARATION_OPERATEUR:
+		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
+		case GenreNoeud::DECLARATION_CORPS_FONCTION:
 		{
 			/* L'aplatissement d'une fonction dans une fonction doit déjà avoir été fait */
 			arbre_aplatis.pousse(racine);
@@ -1142,9 +1161,8 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
-		case GenreNoeud::DECLARATION_FONCTION:
-		case GenreNoeud::DECLARATION_COROUTINE:
-		case GenreNoeud::DECLARATION_OPERATEUR:
+		case GenreNoeud::DECLARATION_CORPS_FONCTION:
+		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
 		case GenreNoeud::DECLARATION_ENUM:
 		case GenreNoeud::DECLARATION_STRUCTURE:
 		case GenreNoeud::EXPRESSION_INIT_DE:

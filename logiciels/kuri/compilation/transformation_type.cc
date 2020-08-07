@@ -229,7 +229,7 @@ bool cherche_transformation(
 	}
 
 	if (type_de->genre == GenreType::REEL && type_vers->genre == GenreType::REEL) {
-		auto retourne_fonction = [&](NoeudDeclarationFonction const *fonction) -> bool
+		auto retourne_fonction = [&](NoeudDeclarationEnteteFonction const *fonction) -> bool
 		{
 			if (fonction == nullptr) {
 				contexte.unite->attend_sur_interface_kuri();

@@ -316,7 +316,7 @@ dls::chaine const &nom_broye_type(Type *type)
  * -> _KF4Test4test_P2_E1_1x3z32_S1_3z32
  */
 dls::chaine broye_nom_fonction(
-		NoeudDeclarationFonction *decl,
+		NoeudDeclarationEnteteFonction *decl,
 		dls::chaine const &nom_module)
 {
 	Enchaineuse enchaineuse;
@@ -332,7 +332,7 @@ dls::chaine broye_nom_fonction(
 	enchaineuse << nom_ascii;
 
 	/* nom de la fonction */
-	if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
+	if (decl->est_operateur) {
 		// XXX - ici ce devrait être nom_ascii, mais sauvons quelques allocations
 		enchaineuse << "operateur";
 

@@ -227,7 +227,7 @@ struct AtomeFonction : public Atome {
 
 	bool sanstrace = false;
 	bool est_externe = false;
-	NoeudDeclarationFonction const *decl = nullptr;
+	NoeudDeclarationEnteteFonction const *decl = nullptr;
 
 	// Pour les exécutions
 	Chunk chunk{};

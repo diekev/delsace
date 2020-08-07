@@ -37,7 +37,6 @@ struct Compilatrice;
 	ENUMERE_GENRE_TACHE_EX(COMPILATION_TERMINEE) \
 	ENUMERE_GENRE_TACHE_EX(LEXE) \
 	ENUMERE_GENRE_TACHE_EX(PARSE) \
-	ENUMERE_GENRE_TACHE_EX(TYPAGE_ENTETE_FONCTION) \
 	ENUMERE_GENRE_TACHE_EX(TYPAGE) \
 	ENUMERE_GENRE_TACHE_EX(GENERE_RI) \
 	ENUMERE_GENRE_TACHE_EX(EXECUTE) \
@@ -97,7 +96,6 @@ public:
 	void cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier *fichier);
 	void cree_tache_pour_parsage(EspaceDeTravail *espace, Fichier *fichier);
 	void cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud);
-	void cree_tache_pour_typage_fonction(EspaceDeTravail *espace, NoeudDeclarationFonction *noeud);
 	void cree_tache_pour_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
 	void cree_tache_pour_execution(EspaceDeTravail *espace, NoeudDirectiveExecution *noeud);
 
@@ -107,8 +105,6 @@ public:
 	long memoire_utilisee() const;
 
 private:
-	void cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud, GenreTache genre_tache);
-
 	void renseigne_etat_tacheronne(int id, GenreTache genre_tache);
 
 	bool toutes_les_tacheronnes_dorment() const;

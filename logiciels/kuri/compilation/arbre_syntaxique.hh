@@ -43,6 +43,8 @@ struct IdentifiantCode;
 struct NoeudBloc;
 struct NoeudBoucle;
 struct NoeudCode;
+struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationCorpsFonction;
 struct NoeudDeclarationVariable;
 struct NoeudDirectiveExecution;
 struct NoeudDiscr;
@@ -66,10 +68,9 @@ struct NoeudDependance;
 struct UniteCompilation;
 
 #define ENUMERE_GENRES_NOEUD \
-	ENUMERE_GENRE_NOEUD_EX(DECLARATION_COROUTINE) \
 	ENUMERE_GENRE_NOEUD_EX(DECLARATION_ENUM) \
-	ENUMERE_GENRE_NOEUD_EX(DECLARATION_FONCTION) \
-	ENUMERE_GENRE_NOEUD_EX(DECLARATION_OPERATEUR) \
+	ENUMERE_GENRE_NOEUD_EX(DECLARATION_ENTETE_FONCTION) \
+	ENUMERE_GENRE_NOEUD_EX(DECLARATION_CORPS_FONCTION) \
 	ENUMERE_GENRE_NOEUD_EX(DECLARATION_STRUCTURE) \
 	ENUMERE_GENRE_NOEUD_EX(DECLARATION_VARIABLE) \
 	ENUMERE_GENRE_NOEUD_EX(DIRECTIVE_EXECUTION) \
@@ -280,15 +281,15 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(construction_struct, GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE)
 	EST_NOEUD_GENRE(construction_tableau, GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU)
 	EST_NOEUD_GENRE(controle_boucle, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)
-	EST_NOEUD_GENRE(coroutine, GenreNoeud::DECLARATION_COROUTINE)
 	EST_NOEUD_GENRE(decl_discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
 	EST_NOEUD_GENRE(decl_var, GenreNoeud::DECLARATION_VARIABLE)
 	EST_NOEUD_GENRE(deloge, GenreNoeud::EXPRESSION_DELOGE)
 	EST_NOEUD_GENRE(discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
 	EST_NOEUD_GENRE(enum, GenreNoeud::DECLARATION_ENUM)
+	EST_NOEUD_GENRE(entete_fonction, GenreNoeud::DECLARATION_ENTETE_FONCTION)
 	EST_NOEUD_GENRE(execute, GenreNoeud::DIRECTIVE_EXECUTION)
 	EST_NOEUD_GENRE(expansion_variadique, GenreNoeud::EXPANSION_VARIADIQUE)
-	EST_NOEUD_GENRE(fonction, GenreNoeud::DECLARATION_FONCTION)
+	EST_NOEUD_GENRE(corps_fonction, GenreNoeud::DECLARATION_CORPS_FONCTION)
 	EST_NOEUD_GENRE(indexage, GenreNoeud::EXPRESSION_INDEXAGE)
 	EST_NOEUD_GENRE(info_de, GenreNoeud::EXPRESSION_INFO_DE)
 	EST_NOEUD_GENRE(init_de, GenreNoeud::EXPRESSION_INIT_DE)
@@ -298,7 +299,6 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(nombre_reel, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL)
 	EST_NOEUD_GENRE(non_initialisation, GenreNoeud::INSTRUCTION_NON_INITIALISATION)
 	EST_NOEUD_GENRE(nul, GenreNoeud::EXPRESSION_LITTERALE_NUL)
-	EST_NOEUD_GENRE(operateur, GenreNoeud::DECLARATION_OPERATEUR)
 	EST_NOEUD_GENRE(operateur_binaire, GenreNoeud::OPERATEUR_BINAIRE)
 	EST_NOEUD_GENRE(operateur_unaire, GenreNoeud::OPERATEUR_UNAIRE)
 	EST_NOEUD_GENRE(parenthese, GenreNoeud::EXPRESSION_PARENTHESE)
@@ -338,20 +338,19 @@ struct NoeudExpression {
 	COMME_NOEUD(construction_struct, NoeudExpressionAppel)
 	COMME_NOEUD(construction_tableau, NoeudExpressionUnaire)
 	COMME_NOEUD(controle_boucle, NoeudExpressionUnaire)
-	COMME_NOEUD(coroutine, NoeudDeclarationFonction)
 	COMME_NOEUD(decl_discr, NoeudDiscr)
 	COMME_NOEUD(decl_var, NoeudDeclarationVariable)
 	COMME_NOEUD(deloge, NoeudExpressionLogement)
 	COMME_NOEUD(discr, NoeudDiscr)
 	COMME_NOEUD(enum, NoeudEnum)
+	COMME_NOEUD(entete_fonction, NoeudDeclarationEnteteFonction)
 	COMME_NOEUD(execute, NoeudDirectiveExecution)
 	COMME_NOEUD(expansion_variadique, NoeudExpressionUnaire)
-	COMME_NOEUD(fonction, NoeudDeclarationFonction)
+	COMME_NOEUD(corps_fonction, NoeudDeclarationCorpsFonction)
 	COMME_NOEUD(indexage, NoeudExpressionBinaire)
 	COMME_NOEUD(info_de, NoeudExpressionUnaire)
 	COMME_NOEUD(loge, NoeudExpressionLogement)
 	COMME_NOEUD(memoire, NoeudExpressionUnaire)
-	COMME_NOEUD(operateur, NoeudDeclarationFonction)
 	COMME_NOEUD(operateur_binaire, NoeudExpressionBinaire)
 	COMME_NOEUD(operateur_unaire, NoeudExpressionUnaire)
 	COMME_NOEUD(parenthese, NoeudExpressionUnaire)
@@ -454,25 +453,20 @@ struct NoeudExpressionLogement : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudExpressionLogement);
 };
 
-struct NoeudDeclarationFonction : public NoeudDeclaration {
-	NoeudDeclarationFonction() { genre = GenreNoeud::DECLARATION_FONCTION; }
+struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
+	NoeudDeclarationEnteteFonction() { genre = GenreNoeud::DECLARATION_ENTETE_FONCTION; }
+
+	NoeudDeclarationCorpsFonction *corps = nullptr;
+	kuri::tableau<NoeudExpression *> arbre_aplatis{};
+
+	COPIE_CONSTRUCT(NoeudDeclarationEnteteFonction);
 
 	kuri::tableau<NoeudDeclaration *> params{};
 	kuri::tableau<NoeudExpression *> params_sorties{};
-	kuri::tableau<NoeudExpression *> arbre_aplatis_entete{};
-	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 
 	kuri::tableau<dls::chaine> noms_retours{};
 
-	NoeudBloc *bloc = nullptr;
-
 	kuri::tableau<dls::vue_chaine_compacte> noms_types_gabarits{};
-	bool est_coroutine = false;
-	bool est_gabarit = false;
-	bool est_variadique = false;
-	bool est_externe = false;
-	bool est_declaration_type = false;
-	bool est_instantiation_gabarit = false;
 	dls::chaine nom_broye = "";
 
 	using tableau_paire_expansion = dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>>;
@@ -482,9 +476,26 @@ struct NoeudDeclarationFonction : public NoeudDeclaration {
 
 	// mise en cache des expansions polymorphiques déjà existantes afin de ne pas les recréer
 	// devra être protégé par un mutex quand le typage sera asynchrone
-	dls::tableau<std::pair<tableau_paire_expansion, NoeudDeclarationFonction *>> epandu_pour{};
+	dls::tableau<std::pair<tableau_paire_expansion, NoeudDeclarationEnteteFonction *>> epandu_pour{};
 
-	COPIE_CONSTRUCT(NoeudDeclarationFonction);
+	bool est_operateur = false;
+	bool est_coroutine = false;
+	bool est_gabarit = false;
+	bool est_variadique = false;
+	bool est_externe = false;
+	bool est_declaration_type = false;
+	bool est_instantiation_gabarit = false;
+};
+
+struct NoeudDeclarationCorpsFonction : public NoeudDeclaration {
+	NoeudDeclarationCorpsFonction() { genre = GenreNoeud::DECLARATION_CORPS_FONCTION; }
+
+	NoeudDeclarationEnteteFonction *entete = nullptr;
+	NoeudBloc *bloc = nullptr;
+
+	kuri::tableau<NoeudExpression *> arbre_aplatis{};
+
+	COPIE_CONSTRUCT(NoeudDeclarationCorpsFonction);
 };
 
 struct NoeudExpressionAppel : public NoeudExpression {
@@ -635,7 +646,7 @@ struct NoeudDirectiveExecution : NoeudExpression {
 	COPIE_CONSTRUCT(NoeudDirectiveExecution);
 
 	NoeudExpression *expr = nullptr;
-	NoeudDeclarationFonction *fonction = nullptr;
+	NoeudDeclarationEnteteFonction *fonction = nullptr;
 	AtomeFonction *fonction_ri_pour_appel = nullptr;
 
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
@@ -663,20 +674,19 @@ struct NoeudDirectiveExecution : NoeudExpression {
 	COMME_NOEUD(construction_struct, NoeudExpressionAppel)
 	COMME_NOEUD(construction_tableau, NoeudExpressionUnaire)
 	COMME_NOEUD(controle_boucle, NoeudExpressionUnaire)
-	COMME_NOEUD(coroutine, NoeudDeclarationFonction)
 	COMME_NOEUD(decl_discr, NoeudDiscr)
 	COMME_NOEUD(decl_var, NoeudDeclarationVariable)
 	COMME_NOEUD(deloge, NoeudExpressionLogement)
 	COMME_NOEUD(discr, NoeudDiscr)
 	COMME_NOEUD(enum, NoeudEnum)
+	COMME_NOEUD(entete_fonction, NoeudDeclarationEnteteFonction)
 	COMME_NOEUD(execute, NoeudDirectiveExecution)
 	COMME_NOEUD(expansion_variadique, NoeudExpressionUnaire)
-	COMME_NOEUD(fonction, NoeudDeclarationFonction)
+	COMME_NOEUD(corps_fonction, NoeudDeclarationCorpsFonction)
 	COMME_NOEUD(indexage, NoeudExpressionBinaire)
 	COMME_NOEUD(info_de, NoeudExpressionUnaire)
 	COMME_NOEUD(loge, NoeudExpressionLogement)
 	COMME_NOEUD(memoire, NoeudExpressionUnaire)
-	COMME_NOEUD(operateur, NoeudDeclarationFonction)
 	COMME_NOEUD(operateur_binaire, NoeudExpressionBinaire)
 	COMME_NOEUD(operateur_unaire, NoeudExpressionUnaire)
 	COMME_NOEUD(parenthese, NoeudExpressionUnaire)

@@ -1325,7 +1325,7 @@ static void rassemble_fonctions_utilisees(NoeudDependance *racine, EspaceDeTrava
 		auto table = espace.table_fonctions.verrou_lecture();
 
 		if (noeud->type == TypeNoeudDependance::FONCTION) {
-			auto noeud_fonction = static_cast<NoeudDeclarationFonction *>(noeud->noeud_syntaxique);
+			auto noeud_fonction = noeud->noeud_syntaxique->comme_entete_fonction();
 			auto atome_fonction = table->trouve(noeud_fonction->nom_broye)->second;
 			assert(atome_fonction);
 

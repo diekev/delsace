@@ -500,7 +500,7 @@ void Operateurs::ajoute_perso(
 		Type *type1,
 		Type *type2,
 		Type *type_resultat,
-		NoeudDeclarationFonction *decl)
+		NoeudDeclarationEnteteFonction *decl)
 {
 	Prof(Operateurs_ajoute_perso);
 
@@ -517,7 +517,7 @@ void Operateurs::ajoute_perso_unaire(
 		GenreLexeme id,
 		Type *type,
 		Type *type_resultat,
-		NoeudDeclarationFonction *decl)
+		NoeudDeclarationEnteteFonction *decl)
 {
 	Prof(Operateurs_ajoute_unaire);
 

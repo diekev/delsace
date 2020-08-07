@@ -396,8 +396,8 @@ void lance_erreur_fonction_inconnue(
 			auto noeud_appel = static_cast<NoeudExpressionAppel *>(b);
 			ss << "\tLe nombre d'arguments de la fonction est incorrect.\n";
 
-			if (decl && decl->genre == GenreNoeud::DECLARATION_FONCTION) {
-				auto decl_fonc = static_cast<NoeudDeclarationFonction const *>(decl);
+			if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
+				auto decl_fonc = decl->comme_entete_fonction();
 				ss << "\tRequiers " << decl_fonc->params.taille << " arguments\n";
 			}
 			else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
@@ -417,8 +417,8 @@ void lance_erreur_fonction_inconnue(
 			/* À FAIRE : trouve le lexeme correspondant à l'argument. */
 			ss << "\tArgument '" << dc.nom_arg << "' inconnu !\n";
 
-			if (decl->genre == GenreNoeud::DECLARATION_FONCTION) {
-				auto decl_fonc = static_cast<NoeudDeclarationFonction const *>(decl);
+			if (decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
+				auto decl_fonc = decl->comme_entete_fonction();
 				ss << "\tLes arguments de la fonction sont : \n";
 
 				POUR (decl_fonc->params) {

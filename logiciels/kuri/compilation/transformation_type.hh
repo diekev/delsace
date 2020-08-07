@@ -27,7 +27,7 @@
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
 struct EspaceDeTravail;
-struct NoeudDeclarationFonction;
+struct NoeudDeclarationEnteteFonction;
 struct Type;
 
 struct ContexteValidationCode;
@@ -62,7 +62,7 @@ std::ostream &operator<<(std::ostream &os, TypeTransformation type);
 
 struct TransformationType {
 	TypeTransformation type{};
-	NoeudDeclarationFonction const *fonction{};
+	NoeudDeclarationEnteteFonction const *fonction{};
 	Type *type_cible = nullptr;
 	long index_membre = 0;
 
@@ -83,12 +83,12 @@ struct TransformationType {
 		, type_cible(type_cible_)
 	{}
 
-	TransformationType(NoeudDeclarationFonction const *fonction_)
+	TransformationType(NoeudDeclarationEnteteFonction const *fonction_)
 		: type(TypeTransformation::FONCTION)
 		, fonction(fonction_)
 	{}
 
-	TransformationType(NoeudDeclarationFonction const *fonction_, Type *type_cible_)
+	TransformationType(NoeudDeclarationEnteteFonction const *fonction_, Type *type_cible_)
 		: type(TypeTransformation::FONCTION)
 		, fonction(fonction_)
 		, type_cible(type_cible_)

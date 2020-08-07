@@ -595,13 +595,13 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
+		case GenreNoeud::DECLARATION_CORPS_FONCTION:
 		{
 			break;
 		}
-		case GenreNoeud::DECLARATION_OPERATEUR:
-		case GenreNoeud::DECLARATION_FONCTION:
+		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
 		{
-			auto decl = static_cast<NoeudDeclarationFonction *>(noeud);
+			auto decl = noeud->comme_entete_fonction();
 
 			if (decl->est_declaration_type) {
 				empile_valeur(cree_constante_type(decl->type));
@@ -618,6 +618,11 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
+			if (decl->est_coroutine) {
+				genere_ri_pour_coroutine(decl->corps);
+				return;
+			}
+
 			fonction_courante = atome_fonc;
 			table_locales.efface();
 			acces_membres.taille = 0;
@@ -629,7 +634,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			cree_label();
 
-			genere_ri_pour_noeud(decl->bloc);
+			genere_ri_pour_noeud(decl->corps->bloc);
 
 			if (decl->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
 				cree_retour(nullptr);
@@ -643,11 +648,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			fonction_courante = nullptr;
 			this->m_pile.efface();
 
-			break;
-		}
-		case GenreNoeud::DECLARATION_COROUTINE:
-		{
-			genere_ri_pour_coroutine(static_cast<NoeudDeclarationFonction *>(noeud));
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
@@ -746,7 +746,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				atome_fonc = depile_valeur();
 			}
 			else {
-				auto decl = static_cast<NoeudDeclarationFonction const *>(expr_appel->noeud_fonction_appelee);
+				auto decl = expr_appel->noeud_fonction_appelee->comme_entete_fonction();
 				atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl);
 			}
 
@@ -788,8 +788,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			if (decl_ref != nullptr && decl_ref->genre == GenreNoeud::DECLARATION_FONCTION) {
-				auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, static_cast<NoeudDeclarationFonction *>(decl_ref));
+			if (decl_ref != nullptr && decl_ref->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
+				auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl_ref->comme_entete_fonction());
 				// voir commentaire dans cree_appel
 				atome_fonc->nombre_utilisations += 1;
 				empile_valeur(atome_fonc);
@@ -2517,7 +2517,7 @@ void ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 			/* À FAIRE(ri) : coroutine */
 #if 0
 			auto expr_appel = static_cast<NoeudExpressionAppel *>(enfant2);
-			auto decl_fonc = static_cast<NoeudDeclarationFonction const *>(expr_appel->noeud_fonction_appelee);
+			auto decl_fonc = static_cast<NoeudDeclarationCorpsFonction const *>(expr_appel->noeud_fonction_appelee);
 			auto nom_etat = "__etat" + dls::vers_chaine(enfant2);
 			auto nom_type_coro = "__etat_coro" + decl_fonc->nom_broye;
 
@@ -3857,7 +3857,7 @@ void ConstructriceRI::genere_ri_pour_position_code_source(NoeudExpression *noeud
 	empile_valeur(alloc);
 }
 
-void ConstructriceRI::genere_ri_pour_coroutine(NoeudDeclarationFonction *decl)
+void ConstructriceRI::genere_ri_pour_coroutine(NoeudDeclarationCorpsFonction *decl)
 {
 #if 0
 	compilatrice.commence_fonction(decl);
@@ -4099,7 +4099,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecut
 
 	atome_fonc->decalage_appel_init_globale = atome_fonc->instructions.taille;
 
-	genere_ri_pour_noeud(fonction->bloc);
+	genere_ri_pour_noeud(fonction->corps->bloc);
 
 	fonction_courante = nullptr;
 }

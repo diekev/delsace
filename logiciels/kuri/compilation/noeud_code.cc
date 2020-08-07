@@ -36,14 +36,16 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		return nullptr;
 	}
 
-	switch (noeud_expression->genre) {
-		case GenreNoeud::DECLARATION_FONCTION:
-		case GenreNoeud::DECLARATION_COROUTINE:
-		case GenreNoeud::DECLARATION_OPERATEUR:
-		{
-			auto decl = static_cast<NoeudDeclarationFonction *>(noeud_expression);
+	if (noeud_expression->noeud_code != nullptr) {
+		return noeud_expression->noeud_code;
+	}
 
-			auto n = noeuds_fonctions.ajoute_element();
+	switch (noeud_expression->genre) {
+		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
+		{
+			auto decl = noeud_expression->comme_entete_fonction();
+
+			auto n = noeuds_entetes_fonctions.ajoute_element();
 			n->params_entree.reserve(decl->params.taille);
 
 			n->nom.pointeur = const_cast<char *>(decl->lexeme->chaine.pointeur());
@@ -54,7 +56,19 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 				n->params_entree.pousse(static_cast<NoeudCodeDeclaration *>(n_param));
 			}
 
+			n->est_coroutine = decl->est_coroutine;
+			n->est_operateur = decl->est_operateur;
+
+			noeud_code = n;
+			break;
+		}
+		case GenreNoeud::DECLARATION_CORPS_FONCTION:
+		{
+			auto decl = static_cast<NoeudDeclarationCorpsFonction *>(noeud_expression);
+
+			auto n = noeuds_corps_fonctions.ajoute_element();
 			n->bloc = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, decl->bloc));
+			n->entete = static_cast<NoeudCodeEnteteFonction *>(converti_noeud_syntaxique(espace, decl->entete));
 
 			noeud_code = n;
 			break;
@@ -515,7 +529,8 @@ long ConvertisseuseNoeudCode::memoire_utilisee() const
 	auto memoire = 0ul;
 
 	memoire += noeuds_codes.memoire_utilisee();
-	memoire += noeuds_fonctions.memoire_utilisee();
+	memoire += noeuds_entetes_fonctions.memoire_utilisee();
+	memoire += noeuds_corps_fonctions.memoire_utilisee();
 	memoire += noeuds_assignations.memoire_utilisee();
 	memoire += noeuds_declarations.memoire_utilisee();
 	memoire += noeuds_operations_unaire.memoire_utilisee();

@@ -40,7 +40,7 @@ struct IdentifiantCode;
 struct NoeudExpression;
 struct NoeudBloc;
 struct NoeudDeclaration;
-struct NoeudDeclarationFonction;
+struct NoeudDeclarationCorpsFonction;
 struct NoeudExpression;
 
 struct Fichier {
@@ -106,12 +106,12 @@ void imprime_fichier_ligne(EspaceDeTravail &espace, Lexeme const &lexeme);
 
 /* ************************************************************************** */
 
-NoeudDeclarationFonction *cherche_fonction_dans_module(
+NoeudDeclarationCorpsFonction *cherche_fonction_dans_module(
 		Compilatrice &compilatrice,
 		Module *module,
 		dls::vue_chaine_compacte const &nom_fonction);
 
-NoeudDeclarationFonction *cherche_fonction_dans_module(
+NoeudDeclarationCorpsFonction *cherche_fonction_dans_module(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
 		dls::vue_chaine_compacte const &nom_module,

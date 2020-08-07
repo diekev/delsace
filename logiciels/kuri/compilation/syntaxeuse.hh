@@ -111,7 +111,7 @@ private:
 	NoeudExpression *analyse_appel_fonction(NoeudExpression *gauche);
 
 	NoeudExpression *analyse_declaration_enum(NoeudExpression *gauche);
-	NoeudExpression *analyse_declaration_fonction(Lexeme const *lexeme);
+	NoeudDeclarationEnteteFonction *analyse_declaration_fonction(Lexeme const *lexeme);
 	NoeudExpression *analyse_declaration_operateur();
 	NoeudExpression *analyse_declaration_structure(NoeudExpression *gauche);
 

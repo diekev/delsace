@@ -52,7 +52,7 @@ ContexteValidationCode::ContexteValidationCode(Compilatrice &compilatrice, Unite
 	, espace(unite->espace)
 {}
 
-void ContexteValidationCode::commence_fonction(NoeudDeclarationFonction *fonction)
+void ContexteValidationCode::commence_fonction(NoeudDeclarationEnteteFonction *fonction)
 {
 	donnees_dependance.types_utilises.efface();
 	donnees_dependance.fonctions_utilisees.efface();
@@ -100,13 +100,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			break;
 		}
-		case GenreNoeud::DECLARATION_COROUTINE:
-		case GenreNoeud::DECLARATION_FONCTION:
+		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
 		{
-			auto decl = noeud->comme_fonction();
+			auto decl = noeud->comme_entete_fonction();
 
 			if (decl->est_declaration_type) {
-				POUR (decl->arbre_aplatis_entete) {
+				POUR (decl->arbre_aplatis) {
 					// voir commentaire plus bas
 					if (it->est_decl_var()) {
 						auto valeur = it->comme_decl_var()->valeur;
@@ -158,11 +157,17 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return false;
 			}
 
-			return valide_fonction(decl);
+			break;
 		}
-		case GenreNoeud::DECLARATION_OPERATEUR:
+		case GenreNoeud::DECLARATION_CORPS_FONCTION:
 		{
-			return valide_operateur(noeud->comme_operateur());
+			auto decl = noeud->comme_corps_fonction();
+
+			if (decl->entete->est_operateur) {
+				return valide_operateur(decl);
+			}
+
+			return valide_fonction(decl);
 		}
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
@@ -177,10 +182,16 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto noeud_directive = noeud->comme_execute();
 
 			// crée une fonction pour l'exécution
-			auto noeud_decl = static_cast<NoeudDeclarationFonction *>(espace->assembleuse->cree_noeud(GenreNoeud::DECLARATION_FONCTION, noeud->lexeme));
-			noeud_decl->bloc_parent = noeud->bloc_parent;
+			auto decl_entete = static_cast<NoeudDeclarationEnteteFonction *>(espace->assembleuse->cree_noeud(GenreNoeud::DECLARATION_ENTETE_FONCTION, noeud->lexeme));
+			auto decl_corps = static_cast<NoeudDeclarationCorpsFonction *>(espace->assembleuse->cree_noeud(GenreNoeud::DECLARATION_CORPS_FONCTION, noeud->lexeme));
 
-			noeud_decl->nom_broye = "metaprogamme" + dls::vers_chaine(noeud_directive);
+			decl_entete->corps = decl_corps;
+			decl_corps->entete = decl_entete;
+
+			decl_entete->bloc_parent = noeud->bloc_parent;
+			decl_corps->bloc_parent = noeud->bloc_parent;
+
+			decl_entete->nom_broye = "metaprogamme" + dls::vers_chaine(noeud_directive);
 
 			// le type de la fonction est (contexte) -> (type_expression)
 			auto types_entrees = kuri::tableau<Type *>(1);
@@ -190,9 +201,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			types_sorties[0] = noeud_directive->expr->type;
 
 			auto type_fonction = espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
-			noeud_decl->type = type_fonction;
+			decl_entete->type = type_fonction;
 
-			noeud_decl->bloc = static_cast<NoeudBloc *>(espace->assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, noeud->lexeme));
+			decl_corps->bloc = static_cast<NoeudBloc *>(espace->assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, noeud->lexeme));
 
 			static Lexeme lexeme_retourne = { "retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0 };
 			auto expr_ret = static_cast<NoeudExpressionUnaire *>(espace->assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_RETOUR, &lexeme_retourne));
@@ -202,17 +213,17 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				expr_ret->expr = noeud_directive->expr;
 			}
 			else {
-				noeud_decl->bloc->expressions->pousse(noeud_directive->expr);
+				decl_corps->bloc->expressions->pousse(noeud_directive->expr);
 			}
 
-			noeud_decl->bloc->expressions->pousse(expr_ret);
+			decl_corps->bloc->expressions->pousse(expr_ret);
 
 			auto graphe = espace->graphe_dependance.verrou_ecriture();
-			auto noeud_dep = graphe->cree_noeud_fonction(noeud_decl);
+			auto noeud_dep = graphe->cree_noeud_fonction(decl_entete);
 			graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 
-			noeud_directive->fonction = noeud_decl;
-			noeud_decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+			noeud_directive->fonction = decl_entete;
+			decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
 
 			break;
 		}
@@ -278,7 +289,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				// les fonctions peuvent ne pas avoir de type au moment si elles sont des appels polymorphiques
-				assert(decl->type || decl->genre == GenreNoeud::DECLARATION_FONCTION);
+				assert(decl->type || decl->genre == GenreNoeud::DECLARATION_ENTETE_FONCTION);
 				expr->decl = decl;
 				expr->type = decl->type;
 			}
@@ -295,9 +306,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				donnees_dependance.types_utilises.insere(expr->type);
 			}
 
-			if (decl->est_fonction() && !decl->comme_fonction()->est_gabarit) {
+			if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->est_gabarit) {
 				noeud->genre_valeur = GenreValeur::DROITE;
-				auto decl_fonc = decl->comme_fonction();
+				auto decl_fonc = decl->comme_entete_fonction();
 				donnees_dependance.fonctions_utilisees.insere(decl_fonc);
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
@@ -563,8 +574,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				auto bloc_parent = decl->bloc_parent;
 
 				// pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la fonction (ce qui est le cas pour les paramètres...)
-				if (fonction_courante && bloc_parent == fonction_courante->bloc->bloc_parent) {
-					bloc_parent = fonction_courante->bloc;
+				if (fonction_courante && bloc_parent == fonction_courante->corps->bloc->bloc_parent) {
+					bloc_parent = fonction_courante->corps->bloc;
 				}
 
 				POUR (type_structure->membres) {
@@ -1204,48 +1215,58 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			auto type = enfant2->type;
 
-			/* NOTE : nous testons le type des noeuds d'abord pour ne pas que le
-			 * type de retour d'une coroutine n'interfère avec le type d'une
-			 * variable (par exemple quand nous retournons une chaine). */
-			if (enfant2->genre == GenreNoeud::EXPRESSION_PLAGE) {
-				if (requiers_index) {
-					noeud->aide_generation_code = GENERE_BOUCLE_PLAGE_INDEX;
-				}
-				else {
-					noeud->aide_generation_code = GENERE_BOUCLE_PLAGE;
-				}
-			}
-			else if (enfant2->genre == GenreNoeud::EXPRESSION_APPEL_FONCTION && static_cast<NoeudExpressionAppel *>(enfant2)->noeud_fonction_appelee->genre == GenreNoeud::DECLARATION_COROUTINE) {
-				::rapporte_erreur(espace, enfant2, "Les coroutines ne sont plus supportés dans le langage pour le moment");
-//				enfant1->type = enfant2->type;
+			auto determine_iterande = [&, this](NoeudExpression *iterand) {
+				/* NOTE : nous testons le type des noeuds d'abord pour ne pas que le
+				 * type de retour d'une coroutine n'interfère avec le type d'une
+				 * variable (par exemple quand nous retournons une chaine). */
+				if (iterand->est_plage()) {
+					if (requiers_index) {
+						return GENERE_BOUCLE_PLAGE_INDEX;
+					}
 
-//				df = enfant2->df;
-//				auto nombre_vars_ret = df->idx_types_retours.taille();
+					return GENERE_BOUCLE_PLAGE;
+				}
 
-//				if (feuilles.taille() == nombre_vars_ret) {
-//					requiers_index = false;
-//					noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE;
-//				}
-//				else if (feuilles.taille() == nombre_vars_ret + 1) {
-//					requiers_index = true;
-//					noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
-//				}
-//				else {
-//					rapporte_erreur(
-//								"Mauvais compte d'arguments à déployer",
-//								compilatrice,
-//								*enfant1->lexeme);
-//				}
-			}
-			else {
+				if (iterand->est_appel()) {
+					auto appel = iterand->comme_appel();
+					auto fonction_appelee = appel->noeud_fonction_appelee;
+
+					if (fonction_appelee->est_entete_fonction()) {
+						auto entete = fonction_appelee->comme_entete_fonction();
+
+						if (entete->est_coroutine) {
+							::rapporte_erreur(espace, enfant2, "Les coroutines ne sont plus supportés dans le langage pour le moment");
+//							enfant1->type = enfant2->type;
+
+//							df = enfant2->df;
+//							auto nombre_vars_ret = df->idx_types_retours.taille();
+
+//							if (feuilles.taille() == nombre_vars_ret) {
+//								requiers_index = false;
+//								noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE;
+//							}
+//							else if (feuilles.taille() == nombre_vars_ret + 1) {
+//								requiers_index = true;
+//								noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
+//							}
+//							else {
+//								rapporte_erreur(
+//											"Mauvais compte d'arguments à déployer",
+//											compilatrice,
+//											*enfant1->lexeme);
+//							}
+						}
+					}
+				}
+
 				if (type->genre == GenreType::TABLEAU_DYNAMIQUE || type->genre == GenreType::TABLEAU_FIXE || type->genre == GenreType::VARIADIQUE) {
 					type = type_dereference_pour(type);
 
 					if (requiers_index) {
-						noeud->aide_generation_code = GENERE_BOUCLE_TABLEAU_INDEX;
+						return GENERE_BOUCLE_TABLEAU_INDEX;
 					}
 					else {
-						noeud->aide_generation_code = GENERE_BOUCLE_TABLEAU;
+						return GENERE_BOUCLE_TABLEAU;
 					}
 				}
 				else if (type->genre == GenreType::CHAINE) {
@@ -1253,18 +1274,23 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					enfant1->type = type;
 
 					if (requiers_index) {
-						noeud->aide_generation_code = GENERE_BOUCLE_TABLEAU_INDEX;
+						return GENERE_BOUCLE_TABLEAU_INDEX;
 					}
 					else {
-						noeud->aide_generation_code = GENERE_BOUCLE_TABLEAU;
+						return GENERE_BOUCLE_TABLEAU;
 					}
 				}
 				else {
-					std::cerr << "enfant2->genre : " << enfant2->genre << '\n';
-					rapporte_erreur("La variable n'est ni un argument variadic, ni un tableau, ni une chaine", enfant2);
-					return true;
+					::rapporte_erreur(espace, enfant2, "Le type de la variable n'est pas itérable")
+							.ajoute_message("Note : le type de la variable est ")
+							.ajoute_message(chaine_type(type))
+							.ajoute_message("\n");
+					//return true;
+					return GENERE_BOUCLE_PLAGE;
 				}
-			}
+			};
+
+			noeud->aide_generation_code = determine_iterande(enfant2);
 
 			donnees_dependance.types_utilises.insere(type);
 			enfant3->membres->reserve(feuilles.taille());
@@ -2314,7 +2340,7 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 	return true;
 }
 
-bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl)
+bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction *decl)
 {
 	Prof(valide_type_fonction);
 
@@ -2323,11 +2349,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 	auto &graphe = espace->graphe_dependance;
 	auto noeud_dep = graphe->cree_noeud_fonction(decl);
 
-	if (decl->est_coroutine) {
-		decl->genre = GenreNoeud::DECLARATION_COROUTINE;
-	}
-
-	if (valide_arbre_aplatis(decl->arbre_aplatis_entete)) {
+	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
 		graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 		return true;
 	}
@@ -2358,7 +2380,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 			}
 			else {
 				if (expression != nullptr) {
-					if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
+					if (decl->est_operateur) {
 						rapporte_erreur("Un paramètre d'une surcharge d'opérateur ne peut avoir de valeur par défaut", param);
 						return true;
 					}
@@ -2428,7 +2450,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 	decl->type = type_fonc;
 	donnees_dependance.types_utilises.insere(decl->type);
 
-	if (decl->genre == GenreNoeud::DECLARATION_OPERATEUR) {
+	if (decl->est_operateur) {
 		auto type_resultat = type_fonc->types_sorties[0];
 
 		if (type_resultat == espace->typeuse[TypeBase::RIEN]) {
@@ -2505,7 +2527,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationFonction *decl
 				continue;
 			}
 
-			if (it->genre != GenreNoeud::DECLARATION_FONCTION && it->genre != GenreNoeud::DECLARATION_COROUTINE) {
+			if (it->genre != GenreNoeud::DECLARATION_ENTETE_FONCTION) {
 				continue;
 			}
 
@@ -2558,22 +2580,24 @@ bool ContexteValidationCode::valide_arbre_aplatis(kuri::tableau<NoeudExpression 
 	return false;
 }
 
-bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
+bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl)
 {
-	if (decl->est_gabarit && !decl->est_instantiation_gabarit) {
+	auto entete = decl->entete;
+
+	if (entete->est_gabarit && !entete->est_instantiation_gabarit) {
 		// nous ferons l'analyse sémantique plus tard
 		return false;
 	}
 
-	commence_fonction(decl);
+	commence_fonction(entete);
 
 	auto &graphe = espace->graphe_dependance;
-	auto noeud_dep = graphe->cree_noeud_fonction(decl);
+	auto noeud_dep = graphe->cree_noeud_fonction(entete);
 
 	if (unite->index_courant == 0) {
-		auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
+		auto requiers_contexte = !possede_drapeau(decl->entete->drapeaux, FORCE_NULCTX);
 
-		decl->bloc->membres->reserve(decl->params.taille + requiers_contexte);
+		decl->bloc->membres->reserve(entete->params.taille + requiers_contexte);
 
 		if (requiers_contexte) {
 			auto val_ctx = static_cast<NoeudExpressionReference *>(espace->assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
@@ -2591,7 +2615,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 			decl->bloc->membres->pousse(decl_ctx);
 		}
 
-		POUR (decl->params) {
+		POUR (entete->params) {
 			auto argument = it->comme_decl_var();
 			decl->bloc->membres->pousse(argument);
 		}
@@ -2607,15 +2631,14 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 
 	/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
 	if (inst_ret == nullptr) {
-		assert(decl->type->genre == GenreType::FONCTION);
-		auto type_fonc = decl->type->comme_fonction();
+		auto type_fonc = entete->type->comme_fonction();
 
-		if (type_fonc->types_sorties[0]->genre != GenreType::RIEN && !decl->est_coroutine) {
+		if (type_fonc->types_sorties[0]->genre != GenreType::RIEN && !entete->est_coroutine) {
 			rapporte_erreur("Instruction de retour manquante", decl, erreur::type_erreur::TYPE_DIFFERENTS);
 			return true;
 		}
 
-		if (decl != espace->interface_kuri->decl_creation_contexte) {
+		if (entete != espace->interface_kuri->decl_creation_contexte) {
 			decl->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
 		}
 	}
@@ -2626,17 +2649,18 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationFonction *decl)
 	return false;
 }
 
-bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
+bool ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *decl)
 {
-	commence_fonction(decl);
+	auto entete = decl->entete;
+	commence_fonction(entete);
 
 	auto &graphe = espace->graphe_dependance;
-	auto noeud_dep = graphe->cree_noeud_fonction(decl);
+	auto noeud_dep = graphe->cree_noeud_fonction(entete);
 
 	if (unite->index_courant == 0) {
 		auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
 
-		decl->bloc->membres->reserve(decl->params.taille + requiers_contexte);
+		decl->bloc->membres->reserve(entete->params.taille + requiers_contexte);
 
 		if (requiers_contexte) {
 			auto val_ctx = static_cast<NoeudExpressionReference *>(espace->assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
@@ -2654,7 +2678,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationFonction *decl)
 			decl->bloc->membres->pousse(decl_ctx);
 		}
 
-		POUR (decl->params) {
+		POUR (entete->params) {
 			auto argument = it->comme_decl_var();
 			decl->bloc->membres->pousse(argument);
 		}
@@ -3090,7 +3114,7 @@ void ContexteValidationCode::rapporte_erreur_redefinition_symbole(NoeudExpressio
 	erreur::redefinition_symbole(*espace, decl->lexeme, decl_prec->lexeme);
 }
 
-void ContexteValidationCode::rapporte_erreur_redefinition_fonction(NoeudDeclarationFonction *decl, NoeudDeclaration *decl_prec)
+void ContexteValidationCode::rapporte_erreur_redefinition_fonction(NoeudDeclarationEnteteFonction *decl, NoeudDeclaration *decl_prec)
 {
 	erreur::redefinition_fonction(*espace, decl_prec->lexeme, decl->lexeme);
 }

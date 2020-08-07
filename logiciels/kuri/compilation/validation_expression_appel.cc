@@ -327,7 +327,7 @@ static auto apparie_appel_init_de(
 static auto apparie_appel_fonction(
 		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
-		NoeudDeclarationFonction *decl,
+		NoeudDeclarationEnteteFonction *decl,
 		kuri::tableau<IdentifiantEtExpression> const &args,
 		DonneesCandidate &res)
 {
@@ -886,8 +886,8 @@ static auto trouve_candidates_pour_appel(
 				}
 				resultat.pousse(dc);
 			}
-			else if (decl->genre == GenreNoeud::DECLARATION_FONCTION || decl->genre == GenreNoeud::DECLARATION_COROUTINE) {
-				auto decl_fonc = static_cast<NoeudDeclarationFonction *>(decl);
+			else if (decl->est_entete_fonction()) {
+				auto decl_fonc = decl->comme_entete_fonction();
 
 				if ((decl_fonc->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
 					contexte.unite->attend_sur_declaration(decl_fonc);
@@ -927,11 +927,11 @@ static auto trouve_candidates_pour_appel(
 
 /* ************************************************************************** */
 
-static std::pair<NoeudDeclarationFonction *, bool> trouve_fonction_epandue_ou_crees_en_une(
+static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue_ou_crees_en_une(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
-		NoeudDeclarationFonction *decl,
-		NoeudDeclarationFonction::tableau_paire_expansion const &paires)
+		NoeudDeclarationEnteteFonction *decl,
+		NoeudDeclarationEnteteFonction::tableau_paire_expansion const &paires)
 {
 	POUR (decl->epandu_pour) {
 		if (it.first.taille() != paires.taille()) {
@@ -954,14 +954,14 @@ static std::pair<NoeudDeclarationFonction *, bool> trouve_fonction_epandue_ou_cr
 		return { it.second, false };
 	}
 
-	auto noeud_decl = static_cast<NoeudDeclarationFonction *>(copie_noeud(espace.assembleuse, decl, decl->bloc_parent));
+	auto noeud_decl = static_cast<NoeudDeclarationEnteteFonction *>(copie_noeud(espace.assembleuse, decl, decl->bloc_parent));
 	noeud_decl->est_instantiation_gabarit = true;
 	noeud_decl->paires_expansion_gabarit = paires;
 
 	decl->epandu_pour.pousse({ paires, noeud_decl });
 
-	compilatrice.ordonnanceuse->cree_tache_pour_typage_fonction(&espace, noeud_decl);
 	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, noeud_decl);
+	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, noeud_decl->corps);
 
 	return { noeud_decl, true };
 }
@@ -1058,7 +1058,7 @@ bool valide_appel_fonction(
 			return true;
 		}
 
-		auto decl_fonction_appelee = static_cast<NoeudDeclarationFonction *>(candidate->noeud_decl);
+		auto decl_fonction_appelee = candidate->noeud_decl->comme_entete_fonction();
 
 		/* pour les directives d'exécution, la fonction courante est nulle */
 		if (fonction_courante != nullptr) {

@@ -52,10 +52,9 @@ OptionsCompilation :: struct {
 // GenreNoeudCode est une copie carbone de l'énumération de arbre_syntaxique.hh
 
 GenreNoeudCode :: énum z32 {
-    DECLARATION_COROUTINE
 	DECLARATION_ENUM
-	DECLARATION_FONCTION
-	DECLARATION_OPERATEUR
+	DECLARATION_ENTETE_FONCTION
+	DECLARATION_CORPS_FONCTION
 	DECLARATION_STRUCTURE
 	DECLARATION_VARIABLE
 	DIRECTIVE_EXECUTION
@@ -120,14 +119,24 @@ NoeudCode :: struct {
 	numero_colonne := 0
 }
 
-NoeudCodeFonction :: struct {
+NoeudCodeEntêteFonction :: struct {
     empl base : NoeudCode
 
     nom: chaine
-    bloc : *NoeudCodeBloc
 
     params_entrée : []*NoeudCodeDéclaration
     params_sortie : []*NoeudCodeDéclaration
+
+	// À FAIRE : remplace par des drapeaux
+	est_opérateur : bool
+	est_coroutine : bool
+}
+
+NoeudCodeCorpsFonction :: struct {
+    empl base : NoeudCode
+
+	entête : *NoeudCodeEntêteFonction
+    bloc : *NoeudCodeBloc
 }
 
 NoeudCodeAssignation :: struct {

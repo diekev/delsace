@@ -191,7 +191,7 @@ private:
 	void genere_ri_blocs_differes(NoeudBloc *bloc);
 	void genere_ri_pour_position_code_source(NoeudExpression *noeud);
 
-	void genere_ri_pour_coroutine(NoeudDeclarationFonction *noeud);
+	void genere_ri_pour_coroutine(NoeudDeclarationCorpsFonction *noeud);
 	void genere_ri_pour_retiens(NoeudExpression *noeud);
 
 	AtomeConstante *cree_info_type(Type *type);

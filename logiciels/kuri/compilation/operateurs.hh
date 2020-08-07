@@ -34,7 +34,7 @@
 
 enum class GenreLexeme : unsigned int;
 struct EspaceDeTravail;
-struct NoeudDeclarationFonction;
+struct NoeudDeclarationEnteteFonction;
 struct Type;
 
 enum class IndiceTypeOp {
@@ -61,7 +61,7 @@ struct OperateurUnaire {
 	Type *type_operande = nullptr;
 	Type *type_resultat = nullptr;
 
-	NoeudDeclarationFonction *decl = nullptr;
+	NoeudDeclarationEnteteFonction *decl = nullptr;
 
 	Genre genre{};
 	bool est_basique = true;
@@ -118,7 +118,7 @@ struct OperateurBinaire {
 	Type *type2{};
 	Type *type_resultat{};
 
-	NoeudDeclarationFonction *decl = nullptr;
+	NoeudDeclarationEnteteFonction *decl = nullptr;
 
 	Genre genre{};
 
@@ -155,9 +155,9 @@ struct Operateurs {
 
 	void ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat);
 
-	void ajoute_perso(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, NoeudDeclarationFonction *decl);
+	void ajoute_perso(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, NoeudDeclarationEnteteFonction *decl);
 
-	void ajoute_perso_unaire(GenreLexeme id, Type *type, Type *type_resultat, NoeudDeclarationFonction *decl);
+	void ajoute_perso_unaire(GenreLexeme id, Type *type, Type *type_resultat, NoeudDeclarationEnteteFonction *decl);
 
 	void ajoute_operateur_basique_enum(Type *type);
 

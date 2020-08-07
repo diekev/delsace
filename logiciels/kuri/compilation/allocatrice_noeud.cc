@@ -34,11 +34,21 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 			noeud = m_noeuds_bloc.ajoute_element();
 			break;
 		}
-		case GenreNoeud::DECLARATION_OPERATEUR:
-		case GenreNoeud::DECLARATION_FONCTION:
-		case GenreNoeud::DECLARATION_COROUTINE:
+		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
 		{
-			noeud = m_noeuds_declaration_fonction.ajoute_element();
+			auto entete = m_noeuds_declaration_entete_fonction.ajoute_element();
+			auto corps  = m_noeuds_declaration_corps_fonction.ajoute_element();
+
+			entete->corps = corps;
+			corps->entete = entete;
+
+			noeud = entete;
+			break;
+		}
+		case GenreNoeud::DECLARATION_CORPS_FONCTION:
+		{
+			/* assert faux car les noeuds de corps et d'entêtes sont alloués en même temps */
+			assert(false);
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENUM:
@@ -181,7 +191,7 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 
 	memoire += m_noeuds_bloc.memoire_utilisee();
 	memoire += m_noeuds_declaration_variable.memoire_utilisee();
-	memoire += m_noeuds_declaration_fonction.memoire_utilisee();
+	memoire += m_noeuds_declaration_corps_fonction.memoire_utilisee();
 	memoire += m_noeuds_enum.memoire_utilisee();
 	memoire += m_noeuds_struct.memoire_utilisee();
 	memoire += m_noeuds_expression_binaire.memoire_utilisee();
@@ -213,12 +223,16 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 		memoire += static_cast<size_t>(noeud.noeuds_differes.taille) * sizeof(NoeudBloc *);
 	});
 
-	pour_chaque_element(m_noeuds_declaration_fonction, [&](NoeudDeclarationFonction const &noeud)
+	pour_chaque_element(m_noeuds_declaration_corps_fonction, [&](NoeudDeclarationCorpsFonction const &noeud)
+	{
+		memoire += static_cast<size_t>(noeud.arbre_aplatis.taille) * sizeof(NoeudExpression *);
+	});
+
+	pour_chaque_element(m_noeuds_declaration_entete_fonction, [&](NoeudDeclarationEnteteFonction const &noeud)
 	{
 		memoire += static_cast<size_t>(noeud.params.taille) * sizeof(NoeudDeclaration *);
 		memoire += static_cast<size_t>(noeud.params_sorties.taille) * sizeof(NoeudExpression *);
 		memoire += static_cast<size_t>(noeud.arbre_aplatis.taille) * sizeof(NoeudExpression *);
-		memoire += static_cast<size_t>(noeud.arbre_aplatis_entete.taille) * sizeof(NoeudExpression *);
 		memoire += static_cast<size_t>(noeud.noms_retours.taille) * sizeof(dls::chaine);
 		memoire += static_cast<size_t>(noeud.noms_types_gabarits.taille) * sizeof(dls::vue_chaine_compacte);
 		memoire += static_cast<size_t>(noeud.paires_expansion_gabarit.taille()) * (sizeof (Type *) + sizeof (dls::vue_chaine_compacte));
@@ -227,7 +241,7 @@ size_t AllocatriceNoeud::memoire_utilisee() const
 			memoire += static_cast<size_t>(it.taille());
 		}
 
-		memoire += static_cast<size_t>(noeud.epandu_pour.taille()) * (sizeof(NoeudDeclarationFonction::tableau_paire_expansion) + sizeof(NoeudDeclarationFonction *));
+		memoire += static_cast<size_t>(noeud.epandu_pour.taille()) * (sizeof(NoeudDeclarationEnteteFonction::tableau_paire_expansion) + sizeof(NoeudDeclarationCorpsFonction *));
 		POUR (noeud.epandu_pour) {
 			memoire += static_cast<size_t>(it.first.taille()) * (sizeof (Type *) + sizeof (dls::vue_chaine_compacte));
 		}
@@ -262,7 +276,8 @@ size_t AllocatriceNoeud::nombre_noeuds() const
 
 	noeuds += static_cast<size_t>(m_noeuds_bloc.taille());
 	noeuds += static_cast<size_t>(m_noeuds_declaration_variable.taille());
-	noeuds += static_cast<size_t>(m_noeuds_declaration_fonction.taille());
+	noeuds += static_cast<size_t>(m_noeuds_declaration_corps_fonction.taille());
+	noeuds += static_cast<size_t>(m_noeuds_declaration_entete_fonction.taille());
 	noeuds += static_cast<size_t>(m_noeuds_enum.taille());
 	noeuds += static_cast<size_t>(m_noeuds_struct.taille());
 	noeuds += static_cast<size_t>(m_noeuds_expression_binaire.taille());
@@ -286,7 +301,8 @@ size_t AllocatriceNoeud::nombre_noeuds() const
 
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_bloc);
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_declaration_variable);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_declaration_fonction);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_declaration_corps_fonction);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_declaration_entete_fonction);
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_enum);
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_struct);
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_binaire);

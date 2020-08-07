@@ -126,18 +126,6 @@ void OrdonnanceuseTache::cree_tache_pour_parsage(EspaceDeTravail *espace, Fichie
 
 void OrdonnanceuseTache::cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
-	cree_tache_pour_typage(espace, noeud, GenreTache::TYPAGE);
-}
-
-void OrdonnanceuseTache::cree_tache_pour_typage_fonction(EspaceDeTravail *espace, NoeudDeclarationFonction *noeud)
-{
-	// À FAIRE : il nous faut deux unités : une pour le typage de l'entête, et une pour le typage du corps
-	//           puisque nous n'avons qu'une seule unité par noeud, le noeud interfère avec l'état de l'unité
-	cree_tache_pour_typage(espace, noeud, GenreTache::TYPAGE_ENTETE_FONCTION);
-}
-
-void OrdonnanceuseTache::cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud, GenreTache genre_tache)
-{
 	espace->nombre_taches_typage += 1;
 
 	auto unite = unites.ajoute_element(espace);
@@ -147,7 +135,7 @@ void OrdonnanceuseTache::cree_tache_pour_typage(EspaceDeTravail *espace, NoeudEx
 
 	auto tache = Tache();
 	tache.unite = unite;
-	tache.genre = genre_tache;
+	tache.genre = GenreTache::TYPAGE;
 
 	taches_typage.enfile(tache);
 }
@@ -240,30 +228,6 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 
 			break;
 		}
-		case GenreTache::TYPAGE_ENTETE_FONCTION:
-		{
-			if (!tache_completee) {
-				nouvelle_tache.unite->cycle += 1;
-				taches_typage.enfile(nouvelle_tache);
-				break;
-			}
-
-			espace->nombre_taches_typage -= 1;
-			if (espace->nombre_taches_typage == 0) {
-				m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::TYPAGE_TERMINE);
-			}
-
-			auto decl = static_cast<NoeudDeclarationFonction *>(unite->noeud);
-
-			if (decl->est_externe) {
-				espace->nombre_taches_ri += 1;
-				nouvelle_tache.genre = GenreTache::GENERE_RI;
-				nouvelle_tache.unite->cycle = 0;
-				taches_generation_ri.enfile(nouvelle_tache);
-			}
-
-			break;
-		}
 		case GenreTache::TYPAGE:
 		{
 			// La tâche ne pût être complétée (une définition est attendue, etc.), remets-là dans la file en attendant.
@@ -281,12 +245,15 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 			auto generation_ri_requise = true;
 			auto noeud = unite->noeud;
 
-			if (dls::outils::est_element(noeud->genre, GenreNoeud::DECLARATION_FONCTION, GenreNoeud::DECLARATION_COROUTINE, GenreNoeud::DECLARATION_OPERATEUR)) {
-				auto decl_fonc = static_cast<NoeudDeclarationFonction *>(noeud);
+			if (noeud->est_entete_fonction()) {
+				auto decl_fonc = noeud->comme_entete_fonction();
 
 				if (decl_fonc->est_gabarit && !decl_fonc->est_instantiation_gabarit) {
 					generation_ri_requise = false;
 				}
+			}
+			else if (noeud->est_corps_fonction()) {
+				generation_ri_requise = false;
 			}
 
 			if (generation_ri_requise) {
@@ -480,18 +447,6 @@ void Tacheronne::gere_tache()
 				tache_fut_completee = true;
 				break;
 			}
-			case GenreTache::TYPAGE_ENTETE_FONCTION:
-			{
-				auto unite = tache.unite;
-				auto debut_validation = dls::chrono::compte_seconde();
-				auto contexte = ContexteValidationCode(compilatrice, *unite);
-				auto decl = static_cast<NoeudDeclarationFonction *>(unite->noeud);
-
-				tache_fut_completee = !contexte.valide_type_fonction(decl);
-
-				temps_validation += debut_validation.temps();
-				break;
-			}
 			case GenreTache::TYPAGE:
 			{
 				auto unite = tache.unite;
@@ -656,22 +611,25 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 			auto contexte = ContexteValidationCode(compilatrice, *unite);
 
 			switch (unite->noeud->genre) {
-				case GenreNoeud::DECLARATION_COROUTINE:
-				case GenreNoeud::DECLARATION_FONCTION:
+				case GenreNoeud::DECLARATION_ENTETE_FONCTION:
 				{
-					auto decl = static_cast<NoeudDeclarationFonction *>(unite->noeud);
+					auto decl = unite->noeud->comme_entete_fonction();
+					return !contexte.valide_type_fonction(decl);
+				}
+				case GenreNoeud::DECLARATION_CORPS_FONCTION:
+				{
+					auto decl = static_cast<NoeudDeclarationCorpsFonction *>(unite->noeud);
 
-					if ((decl->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
+					if ((decl->entete->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
 						unite->attend_sur_declaration(decl);
 						return false;
 					}
 
+					if (decl->entete->est_operateur) {
+						return !contexte.valide_operateur(decl);
+					}
+
 					return !contexte.valide_fonction(decl);
-				}
-				case GenreNoeud::DECLARATION_OPERATEUR:
-				{
-					auto decl = static_cast<NoeudDeclarationFonction *>(unite->noeud);
-					return !contexte.valide_operateur(decl);
 				}
 				case GenreNoeud::DECLARATION_ENUM:
 				{
@@ -824,7 +782,7 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 	traverse_graphe(noeud->fonction->noeud_dependance, [&](NoeudDependance *noeud_dep)
 	{
 		if (noeud_dep->type == TypeNoeudDependance::FONCTION) {
-			auto decl_noeud = static_cast<NoeudDeclarationFonction *>(noeud_dep->noeud_syntaxique);
+			auto decl_noeud = noeud_dep->noeud_syntaxique->comme_entete_fonction();
 
 			if ((decl_noeud->drapeaux & CODE_BINAIRE_FUT_GENERE) != 0) {
 				return;

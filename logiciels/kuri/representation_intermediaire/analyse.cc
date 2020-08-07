@@ -74,7 +74,7 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 			else {
 				std::cerr << "La dernière instruction est nulle !\n";
 			}
-			rapporte_erreur(&espace, const_cast<NoeudDeclarationFonction *>(decl), "Instruction de retour manquante");
+			rapporte_erreur(&espace, const_cast<NoeudDeclarationEnteteFonction *>(decl), "Instruction de retour manquante");
 		}
 	}
 }

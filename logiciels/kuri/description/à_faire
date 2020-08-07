@@ -392,7 +392,6 @@ implémente la directive #si pour la compilation sélective
 - génération de code sur plusieurs threads (LLVM -> un module par thread + liaison finale de tous les modules)
 - réduction des allocations
 - déplace la génération de la fonction main dans une unité de compilation
-- utilise un noeud syntaxique pour les entêtes de fonction, l'unité est partagée et il y a corruption entre l'état pour l'entête et celui pour le corps
 - remplace TransformationType par un noeud de transtypage
     il faudra pouvoir remplacer le noeud de l'expression dans le bloc parent
         expr->bloc_parent->remplace(expr, transtype)

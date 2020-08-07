@@ -87,18 +87,18 @@ struct GeranteChaine {
 
 // Interface avec le module « Kuri », pour certaines fonctions intéressantes
 struct InterfaceKuri {
-	NoeudDeclarationFonction *decl_panique = nullptr;
-	NoeudDeclarationFonction *decl_panique_tableau = nullptr;
-	NoeudDeclarationFonction *decl_panique_chaine = nullptr;
-	NoeudDeclarationFonction *decl_panique_membre_union = nullptr;
-	NoeudDeclarationFonction *decl_panique_memoire = nullptr;
-	NoeudDeclarationFonction *decl_panique_erreur = nullptr;
-	NoeudDeclarationFonction *decl_rappel_panique_defaut = nullptr;
-	NoeudDeclarationFonction *decl_dls_vers_r32 = nullptr;
-	NoeudDeclarationFonction *decl_dls_vers_r64 = nullptr;
-	NoeudDeclarationFonction *decl_dls_depuis_r32 = nullptr;
-	NoeudDeclarationFonction *decl_dls_depuis_r64 = nullptr;
-	NoeudDeclarationFonction *decl_creation_contexte = nullptr;
+	NoeudDeclarationEnteteFonction *decl_panique = nullptr;
+	NoeudDeclarationEnteteFonction *decl_panique_tableau = nullptr;
+	NoeudDeclarationEnteteFonction *decl_panique_chaine = nullptr;
+	NoeudDeclarationEnteteFonction *decl_panique_membre_union = nullptr;
+	NoeudDeclarationEnteteFonction *decl_panique_memoire = nullptr;
+	NoeudDeclarationEnteteFonction *decl_panique_erreur = nullptr;
+	NoeudDeclarationEnteteFonction *decl_rappel_panique_defaut = nullptr;
+	NoeudDeclarationEnteteFonction *decl_dls_vers_r32 = nullptr;
+	NoeudDeclarationEnteteFonction *decl_dls_vers_r64 = nullptr;
+	NoeudDeclarationEnteteFonction *decl_dls_depuis_r32 = nullptr;
+	NoeudDeclarationEnteteFonction *decl_dls_depuis_r64 = nullptr;
+	NoeudDeclarationEnteteFonction *decl_creation_contexte = nullptr;
 };
 
 /* IPA :
@@ -197,7 +197,7 @@ struct EspaceDeTravail {
 
 	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction);
 	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction, kuri::tableau<Atome *> &&params);
-	AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationFonction const *decl);
+	AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationEnteteFonction const *decl);
 	AtomeFonction *trouve_fonction(dls::chaine const &nom_fonction);
 	AtomeFonction *trouve_ou_insere_fonction_init(ConstructriceRI &constructrice, Type *type);
 

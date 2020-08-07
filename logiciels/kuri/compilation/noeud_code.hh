@@ -42,6 +42,7 @@ struct EspaceDeTravail;
 struct InfoType;
 struct NoeudCodeBloc;
 struct NoeudCodeDeclaration;
+struct NoeudCodeCorpsFonction;
 struct NoeudExpression;
 struct Type;
 
@@ -55,13 +56,19 @@ struct NoeudCode {
 	int numero_colonne = 0;
 };
 
-struct NoeudCodeFonction : public NoeudCode {
+struct NoeudCodeEnteteFonction : public NoeudCode {
 	kuri::chaine nom{};
-
-	NoeudCodeBloc *bloc = nullptr;
 
 	kuri::tableau<NoeudCodeDeclaration *> params_entree{};
 	kuri::tableau<NoeudCodeDeclaration *> params_sortie{};
+
+	bool est_operateur = false;
+	bool est_coroutine = false;
+};
+
+struct NoeudCodeCorpsFonction : public NoeudCode {
+	NoeudCodeEnteteFonction *entete = nullptr;
+	NoeudCodeBloc *bloc = nullptr;
 };
 
 struct NoeudCodeAssignation : public NoeudCode {
@@ -180,7 +187,8 @@ struct InfoTypeEnum : public InfoType {
 
 struct ConvertisseuseNoeudCode {
 	tableau_page<NoeudCode> noeuds_codes{};
-	tableau_page<NoeudCodeFonction> noeuds_fonctions{};
+	tableau_page<NoeudCodeEnteteFonction> noeuds_entetes_fonctions{};
+	tableau_page<NoeudCodeCorpsFonction> noeuds_corps_fonctions{};
 	tableau_page<NoeudCodeAssignation> noeuds_assignations{};
 	tableau_page<NoeudCodeDeclaration> noeuds_declarations{};
 	tableau_page<NoeudCodeOperationUnaire> noeuds_operations_unaire{};

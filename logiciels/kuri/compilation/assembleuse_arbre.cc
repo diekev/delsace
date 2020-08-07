@@ -68,6 +68,13 @@ NoeudExpression *assembleuse_arbre::cree_noeud(GenreNoeud genre, Lexeme const *l
 		if (noeud->lexeme && (noeud->lexeme->genre == GenreLexeme::CHAINE_CARACTERE || noeud->lexeme->genre == GenreLexeme::EXTERNE)) {
 			noeud->ident = lexeme->ident;
 		}
+
+		if (genre == GenreNoeud::DECLARATION_ENTETE_FONCTION) {
+			auto entete = noeud->comme_entete_fonction();
+			entete->corps->lexeme = lexeme;
+			entete->corps->ident = lexeme->ident;
+			entete->corps->bloc_parent = entete->bloc_parent;
+		}
 	}
 
 	return noeud;

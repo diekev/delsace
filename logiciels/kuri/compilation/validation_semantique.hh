@@ -29,7 +29,8 @@
 #include "validation_expression_appel.hh"
 
 struct Compilatrice;
-struct NoeudDeclarationFonction;
+struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationCorpsFonction;
 struct NoeudExpression;
 
 namespace erreur {
@@ -38,7 +39,7 @@ enum class type_erreur : int;
 
 struct ContexteValidationCode {
 	Compilatrice &m_compilatrice;
-	NoeudDeclarationFonction *fonction_courante = nullptr;
+	NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
 
 	/* Les données des dépendances d'un noeud syntaxique. */
 	DonneesDependance donnees_dependance{};
@@ -53,7 +54,7 @@ struct ContexteValidationCode {
 
 	COPIE_CONSTRUCT(ContexteValidationCode);
 
-	void commence_fonction(NoeudDeclarationFonction *fonction);
+	void commence_fonction(NoeudDeclarationEnteteFonction *fonction);
 
 	void termine_fonction();
 
@@ -69,9 +70,9 @@ struct ContexteValidationCode {
 	bool valide_semantique_noeud(NoeudExpression *);
 	bool valide_acces_membre(NoeudExpressionMembre *expression_membre);
 
-	bool valide_type_fonction(NoeudDeclarationFonction *);
-	bool valide_fonction(NoeudDeclarationFonction *);
-	bool valide_operateur(NoeudDeclarationFonction *);
+	bool valide_type_fonction(NoeudDeclarationEnteteFonction *);
+	bool valide_fonction(NoeudDeclarationCorpsFonction *);
+	bool valide_operateur(NoeudDeclarationCorpsFonction *);
 	bool valide_enum(NoeudEnum *);
 	bool valide_structure(NoeudStruct *);
 	bool valide_arbre_aplatis(kuri::tableau<NoeudExpression *> &arbre_aplatis);
@@ -80,7 +81,7 @@ struct ContexteValidationCode {
 	void rapporte_erreur(const char *message, NoeudExpression *noeud);
 	void rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::type_erreur type_erreur);
 	void rapporte_erreur_redefinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec);
-	void rapporte_erreur_redefinition_fonction(NoeudDeclarationFonction *decl, NoeudDeclaration *decl_prec);
+	void rapporte_erreur_redefinition_fonction(NoeudDeclarationEnteteFonction *decl, NoeudDeclaration *decl_prec);
 	void rapporte_erreur_type_arguments(NoeudExpression *type_arg, NoeudExpression *type_enf);
 	void rapporte_erreur_type_retour(const Type *type_arg, const Type *type_enf, NoeudExpression *racine);
 	void rapporte_erreur_assignation_type_differents(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud);
