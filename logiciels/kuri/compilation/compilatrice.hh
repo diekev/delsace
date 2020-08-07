@@ -289,11 +289,6 @@ struct Compilatrice {
 
 	/* ********************************************************************** */
 
-	void ajoute_unite_compilation_pour_typage(EspaceDeTravail *espace, NoeudExpression *expression);
-	void ajoute_unite_compilation_entete_fonction(EspaceDeTravail *espace, NoeudDeclarationFonction *decl);
-
-	/* ********************************************************************** */
-
 	EspaceDeTravail *demarre_un_espace_de_travail(OptionsCompilation const &options, dls::chaine const &nom);
 
 	/* ********************************************************************** */
