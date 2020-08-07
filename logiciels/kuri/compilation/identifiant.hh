@@ -128,6 +128,7 @@ extern IdentifiantCode *malloc_;
 extern IdentifiantCode *realloc_;
 extern IdentifiantCode *free_;
 extern IdentifiantCode *si;
+extern IdentifiantCode *pointeur;
 
 }
 

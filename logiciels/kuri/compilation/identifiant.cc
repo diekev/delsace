@@ -158,6 +158,7 @@ IdentifiantCode *malloc_;
 IdentifiantCode *realloc_;
 IdentifiantCode *free_;
 IdentifiantCode *si;
+IdentifiantCode *pointeur;
 
 }
 
@@ -231,4 +232,5 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::realloc_ = table.identifiant_pour_chaine("realloc");
 	ID::free_ = table.identifiant_pour_chaine("free");
 	ID::si = table.identifiant_pour_chaine("si");
+	ID::pointeur = table.identifiant_pour_chaine("pointeur");
 }
