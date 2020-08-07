@@ -889,8 +889,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					// À FAIRE(ri) : valeur défaut pour tableau fixe
 				}
 				else if (noeud->type->genre == GenreType::STRUCTURE || noeud->type->genre == GenreType::UNION) {
-					auto nom_fonction = "initialise_" + dls::vers_chaine(noeud->type);
-					auto atome_fonction =m_espace->trouve_fonction(nom_fonction);
+					auto atome_fonction = m_espace->trouve_ou_insere_fonction_init(*this, noeud->type);
 
 					auto params_init = kuri::tableau<Atome *>(2);
 					params_init[0] = cree_charge_mem(table_locales[ID::contexte]);
@@ -1210,7 +1209,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			auto decl = expr_un->op->decl;
 			auto requiers_contexte = !decl->est_externe && !dls::outils::possede_drapeau(decl->drapeaux, FORCE_NULCTX);
-			auto atome_fonction =m_espace->trouve_fonction(decl->nom_broye);
+			auto atome_fonction = m_espace->trouve_ou_insere_fonction(*this, decl);
 			auto args = kuri::tableau<Atome *>(1 + requiers_contexte);
 
 			if (requiers_contexte) {
@@ -1566,8 +1565,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto type_fonction = noeud->type->comme_fonction();
 			auto type_pointeur = type_fonction->types_entrees[1];
 			auto type_arg = type_pointeur->comme_pointeur()->type_pointe;
-			auto nom_fonction = "initialise_" + dls::vers_chaine(type_arg);
-			empile_valeur(m_espace->trouve_fonction(nom_fonction));
+			empile_valeur(m_espace->trouve_ou_insere_fonction_init(*this, type_arg));
 			break;
 		}
 		case GenreNoeud::EXPRESSION_TYPE_DE:
@@ -2193,7 +2191,7 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 				else {
 					auto decl = op->decl;
 					auto requiers_contexte = !decl->est_externe && !dls::outils::possede_drapeau(decl->drapeaux, FORCE_NULCTX);
-					auto atome_fonction =m_espace->trouve_fonction(decl->nom_broye);
+					auto atome_fonction = m_espace->trouve_ou_insere_fonction(*this, decl);
 					auto args = kuri::tableau<Atome *>(2 + requiers_contexte);
 
 					if (requiers_contexte) {
@@ -2815,8 +2813,7 @@ void ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpress
 			auto type_deref = type_dereference_pour(type);
 
 			if (mode == 0 && type_deref && (type_deref->genre == GenreType::STRUCTURE || type_deref->genre == GenreType::UNION)) {
-				auto nom_fonction = "initialise_" + dls::vers_chaine(type_deref);
-				auto atome_fonction = m_espace->trouve_fonction(nom_fonction);
+				auto atome_fonction = m_espace->trouve_ou_insere_fonction_init(*this, type_deref);
 
 				auto params_init = kuri::tableau<Atome *>(2);
 				params_init[0] = cree_charge_mem(ptr_contexte);
@@ -2924,23 +2921,8 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	auto ancien_nombre_labels = nombre_labels;
 	nombre_labels = 0;
 
-	auto types_entrees = kuri::tableau<Type *>(2);
-	types_entrees[0] = m_espace->typeuse.type_contexte;
-	types_entrees[1] = m_espace->typeuse.type_pointeur_pour(normalise_type(m_espace->typeuse, type));
-
-	auto types_sorties = kuri::tableau<Type *>(1);
-	types_sorties[0] = m_espace->typeuse[TypeBase::RIEN];
-
-	auto params = kuri::tableau<Atome *>(2);
-	params[0] = cree_allocation(types_entrees[0], ID::contexte);
-	params[1] = cree_allocation(types_entrees[1], IDENT_CODE("pointeur"));
-
-	auto ptr_contexte = params[0];
-
-	auto nom_fonction = "initialise_" + dls::vers_chaine(type);
-
-	auto fonction = m_espace->cree_fonction(nullptr, nom_fonction, std::move(params));
-	fonction->type = m_espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+	auto fonction = m_espace->trouve_ou_insere_fonction_init(*this, type);
+	auto ptr_contexte = fonction->params_entrees[0];
 	fonction_courante = fonction;
 	cree_label();
 
@@ -3005,8 +2987,7 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 			}
 			else {
 				if (it.type->genre == GenreType::STRUCTURE || it.type->genre == GenreType::UNION) {
-					auto nom_fonction_init = "initialise_" + dls::vers_chaine(it.type);
-					auto atome_fonction =m_espace->trouve_fonction(nom_fonction_init);
+					auto atome_fonction = m_espace->trouve_ou_insere_fonction_init(*this, it.type);
 
 					auto params_init = kuri::tableau<Atome *>(2);
 					params_init[0] = cree_charge_mem(ptr_contexte);
@@ -4075,7 +4056,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 
 	// ----------------------------------
 	// appel notre fonction principale en passant le contexte et le tableau
-	auto fonc_princ =m_espace->trouve_fonction("principale");
+	auto fonc_princ = m_espace->trouve_fonction("principale");
 
 	auto params_principale = kuri::tableau<Atome *>(1);
 	params_principale[0] = cree_charge_mem(alloc_contexte);
@@ -4104,7 +4085,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecut
 
 	auto decl_creation_contexte = m_espace->interface_kuri->decl_creation_contexte;
 
-	auto atome_creation_contexte =m_espace->trouve_fonction(decl_creation_contexte->nom_broye);
+	auto atome_creation_contexte = m_espace->trouve_ou_insere_fonction(*this, decl_creation_contexte);
 
 	atome_fonc->instructions.reserve(atome_creation_contexte->instructions.taille);
 
@@ -4178,8 +4159,7 @@ Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction
 	assigne_membre(alloc_contexte, trouve_index_membre(m_espace->typeuse.type_contexte, "trace_appel"), alloc_trace);
 
 	{
-		auto nom_fonction_init = "initialise_" + dls::vers_chaine(m_espace->typeuse.type_contexte);
-		auto fonction_init =m_espace->trouve_fonction(nom_fonction_init);
+		auto fonction_init = m_espace->trouve_ou_insere_fonction_init(*this, m_espace->typeuse.type_contexte);
 
 		auto params_init = kuri::tableau<Atome *>(2);
 		params_init[0] = cree_charge_mem(alloc_contexte);
@@ -4203,8 +4183,7 @@ Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction
 	// ----------------------------------
 	// initialise l'allocatrice défaut
 	{
-		auto nom_fonction_init = "initialise_" + dls::vers_chaine(type_base_alloc);
-		auto fonction_init =m_espace->trouve_fonction(nom_fonction_init);
+		auto fonction_init = m_espace->trouve_ou_insere_fonction_init(*this, type_base_alloc);
 
 		auto params_init = kuri::tableau<Atome *>(2);
 		params_init[0] = cree_charge_mem(alloc_contexte);

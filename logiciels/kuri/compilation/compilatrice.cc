@@ -204,6 +204,42 @@ AtomeFonction *EspaceDeTravail::trouve_fonction(const dls::chaine &nom_fonction)
 	return nullptr;
 }
 
+AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &constructrice, Type *type)
+{
+	auto table = table_fonctions.verrou_ecriture();
+
+	auto nom_fonction = "initialise_" + dls::vers_chaine(type);
+
+	auto iter_fonc = table->trouve(nom_fonction);
+
+	if (iter_fonc != table->fin()) {
+		return iter_fonc->second;
+	}
+
+	auto fonction_courante = constructrice.fonction_courante;
+	constructrice.fonction_courante = nullptr;
+
+	auto types_entrees = kuri::tableau<Type *>(2);
+	types_entrees[0] = typeuse.type_contexte;
+	types_entrees[1] = typeuse.type_pointeur_pour(normalise_type(typeuse, type));
+
+	auto types_sorties = kuri::tableau<Type *>(1);
+	types_sorties[0] = typeuse[TypeBase::RIEN];
+
+	auto params = kuri::tableau<Atome *>(2);
+	params[0] = constructrice.cree_allocation(types_entrees[0], ID::contexte);
+	params[1] = constructrice.cree_allocation(types_entrees[1], ID::pointeur);
+
+	auto atome_fonc = fonctions.ajoute_element(nullptr, nom_fonction, std::move(params));
+	atome_fonc->type = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+
+	table->insere({ nom_fonction, atome_fonc });
+
+	constructrice.fonction_courante = fonction_courante;
+
+	return atome_fonc;
+}
+
 AtomeGlobale *EspaceDeTravail::cree_globale(Type *type, AtomeConstante *initialisateur, bool est_externe, bool est_constante)
 {
 	return globales.ajoute_element(typeuse.type_pointeur_pour(type), initialisateur, est_externe, est_constante);

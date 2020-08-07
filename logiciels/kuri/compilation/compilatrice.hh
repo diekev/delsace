@@ -199,6 +199,7 @@ struct EspaceDeTravail {
 	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction, kuri::tableau<Atome *> &&params);
 	AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationFonction const *decl);
 	AtomeFonction *trouve_fonction(dls::chaine const &nom_fonction);
+	AtomeFonction *trouve_ou_insere_fonction_init(ConstructriceRI &constructrice, Type *type);
 
 	AtomeGlobale *cree_globale(Type *type, AtomeConstante *valeur, bool initialisateur, bool est_constante);
 	void ajoute_globale(NoeudDeclaration *decl, AtomeGlobale *atome);
