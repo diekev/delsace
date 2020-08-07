@@ -11,7 +11,7 @@ bar :: fonc(f : &FOO) -> rien
 
 foo :: fonc(a : &z32) -> rien
 {
-    a := 7
+    a = 7
 }
 
 échange :: fonc(a : &z32, b : &z32) -> rien
