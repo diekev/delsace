@@ -382,6 +382,16 @@ implémente la directive #si pour la compilation sélective
     - dit à la compilatrice qu'un espace de travail devient le défaut ?
     - que l'on écoute des messages ? chaque espace de travail aura sa propre file de messages et la compilatrice mettra tous les messages dans celle-ci
         peut-on ne pas avoir les messages d'autres espaces ?
+- ajout d'une variable globale implicite (définie dans le compilateur) au module Kuri pour définir le système d'exploitation
+    SystèmeExploitation :: énum {
+        AUCUN
+        LINUX
+        ANDROIDE
+        WINDOWS
+        MACOS
+    }
+
+    SYS_EXP :: Système.LINUX
 
 
 

@@ -64,3 +64,20 @@ principale :: fonc () -> z32
 
     retourne 0
 }
+
+
+// références :
+// si assignation :
+//    si dest est référence et src est référence -> assigne
+//    si dest est référence et src n'est pas référence -> prend référence
+//    si dest n'est pas référence et src est référence -> déréférence source
+// si déclaration :
+//    si dest est référence -> force la présence d'une expression
+//    si dest est référence et src est référence -> assigne
+//    si dest est référence et src n'est pas référence -> prend référence
+//    si dest n'est pas référence et src est référence -> déréférence source
+//    si dest n'a pas de type -> le type devient le type déréférencé
+// si argument :
+//    si dest est référence et src est référence -> assigne
+//    si dest est référence et src n'est pas référence -> prend référence
+//    si dest n'est pas référence et src est référence -> déréférence source
