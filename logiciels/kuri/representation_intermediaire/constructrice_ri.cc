@@ -636,7 +636,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			genere_ri_pour_noeud(decl->corps->bloc);
 
-			if (decl->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
+			if (decl->corps->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
 				cree_retour(nullptr);
 			}
 
