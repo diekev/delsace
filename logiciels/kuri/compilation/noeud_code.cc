@@ -349,7 +349,11 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->taille_en_octet = type->taille_octet;
 			info_type->est_tableau_fixe = false;
 			info_type->taille_fixe = 0;
-			info_type->type_pointe = cree_info_type_pour(type_variadique->type_pointe);
+
+			// type nul pour les types variadiques des fonctions externes (p.e. printf(const char *, ...))
+			if (type_variadique->type_pointe) {
+				info_type->type_pointe = cree_info_type_pour(type_variadique->type_pointe);
+			}
 
 			type->info_type = info_type;
 			break;
