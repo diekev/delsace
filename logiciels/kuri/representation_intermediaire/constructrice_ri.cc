@@ -788,7 +788,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			if (decl_ref != nullptr && decl_ref->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
+			if (decl_ref != nullptr && decl_ref->est_entete_fonction()) {
 				auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl_ref->comme_entete_fonction());
 				// voir commentaire dans cree_appel
 				atome_fonc->nombre_utilisations += 1;
