@@ -2910,6 +2910,7 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 		return;
 	}
 
+	// À FAIRE : trouve une bonne manière de sauvegarder et restaurer l'état des fonctions courante pour éviter les bugs
 	auto ancienne_pile = m_pile;
 	m_pile.efface();
 	auto ancienne_table = table_locales;
