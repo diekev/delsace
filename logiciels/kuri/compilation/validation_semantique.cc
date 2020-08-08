@@ -183,10 +183,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			// crée une fonction pour l'exécution
 			auto decl_entete = static_cast<NoeudDeclarationEnteteFonction *>(espace->assembleuse->cree_noeud(GenreNoeud::DECLARATION_ENTETE_FONCTION, noeud->lexeme));
-			auto decl_corps = static_cast<NoeudDeclarationCorpsFonction *>(espace->assembleuse->cree_noeud(GenreNoeud::DECLARATION_CORPS_FONCTION, noeud->lexeme));
-
-			decl_entete->corps = decl_corps;
-			decl_corps->entete = decl_entete;
+			auto decl_corps  = decl_entete->corps;
 
 			decl_entete->bloc_parent = noeud->bloc_parent;
 			decl_corps->bloc_parent = noeud->bloc_parent;
