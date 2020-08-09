@@ -32,6 +32,7 @@
 
 #include "assembleuse_arbre.h"
 #include "erreur.h"
+#include "lexeuse.hh"
 #include "modules.hh"
 
 /* ************************************************************************** */
@@ -719,4 +720,57 @@ EspaceDeTravail *espace_defaut_compilation()
 void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne, kuri::chaine message)
 {
 	::rapporte_erreur(espace, fichier, ligne, message);
+}
+
+static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(dls::tableau<Lexeme> const &lexemes)
+{
+	auto resultat = kuri::tableau<kuri::Lexeme>();
+	resultat.reserve(lexemes.taille());
+
+	POUR (lexemes) {
+		resultat.pousse({ static_cast<int>(it.genre), it.chaine });
+	}
+
+	return resultat;
+}
+
+kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne)
+{
+	static Lexeme lexeme = {};
+
+	auto espace = ptr_compilatrice->espace_de_travail_defaut;
+	auto chemin = dls::chaine(chemin_donne.pointeur, chemin_donne.taille);
+
+	if (!std::filesystem::exists(chemin.c_str())) {
+		erreur::lance_erreur(
+					"Impossible de trouver le fichier correspondant au chemin",
+					*espace,
+					&lexeme,
+					erreur::type_erreur::MODULE_INCONNU);
+	}
+
+	if (!std::filesystem::is_regular_file(chemin.c_str())) {
+		erreur::lance_erreur(
+					"Le nom du fichier ne pointe pas vers un fichier régulier",
+					*espace,
+					&lexeme,
+					erreur::type_erreur::MODULE_INCONNU);
+	}
+
+	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
+
+	auto fichier = espace->cree_fichier(chemin_absolu.stem().c_str(), chemin_absolu.c_str(), false);
+
+	if (fichier == nullptr) {
+		fichier = espace->fichier(chemin_absolu.stem().c_str());
+		return converti_tableau_lexemes(fichier->lexemes);
+	}
+
+	auto tampon = charge_fichier(chemin.c_str(), *espace, {});
+	fichier->tampon = lng::tampon_source(tampon);
+
+	auto lexeuse = Lexeuse(*ptr_compilatrice, fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
+	lexeuse.performe_lexage();
+
+	return converti_tableau_lexemes(fichier->lexemes);
 }

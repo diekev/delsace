@@ -286,4 +286,11 @@ void pousse(tableau<T> *tabl, T valeur)
 	tabl->pointeur[tabl->taille - 1] = valeur;
 }
 
+/* Structure pour passer les lexèmes aux métaprogrammes, via compilatrice_lèxe_fichier
+ */
+struct Lexeme {
+	int genre;
+	chaine texte;
+};
+
 }

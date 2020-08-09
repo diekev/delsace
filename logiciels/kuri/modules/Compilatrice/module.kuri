@@ -48,6 +48,150 @@ OptionsCompilation :: struct {
 }
 
 // ----------------------------------------------------------------------------
+
+GenreLexème :: énum {
+	EXCLAMATION
+	GUILLEMET
+	DIRECTIVE
+	DOLLAR
+	POURCENT
+	ESPERLUETTE
+	APOSTROPHE
+	PARENTHESE_OUVRANTE
+	PARENTHESE_FERMANTE
+	FOIS
+	PLUS
+	VIRGULE
+	MOINS
+	POINT
+	DIVISE
+	DOUBLE_POINTS
+	POINT_VIRGULE
+	INFERIEUR
+	EGAL
+	SUPERIEUR
+	AROBASE
+	CROCHET_OUVRANT
+	CROCHET_FERMANT
+	CHAPEAU
+	ACCOLADE_OUVRANTE
+	BARRE
+	ACCOLADE_FERMANTE
+	TILDE
+	DIFFERENCE
+	MODULO_EGAL
+	ESP_ESP
+	ET_EGAL
+	FIN_BLOC_COMMENTAIRE
+	MULTIPLIE_EGAL
+	PLUS_EGAL
+	MOINS_EGAL
+	RETOUR_TYPE
+	DEBUT_BLOC_COMMENTAIRE
+	DEBUT_LIGNE_COMMENTAIRE
+	DIVISE_EGAL
+	DECLARATION_CONSTANTE
+	DECLARATION_VARIABLE
+	DECALAGE_GAUCHE
+	INFERIEUR_EGAL
+	EGALITE
+	SUPERIEUR_EGAL
+	DECALAGE_DROITE
+	OUX_EGAL
+	OU_EGAL
+	BARRE_BARRE
+	NON_INITIALISATION
+	TROIS_POINTS
+	DEC_GAUCHE_EGAL
+	DEC_DROITE_EGAL
+	NOMBRE_REEL
+	NOMBRE_ENTIER
+	PLUS_UNAIRE
+	MOINS_UNAIRE
+	FOIS_UNAIRE
+	ESP_UNAIRE
+	CHAINE_CARACTERE
+	CHAINE_LITTERALE
+	CARACTERE
+	POINTEUR
+	TABLEAU
+	REFERENCE
+	INCONNU
+	CARACTERE_BLANC
+	COMMENTAIRE
+	EXPANSION_VARIADIQUE
+	ARRETE
+	BOOL
+	BOUCLE
+	CHAINE
+	CHARGE
+	COMME
+	CONTINUE
+	COROUT
+	DANS
+	DIFFERE
+	DISCR
+	DYN
+	DELOGE
+	EINI
+	EINI_ERREUR
+	EMPL
+	ERREUR
+	EXTERNE
+	FAUX
+	FONC
+	GARDE
+	IMPORTE
+	INFO_DE
+	INIT_DE
+	LOGE
+	MEMOIRE
+	N16
+	N32
+	N64
+	N8
+	NONATTEIGNABLE
+	NONSUR
+	NUL
+	OCTET
+	OPERATEUR
+	PIEGE
+	POUR
+	POUSSE_CONTEXTE
+	R16
+	R32
+	R64
+	RELOGE
+	RETIENS
+	RETOURNE
+	RIEN
+	REPETE
+	SANSARRET
+	SAUFSI
+	SI
+	SINON
+	STRUCT
+	TAILLE_DE
+	TANTQUE
+	TENTE
+	TYPE_DE
+	TYPE_DE_DONNEES
+	UNION
+	VRAI
+	Z16
+	Z32
+	Z64
+	Z8
+	ENUM
+	ENUM_DRAPEAU
+}
+
+Lexème :: struct {
+	genre : GenreLexème
+	texte : chaine
+}
+
+// ----------------------------------------------------------------------------
 // structures pour l'arbre syntaxique des programmes, à tenir synchronisé avec noeud_code.hh
 // GenreNoeudCode est une copie carbone de l'énumération de arbre_syntaxique.hh
 
@@ -267,6 +411,9 @@ compilatrice_termine_interception :: fonc (espace: *EspaceDeTravail) #compilatri
 
 compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, fichier: chaine, ligne: z32, message: chaine) #compilatrice
 
+/* Lèxe le fichier d'entrée et retourne un tableau de léxèmes, le tableau devra être délogé par le programme */
+compilatrice_lèxe_fichier :: fonc (fichier: chaine) -> []Lexème #compilatrice
+
 démarre_un_espace_de_travail :: fonc (nom: chaine, options: *OptionsCompilation) -> *EspaceDeTravail #compilatrice
 
 espace_défaut_compilation :: fonc () -> *EspaceDeTravail #compilatrice
@@ -277,4 +424,65 @@ désactive_compilation_espace_défaut :: fonc ()
 {
     options := compilatrice_obtiens_options()
     options.objet_généré = ObjetGénéré.Rien
+}
+
+// ----------------------------------------------------------------------------
+// fonctions de travail sur les lexèmes
+
+est_mot_clé :: fonc (genre: GenreLexème) -> bool
+{
+	discr genre {
+		FONC,
+		STRUCT,
+		DYN,
+		RETOURNE,
+		ENUM,
+		ENUM_DRAPEAU,
+		RETIENS,
+		EXTERNE,
+		IMPORTE,
+		POUR,
+		DANS,
+		BOUCLE,
+		TANTQUE,
+		REPETE,
+		SINON,
+		SI,
+		SAUFSI,
+		LOGE,
+		DELOGE,
+		RELOGE,
+		DISCR,
+		Z8,
+		Z16,
+		Z32,
+		Z64,
+		N8,
+		N16,
+		N32,
+		N64,
+		R16,
+		R32,
+		R64,
+		EINI,
+		BOOL,
+		RIEN,
+		CHAINE,
+		OCTET,
+		UNION,
+		COROUT,
+		CHARGE,
+		TYPE_DE_DONNEES,
+		NONSUR {
+			retourne vrai
+		}
+		sinon {
+			retourne faux
+		}
+	}
+}
+
+est_chaine_littérale :: fonc (genre: GenreLexème) -> bool
+{
+    retourne genre == GenreLexème.CHAINE_LITTERALE || genre == GenreLexème.CARACTERE
 }
