@@ -59,20 +59,6 @@ install(FILES fichiers/point_d_entree.c DESTINATION ${RACINE_INSTALLATION}/fichi
 
 ################################################################################
 
-add_executable(converti_html
-	converti_html.cc
-)
-
-target_include_directories(converti_html PUBLIC "${INCLUSIONS}")
-
-target_link_libraries(converti_html "${BIBLIOTHEQUES}")
-
-install(
-	TARGETS converti_html RUNTIME DESTINATION ${RACINE_INSTALLATION}
-)
-
-################################################################################
-
 add_executable(kuri_markov
 	kuri_markov.cc
 )
