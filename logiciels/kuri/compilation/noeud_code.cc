@@ -280,6 +280,11 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 		return info_type;
 	};
 
+	// À FAIRE : il est possible que les types ne soient pas encore validé quand nous générons des messages pour les entêtes de fonctions
+	if (type == nullptr) {
+		return nullptr;
+	}
+
 	if (type->info_type != nullptr) {
 		return type->info_type;
 	}
