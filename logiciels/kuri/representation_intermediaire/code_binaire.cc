@@ -1486,7 +1486,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 							*reinterpret_cast<long *>(donnees_ + 8) = taille;
 						}
 						else {
-							genere_code_binaire_pour_initialisation_globale(tableau_valeur[i], decalage + static_cast<int>(decalage_membre), DONNEES_GLOBALES);
+							genere_code_binaire_pour_initialisation_globale(tableau_valeur[i], decalage + static_cast<int>(decalage_membre), ou_patcher);
 						}
 					}
 
