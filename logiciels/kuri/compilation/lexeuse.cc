@@ -506,7 +506,7 @@ void Lexeuse::performe_lexage()
 					this->lexe_caractere_litteral(&chaine);
 				}
 
-				m_compilatrice.gerante_chaine->ajoute_chaine(chaine);
+				m_compilatrice.gerante_chaine->ajoute_chaine(chaine, taille_mot);
 
 				/* Saute le dernier guillemet si nécessaire. */
 				if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {

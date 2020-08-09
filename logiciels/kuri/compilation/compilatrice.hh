@@ -78,11 +78,17 @@ struct Metriques {
 };
 
 struct GeranteChaine {
-	dls::tableau<kuri::chaine> m_table{};
+	/* stocke la capacité réservée par la lexeuse en attendant d'avoir la capacité comme mebre de kuri::chaine */
+	struct ChainteEtCapacite {
+		kuri::chaine chaine;
+		long capacite;
+	};
+
+	dls::tableau<ChainteEtCapacite> m_table{};
 
 	~GeranteChaine();
 
-	void ajoute_chaine(kuri::chaine const &chaine);
+	void ajoute_chaine(kuri::chaine const &chaine, long capacite);
 };
 
 // Interface avec le module « Kuri », pour certaines fonctions intéressantes

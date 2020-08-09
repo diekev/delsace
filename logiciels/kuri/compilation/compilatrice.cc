@@ -534,7 +534,7 @@ size_t Compilatrice::memoire_utilisee() const
 
 	memoire += static_cast<size_t>(gerante_chaine->m_table.taille()) * sizeof(dls::chaine);
 	POUR (gerante_chaine->m_table) {
-		memoire += static_cast<size_t>(it.taille);
+		memoire += static_cast<size_t>(it.capacite);
 	}
 
 	POUR_TABLEAU_PAGE ((*espaces_de_travail.verrou_lecture())) {
@@ -583,13 +583,14 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation c
 GeranteChaine::~GeranteChaine()
 {
 	POUR (m_table) {
-		kuri::detruit_chaine(it);
+		it.chaine.taille = it.capacite;
+		kuri::detruit_chaine(it.chaine);
 	}
 }
 
-void GeranteChaine::ajoute_chaine(const kuri::chaine &chaine)
+void GeranteChaine::ajoute_chaine(const kuri::chaine &chaine, long capacite)
 {
-	m_table.pousse(chaine);
+	m_table.pousse({ chaine, capacite });
 }
 
 /* ************************************************************************** */
