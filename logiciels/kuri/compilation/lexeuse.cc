@@ -455,9 +455,11 @@ void Lexeuse::performe_lexage()
 					// idée de micro-optimisation provenant de D, saute 4 espaces à la fois
 					// https://github.com/dlang/dmd/pull/11095
 					// 0x20 == ' '
-					while (m_debut <= m_fin - 4 && *reinterpret_cast<uint const *>(m_debut) == 0x20202020) {
-						m_debut += 4;
-						m_position_ligne += 4;
+					if ((m_drapeaux & INCLUS_CARACTERES_BLANC) == 0) {
+						while (m_debut <= m_fin - 4 && *reinterpret_cast<uint const *>(m_debut) == 0x20202020) {
+							m_debut += 4;
+							m_position_ligne += 4;
+						}
 					}
 
 					break;
