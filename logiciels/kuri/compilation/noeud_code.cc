@@ -151,12 +151,27 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
+			auto noeud_reference_membre = static_cast<NoeudExpressionMembre *>(noeud_expression);
+
+			auto n = noeuds_reference_membre.ajoute_element();
+			n->accede = converti_noeud_syntaxique(espace, noeud_reference_membre->accede);
+			n->membre = converti_noeud_syntaxique(espace, noeud_reference_membre->membre);
+
+			noeud_code = n;
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LOGE:
 		case GenreNoeud::EXPRESSION_DELOGE:
 		case GenreNoeud::EXPRESSION_RELOGE:
 		{
+			auto noeud_logement = static_cast<NoeudExpressionLogement *>(noeud_expression);
+
+			auto n = noeuds_logements.ajoute_element();
+			n->expr = converti_noeud_syntaxique(espace, noeud_logement->expr);
+			n->expr_taille = converti_noeud_syntaxique(espace, noeud_logement->expr_taille);
+			n->bloc = converti_noeud_syntaxique(espace, noeud_logement->bloc);
+
+			noeud_code = n;
 			break;
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
@@ -164,10 +179,21 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			break;
 		}
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
+		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		{
+			auto noeud_appel = static_cast<NoeudExpressionAppel *>(noeud_expression);
+
+			auto n = noeuds_appel.ajoute_element();
+			n->expression = converti_noeud_syntaxique(espace, noeud_appel->appelee);
+			n->params.reserve(noeud_appel->params.taille);
+
+			POUR (noeud_appel->params) {
+				n->params.pousse(converti_noeud_syntaxique(espace, it));
+			}
+
+			noeud_code = n;
 			break;
 		}
-		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
@@ -205,6 +231,14 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		}
 		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
 		{
+			auto noeud_si_statique = noeud_expression->comme_si_statique();
+
+			auto n = noeuds_sis.ajoute_element();
+			n->condition = converti_noeud_syntaxique(espace, noeud_si_statique->condition);
+			n->bloc_si_vrai = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, noeud_si_statique->bloc_si_vrai));
+			n->bloc_si_faux = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, noeud_si_statique->bloc_si_faux));
+
+			noeud_code = n;
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_BOUCLE:
@@ -220,6 +254,11 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			noeud_code = n;
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
+		{
+			noeud_code = noeuds_codes.ajoute_element();
+			break;
+		}
 		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
@@ -230,14 +269,65 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
+		{
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_POUR:
+		{
+			auto noeud_pour = noeud_expression->comme_pour();
+
+			auto n = noeuds_pour.ajoute_element();
+			n->variable = converti_noeud_syntaxique(espace, noeud_pour->variable);
+			n->expression = converti_noeud_syntaxique(espace, noeud_pour->expression);
+			n->bloc = converti_noeud_syntaxique(espace, noeud_pour->bloc);
+			n->bloc_sansarret = converti_noeud_syntaxique(espace, noeud_pour->bloc_sansarret);
+			n->bloc_sinon = converti_noeud_syntaxique(espace, noeud_pour->bloc_sinon);
+
+			noeud_code = n;
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_DISCR:
 		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
 		case GenreNoeud::INSTRUCTION_DISCR_UNION:
-		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
-		case GenreNoeud::INSTRUCTION_TENTE:
-		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		{
+			auto noeud_discr = static_cast<NoeudDiscr *>(noeud_expression);
+
+			auto n = noeuds_discr.ajoute_element();
+			n->expression = converti_noeud_syntaxique(espace, noeud_discr->expr);
+			n->bloc_sinon = converti_noeud_syntaxique(espace, noeud_discr->bloc_sinon);
+			n->paires_discr.reserve(noeud_discr->paires_discr.taille);
+
+			POUR (noeud_discr->paires_discr) {
+				auto expr = converti_noeud_syntaxique(espace, it.first);
+				auto bloc = converti_noeud_syntaxique(espace, it.second);
+
+				n->paires_discr.pousse({ expr, bloc });
+			}
+
+			noeud_code = n;
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
+		{
+			auto noeud_pc = noeud_expression->comme_pousse_contexte();
+
+			auto n = noeuds_pousse_contexte.ajoute_element();
+			n->expression = converti_noeud_syntaxique(espace, noeud_pc->expr);
+			n->bloc = converti_noeud_syntaxique(espace, noeud_pc->bloc);
+
+			noeud_code = n;
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_TENTE:
+		{
+			auto noeud_tente = noeud_expression->comme_tente();
+
+			auto n = noeuds_tente.ajoute_element();
+			n->expression_appel = converti_noeud_syntaxique(espace, noeud_tente->expr_appel);
+			n->expression_piege = converti_noeud_syntaxique(espace, noeud_tente->expr_piege);
+			n->bloc = converti_noeud_syntaxique(espace, noeud_tente->bloc);
+
+			noeud_code = n;
 			break;
 		}
 	}
@@ -547,6 +637,13 @@ long ConvertisseuseNoeudCode::memoire_utilisee() const
 	memoire += noeuds_blocs.memoire_utilisee();
 	memoire += noeuds_sis.memoire_utilisee();
 	memoire += noeuds_boucles.memoire_utilisee();
+	memoire += noeuds_pour.memoire_utilisee();
+	memoire += noeuds_tente.memoire_utilisee();
+	memoire += noeuds_discr.memoire_utilisee();
+	memoire += noeuds_pousse_contexte.memoire_utilisee();
+	memoire += noeuds_reference_membre.memoire_utilisee();
+	memoire += noeuds_logements.memoire_utilisee();
+	memoire += noeuds_appel.memoire_utilisee();
 
 	memoire += infos_types.memoire_utilisee();
 	memoire += infos_types_entiers.memoire_utilisee();

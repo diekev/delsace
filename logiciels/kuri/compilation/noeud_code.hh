@@ -105,6 +105,52 @@ struct NoeudCodeBoucle : public NoeudCode {
 	NoeudCode *bloc = nullptr;
 };
 
+struct NoeudCodePour : public NoeudCode {
+	NoeudCode *variable = nullptr;
+	NoeudCode *expression = nullptr;
+	NoeudCode *bloc = nullptr;
+	NoeudCode *bloc_sansarret = nullptr;
+	NoeudCode *bloc_sinon = nullptr;
+};
+
+struct NoeudCodeTente : public NoeudCode {
+	NoeudCode *expression_appel = nullptr;
+	NoeudCode *expression_piege = nullptr;
+	NoeudCode *bloc = nullptr;
+};
+
+struct NoeudCodeDiscr : public NoeudCode {
+	struct PaireDiscr {
+		NoeudCode *expression = nullptr;
+		NoeudCode *bloc = nullptr;
+	};
+
+	NoeudCode *expression = nullptr;
+	NoeudCode *bloc_sinon = nullptr;
+	kuri::tableau<PaireDiscr> paires_discr{};
+};
+
+struct NoeudCodePousseContexte : public NoeudCode {
+	NoeudCode *expression = nullptr;
+	NoeudCode *bloc = nullptr;
+};
+
+struct NoeudCodeReferenceMembre : public NoeudCode {
+	NoeudCode *accede = nullptr;
+	NoeudCode *membre = nullptr;
+};
+
+struct NoeudCodeLogement : public NoeudCode {
+	NoeudCode *expr = nullptr;
+	NoeudCode *expr_taille = nullptr;
+	NoeudCode *bloc = nullptr;
+};
+
+struct NoeudCodeAppel : public NoeudCode {
+	NoeudCode *expression = nullptr;
+	kuri::tableau<NoeudCode *> params{};
+};
+
 /* Structures utilisées pour passer les informations des types au métaprogrammes.
  * Celles-ci sont les pendantes de celles dans le module Kuri et doivent être
  * synchronisées avec elles.
@@ -196,6 +242,13 @@ struct ConvertisseuseNoeudCode {
 	tableau_page<NoeudCodeBloc> noeuds_blocs{};
 	tableau_page<NoeudCodeSi> noeuds_sis{};
 	tableau_page<NoeudCodeBoucle> noeuds_boucles{};
+	tableau_page<NoeudCodePour> noeuds_pour{};
+	tableau_page<NoeudCodeTente> noeuds_tente{};
+	tableau_page<NoeudCodeDiscr> noeuds_discr{};
+	tableau_page<NoeudCodePousseContexte> noeuds_pousse_contexte{};
+	tableau_page<NoeudCodeReferenceMembre> noeuds_reference_membre{};
+	tableau_page<NoeudCodeLogement> noeuds_logements{};
+	tableau_page<NoeudCodeAppel> noeuds_appel{};
 
 	tableau_page<InfoType> infos_types{};
 	tableau_page<InfoTypeEntier> infos_types_entiers{};

@@ -331,6 +331,66 @@ NoeudCodeBoucle :: struct {
     bloc : *NoeudCodeBloc
 }
 
+NoeudCodePour :: struct {
+    empl base : NoeudCode
+
+	variable : *NoeudCode
+	expression : *NoeudCode
+	bloc : *NoeudCodeBloc
+	bloc_sansarret : *NoeudCodeBloc
+	bloc_sinon : *NoeudCodeBloc
+}
+
+NoeudCodeTente :: struct {
+    empl base : NoeudCode
+
+	expression_appel : *NoeudCode
+	expression_piege : *NoeudCode
+	bloc : *NoeudCodeBloc
+}
+
+NoeudCodeDiscr :: struct {
+    empl base : NoeudCode
+
+	PaireDiscr :: struct {
+		expression : *NoeudCode
+		bloc : *NoeudCode
+	}
+
+	expression : *NoeudCode
+	bloc_sinon : *NoeudCodeBloc
+	paires_discr : []PaireDiscr
+}
+
+NoeudCodePousseContexte :: struct {
+    empl base : NoeudCode
+
+	expression : *NoeudCode
+	bloc : *NoeudCodeBloc
+}
+
+NoeudCodeReferenceMembre :: struct {
+    empl base : NoeudCode
+
+	accede : *NoeudCode
+	membre : *NoeudCode
+}
+
+NoeudCodeLogement :: struct {
+    empl base : NoeudCode
+
+	expr : *NoeudCode
+	expr_taille : *NoeudCode
+	bloc : *NoeudCodeBloc
+}
+
+NoeudCodeAppel :: struct {
+    empl base : NoeudCode
+
+	expression : *NoeudCode
+	params : []*NoeudCode
+}
+
 // ----------------------------------------------------------------------------
 
 EspaceDeTravail :: struct externe;
