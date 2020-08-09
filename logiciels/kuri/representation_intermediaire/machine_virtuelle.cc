@@ -557,7 +557,13 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 		auto taille_type_retour = type_fonction->types_sorties[0]->taille_octet;
 
 		if (taille_type_retour != 0) {
-			memcpy(pointeur_arguments, pointeur_pile, taille_type_retour);
+			if (taille_type_retour <= static_cast<unsigned int>(taille_argument)) {
+				memcpy(pointeur_arguments, pointeur_pile, taille_type_retour);
+			}
+			else {
+				memcpy(pointeur_arguments, pointeur_pile, static_cast<unsigned int>(taille_argument));
+				memcpy(pointeur_arguments + static_cast<unsigned int>(taille_argument), pointeur_pile + static_cast<unsigned int>(taille_argument), taille_type_retour - static_cast<unsigned int>(taille_argument));
+			}
 		}
 
 		// écrase la liste d'arguments
