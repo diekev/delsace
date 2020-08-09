@@ -93,6 +93,15 @@ Tache Tache::liaison_objet(UniteCompilation *unite_)
 	return t;
 }
 
+Tache Tache::attend_message(UniteCompilation *unite_)
+{
+	Tache t;
+	t.genre = GenreTache::ENVOIE_MESSAGE;
+	t.unite = unite_;
+	unite_->message_recu = false;
+	return t;
+}
+
 OrdonnanceuseTache::OrdonnanceuseTache(Compilatrice *compilatrice)
 	: m_compilatrice(compilatrice)
 {}
@@ -212,6 +221,14 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 			// rien à faire, ces tâches-là sont considérées comme à la fin de leurs cycles
 			break;
 		}
+		case GenreTache::ENVOIE_MESSAGE:
+		{
+			if (!tache_completee) {
+				taches_message.enfile(nouvelle_tache);
+			}
+
+			break;
+		}
 		case GenreTache::LEXE:
 		{
 			espace->nombre_taches_parsage += 1;
@@ -264,7 +281,11 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 			}
 
 			if (noeud->genre != GenreNoeud::DIRECTIVE_EXECUTION) {
-				m_compilatrice->messagere->ajoute_message_typage_code(unite->espace, static_cast<NoeudDeclaration *>(noeud));
+				auto message_enfile = m_compilatrice->messagere->ajoute_message_typage_code(unite->espace, static_cast<NoeudDeclaration *>(noeud), unite);
+
+				if (message_enfile) {
+					taches_message.enfile(Tache::attend_message(unite));
+				}
 			}
 
 			break;
@@ -325,6 +346,19 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::LEXE);
 		return taches_parsage.defile();
+	}
+
+	// gère les tâches de messages avant les tâches de typage pour éviter les
+	// problèmes de symbole non définis si un métaprogramme n'a pas encore généré
+	// ce symbole
+	// ce n'est pas la solution finale pour un tel problème, mais c'est un début
+	// il nous faudra sans doute un système pour définir qu'un métaprogramme définira
+	// tel ou tel symbole, et trouver de meilleures heuristiques pour arrêter la
+	// compilation en cas d'indéfinition de symbole
+	if (!taches_message.est_vide()) {
+		nombre_de_taches_en_proces += 1;
+		renseigne_etat_tacheronne(id, GenreTache::ENVOIE_MESSAGE);
+		return taches_message.defile();
 	}
 
 	if (!taches_typage.est_vide()) {
@@ -420,6 +454,11 @@ void Tacheronne::gere_tache()
 			{
 				temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
 				return;
+			}
+			case GenreTache::ENVOIE_MESSAGE:
+			{
+				tache_fut_completee = tache.unite->message_recu;
+				break;
 			}
 			case GenreTache::DORS:
 			{

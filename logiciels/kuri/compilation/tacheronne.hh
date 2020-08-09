@@ -41,7 +41,8 @@ struct Compilatrice;
 	ENUMERE_GENRE_TACHE_EX(GENERE_RI) \
 	ENUMERE_GENRE_TACHE_EX(EXECUTE) \
 	ENUMERE_GENRE_TACHE_EX(LIAISON_EXECUTABLE) \
-	ENUMERE_GENRE_TACHE_EX(GENERE_FICHIER_OBJET)
+	ENUMERE_GENRE_TACHE_EX(GENERE_FICHIER_OBJET) \
+	ENUMERE_GENRE_TACHE_EX(ENVOIE_MESSAGE)
 
 enum class GenreTache {
 #define ENUMERE_GENRE_TACHE_EX(etat) etat,
@@ -64,6 +65,8 @@ struct Tache {
 	static Tache genere_fichier_objet(UniteCompilation *unite_);
 
 	static Tache liaison_objet(UniteCompilation *unite_);
+
+	static Tache attend_message(UniteCompilation *unite_);
 };
 
 struct OrdonnanceuseTache {
@@ -75,6 +78,7 @@ private:
 	dls::file<Tache> taches_typage{};
 	dls::file<Tache> taches_generation_ri{};
 	dls::file<Tache> taches_execution{};
+	dls::file<Tache> taches_message{};
 
 	tableau_page<UniteCompilation> unites{};
 

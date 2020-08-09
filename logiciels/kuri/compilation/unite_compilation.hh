@@ -64,6 +64,7 @@ struct UniteCompilation {
 	NoeudExpression *noeud = nullptr;
 	NoeudExpression *operateur_attendu = nullptr;
 	int index_courant = 0;
+	bool message_recu = false;
 
 	int cycle = 0;
 

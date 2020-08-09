@@ -39,7 +39,7 @@ void Messagere::ajoute_message_fichier_ouvert(EspaceDeTravail *espace, const kur
 	message->espace = espace;
 	message->chemin = chemin;
 
-	file_message.enfile(message);
+	file_message.enfile({ nullptr, message });
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
@@ -54,7 +54,7 @@ void Messagere::ajoute_message_fichier_ferme(EspaceDeTravail *espace, const kuri
 	message->espace = espace;
 	message->chemin = chemin;
 
-	file_message.enfile(message);
+	file_message.enfile({ nullptr, message });
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
@@ -70,7 +70,7 @@ void Messagere::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *mo
 	message->chemin = module->chemin;
 	message->module = module;
 
-	file_message.enfile(message);
+	file_message.enfile({ nullptr, message });
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
@@ -86,14 +86,14 @@ void Messagere::ajoute_message_module_ferme(EspaceDeTravail *espace, Module *mod
 	message->chemin = module->chemin;
 	message->module = module;
 
-	file_message.enfile(message);
+	file_message.enfile({ nullptr, message });
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
-void Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclaration *noeud_decl)
+bool Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclaration *noeud_decl, UniteCompilation *unite)
 {
 	if (!interception_commencee) {
-		return;
+		return false;
 	}
 
 	convertisseuse_noeud_code.converti_noeud_syntaxique(espace, noeud_decl);
@@ -103,8 +103,12 @@ void Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclara
 	message->espace = espace;
 	message->noeud_code = noeud_decl->noeud_code;
 
-	file_message.enfile(message);
+	assert(unite);
+
+	file_message.enfile({ unite, message});
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
+
+	return true;
 }
 
 void Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace, PhaseCompilation phase)
@@ -120,7 +124,7 @@ void Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace, PhaseC
 	message->espace = espace;
 	message->phase = phase;
 
-	file_message.enfile(message);
+	file_message.enfile({ nullptr, message });
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
@@ -142,7 +146,18 @@ Message const *Messagere::defile()
 		return nullptr;
 	}
 
-	return file_message.defile();
+	auto message = file_message.defile();
+	derniere_unite = message.unite;
+
+	// marque le message comme reçu avant de l'envoyer pour éviter d'être bloqué dans les tâcheronnes
+	// j'ai voulu faire en sorte que le message ne soit marqué comme reçu que quand nous envoyons le
+	// message suivant, mais si ce message est le dernier, il n'y a pas de message suivant et les tâcheronnes
+	// sont bloquées sur un message marqué comme non-reçu
+	if (derniere_unite) {
+		derniere_unite->message_recu = true;
+	}
+
+	return message.message;
 }
 
 void Messagere::commence_interception(EspaceDeTravail */*espace*/)

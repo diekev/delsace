@@ -33,6 +33,7 @@
 struct EspaceDeTravail;
 struct Module;
 struct NoeudDeclaration;
+struct UniteCompilation;
 
 enum class PhaseCompilation : int {
 	PARSAGE_TERMINE,
@@ -84,7 +85,6 @@ private:
 	tableau_page<MessageModule> messages_modules{};
 	tableau_page<MessageTypageCodeTermine> messages_typage_code{};
 	tableau_page<MessagePhaseCompilation> messages_phase_compilation{};
-	dls::file<Message *> file_message{};
 
 	long pic_de_message = 0;
 
@@ -92,12 +92,21 @@ private:
 
 	ConvertisseuseNoeudCode convertisseuse_noeud_code{};
 
+	UniteCompilation *derniere_unite = nullptr;
+
+	struct DonneesMessage {
+		UniteCompilation *unite = nullptr;
+		Message const *message = nullptr;
+	};
+
+	dls::file<DonneesMessage> file_message{};
+
 public:
 	void ajoute_message_fichier_ouvert(EspaceDeTravail *espace, kuri::chaine const &chemin);
 	void ajoute_message_fichier_ferme(EspaceDeTravail *espace, kuri::chaine const &chemin);
 	void ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module);
 	void ajoute_message_module_ferme(EspaceDeTravail *espace, Module *module);
-	void ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclaration *noeud_decl);
+	bool ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclaration *noeud_decl, UniteCompilation *unite);
 	void ajoute_message_phase_compilation(EspaceDeTravail *espace, PhaseCompilation phase);
 
 	size_t memoire_utilisee() const;
