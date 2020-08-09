@@ -596,7 +596,6 @@ ffi_type *converti_type_ffi(Type *type)
 			return &ffi_type_uint8;
 		}
 		case GenreType::CHAINE:
-		case GenreType::TABLEAU_DYNAMIQUE:
 		{
 			static ffi_type *types_elements[] = {
 				&ffi_type_pointer,
@@ -612,6 +611,24 @@ ffi_type *converti_type_ffi(Type *type)
 			};
 
 			return &type_ffi_chaine;
+		}
+		case GenreType::TABLEAU_DYNAMIQUE:
+		{
+			static ffi_type *types_elements[] = {
+				&ffi_type_pointer,
+				&ffi_type_sint64,
+				&ffi_type_sint64,
+				nullptr
+			};
+
+			static ffi_type type_ffi_tableau = {
+				0,
+				0,
+				FFI_TYPE_STRUCT,
+				types_elements
+			};
+
+			return &type_ffi_tableau;
 		}
 		case GenreType::EINI:
 		{
