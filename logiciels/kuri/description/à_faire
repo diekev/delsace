@@ -393,6 +393,8 @@ implémente la directive #si pour la compilation sélective
 
     SYS_EXP :: Système.LINUX
 
+- ajout d'un noeud syntaxique pour les emplois
+- ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés (pour permettre les emplois d'énumérations)
 
 
 À faire (architecture)
