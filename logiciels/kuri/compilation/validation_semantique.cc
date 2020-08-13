@@ -1967,7 +1967,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
 
 					POUR (type_enum->membres) {
-						if (!membres_rencontres.possede(it.nom)) {
+						if (!membres_rencontres.possede(it.nom) && (it.drapeaux & TypeCompose::Membre::EST_IMPLICITE) == 0) {
 							valeurs_manquantes.insere(it.nom);
 						}
 					}
@@ -2818,6 +2818,8 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 
 		dernier_res = res;
 	}
+
+	membres.pousse({ espace->typeuse[TypeBase::Z32], "nombre_éléments", 0, static_cast<int>(membres.taille), nullptr, TypeCompose::Membre::EST_IMPLICITE });
 
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 	decl->type->drapeaux |= TYPE_FUT_VALIDE;

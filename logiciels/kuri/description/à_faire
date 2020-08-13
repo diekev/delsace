@@ -135,8 +135,6 @@ considère un opérateur pour convertir entre des types
 
 // --------------------------- Bas Fruitage
 
-ajout d'une propriété "compte" aux énums pour trouver le nombre d'éléments de ceux-ci (remplacé par une constante)
-
 ajout d'une propriété "pointeur" aux tableaux fixes pour obtenir le pointeur vers le premier élément (au lien de @x[0])
 
 ajout d'une propriété "capacité" aux chaines

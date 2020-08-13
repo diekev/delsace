@@ -272,7 +272,8 @@ struct TypeFonction : public Type {
 struct TypeCompose : public Type {
 	struct Membre {
 		enum {
-			EST_CONSTANT = 1, // si le membre est une constante
+			EST_CONSTANT  = 1, // si le membre est une constante
+			EST_IMPLICITE = 2,
 		};
 
 		Type *type = nullptr;
