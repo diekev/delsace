@@ -512,7 +512,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				if (decl->drapeaux & EST_CONSTANTE && expression->type->genre != GenreType::TYPE_DE_DONNEES) {
-					auto res_exec = evalue_expression(m_compilatrice, decl->bloc_parent, expression);
+					auto res_exec = evalue_expression(espace, decl->bloc_parent, expression);
 
 					if (res_exec.est_errone) {
 						rapporte_erreur("Impossible d'évaluer l'expression de la constante", expression);
@@ -636,7 +636,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				auto taille_tableau = 0l;
 
 				if (expression_taille) {
-					auto res = evalue_expression(m_compilatrice, expression_taille->bloc_parent, expression_taille);
+					auto res = evalue_expression(espace, expression_taille->bloc_parent, expression_taille);
 
 					if (res.est_errone) {
 						rapporte_erreur("Impossible d'évaluer la taille du tableau", expression_taille);
@@ -937,7 +937,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					auto type_tabl = type1->comme_tableau_fixe();
 					expr->type = type_dereference_pour(type1);
 
-					auto res = evalue_expression(m_compilatrice, enfant2->bloc_parent, enfant2);
+					auto res = evalue_expression(espace, enfant2->bloc_parent, enfant2);
 
 					if (!res.est_errone) {
 						if (res.entier >= type_tabl->taille) {
@@ -1142,7 +1142,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto inst = noeud->comme_si_statique();
 
 			if (inst->visite == false) {
-				auto res = evalue_expression(m_compilatrice, inst->bloc_parent, inst->condition);
+				auto res = evalue_expression(espace, inst->bloc_parent, inst->condition);
 
 				if (res.est_errone) {
 					rapporte_erreur(res.message_erreur, res.noeud_erreur, erreur::type_erreur::VARIABLE_REDEFINIE);
@@ -2782,7 +2782,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 
 		// À FAIRE(erreur) : vérifie qu'aucune expression s'évalue à zéro
 		if (expr != nullptr) {
-			res = evalue_expression(m_compilatrice, decl->bloc, expr);
+			res = evalue_expression(espace, decl->bloc, expr);
 
 			if (res.est_errone) {
 				rapporte_erreur(res.message_erreur, res.noeud_erreur, erreur::type_erreur::VARIABLE_REDEFINIE);

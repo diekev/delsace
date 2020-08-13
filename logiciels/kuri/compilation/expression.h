@@ -26,7 +26,7 @@
 
 #include "biblinternes/outils/definitions.h"
 
-struct Compilatrice;
+struct EspaceDeTravail;
 struct NoeudBloc;
 struct NoeudExpression;
 
@@ -55,6 +55,6 @@ struct ResultatExpression {
 };
 
 ResultatExpression evalue_expression(
-		Compilatrice &compilatrice,
+		EspaceDeTravail *espace,
 		NoeudBloc *bloc,
 		NoeudExpression *b);
