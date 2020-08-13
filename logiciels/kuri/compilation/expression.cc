@@ -409,5 +409,27 @@ ResultatExpression evalue_expression(
 			auto inst = static_cast<NoeudExpressionBinaire *>(b);
 			return evalue_expression(espace, bloc, inst->expr1);
 		}
+		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
+		{
+			auto ref_membre = b->comme_ref_membre();
+			auto type_accede = ref_membre->accede->type;
+
+			if (type_accede->genre == GenreType::ENUM || type_accede->genre == GenreType::ERREUR) {
+				auto type_enum = type_accede->comme_enum();
+				auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
+				auto res = ResultatExpression();
+				res.est_errone = false;
+				res.entier = valeur_enum;
+				res.type = type_expression::ENTIER;
+				return res;
+			}
+
+			auto res = ResultatExpression();
+			res.est_errone = true;
+			res.noeud_erreur = b;
+			res.message_erreur = "L'expression n'est pas constante et ne peut être calculée !";
+
+			return res;
+		}
 	}
 }
