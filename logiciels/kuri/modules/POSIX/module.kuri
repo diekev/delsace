@@ -2,10 +2,10 @@
 
 importe Fondation
 
-getenv :: fonc externe (nom: *z8) -> *z8
-getuid :: fonc externe () -> z32
-system :: fonc externe (command: *z8) -> z32
-usleep :: fonc externe (µsec: n32) -> z32
+getenv :: fonc (nom: *z8) -> *z8 #externe
+getuid :: fonc () -> z32 #externe
+system :: fonc (command: *z8) -> z32 #externe
+usleep :: fonc (µsec: n32) -> z32 #externe
 
 chaine_environnement :: fonc (nom: chaine) -> chaine
 {

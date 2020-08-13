@@ -12,7 +12,7 @@ importe Fondation
 // -- pouvoir normaliser la chaine (remplacer les caractères similaires)
 // - https://fasterthanli.me/blog/2020/working-with-strings-in-rust/
 
-abort :: fonc externe () -> rien
+abort :: fonc () -> rien #externe
 
 point_code_utf8 :: fonc (chn: chaine) -> z32
 {

@@ -4,36 +4,36 @@ importe GlibC
 
 #bibliothèque_dynamique "jpeg"
 
-jpeg_error_mgr :: struct externe ;
-jpeg_memory_mgr :: struct externe ;
-jpeg_progress_mgr :: struct externe ;
-jpeg_source_mgr :: struct externe ;
-JQUANT_TBL :: struct externe ;
-JHUFF_TBL :: struct externe ;
-jpeg_marker_struct :: struct externe ;
-jpeg_decomp_master :: struct externe ;
-jpeg_d_main_controller :: struct externe ;
-jpeg_d_coef_controller :: struct externe ;
-jpeg_d_post_controller :: struct externe ;
-jpeg_input_controller :: struct externe ;
-jpeg_marker_reader :: struct externe ;
-jpeg_entropy_decoder :: struct externe ;
-jpeg_inverse_dct :: struct externe ;
-jpeg_upsampler :: struct externe ;
-jpeg_color_deconverter :: struct externe ;
-jpeg_color_quantizer :: struct externe ;
-jpeg_comp_master :: struct externe ;
-jpeg_c_main_controller :: struct externe ;
-jpeg_c_prep_controller :: struct externe ;
-jpeg_c_coef_controller :: struct externe ;
-jpeg_marker_writer :: struct externe ;
-jpeg_color_converter :: struct externe ;
-jpeg_downsampler :: struct externe ;
-jpeg_forward_dct :: struct externe ;
-jpeg_entropy_encoder :: struct externe ;
-jpeg_scan_info :: struct externe ;
+jpeg_error_mgr :: struct #externe ;
+jpeg_memory_mgr :: struct #externe ;
+jpeg_progress_mgr :: struct #externe ;
+jpeg_source_mgr :: struct #externe ;
+JQUANT_TBL :: struct #externe ;
+JHUFF_TBL :: struct #externe ;
+jpeg_marker_struct :: struct #externe ;
+jpeg_decomp_master :: struct #externe ;
+jpeg_d_main_controller :: struct #externe ;
+jpeg_d_coef_controller :: struct #externe ;
+jpeg_d_post_controller :: struct #externe ;
+jpeg_input_controller :: struct #externe ;
+jpeg_marker_reader :: struct #externe ;
+jpeg_entropy_decoder :: struct #externe ;
+jpeg_inverse_dct :: struct #externe ;
+jpeg_upsampler :: struct #externe ;
+jpeg_color_deconverter :: struct #externe ;
+jpeg_color_quantizer :: struct #externe ;
+jpeg_comp_master :: struct #externe ;
+jpeg_c_main_controller :: struct #externe ;
+jpeg_c_prep_controller :: struct #externe ;
+jpeg_c_coef_controller :: struct #externe ;
+jpeg_marker_writer :: struct #externe ;
+jpeg_color_converter :: struct #externe ;
+jpeg_downsampler :: struct #externe ;
+jpeg_forward_dct :: struct #externe ;
+jpeg_entropy_encoder :: struct #externe ;
+jpeg_scan_info :: struct #externe ;
 
-jpeg_component_info :: struct externe  {
+jpeg_component_info :: struct #externe {
     component_id : z32;
     component_index : z32;
     h_samp_factor : z32;
@@ -61,7 +61,7 @@ jpeg_component_info :: struct externe  {
     dct_table : *rien;
 }
 
-jpeg_decompress_struct :: struct externe  {
+jpeg_decompress_struct :: struct #externe {
     err : *jpeg_error_mgr;
     mem : *jpeg_memory_mgr;
     progress : *jpeg_progress_mgr;
@@ -186,21 +186,21 @@ jpeg_decompress_struct :: struct externe  {
     cquantize : *jpeg_color_quantizer;
 }
 
-jpeg_std_error :: fonc externe (err : *jpeg_error_mgr) -> *jpeg_error_mgr;
-jpeg_create_decompress :: fonc externe (info : *jpeg_decompress_struct) -> rien;
-jpeg_start_decompress :: fonc externe (info : *jpeg_decompress_struct) -> rien;
-jpeg_finish_decompress :: fonc externe (info : *jpeg_decompress_struct) -> rien;
-jpeg_destroy_decompress :: fonc externe (info : *jpeg_decompress_struct) -> rien;
+jpeg_std_error :: fonc (err : *jpeg_error_mgr) -> *jpeg_error_mgr #externe
+jpeg_create_decompress :: fonc (info : *jpeg_decompress_struct) -> rien #externe
+jpeg_start_decompress :: fonc (info : *jpeg_decompress_struct) -> rien #externe
+jpeg_finish_decompress :: fonc (info : *jpeg_decompress_struct) -> rien #externe
+jpeg_destroy_decompress :: fonc (info : *jpeg_decompress_struct) -> rien #externe
 
-jpeg_stdio_src :: fonc externe (info : *jpeg_decompress_struct, file : *FILE) -> rien;
-jpeg_save_markers :: fonc externe (info : *jpeg_decompress_struct, marker_code : z32, length_limit : n32) -> rien;
-jpeg_read_header :: fonc externe (info : *jpeg_decompress_struct, require_image : z32) -> rien;
+jpeg_stdio_src :: fonc (info : *jpeg_decompress_struct, file : *FILE) -> rien #externe
+jpeg_save_markers :: fonc (info : *jpeg_decompress_struct, marker_code : z32, length_limit : n32) -> rien #externe
+jpeg_read_header :: fonc (info : *jpeg_decompress_struct, require_image : z32) -> rien #externe
 
-jpeg_read_scanlines :: fonc externe (info : *jpeg_decompress_struct, scanlines : **z8, max_lines : n32) -> n32;
+jpeg_read_scanlines :: fonc (info : *jpeg_decompress_struct, scanlines : **z8, max_lines : n32) -> n32 #externe
 
 //soit JPEG_APP0 = 0xE0;
 
-jpeg_compress_struct :: struct externe  {
+jpeg_compress_struct :: struct #externe {
     err : *jpeg_error_mgr;
     mem : *jpeg_memory_mgr;
     progress : *jpeg_progress_mgr;
@@ -302,14 +302,14 @@ jpeg_compress_struct :: struct externe  {
     script_space_size : z32;
 }
 
-jpeg_create_compress :: fonc externe (info : *jpeg_compress_struct) -> rien;
-jpeg_destroy_compress :: fonc externe (info : *jpeg_compress_struct) -> rien;
-jpeg_finish_compress :: fonc externe (info : *jpeg_compress_struct) -> rien;
-jpeg_set_defaults :: fonc externe (info : *jpeg_compress_struct) -> rien;
-jpeg_stdio_dest :: fonc externe (info : *jpeg_compress_struct, file : *FILE) -> rien;
-jpeg_set_quality :: fonc externe (info : *jpeg_compress_struct, quality : z32, v : z32) -> rien;
-jpeg_start_compress :: fonc externe (info : *jpeg_compress_struct, v : z32) -> rien;
-jpeg_write_scanlines :: fonc externe (info : *jpeg_compress_struct, scanlines : **z8, max_lines : n32) -> n32;
+jpeg_create_compress :: fonc (info : *jpeg_compress_struct) -> rien #externe
+jpeg_destroy_compress :: fonc (info : *jpeg_compress_struct) -> rien #externe
+jpeg_finish_compress :: fonc (info : *jpeg_compress_struct) -> rien #externe
+jpeg_set_defaults :: fonc (info : *jpeg_compress_struct) -> rien #externe
+jpeg_stdio_dest :: fonc (info : *jpeg_compress_struct, file : *FILE) -> rien #externe
+jpeg_set_quality :: fonc (info : *jpeg_compress_struct, quality : z32, v : z32) -> rien #externe
+jpeg_start_compress :: fonc (info : *jpeg_compress_struct, v : z32) -> rien #externe
+jpeg_write_scanlines :: fonc (info : *jpeg_compress_struct, scanlines : **z8, max_lines : n32) -> n32 #externe
 
 _JCS_GRAYSCALE :: 1;
 _JCS_RGB :: 2;

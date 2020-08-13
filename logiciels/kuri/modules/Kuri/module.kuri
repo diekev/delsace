@@ -5,9 +5,9 @@
 // Par contre, ce fichier ne devrait pas pouvoir être modifié par les
 // utilisateurs du langage.
 
-malloc :: fonc externe (taille : z64) -> *rien
-realloc :: fonc externe (ptr : *rien, taille : z64) -> *rien
-free :: fonc externe (ptr : *rien) -> rien
+malloc :: fonc (taille : z64) -> *rien #externe
+realloc :: fonc (ptr : *rien, taille : z64) -> *rien #externe
+free :: fonc (ptr : *rien) -> rien #externe
 
 // --------------------------
 
@@ -681,7 +681,7 @@ tableau_supprime_index :: fonc (tabl: *[]$T, index: z64) -> rien
 externe __ARGV : **z8
 externe __ARGC : z32
 
-strlen :: fonc externe (str: *z8) -> z64
+strlen :: fonc (str: *z8) -> z64 #externe
 
 arguments_ligne_commande :: fonc () -> []chaine
 {

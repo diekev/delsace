@@ -1,19 +1,19 @@
 #bibliothèque_statique "libmodule_c_ftgl.a"
 #bibliothèque_dynamique "freetype"
 
-vec2 :: struct externe {
+vec2 :: struct #externe {
     x := 0.0
     y := 0.0
 }
 
-vec4 :: struct externe {
+vec4 :: struct #externe {
     x := 0.0
     y := 0.0
     z := 0.0
     w := 0.0
 }
 
-vector_t :: struct externe;
+vector_t :: struct #externe;
 
 rendermode_t :: énum z32 {
     RENDER_NORMAL
@@ -23,7 +23,7 @@ rendermode_t :: énum z32 {
     RENDER_SIGNED_DISTANCE_FIELD
 }
 
-texture_atlas_t :: struct externe {
+texture_atlas_t :: struct #externe {
     nodes : *vector_t
     width : n64
     height : n64
@@ -33,10 +33,10 @@ texture_atlas_t :: struct externe {
     data : *n8
 }
 
-texture_atlas_new :: fonc externe (width: n64, height: n64, depth: n64 ) -> *texture_atlas_t
-texture_atlas_delete :: fonc externe (atlas: *texture_atlas_t) -> rien
+texture_atlas_new :: fonc (width: n64, height: n64, depth: n64 ) -> *texture_atlas_t #externe
+texture_atlas_delete :: fonc (atlas: *texture_atlas_t) -> rien #externe
 
-texture_font_t :: struct externe {
+texture_font_t :: struct #externe {
     glyphs : *vector_t
     atlas : *texture_atlas_t
     filename : *z8
@@ -57,10 +57,10 @@ texture_font_t :: struct externe {
     padding : z32
 }
 
-texture_font_new_from_file :: fonc externe (atlas: *texture_atlas_t, pt_size: r32, filename: *z8) -> *texture_font_t
-texture_font_delete :: fonc externe (font: *texture_font_t) -> rien
+texture_font_new_from_file :: fonc (atlas: *texture_atlas_t, pt_size: r32, filename: *z8) -> *texture_font_t #externe
+texture_font_delete :: fonc (font: *texture_font_t) -> rien #externe
 
-texture_glyph_t :: struct externe {
+texture_glyph_t :: struct #externe {
     codepoint : n32
     width : n64
     height : n64
@@ -77,10 +77,10 @@ texture_glyph_t :: struct externe {
     outline_thickness : r32
 }
 
-texture_font_get_glyph :: fonc externe (font: *texture_font_t, c: *z8) -> *texture_glyph_t
-texture_glyph_get_kerning :: fonc externe (glyph: *texture_glyph_t, c: *z8) -> r32
+texture_font_get_glyph :: fonc (font: *texture_font_t, c: *z8) -> *texture_glyph_t #externe
+texture_glyph_get_kerning :: fonc (glyph: *texture_glyph_t, c: *z8) -> r32 #externe
 
-markup_t :: struct externe {
+markup_t :: struct #externe {
     family : *z8
     size : r32
     bold : z32

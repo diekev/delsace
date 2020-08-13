@@ -5,9 +5,9 @@ importe OpenGL
 
 #bibliothèque_dynamique "glfw"
 
-GLFWwindow :: struct externe
+GLFWwindow :: struct #externe
 
-glfwGetVideoMode :: fonc externe (desktop : *rien) -> *rien
+glfwGetVideoMode :: fonc (desktop : *rien) -> *rien #externe
 
 // cette structure doit être synchroniser avec DesktopMode de GLFW
 DonneesMoniteur :: struct {
@@ -19,29 +19,29 @@ DonneesMoniteur :: struct {
     frequence : z32
 }
 
-glfwInit :: fonc externe () -> z32
-glfwTerminate :: fonc externe () -> rien
-glfwWaitEvents :: fonc externe () -> rien
-glfwCreateWindow :: fonc externe (width : z32, height : z32, title : *z8, monitor : *rien, share : *rien) -> *GLFWwindow
-glfwDestroyWindow :: fonc externe (window : *GLFWwindow) ->rien
-glfwWindowHint :: fonc externe (hint : z32, value : z32) -> rien
-glfwMakeContextCurrent :: fonc externe (window : *GLFWwindow) -> rien
-glfwWindowShouldClose :: fonc externe (window : *GLFWwindow) -> z32
-glfwSwapInterval :: fonc externe (entreval : z32) -> rien
-glfwSwapBuffers :: fonc externe (fenetre : *GLFWwindow) -> rien
-glfwPollEvents :: fonc externe () -> rien
+glfwInit :: fonc () -> z32 #externe
+glfwTerminate :: fonc () -> rien #externe
+glfwWaitEvents :: fonc () -> rien #externe
+glfwCreateWindow :: fonc (width : z32, height : z32, title : *z8, monitor : *rien, share : *rien) -> *GLFWwindow #externe
+glfwDestroyWindow :: fonc (window : *GLFWwindow) ->rien #externe
+glfwWindowHint :: fonc (hint : z32, value : z32) -> rien #externe
+glfwMakeContextCurrent :: fonc (window : *GLFWwindow) -> rien #externe
+glfwWindowShouldClose :: fonc (window : *GLFWwindow) -> z32 #externe
+glfwSwapInterval :: fonc (entreval : z32) -> rien #externe
+glfwSwapBuffers :: fonc (fenetre : *GLFWwindow) -> rien #externe
+glfwPollEvents :: fonc () -> rien #externe
 
-glfwGetPrimaryMonitor :: fonc externe () -> *rien
+glfwGetPrimaryMonitor :: fonc () -> *rien #externe
 
-glfwGetMonitorWorkarea :: fonc externe (monitor : *rien, xpos : *z32, ypos : *z32, width : *z32, height : *z32) -> rien
+glfwGetMonitorWorkarea :: fonc (monitor : *rien, xpos : *z32, ypos : *z32, width : *z32, height : *z32) -> rien #externe
 
-glfwSetKeyCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, type_cle, z32, z32, type_mod)(rien)) -> rien
-glfwSetCursorPosCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, r64, r64)(rien)) -> rien
-glfwSetMouseButtonCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, bouton_souris, z32, type_mod)(rien)) -> rien
-glfwSetScrollCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, r64, r64)(rien)) -> rien
-glfwSetWindowSizeCallback :: fonc externe (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, z32, z32)(rien)) -> rien
+glfwSetKeyCallback :: fonc (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, type_cle, z32, z32, type_mod)(rien)) -> rien #externe
+glfwSetCursorPosCallback :: fonc (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, r64, r64)(rien)) -> rien #externe
+glfwSetMouseButtonCallback :: fonc (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, bouton_souris, z32, type_mod)(rien)) -> rien #externe
+glfwSetScrollCallback :: fonc (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, r64, r64)(rien)) -> rien #externe
+glfwSetWindowSizeCallback :: fonc (fenetre : *GLFWwindow, cbfun : #nulctx fonc(*GLFWwindow, z32, z32)(rien)) -> rien #externe
 
-glfwSetWindowShouldClose :: fonc externe (fenetre : *GLFWwindow, v : z32) -> rien
+glfwSetWindowShouldClose :: fonc (fenetre : *GLFWwindow, v : z32) -> rien #externe
 
 // on ne peut pas redéfinir les variables puisque nous incluons le fichier
 CONTEXT_GLFW_VERSION_MAJOR : z32 = 0x00022002

@@ -8,11 +8,11 @@ importe PThread
 
 //#####################################################################################
 
-rand :: fonc externe () -> r64
+rand :: fonc () -> r64 #externe
 
-sleep :: fonc externe (temps : z32) -> rien
+sleep :: fonc (temps : z32) -> rien #externe
 
-strerror :: fonc externe (args : z32) -> *z8
+strerror :: fonc (args : z32) -> *z8 #externe
 
 //#####################################################################################
 
@@ -95,7 +95,7 @@ ValeurSysConf :: énum z32 {
     _SC_NPROCESSORS_ONLN :: 84
 }
 
-sysconf :: fonc externe (nom: ValeurSysConf) -> z64
+sysconf :: fonc (nom: ValeurSysConf) -> z64 #externe
 
 nombre_threads_système :: fonc () -> z64
 {

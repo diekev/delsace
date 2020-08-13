@@ -762,7 +762,7 @@ nombre_arguments_variadique_interne :: fonc (args: ...z32) -> z64
 #assert nombre_arguments_variadique_interne(1, 2, 3, 4, 5) == 5
 #assert nombre_arguments_variadique_interne(3, 4, 5, 6, 7, 8, 9) == 7
 
-fonction_test_variadique_externe :: fonc externe (sentinel: z32, args: ...) -> z32 #compilatrice
+fonction_test_variadique_externe :: fonc (sentinel: z32, args: ...) -> z32 #compilatrice
 
 #assert fonction_test_variadique_externe(0, 1, 2, 3, 0) == 3
 

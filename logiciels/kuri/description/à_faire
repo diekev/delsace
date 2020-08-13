@@ -331,7 +331,7 @@ asm enligné
 
 instructions SIMD
 
-directive #externe au lieu du mot-clé externe, prenant un argument définissant la bibliothèque où trouver le symbole
+directive #externe : argument définissant la bibliothèque où trouver le symbole
 - libc :: #bibiliothèque_externe "c"
 - write :: fonc (...) -> z32 #externe libc
 

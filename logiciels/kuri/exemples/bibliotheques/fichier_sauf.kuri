@@ -34,7 +34,7 @@
 
 //#########################
 
-stat :: struct externe  {
+stat :: struct #externe {
     st_dev : n64;         // ID of device containing file
 	st_ino : n64;         // inode number
 	st_nlink : n64;     // number of hard links
@@ -62,15 +62,15 @@ _ENOENT := 2;
 
 _S_IFMT := 0o170000;
 
-open :: fonc externe (a : *z8, b : ...z32) -> z32;
-close :: fonc externe (a : z32) -> z32;
-fstat :: fonc externe (fd : z32, s : *stat) -> z32;
-lstat :: fonc externe (a : *z8, s : *stat) -> z32;
-isatty :: fonc externe (a : z32) -> bool;
-unlink :: fonc externe (a : *z8) -> z32;
-ftruncate :: fonc externe (a : z32, f : z32) -> z32;
-S_ISLNK :: fonc externe (a : n32) -> bool;
-S_ISFIFO :: fonc externe (a : n32) -> bool;
+open :: fonc (a : *z8, b : ...z32) -> z32 #externe
+close :: fonc (a : z32) -> z32 #externe
+fstat :: fonc (fd : z32, s : *stat) -> z32 #externe
+lstat :: fonc (a : *z8, s : *stat) -> z32 #externe
+isatty :: fonc (a : z32) -> bool #externe
+unlink :: fonc (a : *z8) -> z32 #externe
+ftruncate :: fonc (a : z32, f : z32) -> z32 #externe
+S_ISLNK :: fonc (a : n32) -> bool #externe
+S_ISFIFO :: fonc (a : n32) -> bool #externe
 
 //#########################
 
@@ -675,13 +675,13 @@ safe_open_wrapper_follow :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 _O_RDONLY := 0;
 _O_WRONLY := 1;
 
-FILE :: struct externe ;
+FILE :: struct #externe ;
 
-umask :: fonc externe (m : z32) -> rien;
-perror :: fonc externe (c : *z8) -> rien;
-exit :: fonc externe (c : z32) -> rien;
-link :: fonc externe (a : *z8, b : *z8) -> z32;
-write :: fonc externe (a : z32, b : *z8, c : z32) -> z64;
+umask :: fonc (m : z32) -> rien #externe
+perror :: fonc (c : *z8) -> rien #externe
+exit :: fonc (c : z32) -> rien #externe
+link :: fonc (a : *z8, b : *z8) -> z32 #externe
+write :: fonc (a : z32, b : *z8, c : z32) -> z64 #externe
 
 perror :: fonc(chn : chaine) -> rien
 {

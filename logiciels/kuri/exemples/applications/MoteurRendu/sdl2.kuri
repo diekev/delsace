@@ -14,9 +14,9 @@ DrapeauxInit :: énum_drapeau n32 {
                 SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER
 }
 
-SDL_Init :: fonc externe (flahs: DrapeauxInit) -> z32
-SDL_Delay :: fonc externe (time: n32) -> rien
-SDL_Quit :: fonc externe () -> rien
+SDL_Init :: fonc (flahs: DrapeauxInit) -> z32 #externe
+SDL_Delay :: fonc (time: n32) -> rien #externe
+SDL_Quit :: fonc () -> rien #externe
 
 SDL_GLattr :: énum z32 {
     SDL_GL_RED_SIZE
@@ -72,23 +72,23 @@ SDL_WindowFlags :: énum_drapeau n32 {
     SDL_WINDOW_VULKAN        :: 0x10000000
 }
 
-SDL_GL_SetAttribute :: fonc externe (attr: SDL_GLattr, value: z64) -> z32
+SDL_GL_SetAttribute :: fonc (attr: SDL_GLattr, value: z64) -> z32 #externe
 
-SDL_Window :: struct externe
+SDL_Window :: struct #externe
 
-SDL_CreateWindow :: fonc externe (
+SDL_CreateWindow :: fonc (
         title : *z8,
         x : z32,
         y : z32,
         w : z32,
         h : z32,
-        flags : SDL_WindowFlags) -> *SDL_Window
+        flags : SDL_WindowFlags) -> *SDL_Window #externe
 
-SDL_SetWindowTitle :: fonc externe (window: *SDL_Window, title: *z8) -> rien
+SDL_SetWindowTitle :: fonc (window: *SDL_Window, title: *z8) -> rien #externe
 
-SDL_DestroyWindow :: fonc externe (window: *SDL_Window) -> rien
+SDL_DestroyWindow :: fonc (window: *SDL_Window) -> rien #externe
 
-SDL_GetTicks :: fonc externe () -> n32
+SDL_GetTicks :: fonc () -> n32 #externe
 
 SDL_Scancode :: énum n16 {
     SDL_SCANCODE_UNKNOWN :: 0
@@ -458,14 +458,14 @@ SDL_EventType :: énum n32 {
     SDL_LASTEVENT    :: 0xFFFF
 }
 
-SDL_Keysym :: struct externe {
+SDL_Keysym :: struct #externe {
     scancode : SDL_Scancode      /**< SDL physical key code - see ::SDL_Scancode for details */
     sym : z32            /**< SDL virtual key code - see ::SDL_Keycode for details */
     mod : n16                 /**< current key modifiers */
     unused : n32
 }
 
-SDL_KeyboardEvent :: struct externe {
+SDL_KeyboardEvent :: struct #externe {
     type : SDL_EventType    /**< ::SDL_KEYDOWN or ::SDL_KEYUP */
     timestamp : n32   /**< In milliseconds, populated using SDL_GetTicks() */
     windowID : n32    /**< The window with keyboard focus, if any */
@@ -481,11 +481,11 @@ SDL_Event :: union externe nonsûr {
     key : SDL_KeyboardEvent
 }
 
-SDL_PollEvent :: fonc externe (event: *SDL_Event) -> z32
-SDL_WaitEvent :: fonc externe (event: *SDL_Event) -> z32
+SDL_PollEvent :: fonc (event: *SDL_Event) -> z32 #externe
+SDL_WaitEvent :: fonc (event: *SDL_Event) -> z32 #externe
 
 // SDL_GLContext :: *rien
 
-SDL_GL_CreateContext :: fonc externe (window: *SDL_Window) -> *rien
-SDL_GL_SwapWindow :: fonc externe (window: *SDL_Window) -> rien
-SDL_GL_DeleteContext :: fonc externe (contexte: *rien) -> rien
+SDL_GL_CreateContext :: fonc (window: *SDL_Window) -> *rien #externe
+SDL_GL_SwapWindow :: fonc (window: *SDL_Window) -> rien #externe
+SDL_GL_DeleteContext :: fonc (contexte: *rien) -> rien #externe

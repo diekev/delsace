@@ -2,18 +2,18 @@
 
 #bibliothèque_dynamique "m"
 
-sqrt :: fonc externe (v: r64) -> r64
-cos :: fonc externe (a : r64) -> r64
-sin :: fonc externe (a : r64) -> r64
-tan :: fonc externe (a : r64) -> r64
-acos :: fonc externe (a : r64) -> r64
-asin :: fonc externe (a : r64) -> r64
-atan :: fonc externe (a : r64) -> r64
-atan2 :: fonc externe (a : r64, b: r64) -> r64
-pow :: fonc externe (a: r64, b: r64) -> r64
-ceil :: fonc externe (a: r64) -> r64
-floor :: fonc externe (a: r64) -> r64
-copysign :: fonc externe (a: r64, b: r64) -> r64
+sqrt :: fonc (v: r64) -> r64 #externe
+cos :: fonc (a : r64) -> r64 #externe
+sin :: fonc (a : r64) -> r64 #externe
+tan :: fonc (a : r64) -> r64 #externe
+acos :: fonc (a : r64) -> r64 #externe
+asin :: fonc (a : r64) -> r64 #externe
+atan :: fonc (a : r64) -> r64 #externe
+atan2 :: fonc (a : r64, b: r64) -> r64 #externe
+pow :: fonc (a: r64, b: r64) -> r64 #externe
+ceil :: fonc (a: r64) -> r64 #externe
+floor :: fonc (a: r64) -> r64 #externe
+copysign :: fonc (a: r64, b: r64) -> r64 #externe
 
 sol :: fonc (a: r32) -> r32
 {

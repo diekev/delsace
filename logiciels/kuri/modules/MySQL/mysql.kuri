@@ -44,7 +44,7 @@ enum_field_types :: énum n32 {
 }
 
 // include/my_list.h
-LIST :: struct externe {
+LIST :: struct #externe {
 	prev : *LIST
 	next : *LIST
 	data : *rien
@@ -52,13 +52,13 @@ LIST :: struct externe {
 
 //typedef int (*list_walk_action)(void *, void *);
 
-list_add :: fonc externe (root : *LIST, element : *LIST) -> *LIST
-list_delete :: fonc externe (root : *LIST, element : *LIST) -> *LIST
-list_cons :: fonc externe (data : *rien, root : *LIST) -> *LIST
-list_reverse :: fonc externe (root : *LIST) -> *LIST
-list_free :: fonc externe (root : *LIST, free_data : n32) -> rien
-list_length :: fonc externe (root : *LIST) -> n32
-list_walk :: fonc externe (root : *LIST, action : #nulctx fonc(*rien,*rien)(z32), argument : *n8) -> z32
+list_add :: fonc (root : *LIST, element : *LIST) -> *LIST #externe
+list_delete :: fonc (root : *LIST, element : *LIST) -> *LIST #externe
+list_cons :: fonc (data : *rien, root : *LIST) -> *LIST #externe
+list_reverse :: fonc (root : *LIST) -> *LIST #externe
+list_free :: fonc (root : *LIST, free_data : n32) -> rien #externe
+list_length :: fonc (root : *LIST) -> n32 #externe
+list_walk :: fonc (root : *LIST, action : #nulctx fonc(*rien,*rien)(z32), argument : *n8) -> z32 #externe
 // A list of all MySQL protocol commands.
 enum_server_command :: énum n32 {
 	// Currently refused by the server. See ::dispatch_command. Also used internally to mark the start of a session.
@@ -136,16 +136,16 @@ enum_compression_algorithm :: énum n32 {
 }
 
 // Compress context information. relating to zlib compression.
-mysql_zlib_compress_context :: struct externe {
+mysql_zlib_compress_context :: struct #externe {
 	// Compression level to use in zlib compression.
 	compression_level : n32
 }
 
-ZSTD_CCtx :: struct externe;
-ZSTD_DCtx :: struct externe;
+ZSTD_CCtx :: struct #externe;
+ZSTD_DCtx :: struct #externe;
 
 // Compress context information relating to zstd compression.
-mysql_zstd_compress_context :: struct externe {
+mysql_zstd_compress_context :: struct #externe {
 	// Pointer to compressor context.
 	cctx : *ZSTD_CCtx
 	// Pointer to decompressor context.
@@ -162,7 +162,7 @@ anonyme4 :: union nonsûr {
 }
 
 // Compression context information. It encapsulate the context information based on compression method and presents a generic struct.
-mysql_compress_context :: struct externe {
+mysql_compress_context :: struct #externe {
 	// Compression algorithm name.
 	algorithm : enum_compression_algorithm
 
@@ -170,11 +170,11 @@ mysql_compress_context :: struct externe {
 }
 
 // Get default compression level corresponding to a given compression method.
-mysql_default_compression_level :: fonc externe (algorithm : enum_compression_algorithm) -> n32
+mysql_default_compression_level :: fonc (algorithm : enum_compression_algorithm) -> n32 #externe
 // Initialize a compress context object to be associated with a NET object.
-mysql_compress_context_init :: fonc externe (cmp_ctx : *mysql_compress_context, algorithm : enum_compression_algorithm, compression_level : n32) -> rien
+mysql_compress_context_init :: fonc (cmp_ctx : *mysql_compress_context, algorithm : enum_compression_algorithm, compression_level : n32) -> rien #externe
 // Deinitialize the compression context allocated.
-mysql_compress_context_deinit :: fonc externe (mysql_compress_ctx : *mysql_compress_context) -> rien
+mysql_compress_context_deinit :: fonc (mysql_compress_ctx : *mysql_compress_context) -> rien #externe
 // The status flags are a bit-field
 SERVER_STATUS_flags_enum :: énum n32 {
 	// Is raised when a multi-statement transaction has been started, either explicitly, by means of BEGIN or COMMIT AND CHAIN, or implicitly, by the first transactional statement, when autocommit=off.
@@ -204,9 +204,9 @@ SERVER_STATUS_flags_enum :: énum n32 {
 	SERVER_SESSION_STATE_CHANGED :: (1 << 14)
 }
 
-Vio :: struct externe;
+Vio :: struct #externe;
 
-NET :: struct externe {
+NET :: struct #externe {
 	vio : *Vio
 	buff : *n8
 	buff_end : *n8
@@ -236,7 +236,7 @@ NET :: struct externe {
 	compress : bool
 	last_errno : n32
 	error : n8
-	// Client library error message buffer. Actually belongs to struct externe MYSQL.
+	// Client library error message buffer. Actually belongs to struct #externe MYSQL.
 	last_error : [512]z8
 	// Client library sqlstate buffer. Set along with the error message.
 	sqlstate : [6]z8
@@ -300,7 +300,7 @@ enum_session_state_type :: énum n32 {
 	SESSION_TRACK_TRANSACTION_STATE
 }
 
-rand_struct :: struct externe {
+rand_struct :: struct #externe {
 	seed1 : n64
 	seed2 : n64
 	max_value : n64
@@ -322,7 +322,7 @@ Item_result :: énum z32 {
 	DECIMAL_RESULT
 }
 
-UDF_ARGS :: struct externe {
+UDF_ARGS :: struct #externe {
 	// Number of arguments
 	arg_count : n32
 	// Pointer to item_results
@@ -341,7 +341,7 @@ UDF_ARGS :: struct externe {
 }
 
 // Information about the result of a user defined function
-UDF_INIT :: struct externe {
+UDF_INIT :: struct #externe {
 	maybe_null : bool
 	// 1 if function can return NULL
 	decimals : n32
@@ -360,10 +360,10 @@ Item_udftype :: énum n32 {
 	UDFTYPE_AGGREGATE
 }
 
-va_list :: struct externe;
-__va_list_tag :: struct externe;
+va_list :: struct #externe;
+__va_list_tag :: struct #externe;
 
-st_mysql_client_plugin :: struct externe {
+st_mysql_client_plugin :: struct #externe {
 	type : z32
 	interface_version : n32
 	name : *z8
@@ -377,7 +377,7 @@ st_mysql_client_plugin :: struct externe {
 	options : #nulctx fonc(*z8,*rien)(z32)
 }
 
-MYSQL_PLUGIN_VIO_INFO :: struct externe {
+MYSQL_PLUGIN_VIO_INFO :: struct #externe {
 	anonyme5 :: énum n32 {
 		MYSQL_VIO_INVALID
 		MYSQL_VIO_TCP
@@ -400,7 +400,7 @@ net_async_status :: énum n32 {
 }
 
 // Provides plugin access to communication channel
-MYSQL_PLUGIN_VIO :: struct externe {
+MYSQL_PLUGIN_VIO :: struct #externe {
 	// Plugin provides a pointer reference and this function sets it to the contents of any incoming packet. Returns the packet length, or -1 if the plugin should terminate.
 	read_packet : #nulctx fonc(*MYSQL_PLUGIN_VIO,**n8)(z32)
 	// Plugin provides a buffer with data and the length and this function sends it as a packet. Returns 0 on success, 1 on failure.
@@ -428,7 +428,7 @@ enum_mysql_timestamp_type :: énum z32 {
 }
 
 // Structure which is used to represent datetime values inside MySQL.
-MYSQL_TIME :: struct externe {
+MYSQL_TIME :: struct #externe {
 	year : n32
 	month : n32
 	day : n32
@@ -456,7 +456,7 @@ ER_CLIENT :: fonc (client_errno : z32) -> *z8 #enligne
 
 externe mysql_port : n32
 externe mysql_unix_port : *z8
-MYSQL_FIELD :: struct externe {
+MYSQL_FIELD :: struct #externe {
 	// Name of column
 	name : *z8
 	// Original column name, if an alias
@@ -493,16 +493,16 @@ MYSQL_FIELD :: struct externe {
 	extension : *rien
 }
 
-MYSQL_ROWS :: struct externe {
+MYSQL_ROWS :: struct #externe {
 	// list of rows
 	next : *MYSQL_ROWS
 	data : **z8
 	length : n64
 }
 
-MEM_ROOT :: struct externe;
+MEM_ROOT :: struct #externe;
 
-MYSQL_DATA :: struct externe {
+MYSQL_DATA :: struct #externe {
 	data : *MYSQL_ROWS
 	alloc : *MEM_ROOT
 	rows : n64
@@ -555,10 +555,10 @@ mysql_option :: énum n32 {
 	MYSQL_OPT_ZSTD_COMPRESSION_LEVEL
 }
 
-Init_commands_array :: struct externe;
-st_mysql_options_extention :: struct externe;
+Init_commands_array :: struct #externe;
+st_mysql_options_extention :: struct #externe;
 
-st_mysql_options :: struct externe {
+st_mysql_options :: struct #externe {
 	connect_timeout : n32
 	read_timeout : n32
 	write_timeout : n32
@@ -631,7 +631,7 @@ mysql_ssl_fips_mode :: énum n32 {
 	SSL_FIPS_MODE_STRICT
 }
 
-MY_CHARSET_INFO :: struct externe {
+MY_CHARSET_INFO :: struct #externe {
 	// character set number
 	number : n32
 	// character set state
@@ -650,10 +650,10 @@ MY_CHARSET_INFO :: struct externe {
 	mbmaxlen : n32
 }
 
-CHARSET_INFO :: struct externe;
-MYSQL_METHODS :: struct externe;
+CHARSET_INFO :: struct #externe;
+MYSQL_METHODS :: struct #externe;
 
-MYSQL :: struct externe {
+MYSQL :: struct #externe {
 	// Communication parameters
 	net : NET
 	// ConnectorFd for SSL
@@ -703,7 +703,7 @@ MYSQL :: struct externe {
 	extension : *rien
 }
 
-MYSQL_RES :: struct externe {
+MYSQL_RES :: struct #externe {
 	row_count : n64
 	fields : *MYSQL_FIELD
 	data : *MYSQL_DATA
@@ -729,7 +729,7 @@ MYSQL_RES :: struct externe {
 }
 
 // Struct for information about a replication stream.
-MYSQL_RPL :: struct externe {
+MYSQL_RPL :: struct #externe {
 	file_name_length : n64
 	// Length of the 'file_name' or 0
 	file_name : *z8
@@ -758,7 +758,7 @@ enum_mysql_stmt_state :: énum n32 {
 }
 
 // This structure is used to define bind information, and internally by the client library. Public members with their descriptions are listed below (conventionally `On input' refers to the binds given to mysql_stmt_bind_param, `On output' refers to the binds given to mysql_stmt_bind_result):
-MYSQL_BIND :: struct externe {
+MYSQL_BIND :: struct #externe {
 	// output length pointer
 	length : *n64
 	// Pointer to null indicator
@@ -795,10 +795,10 @@ MYSQL_BIND :: struct externe {
 	extension : *rien
 }
 
-MYSQL_STMT_EXT :: struct externe;
+MYSQL_STMT_EXT :: struct #externe;
 
 // statement handler
-MYSQL_STMT :: struct externe {
+MYSQL_STMT :: struct #externe {
 	// root allocations
 	mem_root : *MEM_ROOT
 	// list to keep track of all stmts
@@ -853,7 +853,7 @@ MYSQL_STMT :: struct externe {
 	extension : *MYSQL_STMT_EXT
 }
 
-auth_plugin_t :: struct externe {
+auth_plugin_t :: struct #externe {
 	type : z32
 	interface_version : n32
 	name : *z8
@@ -878,188 +878,188 @@ enum_stmt_attr_type :: énum n32 {
 	STMT_ATTR_PREFETCH_ROWS
 }
 
-my_net_init :: fonc externe (net : *NET, vio : *Vio) -> bool
-my_net_local_init :: fonc externe (net : *NET) -> rien
-net_end :: fonc externe (net : *NET) -> rien
-net_clear :: fonc externe (net : *NET, check_buffer : bool) -> rien
-net_claim_memory_ownership :: fonc externe (net : *NET) -> rien
-net_realloc :: fonc externe (net : *NET, length : n64) -> bool
-net_flush :: fonc externe (net : *NET) -> bool
-my_net_write :: fonc externe (net : *NET, packet : *n8, len : n64) -> bool
-net_write_command :: fonc externe (net : *NET, command : n8, header : *n8, head_len : n64, packet : *n8, len : n64) -> bool
-net_write_packet :: fonc externe (net : *NET, packet : *n8, length : n64) -> bool
-my_net_read :: fonc externe (net : *NET) -> n64
-my_net_set_write_timeout :: fonc externe (net : *NET, timeout : n32) -> rien
-my_net_set_read_timeout :: fonc externe (net : *NET, timeout : n32) -> rien
-my_net_set_retry_count :: fonc externe (net : *NET, retry_count : n32) -> rien
+my_net_init :: fonc (net : *NET, vio : *Vio) -> bool #externe
+my_net_local_init :: fonc (net : *NET) -> rien #externe
+net_end :: fonc (net : *NET) -> rien #externe
+net_clear :: fonc (net : *NET, check_buffer : bool) -> rien #externe
+net_claim_memory_ownership :: fonc (net : *NET) -> rien #externe
+net_realloc :: fonc (net : *NET, length : n64) -> bool #externe
+net_flush :: fonc (net : *NET) -> bool #externe
+my_net_write :: fonc (net : *NET, packet : *n8, len : n64) -> bool #externe
+net_write_command :: fonc (net : *NET, command : n8, header : *n8, head_len : n64, packet : *n8, len : n64) -> bool #externe
+net_write_packet :: fonc (net : *NET, packet : *n8, length : n64) -> bool #externe
+my_net_read :: fonc (net : *NET) -> n64 #externe
+my_net_set_write_timeout :: fonc (net : *NET, timeout : n32) -> rien #externe
+my_net_set_read_timeout :: fonc (net : *NET, timeout : n32) -> rien #externe
+my_net_set_retry_count :: fonc (net : *NET, retry_count : n32) -> rien #externe
 
 // These functions are used for authentication by client and server and implemented in sql/password.c
-randominit :: fonc externe (rs : *rand_struct, seed1 : n64, seed2 : n64) -> rien
-my_rnd :: fonc externe (rs : *rand_struct) -> r64
-create_random_string :: fonc externe (to : *z8, length : n32, rand_st : *rand_struct) -> rien
-hash_password :: fonc externe (to : *n64, password : *z8, password_len : n32) -> rien
-make_scrambled_password_323 :: fonc externe (to : *z8, password : *z8) -> rien
-scramble_323 :: fonc externe (to : *z8, message : *z8, password : *z8) -> rien
-check_scramble_323 :: fonc externe (reply : *n8, message : *z8, salt : *n64) -> bool
-get_salt_from_password_323 :: fonc externe (res : *n64, password : *z8) -> rien
-make_password_from_salt_323 :: fonc externe (to : *z8, salt : *n64) -> rien
-make_scrambled_password :: fonc externe (to : *z8, password : *z8) -> rien
-scramble :: fonc externe (to : *z8, message : *z8, password : *z8) -> rien
-check_scramble :: fonc externe (reply : *n8, message : *z8, hash_stage2 : *n8) -> bool
-get_salt_from_password :: fonc externe (res : *n8, password : *z8) -> rien
-make_password_from_salt :: fonc externe (to : *z8, hash_stage2 : *n8) -> rien
-octet2hex :: fonc externe (to : *z8, str : *z8, len : n32) -> *z8
+randominit :: fonc (rs : *rand_struct, seed1 : n64, seed2 : n64) -> rien #externe
+my_rnd :: fonc (rs : *rand_struct) -> r64 #externe
+create_random_string :: fonc (to : *z8, length : n32, rand_st : *rand_struct) -> rien #externe
+hash_password :: fonc (to : *n64, password : *z8, password_len : n32) -> rien #externe
+make_scrambled_password_323 :: fonc (to : *z8, password : *z8) -> rien #externe
+scramble_323 :: fonc (to : *z8, message : *z8, password : *z8) -> rien #externe
+check_scramble_323 :: fonc (reply : *n8, message : *z8, salt : *n64) -> bool #externe
+get_salt_from_password_323 :: fonc (res : *n64, password : *z8) -> rien #externe
+make_password_from_salt_323 :: fonc (to : *z8, salt : *n64) -> rien #externe
+make_scrambled_password :: fonc (to : *z8, password : *z8) -> rien #externe
+scramble :: fonc (to : *z8, message : *z8, password : *z8) -> rien #externe
+check_scramble :: fonc (reply : *n8, message : *z8, hash_stage2 : *n8) -> bool #externe
+get_salt_from_password :: fonc (res : *n8, password : *z8) -> rien #externe
+make_password_from_salt :: fonc (to : *z8, hash_stage2 : *n8) -> rien #externe
+octet2hex :: fonc (to : *z8, str : *z8, len : n32) -> *z8 #externe
 // end of password.c
-generate_sha256_scramble :: fonc externe (dst : *n8, dst_size : n64, src : *z8, src_size : n64, rnd : *z8, rnd_size : n64) -> bool
-get_tty_password :: fonc externe (opt_message : *z8) -> *z8
-mysql_errno_to_sqlstate :: fonc externe (mysql_errno : n32) -> *z8
-my_thread_init :: fonc externe () -> bool
-my_thread_end :: fonc externe () -> rien
-net_field_length :: fonc externe (packet : **n8) -> n64
-net_field_length_checked :: fonc externe (packet : **n8, max_length : n64) -> n64
-net_field_length_ll :: fonc externe (packet : **n8) -> n64
-net_store_length :: fonc externe (pkg : *n8, length : n64) -> *n8
-net_length_size :: fonc externe (num : n64) -> n32
-net_field_length_size :: fonc externe (pos : *n8) -> n32
+generate_sha256_scramble :: fonc (dst : *n8, dst_size : n64, src : *z8, src_size : n64, rnd : *z8, rnd_size : n64) -> bool #externe
+get_tty_password :: fonc (opt_message : *z8) -> *z8 #externe
+mysql_errno_to_sqlstate :: fonc (mysql_errno : n32) -> *z8 #externe
+my_thread_init :: fonc () -> bool #externe
+my_thread_end :: fonc () -> rien #externe
+net_field_length :: fonc (packet : **n8) -> n64 #externe
+net_field_length_checked :: fonc (packet : **n8, max_length : n64) -> n64 #externe
+net_field_length_ll :: fonc (packet : **n8) -> n64 #externe
+net_store_length :: fonc (pkg : *n8, length : n64) -> *n8 #externe
+net_length_size :: fonc (num : n64) -> n32 #externe
+net_field_length_size :: fonc (pos : *n8) -> n32 #externe
 
 // loads a plugin and initializes it
-mysql_load_plugin :: fonc externe (mysql : *MYSQL, name : *z8, type : z32, argc : z32) -> *st_mysql_client_plugin
+mysql_load_plugin :: fonc (mysql : *MYSQL, name : *z8, type : z32, argc : z32) -> *st_mysql_client_plugin #externe
 // loads a plugin and initializes it, taking va_list as an argument
-mysql_load_plugin_v :: fonc externe (mysql : *MYSQL, name : *z8, type : z32, argc : z32, args : va_list) -> *st_mysql_client_plugin
+mysql_load_plugin_v :: fonc (mysql : *MYSQL, name : *z8, type : z32, argc : z32, args : va_list) -> *st_mysql_client_plugin #externe
 // finds an already loaded plugin by name, or loads it, if necessary
-mysql_client_find_plugin :: fonc externe (mysql : *MYSQL, name : *z8, type : z32) -> *st_mysql_client_plugin
+mysql_client_find_plugin :: fonc (mysql : *MYSQL, name : *z8, type : z32) -> *st_mysql_client_plugin #externe
 // adds a plugin structure to the list of loaded plugins
-mysql_client_register_plugin :: fonc externe (mysql : *MYSQL, plugin : *st_mysql_client_plugin) -> *st_mysql_client_plugin
+mysql_client_register_plugin :: fonc (mysql : *MYSQL, plugin : *st_mysql_client_plugin) -> *st_mysql_client_plugin #externe
 // set plugin options
-mysql_plugin_options :: fonc externe (plugin : *st_mysql_client_plugin, option : *z8, value : *rien) -> z32
+mysql_plugin_options :: fonc (plugin : *st_mysql_client_plugin, option : *z8, value : *rien) -> z32 #externe
 
 // include/errmsg.h
-init_client_errs :: fonc externe () -> rien
-finish_client_errs :: fonc externe () -> rien
+init_client_errs :: fonc () -> rien #externe
+finish_client_errs :: fonc () -> rien #externe
 
 // Set up and bring down the server; to ensure that applications will work when linked against either the standard client library or the embedded server library, these functions should be called.
-mysql_server_init :: fonc externe (argc : z32, argv : **z8, groups : **z8) -> z32
-mysql_server_end :: fonc externe () -> rien
+mysql_server_init :: fonc (argc : z32, argv : **z8, groups : **z8) -> z32 #externe
+mysql_server_end :: fonc () -> rien #externe
 // Set up and bring down a thread; these function should be called for each thread in an application which opens at least one MySQL connection. All uses of the connection(s) should be between these function calls.
-mysql_thread_init :: fonc externe () -> bool
-mysql_thread_end :: fonc externe () -> rien
+mysql_thread_init :: fonc () -> bool #externe
+mysql_thread_end :: fonc () -> rien #externe
 // Functions to get information from the MYSQL and MYSQL_RES structures Should definitely be used if one uses shared libraries.
-mysql_num_rows :: fonc externe (res : *MYSQL_RES) -> n64
-mysql_num_fields :: fonc externe (res : *MYSQL_RES) -> n32
-mysql_eof :: fonc externe (res : *MYSQL_RES) -> bool
-mysql_fetch_field_direct :: fonc externe (res : *MYSQL_RES, fieldnr : n32) -> *MYSQL_FIELD
-mysql_fetch_fields :: fonc externe (res : *MYSQL_RES) -> *MYSQL_FIELD
-mysql_row_tell :: fonc externe (res : *MYSQL_RES) -> *MYSQL_ROWS
-mysql_field_tell :: fonc externe (res : *MYSQL_RES) -> n32
-mysql_result_metadata :: fonc externe (result : *MYSQL_RES) -> enum_resultset_metadata
-mysql_field_count :: fonc externe (mysql : *MYSQL) -> n32
-mysql_affected_rows :: fonc externe (mysql : *MYSQL) -> n64
-mysql_insert_id :: fonc externe (mysql : *MYSQL) -> n64
-mysql_errno :: fonc externe (mysql : *MYSQL) -> n32
-mysql_error :: fonc externe (mysql : *MYSQL) -> *z8
-mysql_sqlstate :: fonc externe (mysql : *MYSQL) -> *z8
-mysql_warning_count :: fonc externe (mysql : *MYSQL) -> n32
-mysql_info :: fonc externe (mysql : *MYSQL) -> *z8
-mysql_thread_id :: fonc externe (mysql : *MYSQL) -> n64
-mysql_MY_CHARSET_INFO_name :: fonc externe (mysql : *MYSQL) -> *z8
-mysql_set_MY_CHARSET_INFO :: fonc externe (mysql : *MYSQL, csname : *z8) -> z32
-mysql_init :: fonc externe (mysql : *MYSQL) -> *MYSQL
-mysql_ssl_set :: fonc externe (mysql : *MYSQL, key : *z8, cert : *z8, ca : *z8, capath : *z8, cipher : *z8) -> bool
-mysql_get_ssl_cipher :: fonc externe (mysql : *MYSQL) -> *z8
-mysql_change_user :: fonc externe (mysql : *MYSQL, user : *z8, passwd : *z8, db : *z8) -> bool
-mysql_real_connect :: fonc externe (mysql : *MYSQL, host : *z8, user : *z8, passwd : *z8, db : *z8, port : n32, unix_socket : *z8, clientflag : n64) -> *MYSQL
-mysql_select_db :: fonc externe (mysql : *MYSQL, db : *z8) -> z32
-mysql_query :: fonc externe (mysql : *MYSQL, q : *z8) -> z32
-mysql_send_query :: fonc externe (mysql : *MYSQL, q : *z8, length : n64) -> z32
-mysql_real_query :: fonc externe (mysql : *MYSQL, q : *z8, length : n64) -> z32
-mysql_store_result :: fonc externe (mysql : *MYSQL) -> *MYSQL_RES
-mysql_use_result :: fonc externe (mysql : *MYSQL) -> *MYSQL_RES
-mysql_real_connect_nonblocking :: fonc externe (mysql : *MYSQL, host : *z8, user : *z8, passwd : *z8, db : *z8, port : n32, unix_socket : *z8, clientflag : n64) -> net_async_status
-mysql_send_query_nonblocking :: fonc externe (mysql : *MYSQL, query : *z8, length : n64) -> net_async_status
-mysql_real_query_nonblocking :: fonc externe (mysql : *MYSQL, query : *z8, length : n64) -> net_async_status
-mysql_store_result_nonblocking :: fonc externe (mysql : *MYSQL, result : **MYSQL_RES) -> net_async_status
-mysql_next_result_nonblocking :: fonc externe (mysql : *MYSQL) -> net_async_status
-mysql_select_db_nonblocking :: fonc externe (mysql : *MYSQL, db : *z8, error : *bool) -> net_async_status
-mysql_get_MY_CHARSET_INFO_info :: fonc externe (mysql : *MYSQL, charset : *MY_CHARSET_INFO) -> rien
-mysql_session_track_get_first :: fonc externe (mysql : *MYSQL, type : enum_session_state_type, data : **z8, length : *n64) -> z32
-mysql_session_track_get_next :: fonc externe (mysql : *MYSQL, type : enum_session_state_type, data : **z8, length : *n64) -> z32
-mysql_set_local_infile_handler :: fonc externe (mysql : *MYSQL, local_infile_init : #nulctx fonc(**rien,*z8,*rien)(z32), local_infile_read : #nulctx fonc(*rien,*z8,n32)(z32), local_infile_end : #nulctx fonc(*rien)(rien), local_infile_error : #nulctx fonc(*rien,*z8,n32)(z32), xx : *rien) -> rien
-mysql_set_local_infile_default :: fonc externe (mysql : *MYSQL) -> rien
-mysql_shutdown :: fonc externe (mysql : *MYSQL, shutdown_level : mysql_enum_shutdown_level) -> z32
-mysql_dump_debug_info :: fonc externe (mysql : *MYSQL) -> z32
-mysql_refresh :: fonc externe (mysql : *MYSQL, refresh_options : n32) -> z32
-mysql_kill :: fonc externe (mysql : *MYSQL, pid : n64) -> z32
-mysql_set_server_option :: fonc externe (mysql : *MYSQL, option : enum_mysql_set_option) -> z32
-mysql_ping :: fonc externe (mysql : *MYSQL) -> z32
-mysql_stat :: fonc externe (mysql : *MYSQL) -> *z8
-mysql_get_server_info :: fonc externe (mysql : *MYSQL) -> *z8
-mysql_get_client_info :: fonc externe () -> *z8
-mysql_get_client_version :: fonc externe () -> n64
-mysql_get_host_info :: fonc externe (mysql : *MYSQL) -> *z8
-mysql_get_server_version :: fonc externe (mysql : *MYSQL) -> n64
-mysql_get_proto_info :: fonc externe (mysql : *MYSQL) -> n32
-mysql_list_dbs :: fonc externe (mysql : *MYSQL, wild : *z8) -> *MYSQL_RES
-mysql_list_tables :: fonc externe (mysql : *MYSQL, wild : *z8) -> *MYSQL_RES
-mysql_list_processes :: fonc externe (mysql : *MYSQL) -> *MYSQL_RES
-mysql_options :: fonc externe (mysql : *MYSQL, option : mysql_option, arg : *rien) -> z32
-mysql_options4 :: fonc externe (mysql : *MYSQL, option : mysql_option, arg1 : *rien, arg2 : *rien) -> z32
-mysql_get_option :: fonc externe (mysql : *MYSQL, option : mysql_option, arg : *rien) -> z32
-mysql_free_result :: fonc externe (result : *MYSQL_RES) -> rien
-mysql_free_result_nonblocking :: fonc externe (result : *MYSQL_RES) -> net_async_status
-mysql_data_seek :: fonc externe (result : *MYSQL_RES, offset : n64) -> rien
-mysql_row_seek :: fonc externe (result : *MYSQL_RES, offset : *MYSQL_ROWS) -> *MYSQL_ROWS
-mysql_field_seek :: fonc externe (result : *MYSQL_RES, offset : n32) -> n32
-mysql_fetch_row :: fonc externe (result : *MYSQL_RES) -> **z8
-mysql_fetch_row_nonblocking :: fonc externe (res : *MYSQL_RES, row : ***z8) -> net_async_status
-mysql_fetch_lengths :: fonc externe (result : *MYSQL_RES) -> *n64
-mysql_fetch_field :: fonc externe (result : *MYSQL_RES) -> *MYSQL_FIELD
-mysql_list_fields :: fonc externe (mysql : *MYSQL, table : *z8, wild : *z8) -> *MYSQL_RES
-mysql_escape_string :: fonc externe (to : *z8, from : *z8, from_length : n64) -> n64
-mysql_hex_string :: fonc externe (to : *z8, from : *z8, from_length : n64) -> n64
-mysql_real_escape_string :: fonc externe (mysql : *MYSQL, to : *z8, from : *z8, length : n64) -> n64
-mysql_real_escape_string_quote :: fonc externe (mysql : *MYSQL, to : *z8, from : *z8, length : n64, quote : z8) -> n64
-mysql_debug :: fonc externe (debug : *z8) -> rien
-myodbc_remove_escape :: fonc externe (mysql : *MYSQL, name : *z8) -> rien
-mysql_thread_safe :: fonc externe () -> n32
-mysql_read_query_result :: fonc externe (mysql : *MYSQL) -> bool
-mysql_reset_connection :: fonc externe (mysql : *MYSQL) -> z32
-mysql_binlog_open :: fonc externe (mysql : *MYSQL, rpl : *MYSQL_RPL) -> z32
-mysql_binlog_fetch :: fonc externe (mysql : *MYSQL, rpl : *MYSQL_RPL) -> z32
-mysql_binlog_close :: fonc externe (mysql : *MYSQL, rpl : *MYSQL_RPL) -> rien
+mysql_num_rows :: fonc (res : *MYSQL_RES) -> n64 #externe
+mysql_num_fields :: fonc (res : *MYSQL_RES) -> n32 #externe
+mysql_eof :: fonc (res : *MYSQL_RES) -> bool #externe
+mysql_fetch_field_direct :: fonc (res : *MYSQL_RES, fieldnr : n32) -> *MYSQL_FIELD #externe
+mysql_fetch_fields :: fonc (res : *MYSQL_RES) -> *MYSQL_FIELD #externe
+mysql_row_tell :: fonc (res : *MYSQL_RES) -> *MYSQL_ROWS #externe
+mysql_field_tell :: fonc (res : *MYSQL_RES) -> n32 #externe
+mysql_result_metadata :: fonc (result : *MYSQL_RES) -> enum_resultset_metadata #externe
+mysql_field_count :: fonc (mysql : *MYSQL) -> n32 #externe
+mysql_affected_rows :: fonc (mysql : *MYSQL) -> n64 #externe
+mysql_insert_id :: fonc (mysql : *MYSQL) -> n64 #externe
+mysql_errno :: fonc (mysql : *MYSQL) -> n32 #externe
+mysql_error :: fonc (mysql : *MYSQL) -> *z8 #externe
+mysql_sqlstate :: fonc (mysql : *MYSQL) -> *z8 #externe
+mysql_warning_count :: fonc (mysql : *MYSQL) -> n32 #externe
+mysql_info :: fonc (mysql : *MYSQL) -> *z8 #externe
+mysql_thread_id :: fonc (mysql : *MYSQL) -> n64 #externe
+mysql_MY_CHARSET_INFO_name :: fonc (mysql : *MYSQL) -> *z8 #externe
+mysql_set_MY_CHARSET_INFO :: fonc (mysql : *MYSQL, csname : *z8) -> z32 #externe
+mysql_init :: fonc (mysql : *MYSQL) -> *MYSQL #externe
+mysql_ssl_set :: fonc (mysql : *MYSQL, key : *z8, cert : *z8, ca : *z8, capath : *z8, cipher : *z8) -> bool #externe
+mysql_get_ssl_cipher :: fonc (mysql : *MYSQL) -> *z8 #externe
+mysql_change_user :: fonc (mysql : *MYSQL, user : *z8, passwd : *z8, db : *z8) -> bool #externe
+mysql_real_connect :: fonc (mysql : *MYSQL, host : *z8, user : *z8, passwd : *z8, db : *z8, port : n32, unix_socket : *z8, clientflag : n64) -> *MYSQL #externe
+mysql_select_db :: fonc (mysql : *MYSQL, db : *z8) -> z32 #externe
+mysql_query :: fonc (mysql : *MYSQL, q : *z8) -> z32 #externe
+mysql_send_query :: fonc (mysql : *MYSQL, q : *z8, length : n64) -> z32 #externe
+mysql_real_query :: fonc (mysql : *MYSQL, q : *z8, length : n64) -> z32 #externe
+mysql_store_result :: fonc (mysql : *MYSQL) -> *MYSQL_RES #externe
+mysql_use_result :: fonc (mysql : *MYSQL) -> *MYSQL_RES #externe
+mysql_real_connect_nonblocking :: fonc (mysql : *MYSQL, host : *z8, user : *z8, passwd : *z8, db : *z8, port : n32, unix_socket : *z8, clientflag : n64) -> net_async_status #externe
+mysql_send_query_nonblocking :: fonc (mysql : *MYSQL, query : *z8, length : n64) -> net_async_status #externe
+mysql_real_query_nonblocking :: fonc (mysql : *MYSQL, query : *z8, length : n64) -> net_async_status #externe
+mysql_store_result_nonblocking :: fonc (mysql : *MYSQL, result : **MYSQL_RES) -> net_async_status #externe
+mysql_next_result_nonblocking :: fonc (mysql : *MYSQL) -> net_async_status #externe
+mysql_select_db_nonblocking :: fonc (mysql : *MYSQL, db : *z8, error : *bool) -> net_async_status #externe
+mysql_get_MY_CHARSET_INFO_info :: fonc (mysql : *MYSQL, charset : *MY_CHARSET_INFO) -> rien #externe
+mysql_session_track_get_first :: fonc (mysql : *MYSQL, type : enum_session_state_type, data : **z8, length : *n64) -> z32 #externe
+mysql_session_track_get_next :: fonc (mysql : *MYSQL, type : enum_session_state_type, data : **z8, length : *n64) -> z32 #externe
+mysql_set_local_infile_handler :: fonc (mysql : *MYSQL, local_infile_init : #nulctx fonc(**rien,*z8,*rien)(z32), local_infile_read : #nulctx fonc(*rien,*z8,n32)(z32), local_infile_end : #nulctx fonc(*rien)(rien), local_infile_error : #nulctx fonc(*rien,*z8,n32)(z32), xx : *rien) -> rien #externe
+mysql_set_local_infile_default :: fonc (mysql : *MYSQL) -> rien #externe
+mysql_shutdown :: fonc (mysql : *MYSQL, shutdown_level : mysql_enum_shutdown_level) -> z32 #externe
+mysql_dump_debug_info :: fonc (mysql : *MYSQL) -> z32 #externe
+mysql_refresh :: fonc (mysql : *MYSQL, refresh_options : n32) -> z32 #externe
+mysql_kill :: fonc (mysql : *MYSQL, pid : n64) -> z32 #externe
+mysql_set_server_option :: fonc (mysql : *MYSQL, option : enum_mysql_set_option) -> z32 #externe
+mysql_ping :: fonc (mysql : *MYSQL) -> z32 #externe
+mysql_stat :: fonc (mysql : *MYSQL) -> *z8 #externe
+mysql_get_server_info :: fonc (mysql : *MYSQL) -> *z8 #externe
+mysql_get_client_info :: fonc () -> *z8 #externe
+mysql_get_client_version :: fonc () -> n64 #externe
+mysql_get_host_info :: fonc (mysql : *MYSQL) -> *z8 #externe
+mysql_get_server_version :: fonc (mysql : *MYSQL) -> n64 #externe
+mysql_get_proto_info :: fonc (mysql : *MYSQL) -> n32 #externe
+mysql_list_dbs :: fonc (mysql : *MYSQL, wild : *z8) -> *MYSQL_RES #externe
+mysql_list_tables :: fonc (mysql : *MYSQL, wild : *z8) -> *MYSQL_RES #externe
+mysql_list_processes :: fonc (mysql : *MYSQL) -> *MYSQL_RES #externe
+mysql_options :: fonc (mysql : *MYSQL, option : mysql_option, arg : *rien) -> z32 #externe
+mysql_options4 :: fonc (mysql : *MYSQL, option : mysql_option, arg1 : *rien, arg2 : *rien) -> z32 #externe
+mysql_get_option :: fonc (mysql : *MYSQL, option : mysql_option, arg : *rien) -> z32 #externe
+mysql_free_result :: fonc (result : *MYSQL_RES) -> rien #externe
+mysql_free_result_nonblocking :: fonc (result : *MYSQL_RES) -> net_async_status #externe
+mysql_data_seek :: fonc (result : *MYSQL_RES, offset : n64) -> rien #externe
+mysql_row_seek :: fonc (result : *MYSQL_RES, offset : *MYSQL_ROWS) -> *MYSQL_ROWS #externe
+mysql_field_seek :: fonc (result : *MYSQL_RES, offset : n32) -> n32 #externe
+mysql_fetch_row :: fonc (result : *MYSQL_RES) -> **z8 #externe
+mysql_fetch_row_nonblocking :: fonc (res : *MYSQL_RES, row : ***z8) -> net_async_status #externe
+mysql_fetch_lengths :: fonc (result : *MYSQL_RES) -> *n64 #externe
+mysql_fetch_field :: fonc (result : *MYSQL_RES) -> *MYSQL_FIELD #externe
+mysql_list_fields :: fonc (mysql : *MYSQL, table : *z8, wild : *z8) -> *MYSQL_RES #externe
+mysql_escape_string :: fonc (to : *z8, from : *z8, from_length : n64) -> n64 #externe
+mysql_hex_string :: fonc (to : *z8, from : *z8, from_length : n64) -> n64 #externe
+mysql_real_escape_string :: fonc (mysql : *MYSQL, to : *z8, from : *z8, length : n64) -> n64 #externe
+mysql_real_escape_string_quote :: fonc (mysql : *MYSQL, to : *z8, from : *z8, length : n64, quote : z8) -> n64 #externe
+mysql_debug :: fonc (debug : *z8) -> rien #externe
+myodbc_remove_escape :: fonc (mysql : *MYSQL, name : *z8) -> rien #externe
+mysql_thread_safe :: fonc () -> n32 #externe
+mysql_read_query_result :: fonc (mysql : *MYSQL) -> bool #externe
+mysql_reset_connection :: fonc (mysql : *MYSQL) -> z32 #externe
+mysql_binlog_open :: fonc (mysql : *MYSQL, rpl : *MYSQL_RPL) -> z32 #externe
+mysql_binlog_fetch :: fonc (mysql : *MYSQL, rpl : *MYSQL_RPL) -> z32 #externe
+mysql_binlog_close :: fonc (mysql : *MYSQL, rpl : *MYSQL_RPL) -> rien #externe
 
-mysql_stmt_init :: fonc externe (mysql : *MYSQL) -> *MYSQL_STMT
-mysql_stmt_prepare :: fonc externe (stmt : *MYSQL_STMT, query : *z8, length : n64) -> z32
-mysql_stmt_execute :: fonc externe (stmt : *MYSQL_STMT) -> z32
-mysql_stmt_fetch :: fonc externe (stmt : *MYSQL_STMT) -> z32
-mysql_stmt_fetch_column :: fonc externe (stmt : *MYSQL_STMT, bind_arg : *MYSQL_BIND, column : n32, offset : n64) -> z32
-mysql_stmt_store_result :: fonc externe (stmt : *MYSQL_STMT) -> z32
-mysql_stmt_param_count :: fonc externe (stmt : *MYSQL_STMT) -> n64
-mysql_stmt_attr_set :: fonc externe (stmt : *MYSQL_STMT, attr_type : enum_stmt_attr_type, attr : *rien) -> bool
-mysql_stmt_attr_get :: fonc externe (stmt : *MYSQL_STMT, attr_type : enum_stmt_attr_type, attr : *rien) -> bool
-mysql_stmt_bind_param :: fonc externe (stmt : *MYSQL_STMT, bnd : *MYSQL_BIND) -> bool
-mysql_stmt_bind_result :: fonc externe (stmt : *MYSQL_STMT, bnd : *MYSQL_BIND) -> bool
-mysql_stmt_close :: fonc externe (stmt : *MYSQL_STMT) -> bool
-mysql_stmt_reset :: fonc externe (stmt : *MYSQL_STMT) -> bool
-mysql_stmt_free_result :: fonc externe (stmt : *MYSQL_STMT) -> bool
-mysql_stmt_send_long_data :: fonc externe (stmt : *MYSQL_STMT, param_number : n32, data : *z8, length : n64) -> bool
-mysql_stmt_result_metadata :: fonc externe (stmt : *MYSQL_STMT) -> *MYSQL_RES
-mysql_stmt_param_metadata :: fonc externe (stmt : *MYSQL_STMT) -> *MYSQL_RES
-mysql_stmt_errno :: fonc externe (stmt : *MYSQL_STMT) -> n32
-mysql_stmt_error :: fonc externe (stmt : *MYSQL_STMT) -> *z8
-mysql_stmt_sqlstate :: fonc externe (stmt : *MYSQL_STMT) -> *z8
-mysql_stmt_row_seek :: fonc externe (stmt : *MYSQL_STMT, offset : *MYSQL_ROWS) -> *MYSQL_ROWS
-mysql_stmt_row_tell :: fonc externe (stmt : *MYSQL_STMT) -> *MYSQL_ROWS
-mysql_stmt_data_seek :: fonc externe (stmt : *MYSQL_STMT, offset : n64) -> rien
-mysql_stmt_num_rows :: fonc externe (stmt : *MYSQL_STMT) -> n64
-mysql_stmt_affected_rows :: fonc externe (stmt : *MYSQL_STMT) -> n64
-mysql_stmt_insert_id :: fonc externe (stmt : *MYSQL_STMT) -> n64
-mysql_stmt_field_count :: fonc externe (stmt : *MYSQL_STMT) -> n32
-mysql_commit :: fonc externe (mysql : *MYSQL) -> bool
-mysql_rollback :: fonc externe (mysql : *MYSQL) -> bool
-mysql_autocommit :: fonc externe (mysql : *MYSQL, auto_mode : bool) -> bool
-mysql_more_results :: fonc externe (mysql : *MYSQL) -> bool
-mysql_next_result :: fonc externe (mysql : *MYSQL) -> z32
-mysql_stmt_next_result :: fonc externe (stmt : *MYSQL_STMT) -> z32
-mysql_close :: fonc externe (sock : *MYSQL) -> rien
+mysql_stmt_init :: fonc (mysql : *MYSQL) -> *MYSQL_STMT #externe
+mysql_stmt_prepare :: fonc (stmt : *MYSQL_STMT, query : *z8, length : n64) -> z32 #externe
+mysql_stmt_execute :: fonc (stmt : *MYSQL_STMT) -> z32 #externe
+mysql_stmt_fetch :: fonc (stmt : *MYSQL_STMT) -> z32 #externe
+mysql_stmt_fetch_column :: fonc (stmt : *MYSQL_STMT, bind_arg : *MYSQL_BIND, column : n32, offset : n64) -> z32 #externe
+mysql_stmt_store_result :: fonc (stmt : *MYSQL_STMT) -> z32 #externe
+mysql_stmt_param_count :: fonc (stmt : *MYSQL_STMT) -> n64 #externe
+mysql_stmt_attr_set :: fonc (stmt : *MYSQL_STMT, attr_type : enum_stmt_attr_type, attr : *rien) -> bool #externe
+mysql_stmt_attr_get :: fonc (stmt : *MYSQL_STMT, attr_type : enum_stmt_attr_type, attr : *rien) -> bool #externe
+mysql_stmt_bind_param :: fonc (stmt : *MYSQL_STMT, bnd : *MYSQL_BIND) -> bool #externe
+mysql_stmt_bind_result :: fonc (stmt : *MYSQL_STMT, bnd : *MYSQL_BIND) -> bool #externe
+mysql_stmt_close :: fonc (stmt : *MYSQL_STMT) -> bool #externe
+mysql_stmt_reset :: fonc (stmt : *MYSQL_STMT) -> bool #externe
+mysql_stmt_free_result :: fonc (stmt : *MYSQL_STMT) -> bool #externe
+mysql_stmt_send_long_data :: fonc (stmt : *MYSQL_STMT, param_number : n32, data : *z8, length : n64) -> bool #externe
+mysql_stmt_result_metadata :: fonc (stmt : *MYSQL_STMT) -> *MYSQL_RES #externe
+mysql_stmt_param_metadata :: fonc (stmt : *MYSQL_STMT) -> *MYSQL_RES #externe
+mysql_stmt_errno :: fonc (stmt : *MYSQL_STMT) -> n32 #externe
+mysql_stmt_error :: fonc (stmt : *MYSQL_STMT) -> *z8 #externe
+mysql_stmt_sqlstate :: fonc (stmt : *MYSQL_STMT) -> *z8 #externe
+mysql_stmt_row_seek :: fonc (stmt : *MYSQL_STMT, offset : *MYSQL_ROWS) -> *MYSQL_ROWS #externe
+mysql_stmt_row_tell :: fonc (stmt : *MYSQL_STMT) -> *MYSQL_ROWS #externe
+mysql_stmt_data_seek :: fonc (stmt : *MYSQL_STMT, offset : n64) -> rien #externe
+mysql_stmt_num_rows :: fonc (stmt : *MYSQL_STMT) -> n64 #externe
+mysql_stmt_affected_rows :: fonc (stmt : *MYSQL_STMT) -> n64 #externe
+mysql_stmt_insert_id :: fonc (stmt : *MYSQL_STMT) -> n64 #externe
+mysql_stmt_field_count :: fonc (stmt : *MYSQL_STMT) -> n32 #externe
+mysql_commit :: fonc (mysql : *MYSQL) -> bool #externe
+mysql_rollback :: fonc (mysql : *MYSQL) -> bool #externe
+mysql_autocommit :: fonc (mysql : *MYSQL, auto_mode : bool) -> bool #externe
+mysql_more_results :: fonc (mysql : *MYSQL) -> bool #externe
+mysql_next_result :: fonc (mysql : *MYSQL) -> z32 #externe
+mysql_stmt_next_result :: fonc (stmt : *MYSQL_STMT) -> z32 #externe
+mysql_close :: fonc (sock : *MYSQL) -> rien #externe
 // Public key reset
-mysql_reset_server_public_key :: fonc externe () -> rien
+mysql_reset_server_public_key :: fonc () -> rien #externe

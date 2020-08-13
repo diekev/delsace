@@ -1,7 +1,7 @@
 importe Fondation
 // Problème : les fonctions chainées via '.' vont colésées avec les multiples types retours.
 
-ext_indirection1 :: fonc externe () -> z32
+ext_indirection1 :: fonc () -> z32 #externe
 
 //##############################################################################
 

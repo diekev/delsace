@@ -117,7 +117,7 @@ imprime_valeur_monétaire :: fonc (v: ValeurMonnétaire) -> rien
         FormatEntier(valeur = centimes, ajoute_zéros_début = centimes < 10, nombre_zéros = 1))
 }
 
-rand :: fonc externe () -> z32
+rand :: fonc () -> z32 #externe
 
 nombre_aléatoire :: fonc () -> z32
 {

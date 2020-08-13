@@ -8,39 +8,39 @@ importe Fondation
 // À FAIRE : ne retourne pas des chaines, mais les tampons de données crues
 // À FAIRE : la bibliothèque BCrypt à l'air brisée ?, il faudra de toute manière utiliser Argon2 qui a l'air d'être une meilleure fonction
 
-BCrypt_taille_tampon :: fonc externe () -> z64
+BCrypt_taille_tampon :: fonc () -> z64 #externe
 
-BCrypt_genere_empreinte :: fonc externe (mot_de_passe: *z8, charge_travail: z32, sortie: *z8) -> rien
+BCrypt_genere_empreinte :: fonc (mot_de_passe: *z8, charge_travail: z32, sortie: *z8) -> rien #externe
 
-BCrypt_compare_empreinte :: fonc externe (mot_de_passe: *z8, empreinte: *z8) -> z32
+BCrypt_compare_empreinte :: fonc (mot_de_passe: *z8, empreinte: *z8) -> z32 #externe
 
-CRC32_taille_tampon :: fonc externe () -> z64
+CRC32_taille_tampon :: fonc () -> z64 #externe
 
-CRC32_genere_empreinte :: fonc externe (entree: *z8, taille: z64, sortie: *z8) -> rien
+CRC32_genere_empreinte :: fonc (entree: *z8, taille: z64, sortie: *z8) -> rien #externe
 
-HMAC_taille_tampon :: fonc externe () -> z64
+HMAC_taille_tampon :: fonc () -> z64 #externe
 
-HMAC_genere_empreinte :: fonc externe (cle: *n8, taille_cle: z64, message: *n8, taille_message: z64, sortie: *z8)
+HMAC_genere_empreinte :: fonc (cle: *n8, taille_cle: z64, message: *n8, taille_message: z64, sortie: *z8) #externe
 
-MD5_taille_tampon :: fonc externe () -> z64
+MD5_taille_tampon :: fonc () -> z64 #externe
 
-MD5_genere_empreinte :: fonc externe (entree: *z8, taille: z64, sortie: *z8) -> rien
+MD5_genere_empreinte :: fonc (entree: *z8, taille: z64, sortie: *z8) -> rien #externe
 
-SHA1_taille_tampon :: fonc externe () -> z64
+SHA1_taille_tampon :: fonc () -> z64 #externe
 
-SHA1_genere_empreinte :: fonc externe (entree: *z8, taille: z64, sortie: *z8) -> rien
+SHA1_genere_empreinte :: fonc (entree: *z8, taille: z64, sortie: *z8) -> rien #externe
 
-SHA256_taille_tampon :: fonc externe () -> z64
+SHA256_taille_tampon :: fonc () -> z64 #externe
 
-SHA256_genere_empreinte :: fonc externe (entree: *z8, taille: z64, sortie: *z8) -> rien
+SHA256_genere_empreinte :: fonc (entree: *z8, taille: z64, sortie: *z8) -> rien #externe
 
-SHA384_taille_tampon :: fonc externe () -> z64
+SHA384_taille_tampon :: fonc () -> z64 #externe
 
-SHA384_genere_empreinte :: fonc externe (entree: *z8, taille: z64, sortie: *z8) -> rien
+SHA384_genere_empreinte :: fonc (entree: *z8, taille: z64, sortie: *z8) -> rien #externe
 
-SHA512_taille_tampon :: fonc externe () -> z64
+SHA512_taille_tampon :: fonc () -> z64 #externe
 
-SHA512_genere_empreinte :: fonc externe (entree: *z8, taille: z64, sortie: *z8) -> rien
+SHA512_genere_empreinte :: fonc (entree: *z8, taille: z64, sortie: *z8) -> rien #externe
 
 BCrypt_genere_empreinte :: fonc (mot_de_passe: chaine, charge_travail := 12) -> chaine
 {

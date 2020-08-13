@@ -5,28 +5,28 @@
 
 //###############################################################################
 
-ssl_method_st :: struct externe  // SSL_METHOD dans l'IPA C
-ssl_st :: struct externe  // SSL dans l'IPA C
+ssl_method_st :: struct #externe // SSL_METHOD dans l'IPA C
+ssl_st :: struct #externe // SSL dans l'IPA C
 
-X509 :: struct externe
-X509_NAME :: struct externe
-X509_REQ :: struct externe
-X509_CRL :: struct externe
+X509 :: struct #externe
+X509_NAME :: struct #externe
+X509_REQ :: struct #externe
+X509_CRL :: struct #externe
 
-SSL_library_init :: fonc externe () -> rien
-OPENSSL_add_all_algorithms_conf :: fonc externe () -> rien
-OPENSSL_add_all_algorithms_noconf :: fonc externe () -> rien
-TLSv1_2_server_method :: fonc externe () -> *ssl_method_st
-SSL_load_error_strings :: fonc externe () -> rien
-SSLv23_client_method :: fonc externe () -> *ssl_method_st
-SSL_CTX_new :: fonc externe (method : *ssl_method_st) -> *ssl_st
-SSL_new :: fonc externe (ctx_s : *rien) -> *ssl_st
-SSL_set_fd :: fonc externe (ssl : *ssl_st, prise : z32) -> rien
-SSL_connect :: fonc externe (ssl : *ssl_st) -> z32
-SSL_free :: fonc externe (ssl : *ssl_st) -> rien
-SSL_get_error :: fonc externe (ssl : *ssl_st, erreur_ : z32) -> z32
-SSL_write :: fonc externe (ssl : *ssl_st, ptr : *z8, taille : z32) -> z32
-SSL_read :: fonc externe (ssl : *ssl_st, tampon : *z8, max : z32) -> z32
+SSL_library_init :: fonc () -> rien #externe
+OPENSSL_add_all_algorithms_conf :: fonc () -> rien #externe
+OPENSSL_add_all_algorithms_noconf :: fonc () -> rien #externe
+TLSv1_2_server_method :: fonc () -> *ssl_method_st #externe
+SSL_load_error_strings :: fonc () -> rien #externe
+SSLv23_client_method :: fonc () -> *ssl_method_st #externe
+SSL_CTX_new :: fonc (method : *ssl_method_st) -> *ssl_st #externe
+SSL_new :: fonc (ctx_s : *rien) -> *ssl_st #externe
+SSL_set_fd :: fonc (ssl : *ssl_st, prise : z32) -> rien #externe
+SSL_connect :: fonc (ssl : *ssl_st) -> z32 #externe
+SSL_free :: fonc (ssl : *ssl_st) -> rien #externe
+SSL_get_error :: fonc (ssl : *ssl_st, erreur_ : z32) -> z32 #externe
+SSL_write :: fonc (ssl : *ssl_st, ptr : *z8, taille : z32) -> z32 #externe
+SSL_read :: fonc (ssl : *ssl_st, tampon : *z8, max : z32) -> z32 #externe
 
 // ceci est un macro en C
 OpenSSL_add_all_algorithms :: fonc () -> rien
@@ -55,30 +55,30 @@ SSL_ERROR_ZERO_RETURN :: 6
 SSL_ERROR_WANT_CONNECT :: 7
 SSL_ERROR_WANT_ACCEPT :: 8
 
-SSL_CTX_free :: fonc externe (ssl: *ssl_st) -> rien
-SSL_accept :: fonc externe (ssl: *ssl_st) -> z32
-SSL_get_fd :: fonc externe (ssl: *ssl_st) -> z32
+SSL_CTX_free :: fonc (ssl: *ssl_st) -> rien #externe
+SSL_accept :: fonc (ssl: *ssl_st) -> z32 #externe
+SSL_get_fd :: fonc (ssl: *ssl_st) -> z32 #externe
 
-SSL_get_peer_certificate :: fonc externe (ssl: *ssl_st) -> *X509
-X509_free :: fonc externe (x509: *X509) -> rien
+SSL_get_peer_certificate :: fonc (ssl: *ssl_st) -> *X509 #externe
+X509_free :: fonc (x509: *X509) -> rien #externe
 
-X509_get_subject_name :: fonc externe (x: *X509) -> *X509_NAME
-X509_set_subject_name :: fonc externe (x: *X509, nom: *X509_NAME) -> z32
+X509_get_subject_name :: fonc (x: *X509) -> *X509_NAME #externe
+X509_set_subject_name :: fonc (x: *X509, nom: *X509_NAME) -> z32 #externe
 
-X509_get_issuer_name :: fonc externe (x: *X509) -> *X509_NAME
-X509_set_issuer_name :: fonc externe (x: *X509, nom: *X509_NAME) -> z32
+X509_get_issuer_name :: fonc (x: *X509) -> *X509_NAME #externe
+X509_set_issuer_name :: fonc (x: *X509, nom: *X509_NAME) -> z32 #externe
 
-X509_REQ_get_subject_name :: fonc externe (req: *X509_REQ) -> *X509_NAME
-X509_REQ_set_subject_name :: fonc externe (req: *X509_REQ, nom: *X509_NAME) -> z32
+X509_REQ_get_subject_name :: fonc (req: *X509_REQ) -> *X509_NAME #externe
+X509_REQ_set_subject_name :: fonc (req: *X509_REQ, nom: *X509_NAME) -> z32 #externe
 
-X509_CRL_get_issuer :: fonc externe (crl: *X509_CRL) -> *X509_NAME
-X509_CRL_set_issuer_name :: fonc externe (crl: *X509_CRL, nom: *X509_NAME) -> z32
+X509_CRL_get_issuer :: fonc (crl: *X509_CRL) -> *X509_NAME #externe
+X509_CRL_set_issuer_name :: fonc (crl: *X509_CRL, nom: *X509_NAME) -> z32 #externe
 
-X509_NAME_oneline :: fonc externe (a: *X509_NAME, buf: *z8, size: z32) -> *z8
+X509_NAME_oneline :: fonc (a: *X509_NAME, buf: *z8, size: z32) -> *z8 #externe
 
-SSL_CTX_use_certificate_file :: fonc externe (ctx: *ssl_st, CertFile: *z8, x: z32) -> z32
-SSL_CTX_use_PrivateKey_file :: fonc externe (ctx: *ssl_st, KeyFile: *z8, x: z32) -> z32
-SSL_CTX_check_private_key :: fonc externe (ctx: *ssl_st) -> z32
+SSL_CTX_use_certificate_file :: fonc (ctx: *ssl_st, CertFile: *z8, x: z32) -> z32 #externe
+SSL_CTX_use_PrivateKey_file :: fonc (ctx: *ssl_st, KeyFile: *z8, x: z32) -> z32 #externe
+SSL_CTX_check_private_key :: fonc (ctx: *ssl_st) -> z32 #externe
 
 X509_FILETYPE_PEM     :: 1
 X509_FILETYPE_ASN1    :: 2
@@ -87,7 +87,7 @@ X509_FILETYPE_DEFAULT :: 3
 SSL_FILETYPE_PEM  :: X509_FILETYPE_PEM
 SSL_FILETYPE_ASN1 :: X509_FILETYPE_ASN1
 
-ERR_print_errors_cb :: fonc externe (cb : fonc(*z8,n64,*rien)(z32), u : *rien) -> rien
+ERR_print_errors_cb :: fonc (cb : fonc(*z8,n64,*rien)(z32), u : *rien) -> rien #externe
 
 // ----------------------------------------------------------------------------
 

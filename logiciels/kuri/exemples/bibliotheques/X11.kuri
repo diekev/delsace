@@ -1,20 +1,20 @@
 
 #bibliothèque_dynamique "X11"
 
-Display :: struct externe;
+Display :: struct #externe;
 _XEvent :: union externe nonsûr {
     type : z32
 }
 
-_XGC :: struct externe;
+_XGC :: struct #externe;
 
 // Window :: n64
 // Drawable :: n64
 
-DefaultGC :: fonc externe (ptr: *Display, s: z32) -> *_XGC
-XOpenDisplay :: fonc externe (ptr: *rien) -> *Display
-XCloseDisplay :: fonc externe (ptr: *Display) -> rien
-DefaultScreen :: fonc externe (ptr: *Display) -> z32
+DefaultGC :: fonc (ptr: *Display, s: z32) -> *_XGC #externe
+XOpenDisplay :: fonc (ptr: *rien) -> *Display #externe
+XCloseDisplay :: fonc (ptr: *Display) -> rien #externe
+DefaultScreen :: fonc (ptr: *Display) -> z32 #externe
 
 XCreateSimpleWindow :: fonc externe(
     display: *Display,
@@ -27,30 +27,30 @@ XCreateSimpleWindow :: fonc externe(
     bordure: n64,
     arrière_plan: n64) -> n64
 
-RootWindow :: fonc externe (display: *Display, parent: n64) -> n64
-BlackPixel :: fonc externe (ptr: *Display, s: z32) -> n64
-WhitePixel :: fonc externe (ptr: *Display, s: z32) -> n64
-XSelectInput :: fonc externe (ptr: *Display, w: n64, a: z64) -> z32
-XMapWindow :: fonc externe (ptr: *Display, w: n64) -> z32
-XNextEvent :: fonc externe (display: *Display, event: *_XEvent) -> z32
+RootWindow :: fonc (display: *Display, parent: n64) -> n64 #externe
+BlackPixel :: fonc (ptr: *Display, s: z32) -> n64 #externe
+WhitePixel :: fonc (ptr: *Display, s: z32) -> n64 #externe
+XSelectInput :: fonc (ptr: *Display, w: n64, a: z64) -> z32 #externe
+XMapWindow :: fonc (ptr: *Display, w: n64) -> z32 #externe
+XNextEvent :: fonc (display: *Display, event: *_XEvent) -> z32 #externe
 
-XDrawString :: fonc externe (
+XDrawString :: fonc (
     display: *Display,
     d: n64,
     gc: *_XGC,
     x: z32,
     y: z32,
     string: *z8,
-    longueur: z32) -> z32
+    longueur: z32) -> z32 #externe
 
-XFillRectangle :: fonc externe (
+XFillRectangle :: fonc (
     display: *Display,
     d: n64,
     gc: *_XGC,
     x: z32,
     y: z32,
     largeur: z32,
-    hauteur: z32) -> z32
+    hauteur: z32) -> z32 #externe
 
 // ----------------------------------------------------------------------------
 

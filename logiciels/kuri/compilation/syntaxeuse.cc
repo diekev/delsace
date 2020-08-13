@@ -1771,24 +1771,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 	empile_etat("dans le syntaxage de la fonction", lexeme_mot_cle);
 	consomme();
 
-	auto externe = false;
-
-	if (apparie(GenreLexeme::EXTERNE)) {
-		consomme();
-		externe = true;
-
-		if (lexeme_mot_cle->genre == GenreLexeme::COROUT && externe) {
-			lance_erreur("Une coroutine ne peut pas être externe");
-		}
-	}
-
 	auto noeud = CREE_NOEUD(NoeudDeclarationEnteteFonction, GenreNoeud::DECLARATION_ENTETE_FONCTION, lexeme);
 	noeud->est_coroutine = lexeme_mot_cle->genre == GenreLexeme::COROUT;
-
-	if (externe) {
-		noeud->drapeaux |= EST_EXTERNE;
-		noeud->est_externe = true;
-	}
 
 	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
@@ -1897,9 +1881,12 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 				noeud->drapeaux |= FORCE_SANSTRACE;
 			}
 			else if (ident_directive == ID::externe) {
-				externe = true;
 				noeud->drapeaux |= EST_EXTERNE;
 				noeud->est_externe = true;
+
+				if (lexeme_mot_cle->genre == GenreLexeme::COROUT) {
+					lance_erreur("Une coroutine ne peut pas être externe");
+				}
 			}
 			else if (ident_directive == ID::sanstrace) {
 				noeud->drapeaux |= FORCE_SANSTRACE;
@@ -1915,7 +1902,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			else if (ident_directive == ID::compilatrice) {
 				noeud->drapeaux |= (FORCE_SANSTRACE | FORCE_NULCTX | COMPILATRICE);
 				noeud->est_externe = true;
-				externe = true;
 			}
 			else if (ident_directive == ID::sansbroyage) {
 				noeud->drapeaux |= (FORCE_SANSBROYAGE);
@@ -1932,7 +1918,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 		m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 
-		if (externe) {
+		if (noeud->est_externe) {
 			consomme(GenreLexeme::POINT_VIRGULE, "Attendu un point-virgule ';' après la déclaration de la fonction externe");
 
 			if (noeud->params_sorties.taille > 1) {
@@ -2148,13 +2134,24 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		}
 	}
 
-	if (apparie(GenreLexeme::EXTERNE)) {
-		noeud_decl->est_externe = true;
+	if (apparie(GenreLexeme::NONSUR)) {
+		noeud_decl->est_nonsure = true;
 		consomme();
 	}
 
-	if (apparie(GenreLexeme::NONSUR)) {
-		noeud_decl->est_nonsure = true;
+	if (apparie(GenreLexeme::DIRECTIVE)) {
+		consomme();
+
+		if (lexeme_courant()->ident == ID::interface) {
+			renseigne_type_interface(m_unite->espace->typeuse, noeud_decl->ident, noeud_decl->type);
+		}
+		else if (lexeme_courant()->ident == ID::externe) {
+			noeud_decl->est_externe = true;
+		}
+		else {
+			lance_erreur("Directive inconnue");
+		}
+
 		consomme();
 	}
 
@@ -2165,19 +2162,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 			consomme();
 			analyse_membres = false;
 		}
-	}
-
-	if (apparie(GenreLexeme::DIRECTIVE)) {
-		consomme();
-
-		if (lexeme_courant()->ident == ID::interface) {
-			renseigne_type_interface(m_unite->espace->typeuse, noeud_decl->ident, noeud_decl->type);
-		}
-		else {
-			lance_erreur("Directive inconnue");
-		}
-
-		consomme();
 	}
 
 	if (analyse_membres) {

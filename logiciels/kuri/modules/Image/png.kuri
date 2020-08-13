@@ -5,55 +5,55 @@ importe Couleur
 
 #bibliothèque_dynamique "png"
 
-png_struct_def :: struct externe;
-png_info_def :: struct externe;
+png_struct_def :: struct #externe;
+png_info_def :: struct #externe;
 
-png_create_read_struct :: fonc externe (
+png_create_read_struct :: fonc (
     user_png_ver: *z8,
     error_ptr: *rien,
     error_fn: fonc(*png_struct_def, *z8)(rien),
-    warn_fn: fonc(*png_struct_def, *z8)(rien)) -> *png_struct_def
+    warn_fn: fonc(*png_struct_def, *z8)(rien)) -> *png_struct_def #externe
 
-png_destroy_read_struct :: fonc externe (
+png_destroy_read_struct :: fonc (
     png: **png_struct_def,
     info : **png_info_def,
-    end_info: **png_info_def) -> rien
+    end_info: **png_info_def) -> rien #externe
 
-png_create_info_struct :: fonc externe (
-    png: *png_struct_def) -> *png_info_def
+png_create_info_struct :: fonc (
+    png: *png_struct_def) -> *png_info_def #externe
 
 
-__jmp_buf_tag :: struct externe;
+__jmp_buf_tag :: struct #externe;
 
-setjmp :: fonc externe (env: *__jmp_buf_tag) -> z32
+setjmp :: fonc (env: *__jmp_buf_tag) -> z32 #externe
 
-png_jmpbuf :: fonc externe (png: *png_struct_def) -> *__jmp_buf_tag
+png_jmpbuf :: fonc (png: *png_struct_def) -> *__jmp_buf_tag #externe
 
-_IO_FILE :: struct externe;
+_IO_FILE :: struct #externe;
 
-fopen :: fonc externe (chemin: *z8, mode: *z8) -> *_IO_FILE
-fclose :: fonc externe (file: *_IO_FILE) -> rien
+fopen :: fonc (chemin: *z8, mode: *z8) -> *_IO_FILE #externe
+fclose :: fonc (file: *_IO_FILE) -> rien #externe
 
-png_init_io :: fonc externe (png: *png_struct_def, file: *_IO_FILE) -> rien
+png_init_io :: fonc (png: *png_struct_def, file: *_IO_FILE) -> rien #externe
 
-png_read_info :: fonc externe (png: *png_struct_def, info : *png_info_def) -> rien
+png_read_info :: fonc (png: *png_struct_def, info : *png_info_def) -> rien #externe
 
-png_get_image_height :: fonc externe (png: *png_struct_def, info : *png_info_def) -> n32
-png_get_image_width :: fonc externe (png: *png_struct_def, info : *png_info_def) -> n32
-png_get_color_type :: fonc externe (png: *png_struct_def, info : *png_info_def) -> n8
-png_get_bit_depth :: fonc externe (png: *png_struct_def, info : *png_info_def) -> n8
-png_read_update_info :: fonc externe (png: *png_struct_def, info : *png_info_def) -> rien
-png_get_rowbytes :: fonc externe (png: *png_struct_def, info : *png_info_def) -> n32
+png_get_image_height :: fonc (png: *png_struct_def, info : *png_info_def) -> n32 #externe
+png_get_image_width :: fonc (png: *png_struct_def, info : *png_info_def) -> n32 #externe
+png_get_color_type :: fonc (png: *png_struct_def, info : *png_info_def) -> n8 #externe
+png_get_bit_depth :: fonc (png: *png_struct_def, info : *png_info_def) -> n8 #externe
+png_read_update_info :: fonc (png: *png_struct_def, info : *png_info_def) -> rien #externe
+png_get_rowbytes :: fonc (png: *png_struct_def, info : *png_info_def) -> n32 #externe
 
-png_set_strip_16 :: fonc externe (png: *png_struct_def) -> rien
-png_set_palette_to_rgb :: fonc externe (png: *png_struct_def) -> rien
-png_set_expand_gray_1_2_4_to_8 :: fonc externe (png: *png_struct_def) -> rien
-png_set_tRNS_to_alpha :: fonc externe (png: *png_struct_def) -> rien
-png_set_filler :: fonc externe (png: *png_struct_def, filler: n32, flags: z32) -> rien
-png_set_gray_to_rgb :: fonc externe (png: *png_struct_def) -> rien
-png_get_valid :: fonc externe (png: *png_struct_def, info : *png_info_def, flags: n32) -> n32
+png_set_strip_16 :: fonc (png: *png_struct_def) -> rien #externe
+png_set_palette_to_rgb :: fonc (png: *png_struct_def) -> rien #externe
+png_set_expand_gray_1_2_4_to_8 :: fonc (png: *png_struct_def) -> rien #externe
+png_set_tRNS_to_alpha :: fonc (png: *png_struct_def) -> rien #externe
+png_set_filler :: fonc (png: *png_struct_def, filler: n32, flags: z32) -> rien #externe
+png_set_gray_to_rgb :: fonc (png: *png_struct_def) -> rien #externe
+png_get_valid :: fonc (png: *png_struct_def, info : *png_info_def, flags: n32) -> n32 #externe
 
-png_read_image :: fonc externe (png: *png_struct_def, image: **n8) -> rien
+png_read_image :: fonc (png: *png_struct_def, image: **n8) -> rien #externe
 
 charge_image_png :: fonc (chemin: chaine) -> *Image
 {

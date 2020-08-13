@@ -55,7 +55,7 @@ TCSADRAIN :: 1
 TCSAFLUSH :: 2
 
 NCCS :: 32
-termios :: struct externe {
+termios :: struct #externe {
     c_iflag : n32		/* input mode flags */
     c_oflag : n32		/* output mode flags */
     c_cflag : n32		/* control mode flags */
@@ -66,14 +66,14 @@ termios :: struct externe {
     c_ospeed : n32		/* output speed */
 }
 
-tcgetattr :: fonc externe (fd: z32, t: *termios) -> rien
-tcsetattr :: fonc externe (fd: z32, drapeaux: z32, t: *termios) -> rien
+tcgetattr :: fonc (fd: z32, t: *termios) -> rien #externe
+tcsetattr :: fonc (fd: z32, drapeaux: z32, t: *termios) -> rien #externe
 
-iscntrl :: fonc externe (c: z32) -> z32
+iscntrl :: fonc (c: z32) -> z32 #externe
 
 // -------------------------------
 
-winsize :: struct externe {
+winsize :: struct #externe {
     ws_row : n16
     ws_col : n16
     ws_xpixel : n16
@@ -82,4 +82,4 @@ winsize :: struct externe {
 
 TIOCGWINSZ :: 0x5413 comme n64
 
-ioctl :: fonc externe (fd: z32, request: n64, args: ...) -> z32
+ioctl :: fonc (fd: z32, request: n64, args: ...) -> z32 #externe

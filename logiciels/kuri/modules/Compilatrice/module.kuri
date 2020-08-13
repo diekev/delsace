@@ -393,8 +393,8 @@ NoeudCodeAppel :: struct {
 
 // ----------------------------------------------------------------------------
 
-EspaceDeTravail :: struct externe;
-Module :: struct externe;
+EspaceDeTravail :: struct #externe;
+Module :: struct #externe;
 
 // ----------------------------------------------------------------------------
 // structures des Messages, celles-ci doivent être tenues synchronisées avec celles de message.hh

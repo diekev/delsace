@@ -3,11 +3,11 @@
 #bibliothèque_statique "libmodule_c_alea.a"
 #bibliothèque_dynamique "m"
 
-GNA :: struct externe;
+GNA :: struct #externe;
 
-ALEA_cree_gna :: fonc externe (graine: n32) -> *GNA
-ALEA_reseme_gna :: fonc externe (gna: *GNA, graine: n32) -> rien
-ALEA_detruit_gna :: fonc externe (gna: *GNA) -> rien
+ALEA_cree_gna :: fonc (graine: n32) -> *GNA #externe
+ALEA_reseme_gna :: fonc (gna: *GNA, graine: n32) -> rien #externe
+ALEA_detruit_gna :: fonc (gna: *GNA) -> rien #externe
 
 ALEA_uniforme_r32 :: fonc externe(gna: *GNA, min: r32, max: r32) -> r32
 ALEA_uniforme_r64 :: fonc externe(gna: *GNA, min: r64, max: r64) -> r64

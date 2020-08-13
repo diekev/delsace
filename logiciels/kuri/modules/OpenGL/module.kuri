@@ -50,45 +50,45 @@ _GL_INVALID_FRAMEBUFFER_OPERATION : n32 = 0x0506
 
 externe glewExperimental : z32
 
-glewInit :: fonc externe () -> z32
+glewInit :: fonc () -> z32 #externe
 
-glClear :: fonc externe (bit : z32) -> rien
-glClearColor :: fonc externe (r : r32, g : r32, b : r32, a : r32) -> rien
+glClear :: fonc (bit : z32) -> rien #externe
+glClearColor :: fonc (r : r32, g : r32, b : r32, a : r32) -> rien #externe
 
-glEnable :: fonc externe (cap: n32) -> rien
-glDisable :: fonc externe (cap: n32) -> rien
-glBlendFunc :: fonc externe (sfactor: n32, dfactor: n32) -> rien
+glEnable :: fonc (cap: n32) -> rien #externe
+glDisable :: fonc (cap: n32) -> rien #externe
+glBlendFunc :: fonc (sfactor: n32, dfactor: n32) -> rien #externe
 
-glViewport :: fonc externe (px : z32, py : z32, tx : z32, ty : z32) -> rien
+glViewport :: fonc (px : z32, py : z32, tx : z32, ty : z32) -> rien #externe
 
 //# foncs de VAO
-glGenVertexArrays :: fonc externe (n : z32, ptr : *n32) -> rien
-glDeleteVertexArrays :: fonc externe (n : z32, ptr : *n32) -> rien
-glBindVertexArray :: fonc externe (id : n32) -> rien
+glGenVertexArrays :: fonc (n : z32, ptr : *n32) -> rien #externe
+glDeleteVertexArrays :: fonc (n : z32, ptr : *n32) -> rien #externe
+glBindVertexArray :: fonc (id : n32) -> rien #externe
 
 //# foncs de VBO
-glGenBuffers :: fonc externe (n : z32, ptr : *n32) -> rien
-glDeleteBuffers :: fonc externe (n : z32, ptr : *n32) -> rien
-glBindBuffer :: fonc externe (target : OGL, id : n32) -> rien
-glBufferData :: fonc externe (target : OGL, size : n64, data : *rien, usage : OGL) -> rien
+glGenBuffers :: fonc (n : z32, ptr : *n32) -> rien #externe
+glDeleteBuffers :: fonc (n : z32, ptr : *n32) -> rien #externe
+glBindBuffer :: fonc (target : OGL, id : n32) -> rien #externe
+glBufferData :: fonc (target : OGL, size : n64, data : *rien, usage : OGL) -> rien #externe
 
 //# foncs Arrays
-glEnableVertexAttribArray :: fonc externe (id : n32) -> rien
-glDisableVertexAttribArray :: fonc externe (id : n32) -> rien
-glVertexAttribPointer :: fonc externe (index : n32, size : z32, type_ : OGL, normalized : OGL, stride : z32, pointer : *rien) -> rien
-glDrawArrays :: fonc externe (mode : OGL, first : z32, count : z64) -> rien
-glDrawElements :: fonc externe (mode : OGL, count: z64, type: z32, indices: *rien) -> rien
-glUniform1ui :: fonc externe (loc: n32, uniform: n32) -> rien
+glEnableVertexAttribArray :: fonc (id : n32) -> rien #externe
+glDisableVertexAttribArray :: fonc (id : n32) -> rien #externe
+glVertexAttribPointer :: fonc (index : n32, size : z32, type_ : OGL, normalized : OGL, stride : z32, pointer : *rien) -> rien #externe
+glDrawArrays :: fonc (mode : OGL, first : z32, count : z64) -> rien #externe
+glDrawElements :: fonc (mode : OGL, count: z64, type: z32, indices: *rien) -> rien #externe
+glUniform1ui :: fonc (loc: n32, uniform: n32) -> rien #externe
 
 // textures
-glGenTextures :: fonc externe (n: z32, id: *n32) -> rien
-glDeleteTextures :: fonc externe (n: z32, id: *n32) -> rien
-glIsTexture :: fonc externe (id: n32) -> bool
-glActiveTexture :: fonc externe (id: z32) -> rien
-glBindTexture :: fonc externe (cible: z32, id: n32) -> rien
-glTexParameteri :: fonc externe (cible: z32, a: z32, b: z32) -> rien
+glGenTextures :: fonc (n: z32, id: *n32) -> rien #externe
+glDeleteTextures :: fonc (n: z32, id: *n32) -> rien #externe
+glIsTexture :: fonc (id: n32) -> bool #externe
+glActiveTexture :: fonc (id: z32) -> rien #externe
+glBindTexture :: fonc (cible: z32, id: n32) -> rien #externe
+glTexParameteri :: fonc (cible: z32, a: z32, b: z32) -> rien #externe
 
-glTexImage2D :: fonc externe (
+glTexImage2D :: fonc (
     cible: z32,
     x: z32,
     format_interne: z32,
@@ -97,28 +97,28 @@ glTexImage2D :: fonc externe (
     bordure: z32,
     format: z32,
     type: z32,
-    données: *rien) -> rien
+    données: *rien) -> rien #externe
 
 //# foncs de nuanceurs/programmes
-glShaderSource :: fonc externe (shader : n32, count : z64, string : **z8, length : *z32) -> rien
-glCreateShader :: fonc externe (shaderType : OGL) -> n32
-glCompileShader :: fonc externe (shader : n32) -> rien
-glDeleteShader :: fonc externe (shader : n32) -> rien
-glDetachShader :: fonc externe (program : n32, shader : n32) -> rien
-glCreateProgram :: fonc externe () -> n32
-glAttachShader :: fonc externe (program : n32, shader : n32) -> rien
-glLinkProgram :: fonc externe (program : n32) -> rien
-glUseProgram :: fonc externe (program : n32) -> rien
-glDeleteProgram :: fonc externe (program : n32) -> rien
-glGetShaderiv :: fonc externe (shader : n32, pname : OGL, params : *z32) -> rien
-glGetShaderInfoLog :: fonc externe (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien
-glGetProgramiv :: fonc externe (program : n32, pname : OGL, params : *z32) -> rien
-glGetProgramInfoLog :: fonc externe (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien
-glGetAttribLocation :: fonc externe (programme : n32, nom: *z8) -> n32
-glGetUniformLocation :: fonc externe (programme : n32, nom: *z8) -> n32
-glIsShader :: fonc externe (shader: n32) -> bool
+glShaderSource :: fonc (shader : n32, count : z64, string : **z8, length : *z32) -> rien #externe
+glCreateShader :: fonc (shaderType : OGL) -> n32 #externe
+glCompileShader :: fonc (shader : n32) -> rien #externe
+glDeleteShader :: fonc (shader : n32) -> rien #externe
+glDetachShader :: fonc (program : n32, shader : n32) -> rien #externe
+glCreateProgram :: fonc () -> n32 #externe
+glAttachShader :: fonc (program : n32, shader : n32) -> rien #externe
+glLinkProgram :: fonc (program : n32) -> rien #externe
+glUseProgram :: fonc (program : n32) -> rien #externe
+glDeleteProgram :: fonc (program : n32) -> rien #externe
+glGetShaderiv :: fonc (shader : n32, pname : OGL, params : *z32) -> rien #externe
+glGetShaderInfoLog :: fonc (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien #externe
+glGetProgramiv :: fonc (program : n32, pname : OGL, params : *z32) -> rien #externe
+glGetProgramInfoLog :: fonc (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien #externe
+glGetAttribLocation :: fonc (programme : n32, nom: *z8) -> n32 #externe
+glGetUniformLocation :: fonc (programme : n32, nom: *z8) -> n32 #externe
+glIsShader :: fonc (shader: n32) -> bool #externe
 
-glGetError :: fonc externe () -> n32
+glGetError :: fonc () -> n32 #externe
 
 // ----------------------------------------------------------------------------
 
