@@ -985,9 +985,9 @@ void aplatis_arbre(
 			arbre_aplatis.pousse(inst);
 			aplatis_arbre(inst->bloc_si_vrai, arbre_aplatis, drapeaux_noeud::AUCUN);
 			arbre_aplatis.pousse(inst); // insère une deuxième fois pour pouvoir sauter le code du bloc_si_faux si la condition évalue à « vrai »
-			inst->index_bloc_si_faux = static_cast<int>(arbre_aplatis.taille);
+			inst->index_bloc_si_faux = static_cast<int>(arbre_aplatis.taille - 1);
 			aplatis_arbre(inst->bloc_si_faux, arbre_aplatis, drapeaux_noeud::AUCUN);
-			inst->index_apres = static_cast<int>(arbre_aplatis.taille);
+			inst->index_apres = static_cast<int>(arbre_aplatis.taille - 1);
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
