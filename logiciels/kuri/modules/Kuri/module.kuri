@@ -258,6 +258,14 @@ désalloue :: fonc (pointeur: *rien, ancienne_taille: z64) -> *rien
 // alloue_tableau, alloue_chaine, etc.
 */
 
+SystèmeExploitation :: énum {
+    AUCUN
+    LINUX
+    ANDROIDE
+    WINDOWS
+    MACOS
+}
+
 // ----------------------------
 
 ModeLogage :: énum z32 {

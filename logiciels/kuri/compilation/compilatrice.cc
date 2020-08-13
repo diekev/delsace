@@ -424,6 +424,16 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 		ajoute_fichier_a_la_compilation(espace, chemin_entree.stem().c_str(), module, {});
 	}
 
+	if (module->nom == "Kuri") {
+		auto fichier = espace->cree_fichier("constantes", "constantes.kuri", false);
+		const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
+		fichier->tampon = lng::tampon_source(source);
+		fichier->module = module;
+		module->fichiers.pousse(fichier);
+
+		ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
+	}
+
 	messagere->ajoute_message_module_ferme(espace, module);
 
 	return module;
