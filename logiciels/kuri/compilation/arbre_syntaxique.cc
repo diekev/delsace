@@ -981,6 +981,7 @@ void aplatis_arbre(
 		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
 		{
 			auto inst = racine->comme_si_statique();
+			aplatis_arbre(inst->condition, arbre_aplatis, drapeaux_noeud::DROITE_ASSIGNATION);
 			arbre_aplatis.pousse(inst);
 			aplatis_arbre(inst->bloc_si_vrai, arbre_aplatis, drapeaux_noeud::AUCUN);
 			arbre_aplatis.pousse(inst); // insère une deuxième fois pour pouvoir sauter le code du bloc_si_faux si la condition évalue à « vrai »
