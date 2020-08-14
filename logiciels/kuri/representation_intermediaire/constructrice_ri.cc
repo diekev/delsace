@@ -1128,7 +1128,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			if (noeud->lexeme->genre == GenreLexeme::AROBASE) {
+			if (noeud->lexeme->genre == GenreLexeme::FOIS_UNAIRE) {
 				genere_ri_pour_noeud(expr_un->expr);
 				auto valeur = depile_valeur();
 				if (expr_un->expr->type->genre == GenreType::REFERENCE) {

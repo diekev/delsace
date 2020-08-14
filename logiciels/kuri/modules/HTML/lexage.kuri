@@ -49,7 +49,7 @@ cherche_attribut :: fonc (lexème: *Lexème, nom: chaine) -> *Attribut
 {
     pour lexème.attributs {
         si it.nom == nom {
-            retourne @lexème.attributs[index_it]
+            retourne *lexème.attributs[index_it]
         }
     }
 
@@ -64,8 +64,8 @@ reconnait_drapeau_auto_fermant :: fonc (lexème: *Lexème)
 ajoute_attribut :: fonc (lexème: *Lexème)
 {
     attribut : Attribut
-    tableau_ajoute(@lexème.attributs, attribut)
-    lexème.attribut_courant = @lexème.attributs[lexème.attributs.taille - 1]
+    tableau_ajoute(*lexème.attributs, attribut)
+    lexème.attribut_courant = *lexème.attributs[lexème.attributs.taille - 1]
 }
 
 copie_lexème :: fonc (lexème: *Lexème) -> Lexème
@@ -75,7 +75,7 @@ copie_lexème :: fonc (lexème: *Lexème) -> Lexème
     nouveau_lexème.nom = copie_chaine(lexème.nom)
 
     pour lexème.attributs {
-        ajoute_attribut(@nouveau_lexème)
+        ajoute_attribut(*nouveau_lexème)
         nouveau_lexème.attribut_courant.nom = copie_chaine(it.nom)
         nouveau_lexème.attribut_courant.valeur = copie_chaine(it.valeur)
     }
@@ -122,7 +122,7 @@ FileLexème :: struct {
 
 enfile :: fonc (file: *FileLexème, lexème: Lexème)
 {
-    tableau_ajoute(@file.lexèmes, lexème)
+    tableau_ajoute(*file.lexèmes, lexème)
 }
 
 défile :: fonc (file: *FileLexème) -> Lexème
@@ -255,7 +255,7 @@ initialise_lexeuse :: fonc (document: chaine) -> Lexeuse
 
 détruit_lexeuse :: fonc (lexeuse: *Lexeuse)
 {
-    détruit_chaine(@lexeuse.tampon_temporaire)
+    détruit_chaine(*lexeuse.tampon_temporaire)
     déloge lexeuse.nom_dernier_tag_début
     déloge lexeuse.file_lexèmes.lexèmes
 }
@@ -268,7 +268,7 @@ point_de_code_suivant :: fonc (lexeuse: *Lexeuse) -> n32
 
     position := lexeuse.curseur
 
-    no := nombre_octets_utf8_rapide(@lexeuse.document[position])
+    no := nombre_octets_utf8_rapide(*lexeuse.document[position])
 
     si no == 0 {
         lexeuse.curseur += 1
@@ -276,7 +276,7 @@ point_de_code_suivant :: fonc (lexeuse: *Lexeuse) -> n32
     }
 
     lexeuse.curseur += no comme z32
-    retourne converti_utf8_utf32(@lexeuse.document[position]) comme n32
+    retourne converti_utf8_utf32(*lexeuse.document[position]) comme n32
 }
 
 a_fini :: fonc (lexeuse: *Lexeuse) -> bool
@@ -354,8 +354,8 @@ imprime_et_détruit_lexème :: fonc (lexème_courant: *Lexème)
 
 lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
-    si !est_vide(@lexeuse.file_lexèmes) {
-        retourne défile(@lexeuse.file_lexèmes)
+    si !est_vide(*lexeuse.file_lexèmes) {
+        retourne défile(*lexeuse.file_lexèmes)
     }
 
     // À FAIRE : nous devrions vérifier si la parseuse est en pause, si oui, retourner
@@ -420,17 +420,17 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème()
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
                 }
                 sinon si c == NUL {
                     // @erreur unexpected-null-character parse error
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == FIN_DE_FICHIER {
                     retourne lexeuse.émet_lexème_fin_de_fichier()
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
                 }
             }
             EndTagOpen {
@@ -444,9 +444,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-before-tag-name parse error.
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     // @erreur invalid-first-character-of-tag-name parse error
@@ -463,10 +463,10 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème_fin_de_fichier()
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.données, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.données, CARACTÈRE_REMPLACEMENT)
                 }
             }
             MarkupDeclarationOpen {
@@ -497,9 +497,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // @erreur eof-in-doctype parse error
                     lexeuse.crée_lexème(GenreLexème.Doctype)
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     // @erreur missing-whitespace-before-doctype-name parse error
@@ -512,13 +512,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
                     lexeuse.crée_lexème(GenreLexème.Doctype)
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
                     lexeuse.état = ÉtatLexage.DOCTYPEName
                 }
                 sinon si c == NUL {
                     // @erreur unexpected-null-character parse error
                     lexeuse.crée_lexème(GenreLexème.Doctype)
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, CARACTÈRE_REMPLACEMENT)
                     lexeuse.état = ÉtatLexage.DOCTYPEName
                 }
                 sinon si c == CHEVRON_FERMANT {
@@ -531,13 +531,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // @erreur eof-in-doctype parse error
                     lexeuse.crée_lexème(GenreLexème.Doctype)
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     lexeuse.crée_lexème(GenreLexème.Doctype)
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
                     lexeuse.état = ÉtatLexage.DOCTYPEName
                 }
             }
@@ -550,20 +550,20 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème()
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
                 }
             }
             AfterDOCTYPEName {
@@ -577,9 +577,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     lexeuse.curseur -= 1
@@ -622,9 +622,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-public-identifier parse error
@@ -653,9 +653,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-public-identifier parse error
@@ -668,7 +668,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.AfterDOCTYPEPublicIdentifier
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_public_doctype, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.identifiant_public_doctype, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
@@ -678,12 +678,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_public_doctype, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.identifiant_public_doctype, c)
                 }
             }
             DOCTYPEPublicIdentifierSingleQuoted {
@@ -691,7 +691,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.AfterDOCTYPEPublicIdentifier
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_public_doctype, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.identifiant_public_doctype, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
@@ -701,12 +701,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_public_doctype, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.identifiant_public_doctype, c)
                 }
             }
             AfterDOCTYPEPublicIdentifier {
@@ -728,9 +728,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-système-identifier parse error
@@ -757,9 +757,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-système-identifier parse error
@@ -790,9 +790,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-system-identifier parse error
@@ -821,9 +821,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-system-identifier parse error
@@ -836,7 +836,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.AfterDOCTYPESystemIdentifier
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_système_doctype, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.identifiant_système_doctype, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
@@ -846,12 +846,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_système_doctype, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.identifiant_système_doctype, c)
                 }
             }
             DOCTYPESystemIdentifierSingleQuoted {
@@ -859,7 +859,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.AfterDOCTYPESystemIdentifier
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_système_doctype, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.identifiant_système_doctype, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == CHEVRON_FERMANT {
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
@@ -869,12 +869,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.identifiant_système_doctype, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.identifiant_système_doctype, c)
                 }
             }
             AfterDOCTYPESystemIdentifier {
@@ -888,9 +888,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-doctype parse error
                     lexeuse.lexème_courant.drapeau_force_quirks = vrai
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     // @erreur missing-quote-before-doctype-system-identifier parse error
@@ -907,9 +907,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // ignore
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     // ignore
@@ -945,9 +945,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.CDATASection)
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CROCHET_FERMANT))
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CROCHET_FERMANT))
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CROCHET_FERMANT))
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CROCHET_FERMANT))
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
             }
             BeforeAttributeName {
@@ -960,13 +960,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == EGAL {
                     lexeuse.état = ÉtatLexage.AttributeName
 
-                    ajoute_attribut(@lexeuse.lexème_courant)
-                    chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.nom, c)
+                    ajoute_attribut(*lexeuse.lexème_courant)
+                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.nom, c)
                 }
                 sinon {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.AttributeName)
 
-                    ajoute_attribut(@lexeuse.lexème_courant)
+                    ajoute_attribut(*lexeuse.lexème_courant)
                 }
             }
             AttributeName {
@@ -977,17 +977,17 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.BeforeAttributeValue
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.nom, c + 0x20)
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.nom, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.nom, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == GUILLEMET || c == APOSTROPHE || c == CHEVRON_OUVRANT {
                     // @erreur unexpected-character-in-attribute-name parse error, ajoute quand même
-                    chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.nom, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.nom, c)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.nom, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.nom, c)
                 }
 
                 /* À FAIRE: quand nous quittons cet état, nous devons vérifier qu'un autre attribut
@@ -1014,7 +1014,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème_fin_de_fichier()
                 }
                 sinon {
-                    ajoute_attribut(@lexeuse.lexème_courant)
+                    ajoute_attribut(*lexeuse.lexème_courant)
                     lexeuse.reconsomme_dans_état(ÉtatLexage.AttributeName)
                 }
             }
@@ -1046,13 +1046,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état_retour = ÉtatLexage.AttributeValueDoubleQuoted
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == FIN_DE_FICHIER {
                     retourne lexeuse.émet_lexème_fin_de_fichier()
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, c)
                 }
             }
             AttributeValueSingleQuoted {
@@ -1064,13 +1064,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état_retour = ÉtatLexage.AttributeValueSingleQuoted
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == FIN_DE_FICHIER {
                     retourne lexeuse.émet_lexème_fin_de_fichier()
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, c)
                 }
             }
             AttributeValueUnquoted {
@@ -1087,7 +1087,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == NUL {
                     // @erreur unexpected-null-character parse error
-                    chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == FIN_DE_FICHIER {
                     // @erreur eof-in-tag parse error
@@ -1095,10 +1095,10 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == APOSTROPHE || c == GUILLEMET || c == ACCENT_GRAVE || c == CHEVRON_OUVRANT || c == EGAL {
                     // @erreur unexpected-character-in-unquoted-attribute-value parse error
-                    chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, c)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, c)
                 }
             }
             AfterAttributeValueQuoted {
@@ -1170,7 +1170,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             RCDATALessThanSign {
                 si c == SLASH {
-                    détruit_chaine(@lexeuse.tampon_temporaire)
+                    détruit_chaine(*lexeuse.tampon_temporaire)
                     lexeuse.état = ÉtatLexage.RCDATAEndTagOpen
                 }
                 sinon {
@@ -1185,9 +1185,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATA)
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
             }
             RCDATAEndTagName {
@@ -1206,13 +1206,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c)
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
 
@@ -1220,14 +1220,14 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATA)
 
-                enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
-                enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
+                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
+                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
                 lexeuse.enfile_lexèmes_pour_tampon_temporaire()
-                retourne défile(@lexeuse.file_lexèmes)
+                retourne défile(*lexeuse.file_lexèmes)
             }
             RAWTEXTLessThanSign {
                 si c == SLASH {
-                    détruit_chaine(@lexeuse.tampon_temporaire)
+                    détruit_chaine(*lexeuse.tampon_temporaire)
                     lexeuse.état = ÉtatLexage.RAWTEXTEndTagOpen
                 }
                 sinon {
@@ -1242,9 +1242,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXT)
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
             }
             RAWTEXTEndTagName {
@@ -1263,13 +1263,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c)
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
 
@@ -1277,10 +1277,10 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXT)
 
-                enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
-                enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
+                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
+                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
                 lexeuse.enfile_lexèmes_pour_tampon_temporaire()
-                retourne défile(@lexeuse.file_lexèmes)
+                retourne défile(*lexeuse.file_lexèmes)
             }
             CommentStart {
                 si c == MOINS {
@@ -1303,42 +1303,42 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème()
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, '-')
+                    chaine_ajoute(*lexeuse.lexème_courant.données, '-')
                     lexeuse.reconsomme_dans_état(ÉtatLexage.Comment)
                 }
             }
             Comment {
                 si c == CHEVRON_OUVRANT {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.données, c)
                     lexeuse.état = ÉtatLexage.CommentLessThanSign
                 }
                 sinon si c == MOINS {
                     lexeuse.état = ÉtatLexage.CommentEndDash
                 }
                 sinon si c == NUL {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, CARACTÈRE_REMPLACEMENT)
+                    chaine_ajoute(*lexeuse.lexème_courant.données, CARACTÈRE_REMPLACEMENT)
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.données, c)
                 }
             }
             CommentLessThanSign {
                 si c == POINT_EXCLAMATION {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.données, c)
                     lexeuse.état = ÉtatLexage.CommentLessThanSignBang
                 }
                 sinon si c == CHEVRON_OUVRANT {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.données, c)
                 }
                 sinon {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.Comment)
@@ -1374,12 +1374,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.CommentEnd
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, '-')
+                    chaine_ajoute(*lexeuse.lexème_courant.données, '-')
                     lexeuse.reconsomme_dans_état(ÉtatLexage.Comment)
                 }
             }
@@ -1392,21 +1392,21 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.CommentEndBang
                 }
                 sinon si c == MOINS {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, '-')
+                    chaine_ajoute(*lexeuse.lexème_courant.données, '-')
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, "--")
+                    chaine_ajoute(*lexeuse.lexème_courant.données, "--")
                     lexeuse.reconsomme_dans_état(ÉtatLexage.Comment)
                 }
             }
             CommentEndBang {
                 si c == MOINS {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, "--!")
+                    chaine_ajoute(*lexeuse.lexème_courant.données, "--!")
                     lexeuse.état = ÉtatLexage.CommentEndDash
                 }
                 sinon si c == CHEVRON_FERMANT {
@@ -1414,31 +1414,31 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème()
                 }
                 sinon si c == FIN_DE_FICHIER {
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème())
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème())
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_fin_de_fichier())
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
-                    chaine_ajoute(@lexeuse.lexème_courant.données, "--!")
+                    chaine_ajoute(*lexeuse.lexème_courant.données, "--!")
                     lexeuse.reconsomme_dans_état(ÉtatLexage.Comment)
                 }
             }
             CharacterReference {
-                détruit_chaine(@lexeuse.tampon_temporaire)
-                chaine_ajoute(@lexeuse.tampon_temporaire, ESPERLUETTE)
+                détruit_chaine(*lexeuse.tampon_temporaire)
+                chaine_ajoute(*lexeuse.tampon_temporaire, ESPERLUETTE)
 
                 si est_ascii_alphanumérique(c) {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.NamedCharacterReference)
                 }
                 sinon si c == SIGNE_NOMBRE {
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     lexeuse.état  = ÉtatLexage.NumericCharacterReference
                 }
                 sinon {
                     lexeuse.reconsomme_dans_état(lexeuse.état_retour)
 
                     si flush_points_de_code_référence_caractère(lexeuse) {
-                        retourne défile(@lexeuse.file_lexèmes)
+                        retourne défile(*lexeuse.file_lexèmes)
                     }
                 }
             }
@@ -1447,13 +1447,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 lexeuse.curseur -= 1
 
                 si cherche_référence_caractère_nommé(lexeuse) {
-                    retourne défile(@lexeuse.file_lexèmes)
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
             }
             AmbiguousAmpersand {
                 si est_ascii_alphanumérique(c) {
                     si nous_sommes_dans_attribut(lexeuse) {
-                        chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, c)
+                        chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, c)
                     }
                     sinon {
                         retourne lexeuse.émet_lexème_caractère(c)
@@ -1471,7 +1471,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 lexeuse.code_référence_caractère = 0
 
                 si c == X_MINUSCULE || c == X_MAJUSCULE {
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     lexeuse.état = ÉtatLexage.HexadecimalCharacterReferenceStart
                 }
                 sinon {
@@ -1486,7 +1486,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.reconsomme_dans_état(lexeuse.état_retour)
 
                     si flush_points_de_code_référence_caractère(lexeuse) {
-                        retourne défile(@lexeuse.file_lexèmes)
+                        retourne défile(*lexeuse.file_lexèmes)
                     }
                 }
             }
@@ -1498,7 +1498,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.reconsomme_dans_état(lexeuse.état_retour)
 
                     si flush_points_de_code_référence_caractère(lexeuse) {
-                        retourne défile(@lexeuse.file_lexèmes)
+                        retourne défile(*lexeuse.file_lexèmes)
                     }
                 }
             }
@@ -1555,13 +1555,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     panique("état partiellement implémenté")
                 }
 
-                détruit_chaine(@lexeuse.tampon_temporaire)
-                chaine_ajoute(@lexeuse.tampon_temporaire, lexeuse.code_référence_caractère)
+                détruit_chaine(*lexeuse.tampon_temporaire)
+                chaine_ajoute(*lexeuse.tampon_temporaire, lexeuse.code_référence_caractère)
 
                 lexeuse.état = lexeuse.état_retour
 
                 si flush_points_de_code_référence_caractère(lexeuse) {
-                    retourne défile(@lexeuse.file_lexèmes)
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
             }
             ScriptData {
@@ -1580,14 +1580,14 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             ScriptDataLessThanSign {
                 si c == SLASH {
-                    détruit_chaine(@lexeuse.tampon_temporaire)
+                    détruit_chaine(*lexeuse.tampon_temporaire)
                     lexeuse.état = ÉtatLexage.ScriptDataEndTagOpen
                 }
                 sinon si c == POINT_EXCLAMATION {
                     lexeuse.état = ÉtatLexage.ScriptDataEscapeStart
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(POINT_EXCLAMATION))
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(POINT_EXCLAMATION))
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
                 sinon {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData)
@@ -1601,9 +1601,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData)
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
             }
             ScriptDataEndTagName {
@@ -1622,13 +1622,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c)
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
 
@@ -1636,10 +1636,10 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData)
 
-                enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
-                enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
+                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
+                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
                 lexeuse.enfile_lexèmes_pour_tampon_temporaire()
-                retourne défile(@lexeuse.file_lexèmes)
+                retourne défile(*lexeuse.file_lexèmes)
             }
             ScriptDataEscapeStart {
                 si c == MOINS {
@@ -1719,11 +1719,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             ScriptDataEscapedLessThanSign {
                 si c == SLASH {
-                    détruit_chaine(@lexeuse.tampon_temporaire)
+                    détruit_chaine(*lexeuse.tampon_temporaire)
                     lexeuse.état = ÉtatLexage.ScriptDataEscapedEndTagOpen
                 }
                 sinon si est_ascii_alpha(c) {
-                    détruit_chaine(@lexeuse.tampon_temporaire)
+                    détruit_chaine(*lexeuse.tampon_temporaire)
                     lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataDoubleEscapeStart)
                     retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT)
                 }
@@ -1739,9 +1739,9 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped)
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
-                    enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
-                    retourne défile(@lexeuse.file_lexèmes)
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
+                    enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
+                    retourne défile(*lexeuse.file_lexèmes)
                 }
             }
             ScriptDataEscapedEndTagName {
@@ -1760,13 +1760,13 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c + 0x20)
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c + 0x20)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
-                    chaine_ajoute(@lexeuse.lexème_courant.nom, c)
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    chaine_ajoute(*lexeuse.lexème_courant.nom, c)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
 
@@ -1774,10 +1774,10 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped)
 
-                enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
-                enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
+                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT))
+                enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(SLASH))
                 lexeuse.enfile_lexèmes_pour_tampon_temporaire()
-                retourne défile(@lexeuse.file_lexèmes)
+                retourne défile(*lexeuse.file_lexèmes)
             }
             ScriptDataDoubleEscapeStart {
                 si est_espace_blanc_html(c) || c == SLASH || c == CHEVRON_FERMANT {
@@ -1790,11 +1790,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c + 0x20)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c + 0x20)
                     retourne lexeuse.émet_lexème_caractère(c)
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     retourne lexeuse.émet_lexème_caractère(c)
                 }
                 sinon {
@@ -1870,7 +1870,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             }
             ScriptDataDoubleEscapedLessThanSign {
                 si c == SLASH {
-                    détruit_chaine(@lexeuse.tampon_temporaire)
+                    détruit_chaine(*lexeuse.tampon_temporaire)
                     lexeuse.état = ÉtatLexage.ScriptDataDoubleEscapeEnd
                     retourne lexeuse.émet_lexème_caractère(SLASH)
                 }
@@ -1888,11 +1888,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     }
                 }
                 sinon si est_ascii_alpha_majuscule(c) {
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c + 0x20)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c + 0x20)
                     retourne lexeuse.émet_lexème_caractère(c)
                 }
                 sinon si est_ascii_alpha_minuscule(c) {
-                    chaine_ajoute(@lexeuse.tampon_temporaire, c)
+                    chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     retourne lexeuse.émet_lexème_caractère(c)
                 }
                 sinon {
@@ -1922,7 +1922,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
 enfile_lexèmes_pour_tampon_temporaire :: fonc (lexeuse: *Lexeuse)
 {
     pour lexeuse.tampon_temporaire.points_de_code {
-        enfile(@lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(it))
+        enfile(*lexeuse.file_lexèmes, lexeuse.émet_lexème_caractère(it))
     }
 }
 
@@ -1965,7 +1965,7 @@ flush_points_de_code_référence_caractère :: fonc (lexeuse: *Lexeuse) -> bool
     // détermine si nous somme dans un attribut
     si nous_sommes_dans_attribut(lexeuse) {
         pour lexeuse.tampon_temporaire.points_de_code {
-            chaine_ajoute(@lexeuse.lexème_courant.attribut_courant.valeur, it)
+            chaine_ajoute(*lexeuse.lexème_courant.attribut_courant.valeur, it)
         }
 
         retourne faux
@@ -1983,12 +1983,12 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
 
     boucle {
         caractère_suivant := lexeuse.point_de_code_suivant()
-        chaine_ajoute(@lexeuse.tampon_temporaire, caractère_suivant)
+        chaine_ajoute(*lexeuse.tampon_temporaire, caractère_suivant)
 
         // XXX - À FAIRE
         chn_temp := converti_vers_chaine(lexeuse.tampon_temporaire)
 
-        résultat := ensemble_possède_rappel_si_possible(@symboles_entités, chn_temp, commence_par)
+        résultat := ensemble_possède_rappel_si_possible(*symboles_entités, chn_temp, commence_par)
 
         déloge chn_temp
 
@@ -2020,14 +2020,14 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
         // @erreur missing-semicolon-after-character-reference parse error.
     }
 
-    détruit_chaine(@lexeuse.tampon_temporaire)
+    détruit_chaine(*lexeuse.tampon_temporaire)
 
     points_de_code := points_de_code_entités[dernier_résultat.index]
 
-    chaine_ajoute(@lexeuse.tampon_temporaire, points_de_code[0] comme n32)
+    chaine_ajoute(*lexeuse.tampon_temporaire, points_de_code[0] comme n32)
 
     si points_de_code[1] != 0x0 {
-        chaine_ajoute(@lexeuse.tampon_temporaire, points_de_code[1] comme n32)
+        chaine_ajoute(*lexeuse.tampon_temporaire, points_de_code[1] comme n32)
     }
 
     lexeuse.état = lexeuse.état_retour

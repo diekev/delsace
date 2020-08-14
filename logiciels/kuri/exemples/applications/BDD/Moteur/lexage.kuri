@@ -210,23 +210,23 @@ finalise_mot_clé :: fonc (lexème: *Lexème) -> bool
 
 finalise_courant :: fonc (état: *ÉtatLexage, genre: GenreLexème) -> bool
 {
-    si !finalise(@état.courant) {
+    si !finalise(*état.courant) {
         imprime("Impossible de finaliser %\n", état.courant)
         // À FAIRE: erreur
         retourne faux
     }
 
     si état.courant.valeur.taille != 0 {
-        tableau_ajoute(@état.lexèmes, état.courant)
+        tableau_ajoute(*état.lexèmes, état.courant)
     }
 
     si genre != GenreLexème.ESPACE {
         état.courant.pos.ligne = état.ligne
         état.courant.pos.colonne = état.colonne
-        état.courant.valeur = construit_chaine(@état.chn[état.curseur], 1)
+        état.courant.valeur = construit_chaine(*état.chn[état.curseur], 1)
         état.courant.genre = genre
 
-        tableau_ajoute(@état.lexèmes, état.courant)
+        tableau_ajoute(*état.lexèmes, état.courant)
     }
 
     état.courant.pos.ligne = état.ligne
@@ -254,33 +254,33 @@ lèxe :: fonc (chn: chaine) -> []Lexème
                 état.colonne = 0
             }
             ' ' {
-                si !finalise_courant(@état, GenreLexème.ESPACE) {
+                si !finalise_courant(*état, GenreLexème.ESPACE) {
                     arrête
                 }
             }
             ',' {
-                si !finalise_courant(@état, GenreLexème.VIRGULE) {
+                si !finalise_courant(*état, GenreLexème.VIRGULE) {
                     arrête
                 }
             }
             '(' {
-                si !finalise_courant(@état, GenreLexème.PARENTHÈSE_OUVRANTE) {
+                si !finalise_courant(*état, GenreLexème.PARENTHÈSE_OUVRANTE) {
                     arrête
                 }
             }
             ')' {
-                si !finalise_courant(@état, GenreLexème.PARENTHÈSE_FERMANTE) {
+                si !finalise_courant(*état, GenreLexème.PARENTHÈSE_FERMANTE) {
                     arrête
                 }
             }
             ';' {
-                si !finalise_courant(@état, GenreLexème.POINT_VIRGULE) {
+                si !finalise_courant(*état, GenreLexème.POINT_VIRGULE) {
                     arrête
                 }
             }
             sinon {
                 si état.courant.valeur.taille == 0 {
-                    état.courant.valeur = construit_chaine(@état.chn[idx], 1)
+                    état.courant.valeur = construit_chaine(*état.chn[idx], 1)
                 }
                 sinon {
                     état.courant.valeur.taille += 1

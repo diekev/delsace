@@ -8,17 +8,17 @@ DonnéesPage :: struct {
 répond_get_page_accueil :: fonc (serveuse: *Serveuse, requête: *DonnéesRequête) -> RéponseRequête
 {
     données: DonnéesPage
-    retourne rends_page(@serveuse.rendeuse_gabarit, "accueil", données)
+    retourne rends_page(*serveuse.rendeuse_gabarit, "accueil", données)
 }
 
 répond_post_page_accueil :: fonc (serveuse: *Serveuse, requête: *DonnéesRequête) -> RéponseRequête
 {
     enchaineuse : Enchaineuse
-    diffère { détruit_tampons(@enchaineuse) }
+    diffère { détruit_tampons(*enchaineuse) }
 
-    initialise_enchaineuse(@enchaineuse)
+    initialise_enchaineuse(*enchaineuse)
 
-    entête := cherche_entête(@requête.entêtes, "Content-Type")
+    entête := cherche_entête(*requête.entêtes, "Content-Type")
 
     // Le contenu est dans les paramètres de l'URL
     si entête.valeur == "application/x-www-form-urlencoded" {
@@ -29,17 +29,17 @@ répond_post_page_accueil :: fonc (serveuse: *Serveuse, requête: *DonnéesRequ�
 
     }
 
-    entête_longueur_contenu := cherche_entête(@requête.entêtes, "Content-Length")
+    entête_longueur_contenu := cherche_entête(*requête.entêtes, "Content-Length")
 
     longueur_contenu := extrait_nombre_entier(entête_longueur_contenu.valeur)
 
     si longueur_contenu != requête.contenu.taille {
-        ajoute_au_tampon(@enchaineuse, "<p>Les longueurs ne correspondent pas !</p>")
+        ajoute_au_tampon(*enchaineuse, "<p>Les longueurs ne correspondent pas !</p>")
     }
     sinon {
-        ajoute_au_tampon(@enchaineuse, "<p>Vous avez posté quelque chose !</p>")
+        ajoute_au_tampon(*enchaineuse, "<p>Vous avez posté quelque chose !</p>")
         // À FAIRE : dépassement des limites de la chaine
-        ajoute_au_tampon(@enchaineuse, "<p>Le contenu est de '", requête.contenu, "'</p>")
+        ajoute_au_tampon(*enchaineuse, "<p>Le contenu est de '", requête.contenu, "'</p>")
         //ajoute_au_tampon(@enchaineuse, "<p>Le contenu est de '")
         //ajoute_au_tampon(@enchaineuse, contenu_requête)
         //ajoute_au_tampon(@enchaineuse, "'</p>")
@@ -49,6 +49,6 @@ répond_post_page_accueil :: fonc (serveuse: *Serveuse, requête: *DonnéesRequ�
         code = CodeÉtatHTTP.OK,
         type_contenu = TypeContenu.TEXT_HTML,
         // À FAIRE : évite de copier la chaine
-        contenu = chaine_depuis_enchaineuse(@enchaineuse)
+        contenu = chaine_depuis_enchaineuse(*enchaineuse)
     )
 }

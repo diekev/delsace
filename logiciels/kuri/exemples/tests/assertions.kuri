@@ -42,13 +42,13 @@ appel_pointeur_fonction_externe :: fonc () -> bool
 test_expressions_mémoire :: fonc () -> bool
 {
     a := 5
-    b := mémoire(@a)
+    b := mémoire(*a)
 
     si b != 5 {
         retourne faux
     }
 
-    mémoire(@a) = 10
+    mémoire(*a) = 10
 
     si a != 10 {
         retourne faux
@@ -60,7 +60,7 @@ test_expressions_mémoire :: fonc () -> bool
 
     s : S
 
-    mémoire(@s.x) = 5
+    mémoire(*s.x) = 5
 
     si s.x != 5 {
         retourne faux
@@ -68,7 +68,7 @@ test_expressions_mémoire :: fonc () -> bool
 
     s.x = 10
 
-    b = mémoire(@s.x)
+    b = mémoire(*s.x)
 
     si b != 10 {
         retourne faux
@@ -158,7 +158,7 @@ nombre_itérations_chaine_littérale :: fonc () -> z64
 test_indexage_pointeur :: fonc () -> z32
 {
     a : z32
-    ptr := @a
+    ptr := *a
     ptr[0] = 7
     retourne ptr[0]
 }
@@ -190,7 +190,7 @@ test_copie_mem :: fonc () -> z32
     a : z32
     b := 27
 
-    copie_mem_nonsur(src = @b, dst = @a, taille = 4)
+    copie_mem_nonsur(src = *b, dst = *a, taille = 4)
 
     retourne a
 }
@@ -442,7 +442,7 @@ test_conditions :: fonc () -> z32
         retourne 12
     }
 
-    ptr = @a
+    ptr = *a
 
     si !ptr {
         retourne 13
@@ -497,7 +497,7 @@ test_structure :: fonc ()
 test_fonction_init :: fonc () -> z32
 {
     v : Vecteur = ---
-    init_de(Vecteur)(@v)
+    init_de(Vecteur)(*v)
 
     retourne v.z
 }

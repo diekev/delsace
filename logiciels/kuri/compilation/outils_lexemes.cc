@@ -253,7 +253,6 @@ bool est_identifiant_type(GenreLexeme identifiant)
 bool est_operateur_unaire(GenreLexeme identifiant)
 {
 	switch (identifiant) {
-		case GenreLexeme::AROBASE:
 		case GenreLexeme::EXCLAMATION:
 		case GenreLexeme::TILDE:
 		case GenreLexeme::CROCHET_OUVRANT:

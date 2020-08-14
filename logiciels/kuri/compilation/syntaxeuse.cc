@@ -233,7 +233,6 @@ static int precedence_pour_operateur(GenreLexeme genre_operateur)
 		}
 		case GenreLexeme::EXCLAMATION:
 		case GenreLexeme::TILDE:
-		case GenreLexeme::AROBASE:
 		case GenreLexeme::PLUS_UNAIRE:
 		case GenreLexeme::MOINS_UNAIRE:
 		case GenreLexeme::FOIS_UNAIRE:
@@ -302,7 +301,6 @@ static Associativite associativite_pour_operateur(GenreLexeme genre_operateur)
 		}
 		case GenreLexeme::EXCLAMATION:
 		case GenreLexeme::TILDE:
-		case GenreLexeme::AROBASE:
 		case GenreLexeme::PLUS_UNAIRE:
 		case GenreLexeme::FOIS_UNAIRE:
 		case GenreLexeme::ESP_UNAIRE:
@@ -538,7 +536,6 @@ bool Syntaxeuse::apparie_expression_unaire() const
 	auto genre = lexeme_courant()->genre;
 
 	switch (genre) {
-		case GenreLexeme::AROBASE:
 		case GenreLexeme::EXCLAMATION:
 		case GenreLexeme::MOINS:
 		case GenreLexeme::PLUS:
@@ -696,7 +693,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
 			lexeme->genre = GenreLexeme::ESP_UNAIRE;
 			break;
 		}
-		case GenreLexeme::AROBASE:
 		case GenreLexeme::EXCLAMATION:
 		case GenreLexeme::TILDE:
 		{

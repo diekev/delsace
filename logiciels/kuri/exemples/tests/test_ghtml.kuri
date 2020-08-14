@@ -59,17 +59,17 @@ principale :: fonc () -> z32
     données_génération.valeur = données_page
 
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse) }
+	initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
-    erreur_ := génère_page(@données_génération, racine, @enchaineuse)
+    erreur_ := génère_page(*données_génération, racine, *enchaineuse)
 
     si erreur_ != ErreurGénérationPage.AUCUNE {
         imprime("Erreur lors de la génération de la page : %\n", erreur_)
     }
     sinon {
         imprime("Page :\n\n")
-        résultat := chaine_depuis_enchaineuse(@enchaineuse)
+        résultat := chaine_depuis_enchaineuse(*enchaineuse)
         imprime("%\n", résultat)
         déloge résultat
     }

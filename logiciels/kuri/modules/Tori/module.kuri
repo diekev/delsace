@@ -62,8 +62,8 @@ insère :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) -
 		retourne
 	}
 
-	tableau_ajoute(@dico.noms, nom_objet)
-	tableau_ajoute(@dico.valeurs, objet)
+	tableau_ajoute(*dico.noms, nom_objet)
+	tableau_ajoute(*dico.valeurs, objet)
 }
 
 trouve_objet :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine) -> *Objet
@@ -171,7 +171,7 @@ crée_dictionnaire :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetDictionna
 	objet.valeurs.taille = 0
 	objet.valeurs.pointeur = nul
 
-	tableau_ajoute(@gestionnaire.objets, objet)
+	tableau_ajoute(*gestionnaire.objets, objet)
 
 	retourne objet
 }
@@ -183,7 +183,7 @@ crée_liste :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetListe
 	objet.valeur.taille = 0
 	objet.valeur.pointeur = nul
 
-	tableau_ajoute(@gestionnaire.objets, objet)
+	tableau_ajoute(*gestionnaire.objets, objet)
 
 	retourne objet
 }
@@ -194,7 +194,7 @@ crée_entier :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetEntier
 	objet.id = TypeObjet.ENTIER
 	objet.valeur = 0
 
-	tableau_ajoute(@gestionnaire.objets, objet)
+	tableau_ajoute(*gestionnaire.objets, objet)
 
 	retourne objet
 }
@@ -205,7 +205,7 @@ crée_réel :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetRéel
 	objet.id = TypeObjet.RÉEL
 	objet.valeur = 0.0
 
-	tableau_ajoute(@gestionnaire.objets, objet)
+	tableau_ajoute(*gestionnaire.objets, objet)
 
 	retourne objet
 }
@@ -216,7 +216,7 @@ crée_chaine :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetChaine
 	objet.id = TypeObjet.CHAINE
 	objet.valeur = ""
 
-	tableau_ajoute(@gestionnaire.objets, objet)
+	tableau_ajoute(*gestionnaire.objets, objet)
 
 	retourne objet
 }
@@ -226,7 +226,7 @@ crée_nul :: fonc(gestionnaire : *GestionnaireObjet) -> *Objet
 	objet := loge Objet
 	objet.id = TypeObjet.NUL
 
-	tableau_ajoute(@gestionnaire.objets, objet)
+	tableau_ajoute(*gestionnaire.objets, objet)
 
 	retourne objet
 }
@@ -336,15 +336,15 @@ test_tori :: fonc() -> rien
     diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
 
 	gestionnaire : GestionnaireObjet
-	diffère { détruit(@gestionnaire) }
+	diffère { détruit(*gestionnaire) }
 
-	dico := crée_dictionnaire(@gestionnaire)
+	dico := crée_dictionnaire(*gestionnaire)
 
-	obj1 := crée_liste(@gestionnaire)
-	obj2 := crée_entier(@gestionnaire)
-	obj3 := crée_réel(@gestionnaire)
-	obj4 := crée_nul(@gestionnaire)
-	obj5 := crée_chaine(@gestionnaire)
+	obj1 := crée_liste(*gestionnaire)
+	obj2 := crée_entier(*gestionnaire)
+	obj3 := crée_réel(*gestionnaire)
+	obj4 := crée_nul(*gestionnaire)
+	obj5 := crée_chaine(*gestionnaire)
 
 	insère(dico, "liste", obj1)
 	insère(dico, "entier", obj2)

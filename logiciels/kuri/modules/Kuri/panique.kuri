@@ -18,7 +18,7 @@ imprime_panique :: fonc () -> rien #sanstrace
         i := 0
         tantque i < info_appel.colonne {
             imprime(" ")
-            i += nombre_octets_utf8(@info_appel.texte[i])
+            i += nombre_octets_utf8(*info_appel.texte[i])
         }
 
         imprime("\x1b[1;31m^\x1b[0m\n");

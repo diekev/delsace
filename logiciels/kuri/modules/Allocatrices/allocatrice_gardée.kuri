@@ -74,7 +74,7 @@ allocation_gardée :: fonc(
     ptr_entête.taille_bloc = nouvelle_taille
     ptr_entête.pos = pos
 
-    enliste(@allocatrice.liste_entêtes, ptr_entête)
+    enliste(*allocatrice.liste_entêtes, ptr_entête)
 
     ptr_z8 := ptr comme *z8
 
@@ -150,7 +150,7 @@ allocatrice_gardée :: fonc(
 
             {
                 ptr_entête := ptr comme *EntêteMémoire
-                déliste(@alloc.liste_entêtes, ptr_entête)
+                déliste(*alloc.liste_entêtes, ptr_entête)
             }
 
             taille := nouvelle_taille + taille_de(EntêteMémoire) comme z64
@@ -165,7 +165,7 @@ allocatrice_gardée :: fonc(
                 ptr_entête := ptr comme *EntêteMémoire
                 ptr_entête.taille_bloc = nouvelle_taille
                 ptr_entête.pos = pos
-                enliste(@alloc.liste_entêtes, ptr_entête)
+                enliste(*alloc.liste_entêtes, ptr_entête)
             }
 
             retourne nptr + taille_de(EntêteMémoire)
@@ -175,7 +175,7 @@ allocatrice_gardée :: fonc(
 
             {
                 ptr_entête := ptr comme *EntêteMémoire
-                déliste(@alloc.liste_entêtes, ptr_entête)
+                déliste(*alloc.liste_entêtes, ptr_entête)
             }
 
             free(ptr)

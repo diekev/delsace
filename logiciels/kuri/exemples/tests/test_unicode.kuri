@@ -47,7 +47,7 @@ en_majuscule_utf8 :: fonc (chn: chaine) -> chaine
     i : z64 = 0
 
     tantque i < chn.taille {
-        n := nombre_octets_utf8_rapide(@chn[i])
+        n := nombre_octets_utf8_rapide(*chn[i])
 
         si n == 0 {
             imprime("Caractère Unicode invalide")
@@ -55,15 +55,15 @@ en_majuscule_utf8 :: fonc (chn: chaine) -> chaine
         }
 
         si n == 1 {
-           chaine_ajoute(@résultat, en_majuscule(chn[i]))
+           chaine_ajoute(*résultat, en_majuscule(chn[i]))
         }
         sinon {
-            cp := converti_utf8_utf32(@chn[i], n)
+            cp := converti_utf8_utf32(*chn[i], n)
 
             maj := en_majuscule_cp(cp)
 
             pour c dans maj {
-               chaine_ajoute(@résultat, c)
+               chaine_ajoute(*résultat, c)
             }
         }
 

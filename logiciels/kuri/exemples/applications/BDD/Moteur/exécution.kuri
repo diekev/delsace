@@ -27,13 +27,13 @@ crée_table :: fonc (cm: *CoulisseMémoire, inst: *InstructionCréationTable) ->
 
         décalage += colonne.taille
 
-        tableau_ajoute(@colonnes, colonne)
+        tableau_ajoute(*colonnes, colonne)
     }
 
     table := ouvre_base_de_données_mémoire(colonnes)
 
-    tableau_ajoute(@cm.noms_tables, inst.nom.valeur)
-    tableau_ajoute(@cm.tables, table)
+    tableau_ajoute(*cm.noms_tables, inst.nom.valeur)
+    tableau_ajoute(*cm.tables, table)
 }
 
 trouve_table :: fonc (cm: *CoulisseMémoire, nom_table: chaine) -> *Table
@@ -166,8 +166,8 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
                 continue
             }
 
-            tableau_ajoute(@colonnes_résultat, colonne)
-            tableau_ajoute(@index_colonnes, idx_colonne)
+            tableau_ajoute(*colonnes_résultat, colonne)
+            tableau_ajoute(*index_colonnes, idx_colonne)
 
             trouvée = vrai
         }
@@ -224,7 +224,7 @@ sélectionne_tables :: fonc (cm: *CoulisseMémoire) -> *Table
     colonne.taille = 255 // À FAIRE
 
     colonnes_résultat : []Colonne
-    tableau_ajoute(@colonnes_résultat, colonne)
+    tableau_ajoute(*colonnes_résultat, colonne)
 
     table_résultat := ouvre_base_de_données_mémoire(colonnes_résultat)
 

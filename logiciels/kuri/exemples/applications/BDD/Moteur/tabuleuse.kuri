@@ -22,9 +22,9 @@ crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
 {
     tabuleuse: Tabuleuse
 
-    ajoute_ligne(@tabuleuse, ...titres)
+    ajoute_ligne(*tabuleuse, ...titres)
 
-    tableau_redimensionne(@tabuleuse.alignements, titres.taille)
+    tableau_redimensionne(*tabuleuse.alignements, titres.taille)
 
     pour a dans tabuleuse.alignements {
         a = Alignement.GAUCHE comme z32
@@ -37,9 +37,9 @@ crée_tabuleuse :: fonc  (ligne_titre: LigneTabuleuse) -> Tabuleuse
 {
     tabuleuse: Tabuleuse
 
-    ajoute_ligne(@tabuleuse, ligne_titre)
+    ajoute_ligne(*tabuleuse, ligne_titre)
 
-    tableau_redimensionne(@tabuleuse.alignements, ligne_titre.colonnes.taille)
+    tableau_redimensionne(*tabuleuse.alignements, ligne_titre.colonnes.taille)
 
     pour a dans tabuleuse.alignements {
         a = Alignement.GAUCHE comme z32
@@ -69,10 +69,10 @@ ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
 
     pour arg dans args {
         chn := obtiens_chaine_pour_eini(tabuleuse, arg)
-        tableau_ajoute(@ligne.colonnes, chn)
+        tableau_ajoute(*ligne.colonnes, chn)
     }
 
-    tableau_ajoute(@tabuleuse.lignes, ligne)
+    tableau_ajoute(*tabuleuse.lignes, ligne)
 }
 
 obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
@@ -81,18 +81,18 @@ obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
     info := arg.info
 
     enchaineuse : Enchaineuse
-    initialise_enchaineuse(@enchaineuse)
+    initialise_enchaineuse(*enchaineuse)
 
     si info.id == id_info.CHAINE {
         chn = arg
     }
     sinon {
-        imprime_valeur(@enchaineuse, arg.pointeur, arg.info, faux)
+        imprime_valeur(*enchaineuse, arg.pointeur, arg.info, faux)
 
-        chn = chaine_depuis_enchaineuse(@enchaineuse)
+        chn = chaine_depuis_enchaineuse(*enchaineuse)
         enchaineuse.tampon_courant.occupé = 0
 
-        tableau_ajoute(@tabuleuse.chaines_allouées, chn)
+        tableau_ajoute(*tabuleuse.chaines_allouées, chn)
     }
 
     retourne chn
@@ -103,15 +103,15 @@ ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...chaine) -> rien
     ligne : LigneTabuleuse
 
     pour arg dans args {
-        tableau_ajoute(@ligne.colonnes, arg)
+        tableau_ajoute(*ligne.colonnes, arg)
     }
 
-    tableau_ajoute(@tabuleuse.lignes, ligne)
+    tableau_ajoute(*tabuleuse.lignes, ligne)
 }
 
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, ligne: LigneTabuleuse) -> rien
 {
-    tableau_ajoute(@tabuleuse.lignes, ligne)
+    tableau_ajoute(*tabuleuse.lignes, ligne)
 }
 
 alignement :: fonc (tabuleuse: *Tabuleuse, idx: z64, align: Alignement) -> rien
@@ -122,8 +122,8 @@ alignement :: fonc (tabuleuse: *Tabuleuse, idx: z64, align: Alignement) -> rien
 imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
 {
     enchaineuse : Enchaineuse
-    initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse) }
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
 
     nombre_colonnes : z64
@@ -135,7 +135,7 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
 	}
 
     tailles_max_colonnes : []z64
-    tableau_redimensionne(@tailles_max_colonnes, nombre_colonnes)
+    tableau_redimensionne(*tailles_max_colonnes, nombre_colonnes)
     diffère { déloge tailles_max_colonnes; }
 
     pour t dans tailles_max_colonnes {
@@ -160,17 +160,17 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
 	}
 
 	/* impression */
-	imprime_ligne_demarcation(@enchaineuse, tabuleuse, tailles_max_colonnes)
-	imprime_ligne(@enchaineuse, tabuleuse, @tabuleuse.lignes[0], tailles_max_colonnes)
-	imprime_ligne_demarcation(@enchaineuse, tabuleuse, tailles_max_colonnes)
+	imprime_ligne_demarcation(*enchaineuse, tabuleuse, tailles_max_colonnes)
+	imprime_ligne(*enchaineuse, tabuleuse, *tabuleuse.lignes[0], tailles_max_colonnes)
+	imprime_ligne_demarcation(*enchaineuse, tabuleuse, tailles_max_colonnes)
 
     pour i dans 1 ... tabuleuse.lignes.taille - 1 {
-		imprime_ligne(@enchaineuse, tabuleuse, @tabuleuse.lignes[i], tailles_max_colonnes)
+		imprime_ligne(*enchaineuse, tabuleuse, *tabuleuse.lignes[i], tailles_max_colonnes)
 	}
 
-	imprime_ligne_demarcation(@enchaineuse, tabuleuse, tailles_max_colonnes)
+	imprime_ligne_demarcation(*enchaineuse, tabuleuse, tailles_max_colonnes)
 
-    chn := chaine_depuis_enchaineuse(@enchaineuse)
+    chn := chaine_depuis_enchaineuse(*enchaineuse)
 
     imprime("%\n", chn)
 

@@ -40,14 +40,14 @@ charge_programme :: fonc() -> n32
 	FragmentShaderID := glCreateShader(OGL.FRAGMENT_SHADER)
 
     taille_src_vertex := source_vertex.taille comme z32
-	glShaderSource(VertexShaderID, 1, @source_vertex.pointeur , @taille_src_vertex)
+	glShaderSource(VertexShaderID, 1, *source_vertex.pointeur , *taille_src_vertex)
 	glCompileShader(VertexShaderID)
 
     // verifie la compilation
     Result : z32 = 0
     InfoLogLength : z32 = 0
-    glGetShaderiv(VertexShaderID, OGL.LINK_STATUS, @Result)
-	glGetShaderiv(VertexShaderID, OGL.INFO_LOG_LENGTH, @InfoLogLength)
+    glGetShaderiv(VertexShaderID, OGL.LINK_STATUS, *Result)
+	glGetShaderiv(VertexShaderID, OGL.INFO_LOG_LENGTH, *InfoLogLength)
 
     si InfoLogLength > 0 {
 		ProgramErrorMessage := loge chaine(InfoLogLength+1)
@@ -57,14 +57,14 @@ charge_programme :: fonc() -> n32
 	}
 
     taille_src_fragment := source_fragment.taille comme z32
-	glShaderSource(FragmentShaderID, 1, @source_fragment.pointeur , @taille_src_fragment)
+	glShaderSource(FragmentShaderID, 1, *source_fragment.pointeur , *taille_src_fragment)
 	glCompileShader(FragmentShaderID)
 
     // verifie la compilation
     Result = 0
     InfoLogLength = 0
-    glGetShaderiv(FragmentShaderID, OGL.LINK_STATUS, @Result)
-	glGetShaderiv(FragmentShaderID, OGL.INFO_LOG_LENGTH, @InfoLogLength)
+    glGetShaderiv(FragmentShaderID, OGL.LINK_STATUS, *Result)
+	glGetShaderiv(FragmentShaderID, OGL.INFO_LOG_LENGTH, *InfoLogLength)
 
     si InfoLogLength > 0 {
 		ProgramErrorMessage := loge chaine(InfoLogLength+1)
@@ -81,8 +81,8 @@ charge_programme :: fonc() -> n32
     // verifie la liaison
     Result = 0
     InfoLogLength = 0
-    glGetProgramiv(ProgramID_, OGL.COMPILE_STATUS, @Result)
-	glGetProgramiv(ProgramID_, OGL.INFO_LOG_LENGTH, @InfoLogLength)
+    glGetProgramiv(ProgramID_, OGL.COMPILE_STATUS, *Result)
+	glGetProgramiv(ProgramID_, OGL.INFO_LOG_LENGTH, *InfoLogLength)
 
     si InfoLogLength > 0 {
 		ProgramErrorMessage := loge chaine(InfoLogLength+1)
@@ -106,16 +106,16 @@ initialise_tampon_dessin :: fonc() -> rien
         ProgramID = charge_programme()
     }
 
-    glGenVertexArrays(1, @VertexArrayID)
-    glGenBuffers(1, @vertexbuffer)
-    glGenBuffers(1, @colorbuffer)
+    glGenVertexArrays(1, *VertexArrayID)
+    glGenBuffers(1, *vertexbuffer)
+    glGenBuffers(1, *colorbuffer)
 }
 
 issitialise_tampon_dessin :: fonc() -> rien
 {
-    glDeleteVertexArrays(1, @VertexArrayID)
-    glDeleteBuffers(1, @vertexbuffer)
-    glDeleteBuffers(1, @colorbuffer)
+    glDeleteVertexArrays(1, *VertexArrayID)
+    glDeleteBuffers(1, *vertexbuffer)
+    glDeleteBuffers(1, *colorbuffer)
     déloge tabl_sommets
     déloge tabl_couleur
     glDeleteProgram(ProgramID)
@@ -153,14 +153,14 @@ termine_dessin :: fonc() -> rien
 
 ajoute_sommet :: fonc(x : r32, y : r32, z : r32) -> rien
 {
-    tableau_ajoute(@tabl_sommets, x)
-    tableau_ajoute(@tabl_sommets, y)
-    tableau_ajoute(@tabl_sommets, z)
+    tableau_ajoute(*tabl_sommets, x)
+    tableau_ajoute(*tabl_sommets, y)
+    tableau_ajoute(*tabl_sommets, z)
 }
 
 ajoute_couleur :: fonc(coul : Couleur) -> rien
 {
-    tableau_ajoute(@tabl_couleur, coul)
+    tableau_ajoute(*tabl_couleur, coul)
 }
 
 dessine_triangle :: fonc() -> rien

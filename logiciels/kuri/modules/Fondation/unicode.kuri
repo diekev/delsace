@@ -104,12 +104,12 @@ nombre_octets_utf8_rapide :: fonc(caractère : *z8) -> z64
 décalage_pour_caractère :: fonc(chn : chaine, i : z64) -> z32
 {
 	décalage := 0
-	n := nombre_octets_utf8(@chn[i])
+	n := nombre_octets_utf8(*chn[i])
 
 	tantque (n == 0 && i < chn.taille) {
 		++décalage
 		++i
-		n = nombre_octets_utf8(@chn[i])
+		n = nombre_octets_utf8(*chn[i])
 	}
 
 	décalage += n
@@ -266,7 +266,7 @@ taille_unicode :: fonc(chn : chaine) -> z64
     i := 0
 
     tantque i < chn.taille {
-        pointeur := @chn[i]
+        pointeur := *chn[i]
         n := nombre_octets_utf8(pointeur)
 
         si n == 0 {

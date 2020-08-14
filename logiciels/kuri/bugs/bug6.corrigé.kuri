@@ -5,7 +5,7 @@
 principale :: fonc () -> z32
 {
     ptr := loge [32]z32
-    indirection := @ptr
+    indirection := *ptr
 
     déloge mémoire(indirection)
 

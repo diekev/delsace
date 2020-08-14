@@ -53,7 +53,7 @@ principale :: fonc () -> z32
     imprime("Requête        : %\n", uri.requête)
     imprime("Fragment       : %\n", uri.fragment)
 
-    uri_recomposé := recompose_uri(@uri)
+    uri_recomposé := recompose_uri(*uri)
     diffère { déloge uri_recomposé; }
 
     imprime("uri_recomposé : %\n", uri_recomposé)

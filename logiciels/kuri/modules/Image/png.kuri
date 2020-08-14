@@ -75,7 +75,7 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
 
 	info := png_create_info_struct(png)
 
-    diffère { png_destroy_read_struct(@png, @info, nul); }
+    diffère { png_destroy_read_struct(*png, *info, nul); }
 
 	si info == nul {
 		retourne image
@@ -138,7 +138,7 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
         row_pointers[y] = malloc(row_bytes comme z64) comme *n8
 	}
 
-	png_read_image(png, @row_pointers[0])
+	png_read_image(png, *row_pointers[0])
 
     image.hauteur = hauteur comme z32
     image.largeur = largeur comme z32
@@ -149,7 +149,7 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
 
 	pour row dans row_pointers {
         pour x dans 0 ... largeur comme z32 - 1 {
-            px := @row[x * 4]
+            px := *row[x * 4]
 
             couleur : Couleur
             couleur.r = px[0] comme r32 / 255.0

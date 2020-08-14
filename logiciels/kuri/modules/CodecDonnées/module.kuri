@@ -24,8 +24,8 @@ encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
 	char_array_4 : [4]n8
 
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse) }
+	initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
     longueur := chn.taille
 
@@ -41,7 +41,7 @@ encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
 			char_array_4[3] = char_array_3[2] & 0x3f comme n8
 
             pour j dans 0 ... 3 {
-                ajoute_au_tampon(@enchaineuse, table[char_array_4[j]])
+                ajoute_au_tampon(*enchaineuse, table[char_array_4[j]])
             }
 
 			i = 0
@@ -59,16 +59,16 @@ encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
 		char_array_4[3] = char_array_3[2] & 0x3f
 
         pour j dans 0 ... i {
-            ajoute_au_tampon(@enchaineuse, table[char_array_4[j]])
+            ajoute_au_tampon(*enchaineuse, table[char_array_4[j]])
         }
 
         tantque i < 3 {
-            ajoute_au_tampon(@enchaineuse, '=')
+            ajoute_au_tampon(*enchaineuse, '=')
             i += 1
         }
 	}
 
-	retourne chaine_depuis_enchaineuse(@enchaineuse)
+	retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 encode_base64 :: fonc(chn: chaine) -> chaine
@@ -89,8 +89,8 @@ encode_base64_pour_url :: fonc(chn: chaine) -> chaine
 décode_base64 :: fonc(chn : chaine) -> chaine
 {
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse) }
+	initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
     temp := 0
     curseur := chn.pointeur
@@ -120,17 +120,17 @@ décode_base64 :: fonc(chn : chaine) -> chaine
                 reste := (fin - curseur) comme z64
 
                 si reste == 1 {
-                    ajoute_au_tampon(@enchaineuse, ((temp >> 16) & 0xff) comme z8)
-                    ajoute_au_tampon(@enchaineuse, ((temp >>  8) & 0xff) comme z8)
+                    ajoute_au_tampon(*enchaineuse, ((temp >> 16) & 0xff) comme z8)
+                    ajoute_au_tampon(*enchaineuse, ((temp >>  8) & 0xff) comme z8)
                 }
                 sinon si reste == 2 {
-                    ajoute_au_tampon(@enchaineuse, ((temp >> 10) & 0xff) comme z8)
+                    ajoute_au_tampon(*enchaineuse, ((temp >> 10) & 0xff) comme z8)
                 }
                 sinon {
                     // @erreur
                 }
 
-	            retourne chaine_depuis_enchaineuse(@enchaineuse)
+	            retourne chaine_depuis_enchaineuse(*enchaineuse)
             }
             sinon {
                 // @erreur
@@ -139,10 +139,10 @@ décode_base64 :: fonc(chn : chaine) -> chaine
             curseur += 1
         }
 
-        ajoute_au_tampon(@enchaineuse, ((temp >> 16) & 0xff) comme z8)
-        ajoute_au_tampon(@enchaineuse, ((temp >>  8) & 0xff) comme z8)
-        ajoute_au_tampon(@enchaineuse, ((temp      ) & 0xff) comme z8)
+        ajoute_au_tampon(*enchaineuse, ((temp >> 16) & 0xff) comme z8)
+        ajoute_au_tampon(*enchaineuse, ((temp >>  8) & 0xff) comme z8)
+        ajoute_au_tampon(*enchaineuse, ((temp      ) & 0xff) comme z8)
     }
 
-	retourne chaine_depuis_enchaineuse(@enchaineuse)
+	retourne chaine_depuis_enchaineuse(*enchaineuse)
 }

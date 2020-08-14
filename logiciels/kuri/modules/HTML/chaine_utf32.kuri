@@ -18,7 +18,7 @@ taille :: fonc (chn: ChaineUTF32) -> z64
 
 chaine_ajoute :: fonc (chn: *ChaineUTF32, point_de_code: n32)
 {
-    tableau_ajoute(@chn.points_de_code, point_de_code)
+    tableau_ajoute(*chn.points_de_code, point_de_code)
 }
 
 compare_avec_chaine :: fonc (chn: ChaineUTF32, chn2: chaine) -> bool
@@ -40,7 +40,7 @@ converti_vers_chaine :: fonc (chn: ChaineUTF32) -> chaine
 {
     résultat : chaine
     pour chn.points_de_code {
-        chaine_ajoute(@résultat, it)
+        chaine_ajoute(*résultat, it)
     }
     retourne résultat
 }

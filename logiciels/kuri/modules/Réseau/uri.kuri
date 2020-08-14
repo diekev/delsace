@@ -106,7 +106,7 @@ extrait_schéma :: fonc (chn: chaine, schéma: *chaine) -> RésultatExtraction
 
     pour c, i dans chn {
         si c == ':' {
-            mémoire(schéma) = construit_chaine(@chn[0], i)
+            mémoire(schéma) = construit_chaine(*chn[0], i)
             retourne vrai
         }
 
@@ -269,7 +269,7 @@ parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
     uri : URI
     uri.uri = chn
 
-    eu_schéma := tente extrait_schéma(chn, @uri.schéma) piège err {
+    eu_schéma := tente extrait_schéma(chn, *uri.schéma) piège err {
         retourne err
     }
 
@@ -291,11 +291,11 @@ parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
     uri.autorité_est_définie = vrai
     uri.chemin_complet = avance(après_slashs, fin_autorité)
 
-    tente parse_autorité(@uri) piège err {
+    tente parse_autorité(*uri) piège err {
         retourne err
     }
 
-    tente parse_chemin(@uri) piège err {
+    tente parse_chemin(*uri) piège err {
         retourne err
     }
 
@@ -308,7 +308,7 @@ parse_uri_depuis_chemin_requête :: fonc (chn: chaine) -> RésultatURI
 	uri.uri = chn
 	uri.chemin_complet = chn
 
-	tente parse_chemin(@uri) piège err {
+	tente parse_chemin(*uri) piège err {
 		retourne err
 	}
 
@@ -322,25 +322,25 @@ recompose_uri :: fonc (uri: *URI) -> chaine
     résultat : chaine
 
     si uri.schéma_est_défini {
-        append(@résultat, uri.schéma)
-        append(@résultat, ":")
+        append(*résultat, uri.schéma)
+        append(*résultat, ":")
     }
 
     si uri.autorité_est_définie {
-        append(@résultat, "//")
-        append(@résultat, uri.autorité)
+        append(*résultat, "//")
+        append(*résultat, uri.autorité)
     }
 
-    append(@résultat, uri.chemin)
+    append(*résultat, uri.chemin)
 
     si uri.requête_est_définie {
-        append(@résultat, "?")
-        append(@résultat, uri.requête)
+        append(*résultat, "?")
+        append(*résultat, uri.requête)
     }
 
     si uri.fragment_est_défini {
-        append(@résultat, "#")
-        append(@résultat, uri.fragment)
+        append(*résultat, "#")
+        append(*résultat, uri.fragment)
     }
 
     retourne résultat

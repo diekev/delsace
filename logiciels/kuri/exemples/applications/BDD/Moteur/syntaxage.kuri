@@ -61,14 +61,14 @@ parse :: fonc (chn: chaine) -> ASA
     curseur := 0
 
     tantque curseur < lexèmes.taille {
-        inst := parse_instruction(lexèmes, @curseur)
+        inst := parse_instruction(lexèmes, *curseur)
 
         si inst == nul {
             imprime("Impossible de parser les lexèmes\n")
             arrête
         }
 
-        tableau_ajoute(@asa.instructions, inst)
+        tableau_ajoute(*asa.instructions, inst)
     }
 
     retourne asa
@@ -84,19 +84,19 @@ parse_instruction :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *Instru
     discr lexèmes[curseur].genre {
         MOT_CLÉ_CRÉE {
             curseur += 1
-            inst := parse_instruction_crée(lexèmes, @curseur)
+            inst := parse_instruction_crée(lexèmes, *curseur)
 
             retourne inst
         }
         MOT_CLÉ_INSÈRE {
             curseur += 1
-            inst := parse_instruction_insère(lexèmes, @curseur)
+            inst := parse_instruction_insère(lexèmes, *curseur)
 
             retourne inst
         }
         MOT_CLÉ_SÉLECTIONNE {
             curseur += 1
-            inst := parse_instruction_sélectionne(lexèmes, @curseur)
+            inst := parse_instruction_sélectionne(lexèmes, *curseur)
 
             retourne inst
         }
@@ -124,7 +124,7 @@ parse_instruction_sélectionne :: fonc (lexèmes: []Lexème, ancien_curseur: *z3
     inst.items.taille = 0
     inst.items.pointeur = nul
 
-    si !parse_expressions(lexèmes, @curseur, @inst.items) {
+    si !parse_expressions(lexèmes, *curseur, *inst.items) {
         imprime("Impossible de parser les expressions\n")
         déloge inst // @fuite de mémoire
         retourne nul
@@ -201,7 +201,7 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
         }
 
         desc := loge DéfinitionColonne
-        tableau_ajoute(@inst.colonnes, desc)
+        tableau_ajoute(*inst.colonnes, desc)
 
         // nom-colonne
         si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
@@ -311,7 +311,7 @@ parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) ->
     curseur += 1
 
     // 6. $expression [, ...]
-    si !parse_expressions(lexèmes, @curseur, @inst.valeurs) {
+    si !parse_expressions(lexèmes, *curseur, *inst.valeurs) {
         imprime("Impossible de parser les expresssions pour INSÈRE !\n")
         déloge inst
         retourne nul

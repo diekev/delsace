@@ -15,7 +15,7 @@ EntêtesHTTP :: struct {
 ajoute_paire_entête :: fonc (entêtes: *EntêtesHTTP, clé: chaine, valeur: chaine) -> rien
 {
     paire := PaireEntête( clé = clé, valeur = valeur )
-    tableau_ajoute(@entêtes.données, paire)
+    tableau_ajoute(*entêtes.données, paire)
 }
 
 détruit_entêtes :: fonc (entêtes: *EntêtesHTTP) -> rien
@@ -27,7 +27,7 @@ cherche_entête :: fonc (entêtes: *EntêtesHTTP, clé: chaine) -> *PaireEntête
 {
     pour entête dans entêtes.données {
         si entête.clé == clé {
-            retourne @entête
+            retourne *entête
         }
     }
 
@@ -165,7 +165,7 @@ analyse_entêtes :: fonc(analyseuse: *AnalyseuseRequête) -> EntêtesHTTP
 
         valeur := analyseuse.mot_courant()
 
-        ajoute_paire_entête(@entêtes, clé, valeur)
+        ajoute_paire_entête(*entêtes, clé, valeur)
 
         //imprime("--- ", clé, ": ", valeur, "\n")
     }
@@ -189,7 +189,7 @@ analyse_requête :: fonc(analyseuse: *AnalyseuseRequête, requête: chaine) -> r
 
 mot_courant :: fonc(analyseuse: *AnalyseuseRequête) -> chaine
 {
-    retourne construit_chaine(@analyseuse.requête[analyseuse.pointeur], analyseuse.taille_mot)
+    retourne construit_chaine(*analyseuse.requête[analyseuse.pointeur], analyseuse.taille_mot)
 }
 
 analyse_ligne_requête :: fonc(analyseuse: *AnalyseuseRequête) -> LigneRequête
@@ -203,7 +203,7 @@ analyse_ligne_requête :: fonc(analyseuse: *AnalyseuseRequête) -> LigneRequête
         si c == ' ' {
             si analyseuse.taille_mot != 0 {
                 chn := analyseuse.mot_courant()
-                état = ajoute_chaine(@ligne_requête, état, chn)
+                état = ajoute_chaine(*ligne_requête, état, chn)
                 analyseuse.taille_mot = 0
             }
         }
@@ -214,7 +214,7 @@ analyse_ligne_requête :: fonc(analyseuse: *AnalyseuseRequête) -> LigneRequête
         sinon si c == '\n' {
             si analyseuse.taille_mot != 0 {
                 chn := analyseuse.mot_courant()
-                état = ajoute_chaine(@ligne_requête, état, chn)
+                état = ajoute_chaine(*ligne_requête, état, chn)
                 analyseuse.taille_mot = 0
             }
 
@@ -265,7 +265,7 @@ Accept-Language: fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7,ja;q=0.6
 "
 
     analyseuse : AnalyseuseRequête
-    analyse_requête(@analyseuse, entête)
+    analyse_requête(*analyseuse, entête)
 
     retourne 0
 }

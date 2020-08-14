@@ -9,10 +9,10 @@ principale :: fonc () -> z32
 {
     tabl : []z32
 
-    tableau_ajoute(@tabl, 0)
-    tableau_ajoute(@tabl, 1)
-    tableau_ajoute(@tabl, 2)
-    tableau_ajoute(@tabl, 3)
+    tableau_ajoute(*tabl, 0)
+    tableau_ajoute(*tabl, 1)
+    tableau_ajoute(*tabl, 2)
+    tableau_ajoute(*tabl, 3)
 
     {
         // crash ou panique selon ce qui est déréférencé

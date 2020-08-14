@@ -11,6 +11,6 @@ passe_eini :: fonc (e: eini)
 principale :: fonc () -> z32
 {
     a : z32 = 127
-    passe_eini(@a)
+    passe_eini(*a)
     retourne 0
 }

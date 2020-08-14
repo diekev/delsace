@@ -27,28 +27,28 @@ converti_type_c :: fonc (info: *InfoType) -> chaine
 converti_fonction_C :: fonc (code_fonction: *NoeudCodeCorpsFonction) -> chaine
 {
     enchaineuse : Enchaineuse
-    initialise_enchaineuse(@enchaineuse)
+    initialise_enchaineuse(*enchaineuse)
 
-    imprime_dans_enchaineuse(@enchaineuse, "\nlong %", code_fonction.entête.nom)
+    imprime_dans_enchaineuse(*enchaineuse, "\nlong %", code_fonction.entête.nom)
 
     virgule := "("
 
     pour code_fonction.entête.params_entrée {
-        imprime_dans_enchaineuse(@enchaineuse, "%long %", virgule, it.nom)
+        imprime_dans_enchaineuse(*enchaineuse, "%long %", virgule, it.nom)
         virgule = ", "
     }
 
-    ajoute_au_tampon(@enchaineuse, ")\n{\n")
+    ajoute_au_tampon(*enchaineuse, ")\n{\n")
 
     pour code_fonction.bloc.membres {
         imprime("-- membre : % %\n", converti_type_c(it.type), it.nom)
     }
 
-    converti_code_c(@enchaineuse, code_fonction.bloc)
+    converti_code_c(*enchaineuse, code_fonction.bloc)
 
-    ajoute_au_tampon(@enchaineuse, "}\n\n")
+    ajoute_au_tampon(*enchaineuse, "}\n\n")
 
-    retourne chaine_depuis_enchaineuse(@enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 converti_code_c :: fonc (enchaineuse: *Enchaineuse, code: *NoeudCode)
@@ -124,7 +124,7 @@ fais_conversion_code :: fonc ()
     désactive_compilation_espace_défaut()
 
     options : OptionsCompilation
-    espace := démarre_un_espace_de_travail("test_conversion", @options)
+    espace := démarre_un_espace_de_travail("test_conversion", *options)
 
     compilatrice_commence_interception(espace)
 

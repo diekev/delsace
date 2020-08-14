@@ -17,7 +17,7 @@ chaine_ajoute :: fonc (chn: *chaine, point_de_code: n32)
     tmp := mémoire(chn)
 
 	séquence : [4]n8
-	nombre_octets := point_de_code_vers_utf8(point_de_code, @séquence[0])
+	nombre_octets := point_de_code_vers_utf8(point_de_code, *séquence[0])
 
 	si nombre_octets == 0 {
 		// À FAIRE : que faire ici ?
@@ -122,7 +122,7 @@ pour_chaque_ligne :: fonc(texte : chaine, donnees : eini, rappel : fonc(chaine, 
 		taille += 1
 
         si c == '\n' {
-			ligne := construit_chaine(@texte[début_chaine], taille)
+			ligne := construit_chaine(*texte[début_chaine], taille)
 			rappel(ligne, donnees)
 
 			début_chaine = i + 1 comme z64
@@ -132,7 +132,7 @@ pour_chaque_ligne :: fonc(texte : chaine, donnees : eini, rappel : fonc(chaine, 
 
     // La dernière ligne n'a pas de retour...
 	si taille != 0 {
-		ligne := construit_chaine(@texte[début_chaine], taille)
+		ligne := construit_chaine(*texte[début_chaine], taille)
 		rappel(ligne, donnees)
 	}
 }
@@ -164,7 +164,7 @@ découpe :: corout(texte : chaine, sep : z8) -> chaine
 
     pour c, i dans texte {
 	    si c == sep {
-			retiens construit_chaine(@texte[début_mot], taille_mot)
+			retiens construit_chaine(*texte[début_mot], taille_mot)
 
 			début_mot = i + 1 comme z64
 			taille_mot = 0
@@ -175,7 +175,7 @@ découpe :: corout(texte : chaine, sep : z8) -> chaine
 	}
 
     si taille_mot != 0 {
-		retiens construit_chaine(@texte[début_mot], taille_mot)
+		retiens construit_chaine(*texte[début_mot], taille_mot)
 	}
 }
 
@@ -187,8 +187,8 @@ divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
 
     pour c, i dans ligne {
 	    si c == séparation {
-			mot := construit_chaine(@ligne[début_mot], taille_mot)
-            tableau_ajoute(@mots, mot)
+			mot := construit_chaine(*ligne[début_mot], taille_mot)
+            tableau_ajoute(*mots, mot)
 
 			début_mot = i + 1 comme z64
 			taille_mot = 0
@@ -199,8 +199,8 @@ divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
 	}
 
     si taille_mot != 0 {
-		mot := construit_chaine(@ligne[début_mot], taille_mot)
-        tableau_ajoute(@mots, mot)
+		mot := construit_chaine(*ligne[début_mot], taille_mot)
+        tableau_ajoute(*mots, mot)
 	}
 
     retourne mots
@@ -221,14 +221,14 @@ divise :: fonc (chn: chaine, séparation: chaine) -> []chaine
         }
 
         c := sous_chaine(chn, index_début, index_fin)
-        tableau_ajoute(@résultat, c)
+        tableau_ajoute(*résultat, c)
 
         index_début = index_fin + séparation.taille
     }
 
     si index_début < chn.taille {
         c := sous_chaine(chn, index_début, chn.taille)
-        tableau_ajoute(@résultat, c)
+        tableau_ajoute(*résultat, c)
     }
 
     retourne résultat
@@ -460,7 +460,7 @@ dernier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
 
 sous_chaine :: fonc (chn: chaine, pos_début: z64, pos_fin: z64) -> chaine
 {
-	retourne construit_chaine(@chn[pos_début], pos_fin - pos_début)
+	retourne construit_chaine(*chn[pos_début], pos_fin - pos_début)
 }
 
 distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64

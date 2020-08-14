@@ -42,7 +42,7 @@ console_affiche_prompt :: fonc (prompt: chaine, rappel: fonc(chaine, CléConsole
     taille_écrite := 0
 
     boucle {
-        éditeur_ajourne_message_status(@E, prompt, tampon)
+        éditeur_ajourne_message_status(*E, prompt, tampon)
         console_rafraichis_écran()
 
         c := console_lis_clé()
@@ -55,7 +55,7 @@ console_affiche_prompt :: fonc (prompt: chaine, rappel: fonc(chaine, CléConsole
             }
         }
         si c == CléConsole.Échappement {
-            éditeur_ajourne_message_status(@E, "")
+            éditeur_ajourne_message_status(*E, "")
 
             si rappel != nul {
                 rappel(tampon, c)
@@ -66,7 +66,7 @@ console_affiche_prompt :: fonc (prompt: chaine, rappel: fonc(chaine, CléConsole
         }
         sinon si c == CléConsole.RetourChariot {
             si taille_écrite != 0 {
-                éditeur_ajourne_message_status(@E, "")
+                éditeur_ajourne_message_status(*E, "")
 
                 si rappel != nul {
                     rappel(tampon, c)
@@ -167,14 +167,14 @@ console_initialise_éditeur :: fonc (éditeur: *Éditeur) -> rien
     éditeur.cy = 0
     éditeur.décalage_ligne = 0
     éditeur.décalage_colonne = 0
-    évalue_taille_fenêtre(@éditeur.colonnes, @éditeur.lignes)
+    évalue_taille_fenêtre(*éditeur.colonnes, *éditeur.lignes)
     // réserve de la place pour la barre de status et celle de message
     éditeur.lignes -= 2
 }
 
 active_mode_cru :: fonc () -> rien
 {
-    tcgetattr(STDIN_FILENO, @terminal_original)
+    tcgetattr(STDIN_FILENO, *terminal_original)
 
     raw := terminal_original
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON)
@@ -184,19 +184,19 @@ active_mode_cru :: fonc () -> rien
     raw.c_cc[VMIN] = 0
     raw.c_cc[VTIME] = 1
 
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, @raw)
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, *raw)
 }
 
 restaure_terminal :: fonc () -> rien
 {
     imprime("\x1b[2J\x1b[H")
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, @terminal_original)
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, *terminal_original)
 }
 
 évalue_taille_fenêtre :: fonc (largeur: *z32, hauteur: *z32) -> rien
 {
     ws: winsize
-    r := ioctl(STDIN_FILENO, TIOCGWINSZ, @ws)
+    r := ioctl(STDIN_FILENO, TIOCGWINSZ, *ws)
 
     si r == -1 || ws.ws_col == 0 {
         retourne
@@ -274,7 +274,7 @@ console_gère_clé_pressée :: fonc () -> ActionÉditeur
     si c == CLÉ_CONTROLE('q') {
         si E.modifié != 0 && tentative_fermeture > 0 {
             // À FAIRE : formatte le status
-            éditeur_ajourne_message_status(@E, "Attention ! Le fichier a été modifié, tenter plusieurs fois de quitter pour confirmer !")
+            éditeur_ajourne_message_status(*E, "Attention ! Le fichier a été modifié, tenter plusieurs fois de quitter pour confirmer !")
             tentative_fermeture -= 1
             retourne ActionÉditeur.Rien
         }
@@ -318,15 +318,15 @@ console_gère_clé_pressée :: fonc () -> ActionÉditeur
         }
         AncienRetour,
         Retour {
-            éditeur_supprime_caractère(@E)
+            éditeur_supprime_caractère(*E)
         }
         Supprime {
             console_déplace_curseur(CléConsole.FlècheDroite)
-            éditeur_supprime_caractère(@E)
+            éditeur_supprime_caractère(*E)
         }
         RetourChariot,
         NouvelleLigne {
-            éditeur_ajoute_nouvelle_ligne(@E)
+            éditeur_ajoute_nouvelle_ligne(*E)
         }
         RafraichisConsole,
         Échappement {
@@ -336,10 +336,10 @@ console_gère_clé_pressée :: fonc () -> ActionÉditeur
             éditeur_recherche()
         }
         Sauvegarde {
-            éditeur_sauvegarde_fichier(@E, rappel_prompt_sauvegarde_fichier)
+            éditeur_sauvegarde_fichier(*E, rappel_prompt_sauvegarde_fichier)
         }
         sinon {
-            éditeur_insère_caractère(@E, c comme z32 comme z8)
+            éditeur_insère_caractère(*E, c comme z32 comme z8)
         }
     }
 
@@ -498,23 +498,23 @@ console_dessine_barre_message :: fonc (enchaineuse: *Enchaineuse) -> rien
 
 console_rafraichis_écran :: fonc () -> rien
 {
-    éditeur_défile(@E)
+    éditeur_défile(*E)
 
     enchaineuse : Enchaineuse
-    initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse) }
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
-    ajoute_au_tampon(@enchaineuse, "\x1b[?25l\x1b[H")
+    ajoute_au_tampon(*enchaineuse, "\x1b[?25l\x1b[H")
 
-    console_dessine_lignes(@enchaineuse)
-    console_dessine_barre_status(@enchaineuse)
-    console_dessine_barre_message(@enchaineuse)
+    console_dessine_lignes(*enchaineuse)
+    console_dessine_barre_status(*enchaineuse)
+    console_dessine_barre_message(*enchaineuse)
 
-    imprime_dans_enchaineuse(@enchaineuse, "\x1b[%;%H", (E.cy - E.décalage_ligne) + 1, (E.rx - E.décalage_colonne) + 1)
+    imprime_dans_enchaineuse(*enchaineuse, "\x1b[%;%H", (E.cy - E.décalage_ligne) + 1, (E.rx - E.décalage_colonne) + 1)
 
-    ajoute_au_tampon(@enchaineuse, "\x1b[?25h")
+    ajoute_au_tampon(*enchaineuse, "\x1b[?25h")
 
-    _ := copie_enchaineuse_fichier(@enchaineuse, sortie_standarde())
+    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
 }
 
 principale :: fonc () -> z32
@@ -528,15 +528,15 @@ principale :: fonc () -> z32
     active_mode_cru()
     diffère { restaure_terminal() }
 
-    console_initialise_éditeur(@E)
+    console_initialise_éditeur(*E)
 
-    éditeur_ajourne_message_status(@E, "AIDE : CTRL-S pour sauvegarder | CTRL-Q pour quitter | CTRL-F pour rechercher")
+    éditeur_ajourne_message_status(*E, "AIDE : CTRL-S pour sauvegarder | CTRL-Q pour quitter | CTRL-F pour rechercher")
 
     si args.taille == 2 {
-        éditeur_ouvre(@E, copie_chaine(args[1]))
+        éditeur_ouvre(*E, copie_chaine(args[1]))
     }
 
-    diffère { éditeur_ferme(@E) }
+    diffère { éditeur_ferme(*E) }
 
     boucle {
         console_rafraichis_écran()

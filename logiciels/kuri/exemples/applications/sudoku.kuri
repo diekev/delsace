@@ -69,7 +69,7 @@ résous :: fonc (grille: *[9][9]z32) -> bool
     i : z32
     j : z32
 
-    saufsi cellules_vides_existent(grille, @i, @j) {
+    saufsi cellules_vides_existent(grille, *i, *j) {
         retourne vrai
     }
 
@@ -77,7 +77,7 @@ résous :: fonc (grille: *[9][9]z32) -> bool
         si est_nombre_valide(grille, i, j, n) {
             tmp[i][j] = n
 
-            si résous(@tmp) {
+            si résous(*tmp) {
                 retourne vrai
             }
 
@@ -104,7 +104,7 @@ principale :: fonc () -> z32
 
     dessine_grille(grille_sudoku)
 
-    saufsi résous(@grille_sudoku) {
+    saufsi résous(*grille_sudoku) {
         imprime("aucune solution !\n")
         retourne 1
     }

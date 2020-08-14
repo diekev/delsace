@@ -175,7 +175,7 @@ safe_open_no_create :: fonc(fn : *z8, flags : z32) -> z32
 	    f = open(fn, flags);
 	    open_errno = errno;
 
-	    r = lstat(fn, @lstat_buf);
+	    r = lstat(fn, *lstat_buf);
 
 
 	    // handle the case of the lstat failing first
@@ -236,7 +236,7 @@ safe_open_no_create :: fonc(fn : *z8, flags : z32) -> z32
 	    // do not have a symbolic link.
 
 	    // Get the properties of the opened file descriptor
-	    r = fstat(f, @fstat_buf);
+	    r = fstat(f, *fstat_buf);
 	    si (r == -1) {
 		    // fstat failed.  This should never happen if 'f' is a valid open file
 	        // descriptor.  Return the error from fstat.
@@ -493,7 +493,7 @@ safe_open_no_create_follow :: fonc(fn : *z8, flags : z32) -> z32
 	si (want_trunc) {
 		fstat_buf : stat;
 
-		r = fstat(f, @fstat_buf);
+		r = fstat(f, *fstat_buf);
 		si (r == -1) {
 			// fstat failed.  This should never happen if 'f' is a valid open
 		    // file descriptor.  Return the error from fstat.
@@ -603,7 +603,7 @@ safe_create_keep_if_exists_follow :: fonc(fn : *z8, flags : z32, mode : z32) -> 
 		        // dangling symbolic link we want to retourne _ENOENT and if not
 		        // we should retry.
 
-				r = lstat(fn, @lstat_buf);
+				r = lstat(fn, *lstat_buf);
 				si (r == -1) {
 					retourne -1;
 				}
@@ -740,7 +740,7 @@ principale :: fonc () -> z32
 	    exit(2);
     }
 
-    r = fstat(f, @curStat);
+    r = fstat(f, *curStat);
 
     si (r == -1)  {
 	    perror("stat");
@@ -801,7 +801,7 @@ principale :: fonc () -> z32
 	}
     }
 
-    r = fstat(f, @curStat);
+    r = fstat(f, *curStat);
 
     si (r == -1)  {
 	perror("stat");
@@ -846,7 +846,7 @@ principale :: fonc () -> z32
 	exit(30);
     }
 
-    r = fstat(f, @curStat);
+    r = fstat(f, *curStat);
 
     si (r == -1)  {
 	perror("stat");
@@ -890,7 +890,7 @@ principale :: fonc () -> z32
 	exit(40);
     }
 
-    r = fstat(f, @curStat);
+    r = fstat(f, *curStat);
 
     si (r == -1)  {
 	perror("stat");
@@ -940,7 +940,7 @@ principale :: fonc () -> z32
 	exit(61);
     }
 
-    r = fstat(f, @curStat);
+    r = fstat(f, *curStat);
 
     si (r == -1)  {
 	perror("stat");
@@ -980,7 +980,7 @@ principale :: fonc () -> z32
 	exit(71);
     }
 
-    r = fstat(f, @curStat);
+    r = fstat(f, *curStat);
 
     si (r == -1)  {
 	perror("stat");

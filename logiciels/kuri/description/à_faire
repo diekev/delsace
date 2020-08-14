@@ -435,11 +435,6 @@ Idées
 
 	comment pour a && c
 
-
-déréférencement *
-prend adresse &a
-pointeur *z32
-
 lit + var
 var + lit
 lit + lit

@@ -282,7 +282,7 @@ chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
         double_points = ':'
     }
 
-    ptr_tampon := @tampon[0]
+    ptr_tampon := *tampon[0]
 
     si tampon[0] == '\0' {
         taille_tampon -= 1
@@ -350,7 +350,7 @@ chaine_depuis_ipv4 :: fonc (ipv4: AdresseIPv4) -> chaine
     }
 
     résultat := loge chaine(taille_tampon)
-    copie_mem_nonsur(src = @tampon[0], dst = résultat.pointeur, taille = taille_tampon)
+    copie_mem_nonsur(src = *tampon[0], dst = résultat.pointeur, taille = taille_tampon)
     retourne résultat
 }
 

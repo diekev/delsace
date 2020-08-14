@@ -37,8 +37,8 @@ remplis_image :: fonc (image : *Image, couleur: Couleur) -> rien
     xi := x comme z32
     yi := y comme z32
 
-    restreint(@xi, 0 comme z32, image.largeur - 1)
-    restreint(@yi, 0 comme z32, image.hauteur - 1)
+    restreint(*xi, 0 comme z32, image.largeur - 1)
+    restreint(*yi, 0 comme z32, image.hauteur - 1)
 
     index := xi + yi * image.largeur
 

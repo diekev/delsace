@@ -23,12 +23,12 @@ lis_entrée :: fonc () -> chaine
     pousse_contexte nouveau_contexte {
         c : z8
 
-        tantque read(0, @c, 1) != 0 {
+        tantque read(0, *c, 1) != 0 {
             si c == '\n' {
                 arrête
             }
 
-           chaine_ajoute(@chn, c)
+           chaine_ajoute(*chn, c)
         }
     }
 
@@ -60,43 +60,43 @@ mot_est_dans_la_famille :: fonc (mot: chaine) -> bool
 génère_réponse_pour_toujours :: fonc (mots: []chaine, idx: z64) -> chaine
 {
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-	diffère { détruit_tampons(@enchaineuse); }
+	initialise_enchaineuse(*enchaineuse)
+	diffère { détruit_tampons(*enchaineuse); }
 
-    ajoute_au_tampon(@enchaineuse, "Pourquoi êtes-vous toujours ")
+    ajoute_au_tampon(*enchaineuse, "Pourquoi êtes-vous toujours ")
 
     pour i dans idx + 1 ... mots.taille - 1 {
-        ajoute_au_tampon(@enchaineuse, mots[i])
+        ajoute_au_tampon(*enchaineuse, mots[i])
 
         si i < mots.taille {
-            ajoute_au_tampon(@enchaineuse, ' ')
+            ajoute_au_tampon(*enchaineuse, ' ')
         }
     }
 
-    ajoute_au_tampon(@enchaineuse, "?")
+    ajoute_au_tampon(*enchaineuse, "?")
 
-    retourne chaine_depuis_enchaineuse(@enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 génère_réponse_pour_peur :: fonc (mots: []chaine, idx: z64) -> chaine
 {
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-	diffère { détruit_tampons(@enchaineuse); }
+	initialise_enchaineuse(*enchaineuse)
+	diffère { détruit_tampons(*enchaineuse); }
 
-    ajoute_au_tampon(@enchaineuse, "Pourquoi avez-vous peur ")
+    ajoute_au_tampon(*enchaineuse, "Pourquoi avez-vous peur ")
 
     pour i dans idx + 1 ... mots.taille - 1 {
-        ajoute_au_tampon(@enchaineuse, mots[i])
+        ajoute_au_tampon(*enchaineuse, mots[i])
 
         si i < mots.taille {
-            ajoute_au_tampon(@enchaineuse, ' ')
+            ajoute_au_tampon(*enchaineuse, ' ')
         }
     }
 
-    ajoute_au_tampon(@enchaineuse, "?")
+    ajoute_au_tampon(*enchaineuse, "?")
 
-    retourne chaine_depuis_enchaineuse(@enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 génère_réponse_pour_message :: fonc (message: chaine) -> chaine

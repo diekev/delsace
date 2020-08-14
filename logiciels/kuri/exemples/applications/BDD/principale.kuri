@@ -39,7 +39,7 @@ principale :: fonc () -> z32
         }
 
         si entrée == ".tables\n" {
-            résultat := sélectionne_tables(@cm)
+            résultat := sélectionne_tables(*cm)
 
             imprime_table(résultat)
             ferme_base_de_données(résultat)
@@ -53,12 +53,12 @@ principale :: fonc () -> z32
             pour inst dans asa.instructions {
                 discr inst.genre {
                     CRÉE {
-                        crée_table(@cm, inst comme *InstructionCréationTable)
+                        crée_table(*cm, inst comme *InstructionCréationTable)
                     }
                     SÉLECTIONNE {
                         inst_sélection := inst comme *InstructionSélection
 
-                        résultat := tente sélectionne(@cm, inst_sélection) piège err {
+                        résultat := tente sélectionne(*cm, inst_sélection) piège err {
                             discr err {
                                 ColonneInexistante {
                                     // À FAIRE : une bonne d'extraire les erreurs (ajouter des messages d'erreurs aux instructions ?)
@@ -86,7 +86,7 @@ principale :: fonc () -> z32
                     INSÈRE {
                         inst_insertion := inst comme *InstructionInsère
 
-                        tente insère(@cm, inst_insertion) piège err {
+                        tente insère(*cm, inst_insertion) piège err {
                             discr err {
                                 CapacitéExcédée {
                                     imprime("Erreur: table pleine.\n")
@@ -117,11 +117,11 @@ principale :: fonc () -> z32
                 imprime("Exécution réussie.\n")
             }
 
-            détruit_asa(@asa)
+            détruit_asa(*asa)
         }
     }
 
-    détruit_coulisse(@cm)
+    détruit_coulisse(*cm)
 
     retourne 0
 }

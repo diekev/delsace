@@ -89,7 +89,7 @@ principale :: fonc () -> z32
     e : _XEvent
 
     boucle {
-        XNextEvent(d, @e)
+        XNextEvent(d, *e)
 
         si e.type == _Expose {
             XFillRectangle(d, w, DefaultGC(d, s), 20, 20, 10, 10);

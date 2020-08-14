@@ -89,7 +89,7 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, données: eini)
        données_symbole.points_de_code[1] = 0
     }
 
-    tableau_ajoute(@table.symboles, données_symbole)
+    tableau_ajoute(*table.symboles, données_symbole)
 }
 
 principale :: fonc () -> z32
@@ -100,51 +100,51 @@ principale :: fonc () -> z32
     diffère { déloge contenu }
 
     données: TableSymboles
-    ptr_données := @données
+    ptr_données := *données
 
     pour_chaque_ligne(contenu, ptr_données, rappel_pour_chaque_ligne)
 
     imprime("nombre de symboles : %\n", données.symboles.taille)
 
     enchaineuse : Enchaineuse
-    initialise_enchaineuse(@enchaineuse)
+    initialise_enchaineuse(*enchaineuse)
 
-    ajoute_au_tampon(@enchaineuse, "symboles_entités : []chaine = ")
+    ajoute_au_tampon(*enchaineuse, "symboles_entités : []chaine = ")
 
     virgule := "["
 
     pour données.symboles {
-        ajoute_au_tampon(@enchaineuse, virgule)
-        ajoute_au_tampon(@enchaineuse, "\"")
-        ajoute_au_tampon(@enchaineuse, it.symbole)
-        ajoute_au_tampon(@enchaineuse, "\"")
+        ajoute_au_tampon(*enchaineuse, virgule)
+        ajoute_au_tampon(*enchaineuse, "\"")
+        ajoute_au_tampon(*enchaineuse, it.symbole)
+        ajoute_au_tampon(*enchaineuse, "\"")
         virgule = ","
     }
 
-    ajoute_au_tampon(@enchaineuse, "]\n\n")
+    ajoute_au_tampon(*enchaineuse, "]\n\n")
 
     // À FAIRE : ceci devrait être un tableau de n32, mais notre code pour définir le type des entiers constants utilise z32 par défaut
-    ajoute_au_tampon(@enchaineuse, "points_de_code_entités : [][2]z32 = ")
+    ajoute_au_tampon(*enchaineuse, "points_de_code_entités : [][2]z32 = ")
 
     virgule = "[ "
 
     pour données.symboles {
-        ajoute_au_tampon(@enchaineuse, virgule)
-        ajoute_au_tampon(@enchaineuse, "[0x")
-        ajoute_au_tampon(@enchaineuse, FormatEntier(valeur = it.points_de_code[0], base = 16))
-        ajoute_au_tampon(@enchaineuse, ",0x")
-        ajoute_au_tampon(@enchaineuse, FormatEntier(valeur = it.points_de_code[1], base = 16))
-        ajoute_au_tampon(@enchaineuse, "]")
+        ajoute_au_tampon(*enchaineuse, virgule)
+        ajoute_au_tampon(*enchaineuse, "[0x")
+        ajoute_au_tampon(*enchaineuse, FormatEntier(valeur = it.points_de_code[0], base = 16))
+        ajoute_au_tampon(*enchaineuse, ",0x")
+        ajoute_au_tampon(*enchaineuse, FormatEntier(valeur = it.points_de_code[1], base = 16))
+        ajoute_au_tampon(*enchaineuse, "]")
         virgule = ","
     }
 
-    ajoute_au_tampon(@enchaineuse, "]\n")
+    ajoute_au_tampon(*enchaineuse, "]\n")
 
     fichier_sortie := tente ouvre_fichier_crée_si_non_existant("entités.kuri") piège nonatteignable
-    x := copie_enchaineuse_fichier(@enchaineuse, @fichier_sortie)
+    x := copie_enchaineuse_fichier(*enchaineuse, *fichier_sortie)
 
-    _ := tente ferme(@fichier_sortie) piège nonatteignable
-    détruit_tampons(@enchaineuse)
+    _ := tente ferme(*fichier_sortie) piège nonatteignable
+    détruit_tampons(*enchaineuse)
     déloge données.symboles
 
     retourne 0

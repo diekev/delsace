@@ -42,7 +42,7 @@ crée_tampon_texture :: fonc () -> *TamponTexture
 
     // ------------------
 
-    glGenTextures(1, @tampon_texture.code_texture)
+    glGenTextures(1, *tampon_texture.code_texture)
 
     glUseProgram(tampon_texture.programme)
 
@@ -54,9 +54,9 @@ crée_tampon_texture :: fonc () -> *TamponTexture
 
     // ------------------
 
-    glGenVertexArrays(1, @tampon_texture.id_tableau_vertex)
-    glGenBuffers(1, @tampon_texture.id_tampon_index)
-    glGenBuffers(1, @tampon_texture.id_tampon_vertex)
+    glGenVertexArrays(1, *tampon_texture.id_tableau_vertex)
+    glGenBuffers(1, *tampon_texture.id_tampon_index)
+    glGenBuffers(1, *tampon_texture.id_tampon_vertex)
 
     // création du tableau de sommets
     glBindVertexArray(tampon_texture.id_tableau_vertex)
@@ -64,12 +64,12 @@ crée_tampon_texture :: fonc () -> *TamponTexture
     sommets := [ 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 ]
 
 	glBindBuffer(OGL.ARRAY_BUFFER, tampon_texture.id_tampon_vertex);
-	glBufferData(OGL.ARRAY_BUFFER, sommets.taille comme n64 * taille_de(r32), @sommets[0], OGL.STATIC_DRAW);
+	glBufferData(OGL.ARRAY_BUFFER, sommets.taille comme n64 * taille_de(r32), *sommets[0], OGL.STATIC_DRAW);
 
     index := [ 0, 1, 2, 0, 2, 3 ];
 
 	glBindBuffer(OGL.ELEMENT_ARRAY_BUFFER, tampon_texture.id_tampon_index);
-	glBufferData(OGL.ELEMENT_ARRAY_BUFFER, index.taille comme n64 * taille_de(z32), @index[0], OGL.STATIC_DRAW);
+	glBufferData(OGL.ELEMENT_ARRAY_BUFFER, index.taille comme n64 * taille_de(z32), *index[0], OGL.STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, OGL.FLOAT, OGL.FALSE, 0, nul);
@@ -98,9 +98,9 @@ dessine_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
 
 détruit_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
 {
-    glDeleteVertexArrays(1, @tampon_texture.id_tableau_vertex)
-    glDeleteBuffers(1, @tampon_texture.id_tampon_vertex)
-    glDeleteBuffers(1, @tampon_texture.id_tampon_index)
+    glDeleteVertexArrays(1, *tampon_texture.id_tableau_vertex)
+    glDeleteBuffers(1, *tampon_texture.id_tampon_vertex)
+    glDeleteBuffers(1, *tampon_texture.id_tampon_index)
     glDeleteProgram(tampon_texture.programme)
 
     déloge tampon_texture
@@ -113,8 +113,8 @@ génère_texture :: fonc (
     hauteur: z32) -> rien
 {
     si glIsTexture(tampon_texture.code_texture) {
-		glDeleteTextures(1, @tampon_texture.code_texture);
-        glGenTextures(1, @tampon_texture.code_texture);
+		glDeleteTextures(1, *tampon_texture.code_texture);
+        glGenTextures(1, *tampon_texture.code_texture);
 	}
 
 	glActiveTexture(_GL_TEXTURE0);

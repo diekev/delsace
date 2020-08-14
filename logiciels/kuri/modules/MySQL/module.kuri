@@ -13,7 +13,7 @@ ConnexionMySQL :: struct {
 
 ferme_connexion :: fonc (connexion: *ConnexionMySQL) -> rien
 {
-	mysql_close(@connexion.mysql)
+	mysql_close(*connexion.mysql)
 }
 
 ErreurConnexionMySQL :: erreur {
@@ -29,7 +29,7 @@ RésultatConnexionMySQL :: union {
 connecte :: fonc (config: ConfigurationMySQL) -> RésultatConnexionMySQL
 {
 	mysql : MYSQL
-	handler := mysql_init(@mysql)
+	handler := mysql_init(*mysql)
 
     // handler ne peut être nul que si le paramètre passé à mysql_init est nul, auquel cas une allocation aura lieu
     si handler == nul {
@@ -47,10 +47,10 @@ connecte :: fonc (config: ConfigurationMySQL) -> RésultatConnexionMySQL
 */
 
 	// @note : l'hôte doit être une adresse IP
-	c := mysql_real_connect(@mysql, config.hôte.pointeur, config.utilisateur.pointeur, config.mot_de_passe.pointeur, config.base_de_données.pointeur, 0, nul, 0);
+	c := mysql_real_connect(*mysql, config.hôte.pointeur, config.utilisateur.pointeur, config.mot_de_passe.pointeur, config.base_de_données.pointeur, 0, nul, 0);
 
 	si (c == nul) {
-		e := mysql_error(@mysql)
+		e := mysql_error(*mysql)
 		chn := converti_chaine_c(e)
 		imprime("[MYSQL] : %\n", chn);
 		retourne ErreurConnexionMySQL.MauvaiseConnexion
@@ -80,18 +80,18 @@ détruit_curseur :: fonc (curseur : *CurseurRésultat) -> rien
 
 exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> CurseurRésultat
 {
-	succès := mysql_query(@connexion.mysql, chaine_requête.pointeur)
+	succès := mysql_query(*connexion.mysql, chaine_requête.pointeur)
 
 	si succès != 0 {
-		e := mysql_error(@connexion.mysql)
+		e := mysql_error(*connexion.mysql)
 		chn := converti_chaine_c(e)
 		imprime("Une erreur est survenue lors de la requête : % !\n", chn)
 	}
 
-	résultat := mysql_store_result(@connexion.mysql)
+	résultat := mysql_store_result(*connexion.mysql)
 
 	si résultat == nul {
-		e := mysql_error(@connexion.mysql)
+		e := mysql_error(*connexion.mysql)
 
 		si e != nul {
 			chn := converti_chaine_c(e)

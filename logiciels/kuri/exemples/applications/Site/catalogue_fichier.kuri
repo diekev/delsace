@@ -6,7 +6,7 @@ trouve_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine) -> *Fic
 {
     pour fichier dans catalogue.fichiers {
         si fichier.nom_court == nom_court {
-            retourne @fichier
+            retourne *fichier
         }
     }
 
@@ -25,7 +25,7 @@ ajoute_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine, chemin:
     nouveau_fichier.nom_court = nom_court
     nouveau_fichier.chemin = chemin
 
-    tableau_ajoute(@catalogue.fichiers, nouveau_fichier)
+    tableau_ajoute(*catalogue.fichiers, nouveau_fichier)
 }
 
 détruit_catalogue :: fonc (catalogue: *CatalogueFichier) -> rien

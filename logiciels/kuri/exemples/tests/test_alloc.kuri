@@ -34,7 +34,7 @@ test_alloc_tableau :: fonc() -> rien
     imprime("tableau logé : %\n", tabl.pointeur)
 
     imprime("taille tableau : %\n", tabl.taille)
-    tableau_ajoute(@tabl, 5)
+    tableau_ajoute(*tabl, 5)
     imprime("taille tableau : %\n", tabl.taille)
 
     reloge tabl : [1024]z32

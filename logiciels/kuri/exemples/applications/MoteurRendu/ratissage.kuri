@@ -96,8 +96,8 @@ remplis_triangle_bas_plat :: fonc(
     y1 := (v1.y * hd) comme z32;
     y2 := (v2.y * hd) comme z32;
 
-    restreint(@y1, 0, image.hauteur - 1);
-    restreint(@y2, 0, image.hauteur - 1);
+    restreint(*y1, 0, image.hauteur - 1);
+    restreint(*y2, 0, image.hauteur - 1);
 
     scanlineY := y1;
 
@@ -105,8 +105,8 @@ remplis_triangle_bas_plat :: fonc(
         x1i := (cur_x1 * ld) comme z32;
         x2i := (cur_x2 * ld) comme z32;
 
-        restreint(@x1i, 0, image.largeur - 1);
-        restreint(@x2i, 0, image.largeur - 1);
+        restreint(*x1i, 0, image.largeur - 1);
+        restreint(*x2i, 0, image.largeur - 1);
 
         dessine_ligne(image, x1i, scanlineY, x2i, scanlineY, couleur);
 
@@ -142,8 +142,8 @@ remplis_triangle_haut_plat :: fonc(
     y1 := (v1.y * hd) comme z32;
     y3 := (v3.y * hd) comme z32;
 
-    restreint(@y1, 0, image.hauteur - 1);
-    restreint(@y3, 0, image.hauteur - 1);
+    restreint(*y1, 0, image.hauteur - 1);
+    restreint(*y3, 0, image.hauteur - 1);
 
     scanlineY := y3;
 
@@ -151,8 +151,8 @@ remplis_triangle_haut_plat :: fonc(
         x1i := (cur_x1 * ld) comme z32;
         x2i := (cur_x2 * ld) comme z32;
 
-        restreint(@x1i, 0, image.largeur - 1);
-        restreint(@x2i, 0, image.largeur - 1);
+        restreint(*x1i, 0, image.largeur - 1);
+        restreint(*x2i, 0, image.largeur - 1);
 
         dessine_ligne(image, x1i, scanlineY, x2i, scanlineY, couleur);
 
@@ -164,8 +164,8 @@ remplis_triangle_haut_plat :: fonc(
 
 échange :: fonc(v1 : &Vec2r, v2 : &Vec2r) -> rien
 {
-    échange(@v1.x, @v2.x);
-    échange(@v1.y, @v2.y);
+    échange(*v1.x, *v2.x);
+    échange(*v1.y, *v2.y);
 }
 
 // Pour dessiner par ratissage un triangle quelconque, nous le divisons au besoin

@@ -4,5 +4,5 @@
 foo :: fonc () -> *z32
 {
     a := 0
-    retourne @a
+    retourne *a
 }

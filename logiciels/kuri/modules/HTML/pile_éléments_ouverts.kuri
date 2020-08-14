@@ -15,7 +15,7 @@ noeud_précédent :: fonc (pile: *PileÉlémentsOuverts) -> *Élément
 
 empile :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément)
 {
-    tableau_ajoute(@pile.éléments, élément)
+    tableau_ajoute(*pile.éléments, élément)
 }
 
 dépile :: fonc (pile: *PileÉlémentsOuverts)
@@ -108,7 +108,7 @@ supprime_élément :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément)
         }
     }
 
-    tableau_supprime_index(@pile.éléments, index)
+    tableau_supprime_index(*pile.éléments, index)
 }
 
 élément_précédent :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) -> *Élément

@@ -16,7 +16,7 @@ obtiens_stmode :: fonc(chemin : &CheminFichier) -> n32
 	ptr_chemin := chaine_c_temp(chemin.chn)
 
 	st : struct_stat
-	ok := stat(ptr_chemin, @st)
+	ok := stat(ptr_chemin, *st)
 
 	si ok == -1 {
 		retourne 0xffffffff
@@ -152,7 +152,7 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 
     boucle {
 	    // À FAIRE : prend pointeur automatiquement
-		lu := read(fd, @tampon[0], 1024)
+		lu := read(fd, *tampon[0], 1024)
 
 		si lu == 0 {
 			arrête
@@ -169,8 +169,8 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 		reloge contenu : [taille_courante + lu]octet
         contenu.taille += lu
 
-		src := @tampon[0]
-		dst := @contenu[taille_courante]
+		src := *tampon[0]
+		dst := *contenu[taille_courante]
 
 		copie_mem_nonsur(src=src, dst=dst, taille=lu)
 	}
@@ -205,8 +205,8 @@ ouvre_dossier :: fonc(chemin : &CheminFichier) -> *DIR
 
 chemin_pour_dirname :: fonc(dir : *dirent) -> CheminFichier
 {
-    taille := taille_chaine_c(@dir.d_name[0])
-    chn := construit_chaine(@dir.d_name[0], taille)
+    taille := taille_chaine_c(*dir.d_name[0])
+    chn := construit_chaine(*dir.d_name[0], taille)
 
     retourne construit_chemin(chn)
 }

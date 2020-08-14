@@ -33,12 +33,12 @@ tri_sélection :: fonc (triangles: []Triangle) -> rien
         index_min : z64 = i
 
         pour j dans i + 1 comme z64 ... triangles.taille - 1 {
-            si condition_triangle(@triangles[j], @triangles[index_min]) {
+            si condition_triangle(*triangles[j], *triangles[index_min]) {
                 index_min = j
             }
         }
 
-        échange(@triangles[i], @triangles[index_min])
+        échange(*triangles[i], *triangles[index_min])
     }
 }
 

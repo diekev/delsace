@@ -1,17 +1,17 @@
 
 partition :: fonc(tableau : []z32, premier : z32, dernier : z32, pivot : z32) -> z32
 {
-	échange(@tableau[premier], @tableau[dernier]);
+	échange(*tableau[premier], *tableau[dernier]);
 
 	variable j := premier;
 
 	pour i dans premier...dernier - 1 {
 		si tableau[i] <= tableau[dernier] {
-			échange(@tableau[i], @tableau[j]);
+			échange(*tableau[i], *tableau[j]);
 		}
 	}
 
-	échange(@tableau[dernier], @tableau[j]);
+	échange(*tableau[dernier], *tableau[j]);
 
 	retourne j;
 }
@@ -83,14 +83,14 @@ principale :: fonc(compte : z32, arguments : **z8) -> z32
 	gna_simple := construit_gna(5);
 
 	pour i dans 0...1023 {
-		tableau[i] = nombre_aléatoire(@gna_simple);
+		tableau[i] = nombre_aléatoire(*gna_simple);
 	}
 
 	plage : Plage;
-	plage.premier = @tableau[0];
-	plage.dernier = @tableau[1023];
+	plage.premier = *tableau[0];
+	plage.dernier = *tableau[1023];
 
-	tri_rapide(@plage);
+	tri_rapide(*plage);
 
 	retourne 0;
 }

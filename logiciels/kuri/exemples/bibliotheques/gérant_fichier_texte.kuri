@@ -41,7 +41,7 @@ commence_ficiher :: fonc (gérant: *Gérant_Fichier_Texte, nom_court: chaine, ch
     }
 
     si gérant.gère_numéro_version {
-        ligne, trouvée := consomme_ligne_suivante(@gérant.données)
+        ligne, trouvée := consomme_ligne_suivante(*gérant.données)
         gérant.numéro_ligne += 1
 
         // ....
@@ -59,7 +59,7 @@ commence_ficiher :: fonc (gérant: *Gérant_Fichier_Texte, nom_court: chaine, ch
 consomme_ligne_suivante :: fonc (gérant: *Gérant_Fichier_Texte) -> chaine, bool
 {
     boucle {
-        ligne, trouvée := consomme_ligne_suivante(@gérant.données)
+        ligne, trouvée := consomme_ligne_suivante(*gérant.données)
 
         si !trouvée {
             retourne "", faux

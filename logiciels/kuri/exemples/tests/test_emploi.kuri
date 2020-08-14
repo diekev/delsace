@@ -26,7 +26,7 @@ principale :: fonc () -> z32
 
     imprime("%\n", v)
 
-    modifie_vecteur(@v)
+    modifie_vecteur(*v)
 
     imprime("%\n", v)
 

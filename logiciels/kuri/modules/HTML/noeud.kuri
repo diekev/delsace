@@ -48,19 +48,19 @@ est_commentaire :: fonc (noeud: *Noeud) -> bool
 ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
 {
     enfant.parent = parent
-    tableau_ajoute(@parent.enfants, enfant)
+    tableau_ajoute(*parent.enfants, enfant)
 }
 
 ajoute_enfant_dernier :: fonc (parent: *Noeud, enfant: *Noeud)
 {
     enfant.parent = parent
-    tableau_ajoute(@parent.enfants, enfant)
+    tableau_ajoute(*parent.enfants, enfant)
 }
 
 ajoute_attribut :: fonc (noeud: *Noeud, nom: chaine, valeur: chaine)
 {
     attribut := Attribut(nom = copie_chaine(nom), valeur = copie_chaine(valeur))
-    tableau_ajoute(@noeud.attributs, attribut)
+    tableau_ajoute(*noeud.attributs, attribut)
 }
 
 possède_attribut :: fonc (noeud: *Noeud, nom: chaine) -> bool
@@ -81,7 +81,7 @@ cherche_attribut :: fonc (noeud: *Noeud, nom: chaine) -> *Attribut
             continue
         }
 
-        retourne @noeud.attributs[index_it]
+        retourne *noeud.attributs[index_it]
     }
 
     retourne nul

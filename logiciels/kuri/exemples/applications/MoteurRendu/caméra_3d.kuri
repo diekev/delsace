@@ -20,7 +20,7 @@ projette_dans_monde :: fonc (caméra: *Caméra3D, pos: *Vec3r) -> Vec3r
     proj := caméra.projection
     model := caméra.monde_vers_caméra
     PM := multiplie(proj, model)
-    inverse := inverse(@PM)
+    inverse := inverse(*PM)
 
     tmp := crée_vec4r(pos.x, pos.y, pos.z, 1.0)
     tmp.x = tmp.x * 2.0 - 1.0
@@ -39,10 +39,10 @@ projette_dans_monde :: fonc (caméra: *Caméra3D, pos: *Vec3r) -> Vec3r
 direction_via_pixel :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> Vec3r
 {
     pos := crée_vec3r(pos_pixel.x, pos_pixel.y, 0.0)
-    début := projette_dans_monde(caméra, @pos)
+    début := projette_dans_monde(caméra, *pos)
 
     pos.z = 1.0
-    fin := projette_dans_monde(caméra, @pos)
+    fin := projette_dans_monde(caméra, *pos)
 
     retourne soustrait(fin, début)
 }
@@ -51,7 +51,7 @@ direction_via_pixel :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> Vec3r
 direction_via_pixel_rapide :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> Vec3r
 {
     PM := multiplie(caméra.projection, caméra.monde_vers_caméra)
-    inverse := inverse(@PM)
+    inverse := inverse(*PM)
 
     début : Vec3r
     fin : Vec3r
@@ -144,9 +144,9 @@ qprincipale :: fonc () -> z32
     cible := crée_vec3r(0.0, 0.0, 0.0)
     haut := crée_vec3r(0.0, 1.0, 0.0)
 
-    monde_vers_caméra := matrice_de_visé(@pos_caméra, @cible, @haut)
+    monde_vers_caméra := matrice_de_visé(*pos_caméra, *cible, *haut)
 
-    caméra_vers_monde := inverse_matrice_sans_échelle(@monde_vers_caméra)
+    caméra_vers_monde := inverse_matrice_sans_échelle(*monde_vers_caméra)
 
     caméra : Caméra3D
 
@@ -160,26 +160,26 @@ qprincipale :: fonc () -> z32
     imprime_matrice(caméra.projection)
     imprime("\n")
 
-    caméra.monde_vers_caméra = inverse_matrice_sans_échelle(@cvm)
+    caméra.monde_vers_caméra = inverse_matrice_sans_échelle(*cvm)
 
     imprime("monde_vers_caméra :\n")
     imprime_matrice(caméra.monde_vers_caméra)
     imprime("\n")
 
     pos := crée_vec3r(-1.0, 1.0, 0.0)
-    pos_monde := projette_dans_monde(@caméra, @pos)
+    pos_monde := projette_dans_monde(*caméra, *pos)
     imprime("obtenu  : %\n", pos_monde)
 
     pos.z = 1.0
-    pos_monde = projette_dans_monde(@caméra, @pos)
+    pos_monde = projette_dans_monde(*caméra, *pos)
     imprime("obtenu  : %\n", pos_monde)
 
     pos_pixel := Vec2r( x = 0.5, y = 0.5 )
-    dir := direction_via_pixel(@caméra, @pos_pixel)
+    dir := direction_via_pixel(*caméra, *pos_pixel)
 
     imprime("direction : %\n", dir)
 
-    dir2 := direction_via_pixel_rapide(@caméra, @pos_pixel)
+    dir2 := direction_via_pixel_rapide(*caméra, *pos_pixel)
 
     imprime("direction : %\n", dir2)
 

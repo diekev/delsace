@@ -17,7 +17,7 @@ remplis_tableau :: fonc (tabl: *[3]z32)
 principale :: fonc () -> z32
 {
     tabl : [3]z32
-    remplis_tableau(@tabl)
+    remplis_tableau(*tabl)
 
     imprime("tabl : %\n", tabl)
 

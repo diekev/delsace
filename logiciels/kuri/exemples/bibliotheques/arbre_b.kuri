@@ -150,7 +150,7 @@ divise_enfant :: fonc(
 {
     // construit un noeud qui stockera t - 1 clés de y
     z := construit_noeud(y.t, y.est_feuille)
-    tableau_ajoute(@arbre.noeuds, z)
+    tableau_ajoute(*arbre.noeuds, z)
     z.n = noeud.t - 1
 
     pour j dans 0 ... noeud.t - 2 {
@@ -448,7 +448,7 @@ insère :: fonc(arbre: *ArbreB, k: z32) -> rien
 {
     si arbre.racine == nul {
         arbre.racine = construit_noeud(arbre.t, vrai)
-        tableau_ajoute(@arbre.noeuds, arbre.racine)
+        tableau_ajoute(*arbre.noeuds, arbre.racine)
         arbre.racine.clés[0] = k
         arbre.racine.n = 1
 
@@ -458,7 +458,7 @@ insère :: fonc(arbre: *ArbreB, k: z32) -> rien
     // si la racine est pleine, croît l'arbre
     si arbre.racine.n == (2 * arbre.t - 1) {
         s := construit_noeud(arbre.t, faux)
-        tableau_ajoute(@arbre.noeuds, s)
+        tableau_ajoute(*arbre.noeuds, s)
 
         s.enfants[0] = arbre.racine
 
@@ -764,48 +764,48 @@ principale :: fonc () -> z32
     imprime("Test arbre B :\n")
 
     arbre := construit_arbre(3)
-    diffère { détruit_arbre(@arbre) }
+    diffère { détruit_arbre(*arbre) }
 
-    insère(@arbre, 1)
-    insère(@arbre, 3)
-    insère(@arbre, 7)
-    insère(@arbre, 10)
-    insère(@arbre, 11)
-    insère(@arbre, 13)
-    insère(@arbre, 14)
-    insère(@arbre, 15)
-    insère(@arbre, 18)
-    insère(@arbre, 16)
-    insère(@arbre, 19)
-    insère(@arbre, 24)
-    insère(@arbre, 25)
-    insère(@arbre, 26)
-    insère(@arbre, 21)
-    insère(@arbre, 4)
-    insère(@arbre, 5)
-    insère(@arbre, 20)
-    insère(@arbre, 22)
-    insère(@arbre, 2)
-    insère(@arbre, 17)
-    insère(@arbre, 12)
-    insère(@arbre, 6)
+    insère(*arbre, 1)
+    insère(*arbre, 3)
+    insère(*arbre, 7)
+    insère(*arbre, 10)
+    insère(*arbre, 11)
+    insère(*arbre, 13)
+    insère(*arbre, 14)
+    insère(*arbre, 15)
+    insère(*arbre, 18)
+    insère(*arbre, 16)
+    insère(*arbre, 19)
+    insère(*arbre, 24)
+    insère(*arbre, 25)
+    insère(*arbre, 26)
+    insère(*arbre, 21)
+    insère(*arbre, 4)
+    insère(*arbre, 5)
+    insère(*arbre, 20)
+    insère(*arbre, 22)
+    insère(*arbre, 2)
+    insère(*arbre, 17)
+    insère(*arbre, 12)
+    insère(*arbre, 6)
 
     imprime("Traverse de l'arbre :\n")
-    traverse(@arbre)
+    traverse(*arbre)
     imprime("\n")
 
     imprime("Recherche dans l'arbre :\n")
-    cherche_clé(@arbre, 8)
-    cherche_clé(@arbre, 15)
+    cherche_clé(*arbre, 8)
+    cherche_clé(*arbre, 15)
     imprime("\n")
 
     imprime("Suppression de valeurs :\n")
-    supprime_et_traverse(@arbre, 6)
-    supprime_et_traverse(@arbre, 13)
-    supprime_et_traverse(@arbre, 7)
-    supprime_et_traverse(@arbre, 4)
-    supprime_et_traverse(@arbre, 2)
-    supprime_et_traverse(@arbre, 16)
+    supprime_et_traverse(*arbre, 6)
+    supprime_et_traverse(*arbre, 13)
+    supprime_et_traverse(*arbre, 7)
+    supprime_et_traverse(*arbre, 4)
+    supprime_et_traverse(*arbre, 2)
+    supprime_et_traverse(*arbre, 16)
 
     imprime("\n")
 

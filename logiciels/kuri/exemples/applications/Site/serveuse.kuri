@@ -26,7 +26,7 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     }
 
     enable := 1
-    si setsockopt(serveuse.prise, SOL_SOCKET, SO_REUSEADDR, @enable, taille_de(z32)) < 0 {
+    si setsockopt(serveuse.prise, SOL_SOCKET, SO_REUSEADDR, *enable, taille_de(z32)) < 0 {
         // @erreur
         _ := close(serveuse.prise)
         retourne "setsockopt(SO_REUSEADDR) failed"
@@ -46,7 +46,7 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     adresse_du_connecté.sin_zero[6] = 0
     adresse_du_connecté.sin_zero[7] = 0
 
-	err := bind(serveuse.prise, @adresse_du_connecté comme *sockaddr, taille_de(sockaddr) comme n64)
+	err := bind(serveuse.prise, *adresse_du_connecté comme *sockaddr, taille_de(sockaddr) comme n64)
 
 	si err == -1 {
 		retourne "erreur lors de la liaison"
@@ -70,9 +70,9 @@ détruit_serveuse :: fonc (serveuse: *Serveuse) -> rien
 
     déloge serveuse.routes
 
-    détruit_catalogue(@serveuse.fichiers_statiques)
+    détruit_catalogue(*serveuse.fichiers_statiques)
 
-    détruit_rendeuse(@serveuse.rendeuse_gabarit)
+    détruit_rendeuse(*serveuse.rendeuse_gabarit)
 }
 
 ajoute_route :: fonc (
@@ -86,5 +86,5 @@ ajoute_route :: fonc (
     route.méthode_get = méthode_get comme fonc(*rien, *rien)(RéponseRequête)
     route.méthode_post = méthode_post comme fonc(*rien, *rien)(RéponseRequête)
 
-    tableau_ajoute(@serveuse.routes, route)
+    tableau_ajoute(*serveuse.routes, route)
 }

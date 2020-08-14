@@ -49,8 +49,8 @@ défile :: fonc(q : *FileÉvènement) -> Évènement #nulctx
     // réajuste la file en décalant les données
 
     si q.taille > 1 {
-	    ptr_dst := @q.tampon[0]
-		ptr_src := @q.tampon[1]
+	    ptr_dst := *q.tampon[0]
+		ptr_src := *q.tampon[1]
         copie_mem_nonsur(ptr_src, ptr_dst, taille_de(Évènement) comme z64 * (q.taille - 1))
     }
 
@@ -325,7 +325,7 @@ lance_application :: fonc(app : &Application) -> z32
     // initialise la file d'évènements
     file_évènement : FileÉvènement
     nonsûr {
-        VG_file_évènements = @file_évènement
+        VG_file_évènements = *file_évènement
         VG_file_évènements.tampon = loge [NOMBRE_MAXIMUM_ÉVÈNEMET]Évènement
     }
 

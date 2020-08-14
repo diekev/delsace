@@ -63,8 +63,8 @@ construit_lexeuse :: fonc(chn : chaine) -> Lexeuse
 {
     lexeuse : Lexeuse
     lexeuse.tampon = chn
-    lexeuse.début = @chn[0]
-    lexeuse.début_mot = @chn[0]
+    lexeuse.début = *chn[0]
+    lexeuse.début_mot = *chn[0]
     lexeuse.fin = lexeuse.début + chn.taille
 
     retourne lexeuse
@@ -224,7 +224,7 @@ pousse_mot :: fonc(lexeuse : &Lexeuse, type_lexème : TypeLexème) -> rien
     données.type_lexème = type_lexème
     données.chn = lexeuse.mot_courant()
 
-    tableau_ajoute(@lexeuse.lexèmes, données)
+    tableau_ajoute(*lexeuse.lexèmes, données)
 
     lexeuse.taille_mot_courant = 0
 }

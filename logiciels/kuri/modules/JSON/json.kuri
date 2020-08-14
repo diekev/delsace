@@ -334,12 +334,12 @@ lance_analyse :: fonc(syntaxeuse : *SyntaxeuseStruct, arg: eini) -> rien
 chaine_json_depuis_struct :: fonc (arg: eini) -> chaine
 {
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse) }
+	initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
-    imprime_valeur_json(@enchaineuse, arg.pointeur, arg.info)
+    imprime_valeur_json(*enchaineuse, arg.pointeur, arg.info)
 
-	retourne chaine_depuis_enchaineuse(@enchaineuse)
+	retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 remplis_struct_depuis_json :: fonc (script: chaine, arg: eini) -> rien
@@ -351,5 +351,5 @@ remplis_struct_depuis_json :: fonc (script: chaine, arg: eini) -> rien
 
     syntaxeuse := construit_syntaxeuse_struct(lexeuse.lexèmes)
 
-    lance_analyse(@syntaxeuse, arg)
+    lance_analyse(*syntaxeuse, arg)
 }

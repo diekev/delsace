@@ -41,8 +41,8 @@ initialise_parseuse :: fonc (entrée: chaine) -> Parseuse
 
 détruit_parseuse :: fonc (parseuse: *Parseuse)
 {
-    détruit_lexeuse(@parseuse.lexeuse)
-    détruit_liste(@parseuse.liste_éléments_actifs_formattage)
+    détruit_lexeuse(*parseuse.lexeuse)
+    détruit_liste(*parseuse.liste_éléments_actifs_formattage)
     déloge parseuse.pile_éléments_ouvert.éléments
     déloge parseuse.pile_insertion_template
 }
@@ -50,7 +50,7 @@ détruit_parseuse :: fonc (parseuse: *Parseuse)
 parse :: fonc (parseuse: *Parseuse)
 {
     boucle {
-        lexème := lexème_suivant(@parseuse.lexeuse)
+        lexème := lexème_suivant(*parseuse.lexeuse)
 
         si lexème.genre == GenreLexème.FinDeFichier {
             arrête
@@ -60,7 +60,7 @@ parse :: fonc (parseuse: *Parseuse)
 
         gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
 
-        détruit_lexème(@lexème)
+        détruit_lexème(*lexème)
 
         si parseuse.arrête_de_parser {
             arrête
@@ -70,7 +70,7 @@ parse :: fonc (parseuse: *Parseuse)
 
 noeud_courant :: fonc (parseuse: *Parseuse) -> *Élément
 {
-    retourne noeud_courant(@parseuse.pile_éléments_ouvert)
+    retourne noeud_courant(*parseuse.pile_éléments_ouvert)
 }
 
 crée_élément_pour :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *Élément
@@ -119,7 +119,7 @@ insère_élément_html :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *Élé
     // À FAIRE : vérifie s'il est possible d'insérer élément à position_ajustée_d_insertion
     // À FAIRE : file d'évènements, voir spec
     position_ajustée_d_insertion.ajoute_enfant(élément)
-    empile(@parseuse.pile_éléments_ouvert, élément)
+    empile(*parseuse.pile_éléments_ouvert, élément)
     retourne élément
 }
 
@@ -142,7 +142,7 @@ insère_caractère :: fonc (parseuse: *Parseuse, point_de_code: n32)
         position_ajustée_d_insertion.ajoute_enfant(noeud_texte)
     }
 
-    chaine_ajoute(@noeud_texte.données, point_de_code)
+    chaine_ajoute(*noeud_texte.données, point_de_code)
 }
 
 insère_commentaire :: fonc (parseuse: *Parseuse, lexème: Lexème, position : *Noeud = nul)
@@ -202,7 +202,7 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
         élément := parseuse.crée_élément_pour(lexème)
         parseuse.document.ajoute_enfant(élément)
         parseuse.mode_insertion = insère_mode_AvantHead
-        empile(@parseuse.pile_éléments_ouvert, élément)
+        empile(*parseuse.pile_éléments_ouvert, élément)
         // À FAIRE : contexte navigation, voir spec
         retourne
     }
@@ -215,7 +215,7 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
     lexème_html.nom = "html"
     élément := parseuse.crée_élément_pour(lexème_html)
     parseuse.document.ajoute_enfant(élément)
-    empile(@parseuse.pile_éléments_ouvert, élément)
+    empile(*parseuse.pile_éléments_ouvert, élément)
 
     // À FAIRE : si document est chargé dans un contexte navigation...
 
@@ -297,15 +297,15 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si fait_partie_de(lexème.nom, "base", "basefront", "bgsound", "link") {
             _ := parseuse.insère_élément_html(lexème)
-            dépile(@parseuse.pile_éléments_ouvert)
-            reconnait_drapeau_auto_fermant(@lexème)
+            dépile(*parseuse.pile_éléments_ouvert)
+            reconnait_drapeau_auto_fermant(*lexème)
             retourne
         }
 
         si lexème.nom == "meta" {
             _ := parseuse.insère_élément_html(lexème)
-            dépile(@parseuse.pile_éléments_ouvert)
-            reconnait_drapeau_auto_fermant(@lexème)
+            dépile(*parseuse.pile_éléments_ouvert)
+            reconnait_drapeau_auto_fermant(*lexème)
             // À FAIRE : gère attributs charset, http-equiv, content
             retourne
         }
@@ -340,7 +340,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
             // À FAIRE : élément_script.déjà_lancé = parseuse.créée_depuis_parsage_fragment
             // À FAIRE : document.write()
             position_ajustée_d_insertion.ajoute_enfant(élément)
-            empile(@parseuse.pile_éléments_ouvert, élément)
+            empile(*parseuse.pile_éléments_ouvert, élément)
             parseuse.lexeuse.état = ÉtatLexage.ScriptData
             parseuse.mode_insertion_original = parseuse.mode_insertion
             parseuse.mode_insertion = insère_mode_Texte
@@ -349,10 +349,10 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "template" {
             _ := parseuse.insère_élément_html(lexème)
-            ajoute_marqueur(@parseuse.liste_éléments_actifs_formattage)
+            ajoute_marqueur(*parseuse.liste_éléments_actifs_formattage)
             parseuse.frameset_ok = faux
             parseuse.mode_insertion = insère_mode_DansTemplate
-            tableau_ajoute(@parseuse.pile_insertion_template, insère_mode_DansTemplate)
+            tableau_ajoute(*parseuse.pile_insertion_template, insère_mode_DansTemplate)
             retourne
         }
 
@@ -363,13 +363,13 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == "head" {
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
             parseuse.mode_insertion = insère_mode_AprèsHead
             retourne
         }
 
         si lexème.nom == "template" {
-            si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "template") {
+            si !possède_dans_portée(*parseuse.pile_éléments_ouvert, "template") {
                 erreur_de_parsage("aucun <template> dans la pile d'éléments ouverts")
                 retourne
             }
@@ -391,7 +391,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
     }
 
-    dépile(@parseuse.pile_éléments_ouvert)
+    dépile(*parseuse.pile_éléments_ouvert)
     parseuse.mode_insertion = insère_mode_AprèsHead
 }
 
@@ -433,7 +433,7 @@ insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == "noscript" {
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
             parseuse.mode_insertion = insère_mode_DansHead
             retourne
         }
@@ -444,7 +444,7 @@ insère_mode_DansHeadNoScript :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
     }
 
-    dépile(@parseuse.pile_éléments_ouvert)
+    dépile(*parseuse.pile_éléments_ouvert)
     parseuse.mode_insertion = insère_mode_DansHead
     gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
 }
@@ -492,9 +492,9 @@ insère_mode_AprèsHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si fait_partie_de(lexème.nom, "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "template", "title") {
             erreur_de_parsage("élément inattendu après <head>")
 
-            empile(@parseuse.pile_éléments_ouvert, parseuse.élément_head)
+            empile(*parseuse.pile_éléments_ouvert, parseuse.élément_head)
             parseuse.gère_lexème_pour_mode(insère_mode_DansHead, lexème)
-            supprime_élément(@parseuse.pile_éléments_ouvert, parseuse.élément_head)
+            supprime_élément(*parseuse.pile_éléments_ouvert, parseuse.élément_head)
             retourne
         }
     }
@@ -552,7 +552,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "body" {
-            si taille(@parseuse.pile_éléments_ouvert) == 1 {
+            si taille(*parseuse.pile_éléments_ouvert) == 1 {
                 retourne
             }
 
@@ -560,7 +560,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 retourne
             }
 
-            si possède_dans_portée(@parseuse.pile_éléments_ouvert, "template") {
+            si possède_dans_portée(*parseuse.pile_éléments_ouvert, "template") {
                 retourne
             }
 
@@ -581,14 +581,14 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "form" {
-            template_dans_portée := possède_dans_portée(@parseuse.pile_éléments_ouvert, "template")
+            template_dans_portée := possède_dans_portée(*parseuse.pile_éléments_ouvert, "template")
 
             si parseuse.élément_head != nul && !template_dans_portée {
                 // parser error, ignore le lexème
                 retourne
             }
 
-            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+            si possède_dans_portée_button(*parseuse.pile_éléments_ouvert, "p") {
                 ferme_un_élément_p(parseuse)
             }
 
@@ -604,7 +604,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si lexème.nom == "li" {
             parseuse.frameset_ok = vrai
 
-            index := taille(@parseuse.pile_éléments_ouvert) - 1
+            index := taille(*parseuse.pile_éléments_ouvert) - 1
 
             boucle {
                 noeud := parseuse.pile_éléments_ouvert.éléments[index]
@@ -619,10 +619,10 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                     }
 
                     tantque noeud.texte != "li" {
-                        dépile(@parseuse.pile_éléments_ouvert)
+                        dépile(*parseuse.pile_éléments_ouvert)
                         noeud = parseuse.noeud_courant()
                     }
-                    dépile(@parseuse.pile_éléments_ouvert)
+                    dépile(*parseuse.pile_éléments_ouvert)
 
                     arrête
                 }
@@ -635,7 +635,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 index -= 1
             }
 
-            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+            si possède_dans_portée_button(*parseuse.pile_éléments_ouvert, "p") {
                 ferme_un_élément_p(parseuse)
             }
 
@@ -644,7 +644,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "address", "article", "aside", "blockquote", "center", "details", "dialog", "dir", "div", "dl", "fieldset", "figcaption", "figure", "footer", "header", "hgroup", "main", "menu", "nav", "ol", "p", "section", "summary", "ul") {
-            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+            si possède_dans_portée_button(*parseuse.pile_éléments_ouvert, "p") {
                 ferme_un_élément_p(parseuse)
             }
 
@@ -653,14 +653,14 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "h1", "h2", "h3", "h4", "h5", "h6") {
-            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+            si possède_dans_portée_button(*parseuse.pile_éléments_ouvert, "p") {
                 ferme_un_élément_p(parseuse)
             }
 
             noeud := parseuse.noeud_courant()
             si fait_partie_de(noeud.texte, "h1", "h2", "h3", "h4", "h5", "h6") {
                 erreur_de_parsage("élément <h> ouvert quand un autre <h> s'ouvre")
-                dépile(@parseuse.pile_éléments_ouvert)
+                dépile(*parseuse.pile_éléments_ouvert)
             }
 
             _ := insère_élément_html(parseuse, lexème)
@@ -668,7 +668,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "pre", "listing") {
-            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+            si possède_dans_portée_button(*parseuse.pile_éléments_ouvert, "p") {
                 ferme_un_élément_p(parseuse)
             }
 
@@ -712,7 +712,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 index -= 1
             }
 
-            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+            si possède_dans_portée_button(*parseuse.pile_éléments_ouvert, "p") {
                 parseuse.ferme_un_élément_p()
             }
 
@@ -725,7 +725,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "button" {
-            si possède_dans_portée(@parseuse.pile_éléments_ouvert, "button") {
+            si possède_dans_portée(*parseuse.pile_éléments_ouvert, "button") {
                 erreur_de_parsage("<button> déjà ouvert lors de l'ouverture d'un <button>")
                 génère_tags_fin_implicites(parseuse)
 
@@ -740,13 +740,13 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "a" {
-            élément := élément_avant_marqueur(@parseuse.liste_éléments_actifs_formattage, "a")
+            élément := élément_avant_marqueur(*parseuse.liste_éléments_actifs_formattage, "a")
 
             si élément != nul {
                 // erreur de parsage
                 parseuse.lance_algorithme_adoption(lexème)
-                supprime_élément(@parseuse.liste_éléments_actifs_formattage, élément)
-                supprime_élément(@parseuse.pile_éléments_ouvert, élément)
+                supprime_élément(*parseuse.liste_éléments_actifs_formattage, élément)
+                supprime_élément(*parseuse.pile_éléments_ouvert, élément)
             }
 
             parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
@@ -765,7 +765,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si lexème.nom == "nobr" {
             parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
             _ := parseuse.insère_élément_html(lexème)
-            ajoute_marqueur(@parseuse.liste_éléments_actifs_formattage)
+            ajoute_marqueur(*parseuse.liste_éléments_actifs_formattage)
             parseuse.frameset_ok = faux
             retourne
         }
@@ -775,7 +775,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "table" {
-            si !parseuse.document.quirks_mode && possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+            si !parseuse.document.quirks_mode && possède_dans_portée_button(*parseuse.pile_éléments_ouvert, "p") {
                 ferme_un_élément_p(parseuse)
             }
 
@@ -788,8 +788,8 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si fait_partie_de(lexème.nom, "area", "br", "embed", "img", "keygen", "wbr") {
             parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
             _ := parseuse.insère_élément_html(lexème)
-            dépile(@parseuse.pile_éléments_ouvert)
-            reconnait_drapeau_auto_fermant(@lexème)
+            dépile(*parseuse.pile_éléments_ouvert)
+            reconnait_drapeau_auto_fermant(*lexème)
             parseuse.frameset_ok = faux
             retourne
         }
@@ -797,8 +797,8 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si lexème.nom == "input" {
             parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
             _ := parseuse.insère_élément_html(lexème)
-            dépile(@parseuse.pile_éléments_ouvert)
-            reconnait_drapeau_auto_fermant(@lexème)
+            dépile(*parseuse.pile_éléments_ouvert)
+            reconnait_drapeau_auto_fermant(*lexème)
             // À FAIRE : parseuse.frameset_ok = !élément.possède_attribut("type") || élément.attribut("type") == "hidden" // case-insensitive
             //parseuse.frameset_ok = faux
             retourne
@@ -806,19 +806,19 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si fait_partie_de(lexème.nom, "param", "source", "track") {
             _ := parseuse.insère_élément_html(lexème)
-            dépile(@parseuse.pile_éléments_ouvert)
-            reconnait_drapeau_auto_fermant(@lexème)
+            dépile(*parseuse.pile_éléments_ouvert)
+            reconnait_drapeau_auto_fermant(*lexème)
             retourne
         }
 
         si lexème.nom == "hr" {
-            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+            si possède_dans_portée_button(*parseuse.pile_éléments_ouvert, "p") {
                 parseuse.ferme_un_élément_p()
             }
 
             _ := parseuse.insère_élément_html(lexème)
-            dépile(@parseuse.pile_éléments_ouvert)
-            reconnait_drapeau_auto_fermant(@lexème)
+            dépile(*parseuse.pile_éléments_ouvert)
+            reconnait_drapeau_auto_fermant(*lexème)
             parseuse.frameset_ok = faux
             retourne
         }
@@ -833,11 +833,11 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             _ := insère_élément_html(parseuse, lexème)
 
             curseur := parseuse.lexeuse.curseur
-            lexème_suiv := lexème_suivant(@parseuse.lexeuse)
+            lexème_suiv := lexème_suivant(*parseuse.lexeuse)
 
             si lexème_suiv.genre != GenreLexème.Caractère || lexème_suiv.point_de_code != NOUVELLE_LIGNE {
                 // si nous n'avons pas de nouvelle ligne restaure l'état de la lexeuse, car celles-ci sont ignorées par convénience
-                détruit_lexème(@lexème_suiv)
+                détruit_lexème(*lexème_suiv)
                 parseuse.lexeuse.curseur = curseur
             }
 
@@ -849,7 +849,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "xmp" {
-            si possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+            si possède_dans_portée_button(*parseuse.pile_éléments_ouvert, "p") {
                 parseuse.ferme_un_élément_p()
             }
 
@@ -887,7 +887,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "optgroup" || lexème.nom == "option" {
             si parseuse.noeud_courant().texte == "option" {
-                dépile(@parseuse.pile_éléments_ouvert)
+                dépile(*parseuse.pile_éléments_ouvert)
             }
 
             parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
@@ -896,7 +896,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "rb" || lexème.nom == "rtc" {
-            si possède_dans_portée(@parseuse.pile_éléments_ouvert, "ruby") {
+            si possède_dans_portée(*parseuse.pile_éléments_ouvert, "ruby") {
                 parseuse.génère_tags_fin_implicites()
 
                 si parseuse.noeud_courant().texte != "ruby" {
@@ -909,7 +909,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "rp" || lexème.nom == "rt" {
-            si possède_dans_portée(@parseuse.pile_éléments_ouvert, "ruby") {
+            si possède_dans_portée(*parseuse.pile_éléments_ouvert, "ruby") {
                 parseuse.génère_tags_fin_implicites_autres_que("rtc")
 
                 si !fait_partie_de(parseuse.noeud_courant().texte, "ruby", "rtc") {
@@ -933,8 +933,8 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             _ := parseuse.insère_élément_html(lexème)
 
             si lexème.auto_fermant {
-                reconnait_drapeau_auto_fermant(@lexème)
-                dépile(@parseuse.pile_éléments_ouvert)
+                reconnait_drapeau_auto_fermant(*lexème)
+                dépile(*parseuse.pile_éléments_ouvert)
             }
 
             retourne
@@ -957,7 +957,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "body" {
-            si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "body") {
+            si !possède_dans_portée(*parseuse.pile_éléments_ouvert, "body") {
                 // À FAIRE : comprendre ce que la spec veut dire
             }
 
@@ -966,7 +966,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "html" {
-            si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "body") {
+            si !possède_dans_portée(*parseuse.pile_éléments_ouvert, "body") {
                 // À FAIRE : comprendre ce que la spec veut dire
             }
 
@@ -976,9 +976,9 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "address", "article", "aside", "blockquote", "button", "center", "details", "dialog", "dir", "div", "dl", "fieldset", "figcaption", "figure", "footer", "header", "hgroup", "listing", "main", "menu", "nav", "ol", "pre", "section", "summary", "ul") {
-            si !possède_dans_portée(@parseuse.pile_éléments_ouvert, lexème.nom) {
+            si !possède_dans_portée(*parseuse.pile_éléments_ouvert, lexème.nom) {
                 erreur_de_parsage("la portée ne possède aucun élément du même tag de fin")
-                dépile(@parseuse.pile_éléments_ouvert)
+                dépile(*parseuse.pile_éléments_ouvert)
                 retourne
             }
 
@@ -995,13 +995,13 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "form" {
-            template_dans_portée := possède_dans_portée(@parseuse.pile_éléments_ouvert, "template")
+            template_dans_portée := possède_dans_portée(*parseuse.pile_éléments_ouvert, "template")
 
             si !template_dans_portée {
                 noeud := parseuse.élément_form
                 parseuse.élément_form = nul
 
-                si noeud == nul || !possède_dans_portée(@parseuse.pile_éléments_ouvert, noeud) {
+                si noeud == nul || !possède_dans_portée(*parseuse.pile_éléments_ouvert, noeud) {
                     // erreur de parsage ignore
                     retourne
                 }
@@ -1012,10 +1012,10 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                     erreur_de_parsage("l'élément <form> n'est pas le noeud courrant")
                 }
 
-                supprime_élément(@parseuse.pile_éléments_ouvert, noeud)
+                supprime_élément(*parseuse.pile_éléments_ouvert, noeud)
             }
             sinon {
-                si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "form") {
+                si !possède_dans_portée(*parseuse.pile_éléments_ouvert, "form") {
                     erreur_de_parsage("<form> n'est pas la dans la portée")
                     retourne
                 }
@@ -1035,7 +1035,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "p" {
-            si !possède_dans_portée_button(@parseuse.pile_éléments_ouvert, "p") {
+            si !possède_dans_portée_button(*parseuse.pile_éléments_ouvert, "p") {
                 erreur_de_parsage("aucun <p> ouvert dans une portée <button>")
 
                 lexème_p : Lexème
@@ -1049,7 +1049,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "li" {
-            si !possède_dans_portée_list_item(@parseuse.pile_éléments_ouvert, "li") {
+            si !possède_dans_portée_list_item(*parseuse.pile_éléments_ouvert, "li") {
                 erreur_de_parsage("aucun <li> dans portée list item")
                 retourne
             }
@@ -1067,7 +1067,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "dd" || lexème.nom == "dt" {
-            si !possède_dans_portée(@parseuse.pile_éléments_ouvert, lexème.nom) {
+            si !possède_dans_portée(*parseuse.pile_éléments_ouvert, lexème.nom) {
                 erreur_de_parsage("aucun <dd> ou <dt> dans la portée")
                 retourne
             }
@@ -1083,7 +1083,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "h1", "h2", "h3", "h4", "h5", "h6") {
-            si !possède_dans_portée(@parseuse.pile_éléments_ouvert, lexème.nom) {
+            si !possède_dans_portée(*parseuse.pile_éléments_ouvert, lexème.nom) {
                 erreur_de_parsage("aucun élément <h> dans la porté")
                 retourne
             }
@@ -1133,7 +1133,7 @@ insère_mode_Texte :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.FinDeFichier {
         // À FAIRE : gère élément script
 
-        dépile(@parseuse.pile_éléments_ouvert)
+        dépile(*parseuse.pile_éléments_ouvert)
         parseuse.mode_insertion = parseuse.mode_insertion_original
         gère_lexème_pour_mode(parseuse, parseuse.mode_insertion, lexème)
         retourne
@@ -1143,7 +1143,7 @@ insère_mode_Texte :: fonc (parseuse: *Parseuse, lexème: Lexème)
         // À FAIRE : JavaScript execution context stack
 
         script := parseuse.noeud_courant()
-        dépile(@parseuse.pile_éléments_ouvert)
+        dépile(*parseuse.pile_éléments_ouvert)
         parseuse.mode_insertion = parseuse.mode_insertion_original
 
         // À FAIRE : old insertion point
@@ -1157,7 +1157,7 @@ insère_mode_Texte :: fonc (parseuse: *Parseuse, lexème: Lexème)
         retourne
     }
 
-    dépile(@parseuse.pile_éléments_ouvert)
+    dépile(*parseuse.pile_éléments_ouvert)
     parseuse.mode_insertion = parseuse.mode_insertion_original
 }
 
@@ -1233,7 +1233,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si lexème.nom == "table" {
             erreur_de_parsage("<table> dans <table>")
 
-            si !possède_dans_portée_table(@parseuse.pile_éléments_ouvert, "table") {
+            si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "table") {
                 retourne
             }
 
@@ -1249,7 +1249,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == "input" {
-            attr := cherche_attribut(@lexème, "type")
+            attr := cherche_attribut(*lexème, "type")
 
             si attr == nul || !compare_ascii_insensible_à_la_casse(attr.valeur, "hidden") {
                 erreur_de_parsage("lexème inattendu dans table")
@@ -1260,28 +1260,28 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
             }
 
             _ := parseuse.insère_élément_html(lexème)
-            dépile(@parseuse.pile_éléments_ouvert)
-            reconnait_drapeau_auto_fermant(@lexème)
+            dépile(*parseuse.pile_éléments_ouvert)
+            reconnait_drapeau_auto_fermant(*lexème)
             retourne
         }
 
         si lexème.nom == "form" {
             erreur_de_parsage("<form> dans <table>")
 
-            si parseuse.élément_form != nul || possède_dans_portée(@parseuse.pile_éléments_ouvert, "template") {
+            si parseuse.élément_form != nul || possède_dans_portée(*parseuse.pile_éléments_ouvert, "template") {
                 // ignore
                 retourne
             }
 
             parseuse.élément_form = parseuse.insère_élément_html(lexème)
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
             retourne
         }
     }
 
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == "table" {
-            si !possède_dans_portée_table(@parseuse.pile_éléments_ouvert, "table") {
+            si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "table") {
                 erreur_de_parsage("auncune <table> dans la portée table")
                 retourne
             }
@@ -1356,7 +1356,7 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
             // À FAIRE : vérifier qu'il y a un tbody, thead, ou tfoot dans une portée table, si non : erreur de parsage ignore
 
             parseuse.dépile_vers_contexte_table_body()
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
             parseuse.mode_insertion = insère_mode_DansTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
@@ -1365,14 +1365,14 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.FinTag {
         si fait_partie_de(lexème.nom, "tbody", "tfoot", "thead") {
-            si !possède_dans_portée_table(@parseuse.pile_éléments_ouvert, lexème.nom) {
+            si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, lexème.nom) {
                 erreur_de_parsage("élément hors d'une portée <table>")
                 // ignore
                 retourne
             }
 
             parseuse.dépile_vers_contexte_table_body()
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
             parseuse.mode_insertion = insère_mode_DansTable
             retourne
         }
@@ -1381,7 +1381,7 @@ insère_mode_DansCorpsTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
             // À FAIRE : vérifier qu'il y a un tbody, thead, ou tfoot dans une portée table, si non : erreur de parsage ignore
 
             parseuse.dépile_vers_contexte_table_body()
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
             parseuse.mode_insertion = insère_mode_DansTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
@@ -1402,18 +1402,18 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
             parseuse.dépile_vers_contexte_table_row()
             _ := parseuse.insère_élément_html(lexème)
             parseuse.mode_insertion = insère_mode_DansCell
-            ajoute_marqueur(@parseuse.liste_éléments_actifs_formattage)
+            ajoute_marqueur(*parseuse.liste_éléments_actifs_formattage)
             retourne
         }
 
         si fait_partie_de(lexème.nom, "caption", "col", "colgroup", "tbody", "tfoot", "thead", "tr") {
-            si !possède_dans_portée_table(@parseuse.pile_éléments_ouvert, "tr") {
+            si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "tr") {
                 erreur_de_parsage("élément invalide dans <tr>")
                 retourne
             }
 
             parseuse.dépile_vers_contexte_table_row()
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
             parseuse.mode_insertion = insère_mode_DansCorpsTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
@@ -1422,42 +1422,42 @@ insère_mode_DansRow :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == "tr" {
-            si !possède_dans_portée_table(@parseuse.pile_éléments_ouvert, "tr") {
+            si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "tr") {
                 erreur_de_parsage("<tr> manquant dans portée <table>")
                 retourne
             }
 
             parseuse.dépile_vers_contexte_table_row()
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
             parseuse.mode_insertion = insère_mode_DansCorpsTable
             retourne
         }
 
         si lexème.nom == "table" {
-            si !possède_dans_portée_table(@parseuse.pile_éléments_ouvert, "tr") {
+            si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "tr") {
                 erreur_de_parsage("élément invalide dans <tr>")
                 retourne
             }
 
             parseuse.dépile_vers_contexte_table_row()
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
             parseuse.mode_insertion = insère_mode_DansCorpsTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
 
         si fait_partie_de(lexème.nom, "tbody", "tfoot", "thead") {
-            si !possède_dans_portée_table(@parseuse.pile_éléments_ouvert, lexème.nom) {
+            si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, lexème.nom) {
                 erreur_de_parsage("élément manquant dans <tr>")
                 retourne
             }
 
-            si !possède_dans_portée_table(@parseuse.pile_éléments_ouvert, "tr") {
+            si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "tr") {
                 retourne
             }
 
             parseuse.dépile_vers_contexte_table_row()
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
             parseuse.mode_insertion = insère_mode_DansCorpsTable
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
@@ -1476,7 +1476,7 @@ insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.FinTag {
         si fait_partie_de(lexème.nom, "td", "th") {
-            si !possède_dans_portée_table(@parseuse.pile_éléments_ouvert, lexème.nom) {
+            si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, lexème.nom) {
                 erreur_de_parsage("aucun élément du type dans portée <table>")
                 retourne
             }
@@ -1488,7 +1488,7 @@ insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
             }
 
             parseuse.dépile_tous_les_éléments_jusque(lexème.nom)
-            enlève_éléments_jusqu_au_dernier_marqueur(@parseuse.liste_éléments_actifs_formattage)
+            enlève_éléments_jusqu_au_dernier_marqueur(*parseuse.liste_éléments_actifs_formattage)
             parseuse.mode_insertion = insère_mode_DansRow
             retourne
         }
@@ -1499,7 +1499,7 @@ insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, "table", "tbody", "tfoot", "thead", "tr") {
-            si !possède_dans_portée_table(@parseuse.pile_éléments_ouvert, lexème.nom) {
+            si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, lexème.nom) {
                 erreur_de_parsage("élément manquant de la portée <table>")
                 retourne
             }
@@ -1512,7 +1512,7 @@ insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.DébutTag {
         si fait_partie_de(lexème.nom, "caption", "col", "colgroup", "tbody", "td", "tfoot", "th", "thead", "tr") {
-            si !possède_dans_portée_table(@parseuse.pile_éléments_ouvert, "td") && !possède_dans_portée_table(@parseuse.pile_éléments_ouvert, "th") {
+            si !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "td") && !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, "th") {
                 erreur_de_parsage("<td> ou <tr> manquant dans portée <table>")
                 retourne
             }
@@ -1556,7 +1556,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "option" {
             si parseuse.noeud_courant().texte == "option" {
-                dépile(@parseuse.pile_éléments_ouvert)
+                dépile(*parseuse.pile_éléments_ouvert)
             }
 
             _ := parseuse.insère_élément_html(lexème)
@@ -1565,11 +1565,11 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == "optgroup" {
             si parseuse.noeud_courant().texte == "option" {
-                dépile(@parseuse.pile_éléments_ouvert)
+                dépile(*parseuse.pile_éléments_ouvert)
             }
 
             si parseuse.noeud_courant().texte == "optgroup" {
-                dépile(@parseuse.pile_éléments_ouvert)
+                dépile(*parseuse.pile_éléments_ouvert)
             }
 
             _ := parseuse.insère_élément_html(lexème)
@@ -1579,7 +1579,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si lexème.nom == "select" {
             erreur_de_parsage("<select> inattendu")
 
-            si !possède_dans_portée_select(@parseuse.pile_éléments_ouvert, "select") {
+            si !possède_dans_portée_select(*parseuse.pile_éléments_ouvert, "select") {
                 erreur_de_parsage("aucun <select> dans la portée <select>")
                 retourne
             }
@@ -1592,7 +1592,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si fait_partie_de(lexème.nom, "input", "keygen", "textarea") {
             erreur_de_parsage("élément inattendu dans <select>")
 
-            si !possède_dans_portée_select(@parseuse.pile_éléments_ouvert, "select") {
+            si !possède_dans_portée_select(*parseuse.pile_éléments_ouvert, "select") {
                 erreur_de_parsage("aucun <select> dans la portée <select>")
                 retourne
             }
@@ -1611,7 +1611,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == "optgroup" {
             si parseuse.noeud_courant().texte == "option" && parseuse.pile_éléments_ouvert.éléments[parseuse.pile_éléments_ouvert.éléments.taille - 1].texte == "optgroup" {
-                dépile(@parseuse.pile_éléments_ouvert)
+                dépile(*parseuse.pile_éléments_ouvert)
             }
 
             si parseuse.noeud_courant().texte != "optgroup" {
@@ -1619,7 +1619,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 retourne
             }
 
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
             retourne
         }
 
@@ -1629,12 +1629,12 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 retourne
             }
 
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
             retourne
         }
 
         si lexème.nom == "select" {
-            si !possède_dans_portée_select(@parseuse.pile_éléments_ouvert, "select") {
+            si !possède_dans_portée_select(*parseuse.pile_éléments_ouvert, "select") {
                 erreur_de_parsage("aucun <select> dans la portée <select>")
                 retourne
             }
@@ -1726,14 +1726,14 @@ insère_mode_DansTemplate :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.FinDeFichier {
-        si !possède_dans_portée(@parseuse.pile_éléments_ouvert, "template") {
+        si !possède_dans_portée(*parseuse.pile_éléments_ouvert, "template") {
             parseuse.arrête_de_parser = vrai
             retourne
         }
 
         erreur_de_parsage("fin de fichier dans <template>")
         parseuse.dépile_tous_les_éléments_jusque("template")
-        enlève_éléments_jusqu_au_dernier_marqueur(@parseuse.liste_éléments_actifs_formattage)
+        enlève_éléments_jusqu_au_dernier_marqueur(*parseuse.liste_éléments_actifs_formattage)
         parseuse.pile_insertion_template.taille -= 1
         parseuse.restaure_mode_insertion_appropriemment()
         parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
@@ -1822,7 +1822,7 @@ __rewind :: fonc (parseuse: *Parseuse, entrée: EntréeFormattage, index: z64)
 
     entrée = parseuse.liste_éléments_actifs_formattage.entrées[index]
 
-    si entrée.élément != nul || !possède(@parseuse.pile_éléments_ouvert, entrée.élément) {
+    si entrée.élément != nul || !possède(*parseuse.pile_éléments_ouvert, entrée.élément) {
         __rewind(parseuse, entrée, index)
         retourne
     }
@@ -1850,7 +1850,7 @@ __advance :: fonc (parseuse: *Parseuse, entrée: EntréeFormattage, index: z64)
 
 reconstruit_liste_des_éléments_de_formattage_actifs :: fonc (parseuse: *Parseuse)
 {
-    si est_vide(@parseuse.liste_éléments_actifs_formattage) {
+    si est_vide(*parseuse.liste_éléments_actifs_formattage) {
         retourne
     }
 
@@ -1858,7 +1858,7 @@ reconstruit_liste_des_éléments_de_formattage_actifs :: fonc (parseuse: *Parseu
 
     entrée := parseuse.liste_éléments_actifs_formattage.entrées[index]
 
-    si entrée.élément == nul || possède(@parseuse.pile_éléments_ouvert, entrée.élément) {
+    si entrée.élément == nul || possède(*parseuse.pile_éléments_ouvert, entrée.élément) {
         retourne
     }
 
@@ -1870,7 +1870,7 @@ génère_tags_fin_implicites :: fonc (parseuse: *Parseuse)
     noeud := parseuse.noeud_courant()
 
     tantque fait_partie_de(noeud.texte, "dd", "dt", "li", "optgroup", "option", "p", "rb", "rt", "rtc") {
-        dépile(@parseuse.pile_éléments_ouvert)
+        dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
 }
@@ -1880,7 +1880,7 @@ génère_tags_fin_implicites_autres_que :: fonc (parseuse: *Parseuse, tag: chain
     noeud := parseuse.noeud_courant()
 
     tantque noeud.texte != tag && fait_partie_de(noeud.texte, "dd", "dt", "li", "optgroup", "option", "p", "rb", "rt", "rtc") {
-        dépile(@parseuse.pile_éléments_ouvert)
+        dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
 }
@@ -1890,7 +1890,7 @@ génère_tags_fin_implicites_attentivement :: fonc (parseuse: *Parseuse)
     noeud := parseuse.noeud_courant()
 
     tantque fait_partie_de(noeud.texte, "caption", "colgroup", "dd", "dt", "li", "optgroup", "option", "p", "rb", "rp", "rt", "rtc", "tbody", "td", "tfoot", "th", "thead", "tr") {
-        dépile(@parseuse.pile_éléments_ouvert)
+        dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
 }
@@ -1898,7 +1898,7 @@ génère_tags_fin_implicites_attentivement :: fonc (parseuse: *Parseuse)
 pousse_sur_liste_éléments_actifs :: fonc (parseuse: *Parseuse, élément: *Élément, lexème: Lexème)
 {
     // À FAIRE : vérifie si nous avons 3 éléments de même nom de tag
-    ajoute(@parseuse.liste_éléments_actifs_formattage, élément, lexème)
+    ajoute(*parseuse.liste_éléments_actifs_formattage, élément, lexème)
 }
 
 lance_algorithme_adoption :: fonc (parseuse: *Parseuse, lexème: Lexème)
@@ -1906,8 +1906,8 @@ lance_algorithme_adoption :: fonc (parseuse: *Parseuse, lexème: Lexème)
     sujet := lexème.nom
     noeud := parseuse.noeud_courant()
 
-    si noeud.texte == sujet && !possède(@parseuse.liste_éléments_actifs_formattage, noeud) {
-        dépile(@parseuse.pile_éléments_ouvert)
+    si noeud.texte == sujet && !possède(*parseuse.liste_éléments_actifs_formattage, noeud) {
+        dépile(*parseuse.pile_éléments_ouvert)
         retourne
     }
 
@@ -1920,20 +1920,20 @@ lance_algorithme_adoption :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         outer_loop_counter += 1
 
-        élément_formattage := élément_avant_marqueur(@parseuse.liste_éléments_actifs_formattage, sujet)
+        élément_formattage := élément_avant_marqueur(*parseuse.liste_éléments_actifs_formattage, sujet)
 
         si élément_formattage == nul {
             tout_autre_tag_fin_DansBody(parseuse, lexème)
             retourne
         }
 
-        si !possède(@parseuse.pile_éléments_ouvert, élément_formattage) {
+        si !possède(*parseuse.pile_éléments_ouvert, élément_formattage) {
             erreur_de_parsage("l'élément de formattage n'est pas dans la pile d'élément ouvert")
-            supprime_élément(@parseuse.liste_éléments_actifs_formattage, élément_formattage)
+            supprime_élément(*parseuse.liste_éléments_actifs_formattage, élément_formattage)
             retourne
         }
 
-        si !possède_dans_portée(@parseuse.pile_éléments_ouvert, élément_formattage) {
+        si !possède_dans_portée(*parseuse.pile_éléments_ouvert, élément_formattage) {
             erreur_de_parsage("l'élément de formattage n'est pas dans la portée")
             retourne
         }
@@ -1943,22 +1943,22 @@ lance_algorithme_adoption :: fonc (parseuse: *Parseuse, lexème: Lexème)
             // ne retourne pas
         }
 
-        furthest_block := élément_spécial_précédent(@parseuse.pile_éléments_ouvert, élément_formattage)
+        furthest_block := élément_spécial_précédent(*parseuse.pile_éléments_ouvert, élément_formattage)
 
         // À FAIRE : implémente correctement cet algorithme
         //si furthest_block == nul {
             tantque parseuse.noeud_courant() != élément_formattage {
-                dépile(@parseuse.pile_éléments_ouvert)
+                dépile(*parseuse.pile_éléments_ouvert)
             }
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
 
-            supprime_élément(@parseuse.liste_éléments_actifs_formattage, élément_formattage)
+            supprime_élément(*parseuse.liste_éléments_actifs_formattage, élément_formattage)
             retourne
         //}
 
-        common_ancestor := élément_précédent(@parseuse.pile_éléments_ouvert, élément_formattage)
+        common_ancestor := élément_précédent(*parseuse.pile_éléments_ouvert, élément_formattage)
 
-        bookmark := index_élément_formattage(@parseuse.liste_éléments_actifs_formattage, élément_formattage)
+        bookmark := index_élément_formattage(*parseuse.liste_éléments_actifs_formattage, élément_formattage)
 
         noeud = furthest_block
         dernier_noeud := furthest_block
@@ -1967,18 +1967,18 @@ lance_algorithme_adoption :: fonc (parseuse: *Parseuse, lexème: Lexème)
         boucle {
             inner_loop_counter += 1
             // À FAIRE : noeud put être enlevé, donc il faut prendre le noeud précédent d'avant qu'il fut enlevé
-            noeud = élément_précédent(@parseuse.pile_éléments_ouvert, noeud)
+            noeud = élément_précédent(*parseuse.pile_éléments_ouvert, noeud)
 
             si noeud == élément_formattage {
                 arrête
             }
 
-            si inner_loop_counter > 3 && possède(@parseuse.liste_éléments_actifs_formattage, noeud) {
-                supprime_élément(@parseuse.liste_éléments_actifs_formattage, noeud)
+            si inner_loop_counter > 3 && possède(*parseuse.liste_éléments_actifs_formattage, noeud) {
+                supprime_élément(*parseuse.liste_éléments_actifs_formattage, noeud)
             }
 
-            si !possède(@parseuse.liste_éléments_actifs_formattage, noeud) {
-                supprime_élément(@parseuse.pile_éléments_ouvert, noeud)
+            si !possède(*parseuse.liste_éléments_actifs_formattage, noeud) {
+                supprime_élément(*parseuse.pile_éléments_ouvert, noeud)
                 continue
             }
 
@@ -1995,7 +1995,7 @@ lance_algorithme_adoption :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
 tout_autre_tag_fin_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
-    index := taille(@parseuse.pile_éléments_ouvert) - 1
+    index := taille(*parseuse.pile_éléments_ouvert) - 1
 
     boucle {
         élément := parseuse.pile_éléments_ouvert.éléments[index]
@@ -2010,9 +2010,9 @@ tout_autre_tag_fin_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             // 3. Pop all the nodes from the current node up to node, including node : ceci devrait déjà être fait ?
             tantque élément != parseuse.noeud_courant() {
-                dépile(@parseuse.pile_éléments_ouvert)
+                dépile(*parseuse.pile_éléments_ouvert)
             }
-            dépile(@parseuse.pile_éléments_ouvert)
+            dépile(*parseuse.pile_éléments_ouvert)
 
             arrête
         }
@@ -2044,10 +2044,10 @@ dépile_tous_les_éléments_jusque :: fonc (parseuse: *Parseuse, nom_tag: chaine
     noeud := parseuse.noeud_courant()
 
     tantque noeud.texte != nom_tag {
-        dépile(@parseuse.pile_éléments_ouvert)
+        dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
-    dépile(@parseuse.pile_éléments_ouvert)
+    dépile(*parseuse.pile_éléments_ouvert)
 }
 
 dépile_vers_contexte_table :: fonc (parseuse: *Parseuse)
@@ -2055,7 +2055,7 @@ dépile_vers_contexte_table :: fonc (parseuse: *Parseuse)
     noeud := parseuse.noeud_courant()
 
     tantque !fait_partie_de(noeud.texte, "table", "template", "html") {
-        dépile(@parseuse.pile_éléments_ouvert)
+        dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
 }
@@ -2065,7 +2065,7 @@ dépile_vers_contexte_table_body :: fonc (parseuse: *Parseuse)
     noeud := parseuse.noeud_courant()
 
     tantque !fait_partie_de(noeud.texte, "tbody", "tfoot", "thead", "template", "html") {
-        dépile(@parseuse.pile_éléments_ouvert)
+        dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
 }
@@ -2075,7 +2075,7 @@ dépile_vers_contexte_table_row :: fonc (parseuse: *Parseuse)
     noeud := parseuse.noeud_courant()
 
     tantque !fait_partie_de(noeud.texte, "tr", "template", "html") {
-        dépile(@parseuse.pile_éléments_ouvert)
+        dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
 }
@@ -2205,12 +2205,12 @@ ferme_la_cellule :: fonc (parseuse: *Parseuse)
     }
 
     tantque !fait_partie_de(noeud.texte, "td", "th") {
-        dépile(@parseuse.pile_éléments_ouvert)
+        dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
-    dépile(@parseuse.pile_éléments_ouvert)
+    dépile(*parseuse.pile_éléments_ouvert)
 
-    enlève_éléments_jusqu_au_dernier_marqueur(@parseuse.liste_éléments_actifs_formattage)
+    enlève_éléments_jusqu_au_dernier_marqueur(*parseuse.liste_éléments_actifs_formattage)
 
     parseuse.mode_insertion = insère_mode_DansRow
 }

@@ -94,7 +94,7 @@ accepte :: fonc (serveuse: *Fichier) -> Fichier
     adresse : sockaddr_in
 	sin_size := taille_de(sockaddr_in) comme n32
 
-    prise := accept(serveuse.desc, @adresse comme *sockaddr, @sin_size)
+    prise := accept(serveuse.desc, *adresse comme *sockaddr, *sin_size)
 
     cliente : Fichier
     cliente.desc = prise
@@ -122,7 +122,7 @@ démarre :: fonc(serveuse : *Fichier) -> rien
             continue
         }
 
-        procède_requête(serveuse, @cliente)
+        procède_requête(serveuse, *cliente)
     }
 }
 
@@ -264,7 +264,7 @@ principale :: fonc () -> z32
 	}
 
 	enable := 1
-    si setsockopt(serveuse.desc, SOL_SOCKET, SO_REUSEADDR, @enable, taille_de(z32)) < 0 {
+    si setsockopt(serveuse.desc, SOL_SOCKET, SO_REUSEADDR, *enable, taille_de(z32)) < 0 {
         // @erreur
         _ := close(serveuse.desc)
         retourne 1
@@ -274,9 +274,9 @@ principale :: fonc () -> z32
 
 	PRISE_SERVEUSE = serveuse.desc
 
-	diffère { _ := tente ferme(@serveuse) piège nonatteignable }
+	diffère { _ := tente ferme(*serveuse) piège nonatteignable }
 
-	démarre(@serveuse)
+	démarre(*serveuse)
 
 	retourne 0
 /*

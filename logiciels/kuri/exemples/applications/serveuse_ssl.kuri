@@ -27,11 +27,11 @@ Servlet :: fonc(ssl: *ssl_st) -> rien
     }
     sinon {
         //imprime_certificats_ssl(ssl)
-        bytes := SSL_read(ssl, @buf[0], 1024)
+        bytes := SSL_read(ssl, *buf[0], 1024)
 
         si bytes > 0 {
             buf[bytes] = '\0'
-            _ := printf("Client msg: \"%s\"\n".pointeur, @buf[0])
+            _ := printf("Client msg: \"%s\"\n".pointeur, *buf[0])
 
             réponse := prépare_réponse()
 
@@ -83,13 +83,13 @@ principale :: fonc () -> z32
         retourne 1
     }
 
-    diffère { _ := tente ferme(@serveur) piège nonatteignable }
+    diffère { _ := tente ferme(*serveur) piège nonatteignable }
 
     boucle {
         addr : sockaddr_in // Adresse du connecté
 	    len := taille_de(sockaddr_in) comme n32
 
-        client := accept(serveur.desc, @addr comme *sockaddr, @len)
+        client := accept(serveur.desc, *addr comme *sockaddr, *len)
         imprime("Connection: %s:%d\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port))
 
         ssl := SSL_new(ctx)

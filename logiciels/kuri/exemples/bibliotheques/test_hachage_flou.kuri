@@ -52,12 +52,12 @@ blurHashForPixels :: fonc (
         }
     }
 
-	dc := @factors[0][0][0]
+	dc := *factors[0][0][0]
     ac := dc + 3
 	acCount := composants_x * composants_y - 1
 
 	sizeFlag := (composants_x - 1) + (composants_y - 1) * 9
-	ptr := encode_int(sizeFlag, 1, @buffer[0])
+	ptr := encode_int(sizeFlag, 1, *buffer[0])
 
 	maximumValue : r32
 
@@ -85,9 +85,9 @@ blurHashForPixels :: fonc (
 
 	mémoire(ptr) = 0
 
-    taille_chaine := ptr - @buffer[0] comme z64
+    taille_chaine := ptr - *buffer[0] comme z64
 
-    chn := construit_chaine(@buffer[0], taille_chaine)
+    chn := construit_chaine(*buffer[0], taille_chaine)
 
     imprime("Résultat : %\n", chn)
 
@@ -135,7 +135,7 @@ multiplyBasisFunction :: fonc (
 	résultat_fonction_base[1] = g * scale
 	résultat_fonction_base[2] = b * scale
 
-	retourne @résultat_fonction_base[0]
+	retourne *résultat_fonction_base[0]
 }
 
 linearTosRGB :: fonc (value: r32) -> z32

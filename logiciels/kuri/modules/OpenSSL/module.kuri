@@ -302,12 +302,12 @@ lis_tout :: fonc (fichier: *FichierSSL) -> ChaineOuErreurSSL
     résultat : chaine
 
     boucle {
-        taille := SSL_read(fichier.ssl, @tampon[0], TAILLE_MAX_DONNÉES)
+        taille := SSL_read(fichier.ssl, *tampon[0], TAILLE_MAX_DONNÉES)
 
         si taille > 0 {
             ancienne_taille := résultat.taille
             reloge résultat : chaine(résultat.taille + taille)
-            copie_mem_nonsur(src=@tampon[0], dst=@résultat[ancienne_taille], taille=taille comme z64)
+            copie_mem_nonsur(src=*tampon[0], dst=*résultat[ancienne_taille], taille=taille comme z64)
         }
         sinon si taille == 0 {
             arrête
@@ -326,7 +326,7 @@ lis_tout :: fonc (fichier: *FichierSSL) -> ChaineOuErreurSSL
 
 ferme :: fonc (fichier: *FichierSSL) -> rien
 {
-    _ := tente ferme(@fichier.fichier) piège nonatteignable
+    _ := tente ferme(*fichier.fichier) piège nonatteignable
 
     si fichier.ssl {
         SSL_free(fichier.ssl)

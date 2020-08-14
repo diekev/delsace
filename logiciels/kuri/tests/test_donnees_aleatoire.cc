@@ -96,7 +96,7 @@ static GenreLexeme id_operateurs_unaire[] = {
 	 * pouvoir tester la détection des opérateurs unaires. */
 	GenreLexeme::PLUS,
 	GenreLexeme::MOINS,
-	GenreLexeme::AROBASE,
+	GenreLexeme::FOIS_UNAIRE,
 	GenreLexeme::EXCLAMATION,
 	GenreLexeme::TILDE,
 	GenreLexeme::CROCHET_OUVRANT,

@@ -18,7 +18,7 @@ parse_8_caractères :: fonc (ptr: *z8) -> n64
 
     // commute le boutisme pour que les caractères/octets soient dans le bon ordre
     si petit_boutisme() {
-        commute_boutisme(@nombre_entier)
+        commute_boutisme(*nombre_entier)
     }
 
     // soustrait '0' de chaque caractère

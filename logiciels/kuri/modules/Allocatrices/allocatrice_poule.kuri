@@ -12,7 +12,7 @@ struct Bloc {
 
 struct PetitTableau {
     mém: *Bloc
-    poule: [10]Bloc # mém = @poule[0]
+    poule: [10]Bloc # mém = *poule[0]
 
     alloué := 10
     taille: z32 = 0
@@ -46,11 +46,11 @@ struct AllocatricePoule {
                 #alloc.pointeurs_blocs.pousse(bloc)
 
                 pour i dans 0 ... 1022 {
-                    bloc.chunk[i].suivant = @bloc.chunk[i + 1]
+                    bloc.chunk[i].suivant = *bloc.chunk[i + 1]
                 }
 
                 bloc.chunk[1023].suivant = nul
-                alloc.racine = @bloc.chunk[0]
+                alloc.racine = *bloc.chunk[0]
             }
 
             résultat := alloc.racine

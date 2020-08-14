@@ -21,27 +21,27 @@ Enchaineuse :: struct {
 
 initialise_enchaineuse :: fonc (enchaineuse : *Enchaineuse) -> rien
 {
-    enchaineuse.tampon_courant = @enchaineuse.tampon
+    enchaineuse.tampon_courant = *enchaineuse.tampon
     enchaineuse.tampon_courant.occupé = 0
     enchaineuse.tampon_courant.suivant = nul
 }
 
 réinitialise_enchaineuse :: fonc (enchaineuse : *Enchaineuse) -> rien
 {
-	tampon_courant := @enchaineuse.tampon
+	tampon_courant := *enchaineuse.tampon
 
 	tantque tampon_courant != nul {
 		tampon_courant.occupé = 0
 		tampon_courant = tampon_courant.suivant
 	}
 
-    enchaineuse.tampon_courant = @enchaineuse.tampon
+    enchaineuse.tampon_courant = *enchaineuse.tampon
 }
 
 taille_chaine :: fonc (enchaineuse: *Enchaineuse) -> z64
 {
     taille : z64 = 0
-    tampon_courant := @enchaineuse.tampon
+    tampon_courant := *enchaineuse.tampon
 
     tantque tampon_courant != nul {
         taille += tampon_courant.occupé
@@ -61,14 +61,14 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> chaine
 
     chn := loge chaine(taille)
 
-    tampon_courant := @enchaineuse.tampon
+    tampon_courant := *enchaineuse.tampon
 
     curseur : z64 = 0
 
     tantque tampon_courant != nul {
         taille_tampon := tampon_courant.occupé
-        src := @tampon_courant.données[0]
-        dst := @chn[curseur]
+        src := *tampon_courant.données[0]
+        dst := *chn[curseur]
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille_tampon)
 
@@ -81,13 +81,13 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> chaine
 
 copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, fichier: *Fichier) -> ErreurFichier
 {
-    tampon_courant := @enchaineuse.tampon
+    tampon_courant := *enchaineuse.tampon
 
     curseur : z64 = 0
 
     tantque tampon_courant != nul {
         taille_tampon := tampon_courant.occupé
-        src := @tampon_courant.données[0]
+        src := *tampon_courant.données[0]
 
 		_ := tente système_écris(fichier.desc, src, taille_tampon) piège err {
 			retourne err
@@ -171,7 +171,7 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
     si (tampon.occupé + chn.taille) > TAILLE_TAMPON_ENCHAINEUSE {
         taille := TAILLE_TAMPON_ENCHAINEUSE - tampon.occupé
         src := chn.pointeur
-        dst := @tampon.données[tampon.occupé]
+        dst := *tampon.données[tampon.occupé]
         tampon.occupé += taille
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille)
@@ -181,8 +181,8 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
 		tantque delta > 0 {
         	tampon = ajoute_tampon(enchaineuse)
 
-			src = @chn[chn.taille - delta]
-			dst = @tampon.données[0]
+			src = *chn[chn.taille - delta]
+			dst = *tampon.données[0]
 
 			taille = TAILLE_TAMPON_ENCHAINEUSE
 
@@ -199,7 +199,7 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
     }
     sinon {
         src := chn.pointeur
-        dst := @tampon.données[tampon.occupé]
+        dst := *tampon.données[tampon.occupé]
         taille := chn.taille
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille)
@@ -228,10 +228,10 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, args: ...eini) -> rien
 enchaine :: fonc(chns : ...chaine) -> chaine
 {
 	enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-	diffère { détruit_tampons(@enchaineuse) }
-	ajoute_au_tampon(@enchaineuse, ...chns)
-	retourne chaine_depuis_enchaineuse(@enchaineuse)
+	initialise_enchaineuse(*enchaineuse)
+	diffère { détruit_tampons(*enchaineuse) }
+	ajoute_au_tampon(*enchaineuse, ...chns)
+	retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 //###################################################################################
@@ -284,7 +284,7 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
 	// est 1. Nous devons donc décaler 9 bits depuis le bas afin d'avoir le 24ème bit
 	// dans la position du 1 dans portion entière, ajoutant le décalage de l'exposant.
 	insère_bits_du_bas(
-		@part_entière,
+		*part_entière,
 		valeur_mantisse comme n32,
 		9 + valeur_exposant)
 
@@ -292,11 +292,11 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
 
 	// Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
-		reste := reste_de_la_division(@part_entière, 10)
-		chaine_ajoute(@chn_part_entière, '0' + reste comme z8)
-	} tantque !est_zéro(@part_entière)
+		reste := reste_de_la_division(*part_entière, 10)
+		chaine_ajoute(*chn_part_entière, '0' + reste comme z8)
+	} tantque !est_zéro(*part_entière)
 
-	inverse(@chn_part_entière)
+	inverse(*chn_part_entière)
 	ajoute_au_tampon(enchaineuse, chn_part_entière)
 	déloge chn_part_entière
 
@@ -310,13 +310,13 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
 
 	// Quand valeur_exposant est zéro nous voulons décaler 23 bits de mantisse dans
 	// la part fractionnelle.
-	insère_bits_du_haut(@frac, valeur_mantisse comme n32, 23 - valeur_exposant);
+	insère_bits_du_haut(*frac, valeur_mantisse comme n32, 23 - valeur_exposant);
 
 	// Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
-		surplus := surplus_de_la_multiplication(@frac, 10)
+		surplus := surplus_de_la_multiplication(*frac, 10)
 		ajoute_au_tampon(enchaineuse, '0' + surplus comme z8)
-	} tantque !est_zéro(@frac)
+	} tantque !est_zéro(*frac)
 }
 
 //###################################################################################
@@ -754,22 +754,22 @@ imprime_err :: fonc(format: chaine, args: ...eini) -> rien
 imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 {
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-	diffère { détruit_tampons(@enchaineuse) }
+	initialise_enchaineuse(*enchaineuse)
+	diffère { détruit_tampons(*enchaineuse) }
 
-	imprime_dans_enchaineuse(@enchaineuse, format, ...args)
-	retourne chaine_depuis_enchaineuse(@enchaineuse)
+	imprime_dans_enchaineuse(*enchaineuse, format, ...args)
+	retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 imprime_dans_fichier :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> ErreurFichier
 {
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-	diffère { détruit_tampons(@enchaineuse) }
+	initialise_enchaineuse(*enchaineuse)
+	diffère { détruit_tampons(*enchaineuse) }
 
-	imprime_dans_enchaineuse(@enchaineuse, format, ...args)
+	imprime_dans_enchaineuse(*enchaineuse, format, ...args)
 
-	retourne copie_enchaineuse_fichier(@enchaineuse, fichier)
+	retourne copie_enchaineuse_fichier(*enchaineuse, fichier)
 }
 
 imprime_log :: fonc (ident: chaine, mode: ModeLogage, format: chaine, args: ...eini) -> rien

@@ -33,8 +33,8 @@ nombre_aléatoire :: fonc () -> z32
 crée_labyrinthe :: fonc (hauteur : z32, largeur : z32) -> Labyrinthe
 {
     labyrinthe := Labyrinthe(hauteur = hauteur, largeur = largeur)
-    tableau_redimensionne(@labyrinthe.ligne, largeur)
-    tableau_redimensionne(@labyrinthe.taille_groupe, largeur)
+    tableau_redimensionne(*labyrinthe.ligne, largeur)
+    tableau_redimensionne(*labyrinthe.taille_groupe, largeur)
 
     retourne labyrinthe
 }
@@ -82,7 +82,7 @@ imprime_ligne :: fonc (labyrinthe: *Labyrinthe) -> rien
 principale :: fonc () -> z32
 {
     labyrinthe := crée_labyrinthe(hauteur = 10, largeur = 10)
-    diffère { détruit_labyrinthe(@labyrinthe) }
+    diffère { détruit_labyrinthe(*labyrinthe) }
 
     // 1. première ligne
     pour c, idx dans labyrinthe.ligne {
@@ -107,8 +107,8 @@ principale :: fonc () -> z32
 
         // 3. crée les murs droit
         pour j dans 0 ... labyrinthe.largeur - 2 {
-            cg := @labyrinthe.ligne[j]
-            cd := @labyrinthe.ligne[j + 1]
+            cg := *labyrinthe.ligne[j]
+            cd := *labyrinthe.ligne[j + 1]
 
             si cg.groupe == cd.groupe {
                 cg.position_mur |= PositionMur.DROITE
@@ -128,7 +128,7 @@ principale :: fonc () -> z32
         // 5. décide si nous ajoutons des lignes
         si i < labyrinthe.hauteur - 1 {
             // A. nous ajoutons une ligne
-            imprime_ligne(@labyrinthe)
+            imprime_ligne(*labyrinthe)
 
             pour c dans labyrinthe.ligne {
                 si (c.position_mur & PositionMur.BAS) != (0 comme PositionMur) {
@@ -143,8 +143,8 @@ principale :: fonc () -> z32
             // B. nous nous arrêtons
 
             pour j dans 0 ... labyrinthe.largeur - 2 {
-                cg := @labyrinthe.ligne[j]
-                cd := @labyrinthe.ligne[j + 1]
+                cg := *labyrinthe.ligne[j]
+                cd := *labyrinthe.ligne[j + 1]
 
                 si cg.groupe != cd.groupe {
                     cg.position_mur &= ~PositionMur.DROITE
@@ -153,7 +153,7 @@ principale :: fonc () -> z32
                 // À FAIRE : fusionne les ensembles
             }
 
-            imprime_ligne(@labyrinthe)
+            imprime_ligne(*labyrinthe)
         }
 
     }

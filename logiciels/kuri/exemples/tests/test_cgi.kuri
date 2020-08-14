@@ -56,11 +56,11 @@ principale :: fonc () -> z32
     routeuse : Routeuse
     routeuse.rappel_méthode_non_autorisée = get_page_méthode_non_autorisée
     routeuse.rappel_page_non_trouvée = get_page_non_trouvée
-    diffère { détruit_routeuse(@routeuse) }
+    diffère { détruit_routeuse(*routeuse) }
 
-    ajoute_route(@routeuse, "/", get_page_acceuil, nul)
+    ajoute_route(*routeuse, "/", get_page_acceuil, nul)
 
-    apparie_route(@routeuse, chaine_uri, chaine_méthode)
+    apparie_route(*routeuse, chaine_uri, chaine_méthode)
 
     retourne 0
 }

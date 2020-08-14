@@ -46,16 +46,16 @@ copie_chaine_vers_tableau :: fonc (tabl: *z8, chn: chaine) -> rien
 
 sérialise_ligne :: fonc (ligne: *Ligne, dest: *rien) -> rien
 {
-    copie_mem_nonsur(src = @ligne.id, dst = dest, taille = TAILLE_ID)
-    copie_mem_nonsur(src = @ligne.nom[0], dst = dest + DÉCALAGE_NOM, taille = TAILLE_NOM)
-    copie_mem_nonsur(src = @ligne.courriel[0], dst = dest + DÉCALAGE_COURRIEL, taille = TAILLE_COURRIEL)
+    copie_mem_nonsur(src = *ligne.id, dst = dest, taille = TAILLE_ID)
+    copie_mem_nonsur(src = *ligne.nom[0], dst = dest + DÉCALAGE_NOM, taille = TAILLE_NOM)
+    copie_mem_nonsur(src = *ligne.courriel[0], dst = dest + DÉCALAGE_COURRIEL, taille = TAILLE_COURRIEL)
 }
 
 désérialise_ligne :: fonc (src: *rien, ligne: *Ligne) -> rien
 {
-    copie_mem_nonsur(dst = @ligne.id, src = src, taille = TAILLE_ID)
-    copie_mem_nonsur(dst = @ligne.nom[0], src = src + DÉCALAGE_NOM, taille = TAILLE_NOM)
-    copie_mem_nonsur(dst = @ligne.courriel[0], src = src + DÉCALAGE_COURRIEL, taille = TAILLE_COURRIEL)
+    copie_mem_nonsur(dst = *ligne.id, src = src, taille = TAILLE_ID)
+    copie_mem_nonsur(dst = *ligne.nom[0], src = src + DÉCALAGE_NOM, taille = TAILLE_NOM)
+    copie_mem_nonsur(dst = *ligne.courriel[0], src = src + DÉCALAGE_COURRIEL, taille = TAILLE_COURRIEL)
 }
 
 Instruction :: struct {
@@ -102,8 +102,8 @@ prépare_instruction :: fonc (commande: chaine, inst: *Instruction) -> PrépareR
         // À FAIRE : vérifie que tout est dans le bon ordre
         inst.type = TypeInstruction.INSÈRE
         inst.ligne_à_insérer.id = id
-        copie_chaine_vers_tableau(@inst.ligne_à_insérer.nom[0], nom)
-        copie_chaine_vers_tableau(@inst.ligne_à_insérer.courriel[0], courriel)
+        copie_chaine_vers_tableau(*inst.ligne_à_insérer.nom[0], nom)
+        copie_chaine_vers_tableau(*inst.ligne_à_insérer.courriel[0], courriel)
 
         si nom.taille > TAILLE_MAX_NOM {
             retourne PrépareRésultat.CHAINE_TROP_LONGUE
@@ -139,7 +139,7 @@ exécute_insertion :: fonc (inst: *Instruction, table: *Table) -> RésultatExéc
         retourne RésultatExécution.TABLE_PLEINE
     }
 
-    ligne_à_insérer := @inst.ligne_à_insérer
+    ligne_à_insérer := *inst.ligne_à_insérer
 
     curseur := curseur_fin_de_table(table)
     slot := valeur_curseur(curseur)
@@ -167,7 +167,7 @@ imprime_ligne :: fonc (ligne: *Ligne) -> rien
                     arrête
                 }
 
-               chaine_ajoute(@chn_nom, c)
+               chaine_ajoute(*chn_nom, c)
             }
         }
     }
@@ -181,7 +181,7 @@ imprime_ligne :: fonc (ligne: *Ligne) -> rien
                     arrête
                 }
 
-               chaine_ajoute(@chn_courriel, c)
+               chaine_ajoute(*chn_courriel, c)
             }
         }
     }
@@ -196,8 +196,8 @@ exécute_sélection :: fonc (inst: *Instruction, table: *Table) -> RésultatExé
 
     tantque !curseur.est_fin_de_table {
         slot := valeur_curseur(curseur)
-        désérialise_ligne(slot, @ligne)
-        imprime_ligne(@ligne)
+        désérialise_ligne(slot, *ligne)
+        imprime_ligne(*ligne)
 
         avance_curseur(curseur)
     }
@@ -274,7 +274,7 @@ principale :: fonc () -> z32
         }
 
         instruction : Instruction
-        discr prépare_instruction(entrée, @instruction) {
+        discr prépare_instruction(entrée, *instruction) {
             SUCCÈS {}
             ERREUR_SYNTAXE {
                 imprime("Erreur de syntaxe pour '%'\n", entrée)
@@ -293,7 +293,7 @@ principale :: fonc () -> z32
             }
         }
 
-        discr exécute_instruction(@instruction, table) {
+        discr exécute_instruction(*instruction, table) {
             INVALIDE {
                 imprime("Exécution invalide.\n")
             }

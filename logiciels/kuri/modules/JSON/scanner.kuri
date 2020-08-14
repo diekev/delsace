@@ -79,7 +79,7 @@ enregistre_pos_mot :: fonc (scanner: *ScannerJSON) -> rien
 
 mot_courant :: fonc (scanner: *ScannerJSON) -> chaine
 {
-    retourne construit_chaine(@scanner.script[scanner.position_mot], scanner.position - scanner.position_mot)
+    retourne construit_chaine(*scanner.script[scanner.position_mot], scanner.position - scanner.position_mot)
 }
 
 saute_espaces_blancs :: fonc (scanner : *ScannerJSON) -> rien
@@ -146,7 +146,7 @@ lis :: fonc (scanner : *ScannerJSON) -> rien
 
 lis_true :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    chn := construit_chaine(@scanner.script[scanner.position], 4)
+    chn := construit_chaine(*scanner.script[scanner.position], 4)
 
     si chn != "true" {
         retourne LexèmeJSON.INVALIDE
@@ -161,7 +161,7 @@ lis_true :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 
 lis_false :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    chn := construit_chaine(@scanner.script[scanner.position], 5)
+    chn := construit_chaine(*scanner.script[scanner.position], 5)
 
     si chn != "false" {
         retourne LexèmeJSON.INVALIDE
@@ -176,7 +176,7 @@ lis_false :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 
 lis_null :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    chn := construit_chaine(@scanner.script[scanner.position], 4)
+    chn := construit_chaine(*scanner.script[scanner.position], 4)
 
     si chn != "null" {
         retourne LexèmeJSON.INVALIDE
@@ -656,12 +656,12 @@ remplis_struct_depuis_chaine_json :: fonc (script: chaine, structure: eini) -> b
 {
     scanner : ScannerJSON
 
-    si !initialise_scanner(@scanner, script, structure) {
+    si !initialise_scanner(*scanner, script, structure) {
         imprime("Impossible d'initialiser le scanner, la valeur passée n'est pas une structure !\n")
         retourne faux
     }
 
-    résultat := lis_objet(@scanner)
+    résultat := lis_objet(*scanner)
 
     si résultat != LexèmeJSON.FIN_OBJET {
         imprime("Erreur lors du scan du script, résulat : %\n", résultat)

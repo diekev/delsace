@@ -841,12 +841,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto enfant = expr->expr;
 			auto type = enfant->type;
 
-			if (dls::outils::est_element(expr->lexeme->genre, GenreLexeme::FOIS_UNAIRE, GenreLexeme::ESP_UNAIRE)) {
-				if (type->genre != GenreType::TYPE_DE_DONNEES) {
-					rapporte_erreur("attendu l'expression d'un type", enfant);
-					return true;
-				}
-
+			if (type->est_type_de_donnees() && dls::outils::est_element(expr->lexeme->genre, GenreLexeme::FOIS_UNAIRE, GenreLexeme::ESP_UNAIRE)) {
 				auto type_de_donnees = type->comme_type_de_donnees();
 				auto type_connu = type_de_donnees->type_connu;
 
@@ -871,7 +866,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (expr->type == nullptr) {
-				if (expr->lexeme->genre == GenreLexeme::AROBASE) {
+				if (expr->lexeme->genre == GenreLexeme::FOIS_UNAIRE) {
 					if (!est_valeur_gauche(enfant->genre_valeur)) {
 						rapporte_erreur("Ne peut pas prendre l'adresse d'une valeur-droite.", enfant);
 						return true;

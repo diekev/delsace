@@ -42,11 +42,11 @@ détruit_rendeuse_texte :: fonc (rendeuse: *RendeuseTexte) -> rien
     texture_atlas_delete(rendeuse.atlas)
     texture_font_delete(rendeuse.font)
 
-    glDeleteVertexArrays(1, @rendeuse.id_tableau_vertex)
-    glDeleteBuffers(1, @rendeuse.id_tampon_vertex)
-    glDeleteBuffers(1, @rendeuse.id_tampon_index)
-    glDeleteBuffers(1, @rendeuse.id_tampon_couleur)
-    glDeleteBuffers(1, @rendeuse.id_tampon_tex_coord)
+    glDeleteVertexArrays(1, *rendeuse.id_tableau_vertex)
+    glDeleteBuffers(1, *rendeuse.id_tampon_vertex)
+    glDeleteBuffers(1, *rendeuse.id_tampon_index)
+    glDeleteBuffers(1, *rendeuse.id_tampon_couleur)
+    glDeleteBuffers(1, *rendeuse.id_tampon_tex_coord)
 
     glDeleteProgram(rendeuse.programme)
 
@@ -129,12 +129,12 @@ dessine_texte :: fonc (rendeuse: *RendeuseTexte, texte: chaine) -> rien
 	markup.font.rendermode = rendermode_t.RENDER_OUTLINE_EDGE
 	markup.font.outline_thickness = 0.2
 
-	dessine_lettres(rendeuse, rendeuse.tampon, texte, rendeuse.atlas, @markup, pos, taille)
+	dessine_lettres(rendeuse, rendeuse.tampon, texte, rendeuse.atlas, *markup, pos, taille)
 
 	markup.foreground_color = blanc
 	markup.font.rendermode = rendermode_t.RENDER_NORMAL
 
-	dessine_lettres(rendeuse, rendeuse.tampon, texte, rendeuse.atlas, @markup, pos, taille)
+	dessine_lettres(rendeuse, rendeuse.tampon, texte, rendeuse.atlas, *markup, pos, taille)
 
 	rendeuse.décalage += rendeuse.taille_police
 }
@@ -166,7 +166,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
     dernier_caractère : *z8 = nul
 
     pour c dans texte {
-		glyph := texture_font_get_glyph(markup.font, @c)
+		glyph := texture_font_get_glyph(markup.font, *c)
 
 		si glyph == nul {
 			continue
@@ -189,50 +189,50 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 		t1 := glyph.t1;
 
 		decalage_index := sommets.taille comme z32
-		tableau_ajoute(@indices, 0 + decalage_index)
-		tableau_ajoute(@indices, 1 + decalage_index)
-		tableau_ajoute(@indices, 2 + decalage_index)
-		tableau_ajoute(@indices, 0 + decalage_index)
-		tableau_ajoute(@indices, 2 + decalage_index)
-		tableau_ajoute(@indices, 3 + decalage_index)
+		tableau_ajoute(*indices, 0 + decalage_index)
+		tableau_ajoute(*indices, 1 + decalage_index)
+		tableau_ajoute(*indices, 2 + decalage_index)
+		tableau_ajoute(*indices, 0 + decalage_index)
+		tableau_ajoute(*indices, 2 + decalage_index)
+		tableau_ajoute(*indices, 3 + decalage_index)
 
-		tableau_ajoute(@sommets, Vec2r( x = x0, y = y0 ))
-		tableau_ajoute(@sommets, Vec2r( x = x0, y = y1 ))
-		tableau_ajoute(@sommets, Vec2r( x = x1, y = y1 ))
-		tableau_ajoute(@sommets, Vec2r( x = x1, y = y0 ))
+		tableau_ajoute(*sommets, Vec2r( x = x0, y = y0 ))
+		tableau_ajoute(*sommets, Vec2r( x = x0, y = y1 ))
+		tableau_ajoute(*sommets, Vec2r( x = x1, y = y1 ))
+		tableau_ajoute(*sommets, Vec2r( x = x1, y = y0 ))
 
-		tableau_ajoute(@uvs, Vec2r( x = s0, y = t0 ))
-		tableau_ajoute(@uvs, Vec2r( x = s0, y = t1 ))
-		tableau_ajoute(@uvs, Vec2r( x = s1, y = t1 ))
-		tableau_ajoute(@uvs, Vec2r( x = s1, y = t0 ))
+		tableau_ajoute(*uvs, Vec2r( x = s0, y = t0 ))
+		tableau_ajoute(*uvs, Vec2r( x = s0, y = t1 ))
+		tableau_ajoute(*uvs, Vec2r( x = s1, y = t1 ))
+		tableau_ajoute(*uvs, Vec2r( x = s1, y = t0 ))
 
-        tableau_ajoute(@couleurs, couleur)
-        tableau_ajoute(@couleurs, couleur)
-        tableau_ajoute(@couleurs, couleur)
-        tableau_ajoute(@couleurs, couleur)
+        tableau_ajoute(*couleurs, couleur)
+        tableau_ajoute(*couleurs, couleur)
+        tableau_ajoute(*couleurs, couleur)
+        tableau_ajoute(*couleurs, couleur)
 
 		pen.x += glyph.advance_x
 
-        dernier_caractère = @c
+        dernier_caractère = *c
 	}
 
     // --------------------------------------
 
-    glGenVertexArrays(1, @rendeuse.id_tableau_vertex)
-    glGenBuffers(1, @rendeuse.id_tampon_index)
-    glGenBuffers(1, @rendeuse.id_tampon_vertex)
-    glGenBuffers(1, @rendeuse.id_tampon_couleur)
-    glGenBuffers(1, @rendeuse.id_tampon_tex_coord)
+    glGenVertexArrays(1, *rendeuse.id_tableau_vertex)
+    glGenBuffers(1, *rendeuse.id_tampon_index)
+    glGenBuffers(1, *rendeuse.id_tampon_vertex)
+    glGenBuffers(1, *rendeuse.id_tampon_couleur)
+    glGenBuffers(1, *rendeuse.id_tampon_tex_coord)
 
     glBindVertexArray(rendeuse.id_tableau_vertex)
 
     // --------------------------------------
 
     glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_vertex);
-	glBufferData(OGL.ARRAY_BUFFER, sommets.taille comme n64 * taille_de(Vec2r), @sommets[0], OGL.STATIC_DRAW);
+	glBufferData(OGL.ARRAY_BUFFER, sommets.taille comme n64 * taille_de(Vec2r), *sommets[0], OGL.STATIC_DRAW);
 
 	glBindBuffer(OGL.ELEMENT_ARRAY_BUFFER, rendeuse.id_tampon_index);
-	glBufferData(OGL.ELEMENT_ARRAY_BUFFER, indices.taille comme n64 * taille_de(z32), @indices[0], OGL.STATIC_DRAW);
+	glBufferData(OGL.ELEMENT_ARRAY_BUFFER, indices.taille comme n64 * taille_de(z32), *indices[0], OGL.STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, OGL.FLOAT, OGL.FALSE, 0, nul);
@@ -240,7 +240,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
     // --------------------------------------
 
     glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_tex_coord);
-	glBufferData(OGL.ARRAY_BUFFER, uvs.taille comme n64 * taille_de(Vec2r), @uvs[0], OGL.STATIC_DRAW);
+	glBufferData(OGL.ARRAY_BUFFER, uvs.taille comme n64 * taille_de(Vec2r), *uvs[0], OGL.STATIC_DRAW);
 
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, OGL.FLOAT, OGL.FALSE, 0, nul);
@@ -248,7 +248,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
     // --------------------------------------
 
     glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_couleur);
-	glBufferData(OGL.ARRAY_BUFFER, couleurs.taille comme n64 * taille_de(Vec4r), @couleurs[0], OGL.STATIC_DRAW);
+	glBufferData(OGL.ARRAY_BUFFER, couleurs.taille comme n64 * taille_de(Vec4r), *couleurs[0], OGL.STATIC_DRAW);
 
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 4, OGL.FLOAT, OGL.FALSE, 0, nul);
@@ -266,7 +266,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 		imprime("Les données de l'atlas sont nuls !\n")
 	}
 
-	glGenTextures(1, @atlas.id )
+	glGenTextures(1, *atlas.id )
 	glBindTexture(_GL_TEXTURE_2D, atlas.id)
 	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_WRAP_S, _GL_CLAMP_TO_EDGE );
 	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_WRAP_T, _GL_CLAMP_TO_EDGE );
@@ -289,5 +289,5 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
         glUseProgram(0)
 	}
 
-	glDeleteTextures(1, @atlas.id)
+	glDeleteTextures(1, *atlas.id)
 }

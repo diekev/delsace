@@ -6,7 +6,7 @@ ChaineUTF16 :: struct {
 
 ajoute :: fonc (chn: *ChaineUTF16, unité: n16)
 {
-    tableau_ajoute(@chn.unités, unité)
+    tableau_ajoute(*chn.unités, unité)
 }
 
 taille :: fonc (chn: ChaineUTF16) -> z64
@@ -79,10 +79,10 @@ converti_vers_scalaire :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 
     pour chn.unités {
         si !est_valeur_scalaire(it) {
-            ajoute(@résultat, 0xFFFD)
+            ajoute(*résultat, 0xFFFD)
         }
         sinon {
-            ajoute(@résultat, it)
+            ajoute(*résultat, it)
         }
     }
 

@@ -70,12 +70,12 @@ inverse_matrice_sans_échelle :: fonc (mat: *Mat4r) -> Mat4r
 matrice_de_visé :: fonc (pos: *Vec3r, cible: *Vec3r, haut: *Vec3r) -> Mat4r
 {
     dir_avant := soustrait(mémoire(cible), mémoire(pos))
-    dir_avant = normalise(@dir_avant)
+    dir_avant = normalise(*dir_avant)
 
-    dir_droite := produit_vectoriel(@dir_avant, haut)
-    dir_droite = normalise(@dir_droite)
+    dir_droite := produit_vectoriel(*dir_avant, haut)
+    dir_droite = normalise(*dir_droite)
 
-    dir_haut := produit_vectoriel(@dir_droite, @dir_avant)
+    dir_haut := produit_vectoriel(*dir_droite, *dir_avant)
 
     résultat := construit_identité_mat4r()
 
@@ -269,7 +269,7 @@ inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool
 		/* Permute les lignes _irow_ et _icol_ pour le pivot. */
 		si il != ic {
             pour k dans 0 ... 3 {
-                échange(@matrice_inverse.m[il][k], @matrice_inverse.m[ic][k])
+                échange(*matrice_inverse.m[il][k], *matrice_inverse.m[ic][k])
             }
 		}
 
@@ -315,8 +315,8 @@ inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool
 		}
 
 		pour k dans 0 ... 3 {
-			échange(@matrice_inverse.m[k][index_lignes[j]],
-					@matrice_inverse.m[k][index_colonnes[j]]);
+			échange(*matrice_inverse.m[k][index_lignes[j]],
+					*matrice_inverse.m[k][index_colonnes[j]]);
 		}
 
         j -= 1
@@ -329,7 +329,7 @@ inverse :: fonc (mat: *Mat4r) -> Mat4r
 {
     résultat := mémoire(mat)
 
-    si !inverse_impl(@résultat) {
+    si !inverse_impl(*résultat) {
         retourne construit_identité_mat4r()
     }
 

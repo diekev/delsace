@@ -19,6 +19,6 @@ min4 :: fonc(p : []r64) -> rien
 	chac i dans q...(q2 - 1) {
 		m0 := i - optionel(p[i - q] <= p[i], q);
 		m1 := i + q - optionel(p[i + q2] < p[i + q], q);
-		échange(@p[i - q], @p[p[m0] <= p[m1] ? m0 : m1]);
+		échange(*p[i - q], *p[p[m0] <= p[m1] ? m0 : m1]);
 	}
 }

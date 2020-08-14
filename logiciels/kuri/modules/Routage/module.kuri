@@ -16,7 +16,7 @@ divise_url :: fonc (ligne: chaine) -> []chaine
                 premier_slash = faux
 
                 mot := ligne.sous_chaine(0, 1)
-                tableau_ajoute(@mots, mot)
+                tableau_ajoute(*mots, mot)
 
 		    	début_mot = i + 1
 			    taille_mot = 0
@@ -24,7 +24,7 @@ divise_url :: fonc (ligne: chaine) -> []chaine
             }
 
 			mot := ligne.sous_chaine(début_mot, début_mot + taille_mot)
-            tableau_ajoute(@mots, mot)
+            tableau_ajoute(*mots, mot)
 
 			début_mot = i + 1
 			taille_mot = 0
@@ -38,7 +38,7 @@ divise_url :: fonc (ligne: chaine) -> []chaine
 		mot := ligne.sous_chaine(début_mot, début_mot + taille_mot)
 
         si mot {
-            tableau_ajoute(@mots, mot)
+            tableau_ajoute(*mots, mot)
         }
 	}
 
@@ -124,7 +124,7 @@ parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
             règle.chn = it
         }
 
-        tableau_ajoute(@résultat, règle)
+        tableau_ajoute(*résultat, règle)
     }
 
     retourne résultat
@@ -190,7 +190,7 @@ apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> Do
                 données.nom = règle.nom_données
                 données.données = it
 
-                tableau_ajoute(@résultat, données)
+                tableau_ajoute(*résultat, données)
             }
             ApparieNombreEntier {
                 si !est_seulement_nombre(it) {
@@ -202,7 +202,7 @@ apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> Do
                 données.nom = règle.nom_données
                 données.données = it
 
-                tableau_ajoute(@résultat, données)
+                tableau_ajoute(*résultat, données)
             }
         }
     }
@@ -245,7 +245,7 @@ ajoute_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode_get: fonc(*r
         retourne
     }
 
-    tableau_ajoute(@routeuse.routes, route)
+    tableau_ajoute(*routeuse.routes, route)
 }
 
 apparie_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode: chaine) -> rien

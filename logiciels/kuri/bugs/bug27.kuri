@@ -6,15 +6,15 @@ principale :: fonc () -> z32
 {
     tabl : []z32
 
-    tableau_ajoute(@tabl, 1)
-    tableau_ajoute(@tabl, 1)
-    tableau_ajoute(@tabl, 1)
-    tableau_ajoute(@tabl, 1)
+    tableau_ajoute(*tabl, 1)
+    tableau_ajoute(*tabl, 1)
+    tableau_ajoute(*tabl, 1)
+    tableau_ajoute(*tabl, 1)
 
     déloge tabl
 
-    tableau_ajoute(@tabl, 1) // crash
-    tableau_ajoute(@tabl, 1)
+    tableau_ajoute(*tabl, 1) // crash
+    tableau_ajoute(*tabl, 1)
 
     déloge tabl
 

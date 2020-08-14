@@ -16,7 +16,7 @@ ListeÉlémentsActifsFormattage :: struct {
 détruit_liste :: fonc (liste: *ListeÉlémentsActifsFormattage)
 {
     pour liste.entrées {
-        détruit_lexème(@it.lexème)
+        détruit_lexème(*it.lexème)
     }
 
     déloge liste.entrées
@@ -82,15 +82,15 @@ ajoute :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément, 
 {
     entrée : EntréeFormattage = ---
     entrée.élément = élément
-    entrée.lexème = copie_lexème(@lexème)
+    entrée.lexème = copie_lexème(*lexème)
 
-    tableau_ajoute(@liste.entrées, entrée)
+    tableau_ajoute(*liste.entrées, entrée)
 }
 
 ajoute_marqueur :: fonc (liste: *ListeÉlémentsActifsFormattage)
 {
     entrée : EntréeFormattage
-    tableau_ajoute(@liste.entrées, entrée)
+    tableau_ajoute(*liste.entrées, entrée)
 }
 
 possède :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément) -> bool
@@ -132,13 +132,13 @@ supprime_élément :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: 
 
     pour liste.entrées {
         si it.élément == élément {
-            détruit_lexème(@it.lexème)
+            détruit_lexème(*it.lexème)
             index = index_it
             arrête
         }
     }
 
-    tableau_supprime_index(@liste.entrées, index)
+    tableau_supprime_index(*liste.entrées, index)
 }
 
 index_élément_formattage :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément) -> z64
@@ -158,7 +158,7 @@ enlève_éléments_jusqu_au_dernier_marqueur :: fonc (liste: *ListeÉlémentsAct
 
     boucle {
         entrée := liste.entrées[index]
-        tableau_supprime_index(@liste.entrées, index)
+        tableau_supprime_index(*liste.entrées, index)
 
         si entrée.élément == nul {
             arrête

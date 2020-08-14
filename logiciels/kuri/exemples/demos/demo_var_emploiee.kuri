@@ -24,7 +24,7 @@ principale :: fonc () -> z32
 {
     test : TEST
     imprime_test(test)
-    modifie_test(@test)
+    modifie_test(*test)
     imprime_test(test)
 
     retourne 0

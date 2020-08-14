@@ -55,7 +55,7 @@ AssembleuseObjet :: struct {
 détruit :: fonc(assembleuse: &AssembleuseObjet) -> rien
 {
     détruit(assembleuse.pile)
-    détruit(@assembleuse.gestionnaire)
+    détruit(*assembleuse.gestionnaire)
 }
 
 empile_objet :: fonc(assembleuse: &AssembleuseObjet, objet: *Objet) -> rien
@@ -82,7 +82,7 @@ crée_objet :: fonc(assembleuse: &AssembleuseObjet, nom_objet: chaine, type: Typ
 		}
 		sinon {
 			tabl := objet_haut comme *ObjetListe
-			tableau_ajoute(@tabl.valeur, objet)
+			tableau_ajoute(*tabl.valeur, objet)
 		}
 	}
 
@@ -93,22 +93,22 @@ crée_objet :: fonc(assembleuse: &AssembleuseObjet, type: TypeObjet) -> *Objet
 {
     discr type {
         NUL {
-            retourne crée_nul(@assembleuse.gestionnaire)
+            retourne crée_nul(*assembleuse.gestionnaire)
         }
         DICTIONNAIRE {
-            retourne crée_dictionnaire(@assembleuse.gestionnaire)
+            retourne crée_dictionnaire(*assembleuse.gestionnaire)
         }
         ENTIER {
-            retourne crée_entier(@assembleuse.gestionnaire)
+            retourne crée_entier(*assembleuse.gestionnaire)
         }
         RÉEL {
-            retourne crée_réel(@assembleuse.gestionnaire)
+            retourne crée_réel(*assembleuse.gestionnaire)
         }
         CHAINE {
-            retourne crée_chaine(@assembleuse.gestionnaire)
+            retourne crée_chaine(*assembleuse.gestionnaire)
         }
         LISTE {
-            retourne crée_liste(@assembleuse.gestionnaire)
+            retourne crée_liste(*assembleuse.gestionnaire)
         }
     }
 

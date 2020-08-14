@@ -63,14 +63,14 @@ commute_boutisme :: fonc(val : *r64) -> rien #enligne
 commute_boutisme :: fonc(tabl : []$T) -> rien #enligne
 {
     pour val dans tabl {
-        commute_boutisme(@val)
+        commute_boutisme(*val)
     }
 }
 
 petit_boutisme :: fonc () -> bool
 {
     UN := 1
-    retourne mémoire(@UN comme *z8) == 1
+    retourne mémoire(*UN comme *z8) == 1
 }
 
 grand_boutisme :: fonc () -> bool

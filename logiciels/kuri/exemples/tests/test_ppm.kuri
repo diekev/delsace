@@ -201,16 +201,16 @@ lis_jpeg :: fonc(chemin : chaine) -> Image
     erreur_jpeg : jpeg_error_mgr;
     info : jpeg_decompress_struct;
 
-	jpeg_create_decompress(@info);
-	info.err = jpeg_std_error(@erreur_jpeg);
+	jpeg_create_decompress(*info);
+	info.err = jpeg_std_error(*erreur_jpeg);
 
-	jpeg_stdio_src(@info, file);
+	jpeg_stdio_src(*info, file);
 
-	jpeg_save_markers(@info, 0xE1, 0xffff);
+	jpeg_save_markers(*info, 0xE1, 0xffff);
 
-	jpeg_read_header(@info, 1);
+	jpeg_read_header(*info, 1);
 
-	jpeg_start_decompress(@info);
+	jpeg_start_decompress(*info);
 
     largeur := info.output_width comme z32;
 	hauteur := info.output_height comme z32;
@@ -229,12 +229,12 @@ lis_jpeg :: fonc(chemin : chaine) -> Image
     imprime("Largeur = ", largeur, '\n');
 
 	pour xi dans 0...hauteur - 1 {
-        buffer := @image.tampon[xi * stride]
-		jpeg_read_scanlines(@info, @buffer, 1);
+        buffer := *image.tampon[xi * stride]
+		jpeg_read_scanlines(*info, *buffer, 1);
 	}
 
-	jpeg_finish_decompress(@info);
-	jpeg_destroy_decompress(@info);
+	jpeg_finish_decompress(*info);
+	jpeg_destroy_decompress(*info);
 
     retourne image;
 }
@@ -253,10 +253,10 @@ lis_jpeg :: fonc(chemin : chaine) -> Image
 	info : jpeg_compress_struct;
 	jerr : jpeg_error_mgr;
 
-	jpeg_create_compress(@info);
-	info.err = jpeg_std_error(@jerr);
+	jpeg_create_compress(*info);
+	info.err = jpeg_std_error(*jerr);
 
-	jpeg_stdio_dest(@info, file);
+	jpeg_stdio_dest(*info, file);
 	info.image_width = image.largeur comme n32;
 	info.image_height = image.hauteur comme n32;
 	info.input_components = image.channels;
@@ -266,23 +266,23 @@ lis_jpeg :: fonc(chemin : chaine) -> Image
 		3 { info.in_color_space = _JCS_RGB; }
 	}
 
-	jpeg_set_defaults(@info);
+	jpeg_set_defaults(*info);
 
     info.comp_info[0].h_samp_factor = 2;
     info.comp_info[0].v_samp_factor = 2;
 
-	jpeg_set_quality(@info, 95, 0);
-    jpeg_start_compress(@info, 1);
+	jpeg_set_quality(*info, 95, 0);
+    jpeg_start_compress(*info, 1);
 
 	stride := image.largeur * image.channels;
 
 	pour x dans 0...image.hauteur - 1 {
-        buffer := @image.tampon[x * stride]
-		jpeg_write_scanlines(@info, @buffer, 1);
+        buffer := *image.tampon[x * stride]
+		jpeg_write_scanlines(*info, *buffer, 1);
 	}
 
-	jpeg_finish_compress(@info);
-	jpeg_destroy_compress(@info);
+	jpeg_finish_compress(*info);
+	jpeg_destroy_compress(*info);
 }
 
 test_jpeg :: fonc() -> rien
@@ -298,7 +298,7 @@ test_jpeg :: fonc() -> rien
 
     imprime("Mémoire utilisée : %o\n", mémoire_utilisée());
 
-    détruit_image(@image);
+    détruit_image(*image);
 }
 
 //####################
@@ -311,7 +311,7 @@ principale :: fonc () -> z32
 
     écris_ppm(image, "/home/kevin/test.ppm");
 
-    détruit_image(@image);
+    détruit_image(*image);
 
     //test_jpeg();
 

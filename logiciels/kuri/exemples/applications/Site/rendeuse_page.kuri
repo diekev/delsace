@@ -10,10 +10,10 @@ RendeusePage :: struct {
 détruit_rendeuse :: fonc (rendeuse_gabarit: *RendeusePage) -> rien
 {
     pour page dans rendeuse_gabarit.cache_page {
-        détruit_page_gabarit(@page)
+        détruit_page_gabarit(*page)
     }
 
-    détruit_catalogue(@rendeuse_gabarit.catalogue)
+    détruit_catalogue(*rendeuse_gabarit.catalogue)
 
     déloge rendeuse_gabarit.cache_page
 }
@@ -35,11 +35,11 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
 {
     pour page dans rendeuse_gabarit.cache_page {
         si page.fichier.nom_court == nom_court {
-            retourne @page
+            retourne *page
         }
     }
 
-    fichier := trouve_fichier(@rendeuse_gabarit.catalogue, nom_court)
+    fichier := trouve_fichier(*rendeuse_gabarit.catalogue, nom_court)
 
     si fichier == nul {
         retourne nul
@@ -70,9 +70,9 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
 
     page.racine = page.syntaxeuse.assembleuse.pile.haut()
 
-    tableau_ajoute(@rendeuse_gabarit.cache_page, page)
+    tableau_ajoute(*rendeuse_gabarit.cache_page, page)
 
-    retourne @rendeuse_gabarit.cache_page[rendeuse_gabarit.cache_page.taille - 1]
+    retourne *rendeuse_gabarit.cache_page[rendeuse_gabarit.cache_page.taille - 1]
 }
 
 crée_réponse_fichier_gabarit_manquant :: fonc () -> RéponseRequête
@@ -100,10 +100,10 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     données_génération.valeur = données
 
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse) }
+	initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
-    erreur_ := génère_page(@données_génération, page.racine, @enchaineuse)
+    erreur_ := génère_page(*données_génération, page.racine, *enchaineuse)
 
     si erreur_ != ErreurGénérationPage.AUCUNE {
         retourne crée_réponse_fichier_gabarit_manquant()
@@ -112,6 +112,6 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     retourne RéponseRequête(
         code = CodeÉtatHTTP.OK,
         type_contenu = TypeContenu.TEXT_HTML,
-        contenu = chaine_depuis_enchaineuse(@enchaineuse)
+        contenu = chaine_depuis_enchaineuse(*enchaineuse)
     )
 }

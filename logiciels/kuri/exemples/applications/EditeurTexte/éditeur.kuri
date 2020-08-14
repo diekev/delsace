@@ -29,8 +29,8 @@ importe Temps
 
 éditeur_ferme :: fonc (éditeur: *Éditeur) -> rien
 {
-    déloge_tableau_ligne(@éditeur.lignes_texte)
-    déloge_tableau_ligne(@éditeur.lignes_rendu)
+    déloge_tableau_ligne(*éditeur.lignes_texte)
+    déloge_tableau_ligne(*éditeur.lignes_rendu)
     déloge éditeur.message
     déloge éditeur.chemin_fichier
 }
@@ -56,7 +56,7 @@ importe Temps
         si c == '\r' || c == '\n' {
             si taille_ligne != 0 {
                 ligne : chaine
-                ligne.pointeur = @contenu[début_ligne]
+                ligne.pointeur = *contenu[début_ligne]
                 ligne.taille = taille_ligne
 
                 éditeur_ajoute_ligne(éditeur, ligne, éditeur.lignes_texte.taille)
@@ -79,7 +79,7 @@ importe Temps
 
     si taille_ligne != 0 {
         ligne : chaine
-        ligne.pointeur = @contenu[début_ligne]
+        ligne.pointeur = *contenu[début_ligne]
         ligne.taille = taille_ligne
 
         éditeur_ajoute_ligne(éditeur, ligne, éditeur.lignes_texte.taille)
@@ -97,18 +97,18 @@ importe Temps
     ligne = copie_chaine(ligne)
 
     si où == éditeur.lignes_texte.taille {
-        tableau_ajoute(@éditeur.lignes_texte, ligne)
+        tableau_ajoute(*éditeur.lignes_texte, ligne)
         éditeur_ajourne_ligne(éditeur, ligne, où)
     }
     sinon {
-        tableau_insère_index(@éditeur.lignes_texte, ligne, où)
+        tableau_insère_index(*éditeur.lignes_texte, ligne, où)
 
         // chaine_nulle est utilisé car éditeur_ajourne_ligne libère
         // la mémoire à l'index 'où', une chaine nulle ne serait pas
         // libérer et nous n'aurons pas nous soucier de la validiter
         // du pointeur de la chaine
         chaine_nulle : chaine
-        tableau_insère_index(@éditeur.lignes_rendu, chaine_nulle, où)
+        tableau_insère_index(*éditeur.lignes_rendu, chaine_nulle, où)
         éditeur_ajourne_ligne(éditeur, ligne, où)
     }
 
@@ -135,14 +135,14 @@ importe Temps
 éditeur_chaine_depuis_ligne :: fonc (éditeur: *Éditeur) -> chaine
 {
     enchaineuse : Enchaineuse
-    initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse) }
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
     pour ligne dans éditeur.lignes_texte {
-        ajoute_au_tampon(@enchaineuse, ligne, "\n")
+        ajoute_au_tampon(*enchaineuse, ligne, "\n")
     }
 
-    retourne chaine_depuis_enchaineuse(@enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 éditeur_sauvegarde_fichier :: fonc (éditeur: *Éditeur, rappel_prompt : fonc()(chaine)) -> rien
@@ -165,12 +165,12 @@ importe Temps
     }
 
     // À FAIRE : tronque fichier
-    octets_écris := tente écris(@fichier, texte) piège err {
+    octets_écris := tente écris(*fichier, texte) piège err {
         éditeur_ajourne_message_status(éditeur, "impossible d'écrire le fichier")
         retourne
     }
 
-    tente ferme(@fichier) piège err {
+    tente ferme(*fichier) piège err {
         éditeur_ajourne_message_status(éditeur, "impossible de fermer le fichier")
         retourne
     }
@@ -183,7 +183,7 @@ TAILLE_TABULATION :: 4
 
 éditeur_ajourne_lignes :: fonc (éditeur: *Éditeur) -> rien
 {
-    déloge_tableau_ligne(@éditeur.lignes_rendu)
+    déloge_tableau_ligne(*éditeur.lignes_rendu)
 
     pour ligne, idx dans éditeur.lignes_texte {
         éditeur_ajourne_ligne(éditeur, ligne, idx)
@@ -219,7 +219,7 @@ TAILLE_TABULATION :: 4
     }
 
     si index >= éditeur.lignes_rendu.taille {
-        tableau_ajoute(@éditeur.lignes_rendu, nligne)
+        tableau_ajoute(*éditeur.lignes_rendu, nligne)
     }
     sinon {
         déloge éditeur.lignes_rendu[index]
@@ -316,8 +316,8 @@ TAILLE_TABULATION :: 4
     déloge éditeur.lignes_texte[index_ligne]
     déloge éditeur.lignes_rendu[index_ligne]
 
-    tableau_supprime_index(@éditeur.lignes_texte, index_ligne)
-    tableau_supprime_index(@éditeur.lignes_rendu, index_ligne)
+    tableau_supprime_index(*éditeur.lignes_texte, index_ligne)
+    tableau_supprime_index(*éditeur.lignes_rendu, index_ligne)
 
     éditeur.modifié += 1
 }
@@ -374,14 +374,14 @@ TAILLE_TABULATION :: 4
     déloge éditeur.message
 
     enchaineuse : Enchaineuse
-    initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse) }
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
     pour arg dans args {
-        ajoute_au_tampon(@enchaineuse, arg)
+        ajoute_au_tampon(*enchaineuse, arg)
     }
 
-    éditeur.message = chaine_depuis_enchaineuse(@enchaineuse)
+    éditeur.message = chaine_depuis_enchaineuse(*enchaineuse)
     éditeur.temps_message = maintenant()
 }
 

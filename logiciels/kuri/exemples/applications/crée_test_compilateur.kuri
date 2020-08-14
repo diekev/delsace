@@ -35,23 +35,23 @@ crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 
 	// génère le code du test
 	enchaineuse : Enchaineuse
-	diffère { détruit_tampons(@enchaineuse); }
+	diffère { détruit_tampons(*enchaineuse); }
 
 	pour i dans 0 ... 5 {
-		ajoute_au_tampon(@enchaineuse, chaines[i])
+		ajoute_au_tampon(*enchaineuse, chaines[i])
 	}
 
 	pour i dans 0 ... nombre_de_ligne - 1 {
-		ajoute_au_tampon(@enchaineuse, chaines[6])
+		ajoute_au_tampon(*enchaineuse, chaines[6])
 	}
 
-	ajoute_au_tampon(@enchaineuse, chaines[7])
-	ajoute_au_tampon(@enchaineuse, chaines[8])
+	ajoute_au_tampon(*enchaineuse, chaines[7])
+	ajoute_au_tampon(*enchaineuse, chaines[8])
 
 	// écris le fichier
 	chemin := construit_chemin(chemin_fichier)
 	fichier := ouvre_fichier_ecriture(chemin)
-    chaine_reponse := chaine_depuis_enchaineuse(@enchaineuse)
+    chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse)
 	écris_fichier(fichier, chaine_reponse)
 	déloge chaine_reponse
 }

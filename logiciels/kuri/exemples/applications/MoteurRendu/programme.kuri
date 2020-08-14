@@ -6,8 +6,8 @@ vérifie_compilation :: fonc (id_nuanceur: n32) -> bool
     résultat : z32 = 0
     longueur_info_log : z32 = 0
 
-    glGetShaderiv(id_nuanceur, OGL.COMPILE_STATUS, @résultat)
-    glGetShaderiv(id_nuanceur, OGL.INFO_LOG_LENGTH, @longueur_info_log)
+    glGetShaderiv(id_nuanceur, OGL.COMPILE_STATUS, *résultat)
+    glGetShaderiv(id_nuanceur, OGL.INFO_LOG_LENGTH, *longueur_info_log)
 
     si longueur_info_log > 0 {
 		message_erreur := loge chaine(longueur_info_log + 1)
@@ -28,8 +28,8 @@ vérifie_liaison :: fonc (id_programme: n32) -> bool
     résultat : z32 = 0
     longueur_info_log : z32 = 0
 
-    glGetProgramiv(id_programme, OGL.LINK_STATUS, @résultat)
-	glGetProgramiv(id_programme, OGL.INFO_LOG_LENGTH, @longueur_info_log)
+    glGetProgramiv(id_programme, OGL.LINK_STATUS, *résultat)
+	glGetProgramiv(id_programme, OGL.INFO_LOG_LENGTH, *longueur_info_log)
 
     si longueur_info_log > 0 {
 		message_erreur := loge chaine(longueur_info_log + 1)
@@ -61,7 +61,7 @@ charge_programme :: fonc (source_vertex: chaine, source_fragment: chaine) -> n32
     diffère { détruit_nuanceur(id_nuanceur_vertex) }
 
     taille_src_vertex := source_vertex.taille comme z32
-	glShaderSource(id_nuanceur_vertex, 1, @source_vertex.pointeur , @taille_src_vertex)
+	glShaderSource(id_nuanceur_vertex, 1, *source_vertex.pointeur , *taille_src_vertex)
 	glCompileShader(id_nuanceur_vertex)
 
     si !vérifie_compilation(id_nuanceur_vertex) {
@@ -75,7 +75,7 @@ charge_programme :: fonc (source_vertex: chaine, source_fragment: chaine) -> n32
     diffère { détruit_nuanceur(id_nuanceur_fragment) }
 
     taille_src_fragment := source_fragment.taille comme z32
-	glShaderSource(id_nuanceur_fragment, 1, @source_fragment.pointeur , @taille_src_fragment)
+	glShaderSource(id_nuanceur_fragment, 1, *source_fragment.pointeur , *taille_src_fragment)
 	glCompileShader(id_nuanceur_fragment)
 
     si !vérifie_compilation(id_nuanceur_fragment) {

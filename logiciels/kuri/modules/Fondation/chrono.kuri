@@ -6,7 +6,7 @@ importe GlibC
 maintenant_sec :: fonc() -> r64
 {
 	heure : timeval
-	gettimeofday(@heure, nul)
+	gettimeofday(*heure, nul)
 
 	s := heure.tv_sec comme r64
 
@@ -18,7 +18,7 @@ maintenant_local :: fonc() -> r64
 {
 	heure : timeval
 	fuseau : timezone
-	gettimeofday(@heure, @fuseau)
+	gettimeofday(*heure, *fuseau)
 
 	s := heure.tv_sec comme r64
 	s += fuseau.tz_minuteswest comme r64 * 60.0
@@ -35,14 +35,14 @@ delta_sec :: fonc(temps : r64) -> r64
 compte_ticks_ms :: fonc() -> z64
 {
 	heure : timeval
-	gettimeofday(@heure, nul)
+	gettimeofday(*heure, nul)
 	retourne heure.tv_sec * 1000 + heure.tv_usec / 1000
 }
 
 compte_ticks_microsecondes :: fonc() -> z64
 {
 	heure : timeval
-	gettimeofday(@heure, nul)
+	gettimeofday(*heure, nul)
 	retourne heure.tv_sec * 1000000 + heure.tv_usec
 }
 

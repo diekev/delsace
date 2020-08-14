@@ -14,45 +14,45 @@ crée_maillage_cube :: fonc () -> *Maillage
 
     // SUD
     tri := crée_triangle(crée_vec3r(0.0, 0.0, 0.0), crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(1.0, 1.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
+    tableau_ajoute(*maillage.tris, tri)
 
     tri = crée_triangle(crée_vec3r(0.0, 0.0, 0.0), crée_vec3r(1.0, 1.0, 0.0), crée_vec3r(1.0, 0.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
+    tableau_ajoute(*maillage.tris, tri)
 
     // EST
     tri = crée_triangle(crée_vec3r(1.0, 0.0, 0.0), crée_vec3r(1.0, 1.0, 0.0), crée_vec3r(1.0, 1.0, 1.0))
-    tableau_ajoute(@maillage.tris, tri)
+    tableau_ajoute(*maillage.tris, tri)
 
     tri = crée_triangle(crée_vec3r(1.0, 0.0, 0.0), crée_vec3r(1.0, 1.0, 1.0), crée_vec3r(1.0, 0.0, 1.0))
-    tableau_ajoute(@maillage.tris, tri)
+    tableau_ajoute(*maillage.tris, tri)
 
     // NORD
     tri = crée_triangle(crée_vec3r(1.0, 0.0, 1.0), crée_vec3r(1.0, 1.0, 1.0), crée_vec3r(0.0, 1.0, 1.0))
-    tableau_ajoute(@maillage.tris, tri)
+    tableau_ajoute(*maillage.tris, tri)
 
     tri = crée_triangle(crée_vec3r(1.0, 0.0, 1.0), crée_vec3r(0.0, 1.0, 1.0), crée_vec3r(0.0, 0.0, 1.0))
-    tableau_ajoute(@maillage.tris, tri)
+    tableau_ajoute(*maillage.tris, tri)
 
     // OUEST
     tri = crée_triangle(crée_vec3r(0.0, 0.0, 1.0), crée_vec3r(0.0, 1.0, 1.0), crée_vec3r(0.0, 1.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
+    tableau_ajoute(*maillage.tris, tri)
 
     tri = crée_triangle(crée_vec3r(0.0, 0.0, 1.0), crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(0.0, 0.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
+    tableau_ajoute(*maillage.tris, tri)
 
     // HAUT
     tri = crée_triangle(crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(0.0, 1.0, 1.0), crée_vec3r(1.0, 1.0, 1.0))
-    tableau_ajoute(@maillage.tris, tri)
+    tableau_ajoute(*maillage.tris, tri)
 
     tri = crée_triangle(crée_vec3r(0.0, 1.0, 0.0), crée_vec3r(1.0, 1.0, 1.0), crée_vec3r(1.0, 1.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
+    tableau_ajoute(*maillage.tris, tri)
 
     // BAS
     tri = crée_triangle(crée_vec3r(1.0, 0.0, 1.0), crée_vec3r(0.0, 0.0, 1.0), crée_vec3r(0.0, 0.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
+    tableau_ajoute(*maillage.tris, tri)
 
     tri = crée_triangle(crée_vec3r(1.0, 0.0, 1.0), crée_vec3r(0.0, 0.0, 0.0), crée_vec3r(1.0, 0.0, 0.0))
-    tableau_ajoute(@maillage.tris, tri)
+    tableau_ajoute(*maillage.tris, tri)
 
     retourne maillage
 }
@@ -105,7 +105,7 @@ parse_ligne_obj :: fonc (ligne: chaine, données: eini) -> rien
             tri.p2 = données_obj.vecteurs[idx2 - 1]
         }
 
-        tableau_ajoute(@maillage.tris, tri)
+        tableau_ajoute(*maillage.tris, tri)
     }
     sinon si ligne.commence_par("v ") {
         tmp := avance(ligne, 2)
@@ -120,7 +120,7 @@ parse_ligne_obj :: fonc (ligne: chaine, données: eini) -> rien
             vec.z = extrait_nombre_réel(mots[2]) comme r32
         }
 
-        tableau_ajoute(@données_obj.vecteurs, vec)
+        tableau_ajoute(*données_obj.vecteurs, vec)
     }
 }
 

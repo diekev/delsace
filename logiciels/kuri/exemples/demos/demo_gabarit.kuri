@@ -20,8 +20,8 @@ principale :: fonc () -> z32
     imprime("résultat : %\n", y)
 
     tabl : []z32
-    tableau_ajoute(@tabl, 123)
-    tableau_ajoute(@tabl, 124)
+    tableau_ajoute(*tabl, 123)
+    tableau_ajoute(*tabl, 124)
 
     imprime("%\n", tabl)
 

@@ -209,7 +209,7 @@ normalise :: fonc (v: *Vec3r) -> Vec3r
 
 vec_depuis_nor :: fonc (n: Nor3r) -> Vec3r
 {
-    retourne mémoire(@n comme *Vec3r)
+    retourne mémoire(*n comme *Vec3r)
 }
 
 // Calcul des coordonnées UV depuis une vecteur de direction (I) et d'un

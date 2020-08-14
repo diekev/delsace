@@ -36,9 +36,9 @@ copie_mem2 :: fonc(src : []octet, dst : []octet, taille : z64) -> rien
 
 	// vérifie si superposition
 
-	ptr_deb_src := @src[0];
-	ptr_fin_src := @src[src.taille - 1];
-	ptr_deb_dst := @dst[0];
+	ptr_deb_src := *src[0];
+	ptr_fin_src := *src[src.taille - 1];
+	ptr_deb_dst := *dst[0];
 
 	// src |---------------|
 	// dst       |---------------|
@@ -76,10 +76,10 @@ test_copie_mem :: fonc() -> rien
     imprime("Chaine : ", chn, '\n');
 
     a : []octet;
-    a.pointeur = @chn[3];
+    a.pointeur = *chn[3];
     a.taille = 7;
     b : []octet;
-    b.pointeur = @chn[0];
+    b.pointeur = *chn[0];
     b.taille = 10;
 
     copie_mem(a, b, 7);

@@ -86,16 +86,16 @@ principale :: fonc(compte : z32, arguments : **z8) -> z32
 {
 	chaîne : ChaînePascal;
 
-	assigne_chaîne_pascal(@chaîne, "chaîne pascal\n");
-	imprime_chaîne_pascal(@chaîne);
+	assigne_chaîne_pascal(*chaîne, "chaîne pascal\n");
+	imprime_chaîne_pascal(*chaîne);
 
 	// Il est possible de nommer les paramètres des foncs et ainsi de les
 	// donner dans le désordre.
 	assigne_chaîne_pascal(
 	    chaîne="chaîne pascal arguments nommés et désordonnés\n",
-	    cp=@chaîne);
+	    cp=*chaîne);
 
-	imprime_chaîne_pascal(@chaîne);
+	imprime_chaîne_pascal(*chaîne);
 
 	retourne 0;
 }

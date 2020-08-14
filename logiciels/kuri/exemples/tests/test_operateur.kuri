@@ -83,7 +83,7 @@ principale :: fonc() -> n32
 foo :: fonc(compte : [2][2]n32) -> n32
 {
 	a := compte[0][0];
-	b := @compte;
+	b := *compte;
 	retourne 1;
 }
 

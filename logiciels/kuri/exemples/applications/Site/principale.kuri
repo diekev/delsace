@@ -121,10 +121,10 @@ procède_requête :: fonc (
 
     diffère {
         // À FAIRE : XXX que faire si erreur lors de la fermeture ?
-        _ := ferme(@cliente.fichier)
+        _ := ferme(*cliente.fichier)
     }
 
-    requête := tente lis_tout(@cliente.fichier) piège err {
+    requête := tente lis_tout(*cliente.fichier) piège err {
         // @erreur
         imprime("erreur lors de la lecture de la prise : %\n", err)
         retourne
@@ -140,12 +140,12 @@ procède_requête :: fonc (
     analyseuse.requête = requête
     //analyse_requête(@analyseuse, requete)
 
-    ligne_requête := analyse_ligne_requête(@analyseuse)
+    ligne_requête := analyse_ligne_requête(*analyseuse)
 
-    entêtes := analyse_entêtes(@analyseuse)
-    diffère { détruit_entêtes(@entêtes); }
+    entêtes := analyse_entêtes(*analyseuse)
+    diffère { détruit_entêtes(*entêtes); }
 
-    contenu_requête := analyse_contenu(@analyseuse)
+    contenu_requête := analyse_contenu(*analyseuse)
 
 /*
     pour entête dans entêtes.données {
@@ -186,13 +186,13 @@ procède_requête :: fonc (
 
             si ligne_requête.méthode == "GET" && route.méthode_get comme *rien != nul {
                 rappel := route.méthode_get
-                réponse = rappel(serveuse, @données_requête)
+                réponse = rappel(serveuse, *données_requête)
                 arrête
             }
 
             si ligne_requête.méthode == "POST" && route.méthode_post comme *rien != nul {
                 rappel := route.méthode_post
-                réponse = rappel(serveuse, @données_requête)
+                réponse = rappel(serveuse, *données_requête)
                 arrête
             }
 
@@ -217,47 +217,47 @@ procède_requête :: fonc (
     }
 
     enchaineuse : Enchaineuse
-    initialise_enchaineuse(@enchaineuse)
-    diffère { détruit_tampons(@enchaineuse) }
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
     contenu := réponse.contenu
 
-    ajoute_au_tampon(@enchaineuse, "HTTP/1.1 ", chaine_code_état_http(réponse.code), "\r\n")
-    ajoute_au_tampon(@enchaineuse, "Server: delsace\r\n")
-    ajoute_au_tampon(@enchaineuse, "Content-Length: ", contenu.taille, "\r\n")
+    ajoute_au_tampon(*enchaineuse, "HTTP/1.1 ", chaine_code_état_http(réponse.code), "\r\n")
+    ajoute_au_tampon(*enchaineuse, "Server: delsace\r\n")
+    ajoute_au_tampon(*enchaineuse, "Content-Length: ", contenu.taille, "\r\n")
 
     discr réponse.type_contenu {
         TEXT_HTML {
-            ajoute_au_tampon(@enchaineuse, "Content-Type: text/html; charset=utf-8\r\n")
+            ajoute_au_tampon(*enchaineuse, "Content-Type: text/html; charset=utf-8\r\n")
         }
         APPLICATION_JAVASCRIPT {
-            ajoute_au_tampon(@enchaineuse, "Content-Type: application/javascript\r\n")
-            ajoute_au_tampon(@enchaineuse, "Content-Disposition: attachment; filename='test.js'\r\n")
-            ajoute_au_tampon(@enchaineuse, "Cache-Control: public, max-age=31556952, immutable\r\n")
+            ajoute_au_tampon(*enchaineuse, "Content-Type: application/javascript\r\n")
+            ajoute_au_tampon(*enchaineuse, "Content-Disposition: attachment; filename='test.js'\r\n")
+            ajoute_au_tampon(*enchaineuse, "Cache-Control: public, max-age=31556952, immutable\r\n")
         }
         APPLICATION_JSON {
-            ajoute_au_tampon(@enchaineuse, "Content-Type: application/json; charset=utf-8\r\n")
+            ajoute_au_tampon(*enchaineuse, "Content-Type: application/json; charset=utf-8\r\n")
         }
         sinon {
             // RÀF
         }
     }
 
-    ajoute_au_tampon(@enchaineuse, "Date: ")
-    chaine_pour_aujourdhui(@enchaineuse)
-    ajoute_au_tampon(@enchaineuse, "\r\n")
+    ajoute_au_tampon(*enchaineuse, "Date: ")
+    chaine_pour_aujourdhui(*enchaineuse)
+    ajoute_au_tampon(*enchaineuse, "\r\n")
 
     // À FAIRE: Content-Encoding, voir Accept-Encoding de la requête
 
-    ajoute_au_tampon(@enchaineuse, "Set-Cookie: test=abcdefg; Domain=localhost; Max-Age=60; Path=/; HttpOnly\r\n")
+    ajoute_au_tampon(*enchaineuse, "Set-Cookie: test=abcdefg; Domain=localhost; Max-Age=60; Path=/; HttpOnly\r\n")
 
-    ajoute_au_tampon(@enchaineuse, "\r\n")
-    ajoute_au_tampon(@enchaineuse, contenu)
+    ajoute_au_tampon(*enchaineuse, "\r\n")
+    ajoute_au_tampon(*enchaineuse, contenu)
 
-    chaine_reponse := chaine_depuis_enchaineuse(@enchaineuse)
+    chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse)
     diffère { déloge chaine_reponse; }
 
-    si écris(@cliente.fichier, chaine_reponse) == -1 {
+    si écris(*cliente.fichier, chaine_reponse) == -1 {
         perror("send".pointeur)
     }
 }
@@ -270,7 +270,7 @@ accepte :: fonc (serveuse: *Serveuse) -> Cliente
     adresse : sockaddr_in
 	sin_size := taille_de(sockaddr_in) comme n32
 
-    prise := accept(serveuse.prise, @adresse comme *sockaddr, @sin_size)
+    prise := accept(serveuse.prise, *adresse comme *sockaddr, *sin_size)
 
     cliente : Cliente
     cliente.adresse = adresse
@@ -294,7 +294,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
     }
 
     boucle {
-        cliente := accepte(@serveuse)
+        cliente := accepte(*serveuse)
 
         si INTERRUTION {
             arrête
@@ -306,7 +306,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
             continue
         }
 
-        procède_requête(@serveuse, cliente)
+        procède_requête(*serveuse, cliente)
     }
 }
 
@@ -368,16 +368,16 @@ principale :: fonc () -> z32
     _ := construit_serveuse(serveuse, configuration.port)
 
     // pour les gabarits
-    ajoute_fichier(@serveuse.rendeuse_gabarit.catalogue, "accueil", "accueil.html")
+    ajoute_fichier(*serveuse.rendeuse_gabarit.catalogue, "accueil", "accueil.html")
 
     // pour les fichiers statiques
-    ajoute_fichier(@serveuse.fichiers_statiques, "test", "test.js")
+    ajoute_fichier(*serveuse.fichiers_statiques, "test", "test.js")
 
-    ajoute_route(@serveuse, "/", répond_get_page_accueil, répond_post_page_accueil)
+    ajoute_route(*serveuse, "/", répond_get_page_accueil, répond_post_page_accueil)
 
     démarre(serveuse)
 
-    détruit_serveuse(@serveuse)
+    détruit_serveuse(*serveuse)
 
     retourne 0
 }
