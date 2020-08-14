@@ -912,6 +912,7 @@ void Lexeuse::lexe_nombre_decimal()
 		if (!lng::est_nombre_decimal(c)) {
 			if (c == '_') {
 				this->avance_fixe<1>();
+				this->pousse_caractere();
 				continue;
 			}
 
@@ -927,6 +928,7 @@ void Lexeuse::lexe_nombre_decimal()
 
 				point_trouve = true;
 				this->avance_fixe<1>();
+				this->pousse_caractere();
 				break;
 			}
 
@@ -937,6 +939,7 @@ void Lexeuse::lexe_nombre_decimal()
 		resultat_entier += static_cast<unsigned long long>(c - '0');
 		nombre_de_chiffres += 1;
 		this->avance_fixe<1>();
+		this->pousse_caractere();
 	}
 
 	if (!point_trouve) {
@@ -960,6 +963,7 @@ void Lexeuse::lexe_nombre_decimal()
 
 		if (c == '_') {
 			this->avance_fixe<1>();
+			this->pousse_caractere();
 			continue;
 		}
 
@@ -977,6 +981,7 @@ void Lexeuse::lexe_nombre_decimal()
 		resultat_reel += chiffre / dividende;
 		dividende *= 10.0;
 		this->avance_fixe<1>();
+		this->pousse_caractere();
 	}
 
 	this->pousse_lexeme_reel(resultat_reel);
@@ -987,6 +992,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
 	Prof(lexe_nombre_hexadecimal);
 
 	this->avance_fixe<2>();
+	this->pousse_caractere(2);
 
 	unsigned long long resultat_entier = 0;
 	unsigned nombre_de_chiffres = 0;
@@ -1006,6 +1012,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
 		}
 		else if (c == '_') {
 			this->avance_fixe<1>();
+			this->pousse_caractere();
 			continue;
 		}
 		else {
@@ -1016,6 +1023,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
 		resultat_entier += chiffre;
 		nombre_de_chiffres += 1;
 		this->avance_fixe<1>();
+		this->pousse_caractere();
 	}
 
 	if (nombre_de_chiffres > 16) {
@@ -1030,6 +1038,7 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
 	Prof(lexe_nombre_reel_hexadecimal);
 
 	this->avance_fixe<2>();
+	this->pousse_caractere(2);
 
 	unsigned long long resultat_entier = 0;
 	unsigned nombre_de_chiffres = 0;
@@ -1049,6 +1058,7 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
 		}
 		else if (c == '_') {
 			this->avance_fixe<1>();
+			this->pousse_caractere();
 			continue;
 		}
 		else {
@@ -1059,6 +1069,7 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
 		resultat_entier += chiffre;
 		nombre_de_chiffres += 1;
 		this->avance_fixe<1>();
+		this->pousse_caractere();
 	}
 
 	if (nombre_de_chiffres % 8 != 0 || nombre_de_chiffres > 16) {
@@ -1079,6 +1090,7 @@ void Lexeuse::lexe_nombre_binaire()
 	Prof(lexe_nombre_binaire);
 
 	this->avance_fixe<2>();
+	this->pousse_caractere(2);
 
 	unsigned long long resultat_entier = 0;
 	unsigned nombre_de_chiffres = 0;
@@ -1095,6 +1107,7 @@ void Lexeuse::lexe_nombre_binaire()
 		}
 		else if (c == '_') {
 			this->avance_fixe<1>();
+			this->pousse_caractere();
 			continue;
 		}
 		else {
@@ -1105,6 +1118,7 @@ void Lexeuse::lexe_nombre_binaire()
 		resultat_entier += chiffre;
 		nombre_de_chiffres += 1;
 		this->avance_fixe<1>();
+		this->pousse_caractere();
 	}
 
 	if (nombre_de_chiffres > 64) {
@@ -1119,6 +1133,7 @@ void Lexeuse::lexe_nombre_octal()
 	Prof(lexe_nombre_octal);
 
 	this->avance_fixe<2>();
+	this->pousse_caractere(2);
 
 	unsigned long long resultat_entier = 0;
 	unsigned nombre_de_chiffres = 0;
@@ -1132,6 +1147,7 @@ void Lexeuse::lexe_nombre_octal()
 		}
 		else if (c == '_') {
 			this->avance_fixe<1>();
+			this->pousse_caractere();
 			continue;
 		}
 		else {
@@ -1142,6 +1158,7 @@ void Lexeuse::lexe_nombre_octal()
 		resultat_entier += chiffre;
 		nombre_de_chiffres += 1;
 		this->avance_fixe<1>();
+		this->pousse_caractere();
 	}
 
 	if (nombre_de_chiffres > 22) {
@@ -1361,6 +1378,7 @@ void Lexeuse::pousse_lexeme_entier(unsigned long long valeur)
 	lexeme.fichier = static_cast<int>(m_fichier->id);
 	lexeme.colonne = m_pos_mot;
 	lexeme.ligne = m_compte_ligne;
+	lexeme.chaine = mot_courant();
 
 	m_fichier->lexemes.pousse(lexeme);
 
@@ -1380,6 +1398,7 @@ void Lexeuse::pousse_lexeme_reel(double valeur)
 	lexeme.fichier = static_cast<int>(m_fichier->id);
 	lexeme.colonne = m_pos_mot;
 	lexeme.ligne = m_compte_ligne;
+	lexeme.chaine = mot_courant();
 
 	m_fichier->lexemes.pousse(lexeme);
 
