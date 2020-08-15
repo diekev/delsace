@@ -2680,11 +2680,6 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *dec
 
 			decl->bloc->membres->pousse(decl_ctx);
 		}
-
-		POUR (entete->params) {
-			auto argument = it->comme_decl_var();
-			decl->bloc->membres->pousse(argument);
-		}
 	}
 
 	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
