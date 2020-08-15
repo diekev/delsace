@@ -285,9 +285,9 @@ int main(int argc, char *argv[])
 		metriques.temps_decoupage = tacheronne.temps_lexage;
 		metriques.temps_validation = tacheronne.temps_validation;
 		metriques.temps_scene = tacheronne.temps_scene;
-		metriques.nombre_identifiants = static_cast<size_t>(compilatrice.table_identifiants->taille());
+		metriques.nombre_identifiants = compilatrice.table_identifiants->taille();
 		metriques.temps_metaprogrammes = compilatrice.mv.temps_execution_metaprogammes;
-		metriques.nombre_metaprogrammes_executes = static_cast<size_t>(compilatrice.mv.nombre_de_metaprogrammes_executes);
+		metriques.nombre_metaprogrammes_executes = compilatrice.mv.nombre_de_metaprogrammes_executes;
 
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = dls::chrono::compte_seconde();

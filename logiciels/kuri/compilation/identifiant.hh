@@ -52,7 +52,7 @@ public:
 
 	long taille() const;
 
-	size_t memoire_utilisee() const;
+	long memoire_utilisee() const;
 
 private:
 	IdentifiantCode *ajoute_identifiant(dls::vue_chaine_compacte const &nom);

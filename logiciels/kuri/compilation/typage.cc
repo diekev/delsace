@@ -960,12 +960,12 @@ TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
 	return type;
 }
 
-size_t Typeuse::memoire_utilisee() const
+long Typeuse::memoire_utilisee() const
 {
-	auto memoire = 0ul;
+	auto memoire = 0l;
 
 #define COMPTE_MEMOIRE(Type, Tableau) \
-	memoire += static_cast<size_t>(Tableau->taille()) * (sizeof(Type *) + sizeof(Type))
+	memoire += Tableau->taille() * (taille_de(Type *) + taille_de(Type))
 
 	COMPTE_MEMOIRE(Type, types_simples);
 	COMPTE_MEMOIRE(TypePointeur, types_pointeurs);
@@ -982,41 +982,41 @@ size_t Typeuse::memoire_utilisee() const
 
 #undef COMPTE_MEMOIRE
 
-	memoire += 2 * (sizeof(TypeCompose) + sizeof(TypeCompose *)); // chaine et eini
+	memoire += 2 * (taille_de(TypeCompose) + taille_de(TypeCompose *)); // chaine et eini
 
 	// les types communs sont dans les types simples, ne comptons que la mémoire du tableau
-	memoire += static_cast<size_t>(types_communs.taille()) * sizeof(Type *);
+	memoire += types_communs.taille() * taille_de(Type *);
 
 	POUR (*types_structures.verrou_lecture()) {
-		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
+		memoire += it->membres.taille * taille_de(TypeCompose::Membre);
 	}
 
 	POUR (*types_enums.verrou_lecture()) {
-		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
+		memoire += it->membres.taille * taille_de(TypeCompose::Membre);
 	}
 
 	POUR (*types_unions.verrou_lecture()) {
-		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
+		memoire += it->membres.taille * taille_de(TypeCompose::Membre);
 	}
 
 	POUR (*types_tableaux_fixes.verrou_lecture()) {
-		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
+		memoire += it->membres.taille * taille_de(TypeCompose::Membre);
 	}
 
 	POUR (*types_tableaux_dynamiques.verrou_lecture()) {
-		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
+		memoire += it->membres.taille * taille_de(TypeCompose::Membre);
 	}
 
 	POUR (*types_variadiques.verrou_lecture()) {
-		memoire += static_cast<size_t>(it->membres.taille) * sizeof(TypeCompose::Membre);
+		memoire += it->membres.taille * taille_de(TypeCompose::Membre);
 	}
 
-	memoire += static_cast<size_t>(type_eini->membres.taille) * sizeof(TypeCompose::Membre);
-	memoire += static_cast<size_t>(type_chaine->membres.taille) * sizeof(TypeCompose::Membre);
+	memoire += type_eini->membres.taille * taille_de(TypeCompose::Membre);
+	memoire += type_chaine->membres.taille * taille_de(TypeCompose::Membre);
 
 	POUR (*types_fonctions.verrou_lecture()) {
-		memoire += static_cast<size_t>(it->types_entrees.taille) * sizeof(Type *);
-		memoire += static_cast<size_t>(it->types_sorties.taille) * sizeof(Type *);
+		memoire += it->types_entrees.taille * taille_de(Type *);
+		memoire += it->types_sorties.taille * taille_de(Type *);
 	}
 
 	return memoire;
@@ -1563,7 +1563,7 @@ void calcule_taille_type_compose(TypeCompose *type)
 			type_union->decalage_index = taille_union;
 
 			/* ajoute la taille du membre actif */
-			taille_union += static_cast<unsigned>(sizeof(int));
+			taille_union += static_cast<unsigned>(taille_de(int));
 
 			/* ajoute une marge d'alignement finale */
 			padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;

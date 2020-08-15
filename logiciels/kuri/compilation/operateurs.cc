@@ -544,13 +544,13 @@ void Operateurs::ajoute_operateur_basique_enum(Type *type)
 	this->ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
 }
 
-size_t Operateurs::memoire_utilisee() const
+long Operateurs::memoire_utilisee() const
 {
-	auto memoire = 0ul;
+	auto memoire = 0l;
 
 	// compte la mémoire des noeuds de la table de hachage
-	memoire += static_cast<size_t>(operateurs_unaires.taille()) * (sizeof(GenreLexeme) + sizeof(type_conteneur_unaire));
-	memoire += static_cast<size_t>(operateurs_binaires.taille()) * (sizeof(GenreLexeme) + sizeof(type_conteneur_binaire));
+	memoire += operateurs_unaires.taille() * (taille_de(GenreLexeme) + taille_de(type_conteneur_unaire));
+	memoire += operateurs_binaires.taille() * (taille_de(GenreLexeme) + taille_de(type_conteneur_binaire));
 
 	POUR (operateurs_unaires) {
 		memoire += it.second.memoire_utilisee();

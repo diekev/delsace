@@ -128,15 +128,15 @@ void Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace, PhaseC
 	pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
-size_t Messagere::memoire_utilisee() const
+long Messagere::memoire_utilisee() const
 {
-	auto memoire = 0ul;
+	auto memoire = 0l;
 	memoire += messages_fichiers.memoire_utilisee();
 	memoire += messages_modules.memoire_utilisee();
 	memoire += messages_typage_code.memoire_utilisee();
 	memoire += messages_phase_compilation.memoire_utilisee();
-	memoire += static_cast<size_t>(pic_de_message) * sizeof(void *);
-	memoire += static_cast<size_t>(convertisseuse_noeud_code.memoire_utilisee());
+	memoire += pic_de_message * taille_de(void *);
+	memoire += convertisseuse_noeud_code.memoire_utilisee();
 	return memoire;
 }
 

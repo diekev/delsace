@@ -24,6 +24,8 @@
 
 #include "tampon_source.hh"
 
+#include "biblinternes/outils/definitions.h"
+
 /* ************************************************************************** */
 
 /**
@@ -106,14 +108,14 @@ dls::vue_chaine tampon_source::operator[](long i) const noexcept
 	return m_lignes[i];
 }
 
-size_t tampon_source::nombre_lignes() const noexcept
+long tampon_source::nombre_lignes() const noexcept
 {
-	return static_cast<size_t>(m_lignes.taille());
+	return m_lignes.taille();
 }
 
-size_t tampon_source::taille_donnees() const noexcept
+long tampon_source::taille_donnees() const noexcept
 {
-	return static_cast<size_t>(m_tampon.taille()) * sizeof(char);
+	return m_tampon.taille() * taille_de(char);
 }
 
 tampon_source tampon_source::sous_tampon(size_t debut, size_t fin) const

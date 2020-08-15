@@ -148,13 +148,13 @@ void GrapheDependance::connecte_noeuds(
 	noeud1.relations.pousse({ type_relation, &noeud1, &noeud2 });
 }
 
-size_t GrapheDependance::memoire_utilisee() const
+long GrapheDependance::memoire_utilisee() const
 {
-	auto total = 0ul;
+	auto total = 0l;
 	total += noeuds.memoire_utilisee();
 
 	POUR_TABLEAU_PAGE(noeuds) {
-		total += static_cast<size_t>(it.relations.taille()) * sizeof(Relation);
+		total += it.relations.taille() * taille_de(Relation);
 	}
 
 	return total;

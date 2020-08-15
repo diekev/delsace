@@ -109,7 +109,7 @@ public:
 	bool ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclaration *noeud_decl, UniteCompilation *unite);
 	void ajoute_message_phase_compilation(EspaceDeTravail *espace, PhaseCompilation phase);
 
-	size_t memoire_utilisee() const;
+	long memoire_utilisee() const;
 
 	inline bool possede_message() const
 	{

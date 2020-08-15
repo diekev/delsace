@@ -61,10 +61,10 @@ struct AllocatriceNoeud {
 	 * Retourne la quantité de mémoire utilisée pour créer et stocker les noeuds
 	 * de l'arbre.
 	 */
-	size_t memoire_utilisee() const;
+	long memoire_utilisee() const;
 
 	/**
 	 * Retourne le nombre de noeuds dans l'arbre.
 	 */
-	size_t nombre_noeuds() const;
+	long nombre_noeuds() const;
 };

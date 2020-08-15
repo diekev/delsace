@@ -116,7 +116,7 @@ struct GrapheDependance {
 
 	void connecte_noeuds(NoeudDependance &noeud1, NoeudDependance &noeud2, TypeRelation type_relation);
 
-	size_t memoire_utilisee() const;
+	long memoire_utilisee() const;
 };
 
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance);

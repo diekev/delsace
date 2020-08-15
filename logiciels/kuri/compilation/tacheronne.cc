@@ -428,7 +428,7 @@ Tache OrdonnanceuseTache::tache_metaprogramme_suivante(const Tache &/*tache_term
 long OrdonnanceuseTache::memoire_utilisee() const
 {
 	auto memoire = 0l;
-	memoire += static_cast<long>(unites.memoire_utilisee());
+	memoire += unites.memoire_utilisee();
 	return memoire;
 }
 

@@ -107,7 +107,7 @@ public:
 
 	void imprime_programme(EspaceDeTravail *espace) const;
 
-	size_t memoire_utilisee() const;
+	long memoire_utilisee() const;
 
 	Compilatrice &compilatrice() const
 	{

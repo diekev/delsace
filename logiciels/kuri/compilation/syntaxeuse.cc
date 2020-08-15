@@ -409,7 +409,7 @@ void Syntaxeuse::lance_analyse()
 
 					decl_var->bloc_parent->expressions->pousse(decl_var);
 					decl_var->drapeaux |= EST_GLOBALE;
-					decl_var->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues + 1));
+					decl_var->arbre_aplatis.reserve(nombre_noeuds_alloues + 1);
 					aplatis_arbre(decl_var, decl_var->arbre_aplatis, drapeaux_noeud::AUCUN);
 					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, decl_var);
 				}
@@ -420,7 +420,7 @@ void Syntaxeuse::lance_analyse()
 					if (!dls::outils::est_element(noeud->genre, GenreNoeud::DECLARATION_ENTETE_FONCTION, GenreNoeud::DECLARATION_STRUCTURE)) {
 						if (noeud->genre == GenreNoeud::DECLARATION_VARIABLE) {
 							auto decl_var = static_cast<NoeudDeclarationVariable *>(noeud);
-							decl_var->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
+							decl_var->arbre_aplatis.reserve(nombre_noeuds_alloues);
 							aplatis_arbre(decl_var, decl_var->arbre_aplatis, drapeaux_noeud::AUCUN);
 						}
 
@@ -1792,7 +1792,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 	}
 
 	nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-	noeud->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
+	noeud->arbre_aplatis.reserve(nombre_noeuds_alloues);
 
 	copie_tablet_tableau(params, noeud->params);
 
@@ -1812,7 +1812,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
 			auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::INCONNU);
 			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-			noeud->arbre_aplatis.reserve_delta(static_cast<long>(nombre_noeuds_alloues));
+			noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
 			noeud->params_sorties.pousse(type_declare);
 			aplatis_arbre(type_declare, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 
@@ -1841,7 +1841,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 				nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
 				auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::INCONNU);
 				nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-				noeud->arbre_aplatis.reserve_delta(static_cast<long>(nombre_noeuds_alloues));
+				noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
 				noeud->params_sorties.pousse(type_declare);
 				aplatis_arbre(type_declare, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 
@@ -1940,7 +1940,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			 * faudra soustraire le nombre de noeuds des fonctions enfants. Il
 			 * faudra également faire attention au moultfilage futur.
 			 */
-			noeud_corps->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
+			noeud_corps->arbre_aplatis.reserve(nombre_noeuds_alloues);
 			aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, drapeaux_noeud::AUCUN);
 
 			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
@@ -2034,7 +2034,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	}
 
 	nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-	noeud->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues));
+	noeud->arbre_aplatis.reserve(nombre_noeuds_alloues);
 
 	POUR (noeud->params) {
 		aplatis_arbre(it, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);

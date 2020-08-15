@@ -635,7 +635,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
 long ConvertisseuseNoeudCode::memoire_utilisee() const
 {
-	auto memoire = 0ul;
+	auto memoire = 0l;
 
 	memoire += noeuds_codes.memoire_utilisee();
 	memoire += noeuds_entetes_fonctions.memoire_utilisee();
@@ -665,5 +665,5 @@ long ConvertisseuseNoeudCode::memoire_utilisee() const
 	memoire += infos_types_tableaux.memoire_utilisee();
 	memoire += infos_types_unions.memoire_utilisee();
 
-	return static_cast<long>(memoire);
+	return memoire;
 }

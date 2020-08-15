@@ -288,21 +288,21 @@ AtomeGlobale *EspaceDeTravail::trouve_ou_insere_globale(NoeudDeclaration *decl)
 	return atome;
 }
 
-size_t EspaceDeTravail::memoire_utilisee() const
+long EspaceDeTravail::memoire_utilisee() const
 {
-	auto memoire = 0ul;
+	auto memoire = 0l;
 
-	memoire += static_cast<size_t>(modules->taille()) * sizeof(Module *);
-	memoire += static_cast<size_t>(fichiers->taille()) * sizeof(Fichier *);
+	memoire += modules->taille() * taille_de(Module *);
+	memoire += fichiers->taille() * taille_de(Fichier *);
 
 	auto modules_ = modules.verrou_lecture();
 	POUR_TABLEAU_PAGE ((*modules_)) {
-		memoire += static_cast<size_t>(it.fichiers.taille()) * sizeof(Fichier *);
-		memoire += static_cast<size_t>(it.nom.taille());
-		memoire += static_cast<size_t>(it.chemin.taille());
+		memoire += it.fichiers.taille() * taille_de(Fichier *);
+		memoire += it.nom.taille();
+		memoire += it.chemin.taille();
 
 		if (!it.fonctions_exportees.est_stocke_dans_classe()) {
-			memoire += static_cast<size_t>(it.fonctions_exportees.taille()) * sizeof(dls::vue_chaine_compacte);
+			memoire += it.fonctions_exportees.taille() * taille_de(dls::vue_chaine_compacte);
 		}
 	}
 
@@ -310,7 +310,7 @@ size_t EspaceDeTravail::memoire_utilisee() const
 	POUR_TABLEAU_PAGE ((*fichiers_)) {
 		// les autres membres sont gérés dans rassemble_metriques()
 		if (!it.modules_importes.est_stocke_dans_classe()) {
-			memoire += static_cast<size_t>(it.modules_importes.taille()) * sizeof(dls::vue_chaine_compacte);
+			memoire += it.modules_importes.taille() * taille_de(dls::vue_chaine_compacte);
 		}
 	}
 
@@ -319,11 +319,11 @@ size_t EspaceDeTravail::memoire_utilisee() const
 
 	pour_chaque_element(fonctions, [&](AtomeFonction const &it)
 	{
-		memoire += static_cast<size_t>(it.params_entrees.taille) * sizeof(Atome *);
-		memoire += static_cast<size_t>(it.params_sorties.taille) * sizeof(Atome *);
-		memoire += static_cast<size_t>(it.chunk.capacite);
-		memoire += static_cast<size_t>(it.chunk.locales.taille()) * sizeof(Locale);
-		memoire += static_cast<size_t>(it.chunk.decalages_labels.taille()) * sizeof(int);
+		memoire += it.params_entrees.taille * taille_de(Atome *);
+		memoire += it.params_sorties.taille * taille_de(Atome *);
+		memoire += it.chunk.capacite;
+		memoire += it.chunk.locales.taille() * taille_de(Locale);
+		memoire += it.chunk.decalages_labels.taille() * taille_de(int);
 	});
 
 	return memoire;
@@ -334,14 +334,14 @@ void EspaceDeTravail::rassemble_metriques(Metriques &metriques) const
 	auto operateurs_ = operateurs.verrou_lecture();
 	auto graphe = graphe_dependance.verrou_lecture();
 
-	metriques.nombre_modules += static_cast<size_t>(modules->taille());
+	metriques.nombre_modules += modules->taille();
 	metriques.memoire_types += this->typeuse.memoire_utilisee();
 	metriques.memoire_operateurs += operateurs_->memoire_utilisee();
 	metriques.memoire_graphe += graphe->memoire_utilisee();
 	metriques.memoire_arbre += this->allocatrice_noeud.memoire_utilisee();
 	metriques.nombre_noeuds += this->allocatrice_noeud.nombre_noeuds();
 
-	metriques.nombre_noeuds_deps += static_cast<size_t>(graphe->noeuds.taille());
+	metriques.nombre_noeuds_deps += graphe->noeuds.taille();
 	metriques.nombre_types += typeuse.nombre_de_types();
 
 	POUR (operateurs_->operateurs_unaires) {
@@ -356,8 +356,8 @@ void EspaceDeTravail::rassemble_metriques(Metriques &metriques) const
 	POUR_TABLEAU_PAGE ((*fichiers_)) {
 		metriques.nombre_lignes += it.tampon.nombre_lignes();
 		metriques.memoire_tampons += it.tampon.taille_donnees();
-		metriques.memoire_lexemes += static_cast<size_t>(it.lexemes.taille()) * sizeof(Lexeme);
-		metriques.nombre_lexemes += static_cast<size_t>(it.lexemes.taille());
+		metriques.memoire_lexemes += it.lexemes.taille() * taille_de(Lexeme);
+		metriques.nombre_lexemes += it.lexemes.taille();
 		metriques.temps_analyse += it.temps_analyse;
 		metriques.temps_chargement += it.temps_chargement;
 		metriques.temps_tampon += it.temps_tampon;
@@ -532,29 +532,29 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 
 /* ************************************************************************** */
 
-size_t Compilatrice::memoire_utilisee() const
+long Compilatrice::memoire_utilisee() const
 {
-	auto memoire = sizeof(Compilatrice);
+	auto memoire = taille_de(Compilatrice);
 
-	memoire += static_cast<size_t>(bibliotheques_dynamiques->taille()) * sizeof(dls::chaine);
+	memoire += bibliotheques_dynamiques->taille() * taille_de(dls::chaine);
 	POUR (*bibliotheques_dynamiques.verrou_lecture()) {
-		memoire += static_cast<size_t>(it.taille());
+		memoire += it.taille();
 	}
 
-	memoire += static_cast<size_t>(bibliotheques_statiques->taille()) * sizeof(dls::chaine);
+	memoire += bibliotheques_statiques->taille() * taille_de(dls::chaine);
 	POUR (*bibliotheques_statiques.verrou_lecture()) {
-		memoire += static_cast<size_t>(it.taille());
+		memoire += it.taille();
 	}
 
-	memoire += static_cast<size_t>(chemins->taille()) * sizeof(dls::vue_chaine_compacte);
-	memoire += static_cast<size_t>(definitions->taille()) * sizeof(dls::vue_chaine_compacte);
+	memoire += chemins->taille() * taille_de(dls::vue_chaine_compacte);
+	memoire += definitions->taille() * taille_de(dls::vue_chaine_compacte);
 
-	memoire += static_cast<size_t>(ordonnanceuse->memoire_utilisee());
+	memoire += ordonnanceuse->memoire_utilisee();
 	memoire += table_identifiants->memoire_utilisee();
 
-	memoire += static_cast<size_t>(gerante_chaine->m_table.taille()) * sizeof(dls::chaine);
+	memoire += gerante_chaine->m_table.taille() * taille_de(dls::chaine);
 	POUR (gerante_chaine->m_table) {
-		memoire += static_cast<size_t>(it.capacite);
+		memoire += it.capacite;
 	}
 
 	POUR_TABLEAU_PAGE ((*espaces_de_travail.verrou_lecture())) {
@@ -574,12 +574,12 @@ Metriques Compilatrice::rassemble_metriques() const
 		it.rassemble_metriques(metriques);
 	}
 
-	auto memoire_mv = 0ul;
-	memoire_mv += static_cast<size_t>(mv.globales.taille()) * sizeof(Globale);
-	memoire_mv += static_cast<size_t>(mv.donnees_constantes.taille());
-	memoire_mv += static_cast<size_t>(mv.donnees_globales.taille());
-	memoire_mv += static_cast<size_t>(mv.patchs_donnees_constantes.taille()) * sizeof(PatchDonneesConstantes);
-	memoire_mv += static_cast<size_t>(mv.gestionnaire_bibliotheques.memoire_utilisee());
+	auto memoire_mv = 0l;
+	memoire_mv += mv.globales.taille() * taille_de(Globale);
+	memoire_mv += mv.donnees_constantes.taille();
+	memoire_mv += mv.donnees_globales.taille();
+	memoire_mv += mv.patchs_donnees_constantes.taille() * taille_de(PatchDonneesConstantes);
+	memoire_mv += mv.gestionnaire_bibliotheques.memoire_utilisee();
 
 	metriques.memoire_mv = memoire_mv;
 

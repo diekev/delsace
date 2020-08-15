@@ -161,7 +161,7 @@ struct Operateurs {
 
 	void ajoute_operateur_basique_enum(Type *type);
 
-	size_t memoire_utilisee() const;
+	long memoire_utilisee() const;
 };
 
 OperateurUnaire const *cherche_operateur_unaire(

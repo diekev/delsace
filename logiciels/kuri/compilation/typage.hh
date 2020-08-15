@@ -581,7 +581,7 @@ struct Typeuse {
 		return types_communs[static_cast<long>(type_base)];
 	}
 
-	size_t memoire_utilisee() const;
+	long memoire_utilisee() const;
 
 	long nombre_de_types() const;
 

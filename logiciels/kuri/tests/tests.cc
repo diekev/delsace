@@ -332,7 +332,7 @@ static auto decoupe_tampon(lng::tampon_source const &tampon)
 		}
 	}
 
-	fin_cas = tampon.nombre_lignes();
+	fin_cas = static_cast<size_t>(tampon.nombre_lignes());
 
 	if (debut_cas < fin_cas) {
 		auto sous_tampon = tampon.sous_tampon(debut_cas, fin_cas);

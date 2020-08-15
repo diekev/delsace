@@ -75,12 +75,12 @@ public:
 	/**
 	 * Retourne le nombre de ligne dans le tampon.
 	 */
-	size_t nombre_lignes() const noexcept;
+  long nombre_lignes() const noexcept;
 
 	/**
 	 * Retourne la taille des données en octets du tampon.
 	 */
-	size_t taille_donnees() const noexcept;
+  long taille_donnees() const noexcept;
 
 	tampon_source sous_tampon(size_t debut, size_t fin) const;
 

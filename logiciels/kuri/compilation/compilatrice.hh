@@ -45,22 +45,22 @@
 struct OptionsCompilation;
 
 struct Metriques {
-	size_t nombre_modules = 0ul;
-	size_t nombre_identifiants = 0ul;
-	size_t nombre_lignes = 0ul;
-	size_t nombre_lexemes = 0ul;
-	size_t nombre_noeuds = 0ul;
-	size_t nombre_noeuds_deps = 0ul;
-	size_t nombre_metaprogrammes_executes = 0ul;
-	size_t memoire_tampons = 0ul;
-	size_t memoire_lexemes = 0ul;
-	size_t memoire_arbre = 0ul;
-	size_t memoire_compilatrice = 0ul;
-	size_t memoire_types = 0ul;
-	size_t memoire_operateurs = 0ul;
-	size_t memoire_ri = 0ul;
-	size_t memoire_graphe = 0ul;
-	size_t memoire_mv = 0ul;
+	long nombre_modules = 0ul;
+	long nombre_identifiants = 0ul;
+	long nombre_lignes = 0ul;
+	long nombre_lexemes = 0ul;
+	long nombre_noeuds = 0ul;
+	long nombre_noeuds_deps = 0ul;
+	long nombre_metaprogrammes_executes = 0ul;
+	long memoire_tampons = 0ul;
+	long memoire_lexemes = 0ul;
+	long memoire_arbre = 0ul;
+	long memoire_compilatrice = 0ul;
+	long memoire_types = 0ul;
+	long memoire_operateurs = 0ul;
+	long memoire_ri = 0ul;
+	long memoire_graphe = 0ul;
+	long memoire_mv = 0ul;
 	long nombre_types = 0;
 	long nombre_operateurs = 0;
 	double temps_chargement = 0.0;
@@ -212,7 +212,7 @@ struct EspaceDeTravail {
 	AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
 	AtomeGlobale *trouve_ou_insere_globale(NoeudDeclaration *decl);
 
-	size_t memoire_utilisee() const;
+	long memoire_utilisee() const;
 
 	void rassemble_metriques(Metriques &metriques) const;
 };
@@ -299,7 +299,7 @@ struct Compilatrice {
 
 	/* ********************************************************************** */
 
-	size_t memoire_utilisee() const;
+	long memoire_utilisee() const;
 
 	/**
 	 * Retourne les métriques de ce contexte. Les métriques sont calculées à

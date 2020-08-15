@@ -119,9 +119,9 @@ void ConstructriceRI::imprime_programme(EspaceDeTravail *espace) const
 }
 
 
-size_t ConstructriceRI::memoire_utilisee() const
+long ConstructriceRI::memoire_utilisee() const
 {
-	auto memoire = 0ul;
+	auto memoire = 0l;
 
 	memoire += atomes_constante.memoire_utilisee();
 	memoire += insts_simples.memoire_utilisee();
@@ -145,7 +145,7 @@ size_t ConstructriceRI::memoire_utilisee() const
 
 	pour_chaque_element(insts_appel, [&](InstructionAppel const &it)
 	{
-		memoire += static_cast<size_t>(it.args.taille) * sizeof(Atome *);
+		memoire += it.args.taille * taille_de(Atome *);
 	});
 
 #undef COMPTE_MEMOIRE
