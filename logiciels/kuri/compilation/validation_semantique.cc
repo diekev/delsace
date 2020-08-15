@@ -1139,7 +1139,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			auto inst = noeud->comme_pour();
 
-			/* on génère d'abord le type de la variable */
 			auto enfant1 = inst->variable;
 			auto enfant2 = inst->expression;
 			auto enfant3 = inst->bloc;
