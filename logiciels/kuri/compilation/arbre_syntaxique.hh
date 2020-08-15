@@ -494,6 +494,8 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	bool est_externe = false;
 	bool est_declaration_type = false;
 	bool est_instantiation_gabarit = false;
+
+	NoeudDeclarationVariable *parametre_entree(long i) const;
 };
 
 struct NoeudDeclarationCorpsFonction : public NoeudDeclaration {

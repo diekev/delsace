@@ -421,8 +421,9 @@ void lance_erreur_fonction_inconnue(
 				auto decl_fonc = decl->comme_entete_fonction();
 				ss << "\tLes arguments de la fonction sont : \n";
 
-				POUR (decl_fonc->params) {
-					ss << "\t\t" << it->ident->nom << '\n';
+				for (auto i = 0; i < decl_fonc->params.taille; ++i) {
+					auto param = decl_fonc->parametre_entree(i);
+					ss << "\t\t" << param->ident->nom << '\n';
 				}
 
 				type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;

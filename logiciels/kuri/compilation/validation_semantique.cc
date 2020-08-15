@@ -2364,16 +2364,8 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 		auto noms = dls::ensemblon<IdentifiantCode *, 16>();
 		auto dernier_est_variadic = false;
 
-		POUR (decl->params) {
-			auto param = NoeudDeclarationVariable::nul();
-
-			if (it->est_empl()) {
-				param = it->comme_empl()->expr->comme_decl_var();
-			}
-			else {
-				param = it->comme_decl_var();
-			}
-
+		for (auto i = 0; i < decl->params.taille; ++i) {
+			auto param = decl->parametre_entree(i);
 			auto variable = param->valeur;
 			auto expression = param->expression;
 
@@ -2425,21 +2417,13 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 		}
 	}
 	else {
-		POUR (decl->params) {
-			auto param = NoeudDeclarationVariable::nul();
-
-			if (it->est_empl()) {
-				param = it->comme_empl()->expr->comme_decl_var();
-			}
-			else {
-				param = it->comme_decl_var();
-			}
-
+		for (auto i = 0; i < decl->params.taille; ++i) {
+			auto param = decl->parametre_entree(i);
 			auto variable = param->valeur;
-			if (resoud_type_final(it->expression_type, variable->type)) {
+			if (resoud_type_final(param->expression_type, variable->type)) {
 				return true;
 			}
-			it->type = variable->type;
+			param->type = variable->type;
 		}
 
 		// À FAIRE : crash dans la validation des expressions d'appels lors de la copie des tablets

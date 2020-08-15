@@ -459,21 +459,14 @@ dls::chaine broye_nom_fonction(
 	enchaineuse << "_";
 
 	/* À FAIRE(réusinage arbre) : ajout du contexte */
-	POUR (decl->params) {
-		auto param = NoeudDeclarationVariable::nul();
-
-		if (it->est_empl()) {
-			param = it->comme_empl()->expr->comme_decl_var();
-		}
-		else {
-			param = it->comme_decl_var();
-		}
+	for (auto i = 0; i < decl->params.taille; ++i) {
+		auto param = decl->parametre_entree(i);
 
 		nom_ascii = broye_nom_simple(param->valeur->ident->nom);
 		enchaineuse << nom_ascii.taille();
 		enchaineuse << nom_ascii;
 
-		auto const &nom_broye = nom_broye_type(it->type);
+		auto const &nom_broye = nom_broye_type(param->type);
 		enchaineuse << nom_broye.taille();
 		enchaineuse << nom_broye;
 	}

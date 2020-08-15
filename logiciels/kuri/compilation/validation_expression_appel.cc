@@ -356,7 +356,7 @@ static auto apparie_appel_fonction(
 	slots.redimensionne(nombre_args - decl->est_variadique);
 
 	for (auto i = 0; i < slots.taille(); ++i) {
-		auto param = static_cast<NoeudDeclarationVariable *>(decl->params[i]);
+		auto param = decl->parametre_entree(i);
 		slots[i] = param->expression;
 	}
 
@@ -373,15 +373,7 @@ static auto apparie_appel_fonction(
 			auto index_param = 0l;
 
 			for (auto i = 0; i < decl->params.taille; ++i) {
-				auto dp_ = decl->params[i];
-				auto dp  = NoeudDeclarationVariable::nul();
-
-				if (dp_->est_empl()) {
-					dp = dp_->comme_empl()->expr->comme_decl_var();
-				}
-				else {
-					dp = dp_->comme_decl_var();
-				}
+				auto dp = decl->parametre_entree(i);
 
 				if (dp->ident == it.ident) {
 					param = dp;
@@ -471,16 +463,7 @@ static auto apparie_appel_fonction(
 
 	for (auto i = 0l; i < slots.taille(); ++i) {
 		auto index_arg = std::min(i, decl->params.taille - 1);
-		auto param_ = decl->params[index_arg];
-		auto param = NoeudDeclarationVariable::nul();
-
-		if (param_->est_empl()) {
-			param = param_->comme_empl()->expr->comme_decl_var();
-		}
-		else {
-			param = param_->comme_decl_var();
-		}
-
+		auto param = decl->parametre_entree(index_arg);
 		auto arg = param->valeur;
 		auto slot = slots[i];
 

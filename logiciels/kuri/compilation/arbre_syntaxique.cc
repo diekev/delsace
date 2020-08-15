@@ -1200,3 +1200,14 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 
 	return etendue;
 }
+
+NoeudDeclarationVariable *NoeudDeclarationEnteteFonction::parametre_entree(long i) const
+{
+	auto param = params[i];
+
+	if (param->est_empl()) {
+		return param->comme_empl()->expr->comme_decl_var();
+	}
+
+	return param->comme_decl_var();
+}
