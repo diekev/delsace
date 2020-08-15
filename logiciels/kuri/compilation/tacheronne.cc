@@ -512,7 +512,10 @@ void Tacheronne::gere_tache()
 					}
 
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_TYPE) {
-						erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un type non validée", *unite->espace, unite->noeud->lexeme);
+						rapporte_erreur(unite->espace, unite->noeud, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer un type pour l'expression", erreur::type_erreur::TYPE_INCONNU)
+								.ajoute_message("Note : le type attendu est ")
+								.ajoute_message(chaine_type(unite->type_attendu))
+								.ajoute_message("\n");
 					}
 
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI) {
