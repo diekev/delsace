@@ -247,7 +247,7 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 	auto taille = expressions->taille;
 
 	if (taille == 0) {
-		return static_cast<NoeudExpression *>(nullptr);
+		return NoeudExpression::nul();
 	}
 
 	auto di = expressions->a(taille - 1);
@@ -260,7 +260,7 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 		auto inst = static_cast<NoeudSi *>(di);
 
 		if (inst->bloc_si_faux == nullptr) {
-			return static_cast<NoeudExpression *>(nullptr);
+			return NoeudExpression::nul();
 		}
 
 		return derniere_instruction(inst->bloc_si_faux);
@@ -290,5 +290,5 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 		return di;
 	}
 
-	return static_cast<NoeudExpression *>(nullptr);
+	return NoeudExpression::nul();
 }

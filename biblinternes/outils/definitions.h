@@ -96,3 +96,13 @@
 	}
 
 #define taille_de(x) static_cast<long>(sizeof(x))
+
+#define POINTEUR_NUL(Type) \
+	static inline Type *nul() \
+	{ \
+		return static_cast<Type *>(nullptr); \
+	} \
+	static inline Type const *nul_const() \
+	{ \
+		return static_cast<Type const *>(nullptr); \
+	}

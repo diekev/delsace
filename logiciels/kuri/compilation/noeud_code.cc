@@ -30,7 +30,7 @@
 
 NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression *noeud_expression)
 {
-	auto noeud_code = static_cast<NoeudCode *>(nullptr);
+	auto noeud_code = NoeudCode::nul();
 
 	if (noeud_expression == nullptr) {
 		return nullptr;

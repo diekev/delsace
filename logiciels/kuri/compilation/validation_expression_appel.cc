@@ -369,12 +369,12 @@ static auto apparie_appel_fonction(
 		if (it.ident != nullptr) {
 			arguments_nommes = true;
 
-			auto param = static_cast<NoeudDeclarationVariable *>(nullptr);
+			auto param = NoeudDeclarationVariable::nul();
 			auto index_param = 0l;
 
 			for (auto i = 0; i < decl->params.taille; ++i) {
 				auto dp_ = decl->params[i];
-				auto dp  = static_cast<NoeudDeclarationVariable *>(nullptr);
+				auto dp  = NoeudDeclarationVariable::nul();
 
 				if (dp_->est_empl()) {
 					dp = dp_->comme_empl()->expr->comme_decl_var();
@@ -472,7 +472,7 @@ static auto apparie_appel_fonction(
 	for (auto i = 0l; i < slots.taille(); ++i) {
 		auto index_arg = std::min(i, decl->params.taille - 1);
 		auto param_ = decl->params[index_arg];
-		auto param = static_cast<NoeudDeclarationVariable *>(nullptr);
+		auto param = NoeudDeclarationVariable::nul();
 
 		if (param_->est_empl()) {
 			param = param_->comme_empl()->expr->comme_decl_var();
@@ -777,8 +777,8 @@ static auto apparie_appel_structure(
 			return false;
 		}
 
-		auto type_membre = static_cast<Type *>(nullptr);
-		auto decl_membre = static_cast<NoeudDeclaration *>(nullptr);
+		auto type_membre = Type::nul();
+		auto decl_membre = NoeudDeclaration::nul();
 		index_membre = 0;
 
 		for (auto &membre : *decl_struct->bloc->membres.verrou_lecture()) {
@@ -1032,7 +1032,7 @@ bool valide_appel_fonction(
 		return true;
 	}
 
-	auto candidate = static_cast<DonneesCandidate *>(nullptr);
+	auto candidate = DonneesCandidate::nul();
 	auto poids = 0.0;
 
 	POUR (candidates) {

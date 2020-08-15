@@ -377,16 +377,22 @@ struct NoeudExpression {
 	COMME_NOEUD(empl, NoeudExpressionUnaire)
 
 #undef COMME_NOEUD
+
+	POINTEUR_NUL(NoeudExpression)
 };
 
 struct NoeudDeclaration : public NoeudExpression {
 	NoeudDependance *noeud_dependance = nullptr;
+
+	POINTEUR_NUL(NoeudDeclaration)
 };
 
 struct NoeudDeclarationVariable final : public NoeudDeclaration {
 	NoeudDeclarationVariable() { genre = GenreNoeud::DECLARATION_VARIABLE; }
 
 	COPIE_CONSTRUCT(NoeudDeclarationVariable);
+
+	POINTEUR_NUL(NoeudDeclarationVariable)
 
 	// pour une expression de style a := 5, a est la valeur, et 5 l'expression
 	// pour une expression de style a, b := foo(7) , « a, b » est la valeur, et foo(7) l'expression

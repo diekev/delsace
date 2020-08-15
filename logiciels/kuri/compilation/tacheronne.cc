@@ -206,7 +206,7 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 	auto nouvelle_tache = tache_terminee;
 
 	auto unite = nouvelle_tache.unite;
-	auto espace = static_cast<EspaceDeTravail *>(nullptr);
+	auto espace = EspaceDeTravail::nul();
 
 	// unité peut-être nulle pour les tâches DORS du début de la compilation
 	if (unite) {

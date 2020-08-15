@@ -1361,7 +1361,7 @@ Type *apparie_type_gabarit(Type *type, Type *type_polymorphique)
 
 Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour_type)
 {
-	auto resultat = static_cast<Type *>(nullptr);
+	auto resultat = Type::nul();
 
 	if (type_gabarit->genre == GenreType::POINTEUR) {
 		auto type_pointe = type_gabarit->comme_pointeur()->type_pointe;
@@ -1540,7 +1540,7 @@ void calcule_taille_type_compose(TypeCompose *type)
 
 		auto max_alignement = 0u;
 		auto taille_union = 0u;
-		auto type_le_plus_grand = static_cast<Type *>(nullptr);
+		auto type_le_plus_grand = Type::nul();
 
 		POUR (type->membres) {
 			auto type_membre = it.type;

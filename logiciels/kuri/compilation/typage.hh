@@ -191,6 +191,8 @@ struct Type {
 	AtomeConstante *atome_info_type = nullptr;
 	NoeudDependance *noeud_dependance = nullptr;
 
+	POINTEUR_NUL(Type)
+
 	static Type *cree_entier(unsigned taille_octet, bool est_naturel);
 	static Type *cree_entier_constant();
 	static Type *cree_reel(unsigned taille_octet);

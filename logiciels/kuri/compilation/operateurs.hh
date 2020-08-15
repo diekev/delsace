@@ -181,6 +181,7 @@ struct OperateurCandidat {
 	OperateurCandidat() = default;
 
 	COPIE_CONSTRUCT(OperateurCandidat);
+	POINTEUR_NUL(OperateurCandidat)
 };
 
 bool cherche_candidats_operateurs(

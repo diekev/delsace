@@ -169,6 +169,8 @@ struct EspaceDeTravail {
 
 	~EspaceDeTravail();
 
+	POINTEUR_NUL(EspaceDeTravail)
+
 	/**
 	 * Crée un module avec le nom spécifié, et retourne un pointeur vers le
 	 * module ainsi créé. Si un module avec le même chemin existe, il est

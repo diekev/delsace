@@ -232,7 +232,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				expr->genre_valeur = GenreValeur::DROITE;
 
 				if (fonction_courante && fonction_courante->est_instantiation_gabarit) {
-					auto type_instantie = static_cast<Type *>(nullptr);
+					auto type_instantie = Type::nul();
 
 					for (auto &paire : fonction_courante->paires_expansion_gabarit) {
 						if (paire.first == expr->ident->nom) {
@@ -719,7 +719,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				if (cherche_candidats_operateurs(*espace, *this, type1, type2, type_op, candidats)) {
 					return true;
 				}
-				auto meilleur_candidat = static_cast<OperateurCandidat const *>(nullptr);
+				auto meilleur_candidat = OperateurCandidat::nul_const();
 				auto poids = 0.0;
 
 				for (auto const &candidat : candidats) {
@@ -766,7 +766,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				if (cherche_candidats_operateurs(*espace, *this, type1, type2, type_op, candidats)) {
 					return true;
 				}
-				auto meilleur_candidat = static_cast<OperateurCandidat const *>(nullptr);
+				auto meilleur_candidat = OperateurCandidat::nul_const();
 				auto poids = 0.0;
 
 				for (auto const &candidat : candidats) {
@@ -1492,7 +1492,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			auto type_info_type = static_cast<Type *>(nullptr);
+			auto type_info_type = Type::nul();
 
 			switch (expr->type->genre) {
 				case GenreType::INVALIDE:
@@ -1945,7 +1945,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					return true;
 				}
 
-				auto meilleur_candidat = static_cast<OperateurCandidat const *>(nullptr);
+				auto meilleur_candidat = OperateurCandidat::nul_const();
 				auto poids = 0.0;
 
 				for (auto const &candidat : candidats) {
@@ -2098,7 +2098,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			inst->type = inst->expr_appel->type;
 			inst->genre_valeur = GenreValeur::DROITE;
 
-			auto type_de_l_erreur = static_cast<Type *>(nullptr);
+			auto type_de_l_erreur = Type::nul();
 
 			// voir ce que l'on retourne
 			// - si aucun type erreur -> erreur ?
@@ -2366,7 +2366,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 		auto dernier_est_variadic = false;
 
 		POUR (decl->params) {
-			auto param = static_cast<NoeudDeclarationVariable *>(nullptr);
+			auto param = NoeudDeclarationVariable::nul();
 
 			if (it->est_empl()) {
 				param = it->comme_empl()->expr->comme_decl_var();
@@ -2427,7 +2427,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 	}
 	else {
 		POUR (decl->params) {
-			auto param = static_cast<NoeudDeclarationVariable *>(nullptr);
+			auto param = NoeudDeclarationVariable::nul();
 
 			if (it->est_empl()) {
 				param = it->comme_empl()->expr->comme_decl_var();

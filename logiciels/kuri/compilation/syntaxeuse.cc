@@ -756,7 +756,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			consomme();
 			lexeme->genre = GenreLexeme::TABLEAU;
 
-			auto expression_entre_crochets = static_cast<NoeudExpression *>(nullptr);
+			auto expression_entre_crochets = NoeudExpression::nul();
 			if (apparie_expression()) {
 				expression_entre_crochets = analyse_expression({}, GenreLexeme::CROCHET_OUVRANT, GenreLexeme::INCONNU);
 			}

@@ -54,6 +54,8 @@ struct NoeudCode {
 	kuri::chaine nom_fichier{};
 	int numero_ligne = 0;
 	int numero_colonne = 0;
+
+	POINTEUR_NUL(NoeudCode)
 };
 
 struct NoeudCodeEnteteFonction : public NoeudCode {
