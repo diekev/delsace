@@ -335,6 +335,7 @@ static auto apparie_appel_fonction(
 
 	res.note = CANDIDATE_EST_APPEL_FONCTION;
 	res.noeud_decl = decl;
+	res.type = decl->type;
 
 	auto const nombre_args = decl->params.taille;
 
