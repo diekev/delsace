@@ -373,10 +373,18 @@ static auto apparie_appel_fonction(
 			auto index_param = 0l;
 
 			for (auto i = 0; i < decl->params.taille; ++i) {
-				auto dp = decl->params[i];
+				auto dp_ = decl->params[i];
+				auto dp  = static_cast<NoeudDeclarationVariable *>(nullptr);
+
+				if (dp_->est_empl()) {
+					dp = dp_->comme_empl()->expr->comme_decl_var();
+				}
+				else {
+					dp = dp_->comme_decl_var();
+				}
 
 				if (dp->ident == it.ident) {
-					param = static_cast<NoeudDeclarationVariable *>(dp);
+					param = dp;
 					index_param = i;
 					break;
 				}
@@ -463,7 +471,16 @@ static auto apparie_appel_fonction(
 
 	for (auto i = 0l; i < slots.taille(); ++i) {
 		auto index_arg = std::min(i, decl->params.taille - 1);
-		auto param = static_cast<NoeudDeclarationVariable *>(decl->params[index_arg]);
+		auto param_ = decl->params[index_arg];
+		auto param = static_cast<NoeudDeclarationVariable *>(nullptr);
+
+		if (param_->est_empl()) {
+			param = param_->comme_empl()->expr->comme_decl_var();
+		}
+		else {
+			param = param_->comme_decl_var();
+		}
+
 		auto arg = param->valeur;
 		auto slot = slots[i];
 
@@ -846,6 +863,11 @@ static auto trouve_candidates_pour_appel(
 			auto acces = static_cast<NoeudExpressionBinaire *>(it.decl);
 			auto candidates = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>();
 			if (trouve_candidates_pour_fonction_appelee(contexte, espace, acces->expr2, candidates)) {
+				return true;
+			}
+
+			if (candidates.taille() == 0) {
+				contexte.unite->attend_sur_symbole(acces->expr2->lexeme);
 				return true;
 			}
 

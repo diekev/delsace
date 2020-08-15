@@ -330,6 +330,16 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			noeud_code = n;
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_EMPL:
+		{
+			auto noeud_empl = noeud_expression->comme_empl();
+
+			auto n = noeuds_operations_unaire.ajoute_element();
+			n->operande = converti_noeud_syntaxique(espace, noeud_empl->expr);
+
+			noeud_code = n;
+			break;
+		}
 	}
 
 	// À FAIRE : supprime cela quand nous gérerons tous les cas

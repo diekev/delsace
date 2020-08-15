@@ -169,7 +169,16 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	}
 
 	POUR (decl->params) {
-		auto atome = constructrice.cree_allocation(it->type, it->ident);
+		auto param = static_cast<NoeudDeclarationVariable *>(nullptr);
+
+		if (it->est_empl()) {
+			param = it->comme_empl()->expr->comme_decl_var();
+		}
+		else {
+			param = it->comme_decl_var();
+		}
+
+		auto atome = constructrice.cree_allocation(param->type, param->ident);
 		params.pousse(atome);
 	}
 

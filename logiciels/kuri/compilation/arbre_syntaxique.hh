@@ -123,7 +123,8 @@ struct UniteCompilation;
 	ENUMERE_GENRE_NOEUD_EX(OPERATEUR_BINAIRE) \
 	ENUMERE_GENRE_NOEUD_EX(OPERATEUR_COMPARAISON_CHAINEE) \
 	ENUMERE_GENRE_NOEUD_EX(OPERATEUR_UNAIRE) \
-	ENUMERE_GENRE_NOEUD_EX(EXPANSION_VARIADIQUE)
+	ENUMERE_GENRE_NOEUD_EX(EXPANSION_VARIADIQUE) \
+	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_EMPL)
 
 enum class GenreNoeud : char {
 #define ENUMERE_GENRE_NOEUD_EX(genre) genre,
@@ -321,6 +322,7 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(tantque, GenreNoeud::INSTRUCTION_TANTQUE)
 	EST_NOEUD_GENRE(tente, GenreNoeud::INSTRUCTION_TENTE)
 	EST_NOEUD_GENRE(type_de, GenreNoeud::EXPRESSION_TYPE_DE)
+	EST_NOEUD_GENRE(empl, GenreNoeud::INSTRUCTION_EMPL)
 
 #undef EST_NOEUD_GENRE
 
@@ -372,6 +374,7 @@ struct NoeudExpression {
 	COMME_NOEUD(tantque, NoeudBoucle)
 	COMME_NOEUD(tente, NoeudTente)
 	COMME_NOEUD(type_de, NoeudExpressionUnaire)
+	COMME_NOEUD(empl, NoeudExpressionUnaire)
 
 #undef COMME_NOEUD
 };
@@ -708,6 +711,7 @@ struct NoeudDirectiveExecution : NoeudExpression {
 	COMME_NOEUD(tantque, NoeudBoucle)
 	COMME_NOEUD(tente, NoeudTente)
 	COMME_NOEUD(type_de, NoeudExpressionUnaire)
+	COMME_NOEUD(empl, NoeudExpressionUnaire)
 
 #undef COMME_NOEUD
 

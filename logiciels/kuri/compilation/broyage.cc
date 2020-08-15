@@ -460,7 +460,15 @@ dls::chaine broye_nom_fonction(
 
 	/* À FAIRE(réusinage arbre) : ajout du contexte */
 	POUR (decl->params) {
-		auto param = static_cast<NoeudDeclarationVariable *>(it);
+		auto param = static_cast<NoeudDeclarationVariable *>(nullptr);
+
+		if (it->est_empl()) {
+			param = it->comme_empl()->expr->comme_decl_var();
+		}
+		else {
+			param = it->comme_decl_var();
+		}
+
 		nom_ascii = broye_nom_simple(param->valeur->ident->nom);
 		enchaineuse << nom_ascii.taille();
 		enchaineuse << nom_ascii;

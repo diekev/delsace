@@ -233,6 +233,7 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
+		case GenreNoeud::INSTRUCTION_EMPL:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
 
@@ -568,6 +569,7 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
+		case GenreNoeud::INSTRUCTION_EMPL:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire const *>(racine);
 			auto nexpr = static_cast<NoeudExpressionUnaire *>(nracine);
@@ -875,6 +877,7 @@ void aplatis_arbre(
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
+		case GenreNoeud::INSTRUCTION_EMPL:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
 			expr->drapeaux |= drapeau;
@@ -1115,6 +1118,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
+		case GenreNoeud::INSTRUCTION_EMPL:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
 

@@ -541,53 +541,14 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				graphe->cree_noeud_globale(decl);
 			}
 
-			if (variable->drapeaux & EMPLOYE) {
-				decl->drapeaux |= EMPLOYE;
-				auto type_employe = decl->type;
+			auto bloc_parent = decl->bloc_parent;
 
-				// permet le déréférencement de pointeur, mais uniquement sur un niveau
-				if (type_employe->genre == GenreType::POINTEUR) {
-					type_employe = type_employe->comme_pointeur()->type_pointe;
-				}
-
-				if (type_employe->genre != GenreType::STRUCTURE) {
-					::rapporte_erreur(unite->espace, decl, "Impossible d'employer une variable n'étant pas une structure.")
-							.ajoute_message("Le type de la variable est : ")
-							.ajoute_message(chaine_type(type_employe))
-							.ajoute_message(".\n\n");
-					return true;
-				}
-
-				if ((decl->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-					unite->attend_sur_type(decl->type);
-					return true;
-				}
-
-				auto type_structure = type_employe->comme_structure();
-
-				auto index_membre = 0;
-
-				// pour les structures, prend le bloc_parent qui sera celui de la structure
-				auto bloc_parent = decl->bloc_parent;
-
-				// pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la fonction (ce qui est le cas pour les paramètres...)
-				if (fonction_courante && bloc_parent == fonction_courante->corps->bloc->bloc_parent) {
-					bloc_parent = fonction_courante->corps->bloc;
-				}
-
-				POUR (type_structure->membres) {
-					auto decl_membre = static_cast<NoeudDeclarationVariable *>(espace->assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
-					decl_membre->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(it.nom);
-					decl_membre->type = it.type;
-					decl_membre->bloc_parent = bloc_parent;
-					decl_membre->drapeaux |= DECLARATION_FUT_VALIDEE;
-					decl_membre->declaration_vient_d_un_emploi = decl;
-					decl_membre->index_membre_employe = index_membre++;
-
-					// mets-les au début du bloc afin de pouvoir vérifier les redéfinitions
-					bloc_parent->membres->pousse_front(decl_membre);
-				}
+			// pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la fonction (ce qui est le cas pour les paramètres...)
+			if (fonction_courante && bloc_parent == fonction_courante->corps->bloc->bloc_parent) {
+				bloc_parent = fonction_courante->corps->bloc;
 			}
+
+			bloc_parent->membres->pousse(decl);
 
 			decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 			donnees_dependance.types_utilises.insere(decl->type);
@@ -2229,6 +2190,59 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_EMPL:
+		{
+			auto empl = noeud->comme_empl();
+			auto decl = empl->expr->comme_decl_var();
+
+			empl->type = decl->type;
+			decl->drapeaux |= EMPLOYE;
+			auto type_employe = decl->type;
+
+			// permet le déréférencement de pointeur, mais uniquement sur un niveau
+			if (type_employe->genre == GenreType::POINTEUR) {
+				type_employe = type_employe->comme_pointeur()->type_pointe;
+			}
+
+			if (type_employe->genre != GenreType::STRUCTURE) {
+				::rapporte_erreur(unite->espace, decl, "Impossible d'employer une variable n'étant pas une structure.")
+						.ajoute_message("Le type de la variable est : ")
+						.ajoute_message(chaine_type(type_employe))
+						.ajoute_message(".\n\n");
+				return true;
+			}
+
+			if ((decl->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+				unite->attend_sur_type(decl->type);
+				return true;
+			}
+
+			auto type_structure = type_employe->comme_structure();
+
+			auto index_membre = 0;
+
+			// pour les structures, prend le bloc_parent qui sera celui de la structure
+			auto bloc_parent = decl->bloc_parent;
+
+			// pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la fonction (ce qui est le cas pour les paramètres...)
+			if (fonction_courante && bloc_parent == fonction_courante->corps->bloc->bloc_parent) {
+				bloc_parent = fonction_courante->corps->bloc;
+			}
+
+			POUR (type_structure->membres) {
+				auto decl_membre = static_cast<NoeudDeclarationVariable *>(espace->assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
+				decl_membre->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(it.nom);
+				decl_membre->type = it.type;
+				decl_membre->bloc_parent = bloc_parent;
+				decl_membre->drapeaux |= DECLARATION_FUT_VALIDEE;
+				decl_membre->declaration_vient_d_un_emploi = decl;
+				decl_membre->index_membre_employe = index_membre++;
+				decl_membre->expression = it.expression_valeur_defaut;
+
+				bloc_parent->membres->pousse(decl_membre);
+			}
+			break;
+		}
 	}
 
 	return false;
@@ -2352,7 +2366,15 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 		auto dernier_est_variadic = false;
 
 		POUR (decl->params) {
-			auto param = it->comme_decl_var();
+			auto param = static_cast<NoeudDeclarationVariable *>(nullptr);
+
+			if (it->est_empl()) {
+				param = it->comme_empl()->expr->comme_decl_var();
+			}
+			else {
+				param = it->comme_decl_var();
+			}
+
 			auto variable = param->valeur;
 			auto expression = param->expression;
 
@@ -2381,18 +2403,18 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 
 			noms.insere(variable->ident);
 
-			if (it->type->genre == GenreType::VARIADIQUE) {
-				it->drapeaux |= EST_VARIADIQUE;
+			if (param->type->genre == GenreType::VARIADIQUE) {
+				param->drapeaux |= EST_VARIADIQUE;
 				decl->est_variadique = true;
 				dernier_est_variadic = true;
 
-				auto type_var = it->type->comme_variadique();
+				auto type_var = param->type->comme_variadique();
 
 				if (!decl->est_externe && type_var->type_pointe == nullptr) {
 					rapporte_erreur(
 								"La déclaration de fonction variadique sans type n'est"
 								" implémentée que pour les fonctions externes",
-								it);
+								param);
 					return true;
 				}
 			}
@@ -2405,12 +2427,25 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 	}
 	else {
 		POUR (decl->params) {
-			auto variable = it->comme_decl_var()->valeur;
+			auto param = static_cast<NoeudDeclarationVariable *>(nullptr);
+
+			if (it->est_empl()) {
+				param = it->comme_empl()->expr->comme_decl_var();
+			}
+			else {
+				param = it->comme_decl_var();
+			}
+
+			auto variable = param->valeur;
 			if (resoud_type_final(it->expression_type, variable->type)) {
 				return true;
 			}
 			it->type = variable->type;
 		}
+
+		// À FAIRE : crash dans la validation des expressions d'appels lors de la copie des tablets
+		//           de toute manière ceci n'est pas nécessaire
+		//decl->bloc_parent->membres->pousse(decl);
 	}
 
 	// -----------------------------------
@@ -2589,8 +2624,6 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 	if (unite->index_courant == 0) {
 		auto requiers_contexte = !possede_drapeau(decl->entete->drapeaux, FORCE_NULCTX);
 
-		decl->bloc->membres->reserve(entete->params.taille + requiers_contexte);
-
 		if (requiers_contexte) {
 			auto val_ctx = static_cast<NoeudExpressionReference *>(espace->assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
 			val_ctx->type = espace->typeuse.type_contexte;
@@ -2605,11 +2638,6 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 			decl_ctx->drapeaux |= DECLARATION_FUT_VALIDEE;
 
 			decl->bloc->membres->pousse(decl_ctx);
-		}
-
-		POUR (entete->params) {
-			auto argument = it->comme_decl_var();
-			decl->bloc->membres->pousse(argument);
 		}
 	}
 
@@ -2699,6 +2727,9 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 	auto type_enum = decl->type->comme_enum();
 	auto &membres = type_enum->membres;
 
+	// nous avons besoin du symbole le plus rapidement possible pour déterminer les types l'utilisant
+	decl->bloc_parent->membres->pousse(decl);
+
 	if (type_enum->est_erreur) {
 		type_enum->type_donnees = espace->typeuse[TypeBase::Z32];
 	}
@@ -2740,6 +2771,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 	dernier_res.est_errone = true;
 
 	membres.reserve(decl->bloc->expressions->taille);
+	decl->bloc->membres->reserve(decl->bloc->expressions->taille);
 
 	POUR (*decl->bloc->expressions.verrou_ecriture()) {
 		if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
@@ -2749,6 +2781,8 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 
 		auto decl_expr = it->comme_decl_var();
 		decl_expr->type = type_enum->type_donnees;
+
+		decl->bloc->membres->pousse(decl_expr);
 
 		auto var = decl_expr->valeur;
 
@@ -2829,8 +2863,16 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	noeud_dependance->noeud_syntaxique = decl;
 	decl->noeud_dependance = noeud_dependance;
 
+	// nous avons besoin du symbole le plus rapidement possible pour déterminer les types l'utilisant
+	decl->bloc_parent->membres->pousse(decl);
+
 	if (decl->est_externe && decl->bloc == nullptr) {
 		return false;
+	}
+
+	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
+		graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
+		return true;
 	}
 
 	if (decl->bloc->membres->est_vide()) {
@@ -2873,7 +2915,6 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		return false;
 	};
 
-
 	auto ajoute_donnees_membre = [&, this](NoeudExpression *enfant, NoeudExpression *expr_valeur)
 	{
 		auto type_membre = enfant->type;
@@ -2895,11 +2936,6 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 		return false;
 	};
-
-	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
-		graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
-		return true;
-	}
 
 	if (decl->est_union) {
 		auto type_union = decl->type->comme_union();
@@ -2948,12 +2984,13 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 
 		graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
+		decl->bloc_parent->membres->pousse(decl);
 		return false;
 	}
 
 	auto type_struct = type_compose->comme_structure();
 
-	POUR (*decl->bloc->expressions.verrou_ecriture()) {
+	POUR (*decl->bloc->membres.verrou_lecture()) {
 		if (dls::outils::est_element(it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
 			// utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
 			auto type_de_donnees = espace->typeuse.type_type_de_donnees(it->type);
@@ -2964,11 +3001,53 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			continue;
 		}
 
-		if (it->genre != GenreNoeud::DECLARATION_VARIABLE && it->genre != GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
+		if ((it->drapeaux & EMPLOYE) != 0) {
+			type_struct->types_employes.pousse(it->type->comme_structure());
+			continue;
+		}
+
+		if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
 			rapporte_erreur("Déclaration inattendu dans le bloc de la structure", it);
 			return true;
 		}
 
+		auto decl_var = it->comme_decl_var();
+
+		if (decl_var->drapeaux & EST_CONSTANTE) {
+			type_compose->membres.pousse({ it->type, it->ident->nom, 0, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
+			continue;
+		}
+
+		if (decl_var->type->genre == GenreType::RIEN) {
+			rapporte_erreur("Ne peut avoir un type « rien » dans une structure", decl_var, erreur::type_erreur::TYPE_DIFFERENTS);
+			return true;
+		}
+
+		if (decl_var->type->genre == GenreType::STRUCTURE || decl_var->type->genre == GenreType::UNION) {
+			if ((decl_var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+				unite->attend_sur_type(decl_var->type);
+				return true;
+			}
+		}
+
+		auto decl_membre = decl_var->valeur;
+
+		if (decl_membre && decl_membre->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+			rapporte_erreur("Expression invalide dans la déclaration du membre de la structure", decl_membre);
+			return true;
+		}
+
+		if (verifie_inclusion_valeur(decl_var)) {
+			return true;
+		}
+
+		// À FAIRE : préserve l'emploi dans les données types
+		if (ajoute_donnees_membre(decl_var, decl_var->expression)) {
+			return true;
+		}
+	}
+
+	POUR (*decl->bloc->expressions.verrou_ecriture()) {
 		if (it->genre == GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
 			auto expr_assign = it->comme_assignation();
 			auto variable = expr_assign->expr1;
@@ -2980,69 +3059,6 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			}
 
 			continue;
-		}
-
-		auto decl_var = it->comme_decl_var();
-		auto decl_membre = decl_var->valeur;
-
-		if (decl_var->drapeaux & EST_CONSTANTE) {
-			type_compose->membres.pousse({ it->type, it->ident->nom, 0, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
-			continue;
-		}
-
-		if (decl_membre->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-			rapporte_erreur("Expression invalide dans la déclaration du membre de la structure", decl_membre);
-			return true;
-		}
-
-		if (decl_membre->type->genre == GenreType::RIEN) {
-			rapporte_erreur("Ne peut avoir un type « rien » dans une structure", decl_membre, erreur::type_erreur::TYPE_DIFFERENTS);
-			return true;
-		}
-
-		if (decl_membre->type->genre == GenreType::STRUCTURE || decl_membre->type->genre == GenreType::UNION) {
-			if ((decl_membre->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-				unite->attend_sur_type(decl_membre->type);
-				return true;
-			}
-		}
-
-		if (verifie_inclusion_valeur(decl_membre)) {
-			return true;
-		}
-
-		// À FAIRE : préserve l'emploi dans les données types
-		if (decl_membre->drapeaux & EMPLOYE) {
-			if (decl_membre->type->genre != GenreType::STRUCTURE) {
-				rapporte_erreur("Ne peut employer un type n'étant pas une structure", decl_membre);
-				return true;
-			}
-
-			for (auto it_type : type_struct->types_employes) {
-				if (decl_membre->type == it_type) {
-					rapporte_erreur("Ne peut employer plusieurs fois le même type", decl_membre);
-					return true;
-				}
-			}
-
-			auto type_struct_empl = decl_membre->type->comme_structure();
-			type_struct->types_employes.pousse(type_struct_empl);
-
-			auto decl_struct_empl = type_struct_empl->decl;
-
-			type_compose->membres.reserve(type_compose->membres.taille + decl_struct_empl->bloc->membres->taille);
-
-			for (auto decl_it_empl : *decl_struct_empl->bloc->membres.verrou_lecture()) {
-				auto it_empl = decl_it_empl->comme_decl_var();
-				if (ajoute_donnees_membre(it_empl->valeur, it_empl->expression)) {
-					return true;
-				}
-			}
-		}
-		else {
-			if (ajoute_donnees_membre(decl_membre, decl_var->expression)) {
-				return true;
-			}
 		}
 	}
 

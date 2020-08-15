@@ -407,7 +407,6 @@ void Syntaxeuse::lance_analyse()
 					decl_var->expression_type = noeud->expression_type;
 					decl_var->valeur = noeud;
 
-					decl_var->bloc_parent->membres->pousse(decl_var);
 					decl_var->bloc_parent->expressions->pousse(decl_var);
 					decl_var->drapeaux |= EST_GLOBALE;
 					decl_var->arbre_aplatis.reserve(static_cast<long>(nombre_noeuds_alloues + 1));
@@ -415,7 +414,6 @@ void Syntaxeuse::lance_analyse()
 					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, decl_var);
 				}
 				else if (est_declaration(noeud->genre)) {
-					noeud->bloc_parent->membres->pousse(static_cast<NoeudDeclaration *>(noeud));
 					noeud->bloc_parent->expressions->pousse(noeud);
 					noeud->drapeaux |= EST_GLOBALE;
 
@@ -797,15 +795,19 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		{
 			consomme();
 
-			auto noeud = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme_courant());
-			noeud->drapeaux |= EMPLOYE;
+			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_EMPL, lexeme);
+			auto expr = analyse_expression({}, GenreLexeme::EMPL, GenreLexeme::INCONNU);
 
-			consomme();
+			if (expr->est_ref_decl() && expr->expression_type) {
+				auto decl = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, expr->lexeme);
+				decl->ident = expr->ident;
+				decl->expression_type = expr->expression_type;
+				decl->valeur = expr;
 
-			if (apparie(GenreLexeme::DOUBLE_POINTS)) {
-				consomme();
-				noeud->expression_type = analyse_expression_primaire(GenreLexeme::DOUBLE_POINTS, GenreLexeme::INCONNU);
+				expr = decl;
 			}
+
+			noeud->expr = expr;
 
 			return noeud;
 		}
@@ -1387,7 +1389,6 @@ NoeudBloc *Syntaxeuse::analyse_bloc()
 
 	auto bloc = m_fichier->module->assembleuse->empile_bloc();
 	auto expressions = dls::tablet<NoeudExpression *, 32>();
-	auto membres = dls::tablet<NoeudDeclaration *, 32>();
 
 	while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
 		if (apparie(GenreLexeme::POINT_VIRGULE)) {
@@ -1406,11 +1407,9 @@ NoeudBloc *Syntaxeuse::analyse_bloc()
 				auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme);
 				decl_var->expression_type = noeud->expression_type;
 				decl_var->valeur = noeud;
-				membres.pousse(decl_var);
 				expressions.pousse(decl_var);
 			}
 			else if (est_declaration(noeud->genre)) {
-				membres.pousse(static_cast<NoeudDeclaration *>(noeud));
 				expressions.pousse(noeud);
 			}
 			else {
@@ -1422,7 +1421,6 @@ NoeudBloc *Syntaxeuse::analyse_bloc()
 		}
 	}
 
-	copie_tablet_tableau(membres, *bloc->membres.verrou_ecriture());
 	copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 	m_fichier->module->assembleuse->depile_bloc();
 
@@ -1718,7 +1716,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 
 	auto bloc = m_fichier->module->assembleuse->empile_bloc();
 
-	auto membres = dls::tablet<NoeudDeclaration *, 16>();
 	auto expressions = dls::tablet<NoeudExpression *, 16>();
 
 	while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
@@ -1735,17 +1732,14 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 				decl_var->expression_type = noeud->expression_type;
 				decl_var->valeur = noeud;
 
-				membres.pousse(decl_var);
 				expressions.pousse(decl_var);
 			}
 			else {
-				membres.pousse(static_cast<NoeudDeclaration *>(noeud));
 				expressions.pousse(noeud);
 			}
 		}
 	}
 
-	copie_tablet_tableau(membres, *bloc->membres.verrou_ecriture());
 	copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 
 	m_fichier->module->assembleuse->depile_bloc();
@@ -1832,6 +1826,11 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		consomme(GenreLexeme::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");
 	}
 	else {
+		// À FAIRE : ce serait bien de ne placer le membres que durant la validation sémantique,
+		// mais pour cela, à cause de la compilation asynchrone, il nous faudrait attendre que le
+		// module soit complètement parsé et les entêtes fonctions toutes validées
+		noeud->bloc_parent->membres->pousse(noeud);
+
 		// nous avons la déclaration d'une fonction
 		if (apparie(GenreLexeme::RETOUR_TYPE)) {
 			consomme();
@@ -1920,6 +1919,10 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			if (noeud->params_sorties.taille > 1) {
 				lance_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
 			}
+
+			/* ajoute un bloc même pour les fonctions externes, afin de stocker les paramètres */
+			noeud->corps->bloc = m_fichier->module->assembleuse->empile_bloc();
+			m_fichier->module->assembleuse->depile_bloc();
 		}
 		else {
 			/* ignore les points-virgules implicites */
@@ -2164,7 +2167,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		auto bloc = m_fichier->module->assembleuse->empile_bloc();
 		consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
-		auto membres = dls::tablet<NoeudDeclaration *, 16>();
 		auto expressions = dls::tablet<NoeudExpression *, 16>();
 
 		while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
@@ -2181,11 +2183,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 					decl_var->expression_type = noeud->expression_type;
 					decl_var->valeur = noeud;
 
-					membres.pousse(decl_var);
 					expressions.pousse(decl_var);
 				}
 				else {
-					membres.pousse(static_cast<NoeudDeclaration *>(noeud));
 					expressions.pousse(noeud);
 				}
 			}
@@ -2194,10 +2194,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 			}
 		}
 
-		copie_tablet_tableau(membres, *bloc->membres.verrou_ecriture());
 		copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 
-		POUR (*bloc->membres.verrou_lecture()) {
+		POUR (*bloc->expressions.verrou_lecture()) {
 			aplatis_arbre(it, noeud_decl->arbre_aplatis, drapeaux_noeud::AUCUN);
 		}
 

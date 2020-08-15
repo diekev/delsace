@@ -113,6 +113,7 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
+		case GenreNoeud::INSTRUCTION_EMPL:
 		{
 			noeud = m_noeuds_expression_unaire.ajoute_element();
 			break;
