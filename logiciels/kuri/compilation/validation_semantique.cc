@@ -3033,10 +3033,9 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			for (auto &membre : type_compose->membres) {
 				if (membre.nom == variable->ident->nom) {
 					membre.expression_valeur_defaut = expr_assign->expr2;
+					break;
 				}
 			}
-
-			continue;
 		}
 	}
 
