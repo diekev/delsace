@@ -906,7 +906,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			table_locales[noeud->ident] = pointeur;
 
-			empile_valeur(pointeur);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
