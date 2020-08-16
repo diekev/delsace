@@ -1,0 +1,89 @@
+métaprogrammation :
+-- conversion des fonctions en OSL, GLSL, CUDA, SIMD, OpenCL (voir Halide ; voir Embree pour SIMD)
+-- génération de machines virtuelles (LCC, SVM)
+-- génération des appels de commandes, d'enregistrements d'opérateurs, des noeuds (LCC, Jorjala)
+-- génération du parsage et de la validation de structures JSON, de lignes de commandes
+-- préenlignage de fonctions
+-- génère des IPA pour des systèmes de réflexion (RNA dans Blender, Node dans Cycles)
+-- compilation de compilateurs (voir compilation de brainfuck dans terra http://terralang.org/#compiling-a-language)
+
+// ----------------------------------------------------
+// génération de code pour LCC
+
+// marque la fonction
+
+@LCC
+calcule_base_orthonormale :: fonc (a: Vec3) -> b: Vec3, c: Vec3
+{
+
+}
+
+// crée une énumération pour les fonction
+
+op_code_fonction :: énum {
+    FONC_calcule_base_orthonormale
+    ....
+}
+
+// enregistre la fonction
+
+enregistre_fonction(op_code, "nom", type_entrées(...), type_sorties(...))
+
+// crée la fonction d'exécution
+
+discr op_code {
+    FONC_calcule_base_orthonormale {
+        v := dépile_vec3(pile)
+        a, b := enligne calcule_base_orthonormale(v)
+        empile_vec3(pile, a)
+        empile_vec3(pile, b)
+    }
+}
+
+// ----------------------------------------------------
+// génération de code pour un système de comande comme MEL
+
+// commande exemple
+
+ajoute_vertex 0.1 -1.2 0.3
+
+// avec paramètres
+ajoute_vertex -x 0.1 -y -1.2 -z 0.3
+
+// fonction implémentée avec annotation
+
+@enregistre_commande
+ajoute_vertex :: fonc (ctx: ContexteExecution, x: r32, y: r32, z: z32)
+{
+    maillage := ctx.maillage
+    maillage.ajoute_vertex(x, y, z)
+}
+
+// génére la fonction d'appel de la commande qui parsera les paramètres
+
+appel_ajoute_vertex :: fonc (ctx: ContexteExecution, arguments: ...chaine) -> ERR
+{
+    si arguments.taille != 3 {
+        retourne ERR
+    }
+
+    x := tente parse_r32(arguments[0]) piège err {
+        retourne ERR
+    }
+
+    y := tente parse_r32(arguments[1]) piège err {
+        retourne ERR
+    }
+
+    z := tente parse_r32(arguments[2]) piège err {
+        retourne ERR
+    }
+
+    ajoute_vertex(ctx, x, y, z)
+    retourne OK
+}
+
+// génére l'enregistrement de la fonction
+
+tableau_ajoute(@commandes, InfoCommande(nom = "ajoute_vertex", appel = appel_ajoute_vertex))
+
