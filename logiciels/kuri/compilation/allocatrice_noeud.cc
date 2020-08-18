@@ -183,6 +183,11 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 			noeud = m_noeuds_tente.ajoute_element();
 			break;
 		}
+		case GenreNoeud::EXPRESSION_VIRGULE:
+		{
+			noeud = m_noeuds_expression_virgule.ajoute_element();
+			break;
+		}
 	}
 
 	return noeud;
@@ -213,6 +218,7 @@ long AllocatriceNoeud::memoire_utilisee() const
 	memoire += m_noeuds_tableau_args_variadiques.memoire_utilisee();
 	memoire += m_noeuds_tente.memoire_utilisee();
 	memoire += m_noeuds_directive_execution.memoire_utilisee();
+	memoire += m_noeuds_expression_virgule.memoire_utilisee();
 
 	pour_chaque_element(m_noeuds_struct, [&](NoeudStruct const &noeud)
 	{
@@ -269,6 +275,11 @@ long AllocatriceNoeud::memoire_utilisee() const
 		memoire += noeud.exprs.taille * taille_de(NoeudExpression *);
 	});
 
+	pour_chaque_element(m_noeuds_expression_virgule, [&](NoeudExpressionVirgule const &noeud)
+	{
+		memoire += noeud.expressions.taille * taille_de(NoeudExpression *);
+	});
+
 #undef COMPTE_MEMOIRE
 
 	return memoire;
@@ -298,6 +309,7 @@ long AllocatriceNoeud::nombre_noeuds() const
 	noeuds += m_noeuds_pousse_contexte.taille();
 	noeuds += m_noeuds_tableau_args_variadiques.taille();
 	noeuds += m_noeuds_directive_execution.taille();
+	noeuds += m_noeuds_expression_virgule.taille();
 
 #if 0
 #define IMPRIME_NOMBRE_DE_NOEUDS(tableau) \
@@ -324,6 +336,7 @@ long AllocatriceNoeud::nombre_noeuds() const
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_pousse_contexte);
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_tableau_args_variadiques);
 	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_directive_execution);
+	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_virgule);
 
 #undef IMPRIME_NOMBRE_DE_NOEUDS
 #endif

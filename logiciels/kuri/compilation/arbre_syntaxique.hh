@@ -55,6 +55,7 @@ struct NoeudExpressionLogement;
 struct NoeudExpressionMembre;
 struct NoeudExpressionReference;
 struct NoeudExpressionUnaire;
+struct NoeudExpressionVirgule;
 struct NoeudPour;
 struct NoeudPousseContexte;
 struct NoeudSi;
@@ -101,6 +102,7 @@ struct UniteCompilation;
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_TAILLE_DE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_TYPE_DE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_COMME) \
+	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_VIRGULE) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_BOUCLE) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_COMPOSEE) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_CONTINUE_ARRETE) \
@@ -318,6 +320,7 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(tente, GenreNoeud::INSTRUCTION_TENTE)
 	EST_NOEUD_GENRE(type_de, GenreNoeud::EXPRESSION_TYPE_DE)
 	EST_NOEUD_GENRE(empl, GenreNoeud::INSTRUCTION_EMPL)
+	EST_NOEUD_GENRE(virgule, GenreNoeud::EXPRESSION_VIRGULE)
 
 #undef EST_NOEUD_GENRE
 
@@ -370,6 +373,7 @@ struct NoeudExpression {
 	COMME_NOEUD(tente, NoeudTente)
 	COMME_NOEUD(type_de, NoeudExpressionUnaire)
 	COMME_NOEUD(empl, NoeudExpressionUnaire)
+	COMME_NOEUD(virgule, NoeudExpressionVirgule)
 
 #undef COMME_NOEUD
 
@@ -658,6 +662,12 @@ struct NoeudDirectiveExecution : NoeudExpression {
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 };
 
+struct NoeudExpressionVirgule : public NoeudExpression {
+	NoeudExpressionVirgule() { genre = GenreNoeud::EXPRESSION_VIRGULE; }
+
+	kuri::tableau<NoeudExpression *> expressions{};
+};
+
 #define COMME_NOEUD(genre, type_noeud) \
 	inline type_noeud *NoeudExpression::comme_##genre() \
 	{ \
@@ -715,6 +725,7 @@ struct NoeudDirectiveExecution : NoeudExpression {
 	COMME_NOEUD(tente, NoeudTente)
 	COMME_NOEUD(type_de, NoeudExpressionUnaire)
 	COMME_NOEUD(empl, NoeudExpressionUnaire)
+	COMME_NOEUD(virgule, NoeudExpressionVirgule)
 
 #undef COMME_NOEUD
 

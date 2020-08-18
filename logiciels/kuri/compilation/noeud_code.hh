@@ -153,6 +153,10 @@ struct NoeudCodeAppel : public NoeudCode {
 	kuri::tableau<NoeudCode *> params{};
 };
 
+struct NoeudCodeVirgule : public NoeudCode {
+	kuri::tableau<NoeudCode *> expressions{};
+};
+
 /* Structures utilisées pour passer les informations des types au métaprogrammes.
  * Celles-ci sont les pendantes de celles dans le module Kuri et doivent être
  * synchronisées avec elles.
@@ -251,6 +255,7 @@ struct ConvertisseuseNoeudCode {
 	tableau_page<NoeudCodeReferenceMembre> noeuds_reference_membre{};
 	tableau_page<NoeudCodeLogement> noeuds_logements{};
 	tableau_page<NoeudCodeAppel> noeuds_appel{};
+	tableau_page<NoeudCodeVirgule> noeuds_virgule{};
 
 	tableau_page<InfoType> infos_types{};
 	tableau_page<InfoTypeEntier> infos_types_entiers{};

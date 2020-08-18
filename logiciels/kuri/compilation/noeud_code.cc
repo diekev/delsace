@@ -340,6 +340,20 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			noeud_code = n;
 			break;
 		}
+		case GenreNoeud::EXPRESSION_VIRGULE:
+		{
+			auto noeud_virgule = noeud_expression->comme_virgule();
+
+			auto n = noeuds_virgule.ajoute_element();
+			n->expressions.reserve(noeud_virgule->expressions.taille);
+
+			POUR (noeud_virgule->expressions) {
+				n->expressions.pousse(converti_noeud_syntaxique(espace, it));
+			}
+
+			noeud_code = n;
+			break;
+		}
 	}
 
 	// À FAIRE : supprime cela quand nous gérerons tous les cas
@@ -654,6 +668,7 @@ long ConvertisseuseNoeudCode::memoire_utilisee() const
 	memoire += noeuds_reference_membre.memoire_utilisee();
 	memoire += noeuds_logements.memoire_utilisee();
 	memoire += noeuds_appel.memoire_utilisee();
+	memoire += noeuds_virgule.memoire_utilisee();
 
 	memoire += infos_types.memoire_utilisee();
 	memoire += infos_types_entiers.memoire_utilisee();

@@ -97,6 +97,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
 		case GenreNoeud::INSTRUCTION_BOUCLE:
+		case GenreNoeud::EXPRESSION_VIRGULE:
 		{
 			break;
 		}

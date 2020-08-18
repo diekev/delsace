@@ -387,6 +387,19 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 			os << "---";
 			break;
 		}
+		case GenreNoeud::EXPRESSION_VIRGULE:
+		{
+			auto expr = racine->comme_virgule();
+
+			imprime_tab(os, tab);
+			os << "virgule :\n";
+
+			POUR (expr->expressions) {
+				imprime_arbre(it, os, tab + 1);
+			}
+
+			break;
+		}
 	}
 }
 
@@ -697,6 +710,19 @@ NoeudExpression *copie_noeud(
 		}
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		{
+			break;
+		}
+		case GenreNoeud::EXPRESSION_VIRGULE:
+		{
+			auto expr = racine->comme_virgule();
+			auto nexpr = nracine->comme_virgule();
+
+			nexpr->expressions.reserve(expr->expressions.taille);
+
+			POUR (expr->expressions) {
+				nexpr->expressions.pousse(copie_noeud(assem, it, bloc_parent));
+			}
+
 			break;
 		}
 	}
@@ -1022,6 +1048,16 @@ void aplatis_arbre(
 			arbre_aplatis.pousse(racine);
 			break;
 		}
+		case GenreNoeud::EXPRESSION_VIRGULE:
+		{
+			auto expr = racine->comme_virgule();
+
+			POUR (expr->expressions) {
+				aplatis_arbre(it, arbre_aplatis, drapeau);
+			}
+
+			break;
+		}
 	}
 }
 
@@ -1162,6 +1198,18 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 
 			// prend en compte la parenthèse fermante
 			etendue.pos_max += 1;
+
+			break;
+		}
+		case GenreNoeud::EXPRESSION_VIRGULE:
+		{
+			auto expr = racine->comme_virgule();
+
+			POUR (expr->expressions) {
+				auto etendue_enfant = calcule_etendue_noeud(it, fichier);
+				etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+				etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+			}
 
 			break;
 		}

@@ -229,6 +229,7 @@ GenreNoeudCode :: énum z32 {
 	EXPRESSION_TAILLE_DE
 	EXPRESSION_TYPE_DE
 	EXPRESSION_COMME
+	EXPRESSION_VIRGULE
 	INSTRUCTION_BOUCLE
 	INSTRUCTION_COMPOSEE
 	INSTRUCTION_CONTINUE_ARRETE
@@ -389,6 +390,12 @@ NoeudCodeAppel :: struct {
 
 	expression : *NoeudCode
 	params : []*NoeudCode
+}
+
+NoeudCodeVirgule :: struct {
+	empl base : NoeudCode
+
+	expressions : []*NoeudCode
 }
 
 // ----------------------------------------------------------------------------
