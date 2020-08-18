@@ -152,13 +152,9 @@ static constexpr int PRECEDENCE_TYPE = 4;
 static int precedence_pour_operateur(GenreLexeme genre_operateur)
 {
 	switch (genre_operateur) {
-		case GenreLexeme::VIRGULE:
-		{
-			return 1;
-		}
 		case GenreLexeme::TROIS_POINTS:
 		{
-			return 2;
+			return 1;
 		}
 		case GenreLexeme::EGAL:
 		case GenreLexeme::DECLARATION_VARIABLE:
@@ -173,6 +169,10 @@ static int precedence_pour_operateur(GenreLexeme genre_operateur)
 		case GenreLexeme::OUX_EGAL:
 		case GenreLexeme::DEC_DROITE_EGAL:
 		case GenreLexeme::DEC_GAUCHE_EGAL:
+		{
+			return 2;
+		}
+		case GenreLexeme::VIRGULE:
 		{
 			return 3;
 		}
@@ -1810,7 +1810,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 		while (true) {
 			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
-			auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::INCONNU);
+			auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 			noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
 			noeud->params_sorties.pousse(type_declare);
@@ -1839,7 +1839,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 				noeud->noms_retours.pousse("__ret" + dls::vers_chaine(noeud->noms_retours.taille));
 
 				nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
-				auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::INCONNU);
+				auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 				nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 				noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
 				noeud->params_sorties.pousse(type_declare);
@@ -1850,6 +1850,10 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 				}
 
 				consomme();
+			}
+
+			if (noeud->noms_retours.taille > 1) {
+				::rapporte_erreur(m_unite->espace, noeud, "Les retours multiples ne sont plus supportés pour le moment");
 			}
 		}
 		else {
@@ -2048,7 +2052,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	while (true) {
 		noeud->noms_retours.pousse("__ret" + dls::vers_chaine(noeud->noms_retours.taille));
 
-		auto type_declare = analyse_expression_primaire(GenreLexeme::OPERATEUR, GenreLexeme::INCONNU);
+		auto type_declare = analyse_expression_primaire(GenreLexeme::OPERATEUR, GenreLexeme::VIRGULE);
 		noeud->params_sorties.pousse(type_declare);
 		aplatis_arbre(type_declare, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
 
