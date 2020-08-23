@@ -147,7 +147,8 @@ static bool est_operateur_surchargeable(GenreLexeme genre)
 	}
 }
 
-static constexpr int PRECEDENCE_TYPE = 4;
+static constexpr int PRECEDENCE_VIRGULE = 3;
+static constexpr int PRECEDENCE_TYPE    = 4;
 
 static int precedence_pour_operateur(GenreLexeme genre_operateur)
 {
@@ -174,7 +175,7 @@ static int precedence_pour_operateur(GenreLexeme genre_operateur)
 		}
 		case GenreLexeme::VIRGULE:
 		{
-			return 3;
+			return PRECEDENCE_VIRGULE;
 		}
 		// La précédence de 4 est réservée pour les déclarations de type après ':' où nous devons nous
 		// arrêter avant le '=' ou la ',' ; arrêt réalisé via une précédence plus forte. Par contre
@@ -643,6 +644,10 @@ NoeudExpression *Syntaxeuse::analyse_expression(DonneesPrecedence const &donnees
 		auto nouvelle_precedence = precedence_pour_operateur(lexeme_courant()->genre);
 
 		if (nouvelle_precedence < donnees_precedence.precedence) {
+			if (donnees_precedence.precedence == PRECEDENCE_VIRGULE) {
+				m_noeud_expression_virgule = nullptr;
+			}
+
 			break;
 		}
 
@@ -758,7 +763,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
 			auto expression_entre_crochets = NoeudExpression::nul();
 			if (apparie_expression()) {
+				auto ancien_noeud_virgule = m_noeud_expression_virgule;
+				m_noeud_expression_virgule = nullptr;
 				expression_entre_crochets = analyse_expression({}, GenreLexeme::CROCHET_OUVRANT, GenreLexeme::INCONNU);
+				m_noeud_expression_virgule = ancien_noeud_virgule;
 			}
 
 			// point-virgule implicite dans l'expression
@@ -1138,7 +1146,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		case GenreLexeme::POURCENT:
 		case GenreLexeme::SUPERIEUR:
 		case GenreLexeme::SUPERIEUR_EGAL:
-		case GenreLexeme::VIRGULE:
 		{
 			consomme();
 
@@ -1146,6 +1153,20 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 			noeud->expr1 = gauche;
 			noeud->expr2 = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
 			return noeud;
+		}
+		case GenreLexeme::VIRGULE:
+		{
+			consomme();
+
+			if (!m_noeud_expression_virgule) {
+				m_noeud_expression_virgule = CREE_NOEUD(NoeudExpressionVirgule, GenreNoeud::EXPRESSION_VIRGULE, lexeme);
+				m_noeud_expression_virgule->expressions.pousse(gauche);
+			}
+
+			auto droite = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
+			m_noeud_expression_virgule->expressions.pousse(droite);
+
+			return m_noeud_expression_virgule;
 		}
 		case GenreLexeme::CROCHET_OUVRANT:
 		{
@@ -1508,6 +1529,16 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
 			auto expr = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
 			auto bloc = analyse_bloc();
 
+			if (!expr->est_virgule()) {
+				auto noeud_virgule = CREE_NOEUD(NoeudExpressionVirgule, GenreNoeud::EXPRESSION_VIRGULE, expr->lexeme);
+				noeud_virgule->expressions.pousse(expr);
+
+				expr = noeud_virgule;
+			}
+			else {
+				m_noeud_expression_virgule = nullptr;
+			}
+
 			paires_discr.pousse({ expr, bloc });
 		}
 	}
@@ -1530,6 +1561,18 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 
 	if (apparie(GenreLexeme::DANS)) {
 		consomme();
+
+		if (!expression->est_virgule()) {
+			static Lexeme lexeme_virgule = { ",", {}, GenreLexeme::VIRGULE, 0, 0, 0 };
+			auto noeud_virgule = CREE_NOEUD(NoeudExpressionVirgule, GenreNoeud::EXPRESSION_VIRGULE, &lexeme_virgule);
+			noeud_virgule->expressions.pousse(expression);
+
+			expression = noeud_virgule;
+		}
+		else {
+			m_noeud_expression_virgule = nullptr;
+		}
+
 		noeud->variable = expression;
 		noeud->expression = analyse_expression({}, GenreLexeme::DANS, GenreLexeme::INCONNU);
 	}
@@ -1544,9 +1587,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 		auto noeud_index = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, &lexeme_index);
 
 		static Lexeme lexeme_virgule = { ",", {}, GenreLexeme::VIRGULE, 0, 0, 0 };
-		auto noeud_virgule = CREE_NOEUD(NoeudExpressionBinaire, GenreNoeud::OPERATEUR_BINAIRE, &lexeme_virgule);
-		noeud_virgule->expr1 = noeud_it;
-		noeud_virgule->expr2 = noeud_index;
+		auto noeud_virgule = CREE_NOEUD(NoeudExpressionVirgule, GenreNoeud::EXPRESSION_VIRGULE, &lexeme_virgule);
+		noeud_virgule->expressions.pousse(noeud_it);
+		noeud_virgule->expressions.pousse(noeud_index);
 
 		noeud->variable = noeud_virgule;
 		noeud->expression = expression;

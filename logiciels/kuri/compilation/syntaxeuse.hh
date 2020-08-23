@@ -73,6 +73,8 @@ private:
 
 	dls::tablet<DonneesEtatSyntaxage, 33> m_donnees_etat_syntaxage{};
 
+	NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
+
 public:
 	Syntaxeuse(Compilatrice &compilatrice,
 			   Fichier *fichier,

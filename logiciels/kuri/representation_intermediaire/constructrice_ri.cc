@@ -1520,15 +1520,14 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(noeud);
 
-			dls::tablet<NoeudExpression *, 10> feuilles;
-			rassemble_feuilles(expr->expr, feuilles);
+			auto feuilles = expr->expr->comme_virgule();
 
 			if (fonction_courante == nullptr) {
 				auto type_tableau_fixe = expr->type->comme_tableau_fixe();
 				kuri::tableau<AtomeConstante *> valeurs;
-				valeurs.reserve(feuilles.taille());
+				valeurs.reserve(feuilles->expressions.taille);
 
-				POUR (feuilles) {
+				POUR (feuilles->expressions) {
 					genere_ri_pour_noeud(it);
 					auto valeur = depile_valeur();
 					valeurs.pousse(static_cast<AtomeConstante *>(valeur));
@@ -1542,7 +1541,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto pointeur_tableau = cree_allocation(expr->type, nullptr);
 
 			auto index = 0ul;
-			POUR (feuilles) {
+			POUR (feuilles->expressions) {
 				genere_ri_transformee_pour_noeud(it, nullptr);
 				auto valeur = depile_valeur();
 				auto index_tableau = cree_acces_index(pointeur_tableau, cree_z64(index++));
@@ -2147,17 +2146,16 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 		if (enf0 != nullptr) {
 			insere_label(donnees.label_de_la_condition);
 
-			auto feuilles = dls::tablet<NoeudExpression *, 10>();
-			rassemble_feuilles(enf0, feuilles);
+			auto feuilles = enf0->comme_virgule();
 
 			// les différentes feuilles sont évaluées dans des blocs
 			// séparés afin de pouvoir éviter de tester trop de conditions
 			// dès qu'une condition est vraie, nous allons dans le bloc_si_vrai
 			// sinon nous allons dans le bloc pour la feuille suivante
-			for (auto f : feuilles) {
+			for (auto f : feuilles->expressions) {
 				auto label_si_faux = donnees.label_si_faux;
 
-				if (f != feuilles.back()) {
+				if (f != feuilles->expressions[feuilles->expressions.taille - 1]) {
 					label_si_faux = reserve_label();
 				}
 
@@ -2206,7 +2204,7 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 					cree_branche_condition(condition, donnees.label_si_vrai, label_si_faux);
 				}
 
-				if (f != feuilles.back()) {
+				if (f != feuilles->expressions[feuilles->expressions.taille - 1]) {
 					insere_label(label_si_faux);
 				}
 			}
@@ -2360,13 +2358,13 @@ void ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 
 	auto label_apres = reserve_label();
 
-	auto var = enfant1;
+	auto feuilles = enfant1->comme_virgule();
+
+	auto var = feuilles->expressions[0];
 	auto idx = static_cast<NoeudExpression *>(nullptr);
 
-	if (enfant1->lexeme->genre == GenreLexeme::VIRGULE) {
-		auto expr_bin = static_cast<NoeudExpressionBinaire *>(var);
-		var = expr_bin->expr1;
-		idx = expr_bin->expr2;
+	if (feuilles->expressions.taille == 2) {
+		idx = feuilles->expressions[1];
 	}
 
 	empile_controle_boucle(var->ident, label_inc, (label_sinon != nullptr) ? label_sinon : label_apres);

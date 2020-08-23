@@ -398,27 +398,26 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			/* a, b = foo() */
-			if (variable->lexeme->genre == GenreLexeme::VIRGULE) {
+			if (variable->est_virgule()) {
 				if (!expression->est_appel()) {
 					rapporte_erreur("Une virgule ne peut se trouver qu'à gauche d'un appel de fonction.", variable, erreur::type_erreur::NORMAL);
 					return true;
 				}
 
-				dls::tablet<NoeudExpression *, 10> feuilles;
-				rassemble_feuilles(variable, feuilles);
+				auto feuilles = variable->comme_virgule();
 
 				/* Utilisation du type de la fonction et non
 				 * DonneesFonction::idx_types_retour car les pointeurs de
 				 * fonctions n'ont pas de DonneesFonction. */
 				auto type_fonc = expression->type->comme_fonction();
 
-				if (feuilles.taille() != type_fonc->types_sorties.taille) {
+				if (feuilles->expressions.taille != type_fonc->types_sorties.taille) {
 					rapporte_erreur("L'ignorance d'une valeur de retour non implémentée.", variable, erreur::type_erreur::NORMAL);
 					return true;
 				}
 
-				for (auto i = 0l; i < feuilles.taille(); ++i) {
-					auto &f = feuilles[i];
+				for (auto i = 0l; i < feuilles->expressions.taille; ++i) {
+					auto &f = feuilles->expressions[i];
 
 					if (f->type == nullptr) {
 						f->type = type_fonc->types_sorties[i];
@@ -989,17 +988,16 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto nombre_retour = type_fonc->types_sorties.taille;
 
 			if (nombre_retour > 1) {
-				if (enfant->lexeme->genre == GenreLexeme::VIRGULE) {
-					dls::tablet<NoeudExpression *, 10> feuilles;
-					rassemble_feuilles(enfant, feuilles);
+				if (enfant->est_virgule()) {
+					auto feuilles = enfant->comme_virgule();
 
-					if (feuilles.taille() != nombre_retour) {
+					if (feuilles->expressions.taille != nombre_retour) {
 						rapporte_erreur("Le compte d'expression de retour est invalide", noeud);
 						return true;
 					}
 
-					for (auto i = 0l; i < feuilles.taille(); ++i) {
-						auto f = feuilles[i];
+					for (auto i = 0l; i < feuilles->expressions.taille; ++i) {
+						auto f = feuilles->expressions[i];
 
 						auto transformation = TransformationType();
 						if (cherche_transformation(*espace, *this, f->type, type_fonc->types_sorties[i], transformation)) {
@@ -1017,7 +1015,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 
 					/* À FAIRE : multiples types de retour */
-					noeud->type = feuilles[0]->type;
+					noeud->type = feuilles->expressions[0]->type;
 					noeud->genre = GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE;
 				}
 				else if (enfant->genre == GenreNoeud::EXPRESSION_APPEL_FONCTION) {
@@ -1147,10 +1145,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			/* À FAIRE : utilisation du type */
 //			auto df = static_cast<DonneesFonction *>(nullptr);
 
-			auto feuilles = dls::tablet<NoeudExpression *, 10>{};
-			rassemble_feuilles(enfant1, feuilles);
+			auto feuilles = enfant1->comme_virgule();
 
-			for (auto f : feuilles) {
+			for (auto f : feuilles->expressions) {
 				auto decl_f = trouve_dans_bloc(noeud->bloc_parent, f->ident);
 
 				if (decl_f != nullptr) {
@@ -1161,10 +1158,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 			}
 
-			auto variable = feuilles[0];
+			auto variable = feuilles->expressions[0];
 			inst->ident = variable->ident;
 
-			auto requiers_index = feuilles.taille() == 2;
+			auto requiers_index = feuilles->expressions.taille == 2;
 
 			auto type = enfant2->type;
 
@@ -1246,12 +1243,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			noeud->aide_generation_code = determine_iterande(enfant2);
 
 			donnees_dependance.types_utilises.insere(type);
-			enfant3->membres->reserve(feuilles.taille());
+			enfant3->membres->reserve(feuilles->expressions.taille);
 
-			auto nombre_feuilles = feuilles.taille() - requiers_index;
+			auto nombre_feuilles = feuilles->expressions.taille - requiers_index;
 
 			for (auto i = 0l; i < nombre_feuilles; ++i) {
-				auto f = feuilles[i];
+				auto f = feuilles->expressions[i];
 
 				auto decl_f = static_cast<NoeudDeclarationVariable *>(espace->assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme));
 				decl_f->bloc_parent = noeud->bloc_parent;
@@ -1270,7 +1267,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (requiers_index) {
-				auto idx = feuilles.back();
+				auto idx = feuilles->expressions[feuilles->expressions.taille - 1];
 
 				auto decl_idx = static_cast<NoeudDeclarationVariable *>(espace->assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme));
 				decl_idx->bloc_parent = noeud->bloc_parent;
@@ -1444,14 +1441,13 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto expr = noeud->comme_construction_tableau();
 			noeud->genre_valeur = GenreValeur::DROITE;
 
-			dls::tablet<NoeudExpression *, 10> feuilles;
-			rassemble_feuilles(expr->expr, feuilles);
+			auto feuilles = expr->expr->comme_virgule();
 
-			if (feuilles.est_vide()) {
+			if (feuilles->expressions.est_vide()) {
 				return false;
 			}
 
-			auto premiere_feuille = feuilles.front();
+			auto premiere_feuille = feuilles->expressions[0];
 
 			auto type_feuille = premiere_feuille->type;
 
@@ -1460,7 +1456,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				premiere_feuille->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_feuille };
 			}
 
-			for (auto f : feuilles) {
+			for (auto f : feuilles->expressions) {
 				auto transformation = TransformationType();
 				if (cherche_transformation(*espace, *this, f->type, type_feuille, transformation)) {
 					return true;
@@ -1474,7 +1470,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				f->transformation = transformation;
 			}
 
-			noeud->type = espace->typeuse.type_tableau_fixe(type_feuille, feuilles.taille());
+			noeud->type = espace->typeuse.type_tableau_fixe(type_feuille, feuilles->expressions.taille);
 
 			/* ajoute également le type de pointeur pour la génération de code C */
 			auto type_ptr = espace->typeuse.type_pointeur_pour(type_feuille);
@@ -1885,10 +1881,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				for (int i = 0; i < inst->paires_discr.taille; ++i) {
 					auto expr_paire = inst->paires_discr[i].first;
 
-					auto feuilles = dls::tablet<NoeudExpression *, 10>();
-					rassemble_feuilles(expr_paire, feuilles);
+					auto feuilles = expr_paire->comme_virgule();
 
-					for (auto f : feuilles) {
+					for (auto f : feuilles->expressions) {
 						if (f->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
 							rapporte_erreur("expression inattendue dans la discrimination, seules les références de déclarations sont supportées pour le moment", f);
 							return true;
@@ -1977,10 +1972,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				for (int i = 0; i < inst->paires_discr.taille; ++i) {
 					auto expr_paire = inst->paires_discr[i].first;
 
-					auto feuilles = dls::tablet<NoeudExpression *, 10>();
-					rassemble_feuilles(expr_paire, feuilles);
+					auto feuilles = expr_paire->comme_virgule();
 
-					for (auto f : feuilles) {
+					for (auto f : feuilles->expressions) {
 						if (valide_semantique_noeud(f)) {
 							return true;
 						}

@@ -733,25 +733,6 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab);
 
 bool est_expression_logique(NoeudExpression *noeud);
 
-template <unsigned long N>
-void rassemble_feuilles(
-		NoeudExpression *noeud_base,
-		dls::tablet<NoeudExpression *, N> &feuilles)
-{
-	if (noeud_base == nullptr) {
-		return;
-	}
-
-	if (noeud_base->lexeme->genre != GenreLexeme::VIRGULE) {
-		feuilles.pousse(noeud_base);
-		return;
-	}
-
-	auto expr = static_cast<NoeudExpressionBinaire *>(noeud_base);
-	rassemble_feuilles(expr->expr1, feuilles);
-	feuilles.pousse(expr->expr2);
-}
-
 NoeudExpression *copie_noeud(
 		assembleuse_arbre *assem,
 		NoeudExpression const *racine,
