@@ -269,7 +269,13 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		{
 			imprime_tab(os, tab);
-			os << "expr : " << racine->lexeme->chaine << " (ident: " << racine->ident << ")" << '\n';
+			os << "expr : " << racine->lexeme->chaine;
+
+			if (racine->ident) {
+				os << " (ident: " << racine->ident << ")";
+			}
+
+			os << '\n';
 			break;
 		}
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
