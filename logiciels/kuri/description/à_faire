@@ -383,6 +383,8 @@ implémente la directive #si pour la compilation sélective
 
 - ajout d'un noeud syntaxique pour les emplois
 - ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés (pour permettre les emplois d'énumérations)
+- ajout des informations de positions dans le code source pour la RI
+- utilise un noeud de déclaration de variable quand nous parsons une variable (a : z32) au lieu de modifier l'expression à la fin (nous permettant de supprimer expression_type du noeud de base)
 
 
 À faire (architecture)
