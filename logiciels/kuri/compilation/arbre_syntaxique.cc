@@ -200,7 +200,7 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 
 			imprime_arbre(expr->appelee, os, tab + 1);
 
-			POUR (expr->params) {
+			POUR (expr->exprs) {
 				imprime_arbre(it, os, tab + 1);
 			}
 
