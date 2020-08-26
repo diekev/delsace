@@ -594,9 +594,13 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 {
 	Prof(type_pointeur_pour);
 
+	if (!type) {
+		return ((*this)[TypeBase::PTR_NUL])->comme_pointeur();
+	}
+
 	auto types_pointeurs_ = types_pointeurs.verrou_ecriture();
 
-	if (type && (type->drapeaux & POSSEDE_TYPE_POINTEUR) != 0) {
+	if ((type->drapeaux & POSSEDE_TYPE_POINTEUR) != 0) {
 		POUR (*types_pointeurs_) {
 			if (it->type_pointe == type) {
 				return it;
