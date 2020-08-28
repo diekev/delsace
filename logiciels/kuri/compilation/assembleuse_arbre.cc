@@ -59,22 +59,19 @@ void assembleuse_arbre::depile_bloc()
 NoeudExpression *assembleuse_arbre::cree_noeud(GenreNoeud genre, Lexeme const *lexeme)
 {
 	auto noeud = m_allocatrice_noeud.cree_noeud(genre);
+	noeud->genre = genre;
+	noeud->lexeme = lexeme;
+	noeud->bloc_parent = bloc_courant();
 
-	if (noeud != nullptr) {
-		noeud->genre = genre;
-		noeud->lexeme = lexeme;
-		noeud->bloc_parent = bloc_courant();
+	if (noeud->lexeme && (noeud->lexeme->genre == GenreLexeme::CHAINE_CARACTERE || noeud->lexeme->genre == GenreLexeme::EXTERNE)) {
+		noeud->ident = lexeme->ident;
+	}
 
-		if (noeud->lexeme && (noeud->lexeme->genre == GenreLexeme::CHAINE_CARACTERE || noeud->lexeme->genre == GenreLexeme::EXTERNE)) {
-			noeud->ident = lexeme->ident;
-		}
-
-		if (genre == GenreNoeud::DECLARATION_ENTETE_FONCTION) {
-			auto entete = noeud->comme_entete_fonction();
-			entete->corps->lexeme = lexeme;
-			entete->corps->ident = lexeme->ident;
-			entete->corps->bloc_parent = entete->bloc_parent;
-		}
+	if (genre == GenreNoeud::DECLARATION_ENTETE_FONCTION) {
+		auto entete = noeud->comme_entete_fonction();
+		entete->corps->lexeme = lexeme;
+		entete->corps->ident = lexeme->ident;
+		entete->corps->bloc_parent = entete->bloc_parent;
 	}
 
 	return noeud;
