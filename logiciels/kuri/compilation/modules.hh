@@ -32,7 +32,7 @@
 #include "typage.hh"
 #include "structures.hh"
 
-class AssembleuseArbre;
+struct AssembleuseArbre;
 
 struct Compilatrice;
 struct Module;

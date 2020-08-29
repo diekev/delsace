@@ -32,7 +32,7 @@
 #include "transformation_type.hh"
 #include "typage.hh"
 
-class AssembleuseArbre;
+struct AssembleuseArbre;
 struct AtomeFonction;
 struct OperateurBinaire;
 struct OperateurUnaire;

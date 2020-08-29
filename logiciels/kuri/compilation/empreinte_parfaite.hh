@@ -69,7 +69,7 @@ enum
 
 /* maximum key range = 71, duplicates = 0 */
 
-class EmpreinteParfaite
+struct EmpreinteParfaite
 {
 private:
 	static inline unsigned int calcule_empreinte (const char *str, size_t len);

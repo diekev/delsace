@@ -37,7 +37,8 @@ enum {
 	INCLUS_COMMENTAIRES     = (1 << 1),
 };
 
-class Lexeuse {
+struct Lexeuse {
+private:
 	Compilatrice &m_compilatrice;
 	Fichier *m_fichier;
 

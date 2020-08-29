@@ -36,7 +36,8 @@ struct Lexeme;
 struct NoeudExpression;
 struct NoeudBloc;
 
-class AssembleuseArbre {
+struct AssembleuseArbre {
+private:
 	AllocatriceNoeud &m_allocatrice_noeud;
 
 	size_t m_memoire_utilisee = 0;
