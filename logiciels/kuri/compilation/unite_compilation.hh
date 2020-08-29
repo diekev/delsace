@@ -72,6 +72,7 @@ struct UniteCompilation {
 	Type *type_attendu = nullptr;
 	NoeudDeclaration *declaration_attendue = nullptr;
 	Lexeme const *lexeme_attendu = nullptr;
+	const char *fonction_interface_attendue = nullptr;
 
 	Etat etat() const
 	{
@@ -89,8 +90,9 @@ struct UniteCompilation {
 		this->type_attendu = type;
 	}
 
-	inline void attend_sur_interface_kuri()
+	inline void attend_sur_interface_kuri(const char *nom_fonction)
 	{
+		this->fonction_interface_attendue = nom_fonction;
 		this->etat_ = (UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI);
 	}
 

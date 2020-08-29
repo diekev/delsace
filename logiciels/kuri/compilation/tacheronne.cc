@@ -788,7 +788,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 		ATTEND_SUR_TYPE_SI_NECESSAIRE(unite->espace->typeuse.type_info_fonction_trace_appel);
 
 		if (unite->espace->interface_kuri->decl_creation_contexte == nullptr) {
-			unite->attend_sur_interface_kuri();
+			unite->attend_sur_interface_kuri("creation_contexte");
 			return false;
 		}
 

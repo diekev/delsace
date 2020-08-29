@@ -41,8 +41,8 @@ using dls::outils::possede_drapeau;
 /* ************************************************************************** */
 
 #define VERIFIE_INTERFACE_KURI_CHARGEE(nom) \
-	if (espace->interface_kuri->nom == nullptr) {\
-		unite->attend_sur_interface_kuri(); \
+	if (espace->interface_kuri->decl_##nom == nullptr) {\
+		unite->attend_sur_interface_kuri(#nom); \
 		return true; \
 	}
 
@@ -884,7 +884,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				case GenreType::TABLEAU_DYNAMIQUE:
 				{
 					expr->type = type_dereference_pour(type1);
-					VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_tableau);
+					VERIFIE_INTERFACE_KURI_CHARGEE(panique_tableau);
 					donnees_dependance.fonctions_utilisees.insere(espace->interface_kuri->decl_panique_tableau);
 					break;
 				}
@@ -907,7 +907,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 
 					if (expr->aide_generation_code != IGNORE_VERIFICATION) {
-						VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_tableau);
+						VERIFIE_INTERFACE_KURI_CHARGEE(panique_tableau);
 						donnees_dependance.fonctions_utilisees.insere(espace->interface_kuri->decl_panique_tableau);
 					}
 
@@ -921,7 +921,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				case GenreType::CHAINE:
 				{
 					expr->type = espace->typeuse[TypeBase::Z8];
-					VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_chaine);
+					VERIFIE_INTERFACE_KURI_CHARGEE(panique_chaine);
 					donnees_dependance.fonctions_utilisees.insere(espace->interface_kuri->decl_panique_chaine);
 					break;
 				}
@@ -1668,7 +1668,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 			}
 			else {
-				VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_memoire);
+				VERIFIE_INTERFACE_KURI_CHARGEE(panique_memoire);
 				donnees_dependance.fonctions_utilisees.insere(espace->interface_kuri->decl_panique_memoire);
 			}
 
@@ -1736,7 +1736,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 			}
 			else {
-				VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_memoire);
+				VERIFIE_INTERFACE_KURI_CHARGEE(panique_memoire);
 				donnees_dependance.fonctions_utilisees.insere(espace->interface_kuri->decl_panique_memoire);
 			}
 
@@ -2178,7 +2178,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 			}
 			else {
-				VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_erreur);
+				VERIFIE_INTERFACE_KURI_CHARGEE(panique_erreur);
 				donnees_dependance.fonctions_utilisees.insere(espace->interface_kuri->decl_panique_erreur);
 			}
 
@@ -2311,7 +2311,7 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 				else {
 					auto membre_actif = trouve_membre_actif(structure->ident->nom);
 
-					VERIFIE_INTERFACE_KURI_CHARGEE(decl_panique_membre_union);
+					VERIFIE_INTERFACE_KURI_CHARGEE(panique_membre_union);
 					donnees_dependance.fonctions_utilisees.insere(espace->interface_kuri->decl_panique_membre_union);
 
 					/* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu */

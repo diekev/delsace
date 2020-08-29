@@ -229,10 +229,10 @@ bool cherche_transformation(
 	}
 
 	if (type_de->genre == GenreType::REEL && type_vers->genre == GenreType::REEL) {
-		auto retourne_fonction = [&](NoeudDeclarationEnteteFonction const *fonction) -> bool
+		auto retourne_fonction = [&](NoeudDeclarationEnteteFonction const *fonction, const char *nom_fonction) -> bool
 		{
 			if (fonction == nullptr) {
-				contexte.unite->attend_sur_interface_kuri();
+				contexte.unite->attend_sur_interface_kuri(nom_fonction);
 				return true;
 			}
 
@@ -244,11 +244,11 @@ bool cherche_transformation(
 		/* cas spéciaux pour R16 */
 		if (type_de->taille_octet == 2) {
 			if (type_vers->taille_octet == 4) {
-				return retourne_fonction(espace.interface_kuri->decl_dls_vers_r32);
+				return retourne_fonction(espace.interface_kuri->decl_dls_vers_r32, "DLS_vers_r32");
 			}
 
 			if (type_vers->taille_octet == 8) {
-				return retourne_fonction(espace.interface_kuri->decl_dls_vers_r64);
+				return retourne_fonction(espace.interface_kuri->decl_dls_vers_r64, "DLS_vers_r64");
 			}
 
 			transformation = TypeTransformation::IMPOSSIBLE;
@@ -258,11 +258,11 @@ bool cherche_transformation(
 		/* cas spéciaux pour R16 */
 		if (type_vers->taille_octet == 2) {
 			if (type_de->taille_octet == 4) {
-				return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r32);
+				return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r32, "DLS_depuis_r32");
 			}
 
 			if (type_de->taille_octet == 8) {
-				return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r64);
+				return retourne_fonction(espace.interface_kuri->decl_dls_depuis_r64, "DLS_depuis_r64");
 			}
 
 			transformation = TypeTransformation::IMPOSSIBLE;
@@ -332,7 +332,7 @@ bool cherche_transformation(
 			if (it.type == type_vers) {
 				if (!type_union->est_nonsure) {
 					if (espace.interface_kuri->decl_panique_membre_union == nullptr) {
-						contexte.unite->attend_sur_interface_kuri();
+						contexte.unite->attend_sur_interface_kuri("panique_membre_union");
 						return true;
 					}
 
