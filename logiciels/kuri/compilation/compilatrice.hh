@@ -126,7 +126,7 @@ struct EspaceDeTravail {
 	AllocatriceNoeud allocatrice_noeud{};
 
 	/* À FAIRE : supprime ceci */
-	assembleuse_arbre *assembleuse = nullptr;
+	AssembleuseArbre *assembleuse = nullptr;
 
 	template <typename T>
 	using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;

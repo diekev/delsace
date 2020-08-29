@@ -410,7 +410,7 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 }
 
 NoeudExpression *copie_noeud(
-		assembleuse_arbre *assem,
+		AssembleuseArbre *assem,
 		const NoeudExpression *racine,
 		NoeudBloc *bloc_parent)
 {

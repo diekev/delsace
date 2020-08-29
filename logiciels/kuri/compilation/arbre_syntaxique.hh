@@ -34,7 +34,7 @@
 #include "typage.hh"
 #include "transformation_type.hh"
 
-class assembleuse_arbre;
+class AssembleuseArbre;
 struct AtomeFonction;
 struct OperateurBinaire;
 struct OperateurUnaire;
@@ -734,7 +734,7 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab);
 bool est_expression_logique(NoeudExpression *noeud);
 
 NoeudExpression *copie_noeud(
-		assembleuse_arbre *assem,
+		AssembleuseArbre *assem,
 		NoeudExpression const *racine,
 		NoeudBloc *bloc_parent);
 

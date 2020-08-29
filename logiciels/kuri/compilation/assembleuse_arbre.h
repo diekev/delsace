@@ -36,7 +36,7 @@ struct Lexeme;
 struct NoeudExpression;
 struct NoeudBloc;
 
-class assembleuse_arbre {
+class AssembleuseArbre {
 	AllocatriceNoeud &m_allocatrice_noeud;
 
 	size_t m_memoire_utilisee = 0;
@@ -44,8 +44,8 @@ class assembleuse_arbre {
 	dls::pile<NoeudBloc *> m_blocs{};
 
 public:
-	explicit assembleuse_arbre(EspaceDeTravail &espace);
-	~assembleuse_arbre() = default;
+	explicit AssembleuseArbre(EspaceDeTravail &espace);
+	~AssembleuseArbre() = default;
 
 	NoeudBloc *empile_bloc();
 

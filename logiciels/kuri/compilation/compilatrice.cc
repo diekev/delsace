@@ -39,7 +39,7 @@
 
 EspaceDeTravail::EspaceDeTravail(OptionsCompilation opts)
 	: options(opts)
-	, assembleuse(memoire::loge<assembleuse_arbre>("assembleuse_arbre", *this))
+	, assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", *this))
 	, typeuse(graphe_dependance, this->operateurs)
 {
 	auto ops = operateurs.verrou_ecriture();
@@ -48,7 +48,7 @@ EspaceDeTravail::EspaceDeTravail(OptionsCompilation opts)
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-	memoire::deloge("assembleuse_arbre", assembleuse);
+	memoire::deloge("AssembleuseArbre", assembleuse);
 }
 
 Module *EspaceDeTravail::cree_module(dls::chaine const &nom_module, dls::chaine const &chemin)

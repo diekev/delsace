@@ -58,7 +58,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		Lexeuse lexeuse(compilatrice, fichier);
 		lexeuse.performe_lexage();
 
-		auto assembleuse = assembleuse_arbre(*espace);
+		auto assembleuse = AssembleuseArbre(*espace);
 		espace->assembleuse = &assembleuse;
 		auto unite = UniteCompilation(espace);
 		auto analyseuse = Syntaxeuse(compilatrice, fichier, &unite, "");
@@ -481,7 +481,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto fichier = espace->cree_fichier("", "", true);
 		fichier->tampon = lng::tampon_source("texte_test");
 		fichier->lexemes = lexemes;
-		auto assembleuse = assembleuse_arbre(*espace);
+		auto assembleuse = AssembleuseArbre(*espace);
 		espace->assembleuse = &assembleuse;
 		auto unite = UniteCompilation(espace);
 		auto analyseuse = Syntaxeuse(compilatrice, fichier, &unite, "");

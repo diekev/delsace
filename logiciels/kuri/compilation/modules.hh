@@ -32,7 +32,7 @@
 #include "typage.hh"
 #include "structures.hh"
 
-class assembleuse_arbre;
+class AssembleuseArbre;
 
 struct Compilatrice;
 struct Module;
@@ -75,7 +75,7 @@ struct Fichier {
 
 struct Module {
 	/* utilisation d'un pointeur à cause de dépendances cycliques entre les entêtes */
-	assembleuse_arbre *assembleuse{};
+	AssembleuseArbre *assembleuse{};
 	NoeudBloc *bloc = nullptr;
 
 	dls::tablet<Fichier *, 16> fichiers{};

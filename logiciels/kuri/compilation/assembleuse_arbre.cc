@@ -26,13 +26,13 @@
 
 #include "compilatrice.hh"
 
-assembleuse_arbre::assembleuse_arbre(EspaceDeTravail &espace)
+AssembleuseArbre::AssembleuseArbre(EspaceDeTravail &espace)
 	: m_allocatrice_noeud(espace.allocatrice_noeud)
 {
 	this->empile_bloc();
 }
 
-NoeudBloc *assembleuse_arbre::empile_bloc()
+NoeudBloc *AssembleuseArbre::empile_bloc()
 {
 	auto bloc = static_cast<NoeudBloc *>(cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, nullptr));
 	bloc->bloc_parent = bloc_courant();
@@ -42,7 +42,7 @@ NoeudBloc *assembleuse_arbre::empile_bloc()
 	return bloc;
 }
 
-NoeudBloc *assembleuse_arbre::bloc_courant() const
+NoeudBloc *AssembleuseArbre::bloc_courant() const
 {
 	if (m_blocs.est_vide()) {
 		return nullptr;
@@ -51,12 +51,12 @@ NoeudBloc *assembleuse_arbre::bloc_courant() const
 	return m_blocs.haut();
 }
 
-void assembleuse_arbre::depile_bloc()
+void AssembleuseArbre::depile_bloc()
 {
 	m_blocs.depile();
 }
 
-NoeudExpression *assembleuse_arbre::cree_noeud(GenreNoeud genre, Lexeme const *lexeme)
+NoeudExpression *AssembleuseArbre::cree_noeud(GenreNoeud genre, Lexeme const *lexeme)
 {
 	auto noeud = m_allocatrice_noeud.cree_noeud(genre);
 	noeud->genre = genre;

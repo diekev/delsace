@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 		auto module = compilatrice.cree_module("", "");
 		module->tampon = lng::tampon_source("texte_test");
 		module->morceaux = morceaux;
-		auto assembleuse = assembleuse_arbre(compilatrice);
+		auto assembleuse = AssembleuseArbre(compilatrice);
 		compilatrice.assembleuse = &assembleuse;
 		auto analyseuse = Syntaxeuse(compilatrice, module, "");
 
