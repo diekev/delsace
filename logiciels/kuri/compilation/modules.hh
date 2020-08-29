@@ -28,20 +28,17 @@
 #include "biblinternes/structures/ensemblon.hh"
 #include "biblinternes/structures/tablet.hh"
 
+#include "structures.hh"
 #include "transformation_type.hh"
 #include "typage.hh"
-#include "structures.hh"
 
 struct AssembleuseArbre;
-
 struct Compilatrice;
-struct Module;
 struct IdentifiantCode;
-struct NoeudExpression;
+struct Module;
 struct NoeudBloc;
 struct NoeudDeclaration;
 struct NoeudDeclarationCorpsFonction;
-struct NoeudExpression;
 
 struct Fichier {
 	double temps_analyse = 0.0;

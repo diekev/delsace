@@ -34,16 +34,15 @@
 
 struct AssembleuseArbre;
 struct AtomeFonction;
-struct OperateurBinaire;
-struct OperateurUnaire;
 struct Fichier;
 struct IdentifiantCode;
 struct NoeudBloc;
 struct NoeudBoucle;
 struct NoeudCode;
-struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationCorpsFonction;
+struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
+struct NoeudDependance;
 struct NoeudDirectiveExecution;
 struct NoeudDiscr;
 struct NoeudEnum;
@@ -61,9 +60,9 @@ struct NoeudSiStatique;
 struct NoeudStruct;
 struct NoeudTableauArgsVariadiques;
 struct NoeudTente;
-struct NoeudExpressionAppel;
+struct OperateurBinaire;
+struct OperateurUnaire;
 struct TypeFonction;
-struct NoeudDependance;
 struct UniteCompilation;
 
 #define ENUMERE_GENRES_NOEUD \
