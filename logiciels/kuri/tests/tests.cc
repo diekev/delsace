@@ -42,7 +42,7 @@
 struct Test {
 	const char *cas = "";
 	const char *source = "";
-	erreur::type_erreur resultat_attendu = erreur::type_erreur::AUCUNE_ERREUR;
+	erreur::Genre resultat_attendu = erreur::Genre::AUCUNE_ERREUR;
 };
 
 static Test tests_unitaires[] = {
@@ -50,231 +50,231 @@ static Test tests_unitaires[] = {
 //	{
 //		"",
 //		"fichiers/test_module_correcte.kuri",
-//		erreur::type_erreur::AUCUNE_ERREUR
+//		erreur::Genre::AUCUNE_ERREUR
 //	},
 //	{
 //		"",
 //		"fichiers/test_fonction_inconnue_module.kuri",
-//		erreur::type_erreur::FONCTION_INCONNUE
+//		erreur::Genre::FONCTION_INCONNUE
 //	},
 	{
 		"",
 		"fichiers/test_lexage_nombre_correcte.kuri",
-		erreur::type_erreur::AUCUNE_ERREUR
+		erreur::Genre::AUCUNE_ERREUR
 	},
 	{
 		"",
 		"fichiers/test_lexage_nombre_erreur.kuri",
-		erreur::type_erreur::LEXAGE
+		erreur::Genre::LEXAGE
 	},
 	{
 		"",
 		"fichiers/test_module_inconnu.kuri",
-		erreur::type_erreur::MODULE_INCONNU
+		erreur::Genre::MODULE_INCONNU
 	},
 	{
 		"",
 		"fichiers/test_utilisation_module_inconnu.kuri",
-		erreur::type_erreur::VARIABLE_INCONNUE
+		erreur::Genre::VARIABLE_INCONNUE
 	},
 	{
 		"",
 		"fichiers/test_type_retour_rien.kuri",
-		erreur::type_erreur::ASSIGNATION_RIEN
+		erreur::Genre::ASSIGNATION_RIEN
 	},
 	{
 		"",
 		"fichiers/test_assignation_aucune_erreur.kuri",
-		erreur::type_erreur::AUCUNE_ERREUR
+		erreur::Genre::AUCUNE_ERREUR
 	},
 	{
 		"",
 		"fichiers/test_assignation_invalide.kuri",
-		erreur::type_erreur::ASSIGNATION_INVALIDE
+		erreur::Genre::ASSIGNATION_INVALIDE
 	},
 	{
 		"",
 		"fichiers/test_assignation_types_differents.kuri",
-		erreur::type_erreur::ASSIGNATION_MAUVAIS_TYPE
+		erreur::Genre::ASSIGNATION_MAUVAIS_TYPE
 	},
 	{
 		"",
 		"fichiers/test_erreur_syntaxage.kuri",
-		erreur::type_erreur::SYNTAXAGE
+		erreur::Genre::SYNTAXAGE
 	},
 	{
 		"",
 		"fichiers/test_boucle_aucune_erreur.kuri",
-		erreur::type_erreur::AUCUNE_ERREUR
+		erreur::Genre::AUCUNE_ERREUR
 	},
 	{
 		"",
 		"fichiers/test_boucle_erreur_types_differents.kuri",
-		erreur::type_erreur::TYPE_DIFFERENTS
+		erreur::Genre::TYPE_DIFFERENTS
 	},
 	{
 		"",
 		"fichiers/test_boucle_erreur_controle_invalide.kuri",
-		erreur::type_erreur::CONTROLE_INVALIDE
+		erreur::Genre::CONTROLE_INVALIDE
 	},
 	{
 		"",
 		"fichiers/test_boucle_erreur_variable_inconnue.kuri",
-		erreur::type_erreur::VARIABLE_INCONNUE
+		erreur::Genre::VARIABLE_INCONNUE
 	},
 	{
 		"",
 		"fichiers/test_appel_fonction_erreur_nombre_argument.kuri",
-		erreur::type_erreur::NOMBRE_ARGUMENT
+		erreur::Genre::NOMBRE_ARGUMENT
 	},
 	{
 		"",
 		"fichiers/test_appel_fonction_erreur_fonction_inconnue.kuri",
-		erreur::type_erreur::FONCTION_INCONNUE
+		erreur::Genre::FONCTION_INCONNUE
 	},
 	{
 		"",
 		"fichiers/test_appel_fonction_erreur_argument_inconnu.kuri",
-		erreur::type_erreur::ARGUMENT_INCONNU
+		erreur::Genre::ARGUMENT_INCONNU
 	},
 	{
 		"",
 		"fichiers/test_appel_fonction_erreur_type_argument.kuri",
-		erreur::type_erreur::TYPE_ARGUMENT
+		erreur::Genre::TYPE_ARGUMENT
 	},
 	{
 		"",
 		"fichiers/test_appel_fonction_erreur_argument_redefini.kuri",
-		erreur::type_erreur::ARGUMENT_REDEFINI
+		erreur::Genre::ARGUMENT_REDEFINI
 	},
 	{
 		"",
 		"fichiers/test_declaration_fonctin_erreur_normale.kuri",
-		erreur::type_erreur::NORMAL
+		erreur::Genre::NORMAL
 	},
 	{
 		"",
 		"fichiers/test_expression_aucune_erreur.kuri",
-		erreur::type_erreur::AUCUNE_ERREUR
+		erreur::Genre::AUCUNE_ERREUR
 	},
 	{
 		"",
 		"fichiers/test_condition_controle_aucune_erreur.kuri",
-		erreur::type_erreur::AUCUNE_ERREUR
+		erreur::Genre::AUCUNE_ERREUR
 	},
 	{
 		"",
 		"fichiers/test_condition_controle_types_differents.kuri",
-		erreur::type_erreur::TYPE_DIFFERENTS
+		erreur::Genre::TYPE_DIFFERENTS
 	},
 	{
 		"",
 		"fichiers/test_expression_types_differents.kuri",
-		erreur::type_erreur::TYPE_DIFFERENTS
+		erreur::Genre::TYPE_DIFFERENTS
 	},
 	{
 		"",
 		"fichiers/test_operateurs_aucune_erreur.kuri",
-		erreur::type_erreur::AUCUNE_ERREUR
+		erreur::Genre::AUCUNE_ERREUR
 	},
 	{
 		"",
 		"fichiers/test_operateurs_types_differents.kuri",
-		erreur::type_erreur::TYPE_DIFFERENTS
+		erreur::Genre::TYPE_DIFFERENTS
 	},
 	{
 		"",
 		"fichiers/test_fonction_aucune_erreur.kuri",
-		erreur::type_erreur::AUCUNE_ERREUR
+		erreur::Genre::AUCUNE_ERREUR
 	},
 	{
 		"",
 		"fichiers/test_fonction_types_differents.kuri",
-		erreur::type_erreur::TYPE_DIFFERENTS
+		erreur::Genre::TYPE_DIFFERENTS
 	},
 	{
 		"",
 		"fichiers/test_structure_aucune_erreur.kuri",
-		erreur::type_erreur::AUCUNE_ERREUR
+		erreur::Genre::AUCUNE_ERREUR
 	},
 	{
 		"",
 		"fichiers/test_structure_membre_inconnu.kuri",
-		erreur::type_erreur::MEMBRE_INCONNU
+		erreur::Genre::MEMBRE_INCONNU
 	},
 	{
 		"",
 		"fichiers/test_structure_redefinie.kuri",
-		erreur::type_erreur::VARIABLE_REDEFINIE // À FAIRE : considère plutôt SYMBOLE_REDIFINI, et fusionne tous les tests
+		erreur::Genre::VARIABLE_REDEFINIE // À FAIRE : considère plutôt SYMBOLE_REDIFINI, et fusionne tous les tests
 	},
 	{
 		"",
 		"fichiers/test_type_inconnu.kuri",
-		erreur::type_erreur::TYPE_INCONNU
+		erreur::Genre::TYPE_INCONNU
 	},
 	{
 		"",
 		"fichiers/test_structure_variable_inconnue.kuri",
-		erreur::type_erreur::VARIABLE_INCONNUE
+		erreur::Genre::VARIABLE_INCONNUE
 	},
 	{
 		"",
 		"fichiers/test_structure_types_differents.kuri",
-		erreur::type_erreur::TYPE_DIFFERENTS
+		erreur::Genre::TYPE_DIFFERENTS
 	},
 	{
 		"",
 		"fichiers/test_structure_membre_redefini.kuri",
-		erreur::type_erreur::MEMBRE_REDEFINI
+		erreur::Genre::MEMBRE_REDEFINI
 	},
 	{
 		"",
 		"fichiers/test_tableau_aucune_erreur.kuri",
-		erreur::type_erreur::AUCUNE_ERREUR
+		erreur::Genre::AUCUNE_ERREUR
 	},
 	{
 		"",
 		"fichiers/test_tableau_type_argument.kuri",
-		erreur::type_erreur::TYPE_ARGUMENT
+		erreur::Genre::TYPE_ARGUMENT
 	},
 	{
 		"",
 		"fichiers/test_transtypage_aucune_erreur.kuri",
-		erreur::type_erreur::AUCUNE_ERREUR
+		erreur::Genre::AUCUNE_ERREUR
 	},
 	{
 		"",
 		"fichiers/test_transtypage_assignation_mauvais_type.kuri",
-		erreur::type_erreur::ASSIGNATION_MAUVAIS_TYPE
+		erreur::Genre::ASSIGNATION_MAUVAIS_TYPE
 	},
 	{
 		"",
 		"fichiers/test_variable_aucune_erreur.kuri",
-		erreur::type_erreur::AUCUNE_ERREUR
+		erreur::Genre::AUCUNE_ERREUR
 	},
 	{
 		"",
 		"fichiers/test_variable_inconnue.kuri",
-		erreur::type_erreur::VARIABLE_INCONNUE
+		erreur::Genre::VARIABLE_INCONNUE
 	},
 	{
 		"",
 		"fichiers/test_variable_redefinie.kuri",
-		erreur::type_erreur::VARIABLE_REDEFINIE
+		erreur::Genre::VARIABLE_REDEFINIE
 	},
 	{
 		"",
 		"fichiers/test_variable_redefinie.kuri",
-		erreur::type_erreur::VARIABLE_REDEFINIE
+		erreur::Genre::VARIABLE_REDEFINIE
 	},
 	{
 		"",
 		"fichiers/test_appel_fonction_aucune_erreur.kuri",
-		erreur::type_erreur::AUCUNE_ERREUR
+		erreur::Genre::AUCUNE_ERREUR
 	},
 };
 
-static erreur::type_erreur lance_test(lng::tampon_source &tampon)
+static erreur::Genre lance_test(lng::tampon_source &tampon)
 {
 	auto chemin_courant = std::filesystem::current_path();
 	std::filesystem::current_path("/opt/bin/kuri/fichiers_tests/fichiers/");
@@ -305,7 +305,7 @@ static erreur::type_erreur lance_test(lng::tampon_source &tampon)
 	}
 
 	std::filesystem::current_path(chemin_courant);
-	return erreur::type_erreur::AUCUNE_ERREUR;
+	return erreur::Genre::AUCUNE_ERREUR;
 }
 
 static auto decoupe_tampon(lng::tampon_source const &tampon)
@@ -353,8 +353,8 @@ struct ResultatTest {
 	dls::chaine fichier_origine{};
 	dls::chaine chemin_fichier{};
 	int raison_echec{};
-	erreur::type_erreur erreur_attendue{};
-	erreur::type_erreur erreur_recue{};
+	erreur::Genre erreur_attendue{};
+	erreur::Genre erreur_recue{};
 };
 
 static auto ecris_fichier_tmp(dls::chaine const &source, int index)
@@ -438,7 +438,7 @@ int main()
 								}
 								else {
 									auto rt = ResultatTest();
-									rt.erreur_recue = static_cast<erreur::type_erreur>(WEXITSTATUS(status));
+									rt.erreur_recue = static_cast<erreur::Genre>(WEXITSTATUS(status));
 									rt.erreur_attendue = it.resultat_attendu;
 									rt.raison_echec = ECHEC_CAR_MAUVAIS_CODE_ERREUR;
 									rt.fichier_origine = it.source;

@@ -738,7 +738,7 @@ void Lexeuse::lance_erreur(const dls::chaine &quoi) const
 	ss << "^~~~\n";
 	ss << quoi;
 
-	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::LEXAGE);
+	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::LEXAGE);
 }
 
 void Lexeuse::pousse_mot(GenreLexeme identifiant)

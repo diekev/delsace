@@ -132,9 +132,8 @@ private:
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
 	 * contenues dans l'instance Lexeme lui correspondant.
 	 */
-	[[noreturn]] void lance_erreur(
-			const dls::chaine &quoi,
-			erreur::type_erreur type = erreur::type_erreur::SYNTAXAGE);
+	[[noreturn]] void lance_erreur(const dls::chaine &quoi,
+			erreur::Genre genre = erreur::Genre::SYNTAXAGE);
 
 	void empile_etat(const char *message, Lexeme *lexeme);
 

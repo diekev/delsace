@@ -345,7 +345,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 //									"module inconnu",
 //									compilatrice,
 //									enfant1->lexeme,
-//									erreur::type_erreur::MODULE_INCONNU);
+//									erreur::Genre::MODULE_INCONNU);
 //					}
 
 //					auto const nom_fonction = enfant2->ident->nom;
@@ -355,7 +355,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 //									"Le module ne possède pas la fonction",
 //									compilatrice,
 //									enfant2->lexeme,
-//									erreur::type_erreur::FONCTION_INCONNUE);
+//									erreur::Genre::FONCTION_INCONNUE);
 //					}
 
 //					enfant2->module_appel = static_cast<int>(module_importe->id);
@@ -388,19 +388,19 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (expression->type == nullptr) {
-				rapporte_erreur("Impossible de définir le type de la variable !", noeud, erreur::type_erreur::TYPE_INCONNU);
+				rapporte_erreur("Impossible de définir le type de la variable !", noeud, erreur::Genre::TYPE_INCONNU);
 				return true;
 			}
 
 			if (expression->type->genre == GenreType::RIEN) {
-				rapporte_erreur("Impossible d'assigner une expression de type 'rien' à une variable !", noeud, erreur::type_erreur::ASSIGNATION_RIEN);
+				rapporte_erreur("Impossible d'assigner une expression de type 'rien' à une variable !", noeud, erreur::Genre::ASSIGNATION_RIEN);
 				return true;
 			}
 
 			/* a, b = foo() */
 			if (variable->est_virgule()) {
 				if (!expression->est_appel()) {
-					rapporte_erreur("Une virgule ne peut se trouver qu'à gauche d'un appel de fonction.", variable, erreur::type_erreur::NORMAL);
+					rapporte_erreur("Une virgule ne peut se trouver qu'à gauche d'un appel de fonction.", variable, erreur::Genre::NORMAL);
 					return true;
 				}
 
@@ -412,7 +412,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				auto type_fonc = expression->type->comme_fonction();
 
 				if (feuilles->expressions.taille != type_fonc->types_sorties.taille) {
-					rapporte_erreur("L'ignorance d'une valeur de retour non implémentée.", variable, erreur::type_erreur::NORMAL);
+					rapporte_erreur("L'ignorance d'une valeur de retour non implémentée.", variable, erreur::Genre::NORMAL);
 					return true;
 				}
 
@@ -428,7 +428,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (!est_valeur_gauche(variable->genre_valeur)) {
-				rapporte_erreur("Impossible d'assigner une expression à une valeur-droite !", noeud, erreur::type_erreur::ASSIGNATION_INVALIDE);
+				rapporte_erreur("Impossible d'assigner une expression à une valeur-droite !", noeud, erreur::Genre::ASSIGNATION_INVALIDE);
 				return true;
 			}
 
@@ -489,7 +489,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						expression->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type };
 					}
 					else if (expression->type->genre == GenreType::RIEN) {
-						rapporte_erreur("impossible d'assigner une expression de type « rien » à une variable", expression, erreur::type_erreur::ASSIGNATION_RIEN);
+						rapporte_erreur("impossible d'assigner une expression de type « rien » à une variable", expression, erreur::Genre::ASSIGNATION_RIEN);
 						return true;
 					}
 					else {
@@ -930,7 +930,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					dls::flux_chaine ss;
 					ss << "Le type '" << chaine_type(type1)
 					   << "' ne peut être déréférencé par opérateur[] !";
-					rapporte_erreur(ss.chn().c_str(), noeud, erreur::type_erreur::TYPE_DIFFERENTS);
+					rapporte_erreur(ss.chn().c_str(), noeud, erreur::Genre::TYPE_DIFFERENTS);
 					return true;
 				}
 			}
@@ -1083,7 +1083,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (!est_type_conditionnable(type_condition)) {
-				rapporte_erreur("Impossible de conditionner le type de l'expression 'si'", inst->condition, erreur::type_erreur::TYPE_DIFFERENTS);
+				rapporte_erreur("Impossible de conditionner le type de l'expression 'si'", inst->condition, erreur::Genre::TYPE_DIFFERENTS);
 				return true;
 			}
 
@@ -1100,7 +1100,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				auto res = evalue_expression(espace, inst->bloc_parent, inst->condition);
 
 				if (res.est_errone) {
-					rapporte_erreur(res.message_erreur, res.noeud_erreur, erreur::type_erreur::VARIABLE_REDEFINIE);
+					rapporte_erreur(res.message_erreur, res.noeud_erreur, erreur::Genre::VARIABLE_REDEFINIE);
 					return true;
 				}
 
@@ -1152,7 +1152,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 				if (decl_f != nullptr) {
 					if (f->lexeme->ligne > decl_f->lexeme->ligne) {
-						rapporte_erreur("Redéfinition de la variable", f, erreur::type_erreur::VARIABLE_REDEFINIE);
+						rapporte_erreur("Redéfinition de la variable", f, erreur::Genre::VARIABLE_REDEFINIE);
 						return true;
 					}
 				}
@@ -1299,7 +1299,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (noeud->type == nullptr) {
-				rapporte_erreur("Ne peut transtyper vers un type invalide", expr, erreur::type_erreur::TYPE_INCONNU);
+				rapporte_erreur("Ne peut transtyper vers un type invalide", expr, erreur::Genre::TYPE_INCONNU);
 				return true;
 			}
 
@@ -1307,7 +1307,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			auto enfant = expr->expr1;
 			if (enfant->type == nullptr) {
-				rapporte_erreur("Ne peut calculer le type d'origine", enfant, erreur::type_erreur::TYPE_INCONNU);
+				rapporte_erreur("Ne peut calculer le type d'origine", enfant, erreur::Genre::TYPE_INCONNU);
 				return true;
 			}
 
@@ -1357,7 +1357,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type_fin   = enfant2->type;
 
 			if (type_debut == nullptr || type_fin == nullptr) {
-				rapporte_erreur("Les types de l'expression sont invalides !", noeud, erreur::type_erreur::TYPE_INCONNU);
+				rapporte_erreur("Les types de l'expression sont invalides !", noeud, erreur::Genre::TYPE_INCONNU);
 				return true;
 			}
 
@@ -1384,7 +1384,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (type_debut->genre != GenreType::ENTIER_NATUREL && type_debut->genre != GenreType::ENTIER_RELATIF && type_debut->genre != GenreType::REEL) {
-				rapporte_erreur("Attendu des types réguliers dans la plage de la boucle 'pour'", noeud, erreur::type_erreur::TYPE_DIFFERENTS);
+				rapporte_erreur("Attendu des types réguliers dans la plage de la boucle 'pour'", noeud, erreur::Genre::TYPE_DIFFERENTS);
 				return true;
 			}
 
@@ -1400,11 +1400,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			if (ok == false) {
 				if (chaine_var == nullptr) {
-					rapporte_erreur("'continue' ou 'arrête' en dehors d'une boucle", noeud, erreur::type_erreur::CONTROLE_INVALIDE);
+					rapporte_erreur("'continue' ou 'arrête' en dehors d'une boucle", noeud, erreur::Genre::CONTROLE_INVALIDE);
 					return true;
 				}
 
-				rapporte_erreur("Variable inconnue", inst->expr, erreur::type_erreur::VARIABLE_INCONNUE);
+				rapporte_erreur("Variable inconnue", inst->expr, erreur::Genre::VARIABLE_INCONNUE);
 				return true;
 			}
 
@@ -1430,7 +1430,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (inst->condition->type->genre != GenreType::BOOL) {
-				rapporte_erreur("Une expression booléenne est requise pour la boucle 'tantque'", inst->condition, erreur::type_erreur::TYPE_ARGUMENT);
+				rapporte_erreur("Une expression booléenne est requise pour la boucle 'tantque'", inst->condition, erreur::Genre::TYPE_ARGUMENT);
 				return true;
 			}
 
@@ -1610,7 +1610,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type = expr->expr->type;
 
 			if (type->genre != GenreType::POINTEUR) {
-				rapporte_erreur("Un pointeur est requis pour le déréférencement via 'mémoire'", expr->expr, erreur::type_erreur::TYPE_DIFFERENTS);
+				rapporte_erreur("Un pointeur est requis pour le déréférencement via 'mémoire'", expr->expr, erreur::Genre::TYPE_DIFFERENTS);
 				return true;
 			}
 
@@ -2336,7 +2336,7 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 	flux << ", le type est ";
 	flux << chaine_type(type);
 
-	rapporte_erreur(flux.chn().c_str(), structure, erreur::type_erreur::TYPE_DIFFERENTS);
+	rapporte_erreur(flux.chn().c_str(), structure, erreur::Genre::TYPE_DIFFERENTS);
 	return true;
 }
 
@@ -2365,7 +2365,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 			auto expression = param->expression;
 
 			if (noms.possede(variable->ident)) {
-				rapporte_erreur("Redéfinition de l'argument", variable, erreur::type_erreur::ARGUMENT_REDEFINI);
+				rapporte_erreur("Redéfinition de l'argument", variable, erreur::Genre::ARGUMENT_REDEFINI);
 				return true;
 			}
 
@@ -2632,7 +2632,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 		auto type_fonc = entete->type->comme_fonction();
 
 		if (type_fonc->types_sorties[0]->genre != GenreType::RIEN && !entete->est_coroutine) {
-			rapporte_erreur("Instruction de retour manquante", decl, erreur::type_erreur::TYPE_DIFFERENTS);
+			rapporte_erreur("Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
 			return true;
 		}
 
@@ -2685,7 +2685,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *dec
 	auto inst_ret = derniere_instruction(decl->bloc);
 
 	if (inst_ret == nullptr) {
-		rapporte_erreur("Instruction de retour manquante", decl, erreur::type_erreur::TYPE_DIFFERENTS);
+		rapporte_erreur("Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
 		return true;
 	}
 
@@ -2717,7 +2717,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 
 		/* les énum_drapeaux doivent être des types naturels pour éviter les problèmes d'arithmétiques binaire */
 		if (type_enum->est_drapeau && !type_enum->type_donnees->est_entier_naturel()) {
-			::rapporte_erreur(espace, decl->expression_type, "Les énum_drapeaux doivent être de type entier naturel (n8, n16, n32, ou n64).\n", erreur::type_erreur::TYPE_DIFFERENTS)
+			::rapporte_erreur(espace, decl->expression_type, "Les énum_drapeaux doivent être de type entier naturel (n8, n16, n32, ou n64).\n", erreur::Genre::TYPE_DIFFERENTS)
 					.ajoute_message("Note : un entier naturel est requis car certaines manipulations de bits en complément à deux, par exemple les décalages à droite avec l'opérateur >>, préserve le signe de la valeur. "
 									"Un décalage à droite sur l'octet de type relatif 10101010 produirait 10010101 et non 01010101 comme attendu. Ainsi, pour que je puisse garantir un programme bienformé, un type naturel doit être utilisé.\n");
 		}
@@ -2787,7 +2787,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 			res = evalue_expression(espace, decl->bloc, expr);
 
 			if (res.est_errone) {
-				rapporte_erreur(res.message_erreur, res.noeud_erreur, erreur::type_erreur::VARIABLE_REDEFINIE);
+				rapporte_erreur(res.message_erreur, res.noeud_erreur, erreur::Genre::VARIABLE_REDEFINIE);
 				return true;
 			}
 		}
@@ -2870,7 +2870,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	auto verifie_inclusion_valeur = [&decl, this](NoeudExpression *enf)
 	{
 		if (enf->type == decl->type) {
-			rapporte_erreur("Ne peut inclure la structure dans elle-même par valeur", enf, erreur::type_erreur::TYPE_ARGUMENT);
+			rapporte_erreur("Ne peut inclure la structure dans elle-même par valeur", enf, erreur::Genre::TYPE_ARGUMENT);
 			return true;
 		}
 
@@ -2880,7 +2880,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			auto type_deref = type_dereference_pour(type_base);
 
 			if (type_deref == decl->type) {
-				rapporte_erreur("Ne peut inclure la structure dans elle-même par valeur", enf, erreur::type_erreur::TYPE_ARGUMENT);
+				rapporte_erreur("Ne peut inclure la structure dans elle-même par valeur", enf, erreur::Genre::TYPE_ARGUMENT);
 				return true;
 			}
 		}
@@ -2924,7 +2924,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			}
 
 			if (decl_membre->type->genre == GenreType::RIEN) {
-				rapporte_erreur("Ne peut avoir un type « rien » dans une union", decl_membre, erreur::type_erreur::TYPE_DIFFERENTS);
+				rapporte_erreur("Ne peut avoir un type « rien » dans une union", decl_membre, erreur::Genre::TYPE_DIFFERENTS);
 				return true;
 			}
 
@@ -2992,7 +2992,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 
 		if (decl_var->type->genre == GenreType::RIEN) {
-			rapporte_erreur("Ne peut avoir un type « rien » dans une structure", decl_var, erreur::type_erreur::TYPE_DIFFERENTS);
+			rapporte_erreur("Ne peut avoir un type « rien » dans une structure", decl_var, erreur::Genre::TYPE_DIFFERENTS);
 			return true;
 		}
 
@@ -3080,9 +3080,9 @@ void ContexteValidationCode::rapporte_erreur(const char *message, NoeudExpressio
 	erreur::lance_erreur(message, *espace, noeud->lexeme);
 }
 
-void ContexteValidationCode::rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::type_erreur type_erreur)
+void ContexteValidationCode::rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::Genre genre)
 {
-	erreur::lance_erreur(message, *espace, noeud->lexeme, type_erreur);
+	erreur::lance_erreur(message, *espace, noeud->lexeme, genre);
 }
 
 void ContexteValidationCode::rapporte_erreur_redefinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec)

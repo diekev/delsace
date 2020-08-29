@@ -35,19 +35,19 @@
 
 namespace erreur {
 
-const char *chaine_erreur(type_erreur te)
+const char *chaine_erreur(Genre genre)
 {
-	switch (te) {
-#define ENUMERE_TYPE_ERREUR_EX(type) case type_erreur::type: return #type;
-		ENUMERE_TYPES_ERREUR
-#undef ENUMERE_TYPE_ERREUR_EX
+	switch (genre) {
+#define ENUMERE_GENRE_ERREUR_EX(genre) case Genre::genre: return #genre;
+		ENUMERE_GENRES_ERREUR
+#undef ENUMERE_GENRE_ERREUR_EX
 	}
 	return "Ceci ne devrait pas s'afficher";
 }
 
-std::ostream &operator<<(std::ostream &os, type_erreur te)
+std::ostream &operator<<(std::ostream &os, Genre genre)
 {
-	os << chaine_erreur(te);
+	os << chaine_erreur(genre);
 	return os;
 }
 
@@ -79,7 +79,7 @@ void lance_erreur(
 		const dls::chaine &quoi,
 		EspaceDeTravail const &espace,
 		const Lexeme *lexeme,
-		type_erreur type)
+		Genre type)
 {
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
@@ -141,7 +141,7 @@ void redefinition_fonction(
 	lng::erreur::imprime_tilde(ss, chaine);
 	ss << '\n';
 
-	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::FONCTION_REDEFINIE);
+	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::FONCTION_REDEFINIE);
 }
 
 void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_redefinition, const Lexeme *lexeme_original)
@@ -178,7 +178,7 @@ void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_re
 	lng::erreur::imprime_tilde(ss, chaine);
 	ss << '\n';
 
-	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::VARIABLE_REDEFINIE);
+	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::VARIABLE_REDEFINIE);
 }
 
 [[noreturn]] void lance_erreur_type_arguments(
@@ -216,7 +216,7 @@ void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_re
 	lng::erreur::imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant->chaine.taille(), ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
-	throw frappe(ss.chn().c_str(), type_erreur::TYPE_ARGUMENT);
+	throw frappe(ss.chn().c_str(), Genre::TYPE_ARGUMENT);
 }
 
 [[noreturn]] void lance_erreur_type_retour(
@@ -259,7 +259,7 @@ void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_re
 	lng::erreur::imprime_ligne_entre(ss, ligne, etendue.pos_max, ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
-	throw frappe(ss.chn().c_str(), type_erreur::TYPE_DIFFERENTS);
+	throw frappe(ss.chn().c_str(), Genre::TYPE_DIFFERENTS);
 }
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
@@ -286,7 +286,7 @@ void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_re
 	ss << "Type à gauche : " << chaine_type(type_gauche) << '\n';
 	ss << "Type à droite : " << chaine_type(type_droite) << '\n';
 
-	throw frappe(ss.chn().c_str(), type_erreur::ASSIGNATION_MAUVAIS_TYPE);
+	throw frappe(ss.chn().c_str(), Genre::ASSIGNATION_MAUVAIS_TYPE);
 }
 
 void lance_erreur_type_operation(
@@ -313,7 +313,7 @@ void lance_erreur_type_operation(
 	ss << "Type à gauche : " << chaine_type(type_gauche) << '\n';
 	ss << "Type à droite : " << chaine_type(type_droite) << '\n';
 
-	throw frappe(ss.chn().c_str(), type_erreur::TYPE_DIFFERENTS);
+	throw frappe(ss.chn().c_str(), Genre::TYPE_DIFFERENTS);
 }
 
 void type_indexage(
@@ -339,7 +339,7 @@ void type_indexage(
 	ss << "Requiers : z64\n";
 	ss << "Obtenu   : " << chaine_type(noeud->type) << '\n';
 
-	throw frappe(ss.chn().c_str(), type_erreur::TYPE_DIFFERENTS);
+	throw frappe(ss.chn().c_str(), Genre::TYPE_DIFFERENTS);
 }
 
 void lance_erreur_fonction_inconnue(
@@ -369,12 +369,12 @@ void lance_erreur_fonction_inconnue(
 		ss << "\nFonction inconnue : aucune candidate trouvée\n";
 		ss << "Vérifiez que la fonction existe bel et bien dans un fichier importé\n";
 
-		throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::FONCTION_INCONNUE);
+		throw erreur::frappe(ss.chn().c_str(), erreur::Genre::FONCTION_INCONNUE);
 	}
 
 	ss << "\nAucune candidate trouvée pour la fonction '" << b->lexeme->chaine << "'\n";
 
-	auto type_erreur = erreur::type_erreur::FONCTION_INCONNUE;
+	auto type_erreur = erreur::Genre::FONCTION_INCONNUE;
 
 	for (auto &dc : candidates) {
 		auto decl = dc.noeud_decl;
@@ -410,7 +410,7 @@ void lance_erreur_fonction_inconnue(
 			}
 
 			ss << "\tObtenu " << noeud_appel->params.taille << " arguments\n";
-			type_erreur = erreur::type_erreur::NOMBRE_ARGUMENT;
+			type_erreur = erreur::Genre::NOMBRE_ARGUMENT;
 		}
 
 		if (dc.raison == MENOMMAGE_ARG) {
@@ -426,7 +426,7 @@ void lance_erreur_fonction_inconnue(
 					ss << "\t\t" << param->ident->nom << '\n';
 				}
 
-				type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;
+				type_erreur = erreur::Genre::ARGUMENT_INCONNU;
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
 				auto type_struct = static_cast<NoeudStruct const *>(decl)->type->comme_structure();
@@ -436,67 +436,67 @@ void lance_erreur_fonction_inconnue(
 					ss << "\t\t" << it.nom << '\n';
 				}
 
-				type_erreur = erreur::type_erreur::MEMBRE_INCONNU;
+				type_erreur = erreur::Genre::MEMBRE_INCONNU;
 			}
 		}
 
 		if (dc.raison == RENOMMAGE_ARG) {
 			/* À FAIRE : trouve le lexeme correspondant à l'argument. */
 			ss << "\tL'argument '" << dc.nom_arg << "' a déjà été nommé\n";
-			type_erreur = erreur::type_erreur::ARGUMENT_REDEFINI;
+			type_erreur = erreur::Genre::ARGUMENT_REDEFINI;
 		}
 
 		if (dc.raison == MANQUE_NOM_APRES_VARIADIC) {
 			/* À FAIRE : trouve le lexeme correspondant à l'argument. */
 			ss << "\tNom d'argument manquant\n";
 			ss << "\tLes arguments doivent être nommés s'ils sont précédés d'arguments déjà nommés\n";
-			type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;
+			type_erreur = erreur::Genre::ARGUMENT_INCONNU;
 		}
 
 		if (dc.raison == NOMMAGE_ARG_POINTEUR_FONCTION) {
 			ss << "\tLes arguments d'un pointeur fonction ne peuvent être nommés\n";
-			type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;
+			type_erreur = erreur::Genre::ARGUMENT_INCONNU;
 		}
 
 		if (dc.raison == TYPE_N_EST_PAS_FONCTION) {
 			ss << "\tAppel d'une variable n'étant pas un pointeur de fonction\n";
-			type_erreur = erreur::type_erreur::FONCTION_INCONNUE;
+			type_erreur = erreur::Genre::FONCTION_INCONNUE;
 		}
 
 		if (dc.raison == TROP_D_EXPRESSION_POUR_UNION) {
 			ss << "\tOn ne peut initialiser qu'un seul membre d'une union à la fois\n";
-			type_erreur = erreur::type_erreur::NORMAL;
+			type_erreur = erreur::Genre::NORMAL;
 		}
 
 		if (dc.raison == EXPRESSION_MANQUANTE_POUR_UNION) {
 			ss << "\tOn doit initialiser au moins un membre de l'union\n";
-			type_erreur = erreur::type_erreur::NORMAL;
+			type_erreur = erreur::Genre::NORMAL;
 		}
 
 		if (dc.raison == NOM_ARGUMENT_REQUIS) {
 			ss << "\tLe nom de l'argument est requis pour les constructions de structures\n";
-			type_erreur = erreur::type_erreur::MEMBRE_INCONNU;
+			type_erreur = erreur::Genre::MEMBRE_INCONNU;
 		}
 
 		if (dc.raison == CONTEXTE_MANQUANT) {
 			ss << "\tNe peut appeler une fonction avec contexte dans un bloc n'ayant pas de contexte\n";
-			type_erreur = erreur::type_erreur::NORMAL;
+			type_erreur = erreur::Genre::NORMAL;
 		}
 		else if (dc.raison == EXPANSION_VARIADIQUE_FONCTION_EXTERNE) {
 			ss << "\tImpossible d'utiliser une expansion variadique dans une fonction variadique externe\n";
-			type_erreur = erreur::type_erreur::NORMAL;
+			type_erreur = erreur::Genre::NORMAL;
 		}
 		else if (dc.raison == MULTIPLE_EXPANSIONS_VARIADIQUES) {
 			ss << "\tPlusieurs expansions variadiques trouvées\n";
-			type_erreur = erreur::type_erreur::NORMAL;
+			type_erreur = erreur::Genre::NORMAL;
 		}
 		else if (dc.raison == EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES) {
 			ss << "\tTentative d'utiliser une expansion d'arguments variadiques alors que d'autres arguments ont déjà été précisés\n";
-			type_erreur = erreur::type_erreur::NORMAL;
+			type_erreur = erreur::Genre::NORMAL;
 		}
 		else if (dc.raison == ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES) {
 			ss << "\tTentative d'ajouter des arguments variadiques supplémentaire alors qu'une expansion est également utilisée\n";
-			type_erreur = erreur::type_erreur::NORMAL;
+			type_erreur = erreur::Genre::NORMAL;
 		}
 
 		if (dc.raison == METYPAGE_ARG) {
@@ -513,14 +513,14 @@ void lance_erreur_fonction_inconnue(
 //			imprime_ligne_entre(ss, ligne, 0, pos_mot);
 //			ss << "transtype(" << lexeme_enfant->chaine << " : " << dc.type1 << ")";
 //			imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant->chaine.taille(), ligne.taille());
-			type_erreur = erreur::type_erreur::TYPE_ARGUMENT;
+			type_erreur = erreur::Genre::TYPE_ARGUMENT;
 		}
 
 #ifdef NON_SUR
 		if (candidate->arg_pointeur && !espace.non_sur()) {
 			/* À FAIRE : trouve le lexeme correspondant à l'argument. */
 			ss << "\tNe peut appeler une fonction avec un argument pointé hors d'un bloc 'nonsûr'\n"
-			type_erreur = erreur::type_erreur::APPEL_INVALIDE
+			type_erreur = erreur::Genre::APPEL_INVALIDE
 		}
 
 #endif
@@ -573,7 +573,7 @@ void lance_erreur_fonction_nulctx(
 
 	ss << "\n----------------------------------------------------------------\n";
 
-	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::APPEL_INVALIDE);
+	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::APPEL_INVALIDE);
 }
 
 void lance_erreur_acces_hors_limites(
@@ -608,7 +608,7 @@ void lance_erreur_acces_hors_limites(
 
 	ss << "\n----------------------------------------------------------------\n";
 
-	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::NORMAL);
+	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::NORMAL);
 }
 
 void lance_erreur_type_operation(
@@ -674,7 +674,7 @@ void lance_erreur_type_operation(
 
 	ss << "----------------------------------------------------------------\n";
 
-	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::TYPE_DIFFERENTS);
+	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::TYPE_DIFFERENTS);
 }
 
 void lance_erreur_type_operation_unaire(
@@ -717,7 +717,7 @@ void lance_erreur_type_operation_unaire(
 	ss << chaine_type(type_droite) << '\n';
 	ss << "----------------------------------------------------------------\n";
 
-	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::TYPE_DIFFERENTS);
+	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::TYPE_DIFFERENTS);
 }
 
 struct CandidatMembre {
@@ -795,7 +795,7 @@ static auto trouve_candidat(
 	ss << "Candidat possible : " << candidat.chaine << '\n';
 	ss << "----------------------------------------------------------------\n";
 
-	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INCONNU);
+	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::MEMBRE_INCONNU);
 }
 
 void membre_inconnu(
@@ -861,7 +861,7 @@ void membre_inactif(
 	ss << "Le membre actif dans ce contexte est « " << contexte.trouve_membre_actif(structure->ident->nom) << " ».\n";
 	ss << "----------------------------------------------------------------\n";
 
-	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);
+	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::MEMBRE_INACTIF);
 }
 
 void valeur_manquante_discr(
@@ -906,7 +906,7 @@ void valeur_manquante_discr(
 
 	ss << "----------------------------------------------------------------\n";
 
-	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);
+	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::MEMBRE_INACTIF);
 }
 
 void fonction_principale_manquante(EspaceDeTravail const &espace)
@@ -917,7 +917,7 @@ void fonction_principale_manquante(EspaceDeTravail const &espace)
 	ss << "Erreur : impossible de trouver la fonction principale\n";
 	ss << "Veuillez vérifier qu'elle soit bien présente dans un module\n";
 	ss << "\n----------------------------------------------------------------\n";
-	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);
+	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::MEMBRE_INACTIF);
 }
 
 }
@@ -930,7 +930,7 @@ Erreur::Erreur(EspaceDeTravail *espace_)
 
 Erreur::~Erreur() noexcept(false)
 {
-	throw erreur::frappe(message.c_str(), erreur::type_erreur::NORMAL);
+	throw erreur::frappe(message.c_str(), erreur::Genre::NORMAL);
 }
 
 Erreur &Erreur::ajoute_message(const dls::chaine &m)
@@ -964,24 +964,24 @@ Erreur &Erreur::ajoute_conseil(const dls::chaine &c)
 	return *this;
 }
 
-static dls::chaine chaine_pour_erreur(erreur::type_erreur type)
+static dls::chaine chaine_pour_erreur(erreur::Genre genre)
 {
-	switch (type) {
+	switch (genre) {
 		default:
 		{
 			return "ERREUR";
 		}
-		case erreur::type_erreur::LEXAGE:
+		case erreur::Genre::LEXAGE:
 		{
 			return "ERREUR DE LEXAGE";
 		}
-		case erreur::type_erreur::SYNTAXAGE:
+		case erreur::Genre::SYNTAXAGE:
 		{
 			return "ERREUR DE LEXAGE";
 		}
-		case erreur::type_erreur::TYPE_INCONNU:
-		case erreur::type_erreur::TYPE_DIFFERENTS:
-		case erreur::type_erreur::TYPE_ARGUMENT:
+		case erreur::Genre::TYPE_INCONNU:
+		case erreur::Genre::TYPE_DIFFERENTS:
+		case erreur::Genre::TYPE_ARGUMENT:
 		{
 			return "ERREUR DE TYPAGE";
 		}
@@ -993,14 +993,14 @@ static dls::chaine chaine_pour_erreur(erreur::type_erreur type)
 #define COULEUR_NORMALE "\033[0m"
 #define COULEUR_CYAN_GRAS "\033[1;36m"
 
-Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, const dls::chaine &message, erreur::type_erreur type)
+Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, const dls::chaine &message, erreur::Genre genre)
 {
 	auto fichier = espace->fichier(site->lexeme->fichier);
 
 	auto flux = dls::flux_chaine();
 	flux << COULEUR_CYAN_GRAS << "-- ";
 
-	auto chaine_erreur = chaine_pour_erreur(type);
+	auto chaine_erreur = chaine_pour_erreur(genre);
 	flux << chaine_erreur << ' ';
 
 	for (auto i = 0; i < 76 - chaine_erreur.taille(); ++i) {

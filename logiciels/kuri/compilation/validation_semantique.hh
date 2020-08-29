@@ -34,7 +34,7 @@ struct NoeudDeclarationCorpsFonction;
 struct NoeudExpression;
 
 namespace erreur {
-enum class type_erreur : int;
+enum class Genre : int;
 }
 
 struct ContexteValidationCode {
@@ -79,7 +79,7 @@ struct ContexteValidationCode {
 	bool resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
 	void rapporte_erreur(const char *message, NoeudExpression *noeud);
-	void rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::type_erreur type_erreur);
+	void rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::Genre genre);
 	void rapporte_erreur_redefinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec);
 	void rapporte_erreur_redefinition_fonction(NoeudDeclarationEnteteFonction *decl, NoeudDeclaration *decl_prec);
 	void rapporte_erreur_type_arguments(NoeudExpression *type_arg, NoeudExpression *type_enf);

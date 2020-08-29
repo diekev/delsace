@@ -2260,7 +2260,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 	return noeud_decl;
 }
 
-void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::type_erreur type)
+void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::Genre genre)
 {
 	auto lexeme = lexeme_courant();
 	auto fichier = m_unite->espace->fichier(lexeme->fichier);
@@ -2276,7 +2276,7 @@ void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::type_erreur type)
 
 	erreur::imprime_ligne_avec_message(flux, fichier, lexeme, quoi.c_str());
 
-	throw erreur::frappe(flux.chn().c_str(), type);
+	throw erreur::frappe(flux.chn().c_str(), genre);
 }
 
 void Syntaxeuse::empile_etat(const char *message, Lexeme *lexeme)

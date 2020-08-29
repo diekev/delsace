@@ -512,7 +512,7 @@ void Tacheronne::gere_tache()
 					}
 
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_TYPE) {
-						rapporte_erreur(unite->espace, unite->noeud, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer un type pour l'expression", erreur::type_erreur::TYPE_INCONNU)
+						rapporte_erreur(unite->espace, unite->noeud, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer un type pour l'expression", erreur::Genre::TYPE_INCONNU)
 								.ajoute_message("Note : le type attendu est ")
 								.ajoute_message(chaine_type(unite->type_attendu))
 								.ajoute_message("\n");
@@ -527,7 +527,7 @@ void Tacheronne::gere_tache()
 							auto expression_operation = static_cast<NoeudExpressionBinaire *>(unite->operateur_attendu);
 							auto type1 = expression_operation->expr1->type;
 							auto type2 = expression_operation->expr2->type;
-							rapporte_erreur(unite->espace, unite->operateur_attendu, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer quel opérateur appelé.", erreur::type_erreur::TYPE_INCONNU)
+							rapporte_erreur(unite->espace, unite->operateur_attendu, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer quel opérateur appelé.", erreur::Genre::TYPE_INCONNU)
 									.ajoute_message("Le type à gauche de l'opérateur est ")
 									.ajoute_message(chaine_type(type1))
 									.ajoute_message("\nLe type à droite de l'opérateur est ")
@@ -538,7 +538,7 @@ void Tacheronne::gere_tache()
 						else {
 							auto expression_operation = static_cast<NoeudExpressionUnaire *>(unite->operateur_attendu);
 							auto type = expression_operation->expr->type;
-							rapporte_erreur(unite->espace, unite->operateur_attendu, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer quel opérateur appelé.", erreur::type_erreur::TYPE_INCONNU)
+							rapporte_erreur(unite->espace, unite->operateur_attendu, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer quel opérateur appelé.", erreur::Genre::TYPE_INCONNU)
 									.ajoute_message("\nLe type à droite de l'opérateur est ")
 									.ajoute_message(chaine_type(type))
 									.ajoute_message("\n\nMais aucun opérateur ne correspond à ces types-là.\n\n")

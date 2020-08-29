@@ -384,7 +384,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 						"Impossible de trouver le dossier correspondant au module",
 						*espace,
 						&lexeme,
-						erreur::type_erreur::MODULE_INCONNU);
+						erreur::Genre::MODULE_INCONNU);
 		}
 	}
 
@@ -393,7 +393,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 					"Le nom du module ne pointe pas vers un dossier",
 					*espace,
 					&lexeme,
-					erreur::type_erreur::MODULE_INCONNU);
+					erreur::Genre::MODULE_INCONNU);
 	}
 
 	/* trouve le chemin absolu du module (cannonique pour supprimer les "../../" */
@@ -455,7 +455,7 @@ dls::chaine charge_fichier(
 					"Impossible d'ouvrir le fichier correspondant au module",
 					espace,
 					&lexeme,
-					erreur::type_erreur::MODULE_INCONNU);
+					erreur::Genre::MODULE_INCONNU);
 	}
 
 	fichier.seekg(0, fichier.end);
@@ -483,7 +483,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 					"Impossible de trouver le fichier correspondant au module",
 					*espace,
 					&lexeme,
-					erreur::type_erreur::MODULE_INCONNU);
+					erreur::Genre::MODULE_INCONNU);
 	}
 
 	if (!std::filesystem::is_regular_file(chemin.c_str())) {
@@ -491,7 +491,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 					"Le nom du fichier ne pointe pas vers un fichier régulier",
 					*espace,
 					&lexeme,
-					erreur::type_erreur::MODULE_INCONNU);
+					erreur::Genre::MODULE_INCONNU);
 	}
 
 	/* trouve le chemin absolu du fichier */
@@ -757,7 +757,7 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne)
 					"Impossible de trouver le fichier correspondant au chemin",
 					*espace,
 					&lexeme,
-					erreur::type_erreur::MODULE_INCONNU);
+					erreur::Genre::MODULE_INCONNU);
 	}
 
 	if (!std::filesystem::is_regular_file(chemin.c_str())) {
@@ -765,7 +765,7 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne)
 					"Le nom du fichier ne pointe pas vers un fichier régulier",
 					*espace,
 					&lexeme,
-					erreur::type_erreur::MODULE_INCONNU);
+					erreur::Genre::MODULE_INCONNU);
 	}
 
 	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
