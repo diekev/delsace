@@ -604,7 +604,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						return true;
 					}
 
-					if (res.type != type_expression::ENTIER) {
+					if (res.type != TypeExpression::ENTIER) {
 						rapporte_erreur("L'expression n'est pas de type entier", expression_taille);
 						return true;
 					}
@@ -2797,12 +2797,12 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 				dernier_res.est_errone = false;
 
 				if (type_enum->est_drapeau || type_enum->est_erreur) {
-					res.type = type_expression::ENTIER;
+					res.type = TypeExpression::ENTIER;
 					res.entier = 1;
 				}
 			}
 			else {
-				if (dernier_res.type == type_expression::ENTIER) {
+				if (dernier_res.type == TypeExpression::ENTIER) {
 					if (type_enum->est_drapeau) {
 						res.entier = dernier_res.entier * 2;
 					}

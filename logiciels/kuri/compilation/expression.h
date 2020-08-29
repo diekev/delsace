@@ -32,7 +32,7 @@ struct NoeudExpression;
 
 /* ************************************************************************** */
 
-enum class type_expression : char {
+enum class TypeExpression : char {
 	ENTIER,
 	REEL,
 };
@@ -44,7 +44,7 @@ struct ResultatExpression {
 		bool condition;
 	};
 
-	type_expression type{};
+	TypeExpression type{};
 	bool est_errone = false;
 	NoeudExpression *noeud_erreur = nullptr;
 	const char *message_erreur = nullptr;

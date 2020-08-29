@@ -277,7 +277,7 @@ ResultatExpression evalue_expression(
 			auto type = expr_taille_de->expr->type;
 
 			auto res = ResultatExpression();
-			res.type = type_expression::ENTIER;
+			res.type = TypeExpression::ENTIER;
 			res.entier = type->taille_octet;
 
 			return res;
@@ -285,7 +285,7 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		{
 			auto res = ResultatExpression();
-			res.type = type_expression::ENTIER;
+			res.type = TypeExpression::ENTIER;
 			res.entier = b->lexeme->chaine == "vrai";
 
 			return res;
@@ -293,7 +293,7 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		{
 			auto res = ResultatExpression();
-			res.type = type_expression::ENTIER;
+			res.type = TypeExpression::ENTIER;
 			res.entier = static_cast<long>(b->lexeme->valeur_entiere);
 
 			return res;
@@ -301,7 +301,7 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		{
 			auto res = ResultatExpression();
-			res.type = type_expression::ENTIER;
+			res.type = TypeExpression::ENTIER;
 			res.entier = static_cast<long>(b->lexeme->valeur_entiere);
 
 			return res;
@@ -309,7 +309,7 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		{
 			auto res = ResultatExpression();
-			res.type = type_expression::REEL;
+			res.type = TypeExpression::REEL;
 			res.reel = b->lexeme->valeur_reelle;
 
 			return res;
@@ -325,7 +325,7 @@ ResultatExpression evalue_expression(
 				return res;
 			}
 
-			if (res.type != type_expression::ENTIER) {
+			if (res.type != TypeExpression::ENTIER) {
 				res.est_errone = true;
 				res.noeud_erreur = b;
 				res.message_erreur = "L'expression n'est pas de type booléen !";
@@ -352,7 +352,7 @@ ResultatExpression evalue_expression(
 				return res;
 			}
 
-			if (res.type == type_expression::REEL) {
+			if (res.type == TypeExpression::REEL) {
 				applique_operateur_unaire(inst->lexeme->genre, res.reel);
 			}
 			else {
@@ -380,7 +380,7 @@ ResultatExpression evalue_expression(
 			res.type = res1.type;
 
 			if (est_operateur_bool(inst->lexeme->genre)) {
-				if (res.type == type_expression::REEL) {
+				if (res.type == TypeExpression::REEL) {
 					res.condition = applique_operateur_binaire_comp(inst->lexeme->genre, res1.reel, res2.reel);
 				}
 				else {
@@ -388,7 +388,7 @@ ResultatExpression evalue_expression(
 				}
 			}
 			else {
-				if (res.type == type_expression::REEL) {
+				if (res.type == TypeExpression::REEL) {
 					res.reel = applique_operateur_binaire(inst->lexeme->genre, res1.reel, res2.reel);
 				}
 				else {
@@ -420,7 +420,7 @@ ResultatExpression evalue_expression(
 				auto res = ResultatExpression();
 				res.est_errone = false;
 				res.entier = valeur_enum;
-				res.type = type_expression::ENTIER;
+				res.type = TypeExpression::ENTIER;
 				return res;
 			}
 
