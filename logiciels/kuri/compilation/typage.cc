@@ -28,6 +28,7 @@
 #include "operateurs.hh"
 #include "outils_lexemes.hh"
 #include "profilage.hh"
+#include "statistiques.hh"
 
 /* ************************************************************************** */
 
@@ -964,104 +965,69 @@ TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
 	return type;
 }
 
-long Typeuse::memoire_utilisee() const
+void Typeuse::rassemble_statistiques(Statistiques &stats) const
 {
-	auto memoire = 0l;
+#define DONNEES_ENTREE(Type, Tableau) \
+	#Type, Tableau->taille(), Tableau->taille() * (taille_de(Type *) + taille_de(Type))
 
-#define COMPTE_MEMOIRE(Type, Tableau) \
-	memoire += Tableau->taille() * (taille_de(Type *) + taille_de(Type))
+	auto &stats_types = stats.stats_types;
 
-	COMPTE_MEMOIRE(Type, types_simples);
-	COMPTE_MEMOIRE(TypePointeur, types_pointeurs);
-	COMPTE_MEMOIRE(TypeReference, types_references);
-	COMPTE_MEMOIRE(TypeStructure, types_structures);
-	COMPTE_MEMOIRE(TypeEnum, types_enums);
-	COMPTE_MEMOIRE(TypeTableauFixe, types_tableaux_fixes);
-	COMPTE_MEMOIRE(TypeTableauDynamique, types_tableaux_dynamiques);
-	COMPTE_MEMOIRE(TypeFonction, types_fonctions);
-	COMPTE_MEMOIRE(TypeVariadique, types_variadiques);
-	COMPTE_MEMOIRE(TypeUnion, types_unions);
-	COMPTE_MEMOIRE(TypeTypeDeDonnees, types_type_de_donnees);
-	COMPTE_MEMOIRE(TypePolymorphique, types_polymorphiques);
+	stats_types.ajoute_entree({ DONNEES_ENTREE(Type, types_simples) });
+	stats_types.ajoute_entree({ DONNEES_ENTREE(TypePointeur, types_pointeurs) });
+	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeReference, types_references) });
+	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeTypeDeDonnees, types_type_de_donnees) });
+	stats_types.ajoute_entree({ DONNEES_ENTREE(TypePolymorphique, types_polymorphiques) });
 
-#undef COMPTE_MEMOIRE
+	auto memoire_membres_structures = 0l;
+	POUR (*types_structures.verrou_lecture()) {
+		memoire_membres_structures += it->membres.taille * taille_de(TypeCompose::Membre);
+	}
+	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeStructure, types_structures) + memoire_membres_structures });
 
-	memoire += 2 * (taille_de(TypeCompose) + taille_de(TypeCompose *)); // chaine et eini
+	auto memoire_membres_enums = 0l;
+	POUR (*types_enums.verrou_lecture()) {
+		memoire_membres_enums += it->membres.taille * taille_de(TypeCompose::Membre);
+	}
+	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeEnum, types_enums) + memoire_membres_enums });
+
+	auto memoire_membres_unions = 0l;
+	POUR (*types_unions.verrou_lecture()) {
+		memoire_membres_unions += it->membres.taille * taille_de(TypeCompose::Membre);
+	}
+	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeUnion, types_unions) + memoire_membres_unions });
+
+	auto memoire_membres_tfixes = 0l;
+	POUR (*types_tableaux_fixes.verrou_lecture()) {
+		memoire_membres_tfixes += it->membres.taille * taille_de(TypeCompose::Membre);
+	}
+	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeTableauFixe, types_tableaux_fixes) + memoire_membres_tfixes });
+
+	auto memoire_membres_tdyns = 0l;
+	POUR (*types_tableaux_dynamiques.verrou_lecture()) {
+		memoire_membres_tdyns += it->membres.taille * taille_de(TypeCompose::Membre);
+	}
+	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeTableauDynamique, types_tableaux_dynamiques) + memoire_membres_tdyns });
+
+	auto memoire_membres_tvars = 0l;
+	POUR (*types_variadiques.verrou_lecture()) {
+		memoire_membres_tvars += it->membres.taille * taille_de(TypeCompose::Membre);
+	}
+	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeVariadique, types_variadiques) + memoire_membres_tvars });
+
+	auto memoire_params_fonctions = 0l;
+	POUR (*types_fonctions.verrou_lecture()) {
+		memoire_params_fonctions += it->types_entrees.taille * taille_de(Type *);
+		memoire_params_fonctions += it->types_sorties.taille * taille_de(Type *);
+	}
+	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeFonction, types_fonctions) + memoire_params_fonctions });
 
 	// les types communs sont dans les types simples, ne comptons que la mémoire du tableau
-	memoire += types_communs.taille() * taille_de(Type *);
+	stats_types.ajoute_entree({ "TypeCommun", types_communs.taille(), types_communs.taille() * taille_de(Type *) });
 
-	POUR (*types_structures.verrou_lecture()) {
-		memoire += it->membres.taille * taille_de(TypeCompose::Membre);
-	}
+	stats_types.ajoute_entree({ "eini", 1, taille_de(TypeCompose) + taille_de(TypeCompose *) + type_eini->membres.taille * taille_de(TypeCompose::Membre) });
+	stats_types.ajoute_entree({ "chaine", 1, taille_de(TypeCompose) + taille_de(TypeCompose *) + type_chaine->membres.taille * taille_de(TypeCompose::Membre) });
 
-	POUR (*types_enums.verrou_lecture()) {
-		memoire += it->membres.taille * taille_de(TypeCompose::Membre);
-	}
-
-	POUR (*types_unions.verrou_lecture()) {
-		memoire += it->membres.taille * taille_de(TypeCompose::Membre);
-	}
-
-	POUR (*types_tableaux_fixes.verrou_lecture()) {
-		memoire += it->membres.taille * taille_de(TypeCompose::Membre);
-	}
-
-	POUR (*types_tableaux_dynamiques.verrou_lecture()) {
-		memoire += it->membres.taille * taille_de(TypeCompose::Membre);
-	}
-
-	POUR (*types_variadiques.verrou_lecture()) {
-		memoire += it->membres.taille * taille_de(TypeCompose::Membre);
-	}
-
-	memoire += type_eini->membres.taille * taille_de(TypeCompose::Membre);
-	memoire += type_chaine->membres.taille * taille_de(TypeCompose::Membre);
-
-	POUR (*types_fonctions.verrou_lecture()) {
-		memoire += it->types_entrees.taille * taille_de(Type *);
-		memoire += it->types_sorties.taille * taille_de(Type *);
-	}
-
-	return memoire;
-}
-
-long Typeuse::nombre_de_types() const
-{
-	auto compte = 0l;
-	compte += types_simples->taille();
-	compte += types_pointeurs->taille();
-	compte += types_references->taille();
-	compte += types_structures->taille();
-	compte += types_enums->taille();
-	compte += types_tableaux_fixes->taille();
-	compte += types_tableaux_dynamiques->taille();
-	compte += types_fonctions->taille();
-	compte += types_variadiques->taille();
-	compte += types_unions->taille();
-	compte += types_type_de_donnees->taille();
-	compte += types_polymorphiques->taille();
-	compte += 2; // eini et chaine
-
-#if 0
-#define IMPRIME_NOMBRE_TYPE(x) \
-	std::cerr << #x" : " << x->taille() << '\n'
-
-	IMPRIME_NOMBRE_TYPE(types_simples);
-	IMPRIME_NOMBRE_TYPE(types_pointeurs);
-	IMPRIME_NOMBRE_TYPE(types_references);
-	IMPRIME_NOMBRE_TYPE(types_structures);
-	IMPRIME_NOMBRE_TYPE(types_enums);
-	IMPRIME_NOMBRE_TYPE(types_tableaux_fixes);
-	IMPRIME_NOMBRE_TYPE(types_tableaux_dynamiques);
-	IMPRIME_NOMBRE_TYPE(types_fonctions);
-	IMPRIME_NOMBRE_TYPE(types_variadiques);
-	IMPRIME_NOMBRE_TYPE(types_unions);
-	IMPRIME_NOMBRE_TYPE(types_type_de_donnees);
-	IMPRIME_NOMBRE_TYPE(types_polymorphiques);
-#endif
-
-	return compte;
+#undef DONNES_ENTREE
 }
 
 void Typeuse::construit_table_types()

@@ -44,6 +44,7 @@
 
 struct Metriques;
 struct OptionsCompilation;
+struct Statistiques;
 
 struct GeranteChaine {
 	/* stocke la capacité réservée par la lexeuse en attendant d'avoir la capacité comme mebre de kuri::chaine */
@@ -184,7 +185,7 @@ struct EspaceDeTravail {
 
 	long memoire_utilisee() const;
 
-	void rassemble_metriques(Metriques &metriques) const;
+	void rassemble_statistiques(Statistiques &stats) const;
 };
 
 struct Compilatrice {
@@ -271,12 +272,7 @@ struct Compilatrice {
 
 	long memoire_utilisee() const;
 
-	/**
-	 * Retourne les métriques de ce contexte. Les métriques sont calculées à
-	 * chaque appel à cette fonction, et une structure neuve est retournée à
-	 * chaque fois.
-	 */
-	Metriques rassemble_metriques() const;
+	void rassemble_statistiques(Statistiques &stats) const;
 };
 
 dls::chaine charge_fichier(

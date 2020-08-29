@@ -58,14 +58,7 @@ struct AllocatriceNoeud {
 
 	NoeudExpression *cree_noeud(GenreNoeud genre);
 
-	/**
-	 * Retourne la quantité de mémoire utilisée pour créer et stocker les noeuds
-	 * de l'arbre.
-	 */
-	long memoire_utilisee() const;
-
-	/**
-	 * Retourne le nombre de noeuds dans l'arbre.
-	 */
 	long nombre_noeuds() const;
+
+	void rassemble_statistiques(Statistiques &stats) const;
 };

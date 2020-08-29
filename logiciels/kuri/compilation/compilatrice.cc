@@ -301,7 +301,7 @@ long EspaceDeTravail::memoire_utilisee() const
 
 	auto fichiers_ = fichiers.verrou_lecture();
 	POUR_TABLEAU_PAGE ((*fichiers_)) {
-		// les autres membres sont gérés dans rassemble_metriques()
+		// les autres membres sont gérés dans rassemble_statistiques()
 		if (!it.modules_importes.est_stocke_dans_classe()) {
 			memoire += it.modules_importes.taille() * taille_de(dls::vue_chaine_compacte);
 		}
@@ -322,39 +322,30 @@ long EspaceDeTravail::memoire_utilisee() const
 	return memoire;
 }
 
-void EspaceDeTravail::rassemble_metriques(Metriques &metriques) const
+void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 {
-	auto operateurs_ = operateurs.verrou_lecture();
-	auto graphe = graphe_dependance.verrou_lecture();
+	stats.nombre_modules += modules->taille();
 
-	metriques.nombre_modules += modules->taille();
-	metriques.memoire_types += this->typeuse.memoire_utilisee();
-	metriques.memoire_operateurs += operateurs_->memoire_utilisee();
-	metriques.memoire_graphe += graphe->memoire_utilisee();
-	metriques.memoire_arbre += this->allocatrice_noeud.memoire_utilisee();
-	metriques.nombre_noeuds += this->allocatrice_noeud.nombre_noeuds();
+	allocatrice_noeud.rassemble_statistiques(stats);
+	operateurs->rassemble_statistiques(stats);
+	graphe_dependance->rassemble_statistiques(stats);
+	typeuse.rassemble_statistiques(stats);
 
-	metriques.nombre_noeuds_deps += graphe->noeuds.taille();
-	metriques.nombre_types += typeuse.nombre_de_types();
-
-	POUR (operateurs_->operateurs_unaires) {
-		metriques.nombre_operateurs += it.second.taille();
-	}
-
-	POUR (operateurs_->operateurs_binaires) {
-		metriques.nombre_operateurs += it.second.taille();
-	}
-
+	auto &stats_fichiers = stats.stats_fichiers;
 	auto fichiers_ = fichiers.verrou_lecture();
 	POUR_TABLEAU_PAGE ((*fichiers_)) {
-		metriques.nombre_lignes += it.tampon.nombre_lignes();
-		metriques.memoire_tampons += it.tampon.taille_donnees();
-		metriques.memoire_lexemes += it.lexemes.taille() * taille_de(Lexeme);
-		metriques.nombre_lexemes += it.lexemes.taille();
-		metriques.temps_analyse += it.temps_analyse;
-		metriques.temps_chargement += it.temps_chargement;
-		metriques.temps_tampon += it.temps_tampon;
-		metriques.temps_decoupage += it.temps_decoupage;
+		auto entree = EntreeFichier();
+		entree.nom = it.nom.c_str();
+		entree.nombre_lignes = it.tampon.nombre_lignes();
+		entree.memoire_tampons = it.tampon.taille_donnees();
+		entree.memoire_lexemes = it.lexemes.taille() * taille_de(Lexeme);
+		entree.nombre_lexemes = it.lexemes.taille();
+		entree.temps_parsage = it.temps_analyse;
+		entree.temps_chargement = it.temps_chargement;
+		entree.temps_tampon = it.temps_tampon;
+		entree.temps_lexage = it.temps_decoupage;
+
+		stats_fichiers.ajoute_entree(entree);
 	}
 }
 
@@ -559,12 +550,12 @@ long Compilatrice::memoire_utilisee() const
 	return memoire;
 }
 
-Metriques Compilatrice::rassemble_metriques() const
+void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 {
-	auto metriques = Metriques{};
+	stats.memoire_compilatrice = memoire_utilisee();
 
 	POUR_TABLEAU_PAGE ((*espaces_de_travail.verrou_lecture())) {
-		it.rassemble_metriques(metriques);
+		it.rassemble_statistiques(stats);
 	}
 
 	auto memoire_mv = 0l;
@@ -574,9 +565,10 @@ Metriques Compilatrice::rassemble_metriques() const
 	memoire_mv += mv.patchs_donnees_constantes.taille() * taille_de(PatchDonneesConstantes);
 	memoire_mv += mv.gestionnaire_bibliotheques.memoire_utilisee();
 
-	metriques.memoire_mv = memoire_mv;
-
-	return metriques;
+	stats.memoire_mv = memoire_mv;
+	stats.nombre_metaprogrammes_executes = mv.nombre_de_metaprogrammes_executes;
+	stats.temps_metaprogrammes = mv.temps_execution_metaprogammes;
+	stats.nombre_identifiants = table_identifiants->taille();
 }
 
 /* ************************************************************************** */

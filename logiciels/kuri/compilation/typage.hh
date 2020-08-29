@@ -41,6 +41,7 @@ struct NoeudDependance;
 struct NoeudEnum;
 struct NoeudExpression;
 struct NoeudStruct;
+struct Statistiques;
 struct Typeuse;
 struct TypeCompose;
 struct TypeEnum;
@@ -583,9 +584,7 @@ struct Typeuse {
 		return types_communs[static_cast<long>(type_base)];
 	}
 
-	long memoire_utilisee() const;
-
-	long nombre_de_types() const;
+	void rassemble_statistiques(Statistiques &stats) const;
 
 	void construit_table_types();
 };

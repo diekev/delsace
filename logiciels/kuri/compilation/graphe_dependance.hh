@@ -33,6 +33,8 @@
 
 #include "arbre_syntaxique.hh"
 
+struct Statistiques;
+
 /**
  * GrapheDependance de dépendance entre les fonctions et les types.
  */
@@ -116,7 +118,7 @@ struct GrapheDependance {
 
 	void connecte_noeuds(NoeudDependance &noeud1, NoeudDependance &noeud2, TypeRelation type_relation);
 
-	long memoire_utilisee() const;
+	void rassemble_statistiques(Statistiques &stats) const;
 };
 
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance);

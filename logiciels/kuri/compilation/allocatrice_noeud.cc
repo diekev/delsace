@@ -26,6 +26,8 @@
 
 #include "biblinternes/outils/definitions.h"
 
+#include "statistiques.hh"
+
 NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 {
 	auto noeud = NoeudExpression::nul();
@@ -193,98 +195,6 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 	return noeud;
 }
 
-long AllocatriceNoeud::memoire_utilisee() const
-{
-	auto memoire = 0l;
-
-	memoire += m_noeuds_bloc.memoire_utilisee();
-	memoire += m_noeuds_declaration_variable.memoire_utilisee();
-	memoire += m_noeuds_declaration_corps_fonction.memoire_utilisee();
-	memoire += m_noeuds_enum.memoire_utilisee();
-	memoire += m_noeuds_struct.memoire_utilisee();
-	memoire += m_noeuds_expression_binaire.memoire_utilisee();
-	memoire += m_noeuds_expression_membre.memoire_utilisee();
-	memoire += m_noeuds_expression_reference.memoire_utilisee();
-	memoire += m_noeuds_appel.memoire_utilisee();
-	memoire += m_noeuds_expression_logement.memoire_utilisee();
-	memoire += m_noeuds_expression_unaire.memoire_utilisee();
-	memoire += m_noeuds_expression.memoire_utilisee();
-	memoire += m_noeuds_boucle.memoire_utilisee();
-	memoire += m_noeuds_pour.memoire_utilisee();
-	memoire += m_noeuds_discr.memoire_utilisee();
-	memoire += m_noeuds_si.memoire_utilisee();
-	memoire += m_noeuds_si_statique.memoire_utilisee();
-	memoire += m_noeuds_pousse_contexte.memoire_utilisee();
-	memoire += m_noeuds_tableau_args_variadiques.memoire_utilisee();
-	memoire += m_noeuds_tente.memoire_utilisee();
-	memoire += m_noeuds_directive_execution.memoire_utilisee();
-	memoire += m_noeuds_expression_virgule.memoire_utilisee();
-
-	pour_chaque_element(m_noeuds_struct, [&](NoeudStruct const &noeud)
-	{
-		memoire += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
-	});
-
-	pour_chaque_element(m_noeuds_bloc, [&](NoeudBloc const &noeud)
-	{
-		memoire += noeud.membres->taille * taille_de(NoeudDeclaration *);
-		memoire += noeud.expressions->taille * taille_de(NoeudExpression *);
-		memoire += noeud.noeuds_differes.taille * taille_de(NoeudBloc *);
-	});
-
-	pour_chaque_element(m_noeuds_declaration_corps_fonction, [&](NoeudDeclarationCorpsFonction const &noeud)
-	{
-		memoire += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
-	});
-
-	pour_chaque_element(m_noeuds_declaration_entete_fonction, [&](NoeudDeclarationEnteteFonction const &noeud)
-	{
-		memoire += noeud.params.taille * taille_de(NoeudDeclaration *);
-		memoire += noeud.params_sorties.taille * taille_de(NoeudExpression *);
-		memoire += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
-		memoire += noeud.noms_retours.taille * taille_de(dls::chaine);
-		memoire += noeud.noms_types_gabarits.taille * taille_de(dls::vue_chaine_compacte);
-		memoire += noeud.paires_expansion_gabarit.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
-
-		POUR (noeud.noms_retours) {
-			memoire += it.taille();
-		}
-
-		memoire += noeud.epandu_pour.taille() * (taille_de(NoeudDeclarationEnteteFonction::tableau_paire_expansion) + taille_de(NoeudDeclarationCorpsFonction *));
-		POUR (noeud.epandu_pour) {
-			memoire += it.first.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
-		}
-
-		memoire += noeud.nom_broye.taille();
-	});
-
-	pour_chaque_element(m_noeuds_appel, [&](NoeudExpressionAppel const &noeud)
-	{
-		memoire += noeud.params.taille * taille_de(NoeudExpression *);
-		memoire += noeud.exprs.taille * taille_de(NoeudExpression *);
-	});
-
-	pour_chaque_element(m_noeuds_discr, [&](NoeudDiscr const &noeud)
-	{
-		using type_paire = std::pair<NoeudExpression *, NoeudBloc *>;
-		memoire += noeud.paires_discr.taille * taille_de(type_paire);
-	});
-
-	pour_chaque_element(m_noeuds_tableau_args_variadiques, [&](NoeudTableauArgsVariadiques const &noeud)
-	{
-		memoire += noeud.exprs.taille * taille_de(NoeudExpression *);
-	});
-
-	pour_chaque_element(m_noeuds_expression_virgule, [&](NoeudExpressionVirgule const &noeud)
-	{
-		memoire += noeud.expressions.taille * taille_de(NoeudExpression *);
-	});
-
-#undef COMPTE_MEMOIRE
-
-	return memoire;
-}
-
 long AllocatriceNoeud::nombre_noeuds() const
 {
 	auto noeuds = 0l;
@@ -311,35 +221,107 @@ long AllocatriceNoeud::nombre_noeuds() const
 	noeuds += m_noeuds_directive_execution.taille();
 	noeuds += m_noeuds_expression_virgule.taille();
 
-#if 0
-#define IMPRIME_NOMBRE_DE_NOEUDS(tableau) \
-	std::cerr << "nombre de "#tableau" : " << tableau.taille() << '\n'
-
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_bloc);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_declaration_variable);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_declaration_corps_fonction);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_declaration_entete_fonction);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_enum);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_struct);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_binaire);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_membre);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_reference);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_appel);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_logement);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_unaire);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_boucle);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_pour);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_discr);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_si);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_si_statique);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_pousse_contexte);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_tableau_args_variadiques);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_directive_execution);
-	IMPRIME_NOMBRE_DE_NOEUDS(m_noeuds_expression_virgule);
-
-#undef IMPRIME_NOMBRE_DE_NOEUDS
-#endif
-
 	return noeuds;
+}
+
+void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
+{
+	auto &stats_arbre = stats.stats_arbre;
+
+#define DONNEES_ENTREE(Nom, Tableau) \
+	Nom, Tableau.taille(), Tableau.memoire_utilisee()
+
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDeclarationVariable", m_noeuds_declaration_variable) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudEnum", m_noeuds_enum) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionBinaire", m_noeuds_expression_binaire) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionMembre", m_noeuds_expression_membre) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionReference", m_noeuds_expression_reference) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionLogement", m_noeuds_expression_logement) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionUnaire", m_noeuds_expression_unaire) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpression", m_noeuds_expression) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudBoucle", m_noeuds_boucle) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudPour", m_noeuds_pour) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudSi", m_noeuds_si) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudSiStatique", m_noeuds_si_statique) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudPousseContexte", m_noeuds_pousse_contexte) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudTente", m_noeuds_tente) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDirectiveExecution", m_noeuds_directive_execution) });
+
+	auto memoire_struct = 0l;
+	pour_chaque_element(m_noeuds_struct, [&](NoeudStruct const &noeud)
+	{
+		memoire_struct += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
+	});
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudStruct", m_noeuds_struct) + memoire_struct });
+
+	auto memoire_bloc = 0l;
+	pour_chaque_element(m_noeuds_bloc, [&](NoeudBloc const &noeud)
+	{
+		memoire_bloc += noeud.membres->taille * taille_de(NoeudDeclaration *);
+		memoire_bloc += noeud.expressions->taille * taille_de(NoeudExpression *);
+		memoire_bloc += noeud.noeuds_differes.taille * taille_de(NoeudBloc *);
+	});
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudBloc", m_noeuds_bloc) + memoire_bloc });
+
+	auto memoire_corps_fonction = 0l;
+	pour_chaque_element(m_noeuds_declaration_corps_fonction, [&](NoeudDeclarationCorpsFonction const &noeud)
+	{
+		memoire_corps_fonction += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
+	});
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDeclarationCorpsFonction", m_noeuds_declaration_corps_fonction) + memoire_corps_fonction });
+
+	auto memoire_entete_fonction = 0l;
+	pour_chaque_element(m_noeuds_declaration_entete_fonction, [&](NoeudDeclarationEnteteFonction const &noeud)
+	{
+		memoire_entete_fonction += noeud.params.taille * taille_de(NoeudDeclaration *);
+		memoire_entete_fonction += noeud.params_sorties.taille * taille_de(NoeudExpression *);
+		memoire_entete_fonction += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
+		memoire_entete_fonction += noeud.noms_retours.taille * taille_de(dls::chaine);
+		memoire_entete_fonction += noeud.noms_types_gabarits.taille * taille_de(dls::vue_chaine_compacte);
+		memoire_entete_fonction += noeud.paires_expansion_gabarit.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
+
+		POUR (noeud.noms_retours) {
+			memoire_entete_fonction += it.taille();
+		}
+
+		memoire_entete_fonction += noeud.epandu_pour.taille() * (taille_de(NoeudDeclarationEnteteFonction::tableau_paire_expansion) + taille_de(NoeudDeclarationCorpsFonction *));
+		POUR (noeud.epandu_pour) {
+			memoire_entete_fonction += it.first.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
+		}
+
+		memoire_entete_fonction += noeud.nom_broye.taille();
+	});
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDeclarationEnteteFonction", m_noeuds_declaration_entete_fonction) + memoire_entete_fonction });
+
+	auto memoire_entete_appel = 0l;
+	pour_chaque_element(m_noeuds_appel, [&](NoeudExpressionAppel const &noeud)
+	{
+		memoire_entete_appel += noeud.params.taille * taille_de(NoeudExpression *);
+		memoire_entete_appel += noeud.exprs.taille * taille_de(NoeudExpression *);
+	});
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionAppel", m_noeuds_appel) + memoire_entete_appel });
+
+	auto memoire_discr = 0l;
+	pour_chaque_element(m_noeuds_discr, [&](NoeudDiscr const &noeud)
+	{
+		using type_paire = std::pair<NoeudExpression *, NoeudBloc *>;
+		memoire_discr += noeud.paires_discr.taille * taille_de(type_paire);
+	});
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDiscr", m_noeuds_discr) + memoire_discr });
+
+	auto memoire_tableau_args_variadiques = 0l;
+	pour_chaque_element(m_noeuds_tableau_args_variadiques, [&](NoeudTableauArgsVariadiques const &noeud)
+	{
+		memoire_tableau_args_variadiques += noeud.exprs.taille * taille_de(NoeudExpression *);
+	});
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudTableauArgsVariadiques", m_noeuds_tableau_args_variadiques) + memoire_tableau_args_variadiques });
+
+	auto memoire_expression_virgule = 0l;
+	pour_chaque_element(m_noeuds_expression_virgule, [&](NoeudExpressionVirgule const &noeud)
+	{
+		memoire_expression_virgule += noeud.expressions.taille * taille_de(NoeudExpression *);
+	});
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionVirgule", m_noeuds_expression_virgule) + memoire_expression_virgule });
+
+#undef DONNEES_ENTREE
 }

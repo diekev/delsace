@@ -35,6 +35,7 @@
 enum class GenreLexeme : unsigned int;
 struct EspaceDeTravail;
 struct NoeudDeclarationEnteteFonction;
+struct Statistiques;
 struct Type;
 
 enum class IndiceTypeOp {
@@ -161,7 +162,7 @@ struct Operateurs {
 
 	void ajoute_operateur_basique_enum(Type *type);
 
-	long memoire_utilisee() const;
+	void rassemble_statistiques(Statistiques &stats) const;
 };
 
 OperateurUnaire const *cherche_operateur_unaire(

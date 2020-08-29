@@ -27,6 +27,7 @@
 #include "compilatrice.hh"
 #include "modules.hh"
 #include "profilage.hh"
+#include "statistiques.hh"
 
 const char *chaine_type_relation(TypeRelation type)
 {
@@ -148,16 +149,17 @@ void GrapheDependance::connecte_noeuds(
 	noeud1.relations.pousse({ type_relation, &noeud1, &noeud2 });
 }
 
-long GrapheDependance::memoire_utilisee() const
+void GrapheDependance::rassemble_statistiques(Statistiques &stats) const
 {
-	auto total = 0l;
-	total += noeuds.memoire_utilisee();
+	auto memoire = 0l;
+	memoire += noeuds.memoire_utilisee();
 
 	POUR_TABLEAU_PAGE(noeuds) {
-		total += it.relations.taille() * taille_de(Relation);
+		memoire += it.relations.taille() * taille_de(Relation);
 	}
 
-	return total;
+	auto &stats_graphe = stats.stats_graphe_dependance;
+	stats_graphe.ajoute_entree({ "NoeudDependance", noeuds.taille(), memoire });
 }
 
 void GrapheDependance::ajoute_dependances(

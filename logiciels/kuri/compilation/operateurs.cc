@@ -29,6 +29,7 @@
 #include "compilatrice.hh"
 #include "lexemes.hh"
 #include "profilage.hh"
+#include "statistiques.hh"
 
 static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 		GenreLexeme genre_lexeme,
@@ -544,23 +545,27 @@ void Operateurs::ajoute_operateur_basique_enum(Type *type)
 	this->ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
 }
 
-long Operateurs::memoire_utilisee() const
+void Operateurs::rassemble_statistiques(Statistiques &stats) const
 {
-	auto memoire = 0l;
-
-	// compte la mémoire des noeuds de la table de hachage
-	memoire += operateurs_unaires.taille() * (taille_de(GenreLexeme) + taille_de(type_conteneur_unaire));
-	memoire += operateurs_binaires.taille() * (taille_de(GenreLexeme) + taille_de(type_conteneur_binaire));
+	auto nombre_unaires = 0l;
+	auto memoire_unaires = operateurs_unaires.taille() * (taille_de(GenreLexeme) + taille_de(type_conteneur_unaire));
 
 	POUR (operateurs_unaires) {
-		memoire += it.second.memoire_utilisee();
+		memoire_unaires += it.second.memoire_utilisee();
+		nombre_unaires += it.second.taille();
 	}
+
+	auto nombre_binaires = 0l;
+	auto memoire_binaires = operateurs_binaires.taille() * (taille_de(GenreLexeme) + taille_de(type_conteneur_binaire));
 
 	POUR (operateurs_binaires) {
-		memoire += it.second.memoire_utilisee();
+		memoire_binaires += it.second.memoire_utilisee();
+		nombre_binaires += it.second.taille();
 	}
 
-	return memoire;
+	auto &stats_ops = stats.stats_operateurs;
+	stats_ops.ajoute_entree({ "OperateurUnaire", nombre_unaires, memoire_unaires });
+	stats_ops.ajoute_entree({ "OperateurBinaire", nombre_binaires, memoire_binaires });
 }
 
 static std::pair<bool, double> verifie_compatibilite(

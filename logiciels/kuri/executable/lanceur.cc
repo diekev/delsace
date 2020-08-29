@@ -54,45 +54,52 @@
 #define AVEC_THREADS
 
 static void imprime_stats(
-		Metriques const &metriques,
+		Statistiques const &stats,
 		dls::chrono::compte_seconde debut_compilation)
 {
 	Prof(imprime_stats);
 	auto const temps_total = debut_compilation.temps();
 
-	auto const temps_scene = metriques.temps_tampon
-							 + metriques.temps_decoupage
-							 + metriques.temps_analyse
-							 + metriques.temps_chargement
-							 + metriques.temps_validation
-							 + metriques.temps_metaprogrammes
-							 + metriques.temps_ri;
+	auto const temps_tampons = stats.stats_fichiers.totaux.temps_tampon;
+	auto const temps_chargement = stats.stats_fichiers.totaux.temps_chargement;
+	auto const temps_typage = stats.temps_typage;
+	auto const temps_parsage = stats.temps_parsage;
+	auto const temps_lexage = stats.temps_lexage;
 
-	auto const temps_coulisse = metriques.temps_generation_code
-								+ metriques.temps_fichier_objet
-								+ metriques.temps_executable;
+	auto const temps_scene = temps_tampons
+							 + temps_lexage
+							 + temps_parsage
+							 + temps_chargement
+							 + temps_typage
+							 + stats.temps_metaprogrammes
+							 + stats.temps_ri;
 
-	auto const temps_aggrege = temps_scene + temps_coulisse + metriques.temps_nettoyage;
+	auto const temps_coulisse = stats.temps_generation_code
+								+ stats.temps_fichier_objet
+								+ stats.temps_executable;
+
+	auto const temps_aggrege = temps_scene + temps_coulisse + stats.temps_nettoyage;
 
 	auto calc_pourcentage = [&](const double &x, const double &total)
 	{
 		return (x * 100.0 / total);
 	};
 
-	auto const mem_totale = metriques.memoire_tampons
-							+ metriques.memoire_lexemes
-							+ metriques.memoire_arbre
-							+ metriques.memoire_compilatrice
-							+ metriques.memoire_graphe
-							+ metriques.memoire_types
-							+ metriques.memoire_operateurs
-							+ metriques.memoire_ri;
+	auto const mem_totale = stats.stats_fichiers.totaux.memoire_tampons
+							+ stats.stats_fichiers.totaux.memoire_lexemes
+							+ stats.stats_arbre.totaux.memoire
+							+ stats.memoire_compilatrice
+							+ stats.stats_graphe_dependance.totaux.memoire
+							+ stats.stats_types.totaux.memoire
+							+ stats.stats_operateurs.totaux.memoire
+							+ stats.memoire_ri;
 
 	auto memoire_consommee = memoire::consommee();
 
-	auto const lignes_double = static_cast<double>(metriques.nombre_lignes);
+	auto const nombre_lignes = stats.stats_fichiers.totaux.nombre_lignes;
+	auto const lignes_double = static_cast<double>(nombre_lignes);
 	auto const debit_lignes = static_cast<int>(lignes_double / temps_aggrege);
-	auto const debit_lignes_scene = static_cast<int>(lignes_double / (temps_scene - metriques.temps_metaprogrammes));
+	auto const debit_lignes_scene = static_cast<int>(lignes_double / (temps_scene - stats.temps_metaprogrammes));
 	auto const debit_lignes_coulisse = static_cast<int>(lignes_double / temps_coulisse);
 	auto const debit_seconde = static_cast<int>(static_cast<double>(memoire_consommee) / temps_aggrege);
 
@@ -102,51 +109,51 @@ static void imprime_stats(
 
 	tableau.ajoute_ligne({ "Temps total", formatte_nombre(temps_total * 1000.0), "ms" });
 	tableau.ajoute_ligne({ "Temps aggrégé", formatte_nombre(temps_aggrege * 1000.0), "ms" });
-	tableau.ajoute_ligne({ "Nombre de modules", formatte_nombre(metriques.nombre_modules), "" });
-	tableau.ajoute_ligne({ "Nombre de lignes", formatte_nombre(metriques.nombre_lignes), "" });
+	tableau.ajoute_ligne({ "Nombre de modules", formatte_nombre(stats.nombre_modules), "" });
+	tableau.ajoute_ligne({ "Nombre de lignes", formatte_nombre(nombre_lignes), "" });
 	tableau.ajoute_ligne({ "Lignes / seconde", formatte_nombre(debit_lignes), "" });
 	tableau.ajoute_ligne({ "Lignes / seconde (scène)", formatte_nombre(debit_lignes_scene), "" });
 	tableau.ajoute_ligne({ "Lignes / seconde (coulisse)", formatte_nombre(debit_lignes_coulisse), "" });
 	tableau.ajoute_ligne({ "Débit par seconde", formatte_nombre(debit_seconde), "o/s" });
 
 	tableau.ajoute_ligne({ "Arbre Syntaxique", "", "" });
-	tableau.ajoute_ligne({ "- Nombre Identifiants", formatte_nombre(metriques.nombre_identifiants), "" });
-	tableau.ajoute_ligne({ "- Nombre Lexèmes", formatte_nombre(metriques.nombre_lexemes), "" });
-	tableau.ajoute_ligne({ "- Nombre Noeuds", formatte_nombre(metriques.nombre_noeuds), "" });
-	tableau.ajoute_ligne({ "- Nombre Noeuds Déps", formatte_nombre(metriques.nombre_noeuds_deps), "" });
-	tableau.ajoute_ligne({ "- Nombre Opérateurs", formatte_nombre(metriques.nombre_operateurs), "" });
-	tableau.ajoute_ligne({ "- Nombre Types", formatte_nombre(metriques.nombre_types), "" });
+	tableau.ajoute_ligne({ "- Nombre Identifiants", formatte_nombre(stats.nombre_identifiants), "" });
+	tableau.ajoute_ligne({ "- Nombre Lexèmes", formatte_nombre(stats.stats_fichiers.totaux.nombre_lexemes), "" });
+	tableau.ajoute_ligne({ "- Nombre Noeuds", formatte_nombre(stats.stats_arbre.totaux.compte), "" });
+	tableau.ajoute_ligne({ "- Nombre Noeuds Déps", formatte_nombre(stats.stats_graphe_dependance.totaux.compte), "" });
+	tableau.ajoute_ligne({ "- Nombre Opérateurs", formatte_nombre(stats.stats_operateurs.totaux.compte), "" });
+	tableau.ajoute_ligne({ "- Nombre Types", formatte_nombre(stats.stats_types.totaux.compte), "" });
 
 	tableau.ajoute_ligne({ "Mémoire", "", "" });
 	tableau.ajoute_ligne({ "- Suivie", formatte_nombre(mem_totale), "o" });
 	tableau.ajoute_ligne({ "- Effective", formatte_nombre(memoire_consommee), "o" });
-	tableau.ajoute_ligne({ "- Arbre", formatte_nombre(metriques.memoire_arbre), "o" });
-	tableau.ajoute_ligne({ "- Compilatrice", formatte_nombre(metriques.memoire_compilatrice), "o" });
-	tableau.ajoute_ligne({ "- Graphe", formatte_nombre(metriques.memoire_graphe), "o" });
-	tableau.ajoute_ligne({ "- Lexèmes", formatte_nombre(metriques.memoire_lexemes), "o" });
-	tableau.ajoute_ligne({ "- MV", formatte_nombre(metriques.memoire_mv), "o" });
-	tableau.ajoute_ligne({ "- Opérateurs", formatte_nombre(metriques.memoire_operateurs), "o" });
-	tableau.ajoute_ligne({ "- RI", formatte_nombre(metriques.memoire_ri), "o" });
-	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.memoire_tampons), "o" });
-	tableau.ajoute_ligne({ "- Types", formatte_nombre(metriques.memoire_types), "o" });
+	tableau.ajoute_ligne({ "- Arbre", formatte_nombre(stats.stats_arbre.totaux.memoire), "o" });
+	tableau.ajoute_ligne({ "- Compilatrice", formatte_nombre(stats.memoire_compilatrice), "o" });
+	tableau.ajoute_ligne({ "- Graphe", formatte_nombre(stats.stats_graphe_dependance.totaux.memoire), "o" });
+	tableau.ajoute_ligne({ "- Lexèmes", formatte_nombre(stats.stats_fichiers.totaux.memoire_lexemes), "o" });
+	tableau.ajoute_ligne({ "- MV", formatte_nombre(stats.memoire_mv), "o" });
+	tableau.ajoute_ligne({ "- Opérateurs", formatte_nombre(stats.stats_operateurs.totaux.memoire), "o" });
+	tableau.ajoute_ligne({ "- RI", formatte_nombre(stats.memoire_ri), "o" });
+	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(stats.stats_fichiers.totaux.memoire_tampons), "o" });
+	tableau.ajoute_ligne({ "- Types", formatte_nombre(stats.stats_types.totaux.memoire), "o" });
 	tableau.ajoute_ligne({ "Nombre allocations", formatte_nombre(memoire::nombre_allocations()), "" });
-	tableau.ajoute_ligne({ "Nombre métaprogrammes", formatte_nombre(metriques.nombre_metaprogrammes_executes), "" });
+	tableau.ajoute_ligne({ "Nombre métaprogrammes", formatte_nombre(stats.nombre_metaprogrammes_executes), "" });
 
 	tableau.ajoute_ligne({ "Temps Scène", formatte_nombre(temps_scene * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_scene, temps_total)) });
-	tableau.ajoute_ligne({ "- Chargement", formatte_nombre(metriques.temps_chargement * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_chargement, temps_scene)) });
-	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.temps_tampon * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_tampon, temps_scene)) });
-	tableau.ajoute_ligne({ "- Lexage", formatte_nombre(metriques.temps_decoupage * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_decoupage, temps_scene)) });
-	tableau.ajoute_ligne({ "- Métaprogrammes", formatte_nombre(metriques.temps_metaprogrammes * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_analyse, temps_scene)) });
-	tableau.ajoute_ligne({ "- Syntaxage", formatte_nombre(metriques.temps_analyse * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_analyse, temps_scene)) });
-	tableau.ajoute_ligne({ "- Typage", formatte_nombre(metriques.temps_validation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_validation, temps_scene)) });
-	tableau.ajoute_ligne({ "- RI", formatte_nombre(metriques.temps_ri * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_ri, temps_scene)) });
+	tableau.ajoute_ligne({ "- Chargement", formatte_nombre(temps_chargement * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_chargement, temps_scene)) });
+	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(temps_tampons * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_tampons, temps_scene)) });
+	tableau.ajoute_ligne({ "- Lexage", formatte_nombre(temps_lexage * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_lexage, temps_scene)) });
+	tableau.ajoute_ligne({ "- Métaprogrammes", formatte_nombre(stats.temps_metaprogrammes * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_parsage, temps_scene)) });
+	tableau.ajoute_ligne({ "- Syntaxage", formatte_nombre(temps_parsage * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_parsage, temps_scene)) });
+	tableau.ajoute_ligne({ "- Typage", formatte_nombre(temps_typage * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_typage, temps_scene)) });
+	tableau.ajoute_ligne({ "- RI", formatte_nombre(stats.temps_ri * 1000.0), "ms", formatte_nombre(calc_pourcentage(stats.temps_ri, temps_scene)) });
 
 	tableau.ajoute_ligne({ "Temps Coulisse", formatte_nombre(temps_coulisse * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_coulisse, temps_total)) });
-	tableau.ajoute_ligne({ "- Génération Code", formatte_nombre(metriques.temps_generation_code * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_generation_code, temps_coulisse)) });
-	tableau.ajoute_ligne({ "- Fichier Objet", formatte_nombre(metriques.temps_fichier_objet * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_fichier_objet, temps_coulisse)) });
-	tableau.ajoute_ligne({ "- Exécutable", formatte_nombre(metriques.temps_executable * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_executable, temps_coulisse)) });
+	tableau.ajoute_ligne({ "- Génération Code", formatte_nombre(stats.temps_generation_code * 1000.0), "ms", formatte_nombre(calc_pourcentage(stats.temps_generation_code, temps_coulisse)) });
+	tableau.ajoute_ligne({ "- Fichier Objet", formatte_nombre(stats.temps_fichier_objet * 1000.0), "ms", formatte_nombre(calc_pourcentage(stats.temps_fichier_objet, temps_coulisse)) });
+	tableau.ajoute_ligne({ "- Exécutable", formatte_nombre(stats.temps_executable * 1000.0), "ms", formatte_nombre(calc_pourcentage(stats.temps_executable, temps_coulisse)) });
 
-	tableau.ajoute_ligne({ "Temps Nettoyage", formatte_nombre(metriques.temps_nettoyage * 1000.0), "ms" });
+	tableau.ajoute_ligne({ "Temps Nettoyage", formatte_nombre(stats.temps_nettoyage * 1000.0), "ms" });
 
 	imprime_tableau(tableau);
 
@@ -211,7 +218,7 @@ int main(int argc, char *argv[])
 
 	precompile_objet_r16(chemin_racine_kuri);
 
-	auto metriques = Metriques{};
+	auto stats = Statistiques();
 	auto compilatrice = Compilatrice{};
 
 	try {
@@ -276,19 +283,17 @@ int main(int argc, char *argv[])
 		/* restore le dossier d'origine */
 		std::filesystem::current_path(dossier_origine);
 
-		metriques = compilatrice.rassemble_metriques();
-		metriques.memoire_compilatrice = compilatrice.memoire_utilisee();
-		metriques.temps_executable = tacheronne.temps_executable;
-		metriques.temps_fichier_objet = tacheronne.temps_fichier_objet;
-		metriques.temps_generation_code = tacheronne.temps_generation_code;
-		metriques.temps_ri = temps_ri;
-		metriques.memoire_ri = memoire_ri;
-		metriques.temps_decoupage = tacheronne.temps_lexage;
-		metriques.temps_validation = tacheronne.temps_validation;
-		metriques.temps_scene = tacheronne.temps_scene;
-		metriques.nombre_identifiants = compilatrice.table_identifiants->taille();
-		metriques.temps_metaprogrammes = compilatrice.mv.temps_execution_metaprogammes;
-		metriques.nombre_metaprogrammes_executes = compilatrice.mv.nombre_de_metaprogrammes_executes;
+		stats.temps_executable = tacheronne.temps_executable;
+		stats.temps_fichier_objet = tacheronne.temps_fichier_objet;
+		stats.temps_generation_code = tacheronne.temps_generation_code;
+		stats.temps_ri = temps_ri;
+		stats.memoire_ri = memoire_ri;
+		stats.temps_lexage = tacheronne.temps_lexage;
+		stats.temps_parsage = tacheronne.temps_parsage;
+		stats.temps_typage = tacheronne.temps_validation;
+		stats.temps_scene = tacheronne.temps_scene;
+
+		compilatrice.rassemble_statistiques(stats);
 
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = dls::chrono::compte_seconde();
@@ -299,10 +304,10 @@ int main(int argc, char *argv[])
 		resultat = static_cast<int>(erreur_frappe.type());
 	}
 
-	metriques.temps_nettoyage = debut_nettoyage.temps();
+	stats.temps_nettoyage = debut_nettoyage.temps();
 
 	if (!compilatrice.possede_erreur && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
-		imprime_stats(metriques, debut_compilation);
+		imprime_stats(stats, debut_compilation);
 	}
 
 #ifdef AVEC_LLVM
