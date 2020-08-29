@@ -24,15 +24,13 @@
 
 #pragma once
 
-#include <any>
-
 #include "biblinternes/outils/definitions.h"
 
 #include "expression.h"
 #include "lexemes.hh"
 #include "structures.hh"
-#include "typage.hh"
 #include "transformation_type.hh"
+#include "typage.hh"
 
 class AssembleuseArbre;
 struct AtomeFonction;
