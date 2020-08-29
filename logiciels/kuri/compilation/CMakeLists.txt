@@ -60,6 +60,7 @@ set(SOURCES
 	outils_lexemes.hh
 	portee.hh
 	profilage.hh
+  statistiques.hh
 	structures.hh
 	syntaxeuse.hh
 	tacheronne.hh
@@ -90,6 +91,7 @@ set(SOURCES
 	outils_lexemes.cc
 	portee.cc
 	profilage.cc
+  statistiques.cc
 	structures.cc
 	syntaxeuse.cc
 	tacheronne.cc

@@ -34,6 +34,7 @@
 #include "erreur.h"
 #include "lexeuse.hh"
 #include "modules.hh"
+#include "statistiques.hh"
 
 /* ************************************************************************** */
 

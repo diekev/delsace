@@ -38,6 +38,7 @@
 #include "compilation/modules.hh"
 #include "compilation/options.hh"
 #include "compilation/profilage.hh"
+#include "compilation/statistiques.hh"
 #include "compilation/tacheronne.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"

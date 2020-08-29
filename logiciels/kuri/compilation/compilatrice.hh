@@ -42,40 +42,8 @@
 #include "../representation_intermediaire/constructrice_ri.hh"
 #include "../representation_intermediaire/machine_virtuelle.hh"
 
+struct Metriques;
 struct OptionsCompilation;
-
-struct Metriques {
-	long nombre_modules = 0ul;
-	long nombre_identifiants = 0ul;
-	long nombre_lignes = 0ul;
-	long nombre_lexemes = 0ul;
-	long nombre_noeuds = 0ul;
-	long nombre_noeuds_deps = 0ul;
-	long nombre_metaprogrammes_executes = 0ul;
-	long memoire_tampons = 0ul;
-	long memoire_lexemes = 0ul;
-	long memoire_arbre = 0ul;
-	long memoire_compilatrice = 0ul;
-	long memoire_types = 0ul;
-	long memoire_operateurs = 0ul;
-	long memoire_ri = 0ul;
-	long memoire_graphe = 0ul;
-	long memoire_mv = 0ul;
-	long nombre_types = 0;
-	long nombre_operateurs = 0;
-	double temps_chargement = 0.0;
-	double temps_analyse = 0.0;
-	double temps_tampon = 0.0;
-	double temps_decoupage = 0.0;
-	double temps_validation = 0.0;
-	double temps_generation_code = 0.0;
-	double temps_fichier_objet = 0.0;
-	double temps_executable = 0.0;
-	double temps_nettoyage = 0.0;
-	double temps_ri = 0.0;
-	double temps_metaprogrammes = 0.0;
-	double temps_scene = 0.0;
-};
 
 struct GeranteChaine {
 	/* stocke la capacité réservée par la lexeuse en attendant d'avoir la capacité comme mebre de kuri::chaine */
