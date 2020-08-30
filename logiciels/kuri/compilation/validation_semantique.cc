@@ -189,11 +189,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			decl_entete->bloc_parent = noeud->bloc_parent;
 			decl_corps->bloc_parent = noeud->bloc_parent;
 
+			decl_entete->drapeaux |= FORCE_NULCTX;
 			decl_entete->nom_broye = "metaprogamme" + dls::vers_chaine(noeud_directive);
 
-			// le type de la fonction est (contexte) -> (type_expression)
-			auto types_entrees = kuri::tableau<Type *>(1);
-			types_entrees[0] = espace->typeuse.type_contexte;
+			// le type de la fonction est fonc () -> (type_expression)
+			auto types_entrees = kuri::tableau<Type *>(0);
 
 			auto types_sorties = kuri::tableau<Type *>(1);
 			types_sorties[0] = noeud_directive->expr->type;
