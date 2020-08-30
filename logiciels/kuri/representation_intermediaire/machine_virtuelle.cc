@@ -299,7 +299,7 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std
 	POUR (frame->fonction->chunk.locales) {
 		auto pointeur_locale = &frame->pointeur_pile[it.adresse];
 		imprime_tab(std::cerr, profondeur_appel);
-		os << "Locale : ";
+		os << "Locale (" << static_cast<void *>(pointeur_locale) << ") : ";
 
 		if (it.ident) {
 			os << it.ident->nom;
