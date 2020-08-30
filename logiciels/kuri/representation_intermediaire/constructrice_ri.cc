@@ -4089,7 +4089,14 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecut
 
 	atome_fonc->instructions.reserve(atome_creation_contexte->instructions.taille);
 
-	POUR (atome_creation_contexte->instructions) {
+	/* À FAIRE : l'instruction « restaure locale » à la fin de cette fonction nous
+	 * indique de supprimer toutes ses locales et les locales de l'expression de la
+	 * directive se trouveront sur les premières en mémoire, mais nous en avons
+	 * peut-être encore besoin des premières. Pour le moment, n'écris pas l'instruction,
+	 * d'où le « - 1 ».
+	 */
+	for (auto i = 0; i < atome_creation_contexte->instructions.taille - 1; ++i) {
+		auto it = atome_creation_contexte->instructions[i];
 		atome_fonc->instructions.pousse(it);
 
 		if (it->genre == Instruction::Genre::ALLOCATION) {
