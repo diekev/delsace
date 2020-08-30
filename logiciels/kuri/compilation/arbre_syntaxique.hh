@@ -143,7 +143,7 @@ bool est_declaration(GenreNoeud genre);
 
 /* ************************************************************************** */
 
-enum drapeaux_noeud : unsigned int {
+enum DrapeauxNoeud : unsigned int {
 	AUCUN                      = 0,
 	EMPLOYE                    = (1 << 0),
 	DECLARATION                = (1 << 1),
@@ -168,7 +168,7 @@ enum drapeaux_noeud : unsigned int {
 	EST_RACINE                 = (1 << 20),
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned int)
+DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)
 
 enum {
 	/* instruction 'pour' */
@@ -239,7 +239,7 @@ struct NoeudExpression {
 	GenreValeur genre_valeur{};
 	char aide_generation_code = 0;
 	REMBOURRE(1);
-	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
+	DrapeauxNoeud drapeaux = DrapeauxNoeud::AUCUN;
 	Lexeme const *lexeme = nullptr;
 	IdentifiantCode *ident = nullptr;
 	Type *type = nullptr;
@@ -738,7 +738,7 @@ NoeudExpression *copie_noeud(
 void aplatis_arbre(
 		NoeudExpression *racine,
 		kuri::tableau<NoeudExpression *> &arbre_aplatis,
-		drapeaux_noeud drapeau);
+		DrapeauxNoeud drapeau);
 
 struct Etendue {
 	long pos_min = 0;

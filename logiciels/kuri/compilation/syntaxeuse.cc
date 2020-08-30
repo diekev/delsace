@@ -411,7 +411,7 @@ void Syntaxeuse::lance_analyse()
 					decl_var->bloc_parent->expressions->pousse(decl_var);
 					decl_var->drapeaux |= EST_GLOBALE;
 					decl_var->arbre_aplatis.reserve(nombre_noeuds_alloues + 1);
-					aplatis_arbre(decl_var, decl_var->arbre_aplatis, drapeaux_noeud::AUCUN);
+					aplatis_arbre(decl_var, decl_var->arbre_aplatis, DrapeauxNoeud::AUCUN);
 					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, decl_var);
 				}
 				else if (est_declaration(noeud->genre)) {
@@ -422,7 +422,7 @@ void Syntaxeuse::lance_analyse()
 						if (noeud->genre == GenreNoeud::DECLARATION_VARIABLE) {
 							auto decl_var = static_cast<NoeudDeclarationVariable *>(noeud);
 							decl_var->arbre_aplatis.reserve(nombre_noeuds_alloues);
-							aplatis_arbre(decl_var, decl_var->arbre_aplatis, drapeaux_noeud::AUCUN);
+							aplatis_arbre(decl_var, decl_var->arbre_aplatis, DrapeauxNoeud::AUCUN);
 						}
 
 						m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
@@ -1048,7 +1048,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 				auto noeud = CREE_NOEUD(NoeudDirectiveExecution, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
 				noeud->ident = directive;
 				noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-				aplatis_arbre(noeud, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
+				aplatis_arbre(noeud, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 				return noeud;
 			}
 			else if (directive == ID::chemin) {
@@ -1840,7 +1840,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 	copie_tablet_tableau(params, noeud->params);
 
 	POUR (noeud->params) {
-		aplatis_arbre(it, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
+		aplatis_arbre(it, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 	}
 
 	consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' à la fin des paramètres de la fonction");
@@ -1857,7 +1857,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 			noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
 			noeud->params_sorties.pousse(type_declare);
-			aplatis_arbre(type_declare, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
+			aplatis_arbre(type_declare, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 			if (!apparie(GenreLexeme::VIRGULE)) {
 				break;
@@ -1886,7 +1886,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 				nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 				noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
 				noeud->params_sorties.pousse(type_declare);
-				aplatis_arbre(type_declare, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
+				aplatis_arbre(type_declare, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 				if (!apparie(GenreLexeme::VIRGULE)) {
 					break;
@@ -1904,7 +1904,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			auto type_declare = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_TYPE, &lexeme_rien);
 			noeud->noms_retours.pousse("__ret0");
 			noeud->params_sorties.pousse(type_declare);
-			aplatis_arbre(type_declare, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
+			aplatis_arbre(type_declare, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 		}
 
 		while (apparie(GenreLexeme::DIRECTIVE)) {
@@ -1988,7 +1988,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			 * faudra également faire attention au moultfilage futur.
 			 */
 			noeud_corps->arbre_aplatis.reserve(nombre_noeuds_alloues);
-			aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, drapeaux_noeud::AUCUN);
+			aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
 
@@ -2084,7 +2084,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	noeud->arbre_aplatis.reserve(nombre_noeuds_alloues);
 
 	POUR (noeud->params) {
-		aplatis_arbre(it, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
+		aplatis_arbre(it, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 	}
 
 	consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' à la fin des paramètres de la fonction");
@@ -2097,7 +2097,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 		auto type_declare = analyse_expression_primaire(GenreLexeme::OPERATEUR, GenreLexeme::VIRGULE);
 		noeud->params_sorties.pousse(type_declare);
-		aplatis_arbre(type_declare, noeud->arbre_aplatis, drapeaux_noeud::AUCUN);
+		aplatis_arbre(type_declare, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 		if (!apparie(GenreLexeme::VIRGULE)) {
 			break;
@@ -2139,7 +2139,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 	auto noeud_corps = noeud->corps;
 	noeud_corps->bloc = analyse_bloc();
-	aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, drapeaux_noeud::AUCUN);
+	aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 	m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
 
@@ -2244,7 +2244,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 
 		POUR (*bloc->expressions.verrou_lecture()) {
-			aplatis_arbre(it, noeud_decl->arbre_aplatis, drapeaux_noeud::AUCUN);
+			aplatis_arbre(it, noeud_decl->arbre_aplatis, DrapeauxNoeud::AUCUN);
 		}
 
 		consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de la structure");
