@@ -808,7 +808,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 	if (fonction->decl && fonction->decl->est_externe) {
 		auto &donnees_externe = fonction->donnees_externe;
 
-		if (dls::outils::possede_drapeau(fonction->decl->drapeaux, COMPILATRICE)) {
+		if (fonction->decl->possede_drapeau(COMPILATRICE)) {
 			donnees_externe.ptr_fonction = trouve_fonction_compilatrice(fonction->decl->ident);
 		}
 		else {

@@ -164,7 +164,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	auto params = kuri::tableau<Atome *>();
 	params.reserve(decl->params.taille);
 
-	if (!decl->est_externe && !dls::outils::possede_drapeau(decl->drapeaux, FORCE_NULCTX)) {
+	if (!decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX)) {
 		auto atome = constructrice.cree_allocation(typeuse.type_contexte, ID::contexte);
 		params.pousse(atome);
 	}
@@ -180,11 +180,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	auto atome_fonc = fonctions.ajoute_element(decl->lexeme, decl->nom_broye, std::move(params));
 	atome_fonc->type = normalise_type(typeuse, decl->type);
 	atome_fonc->est_externe = decl->est_externe;
-
-	if (dls::outils::possede_drapeau(decl->drapeaux, FORCE_SANSTRACE)) {
-		atome_fonc->sanstrace = true;
-	}
-
+	atome_fonc->sanstrace = decl->possede_drapeau(FORCE_SANSTRACE);
 	atome_fonc->decl = decl;
 
 	table->insere({ decl->nom_broye, atome_fonc });

@@ -248,6 +248,11 @@ struct NoeudExpression {
 
 	COPIE_CONSTRUCT(NoeudExpression);
 
+	inline bool possede_drapeau(DrapeauxNoeud drapeaux_) const
+	{
+		return (drapeaux & drapeaux_) != DrapeauxNoeud::AUCUN;
+	}
+
 #define EST_NOEUD_GENRE(genre_, ...) \
 	inline bool est_##genre_() const \
 	{ \

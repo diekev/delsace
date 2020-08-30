@@ -67,7 +67,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 			// on peut avoir des expressions du genre inverse := inverse(matrice),
 			// À FAIRE : si nous enlevons la vérification du drapeau EST_GLOBALE, la compilation est bloquée dans une boucle infinie, il nous faudra un état pour dire qu'aucune candidate n'a été trouvée
 			if (it->genre == GenreNoeud::DECLARATION_VARIABLE) {
-				if (it->lexeme->fichier == appelee->lexeme->fichier && it->lexeme->ligne >= appelee->lexeme->ligne && ((it->drapeaux & EST_GLOBALE) == 0)) {
+				if (it->lexeme->fichier == appelee->lexeme->fichier && it->lexeme->ligne >= appelee->lexeme->ligne && !it->possede_drapeau(EST_GLOBALE)) {
 					continue;
 				}
 			}
@@ -212,7 +212,7 @@ static auto apparie_appel_pointeur(
 
 		auto fonc_courante = contexte.fonction_courante;
 
-		if (fonc_courante != nullptr && dls::outils::possede_drapeau(fonc_courante->drapeaux, FORCE_NULCTX)) {
+		if (fonc_courante != nullptr && fonc_courante->possede_drapeau(FORCE_NULCTX)) {
 			resultat.noeud_erreur = b;
 			resultat.etat = FONCTION_INTROUVEE;
 			resultat.raison = CONTEXTE_MANQUANT;
@@ -389,14 +389,14 @@ static auto apparie_appel_fonction(
 				return false;
 			}
 
-			if ((args_rencontres.trouve(it.ident) != args_rencontres.fin()) && (param->drapeaux & EST_VARIADIQUE) == 0) {
+			if ((args_rencontres.trouve(it.ident) != args_rencontres.fin()) && !param->possede_drapeau(EST_VARIADIQUE)) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = RENOMMAGE_ARG;
 				res.nom_arg = it.ident->nom;
 				return false;
 			}
 
-			dernier_arg_variadique = (param->drapeaux & EST_VARIADIQUE) != 0;
+			dernier_arg_variadique = param->possede_drapeau(EST_VARIADIQUE);
 
 			args_rencontres.insere(it.ident);
 
@@ -517,7 +517,7 @@ static auto apparie_appel_fonction(
 			type_du_parametre = resoud_type_polymorphique(espace.typeuse, type_du_parametre, type_gabarit);
 		}
 
-		if ((param->drapeaux & EST_VARIADIQUE) != 0) {
+		if (param->possede_drapeau(EST_VARIADIQUE)) {
 			if (type_dereference_pour(type_du_parametre) != nullptr) {
 				auto transformation = TransformationType();
 				auto type_deref = type_dereference_pour(type_du_parametre);
@@ -895,7 +895,7 @@ static auto trouve_candidates_pour_appel(
 			else if (decl->est_entete_fonction()) {
 				auto decl_fonc = decl->comme_entete_fonction();
 
-				if ((decl_fonc->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
+				if (!decl_fonc->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 					contexte.unite->attend_sur_declaration(decl_fonc);
 					return true;
 				}
@@ -1074,7 +1074,7 @@ bool valide_appel_fonction(
 			if (possede_drapeau(decl_fonc->drapeaux, FORCE_NULCTX)) {
 				auto decl_appel = decl_fonction_appelee;
 
-				if (!decl_appel->est_externe && !possede_drapeau(decl_appel->drapeaux, FORCE_NULCTX)) {
+				if (!decl_appel->est_externe && !decl_appel->possede_drapeau(FORCE_NULCTX)) {
 					contexte.rapporte_erreur_fonction_nulctx(expr, decl_fonc, decl_appel);
 					return false;
 				}
@@ -1086,7 +1086,7 @@ bool valide_appel_fonction(
 		if (!candidate->paires_expansion_gabarit.est_vide()) {
 			auto [noeud_decl, doit_epandre] = trouve_fonction_epandue_ou_crees_en_une(compilatrice, espace, decl_fonction_appelee, std::move(candidate->paires_expansion_gabarit));
 
-			if (doit_epandre || (noeud_decl->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
+			if (doit_epandre || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 				contexte.unite->attend_sur_declaration(noeud_decl);
 				return true;
 			}
@@ -1098,7 +1098,7 @@ bool valide_appel_fonction(
 		auto type_fonc = decl_fonction_appelee->type->comme_fonction();
 		auto type_sortie = type_fonc->types_sorties[0];
 
-		auto expr_gauche = (expr->drapeaux & DROITE_ASSIGNATION) == 0;
+		auto expr_gauche = !expr->possede_drapeau(DROITE_ASSIGNATION);
 		if (type_sortie->genre != GenreType::RIEN && expr_gauche) {
 			rapporte_erreur(&espace, expr, "La valeur de retour de la fonction n'est pas utilisée. Il est important de toujours utiliser les valeurs retournées par les fonctions, par exemple pour ne pas oublier de vérifier si une erreur existe.")
 					.ajoute_message("La fonction a été déclarée comme retournant une valeur :\n")
@@ -1147,7 +1147,7 @@ bool valide_appel_fonction(
 
 		expr->noeud_fonction_appelee = decl_fonction_appelee;
 
-		if (decl_fonction_appelee->est_externe || dls::outils::possede_drapeau(decl_fonction_appelee->drapeaux, FORCE_NULCTX)) {
+		if (decl_fonction_appelee->est_externe || decl_fonction_appelee->possede_drapeau(FORCE_NULCTX)) {
 			expr->drapeaux |= FORCE_NULCTX;
 		}
 

@@ -1406,7 +1406,7 @@ static void genere_code_C_depuis_fonctions_racines(
 	fonctions_racines.reserve(espace.fonctions.taille());
 
 	POUR_TABLEAU_PAGE (espace.fonctions) {
-		if (it.decl && dls::outils::possede_drapeau(it.decl->drapeaux, EST_RACINE)) {
+		if (it.decl && it.decl->possede_drapeau(EST_RACINE)) {
 			it.nombre_utilisations = 1;
 			fonctions_racines.pousse(&it);
 		}

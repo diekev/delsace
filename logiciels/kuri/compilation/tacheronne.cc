@@ -629,7 +629,7 @@ static bool dependances_eurent_ri_generees(NoeudDependance *noeud)
 			else {
 				auto noeud_syntaxique = noeud_fin->noeud_syntaxique;
 
-				if ((noeud_syntaxique->drapeaux & RI_FUT_GENEREE) == 0) {
+				if (!noeud_syntaxique->possede_drapeau(RI_FUT_GENEREE)) {
 					return false;
 				}
 			}
@@ -662,7 +662,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 				{
 					auto decl = static_cast<NoeudDeclarationCorpsFonction *>(unite->noeud);
 
-					if ((decl->entete->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
+					if (!decl->entete->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 						unite->attend_sur_declaration(decl);
 						return false;
 					}
@@ -792,7 +792,8 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 			return false;
 		}
 
-		if ((unite->espace->interface_kuri->decl_creation_contexte->drapeaux & RI_FUT_GENEREE) == 0) {
+		auto decl_creation_contexte = unite->espace->interface_kuri->decl_creation_contexte;
+		if (!decl_creation_contexte->possede_drapeau(RI_FUT_GENEREE)) {
 			unite->attend_sur_declaration(unite->espace->interface_kuri->decl_creation_contexte);
 			return false;
 		}
@@ -826,7 +827,7 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 		if (noeud_dep->type == TypeNoeudDependance::FONCTION) {
 			auto decl_noeud = noeud_dep->noeud_syntaxique->comme_entete_fonction();
 
-			if ((decl_noeud->drapeaux & CODE_BINAIRE_FUT_GENERE) != 0) {
+			if (decl_noeud->possede_drapeau(CODE_BINAIRE_FUT_GENERE)) {
 				return;
 			}
 
@@ -853,11 +854,11 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 		else if (noeud_dep->type == TypeNoeudDependance::GLOBALE) {
 			auto decl_noeud = static_cast<NoeudDeclaration *>(noeud_dep->noeud_syntaxique);
 
-			if ((decl_noeud->drapeaux & EST_CONSTANTE) != 0) {
+			if (decl_noeud->possede_drapeau(EST_CONSTANTE)) {
 				return;
 			}
 
-			if ((decl_noeud->drapeaux & CODE_BINAIRE_FUT_GENERE) != 0) {
+			if (decl_noeud->possede_drapeau(CODE_BINAIRE_FUT_GENERE)) {
 				return;
 			}
 

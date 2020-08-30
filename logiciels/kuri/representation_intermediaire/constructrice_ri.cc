@@ -723,7 +723,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto args = kuri::tableau<Atome *>();
 			args.reserve(expr_appel->exprs.taille);
 
-			if (!dls::outils::possede_drapeau(expr_appel->drapeaux, FORCE_NULCTX)) {
+			if (!expr_appel->possede_drapeau(FORCE_NULCTX)) {
 				args.pousse(cree_charge_mem(table_locales[ID::contexte]));
 			}
 
@@ -803,7 +803,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			if (decl_ref->drapeaux & EST_GLOBALE) {
+			if (decl_ref->possede_drapeau(EST_GLOBALE)) {
 				empile_valeur(m_espace->trouve_ou_insere_globale(decl_ref));
 				return;
 			}
@@ -841,12 +841,12 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto decl = static_cast<NoeudDeclarationVariable *>(noeud);
 
-			if ((decl->drapeaux & EST_CONSTANTE) != 0) {
+			if (decl->possede_drapeau(EST_CONSTANTE)) {
 				return;
 			}
 
 			if (fonction_courante == nullptr) {
-				auto est_externe = dls::outils::possede_drapeau(decl->drapeaux, EST_EXTERNE);
+				auto est_externe = decl->possede_drapeau(EST_EXTERNE);
 				auto valeur = static_cast<AtomeConstante *>(nullptr);
 				auto atome = m_espace->trouve_ou_insere_globale(decl);
 				atome->est_externe = est_externe;
@@ -873,7 +873,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			Atome *pointeur = nullptr;
 
 			// les allocations pour les variables employées sont créées lors de la génération de code pour les blocs
-			if (decl->drapeaux & EMPLOYE) {
+			if (decl->possede_drapeau(EMPLOYE)) {
 				pointeur = table_locales[decl->ident];
 				assert(pointeur != nullptr);
 			}
@@ -977,7 +977,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				}
 
 				auto decl = op->decl;
-				auto requiers_contexte = !decl->est_externe && !dls::outils::possede_drapeau(decl->drapeaux, FORCE_NULCTX);
+				auto requiers_contexte = !decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX);
 				auto atome_fonction = m_espace->trouve_ou_insere_fonction(*this, decl);
 				auto args = kuri::tableau<Atome *>(2 + requiers_contexte);
 
@@ -991,7 +991,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return cree_appel(noeud->lexeme, atome_fonction, std::move(args));
 			};
 
-			if ((expr_bin->drapeaux & EST_ASSIGNATION_COMPOSEE) != 0) {
+			if (expr_bin->possede_drapeau(EST_ASSIGNATION_COMPOSEE)) {
 				genere_ri_pour_noeud(expr_bin->expr1);
 				auto pointeur = depile_valeur();
 				auto valeur_gauche = cree_charge_mem(pointeur);
@@ -1209,7 +1209,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			}
 
 			auto decl = expr_un->op->decl;
-			auto requiers_contexte = !decl->est_externe && !dls::outils::possede_drapeau(decl->drapeaux, FORCE_NULCTX);
+			auto requiers_contexte = !decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX);
 			auto atome_fonction = m_espace->trouve_ou_insere_fonction(*this, decl);
 			auto args = kuri::tableau<Atome *>(1 + requiers_contexte);
 
@@ -2189,7 +2189,7 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 				}
 				else {
 					auto decl = op->decl;
-					auto requiers_contexte = !decl->est_externe && !dls::outils::possede_drapeau(decl->drapeaux, FORCE_NULCTX);
+					auto requiers_contexte = !decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX);
 					auto atome_fonction = m_espace->trouve_ou_insere_fonction(*this, decl);
 					auto args = kuri::tableau<Atome *>(2 + requiers_contexte);
 

@@ -884,11 +884,11 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 				continue;
 			}
 
-			if ((atome_fonc_appelee->decl->drapeaux & FORCE_ENLIGNE) == 0) {
+			if (!atome_fonc_appelee->decl->possede_drapeau(FORCE_ENLIGNE)) {
 				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
 				continue;
 			}
-			else if ((atome_fonc_appelee->decl->drapeaux & FORCE_HORSLIGNE) != 0) {
+			else if (atome_fonc_appelee->decl->possede_drapeau(FORCE_HORSLIGNE)) {
 				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
 				continue;
 			}

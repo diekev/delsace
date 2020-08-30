@@ -121,7 +121,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 				}
 
-				auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
+				auto requiers_contexte = !decl->possede_drapeau(FORCE_NULCTX);
 				auto types_entrees = kuri::tableau<Type *>(decl->params.taille + requiers_contexte);
 
 				if (requiers_contexte) {
@@ -229,7 +229,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			auto expr = noeud->comme_ref_decl();
 
-			if (expr->drapeaux & DECLARATION_TYPE_POLYMORPHIQUE) {
+			if (expr->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
 				expr->genre_valeur = GenreValeur::DROITE;
 
 				if (fonction_courante && fonction_courante->est_instantiation_gabarit) {
@@ -269,7 +269,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			if (decl->lexeme->fichier == expr->lexeme->fichier && decl->genre == GenreNoeud::DECLARATION_VARIABLE && ((decl->drapeaux & EST_GLOBALE) == 0)) {
+			if (decl->lexeme->fichier == expr->lexeme->fichier && decl->genre == GenreNoeud::DECLARATION_VARIABLE && !decl->possede_drapeau(EST_GLOBALE)) {
 				if (decl->lexeme->ligne > expr->lexeme->ligne) {
 					rapporte_erreur("Utilisation d'une variable avant sa déclaration", expr);
 					return true;
@@ -281,7 +281,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				expr->decl = decl;
 			}
 			else {				
-				if ((decl->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
+				if (!decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 					unite->attend_sur_declaration(decl);
 					return true;
 				}
@@ -292,10 +292,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				expr->type = decl->type;
 			}
 
-			if (decl->drapeaux & EST_VAR_BOUCLE) {
+			if (decl->possede_drapeau(EST_VAR_BOUCLE)) {
 				expr->drapeaux |= EST_VAR_BOUCLE;
 			}
-			else if (decl->drapeaux & EST_CONSTANTE) {
+			else if (decl->possede_drapeau(EST_CONSTANTE)) {
 				expr->genre_valeur = GenreValeur::DROITE;
 			}
 
@@ -310,7 +310,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				donnees_dependance.fonctions_utilisees.insere(decl_fonc);
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
-				if (decl->drapeaux & EST_GLOBALE) {
+				if (decl->possede_drapeau(EST_GLOBALE)) {
 					donnees_dependance.globales_utilisees.insere(decl->comme_decl_var());
 				}
 			}
@@ -473,7 +473,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			if ((decl->drapeaux & EST_CONSTANTE) && expression != nullptr && expression->genre == GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
+			if (decl->possede_drapeau(EST_CONSTANTE) && expression != nullptr && expression->genre == GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
 				rapporte_erreur("Impossible de ne pas initialiser une constante", expression);
 				return true;
 			}
@@ -511,7 +511,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					expression->transformation = transformation;
 				}
 
-				if (decl->drapeaux & EST_CONSTANTE && expression->type->genre != GenreType::TYPE_DE_DONNEES) {
+				if (decl->possede_drapeau(EST_CONSTANTE) && expression->type->genre != GenreType::TYPE_DE_DONNEES) {
 					auto res_exec = evalue_expression(espace, decl->bloc_parent, expression);
 
 					if (res_exec.est_errone) {
@@ -531,12 +531,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			decl->type = variable->type;
 
-			if (decl->drapeaux & EST_EXTERNE) {
+			if (decl->possede_drapeau(EST_EXTERNE)) {
 				rapporte_erreur("Ne peut pas assigner une variable globale externe dans sa déclaration", noeud);
 				return true;
 			}
 
-			if (decl->drapeaux & EST_GLOBALE) {
+			if (decl->possede_drapeau(EST_GLOBALE)) {
 				auto graphe = espace->graphe_dependance.verrou_ecriture();
 				graphe->cree_noeud_globale(decl);
 			}
@@ -2429,7 +2429,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 	// -----------------------------------
 
 	kuri::tableau<Type *> types_entrees;
-	auto possede_contexte = !decl->est_externe && !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
+	auto possede_contexte = !decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX);
 	types_entrees.reserve(decl->params.taille + possede_contexte);
 
 	if (possede_contexte) {
@@ -2548,7 +2548,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 
 		/* nous devons attendre d'avoir les types des arguments avant de
 		 * pouvoir broyer le nom de la fonction */
-		if (decl->ident != ID::principale && !possede_drapeau(decl->drapeaux, EST_EXTERNE | FORCE_SANSBROYAGE)) {
+		if (decl->ident != ID::principale && !decl->possede_drapeau(EST_EXTERNE | FORCE_SANSBROYAGE)) {
 			auto fichier = espace->fichier(decl->lexeme->fichier);
 			decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
 		}
@@ -2569,7 +2569,7 @@ bool ContexteValidationCode::valide_arbre_aplatis(kuri::tableau<NoeudExpression 
 
 		if (noeud_enfant->est_structure()) {
 			// les structures ont leurs propres unités de compilation
-			if ((noeud_enfant->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
+			if (!noeud_enfant->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 				unite->attend_sur_declaration(noeud_enfant->comme_structure());
 				return true;
 			}
@@ -2600,7 +2600,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 	auto noeud_dep = graphe->cree_noeud_fonction(entete);
 
 	if (unite->index_courant == 0) {
-		auto requiers_contexte = !possede_drapeau(decl->entete->drapeaux, FORCE_NULCTX);
+		auto requiers_contexte = !decl->entete->possede_drapeau(FORCE_NULCTX);
 
 		if (requiers_contexte) {
 			auto val_ctx = static_cast<NoeudExpressionReference *>(espace->assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
@@ -2656,7 +2656,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *dec
 	auto noeud_dep = graphe->cree_noeud_fonction(entete);
 
 	if (unite->index_courant == 0) {
-		auto requiers_contexte = !possede_drapeau(decl->drapeaux, FORCE_NULCTX);
+		auto requiers_contexte = !decl->possede_drapeau(FORCE_NULCTX);
 
 		decl->bloc->membres->reserve(entete->params.taille + requiers_contexte);
 
@@ -2974,7 +2974,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			continue;
 		}
 
-		if ((it->drapeaux & EMPLOYE) != 0) {
+		if (it->possede_drapeau(EMPLOYE)) {
 			type_struct->types_employes.pousse(it->type->comme_structure());
 			continue;
 		}
@@ -2986,7 +2986,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 		auto decl_var = it->comme_decl_var();
 
-		if (decl_var->drapeaux & EST_CONSTANTE) {
+		if (decl_var->possede_drapeau(EST_CONSTANTE)) {
 			type_compose->membres.pousse({ it->type, it->ident->nom, 0, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
 			continue;
 		}
