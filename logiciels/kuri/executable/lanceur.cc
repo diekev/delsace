@@ -277,23 +277,25 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		auto temps_ri = constructrice_ri.temps_generation + tacheronne.constructrice_ri.temps_generation;
-		auto memoire_ri = constructrice_ri.memoire_utilisee() + tacheronne.constructrice_ri.memoire_utilisee();
-
 		/* restore le dossier d'origine */
 		std::filesystem::current_path(dossier_origine);
 
-		stats.temps_executable = tacheronne.temps_executable;
-		stats.temps_fichier_objet = tacheronne.temps_fichier_objet;
-		stats.temps_generation_code = tacheronne.temps_generation_code;
-		stats.temps_ri = temps_ri;
-		stats.memoire_ri = memoire_ri;
-		stats.temps_lexage = tacheronne.temps_lexage;
-		stats.temps_parsage = tacheronne.temps_parsage;
-		stats.temps_typage = tacheronne.temps_validation;
-		stats.temps_scene = tacheronne.temps_scene;
+		if (!compilatrice.possede_erreur && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
+			auto temps_ri = constructrice_ri.temps_generation + tacheronne.constructrice_ri.temps_generation;
+			auto memoire_ri = constructrice_ri.memoire_utilisee() + tacheronne.constructrice_ri.memoire_utilisee();
 
-		compilatrice.rassemble_statistiques(stats);
+			stats.temps_executable = tacheronne.temps_executable;
+			stats.temps_fichier_objet = tacheronne.temps_fichier_objet;
+			stats.temps_generation_code = tacheronne.temps_generation_code;
+			stats.temps_ri = temps_ri;
+			stats.memoire_ri = memoire_ri;
+			stats.temps_lexage = tacheronne.temps_lexage;
+			stats.temps_parsage = tacheronne.temps_parsage;
+			stats.temps_typage = tacheronne.temps_validation;
+			stats.temps_scene = tacheronne.temps_scene;
+
+			compilatrice.rassemble_statistiques(stats);
+		}
 
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = dls::chrono::compte_seconde();
