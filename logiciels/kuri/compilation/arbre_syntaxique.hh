@@ -134,13 +134,6 @@ enum class GenreNoeud : char {
 const char *chaine_genre_noeud(GenreNoeud genre);
 std::ostream &operator<<(std::ostream &os, GenreNoeud genre);
 
-inline bool est_instruction_retour(GenreNoeud genre)
-{
-	return genre == GenreNoeud::INSTRUCTION_RETOUR || genre == GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE || genre == GenreNoeud::INSTRUCTION_RETOUR_SIMPLE;
-}
-
-bool est_declaration(GenreNoeud genre);
-
 /* ************************************************************************** */
 
 enum DrapeauxNoeud : unsigned int {
@@ -278,6 +271,7 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(controle_boucle, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)
 	EST_NOEUD_GENRE(decl_discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
 	EST_NOEUD_GENRE(decl_var, GenreNoeud::DECLARATION_VARIABLE)
+	EST_NOEUD_GENRE(declaration, GenreNoeud::DECLARATION_VARIABLE, GenreNoeud::DECLARATION_CORPS_FONCTION, GenreNoeud::DECLARATION_ENTETE_FONCTION, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE)
 	EST_NOEUD_GENRE(deloge, GenreNoeud::EXPRESSION_DELOGE)
 	EST_NOEUD_GENRE(discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
 	EST_NOEUD_GENRE(enum, GenreNoeud::DECLARATION_ENUM)

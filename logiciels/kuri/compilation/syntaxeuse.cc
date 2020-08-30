@@ -414,7 +414,7 @@ void Syntaxeuse::lance_analyse()
 					aplatis_arbre(decl_var, decl_var->arbre_aplatis, DrapeauxNoeud::AUCUN);
 					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, decl_var);
 				}
-				else if (est_declaration(noeud->genre)) {
+				else if (noeud->est_declaration()) {
 					noeud->bloc_parent->expressions->pousse(noeud);
 					noeud->drapeaux |= EST_GLOBALE;
 
@@ -1430,7 +1430,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc()
 				decl_var->valeur = noeud;
 				expressions.pousse(decl_var);
 			}
-			else if (est_declaration(noeud->genre)) {
+			else if (noeud->est_declaration()) {
 				expressions.pousse(noeud);
 			}
 			else {

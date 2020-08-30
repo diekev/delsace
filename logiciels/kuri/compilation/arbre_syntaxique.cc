@@ -59,17 +59,6 @@ std::ostream &operator<<(std::ostream &os, GenreNoeud genre)
 	return os;
 }
 
-bool est_declaration(GenreNoeud genre)
-{
-	return dls::outils::est_element(
-				genre,
-				GenreNoeud::DECLARATION_VARIABLE,
-				GenreNoeud::DECLARATION_CORPS_FONCTION,
-				GenreNoeud::DECLARATION_ENTETE_FONCTION,
-				GenreNoeud::DECLARATION_ENUM,
-				GenreNoeud::DECLARATION_STRUCTURE);
-}
-
 bool est_expression_logique(NoeudExpression *noeud)
 {
 	if (noeud->genre == GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE) {
@@ -438,7 +427,7 @@ NoeudExpression *copie_noeud(
 				auto nexpr = copie_noeud(assem, it, nbloc);
 				nbloc->expressions->pousse(nexpr);
 
-				if (est_declaration(nexpr->genre)) {
+				if (nexpr->est_declaration()) {
 					nbloc->membres->pousse(static_cast<NoeudDeclaration *>(nexpr));
 				}
 			}

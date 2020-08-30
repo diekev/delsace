@@ -763,7 +763,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 {
 	auto noeud = unite->noeud;
 
-	if (est_declaration(noeud->genre)) {
+	if (noeud->est_declaration()) {
 		constructrice_ri.genere_ri_pour_noeud(unite->espace, noeud);
 		noeud->drapeaux |= RI_FUT_GENEREE;
 		noeud->type->drapeaux |= RI_TYPE_FUT_GENEREE;

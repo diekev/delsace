@@ -252,7 +252,7 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 
 	auto di = expressions->a(taille - 1);
 
-	if (est_instruction_retour(di->genre) || (di->genre == GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
+	if (di->est_retour() || (di->genre == GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
 		return di;
 	}
 
