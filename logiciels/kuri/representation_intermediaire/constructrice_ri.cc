@@ -362,7 +362,14 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const dls
 	// crée l'appel de cette fonction et ajoute là au début de la fonction_our
 
 	this->fonction_courante = fonction_pour;
-	param_contexte = fonction_pour->params_entrees[0];
+	param_contexte = nullptr;
+
+	POUR (fonction_pour->instructions) {
+		if (it->est_alloc() && it->comme_alloc()->ident == ID::contexte) {
+			param_contexte = it;
+			break;
+		}
+	}
 
 	auto param_appel = kuri::tableau<Atome *>(1);
 	param_appel[0] = cree_charge_mem(param_contexte);
