@@ -39,6 +39,7 @@ struct IdentifiantCode;
 struct NoeudBloc;
 struct NoeudBoucle;
 struct NoeudCode;
+struct NoeudComme;
 struct NoeudDeclarationCorpsFonction;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
@@ -157,6 +158,7 @@ enum DrapeauxNoeud : unsigned int {
 	COMPILATRICE               = (1 << 16),
 	FORCE_SANSBROYAGE          = (1 << 17),
 	EST_RACINE                 = (1 << 18),
+	TRANSTYPAGE_IMPLICITE      = (1 << 19),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)
@@ -238,8 +240,6 @@ struct NoeudExpression {
 	NoeudBloc *bloc_parent = nullptr;
 
 	NoeudExpression *expression_type = nullptr;
-
-	TransformationType transformation{};
 
 	UniteCompilation *unite = nullptr;
 	NoeudCode *noeud_code = nullptr;
@@ -327,7 +327,7 @@ struct NoeudExpression {
 	COMME_NOEUD(assignation, NoeudExpressionBinaire)
 	COMME_NOEUD(bloc, NoeudBloc)
 	COMME_NOEUD(boucle, NoeudBoucle)
-	COMME_NOEUD(comme, NoeudExpressionBinaire)
+	COMME_NOEUD(comme, NoeudComme)
 	COMME_NOEUD(comparaison_chainee, NoeudExpressionBinaire)
 	COMME_NOEUD(construction_struct, NoeudExpressionAppel)
 	COMME_NOEUD(construction_tableau, NoeudExpressionUnaire)
@@ -662,6 +662,15 @@ struct NoeudExpressionVirgule : public NoeudExpression {
 	kuri::tableau<NoeudExpression *> expressions{};
 };
 
+struct NoeudComme : public NoeudExpression {
+	NoeudComme() { genre = GenreNoeud::EXPRESSION_COMME; }
+
+	COPIE_CONSTRUCT(NoeudComme);
+
+	NoeudExpression *expression = nullptr;
+	TransformationType transformation{};
+};
+
 #define COMME_NOEUD(genre, type_noeud) \
 	inline type_noeud *NoeudExpression::comme_##genre() \
 	{ \
@@ -679,7 +688,7 @@ struct NoeudExpressionVirgule : public NoeudExpression {
 	COMME_NOEUD(assignation, NoeudExpressionBinaire)
 	COMME_NOEUD(bloc, NoeudBloc)
 	COMME_NOEUD(boucle, NoeudBoucle)
-	COMME_NOEUD(comme, NoeudExpressionBinaire)
+	COMME_NOEUD(comme, NoeudComme)
 	COMME_NOEUD(comparaison_chainee, NoeudExpressionBinaire)
 	COMME_NOEUD(construction_struct, NoeudExpressionAppel)
 	COMME_NOEUD(construction_tableau, NoeudExpressionUnaire)

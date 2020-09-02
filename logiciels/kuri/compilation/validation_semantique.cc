@@ -432,17 +432,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			auto transformation = TransformationType();
-			if (cherche_transformation(*espace, *this, expression->type, variable->type, transformation)) {
+			if (!transtype_si_necessaire(inst->expr2, variable->type)) {
 				return true;
 			}
-
-			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-				rapporte_erreur_assignation_type_differents(variable->type, expression->type, noeud);
-				return true;
-			}
-
-			expression->transformation = transformation;
 
 			break;
 		}
@@ -486,7 +478,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				else if (variable->type == nullptr) {
 					if (expression->type->genre == GenreType::ENTIER_CONSTANT) {
 						variable->type = espace->typeuse[TypeBase::Z32];
-						expression->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type };
+						transtype_si_necessaire(decl->expression, { TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type });
 					}
 					else if (expression->type->genre == GenreType::RIEN) {
 						rapporte_erreur("impossible d'assigner une expression de type « rien » à une variable", expression, erreur::Genre::ASSIGNATION_RIEN);
@@ -497,18 +489,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 				}
 				else {
-					auto transformation = TransformationType();
-
-					if (cherche_transformation(*espace, *this, expression->type, variable->type, transformation)) {
+					if (!transtype_si_necessaire(decl->expression, variable->type)) {
 						return true;
 					}
-
-					if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-						rapporte_erreur_assignation_type_differents(variable->type, expression->type, noeud);
-						return true;
-					}
-
-					expression->transformation = transformation;
 				}
 
 				if (decl->possede_drapeau(EST_CONSTANTE) && expression->type->genre != GenreType::TYPE_DE_DONNEES) {
@@ -735,8 +718,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				expr->op = meilleur_candidat->op;
-				enfant1->transformation = meilleur_candidat->transformation_type1;
-				enfant2->transformation = meilleur_candidat->transformation_type2;
+				transtype_si_necessaire(expr->expr1, meilleur_candidat->transformation_type1);
+				transtype_si_necessaire(expr->expr2, meilleur_candidat->transformation_type2);
 
 				if (!expr->op->est_basique) {
 					donnees_dependance.fonctions_utilisees.insere(expr->op->decl);
@@ -783,8 +766,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 				expr->type = meilleur_candidat->op->type_resultat;
 				expr->op = meilleur_candidat->op;
-				enfant1->transformation = meilleur_candidat->transformation_type1;
-				enfant2->transformation = meilleur_candidat->transformation_type2;
+				transtype_si_necessaire(expr->expr1, meilleur_candidat->transformation_type1);
+				transtype_si_necessaire(expr->expr2, meilleur_candidat->transformation_type2);
 
 				if (!expr->op->est_basique) {
 					donnees_dependance.fonctions_utilisees.insere(expr->op->decl);
@@ -822,8 +805,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (type->genre == GenreType::REFERENCE) {
-				enfant->transformation = TypeTransformation::DEREFERENCE;
 				type = type_dereference_pour(type);
+				transtype_si_necessaire(expr->expr, TypeTransformation::DEREFERENCE);
 			}
 
 			if (expr->type == nullptr) {
@@ -846,7 +829,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				else {
 					if (type->genre == GenreType::ENTIER_CONSTANT) {
 						type = espace->typeuse[TypeBase::Z32];
-						enfant->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type };
+						transtype_si_necessaire(expr->expr, { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type });
 					}
 
 					auto operateurs = espace->operateurs.verrou_lecture();
@@ -875,7 +858,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type1 = enfant1->type;
 
 			if (type1->genre == GenreType::REFERENCE) {
-				enfant1->transformation = TypeTransformation::DEREFERENCE;
+				transtype_si_necessaire(expr->expr1, TypeTransformation::DEREFERENCE);
 				type1 = type_dereference_pour(type1);
 			}
 
@@ -938,27 +921,18 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type_cible = espace->typeuse[TypeBase::Z64];
 			auto type_index = enfant2->type;
 
-			if (type_index->genre == GenreType::ENUM) {
-				type_index = type_index->comme_enum()->type_donnees;
+			if (type_index->est_entier_naturel()) {
+				transtype_si_necessaire(expr->expr2, { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible });
 			}
-
-			auto transformation = TransformationType();
-
-			if (cherche_transformation(*espace, *this, type_index, type_cible, transformation)) {
-				return true;
-			}
-
-			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-				if (enfant2->type->genre == GenreType::ENTIER_NATUREL) {
-					transformation = TransformationType(TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible);
+			else {
+				if (type_index->genre == GenreType::ENUM) {
+					type_index = type_index->comme_enum()->type_donnees;
 				}
-				else {
-					rapporte_erreur_type_indexage(enfant2);
+
+				if (!transtype_si_necessaire(expr->expr2, type_cible)) {
 					return true;
 				}
 			}
-
-			enfant2->transformation = transformation;
 
 			donnees_dependance.types_utilises.insere(expr->type);
 			break;
@@ -999,17 +973,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					for (auto i = 0l; i < feuilles->expressions.taille; ++i) {
 						auto f = feuilles->expressions[i];
 
-						auto transformation = TransformationType();
-						if (cherche_transformation(*espace, *this, f->type, type_fonc->types_sorties[i], transformation)) {
+						if (!transtype_si_necessaire(feuilles->expressions[i], type_fonc->types_sorties[i])) {
 							return true;
 						}
-
-						if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-							rapporte_erreur_type_retour(type_fonc->types_sorties[i], f->type, noeud);
-							return true;
-						}
-
-						f->transformation = transformation;
 
 						donnees_dependance.types_utilises.insere(f->type);
 					}
@@ -1032,17 +998,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				noeud->type = type_fonc->types_sorties[0];
 				noeud->genre = GenreNoeud::INSTRUCTION_RETOUR_SIMPLE;
 
-				auto transformation = TransformationType();
-				if (cherche_transformation(*espace, *this, enfant->type, noeud->type, transformation)) {
+				if (!transtype_si_necessaire(inst->expr, noeud->type)) {
 					return true;
 				}
-
-				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-					rapporte_erreur_type_retour(noeud->type, enfant->type, noeud);
-					return true;
-				}
-
-				enfant->transformation = transformation;
 			}
 
 			donnees_dependance.types_utilises.insere(noeud->type);
@@ -1294,7 +1252,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto expr = noeud->comme_comme();
 			expr->genre_valeur = GenreValeur::DROITE;
 
-			if (resoud_type_final(expr->expr2, expr->type)) {
+			if (resoud_type_final(expr->expression_type, expr->type)) {
 				return true;
 			}
 
@@ -1305,7 +1263,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			donnees_dependance.types_utilises.insere(noeud->type);
 
-			auto enfant = expr->expr1;
+			auto enfant = expr->expression;
 			if (enfant->type == nullptr) {
 				rapporte_erreur("Ne peut calculer le type d'origine", enfant, erreur::Genre::TYPE_INCONNU);
 				return true;
@@ -1313,16 +1271,16 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			auto transformation = TransformationType();
 
-			if (cherche_transformation_pour_transtypage(*espace, *this, expr->expr1->type, noeud->type, transformation)) {
+			if (cherche_transformation_pour_transtypage(*espace, *this, expr->expression->type, noeud->type, transformation)) {
 				return true;
 			}
 
 			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-				rapporte_erreur_type_arguments(noeud, expr->expr1);
+				rapporte_erreur_type_arguments(noeud, expr->expression);
 				return true;
 			}
 
-			expr->expr1->transformation = transformation;
+			expr->transformation = transformation;
 
 			break;
 		}
@@ -1365,12 +1323,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				if (type_debut->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_fin)) {
 					type_debut = type_fin;
 					enfant1->type = type_debut;
-					enfant1->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut };
+					transtype_si_necessaire(inst->expr1, { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut });
 				}
 				else if (type_fin->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_debut)) {
 					type_fin = type_debut;
 					enfant2->type = type_fin;
-					enfant2->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_fin };
+					transtype_si_necessaire(inst->expr2, { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_fin });
 				}
 				else {
 					rapporte_erreur_type_operation(type_debut, type_fin, noeud);
@@ -1379,8 +1337,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 			else if (type_debut->genre == GenreType::ENTIER_CONSTANT) {
 				type_debut = espace->typeuse[TypeBase::Z32];
-				enfant1->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut };
-				enfant2->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut };
+				transtype_si_necessaire(inst->expr1, { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut });
+				transtype_si_necessaire(inst->expr2, { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut });
 			}
 
 			if (type_debut->genre != GenreType::ENTIER_NATUREL && type_debut->genre != GenreType::ENTIER_RELATIF && type_debut->genre != GenreType::REEL) {
@@ -1453,21 +1411,13 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			if (type_feuille->genre == GenreType::ENTIER_CONSTANT) {
 				type_feuille = espace->typeuse[TypeBase::Z32];
-				premiere_feuille->transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_feuille };
+				transtype_si_necessaire(feuilles->expressions[0], { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_feuille });
 			}
 
-			for (auto f : feuilles->expressions) {
-				auto transformation = TransformationType();
-				if (cherche_transformation(*espace, *this, f->type, type_feuille, transformation)) {
+			for (auto i = 1; i < feuilles->expressions.taille; ++i) {
+				if (!transtype_si_necessaire(feuilles->expressions[i], type_feuille)) {
 					return true;
 				}
-
-				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-					rapporte_erreur_assignation_type_differents(f->type, type_feuille, f);
-					return true;
-				}
-
-				f->transformation = transformation;
 			}
 
 			noeud->type = espace->typeuse.type_tableau_fixe(type_feuille, feuilles->expressions.taille);
@@ -1636,17 +1586,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				auto type_cible = espace->typeuse[TypeBase::Z64];
-				auto transformation = TransformationType();
-				if (cherche_transformation(*espace, *this, expr_loge->expr_taille->type, type_cible, transformation)) {
+				if (!transtype_si_necessaire(expr_loge->expr_taille, type_cible)) {
 					return true;
 				}
-
-				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-					rapporte_erreur_assignation_type_differents(expr_loge->expr_taille->type, type_cible, expr_loge->expr_taille);
-					return true;
-				}
-
-				expr_loge->expr_taille->transformation = transformation;
 			}
 			else {
 				auto type_loge = expr_loge->type;
@@ -1691,17 +1633,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				auto type_cible = espace->typeuse[TypeBase::Z64];
-				auto transformation = TransformationType();
-				if (cherche_transformation(*espace, *this, expr_loge->expr_taille->type, type_cible, transformation)) {
+				if (!transtype_si_necessaire(expr_loge->expr_taille, type_cible)) {
 					return true;
 				}
-
-				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-					rapporte_erreur_assignation_type_differents(expr_loge->expr_taille->type, type_cible, expr_loge->expr_taille);
-					return true;
-				}
-
-				expr_loge->expr_taille->transformation = transformation;
 			}
 			else {
 				auto type_loge = expr_loge->type;
@@ -1716,17 +1650,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			/* pour les références */
-			auto transformation = TransformationType();
-			if (cherche_transformation(*espace, *this, expr_loge->expr->type, expr_loge->type, transformation)) {
+			if (!transtype_si_necessaire(expr_loge->expr, expr_loge->type)) {
 				return true;
 			}
-
-			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-				rapporte_erreur_type_arguments(expr_loge, expr_loge->expr);
-				return true;
-			}
-
-			expr_loge->expr->transformation = transformation;
 
 			if (expr_loge->bloc != nullptr) {
 				auto di = derniere_instruction(expr_loge->bloc);
@@ -1750,7 +1676,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type = expr_loge->expr->type;
 
 			if (type->genre == GenreType::REFERENCE) {
-				expr_loge->expr->transformation = TypeTransformation::DEREFERENCE;
+				transtype_si_necessaire(expr_loge->expr, TypeTransformation::DEREFERENCE);
 				type = type->comme_reference()->type_pointe;
 			}
 
@@ -1780,8 +1706,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type = expression->type;
 
 			if (type->genre == GenreType::REFERENCE) {
+				transtype_si_necessaire(inst->expr, TypeTransformation::DEREFERENCE);
 				type = type->comme_reference()->type_pointe;
-				noeud->transformation = TypeTransformation::DEREFERENCE;
 			}
 
 			if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
@@ -1974,22 +1900,14 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 					auto feuilles = expr_paire->comme_virgule();
 
-					for (auto f : feuilles->expressions) {
-						if (valide_semantique_noeud(f)) {
+					for (auto j = 0; j < feuilles->expressions.taille; ++j) {
+						if (valide_semantique_noeud(feuilles->expressions[j])) {
 							return true;
 						}
 
-						auto transformation = TransformationType();
-						if (cherche_transformation(*espace, *this, f->type, expression->type, transformation)) {
+						if (!transtype_si_necessaire(feuilles->expressions[j], expression->type)) {
 							return true;
 						}
-
-						if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-							rapporte_erreur_type_arguments(expression, f);
-							return true;
-						}
-
-						f->transformation = transformation;
 					}
 				}
 
@@ -2012,18 +1930,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto inst = noeud->comme_retiens();
 
 			/* À FAIRE : multiple types retours. */
-			auto type_retour = type_fonc->types_sorties[0];			
-			auto transformation = TransformationType();
-			if (cherche_transformation(*espace, *this, inst->expr->type, type_retour, transformation)) {
+			auto type_retour = type_fonc->types_sorties[0];
+			if (!transtype_si_necessaire(inst->expr, type_retour)) {
 				return true;
 			}
-
-			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-				rapporte_erreur_type_retour(type_retour, inst->expr->type, noeud);
-				return true;
-			}
-
-			inst->transformation = transformation;
 
 			break;
 		}
@@ -2076,9 +1986,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				if (type_expr->est_tableau_fixe()) {
-					expr->expr->transformation = TypeTransformation::CONVERTI_TABLEAU;
 					auto type_tableau_fixe = type_expr->comme_tableau_fixe();
 					type_expr = espace->typeuse.type_tableau_dynamique(type_tableau_fixe->type_pointe);
+					transtype_si_necessaire(expr->expr, { TypeTransformation::CONVERTI_TABLEAU, type_expr });
 				}
 
 				expr->type = type_expr;
@@ -2627,6 +2537,10 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 	auto bloc = decl->bloc;
 	auto inst_ret = derniere_instruction(bloc);
 
+//	if (decl->entete->ident == ID::principale) {
+//		imprime_arbre(decl->bloc, std::cerr, 0);
+//	}
+
 	/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
 	if (inst_ret == nullptr) {
 		auto type_fonc = entete->type->comme_fonction();
@@ -3158,4 +3072,69 @@ void ContexteValidationCode::rapporte_erreur_fonction_inconnue(NoeudExpression *
 void ContexteValidationCode::rapporte_erreur_fonction_nulctx(const NoeudExpression *appl_fonc, const NoeudExpression *decl_fonc, const NoeudExpression *decl_appel)
 {
 	erreur::lance_erreur_fonction_nulctx(*espace, appl_fonc, decl_fonc, decl_appel);
+}
+
+bool ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible)
+{
+	auto transformation = TransformationType();
+	if (cherche_transformation(*espace, *this, expression->type, type_cible, transformation)) {
+		return false;
+	}
+
+	if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+		rapporte_erreur_assignation_type_differents(type_cible, expression->type, expression);
+		return false;
+	}
+
+	return transtype_si_necessaire(expression, transformation);
+}
+
+bool ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression, TransformationType const &transformation)
+{
+	if (transformation.type == TypeTransformation::INUTILE) {
+		return true;
+	}
+
+	if (transformation.type == TypeTransformation::CONVERTI_ENTIER_CONSTANT) {
+		expression->type = transformation.type_cible;
+		return expression;
+	}
+
+	auto type_cible = transformation.type_cible;
+
+	if (type_cible == nullptr) {
+		if (transformation.type == TypeTransformation::CONSTRUIT_EINI) {
+			type_cible = espace->typeuse[TypeBase::EINI];
+		}
+		else if (transformation.type == TypeTransformation::CONVERTI_VERS_PTR_RIEN) {
+			type_cible = espace->typeuse[TypeBase::PTR_RIEN];
+		}
+		else if (transformation.type == TypeTransformation::PREND_REFERENCE) {
+			type_cible = espace->typeuse.type_reference_pour(expression->type);
+		}
+		else if (transformation.type == TypeTransformation::DEREFERENCE) {
+			type_cible = type_dereference_pour(expression->type);
+		}
+		else if (transformation.type == TypeTransformation::CONSTRUIT_TABL_OCTET) {
+			type_cible = espace->typeuse[TypeBase::TABL_OCTET];
+		}
+		else if (transformation.type == TypeTransformation::CONVERTI_TABLEAU) {
+			auto type_tableau_fixe = expression->type->comme_tableau_fixe();
+			type_cible = espace->typeuse.type_tableau_dynamique(type_tableau_fixe->type_pointe);
+		}
+		else {
+			std::cerr << "Type Transformation non géré : " << transformation.type << '\n';
+			assert(0);
+		}
+	}
+
+	auto noeud_comme = espace->assembleuse->cree_noeud(GenreNoeud::EXPRESSION_COMME, expression->lexeme)->comme_comme();
+	noeud_comme->type = type_cible;
+	noeud_comme->expression = expression;
+	noeud_comme->transformation = transformation;
+	noeud_comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+
+	expression = noeud_comme;
+
+	return true;
 }

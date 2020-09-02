@@ -730,13 +730,6 @@ static auto apparie_appel_structure(
 	auto index_membre = 0;
 	POUR (type_compose->membres) {
 		slots[index_membre] = it.expression_valeur_defaut;
-
-		// dans le cas où l'expression par défaut n'est pas remplacée par une
-		// expression il faut préserver la transformation originale
-		if (it.expression_valeur_defaut) {
-			transformations[index_membre] = it.expression_valeur_defaut->transformation;
-		}
-
 		index_membre += 1;
 	}
 
@@ -1130,18 +1123,15 @@ bool valide_appel_fonction(
 		auto i = 0l;
 		/* les drapeaux pour les arguments simples */
 		for (; i < nombre_args_simples; ++i) {
-			auto enfant = candidate->exprs[i];
-			enfant->transformation = candidate->transformations[i];
+			contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
 		}
 
 		/* les drapeaux pour les arguments variadics */
 		if (!candidate->exprs.est_vide() && candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
 			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(candidate->exprs.back());
-			auto enfant_tabl = noeud_tableau->exprs.begin();
 
-			for (; i < nombre_args_variadics; ++i) {
-				auto enfant = *enfant_tabl++;
-				enfant->transformation = candidate->transformations[i];
+			for (auto j = 0; i < nombre_args_variadics; ++i, ++j) {
+				contexte.transtype_si_necessaire(noeud_tableau->exprs[j], candidate->transformations[i]);
 			}
 		}
 
@@ -1164,7 +1154,7 @@ bool valide_appel_fonction(
 
 		for (auto i = 0; i < expr->exprs.taille; ++i) {
 			if (expr->exprs[i] != nullptr) {
-				expr->exprs[i]->transformation = candidate->transformations[i];
+				contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
 			}
 		}
 	}
@@ -1181,7 +1171,7 @@ bool valide_appel_fonction(
 		}
 
 		for (auto i = 0; i < expr->exprs.taille; ++i) {
-			expr->exprs[i]->transformation = candidate->transformations[i];
+			contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
 		}
 	}
 	else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {

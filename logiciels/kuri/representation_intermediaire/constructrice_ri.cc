@@ -285,7 +285,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const dls
 				continue;
 			}
 
-			genere_ri_transformee_pour_noeud(constructeur.second, nullptr);
+			genere_ri_pour_expression_droite(constructeur.second, nullptr);
 			auto valeur = depile_valeur();
 
 			if (!valeur) {
@@ -677,7 +677,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			m_noeud_pour_appel = expr_appel;
 
 			POUR (expr_appel->exprs) {
-				genere_ri_transformee_pour_noeud(it, nullptr);
+				genere_ri_pour_expression_droite(it, nullptr);
 				args.pousse(depile_valeur());
 			}
 
@@ -686,7 +686,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto atome_fonc = static_cast<Atome *>(nullptr);
 
 			if (expr_appel->aide_generation_code == APPEL_POINTEUR_FONCTION) {
-				genere_ri_pour_expression_droite(expr_appel->appelee);
+				genere_ri_pour_expression_droite(expr_appel->appelee, nullptr);
 				atome_fonc = depile_valeur();
 			}
 			else if (expr_appel->appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
@@ -780,7 +780,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto expr_ass = static_cast<NoeudExpressionBinaire *>(noeud);
 			genere_ri_pour_noeud(expr_ass->expr1);
 			auto pointeur = depile_valeur();
-			genere_ri_transformee_pour_noeud(expr_ass->expr2, pointeur);
+			genere_ri_pour_expression_droite(expr_ass->expr2, pointeur);
 			break;
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
@@ -801,7 +801,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 				if (decl->expression) {
 					if (decl->expression->genre == GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU) {
-						genere_ri_transformee_pour_noeud(decl->expression, nullptr);
+						genere_ri_pour_expression_droite(decl->expression, nullptr);
 						valeur = static_cast<AtomeConstante *>(depile_valeur());
 					}
 					else {
@@ -829,7 +829,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			if (decl->expression) {
 				if (decl->expression->genre != GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
-					genere_ri_transformee_pour_noeud(decl->expression, pointeur);
+					genere_ri_pour_expression_droite(decl->expression, pointeur);
 				}
 			}
 			else {
@@ -941,7 +941,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				genere_ri_pour_noeud(expr_bin->expr1);
 				auto pointeur = depile_valeur();
 				auto valeur_gauche = cree_charge_mem(pointeur);
-				genere_ri_transformee_pour_noeud(expr_bin->expr2, nullptr);
+				genere_ri_pour_expression_droite(expr_bin->expr2, nullptr);
 				auto valeur_droite = depile_valeur();
 
 				auto valeur = traduit_operation_binaire(expr_bin->op, valeur_gauche, valeur_droite);
@@ -954,9 +954,9 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			genere_ri_transformee_pour_noeud(expr_bin->expr1, nullptr);
+			genere_ri_pour_expression_droite(expr_bin->expr1, nullptr);
 			auto valeur_gauche = depile_valeur();
-			genere_ri_transformee_pour_noeud(expr_bin->expr2, nullptr);
+			genere_ri_pour_expression_droite(expr_bin->expr2, nullptr);
 			auto valeur_droite = depile_valeur();
 			auto resultat = traduit_operation_binaire(expr_bin->op, valeur_gauche, valeur_droite);
 
@@ -976,7 +976,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto type_gauche = expr_bin->expr1->type;
 			genere_ri_pour_noeud(expr_bin->expr1);
 			auto pointeur = depile_valeur();
-			genere_ri_transformee_pour_noeud(expr_bin->expr2, nullptr);
+			genere_ri_pour_expression_droite(expr_bin->expr2, nullptr);
 			auto valeur = depile_valeur();
 
 			if (type_gauche->genre == GenreType::POINTEUR) {
@@ -1102,7 +1102,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					case GenreType::ENTIER_RELATIF:
 					case GenreType::ENTIER_CONSTANT:
 					{
-						genere_ri_transformee_pour_noeud(condition, nullptr);
+						genere_ri_pour_expression_droite(condition, nullptr);
 						auto valeur1 = depile_valeur();
 						auto valeur2 = cree_constante_entiere(type_condition, 0);
 						valeur = cree_op_comparaison(OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
@@ -1110,7 +1110,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					}
 					case GenreType::BOOL:
 					{
-						genere_ri_transformee_pour_noeud(condition, nullptr);
+						genere_ri_pour_expression_droite(condition, nullptr);
 						auto valeur1 = depile_valeur();
 						auto valeur2 = cree_constante_booleenne(false);
 						valeur = cree_op_comparaison(OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
@@ -1119,7 +1119,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					case GenreType::FONCTION:
 					case GenreType::POINTEUR:
 					{
-						genere_ri_transformee_pour_noeud(condition, nullptr);
+						genere_ri_pour_expression_droite(condition, nullptr);
 						auto valeur1 = depile_valeur();
 						auto valeur2 = cree_constante_nulle(type_condition);
 						valeur = cree_op_comparaison(OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
@@ -1146,7 +1146,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			genere_ri_transformee_pour_noeud(expr_un->expr, nullptr);
+			genere_ri_pour_expression_droite(expr_un->expr, nullptr);
 			auto valeur = depile_valeur();
 
 			if (expr_un->op->est_basique) {
@@ -1185,7 +1185,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto expr = inst_retour->expr;
 			auto type_fonction = fonction_courante->type->comme_fonction();
 			auto locale_retour = cree_allocation(type_fonction->types_sorties[0], nullptr);
-			genere_ri_transformee_pour_noeud(expr, locale_retour);
+			genere_ri_pour_expression_droite(expr, locale_retour);
 			genere_ri_blocs_differes(noeud->bloc_parent);
 			cree_retour(cree_charge_mem(locale_retour));
 			break;
@@ -1343,8 +1343,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_COMME:
 		{
-			auto inst = static_cast<NoeudExpressionBinaire *>(noeud);
-			auto expr = inst->expr1;
+			auto inst = noeud->comme_comme();
+			auto expr = inst->expression;
 
 			if (expr->type == inst->type) {
 				genere_ri_pour_noeud(expr);
@@ -1352,7 +1352,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			}
 
 			auto alloc = cree_allocation(inst->type, nullptr);
-			genere_ri_transformee_pour_noeud(expr, alloc);
+			genere_ri_transformee_pour_noeud(expr, alloc, inst->transformation);
 			empile_valeur(alloc);
 			break;
 		}
@@ -1383,7 +1383,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto index = 0ul;
 			POUR (noeud_tableau->exprs) {
 				auto index_tableau = cree_acces_index(pointeur_tableau, cree_z64(index++));
-				genere_ri_transformee_pour_noeud(it, index_tableau);
+				genere_ri_pour_expression_droite(it, index_tableau);
 			}
 
 			auto valeur = converti_vers_tableau_dyn(pointeur_tableau, type_tableau_fixe, nullptr);
@@ -1402,7 +1402,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 				POUR (expr->exprs) {
 					if (it != nullptr) {
-						genere_ri_transformee_pour_noeud(it, nullptr);
+						genere_ri_pour_expression_droite(it, nullptr);
 						valeur = depile_valeur();
 
 						if (it->type != type_union->type_le_plus_grand) {
@@ -1445,7 +1445,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					auto valeur = static_cast<Atome *>(nullptr);
 
 					if (it != nullptr) {
-						genere_ri_transformee_pour_noeud(it, nullptr);
+						genere_ri_pour_expression_droite(it, nullptr);
 						valeur = depile_valeur();
 					}
 					else {
@@ -1488,7 +1488,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			auto index = 0ul;
 			POUR (feuilles->expressions) {
-				genere_ri_transformee_pour_noeud(it, nullptr);
+				genere_ri_pour_expression_droite(it, nullptr);
 				auto valeur = depile_valeur();
 				auto index_tableau = cree_acces_index(pointeur_tableau, cree_z64(index++));
 				cree_stocke_mem(index_tableau, valeur);
@@ -1604,7 +1604,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		{
-			genere_ri_transformee_pour_noeud(static_cast<NoeudExpressionUnaire *>(noeud)->expr, nullptr);
+			genere_ri_pour_expression_droite(static_cast<NoeudExpressionUnaire *>(noeud)->expr, nullptr);
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_TENTE:
@@ -1616,7 +1616,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 	}
 }
 
-void ConstructriceRI::genere_ri_pour_expression_droite(NoeudExpression *noeud)
+void ConstructriceRI::genere_ri_pour_expression_droite(NoeudExpression *noeud, Atome *place)
 {
 	auto ancienne_expression_gauche = expression_gauche;
 	expression_gauche = false;
@@ -1624,17 +1624,20 @@ void ConstructriceRI::genere_ri_pour_expression_droite(NoeudExpression *noeud)
 	auto atome = depile_valeur();
 	expression_gauche = ancienne_expression_gauche;
 
-	if (!atome->est_chargeable) {
-		empile_valeur(atome);
-		return;
+	if (atome->est_chargeable) {
+		atome = cree_charge_mem(atome);
 	}
 
-	empile_valeur(cree_charge_mem(atome));
+	if (place) {
+		cree_stocke_mem(place, atome);
+	}
+	else {
+		empile_valeur(atome);
+	}
 }
 
-void ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place)
+void ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place, TransformationType const &transformation)
 {
-	auto &transformation = noeud->transformation;
 	auto ancienne_expression_gauche = expression_gauche;
 	expression_gauche = false;
 	genere_ri_pour_noeud(noeud);
@@ -2078,7 +2081,7 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 		valeur_expression = cree_charge_mem(valeur_expression);
 	}
 	else {
-		genere_ri_transformee_pour_noeud(expression, nullptr);
+		genere_ri_pour_expression_droite(expression, nullptr);
 		valeur_expression = depile_valeur();
 		ptr_structure = valeur_expression;
 	}
@@ -2120,7 +2123,7 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 					table_locales[f->ident] = valeur;
 				}
 				else {
-					genere_ri_pour_expression_droite(f);
+					genere_ri_pour_expression_droite(f, nullptr);
 					valeur_f = depile_valeur();
 				}
 
@@ -2168,7 +2171,7 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 {
 	// À FAIRE(retours multiples)
-	genere_ri_pour_expression_droite(noeud->expr_appel);
+	genere_ri_pour_expression_droite(noeud->expr_appel, nullptr);
 	auto valeur_expression = depile_valeur();
 
 	struct DonneesGenerationCodeTente {
@@ -2337,7 +2340,7 @@ void ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 
 	if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE || inst->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
 		auto expr_plage = static_cast<NoeudExpressionBinaire *>(enfant2);
-		genere_ri_transformee_pour_noeud(expr_plage->expr1, nullptr);
+		genere_ri_pour_expression_droite(expr_plage->expr1, nullptr);
 		auto init_debut = depile_valeur();
 		cree_stocke_mem(valeur_debut, init_debut);
 	}
@@ -2356,7 +2359,7 @@ void ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 		{
 			/* condition */
 			auto expr_plage = static_cast<NoeudExpressionBinaire *>(enfant2);
-			genere_ri_pour_expression_droite(expr_plage->expr2);
+			genere_ri_pour_expression_droite(expr_plage->expr2, nullptr);
 			auto valeur_fin = depile_valeur();
 
 			auto condition = cree_op_comparaison(
@@ -2630,7 +2633,7 @@ void ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpress
 
 			/* allocation ou réallocation */
 			if (expression != nullptr) {
-				genere_ri_transformee_pour_noeud(expression, nullptr);
+				genere_ri_pour_expression_droite(expression, nullptr);
 				auto val_expr = depile_valeur();
 				val_nouveau_nombre_element = val_expr;
 
@@ -2657,7 +2660,7 @@ void ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpress
 
 			/* allocation ou réallocation */
 			if (expression != nullptr) {
-				genere_ri_transformee_pour_noeud(expression, nullptr);
+				genere_ri_pour_expression_droite(expression, nullptr);
 				auto val_expr = depile_valeur();
 				val_nouveau_nombre_element = val_expr;
 				val_nouvelle_taille_octet = val_nouveau_nombre_element;
@@ -2823,9 +2826,9 @@ void ConstructriceRI::genere_ri_pour_comparaison_chainee(NoeudExpression *noeud,
 
 	for (auto i = 0; i < comparaisons.taille; ++i) {
 		auto &it = comparaisons[i];
-		genere_ri_transformee_pour_noeud(it.operande_gauche, nullptr);
+		genere_ri_pour_expression_droite(it.operande_gauche, nullptr);
 		auto atome_gauche = depile_valeur();
-		genere_ri_transformee_pour_noeud(it.operande_droite, nullptr);
+		genere_ri_pour_expression_droite(it.operande_droite, nullptr);
 		auto atome_droite = depile_valeur();
 		auto atome_op_bin = cree_op_binaire(noeud->type, it.op->genre, atome_gauche, atome_droite);
 
@@ -2887,7 +2890,7 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 			auto valeur = static_cast<Atome *>(nullptr);
 
 			if (it.expression_valeur_defaut) {
-				genere_ri_transformee_pour_noeud(it.expression_valeur_defaut, nullptr);
+				genere_ri_pour_expression_droite(it.expression_valeur_defaut, nullptr);
 				valeur = depile_valeur();
 			}
 			else {
@@ -2928,7 +2931,7 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 			auto pointeur = cree_acces_membre(pointeur_struct, index_membre);
 
 			if (it.expression_valeur_defaut) {
-				genere_ri_transformee_pour_noeud(it.expression_valeur_defaut, nullptr);
+				genere_ri_pour_expression_droite(it.expression_valeur_defaut, nullptr);
 				valeur = depile_valeur();
 			}
 			else {
@@ -3026,7 +3029,7 @@ void ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud)
 	auto &membre = type_compose->membres[noeud->index_membre];
 
 	if (membre.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
-		genere_ri_transformee_pour_noeud(membre.expression_valeur_defaut, nullptr);
+		genere_ri_pour_expression_droite(membre.expression_valeur_defaut, nullptr);
 		return;
 	}
 
@@ -3204,7 +3207,7 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition, Instr
 			genere_ri_pour_comparaison_chainee(condition, label_si_vrai, label_si_faux);
 		}
 		else {
-			genere_ri_pour_expression_droite(condition);
+			genere_ri_pour_expression_droite(condition, nullptr);
 			auto valeur = depile_valeur();
 			cree_branche_condition(valeur, label_si_vrai, label_si_faux);
 		}
@@ -3254,7 +3257,7 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition, Instr
 			case GenreType::ENTIER_RELATIF:
 			case GenreType::ENTIER_CONSTANT:
 			{
-				genere_ri_transformee_pour_noeud(condition, nullptr);
+				genere_ri_pour_expression_droite(condition, nullptr);
 				auto valeur1 = depile_valeur();
 				auto valeur2 = cree_constante_entiere(type_condition, 0);
 				valeur = cree_op_comparaison(OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
@@ -3262,14 +3265,14 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition, Instr
 			}
 			case GenreType::BOOL:
 			{
-				genere_ri_transformee_pour_noeud(condition, nullptr);
+				genere_ri_pour_expression_droite(condition, nullptr);
 				valeur = depile_valeur();
 				break;
 			}
 			case GenreType::FONCTION:
 			case GenreType::POINTEUR:
 			{
-				genere_ri_transformee_pour_noeud(condition, nullptr);
+				genere_ri_pour_expression_droite(condition, nullptr);
 				auto valeur1 = depile_valeur();
 				auto valeur2 = cree_constante_nulle(type_condition);
 				valeur = cree_op_comparaison(OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
@@ -4154,7 +4157,7 @@ Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction
 	auto constructeurs_globaux = m_espace->constructeurs_globaux.verrou_lecture();
 
 	POUR (*constructeurs_globaux) {
-		genere_ri_transformee_pour_noeud(it.second, it.first);
+		genere_ri_pour_expression_droite(it.second, it.first);
 	}
 
 	// ----------------------------------

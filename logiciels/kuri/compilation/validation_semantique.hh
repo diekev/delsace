@@ -95,4 +95,8 @@ struct ContexteValidationCode {
 	void rapporte_erreur_valeur_manquante_discr(NoeudExpression *expression, dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes);
 	void rapporte_erreur_fonction_inconnue(NoeudExpression *b, dls::tablet<DonneesCandidate, 10> const &candidates);
 	void rapporte_erreur_fonction_nulctx(NoeudExpression const *appl_fonc, NoeudExpression const *decl_fonc, NoeudExpression const *decl_appel);
+
+	bool transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
+	bool transtype_si_necessaire(NoeudExpression *&expression, TransformationType const &transformation);
+
 };

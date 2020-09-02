@@ -132,12 +132,22 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			noeud_code = n;
 			break;
 		}
+		case GenreNoeud::EXPRESSION_COMME:
+		{
+			auto noeud_comme = noeud_expression->comme_comme();
+
+			auto n = noeuds_operations_binaire.ajoute_element();
+			n->operande_gauche = converti_noeud_syntaxique(espace, noeud_comme->expression);
+			n->operande_droite = converti_noeud_syntaxique(espace, noeud_comme->expression_type);
+
+			noeud_code = n;
+			break;
+		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
-		case GenreNoeud::EXPRESSION_COMME:
 		{
 			auto noeud_op_bin = static_cast<NoeudExpressionBinaire *>(noeud_expression);
 

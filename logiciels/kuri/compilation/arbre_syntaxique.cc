@@ -151,12 +151,20 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 			imprime_arbre(expr->expression, os, tab + 1);
 			break;
 		}
+		case GenreNoeud::EXPRESSION_COMME:
+		{
+			auto expr = racine->comme_comme();
+			imprime_tab(os, tab);
+			os << "comme : " << chaine_type(expr->type) << '\n';
+			imprime_arbre(expr->expression, os, tab + 1);
+			imprime_arbre(expr->expression_type, os, tab + 1);
+			break;
+		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
-		case GenreNoeud::EXPRESSION_COMME:
 		{
 			auto expr = static_cast<NoeudExpressionBinaire *>(racine);
 
@@ -512,12 +520,19 @@ NoeudExpression *copie_noeud(
 
 			break;
 		}
+		case GenreNoeud::EXPRESSION_COMME:
+		{
+			auto expr = racine->comme_comme();
+			auto nexpr = nracine->comme_comme();
+			nexpr->expression = copie_noeud(assem, expr->expression, bloc_parent);
+			nexpr->expression_type = copie_noeud(assem, expr->expression_type, bloc_parent);
+			break;
+		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
-		case GenreNoeud::EXPRESSION_COMME:
 		{
 			auto expr = static_cast<NoeudExpressionBinaire const *>(racine);
 			auto nexpr = static_cast<NoeudExpressionBinaire *>(nracine);
@@ -787,10 +802,18 @@ void aplatis_arbre(
 
 			break;
 		}
+		case GenreNoeud::EXPRESSION_COMME:
+		{
+			auto expr = racine->comme_comme();
+			expr->drapeaux |= drapeau;
+			aplatis_arbre(expr->expression, arbre_aplatis, drapeau);
+			aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau);
+			arbre_aplatis.pousse(expr);
+			break;
+		}
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
-		case GenreNoeud::EXPRESSION_COMME:
 		{
 			auto expr = static_cast<NoeudExpressionBinaire *>(racine);
 			expr->drapeaux |= drapeau;
@@ -1086,12 +1109,27 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 
 			break;
 		}
+		case GenreNoeud::EXPRESSION_COMME:
+		{
+			auto expr = racine->comme_comme();
+
+			auto etendue_enfant = calcule_etendue_noeud(expr->expression, fichier);
+
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			etendue_enfant = calcule_etendue_noeud(expr->expression_type, fichier);
+
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			break;
+		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
-		case GenreNoeud::EXPRESSION_COMME:
 		{
 			auto expr = static_cast<NoeudExpressionBinaire *>(racine);
 

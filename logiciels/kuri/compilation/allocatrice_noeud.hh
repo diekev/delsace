@@ -30,6 +30,7 @@
 
 struct AllocatriceNoeud {
 	tableau_page<NoeudExpression> m_noeuds_expression{};
+	tableau_page<NoeudComme> m_noeuds_comme{};
 	tableau_page<NoeudDeclarationVariable> m_noeuds_declaration_variable{};
 	tableau_page<NoeudExpressionReference> m_noeuds_expression_reference{};
 	tableau_page<NoeudExpressionUnaire> m_noeuds_expression_unaire{};

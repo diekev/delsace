@@ -169,8 +169,8 @@ private:
 	void genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecution *noeud);
 	AtomeFonction *genere_ri_pour_fonction_main();
 	Atome *genere_ri_pour_creation_contexte(AtomeFonction *fonction);
-	void genere_ri_pour_expression_droite(NoeudExpression *noeud);
-	void genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place);
+	void genere_ri_pour_expression_droite(NoeudExpression *noeud, Atome *place);
+	void genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place, TransformationType const &transformation);
 	void genere_ri_pour_discr(NoeudDiscr *noeud);
 	void genere_ri_pour_tente(NoeudTente *noeud);
 	void genere_ri_pour_boucle_pour(NoeudPour *noeud);

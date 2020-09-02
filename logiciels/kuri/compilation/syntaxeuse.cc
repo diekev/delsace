@@ -1287,9 +1287,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		{
 			consomme();
 
-			auto noeud = CREE_NOEUD(NoeudExpressionBinaire, GenreNoeud::EXPRESSION_COMME, lexeme);
-			noeud->expr1 = gauche;
-			noeud->expr2 = analyse_expression_primaire(GenreLexeme::COMME, GenreLexeme::INCONNU);
+			auto noeud = CREE_NOEUD(NoeudComme, GenreNoeud::EXPRESSION_COMME, lexeme);
+			noeud->expression = gauche;
+			noeud->expression_type = analyse_expression_primaire(GenreLexeme::COMME, GenreLexeme::INCONNU);
 			return noeud;
 		}
 		default:
