@@ -282,19 +282,22 @@ int main(int argc, char *argv[])
 
 		if (!compilatrice.possede_erreur && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
 			auto temps_ri = constructrice_ri.temps_generation + tacheronne.constructrice_ri.temps_generation;
-			auto memoire_ri = constructrice_ri.memoire_utilisee() + tacheronne.constructrice_ri.memoire_utilisee();
 
 			stats.temps_executable = tacheronne.temps_executable;
 			stats.temps_fichier_objet = tacheronne.temps_fichier_objet;
 			stats.temps_generation_code = tacheronne.temps_generation_code;
 			stats.temps_ri = temps_ri;
-			stats.memoire_ri = memoire_ri;
 			stats.temps_lexage = tacheronne.temps_lexage;
 			stats.temps_parsage = tacheronne.temps_parsage;
 			stats.temps_typage = tacheronne.temps_validation;
 			stats.temps_scene = tacheronne.temps_scene;
 
 			compilatrice.rassemble_statistiques(stats);
+
+			constructrice_ri.rassemble_statistiques(stats);
+			tacheronne.constructrice_ri.rassemble_statistiques(stats);
+
+			stats.memoire_ri = stats.stats_ri.totaux.memoire;
 		}
 
 		os << "Nettoyage..." << std::endl;

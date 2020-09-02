@@ -32,6 +32,7 @@
 #include "compilatrice.hh"
 #include "erreur.h"
 #include "outils_lexemes.hh"
+#include "statistiques.hh"
 
 #include "analyse.hh"
 #include "impression.hh"
@@ -116,68 +117,6 @@ void ConstructriceRI::imprime_programme(EspaceDeTravail *espace) const
 	POUR_TABLEAU_PAGE(espace->fonctions) {
 		imprime_fonction(&it, os);
 	}
-}
-
-
-long ConstructriceRI::memoire_utilisee() const
-{
-	auto memoire = 0l;
-
-	memoire += atomes_constante.memoire_utilisee();
-	memoire += insts_simples.memoire_utilisee();
-	memoire += insts_allocation.memoire_utilisee();
-	memoire += insts_appel.memoire_utilisee();
-	memoire += insts_branche.memoire_utilisee();
-	memoire += insts_branche_condition.memoire_utilisee();
-	memoire += insts_charge_memoire.memoire_utilisee();
-	memoire += insts_label.memoire_utilisee();
-	memoire += insts_opbinaire.memoire_utilisee();
-	memoire += insts_opunaire.memoire_utilisee();
-	memoire += insts_stocke_memoire.memoire_utilisee();
-	memoire += insts_retour.memoire_utilisee();
-	memoire += insts_accede_index.memoire_utilisee();
-	memoire += insts_accede_membre.memoire_utilisee();
-	memoire += insts_transtype.memoire_utilisee();
-	memoire += transtypes_constants.memoire_utilisee();
-	memoire += op_binaires_constants.memoire_utilisee();
-	memoire += op_unaires_constants.memoire_utilisee();
-	memoire += accede_index_constants.memoire_utilisee();
-
-	pour_chaque_element(insts_appel, [&](InstructionAppel const &it)
-	{
-		memoire += it.args.taille * taille_de(Atome *);
-	});
-
-#undef COMPTE_MEMOIRE
-
-#if 0
-#define NOMBRE_INSTRUCTIONS(Tableau) \
-	std::cerr << #Tableau << " : " << Tableau.taille() << '\n';
-
-	NOMBRE_INSTRUCTIONS(atomes_constante);
-	NOMBRE_INSTRUCTIONS(insts_simples);
-	NOMBRE_INSTRUCTIONS(insts_allocation);
-	NOMBRE_INSTRUCTIONS(insts_appel);
-	NOMBRE_INSTRUCTIONS(insts_branche);
-	NOMBRE_INSTRUCTIONS(insts_branche_condition);
-	NOMBRE_INSTRUCTIONS(insts_charge_memoire);
-	NOMBRE_INSTRUCTIONS(insts_label);
-	NOMBRE_INSTRUCTIONS(insts_opbinaire);
-	NOMBRE_INSTRUCTIONS(insts_opunaire);
-	NOMBRE_INSTRUCTIONS(insts_stocke_memoire);
-	NOMBRE_INSTRUCTIONS(insts_retour);
-	NOMBRE_INSTRUCTIONS(insts_accede_index);
-	NOMBRE_INSTRUCTIONS(insts_accede_membre);
-	NOMBRE_INSTRUCTIONS(insts_transtype);
-	NOMBRE_INSTRUCTIONS(transtypes_constants);
-	NOMBRE_INSTRUCTIONS(op_binaires_constants);
-	NOMBRE_INSTRUCTIONS(op_unaires_constants);
-	NOMBRE_INSTRUCTIONS(accede_index_constants);
-
-#undef NOMBRE_INSTRUCTIONS
-#endif
-
-	return memoire;
 }
 
 AtomeConstante *ConstructriceRI::cree_constante_entiere(Type *type, unsigned long long valeur)
@@ -4230,4 +4169,42 @@ Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction
 	assigne_membre(alloc_trace, trouve_index_membre(type_trace_appel, "info_appel"), alloc_info_appel);
 
 	return alloc_contexte;
+}
+
+void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
+{
+	auto &stats_ri = stats.stats_ri;
+
+#define AJOUTE_ENTREE(Tableau) \
+	stats_ri.fusionne_entree({ #Tableau, Tableau.taille(), Tableau.memoire_utilisee() });
+
+	AJOUTE_ENTREE(atomes_constante)
+	AJOUTE_ENTREE(insts_simples)
+	AJOUTE_ENTREE(insts_allocation)
+	AJOUTE_ENTREE(insts_branche)
+	AJOUTE_ENTREE(insts_branche_condition)
+	AJOUTE_ENTREE(insts_charge_memoire)
+	AJOUTE_ENTREE(insts_label)
+	AJOUTE_ENTREE(insts_opbinaire)
+	AJOUTE_ENTREE(insts_opunaire)
+	AJOUTE_ENTREE(insts_stocke_memoire)
+	AJOUTE_ENTREE(insts_retour)
+	AJOUTE_ENTREE(insts_accede_index)
+	AJOUTE_ENTREE(insts_accede_membre)
+	AJOUTE_ENTREE(insts_transtype)
+	AJOUTE_ENTREE(transtypes_constants)
+	AJOUTE_ENTREE(op_binaires_constants)
+	AJOUTE_ENTREE(op_unaires_constants)
+	AJOUTE_ENTREE(accede_index_constants)
+
+#undef AJOUTE_ENTREE
+
+	auto memoire = insts_appel.memoire_utilisee();
+
+	pour_chaque_element(insts_appel, [&](InstructionAppel const &it)
+	{
+		memoire += it.args.taille * taille_de(Atome *);
+	});
+
+	stats_ri.fusionne_entree({ "insts_appel", insts_appel.taille(), memoire });
 }

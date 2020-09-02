@@ -107,8 +107,6 @@ public:
 
 	void imprime_programme(EspaceDeTravail *espace) const;
 
-	long memoire_utilisee() const;
-
 	Compilatrice &compilatrice() const
 	{
 		return m_compilatrice;
@@ -116,6 +114,7 @@ public:
 
 	InstructionAllocation *cree_allocation(Type *type, IdentifiantCode *ident, bool cree_seulement = false);
 
+	void rassemble_statistiques(Statistiques &stats);
 
 private:
 	AtomeFonction *genere_fonction_init_globales_et_appel(const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
