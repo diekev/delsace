@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #if defined __cpp_concepts && __cpp_concepts >= 201507
@@ -37,7 +38,7 @@ concept TypeEntreesStats = requires(T a, T b)
 #endif
 
 struct EntreeNombreMemoire {
-    const char *nom = nullptr;
+    dls::chaine nom = "";
     long compte = 0;
     long memoire = 0;
 
@@ -50,7 +51,7 @@ struct EntreeNombreMemoire {
 };
 
 struct EntreeFichier {
-    const char *nom = nullptr;
+    dls::chaine nom = "";
     long memoire_lexemes = 0;
     long nombre_lexemes = 0;
     long nombre_lignes = 0;
@@ -82,6 +83,20 @@ struct EntreesStats {
     void ajoute_entree(T const &entree)
     {
         totaux += entree;
+        entrees.pousse(entree);
+    }
+
+    void fusionne_entree(T const &entree)
+    {
+        totaux += entree;
+
+        for (auto &e : entrees) {
+            if (e.nom == entree.nom) {
+                e += entree;
+                return;
+            }
+        }
+
         entrees.pousse(entree);
     }
 };
