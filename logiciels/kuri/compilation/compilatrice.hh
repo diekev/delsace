@@ -25,8 +25,6 @@
 #pragma once
 
 #include "biblinternes/moultfilage/synchrone.hh"
-#include "biblinternes/structures/ensemble.hh"
-#include "biblinternes/structures/liste.hh"
 
 #include "allocatrice_noeud.hh"
 #include "graphe_dependance.hh"
@@ -36,11 +34,7 @@
 #include "operateurs.hh"
 #include "options.hh"
 #include "tacheronne.hh"
-#include "typage.hh"
-#include "unite_compilation.hh"
 
-struct Metriques;
-struct OptionsCompilation;
 struct Statistiques;
 
 struct GeranteChaine {
