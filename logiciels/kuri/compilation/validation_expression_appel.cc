@@ -500,7 +500,7 @@ static auto apparie_appel_fonction(
 			auto nom_gabarit = paires_appariement_gabarit[0].first;
 
 			if (!type_gabarit) {
-				type_gabarit = apparie_type_gabarit(type_de_l_expression, arg->type);
+				type_gabarit = apparie_type_gabarit(espace.typeuse, type_de_l_expression, arg->type);
 
 				if (type_gabarit == nullptr) {
 					poids_args = 0.0;

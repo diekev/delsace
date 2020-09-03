@@ -1305,7 +1305,7 @@ bool est_type_conditionnable(Type *type)
 				GenreType::TABLEAU_DYNAMIQUE);
 }
 
-Type *apparie_type_gabarit(Type *type, Type *type_polymorphique)
+Type *apparie_type_gabarit(Typeuse &typeuse, Type *type, Type *type_polymorphique)
 {
 	Prof(apparie_type_gabarit);
 
@@ -1324,6 +1324,10 @@ Type *apparie_type_gabarit(Type *type, Type *type_polymorphique)
 		// À FAIRE : type tableau fixe
 		type_courant = type_dereference_pour(type_courant);
 		type_courant_poly = type_dereference_pour(type_courant_poly);
+	}
+
+	if (type_courant && type_courant->est_entier_constant()) {
+		return typeuse[TypeBase::Z32];
 	}
 
 	return type_courant;
