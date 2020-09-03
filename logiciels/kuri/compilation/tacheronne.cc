@@ -567,7 +567,7 @@ void Tacheronne::gere_tache()
 			}
 			case GenreTache::GENERE_FICHIER_OBJET:
 			{
-				coulisse_C_cree_fichier_objet(compilatrice, *tache.unite->espace, temps_generation_code, temps_fichier_objet);
+				coulisse_C_cree_fichier_objet(compilatrice, constructrice_ri, *tache.unite->espace, temps_generation_code, temps_fichier_objet);
 				tache_fut_completee = true;
 				break;
 			}

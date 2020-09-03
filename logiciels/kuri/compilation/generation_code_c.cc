@@ -1354,6 +1354,7 @@ static void rassemble_fonctions_utilisees(NoeudDependance *racine, EspaceDeTrava
 
 static void genere_code_C_depuis_fonction_principale(
 		Compilatrice &compilatrice,
+		ConstructriceRI &constructrice_ri,
 		EspaceDeTravail &espace,
 		std::ostream &fichier_sortie)
 {
@@ -1371,7 +1372,7 @@ static void genere_code_C_depuis_fonction_principale(
 
 	// nous devons générer la fonction main ici, car elle défini le type du tableau de
 	// stockage temporaire, et les typedefs pour les types sont générés avant les fonctions.
-	auto atome_main = compilatrice.constructrice_ri.genere_ri_pour_fonction_main(&espace);
+	auto atome_main = constructrice_ri.genere_ri_pour_fonction_main(&espace);
 
 	genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
@@ -1429,13 +1430,14 @@ static void genere_code_C_depuis_fonctions_racines(
 	enchaineuse.imprime_dans_flux(fichier_sortie);
 }
 
-void genere_code_C(
+static void genere_code_C(
 		Compilatrice &compilatrice,
+		ConstructriceRI &constructrice_ri,
 		EspaceDeTravail &espace,
 		std::ostream &fichier_sortie)
 {
 	if (espace.options.objet_genere == ObjetGenere::Executable) {
-		genere_code_C_depuis_fonction_principale(compilatrice, espace, fichier_sortie);
+		genere_code_C_depuis_fonction_principale(compilatrice, constructrice_ri, espace, fichier_sortie);
 	}
 	else {
 		genere_code_C_depuis_fonctions_racines(compilatrice, espace, fichier_sortie);
@@ -1523,6 +1525,7 @@ static dls::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, Opt
 
 bool coulisse_C_cree_fichier_objet(
 		Compilatrice &compilatrice,
+		ConstructriceRI &constructrice_ri,
 		EspaceDeTravail &espace,
 		double &temps_generation_code,
 		double &temps_fichier_objet)
@@ -1532,7 +1535,7 @@ bool coulisse_C_cree_fichier_objet(
 
 	std::cout << "Génération du code..." << std::endl;
 	auto debut_generation_code = dls::chrono::compte_seconde();
-	genere_code_C(compilatrice, espace, of);
+	genere_code_C(compilatrice, constructrice_ri, espace, of);
 	temps_generation_code = debut_generation_code.temps();
 
 	of.close();

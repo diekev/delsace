@@ -39,8 +39,6 @@
 #include "typage.hh"
 #include "unite_compilation.hh"
 
-#include "../representation_intermediaire/constructrice_ri.hh"
-
 struct Metriques;
 struct OptionsCompilation;
 struct Statistiques;
@@ -189,8 +187,6 @@ struct EspaceDeTravail {
 
 struct Compilatrice {
 	dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
-
-	ConstructriceRI constructrice_ri;
 
 	dls::outils::Synchrone<OrdonnanceuseTache> ordonnanceuse;
 

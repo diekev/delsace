@@ -285,8 +285,6 @@ int main(int argc, char *argv[])
 
 		compilatrice.racine_kuri = chemin_racine_kuri;
 
-		auto &constructrice_ri = compilatrice.constructrice_ri;
-
 		/* Charge d'abord le module basique. */
 		auto espace_defaut = compilatrice.demarre_un_espace_de_travail({}, "Espace 1");
 		compilatrice.espace_de_travail_defaut = espace_defaut;
@@ -331,7 +329,7 @@ int main(int argc, char *argv[])
 		std::filesystem::current_path(dossier_origine);
 
 		if (!compilatrice.possede_erreur && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
-			auto temps_ri = constructrice_ri.temps_generation + tacheronne.constructrice_ri.temps_generation;
+			auto temps_ri = tacheronne.constructrice_ri.temps_generation;
 
 			stats.temps_executable = tacheronne.temps_executable;
 			stats.temps_fichier_objet = tacheronne.temps_fichier_objet;
@@ -344,7 +342,6 @@ int main(int argc, char *argv[])
 
 			compilatrice.rassemble_statistiques(stats);
 
-			constructrice_ri.rassemble_statistiques(stats);
 			tacheronne.constructrice_ri.rassemble_statistiques(stats);
 
 			stats.memoire_ri = stats.stats_ri.totaux.memoire;

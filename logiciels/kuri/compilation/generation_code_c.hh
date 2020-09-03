@@ -25,10 +25,12 @@
 #pragma once
 
 struct Compilatrice;
+struct ConstructriceRI;
 struct EspaceDeTravail;
 
 bool coulisse_C_cree_fichier_objet(
 		Compilatrice &compilatrice,
+		ConstructriceRI &constructrice_ri,
 		EspaceDeTravail &espace,
 		double &temps_generation_code,
 		double &temps_fichier_objet);

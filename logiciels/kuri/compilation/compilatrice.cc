@@ -350,8 +350,7 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 static Compilatrice *ptr_compilatrice = nullptr;
 
 Compilatrice::Compilatrice()
-	: constructrice_ri(*this)
-	, ordonnanceuse(this)
+	: ordonnanceuse(this)
 {
 	this->bibliotheques_dynamiques->pousse("pthread");
 	this->definitions->pousse("_REENTRANT");
