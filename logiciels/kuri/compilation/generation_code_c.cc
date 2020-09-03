@@ -1550,7 +1550,6 @@ bool coulisse_C_cree_fichier_objet(
 	if (err != 0) {
 		std::cerr << "Ne peut pas créer le fichier objet !\n";
 		compilatrice.possede_erreur = true;
-		compilatrice.mv.stop = true;
 		return false;
 	}
 
@@ -1601,7 +1600,6 @@ bool coulisse_C_cree_executable(
 	if (err != 0) {
 		std::cerr << "Ne peut pas créer l'exécutable !\n";
 		compilatrice.possede_erreur = true;
-		compilatrice.mv.stop = true;
 		return false;
 	}
 

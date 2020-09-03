@@ -27,6 +27,7 @@
 #include "biblinternes/chrono/chronometrage.hh"
 
 #include "compilation/arbre_syntaxique.hh"
+#include "compilation/compilatrice.hh"
 #include "compilation/identifiant.hh"
 #include "compilation/broyage.hh"
 #include "compilation/structures.hh"
@@ -381,7 +382,8 @@ long GestionnaireBibliotheques::memoire_utilisee() const
 
 static constexpr auto TAILLE_PILE = 1024 * 1024;
 
-MachineVirtuelle::MachineVirtuelle()
+MachineVirtuelle::MachineVirtuelle(Compilatrice &compilatrice_)
+	: compilatrice(compilatrice_)
 {
 	gestionnaire_bibliotheques.ajoute_bibliotheque("/lib/x86_64-linux-gnu/libc.so.6");
 	gestionnaire_bibliotheques.ajoute_bibliotheque("/tmp/r16_tables_x64.so");
@@ -570,7 +572,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 		pointeur_pile = pointeur_arguments + taille_type_retour;
 	};
 
-	while (!stop) {
+	while (!compilatrice.possede_erreur) {
 #ifdef DEBOGUE_INTERPRETEUSE
 		auto &sortie = std::cerr;
 		imprime_tab(sortie, profondeur_appel);

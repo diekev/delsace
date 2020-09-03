@@ -554,16 +554,6 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 		it.rassemble_statistiques(stats);
 	}
 
-	auto memoire_mv = 0l;
-	memoire_mv += mv.globales.taille() * taille_de(Globale);
-	memoire_mv += mv.donnees_constantes.taille();
-	memoire_mv += mv.donnees_globales.taille();
-	memoire_mv += mv.patchs_donnees_constantes.taille() * taille_de(PatchDonneesConstantes);
-	memoire_mv += mv.gestionnaire_bibliotheques.memoire_utilisee();
-
-	stats.memoire_mv = memoire_mv;
-	stats.nombre_metaprogrammes_executes = mv.nombre_de_metaprogrammes_executes;
-	stats.temps_metaprogrammes = mv.temps_execution_metaprogammes;
 	stats.nombre_identifiants = table_identifiants->taille();
 }
 
@@ -648,7 +638,6 @@ void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chai
 	if (!std::filesystem::exists(chemin)) {
 		std::cerr << "Le fichier " << chemin << " n'existe pas !\n";
 		ptr_compilatrice->possede_erreur = true;
-		ptr_compilatrice->mv.stop = true;
 		return;
 	}
 

@@ -491,7 +491,7 @@ void Tacheronne::gere_tache()
 				auto unite = tache.unite;
 
 				if (unite->cycle > 10) {
-					compilatrice.mv.stop = true;
+					mv.stop = true;
 					compilatrice.possede_erreur = true;
 
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_SYMBOLE) {
@@ -865,7 +865,7 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 			auto atome_globale = espace->trouve_globale(decl_noeud);
 
 			if (atome_globale->index == -1) {
-				atome_globale->index = compilatrice.mv.ajoute_globale(decl_noeud->type, decl_noeud->ident);
+				atome_globale->index = mv.ajoute_globale(decl_noeud->type, decl_noeud->ident);
 			}
 
 			globales.pousse(atome_globale);
@@ -893,10 +893,10 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 	}
 
 	POUR (fonctions) {
-		genere_code_binaire_pour_fonction(it, &compilatrice.mv);
+		genere_code_binaire_pour_fonction(it, &mv);
 	}
 
-	auto res = compilatrice.mv.interprete(fonction);
+	auto res = mv.interprete(fonction);
 
 	if (res == MachineVirtuelle::ResultatInterpretation::ERREUR) {
 		// À FAIRE : erreur de compilation si une erreur d'exécution
@@ -905,7 +905,7 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 	}
 	else {
 		if (noeud->ident == ID::assert_) {
-			auto resultat = *reinterpret_cast<bool *>(compilatrice.mv.pointeur_pile);
+			auto resultat = *reinterpret_cast<bool *>(mv.pointeur_pile);
 
 			if (!resultat) {
 				// À FAIRE : erreur de compilation si une assertion échoue

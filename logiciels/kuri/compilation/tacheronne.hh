@@ -29,6 +29,7 @@
 #include "unite_compilation.hh"
 
 #include "../representation_intermediaire/constructrice_ri.hh"
+#include "../representation_intermediaire/machine_virtuelle.hh"
 
 struct Compilatrice;
 
@@ -118,6 +119,7 @@ struct Tacheronne {
 	Compilatrice &compilatrice;
 
 	ConstructriceRI constructrice_ri{compilatrice};
+	MachineVirtuelle mv{compilatrice};
 
 	double temps_validation = 0.0;
 	double temps_lexage = 0.0;

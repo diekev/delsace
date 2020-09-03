@@ -40,7 +40,6 @@
 #include "unite_compilation.hh"
 
 #include "../representation_intermediaire/constructrice_ri.hh"
-#include "../representation_intermediaire/machine_virtuelle.hh"
 
 struct Metriques;
 struct OptionsCompilation;
@@ -192,7 +191,6 @@ struct Compilatrice {
 	dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
 
 	ConstructriceRI constructrice_ri;
-	MachineVirtuelle mv{};
 
 	dls::outils::Synchrone<OrdonnanceuseTache> ordonnanceuse;
 

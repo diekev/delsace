@@ -168,7 +168,6 @@ void lance_tacheronne(Tacheronne *tacheronne)
 	catch (const erreur::frappe &e) {
 		std::cerr << e.message() << '\n';
 		tacheronne->compilatrice.possede_erreur = true;
-		tacheronne->compilatrice.mv.stop = true;
 	}
 }
 
@@ -180,7 +179,6 @@ void lance_tacheronne_metaprogramme(Tacheronne *tacheronne)
 	catch (const erreur::frappe &e) {
 		std::cerr << e.message() << '\n';
 		tacheronne->compilatrice.possede_erreur = true;
-		tacheronne->compilatrice.mv.stop = true;
 	}
 }
 
@@ -350,6 +348,17 @@ int main(int argc, char *argv[])
 			tacheronne.constructrice_ri.rassemble_statistiques(stats);
 
 			stats.memoire_ri = stats.stats_ri.totaux.memoire;
+
+			auto memoire_mv = 0l;
+			memoire_mv += tacheronne_mp.mv.globales.taille() * taille_de(Globale);
+			memoire_mv += tacheronne_mp.mv.donnees_constantes.taille();
+			memoire_mv += tacheronne_mp.mv.donnees_globales.taille();
+			memoire_mv += tacheronne_mp.mv.patchs_donnees_constantes.taille() * taille_de(PatchDonneesConstantes);
+			memoire_mv += tacheronne_mp.mv.gestionnaire_bibliotheques.memoire_utilisee();
+
+			stats.memoire_mv = memoire_mv;
+			stats.nombre_metaprogrammes_executes = tacheronne_mp.mv.nombre_de_metaprogrammes_executes;
+			stats.temps_metaprogrammes = tacheronne_mp.mv.temps_execution_metaprogammes;
 		}
 
 		os << "Nettoyage..." << std::endl;

@@ -29,6 +29,7 @@
 #include "biblinternes/systeme_fichier/shared_library.h"
 
 struct AtomeFonction;
+struct Compilatrice;
 struct TypeFonction;
 
 struct GestionnaireBibliotheques {
@@ -80,6 +81,7 @@ struct PatchDonneesConstantes {
 std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch);
 
 struct MachineVirtuelle {
+	Compilatrice &compilatrice;
 	dls::tableau<Globale> globales{};
 	dls::tableau<unsigned char> donnees_globales{};
 
@@ -106,7 +108,7 @@ struct MachineVirtuelle {
 		ERREUR,
 	};
 
-	MachineVirtuelle();
+	MachineVirtuelle(Compilatrice &compilatrice_);
 	~MachineVirtuelle();
 
 	COPIE_CONSTRUCT(MachineVirtuelle);
