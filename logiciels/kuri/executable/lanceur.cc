@@ -30,7 +30,6 @@
 
 #include <thread>
 
-#include "compilation/assembleuse_arbre.h"
 #include "compilation/compilatrice.hh"
 #include "compilation/environnement.hh"
 #include "compilation/erreur.h"
@@ -234,6 +233,39 @@ static void imprime_stats_detaillee(Statistiques &stats)
 	imprime_stats_fichier(stats.stats_fichiers);
 }
 
+#if 0
+static void valide_blocs_modules(EspaceDeTravail const &espace)
+{
+	POUR_TABLEAU_PAGE (espace.graphe_dependance->noeuds) {
+		if (it.type != TypeNoeudDependance::FONCTION) {
+			continue;
+		}
+
+		auto noeud = it.noeud_syntaxique;
+
+		auto fichier = espace.fichier(noeud->lexeme->fichier);
+		auto module = fichier->module;
+
+		auto bloc = noeud->bloc_parent;
+
+		while (bloc->bloc_parent) {
+			bloc = bloc->bloc_parent;
+		}
+
+		if (module->bloc != bloc) {
+			std::cerr << "Une fonction n'est pas le bon bloc parent !\n";
+		}
+	}
+}
+
+static void valide_blocs_modules(Compilatrice &compilatrice)
+{
+	POUR_TABLEAU_PAGE ((*compilatrice.espaces_de_travail.verrou_lecture())) {
+		valide_blocs_modules(it);
+	}
+}
+#endif
+
 int main(int argc, char *argv[])
 {
 	Prof(main);
@@ -343,6 +375,7 @@ int main(int argc, char *argv[])
 			compilatrice.rassemble_statistiques(stats);
 
 			tacheronne.constructrice_ri.rassemble_statistiques(stats);
+			tacheronne.allocatrice_noeud.rassemble_statistiques(stats);
 
 			stats.memoire_ri = stats.stats_ri.totaux.memoire;
 

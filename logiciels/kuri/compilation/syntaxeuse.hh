@@ -35,6 +35,7 @@ struct Compilatrice;
 struct Fichier;
 struct NoeudBloc;
 struct NoeudExpression;
+struct Tacheronne;
 
 enum class GenreNoeud : char;
 
@@ -51,6 +52,7 @@ struct DonneesPrecedence {
 struct Syntaxeuse {
 private:
 	Compilatrice &m_compilatrice;
+	Tacheronne &m_tacheronne;
 	Fichier *m_fichier = nullptr;
 	UniteCompilation *m_unite = nullptr;
 	dls::tableau<Lexeme> &m_lexemes;
@@ -77,6 +79,7 @@ private:
 
 public:
 	Syntaxeuse(Compilatrice &compilatrice,
+			   Tacheronne &tacheronne,
 			   Fichier *fichier,
 			   UniteCompilation *unite,
 			   dls::chaine const &racine_kuri);

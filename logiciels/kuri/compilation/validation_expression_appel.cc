@@ -663,7 +663,7 @@ static auto apparie_appel_fonction(
 			/* Pour les fonctions variadiques interne, nous créons un tableau
 			 * correspondant au types des arguments. */
 			static Lexeme lexeme_tableau = { "", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(espace.assembleuse->cree_noeud(
+			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(contexte.m_tacheronne.assembleuse->cree_noeud(
 						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, &lexeme_tableau));
 
 			noeud_tableau->type = type_donnees_argument_variadique;
@@ -927,6 +927,7 @@ static auto trouve_candidates_pour_appel(
 /* ************************************************************************** */
 
 static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue_ou_crees_en_une(
+		Tacheronne &tacheronne,
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
 		NoeudDeclarationEnteteFonction *decl,
@@ -953,7 +954,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 		return { it.second, false };
 	}
 
-	auto noeud_decl = static_cast<NoeudDeclarationEnteteFonction *>(copie_noeud(espace.assembleuse, decl, decl->bloc_parent));
+	auto noeud_decl = static_cast<NoeudDeclarationEnteteFonction *>(copie_noeud(tacheronne.assembleuse, decl, decl->bloc_parent));
 	noeud_decl->est_instantiation_gabarit = true;
 	noeud_decl->paires_expansion_gabarit = paires;
 
@@ -1077,7 +1078,7 @@ bool valide_appel_fonction(
 		/* ---------------------- */
 
 		if (!candidate->paires_expansion_gabarit.est_vide()) {
-			auto [noeud_decl, doit_epandre] = trouve_fonction_epandue_ou_crees_en_une(compilatrice, espace, decl_fonction_appelee, std::move(candidate->paires_expansion_gabarit));
+			auto [noeud_decl, doit_epandre] = trouve_fonction_epandue_ou_crees_en_une(contexte.m_tacheronne, compilatrice, espace, decl_fonction_appelee, std::move(candidate->paires_expansion_gabarit));
 
 			if (doit_epandre || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 				contexte.unite->attend_sur_declaration(noeud_decl);

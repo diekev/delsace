@@ -29,6 +29,7 @@
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/structures/file.hh"
 
+#include "assembleuse_arbre.h"
 #include "compilatrice.hh"
 #include "generation_code_c.hh"
 #include "generation_code_llvm.hh"
@@ -434,8 +435,14 @@ long OrdonnanceuseTache::memoire_utilisee() const
 
 Tacheronne::Tacheronne(Compilatrice &comp)
 	: compilatrice(comp)
+	, assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", this->allocatrice_noeud))
 	, id(id_tacheronne++)
 {}
+
+Tacheronne::~Tacheronne()
+{
+	memoire::deloge("AssembleuseArbre", assembleuse);
+}
 
 void Tacheronne::gere_tache()
 {
@@ -480,7 +487,7 @@ void Tacheronne::gere_tache()
 			{
 				auto unite = tache.unite;
 				auto debut_parsage = dls::chrono::compte_seconde();
-				auto syntaxeuse = Syntaxeuse(compilatrice, unite->fichier, unite, compilatrice.racine_kuri);
+				auto syntaxeuse = Syntaxeuse(compilatrice, *this, unite->fichier, unite, compilatrice.racine_kuri);
 				syntaxeuse.lance_analyse();
 				temps_parsage += debut_parsage.temps();
 				tache_fut_completee = true;
@@ -650,7 +657,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 	switch (unite->etat()) {
 		case UniteCompilation::Etat::PRETE:
 		{
-			auto contexte = ContexteValidationCode(compilatrice, *unite);
+			auto contexte = ContexteValidationCode(compilatrice, *this, *unite);
 
 			switch (unite->noeud->genre) {
 				case GenreNoeud::DECLARATION_ENTETE_FONCTION:

@@ -26,7 +26,6 @@
 
 #include "biblinternes/moultfilage/synchrone.hh"
 
-#include "allocatrice_noeud.hh"
 #include "graphe_dependance.hh"
 #include "identifiant.hh"
 #include "message.hh"
@@ -81,12 +80,6 @@ struct InterfaceKuri {
 struct EspaceDeTravail {
 	dls::chaine nom{};
 	OptionsCompilation options{};
-
-	// À FAIRE : ceci devrait être déplacé dans les tacheronnes quand nous en aurons plus d'une
-	AllocatriceNoeud allocatrice_noeud{};
-
-	/* À FAIRE : supprime ceci */
-	AssembleuseArbre *assembleuse = nullptr;
 
 	template <typename T>
 	using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;

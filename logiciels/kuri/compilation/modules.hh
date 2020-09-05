@@ -32,7 +32,6 @@
 #include "transformation_type.hh"
 #include "typage.hh"
 
-struct AssembleuseArbre;
 struct Compilatrice;
 struct IdentifiantCode;
 struct Module;
@@ -71,8 +70,6 @@ struct Fichier {
 };
 
 struct Module {
-	/* utilisation d'un pointeur à cause de dépendances cycliques entre les entêtes */
-	AssembleuseArbre *assembleuse{};
 	NoeudBloc *bloc = nullptr;
 
 	dls::tablet<Fichier *, 16> fichiers{};
@@ -81,12 +78,6 @@ struct Module {
 	dls::chaine nom{""};
 	dls::chaine chemin{""};
 	bool importe = false;
-
-	Module(EspaceDeTravail const &espace);
-
-	~Module();
-
-	COPIE_CONSTRUCT(Module);
 };
 
 /* ************************************************************************** */

@@ -30,7 +30,6 @@
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/flux/outils.h"
 
-#include "assembleuse_arbre.h"
 #include "erreur.h"
 #include "lexeuse.hh"
 #include "modules.hh"
@@ -40,7 +39,6 @@
 
 EspaceDeTravail::EspaceDeTravail(OptionsCompilation opts)
 	: options(opts)
-	, assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", *this))
 	, typeuse(graphe_dependance, this->operateurs)
 {
 	auto ops = operateurs.verrou_ecriture();
@@ -49,7 +47,6 @@ EspaceDeTravail::EspaceDeTravail(OptionsCompilation opts)
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-	memoire::deloge("AssembleuseArbre", assembleuse);
 }
 
 Module *EspaceDeTravail::cree_module(dls::chaine const &nom_module, dls::chaine const &chemin)
@@ -68,7 +65,7 @@ Module *EspaceDeTravail::cree_module(dls::chaine const &nom_module, dls::chaine 
 		}
 	}
 
-	auto module = modules_->ajoute_element(*this);
+	auto module = modules_->ajoute_element();
 	module->id = static_cast<size_t>(modules_->taille() - 1);
 	module->nom = nom_module;
 	module->chemin = chemin_corrige;
@@ -322,7 +319,6 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 {
 	stats.nombre_modules += modules->taille();
 
-	allocatrice_noeud.rassemble_statistiques(stats);
 	operateurs->rassemble_statistiques(stats);
 	graphe_dependance->rassemble_statistiques(stats);
 	typeuse.rassemble_statistiques(stats);

@@ -24,7 +24,6 @@
 
 #include "modules.hh"
 
-#include "assembleuse_arbre.h"
 #include "erreur.h"
 #include "portee.hh"
 
@@ -33,18 +32,6 @@
 bool Fichier::importe_module(dls::vue_chaine_compacte const &nom_module) const
 {
 	return modules_importes.possede(nom_module);
-}
-
-Module::Module(const EspaceDeTravail &espace)
-	: assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", const_cast<EspaceDeTravail &>(espace)))
-	, bloc(assembleuse->bloc_courant())
-{
-	assert(bloc != nullptr);
-}
-
-Module::~Module()
-{
-	memoire::deloge("AssembleuseArbre", assembleuse);
 }
 
 /* ************************************************************************** */

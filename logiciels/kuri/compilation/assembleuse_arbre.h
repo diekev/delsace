@@ -45,12 +45,16 @@ private:
 	dls::pile<NoeudBloc *> m_blocs{};
 
 public:
-	explicit AssembleuseArbre(EspaceDeTravail &espace);
+	explicit AssembleuseArbre(AllocatriceNoeud &allocatrice);
 	~AssembleuseArbre() = default;
 
 	NoeudBloc *empile_bloc();
 
 	NoeudBloc *bloc_courant() const;
+
+	void bloc_courant(NoeudBloc *bloc);
+
+	void depile_tout();
 
 	void depile_bloc();
 

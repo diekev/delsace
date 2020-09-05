@@ -319,17 +319,19 @@ static Associativite associativite_pour_operateur(GenreLexeme genre_operateur)
 	}
 }
 
-#define CREE_NOEUD(Type, Genre, Lexeme) static_cast<Type *>(m_fichier->module->assembleuse->cree_noeud(Genre, Lexeme))
+#define CREE_NOEUD(Type, Genre, Lexeme) static_cast<Type *>(m_tacheronne.assembleuse->cree_noeud(Genre, Lexeme))
 
 // sans transtypage pour éviter les erreurs de compilations avec drapeaux stricts
-#define CREE_NOEUD_EXPRESSION(Genre, Lexeme) m_fichier->module->assembleuse->cree_noeud(Genre, Lexeme)
+#define CREE_NOEUD_EXPRESSION(Genre, Lexeme) m_tacheronne.assembleuse->cree_noeud(Genre, Lexeme)
 
 Syntaxeuse::Syntaxeuse(
 		Compilatrice &compilatrice,
+		Tacheronne &tacheronne,
 		Fichier *fichier,
 		UniteCompilation *unite,
 		const dls::chaine &racine_kuri)
 	: m_compilatrice(compilatrice)
+	, m_tacheronne(tacheronne)
 	, m_fichier(fichier)
 	, m_unite(unite)
 	, m_lexemes(fichier->lexemes)
@@ -337,6 +339,18 @@ Syntaxeuse::Syntaxeuse(
 {
 	if (m_lexemes.taille() > 0) {
 		m_lexeme_courant = &m_lexemes[m_position];
+	}
+
+	auto module = fichier->module;
+
+	m_tacheronne.assembleuse->depile_tout();
+
+	// @concurrence critique
+	if (module->bloc == nullptr) {
+		module->bloc = m_tacheronne.assembleuse->empile_bloc();
+	}
+	else {
+		m_tacheronne.assembleuse->bloc_courant(module->bloc);
 	}
 }
 
@@ -397,9 +411,9 @@ void Syntaxeuse::lance_analyse()
 			consomme();
 		}
 		else if (apparie_expression()) {
-			auto nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
+			auto nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 			auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
-			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
+			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 
 			// noeud peut-être nul si nous avons une directive
 			if (noeud != nullptr) {
@@ -440,6 +454,8 @@ void Syntaxeuse::lance_analyse()
 	}
 
 	m_fichier->temps_analyse += m_chrono_analyse.arrete();
+
+	m_tacheronne.assembleuse->depile_tout();
 }
 
 Lexeme Syntaxeuse::consomme()
@@ -1408,7 +1424,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc()
 
 	consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{'");
 
-	auto bloc = m_fichier->module->assembleuse->empile_bloc();
+	auto bloc = m_tacheronne.assembleuse->empile_bloc();
 	auto expressions = dls::tablet<NoeudExpression *, 32>();
 
 	while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
@@ -1443,7 +1459,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc()
 	}
 
 	copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
-	m_fichier->module->assembleuse->depile_bloc();
+	m_tacheronne.assembleuse->depile_bloc();
 
 	consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}'");
 
@@ -1669,20 +1685,20 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 		 */
 
 		if (apparie(GenreLexeme::SI)) {
-			noeud->bloc_si_faux = m_fichier->module->assembleuse->empile_bloc();
+			noeud->bloc_si_faux = m_tacheronne.assembleuse->empile_bloc();
 
 			auto noeud_si = analyse_instruction_si(GenreNoeud::INSTRUCTION_SI);
 			noeud->bloc_si_faux->expressions->pousse(noeud_si);
 
-			m_fichier->module->assembleuse->depile_bloc();
+			m_tacheronne.assembleuse->depile_bloc();
 		}
 		else if (apparie(GenreLexeme::SAUFSI)) {
-			noeud->bloc_si_faux = m_fichier->module->assembleuse->empile_bloc();
+			noeud->bloc_si_faux = m_tacheronne.assembleuse->empile_bloc();
 
 			auto noeud_saufsi = analyse_instruction_si(GenreNoeud::INSTRUCTION_SAUFSI);
 			noeud->bloc_si_faux->expressions->pousse(noeud_saufsi);
 
-			m_fichier->module->assembleuse->depile_bloc();
+			m_tacheronne.assembleuse->depile_bloc();
 		}
 		else {
 			noeud->bloc_si_faux = analyse_bloc();
@@ -1757,7 +1773,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 
 	consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 
-	auto bloc = m_fichier->module->assembleuse->empile_bloc();
+	auto bloc = m_tacheronne.assembleuse->empile_bloc();
 
 	auto expressions = dls::tablet<NoeudExpression *, 16>();
 
@@ -1785,7 +1801,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 
 	copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 
-	m_fichier->module->assembleuse->depile_bloc();
+	m_tacheronne.assembleuse->depile_bloc();
 	noeud_decl->bloc = bloc;
 
 	consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
@@ -1811,7 +1827,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 	/* analyse les paramètres de la fonction */
 	auto params = dls::tablet<NoeudDeclaration *, 16>();
-	auto nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
+	auto nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 
 	while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
 		auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
@@ -1834,7 +1850,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		consomme();
 	}
 
-	nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
+	nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 	noeud->arbre_aplatis.reserve(nombre_noeuds_alloues);
 
 	copie_tablet_tableau(params, noeud->params);
@@ -1852,9 +1868,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		consomme();
 
 		while (true) {
-			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
+			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 			auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
-			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
+			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 			noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
 			noeud->params_sorties.pousse(type_declare);
 			aplatis_arbre(type_declare, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
@@ -1881,9 +1897,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			while (true) {
 				noeud->noms_retours.pousse("__ret" + dls::vers_chaine(noeud->noms_retours.taille));
 
-				nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
+				nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 				auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
-				nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
+				nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 				noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
 				noeud->params_sorties.pousse(type_declare);
 				aplatis_arbre(type_declare, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
@@ -1968,8 +1984,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			}
 
 			/* ajoute un bloc même pour les fonctions externes, afin de stocker les paramètres */
-			noeud->corps->bloc = m_fichier->module->assembleuse->empile_bloc();
-			m_fichier->module->assembleuse->depile_bloc();
+			noeud->corps->bloc = m_tacheronne.assembleuse->empile_bloc();
+			m_tacheronne.assembleuse->depile_bloc();
 		}
 		else {
 			/* ignore les points-virgules implicites */
@@ -1979,9 +1995,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 			auto noeud_corps = noeud->corps;
 
-			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
+			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 			noeud_corps->bloc = analyse_bloc();
-			nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
+			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 
 			/* À FAIRE : quand nous aurons des fonctions dans des fonctions, il
 			 * faudra soustraire le nombre de noeuds des fonctions enfants. Il
@@ -2034,7 +2050,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 	/* analyse les paramètres de la fonction */
 	auto params = dls::tablet<NoeudDeclaration *, 16>();
-	auto nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds();
+	auto nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 
 	while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
 		auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
@@ -2080,7 +2096,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		}
 	}
 
-	nombre_noeuds_alloues = m_unite->espace->allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
+	nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 	noeud->arbre_aplatis.reserve(nombre_noeuds_alloues);
 
 	POUR (noeud->params) {
@@ -2211,7 +2227,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 	}
 
 	if (analyse_membres) {
-		auto bloc = m_fichier->module->assembleuse->empile_bloc();
+		auto bloc = m_tacheronne.assembleuse->empile_bloc();
 		consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
 		auto expressions = dls::tablet<NoeudExpression *, 16>();
@@ -2249,7 +2265,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 		consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de la structure");
 
-		m_fichier->module->assembleuse->depile_bloc();
+		m_tacheronne.assembleuse->depile_bloc();
 		noeud_decl->bloc = bloc;
 	}
 

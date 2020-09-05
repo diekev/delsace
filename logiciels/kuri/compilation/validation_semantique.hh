@@ -39,6 +39,7 @@ enum class Genre : int;
 
 struct ContexteValidationCode {
 	Compilatrice &m_compilatrice;
+	Tacheronne &m_tacheronne;
 	NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
 
 	/* Les données des dépendances d'un noeud syntaxique. */
@@ -50,7 +51,7 @@ struct ContexteValidationCode {
 	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
 	dls::tableau<paire_union_membre> membres_actifs{};
 
-	ContexteValidationCode(Compilatrice &compilatrice, UniteCompilation &unite);
+	ContexteValidationCode(Compilatrice &compilatrice, Tacheronne &tacheronne, UniteCompilation &unite);
 
 	COPIE_CONSTRUCT(ContexteValidationCode);
 

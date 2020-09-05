@@ -58,10 +58,9 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		Lexeuse lexeuse(compilatrice, fichier);
 		lexeuse.performe_lexage();
 
-		auto assembleuse = AssembleuseArbre(*espace);
-		espace->assembleuse = &assembleuse;
+		auto tacheronne = Tacheronne(compilatrice);
 		auto unite = UniteCompilation(espace);
-		auto analyseuse = Syntaxeuse(compilatrice, fichier, &unite, "");
+		auto analyseuse = Syntaxeuse(compilatrice, tacheronne, fichier, &unite, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse();
@@ -476,15 +475,14 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	}
 
 	try {
-		auto compilatrice = Compilatrice{};
+		auto compilatrice = Compilatrice{};		
+		auto tacheronne = Tacheronne(compilatrice);
 		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
 		auto fichier = espace->cree_fichier("", "", true);
 		fichier->tampon = lng::tampon_source("texte_test");
 		fichier->lexemes = lexemes;
-		auto assembleuse = AssembleuseArbre(*espace);
-		espace->assembleuse = &assembleuse;
 		auto unite = UniteCompilation(espace);
-		auto analyseuse = Syntaxeuse(compilatrice, fichier, &unite, "");
+		auto analyseuse = Syntaxeuse(compilatrice, tacheronne, fichier, &unite, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse();

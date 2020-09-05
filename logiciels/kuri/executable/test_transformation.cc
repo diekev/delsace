@@ -23,6 +23,7 @@
  */
 
 #include "compilation/compilatrice.hh"
+#include "compilation/tacheronne.hh"
 #include "compilation/typage.hh"
 #include "compilation/validation_semantique.hh"
 
@@ -38,8 +39,9 @@ static void verifie_transformation(
 		bool est_possible)
 {
 	auto unite = UniteCompilation(espace);
+	auto tacheronne = Tacheronne(compilatrice);
 
-	auto contexte = ContexteValidationCode(compilatrice, unite);
+	auto contexte = ContexteValidationCode(compilatrice, tacheronne, unite);
 	auto transformation = TransformationType();
 
 	if (cherche_transformation(*espace, contexte, type1, type2, transformation)) {

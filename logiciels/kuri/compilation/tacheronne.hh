@@ -26,6 +26,7 @@
 
 #include "biblinternes/structures/file.hh"
 
+#include "allocatrice_noeud.hh"
 #include "unite_compilation.hh"
 
 #include "../representation_intermediaire/constructrice_ri.hh"
@@ -121,6 +122,9 @@ struct Tacheronne {
 	ConstructriceRI constructrice_ri{compilatrice};
 	MachineVirtuelle mv{compilatrice};
 
+	AllocatriceNoeud allocatrice_noeud{};
+	AssembleuseArbre *assembleuse = nullptr;
+
 	double temps_validation = 0.0;
 	double temps_lexage = 0.0;
 	double temps_parsage = 0.0;	
@@ -132,6 +136,10 @@ struct Tacheronne {
 	int id = 0;
 
 	Tacheronne(Compilatrice &comp);
+
+	~Tacheronne();
+
+	COPIE_CONSTRUCT(Tacheronne);
 
 	void gere_tache();
 	void gere_tache_metaprogramme();

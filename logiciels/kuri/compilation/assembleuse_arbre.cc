@@ -24,12 +24,11 @@
 
 #include "assembleuse_arbre.h"
 
-#include "compilatrice.hh"
+#include "allocatrice_noeud.hh"
 
-AssembleuseArbre::AssembleuseArbre(EspaceDeTravail &espace)
-	: m_allocatrice_noeud(espace.allocatrice_noeud)
+AssembleuseArbre::AssembleuseArbre(AllocatriceNoeud &allocatrice)
+	: m_allocatrice_noeud(allocatrice)
 {
-	this->empile_bloc();
 }
 
 NoeudBloc *AssembleuseArbre::empile_bloc()
@@ -49,6 +48,16 @@ NoeudBloc *AssembleuseArbre::bloc_courant() const
 	}
 
 	return m_blocs.haut();
+}
+
+void AssembleuseArbre::bloc_courant(NoeudBloc *bloc)
+{
+	m_blocs.empile(bloc);
+}
+
+void AssembleuseArbre::depile_tout()
+{
+	m_blocs.efface();
 }
 
 void AssembleuseArbre::depile_bloc()
