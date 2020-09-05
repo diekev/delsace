@@ -25,14 +25,14 @@
 #pragma once
 
 #include "biblinternes/langage/tampon_source.hh"
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/ensemblon.hh"
 #include "biblinternes/structures/tablet.hh"
 
-#include "structures.hh"
-#include "transformation_type.hh"
-#include "typage.hh"
+#include "lexemes.hh"
 
 struct Compilatrice;
+struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Module;
 struct NoeudBloc;

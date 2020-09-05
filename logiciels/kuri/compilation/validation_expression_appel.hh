@@ -24,15 +24,18 @@
 
 #pragma once
 
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/tablet.hh"
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
-#include "compilatrice.hh"
-#include "structures.hh"
+#include "transformation_type.hh"
 
+struct Compilatrice;
 struct ContexteValidationCode;
-struct NoeudExpression;
+struct EspaceDeTravail;
+struct IdentifiantCode;
+struct NoeudDeclaration;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
 struct Type;

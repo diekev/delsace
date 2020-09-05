@@ -24,10 +24,10 @@
 
 #include "graphe_dependance.hh"
 
-#include "compilatrice.hh"
-#include "modules.hh"
+#include "arbre_syntaxique.hh"
 #include "profilage.hh"
 #include "statistiques.hh"
+#include "typage.hh"
 
 const char *chaine_type_relation(TypeRelation type)
 {

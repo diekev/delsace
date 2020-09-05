@@ -24,12 +24,9 @@
 
 #include "validation_expression_appel.hh"
 
-#include "biblinternes/outils/conditions.h"
-
 #include "assembleuse_arbre.h"
-#include "arbre_syntaxique.hh"
+#include "compilatrice.hh"
 #include "erreur.h"
-#include "modules.hh"
 #include "portee.hh"
 #include "profilage.hh"
 #include "validation_semantique.hh"

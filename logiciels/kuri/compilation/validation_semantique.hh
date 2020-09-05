@@ -25,13 +25,20 @@
 #pragma once
 
 #include "graphe_dependance.hh"
-
+#include "structures.hh"
 #include "validation_expression_appel.hh"
 
 struct Compilatrice;
-struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationCorpsFonction;
+struct NoeudDeclarationEnteteFonction;
+struct NoeudEnum;
 struct NoeudExpression;
+struct NoeudExpressionMembre;
+struct NoeudStruct;
+struct Tacheronne;
+struct TypeCompose;
+struct TypeTableauFixe;
+struct UniteCompilation;
 
 namespace erreur {
 enum class Genre : int;

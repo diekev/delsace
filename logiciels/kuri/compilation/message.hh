@@ -25,10 +25,8 @@
 #pragma once
 
 #include "biblinternes/structures/file.hh"
-#include "biblinternes/structures/tableau_page.hh"
 
 #include "noeud_code.hh"
-#include "structures.hh"
 
 struct EspaceDeTravail;
 struct Module;

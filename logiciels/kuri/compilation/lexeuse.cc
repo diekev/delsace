@@ -30,9 +30,11 @@
 
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "empreinte_parfaite.hh"
-#include "profilage.hh"
+#include "compilatrice.hh"
 #include "erreur.h"
+#include "empreinte_parfaite.hh"
+#include "identifiant.hh"
+#include "profilage.hh"
 
 /**
  * Idées pour des optimisations :

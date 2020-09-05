@@ -35,7 +35,10 @@ struct Compilatrice;
 struct Fichier;
 struct NoeudBloc;
 struct NoeudExpression;
+struct NoeudExpressionLogement;
+struct NoeudExpressionVirgule;
 struct Tacheronne;
+struct UniteCompilation;
 
 enum class GenreNoeud : char;
 

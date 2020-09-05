@@ -26,14 +26,15 @@
 
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/ensemblon.hh"
 #include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
-#include "arbre_syntaxique.hh"
-
+struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationVariable;
+struct NoeudExpression;
 struct Statistiques;
+struct Type;
 
 /**
  * GrapheDependance de dépendance entre les fonctions et les types.

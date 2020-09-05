@@ -24,7 +24,7 @@
 
 #include "modules.hh"
 
-#include "erreur.h"
+#include "compilatrice.hh"
 #include "portee.hh"
 
 /* ************************************************************************** */

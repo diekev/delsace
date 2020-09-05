@@ -28,12 +28,14 @@
 
 #include "biblinternes/langage/erreur.hh"
 
+#include "structures.hh"
 #include "validation_expression_appel.hh"
 
 struct EspaceDeTravail;
 struct Lexeme;
 struct NoeudExpression;
 struct Type;
+struct TypeCompose;
 
 namespace erreur {
 

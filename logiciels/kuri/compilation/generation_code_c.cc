@@ -31,8 +31,10 @@
 #include "biblinternes/outils/numerique.hh"
 
 #include "broyage.hh"
+#include "compilatrice.hh"
 #include "environnement.hh"
 #include "erreur.h"
+#include "typage.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
 

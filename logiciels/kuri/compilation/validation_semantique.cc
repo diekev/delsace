@@ -30,10 +30,12 @@
 #include "arbre_syntaxique.hh"
 #include "assembleuse_arbre.h"
 #include "broyage.hh"
+#include "compilatrice.hh"
 #include "erreur.h"
 #include "outils_lexemes.hh"
 #include "profilage.hh"
 #include "portee.hh"
+#include "tacheronne.hh"
 #include "validation_expression_appel.hh"
 
 using dls::outils::possede_drapeau;
