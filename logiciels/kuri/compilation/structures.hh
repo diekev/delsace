@@ -210,6 +210,13 @@ struct tableau {
 		this->pointeur[this->taille - 1] = valeur;
 	}
 
+	void pousse(T &&valeur)
+	{
+		reserve(this->taille + 1);
+		this->taille += 1;
+		this->pointeur[this->taille - 1] = std::move(valeur);
+	}
+
 	void pousse_front(T const &valeur)
 	{
 		reserve(this->taille + 1);

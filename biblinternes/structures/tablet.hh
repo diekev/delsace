@@ -328,12 +328,19 @@ public:
 		m_taille = 0;
 	}
 
-	void pousse(T t)
-	{
-		assert(m_taille < std::numeric_limits<long>::max());
-		garantie_capacite(m_taille + 1);
-		m_memoire[m_taille++] = t;
-	}
+    void pousse(T const &t)
+    {
+        assert(m_taille < std::numeric_limits<long>::max());
+        garantie_capacite(m_taille + 1);
+        m_memoire[m_taille++] = t;
+    }
+
+    void pousse(T &&t)
+    {
+        assert(m_taille < std::numeric_limits<long>::max());
+        garantie_capacite(m_taille + 1);
+        m_memoire[m_taille++] = std::move(t);
+    }
 
 	bool est_vide() const
 	{
@@ -523,7 +530,7 @@ private:
 	}
 
 	void supprime_donnees()
-	{
+    {
 		if (m_memoire != m_tablet) {
 			memoire::deloge_tableau("tablet", m_memoire, m_alloue);
 			m_memoire = m_tablet;
