@@ -385,7 +385,9 @@ implémente la directive #si pour la compilation sélective
 - ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés (pour permettre les emplois d'énumérations)
 - ajout des informations de positions dans le code source pour la RI
 - utilise un noeud de déclaration de variable quand nous parsons une variable (a : z32) au lieu de modifier l'expression à la fin (nous permettant de supprimer expression_type du noeud de base)
-
+- vérifie les appels superflux à empile_valeur (expr appel, transforme valeur)
+- considère supprimer noeud_expression_appel::noeud_déclaration_appel (surécris appele?)
+- marque les fonctions d'initialisations comme enlignée
 
 À faire (architecture)
 ----------------------
