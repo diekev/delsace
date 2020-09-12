@@ -1181,7 +1181,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		{
-			auto inst_retour = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto inst_retour = noeud->comme_retour();
 			auto expr = inst_retour->expr;
 			auto type_fonction = fonction_courante->type->comme_fonction();
 			auto locale_retour = cree_allocation(type_fonction->types_sorties[0], nullptr);

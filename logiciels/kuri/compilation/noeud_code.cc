@@ -209,16 +209,34 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
-		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
-		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(noeud_expression);
+
+			auto n = noeuds_operations_unaire.ajoute_element();
+			n->operande = converti_noeud_syntaxique(espace, expr->expr);
+
+			noeud_code = n;
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_RETOUR:
+		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
+		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
+		{
+			auto expr = noeud_expression->comme_retour();
+
+			auto n = noeuds_operations_unaire.ajoute_element();
+			n->operande = converti_noeud_syntaxique(espace, expr->expr);
+
+			noeud_code = n;
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_RETIENS:
+		{
+			auto expr = noeud_expression->comme_retiens();
 
 			auto n = noeuds_operations_unaire.ajoute_element();
 			n->operande = converti_noeud_syntaxique(espace, expr->expr);

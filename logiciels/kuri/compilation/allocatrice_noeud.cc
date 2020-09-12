@@ -114,16 +114,20 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
-		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
-		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
 		case GenreNoeud::INSTRUCTION_EMPL:
 		{
 			noeud = m_noeuds_expression_unaire.ajoute_element();
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_RETOUR:
+		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
+		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
+		case GenreNoeud::INSTRUCTION_RETIENS:
+		{
+			noeud = m_noeuds_retour.ajoute_element();
 			break;
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
@@ -252,6 +256,7 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudTente", m_noeuds_tente) });
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDirectiveExecution", m_noeuds_directive_execution) });
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudComme", m_noeuds_comme) });
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudRetour", m_noeuds_retour) });
 
 	auto memoire_struct = 0l;
 	pour_chaque_element(m_noeuds_struct, [&](NoeudStruct const &noeud)

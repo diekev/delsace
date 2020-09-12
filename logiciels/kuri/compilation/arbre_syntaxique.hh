@@ -52,6 +52,7 @@ struct NoeudExpressionBinaire;
 struct NoeudExpressionLogement;
 struct NoeudExpressionMembre;
 struct NoeudExpressionReference;
+struct NoeudRetour;
 struct NoeudExpressionUnaire;
 struct NoeudExpressionVirgule;
 struct NoeudPour;
@@ -356,8 +357,8 @@ struct NoeudExpression {
 	COMME_NOEUD(ref_membre_union, NoeudExpressionMembre)
 	COMME_NOEUD(reloge, NoeudExpressionLogement)
 	COMME_NOEUD(repete, NoeudBoucle)
-	COMME_NOEUD(retiens, NoeudExpressionUnaire)
-	COMME_NOEUD(retour, NoeudExpressionUnaire)
+	COMME_NOEUD(retiens, NoeudRetour)
+	COMME_NOEUD(retour, NoeudRetour)
 	COMME_NOEUD(saufsi, NoeudSi)
 	COMME_NOEUD(si, NoeudSi)
 	COMME_NOEUD(si_statique, NoeudSiStatique)
@@ -401,6 +402,13 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 
 	// pour les variables globales
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
+};
+
+struct NoeudRetour : public NoeudExpression {
+	NoeudRetour() { genre = GenreNoeud::INSTRUCTION_RETOUR; }
+	COPIE_CONSTRUCT(NoeudRetour);
+
+	NoeudExpression *expr = nullptr;
 };
 
 struct NoeudExpressionReference : public NoeudExpression {
@@ -717,8 +725,8 @@ struct NoeudComme : public NoeudExpression {
 	COMME_NOEUD(ref_membre_union, NoeudExpressionMembre)
 	COMME_NOEUD(reloge, NoeudExpressionLogement)
 	COMME_NOEUD(repete, NoeudBoucle)
-	COMME_NOEUD(retiens, NoeudExpressionUnaire)
-	COMME_NOEUD(retour, NoeudExpressionUnaire)
+	COMME_NOEUD(retiens, NoeudRetour)
+	COMME_NOEUD(retour, NoeudRetour)
 	COMME_NOEUD(saufsi, NoeudSi)
 	COMME_NOEUD(si, NoeudSi)
 	COMME_NOEUD(si_statique, NoeudSiStatique)

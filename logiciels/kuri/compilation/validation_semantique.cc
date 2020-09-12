@@ -944,7 +944,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
 		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		{
-			auto inst = static_cast<NoeudExpressionUnaire *>(noeud);
+			auto inst = noeud->comme_retour();
 			noeud->genre_valeur = GenreValeur::DROITE;
 
 			auto type_fonc = fonction_courante->type->comme_fonction();

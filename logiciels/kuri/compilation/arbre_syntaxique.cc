@@ -223,10 +223,6 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
-		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
-		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
@@ -238,6 +234,24 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 			os << "expr unaire : " << expr->lexeme->chaine << '\n';
 
 			imprime_arbre(expr->expr, os, tab + 1);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_RETOUR:
+		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
+		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
+		{
+			auto inst = racine->comme_retour();
+			imprime_tab(os, tab);
+			os << "retour : " << inst->lexeme->chaine << '\n';
+			imprime_arbre(inst->expr, os, tab + 1);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_RETIENS:
+		{
+			auto inst = racine->comme_retiens();
+			imprime_tab(os, tab);
+			os << "retiens : " << inst->lexeme->chaine << '\n';
+			imprime_arbre(inst->expr, os, tab + 1);
 			break;
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
@@ -585,10 +599,6 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
-		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
-		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
@@ -598,6 +608,22 @@ NoeudExpression *copie_noeud(
 			auto nexpr = static_cast<NoeudExpressionUnaire *>(nracine);
 
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_RETOUR:
+		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
+		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
+		{
+			auto inst = racine->comme_retour();
+			auto ninst = nracine->comme_retour();
+			ninst->expr = copie_noeud(assem, inst->expr, bloc_parent);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_RETIENS:
+		{
+			auto inst = racine->comme_retiens();
+			auto ninst = nracine->comme_retiens();
+			ninst->expr = copie_noeud(assem, inst->expr, bloc_parent);
 			break;
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
@@ -914,10 +940,6 @@ void aplatis_arbre(
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
-		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
-		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
@@ -925,13 +947,28 @@ void aplatis_arbre(
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
 			expr->drapeaux |= drapeau;
-
-			if (expr->genre == GenreNoeud::INSTRUCTION_RETOUR || expr->genre == GenreNoeud::INSTRUCTION_RETIENS) {
-				drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
-			}
-
 			aplatis_arbre(expr->expr, arbre_aplatis, drapeau);
 			arbre_aplatis.pousse(expr);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_RETOUR:
+		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
+		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
+		{
+			auto inst = racine->comme_retour();
+			inst->drapeaux |= drapeau;
+			drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
+			aplatis_arbre(inst->expr, arbre_aplatis, drapeau);
+			arbre_aplatis.pousse(inst);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_RETIENS:
+		{
+			auto inst = racine->comme_retiens();
+			inst->drapeaux |= drapeau;
+			drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
+			aplatis_arbre(inst->expr, arbre_aplatis, drapeau);
+			arbre_aplatis.pousse(inst);
 			break;
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
@@ -1181,10 +1218,6 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		case GenreNoeud::INSTRUCTION_CONTINUE_ARRETE:
-		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
-		case GenreNoeud::INSTRUCTION_RETIENS:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
 		case GenreNoeud::INSTRUCTION_EMPL:
@@ -1196,6 +1229,24 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_RETOUR:
+		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
+		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
+		{
+			auto inst = racine->comme_retour();
+			auto etendue_enfant = calcule_etendue_noeud(inst->expr, fichier);
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_RETIENS:
+		{
+			auto inst = racine->comme_retiens();
+			auto etendue_enfant = calcule_etendue_noeud(inst->expr, fichier);
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 			break;
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:

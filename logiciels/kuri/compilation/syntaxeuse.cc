@@ -1356,7 +1356,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 		}
 		case GenreLexeme::RETIENS:
 		{
-			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_RETIENS, lexeme);
+			auto noeud = CREE_NOEUD(NoeudRetour, GenreNoeud::INSTRUCTION_RETIENS, lexeme);
 			consomme();
 
 			if (apparie_expression()) {
@@ -1367,7 +1367,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 		}
 		case GenreLexeme::RETOURNE:
 		{
-			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_RETOUR, lexeme);
+			auto noeud = CREE_NOEUD(NoeudRetour, GenreNoeud::INSTRUCTION_RETOUR, lexeme);
 			consomme();
 
 			if (apparie_expression()) {
