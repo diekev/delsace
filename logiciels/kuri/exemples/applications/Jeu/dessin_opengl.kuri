@@ -215,11 +215,11 @@ dessine_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32) -> rien
 	phi_delta := 2.0 * 3.14159 / segs comme r32
 
     pour i dans 0...segs - 1 {
-        ca0 := cx + cos(phi) * rx comme r32
-        sa0 := cy + sin(phi) * ry comme r32
+        ca0 := cx + cos(phi) comme r32 * rx
+        sa0 := cy + sin(phi) comme r32 * ry
 
-        ca1 := cx + cos(phi + phi_delta) * rx comme r32
-        sa1 := cy + sin(phi + phi_delta) * ry comme r32
+        ca1 := cx + cos(phi + phi_delta) comme r32 * rx
+        sa1 := cy + sin(phi + phi_delta) comme r32 * ry
 
         ajoute_sommet(cx, cy, 0.0)
         ajoute_sommet(ca0, sa0, 0.0)

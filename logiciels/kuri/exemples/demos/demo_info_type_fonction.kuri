@@ -87,6 +87,17 @@ imprime_type :: fonc(info : *InfoType) -> rien
 		RIEN {
 			imprime("rien")
 		}
+		OCTET {
+			imprime("octet")
+		}
+		UNION {
+		    info_arg := info comme *InfoTypeStructure
+			imprime(info_arg.nom)
+		}
+		TYPE_DE_DONNÉES {
+			// À FAIRE : imprime le type
+			imprime("type_de_données")
+		}
 		TABLEAU {
 		    info_arg := info comme *InfoTypeTableau
 			imprime("[]")
