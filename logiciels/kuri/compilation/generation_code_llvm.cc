@@ -232,8 +232,19 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 				parametres.push_back(type_llvm_it);
 			}
 
-			// À FAIRE : multiples types de retours
-			auto type_retour = converti_type_llvm(type_fonc->types_sorties[0]);
+			auto type_retour = static_cast<llvm::Type *>(nullptr);
+
+			if (type_fonc->types_sorties.taille > 1) {
+				POUR (type_fonc->types_sorties) {
+					auto type_llvm_it = converti_type_llvm(it);
+					parametres.push_back(type_llvm_it);
+				}
+
+				type_retour = llvm::Type::getVoidTy(m_contexte_llvm);
+			}
+			else {
+				type_retour = converti_type_llvm(type_fonc->types_sorties[0]);
+			}
 
 			type_llvm = llvm::FunctionType::get(
 						type_retour,

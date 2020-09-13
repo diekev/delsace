@@ -127,8 +127,6 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		case GenreNoeud::INSTRUCTION_RETIENS:
 		{
 			noeud = m_noeuds_retour.ajoute_element();
@@ -244,8 +242,6 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 #define DONNEES_ENTREE(Nom, Tableau) \
 	Nom, Tableau.taille(), Tableau.memoire_utilisee()
 
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudAssignation", m_noeuds_assignation) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDeclarationVariable", m_noeuds_declaration_variable) });
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudEnum", m_noeuds_enum) });
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionBinaire", m_noeuds_expression_binaire) });
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionMembre", m_noeuds_expression_membre) });
@@ -261,7 +257,27 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudTente", m_noeuds_tente) });
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDirectiveExecution", m_noeuds_directive_execution) });
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudComme", m_noeuds_comme) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudRetour", m_noeuds_retour) });
+
+	auto memoire_retour = 0l;
+	pour_chaque_element(m_noeuds_retour, [&](NoeudRetour const &noeud)
+	{
+		memoire_retour += noeud.donnees_exprs.taille() * taille_de(DonneesAssignations);
+	});
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudRetour", m_noeuds_retour) + memoire_retour });
+
+	auto memoire_assignation = 0l;
+	pour_chaque_element(m_noeuds_retour, [&](NoeudAssignation const &noeud)
+	{
+		memoire_assignation += noeud.donnees_exprs.taille() * taille_de(DonneesAssignations);
+	});
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudAssignation", m_noeuds_assignation) + memoire_assignation });
+
+	auto memoire_decl = 0l;
+	pour_chaque_element(m_noeuds_retour, [&](NoeudDeclarationVariable const &noeud)
+	{
+		memoire_decl += noeud.donnees_decl.taille() * taille_de(DonneesAssignations);
+	});
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDeclarationVariable", m_noeuds_declaration_variable) + memoire_decl });
 
 	auto memoire_struct = 0l;
 	pour_chaque_element(m_noeuds_struct, [&](NoeudStruct const &noeud)
@@ -292,13 +308,8 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 		memoire_entete_fonction += noeud.params.taille * taille_de(NoeudDeclaration *);
 		memoire_entete_fonction += noeud.params_sorties.taille * taille_de(NoeudExpression *);
 		memoire_entete_fonction += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
-		memoire_entete_fonction += noeud.noms_retours.taille * taille_de(dls::chaine);
 		memoire_entete_fonction += noeud.noms_types_gabarits.taille * taille_de(dls::vue_chaine_compacte);
 		memoire_entete_fonction += noeud.paires_expansion_gabarit.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
-
-		POUR (noeud.noms_retours) {
-			memoire_entete_fonction += it.taille();
-		}
 
 		memoire_entete_fonction += noeud.epandu_pour.taille() * (taille_de(NoeudDeclarationEnteteFonction::tableau_paire_expansion) + taille_de(NoeudDeclarationCorpsFonction *));
 		POUR (noeud.epandu_pour) {

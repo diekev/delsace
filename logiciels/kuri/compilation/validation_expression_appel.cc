@@ -1140,7 +1140,7 @@ bool valide_appel_fonction(
 		}
 
 		if (expr->type == nullptr) {
-			/* À FAIRE: multiple type retour */
+			// À FAIRE(retours multiples)
 			expr->type = type_sortie;
 		}
 
@@ -1164,7 +1164,7 @@ bool valide_appel_fonction(
 		}
 
 		if (expr->type == nullptr) {
-			/* À FAIRE: multiple type retour */
+			// À FAIRE(retours multiples)
 			expr->type = candidate->type->comme_fonction()->types_sorties[0];
 		}
 

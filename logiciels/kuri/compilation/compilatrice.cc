@@ -172,13 +172,25 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 		params.pousse(atome);
 	}
 
-	// À FAIRE : retours multiples
+	auto params_sortie = kuri::tableau<Atome *>();
+	if (decl->params_sorties.taille == 1) {
+		auto param_sortie = decl->params_sorties[0];
+		auto atome = constructrice.cree_allocation(param_sortie->type, param_sortie->ident);
+		params_sortie.pousse(atome);
+	}
+	else {
+		POUR (decl->params_sorties) {
+			auto atome = constructrice.cree_allocation(typeuse.type_pointeur_pour(it->type), it->ident);
+			params.pousse(atome);
+		}
+	}
 
 	auto atome_fonc = fonctions.ajoute_element(decl->lexeme, decl->nom_broye, std::move(params));
 	atome_fonc->type = normalise_type(typeuse, decl->type);
 	atome_fonc->est_externe = decl->est_externe;
 	atome_fonc->sanstrace = decl->possede_drapeau(FORCE_SANSTRACE);
 	atome_fonc->decl = decl;
+	atome_fonc->params_sorties = std::move(params_sortie);
 
 	table->insere({ decl->nom_broye, atome_fonc });
 
@@ -226,8 +238,13 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 	params[0] = constructrice.cree_allocation(types_entrees[0], ID::contexte);
 	params[1] = constructrice.cree_allocation(types_entrees[1], ID::pointeur);
 
+	auto params_sortie = kuri::tableau<Atome *>();
+	auto atome = constructrice.cree_allocation(typeuse[TypeBase::RIEN], nullptr);
+	params_sortie.pousse(atome);
+
 	auto atome_fonc = fonctions.ajoute_element(nullptr, nom_fonction, std::move(params));
 	atome_fonc->type = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+	atome_fonc->params_sorties = std::move(params_sortie);
 
 	table->insere({ nom_fonction, atome_fonc });
 

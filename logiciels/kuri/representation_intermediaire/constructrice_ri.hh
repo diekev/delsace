@@ -34,6 +34,7 @@
 
 struct Compilatrice;
 struct NoeudBloc;
+struct NoeudDeclarationVariable;
 struct NoeudDirectiveExecution;
 struct NoeudDiscr;
 struct NoeudExpression;
@@ -189,9 +190,12 @@ private:
 	void genere_ri_pour_expression_logique(NoeudExpression *noeud, Atome *place);
 	void genere_ri_blocs_differes(NoeudBloc *bloc);
 	void genere_ri_pour_position_code_source(NoeudExpression *noeud);
+	void genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl);
 
 	void genere_ri_pour_coroutine(NoeudDeclarationCorpsFonction *noeud);
 	void genere_ri_pour_retiens(NoeudExpression *noeud);
+
+	void transforme_valeur(NoeudExpression *noued, Atome *valeur, const TransformationType &transformation, Atome *place);
 
 	AtomeConstante *cree_info_type(Type *type);
 	AtomeConstante *cree_info_type_defaut(unsigned index, unsigned taille_octet);

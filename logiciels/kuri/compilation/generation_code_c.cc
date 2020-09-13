@@ -271,7 +271,8 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 
 				if (type_fonc->types_sorties.taille > 1) {
 					suffixe += virgule;
-					suffixe += nom_broye_dt;
+					// pointeur puisque si nous avons plusieurs valeurs de sorties, nous utilisons un pointeur vers un argument
+					suffixe += nom_broye_dt + "*";
 				}
 
 				nouveau_nom_broye += nom_broye_dt;
@@ -757,7 +758,8 @@ struct GeneratriceCodeC {
 
 				os << "  ";
 
-				if  (inst_appel->type->genre != GenreType::RIEN) {
+				auto type_fonction = inst_appel->appele->type->comme_fonction();
+				if  (type_fonction->types_sorties.taille == 1 && !type_fonction->types_sorties[0]->est_rien()) {
 					auto nom_ret = "__ret" + dls::vers_chaine(inst->numero);
 					os << nom_broye_type(inst_appel->type) << ' ' << nom_ret << " = ";
 					table_valeurs[inst] = nom_ret;
@@ -1138,7 +1140,14 @@ struct GeneratriceCodeC {
 			auto atome_fonc = it;
 
 			auto type_fonction = atome_fonc->type->comme_fonction();
-			os << nom_broye_type(type_fonction->types_sorties[0]) << " " << atome_fonc->nom;
+			if (type_fonction->types_sorties.taille > 1) {
+				os << "void ";
+			}
+			else {
+				os << nom_broye_type(type_fonction->types_sorties[0]) << " ";
+			}
+
+			os << atome_fonc->nom;
 
 			auto virgule = "(";
 
@@ -1220,7 +1229,14 @@ struct GeneratriceCodeC {
 			//std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
 
 			auto type_fonction = atome_fonc->type->comme_fonction();
-			os << nom_broye_type(type_fonction->types_sorties[0]) << " " << atome_fonc->nom;
+			if (type_fonction->types_sorties.taille > 1) {
+				os << "void ";
+			}
+			else {
+				os << nom_broye_type(type_fonction->types_sorties[0]) << " ";
+			}
+
+			os << atome_fonc->nom;
 
 			auto virgule = "(";
 

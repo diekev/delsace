@@ -152,7 +152,7 @@ InstructionAppel::InstructionAppel(Lexeme const *lexeme_, Atome *appele_)
 	: InstructionAppel()
 {
 	auto type_fonction = appele_->type->comme_fonction();
-	// À FAIRE : retours multiples
+	// À FAIRE(retours multiples)
 	this->type = type_fonction->types_sorties[0];
 
 	this->appele = appele_;

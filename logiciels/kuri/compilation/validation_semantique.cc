@@ -196,6 +196,13 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			decl_entete->nom_broye = "metaprogamme" + dls::vers_chaine(noeud_directive);
 
 			// le type de la fonction est fonc () -> (type_expression)
+			auto decl_sortie = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme)->comme_decl_var();
+			decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
+			decl_sortie->type = noeud_directive->expr->type;
+			decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+			decl_entete->params_sorties.pousse(decl_sortie);
+
 			auto types_entrees = kuri::tableau<Type *>(0);
 
 			auto types_sorties = kuri::tableau<Type *>(1);
@@ -210,7 +217,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto expr_ret = static_cast<NoeudExpressionUnaire *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_RETOUR, &lexeme_retourne));
 
 			if (noeud_directive->expr->type != espace->typeuse[TypeBase::RIEN]) {
-				expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR_SIMPLE;
+				expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
 				expr_ret->expr = noeud_directive->expr;
 			}
 			else {
@@ -382,164 +389,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
 			auto inst = noeud->comme_assignation();
-			auto variable = inst->variable;
-			auto expression = inst->expression;
-
-			if (expression->est_non_initialisation()) {
-				rapporte_erreur("Impossible d'utiliser '---' dans une expression d'assignation", expression);
-				return true;
-			}
-
-			if (expression->type == nullptr) {
-				rapporte_erreur("Impossible de définir le type de la variable !", noeud, erreur::Genre::TYPE_INCONNU);
-				return true;
-			}
-
-			if (expression->type->genre == GenreType::RIEN) {
-				rapporte_erreur("Impossible d'assigner une expression de type 'rien' à une variable !", noeud, erreur::Genre::ASSIGNATION_RIEN);
-				return true;
-			}
-
-			/* a, b = foo() */
-			if (variable->est_virgule()) {
-				if (!expression->est_appel()) {
-					rapporte_erreur("Une virgule ne peut se trouver qu'à gauche d'un appel de fonction.", variable, erreur::Genre::NORMAL);
-					return true;
-				}
-
-				auto feuilles = variable->comme_virgule();
-
-				/* Utilisation du type de la fonction et non
-				 * DonneesFonction::idx_types_retour car les pointeurs de
-				 * fonctions n'ont pas de DonneesFonction. */
-				auto type_fonc = expression->type->comme_fonction();
-
-				if (feuilles->expressions.taille != type_fonc->types_sorties.taille) {
-					rapporte_erreur("L'ignorance d'une valeur de retour non implémentée.", variable, erreur::Genre::NORMAL);
-					return true;
-				}
-
-				for (auto i = 0l; i < feuilles->expressions.taille; ++i) {
-					auto &f = feuilles->expressions[i];
-
-					if (f->type == nullptr) {
-						f->type = type_fonc->types_sorties[i];
-					}
-				}
-
-				return false;
-			}
-
-			if (!est_valeur_gauche(variable->genre_valeur)) {
-				rapporte_erreur("Impossible d'assigner une expression à une valeur-droite !", noeud, erreur::Genre::ASSIGNATION_INVALIDE);
-				return true;
-			}
-
-			if (!transtype_si_necessaire(inst->expression, variable->type)) {
-				return true;
-			}
-
-			break;
+			return valide_assignation(inst);
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
 		{
-			auto decl = noeud->comme_decl_var();
-			auto variable = decl->valeur;
-			auto expression = decl->expression;
-
-			// À FAIRE : cas où nous avons plusieurs variables déclarées
-			if (!variable->est_ref_decl()) {
-				rapporte_erreur("Expression inattendue à gauche de la déclaration", variable);
-				return true;
-			}
-
-			decl->ident = variable->ident;
-
-			auto decl_prec = trouve_dans_bloc(variable->bloc_parent, decl);
-
-			if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
-				if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
-					rapporte_erreur_redefinition_symbole(variable, decl_prec);
-					return true;
-				}
-			}
-
-			if (resoud_type_final(variable->expression_type, variable->type)) {
-				return true;
-			}
-
-			if (decl->possede_drapeau(EST_CONSTANTE) && expression != nullptr && expression->genre == GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
-				rapporte_erreur("Impossible de ne pas initialiser une constante", expression);
-				return true;
-			}
-
-			if (expression != nullptr && expression->genre != GenreNoeud::INSTRUCTION_NON_INITIALISATION) {
-				if (expression->type == nullptr) {
-					rapporte_erreur("impossible de définir le type de l'expression", expression);
-					return true;
-				}
-				else if (variable->type == nullptr) {
-					if (expression->type->genre == GenreType::ENTIER_CONSTANT) {
-						variable->type = espace->typeuse[TypeBase::Z32];
-						transtype_si_necessaire(decl->expression, { TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type });
-					}
-					else if (expression->type->genre == GenreType::RIEN) {
-						rapporte_erreur("impossible d'assigner une expression de type « rien » à une variable", expression, erreur::Genre::ASSIGNATION_RIEN);
-						return true;
-					}
-					else {
-						variable->type = expression->type;
-					}
-				}
-				else {
-					if (!transtype_si_necessaire(decl->expression, variable->type)) {
-						return true;
-					}
-				}
-
-				if (decl->possede_drapeau(EST_CONSTANTE) && expression->type->genre != GenreType::TYPE_DE_DONNEES) {
-					auto res_exec = evalue_expression(espace, decl->bloc_parent, expression);
-
-					if (res_exec.est_errone) {
-						rapporte_erreur("Impossible d'évaluer l'expression de la constante", expression);
-						return true;
-					}
-
-					decl->valeur_expression = res_exec;
-				}
-			}
-			else {
-				if (variable->type == nullptr) {
-					rapporte_erreur("variable déclarée sans type", variable);
-					return true;
-				}
-			}
-
-			decl->type = variable->type;
-
-			if (decl->possede_drapeau(EST_EXTERNE)) {
-				rapporte_erreur("Ne peut pas assigner une variable globale externe dans sa déclaration", noeud);
-				return true;
-			}
-
-			if (decl->possede_drapeau(EST_GLOBALE)) {
-				auto graphe = espace->graphe_dependance.verrou_ecriture();
-				graphe->cree_noeud_globale(decl);
-			}
-
-			auto bloc_parent = decl->bloc_parent;
-
-			// pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la fonction (ce qui est le cas pour les paramètres...)
-			if (fonction_courante && bloc_parent == fonction_courante->corps->bloc->bloc_parent) {
-				bloc_parent = fonction_courante->corps->bloc;
-			}
-
-			bloc_parent->membres->pousse(decl);
-
-			decl->drapeaux |= DECLARATION_FUT_VALIDEE;
-			donnees_dependance.types_utilises.insere(decl->type);
-
-			break;
+			return valide_declaration_variable(noeud->comme_decl_var());
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		{
@@ -941,73 +795,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		{
 			auto inst = noeud->comme_retour();
 			noeud->genre_valeur = GenreValeur::DROITE;
-
-			auto type_fonc = fonction_courante->type->comme_fonction();
-
-			if (inst->expr == nullptr) {
-				noeud->type = espace->typeuse[TypeBase::RIEN];
-
-				if (!fonction_courante->est_coroutine && (type_fonc->types_sorties[0] != noeud->type)) {
-					rapporte_erreur("Expression de retour manquante", noeud);
-					return true;
-				}
-
-				donnees_dependance.types_utilises.insere(noeud->type);
-				return false;
-			}
-
-			auto enfant = inst->expr;
-			auto nombre_retour = type_fonc->types_sorties.taille;
-
-			if (nombre_retour > 1) {
-				if (enfant->est_virgule()) {
-					auto feuilles = enfant->comme_virgule();
-
-					if (feuilles->expressions.taille != nombre_retour) {
-						rapporte_erreur("Le compte d'expression de retour est invalide", noeud);
-						return true;
-					}
-
-					for (auto i = 0l; i < feuilles->expressions.taille; ++i) {
-						auto f = feuilles->expressions[i];
-
-						if (!transtype_si_necessaire(feuilles->expressions[i], type_fonc->types_sorties[i])) {
-							return true;
-						}
-
-						donnees_dependance.types_utilises.insere(f->type);
-					}
-
-					/* À FAIRE : multiples types de retour */
-					noeud->type = feuilles->expressions[0]->type;
-					noeud->genre = GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE;
-				}
-				else if (enfant->genre == GenreNoeud::EXPRESSION_APPEL_FONCTION) {
-					/* À FAIRE : multiples types de retour, confirmation typage */
-					noeud->type = enfant->type;
-					noeud->genre = GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE;
-				}
-				else {
-					rapporte_erreur("Le compte d'expression de retour est invalide", noeud);
-					return true;
-				}
-			}
-			else {
-				noeud->type = type_fonc->types_sorties[0];
-				noeud->genre = GenreNoeud::INSTRUCTION_RETOUR_SIMPLE;
-
-				if (!transtype_si_necessaire(inst->expr, noeud->type)) {
-					return true;
-				}
-			}
-
-			donnees_dependance.types_utilises.insere(noeud->type);
-			break;
+			return valide_expression_retour(inst);
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
 		{
@@ -1607,7 +1398,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			if (expr_loge->bloc != nullptr) {
 				auto di = derniere_instruction(expr_loge->bloc);
-				if (di == nullptr || !dls::outils::est_element(di->genre, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_RETOUR_SIMPLE, GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
+				if (di == nullptr || !dls::outils::est_element(di->genre, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
 					rapporte_erreur("Le bloc sinon d'une instruction « loge » doit obligatoirement retourner, ou si dans une boucle, la continuer ou l'arrêter", expr_loge);
 					return true;
 				}
@@ -1659,7 +1450,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			if (expr_loge->bloc != nullptr) {
 				auto di = derniere_instruction(expr_loge->bloc);
-				if (di == nullptr || !dls::outils::est_element(di->genre, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_RETOUR_SIMPLE, GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
+				if (di == nullptr || !dls::outils::est_element(di->genre, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
 					rapporte_erreur("Le bloc sinon d'une instruction « reloge » doit obligatoirement retourner, ou si dans une boucle, la continuer ou l'arrêter", expr_loge);
 					return true;
 				}
@@ -1928,17 +1719,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			auto type_fonc = fonction_courante->type->comme_fonction();
-
-			auto inst = noeud->comme_retiens();
-
-			/* À FAIRE : multiple types retours. */
-			auto type_retour = type_fonc->types_sorties[0];
-			if (!transtype_si_necessaire(inst->expr, type_retour)) {
-				return true;
-			}
-
-			break;
+			return valide_expression_retour(noeud->comme_retiens());
 		}
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
@@ -2085,7 +1866,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 				auto di = derniere_instruction(inst->bloc);
 
-				if (di == nullptr || !dls::outils::est_element(di->genre, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_RETOUR_SIMPLE, GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
+				if (di == nullptr || !dls::outils::est_element(di->genre, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)) {
 					rapporte_erreur("Un bloc de piège doit obligatoirement retourner, ou si dans une boucle, la continuer ou l'arrêter", inst);
 					return true;
 				}
@@ -2358,7 +2139,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 
 	for (auto &type_declare : decl->params_sorties) {
 		Type *type_sortie = nullptr;
-		if (resoud_type_final(type_declare, type_sortie)) {
+		if (resoud_type_final(type_declare->expression_type, type_sortie)) {
 			return true;
 		}
 		types_sorties.pousse(type_sortie);
@@ -2495,6 +2276,218 @@ bool ContexteValidationCode::valide_arbre_aplatis(kuri::tableau<NoeudExpression 
 		}
 	}
 
+	return false;
+}
+
+static void rassemble_expressions(NoeudExpression *expr, dls::tablet<NoeudExpression *, 6> &expressions)
+{
+	if (expr == nullptr) {
+		return;
+	}
+
+	if (expr->est_virgule()) {
+		auto virgule = expr->comme_virgule();
+
+		POUR (virgule->expressions) {
+			expressions.pousse(it);
+		}
+	}
+	else {
+		expressions.pousse(expr);
+	}
+}
+
+struct VariableEtExpression {
+	IdentifiantCode *ident = nullptr;
+	NoeudExpression *expression = nullptr;
+};
+
+static void rassemble_expressions(NoeudExpression *expr, dls::tablet<VariableEtExpression, 6> &expressions)
+{
+	if (expr == nullptr) {
+		return;
+	}
+
+	if (expr->est_virgule()) {
+		auto virgule = expr->comme_virgule();
+
+		POUR (virgule->expressions) {
+			if (it->est_assignation()) {
+				auto assignation = it->comme_assignation();
+				expressions.pousse({ assignation->variable->ident, assignation->expression });
+			}
+			else {
+				expressions.pousse({ nullptr, it });
+			}
+		}
+	}
+	else {
+		if (expr->est_assignation()) {
+			auto assignation = expr->comme_assignation();
+			expressions.pousse({ assignation->variable->ident, assignation->expression });
+		}
+		else {
+			expressions.pousse({ nullptr, expr });
+		}
+	}
+}
+
+bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
+{
+	auto type_fonc = fonction_courante->type->comme_fonction();
+
+	if (inst->expr == nullptr) {
+		inst->type = espace->typeuse[TypeBase::RIEN];
+
+		if (!fonction_courante->est_coroutine && (type_fonc->types_sorties[0] != inst->type)) {
+			rapporte_erreur("Expression de retour manquante", inst);
+			return true;
+		}
+
+		donnees_dependance.types_utilises.insere(inst->type);
+		return false;
+	}
+
+	auto nombre_retour = type_fonc->types_sorties.taille;
+
+	dls::file<NoeudExpression *> variables;
+
+	POUR (fonction_courante->params_sorties) {
+		variables.enfile(it);
+	}
+
+	/* tri les expressions selon les noms */
+	dls::tablet<VariableEtExpression, 6> vars_et_exprs;
+	rassemble_expressions(inst->expr, vars_et_exprs);
+
+	dls::tablet<NoeudExpression *, 6> expressions;
+	expressions.redimensionne(vars_et_exprs.taille());
+
+	POUR (expressions) {
+		it = nullptr;
+	}
+
+	auto index_courant = 0;
+	auto eu_nom = false;
+	POUR (vars_et_exprs) {
+		auto expr = it.expression;
+
+		if (it.ident) {
+			eu_nom = true;
+
+			if (expr->est_appel() && expr->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
+				auto type_fonction = expr->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
+
+				if (type_fonction->types_sorties.taille > 1) {
+					::rapporte_erreur(espace, it.expression, "Impossible de nommer les variables de retours si l'expression est une fonction retrounant plusieurs valeurs");
+					return true;
+				}
+			}
+
+			for (auto i = 0; i < fonction_courante->params_sorties.taille; ++i) {
+				if (it.ident == fonction_courante->params_sorties[i]->ident) {
+					if (expressions[i] != nullptr) {
+						::rapporte_erreur(espace, it.expression, "Redéfinition d'une expression pour un paramètre de retour");
+						return true;
+					}
+
+					expressions[i] = it.expression;
+					break;
+				}
+			}
+		}
+		else {
+			if (eu_nom) {
+				::rapporte_erreur(espace, it.expression, "L'expressoin doit avoir un nom si elle suit une autre ayant déjà un nom");
+			}
+
+			if (expressions[index_courant] != nullptr) {
+				::rapporte_erreur(espace, it.expression, "Redéfinition d'une expression pour un paramètre de retour");
+				return true;
+			}
+
+			expressions[index_courant] = it.expression;
+		}
+
+		index_courant += 1;
+	}
+
+	auto valide_typage_et_ajoute = [this](DonneesAssignations &donnees, NoeudExpression *variable, NoeudExpression *expression, Type *type_de_l_expression)
+	{
+		auto transformation = TransformationType();
+		if (cherche_transformation(*espace, *this, type_de_l_expression, variable->type, transformation)) {
+			return false;
+		}
+
+		if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+			rapporte_erreur_assignation_type_differents(variable->type, type_de_l_expression, expression);
+			return false;
+		}
+
+		donnees.variables.pousse(variable);
+		donnees.transformations.pousse(transformation);
+		return true;
+	};
+
+	dls::tablet<DonneesAssignations, 6> donnees_retour;
+
+	POUR (expressions) {
+		DonneesAssignations donnees;
+		donnees.expression = it;
+
+		if (it->est_appel() && it->comme_appel()->noeud_fonction_appelee && it->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
+			auto type_fonction = it->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
+
+			donnees.multiple_retour = type_fonction->types_sorties.taille > 1;
+
+			for (auto type : type_fonction->types_sorties) {
+				if (variables.est_vide()) {
+					::rapporte_erreur(espace, it, "Trop d'expressions de retour");
+					break;
+				}
+
+				if (!valide_typage_et_ajoute(donnees, variables.defile(), it, type)) {
+					return true;
+				}
+			}
+		}
+		else if (it->type->est_rien()) {
+			rapporte_erreur("impossible de retourner une expression de type « rien » à une variable", it, erreur::Genre::ASSIGNATION_RIEN);
+			return true;
+		}
+		else {
+			if (variables.est_vide()) {
+				::rapporte_erreur(espace, it, "Trop d'expressions de retour");
+				return true;
+			}
+
+			if (!valide_typage_et_ajoute(donnees, variables.defile(), it, it->type)) {
+				return true;
+			}
+		}
+
+		donnees_retour.pousse(donnees);
+	}
+
+	// À FAIRE : valeur par défaut des expressions
+	if (!variables.est_vide()) {
+		::rapporte_erreur(espace, inst, "Expressions de retour manquante");
+		return true;
+	}
+
+	if (nombre_retour > 1) {
+		inst->type = espace->typeuse[TypeBase::RIEN];
+	}
+	else {
+		inst->type = type_fonc->types_sorties[0];
+	}
+
+	inst->donnees_exprs.reserve(donnees_retour.taille());
+	POUR (donnees_retour) {
+		inst->donnees_exprs.pousse(it);
+	}
+
+	donnees_dependance.types_utilises.insere(inst->type);
 	return false;
 }
 
@@ -2833,31 +2826,43 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 		POUR (*decl->bloc->membres.verrou_ecriture()) {
 			auto decl_var = it->comme_decl_var();
-			auto decl_membre = decl_var->valeur;
 
-			if (decl_membre->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-				rapporte_erreur("Expression invalide dans la déclaration du membre de l'union", decl_membre);
-				return true;
-			}
+			for (auto &donnees : decl_var->donnees_decl) {
+				for (auto i = 0; i < donnees.variables.taille; ++i) {
+					auto var = donnees.variables[i];
 
-			if (decl_membre->type->genre == GenreType::RIEN) {
-				rapporte_erreur("Ne peut avoir un type « rien » dans une union", decl_membre, erreur::Genre::TYPE_DIFFERENTS);
-				return true;
-			}
+					if (var->type->est_rien()) {
+						rapporte_erreur("Ne peut avoir un type « rien » dans une union", decl_var, erreur::Genre::TYPE_DIFFERENTS);
+						return true;
+					}
 
-			if (decl_membre->type->genre == GenreType::STRUCTURE || decl_membre->type->genre == GenreType::UNION) {
-				if ((decl_membre->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-					unite->attend_sur_type(decl_membre->type);
-					return true;
+					if (var->type->est_structure() || var->type->est_union()) {
+						if ((var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+							unite->attend_sur_type(var->type);
+							return true;
+						}
+					}
+
+					if (var->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+						rapporte_erreur("Expression invalide dans la déclaration du membre de l'union", var);
+						return true;
+					}
+
+					if (verifie_inclusion_valeur(var)) {
+						return true;
+					}
+
+					/* l'arbre syntaxique des expressions par défaut doivent contenir
+					 * la transformation puisque nous n'utilisons pas la déclaration
+					 * pour générer la RI */
+					auto expression = donnees.expression;
+					transtype_si_necessaire(expression, donnees.transformations[i]);
+
+					// À FAIRE : préserve l'emploi dans les données types
+					if (ajoute_donnees_membre(var, expression)) {
+						return true;
+					}
 				}
-			}
-
-			if (verifie_inclusion_valeur(decl_var)) {
-				return true;
-			}
-
-			if (ajoute_donnees_membre(decl_membre, decl_var->expression)) {
-				return true;
 			}
 		}
 
@@ -2908,32 +2913,51 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			continue;
 		}
 
-		if (decl_var->type->genre == GenreType::RIEN) {
-			rapporte_erreur("Ne peut avoir un type « rien » dans une structure", decl_var, erreur::Genre::TYPE_DIFFERENTS);
-			return true;
-		}
-
-		if (decl_var->type->genre == GenreType::STRUCTURE || decl_var->type->genre == GenreType::UNION) {
-			if ((decl_var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-				unite->attend_sur_type(decl_var->type);
+		if (decl_var->declaration_vient_d_un_emploi) {
+			// À FAIRE : préserve l'emploi dans les données types
+			if (ajoute_donnees_membre(decl_var, decl_var->expression)) {
 				return true;
 			}
+
+			continue;
 		}
 
-		auto decl_membre = decl_var->valeur;
+		for (auto &donnees : decl_var->donnees_decl) {
+			for (auto i = 0; i < donnees.variables.taille; ++i) {
+				auto var = donnees.variables[i];
 
-		if (decl_membre && decl_membre->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-			rapporte_erreur("Expression invalide dans la déclaration du membre de la structure", decl_membre);
-			return true;
-		}
+				if (var->type->est_rien()) {
+					rapporte_erreur("Ne peut avoir un type « rien » dans une structure", decl_var, erreur::Genre::TYPE_DIFFERENTS);
+					return true;
+				}
 
-		if (verifie_inclusion_valeur(decl_var)) {
-			return true;
-		}
+				if (var->type->est_structure() || var->type->est_union()) {
+					if ((var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+						unite->attend_sur_type(var->type);
+						return true;
+					}
+				}
 
-		// À FAIRE : préserve l'emploi dans les données types
-		if (ajoute_donnees_membre(decl_var, decl_var->expression)) {
-			return true;
+				if (var->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+					rapporte_erreur("Expression invalide dans la déclaration du membre de la structure", var);
+					return true;
+				}
+
+				if (verifie_inclusion_valeur(var)) {
+					return true;
+				}
+
+				/* l'arbre syntaxique des expressions par défaut doivent contenir
+				 * la transformation puisque nous n'utilisons pas la déclaration
+				 * pour générer la RI */
+				auto expression = donnees.expression;
+				transtype_si_necessaire(expression, donnees.transformations[i]);
+
+				// À FAIRE : préserve l'emploi dans les données types
+				if (ajoute_donnees_membre(var, expression)) {
+					return true;
+				}
+			}
 		}
 	}
 
@@ -2960,6 +2984,349 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	}
 
 	graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
+	return false;
+}
+
+bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariable *decl)
+{
+	struct DeclarationEtReference {
+		NoeudExpression *ref_decl = nullptr;
+		NoeudDeclarationVariable *decl = nullptr;
+	};
+
+	auto feuilles_variables = dls::tablet<NoeudExpression *, 6>();
+	rassemble_expressions(decl->valeur, feuilles_variables);
+
+	/* Rassemble les variables, et crée des déclarations si nécessaire. */
+	auto decls_et_refs = dls::tablet<DeclarationEtReference, 6>();
+	decls_et_refs.redimensionne(feuilles_variables.taille());
+
+	if (feuilles_variables.taille() == 1) {
+		auto variable = feuilles_variables[0];
+
+		if (!variable->est_ref_decl()) {
+			rapporte_erreur("Expression inattendue à gauche de la déclaration", variable);
+		}
+
+		decls_et_refs[0].ref_decl = variable;
+		decls_et_refs[0].decl = decl;
+		variable->comme_ref_decl()->decl = decl;
+	}
+	else {
+		for (auto i = 0; i < feuilles_variables.taille(); ++i) {
+			auto variable = feuilles_variables[i];
+
+			if (!variable->est_ref_decl()) {
+				rapporte_erreur("Expression inattendue à gauche de la déclaration", variable);
+			}
+
+			// crée de nouvelles déclaration pour les différentes opérandes
+			auto decl_extra = static_cast<NoeudDeclarationVariable *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, variable->lexeme));
+			decl_extra->ident = variable->ident;
+			decl_extra->valeur = variable;
+			decl_extra->bloc_parent = decl->bloc_parent;
+			decl->bloc_parent->membres->pousse(decl_extra);
+
+			decls_et_refs[i].ref_decl = variable;
+			decls_et_refs[i].decl = decl_extra;
+			variable->comme_ref_decl()->decl = decl_extra;
+		}
+	}
+
+	POUR (decls_et_refs) {
+		auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl);
+
+		if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
+			if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
+				rapporte_erreur_redefinition_symbole(it.ref_decl, decl_prec);
+				return true;
+			}
+		}
+
+		if (resoud_type_final(it.ref_decl->expression_type, it.ref_decl->type)) {
+			return true;
+		}
+	}
+
+	auto feuilles_expressions = dls::tablet<NoeudExpression *, 6>();
+	rassemble_expressions(decl->expression, feuilles_expressions);
+
+	// pour chaque expression, associe les variables qui doivent recevoir leurs résultats
+	// si une variable n'a pas de valeur, prend la valeur de la dernière expression
+
+	auto variables = dls::file<NoeudExpression *>();
+
+	POUR (feuilles_variables) {
+		variables.enfile(it);
+	}
+
+	dls::tablet<DonneesAssignations, 6> donnees_assignations{};
+
+	auto ajoute_variable = [this, decl](DonneesAssignations &donnees, NoeudExpression *variable, NoeudExpression *expression, Type *type_de_l_expression) -> bool
+	{
+		if (variable->type == nullptr) {
+			if (type_de_l_expression->genre == GenreType::ENTIER_CONSTANT) {
+				variable->type = espace->typeuse[TypeBase::Z32];
+				donnees.variables.pousse(variable);
+				donnees.transformations.pousse({ TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type });
+			}
+			else {
+				variable->type = type_de_l_expression;
+				donnees.variables.pousse(variable);
+				donnees.transformations.pousse({ TypeTransformation::INUTILE });
+			}
+		}
+		else {
+			auto transformation = TransformationType();
+			if (cherche_transformation(*espace, *this, type_de_l_expression, variable->type, transformation)) {
+				return false;
+			}
+
+			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+				rapporte_erreur_assignation_type_differents(variable->type, type_de_l_expression, expression);
+				return false;
+			}
+
+			donnees.variables.pousse(variable);
+			donnees.transformations.pousse(transformation);
+		}
+
+		if (decl->drapeaux & EST_CONSTANTE && !type_de_l_expression->est_type_de_donnees()) {
+			auto res_exec = evalue_expression(espace, decl->bloc_parent, expression);
+
+			if (res_exec.est_errone) {
+				rapporte_erreur("Impossible d'évaluer l'expression de la constante", expression);
+				return false;
+			}
+
+			decl->valeur_expression = res_exec;
+		}
+
+		return true;
+	};
+
+	POUR (feuilles_expressions) {
+		auto donnees = DonneesAssignations();
+		donnees.expression = it;
+
+		// il est possible d'ignorer les variables
+		if  (variables.est_vide()) {
+			::rapporte_erreur(espace, decl, "Trop d'expressions ou de types pour l'assignation");
+			return true;
+		}
+
+		if ((decl->drapeaux & EST_CONSTANTE) && it->est_non_initialisation()) {
+			rapporte_erreur("Impossible de ne pas initialiser une constante", it);
+			return true;
+		}
+
+		if (decl->drapeaux & EST_EXTERNE) {
+			rapporte_erreur("Ne peut pas assigner une variable globale externe dans sa déclaration", decl);
+			return true;
+		}
+
+		if (it->type == nullptr && !it->est_non_initialisation()) {
+			rapporte_erreur("impossible de définir le type de l'expression", it);
+			return true;
+		}
+
+		if (it->est_non_initialisation()) {
+			donnees.variables.pousse(variables.defile());
+			donnees.transformations.pousse({ TypeTransformation::INUTILE });
+		}
+		else if (it->est_appel() && it->comme_appel()->noeud_fonction_appelee && it->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
+			auto type_fonction = it->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
+
+			donnees.multiple_retour = type_fonction->types_sorties.taille > 1;
+
+			for (auto type : type_fonction->types_sorties) {
+				if (variables.est_vide()) {
+					break;
+				}
+
+				if (!ajoute_variable(donnees, variables.defile(), it, type)) {
+					return true;
+				}
+			}
+		}
+		else if (it->type->est_rien()) {
+			rapporte_erreur("impossible d'assigner une expression de type « rien » à une variable", it, erreur::Genre::ASSIGNATION_RIEN);
+			return true;
+		}
+		else {
+			if (!ajoute_variable(donnees, variables.defile(), it, it->type)) {
+				return true;
+			}
+		}
+
+		donnees_assignations.pousse(donnees);
+	}
+
+	if (donnees_assignations.est_vide()) {
+		donnees_assignations.pousse({});
+	}
+
+	// a, b := c
+	auto donnees = &donnees_assignations.back();	
+	while (!variables.est_vide()) {
+		auto var = variables.defile();
+		auto transformation = TransformationType(TypeTransformation::INUTILE);
+
+		if (donnees->expression) {
+			var->type = donnees->expression->type;
+
+			if (var->type->est_entier_constant()) {
+				var->type = espace->typeuse[TypeBase::Z32];
+				transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, var->type };
+			}
+		}
+
+		donnees->variables.pousse(var);
+		donnees->transformations.pousse(transformation);
+	}
+
+	POUR (decls_et_refs) {
+		auto decl_var = it.decl;
+		auto variable = it.ref_decl;
+
+		if (variable->type == nullptr) {
+			rapporte_erreur("variable déclarée sans type", variable);
+			return true;
+		}
+
+		decl_var->type = variable->type;
+
+		if (decl_var->drapeaux & EST_GLOBALE) {
+			auto graphe = espace->graphe_dependance.verrou_ecriture();
+			graphe->cree_noeud_globale(decl_var);
+		}
+
+		auto bloc_parent = decl_var->bloc_parent;
+
+		// pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la fonction (ce qui est le cas pour les paramètres...)
+		if (fonction_courante && bloc_parent == fonction_courante->corps->bloc->bloc_parent) {
+			bloc_parent = fonction_courante->corps->bloc;
+		}
+
+		bloc_parent->membres->pousse(decl_var);
+
+		decl_var->drapeaux |= DECLARATION_FUT_VALIDEE;
+		donnees_dependance.types_utilises.insere(decl_var->type);
+	}
+
+	decl->donnees_decl.reserve(donnees_assignations.taille());
+
+	POUR (donnees_assignations) {
+		decl->donnees_decl.pousse(std::move(it));
+	}
+
+	return false;
+}
+
+bool ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
+{
+	auto variable = inst->variable;
+
+	dls::file<NoeudExpression *> variables;
+
+	if (variable->est_virgule()) {
+		auto virgule = variable->comme_virgule();
+		POUR (virgule->expressions) {
+			if (!est_valeur_gauche(it->genre_valeur)) {
+				rapporte_erreur("Impossible d'assigner une expression à une valeur-droite !", inst, erreur::Genre::ASSIGNATION_INVALIDE);
+				return true;
+			}
+
+			variables.enfile(it);
+		}
+	}
+	else {
+		if (!est_valeur_gauche(variable->genre_valeur)) {
+			rapporte_erreur("Impossible d'assigner une expression à une valeur-droite !", inst, erreur::Genre::ASSIGNATION_INVALIDE);
+			return true;
+		}
+
+		variables.enfile(variable);
+	}
+
+	dls::tablet<NoeudExpression *, 6> expressions;
+	rassemble_expressions(inst->expression, expressions);
+
+	auto ajoute_variable = [this](DonneesAssignations &donnees, NoeudExpression *var, NoeudExpression *expression, Type *type_de_l_expression) -> bool
+	{
+		auto transformation = TransformationType();
+		if (cherche_transformation(*espace, *this, type_de_l_expression, var->type, transformation)) {
+			return false;
+		}
+
+		if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+			rapporte_erreur_assignation_type_differents(var->type, type_de_l_expression, expression);
+			return false;
+		}
+
+		donnees.variables.pousse(var);
+		donnees.transformations.pousse(transformation);
+		return true;
+	};
+
+	dls::tablet<DonneesAssignations, 6> donnees_assignations;
+
+	POUR (expressions) {
+		if (it->est_non_initialisation()) {
+			rapporte_erreur("Impossible d'utiliser '---' dans une expression d'assignation", inst->expression);
+			return true;
+		}
+
+		if (it->type == nullptr) {
+			rapporte_erreur("Impossible de définir le type de la variable !", inst, erreur::Genre::TYPE_INCONNU);
+			return true;
+		}
+
+		if (it->type->est_rien()) {
+			rapporte_erreur("Impossible d'assigner une expression de type 'rien' à une variable !", inst, erreur::Genre::ASSIGNATION_RIEN);
+			return true;
+		}
+
+		auto donnees = DonneesAssignations();
+		donnees.expression = it;
+
+		if (it->est_appel() && it->comme_appel()->noeud_fonction_appelee && it->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
+			auto type_fonction = it->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
+
+			donnees.multiple_retour = type_fonction->types_sorties.taille > 1;
+
+			for (auto type : type_fonction->types_sorties) {
+				if (variables.est_vide()) {
+					break;
+				}
+
+				if (!ajoute_variable(donnees, variables.defile(), it, type)) {
+					return true;
+				}
+			}
+		}
+		else {
+			if (!ajoute_variable(donnees, variables.defile(), it, it->type)) {
+				return true;
+			}
+		}
+
+		donnees_assignations.pousse(donnees);
+	}
+
+	// a, b = c
+	auto donnees = &donnees_assignations.back();
+	while (!variables.est_vide()) {
+		if (!ajoute_variable(*donnees, variables.defile(), donnees->expression, donnees->expression->type)) {
+			return true;
+		}
+	}
+
+	inst->donnees_exprs.reserve(donnees_assignations.taille());
+	POUR (donnees_assignations) {
+		inst->donnees_exprs.pousse(it);
+	}
+
 	return false;
 }
 

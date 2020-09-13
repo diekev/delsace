@@ -29,11 +29,13 @@
 #include "validation_expression_appel.hh"
 
 struct Compilatrice;
+struct NoeudAssignation;
 struct NoeudDeclarationCorpsFonction;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudEnum;
 struct NoeudExpression;
 struct NoeudExpressionMembre;
+struct NoeudRetour;
 struct NoeudStruct;
 struct Tacheronne;
 struct TypeCompose;
@@ -83,7 +85,10 @@ struct ContexteValidationCode {
 	bool valide_operateur(NoeudDeclarationCorpsFonction *);
 	bool valide_enum(NoeudEnum *);
 	bool valide_structure(NoeudStruct *);
+	bool valide_declaration_variable(NoeudDeclarationVariable *decl);
+	bool valide_assignation(NoeudAssignation *inst);
 	bool valide_arbre_aplatis(kuri::tableau<NoeudExpression *> &arbre_aplatis);
+	bool valide_expression_retour(NoeudRetour *inst_retour);
 	bool resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
 	void rapporte_erreur(const char *message, NoeudExpression *noeud);

@@ -103,7 +103,13 @@ struct EspaceDeTravail {
 	dls::outils::Synchrone<TypeDicoGlobale> table_globales{};
 	tableau_page<AtomeGlobale> globales{};
 
-	using ConteneurConstructeursGlobales = dls::tableau<std::pair<AtomeGlobale *, NoeudExpression *>>;
+	struct DonneesConstructeurGlobale {
+		AtomeGlobale *atome = nullptr;
+		NoeudExpression *expression = nullptr;
+		TransformationType transformation{};
+	};
+
+	using ConteneurConstructeursGlobales = dls::tableau<DonneesConstructeurGlobale>;
 	dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
 	using TableChaine = dls::dico<dls::chaine, AtomeConstante *>;

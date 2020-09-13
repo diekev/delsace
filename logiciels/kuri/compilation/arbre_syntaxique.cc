@@ -247,8 +247,6 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		{
 			auto inst = racine->comme_retour();
 			imprime_tab(os, tab);
@@ -472,7 +470,7 @@ NoeudExpression *copie_noeud(
 			auto nexpr = nracine->comme_entete_fonction();
 
 			nexpr->params.reserve(expr->params.taille);
-			nexpr->noms_retours.reserve(expr->noms_retours.taille);
+			nexpr->params_sorties.reserve(expr->params_sorties.taille);
 			nexpr->arbre_aplatis.reserve(expr->arbre_aplatis.taille);
 			nexpr->est_declaration_type = expr->est_declaration_type;
 
@@ -482,13 +480,9 @@ NoeudExpression *copie_noeud(
 				aplatis_arbre(copie, nexpr->arbre_aplatis, DrapeauxNoeud::AUCUN);
 			}
 
-			POUR (expr->noms_retours) {
-				nexpr->noms_retours.pousse(it);
-			}
-
 			POUR (expr->params_sorties) {
 				auto copie = copie_noeud(assem, it, bloc_parent);
-				nexpr->params_sorties.pousse(copie);
+				nexpr->params_sorties.pousse(static_cast<NoeudDeclaration *>(copie));
 				aplatis_arbre(copie, nexpr->arbre_aplatis, DrapeauxNoeud::AUCUN);
 			}
 
@@ -629,8 +623,6 @@ NoeudExpression *copie_noeud(
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		{
 			auto inst = racine->comme_retour();
 			auto ninst = nracine->comme_retour();
@@ -970,8 +962,6 @@ void aplatis_arbre(
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		{
 			auto inst = racine->comme_retour();
 			inst->drapeaux |= drapeau;
@@ -1263,8 +1253,6 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		{
 			auto inst = racine->comme_retour();
 			auto etendue_enfant = calcule_etendue_noeud(inst->expr, fichier);

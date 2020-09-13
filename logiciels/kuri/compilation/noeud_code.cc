@@ -233,8 +233,6 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
-		case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:
-		case GenreNoeud::INSTRUCTION_RETOUR_SIMPLE:
 		{
 			auto expr = noeud_expression->comme_retour();
 

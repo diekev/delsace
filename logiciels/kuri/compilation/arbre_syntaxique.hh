@@ -115,8 +115,6 @@ struct UniteCompilation;
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_REPETE) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_RETIENS) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_RETOUR) \
-	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_RETOUR_MULTIPLE) \
-	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_RETOUR_SIMPLE) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_SAUFSI) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_SI) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_SI_STATIQUE) \
@@ -306,7 +304,7 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(reloge, GenreNoeud::EXPRESSION_RELOGE)
 	EST_NOEUD_GENRE(repete, GenreNoeud::INSTRUCTION_REPETE)
 	EST_NOEUD_GENRE(retiens, GenreNoeud::INSTRUCTION_RETIENS)
-	EST_NOEUD_GENRE(retour, GenreNoeud::INSTRUCTION_RETOUR, GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE, GenreNoeud::INSTRUCTION_RETOUR_SIMPLE)
+	EST_NOEUD_GENRE(retour, GenreNoeud::INSTRUCTION_RETOUR)
 	EST_NOEUD_GENRE(saufsi, GenreNoeud::INSTRUCTION_SAUFSI)
 	EST_NOEUD_GENRE(si, GenreNoeud::INSTRUCTION_SI)
 	EST_NOEUD_GENRE(si_statique, GenreNoeud::INSTRUCTION_SI_STATIQUE)
@@ -382,6 +380,13 @@ struct NoeudDeclaration : public NoeudExpression {
 	POINTEUR_NUL(NoeudDeclaration)
 };
 
+struct DonneesAssignations {
+    NoeudExpression *expression = nullptr;
+    bool multiple_retour = false;
+	kuri::tableau<NoeudExpression *> variables{};
+	kuri::tableau<TransformationType> transformations{};
+};
+
 struct NoeudDeclarationVariable final : public NoeudDeclaration {
 	NoeudDeclarationVariable() { genre = GenreNoeud::DECLARATION_VARIABLE; }
 
@@ -403,6 +408,9 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 
 	// pour les variables globales
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
+
+	// À FAIRE : kuri::tableau cause une fuite de mémoire
+	dls::tableau<DonneesAssignations> donnees_decl{};
 };
 
 struct NoeudAssignation final : public NoeudExpression {
@@ -411,6 +419,8 @@ struct NoeudAssignation final : public NoeudExpression {
 
 	NoeudExpression *variable = nullptr;
 	NoeudExpression *expression = nullptr;
+
+	dls::tableau<DonneesAssignations> donnees_exprs{};
 };
 
 struct NoeudRetour : public NoeudExpression {
@@ -418,6 +428,7 @@ struct NoeudRetour : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudRetour);
 
 	NoeudExpression *expr = nullptr;
+	dls::tableau<DonneesAssignations> donnees_exprs{};
 };
 
 struct NoeudExpressionReference : public NoeudExpression {
@@ -481,9 +492,7 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	COPIE_CONSTRUCT(NoeudDeclarationEnteteFonction);
 
 	kuri::tableau<NoeudDeclaration *> params{};
-	kuri::tableau<NoeudExpression *> params_sorties{};
-
-	kuri::tableau<dls::chaine> noms_retours{};
+	kuri::tableau<NoeudDeclaration *> params_sorties{};
 
 	kuri::tableau<dls::vue_chaine_compacte> noms_types_gabarits{};
 	dls::chaine nom_broye = "";
