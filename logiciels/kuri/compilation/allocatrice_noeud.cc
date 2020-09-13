@@ -76,6 +76,10 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
+		{
+			noeud = m_noeuds_assignation.ajoute_element();
+			break;
+		}
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::OPERATEUR_BINAIRE:
@@ -240,6 +244,7 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 #define DONNEES_ENTREE(Nom, Tableau) \
 	Nom, Tableau.taille(), Tableau.memoire_utilisee()
 
+	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudAssignation", m_noeuds_assignation) });
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDeclarationVariable", m_noeuds_declaration_variable) });
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudEnum", m_noeuds_enum) });
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionBinaire", m_noeuds_expression_binaire) });

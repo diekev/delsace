@@ -777,10 +777,10 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			auto expr_ass = static_cast<NoeudExpressionBinaire *>(noeud);
-			genere_ri_pour_noeud(expr_ass->expr1);
+			auto expr_ass = noeud->comme_assignation();
+			genere_ri_pour_noeud(expr_ass->variable);
 			auto pointeur = depile_valeur();
-			genere_ri_pour_expression_droite(expr_ass->expr2, pointeur);
+			genere_ri_pour_expression_droite(expr_ass->expression, pointeur);
 			break;
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:

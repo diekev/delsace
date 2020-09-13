@@ -1272,9 +1272,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 				return noeud;
 			}
 
-			auto noeud = CREE_NOEUD(NoeudExpressionBinaire, GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE, lexeme);
-			noeud->expr1 = gauche;
-			noeud->expr2 = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
+			auto noeud = CREE_NOEUD(NoeudAssignation, GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE, lexeme);
+			noeud->variable = gauche;
+			noeud->expression = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
 			return noeud;
 		}
 		case GenreLexeme::POINT:

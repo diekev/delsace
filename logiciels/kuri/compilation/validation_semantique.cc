@@ -382,8 +382,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
 			auto inst = noeud->comme_assignation();
-			auto variable = inst->expr1;
-			auto expression = inst->expr2;
+			auto variable = inst->variable;
+			auto expression = inst->expression;
 
 			if (expression->est_non_initialisation()) {
 				rapporte_erreur("Impossible d'utiliser '---' dans une expression d'assignation", expression);
@@ -435,7 +435,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			if (!transtype_si_necessaire(inst->expr2, variable->type)) {
+			if (!transtype_si_necessaire(inst->expression, variable->type)) {
 				return true;
 			}
 
@@ -2938,13 +2938,13 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	}
 
 	POUR (*decl->bloc->expressions.verrou_ecriture()) {
-		if (it->genre == GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
+		if (it->est_assignation()) {
 			auto expr_assign = it->comme_assignation();
-			auto variable = expr_assign->expr1;
+			auto variable = expr_assign->variable;
 
 			for (auto &membre : type_compose->membres) {
 				if (membre.nom == variable->ident->nom) {
-					membre.expression_valeur_defaut = expr_assign->expr2;
+					membre.expression_valeur_defaut = expr_assign->expression;
 					break;
 				}
 			}

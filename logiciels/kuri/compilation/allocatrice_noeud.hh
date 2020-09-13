@@ -54,6 +54,7 @@ struct AllocatriceNoeud {
 	tableau_page<NoeudDirectiveExecution> m_noeuds_directive_execution{};
 	tableau_page<NoeudExpressionVirgule> m_noeuds_expression_virgule{};
 	tableau_page<NoeudRetour> m_noeuds_retour{};
+	tableau_page<NoeudAssignation> m_noeuds_assignation{};
 
 	AllocatriceNoeud() = default;
 	~AllocatriceNoeud() = default;

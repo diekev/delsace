@@ -985,10 +985,10 @@ bool valide_appel_fonction(
 
 	POUR (expr->params) {
 		// l'argument est nommé
-		if (it->genre == GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
-			auto assign = static_cast<NoeudExpressionBinaire *>(it);
-			auto nom_arg = assign->expr1;
-			auto arg = assign->expr2;
+		if (it->est_assignation()) {
+			auto assign = it->comme_assignation();
+			auto nom_arg = assign->variable;
+			auto arg = assign->expression;
 
 			args.pousse({ nom_arg->ident, arg });
 		}

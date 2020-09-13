@@ -144,6 +144,16 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
+		{
+			auto noeud_op_bin = noeud_expression->comme_assignation();
+
+			auto n = noeuds_operations_binaire.ajoute_element();
+			n->operande_gauche = converti_noeud_syntaxique(espace, noeud_op_bin->variable);
+			n->operande_droite = converti_noeud_syntaxique(espace, noeud_op_bin->expression);
+
+			noeud_code = n;
+			break;
+		}
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::OPERATEUR_BINAIRE:

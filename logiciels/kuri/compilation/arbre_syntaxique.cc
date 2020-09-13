@@ -161,6 +161,16 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
+		{
+			auto expr = racine->comme_assignation();
+
+			imprime_tab(os, tab);
+			os << "assignation : " << expr->lexeme->chaine << '\n';
+
+			imprime_arbre(expr->variable, os, tab + 1);
+			imprime_arbre(expr->expression, os, tab + 1);
+			break;
+		}
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::OPERATEUR_BINAIRE:
@@ -543,6 +553,14 @@ NoeudExpression *copie_noeud(
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
+		{
+			auto expr = racine->comme_assignation();
+			auto nexpr = nracine->comme_assignation();
+
+			nexpr->variable = copie_noeud(assem, expr->variable, bloc_parent);
+			nexpr->expression = copie_noeud(assem, expr->expression, bloc_parent);
+			break;
+		}
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::OPERATEUR_BINAIRE:
@@ -819,11 +837,11 @@ void aplatis_arbre(
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
 		{
-			auto expr = static_cast<NoeudExpressionBinaire *>(racine);
+			auto expr = racine->comme_assignation();
 			expr->drapeaux |= drapeau;
 
-			aplatis_arbre(expr->expr1, arbre_aplatis, drapeau);
-			aplatis_arbre(expr->expr2, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+			aplatis_arbre(expr->variable, arbre_aplatis, drapeau);
+			aplatis_arbre(expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
 			arbre_aplatis.pousse(expr);
 
 			break;
@@ -904,11 +922,11 @@ void aplatis_arbre(
 			}
 
 			POUR (expr->params) {
-				if (it->genre == GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
+				if (it->est_assignation()) {
 					// n'aplatis pas le nom du paramètre car cela clasherait avec une variable locale,
 					// ou résulterait en une erreur de compilation « variable inconnue »
-					auto expr_assing = static_cast<NoeudExpressionBinaire *>(it);
-					aplatis_arbre(expr_assing->expr2, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+					auto expr_assing = it->comme_assignation();
+					aplatis_arbre(expr_assing->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
 				}
 				else {
 					aplatis_arbre(it, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
@@ -1163,6 +1181,19 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
+		{
+			auto expr = racine->comme_assignation();
+
+			auto etendue_enfant = calcule_etendue_noeud(expr->variable, fichier);
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			etendue_enfant = calcule_etendue_noeud(expr->expression, fichier);
+			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+
+			break;
+		}
 		case GenreNoeud::EXPRESSION_INDEXAGE:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::OPERATEUR_BINAIRE:

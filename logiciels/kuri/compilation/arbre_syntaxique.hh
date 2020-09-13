@@ -36,6 +36,7 @@ struct AssembleuseArbre;
 struct AtomeFonction;
 struct Fichier;
 struct IdentifiantCode;
+struct NoeudAssignation;
 struct NoeudBloc;
 struct NoeudBoucle;
 struct NoeudCode;
@@ -325,7 +326,7 @@ struct NoeudExpression {
 
 	COMME_NOEUD(appel, NoeudExpressionAppel)
 	COMME_NOEUD(args_variadiques, NoeudTableauArgsVariadiques)
-	COMME_NOEUD(assignation, NoeudExpressionBinaire)
+	COMME_NOEUD(assignation, NoeudAssignation)
 	COMME_NOEUD(bloc, NoeudBloc)
 	COMME_NOEUD(boucle, NoeudBoucle)
 	COMME_NOEUD(comme, NoeudComme)
@@ -402,6 +403,14 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 
 	// pour les variables globales
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
+};
+
+struct NoeudAssignation final : public NoeudExpression {
+	NoeudAssignation() { genre = GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE; }
+	COPIE_CONSTRUCT(NoeudAssignation);
+
+	NoeudExpression *variable = nullptr;
+	NoeudExpression *expression = nullptr;
 };
 
 struct NoeudRetour : public NoeudExpression {
@@ -693,7 +702,7 @@ struct NoeudComme : public NoeudExpression {
 
 	COMME_NOEUD(appel, NoeudExpressionAppel)
 	COMME_NOEUD(args_variadiques, NoeudTableauArgsVariadiques)
-	COMME_NOEUD(assignation, NoeudExpressionBinaire)
+	COMME_NOEUD(assignation, NoeudAssignation)
 	COMME_NOEUD(bloc, NoeudBloc)
 	COMME_NOEUD(boucle, NoeudBoucle)
 	COMME_NOEUD(comme, NoeudComme)
