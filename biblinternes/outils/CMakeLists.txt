@@ -49,6 +49,7 @@ set(ENTETES
 	masque_binaire.h
 	numerique.hh
 	parametres.hh
+    sauvegardeuse_etat.hh
 	tableau_donnees.hh
 	temps.hh
 	transbit.hh

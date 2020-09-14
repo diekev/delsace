@@ -27,6 +27,7 @@
 #include <fstream>
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "arbre_syntaxique.hh"
 #include "compilatrice.hh"
@@ -2889,17 +2890,12 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 		return;
 	}
 
-	// À FAIRE : trouve une bonne manière de sauvegarder et restaurer l'état des fonctions courante pour éviter les bugs
-	auto ancienne_pile = m_pile;
-	m_pile.efface();
-	auto ancienne_table = table_locales;
-	table_locales.efface();
+	SAUVEGARDE_ETAT(m_pile);
+	SAUVEGARDE_ETAT(table_locales);
+	SAUVEGARDE_ETAT(fonction_courante);
+	SAUVEGARDE_ETAT(nombre_labels);
 	acces_membres.taille = 0;
 	charge_mems.taille = 0;
-	auto ancienne_fonction = fonction_courante;
-	fonction_courante = nullptr;
-	auto ancien_nombre_labels = nombre_labels;
-	nombre_labels = 0;
 
 	auto fonction = m_espace->trouve_ou_insere_fonction_init(*this, type);
 	auto ptr_contexte = fonction->params_entrees[0];
@@ -2994,11 +2990,6 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	type->drapeaux |= RI_TYPE_FUT_GENEREE;
 
 	cree_retour(nullptr);
-
-	m_pile = ancienne_pile;
-	nombre_labels = ancien_nombre_labels;
-	table_locales = ancienne_table;
-	fonction_courante = ancienne_fonction;
 }
 
 Atome *ConstructriceRI::valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident)

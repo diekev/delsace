@@ -29,6 +29,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/flux/outils.h"
+#include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "erreur.h"
 #include "lexeuse.hh"
@@ -155,8 +156,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 		return iter_fonc->second;
 	}
 
-	auto fonction_courante = constructrice.fonction_courante;
-	constructrice.fonction_courante = nullptr;
+	SAUVEGARDE_ETAT(constructrice.fonction_courante);
 
 	auto params = kuri::tableau<Atome *>();
 	params.reserve(decl->params.taille);
@@ -194,8 +194,6 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 
 	table->insere({ decl->nom_broye, atome_fonc });
 
-	constructrice.fonction_courante = fonction_courante;
-
 	return atome_fonc;
 }
 
@@ -224,8 +222,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 		return iter_fonc->second;
 	}
 
-	auto fonction_courante = constructrice.fonction_courante;
-	constructrice.fonction_courante = nullptr;
+	SAUVEGARDE_ETAT(constructrice.fonction_courante);
 
 	auto types_entrees = kuri::tableau<Type *>(2);
 	types_entrees[0] = typeuse.type_contexte;
@@ -247,8 +244,6 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 	atome_fonc->params_sorties = std::move(params_sortie);
 
 	table->insere({ nom_fonction, atome_fonc });
-
-	constructrice.fonction_courante = fonction_courante;
 
 	return atome_fonc;
 }
