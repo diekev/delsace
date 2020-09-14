@@ -266,14 +266,14 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudRetour", m_noeuds_retour) + memoire_retour });
 
 	auto memoire_assignation = 0l;
-	pour_chaque_element(m_noeuds_retour, [&](NoeudAssignation const &noeud)
+	pour_chaque_element(m_noeuds_assignation, [&](NoeudAssignation const &noeud)
 	{
 		memoire_assignation += noeud.donnees_exprs.taille() * taille_de(DonneesAssignations);
 	});
 	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudAssignation", m_noeuds_assignation) + memoire_assignation });
 
 	auto memoire_decl = 0l;
-	pour_chaque_element(m_noeuds_retour, [&](NoeudDeclarationVariable const &noeud)
+	pour_chaque_element(m_noeuds_declaration_variable, [&](NoeudDeclarationVariable const &noeud)
 	{
 		memoire_decl += noeud.donnees_decl.taille() * taille_de(DonneesAssignations);
 	});
