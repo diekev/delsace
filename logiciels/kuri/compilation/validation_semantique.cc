@@ -2180,8 +2180,9 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 						return true;
 					}
 
-					// À FAIRE : inclus la position où l'opérateur fut défini
-					rapporte_erreur("redéfinition de l'opérateur", decl);
+					::rapporte_erreur(espace, decl, "Redéfinition de l'opérateur")
+							.ajoute_message("L'opérateur fut déjà défini ici :\n")
+							.ajoute_site(op->decl);
 					return true;
 				}
 			}
@@ -2206,8 +2207,9 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 						return true;
 					}
 
-					// À FAIRE : inclus la position où l'opérateur fut défini
-					rapporte_erreur("redéfinition de l'opérateur", decl);
+					::rapporte_erreur(espace, decl, "Redéfinition de l'opérateur")
+							.ajoute_message("L'opérateur fut déjà défini ici :\n")
+							.ajoute_site(op->decl);
 					return true;
 				}
 			}
