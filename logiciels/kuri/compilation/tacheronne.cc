@@ -826,9 +826,6 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 	dls::tableau<AtomeGlobale *> globales;
 	dls::tableau<AtomeFonction *> fonctions;
 
-	globales.efface();
-	fonctions.efface();
-
 	traverse_graphe(noeud->fonction->noeud_dependance, [&](NoeudDependance *noeud_dep)
 	{
 		if (noeud_dep->type == TypeNoeudDependance::FONCTION) {
