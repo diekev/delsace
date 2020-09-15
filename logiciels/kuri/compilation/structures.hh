@@ -283,6 +283,11 @@ struct tableau {
 	{
 		return this->pointeur[index];
 	}
+
+	T const &derniere() const
+	{
+		return this->pointeur[this->taille - 1];
+	}
 };
 
 template <typename T>
