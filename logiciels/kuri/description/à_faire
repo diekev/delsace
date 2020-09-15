@@ -23,9 +23,6 @@ ajout de l'information de présence de contexte aux blocs afin de pouvoir défin
 
 // --------------------------- Fonctions
 
-réétablir le retour de plusieurs valeurs
-    -- déclaration de plusieurs valeurs, mentions À FAIRE dans JSON/lexage.kuri
-
 directive #procédure_d_appel pour trouver la surcharge d'une fonction
     a := #procédure_d_appel ma_fonction(5)  // renvoie le pointeur sur ma_fonction(z32)
 
@@ -177,8 +174,6 @@ typage un peu libre des énumérations
 
 constructions de la table de types
     requiers d'avoir des fonctions d'initialisations pour tous les types
-
-ajout d'un type pour les retours des fonctions, uniquement utilisé en interne pour simplifier la validation de typage ?
 
 ajout d'un type pour les caractères, au lieu de z8 ou n32 (peut se faire via un alias, mais les chaines seraient brisées)
 
@@ -365,7 +360,6 @@ implémente la directive #si pour la compilation sélective
 - système de test unitaires
 - optimisations de l'accès aux membres des blocs (table de hachage avec tableau continu, en cours)
 - pouvoir passer des expressions à exécuter à la ligne de commande (kuri -exec "..." fichier.kuri)
-- considère parser les expressions se terminant par une virgule (p.e. f(x, ))
 - proprement définir ce qu'on doit faire si un métaprogramme demande un message alors qu'il n'a pas commencer à les intercepter
 - nettoie la génération de code de création de contexte pour la fonction principale pour utiliser le noeud de la création de contexte du module Kuri
 - avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
@@ -388,6 +382,7 @@ implémente la directive #si pour la compilation sélective
 - vérifie les appels superflux à empile_valeur (expr appel, transforme valeur)
 - considère supprimer noeud_expression_appel::noeud_déclaration_appel (surécris appele?)
 - marque les fonctions d'initialisations comme enlignée
+- transforme l'arbre syntaxique pour simplifier la validation sémantique ou la génération de RI (p.e. : remplace les boucles par des boucles pour) ?
 
 À faire (architecture)
 ----------------------
@@ -396,11 +391,6 @@ implémente la directive #si pour la compilation sélective
 - génération de code sur plusieurs threads (LLVM -> un module par thread + liaison finale de tous les modules)
 - réduction des allocations
 - déplace la génération de la fonction main dans une unité de compilation
-- remplace TransformationType par un noeud de transtypage
-    il faudra pouvoir remplacer le noeud de l'expression dans le bloc parent
-        expr->bloc_parent->remplace(expr, transtype)
-    réfléchis pour les arguments variadiques, les nombres constants, les littérales, etc.
-- met l'allocatrice de noeuds dans les tâcheronnes pour éviter les problèmes de concurrences critiques
 - parser les expressions se finissant par une virgule (f(x,)) ; peut simplifier la métaprogrammation
 
 À faire (32-bits)
