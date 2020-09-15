@@ -885,8 +885,7 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 	auto fonction = espace->trouve_fonction(noeud->fonction->nom_broye);
 
 	if (!fonction) {
-		std::cerr << "Impossible de trouver la fonction métaprogramme pour " << noeud->fonction->nom_broye << '\n';
-		imprime_fichier_ligne(*espace, *noeud->lexeme);
+		rapporte_erreur(espace, noeud, "Impossible de trouver la fonction pour le métaprogramme");
 	}
 
 	//desassemble(fonction->chunk, noeud->fonction->nom_broye.c_str(), std::cout);
