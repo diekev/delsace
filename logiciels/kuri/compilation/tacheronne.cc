@@ -905,19 +905,16 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 
 	auto res = mv.interprete(fonction);
 
+	// À FAIRE : précision des messages d'erreurs
 	if (res == MachineVirtuelle::ResultatInterpretation::ERREUR) {
-		// À FAIRE : erreur de compilation si une erreur d'exécution
-		std::cerr << "Erreur lors de l'exécution du métaprogramme !\n-- ";
-		imprime_fichier_ligne(*espace, *noeud->lexeme);
+		rapporte_erreur(espace, noeud, "Erreur lors de l'exécution du métaprogramme");
 	}
 	else {
 		if (noeud->ident == ID::assert_) {
 			auto resultat = *reinterpret_cast<bool *>(mv.pointeur_pile);
 
 			if (!resultat) {
-				// À FAIRE : erreur de compilation si une assertion échoue
-				std::cerr << "Échec de l'assertion !\n-- ";
-				imprime_fichier_ligne(*espace, *noeud->lexeme);
+				rapporte_erreur(espace, noeud, "Échec de l'assertion");
 			}
 		}
 	}
