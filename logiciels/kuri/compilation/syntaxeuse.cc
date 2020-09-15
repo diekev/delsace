@@ -2113,12 +2113,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
-
-//			std::cerr << "Abre aplatis pour fonction " << noeud->ident->nom << " :\n";
-
-//			POUR (noeud->arbre_aplatis) {
-//				std::cerr << "-- " << chaine_genre_noeud(it->genre) << '\n';
-//			}
 		}
 
 		m_fichier->module->fonctions_exportees.insere(lexeme->chaine);

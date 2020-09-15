@@ -2535,10 +2535,6 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 	auto bloc = decl->bloc;
 	auto inst_ret = derniere_instruction(bloc);
 
-//	if (decl->entete->ident == ID::principale) {
-//		imprime_arbre(decl->bloc, std::cerr, 0);
-//	}
-
 	/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
 	if (inst_ret == nullptr) {
 		auto type_fonc = entete->type->comme_fonction();
