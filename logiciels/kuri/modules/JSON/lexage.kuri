@@ -132,13 +132,7 @@ enregistre_position_mot :: fonc(lexeuse : &LexeuseJSON) -> rien
 performe_lexage :: fonc(lexeuse : &LexeuseJSON) -> rien
 {
     tantque !lexeuse.a_fini() {
-		// À FAIRE : permet la déclaration simultanée de plusieurs variables
-		est_spécial : bool
-		lexème : TypeLexèmeJSON
-
-		// À FAIRE : l'assignation de plusieurs variables est cassée depuis que nous pouvons
-		// avoir des valeurs par défaut pour les paramètres des fonctions
-        //est_spécial, lexème = est_caractère_spécial(lexeuse.caractère_courant())
+        est_spécial, lexème := est_caractère_spécial(lexeuse.caractère_courant())
 
         si (est_spécial) {
 			lexeuse.enregistre_position_mot()
