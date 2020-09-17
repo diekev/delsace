@@ -383,6 +383,10 @@ implémente la directive #si pour la compilation sélective
 - considère supprimer noeud_expression_appel::noeud_déclaration_appel (surécris appele?)
 - marque les fonctions d'initialisations comme enlignée
 - transforme l'arbre syntaxique pour simplifier la validation sémantique ou la génération de RI (p.e. : remplace les boucles par des boucles pour) ?
+---- a += 1 -> a = a + 1
+---- a + b, où + est un opérateur surchargé -> appel(a, b)
+---- -a, où - est un opérateur surchargé -> appel(a)
+
 
 À faire (architecture)
 ----------------------
