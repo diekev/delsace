@@ -1336,15 +1336,13 @@ static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Sync
 	}
 }
 
-static void rassemble_fonctions_utilisees(NoeudDependance *racine, EspaceDeTravail &espace, kuri::tableau<AtomeFonction *> &fonctions, dls::ensemble<AtomeFonction *> &utilises)
+static void rassemble_fonctions_utilisees(NoeudDependance *racine, kuri::tableau<AtomeFonction *> &fonctions, dls::ensemble<AtomeFonction *> &utilises)
 {
 	traverse_graphe(racine, [&](NoeudDependance *noeud)
 	{
-		auto table = espace.table_fonctions.verrou_lecture();
-
 		if (noeud->type == TypeNoeudDependance::FONCTION) {
 			auto noeud_fonction = noeud->noeud_syntaxique->comme_entete_fonction();
-			auto atome_fonction = table->trouve(noeud_fonction->nom_broye)->second;
+			auto atome_fonction = noeud_fonction->atome_fonction;
 			assert(atome_fonction);
 
 			if (utilises.trouve(atome_fonction) != utilises.fin()) {
@@ -1359,12 +1357,9 @@ static void rassemble_fonctions_utilisees(NoeudDependance *racine, EspaceDeTrava
 			auto type = noeud->type_;
 
 			if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
-				auto nom_fonction_init = "initialise_" + dls::vers_chaine(type);
-				auto atome_fonction = table->trouve(nom_fonction_init);
-
-				if (atome_fonction != table->fin()) {
-					fonctions.pousse(atome_fonction->second);
-				}
+				auto atome_fonction = type->fonction_init;
+				assert(atome_fonction);
+				fonctions.pousse(atome_fonction);
 			}
 		}
 	});
@@ -1398,7 +1393,7 @@ static void genere_code_C_depuis_fonction_principale(
 
 	dls::ensemble<AtomeFonction *> utilises;
 	kuri::tableau<AtomeFonction *> fonctions;
-	rassemble_fonctions_utilisees(fonction_principale, espace, fonctions, utilises);
+	rassemble_fonctions_utilisees(fonction_principale, fonctions, utilises);
 
 	fonctions.pousse(atome_main);
 
@@ -1439,7 +1434,7 @@ static void genere_code_C_depuis_fonctions_racines(
 	dls::ensemble<AtomeFonction *> utilises;
 	POUR (fonctions_racines) {
 		auto noeud_dep = it->decl->noeud_dependance;
-		rassemble_fonctions_utilisees(noeud_dep, espace, fonctions, utilises);
+		rassemble_fonctions_utilisees(noeud_dep, fonctions, utilises);
 	}
 
 	auto generatrice = GeneratriceCodeC(espace);

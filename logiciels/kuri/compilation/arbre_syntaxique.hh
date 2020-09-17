@@ -506,6 +506,8 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	// devra être protégé par un mutex quand le typage sera asynchrone
 	dls::tableau<std::pair<tableau_paire_expansion, NoeudDeclarationEnteteFonction *>> epandu_pour{};
 
+	AtomeFonction *atome_fonction = nullptr;
+
 	bool est_operateur = false;
 	bool est_coroutine = false;
 	bool est_gabarit = false;

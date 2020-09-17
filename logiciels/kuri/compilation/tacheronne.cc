@@ -835,7 +835,7 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 				return;
 			}
 
-			auto atome_fonction = espace->trouve_fonction(decl_noeud->nom_broye);
+			auto atome_fonction = decl_noeud->atome_fonction;
 			fonctions.pousse(atome_fonction);
 			decl_noeud->drapeaux |= CODE_BINAIRE_FUT_GENERE;
 		}
@@ -849,8 +849,8 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 			type->index_dans_table_types = index_dans_table_type++;
 
 			if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
-				auto nom_fonction = "initialise_" + dls::vers_chaine(type);
-				auto atome_fonction = espace->trouve_fonction(nom_fonction);
+				auto atome_fonction = type->fonction_init;
+				assert(atome_fonction);
 				fonctions.pousse(atome_fonction);
 				type->drapeaux |= CODE_BINAIRE_TYPE_FUT_GENERE;
 			}
@@ -882,7 +882,7 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 		it.fut_visite = false;
 	}
 
-	auto fonction = espace->trouve_fonction(noeud->fonction->nom_broye);
+	auto fonction = noeud->fonction->atome_fonction;
 
 	if (!fonction) {
 		rapporte_erreur(espace, noeud, "Impossible de trouver la fonction pour le métaprogramme");

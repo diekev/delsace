@@ -696,7 +696,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			}
 			else {
 				auto decl = expr_appel->noeud_fonction_appelee->comme_entete_fonction();
-				atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl);
+				atome_fonc = m_espace->trouve_ou_insere_fonction(*this, const_cast<NoeudDeclarationEnteteFonction *>(decl));
 			}
 
 			auto type_fonction = atome_fonc->type->comme_fonction();
@@ -2010,7 +2010,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud, Atome *valeur, T
 		}
 		case TypeTransformation::FONCTION:
 		{
-			auto atome_fonction = m_espace->trouve_ou_insere_fonction(*this, transformation.fonction);
+			auto atome_fonction = m_espace->trouve_ou_insere_fonction(*this, const_cast<NoeudDeclarationEnteteFonction *>(transformation.fonction));
 
 			if (valeur->est_chargeable) {
 				valeur = cree_charge_mem(valeur);
@@ -4027,7 +4027,8 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 
 	// ----------------------------------
 	// appel notre fonction principale en passant le contexte et le tableau
-	auto fonc_princ = m_espace->trouve_fonction("principale");
+	auto noeud_dep_fonc_princ = m_espace->graphe_dependance->cherche_noeud_fonction("principale");
+	auto fonc_princ = noeud_dep_fonc_princ->noeud_syntaxique->comme_entete_fonction();
 
 	auto params_principale = kuri::tableau<Atome *>(1);
 	params_principale[0] = cree_charge_mem(alloc_contexte);
@@ -4035,7 +4036,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 	static Lexeme lexeme_appel_principale = { "principale", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
 	lexeme_appel_principale.ident = ID::principale;
 
-	auto valeur_princ = cree_appel(&lexeme_appel_principale, fonc_princ, std::move(params_principale));
+	auto valeur_princ = cree_appel(&lexeme_appel_principale, fonc_princ->atome_fonction, std::move(params_principale));
 
 	// return
 	cree_retour(valeur_princ);

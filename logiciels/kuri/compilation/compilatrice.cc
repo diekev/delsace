@@ -128,17 +128,15 @@ Fichier *EspaceDeTravail::fichier(const dls::vue_chaine_compacte &nom_fichier) c
 
 AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const dls::chaine &nom_fichier)
 {
-	auto table = table_fonctions.verrou_ecriture();
+	std::unique_lock lock(mutex_atomes_fonctions);
 	auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fichier);
-	table->insere({ nom_fichier, atome_fonc });
 	return atome_fonc;
 }
 
 AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const dls::chaine &nom_fonction, kuri::tableau<Atome *> &&params)
 {
-	auto table = table_fonctions.verrou_ecriture();
+	std::unique_lock lock(mutex_atomes_fonctions);
 	auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fonction, std::move(params));
-	table->insere({ nom_fonction, atome_fonc });
 	return atome_fonc;
 }
 
@@ -147,13 +145,12 @@ AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const dls::c
  * pointeur vers l'atome d'une fonction si nous l'avons déjà généré, soit de le
  * créer en préparation de la génération de la RI de son corps.
  */
-AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationEnteteFonction const *decl)
+AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationEnteteFonction *decl)
 {
-	auto table = table_fonctions.verrou_ecriture();
-	auto iter_fonc = table->trouve(decl->nom_broye);
+	std::unique_lock lock(mutex_atomes_fonctions);
 
-	if (iter_fonc != table->fin()) {
-		return iter_fonc->second;
+	if (decl->atome_fonction) {
+		return decl->atome_fonction;
 	}
 
 	SAUVEGARDE_ETAT(constructrice.fonction_courante);
@@ -192,35 +189,20 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	atome_fonc->decl = decl;
 	atome_fonc->params_sorties = std::move(params_sortie);
 
-	table->insere({ decl->nom_broye, atome_fonc });
+	decl->atome_fonction = atome_fonc;
 
 	return atome_fonc;
 }
 
-AtomeFonction *EspaceDeTravail::trouve_fonction(const dls::chaine &nom_fonction)
-{
-	auto table = table_fonctions.verrou_lecture();
-
-	auto iter = table->trouve(nom_fonction);
-
-	if (iter != table->fin()) {
-		return iter->second;
-	}
-
-	return nullptr;
-}
-
 AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &constructrice, Type *type)
 {
-	auto table = table_fonctions.verrou_ecriture();
+	std::unique_lock lock(mutex_atomes_fonctions);
+
+	if (type->fonction_init) {
+		return type->fonction_init;
+	}
 
 	auto nom_fonction = "initialise_" + dls::vers_chaine(type);
-
-	auto iter_fonc = table->trouve(nom_fonction);
-
-	if (iter_fonc != table->fin()) {
-		return iter_fonc->second;
-	}
 
 	SAUVEGARDE_ETAT(constructrice.fonction_courante);
 
@@ -243,7 +225,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 	atome_fonc->type = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
 	atome_fonc->params_sorties = std::move(params_sortie);
 
-	table->insere({ nom_fonction, atome_fonc });
+	type->fonction_init = atome_fonc;
 
 	return atome_fonc;
 }

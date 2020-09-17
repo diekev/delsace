@@ -33,6 +33,7 @@
 #include "structures.hh"
 
 struct AtomeConstante;
+struct AtomeFonction;
 struct GrapheDependance;
 struct IdentifiantCode;
 struct InfoType;
@@ -191,6 +192,8 @@ struct Type {
 	InfoType *info_type = nullptr;
 	AtomeConstante *atome_info_type = nullptr;
 	NoeudDependance *noeud_dependance = nullptr;
+
+	AtomeFonction *fonction_init = nullptr;
 
 	POINTEUR_NUL(Type)
 

@@ -96,7 +96,6 @@ struct EspaceDeTravail {
 	dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
 
 	using TypeDicoFonction = dls::dico<dls::chaine, AtomeFonction *>;
-	dls::outils::Synchrone<TypeDicoFonction> table_fonctions{};
 	tableau_page<AtomeFonction> fonctions{};
 
 	using TypeDicoGlobale = dls::dico<NoeudDeclaration *, AtomeGlobale *>;
@@ -119,6 +118,8 @@ struct EspaceDeTravail {
 	std::atomic<int> nombre_taches_typage = 0;
 	std::atomic<int> nombre_taches_ri = 0;
 	std::atomic<int> nombre_taches_execution = 0;
+
+	std::mutex mutex_atomes_fonctions{};
 
 	PhaseCompilation phase{};
 
@@ -164,7 +165,7 @@ struct EspaceDeTravail {
 
 	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction);
 	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction, kuri::tableau<Atome *> &&params);
-	AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationEnteteFonction const *decl);
+	AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationEnteteFonction *decl);
 	AtomeFonction *trouve_fonction(dls::chaine const &nom_fonction);
 	AtomeFonction *trouve_ou_insere_fonction_init(ConstructriceRI &constructrice, Type *type);
 
