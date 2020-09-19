@@ -738,9 +738,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto expr_ref = static_cast<NoeudExpressionReference *>(noeud);
 			auto decl_ref = expr_ref->decl;
 
-			// À FAIRE : decl peut être nulle pour les appels de pointeurs de fonctions
-
-			if (decl_ref != nullptr && decl_ref->drapeaux & EST_CONSTANTE) {
+			if (decl_ref->drapeaux & EST_CONSTANTE) {
 				auto decl_const = static_cast<NoeudDeclarationVariable *>(decl_ref);
 
 				if (decl_ref->type->est_reel()) {
@@ -753,7 +751,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			if (decl_ref != nullptr && decl_ref->est_entete_fonction()) {
+			if (decl_ref->est_entete_fonction()) {
 				auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl_ref->comme_entete_fonction());
 				// voir commentaire dans cree_appel
 				atome_fonc->nombre_utilisations += 1;
