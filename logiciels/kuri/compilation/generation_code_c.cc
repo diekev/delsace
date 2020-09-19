@@ -698,11 +698,6 @@ struct GeneratriceCodeC {
 				os << "  invalide\n";
 				break;
 			}
-			case Instruction::Genre::ENREGISTRE_LOCALES:
-			case Instruction::Genre::RESTAURE_LOCALES:
-			{
-				break;
-			}
 			case Instruction::Genre::ALLOCATION:
 			{
 				auto type_pointeur = inst->type->comme_pointeur();

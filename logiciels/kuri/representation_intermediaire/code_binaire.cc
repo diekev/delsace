@@ -788,6 +788,7 @@ struct ConvertisseuseRI {
 	MachineVirtuelle *mv = nullptr;
 	dls::tableau<PatchLabel> patchs_labels{};
 	dls::pile<int> pile_taille{};
+	int derniere_profondeur_alloc = 0;
 
 	ConvertisseuseRI(MachineVirtuelle *mv_);
 
@@ -861,9 +862,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 					Instruction::Genre::APPEL,
 					Instruction::Genre::BRANCHE,
 					Instruction::Genre::BRANCHE_CONDITION,
-					Instruction::Genre::ENREGISTRE_LOCALES,
 					Instruction::Genre::LABEL,
-					Instruction::Genre::RESTAURE_LOCALES,
 					Instruction::Genre::RETOUR,
 					Instruction::Genre::STOCKE_MEMOIRE);
 
@@ -899,16 +898,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 			chunk.emets_label(label->id);
 			break;
 		}
-		case Instruction::Genre::ENREGISTRE_LOCALES:
-		{
-			pile_taille.empile(chunk.taille_allouee);
-			break;
-		}
-		case Instruction::Genre::RESTAURE_LOCALES:
-		{
-			chunk.taille_allouee = pile_taille.depile();
-			break;
-		}
 		case Instruction::Genre::BRANCHE:
 		{
 			auto branche = static_cast<InstructionBranche *>(instruction);
@@ -934,6 +923,15 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				auto adresse = chunk.emets_allocation(type_pointe, alloc->ident);
 				alloc->index_locale = static_cast<int>(chunk.locales.taille());
 				chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
+
+				if (alloc->profondeur_bloc > derniere_profondeur_alloc) {
+					derniere_profondeur_alloc = alloc->profondeur_bloc;
+					pile_taille.empile(chunk.taille_allouee);
+				}
+				else if (alloc->profondeur_bloc < derniere_profondeur_alloc) {
+					derniere_profondeur_alloc = alloc->profondeur_bloc;
+					chunk.taille_allouee = pile_taille.depile();
+				}
 			}
 
 			break;

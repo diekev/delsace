@@ -330,6 +330,7 @@ InstructionAllocation *ConstructriceRI::cree_allocation(Type *type, IdentifiantC
 	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
 	auto type_pointeur = m_espace->typeuse.type_pointeur_pour(type);
 	auto inst = insts_allocation.ajoute_element(type_pointeur, ident);
+	inst->profondeur_bloc = profondeur_bloc;
 
 	/* Nous utilisons pour l'instant cree_allocation pour les paramètres des
 	 * fonctions, et la fonction_courante est nulle lors de cette opération.
@@ -559,6 +560,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			fonction_courante = nullptr;
 			nombre_labels = 0;
+			profondeur_bloc = 0;
 			this->m_pile.efface();
 
 			auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl);
@@ -636,20 +638,15 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				table_locales.insere({ decl_var->ident, valeur });
 			}
 
-			auto inst = insts_simples.ajoute_element();
-			inst->genre = Instruction::Genre::ENREGISTRE_LOCALES;
-			fonction_courante->instructions.pousse(inst);
+			profondeur_bloc += 1;
 
 			POUR (*noeud_bloc->expressions.verrou_lecture()) {
 				genere_ri_pour_noeud(it);
 			}
 
-			inst = insts_simples.ajoute_element();
-			inst->genre = Instruction::Genre::RESTAURE_LOCALES;
-			fonction_courante->instructions.pousse(inst);
+			profondeur_bloc -= 1;
 
-			/* -2 car la dernière instruction est une instruction de restauration de locales */
-			auto derniere_instruction = *(fonction_courante->instructions.end() - 2);
+			auto derniere_instruction = *(fonction_courante->instructions.end() - 1);
 
 			if (derniere_instruction->genre != Instruction::Genre::RETOUR) {
 				/* génère le code pour tous les noeuds différés de ce bloc */
@@ -2884,6 +2881,7 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	SAUVEGARDE_ETAT(table_locales);
 	SAUVEGARDE_ETAT(fonction_courante);
 	SAUVEGARDE_ETAT(nombre_labels);
+	SAUVEGARDE_ETAT(profondeur_bloc);
 	acces_membres.taille = 0;
 	charge_mems.taille = 0;
 
@@ -4044,6 +4042,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecut
 	table_locales.efface();
 	acces_membres.taille = 0;
 	charge_mems.taille = 0;
+	profondeur_bloc = 0;
 
 	auto decl_creation_contexte = m_espace->interface_kuri->decl_creation_contexte;
 
@@ -4051,13 +4050,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecut
 
 	atome_fonc->instructions.reserve(atome_creation_contexte->instructions.taille);
 
-	/* À FAIRE : l'instruction « restaure locale » à la fin de cette fonction nous
-	 * indique de supprimer toutes ses locales et les locales de l'expression de la
-	 * directive se trouveront sur les premières en mémoire, mais nous en avons
-	 * peut-être encore besoin des premières. Pour le moment, n'écris pas l'instruction,
-	 * d'où le « - 1 ».
-	 */
-	for (auto i = 0; i < atome_creation_contexte->instructions.taille - 1; ++i) {
+	for (auto i = 0; i < atome_creation_contexte->instructions.taille; ++i) {
 		auto it = atome_creation_contexte->instructions[i];
 		atome_fonc->instructions.pousse(it);
 
@@ -4318,7 +4311,6 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
 	stats_ri.fusionne_entree({ #Tableau, Tableau.taille(), Tableau.memoire_utilisee() });
 
 	AJOUTE_ENTREE(atomes_constante)
-	AJOUTE_ENTREE(insts_simples)
 	AJOUTE_ENTREE(insts_allocation)
 	AJOUTE_ENTREE(insts_branche)
 	AJOUTE_ENTREE(insts_branche_condition)

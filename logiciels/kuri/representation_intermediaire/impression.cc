@@ -153,16 +153,6 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
 			os << "  invalide\n";
 			break;
 		}
-		case Instruction::Genre::ENREGISTRE_LOCALES:
-		{
-			os << " enregistre locales\n";
-			break;
-		}
-		case Instruction::Genre::RESTAURE_LOCALES:
-		{
-			os << " restaure locales\n";
-			break;
-		}
 		case Instruction::Genre::ALLOCATION:
 		{
 			auto type_pointeur = inst->type->comme_pointeur();

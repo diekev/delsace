@@ -39,11 +39,6 @@ static Instruction *derniere_instruction(AtomeFonction *atome)
 	}
 
 	auto index = instructions.taille - 1;
-
-	while (instructions[index]->est_restaure_locales()) {
-		index -= 1;
-	}
-
 	return instructions[index];
 }
 

@@ -265,11 +265,6 @@ struct Instruction : public Atome {
 		ACCEDE_MEMBRE,
 		ACCEDE_INDEX,
 		TRANSTYPE,
-
-		// ces deux types d'instructions sont utilisées pour tenir trace du nombre de locales dans les blocs pour le code binaire
-		// à l'entrée d'un bloc nous enregistrons le nombre de locales, et le restaurons à la sortie, afin de réutiliser la mémoire des locales du blocs
-		ENREGISTRE_LOCALES,
-		RESTAURE_LOCALES,
 	};
 
 	enum {
@@ -303,11 +298,9 @@ struct Instruction : public Atome {
 	inline bool est_branche() const { return genre == Genre::BRANCHE; }
 	inline bool est_branche_cond() const { return genre == Genre::BRANCHE_CONDITION; }
 	inline bool est_charge() const { return genre == Genre::CHARGE_MEMOIRE; }
-	inline bool est_enregistre_locales() const { return genre == Genre::ENREGISTRE_LOCALES; }
 	inline bool est_label() const { return genre == Genre::LABEL; }
 	inline bool est_op_binaire() const { return genre == Genre::OPERATION_BINAIRE; }
 	inline bool est_op_unaire() const { return genre == Genre::OPERATION_UNAIRE; }
-	inline bool est_restaure_locales() const { return genre == Genre::RESTAURE_LOCALES; }
 	inline bool est_retour() const { return genre == Genre::RETOUR; }
 	inline bool est_stocke_mem() const { return genre == Genre::STOCKE_MEMOIRE; }
 	inline bool est_transtype() const { return genre == Genre::TRANSTYPE; }
@@ -350,6 +343,7 @@ struct InstructionAllocation : public Instruction {
 
 	// pour la génération de code binaire, mise en place lors de la génération de celle-ci
 	int index_locale = 0;
+	int profondeur_bloc = 0;
 
 	InstructionAllocation(Type *type, IdentifiantCode *ident);
 };

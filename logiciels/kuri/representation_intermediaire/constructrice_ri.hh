@@ -49,7 +49,6 @@ struct TypeTableauFixe;
 struct ConstructriceRI {
 private:
 	tableau_page<AtomeValeurConstante> atomes_constante{};
-	tableau_page<Instruction> insts_simples{};
 	tableau_page<InstructionAllocation> insts_allocation{};
 	tableau_page<InstructionAppel> insts_appel{};
 	tableau_page<InstructionBranche> insts_branche{};
@@ -74,6 +73,7 @@ private:
 	kuri::tableau<InstructionChargeMem *> charge_mems{};
 
 	int nombre_labels = 0;
+	int profondeur_bloc = 0;
 
 	NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
 

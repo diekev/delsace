@@ -625,8 +625,6 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 {
 	switch (inst->genre) {
 		case Instruction::Genre::INVALIDE:
-		case Instruction::Genre::ENREGISTRE_LOCALES:
-		case Instruction::Genre::RESTAURE_LOCALES:
 		{
 			break;
 		}

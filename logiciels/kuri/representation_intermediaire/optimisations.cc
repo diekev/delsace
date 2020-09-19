@@ -244,8 +244,6 @@ static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
 
 					break;
 				}
-				case Instruction::Genre::ENREGISTRE_LOCALES:
-				case Instruction::Genre::RESTAURE_LOCALES:
 				case Instruction::Genre::ALLOCATION:
 				case Instruction::Genre::INVALIDE:
 				case Instruction::Genre::BRANCHE:
@@ -324,8 +322,6 @@ static void marque_instructions_utilisees(kuri::tableau<Instruction *> &instruct
 		switch (it->genre) {
 			case Instruction::Genre::BRANCHE:
 			case Instruction::Genre::BRANCHE_CONDITION:
-			case Instruction::Genre::ENREGISTRE_LOCALES:
-			case Instruction::Genre::RESTAURE_LOCALES:
 			case Instruction::Genre::LABEL:
 			case Instruction::Genre::RETOUR:
 			{
@@ -585,12 +581,6 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 			auto n_retour = constructrice.insts_retour.ajoute_element();
 			n_retour->valeur = copie_atome(constructrice, retour->valeur);
 			nouvelle_inst = n_retour;
-			break;
-		}
-		case Instruction::Genre::ENREGISTRE_LOCALES:
-		case Instruction::Genre::RESTAURE_LOCALES:
-		{
-			nouvelle_inst = inst;
 			break;
 		}
 		case Instruction::Genre::ALLOCATION:
