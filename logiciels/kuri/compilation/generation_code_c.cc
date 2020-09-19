@@ -678,7 +678,7 @@ struct GeneratriceCodeC {
 			}
 			case Atome::Genre::INSTRUCTION:
 			{
-				auto inst = static_cast<Instruction const *>(atome);
+				auto inst = atome->comme_instruction();
 				return table_valeurs[inst];
 			}
 			case Atome::Genre::GLOBALE:
@@ -720,7 +720,7 @@ struct GeneratriceCodeC {
 			}
 			case Instruction::Genre::APPEL:
 			{
-				auto inst_appel = static_cast<InstructionAppel const *>(inst);
+				auto inst_appel = inst->comme_appel();
 
 				auto const &lexeme = inst_appel->lexeme;
 				auto fichier = m_espace.fichier(lexeme->fichier);
@@ -784,13 +784,13 @@ struct GeneratriceCodeC {
 			}
 			case Instruction::Genre::BRANCHE:
 			{
-				auto inst_branche = static_cast<InstructionBranche const *>(inst);
+				auto inst_branche = inst->comme_branche();
 				os << "  goto label" << inst_branche->label->id << ";\n";
 				break;
 			}
 			case Instruction::Genre::BRANCHE_CONDITION:
 			{
-				auto inst_branche = static_cast<InstructionBrancheCondition const *>(inst);
+				auto inst_branche = inst->comme_branche_cond();
 				auto condition = genere_code_pour_atome(inst_branche->condition, os, false);
 				os << "  if (" << condition;
 				os << ") goto label" << inst_branche->label_si_vrai->id << "; ";
@@ -799,7 +799,7 @@ struct GeneratriceCodeC {
 			}
 			case Instruction::Genre::CHARGE_MEMOIRE:
 			{
-				auto inst_charge = static_cast<InstructionChargeMem const *>(inst);
+				auto inst_charge = inst->comme_charge();
 				auto charge = inst_charge->chargee;
 				auto valeur = dls::chaine();
 
@@ -823,7 +823,7 @@ struct GeneratriceCodeC {
 			}
 			case Instruction::Genre::STOCKE_MEMOIRE:
 			{
-				auto inst_stocke = static_cast<InstructionStockeMem const *>(inst);
+				auto inst_stocke = inst->comme_stocke_mem();
 				auto type_valeur = inst_stocke->valeur->type;
 				auto valeur = genere_code_pour_atome(inst_stocke->valeur, os, false);
 				auto ou = inst_stocke->ou;
@@ -854,13 +854,13 @@ struct GeneratriceCodeC {
 			}
 			case Instruction::Genre::LABEL:
 			{
-				auto inst_label = static_cast<InstructionLabel const *>(inst);
+				auto inst_label = inst->comme_label();
 				os << "\nlabel" << inst_label->id << ":;\n";
 				break;
 			}
 			case Instruction::Genre::OPERATION_UNAIRE:
 			{
-				auto inst_un = static_cast<InstructionOpUnaire const *>(inst);
+				auto inst_un = inst->comme_op_unaire();
 				auto valeur = genere_code_pour_atome(inst_un->valeur, os, false);
 
 				os << "  " << nom_broye_type(inst_un->type) << " val" << inst->numero << " = ";
@@ -904,7 +904,7 @@ struct GeneratriceCodeC {
 			}
 			case Instruction::Genre::OPERATION_BINAIRE:
 			{
-				auto inst_bin = static_cast<InstructionOpBinaire const *>(inst);
+				auto inst_bin = inst->comme_op_binaire();
 				auto valeur_gauche = genere_code_pour_atome(inst_bin->valeur_gauche, os, false);
 				auto valeur_droite = genere_code_pour_atome(inst_bin->valeur_droite, os, false);
 
@@ -1036,7 +1036,7 @@ struct GeneratriceCodeC {
 			}
 			case Instruction::Genre::RETOUR:
 			{
-				auto inst_retour = static_cast<InstructionRetour const *>(inst);
+				auto inst_retour = inst->comme_retour();
 				if (inst_retour->valeur != nullptr) {
 					auto atome = inst_retour->valeur;
 					auto valeur_retour = genere_code_pour_atome(atome, os, false);
@@ -1052,7 +1052,7 @@ struct GeneratriceCodeC {
 			}
 			case Instruction::Genre::ACCEDE_INDEX:
 			{
-				auto inst_acces = static_cast<InstructionAccedeIndex const *>(inst);
+				auto inst_acces = inst->comme_acces_index();
 				auto valeur_accede = genere_code_pour_atome(inst_acces->accede, os, false);
 				auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
 				auto valeur = valeur_accede + "[" + valeur_index + "]";
@@ -1061,7 +1061,7 @@ struct GeneratriceCodeC {
 			}
 			case Instruction::Genre::ACCEDE_MEMBRE:
 			{
-				auto inst_acces = static_cast<InstructionAccedeMembre const *>(inst);
+				auto inst_acces = inst->comme_acces_membre();
 
 				auto accede = inst_acces->accede;
 				auto valeur_accede = dls::chaine();
@@ -1091,7 +1091,7 @@ struct GeneratriceCodeC {
 			}
 			case Instruction::Genre::TRANSTYPE:
 			{
-				auto inst_transtype = static_cast<InstructionTranstype const *>(inst);
+				auto inst_transtype = inst->comme_transtype();
 				auto valeur = genere_code_pour_atome(inst_transtype->valeur, os, false);
 				valeur = "(" + nom_broye_type(inst_transtype->type) + ")(" + valeur + ")";
 				table_valeurs[inst] = valeur;

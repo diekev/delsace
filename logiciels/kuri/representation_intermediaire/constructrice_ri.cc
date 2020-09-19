@@ -1424,7 +1424,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 						valeur = depile_valeur();
 
 						if (it->type != type_union->type_le_plus_grand) {
-							auto ptr = static_cast<InstructionChargeMem *>(valeur)->chargee;
+							auto ptr = valeur->comme_instruction()->comme_charge()->chargee;
 							valeur = cree_transtype(m_espace->typeuse.type_pointeur_pour(type_union->type_le_plus_grand), ptr, TypeTranstypage::BITS);
 							valeur = cree_charge_mem(valeur);
 						}

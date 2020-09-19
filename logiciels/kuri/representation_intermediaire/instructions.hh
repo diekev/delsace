@@ -77,6 +77,7 @@ struct Atome {
 	COPIE_CONSTRUCT(Atome);
 
 	inline Instruction *comme_instruction();
+	inline Instruction const *comme_instruction() const;
 
 	inline bool est_constante() const { return genre_atome == Genre::CONSTANTE; }
 	inline bool est_fonction() const { return genre_atome == Genre::FONCTION; }
@@ -277,19 +278,23 @@ struct Instruction : public Atome {
 
 	Instruction() { genre_atome = Atome::Genre::INSTRUCTION; }
 
-	inline InstructionAccedeIndex *comme_acces_index();
-	inline InstructionAccedeMembre *comme_acces_membre();
-	inline InstructionAllocation *comme_alloc();
-	inline InstructionAppel *comme_appel();
-	inline InstructionBranche *comme_branche();
-	inline InstructionBrancheCondition *comme_branche_cond();
-	inline InstructionChargeMem *comme_charge();
-	inline InstructionLabel *comme_label();
-	inline InstructionOpBinaire *comme_op_binaire();
-	inline InstructionOpUnaire *comme_op_unaire();
-	inline InstructionRetour *comme_retour();
-	inline InstructionStockeMem *comme_stocke_mem();
-	inline InstructionTranstype *comme_transtype();
+#define COMME_INST(Type, Genre) \
+	inline Type *comme_##Genre(); \
+	inline Type const *comme_##Genre() const
+
+	COMME_INST(InstructionAccedeIndex, acces_index);
+	COMME_INST(InstructionAccedeMembre, acces_membre);
+	COMME_INST(InstructionAllocation, alloc);
+	COMME_INST(InstructionAppel, appel);
+	COMME_INST(InstructionBranche, branche);
+	COMME_INST(InstructionBrancheCondition, branche_cond);
+	COMME_INST(InstructionChargeMem, charge);
+	COMME_INST(InstructionLabel, label);
+	COMME_INST(InstructionOpBinaire, op_binaire);
+	COMME_INST(InstructionOpUnaire, op_unaire);
+	COMME_INST(InstructionRetour, retour);
+	COMME_INST(InstructionStockeMem, stocke_mem);
+	COMME_INST(InstructionTranstype, transtype);
 
 	inline bool est_acces_index() const { return genre == Genre::ACCEDE_INDEX; }
 	inline bool est_acces_membre() const { return genre == Genre::ACCEDE_MEMBRE; }
@@ -304,12 +309,18 @@ struct Instruction : public Atome {
 	inline bool est_retour() const { return genre == Genre::RETOUR; }
 	inline bool est_stocke_mem() const { return genre == Genre::STOCKE_MEMOIRE; }
 	inline bool est_transtype() const { return genre == Genre::TRANSTYPE; }
+
+#undef COMME_INST
 };
 
 inline Instruction *Atome::comme_instruction()
 {
-	assert(genre_atome == Atome::Genre::INSTRUCTION);
 	return static_cast<Instruction *>(this);
+}
+
+inline Instruction const *Atome::comme_instruction() const
+{
+	return static_cast<Instruction const *>(this);
 }
 
 struct InstructionAppel : public Instruction {
@@ -328,12 +339,6 @@ struct InstructionAppel : public Instruction {
 	InstructionAppel(Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args);
 };
 
-inline InstructionAppel *Instruction::comme_appel()
-{
-	assert(genre == Genre::APPEL);
-	return static_cast<InstructionAppel *>(this);
-}
-
 struct InstructionAllocation : public Instruction {
 	InstructionAllocation()
 	{
@@ -348,12 +353,6 @@ struct InstructionAllocation : public Instruction {
 	InstructionAllocation(Type *type, IdentifiantCode *ident);
 };
 
-inline InstructionAllocation *Instruction::comme_alloc()
-{
-	assert(genre == Genre::ALLOCATION);
-	return static_cast<InstructionAllocation *>(this);
-}
-
 struct InstructionRetour : public Instruction {
 	InstructionRetour() { genre = Instruction::Genre::RETOUR; }
 
@@ -363,12 +362,6 @@ struct InstructionRetour : public Instruction {
 
 	InstructionRetour(Atome *valeur);
 };
-
-inline InstructionRetour *Instruction::comme_retour()
-{
-	assert(genre == Genre::RETOUR);
-	return static_cast<InstructionRetour *>(this);
-}
 
 struct InstructionOpBinaire : public Instruction {
 	InstructionOpBinaire() { genre = Instruction::Genre::OPERATION_BINAIRE; }
@@ -382,12 +375,6 @@ struct InstructionOpBinaire : public Instruction {
 	InstructionOpBinaire(Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
 };
 
-inline InstructionOpBinaire *Instruction::comme_op_binaire()
-{
-	assert(genre == Genre::OPERATION_BINAIRE);
-	return static_cast<InstructionOpBinaire *>(this);
-}
-
 struct InstructionOpUnaire : public Instruction {
 	InstructionOpUnaire() { genre = Instruction::Genre::OPERATION_UNAIRE; }
 
@@ -398,12 +385,6 @@ struct InstructionOpUnaire : public Instruction {
 
 	InstructionOpUnaire(Type *type, OperateurUnaire::Genre op, Atome *valeur);
 };
-
-inline InstructionOpUnaire *Instruction::comme_op_unaire()
-{
-	assert(genre == Genre::OPERATION_UNAIRE);
-	return static_cast<InstructionOpUnaire *>(this);
-}
 
 struct InstructionChargeMem : public Instruction {
 	InstructionChargeMem()
@@ -419,12 +400,6 @@ struct InstructionChargeMem : public Instruction {
 	InstructionChargeMem(Type *type, Atome *chargee);
 };
 
-inline InstructionChargeMem *Instruction::comme_charge()
-{
-	assert(genre == Genre::CHARGE_MEMOIRE);
-	return static_cast<InstructionChargeMem *>(this);
-}
-
 struct InstructionStockeMem : public Instruction {
 	InstructionStockeMem() { genre = Instruction::Genre::STOCKE_MEMOIRE; }
 
@@ -436,12 +411,6 @@ struct InstructionStockeMem : public Instruction {
 	InstructionStockeMem(Type *type, Atome *ou, Atome *valeur);
 };
 
-inline InstructionStockeMem *Instruction::comme_stocke_mem()
-{
-	assert(genre == Genre::STOCKE_MEMOIRE);
-	return static_cast<InstructionStockeMem *>(this);
-}
-
 struct InstructionLabel : public Instruction {
 	InstructionLabel() { genre = Instruction::Genre::LABEL; }
 
@@ -449,12 +418,6 @@ struct InstructionLabel : public Instruction {
 
 	InstructionLabel(int id);
 };
-
-inline InstructionLabel *Instruction::comme_label()
-{
-	assert(genre == Genre::LABEL);
-	return static_cast<InstructionLabel *>(this);
-}
 
 struct InstructionBranche : public Instruction {
 	InstructionBranche() { genre = Instruction::Genre::BRANCHE; }
@@ -465,12 +428,6 @@ struct InstructionBranche : public Instruction {
 
 	InstructionBranche(InstructionLabel *label);
 };
-
-inline InstructionBranche *Instruction::comme_branche()
-{
-	assert(genre == Genre::BRANCHE);
-	return static_cast<InstructionBranche *>(this);
-}
 
 struct InstructionBrancheCondition : public Instruction {
 	InstructionBrancheCondition() { genre = Instruction::Genre::BRANCHE_CONDITION; }
@@ -483,12 +440,6 @@ struct InstructionBrancheCondition : public Instruction {
 
 	InstructionBrancheCondition(Atome *condition, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
 };
-
-inline InstructionBrancheCondition *Instruction::comme_branche_cond()
-{
-	assert(genre == Genre::BRANCHE_CONDITION);
-	return static_cast<InstructionBrancheCondition *>(this);
-}
 
 struct InstructionAccedeMembre : public Instruction {
 	InstructionAccedeMembre()
@@ -505,12 +456,6 @@ struct InstructionAccedeMembre : public Instruction {
 	InstructionAccedeMembre(Type *type, Atome *accede, Atome *index);
 };
 
-inline InstructionAccedeMembre *Instruction::comme_acces_membre()
-{
-	assert(genre == Genre::ACCEDE_MEMBRE);
-	return static_cast<InstructionAccedeMembre *>(this);
-}
-
 struct InstructionAccedeIndex : public Instruction {
 	InstructionAccedeIndex()
 	{
@@ -525,12 +470,6 @@ struct InstructionAccedeIndex : public Instruction {
 
 	InstructionAccedeIndex(Type *type, Atome *accede, Atome *index);
 };
-
-inline InstructionAccedeIndex *Instruction::comme_acces_index()
-{
-	assert(genre == Genre::ACCEDE_INDEX);
-	return static_cast<InstructionAccedeIndex *>(this);
-}
 
 enum TypeTranstypage {
 	AUGMENTE_NATUREL,
@@ -562,8 +501,30 @@ struct InstructionTranstype : public Instruction {
 	InstructionTranstype(Type *type, Atome *valeur, TypeTranstypage op_);
 };
 
-inline InstructionTranstype *Instruction::comme_transtype()
-{
-	assert(genre == Genre::TRANSTYPE);
-	return static_cast<InstructionTranstype *>(this);
-}
+#define COMME_INST(Type, Genre) \
+	inline Type *Instruction::comme_##Genre() \
+	{ \
+		assert(est_##Genre()); \
+		return static_cast<Type *>(this); \
+	} \
+	inline Type const *Instruction::comme_##Genre() const \
+	{ \
+		assert(est_##Genre()); \
+		return static_cast<Type const *>(this); \
+	}
+
+	COMME_INST(InstructionAccedeIndex, acces_index)
+	COMME_INST(InstructionAccedeMembre, acces_membre)
+	COMME_INST(InstructionAllocation, alloc)
+	COMME_INST(InstructionAppel, appel)
+	COMME_INST(InstructionBranche, branche)
+	COMME_INST(InstructionBrancheCondition, branche_cond)
+	COMME_INST(InstructionChargeMem, charge)
+	COMME_INST(InstructionLabel, label)
+	COMME_INST(InstructionOpBinaire, op_binaire)
+	COMME_INST(InstructionOpUnaire, op_unaire)
+	COMME_INST(InstructionRetour, retour)
+	COMME_INST(InstructionStockeMem, stocke_mem)
+	COMME_INST(InstructionTranstype, transtype)
+
+#undef COMME_INST

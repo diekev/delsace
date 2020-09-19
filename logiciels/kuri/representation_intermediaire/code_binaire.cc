@@ -847,7 +847,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 	auto &chunk = fonction->chunk;
 
 	POUR (fonction->params_entrees) {
-		auto alloc = static_cast<InstructionAllocation *>(it);
+		auto alloc = it->comme_instruction()->comme_alloc();
 		auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
 		auto adresse = chunk.emets_allocation(type_pointe, alloc->ident);
 		alloc->index_locale = static_cast<int>(chunk.locales.taille());
@@ -894,26 +894,26 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		}
 		case Instruction::Genre::LABEL:
 		{
-			auto label = static_cast<InstructionLabel *>(instruction);
+			auto label = instruction->comme_label();
 			chunk.emets_label(label->id);
 			break;
 		}
 		case Instruction::Genre::BRANCHE:
 		{
-			auto branche = static_cast<InstructionBranche *>(instruction);
+			auto branche = instruction->comme_branche();
 			chunk.emets_branche(patchs_labels, branche->label->id);
 			break;
 		}
 		case Instruction::Genre::BRANCHE_CONDITION:
 		{
-			auto branche = static_cast<InstructionBrancheCondition *>(instruction);
+			auto branche = instruction->comme_branche_cond();
 			genere_code_binaire_pour_atome(branche->condition, chunk, true);
 			chunk.emets_branche_condition(patchs_labels, branche->label_si_vrai->id, branche->label_si_faux->id);
 			break;
 		}
 		case Instruction::Genre::ALLOCATION:
 		{
-			auto alloc = static_cast<InstructionAllocation *>(instruction);
+			auto alloc = instruction->comme_alloc();
 
 			if (pour_operande) {
 				chunk.emets_reference_variable(alloc->index_locale);
@@ -938,14 +938,14 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		}
 		case Instruction::Genre::CHARGE_MEMOIRE:
 		{
-			auto charge = static_cast<InstructionChargeMem *>(instruction);
+			auto charge = instruction->comme_charge();
 			genere_code_binaire_pour_atome(charge->chargee, chunk, true);
 			chunk.emets_charge(charge->type);
 			break;
 		}
 		case Instruction::Genre::STOCKE_MEMOIRE:
 		{
-			auto stocke = static_cast<InstructionStockeMem *>(instruction);
+			auto stocke = instruction->comme_stocke_mem();
 			genere_code_binaire_pour_atome(stocke->valeur, chunk, true);
 			// l'adresse de la valeur doit être au sommet de la pile lors de l'assignation
 			genere_code_binaire_pour_atome(stocke->ou, chunk, true);
@@ -954,7 +954,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		}
 		case Instruction::Genre::APPEL:
 		{
-			auto appel = static_cast<InstructionAppel *>(instruction);
+			auto appel = instruction->comme_appel();
 
 			// évite de générer deux fois le code pour les appels : une fois dans la boucle sur les instructions, une fois pour l'opérande
 			// les fonctions retournant « rien » ne peuvent être opérandes
@@ -995,7 +995,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		}
 		case Instruction::Genre::RETOUR:
 		{
-			auto retour = static_cast<InstructionRetour *>(instruction);
+			auto retour = instruction->comme_retour();
 
 			if (retour->valeur) {
 				genere_code_binaire_pour_atome(retour->valeur, chunk, true);
@@ -1006,7 +1006,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		}
 		case Instruction::Genre::TRANSTYPE:
 		{
-			auto transtype = static_cast<InstructionTranstype *>(instruction);
+			auto transtype = instruction->comme_transtype();
 			auto valeur = transtype->valeur;
 
 			genere_code_binaire_pour_atome(valeur, chunk, true);
@@ -1069,13 +1069,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		}
 		case Instruction::Genre::ACCEDE_INDEX:
 		{
-			auto index = static_cast<InstructionAccedeIndex *>(instruction);
+			auto index = instruction->comme_acces_index();
 			auto type_pointeur = index->type->comme_pointeur();
 			genere_code_binaire_pour_atome(index->index, chunk, true);
 			genere_code_binaire_pour_atome(index->accede, chunk, true);
 
 			if (index->accede->genre_atome == Atome::Genre::INSTRUCTION) {
-				auto accede =  static_cast<Instruction *>(index->accede);
+				auto accede = index->accede->comme_instruction();
 				auto type_accede = accede->type->comme_pointeur()->type_pointe;
 
 				// l'accédé est le pointeur vers le pointeur, donc déréférence-le
@@ -1089,7 +1089,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		}
 		case Instruction::Genre::ACCEDE_MEMBRE:
 		{
-			auto membre = static_cast<InstructionAccedeMembre *>(instruction);
+			auto membre = instruction->comme_acces_membre();
 			auto index_membre = static_cast<long>(static_cast<AtomeValeurConstante *>(membre->index)->valeur.valeur_entiere);
 
 			auto type_pointeur = membre->accede->type->comme_pointeur();
@@ -1103,7 +1103,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		}
 		case Instruction::Genre::OPERATION_UNAIRE:
 		{
-			auto op_unaire = static_cast<InstructionOpUnaire *>(instruction);
+			auto op_unaire = instruction->comme_op_unaire();
 			auto type = op_unaire->valeur->type;
 
 			genere_code_binaire_pour_atome(op_unaire->valeur, chunk, true);
@@ -1132,7 +1132,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		}
 		case Instruction::Genre::OPERATION_BINAIRE:
 		{
-			auto op_binaire = static_cast<InstructionOpBinaire *>(instruction);
+			auto op_binaire = instruction->comme_op_binaire();
 
 			genere_code_binaire_pour_atome(op_binaire->valeur_gauche, chunk, true);
 			genere_code_binaire_pour_atome(op_binaire->valeur_droite, chunk, true);
@@ -1568,7 +1568,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk
 		}
 		case Atome::Genre::INSTRUCTION:
 		{
-			genere_code_binaire_pour_instruction(static_cast<Instruction *>(atome), chunk, pour_operande);
+			genere_code_binaire_pour_instruction(atome->comme_instruction(), chunk, pour_operande);
 			break;
 		}
 		case Atome::Genre::CONSTANTE:

@@ -61,8 +61,8 @@ void corrige_labels(AtomeFonction *atome_fonc)
 	Instruction::Genre derniere_instruction = Instruction::Genre::INVALIDE;
 
 	POUR (atome_fonc->instructions) {
-		if (it->genre == Instruction::Genre::LABEL) {
-			auto label = static_cast<InstructionLabel *>(it);
+		if (it->est_label()) {
+			auto label = it->comme_label();
 
 			if (!branche_ou_retour_rencontre) {
 				paires_labels.pousse({ label_courant, label });
@@ -79,24 +79,24 @@ void corrige_labels(AtomeFonction *atome_fonc)
 			continue;
 		}
 
-		if (it->genre == Instruction::Genre::BRANCHE) {
+		if (it->est_branche()) {
 			if (derniere_instruction == Instruction::Genre::RETOUR) {
 				it->drapeaux |= Instruction::SUPPRIME_INSTRUCTION;
 				instructions_a_supprimer += 1;
 			}
 			else {
-				auto branche = static_cast<InstructionBranche *>(it);
+				auto branche = it->comme_branche();
 				paires_labels.pousse({ label_courant, branche->label });
 				branche_ou_retour_rencontre = true;
 			}
 		}
-		else if (it->genre == Instruction::Genre::BRANCHE_CONDITION) {
-			auto branche = static_cast<InstructionBrancheCondition *>(it);
+		else if (it->est_branche_cond()) {
+			auto branche = it->comme_branche_cond();
 			paires_labels.pousse({ label_courant, branche->label_si_vrai });
 			paires_labels.pousse({ label_courant, branche->label_si_faux });
 			branche_ou_retour_rencontre = true;
 		}
-		else if (it->genre == Instruction::Genre::RETOUR) {
+		else if (it->est_retour()) {
 			paires_labels.pousse({ label_courant, nullptr });
 			branche_ou_retour_rencontre = true;
 		}
@@ -122,15 +122,15 @@ void corrige_labels(AtomeFonction *atome_fonc)
 
 	POUR (paires_remplacement) {
 		for (auto &inst : atome_fonc->instructions) {
-			if (inst->genre == Instruction::Genre::BRANCHE) {
-				auto branche = static_cast<InstructionBranche *>(inst);
+			if (inst->est_branche()) {
+				auto branche = inst->comme_branche();
 
 				if (branche->label == it.first) {
 					branche->label = it.second;
 				}
 			}
-			else if (inst->genre == Instruction::Genre::BRANCHE_CONDITION) {
-				auto branche = static_cast<InstructionBrancheCondition *>(inst);
+			else if (inst->est_branche_cond()) {
+				auto branche = inst->comme_branche_cond();
 
 				if (branche->label_si_vrai == it.first) {
 					branche->label_si_vrai = it.second;
@@ -169,12 +169,12 @@ static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
 		}
 		case Atome::Genre::INSTRUCTION:
 		{
-			auto inst = static_cast<Instruction *>(racine);
+			auto inst = racine->comme_instruction();
 
 			switch (inst->genre) {
 				case Instruction::Genre::APPEL:
 				{
-					auto appel = static_cast<InstructionAppel *>(inst);
+					auto appel = inst->comme_appel();
 
 					POUR (appel->args) {
 						incremente_nombre_utilisations_recursif(it);
@@ -184,47 +184,47 @@ static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
 				}
 				case Instruction::Genre::CHARGE_MEMOIRE:
 				{
-					auto charge = static_cast<InstructionChargeMem *>(inst);
+					auto charge = inst->comme_charge();
 					incremente_nombre_utilisations_recursif(charge->chargee);
 					break;
 				}
 				case Instruction::Genre::STOCKE_MEMOIRE:
 				{
-					auto stocke = static_cast<InstructionStockeMem *>(inst);
+					auto stocke = inst->comme_stocke_mem();
 					incremente_nombre_utilisations_recursif(stocke->valeur);
 					incremente_nombre_utilisations_recursif(stocke->ou);
 					break;
 				}
 				case Instruction::Genre::OPERATION_UNAIRE:
 				{
-					auto op = static_cast<InstructionOpUnaire *>(inst);
+					auto op = inst->comme_op_unaire();
 					incremente_nombre_utilisations_recursif(op->valeur);
 					break;
 				}
 				case Instruction::Genre::OPERATION_BINAIRE:
 				{
-					auto op = static_cast<InstructionOpBinaire *>(inst);
+					auto op = inst->comme_op_binaire();
 					incremente_nombre_utilisations_recursif(op->valeur_droite);
 					incremente_nombre_utilisations_recursif(op->valeur_gauche);
 					break;
 				}
 				case Instruction::Genre::ACCEDE_INDEX:
 				{
-					auto acces = static_cast<InstructionAccedeIndex *>(inst);
+					auto acces = inst->comme_acces_index();
 					incremente_nombre_utilisations_recursif(acces->index);
 					incremente_nombre_utilisations_recursif(acces->accede);
 					break;
 				}
 				case Instruction::Genre::ACCEDE_MEMBRE:
 				{
-					auto acces = static_cast<InstructionAccedeMembre *>(inst);
+					auto acces = inst->comme_acces_membre();
 					incremente_nombre_utilisations_recursif(acces->index);
 					incremente_nombre_utilisations_recursif(acces->accede);
 					break;
 				}
 				case Instruction::Genre::TRANSTYPE:
 				{
-					auto transtype = static_cast<InstructionTranstype *>(inst);
+					auto transtype = inst->comme_transtype();
 					incremente_nombre_utilisations_recursif(transtype->valeur);
 					break;
 				}
@@ -263,22 +263,22 @@ static bool est_utilise(Atome *atome)
 	if (atome->est_instruction()) {
 		auto inst = atome->comme_instruction();
 
-		if (inst->genre == Instruction::Genre::ALLOCATION) {
+		if (inst->est_alloc()) {
 			return inst->nombre_utilisations != 0;
 		}
 
-		if (inst->genre == Instruction::Genre::ACCEDE_INDEX) {
+		if (inst->est_acces_index()) {
 			auto acces = inst->comme_acces_index();
 			return est_utilise(acces->accede);
 		}
 
-		if (inst->genre == Instruction::Genre::ACCEDE_MEMBRE) {
+		if (inst->est_acces_membre()) {
 			auto acces = inst->comme_acces_membre();
 			return est_utilise(acces->accede);
 		}
 
 		// pour les déréférencements de pointeurs
-		if (inst->genre == Instruction::Genre::CHARGE_MEMOIRE) {
+		if (inst->est_charge()) {
 			auto charge = inst->comme_charge();
 			return est_utilise(charge->chargee);
 		}
@@ -430,7 +430,7 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 
 	POUR (atome_fonc->instructions) {
 		if (it->genre == Instruction::Genre::STOCKE_MEMOIRE) {
-			auto stocke_mem = static_cast<InstructionStockeMem *>(it);
+			auto stocke_mem = it->comme_stocke_mem();
 			auto ou = stocke_mem->ou;
 
 			if (ou->genre_atome != Atome::Genre::INSTRUCTION) {
@@ -438,7 +438,7 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 			}
 
 			if (ou->etat == VALEUR_NE_FUT_PAS_INITIALISEE) {
-				anciennes_valeurs.pousse({ static_cast<InstructionAllocation *>(ou), stocke_mem });
+				anciennes_valeurs.pousse({ ou->comme_alloc(), stocke_mem });
 				ou->etat = VALEUR_FUT_INITIALISEE;
 			}
 			else if (ou->etat == VALEUR_FUT_INITIALISEE) {
@@ -455,7 +455,7 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 			}
 		}
 		else if (it->genre == Instruction::Genre::CHARGE_MEMOIRE) {
-			auto charge_mem = static_cast<InstructionChargeMem *>(it);
+			auto charge_mem = it->comme_charge();
 			charge_mem->chargee->etat = VALEUR_FUT_UTILISEE;
 		}
 	}
@@ -562,8 +562,8 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 			auto branche = inst->comme_branche_cond();
 			auto n_branche = constructrice.insts_branche_condition.ajoute_element();
 			n_branche->condition = copie_atome(constructrice, branche->condition);
-			n_branche->label_si_faux = static_cast<InstructionLabel *>(copie_atome(constructrice, branche->label_si_faux));
-			n_branche->label_si_vrai = static_cast<InstructionLabel *>(copie_atome(constructrice, branche->label_si_vrai));
+			n_branche->label_si_faux = copie_atome(constructrice, branche->label_si_faux)->comme_instruction()->comme_label();
+			n_branche->label_si_vrai = copie_atome(constructrice, branche->label_si_vrai)->comme_instruction()->comme_label();
 			nouvelle_inst = n_branche;
 			break;
 		}
@@ -571,7 +571,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		{
 			auto branche = inst->comme_branche();
 			auto n_branche = constructrice.insts_branche.ajoute_element();
-			n_branche->label = static_cast<InstructionLabel *>(copie_atome(constructrice, branche->label));
+			n_branche->label = copie_atome(constructrice, branche->label)->comme_instruction()->comme_label();
 			nouvelle_inst = n_branche;
 			break;
 		}
@@ -856,7 +856,7 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 			continue;
 		}
 
-		auto appel = static_cast<InstructionAppel *>(it);
+		auto appel = it->comme_appel();
 		auto appele = appel->appele;
 
 		if (appele->genre_atome != Atome::Genre::FONCTION) {

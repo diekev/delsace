@@ -609,7 +609,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 		}
 		case Atome::Genre::INSTRUCTION:
 		{
-			auto inst = static_cast<Instruction const *>(atome);
+			auto inst = atome->comme_instruction();
 			return table_valeurs[inst];
 		}
 		case Atome::Genre::GLOBALE:
@@ -639,7 +639,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 		}
 		case Instruction::Genre::APPEL:
 		{
-			auto inst_appel = static_cast<InstructionAppel const *>(inst);
+			auto inst_appel = inst->comme_appel();
 
 //			auto const &lexeme = inst_appel->lexeme;
 //			auto fichier = m_contexte.fichier(static_cast<size_t>(lexeme->fichier));
@@ -687,13 +687,13 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 		}
 		case Instruction::Genre::BRANCHE:
 		{
-			auto inst_branche = static_cast<InstructionBranche const *>(inst);
+			auto inst_branche = inst->comme_branche();
 			m_builder.CreateBr(table_blocs[inst_branche->label]);
 			break;
 		}
 		case Instruction::Genre::BRANCHE_CONDITION:
 		{
-			auto inst_branche = static_cast<InstructionBrancheCondition const *>(inst);
+			auto inst_branche = inst->comme_branche_cond();
 			auto condition = genere_code_pour_atome(inst_branche->condition, false);
 			auto bloc_si_vrai = table_blocs[inst_branche->label_si_vrai];
 			auto bloc_si_faux = table_blocs[inst_branche->label_si_faux];
@@ -702,7 +702,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 		}
 		case Instruction::Genre::CHARGE_MEMOIRE:
 		{
-			auto inst_charge = static_cast<InstructionChargeMem const *>(inst);
+			auto inst_charge = inst->comme_charge();
 			auto charge = inst_charge->chargee;
 			auto valeur = static_cast<llvm::Value *>(nullptr);
 
@@ -722,7 +722,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 		}
 		case Instruction::Genre::STOCKE_MEMOIRE:
 		{
-			auto inst_stocke = static_cast<InstructionStockeMem const *>(inst);
+			auto inst_stocke = inst->comme_stocke_mem();
 			auto valeur = genere_code_pour_atome(inst_stocke->valeur, false);
 			auto ou = inst_stocke->ou;
 			auto valeur_ou = static_cast<llvm::Value *>(nullptr);
@@ -740,7 +740,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 		}
 		case Instruction::Genre::LABEL:
 		{
-			auto inst_label = static_cast<InstructionLabel const *>(inst);
+			auto inst_label = inst->comme_label();
 			auto bloc = llvm::BasicBlock::Create(m_contexte_llvm, "", m_fonction_courante);
 			table_blocs[inst_label] = bloc;
 			m_builder.SetInsertPoint(bloc);
@@ -748,7 +748,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 		}
 		case Instruction::Genre::OPERATION_UNAIRE:
 		{
-			auto inst_un = static_cast<InstructionOpUnaire const *>(inst);
+			auto inst_un = inst->comme_op_unaire();
 			auto valeur = genere_code_pour_atome(inst_un->valeur, false);
 			auto type = inst_un->valeur->type;
 
@@ -799,7 +799,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 		}
 		case Instruction::Genre::OPERATION_BINAIRE:
 		{
-			auto inst_bin = static_cast<InstructionOpBinaire const *>(inst);
+			auto inst_bin = inst->comme_op_binaire();
 			auto valeur_gauche = genere_code_pour_atome(inst_bin->valeur_gauche, false);
 			auto valeur_droite = genere_code_pour_atome(inst_bin->valeur_droite, false);
 
@@ -876,7 +876,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 		}
 		case Instruction::Genre::RETOUR:
 		{
-			auto inst_retour = static_cast<InstructionRetour const *>(inst);
+			auto inst_retour = inst->comme_retour();
 			if (inst_retour->valeur != nullptr) {
 				auto atome = inst_retour->valeur;
 				auto valeur_retour = genere_code_pour_atome(atome, false);
@@ -889,7 +889,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 		}
 		case Instruction::Genre::ACCEDE_INDEX:
 		{
-			auto inst_acces = static_cast<InstructionAccedeIndex const *>(inst);
+			auto inst_acces = inst->comme_acces_index();
 			auto valeur_accede = genere_code_pour_atome(inst_acces->accede, false);
 			auto valeur_index = genere_code_pour_atome(inst_acces->index, false);
 
@@ -902,7 +902,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 		}
 		case Instruction::Genre::ACCEDE_MEMBRE:
 		{
-			auto inst_acces = static_cast<InstructionAccedeMembre const *>(inst);
+			auto inst_acces = inst->comme_acces_membre();
 
 			auto accede = inst_acces->accede;
 			auto valeur_accede = static_cast<llvm::Value *>(nullptr);
@@ -929,7 +929,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 		{
 			using CastOps = llvm::Instruction::CastOps;
 
-			auto inst_transtype = static_cast<InstructionTranstype const *>(inst);
+			auto inst_transtype = inst->comme_transtype();
 			auto valeur = genere_code_pour_atome(inst_transtype->valeur, false);
 			auto type_de = inst_transtype->valeur->type;
 			auto type_vers = inst_transtype->type;
