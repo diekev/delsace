@@ -270,7 +270,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto bloc = expr->bloc_parent;
 			assert(bloc != nullptr);
 
-			/* À FAIRE : pour une fonction, trouve la selon le type */
 			auto fichier = espace->fichier(expr->lexeme->fichier);
 			auto decl = trouve_dans_bloc_ou_module(*espace, bloc, expr->ident, fichier);
 
