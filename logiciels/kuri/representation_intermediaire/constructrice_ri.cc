@@ -2141,9 +2141,7 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 					auto idx_membre = trouve_index_membre(decl_struct, f->ident->nom);
 					valeur_f = cree_z32(idx_membre + 1);
 
-					// À FAIRE(ri) : revoir les accès à des unions
 					auto valeur = cree_acces_membre(ptr_structure, 0);
-
 					table_locales[f->ident] = valeur;
 				}
 				else {
@@ -4201,7 +4199,6 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 				auto var = it.variables[i];
 				auto est_externe = dls::outils::possede_drapeau(decl->drapeaux, EST_EXTERNE);
 				auto valeur = static_cast<AtomeConstante *>(nullptr);
-				// À FAIRE : recherche les déclarations
 				auto atome = m_espace->trouve_ou_insere_globale(decl);
 				atome->est_externe = est_externe;
 				atome->est_constante = false;
