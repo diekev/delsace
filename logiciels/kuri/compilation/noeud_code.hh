@@ -200,15 +200,12 @@ struct InfoTypeTableau : public InfoType {
 };
 
 struct InfoTypeMembreStructure {
-	enum Drapeaux : uint {
-		NON_INITIALISE = 0,
-		EST_CONSTANT = (1 << 0),
-	};
+	// Les Drapeaux sont définis dans TypeCompose::Membre
 
 	kuri::chaine nom{};
 	InfoType *info = nullptr;
 	long decalage = 0;  // décalage en octets dans la structure
-	Drapeaux drapeaux = Drapeaux::NON_INITIALISE;
+	int drapeaux = 0;
 };
 
 struct InfoTypeStructure : public InfoType {

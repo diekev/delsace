@@ -46,6 +46,7 @@ InfoTypeTableau :: struct #interface {
 InfoTypeMembreStructure :: struct #interface {
 	Drapeaux :: énum_drapeau {
 		EST_CONSTANT
+		EST_IMPLICITE
 	}
 
 	nom : chaine
