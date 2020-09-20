@@ -501,25 +501,8 @@ void lance_erreur_fonction_inconnue(
 			ss << "\tLe type de l'argument '" << lexeme_enfant->chaine << "' ne correspond pas à celui requis !\n";
 			ss << "\tRequiers : " << chaine_type(dc.type_attendu) << '\n';
 			ss << "\tObtenu   : " << chaine_type(dc.type_obtenu) << '\n';
-			/* À FAIRE */
-//			ss << '\n';
-//			ss << "Astuce :\n";
-//			ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
-
-//			imprime_ligne_entre(ss, ligne, 0, pos_mot);
-//			ss << "transtype(" << lexeme_enfant->chaine << " : " << dc.type1 << ")";
-//			imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant->chaine.taille(), ligne.taille());
 			type_erreur = erreur::Genre::TYPE_ARGUMENT;
 		}
-
-#ifdef NON_SUR
-		if (candidate->arg_pointeur && !espace.non_sur()) {
-			/* À FAIRE : trouve le lexeme correspondant à l'argument. */
-			ss << "\tNe peut appeler une fonction avec un argument pointé hors d'un bloc 'nonsûr'\n"
-			type_erreur = erreur::Genre::APPEL_INVALIDE
-		}
-
-#endif
 	}
 	ss << "\n----------------------------------------------------------------\n";
 
