@@ -383,6 +383,7 @@ static auto apparie_appel_fonction(
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = MENOMMAGE_ARG;
 				res.nom_arg = it.ident->nom;
+				res.noeud_erreur = it.expr_ident;
 				return false;
 			}
 
@@ -390,6 +391,7 @@ static auto apparie_appel_fonction(
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = RENOMMAGE_ARG;
 				res.nom_arg = it.ident->nom;
+				res.noeud_erreur = it.expr_ident;
 				return false;
 			}
 
@@ -405,6 +407,7 @@ static auto apparie_appel_fonction(
 					res.etat = FONCTION_INTROUVEE;
 					res.raison = RENOMMAGE_ARG;
 					res.nom_arg = it.ident->nom;
+					res.noeud_erreur = it.expr_ident;
 					return false;
 				}
 
@@ -415,6 +418,7 @@ static auto apparie_appel_fonction(
 			if (arguments_nommes == true && dernier_arg_variadique == false) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = MANQUE_NOM_APRES_VARIADIC;
+				res.noeud_erreur = it.expr;
 				return false;
 			}
 
@@ -844,7 +848,7 @@ static auto trouve_candidates_pour_appel(
 				return true;
 			}
 
-			args.pousse_front({ nullptr, acces->expr1 });
+			args.pousse_front({ nullptr, nullptr, acces->expr1 });
 
 			for (auto c : candidates) {
 				nouvelles_candidates.pousse(c);
@@ -990,10 +994,10 @@ bool valide_appel_fonction(
 			auto nom_arg = assign->variable;
 			auto arg = assign->expression;
 
-			args.pousse({ nom_arg->ident, arg });
+			args.pousse({ nom_arg->ident, nom_arg, arg });
 		}
 		else {
-			args.pousse({ nullptr, it });
+			args.pousse({ nullptr, nullptr, it });
 		}
 	}
 

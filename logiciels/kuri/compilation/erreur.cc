@@ -414,8 +414,7 @@ void lance_erreur_fonction_inconnue(
 		}
 
 		if (dc.raison == MENOMMAGE_ARG) {
-			/* À FAIRE : trouve le lexeme correspondant à l'argument. */
-			ss << "\tArgument '" << dc.nom_arg << "' inconnu !\n";
+			imprime_ligne_avec_message(ss, fichier, dc.noeud_erreur->lexeme, "Argument inconnu");
 
 			if (decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
 				auto decl_fonc = decl->comme_entete_fonction();
@@ -441,16 +440,13 @@ void lance_erreur_fonction_inconnue(
 		}
 
 		if (dc.raison == RENOMMAGE_ARG) {
-			/* À FAIRE : trouve le lexeme correspondant à l'argument. */
-			ss << "\tL'argument '" << dc.nom_arg << "' a déjà été nommé\n";
 			type_erreur = erreur::Genre::ARGUMENT_REDEFINI;
+			imprime_ligne_avec_message(ss, fichier, dc.noeud_erreur->lexeme, "L'argument a déjà été nommé");
 		}
 
 		if (dc.raison == MANQUE_NOM_APRES_VARIADIC) {
-			/* À FAIRE : trouve le lexeme correspondant à l'argument. */
-			ss << "\tNom d'argument manquant\n";
-			ss << "\tLes arguments doivent être nommés s'ils sont précédés d'arguments déjà nommés\n";
 			type_erreur = erreur::Genre::ARGUMENT_INCONNU;
+			imprime_ligne_avec_message(ss, fichier, dc.noeud_erreur->lexeme, "Nom d'argument manquant, les arguments doivent être nommés s'ils sont précédés d'arguments déjà nommés");
 		}
 
 		if (dc.raison == NOMMAGE_ARG_POINTEUR_FONCTION) {

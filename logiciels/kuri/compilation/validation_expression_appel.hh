@@ -42,6 +42,7 @@ struct Type;
 
 struct IdentifiantEtExpression {
 	IdentifiantCode *ident;
+	NoeudExpression *expr_ident;
 	NoeudExpression *expr;
 };
 
