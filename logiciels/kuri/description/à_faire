@@ -349,7 +349,6 @@ implémente la directive #si pour la compilation sélective
 - générateurs/coroutines permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
 - stack canaries (coulisse LLVM)
 - coroutines en dehors de boucles
-- ajout d'un noeud syntaxique pour les imports (simplifiant la recherche de symboles dans les expressions de type A.B.C)
 - renomme InfoType -> DescType, id_info -> Genre{Info|Desc} ?
 - diffère_err pour différer un bloc si une erreur est retournée
 - possibilité de déclarer une variable dans une condition (si a := foo() { ... })
@@ -375,7 +374,6 @@ implémente la directive #si pour la compilation sélective
     - que l'on écoute des messages ? chaque espace de travail aura sa propre file de messages et la compilatrice mettra tous les messages dans celle-ci
         peut-on ne pas avoir les messages d'autres espaces ?
 
-- ajout d'un noeud syntaxique pour les emplois
 - ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés (pour permettre les emplois d'énumérations)
 - ajout des informations de positions dans le code source pour la RI
 - utilise un noeud de déclaration de variable quand nous parsons une variable (a : z32) au lieu de modifier l'expression à la fin (nous permettant de supprimer expression_type du noeud de base)
