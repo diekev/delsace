@@ -1418,9 +1418,15 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 					auto type = static_cast<TypeCompose *>(constante->type);
 					auto tableau_valeur = valeur_constante->valeur.valeur_structure.pointeur;
 
+					auto index_membre = 0;
 					for (auto i = 0; i < type->membres.taille; ++i) {
+						if (type->membres[i].drapeaux & TypeCompose::Membre::EST_CONSTANT) {
+							continue;
+						}
+
 						// les tableaux fixes ont une initialisation nulle
-						if (tableau_valeur[i] == nullptr) {
+						if (tableau_valeur[index_membre] == nullptr) {
+							index_membre += 1;
 							continue;
 						}
 
@@ -1431,7 +1437,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 						auto decalage_membre = type->membres[i].decalage;
 
 						if (type_membre->genre == GenreType::CHAINE) {
-							auto valeur_chaine = static_cast<AtomeValeurConstante *>(tableau_valeur[i]);
+							auto valeur_chaine = static_cast<AtomeValeurConstante *>(tableau_valeur[index_membre]);
 							auto acces_index = static_cast<AccedeIndexConstant *>(valeur_chaine->valeur.valeur_structure.pointeur[0]);
 							auto globale_tableau = static_cast<AtomeGlobale *>(acces_index->accede);
 
@@ -1446,7 +1452,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 							*reinterpret_cast<long *>(donnees_ + 8) = chaine.taille;
 						}
 						else if (type_membre->genre == GenreType::TABLEAU_DYNAMIQUE) {
-							auto valeur_tableau = static_cast<AtomeValeurConstante *>(tableau_valeur[i]);
+							auto valeur_tableau = static_cast<AtomeValeurConstante *>(tableau_valeur[index_membre]);
 							auto acces_index = static_cast<AccedeIndexConstant *>(valeur_tableau->valeur.valeur_structure.pointeur[0]);
 							auto globale_tableau = static_cast<AtomeGlobale *>(acces_index->accede);
 
@@ -1480,8 +1486,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 							*reinterpret_cast<long *>(donnees_ + 8) = taille;
 						}
 						else {
-							genere_code_binaire_pour_initialisation_globale(tableau_valeur[i], decalage + static_cast<int>(decalage_membre), ou_patcher);
+							genere_code_binaire_pour_initialisation_globale(tableau_valeur[index_membre], decalage + static_cast<int>(decalage_membre), ou_patcher);
 						}
+
+						index_membre += 1;
 					}
 
 					break;

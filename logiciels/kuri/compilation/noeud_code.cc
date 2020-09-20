@@ -604,7 +604,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 				info_type_membre->info = cree_info_type_pour(it.type);
 				info_type_membre->decalage = it.decalage;
 				info_type_membre->nom = it.nom;
-				info_type_membre->drapeaux = it.drapeaux;
+				info_type_membre->drapeaux = static_cast<InfoTypeMembreStructure::Drapeaux>(it.drapeaux);
 
 				info_type->membres.pousse(info_type_membre);
 			}
@@ -629,7 +629,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 				info_type_membre->info = cree_info_type_pour(it.type);
 				info_type_membre->decalage = it.decalage;
 				info_type_membre->nom = it.nom;
-				info_type_membre->drapeaux = it.drapeaux;
+				info_type_membre->drapeaux = static_cast<InfoTypeMembreStructure::Drapeaux>(it.drapeaux);
 
 				info_type->membres.pousse(info_type_membre);
 			}

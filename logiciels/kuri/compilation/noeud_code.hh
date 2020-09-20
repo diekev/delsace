@@ -200,15 +200,15 @@ struct InfoTypeTableau : public InfoType {
 };
 
 struct InfoTypeMembreStructure {
-	// À FAIRE : crash dans la génération des infos types (RI)
-	// Drapeaux :: énum {
-	// 	EST_CONSTANT
-	// }
+	enum Drapeaux : uint {
+		NON_INITIALISE = 0,
+		EST_CONSTANT = (1 << 0),
+	};
 
 	kuri::chaine nom{};
 	InfoType *info = nullptr;
 	long decalage = 0;  // décalage en octets dans la structure
-	int drapeaux = 0;
+	Drapeaux drapeaux = Drapeaux::NON_INITIALISE;
 };
 
 struct InfoTypeStructure : public InfoType {

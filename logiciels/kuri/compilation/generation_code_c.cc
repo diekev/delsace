@@ -590,9 +590,15 @@ struct GeneratriceCodeC {
 								// ceci car il peut n'y avoir qu'un seul membre de type tableau qui n'est pas initialisé
 								auto virgule_placee = false;
 
+								auto index_membre = 0;
 								for (auto i = 0; i < type->membres.taille; ++i) {
+									if (type->membres[i].drapeaux & TypeCompose::Membre::EST_CONSTANT) {
+										continue;
+									}
+
 									// les tableaux fixes ont une initialisation nulle
-									if (tableau_valeur[i] == nullptr) {
+									if (tableau_valeur[index_membre] == nullptr) {
+										index_membre += 1;
 										continue;
 									}
 
@@ -602,9 +608,10 @@ struct GeneratriceCodeC {
 									resultat += ".";
 									resultat += broye_nom_simple(type->membres[i].nom);
 									resultat += " = ";
-									resultat += genere_code_pour_atome(tableau_valeur[i], os, pour_globale);
+									resultat += genere_code_pour_atome(tableau_valeur[index_membre], os, pour_globale);
 
 									virgule = ", ";
+									index_membre += 1;
 								}
 
 								if (!virgule_placee) {
