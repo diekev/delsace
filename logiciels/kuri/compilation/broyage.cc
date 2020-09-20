@@ -458,7 +458,16 @@ dls::chaine broye_nom_fonction(
 	enchaineuse << decl->params.taille;
 	enchaineuse << "_";
 
-	/* À FAIRE(réusinage arbre) : ajout du contexte */
+	if (!decl->possede_drapeau(FORCE_NULCTX)) {
+		nom_ascii = "contexte";
+		enchaineuse << nom_ascii.taille();
+		enchaineuse << nom_ascii;
+
+		dls::chaine const &nom_broye = "KsContexteProgramme";
+		enchaineuse << nom_broye.taille();
+		enchaineuse << nom_broye;
+	}
+
 	for (auto i = 0; i < decl->params.taille; ++i) {
 		auto param = decl->parametre_entree(i);
 
