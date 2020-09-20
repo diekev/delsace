@@ -195,4 +195,6 @@ struct Erreur {
 
 Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, dls::chaine const &message, erreur::Genre genre = erreur::Genre::NORMAL);
 
+Erreur rapporte_erreur_sans_site(EspaceDeTravail *espace, const dls::chaine &message, erreur::Genre genre = erreur::Genre::NORMAL);
+
 Erreur rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne, kuri::chaine message);

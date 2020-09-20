@@ -1421,7 +1421,10 @@ static void genere_code_C_depuis_fonctions_racines(
 		}
 	}
 
-	// À FAIRE : erreur, nécessite un site pour imprimer quelque chose
+	if (fonctions_racines.est_vide()) {
+		rapporte_erreur_sans_site(&espace, "Aucune fonction racine trouvée pour générer le code !\n");
+		return;
+	}
 
 	kuri::tableau<AtomeFonction *> fonctions;
 

@@ -1022,6 +1022,31 @@ Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, const dls
 	return erreur;
 }
 
+Erreur rapporte_erreur_sans_site(EspaceDeTravail *espace, const dls::chaine &message, erreur::Genre genre)
+{
+	auto flux = dls::flux_chaine();
+	flux << COULEUR_CYAN_GRAS << "-- ";
+
+	auto chaine_erreur = chaine_pour_erreur(genre);
+	flux << chaine_erreur << ' ';
+
+	for (auto i = 0; i < 76 - chaine_erreur.taille(); ++i) {
+		flux << '-';
+	}
+
+	flux << "\n\n" << COULEUR_NORMALE;
+
+	flux << "Dans l'espace de travail \"" << espace->nom << "\" :\n";
+	flux << "\nErreur : ";
+	flux << message;
+	flux << '\n';
+	flux << '\n';
+
+	auto erreur = Erreur(espace);
+	erreur.message = flux.chn();
+	return erreur;
+}
+
 Erreur rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne, kuri::chaine message)
 {
 	auto flux = dls::flux_chaine();
