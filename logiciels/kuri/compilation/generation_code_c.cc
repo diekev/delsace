@@ -466,9 +466,8 @@ R"(
 	enchaineuse << "typedef unsigned char octet;\n";
 	enchaineuse << "typedef void Ksnul;\n";
 	enchaineuse << "typedef struct ContexteProgramme KsContexteProgramme;\n";
-	/* À FAIRE : pas beau, mais un pointeur de fonction peut être un pointeur
-	 * vers une fonction de LibC dont les arguments variadiques ne sont pas
-	 * typés */
+	/* pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
+	 *  de LibC dont les arguments variadiques ne sont pas typés */
 	enchaineuse << "#define Kv ...\n\n";
 
 	/* défini memcpy puisque nous l'utilisons pour copier les tableaux fixes */
