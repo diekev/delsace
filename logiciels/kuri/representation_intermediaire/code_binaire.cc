@@ -719,8 +719,8 @@ ffi_type *converti_type_ffi(Type *type)
 		}
 		case GenreType::STRUCTURE:
 		{
-			// À FAIRE
-			return &ffi_type_sint32;
+			// non supporté pour le moment, nous devrions uniquement passer des pointeurs
+			break;
 		}
 		case GenreType::UNION:
 		{
@@ -730,27 +730,23 @@ ffi_type *converti_type_ffi(Type *type)
 				return converti_type_ffi(type_union->type_le_plus_grand);
 			}
 
-			// À FAIRE
-			return &ffi_type_sint32;
+			// non supporté
+			break;
 		}
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
 		{
 			return converti_type_ffi(type->comme_enum()->type_donnees);
 		}
-		case GenreType::VARIADIQUE:
-		{
-			// À FAIRE
-			return &ffi_type_sint32;
-		}
-		case GenreType::TABLEAU_FIXE:
-		{
-			// À FAIRE
-			return &ffi_type_sint32;
-		}
 		case GenreType::TYPE_DE_DONNEES:
 		{
 			return &ffi_type_sint64;
+		}
+		case GenreType::VARIADIQUE:
+		case GenreType::TABLEAU_FIXE:
+		{
+			// ces types là ne sont pas supporté dans FFI
+			break;
 		}
 	}
 
