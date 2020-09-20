@@ -373,40 +373,38 @@ void Syntaxeuse::lance_analyse()
 			continue;
 		}
 
-		auto genre_lexeme = lexeme_courant()->genre;
+		auto lexeme = lexeme_courant();
+		auto genre_lexeme = lexeme->genre;
 
 		if (genre_lexeme == GenreLexeme::IMPORTE) {
 			consomme();
+
+			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_IMPORTE, lexeme);
+			noeud->bloc_parent->expressions->pousse(noeud);
 
 			if (!apparie(GenreLexeme::CHAINE_LITTERALE) && !apparie(GenreLexeme::CHAINE_CARACTERE)) {
 				lance_erreur("Attendu une chaine littérale après 'importe'");
 			}
 
-			auto const nom_module = lexeme_courant()->chaine;
+			noeud->expr = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme_courant());
 
-			/* désactive le 'chronomètre' car sinon le temps d'analyse prendra
-			 * également en compte le chargement du module importé */
-			m_fichier->temps_analyse += m_chrono_analyse.arrete();
-			auto module = m_compilatrice.importe_module(m_unite->espace, dls::chaine(nom_module), *lexeme_courant());
-			m_fichier->modules_importes.insere(module->nom);
-			m_chrono_analyse.reprend();
+			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 
 			consomme();
 		}
 		else if (genre_lexeme == GenreLexeme::CHARGE) {
 			consomme();
 
+			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_CHARGE, lexeme);
+			noeud->bloc_parent->expressions->pousse(noeud);
+
 			if (!apparie(GenreLexeme::CHAINE_LITTERALE) && !apparie(GenreLexeme::CHAINE_CARACTERE)) {
 				lance_erreur("Attendu une chaine littérale après 'charge'");
 			}
 
-			auto const nom_fichier = lexeme_courant()->chaine;
+			noeud->expr = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme_courant());
 
-			/* désactive le 'chronomètre' car sinon le temps d'analyse prendra
-			 * également en compte le chargement du fichier chargé */
-			m_fichier->temps_analyse += m_chrono_analyse.arrete();
-			m_compilatrice.ajoute_fichier_a_la_compilation(m_unite->espace, nom_fichier, m_fichier->module, *lexeme_courant());
-			m_chrono_analyse.reprend();
+			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 
 			consomme();
 		}

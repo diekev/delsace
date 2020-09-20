@@ -41,6 +41,11 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 	}
 
 	switch (noeud_expression->genre) {
+		case GenreNoeud::INSTRUCTION_CHARGE:
+		case GenreNoeud::INSTRUCTION_IMPORTE:
+		{
+			break;
+		}
 		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
 		{
 			auto decl = noeud_expression->comme_entete_fonction();

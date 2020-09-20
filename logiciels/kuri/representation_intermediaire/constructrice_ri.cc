@@ -546,6 +546,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::DECLARATION_CORPS_FONCTION:
 		case GenreNoeud::INSTRUCTION_EMPL:
 		case GenreNoeud::EXPRESSION_VIRGULE:
+		case GenreNoeud::INSTRUCTION_CHARGE:
+		case GenreNoeud::INSTRUCTION_IMPORTE:
 		{
 			break;
 		}

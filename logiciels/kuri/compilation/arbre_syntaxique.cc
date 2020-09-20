@@ -246,6 +246,22 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 			imprime_arbre(expr->expr, os, tab + 1);
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_CHARGE:
+		{
+			auto inst = racine->comme_charge();
+			imprime_tab(os, tab);
+			os << "charge :\n";
+			imprime_arbre(inst->expr, os, tab + 1);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_IMPORTE:
+		{
+			auto inst = racine->comme_importe();
+			imprime_tab(os, tab);
+			os << "importe :\n";
+			imprime_arbre(inst->expr, os, tab + 1);
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
 		{
 			auto inst = racine->comme_retour();
@@ -615,6 +631,8 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
 		case GenreNoeud::INSTRUCTION_EMPL:
+		case GenreNoeud::INSTRUCTION_CHARGE:
+		case GenreNoeud::INSTRUCTION_IMPORTE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire const *>(racine);
 			auto nexpr = static_cast<NoeudExpressionUnaire *>(nracine);
@@ -961,6 +979,13 @@ void aplatis_arbre(
 			arbre_aplatis.pousse(expr);
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_CHARGE:
+		case GenreNoeud::INSTRUCTION_IMPORTE:
+		{
+			racine->drapeaux |= drapeau;
+			arbre_aplatis.pousse(racine);
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
 		{
 			auto inst = racine->comme_retour();
@@ -1242,6 +1267,8 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
 		case GenreNoeud::INSTRUCTION_EMPL:
+		case GenreNoeud::INSTRUCTION_CHARGE:
+		case GenreNoeud::INSTRUCTION_IMPORTE:
 		{
 			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
 

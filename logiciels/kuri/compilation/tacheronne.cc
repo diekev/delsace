@@ -722,6 +722,11 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 
 					return true;
 				}
+				case GenreNoeud::INSTRUCTION_IMPORTE:
+				case GenreNoeud::INSTRUCTION_CHARGE:
+				{
+					return !contexte.valide_semantique_noeud(unite->noeud);
+				}
 				default:
 				{
 					assert(false);

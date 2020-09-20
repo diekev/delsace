@@ -104,6 +104,24 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_CHARGE:
+		{
+			auto inst = noeud->comme_charge();
+			auto lexeme = inst->expr->lexeme;
+			auto fichier = espace->fichier(inst->lexeme->fichier);
+			m_compilatrice.ajoute_fichier_a_la_compilation(espace, lexeme->chaine, fichier->module, *lexeme);
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_IMPORTE:
+		{
+			auto inst = noeud->comme_importe();
+			auto lexeme = inst->expr->lexeme;
+			auto fichier = espace->fichier(inst->lexeme->fichier);
+			auto module = m_compilatrice.importe_module(espace, dls::chaine(lexeme->chaine), *lexeme);
+			// @concurrence critique
+			fichier->modules_importes.insere(module->nom);
+			break;
+		}
 		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
 		{
 			auto decl = noeud->comme_entete_fonction();
