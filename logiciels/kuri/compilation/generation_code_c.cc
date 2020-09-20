@@ -1458,10 +1458,10 @@ static dls::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, Opt
 {
 	auto commande = dls::chaine("/usr/bin/gcc-9 -c /tmp/compilation_kuri.c ");
 
-	// À FAIRE : comment lié les tables pour un fichier objet ?
-//	if (ops.objet_genere == ObjetGenere::FichierObjet) {
-//		commande += "/tmp/tables_r16.o ";
-//	}
+	/* compile les tables R16 avec le fichier objet car nous ne pouvons pas les lier séparement */
+	if (ops.objet_genere == ObjetGenere::FichierObjet) {
+		commande += compilatrice.racine_kuri + "/fichiers/r16_tables.cc ";
+	}
 
 	/* désactivation des erreurs concernant le manque de "const" quand
 	 * on passe des variables générés temporairement par la coulisse à
