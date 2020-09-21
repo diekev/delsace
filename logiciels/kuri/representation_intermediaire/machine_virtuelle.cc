@@ -978,6 +978,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 				auto type = LIS_POINTEUR(Type);
 				// saute l'identifiant
 				frame->pointeur += 8;
+//				std::cerr << "----------------\n";
+//				std::cerr << "alloue : " << type->taille_octet << '\n';
 				this->pointeur_pile += type->taille_octet;
 				break;
 			}
