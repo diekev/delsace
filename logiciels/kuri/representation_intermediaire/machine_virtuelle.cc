@@ -965,8 +965,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 				auto taille = LIS_4_OCTETS();
 				auto adresse_ou = depile<void *>();
 				auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
+//				std::cerr << "----------------\n";
 //				std::cerr << "adresse_ou : " << adresse_ou << '\n';
 //				std::cerr << "adresse_de : " << adresse_de << '\n';
+//				std::cerr << "taille     : " << taille << '\n';
 				memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 				depile(taille);
 				break;
