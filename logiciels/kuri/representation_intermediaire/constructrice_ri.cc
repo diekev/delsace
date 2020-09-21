@@ -27,6 +27,7 @@
 #include <fstream>
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "arbre_syntaxique.hh"
@@ -327,7 +328,7 @@ InstructionAllocation *ConstructriceRI::cree_allocation(Type *type, IdentifiantC
 {
 	/* le résultat d'une instruction d'allocation est l'adresse de la variable. */
 	type = normalise_type(m_espace->typeuse, type);
-	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
+	assert_rappel(type == nullptr || (type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" << chaine_type(type) << "' n'est pas normalisé\n"; });
 	auto type_pointeur = m_espace->typeuse.type_pointeur_pour(type);
 	auto inst = insts_allocation.ajoute_element(type_pointeur, ident);
 	inst->profondeur_bloc = profondeur_bloc;
@@ -344,14 +345,16 @@ InstructionAllocation *ConstructriceRI::cree_allocation(Type *type, IdentifiantC
 
 InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Atome *ou, Atome *valeur, bool cree_seulement)
 {
-	assert(ou->type->genre == GenreType::POINTEUR);
+	assert_rappel(ou->type->genre == GenreType::POINTEUR, [&]() { std::cerr << "Le type n'est pas un pointeur : " << chaine_type(ou->type) << '\n'; } );
 	auto type_pointeur = ou->type->comme_pointeur();
-//	std::cerr << __func__ << ", type_pointeur->type_pointe : " << chaine_type(type_pointeur->type_pointe) << " (" << type_pointeur->type_pointe << ") "
-//			  << ", valeur->type : " << chaine_type(valeur->type) << " (" << valeur->type << ") " << '\n';
-	assert(type_pointeur->type_pointe == valeur->type || (type_pointeur->type_pointe->genre == GenreType::TYPE_DE_DONNEES && type_pointeur->type_pointe->genre == valeur->type->genre));
+	assert_rappel(type_pointeur->type_pointe == valeur->type || (type_pointeur->type_pointe->genre == GenreType::TYPE_DE_DONNEES && type_pointeur->type_pointe->genre == valeur->type->genre),
+					 [=]() {
+		std::cerr << "\ttype_pointeur->type_pointe : " << chaine_type(type_pointeur->type_pointe) << " (" << type_pointeur->type_pointe << ") "
+				  << ", valeur->type : " << chaine_type(valeur->type) << " (" << valeur->type << ") " << '\n';
+	});
 
 	auto type = valeur->type;
-	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
+	//assert_rappel((type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" << chaine_type(type) << "' n'est pas normalisé\n"; });
 
 	auto inst = insts_stocke_memoire.ajoute_element(type, ou, valeur);
 
@@ -365,8 +368,7 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(Atome *ou, Atome *valeur,
 InstructionChargeMem *ConstructriceRI::cree_charge_mem(Atome *ou)
 {
 	/* nous chargeons depuis une adresse en mémoire, donc nous devons avoir un pointeur */
-	//std::cerr << __func__ << ", type atome : " << chaine_type(ou->type) << '\n';
-	assert(ou->type->genre == GenreType::POINTEUR || ou->type->genre == GenreType::REFERENCE);
+	assert_rappel(ou->type->genre == GenreType::POINTEUR || ou->type->genre == GenreType::REFERENCE, [=](){ std::cerr << "Le type est '" << chaine_type(ou->type) << "'\n"; });
 	auto type_pointeur = ou->type->comme_pointeur();
 
 	POUR (charge_mems) {
@@ -375,12 +377,13 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(Atome *ou)
 		}
 	}
 
-	assert(ou->genre_atome == Atome::Genre::INSTRUCTION || ou->genre_atome == Atome::Genre::GLOBALE);
-	//std::cerr << __func__ << ", type instruction : " << static_cast<int>(inst_chargee->genre) << '\n';
-	//assert(dls::outils::est_element(inst_chargee->genre, Instruction::Genre::ALLOCATION, Instruction::Genre::ACCEDE_MEMBRE, Instruction::Genre::ACCEDE_INDEX));
+	assert_rappel(ou->genre_atome == Atome::Genre::INSTRUCTION || ou->genre_atome == Atome::Genre::GLOBALE,
+					 [=](){
+		std::cerr << "Le genre de l'atome est : " << static_cast<int>(ou->genre_atome) << ".\n";
+	});
 
 	auto type = type_pointeur->type_pointe;
-	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
+	//assert_rappel((type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" << chaine_type(type) << "' n'est pas normalisé\n"; });
 
 	auto inst = insts_charge_memoire.ajoute_element(type, ou);
 	fonction_courante->instructions.pousse(inst);
@@ -434,18 +437,16 @@ InstructionAccedeIndex *ConstructriceRI::cree_acces_index(Atome *accede, Atome *
 		type_pointe = accede->type;
 	}
 	else {
-		//std::cerr << __func__ << ", type accede : " << chaine_type(accede->type) << '\n';
-		assert(accede->type->genre == GenreType::POINTEUR);
+		assert_rappel(accede->type->genre == GenreType::POINTEUR, [=](){ std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
 		auto type_pointeur = accede->type->comme_pointeur();
 		type_pointe = type_pointeur->type_pointe;
 	}
 
-	//std::cerr << __func__ << ", accede->type : " << chaine_type(type_pointe) << '\n';
-	assert(dls::outils::est_element(type_pointe->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE));
+	assert_rappel(dls::outils::est_element(type_pointe->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE), [=](){ std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
 
 	auto type = m_espace->typeuse.type_pointeur_pour(type_dereference_pour(type_pointe));
 
-	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
+	//assert_rappel((type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" << chaine_type(type) << "' n'est pas normalisé\n"; });
 
 	auto inst = insts_accede_index.ajoute_element(type, accede, index);
 	fonction_courante->instructions.pousse(inst);
@@ -454,11 +455,10 @@ InstructionAccedeIndex *ConstructriceRI::cree_acces_index(Atome *accede, Atome *
 
 InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(Atome *accede, long index)
 {
-	//std::cerr << __func__ << ", accede->type : " << chaine_type(accede->type) << '\n';
-	assert(accede->type->genre == GenreType::POINTEUR || accede->type->genre == GenreType::REFERENCE);
+	assert_rappel(accede->type->genre == GenreType::POINTEUR || accede->type->genre == GenreType::REFERENCE, [=](){ std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
 	auto type_pointeur = accede->type->comme_pointeur();
-	assert(est_type_compose(type_pointeur->type_pointe));
-	assert(type_pointeur->type_pointe->genre != GenreType::UNION);
+	assert_rappel(est_type_compose(type_pointeur->type_pointe), [=](){ std::cerr << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'\n"; });
+	assert_rappel(type_pointeur->type_pointe->genre != GenreType::UNION, [=](){ std::cerr << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'\n"; });
 
 	POUR (acces_membres) {
 		if (it->accede == accede && static_cast<AtomeValeurConstante *>(it->index)->valeur.valeur_entiere == static_cast<unsigned>(index)) {
@@ -471,7 +471,7 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(Atome *accede, long 
 
 	/* nous retournons un pointeur vers le membre */
 	type = m_espace->typeuse.type_pointeur_pour(type);
-	//assert((type->drapeaux & TYPE_EST_NORMALISE) != 0);
+	//assert_rappel((type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" << chaine_type(type) << "' n'est pas normalisé\n"; });
 
 	auto inst = insts_accede_membre.ajoute_element(type, accede, cree_z64(static_cast<unsigned>(index)));
 	fonction_courante->instructions.pousse(inst);
@@ -515,11 +515,9 @@ OpBinaireConstant *ConstructriceRI::cree_op_comparaison_constant(OperateurBinair
 
 AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *accede, AtomeConstante *index)
 {
-	//std::cerr << __func__ << ", type accede : " << chaine_type(accede->type) << '\n';
-	assert(accede->type->genre == GenreType::POINTEUR);
+	assert_rappel(accede->type->genre == GenreType::POINTEUR, [=](){ std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
 	auto type_pointeur = accede->type->comme_pointeur();
-	//std::cerr << __func__ << ", accede->type : " << chaine_type(type_pointeur->type_pointe) << '\n';
-	assert(dls::outils::est_element(type_pointeur->type_pointe->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE));
+	assert_rappel(dls::outils::est_element(type_pointeur->type_pointe->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE), [=](){ std::cerr << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'\n"; });
 
 	auto type = m_espace->typeuse.type_pointeur_pour(type_dereference_pour(type_pointeur->type_pointe));
 
@@ -1709,7 +1707,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud, Atome *valeur, T
 				valeur = cree_transtype(transformation.type_cible, valeur, type_transtypage);
 			}
 
-			assert(valeur->type->genre != GenreType::ENTIER_CONSTANT);
+			assert_rappel(valeur->type->genre != GenreType::ENTIER_CONSTANT, [=](){ std::cerr << "Type de la valeur : " << chaine_type(valeur->type) << "\n."; });
 			break;
 		}
 		case TypeTransformation::CONSTRUIT_UNION:
@@ -2623,12 +2621,12 @@ void ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpress
 
 	/* variable n'est nul que pour les allocations simples */
 	if (variable != nullptr) {
-		assert(mode == 1 || mode == 2);
+		assert_rappel(mode == 1 || mode == 2, [=](){ std::cerr << "mode = " << mode << "\n."; });
 		genere_ri_pour_noeud(variable);
 		val_enfant = depile_valeur();
 	}
 	else {
-		assert(mode == 0);
+		assert_rappel(mode == 0, [=](){ std::cerr << "mode = " << mode << "\n."; });
 		val_enfant = cree_allocation(type, nullptr);
 		auto init = genere_initialisation_defaut_pour_type(type);
 		cree_stocke_mem(val_enfant, init);
@@ -3390,7 +3388,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		case GenreType::INVALIDE:
 		case GenreType::POLYMORPHIQUE:
 		{
-			assert(false);
+			assert_rappel(false, [](){ std::cerr << "Obtenu un type invalide ou polymophique\n"; });
 			break;
 		}
 		case GenreType::BOOL:
@@ -4226,7 +4224,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 		// les allocations pour les variables employées sont créées lors de la génération de code pour les blocs
 		if (decl->drapeaux & EMPLOYE) {
 			pointeur = table_locales[var->ident];
-			assert(pointeur != nullptr);
+			assert_rappel(pointeur != nullptr, [=](){ std::cerr << "Aucune allocation pour « " << var->ident->nom << " »\n."; });
 		}
 		else {
 			pointeur = cree_allocation(var->type, var->ident);
