@@ -130,6 +130,24 @@ considère un opérateur pour convertir entre des types
     opérateur Type :: fonc (a: AutreType) -> Type
 
 
+TableOpérateur {
+    opérateurs_unaires = ...;
+    opérateurs_binaires = ...;
+}
+
+type->table_opérateur
+
+Opérateurs implicites :
+- pour les structures, si triviale -> hérite des différents opérateurs
+- le faire de manière fainéante, quand requis, que faire si un autre module les définis ?
+- création de l'opérateur en lui créant un arbre syntaxique
+
+- pour les comparaisons de nombres réels, il faut savoir comment ordonnées
+---- définis un epsilon lors de la compilation ? ULP ?
+
+- opérateurs commutatif, le noter dans la génération de code
+
+
 // --------------------------- Bas Fruitage
 
 ajout d'une propriété "pointeur" aux tableaux fixes pour obtenir le pointeur vers le premier élément (au lien de @x[0])
