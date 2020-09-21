@@ -476,13 +476,17 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synch
 	membres_eini.pousse({ types_communs[static_cast<long>(TypeBase::PTR_RIEN)], "pointeur", 0 });
 	membres_eini.pousse({ type_pointeur_pour(type_info_type_), "info", 8 });
 	type_eini->membres = std::move(membres_eini);
-	type_eini->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+	type_eini->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
 
 	auto membres_chaine = kuri::tableau<TypeCompose::Membre>();
 	membres_chaine.pousse({ types_communs[static_cast<long>(TypeBase::PTR_Z8)], "pointeur", 0 });
 	membres_chaine.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "taille", 8 });
 	type_chaine->membres = std::move(membres_chaine);
-	type_chaine->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+	type_chaine->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
+
+	POUR (types_communs) {
+		it->drapeaux |= TYPE_EST_NORMALISE;
+	}
 }
 
 Typeuse::~Typeuse()
