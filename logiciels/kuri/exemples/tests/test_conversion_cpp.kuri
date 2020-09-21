@@ -6,18 +6,37 @@ importe POSIX
 
 converti_type_c :: fonc (info: *InfoType) -> chaine
 {
-    si info.id == id_info.ENTIER {
-        si info.taille_en_octet == 1 {
-            retourne "char"
+    discr info.id {
+        ENTIER {
+            si info.taille_en_octet == 1 {
+                retourne "char"
+            }
+            sinon si info.taille_en_octet == 2 {
+                retourne "short"
+            }
+            sinon si info.taille_en_octet == 4 {
+                retourne "int"
+            }
+            sinon si info.taille_en_octet == 8 {
+                retourne "long"
+            }
         }
-        sinon si info.taille_en_octet == 2 {
-            retourne "short"
+        RÉEL {
+            si info.taille_en_octet == 2 {
+                retourne "half"
+            }
+            sinon si info.taille_en_octet == 4 {
+                retourne "float"
+            }
+            sinon si info.taille_en_octet == 8 {
+                retourne "double"
+            }
         }
-        sinon si info.taille_en_octet == 4 {
-            retourne "int"
+        BOOLÉEN {
+            retourne "bool"
         }
-        sinon si info.taille_en_octet == 8 {
-            retourne "long"
+        sinon {
+            retourne "type_inconnu"
         }
     }
 
