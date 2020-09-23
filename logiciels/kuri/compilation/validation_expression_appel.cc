@@ -432,13 +432,20 @@ static auto apparie_appel_fonction(
 		}
 	}
 
-	POUR (slots) {
-		if (it == nullptr) {
-			// À FAIRE : on pourrait donner les noms des arguments manquants
-			res.etat = FONCTION_INTROUVEE;
-			res.raison = MECOMPTAGE_ARGS;
-			return false;
+	dls::tablet<IdentifiantCode *, TAILLE_CANDIDATES_DEFAUT> params_manquants;
+
+	for (auto i = 0; i < nombre_args - decl->est_variadique; ++i) {
+		if (slots[i] == nullptr) {
+			auto dp = decl->params[i];
+			params_manquants.pousse(dp->ident);
 		}
+	}
+
+	if (!params_manquants.est_vide()) {
+		res.etat = FONCTION_INTROUVEE;
+		res.raison = ARGUMENTS_MANQUANTS;
+		res.arguments_manquants = params_manquants;
+		return false;
 	}
 
 	auto paires_expansion_gabarit = dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>>();

@@ -494,6 +494,18 @@ void lance_erreur_fonction_inconnue(
 			ss << "\tTentative d'ajouter des arguments variadiques supplémentaire alors qu'une expansion est également utilisée\n";
 			type_erreur = erreur::Genre::NORMAL;
 		}
+		else if (dc.raison == ARGUMENTS_MANQUANTS) {
+			if (dc.arguments_manquants.taille() == 1) {
+				ss << "\tUn argument est manquant :\n";
+			}
+			else {
+				ss << "\tPlusieurs arguments sont manquants :\n";
+			}
+
+			for (auto ident : dc.arguments_manquants) {
+				ss << "\t\t" << ident->nom << '\n';
+			}
+		}
 
 		if (dc.raison == METYPAGE_ARG) {
 			auto const &lexeme_enfant = dc.noeud_erreur->lexeme;

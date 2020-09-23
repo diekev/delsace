@@ -56,6 +56,7 @@ enum {
 
 	EXPRESSION_MANQUANTE_POUR_UNION,
 	MANQUE_NOM_APRES_VARIADIC,
+	ARGUMENTS_MANQUANTS,
 	MECOMPTAGE_ARGS,
 	MENOMMAGE_ARG,
 	METYPAGE_ARG,
@@ -96,6 +97,7 @@ struct DonneesCandidate {
 
 	/* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
 	dls::tablet<NoeudExpression *, 10> exprs{};
+	dls::tablet<IdentifiantCode *, 10> arguments_manquants{};
 	Type *type_attendu{};
 	Type *type_obtenu{};
 	NoeudExpression const *noeud_erreur = nullptr;
