@@ -915,11 +915,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				chunk.emets_reference_variable(alloc->index_locale);
 			}
 			else {
-				auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
-				auto adresse = chunk.emets_allocation(type_pointe, alloc->ident);
-				alloc->index_locale = static_cast<int>(chunk.locales.taille());
-				chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
-
 				if (alloc->profondeur_bloc > derniere_profondeur_alloc) {
 					derniere_profondeur_alloc = alloc->profondeur_bloc;
 					pile_taille.empile(chunk.taille_allouee);
@@ -928,6 +923,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 					derniere_profondeur_alloc = alloc->profondeur_bloc;
 					chunk.taille_allouee = pile_taille.depile();
 				}
+
+				auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
+				auto adresse = chunk.emets_allocation(type_pointe, alloc->ident);
+				alloc->index_locale = static_cast<int>(chunk.locales.taille());
+				chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
 			}
 
 			break;
