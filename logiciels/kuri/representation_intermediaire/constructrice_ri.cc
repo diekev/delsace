@@ -840,7 +840,13 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		{
-			empile_valeur(cree_constante_entiere(noeud->type, noeud->lexeme->valeur_entiere));
+			if (noeud->type->est_reel()) {
+				empile_valeur(cree_constante_reelle(noeud->type, static_cast<double>(noeud->lexeme->valeur_entiere)));
+			}
+			else {
+				empile_valeur(cree_constante_entiere(noeud->type, noeud->lexeme->valeur_entiere));
+			}
+
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
