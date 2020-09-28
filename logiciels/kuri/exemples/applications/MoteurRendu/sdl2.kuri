@@ -465,7 +465,7 @@ SDL_Keysym :: struct #externe {
     unused : n32
 }
 
-SDL_KeyboardEvent :: struct #externe {
+SDL_KeyboardEvent :: struct {
     type : SDL_EventType    /**< ::SDL_KEYDOWN or ::SDL_KEYUP */
     timestamp : n32   /**< In milliseconds, populated using SDL_GetTicks() */
     windowID : n32    /**< The window with keyboard focus, if any */
@@ -476,7 +476,7 @@ SDL_KeyboardEvent :: struct #externe {
     keysym  : SDL_Keysym  /**< The key that was pressed or released */
 }
 
-SDL_Event :: union externe nonsûr {
+SDL_Event :: union nonsûr #externe {
     type : SDL_EventType
     key : SDL_KeyboardEvent
 }

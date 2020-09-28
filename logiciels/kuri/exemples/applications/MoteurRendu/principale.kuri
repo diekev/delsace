@@ -4,6 +4,15 @@ importe Image
 importe OpenGL
 importe Math
 
+charge "caméra_3d"
+charge "dessin_texte"
+charge "dessin_texture"
+charge "maillage"
+charge "programme"
+charge "ratissage"
+charge "sdl2"
+charge "triangle"
+
 // ratissage basé sur le tutorial :
 // https://www.youtube.com/watch?v=HXSuNxpCzdM : 43.33
 
@@ -548,7 +557,7 @@ trace_maillage :: fonc (
                 }
 
                 si touché {
-                    idx_triangle = idx
+                    idx_triangle = idx comme z32
                 }
             }
 

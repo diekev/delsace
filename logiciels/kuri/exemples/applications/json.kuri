@@ -23,7 +23,7 @@ test_json_tori :: fonc () -> rien
     imprime("lexèmes :\n\n")
 
     pour données dans lexeuse.lexèmes {
-        imprime(données.lexème, "\n")
+        imprime("%\n", données.lexème)
     }
 
     imprime("\n")
@@ -31,7 +31,7 @@ test_json_tori :: fonc () -> rien
     // -----------------------------------
     // Syntaxage du script, création de l'objet
 
-	syntaxeuse : Syntaxeuse
+	syntaxeuse : SyntaxeuseJSON
 	syntaxeuse.lexèmes = lexeuse.lexèmes
     diffère { détruit(syntaxeuse); }
 

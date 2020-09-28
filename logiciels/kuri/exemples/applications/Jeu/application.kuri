@@ -1,3 +1,4 @@
+importe Couleur
 importe Fondation
 importe OpenGL
 
@@ -192,10 +193,10 @@ dessine_fenetre :: fonc(app : &Application) -> rien
     // dessine l'arrière plan
 
     // dessine les personnages
-	taille_x := TAILLE_TUILE comme r32 / TAILLE_TUILE * TUILES_X comme r32
-	taille_y := TAILLE_TUILE comme r32 / TAILLE_TUILE * TUILES_Y comme r32
-	pos_x := app.personnage.pos_x comme r32 / TAILLE_TUILE * TUILES_X comme r32
-	pos_y := app.personnage.pos_y comme r32 / TAILLE_TUILE * TUILES_Y comme r32
+	taille_x := TAILLE_TUILE comme r32 / (TAILLE_TUILE * TUILES_X) comme r32
+	taille_y := TAILLE_TUILE comme r32 / (TAILLE_TUILE * TUILES_Y) comme r32
+	pos_x := app.personnage.pos_x comme r32 / (TAILLE_TUILE * TUILES_X) comme r32
+	pos_y := app.personnage.pos_y comme r32 / (TAILLE_TUILE * TUILES_Y) comme r32
 
 	couleur := Couleur(r = 1.0, v = 1.0, b = 1.0, a = 1.0 )
 
