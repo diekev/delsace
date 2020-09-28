@@ -3196,6 +3196,10 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 			}
 		}
 
+		if (fonction_courante && fonction_courante->possede_drapeau(FORCE_NULCTX) && (var->type->est_structure() || var->type->est_union()) && !var->comme_ref_decl()->decl->possede_drapeau(EST_PARAMETRE)) {
+			::rapporte_erreur(espace, var, "Impossible d'initialiser par défaut une structure dans un bloc n'ayant pas de contexte");
+		}
+
 		donnees->variables.pousse(var);
 		donnees->transformations.pousse(transformation);
 	}
