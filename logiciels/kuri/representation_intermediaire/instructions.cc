@@ -148,6 +148,11 @@ AtomeFonction::AtomeFonction(Lexeme const *lexeme_, dls::chaine const &nom_, kur
 	this->params_entrees = std::move(params_);
 }
 
+Instruction *AtomeFonction::derniere_instruction() const
+{
+	return instructions[instructions.taille - 1];
+}
+
 InstructionAppel::InstructionAppel(Lexeme const *lexeme_, Atome *appele_)
 	: InstructionAppel()
 {

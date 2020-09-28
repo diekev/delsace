@@ -646,7 +646,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			profondeur_bloc -= 1;
 
-			auto derniere_instruction = *(fonction_courante->instructions.end() - 1);
+			auto derniere_instruction = fonction_courante->derniere_instruction();
 
 			if (derniere_instruction->genre != Instruction::Genre::RETOUR) {
 				/* génère le code pour tous les noeuds différés de ce bloc */

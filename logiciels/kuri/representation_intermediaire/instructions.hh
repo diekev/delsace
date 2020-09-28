@@ -246,6 +246,8 @@ struct AtomeFonction : public Atome {
 	AtomeFonction(Lexeme const *lexeme, dls::chaine const &nom);
 	AtomeFonction(Lexeme const *lexeme, dls::chaine const &nom, kuri::tableau<Atome *> &&params);
 
+	Instruction *derniere_instruction() const;
+
 	COPIE_CONSTRUCT(AtomeFonction);
 };
 
