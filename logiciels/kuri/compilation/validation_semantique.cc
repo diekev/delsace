@@ -795,7 +795,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type_cible = espace->typeuse[TypeBase::Z64];
 			auto type_index = enfant2->type;
 
-			if (type_index->est_entier_naturel()) {
+			if (type_index->est_entier_naturel() || type_index->est_octet()) {
 				transtype_si_necessaire(expr->expr2, { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible });
 			}
 			else {
