@@ -1397,8 +1397,14 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				auto type_cible = espace->typeuse[TypeBase::Z64];
-				if (!transtype_si_necessaire(expr_loge->expr_taille, type_cible)) {
-					return true;
+				auto type_index = expr_loge->expr_taille->type;
+				if (type_index->est_entier_naturel() || type_index->est_octet()) {
+					transtype_si_necessaire(expr_loge->expr_taille, { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible });
+				}
+				else {
+					if (!transtype_si_necessaire(expr_loge->expr_taille, type_cible)) {
+						return true;
+					}
 				}
 			}
 			else {
@@ -1444,8 +1450,14 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				auto type_cible = espace->typeuse[TypeBase::Z64];
-				if (!transtype_si_necessaire(expr_loge->expr_taille, type_cible)) {
-					return true;
+				auto type_index = expr_loge->expr_taille->type;
+				if (type_index->est_entier_naturel() || type_index->est_octet()) {
+					transtype_si_necessaire(expr_loge->expr_taille, { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible });
+				}
+				else {
+					if (!transtype_si_necessaire(expr_loge->expr_taille, type_cible)) {
+						return true;
+					}
 				}
 			}
 			else {
