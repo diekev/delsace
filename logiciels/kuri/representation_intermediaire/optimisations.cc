@@ -41,8 +41,6 @@
 
 /* Supprime les labels ne contenant aucune instruction, et remplace ceux-ci dans
  * les branches les utilisant.
- * Supprime les labels immédiatement après une instruction de retour (nous pourrions
- * corriger la génération de RI pour ne pas les insérer en premier lieu).
  *
  * Idées :
  * - supprime les blocs n'ayant aucun ancêtre, sauf le premier

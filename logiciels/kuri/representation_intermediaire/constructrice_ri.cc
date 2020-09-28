@@ -1236,7 +1236,12 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 				insere_label(label_si_vrai);
 				genere_ri_pour_noeud(inst_si->bloc_si_vrai);
-				cree_branche(label_apres_instruction);
+
+				auto di = fonction_courante->derniere_instruction();
+				if (!di->est_branche_ou_retour()) {
+					cree_branche(label_apres_instruction);
+				}
+
 				insere_label(label_si_faux);
 				genere_ri_pour_noeud(inst_si->bloc_si_faux);
 				insere_label(label_apres_instruction);
@@ -1277,7 +1282,12 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			insere_label(label_boucle);
 			genere_ri_pour_noeud(inst_boucle->bloc);
-			cree_branche(label_boucle);
+
+			auto di = fonction_courante->derniere_instruction();
+			if (!di->est_branche_ou_retour()) {
+				cree_branche(label_boucle);
+			}
+
 			insere_label(label_apres_boucle);
 
 			depile_controle_boucle();
@@ -1317,7 +1327,12 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			insere_label(label_boucle);
 			genere_ri_pour_noeud(inst_boucle->bloc);
-			cree_branche(label_condition);
+
+			auto di = fonction_courante->derniere_instruction();
+			if (!di->est_branche_ou_retour()) {
+				cree_branche(label_condition);
+			}
+
 			insere_label(label_apres_boucle);
 
 			depile_controle_boucle();
@@ -2181,7 +2196,11 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 		insere_label(donnees.label_si_vrai);
 
 		genere_ri_pour_noeud(enf1);
-		cree_branche(label_post_discr);
+
+		auto di = fonction_courante->derniere_instruction();
+		if (!di->est_branche_ou_retour()) {
+			cree_branche(label_post_discr);
+		}
 	}
 
 	insere_label(label_post_discr);

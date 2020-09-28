@@ -312,6 +312,8 @@ struct Instruction : public Atome {
 	inline bool est_stocke_mem() const { return genre == Genre::STOCKE_MEMOIRE; }
 	inline bool est_transtype() const { return genre == Genre::TRANSTYPE; }
 
+	inline bool est_branche_ou_retour() const { return est_branche() || est_branche_cond() || est_retour(); }
+
 #undef COMME_INST
 };
 
