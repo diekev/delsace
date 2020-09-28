@@ -495,7 +495,7 @@ void Lexeuse::performe_lexage()
 					}
 
 					++taille_mot;
-					this->avance_fixe<1>();
+					this->avance();
 				}
 
 				auto fin_chaine = this->m_debut;
