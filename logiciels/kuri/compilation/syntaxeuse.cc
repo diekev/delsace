@@ -1897,11 +1897,14 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, param->lexeme);
 			decl_var->expression_type = param->expression_type;
 			decl_var->valeur = param;
+			decl_var->drapeaux |= EST_PARAMETRE;
 
 			params.pousse(decl_var);
 		}
 		else {
-			params.pousse(static_cast<NoeudDeclaration *>(param));
+			auto decl_var = static_cast<NoeudDeclaration *>(param);
+			decl_var->drapeaux |= EST_PARAMETRE;
+			params.pousse(decl_var);
 		}
 
 		if (!apparie(GenreLexeme::VIRGULE)) {
@@ -1991,6 +1994,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 						decl_sortie = decl;
 					}
 				}
+
+				decl_sortie->drapeaux |= EST_PARAMETRE;
 
 				nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 				noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
@@ -2157,11 +2162,14 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 			auto decl_var = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, param->lexeme);
 			decl_var->expression_type = param->expression_type;
 			decl_var->valeur = param;
+			decl_var->drapeaux |= EST_PARAMETRE;
 
 			params.pousse(decl_var);
 		}
 		else {
-			params.pousse(static_cast<NoeudDeclaration *>(param));
+			auto decl_var = static_cast<NoeudDeclaration *>(param);
+			decl_var->drapeaux |= EST_PARAMETRE;
+			params.pousse(decl_var);
 		}
 
 		if (!apparie(GenreLexeme::VIRGULE)) {
@@ -2224,6 +2232,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 			decl_sortie = decl;
 		}
+
+		decl_sortie->drapeaux |= EST_PARAMETRE;
 
 		nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 		noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);

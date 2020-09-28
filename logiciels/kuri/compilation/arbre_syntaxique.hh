@@ -161,6 +161,7 @@ enum DrapeauxNoeud : unsigned int {
 	FORCE_SANSBROYAGE          = (1 << 17),
 	EST_RACINE                 = (1 << 18),
 	TRANSTYPAGE_IMPLICITE      = (1 << 19),
+	EST_PARAMETRE              = (1 << 20),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)
