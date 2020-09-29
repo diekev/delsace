@@ -28,6 +28,24 @@
 #include "compilatrice.hh"
 #include "modules.hh"
 
+const char *chaine_phase_compilation(PhaseCompilation phase)
+{
+#define ENUMERE_PHASE(x) case PhaseCompilation::x: return #x;
+
+	switch (phase) {
+		ENUMERE_PHASES_COMPILATION
+	}
+
+#undef ENUMERE_PHASE
+	return "PhaseCompilation inconnue";
+}
+
+std::ostream &operator<<(std::ostream &os, PhaseCompilation phase)
+{
+	os << chaine_phase_compilation(phase);
+	return os;
+}
+
 void Messagere::ajoute_message_fichier_ouvert(EspaceDeTravail *espace, const kuri::chaine &chemin)
 {
 	if (!interception_commencee) {
