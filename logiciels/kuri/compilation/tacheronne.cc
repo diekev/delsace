@@ -403,7 +403,6 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 		return Tache::dors(espace);
 	}
 
-	// À FAIRE(ordonnanceuse) : notifie proprement les métaprogrammes
 	compilation_terminee = true;
 
 	return Tache::compilation_terminee();
