@@ -1280,9 +1280,18 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
 					else {
 						auto type_compose = static_cast<TypeCompose *>(type);
 
+						auto index_membre = 0;
 						for (auto i = 0; i < type_compose->membres.taille; ++i) {
-							// À FAIRE : type tableau fixe
-							genere_code_binaire_pour_atome(tableau_valeur[i], chunk, true);
+							if ((type_compose->membres[i].drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
+								continue;
+							}
+
+							if (tableau_valeur[index_membre] != nullptr) {
+								// À FAIRE : type tableau fixe
+								genere_code_binaire_pour_atome(tableau_valeur[index_membre], chunk, true);
+							}
+
+							index_membre += 1;
 						}
 					}
 
