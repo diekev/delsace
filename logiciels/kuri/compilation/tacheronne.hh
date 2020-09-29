@@ -59,14 +59,15 @@ std::ostream &operator<<(std::ostream &os, GenreTache genre);
 struct Tache {
 	GenreTache genre = GenreTache::DORS;
 	UniteCompilation *unite = nullptr;
+	EspaceDeTravail *espace = nullptr;
 
-	static Tache dors();
+	static Tache dors(EspaceDeTravail *espace_);
 
 	static Tache compilation_terminee();
 
-	static Tache genere_fichier_objet(UniteCompilation *unite_);
+	static Tache genere_fichier_objet(EspaceDeTravail *espace_);
 
-	static Tache liaison_objet(UniteCompilation *unite_);
+	static Tache liaison_objet(EspaceDeTravail *espace_);
 
 	static Tache attend_message(UniteCompilation *unite_);
 };

@@ -64,10 +64,11 @@ std::ostream &operator<<(std::ostream &os, GenreTache genre)
 	return os;
 }
 
-Tache Tache::dors()
+Tache Tache::dors(EspaceDeTravail *espace_)
 {
 	Tache t;
 	t.genre = GenreTache::DORS;
+	t.espace = espace_;
 	return t;
 }
 
@@ -78,19 +79,19 @@ Tache Tache::compilation_terminee()
 	return t;
 }
 
-Tache Tache::genere_fichier_objet(UniteCompilation *unite_)
+Tache Tache::genere_fichier_objet(EspaceDeTravail *espace_)
 {
 	Tache t;
 	t.genre = GenreTache::GENERE_FICHIER_OBJET;
-	t.unite = unite_;
+	t.espace = espace_;
 	return t;
 }
 
-Tache Tache::liaison_objet(UniteCompilation *unite_)
+Tache Tache::liaison_objet(EspaceDeTravail *espace_)
 {
 	Tache t;
 	t.genre = GenreTache::LIAISON_EXECUTABLE;
-	t.unite = unite_;
+	t.espace = espace_;
 	return t;
 }
 
@@ -213,6 +214,9 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 	if (unite) {
 		espace = unite->espace;
 	}
+	else {
+		espace = tache_terminee.espace;
+	}
 
 	switch (tache_terminee.genre) {
 		case GenreTache::DORS:
@@ -314,7 +318,7 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 			if (espace->options.objet_genere == ObjetGenere::Executable) {
 				m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
 				renseigne_etat_tacheronne(id, GenreTache::LIAISON_EXECUTABLE);
-				return Tache::liaison_objet(unite);
+				return Tache::liaison_objet(espace);
 			}
 			else {
 				m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::COMPILATION_TERMINEE);
@@ -379,10 +383,10 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::COMPILATION_TERMINEE);
 		}
 		else {
-			m_compilatrice->messagere->ajoute_message_phase_compilation(unite->espace, PhaseCompilation::AVANT_GENERATION_OBJET);
+			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::AVANT_GENERATION_OBJET);
 			renseigne_etat_tacheronne(id, GenreTache::GENERE_FICHIER_OBJET);
 			nombre_de_taches_en_proces += 1;
-			return Tache::genere_fichier_objet(unite);
+			return Tache::genere_fichier_objet(espace);
 		}
 	}
 
@@ -390,13 +394,13 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 	if (!taches_execution.est_vide()) {
 		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::DORS);
-		return Tache::dors();
+		return Tache::dors(espace);
 	}
 
 	if (nombre_de_taches_en_proces != 0 && !toutes_les_tacheronnes_dorment()) {
 		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::DORS);
-		return Tache::dors();
+		return Tache::dors(espace);
 	}
 
 	// À FAIRE(ordonnanceuse) : notifie proprement les métaprogrammes
@@ -420,7 +424,7 @@ Tache OrdonnanceuseTache::tache_metaprogramme_suivante(const Tache &/*tache_term
 	if (nombre_de_taches_en_proces != 0 || !compilation_terminee) {
 		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::DORS);
-		return Tache::dors();
+		return Tache::dors(nullptr);
 	}
 
 	return Tache::compilation_terminee();
@@ -447,7 +451,7 @@ Tacheronne::~Tacheronne()
 void Tacheronne::gere_tache()
 {
 	auto temps_debut = dls::chrono::compte_seconde();
-	auto tache = Tache::dors();
+	auto tache = Tache::dors(nullptr);
 	auto premiere = true;
 	auto tache_fut_completee = true;
 	auto &ordonnanceuse = compilatrice.ordonnanceuse;
@@ -574,13 +578,13 @@ void Tacheronne::gere_tache()
 			}
 			case GenreTache::GENERE_FICHIER_OBJET:
 			{
-				coulisse_C_cree_fichier_objet(compilatrice, constructrice_ri, *tache.unite->espace, temps_generation_code, temps_fichier_objet);
+				coulisse_C_cree_fichier_objet(compilatrice, constructrice_ri, *tache.espace, temps_generation_code, temps_fichier_objet);
 				tache_fut_completee = true;
 				break;
 			}
 			case GenreTache::LIAISON_EXECUTABLE:
 			{
-				coulisse_C_cree_executable(compilatrice, *tache.unite->espace, temps_executable);
+				coulisse_C_cree_executable(compilatrice, *tache.espace, temps_executable);
 				tache_fut_completee = true;
 				break;
 			}
@@ -592,7 +596,7 @@ void Tacheronne::gere_tache()
 
 void Tacheronne::gere_tache_metaprogramme()
 {
-	auto tache = Tache::dors();
+	auto tache = Tache::dors(nullptr);
 	auto premiere = true;
 	auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
