@@ -27,6 +27,7 @@
 #include <iomanip>
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/outils/assert.hh"
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
@@ -585,9 +586,13 @@ ffi_type *converti_type_ffi(Type *type)
 {
 	switch (type->genre) {
 		case GenreType::INVALIDE:
+		{
+			assert_rappel(false, [&]() { std::cerr << "Type invalide dans la conversion FFI\n"; });
+			return static_cast<ffi_type *>(nullptr);
+		}
 		case GenreType::POLYMORPHIQUE:
 		{
-			assert(false);
+			assert_rappel(false, [&]() { std::cerr << "Type polymorphique dans la conversion FFI\n"; });
 			return static_cast<ffi_type *>(nullptr);
 		}
 		case GenreType::BOOL:
@@ -1540,10 +1545,22 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 			genere_code_binaire_pour_initialisation_globale(transtype->valeur, decalage, ou_patcher);
 			break;
 		}
-		default:
+		case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
 		{
 			// À FAIRE
-			//std::cerr << "Cas non-géré : " << static_cast<int>(constante->genre) << '\n';
+			//assert_rappel(false, []() { std::cerr << "Les opérations unaires constantes ne sont pas implémentées dans le code binaire\n"; });
+			break;
+		}
+		case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
+		{
+			// À FAIRE
+			//assert_rappel(false, []() { std::cerr << "Les opérations binaires constantes ne sont pas implémentées dans le code binaire\n"; });
+			break;
+		}
+		case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
+		{
+			// À FAIRE
+			//assert_rappel(false, []() { std::cerr << "Les indexages constants ne sont pas implémentés dans le code binaire\n"; });
 			break;
 		}
 	}

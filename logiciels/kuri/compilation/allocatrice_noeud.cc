@@ -24,6 +24,7 @@
 
 #include "allocatrice_noeud.hh"
 
+#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/definitions.h"
 
 #include "statistiques.hh"
@@ -52,7 +53,7 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::DECLARATION_CORPS_FONCTION:
 		{
 			/* assert faux car les noeuds de corps et d'entêtes sont alloués en même temps */
-			assert(false);
+			assert_rappel(false, [&]() { std::cerr << "Tentative d'allocation d'un corps de fonction seul\n"; });
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENUM:

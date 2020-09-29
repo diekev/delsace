@@ -25,6 +25,7 @@
 #include "broyage.hh"
 
 #include "biblinternes/langage/unicode.hh"
+#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
@@ -100,8 +101,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 	switch (type->genre) {
 		case GenreType::POLYMORPHIQUE:
 		{
-			std::cerr << "Obtenu un type polymorphique dans le broyage !\n";
-			assert(false);
+			assert_rappel(false, [&]() { std::cerr << "Obtenu un type polymorphique dans le broyage !\n"; });
 			break;
 		}
 		case GenreType::INVALIDE:
@@ -339,7 +339,7 @@ dls::chaine broye_nom_fonction(
 		switch (decl->lexeme->genre) {
 			default:
 			{
-				assert(0);
+				assert_rappel(false, [&]() { std::cerr << "Lexème inattendu pour les opérateurs dans le broyage de nom : " << chaine_du_genre_de_lexeme(decl->lexeme->genre) << "\n"; });
 				break;
 			}
 			case GenreLexeme::INFERIEUR:

@@ -24,6 +24,7 @@
 
 #include "arbre_syntaxique.hh"
 
+#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 
 #include "assembleuse_arbre.h"
@@ -524,7 +525,7 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::DECLARATION_CORPS_FONCTION:
 		{
 			/* assert faux car les noeuds de corps et d'entêtes sont alloués en même temps */
-			assert(false);
+			assert_rappel(false, [&]() { std::cerr << "Tentative de copie d'un corps de fonction seul\n"; });
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENUM:

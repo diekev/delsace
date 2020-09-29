@@ -25,6 +25,7 @@
 #include "validation_semantique.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/outils/assert.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "arbre_syntaxique.hh"
@@ -3524,8 +3525,7 @@ bool ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
 			type_cible = espace->typeuse.type_tableau_dynamique(type_tableau_fixe->type_pointe);
 		}
 		else {
-			std::cerr << "Type Transformation non géré : " << transformation.type << '\n';
-			assert(0);
+			assert_rappel(false, [&]() { std::cerr << "Type Transformation non géré : " << transformation.type << '\n'; });
 		}
 	}
 

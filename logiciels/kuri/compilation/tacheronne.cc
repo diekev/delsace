@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/outils/assert.hh"
 #include "biblinternes/structures/file.hh"
 
 #include "assembleuse_arbre.h"
@@ -732,7 +733,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 				}
 				default:
 				{
-					assert(false);
+					assert_rappel(false, [&]() { std::cerr << "Genre de noeud inattendu dans la tâche de typage : " << unite->noeud->genre << '\n'; });
 					break;
 				}
 			}

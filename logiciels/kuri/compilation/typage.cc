@@ -24,6 +24,8 @@
 
 #include "typage.hh"
 
+#include "biblinternes/outils/assert.hh"
+
 #include "compilatrice.hh"
 #include "operateurs.hh"
 #include "outils_lexemes.hh"
@@ -463,7 +465,7 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synch
 			type = this->type_reference_pour(type);
 		}
 		else {
-			assert(false);
+			assert_rappel(false, [&]() { std::cerr << "Genre de type non-géré : " << chaine_du_lexeme(donnees.dt[0]) << '\n'; });
 		}
 
 		types_communs[idx] = type;
@@ -1402,7 +1404,7 @@ Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour
 		resultat = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
 	}
 	else {
-		assert(0);
+		assert_rappel(false, [&]() { std::cerr << "Type inattendu dans la résolution de type polymorphique : " << chaine_type(type_gabarit) << "\n"; });
 	}
 
 	return resultat;

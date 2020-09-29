@@ -26,6 +26,7 @@
 
 #include <filesystem>
 
+#include "biblinternes/outils/assert.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "arbre_syntaxique.hh"
@@ -250,8 +251,7 @@ static int precedence_pour_operateur(GenreLexeme genre_operateur)
 		}
 		default:
 		{
-			std::cerr << "Aucune précédence pour l'opérateur : " << chaine_du_lexeme(genre_operateur) << '\n';
-			assert(false);
+			assert_rappel(false, [&]() { std::cerr << "Aucune précédence pour l'opérateur : " << chaine_du_lexeme(genre_operateur) << '\n'; });
 			return -1;
 		}
 	}
@@ -312,8 +312,7 @@ static Associativite associativite_pour_operateur(GenreLexeme genre_operateur)
 		}
 		default:
 		{
-			std::cerr << "Aucune associativité pour l'opérateur : " << chaine_du_lexeme(genre_operateur) << '\n';
-			assert(false);
+			assert_rappel(false, [&]() { std::cerr << "Aucune associativité pour l'opérateur : " << chaine_du_lexeme(genre_operateur) << '\n'; });
 			return static_cast<Associativite>(-1);
 		}
 	}
@@ -713,7 +712,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
 		}
 		default:
 		{
-			assert(false);
+			assert_rappel(false, [&]() { std::cerr << "Lexème inattendu comme opérateur unaire : " << chaine_du_lexeme(lexeme->genre) << '\n'; });
 			return nullptr;
 		}
 	}
@@ -1105,8 +1104,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		case GenreLexeme::STRUCT:
 		case GenreLexeme::UNION:
 		{
-			std::cerr << "Ceux-ci doivent déjà avoir été gérés.\n";
-			assert(false);
+			assert_rappel(false, [&]() { std::cerr << "Lexème inattendu, supposément déjà géré, comme expression primaire : " << chaine_du_lexeme(lexeme->genre) << '\n'; });
 			return nullptr;
 		}
 		default:
@@ -1317,7 +1315,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		}
 		default:
 		{
-			assert(false);
+			assert_rappel(false, [&]() { std::cerr << "Lexème inattendu comme expression secondaire : " << chaine_du_lexeme(lexeme->genre) << '\n'; });
 			return nullptr;
 		}
 	}
@@ -1471,7 +1469,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 		}
 		default:
 		{
-			assert(false);
+			assert_rappel(false, [&]() { std::cerr << "Lexème inattendu comme instruction : " << chaine_du_lexeme(lexeme->genre) << '\n'; });
 			return nullptr;
 		}
 	}
