@@ -104,11 +104,6 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 			assert_rappel(false, [&]() { std::cerr << "Obtenu un type polymorphique dans le broyage !\n"; });
 			break;
 		}
-		case GenreType::INVALIDE:
-		{
-			enchaineuse << "Ksinvalide";
-			break;
-		}
 		case GenreType::EINI:
 		{
 			enchaineuse << "Kseini";

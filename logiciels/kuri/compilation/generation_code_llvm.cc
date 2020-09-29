@@ -216,7 +216,6 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 
 	switch (type->genre) {
 		case GenreType::POLYMORPHIQUE:
-		case GenreType::INVALIDE:
 		{
 			type_llvm = nullptr;
 			table_types[type] = type_llvm;

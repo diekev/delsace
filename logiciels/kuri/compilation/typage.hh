@@ -133,7 +133,6 @@ enum class TypeBase : char {
 };
 
 #define ENUMERE_GENRES_TYPES \
-	ENUMERE_GENRE_TYPE_EX(INVALIDE) \
 	ENUMERE_GENRE_TYPE_EX(ENTIER_NATUREL) \
 	ENUMERE_GENRE_TYPE_EX(ENTIER_RELATIF) \
 	ENUMERE_GENRE_TYPE_EX(ENTIER_CONSTANT) \
@@ -213,7 +212,6 @@ struct Type {
 	inline bool est_enum() const { return genre == GenreType::ENUM; }
 	inline bool est_erreur() const { return genre == GenreType::ERREUR; }
 	inline bool est_fonction() const { return genre == GenreType::FONCTION; }
-	inline bool est_invalide() const { return genre == GenreType::INVALIDE; }
 	inline bool est_octet() const { return genre == GenreType::OCTET; }
 	inline bool est_pointeur() const { return genre == GenreType::POINTEUR; }
 	inline bool est_polymorphique() const { return genre == GenreType::POLYMORPHIQUE; }

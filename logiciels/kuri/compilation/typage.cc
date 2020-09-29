@@ -1073,10 +1073,6 @@ dls::chaine chaine_type(const Type *type)
 	}
 
 	switch (type->genre) {
-		case GenreType::INVALIDE:
-		{
-			return "invalide";
-		}
 		case GenreType::EINI:
 		{
 			return "eini";

@@ -585,11 +585,6 @@ void desassemble(const Chunk &chunk, const char *nom, std::ostream &os)
 ffi_type *converti_type_ffi(Type *type)
 {
 	switch (type->genre) {
-		case GenreType::INVALIDE:
-		{
-			assert_rappel(false, [&]() { std::cerr << "Type invalide dans la conversion FFI\n"; });
-			return static_cast<ffi_type *>(nullptr);
-		}
 		case GenreType::POLYMORPHIQUE:
 		{
 			assert_rappel(false, [&]() { std::cerr << "Type polymorphique dans la conversion FFI\n"; });

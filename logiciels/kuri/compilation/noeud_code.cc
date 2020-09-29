@@ -445,7 +445,6 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 	}
 
 	switch (type->genre) {
-		case GenreType::INVALIDE:
 		case GenreType::POLYMORPHIQUE:
 		{
 			return nullptr;

@@ -3148,7 +3148,6 @@ void ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *n
 AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *type)
 {
 	switch (type->genre) {
-		case GenreType::INVALIDE:
 		case GenreType::REFERENCE:
 		case GenreType::RIEN:
 		case GenreType::POLYMORPHIQUE:
@@ -3410,7 +3409,6 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 	}
 
 	switch (type->genre) {
-		case GenreType::INVALIDE:
 		case GenreType::POLYMORPHIQUE:
 		{
 			assert_rappel(false, [](){ std::cerr << "Obtenu un type invalide ou polymophique\n"; });

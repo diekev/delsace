@@ -52,7 +52,6 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 
 	switch (type->genre) {
 		case GenreType::POLYMORPHIQUE:
-		case GenreType::INVALIDE:
 		{
 			break;
 		}

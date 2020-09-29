@@ -1253,7 +1253,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type_info_type = Type::nul();
 
 			switch (expr->type->genre) {
-				case GenreType::INVALIDE:
 				case GenreType::POLYMORPHIQUE:
 				{
 					break;
