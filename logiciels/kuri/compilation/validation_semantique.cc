@@ -911,10 +911,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto enfant1 = inst->variable;
 			auto enfant2 = inst->expression;
 			auto enfant3 = inst->bloc;
-
-			/* À FAIRE : utilisation du type */
-//			auto df = static_cast<DonneesFonction *>(nullptr);
-
 			auto feuilles = enfant1->comme_virgule();
 
 			for (auto f : feuilles->expressions) {
@@ -935,7 +931,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			auto type = enfant2->type;
 
-			auto determine_iterande = [&, this](NoeudExpression *iterand) {
+			auto determine_iterande = [&, this](NoeudExpression *iterand) -> char {
 				/* NOTE : nous testons le type des noeuds d'abord pour ne pas que le
 				 * type de retour d'une coroutine n'interfère avec le type d'une
 				 * variable (par exemple quand nous retournons une chaine). */
@@ -1005,12 +1001,17 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 							.ajoute_message("Note : le type de la variable est ")
 							.ajoute_message(chaine_type(type))
 							.ajoute_message("\n");
-					//return true;
-					return GENERE_BOUCLE_PLAGE;
+					return -1;
 				}
 			};
 
-			noeud->aide_generation_code = determine_iterande(enfant2);
+			auto aide_generation_code = determine_iterande(enfant2);
+
+			if (aide_generation_code == -1) {
+				return true;
+			}
+
+			noeud->aide_generation_code = aide_generation_code;
 
 			donnees_dependance.types_utilises.insere(type);
 			enfant3->membres->reserve(feuilles->expressions.taille);
@@ -1612,7 +1613,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					decl_expr->bloc_parent = bloc_paire;
 					decl_expr->drapeaux |= EMPLOYE;
 					decl_expr->type = expr_paire->type;
-					// À FAIRE: mise en place des informations d'emploie
+					// À FAIRE: mise en place des informations d'emploi
 
 					bloc_paire->membres->pousse(decl_expr);
 				}
