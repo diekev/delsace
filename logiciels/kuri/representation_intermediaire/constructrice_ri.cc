@@ -541,7 +541,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
-		case GenreNoeud::DECLARATION_CORPS_FONCTION:
 		case GenreNoeud::INSTRUCTION_EMPL:
 		case GenreNoeud::EXPRESSION_VIRGULE:
 		case GenreNoeud::INSTRUCTION_CHARGE:
@@ -552,53 +551,13 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
 		{
 			auto decl = noeud->comme_entete_fonction();
-
-			if (decl->est_declaration_type) {
-				empile_valeur(cree_constante_type(decl->type));
-				return;
-			}
-
-			fonction_courante = nullptr;
-			nombre_labels = 0;
-			profondeur_bloc = 0;
-			this->m_pile.efface();
-
-			auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl);
-
-			if (decl->est_externe) {
-				return;
-			}
-
-			if (decl->est_coroutine) {
-				genere_ri_pour_coroutine(decl->corps);
-				return;
-			}
-
-			fonction_courante = atome_fonc;
-			table_locales.efface();
-			acces_membres.taille = 0;
-			charge_mems.taille = 0;
-
-			POUR (atome_fonc->params_entrees) {
-				table_locales.insere({ it->ident, it });
-			}
-
-			cree_label();
-
-			genere_ri_pour_noeud(decl->corps->bloc);
-
-			if (decl->corps->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
-				cree_retour(nullptr);
-			}
-
-			noeud->drapeaux |= RI_FUT_GENEREE;
-
-			//corrige_labels(atome_fonc);
-			//analyse_ri(*m_espace, atome_fonc);
-
-			fonction_courante = nullptr;
-			this->m_pile.efface();
-
+			genere_ri_pour_fonction(decl);
+			break;
+		}
+		case GenreNoeud::DECLARATION_CORPS_FONCTION:
+		{
+			auto corps = noeud->comme_corps_fonction();
+			genere_ri_pour_fonction(corps->entete);
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
@@ -1653,6 +1612,56 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			break;
 		}
 	}
+}
+
+void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl)
+{
+	if (decl->est_declaration_type) {
+		empile_valeur(cree_constante_type(decl->type));
+		return;
+	}
+
+	fonction_courante = nullptr;
+	nombre_labels = 0;
+	profondeur_bloc = 0;
+	this->m_pile.efface();
+
+	auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl);
+
+	if (decl->est_externe) {
+		return;
+	}
+
+	if (decl->est_coroutine) {
+		genere_ri_pour_coroutine(decl->corps);
+		return;
+	}
+
+	fonction_courante = atome_fonc;
+	table_locales.efface();
+	acces_membres.taille = 0;
+	charge_mems.taille = 0;
+
+	POUR (atome_fonc->params_entrees) {
+		table_locales.insere({ it->ident, it });
+	}
+
+	cree_label();
+
+	genere_ri_pour_noeud(decl->corps->bloc);
+
+	if (decl->corps->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
+		cree_retour(nullptr);
+	}
+
+	decl->drapeaux |= RI_FUT_GENEREE;
+	decl->corps->drapeaux |= RI_FUT_GENEREE;
+
+	//corrige_labels(atome_fonc);
+	//analyse_ri(*m_espace, atome_fonc);
+
+	fonction_courante = nullptr;
+	this->m_pile.efface();
 }
 
 void ConstructriceRI::genere_ri_pour_expression_droite(NoeudExpression *noeud, Atome *place)

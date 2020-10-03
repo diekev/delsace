@@ -167,6 +167,7 @@ private:
 	void depile_controle_boucle();
 
 	void genere_ri_pour_noeud(NoeudExpression *noeud);
+	void genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);
 	void genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecution *noeud);
 	AtomeFonction *genere_ri_pour_fonction_main();
 	Atome *genere_ri_pour_creation_contexte(AtomeFonction *fonction);

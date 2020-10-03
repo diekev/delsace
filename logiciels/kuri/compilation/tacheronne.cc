@@ -279,14 +279,12 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 			auto noeud = unite->noeud;
 
 			if (noeud->est_entete_fonction()) {
-				auto decl_fonc = noeud->comme_entete_fonction();
-
-				if (decl_fonc->est_gabarit && !decl_fonc->est_instantiation_gabarit) {
-					generation_ri_requise = false;
-				}
+				auto entete = noeud->comme_entete_fonction();
+				generation_ri_requise = entete->est_externe;
 			}
 			else if (noeud->est_corps_fonction()) {
-				generation_ri_requise = false;
+				auto entete = noeud->comme_corps_fonction()->entete;
+				generation_ri_requise = (!entete->est_gabarit || entete->est_instantiation_gabarit);
 			}
 
 			if (generation_ri_requise) {
