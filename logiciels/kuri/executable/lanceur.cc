@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
 		compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier.c_str(), module, {});
 
 #ifdef AVEC_THREADS
-		auto nombre_tacheronnes = 2u; //std::thread::hardware_concurrency();
+		auto nombre_tacheronnes = std::thread::hardware_concurrency();
 
 		dls::tableau<Tacheronne *> tacheronnes;
 		tacheronnes.reserve(nombre_tacheronnes);
@@ -329,8 +329,18 @@ int main(int argc, char *argv[])
 		}
 
 		// pour le moment, une seule tacheronne peut exécuter du code
-		tacheronnes[0]->drapeaux &= ~DrapeauxTacheronne::PEUT_EXECUTER;
-		tacheronnes[1]->drapeaux  =  DrapeauxTacheronne::PEUT_EXECUTER;
+		tacheronnes[0]->drapeaux  =  DrapeauxTacheronne::PEUT_EXECUTER;
+		tacheronnes[1]->drapeaux &= ~DrapeauxTacheronne::PEUT_EXECUTER;
+
+		for (auto i = 2u; i < nombre_tacheronnes; ++i) {
+			tacheronnes[i]->drapeaux = DrapeauxTacheronne(0);
+		}
+
+		auto drapeaux = DrapeauxTacheronne::PEUT_LEXER;
+
+		for (auto i = 0u; i < nombre_tacheronnes; ++i) {
+			tacheronnes[i]->drapeaux |= drapeaux;
+		}
 
 		dls::tableau<std::thread *> threads;
 		threads.reserve(nombre_tacheronnes);
