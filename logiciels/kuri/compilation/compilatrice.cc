@@ -280,10 +280,6 @@ long EspaceDeTravail::memoire_utilisee() const
 		memoire += it.fichiers.taille() * taille_de(Fichier *);
 		memoire += it.nom.taille();
 		memoire += it.chemin.taille();
-
-		if (!it.fonctions_exportees.est_stocke_dans_classe()) {
-			memoire += it.fonctions_exportees.taille() * taille_de(dls::vue_chaine_compacte);
-		}
 	}
 
 	auto fichiers_ = fichiers.verrou_lecture();

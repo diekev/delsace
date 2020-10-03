@@ -73,7 +73,6 @@ struct Module {
 	NoeudBloc *bloc = nullptr;
 
 	dls::tablet<Fichier *, 16> fichiers{};
-	dls::ensemblon<dls::vue_chaine_compacte, 16> fonctions_exportees{};
 	size_t id = 0ul;
 	dls::chaine nom{""};
 	dls::chaine chemin{""};

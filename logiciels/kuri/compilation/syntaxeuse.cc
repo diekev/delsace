@@ -2115,9 +2115,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
 		}
-
-		// À FAIRE(moultfilage) : modules et fichiers à protéger
-		m_fichier->module->fonctions_exportees.insere(lexeme->chaine);
 	}
 
 	depile_etat();
