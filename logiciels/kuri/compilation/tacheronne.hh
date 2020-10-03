@@ -128,6 +128,8 @@ private:
 	void renseigne_etat_tacheronne(int id, GenreTache genre_tache);
 
 	bool toutes_les_tacheronnes_dorment() const;
+
+	long nombre_de_taches_en_attente() const;
 };
 
 struct Tacheronne {

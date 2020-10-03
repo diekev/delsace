@@ -172,6 +172,16 @@ bool OrdonnanceuseTache::toutes_les_tacheronnes_dorment() const
 	return true;
 }
 
+long OrdonnanceuseTache::nombre_de_taches_en_attente() const
+{
+	return taches_lexage.taille()
+			+ taches_parsage.taille()
+			+ taches_typage.taille()
+			+ taches_generation_ri.taille()
+			+ taches_execution.taille()
+			+ taches_message.taille();
+}
+
 void OrdonnanceuseTache::cree_tache_pour_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
 	espace->nombre_taches_ri += 1;
@@ -398,6 +408,13 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 	}
 
 	if (nombre_de_taches_en_proces != 0 && !toutes_les_tacheronnes_dorment()) {
+		nombre_de_taches_en_proces += 1;
+		renseigne_etat_tacheronne(id, GenreTache::DORS);
+		return Tache::dors(espace);
+	}
+
+	// La Tâcheronne n'a pas pu recevoir une tâche lui étant spécifique.
+	if (nombre_de_taches_en_attente() != 0) {
 		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::DORS);
 		return Tache::dors(espace);
