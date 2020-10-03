@@ -789,17 +789,17 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 	return true;
 }
 
-void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
+static void rassemble_globales_et_fonctions(
+		EspaceDeTravail *espace,
+		MachineVirtuelle &mv,
+		NoeudDependance *racine,
+		dls::tableau<AtomeGlobale *> &globales,
+		dls::tableau<AtomeFonction *> &fonctions)
 {
-	auto noeud = static_cast<NoeudDirectiveExecution *>(unite->noeud);
-	auto espace = unite->espace;
-
+	auto graphe = espace->graphe_dependance.verrou_ecriture();
 	auto index_dans_table_type = 1u;
 
-	dls::tableau<AtomeGlobale *> globales;
-	dls::tableau<AtomeFonction *> fonctions;
-
-	traverse_graphe(noeud->fonction->noeud_dependance, [&](NoeudDependance *noeud_dep)
+	traverse_graphe(racine, [&](NoeudDependance *noeud_dep)
 	{
 		if (noeud_dep->type == TypeNoeudDependance::FONCTION) {
 			auto decl_noeud = noeud_dep->noeud_syntaxique->comme_entete_fonction();
@@ -851,9 +851,19 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 		}
 	});
 
-	POUR_TABLEAU_PAGE (espace->graphe_dependance->noeuds) {
+	POUR_TABLEAU_PAGE (graphe->noeuds) {
 		it.fut_visite = false;
 	}
+}
+
+void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
+{
+	auto noeud = static_cast<NoeudDirectiveExecution *>(unite->noeud);
+	auto espace = unite->espace;
+
+	dls::tableau<AtomeGlobale *> globales;
+	dls::tableau<AtomeFonction *> fonctions;
+	rassemble_globales_et_fonctions(espace, mv, noeud->fonction->noeud_dependance, globales, fonctions);
 
 	auto fonction = noeud->fonction->atome_fonction;
 

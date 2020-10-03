@@ -1293,8 +1293,14 @@ struct GeneratriceCodeC {
 	}
 };
 
-static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Synchrone<GrapheDependance> &graphe, Enchaineuse &enchaineuse)
+static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Synchrone<GrapheDependance> &graphe_, Enchaineuse &enchaineuse)
 {
+	auto graphe = graphe_.verrou_ecriture();
+
+	POUR_TABLEAU_PAGE(graphe->noeuds) {
+		it.fut_visite = false;
+	}
+
 	POUR_TABLEAU_PAGE(graphe->noeuds) {
 		if (it.type != TypeNoeudDependance::TYPE) {
 			continue;
