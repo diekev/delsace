@@ -766,7 +766,9 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			empile_valeur(table_locales[noeud->ident]);
+			auto locale = table_locales[noeud->ident];
+			assert_rappel(locale, [&]() { imprime_fichier_ligne(*m_espace, *noeud->lexeme); std::cerr << "Aucune locale trouvée pour " << noeud->ident->nom << '\n'; });
+			empile_valeur(locale);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
