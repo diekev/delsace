@@ -336,7 +336,7 @@ int main(int argc, char *argv[])
 			tacheronnes[i]->drapeaux = DrapeauxTacheronne(0);
 		}
 
-		auto drapeaux = DrapeauxTacheronne::PEUT_LEXER;
+		auto drapeaux = DrapeauxTacheronne::PEUT_LEXER | DrapeauxTacheronne::PEUT_PARSER;
 
 		for (auto i = 0u; i < nombre_tacheronnes; ++i) {
 			tacheronnes[i]->drapeaux |= drapeaux;
