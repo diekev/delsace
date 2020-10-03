@@ -344,13 +344,16 @@ Syntaxeuse::Syntaxeuse(
 
 	m_tacheronne.assembleuse->depile_tout();
 
-	// @concurrence critique
-	if (module->bloc == nullptr) {
-		module->bloc = m_tacheronne.assembleuse->empile_bloc();
+	module->mutex.lock();
+	{
+		if (module->bloc == nullptr) {
+			module->bloc = m_tacheronne.assembleuse->empile_bloc();
+		}
+		else {
+			m_tacheronne.assembleuse->bloc_courant(module->bloc);
+		}
 	}
-	else {
-		m_tacheronne.assembleuse->bloc_courant(module->bloc);
-	}
+	module->mutex.unlock();
 }
 
 void Syntaxeuse::lance_analyse()

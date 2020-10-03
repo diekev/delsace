@@ -29,6 +29,8 @@
 #include "biblinternes/structures/ensemblon.hh"
 #include "biblinternes/structures/tablet.hh"
 
+#include <mutex>
+
 #include "lexemes.hh"
 
 struct Compilatrice;
@@ -70,6 +72,7 @@ struct Fichier {
 };
 
 struct Module {
+	std::mutex mutex{};
 	NoeudBloc *bloc = nullptr;
 
 	dls::tablet<Fichier *, 16> fichiers{};
