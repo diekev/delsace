@@ -2253,6 +2253,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 		}
 	}
 	else {
+		// À FAIRE(moultfilage) : vérifie l'utilisation des synchrones pour les tableaux
 		POUR (*decl->bloc_parent->membres.verrou_lecture()) {
 			if (it == decl) {
 				continue;

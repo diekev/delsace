@@ -204,7 +204,7 @@ void OrdonnanceuseTache::cree_tache_pour_execution(EspaceDeTravail *espace, Noeu
 	taches_execution.enfile(tache);
 }
 
-Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache_completee, int id, bool premiere)
+Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache_completee, int id, bool premiere, DrapeauxTacheronne drapeaux)
 {
 	auto nouvelle_tache = tache_terminee;
 
@@ -342,13 +342,13 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 		nombre_de_taches_en_proces -= 1;
 	}
 
-	if (!taches_lexage.est_vide()) {
+	if (!taches_lexage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER))) {
 		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::LEXE);
 		return taches_lexage.defile();
 	}
 
-	if (!taches_parsage.est_vide()) {
+	if (!taches_parsage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_PARSER))) {
 		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::LEXE);
 		return taches_parsage.defile();
@@ -361,19 +361,19 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 	// il nous faudra sans doute un système pour définir qu'un métaprogramme définira
 	// tel ou tel symbole, et trouver de meilleures heuristiques pour arrêter la
 	// compilation en cas d'indéfinition de symbole
-	if (!taches_message.est_vide()) {
+	if (!taches_message.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE))) {
 		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::ENVOIE_MESSAGE);
 		return taches_message.defile();
 	}
 
-	if (!taches_typage.est_vide()) {
+	if (!taches_typage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER))) {
 		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::TYPAGE);
 		return taches_typage.defile();
 	}
 
-	if (!taches_generation_ri.est_vide()) {
+	if (!taches_generation_ri.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI))) {
 		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::GENERE_RI);
 		return taches_generation_ri.defile();
@@ -383,7 +383,7 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 		if (espace->options.objet_genere == ObjetGenere::Rien) {
 			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::COMPILATION_TERMINEE);
 		}
-		else {
+		else if (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
 			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::AVANT_GENERATION_OBJET);
 			renseigne_etat_tacheronne(id, GenreTache::GENERE_FICHIER_OBJET);
 			nombre_de_taches_en_proces += 1;
@@ -391,11 +391,10 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 		}
 	}
 
-	// À FAIRE : plusieurs tacheronnes pour exécuter le code
-	if (!taches_execution.est_vide()) {
+	if (!taches_execution.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER))) {
 		nombre_de_taches_en_proces += 1;
-		renseigne_etat_tacheronne(id, GenreTache::DORS);
-		return Tache::dors(espace);
+		renseigne_etat_tacheronne(id, GenreTache::EXECUTE);
+		return taches_execution.defile();
 	}
 
 	if (nombre_de_taches_en_proces != 0 && !toutes_les_tacheronnes_dorment()) {
@@ -405,27 +404,6 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 	}
 
 	compilation_terminee = true;
-
-	return Tache::compilation_terminee();
-}
-
-Tache OrdonnanceuseTache::tache_metaprogramme_suivante(const Tache &/*tache_terminee*/, int id, bool premiere)
-{
-	if (!premiere) {
-		nombre_de_taches_en_proces -= 1;
-	}
-
-	if (!taches_execution.est_vide()) {
-		nombre_de_taches_en_proces += 1;
-		renseigne_etat_tacheronne(id, GenreTache::EXECUTE);
-		return taches_execution.defile();
-	}
-
-	if (nombre_de_taches_en_proces != 0 || !compilation_terminee) {
-		nombre_de_taches_en_proces += 1;
-		renseigne_etat_tacheronne(id, GenreTache::DORS);
-		return Tache::dors(nullptr);
-	}
 
 	return Tache::compilation_terminee();
 }
@@ -457,7 +435,7 @@ void Tacheronne::gere_tache()
 	auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
 	while (!compilatrice.possede_erreur) {
-		tache = ordonnanceuse->tache_suivante(tache, tache_fut_completee, id, premiere);
+		tache = ordonnanceuse->tache_suivante(tache, tache_fut_completee, id, premiere, drapeaux);
 		premiere = false;
 
 		switch (tache.genre) {
@@ -468,6 +446,7 @@ void Tacheronne::gere_tache()
 			}
 			case GenreTache::ENVOIE_MESSAGE:
 			{
+				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
 				tache_fut_completee = tache.unite->message_recu;
 				break;
 			}
@@ -479,6 +458,7 @@ void Tacheronne::gere_tache()
 			}
 			case GenreTache::LEXE:
 			{
+				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER));
 				auto unite = tache.unite;
 				auto debut_lexage = dls::chrono::compte_seconde();
 				auto lexeuse = Lexeuse(compilatrice, unite->fichier);
@@ -489,6 +469,7 @@ void Tacheronne::gere_tache()
 			}
 			case GenreTache::PARSE:
 			{
+				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
 				auto unite = tache.unite;
 				auto debut_parsage = dls::chrono::compte_seconde();
 				auto syntaxeuse = Syntaxeuse(compilatrice, *this, unite->fichier, unite, compilatrice.racine_kuri);
@@ -499,6 +480,7 @@ void Tacheronne::gere_tache()
 			}
 			case GenreTache::TYPAGE:
 			{
+				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER));
 				auto unite = tache.unite;
 
 				if (unite->cycle > 10) {
@@ -567,6 +549,7 @@ void Tacheronne::gere_tache()
 			}
 			case GenreTache::GENERE_RI:
 			{
+				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
 				auto debut_generation = dls::chrono::compte_seconde();
 				tache_fut_completee = gere_unite_pour_ri(tache.unite);
 				constructrice_ri.temps_generation += debut_generation.temps();
@@ -574,16 +557,20 @@ void Tacheronne::gere_tache()
 			}
 			case GenreTache::EXECUTE:
 			{
+				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER));
+				gere_unite_pour_execution(tache.unite);
 				break;
 			}
 			case GenreTache::GENERE_FICHIER_OBJET:
 			{
+				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
 				coulisse_C_cree_fichier_objet(compilatrice, constructrice_ri, *tache.espace, temps_generation_code, temps_fichier_objet);
 				tache_fut_completee = true;
 				break;
 			}
 			case GenreTache::LIAISON_EXECUTABLE:
 			{
+				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
 				coulisse_C_cree_executable(compilatrice, *tache.espace, temps_executable);
 				tache_fut_completee = true;
 				break;
@@ -592,29 +579,6 @@ void Tacheronne::gere_tache()
 	}
 
 	temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
-}
-
-void Tacheronne::gere_tache_metaprogramme()
-{
-	auto tache = Tache::dors(nullptr);
-	auto premiere = true;
-	auto &ordonnanceuse = compilatrice.ordonnanceuse;
-
-	while (!compilatrice.possede_erreur) {
-		tache = ordonnanceuse->tache_metaprogramme_suivante(tache, id, premiere);
-		premiere = false;
-
-		if (tache.genre == GenreTache::DORS) {
-			dors_millisecondes(1);
-			continue;
-		}
-
-		if (tache.genre == GenreTache::COMPILATION_TERMINEE) {
-			break;
-		}
-
-		gere_unite_pour_execution(tache.unite);
-	}
 }
 
 static bool dependances_eurent_ri_generees(NoeudDependance *noeud)

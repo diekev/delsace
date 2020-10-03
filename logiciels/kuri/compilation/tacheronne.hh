@@ -72,6 +72,20 @@ struct Tache {
 	static Tache attend_message(UniteCompilation *unite_);
 };
 
+enum class DrapeauxTacheronne : uint32_t {
+	PEUT_LEXER           = (1 << 0),
+	PEUT_PARSER          = (1 << 1),
+	PEUT_TYPER           = (1 << 2),
+	PEUT_EXECUTER        = (1 << 3),
+	PEUT_GENERER_CODE    = (1 << 4),
+	PEUT_ENVOYER_MESSAGE = (1 << 5),
+	PEUT_GENERER_RI      = (1 << 6),
+
+	PEUT_TOUT_FAIRE      = 0xfffffff,
+};
+
+DEFINIE_OPERATEURS_DRAPEAU(DrapeauxTacheronne, unsigned int)
+
 struct OrdonnanceuseTache {
 private:
 	Compilatrice *m_compilatrice = nullptr;
@@ -106,8 +120,7 @@ public:
 	void cree_tache_pour_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
 	void cree_tache_pour_execution(EspaceDeTravail *espace, NoeudDirectiveExecution *noeud);
 
-	Tache tache_suivante(Tache const &tache_terminee, bool tache_completee, int id, bool premiere);
-	Tache tache_metaprogramme_suivante(Tache const &tache_terminee, int id, bool premiere);
+	Tache tache_suivante(Tache const &tache_terminee, bool tache_completee, int id, bool premiere, DrapeauxTacheronne drapeaux);
 
 	long memoire_utilisee() const;
 
@@ -134,6 +147,8 @@ struct Tacheronne {
 	double temps_scene = 0.0;
 	double temps_generation_code = 0.0;
 
+	DrapeauxTacheronne drapeaux = DrapeauxTacheronne::PEUT_TOUT_FAIRE;
+
 	int id = 0;
 
 	Tacheronne(Compilatrice &comp);
@@ -143,7 +158,6 @@ struct Tacheronne {
 	COPIE_CONSTRUCT(Tacheronne);
 
 	void gere_tache();
-	void gere_tache_metaprogramme();
 
 private:
 	bool gere_unite_pour_typage(UniteCompilation *unite);

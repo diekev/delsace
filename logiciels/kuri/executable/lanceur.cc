@@ -170,17 +170,6 @@ void lance_tacheronne(Tacheronne *tacheronne)
 	}
 }
 
-void lance_tacheronne_metaprogramme(Tacheronne *tacheronne)
-{
-	try {
-		tacheronne->gere_tache_metaprogramme();
-	}
-	catch (const erreur::frappe &e) {
-		std::cerr << e.message() << '\n';
-		tacheronne->compilatrice.possede_erreur = true;
-	}
-}
-
 static void imprime_stats_tableau(EntreesStats<EntreeNombreMemoire> &stats)
 {
 	std::sort(stats.entrees.debut(), stats.entrees.fin(), [](const EntreeNombreMemoire &a, const EntreeNombreMemoire &b) { return a.memoire > b.memoire; });
@@ -329,18 +318,40 @@ int main(int argc, char *argv[])
 		auto module = espace_defaut->cree_module("", dossier.c_str());
 		compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier.c_str(), module, {});
 
+#ifdef AVEC_THREADS
+		auto nombre_tacheronnes = 2u; //std::thread::hardware_concurrency();
+
+		dls::tableau<Tacheronne *> tacheronnes;
+		tacheronnes.reserve(nombre_tacheronnes);
+
+		for (auto i = 0u; i < nombre_tacheronnes; ++i) {
+			tacheronnes.pousse(memoire::loge<Tacheronne>("Tacheronne", compilatrice));
+		}
+
+		// pour le moment, une seule tacheronne peut exécuter du code
+		tacheronnes[0]->drapeaux &= ~DrapeauxTacheronne::PEUT_EXECUTER;
+		tacheronnes[1]->drapeaux  =  DrapeauxTacheronne::PEUT_EXECUTER;
+
+		dls::tableau<std::thread *> threads;
+		threads.reserve(nombre_tacheronnes);
+
+		POUR (tacheronnes) {
+			threads.pousse(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
+		}
+
+		POUR (threads) {
+			it->join();
+			memoire::deloge("std::thread", it);
+		}
+#else
 		auto tacheronne = Tacheronne(compilatrice);
 		auto tacheronne_mp = Tacheronne(compilatrice);
 
-#ifdef AVEC_THREADS
-		std::thread file_tacheronne(lance_tacheronne, &tacheronne);
-		std::thread file_execution(lance_tacheronne_metaprogramme, &tacheronne_mp);
+		tacheronne.drapeaux &= ~DrapeauxTacheronne::PEUT_EXECUTER;
+		tacheronne_mp.drapeaux = DrapeauxTacheronne::PEUT_EXECUTER;
 
-		file_tacheronne.join();
-		file_execution.join();
-#else
 		lance_tacheronne(&tacheronne);
-		lance_tacheronne_metaprogramme(&tacheronne_mp);
+		lance_tacheronne(&tacheronne_mp);
 #endif
 
 		if (compilatrice.chaines_ajoutees_a_la_compilation->taille()) {
@@ -361,34 +372,38 @@ int main(int argc, char *argv[])
 		std::filesystem::current_path(dossier_origine);
 
 		if (!compilatrice.possede_erreur && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
-			auto temps_ri = tacheronne.constructrice_ri.temps_generation;
+			POUR (tacheronnes) {
+				stats.temps_executable = std::max(stats.temps_executable, it->temps_executable);
+				stats.temps_fichier_objet = std::max(stats.temps_fichier_objet, it->temps_fichier_objet);
+				stats.temps_generation_code = std::max(stats.temps_generation_code, it->temps_generation_code);
+				stats.temps_ri = std::max(stats.temps_ri, it->constructrice_ri.temps_generation);
+				stats.temps_lexage = std::max(stats.temps_lexage, it->temps_lexage);
+				stats.temps_parsage = std::max(stats.temps_parsage, it->temps_parsage);
+				stats.temps_typage = std::max(stats.temps_typage, it->temps_validation);
+				stats.temps_scene = std::max(stats.temps_scene, it->temps_scene);
 
-			stats.temps_executable = tacheronne.temps_executable;
-			stats.temps_fichier_objet = tacheronne.temps_fichier_objet;
-			stats.temps_generation_code = tacheronne.temps_generation_code;
-			stats.temps_ri = temps_ri;
-			stats.temps_lexage = tacheronne.temps_lexage;
-			stats.temps_parsage = tacheronne.temps_parsage;
-			stats.temps_typage = tacheronne.temps_validation;
-			stats.temps_scene = tacheronne.temps_scene;
+				it->constructrice_ri.rassemble_statistiques(stats);
+				it->allocatrice_noeud.rassemble_statistiques(stats);
+
+				auto memoire_mv = 0l;
+				memoire_mv += it->mv.globales.taille() * taille_de(Globale);
+				memoire_mv += it->mv.donnees_constantes.taille();
+				memoire_mv += it->mv.donnees_globales.taille();
+				memoire_mv += it->mv.patchs_donnees_constantes.taille() * taille_de(PatchDonneesConstantes);
+				memoire_mv += it->mv.gestionnaire_bibliotheques.memoire_utilisee();
+
+				stats.memoire_mv += memoire_mv;
+				stats.nombre_metaprogrammes_executes += it->mv.nombre_de_metaprogrammes_executes;
+				stats.temps_metaprogrammes += it->mv.temps_execution_metaprogammes;
+			}
 
 			compilatrice.rassemble_statistiques(stats);
 
-			tacheronne.constructrice_ri.rassemble_statistiques(stats);
-			tacheronne.allocatrice_noeud.rassemble_statistiques(stats);
-
 			stats.memoire_ri = stats.stats_ri.totaux.memoire;
+		}
 
-			auto memoire_mv = 0l;
-			memoire_mv += tacheronne_mp.mv.globales.taille() * taille_de(Globale);
-			memoire_mv += tacheronne_mp.mv.donnees_constantes.taille();
-			memoire_mv += tacheronne_mp.mv.donnees_globales.taille();
-			memoire_mv += tacheronne_mp.mv.patchs_donnees_constantes.taille() * taille_de(PatchDonneesConstantes);
-			memoire_mv += tacheronne_mp.mv.gestionnaire_bibliotheques.memoire_utilisee();
-
-			stats.memoire_mv = memoire_mv;
-			stats.nombre_metaprogrammes_executes = tacheronne_mp.mv.nombre_de_metaprogrammes_executes;
-			stats.temps_metaprogrammes = tacheronne_mp.mv.temps_execution_metaprogammes;
+		POUR (tacheronnes) {
+			memoire::deloge("Tacheronne", it);
 		}
 
 		os << "Nettoyage..." << std::endl;
