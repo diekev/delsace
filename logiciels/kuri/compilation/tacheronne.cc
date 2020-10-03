@@ -350,7 +350,7 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 
 	if (!taches_parsage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_PARSER))) {
 		nombre_de_taches_en_proces += 1;
-		renseigne_etat_tacheronne(id, GenreTache::LEXE);
+		renseigne_etat_tacheronne(id, GenreTache::PARSE);
 		return taches_parsage.defile();
 	}
 
