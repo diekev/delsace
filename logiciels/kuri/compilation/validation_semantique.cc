@@ -2533,6 +2533,8 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 		return false;
 	}
 
+	decl->type = entete->type;
+
 	commence_fonction(entete);
 
 	auto &graphe = espace->graphe_dependance;
@@ -2590,6 +2592,8 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *dec
 {
 	auto entete = decl->entete;
 	commence_fonction(entete);
+
+	decl->type = entete->type;
 
 	auto &graphe = espace->graphe_dependance;
 	auto noeud_dep = graphe->cree_noeud_fonction(entete);
