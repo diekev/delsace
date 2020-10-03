@@ -1683,10 +1683,10 @@ void ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud, A
 	auto valeur = depile_valeur();
 	expression_gauche = ancienne_expression_gauche;
 
-	if (valeur == nullptr) {
+	assert_rappel(valeur, [&] {
 		std::cerr << __func__ << ", valeur est nulle pour " << chaine_genre_noeud(noeud->genre) << '\n';
 		imprime_fichier_ligne(*m_espace, *noeud->lexeme);
-	}
+	});
 
 	transforme_valeur(noeud, valeur, transformation, place);
 }
