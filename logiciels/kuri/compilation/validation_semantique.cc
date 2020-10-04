@@ -1438,6 +1438,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			donnees_dependance.types_utilises.insere(expr_loge->type);
+			donnees_dependance.types_utilises.insere(espace->typeuse.type_contexte);
 
 			break;
 		}
@@ -1501,6 +1502,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			donnees_dependance.types_utilises.insere(expr_loge->type);
+			donnees_dependance.types_utilises.insere(espace->typeuse.type_contexte);
 
 			break;
 		}
@@ -1523,6 +1525,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				rapporte_erreur("Le type n'est pas délogeable", noeud);
 				return true;
 			}
+
+			donnees_dependance.types_utilises.insere(espace->typeuse.type_contexte);
 
 			break;
 		}
