@@ -1020,8 +1020,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				case TypeTranstypage::AUGMENTE_REEL:
 				{
 					chunk.emets(OP_AUGMENTE_REEL);
-					chunk.emets(2);
 					chunk.emets(4);
+					chunk.emets(8);
 					break;
 				}
 				case TypeTranstypage::AUGMENTE_NATUREL:
@@ -1041,7 +1041,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				case TypeTranstypage::DIMINUE_REEL:
 				{
 					chunk.emets(OP_DIMINUE_REEL);
-					chunk.emets(2);
+					chunk.emets(8);
 					chunk.emets(4);
 					break;
 				}

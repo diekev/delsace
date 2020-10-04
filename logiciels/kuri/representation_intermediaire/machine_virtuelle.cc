@@ -845,7 +845,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 				auto taille_de = LIS_4_OCTETS();
 				auto taille_vers = LIS_4_OCTETS();
 
-				if (taille_de == 2 && taille_vers == 4) {
+				if (taille_de == 4 && taille_vers == 8) {
 					auto v = depile<float>();
 					empile(static_cast<double>(v));
 				}
@@ -857,7 +857,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 				auto taille_de = LIS_4_OCTETS();
 				auto taille_vers = LIS_4_OCTETS();
 
-				if (taille_de == 4 && taille_vers == 2) {
+				if (taille_de == 8 && taille_vers == 4) {
 					auto v = depile<double>();
 					empile(static_cast<float>(v));
 				}
