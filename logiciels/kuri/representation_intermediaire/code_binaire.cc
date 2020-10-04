@@ -850,6 +850,24 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 		chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
 	}
 
+	// À FAIRE : l'optimisation pour la réutilisation de la mémoire des locales en se basant sur la durée de vie de celles-ci ne fonctionne pas
+	//           il existe des superposition partiells entre certaines variables
+	//           lors de la dernière investigation, il semberait que les instructions de retours au milieu des fonctions y soient pour quelque chose
+	//           pour le moment désactive cet optimisation et alloue de l'espace pour toutes les variables au début de chaque fonction.
+#undef OPTIMISE_ALLOCS
+
+#ifndef OPTIMISE_ALLOCS
+	POUR (fonction->instructions) {
+		if (it->est_alloc()) {
+			auto alloc = it->comme_alloc();
+			auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
+			auto adresse = chunk.emets_allocation(type_pointe, alloc->ident);
+			alloc->index_locale = static_cast<int>(chunk.locales.taille());
+			chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
+		}
+	}
+#endif
+
 	POUR (fonction->instructions) {
 		// génère le code binaire depuis les instructions « racines » (assignation, retour, allocation, appel, et controle de flux).
 		auto est_inst_racine = dls::outils::est_element(
@@ -914,6 +932,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 			if (pour_operande) {
 				chunk.emets_reference_variable(alloc->index_locale);
 			}
+#ifdef OPTIMISE_ALLOCS
 			else {
 				if (alloc->decalage_pile > dernier_decalage_pile) {
 					dernier_decalage_pile = alloc->decalage_pile;
@@ -929,6 +948,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				alloc->index_locale = static_cast<int>(chunk.locales.taille());
 				chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
 			}
+#endif
 
 			break;
 		}
