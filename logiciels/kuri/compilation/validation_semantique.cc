@@ -1391,6 +1391,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
+			if (!espace->typeuse.type_contexte || (espace->typeuse.type_contexte->drapeaux & TYPE_FUT_VALIDE) == 0) {
+				unite->attend_sur_type(espace->typeuse.type_contexte);
+				return true;
+			}
+
 			if (dls::outils::est_element(expr_loge->type->genre, GenreType::CHAINE, GenreType::TABLEAU_DYNAMIQUE)) {
 				if (expr_loge->expr_taille == nullptr) {
 					rapporte_erreur("Attendu une expression pour définir la taille du tableau à loger", noeud);
@@ -1441,6 +1446,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto expr_loge = noeud->comme_reloge();
 
 			if (resoud_type_final(expr_loge->expression_type, expr_loge->type)) {
+				return true;
+			}
+
+			if (!espace->typeuse.type_contexte || (espace->typeuse.type_contexte->drapeaux & TYPE_FUT_VALIDE) == 0) {
+				unite->attend_sur_type(espace->typeuse.type_contexte);
 				return true;
 			}
 
@@ -1498,6 +1508,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			auto expr_loge = noeud->comme_deloge();
 			auto type = expr_loge->expr->type;
+
+			if (!espace->typeuse.type_contexte || (espace->typeuse.type_contexte->drapeaux & TYPE_FUT_VALIDE) == 0) {
+				unite->attend_sur_type(espace->typeuse.type_contexte);
+				return true;
+			}
 
 			if (type->genre == GenreType::REFERENCE) {
 				transtype_si_necessaire(expr_loge->expr, TypeTransformation::DEREFERENCE);
