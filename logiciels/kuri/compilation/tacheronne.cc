@@ -24,9 +24,8 @@
 
 #include "tacheronne.hh"
 
-#include <unistd.h>
-
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/structures/file.hh"
 
@@ -40,12 +39,6 @@
 #include "validation_semantique.hh"
 
 static int id_tacheronne = 0;
-
-static auto dors_millisecondes(int millisecondes)
-{
-	assert(millisecondes >= 0);
-	usleep(static_cast<unsigned>(millisecondes * 1000));
-}
 
 const char *chaine_genre_tache(GenreTache genre)
 {
@@ -467,7 +460,7 @@ void Tacheronne::gere_tache()
 			}
 			case GenreTache::DORS:
 			{
-				dors_millisecondes(1);
+				dls::chrono::dors_microsecondes(100);
 				tache_fut_completee = true;
 				break;
 			}
