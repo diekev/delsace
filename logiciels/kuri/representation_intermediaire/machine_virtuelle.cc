@@ -837,7 +837,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 			{
 				auto taille_de = LIS_4_OCTETS();
 				auto taille_vers = LIS_4_OCTETS();
-				FAIS_TRANSTYPE_DIMINUE(unsigned char, unsigned short, unsigned int, unsigned long);
+				FAIS_TRANSTYPE_DIMINUE(char, short, int, long);
 				break;
 			}
 			case OP_AUGMENTE_REEL:
