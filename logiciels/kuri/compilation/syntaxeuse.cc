@@ -1169,12 +1169,17 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		{
 			consomme();
 
+			auto noeud_expression_virgule = m_noeud_expression_virgule;
+
 			if (!m_noeud_expression_virgule) {
 				m_noeud_expression_virgule = CREE_NOEUD(NoeudExpressionVirgule, GenreNoeud::EXPRESSION_VIRGULE, lexeme);
 				m_noeud_expression_virgule->expressions.pousse(gauche);
+				noeud_expression_virgule = m_noeud_expression_virgule;
 			}
 
 			auto droite = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
+
+			m_noeud_expression_virgule = noeud_expression_virgule;
 			m_noeud_expression_virgule->expressions.pousse(droite);
 
 			return m_noeud_expression_virgule;
