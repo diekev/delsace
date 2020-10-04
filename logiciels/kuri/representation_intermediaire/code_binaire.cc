@@ -784,7 +784,7 @@ struct ConvertisseuseRI {
 	MachineVirtuelle *mv = nullptr;
 	dls::tableau<PatchLabel> patchs_labels{};
 	dls::pile<int> pile_taille{};
-	int derniere_profondeur_alloc = 0;
+	int dernier_decalage_pile = 0;
 
 	ConvertisseuseRI(MachineVirtuelle *mv_);
 
@@ -915,12 +915,12 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				chunk.emets_reference_variable(alloc->index_locale);
 			}
 			else {
-				if (alloc->profondeur_bloc > derniere_profondeur_alloc) {
-					derniere_profondeur_alloc = alloc->profondeur_bloc;
+				if (alloc->decalage_pile > dernier_decalage_pile) {
+					dernier_decalage_pile = alloc->decalage_pile;
 					pile_taille.empile(chunk.taille_allouee);
 				}
-				else if (alloc->profondeur_bloc < derniere_profondeur_alloc) {
-					derniere_profondeur_alloc = alloc->profondeur_bloc;
+				else if (alloc->decalage_pile < dernier_decalage_pile) {
+					dernier_decalage_pile = alloc->decalage_pile;
 					chunk.taille_allouee = pile_taille.depile();
 				}
 

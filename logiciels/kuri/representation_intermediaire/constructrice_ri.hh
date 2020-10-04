@@ -73,7 +73,12 @@ private:
 	kuri::tableau<InstructionChargeMem *> charge_mems{};
 
 	int nombre_labels = 0;
-	int profondeur_bloc = 0;
+
+	/* La taille allouée nous sert à ternir trace des allocations dans les blocs
+	 * afin de pouvoir réutiliser la mémoire des variables quand nous sortons d'un
+	 * bloc pour l'exécution du code dans la MachineVirtuelle.
+	 */
+	int taille_allouee = 0;
 
 	NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
 

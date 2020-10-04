@@ -68,6 +68,7 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/tests/test_logement.kuri" \
           "exemples/tests/test_memoire.kuri" \
           "exemples/tests/test_metaprogrammation.kuri" \
+          "exemples/tests/test_metaprogramme_imprime.kuri" \
           "exemples/tests/test_moultfilage.kuri" \
           "exemples/tests/test_nombre_tres_grand.kuri" \
           "exemples/tests/test_operateur.kuri" \

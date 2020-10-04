@@ -331,7 +331,8 @@ InstructionAllocation *ConstructriceRI::cree_allocation(Type *type, IdentifiantC
 	assert_rappel(type == nullptr || (type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" << chaine_type(type) << "' n'est pas normalisé\n"; });
 	auto type_pointeur = m_espace->typeuse.type_pointeur_pour(type);
 	auto inst = insts_allocation.ajoute_element(type_pointeur, ident);
-	inst->profondeur_bloc = profondeur_bloc;
+	inst->decalage_pile = taille_allouee;
+	taille_allouee += (type == nullptr) ? 8 : static_cast<int>(type->taille_octet);
 
 	/* Nous utilisons pour l'instant cree_allocation pour les paramètres des
 	 * fonctions, et la fonction_courante est nulle lors de cette opération.
@@ -597,13 +598,11 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				table_locales.insere({ decl_var->ident, valeur });
 			}
 
-			profondeur_bloc += 1;
+			auto ancienne_taille_allouee = taille_allouee;
 
 			POUR (*noeud_bloc->expressions.verrou_lecture()) {
 				genere_ri_pour_noeud(it);
 			}
-
-			profondeur_bloc -= 1;
 
 			auto derniere_instruction = fonction_courante->derniere_instruction();
 
@@ -616,6 +615,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					bloc_differe->est_differe = true;
 				}
 			}
+
+			taille_allouee = ancienne_taille_allouee;
 
 			break;
 		}
@@ -1623,7 +1624,7 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 
 	fonction_courante = nullptr;
 	nombre_labels = 0;
-	profondeur_bloc = 0;
+	taille_allouee = 0;
 	this->m_pile.efface();
 
 	auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl);
@@ -2917,7 +2918,7 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	SAUVEGARDE_ETAT(table_locales);
 	SAUVEGARDE_ETAT(fonction_courante);
 	SAUVEGARDE_ETAT(nombre_labels);
-	SAUVEGARDE_ETAT(profondeur_bloc);
+	SAUVEGARDE_ETAT(taille_allouee);
 	acces_membres.taille = 0;
 	charge_mems.taille = 0;
 
@@ -4076,7 +4077,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecut
 	table_locales.efface();
 	acces_membres.taille = 0;
 	charge_mems.taille = 0;
-	profondeur_bloc = 0;
+	taille_allouee = 0;
 
 	auto decl_creation_contexte = m_espace->interface_kuri->decl_creation_contexte;
 

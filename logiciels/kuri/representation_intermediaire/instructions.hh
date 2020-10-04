@@ -352,7 +352,9 @@ struct InstructionAllocation : public Instruction {
 
 	// pour la génération de code binaire, mise en place lors de la génération de celle-ci
 	int index_locale = 0;
-	int profondeur_bloc = 0;
+
+	// le décalage en octet où se trouve l'allocation sur la pile
+	int decalage_pile = 0;
 
 	InstructionAllocation(Type *type, IdentifiantCode *ident);
 };
