@@ -24,7 +24,9 @@
 
 #pragma once
 
+#include <assert.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 namespace dls::chrono {
 
@@ -135,5 +137,17 @@ using metre_milliseconde = metre<1000>;
 using metre_seconde = metre<1000000>;
 using metre_minute = metre<60000000>;
 using metre_heure = metre<3600000000>;
+
+inline void dors_millisecondes(int millisecondes)
+{
+	assert(millisecondes >= 0);
+	usleep(static_cast<unsigned>(millisecondes * 1000));
+}
+
+inline void dors_microsecondes(int microsecondes)
+{
+	assert(microsecondes >= 0);
+	usleep(static_cast<unsigned>(microsecondes));
+}
 
 }  /* namespace dls::chrono */
