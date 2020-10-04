@@ -432,6 +432,7 @@ T MachineVirtuelle::depile()
 
 bool MachineVirtuelle::appel(AtomeFonction *fonction, int /*taille_argument*/)
 {
+	assert(profondeur_appel < TAILLE_FRAMES_APPEL);
 	auto frame = &frames[profondeur_appel++];
 	frame->fonction = fonction;
 	frame->pointeur = fonction->chunk.code;
