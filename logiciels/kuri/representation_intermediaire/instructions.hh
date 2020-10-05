@@ -228,6 +228,7 @@ struct AtomeFonction : public Atome {
 
 	bool sanstrace = false;
 	bool est_externe = false;
+    bool enligne = false;
 	NoeudDeclarationEnteteFonction const *decl = nullptr;
 
 	// Pour les exécutions

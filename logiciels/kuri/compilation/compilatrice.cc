@@ -188,6 +188,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	atome_fonc->sanstrace = decl->possede_drapeau(FORCE_SANSTRACE);
 	atome_fonc->decl = decl;
 	atome_fonc->params_sorties = std::move(params_sortie);
+	atome_fonc->enligne = decl->possede_drapeau(FORCE_ENLIGNE);
 
 	decl->atome_fonction = atome_fonc;
 
@@ -224,6 +225,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 	auto atome_fonc = fonctions.ajoute_element(nullptr, nom_fonction, std::move(params));
 	atome_fonc->type = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
 	atome_fonc->params_sorties = std::move(params_sortie);
+	atome_fonc->enligne = true;
 
 	type->fonction_init = atome_fonc;
 
