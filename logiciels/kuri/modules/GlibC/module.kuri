@@ -90,7 +90,7 @@ unlink :: fonc (chemin: *z8) -> z32 #externe
 fsync :: fonc (fd: z32) -> z32 #externe
 fdatasync :: fonc (fd: z32) -> z32 #externe
 
-getcwd :: fonc (ptr : *z8, taille : z64) -> rien #externe
+getcwd :: fonc (ptr : *z8, taille : z64) -> *z8 #externe
 chdir :: fonc (ptr : *z8) -> rien #externe
 
 abort :: fonc () -> rien #externe

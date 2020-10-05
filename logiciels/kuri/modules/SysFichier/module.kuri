@@ -371,8 +371,21 @@ chaque_chemin_récursif :: corout(chemin : &CheminFichier) -> CheminFichier
 
 chemin_courant :: fonc() -> CheminFichier
 {
-    ret := loge chaine(1024)
-    getcwd(ret.pointeur, ret.taille)
+    // À FAIRE : dans les métaprogrammes, la prise de pointeur vers *tampon[0] ne semble pas fonctionner
+    // tampon : [1024]z8
+    // pointeur := getcwd(*tampon[0], 1024)
+
+    tampon := loge chaine(1024)
+    diffère { déloge tampon }
+
+    pointeur := getcwd(tampon.pointeur, tampon.taille)
+
+    si pointeur == nul {
+        // @erreur
+        retourne construit_chemin("")
+    }
+
+    ret := converti_chaine_c(pointeur)
     retourne construit_chemin(ret)
 }
 
