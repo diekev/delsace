@@ -515,6 +515,8 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 
 	AtomeFonction *atome_fonction = nullptr;
 
+	dls::tableau<dls::vue_chaine_compacte> annotations{};
+
 	bool est_operateur = false;
 	bool est_coroutine = false;
 	bool est_gabarit = false;

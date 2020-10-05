@@ -2121,6 +2121,19 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			noeud_corps->arbre_aplatis.reserve(nombre_noeuds_alloues);
 			aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
+			while (apparie(GenreLexeme::AROBASE)) {
+				consomme();
+
+				if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+					lance_erreur("Attendu une chaine de caractère après '@'");
+				}
+
+				auto lexeme_annotation = lexeme_courant();
+				noeud->annotations.pousse(lexeme_annotation->chaine);
+
+				consomme();
+			}
+
 			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
 		}
 	}
@@ -2285,6 +2298,19 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	auto noeud_corps = noeud->corps;
 	noeud_corps->bloc = analyse_bloc();
 	aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, DrapeauxNoeud::AUCUN);
+
+	while (apparie(GenreLexeme::AROBASE)) {
+		consomme();
+
+		if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+			lance_erreur("Attendu une chaine de caractère après '@'");
+		}
+
+		auto lexeme_annotation = lexeme_courant();
+		noeud->annotations.pousse(lexeme_annotation->chaine);
+
+		consomme();
+	}
 
 	m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
 

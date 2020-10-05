@@ -313,6 +313,7 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 		memoire_entete_fonction += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
 		memoire_entete_fonction += noeud.noms_types_gabarits.taille * taille_de(dls::vue_chaine_compacte);
 		memoire_entete_fonction += noeud.paires_expansion_gabarit.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
+		memoire_entete_fonction += noeud.annotations.taille() * taille_de(dls::vue_chaine_compacte);
 
 		memoire_entete_fonction += noeud.epandu_pour.taille() * (taille_de(NoeudDeclarationEnteteFonction::tableau_paire_expansion) + taille_de(NoeudDeclarationCorpsFonction *));
 		POUR (noeud.epandu_pour) {

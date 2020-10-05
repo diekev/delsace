@@ -1,0 +1,66 @@
+importe Compilatrice
+importe Fondation
+importe POSIX
+
+métaprogramme :: fonc ()
+{
+    désactive_compilation_espace_défaut()
+
+    options := OptionsCompilation()
+
+    espace := démarre_un_espace_de_travail("annotations", *options)
+
+    compilatrice_commence_interception(espace)
+    ajoute_fichier_à_la_compilation(espace, "annotations.kuri")
+
+    boucle {
+        message := compilatrice_attend_message()
+
+        saufsi message {
+            dors_millisecondes(1)
+            continue
+        }
+
+        si message.espace != espace {
+            continue
+        }
+
+        si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
+            message_code := message comme *MessageTypageCodeTerminé
+            code := message_code.code
+
+            saufsi code {
+                continue
+            }
+
+            si code.genre == GenreNoeudCode.DECLARATION_ENTETE_FONCTION {
+                code_entete := code comme *NoeudCodeEntêteFonction
+
+                si code_entete.annotations {
+                    imprime("annotations pour %\n", code_entete.nom)
+
+                    pour code_entete.annotations {
+                        imprime("-- %\n", it)
+                    }
+                }
+            }
+        }
+
+        si message.genre == GenreMessage.PHASE_COMPILATION {
+            phase := message comme *MessagePhaseCompilation
+
+            si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
+                arrête
+            }
+        }
+    }
+
+    compilatrice_termine_interception(espace)
+}
+
+#exécute métaprogramme()
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}

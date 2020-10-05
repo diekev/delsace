@@ -64,6 +64,8 @@ struct NoeudCodeEnteteFonction : public NoeudCode {
 	kuri::tableau<NoeudCodeDeclaration *> params_entree{};
 	kuri::tableau<NoeudCodeDeclaration *> params_sortie{};
 
+	kuri::tableau<kuri::chaine> annotations{};
+
 	bool est_operateur = false;
 	bool est_coroutine = false;
 };

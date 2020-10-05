@@ -1,0 +1,9 @@
+fonction_annotée :: fonc ()
+{
+
+} @quelquechose @autre_chose
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}

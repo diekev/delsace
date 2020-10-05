@@ -61,6 +61,11 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 				n->params_entree.pousse(static_cast<NoeudCodeDeclaration *>(n_param));
 			}
 
+			n->annotations.reserve(decl->annotations.taille());
+			POUR (decl->annotations) {
+				n->annotations.pousse(it);
+			}
+
 			n->est_coroutine = decl->est_coroutine;
 			n->est_operateur = decl->est_operateur;
 

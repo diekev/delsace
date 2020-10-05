@@ -270,6 +270,8 @@ NoeudCodeEntêteFonction :: struct {
     params_entrée : []*NoeudCodeDéclaration
     params_sortie : []*NoeudCodeDéclaration
 
+	annotations : []chaine
+
 	// À FAIRE : remplace par des drapeaux
 	est_opérateur : bool
 	est_coroutine : bool

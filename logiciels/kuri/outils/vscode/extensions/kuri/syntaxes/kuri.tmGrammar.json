@@ -4,6 +4,7 @@
         { "include": "#comment-slash" },
         { "include": "#comment-bloc" },
         { "include": "#directive" },
+        { "include": "#annotation" },
         { "include": "#control-keyword" },
         { "include": "#other-keyword" },
         { "include": "#string" },
@@ -27,6 +28,11 @@
         "directive": {
             "name": "comment.kuri",
             "begin": "#",
+            "end": "($| )"
+        },
+        "annotation": {
+            "name": "comment.kuri",
+            "begin": "@",
             "end": "($| )"
         },
         "control-keyword": {
