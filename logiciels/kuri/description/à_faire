@@ -26,6 +26,15 @@ ajout de l'information de présence de contexte aux blocs afin de pouvoir défin
 directive #procédure_d_appel pour trouver la surcharge d'une fonction
     a := #procédure_d_appel ma_fonction(5)  // renvoie le pointeur sur ma_fonction(z32)
 
+passe un type à une fonction pour instantier automatiquement une valeur temporaire dont on ne se soucie pas de la valeur
+
+    au lieu de :
+    v : MonType
+    fonction(v)
+
+    faire :
+    fonction(MonType)
+
 
 // --------------------------- Polymorphie / Monophismisation
 
@@ -88,7 +97,7 @@ currying
     #cuis_valeurs    ma_fonction(x = 5)  // crée une nouvelle fonction ou le paramètre x est remplacé par la constante 5
 
 
-// --------------------------- Métaprogramme
+// --------------------------- Métaprogrammation
 
 crée une IPA pour les métaprogramme afin de simplifier leurs créations et exécution
     MachineVirtuelle::lance_métaprogramme
@@ -114,6 +123,21 @@ directive #corps_texte pour définir le corps d'une fonction via un texte
     #corps_texte {
         retourne "retourne 0"
     }
+
+- pouvoir changer le contenu d'une fonction (par exemple pour profiler l'exécutable)
+
+- proprement définir ce qu'on doit faire si un métaprogramme demande un message alors qu'il n'a pas commencer à les intercepter
+
+- défini une bonne sémantique pour compilatrice_commence_interception
+    - dit à la compilatrice qu'un espace de travail devient le défaut ?
+    - que l'on écoute des messages ? chaque espace de travail aura sa propre file de messages et la compilatrice mettra tous les messages dans celle-ci
+        peut-on ne pas avoir les messages d'autres espaces ?
+    => mise en place du métaprogramme ayant fait l'appel comme étant celui qui est le métaprogramme controlant la compilation, il aura l'exclusivité sur la prise en charge des messages (la compilatrice attendra que les message de pasage et de typage soit gérés avant de continuer, etc.)
+
+- système de test unitaires
+
+- avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
+
 
 // --------------------------- Opérateurs
 
@@ -374,12 +398,9 @@ implémente la directive #si pour la compilation sélective
 - appel les fonctions d'initialisation pour les constructions de structure si un membre est une structure
 - généralisation de l'utilisation de temporaires pour simplifier la génération de la RI, supprimant les cas spéciaux
 -- paramètres des appels
-- système de test unitaires
 - optimisations de l'accès aux membres des blocs (table de hachage avec tableau continu, en cours)
 - pouvoir passer des expressions à exécuter à la ligne de commande (kuri -exec "..." fichier.kuri)
-- proprement définir ce qu'on doit faire si un métaprogramme demande un message alors qu'il n'a pas commencer à les intercepter
 - nettoie la génération de code de création de contexte pour la fonction principale pour utiliser le noeud de la création de contexte du module Kuri
-- avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
 - pouvoir utiliser un #! en début de fichier pour utiliser les programmes comme des scripts (cela compilera et exécutera l'exécutable ou alors juste les métaprogrammes, #! n'est pas cohérent sur toutes les plateformes...)
 - pouvoir renommer les symboles d'un import pour une utilisation locale (importe Fondation ma_fonction_de_renommage) ?
 - ajout des arbres aplatis aux noeuds codes déclarations
@@ -387,10 +408,6 @@ implémente la directive #si pour la compilation sélective
 - type les expressions constantes (a :: 0x1) lors du parsage ?
 - supprime les arbres aplatis et utilise un autre algorithme pour stopper/arrêter la compilation ?
     perte de l'arbre aplatis dans le code utilisateur
-- défini une bonne sémantique pour compilatrice_commence_interception
-    - dit à la compilatrice qu'un espace de travail devient le défaut ?
-    - que l'on écoute des messages ? chaque espace de travail aura sa propre file de messages et la compilatrice mettra tous les messages dans celle-ci
-        peut-on ne pas avoir les messages d'autres espaces ?
 
 - ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés (pour permettre les emplois d'énumérations)
 - ajout des informations de positions dans le code source pour la RI
