@@ -36,7 +36,7 @@ passe un type à une fonction pour instantier automatiquement une valeur tempora
     fonction(MonType)
 
 
-// --------------------------- Polymorphie / Monophismisation
+// --------------------------- Polymorphie / Monomorphisation
 
 pouvoir instantier une fonction polymorphique lorsqu'on la passe à une autre
 
