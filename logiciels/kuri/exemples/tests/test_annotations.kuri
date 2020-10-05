@@ -1,6 +1,5 @@
 importe Compilatrice
 importe Fondation
-importe POSIX
 
 métaprogramme :: fonc ()
 {
@@ -15,11 +14,6 @@ métaprogramme :: fonc ()
 
     boucle {
         message := compilatrice_attend_message()
-
-        saufsi message {
-            dors_millisecondes(1)
-            continue
-        }
 
         si message.espace != espace {
             continue

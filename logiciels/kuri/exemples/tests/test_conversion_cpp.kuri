@@ -1,6 +1,5 @@
 importe Compilatrice
 importe Fondation
-importe POSIX
 
 // À CONSIDÉRER : ajout d'une interface pour requerir l'arbre syntaxique au lieu de toujours le générer
 
@@ -149,11 +148,6 @@ fais_conversion_code :: fonc ()
 
     boucle {
         message := compilatrice_attend_message()
-
-        saufsi message {
-            dors_millisecondes(1)
-            continue
-        }
 
         discr message.genre {
             TYPAGE_CODE_TERMINÉ {
