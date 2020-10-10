@@ -2,6 +2,7 @@ importe Fondation
 importe GlibC
 importe Math
 importe JPEG
+importe SysFichier
 
 Image :: struct {
     tampon : chaine; // À FAIRE : []octet
@@ -80,7 +81,8 @@ génére_image_noire :: fonc() -> Image
 
 écris_ppm :: fonc(image : Image, chemin : chaine) -> rien
 {
-    df := ouvre_fichier_ecriture(chemin);
+    chm := construit_chemin(chemin)
+    df := ouvre_fichier_ecriture(chm);
     diffère { ferme_fichier(df); }
 
     si df == -1 {
@@ -306,7 +308,7 @@ test_jpeg :: fonc() -> rien
 principale :: fonc () -> z32
 {
     image := génére_image_noire();
-    ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
+    //ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
  //  dessine_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
 
     écris_ppm(image, "/home/kevin/test.ppm");

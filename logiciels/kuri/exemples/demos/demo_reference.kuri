@@ -56,7 +56,7 @@ principale :: fonc () -> z32
 
     imprime("z = %\n", z)
 
-    w := 10
+    w = 10
 
     imprime("z = %\n", z)
 

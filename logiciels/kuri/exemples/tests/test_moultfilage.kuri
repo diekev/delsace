@@ -8,6 +8,8 @@ importe PThread
 
 //#####################################################################################
 
+pthread_t :: n64
+
 rand :: fonc () -> r64 #externe
 
 sleep :: fonc (temps : z32) -> rien #externe
@@ -44,14 +46,14 @@ fn_store :: fonc(p_data : *rien) -> *rien #nulctx
     store := p_data comme *store_t
 
 	boucle {
-        pthread_mutex_lock(*store.mutex)
-        pthread_cond_wait(*store.cond_store, *store.mutex)
+        _ := pthread_mutex_lock(*store.mutex)
+        _ = pthread_cond_wait(*store.cond_store, *store.mutex)
 
 		store.stock = 20
-		printf("Remplissage du stock de %d articles !\n".pointeur, store.stock)
+		_ = printf("Remplissage du stock de %d articles !\n".pointeur, store.stock)
 
-        pthread_cond_signal(*store.cond_clients)
-        pthread_mutex_unlock(*store.mutex)
+        _ = pthread_cond_signal(*store.cond_clients)
+        _ = pthread_mutex_unlock(*store.mutex)
 	}
 
 	retourne nul
@@ -73,19 +75,19 @@ fn_clients :: fonc(p_data : *rien) -> *rien #nulctx
 		val : z32 = get_random(6)
 		sleep((get_random(3)))
 
-        pthread_mutex_lock(*store.mutex)
+        _ := pthread_mutex_lock(*store.mutex)
 
         si val > store.stock {
-            pthread_cond_signal(*store.cond_store)
-            pthread_cond_wait(*store.cond_clients, *store.mutex)
+            _ = pthread_cond_signal(*store.cond_store)
+            _ = pthread_cond_wait(*store.cond_clients, *store.mutex)
         }
 
 		store.stock = store.stock - val
 
-		printf("Client %d prend %d du stock, reste %d en stock !\n".pointeur, nb, val, store.stock)
+		_ = printf("Client %d prend %d du stock, reste %d en stock !\n".pointeur, nb, val, store.stock)
         //printf("-- pthread_self() : %d\n".pointeur, pthread_getthreadid_np())
 
-        pthread_mutex_unlock(*store.mutex)
+        _ = pthread_mutex_unlock(*store.mutex)
 	}
 
 	retourne nul
@@ -105,21 +107,23 @@ nombre_threads_système :: fonc () -> z64
 Tâche :: struct {
     id_tâche : pthread_t
 
-    rappel : fonc(*rien)(rien)
+    rappel : #nulctx fonc(*rien)(*rien)
     données_rappel : *rien
 
     id : z32
 }
 
-lance_tâche :: fonc (tâche: *Tâche) -> rien
+lance_tâche :: fonc (tâche_: *rien) -> *rien #nulctx
 {
+    tâche := tâche_ comme *Tâche
     // contexte.id_tâche = tâche.id
     tâche.rappel(tâche.données_rappel)
+    retourne nul
 }
 
 // comment passer le contexte ?
 // création d'un contexte par le programme ?
-crée_tâche :: fonc (rappel: fonc(*rien)(rien), données_rappel: *rien) -> Tâche
+crée_tâche :: fonc (rappel: #nulctx fonc(*rien)(*rien), données_rappel: *rien) -> *Tâche
 {
     tâche := loge Tâche
     tâche.données_rappel = données_rappel
@@ -129,7 +133,7 @@ crée_tâche :: fonc (rappel: fonc(*rien)(rien), données_rappel: *rien) -> Tâc
     ret := pthread_create(*tâche.id_tâche, nul, lance_tâche, tâche)
 
     si ret != 0 {
-		printf("erreur : %s".pointeur, strerror(ret))
+		imprime("erreur : %\n", converti_chaine_c(strerror(ret)))
         déloge tâche
     }
 
@@ -149,32 +153,32 @@ principale :: fonc () -> z32
     store := store_t( stock = 20 )
 	ret : z32 = 0
 
-	printf("Creation du thread du magasin !\n".pointeur)
+	imprime("Creation du thread du magasin !\n")
 	ret = pthread_create(*store.thread_store, nul, fn_store, *store)
 
 	si ret == 0 {
-        printf("Creation des threads clients !\n".pointeur)
+        imprime("Creation des threads clients !\n")
 
         pour fil_client, idx dans store.thread_clients {
             donnée_client : donnée_client_t
             donnée_client.store = *store
-            donnée_client.index = idx
+            donnée_client.index = idx comme z32
             ret = pthread_create(*fil_client, nul, fn_clients, *donnée_client)
 
             si ret != 0 {
-                printf("erreur : %s".pointeur, strerror(ret))
+                imprime("erreur : %\n", converti_chaine_c(strerror(ret)))
             }
         }
 	}
 	sinon {
-		printf("erreur : %s".pointeur, strerror(ret))
+		imprime("erreur : %\n", converti_chaine_c(strerror(ret)))
 	}
 
     pour fil_client dans store.thread_clients {
-		pthread_join(fil_client, nul)
+		_ := pthread_join(fil_client, nul)
 	}
 
-	pthread_join(store.thread_store, nul)
+	_ := pthread_join(store.thread_store, nul)
 
 	retourne 0
 }
