@@ -1453,8 +1453,11 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 						valeur = genere_initialisation_defaut_pour_type(type_struct->membres[index_membre].type);
 					}
 
-					auto ptr = cree_acces_membre(alloc, index_membre);
-					cree_stocke_mem(ptr, valeur);
+					// À FAIRE : tableaux fixes
+					if (valeur) {
+						auto ptr = cree_acces_membre(alloc, index_membre);
+						cree_stocke_mem(ptr, valeur);
+					}
 
 					index_membre += 1;
 				}
