@@ -1330,8 +1330,8 @@ static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Sync
 
 			genere_typedefs_recursifs(compilatrice, type, enchaineuse);
 
-			if (type && (type->genre == GenreType::STRUCTURE)) {
-				auto type_struct = noeud->type_->comme_structure();
+			if (type && type->est_structure()) {
+				auto type_struct = type->comme_structure();
 
 				for (auto &membre : type_struct->membres) {
 					genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
