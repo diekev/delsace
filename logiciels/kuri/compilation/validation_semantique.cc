@@ -110,7 +110,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto inst = noeud->comme_charge();
 			auto lexeme = inst->expr->lexeme;
 			auto fichier = espace->fichier(inst->lexeme->fichier);
+			auto temps = dls::chrono::compte_seconde();
 			m_compilatrice.ajoute_fichier_a_la_compilation(espace, lexeme->chaine, fichier->module, *lexeme);
+			temps_chargement += temps.temps();
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_IMPORTE:
@@ -118,7 +120,9 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto inst = noeud->comme_importe();
 			auto lexeme = inst->expr->lexeme;
 			auto fichier = espace->fichier(inst->lexeme->fichier);
+			auto temps = dls::chrono::compte_seconde();
 			auto module = m_compilatrice.importe_module(espace, dls::chaine(lexeme->chaine), *lexeme);
+			temps_chargement += temps.temps();
 			// @concurrence critique
 			fichier->modules_importes.insere(module->nom);
 			break;

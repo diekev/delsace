@@ -708,7 +708,12 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 				case GenreNoeud::INSTRUCTION_IMPORTE:
 				case GenreNoeud::INSTRUCTION_CHARGE:
 				{
-					return !contexte.valide_semantique_noeud(unite->noeud);
+					if (contexte.valide_semantique_noeud(unite->noeud)) {
+						return false;
+					}
+
+					temps_validation -= contexte.temps_chargement;
+					return true;
 				}
 				default:
 				{

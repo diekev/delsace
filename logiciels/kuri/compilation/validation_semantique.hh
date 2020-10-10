@@ -60,6 +60,8 @@ struct ContexteValidationCode {
 	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
 	dls::tableau<paire_union_membre> membres_actifs{};
 
+	double temps_chargement = 0.0;
+
 	ContexteValidationCode(Compilatrice &compilatrice, Tacheronne &tacheronne, UniteCompilation &unite);
 
 	COPIE_CONSTRUCT(ContexteValidationCode);
