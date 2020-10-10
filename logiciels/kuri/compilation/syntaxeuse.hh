@@ -68,8 +68,6 @@ private:
 	// pour séparer les expression de la taille des tableaux pour les expressions loge et reloge
 	NoeudExpressionLogement *m_noeud_logement = nullptr;
 
-	dls::chaine m_racine_kuri{};
-
 	/* Pour les messages d'erreurs. */
 	struct DonneesEtatSyntaxage {
 		Lexeme *lexeme = nullptr;
