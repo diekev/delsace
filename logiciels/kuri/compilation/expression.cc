@@ -261,6 +261,18 @@ ResultatExpression evalue_expression(
 			auto decl_var = static_cast<NoeudDeclarationVariable *>(decl);
 
 			if (decl_var->expression == nullptr) {
+				if (decl_var->type->est_enum()) {
+					auto type_enum = decl_var->type->comme_enum();
+
+					POUR (type_enum->membres) {
+						if (it.nom == decl_var->ident->nom) {
+							res.entier = it.valeur;
+							res.type = TypeExpression::ENTIER;
+							return res;
+						}
+					}
+				}
+
 				res.est_errone = true;
 				res.noeud_erreur = b;
 				res.message_erreur = "La déclaration de la variable n'a pas d'expression !";

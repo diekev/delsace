@@ -2719,7 +2719,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 		}
 
 		auto decl_expr = it->comme_decl_var();
-		decl_expr->type = type_enum->type_donnees;
+		decl_expr->type = type_enum;
 
 		decl->bloc->membres->pousse(decl_expr);
 
