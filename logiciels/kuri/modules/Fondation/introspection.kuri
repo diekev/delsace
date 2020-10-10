@@ -74,7 +74,7 @@ valeur_min :: fonc (taille_en_octet: n32, est_signé: bool) -> z64
         retourne -2147483648
     }
 
-    retourne -0x7fff_ffff_ffff_ffff - 1
+    retourne -(0x7fff_ffff_ffff_ffff comme z64) - 1
 }
 
 valeur_max :: fonc (taille_en_octet: n32, est_signé: bool) -> n64
