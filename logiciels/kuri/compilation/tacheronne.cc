@@ -804,6 +804,10 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 		}
 
 		auto decl_creation_contexte = unite->espace->interface_kuri->decl_creation_contexte;
+		if (decl_creation_contexte->corps->unite == nullptr) {
+			compilatrice.ordonnanceuse->cree_tache_pour_typage(unite->espace, decl_creation_contexte->corps);
+		}
+
 		if (!decl_creation_contexte->possede_drapeau(RI_FUT_GENEREE)) {
 			unite->attend_sur_declaration(unite->espace->interface_kuri->decl_creation_contexte);
 			return false;

@@ -420,25 +420,23 @@ void Syntaxeuse::lance_analyse()
 					decl_var->drapeaux |= EST_GLOBALE;
 					decl_var->arbre_aplatis.reserve(nombre_noeuds_alloues + 1);
 					aplatis_arbre(decl_var, decl_var->arbre_aplatis, DrapeauxNoeud::AUCUN);
+					noeud->bloc_parent->membres->pousse(decl_var);
 					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, decl_var);
 				}
 				else if (noeud->est_declaration()) {
 					noeud->bloc_parent->expressions->pousse(noeud);
 					noeud->drapeaux |= EST_GLOBALE;
 
-					if (!dls::outils::est_element(noeud->genre, GenreNoeud::DECLARATION_ENTETE_FONCTION, GenreNoeud::DECLARATION_STRUCTURE)) {
-						if (noeud->genre == GenreNoeud::DECLARATION_VARIABLE) {
-							auto decl_var = static_cast<NoeudDeclarationVariable *>(noeud);
-							decl_var->arbre_aplatis.reserve(nombre_noeuds_alloues);
-							aplatis_arbre(decl_var, decl_var->arbre_aplatis, DrapeauxNoeud::AUCUN);
-						}
-
+					if (noeud->genre == GenreNoeud::DECLARATION_VARIABLE) {
+						auto decl_var = static_cast<NoeudDeclarationVariable *>(noeud);
+						decl_var->arbre_aplatis.reserve(nombre_noeuds_alloues);
+						aplatis_arbre(decl_var, decl_var->arbre_aplatis, DrapeauxNoeud::AUCUN);
+						noeud->bloc_parent->membres->pousse(decl_var);
 						m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 					}
 				}
 				else {
 					noeud->bloc_parent->expressions->pousse(noeud);
-					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 				}
 			}
 		}
@@ -1055,6 +1053,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 				noeud->ident = directive;
 				noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
 				aplatis_arbre(noeud, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
+				m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 				return noeud;
 			}
 			else if (directive == ID::chemin) {
@@ -1816,6 +1815,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 	consomme();
 
 	auto noeud_decl = CREE_NOEUD(NoeudEnum, GenreNoeud::DECLARATION_ENUM, gauche->lexeme);
+	noeud_decl->bloc_parent->membres->pousse(noeud_decl);
 
 	if (lexeme->genre != GenreLexeme::ERREUR) {
 		if (!apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
@@ -1949,9 +1949,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		consomme(GenreLexeme::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");
 	}
 	else {
-		// À FAIRE : ce serait bien de ne placer le membres que durant la validation sémantique,
-		// mais pour cela, à cause de la compilation asynchrone, il nous faudrait attendre que le
-		// module soit complètement parsé et les entêtes fonctions toutes validées
 		noeud->bloc_parent->membres->pousse(noeud);
 
 		// nous avons la déclaration d'une fonction
@@ -2128,7 +2125,10 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 				consomme();
 			}
 
-			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
+			auto const doit_etre_type = noeud->ident == ID::principale || noeud->possede_drapeau(EST_RACINE);
+			if (doit_etre_type) {
+				m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
+			}
 		}
 	}
 
@@ -2306,8 +2306,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		consomme();
 	}
 
-	m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
-
 	depile_etat();
 
 	return noeud;
@@ -2323,6 +2321,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 	auto noeud_decl = CREE_NOEUD(NoeudStruct, GenreNoeud::DECLARATION_STRUCTURE, gauche->lexeme);
 	noeud_decl->est_union = (lexeme_mot_cle->genre == GenreLexeme::UNION);
+	noeud_decl->bloc_parent->membres->pousse(noeud_decl);
+
+	auto cree_tache = false;
 
 	if (gauche->ident == ID::InfoType) {
 		noeud_decl->type = m_unite->espace->typeuse.type_info_type_;
@@ -2335,6 +2336,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		noeud_decl->type = type_contexte;
 		type_contexte->decl = noeud_decl;
 		type_contexte->nom = noeud_decl->ident->nom;
+		cree_tache = true;
 	}
 	else {
 		if (noeud_decl->est_union) {
@@ -2355,6 +2357,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 		if (lexeme_courant()->ident == ID::interface) {
 			renseigne_type_interface(m_unite->espace->typeuse, noeud_decl->ident, noeud_decl->type);
+			cree_tache = true;
 		}
 		else if (lexeme_courant()->ident == ID::externe) {
 			noeud_decl->est_externe = true;
@@ -2418,7 +2421,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		noeud_decl->bloc = bloc;
 	}
 
-	m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_decl);
+	if (cree_tache) {
+		m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_decl);
+	}
 
 	depile_etat();
 

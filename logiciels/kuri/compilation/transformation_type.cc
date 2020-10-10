@@ -332,12 +332,16 @@ bool cherche_transformation(
 		POUR (type_union->membres) {
 			if (it.type == type_vers) {
 				if (!type_union->est_nonsure) {
-					if (espace.interface_kuri->decl_panique_membre_union == nullptr) {
+					auto decl_panique_membre_union = espace.interface_kuri->decl_panique_membre_union;
+					if (decl_panique_membre_union == nullptr) {
 						contexte.unite->attend_sur_interface_kuri("panique_membre_union");
 						return true;
 					}
+					else if (decl_panique_membre_union->corps->unite == nullptr) {
+						contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, decl_panique_membre_union->corps);
+					}
 
-					contexte.donnees_dependance.fonctions_utilisees.insere(espace.interface_kuri->decl_panique_membre_union);
+					contexte.donnees_dependance.fonctions_utilisees.insere(decl_panique_membre_union);
 				}
 
 				transformation = { TypeTransformation::EXTRAIT_UNION, type_vers, index_membre };

@@ -47,6 +47,26 @@ using dls::outils::possede_drapeau;
 	if (espace->interface_kuri->decl_##nom == nullptr) {\
 		unite->attend_sur_interface_kuri(#nom); \
 		return true; \
+	} \
+	else if (espace->interface_kuri->decl_##nom->corps->unite == nullptr) { \
+		m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, espace->interface_kuri->decl_##nom->corps); \
+	}
+
+#define VERIFIE_UNITE_TYPAGE(type) \
+	if (type->est_enum() || type->est_erreur()) { \
+		if (static_cast<TypeEnum *>(type)->decl->unite == nullptr) { \
+			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, static_cast<TypeEnum *>(type)->decl); \
+		} \
+	} \
+	else if (type->est_structure()) { \
+		if (type->comme_structure()->decl->unite == nullptr) { \
+			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, type->comme_structure()->decl); \
+		} \
+	} \
+	else if (type->est_union()) { \
+		if (type->comme_union()->decl->unite == nullptr) { \
+			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, type->comme_union()->decl); \
+		} \
 	}
 
 ContexteValidationCode::ContexteValidationCode(Compilatrice &compilatrice, Tacheronne &tacheronne, UniteCompilation &u)
@@ -309,11 +329,17 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if (dls::outils::est_element(decl->genre, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE) && expr->aide_generation_code != EST_NOEUD_ACCES) {
+				if (decl->unite == nullptr) {
+					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl);
+				}
 				expr->type = espace->typeuse.type_type_de_donnees(decl->type);
 				expr->decl = decl;
 			}
 			else {				
 				if (!decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+					if (decl->unite == nullptr) {
+						m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl);
+					}
 					unite->attend_sur_declaration(decl);
 					return true;
 				}
@@ -340,6 +366,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				noeud->genre_valeur = GenreValeur::DROITE;
 				auto decl_fonc = decl->comme_entete_fonction();
 				donnees_dependance.fonctions_utilisees.insere(decl_fonc);
+
+				if (decl_fonc->corps->unite == nullptr && !decl_fonc->est_externe) {
+					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl_fonc->corps);
+				}
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
 				if (decl->possede_drapeau(EST_GLOBALE)) {
@@ -601,7 +631,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				transtype_si_necessaire(expr->expr2, meilleur_candidat->transformation_type2);
 
 				if (!expr->op->est_basique) {
+					auto decl_op = expr->op->decl;
 					donnees_dependance.fonctions_utilisees.insere(expr->op->decl);
+
+					if (decl_op->corps->unite == nullptr) {
+						m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl_op->corps);
+					}
 				}
 			}
 			else {
@@ -649,7 +684,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				transtype_si_necessaire(expr->expr2, meilleur_candidat->transformation_type2);
 
 				if (!expr->op->est_basique) {
-					donnees_dependance.fonctions_utilisees.insere(expr->op->decl);
+					auto decl_op = expr->op->decl;
+					donnees_dependance.fonctions_utilisees.insere(decl_op);
+
+					if (decl_op->corps->unite == nullptr) {
+						m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl_op->corps);
+					}
 				}
 			}
 
@@ -1422,6 +1462,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 				/* attend sur le type car nous avons besoin de sa validation pour la génération de RI pour l'expression de logement */
 				if ((type_loge->drapeaux & TYPE_FUT_VALIDE) == 0) {
+					VERIFIE_UNITE_TYPAGE(type_loge)
 					unite->attend_sur_type(type_loge);
 					return true;
 				}
@@ -1481,6 +1522,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 				/* attend sur le type car nous avons besoin de sa validation pour la génération de RI pour l'expression de logement */
 				if ((type_loge->drapeaux & TYPE_FUT_VALIDE) == 0) {
+					VERIFIE_UNITE_TYPAGE(type_loge)
 					unite->attend_sur_type(type_loge);
 					return true;
 				}
@@ -1558,6 +1600,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+				VERIFIE_UNITE_TYPAGE(type)
 				unite->attend_sur_type(type);
 				return true;
 			}
@@ -1847,6 +1890,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			// - si union -> voir si l'union est sûre et contient une erreur, dépaquete celle-ci dans le génération de code
 
 			if ((inst->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+				VERIFIE_UNITE_TYPAGE(inst->type)
 				unite->attend_sur_type(inst->type);
 				return true;
 			}
@@ -1954,7 +1998,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			if ((type_employe->drapeaux & TYPE_FUT_VALIDE) == 0) {
-				unite->attend_sur_type(decl->type);
+				VERIFIE_UNITE_TYPAGE(type_employe)
+				unite->attend_sur_type(type_employe);
 				return true;
 			}
 
@@ -2016,6 +2061,7 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 
 	if (est_type_compose(type)) {
 		if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+			VERIFIE_UNITE_TYPAGE(type)
 			unite->attend_sur_type(type);
 			return true;
 		}
@@ -2320,6 +2366,9 @@ bool ContexteValidationCode::valide_arbre_aplatis(kuri::tableau<NoeudExpression 
 		if (noeud_enfant->est_structure()) {
 			// les structures ont leurs propres unités de compilation
 			if (!noeud_enfant->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+				if (noeud_enfant->comme_structure()->unite == nullptr) {
+					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, noeud_enfant->comme_structure());
+				}
 				unite->attend_sur_declaration(noeud_enfant->comme_structure());
 				return true;
 			}
@@ -2859,6 +2908,13 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		auto type_membre = enfant->type;
 		auto align_type = type_membre->alignement;
 
+		// À FAIRE: ceci devrait plutôt être déplacé dans la validation des déclarations, mais nous finissons sur une erreur de compilation à cause d'une attente
+		if ((type_membre->drapeaux & TYPE_FUT_VALIDE) == 0) {
+			VERIFIE_UNITE_TYPAGE(type_membre)
+			unite->attend_sur_type(type_membre);
+			return true;
+		}
+
 		if (align_type == 0) {
 			rapporte_erreur("impossible de définir l'alignement du type", enfant);
 			return true;
@@ -2894,6 +2950,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 					if (var->type->est_structure() || var->type->est_union()) {
 						if ((var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+							VERIFIE_UNITE_TYPAGE(var->type)
 							unite->attend_sur_type(var->type);
 							return true;
 						}
@@ -2989,6 +3046,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 				if (var->type->est_structure() || var->type->est_union()) {
 					if ((var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+						VERIFIE_UNITE_TYPAGE(var->type)
 						unite->attend_sur_type(var->type);
 						return true;
 					}

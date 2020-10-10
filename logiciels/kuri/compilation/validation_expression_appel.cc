@@ -95,12 +95,16 @@ static auto trouve_candidates_pour_fonction_appelee(
 			}
 
 			if (type_accede->genre == GenreType::STRUCTURE) {
+				auto type_struct = type_accede->comme_structure();
+
 				if ((type_accede->drapeaux & TYPE_FUT_VALIDE) == 0) {
+					if (type_struct->decl->unite == nullptr) {
+						contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, type_struct->decl);
+					}
 					contexte.unite->attend_sur_type(type_accede);
 					return true;
 				}
 
-				auto type_struct = type_accede->comme_structure();
 				auto membre_trouve = false;
 				auto index_membre = 0;
 
@@ -883,6 +887,10 @@ static auto trouve_candidates_pour_appel(
 				auto decl_struct = static_cast<NoeudStruct *>(decl);
 
 				if ((decl->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+					// @concurrence critique
+					if (decl->unite == nullptr) {
+						contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, decl);
+					}
 					contexte.unite->attend_sur_type(decl->type);
 					return true;
 				}
@@ -899,6 +907,11 @@ static auto trouve_candidates_pour_appel(
 				if (!decl_fonc->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 					contexte.unite->attend_sur_declaration(decl_fonc);
 					return true;
+				}
+
+				// @concurrence critique
+				if (decl_fonc->corps->unite == nullptr && !decl_fonc->est_externe) {
+					contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, decl_fonc->corps);
 				}
 
 				auto dc = DonneesCandidate();
