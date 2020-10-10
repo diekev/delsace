@@ -323,24 +323,18 @@ static Associativite associativite_pour_operateur(GenreLexeme genre_operateur)
 // sans transtypage pour éviter les erreurs de compilations avec drapeaux stricts
 #define CREE_NOEUD_EXPRESSION(Genre, Lexeme) m_tacheronne.assembleuse->cree_noeud(Genre, Lexeme)
 
-Syntaxeuse::Syntaxeuse(
-		Compilatrice &compilatrice,
-		Tacheronne &tacheronne,
-		Fichier *fichier,
-		UniteCompilation *unite,
-		const dls::chaine &racine_kuri)
-	: m_compilatrice(compilatrice)
+Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite)
+	: m_compilatrice(tacheronne.compilatrice)
 	, m_tacheronne(tacheronne)
-	, m_fichier(fichier)
+	, m_fichier(unite->fichier)
 	, m_unite(unite)
-	, m_lexemes(fichier->lexemes)
-	, m_racine_kuri(racine_kuri)
+	, m_lexemes(m_fichier->lexemes)
 {
 	if (m_lexemes.taille() > 0) {
 		m_lexeme_courant = &m_lexemes[m_position];
 	}
 
-	auto module = fichier->module;
+	auto module = m_fichier->module;
 
 	m_tacheronne.assembleuse->depile_tout();
 

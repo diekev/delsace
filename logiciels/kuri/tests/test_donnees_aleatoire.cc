@@ -60,7 +60,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 		auto tacheronne = Tacheronne(compilatrice);
 		auto unite = UniteCompilation(espace);
-		auto analyseuse = Syntaxeuse(compilatrice, tacheronne, fichier, &unite, "");
+		auto analyseuse = Syntaxeuse(tacheronne, &unite);
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse();
@@ -482,7 +482,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		fichier->tampon = lng::tampon_source("texte_test");
 		fichier->lexemes = lexemes;
 		auto unite = UniteCompilation(espace);
-		auto analyseuse = Syntaxeuse(compilatrice, tacheronne, fichier, &unite, "");
+		auto analyseuse = Syntaxeuse(tacheronne, &unite);
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse();

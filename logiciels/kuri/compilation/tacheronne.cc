@@ -480,7 +480,7 @@ void Tacheronne::gere_tache()
 				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
 				auto unite = tache.unite;
 				auto debut_parsage = dls::chrono::compte_seconde();
-				auto syntaxeuse = Syntaxeuse(compilatrice, *this, unite->fichier, unite, compilatrice.racine_kuri);
+				auto syntaxeuse = Syntaxeuse(*this, unite);
 				syntaxeuse.lance_analyse();
 				temps_parsage += debut_parsage.temps();
 				tache_fut_completee = true;

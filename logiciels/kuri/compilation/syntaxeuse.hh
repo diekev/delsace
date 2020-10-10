@@ -81,11 +81,7 @@ private:
 	NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
 
 public:
-	Syntaxeuse(Compilatrice &compilatrice,
-			   Tacheronne &tacheronne,
-			   Fichier *fichier,
-			   UniteCompilation *unite,
-			   dls::chaine const &racine_kuri);
+	Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite);
 
 	COPIE_CONSTRUCT(Syntaxeuse);
 
