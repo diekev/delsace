@@ -513,7 +513,14 @@ void Tacheronne::gere_tache()
 					}
 
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_TYPE) {
-						rapporte_erreur(unite->espace, unite->noeud, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer un type pour l'expression", erreur::Genre::TYPE_INCONNU)
+						auto site = unite->noeud;
+
+						if (site->est_corps_fonction()) {
+							auto corps = site->comme_corps_fonction();
+							site = corps->arbre_aplatis[unite->index_courant];
+						}
+
+						rapporte_erreur(unite->espace, site, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer un type pour l'expression", erreur::Genre::TYPE_INCONNU)
 								.ajoute_message("Note : le type attendu est ")
 								.ajoute_message(chaine_type(unite->type_attendu))
 								.ajoute_message("\n");
