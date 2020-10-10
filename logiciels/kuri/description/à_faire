@@ -419,6 +419,12 @@ implémente la directive #si pour la compilation sélective
 ---- a + b, où + est un opérateur surchargé -> appel(a, b)
 ---- -a, où - est un opérateur surchargé -> appel(a)
 
+- comprend pourquoi les métaprogrammes mettent du temps à se finir
+- optimise la quantité de mémoire utilisée pour stocker les variables dans les métaprogrammes
+-- pour cela il faut pouvoir déterminer quand une locale est hors de portée, en incluant les boucles (une allocation en début de boucle doit être désallouée en fin de boucle)
+- termine l'implémentation de la normalisation des types
+- meilleure manière de changer les phases de compilation, il faut pouvoir revenir en arrière quand un métaprogramme ou une phase de compilation ajoute du travail
+- réusine les emplois de variables dans les structures, pour les infos types, il nous faut la structure, mais pour la validation la structure et ses membres, ses membres ne doivent être ceux de l'employeuse
 
 À faire (architecture)
 ----------------------
