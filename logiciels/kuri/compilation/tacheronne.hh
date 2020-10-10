@@ -61,6 +61,8 @@ struct Tache {
 	UniteCompilation *unite = nullptr;
 	EspaceDeTravail *espace = nullptr;
 
+	long progres = 0;
+
 	static Tache dors(EspaceDeTravail *espace_);
 
 	static Tache compilation_terminee();
@@ -130,6 +132,8 @@ private:
 	bool toutes_les_tacheronnes_dorment() const;
 
 	long nombre_de_taches_en_attente() const;
+
+	long progres() const;
 };
 
 struct Tacheronne {
