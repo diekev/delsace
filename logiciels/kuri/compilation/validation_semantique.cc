@@ -1953,7 +1953,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			if ((decl->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+			if ((type_employe->drapeaux & TYPE_FUT_VALIDE) == 0) {
 				unite->attend_sur_type(decl->type);
 				return true;
 			}
