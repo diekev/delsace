@@ -1,3 +1,4 @@
+importe Compilatrice
 importe Fondation
 importe GlibC
 importe JSON
@@ -5,6 +6,7 @@ importe Réseau
 importe SysFichier
 importe Temps
 
+charge "catalogue_fichier"
 charge "entete_http"
 charge "fichier_texte"
 charge "page_accueil"
@@ -184,13 +186,13 @@ procède_requête :: fonc (
 
             trouvée = vrai
 
-            si ligne_requête.méthode == "GET" && route.méthode_get comme *rien != nul {
+            si ligne_requête.méthode == "GET" && route.méthode_get != nul {
                 rappel := route.méthode_get
                 réponse = rappel(serveuse, *données_requête)
                 arrête
             }
 
-            si ligne_requête.méthode == "POST" && route.méthode_post comme *rien != nul {
+            si ligne_requête.méthode == "POST" && route.méthode_post != nul {
                 rappel := route.méthode_post
                 réponse = rappel(serveuse, *données_requête)
                 arrête

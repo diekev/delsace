@@ -5,14 +5,20 @@ DonnéesPage :: struct {
     titre := "Accueil"
 }
 
-répond_get_page_accueil :: fonc (serveuse: *Serveuse, requête: *DonnéesRequête) -> RéponseRequête
+répond_get_page_accueil :: fonc (ptr_serveuse: *rien, ptr_requête: *rien) -> RéponseRequête
 {
+    serveuse := ptr_serveuse comme *Serveuse
+    requête := ptr_requête comme *DonnéesRequête
+
     données: DonnéesPage
     retourne rends_page(*serveuse.rendeuse_gabarit, "accueil", données)
 }
 
-répond_post_page_accueil :: fonc (serveuse: *Serveuse, requête: *DonnéesRequête) -> RéponseRequête
+répond_post_page_accueil :: fonc (ptr_serveuse: *rien, ptr_requête: *rien) -> RéponseRequête
 {
+    serveuse := ptr_serveuse comme *Serveuse
+    requête := ptr_requête comme *DonnéesRequête
+
     enchaineuse : Enchaineuse
     diffère { détruit_tampons(*enchaineuse) }
 

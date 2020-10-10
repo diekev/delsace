@@ -78,13 +78,13 @@ détruit_serveuse :: fonc (serveuse: *Serveuse) -> rien
 ajoute_route :: fonc (
     serveuse: *Serveuse,
     url: chaine,
-    méthode_get: fonc(*Serveuse, *DonnéesRequête)(RéponseRequête),
-    méthode_post: fonc(*Serveuse, *DonnéesRequête)(RéponseRequête)) -> rien
+    méthode_get: fonc(*rien, *rien)(RéponseRequête),
+    méthode_post: fonc(*rien, *rien)(RéponseRequête)) -> rien
 {
     route : Route
     route.url = url
-    route.méthode_get = méthode_get comme fonc(*rien, *rien)(RéponseRequête)
-    route.méthode_post = méthode_post comme fonc(*rien, *rien)(RéponseRequête)
+    route.méthode_get = méthode_get
+    route.méthode_post = méthode_post
 
     tableau_ajoute(*serveuse.routes, route)
 }
