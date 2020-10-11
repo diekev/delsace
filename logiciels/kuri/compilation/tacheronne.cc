@@ -473,6 +473,7 @@ void Tacheronne::gere_tache()
 			{
 				dls::chrono::dors_microsecondes(100);
 				tache_fut_completee = true;
+				temps_passe_a_dormir += 0.1;
 				break;
 			}
 			case GenreTache::LEXE:

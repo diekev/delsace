@@ -405,6 +405,8 @@ int main(int argc, char *argv[])
 				stats.memoire_mv += memoire_mv;
 				stats.nombre_metaprogrammes_executes += it->mv.nombre_de_metaprogrammes_executes;
 				stats.temps_metaprogrammes += it->mv.temps_execution_metaprogammes;
+
+				//std::cerr << "tâcheronne " << it->id << " a dormis pendant " << it->temps_passe_a_dormir << "ms\n";
 			}
 
 			compilatrice.rassemble_statistiques(stats);
