@@ -385,7 +385,7 @@ chemin_courant :: fonc() -> CheminFichier
         retourne construit_chemin("")
     }
 
-    ret := converti_chaine_c(pointeur)
+    ret := copie_chaine_c(pointeur)
     retourne construit_chemin(ret)
 }
 
