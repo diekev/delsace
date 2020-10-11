@@ -667,7 +667,7 @@ Message const *compilatrice_attend_message()
 	auto &messagere = ptr_compilatrice->messagere;
 
 	while (!messagere->possede_message()) {
-		usleep(1000);
+		usleep(1);
 	}
 
 	return messagere->defile();
