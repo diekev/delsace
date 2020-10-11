@@ -701,18 +701,6 @@ void Lexeuse::performe_lexage()
 	m_fichier->fut_lexe = true;
 }
 
-size_t Lexeuse::memoire_lexemes() const
-{
-	return static_cast<size_t>(m_fichier->lexemes.taille()) * sizeof(Lexeme);
-}
-
-void Lexeuse::imprime_lexemes(std::ostream &os)
-{
-	for (auto const &lexeme : m_fichier->lexemes) {
-		os << chaine_du_genre_de_lexeme(lexeme.genre) << '\n';
-	}
-}
-
 void Lexeuse::avance(int n)
 {
 	for (int i = 0; i < n; ++i) {

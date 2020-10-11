@@ -59,13 +59,6 @@ public:
 
 	void performe_lexage();
 
-	/**
-	 * Retourne la taille en octets de la mémoire utilisée par les lexemes.
-	 */
-	size_t memoire_lexemes() const;
-
-	void imprime_lexemes(std::ostream &os);
-
 private:
 	ENLIGNE_TOUJOURS bool fini() const
 	{
