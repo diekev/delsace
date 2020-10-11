@@ -2848,7 +2848,6 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	auto &graphe = espace->graphe_dependance;
 
 	auto noeud_dependance = graphe->cree_noeud_type(decl->type);
-	noeud_dependance->noeud_syntaxique = decl;
 	decl->noeud_dependance = noeud_dependance;
 
 	// nous avons besoin du symbole le plus rapidement possible pour déterminer les types l'utilisant

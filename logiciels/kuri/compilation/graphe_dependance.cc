@@ -45,15 +45,48 @@ std::ostream &operator<<(std::ostream &os, TypeRelation type)
 	return os;
 }
 
+NoeudDependance::NoeudDependance(NoeudDeclarationVariable *globale)
+	: m_type_noeud(TypeNoeudDependance::GLOBALE)
+	, m_noeud_globale(globale)
+{}
+
+NoeudDependance::NoeudDependance(NoeudDeclarationEnteteFonction *fonction)
+	: m_type_noeud(TypeNoeudDependance::FONCTION)
+	, m_noeud_fonction(fonction)
+{}
+
+NoeudDependance::NoeudDependance(Type *t)
+	: m_type_noeud(TypeNoeudDependance::TYPE)
+	, m_type(t)
+{}
+
+void NoeudDependance::ajoute_relation(Badge<GrapheDependance>, const Relation &relation)
+{
+	POUR (m_relations) {
+		if (it.type == relation.type && it.noeud_fin == relation.noeud_fin) {
+			return;
+		}
+	}
+
+	m_relations.pousse(relation);
+}
+
+dls::tableau<Relation> const &NoeudDependance::relations() const
+{
+	return m_relations;
+}
+
+void NoeudDependance::relations(Badge<GrapheDependance>, dls::tableau<Relation> &&relations)
+{
+	m_relations = relations;
+}
+
 NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationEnteteFonction *noeud_syntaxique)
 {
 	Prof(cree_noeud_fonction);
 
 	if (noeud_syntaxique->noeud_dependance == nullptr) {
-		auto noeud = noeuds.ajoute_element();
-		noeud->noeud_syntaxique = noeud_syntaxique;
-		noeud->type = TypeNoeudDependance::FONCTION;
-
+		auto noeud = noeuds.ajoute_element(noeud_syntaxique);
 		noeud_syntaxique->noeud_dependance = noeud;
 	}
 
@@ -65,10 +98,7 @@ NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *
 	Prof(cree_noeud_globale);
 
 	if (noeud_syntaxique->noeud_dependance == nullptr) {
-		auto noeud = noeuds.ajoute_element();
-		noeud->noeud_syntaxique = noeud_syntaxique;
-		noeud->type = TypeNoeudDependance::GLOBALE;
-
+		auto noeud = noeuds.ajoute_element(noeud_syntaxique);
 		noeud_syntaxique->noeud_dependance = noeud;
 	}
 
@@ -80,10 +110,7 @@ NoeudDependance *GrapheDependance::cree_noeud_type(Type *type)
 	Prof(cree_noeud_type);
 
 	if (type->noeud_dependance == nullptr) {
-		auto noeud = noeuds.ajoute_element();
-		noeud->type_ = type;
-		noeud->type = TypeNoeudDependance::TYPE;
-
+		auto noeud = noeuds.ajoute_element(type);
 		type->noeud_dependance = noeud;
 	}
 
@@ -95,11 +122,11 @@ NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_
 	Prof(cherche_noeud_fonction);
 
 	POUR_TABLEAU_PAGE(noeuds) {
-		if (it.type != TypeNoeudDependance::FONCTION) {
+		if (!it.est_fonction()) {
 			continue;
 		}
 
-		auto decl_fonction = it.noeud_syntaxique->comme_entete_fonction();
+		auto decl_fonction = it.fonction();
 
 		if (decl_fonction->nom_broye == nom) {
 			return const_cast<NoeudDependance *>(&it);
@@ -113,16 +140,10 @@ void GrapheDependance::connecte_type_type(NoeudDependance &type1, NoeudDependanc
 {
 	Prof(connecte_type_type);
 
-	assert(type1.type == TypeNoeudDependance::TYPE);
-	assert(type2.type == TypeNoeudDependance::TYPE);
+	assert(type1.est_type());
+	assert(type2.est_type());
 
-	for (auto const &relation : type1.relations) {
-		if (relation.type == type_rel && relation.noeud_fin == &type2) {
-			return;
-		}
-	}
-
-	type1.relations.pousse({ type_rel, &type1, &type2 });
+	type1.ajoute_relation({}, { type_rel, &type1, &type2 });
 }
 
 void GrapheDependance::connecte_type_type(Type *type1, Type *type2, TypeRelation type_rel)
@@ -139,14 +160,7 @@ void GrapheDependance::connecte_noeuds(
 		TypeRelation type_relation)
 {
 	Prof(connecte_noeuds);
-
-	for (auto const &relation : noeud1.relations) {
-		if (relation.type == type_relation && relation.noeud_fin == &noeud2) {
-			return;
-		}
-	}
-
-	noeud1.relations.pousse({ type_relation, &noeud1, &noeud2 });
+	noeud1.ajoute_relation({}, { type_relation, &noeud1, &noeud2 });
 }
 
 void GrapheDependance::rassemble_statistiques(Statistiques &stats) const
@@ -155,7 +169,7 @@ void GrapheDependance::rassemble_statistiques(Statistiques &stats) const
 	memoire += noeuds.memoire_utilisee();
 
 	POUR_TABLEAU_PAGE(noeuds) {
-		memoire += it.relations.taille() * taille_de(Relation);
+		memoire += it.relations().taille() * taille_de(Relation);
 	}
 
 	auto &stats_graphe = stats.stats_graphe_dependance;
@@ -202,14 +216,14 @@ void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 
 	POUR_TABLEAU_PAGE(graphe_dependance.noeuds) {
 		it.fut_visite = false;
-		nombre_fonctions += (it.type == TypeNoeudDependance::FONCTION);
+		nombre_fonctions += (it.est_fonction());
 	}
 
 	auto noeud_dependance = graphe_dependance.cherche_noeud_fonction("principale");
 
-	traverse_graphe(noeud_dependance, [&](NoeudDependance *noeud)
+	graphe_dependance.traverse(noeud_dependance, [&](NoeudDependance *noeud)
 	{
-		if (noeud->type != TypeNoeudDependance::FONCTION) {
+		if (!noeud->est_fonction()) {
 			return;
 		}
 
@@ -217,7 +231,7 @@ void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 	});
 
 	POUR_TABLEAU_PAGE(graphe_dependance.noeuds) {
-		if (it.type != TypeNoeudDependance::FONCTION) {
+		if (!it.est_fonction()) {
 			continue;
 		}
 
@@ -225,7 +239,7 @@ void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 			continue;
 		}
 
-		auto decl_fonction = it.noeud_syntaxique->comme_entete_fonction();
+		auto decl_fonction = it.fonction();
 		std::cerr << "Fonction inutilisée : " << decl_fonction->nom_broye << '\n';
 	}
 
@@ -260,13 +274,13 @@ static void marque_chemins_atteignables(NoeudDependance &noeud)
 
 	noeud.drapeaux |= VISITE;
 
-	for (auto &relation : noeud.relations) {
+	for (auto &relation : noeud.relations()) {
 		marque_chemins_atteignables(*relation.noeud_fin);
 		relation.noeud_fin->drapeaux |= ATTEIGNABLE;
 	}
 }
 
-void reduction_transitive(GrapheDependance &graphe_dependance)
+void GrapheDependance::reduction_transitive()
 {
 	Prof(reduction_transitive);
 
@@ -277,9 +291,9 @@ void reduction_transitive(GrapheDependance &graphe_dependance)
 
 	auto relations_filtrees = dls::tableau<Relation>();
 
-	POUR_TABLEAU_PAGE_NOMME(cible, graphe_dependance.noeuds) {
+	POUR_TABLEAU_PAGE_NOMME(cible, noeuds) {
 		/* Réinitialisation des drapeaux. */
-		POUR_TABLEAU_PAGE_NOMME(noeud, graphe_dependance.noeuds) {
+		POUR_TABLEAU_PAGE_NOMME(noeud, noeuds) {
 			noeud.drapeaux = 0;
 		}
 
@@ -288,13 +302,13 @@ void reduction_transitive(GrapheDependance &graphe_dependance)
 		 * pas marqués.
 		 */
 		cible.drapeaux |= VISITE;
-		for (auto &relation : cible.relations) {
+		for (auto &relation : cible.relations()) {
 			marque_chemins_atteignables(*relation.noeud_fin);
 		}
 
-		relations_filtrees = cible.relations;
+		relations_filtrees = cible.relations();
 
-		for (auto &relation : cible.relations) {
+		for (auto &relation : cible.relations()) {
 			++relations_totales;
 
 			if ((relation.noeud_fin->drapeaux & ATTEIGNABLE) != 0) {
@@ -305,7 +319,7 @@ void reduction_transitive(GrapheDependance &graphe_dependance)
 			relations_filtrees.pousse(relation);
 		}
 
-		cible.relations = relations_filtrees;
+		cible.relations({}, std::move(relations_filtrees));
 	}
 
 	std::cout << "Nombre de relations supprimées : "
@@ -313,12 +327,12 @@ void reduction_transitive(GrapheDependance &graphe_dependance)
 			  << std::endl;
 }
 
-void rassemble_fonctions_utilisees(NoeudDependance *racine, kuri::tableau<AtomeFonction *> &fonctions, dls::ensemble<AtomeFonction *> &utilises)
+void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine, kuri::tableau<AtomeFonction *> &fonctions, dls::ensemble<AtomeFonction *> &utilises)
 {
-	traverse_graphe(racine, [&](NoeudDependance *noeud)
+	traverse(racine, [&](NoeudDependance *noeud)
 	{
-		if (noeud->type == TypeNoeudDependance::FONCTION) {
-			auto noeud_fonction = noeud->noeud_syntaxique->comme_entete_fonction();
+		if (noeud->est_fonction()) {
+			auto noeud_fonction = noeud->fonction();
 			auto atome_fonction = noeud_fonction->atome_fonction;
 			assert(atome_fonction);
 
@@ -330,8 +344,8 @@ void rassemble_fonctions_utilisees(NoeudDependance *racine, kuri::tableau<AtomeF
 
 			utilises.insere(atome_fonction);
 		}
-		else if (noeud->type == TypeNoeudDependance::TYPE) {
-			auto type = noeud->type_;
+		else if (noeud->est_type()) {
+			auto type = noeud->type();
 
 			if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
 				auto atome_fonction = type->fonction_init;

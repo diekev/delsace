@@ -1299,16 +1299,16 @@ static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Sync
 
 	// À FAIRE : quand nous lexons sur compilons sur plusieurs threads, il est possible que le code soit généré plusieurs fois...
 	POUR_TABLEAU_PAGE(graphe->noeuds) {
-		if (it.type != TypeNoeudDependance::TYPE) {
+		if (!it.est_type()) {
 			continue;
 		}
 
-		auto type = it.type_;
+		auto type = it.type();
 		type->drapeaux &= ~TYPEDEF_FUT_GENERE;
 	}
 
 	POUR_TABLEAU_PAGE(graphe->noeuds) {
-		if (it.type != TypeNoeudDependance::TYPE) {
+		if (!it.est_type()) {
 			continue;
 		}
 
@@ -1316,13 +1316,13 @@ static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Sync
 			continue;
 		}
 
-		traverse_graphe(&it, [&](NoeudDependance *noeud)
+		graphe->traverse(&it, [&](NoeudDependance *noeud)
 		{
-			if (noeud->type != TypeNoeudDependance::TYPE) {
+			if (!noeud->est_type()) {
 				return;
 			}
 
-			auto type = noeud->type_;
+			auto type = noeud->type();
 
 			if (type && type->genre == GenreType::TYPE_DE_DONNEES) {
 				return;
@@ -1376,7 +1376,7 @@ static void genere_code_C_depuis_fonction_principale(
 
 	dls::ensemble<AtomeFonction *> utilises;
 	kuri::tableau<AtomeFonction *> fonctions;
-	rassemble_fonctions_utilisees(fonction_principale, fonctions, utilises);
+	graphe->rassemble_fonctions_utilisees(fonction_principale, fonctions, utilises);
 
 	fonctions.pousse(atome_main);
 
@@ -1420,7 +1420,7 @@ static void genere_code_C_depuis_fonctions_racines(
 	dls::ensemble<AtomeFonction *> utilises;
 	POUR (fonctions_racines) {
 		auto noeud_dep = it->decl->noeud_dependance;
-		rassemble_fonctions_utilisees(noeud_dep, fonctions, utilises);
+		graphe->rassemble_fonctions_utilisees(noeud_dep, fonctions, utilises);
 	}
 
 	auto generatrice = GeneratriceCodeC(espace);

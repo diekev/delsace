@@ -4054,7 +4054,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 	// ----------------------------------
 	// appel notre fonction principale en passant le contexte et le tableau
 	auto noeud_dep_fonc_princ = m_espace->graphe_dependance->cherche_noeud_fonction("principale");
-	auto fonc_princ = noeud_dep_fonc_princ->noeud_syntaxique->comme_entete_fonction();
+	auto fonc_princ = noeud_dep_fonc_princ->fonction();
 
 	auto params_principale = kuri::tableau<Atome *>(1);
 	params_principale[0] = cree_charge_mem(alloc_contexte);

@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/outils/badge.hh"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/ensemblon.hh"
@@ -33,8 +34,10 @@
 #include "structures.hh"
 
 struct AtomeFonction;
+struct GrapheDependance;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
+struct NoeudDependance;
 struct NoeudExpression;
 struct Statistiques;
 struct Type;
@@ -65,8 +68,6 @@ enum class TypeRelation : int {
 const char *chaine_type_relation(TypeRelation type);
 std::ostream &operator<<(std::ostream &os, TypeRelation type);
 
-struct NoeudDependance;
-
 struct Relation {
 	TypeRelation type = TypeRelation::INVALIDE;
 	NoeudDependance *noeud_debut  = nullptr;
@@ -74,20 +75,66 @@ struct Relation {
 };
 
 struct NoeudDependance {
-	TypeNoeudDependance type = TypeNoeudDependance::INVALIDE;
-	dls::tableau<Relation> relations{};
+private:
+	TypeNoeudDependance m_type_noeud = TypeNoeudDependance::INVALIDE;
 
-	// pour les types
-	Type *type_{};
+	dls::tableau<Relation> m_relations{};
 
-	// pour tous les noeuds
-	NoeudExpression *noeud_syntaxique{};
+	union {
+		Type *m_type;
+		NoeudDeclarationEnteteFonction *m_noeud_fonction;
+		NoeudDeclarationVariable *m_noeud_globale;
+	};
+
+public:
+	explicit NoeudDependance(NoeudDeclarationVariable *globale);
+	explicit NoeudDependance(NoeudDeclarationEnteteFonction *fonction);
+	explicit NoeudDependance(Type *t);
 
 	bool fut_visite = false;
 	bool deja_genere = false;
 
 	/* pour certains algorithmes de travail sur le graphe */
 	char drapeaux = 0;
+
+	inline bool est_type() const
+	{
+		return m_type_noeud == TypeNoeudDependance::TYPE;
+	}
+
+	inline bool est_globale() const
+	{
+		return m_type_noeud == TypeNoeudDependance::GLOBALE;
+	}
+
+	inline bool est_fonction() const
+	{
+		return m_type_noeud == TypeNoeudDependance::FONCTION;
+	}
+
+	inline Type *type() const
+	{
+		assert(est_type());
+		return m_type;
+	}
+
+	inline NoeudDeclarationEnteteFonction *fonction() const
+	{
+		assert(est_fonction());
+		return m_noeud_fonction;
+	}
+
+	inline NoeudDeclarationVariable *globale() const
+	{
+		assert(est_globale());
+		return m_noeud_globale;
+	}
+
+	void ajoute_relation(Badge<GrapheDependance>, const Relation &relation);
+
+	dls::tableau<Relation> const &relations() const;
+
+	void relations(Badge<GrapheDependance>, dls::tableau<Relation> &&relations);
 };
 
 struct DonneesDependance {
@@ -123,34 +170,35 @@ struct GrapheDependance {
 	void connecte_noeuds(NoeudDependance &noeud1, NoeudDependance &noeud2, TypeRelation type_relation);
 
 	void rassemble_statistiques(Statistiques &stats) const;
+
+	void reduction_transitive();
+
+	void rassemble_fonctions_utilisees(NoeudDependance *racine, kuri::tableau<AtomeFonction *> &fonctions, dls::ensemble<AtomeFonction *> &utilises);
+
+	template <typename Rappel>
+	void traverse(NoeudDependance *racine, Rappel rappel)
+	{
+		racine->fut_visite = true;
+
+		for (auto const &relation : racine->relations()) {
+			auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
+			accepte |= relation.type == TypeRelation::UTILISE_FONCTION;
+			accepte |= relation.type == TypeRelation::UTILISE_GLOBALE;
+
+			if (!accepte) {
+				continue;
+			}
+
+			if (relation.noeud_fin->fut_visite) {
+				continue;
+			}
+
+			traverse(relation.noeud_fin, rappel);
+		}
+
+		rappel(racine);
+	}
 };
 
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance);
 
-void reduction_transitive(GrapheDependance &graphe_dependance);
-
-template <typename Rappel>
-void traverse_graphe(NoeudDependance *racine, Rappel rappel)
-{
-	racine->fut_visite = true;
-
-	for (auto const &relation : racine->relations) {
-		auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
-		accepte |= relation.type == TypeRelation::UTILISE_FONCTION;
-		accepte |= relation.type == TypeRelation::UTILISE_GLOBALE;
-
-		if (!accepte) {
-			continue;
-		}
-
-		if (relation.noeud_fin->fut_visite) {
-			continue;
-		}
-
-		traverse_graphe(relation.noeud_fin, rappel);
-	}
-
-	rappel(racine);
-}
-
-void rassemble_fonctions_utilisees(NoeudDependance *racine, kuri::tableau<AtomeFonction *> &fonctions, dls::ensemble<AtomeFonction *> &utilises);

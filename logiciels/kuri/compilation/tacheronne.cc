@@ -620,16 +620,23 @@ static bool dependances_eurent_ri_generees(NoeudDependance *noeud)
 
 		visite.insere(n);
 
-		POUR (n->relations) {
+		POUR (n->relations()) {
 			auto noeud_fin = it.noeud_fin;
 
-			if (noeud_fin->type == TypeNoeudDependance::TYPE) {
-				if ((noeud_fin->type_->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {
+			if (noeud_fin->est_type()) {
+				if ((noeud_fin->type()->drapeaux & RI_TYPE_FUT_GENEREE) == 0) {
 					return false;
 				}
 			}
-			else {
-				auto noeud_syntaxique = noeud_fin->noeud_syntaxique;
+			else if (noeud_fin->est_fonction()) {
+				auto noeud_syntaxique = noeud_fin->fonction();
+
+				if (!noeud_syntaxique->possede_drapeau(RI_FUT_GENEREE)) {
+					return false;
+				}
+			}
+			else if (noeud_fin->est_globale()) {
+				auto noeud_syntaxique = noeud_fin->globale();
 
 				if (!noeud_syntaxique->possede_drapeau(RI_FUT_GENEREE)) {
 					return false;
@@ -835,10 +842,10 @@ static void rassemble_globales_et_fonctions(
 	auto graphe = espace->graphe_dependance.verrou_ecriture();
 	auto index_dans_table_type = 1u;
 
-	traverse_graphe(racine, [&](NoeudDependance *noeud_dep)
+	graphe->traverse(racine, [&](NoeudDependance *noeud_dep)
 	{
-		if (noeud_dep->type == TypeNoeudDependance::FONCTION) {
-			auto decl_noeud = noeud_dep->noeud_syntaxique->comme_entete_fonction();
+		if (noeud_dep->est_fonction()) {
+			auto decl_noeud = noeud_dep->fonction();
 
 			if (decl_noeud->possede_drapeau(CODE_BINAIRE_FUT_GENERE)) {
 				return;
@@ -848,8 +855,8 @@ static void rassemble_globales_et_fonctions(
 			fonctions.pousse(atome_fonction);
 			decl_noeud->drapeaux |= CODE_BINAIRE_FUT_GENERE;
 		}
-		else if (noeud_dep->type == TypeNoeudDependance::TYPE) {
-			auto type = noeud_dep->type_;
+		else if (noeud_dep->est_type()) {
+			auto type = noeud_dep->type();
 
 			if ((type->drapeaux & CODE_BINAIRE_TYPE_FUT_GENERE) != 0) {
 				return;
@@ -864,8 +871,8 @@ static void rassemble_globales_et_fonctions(
 				type->drapeaux |= CODE_BINAIRE_TYPE_FUT_GENERE;
 			}
 		}
-		else if (noeud_dep->type == TypeNoeudDependance::GLOBALE) {
-			auto decl_noeud = static_cast<NoeudDeclaration *>(noeud_dep->noeud_syntaxique);
+		else if (noeud_dep->est_globale()) {
+			auto decl_noeud = noeud_dep->globale();
 
 			if (decl_noeud->possede_drapeau(EST_CONSTANTE)) {
 				return;
