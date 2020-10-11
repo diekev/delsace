@@ -155,6 +155,14 @@ bool cherche_transformation(
 			}
 		}
 
+		if (type_de->genre == GenreType::ERREUR) {
+			if (type_vers == type_de->comme_erreur()->type_donnees) {
+				// on pourrait se passer de la conversion, ou normaliser le type
+				transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+				return false;
+			}
+		}
+
 		if (type_vers->genre == GenreType::ENUM && type_vers->comme_enum()->type_donnees == type_de) {
 			// on pourrait se passer de la conversion, ou normaliser le type
 			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
