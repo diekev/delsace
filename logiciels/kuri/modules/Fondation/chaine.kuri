@@ -95,9 +95,24 @@ construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine #nulctx
 }
 
 // Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
+// À FAIRE: ceci ne fait que copier le pointeur, il faudrait remplacer ceci par une copie profonde.
 converti_chaine_c :: fonc(chaine_c : *z8) -> chaine #nulctx
 {
 	retourne construit_chaine(chaine_c, taille_chaine_c(chaine_c))
+}
+
+copie_chaine_c :: fonc (chaine_c: *z8) -> chaine
+{
+	si !chaine_c || chaine_c[0] == '\0' {
+		retourne ""
+	}
+
+	taille := taille_chaine_c(chaine_c)
+	chn := loge chaine(taille)
+
+	copie_mem_nonsur(src = chaine_c, dst = chn.pointeur, taille = taille)
+
+	retourne chn
 }
 
 // Copie le contenue de la chn native dans un tampon afin de pouvoir la terminer
@@ -110,6 +125,14 @@ chaine_c_temp :: fonc(chn: chaine) -> *z8
     tampon[chn.taille] = '\0' comme octet
 
     retourne tampon comme *z8
+}
+
+crée_chaine_c :: fonc (chn: chaine) -> chaine
+{
+	tampon := loge chaine(chn.taille + 1)
+    copie_mem_nonsur(src = chn.pointeur, dst = tampon.pointeur, taille = chn.taille)
+    tampon[chn.taille] = '\0'
+	retourne tampon
 }
 
 // execute une fonction pour chaque ligne du texte d'entrée
