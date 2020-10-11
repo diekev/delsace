@@ -34,6 +34,7 @@ set(BIBLIOTHEQUES
 set(ENTETES
     assert.hh
 	attendu.hh
+    badge.hh
 	chaine.hh
 	chemin.hh
 	constantes.h
