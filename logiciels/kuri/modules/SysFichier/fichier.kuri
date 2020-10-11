@@ -1,5 +1,6 @@
 importe Fondation // pour chaine_c_temp
 importe GlibC
+importe POSIX
 
 // ----------------------------------------------------------
 // Toutes les erreurs possibles ; symétries de celles d'errno
@@ -222,6 +223,40 @@ système_positionne_fichier :: fonc (fd: z32, décalage: z32, où: z32) -> Résu
     }
 
     retourne résultat comme z32
+}
+
+crée_lien_symbolique :: fonc (cible: chaine, chemin_lien: chaine) -> ErreurFichier
+{
+    chn_c_cible := crée_chaine_c(cible)
+    diffère { déloge chn_c_cible }
+
+    chn_c_chemin_lien := crée_chaine_c(chemin_lien)
+    diffère { déloge chn_c_chemin_lien }
+
+    résultat := symlink(chn_c_cible.pointeur, chn_c_chemin_lien.pointeur)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant }
+            EEXIST       { retourne ErreurFichier.FichierExisteDéjà }
+            EACCES       { retourne ErreurFichier.PermissionNonAccordé }
+            EFAULT       { retourne ErreurFichier.MauvaisEspaceAdressage }
+            EIO          { retourne ErreurFichier.EntréeSortie; }
+            ELOOP        { retourne ErreurFichier.TropDeLiensSymboliques }
+            ENAMETOOLONG { retourne ErreurFichier.NomTropGrand }
+            ENOENT       { retourne ErreurFichier.FichierInexistant }
+            ENOMEM       { retourne ErreurFichier.MémoireInsuffisante }
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
+            ENOTDIR      { retourne ErreurFichier.PasDansUnDossier }
+            EPERM        { retourne ErreurFichier.PermissionNonAccordé }
+            EROFS        { retourne ErreurFichier.FichierEstLectureSeul }
+            sinon        { retourne ErreurFichier.Inconnue }
+        }
+    }
+
+    retourne 0 comme ErreurFichier
 }
 
 // ----------------------------------------------------------
