@@ -681,6 +681,23 @@ void Lexeuse::performe_lexage()
 #undef APPARIE_SUIVANT
 #undef APPARIE_2_SUIVANTS
 
+	// crée les identifiants à la fin pour améliorer la cohérence de cache
+	{
+		auto table_identifiants = m_compilatrice.table_identifiants.verrou_ecriture();
+
+		POUR (m_fichier->lexemes) {
+			if (it.genre == GenreLexeme::EXTERNE) {
+				it.ident = ID::externe;
+			}
+			else if (it.genre == GenreLexeme::SI) {
+				it.ident = ID::si;
+			}
+			else if (it.genre == GenreLexeme::CHAINE_CARACTERE) {
+				it.ident = table_identifiants->identifiant_pour_chaine(it.chaine);
+			}
+		}
+	}
+
 	m_fichier->fut_lexe = true;
 }
 
@@ -752,16 +769,6 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant)
 	Lexeme lexeme = {
 		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_fichier->id), m_compte_ligne, m_pos_mot
 	};
-
-	if (identifiant == GenreLexeme::EXTERNE) {
-		lexeme.ident = ID::externe;
-	}
-	else if (identifiant == GenreLexeme::SI) {
-		lexeme.ident = ID::si;
-	}
-	else if (identifiant == GenreLexeme::CHAINE_CARACTERE) {
-		lexeme.ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(lexeme.chaine);
-	}
 
 	m_fichier->lexemes.pousse(lexeme);
 	m_taille_mot_courant = 0;
