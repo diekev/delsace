@@ -312,3 +312,32 @@ void reduction_transitive(GrapheDependance &graphe_dependance)
 			  << relations_supprimees << " sur " << relations_totales
 			  << std::endl;
 }
+
+void rassemble_fonctions_utilisees(NoeudDependance *racine, kuri::tableau<AtomeFonction *> &fonctions, dls::ensemble<AtomeFonction *> &utilises)
+{
+	traverse_graphe(racine, [&](NoeudDependance *noeud)
+	{
+		if (noeud->type == TypeNoeudDependance::FONCTION) {
+			auto noeud_fonction = noeud->noeud_syntaxique->comme_entete_fonction();
+			auto atome_fonction = noeud_fonction->atome_fonction;
+			assert(atome_fonction);
+
+			if (utilises.trouve(atome_fonction) != utilises.fin()) {
+				return;
+			}
+
+			fonctions.pousse(atome_fonction);
+
+			utilises.insere(atome_fonction);
+		}
+		else if (noeud->type == TypeNoeudDependance::TYPE) {
+			auto type = noeud->type_;
+
+			if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
+				auto atome_fonction = type->fonction_init;
+				assert(atome_fonction);
+				fonctions.pousse(atome_fonction);
+			}
+		}
+	});
+}

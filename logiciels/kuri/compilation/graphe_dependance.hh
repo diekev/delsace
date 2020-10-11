@@ -30,6 +30,9 @@
 #include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "structures.hh"
+
+struct AtomeFonction;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
@@ -149,3 +152,5 @@ void traverse_graphe(NoeudDependance *racine, Rappel rappel)
 
 	rappel(racine);
 }
+
+void rassemble_fonctions_utilisees(NoeudDependance *racine, kuri::tableau<AtomeFonction *> &fonctions, dls::ensemble<AtomeFonction *> &utilises);
