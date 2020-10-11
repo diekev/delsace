@@ -76,8 +76,6 @@ struct Relation {
 
 struct NoeudDependance {
 private:
-	TypeNoeudDependance m_type_noeud = TypeNoeudDependance::INVALIDE;
-
 	dls::tableau<Relation> m_relations{};
 
 	union {
@@ -86,16 +84,17 @@ private:
 		NoeudDeclarationVariable *m_noeud_globale;
 	};
 
-public:
-	explicit NoeudDependance(NoeudDeclarationVariable *globale);
-	explicit NoeudDependance(NoeudDeclarationEnteteFonction *fonction);
-	explicit NoeudDependance(Type *t);
+	TypeNoeudDependance m_type_noeud = TypeNoeudDependance::INVALIDE;
 
+public:
 	bool fut_visite = false;
-	bool deja_genere = false;
 
 	/* pour certains algorithmes de travail sur le graphe */
 	char drapeaux = 0;
+
+	explicit NoeudDependance(NoeudDeclarationVariable *globale);
+	explicit NoeudDependance(NoeudDeclarationEnteteFonction *fonction);
+	explicit NoeudDependance(Type *t);
 
 	inline bool est_type() const
 	{
