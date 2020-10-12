@@ -65,17 +65,17 @@ static auto renseigne_fonction_interface(dls::outils::Synchrone<InterfaceKuri> &
 		return; \
 	}
 
-	INIT_MEMBRE(decl_panique, ID::panique);
-	INIT_MEMBRE(decl_panique_memoire, ID::panique_hors_memoire);
-	INIT_MEMBRE(decl_panique_tableau, ID::panique_depassement_limites_tableau);
-	INIT_MEMBRE(decl_panique_chaine, ID::panique_depassement_limites_chaine);
-	INIT_MEMBRE(decl_panique_membre_union, ID::panique_membre_union);
-	INIT_MEMBRE(decl_panique_erreur, ID::panique_erreur_non_geree);
-	INIT_MEMBRE(decl_rappel_panique_defaut, ID::__rappel_panique_defaut);
-	INIT_MEMBRE(decl_dls_vers_r32, ID::DLS_vers_r32);
-	INIT_MEMBRE(decl_dls_vers_r64, ID::DLS_vers_r64);
-	INIT_MEMBRE(decl_dls_depuis_r32, ID::DLS_depuis_r32);
-	INIT_MEMBRE(decl_dls_depuis_r64, ID::DLS_depuis_r64);
+	INIT_MEMBRE(decl_panique, ID::panique)
+	INIT_MEMBRE(decl_panique_memoire, ID::panique_hors_memoire)
+	INIT_MEMBRE(decl_panique_tableau, ID::panique_depassement_limites_tableau)
+	INIT_MEMBRE(decl_panique_chaine, ID::panique_depassement_limites_chaine)
+	INIT_MEMBRE(decl_panique_membre_union, ID::panique_membre_union)
+	INIT_MEMBRE(decl_panique_erreur, ID::panique_erreur_non_geree)
+	INIT_MEMBRE(decl_rappel_panique_defaut, ID::__rappel_panique_defaut)
+	INIT_MEMBRE(decl_dls_vers_r32, ID::DLS_vers_r32)
+	INIT_MEMBRE(decl_dls_vers_r64, ID::DLS_vers_r64)
+	INIT_MEMBRE(decl_dls_depuis_r32, ID::DLS_depuis_r32)
+	INIT_MEMBRE(decl_dls_depuis_r64, ID::DLS_depuis_r64)
 
 #undef INIT_MEMBRE
 }
@@ -88,21 +88,21 @@ static auto renseigne_type_interface(Typeuse &typeuse, IdentifiantCode *ident, T
 		return; \
 	}
 
-	INIT_TYPE(type_info_type_, ID::InfoType);
-	INIT_TYPE(type_info_type_enum, ID::InfoTypeEnum);
-	INIT_TYPE(type_info_type_structure, ID::InfoTypeStructure);
-	INIT_TYPE(type_info_type_union, ID::InfoTypeUnion);
-	INIT_TYPE(type_info_type_membre_structure, ID::InfoTypeMembreStructure);
-	INIT_TYPE(type_info_type_entier, ID::InfoTypeEntier);
-	INIT_TYPE(type_info_type_tableau, ID::InfoTypeTableau);
-	INIT_TYPE(type_info_type_pointeur, ID::InfoTypePointeur);
-	INIT_TYPE(type_info_type_fonction, ID::InfoTypeFonction);
-	INIT_TYPE(type_position_code_source, ID::PositionCodeSource);
-	INIT_TYPE(type_info_fonction_trace_appel, ID::InfoFonctionTraceAppel);
-	INIT_TYPE(type_trace_appel, ID::TraceAppel);
-	INIT_TYPE(type_base_allocatrice, ID::BaseAllocatrice);
-	INIT_TYPE(type_info_appel_trace_appel, ID::InfoAppelTraceAppel);
-	INIT_TYPE(type_stockage_temporaire, ID::StockageTemporaire);
+	INIT_TYPE(type_info_type_, ID::InfoType)
+	INIT_TYPE(type_info_type_enum, ID::InfoTypeEnum)
+	INIT_TYPE(type_info_type_structure, ID::InfoTypeStructure)
+	INIT_TYPE(type_info_type_union, ID::InfoTypeUnion)
+	INIT_TYPE(type_info_type_membre_structure, ID::InfoTypeMembreStructure)
+	INIT_TYPE(type_info_type_entier, ID::InfoTypeEntier)
+	INIT_TYPE(type_info_type_tableau, ID::InfoTypeTableau)
+	INIT_TYPE(type_info_type_pointeur, ID::InfoTypePointeur)
+	INIT_TYPE(type_info_type_fonction, ID::InfoTypeFonction)
+	INIT_TYPE(type_position_code_source, ID::PositionCodeSource)
+	INIT_TYPE(type_info_fonction_trace_appel, ID::InfoFonctionTraceAppel)
+	INIT_TYPE(type_trace_appel, ID::TraceAppel)
+	INIT_TYPE(type_base_allocatrice, ID::BaseAllocatrice)
+	INIT_TYPE(type_info_appel_trace_appel, ID::InfoAppelTraceAppel)
+	INIT_TYPE(type_stockage_temporaire, ID::StockageTemporaire)
 
 #undef INIT_TYPE
 }
