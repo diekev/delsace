@@ -25,6 +25,7 @@
 #pragma once
 
 #include <assert.h>
+#include <functional>
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -82,6 +83,29 @@ using compte_milliseconde = compte_temps<1000>;
 using compte_seconde = compte_temps<1000000>;
 using compte_minute = compte_temps<60000000>;
 using compte_heure = compte_temps<3600000000>;
+
+template <long N>
+struct chrono_rappel {
+private:
+    compte_temps<N> chrono{};
+    std::function<void(double)> m_rappel{};
+
+public:
+    chrono_rappel(std::function<void(double)> rappel)
+        : m_rappel(rappel)
+    {}
+
+    ~chrono_rappel()
+    {
+        m_rappel(chrono.temps());
+    }
+};
+
+using chrono_rappel_microseconde = chrono_rappel<1>;
+using chrono_rappel_milliseconde = chrono_rappel<1000>;
+using chrono_rappel_seconde = chrono_rappel<1000000>;
+using chrono_rappel_minute = chrono_rappel<60000000>;
+using chrono_rappel_heure = chrono_rappel<3600000000>;
 
 /**
  * Structure définissant un chronomètre pouvant être arrêté et repris. Elle
