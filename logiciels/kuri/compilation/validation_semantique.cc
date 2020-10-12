@@ -3100,6 +3100,8 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	return false;
 }
 
+#undef CHRONOMETRE_TYPAGE
+
 bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariable *decl)
 {
 	struct DeclarationEtReference {
@@ -3108,69 +3110,108 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 	};
 
 	auto feuilles_variables = dls::tablet<NoeudExpression *, 6>();
-	rassemble_expressions(decl->valeur, feuilles_variables);
+	{
+#ifdef CHRONOMETRE_TYPAGE
+		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
+			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "rassemble variables", temps });
+		});
+#endif
+
+		rassemble_expressions(decl->valeur, feuilles_variables);
+	}
 
 	/* Rassemble les variables, et crée des déclarations si nécessaire. */
 	auto decls_et_refs = dls::tablet<DeclarationEtReference, 6>();
 	decls_et_refs.redimensionne(feuilles_variables.taille());
+	{
+#ifdef CHRONOMETRE_TYPAGE
+		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
+			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "préparation", temps });
+		});
+#endif
 
-	if (feuilles_variables.taille() == 1) {
-		auto variable = feuilles_variables[0];
-
-		if (!variable->est_ref_decl()) {
-			rapporte_erreur("Expression inattendue à gauche de la déclaration", variable);
-		}
-
-		decls_et_refs[0].ref_decl = variable;
-		decls_et_refs[0].decl = decl;
-		variable->comme_ref_decl()->decl = decl;
-	}
-	else {
-		for (auto i = 0; i < feuilles_variables.taille(); ++i) {
-			auto variable = feuilles_variables[i];
+		if (feuilles_variables.taille() == 1) {
+			auto variable = feuilles_variables[0];
 
 			if (!variable->est_ref_decl()) {
 				rapporte_erreur("Expression inattendue à gauche de la déclaration", variable);
 			}
 
-			// crée de nouvelles déclaration pour les différentes opérandes
-			auto decl_extra = static_cast<NoeudDeclarationVariable *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, variable->lexeme));
-			decl_extra->ident = variable->ident;
-			decl_extra->valeur = variable;
-			decl_extra->bloc_parent = decl->bloc_parent;
-			decl->bloc_parent->membres->pousse(decl_extra);
+			decls_et_refs[0].ref_decl = variable;
+			decls_et_refs[0].decl = decl;
+			variable->comme_ref_decl()->decl = decl;
+		}
+		else {
+			for (auto i = 0; i < feuilles_variables.taille(); ++i) {
+				auto variable = feuilles_variables[i];
 
-			decls_et_refs[i].ref_decl = variable;
-			decls_et_refs[i].decl = decl_extra;
-			variable->comme_ref_decl()->decl = decl_extra;
+				if (!variable->est_ref_decl()) {
+					rapporte_erreur("Expression inattendue à gauche de la déclaration", variable);
+				}
+
+				// crée de nouvelles déclaration pour les différentes opérandes
+				auto decl_extra = static_cast<NoeudDeclarationVariable *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, variable->lexeme));
+				decl_extra->ident = variable->ident;
+				decl_extra->valeur = variable;
+				decl_extra->bloc_parent = decl->bloc_parent;
+				decl->bloc_parent->membres->pousse(decl_extra);
+
+				decls_et_refs[i].ref_decl = variable;
+				decls_et_refs[i].decl = decl_extra;
+				variable->comme_ref_decl()->decl = decl_extra;
+			}
 		}
 	}
 
-	POUR (decls_et_refs) {
-		auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl);
+	{
+#ifdef CHRONOMETRE_TYPAGE
+		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
+			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "typage et redéfinition", temps });
+		});
+#endif
 
-		if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
-			if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
-				rapporte_erreur_redefinition_symbole(it.ref_decl, decl_prec);
+		POUR (decls_et_refs) {
+			auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl);
+
+			if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
+				if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
+					rapporte_erreur_redefinition_symbole(it.ref_decl, decl_prec);
+					return true;
+				}
+			}
+
+			if (resoud_type_final(it.ref_decl->expression_type, it.ref_decl->type)) {
 				return true;
 			}
-		}
-
-		if (resoud_type_final(it.ref_decl->expression_type, it.ref_decl->type)) {
-			return true;
 		}
 	}
 
 	auto feuilles_expressions = dls::tablet<NoeudExpression *, 6>();
-	rassemble_expressions(decl->expression, feuilles_expressions);
+	{
+#ifdef CHRONOMETRE_TYPAGE
+		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
+			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "rassemble expressions", temps });
+		});
+#endif
+
+		rassemble_expressions(decl->expression, feuilles_expressions);
+	}
 
 	// pour chaque expression, associe les variables qui doivent recevoir leurs résultats
 	// si une variable n'a pas de valeur, prend la valeur de la dernière expression
 
 	auto variables = dls::file<NoeudExpression *>();
 
-	POUR (feuilles_variables) {
-		variables.enfile(it);
+	{
+#ifdef CHRONOMETRE_TYPAGE
+		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
+			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "enfile variables", temps });
+		});
+#endif
+
+		POUR (feuilles_variables) {
+			variables.enfile(it);
+		}
 	}
 
 	dls::tablet<DonneesAssignations, 6> donnees_assignations{};
@@ -3218,123 +3259,147 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 		return true;
 	};
 
-	POUR (feuilles_expressions) {
-		auto donnees = DonneesAssignations();
-		donnees.expression = it;
+	{
+#ifdef CHRONOMETRE_TYPAGE
+		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
+			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "assignation expressions", temps });
+		});
+#endif
 
-		// il est possible d'ignorer les variables
-		if  (variables.est_vide()) {
-			::rapporte_erreur(espace, decl, "Trop d'expressions ou de types pour l'assignation");
-			return true;
-		}
+		POUR (feuilles_expressions) {
+			auto donnees = DonneesAssignations();
+			donnees.expression = it;
 
-		if ((decl->drapeaux & EST_CONSTANTE) && it->est_non_initialisation()) {
-			rapporte_erreur("Impossible de ne pas initialiser une constante", it);
-			return true;
-		}
+			// il est possible d'ignorer les variables
+			if  (variables.est_vide()) {
+				::rapporte_erreur(espace, decl, "Trop d'expressions ou de types pour l'assignation");
+				return true;
+			}
 
-		if (decl->drapeaux & EST_EXTERNE) {
-			rapporte_erreur("Ne peut pas assigner une variable globale externe dans sa déclaration", decl);
-			return true;
-		}
+			if ((decl->drapeaux & EST_CONSTANTE) && it->est_non_initialisation()) {
+				rapporte_erreur("Impossible de ne pas initialiser une constante", it);
+				return true;
+			}
 
-		if (it->type == nullptr && !it->est_non_initialisation()) {
-			rapporte_erreur("impossible de définir le type de l'expression", it);
-			return true;
-		}
+			if (decl->drapeaux & EST_EXTERNE) {
+				rapporte_erreur("Ne peut pas assigner une variable globale externe dans sa déclaration", decl);
+				return true;
+			}
 
-		if (it->est_non_initialisation()) {
-			donnees.variables.pousse(variables.defile());
-			donnees.transformations.pousse({ TypeTransformation::INUTILE });
-		}
-		else if (it->est_appel() && it->comme_appel()->noeud_fonction_appelee && it->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
-			auto type_fonction = it->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
+			if (it->type == nullptr && !it->est_non_initialisation()) {
+				rapporte_erreur("impossible de définir le type de l'expression", it);
+				return true;
+			}
 
-			donnees.multiple_retour = type_fonction->types_sorties.taille > 1;
+			if (it->est_non_initialisation()) {
+				donnees.variables.pousse(variables.defile());
+				donnees.transformations.pousse({ TypeTransformation::INUTILE });
+			}
+			else if (it->est_appel() && it->comme_appel()->noeud_fonction_appelee && it->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
+				auto type_fonction = it->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
 
-			for (auto type : type_fonction->types_sorties) {
-				if (variables.est_vide()) {
-					break;
+				donnees.multiple_retour = type_fonction->types_sorties.taille > 1;
+
+				for (auto type : type_fonction->types_sorties) {
+					if (variables.est_vide()) {
+						break;
+					}
+
+					if (!ajoute_variable(donnees, variables.defile(), it, type)) {
+						return true;
+					}
 				}
-
-				if (!ajoute_variable(donnees, variables.defile(), it, type)) {
+			}
+			else if (it->type->est_rien()) {
+				rapporte_erreur("impossible d'assigner une expression de type « rien » à une variable", it, erreur::Genre::ASSIGNATION_RIEN);
+				return true;
+			}
+			else {
+				if (!ajoute_variable(donnees, variables.defile(), it, it->type)) {
 					return true;
 				}
 			}
+
+			donnees_assignations.pousse(donnees);
 		}
-		else if (it->type->est_rien()) {
-			rapporte_erreur("impossible d'assigner une expression de type « rien » à une variable", it, erreur::Genre::ASSIGNATION_RIEN);
-			return true;
+
+		if (donnees_assignations.est_vide()) {
+			donnees_assignations.pousse({});
 		}
-		else {
-			if (!ajoute_variable(donnees, variables.defile(), it, it->type)) {
+
+		// a, b := c
+		auto donnees = &donnees_assignations.back();
+		while (!variables.est_vide()) {
+			auto var = variables.defile();
+			auto transformation = TransformationType(TypeTransformation::INUTILE);
+
+			if (donnees->expression) {
+				var->type = donnees->expression->type;
+
+				if (var->type->est_entier_constant()) {
+					var->type = espace->typeuse[TypeBase::Z32];
+					transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, var->type };
+				}
+			}
+
+			if (fonction_courante && fonction_courante->possede_drapeau(FORCE_NULCTX) && (var->type->est_structure() || var->type->est_union()) && !var->comme_ref_decl()->decl->possede_drapeau(EST_PARAMETRE)) {
+				::rapporte_erreur(espace, var, "Impossible d'initialiser par défaut une structure dans un bloc n'ayant pas de contexte");
+			}
+
+			donnees->variables.pousse(var);
+			donnees->transformations.pousse(transformation);
+		}
+	}
+
+	{
+#ifdef CHRONOMETRE_TYPAGE
+		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
+			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "validation finale", temps });
+		});
+#endif
+
+		POUR (decls_et_refs) {
+			auto decl_var = it.decl;
+			auto variable = it.ref_decl;
+
+			if (variable->type == nullptr) {
+				rapporte_erreur("variable déclarée sans type", variable);
 				return true;
 			}
-		}
 
-		donnees_assignations.pousse(donnees);
-	}
+			decl_var->type = variable->type;
 
-	if (donnees_assignations.est_vide()) {
-		donnees_assignations.pousse({});
-	}
-
-	// a, b := c
-	auto donnees = &donnees_assignations.back();	
-	while (!variables.est_vide()) {
-		auto var = variables.defile();
-		auto transformation = TransformationType(TypeTransformation::INUTILE);
-
-		if (donnees->expression) {
-			var->type = donnees->expression->type;
-
-			if (var->type->est_entier_constant()) {
-				var->type = espace->typeuse[TypeBase::Z32];
-				transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, var->type };
+			if (decl_var->drapeaux & EST_GLOBALE) {
+				auto graphe = espace->graphe_dependance.verrou_ecriture();
+				graphe->cree_noeud_globale(decl_var);
 			}
-		}
 
-		if (fonction_courante && fonction_courante->possede_drapeau(FORCE_NULCTX) && (var->type->est_structure() || var->type->est_union()) && !var->comme_ref_decl()->decl->possede_drapeau(EST_PARAMETRE)) {
-			::rapporte_erreur(espace, var, "Impossible d'initialiser par défaut une structure dans un bloc n'ayant pas de contexte");
-		}
+			auto bloc_parent = decl_var->bloc_parent;
 
-		donnees->variables.pousse(var);
-		donnees->transformations.pousse(transformation);
+			// pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la fonction (ce qui est le cas pour les paramètres...)
+			if (fonction_courante && bloc_parent == fonction_courante->corps->bloc->bloc_parent) {
+				bloc_parent = fonction_courante->corps->bloc;
+			}
+
+			bloc_parent->membres->pousse(decl_var);
+
+			decl_var->drapeaux |= DECLARATION_FUT_VALIDEE;
+			donnees_dependance.types_utilises.insere(decl_var->type);
+		}
 	}
 
-	POUR (decls_et_refs) {
-		auto decl_var = it.decl;
-		auto variable = it.ref_decl;
+	{
+#ifdef CHRONOMETRE_TYPAGE
+		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
+			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "copie données", temps });
+		});
+#endif
 
-		if (variable->type == nullptr) {
-			rapporte_erreur("variable déclarée sans type", variable);
-			return true;
+		decl->donnees_decl.reserve(donnees_assignations.taille());
+
+		POUR (donnees_assignations) {
+			decl->donnees_decl.pousse(std::move(it));
 		}
-
-		decl_var->type = variable->type;
-
-		if (decl_var->drapeaux & EST_GLOBALE) {
-			auto graphe = espace->graphe_dependance.verrou_ecriture();
-			graphe->cree_noeud_globale(decl_var);
-		}
-
-		auto bloc_parent = decl_var->bloc_parent;
-
-		// pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la fonction (ce qui est le cas pour les paramètres...)
-		if (fonction_courante && bloc_parent == fonction_courante->corps->bloc->bloc_parent) {
-			bloc_parent = fonction_courante->corps->bloc;
-		}
-
-		bloc_parent->membres->pousse(decl_var);
-
-		decl_var->drapeaux |= DECLARATION_FUT_VALIDEE;
-		donnees_dependance.types_utilises.insere(decl_var->type);
-	}
-
-	decl->donnees_decl.reserve(donnees_assignations.taille());
-
-	POUR (donnees_assignations) {
-		decl->donnees_decl.pousse(std::move(it));
 	}
 
 	return false;

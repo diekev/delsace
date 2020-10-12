@@ -148,3 +148,7 @@ struct Statistiques {
     StatistiquesMessage stats_messages{};
     StatistiquesRI stats_ri{};
 };
+
+struct StatistiquesTypage {
+	EntreesStats<EntreeTemps> validation_decl{};
+};

@@ -27,6 +27,7 @@
 #include "biblinternes/structures/file.hh"
 
 #include "allocatrice_noeud.hh"
+#include "statistiques.hh"
 #include "unite_compilation.hh"
 
 #include "../representation_intermediaire/constructrice_ri.hh"
@@ -144,6 +145,8 @@ struct Tacheronne {
 
 	AllocatriceNoeud allocatrice_noeud{};
 	AssembleuseArbre *assembleuse = nullptr;
+
+	StatistiquesTypage stats_typage{};
 
 	double temps_validation = 0.0;
 	double temps_lexage = 0.0;
