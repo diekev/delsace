@@ -335,6 +335,10 @@ void Lexeuse::performe_lexage()
 									this->enregistre_pos_mot();
 								}
 
+								auto taille_mot = 0;
+								auto position_ligne = this->m_position_ligne;
+								auto debut_chaine = this->m_debut;
+
 								while (!this->fini()) {
 									nombre_octet = lng::nombre_octets(m_debut);
 									c = lng::converti_utf32(m_debut, nombre_octet);
@@ -343,9 +347,23 @@ void Lexeuse::performe_lexage()
 										break;
 									}
 
-									m_taille_mot_courant += nombre_octet;
 									this->avance(nombre_octet);
+									taille_mot += nombre_octet;
 								}
+
+								auto fin_chaine = this->m_debut;
+
+								kuri::chaine chaine;
+								chaine.reserve(taille_mot);
+
+								this->m_position_ligne = position_ligne;
+								this->m_debut = debut_chaine;
+
+								while (m_debut != fin_chaine) {
+									this->lexe_caractere_litteral(&chaine);
+								}
+
+								m_compilatrice.gerante_chaine->ajoute_chaine(chaine, taille_mot);
 
 								/* Saute le dernier guillemet si nécessaire. */
 								if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
@@ -354,7 +372,7 @@ void Lexeuse::performe_lexage()
 
 								this->avance(nombre_octet);
 
-								this->pousse_mot(GenreLexeme::CHAINE_LITTERALE);
+								this->pousse_mot(GenreLexeme::CHAINE_LITTERALE, chaine);
 								break;
 							}
 							default:
