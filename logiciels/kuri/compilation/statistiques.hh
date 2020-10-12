@@ -75,6 +75,17 @@ struct EntreeFichier {
     }
 };
 
+struct EntreeTemps {
+	const char *nom{};
+	double temps = 0.0;
+
+	EntreeTemps &operator += (EntreeTemps const &autre)
+	{
+		temps += autre.temps;
+		return *this;
+	}
+};
+
 template <TypeEntreesStats T>
 struct EntreesStats {
     dls::tableau<T> entrees{};
