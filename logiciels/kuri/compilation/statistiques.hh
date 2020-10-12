@@ -151,4 +151,5 @@ struct Statistiques {
 
 struct StatistiquesTypage {
 	EntreesStats<EntreeTemps> validation_decl{};
+	EntreesStats<EntreeTemps> validation_appel{};
 };

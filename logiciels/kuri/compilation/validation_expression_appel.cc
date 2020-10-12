@@ -24,6 +24,8 @@
 
 #include "validation_expression_appel.hh"
 
+#include "biblinternes/chrono/outils.hh"
+
 #include "assembleuse_arbre.h"
 #include "compilatrice.hh"
 #include "erreur.h"
@@ -989,6 +991,8 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 
 /* ************************************************************************** */
 
+#undef CHRONOMETRE_TYPAGE
+
 // À FAIRE : ajout d'un état de résolution des appels afin de savoir à quelle étape nous nous arrêté en cas d'erreur recouvrable (typage fait, tri des arguments fait, etc.)
 bool valide_appel_fonction(
 		Compilatrice &compilatrice,
@@ -997,6 +1001,16 @@ bool valide_appel_fonction(
 		NoeudExpressionAppel *expr)
 {
 	Prof(valide_appel_fonction);
+
+#ifdef CHRONOMETRE_TYPAGE
+	auto possede_erreur = true;
+	dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
+		if (possede_erreur) {
+			contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entree({ "tentatives râtées", temps });
+		}
+		contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entree({ "valide_appel_fonction", temps });
+	});
+#endif
 
 	auto fonction_courante = contexte.fonction_courante;
 	auto &donnees_dependance = contexte.donnees_dependance;
@@ -1007,17 +1021,25 @@ bool valide_appel_fonction(
 	kuri::tableau<IdentifiantEtExpression> args;
 	args.reserve(expr->params.taille);
 
-	POUR (expr->params) {
-		// l'argument est nommé
-		if (it->est_assignation()) {
-			auto assign = it->comme_assignation();
-			auto nom_arg = assign->variable;
-			auto arg = assign->expression;
+	{
+#ifdef CHRONOMETRE_TYPAGE
+		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
+			contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entree({ "prépare arguments", temps });
+		});
+#endif
 
-			args.pousse({ nom_arg->ident, nom_arg, arg });
-		}
-		else {
-			args.pousse({ nullptr, nullptr, it });
+		POUR (expr->params) {
+			// l'argument est nommé
+			if (it->est_assignation()) {
+				auto assign = it->comme_assignation();
+				auto nom_arg = assign->variable;
+				auto arg = assign->expression;
+
+				args.pousse({ nom_arg->ident, nom_arg, arg });
+			}
+			else {
+				args.pousse({ nullptr, nullptr, it });
+			}
 		}
 	}
 
@@ -1025,9 +1047,16 @@ bool valide_appel_fonction(
 	// trouve la fonction, pour savoir ce que l'on a
 
 	auto candidates = dls::tablet<DonneesCandidate, 10>();
+	{
+#ifdef CHRONOMETRE_TYPAGE
+		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
+			contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entree({ "trouve candidate", temps });
+		});
+#endif
 
-	if (trouve_candidates_pour_appel(espace, contexte, expr, args, candidates)) {
-		return true;
+		if (trouve_candidates_pour_appel(espace, contexte, expr, args, candidates)) {
+			return true;
+		}
 	}
 
 	auto candidate = DonneesCandidate::nul();
@@ -1065,6 +1094,12 @@ bool valide_appel_fonction(
 
 	// ------------
 	// copie les données
+
+#ifdef CHRONOMETRE_TYPAGE
+	dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
+		contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entree({ "copie données", temps });
+	});
+#endif
 
 	expr->exprs.reserve(candidate->exprs.taille());
 
@@ -1200,6 +1235,10 @@ bool valide_appel_fonction(
 		// le type du retour
 		expr->type = espace.typeuse[TypeBase::RIEN];
 	}
+
+#ifdef CHRONOMETRE_TYPAGE
+	possede_erreur = false;
+#endif
 
 	assert(expr->type);
 	return false;
