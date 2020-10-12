@@ -429,6 +429,7 @@ implémente la directive #si pour la compilation sélective
 - ajout de la construction des messages dans les tâches
 - fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'améliorer la cohérence de cache)
 - ajout de tâches pour le chargement des fichiers, et la construction des tampons
+- ajout d'une interface à la compilatrice pour définir des fonctions racines depuis des annotations
 
 À faire (architecture)
 ----------------------
