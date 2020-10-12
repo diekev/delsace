@@ -335,9 +335,6 @@ void Lexeuse::performe_lexage()
 									this->enregistre_pos_mot();
 								}
 
-								auto taille_mot = 0;
-								auto position_ligne = this->m_position_ligne;
-								auto debut_chaine = this->m_debut;
 								auto profondeur = 0;
 
 								while (!this->fini()) {
@@ -357,22 +354,8 @@ void Lexeuse::performe_lexage()
 									}
 
 									this->avance(nombre_octet);
-									taille_mot += nombre_octet;
+									this->pousse_caractere(nombre_octet);
 								}
-
-								auto fin_chaine = this->m_debut;
-
-								kuri::chaine chaine;
-								chaine.reserve(taille_mot);
-
-								this->m_position_ligne = position_ligne;
-								this->m_debut = debut_chaine;
-
-								while (m_debut != fin_chaine) {
-									this->lexe_caractere_litteral(&chaine);
-								}
-
-								m_compilatrice.gerante_chaine->ajoute_chaine(chaine, taille_mot);
 
 								/* Saute le dernier guillemet si nécessaire. */
 								if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
@@ -381,7 +364,7 @@ void Lexeuse::performe_lexage()
 
 								this->avance(nombre_octet);
 
-								this->pousse_mot(GenreLexeme::CHAINE_LITTERALE, chaine);
+								this->pousse_mot(GenreLexeme::CHAINE_LITTERALE);
 								break;
 							}
 							default:
@@ -512,32 +495,14 @@ void Lexeuse::performe_lexage()
 					this->enregistre_pos_mot();
 				}
 
-				auto taille_mot = 0;
-				auto position_ligne = this->m_position_ligne;
-				auto debut_chaine = this->m_debut;
-
 				while (!this->fini()) {
 					if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
 						break;
 					}
 
-					++taille_mot;
 					this->avance();
+					this->pousse_caractere();
 				}
-
-				auto fin_chaine = this->m_debut;
-
-				kuri::chaine chaine;
-				chaine.reserve(taille_mot);
-
-				this->m_position_ligne = position_ligne;
-				this->m_debut = debut_chaine;
-
-				while (m_debut != fin_chaine) {
-					this->lexe_caractere_litteral(&chaine);
-				}
-
-				m_compilatrice.gerante_chaine->ajoute_chaine(chaine, taille_mot);
 
 				/* Saute le dernier guillemet si nécessaire. */
 				if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
@@ -546,7 +511,7 @@ void Lexeuse::performe_lexage()
 
 				this->avance_fixe<1>();
 
-				this->pousse_mot(GenreLexeme::CHAINE_LITTERALE, chaine);
+				this->pousse_mot(GenreLexeme::CHAINE_LITTERALE);
 				break;
 			}
 			case '\'':
@@ -725,6 +690,32 @@ void Lexeuse::performe_lexage()
 		}
 	}
 
+	// crée les chaines littérales à la fin pour améliorer la cohérence de cache
+	{
+		auto gerante_chaine = m_compilatrice.gerante_chaine.verrou_ecriture();
+
+		POUR (m_fichier->lexemes) {
+			if (it.genre != GenreLexeme::CHAINE_LITTERALE) {
+				continue;
+			}
+
+			this->m_debut = it.chaine.pointeur();
+			auto fin_chaine = this->m_debut + it.chaine.taille();
+
+			kuri::chaine chaine;
+			chaine.reserve(it.chaine.taille());
+
+			while (m_debut != fin_chaine) {
+				this->lexe_caractere_litteral(&chaine);
+			}
+
+			gerante_chaine->ajoute_chaine(chaine, it.chaine.taille());
+
+			it.pointeur = chaine.pointeur;
+			it.taille = chaine.taille;
+		}
+	}
+
 	m_fichier->fut_lexe = true;
 }
 
@@ -797,24 +788,6 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant, unsigned valeur)
 	}
 
 	m_fichier->lexemes.pousse({ mot_courant(), { valeur }, identifiant, static_cast<int>(m_fichier->id), m_compte_ligne, m_pos_mot });
-	m_taille_mot_courant = 0;
-	m_dernier_id = identifiant;
-}
-
-void Lexeuse::pousse_mot(GenreLexeme identifiant, kuri::chaine valeur)
-{
-	if (m_fichier->lexemes.taille() % 128 == 0) {
-		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
-	}
-
-	Lexeme lexeme = {
-		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_fichier->id), m_compte_ligne, m_pos_mot
-	};
-
-	lexeme.pointeur = valeur.pointeur;
-	lexeme.taille = valeur.taille;
-
-	m_fichier->lexemes.pousse(lexeme);
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }

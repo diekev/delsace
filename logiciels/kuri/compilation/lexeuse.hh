@@ -95,7 +95,6 @@ private:
 
 	void pousse_mot(GenreLexeme identifiant);
 	void pousse_mot(GenreLexeme identifiant, unsigned valeur);
-	void pousse_mot(GenreLexeme identifiant, kuri::chaine valeur);
 
 	ENLIGNE_TOUJOURS void enregistre_pos_mot()
 	{
