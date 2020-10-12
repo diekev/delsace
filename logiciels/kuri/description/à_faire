@@ -410,7 +410,7 @@ implémente la directive #si pour la compilation sélective
     perte de l'arbre aplatis dans le code utilisateur
 
 - ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés (pour permettre les emplois d'énumérations)
-- ajout des informations de positions dans le code source pour la RI
+- ajout des informations de positions dans le code source pour la RI (ajout de NoeudExpression *site à chaque Atome)
 - utilise un noeud de déclaration de variable quand nous parsons une variable (a : z32) au lieu de modifier l'expression à la fin (nous permettant de supprimer expression_type du noeud de base)
 - vérifie les appels superflux à empile_valeur (expr appel, transforme valeur)
 - considère supprimer noeud_expression_appel::noeud_déclaration_appel (surécris appele?)
@@ -419,17 +419,19 @@ implémente la directive #si pour la compilation sélective
 ---- a + b, où + est un opérateur surchargé -> appel(a, b)
 ---- -a, où - est un opérateur surchargé -> appel(a)
 
-- comprend pourquoi les métaprogrammes mettent du temps à se finir
 - optimise la quantité de mémoire utilisée pour stocker les variables dans les métaprogrammes
 -- pour cela il faut pouvoir déterminer quand une locale est hors de portée, en incluant les boucles (une allocation en début de boucle doit être désallouée en fin de boucle)
 - termine l'implémentation de la normalisation des types
 - meilleure manière de changer les phases de compilation, il faut pouvoir revenir en arrière quand un métaprogramme ou une phase de compilation ajoute du travail
 - réusine les emplois de variables dans les structures, pour les infos types, il nous faut la structure, mais pour la validation la structure et ses membres, ses membres ne doivent être ceux de l'employeuse
 
+- statistiques pour les reprises de compilation (temps, nombre, où), ainsi que pour le temps passé dans chaque feuille de l'arbre de typage (hors arbre aplatis)
+- ajout de la construction des messages dans les tâches
+- fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'améliorer la cohérence de cache)
+- ajout de tâches pour le chargement des fichiers, et la construction des tampons
+
 À faire (architecture)
 ----------------------
-- préparsage pour construire une table de symbole (la table ne sera pas nécessaire si nous parsons uniquement les fonctions lors des appels ou des directives d'exécution)
-- utilisation de plusieurs tacheronnes (en cours)
 - génération de code sur plusieurs threads (LLVM -> un module par thread + liaison finale de tous les modules)
 - réduction des allocations
 - déplace la génération de la fonction main dans une unité de compilation
@@ -570,3 +572,54 @@ bool apparie(Appariement *appariement, Atome *atome)
 
     return true;
 }
+
+
+struct Allocatrice {
+	long nombre_allocations = 0;
+
+	template <typename T>
+	T *loge()
+	{
+		return nullptr;
+	}
+
+	template <typename T>
+	void deloge(T *&ptr)
+	{
+		ptr = nullptr;
+		return;
+	}
+};
+
+/* kuri::tableau
+ * kuri::tablet
+ * kuri::tableau_statique (pour l'interface)
+ * kuri::chaine
+ * kuri::chaine_statique (pour l'interface, et les « vues »)
+ * kuri::file
+ * kuri::filonne (allouée sur la pile)
+ * kuri::ensemble
+ * kuri::ensemblon (allouée sur la pile)
+ * kuri::table_hachage
+ * kuri::plage (begin + end)
+ *
+ * interface de base:
+ *
+ * ctor(Allocatrice)
+ * copy_ctor()
+ * move_ctor()
+ *
+ * plage()
+ *
+ * operator[](long)
+ *
+ * reserve()
+ * redimensionne()
+ *
+ * efface()
+ *
+ * premier()
+ * dernier()
+ *
+ * ajoute()
+ */
