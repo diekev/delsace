@@ -338,13 +338,22 @@ void Lexeuse::performe_lexage()
 								auto taille_mot = 0;
 								auto position_ligne = this->m_position_ligne;
 								auto debut_chaine = this->m_debut;
+								auto profondeur = 0;
 
 								while (!this->fini()) {
 									nombre_octet = lng::nombre_octets(m_debut);
 									c = lng::converti_utf32(m_debut, nombre_octet);
 
+									if (c == GUILLEMET_OUVRANT) {
+										++profondeur;
+									}
+
 									if (c == GUILLEMET_FERMANT) {
-										break;
+										if (profondeur == 0) {
+											break;
+										}
+
+										--profondeur;
 									}
 
 									this->avance(nombre_octet);
