@@ -1091,7 +1091,7 @@ bool valide_appel_fonction(
 
 				if (!decl_appel->est_externe && !decl_appel->possede_drapeau(FORCE_NULCTX)) {
 					contexte.rapporte_erreur_fonction_nulctx(expr, decl_fonc, decl_appel);
-					return false;
+					return true;
 				}
 			}
 		}
