@@ -152,4 +152,11 @@ struct Statistiques {
 struct StatistiquesTypage {
 	EntreesStats<EntreeTemps> validation_decl{};
 	EntreesStats<EntreeTemps> validation_appel{};
+	EntreesStats<EntreeTemps> ref_decl{};
+	EntreesStats<EntreeTemps> operateurs_unaire{};
+	EntreesStats<EntreeTemps> operateurs_binaire{};
+	EntreesStats<EntreeTemps> fonctions{};
+	EntreesStats<EntreeTemps> enumerations{};
+	EntreesStats<EntreeTemps> structures{};
+	EntreesStats<EntreeTemps> assignations{};
 };

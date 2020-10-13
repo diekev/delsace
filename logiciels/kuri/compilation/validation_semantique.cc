@@ -280,6 +280,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
+			CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, "valide référence déclaration");
 			auto expr = noeud->comme_ref_decl();
 
 			if (expr->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
@@ -468,6 +469,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			auto expr = static_cast<NoeudExpressionBinaire *>(noeud);
 			expr->genre_valeur = GenreValeur::DROITE;
+			CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_binaire, "opérateur binaire");
 
 			auto enfant1 = expr->expr1;
 			auto enfant2 = expr->expr2;
@@ -698,6 +700,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
+			CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire, "opérateur unaire");
 			auto expr = noeud->comme_operateur_unaire();
 			expr->genre_valeur = GenreValeur::DROITE;
 
@@ -2632,6 +2635,8 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 		}
 	}
 
+	CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide fonction");
+
 	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
 		graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 		return true;
@@ -2712,6 +2717,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *dec
 
 bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 {
+	CHRONO_TYPAGE(m_tacheronne.stats_typage.enumerations, "valide énum");
 	auto type_enum = decl->type->comme_enum();
 	auto &membres = type_enum->membres;
 
@@ -2861,6 +2867,8 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
 		return true;
 	}
+
+	CHRONO_TYPAGE(m_tacheronne.stats_typage.structures, "valide structure");
 
 	if (decl->bloc->membres->est_vide()) {
 		rapporte_erreur("Bloc vide pour la déclaration de structure", decl);
@@ -3370,6 +3378,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 
 bool ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
 {
+	CHRONO_TYPAGE(m_tacheronne.stats_typage.assignations, "valide assignation");
 	auto variable = inst->variable;
 
 	dls::file<NoeudExpression *> variables;
