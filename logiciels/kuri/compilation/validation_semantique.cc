@@ -2140,18 +2140,23 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 {
 	Prof(valide_type_fonction);
 
+	CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction");
 	commence_fonction(decl);
 
 	auto &graphe = espace->graphe_dependance;
 	auto noeud_dep = graphe->cree_noeud_fonction(decl);
 
-	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
-		graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
-		return true;
+	{
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (arbre aplatis)");
+		if (valide_arbre_aplatis(decl->arbre_aplatis)) {
+			graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
+			return true;
+		}
 	}
 
 	// -----------------------------------
 	if (!decl->est_instantiation_gabarit) {
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (validation paramètres)");
 		auto noms = dls::ensemblon<IdentifiantCode *, 16>();
 		auto dernier_est_variadic = false;
 
@@ -2224,34 +2229,40 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 
 	// -----------------------------------
 
-	kuri::tableau<Type *> types_entrees;
+	TypeFonction *type_fonc = nullptr;
 	auto possede_contexte = !decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX);
-	types_entrees.reserve(decl->params.taille + possede_contexte);
+	{
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (typage)");
 
-	if (possede_contexte) {
-		types_entrees.pousse(espace->typeuse.type_contexte);
-	}
+		kuri::tableau<Type *> types_entrees;
+		types_entrees.reserve(decl->params.taille + possede_contexte);
 
-	POUR (decl->params) {
-		types_entrees.pousse(it->type);
-	}
-
-	kuri::tableau<Type *> types_sorties;
-	types_sorties.reserve(decl->params_sorties.taille);
-
-	for (auto &type_declare : decl->params_sorties) {
-		Type *type_sortie = nullptr;
-		if (resoud_type_final(type_declare->expression_type, type_sortie)) {
-			return true;
+		if (possede_contexte) {
+			types_entrees.pousse(espace->typeuse.type_contexte);
 		}
-		types_sorties.pousse(type_sortie);
-	}
 
-	auto type_fonc = espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
-	decl->type = type_fonc;
-	donnees_dependance.types_utilises.insere(decl->type);
+		POUR (decl->params) {
+			types_entrees.pousse(it->type);
+		}
+
+		kuri::tableau<Type *> types_sorties;
+		types_sorties.reserve(decl->params_sorties.taille);
+
+		for (auto &type_declare : decl->params_sorties) {
+			Type *type_sortie = nullptr;
+			if (resoud_type_final(type_declare->expression_type, type_sortie)) {
+				return true;
+			}
+			types_sorties.pousse(type_sortie);
+		}
+
+		type_fonc = espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+		decl->type = type_fonc;
+		donnees_dependance.types_utilises.insere(decl->type);
+	}
 
 	if (decl->est_operateur) {
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (opérateurs)");
 		auto type_resultat = type_fonc->types_sorties[0];
 
 		if (type_resultat == espace->typeuse[TypeBase::RIEN]) {
@@ -2326,33 +2337,39 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 	}
 	else {
 		// À FAIRE(moultfilage) : vérifie l'utilisation des synchrones pour les tableaux
-		POUR (*decl->bloc_parent->membres.verrou_lecture()) {
-			if (it == decl) {
-				continue;
-			}
+		{
+			CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (redéfinition)");
+			POUR (*decl->bloc_parent->membres.verrou_lecture()) {
+				if (it == decl) {
+					continue;
+				}
 
-			if (it->genre != GenreNoeud::DECLARATION_ENTETE_FONCTION) {
-				continue;
-			}
+				if (it->genre != GenreNoeud::DECLARATION_ENTETE_FONCTION) {
+					continue;
+				}
 
-			if (it->ident != decl->ident) {
-				continue;
-			}
+				if (it->ident != decl->ident) {
+					continue;
+				}
 
-			if (it->type == decl->type) {
-				rapporte_erreur_redefinition_fonction(decl, it);
-				return true;
+				if (it->type == decl->type) {
+					rapporte_erreur_redefinition_fonction(decl, it);
+					return true;
+				}
 			}
 		}
 
 		/* nous devons attendre d'avoir les types des arguments avant de
 		 * pouvoir broyer le nom de la fonction */
-		if (decl->ident != ID::principale && !decl->possede_drapeau(EST_EXTERNE | FORCE_SANSBROYAGE)) {
-			auto fichier = espace->fichier(decl->lexeme->fichier);
-			decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
-		}
-		else {
-			decl->nom_broye = decl->lexeme->chaine;
+		{
+			CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (broyage)");
+			if (decl->ident != ID::principale && !decl->possede_drapeau(EST_EXTERNE | FORCE_SANSBROYAGE)) {
+				auto fichier = espace->fichier(decl->lexeme->fichier);
+				decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
+			}
+			else {
+				decl->nom_broye = decl->lexeme->chaine;
+			}
 		}
 	}
 
