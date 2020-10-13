@@ -407,6 +407,19 @@ int main(int argc, char *argv[])
 				stats.temps_metaprogrammes += it->mv.temps_execution_metaprogammes;
 
 				//std::cerr << "tâcheronne " << it->id << " a dormis pendant " << it->temps_passe_a_dormir << "ms\n";
+
+#if 0
+				if ((it->drapeaux & DrapeauxTacheronne::PEUT_TYPER) == DrapeauxTacheronne::PEUT_TYPER) {
+					std::cerr << "validation appel :\n";
+					for (auto &entree : it->stats_typage.validation_appel.entrees) {
+						std::cerr << "-- " << entree.nom << " : " << entree.temps << '\n';
+					}
+					std::cerr << "validation déclaration variable :\n";
+					for (auto &entree : it->stats_typage.validation_decl.entrees) {
+						std::cerr << "-- " << entree.nom << " : " << entree.temps << '\n';
+					}
+				}
+#endif
 			}
 
 			compilatrice.rassemble_statistiques(stats);
