@@ -245,49 +245,49 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 #define DONNEES_ENTREE(Nom, Tableau) \
 	Nom, Tableau.taille(), Tableau.memoire_utilisee()
 
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudEnum", m_noeuds_enum) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionBinaire", m_noeuds_expression_binaire) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionMembre", m_noeuds_expression_membre) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionReference", m_noeuds_expression_reference) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionLogement", m_noeuds_expression_logement) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionUnaire", m_noeuds_expression_unaire) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpression", m_noeuds_expression) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudBoucle", m_noeuds_boucle) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudPour", m_noeuds_pour) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudSi", m_noeuds_si) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudSiStatique", m_noeuds_si_statique) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudPousseContexte", m_noeuds_pousse_contexte) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudTente", m_noeuds_tente) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDirectiveExecution", m_noeuds_directive_execution) });
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudComme", m_noeuds_comme) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudEnum", m_noeuds_enum) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionBinaire", m_noeuds_expression_binaire) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionMembre", m_noeuds_expression_membre) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionReference", m_noeuds_expression_reference) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionLogement", m_noeuds_expression_logement) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionUnaire", m_noeuds_expression_unaire) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpression", m_noeuds_expression) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudBoucle", m_noeuds_boucle) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudPour", m_noeuds_pour) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudSi", m_noeuds_si) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudSiStatique", m_noeuds_si_statique) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudPousseContexte", m_noeuds_pousse_contexte) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudTente", m_noeuds_tente) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudDirectiveExecution", m_noeuds_directive_execution) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudComme", m_noeuds_comme) });
 
 	auto memoire_retour = 0l;
 	pour_chaque_element(m_noeuds_retour, [&](NoeudRetour const &noeud)
 	{
 		memoire_retour += noeud.donnees_exprs.taille() * taille_de(DonneesAssignations);
 	});
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudRetour", m_noeuds_retour) + memoire_retour });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudRetour", m_noeuds_retour) + memoire_retour });
 
 	auto memoire_assignation = 0l;
 	pour_chaque_element(m_noeuds_assignation, [&](NoeudAssignation const &noeud)
 	{
 		memoire_assignation += noeud.donnees_exprs.taille() * taille_de(DonneesAssignations);
 	});
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudAssignation", m_noeuds_assignation) + memoire_assignation });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudAssignation", m_noeuds_assignation) + memoire_assignation });
 
 	auto memoire_decl = 0l;
 	pour_chaque_element(m_noeuds_declaration_variable, [&](NoeudDeclarationVariable const &noeud)
 	{
 		memoire_decl += noeud.donnees_decl.taille() * taille_de(DonneesAssignations);
 	});
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDeclarationVariable", m_noeuds_declaration_variable) + memoire_decl });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudDeclarationVariable", m_noeuds_declaration_variable) + memoire_decl });
 
 	auto memoire_struct = 0l;
 	pour_chaque_element(m_noeuds_struct, [&](NoeudStruct const &noeud)
 	{
 		memoire_struct += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
 	});
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudStruct", m_noeuds_struct) + memoire_struct });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudStruct", m_noeuds_struct) + memoire_struct });
 
 	auto memoire_bloc = 0l;
 	pour_chaque_element(m_noeuds_bloc, [&](NoeudBloc const &noeud)
@@ -296,14 +296,14 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 		memoire_bloc += noeud.expressions->taille * taille_de(NoeudExpression *);
 		memoire_bloc += noeud.noeuds_differes.taille * taille_de(NoeudBloc *);
 	});
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudBloc", m_noeuds_bloc) + memoire_bloc });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudBloc", m_noeuds_bloc) + memoire_bloc });
 
 	auto memoire_corps_fonction = 0l;
 	pour_chaque_element(m_noeuds_declaration_corps_fonction, [&](NoeudDeclarationCorpsFonction const &noeud)
 	{
 		memoire_corps_fonction += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
 	});
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDeclarationCorpsFonction", m_noeuds_declaration_corps_fonction) + memoire_corps_fonction });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudDeclarationCorpsFonction", m_noeuds_declaration_corps_fonction) + memoire_corps_fonction });
 
 	auto memoire_entete_fonction = 0l;
 	pour_chaque_element(m_noeuds_declaration_entete_fonction, [&](NoeudDeclarationEnteteFonction const &noeud)
@@ -322,7 +322,7 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 
 		memoire_entete_fonction += noeud.nom_broye.taille();
 	});
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDeclarationEnteteFonction", m_noeuds_declaration_entete_fonction) + memoire_entete_fonction });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudDeclarationEnteteFonction", m_noeuds_declaration_entete_fonction) + memoire_entete_fonction });
 
 	auto memoire_entete_appel = 0l;
 	pour_chaque_element(m_noeuds_appel, [&](NoeudExpressionAppel const &noeud)
@@ -330,7 +330,7 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 		memoire_entete_appel += noeud.params.taille * taille_de(NoeudExpression *);
 		memoire_entete_appel += noeud.exprs.taille * taille_de(NoeudExpression *);
 	});
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionAppel", m_noeuds_appel) + memoire_entete_appel });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionAppel", m_noeuds_appel) + memoire_entete_appel });
 
 	auto memoire_discr = 0l;
 	pour_chaque_element(m_noeuds_discr, [&](NoeudDiscr const &noeud)
@@ -338,21 +338,21 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 		using type_paire = std::pair<NoeudExpression *, NoeudBloc *>;
 		memoire_discr += noeud.paires_discr.taille * taille_de(type_paire);
 	});
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudDiscr", m_noeuds_discr) + memoire_discr });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudDiscr", m_noeuds_discr) + memoire_discr });
 
 	auto memoire_tableau_args_variadiques = 0l;
 	pour_chaque_element(m_noeuds_tableau_args_variadiques, [&](NoeudTableauArgsVariadiques const &noeud)
 	{
 		memoire_tableau_args_variadiques += noeud.exprs.taille * taille_de(NoeudExpression *);
 	});
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudTableauArgsVariadiques", m_noeuds_tableau_args_variadiques) + memoire_tableau_args_variadiques });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudTableauArgsVariadiques", m_noeuds_tableau_args_variadiques) + memoire_tableau_args_variadiques });
 
 	auto memoire_expression_virgule = 0l;
 	pour_chaque_element(m_noeuds_expression_virgule, [&](NoeudExpressionVirgule const &noeud)
 	{
 		memoire_expression_virgule += noeud.expressions.taille * taille_de(NoeudExpression *);
 	});
-	stats_arbre.ajoute_entree({ DONNEES_ENTREE("NoeudExpressionVirgule", m_noeuds_expression_virgule) + memoire_expression_virgule });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionVirgule", m_noeuds_expression_virgule) + memoire_expression_virgule });
 
 #undef DONNEES_ENTREE
 }
