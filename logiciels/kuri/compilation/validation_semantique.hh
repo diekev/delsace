@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "biblinternes/outils/definitions.h"
+
 #include "graphe_dependance.hh"
 #include "structures.hh"
 #include "validation_expression_appel.hh"
@@ -45,6 +47,17 @@ struct UniteCompilation;
 namespace erreur {
 enum class Genre : int;
 }
+
+#undef CHRONOMETRE_TYPAGE
+
+#ifdef CHRONOMETRE_TYPAGE
+#	define CHRONO_TYPAGE(entree_stats, nom) \
+	dls::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)([&](double temps) { \
+		entree_stats.fusionne_entree({ nom, temps }); \
+	})
+#else
+#	define CHRONO_TYPAGE(entree_stats, nom)
+#endif
 
 struct ContexteValidationCode {
 	Compilatrice &m_compilatrice;

@@ -991,8 +991,6 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 
 /* ************************************************************************** */
 
-#undef CHRONOMETRE_TYPAGE
-
 // À FAIRE : ajout d'un état de résolution des appels afin de savoir à quelle étape nous nous arrêté en cas d'erreur recouvrable (typage fait, tri des arguments fait, etc.)
 bool valide_appel_fonction(
 		Compilatrice &compilatrice,
@@ -1022,11 +1020,7 @@ bool valide_appel_fonction(
 	args.reserve(expr->params.taille);
 
 	{
-#ifdef CHRONOMETRE_TYPAGE
-		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
-			contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entree({ "prépare arguments", temps });
-		});
-#endif
+		CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "prépare arguments");
 
 		POUR (expr->params) {
 			// l'argument est nommé
@@ -1048,11 +1042,7 @@ bool valide_appel_fonction(
 
 	auto candidates = dls::tablet<DonneesCandidate, 10>();
 	{
-#ifdef CHRONOMETRE_TYPAGE
-		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
-			contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entree({ "trouve candidate", temps });
-		});
-#endif
+		CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "trouve candidate");
 
 		if (trouve_candidates_pour_appel(espace, contexte, expr, args, candidates)) {
 			return true;
@@ -1095,11 +1085,7 @@ bool valide_appel_fonction(
 	// ------------
 	// copie les données
 
-#ifdef CHRONOMETRE_TYPAGE
-	dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
-		contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entree({ "copie données", temps });
-	});
-#endif
+	CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "copie données");
 
 	expr->exprs.reserve(candidate->exprs.taille());
 

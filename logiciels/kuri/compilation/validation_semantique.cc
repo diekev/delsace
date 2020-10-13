@@ -3100,8 +3100,6 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	return false;
 }
 
-#undef CHRONOMETRE_TYPAGE
-
 bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariable *decl)
 {
 	struct DeclarationEtReference {
@@ -3111,12 +3109,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 
 	auto feuilles_variables = dls::tablet<NoeudExpression *, 6>();
 	{
-#ifdef CHRONOMETRE_TYPAGE
-		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
-			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "rassemble variables", temps });
-		});
-#endif
-
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "rassemble variables");
 		rassemble_expressions(decl->valeur, feuilles_variables);
 	}
 
@@ -3124,11 +3117,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 	auto decls_et_refs = dls::tablet<DeclarationEtReference, 6>();
 	decls_et_refs.redimensionne(feuilles_variables.taille());
 	{
-#ifdef CHRONOMETRE_TYPAGE
-		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
-			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "préparation", temps });
-		});
-#endif
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "préparation");
 
 		if (feuilles_variables.taille() == 1) {
 			auto variable = feuilles_variables[0];
@@ -3164,11 +3153,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 	}
 
 	{
-#ifdef CHRONOMETRE_TYPAGE
-		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
-			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "typage et redéfinition", temps });
-		});
-#endif
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "typage et redéfinition");
 
 		POUR (decls_et_refs) {
 			auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl);
@@ -3188,12 +3173,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 
 	auto feuilles_expressions = dls::tablet<NoeudExpression *, 6>();
 	{
-#ifdef CHRONOMETRE_TYPAGE
-		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
-			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "rassemble expressions", temps });
-		});
-#endif
-
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "rassemble expressions");
 		rassemble_expressions(decl->expression, feuilles_expressions);
 	}
 
@@ -3201,13 +3181,8 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 	// si une variable n'a pas de valeur, prend la valeur de la dernière expression
 
 	auto variables = dls::file<NoeudExpression *>();
-
 	{
-#ifdef CHRONOMETRE_TYPAGE
-		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
-			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "enfile variables", temps });
-		});
-#endif
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "enfile variables");
 
 		POUR (feuilles_variables) {
 			variables.enfile(it);
@@ -3260,11 +3235,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 	};
 
 	{
-#ifdef CHRONOMETRE_TYPAGE
-		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
-			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "assignation expressions", temps });
-		});
-#endif
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "assignation expressions");
 
 		POUR (feuilles_expressions) {
 			auto donnees = DonneesAssignations();
@@ -3352,11 +3323,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 	}
 
 	{
-#ifdef CHRONOMETRE_TYPAGE
-		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
-			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "validation finale", temps });
-		});
-#endif
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "validation finale");
 
 		POUR (decls_et_refs) {
 			auto decl_var = it.decl;
@@ -3389,11 +3356,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 	}
 
 	{
-#ifdef CHRONOMETRE_TYPAGE
-		dls::chrono::chrono_rappel_milliseconde chrono([&](double temps) {
-			m_tacheronne.stats_typage.validation_decl.fusionne_entree({ "copie données", temps });
-		});
-#endif
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "copie données");
 
 		decl->donnees_decl.reserve(donnees_assignations.taille());
 
