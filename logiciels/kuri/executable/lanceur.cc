@@ -409,15 +409,22 @@ int main(int argc, char *argv[])
 				//std::cerr << "tâcheronne " << it->id << " a dormis pendant " << it->temps_passe_a_dormir << "ms\n";
 
 #if 0
+				auto imprime_stats = [](const EntreesStats<EntreeTemps> &entrees) {
+					std::cerr << entrees.nom << " :\n";
+					for (auto &entree : entrees.entrees) {
+						std::cerr << "-- " << entree.nom << " : " << entree.temps << '\n';
+					}
+				};
 				if ((it->drapeaux & DrapeauxTacheronne::PEUT_TYPER) == DrapeauxTacheronne::PEUT_TYPER) {
-					std::cerr << "validation appel :\n";
-					for (auto &entree : it->stats_typage.validation_appel.entrees) {
-						std::cerr << "-- " << entree.nom << " : " << entree.temps << '\n';
-					}
-					std::cerr << "validation déclaration variable :\n";
-					for (auto &entree : it->stats_typage.validation_decl.entrees) {
-						std::cerr << "-- " << entree.nom << " : " << entree.temps << '\n';
-					}
+					imprime_stats(it->stats_typage.validation_decl);
+					imprime_stats(it->stats_typage.validation_appel);
+					imprime_stats(it->stats_typage.ref_decl);
+					imprime_stats(it->stats_typage.operateurs_unaire);
+					imprime_stats(it->stats_typage.operateurs_binaire);
+					imprime_stats(it->stats_typage.fonctions);
+					imprime_stats(it->stats_typage.enumerations);
+					imprime_stats(it->stats_typage.structures);
+					imprime_stats(it->stats_typage.assignations);
 				}
 #endif
 			}

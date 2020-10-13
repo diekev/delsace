@@ -88,8 +88,13 @@ struct EntreeTemps {
 
 template <TypeEntreesStats T>
 struct EntreesStats {
+	dls::chaine nom{};
     dls::tableau<T> entrees{};
     T totaux{};
+
+	EntreesStats(dls::chaine const &nom_)
+		: nom(nom_)
+	{}
 
     void ajoute_entree(T const &entree)
     {
@@ -139,24 +144,24 @@ struct Statistiques {
     double temps_parsage = 0.0;
     double temps_typage = 0.0;
 
-    StatistiquesFichiers stats_fichiers{};
-    StatistiquesArbre stats_arbre{};
-    StatistiquesGraphe stats_graphe_dependance{};
-    StatistiquesTypes stats_types{};
-    StatistiquesOperateurs stats_operateurs{};
-    StatistiquesNoeudCode stats_noeuds_code{};
-    StatistiquesMessage stats_messages{};
-    StatistiquesRI stats_ri{};
+	StatistiquesFichiers stats_fichiers{"Fichiers"};
+	StatistiquesArbre stats_arbre{"Arbre Syntaxique"};
+	StatistiquesGraphe stats_graphe_dependance{"Graphe Dépendances"};
+	StatistiquesTypes stats_types{"Types"};
+	StatistiquesOperateurs stats_operateurs{"Opérateurs"};
+	StatistiquesNoeudCode stats_noeuds_code{"Noeuds Code"};
+	StatistiquesMessage stats_messages{"Messages"};
+	StatistiquesRI stats_ri{"Représentation Intermédiaire"};
 };
 
 struct StatistiquesTypage {
-	EntreesStats<EntreeTemps> validation_decl{};
-	EntreesStats<EntreeTemps> validation_appel{};
-	EntreesStats<EntreeTemps> ref_decl{};
-	EntreesStats<EntreeTemps> operateurs_unaire{};
-	EntreesStats<EntreeTemps> operateurs_binaire{};
-	EntreesStats<EntreeTemps> fonctions{};
-	EntreesStats<EntreeTemps> enumerations{};
-	EntreesStats<EntreeTemps> structures{};
-	EntreesStats<EntreeTemps> assignations{};
+	EntreesStats<EntreeTemps> validation_decl{"Déclarations Variables"};
+	EntreesStats<EntreeTemps> validation_appel{"Appels"};
+	EntreesStats<EntreeTemps> ref_decl{"Références Déclarations"};
+	EntreesStats<EntreeTemps> operateurs_unaire{"Opérateurs Unaire"};
+	EntreesStats<EntreeTemps> operateurs_binaire{"Opérateurs Binaire"};
+	EntreesStats<EntreeTemps> fonctions{"Fonctions"};
+	EntreesStats<EntreeTemps> enumerations{"Énumérations"};
+	EntreesStats<EntreeTemps> structures{"Structures"};
+	EntreesStats<EntreeTemps> assignations{"Assignations"};
 };
