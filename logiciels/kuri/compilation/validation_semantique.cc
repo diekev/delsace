@@ -2276,7 +2276,10 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 		}
 
 		auto fichier = espace->fichier(decl->lexeme->fichier);
-		decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
+		{
+			CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (noms opérateurs)");
+			decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
+		}
 
 		auto operateurs = espace->operateurs.verrou_ecriture();
 
