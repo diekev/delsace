@@ -28,6 +28,7 @@
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tablet.hh"
+#include "biblinternes/structures/tableau_page.hh"
 
 #include "lexemes.hh"
 #include "structures.hh"
@@ -269,7 +270,7 @@ struct TypeFonction : public Type {
 	uint64_t tag_entrees = 0;
 	uint64_t tag_sorties = 0;
 
-	static TypeFonction *cree(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties);
+	TypeFonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties);
 
 	void marque_polymorphique();
 };
@@ -507,6 +508,9 @@ struct Typeuse {
 	template <typename T>
 	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
 
+	template <typename T>
+	using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
+
 	// NOTE : nous synchronisons les tableaux individuellement et non la Typeuse
 	// dans son entièreté afin que différents threads puissent accéder librement
 	// à différents types de types.
@@ -518,7 +522,7 @@ struct Typeuse {
 	tableau_synchrone<TypeEnum *> types_enums{};
 	tableau_synchrone<TypeTableauFixe *> types_tableaux_fixes{};
 	tableau_synchrone<TypeTableauDynamique *> types_tableaux_dynamiques{};
-	tableau_synchrone<TypeFonction *> types_fonctions{};
+	tableau_page_synchrone<TypeFonction> types_fonctions{};
 	tableau_synchrone<TypeVariadique *> types_variadiques{};
 	tableau_synchrone<TypeUnion *> types_unions{};
 	tableau_synchrone<TypeTypeDeDonnees *> types_type_de_donnees{};

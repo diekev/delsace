@@ -207,17 +207,15 @@ TypeReference *TypeReference::cree(Type *type_pointe)
 	return type;
 }
 
-TypeFonction *TypeFonction::cree(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties)
+TypeFonction::TypeFonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties)
+	: TypeFonction()
 {
-	auto type = memoire::loge<TypeFonction>("TypeFonction");
-	type->types_entrees = std::move(entrees);
-	type->types_sorties = std::move(sorties);
-	type->taille_octet = 8;
-	type->alignement = 8;
-	type->marque_polymorphique();
-	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
-
-	return type;
+	this->types_entrees = std::move(entrees);
+	this->types_sorties = std::move(sorties);
+	this->taille_octet = 8;
+	this->alignement = 8;
+	this->marque_polymorphique();
+	this->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 }
 
 void TypeFonction::marque_polymorphique()
@@ -505,7 +503,6 @@ Typeuse::~Typeuse()
 	DELOGE_TYPES(TypeEnum, types_enums);
 	DELOGE_TYPES(TypeTableauFixe, types_tableaux_fixes);
 	DELOGE_TYPES(TypeTableauDynamique, types_tableaux_dynamiques);
-	DELOGE_TYPES(TypeFonction, types_fonctions);
 	DELOGE_TYPES(TypeVariadique, types_variadiques);
 	DELOGE_TYPES(TypeUnion, types_unions);
 	DELOGE_TYPES(TypeTypeDeDonnees, types_type_de_donnees);
@@ -812,23 +809,21 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 		tag_sorties |= reinterpret_cast<uint64_t>(it);
 	}
 
-	POUR (*types_fonctions_) {
-		if (it->tag_entrees != tag_entrees || it->tag_sorties != tag_sorties) {
+	POUR_TABLEAU_PAGE ((*types_fonctions_)) {
+		if (it.tag_entrees != tag_entrees || it.tag_sorties != tag_sorties) {
 			continue;
 		}
 
-		auto type = discr_type_fonction(it, entrees, sorties);
+		auto type = discr_type_fonction(&it, entrees, sorties);
 
 		if (type != nullptr) {
 			return type;
 		}
 	}
 
-	auto type = TypeFonction::cree(std::move(entrees), std::move(sorties));
+	auto type = types_fonctions_->ajoute_element(entrees, sorties);
 	type->tag_entrees = tag_entrees;
 	type->tag_sorties = tag_sorties;
-
-	types_fonctions_->pousse(type);
 
 	auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
@@ -1038,9 +1033,9 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
 	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeVariadique, types_variadiques) + memoire_membres_tvars });
 
 	auto memoire_params_fonctions = 0l;
-	POUR (*types_fonctions.verrou_lecture()) {
-		memoire_params_fonctions += it->types_entrees.taille * taille_de(Type *);
-		memoire_params_fonctions += it->types_sorties.taille * taille_de(Type *);
+	POUR_TABLEAU_PAGE ((*types_fonctions.verrou_lecture())) {
+		memoire_params_fonctions += it.types_entrees.taille * taille_de(Type *);
+		memoire_params_fonctions += it.types_sorties.taille * taille_de(Type *);
 	}
 	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeFonction, types_fonctions) + memoire_params_fonctions });
 
@@ -1076,7 +1071,7 @@ void Typeuse::construit_table_types()
 	POUR (*types_enums.verrou_ecriture()) { ASSIGNE_INDEX(it); }
 	POUR (*types_tableaux_fixes.verrou_ecriture()) { ASSIGNE_INDEX(it); }
 	POUR (*types_tableaux_dynamiques.verrou_ecriture()) { ASSIGNE_INDEX(it); }
-	POUR (*types_fonctions.verrou_ecriture()) { ASSIGNE_INDEX(it); }
+	POUR_TABLEAU_PAGE ((*types_fonctions.verrou_ecriture())) { ASSIGNE_INDEX((&it)); }
 	POUR (*types_variadiques.verrou_ecriture()) { ASSIGNE_INDEX(it); }
 	POUR (*types_unions.verrou_ecriture()) { ASSIGNE_INDEX(it); }
 }
