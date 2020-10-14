@@ -801,7 +801,22 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 
 	auto types_fonctions_ = types_fonctions.verrou_ecriture();
 
+	uint64_t tag_entrees = 0;
+	uint64_t tag_sorties = 0;
+
+	POUR (entrees) {
+		tag_entrees |= reinterpret_cast<uint64_t>(it);
+	}
+
+	POUR (sorties) {
+		tag_sorties |= reinterpret_cast<uint64_t>(it);
+	}
+
 	POUR (*types_fonctions_) {
+		if (it->tag_entrees != tag_entrees || it->tag_sorties != tag_sorties) {
+			continue;
+		}
+
 		auto type = discr_type_fonction(it, entrees, sorties);
 
 		if (type != nullptr) {
@@ -810,6 +825,8 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 	}
 
 	auto type = TypeFonction::cree(std::move(entrees), std::move(sorties));
+	type->tag_entrees = tag_entrees;
+	type->tag_sorties = tag_sorties;
 
 	types_fonctions_->pousse(type);
 

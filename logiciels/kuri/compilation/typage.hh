@@ -266,6 +266,9 @@ struct TypeFonction : public Type {
 	kuri::tableau<Type *> types_entrees{};
 	kuri::tableau<Type *> types_sorties{};
 
+	uint64_t tag_entrees = 0;
+	uint64_t tag_sorties = 0;
+
 	static TypeFonction *cree(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties);
 
 	void marque_polymorphique();
