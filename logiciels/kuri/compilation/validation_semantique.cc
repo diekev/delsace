@@ -2140,6 +2140,15 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 {
 	Prof(valide_type_fonction);
 
+#ifdef CHRONOMETRE_TYPAGE
+	auto possede_erreur = true;
+	dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
+		if (possede_erreur) {
+			m_tacheronne.stats_typage.fonctions.fusionne_entree({ "tentatives râtées", temps });
+		}
+	});
+#endif
+
 	CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction");
 	commence_fonction(decl);
 
@@ -2256,6 +2265,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 			types_sorties.pousse(type_sortie);
 		}
 
+		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (type_fonction)");
 		type_fonc = espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
 		decl->type = type_fonc;
 		donnees_dependance.types_utilises.insere(decl->type);
@@ -2378,6 +2388,11 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 
 	graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+#ifdef CHRONOMETRE_TYPAGE
+	possede_erreur = false;
+#endif
+
 	return false;
 }
 
