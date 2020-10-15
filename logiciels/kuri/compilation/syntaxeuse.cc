@@ -1884,6 +1884,11 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 	auto noeud = CREE_NOEUD(NoeudDeclarationEnteteFonction, GenreNoeud::DECLARATION_ENTETE_FONCTION, lexeme);
 	noeud->est_coroutine = lexeme_mot_cle->genre == GenreLexeme::COROUT;
 
+	// @concurrence critique, si nous avons plusieurs définitions
+	if (noeud->ident == ID::principale) {
+		m_unite->espace->fonction_principale = noeud;
+	}
+
 	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
 	/* analyse les paramètres de la fonction */

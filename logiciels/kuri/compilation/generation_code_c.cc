@@ -1360,7 +1360,7 @@ static void genere_code_C_depuis_fonction_principale(
 
 	// NOTE : on ne prend pas de verrou ici car genere_ri_pour_fonction_main reprendra un verrou du graphe via la Typeuse -> verrou mort
 	auto &graphe = espace.graphe_dependance;
-	auto fonction_principale = graphe->cherche_noeud_fonction("principale");
+	auto fonction_principale = espace.fonction_principale;
 
 	if (fonction_principale == nullptr) {
 		erreur::fonction_principale_manquante(espace);
@@ -1376,7 +1376,7 @@ static void genere_code_C_depuis_fonction_principale(
 
 	dls::ensemble<AtomeFonction *> utilises;
 	kuri::tableau<AtomeFonction *> fonctions;
-	graphe->rassemble_fonctions_utilisees(fonction_principale, fonctions, utilises);
+	graphe->rassemble_fonctions_utilisees(fonction_principale->noeud_dependance, fonctions, utilises);
 
 	fonctions.pousse(atome_main);
 

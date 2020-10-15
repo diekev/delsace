@@ -117,25 +117,6 @@ NoeudDependance *GrapheDependance::cree_noeud_type(Type *type)
 	return type->noeud_dependance;
 }
 
-NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_compacte &nom) const
-{
-	Prof(cherche_noeud_fonction);
-
-	POUR_TABLEAU_PAGE(noeuds) {
-		if (!it.est_fonction()) {
-			continue;
-		}
-
-		auto decl_fonction = it.fonction();
-
-		if (decl_fonction->nom_broye == nom) {
-			return const_cast<NoeudDependance *>(&it);
-		}
-	}
-
-	return nullptr;
-}
-
 void GrapheDependance::connecte_type_type(NoeudDependance &type1, NoeudDependance &type2, TypeRelation type_rel)
 {
 	Prof(connecte_type_type);
@@ -211,6 +192,7 @@ void GrapheDependance::ajoute_dependances(
 
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 {
+#if 0
 	auto nombre_fonctions = 0;
 	auto nombre_utilisees = 0;
 
@@ -244,6 +226,7 @@ void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 	}
 
 	std::cerr << (nombre_fonctions - nombre_utilisees) << " fonctions sont inutilisées sur " << nombre_fonctions << '\n';
+#endif
 }
 
 /**

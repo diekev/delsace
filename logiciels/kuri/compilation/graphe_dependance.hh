@@ -154,9 +154,6 @@ struct GrapheDependance {
 	// FUSIONNE (:TYPE { index = $index })
 	NoeudDependance *cree_noeud_type(Type *type);
 
-	// CHERCHE (:FONCTION { nom = $nom })
-	NoeudDependance *cherche_noeud_fonction(dls::vue_chaine_compacte const &nom) const;
-
 	// CHERCHE (type1 :TYPE { index = $index1 })
 	// CHERCHE (type2 :TYPE { index = $index1 })
 	// FUSIONNE (type1)-[:UTILISE_TYPE]->(type2)

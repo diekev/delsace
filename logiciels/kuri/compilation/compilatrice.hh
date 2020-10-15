@@ -123,6 +123,9 @@ struct EspaceDeTravail {
 
 	PhaseCompilation phase{};
 
+	/* mise en cache de la fonction principale, si vue dans la Syntaxeuse */
+	NoeudDeclarationEnteteFonction *fonction_principale = nullptr;
+
 	explicit EspaceDeTravail(OptionsCompilation opts);
 
 	COPIE_CONSTRUCT(EspaceDeTravail);
