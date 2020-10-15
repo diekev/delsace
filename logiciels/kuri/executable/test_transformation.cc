@@ -82,7 +82,7 @@ static void verifie_transformation(
 	std::cerr << chaine_transformation(transformation.type);
 
 	if (transformation.type == TypeTransformation::FONCTION) {
-		std::cerr << " (" << transformation.fonction->nom_broye << ')';
+		std::cerr << " (" << transformation.fonction->lexeme->chaine << ')';
 	}
 
 	std::cerr << '\n';

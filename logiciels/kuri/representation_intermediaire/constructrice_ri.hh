@@ -118,6 +118,11 @@ public:
 		return m_compilatrice;
 	}
 
+    EspaceDeTravail *espace() const
+    {
+        return m_espace;
+    }
+
 	InstructionAllocation *cree_allocation(Type *type, IdentifiantCode *ident, bool cree_seulement = false);
 
 	void rassemble_statistiques(Statistiques &stats);

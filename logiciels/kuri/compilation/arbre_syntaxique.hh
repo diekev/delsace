@@ -502,7 +502,7 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	kuri::tableau<NoeudDeclaration *> params_sorties{};
 
 	kuri::tableau<dls::vue_chaine_compacte> noms_types_gabarits{};
-	dls::chaine nom_broye = "";
+	dls::chaine nom_broye_ = "";
 
 	using tableau_paire_expansion = dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>>;
 
@@ -524,8 +524,12 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	bool est_externe = false;
 	bool est_declaration_type = false;
 	bool est_instantiation_gabarit = false;
+	bool est_metaprogramme = false;
 
 	NoeudDeclarationVariable *parametre_entree(long i) const;
+
+	// @design : ce n'est pas très propre de passer l'espace ici, mais il nous faut le fichier pour le module
+	dls::chaine const &nom_broye(EspaceDeTravail *espace);
 };
 
 struct NoeudDeclarationCorpsFonction : public NoeudDeclaration {

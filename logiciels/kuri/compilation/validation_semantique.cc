@@ -236,7 +236,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			decl_corps->bloc_parent = noeud->bloc_parent;
 
 			decl_entete->drapeaux |= FORCE_NULCTX;
-			decl_entete->nom_broye = "metaprogamme" + dls::vers_chaine(noeud_directive);
+			decl_entete->est_metaprogramme = true;
 
 			// le type de la fonction est fonc () -> (type_expression)
 			auto decl_sortie = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme)->comme_decl_var();
@@ -2285,12 +2285,6 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 			return true;
 		}
 
-		auto fichier = espace->fichier(decl->lexeme->fichier);
-		{
-			CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (noms opérateurs)");
-			decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
-		}
-
 		auto operateurs = espace->operateurs.verrou_ecriture();
 
 		if (decl->params.taille == 1) {			
@@ -2369,19 +2363,6 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 					rapporte_erreur_redefinition_fonction(decl, it);
 					return true;
 				}
-			}
-		}
-
-		/* nous devons attendre d'avoir les types des arguments avant de
-		 * pouvoir broyer le nom de la fonction */
-		{
-			CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (broyage)");
-			if (decl->ident != ID::principale && !decl->possede_drapeau(EST_EXTERNE | FORCE_SANSBROYAGE)) {
-				auto fichier = espace->fichier(decl->lexeme->fichier);
-				decl->nom_broye = broye_nom_fonction(decl, fichier->module->nom);
-			}
-			else {
-				decl->nom_broye = decl->lexeme->chaine;
 			}
 		}
 	}

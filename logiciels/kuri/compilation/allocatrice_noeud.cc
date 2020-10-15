@@ -320,7 +320,7 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 			memoire_entete_fonction += it.first.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
 		}
 
-		memoire_entete_fonction += noeud.nom_broye.taille();
+		memoire_entete_fonction += noeud.nom_broye_.taille();
 	});
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudDeclarationEnteteFonction", m_noeuds_declaration_entete_fonction) + memoire_entete_fonction });
 

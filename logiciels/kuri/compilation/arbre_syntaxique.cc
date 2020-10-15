@@ -28,6 +28,8 @@
 #include "biblinternes/outils/conditions.h"
 
 #include "assembleuse_arbre.h"
+#include "broyage.hh"
+#include "compilatrice.hh"
 #include "identifiant.hh"
 #include "modules.hh"
 #include "outils_lexemes.hh"
@@ -1389,4 +1391,27 @@ NoeudDeclarationVariable *NoeudDeclarationEnteteFonction::parametre_entree(long 
 	}
 
 	return param->comme_decl_var();
+}
+
+dls::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *espace)
+{
+	if (nom_broye_ != "") {
+		return nom_broye_;
+	}
+
+	if (ident != ID::principale && !possede_drapeau(EST_EXTERNE | FORCE_SANSBROYAGE)) {
+		auto fichier = espace->fichier(lexeme->fichier);
+
+		if (est_metaprogramme) {
+			nom_broye_ = "metaprogramme" + dls::vers_chaine(this);
+		}
+		else {
+			nom_broye_ = broye_nom_fonction(this, fichier->module->nom);
+		}
+	}
+	else {
+		nom_broye_ = lexeme->chaine;
+	}
+
+	return nom_broye_;
 }
