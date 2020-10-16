@@ -111,6 +111,10 @@ void OrdonnanceuseTache::cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier
 	tache.unite = unite;
 	tache.genre = GenreTache::LEXE;
 
+	if (espace->nombre_taches_parsage == 0) {
+		espace->phase = {};
+	}
+
 	taches_lexage.enfile(tache);
 }
 
