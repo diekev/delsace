@@ -692,7 +692,6 @@ struct NoeudDirectiveExecution : NoeudExpression {
 
 	NoeudExpression *expr = nullptr;
 	NoeudDeclarationEnteteFonction *fonction = nullptr;
-	AtomeFonction *fonction_ri_pour_appel = nullptr;
 
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 };
