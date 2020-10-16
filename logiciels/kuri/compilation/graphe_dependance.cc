@@ -46,18 +46,18 @@ std::ostream &operator<<(std::ostream &os, TypeRelation type)
 }
 
 NoeudDependance::NoeudDependance(NoeudDeclarationVariable *globale)
-	: m_type_noeud(TypeNoeudDependance::GLOBALE)
-	, m_noeud_globale(globale)
+	: m_noeud_globale(globale)
+	, m_type_noeud(TypeNoeudDependance::GLOBALE)
 {}
 
 NoeudDependance::NoeudDependance(NoeudDeclarationEnteteFonction *fonction)
-	: m_type_noeud(TypeNoeudDependance::FONCTION)
-	, m_noeud_fonction(fonction)
+	: m_noeud_fonction(fonction)
+	, m_type_noeud(TypeNoeudDependance::FONCTION)
 {}
 
 NoeudDependance::NoeudDependance(Type *t)
-	: m_type_noeud(TypeNoeudDependance::TYPE)
-	, m_type(t)
+	: m_type(t)
+	, m_type_noeud(TypeNoeudDependance::TYPE)
 {}
 
 void NoeudDependance::ajoute_relation(Badge<GrapheDependance>, const Relation &relation)
