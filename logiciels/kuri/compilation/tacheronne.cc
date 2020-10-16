@@ -398,7 +398,7 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 		return taches_generation_ri.defile();
 	}
 
-	if (espace && espace->phase == PhaseCompilation::GENRERATION_CODE_TERMINEE && espace->nombre_taches_execution == 0) {
+	if (espace->phase == PhaseCompilation::GENRERATION_CODE_TERMINEE && espace->nombre_taches_execution == 0) {
 		if (espace->options.objet_genere == ObjetGenere::Rien) {
 			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::COMPILATION_TERMINEE);
 		}
@@ -455,7 +455,7 @@ Tacheronne::~Tacheronne()
 void Tacheronne::gere_tache()
 {
 	auto temps_debut = dls::chrono::compte_seconde();
-	auto tache = Tache::dors(nullptr);
+	auto tache = Tache::dors(compilatrice.espace_de_travail_defaut);
 	auto premiere = true;
 	auto tache_fut_completee = true;
 	auto &ordonnanceuse = compilatrice.ordonnanceuse;
