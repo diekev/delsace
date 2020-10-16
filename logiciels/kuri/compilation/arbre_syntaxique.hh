@@ -540,6 +540,8 @@ struct NoeudDeclarationCorpsFonction : public NoeudDeclaration {
 
 	kuri::tableau<NoeudExpression *> arbre_aplatis{};
 
+	bool est_corps_texte = false;
+
 	COPIE_CONSTRUCT(NoeudDeclarationCorpsFonction);
 };
 

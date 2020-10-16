@@ -54,6 +54,10 @@ struct MetaProgramme {
 	/* non-nul pour les directives d'exécutions (exécute, corps texte, etc.) */
 	NoeudDirectiveExecution *directive = nullptr;
 
+	/* non-nuls pour les corps-textes */
+	NoeudDeclarationCorpsFonction *corps_texte = nullptr;
+	NoeudDeclarationEnteteFonction *recipiente_corps_texte = nullptr;
+
 	/* la fonction qui sera exécutée */
 	NoeudDeclarationEnteteFonction *fonction = nullptr;
 

@@ -515,6 +515,7 @@ NoeudExpression *copie_noeud(
 				nexpr_corps->bloc_parent = bloc_parent;
 				nexpr_corps->drapeaux = expr_corps->drapeaux;
 				nexpr_corps->drapeaux &= ~DECLARATION_FUT_VALIDEE;
+				nexpr_corps->est_corps_texte = expr_corps->est_corps_texte;
 
 				nexpr_corps->arbre_aplatis.reserve(expr_corps->arbre_aplatis.taille);
 				nexpr_corps->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, expr_corps->bloc, bloc_parent));

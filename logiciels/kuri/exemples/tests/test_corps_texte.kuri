@@ -1,0 +1,25 @@
+importe Fondation
+
+ajoute :: fonc (a: z32, b: z32) -> z32
+#corps_texte {
+    retourne "retourne a + b"
+}
+
+ajoute_poly :: fonc (a: $T, b: $T) -> $T
+#corps_texte {
+    retourne "retourne a + b"
+}
+
+test_ajoute :: fonc ()
+{
+    a := ajoute(5, 6)
+    b := ajoute_poly(7.5, 11.2)
+
+    imprime("a: %\n", a)
+    imprime("b: %\n", b)
+}
+
+principale :: fonc () -> z32
+#corps_texte {
+    retourne "test_ajoute(); retourne 0"
+}

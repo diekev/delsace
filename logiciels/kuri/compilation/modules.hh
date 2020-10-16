@@ -36,6 +36,7 @@
 struct Compilatrice;
 struct EspaceDeTravail;
 struct IdentifiantCode;
+struct MetaProgramme;
 struct Module;
 struct NoeudBloc;
 struct NoeudDeclaration;
@@ -54,6 +55,8 @@ struct Fichier {
 	dls::ensemblon<dls::vue_chaine_compacte, 16> modules_importes{};
 
 	Module *module = nullptr;
+
+	MetaProgramme *metaprogramme_corps_texte = nullptr;
 
 	size_t id = 0ul;
 	dls::chaine nom{""};

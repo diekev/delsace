@@ -130,6 +130,7 @@ extern IdentifiantCode *realloc_;
 extern IdentifiantCode *free_;
 extern IdentifiantCode *si;
 extern IdentifiantCode *pointeur;
+extern IdentifiantCode *corps_texte;
 
 }
 

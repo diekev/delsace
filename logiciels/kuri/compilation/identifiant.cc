@@ -162,6 +162,7 @@ IdentifiantCode *realloc_;
 IdentifiantCode *free_;
 IdentifiantCode *si;
 IdentifiantCode *pointeur;
+IdentifiantCode *corps_texte;
 
 }
 
@@ -237,4 +238,5 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::free_ = table.identifiant_pour_chaine("free");
 	ID::si = table.identifiant_pour_chaine("si");
 	ID::pointeur = table.identifiant_pour_chaine("pointeur");
+	ID::corps_texte = table.identifiant_pour_chaine("corps_texte");
 }

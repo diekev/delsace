@@ -433,6 +433,12 @@ T MachineVirtuelle::depile()
 bool MachineVirtuelle::appel(AtomeFonction *fonction, int /*taille_argument*/)
 {
 	assert(profondeur_appel < TAILLE_FRAMES_APPEL);
+
+	/* À FAIRE : il manquerait certaines fonctions dans la génération de code binaire (sans doute des dépendances manquantes) */
+	if (fonction->chunk.code == nullptr) {
+		genere_code_binaire_pour_fonction(fonction, this);
+	}
+
 	auto frame = &frames[profondeur_appel++];
 	frame->fonction = fonction;
 	frame->pointeur = fonction->chunk.code;

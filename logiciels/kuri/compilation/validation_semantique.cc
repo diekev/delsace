@@ -2464,16 +2464,49 @@ static void rassemble_expressions(NoeudExpression *expr, dls::tablet<VariableEtE
 bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 {
 	auto type_fonc = fonction_courante->type->comme_fonction();
+	auto est_corps_texte = fonction_courante->corps->est_corps_texte;
 
 	if (inst->expr == nullptr) {
 		inst->type = espace->typeuse[TypeBase::RIEN];
 
-		if (!fonction_courante->est_coroutine && (type_fonc->types_sorties[0] != inst->type)) {
+		if ((!fonction_courante->est_coroutine && type_fonc->types_sorties[0] != inst->type) || est_corps_texte) {
 			rapporte_erreur("Expression de retour manquante", inst);
 			return true;
 		}
 
 		donnees_dependance.types_utilises.insere(inst->type);
+		return false;
+	}
+
+	if (est_corps_texte) {
+		if (inst->expr->est_virgule()) {
+			rapporte_erreur("Trop d'expression de retour pour le corps texte", inst->expr);
+			return true;
+		}
+
+		auto expr = inst->expr;
+
+		if (expr->est_assignation()) {
+			rapporte_erreur("Impossible d'assigner la valeur de retour pour un #corps_texte", inst->expr);
+			return true;
+		}
+
+		if (!expr->type->est_chaine()) {
+			rapporte_erreur("Attendu un type chaine pour le retour de #corps_texte", inst->expr);
+			return true;
+		}
+
+		inst->type = espace->typeuse[TypeBase::CHAINE];
+
+		DonneesAssignations donnees;
+		donnees.expression = inst->expr;
+		donnees.variables.pousse(fonction_courante->params_sorties[0]);
+		donnees.transformations.pousse({});
+
+		inst->donnees_exprs.pousse(donnees);
+
+		donnees_dependance.types_utilises.insere(inst->type);
+
 		return false;
 	}
 
@@ -2631,10 +2664,54 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 
 	decl->type = entete->type;
 
-	commence_fonction(entete);
+	auto est_corps_texte = decl->est_corps_texte;
+	MetaProgramme *metaprogramme = nullptr;
+
+	if (est_corps_texte) {
+		auto fonction = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_ENTETE_FONCTION, decl->lexeme)->comme_entete_fonction();
+		auto nouveau_corps = fonction->corps;
+
+		fonction->bloc_parent = entete->bloc_parent;
+		nouveau_corps->bloc_parent = decl->bloc_parent;
+
+		/* échange les corps */
+		entete->corps = nouveau_corps;
+		nouveau_corps->entete = entete;
+
+		fonction->corps = decl;
+		decl->entete = fonction;
+
+		/* mise en place du type de la fonction : () -> chaine */
+		fonction->drapeaux |= FORCE_NULCTX;
+		fonction->est_metaprogramme = true;
+
+		auto decl_sortie = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme)->comme_decl_var();
+		decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
+		decl_sortie->type = espace->typeuse[TypeBase::CHAINE];
+		decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+		fonction->params_sorties.pousse(decl_sortie);
+
+		auto types_entrees = kuri::tableau<Type *>(0);
+
+		auto types_sorties = kuri::tableau<Type *>(1);
+		types_sorties[0] = espace->typeuse[TypeBase::CHAINE];
+
+		fonction->type = espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+		fonction->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+		metaprogramme = espace->cree_metaprogramme();
+		metaprogramme->corps_texte = decl;
+		metaprogramme->recipiente_corps_texte = entete;
+		metaprogramme->fonction = fonction;
+
+		entete = fonction;
+	}
 
 	auto &graphe = espace->graphe_dependance;
 	auto noeud_dep = graphe->cree_noeud_fonction(entete);
+
+	commence_fonction(entete);
 
 	if (unite->index_courant == 0) {
 		auto requiers_contexte = !decl->entete->possede_drapeau(FORCE_NULCTX);
@@ -2670,7 +2747,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 	if (inst_ret == nullptr) {
 		auto type_fonc = entete->type->comme_fonction();
 
-		if (type_fonc->types_sorties[0]->genre != GenreType::RIEN && !entete->est_coroutine) {
+		if ((type_fonc->types_sorties[0]->genre != GenreType::RIEN && !entete->est_coroutine) || est_corps_texte) {
 			rapporte_erreur("Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
 			return true;
 		}
@@ -2681,6 +2758,10 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 	}
 
 	graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
+
+	if (est_corps_texte) {
+		m_compilatrice.ordonnanceuse->cree_tache_pour_execution(espace, metaprogramme);
+	}
 
 	termine_fonction();
 	return false;

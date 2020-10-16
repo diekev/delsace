@@ -114,13 +114,6 @@ directive #exécute dans les fonctions
 
 vérifie que les entrées des métaprogrammes soit des constantes
 
-directive #corps_texte pour définir le corps d'une fonction via un texte
-
-    principale :: fonc () -> z32
-    #corps_texte {
-        retourne "retourne 0"
-    }
-
 - pouvoir changer le contenu d'une fonction (par exemple pour profiler l'exécutable)
 
 - proprement définir ce qu'on doit faire si un métaprogramme demande un message alors qu'il n'a pas commencer à les intercepter

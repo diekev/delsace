@@ -363,6 +363,31 @@ void Syntaxeuse::lance_analyse()
 
 	m_chrono_analyse.commence();
 
+	if (m_fichier->metaprogramme_corps_texte) {
+		auto recipiente = m_fichier->metaprogramme_corps_texte->recipiente_corps_texte;
+		m_tacheronne.assembleuse->bloc_courant(recipiente->corps->bloc_parent);
+
+		recipiente->corps->bloc = analyse_bloc(false);
+		aplatis_arbre(recipiente->corps->bloc, recipiente->corps->arbre_aplatis, {});
+		recipiente->corps->est_corps_texte = false;
+		recipiente->est_metaprogramme = false;
+
+		/* maintenant que nous avons un bloc pour le corps, copie les paramètres */
+		POUR (recipiente->params) {
+			recipiente->corps->bloc->membres->pousse(it);
+		}
+
+		POUR (recipiente->params_sorties) {
+			recipiente->corps->bloc->membres->pousse(it);
+		}
+
+		m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, recipiente->corps);
+
+		m_fichier->temps_analyse += m_chrono_analyse.arrete();
+
+		return;
+	}
+
 	while (!fini()) {
 		if (apparie(GenreLexeme::POINT_VIRGULE)) {
 			consomme();
@@ -1476,13 +1501,15 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 	}
 }
 
-NoeudBloc *Syntaxeuse::analyse_bloc()
+NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
 {
 	Prof(Syntaxeuse_analyse_bloc);
 
 	empile_etat("dans l'analyse du bloc", lexeme_courant());
 
-	consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{'");
+	if (accolade_requise) {
+		consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{'");
+	}
 
 	auto bloc = m_tacheronne.assembleuse->empile_bloc();
 	auto expressions = dls::tablet<NoeudExpression *, 32>();
@@ -1521,7 +1548,9 @@ NoeudBloc *Syntaxeuse::analyse_bloc()
 	copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
 	m_tacheronne.assembleuse->depile_bloc();
 
-	consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}'");
+	if (accolade_requise) {
+		consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}'");
+	}
 
 	depile_etat();
 
@@ -2034,6 +2063,11 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			aplatis_arbre(type_declare, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 		}
 
+		/* ignore les points-virgules implicites */
+		if (apparie(GenreLexeme::POINT_VIRGULE)) {
+			consomme();
+		}
+
 		while (apparie(GenreLexeme::DIRECTIVE)) {
 			consomme();
 
@@ -2077,6 +2111,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			}
 			else if (ident_directive == ID::racine) {
 				noeud->drapeaux |= (EST_RACINE);
+			}
+			else if (ident_directive == ID::corps_texte) {
+				noeud->corps->est_corps_texte = true;
 			}
 			else {
 				lance_erreur("Directive inconnue");
