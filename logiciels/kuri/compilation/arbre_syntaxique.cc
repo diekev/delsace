@@ -663,7 +663,6 @@ NoeudExpression *copie_noeud(
 			auto nexpr = static_cast<NoeudDirectiveExecution *>(nracine);
 
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
-			nexpr->fonction = static_cast<NoeudDeclarationEnteteFonction *>(copie_noeud(assem, expr->fonction, bloc_parent));
 			break;
 		}
 		case GenreNoeud::EXPRESSION_INIT_DE:

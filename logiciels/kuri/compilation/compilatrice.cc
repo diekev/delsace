@@ -333,6 +333,11 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 	}
 }
 
+MetaProgramme *EspaceDeTravail::cree_metaprogramme()
+{
+	return metaprogrammes->ajoute_element();
+}
+
 /* ************************************************************************** */
 
 static Compilatrice *ptr_compilatrice = nullptr;

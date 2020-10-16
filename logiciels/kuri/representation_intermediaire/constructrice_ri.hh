@@ -107,7 +107,7 @@ public:
 	~ConstructriceRI();
 
 	void genere_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
-	void genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace, NoeudDirectiveExecution *noeud);
+	void genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace, NoeudDeclarationEnteteFonction *fonction);
 	AtomeFonction *genere_ri_pour_fonction_main(EspaceDeTravail *espace);
 	AtomeFonction *genere_fonction_init_globales_et_appel(EspaceDeTravail *espace, const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
 
@@ -178,7 +178,7 @@ private:
 
 	void genere_ri_pour_noeud(NoeudExpression *noeud);
 	void genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);
-	void genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecution *noeud);
+	void genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnteteFonction *fonction);
 	AtomeFonction *genere_ri_pour_fonction_main();
 	Atome *genere_ri_pour_creation_contexte(AtomeFonction *fonction);
 	void genere_ri_pour_expression_droite(NoeudExpression *noeud, Atome *place);

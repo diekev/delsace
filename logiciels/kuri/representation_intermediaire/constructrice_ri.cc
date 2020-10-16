@@ -93,10 +93,10 @@ void ConstructriceRI::genere_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpress
 	genere_ri_pour_noeud(noeud);
 }
 
-void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace, NoeudDirectiveExecution *noeud)
+void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace, NoeudDeclarationEnteteFonction *fonction)
 {
 	m_espace = espace;
-	genere_ri_pour_fonction_metaprogramme(noeud);
+	genere_ri_pour_fonction_metaprogramme(fonction);
 }
 
 AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main(EspaceDeTravail *espace)
@@ -4069,10 +4069,9 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 	return fonction;
 }
 
-void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecution *noeud)
+void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnteteFonction *fonction)
 {
-	auto fonction = noeud->fonction;
-
+	assert(fonction->est_metaprogramme);
 	auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, fonction);
 
 	fonction_courante = atome_fonc;
@@ -4099,6 +4098,8 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDirectiveExecut
 	atome_fonc->decalage_appel_init_globale = atome_fonc->instructions.taille;
 
 	genere_ri_pour_noeud(fonction->corps->bloc);
+
+	fonction->drapeaux |= RI_FUT_GENEREE;
 
 	fonction_courante = nullptr;
 }

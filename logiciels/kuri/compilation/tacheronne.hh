@@ -34,6 +34,7 @@
 #include "../representation_intermediaire/machine_virtuelle.hh"
 
 struct Compilatrice;
+struct MetaProgramme;
 
 #define ENUMERE_GENRES_TACHE \
 	ENUMERE_GENRE_TACHE_EX(DORS) \
@@ -121,7 +122,7 @@ public:
 	void cree_tache_pour_parsage(EspaceDeTravail *espace, Fichier *fichier);
 	void cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud);
 	void cree_tache_pour_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
-	void cree_tache_pour_execution(EspaceDeTravail *espace, NoeudDirectiveExecution *noeud);
+	void cree_tache_pour_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
 	Tache tache_suivante(Tache const &tache_terminee, bool tache_completee, int id, bool premiere, DrapeauxTacheronne drapeaux);
 
@@ -172,5 +173,5 @@ struct Tacheronne {
 private:
 	bool gere_unite_pour_typage(UniteCompilation *unite);
 	bool gere_unite_pour_ri(UniteCompilation *unite);
-	void gere_unite_pour_execution(UniteCompilation *unite);
+	bool gere_unite_pour_execution(UniteCompilation *unite);
 };

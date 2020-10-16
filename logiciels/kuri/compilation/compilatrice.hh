@@ -50,6 +50,16 @@ struct GeranteChaine {
 	void ajoute_chaine(kuri::chaine const &chaine, long capacite);
 };
 
+struct MetaProgramme {
+	/* non-nul pour les directives d'exécutions (exécute, corps texte, etc.) */
+	NoeudDirectiveExecution *directive = nullptr;
+
+	/* la fonction qui sera exécutée */
+	NoeudDeclarationEnteteFonction *fonction = nullptr;
+
+	UniteCompilation *unite = nullptr;
+};
+
 // Interface avec le module « Kuri », pour certaines fonctions intéressantes
 struct InterfaceKuri {
 	NoeudDeclarationEnteteFonction *decl_panique = nullptr;
@@ -86,6 +96,7 @@ struct EspaceDeTravail {
 
 	tableau_page_synchrone<Module> modules{};
 	tableau_page_synchrone<Fichier> fichiers{};
+	tableau_page_synchrone<MetaProgramme> metaprogrammes{};
 
 	dls::outils::Synchrone<GrapheDependance> graphe_dependance{};
 
@@ -180,6 +191,8 @@ struct EspaceDeTravail {
 	long memoire_utilisee() const;
 
 	void rassemble_statistiques(Statistiques &stats) const;
+
+	MetaProgramme *cree_metaprogramme();
 };
 
 struct Compilatrice {

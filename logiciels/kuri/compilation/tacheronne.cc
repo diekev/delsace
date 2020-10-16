@@ -196,14 +196,14 @@ void OrdonnanceuseTache::cree_tache_pour_generation_ri(EspaceDeTravail *espace, 
 	taches_generation_ri.enfile(tache);
 }
 
-void OrdonnanceuseTache::cree_tache_pour_execution(EspaceDeTravail *espace, NoeudDirectiveExecution *noeud)
+void OrdonnanceuseTache::cree_tache_pour_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
 {
 	espace->nombre_taches_execution += 1;
 
 	auto unite = unites.ajoute_element(espace);
-	unite->noeud = noeud;
+	unite->metaprogramme = metaprogramme;
 
-	noeud->unite = unite;
+	metaprogramme->unite = unite;
 
 	auto tache = Tache();
 	tache.unite = unite;
@@ -230,9 +230,16 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 	switch (tache_terminee.genre) {
 		case GenreTache::DORS:
 		case GenreTache::COMPILATION_TERMINEE:
-		case GenreTache::EXECUTE:
 		{
 			// rien à faire, ces tâches-là sont considérées comme à la fin de leurs cycles
+			break;
+		}
+		case GenreTache::EXECUTE:
+		{
+			if (!tache_completee) {
+				taches_execution.enfile(tache_terminee);
+			}
+
 			break;
 		}
 		case GenreTache::ENVOIE_MESSAGE:
@@ -585,7 +592,7 @@ void Tacheronne::gere_tache()
 			case GenreTache::EXECUTE:
 			{
 				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER));
-				gere_unite_pour_execution(tache.unite);
+				tache_fut_completee = gere_unite_pour_execution(tache.unite);
 				break;
 			}
 			case GenreTache::GENERE_FICHIER_OBJET:
@@ -781,14 +788,20 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 {
 	auto noeud = unite->noeud;
+	auto pour_metaprogramme = false;
 
-	if (noeud->est_declaration()) {
+	if (noeud->est_corps_fonction()) {
+		auto corps = noeud->comme_corps_fonction();
+		pour_metaprogramme = corps->entete->est_metaprogramme;
+	}
+
+	if (noeud->est_declaration() && !pour_metaprogramme) {
 		constructrice_ri.genere_ri_pour_noeud(unite->espace, noeud);
 		noeud->drapeaux |= RI_FUT_GENEREE;
 		noeud->type->drapeaux |= RI_TYPE_FUT_GENEREE;
 	}
-	else if (noeud->genre == GenreNoeud::DIRECTIVE_EXECUTION) {
-		auto noeud_dir = static_cast<NoeudDirectiveExecution *>(noeud);
+	else if (pour_metaprogramme) {
+		auto corps = noeud->comme_corps_fonction();
 
 #define ATTEND_SUR_TYPE_SI_NECESSAIRE(type) \
 	if (type == nullptr) { \
@@ -821,12 +834,11 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 			return false;
 		}
 
-		if (!dependances_eurent_ri_generees(noeud_dir->fonction->noeud_dependance)) {
+		if (!dependances_eurent_ri_generees(corps->entete->noeud_dependance)) {
 			return false;
 		}
 
-		constructrice_ri.genere_ri_pour_fonction_metaprogramme(unite->espace, noeud_dir);
-		compilatrice.ordonnanceuse->cree_tache_pour_execution(unite->espace, noeud_dir);
+		constructrice_ri.genere_ri_pour_fonction_metaprogramme(unite->espace, corps->entete);
 	}
 
 	return true;
@@ -899,22 +911,25 @@ static void rassemble_globales_et_fonctions(
 	}
 }
 
-void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
+bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 {
-	auto noeud = static_cast<NoeudDirectiveExecution *>(unite->noeud);
+	auto metaprogramme = unite->metaprogramme;
+
+	if ((metaprogramme->fonction->drapeaux & RI_FUT_GENEREE) == 0) {
+		return false;
+	}
+
 	auto espace = unite->espace;
 
 	dls::tableau<AtomeGlobale *> globales;
 	dls::tableau<AtomeFonction *> fonctions;
-	rassemble_globales_et_fonctions(espace, mv, noeud->fonction->noeud_dependance, globales, fonctions);
+	rassemble_globales_et_fonctions(espace, mv, metaprogramme->fonction->noeud_dependance, globales, fonctions);
 
-	auto fonction = noeud->fonction->atome_fonction;
+	auto fonction = metaprogramme->fonction->atome_fonction;
 
 	if (!fonction) {
-		rapporte_erreur(espace, noeud, "Impossible de trouver la fonction pour le métaprogramme");
+		rapporte_erreur(espace, metaprogramme->fonction, "Impossible de trouver la fonction pour le métaprogramme");
 	}
-
-	//desassemble(fonction->chunk, noeud->fonction->nom_broye.c_str(), std::cout);
 
 	if (globales.taille() != 0) {
 		auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(espace, globales, fonction);
@@ -925,21 +940,25 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 		genere_code_binaire_pour_fonction(it, &mv);
 	}
 
+	//desassemble(fonction->chunk, metaprogramme->fonction->nom_broye(unite->espace).c_str(), std::cerr);
+
 	auto res = mv.interprete(fonction);
 
 	// À FAIRE : précision des messages d'erreurs
 	if (res == MachineVirtuelle::ResultatInterpretation::ERREUR) {
-		rapporte_erreur(espace, noeud, "Erreur lors de l'exécution du métaprogramme");
+		rapporte_erreur(espace, metaprogramme->directive, "Erreur lors de l'exécution du métaprogramme");
 	}
 	else {
-		if (noeud->ident == ID::assert_) {
+		if (metaprogramme->directive) {
 			auto resultat = *reinterpret_cast<bool *>(mv.pointeur_pile);
 
 			if (!resultat) {
-				rapporte_erreur(espace, noeud, "Échec de l'assertion");
+				rapporte_erreur(espace, metaprogramme->directive, "Échec de l'assertion");
 			}
 		}
 	}
 
 	unite->espace->nombre_taches_execution -= 1;
+
+	return true;
 }

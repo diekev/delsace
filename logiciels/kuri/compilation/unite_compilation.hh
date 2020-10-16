@@ -31,6 +31,7 @@
 struct EspaceDeTravail;
 struct Fichier;
 struct Lexeme;
+struct MetaProgramme;
 struct NoeudDeclaration;
 struct NoeudExpression;
 struct Type;
@@ -63,6 +64,7 @@ struct UniteCompilation {
 	Fichier *fichier = nullptr;
 	NoeudExpression *noeud = nullptr;
 	NoeudExpression *operateur_attendu = nullptr;
+	MetaProgramme *metaprogramme = nullptr;
 	int index_courant = 0;
 	bool message_recu = false;
 

@@ -273,9 +273,14 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto noeud_dep = graphe->cree_noeud_fonction(decl_entete);
 			graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 
-			noeud_directive->fonction = decl_entete;
 			decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
 
+			auto metaprogramme = espace->cree_metaprogramme();
+			metaprogramme->directive = noeud_directive;
+			metaprogramme->fonction = decl_entete;
+
+			m_compilatrice.ordonnanceuse->cree_tache_pour_execution(espace, metaprogramme);
+			m_compilatrice.ordonnanceuse->cree_tache_pour_generation_ri(espace, decl_corps);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:

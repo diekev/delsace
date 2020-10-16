@@ -99,9 +99,6 @@ currying
 
 // --------------------------- Métaprogrammation
 
-crée une IPA pour les métaprogramme afin de simplifier leurs créations et exécution
-    MachineVirtuelle::lance_métaprogramme
-
 exécute plusieurs métaprogrammes à la fois
     système similaire à celui des systèmes d'exploitation (exécute le métaprogramme pendant X nanosecondes et passe au suivant)
     ou alors plusieurs tacheronnes
