@@ -2682,7 +2682,6 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 		decl->entete = fonction;
 
 		/* mise en place du type de la fonction : () -> chaine */
-		fonction->drapeaux |= FORCE_NULCTX;
 		fonction->est_metaprogramme = true;
 
 		auto decl_sortie = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme)->comme_decl_var();
@@ -2760,6 +2759,11 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 	graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 
 	if (est_corps_texte) {
+		/* Le dreapeaux nulctx est pour la génération de RI de l'entête, donc il
+		 * faut le mettre après avoir validé le corps, la création d'un contexte
+		 * au début de la fonction sera ajouté avant l'exécution du code donc il
+		 * est possible d'utiliser le contexte dans le métaprogramme. */
+		entete->drapeaux |= FORCE_NULCTX;
 		m_compilatrice.ordonnanceuse->cree_tache_pour_execution(espace, metaprogramme);
 	}
 
