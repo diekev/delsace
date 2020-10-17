@@ -2704,6 +2704,9 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 		metaprogramme->recipiente_corps_texte = entete;
 		metaprogramme->fonction = fonction;
 
+		fonction->est_instantiation_gabarit = entete->est_instantiation_gabarit;
+		fonction->paires_expansion_gabarit  = entete->paires_expansion_gabarit;
+
 		entete = fonction;
 	}
 
