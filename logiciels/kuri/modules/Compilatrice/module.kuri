@@ -560,10 +560,9 @@ est_chaine_littérale :: fonc (genre: GenreLexème) -> bool
 // -----------------------------------------------
 // fonctions utiles pour les tests unitaires
 
-// @bug : lee typages des fonctions polymorphiques échoue s'il y a un argument avec une valeur par défaut
 // @amélioration : imprime les valeurs
 // @amélioration : imprime la ligne correspondant de PositionCodeSource
-compilatrice_vérifie_égalité :: fonc (a: chaine, b: chaine, position_code := PositionCodeSource())
+compilatrice_vérifie_égalité :: fonc (a: $T, b: $T, position_code := PositionCodeSource())
 {
 	si a == b {
 		retourne

@@ -2244,9 +2244,15 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 		for (auto i = 0; i < decl->params.taille; ++i) {
 			auto param = decl->parametre_entree(i);
 			auto variable = param->valeur;
-			if (resoud_type_final(param->expression_type, variable->type)) {
-				return true;
+
+			/* ne résoud que les types polymorphiques, les autres doivent l'avoir été durant la première passe
+			 * À FAIRE : manière plus robuste de faire ceci (par exemple en mettant en cache les types et leurs résolutions) */
+			if (param->type->est_polymorphique()) {
+				if (resoud_type_final(param->expression_type, variable->type)) {
+					return true;
+				}
 			}
+
 			param->type = variable->type;
 		}
 
