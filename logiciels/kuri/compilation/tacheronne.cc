@@ -963,28 +963,30 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 		else if (metaprogramme->corps_texte) {
 			auto resultat = *reinterpret_cast<kuri::chaine *>(mv.pointeur_pile);
 
-			if (resultat.taille != 0) {
-				auto fichier_racine = espace->fichier(metaprogramme->corps_texte->lexeme->fichier);
-				auto module = fichier_racine->module;
-
-				auto tampon = dls::chaine(resultat.pointeur, resultat.taille);
-
-				if (*tampon.fin() != ' ') {
-					tampon.pousse('\n');
-				}
-
-				auto nom_fichier = dls::vers_chaine(metaprogramme);
-				auto fichier = espace->cree_fichier(nom_fichier, nom_fichier, false);
-				fichier->module = module;
-				fichier->metaprogramme_corps_texte = metaprogramme;
-
-				// À FAIRE : l'élision de la copie fait crasher le programme
-				auto tampon_ = lng::tampon_source(tampon);
-				fichier->tampon = tampon_;
-
-				// À FAIRE : ajoute source aux chaines ajoutées
-				compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
+			if (resultat.taille == 0) {
+				rapporte_erreur(espace, metaprogramme->corps_texte, "Le corps-texte a retourné une chaine vide");
 			}
+
+			auto fichier_racine = espace->fichier(metaprogramme->corps_texte->lexeme->fichier);
+			auto module = fichier_racine->module;
+
+			auto tampon = dls::chaine(resultat.pointeur, resultat.taille);
+
+			if (*tampon.fin() != ' ') {
+				tampon.pousse('\n');
+			}
+
+			auto nom_fichier = dls::vers_chaine(metaprogramme);
+			auto fichier = espace->cree_fichier(nom_fichier, nom_fichier, false);
+			fichier->module = module;
+			fichier->metaprogramme_corps_texte = metaprogramme;
+
+			// À FAIRE : l'élision de la copie fait crasher le programme
+			auto tampon_ = lng::tampon_source(tampon);
+			fichier->tampon = tampon_;
+
+			// À FAIRE : ajoute source aux chaines ajoutées
+			compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 		}
 	}
 
