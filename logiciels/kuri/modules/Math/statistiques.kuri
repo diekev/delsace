@@ -1,0 +1,22 @@
+// https://www.evanmiller.org/how-not-to-sort-by-average-rating.html
+// reference : https://github.com/reddit-archive/reddit/blob/753b17407e9a9dca09558526805922de24133d53/r2/r2/lib/db/_sorts.pyx
+interval_confiance_wilson :: fonc (positifs: z32, total: z32, confiance: r32) -> r32
+{
+    si total == 0 {
+        retourne 0.0
+    }
+
+    n := total comme r32
+
+    z := 1.281551565545 // confiance de 80 % ; Ruby : Statistics2.pnormaldist(1-(1-confiance)/2)
+    p := (positifs comme r32) / n
+
+    gauche := p + (z * z) / (2.0 * n)
+    droite := z * racine_carrée(p * (1.0 - p) / n + (z * z / (4.0 * n) / n)) comme r32
+    sous   := 1.0 + (z * z) / n
+
+    // retourne (gauche + droite) / sous ;; pour la limite haute
+    retourne (gauche - droite) / sous
+
+    // (phat + z*z/(2*n) - z * Math.sqrt((phat*(1-phat)+z*z/(4*n))/n))/(1+z*z/n)
+}
