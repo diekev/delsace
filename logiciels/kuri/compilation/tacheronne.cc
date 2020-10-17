@@ -946,7 +946,7 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 
 	//desassemble(fonction->chunk, metaprogramme->fonction->nom_broye(unite->espace).c_str(), std::cerr);
 
-	auto res = mv.interprete(fonction);
+	auto res = mv.interprete(metaprogramme);
 
 	// À FAIRE : précision des messages d'erreurs
 	if (res == MachineVirtuelle::ResultatInterpretation::ERREUR) {

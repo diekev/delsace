@@ -30,6 +30,7 @@
 
 struct AtomeFonction;
 struct Compilatrice;
+struct MetaProgramme;
 struct TypeFonction;
 
 struct GestionnaireBibliotheques {
@@ -103,6 +104,8 @@ struct MachineVirtuelle {
 
 	bool stop = false;
 
+	MetaProgramme *m_metaprogramme = nullptr;
+
 	enum ResultatInterpretation {
 		OK,
 		ERREUR,
@@ -127,7 +130,7 @@ struct MachineVirtuelle {
 
 	bool appel(AtomeFonction *fonction, int taille_argument);
 
-	ResultatInterpretation interprete(AtomeFonction *fonction);
+	ResultatInterpretation interprete(MetaProgramme *metaprogramme);
 
 	ResultatInterpretation lance();
 

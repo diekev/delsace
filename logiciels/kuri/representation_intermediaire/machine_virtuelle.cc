@@ -446,8 +446,10 @@ bool MachineVirtuelle::appel(AtomeFonction *fonction, int /*taille_argument*/)
 	return true;
 }
 
-MachineVirtuelle::ResultatInterpretation MachineVirtuelle::interprete(AtomeFonction *fonction)
+MachineVirtuelle::ResultatInterpretation MachineVirtuelle::interprete(MetaProgramme *metaprogramme)
 {
+	m_metaprogramme = metaprogramme;
+
 	POUR (patchs_donnees_constantes) {
 		void *adresse_ou = nullptr;
 		void *adresse_quoi = nullptr;
@@ -473,7 +475,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::interprete(AtomeFonct
 	profondeur_appel = 0;
 	nombre_de_metaprogrammes_executes += 1;
 	reinitialise_pile();
-	appel(fonction, 0);
+	appel(m_metaprogramme->fonction->atome_fonction, 0);
 	return lance();
 }
 
