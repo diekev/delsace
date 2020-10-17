@@ -1506,8 +1506,12 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto inst = noeud->comme_info_de();
 			auto enfant = inst->expr;
 			auto valeur = cree_info_type(enfant->type);
-			valeur->est_chargeable = false;
-			empile_valeur(valeur);
+
+			/* utilise une temporaire pour simplifier la compilation d'expressions du style : info_de(z32).id */
+			auto alloc = cree_allocation(valeur->type, nullptr);
+			cree_stocke_mem(alloc, valeur);
+
+			empile_valeur(alloc);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_INIT_DE:
