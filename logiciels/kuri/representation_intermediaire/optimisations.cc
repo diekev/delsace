@@ -1004,3 +1004,175 @@ void propage_constantes_et_temporaires(AtomeFonction *atome_fonc)
 
 	supprime_code_mort(atome_fonc);
 }
+
+#if 0
+struct ApparieAtome {
+	Règle
+	Variable
+
+	ApparieAtome *operande1;
+	ApparieAtome *operande2;
+};
+
+
+(stocke a (ajt (charge a) 1)) -> (inc a)
+(stocke a (sst (charge a) 1)) -> (dec a)
+(mul a 2) -> (ajt a a)
+
+/* a ^ b ^ a -> b */
+(xor a (xor a b)) -> b
+
+/* (a ^ b) | a */
+(or (xor a b) a) -> (or a b)
+
+
+auto apparie_variable_a = ...;
+auto apperie_entier = cree_appariement(EST_ENTIER_CONSTANT, 1);
+auto apparie_charge = cree_appariement(EST_CHARGE, apparie_variable_a);
+auto apparie_ajoute = cree_appariement(EST_AJOUTE, apparie_charge, apparie_entier);
+auto apparie_stocke = cree_appariement(EST_STOCKE, apparie_variable_a);
+
+bool apparie(Appariement *appariement, Atome *atome)
+{
+	switch(appariement->genre) {
+		case EST_STOCKE:
+		{
+			if (!atome->est_stocke()) {
+				return false;
+			}
+
+			if (!apparie(appariement->operande1, atome->comme_stocke()->ou)) {
+				return false;
+			}
+
+			if (!apparie(appariement->operande2, atome->comme_stocke()->valeur)) {
+				return false;
+			}
+
+			break;
+		}
+		case EST_AJOUTE:
+		{
+			if (!atome->est_op_ajoute()) {
+				return false;
+			}
+
+			if (!apparie(appariement->operande1, atome->comme_op_ajoute()->valeur_gauche)) {
+				return false;
+			}
+
+			if (!apparie(appariement->operande2, atome->comme_op_ajoute()->valeur_droite)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+
+struct Appariement {
+	Appariement *inst;
+	Appariement *operande1;
+	Appariement *operande2;
+
+	enum GenreAppariement {
+		EST_INSTRUCTION_MUL,
+		EST_INSTRUCTION_AJT,
+
+		EST_VARIABLE,
+		EST_NOMBRE,
+	};
+
+	GenreAppariement genre;
+
+	Appariement *remplacement;
+};
+
+static bool apparie(Appariement *appariement, Atome *atome)
+{
+	switch (appariement->genre) {
+		case Appariement::EST_INSTRUCTION_MUL:
+		{
+			if (atome->est_instruction()) {
+				return false;
+			}
+
+			auto inst = atome->comme_instruction();
+
+			if (!inst->est_op_binaire()) {
+				return false;
+			}
+
+			auto op_binaire = inst->comme_op_binaire();
+
+			if (op_binaire->op != OperateurBinaire::Genre::Multiplication) {
+				return false;
+			}
+
+			if (!apparie(appariement->operande1, op_binaire->valeur_gauche)) {
+				return false;
+			}
+
+			if (!apparie(appariement->operande2, op_binaire->valeur_droite)) {
+				return false;
+			}
+
+			return true;
+		}
+		default:
+		{
+			return false;
+		}
+	}
+}
+
+// au lieu d'allouer, nous pourrions le faire en-place si possible
+static Atome *cree_remplacement(Appariement *remplacement, ConstructriceRI &constructrice)
+{
+	switch (remplacement->genre) {
+		case Appariement::EST_INSTRUCTION_AJT:
+		{
+			auto valeur_gauche = cree_remplacement(remplacement->operande1, constructrice);
+			auto valeur_droite = cree_remplacement(remplacement->operande2, constructrice);
+
+			auto op = constructrice.cree_op_binaire(type, OperateurBinaire::Genre::Addition, valeur_gauche, valeur_droite);
+			break;
+		}
+		case Appariement::EST_VARIABLE:
+		{
+			// trouve la variable dans le contexte
+			break;
+		}
+		default:
+		{
+			return nullptr;
+		}
+	}
+
+	return nullptr;
+}
+
+void lance_optimisations(AtomeFonction *fonction)
+{
+	// (mul a 2) -> (ajt a a)
+
+	auto appariement_mul = Appariement();
+	appariement_mul.genre = Appariement::EST_INSTRUCTION_MUL;
+
+	auto appariement_nombre = Appariement();
+	appariement_nombre.genre = Appariement::EST_NOMBRE;
+
+	auto appariement_variable = Appariement();
+	appariement_variable.genre = Appariement::EST_VARIABLE;
+
+	appariement_mul.operande1 = &appariement_variable;
+	appariement_mul.operande2 = &appariement_nombre;
+
+	POUR (fonction->instructions) {
+		if (apparie(&appariement_mul, it)) {
+			//auto nouvelle_inst = remplace(appariement_mul.remplacement, it);
+		}
+	}
+}
+#endif
