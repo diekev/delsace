@@ -1,0 +1,16 @@
+// aucune erreur n'est lancée quand on ne peut déterminer une expression appel se basant sur un type polymorphique
+
+STRUCT :: struct {
+    x := 0
+}
+
+test_construit_poly :: fonc (t : $T) -> $T
+{
+    retourne $T()
+}
+
+principale :: fonc () -> z32
+{
+    s := test_construit_poly(STRUCT())
+    retourne 0
+}
