@@ -150,6 +150,7 @@ IdentifiantCode *compilatrice_commence_interception;
 IdentifiantCode *compilatrice_termine_interception;
 IdentifiantCode *compilatrice_rapporte_erreur;
 IdentifiantCode *compilatrice_lexe_fichier;
+IdentifiantCode *compilatrice_espace_courant;
 IdentifiantCode *demarre_un_espace_de_travail;
 IdentifiantCode *fonction_test_variadique_externe;
 IdentifiantCode *test;
@@ -226,6 +227,7 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::compilatrice_termine_interception = table.identifiant_pour_chaine("compilatrice_termine_interception");
 	ID::compilatrice_rapporte_erreur = table.identifiant_pour_chaine("compilatrice_rapporte_erreur");
 	ID::compilatrice_lexe_fichier = table.identifiant_pour_chaine("compilatrice_lèxe_fichier");
+	ID::compilatrice_espace_courant = table.identifiant_pour_chaine("compilatrice_espace_courant");
 	ID::demarre_un_espace_de_travail = table.identifiant_pour_chaine("démarre_un_espace_de_travail");
 	ID::espace_defaut_compilation = table.identifiant_pour_chaine("espace_défaut_compilation");
 	ID::fonction_test_variadique_externe = table.identifiant_pour_chaine("fonction_test_variadique_externe");

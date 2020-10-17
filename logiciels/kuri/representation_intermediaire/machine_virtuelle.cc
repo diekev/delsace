@@ -947,6 +947,12 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 				auto valeur_inst = LIS_8_OCTETS();
 				auto ptr_fonction = reinterpret_cast<AtomeFonction *>(valeur_ptr);
 				auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
+
+				if (ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(compilatrice_espace_courant)) {
+					empile(m_metaprogramme->unite->espace);
+					break;
+				}
+
 				appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
 				break;
 			}

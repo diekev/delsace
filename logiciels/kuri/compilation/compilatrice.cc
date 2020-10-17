@@ -755,3 +755,10 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne)
 
 	return converti_tableau_lexemes(fichier->lexemes);
 }
+
+/* cette fonction est symbolique, afin de pouvoir la détecter dans les Machines Virtuelles, et y retourner l'espace du métaprogramme */
+EspaceDeTravail *compilatrice_espace_courant()
+{
+	assert(false);
+	return nullptr;
+}

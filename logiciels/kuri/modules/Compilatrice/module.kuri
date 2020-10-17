@@ -481,6 +481,9 @@ compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, fichier: chaine,
 /* Lèxe le fichier d'entrée et retourne un tableau de léxèmes, le tableau devra être délogé par le programme */
 compilatrice_lèxe_fichier :: fonc (fichier: chaine) -> []Lexème #compilatrice
 
+/* Retourne l'espace de travail dans lequel le métaprogramme appelant la fonction est exécuté. */
+compilatrice_espace_courant :: fonc () -> *EspaceDeTravail #compilatrice
+
 démarre_un_espace_de_travail :: fonc (nom: chaine, options: *OptionsCompilation) -> *EspaceDeTravail #compilatrice
 
 espace_défaut_compilation :: fonc () -> *EspaceDeTravail #compilatrice

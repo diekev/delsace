@@ -300,6 +300,8 @@ int fonction_test_variadique_externe(int sentinel, ...);
 
 EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine nom, OptionsCompilation *options);
 
+EspaceDeTravail *compilatrice_espace_courant();
+
 Message const *compilatrice_attend_message();
 void compilatrice_commence_interception(EspaceDeTravail *espace);
 void compilatrice_termine_interception(EspaceDeTravail *espace);

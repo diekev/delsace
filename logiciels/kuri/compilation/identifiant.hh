@@ -118,6 +118,7 @@ extern IdentifiantCode *compilatrice_commence_interception;
 extern IdentifiantCode *compilatrice_termine_interception;
 extern IdentifiantCode *compilatrice_rapporte_erreur;
 extern IdentifiantCode *compilatrice_lexe_fichier;
+extern IdentifiantCode *compilatrice_espace_courant;
 extern IdentifiantCode *demarre_un_espace_de_travail;
 extern IdentifiantCode *espace_defaut_compilation;
 extern IdentifiantCode *fonction_test_variadique_externe;
