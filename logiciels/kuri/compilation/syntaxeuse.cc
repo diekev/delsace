@@ -1076,10 +1076,17 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			else if (directive == ID::execute || directive == ID::assert_ || directive == ID::test) {
 				auto noeud = CREE_NOEUD(NoeudDirectiveExecution, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
 				noeud->ident = directive;
-				noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
+
+				if (directive == ID::test) {
+					noeud->expr = analyse_bloc();
+				}
+				else {
+					noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
+				}
+
 				aplatis_arbre(noeud, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
-				if (!est_dans_fonction) {
+				if (!est_dans_fonction && directive != ID::test) {
 					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 				}
 
