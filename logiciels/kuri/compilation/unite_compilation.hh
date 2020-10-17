@@ -42,7 +42,8 @@ struct Type;
 	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_DECLARATION) \
 	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_INTERFACE_KURI) \
 	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_SYMBOLE) \
-	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_OPERATEUR)
+	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_OPERATEUR) \
+	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_METAPROGRAMME)
 
 // À FAIRE : les unités devront également dépendre sur les opérateurs quand nous en aurons plus d'une tacheronne
 struct UniteCompilation {
@@ -65,6 +66,7 @@ struct UniteCompilation {
 	NoeudExpression *noeud = nullptr;
 	NoeudExpression *operateur_attendu = nullptr;
 	MetaProgramme *metaprogramme = nullptr;
+	MetaProgramme *metaprogramme_attendu = nullptr;
 	int index_courant = 0;
 	bool message_recu = false;
 
@@ -114,6 +116,12 @@ struct UniteCompilation {
 	{
 		this->etat_ = Etat::ATTEND_SUR_OPERATEUR;
 		this->operateur_attendu = expr;
+	}
+
+	inline void attend_sur_metaprogramme(MetaProgramme *metaprogramme_attendu_)
+	{
+		this->etat_ = Etat::ATTEND_SUR_METAPROGRAMME;
+		this->metaprogramme_attendu = metaprogramme_attendu_;
 	}
 };
 

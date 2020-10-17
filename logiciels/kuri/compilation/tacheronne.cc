@@ -231,6 +231,18 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 		espace = tache_terminee.espace;
 	}
 
+	/* À FAIRE: pour le moment nous n'avons qu'une tâcheronne pour typer et
+	 * générer la RI, or quand une unité dépend d'un métaprogramme il est possible
+	 * qu'il ne reste qu'une seule unité à typer et plusieurs unités à générer
+	 * la RI et nous pouvons alors stopper la compilation car le nombre de cycles
+	 * sur l'unité de typage dépasse la limite.
+	 *
+	 * Pour le moment nous ignorons les tâches de typages dans un tel cas, un
+	 * meilleur système serait de n'avoir qu'une seule file pour toutes les tâches,
+	 * ou alors distribuer une tâche avant d'en remettre une dans la file.
+	 */
+	auto ignore_taches_typages = false;
+
 	switch (tache_terminee.genre) {
 		case GenreTache::DORS:
 		case GenreTache::COMPILATION_TERMINEE:
@@ -276,7 +288,9 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 			if (!tache_completee) {
 				auto progres_courant = progres();
 
-				if (progres_courant == nouvelle_tache.progres) {
+				ignore_taches_typages = taches_typage.taille() == 0 && unite->etat() == UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME;
+
+				if (!ignore_taches_typages && progres_courant == nouvelle_tache.progres) {
 					nouvelle_tache.unite->cycle += 1;
 				}
 
@@ -390,7 +404,7 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 		return taches_message.defile();
 	}
 
-	if (!taches_typage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER))) {
+	if (!ignore_taches_typages && !taches_typage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER))) {
 		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::TYPAGE);
 		return taches_typage.defile();
@@ -784,6 +798,17 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 			unite->restaure_etat_original();
 			return gere_unite_pour_typage(unite);
 		}
+		case UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME:
+		{
+			auto metaprogramme = unite->metaprogramme_attendu;
+
+			if (!metaprogramme->fut_execute) {
+				return false;
+			}
+
+			unite->restaure_etat_original();
+			return gere_unite_pour_typage(unite);
+		}
 	}
 
 	return false;
@@ -988,6 +1013,8 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 			// À FAIRE : ajoute source aux chaines ajoutées
 			compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 		}
+
+		metaprogramme->fut_execute = true;
 	}
 
 	unite->espace->nombre_taches_execution -= 1;

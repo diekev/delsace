@@ -1078,7 +1078,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 				noeud->ident = directive;
 				noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
 				aplatis_arbre(noeud, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
-				m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
+
+				if (!est_dans_fonction) {
+					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
+				}
+
 				return noeud;
 			}
 			else if (directive == ID::chemin) {
@@ -2144,7 +2148,10 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			auto noeud_corps = noeud->corps;
 
 			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
+			auto ancien_est_dans_fonction = est_dans_fonction;
+			est_dans_fonction = true;
 			noeud_corps->bloc = analyse_bloc();
+			est_dans_fonction = ancien_est_dans_fonction;
 			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 
 			/* À FAIRE : quand nous aurons des fonctions dans des fonctions, il
@@ -2332,7 +2339,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 
 	auto noeud_corps = noeud->corps;
+	auto ancien_est_dans_fonction = est_dans_fonction;
+	est_dans_fonction = true;
 	noeud_corps->bloc = analyse_bloc();
+	est_dans_fonction = ancien_est_dans_fonction;
 	aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 	while (apparie(GenreLexeme::AROBASE)) {

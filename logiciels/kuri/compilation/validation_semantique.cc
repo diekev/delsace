@@ -287,6 +287,14 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			m_compilatrice.ordonnanceuse->cree_tache_pour_execution(espace, metaprogramme);
 			m_compilatrice.ordonnanceuse->cree_tache_pour_generation_ri(espace, decl_corps);
+
+			if (fonction_courante) {
+				/* avance l'index car il est inutile de revalidé ce noeud */
+				unite->index_courant += 1;
+				unite->attend_sur_metaprogramme(metaprogramme);
+				return true;
+			}
+
 			break;
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:

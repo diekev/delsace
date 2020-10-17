@@ -78,6 +78,8 @@ private:
 
 	NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
 
+	bool est_dans_fonction = false;
+
 public:
 	Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite);
 

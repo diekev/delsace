@@ -56,6 +56,7 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/doc_kuri_dls/ex06_introspection.kuri" \
           "exemples/doc_kuri_dls/ex07_coroutine.kuri"
           "exemples/tests/test_alloc.kuri" \
+          "exemples/tests/test_assert_dans_fonction.kuri" \
           "exemples/tests/test_annotations.kuri" \
           "exemples/tests/test_boucle_pour.kuri" \
           "exemples/tests/test_cgi.kuri" \

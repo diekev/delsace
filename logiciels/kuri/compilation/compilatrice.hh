@@ -62,6 +62,8 @@ struct MetaProgramme {
 	NoeudDeclarationEnteteFonction *fonction = nullptr;
 
 	UniteCompilation *unite = nullptr;
+
+	bool fut_execute = false;
 };
 
 // Interface avec le module « Kuri », pour certaines fonctions intéressantes
