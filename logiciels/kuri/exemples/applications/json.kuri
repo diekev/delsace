@@ -81,12 +81,12 @@ principale :: fonc () -> z32
 
     imprime("%\n", info)
 
-    remplis_struct_depuis_json(chn, info)
+    succès, info_ := parse_struct_depuis_chaine_json(chn, info)
 
     //chaine_json_depuis_objet_tori()
     //objet_tori_depuis_json()
 
-    imprime("%\n", info)
+    imprime("%\n", info_)
 
     retourne 0
 }

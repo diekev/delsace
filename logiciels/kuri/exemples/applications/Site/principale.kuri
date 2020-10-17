@@ -350,9 +350,10 @@ principale :: fonc () -> z32
         retourne 1
     }
 
-    configuration : ConfigurationServeuse
+    config_ : ConfigurationServeuse = ---
+    succès, configuration := parse_struct_depuis_chaine_json(script, config_)
 
-    si !remplis_struct_depuis_chaine_json(script, configuration) {
+    si !succès {
         imprime("Impossible de lire le fichier de configuration !\n")
         retourne 1
     }

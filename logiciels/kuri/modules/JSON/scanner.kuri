@@ -55,21 +55,18 @@ ScannerJSON :: struct {
     nombre_entier : z64
     nombre_réel : r64
     booléen : bool
+
+    rappel_copie_chaine : fonc(chaine)(chaine)
 }
 
-initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: eini) -> bool
+initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: eini, rappel_copie_chaine : fonc(chaine)(chaine))
 {
     scanner.script = script
     scanner.position = 0
     scanner.structure = structure
-
-    si structure.info.id != id_info.STRUCTURE {
-        retourne faux
-    }
+    scanner.rappel_copie_chaine = rappel_copie_chaine
 
     scanner.lis()
-
-    retourne vrai
 }
 
 enregistre_pos_mot :: fonc (scanner: *ScannerJSON) -> rien
@@ -512,7 +509,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
         }
 
         pointeur := valeur.pointeur comme *chaine
-        mémoire(pointeur) = scanner.chaine_caractère
+        mémoire(pointeur) = scanner.rappel_copie_chaine(scanner.chaine_caractère)
     }
     sinon si scanner.lexème == LexèmeJSON.NOMBRE_ENTIER {
         si valeur.info.id != id_info.ENTIER {
@@ -652,31 +649,47 @@ lis_tableau :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 
 importe SysFichier
 
-remplis_struct_depuis_chaine_json :: fonc (script: chaine, structure: eini) -> bool
+rappel_copie_chaine :: fonc (chn: chaine) -> chaine
 {
-    scanner : ScannerJSON
-
-    si !initialise_scanner(*scanner, script, structure) {
-        imprime("Impossible d'initialiser le scanner, la valeur passée n'est pas une structure !\n")
-        retourne faux
-    }
-
-    résultat := lis_objet(*scanner)
-
-    si résultat != LexèmeJSON.FIN_OBJET {
-        imprime("Erreur lors du scan du script, résulat : %\n", résultat)
-        retourne faux
-    }
-
-    retourne vrai
+    retourne chn
 }
 
-// XXX - Ceci n'est pas sûr pour les chaines, car le script est délogé quand on a fini !
-remplis_struct_depuis_fichier_json :: fonc (chemin: chaine, structure: eini) -> bool
+parse_struct_depuis_chaine_json :: fonc (script: chaine, structure: $T) -> bool, $T
 {
+    #assert info_de($T).id == id_info.STRUCTURE
+
+    résultat : $T = ---
+
+    scanner : ScannerJSON
+    initialise_scanner(*scanner, script, résultat, rappel_copie_chaine)
+
+    succès := lis_objet(*scanner) == LexèmeJSON.FIN_OBJET
+
+    retourne succès, résultat
+}
+
+/* Parse une structure depuis un fichier JSON. Les chaines de caractères contenu dans le fichier
+ * sont copiées dans la structure, et devront être délogées par quiconque nous appelle.
+ */
+parse_struct_depuis_fichier_json :: fonc (chemin: chaine, structure: $T) -> bool, $T
+{
+    #assert info_de($T).id == id_info.STRUCTURE
+
+    // À FAIRE : erreur en cas d'absence du fichier
     chm := construit_chemin(chemin)
     script := contenu_fichier_texte(chm)
     diffère { déloge script; }
 
-    retourne remplis_struct_depuis_chaine_json(script, structure)
+    résultat : $T = ---
+
+    si !script {
+        retourne faux, résultat
+    }
+
+    scanner : ScannerJSON
+    initialise_scanner(*scanner, script, structure, copie_chaine)
+
+    succès := lis_objet(*scanner) == LexèmeJSON.FIN_OBJET
+
+    retourne succès, résultat
 }
