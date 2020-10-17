@@ -560,13 +560,26 @@ est_chaine_littérale :: fonc (genre: GenreLexème) -> bool
 // -----------------------------------------------
 // fonctions utiles pour les tests unitaires
 
-// @amélioration : imprime les valeurs
+importe Fondation
+
 compilatrice_vérifie_égalité :: fonc (a: $T, b: $T, position_code := PositionCodeSource())
 {
 	si a == b {
 		retourne
 	}
 
+	enchaineuse : Enchaineuse
+	initialise_enchaineuse(*enchaineuse)
+	diffère { détruit_tampons(*enchaineuse) }
+
+	ajoute_au_tampon(*enchaineuse, "Échec du test, les valeurs sont différentes !\n")
+	imprime_dans_enchaineuse(*enchaineuse, "\tLa première valeur est : %\n", a)
+	imprime_dans_enchaineuse(*enchaineuse, "\tLa deuxième valeur est : %\n", b)
+
+	message := chaine_depuis_enchaineuse(*enchaineuse)
+
 	espace := compilatrice_espace_courant()
-	compilatrice_rapporte_erreur(espace, position_code.fichier, position_code.ligne, "Les valeurs sont inégales\n")
+	compilatrice_rapporte_erreur(espace, position_code.fichier, position_code.ligne, message)
+
+	déloge message // @fuite de mémoire : la compilation s'arrêtera dès que l'erreur sera lancée
 }
