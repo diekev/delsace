@@ -257,11 +257,17 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			decl_corps->bloc = static_cast<NoeudBloc *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, noeud->lexeme));
 
 			static Lexeme lexeme_retourne = { "retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0 };
-			auto expr_ret = static_cast<NoeudExpressionUnaire *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_RETOUR, &lexeme_retourne));
+			auto expr_ret = static_cast<NoeudRetour *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_RETOUR, &lexeme_retourne));
 
 			if (noeud_directive->expr->type != espace->typeuse[TypeBase::RIEN]) {
 				expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
 				expr_ret->expr = noeud_directive->expr;
+
+				/* besoin de valider pour mettre en place les informations de retour */
+				auto ancienne_fonction_courante = fonction_courante;
+				fonction_courante = decl_entete;
+				valide_expression_retour(expr_ret);
+				fonction_courante = ancienne_fonction_courante;
 			}
 			else {
 				decl_corps->bloc->expressions->pousse(noeud_directive->expr);
