@@ -1052,8 +1052,18 @@ Erreur rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne,
 
 	flux << "\n\n" << COULEUR_NORMALE;
 
+	const Fichier *f = nullptr;
+
+	POUR_TABLEAU_PAGE ((*espace->fichiers.verrou_lecture())) {
+		if (it.chemin == fichier) {
+			f = &it;
+			break;
+		}
+	}
+
 	flux << "Dans l'espace de travail \"" << espace->nom << "\" :\n";
-	flux << "\nErreur : " << fichier << ":" << ligne << '\n';
+	flux << "\nErreur : " << f->chemin << ":" << ligne << ":\n";
+	flux << f->tampon[ligne - 1];
 	flux << '\n';
 	flux << message;
 	flux << '\n';

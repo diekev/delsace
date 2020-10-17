@@ -3829,7 +3829,10 @@ void ConstructriceRI::genere_ri_pour_position_code_source(NoeudExpression *noeud
 
 	// fichier
 	auto const &fichier = m_espace->fichiers->a_l_index(noeud->lexeme->fichier);
-	auto chaine_nom_fichier = cree_chaine(fichier.nom);
+	// À FAIRE : sécurité, n'utilise pas le chemin, mais détermine une manière fiable
+	// et robuste d'obtenir le fichier, utiliser simplement le nom n'est pas fiable
+	// (d'autres fichiers du même nom dans le module)
+	auto chaine_nom_fichier = cree_chaine(fichier.chemin);
 	auto ptr_fichier = cree_acces_membre(alloc, 0);
 	cree_stocke_mem(ptr_fichier, chaine_nom_fichier);
 

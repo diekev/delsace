@@ -561,7 +561,6 @@ est_chaine_littérale :: fonc (genre: GenreLexème) -> bool
 // fonctions utiles pour les tests unitaires
 
 // @amélioration : imprime les valeurs
-// @amélioration : imprime la ligne correspondant de PositionCodeSource
 compilatrice_vérifie_égalité :: fonc (a: $T, b: $T, position_code := PositionCodeSource())
 {
 	si a == b {
