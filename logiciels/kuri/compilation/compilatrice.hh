@@ -213,6 +213,7 @@ struct Compilatrice {
 	/* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment. */
 	bool importe_kuri = true;
 	bool possede_erreur = false;
+	bool active_tests = false;
 
 	template <typename T>
 	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;

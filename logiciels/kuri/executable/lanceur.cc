@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
 	std::ios::sync_with_stdio(false);
 
 	if (argc < 2) {
-		std::cerr << "Utilisation : " << argv[0] << " FICHIER\n";
+		std::cerr << "Utilisation : " << argv[0] << " FICHIER [--tests]\n";
 		return 1;
 	}
 
@@ -291,6 +291,12 @@ int main(int argc, char *argv[])
 
 	auto stats = Statistiques();
 	auto compilatrice = Compilatrice{};
+
+	if (argc == 3) {
+		if (strcmp(argv[2], "--tests") == 0) {
+			compilatrice.active_tests = true;
+		}
+	}
 
 	try {
 		/* enregistre le dossier d'origine */

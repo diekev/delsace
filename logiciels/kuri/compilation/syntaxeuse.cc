@@ -1086,7 +1086,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
 				aplatis_arbre(noeud, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
-				if (!est_dans_fonction && directive != ID::test) {
+				if (!est_dans_fonction && (directive != ID::test || m_compilatrice.active_tests)) {
 					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 				}
 
