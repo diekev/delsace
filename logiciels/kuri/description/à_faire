@@ -124,10 +124,9 @@ vérifie que les entrées des métaprogrammes soit des constantes
         peut-on ne pas avoir les messages d'autres espaces ?
     => mise en place du métaprogramme ayant fait l'appel comme étant celui qui est le métaprogramme controlant la compilation, il aura l'exclusivité sur la prise en charge des messages (la compilatrice attendra que les message de pasage et de typage soit gérés avant de continuer, etc.)
 
-- système de test unitaires
-
 - avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
 
+- utilise des métaprogrammes pour exécuter les #si
 
 // --------------------------- Opérateurs
 
