@@ -141,27 +141,27 @@ std::ostream &operator<<(std::ostream &os, GenreNoeud genre);
 
 enum DrapeauxNoeud : unsigned int {
 	AUCUN                      = 0,
-	EMPLOYE                    = (1 << 0),
-	EST_EXTERNE                = (1 << 1),
-	FORCE_ENLIGNE              = (1 << 2),
-	FORCE_HORSLIGNE            = (1 << 3),
-	FORCE_NULCTX               = (1 << 4),
-	FORCE_SANSTRACE            = (1 << 5),
-	EST_ASSIGNATION_COMPOSEE   = (1 << 6),
-	EST_VARIADIQUE             = (1 << 7),
-	EST_VAR_BOUCLE             = (1 << 8),
-	EST_GLOBALE                = (1 << 9),
-	EST_CONSTANTE              = (1 << 10),
-	DECLARATION_TYPE_POLYMORPHIQUE = (1 << 11),
-	DROITE_ASSIGNATION         = (1 << 12),
-	DECLARATION_FUT_VALIDEE    = (1 << 13),
-	RI_FUT_GENEREE             = (1 << 14),
-	CODE_BINAIRE_FUT_GENERE    = (1 << 15),
-	COMPILATRICE               = (1 << 16),
-	FORCE_SANSBROYAGE          = (1 << 17),
-	EST_RACINE                 = (1 << 18),
-	TRANSTYPAGE_IMPLICITE      = (1 << 19),
-	EST_PARAMETRE              = (1 << 20),
+	EMPLOYE                    = (1 << 0), // decl var
+	EST_EXTERNE                = (1 << 1), // decl var, decl fonction
+	FORCE_ENLIGNE              = (1 << 2), // decl fonction
+	FORCE_HORSLIGNE            = (1 << 3), // decl fonction
+	FORCE_NULCTX               = (1 << 4), // decl fonction
+	FORCE_SANSTRACE            = (1 << 5), // decl fonction
+	EST_ASSIGNATION_COMPOSEE   = (1 << 6), // operateur binaire
+	EST_VARIADIQUE             = (1 << 7), // decl var
+	EST_VAR_BOUCLE             = (1 << 8), // decl var, expr référence
+	EST_GLOBALE                = (1 << 9), // decl var
+	EST_CONSTANTE              = (1 << 10), // decl var
+	DECLARATION_TYPE_POLYMORPHIQUE = (1 << 11), // decl var
+	DROITE_ASSIGNATION         = (1 << 12), // générique
+	DECLARATION_FUT_VALIDEE    = (1 << 13), // déclaration
+	RI_FUT_GENEREE             = (1 << 14), // déclaration
+	CODE_BINAIRE_FUT_GENERE    = (1 << 15), // déclaration
+	COMPILATRICE               = (1 << 16), // decl fonction
+	FORCE_SANSBROYAGE          = (1 << 17), // decl fonction
+	EST_RACINE                 = (1 << 18), // decl fonction
+	TRANSTYPAGE_IMPLICITE      = (1 << 19), // expr comme
+	EST_PARAMETRE              = (1 << 20), // decl var
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)
