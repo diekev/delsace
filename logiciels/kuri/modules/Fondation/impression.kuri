@@ -566,6 +566,10 @@ imprime_valeur :: fonc(
             ajoute_au_tampon(enchaineuse, " {")
 
             pour membre, idx dans info_arg.membres {
+				si (membre.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 {
+					continue
+				}
+
 				nom := membre.nom
                 décalage := membre.décalage
 				id := membre.id

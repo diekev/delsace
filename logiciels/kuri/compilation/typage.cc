@@ -1531,6 +1531,10 @@ void calcule_taille_type_compose(TypeCompose *type)
 		auto type_le_plus_grand = Type::nul();
 
 		POUR (type->membres) {
+			if (it.drapeaux & TypeStructure::Membre::EST_CONSTANT) {
+				continue;
+			}
+
 			auto type_membre = it.type;
 			auto taille = type_membre->taille_octet;
 			max_alignement = std::max(taille, max_alignement);
@@ -1567,6 +1571,10 @@ void calcule_taille_type_compose(TypeCompose *type)
 		auto max_alignement = 0u;
 
 		POUR (type->membres) {
+			if (it.drapeaux & TypeStructure::Membre::EST_CONSTANT) {
+				continue;
+			}
+
 			auto align_type = it.type->alignement;
 			max_alignement = std::max(align_type, max_alignement);
 
