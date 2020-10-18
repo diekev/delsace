@@ -2985,9 +2985,6 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	auto noeud_dependance = graphe->cree_noeud_type(decl->type);
 	decl->noeud_dependance = noeud_dependance;
 
-	// nous avons besoin du symbole le plus rapidement possible pour déterminer les types l'utilisant
-	decl->bloc_parent->membres->pousse(decl);
-
 	if (decl->est_externe && decl->bloc == nullptr) {
 		return false;
 	}
