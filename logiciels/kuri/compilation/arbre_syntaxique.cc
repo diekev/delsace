@@ -544,6 +544,10 @@ NoeudExpression *copie_noeud(
 			auto decl = static_cast<NoeudStruct const *>(racine);
 			auto ndecl = static_cast<NoeudStruct *>(nracine);
 
+			ndecl->est_union = decl->est_union;
+			ndecl->est_nonsure = decl->est_nonsure;
+			ndecl->est_externe = decl->est_externe;
+
 			ndecl->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, decl->bloc, bloc_parent));
 			aplatis_arbre(ndecl->bloc, ndecl->arbre_aplatis, {});
 			break;
