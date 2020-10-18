@@ -545,6 +545,7 @@ NoeudExpression *copie_noeud(
 			auto ndecl = static_cast<NoeudStruct *>(nracine);
 
 			ndecl->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, decl->bloc, bloc_parent));
+			aplatis_arbre(ndecl->bloc, ndecl->arbre_aplatis, {});
 			break;
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
