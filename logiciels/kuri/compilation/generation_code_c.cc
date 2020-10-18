@@ -153,12 +153,21 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		case GenreType::STRUCTURE:
 		{
 			auto type_struct = type->comme_structure();
+
+			if (type_struct->decl && type_struct->decl->est_polymorphique) {
+				break;
+			}
+
 			auto nom_struct = broye_nom_simple(type_struct->nom);
 
 			// struct anomyme
 			if (type_struct->est_anonyme) {
 				enchaineuse << "typedef struct " << nom_struct << dls::vers_chaine(type_struct) << ' ' << nom_broye << ";\n";
 				break;
+			}
+
+			if (type_struct->decl && type_struct->decl->est_monomorphisation) {
+				nom_struct += dls::vers_chaine(type_struct);
 			}
 
 			enchaineuse << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
@@ -315,6 +324,14 @@ enum {
 static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeCompose *type_compose, int quoi)
 {
 	auto nom_broye = broye_nom_simple(type_compose->nom);
+
+	if (type_compose->est_structure()) {
+		auto type_structure = type_compose->comme_structure();
+
+		if (type_structure->decl && type_structure->decl->est_monomorphisation) {
+			nom_broye += dls::vers_chaine(type_structure);
+		}
+	}
 
 	if (quoi == STRUCTURE) {
 		enchaineuse << "typedef struct " << nom_broye << "{\n";
@@ -1332,6 +1349,10 @@ static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Sync
 
 			if (type && type->est_structure()) {
 				auto type_struct = type->comme_structure();
+
+				if (type_struct->decl && type_struct->decl->est_polymorphique) {
+					return;
+				}
 
 				for (auto &membre : type_struct->membres) {
 					genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);

@@ -209,8 +209,8 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 			enchaineuse << "Ks";
 			broye_nom_simple(enchaineuse, static_cast<TypeUnion const *>(type)->nom);
 
-			// ajout du pointeur au nom afin de différencier les différents types anonymes
-			if (type_union->est_anonyme) {
+			// ajout du pointeur au nom afin de différencier les différents types anonymes ou monomorphisations
+			if (type_union->est_anonyme || (type_union->decl && type_union->decl->est_monomorphisation)) {
 				enchaineuse << type_union;
 			}
 
@@ -222,8 +222,8 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 			enchaineuse << "Ks";
 			broye_nom_simple(enchaineuse, static_cast<TypeStructure const *>(type)->nom);
 
-			// ajout du pointeur au nom afin de différencier les différents types anonymes
-			if (type_structure->est_anonyme) {
+			// ajout du pointeur au nom afin de différencier les différents types anonymes ou monomorphisations
+			if (type_structure->est_anonyme || (type_structure->decl && type_structure->decl->est_monomorphisation)) {
 				enchaineuse << type_structure;
 			}
 

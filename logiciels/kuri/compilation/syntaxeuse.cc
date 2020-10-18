@@ -2411,6 +2411,55 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		consomme();
 	}
 
+	/* paramètres polymorphiques */
+	if (apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
+		consomme();
+
+		while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
+			auto drapeaux = DrapeauxNoeud::AUCUN;
+
+			if (apparie(GenreLexeme::DOLLAR)) {
+				consomme();
+
+				drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
+			}
+
+			auto expression = analyse_expression({}, GenreLexeme::PARENTHESE_OUVRANTE, GenreLexeme::VIRGULE);
+			auto decl_var = NoeudDeclarationVariable::nul();
+
+			if (!expression->est_decl_var()) {
+				auto decl = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, expression->lexeme);
+				decl->valeur = expression;
+				decl->ident = expression->ident;
+				decl->expression_type = expression->expression_type;
+
+				decl_var = decl;
+			}
+			else {
+				decl_var = expression->comme_decl_var();
+			}
+
+			decl_var->drapeaux |= drapeaux;
+
+			noeud_decl->params_polymorphiques.pousse(decl_var);
+			aplatis_arbre(decl_var, noeud_decl->arbre_aplatis_params, {});
+
+			if (!apparie(GenreLexeme::VIRGULE)) {
+				break;
+			}
+
+			consomme();
+		}
+
+		/* permet la déclaration de structures sans paramètres, pourtant ayant des parenthèse */
+		if (noeud_decl->params_polymorphiques.taille != 0) {
+			noeud_decl->est_polymorphique = true;
+			cree_tache = true;
+		}
+
+		consomme();
+	}
+
 	if (apparie(GenreLexeme::DIRECTIVE)) {
 		consomme();
 

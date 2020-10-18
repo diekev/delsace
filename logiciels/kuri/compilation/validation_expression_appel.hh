@@ -35,6 +35,7 @@ struct Compilatrice;
 struct ContexteValidationCode;
 struct EspaceDeTravail;
 struct IdentifiantCode;
+struct ItemMonomorphisation;
 struct NoeudDeclaration;
 struct NoeudExpression;
 struct NoeudExpressionAppel;
@@ -104,6 +105,7 @@ struct DonneesCandidate {
 	NoeudDeclaration *noeud_decl = nullptr;
 	dls::tableau<TransformationType> transformations{};
 	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
+	dls::tableau<ItemMonomorphisation> items_monomorphisation{};
 
 	POINTEUR_NUL(DonneesCandidate)
 };

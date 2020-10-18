@@ -315,6 +315,10 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 				auto entete = noeud->comme_corps_fonction()->entete;
 				generation_ri_requise = (!entete->est_gabarit || entete->est_instantiation_gabarit);
 			}
+			else if (noeud->est_structure()) {
+				auto structure = noeud->comme_structure();
+				generation_ri_requise = !structure->est_polymorphique;
+			}
 
 			if (generation_ri_requise) {
 				espace->nombre_taches_ri += 1;

@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/tuples.hh"
 
 #include "expression.h"
 #include "lexemes.hh"
@@ -162,6 +163,7 @@ enum DrapeauxNoeud : unsigned int {
 	EST_RACINE                 = (1 << 18), // decl fonction
 	TRANSTYPAGE_IMPLICITE      = (1 << 19), // expr comme
 	EST_PARAMETRE              = (1 << 20), // decl var
+	EST_VALEUR_POLYMORPHIQUE   = (1 << 21), // decl var
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)
@@ -559,6 +561,45 @@ struct NoeudExpressionAppel : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudExpressionAppel);
 };
 
+struct ItemMonomorphisation {
+	IdentifiantCode *ident = nullptr;
+	Type *type = nullptr;
+	ResultatExpression valeur{};
+	bool est_type = false;
+
+	bool operator == (ItemMonomorphisation const &autre)
+	{
+		if (ident != autre.ident) {
+			return false;
+		}
+
+		if (type != autre.type) {
+			return false;
+		}
+
+		if (est_type != autre.est_type) {
+			return false;
+		}
+
+		if (!est_type) {
+			if (valeur.type != autre.valeur.type) {
+				return false;
+			}
+
+			if (valeur.entier != autre.valeur.entier) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool operator != (ItemMonomorphisation const &autre)
+	{
+		return !(*this == autre);
+	}
+};
+
 struct NoeudStruct : public NoeudDeclaration {
 	NoeudStruct() { genre = GenreNoeud::DECLARATION_STRUCTURE; }
 
@@ -570,6 +611,14 @@ struct NoeudStruct : public NoeudDeclaration {
 	bool est_union = false;
 	bool est_nonsure = false;
 	bool est_externe = false;
+	bool est_polymorphique = false;
+	bool est_monomorphisation = false;
+
+	kuri::tableau<NoeudDeclarationVariable *> params_polymorphiques{};
+	kuri::tableau<NoeudExpression *> arbre_aplatis_params{};
+
+	using tableau_item_monomorphisation = dls::tableau<ItemMonomorphisation>;
+	dls::tableau<dls::paire<tableau_item_monomorphisation, NoeudStruct *>> monomorphisations{};
 };
 
 struct NoeudEnum : public NoeudDeclaration {

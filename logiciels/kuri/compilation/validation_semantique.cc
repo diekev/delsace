@@ -2989,6 +2989,18 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		return false;
 	}
 
+	if (decl->est_polymorphique) {
+		if (valide_arbre_aplatis(decl->arbre_aplatis_params)) {
+			graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
+			return true;
+		}
+
+		// nous validerons les membres lors de la monomorphisation
+		decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+		decl->type->drapeaux |= TYPE_FUT_VALIDE;
+		return false;
+	}
+
 	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
 		graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
 		return true;
@@ -3001,13 +3013,15 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		return true;
 	}
 
-	auto decl_precedente = trouve_dans_bloc(decl->bloc_parent, decl);
+	if (!decl->est_monomorphisation) {
+		auto decl_precedente = trouve_dans_bloc(decl->bloc_parent, decl);
 
-	// la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les structres (p.e. stat)
-	// @vérifie si utile
-	if (decl_precedente != nullptr && decl_precedente->genre == decl->genre) {
-		rapporte_erreur_redefinition_symbole(decl, decl_precedente);
-		return true;
+		// la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les structres (p.e. stat)
+		// @vérifie si utile
+		if (decl_precedente != nullptr && decl_precedente->genre == decl->genre) {
+			rapporte_erreur_redefinition_symbole(decl, decl_precedente);
+			return true;
+		}
 	}
 
 	auto type_compose = decl->type->comme_compose();

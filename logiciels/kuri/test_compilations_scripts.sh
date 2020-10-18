@@ -79,6 +79,7 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/tests/test_ppm.kuri" \
           "exemples/tests/test_recherche.kuri" \
           "exemples/tests/test_routage.kuri" \
+          "exemples/tests/test_structure_poly.kuri" \
           "exemples/tests/test_sys_fichier.kuri" \
           "exemples/tests/test_table_hachage.kuri" \
           "exemples/tests/test_unicode.kuri")

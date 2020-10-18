@@ -1,0 +1,63 @@
+importe Fondation
+
+// À FAIRE : bloc pour les constantes des structures, deux polymorphiques ne peuvent avoir les mêmes noms pour leurs paramètres
+// À FAIRE : appariement de types polymorphiques en paramètre de fonctions
+// À FAIRE : information que la structure est polymorphique dans les infos-types
+
+Vec3 :: struct ($T: type_de_données) {
+    x : T
+    y : T
+    z : T
+}
+
+Tablet :: struct ($N: z32, $T2: type_de_données) {
+    valeurs: [N]T2
+}
+
+Option :: union ($T0: type_de_données, $T1: type_de_données) {
+    t0: T0
+    t1: T1
+}
+
+principale :: fonc () -> z32
+{
+    u : Vec3(T = r32) = ---
+    u.x = 1.0
+    u.y = 2.0
+    u.z = 3.0
+
+    imprime("%\n", u)
+
+    v : Vec3(T = r32) = ---
+    v.x = 2.0
+    v.y = 4.0
+    v.z = 9.0
+
+    imprime("%\n", v)
+
+/*
+    À FAIRE : ceci n'est pas supporté dans le langage apparement
+    w := Vec3(T = r32)(x = 1.0, y = 2.0, z = 3.0)
+    imprime("%\n", w)
+*/
+
+    x : Tablet(N = 5, T2 = z32)
+
+    pour x.valeurs {
+        it = index_it comme z32
+    }
+
+    pour x.valeurs {
+        imprime("it = %\n", it)
+    }
+
+    y : Tablet(N = 10, T2 = z32)
+
+
+    o : Option(T0 = z32, T1 = r32)
+    o = 6
+
+    imprime("%\n", o)
+
+    retourne 0
+}

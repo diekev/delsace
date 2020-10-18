@@ -25,6 +25,7 @@
 #include "validation_expression_appel.hh"
 
 #include "biblinternes/chrono/outils.hh"
+#include "biblinternes/outils/assert.hh"
 
 #include "assembleuse_arbre.h"
 #include "compilatrice.hh"
@@ -721,6 +722,104 @@ static auto apparie_appel_structure(
 
 	auto type_compose = decl_struct->type->comme_compose();
 
+	if (decl_struct->est_polymorphique) {
+		if (expr->params.taille != decl_struct->params_polymorphiques.taille) {
+			resultat.etat = FONCTION_INTROUVEE;
+			resultat.raison = MECOMPTAGE_ARGS;
+			resultat.poids_args = 0.0;
+			return false;
+		}
+
+		auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 10>();
+
+		// À FAIRE(poly) : cas où il manque des paramètres
+		// À FAIRE(poly) : paramètres dans le désordre
+		POUR (arguments) {
+			if (it.ident == nullptr) {
+				resultat.etat = FONCTION_TROUVEE;
+				resultat.raison = NOM_ARGUMENT_REQUIS;
+				resultat.poids_args = 0.0;
+				resultat.noeud_erreur = it.expr;
+				return false;
+			}
+
+			if (noms_rencontres.possede(it.ident)) {
+				resultat.etat = FONCTION_TROUVEE;
+				resultat.raison = RENOMMAGE_ARG;
+				resultat.poids_args = 0.0;
+				resultat.noeud_erreur = it.expr;
+				return false;
+			}
+
+			noms_rencontres.insere(it.ident);
+
+			auto param = NoeudDeclarationVariable::nul();
+
+			for (auto &p : decl_struct->params_polymorphiques) {
+				if (p->ident == it.ident) {
+					param = p;
+					break;
+				}
+			}
+
+			if (param == nullptr) {
+				resultat.etat = FONCTION_TROUVEE;
+				resultat.raison = MENOMMAGE_ARG;
+				resultat.poids_args = 0.0;
+				resultat.noeud_erreur = it.expr;
+				resultat.noeud_decl = decl_struct;
+				return false;
+			}
+
+			// vérifie la contrainte
+			if (param->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
+				if (param->type->est_type_de_donnees()) {
+					if (!it.expr->type->est_type_de_donnees()) {
+						resultat.etat = FONCTION_TROUVEE;
+						resultat.raison = METYPAGE_ARG;
+						resultat.poids_args = 0.0;
+						resultat.type_attendu = param->type;
+						resultat.type_obtenu = it.expr->type;
+						resultat.noeud_erreur = it.expr;
+						resultat.noeud_decl = decl_struct;
+						return false;
+					}
+
+					resultat.items_monomorphisation.pousse({ it.ident, it.expr->type, ResultatExpression(), true });
+				}
+				else {
+					if (!(it.expr->type == param->type || (it.expr->type->est_entier_constant() && est_type_entier(param->type)))) {
+						resultat.etat = FONCTION_TROUVEE;
+						resultat.raison = METYPAGE_ARG;
+						resultat.poids_args = 0.0;
+						resultat.type_attendu = param->type;
+						resultat.type_obtenu = it.expr->type;
+						resultat.noeud_erreur = it.expr;
+						resultat.noeud_decl = decl_struct;
+						return false;
+					}
+
+					auto valeur = evalue_expression(&espace, it.expr->bloc_parent, it.expr);
+
+					if (valeur.est_errone) {
+						rapporte_erreur(&espace, it.expr, "La valeur n'est pas constante");
+					}
+
+					resultat.items_monomorphisation.pousse({ it.ident, param->type, valeur, false });
+				}
+			}
+			else {
+				assert_rappel(false, []() { std::cerr << "Les types polymorphiques ne sont pas supportés sur les structures pour le moment\n"; });
+			}
+		}
+
+		resultat.noeud_decl = decl_struct;
+		resultat.note = CANDIDATE_EST_INITIALISATION_STRUCTURE;
+		resultat.etat = FONCTION_TROUVEE;
+		resultat.poids_args = 1.0;
+		return false;
+	}
+
 	if (decl_struct->est_union) {
 		if (expr->params.taille > 1) {
 			resultat.etat = FONCTION_TROUVEE;
@@ -989,6 +1088,68 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 	return { noeud_decl, true };
 }
 
+static NoeudStruct *monomorphise_au_besoin(
+		ContexteValidationCode &contexte,
+		EspaceDeTravail &espace,
+		NoeudStruct *decl_struct,
+		dls::tableau<ItemMonomorphisation> &&items_monomorphisation)
+{
+	POUR (decl_struct->monomorphisations) {
+		if (it.premier.taille() != items_monomorphisation.taille()) {
+			continue;
+		}
+
+		auto trouve = true;
+
+		for (auto i = 0; i < items_monomorphisation.taille(); ++i) {
+			if (it.premier[i] != items_monomorphisation[i]) {
+				trouve = false;
+				break;
+			}
+		}
+
+		if (!trouve) {
+			continue;
+		}
+
+		return it.second;
+	}
+
+	auto copie = copie_noeud(contexte.m_tacheronne.assembleuse, decl_struct, decl_struct->bloc_parent)->comme_structure();
+	copie->est_monomorphisation = true;
+
+	if (decl_struct->est_union) {
+		copie->type = espace.typeuse.reserve_type_union(copie);
+	}
+	else {
+		copie->type = espace.typeuse.reserve_type_structure(copie);
+	}
+
+	// À FAIRE : n'efface pas les membres, mais la validation sémantique les rajoute...
+	copie->bloc->membres->taille = 0;
+
+	// ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
+	POUR (items_monomorphisation) {
+		// À FAIRE(poly) : lexème pour la  constante
+		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl_struct->lexeme)->comme_decl_var();
+		decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
+		decl_constante->ident = it.ident;
+		decl_constante->type = it.type;
+
+		if (!it.est_type) {
+			decl_constante->valeur_expression = it.valeur;
+		}
+
+		copie->bloc->membres->pousse(decl_constante);
+	}
+
+	decl_struct->monomorphisations.pousse({ items_monomorphisation, copie });
+
+	contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, copie);
+
+	return copie;
+}
+
 /* ************************************************************************** */
 
 // À FAIRE : ajout d'un état de résolution des appels afin de savoir à quelle étape nous nous arrêté en cas d'erreur recouvrable (typage fait, tri des arguments fait, etc.)
@@ -1192,12 +1353,27 @@ bool valide_appel_fonction(
 		donnees_dependance.fonctions_utilisees.insere(decl_fonction_appelee);
 	}
 	else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
-		expr->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
-		expr->type = candidate->type;
+		if (candidate->noeud_decl) {
+			auto decl_struct = candidate->noeud_decl->comme_structure();
 
-		for (auto i = 0; i < expr->exprs.taille; ++i) {
-			if (expr->exprs[i] != nullptr) {
-				contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
+			auto copie = monomorphise_au_besoin(contexte, espace, decl_struct, std::move(candidate->items_monomorphisation));
+			expr->type = espace.typeuse.type_type_de_donnees(copie->type);
+
+			if ((copie->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+				// saute l'expression pour ne plus revenir
+				contexte.unite->index_courant += 1;
+				contexte.unite->attend_sur_type(copie->type);
+				return true;
+			}
+		}
+		else {
+			expr->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
+			expr->type = candidate->type;
+
+			for (auto i = 0; i < expr->exprs.taille; ++i) {
+				if (expr->exprs[i] != nullptr) {
+					contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
+				}
 			}
 		}
 	}
