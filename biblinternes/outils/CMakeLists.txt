@@ -42,6 +42,7 @@ set(ENTETES
 	definitions.h
 	empreintes.hh
 	enchaineuse.hh
+    enum_drapeau.hh
 	fichier.hh
 	format.hh
 	gna.hh
