@@ -45,7 +45,7 @@ struct ResultatExpression {
 	};
 
 	TypeExpression type{};
-	bool est_errone = false;
+	bool est_errone = true;
 	NoeudExpression *noeud_erreur = nullptr;
 	const char *message_erreur = nullptr;
 

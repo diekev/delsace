@@ -260,6 +260,10 @@ ResultatExpression evalue_expression(
 
 			auto decl_var = static_cast<NoeudDeclarationVariable *>(decl);
 
+			if (!decl_var->valeur_expression.est_errone) {
+				return decl_var->valeur_expression;
+			}
+
 			if (decl_var->expression == nullptr) {
 				if (decl_var->type->est_enum()) {
 					auto type_enum = decl_var->type->comme_enum();
@@ -268,6 +272,7 @@ ResultatExpression evalue_expression(
 						if (it.nom == decl_var->ident->nom) {
 							res.entier = it.valeur;
 							res.type = TypeExpression::ENTIER;
+							res.est_errone = false;
 							return res;
 						}
 					}
@@ -280,7 +285,6 @@ ResultatExpression evalue_expression(
 				return res;
 			}
 
-			// À FAIRE : stockage de la valeur
 			return evalue_expression(espace, decl->bloc_parent, decl_var->expression);
 		}
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
@@ -291,6 +295,7 @@ ResultatExpression evalue_expression(
 			auto res = ResultatExpression();
 			res.type = TypeExpression::ENTIER;
 			res.entier = type->taille_octet;
+			res.est_errone = false;
 
 			return res;
 		}
@@ -299,6 +304,7 @@ ResultatExpression evalue_expression(
 			auto res = ResultatExpression();
 			res.type = TypeExpression::ENTIER;
 			res.entier = b->lexeme->chaine == "vrai";
+			res.est_errone = false;
 
 			return res;
 		}
@@ -307,6 +313,7 @@ ResultatExpression evalue_expression(
 			auto res = ResultatExpression();
 			res.type = TypeExpression::ENTIER;
 			res.entier = static_cast<long>(b->lexeme->valeur_entiere);
+			res.est_errone = false;
 
 			return res;
 		}
@@ -315,6 +322,7 @@ ResultatExpression evalue_expression(
 			auto res = ResultatExpression();
 			res.type = TypeExpression::ENTIER;
 			res.entier = static_cast<long>(b->lexeme->valeur_entiere);
+			res.est_errone = false;
 
 			return res;
 		}
@@ -323,6 +331,7 @@ ResultatExpression evalue_expression(
 			auto res = ResultatExpression();
 			res.type = TypeExpression::REEL;
 			res.reel = b->lexeme->valeur_reelle;
+			res.est_errone = false;
 
 			return res;
 		}
@@ -390,6 +399,7 @@ ResultatExpression evalue_expression(
 
 			auto res = ResultatExpression();
 			res.type = res1.type;
+			res.est_errone = false;
 
 			if (est_operateur_bool(inst->lexeme->genre)) {
 				if (res.type == TypeExpression::REEL) {
