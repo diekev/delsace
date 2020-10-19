@@ -548,6 +548,11 @@ NoeudExpression *copie_noeud(
 			ndecl->est_nonsure = decl->est_nonsure;
 			ndecl->est_externe = decl->est_externe;
 
+			if (decl->bloc_constantes) {
+				ndecl->bloc_constantes = copie_noeud(assem, decl->bloc_constantes, bloc_parent)->comme_bloc();
+				bloc_parent = ndecl->bloc_constantes;
+			}
+
 			ndecl->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, decl->bloc, bloc_parent));
 			aplatis_arbre(ndecl->bloc, ndecl->arbre_aplatis, {});
 			break;

@@ -2415,6 +2415,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 	if (apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
 		consomme();
 
+		noeud_decl->bloc_constantes = m_tacheronne.assembleuse->empile_bloc();
+
 		while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
 			auto drapeaux = DrapeauxNoeud::AUCUN;
 
@@ -2531,6 +2533,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 	if (cree_tache) {
 		m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_decl);
+	}
+
+	if (noeud_decl->bloc_constantes) {
+		m_tacheronne.assembleuse->depile_bloc();
 	}
 
 	depile_etat();

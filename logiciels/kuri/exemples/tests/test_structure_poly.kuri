@@ -3,6 +3,7 @@ importe Fondation
 // À FAIRE : bloc pour les constantes des structures, deux polymorphiques ne peuvent avoir les mêmes noms pour leurs paramètres
 // À FAIRE : appariement de types polymorphiques en paramètre de fonctions
 // À FAIRE : information que la structure est polymorphique dans les infos-types
+// À FAIRE : impression des paramètres dans les messages d'erreur en cas de mésappariement
 
 Vec3 :: struct ($T: type_de_données) {
     x : T
@@ -10,8 +11,8 @@ Vec3 :: struct ($T: type_de_données) {
     z : T
 }
 
-Tablet :: struct ($N: z32, $T2: type_de_données) {
-    valeurs: [N]T2
+Tablet :: struct ($N: z32, $T: type_de_données) {
+    valeurs: [N]T
 }
 
 Option :: union ($T0: type_de_données, $T1: type_de_données) {
@@ -41,7 +42,7 @@ principale :: fonc () -> z32
     imprime("%\n", w)
 */
 
-    x : Tablet(N = 5, T2 = z32)
+    x : Tablet(N = 5, T = z32)
 
     pour x.valeurs {
         it = index_it comme z32
@@ -51,7 +52,7 @@ principale :: fonc () -> z32
         imprime("it = %\n", it)
     }
 
-    y : Tablet(N = 10, T2 = z32)
+    y : Tablet(N = 10, T = z32)
 
 
     o : Option(T0 = z32, T1 = r32)
