@@ -1,6 +1,3 @@
-// remplace gabarit -> polymorphique
-// remplace instantiation -> monomorphisation
-// remplace epandue_pour -> monomorphe
 // remplace DonneesCandidate::raison par une chaine de caractère
 // nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
 

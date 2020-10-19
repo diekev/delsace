@@ -215,7 +215,7 @@ struct Type {
 	inline bool est_fonction() const { return genre == GenreType::FONCTION; }
 	inline bool est_octet() const { return genre == GenreType::OCTET; }
 	inline bool est_pointeur() const { return genre == GenreType::POINTEUR; }
-	inline bool est_polymorphique() const { return genre == GenreType::POLYMORPHIQUE; }
+	inline bool est_polymorphe() const { return genre == GenreType::POLYMORPHIQUE; }
 	inline bool est_reel() const { return genre == GenreType::REEL; }
 	inline bool est_reference() const { return genre == GenreType::REFERENCE; }
 	inline bool est_rien() const { return genre == GenreType::RIEN; }

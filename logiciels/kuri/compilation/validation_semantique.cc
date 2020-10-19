@@ -305,7 +305,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			if (expr->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
 				expr->genre_valeur = GenreValeur::DROITE;
 
-				if (fonction_courante && fonction_courante->est_instantiation_gabarit) {
+				if (fonction_courante && fonction_courante->est_monomorphisation) {
 					auto type_instantie = Type::nul();
 
 					for (auto &paire : fonction_courante->paires_expansion_gabarit) {
@@ -382,7 +382,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				donnees_dependance.types_utilises.insere(expr->type);
 			}
 
-			if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->est_gabarit) {
+			if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->est_polymorphe) {
 				noeud->genre_valeur = GenreValeur::DROITE;
 				auto decl_fonc = decl->comme_entete_fonction();
 				donnees_dependance.fonctions_utilisees.insere(decl_fonc);
@@ -2183,7 +2183,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 	}
 
 	// -----------------------------------
-	if (!decl->est_instantiation_gabarit) {
+	if (!decl->est_monomorphisation) {
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (validation paramètres)");
 		auto noms = dls::ensemblon<IdentifiantCode *, 16>();
 		auto dernier_est_variadic = false;
@@ -2204,8 +2204,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 			}
 
 			if (variable->type && variable->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-				rassemble_noms_type_polymorphique(variable->type, decl->noms_types_gabarits);
-				decl->est_gabarit = true;
+				decl->est_polymorphe = true;
 			}
 			else {
 				if (expression != nullptr) {
@@ -2235,7 +2234,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 			}
 		}
 
-		if (decl->est_gabarit) {
+		if (decl->est_polymorphe) {
 			decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 			return false;
 		}
@@ -2247,7 +2246,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 
 			/* ne résoud que les types polymorphiques, les autres doivent l'avoir été durant la première passe
 			 * À FAIRE : manière plus robuste de faire ceci (par exemple en mettant en cache les types et leurs résolutions) */
-			if (param->type->est_polymorphique()) {
+			if (param->type->est_polymorphe()) {
 				if (resoud_type_final(param->expression_type, variable->type)) {
 					return true;
 				}
@@ -2677,7 +2676,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 {
 	auto entete = decl->entete;
 
-	if (entete->est_gabarit && !entete->est_instantiation_gabarit) {
+	if (entete->est_polymorphe && !entete->est_monomorphisation) {
 		// nous ferons l'analyse sémantique plus tard
 		return false;
 	}
@@ -2724,7 +2723,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 		metaprogramme->recipiente_corps_texte = entete;
 		metaprogramme->fonction = fonction;
 
-		fonction->est_instantiation_gabarit = entete->est_instantiation_gabarit;
+		fonction->est_monomorphisation = entete->est_monomorphisation;
 		fonction->paires_expansion_gabarit  = entete->paires_expansion_gabarit;
 
 		entete = fonction;
@@ -2989,7 +2988,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		return false;
 	}
 
-	if (decl->est_polymorphique) {
+	if (decl->est_polymorphe) {
 		if (valide_arbre_aplatis(decl->arbre_aplatis_params)) {
 			graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
 			return true;

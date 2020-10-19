@@ -2455,7 +2455,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 		/* permet la déclaration de structures sans paramètres, pourtant ayant des parenthèse */
 		if (noeud_decl->params_polymorphiques.taille != 0) {
-			noeud_decl->est_polymorphique = true;
+			noeud_decl->est_polymorphe = true;
 			cree_tache = true;
 		}
 

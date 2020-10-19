@@ -503,7 +503,6 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	kuri::tableau<NoeudDeclaration *> params{};
 	kuri::tableau<NoeudDeclaration *> params_sorties{};
 
-	kuri::tableau<dls::vue_chaine_compacte> noms_types_gabarits{};
 	dls::chaine nom_broye_ = "";
 
 	using tableau_paire_expansion = dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>>;
@@ -513,7 +512,7 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 
 	// mise en cache des expansions polymorphiques déjà existantes afin de ne pas les recréer
 	// devra être protégé par un mutex quand le typage sera asynchrone
-	dls::tableau<std::pair<tableau_paire_expansion, NoeudDeclarationEnteteFonction *>> epandu_pour{};
+	dls::tableau<std::pair<tableau_paire_expansion, NoeudDeclarationEnteteFonction *>> monomorphisations{};
 
 	AtomeFonction *atome_fonction = nullptr;
 
@@ -521,11 +520,11 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 
 	bool est_operateur = false;
 	bool est_coroutine = false;
-	bool est_gabarit = false;
+	bool est_polymorphe = false;
 	bool est_variadique = false;
 	bool est_externe = false;
 	bool est_declaration_type = false;
-	bool est_instantiation_gabarit = false;
+	bool est_monomorphisation = false;
 	bool est_metaprogramme = false;
 
 	NoeudDeclarationVariable *parametre_entree(long i) const;
@@ -611,7 +610,7 @@ struct NoeudStruct : public NoeudDeclaration {
 	bool est_union = false;
 	bool est_nonsure = false;
 	bool est_externe = false;
-	bool est_polymorphique = false;
+	bool est_polymorphe = false;
 	bool est_monomorphisation = false;
 
 	NoeudBloc *bloc_constantes = nullptr;

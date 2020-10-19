@@ -154,7 +154,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		{
 			auto type_struct = type->comme_structure();
 
-			if (type_struct->decl && type_struct->decl->est_polymorphique) {
+			if (type_struct->decl && type_struct->decl->est_polymorphe) {
 				break;
 			}
 
@@ -1350,7 +1350,7 @@ static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Sync
 			if (type && type->est_structure()) {
 				auto type_struct = type->comme_structure();
 
-				if (type_struct->decl && type_struct->decl->est_polymorphique) {
+				if (type_struct->decl && type_struct->decl->est_polymorphe) {
 					return;
 				}
 

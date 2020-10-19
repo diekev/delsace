@@ -722,7 +722,7 @@ static auto apparie_appel_structure(
 
 	auto type_compose = decl_struct->type->comme_compose();
 
-	if (decl_struct->est_polymorphique) {
+	if (decl_struct->est_polymorphe) {
 		if (expr->params.taille != decl_struct->params_polymorphiques.taille) {
 			resultat.etat = FONCTION_INTROUVEE;
 			resultat.raison = MECOMPTAGE_ARGS;
@@ -1055,7 +1055,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 		NoeudDeclarationEnteteFonction *decl,
 		NoeudDeclarationEnteteFonction::tableau_paire_expansion const &paires)
 {
-	POUR (decl->epandu_pour) {
+	POUR (decl->monomorphisations) {
 		if (it.first.taille() != paires.taille()) {
 			continue;
 		}
@@ -1077,10 +1077,10 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 	}
 
 	auto noeud_decl = static_cast<NoeudDeclarationEnteteFonction *>(copie_noeud(tacheronne.assembleuse, decl, decl->bloc_parent));
-	noeud_decl->est_instantiation_gabarit = true;
+	noeud_decl->est_monomorphisation = true;
 	noeud_decl->paires_expansion_gabarit = paires;
 
-	decl->epandu_pour.pousse({ paires, noeud_decl });
+	decl->monomorphisations.pousse({ paires, noeud_decl });
 
 	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, noeud_decl);
 	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, noeud_decl->corps);

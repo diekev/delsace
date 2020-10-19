@@ -313,11 +313,11 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 			}
 			else if (noeud->est_corps_fonction()) {
 				auto entete = noeud->comme_corps_fonction()->entete;
-				generation_ri_requise = (!entete->est_gabarit || entete->est_instantiation_gabarit);
+				generation_ri_requise = (!entete->est_polymorphe || entete->est_monomorphisation);
 			}
 			else if (noeud->est_structure()) {
 				auto structure = noeud->comme_structure();
-				generation_ri_requise = !structure->est_polymorphique;
+				generation_ri_requise = !structure->est_polymorphe;
 			}
 
 			if (generation_ri_requise) {
