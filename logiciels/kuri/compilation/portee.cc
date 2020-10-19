@@ -39,6 +39,7 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 
 	while (bloc_courant != nullptr) {
 		auto membres = bloc_courant->membres.verrou_lecture();
+		bloc_courant->nombre_recherches += 1;
 		POUR (*membres) {
 			if (it->ident == ident) {
 				return it;
@@ -59,6 +60,7 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl)
 
 	while (bloc_courant != nullptr) {
 		auto membres = bloc_courant->membres.verrou_lecture();
+		bloc_courant->nombre_recherches += 1;
 		POUR (*membres) {
 			if (it != decl && it->ident == decl->ident) {
 				return it;
@@ -76,6 +78,7 @@ NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression *noeud)
 	Prof(trouve_decl_dans_bloc_seul);
 
 	auto membres = bloc->membres.verrou_lecture();
+	bloc->nombre_recherches += 1;
 	POUR (*membres) {
 		if (it == noeud) {
 			continue;
@@ -128,6 +131,7 @@ NoeudDeclaration *trouve_type_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 
 	while (bloc_courant != nullptr) {
 		auto membres = bloc_courant->membres.verrou_lecture();
+		bloc_courant->nombre_recherches += 1;
 		POUR (*membres) {
 			if (it->ident != ident) {
 				continue;
@@ -187,6 +191,7 @@ void trouve_declarations_dans_bloc(
 	auto bloc_courant = bloc;
 
 	while (bloc_courant != nullptr) {
+		bloc_courant->nombre_recherches += 1;
 		auto membres = bloc_courant->membres.verrou_lecture();
 		POUR (*membres) {
 			if (it->ident == ident) {

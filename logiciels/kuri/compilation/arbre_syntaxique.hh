@@ -692,6 +692,8 @@ struct NoeudBloc : public NoeudExpression {
 	bool est_nonsur = false;
 	bool est_bloc_fonction = false;
 
+	int nombre_recherches = 0;
+
 	COPIE_CONSTRUCT(NoeudBloc);
 };
 

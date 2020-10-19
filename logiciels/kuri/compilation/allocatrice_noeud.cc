@@ -238,6 +238,12 @@ long AllocatriceNoeud::nombre_noeuds() const
 	return noeuds;
 }
 
+#undef COMPTE_RECHERCHES
+
+#ifdef COMPTE_RECHERCHES
+static auto nombre_recherches = 0;
+#endif
+
 void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 {
 	auto &stats_arbre = stats.stats_arbre;
@@ -295,7 +301,20 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 		memoire_bloc += noeud.membres->taille * taille_de(NoeudDeclaration *);
 		memoire_bloc += noeud.expressions->taille * taille_de(NoeudExpression *);
 		memoire_bloc += noeud.noeuds_differes.taille * taille_de(NoeudBloc *);
+
+#ifdef COMPTE_RECHERCHES
+		if (noeud.nombre_recherches) {
+			std::cerr << "Taille bloc : " << noeud.membres->taille << ", recherches : " << noeud.nombre_recherches << '\n';
+		}
+
+		nombre_recherches += noeud.nombre_recherches * noeud.membres->taille;
+#endif
 	});
+
+#ifdef COMPTE_RECHERCHES
+	std::cerr << "nombre_recherches : " << nombre_recherches << '\n';
+#endif
+
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudBloc", m_noeuds_bloc) + memoire_bloc });
 
 	auto memoire_corps_fonction = 0l;
