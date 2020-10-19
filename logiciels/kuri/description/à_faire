@@ -1,3 +1,9 @@
+// remplace gabarit -> polymorphique
+// remplace instantiation -> monomorphisation
+// remplace epandue_pour -> monomorphe
+// remplace DonneesCandidate::raison par une chaine de caractère
+// nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
+
 
 // --------------------------- Contexte Implicite
 
@@ -62,8 +68,6 @@ avoir un système de détermination de contraintes pour les fonctions polymorphi
     ajoute :: fonc (a: $T/TypeOuInterface) // force T à être un dérivé de TypeOuInterface
         comment faire pour contraindre sur des types scalaires (entier ou réél)
 
-supporte les structures polymorphiques / gabarits
-
 De Jorjala/attribut.kuri
 // À FAIRE : définir une bonne interface pour accéder aux valeurs sans gabarits
 //
@@ -96,6 +100,10 @@ currying
     #cuis_constantes ma_fonction(T = z32)  // crée une nouvelle fonction ou le paramètre polymorphique T est remplacé par le type z32
     #cuis_valeurs    ma_fonction(x = 5)  // crée une nouvelle fonction ou le paramètre x est remplacé par la constante 5
 
+// réusinage :
+-- note les expressions comme étant des contraintes, ne passe pas par la validation sémantique (marque comme validé tout de même)
+-- dans la validation des appels, apparie les types des expressions avec les contraintes
+-- utilise les ItemMonomorphisation pour les fonctions
 
 // --------------------------- Métaprogrammation
 
