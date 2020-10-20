@@ -2889,8 +2889,6 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 	auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 32>();
 
 	auto dernier_res = ResultatExpression();
-	/* utilise est_errone pour indiquer que nous sommes à la première valeur */
-	dernier_res.est_errone = true;
 
 	membres.reserve(decl->bloc->expressions->taille);
 	decl->bloc->membres->reserve(decl->bloc->expressions->taille);
@@ -2930,6 +2928,10 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 		it->ident = var->ident;
 
 		auto res = ResultatExpression();
+		/* est_errone est utilisé pour indiquer que dernier_resultat est la
+		 * première valeur, si res.est_errone est également vrai, la valeur
+		 * n'est jamais incrémentée (res étant assigné à dernier_resultat) */
+		res.est_errone = false;
 
 		// À FAIRE(erreur) : vérifie qu'aucune expression s'évalue à zéro
 		if (expr != nullptr) {
