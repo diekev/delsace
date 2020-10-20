@@ -12,6 +12,15 @@ test_retour_simple :: fonc () -> z32
 #assert test_retour_simple() == 256
 
 // ----------------------------------------------------------------------------
+
+// Cet exemple vient d'une vidéo sur Zig, un nouveau langage de programmation.
+// https://www.youtube.com/watch?v=Z4oYSByyRak
+// Elle montre un exemple où javascript n'ajoute pas correctement deux grand
+// nombres. Javascript donne 36028797018963970 alors que la bonne réponse est
+// 36028797018963968 (à 2 près).
+#assert 18014398509481984 + 18014398509481984 == 36028797018963968
+
+// ----------------------------------------------------------------------------
 // Test pointeurs de fonctions
 
 fonction_pointée :: fonc () -> z32
