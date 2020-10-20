@@ -79,6 +79,7 @@ principale :: fonc () -> z32
 //    imprime_index(@index)
 
     index_avant := loge [ensemble.taille][]z64
+    index_avant.taille = index_avant.capacité
     diffère {
         pour tabl dans index_avant {
             déloge tabl
@@ -118,6 +119,7 @@ principale :: fonc () -> z32
     diffère { déloge documents_résultat; }
 
     vecteur_résultat := loge [documents.taille]r32
+    vecteur_résultat.taille = vecteur_résultat.capacité
     diffère { déloge vecteur_résultat; }
 
     pour v dans vecteur_résultat {
@@ -125,6 +127,7 @@ principale :: fonc () -> z32
     }
 
     vecteur_trigraphe := loge [documents.taille]r32
+    vecteur_trigraphe.taille = vecteur_trigraphe.capacité
     diffère { déloge vecteur_trigraphe; }
 
     pour i dans 2 ... recherche.taille - 1 {

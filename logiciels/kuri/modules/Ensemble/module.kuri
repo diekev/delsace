@@ -30,6 +30,7 @@ ensemble_ajoute :: fonc (ensemble: *[]$T, donnée: $T) -> rien
     tmp := mémoire(ensemble)
 
     reloge tmp : [taille + 1]$T
+    tmp.taille = taille + 1
 
     i := taille
 
