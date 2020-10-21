@@ -244,33 +244,33 @@ struct Type {
 struct TypePointeur : public Type {
 	TypePointeur() { genre = GenreType::POINTEUR; }
 
+	explicit TypePointeur(Type *type_pointe);
+
 	COPIE_CONSTRUCT(TypePointeur);
 
 	Type *type_pointe = nullptr;
-
-	static TypePointeur *cree(Type *type_pointe);
 };
 
 struct TypeReference : public Type {
 	TypeReference() { genre = GenreType::REFERENCE; }
 
+	explicit TypeReference(Type *type_pointe);
+
 	COPIE_CONSTRUCT(TypeReference);
 
 	Type *type_pointe = nullptr;
-
-	static TypeReference *cree(Type *type_pointe);
 };
 
 struct TypeFonction : public Type {
 	TypeFonction() { genre = GenreType::FONCTION; }
+
+	TypeFonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties);
 
 	kuri::tableau<Type *> types_entrees{};
 	kuri::tableau<Type *> types_sorties{};
 
 	uint64_t tag_entrees = 0;
 	uint64_t tag_sorties = 0;
-
-	TypeFonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties);
 
 	void marque_polymorphique();
 };
@@ -363,43 +363,43 @@ struct TypeEnum final : public TypeCompose {
 struct TypeTableauFixe final : public TypeCompose {
 	TypeTableauFixe() { genre = GenreType::TABLEAU_FIXE; }
 
+	TypeTableauFixe(Type *type_pointe, long taille, kuri::tableau<TypeCompose::Membre> &&membres);
+
 	COPIE_CONSTRUCT(TypeTableauFixe);
 
 	Type *type_pointe = nullptr;
 	long taille = 0;
-
-	static TypeTableauFixe *cree(Type*type_pointe, long taille, kuri::tableau<TypeCompose::Membre> &&membres);
 };
 
 struct TypeTableauDynamique final : public TypeCompose {
 	TypeTableauDynamique() { genre = GenreType::TABLEAU_DYNAMIQUE; }
 
+	TypeTableauDynamique(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres);
+
 	COPIE_CONSTRUCT(TypeTableauDynamique);
 
 	Type *type_pointe = nullptr;
-
-	static TypeTableauDynamique *cree(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres);
 };
 
 struct TypeVariadique final : public TypeCompose {
 	TypeVariadique() { genre = GenreType::VARIADIQUE; }
 
+	TypeVariadique(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres);
+
 	COPIE_CONSTRUCT(TypeVariadique);
 
 	Type *type_pointe = nullptr;
-
-	static TypeVariadique *cree(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres);
 };
 
 struct TypeTypeDeDonnees : public Type {
 	TypeTypeDeDonnees() { genre = GenreType::TYPE_DE_DONNEES; }
 
+	explicit TypeTypeDeDonnees(Type *type_connu);
+
 	COPIE_CONSTRUCT(TypeTypeDeDonnees);
 
 	// Non-nul si le type est connu lors de la compilation.
 	Type *type_connu = nullptr;
-
-	static TypeTypeDeDonnees *cree(Type *type_connu);
 };
 
 struct TypePolymorphique : public Type {
@@ -409,11 +409,11 @@ struct TypePolymorphique : public Type {
 		drapeaux = TYPE_EST_POLYMORPHIQUE;
 	}
 
+	explicit TypePolymorphique(IdentifiantCode *ident);
+
 	COPIE_CONSTRUCT(TypePolymorphique);
 
 	IdentifiantCode *ident = nullptr;
-
-	static TypePolymorphique *cree(IdentifiantCode *ident);
 };
 
 /* ************************************************************************** */
@@ -516,17 +516,17 @@ struct Typeuse {
 	// à différents types de types.
 	dls::tableau<Type *> types_communs{};
 	tableau_synchrone<Type *> types_simples{};
-	tableau_synchrone<TypePointeur *> types_pointeurs{};
-	tableau_synchrone<TypeReference *> types_references{};
-	tableau_synchrone<TypeStructure *> types_structures{};
-	tableau_synchrone<TypeEnum *> types_enums{};
-	tableau_synchrone<TypeTableauFixe *> types_tableaux_fixes{};
-	tableau_synchrone<TypeTableauDynamique *> types_tableaux_dynamiques{};
+	tableau_page_synchrone<TypePointeur> types_pointeurs{};
+	tableau_page_synchrone<TypeReference> types_references{};
+	tableau_page_synchrone<TypeStructure> types_structures{};
+	tableau_page_synchrone<TypeEnum> types_enums{};
+	tableau_page_synchrone<TypeTableauFixe> types_tableaux_fixes{};
+	tableau_page_synchrone<TypeTableauDynamique> types_tableaux_dynamiques{};
 	tableau_page_synchrone<TypeFonction> types_fonctions{};
-	tableau_synchrone<TypeVariadique *> types_variadiques{};
-	tableau_synchrone<TypeUnion *> types_unions{};
-	tableau_synchrone<TypeTypeDeDonnees *> types_type_de_donnees{};
-	tableau_synchrone<TypePolymorphique *> types_polymorphiques{};
+	tableau_page_synchrone<TypeVariadique> types_variadiques{};
+	tableau_page_synchrone<TypeUnion> types_unions{};
+	tableau_page_synchrone<TypeTypeDeDonnees> types_type_de_donnees{};
+	tableau_page_synchrone<TypePolymorphique> types_polymorphiques{};
 
 	// mise en cache de plusieurs types pour mieux les trouver
 	TypeTypeDeDonnees *type_type_de_donnees_ = nullptr;
