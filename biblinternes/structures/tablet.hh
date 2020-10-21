@@ -269,6 +269,11 @@ class tablet {
 public:
 	tablet() = default;
 
+	explicit tablet(long taille_initiale)
+	{
+		redimensionne(taille_initiale);
+	}
+
 	tablet(const tablet &autre)
 	{
 		copie_donnees(autre);
