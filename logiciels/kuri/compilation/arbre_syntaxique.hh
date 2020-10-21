@@ -503,6 +503,14 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	kuri::tableau<NoeudDeclaration *> params{};
 	kuri::tableau<NoeudDeclaration *> params_sorties{};
 
+	/* La hiérarchie des blocs pour les fonctions est la suivante :
+	 * - bloc_constantes (qui contient les constantes déclarées pour les polymorphes)
+	 * -- bloc_parametres (qui contient la déclaration des paramètres d'entrées et de sorties)
+	 * --- bloc_corps (qui se trouve dans NoeudDeclarationCorpsFonction)
+	 */
+	NoeudBloc *bloc_constantes = nullptr;
+	NoeudBloc *bloc_parametres = nullptr;
+
 	dls::chaine nom_broye_ = "";
 
 	using tableau_paire_expansion = dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>>;

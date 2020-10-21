@@ -1931,6 +1931,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
+	noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc();
+	noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc();
+
 	/* analyse les paramètres de la fonction */
 	auto params = dls::tablet<NoeudDeclaration *, 16>();
 	auto nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
@@ -2188,6 +2191,12 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		}
 	}
 
+	/* dépile le bloc des paramètres */
+	m_tacheronne.assembleuse->depile_bloc();
+
+	/* dépile le bloc des constantes */
+	m_tacheronne.assembleuse->depile_bloc();
+
 	depile_etat();
 
 	return noeud;
@@ -2217,6 +2226,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	noeud->est_operateur = true;
 
 	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
+
+	noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc();
+	noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc();
 
 	/* analyse les paramètres de la fonction */
 	auto params = dls::tablet<NoeudDeclaration *, 16>();
@@ -2364,6 +2376,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 		consomme();
 	}
+
+	/* dépile le bloc des paramètres */
+	m_tacheronne.assembleuse->depile_bloc();
+
+	/* dépile le bloc des constantes */
+	m_tacheronne.assembleuse->depile_bloc();
 
 	depile_etat();
 
