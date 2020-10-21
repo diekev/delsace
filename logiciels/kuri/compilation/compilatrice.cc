@@ -207,11 +207,11 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 
 	SAUVEGARDE_ETAT(constructrice.fonction_courante);
 
-	auto types_entrees = kuri::tableau<Type *>(2);
+	auto types_entrees = dls::tablet<Type *, 6>(2);
 	types_entrees[0] = typeuse.type_contexte;
 	types_entrees[1] = typeuse.type_pointeur_pour(normalise_type(typeuse, type));
 
-	auto types_sorties = kuri::tableau<Type *>(1);
+	auto types_sorties = dls::tablet<Type *, 6>(1);
 	types_sorties[0] = typeuse[TypeBase::RIEN];
 
 	auto params = kuri::tableau<Atome *>(2);
@@ -223,7 +223,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 	params_sortie.pousse(atome);
 
 	auto atome_fonc = fonctions.ajoute_element(nullptr, nom_fonction, std::move(params));
-	atome_fonc->type = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+	atome_fonc->type = typeuse.type_fonction(types_entrees, types_sorties);
 	atome_fonc->params_sorties = std::move(params_sortie);
 	atome_fonc->enligne = true;
 

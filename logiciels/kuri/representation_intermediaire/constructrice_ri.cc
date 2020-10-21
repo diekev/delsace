@@ -261,10 +261,10 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const dls
 {
 	auto nom_fonction = "init_globale" + dls::vers_chaine(fonction_pour);
 
-	auto types_entrees = kuri::tableau<Type *>(1);
+	auto types_entrees = dls::tablet<Type *, 6>(1);
 	types_entrees[0] = m_espace->typeuse.type_contexte;
 
-	auto types_sorties = kuri::tableau<Type *>(1);
+	auto types_sorties = dls::tablet<Type *, 6>(1);
 	types_sorties[0] = m_espace->typeuse[TypeBase::RIEN];
 
 	Atome *param_contexte = cree_allocation(types_entrees[0], ID::contexte);
@@ -273,7 +273,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const dls
 	params[0] = param_contexte;
 
 	auto fonction = m_espace->cree_fonction(nullptr, nom_fonction, std::move(params));
-	fonction->type = m_espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+	fonction->type = m_espace->typeuse.type_fonction(types_entrees, types_sorties);
 
 	this->fonction_courante = fonction;
 	this->table_locales.efface();
@@ -4009,14 +4009,14 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 	type_argv = m_espace->typeuse.type_pointeur_pour(type_argv);
 	type_argv = m_espace->typeuse.type_pointeur_pour(type_argv);
 
-	auto types_entrees = kuri::tableau<Type *>(2);
+	auto types_entrees = dls::tablet<Type *, 6>(2);
 	types_entrees[0] = type_argc;
 	types_entrees[1] = type_argv;
 
-	auto types_sorties = kuri::tableau<Type *>(1);
+	auto types_sorties = dls::tablet<Type *, 6>(1);
 	types_sorties[0] = type_int;
 
-	auto type_fonction = m_espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+	auto type_fonction = m_espace->typeuse.type_fonction(types_entrees, types_sorties);
 
 	auto ident_argc = m_compilatrice.table_identifiants->identifiant_pour_chaine("argc");
 	auto ident_argv = m_compilatrice.table_identifiants->identifiant_pour_chaine("argv");

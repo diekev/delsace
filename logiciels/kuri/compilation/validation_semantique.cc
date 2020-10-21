@@ -168,7 +168,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				auto requiers_contexte = !decl->possede_drapeau(FORCE_NULCTX);
-				auto types_entrees = kuri::tableau<Type *>(decl->params.taille + requiers_contexte);
+				auto types_entrees = dls::tablet<Type *, 6>(decl->params.taille + requiers_contexte);
 
 				if (requiers_contexte) {
 					types_entrees[0] = espace->typeuse.type_contexte;
@@ -191,7 +191,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 				}
 
-				auto types_sorties = kuri::tableau<Type *>(decl->params_sorties.taille);
+				auto types_sorties = dls::tablet<Type *, 6>(decl->params_sorties.taille);
 
 				for (auto i = 0; i < decl->params_sorties.taille; ++i) {
 					if (resoud_type_final(decl->params_sorties[i], types_sorties[i])) {
@@ -199,7 +199,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 				}
 
-				auto type_fonction = espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+				auto type_fonction = espace->typeuse.type_fonction(types_entrees, types_sorties);
 				decl->type = espace->typeuse.type_type_de_donnees(type_fonction);
 				return false;
 			}
@@ -246,12 +246,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			decl_entete->params_sorties.pousse(decl_sortie);
 
-			auto types_entrees = kuri::tableau<Type *>(0);
+			auto types_entrees = dls::tablet<Type *, 6>(0);
 
-			auto types_sorties = kuri::tableau<Type *>(1);
+			auto types_sorties = dls::tablet<Type *, 6>(1);
 			types_sorties[0] = noeud_directive->expr->type;
 
-			auto type_fonction = espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+			auto type_fonction = espace->typeuse.type_fonction(types_entrees, types_sorties);
 			decl_entete->type = type_fonction;
 
 			decl_corps->bloc = static_cast<NoeudBloc *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, noeud->lexeme));
@@ -1397,14 +1397,14 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			auto types_entrees = kuri::tableau<Type *>(2);
+			auto types_entrees = dls::tablet<Type *, 6>(2);
 			types_entrees[0] = espace->typeuse.type_contexte;
 			types_entrees[1] = espace->typeuse.type_pointeur_pour(type);
 
-			auto types_sorties = kuri::tableau<Type *>(1);
+			auto types_sorties = dls::tablet<Type *, 6>(1);
 			types_sorties[0] = espace->typeuse[TypeBase::RIEN];
 
-			auto type_fonction = espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+			auto type_fonction = espace->typeuse.type_fonction(types_entrees, types_sorties);
 			noeud->type = type_fonction;
 
 			donnees_dependance.types_utilises.insere(noeud->type);
@@ -2267,7 +2267,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 	{
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (typage)");
 
-		kuri::tableau<Type *> types_entrees;
+		dls::tablet<Type *, 6> types_entrees;
 		types_entrees.reserve(decl->params.taille + possede_contexte);
 
 		if (possede_contexte) {
@@ -2278,7 +2278,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 			types_entrees.pousse(it->type);
 		}
 
-		kuri::tableau<Type *> types_sorties;
+		dls::tablet<Type *, 6> types_sorties;
 		types_sorties.reserve(decl->params_sorties.taille);
 
 		for (auto &type_declare : decl->params_sorties) {
@@ -2290,7 +2290,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 		}
 
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (type_fonction)");
-		type_fonc = espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+		type_fonc = espace->typeuse.type_fonction(types_entrees, types_sorties);
 		decl->type = type_fonc;
 		donnees_dependance.types_utilises.insere(decl->type);
 	}
@@ -2710,12 +2710,12 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 
 		fonction->params_sorties.pousse(decl_sortie);
 
-		auto types_entrees = kuri::tableau<Type *>(0);
+		auto types_entrees = dls::tablet<Type *, 6>(0);
 
-		auto types_sorties = kuri::tableau<Type *>(1);
+		auto types_sorties = dls::tablet<Type *, 6>(1);
 		types_sorties[0] = espace->typeuse[TypeBase::CHAINE];
 
-		fonction->type = espace->typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+		fonction->type = espace->typeuse.type_fonction(types_entrees, types_sorties);
 		fonction->drapeaux |= DECLARATION_FUT_VALIDEE;
 
 		metaprogramme = espace->cree_metaprogramme();

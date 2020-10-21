@@ -203,11 +203,19 @@ TypeReference::TypeReference(Type *type_pointe_)
 	type_pointe_->drapeaux |= POSSEDE_TYPE_REFERENCE;
 }
 
-TypeFonction::TypeFonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties)
+TypeFonction::TypeFonction(dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties)
 	: TypeFonction()
 {
-	this->types_entrees = std::move(entrees);
-	this->types_sorties = std::move(sorties);
+	this->types_entrees.reserve(entrees.taille());
+	POUR (entrees) {
+		this->types_entrees.pousse(it);
+	}
+
+	this->types_sorties.reserve(sorties.taille());
+	POUR (sorties) {
+		this->types_sorties.pousse(it);
+	}
+
 	this->taille_octet = 8;
 	this->alignement = 8;
 	this->marque_polymorphique();
@@ -735,13 +743,13 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 	return type;
 }
 
-TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, const kuri::tableau<Type *> &entrees, const kuri::tableau<Type *> &sorties)
+TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties)
 {
-	if (it->types_entrees.taille != entrees.taille) {
+	if (it->types_entrees.taille != entrees.taille()) {
 		return nullptr;
 	}
 
-	if (it->types_sorties.taille != sorties.taille) {
+	if (it->types_sorties.taille != sorties.taille()) {
 		return nullptr;
 	}
 
@@ -760,9 +768,14 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, const kuri::tableau
 	return it;
 }
 
-TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties)
+//static int nombre_types_apparies = 0;
+//static int nombre_appels = 0;
+
+TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties)
 {
 	Prof(type_fonction);
+
+	//nombre_appels += 1;
 
 	auto types_fonctions_ = types_fonctions.verrou_ecriture();
 
@@ -785,6 +798,9 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 		auto type = discr_type_fonction(&it, entrees, sorties);
 
 		if (type != nullptr) {
+//			nombre_types_apparies += 1;
+//			std::cerr << "appariements : " << nombre_types_apparies << '\n';
+//			std::cerr << "appels       : " << nombre_appels << '\n';
 			return type;
 		}
 	}
@@ -816,6 +832,8 @@ TypeFonction *Typeuse::type_fonction(kuri::tableau<Type *> &&entrees, kuri::tabl
 		graphe->connecte_type_type(type, it);
 	}
 
+//	std::cerr << "appariements : " << nombre_types_apparies << '\n';
+//	std::cerr << "appels       : " << nombre_appels << '\n';
 	return type;
 }
 
@@ -1337,7 +1355,7 @@ Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour
 	else if (type_gabarit->genre == GenreType::FONCTION) {
 		auto type_fonction = type_gabarit->comme_fonction();
 
-		auto types_entrees = kuri::tableau<Type *>();
+		auto types_entrees = dls::tablet<Type *, 6>();
 		types_entrees.reserve(type_fonction->types_entrees.taille);
 
 		POUR (type_fonction->types_entrees) {
@@ -1350,7 +1368,7 @@ Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour
 			}
 		}
 
-		auto types_sorties = kuri::tableau<Type *>();
+		auto types_sorties = dls::tablet<Type *, 6>();
 		types_sorties.reserve(type_fonction->types_sorties.taille);
 
 		POUR (type_fonction->types_sorties) {
@@ -1363,7 +1381,7 @@ Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour
 			}
 		}
 
-		resultat = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+		resultat = typeuse.type_fonction(types_entrees, types_sorties);
 	}
 	else {
 		assert_rappel(false, [&]() { std::cerr << "Type inattendu dans la résolution de type polymorphique : " << chaine_type(type_gabarit) << "\n"; });
@@ -1453,21 +1471,21 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 	else if (type->genre == GenreType::FONCTION) {
 		auto type_fonction = type->comme_fonction();
 
-		auto types_entrees = kuri::tableau<Type *>();
+		auto types_entrees = dls::tablet<Type *, 6>();
 		types_entrees.reserve(type_fonction->types_entrees.taille);
 
 		POUR (type_fonction->types_entrees) {
 			types_entrees.pousse(normalise_type(typeuse, it));
 		}
 
-		auto types_sorties = kuri::tableau<Type *>();
+		auto types_sorties = dls::tablet<Type *, 6>();
 		types_sorties.reserve(type_fonction->types_entrees.taille);
 
 		POUR (type_fonction->types_sorties) {
 			types_sorties.pousse(normalise_type(typeuse, it));
 		}
 
-		resultat = typeuse.type_fonction(std::move(types_entrees), std::move(types_sorties));
+		resultat = typeuse.type_fonction(types_entrees, types_sorties);
 	}
 
 	resultat->drapeaux |= TYPE_EST_NORMALISE;

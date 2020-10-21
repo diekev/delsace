@@ -264,7 +264,7 @@ struct TypeReference : public Type {
 struct TypeFonction : public Type {
 	TypeFonction() { genre = GenreType::FONCTION; }
 
-	TypeFonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties);
+	TypeFonction(dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties);
 
 	kuri::tableau<Type *> types_entrees{};
 	kuri::tableau<Type *> types_sorties{};
@@ -571,9 +571,9 @@ struct Typeuse {
 
 	TypeVariadique *type_variadique(Type *type_pointe);
 
-	TypeFonction *discr_type_fonction(TypeFonction *it, kuri::tableau<Type *> const &entrees, kuri::tableau<Type *> const &sorties);
+	TypeFonction *discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties);
 
-	TypeFonction *type_fonction(kuri::tableau<Type *> &&entrees, kuri::tableau<Type *> &&sorties);
+	TypeFonction *type_fonction(dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties);
 
 	TypeTypeDeDonnees *type_type_de_donnees(Type *type_connu);
 
