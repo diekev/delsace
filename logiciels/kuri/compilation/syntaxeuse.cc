@@ -365,21 +365,12 @@ void Syntaxeuse::lance_analyse()
 
 	if (m_fichier->metaprogramme_corps_texte) {
 		auto recipiente = m_fichier->metaprogramme_corps_texte->recipiente_corps_texte;
-		m_tacheronne.assembleuse->bloc_courant(recipiente->corps->bloc_parent);
+		m_tacheronne.assembleuse->bloc_courant(recipiente->bloc_parametres);
 
 		recipiente->corps->bloc = analyse_bloc(false);
 		aplatis_arbre(recipiente->corps->bloc, recipiente->corps->arbre_aplatis, {});
 		recipiente->corps->est_corps_texte = false;
 		recipiente->est_metaprogramme = false;
-
-		/* maintenant que nous avons un bloc pour le corps, copie les paramètres */
-		POUR (recipiente->params) {
-			recipiente->corps->bloc->membres->pousse(it);
-		}
-
-		POUR (recipiente->params_sorties) {
-			recipiente->corps->bloc->membres->pousse(it);
-		}
 
 		m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, recipiente->corps);
 
