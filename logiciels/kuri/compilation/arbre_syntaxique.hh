@@ -150,7 +150,7 @@ enum DrapeauxNoeud : unsigned int {
 	FORCE_SANSTRACE            = (1 << 5), // decl fonction
 	EST_ASSIGNATION_COMPOSEE   = (1 << 6), // operateur binaire
 	EST_VARIADIQUE             = (1 << 7), // decl var
-	EST_VAR_BOUCLE             = (1 << 8), // decl var, expr référence
+	/*  DISPONIBLE             = (1 << 8), */
 	EST_GLOBALE                = (1 << 9), // decl var
 	EST_CONSTANTE              = (1 << 10), // decl var
 	DECLARATION_TYPE_POLYMORPHIQUE = (1 << 11), // decl var

@@ -370,10 +370,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				expr->type = decl->type;
 			}
 
-			if (decl->possede_drapeau(EST_VAR_BOUCLE)) {
-				expr->drapeaux |= EST_VAR_BOUCLE;
-			}
-			else if (decl->possede_drapeau(EST_CONSTANTE)) {
+			if (decl->possede_drapeau(EST_CONSTANTE)) {
 				expr->genre_valeur = GenreValeur::DROITE;
 			}
 
@@ -1094,11 +1091,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				decl_f->ident = f->ident;
 				decl_f->lexeme = f->lexeme;
 				decl_f->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-				if (enfant2->genre != GenreNoeud::EXPRESSION_PLAGE) {
-					decl_f->drapeaux |= EST_VAR_BOUCLE;
-					f->drapeaux |= EST_VAR_BOUCLE;
-				}
 
 				enfant3->membres->pousse(decl_f);
 			}
