@@ -1082,25 +1082,16 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto nombre_feuilles = feuilles->expressions.taille - requiers_index;
 
 			for (auto i = 0l; i < nombre_feuilles; ++i) {
-				auto f = feuilles->expressions[i];
+				auto decl_f = feuilles->expressions[i]->comme_decl_var();
 
-				auto decl_f = static_cast<NoeudDeclarationVariable *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme));
-				decl_f->bloc_parent = noeud->bloc_parent;
-				decl_f->valeur = f;
 				decl_f->type = type;
-				decl_f->ident = f->ident;
-				decl_f->lexeme = f->lexeme;
 				decl_f->drapeaux |= DECLARATION_FUT_VALIDEE;
 
 				enfant3->membres->pousse(decl_f);
 			}
 
 			if (requiers_index) {
-				auto idx = feuilles->expressions[feuilles->expressions.taille - 1];
-
-				auto decl_idx = static_cast<NoeudDeclarationVariable *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme));
-				decl_idx->bloc_parent = noeud->bloc_parent;
-				decl_idx->valeur = idx;
+				auto decl_idx = feuilles->expressions[feuilles->expressions.taille - 1]->comme_decl_var();
 
 				if (noeud->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
 					decl_idx->type = espace->typeuse[TypeBase::Z32];
@@ -1109,10 +1100,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					decl_idx->type = espace->typeuse[TypeBase::Z64];
 				}
 
-				decl_idx->ident = idx->ident;
-				decl_idx->lexeme = idx->lexeme;
 				decl_idx->drapeaux |= DECLARATION_FUT_VALIDEE;
-
 				enfant3->membres->pousse(decl_idx);
 			}
 
