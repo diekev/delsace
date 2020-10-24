@@ -1255,12 +1255,6 @@ bool valide_appel_fonction(
 	}
 
 	if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {
-		// @vérifie si utile
-		if (candidate->noeud_decl == nullptr) {
-			contexte.rapporte_erreur_fonction_inconnue(expr, candidates);
-			return true;
-		}
-
 		auto decl_fonction_appelee = candidate->noeud_decl->comme_entete_fonction();
 
 		/* pour les directives d'exécution, la fonction courante est nulle */
