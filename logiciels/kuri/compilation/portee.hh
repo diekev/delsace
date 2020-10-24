@@ -45,12 +45,6 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
 		IdentifiantCode *ident,
 		Fichier *fichier);
 
-NoeudDeclaration *trouve_type_dans_bloc_ou_module(
-		EspaceDeTravail const &espace,
-		NoeudBloc *bloc,
-		IdentifiantCode *ident,
-		Fichier *fichier);
-
 void trouve_declarations_dans_bloc(
 		dls::tablet<NoeudDeclaration *, 10> &declarations,
 		NoeudBloc *bloc,

@@ -123,64 +123,6 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
 	return decl;
 }
 
-NoeudDeclaration *trouve_type_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
-{
-	Prof(trouve_type_dans_bloc);
-
-	auto bloc_courant = bloc;
-
-	while (bloc_courant != nullptr) {
-		auto membres = bloc_courant->membres.verrou_lecture();
-		bloc_courant->nombre_recherches += 1;
-		POUR (*membres) {
-			if (it->ident != ident) {
-				continue;
-			}
-
-			if (!dls::outils::est_element(it->type->genre, GenreType::STRUCTURE, GenreType::UNION, GenreType::ENUM, GenreType::ERREUR)) {
-				continue;
-			}
-
-			return it;
-		}
-
-		bloc_courant = bloc_courant->bloc_parent;
-	}
-
-	return nullptr;
-}
-
-NoeudDeclaration *trouve_type_dans_bloc_ou_module(
-		EspaceDeTravail const &espace,
-		NoeudBloc *bloc,
-		IdentifiantCode *ident,
-		Fichier *fichier)
-{
-	Prof(trouve_type_dans_bloc_ou_module);
-
-	auto decl = trouve_type_dans_bloc(bloc, ident);
-
-	if (decl != nullptr) {
-		return decl;
-	}
-
-	/* cherche dans les modules importés */
-	dls::pour_chaque_element(fichier->modules_importes, [&](auto &nom_module)
-	{
-		auto module = espace.module(nom_module);
-
-		decl = trouve_type_dans_bloc(module->bloc, ident);
-
-		if (decl != nullptr) {
-			return dls::DecisionIteration::Arrete;
-		}
-
-		return dls::DecisionIteration::Continue;
-	});
-
-	return decl;
-}
-
 void trouve_declarations_dans_bloc(
 		dls::tablet<NoeudDeclaration *, 10> &declarations,
 		NoeudBloc *bloc,
