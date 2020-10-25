@@ -1241,6 +1241,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 				return decl;
 			}
 
+			if (gauche->est_decl_var()) {
+				// nous avons la déclaration d'une constante (a: z32 : 12)
+				auto decl = gauche->comme_decl_var();
+				decl->expression = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
+				decl->drapeaux |= EST_CONSTANTE;
+				return decl;
+			}
+
 			rapporte_erreur(m_unite->espace, gauche, "Expression inattendu à gauche du double-point");
 			return nullptr;
 		}
