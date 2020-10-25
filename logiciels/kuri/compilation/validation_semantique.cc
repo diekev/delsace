@@ -3294,7 +3294,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 				}
 			}
 
-			if (resoud_type_final(it.ref_decl->expression_type, it.ref_decl->type)) {
+			if (resoud_type_final(it.decl->expression_type, it.ref_decl->type)) {
 				return true;
 			}
 		}

@@ -572,7 +572,6 @@ NoeudExpression *copie_noeud(
 
 			nexpr->valeur = copie_noeud(assem, expr->valeur, bloc_parent);
 			nexpr->expression = copie_noeud(assem, expr->expression, bloc_parent);
-			nexpr->expression_type = nexpr->valeur->expression_type;
 
 			break;
 		}
