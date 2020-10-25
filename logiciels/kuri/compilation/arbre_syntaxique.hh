@@ -404,8 +404,6 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 
 	// pour une expression de style a := 5, a est la valeur, et 5 l'expression
 	// pour une expression de style a, b := foo(7) , « a, b » est la valeur, et foo(7) l'expression
-	// la valeur est une peut redondante car ce noeud pourrait contenir les données de la valeur,
-	// mais elle est nécessaire pour pouvoir prendre en compte les expressions à virgule
 	NoeudExpression *valeur = nullptr;
 	NoeudExpression *expression = nullptr;
 
