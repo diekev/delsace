@@ -417,7 +417,7 @@ lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 
     résultat := loge chaine(taille_fichier)
 
-    octets_lus := tente système_lis(fichier.desc, résultat.pointeur, résultat.taille: n32) piège err {
+    octets_lus := tente système_lis(fichier.desc, résultat.pointeur, résultat.taille) piège err {
         déloge résultat
         retourne err
     }
