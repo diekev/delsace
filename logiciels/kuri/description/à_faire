@@ -431,6 +431,7 @@ implémente la directive #si pour la compilation sélective
 - réduction des allocations
 - déplace la génération de la fonction main dans une unité de compilation
 - parser les expressions se finissant par une virgule (f(x,)) ; peut simplifier la métaprogrammation
+- explore un système d'introspection similaire à Cycles pour copier, ou convertir depuis et vers les NoeudCode les noeuds
 
 À faire (32-bits)
 -----------------
