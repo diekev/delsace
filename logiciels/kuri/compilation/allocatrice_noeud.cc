@@ -115,6 +115,7 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		case GenreNoeud::EXPRESSION_INFO_DE:
+		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		case GenreNoeud::OPERATEUR_UNAIRE:
@@ -140,7 +141,6 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 			noeud = m_noeuds_directive_execution.ajoute_element();
 			break;
 		}
-		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:

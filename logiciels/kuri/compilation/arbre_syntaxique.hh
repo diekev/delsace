@@ -244,8 +244,6 @@ struct NoeudExpression {
 
 	NoeudBloc *bloc_parent = nullptr;
 
-	NoeudExpression *expression_type = nullptr;
-
 	UniteCompilation *unite = nullptr;
 	NoeudCode *noeud_code = nullptr;
 
@@ -350,6 +348,7 @@ struct NoeudExpression {
 	COMME_NOEUD(corps_fonction, NoeudDeclarationCorpsFonction)
 	COMME_NOEUD(indexage, NoeudExpressionBinaire)
 	COMME_NOEUD(info_de, NoeudExpressionUnaire)
+	COMME_NOEUD(init_de, NoeudExpressionUnaire)
 	COMME_NOEUD(loge, NoeudExpressionLogement)
 	COMME_NOEUD(memoire, NoeudExpressionUnaire)
 	COMME_NOEUD(operateur_binaire, NoeudExpressionBinaire)
@@ -409,6 +408,8 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 	// mais elle est nécessaire pour pouvoir prendre en compte les expressions à virgule
 	NoeudExpression *valeur = nullptr;
 	NoeudExpression *expression = nullptr;
+
+	NoeudExpression *expression_type = nullptr;
 
 	ResultatExpression valeur_expression{};
 
@@ -487,6 +488,7 @@ struct NoeudExpressionLogement : public NoeudExpression {
 
 	NoeudExpression *expr = nullptr;
 	NoeudExpression *expr_taille = nullptr;
+	NoeudExpression *expression_type = nullptr;
 	NoeudBloc *bloc = nullptr;
 
 	COPIE_CONSTRUCT(NoeudExpressionLogement);
@@ -500,8 +502,8 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 
 	COPIE_CONSTRUCT(NoeudDeclarationEnteteFonction);
 
-	kuri::tableau<NoeudDeclaration *> params{};
-	kuri::tableau<NoeudDeclaration *> params_sorties{};
+	kuri::tableau<NoeudDeclarationVariable *> params{};
+	kuri::tableau<NoeudDeclarationVariable *> params_sorties{};
 
 	/* La hiérarchie des blocs pour les fonctions est la suivante :
 	 * - bloc_constantes (qui contient les constantes déclarées pour les polymorphes)
@@ -633,6 +635,7 @@ struct NoeudEnum : public NoeudDeclaration {
 	NoeudEnum() { genre = GenreNoeud::DECLARATION_STRUCTURE; }
 
 	NoeudBloc *bloc = nullptr;
+	NoeudExpression *expression_type = nullptr;
 
 	COPIE_CONSTRUCT(NoeudEnum);
 };
@@ -768,6 +771,7 @@ struct NoeudComme : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudComme);
 
 	NoeudExpression *expression = nullptr;
+	NoeudExpression *expression_type = nullptr;
 	TransformationType transformation{};
 };
 
@@ -804,6 +808,7 @@ struct NoeudComme : public NoeudExpression {
 	COMME_NOEUD(corps_fonction, NoeudDeclarationCorpsFonction)
 	COMME_NOEUD(indexage, NoeudExpressionBinaire)
 	COMME_NOEUD(info_de, NoeudExpressionUnaire)
+	COMME_NOEUD(init_de, NoeudExpressionUnaire)
 	COMME_NOEUD(loge, NoeudExpressionLogement)
 	COMME_NOEUD(memoire, NoeudExpressionUnaire)
 	COMME_NOEUD(operateur_binaire, NoeudExpressionBinaire)

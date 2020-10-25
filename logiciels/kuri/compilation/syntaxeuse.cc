@@ -844,8 +844,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			consomme();
 			consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'init_de'");
 
-			auto noeud = CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_INIT_DE, lexeme);
-			noeud->expression_type = analyse_expression_primaire(GenreLexeme::INIT_DE, GenreLexeme::INCONNU);
+			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::EXPRESSION_INIT_DE, lexeme);
+			noeud->expr = analyse_expression_primaire(GenreLexeme::INIT_DE, GenreLexeme::INCONNU);
 
 			consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'init_de'");
 
@@ -1913,7 +1913,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 	noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc();
 
 	/* analyse les paramètres de la fonction */
-	auto params = dls::tablet<NoeudDeclaration *, 16>();
+	auto params = dls::tablet<NoeudDeclarationVariable *, 16>();
 	auto nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 
 	auto eu_declarations = false;
@@ -1922,14 +1922,14 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
 
 		if (param->est_decl_var()) {
-			auto decl_var = static_cast<NoeudDeclaration *>(param);
+			auto decl_var = static_cast<NoeudDeclarationVariable *>(param);
 			decl_var->drapeaux |= EST_PARAMETRE;
 			params.pousse(decl_var);
 			eu_declarations = true;
 		}
 		else {
 			// XXX - hack
-			params.pousse(static_cast<NoeudDeclaration *>(param));
+			params.pousse(static_cast<NoeudDeclarationVariable *>(param));
 		}
 
 		if (!apparie(GenreLexeme::VIRGULE)) {
@@ -1969,7 +1969,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 			noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
-			noeud->params_sorties.pousse(static_cast<NoeudDeclaration *>(type_declare));
+			noeud->params_sorties.pousse(static_cast<NoeudDeclarationVariable *>(type_declare));
 			aplatis_arbre(type_declare, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 			if (!apparie(GenreLexeme::VIRGULE)) {
@@ -2003,7 +2003,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 					auto ref = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl_sortie->lexeme);
 					ref->ident = ident;
-					ref->expression_type = decl_sortie;
 
 					auto decl = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, decl_sortie->lexeme);
 					decl->valeur = ref;
@@ -2040,7 +2039,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 			auto ref = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, &lexeme_rien);
 			ref->ident = ident;
-			ref->expression_type = type_declare;
 
 			auto decl = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, &lexeme_rien);
 			decl->valeur = ref;
@@ -2205,7 +2203,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc();
 
 	/* analyse les paramètres de la fonction */
-	auto params = dls::tablet<NoeudDeclaration *, 16>();
+	auto params = dls::tablet<NoeudDeclarationVariable *, 16>();
 	auto nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 
 	while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
@@ -2270,7 +2268,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 			auto ref = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl_sortie->lexeme);
 			ref->ident = ident;
-			ref->expression_type = decl_sortie;
 
 			auto decl = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, decl_sortie->lexeme);
 			decl->valeur = ref;

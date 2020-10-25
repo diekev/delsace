@@ -295,6 +295,10 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 		{
 			imprime_tab(os, tab);
 			os << "expr init_de\n";
+
+			auto init_de = racine->comme_init_de();
+			imprime_arbre(init_de->expr, os, tab + 1);
+
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
@@ -457,7 +461,6 @@ NoeudExpression *copie_noeud(
 	}
 
 	auto nracine = assem->cree_noeud(racine->genre, racine->lexeme);
-	nracine->expression_type = copie_noeud(assem, racine->expression_type, bloc_parent);
 	nracine->ident = racine->ident;
 	nracine->type = racine->type;
 	nracine->bloc_parent = bloc_parent;
@@ -503,13 +506,13 @@ NoeudExpression *copie_noeud(
 
 			POUR (expr->params) {
 				auto copie = copie_noeud(assem, it, bloc_parent);
-				nexpr->params.pousse(static_cast<NoeudDeclaration *>(copie));
+				nexpr->params.pousse(static_cast<NoeudDeclarationVariable *>(copie));
 				aplatis_arbre(copie, nexpr->arbre_aplatis, DrapeauxNoeud::AUCUN);
 			}
 
 			POUR (expr->params_sorties) {
 				auto copie = copie_noeud(assem, it, bloc_parent);
-				nexpr->params_sorties.pousse(static_cast<NoeudDeclaration *>(copie));
+				nexpr->params_sorties.pousse(static_cast<NoeudDeclarationVariable *>(copie));
 				aplatis_arbre(copie, nexpr->arbre_aplatis, DrapeauxNoeud::AUCUN);
 			}
 
@@ -545,6 +548,7 @@ NoeudExpression *copie_noeud(
 			auto ndecl = static_cast<NoeudEnum *>(nracine);
 
 			ndecl->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, decl->bloc, bloc_parent));
+			ndecl->expression_type = copie_noeud(assem, decl->expression_type, bloc_parent);
 			break;
 		}
 		case GenreNoeud::DECLARATION_STRUCTURE:
@@ -572,6 +576,7 @@ NoeudExpression *copie_noeud(
 
 			nexpr->valeur = copie_noeud(assem, expr->valeur, bloc_parent);
 			nexpr->expression = copie_noeud(assem, expr->expression, bloc_parent);
+			nexpr->expression_type = copie_noeud(assem, expr->expression_type, bloc_parent);
 
 			break;
 		}
@@ -640,10 +645,12 @@ NoeudExpression *copie_noeud(
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
 			nexpr->expr_taille = copie_noeud(assem, expr->expr_taille, bloc_parent);
 			nexpr->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, expr->bloc, bloc_parent));
+			nexpr->expression_type = copie_noeud(assem, expr->expression_type, bloc_parent);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		case GenreNoeud::EXPRESSION_INFO_DE:
+		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		case GenreNoeud::OPERATEUR_UNAIRE:
@@ -683,7 +690,6 @@ NoeudExpression *copie_noeud(
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
 			break;
 		}
-		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
@@ -1039,7 +1045,8 @@ void aplatis_arbre(
 		}
 		case GenreNoeud::EXPRESSION_INIT_DE:
 		{
-			arbre_aplatis.pousse(racine->expression_type);
+			auto init_de = racine->comme_init_de();
+			aplatis_arbre(init_de->expr, arbre_aplatis, drapeau);
 			arbre_aplatis.pousse(racine);
 			break;
 		}
@@ -1336,6 +1343,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 
 			break;
 		}
+		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
@@ -1368,7 +1376,6 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
 		case GenreNoeud::DECLARATION_ENUM:
 		case GenreNoeud::DECLARATION_STRUCTURE:
-		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:

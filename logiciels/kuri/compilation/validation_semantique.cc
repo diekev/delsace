@@ -1347,9 +1347,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_INIT_DE:
 		{
+			auto init_de = noeud->comme_init_de();
 			Type *type = nullptr;
 
-			if (resoud_type_final(noeud->expression_type, type)) {
+			if (resoud_type_final(init_de->expr, type)) {
 				rapporte_erreur("impossible de définir le type de init_de", noeud);
 				return true;
 			}
@@ -2868,7 +2869,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 
 		auto var = decl_expr->valeur;
 
-		if (var->expression_type != nullptr) {
+		if (decl_expr->expression_type != nullptr) {
 			rapporte_erreur("Expression d'énumération déclarée avec un type", it);
 			return true;
 		}
