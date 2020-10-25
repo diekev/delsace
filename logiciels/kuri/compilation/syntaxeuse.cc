@@ -1916,6 +1916,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 	auto params = dls::tablet<NoeudDeclaration *, 16>();
 	auto nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 
+	auto eu_declarations = false;
+
 	while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
 		auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
 
@@ -1923,8 +1925,10 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			auto decl_var = static_cast<NoeudDeclaration *>(param);
 			decl_var->drapeaux |= EST_PARAMETRE;
 			params.pousse(decl_var);
+			eu_declarations = true;
 		}
 		else {
+			// XXX - hack
 			params.pousse(static_cast<NoeudDeclaration *>(param));
 		}
 
@@ -1951,6 +1955,14 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		// nous avons la déclaration d'un type
 		noeud->est_declaration_type = true;
 		consomme();
+
+		if (eu_declarations) {
+			POUR (noeud->params) {
+				if (it->est_decl_var()) {
+					rapporte_erreur(m_unite->espace, it, "Obtenu la déclaration d'une variable dans la déclartion d'un type de fonction");
+				}
+			}
+		}
 
 		while (true) {
 			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();

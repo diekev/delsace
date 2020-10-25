@@ -153,17 +153,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			if (decl->est_declaration_type) {
 				POUR (decl->arbre_aplatis) {
-					// voir commentaire plus bas
-					if (it->est_decl_var()) {
-						auto valeur = it->comme_decl_var()->valeur;
-						if (valide_semantique_noeud(valeur)) {
-							return true;
-						}
-					}
-					else {
-						if (valide_semantique_noeud(it)) {
-							return true;
-						}
+					if (valide_semantique_noeud(it)) {
+						return true;
 					}
 				}
 
@@ -175,16 +166,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				for (auto i = 0; i < decl->params.taille; ++i) {
-					// le syntaxage des expressions des entrées des fonctions est commune
-					// aux déclarations des fonctions et des types de fonctions faisant
-					// qu'une chaine de caractère seule (référence d'un type) est considérée
-					// comme étant une déclaration de variable, il nous faut donc extraire
-					// le noeud de référence à la variable afin de valider correctement le type
 					NoeudExpression *type_entree = decl->params[i];
-
-					if (type_entree->est_decl_var()) {
-						type_entree = type_entree->comme_decl_var()->valeur;
-					}
 
 					if (resoud_type_final(type_entree, types_entrees[i + requiers_contexte])) {
 						return true;
