@@ -1049,7 +1049,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 		}
 	}
 
-	return ResultatInterpretation::ERREUR;
+	return ResultatInterpretation::COMPILATION_ARRETEE;
 }
 
 void MachineVirtuelle::empile_constante(FrameAppel *frame)

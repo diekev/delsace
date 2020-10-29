@@ -109,6 +109,7 @@ struct MachineVirtuelle {
 	enum ResultatInterpretation {
 		OK,
 		ERREUR,
+		COMPILATION_ARRETEE,
 	};
 
 	MachineVirtuelle(Compilatrice &compilatrice_);
