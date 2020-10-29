@@ -578,6 +578,21 @@ NoeudExpression *copie_noeud(
 			nexpr->expression = copie_noeud(assem, expr->expression, bloc_parent);
 			nexpr->expression_type = copie_noeud(assem, expr->expression_type, bloc_parent);
 
+			/* n'oublions pas de mettre en place les déclarations */
+			if (nexpr->valeur->est_ref_decl()) {
+				nexpr->valeur->comme_ref_decl()->decl = nexpr;
+			}
+			else if (nexpr->valeur->est_virgule()) {
+				auto virgule = expr->valeur->comme_virgule();
+				auto nvirgule = nexpr->valeur->comme_virgule();
+
+				auto index = 0;
+				POUR (virgule->expressions) {
+					auto it_orig = nvirgule->expressions[index]->comme_ref_decl();
+					it->comme_ref_decl()->decl = copie_noeud(assem, it_orig->decl, bloc_parent)->comme_decl_var();
+				}
+			}
+
 			break;
 		}
 		case GenreNoeud::EXPRESSION_COMME:

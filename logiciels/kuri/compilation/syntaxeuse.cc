@@ -1202,6 +1202,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 						noeud->expression = noeud_fonction;
 						noeud->drapeaux |= EST_CONSTANTE;
 						gauche->drapeaux |= EST_CONSTANTE;
+						gauche->comme_ref_decl()->decl = noeud;
 
 						return noeud;
 					}
@@ -1227,6 +1228,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 			noeud->expression = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
 			noeud->drapeaux |= EST_CONSTANTE;
 			gauche->drapeaux |= EST_CONSTANTE;
+
+			if (gauche->est_ref_decl()) {
+				gauche->comme_ref_decl()->decl = noeud;
+			}
 
 			return noeud;
 		}
@@ -1270,6 +1275,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 					if (!it->est_ref_decl()) {
 						rapporte_erreur(m_unite->espace, it, "Expression innatendu à gauche de « := »");
 					}
+
+					cree_declaration_pour_ref(it->comme_ref_decl());
 				}
 			}
 			else if (!gauche->est_ref_decl()) {
@@ -1284,6 +1291,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 			noeud->ident = gauche->ident;
 			noeud->valeur = gauche;
 			noeud->expression = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
+
+			if (gauche->est_ref_decl()) {
+				gauche->comme_ref_decl()->decl = noeud;
+			}
 
 			m_noeud_expression_virgule = nullptr;
 
@@ -1663,6 +1674,7 @@ NoeudDeclarationVariable *Syntaxeuse::cree_declaration_pour_ref(NoeudExpressionR
 	auto decl = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, ref->lexeme);
 	decl->valeur = ref;
 	decl->ident = ref->ident;
+	ref->decl = decl;
 	return decl;
 }
 
@@ -2033,9 +2045,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 					auto ref = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl_sortie->lexeme);
 					ref->ident = ident;
 
-					auto decl = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, decl_sortie->lexeme);
-					decl->valeur = ref;
-					decl->ident = ident;
+					auto decl = cree_declaration_pour_ref(ref);
 					decl->expression_type = decl_sortie;
 					decl->bloc_parent = decl_sortie->bloc_parent;
 
@@ -2069,9 +2079,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			auto ref = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, &lexeme_rien);
 			ref->ident = ident;
 
-			auto decl = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, &lexeme_rien);
-			decl->valeur = ref;
-			decl->ident = ident;
+			auto decl = cree_declaration_pour_ref(ref);
 			decl->expression_type = type_declare;
 
 			noeud->params_sorties.pousse(decl);
@@ -2298,9 +2306,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 			auto ref = CREE_NOEUD(NoeudExpressionReference, GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl_sortie->lexeme);
 			ref->ident = ident;
 
-			auto decl = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, decl_sortie->lexeme);
-			decl->valeur = ref;
-			decl->ident = ident;
+			auto decl = cree_declaration_pour_ref(ref);
 			decl->expression_type = decl_sortie;
 
 			decl_sortie = decl;

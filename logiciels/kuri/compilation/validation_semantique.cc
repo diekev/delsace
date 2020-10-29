@@ -3232,34 +3232,17 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "préparation");
 
 		if (feuilles_variables.taille() == 1) {
-			auto variable = feuilles_variables[0];
-
-			if (!variable->est_ref_decl()) {
-				rapporte_erreur("Expression inattendue à gauche de la déclaration", variable);
-			}
+			auto variable = feuilles_variables[0]->comme_ref_decl();
 
 			decls_et_refs[0].ref_decl = variable;
-			decls_et_refs[0].decl = decl;
-			variable->comme_ref_decl()->decl = decl;
+			decls_et_refs[0].decl = variable->decl->comme_decl_var();
 		}
 		else {
 			for (auto i = 0; i < feuilles_variables.taille(); ++i) {
-				auto variable = feuilles_variables[i];
-
-				if (!variable->est_ref_decl()) {
-					rapporte_erreur("Expression inattendue à gauche de la déclaration", variable);
-				}
-
-				// crée de nouvelles déclaration pour les différentes opérandes
-				auto decl_extra = static_cast<NoeudDeclarationVariable *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, variable->lexeme));
-				decl_extra->ident = variable->ident;
-				decl_extra->valeur = variable;
-				decl_extra->bloc_parent = decl->bloc_parent;
-				decl->bloc_parent->membres->pousse(decl_extra);
+				auto variable = feuilles_variables[i]->comme_ref_decl();
 
 				decls_et_refs[i].ref_decl = variable;
-				decls_et_refs[i].decl = decl_extra;
-				variable->comme_ref_decl()->decl = decl_extra;
+				decls_et_refs[i].decl = variable->decl->comme_decl_var();
 			}
 		}
 	}
