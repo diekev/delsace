@@ -1255,7 +1255,25 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		case GenreLexeme::DECLARATION_VARIABLE:
 		{
 			if (gauche->est_decl_var()) {
-				lance_erreur("Utilisation de « := » alors qu'un type fut déclaré avec « : »");
+				rapporte_erreur(m_unite->espace, gauche, "Utilisation de « := » alors qu'un type fut déclaré avec « : »");
+			}
+
+			if (gauche->est_virgule()) {
+				auto noeud_virgule = gauche->comme_virgule();
+
+				// détecte les expressions du style : a : z32, b := ... , a[0] := ..., etc.
+				POUR (noeud_virgule->expressions) {
+					if (it->est_decl_var()) {
+						rapporte_erreur(m_unite->espace, it, "Utilisation de « := » alors qu'un type fut déclaré avec « : ».");
+					}
+
+					if (!it->est_ref_decl()) {
+						rapporte_erreur(m_unite->espace, it, "Expression innatendu à gauche de « := »");
+					}
+				}
+			}
+			else if (!gauche->est_ref_decl()) {
+				rapporte_erreur(m_unite->espace, gauche, "Expression innatendu à gauche de « := »");
 			}
 
 			consomme();
@@ -1284,6 +1302,17 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 				m_noeud_expression_virgule = nullptr;
 
 				return decl;
+			}
+
+			if (gauche->est_virgule()) {
+				auto noeud_virgule = gauche->comme_virgule();
+
+				// détecte les expressions du style : a : z32, b = ...
+				POUR (noeud_virgule->expressions) {
+					if (it->est_decl_var()) {
+						rapporte_erreur(m_unite->espace, it, "Obtenu une déclaration de variable dans l'expression séparée par virgule à gauche d'une assignation. Les variables doivent être déclarées avant leurs assignations.");
+					}
+				}
 			}
 
 			auto noeud = CREE_NOEUD(NoeudAssignation, GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE, lexeme);
