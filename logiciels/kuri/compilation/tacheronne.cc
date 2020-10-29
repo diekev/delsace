@@ -38,8 +38,6 @@
 #include "syntaxeuse.hh"
 #include "validation_semantique.hh"
 
-static int id_tacheronne = 0;
-
 const char *chaine_genre_tache(GenreTache genre)
 {
 #define ENUMERE_GENRE_TACHE_EX(genre) \
@@ -104,6 +102,8 @@ OrdonnanceuseTache::OrdonnanceuseTache(Compilatrice *compilatrice)
 
 void OrdonnanceuseTache::cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier *fichier)
 {
+	espace->tache_lexage_ajoutee();
+
 	auto unite = unites.ajoute_element(espace);
 	unite->fichier = fichier;
 
@@ -111,17 +111,13 @@ void OrdonnanceuseTache::cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier
 	tache.unite = unite;
 	tache.genre = GenreTache::LEXE;
 
-	if (espace->nombre_taches_parsage == 0) {
-		espace->phase = {};
-	}
-
 	taches_lexage.enfile(tache);
 }
 
 void OrdonnanceuseTache::cree_tache_pour_parsage(EspaceDeTravail *espace, Fichier *fichier)
 {
 	assert(fichier->fut_lexe);
-	espace->nombre_taches_parsage += 1;
+	espace->tache_parsage_ajoutee();
 
 	auto unite = unites.ajoute_element(espace);
 	unite->fichier = fichier;
@@ -135,7 +131,7 @@ void OrdonnanceuseTache::cree_tache_pour_parsage(EspaceDeTravail *espace, Fichie
 
 void OrdonnanceuseTache::cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
-	espace->nombre_taches_typage += 1;
+	espace->tache_typage_ajoutee();
 
 	auto unite = unites.ajoute_element(espace);
 	unite->noeud = noeud;
@@ -151,10 +147,6 @@ void OrdonnanceuseTache::cree_tache_pour_typage(EspaceDeTravail *espace, NoeudEx
 
 void OrdonnanceuseTache::renseigne_etat_tacheronne(int id, GenreTache genre_tache)
 {
-	if (id >= etats_tacheronnes.taille()) {
-		etats_tacheronnes.redimensionne(id + 1);
-	}
-
 	etats_tacheronnes[id] = genre_tache;
 }
 
@@ -186,7 +178,7 @@ long OrdonnanceuseTache::progres() const
 
 void OrdonnanceuseTache::cree_tache_pour_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
-	espace->nombre_taches_ri += 1;
+	espace->tache_ri_ajoutee();
 
 	auto unite = unites.ajoute_element(espace);
 	unite->noeud = noeud;
@@ -202,7 +194,7 @@ void OrdonnanceuseTache::cree_tache_pour_generation_ri(EspaceDeTravail *espace, 
 
 void OrdonnanceuseTache::cree_tache_pour_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
 {
-	espace->nombre_taches_execution += 1;
+	espace->tache_execution_ajoutee();
 
 	auto unite = unites.ajoute_element(espace);
 	unite->metaprogramme = metaprogramme;
@@ -216,11 +208,9 @@ void OrdonnanceuseTache::cree_tache_pour_execution(EspaceDeTravail *espace, Meta
 	taches_execution.enfile(tache);
 }
 
-Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache_completee, int id, bool premiere, DrapeauxTacheronne drapeaux)
+Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_completee, int id, DrapeauxTacheronne drapeaux)
 {
-	auto nouvelle_tache = tache_terminee;
-
-	auto unite = nouvelle_tache.unite;
+	auto unite = tache_terminee.unite;
 	auto espace = EspaceDeTravail::nul();
 
 	// unité peut-être nulle pour les tâches DORS du début de la compilation
@@ -231,17 +221,10 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 		espace = tache_terminee.espace;
 	}
 
-	/* À FAIRE: pour le moment nous n'avons qu'une tâcheronne pour typer et
-	 * générer la RI, or quand une unité dépend d'un métaprogramme il est possible
-	 * qu'il ne reste qu'une seule unité à typer et plusieurs unités à générer
-	 * la RI et nous pouvons alors stopper la compilation car le nombre de cycles
-	 * sur l'unité de typage dépasse la limite.
-	 *
-	 * Pour le moment nous ignorons les tâches de typages dans un tel cas, un
-	 * meilleur système serait de n'avoir qu'une seule file pour toutes les tâches,
-	 * ou alors distribuer une tâche avant d'en remettre une dans la file.
-	 */
-	auto ignore_taches_typages = false;
+	/* Assigne une nouvelle tâche avant de traiter la dernière, afin d'éviter les
+	 * problèmes de cycles, par exemple quand une tâche de typage est la seule dans
+	 * la liste et que les métaprogrammes n'ont pas encore générés le symbole à définir. */
+	auto nouvelle_tache = tache_suivante(espace, id, drapeaux);
 
 	switch (tache_terminee.genre) {
 		case GenreTache::DORS:
@@ -261,25 +244,22 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 		case GenreTache::ENVOIE_MESSAGE:
 		{
 			if (!tache_completee) {
-				taches_message.enfile(nouvelle_tache);
+				taches_message.enfile(tache_terminee);
 			}
 
 			break;
 		}
 		case GenreTache::LEXE:
 		{
-			espace->nombre_taches_parsage += 1;
-			nouvelle_tache.genre = GenreTache::PARSE;
-			taches_parsage.enfile(nouvelle_tache);
+			espace->tache_lexage_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
+			espace->tache_parsage_ajoutee();
+			tache_terminee.genre = GenreTache::PARSE;
+			taches_parsage.enfile(tache_terminee);
 			break;
 		}
 		case GenreTache::PARSE:
 		{
-			espace->nombre_taches_parsage -= 1;
-			if (espace->nombre_taches_parsage == 0) {
-				m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::PARSAGE_TERMINE);
-			}
-
+			espace->tache_parsage_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
 			break;
 		}
 		case GenreTache::TYPAGE:
@@ -288,21 +268,16 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 			if (!tache_completee) {
 				auto progres_courant = progres();
 
-				ignore_taches_typages = taches_typage.taille() == 0 && unite->etat() == UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME;
-
-				if (!ignore_taches_typages && progres_courant == nouvelle_tache.progres) {
-					nouvelle_tache.unite->cycle += 1;
+				if (unite->etat() != UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME && progres_courant == tache_terminee.progres) {
+					tache_terminee.unite->cycle += 1;
 				}
 
-				nouvelle_tache.progres = progres_courant;
-				taches_typage.enfile(nouvelle_tache);
+				tache_terminee.progres = progres_courant;
+				taches_typage.enfile(tache_terminee);
 				break;
 			}
 
-			espace->nombre_taches_typage -= 1;
-			if (espace->nombre_taches_typage == 0) {
-				m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::TYPAGE_TERMINE);
-			}
+			espace->tache_typage_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
 
 			auto generation_ri_requise = true;
 			auto noeud = unite->noeud;
@@ -321,10 +296,10 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 			}
 
 			if (generation_ri_requise) {
-				espace->nombre_taches_ri += 1;
-				nouvelle_tache.genre = GenreTache::GENERE_RI;
-				nouvelle_tache.unite->cycle = 0;
-				taches_generation_ri.enfile(nouvelle_tache);
+				espace->tache_ri_ajoutee();
+				tache_terminee.genre = GenreTache::GENERE_RI;
+				tache_terminee.unite->cycle = 0;
+				taches_generation_ri.enfile(tache_terminee);
 			}
 
 			if (noeud->genre != GenreNoeud::DIRECTIVE_EXECUTION) {
@@ -342,22 +317,20 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 			// La tâche ne pût être complétée (une définition est attendue, etc.), remets-là dans la file en attendant.
 			// Ici, seules les métaprogrammes peuvent nous revenir.
 			if (!tache_completee) {
-				nouvelle_tache.unite->cycle += 1;
-				taches_generation_ri.enfile(nouvelle_tache);
+				tache_terminee.unite->cycle += 1;
+				taches_generation_ri.enfile(tache_terminee);
 				break;
 			}
 
-			espace->nombre_taches_ri -= 1;
-			if (espace->nombre_taches_ri == 0) {
-				m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::GENRERATION_CODE_TERMINEE);
-			}
+			espace->tache_ri_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
 			break;
 		}
 		case GenreTache::GENERE_FICHIER_OBJET:
 		{
-			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::APRES_GENERATION_OBJET);
+			espace->tache_generation_objet_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
 
 			if (espace->options.objet_genere == ObjetGenere::Executable) {
+				espace->phase = PhaseCompilation::AVANT_LIAISON_EXECUTABLE;
 				m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
 				renseigne_etat_tacheronne(id, GenreTache::LIAISON_EXECUTABLE);
 				return Tache::liaison_objet(espace);
@@ -370,27 +343,23 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 		}
 		case GenreTache::LIAISON_EXECUTABLE:
 		{
-			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::APRES_LIAISON_EXECUTABLE);
+			espace->tache_liaison_executable_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
 			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::COMPILATION_TERMINEE);
 			break;
 		}
 	}
 
-	// au début de la compilation les tâcheronnes nous donne une Tache::DORS qu'elles ont achevées (ceci pour avoir une IPA simple)
-	// or, ces tâches n'ont pas été données par la plannifieuse et le nombre_de_taches_en_proces est alors de 0
-	// pour éviter les nombres négatif vérifie que nous ne sommes pas au début de la compilation
-	if (!premiere) {
-		nombre_de_taches_en_proces -= 1;
-	}
+	return nouvelle_tache;
+}
 
+Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, int id, DrapeauxTacheronne drapeaux)
+{
 	if (!taches_lexage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER))) {
-		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::LEXE);
 		return taches_lexage.defile();
 	}
 
 	if (!taches_parsage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_PARSER))) {
-		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::PARSE);
 		return taches_parsage.defile();
 	}
@@ -403,50 +372,43 @@ Tache OrdonnanceuseTache::tache_suivante(const Tache &tache_terminee, bool tache
 	// tel ou tel symbole, et trouver de meilleures heuristiques pour arrêter la
 	// compilation en cas d'indéfinition de symbole
 	if (!taches_message.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE))) {
-		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::ENVOIE_MESSAGE);
 		return taches_message.defile();
 	}
 
-	if (!ignore_taches_typages && !taches_typage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER))) {
-		nombre_de_taches_en_proces += 1;
+	if (!taches_typage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER))) {
 		renseigne_etat_tacheronne(id, GenreTache::TYPAGE);
 		return taches_typage.defile();
 	}
 
 	if (!taches_generation_ri.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI))) {
-		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::GENERE_RI);
 		return taches_generation_ri.defile();
 	}
 
-	if (espace->phase == PhaseCompilation::GENRERATION_CODE_TERMINEE && espace->nombre_taches_execution == 0) {
+	if (espace->peut_generer_code_final()) {
 		if (espace->options.objet_genere == ObjetGenere::Rien) {
 			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::COMPILATION_TERMINEE);
 		}
 		else if (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
 			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::AVANT_GENERATION_OBJET);
 			renseigne_etat_tacheronne(id, GenreTache::GENERE_FICHIER_OBJET);
-			nombre_de_taches_en_proces += 1;
 			return Tache::genere_fichier_objet(espace);
 		}
 	}
 
 	if (!taches_execution.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER))) {
-		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::EXECUTE);
 		return taches_execution.defile();
 	}
 
-	if (nombre_de_taches_en_proces != 0 && !toutes_les_tacheronnes_dorment()) {
-		nombre_de_taches_en_proces += 1;
+	if (!toutes_les_tacheronnes_dorment()) {
 		renseigne_etat_tacheronne(id, GenreTache::DORS);
 		return Tache::dors(espace);
 	}
 
 	// La Tâcheronne n'a pas pu recevoir une tâche lui étant spécifique.
 	if (nombre_de_taches_en_attente() != 0) {
-		nombre_de_taches_en_proces += 1;
 		renseigne_etat_tacheronne(id, GenreTache::DORS);
 		return Tache::dors(espace);
 	}
@@ -463,10 +425,16 @@ long OrdonnanceuseTache::memoire_utilisee() const
 	return memoire;
 }
 
+int OrdonnanceuseTache::enregistre_tacheronne(Badge<Tacheronne> /*badge*/)
+{
+	etats_tacheronnes.pousse(GenreTache::DORS);
+	return nombre_de_tacheronnes++;
+}
+
 Tacheronne::Tacheronne(Compilatrice &comp)
 	: compilatrice(comp)
 	, assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", this->allocatrice_noeud))
-	, id(id_tacheronne++)
+	, id(compilatrice.ordonnanceuse->enregistre_tacheronne({}))
 {}
 
 Tacheronne::~Tacheronne()
@@ -478,13 +446,11 @@ void Tacheronne::gere_tache()
 {
 	auto temps_debut = dls::chrono::compte_seconde();
 	auto tache = Tache::dors(compilatrice.espace_de_travail_defaut);
-	auto premiere = true;
 	auto tache_fut_completee = true;
 	auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
 	while (!compilatrice.possede_erreur) {
-		tache = ordonnanceuse->tache_suivante(tache, tache_fut_completee, id, premiere, drapeaux);
-		premiere = false;
+		tache = ordonnanceuse->tache_suivante(tache, tache_fut_completee, id, drapeaux);
 
 		switch (tache.genre) {
 			case GenreTache::COMPILATION_TERMINEE:
@@ -1026,7 +992,7 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 		metaprogramme->fut_execute = true;
 	}
 
-	unite->espace->nombre_taches_execution -= 1;
+	unite->espace->tache_execution_terminee(&(*compilatrice.messagere.verrou_ecriture()));
 
 	return true;
 }

@@ -1314,16 +1314,6 @@ static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Sync
 {
 	auto graphe = graphe_.verrou_ecriture();
 
-	// À FAIRE : quand nous lexons sur compilons sur plusieurs threads, il est possible que le code soit généré plusieurs fois...
-	POUR_TABLEAU_PAGE(graphe->noeuds) {
-		if (!it.est_type()) {
-			continue;
-		}
-
-		auto type = it.type();
-		type->drapeaux &= ~TYPEDEF_FUT_GENERE;
-	}
-
 	POUR_TABLEAU_PAGE(graphe->noeuds) {
 		if (!it.est_type()) {
 			continue;

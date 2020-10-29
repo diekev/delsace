@@ -94,6 +94,14 @@ struct InterfaceKuri {
  * -- données dynamiques : arbres syntaxiques, types, noeuds dépendances
  */
 struct EspaceDeTravail {
+private:
+	std::atomic<int> nombre_taches_lexage = 0;
+	std::atomic<int> nombre_taches_parsage = 0;
+	std::atomic<int> nombre_taches_typage = 0;
+	std::atomic<int> nombre_taches_ri = 0;
+	std::atomic<int> nombre_taches_execution = 0;
+
+public:
 	dls::chaine nom{};
 	OptionsCompilation options{};
 
@@ -131,14 +139,9 @@ struct EspaceDeTravail {
 	using TableChaine = dls::dico<dls::chaine, AtomeConstante *>;
 	dls::outils::Synchrone<TableChaine> table_chaines{};
 
-	std::atomic<int> nombre_taches_parsage = 0;
-	std::atomic<int> nombre_taches_typage = 0;
-	std::atomic<int> nombre_taches_ri = 0;
-	std::atomic<int> nombre_taches_execution = 0;
-
 	std::mutex mutex_atomes_fonctions{};
 
-	PhaseCompilation phase{};
+	PhaseCompilation phase = PhaseCompilation::PARSAGE_EN_COURS;
 
 	/* mise en cache de la fonction principale, si vue dans la Syntaxeuse */
 	NoeudDeclarationEnteteFonction *fonction_principale = nullptr;
@@ -199,6 +202,22 @@ struct EspaceDeTravail {
 	void rassemble_statistiques(Statistiques &stats) const;
 
 	MetaProgramme *cree_metaprogramme();
+
+	void tache_lexage_ajoutee();
+	void tache_parsage_ajoutee();
+	void tache_typage_ajoutee();
+	void tache_ri_ajoutee();
+	void tache_execution_ajoutee();
+
+	void tache_lexage_terminee(Messagere *messagere);
+	void tache_parsage_terminee(Messagere *messagere);
+	void tache_typage_terminee(Messagere *messagere);
+	void tache_ri_terminee(Messagere *messagere);
+	void tache_execution_terminee(Messagere *messagere);
+	void tache_generation_objet_terminee(Messagere *messagere);
+	void tache_liaison_executable_terminee(Messagere *messagere);
+
+	bool peut_generer_code_final() const;
 };
 
 struct Compilatrice {

@@ -338,6 +338,98 @@ MetaProgramme *EspaceDeTravail::cree_metaprogramme()
 	return metaprogrammes->ajoute_element();
 }
 
+void EspaceDeTravail::tache_lexage_ajoutee()
+{
+	phase = PhaseCompilation::PARSAGE_EN_COURS;
+	nombre_taches_lexage += 1;
+}
+
+void EspaceDeTravail::tache_parsage_ajoutee()
+{
+	phase = PhaseCompilation::PARSAGE_EN_COURS;
+	nombre_taches_parsage += 1;
+}
+
+void EspaceDeTravail::tache_typage_ajoutee()
+{
+	nombre_taches_typage += 1;
+}
+
+void EspaceDeTravail::tache_ri_ajoutee()
+{
+	nombre_taches_ri += 1;
+}
+
+void EspaceDeTravail::tache_execution_ajoutee()
+{
+	nombre_taches_execution += 1;
+}
+
+void EspaceDeTravail::tache_lexage_terminee(Messagere */*messagere*/)
+{
+	nombre_taches_lexage -= 1;
+}
+
+void EspaceDeTravail::tache_parsage_terminee(Messagere *messagere)
+{
+	nombre_taches_parsage -= 1;
+
+	if (nombre_taches_lexage == 0 && nombre_taches_parsage == 0) {
+		phase = PhaseCompilation::PARSAGE_TERMINE;
+		messagere->ajoute_message_phase_compilation(this, phase);
+	}
+}
+
+void EspaceDeTravail::tache_typage_terminee(Messagere *messagere)
+{
+	nombre_taches_typage -= 1;
+
+	if (nombre_taches_typage == 0 && phase == PhaseCompilation::PARSAGE_TERMINE) {
+		phase = PhaseCompilation::TYPAGE_TERMINE;
+		messagere->ajoute_message_phase_compilation(this, phase);
+	}
+}
+
+void EspaceDeTravail::tache_ri_terminee(Messagere *messagere)
+{
+	nombre_taches_ri -= 1;
+
+	if (nombre_taches_ri == 0 && phase == PhaseCompilation::TYPAGE_TERMINE) {
+		phase = PhaseCompilation::GENERATION_CODE_TERMINEE;
+		messagere->ajoute_message_phase_compilation(this, phase);
+	}
+}
+
+void EspaceDeTravail::tache_execution_terminee(Messagere */*messagere*/)
+{
+	nombre_taches_execution -= 1;
+}
+
+void EspaceDeTravail::tache_generation_objet_terminee(Messagere *messagere)
+{
+	phase = PhaseCompilation::APRES_GENERATION_OBJET;
+	messagere->ajoute_message_phase_compilation(this, phase);
+}
+
+void EspaceDeTravail::tache_liaison_executable_terminee(Messagere *messagere)
+{
+	phase = PhaseCompilation::APRES_LIAISON_EXECUTABLE;
+	messagere->ajoute_message_phase_compilation(this, phase);
+}
+
+bool EspaceDeTravail::peut_generer_code_final() const
+{
+	if (phase != PhaseCompilation::GENERATION_CODE_TERMINEE) {
+		return false;
+	}
+
+	if (nombre_taches_execution != 0) {
+		return false;
+	}
+
+	return true;
+}
+
 /* ************************************************************************** */
 
 static Compilatrice *ptr_compilatrice = nullptr;

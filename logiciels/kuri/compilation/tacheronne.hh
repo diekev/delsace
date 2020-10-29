@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/outils/badge.hh"
 #include "biblinternes/structures/file.hh"
 
 #include "allocatrice_noeud.hh"
@@ -35,6 +36,7 @@
 
 struct Compilatrice;
 struct MetaProgramme;
+struct Tacheronne;
 
 #define ENUMERE_GENRES_TACHE \
 	ENUMERE_GENRE_TACHE_EX(DORS) \
@@ -108,7 +110,7 @@ private:
 	 * la compilation est terminée */
 	dls::tablet<GenreTache, 16> etats_tacheronnes{};
 
-	int nombre_de_taches_en_proces = 0;
+	int nombre_de_tacheronnes = 0;
 	bool compilation_terminee = false;
 
 public:
@@ -124,9 +126,11 @@ public:
 	void cree_tache_pour_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
 	void cree_tache_pour_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
-	Tache tache_suivante(Tache const &tache_terminee, bool tache_completee, int id, bool premiere, DrapeauxTacheronne drapeaux);
+	Tache tache_suivante(Tache &tache_terminee, bool tache_completee, int id, DrapeauxTacheronne drapeaux);
 
 	long memoire_utilisee() const;
+
+	int enregistre_tacheronne(Badge<Tacheronne> badge);
 
 private:
 	void renseigne_etat_tacheronne(int id, GenreTache genre_tache);
@@ -136,6 +140,8 @@ private:
 	long nombre_de_taches_en_attente() const;
 
 	long progres() const;
+
+	Tache tache_suivante(EspaceDeTravail *espace, int id, DrapeauxTacheronne drapeaux);
 };
 
 struct Tacheronne {

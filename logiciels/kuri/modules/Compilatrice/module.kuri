@@ -418,6 +418,7 @@ GenreMessage :: énum z32 {
 }
 
 PhaseCompilation :: énum {
+	PARSAGE_EN_COURS
 	PARSAGE_TERMINÉ
 	TYPAGE_TERMINÉ
 	GÉNÉRATION_CODE_TERMINÉE
