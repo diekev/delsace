@@ -1239,6 +1239,30 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		{
 			consomme();
 
+			/* Deux cas :
+			 * a, b : z32 = ...
+			 * a, b : z32 : ...
+			 * Dans les deux cas, nous vérifions que nous n'avons que des références séparées par des virgules.
+			 */
+			if (m_noeud_expression_virgule) {
+				POUR (m_noeud_expression_virgule->expressions) {
+					if (it->est_decl_var()) {
+						rapporte_erreur(m_unite->espace, it, "Obtenu une déclaration de variable au sein d'une expression-virgule.");
+					}
+
+					if (!it->est_ref_decl()) {
+						rapporte_erreur(m_unite->espace, it, "Expression inattendue dans l'expression virgule.");
+					}
+				}
+
+				auto decl = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, lexeme);
+				decl->valeur = m_noeud_expression_virgule;
+				decl->expression_type = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
+
+				m_noeud_expression_virgule = nullptr;
+				return decl;
+			}
+
 			if (gauche->est_ref_decl()) {
 				// nous avons la déclaration d'un type (a: z32)
 				auto decl = cree_declaration_pour_ref(gauche->comme_ref_decl());
