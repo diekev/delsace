@@ -68,6 +68,7 @@ struct UniteCompilation {
 	MetaProgramme *metaprogramme = nullptr;
 	MetaProgramme *metaprogramme_attendu = nullptr;
 	int index_courant = 0;
+	int index_precedent = 0;
 	bool message_recu = false;
 
 	int cycle = 0;
