@@ -430,6 +430,11 @@ bool EspaceDeTravail::peut_generer_code_final() const
 	return true;
 }
 
+bool EspaceDeTravail::parsage_termine() const
+{
+	return nombre_taches_lexage == 0 && nombre_taches_parsage == 0;
+}
+
 /* ************************************************************************** */
 
 static Compilatrice *ptr_compilatrice = nullptr;

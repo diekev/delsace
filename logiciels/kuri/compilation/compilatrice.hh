@@ -218,6 +218,7 @@ public:
 	void tache_liaison_executable_terminee(Messagere *messagere);
 
 	bool peut_generer_code_final() const;
+	bool parsage_termine() const;
 };
 
 struct Compilatrice {

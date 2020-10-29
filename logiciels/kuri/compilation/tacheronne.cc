@@ -171,11 +171,6 @@ long OrdonnanceuseTache::nombre_de_taches_en_attente() const
 			+ taches_message.taille();
 }
 
-long OrdonnanceuseTache::progres() const
-{
-	return taches_lexage.taille() + taches_parsage.taille() + taches_typage.taille();
-}
-
 void OrdonnanceuseTache::cree_tache_pour_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
 	espace->tache_ri_ajoutee();
@@ -266,13 +261,10 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 		{
 			// La tâche ne pût être complétée (une définition est attendue, etc.), remets-là dans la file en attendant.
 			if (!tache_completee) {
-				auto progres_courant = progres();
-
-				if (unite->etat() != UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME && progres_courant == tache_terminee.progres) {
+				if (unite->etat() != UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME && espace->parsage_termine()) {
 					tache_terminee.unite->cycle += 1;
 				}
 
-				tache_terminee.progres = progres_courant;
 				taches_typage.enfile(tache_terminee);
 				break;
 			}
