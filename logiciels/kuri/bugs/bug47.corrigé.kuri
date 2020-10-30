@@ -6,5 +6,6 @@ fonction :: fonc (a : z32, b : type_de(a))
 
 principale :: fonc () -> z32
 {
+    fonction(5, 6)
     retourne 0
 }
