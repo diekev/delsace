@@ -139,7 +139,7 @@ private:
 
 	long nombre_de_taches_en_attente() const;
 
-	Tache tache_suivante(EspaceDeTravail *espace, int id, DrapeauxTacheronne drapeaux);
+	Tache tache_suivante(EspaceDeTravail *espace, DrapeauxTacheronne drapeaux);
 };
 
 struct Tacheronne {

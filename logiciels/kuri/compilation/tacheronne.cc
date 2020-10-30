@@ -219,7 +219,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 	/* Assigne une nouvelle tâche avant de traiter la dernière, afin d'éviter les
 	 * problèmes de cycles, par exemple quand une tâche de typage est la seule dans
 	 * la liste et que les métaprogrammes n'ont pas encore générés le symbole à définir. */
-	auto nouvelle_tache = tache_suivante(espace, id, drapeaux);
+	auto nouvelle_tache = tache_suivante(espace, drapeaux);
 
 	switch (tache_terminee.genre) {
 		case GenreTache::DORS:
@@ -347,18 +347,18 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 		}
 	}
 
+	renseigne_etat_tacheronne(id, nouvelle_tache.genre);
+
 	return nouvelle_tache;
 }
 
-Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, int id, DrapeauxTacheronne drapeaux)
+Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, DrapeauxTacheronne drapeaux)
 {
 	if (!taches_lexage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER))) {
-		renseigne_etat_tacheronne(id, GenreTache::LEXE);
 		return taches_lexage.defile();
 	}
 
 	if (!taches_parsage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_PARSER))) {
-		renseigne_etat_tacheronne(id, GenreTache::PARSE);
 		return taches_parsage.defile();
 	}
 
@@ -370,17 +370,14 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, int id, Drapea
 	// tel ou tel symbole, et trouver de meilleures heuristiques pour arrêter la
 	// compilation en cas d'indéfinition de symbole
 	if (!taches_message.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE))) {
-		renseigne_etat_tacheronne(id, GenreTache::ENVOIE_MESSAGE);
 		return taches_message.defile();
 	}
 
 	if (!taches_typage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER))) {
-		renseigne_etat_tacheronne(id, GenreTache::TYPAGE);
 		return taches_typage.defile();
 	}
 
 	if (!taches_generation_ri.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI))) {
-		renseigne_etat_tacheronne(id, GenreTache::GENERE_RI);
 		return taches_generation_ri.defile();
 	}
 
@@ -390,25 +387,23 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, int id, Drapea
 		}
 		else if (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
 			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::AVANT_GENERATION_OBJET);
-			renseigne_etat_tacheronne(id, GenreTache::GENERE_FICHIER_OBJET);
 			return Tache::genere_fichier_objet(espace);
 		}
 	}
 
 	if (!taches_execution.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER))) {
-		renseigne_etat_tacheronne(id, GenreTache::EXECUTE);
 		return taches_execution.defile();
 	}
 
-	if (!toutes_les_tacheronnes_dorment()) {
-		renseigne_etat_tacheronne(id, GenreTache::DORS);
-		return Tache::dors(espace);
-	}
+	if (!compilation_terminee) {
+		if (!toutes_les_tacheronnes_dorment()) {
+			return Tache::dors(espace);
+		}
 
-	// La Tâcheronne n'a pas pu recevoir une tâche lui étant spécifique.
-	if (nombre_de_taches_en_attente() != 0) {
-		renseigne_etat_tacheronne(id, GenreTache::DORS);
-		return Tache::dors(espace);
+		// La Tâcheronne n'a pas pu recevoir une tâche lui étant spécifique.
+		if (nombre_de_taches_en_attente() != 0) {
+			return Tache::dors(espace);
+		}
 	}
 
 	compilation_terminee = true;
