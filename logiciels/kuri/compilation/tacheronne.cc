@@ -958,7 +958,7 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 		rapporte_erreur(espace, metaprogramme->directive, "Erreur lors de l'exécution du métaprogramme");
 	}
 	else {
-		if (metaprogramme->directive) {
+		if (metaprogramme->directive && metaprogramme->directive->ident == ID::assert_) {
 			auto resultat = *reinterpret_cast<bool *>(mv.pointeur_pile);
 
 			if (!resultat) {
