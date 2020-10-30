@@ -926,6 +926,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					// dis à l'unité de sauter les instructions jusqu'au prochain point
 					unite->index_courant = inst->index_bloc_si_faux;
 				}
+
+				inst->visite = true;
 			}
 			else {
 				// dis à l'unité de sauter les instructions jusqu'au prochain point
