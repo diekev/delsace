@@ -1370,6 +1370,11 @@ bool valide_appel_fonction(
 				}
 			}
 		}
+
+		if (!expr->possede_drapeau(DROITE_ASSIGNATION)) {
+			rapporte_erreur(&espace, expr, "La valeur de l'expression de construction de structure n'est pas utilisée. Peut-être vouliez-vous l'assigner à quelque variable ou l'utiliser comme type ?");
+			return true;
+		}
 	}
 	else if (candidate->note == CANDIDATE_EST_APPEL_POINTEUR) {
 		expr->aide_generation_code = APPEL_POINTEUR_FONCTION;
@@ -1385,6 +1390,17 @@ bool valide_appel_fonction(
 
 		for (auto i = 0; i < expr->exprs.taille; ++i) {
 			contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
+		}
+
+		auto expr_gauche = !expr->possede_drapeau(DROITE_ASSIGNATION);
+		if (expr->type->genre != GenreType::RIEN && expr_gauche) {
+			rapporte_erreur(&espace, expr, "La valeur de retour du pointeur de fonction n'est pas utilisée. Il est important de toujours utiliser les valeurs retournées par les fonctions, par exemple pour ne pas oublier de vérifier si une erreur existe.")
+					.ajoute_message("Le type de retour du pointeur de fonctions est : ")
+					.ajoute_message(chaine_type(expr->type))
+					.ajoute_message("\n")
+					.ajoute_conseil("si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « _ » comme identifiant pour la capturer et l'ignorer :\n")
+					.ajoute_message("\t_ := appel_mais_ignore_le_retour()\n");
+			return true;
 		}
 	}
 	else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {

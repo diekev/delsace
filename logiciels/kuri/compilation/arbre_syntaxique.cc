@@ -881,7 +881,7 @@ void aplatis_arbre(
 
 			// N'aplatis pas expr->valeur car ça ne sers à rien dans ce cas.
 			aplatis_arbre(expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
-			aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau);
+			aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
 			arbre_aplatis.pousse(expr);
 
 			break;
@@ -902,7 +902,7 @@ void aplatis_arbre(
 			auto expr = racine->comme_comme();
 			expr->drapeaux |= drapeau;
 			aplatis_arbre(expr->expression, arbre_aplatis, drapeau);
-			aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau);
+			aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
 			arbre_aplatis.pousse(expr);
 			break;
 		}
@@ -997,7 +997,7 @@ void aplatis_arbre(
 
 			aplatis_arbre(expr->expr, arbre_aplatis, drapeau);
 			aplatis_arbre(expr->expr_taille, arbre_aplatis, drapeau);
-			aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau);
+			aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
 			arbre_aplatis.pousse(expr);
 			aplatis_arbre(expr->bloc, arbre_aplatis, drapeau);
 
