@@ -1,8 +1,8 @@
 // deux fonctions externes dans le même module peuvent avoir le même nom mais des types différents
 // il faut une erreur de compilation
 
-send :: fonc externe (a: z32)
-send :: fonc externe (b: z64)
+send :: fonc (a: z32) #externe
+send :: fonc (b: z64) #externe
 
 principale :: fonc () -> z32
 {
