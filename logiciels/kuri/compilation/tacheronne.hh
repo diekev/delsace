@@ -130,6 +130,8 @@ public:
 
 	int enregistre_tacheronne(Badge<Tacheronne> badge);
 
+	void purge_messages();
+
 private:
 	void renseigne_etat_tacheronne(int id, GenreTache genre_tache);
 

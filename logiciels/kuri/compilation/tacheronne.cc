@@ -429,6 +429,13 @@ int OrdonnanceuseTache::enregistre_tacheronne(Badge<Tacheronne> /*badge*/)
 	return nombre_de_tacheronnes++;
 }
 
+void OrdonnanceuseTache::purge_messages()
+{
+	while (!taches_message.est_vide()) {
+		taches_message.defile();
+	}
+}
+
 Tacheronne::Tacheronne(Compilatrice &comp)
 	: compilatrice(comp)
 	, assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", this->allocatrice_noeud))

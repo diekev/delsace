@@ -186,4 +186,15 @@ void Messagere::commence_interception(EspaceDeTravail */*espace*/)
 void Messagere::termine_interception(EspaceDeTravail */*espace*/)
 {
 	interception_commencee = false;
+
+	/* purge tous les messages puisque nous ne sommes plus écouté */
+	while (!file_message.est_vide()) {
+		auto m = file_message.defile();
+
+		/* indique que le message a été reçu au cas où une tâcheronne serait en
+		 * train d'essayer d'émettre un message */
+		if (m.unite) {
+			m.unite->message_recu = true;
+		}
+	}
 }

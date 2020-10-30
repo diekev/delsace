@@ -788,6 +788,7 @@ void compilatrice_commence_interception(EspaceDeTravail *espace)
 void compilatrice_termine_interception(EspaceDeTravail *espace)
 {
 	ptr_compilatrice->messagere->termine_interception(espace);
+	ptr_compilatrice->ordonnanceuse->purge_messages();
 }
 
 EspaceDeTravail *espace_defaut_compilation()
