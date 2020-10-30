@@ -377,11 +377,6 @@ considération des assertions statiques lors de la compilation de plusieurs espa
     un espace peut avoir un type contexte différent des autres... => stocke le type contexte dans l'espace, mais le code partagé ne pourra pas l'utiliser...
 
 
-implémente la directive #si pour la compilation sélective
-    commence par avoir des condtions définies par la compilatrice (LINUX, WINDOWS, MACOS, 32BITS, 64BITS, ...)
-    utilisation de constantes globales ou locales, et des expressions pouvant être exécutées
-
-
 - générateurs/coroutines permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
 - stack canaries (coulisse LLVM)
 - coroutines en dehors de boucles
@@ -475,6 +470,9 @@ lit + lit
 
 - controler la génération d'exécutable depuis les métaprogrammes
 
+- type.[] pour créer des tableaux d'un certain type :
+    z32.[0, 1, 2, 3]
+
 Zones d'ombres
 --------------
 - concurrence, moultfilage
@@ -554,3 +552,37 @@ struct Allocatrice {
  *
  * ajoute()
  */
+
+// documentation JAI
+
+001_first.jai
+002_number_types.jai
+003_booleans.jai
+004_arrays.jai
+005_strings.jai
+006_structs.jai
+007_struct_litterals.jai
+008_types.jai
+010_calling_procedures.jai
+011_contexte.jai
+012_temporary_storage.jai
+013_enums.jai
+014_enum_unary_dot.jai
+015_array_litterals.jai
+020_type_info.jai
+030_any.jai
+550_is_constant.jai
+551_things_that_are_constant.jai
+600_insert.jai
+630_compiler_get_nodes.jai
+700_stack_trace.jai
+935_type_info_reduction.jai
+
+// à documenter Kuri
+
+-- polymorphisme
+-- union (syntaxes a | b)
+-- erreur
+-- appels fonction (syntaxe uniforme)
+-- métaprogrammation (#si, #assert, #exécute, #corps_texte, #test)
+-- compilatrice
