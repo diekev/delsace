@@ -1,0 +1,103 @@
+importe Fondation
+
+/*
+    N : naturel -> 0, 1, 2, 3, ...
+    Z : relatif -> N, -1, -2 -3, ...
+    R : réel    -> N, Z, 0.1, 0.2, 0.468, 12.456475, ...
+
+    n8, n16, n32, n64
+    z8, z16, z32, z64
+        r16, r32, r64  (int)
+
+
+Table de correspondance pour les types de bases avec d'autres langages de programmation
+
++----------+----------------+
+| Kuri     | C++            |
++----------+----------------+
+| n8       | unsigned char  |
+| n16      | unsigned short |
+| n32      | unsigned int   |
+| n64      | unsigned long  |
+| z8       | (signed) char  |
+| z16      | (signed) short |
+| z32      | (signed) int   |
+| z64      | (signed) long  |
+| r16      | N/A            |
+| r32      | float          |
+| r64      | double         |
++----------+----------------+
+
+Le langage C++ ne possède pas d'équivalent pour r16, mais il existe des bibliothèques logiciels implémentant un tel type sous le nom de « half », pour « half floating-point », ou « demi point-flottant » car il est représenté avec la moitié des octets d'un type « float », en symétrie avec le type « double ».
+La plus connue de ces bibliothèques, dans le monde de l'infographie en tout cas, est ILM Math, une bibliothèque des studios ILM et disponible avec OpenEXR. Le type s'y appèle Ilm::half et son implémentation à servi d'inspiration pour le type r16 de Kuri. Une autre version existe dans la bibliothèque PTex de Disney Animation Studio.
+
+*/
+
+/*
+
+Analysons pas à pas ce petit programme.
+
+*/
+
+principale :: fonc () -> z32
+{
+    imprime("Bonjour, tout le monde !\n")
+    retourne 0
+}
+
+/*
+
+Cette ligne importera dans la portée du fichier les symboles d'un module appelé « Fondation ». Ce module contient des fonctions de bases pour notamment imprimer du texte dans la console.
+
+*/
+
+importe Fondation
+
+/*
+
+Cette ligne définie une fonction appelée « principale ». Cette fonction est spéciale, en ce que la compilatrice cherchera cette fonction pour produire l'exécutable final. Seules les fonctions atteignables, via des appels, depuis la fonction principale seront compilées et disponibles dans l'exécutable finale.
+
+Pour définir une fonction, il faut tout d'abord lui donner un nom. Ce nom doit commencer par une lettre, ou un tiret-bas « _ ».
+
+Ensuite nous devons utiliser « :: ». Ceci est un opérateur pour définir une constante, que nous vérons plus tard.
+
+Vient alors une liste de paramètres devant se trouver entre parenthèse. Or, la fonction principale ne prend pas de paramètres, donc les parenthèses sont vides.
+
+Finalement, nous devons déclarer le type de retour de la fonction. Ici, la fonction retourne un « z32 », nous verrons plus tard ce que cela veut dire.
+
+*/
+
+principale :: fonc () -> z32
+
+/*
+
+Après avoir défini l'entête de la fonction, il faut définir son corps, et ceci se fait simplement un ouvrant une accolade, comme en C ou Rust.
+
+*/
+
+{
+
+/*
+
+Ici nous appelons la fonction imprime disponible via le module Fondation, en lui passant une chaine de caractère en paramètre. Nous aurions également pu écrire « Fondation.imprime("") ».
+
+*/
+
+    imprime("Bonjour, tout le monde !\n")
+
+/*
+
+Quand une fonction retourne une valeur, il lui faut une instruction de retour. Ceci se fait via le mot-clé d'instruction « retourne ». Ici nous retournons 0, ce qui est standard sur les systèmes Unix. La valeur sera retournée au processus parent.
+
+*/
+
+    retourne 0
+
+/*
+
+La fonction est finie, il faut donc clore son corps avec une accolade fermante.
+
+*/
+
+}
+

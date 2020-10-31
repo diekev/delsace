@@ -1,0 +1,137 @@
+importe Compilatrice
+importe Fondation
+
+enlève_début_fin_commentaire :: fonc (commentaire: chaine) -> chaine
+{
+    si commentaire.taille < 4 {
+        retourne ""
+    }
+
+    si commentaire[0] == '/' && commentaire[1] == '*' {
+        commentaire = avance(commentaire, 2)
+    }
+
+    tantque commentaire.taille > 1 && est_espace_blanc(commentaire[0]) {
+        commentaire = avance(commentaire, 1)
+    }
+
+    si commentaire[commentaire.taille - 2] == '*' && commentaire[commentaire.taille - 1] == '/' {
+        commentaire = recule(commentaire, 2)
+    }
+
+    tantque commentaire.taille > 1 && est_espace_blanc(commentaire[commentaire.taille - 1]) {
+        commentaire = recule(commentaire, 1)
+    }
+
+    retourne commentaire
+}
+
+DonnéesDocument :: struct {
+    index_début : z64
+    index_fin : z64
+    est_commentaire : bool
+}
+
+compile :: fonc ()
+{
+    désactive_compilation_espace_défaut()
+
+    lexèmes := compilatrice_lèxe_fichier("doc.kuri")
+    diffère { déloge lexèmes }
+
+    données : []DonnéesDocument
+    diffère { déloge données }
+
+    index_début : z64
+    taille_code : z64
+
+    pour lexèmes {
+        si it.genre == GenreLexème.COMMENTAIRE {
+            si taille_code != 0 {
+                d : DonnéesDocument
+                d.est_commentaire = faux
+                d.index_début = index_début
+                d.index_fin = index_début + taille_code
+
+                tableau_ajoute(*données, d)
+
+                taille_code = 0
+            }
+
+            d : DonnéesDocument
+            d.est_commentaire = vrai
+            d.index_début = index_it
+
+            tableau_ajoute(*données, d)
+        }
+        sinon {
+            si taille_code == 0 {
+                index_début = index_it
+            }
+
+            taille_code += 1
+        }
+    }
+
+    si taille_code != 0 {
+        d : DonnéesDocument
+        d.est_commentaire = faux
+        d.index_début = index_début
+        d.index_fin = index_début + taille_code
+
+        tableau_ajoute(*données, d)
+    }
+
+    pour données {
+        si it.est_commentaire {
+            texte := lexèmes[it.index_début].texte
+            texte = enlève_début_fin_commentaire(texte)
+            imprime("<p>%</p>\n", texte)
+        }
+        sinon {
+            sous_lexèmes : []Lexème
+            sous_lexèmes.pointeur = *lexèmes[it.index_début]
+            sous_lexèmes.taille = it.index_fin - it.index_début
+
+            // supprime les espaces blancs au début du code
+            tantque sous_lexèmes.taille > 0 {
+                si sous_lexèmes[0].texte != "\n" {
+                    arrête
+                }
+
+                sous_lexèmes.taille -= 1
+                // À FAIRE(langage) : arithmétique de pointeur
+                sous_lexèmes.pointeur += (1 * taille_de(Lexème))
+            }
+
+            // supprime les espaces blancs à la fin du code
+            tantque sous_lexèmes.taille > 0 {
+                si sous_lexèmes[sous_lexèmes.taille - 1].texte != "\n" {
+                    arrête
+                }
+
+                sous_lexèmes.taille -= 1
+            }
+
+            si sous_lexèmes {
+                imprime("<pre>\n")
+
+                pour l dans sous_lexèmes {
+                    si est_chaine_littérale(l.genre) {
+                        imprime("<span class=chn-lit>%</span>", l.texte)
+                    }
+                    sinon si est_mot_clé(l.genre) {
+                        imprime("<span class=mot-cle>%</span>", l.texte)
+                    }
+                    sinon {
+                        imprime("%", l.texte)
+                    }
+                }
+
+                imprime("\n</pre>\n")
+            }
+        }
+    }
+}
+
+#exécute compile()

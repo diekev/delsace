@@ -48,13 +48,6 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/demos/demo_surcharge_fonctions.kuri" \
           "exemples/demos/demo_syntax_appel_uniforme.kuri" \
           "exemples/demos/demo_typage.kuri" \
-          "exemples/doc_kuri_dls/ex01_bonjour.kuri" \
-          "exemples/doc_kuri_dls/ex02_inference.kuri" \
-          "exemples/doc_kuri_dls/ex03_constance.kuri" \
-          "exemples/doc_kuri_dls/ex04_tableau.kuri" \
-          "exemples/doc_kuri_dls/ex05_fonc_variadique.kuri" \
-          "exemples/doc_kuri_dls/ex06_introspection.kuri" \
-          "exemples/doc_kuri_dls/ex07_coroutine.kuri"
           "exemples/tests/test_alloc.kuri" \
           "exemples/tests/test_assert_dans_fonction.kuri" \
           "exemples/tests/test_annotations.kuri" \
