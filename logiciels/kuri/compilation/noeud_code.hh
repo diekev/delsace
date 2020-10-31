@@ -159,6 +159,35 @@ struct NoeudCodeVirgule : public NoeudCode {
 	kuri::tableau<NoeudCode *> expressions{};
 };
 
+struct NoeudCodeDirective : public NoeudCode {
+	kuri::chaine ident{};
+	NoeudCode *expression = nullptr;
+};
+
+struct NoeudCodeIdentifiant : public NoeudCode {
+	kuri::chaine ident{};
+};
+
+struct NoeudCodeLitteraleEntier : public NoeudCode {
+	uint64_t valeur{};
+};
+
+struct NoeudCodeLitteraleReel : public NoeudCode {
+	double valeur{};
+};
+
+struct NoeudCodeLitteraleCaractere : public NoeudCode {
+	char valeur{};
+};
+
+struct NoeudCodeLitteraleChaine : public NoeudCode {
+	kuri::chaine valeur{};
+};
+
+struct NoeudCodeLitteraleBooleen : public NoeudCode {
+	bool valeur{};
+};
+
 /* Structures utilisées pour passer les informations des types au métaprogrammes.
  * Celles-ci sont les pendantes de celles dans le module Kuri et doivent être
  * synchronisées avec elles.
@@ -255,6 +284,13 @@ struct ConvertisseuseNoeudCode {
 	tableau_page<NoeudCodeLogement> noeuds_logements{};
 	tableau_page<NoeudCodeAppel> noeuds_appel{};
 	tableau_page<NoeudCodeVirgule> noeuds_virgule{};
+	tableau_page<NoeudCodeDirective> noeuds_directive{};
+	tableau_page<NoeudCodeIdentifiant> noeuds_ident{};
+	tableau_page<NoeudCodeLitteraleReel> noeuds_litterale_reel{};
+	tableau_page<NoeudCodeLitteraleEntier> noeuds_litterale_entier{};
+	tableau_page<NoeudCodeLitteraleChaine> noeuds_litterale_chaine{};
+	tableau_page<NoeudCodeLitteraleCaractere> noeuds_litterale_caractere{};
+	tableau_page<NoeudCodeLitteraleBooleen> noeuds_litterale_booleen{};
 
 	tableau_page<InfoType> infos_types{};
 	tableau_page<InfoTypeEntier> infos_types_entiers{};

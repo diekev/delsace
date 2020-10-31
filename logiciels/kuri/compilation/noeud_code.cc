@@ -42,8 +42,23 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 
 	switch (noeud_expression->genre) {
 		case GenreNoeud::INSTRUCTION_CHARGE:
+		{
+			auto charge = noeud_expression->comme_charge();
+
+			auto n = noeuds_operations_unaire.ajoute_element();
+			n->operande = converti_noeud_syntaxique(espace, charge->expr);
+
+			noeud_code = n;
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_IMPORTE:
 		{
+			auto importe = noeud_expression->comme_importe();
+
+			auto n = noeuds_operations_unaire.ajoute_element();
+			n->operande = converti_noeud_syntaxique(espace, importe->expr);
+
+			noeud_code = n;
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
@@ -59,6 +74,11 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			POUR (decl->params) {
 				auto n_param = converti_noeud_syntaxique(espace, it);
 				n->params_entree.pousse(static_cast<NoeudCodeDeclaration *>(n_param));
+			}
+
+			POUR (decl->params_sorties) {
+				auto n_param = converti_noeud_syntaxique(espace, it);
+				n->params_sortie.pousse(static_cast<NoeudCodeDeclaration *>(n_param));
 			}
 
 			n->annotations.reserve(decl->annotations.taille());
@@ -206,6 +226,13 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
+			auto directive = noeud_expression->comme_execute();
+
+			auto n = noeuds_directive.ajoute_element();
+			n->ident = directive->ident->nom;
+			n->expression = converti_noeud_syntaxique(espace, directive->expr);
+
+			noeud_code = n;
 			break;
 		}
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
@@ -224,6 +251,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			noeud_code = n;
 			break;
 		}
+		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
@@ -305,17 +333,65 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			noeud_code = noeuds_codes.ajoute_element();
 			break;
 		}
-		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
-		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
-		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
-		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
-		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
-		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
-		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
-		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
-		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
 		{
+			auto n = noeuds_litterale_booleen.ajoute_element();
+			n->valeur = noeud_expression->lexeme->chaine == "vrai";
+
+			noeud_code = n;
+			break;
+		}
+		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
+		{
+			auto n = noeuds_litterale_caractere.ajoute_element();
+			n->valeur = static_cast<char>(noeud_expression->lexeme->valeur_entiere);
+
+			noeud_code = n;
+			break;
+		}
+		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
+		{
+			auto n = noeuds_litterale_chaine.ajoute_element();
+			n->valeur = noeud_expression->lexeme->chaine;
+
+			noeud_code = n;
+			break;
+		}
+		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
+		{
+			auto n = noeuds_litterale_reel.ajoute_element();
+			n->valeur = noeud_expression->lexeme->valeur_reelle;
+
+			noeud_code = n;
+			break;
+		}
+		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
+		{
+			auto n = noeuds_litterale_entier.ajoute_element();
+			n->valeur = noeud_expression->lexeme->valeur_entiere;
+
+			noeud_code = n;
+			break;
+		}
+		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
+		{
+			noeud_code = noeuds_codes.ajoute_element();
+			break;
+		}
+		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
+		{
+			noeud_code = noeuds_codes.ajoute_element();
+			noeud_code->info_type = cree_info_type_pour(noeud_expression->type);
+			break;
+		}
+		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+		{
+			auto ref = noeud_expression->comme_ref_decl();
+
+			auto n = noeuds_ident.ajoute_element();
+			n->ident = ref->ident->nom;
+
+			noeud_code = n;
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_POUR:
@@ -400,27 +476,30 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			noeud_code = n;
 			break;
 		}
+		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
+		{
+			// ce noeud est interne à la compilation, il ne devrait jamais apparaître dans une conversion
+			assert(false);
+			break;
+		}
 	}
 
-	// À FAIRE : supprime cela quand nous gérerons tous les cas
-	if (noeud_code) {
-		noeud_code->genre = static_cast<int>(noeud_expression->genre);
+	noeud_code->genre = static_cast<int>(noeud_expression->genre);
 
-		if (noeud_expression->type) {
-			noeud_code->info_type = cree_info_type_pour(noeud_expression->type);
-		}
+	if (noeud_expression->type) {
+		noeud_code->info_type = cree_info_type_pour(noeud_expression->type);
+	}
 
-		auto lexeme = noeud_expression->lexeme;
+	auto lexeme = noeud_expression->lexeme;
 
-		// lexeme peut-être nul pour les blocs
-		if (lexeme) {
-			auto fichier = espace->fichier(lexeme->fichier);
+	// lexeme peut-être nul pour les blocs
+	if (lexeme) {
+		auto fichier = espace->fichier(lexeme->fichier);
 
-			noeud_code->chemin_fichier = fichier->chemin;
-			noeud_code->nom_fichier = fichier->nom;
-			noeud_code->numero_ligne = lexeme->ligne;
-			noeud_code->numero_colonne = lexeme->colonne;
-		}
+		noeud_code->chemin_fichier = fichier->chemin;
+		noeud_code->nom_fichier = fichier->nom;
+		noeud_code->numero_ligne = lexeme->ligne;
+		noeud_code->numero_colonne = lexeme->colonne;
 	}
 
 	noeud_expression->noeud_code = noeud_code;
@@ -714,6 +793,13 @@ long ConvertisseuseNoeudCode::memoire_utilisee() const
 	memoire += noeuds_logements.memoire_utilisee();
 	memoire += noeuds_appel.memoire_utilisee();
 	memoire += noeuds_virgule.memoire_utilisee();
+	memoire += noeuds_ident.memoire_utilisee();
+	memoire += noeuds_directive.memoire_utilisee();
+	memoire += noeuds_litterale_reel.memoire_utilisee();
+	memoire += noeuds_litterale_entier.memoire_utilisee();
+	memoire += noeuds_litterale_chaine.memoire_utilisee();
+	memoire += noeuds_litterale_caractere.memoire_utilisee();
+	memoire += noeuds_litterale_booleen.memoire_utilisee();
 
 	memoire += infos_types.memoire_utilisee();
 	memoire += infos_types_entiers.memoire_utilisee();
