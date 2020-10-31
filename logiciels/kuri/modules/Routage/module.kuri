@@ -1,6 +1,7 @@
 // Module de routage pour des services HTTP, répondant à méthodes GET ou POST
 
 importe Fondation
+importe Réseau
 
 divise_url :: fonc (ligne: chaine) -> []chaine
 {
@@ -210,14 +211,22 @@ apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> Do
     retourne résultat
 }
 
+// Le résultat d'une requête.
+
+RésultatRequête :: struct {
+    status : CodeÉtatHTTP
+    contenu : chaine
+    type_contenu : chaine
+}
+
 // La routeuse.
 
 Route :: struct {
     chemin: chaine
     règles_routage: []RègleRoutage
 
-    méthode_get : fonc(*rien)(rien)
-    méthode_post : fonc(*rien)(rien)
+    méthode_get : fonc(*rien)(RésultatRequête)
+    méthode_post : fonc(*rien)(RésultatRequête)
 }
 
 Routeuse :: struct {
@@ -225,8 +234,8 @@ Routeuse :: struct {
 
     données_serveuse: *rien
 
-    rappel_page_non_trouvée: fonc(*rien)(rien)
-    rappel_méthode_non_autorisée: fonc(*rien)(rien)
+    rappel_page_non_trouvée: fonc(*rien)(RésultatRequête)
+    rappel_méthode_non_autorisée: fonc(*rien)(RésultatRequête)
 }
 
 détruit_routeuse :: fonc (routeuse: *Routeuse) -> rien
@@ -234,7 +243,7 @@ détruit_routeuse :: fonc (routeuse: *Routeuse) -> rien
     déloge routeuse.routes
 }
 
-ajoute_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode_get: fonc(*rien)(rien), méthode_post: fonc(*rien)(rien)) -> rien
+ajoute_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode_get: fonc(*rien)(RésultatRequête), méthode_post: fonc(*rien)(RésultatRequête)) -> rien
 {
     route : Route
     route.chemin = chemin
@@ -248,7 +257,7 @@ ajoute_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode_get: fonc(*r
     tableau_ajoute(*routeuse.routes, route)
 }
 
-apparie_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode: chaine) -> rien
+apparie_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode: chaine) -> RésultatRequête
 {
     pour routeuse.routes {
         données := tente apparie_règles_et_route(it.règles_routage, chemin) piège err {
@@ -257,37 +266,47 @@ apparie_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode: chaine) ->
 
         si méthode == "GET" {
             si it.méthode_get {
-                it.méthode_get(routeuse.données_serveuse)
-                arrête
+                retourne it.méthode_get(routeuse.données_serveuse)
             }
 
             si routeuse.rappel_méthode_non_autorisée {
-                routeuse.rappel_méthode_non_autorisée(routeuse.données_serveuse)
+                retourne routeuse.rappel_méthode_non_autorisée(routeuse.données_serveuse)
             }
 
-            retourne
+            retourne méhode_non_autorisée()
         }
 
         si méthode == "POST" {
             si it.méthode_post {
-                it.méthode_post(routeuse.données_serveuse)
-                arrête
+                retourne it.méthode_post(routeuse.données_serveuse)
             }
 
             si routeuse.rappel_méthode_non_autorisée {
-                routeuse.rappel_méthode_non_autorisée(routeuse.données_serveuse)
+                retourne routeuse.rappel_méthode_non_autorisée(routeuse.données_serveuse)
             }
 
-            retourne
+            retourne méhode_non_autorisée()
         }
 
         si routeuse.rappel_méthode_non_autorisée {
-            routeuse.rappel_méthode_non_autorisée(routeuse.données_serveuse)
+            retourne routeuse.rappel_méthode_non_autorisée(routeuse.données_serveuse)
         }
     }
     sansarrêt {
         si routeuse.rappel_page_non_trouvée {
-            routeuse.rappel_page_non_trouvée(routeuse.données_serveuse)
+            retourne routeuse.rappel_page_non_trouvée(routeuse.données_serveuse)
         }
     }
+
+    retourne page_non_trouvée()
+}
+
+page_non_trouvée :: fonc () -> RésultatRequête
+{
+    retourne RésultatRequête(status = CodeÉtatHTTP.NOT_FOUND)
+}
+
+méhode_non_autorisée :: fonc () -> RésultatRequête
+{
+    retourne RésultatRequête(status = CodeÉtatHTTP.METHOD_NOT_ALLOWED)
 }
