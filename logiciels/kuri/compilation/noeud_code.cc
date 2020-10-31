@@ -389,7 +389,14 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto ref = noeud_expression->comme_ref_decl();
 
 			auto n = noeuds_ident.ajoute_element();
-			n->ident = ref->ident->nom;
+
+			/* ref->ident peut être nul pour les instructions « charge » ayant une chaine littérale */
+			if (ref->ident) {
+				n->ident = ref->ident->nom;
+			}
+			else {
+				n->ident = ref->lexeme->chaine;
+			}
 
 			noeud_code = n;
 			break;
