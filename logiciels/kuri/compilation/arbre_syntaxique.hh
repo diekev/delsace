@@ -625,6 +625,9 @@ struct NoeudStruct : public NoeudDeclaration {
 	kuri::tableau<NoeudDeclarationVariable *> params_polymorphiques{};
 	kuri::tableau<NoeudExpression *> arbre_aplatis_params{};
 
+	/* Le polymorphe d'où vient cette structure, non-nul si monomorphe. */
+	NoeudStruct *polymorphe_de_base = nullptr;
+
 	template <typename T>
 	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
 

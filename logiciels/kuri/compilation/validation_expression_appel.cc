@@ -1327,6 +1327,7 @@ static NoeudStruct *monomorphise_au_besoin(
 
 	auto copie = copie_noeud(contexte.m_tacheronne.assembleuse, decl_struct, decl_struct->bloc_parent)->comme_structure();
 	copie->est_monomorphisation = true;
+	copie->polymorphe_de_base = decl_struct;
 
 	if (decl_struct->est_union) {
 		copie->type = espace.typeuse.reserve_type_union(copie);
