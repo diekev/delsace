@@ -768,8 +768,12 @@ Message const *compilatrice_attend_message()
 {
 	auto &messagere = ptr_compilatrice->messagere;
 
-	while (!messagere->possede_message()) {
+	while (!messagere->possede_message() && !ptr_compilatrice->possede_erreur) {
 		usleep(1);
+	}
+
+	if (ptr_compilatrice->possede_erreur) {
+		return nullptr;
 	}
 
 	return messagere->defile();
