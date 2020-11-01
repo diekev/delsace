@@ -1,0 +1,18 @@
+unité_linéaire_rectifiée :: fonc (x: $T) -> T #enligne
+{
+    si x < 0 comme T {
+        retourne 0 comme T
+    }
+
+    retourne x
+}
+
+unité_linéaire_rectifiée_fuitante :: fonc (x: $T, échelle: T = 0.01) -> T #enligne
+{
+    si x < 0 comme T {
+        retourne échelle * x
+    }
+
+    retourne x
+}
+
