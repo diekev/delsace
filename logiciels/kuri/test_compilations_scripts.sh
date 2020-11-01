@@ -51,7 +51,6 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/tests/test_assert_dans_fonction.kuri" \
           "exemples/tests/test_annotations.kuri" \
           "exemples/tests/test_boucle_pour.kuri" \
-          "exemples/tests/test_cgi.kuri" \
           "exemples/tests/test_corps_texte.kuri" \
           "exemples/tests/test_chaines_littérales.kuri" \
           "exemples/tests/test_couleur_terminal.kuri" \
