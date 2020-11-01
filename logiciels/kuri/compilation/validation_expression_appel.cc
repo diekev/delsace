@@ -41,6 +41,9 @@ struct Monomorpheuse {
 	using paire_type = dls::paire<Type *, Type *>;
 	dls::tablet<paire_type, 6> paires_types{};
 
+	// mise en cache des types structures polymorphiques et de leurs monomorphisations passées
+	dls::tablet<paire_type, 6> table_structures{};
+
 	void ajoute_item(IdentifiantCode *ident)
 	{
 		items.pousse({ident, nullptr});
@@ -80,11 +83,76 @@ struct Monomorpheuse {
 			return true;
 		}
 
+		// À FAIRE(poly) : comment détecter ces cas ? x: fonc()() = nul
+		if (type_poly->est_fonction() && type_cible->est_pointeur() && type_cible->comme_pointeur()->type_pointe == nullptr) {
+			return true;
+		}
+
 		if (type_poly->est_variadique()) {
 			type_poly = type_poly->comme_variadique()->type_pointe;
 		}
 
-		paires_types.pousse({type_poly, type_cible});
+		// vérifie si nous avons des structures polymorphiques, sinon ajoute les types à la liste
+		return apparie_structure(type_poly, type_cible);
+	}
+
+	bool apparie_structure(Type *type_polymorphique, Type *type_cible)
+	{
+		auto type_courant = type_cible;
+		auto type_courant_poly = type_polymorphique;
+
+		while (true) {
+			if (type_courant_poly->genre == GenreType::POLYMORPHIQUE) {
+				auto type = type_courant_poly->comme_polymorphique();
+
+				// le type peut-être celui d'une structure (Polymorphe(T = $T)
+				if (type->est_structure_poly) {
+					if (!type_courant->est_structure()) {
+						return false;
+					}
+
+					auto decl_struct = type_courant->comme_structure()->decl;
+
+					// À FAIRE : que faire ici?
+					if (!decl_struct->est_monomorphisation) {
+						return false;
+					}
+
+					if (decl_struct->polymorphe_de_base != type->structure) {
+						return false;
+					}
+
+					for (auto i = 0; i < type->types_constants_structure.taille(); ++i) {
+						auto type1 = type->types_constants_structure[i]->comme_polymorphique();
+						auto type2 = Type::nul();
+
+						POUR (type_courant->comme_structure()->membres) {
+							if (it.nom == type1->ident->nom) {
+								type2 = it.type->comme_type_de_donnees()->type_connu;
+								break;
+							}
+						}
+
+						paires_types.pousse({ type1, type2 });
+					}
+
+					table_structures.pousse({type_polymorphique, type_cible});
+					return true;
+				}
+
+				break;
+			}
+
+			if (type_courant->genre != type_courant_poly->genre) {
+				return false;
+			}
+
+			// À FAIRE : type tableau fixe
+			type_courant = type_dereference_pour(type_courant);
+			type_courant_poly = type_dereference_pour(type_courant_poly);
+		}
+
+		paires_types.pousse({type_polymorphique, type_cible});
 		return true;
 	}
 
@@ -149,6 +217,12 @@ struct Monomorpheuse {
 	Type *resoud_type_final(Typeuse &typeuse, Type *type_polymorphique)
 	{
 		auto resultat = Type::nul();
+
+		POUR (table_structures) {
+			if (it.premier == type_polymorphique) {
+				return it.second;
+			}
+		}
 
 		if (type_polymorphique->genre == GenreType::POINTEUR) {
 			auto type_pointe = type_polymorphique->comme_pointeur()->type_pointe;
@@ -1010,6 +1084,42 @@ static auto apparie_appel_structure(
 			}
 		}
 
+		// détecte les arguments polymorphiques dans les fonctions polymorphiques
+		auto est_type_argument_polymorphique = false;
+		POUR (arguments) {
+			if (it.expr->type->est_type_de_donnees()) {
+				auto type_connu = it.expr->type->comme_type_de_donnees()->type_connu;
+
+				if (type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+					est_type_argument_polymorphique = true;
+					break;
+				}
+			}
+		}
+
+		if (est_type_argument_polymorphique) {
+			auto type_poly = espace.typeuse.cree_polymorphique(nullptr);
+
+			type_poly->est_structure_poly = true;
+			type_poly->structure = decl_struct;
+
+			POUR (arguments) {
+				if (it.expr->type->est_type_de_donnees()) {
+					auto type_connu = it.expr->type->comme_type_de_donnees()->type_connu;
+
+					if (type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+						type_poly->types_constants_structure.pousse(type_connu);
+					}
+				}
+			}
+
+			resultat.type = espace.typeuse.type_type_de_donnees(type_poly);
+			resultat.note = CANDIDATE_EST_TYPE_POLYMORPHIQUE;
+			resultat.etat = FONCTION_TROUVEE;
+			resultat.poids_args = 1.0;
+			return false;
+		}
+
 		resultat.noeud_decl = decl_struct;
 		resultat.note = CANDIDATE_EST_INITIALISATION_STRUCTURE;
 		resultat.etat = FONCTION_TROUVEE;
@@ -1592,6 +1702,9 @@ bool valide_appel_fonction(
 			rapporte_erreur(&espace, expr, "La valeur de l'expression de construction de structure n'est pas utilisée. Peut-être vouliez-vous l'assigner à quelque variable ou l'utiliser comme type ?");
 			return true;
 		}
+	}
+	else if (candidate->note == CANDIDATE_EST_TYPE_POLYMORPHIQUE) {
+		expr->type = candidate->type;
 	}
 	else if (candidate->note == CANDIDATE_EST_APPEL_POINTEUR) {
 		expr->aide_generation_code = APPEL_POINTEUR_FONCTION;

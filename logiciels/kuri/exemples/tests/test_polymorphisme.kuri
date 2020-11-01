@@ -48,6 +48,19 @@ argument_tableau_fixe :: fonc (a: [8]$T)
     }
 }
 
+Polymorphe :: struct ($T: type_de_données) {
+    x : T
+}
+
+Polymorphe2 :: struct ($T: type_de_données) {
+    x : T
+}
+
+initialise_polymorphe :: fonc (poly: *Polymorphe(T = $T), x: T)
+{
+    poly.x = x
+}
+
 principale :: fonc () -> z32
 {
     x := ajoute(12, 27)
@@ -72,24 +85,10 @@ principale :: fonc () -> z32
     tableau_fixe := [ 0, 1, 2, 3, 4, 5, 6, 7 ]
     argument_tableau_fixe(tableau_fixe)
 
+    poly : Polymorphe(T = z32)
+    initialise_polymorphe(*poly, 6)
+
+    imprime("poly : %\n", poly)
+
     retourne 0
 }
-
-/*
-        TypePolymorphique::contrainte
-
-        *Routeuse($T)
-
--- TypePointeur (*)
-    TypePolymorphique Routeuse(T = $T)
-
-
-struct TypePolymorphique {
-    Type *contrainte = nullptr
-
-    dls::tableau<IdentifiantCode *> identifiants;
-}
-
-    EST_CONSTANTE_TYPE_POLYMORPHIQUE
-    EST_CONSTANTE_VALEUR_POLYMORPHIQUE
-*/

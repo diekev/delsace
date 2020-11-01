@@ -414,6 +414,10 @@ struct TypePolymorphique : public Type {
 	COPIE_CONSTRUCT(TypePolymorphique);
 
 	IdentifiantCode *ident = nullptr;
+
+	bool est_structure_poly = false;
+	NoeudStruct *structure = nullptr;
+	dls::tableau<Type *> types_constants_structure{};
 };
 
 /* ************************************************************************** */

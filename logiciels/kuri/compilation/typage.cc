@@ -329,8 +329,6 @@ TypeTypeDeDonnees::TypeTypeDeDonnees(Type *type_connu_)
 TypePolymorphique::TypePolymorphique(IdentifiantCode *ident_)
 	: TypePolymorphique()
 {
-	assert(ident_);
-
 	this->ident = ident_;
 	this->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 }
@@ -946,9 +944,16 @@ TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
 
 	auto types_polymorphiques_ = types_polymorphiques.verrou_ecriture();
 
-	POUR_TABLEAU_PAGE ((*types_polymorphiques_)) {
-		if (it.ident == ident) {
-			return &it;
+	// pour le moment un ident nul est utilisé pour les types polymorphiques des
+	// structures dans les types des fonction (foo :: fonc (p: Polymorphe(T = $T)),
+	// donc ne déduplique pas ces types pour éviter les problèmes quand nous validons
+	// ces expresssions, car les données associées doivent être spécifiques à chaque
+	// déclaration
+	if (ident) {
+		POUR_TABLEAU_PAGE ((*types_polymorphiques_)) {
+			if (it.ident == ident) {
+				return &it;
+			}
 		}
 	}
 
@@ -1216,6 +1221,11 @@ dls::chaine chaine_type(const Type *type)
 		{
 			auto type_polymorphique = static_cast<TypePolymorphique const *>(type);
 			auto res = dls::chaine("$");
+
+			if (type_polymorphique->est_structure_poly) {
+				return res + type_polymorphique->structure->ident->nom;
+			}
+
 			return res + type_polymorphique->ident->nom;
 		}
 	}
