@@ -26,8 +26,18 @@ png_create_info_struct :: fonc (
 __jmp_buf_tag :: struct #externe;
 
 setjmp :: fonc (env: *__jmp_buf_tag) -> z32 #externe
+longjmp :: fonc (env: *__jmp_buf_tag, val: z32) -> rien #externe
 
-png_jmpbuf :: fonc (png: *png_struct_def) -> *__jmp_buf_tag #externe
+png_set_longjmp_fn :: fonc (png_ptr: *png_struct_def,
+                            longjmp_fn: #nulctx fonc (*__jmp_buf_tag, z32)(rien),
+							jmp_buf_size: n64) -> *__jmp_buf_tag #externe
+
+// #  define png_jmpbuf(png_ptr) \
+//       (*png_set_longjmp_fn((png_ptr), longjmp, (sizeof (jmp_buf))))
+png_jmpbuf :: fonc (png: *png_struct_def) -> *__jmp_buf_tag
+{
+	retourne png_set_longjmp_fn(png, longjmp, taille_de(*__jmp_buf_tag) comme n64)
+}
 
 _IO_FILE :: struct #externe;
 

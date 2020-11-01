@@ -85,7 +85,7 @@ blurHashForPixels :: fonc (
 
 	mémoire(ptr) = 0
 
-    taille_chaine := ptr - *buffer[0] comme z64
+    taille_chaine := (ptr - *buffer[0]) comme z64
 
     chn := construit_chaine(*buffer[0], taille_chaine)
 
@@ -129,7 +129,7 @@ multiplyBasisFunction :: fonc (
         }
     }
 
-	scale := normalisation / image.largeur * image.hauteur comme r32
+	scale := normalisation / (image.largeur * image.hauteur) comme r32
 
 	résultat_fonction_base[0] = r * scale
 	résultat_fonction_base[1] = g * scale
@@ -143,10 +143,10 @@ linearTosRGB :: fonc (value: r32) -> z32
 	v := max(0.0, min(1.0, value))
 
     si v <= 0.0031308 {
-        retourne v * 12.92 * 255.0 + 0.5 comme z32
+        retourne (v * 12.92 * 255.0 + 0.5) comme z32
     }
 
-    retourne (1.055 * puissance(v, 1.0 / 2.4) - 0.055) * 255.0 + 0.5 comme z32
+    retourne ((1.055 * puissance(v, 1.0 / 2.4) - 0.055) * 255.0 + 0.5) comme z32
 }
 
 sRGBToLinear :: fonc (value: z32) -> r32
@@ -174,11 +174,11 @@ encodeDC :: fonc (r: r32, g: r32, b: r32) -> z32
 
 encodeAC :: fonc (r: r32, g: r32, b: r32, maximumValue: r32) -> z32
 {
-	quantR := max(0.0, min(18.0, floor(signPow(r / maximumValue, 0.5) * 9.0 + 9.5))) comme z32
-	quantG := max(0.0, min(18.0, floor(signPow(g / maximumValue, 0.5) * 9.0 + 9.5))) comme z32
-	quantB := max(0.0, min(18.0, floor(signPow(b / maximumValue, 0.5) * 9.0 + 9.5))) comme z32
+	quantR := max(0.0, min(18.0, floor(signPow(r / maximumValue, 0.5) * 9.0 + 9.5) comme r32))
+	quantG := max(0.0, min(18.0, floor(signPow(g / maximumValue, 0.5) * 9.0 + 9.5) comme r32))
+	quantB := max(0.0, min(18.0, floor(signPow(b / maximumValue, 0.5) * 9.0 + 9.5) comme r32))
 
-	retourne quantR * 19 * 19 + quantG * 19 + quantB
+	retourne (quantR * 19 * 19 + quantG * 19 + quantB) comme z32
 }
 
 signPow :: fonc (value: r32, exp: r32) -> r32
@@ -211,7 +211,7 @@ principale :: fonc () -> z32
 {
     diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
 
-    image := charge_image_png("pic1.png")
+    image := charge_image_png("/home/kevin/Images/pic1.png")
     diffère { détruit_image(image); déloge image; }
 
     hachis := tente blurHashForPixels(4, 3, image) piège err {
