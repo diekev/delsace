@@ -221,31 +221,34 @@ RésultatRequête :: struct {
 
 // La routeuse.
 
-Route :: struct {
+Route :: struct ($T: type_de_données) {
     chemin: chaine
     règles_routage: []RègleRoutage
 
-    méthode_get : fonc(*rien)(RésultatRequête)
-    méthode_post : fonc(*rien)(RésultatRequête)
+    méthode_get : fonc(*T)(RésultatRequête)
+    méthode_post : fonc(*T)(RésultatRequête)
 }
 
-Routeuse :: struct {
-    routes : []Route
+Routeuse :: struct ($T: type_de_données) {
+    // À FAIRE(langage) : les expressions de type []Route(T = T) ne compilent pas
+    // À FAIRE(langage) : les expressions de type []Route(T) ne sont pas considérées comme des tableaux d'un type, mais comme un appel à « []Route »
+    TypeRoute :: Route(T = T)
+    routes : []TypeRoute
 
-    données_serveuse: *rien
+    données_serveuse: *T
 
-    rappel_page_non_trouvée: fonc(*rien)(RésultatRequête)
-    rappel_méthode_non_autorisée: fonc(*rien)(RésultatRequête)
+    rappel_page_non_trouvée: fonc(*T)(RésultatRequête)
+    rappel_méthode_non_autorisée: fonc(*T)(RésultatRequête)
 }
 
-détruit_routeuse :: fonc (routeuse: *Routeuse) -> rien
+détruit_routeuse :: fonc (routeuse: *Routeuse(T = $T)) -> rien
 {
     déloge routeuse.routes
 }
 
-ajoute_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode_get: fonc(*rien)(RésultatRequête), méthode_post: fonc(*rien)(RésultatRequête)) -> rien
+ajoute_route :: fonc (routeuse: *Routeuse(T = $T), chemin: chaine, méthode_get: fonc(*T)(RésultatRequête), méthode_post: fonc(*T)(RésultatRequête)) -> rien
 {
-    route : Route
+    route : Route(T = T)
     route.chemin = chemin
     route.méthode_get = méthode_get
     route.méthode_post = méthode_post
@@ -257,7 +260,7 @@ ajoute_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode_get: fonc(*r
     tableau_ajoute(*routeuse.routes, route)
 }
 
-apparie_route :: fonc (routeuse: *Routeuse, chemin: chaine, méthode: chaine) -> RésultatRequête
+apparie_route :: fonc (routeuse: *Routeuse(T = $T), chemin: chaine, méthode: chaine) -> RésultatRequête
 {
     pour routeuse.routes {
         données := tente apparie_règles_et_route(it.règles_routage, chemin) piège err {

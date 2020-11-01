@@ -50,7 +50,7 @@ principale :: fonc () -> z32
     chaine_uri := chaine_environnement("REQUEST_URI")
     adresse_ip := chaine_environnement("REMOTE_ADDR")
 
-    routeuse : Routeuse
+    routeuse : Routeuse(T = rien)
     routeuse.rappel_méthode_non_autorisée = get_page_méthode_non_autorisée
     routeuse.rappel_page_non_trouvée = get_page_non_trouvée
     diffère { détruit_routeuse(*routeuse) }
