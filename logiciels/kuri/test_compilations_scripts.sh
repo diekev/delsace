@@ -67,6 +67,7 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/tests/test_moultfilage.kuri" \
           "exemples/tests/test_operateur.kuri" \
           "exemples/tests/test_plage_boucle.kuri" \
+          "exemples/tests/test_polymorphisme.kuri" \
           "exemples/tests/test_ppm.kuri" \
           "exemples/tests/test_recherche.kuri" \
           "exemples/tests/test_routage.kuri" \
