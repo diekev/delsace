@@ -96,14 +96,16 @@ struct Monomorpheuse {
 			auto type_cible = it.second;
 			auto type = apparie_type(typeuse, type_polymorphique, type_cible, ident);
 
-			if (type) {
-				for (auto &item : items) {
-					if (item.premier == ident) {
-						if (item.second == nullptr) {
-							item.second = type;
-						}
-						break;
+			if (!type) {
+				return false;
+			}
+
+			for (auto &item : items) {
+				if (item.premier == ident) {
+					if (item.second == nullptr) {
+						item.second = type;
 					}
+					break;
 				}
 			}
 		}
