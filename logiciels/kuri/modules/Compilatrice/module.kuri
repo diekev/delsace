@@ -610,7 +610,7 @@ est_chaine_littérale :: fonc (genre: GenreLexème) -> bool
 
 importe Fondation
 
-compilatrice_vérifie_égalité :: fonc (a: $T, b: $T, position_code := PositionCodeSource())
+compilatrice_vérifie_égalité :: fonc (a: $T, b: T, position_code := PositionCodeSource())
 {
 	si a == b {
 		retourne

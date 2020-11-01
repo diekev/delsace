@@ -1078,6 +1078,22 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
 			auto noeud = CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme);
 			noeud->drapeaux |= DECLARATION_TYPE_POLYMORPHIQUE;
+
+			auto noeud_decl_param = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, lexeme);
+			noeud_decl_param->drapeaux |= (DECLARATION_TYPE_POLYMORPHIQUE | EST_CONSTANTE);
+
+			if (fonction_courante) {
+				fonction_courante->bloc_constantes->membres->pousse(noeud_decl_param);
+				fonction_courante->est_polymorphe = true;
+			}
+			else if (structure_courante) {
+				structure_courante->bloc_constantes->membres->pousse(noeud_decl_param);
+				structure_courante->est_polymorphe = true;
+			}
+			else {
+				lance_erreur("déclaration d'un type polymorphique hors d'une fonction ou d'une structure");
+			}
+
 			return noeud;
 		}
 		case GenreLexeme::FONC:
@@ -1955,6 +1971,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 	return noeud_decl;
 }
 
+#include "biblinternes/outils/garde_portee.h"
+
 NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 {
 	Prof(Syntaxeuse_analyse_declaration_fonction);
@@ -1966,6 +1984,13 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 	auto noeud = CREE_NOEUD(NoeudDeclarationEnteteFonction, GenreNoeud::DECLARATION_ENTETE_FONCTION, lexeme);
 	noeud->est_coroutine = lexeme_mot_cle->genre == GenreLexeme::COROUT;
+
+	auto ancienne_fonction = fonction_courante;
+	fonction_courante = noeud;
+
+	DIFFERE {
+		fonction_courante = ancienne_fonction;
+	};
 
 	// @concurrence critique, si nous avons plusieurs définitions
 	if (noeud->ident == ID::principale) {
@@ -2042,6 +2067,13 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			}
 
 			consomme();
+		}
+
+		// pousse les constantes polymorphiques de cette fonction dans ceux de la fonction-mère
+		if (ancienne_fonction) {
+			POUR (*noeud->bloc_constantes->membres.verrou_lecture()) {
+				ancienne_fonction->bloc_constantes->membres->pousse(it);
+			}
 		}
 
 		consomme(GenreLexeme::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");

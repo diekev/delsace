@@ -284,32 +284,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, "valide référence déclaration");
 			auto expr = noeud->comme_ref_decl();
 
-			if (expr->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
-				expr->genre_valeur = GenreValeur::DROITE;
-
-				if (fonction_courante && fonction_courante->est_monomorphisation) {
-					auto type_instantie = Type::nul();
-
-					for (auto &paire : fonction_courante->paires_expansion_gabarit) {
-						if (paire.first == expr->ident->nom) {
-							type_instantie = paire.second;
-						}
-					}
-
-					if (type_instantie == nullptr) {
-						rapporte_erreur("impossible de définir le type de l'instantiation polymorphique", expr);
-						return true;
-					}
-
-					expr->type = espace->typeuse.type_type_de_donnees(type_instantie);
-					return false;
-				}
-
-				auto type_poly = espace->typeuse.cree_polymorphique(expr->ident);
-				expr->type = espace->typeuse.type_type_de_donnees(type_poly);
-				return false;
-			}
-
 			expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
 			auto bloc = expr->bloc_parent;
@@ -2139,6 +2113,15 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 	auto &graphe = espace->graphe_dependance;
 	auto noeud_dep = graphe->cree_noeud_fonction(decl);
 
+	/* Valide les constantes polymorphiques. */
+	if (decl->est_polymorphe) {
+		POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
+			auto type_poly = espace->typeuse.cree_polymorphique(it->ident);
+			it->type = espace->typeuse.type_type_de_donnees(type_poly);
+			it->drapeaux |= DECLARATION_FUT_VALIDEE;
+		}
+	}
+
 	{
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (arbre aplatis)");
 		if (valide_arbre_aplatis(decl->arbre_aplatis)) {
@@ -2148,7 +2131,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 	}
 
 	// -----------------------------------
-	if (!decl->est_monomorphisation) {
+	{
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (validation paramètres)");
 		auto noms = dls::ensemblon<IdentifiantCode *, 16>();
 		auto dernier_est_variadic = false;
@@ -2168,15 +2151,10 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 				return true;
 			}
 
-			if (variable->type && variable->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-				decl->est_polymorphe = true;
-			}
-			else {
-				if (expression != nullptr) {
-					if (decl->est_operateur) {
-						rapporte_erreur("Un paramètre d'une surcharge d'opérateur ne peut avoir de valeur par défaut", param);
-						return true;
-					}
+			if (expression != nullptr) {
+				if (decl->est_operateur) {
+					rapporte_erreur("Un paramètre d'une surcharge d'opérateur ne peut avoir de valeur par défaut", param);
+					return true;
 				}
 			}
 
@@ -2203,26 +2181,6 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 			decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 			return false;
 		}
-	}
-	else {
-		for (auto i = 0; i < decl->params.taille; ++i) {
-			auto param = decl->parametre_entree(i);
-			auto variable = param->valeur;
-
-			/* ne résoud que les types polymorphiques, les autres doivent l'avoir été durant la première passe
-			 * À FAIRE : manière plus robuste de faire ceci (par exemple en mettant en cache les types et leurs résolutions) */
-			if (param->type->est_polymorphe()) {
-				if (resoud_type_final(param->expression_type, variable->type)) {
-					return true;
-				}
-			}
-
-			param->type = variable->type;
-		}
-
-		// À FAIRE : crash dans la validation des expressions d'appels lors de la copie des tablets
-		//           de toute manière ceci n'est pas nécessaire
-		//decl->bloc_parent->membres->pousse(decl);
 	}
 
 	// -----------------------------------
@@ -2694,7 +2652,13 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 		metaprogramme->fonction = fonction;
 
 		fonction->est_monomorphisation = entete->est_monomorphisation;
-		fonction->paires_expansion_gabarit  = entete->paires_expansion_gabarit;
+
+		// préserve les constantes polymorphiques
+		if (fonction->est_monomorphisation) {
+			POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
+				fonction->bloc_constantes->membres->pousse(it);
+			}
+		}
 
 		entete = fonction;
 	}

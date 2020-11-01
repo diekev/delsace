@@ -5,7 +5,7 @@ ajoute :: fonc (a: z32, b: z32) -> z32
     retourne "retourne a + b"
 }
 
-ajoute_poly :: fonc (a: $T, b: $T) -> $T
+ajoute_poly :: fonc (a: $T, b: T) -> T
 #corps_texte {
     retourne "retourne a + b"
 }

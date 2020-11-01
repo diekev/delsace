@@ -5,7 +5,7 @@
 
 importe Algorithmes
 
-ensemble_ajoute :: fonc (ensemble: *[]$T, donnée: $T) -> rien
+ensemble_ajoute :: fonc (ensemble: *[]$T, donnée: T) -> rien
 {
     si ensemble.taille == 0 {
         tableau_ajoute(ensemble, donnée)
@@ -29,7 +29,7 @@ ensemble_ajoute :: fonc (ensemble: *[]$T, donnée: $T) -> rien
 
     tmp := mémoire(ensemble)
 
-    reloge tmp : [taille + 1]$T
+    reloge tmp : [taille + 1]T
     tmp.taille = taille + 1
 
     i := taille
@@ -44,7 +44,7 @@ ensemble_ajoute :: fonc (ensemble: *[]$T, donnée: $T) -> rien
     mémoire(ensemble) = tmp
 }
 
-ensemble_possède :: fonc (ensemble: *[]$T, donnée: $T) -> bool
+ensemble_possède :: fonc (ensemble: *[]$T, donnée: T) -> bool
 {
     si ensemble.taille == 0 {
         retourne faux
@@ -79,7 +79,7 @@ RésultatRecherche :: struct {
  * seront activés.
  * Autrement, le résultat retourné n'aura aucun drapeau activé.
  */
-ensemble_possède_rappel_si_possible :: fonc (ensemble: *[]$T, donnée: $T, rappel: fonc($T, $T)(bool)) -> RésultatRecherche
+ensemble_possède_rappel_si_possible :: fonc (ensemble: *[]$T, donnée: T, rappel: fonc(T, T)(bool)) -> RésultatRecherche
 {
     résultat : RésultatRecherche
 

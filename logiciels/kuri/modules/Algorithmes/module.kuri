@@ -2,13 +2,13 @@
 // de comparaisons, et sont résistant aux dépassement de bornes.
 
 // Retourne le nombre d'éléments se situant entre deux pointeurs.
-distance :: fonc (ptr1 : *$T, ptr2 : *$T) -> z64
+distance :: fonc (ptr1 : *$T, ptr2 : *T) -> z64
 {
 	retourne (ptr2 - ptr1) comme z64
 }
 
 // Retourne le pointeur se situant à n éléments après celui donné.
-suivant :: fonc (ptr : *$T, n : z64) -> *$T
+suivant :: fonc (ptr : *$T, n : z64) -> *T
 {
 	retourne ptr + n
 }
@@ -16,7 +16,7 @@ suivant :: fonc (ptr : *$T, n : z64) -> *$T
 // Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
 // ést plus petite que la valeur recherchée. Sinon retourne le pointeur de fin.
 // Ceci est utile pour stocker dans l'ordre croissant des données.
-limite_basse :: fonc (f : *$T, l : *$T, v : $T) -> *$T
+limite_basse :: fonc (f : *$T, l : *T, v : T) -> *T
 {
 	fl := f
 	ll := l
@@ -42,7 +42,7 @@ limite_basse :: fonc (f : *$T, l : *$T, v : $T) -> *$T
 // Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
 // ést plus grande que la valeur recherchée. Sinon retourne le pointeur de fin.
 // Ceci est utile pour stocker dans l'ordre décroissant des données.
-limite_haute :: fonc (f : *$T, l : *$T, v : $T) -> *$T
+limite_haute :: fonc (f : *$T, l : *T, v : T) -> *T
 {
 	fl := f
 	ll := l

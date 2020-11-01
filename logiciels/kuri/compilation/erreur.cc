@@ -506,6 +506,9 @@ void lance_erreur_fonction_inconnue(
 				ss << "\t\t" << ident->nom << '\n';
 			}
 		}
+		else if (dc.raison == IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE) {
+			ss << "\tImpossible de définir le type polymorphique " << dc.ident_poly_manquant->nom << '\n';
+		}
 
 		if (dc.raison == METYPAGE_ARG) {
 			auto const &lexeme_enfant = dc.noeud_erreur->lexeme;

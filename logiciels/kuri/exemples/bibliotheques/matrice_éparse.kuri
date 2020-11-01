@@ -1,11 +1,11 @@
 #si faux
-NoeudMatrice :: struct<$T> {
+NoeudMatrice :: struct ($T: type_de_données) {
 	colonne := 0
-	valeur : $T := 0.0
+	valeur : T := 0.0
 	suivant : *NoeudMatrice := nul
 }
 
-crée_noeud :: fonc(colonne : z32, valeur : $T) -> *NoeudMatrice
+crée_noeud :: fonc(colonne : z32, valeur : $T) -> *NoeudMatrice(T)
 {
 	noeud := loge NoeudMatrice
 	noeud.colonne = colonne
@@ -13,29 +13,29 @@ crée_noeud :: fonc(colonne : z32, valeur : $T) -> *NoeudMatrice
 	retourne noeud
 }
 
-Vecteur :: struct<$T, N : z32> {
-	données : [N]$T
+Vecteur :: struct ($T: type_de_données, $N : z32) {
+	données : [N]T
 }
 
-copie :: fonc<$T, N : z32>(a : [N]$T, b : [N]$T) -> rien
+copie :: fonc (a : [N]$T, b : [N]T, $N: z64) -> rien
 {
 	pour va, i dans a {
 		va = b[i]
 	}
 }
 
-MatriceÉparse :: struct<$T> {
-	lignes := []*NoeudMatrice<$T>
+MatriceÉparse :: struct ($T: type_de_données) {
+	lignes := []*NoeudMatrice(T)
 }
 
-construit_matrice_éparse :: fonc(nombre_lignes : z32) -> MatriceÉparse<$T>
+construit_matrice_éparse :: fonc(nombre_lignes : z32) -> MatriceÉparse(T)
 {
 	matrice : MatriceÉparse
-	matrice.lignes = loge [lignes]*NoeudMatrice<$T>
+	matrice.lignes = loge [lignes]*NoeudMatrice(T)
 	retourne matrice
 }
 
-insère :: fonc(matrice : &MatriceÉparse<$T>, idx_ligne : z32, idx_colonne : z32, valeur : $T) -> rien
+insère :: fonc(matrice : &MatriceÉparse($T), idx_ligne : z32, idx_colonne : z32, valeur : T) -> rien
 {
 	noeud := matrice.lignes[idx_ligne]
 

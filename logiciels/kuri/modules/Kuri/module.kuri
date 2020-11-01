@@ -115,9 +115,9 @@ _loge :: fonc ($t : Type, pos := PositionCodeSource{}) -> *t
     retourne ptr
 }
 
-_reloge :: fonc (ancien_pointeur: *$T, pos := PositionCodeSource{}) -> *$T
+_reloge :: fonc (ancien_pointeur: *$T, pos := PositionCodeSource{}) -> *T
 {
-    info := info_de($T)
+    info := info_de(T)
 
     ptr := contexte.allocatrice(
         ModeAllocatrice.RÉALLOUE,
@@ -131,9 +131,9 @@ _reloge :: fonc (ancien_pointeur: *$T, pos := PositionCodeSource{}) -> *$T
     retourne ptr
 }
 
-_déloge :: fonc (ancien_pointeur: *$T, pos := PositionCodeSource{}) -> *$T
+_déloge :: fonc (ancien_pointeur: *$T, pos := PositionCodeSource{}) -> *T
 {
-    info := info_de($T)
+    info := info_de(T)
 
     ptr := contexte.allocatrice(
         ModeAllocatrice.RÉALLOUE,
@@ -147,9 +147,9 @@ _déloge :: fonc (ancien_pointeur: *$T, pos := PositionCodeSource{}) -> *$T
     retourne ptr
 }
 
-_reloge :: fonc (ancien_tableau: []$T, nouvelle_taille: z64, pos := PositionCodeSource{}) -> []$T
+_reloge :: fonc (ancien_tableau: []$T, nouvelle_taille: z64, pos := PositionCodeSource{}) -> []T
 {
-    info := info_de([]$T)
+    info := info_de([]T)
 
     ptr := contexte.allocatrice(
         ModeAllocatrice.RÉALLOUE,
@@ -160,16 +160,16 @@ _reloge :: fonc (ancien_tableau: []$T, nouvelle_taille: z64, pos := PositionCode
         info,
         pos)
 
-    nouveau_tableau : []$T
+    nouveau_tableau : []T
     nouveau_tableau.pointeur = ptr
     nouveau_tableau.taille = nouvelle_taille
 
     retourne nouveau_tableau
 }
 
-_déloge :: fonc (ancien_tableau: []$T, pos := PositionCodeSource{}) -> []$T
+_déloge :: fonc (ancien_tableau: []$T, pos := PositionCodeSource{}) -> []T
 {
-    info := info_de([]$T)
+    info := info_de([]T)
 
     ptr := ontexte.allocatrice(
         ModeAllocatrice.DÉSALLOUE,
@@ -180,7 +180,7 @@ _déloge :: fonc (ancien_tableau: []$T, pos := PositionCodeSource{}) -> []$T
         info,
         pos)
 
-    nouveau_tableau : []$T
+    nouveau_tableau : []T
     retourne nouvelle_chaine
 }
 
@@ -586,13 +586,13 @@ test_compare_chaine :: fonc () -> rien
 
 // Fonctions basiques pour les tableaux
 
-tableau_ajoute :: fonc (tabl: *[]$T, valeur: $T) -> rien
+tableau_ajoute :: fonc (tabl: *[]$T, valeur: T) -> rien
 {
     tmp := mémoire(tabl)
 
     si tmp.taille == tmp.capacité {
         capacité := tmp.capacité
-        reloge tmp: [capacité + 1]$T
+        reloge tmp: [capacité + 1]T
     }
 
     tmp.taille += 1
@@ -609,7 +609,7 @@ tableau_réserve :: fonc(tabl: *[]$T, taille: z64) -> rien
 
 	tmp := mémoire(tabl)
 
-	reloge tmp : [taille]$T
+	reloge tmp : [taille]T
 
 	mémoire(tabl) = tmp
 }
@@ -623,21 +623,21 @@ tableau_redimensionne :: fonc (tabl: *[]$T, taille: z64) -> rien
 
     tmp := mémoire(tabl)
 
-    reloge tmp: [taille]$T
+    reloge tmp: [taille]T
     tmp.taille = taille
 
     mémoire(tabl) = tmp
 }
 
-tableau_copie :: fonc(tabl: []$T) -> []$T
+tableau_copie :: fonc(tabl: []$T) -> []T
 {
-	tmp := loge [tabl.capacité]$T
+	tmp := loge [tabl.capacité]T
     copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * taille_de(z64) comme z64)
     tmp.taille = tabl.taille
     retourne tmp
 }
 
-tableau_insère_index :: fonc (tabl: *[]$T, valeur: $T, où: z64) -> rien
+tableau_insère_index :: fonc (tabl: *[]$T, valeur: T, où: z64) -> rien
 {
     tmp := mémoire(tabl)
 
@@ -666,7 +666,7 @@ tableau_supprime :: fonc(tabl: *[]$T, index: z32) -> rien
 		tmp[i] = tmp[i + 1]
 	}
 
-	reloge tmp : [taille - 1]$T
+	reloge tmp : [taille - 1]T
 
 	mémoire(tabl) = tmp
 }

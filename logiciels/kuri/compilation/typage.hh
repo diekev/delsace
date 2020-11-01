@@ -612,10 +612,6 @@ inline bool est_type_entier(Type const *type)
 
 bool est_type_conditionnable(Type *type);
 
-Type *apparie_type_gabarit(Typeuse &typeuse, Type *type, Type *type_polymorphique);
-
-Type *resoud_type_polymorphique(Typeuse &typeuse, Type *type_gabarit, Type *pour_type);
-
 Type *normalise_type(Typeuse &typeuse, Type *type);
 
 void calcule_taille_type_compose(TypeCompose *type);

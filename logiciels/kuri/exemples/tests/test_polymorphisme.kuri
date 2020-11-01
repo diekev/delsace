@@ -1,0 +1,95 @@
+importe Fondation
+
+/*
+cas à supporter :
+
+    [x] fonc (a: $T, b: T)
+    [x] fonc (a: *$T, b : *T)
+    [x] fonc (a: $T, b: $U, fonc (T, U)($V))
+    [x] fonc (a: $T, b: ...T)
+    [x] fonc (a: $T, b: ...*T)
+    [ ] fonc (a: *Table($E), element: E), où Table est une structure polymorphique
+    [x] fonc (a: [8]$T)
+
+*/
+
+/* Une fonction polymorphique se définie comme une fonction normale, mais le type polymorphique doit être précédé par « $ ».
+ * Une fois le type polymorphique défini, il n'est plus nécessaire d'utiliser le signe « $ » avant d'utiliser le type.
+ */
+ajoute :: fonc (a: $T, b: T) -> T
+{
+    retourne a + b
+}
+
+multiplie :: fonc (a: z32, b: z32) -> z32
+{
+    retourne a * b
+}
+
+appel_fonction :: fonc (a: $T, b: $U, fonction: fonc(T, U)($V)) -> V
+{
+    retourne fonction(a, b)
+}
+
+arguments_variadiques :: fonc (a: $T, args: ...T)
+{
+}
+
+arguments_variadiques_pointeur :: fonc (a: $T, args: ...*T)
+{
+}
+
+argument_tableau_fixe :: fonc (a: [8]$T)
+{
+    imprime("Tableau fixe :\n")
+
+    pour a {
+        imprime("-- %\n", it)
+    }
+}
+
+principale :: fonc () -> z32
+{
+    x := ajoute(12, 27)
+    imprime("x = %\n", x)
+
+    y := ajoute(12.5, 87.9)
+    imprime("y = %\n", y)
+
+    tabl : []z32
+    tableau_ajoute(*tabl, 123)
+    tableau_ajoute(*tabl, 124)
+    imprime("%\n", tabl)
+
+    a := appel_fonction(5, 6, multiplie)
+    imprime("a = %\n", a)
+
+    arguments_variadiques(a, 7, 8, 9)
+
+    // À FAIRE(langage) : bug dans la génération de code C
+    //arguments_variadiques_pointeur(a, *x, *a)
+
+    tableau_fixe := [ 0, 1, 2, 3, 4, 5, 6, 7 ]
+    argument_tableau_fixe(tableau_fixe)
+
+    retourne 0
+}
+
+/*
+        TypePolymorphique::contrainte
+
+        *Routeuse($T)
+
+-- TypePointeur (*)
+    TypePolymorphique Routeuse(T = $T)
+
+
+struct TypePolymorphique {
+    Type *contrainte = nullptr
+
+    dls::tableau<IdentifiantCode *> identifiants;
+}
+
+    EST_CONSTANTE_TYPE_POLYMORPHIQUE
+    EST_CONSTANTE_VALEUR_POLYMORPHIQUE
+*/

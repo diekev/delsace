@@ -34,6 +34,191 @@
 #include "profilage.hh"
 #include "validation_semantique.hh"
 
+struct Monomorpheuse {
+	using paire_item = dls::paire<IdentifiantCode *, Type *>;
+	dls::tablet<paire_item, 6> items{};
+
+	using paire_type = dls::paire<Type *, Type *>;
+	dls::tablet<paire_type, 6> paires_types{};
+
+	void ajoute_item(IdentifiantCode *ident)
+	{
+		items.pousse({ident, nullptr});
+	}
+
+	bool ajoute_paire_types(Type *type_poly, Type *type_cible)
+	{
+		// si nous avons des fonctions, ajoute ici les paires pour chaque type polymorphique
+		if (type_poly->est_fonction() && type_cible->est_fonction()) {
+			auto type_poly_fonction = type_poly->comme_fonction();
+			auto type_cible_fonction = type_cible->comme_fonction();
+
+			if (type_poly_fonction->types_entrees.taille != type_cible_fonction->types_entrees.taille) {
+				return false;
+			}
+
+			if (type_poly_fonction->types_sorties.taille != type_cible_fonction->types_sorties.taille) {
+				return false;
+			}
+
+			for (auto i = 0; i < type_poly_fonction->types_entrees.taille; ++i) {
+				if (type_poly_fonction->types_entrees[i]->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+					if (!ajoute_paire_types(type_poly_fonction->types_entrees[i], type_cible_fonction->types_entrees[i])) {
+						return false;
+					}
+				}
+			}
+
+			for (auto i = 0; i < type_poly_fonction->types_sorties.taille; ++i) {
+				if (type_poly_fonction->types_sorties[i]->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+					if (!ajoute_paire_types(type_poly_fonction->types_sorties[i], type_cible_fonction->types_sorties[i])) {
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		paires_types.pousse({type_poly, type_cible});
+		return true;
+	}
+
+	bool resoud_polymorphes(Typeuse &typeuse)
+	{
+		POUR (paires_types) {
+			IdentifiantCode *ident = nullptr;
+			auto type_polymorphique = it.premier;
+			auto type_cible = it.second;
+			auto type = apparie_type(typeuse, type_polymorphique, type_cible, ident);
+
+			if (type) {
+				for (auto &item : items) {
+					if (item.premier == ident) {
+						if (item.second == nullptr) {
+							item.second = type;
+						}
+						break;
+					}
+				}
+			}
+		}
+
+		POUR (items) {
+			if (it.second == nullptr) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	Type *apparie_type(Typeuse &typeuse, Type *type_polymorphique, Type *type_cible, IdentifiantCode *&ident)
+	{
+		auto type_courant = type_cible;
+		auto type_courant_poly = type_polymorphique;
+
+		while (true) {
+			if (type_courant_poly->genre == GenreType::POLYMORPHIQUE) {
+				ident = type_courant_poly->comme_polymorphique()->ident;
+				break;
+			}
+
+			if (type_courant->genre != type_courant_poly->genre) {
+				return nullptr;
+			}
+
+			// À FAIRE : type tableau fixe
+			type_courant = type_dereference_pour(type_courant);
+			type_courant_poly = type_dereference_pour(type_courant_poly);
+		}
+
+		if (type_courant && type_courant->est_entier_constant()) {
+			return typeuse[TypeBase::Z32];
+		}
+
+		return type_courant;
+	}
+
+	Type *resoud_type_final(Typeuse &typeuse, Type *type_polymorphique)
+	{
+		auto resultat = Type::nul();
+
+		if (type_polymorphique->genre == GenreType::POINTEUR) {
+			auto type_pointe = type_polymorphique->comme_pointeur()->type_pointe;
+			auto type_pointe_pour_type = resoud_type_final(typeuse, type_pointe);
+			resultat = typeuse.type_pointeur_pour(type_pointe_pour_type);
+		}
+		else if (type_polymorphique->genre == GenreType::REFERENCE) {
+			auto type_pointe = type_polymorphique->comme_reference()->type_pointe;
+			auto type_pointe_pour_type = resoud_type_final(typeuse, type_pointe);
+			resultat = typeuse.type_reference_pour(type_pointe_pour_type);
+		}
+		else if (type_polymorphique->genre == GenreType::TABLEAU_DYNAMIQUE) {
+			auto type_pointe = type_polymorphique->comme_tableau_dynamique()->type_pointe;
+			auto type_pointe_pour_type = resoud_type_final(typeuse, type_pointe);
+			resultat = typeuse.type_tableau_dynamique(type_pointe_pour_type);
+		}
+		else if (type_polymorphique->genre == GenreType::TABLEAU_FIXE) {
+			auto type_tableau_fixe = type_polymorphique->comme_tableau_fixe();
+			auto type_pointe = type_tableau_fixe->type_pointe;
+			auto type_pointe_pour_type = resoud_type_final(typeuse, type_pointe);
+			resultat = typeuse.type_tableau_fixe(type_pointe_pour_type, type_tableau_fixe->taille);
+		}
+		else if (type_polymorphique->genre == GenreType::VARIADIQUE) {
+			auto type_pointe = type_polymorphique->comme_variadique()->type_pointe;
+			auto type_pointe_pour_type = resoud_type_final(typeuse, type_pointe);
+			resultat = typeuse.type_variadique(type_pointe_pour_type);
+		}
+		else if (type_polymorphique->genre == GenreType::POLYMORPHIQUE) {
+			auto type = type_polymorphique->comme_polymorphique();
+
+			POUR (items) {
+				if (it.premier == type->ident) {
+					resultat = it.second;
+					break;
+				}
+			}
+		}
+		else if (type_polymorphique->genre == GenreType::FONCTION) {
+			auto type_fonction = type_polymorphique->comme_fonction();
+
+			auto types_entrees = dls::tablet<Type *, 6>();
+			types_entrees.reserve(type_fonction->types_entrees.taille);
+
+			POUR (type_fonction->types_entrees) {
+				if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+					auto type_param = resoud_type_final(typeuse, it);
+					types_entrees.pousse(type_param);
+				}
+				else {
+					types_entrees.pousse(it);
+				}
+			}
+
+			auto types_sorties = dls::tablet<Type *, 6>();
+			types_sorties.reserve(type_fonction->types_sorties.taille);
+
+			POUR (type_fonction->types_sorties) {
+				if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+					auto type_param = resoud_type_final(typeuse, it);
+					types_sorties.pousse(type_param);
+				}
+				else {
+					types_sorties.pousse(it);
+				}
+			}
+
+			resultat = typeuse.type_fonction(types_entrees, types_sorties);
+		}
+		else {
+			assert_rappel(false, [&]() { std::cerr << "Type inattendu dans la résolution de type polymorphique : " << chaine_type(type_polymorphique) << "\n"; });
+		}
+
+		return resultat;
+	}
+};
+
 enum {
 	CANDIDATE_EST_DECLARATION,
 	CANDIDATE_EST_ACCES,
@@ -455,8 +640,6 @@ static auto apparie_appel_fonction(
 		return false;
 	}
 
-	auto paires_expansion_gabarit = dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>>();
-
 	auto poids_args = 1.0;
 	auto fonction_variadique_interne = decl->est_variadique && !decl->est_externe;
 	auto expansion_rencontree = false;
@@ -476,6 +659,46 @@ static auto apparie_appel_fonction(
 
 	auto type_donnees_argument_variadique = dernier_type_parametre;
 
+	auto monomorpheuse = Monomorpheuse();
+
+	if (decl->est_polymorphe) {
+		POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
+			monomorpheuse.ajoute_item(it->ident);
+		}
+
+		for (auto i = 0l; i < slots.taille(); ++i) {
+			auto index_arg = std::min(i, decl->params.taille - 1);
+			auto param = decl->parametre_entree(index_arg);
+			auto arg = param->valeur;
+			auto slot = slots[i];
+
+			if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				if (!monomorpheuse.ajoute_paire_types(arg->type, slot->type)) {
+					poids_args = 0.0;
+					res.raison = METYPAGE_ARG;
+					//res.type_attendu = type_de_l_expression;
+					res.type_obtenu = slot->type;
+					res.noeud_erreur = slot;
+					return false;
+				}
+			}
+		}
+
+		if (!monomorpheuse.resoud_polymorphes(espace.typeuse)) {
+			poids_args = 0.0;
+			res.raison = IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE;
+
+			POUR (monomorpheuse.items) {
+				if (it.second == nullptr) {
+					res.ident_poly_manquant = it.premier;
+				}
+			}
+
+			res.noeud_decl = decl;
+			return false;
+		}
+	}
+
 	for (auto i = 0l; i < slots.taille(); ++i) {
 		auto index_arg = std::min(i, decl->params.taille - 1);
 		auto param = decl->parametre_entree(index_arg);
@@ -490,46 +713,7 @@ static auto apparie_appel_fonction(
 		auto type_du_parametre = arg->type;
 
 		if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-			// trouve l'argument
-			kuri::tableau<dls::vue_chaine_compacte> noms_polymorphiqes;
-			rassemble_noms_type_polymorphique(arg->type, noms_polymorphiqes);
-
-			kuri::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_appariement_gabarit;
-			paires_appariement_gabarit.reserve(noms_polymorphiqes.taille);
-
-			for (auto &nom_polymorphique : noms_polymorphiqes) {
-				auto paire_appariement = std::pair<dls::vue_chaine_compacte, Type *>(nom_polymorphique, nullptr);
-
-				for (auto &paire : paires_expansion_gabarit) {
-					if (paire.first == nom_polymorphique) {
-						paire_appariement.second = paire.second;
-						break;
-					}
-				}
-
-				paires_appariement_gabarit.pousse(paire_appariement);
-			}
-
-			// À FAIRE : gère les cas où nous avons plus d'un argument polymorphiques
-			auto type_gabarit = paires_appariement_gabarit[0].second;
-			auto nom_gabarit = paires_appariement_gabarit[0].first;
-
-			if (!type_gabarit) {
-				type_gabarit = apparie_type_gabarit(espace.typeuse, type_de_l_expression, arg->type);
-
-				if (type_gabarit == nullptr) {
-					poids_args = 0.0;
-					res.raison = METYPAGE_ARG;
-					//res.type_attendu = type_de_l_expression;
-					res.type_obtenu = type_de_l_expression;
-					res.noeud_erreur = slot;
-					return false;
-				}
-
-				paires_expansion_gabarit.pousse({ nom_gabarit, type_gabarit });
-			}
-
-			type_du_parametre = resoud_type_polymorphique(espace.typeuse, type_du_parametre, type_gabarit);
+			type_du_parametre = monomorpheuse.resoud_type_final(espace.typeuse, type_du_parametre);
 		}
 
 		if (param->possede_drapeau(EST_VARIADIQUE)) {
@@ -579,7 +763,7 @@ static auto apparie_appel_fonction(
 					poids_pour_enfant = poids_pour_enfant_;
 				}
 
-				// allège les instantiations pour que les versions déjà instantiées soient préférées pour la selection de la meilleure candidate
+				// allège les polymorphes pour que les versions déjà monomorphées soient préférées pour la selection de la meilleure candidate
 				if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 					poids_pour_enfant *= 0.95;
 				}
@@ -633,7 +817,7 @@ static auto apparie_appel_fonction(
 				return true;
 			}
 
-			// allège les instantiations pour que les versions déjà instantiées soient préférées pour la selection de la meilleure candidate
+			// allège les polymorphes pour que les versions déjà monomorphées soient préférées pour la selection de la meilleure candidate
 			if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 				poids_pour_enfant *= 0.95;
 			}
@@ -703,7 +887,14 @@ static auto apparie_appel_fonction(
 	res.exprs = slots;
 	res.etat = FONCTION_TROUVEE;
 	res.transformations = transformations;
-	res.paires_expansion_gabarit = paires_expansion_gabarit;
+
+	if (decl->est_polymorphe) {
+		res.items_monomorphisation.reserve(monomorpheuse.items.taille());
+
+		POUR (monomorpheuse.items) {
+			res.items_monomorphisation.pousse({ it.premier, it.second, ResultatExpression(), true });
+		}
+	}
 
 	return false;
 }
@@ -1049,21 +1240,23 @@ static auto trouve_candidates_pour_appel(
 /* ************************************************************************** */
 
 static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue_ou_crees_en_une(
-		Tacheronne &tacheronne,
+		ContexteValidationCode &contexte,
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
 		NoeudDeclarationEnteteFonction *decl,
-		NoeudDeclarationEnteteFonction::tableau_paire_expansion const &paires)
+		NoeudDeclarationEnteteFonction::tableau_item_monomorphisation const &items_monomorphisation)
 {
-	POUR (decl->monomorphisations) {
-		if (it.first.taille() != paires.taille()) {
+	auto monomorphisations = decl->monomorphisations.verrou_ecriture();
+
+	POUR (*monomorphisations) {
+		if (it.premier.taille() != items_monomorphisation.taille()) {
 			continue;
 		}
 
 		auto trouve = true;
 
-		for (auto i = 0; i < paires.taille(); ++i) {
-			if (it.first[i] != paires[i]) {
+		for (auto i = 0; i < items_monomorphisation.taille(); ++i) {
+			if (it.premier[i] != items_monomorphisation[i]) {
 				trouve = false;
 				break;
 			}
@@ -1076,16 +1269,31 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 		return { it.second, false };
 	}
 
-	auto noeud_decl = static_cast<NoeudDeclarationEnteteFonction *>(copie_noeud(tacheronne.assembleuse, decl, decl->bloc_parent));
-	noeud_decl->est_monomorphisation = true;
-	noeud_decl->paires_expansion_gabarit = paires;
+	auto copie = static_cast<NoeudDeclarationEnteteFonction *>(copie_noeud(contexte.m_tacheronne.assembleuse, decl, decl->bloc_parent));
+	copie->est_monomorphisation = true;
+	copie->est_polymorphe = false;
 
-	decl->monomorphisations.pousse({ paires, noeud_decl });
+	// ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
+	POUR (items_monomorphisation) {
+		// À FAIRE(poly) : lexème pour la  constante
+		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, copie->lexeme)->comme_decl_var();
+		decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
+		decl_constante->ident = it.ident;
+		decl_constante->type = espace.typeuse.type_type_de_donnees(it.type);
 
-	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, noeud_decl);
-	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, noeud_decl->corps);
+		if (!it.est_type) {
+			decl_constante->valeur_expression = it.valeur;
+		}
 
-	return { noeud_decl, true };
+		copie->bloc_constantes->membres->pousse(decl_constante);
+	}
+
+	monomorphisations->pousse({ items_monomorphisation, copie });
+
+	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, copie);
+	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, copie->corps);
+
+	return { copie, true };
 }
 
 static NoeudStruct *monomorphise_au_besoin(
@@ -1094,7 +1302,9 @@ static NoeudStruct *monomorphise_au_besoin(
 		NoeudStruct *decl_struct,
 		dls::tableau<ItemMonomorphisation> &&items_monomorphisation)
 {
-	POUR (decl_struct->monomorphisations) {
+	auto monomorphisations = decl_struct->monomorphisations.verrou_ecriture();
+
+	POUR (*monomorphisations) {
 		if (it.premier.taille() != items_monomorphisation.taille()) {
 			continue;
 		}
@@ -1143,7 +1353,7 @@ static NoeudStruct *monomorphise_au_besoin(
 		copie->bloc->membres->pousse(decl_constante);
 	}
 
-	decl_struct->monomorphisations.pousse({ items_monomorphisation, copie });
+	monomorphisations->pousse({ items_monomorphisation, copie });
 
 	contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, copie);
 
@@ -1274,10 +1484,10 @@ bool valide_appel_fonction(
 
 		/* ---------------------- */
 
-		if (!candidate->paires_expansion_gabarit.est_vide()) {
-			auto [noeud_decl, doit_epandre] = trouve_fonction_epandue_ou_crees_en_une(contexte.m_tacheronne, compilatrice, espace, decl_fonction_appelee, std::move(candidate->paires_expansion_gabarit));
+		if (!candidate->items_monomorphisation.est_vide()) {
+			auto [noeud_decl, doit_monomorpher] = trouve_fonction_epandue_ou_crees_en_une(contexte, compilatrice, espace, decl_fonction_appelee, std::move(candidate->items_monomorphisation));
 
-			if (doit_epandre || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+			if (doit_monomorpher || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 				contexte.unite->attend_sur_declaration(noeud_decl);
 				return true;
 			}
@@ -1285,7 +1495,7 @@ bool valide_appel_fonction(
 			decl_fonction_appelee = noeud_decl;
 		}
 
-		// nous devons instantier les gabarits (ou avoir leurs types) avant de pouvoir faire ça
+		// nous devons monomorpher (ou avoir les types monomorphés) avant de pouvoir faire ça
 		auto type_fonc = decl_fonction_appelee->type->comme_fonction();
 		auto type_sortie = type_fonc->types_sorties[0];
 

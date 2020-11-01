@@ -492,6 +492,46 @@ struct NoeudExpressionLogement : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudExpressionLogement);
 };
 
+struct ItemMonomorphisation {
+	IdentifiantCode *ident = nullptr;
+	Type *type = nullptr;
+	ResultatExpression valeur{};
+	bool est_type = false;
+
+	bool operator == (ItemMonomorphisation const &autre)
+	{
+		if (ident != autre.ident) {
+			return false;
+		}
+
+		if (type != autre.type) {
+			return false;
+		}
+
+		if (est_type != autre.est_type) {
+			return false;
+		}
+
+		if (!est_type) {
+			if (valeur.type != autre.valeur.type) {
+				return false;
+			}
+
+			if (valeur.entier != autre.valeur.entier) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool operator != (ItemMonomorphisation const &autre)
+	{
+		return !(*this == autre);
+	}
+};
+
+// À FAIRE(poly) : opérateurs polymorphiques
 struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	NoeudDeclarationEnteteFonction() { genre = GenreNoeud::DECLARATION_ENTETE_FONCTION; }
 
@@ -513,14 +553,13 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 
 	dls::chaine nom_broye_ = "";
 
-	using tableau_paire_expansion = dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>>;
+	// mise en cache des monomorphisations déjà existantes afin de ne pas les recréer
+	using tableau_item_monomorphisation = dls::tableau<ItemMonomorphisation>;
 
-	// À FAIRE : ceci duplique la mémoire du tableau en-bas, peut-êre pourrions nous avoir un tableau référencé, ou un vue_tableau
-	tableau_paire_expansion paires_expansion_gabarit{};
+	template <typename T>
+	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
 
-	// mise en cache des expansions polymorphiques déjà existantes afin de ne pas les recréer
-	// devra être protégé par un mutex quand le typage sera asynchrone
-	dls::tableau<std::pair<tableau_paire_expansion, NoeudDeclarationEnteteFonction *>> monomorphisations{};
+	tableau_synchrone<dls::paire<tableau_item_monomorphisation, NoeudDeclarationEnteteFonction *>> monomorphisations{};
 
 	AtomeFonction *atome_fonction = nullptr;
 
@@ -568,45 +607,6 @@ struct NoeudExpressionAppel : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudExpressionAppel);
 };
 
-struct ItemMonomorphisation {
-	IdentifiantCode *ident = nullptr;
-	Type *type = nullptr;
-	ResultatExpression valeur{};
-	bool est_type = false;
-
-	bool operator == (ItemMonomorphisation const &autre)
-	{
-		if (ident != autre.ident) {
-			return false;
-		}
-
-		if (type != autre.type) {
-			return false;
-		}
-
-		if (est_type != autre.est_type) {
-			return false;
-		}
-
-		if (!est_type) {
-			if (valeur.type != autre.valeur.type) {
-				return false;
-			}
-
-			if (valeur.entier != autre.valeur.entier) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	bool operator != (ItemMonomorphisation const &autre)
-	{
-		return !(*this == autre);
-	}
-};
-
 struct NoeudStruct : public NoeudDeclaration {
 	NoeudStruct() { genre = GenreNoeud::DECLARATION_STRUCTURE; }
 
@@ -625,8 +625,12 @@ struct NoeudStruct : public NoeudDeclaration {
 	kuri::tableau<NoeudDeclarationVariable *> params_polymorphiques{};
 	kuri::tableau<NoeudExpression *> arbre_aplatis_params{};
 
+	template <typename T>
+	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
+
+	// mise en cache des monomorphisations déjà existantes afin de ne pas les recréer
 	using tableau_item_monomorphisation = dls::tableau<ItemMonomorphisation>;
-	dls::tableau<dls::paire<tableau_item_monomorphisation, NoeudStruct *>> monomorphisations{};
+	tableau_synchrone<dls::paire<tableau_item_monomorphisation, NoeudStruct *>> monomorphisations{};
 };
 
 struct NoeudEnum : public NoeudDeclaration {

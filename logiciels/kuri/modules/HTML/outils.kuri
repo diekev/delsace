@@ -1,5 +1,5 @@
 // À FAIRE : bouge ça dans un module d'outils ou autre
-fait_partie_de :: fonc (valeur: $T, liste: ...$T) -> bool
+fait_partie_de :: fonc (valeur: $T, liste: ...T) -> bool
 {
     pour liste {
         si valeur == it {

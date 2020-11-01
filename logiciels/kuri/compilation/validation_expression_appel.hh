@@ -71,6 +71,7 @@ enum {
 	MULTIPLE_EXPANSIONS_VARIADIQUES,
 	EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES,
 	ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES,
+	IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE,
 };
 
 enum {
@@ -104,8 +105,9 @@ struct DonneesCandidate {
 	NoeudExpression const *noeud_erreur = nullptr;
 	NoeudDeclaration *noeud_decl = nullptr;
 	dls::tableau<TransformationType> transformations{};
-	dls::tableau<std::pair<dls::vue_chaine_compacte, Type *>> paires_expansion_gabarit{};
 	dls::tableau<ItemMonomorphisation> items_monomorphisation{};
+
+	IdentifiantCode *ident_poly_manquant = nullptr;
 
 	POINTEUR_NUL(DonneesCandidate)
 };

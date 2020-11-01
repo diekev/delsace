@@ -654,11 +654,11 @@ rappel_copie_chaine :: fonc (chn: chaine) -> chaine
     retourne chn
 }
 
-parse_struct_depuis_chaine_json :: fonc (script: chaine, structure: $T) -> bool, $T
+parse_struct_depuis_chaine_json :: fonc (script: chaine, structure: $T) -> bool, T
 {
-    #assert info_de($T).id == id_info.STRUCTURE
+    #assert info_de(T).id == id_info.STRUCTURE
 
-    résultat : $T = ---
+    résultat : T = ---
 
     scanner : ScannerJSON
     initialise_scanner(*scanner, script, résultat, rappel_copie_chaine)
@@ -671,16 +671,16 @@ parse_struct_depuis_chaine_json :: fonc (script: chaine, structure: $T) -> bool,
 /* Parse une structure depuis un fichier JSON. Les chaines de caractères contenu dans le fichier
  * sont copiées dans la structure, et devront être délogées par quiconque nous appelle.
  */
-parse_struct_depuis_fichier_json :: fonc (chemin: chaine, structure: $T) -> bool, $T
+parse_struct_depuis_fichier_json :: fonc (chemin: chaine, structure: $T) -> bool, T
 {
-    #assert info_de($T).id == id_info.STRUCTURE
+    #assert info_de(T).id == id_info.STRUCTURE
 
     // À FAIRE : erreur en cas d'absence du fichier
     chm := construit_chemin(chemin)
     script := contenu_fichier_texte(chm)
     diffère { déloge script; }
 
-    résultat : $T = ---
+    résultat : T = ---
 
     si !script {
         retourne faux, résultat

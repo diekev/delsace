@@ -34,11 +34,13 @@
 struct Compilatrice;
 struct Fichier;
 struct NoeudBloc;
+struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct NoeudExpressionLogement;
 struct NoeudExpressionReference;
 struct NoeudExpressionVirgule;
+struct NoeudStruct;
 struct Tacheronne;
 struct UniteCompilation;
 
@@ -81,6 +83,8 @@ private:
 	NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
 
 	bool est_dans_fonction = false;
+	NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
+	NoeudStruct *structure_courante = nullptr;
 
 public:
 	Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite);

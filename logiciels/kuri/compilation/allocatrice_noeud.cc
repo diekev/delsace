@@ -292,6 +292,11 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	pour_chaque_element(m_noeuds_struct, [&](NoeudStruct const &noeud)
 	{
 		memoire_struct += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
+
+		memoire_struct += noeud.monomorphisations->taille() * (taille_de(NoeudDeclarationEnteteFonction::tableau_item_monomorphisation) + taille_de(NoeudDeclarationCorpsFonction *));
+		POUR (*noeud.monomorphisations.verrou_lecture()) {
+			memoire_struct += it.premier.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
+		}
 	});
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudStruct", m_noeuds_struct) + memoire_struct });
 
@@ -330,12 +335,11 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 		memoire_entete_fonction += noeud.params.taille * taille_de(NoeudDeclaration *);
 		memoire_entete_fonction += noeud.params_sorties.taille * taille_de(NoeudExpression *);
 		memoire_entete_fonction += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
-		memoire_entete_fonction += noeud.paires_expansion_gabarit.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
 		memoire_entete_fonction += noeud.annotations.taille() * taille_de(dls::vue_chaine_compacte);
 
-		memoire_entete_fonction += noeud.monomorphisations.taille() * (taille_de(NoeudDeclarationEnteteFonction::tableau_paire_expansion) + taille_de(NoeudDeclarationCorpsFonction *));
-		POUR (noeud.monomorphisations) {
-			memoire_entete_fonction += it.first.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
+		memoire_entete_fonction += noeud.monomorphisations->taille() * (taille_de(NoeudDeclarationEnteteFonction::tableau_item_monomorphisation) + taille_de(NoeudDeclarationCorpsFonction *));
+		POUR (*noeud.monomorphisations.verrou_lecture()) {
+			memoire_entete_fonction += it.premier.taille() * (taille_de (Type *) + taille_de (dls::vue_chaine_compacte));
 		}
 
 		memoire_entete_fonction += noeud.nom_broye_.taille();
