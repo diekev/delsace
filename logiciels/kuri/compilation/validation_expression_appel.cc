@@ -80,6 +80,10 @@ struct Monomorpheuse {
 			return true;
 		}
 
+		if (type_poly->est_variadique()) {
+			type_poly = type_poly->comme_variadique()->type_pointe;
+		}
+
 		paires_types.pousse({type_poly, type_cible});
 		return true;
 	}
