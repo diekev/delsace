@@ -2655,6 +2655,11 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 		auto fonction = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_ENTETE_FONCTION, decl->lexeme)->comme_entete_fonction();
 		auto nouveau_corps = fonction->corps;
 
+		fonction->bloc_constantes = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, decl->lexeme)->comme_bloc();
+		fonction->bloc_parametres = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, decl->lexeme)->comme_bloc();
+		fonction->bloc_constantes->bloc_parent = entete->bloc_parent;
+		fonction->bloc_parametres->bloc_parent = fonction->bloc_constantes;
+
 		fonction->bloc_parent = entete->bloc_parent;
 		nouveau_corps->bloc_parent = decl->bloc_parent;
 
