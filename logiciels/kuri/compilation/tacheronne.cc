@@ -261,7 +261,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 		{
 			// La tâche ne pût être complétée (une définition est attendue, etc.), remets-là dans la file en attendant.
 			if (!tache_completee) {
-				if (unite->etat() != UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME && espace->parsage_termine() && (unite->index_courant != 0 && unite->index_courant == unite->index_precedent)) {
+				if (unite->etat() != UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME && espace->parsage_termine() && (unite->index_courant == unite->index_precedent)) {
 					unite->cycle += 1;
 				}
 
