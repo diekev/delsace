@@ -762,3 +762,90 @@ cherche_aiguille :: fonc (botte_de_foin: chaine, aiguille: chaine, par: ChercheA
         }
     }
 }
+
+/* Une simple parseuse pour travailler sur des chaines.
+ */
+ParseuseChaine :: struct {
+    chn: chaine
+    curseur: z32
+    nombre: z32
+}
+
+apparie :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> bool
+{
+    chn_ := sous_chaine(parseuse.chn, parseuse.curseur, parseuse.chn.taille)
+    retourne commence_par(chn_, chn)
+}
+
+apparie_un_de :: fonc (parseuse: *ParseuseChaine, chns: ...chaine) -> z64
+{
+    chn := sous_chaine(parseuse.chn, parseuse.curseur, parseuse.chn.taille)
+    pour chns {
+        si commence_par(chn, it) {
+            retourne index_it
+        }
+    }
+
+    retourne -1
+}
+
+apparie :: fonc (parseuse: *ParseuseChaine, c: z8) -> bool
+{
+    si parseuse.curseur >= parseuse.chn.taille {
+        retourne faux
+    }
+
+    retourne parseuse.chn[parseuse.curseur] == c
+}
+
+consomme :: fonc (parseuse: *ParseuseChaine, c: z8) -> bool
+{
+    si !parseuse.apparie(c) {
+        retourne faux
+    }
+
+    parseuse.curseur += 1
+    retourne vrai
+}
+
+consomme :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> bool
+{
+    si !parseuse.apparie(chn) {
+        retourne faux
+    }
+
+    parseuse.curseur += chn.taille comme z32
+    retourne vrai
+}
+
+avance :: fonc (parseuse: *ParseuseChaine, n: z32)
+{
+    parseuse.curseur += n
+}
+
+consomme_nombre :: fonc (parseuse: *ParseuseChaine, taille: z32) -> bool
+{
+    si parseuse.curseur + taille >= parseuse.chn.taille {
+        retourne faux
+    }
+
+    index_début := parseuse.curseur
+    index_fin := index_début + taille
+
+    parseuse.nombre = 0
+
+    pour index_début ... index_fin - 1 {
+        chiffre := (parseuse.chn[it] - '0') comme n32
+
+        si chiffre >= 10 {
+            retourne faux
+        }
+
+        parseuse.nombre *= 10
+        parseuse.nombre += chiffre comme z32
+    }
+
+    parseuse.curseur += taille
+
+    retourne vrai
+}
