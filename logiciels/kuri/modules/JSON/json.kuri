@@ -113,7 +113,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 		ÉNUM {
 			info_arg := info comme *InfoTypeÉnum
 
-			// À FAIRE : typage selon énum
+			// À FAIRE(langage) : typage selon énum
 			valeur := mémoire(pointeur comme *z32)
 			noms := info_arg.noms
 

@@ -90,9 +90,9 @@ allocatrice_défaut :: fonc(
 }
 
 /*
-// À FAIRE : considère remplacer loge, déloge, et reloge avec ces fonctions
+// À FAIRE(langage) : considère remplacer loge, déloge, et reloge avec ces fonctions
 // À FAIRE : type dépendant (gabarits, il faudra que les types deviennent citoyens de première classe)
-// À FAIER : infos types
+// À FAIRE : infos types
 
 
 _loge :: fonc ($t : Type, pos := PositionCodeSource{}) -> *t
@@ -279,7 +279,7 @@ ModeLogage :: énum z32 {
 
 // Le StockageTemporaire est un stockage mis en place par le compilateur, qui réserve
 // une certaine taille dans l'exécutable où mettre des données temporaire.
-// À FAIRE : option de compilation pour définir la taille du stockage temporaire
+// À FAIRE(langage) : option de compilation pour définir la taille du stockage temporaire
 // on attendra que la métoprogrammation soit ici pour passer les options par celle-ci
 StockageTemporaire :: struct #interface {
     données : *octet
@@ -314,7 +314,7 @@ TraceAppel :: struct #interface {
 }
 
 // Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
-// À FAIRE : permettre aux utilisateurs du langage d'ajouter des variables dans
+// À FAIRE(langage) : permettre aux utilisateurs du langage d'ajouter des variables dans
 // cette structure.
 ContexteProgramme :: struct {
     allocatrice := allocatrice_défaut
@@ -718,7 +718,7 @@ arguments_ligne_commande :: fonc () -> []chaine
 
 crée_contexte :: fonc () -> rien #création_contexte
 {
-    // À FAIRE : déplace cela dans une globale mise en place par la compilatrice
+    // À FAIRE(langage) : déplace cela dans une globale mise en place par la compilatrice
     info_trace_appel := InfoFonctionTraceAppel(nom = "main", fichier = "module.kuri", adresse = nul)
 
     trace_appel := TraceAppel(info_fonction = *info_trace_appel)

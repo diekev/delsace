@@ -10,7 +10,7 @@ maintenant_sec :: fonc() -> r64
 
 	s := heure.tv_sec comme r64
 
-    // À FAIRE : 1e-6
+    // À FAIRE(langage) : 1e-6
 	retourne s + heure.tv_usec comme r64 * 0.000001
 }
 
@@ -23,7 +23,7 @@ maintenant_local :: fonc() -> r64
 	s := heure.tv_sec comme r64
 	s += fuseau.tz_minuteswest comme r64 * 60.0
 
-    // À FAIRE : 1e-6
+    // À FAIRE(langage) : 1e-6
 	retourne s + heure.tv_usec comme r64 * 0.000001
 }
 

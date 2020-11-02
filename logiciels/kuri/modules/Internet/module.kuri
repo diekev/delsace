@@ -28,7 +28,7 @@ AdresseIP :: union {
     ipv6 : AdresseIPv6
 }
 
-// À FAIRE(bug langage) : les types ne sont pas normalisés recursivement pour les structures...
+// À FAIRE(langage) : les types ne sont pas normalisés recursivement pour les structures...
 // parse_ip :: fonc (chn: chaine) -> AdresseIP | ErreurParsageIP
 // {
 //     ipv4 := tente parse_ipv4(chn) piège err_ipv4 {

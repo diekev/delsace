@@ -1,5 +1,6 @@
 // remplace DonneesCandidate::raison par une chaine de caractère
 // nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
+// compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
 
 
 // --------------------------- Contexte Implicite
@@ -7,8 +8,8 @@
 utilisation d'une référence pour passer le contexte entre les fonctions, nous devrons correctement gérer les références dans ce cas
 
 utilisation d'une variable globale pour le contexte du thread principale
-    -- mention À FAIRE dans test_moultfilage.kuri
-    -- mention À FAIRE dans Jeu/application.kuri "imprime n'a pas de contexte"
+    -- mention dans test_moultfilage.kuri
+    -- mention dans Jeu/application.kuri "imprime n'a pas de contexte"
 
 ajout de l'information de présence de contexte aux blocs afin de pouvoir définir si nous avons un contexte ou non
 
@@ -97,11 +98,6 @@ currying
     #cuis_constantes ma_fonction(T = z32)  // crée une nouvelle fonction ou le paramètre polymorphique T est remplacé par le type z32
     #cuis_valeurs    ma_fonction(x = 5)  // crée une nouvelle fonction ou le paramètre x est remplacé par la constante 5
 
-// réusinage :
--- note les expressions comme étant des contraintes, ne passe pas par la validation sémantique (marque comme validé tout de même)
--- dans la validation des appels, apparie les types des expressions avec les contraintes
--- utilise les ItemMonomorphisation pour les fonctions
-
 // --------------------------- Métaprogrammation
 
 exécute plusieurs métaprogrammes à la fois
@@ -169,6 +165,7 @@ Opérateurs implicites :
 // --------------------------- Bas Fruitage
 
 ajout d'une propriété "pointeur" aux tableaux fixes pour obtenir le pointeur vers le premier élément (au lien de @x[0])
+   -- mention dans test_logement.kuri
 
 ajout d'une propriété "capacité" aux chaines
 
@@ -228,10 +225,10 @@ amélioration du typage des expressions de tableaux constants
     plusieurs problèmes de l'approche courrante
     - le premier élément défini le type du tableau ce qui fait échoué les tableaux mélangeant des constantes de nombre et de caractère (voir Noyau)
     - les nombres constants sont définis comme z32, nous ne pouvons avoir un tableau de n32 par exemple avec uniquement des constantes
-        -- mention À FAIRE dans HTML/Autres/parse_entite.kuri
+        -- mention dans HTML/Autres/parse_entite.kuri
 
 normalisation de tous les types pour supprimer les unions et les entiers constants de la RI
-    -- mention À FAIRE dans Internet/module.kuri
+    -- mention dans Internet/module.kuri
 
 déclaration d'énum, de structures, et d'unions anonymes :
     énum {

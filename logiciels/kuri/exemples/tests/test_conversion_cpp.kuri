@@ -135,7 +135,7 @@ converti_code_c :: fonc (enchaineuse: *Enchaineuse, code: *NoeudCode)
     }
 }
 
-// À FAIRE : compilation infinie si nous n'avons pas de message
+// À FAIRE(langage) : compilation infinie si nous n'avons pas de message
 
 fais_conversion_code :: fonc ()
 {

@@ -12,7 +12,7 @@ Alignement :: énum z32 {
 
 Tabuleuse :: struct {
     lignes : []LigneTabuleuse
-    alignements : []z32 // À FAIRE: la coulisse C a deux définitions des tableaux pour les énums et les types de leurs données
+    alignements : []Alignement
     nombre_colonnes : z64
 
     chaines_allouées: []chaine
@@ -27,7 +27,7 @@ crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
     tableau_redimensionne(*tabuleuse.alignements, titres.taille)
 
     pour a dans tabuleuse.alignements {
-        a = Alignement.GAUCHE comme z32
+        a = Alignement.GAUCHE
     }
 
     retourne tabuleuse
@@ -42,7 +42,7 @@ crée_tabuleuse :: fonc  (ligne_titre: LigneTabuleuse) -> Tabuleuse
     tableau_redimensionne(*tabuleuse.alignements, ligne_titre.colonnes.taille)
 
     pour a dans tabuleuse.alignements {
-        a = Alignement.GAUCHE comme z32
+        a = Alignement.GAUCHE
     }
 
     retourne tabuleuse
@@ -197,7 +197,7 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
     pour colonne, i dans ligne.colonnes {
 	    ajoute_au_tampon(enchaineuse, "| ")
 
-		si tabuleuse.alignements[i] == Alignement.DROITE comme z32 {
+		si tabuleuse.alignements[i] == Alignement.DROITE {
             pour j dans 0 ... tailles_max_colonnes[i] - colonne.taille_unicode() - 1 {
 	            ajoute_au_tampon(enchaineuse, " ")
 			}
@@ -205,7 +205,7 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
 
         ajoute_au_tampon(enchaineuse, colonne)
 
-		si tabuleuse.alignements[i] == Alignement.GAUCHE comme z32 {
+		si tabuleuse.alignements[i] == Alignement.GAUCHE {
             pour j dans colonne.taille_unicode() ... tailles_max_colonnes[i] - 1 {
 	            ajoute_au_tampon(enchaineuse, " ")
 			}

@@ -34,7 +34,7 @@ exécute_commande_externe :: fonc (args: ...chaine) -> bool
         ajoute_au_tampon(*enchaineuse, " ")
     }
 
-    // À FAIRE : ne peut pas utiliser "\0" dans la coulisse C
+    // À FAIRE(langage) : ne peut pas utiliser "\0" dans la coulisse C
     ajoute_au_tampon(*enchaineuse, " ")
 
     commande := chaine_depuis_enchaineuse(*enchaineuse)

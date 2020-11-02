@@ -671,7 +671,7 @@ imprime_valeur :: fonc(
 		ÉNUM {
 			info_arg := info comme *InfoTypeÉnum
 
-			// À FAIRE : typage selon énum
+			// À FAIRE(langage) : typage selon énum
 			valeur := mémoire(pointeur comme *z32)
 			noms := info_arg.noms
 
@@ -790,7 +790,7 @@ imprime_log :: fonc (ident: chaine, format: chaine, args: ...eini) -> rien
 
 // --------------------------
 
-// À FAIRE : trouve une manière de trouver la chaine de l'expression
+// À FAIRE(langage) : trouve une manière de trouver la chaine de l'expression
 assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
 {
     si expr {
