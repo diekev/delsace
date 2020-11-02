@@ -531,6 +531,16 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 							return true;
 						}
 
+						if ((type_type1->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+							unite->attend_sur_type(type_type1->type_connu);
+							return true;
+						}
+
+						if ((type_type2->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+							unite->attend_sur_type(type_type2->type_connu);
+							return true;
+						}
+
 						auto membres = kuri::tableau<TypeCompose::Membre>(2);
 						membres[0] = { type_type1->type_connu, "0" };
 						membres[1] = { type_type2->type_connu, "1" };
