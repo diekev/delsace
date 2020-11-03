@@ -823,6 +823,11 @@ avance :: fonc (parseuse: *ParseuseChaine, n: z32)
     parseuse.curseur += n
 }
 
+fini :: fonc (parseuse: *ParseuseChaine) -> bool
+{
+    retourne parseuse.curseur >= parseuse.chn.taille
+}
+
 consomme_nombre :: fonc (parseuse: *ParseuseChaine, taille: z32) -> bool
 {
     si parseuse.curseur + taille >= parseuse.chn.taille {
@@ -848,4 +853,44 @@ consomme_nombre :: fonc (parseuse: *ParseuseChaine, taille: z32) -> bool
     parseuse.curseur += taille
 
     retourne vrai
+}
+
+positionne :: fonc (parseuse: *ParseuseChaine, position: z64)
+{
+    parseuse.curseur = position comme z32
+}
+
+trouve_prochain :: fonc (parseuse: *ParseuseChaine, c: z8) -> z64
+{
+    début : z64 = parseuse.curseur
+
+    tantque début < parseuse.chn.taille {
+        si parseuse.chn[début] == c {
+            arrête
+        }
+
+        début += 1
+    }
+
+    si début >= parseuse.chn.taille {
+        retourne -1
+    }
+
+    retourne début
+}
+
+sous_chaine_jusque_index :: fonc (parseuse: *ParseuseChaine, index: z64) -> chaine
+{
+    retourne sous_chaine(parseuse.chn, parseuse.curseur, index)
+}
+
+saute_espace_blanc :: fonc (parseuse: *ParseuseChaine)
+{
+    tantque parseuse.curseur < parseuse.chn.taille {
+        si parseuse.chn[parseuse.curseur] != ' ' {
+            arrête
+        }
+
+        parseuse.curseur += 1
+    }
 }
