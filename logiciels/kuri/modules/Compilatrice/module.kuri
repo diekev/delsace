@@ -298,7 +298,8 @@ NoeudCodeAssignation :: struct {
 NoeudCodeDéclaration :: struct {
     empl base : NoeudCode
 
-    nom: chaine
+    valeur : *NoeudCode
+    expression : *NoeudCode
 }
 
 NoeudCodeOpérationUnaire :: struct {

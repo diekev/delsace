@@ -81,7 +81,8 @@ struct NoeudCodeAssignation : public NoeudCode {
 };
 
 struct NoeudCodeDeclaration : public NoeudCode {
-	kuri::chaine nom{};
+	NoeudCode *valeur = nullptr;
+	NoeudCode *expression = nullptr;
 };
 
 struct NoeudCodeOperationUnaire : public NoeudCode {

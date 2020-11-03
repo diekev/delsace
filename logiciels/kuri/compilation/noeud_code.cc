@@ -128,8 +128,8 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto decl = static_cast<NoeudDeclarationVariable *>(noeud_expression);
 
 			auto n = noeuds_declarations.ajoute_element();
-			n->nom.pointeur = const_cast<char *>(decl->ident->nom.pointeur());
-			n->nom.taille = decl->ident->nom.taille();
+			n->valeur = converti_noeud_syntaxique(espace, decl->valeur);
+			n->expression = converti_noeud_syntaxique(espace, decl->expression);
 
 			noeud_code = n;
 			break;
