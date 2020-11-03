@@ -1,0 +1,318 @@
+importe Fondation
+
+// À FAIRE : sécurise les données du cookie (voir Flask)
+// IPA : sécurise_cookie, encode_valeur_cookie, décode_valeur_cookie
+Cookie :: struct {
+    nom: chaine // US-ASCII, sauf contrôle, espace, tabulation, ( ) < > @ , : ; \ " / [ ] ? = { }
+    valeur: chaine // US-ASCII sauf les caractères de contrôle, espace, et " , ; \
+
+    expiration: chaine // date <day-name>, <jour> <mois> <année> <heure>:<minute>:<seconde> GMT
+    age_maximum: z32 // non-zéro, en secondes
+    domaine: chaine // domaine où le cookie sera envoyé
+    chemin: chaine
+
+    est_sécurisé: bool  // n'envoie que si https
+    http_seulement: bool // empêche JavaScript d'accéder au cookie
+
+    PolitiqueMêmeSite :: énum {
+        None
+        Lax
+        Strict
+    }
+
+    même_site: PolitiqueMêmeSite
+}
+
+/*
+Set-Cookie: <cookie-name>=<cookie-value>
+Set-Cookie: <cookie-name>=<cookie-value>; Expires=<date>
+Set-Cookie: <cookie-name>=<cookie-value>; Max-Age=<non-zero-digit>
+Set-Cookie: <cookie-name>=<cookie-value>; Domain=<domain-value>
+Set-Cookie: <cookie-name>=<cookie-value>; Path=<path-value>
+Set-Cookie: <cookie-name>=<cookie-value>; Secure
+Set-Cookie: <cookie-name>=<cookie-value>; HttpOnly
+
+Set-Cookie: <cookie-name>=<cookie-value>; SameSite=Strict
+Set-Cookie: <cookie-name>=<cookie-value>; SameSite=Lax
+Set-Cookie: <cookie-name>=<cookie-value>; SameSite=None
+*/
+imprime_cookie_pour_entête_http :: fonc (enchaineuse: *Enchaineuse, cookie: Cookie)
+{
+    imprime_dans_enchaineuse(enchaineuse, "%=%", cookie.nom, cookie.valeur)
+
+    si cookie.expiration || cookie.age_maximum {
+        // L'age maximum à la précédence sur la date d'expiration
+        si cookie.age_maximum {
+            imprime_dans_enchaineuse(enchaineuse, "; Max-Age=%", cookie.age_maximum)
+        }
+        sinon {
+            // À FAIRE : imprime date
+            //imprime_dans_enchaineuse(enchaineuse, "; Expires=%")
+        }
+    }
+
+    si cookie.chemin {
+        imprime_dans_enchaineuse("; Path=%", cookie.chemin)
+    }
+
+    si cookie.domaine {
+        imprime_dans_enchaineuse("; Domain=%", cookie.chemin)
+    }
+
+    si cookie.est_sécurisé {
+        imprime_dans_enchaineuse("; Secure")
+    }
+
+    si cookie.http_seulement {
+        imprime_dans_enchaineuse("; HttpOnly")
+    }
+
+    si cookie.même_site != Cookie.PolitiqueMêmeSite.None {
+        imprime_dans_enchaineuse(enchaineuse, "; SameSite=%", cookie.même_site)
+    }
+}
+
+/* Parse une chaine contenant un ou plusieurs cookies venant d'un client.
+ * Ce devra être au format <nom>=<valeur>[; ...].
+ */
+parse_cookie_client :: fonc (chn: chaine) -> []Cookie
+{
+    résultat: []Cookie
+
+    parseuse := ParseuseChaine(chn = chn)
+
+    /* consomme le début de la chaine si l'entête n'a pas été séparé entre clé et valeur */
+    _ := consomme(*parseuse, "Cookie:")
+
+    tantque !fini(*parseuse) {
+        réussi, cookie := parse_nom_valeur_cookie(*parseuse)
+
+        si !réussi {
+            déloge résultat
+            retourne résultat
+        }
+
+        tableau_ajoute(*résultat, cookie)
+    }
+
+    retourne résultat
+}
+
+/* Parse un cookie envoyé par un serveur via une entête "Set-Cookie".
+ * Il contiendra les mêmes données que celles mises en place par imprime_cookie_pour_entête_http.
+ */
+parse_cookie_serveur :: fonc (chn: chaine) -> Cookie
+{
+    résultat: Cookie
+
+    parseuse := ParseuseChaine(chn = chn)
+
+    /* consomme le début de la chaine si l'entête n'a pas été séparé entre clé et valeur */
+    _ := consomme(*parseuse, "Set-Cookie:")
+
+    réussi, cookie_nom_valeur := parse_nom_valeur_cookie(*parseuse)
+
+    si !réussi {
+        retourne résultat
+    }
+
+    résultat.nom = cookie_nom_valeur.nom
+    résultat.valeur = cookie_nom_valeur.valeur
+
+    tantque !fini(*parseuse) {
+        si apparie(*parseuse, ';') {
+            avance(*parseuse, 1)
+        }
+
+        saute_espace_blanc(*parseuse)
+
+        si consomme(*parseuse, "Secure") {
+            résultat.est_sécurisé = vrai
+            continue
+        }
+
+        si consomme(*parseuse, "HttpOnly") {
+            résultat.http_seulement = vrai
+            continue
+        }
+
+        si consomme(*parseuse, "Max-Age") {
+            // À FAIRE
+            continue
+        }
+
+        si consomme(*parseuse, "Expires") {
+            // À FAIRE
+            continue
+        }
+
+        si consomme(*parseuse, "Path") {
+            si !consomme(*parseuse, '=') {
+                // À FAIRE: erreur parsage cookie
+                retourne résultat
+            }
+
+            pos := trouve_prochain(*parseuse, ';')
+
+            si pos <= 0 {
+                // À FAIRE: erreur parsage cookie
+                retourne résultat
+            }
+
+            valeur := sous_chaine_jusque_index(*parseuse, pos)
+
+            résultat.domaine = valeur
+
+            positionne(*parseuse, pos + 1)
+            continue
+        }
+
+        si consomme(*parseuse, "Domain") {
+            si !consomme(*parseuse, '=') {
+                // À FAIRE: erreur parsage cookie
+                imprime("pas d'égal après 'Domain'\n")
+                retourne résultat
+            }
+
+            pos := trouve_prochain(*parseuse, ';')
+
+            si pos <= 0 {
+                pos = parseuse.chn.taille
+            }
+
+            valeur := sous_chaine_jusque_index(*parseuse, pos)
+
+            résultat.domaine = valeur
+
+            positionne(*parseuse, pos + 1)
+            continue
+        }
+
+        si consomme(*parseuse, "SameSite") {
+            si !consomme(*parseuse, '=') {
+                // À FAIRE: erreur parsage cookie
+                retourne résultat
+            }
+
+            pos := trouve_prochain(*parseuse, ';')
+
+            si pos <= 0 {
+                pos = parseuse.chn.taille
+            }
+
+            valeur := sous_chaine_jusque_index(*parseuse, pos)
+
+            si valeur == "None" {
+                résultat.même_site = Cookie.PolitiqueMêmeSite.None
+            }
+            sinon si valeur == "Strict" {
+                résultat.même_site = Cookie.PolitiqueMêmeSite.Strict
+            }
+            sinon si valeur == "Lax" {
+                résultat.même_site = Cookie.PolitiqueMêmeSite.Lax
+            }
+            sinon {
+                // À FAIRE: erreur parsage cookie
+                retourne résultat
+            }
+
+            positionne(*parseuse, pos + 1)
+            continue
+        }
+    }
+
+    retourne résultat
+}
+
+parse_nom_valeur_cookie :: fonc (parseuse: *ParseuseChaine) -> bool, Cookie
+{
+    cookie: Cookie
+    saute_espace_blanc(parseuse)
+
+    pos := trouve_prochain(parseuse, '=')
+
+    si pos <= 0 {
+        retourne faux, cookie
+    }
+
+    nom := sous_chaine_jusque_index(parseuse, pos)
+
+    positionne(parseuse, pos + 1)
+
+    pos = trouve_prochain(parseuse, ';')
+
+    si pos <= 0 {
+        pos = parseuse.chn.taille
+    }
+
+    valeur := sous_chaine_jusque_index(parseuse, pos)
+
+    positionne(parseuse, pos + 1)
+
+    cookie.nom = nom
+    cookie.valeur = valeur
+
+    retourne vrai, cookie
+}
+
+// voir plus https://tools.ietf.org/html/rfc6265#section-4.1.2.3
+est_valide :: fonc (cookie: Cookie) -> bool
+{
+    /*
+        // Les deux sont acceptés s'ils viennent d'une origine sécurisée (HTTPS)
+        Set-Cookie: __Secure-ID=123; Secure; Domain=example.com
+        Set-Cookie: __Host-ID=123; Secure; Path=/
+
+        // Rejeté car l'attribut Secure est manquant
+        Set-Cookie: __Secure-id=1
+
+        // Rejeté car l'attribut Path=/ est manquant
+        Set-Cookie: __Host-id=1; Secure
+
+        // Rejeté à cause du domaine qui est spécifié
+        Set-Cookie: __Host-id=1; Secure; Path=/; domain=example.com
+     */
+    si !cookie.nom {
+        retourne faux
+    }
+
+    si !cookie.valeur {
+        retourne faux
+    }
+
+    si commence_par(cookie.nom, "__Secure-") {
+        si !cookie.est_sécurisé {
+            retourne faux
+        }
+
+        // À FAIRE: savoir si le cookie vient d'un connexion HTTPS
+    }
+    sinon si commence_par(cookie.nom, "__Host-") {
+        si cookie.chemin != "/" {
+            retourne faux
+        }
+
+        si cookie.domaine {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+/*
+
+    cookies := parse_cookie_client("Cookie: yummy_cookie=choco; tasty_cookie=strawberry")
+
+    imprime("Cookies client :\n")
+
+    pour cookies {
+        imprime("% = %\n", it.nom, it.valeur)
+    }
+
+    imprime("Cookie serveur :\n")
+
+    cookie := parse_cookie_serveur("Set-Cookie: __Secure-ID=123; Secure; Domain=example.com")
+
+    imprime("%\n", cookie)
+*/
