@@ -76,7 +76,7 @@ struct NoeudCodeCorpsFonction : public NoeudCode {
 };
 
 struct NoeudCodeAssignation : public NoeudCode {
-	NoeudCodeDeclaration *assigne = nullptr;
+	NoeudCode *assigne = nullptr;
 	NoeudCode *expression = nullptr;
 };
 

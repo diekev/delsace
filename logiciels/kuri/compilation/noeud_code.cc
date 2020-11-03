@@ -177,9 +177,9 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		{
 			auto noeud_op_bin = noeud_expression->comme_assignation();
 
-			auto n = noeuds_operations_binaire.ajoute_element();
-			n->operande_gauche = converti_noeud_syntaxique(espace, noeud_op_bin->variable);
-			n->operande_droite = converti_noeud_syntaxique(espace, noeud_op_bin->expression);
+			auto n = noeuds_assignations.ajoute_element();
+			n->assigne = converti_noeud_syntaxique(espace, noeud_op_bin->variable);
+			n->expression = converti_noeud_syntaxique(espace, noeud_op_bin->expression);
 
 			noeud_code = n;
 			break;

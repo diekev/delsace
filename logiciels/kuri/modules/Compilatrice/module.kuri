@@ -291,7 +291,7 @@ NoeudCodeCorpsFonction :: struct {
 NoeudCodeAssignation :: struct {
     empl base : NoeudCode
 
-    assigné : *NoeudCodeDéclaration
+    assigné : *NoeudCode
     expression : *NoeudCode
 }
 
