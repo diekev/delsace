@@ -5,13 +5,57 @@ DonnéesPage :: struct {
     titre := "Accueil"
 }
 
+crée_réponse_fichier_gabarit_manquant :: fonc () -> RéponseRequête
+{
+    retourne RéponseRequête(
+        code = CodeÉtatHTTP.INTERNAL_SERVER_ERROR,
+        type_contenu = TypeContenu.TEXT_HTML,
+        // À FAIRE : évite de copier la chaine
+        contenu = copie_chaine("<p>La page du gabarit n'est pas trouvable !</p>")
+    )
+}
+
+importe GHTML
+
+// À FAIRE : ceci duplique la logique de GHTML
+rends_page_ex :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données: eini) -> RéponseRequête
+{
+    //temps_présent := compte_ticks_microsecondes()
+    //diffère { imprime_log("", "Durée rendu gabarit : %µs", compte_ticks_microsecondes() - temps_présent) }
+
+    page := trouve_dans_cache(rendeuse_gabarit, nom_court)
+
+    si page == nul {
+        retourne crée_réponse_fichier_gabarit_manquant()
+    }
+
+    données_génération : DonnéesGénération
+    données_génération.valeur = données
+
+    enchaineuse : Enchaineuse
+	initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
+
+    erreur_ := génère_page(*données_génération, page.racine, *enchaineuse)
+
+    si erreur_ != ErreurGénérationPage.AUCUNE {
+        retourne crée_réponse_fichier_gabarit_manquant()
+    }
+
+    retourne RéponseRequête(
+        code = CodeÉtatHTTP.OK,
+        type_contenu = TypeContenu.TEXT_HTML,
+        contenu = chaine_depuis_enchaineuse(*enchaineuse)
+    )
+}
+
 répond_get_page_accueil :: fonc (ptr_serveuse: *rien, ptr_requête: *rien) -> RéponseRequête
 {
     serveuse := ptr_serveuse comme *Serveuse
     requête := ptr_requête comme *DonnéesRequête
 
     données: DonnéesPage
-    retourne rends_page(*serveuse.rendeuse_gabarit, "accueil", données)
+    retourne rends_page_ex(*serveuse.rendeuse_gabarit, "accueil", données)
 }
 
 répond_post_page_accueil :: fonc (ptr_serveuse: *rien, ptr_requête: *rien) -> RéponseRequête

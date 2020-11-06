@@ -1,6 +1,6 @@
 importe Fondation
-importe GHTML
-importe Réseau
+
+charge "catalogue_fichier"
 
 RendeusePage :: struct {
     catalogue : CatalogueFichier
@@ -75,25 +75,26 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
     retourne *rendeuse_gabarit.cache_page[rendeuse_gabarit.cache_page.taille - 1]
 }
 
-crée_réponse_fichier_gabarit_manquant :: fonc () -> RéponseRequête
-{
-    retourne RéponseRequête(
-        code = CodeÉtatHTTP.INTERNAL_SERVER_ERROR,
-        type_contenu = TypeContenu.TEXT_HTML,
-        // À FAIRE : évite de copier la chaine
-        contenu = copie_chaine("<p>La page du gabarit n'est pas trouvable !</p>")
-    )
+ErreurRenduPage :: erreur {
+    PageManquante
+    RenduImpossible
 }
 
-rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données: eini) -> RéponseRequête
+ChaineOuErreur :: union {
+    c: chaine
+    e: ErreurRenduPage
+}
+
+rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données: eini) -> ChaineOuErreur
 {
     //temps_présent := compte_ticks_microsecondes()
     //diffère { imprime_log("", "Durée rendu gabarit : %µs", compte_ticks_microsecondes() - temps_présent) }
 
+
     page := trouve_dans_cache(rendeuse_gabarit, nom_court)
 
     si page == nul {
-        retourne crée_réponse_fichier_gabarit_manquant()
+        retourne ErreurRenduPage.PageManquante
     }
 
     données_génération : DonnéesGénération
@@ -106,12 +107,8 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     erreur_ := génère_page(*données_génération, page.racine, *enchaineuse)
 
     si erreur_ != ErreurGénérationPage.AUCUNE {
-        retourne crée_réponse_fichier_gabarit_manquant()
+        retourne ErreurRenduPage.RenduImpossible
     }
 
-    retourne RéponseRequête(
-        code = CodeÉtatHTTP.OK,
-        type_contenu = TypeContenu.TEXT_HTML,
-        contenu = chaine_depuis_enchaineuse(*enchaineuse)
-    )
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }

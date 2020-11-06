@@ -1,3 +1,5 @@
+charge "fichier_texte"
+
 CatalogueFichier :: struct {
     fichiers : []FichierTexte
 }

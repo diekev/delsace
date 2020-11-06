@@ -1,4 +1,5 @@
 importe GlibC
+importe GHTML
 
 CONNEXIONS_MAX := 1000
 

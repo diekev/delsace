@@ -1,16 +1,14 @@
 importe Compilatrice
 importe Fondation
+importe GHTML
 importe GlibC
 importe JSON
 importe Réseau
 importe SysFichier
 importe Temps
 
-charge "catalogue_fichier"
 charge "entete_http"
-charge "fichier_texte"
 charge "page_accueil"
-charge "rendeuse_page"
 charge "requête"
 charge "serveuse"
 
