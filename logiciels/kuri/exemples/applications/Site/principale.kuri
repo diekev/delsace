@@ -12,39 +12,6 @@ charge "page_accueil"
 charge "requête"
 charge "serveuse"
 
-chaine_jour_pour_tm :: fonc (tm_wday: z32) -> chaine
-{
-    discr tm_wday {
-        0 { retourne "Sun" }
-        1 { retourne "Mon" }
-        2 { retourne "Tue" }
-        3 { retourne "Wed" }
-        4 { retourne "Thu" }
-        5 { retourne "Fri" }
-        6 { retourne "Sat" }
-        sinon { retourne "erreur" }
-    }
-}
-
-chaine_mois_pour_tm :: fonc (tm_mon: z32) -> chaine
-{
-    discr tm_mon {
-         0 { retourne "Jan" }
-         1 { retourne "Feb" }
-         2 { retourne "Mar" }
-         3 { retourne "Apr" }
-         4 { retourne "May" }
-         5 { retourne "Jun" }
-         6 { retourne "Jul" }
-         7 { retourne "Aug" }
-         8 { retourne "Sep" }
-         9 { retourne "Oct" }
-        10 { retourne "Nov" }
-        11 { retourne "Dec" }
-        sinon { retourne "erreur" }
-    }
-}
-
 chaine_pour_aujourdhui :: fonc (enchaineuse : *Enchaineuse) -> rien
 {
     date := hui_système()
