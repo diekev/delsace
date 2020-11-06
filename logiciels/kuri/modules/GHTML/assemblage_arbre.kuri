@@ -10,8 +10,9 @@ TypeNoeud :: énum z32 {
 
 NoeudSyntaxique :: struct {
     type : TypeNoeud
-    données : DonnéesLexème
+    données : Lexème
     enfants : []*NoeudSyntaxique
+    nom : chaine
 }
 
 détruit_noeud :: fonc(noeud : *NoeudSyntaxique) -> rien
@@ -103,7 +104,7 @@ détruit_assembleuse :: fonc(assembleuse : &AssembleuseArbre) -> rien
 empile_noeud :: fonc(
     assembleuse : &AssembleuseArbre,
     type_noeud : TypeNoeud,
-    données : &DonnéesLexème) -> *NoeudSyntaxique
+    données : &Lexème) -> *NoeudSyntaxique
 {
 	noeud := assembleuse.crée_noeud(type_noeud, données)
 
@@ -119,7 +120,7 @@ empile_noeud :: fonc(
 ajoute_noeud :: fonc(
     assembleuse : &AssembleuseArbre,
     type_noeud : TypeNoeud,
-    données : &DonnéesLexème) -> rien
+    données : &Lexème) -> rien
 {
 	noeud := assembleuse.crée_noeud(type_noeud, données)
 	ajoute_noeud(assembleuse.pile.haut(), noeud)
@@ -128,7 +129,7 @@ ajoute_noeud :: fonc(
 crée_noeud :: fonc(
     assembleuse : &AssembleuseArbre,
     type_noeud : TypeNoeud,
-    données : &DonnéesLexème) -> *NoeudSyntaxique
+    données : &Lexème) -> *NoeudSyntaxique
 {
 	noeud := loge NoeudSyntaxique
     noeud.type = type_noeud

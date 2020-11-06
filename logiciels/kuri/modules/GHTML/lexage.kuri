@@ -9,6 +9,8 @@ TypeLexème :: énum z32 {
 	SI
 	SINON
 	ÉTEND
+	BLOC
+	FINBLOC
 	DÉBUT_VARIABLE
 	DÉBUT_EXPRESSION
 	FIN_VARIABLE
@@ -16,9 +18,12 @@ TypeLexème :: énum z32 {
 	CHAINE_CARACTÈRE
 }
 
-DonnéesLexème :: struct {
+Lexème :: struct {
     chn : chaine
     type_lexème : TypeLexème
+
+	ligne := 0
+	colonne := 0
 }
 
 //######################################
@@ -32,6 +37,8 @@ id_identifiant :: fonc(identifiant : chaine) -> TypeLexème
 	si identifiant == "si" { retourne TypeLexème.SI }
 	si identifiant == "sinon" { retourne TypeLexème.SINON }
 	si identifiant == "étend" { retourne TypeLexème.ÉTEND }
+	si identifiant == "bloc" { retourne TypeLexème.BLOC }
+	si identifiant == "finbloc" { retourne TypeLexème.FINBLOC }
 
 	retourne TypeLexème.CHAINE_CARACTÈRE
 }
@@ -51,7 +58,7 @@ Lexeuse :: struct {
     début_mot : *z8
     fin : *z8
 
-    lexèmes : []DonnéesLexème
+    lexèmes : []Lexème
 
     position_ligne := 0
     compte_ligne := 0
@@ -220,9 +227,11 @@ pousse_caractère :: fonc(lexeuse : &Lexeuse) -> rien
 
 pousse_mot :: fonc(lexeuse : &Lexeuse, type_lexème : TypeLexème) -> rien
 {
-    données : DonnéesLexème
+    données : Lexème
     données.type_lexème = type_lexème
     données.chn = lexeuse.mot_courant()
+	données.ligne = lexeuse.compte_ligne + 1
+	données.colonne = lexeuse.pos_mot
 
     tableau_ajoute(*lexeuse.lexèmes, données)
 
