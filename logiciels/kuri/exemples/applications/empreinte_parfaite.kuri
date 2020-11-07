@@ -1,0 +1,124 @@
+// https://blog.gopheracademy.com/advent-2017/mphf/
+
+importe Fondation
+
+empreinte :: fonc (c: chaine, facteur: n32, nombre_de_slots: n32) -> n32
+{
+    z : n32 = 0
+
+    pour c {
+        z *= 33
+        z += it comme n32
+    }
+
+    z *= facteur
+    z >>= 28
+
+    retourne z % nombre_de_slots
+}
+
+principale :: fonc () -> z32
+{
+    commandes := [
+        // "dyn",
+        // "fonc",
+        // "corout",
+        // "boucle",
+        // "pour",
+        // "dans",
+        // "arrête",
+        // "continue",
+        // "discr",
+        // "si",
+        // "sinon",
+        // "énum",
+        // "énum_drapea",
+        // "struct",
+        // "retourne",
+        // "diffère",
+        // "vrai",
+        // "faux",
+        // "taille_de",
+        // "type_de",
+        // "info_de",
+        // "mémoire",
+        // "empl",
+        // "n8",
+        // "n16",
+        // "n32",
+        // "n64",
+        // "z8",
+        // "z16",
+        // "z32",
+        // "z64",
+        // "r16",
+        // "r32",
+        // "r64",
+        // "bool",
+        // "rien",
+        // "nul",
+        // "sansarrêt",
+        // "externe",
+        // "importe",
+        // "nonsûr",
+        // "eini",
+        // "chaine",
+        // "loge",
+        // "déloge",
+        // "reloge",
+        // "tantque",
+        // "octet",
+        // "garde",
+        // "saufsi",
+        // "retiens",
+        // "répète",
+        // "union",
+        // "charge",
+        // "opérateur",
+        "pousse_contexte",
+        "tente",
+        "piège",
+        "nonatteignable",
+        "erreur",
+        "eini_erreur",
+        "comme",
+        "init_de",
+        "type_de_données"
+    ]
+
+    imprime("nombre de commandes %\n", commandes.taille)
+
+    nombre_de_slots := commandes.taille * 2
+    slots := loge [nombre_de_slots]bool
+    slots.taille = nombre_de_slots
+    facteur : n32 = 0
+
+    boucle {
+        pour slots {
+            it = faux
+        }
+
+        pour commandes {
+            e := empreinte(it, facteur, nombre_de_slots comme n32)
+
+            si slots[e] {
+                arrête
+            }
+
+            slots[e] = vrai
+        }
+        sansarrêt {
+            imprime("trouvé une empreinte parfaite avec le facteur : %\n", facteur)
+            arrête
+        }
+
+        facteur += 1
+    }
+
+    pour commandes {
+        x := empreinte(it, facteur, nombre_de_slots comme n32)
+        imprime("empreinte pour % : %\n", it, x)
+    }
+
+    retourne 0
+}
