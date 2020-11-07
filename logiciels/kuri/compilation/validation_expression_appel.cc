@@ -453,12 +453,6 @@ static auto apparie_appel_pointeur(
 {
 	Prof(apparie_appel_pointeur);
 
-	if (type->genre != GenreType::FONCTION) {
-		resultat.etat = FONCTION_INTROUVEE;
-		resultat.raison = TYPE_N_EST_PAS_FONCTION;
-		return false;
-	}
-
 	POUR (args) {
 		if (it.ident == nullptr) {
 			continue;
@@ -1328,11 +1322,68 @@ static auto trouve_candidates_pour_appel(
 				}
 				resultat.pousse(dc);
 			}
-			else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
+			else if (decl->est_decl_var()) {
+				auto type = decl->type;
 				auto dc = DonneesCandidate();
-				if (apparie_appel_pointeur(expr, decl->type, espace, contexte, args, dc)) {
+
+				if ((decl->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
+					// @concurrence critique
+					if (decl->unite == nullptr) {
+						contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, decl);
+					}
+					contexte.unite->attend_sur_declaration(decl->comme_decl_var());
 					return true;
 				}
+
+				/* Nous pouvons avoir une constante polymorphique ou un alias. */
+				if (type->est_type_de_donnees()) {
+					auto type_de_donnees = decl->type->comme_type_de_donnees();
+					auto type_connu = type_de_donnees->type_connu;
+
+					if (!type_connu) {
+						dc.etat = FONCTION_INTROUVEE;
+						dc.raison = TYPE_N_EST_PAS_FONCTION;
+						resultat.pousse(dc);
+						return true;
+					}
+
+					if (type_connu->est_structure()) {
+						auto type_struct = type_connu->comme_structure();
+
+						auto dc = DonneesCandidate();
+						if (apparie_appel_structure(espace, contexte, expr, type_struct->decl, args, dc)) {
+							return true;
+						}
+						resultat.pousse(dc);
+					}
+					else if (type_connu->est_union()) {
+						auto type_union = type_connu->comme_union();
+
+						auto dc = DonneesCandidate();
+						if (apparie_appel_structure(espace, contexte, expr, type_union->decl, args, dc)) {
+							return true;
+						}
+						resultat.pousse(dc);
+					}
+					else {
+						dc.etat = FONCTION_INTROUVEE;
+						dc.raison = TYPE_N_EST_PAS_FONCTION;
+						resultat.pousse(dc);
+						return false;
+					}
+				}
+				else if (type->est_fonction()) {
+					if (apparie_appel_pointeur(expr, decl->type, espace, contexte, args, dc)) {
+						return true;
+					}
+				}
+				else {
+					dc.etat = FONCTION_INTROUVEE;
+					dc.raison = TYPE_N_EST_PAS_FONCTION;
+					resultat.pousse(dc);
+					return false;
+				}
+
 				resultat.pousse(dc);
 			}
 		}
