@@ -58,7 +58,6 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/tests/test_emploi.kuri" \
           "exemples/tests/test_énum_drapeau.kuri" \
           "exemples/tests/test_erreur.kuri" \
-          "exemples/tests/test_ghtml.kuri" \
           "exemples/tests/test_logement.kuri" \
           "exemples/tests/test_memoire.kuri" \
           "exemples/tests/test_metaprogrammation.kuri" \
@@ -73,7 +72,8 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/tests/test_structure_poly.kuri" \
           "exemples/tests/test_sys_fichier.kuri" \
           "exemples/tests/test_table_hachage.kuri" \
-          "exemples/tests/test_unicode.kuri")
+          "exemples/tests/test_unicode.kuri" \
+          "modules/GHTML/test/test_ghtml.kuri")
 
 for fichier in ${FICHIERS[@]}; do
     echo "Compilation de :" $fichier
