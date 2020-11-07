@@ -1994,6 +1994,12 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 	// @concurrence critique, si nous avons plusieurs définitions
 	if (noeud->ident == ID::principale) {
+		if (m_unite->espace->fonction_principale) {
+			::rapporte_erreur(m_unite->espace, noeud, "Redéfinition de la fonction principale pour cet espace.")
+					.ajoute_message("La fonction principale fut déjà définie ici :\n")
+					.ajoute_site(m_unite->espace->fonction_principale);
+		}
+
 		m_unite->espace->fonction_principale = noeud;
 	}
 
