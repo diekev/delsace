@@ -1,0 +1,33 @@
+importe Fondation
+importe GHTML
+
+principale :: fonc () -> z32
+{
+    diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
+
+    rendeuse_page: RendeusePage
+    diffère { détruit_rendeuse(*rendeuse_page) }
+
+    ajoute_fichier(*rendeuse_page.catalogue, "base", "base.html")
+    ajoute_fichier(*rendeuse_page.catalogue, "corps", "corps.html")
+
+    données_page : eini
+
+    chn := tente rends_page(*rendeuse_page, "base", données_page) piège err {
+        imprime("erreur lors du rendu de la page : %\n", err)
+        retourne 1
+    }
+
+    imprime("résultat :\n%\n", chn)
+    déloge chn
+
+    chn = tente rends_page(*rendeuse_page, "corps", données_page) piège err {
+        imprime("erreur lors du rendu de la page : %\n", err)
+        retourne 1
+    }
+
+    imprime("résultat :\n%\n", chn)
+    déloge chn
+
+    retourne 0
+}
