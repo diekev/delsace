@@ -207,7 +207,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 		{
 			auto type_union = static_cast<TypeUnion const *>(type);
 			enchaineuse << "Ks";
-			broye_nom_simple(enchaineuse, static_cast<TypeUnion const *>(type)->nom);
+			broye_nom_simple(enchaineuse, static_cast<TypeUnion *>(type)->nom_portable());
 
 			// ajout du pointeur au nom afin de différencier les différents types anonymes ou monomorphisations
 			if (type_union->est_anonyme || (type_union->decl && type_union->decl->est_monomorphisation)) {
@@ -220,7 +220,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 		{
 			auto type_structure = static_cast<TypeStructure const *>(type);
 			enchaineuse << "Ks";
-			broye_nom_simple(enchaineuse, static_cast<TypeStructure const *>(type)->nom);
+			broye_nom_simple(enchaineuse, static_cast<TypeStructure *>(type)->nom_portable());
 
 			// ajout du pointeur au nom afin de différencier les différents types anonymes ou monomorphisations
 			if (type_structure->est_anonyme || (type_structure->decl && type_structure->decl->est_monomorphisation)) {
@@ -268,9 +268,9 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
 		{
-			auto type_enum = static_cast<TypeEnum const *>(type);
+			auto type_enum = static_cast<TypeEnum *>(type);
 			enchaineuse << "Ks";
-			broye_nom_simple(enchaineuse, type_enum->nom);
+			broye_nom_simple(enchaineuse, type_enum->nom_portable());
 			break;
 		}
 		case GenreType::TYPE_DE_DONNEES:

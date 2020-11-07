@@ -1476,3 +1476,50 @@ void calcule_taille_type_compose(TypeCompose *type)
 		type->alignement = max_alignement;
 	}
 }
+
+static dls::chaine nom_portable(NoeudBloc *bloc, dls::vue_chaine_compacte nom)
+{
+	auto resultat = dls::chaine();
+
+	while (bloc) {
+		if (bloc->ident) {
+			resultat = bloc->ident->nom + resultat;
+		}
+
+		bloc = bloc->bloc_parent;
+	}
+
+	resultat += nom;
+
+	return resultat;
+}
+
+const dls::chaine &TypeStructure::nom_portable()
+{
+	if (nom_portable_ != "") {
+		return nom_portable_;
+	}
+
+	nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom);
+	return nom_portable_;
+}
+
+const dls::chaine &TypeUnion::nom_portable()
+{
+	if (nom_portable_ != "") {
+		return nom_portable_;
+	}
+
+	nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom);
+	return nom_portable_;
+}
+
+const dls::chaine &TypeEnum::nom_portable()
+{
+	if (nom_portable_ != "") {
+		return nom_portable_;
+	}
+
+	nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom);
+	return nom_portable_;
+}

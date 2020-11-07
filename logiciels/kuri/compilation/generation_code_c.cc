@@ -158,7 +158,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 				break;
 			}
 
-			auto nom_struct = broye_nom_simple(type_struct->nom);
+			auto nom_struct = broye_nom_simple(type_struct->nom_portable());
 
 			// struct anomyme
 			if (type_struct->est_anonyme) {
@@ -177,7 +177,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		case GenreType::UNION:
 		{
 			auto type_struct = type->comme_union();
-			auto nom_struct = broye_nom_simple(type_struct->nom);
+			auto nom_struct = broye_nom_simple(type_struct->nom_portable());
 			auto decl = type_struct->decl;
 
 			// union anomyme
@@ -321,16 +321,12 @@ enum {
 	STRUCTURE_ANONYME,
 };
 
-static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeCompose *type_compose, int quoi)
+static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeStructure *type_compose, int quoi)
 {
-	auto nom_broye = broye_nom_simple(type_compose->nom);
+	auto nom_broye = broye_nom_simple(type_compose->nom_portable());
 
-	if (type_compose->est_structure()) {
-		auto type_structure = type_compose->comme_structure();
-
-		if (type_structure->decl && type_structure->decl->est_monomorphisation) {
-			nom_broye += dls::vers_chaine(type_structure);
-		}
+	if (type_compose->decl && type_compose->decl->est_monomorphisation) {
+		nom_broye += dls::vers_chaine(type_compose);
 	}
 
 	if (quoi == STRUCTURE) {
@@ -441,14 +437,14 @@ static void genere_code_debut_fichier(
 	enchaineuse <<
 R"(
 #define INITIALISE_TRACE_APPEL(_nom_fonction, _taille_nom, _fichier, _taille_fichier, _pointeur_fonction) \
-	static KsInfoFonctionTraceAppel mon_info = { { .pointeur = _nom_fonction, .taille = _taille_nom }, { .pointeur = _fichier, .taille = _taille_fichier }, _pointeur_fonction }; \
-	KsTraceAppel ma_trace = { 0 }; \
+	static KsKuriInfoFonctionTraceAppel mon_info = { { .pointeur = _nom_fonction, .taille = _taille_nom }, { .pointeur = _fichier, .taille = _taille_fichier }, _pointeur_fonction }; \
+	KsKuriTraceAppel ma_trace = { 0 }; \
 	ma_trace.info_fonction = &mon_info; \
 	ma_trace.prxC3xA9cxC3xA9dente = contexte.trace_appel; \
 	ma_trace.profondeur = contexte.trace_appel->profondeur + 1;
 
 #define DEBUTE_RECORD_TRACE_APPEL_EX_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne) \
-	static KsInfoAppelTraceAppel info_appel##_index = { _ligne, _colonne, { .pointeur = _ligne_appel, .taille = _taille_ligne } }; \
+	static KsKuriInfoAppelTraceAppel info_appel##_index = { _ligne, _colonne, { .pointeur = _ligne_appel, .taille = _taille_ligne } }; \
 	ma_trace.info_appel = &info_appel##_index; \
 	contexte.trace_appel = &ma_trace;
 
@@ -475,13 +471,13 @@ R"(
 
 	/* déclaration des types de bases */
 	enchaineuse << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
-	enchaineuse << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n";
+	enchaineuse << "typedef struct eini { void *pointeur; struct KuriInfoType *info; } eini;\n";
 	enchaineuse << "#ifndef bool // bool est défini dans stdbool.h\n";
 	enchaineuse << "typedef unsigned char bool;\n";
 	enchaineuse << "#endif\n";
 	enchaineuse << "typedef unsigned char octet;\n";
 	enchaineuse << "typedef void Ksnul;\n";
-	enchaineuse << "typedef struct ContexteProgramme KsContexteProgramme;\n";
+	enchaineuse << "typedef struct KuriContexteProgramme KsKuriContexteProgramme;\n";
 	/* pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
 	 *  de LibC dont les arguments variadiques ne sont pas typés */
 	enchaineuse << "#define Kv ...\n\n";
@@ -1349,7 +1345,7 @@ static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Sync
 				}
 
 				auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
-				genere_declaration_structure(enchaineuse, static_cast<TypeCompose *>(type_struct), quoi);
+				genere_declaration_structure(enchaineuse, type_struct, quoi);
 			}
 		});
 	}

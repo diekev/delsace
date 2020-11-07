@@ -295,7 +295,12 @@ struct TypeCompose : public Type {
 	};
 
 	kuri::tableau<Membre> membres{};
+
+	/* Le nom tel que donné dans le script (p.e. Structure, pour Structure :: struct ...). */
 	dls::vue_chaine_compacte nom{};
+
+	/* Le nom final, contenant les informations de portée (p.e. ModuleStructure, pour Structure :: struct dans le module Module). */
+	dls::chaine nom_portable_;
 
 	static TypeCompose *cree_eini();
 
@@ -328,6 +333,8 @@ struct TypeStructure final : public TypeCompose {
 
 	bool deja_genere = false;
 	bool est_anonyme = false;
+
+	dls::chaine const &nom_portable();
 };
 
 struct TypeUnion final : public TypeCompose {
@@ -346,6 +353,8 @@ struct TypeUnion final : public TypeCompose {
 	bool est_anonyme = false;
 
 	void cree_type_structure(Typeuse &typeuse, unsigned alignement_membre_actif);
+
+	dls::chaine const &nom_portable();
 };
 
 struct TypeEnum final : public TypeCompose {
@@ -358,6 +367,8 @@ struct TypeEnum final : public TypeCompose {
 	NoeudEnum *decl = nullptr;
 	bool est_drapeau = false;
 	bool est_erreur = false;
+
+	dls::chaine const &nom_portable();
 };
 
 struct TypeTableauFixe final : public TypeCompose {
