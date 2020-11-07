@@ -7,6 +7,9 @@ Syntaxeuse :: struct {
     position := 0
 
 	erreurs : []chaine
+
+	est_extension := faux
+	fichier_étendu := ""
 }
 
 construit_syntaxeuse :: fonc(lexèmes : &[]Lexème) -> Syntaxeuse
@@ -128,7 +131,10 @@ analyse_expression :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 			syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'étend'")
 		}
 
-		nom_bloc := syntaxeuse.données().chn
+		nom_fichier := syntaxeuse.données().chn
+
+		syntaxeuse.est_extension = vrai
+		syntaxeuse.fichier_étendu = nom_fichier
 
 		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
 			syntaxeuse.rapporte_erreur("Attendu '%}'")

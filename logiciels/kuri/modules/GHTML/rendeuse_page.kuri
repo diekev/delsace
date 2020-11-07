@@ -53,26 +53,82 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
         retourne nul
     }
 
+    lexeuse := construit_lexeuse(fichier.données)
+    lexeuse.performe_lexage()
+
+    syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
+    syntaxeuse.performe_syntaxage()
+
+    si syntaxeuse.erreurs {
+        retourne nul
+    }
+
+    racine := syntaxeuse.assembleuse.pile.haut()
+
+    si syntaxeuse.est_extension {
+        page_étendue := trouve_dans_cache(rendeuse_gabarit, syntaxeuse.fichier_étendu)
+
+        // À FAIRE : indique que la base parente est manquante
+        si page_étendue == nul {
+            retourne nul
+        }
+
+        nouvelle_racine := copie_noeud(syntaxeuse.assembleuse, page_étendue.racine)
+
+        blocs : []*NoeudSyntaxique
+        rassemble_blocs(racine, *blocs)
+        remplace_blocs(nouvelle_racine, blocs)
+        déloge blocs
+
+        racine = nouvelle_racine
+    }
+
     page : PageGabarit
     page.fichier = fichier
-
-    // ----------------------------
-    // Lexage du script
-
-    page.lexeuse = construit_lexeuse(fichier.données)
-    page.lexeuse.performe_lexage()
-
-    // ----------------------------
-    // Syntaxage du script
-
-    page.syntaxeuse = construit_syntaxeuse(page.lexeuse.lexèmes)
-    page.syntaxeuse.performe_syntaxage()
-
-    page.racine = page.syntaxeuse.assembleuse.pile.haut()
+    page.lexeuse = lexeuse
+    page.syntaxeuse = syntaxeuse
+    page.racine = racine
 
     tableau_ajoute(*rendeuse_gabarit.cache_page, page)
 
     retourne *rendeuse_gabarit.cache_page[rendeuse_gabarit.cache_page.taille - 1]
+}
+
+rassemble_blocs :: fonc (racine: *NoeudSyntaxique, blocs: *[]*NoeudSyntaxique)
+{
+    si racine.type == TypeNoeud.BLOC && racine.nom != "" {
+        tableau_ajoute(blocs, racine)
+    }
+
+    pour racine.enfants {
+        rassemble_blocs(it, blocs)
+    }
+}
+
+/* Travarse l'arbre de la nouvelle_racine et remplace les blocs ayant les mêmes noms que ceux données par ces derniers.
+ * Si plusieurs blocs du noeud racine ont le même nom, il seront remplacés par le même bloc d'origine.
+ * À FAIRE : vérifie que tous les blocs ont été assignés ?
+ */
+remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: []*NoeudSyntaxique)
+{
+    saufsi blocs {
+        retourne
+    }
+
+    pour nouvelle_racine.enfants {
+        si it.type == TypeNoeud.BLOC && it.nom != "" {
+            pour bloc dans blocs {
+                si it.nom == bloc.nom {
+                    it = bloc
+                    arrête
+                }
+            }
+
+            continue
+        }
+
+        remplace_blocs(it, blocs)
+    }
 }
 
 ErreurRenduPage :: erreur {

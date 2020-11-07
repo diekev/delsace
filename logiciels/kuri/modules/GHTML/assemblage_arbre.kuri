@@ -31,6 +31,18 @@ lexème :: fonc(noeud : *NoeudSyntaxique) -> TypeLexème
     retourne noeud.données.type_lexème
 }
 
+copie_noeud :: fonc (assembleuse: &AssembleuseArbre, racine: *NoeudSyntaxique) -> *NoeudSyntaxique
+{
+    noeud := assembleuse.crée_noeud(racine.type, racine.données)
+    noeud.nom = racine.nom
+
+    pour racine.enfants {
+        tableau_ajoute(*noeud.enfants, copie_noeud(assembleuse, it))
+    }
+
+    retourne noeud
+}
+
 //##############################################################################
 
 PileNoeud :: struct {
@@ -134,8 +146,6 @@ crée_noeud :: fonc(
 	noeud := loge NoeudSyntaxique
     noeud.type = type_noeud
     noeud.données = données
-    noeud.enfants.taille = 0
-    noeud.enfants.pointeur = nul
 
     tableau_ajoute(*assembleuse.noeuds, noeud)
 
