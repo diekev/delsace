@@ -51,6 +51,15 @@ struct Monomorpheuse {
 
 	bool ajoute_paire_types(Type *type_poly, Type *type_cible)
 	{
+		// enlève les références
+		if (type_poly->est_reference()) {
+			type_poly = type_poly->comme_reference()->type_pointe;
+		}
+
+		if (type_cible->est_reference()) {
+			type_cible = type_cible->comme_reference()->type_pointe;
+		}
+
 		// si nous avons des fonctions, ajoute ici les paires pour chaque type polymorphique
 		if (type_poly->est_fonction() && type_cible->est_fonction()) {
 			auto type_poly_fonction = type_poly->comme_fonction();

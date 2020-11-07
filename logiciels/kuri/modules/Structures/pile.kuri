@@ -1,0 +1,98 @@
+importe Fondation
+
+Pile :: struct ($T: type_de_données) {
+    données : []T
+    curseur := 0
+}
+
+détruit :: fonc (pile : &Pile(T = $T)) -> rien
+{
+    déloge pile.données
+    pile.curseur = 0
+}
+
+empile :: fonc (pile : &Pile(T = $T), valeur : T) -> rien
+{
+    si pile.curseur == pile.données.taille {
+        taille := pile.données.taille
+        reloge pile.données : [taille + 1]T
+        pile.données.taille = taille + 1
+    }
+
+    pile.données[pile.curseur] = valeur
+    pile.curseur += 1
+}
+
+dépile :: fonc (pile : &Pile(T = $T)) -> T
+{
+    ret := pile.tête()
+    pile.curseur -= 1
+    retourne ret
+}
+
+tête :: fonc (pile : &Pile(T = $T)) -> T
+{
+    retourne pile.données[pile.curseur - 1]
+}
+
+taille :: fonc (pile : &Pile(T = $T)) -> z32
+{
+    retourne pile.curseur
+}
+
+est_vide :: fonc (pile : &Pile(T = $T)) -> bool
+{
+    retourne pile.curseur == 0
+}
+
+/* Duplique l'élément de tête.
+ * Si la pile n'a pas au moins un élément, ne fait rien.
+ */
+duplique_tête :: fonc (pile: &Pile(T = $T))
+{
+    si pile.est_vide() {
+        retourne
+    }
+
+    pile.empile(pile.tête())
+}
+
+/* Échange l'élément de tête avec celui le précédent.
+ * Si la pile n'a pas au moins deux éléments, ne fait rien.
+ */
+échange_tête :: fonc (pile: &Pile(T = $T))
+{
+    si pile.taille() < 2 {
+        retourne
+    }
+
+    a := pile.dépile()
+    b := pile.dépile()
+
+    pile.empile(a)
+    pile.empile(b)
+}
+
+/*
+principale :: fonc () -> z32
+{
+    pile : Pile(T = z32)
+
+    pour 0 ... 10 {
+        pile.empile(it)
+    }
+
+    pile.échange_tête()
+
+    pile.duplique_tête()
+
+    tantque !pile.est_vide() {
+        imprime("%\n", pile.tête())
+        _ := pile.dépile()
+    }
+
+    pile.détruit()
+
+    retourne 0
+}
+*/

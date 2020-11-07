@@ -1,55 +1,11 @@
+importe Structures
 importe Tori
-
-//##############################################################################
-
-PileObjet :: struct {
-    données : []*Objet
-    curseur := 0
-}
-
-détruit :: fonc(pile : &PileObjet) -> rien
-{
-    déloge pile.données
-}
-
-empile :: fonc(pile : &PileObjet, noeud : *Objet) -> rien
-{
-    si pile.curseur == pile.données.taille {
-        taille := pile.données.taille
-        reloge pile.données : [taille + 1]*Objet
-    }
-
-    pile.données[pile.curseur] = noeud
-    pile.curseur += 1
-}
-
-dépile :: fonc(pile : &PileObjet) -> *Objet
-{
-    ret := pile.haut()
-    pile.curseur -= 1
-    retourne ret
-}
-
-haut :: fonc(pile : &PileObjet) -> *Objet
-{
-    retourne pile.données[pile.curseur - 1]
-}
-
-taille :: fonc(pile : &PileObjet) -> z32
-{
-    retourne pile.curseur
-}
-
-est_vide :: fonc(pile : &PileObjet) -> bool
-{
-    retourne pile.curseur == 0
-}
 
 //##############################################################################
 
 AssembleuseObjet :: struct {
     gestionnaire : GestionnaireObjet
-    pile : PileObjet
+    pile : Pile(T = *Objet)
 }
 
 détruit :: fonc(assembleuse: &AssembleuseObjet) -> rien
@@ -74,14 +30,14 @@ crée_objet :: fonc(assembleuse: &AssembleuseObjet, nom_objet: chaine, type: Typ
     objet := crée_objet(assembleuse, type)
 
     si !assembleuse.pile.est_vide() {
-		objet_haut := assembleuse.pile.haut()
+		objet_tête := assembleuse.pile.tête()
 
-		si objet_haut.id == TypeObjet.DICTIONNAIRE {
-			dico := objet_haut comme *ObjetDictionnaire
+		si objet_tête.id == TypeObjet.DICTIONNAIRE {
+			dico := objet_tête comme *ObjetDictionnaire
 			dico.insère(nom_objet, objet)
 		}
 		sinon {
-			tabl := objet_haut comme *ObjetListe
+			tabl := objet_tête comme *ObjetListe
 			tableau_ajoute(*tabl.valeur, objet)
 		}
 	}

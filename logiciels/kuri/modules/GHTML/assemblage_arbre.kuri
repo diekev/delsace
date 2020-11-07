@@ -1,4 +1,5 @@
 importe Fondation
+importe Structures
 
 TypeNoeud :: énum z32 {
 	CHAINE_CARACTÈRE
@@ -45,55 +46,9 @@ copie_noeud :: fonc (assembleuse: &AssembleuseArbre, racine: *NoeudSyntaxique) -
 
 //##############################################################################
 
-PileNoeud :: struct {
-    données : []*NoeudSyntaxique
-    curseur := 0
-}
-
-détruit :: fonc(pile : &PileNoeud) -> rien
-{
-    déloge pile.données
-}
-
-empile :: fonc(pile : &PileNoeud, noeud : *NoeudSyntaxique) -> rien
-{
-    si pile.curseur == pile.données.taille {
-        taille := pile.données.taille
-        reloge pile.données : [taille + 1]*NoeudSyntaxique
-    }
-
-    pile.données.taille += 1
-    pile.données[pile.curseur] = noeud
-    pile.curseur += 1
-}
-
-dépile :: fonc(pile : &PileNoeud) -> *NoeudSyntaxique
-{
-    ret := pile.haut()
-    pile.curseur -= 1
-    retourne ret
-}
-
-haut :: fonc(pile : &PileNoeud) -> *NoeudSyntaxique
-{
-    retourne pile.données[pile.curseur - 1]
-}
-
-taille :: fonc(pile : &PileNoeud) -> z32
-{
-    retourne pile.curseur
-}
-
-est_vide :: fonc(pile : &PileNoeud) -> bool
-{
-    retourne pile.curseur == 0
-}
-
-//##############################################################################
-
 AssembleuseArbre :: struct {
     noeuds : []*NoeudSyntaxique
-    pile : PileNoeud
+    pile : Pile(T = *NoeudSyntaxique)
 }
 
 construit_assembleuse :: fonc() -> AssembleuseArbre
@@ -121,7 +76,7 @@ empile_noeud :: fonc(
 	noeud := assembleuse.crée_noeud(type_noeud, données)
 
 	si (!assembleuse.pile.est_vide()) {
-		ajoute_noeud(assembleuse.pile.haut(), noeud)
+		ajoute_noeud(assembleuse.pile.tête(), noeud)
 	}
 
 	assembleuse.pile.empile(noeud)
@@ -135,7 +90,7 @@ ajoute_noeud :: fonc(
     données : &Lexème) -> rien
 {
 	noeud := assembleuse.crée_noeud(type_noeud, données)
-	ajoute_noeud(assembleuse.pile.haut(), noeud)
+	ajoute_noeud(assembleuse.pile.tête(), noeud)
 }
 
 crée_noeud :: fonc(
@@ -160,5 +115,5 @@ dépile_noeud :: fonc(assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -
 
 attend_type :: fonc(assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien
 {
-	assert(assembleuse.pile.haut().type == type_noeud)
+	assert(assembleuse.pile.tête().type == type_noeud)
 }
