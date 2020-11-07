@@ -328,6 +328,40 @@ définis MonInterface pour X {
 peut-être devrions-nous forcer l'utilisation de "définis" pour toutes les fonctions afin de simplifier la recherche de fonctions par syntaxe uniforme ?
 voir Rust
 
+définis n8 {
+    min :: 0
+    max :: 255
+    epsilon :: 1
+    bits :: 8
+    octets :: 1
+}
+
+définis n16 {
+    min :: 0
+    max :: 65535
+    epsilon :: 1
+    bits :: 16
+    octets :: 2
+}
+
+définis n32 {
+    min :: 0
+    max :: 4
+    epsilon :: 1
+    bits :: 32
+    octets :: 4
+}
+
+définis n64 {
+    min :: 0
+    max :: 4
+    epsilon :: 1
+    bits :: 32
+    octets :: 4
+}
+
+- différencier entre les membres et l'interface
+
 
 // --------------------------- Optimisations / Génération de Code
 
