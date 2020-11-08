@@ -1359,7 +1359,6 @@ static auto trouve_candidates_pour_appel(
 					if (type_connu->est_structure()) {
 						auto type_struct = type_connu->comme_structure();
 
-						auto dc = DonneesCandidate();
 						if (apparie_appel_structure(espace, contexte, expr, type_struct->decl, args, dc)) {
 							return true;
 						}
@@ -1368,7 +1367,6 @@ static auto trouve_candidates_pour_appel(
 					else if (type_connu->est_union()) {
 						auto type_union = type_connu->comme_union();
 
-						auto dc = DonneesCandidate();
 						if (apparie_appel_structure(espace, contexte, expr, type_union->decl, args, dc)) {
 							return true;
 						}

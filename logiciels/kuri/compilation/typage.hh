@@ -300,7 +300,7 @@ struct TypeCompose : public Type {
 	dls::vue_chaine_compacte nom{};
 
 	/* Le nom final, contenant les informations de portée (p.e. ModuleStructure, pour Structure :: struct dans le module Module). */
-	dls::chaine nom_portable_;
+	dls::chaine nom_portable_{};
 
 	static TypeCompose *cree_eini();
 
