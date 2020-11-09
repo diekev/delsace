@@ -759,7 +759,7 @@ static auto apparie_appel_fonction(
 				if (!monomorpheuse.ajoute_paire_types(arg->type, slot->type)) {
 					poids_args = 0.0;
 					res.raison = METYPAGE_ARG;
-					//res.type_attendu = type_de_l_expression;
+					res.type_attendu = arg->type;
 					res.type_obtenu = slot->type;
 					res.noeud_erreur = slot;
 					return false;
