@@ -450,6 +450,7 @@ considération des assertions statiques lors de la compilation de plusieurs espa
 - fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'améliorer la cohérence de cache)
 - ajout de tâches pour le chargement des fichiers, et la construction des tampons
 - ajout d'une interface à la compilatrice pour définir des fonctions racines depuis des annotations
+- lèxe les nombres littéraux avec le caractère de signe (+/-)
 
 À faire (architecture)
 ----------------------
