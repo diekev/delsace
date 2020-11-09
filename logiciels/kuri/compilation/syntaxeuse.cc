@@ -1065,6 +1065,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 				return analyse_instruction_si_statique(lexeme);
 			}
 			else {
+				/* repositionne le lexème courant afin que les messages d'erreurs pointent au bon endroit */
+				this->m_position -= 1;
+				m_lexeme_courant = lexeme;
 				lance_erreur("Directive inconnue");
 			}
 
