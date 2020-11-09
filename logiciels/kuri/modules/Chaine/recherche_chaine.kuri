@@ -1,0 +1,70 @@
+/* Faitures à supporter dans le langage :
+ * - surcharge de structures polymorphiques   Chaine :: struct ($T: type_de_données) { ... } -> Chaine :: struct (T = n8) { ... }
+ * - valeur structure pour les constantes globales
+ * - interface, traits...
+ * - structure vide
+ */
+
+
+BaseChaine :: struct ($T: type_de_données) {
+    données: []T
+}
+
+/* Une chaine UTF-8 */
+Chaine :: BaseChaine(T = n8)
+
+/* Une chaine UTF-16 */
+Chaine16 :: BaseChaine(T = n16)
+
+/* Une chaine UTF-32 */
+Chaine32 :: BaseChaine(T = n32)
+
+
+// avec un codec
+
+BaseChaine :: struct ($T: type_de_données, $codec: Codec(T = T)) {
+
+}
+
+c := Chaine()
+
+// Codec
+
+Codec :: struct ($T: type_de_données) {
+    est_espace_blanc : fonc(T)(bool)
+    est_nombre : fonc(T)(bool)
+    est_lettre : fonc(T)(bool)
+    en_minuscule : fonc(T)(T)
+    en_majuscule : fonc(T)(T)
+
+    // ne contient que des lettres
+    est_alphabétique : fonc(T)(T)
+
+    // ne contient que des nombres
+    est_numérique : fonc(T)(T)
+
+    // ne contient que des lettres et des nombres
+    est_alphanumérique : fonc(T)(bool)
+
+    // converti vers un codec de base (UTF-8)
+    en_utf8 :: fonc (T, &[4]n8)(z32)
+
+    // est_valide dans ce codec
+    est_valide :: fonc ([]octet, z64)(bool)
+}
+
+// génère les fonctions par un métaprogramme, est_espace_blanc, ...
+
+// min := Chaine.codec.en_minuscule(l)
+
+
+// stocke les empreintes, et accumule les valeurs quand la chaine est modifiée
+
+/*
+ajoute :: fonc (chn: &Chaine, v: valeur)
+{
+    ajourne_empreinte(*chn.empreinte, v)
+}
+*/
+
+// d'autres chaines : voir Houdini pour les chaines référencées
