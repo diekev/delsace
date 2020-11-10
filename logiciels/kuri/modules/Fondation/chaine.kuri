@@ -136,7 +136,7 @@ crée_chaine_c :: fonc (chn: chaine) -> chaine
 }
 
 // execute une fonction pour chaque ligne du texte d'entrée
-pour_chaque_ligne :: fonc(texte : chaine, donnees : eini, rappel : fonc(chaine, eini)(rien)) -> rien
+pour_chaque_ligne :: fonc(texte : chaine, donnees : $T, rappel : fonc(chaine, T)(rien)) -> rien
 {
 	taille : z64 = 0
 	début_chaine : z64 = 0
