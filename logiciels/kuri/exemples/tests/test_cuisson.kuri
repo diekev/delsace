@@ -1,0 +1,20 @@
+importe Fondation
+
+ajoute_x :: fonc (a: $T, b: T) -> T
+{
+    retourne a + b
+}
+
+principale :: fonc () -> z32
+{
+    ajoute_z32 := #cuisine ajoute_x(T = z32)
+    ajoute_r32 := #cuisine ajoute_x(T = r32)
+
+    a := ajoute_z32(0, 1)
+    imprime("a = %\n", a)
+
+    b := ajoute_r32(1.2, 2.4)
+    imprime("b = %\n", b)
+
+    retourne 0
+}

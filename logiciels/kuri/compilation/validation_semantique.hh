@@ -34,6 +34,7 @@ struct Compilatrice;
 struct NoeudAssignation;
 struct NoeudDeclarationCorpsFonction;
 struct NoeudDeclarationEnteteFonction;
+struct NoeudDirectiveExecution;
 struct NoeudEnum;
 struct NoeudExpression;
 struct NoeudExpressionMembre;
@@ -104,6 +105,7 @@ struct ContexteValidationCode {
 	bool valide_assignation(NoeudAssignation *inst);
 	bool valide_arbre_aplatis(kuri::tableau<NoeudExpression *> &arbre_aplatis);
 	bool valide_expression_retour(NoeudRetour *inst_retour);
+	bool valide_cuisine(NoeudDirectiveExecution *directive);
 	bool resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
 	void rapporte_erreur(const char *message, NoeudExpression *noeud);

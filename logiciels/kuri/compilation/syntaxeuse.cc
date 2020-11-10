@@ -1064,6 +1064,16 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			else if (directive == ID::si) {
 				return analyse_instruction_si_statique(lexeme);
 			}
+			else if (directive == ID::cuisine) {
+				// À FAIRE : noeud dédié
+				auto noeud = CREE_NOEUD(NoeudDirectiveExecution, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
+				noeud->ident = directive;
+				noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
+
+				aplatis_arbre(noeud, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
+
+				return noeud;
+			}
 			else {
 				/* repositionne le lexème courant afin que les messages d'erreurs pointent au bon endroit */
 				this->m_position -= 1;

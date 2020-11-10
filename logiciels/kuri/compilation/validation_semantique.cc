@@ -210,6 +210,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			auto noeud_directive = noeud->comme_execute();
 
+			if (noeud_directive->ident == ID::cuisine) {
+				return valide_cuisine(noeud_directive);
+			}
+
 			// crée une fonction pour l'exécution
 			auto decl_entete = static_cast<NoeudDeclarationEnteteFonction *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_ENTETE_FONCTION, noeud->lexeme));
 			auto decl_corps  = decl_entete->corps;
@@ -2602,6 +2606,24 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 	}
 
 	donnees_dependance.types_utilises.insere(inst->type);
+	return false;
+}
+
+bool ContexteValidationCode::valide_cuisine(NoeudDirectiveExecution *directive)
+{
+	auto expr = directive->expr;
+
+	if (!expr->est_appel()) {
+		::rapporte_erreur(espace, expr, "L'expression d'une directive de cuisson doit être une expression d'appel !");
+	}
+
+	if (!expr->type->est_fonction()) {
+		::rapporte_erreur(espace, expr, "La cuisson d'autre chose qu'une fonction n'est pas encore supportée !");
+	}
+
+	directive->type = expr->type;
+	donnees_dependance.fonctions_utilisees.insere(expr->comme_appel()->appelee->comme_entete_fonction());
+
 	return false;
 }
 

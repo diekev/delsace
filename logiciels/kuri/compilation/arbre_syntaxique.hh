@@ -164,6 +164,7 @@ enum DrapeauxNoeud : unsigned int {
 	TRANSTYPAGE_IMPLICITE      = (1 << 19), // expr comme
 	EST_PARAMETRE              = (1 << 20), // decl var
 	EST_VALEUR_POLYMORPHIQUE   = (1 << 21), // decl var
+	POUR_CUISSON               = (1 << 22), // appel
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)

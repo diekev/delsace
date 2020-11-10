@@ -1054,6 +1054,11 @@ void aplatis_arbre(
 				drapeau |= DROITE_ASSIGNATION;
 			}
 
+			if (expr->ident == ID::cuisine) {
+				drapeau |= DROITE_ASSIGNATION;
+				drapeau |= POUR_CUISSON;
+			}
+
 			aplatis_arbre(expr->expr, arbre_aplatis, drapeau);
 			arbre_aplatis.pousse(expr);
 			break;

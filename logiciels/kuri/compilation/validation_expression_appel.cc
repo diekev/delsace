@@ -599,6 +599,7 @@ static auto apparie_appel_init_de(
 static auto apparie_appel_fonction(
 		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
+		NoeudExpressionAppel *expr,
 		NoeudDeclarationEnteteFonction *decl,
 		kuri::tableau<IdentifiantEtExpression> const &args,
 		DonneesCandidate &res)
@@ -608,6 +609,62 @@ static auto apparie_appel_fonction(
 	res.note = CANDIDATE_EST_APPEL_FONCTION;
 	res.noeud_decl = decl;
 	res.type = decl->type;
+
+	if (expr->drapeaux & POUR_CUISSON) {
+		if (!decl->est_polymorphe) {
+			res.raison = METYPAGE_ARG;
+			return false;
+		}
+
+		// prend les paramètres polymorphiques
+		auto bloc_constantes = decl->bloc_constantes;
+
+		if (bloc_constantes->membres->taille != args.taille) {
+			res.raison = MECOMPTAGE_ARGS;
+			return false;
+		}
+
+		auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 10>();
+
+		POUR (args) {
+			if (noms_rencontres.possede(it.ident)) {
+				res.etat = FONCTION_TROUVEE;
+				res.raison = RENOMMAGE_ARG;
+				res.poids_args = 0.0;
+				res.noeud_erreur = it.expr;
+				return false;
+			}
+
+			noms_rencontres.insere(it.ident);
+
+			auto param = NoeudDeclarationVariable::nul();
+
+			for (auto &p : (*bloc_constantes->membres.verrou_lecture())) {
+				if (p->ident == it.ident) {
+					param = p->comme_decl_var();
+					break;
+				}
+			}
+
+			if (param == nullptr) {
+				res.etat = FONCTION_TROUVEE;
+				res.raison = MENOMMAGE_ARG;
+				res.poids_args = 0.0;
+				res.noeud_erreur = it.expr;
+				res.noeud_decl = decl;
+				return false;
+			}
+
+			// À FAIRE : contraites, ceci ne gère que les cas suivant : a : $T
+			auto type = it.expr->type->comme_type_de_donnees();
+			res.items_monomorphisation.pousse({ it.ident, type->type_connu, ResultatExpression(), true });
+		}
+
+		res.etat = FONCTION_TROUVEE;
+		res.note = CANDIDATE_EST_CUISSON_FONCTION;
+		res.poids_args = 1.0;
+		return false;
+	}
 
 	auto const nombre_args = decl->params.taille;
 
@@ -1326,7 +1383,7 @@ static auto trouve_candidates_pour_appel(
 				}
 
 				auto dc = DonneesCandidate();
-				if (apparie_appel_fonction(espace, contexte, decl_fonc, args, dc)) {
+				if (apparie_appel_fonction(espace, contexte, expr, decl_fonc, args, dc)) {
 					return true;
 				}
 				resultat.pousse(dc);
@@ -1730,6 +1787,23 @@ bool valide_appel_fonction(
 		}
 
 		donnees_dependance.fonctions_utilisees.insere(decl_fonction_appelee);
+	}
+	else if (candidate->note == CANDIDATE_EST_CUISSON_FONCTION) {
+		auto decl_fonction_appelee = candidate->noeud_decl->comme_entete_fonction();
+
+		if (!candidate->items_monomorphisation.est_vide()) {
+			auto [noeud_decl, doit_monomorpher] = trouve_fonction_epandue_ou_crees_en_une(contexte, compilatrice, espace, decl_fonction_appelee, std::move(candidate->items_monomorphisation));
+
+			if (doit_monomorpher || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+				contexte.unite->attend_sur_declaration(noeud_decl);
+				return true;
+			}
+
+			decl_fonction_appelee = noeud_decl;
+		}
+
+		expr->type = decl_fonction_appelee->type;
+		expr->appelee = decl_fonction_appelee;
 	}
 	else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
 		if (candidate->noeud_decl) {

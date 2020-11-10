@@ -539,7 +539,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 {
 	switch (noeud->genre) {
 		case GenreNoeud::DECLARATION_ENUM:
-		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::EXPRESSION_PLAGE:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		case GenreNoeud::INSTRUCTION_EMPL:
@@ -547,6 +546,19 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::INSTRUCTION_CHARGE:
 		case GenreNoeud::INSTRUCTION_IMPORTE:
 		{
+			break;
+		}
+		case GenreNoeud::DIRECTIVE_EXECUTION:
+		{
+			auto directive = noeud->comme_execute();
+
+			auto expr = directive->expr->comme_appel();
+
+			auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, expr->appelee->comme_entete_fonction());
+			// voir commentaire dans cree_appel
+			atome_fonc->nombre_utilisations += 1;
+			empile_valeur(atome_fonc);
+
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
