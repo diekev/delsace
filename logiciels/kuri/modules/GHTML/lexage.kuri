@@ -9,6 +9,7 @@ TypeLexème :: énum z32 {
 	SI
 	SINON
 	ÉTEND
+	INCLUS
 	BLOC
 	FINBLOC
 	DÉBUT_VARIABLE
@@ -39,6 +40,7 @@ id_identifiant :: fonc(identifiant : chaine) -> TypeLexème
 	si identifiant == "étend" { retourne TypeLexème.ÉTEND }
 	si identifiant == "bloc" { retourne TypeLexème.BLOC }
 	si identifiant == "finbloc" { retourne TypeLexème.FINBLOC }
+	si identifiant == "inclus" { retourne TypeLexème.INCLUS }
 
 	retourne TypeLexème.CHAINE_CARACTÈRE
 }

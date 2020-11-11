@@ -10,6 +10,8 @@ Syntaxeuse :: struct {
 
 	est_extension := faux
 	fichier_étendu := ""
+
+	inclusions : []*NoeudSyntaxique
 }
 
 construit_syntaxeuse :: fonc(lexèmes : &[]Lexème) -> Syntaxeuse
@@ -19,6 +21,12 @@ construit_syntaxeuse :: fonc(lexèmes : &[]Lexème) -> Syntaxeuse
 	syntaxeuse.assembleuse = construit_assembleuse()
 
     retourne syntaxeuse
+}
+
+détruit_syntaxeuse :: fonc (syntaxeuse: &Syntaxeuse)
+{
+	déloge syntaxeuse.erreurs
+	déloge syntaxeuse.inclusions
 }
 
 lexème_courant :: fonc(syntaxeuse : &Syntaxeuse) -> TypeLexème
@@ -124,7 +132,7 @@ analyse_expression :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 	sinon si (syntaxeuse.est_lexème(TypeLexème.POUR)) {
 		syntaxeuse.analyse_pour()
 	}
-	si syntaxeuse.est_lexème(TypeLexème.ÉTEND) {
+	sinon si syntaxeuse.est_lexème(TypeLexème.ÉTEND) {
 		syntaxeuse.avance()
 
 		si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
@@ -139,6 +147,26 @@ analyse_expression :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
 			syntaxeuse.rapporte_erreur("Attendu '%}'")
 		}
+	}
+	sinon si syntaxeuse.est_lexème(TypeLexème.INCLUS) {
+		syntaxeuse.avance()
+
+		si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+			syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'inclus'")
+		}
+
+		noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
+
+		nom_fichier := syntaxeuse.données().chn
+		noeud.nom = nom_fichier
+
+		tableau_ajoute(*syntaxeuse.inclusions, noeud)
+
+		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+			syntaxeuse.rapporte_erreur("Attendu '%}'")
+		}
+
 	}
 	sinon si syntaxeuse.est_lexème(TypeLexème.BLOC) {
 		syntaxeuse.avance()

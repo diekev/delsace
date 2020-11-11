@@ -30,6 +30,7 @@ détruit_page_gabarit :: fonc (page : *PageGabarit) -> rien
 {
     détruit_lexeuse(page.lexeuse)
     détruit_assembleuse(page.syntaxeuse.assembleuse)
+    détruit_syntaxeuse(page.syntaxeuse)
 }
 
 trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -> *PageGabarit
@@ -84,6 +85,17 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
         racine = nouvelle_racine
     }
 
+    pour syntaxeuse.inclusions {
+        page_étendue := trouve_dans_cache(rendeuse_gabarit, it.nom)
+
+        // À FAIRE : indique que la page est manquante
+        si page_étendue == nul {
+            retourne nul
+        }
+
+        remplace_enfant(it.parent, it, page_étendue.racine)
+    }
+
     page : PageGabarit
     page.fichier = fichier
     page.lexeuse = lexeuse
@@ -93,6 +105,15 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
     tableau_ajoute(*rendeuse_gabarit.cache_page, page)
 
     retourne *rendeuse_gabarit.cache_page[rendeuse_gabarit.cache_page.taille - 1]
+}
+
+remplace_enfant :: fonc (parent: *NoeudSyntaxique, enfant: *NoeudSyntaxique, par: *NoeudSyntaxique)
+{
+    pour parent.enfants {
+        si it == enfant {
+            it = par
+        }
+    }
 }
 
 rassemble_blocs :: fonc (racine: *NoeudSyntaxique, blocs: *[]*NoeudSyntaxique)

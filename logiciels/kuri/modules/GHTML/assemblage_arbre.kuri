@@ -12,6 +12,8 @@ TypeNoeud :: énum z32 {
 NoeudSyntaxique :: struct {
     type : TypeNoeud
     données : Lexème
+
+    parent : *NoeudSyntaxique
     enfants : []*NoeudSyntaxique
     nom : chaine
 }
@@ -76,7 +78,8 @@ empile_noeud :: fonc(
 	noeud := assembleuse.crée_noeud(type_noeud, données)
 
 	si (!assembleuse.pile.est_vide()) {
-		ajoute_noeud(assembleuse.pile.tête(), noeud)
+        noeud.parent = assembleuse.pile.tête()
+		ajoute_noeud(noeud.parent, noeud)
 	}
 
 	assembleuse.pile.empile(noeud)
@@ -90,7 +93,8 @@ ajoute_noeud :: fonc(
     données : &Lexème) -> rien
 {
 	noeud := assembleuse.crée_noeud(type_noeud, données)
-	ajoute_noeud(assembleuse.pile.tête(), noeud)
+    noeud.parent = assembleuse.pile.tête()
+	ajoute_noeud(noeud.parent, noeud)
 }
 
 crée_noeud :: fonc(

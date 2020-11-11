@@ -130,6 +130,7 @@ principale :: fonc () -> z32
 
     ajoute_fichier(*rendeuse_page.catalogue, "base", "base.html")
     ajoute_fichier(*rendeuse_page.catalogue, "corps", "corps.html")
+    ajoute_fichier(*rendeuse_page.catalogue, "extra", "extra.html")
 
     données_page : eini
 
