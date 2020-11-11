@@ -3,6 +3,16 @@ est_puissance_de_2 :: fonc (x: z32) -> bool
     retourne (x & (x - 1)) == 0
 }
 
+surarrondis_vers_multiple :: fonc (n: $T, multiple: T) -> T
+{
+    retourne ((n + multiple - 1) / multiple) * multiple
+}
+
+sousarrondis_vers_multiple :: fonc (n: $T, multiple: T) -> T
+{
+    retourne (n / multiple) * multiple
+}
+
 compte_nombre_de_bits_actifs :: fonc (dyn x: n32) -> n32
 {
     // ajoute les paires de bits
