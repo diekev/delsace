@@ -3,7 +3,6 @@ TamponFixe :: struct ($T: type_de_données, $N: z64) {
     curseur : z64 = 0
 }
 
-// À FAIRE(langage) : valeur polymorphique pour fonctions, $N : z32
 N : z64 : 29
 ajoute :: fonc (tampon: *TamponFixe(T = $T, N = N), v: T) #enligne
 {

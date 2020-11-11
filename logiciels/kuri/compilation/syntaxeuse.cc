@@ -2029,12 +2029,26 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 	auto eu_declarations = false;
 
 	while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
+		auto valeur_poly = false;
+
+		if (apparie(GenreLexeme::DOLLAR)) {
+			consomme();
+			valeur_poly = true;
+		}
+
 		auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
 
 		if (param->est_decl_var()) {
 			auto decl_var = static_cast<NoeudDeclarationVariable *>(param);
-			decl_var->drapeaux |= EST_PARAMETRE;
-			params.pousse(decl_var);
+			if (valeur_poly) {
+				decl_var->drapeaux |= EST_VALEUR_POLYMORPHIQUE;
+				noeud->bloc_constantes->membres->pousse(decl_var);
+			}
+			else {
+				decl_var->drapeaux |= EST_PARAMETRE;
+				params.pousse(decl_var);
+			}
+
 			eu_declarations = true;
 		}
 		else {
