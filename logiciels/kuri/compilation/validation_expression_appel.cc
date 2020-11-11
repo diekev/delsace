@@ -1377,11 +1377,6 @@ static auto trouve_candidates_pour_appel(
 					return true;
 				}
 
-				// @concurrence critique
-				if (decl_fonc->corps->unite == nullptr && !decl_fonc->est_externe) {
-					contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, decl_fonc->corps);
-				}
-
 				auto dc = DonneesCandidate();
 				if (apparie_appel_fonction(espace, contexte, expr, decl_fonc, args, dc)) {
 					return true;
@@ -1725,6 +1720,11 @@ bool valide_appel_fonction(
 			}
 
 			decl_fonction_appelee = noeud_decl;
+		}
+
+		// @concurrence critique
+		if (decl_fonction_appelee->corps->unite == nullptr && !decl_fonction_appelee->est_externe) {
+			contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, decl_fonction_appelee->corps);
 		}
 
 		// nous devons monomorpher (ou avoir les types monomorphés) avant de pouvoir faire ça
