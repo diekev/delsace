@@ -2,6 +2,9 @@
 // nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
 // compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
 
+- sépare les files de compilation pour les entêtes et les corps, les entêtes ayant la précédence, afin de faire en sorte que les validations des appels ne recommencent pas trop
+- ajout d'un état aux validations des appels
+
 
 // --------------------------- Contexte Implicite
 
@@ -26,9 +29,6 @@ ajout de l'information de présence de contexte aux blocs afin de pouvoir défin
 
 
 // --------------------------- Fonctions
-
-directive #procédure_d_appel pour trouver la surcharge d'une fonction
-    a := #procédure_d_appel ma_fonction(5)  // renvoie le pointeur sur ma_fonction(z32)
 
 passe un type à une fonction pour instantier automatiquement une valeur temporaire dont on ne se soucie pas de la valeur
 
@@ -166,8 +166,6 @@ Opérateurs implicites :
 
 ajout d'une propriété "pointeur" aux tableaux fixes pour obtenir le pointeur vers le premier élément (au lien de @x[0])
    -- mention dans test_logement.kuri
-
-ajout d'une propriété "capacité" aux chaines
 
 ajout de tranches pour les tableaux et les chaines
 
@@ -429,9 +427,11 @@ considération des assertions statiques lors de la compilation de plusieurs espa
 - supprime les arbres aplatis et utilise un autre algorithme pour stopper/arrêter la compilation ?
     perte de l'arbre aplatis dans le code utilisateur
 
+- ajout d'expressions par défaut pour les déclarations de variables, si celles-ci ne sont pas explicitement marquées comme non-initialisées, pour simplifier la RI :
+-- comment pour les tableaux et les chaines ? (expression_tableau_vide, expression_tableau_chaine)
+
 - ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés (pour permettre les emplois d'énumérations)
 - ajout des informations de positions dans le code source pour la RI (ajout de NoeudExpression *site à chaque Atome)
-- utilise un noeud de déclaration de variable quand nous parsons une variable (a : z32) au lieu de modifier l'expression à la fin (nous permettant de supprimer expression_type du noeud de base)
 - vérifie les appels superflux à empile_valeur (expr appel, transforme valeur)
 - considère supprimer noeud_expression_appel::noeud_déclaration_appel (surécris appele?)
 - transforme l'arbre syntaxique pour simplifier la validation sémantique ou la génération de RI (p.e. : remplace les boucles par des boucles pour) ?
@@ -442,7 +442,6 @@ considération des assertions statiques lors de la compilation de plusieurs espa
 - optimise la quantité de mémoire utilisée pour stocker les variables dans les métaprogrammes
 -- pour cela il faut pouvoir déterminer quand une locale est hors de portée, en incluant les boucles (une allocation en début de boucle doit être désallouée en fin de boucle)
 - termine l'implémentation de la normalisation des types
-- meilleure manière de changer les phases de compilation, il faut pouvoir revenir en arrière quand un métaprogramme ou une phase de compilation ajoute du travail
 - réusine les emplois de variables dans les structures, pour les infos types, il nous faut la structure, mais pour la validation la structure et ses membres, ses membres ne doivent être ceux de l'employeuse
 
 - statistiques pour les reprises de compilation (temps, nombre, où), ainsi que pour le temps passé dans chaque feuille de l'arbre de typage (hors arbre aplatis)
@@ -618,3 +617,68 @@ struct Allocatrice {
 -- appels fonction (syntaxe uniforme)
 -- métaprogrammation (#si, #assert, #exécute, #corps_texte, #test)
 -- compilatrice
+
+
+validation appel :
+    - étape rassemble candidates
+    - valide candidates
+    - candidate choisie
+
+
+struct EtatValidationAppel {
+    enum {
+        NON_COMMENCE,
+        CANDIDATES_RASSEMBLEES,
+        CANDIDATES_VALIDEES,
+        CANDIDATE_CHOISIE,
+        VALIDATION_TERMINEE,
+    };
+
+    int etat = NON_COMMENCE;
+
+    dls::tablet<Candidates> candidates{};
+    Candidate *candidate_choisie = nullptr;
+
+    /* l'index pour reprendre la validation des candidates */
+    int index = 0;
+
+
+};
+
+switch (expr->etat_validation.etat) {
+    case EtatValidationAppel::NON_COMMENCE:
+    {
+        break;
+    }
+    case EtatValidationAppel::CANDIDATES_RASSEMBLEES:
+    {
+        /* reprend la validation des candidates là où nous sommes arrêtés */
+        if (valide_candidates(...)) {
+            return true;
+        }
+
+        auto candidate_choisie = ...;
+
+
+        expr->etat_validation.candidate_choisie = candidate_choisie;
+        expr->etat_validation.etat = EtatValidationAppel.CANDIDATES_VALIDEES;
+
+        if (valide_candidate_choisie()) {
+
+        }
+
+        break;
+    }
+    case EtatValidationAppel::CANDIDATE_CHOISIE:
+    {
+        if (valide_candidate_choisie(...)) {
+
+        }
+
+        break;
+    }
+    case EtatValidationAppel::VALIDATION_TERMINEE:
+    {
+        break;
+    }
+}
