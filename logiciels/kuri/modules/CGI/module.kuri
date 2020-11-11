@@ -21,6 +21,15 @@ SERVER_ADMIN	The email address for your server's webmaster
 SERVER_NAME	Your server's fully qualified domain name (e.g. www.cgi101.com)
 SERVER_PORT	The port number your server is listening on
 SERVER_SOFTWARE	The server software you're using (e.g. Apache 1.3)
+PATH_INFO
+PATH_TRANSLATED
+SERVER_PROTOCOL
+AUTH_TYPE
+CONTENT_TYPE
+CONTENT_LENGTH
+GATEWAY_INTERFACE
+HTTP_ACCEPT
+HTTP_ACCEPT_LANGUAGE
 */
 
 DonnéesCGI :: struct {
@@ -44,6 +53,15 @@ DonnéesCGI :: struct {
     nom_serveur: chaine
     port_serveur: chaine
     logiciel_serveur: chaine
+    info_chemin : chaine
+    chemin_traduit : chaine
+    protocol_serveur : chaine
+    type_authentification : chaine
+    type_contenu : chaine
+    taille_contenu : chaine
+    interface_gateway : chaine
+    http_accept : chaine
+    http_accept_language : chaine
 }
 
 données_cgi :: fonc () -> DonnéesCGI
@@ -69,6 +87,15 @@ données_cgi :: fonc () -> DonnéesCGI
     données.nom_serveur = chaine_environnement("SERVER_NAME")
     données.port_serveur = chaine_environnement("SERVER_PORT")
     données.logiciel_serveur = chaine_environnement("SERVER_SOFTWARE")
+    données.info_chemin = chaine_environnement("PATH_INFO")
+    données.chemin_traduit = chaine_environnement("PATH_TRANSLATED")
+    données.protocol_serveur = chaine_environnement("SERVER_PROTOCOL")
+    données.type_authentification = chaine_environnement("AUTH_TYPE")
+    données.type_contenu = chaine_environnement("CONTENT_TYPE")
+    données.taille_contenu = chaine_environnement("CONTENT_LENGTH")
+    données.interface_gateway = chaine_environnement("GATEWAY_INTERFACE")
+    données.http_accept = chaine_environnement("HTTP_ACCEPT")
+    données.http_accept_language = chaine_environnement("HTTP_ACCEPT_LANGUAGE")
 
     retourne données
 }
