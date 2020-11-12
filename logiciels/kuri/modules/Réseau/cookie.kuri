@@ -65,13 +65,14 @@ crée_cookie :: fonc (nom: chaine, valeur: chaine) -> Cookie
     retourne cookie
 }
 
-crée_cookie_session :: fonc (nom: chaine, valeur: chaine) -> Cookie
+crée_cookie_session :: fonc (nom: chaine, valeur: chaine, est_sécurisé: bool) -> Cookie
 {
     cookie : Cookie
     cookie.nom = nom
     cookie.valeur = valeur
+    cookie.chemin = "/"
     cookie.http_seulement = vrai
-    cookie.est_sécurisé = vrai
+    cookie.est_sécurisé = est_sécurisé
 
     retourne cookie
 }
@@ -121,7 +122,7 @@ imprime_cookie_pour_entête_http :: fonc (enchaineuse: *Enchaineuse, cookie: Coo
     }
 
     si cookie.domaine {
-        imprime_dans_enchaineuse(enchaineuse, "; Domain=%", cookie.chemin)
+        imprime_dans_enchaineuse(enchaineuse, "; Domain=%", cookie.domaine)
     }
 
     si cookie.est_sécurisé {
@@ -151,6 +152,10 @@ chaine_cookie_pour_entête_http :: fonc (cookie: Cookie) -> chaine
 parse_cookie_client :: fonc (chn: chaine) -> []Cookie
 {
     résultat: []Cookie
+
+    saufsi chn {
+        retourne résultat
+    }
 
     parseuse := ParseuseChaine(chn = chn)
 
