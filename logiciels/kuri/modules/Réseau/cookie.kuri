@@ -23,6 +23,70 @@ Cookie :: struct {
     même_site: PolitiqueMêmeSite
 }
 
+est_nom_valide :: fonc (nom: chaine) -> bool
+{
+    caractères_invalides := [ '(', ')', '<', '>', '@', ',', ':', ';', '\\', '"', '/', '[', ']', '?', '=', '{', '}' ]
+
+    pour nom {
+        // vérifie si caractère non US-ASCII ou de controle
+        si it <= 32 || it == 127 {
+            retourne faux
+        }
+
+        pour c dans caractères_invalides {
+            si it == c {
+                retourne faux
+            }
+        }
+    }
+
+    retourne vrai
+}
+
+est_valeur_valide :: fonc (valeur: chaine) -> bool
+{
+    caractères_invalides := [ '"', ',', ';', '\\' ]
+
+    pour valeur {
+        si it <= 32 || it == 127 {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+crée_cookie :: fonc (nom: chaine, valeur: chaine) -> Cookie
+{
+    cookie : Cookie
+    cookie.nom = nom
+    cookie.valeur = valeur
+
+    retourne cookie
+}
+
+crée_cookie_session :: fonc (nom: chaine, valeur: chaine) -> Cookie
+{
+    cookie : Cookie
+    cookie.nom = nom
+    cookie.valeur = valeur
+    cookie.http_seulement = vrai
+    cookie.est_sécurisé = vrai
+
+    retourne cookie
+}
+
+crée_cookie_sécurisé :: fonc (nom: chaine, valeur: chaine) -> Cookie
+{
+    cookie : Cookie
+    cookie.nom = nom
+    cookie.valeur = valeur
+    cookie.http_seulement = vrai
+    cookie.est_sécurisé = vrai
+
+    retourne cookie
+}
+
 /*
 Set-Cookie: <cookie-name>=<cookie-value>
 Set-Cookie: <cookie-name>=<cookie-value>; Expires=<date>
@@ -40,7 +104,8 @@ imprime_cookie_pour_entête_http :: fonc (enchaineuse: *Enchaineuse, cookie: Coo
 {
     imprime_dans_enchaineuse(enchaineuse, "%=%", cookie.nom, cookie.valeur)
 
-    si cookie.expiration || cookie.age_maximum {
+    // À FAIRE : date
+    si /* cookie.expiration || */ cookie.age_maximum {
         // L'age maximum à la précédence sur la date d'expiration
         si cookie.age_maximum {
             imprime_dans_enchaineuse(enchaineuse, "; Max-Age=%", cookie.age_maximum)
@@ -52,24 +117,32 @@ imprime_cookie_pour_entête_http :: fonc (enchaineuse: *Enchaineuse, cookie: Coo
     }
 
     si cookie.chemin {
-        imprime_dans_enchaineuse("; Path=%", cookie.chemin)
+        imprime_dans_enchaineuse(enchaineuse, "; Path=%", cookie.chemin)
     }
 
     si cookie.domaine {
-        imprime_dans_enchaineuse("; Domain=%", cookie.chemin)
+        imprime_dans_enchaineuse(enchaineuse, "; Domain=%", cookie.chemin)
     }
 
     si cookie.est_sécurisé {
-        imprime_dans_enchaineuse("; Secure")
+        imprime_dans_enchaineuse(enchaineuse, "; Secure")
     }
 
     si cookie.http_seulement {
-        imprime_dans_enchaineuse("; HttpOnly")
+        imprime_dans_enchaineuse(enchaineuse, "; HttpOnly")
     }
 
     si cookie.même_site != Cookie.PolitiqueMêmeSite.None {
         imprime_dans_enchaineuse(enchaineuse, "; SameSite=%", cookie.même_site)
     }
+}
+
+chaine_cookie_pour_entête_http :: fonc (cookie: Cookie) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    imprime_cookie_pour_entête_http(*enchaineuse, cookie)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 /* Parse une chaine contenant un ou plusieurs cookies venant d'un client.
@@ -272,11 +345,11 @@ est_valide :: fonc (cookie: Cookie) -> bool
         // Rejeté à cause du domaine qui est spécifié
         Set-Cookie: __Host-id=1; Secure; Path=/; domain=example.com
      */
-    si !cookie.nom {
+    si !cookie.nom || !est_nom_valide(cookie.nom) {
         retourne faux
     }
 
-    si !cookie.valeur {
+    si !cookie.valeur || !est_valeur_valide(cookie.valeur) {
         retourne faux
     }
 

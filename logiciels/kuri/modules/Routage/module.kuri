@@ -213,10 +213,40 @@ apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> Do
 
 // Le résultat d'une requête.
 
+Entête :: struct {
+    nom: chaine
+    valeur: chaine
+}
+
 RésultatRequête :: struct {
     status : CodeÉtatHTTP
     contenu : chaine
     type_contenu : chaine
+
+    // À FAIRE(langage) : erreur de compilation quand nous accédons à ceci via une expression d'appel
+    // Entête :: struct {
+    //     nom: chaine
+    //     valeur: chaine
+    // }
+
+    entêtes : []Entête
+    cookies : []Cookie
+}
+
+ajoute_entête :: fonc (résultat: &RésultatRequête, nom: chaine, valeur: chaine)
+{
+    entête := Entête(nom = nom, valeur = valeur)
+    tableau_ajoute(*résultat.entêtes, entête)
+}
+
+ajoute_cookie :: fonc (résultat: &RésultatRequête, cookie: Cookie)
+{
+    tableau_ajoute(*résultat.cookies, cookie)
+}
+
+détruit_résultat :: fonc (résultat: &RésultatRequête)
+{
+    déloge résultat.entêtes
 }
 
 // La routeuse.
