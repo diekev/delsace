@@ -99,17 +99,6 @@ void imprime_fichier_ligne(EspaceDeTravail &espace, Lexeme const &lexeme);
 
 /* ************************************************************************** */
 
-NoeudDeclarationCorpsFonction *cherche_fonction_dans_module(
-		Compilatrice &compilatrice,
-		Module *module,
-		dls::vue_chaine_compacte const &nom_fonction);
-
-NoeudDeclarationCorpsFonction *cherche_fonction_dans_module(
-		Compilatrice &compilatrice,
-		EspaceDeTravail &espace,
-		dls::vue_chaine_compacte const &nom_module,
-		dls::vue_chaine_compacte const &nom_fonction);
-
 NoeudDeclaration *cherche_symbole_dans_module(
 		EspaceDeTravail &espace,
 		dls::vue_chaine_compacte const &nom_module,

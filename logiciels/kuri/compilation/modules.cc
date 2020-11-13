@@ -45,27 +45,6 @@ PositionLexeme position_lexeme(Lexeme const &lexeme)
 	return pos;
 }
 
-NoeudDeclarationCorpsFonction *cherche_fonction_dans_module(
-		Compilatrice &compilatrice,
-		Module *module,
-		dls::vue_chaine_compacte const &nom_fonction)
-{
-	auto ident = compilatrice.table_identifiants->identifiant_pour_chaine(nom_fonction);
-	auto decl = trouve_dans_bloc(module->bloc, ident);
-
-	return static_cast<NoeudDeclarationCorpsFonction *>(decl);
-}
-
-NoeudDeclarationCorpsFonction *cherche_fonction_dans_module(
-		Compilatrice &compilatrice,
-		EspaceDeTravail &espace,
-		dls::vue_chaine_compacte const &nom_module,
-		dls::vue_chaine_compacte const &nom_fonction)
-{
-	auto module = espace.module(nom_module);
-	return cherche_fonction_dans_module(compilatrice, module, nom_fonction);
-}
-
 NoeudDeclaration *cherche_symbole_dans_module(
 		EspaceDeTravail &espace,
 		dls::vue_chaine_compacte const &nom_module,
