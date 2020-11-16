@@ -1721,9 +1721,8 @@ bool valide_appel_fonction(
 
 			decl_fonction_appelee = noeud_decl;
 		}
-
 		// @concurrence critique
-		if (decl_fonction_appelee->corps->unite == nullptr && !decl_fonction_appelee->est_externe) {
+		else if (decl_fonction_appelee->corps->unite == nullptr && !decl_fonction_appelee->est_externe) {
 			contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, decl_fonction_appelee->corps);
 		}
 
