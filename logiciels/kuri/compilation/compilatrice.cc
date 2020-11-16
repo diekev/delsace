@@ -535,20 +535,7 @@ dls::chaine charge_fichier(
 					erreur::Genre::MODULE_INCONNU);
 	}
 
-	fichier.seekg(0, fichier.end);
-	auto const taille_fichier = fichier.tellg();
-	fichier.seekg(0, fichier.beg);
-
-	dls::chaine res;
-	res.reserve(taille_fichier);
-
-	dls::flux::pour_chaque_ligne(fichier, [&](dls::chaine const &ligne)
-	{
-		res += ligne;
-		res.pousse('\n');
-	});
-
-	return res;
+	return dls::chaine(std::istreambuf_iterator<char>(fichier), std::istreambuf_iterator<char>());
 }
 
 void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, const dls::chaine &nom, Module *module, const Lexeme &lexeme)
