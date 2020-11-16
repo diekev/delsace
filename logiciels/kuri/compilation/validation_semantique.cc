@@ -2641,7 +2641,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 	auto est_corps_texte = decl->est_corps_texte;
 	MetaProgramme *metaprogramme = nullptr;
 
-	if (est_corps_texte) {
+	if (unite->index_courant == 0 && est_corps_texte) {
 		auto fonction = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_ENTETE_FONCTION, decl->lexeme)->comme_entete_fonction();
 		auto nouveau_corps = fonction->corps;
 
