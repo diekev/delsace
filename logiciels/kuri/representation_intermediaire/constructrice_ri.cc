@@ -552,12 +552,14 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto directive = noeud->comme_execute();
 
-			auto expr = directive->expr->comme_appel();
+			if (directive->ident == ID::cuisine) {
+				auto expr = directive->expr->comme_appel();
 
-			auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, expr->appelee->comme_entete_fonction());
-			// voir commentaire dans cree_appel
-			atome_fonc->nombre_utilisations += 1;
-			empile_valeur(atome_fonc);
+				auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, expr->appelee->comme_entete_fonction());
+				// voir commentaire dans cree_appel
+				atome_fonc->nombre_utilisations += 1;
+				empile_valeur(atome_fonc);
+			}
 
 			break;
 		}
