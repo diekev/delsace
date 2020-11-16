@@ -274,8 +274,8 @@ long EspaceDeTravail::memoire_utilisee() const
 {
 	auto memoire = 0l;
 
-	memoire += modules->taille() * taille_de(Module *);
-	memoire += fichiers->taille() * taille_de(Fichier *);
+	memoire += modules->memoire_utilisee();
+	memoire += fichiers->memoire_utilisee();
 
 	auto modules_ = modules.verrou_lecture();
 	POUR_TABLEAU_PAGE ((*modules_)) {
