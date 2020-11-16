@@ -52,6 +52,7 @@ set(ENTETES
 	masque_binaire.h
 	numerique.hh
 	parametres.hh
+    resultat.hh
     sauvegardeuse_etat.hh
 	tableau_donnees.hh
 	temps.hh
@@ -71,6 +72,7 @@ set(SOURCES
 	iterateurs.cc
 	numerique.cc
 	parametres.cc
+    resultat.cc
 	tableau_donnees.cc
 	temps.cc
 	main.cc
