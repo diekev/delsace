@@ -27,11 +27,104 @@
 #include "compilatrice.hh"
 #include "portee.hh"
 
+template <>
+const int FichierExistant::tag = tags++;
+
+template <>
+const int FichierNeuf::tag = tags++;
+
 /* ************************************************************************** */
 
 bool Fichier::importe_module(dls::vue_chaine_compacte const &nom_module) const
 {
 	return modules_importes.possede(nom_module);
+}
+
+DonneesConstantesModule *SystemeModule::trouve_ou_cree_module(dls::vue_chaine nom, dls::vue_chaine chemin)
+{
+	auto chemin_normalise = dls::chaine(chemin);
+
+	if (chemin_normalise.taille() > 0 && chemin_normalise[chemin_normalise.taille() - 1] != '/') {
+		chemin_normalise += '/';
+	}
+
+	POUR_TABLEAU_PAGE (donnees_modules) {
+		if (it.chemin == chemin_normalise) {
+			return &it;
+		}
+	}
+
+	return cree_module(nom, chemin_normalise);
+}
+
+DonneesConstantesModule *SystemeModule::cree_module(dls::vue_chaine nom, dls::vue_chaine chemin)
+{
+	auto dm = donnees_modules.ajoute_element();
+	dm->nom = nom;
+	dm->chemin = chemin;
+
+	return dm;
+}
+
+DonneesConstantesFichier *SystemeModule::trouve_ou_cree_fichier(dls::vue_chaine nom, dls::vue_chaine chemin)
+{
+	POUR_TABLEAU_PAGE (donnees_fichiers) {
+		if (it.chemin == chemin) {
+			return &it;
+		}
+	}
+
+	return cree_fichier(nom, chemin);
+}
+
+DonneesConstantesFichier *SystemeModule::cree_fichier(dls::vue_chaine nom, dls::vue_chaine chemin)
+{
+	auto df = donnees_fichiers.ajoute_element();
+	df->nom = nom;
+	df->chemin = chemin;
+	df->id = donnees_fichiers.taille() - 1;
+
+	return df;
+}
+
+void SystemeModule::rassemble_stats(Statistiques &stats) const
+{
+	stats.nombre_modules = donnees_modules.taille();
+
+	auto &stats_fichiers = stats.stats_fichiers;
+	POUR_TABLEAU_PAGE (donnees_fichiers) {
+		auto entree = EntreeFichier();
+		entree.nom = it.nom.c_str();
+		entree.nombre_lignes = it.tampon.nombre_lignes();
+		entree.memoire_tampons = it.tampon.taille_donnees();
+		entree.memoire_lexemes = it.lexemes.taille() * taille_de(Lexeme);
+		entree.nombre_lexemes = it.lexemes.taille();
+		entree.temps_chargement = it.temps_chargement;
+		entree.temps_tampon = it.temps_tampon;
+		entree.temps_lexage = it.temps_decoupage;
+
+		stats_fichiers.fusionne_entree(entree);
+	}
+}
+
+long SystemeModule::memoire_utilisee() const
+{
+	auto memoire = 0l;
+	memoire += donnees_modules.memoire_utilisee();
+	memoire += donnees_modules.memoire_utilisee();
+
+	POUR_TABLEAU_PAGE (donnees_fichiers) {
+		memoire += it.nom.taille();
+		memoire += it.chemin.taille();
+		memoire += it.tampon.chaine().taille();
+	}
+
+	POUR_TABLEAU_PAGE (donnees_modules) {
+		memoire += it.nom.taille();
+		memoire += it.chemin.taille();
+	}
+
+	return memoire;
 }
 
 /* ************************************************************************** */
@@ -57,5 +150,5 @@ NoeudDeclaration *cherche_symbole_dans_module(
 void imprime_fichier_ligne(EspaceDeTravail &espace, const Lexeme &lexeme)
 {
 	auto fichier = espace.fichier(lexeme.fichier);
-	std::cerr << fichier->chemin << ':' << lexeme.ligne + 1 << '\n';
+	std::cerr << fichier->chemin() << ':' << lexeme.ligne + 1 << '\n';
 }

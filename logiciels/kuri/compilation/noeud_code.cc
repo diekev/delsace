@@ -503,8 +503,8 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 	if (lexeme) {
 		auto fichier = espace->fichier(lexeme->fichier);
 
-		noeud_code->chemin_fichier = fichier->chemin;
-		noeud_code->nom_fichier = fichier->nom;
+		noeud_code->chemin_fichier = fichier->chemin();
+		noeud_code->nom_fichier = fichier->nom();
 		noeud_code->numero_ligne = lexeme->ligne;
 		noeud_code->numero_colonne = lexeme->colonne;
 	}

@@ -3303,13 +3303,11 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition, Instr
 		auto expr_unaire = condition->comme_operateur_unaire();
 		genere_ri_pour_condition(expr_unaire->expr, label_si_faux, label_si_vrai);
 	}
-	else if (genre_lexeme == GenreLexeme::BOOL) {
-		if (condition->lexeme->chaine == "vrai") {
-			cree_branche(label_si_vrai);
-		}
-		else {
-			cree_branche(label_si_faux);
-		}
+	else if (genre_lexeme == GenreLexeme::VRAI) {
+		cree_branche(label_si_vrai);
+	}
+	else if (genre_lexeme == GenreLexeme::FAUX) {
+		cree_branche(label_si_faux);
 	}
 	else if (condition->genre == GenreNoeud::EXPRESSION_PARENTHESE) {
 		auto expr_unaire = condition->comme_parenthese();
@@ -3842,11 +3840,11 @@ void ConstructriceRI::genere_ri_pour_position_code_source(NoeudExpression *noeud
 	auto alloc = cree_allocation(type_position, nullptr);
 
 	// fichier
-	auto const &fichier = m_espace->fichiers->a_l_index(noeud->lexeme->fichier);
+	auto const &fichier = m_espace->fichier(noeud->lexeme->fichier);
 	// À FAIRE : sécurité, n'utilise pas le chemin, mais détermine une manière fiable
 	// et robuste d'obtenir le fichier, utiliser simplement le nom n'est pas fiable
 	// (d'autres fichiers du même nom dans le module)
-	auto chaine_nom_fichier = cree_chaine(fichier.chemin);
+	auto chaine_nom_fichier = cree_chaine(fichier->chemin());
 	auto ptr_fichier = cree_acces_membre(alloc, 0);
 	cree_stocke_mem(ptr_fichier, chaine_nom_fichier);
 

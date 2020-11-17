@@ -52,10 +52,10 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 		auto compilatrice = Compilatrice{};
 		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
-		auto fichier = espace->cree_fichier("", "", true);
-		fichier->tampon = lng::tampon_source(texte);
+		auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
+		donnees_fichier->charge_tampon(lng::tampon_source(texte));
 
-		Lexeuse lexeuse(compilatrice, fichier);
+		Lexeuse lexeuse(compilatrice, donnees_fichier);
 		lexeuse.performe_lexage();
 
 		auto tacheronne = Tacheronne(compilatrice);
@@ -478,9 +478,16 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto compilatrice = Compilatrice{};		
 		auto tacheronne = Tacheronne(compilatrice);
 		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
-		auto fichier = espace->cree_fichier("", "", true);
-		fichier->tampon = lng::tampon_source("texte_test");
-		fichier->lexemes = lexemes;
+
+		auto module = espace->trouve_ou_cree_module(compilatrice.sys_module, "", "");
+		auto resultat = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, "", "", true);
+		auto fichier = resultat.t2().fichier;
+
+		auto donnees_fichier = fichier->donnees_constantes;
+		donnees_fichier->charge_tampon(lng::tampon_source("texte_test"));
+		donnees_fichier->lexemes = lexemes;
+		donnees_fichier->fut_lexe = true;
+
 		auto unite = UniteCompilation(espace);
 		auto analyseuse = Syntaxeuse(tacheronne, &unite);
 

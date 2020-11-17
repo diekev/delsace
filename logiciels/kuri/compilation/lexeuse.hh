@@ -30,7 +30,7 @@
 #include "structures.hh"
 
 struct Compilatrice;
-struct Fichier;
+struct DonneesConstantesFichier;
 
 enum {
 	INCLUS_CARACTERES_BLANC = (1 << 0),
@@ -40,7 +40,7 @@ enum {
 struct Lexeuse {
 private:
 	Compilatrice &m_compilatrice;
-	Fichier *m_fichier;
+	DonneesConstantesFichier *m_donnees;
 
 	const char *m_debut_mot = nullptr;
 	const char *m_debut = nullptr;
@@ -55,7 +55,7 @@ private:
 	GenreLexeme m_dernier_id = GenreLexeme::INCONNU;
 
 public:
-	Lexeuse(Compilatrice &compilatrice, Fichier *fichier, int drapeaux = 0);
+	Lexeuse(Compilatrice &compilatrice, DonneesConstantesFichier *donnees, int drapeaux = 0);
 
 	void performe_lexage();
 

@@ -144,7 +144,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto module = m_compilatrice.importe_module(espace, dls::chaine(lexeme->chaine), *lexeme);
 			temps_chargement += temps.temps();
 			// @concurrence critique
-			fichier->modules_importes.insere(module->nom);
+			fichier->modules_importes.insere(module->nom());
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENTETE_FONCTION:

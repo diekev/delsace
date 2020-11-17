@@ -57,7 +57,7 @@ void imprime_ligne_avec_message(
 		Lexeme const *lexeme,
 		const char *message)
 {
-	flux << fichier->chemin << ':' << lexeme->ligne + 1 << ':' << lexeme->colonne + 1 << " : ";
+	flux << fichier->chemin() << ':' << lexeme->ligne + 1 << ':' << lexeme->colonne + 1 << " : ";
 	flux << message << "\n";
 
 	auto nc = dls::num::nombre_de_chiffres(lexeme->ligne + 1);
@@ -66,10 +66,10 @@ void imprime_ligne_avec_message(
 		flux << ' ';
 	}
 
-	flux << lexeme->ligne + 1 << " | " << fichier->tampon[lexeme->ligne];
+	flux << lexeme->ligne + 1 << " | " << fichier->tampon()[lexeme->ligne];
 	flux << "      | ";
 
-	lng::erreur::imprime_caractere_vide(flux, lexeme->colonne, fichier->tampon[lexeme->ligne]);
+	lng::erreur::imprime_caractere_vide(flux, lexeme->colonne, fichier->tampon()[lexeme->ligne]);
 	flux << '^';
 	lng::erreur::imprime_tilde(flux, lexeme->chaine);
 	flux << '\n';
@@ -87,10 +87,10 @@ void lance_erreur(
 	auto const identifiant = lexeme->genre;
 	auto const &chaine = lexeme->chaine;
 
-	auto ligne_courante = fichier->tampon[pos.index_ligne];
+	auto ligne_courante = fichier->tampon()[pos.index_ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
 	ss << ligne_courante;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
@@ -114,10 +114,10 @@ void redefinition_fonction(
 	auto pos_mot = pos.pos;
 	auto chaine = lexeme_redefinition->chaine;
 
-	auto ligne_courante = fichier->tampon[pos.index_ligne];
+	auto ligne_courante = fichier->tampon()[pos.index_ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
 	ss << ligne_courante;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
@@ -132,9 +132,9 @@ void redefinition_fonction(
 	pos = position_lexeme(*lexeme_original);
 	pos_mot = pos.pos;
 	chaine = lexeme_original->chaine;
-	ligne_courante = fichier->tampon[pos.index_ligne];
+	ligne_courante = fichier->tampon()[pos.index_ligne];
 
-	ss << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
 	ss << ligne_courante;
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
 	ss << '^';
@@ -151,10 +151,10 @@ void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_re
 	auto pos_mot = pos.pos;
 	auto chaine = lexeme_redefinition->chaine;
 
-	auto ligne_courante = fichier->tampon[pos.index_ligne];
+	auto ligne_courante = fichier->tampon()[pos.index_ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
 	ss << ligne_courante;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
@@ -169,9 +169,9 @@ void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_re
 	pos = position_lexeme(*lexeme_original);
 	pos_mot = pos.pos;
 	chaine = lexeme_original->chaine;
-	ligne_courante = fichier->tampon[pos.index_ligne];
+	ligne_courante = fichier->tampon()[pos.index_ligne];
 
-	ss << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
 	ss << ligne_courante;
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
 	ss << '^';
@@ -191,11 +191,11 @@ void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_re
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
 	ss << "Dans l'appel de la fonction '" << lexeme->chaine << "':\n";
 	ss << ligne;
 
@@ -230,13 +230,13 @@ void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_re
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 	auto etendue = calcule_etendue_noeud(inst->expr, fichier);
 	auto chaine_expr = dls::vue_chaine_compacte(&ligne[etendue.pos_min], etendue.pos_max - etendue.pos_min);
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
 	ss << "Dans l'expression de retour de la fonction :\n";
 	ss << ligne;
 
@@ -271,10 +271,10 @@ void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_re
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
@@ -298,10 +298,10 @@ void lance_erreur_type_operation(
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
@@ -324,10 +324,10 @@ void type_indexage(
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
@@ -351,12 +351,12 @@ void lance_erreur_fonction_inconnue(
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n';
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n';
 	ss << "\nDans l'appel de la fonction '" << b->lexeme->chaine << "'\n";
 	ss << ligne;
 
@@ -386,7 +386,7 @@ void lance_erreur_fonction_inconnue(
 			auto pos_df = position_lexeme(*lexeme_df);
 
 			ss << ' ' << decl->ident->nom
-			   << " (trouvée à " << fichier_df->chemin << ':' << pos_df.numero_ligne << ")\n";
+			   << " (trouvée à " << fichier_df->chemin() << ':' << pos_df.numero_ligne << ")\n";
 		}
 		else {
 			ss << '\n';
@@ -534,12 +534,12 @@ void lance_erreur_fonction_nulctx(
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n';
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n';
 	ss << "\nDans l'appel de la fonction « " << appl_fonc->lexeme->chaine << " »\n";
 	ss << ligne;
 
@@ -556,14 +556,14 @@ void lance_erreur_fonction_nulctx(
 	ss << "\n« " << decl_fonc->ident->nom << " » est déclarée ici :\n";
 	fichier = espace.fichier(decl_fonc->lexeme->fichier);
 	auto pos_decl = position_lexeme(*decl_fonc->lexeme);
-	ss << fichier->chemin << ':' << pos_decl.numero_ligne << '\n' << '\n';
-	ss << fichier->tampon[pos_decl.index_ligne];
+	ss << fichier->chemin() << ':' << pos_decl.numero_ligne << '\n' << '\n';
+	ss << fichier->tampon()[pos_decl.index_ligne];
 
 	ss << "\n« " << decl_appel->ident->nom << " » est déclarée ici :\n";
 	fichier = espace.fichier(decl_appel->lexeme->fichier);
 	auto pos_appel = position_lexeme(*decl_appel->lexeme);
-	ss << fichier->chemin << ':' << pos_appel.numero_ligne << '\n' << '\n';
-	ss << fichier->tampon[pos_appel.index_ligne];
+	ss << fichier->chemin() << ':' << pos_appel.numero_ligne << '\n' << '\n';
+	ss << fichier->tampon()[pos_appel.index_ligne];
 
 	ss << "\n----------------------------------------------------------------\n";
 
@@ -581,12 +581,12 @@ void lance_erreur_acces_hors_limites(
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n';
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n';
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
@@ -617,7 +617,7 @@ void lance_erreur_type_operation(
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	auto etendue = calcule_etendue_noeud(b, fichier);
 
@@ -637,7 +637,7 @@ void lance_erreur_type_operation(
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n';
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n';
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
@@ -683,7 +683,7 @@ void lance_erreur_type_operation_unaire(
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	auto inst = static_cast<NoeudExpressionUnaire *>(b);
 	auto etendue = calcule_etendue_noeud(inst, fichier);
@@ -696,7 +696,7 @@ void lance_erreur_type_operation_unaire(
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n';
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n';
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
@@ -753,13 +753,13 @@ static auto trouve_candidat(
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	auto etendue = calcule_etendue_noeud(acces, fichier);
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n' << '\n';
 
 	if (structure->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
 		auto noeud = static_cast<NoeudExpressionMembre *>(structure);
@@ -834,13 +834,13 @@ void membre_inactif(
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	auto etendue = calcule_etendue_noeud(acces, fichier);
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n' << '\n';
 	ss << "Dans l'accès à « " << structure->ident->nom << " » :\n";
 	ss << ligne;
 
@@ -867,13 +867,13 @@ void valeur_manquante_discr(
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon[pos.index_ligne];
+	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	auto etendue = calcule_etendue_noeud(expression, fichier);
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
+	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n' << '\n';
 	ss << "Dans la discrimination de « ";
 	ss << dls::vue_chaine(ligne.begin() + etendue.pos_min, etendue.pos_max - etendue.pos_min);
 	ss << " » :\n";
@@ -1058,8 +1058,8 @@ Erreur rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne,
 	const Fichier *f = espace->fichier({ fichier.pointeur, fichier.taille });
 
 	flux << "Dans l'espace de travail \"" << espace->nom << "\" :\n";
-	flux << "\nErreur : " << f->chemin << ":" << ligne << ":\n";
-	flux << f->tampon[ligne - 1];
+	flux << "\nErreur : " << f->chemin() << ":" << ligne << ":\n";
+	flux << f->tampon()[ligne - 1];
 	flux << '\n';
 	flux << message;
 	flux << '\n';

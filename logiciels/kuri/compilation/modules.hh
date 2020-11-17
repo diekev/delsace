@@ -26,8 +26,11 @@
 
 #include "biblinternes/langage/tampon_source.hh"
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/resultat.hh"
 #include "biblinternes/structures/ensemblon.hh"
+#include "biblinternes/structures/tableau_page.hh"
 #include "biblinternes/structures/tablet.hh"
+#include "biblinternes/structures/tuples.hh"
 
 #include <mutex>
 
@@ -41,9 +44,9 @@ struct Module;
 struct NoeudBloc;
 struct NoeudDeclaration;
 struct NoeudDeclarationCorpsFonction;
+struct Statistiques;
 
-struct Fichier {
-	double temps_analyse = 0.0;
+struct DonneesConstantesFichier {
 	double temps_chargement = 0.0;
 	double temps_decoupage = 0.0;
 	double temps_tampon = 0.0;
@@ -52,19 +55,39 @@ struct Fichier {
 
 	dls::tableau<Lexeme> lexemes{};
 
-	dls::ensemblon<dls::vue_chaine_compacte, 16> modules_importes{};
-
-	Module *module = nullptr;
-
-	MetaProgramme *metaprogramme_corps_texte = nullptr;
-
-	size_t id = 0ul;
 	dls::chaine nom{""};
 	dls::chaine chemin{""};
 
+	long id = 0;
+
+	std::mutex mutex{};
 	bool fut_lexe = false;
+	bool fut_charge = false;
+	bool en_chargement = false;
+	bool en_lexage = false;
+
+	void charge_tampon(lng::tampon_source const &t)
+	{
+		tampon = t;
+		fut_charge = true;
+	}
+};
+
+struct Fichier {
+	double temps_analyse = 0.0;
+
+	DonneesConstantesFichier *donnees_constantes = nullptr;
+
+	dls::ensemblon<dls::vue_chaine_compacte, 16> modules_importes{};
+
+	Module *module = nullptr;
+	MetaProgramme *metaprogramme_corps_texte = nullptr;
 
 	Fichier() = default;
+
+	Fichier(DonneesConstantesFichier *dc)
+		: donnees_constantes(dc)
+	{}
 
 	COPIE_CONSTRUCT(Fichier);
 
@@ -72,17 +95,91 @@ struct Fichier {
 	 * Retourne vrai si le fichier importe un module du nom spécifié.
 	 */
 	bool importe_module(dls::vue_chaine_compacte const &nom_module) const;
+
+	dls::chaine const &chemin() const
+	{
+		return donnees_constantes->chemin;
+	}
+
+	dls::chaine const &nom() const
+	{
+		return donnees_constantes->nom;
+	}
+
+	long id() const
+	{
+		return donnees_constantes->id;
+	}
+
+	lng::tampon_source const &tampon() const
+	{
+		return donnees_constantes->tampon;
+	}
+};
+
+template <int i>
+struct EnveloppeFichier {
+	static const int tag;
+
+	Fichier *fichier = nullptr;
+
+	EnveloppeFichier(Fichier &f)
+		: fichier(&f)
+	{}
+};
+
+using FichierExistant = EnveloppeFichier<0>;
+using FichierNeuf = EnveloppeFichier<1>;
+
+using ResultatFichier = Resultat<FichierExistant, FichierNeuf>;
+
+struct DonneesConstantesModule {
+	/* le nom du module, qui est le nom du dossier où se trouve les fichiers */
+	dls::chaine nom{""};
+	dls::chaine chemin{""};
 };
 
 struct Module {
+	DonneesConstantesModule *donnees_constantes = nullptr;
+
 	std::mutex mutex{};
 	NoeudBloc *bloc = nullptr;
 
 	dls::tablet<Fichier *, 16> fichiers{};
-	size_t id = 0ul;
-	dls::chaine nom{""};
-	dls::chaine chemin{""};
 	bool importe = false;
+
+	Module(DonneesConstantesModule *dc)
+		: donnees_constantes(dc)
+	{}
+
+	COPIE_CONSTRUCT(Module);
+
+	dls::chaine const &chemin() const
+	{
+		return donnees_constantes->chemin;
+	}
+
+	dls::chaine const &nom() const
+	{
+		return donnees_constantes->nom;
+	}
+};
+
+struct SystemeModule {
+	tableau_page<DonneesConstantesModule> donnees_modules{};
+	tableau_page<DonneesConstantesFichier> donnees_fichiers{};
+
+	DonneesConstantesModule *trouve_ou_cree_module(dls::vue_chaine nom, dls::vue_chaine chemin);
+
+	DonneesConstantesModule *cree_module(dls::vue_chaine nom, dls::vue_chaine chemin);
+
+	DonneesConstantesFichier *trouve_ou_cree_fichier(dls::vue_chaine nom, dls::vue_chaine chemin);
+
+	DonneesConstantesFichier *cree_fichier(dls::vue_chaine nom, dls::vue_chaine chemin);
+
+	void rassemble_stats(Statistiques &stats) const;
+
+	long memoire_utilisee() const;
 };
 
 /* ************************************************************************** */

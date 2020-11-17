@@ -37,24 +37,24 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	std::ifstream fichier(argv[1]);
+	std::ifstream fichier_entree(argv[1]);
 
-	fichier.seekg(0, fichier.end);
-	auto const taille_fichier = fichier.tellg();
-	fichier.seekg(0, fichier.beg);
+	fichier_entree.seekg(0, fichier_entree.end);
+	auto const taille_fichier = fichier_entree.tellg();
+	fichier_entree.seekg(0, fichier_entree.beg);
 
 	char *donnees = new char[static_cast<size_t>(taille_fichier)];
 
-	fichier.read(donnees, static_cast<long>(taille_fichier));
+	fichier_entree.read(donnees, static_cast<long>(taille_fichier));
 
 #if 1
 	try {
 		auto compilatrice = Compilatrice{};
-		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
-		auto module = espace->cree_fichier("", "", true);
+		auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
 		auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
-		module->tampon = lng::tampon_source(dls::chaine(vue_donnees));
-		auto lexeuse = Lexeuse(compilatrice, module);
+		donnees_fichier->charge_tampon(lng::tampon_source(dls::chaine(vue_donnees)));
+
+		auto lexeuse = Lexeuse(compilatrice, donnees_fichier);
 		lexeuse.performe_lexage();
 	}
 	catch (erreur::frappe const &e) {

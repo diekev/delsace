@@ -50,35 +50,26 @@ EspaceDeTravail::~EspaceDeTravail()
 {
 }
 
-Module *EspaceDeTravail::cree_module(dls::chaine const &nom_module, dls::chaine const &chemin)
+Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module, dls::vue_chaine nom_module, dls::vue_chaine chemin)
 {
-	auto chemin_corrige = chemin;
-
-	if (chemin_corrige.taille() > 0 && chemin_corrige[chemin_corrige.taille() - 1] != '/') {
-		chemin_corrige.append('/');
-	}
+	auto donnees_module = sys_module->trouve_ou_cree_module(nom_module, chemin);
 
 	auto modules_ = modules.verrou_ecriture();
 
 	POUR_TABLEAU_PAGE ((*modules_)) {
-		if (it.chemin == chemin_corrige) {
+		if (it.donnees_constantes == donnees_module) {
 			return &it;
 		}
 	}
 
-	auto module = modules_->ajoute_element();
-	module->id = static_cast<size_t>(modules_->taille() - 1);
-	module->nom = nom_module;
-	module->chemin = chemin_corrige;
-
-	return module;
+	return modules_->ajoute_element(donnees_module);
 }
 
 Module *EspaceDeTravail::module(const dls::vue_chaine_compacte &nom_module) const
 {
 	auto modules_ = modules.verrou_lecture();
 	POUR_TABLEAU_PAGE ((*modules_)) {
-		if (it.nom == nom_module) {
+		if (it.nom() == nom_module) {
 			return const_cast<Module *>(&it);
 		}
 	}
@@ -86,39 +77,49 @@ Module *EspaceDeTravail::module(const dls::vue_chaine_compacte &nom_module) cons
 	return nullptr;
 }
 
-Fichier *EspaceDeTravail::cree_fichier(dls::chaine const &nom_fichier, dls::chaine const &chemin, bool importe_kuri)
+ResultatFichier EspaceDeTravail::trouve_ou_cree_fichier(dls::outils::Synchrone<SystemeModule> &sys_module, Module *module, dls::vue_chaine nom_fichier, dls::vue_chaine chemin, bool importe_kuri)
 {
+	auto donnees_fichier = sys_module->trouve_ou_cree_fichier(nom_fichier, chemin);
+
 	auto fichiers_ = fichiers.verrou_ecriture();
 
 	POUR_TABLEAU_PAGE ((*fichiers_)) {
-		if (it.chemin == chemin) {
-			return nullptr;
+		if (it.donnees_constantes == donnees_fichier) {
+			return FichierExistant(it);
 		}
 	}
 
-	auto fichier = fichiers_->ajoute_element();
-	fichier->id = static_cast<size_t>(fichiers_->taille() - 1);
-	fichier->nom = nom_fichier;
-	fichier->chemin = chemin;
+	auto fichier = fichiers_->ajoute_element(donnees_fichier);
 
 	if (importe_kuri) {
 		fichier->modules_importes.insere("Kuri");
 	}
 
-	return fichier;
+	fichier->module = module;
+	module->fichiers.pousse(fichier);
+
+	return FichierNeuf(*fichier);
 }
 
 Fichier *EspaceDeTravail::fichier(long index) const
 {
-	return const_cast<Fichier *>(&fichiers->a_l_index(index));
+	auto fichiers_ = fichiers.verrou_lecture();
+
+	POUR_TABLEAU_PAGE ((*fichiers_)) {
+		if (it.id() == index) {
+			return const_cast<Fichier *>(&it);
+		}
+	}
+
+	return nullptr;
 }
 
-Fichier *EspaceDeTravail::fichier(const dls::vue_chaine_compacte &nom_fichier) const
+Fichier *EspaceDeTravail::fichier(const dls::vue_chaine_compacte &chemin) const
 {
 	auto fichiers_ = fichiers.verrou_lecture();
 
 	POUR_TABLEAU_PAGE ((*fichiers_)) {
-		if (it.nom == nom_fichier) {
+		if (it.chemin() == chemin) {
 			return const_cast<Fichier *>(&it);
 		}
 	}
@@ -280,8 +281,6 @@ long EspaceDeTravail::memoire_utilisee() const
 	auto modules_ = modules.verrou_lecture();
 	POUR_TABLEAU_PAGE ((*modules_)) {
 		memoire += it.fichiers.taille() * taille_de(Fichier *);
-		memoire += it.nom.taille();
-		memoire += it.chemin.taille();
 	}
 
 	auto fichiers_ = fichiers.verrou_lecture();
@@ -309,8 +308,6 @@ long EspaceDeTravail::memoire_utilisee() const
 
 void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 {
-	stats.nombre_modules += modules->taille();
-
 	operateurs->rassemble_statistiques(stats);
 	graphe_dependance->rassemble_statistiques(stats);
 	typeuse.rassemble_statistiques(stats);
@@ -319,23 +316,22 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 	auto fichiers_ = fichiers.verrou_lecture();
 	POUR_TABLEAU_PAGE ((*fichiers_)) {
 		auto entree = EntreeFichier();
-		entree.nom = it.nom.c_str();
-		entree.nombre_lignes = it.tampon.nombre_lignes();
-		entree.memoire_tampons = it.tampon.taille_donnees();
-		entree.memoire_lexemes = it.lexemes.taille() * taille_de(Lexeme);
-		entree.nombre_lexemes = it.lexemes.taille();
+		entree.nom = it.nom().c_str();
 		entree.temps_parsage = it.temps_analyse;
-		entree.temps_chargement = it.temps_chargement;
-		entree.temps_tampon = it.temps_tampon;
-		entree.temps_lexage = it.temps_decoupage;
 
-		stats_fichiers.ajoute_entree(entree);
+		stats_fichiers.fusionne_entree(entree);
 	}
 }
 
 MetaProgramme *EspaceDeTravail::cree_metaprogramme()
 {
 	return metaprogrammes->ajoute_element();
+}
+
+void EspaceDeTravail::tache_chargement_ajoutee()
+{
+	phase = PhaseCompilation::PARSAGE_EN_COURS;
+	nombre_taches_chargement += 1;
 }
 
 void EspaceDeTravail::tache_lexage_ajoutee()
@@ -365,6 +361,12 @@ void EspaceDeTravail::tache_execution_ajoutee()
 	nombre_taches_execution += 1;
 }
 
+void EspaceDeTravail::tache_chargement_terminee(Messagere *messagere, Fichier *fichier)
+{
+	nombre_taches_chargement -= 1;
+	messagere->ajoute_message_fichier_ferme(this, fichier->chemin());
+}
+
 void EspaceDeTravail::tache_lexage_terminee(Messagere */*messagere*/)
 {
 	nombre_taches_lexage -= 1;
@@ -374,7 +376,7 @@ void EspaceDeTravail::tache_parsage_terminee(Messagere *messagere)
 {
 	nombre_taches_parsage -= 1;
 
-	if (nombre_taches_lexage == 0 && nombre_taches_parsage == 0) {
+	if (parsage_termine()) {
 		phase = PhaseCompilation::PARSAGE_TERMINE;
 		messagere->ajoute_message_phase_compilation(this, phase);
 	}
@@ -432,7 +434,7 @@ bool EspaceDeTravail::peut_generer_code_final() const
 
 bool EspaceDeTravail::parsage_termine() const
 {
-	return nombre_taches_lexage == 0 && nombre_taches_parsage == 0;
+	return nombre_taches_chargement == 0 && nombre_taches_lexage == 0 && nombre_taches_parsage == 0;
 }
 
 /* ************************************************************************** */
@@ -478,7 +480,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 	auto nom_dossier = chemin_absolu.filename();
 
 	// @concurrence critique
-	auto module = espace->cree_module(nom_dossier.c_str(), chemin_absolu.c_str());
+	auto module = espace->trouve_ou_cree_module(sys_module, nom_dossier.c_str(), chemin_absolu.c_str());
 
 	if (module->importe) {
 		return module;
@@ -499,17 +501,25 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 			continue;
 		}
 
-		ajoute_fichier_a_la_compilation(espace, chemin_entree.stem().c_str(), module, {});
+		auto resultat = espace->trouve_ou_cree_fichier(sys_module, module, chemin_entree.stem().c_str(), chemin_entree.c_str(), importe_kuri);
+
+		if (resultat.tag_type() == FichierNeuf::tag) {
+			ordonnanceuse->cree_tache_pour_chargement(espace, resultat.t2().fichier);
+		}
 	}
 
-	if (module->nom == "Kuri") {
-		auto fichier = espace->cree_fichier("constantes", "constantes.kuri", false);
-		const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
-		fichier->tampon = lng::tampon_source(source);
-		fichier->module = module;
-		module->fichiers.pousse(fichier);
+	if (module->nom() == "Kuri") {
+		auto resultat = espace->trouve_ou_cree_fichier(sys_module, module, "constantes", "constantes.kuri", false);
 
-		ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
+		if (resultat.tag_type() == FichierNeuf::tag) {
+			auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
+			if (!donnees_fichier->fut_charge) {
+				const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
+				donnees_fichier->charge_tampon(lng::tampon_source(source));
+			}
+
+			ordonnanceuse->cree_tache_pour_lexage(espace, resultat.t2().fichier);
+		}
 	}
 
 	messagere->ajoute_message_module_ferme(espace, module);
@@ -540,7 +550,7 @@ dls::chaine charge_fichier(
 
 void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, const dls::chaine &nom, Module *module, const Lexeme &lexeme)
 {
-	auto chemin = module->chemin + nom + ".kuri";
+	auto chemin = module->chemin() + nom + ".kuri";
 
 	if (!std::filesystem::exists(chemin.c_str())) {
 		erreur::lance_erreur(
@@ -561,29 +571,11 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 	/* trouve le chemin absolu du fichier */
 	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
 
-	// @concurrence critique
-	auto fichier = espace->cree_fichier(nom.c_str(), chemin_absolu.c_str(), importe_kuri);
+	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, nom.c_str(), chemin_absolu.c_str(), importe_kuri);
 
-	if (fichier == nullptr) {
-		/* le fichier a déjà été chargé */
-		return;
+	if (resultat.tag_type() == FichierNeuf::tag) {
+		ordonnanceuse->cree_tache_pour_chargement(espace, resultat.t2().fichier);
 	}
-
-	messagere->ajoute_message_fichier_ouvert(espace, fichier->chemin);
-
-	fichier->module = module;
-
-	auto debut_chargement = dls::chrono::compte_seconde();
-	auto tampon = charge_fichier(chemin, *espace, lexeme);
-	fichier->temps_chargement = debut_chargement.temps();
-
-	auto debut_tampon = dls::chrono::compte_seconde();
-	fichier->tampon = lng::tampon_source(tampon);
-	fichier->temps_tampon = debut_tampon.temps();
-
-	ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
-
-	messagere->ajoute_message_fichier_ferme(espace, fichier->chemin);
 }
 
 /* ************************************************************************** */
@@ -619,6 +611,8 @@ long Compilatrice::memoire_utilisee() const
 
 	memoire += messagere->memoire_utilisee();
 
+	memoire += sys_module->memoire_utilisee();
+
 	return memoire;
 }
 
@@ -631,6 +625,8 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 	}
 
 	stats.nombre_identifiants = table_identifiants->taille();
+
+	sys_module->rassemble_stats(stats);
 }
 
 /* ************************************************************************** */
@@ -683,13 +679,16 @@ void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chain
 
 	ptr_compilatrice->chaines_ajoutees_a_la_compilation->pousse(chaine);
 
-	auto module = espace->cree_module("", "");
-	auto fichier = espace->cree_fichier("métaprogramme", "", ptr_compilatrice->importe_kuri);
-	fichier->tampon = lng::tampon_source(chaine);
-	fichier->module = module;
-	module->fichiers.pousse(fichier);
+	auto module = espace->trouve_ou_cree_module(ptr_compilatrice->sys_module, "", "");
+	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, "métaprogramme", "", ptr_compilatrice->importe_kuri);
 
-	ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
+	if (resultat.tag_type() == FichierNeuf::tag) {
+		auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
+		if (!donnees_fichier->fut_charge) {
+			donnees_fichier->charge_tampon(lng::tampon_source(chaine));
+		}
+		ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, resultat.t2().fichier);
+	}
 }
 
 void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine c)
@@ -698,12 +697,15 @@ void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chai
 
 	ptr_compilatrice->chaines_ajoutees_a_la_compilation->pousse(chaine);
 
-	auto fichier = espace->cree_fichier("métaprogramme", "", ptr_compilatrice->importe_kuri);
-	fichier->tampon = lng::tampon_source(chaine);
-	fichier->module = module;
-	module->fichiers.pousse(fichier);
+	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, "métaprogramme", "", ptr_compilatrice->importe_kuri);
 
-	ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
+	if (resultat.tag_type() == FichierNeuf::tag) {
+		auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
+		if (!donnees_fichier->fut_charge) {
+			donnees_fichier->charge_tampon(lng::tampon_source(chaine));
+		}
+		ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, resultat.t2().fichier);
+	}
 }
 
 void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine c)
@@ -717,18 +719,8 @@ void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chai
 		return;
 	}
 
-	auto module = espace->cree_module("", "");
-	auto tampon = charge_fichier(chemin.c_str(), *espace, {});
-	auto fichier = espace->cree_fichier(vue, chemin.c_str(), ptr_compilatrice->importe_kuri);
-	ptr_compilatrice->messagere->ajoute_message_fichier_ouvert(espace, fichier->chemin);
-
-	fichier->tampon = lng::tampon_source(tampon);
-	fichier->module = module;
-	module->fichiers.pousse(fichier);
-
-	ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
-
-	ptr_compilatrice->messagere->ajoute_message_fichier_ferme(espace, fichier->chemin);
+	auto module = espace->trouve_ou_cree_module(ptr_compilatrice->sys_module, "", "");
+	ptr_compilatrice->ajoute_fichier_a_la_compilation(espace, chemin.stem().c_str(), module, {});
 }
 
 // fonction pour tester les appels de fonctions variadiques externe dans la machine virtuelle
@@ -829,20 +821,28 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne)
 
 	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
 
-	auto fichier = espace->cree_fichier(chemin_absolu.stem().c_str(), chemin_absolu.c_str(), false);
+	auto module = espace->module("");
 
-	if (fichier == nullptr) {
-		fichier = espace->fichier(chemin_absolu.stem().c_str());
-		return converti_tableau_lexemes(fichier->lexemes);
+	auto resultat = espace->trouve_ou_cree_fichier(
+				ptr_compilatrice->sys_module,
+				module,
+				chemin_absolu.stem().c_str(),
+				chemin_absolu.c_str(),
+				ptr_compilatrice->importe_kuri);
+
+	if (resultat.tag_type() == FichierExistant::tag) {
+		auto donnees_fichier = resultat.t1().fichier->donnees_constantes;
+		return converti_tableau_lexemes(donnees_fichier->lexemes);
 	}
 
+	auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
 	auto tampon = charge_fichier(chemin.c_str(), *espace, {});
-	fichier->tampon = lng::tampon_source(tampon);
+	donnees_fichier->charge_tampon(lng::tampon_source(tampon));
 
-	auto lexeuse = Lexeuse(*ptr_compilatrice, fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
+	auto lexeuse = Lexeuse(*ptr_compilatrice, donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
 	lexeuse.performe_lexage();
 
-	return converti_tableau_lexemes(fichier->lexemes);
+	return converti_tableau_lexemes(donnees_fichier->lexemes);
 }
 
 /* cette fonction est symbolique, afin de pouvoir la détecter dans les Machines Virtuelles, et y retourner l'espace du métaprogramme */

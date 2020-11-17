@@ -186,12 +186,12 @@ static bool doit_ajouter_point_virgule(GenreLexeme dernier_id)
 
 /* ************************************************************************** */
 
-Lexeuse::Lexeuse(Compilatrice &compilatrice, Fichier *fichier, int drapeaux)
+Lexeuse::Lexeuse(Compilatrice &compilatrice, DonneesConstantesFichier *donnees, int drapeaux)
 	: m_compilatrice(compilatrice)
-	, m_fichier(fichier)
-	, m_debut_mot(fichier->tampon.debut())
-	, m_debut(fichier->tampon.debut())
-	, m_fin(fichier->tampon.fin())
+	, m_donnees(donnees)
+	, m_debut_mot(donnees->tampon.debut())
+	, m_debut(donnees->tampon.debut())
+	, m_fin(donnees->tampon.fin())
 	, m_drapeaux(drapeaux)
 {
 	construit_tables_caractere_speciaux();
@@ -677,7 +677,7 @@ void Lexeuse::performe_lexage()
 	{
 		auto table_identifiants = m_compilatrice.table_identifiants.verrou_ecriture();
 
-		POUR (m_fichier->lexemes) {
+		POUR (m_donnees->lexemes) {
 			if (it.genre == GenreLexeme::EXTERNE) {
 				it.ident = ID::externe;
 			}
@@ -694,7 +694,7 @@ void Lexeuse::performe_lexage()
 	{
 		auto gerante_chaine = m_compilatrice.gerante_chaine.verrou_ecriture();
 
-		POUR (m_fichier->lexemes) {
+		POUR (m_donnees->lexemes) {
 			if (it.genre != GenreLexeme::CHAINE_LITTERALE) {
 				continue;
 			}
@@ -716,7 +716,7 @@ void Lexeuse::performe_lexage()
 		}
 	}
 
-	m_fichier->fut_lexe = true;
+	m_donnees->fut_lexe = true;
 }
 
 void Lexeuse::avance(int n)
@@ -741,7 +741,7 @@ dls::vue_chaine_compacte Lexeuse::mot_courant() const
 
 void Lexeuse::lance_erreur(const dls::chaine &quoi) const
 {
-	auto ligne_courante = m_fichier->tampon[m_compte_ligne];
+	auto ligne_courante = m_donnees->tampon[m_compte_ligne];
 
 	dls::flux_chaine ss;
 	ss << "Erreur : ligne:" << m_compte_ligne + 1 << ":\n";
@@ -768,26 +768,26 @@ void Lexeuse::lance_erreur(const dls::chaine &quoi) const
 
 void Lexeuse::pousse_mot(GenreLexeme identifiant)
 {
-	if (m_fichier->lexemes.taille() % 128 == 0) {
-		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
+	if (m_donnees->lexemes.taille() % 128 == 0) {
+		m_donnees->lexemes.reserve(m_donnees->lexemes.taille() + 128);
 	}
 
 	Lexeme lexeme = {
-		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_fichier->id), m_compte_ligne, m_pos_mot
+		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_donnees->id), m_compte_ligne, m_pos_mot
 	};
 
-	m_fichier->lexemes.pousse(lexeme);
+	m_donnees->lexemes.pousse(lexeme);
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }
 
 void Lexeuse::pousse_mot(GenreLexeme identifiant, unsigned valeur)
 {
-	if (m_fichier->lexemes.taille() % 128 == 0) {
-		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
+	if (m_donnees->lexemes.taille() % 128 == 0) {
+		m_donnees->lexemes.reserve(m_donnees->lexemes.taille() + 128);
 	}
 
-	m_fichier->lexemes.pousse({ mot_courant(), { valeur }, identifiant, static_cast<int>(m_fichier->id), m_compte_ligne, m_pos_mot });
+	m_donnees->lexemes.pousse({ mot_courant(), { valeur }, identifiant, static_cast<int>(m_donnees->id), m_compte_ligne, m_pos_mot });
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }
@@ -1365,19 +1365,19 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 
 void Lexeuse::pousse_lexeme_entier(unsigned long long valeur)
 {
-	if (m_fichier->lexemes.taille() % 128 == 0) {
-		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
+	if (m_donnees->lexemes.taille() % 128 == 0) {
+		m_donnees->lexemes.reserve(m_donnees->lexemes.taille() + 128);
 	}
 
 	auto lexeme = Lexeme{};
 	lexeme.genre = GenreLexeme::NOMBRE_ENTIER;
 	lexeme.valeur_entiere = valeur;
-	lexeme.fichier = static_cast<int>(m_fichier->id);
+	lexeme.fichier = static_cast<int>(m_donnees->id);
 	lexeme.colonne = m_pos_mot;
 	lexeme.ligne = m_compte_ligne;
 	lexeme.chaine = mot_courant();
 
-	m_fichier->lexemes.pousse(lexeme);
+	m_donnees->lexemes.pousse(lexeme);
 
 	m_taille_mot_courant = 0;
 	m_dernier_id = GenreLexeme::NOMBRE_ENTIER;
@@ -1385,19 +1385,19 @@ void Lexeuse::pousse_lexeme_entier(unsigned long long valeur)
 
 void Lexeuse::pousse_lexeme_reel(double valeur)
 {
-	if (m_fichier->lexemes.taille() % 128 == 0) {
-		m_fichier->lexemes.reserve(m_fichier->lexemes.taille() + 128);
+	if (m_donnees->lexemes.taille() % 128 == 0) {
+		m_donnees->lexemes.reserve(m_donnees->lexemes.taille() + 128);
 	}
 
 	auto lexeme = Lexeme{};
 	lexeme.genre = GenreLexeme::NOMBRE_REEL;
 	lexeme.valeur_reelle = valeur;
-	lexeme.fichier = static_cast<int>(m_fichier->id);
+	lexeme.fichier = static_cast<int>(m_donnees->id);
 	lexeme.colonne = m_pos_mot;
 	lexeme.ligne = m_compte_ligne;
 	lexeme.chaine = mot_courant();
 
-	m_fichier->lexemes.pousse(lexeme);
+	m_donnees->lexemes.pousse(lexeme);
 
 	m_taille_mot_courant = 0;
 	m_dernier_id = GenreLexeme::NOMBRE_REEL;

@@ -139,14 +139,14 @@ int main(int argc, char **argv)
 
 		auto compilatrice = Compilatrice{};
 		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
+		auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
 		auto tampon = charge_fichier(chemin.c_str(), *espace, {});
-		auto fichier = espace->cree_fichier("", chemin.c_str(), true);
-		fichier->tampon = lng::tampon_source(tampon);
+		donnees_fichier->charge_tampon(lng::tampon_source(tampon));
 
-		auto lexeuse = Lexeuse(compilatrice, fichier);
+		auto lexeuse = Lexeuse(compilatrice, donnees_fichier);
 		lexeuse.performe_lexage();
 
-		test_markov_id_simple(fichier->lexemes);
+		test_markov_id_simple(donnees_fichier->lexemes);
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';

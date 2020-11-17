@@ -1450,7 +1450,7 @@ dls::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *es
 			nom_broye_ = "metaprogramme" + dls::vers_chaine(this);
 		}
 		else {
-			nom_broye_ = broye_nom_fonction(this, fichier->module->nom);
+			nom_broye_ = broye_nom_fonction(this, fichier->module->nom());
 		}
 	}
 	else {

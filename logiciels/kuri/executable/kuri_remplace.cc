@@ -135,16 +135,16 @@ static void reecris_fichier(
 
 		auto compilatrice = Compilatrice{};
 		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
+		auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
 		auto tampon = charge_fichier(chemin.c_str(), *espace, {});
-		auto fichier = espace->cree_fichier("", chemin.c_str(), true);
-		fichier->tampon = lng::tampon_source(tampon);
+		donnees_fichier->charge_tampon(lng::tampon_source(tampon));
 
-		auto lexeuse = Lexeuse(compilatrice, fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
+		auto lexeuse = Lexeuse(compilatrice, donnees_fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
 		lexeuse.performe_lexage();
 
 		auto os = std::ofstream(chemin);
 
-		for (auto const &lexeme : fichier->lexemes) {
+		for (auto const &lexeme : donnees_fichier->lexemes) {
 			if (!est_mot_cle(lexeme.genre)) {
 				os << lexeme.chaine;
 				continue;

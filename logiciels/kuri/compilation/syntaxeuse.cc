@@ -45,7 +45,7 @@ static auto trouve_chemin_si_dans_dossier(Module *module, dls::chaine const &cha
 
 	if (!std::filesystem::exists(chemin)) {
 		/* le chemin n'est pas absolu, détermine s'il est dans le même dossier */
-		auto chemin_abs = module->chemin + chaine;
+		auto chemin_abs = module->chemin() + chaine;
 
 		chemin = std::filesystem::path(chemin_abs.c_str());
 
@@ -131,8 +131,11 @@ static bool est_operateur_surchargeable(GenreLexeme genre)
 		case GenreLexeme::DIFFERENCE:
 		case GenreLexeme::EGALITE:
 		case GenreLexeme::PLUS:
+		case GenreLexeme::PLUS_UNAIRE:
 		case GenreLexeme::MOINS:
+		case GenreLexeme::MOINS_UNAIRE:
 		case GenreLexeme::FOIS:
+		case GenreLexeme::FOIS_UNAIRE:
 		case GenreLexeme::DIVISE:
 		case GenreLexeme::DECALAGE_DROITE:
 		case GenreLexeme::DECALAGE_GAUCHE:
@@ -330,7 +333,7 @@ Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite)
 	, m_tacheronne(tacheronne)
 	, m_fichier(unite->fichier)
 	, m_unite(unite)
-	, m_lexemes(m_fichier->lexemes)
+	, m_lexemes(m_fichier->donnees_constantes->lexemes)
 {
 	if (m_lexemes.taille() > 0) {
 		m_lexeme_courant = &m_lexemes[m_position];
@@ -344,7 +347,7 @@ Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite)
 	{
 		if (module->bloc == nullptr) {
 			module->bloc = m_tacheronne.assembleuse->empile_bloc();
-			module->bloc->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(module->nom);
+			module->bloc->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(module->nom());
 		}
 		else {
 			m_tacheronne.assembleuse->bloc_courant(module->bloc);
@@ -528,6 +531,7 @@ bool Syntaxeuse::apparie_expression() const
 		case GenreLexeme::PARENTHESE_OUVRANTE: // expression entre parenthèse
 		case GenreLexeme::RELOGE:
 		case GenreLexeme::STRUCT:
+		case GenreLexeme::TABLEAU:
 		case GenreLexeme::TAILLE_DE:
 		case GenreLexeme::TYPE_DE:
 		case GenreLexeme::TENTE:
@@ -550,11 +554,16 @@ bool Syntaxeuse::apparie_expression_unaire() const
 	switch (genre) {
 		case GenreLexeme::EXCLAMATION:
 		case GenreLexeme::MOINS:
+		case GenreLexeme::MOINS_UNAIRE:
 		case GenreLexeme::PLUS:
+		case GenreLexeme::PLUS_UNAIRE:
 		case GenreLexeme::TILDE:
 		case GenreLexeme::FOIS:
+		case GenreLexeme::FOIS_UNAIRE:
+		case GenreLexeme::ESP_UNAIRE:
 		case GenreLexeme::ESPERLUETTE:
 		case GenreLexeme::TROIS_POINTS:
+		case GenreLexeme::EXPANSION_VARIADIQUE:
 		{
 			return true;
 		}
@@ -690,6 +699,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
 			lexeme->genre = GenreLexeme::PLUS_UNAIRE;
 			break;
 		}
+		case GenreLexeme::EXPANSION_VARIADIQUE:
 		case GenreLexeme::TROIS_POINTS:
 		{
 			lexeme->genre = GenreLexeme::EXPANSION_VARIADIQUE;
@@ -706,8 +716,12 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
 			lexeme->genre = GenreLexeme::ESP_UNAIRE;
 			break;
 		}
+		case GenreLexeme::ESP_UNAIRE:
 		case GenreLexeme::EXCLAMATION:
 		case GenreLexeme::TILDE:
+		case GenreLexeme::PLUS_UNAIRE:
+		case GenreLexeme::MOINS_UNAIRE:
+		case GenreLexeme::FOIS_UNAIRE:
 		{
 			break;
 		}
@@ -759,6 +773,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			consomme();
 			return CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_LITTERALE_CHAINE, lexeme);
 		}
+		case GenreLexeme::TABLEAU:
 		case GenreLexeme::CROCHET_OUVRANT:
 		{
 			consomme();
@@ -824,7 +839,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		case GenreLexeme::FAUX:
 		case GenreLexeme::VRAI:
 		{
-			lexeme->genre = GenreLexeme::BOOL;
 			consomme();
 			return CREE_NOEUD_EXPRESSION(GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN, lexeme);
 		}
@@ -2366,7 +2380,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		else if (genre_operateur == GenreLexeme::MOINS) {
 			lexeme->genre = GenreLexeme::MOINS_UNAIRE;
 		}
-		else if (genre_operateur != GenreLexeme::TILDE && genre_operateur != GenreLexeme::EXCLAMATION) {
+		else if (!dls::outils::est_element(genre_operateur, GenreLexeme::TILDE, GenreLexeme::EXCLAMATION, GenreLexeme::PLUS_UNAIRE, GenreLexeme::MOINS_UNAIRE)) {
 			erreur::lance_erreur(
 						"La surcharge d'opérateur unaire n'est possible que pour '+', '-', '~', ou '!'",
 						*m_unite->espace,
@@ -2647,7 +2661,7 @@ void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::Genre genre)
 	auto flux = dls::flux_chaine();
 
 	flux << "\n";
-	flux << fichier->chemin << ':' << lexeme->ligne + 1 << " : erreur de syntaxage :\n";
+	flux << fichier->chemin() << ':' << lexeme->ligne + 1 << " : erreur de syntaxage :\n";
 
 	POUR (m_donnees_etat_syntaxage) {
 		erreur::imprime_ligne_avec_message(flux, fichier, it.lexeme, it.message);

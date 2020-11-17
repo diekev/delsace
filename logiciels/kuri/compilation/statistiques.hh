@@ -143,6 +143,8 @@ struct Statistiques {
     double temps_lexage = 0.0;
     double temps_parsage = 0.0;
     double temps_typage = 0.0;
+    double temps_chargement = 0.0;
+    double temps_tampons = 0.0;
 
 	StatistiquesFichiers stats_fichiers{"Fichiers"};
 	StatistiquesArbre stats_arbre{"Arbre Syntaxique"};

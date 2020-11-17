@@ -85,7 +85,7 @@ void Messagere::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *mo
 	auto message = messages_modules.ajoute_element();
 	message->genre = GenreMessage::MODULE_OUVERT;
 	message->espace = espace;
-	message->chemin = module->chemin;
+	message->chemin = module->chemin();
 	message->module = module;
 
 	file_message.enfile({ nullptr, message });
@@ -101,7 +101,7 @@ void Messagere::ajoute_message_module_ferme(EspaceDeTravail *espace, Module *mod
 	auto message = messages_modules.ajoute_element();
 	message->genre = GenreMessage::MODULE_FERME;
 	message->espace = espace;
-	message->chemin = module->chemin;
+	message->chemin = module->chemin();
 	message->module = module;
 
 	file_message.enfile({ nullptr, message });

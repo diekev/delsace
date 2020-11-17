@@ -144,16 +144,16 @@ Lexeuse lexeuse(str, str + len);
 		{ ";", { 0ull }, GenreLexeme::POINT_VIRGULE }
 	};
 
-	auto fichier = Fichier{};
-	fichier.tampon = lng::tampon_source(texte);
+	auto donnees_fichier = DonneesConstantesFichier();
+	donnees_fichier.tampon = lng::tampon_source(texte);
 
 	auto compilatrice = Compilatrice();
 
-	Lexeuse lexeuse(compilatrice, &fichier);
+	Lexeuse lexeuse(compilatrice, &donnees_fichier);
 	lexeuse.performe_lexage();
 
-	return verifie_lexemes(fichier.lexemes.debut(),
-							fichier.lexemes.fin(),
+	return verifie_lexemes(donnees_fichier.lexemes.debut(),
+							donnees_fichier.lexemes.fin(),
 							std::begin(donnees_lexemes),
 							std::end(donnees_lexemes));
 }

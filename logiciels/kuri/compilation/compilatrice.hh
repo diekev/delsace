@@ -95,6 +95,7 @@ struct InterfaceKuri {
  */
 struct EspaceDeTravail {
 private:
+	std::atomic<int> nombre_taches_chargement = 0;
 	std::atomic<int> nombre_taches_lexage = 0;
 	std::atomic<int> nombre_taches_parsage = 0;
 	std::atomic<int> nombre_taches_typage = 0;
@@ -155,11 +156,10 @@ public:
 	POINTEUR_NUL(EspaceDeTravail)
 
 	/**
-	 * Crée un module avec le nom spécifié, et retourne un pointeur vers le
-	 * module ainsi créé. Si un module avec le même chemin existe, il est
-	 * retourné sans qu'un nouveau module ne soit créé.
+	 * Retourne un pointeur vers le module avec le nom et le chemin spécifiés.
+	 * Si un tel module n'existe pas, un nouveau module est créé.
 	 */
-	Module *cree_module(dls::chaine const &nom_module, dls::chaine const &chemin);
+	Module *trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module, dls::vue_chaine nom_module, dls::vue_chaine chemin);
 
 	/**
 	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
@@ -169,10 +169,9 @@ public:
 
 	/**
 	 * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
-	 * fichier ainsi créé. Aucune vérification n'est faite quant à la présence
-	 * d'un fichier avec un nom similaire pour l'instant.
+	 * fichier ainsi créé ou un pointeur vers un fichier existant.
 	 */
-	Fichier *cree_fichier(dls::chaine const &nom_fichier, dls::chaine const &chemin, bool importe_kuri);
+	ResultatFichier trouve_ou_cree_fichier(dls::outils::Synchrone<SystemeModule> &sys_module, Module *module, dls::vue_chaine nom_fichier, dls::vue_chaine chemin, bool importe_kuri);
 
 	/**
 	 * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
@@ -181,10 +180,10 @@ public:
 	Fichier *fichier(long index) const;
 
 	/**
-	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
+	 * Retourne un pointeur vers le module dont le chemin est spécifié. Si aucun
 	 * fichier n'a ce nom, retourne nullptr.
 	 */
-	Fichier *fichier(const dls::vue_chaine_compacte &nom_fichier) const;
+	Fichier *fichier(const dls::vue_chaine_compacte &chemin) const;
 
 	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction);
 	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction, kuri::tableau<Atome *> &&params);
@@ -203,12 +202,14 @@ public:
 
 	MetaProgramme *cree_metaprogramme();
 
+	void tache_chargement_ajoutee();
 	void tache_lexage_ajoutee();
 	void tache_parsage_ajoutee();
 	void tache_typage_ajoutee();
 	void tache_ri_ajoutee();
 	void tache_execution_ajoutee();
 
+	void tache_chargement_terminee(Messagere *messagere, Fichier *fichier);
 	void tache_lexage_terminee(Messagere *messagere);
 	void tache_parsage_terminee(Messagere *messagere);
 	void tache_typage_terminee(Messagere *messagere);
@@ -256,6 +257,8 @@ struct Compilatrice {
 	EspaceDeTravail *espace_de_travail_defaut = nullptr;
 
 	dls::chaine racine_kuri{};
+
+	dls::outils::Synchrone<SystemeModule> sys_module{};
 
 	/* ********************************************************************** */
 

@@ -59,8 +59,8 @@ static void imprime_stats(
 	Prof(imprime_stats);
 	auto const temps_total = debut_compilation.temps();
 
-	auto const temps_tampons = stats.stats_fichiers.totaux.temps_tampon;
-	auto const temps_chargement = stats.stats_fichiers.totaux.temps_chargement;
+	auto const temps_tampons = stats.temps_tampons;
+	auto const temps_chargement = stats.temps_chargement;
 	auto const temps_typage = stats.temps_typage;
 	auto const temps_parsage = stats.temps_parsage;
 	auto const temps_lexage = stats.temps_lexage;
@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 
-		auto module = espace_defaut->cree_module("", dossier.c_str());
+		auto module = espace_defaut->trouve_ou_cree_module(compilatrice.sys_module, "", dossier.c_str());
 		compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier.c_str(), module, {});
 
 #ifdef AVEC_THREADS
@@ -397,6 +397,8 @@ int main(int argc, char *argv[])
 				stats.temps_parsage = std::max(stats.temps_parsage, it->temps_parsage);
 				stats.temps_typage = std::max(stats.temps_typage, it->temps_validation);
 				stats.temps_scene = std::max(stats.temps_scene, it->temps_scene);
+				stats.temps_chargement = std::max(stats.temps_chargement, it->temps_chargement);
+				stats.temps_tampons = std::max(stats.temps_tampons, it->temps_tampons);
 
 				it->constructrice_ri.rassemble_statistiques(stats);
 				it->allocatrice_noeud.rassemble_statistiques(stats);

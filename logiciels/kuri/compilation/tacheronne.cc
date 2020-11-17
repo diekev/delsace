@@ -100,8 +100,23 @@ OrdonnanceuseTache::OrdonnanceuseTache(Compilatrice *compilatrice)
 	: m_compilatrice(compilatrice)
 {}
 
+void OrdonnanceuseTache::cree_tache_pour_chargement(EspaceDeTravail *espace, Fichier *fichier)
+{
+	espace->tache_chargement_ajoutee();
+
+	auto unite = unites.ajoute_element(espace);
+	unite->fichier = fichier;
+
+	auto tache = Tache();
+	tache.unite = unite;
+	tache.genre = GenreTache::CHARGE_FICHIER;
+
+	taches_chargement.enfile(tache);
+}
+
 void OrdonnanceuseTache::cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier *fichier)
 {
+	assert(fichier->donnees_constantes->fut_charge);
 	espace->tache_lexage_ajoutee();
 
 	auto unite = unites.ajoute_element(espace);
@@ -116,7 +131,7 @@ void OrdonnanceuseTache::cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier
 
 void OrdonnanceuseTache::cree_tache_pour_parsage(EspaceDeTravail *espace, Fichier *fichier)
 {
-	assert(fichier->fut_lexe);
+	assert(fichier->donnees_constantes->fut_lexe);
 	espace->tache_parsage_ajoutee();
 
 	auto unite = unites.ajoute_element(espace);
@@ -163,7 +178,8 @@ bool OrdonnanceuseTache::toutes_les_tacheronnes_dorment() const
 
 long OrdonnanceuseTache::nombre_de_taches_en_attente() const
 {
-	return taches_lexage.taille()
+	return taches_chargement.taille()
+			+ taches_lexage.taille()
 			+ taches_parsage.taille()
 			+ taches_typage.taille()
 			+ taches_generation_ri.taille()
@@ -244,8 +260,26 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 
 			break;
 		}
+		case GenreTache::CHARGE_FICHIER:
+		{
+			if (!tache_completee) {
+				taches_chargement.enfile(tache_terminee);
+				break;
+			}
+
+			espace->tache_chargement_terminee(&(*m_compilatrice->messagere.verrou_ecriture()), unite->fichier);
+			espace->tache_lexage_ajoutee();
+			tache_terminee.genre = GenreTache::LEXE;
+			taches_lexage.enfile(tache_terminee);
+			break;
+		}
 		case GenreTache::LEXE:
 		{
+			if (!tache_completee) {
+				taches_lexage.enfile(tache_terminee);
+				break;
+			}
+
 			espace->tache_lexage_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
 			espace->tache_parsage_ajoutee();
 			tache_terminee.genre = GenreTache::PARSE;
@@ -354,6 +388,11 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 
 Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, DrapeauxTacheronne drapeaux)
 {
+	/* toute tâcheronne pouvant lexer peut charger */
+	if (!taches_chargement.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER))) {
+		return taches_chargement.defile();
+	}
+
 	if (!taches_lexage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER))) {
 		return taches_lexage.defile();
 	}
@@ -471,15 +510,53 @@ void Tacheronne::gere_tache()
 				temps_passe_a_dormir += 0.1;
 				break;
 			}
+			case GenreTache::CHARGE_FICHIER:
+			{
+				auto fichier = tache.unite->fichier;
+				auto donnees = fichier->donnees_constantes;
+
+				if (!donnees->fut_charge) {
+					donnees->mutex.lock();
+
+					if (!donnees->fut_charge) {
+						auto debut_chargement = dls::chrono::compte_seconde();
+						auto texte = charge_fichier(donnees->chemin, *tache.unite->espace, {});
+						temps_chargement += debut_chargement.temps();
+
+						auto debut_tampon = dls::chrono::compte_seconde();
+						donnees->charge_tampon(lng::tampon_source(texte));
+						temps_tampons += debut_tampon.temps();
+					}
+
+					donnees->mutex.unlock();
+				}
+
+				tache_fut_completee = donnees->fut_charge;
+				break;
+			}
 			case GenreTache::LEXE:
 			{
 				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER));
 				auto unite = tache.unite;
-				auto debut_lexage = dls::chrono::compte_seconde();
-				auto lexeuse = Lexeuse(compilatrice, unite->fichier);
-				lexeuse.performe_lexage();
-				temps_lexage += debut_lexage.temps();
-				tache_fut_completee = true;
+				auto fichier = unite->fichier;
+				auto donnees = fichier->donnees_constantes;
+
+				if (!donnees->fut_lexe) {
+					donnees->mutex.lock();
+
+					if (!donnees->en_lexage) {
+						donnees->en_lexage = true;
+						auto debut_lexage = dls::chrono::compte_seconde();
+						auto lexeuse = Lexeuse(compilatrice, donnees);
+						lexeuse.performe_lexage();
+						temps_lexage += debut_lexage.temps();
+						donnees->en_lexage = false;
+					}
+
+					donnees->mutex.unlock();
+				}
+
+				tache_fut_completee = donnees->fut_lexe;
 				break;
 			}
 			case GenreTache::PARSE:
@@ -977,16 +1054,20 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 			}
 
 			auto nom_fichier = dls::vers_chaine(metaprogramme);
-			auto fichier = espace->cree_fichier(nom_fichier, nom_fichier, false);
-			fichier->module = module;
-			fichier->metaprogramme_corps_texte = metaprogramme;
+			auto resultat_fichier = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, nom_fichier, nom_fichier, false);
 
-			// À FAIRE : l'élision de la copie fait crasher le programme
-			auto tampon_ = lng::tampon_source(tampon);
-			fichier->tampon = tampon_;
+			if (resultat_fichier.tag_type() == FichierNeuf::tag) {
+				auto fichier = resultat_fichier.t2().fichier;
+				auto donnees_fichier = fichier->donnees_constantes;
 
-			// À FAIRE : ajoute source aux chaines ajoutées
-			compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
+				fichier->module = module;
+				fichier->metaprogramme_corps_texte = metaprogramme;
+
+				donnees_fichier->charge_tampon(lng::tampon_source(tampon));
+
+				// À FAIRE : ajoute source aux chaines ajoutées
+				compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
+			}
 		}
 
 		metaprogramme->fut_execute = true;

@@ -750,7 +750,7 @@ struct GeneratriceCodeC {
 					os << pos.pos << ",";
 					os << "\"";
 
-					auto ligne = fichier->tampon[pos.index_ligne];
+					auto ligne = fichier->tampon()[pos.index_ligne];
 
 					POUR (ligne) {
 						os << "\\x"
@@ -1278,8 +1278,8 @@ struct GeneratriceCodeC {
 					auto fichier = m_espace.fichier(atome_fonc->lexeme->fichier);
 					os << atome_fonc->lexeme->chaine << "\", "
 					   << atome_fonc->lexeme->chaine.taille() << ", \""
-					   << fichier->nom << ".kuri\", "
-					   << fichier->nom.taille() + 5 << ", ";
+					   << fichier->nom() << ".kuri\", "
+					   << fichier->nom().taille() + 5 << ", ";
 				}
 				else {
 					os << atome_fonc->nom << "\", "

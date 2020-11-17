@@ -48,7 +48,8 @@ struct Tacheronne;
 	ENUMERE_GENRE_TACHE_EX(EXECUTE) \
 	ENUMERE_GENRE_TACHE_EX(LIAISON_EXECUTABLE) \
 	ENUMERE_GENRE_TACHE_EX(GENERE_FICHIER_OBJET) \
-	ENUMERE_GENRE_TACHE_EX(ENVOIE_MESSAGE)
+	ENUMERE_GENRE_TACHE_EX(ENVOIE_MESSAGE) \
+	ENUMERE_GENRE_TACHE_EX(CHARGE_FICHIER)
 
 enum class GenreTache {
 #define ENUMERE_GENRE_TACHE_EX(etat) etat,
@@ -94,6 +95,7 @@ struct OrdonnanceuseTache {
 private:
 	Compilatrice *m_compilatrice = nullptr;
 
+	dls::file<Tache> taches_chargement{};
 	dls::file<Tache> taches_lexage{};
 	dls::file<Tache> taches_parsage{};
 	dls::file<Tache> taches_typage{};
@@ -118,6 +120,7 @@ public:
 	OrdonnanceuseTache(OrdonnanceuseTache const &) = delete;
 	OrdonnanceuseTache &operator=(OrdonnanceuseTache const &) = delete;
 
+	void cree_tache_pour_chargement(EspaceDeTravail *espace, Fichier *fichier);
 	void cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier *fichier);
 	void cree_tache_pour_parsage(EspaceDeTravail *espace, Fichier *fichier);
 	void cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud);
@@ -160,6 +163,8 @@ struct Tacheronne {
 	double temps_fichier_objet = 0.0;
 	double temps_scene = 0.0;
 	double temps_generation_code = 0.0;
+    double temps_chargement = 0.0;
+    double temps_tampons = 0.0;
 
 	DrapeauxTacheronne drapeaux = DrapeauxTacheronne::PEUT_TOUT_FAIRE;
 
