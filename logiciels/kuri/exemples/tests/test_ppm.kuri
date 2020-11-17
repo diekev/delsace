@@ -5,23 +5,11 @@ importe JPEG
 importe SysFichier
 
 Image :: struct {
-    tampon : chaine; // À FAIRE : []octet
+    tampon : []octet
     chemin : chaine;
     hauteur : z32;
     largeur : z32;
     channels : z32;
-}
-
-ecris_fichier :: fonc(df : z32, chn : chaine) -> rien
-{
-    _ := write(df, chn.pointeur, chn.taille);
-}
-
-imprime_fichier :: fonc(df : z32, args : ...eini) -> rien
-{
-    pour arg dans args {
-	    imprime_valeur(df, arg.pointeur, arg.info, faux);
-	}
 }
 
 génére_image_damier :: fonc() -> Image
@@ -31,9 +19,10 @@ génére_image_damier :: fonc() -> Image
     image.hauteur = 1024;
     image.channels = 1;
 
-    nombre_caracteres = image.largeur * image.hauteur;
+    nombre_caracteres := image.largeur * image.hauteur;
 
-    tampon := loge chaine(nombre_caracteres);
+    tampon := loge [nombre_caracteres]octet
+    tampon.taille = nombre_caracteres
 
     taille_case := image.largeur / 8;
 
@@ -44,10 +33,10 @@ génére_image_damier :: fonc() -> Image
     pour i dans 0...image.largeur - 1 {
         pour j dans 0...image.hauteur - 1 {
             si (i / taille_case + j / taille_case) % 2 == 0 {
-                tampon[idx] = '0';
+                tampon[idx] = 0;
             }
             sinon {
-                tampon[idx] = '1';
+                tampon[idx] = 255;
             }
 
             idx += 1;
@@ -66,7 +55,8 @@ génére_image_noire :: fonc() -> Image
 
     nombre_caracteres := image.largeur * image.hauteur;
 
-    tampon := loge chaine(nombre_caracteres);
+    tampon := loge [nombre_caracteres]octet
+    tampon.taille = nombre_caracteres
 
     taille_case := image.largeur / 8;
 
@@ -81,25 +71,24 @@ génére_image_noire :: fonc() -> Image
 
 écris_ppm :: fonc(image : Image, chemin : chaine) -> rien
 {
-    chm := construit_chemin(chemin)
-    df := ouvre_fichier_ecriture(chm);
-    diffère { ferme_fichier(df); }
-
-    si df == -1 {
-        imprime("Le fichier '%' ne peut être ouvert\n", chemin);
-        retourne;
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin) piège err {
+        imprime("impossible d'ouvrir le fichier %\n", chemin)
+        retourne
     }
 
-    imprime("Descripteur fichier : %\n", df);
+    diffère { _ := ferme(*fichier) }
 
     entete := "P1";
     taille_x := image.largeur;
     taille_y := image.hauteur;
-    taille_case := taille_x / 8;
 
-    imprime_fichier(df, entete, ' ', taille_x, ' ', taille_y, ' ');
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
-    nombre_caracteres := taille_x * taille_y * 2;
+    imprime_dans_enchaineuse(*enchaineuse, "% % % ", entete, taille_x, taille_y)
+
+    nombre_caracteres := taille_x * taille_y;
 
     tampon := loge chaine(nombre_caracteres);
     diffère { déloge tampon; }
@@ -109,51 +98,56 @@ génére_image_noire :: fonc() -> Image
 
     pour i dans 0...taille_x - 1 {
         pour j dans 0...taille_y - 1 {
-            tampon[idx] = '0' + image.tampon[idx_image]
-            tampon[idx + 1] = ' ';
+            si image.tampon[idx_image] == 0 {
+                tampon[idx] = '1'
+            }
+            sinon {
+                tampon[idx] = '0'
+            }
+
             idx_image += 1;
-            idx += 2;
+            idx += 1;
         }
     }
 
+    imprime_dans_enchaineuse(*enchaineuse, "%", tampon);
+
     debut := maintenant_sec();
-
-    imprime_fichier(df, tampon);
-
+    __ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
     delta := delta_sec(debut);
-
-    imprime("Temps d'écriture = ", delta, "s", '\n');
+    imprime("Temps d'écriture = %s\n", delta);
 }
 
 écris_pnm :: fonc(image : Image, chemin : chaine) -> rien
 {
-    df := ouvre_fichier_ecriture(chemin);
-    diffère { ferme_fichier(df); }
-
-    si df == -1 {
-        imprime("Le fichier '%' ne peut être ouvert\n", chemin);
-        retourne;
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin) piège err {
+        imprime("impossible d'ouvrir le fichier %\n", chemin)
+        retourne
     }
 
-    imprime("Descripteur fichier PNM : ", df, '\n');
+    diffère { _ := ferme(*fichier) }
 
     entete : chaine;
 
     discr image.channels {
-        1 { entete = "P5"; }
-        3 { entete = "P6"; }
+        1 { entete = "P2"; }
+        3 { entete = "P3"; }
+        sinon {
+            retourne
+        }
     }
 
     taille_x := image.largeur;
     taille_y := image.hauteur;
     tampon_image := image.tampon;
 
-    imprime_fichier(df, entete, ' ', taille_x, ' ', taille_y, ' ', 255, ' ');
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
-    nombre_caracteres := taille_x * taille_y * image.channels;
+    imprime_dans_enchaineuse(*enchaineuse, "% % % % ", entete, taille_x, taille_y, 255)
 
-    tampon := loge chaine(nombre_caracteres);
-    diffère { déloge tampon; }
+    nombre_caracteres := taille_x * taille_y * image.channels * 2;
 
     idx := 0;
     idx_image := 0;
@@ -161,21 +155,20 @@ génére_image_noire :: fonc() -> Image
     pour i dans 0...taille_x - 1 {
         pour j dans 0...taille_y - 1 {
             pour k dans 0 ... image.channels - 1 {
-                tampon[idx + k] = tampon_image[idx_image + k];
+                ajoute_au_tampon(*enchaineuse, FormatEntier(valeur = tampon_image[idx_image + k], base = 10))
             }
 
-            idx += image.channels;
+            ajoute_au_tampon(*enchaineuse, " ")
+
+            idx += image.channels + 1;
             idx_image += image.channels;
         }
     }
 
     debut := maintenant_sec();
-
-    imprime_fichier(df, tampon);
-
+    __ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
     delta := delta_sec(debut);
-
-    imprime("Temps d'écriture PNM = ", delta, "s", '\n');
+    imprime("Temps d'écriture = %s\n", delta);
 }
 
 //####################
@@ -307,11 +300,12 @@ test_jpeg :: fonc() -> rien
 
 principale :: fonc () -> z32
 {
-    image := génére_image_noire();
+    image := génére_image_damier();
     //ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
  //  dessine_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
 
-    écris_ppm(image, "/home/kevin/test.ppm");
+    écris_ppm(image, "/home/kevin/test_p1.ppm");
+    écris_pnm(image, "/home/kevin/test_p2.pgm");
 
     détruit_image(*image);
 
