@@ -2,6 +2,7 @@
 // https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
 
 importe Fondation
+importe GlibC
 importe SysFichier
 
 DonnéesSymbole :: struct {
@@ -140,7 +141,7 @@ principale :: fonc () -> z32
 
     ajoute_au_tampon(*enchaineuse, "]\n")
 
-    fichier_sortie := tente ouvre_fichier_crée_si_non_existant("entités.kuri") piège nonatteignable
+    fichier_sortie := tente ouvre_fichier_crée_si_non_existant("entités.kuri", ÉCRITURE_SEULE) piège nonatteignable
     x := copie_enchaineuse_fichier(*enchaineuse, *fichier_sortie)
 
     _ := tente ferme(*fichier_sortie) piège nonatteignable

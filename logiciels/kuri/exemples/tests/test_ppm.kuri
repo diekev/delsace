@@ -71,7 +71,7 @@ génére_image_noire :: fonc() -> Image
 
 écris_ppm :: fonc(image : Image, chemin : chaine) -> rien
 {
-    fichier := tente ouvre_fichier_crée_si_non_existant(chemin) piège err {
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, ÉCRITURE_SEULE) piège err {
         imprime("impossible d'ouvrir le fichier %\n", chemin)
         retourne
     }
@@ -120,7 +120,7 @@ génére_image_noire :: fonc() -> Image
 
 écris_pnm :: fonc(image : Image, chemin : chaine) -> rien
 {
-    fichier := tente ouvre_fichier_crée_si_non_existant(chemin) piège err {
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, ÉCRITURE_SEULE) piège err {
         imprime("impossible d'ouvrir le fichier %\n", chemin)
         retourne
     }

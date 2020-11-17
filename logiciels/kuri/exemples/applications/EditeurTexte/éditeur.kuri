@@ -1,4 +1,5 @@
 importe Fondation
+importe GlibC
 importe SysFichier
 importe Temps
 
@@ -159,7 +160,7 @@ importe Temps
     texte := éditeur_chaine_depuis_ligne(éditeur)
     diffère { déloge texte }
 
-    fichier := tente ouvre_fichier_crée_si_non_existant(éditeur.chemin_fichier) piège err {
+    fichier := tente ouvre_fichier_crée_si_non_existant(éditeur.chemin_fichier, ÉCRITURE_SEULE) piège err {
         éditeur_ajourne_message_status(éditeur, "impossible d'ouvrir le fichier pour la sauvegarde")
         retourne
     }

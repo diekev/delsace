@@ -286,11 +286,13 @@ ouvre_fichier :: fonc (chemin: chaine) -> RésultatFichier
     retourne fichier
 }
 
-ouvre_fichier_crée_si_non_existant :: fonc (chemin: chaine) -> RésultatFichier
+ouvre_fichier_crée_si_non_existant :: fonc (chemin: chaine, drapeaux: z32) -> RésultatFichier
 {
+    drapeaux |= CREATION
+
     ptr_chemin := chaine_c_temp(chemin)
 
-    desc := tente système_ouvre(ptr_chemin, LECTURE_ÉCRITURE | CREATION, 0o644) piège err {
+    desc := tente système_ouvre(ptr_chemin, drapeaux, 0o644) piège err {
         retourne err
     }
 
