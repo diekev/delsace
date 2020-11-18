@@ -598,7 +598,7 @@ trouve_caractère_depuis_la_fin :: fonc (chn: chaine, c: z8) -> z64
     début := chn.taille - 1
 
     tantque début > 0 {
-        si chn[début] == '@' {
+        si chn[début] == c {
             arrête
         }
 
