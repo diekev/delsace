@@ -1,5 +1,36 @@
 importe Fondation
 
+/*
+    https://en.wikipedia.org/wiki/ISO_4217
+    https://www.baeldung.com/java-money-and-currency
+    https://www.drdobbs.com/jvm/java-monetary-data/184405653
+    http://download.oracle.com/javase/6/docs/api/java/util/Currency.html
+    http://www.joda.org/joda-money/
+    https://www.codeflow.site/fr/article/java-money-and-currency
+    https://www.hildeberto.com/2020/04/dealing-with-money.html
+
+    https://stackoverflow.com/questions/1679292/proof-that-fowlers-money-allocation-algorithm-is-correct
+
+    https://stackoverflow.com/questions/224462/storing-money-in-a-decimal-column-what-precision-and-scale
+
+    banker's rounding
+
+    eu directive accounting rules
+
+    https://www.economie.gouv.fr/dgfip/arrondis
+
+    Devise (EUR, USD)
+    Montant (15.44)
+
+    savoir si la devise possède des fractions (pas le won ou le yen)
+
+    ajoute, multiplie, divise, fraction
+
+    utilisation d'un type entier, savoir où mettre les fractions ($N : z32 => nombre de chiffres après la virgule)
+
+    parse depuis une chaine, un nombre entier, un nombre réel
+*/
+
 ValeurMonnétaire :: struct {
     quantité : z64 = 0
 }
