@@ -211,13 +211,22 @@ apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> Do
     retourne résultat
 }
 
-// Le résultat d'une requête.
-
 Entête :: struct {
     nom: chaine
     valeur: chaine
 }
 
+// Les données de la requête
+Requête :: struct {
+    uri : URI
+    entêtes : []Entête
+    cookies : []Cookie
+    contenu : chaine
+    type_contenu : chaine
+    méthode : chaine
+}
+
+// Le résultat d'une requête.
 RésultatRequête :: struct {
     status : CodeÉtatHTTP
     contenu : chaine
@@ -255,8 +264,8 @@ Route :: struct ($T: type_de_données) {
     chemin: chaine
     règles_routage: []RègleRoutage
 
-    méthode_get : fonc(*T)(RésultatRequête)
-    méthode_post : fonc(*T)(RésultatRequête)
+    méthode_get : fonc(*Requête, *T)(RésultatRequête)
+    méthode_post : fonc(*Requête, *T)(RésultatRequête)
 }
 
 Routeuse :: struct ($T: type_de_données) {
@@ -267,8 +276,8 @@ Routeuse :: struct ($T: type_de_données) {
 
     données_serveuse: *T
 
-    rappel_page_non_trouvée: fonc(*T)(RésultatRequête)
-    rappel_méthode_non_autorisée: fonc(*T)(RésultatRequête)
+    rappel_page_non_trouvée: fonc(*Requête, *T)(RésultatRequête)
+    rappel_méthode_non_autorisée: fonc(*Requête, *T)(RésultatRequête)
 }
 
 détruit_routeuse :: fonc (routeuse: *Routeuse(T = $T)) -> rien
@@ -276,7 +285,7 @@ détruit_routeuse :: fonc (routeuse: *Routeuse(T = $T)) -> rien
     déloge routeuse.routes
 }
 
-ajoute_route :: fonc (routeuse: *Routeuse(T = $T), chemin: chaine, méthode_get: fonc(*T)(RésultatRequête), méthode_post: fonc(*T)(RésultatRequête)) -> rien
+ajoute_route :: fonc (routeuse: *Routeuse(T = $T), chemin: chaine, méthode_get: fonc(*Requête, *T)(RésultatRequête), méthode_post: fonc(*Requête,*T)(RésultatRequête)) -> rien
 {
     route : Route(T = T)
     route.chemin = chemin
@@ -290,44 +299,44 @@ ajoute_route :: fonc (routeuse: *Routeuse(T = $T), chemin: chaine, méthode_get:
     tableau_ajoute(*routeuse.routes, route)
 }
 
-apparie_route :: fonc (routeuse: *Routeuse(T = $T), chemin: chaine, méthode: chaine) -> RésultatRequête
+apparie_route :: fonc (routeuse: *Routeuse(T = $T), requête: *Requête) -> RésultatRequête
 {
     pour routeuse.routes {
-        données := tente apparie_règles_et_route(it.règles_routage, chemin) piège err {
+        données := tente apparie_règles_et_route(it.règles_routage, requête.uri.chemin) piège err {
             continue
         }
 
-        si méthode == "GET" {
+        si requête.méthode == "GET" {
             si it.méthode_get {
-                retourne it.méthode_get(routeuse.données_serveuse)
+                retourne it.méthode_get(requête, routeuse.données_serveuse)
             }
 
             si routeuse.rappel_méthode_non_autorisée {
-                retourne routeuse.rappel_méthode_non_autorisée(routeuse.données_serveuse)
+                retourne routeuse.rappel_méthode_non_autorisée(requête, routeuse.données_serveuse)
             }
 
             retourne méhode_non_autorisée()
         }
 
-        si méthode == "POST" {
+        si requête.méthode == "POST" {
             si it.méthode_post {
-                retourne it.méthode_post(routeuse.données_serveuse)
+                retourne it.méthode_post(requête, routeuse.données_serveuse)
             }
 
             si routeuse.rappel_méthode_non_autorisée {
-                retourne routeuse.rappel_méthode_non_autorisée(routeuse.données_serveuse)
+                retourne routeuse.rappel_méthode_non_autorisée(requête, routeuse.données_serveuse)
             }
 
             retourne méhode_non_autorisée()
         }
 
         si routeuse.rappel_méthode_non_autorisée {
-            retourne routeuse.rappel_méthode_non_autorisée(routeuse.données_serveuse)
+            retourne routeuse.rappel_méthode_non_autorisée(requête, routeuse.données_serveuse)
         }
     }
     sansarrêt {
         si routeuse.rappel_page_non_trouvée {
-            retourne routeuse.rappel_page_non_trouvée(routeuse.données_serveuse)
+            retourne routeuse.rappel_page_non_trouvée(requête, routeuse.données_serveuse)
         }
     }
 
