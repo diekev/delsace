@@ -397,6 +397,61 @@ port_pour_uri :: fonc(uri : &URI) -> n16
     retourne extrait_nombre_entier(uri.port) comme n16
 }
 
+résoud_échappement_url :: fonc (chn: chaine) -> chaine
+{
+    nchn : chaine
+
+    i := 0
+
+    tantque i < chn.taille {
+        si chn[i] == '%' {
+            i += 1
+
+            si i + 2 >= chn.taille {
+                arrête
+            }
+
+            c := chn[i]
+
+            v : z8
+
+            si 'a' <= c <= 'f' {
+                v = (c - 'a') + 10
+            }
+            sinon si 'A' <= c <= 'F' {
+                v = (c - 'a') + 10
+            }
+            sinon si '0' <= c <= '9' {
+                v = (c - '0')
+            }
+
+            i += 1
+            c = chn[i]
+
+            v *= 16
+
+            si 'a' <= c <= 'f' {
+                v += (c - 'a') + 10
+            }
+            sinon si 'A' <= c <= 'F' {
+                v += (c - 'a') + 10
+            }
+            sinon si '0' <= c <= '9' {
+                v += (c - '0')
+            }
+
+            chaine_ajoute(*nchn, v)
+            i += 1
+        }
+        sinon {
+            chaine_ajoute(*nchn, chn[i])
+            i += 1
+        }
+    }
+
+    retourne nchn
+}
+
 // -----------------------------------------------
 // tests unitaires
 
