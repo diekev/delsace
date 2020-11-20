@@ -42,6 +42,18 @@ AdresseIP :: union {
 //     retourne AdresseIP(ipv4 = ipv4)
 // }
 
+
+parse_ipv4_pour_ipv6 :: fonc (chn: chaine, addr: *AdresseIPv4) -> bool
+{
+    ipv4 := tente parse_ipv4(chn) piège err {
+        retourne faux
+    }
+
+    mémoire(addr) = ipv4
+
+    retourne vrai
+}
+
 parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
 {
     // prend en compte les chaines provenant des URI entre crochets : [...]
@@ -74,14 +86,27 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
     morceaux_nombre := divise(morceaux[0], ':')
     diffère { déloge morceaux_nombre }
 
-    si !possède_raccourci && morceaux_nombre.taille < 8 {
-        retourne ErreurParsageIP.NombreÉlémentsIncorrect
-    }
+    possède_ipv4 := faux
+    ipv4 : AdresseIPv4 = ---
 
     chaines : [8]chaine
 
     pour chaines {
         it = ""
+    }
+
+    si !possède_raccourci {
+        si morceaux_nombre.taille < 8 {
+            si morceaux_nombre.taille == 7 {
+                // À FAIRE(langage) : des retours multiples crash le langage
+                possède_ipv4 = parse_ipv4_pour_ipv6(morceaux_nombre[6], *ipv4)
+                morceaux_nombre[6] = ""
+            }
+
+            si !possède_ipv4 {
+                retourne ErreurParsageIP.NombreÉlémentsIncorrect
+            }
+        }
     }
 
     pour morceaux_nombre {
@@ -91,7 +116,15 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
     si possède_raccourci {
         déloge morceaux_nombre
         morceaux_nombre = divise(morceaux[1], ':')
+
+        possède_ipv4 = parse_ipv4_pour_ipv6(morceaux_nombre[morceaux_nombre.taille - 1], *ipv4)
+
         index_début := 8 - morceaux_nombre.taille
+
+        si possède_ipv4 {
+            index_début -= 1
+            morceaux_nombre[morceaux_nombre.taille - 1] = ""
+        }
 
         pour morceaux_nombre {
             chaines[index_début + index_it] = it
@@ -113,6 +146,11 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
             // À FAIRE : erreur pour les dépassements de limites
             retourne ErreurParsageIP.CaracètreInvalide
         }
+    }
+
+    si possède_ipv4 {
+        données[6] = (ipv4.données[0] comme n16 << 8) | ipv4.données[1]
+        données[7] = (ipv4.données[2] comme n16 << 8) | ipv4.données[3]
     }
 
     retourne AdresseIPv6(données = données)
@@ -414,9 +452,9 @@ ipv4_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> AdresseIPv4 | ErreurConversionIP
     ipv4 : AdresseIPv4 = ---
 
     ipv4.données[0] = (ipv6.données[6] >> 8) comme n8
-    ipv4.données[1] = ((ipv6.données[6] >> 8) & 0xff) comme n8
+    ipv4.données[1] = ((ipv6.données[6]) & 0xff) comme n8
     ipv4.données[2] = (ipv6.données[7] >> 8) comme n8
-    ipv4.données[3] = ((ipv6.données[7] >> 8) & 0xff) comme n8
+    ipv4.données[3] = ((ipv6.données[7]) & 0xff) comme n8
 
     retourne ipv4
 }
@@ -518,4 +556,53 @@ test_parsage_ipv4_décimale :: fonc (chn_décimale: chaine, chn_attendue: chaine
     test_parsage_ipv4("8.8.8.8")
     test_parsage_ipv4_décimale("2815984929", "167.216.133.33")
     test_parsage_ipv4_décimale("0", "0.0.0.0")
+}
+
+test_ipv6_depuis_ipv4 :: fonc (chn_ipv4: chaine, chn_ipv6: chaine, pos := PositionCodeSource())
+{
+    ipv4 := tente parse_ipv4(chn_ipv4) piège err {
+        espace := compilatrice_espace_courant()
+        compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur de parsage IPv4 est survenue")
+        retourne
+    }
+
+    ipv6 := ipv6_depuis_ipv4(ipv4)
+
+    chn := chaine_depuis_ipv6(ipv6)
+    compilatrice_vérifie_égalité(chn, chn_ipv6, pos)
+    déloge chn
+}
+
+#test {
+    test_ipv6_depuis_ipv4("127.0.0.1", "::ffff:7f00:1")
+}
+
+test_ipv4_depuis_ipv6 :: fonc (chn_ipv6: chaine, chn_ipv4: chaine, pos := PositionCodeSource())
+{
+    ipv6 := tente parse_ipv6(chn_ipv6) piège err {
+        espace := compilatrice_espace_courant()
+
+        discr err {
+            NombreÉlémentsIncorrect {
+                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 n'a pas le nombre correcte de morceaux")
+            }
+            CaracètreInvalide {
+                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 contient des caractères non-hexadécimaux")
+            }
+        }
+
+        compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur de parsage IPv6 est survenue")
+        retourne
+    }
+
+    ipv4 := ipv4_depuis_ipv6(ipv6)
+
+    chn := chaine_depuis_ipv4(ipv4)
+    compilatrice_vérifie_égalité(chn, chn_ipv4, pos)
+    déloge chn
+}
+
+#test {
+    test_ipv4_depuis_ipv6("0:0:0:0:0:ffff:127.0.0.1", "127.0.0.1")
+    test_ipv4_depuis_ipv6("::ffff:127.0.0.1", "127.0.0.1")
 }
