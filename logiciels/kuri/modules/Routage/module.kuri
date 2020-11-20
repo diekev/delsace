@@ -1,6 +1,7 @@
 // Module de routage pour des services HTTP, répondant à méthodes GET ou POST
 
 importe Fondation
+importe Internet
 importe Réseau
 
 divise_url :: fonc (ligne: chaine) -> []chaine
@@ -224,6 +225,7 @@ Requête :: struct {
     contenu : chaine
     type_contenu : chaine
     méthode : chaine
+    adresse_ip : AdresseIPv4
 }
 
 // Le résultat d'une requête.

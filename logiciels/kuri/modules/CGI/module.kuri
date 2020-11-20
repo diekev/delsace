@@ -1,4 +1,5 @@
 importe Fondation
+importe Internet
 importe POSIX
 importe Réseau
 importe Routage
@@ -159,6 +160,13 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     requête.uri = uri
     requête.cookies = cookies
     requête.méthode = données.méthode
+
+    requête.adresse_ip = tente parse_ipv4(données.adresse_client) piège err {
+        imprime("Status: 400 Bad Request\n")
+        imprime("Content-Type: text/html;charset=utf-8\n\n")
+        imprime("<p>IP invalide</p>")
+        retourne
+    }
 
     si données.méthode == "POST" && données.taille_contenu != "" && données.taille_contenu != "0" {
     //taille_contenu := parse_nombre_entier(données.taille_contenu)
