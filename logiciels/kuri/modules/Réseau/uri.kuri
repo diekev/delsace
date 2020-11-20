@@ -17,6 +17,11 @@
 // Toutefois, notre implémentation valide également le parsage selon le standard, et renvoie
 // les erreurs correspondantes.
 
+/*
+ liste de schémas :
+ https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
+*/
+
 importe Fondation
 
 // ------------------------------
