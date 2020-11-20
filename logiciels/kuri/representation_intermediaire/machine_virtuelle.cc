@@ -39,6 +39,51 @@
 #undef DEBOGUE_VALEURS_ENTREE_SORTIE
 #undef DEBOGUE_LOCALES
 
+namespace oper {
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+
+/* Ces structures nous servent à faire en sorte que le résultat des opérations
+ * soient du bon type, pour éviter les problèmes liés à la promotion de nombre
+ * entier :
+ *
+ * en C++, char + char = int, donc quand nous empilons le résultat, nous empilons
+ * un int, alors qu'après, nous dépilerons un char...
+ */
+#define DEFINIS_OPERATEUR(__nom, __op, __type_operande, __type_resultat) \
+	template <typename __type_operande> \
+	struct __nom { \
+		using type_resultat = __type_resultat; \
+		type_resultat operator()(__type_operande v1, __type_operande v2) \
+		{ \
+			return v1 __op v2; \
+		} \
+	};
+
+DEFINIS_OPERATEUR(ajoute, +, T, T)
+DEFINIS_OPERATEUR(soustrait, -, T, T)
+DEFINIS_OPERATEUR(multiplie, *, T, T)
+DEFINIS_OPERATEUR(divise, /, T, T)
+DEFINIS_OPERATEUR(modulo, %, T, T)
+DEFINIS_OPERATEUR(egal, ==, T, bool)
+DEFINIS_OPERATEUR(different, !=, T, bool)
+DEFINIS_OPERATEUR(inferieur, <, T, bool)
+DEFINIS_OPERATEUR(inferieur_egal, <=, T, bool)
+DEFINIS_OPERATEUR(superieur, >, T, bool)
+DEFINIS_OPERATEUR(superieur_egal, >=, T, bool)
+DEFINIS_OPERATEUR(et_logique, &&, T, bool)
+DEFINIS_OPERATEUR(ou_logique, ||, T, bool)
+DEFINIS_OPERATEUR(et_binaire, &, T, T)
+DEFINIS_OPERATEUR(ou_binaire, |, T, T)
+DEFINIS_OPERATEUR(oux_binaire, ^, T, T)
+DEFINIS_OPERATEUR(dec_gauche, <<, T, T)
+DEFINIS_OPERATEUR(dec_droite, >>, T, T)
+
+#pragma GCC diagnostic pop
+
+}
+
 #define LIS_OCTET() \
 	(*frame->pointeur++)
 
@@ -54,7 +99,6 @@
 #define OP_UNAIRE_POUR_TYPE(op, type) \
 	if (taille == static_cast<int>(sizeof(type))) { \
 		auto a = depile<type>(); \
-		/* std::cerr <<  #op << a << '\n'; */ \
 		empile(op a); \
 	}
 
@@ -75,8 +119,8 @@
 	if (taille == static_cast<int>(sizeof(type))) { \
 		auto b = depile<type>(); \
 		auto a = depile<type>(); \
-		/* std::cerr << a << #op << b << '\n'; */ \
-		empile(a op b); \
+		auto r = op<type>()(a, b); \
+		empile(r); \
 	}
 
 #define OP_BINAIRE(op) \
@@ -647,177 +691,177 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 			}
 			case OP_AJOUTE:
 			{
-				OP_BINAIRE(+);
+				OP_BINAIRE(oper::ajoute);
 				break;
 			}
 			case OP_SOUSTRAIT:
 			{
-				OP_BINAIRE(-);
+				OP_BINAIRE(oper::soustrait);
 				break;
 			}
 			case OP_MULTIPLIE:
 			{
-				OP_BINAIRE(*);
+				OP_BINAIRE(oper::multiplie);
 				break;
 			}
 			case OP_DIVISE:
 			{
-				OP_BINAIRE_NATUREL(/);
+				OP_BINAIRE_NATUREL(oper::divise);
 				break;
 			}
 			case OP_DIVISE_RELATIF:
 			{
-				OP_BINAIRE(/);
+				OP_BINAIRE(oper::divise);
 				break;
 			}
 			case OP_AJOUTE_REEL:
 			{
-				OP_BINAIRE_REEL(+);
+				OP_BINAIRE_REEL(oper::ajoute);
 				break;
 			}
 			case OP_SOUSTRAIT_REEL:
 			{
-				OP_BINAIRE_REEL(-);
+				OP_BINAIRE_REEL(oper::soustrait);
 				break;
 			}
 			case OP_MULTIPLIE_REEL:
 			{
-				OP_BINAIRE_REEL(*);
+				OP_BINAIRE_REEL(oper::multiplie);
 				break;
 			}
 			case OP_DIVISE_REEL:
 			{
-				OP_BINAIRE_REEL(/);
+				OP_BINAIRE_REEL(oper::divise);
 				break;
 			}
 			case OP_RESTE_NATUREL:
 			{
-				OP_BINAIRE_NATUREL(%);
+				OP_BINAIRE_NATUREL(oper::modulo);
 				break;
 			}
 			case OP_RESTE_RELATIF:
 			{
-				OP_BINAIRE(%);
+				OP_BINAIRE(oper::modulo);
 				break;
 			}
 			case OP_COMP_EGAL:
 			{
-				OP_BINAIRE(==);
+				OP_BINAIRE(oper::egal);
 				break;
 			}
 			case OP_COMP_INEGAL:
 			{
-				OP_BINAIRE(!=);
+				OP_BINAIRE(oper::different);
 				break;
 			}
 			case OP_COMP_INF:
 			{
-				OP_BINAIRE(<);
+				OP_BINAIRE(oper::inferieur);
 				break;
 			}
 			case OP_COMP_INF_EGAL:
 			{
-				OP_BINAIRE(<=);
+				OP_BINAIRE(oper::inferieur_egal);
 				break;
 			}
 			case OP_COMP_SUP:
 			{
-				OP_BINAIRE(>);
+				OP_BINAIRE(oper::superieur);
 				break;
 			}
 			case OP_COMP_SUP_EGAL:
 			{
-				OP_BINAIRE(>=);
+				OP_BINAIRE(oper::superieur_egal);
 				break;
 			}
 			case OP_COMP_INF_NATUREL:
 			{
-				OP_BINAIRE_NATUREL(<);
+				OP_BINAIRE_NATUREL(oper::inferieur);
 				break;
 			}
 			case OP_COMP_INF_EGAL_NATUREL:
 			{
-				OP_BINAIRE_NATUREL(<=);
+				OP_BINAIRE_NATUREL(oper::inferieur_egal);
 				break;
 			}
 			case OP_COMP_SUP_NATUREL:
 			{
-				OP_BINAIRE_NATUREL(>);
+				OP_BINAIRE_NATUREL(oper::superieur);
 				break;
 			}
 			case OP_COMP_SUP_EGAL_NATUREL:
 			{
-				OP_BINAIRE_NATUREL(>=);
+				OP_BINAIRE_NATUREL(oper::superieur_egal);
 				break;
 			}
 			case OP_COMP_EGAL_REEL:
 			{
-				OP_BINAIRE_REEL(==);
+				OP_BINAIRE_REEL(oper::egal);
 				break;
 			}
 			case OP_COMP_INEGAL_REEL:
 			{
-				OP_BINAIRE_REEL(!=);
+				OP_BINAIRE_REEL(oper::different);
 				break;
 			}
 			case OP_COMP_INF_REEL:
 			{
-				OP_BINAIRE_REEL(<);
+				OP_BINAIRE_REEL(oper::inferieur);
 				break;
 			}
 			case OP_COMP_INF_EGAL_REEL:
 			{
-				OP_BINAIRE_REEL(<=);
+				OP_BINAIRE_REEL(oper::inferieur_egal);
 				break;
 			}
 			case OP_COMP_SUP_REEL:
 			{
-				OP_BINAIRE_REEL(>);
+				OP_BINAIRE_REEL(oper::superieur);
 				break;
 			}
 			case OP_COMP_SUP_EGAL_REEL:
 			{
-				OP_BINAIRE_REEL(>=);
+				OP_BINAIRE_REEL(oper::superieur_egal);
 				break;
 			}
 			case OP_ET_LOGIQUE:
 			{
-				OP_BINAIRE(&&);
+				OP_BINAIRE(oper::et_logique);
 				break;
 			}
 			case OP_OU_LOGIQUE:
 			{
-				OP_BINAIRE(||);
+				OP_BINAIRE(oper::ou_logique);
 				break;
 			}
 			case OP_ET_BINAIRE:
 			{
-				OP_BINAIRE(&);
+				OP_BINAIRE(oper::et_binaire);
 				break;
 			}
 			case OP_OU_BINAIRE:
 			{
-				OP_BINAIRE(|);
+				OP_BINAIRE(oper::ou_binaire);
 				break;
 			}
 			case OP_OU_EXCLUSIF:
 			{
-				OP_BINAIRE(^);
+				OP_BINAIRE(oper::oux_binaire);
 				break;
 			}
 			case OP_DEC_GAUCHE:
 			{
-				OP_BINAIRE(<<);
+				OP_BINAIRE(oper::dec_gauche);
 				break;
 			}
 			case OP_DEC_DROITE_ARITHM:
 			{
-				OP_BINAIRE(>>);
+				OP_BINAIRE(oper::dec_droite);
 				break;
 			}
 			case OP_DEC_DROITE_LOGIQUE:
 			{
-				OP_BINAIRE_NATUREL(>>);
+				OP_BINAIRE_NATUREL(oper::dec_droite);
 				break;
 			}
 			case OP_AUGMENTE_NATUREL:
