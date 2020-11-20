@@ -1,4 +1,8 @@
+importe Fondation
 importe POSIX
+importe Réseau
+importe Routage
+importe SysFichier
 
 /*
 DOCUMENT_ROOT	The root directory of your server
@@ -98,4 +102,120 @@ données_cgi :: fonc () -> DonnéesCGI
     données.http_accept_language = chaine_environnement("HTTP_ACCEPT_LANGUAGE")
 
     retourne données
+}
+
+ServeuseCGI :: struct ($T: type_de_données) {
+    routeuse : Routeuse(T = T)
+    intergiciel : fonc(*Requête, *T)(rien)
+}
+
+construit_serveuse_cgi :: fonc (données: *$T, intergiciel: fonc(*Requête, *T)(rien)) -> ServeuseCGI(T = T)
+{
+    serveuse : ServeuseCGI(T = T)
+    serveuse.routeuse.données_serveuse = données
+    serveuse.intergiciel = intergiciel
+
+    retourne serveuse
+}
+
+détruit_serveuse :: fonc (serveuse: &ServeuseCGI(T = $T))
+{
+    détruit_routeuse(*serveuse.routeuse)
+}
+
+rappel_méthode_non_autorisée :: fonc (serveuse: &ServeuseCGI(T = $T), méthode: fonc(*Requête, *T)(RésultatRequête))
+{
+    serveuse.routeuse.rappel_méthode_non_autorisée = méthode
+}
+
+rappel_page_non_trouvée :: fonc (serveuse: &ServeuseCGI(T = $T), méthode: fonc(*Requête, *T)(RésultatRequête))
+{
+    serveuse.routeuse.rappel_page_non_trouvée = méthode
+}
+
+ajoute_route :: fonc (serveuse: &ServeuseCGI(T = $T), chemin: chaine, méthode_get: fonc(*Requête, *T)(RésultatRequête), méthode_post: fonc(*Requête, *T)(RésultatRequête))
+{
+    ajoute_route(*serveuse.routeuse, chemin, méthode_get, méthode_post)
+}
+
+lance :: fonc (serveuse: &ServeuseCGI(T = $T))
+{
+    // accepte_connexion
+    données := données_cgi()
+
+    // prépare les données de la requête
+    uri_normalisé := résoud_échappement_url(données.uri)
+
+    uri := tente parse_uri_depuis_chemin_requête(uri_normalisé) piège err {
+        imprime("Status: 400 Bad Request\n")
+        imprime("Content-Type: text/html;charset=utf-8\n\n")
+        imprime("<p>Chemin malformé</p>")
+        retourne
+    }
+
+    cookies := parse_cookie_client(données.cookie)
+
+    requête : Requête
+    requête.uri = uri
+    requête.cookies = cookies
+    requête.méthode = données.méthode
+
+    si données.méthode == "POST" && données.taille_contenu != "" && données.taille_contenu != "0" {
+    //taille_contenu := parse_nombre_entier(données.taille_contenu)
+    // type_contenu := données.type_contenu // application/x-www-form-urlencoded
+
+        texte := tente entrée_standarde().lis_tout() piège err {
+            imprime("Status: 400 Bad Request\n\n")
+            retourne
+        }
+
+        requête.contenu = texte
+        requête.type_contenu = données.type_contenu
+    }
+
+    si serveuse.intergiciel {
+        serveuse.intergiciel(*requête, serveuse.routeuse.données_serveuse)
+    }
+
+    // résoud la requête
+    résultat := apparie_route(*serveuse.routeuse, *requête)
+
+    // envoie la réponse au client
+    crée_réponse(résultat)
+
+    si requête.contenu {
+        déloge requête.contenu
+    }
+    // À FAIRE(langage) : si ceci se trouve plus haut, la chaine est délogée avant la fin de la fonction...
+    déloge uri_normalisé
+
+    // Idem
+    diffère { déloge cookies }
+}
+
+crée_réponse :: fonc (résultat : &RésultatRequête)
+{
+    imprime("Status: %\n", chaine_code_état_http(résultat.status))
+
+    pour résultat.entêtes {
+        imprime("%: %\n", it.nom, it.valeur)
+    }
+
+    pour résultat.cookies {
+        chn_cookie := chaine_cookie_pour_entête_http(it)
+        imprime("Set-Cookie: %\n", chn_cookie)
+        déloge chn_cookie
+    }
+
+    si résultat.type_contenu {
+        imprime("Content-Type: %\n", résultat.type_contenu)
+    }
+
+    imprime("\n")
+
+    si résultat.contenu {
+        imprime("%", résultat.contenu)
+    }
+
+    détruit_résultat(résultat)
 }
