@@ -370,15 +370,35 @@ void Syntaxeuse::lance_analyse()
 	m_chrono_analyse.commence();
 
 	if (m_fichier->metaprogramme_corps_texte) {
-		auto recipiente = m_fichier->metaprogramme_corps_texte->recipiente_corps_texte;
-		m_tacheronne.assembleuse->bloc_courant(recipiente->bloc_parametres);
+		auto metaprogramme = m_fichier->metaprogramme_corps_texte;
 
-		recipiente->corps->bloc = analyse_bloc(false);
-		aplatis_arbre(recipiente->corps->bloc, recipiente->corps->arbre_aplatis, {});
-		recipiente->corps->est_corps_texte = false;
-		recipiente->est_metaprogramme = false;
+		if (metaprogramme->corps_texte_pour_fonction) {
+			auto recipiente = metaprogramme->corps_texte_pour_fonction;
+			m_tacheronne.assembleuse->bloc_courant(recipiente->bloc_parametres);
 
-		m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, recipiente->corps);
+			recipiente->corps->bloc = analyse_bloc(false);
+			aplatis_arbre(recipiente->corps->bloc, recipiente->corps->arbre_aplatis, {});
+			recipiente->corps->est_corps_texte = false;
+			recipiente->est_metaprogramme = false;
+			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, recipiente->corps);
+		}
+		else if (metaprogramme->corps_texte_pour_structure) {
+			auto recipiente = metaprogramme->corps_texte_pour_structure;
+			recipiente->arbre_aplatis.taille = 0;
+
+			m_tacheronne.assembleuse->bloc_courant(recipiente->bloc_constantes);
+
+			recipiente->bloc = analyse_bloc(false);
+
+			POUR ((*recipiente->bloc_constantes->membres.verrou_lecture())) {
+				recipiente->bloc->membres->pousse(it);
+			}
+
+			aplatis_arbre(recipiente->bloc, recipiente->arbre_aplatis, {});
+			recipiente->est_corps_texte = false;
+		}
+
+		metaprogramme->fut_execute = true;
 
 		m_fichier->temps_analyse += m_chrono_analyse.arrete();
 
@@ -2579,12 +2599,17 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 	if (apparie(GenreLexeme::DIRECTIVE)) {
 		consomme();
 
-		if (lexeme_courant()->ident == ID::interface) {
+		auto ident_directive = lexeme_courant()->ident;
+
+		if (ident_directive == ID::interface) {
 			renseigne_type_interface(m_unite->espace->typeuse, noeud_decl->ident, noeud_decl->type);
 			cree_tache = true;
 		}
-		else if (lexeme_courant()->ident == ID::externe) {
+		else if (ident_directive == ID::externe) {
 			noeud_decl->est_externe = true;
+		}
+		else if (ident_directive == ID::corps_texte) {
+			noeud_decl->est_corps_texte = true;
 		}
 		else {
 			lance_erreur("Directive inconnue");
@@ -2622,6 +2647,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 				}
 
 				expressions.pousse(noeud);
+			}
+			else if (apparie_instruction()) {
+				auto inst = analyse_instruction();
+				expressions.pousse(inst);
 			}
 			else {
 				lance_erreur("attendu une expression ou une instruction");

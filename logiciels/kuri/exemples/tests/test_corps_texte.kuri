@@ -19,7 +19,20 @@ test_ajoute :: fonc ()
     imprime("b: %\n", b)
 }
 
+Vecteur :: struct ($T: type_de_données) #corps_texte {
+    retourne "x: T; y: T; z: T;"
+}
+
+init_vecteur :: fonc () {
+    v : Vecteur(T = z32) = ---
+    v.x = 0
+    v.y = 1
+    v.z = 2
+
+    imprime("v : %\n", v)
+}
+
 principale :: fonc () -> z32
 #corps_texte {
-    retourne "test_ajoute(); retourne 0"
+    retourne "/* init_vecteur(); */ test_ajoute(); retourne 0"
 }

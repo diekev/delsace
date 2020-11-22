@@ -559,6 +559,7 @@ NoeudExpression *copie_noeud(
 			ndecl->est_union = decl->est_union;
 			ndecl->est_nonsure = decl->est_nonsure;
 			ndecl->est_externe = decl->est_externe;
+			ndecl->est_corps_texte = decl->est_corps_texte;
 
 			if (decl->bloc_constantes) {
 				ndecl->bloc_constantes = copie_noeud(assem, decl->bloc_constantes, bloc_parent)->comme_bloc();

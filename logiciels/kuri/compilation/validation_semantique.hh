@@ -31,7 +31,10 @@
 #include "validation_expression_appel.hh"
 
 struct Compilatrice;
+struct Lexeme;
+struct MetaProgramme;
 struct NoeudAssignation;
+struct NoeudBloc;
 struct NoeudDeclarationCorpsFonction;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDirectiveExecution;
@@ -129,4 +132,5 @@ struct ContexteValidationCode {
 	bool transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
 	bool transtype_si_necessaire(NoeudExpression *&expression, TransformationType const &transformation);
 
+	MetaProgramme *cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte, NoeudBloc *bloc_parent, const Lexeme *lexeme);
 };

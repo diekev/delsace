@@ -2627,6 +2627,48 @@ bool ContexteValidationCode::valide_cuisine(NoeudDirectiveExecution *directive)
 	return false;
 }
 
+MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte, NoeudBloc *bloc_parent, const Lexeme *lexeme)
+{
+	// À FAIRE : les blocs n'ont pas de lexèmes
+	bloc_corps_texte->lexeme = lexeme;
+
+	auto fonction = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_ENTETE_FONCTION, lexeme)->comme_entete_fonction();
+	auto nouveau_corps = fonction->corps;
+
+	fonction->bloc_constantes = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, lexeme)->comme_bloc();
+	fonction->bloc_parametres = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, lexeme)->comme_bloc();
+	fonction->bloc_constantes->bloc_parent = bloc_parent;
+	fonction->bloc_parametres->bloc_parent = fonction->bloc_constantes;
+
+	fonction->bloc_parent = bloc_parent;
+	nouveau_corps->bloc_parent = fonction->bloc_parametres;
+	nouveau_corps->bloc = bloc_corps_texte;
+
+	/* mise en place du type de la fonction : () -> chaine */
+	fonction->est_metaprogramme = true;
+
+	auto decl_sortie = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, lexeme)->comme_decl_var();
+	decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
+	decl_sortie->type = espace->typeuse[TypeBase::CHAINE];
+	decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+	fonction->params_sorties.pousse(decl_sortie);
+
+	auto types_entrees = dls::tablet<Type *, 6>(0);
+
+	auto types_sorties = dls::tablet<Type *, 6>(1);
+	types_sorties[0] = espace->typeuse[TypeBase::CHAINE];
+
+	fonction->type = espace->typeuse.type_fonction(types_entrees, types_sorties);
+	fonction->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+	auto metaprogramme = espace->cree_metaprogramme();
+	metaprogramme->corps_texte = bloc_corps_texte;
+	metaprogramme->fonction = fonction;
+
+	return metaprogramme;
+}
+
 bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl)
 {
 	auto entete = decl->entete;
@@ -2642,16 +2684,11 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 	MetaProgramme *metaprogramme = nullptr;
 
 	if (unite->index_courant == 0 && est_corps_texte) {
-		auto fonction = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_ENTETE_FONCTION, decl->lexeme)->comme_entete_fonction();
+		metaprogramme = cree_metaprogramme_corps_texte(decl->bloc, entete->bloc_parent, decl->lexeme);
+		metaprogramme->corps_texte_pour_fonction = entete;
+
+		auto fonction = metaprogramme->fonction;
 		auto nouveau_corps = fonction->corps;
-
-		fonction->bloc_constantes = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, decl->lexeme)->comme_bloc();
-		fonction->bloc_parametres = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, decl->lexeme)->comme_bloc();
-		fonction->bloc_constantes->bloc_parent = entete->bloc_parent;
-		fonction->bloc_parametres->bloc_parent = fonction->bloc_constantes;
-
-		fonction->bloc_parent = entete->bloc_parent;
-		nouveau_corps->bloc_parent = decl->bloc_parent;
 
 		/* échange les corps */
 		entete->corps = nouveau_corps;
@@ -2660,28 +2697,8 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 		fonction->corps = decl;
 		decl->entete = fonction;
 
-		/* mise en place du type de la fonction : () -> chaine */
-		fonction->est_metaprogramme = true;
-
-		auto decl_sortie = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme)->comme_decl_var();
-		decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
-		decl_sortie->type = espace->typeuse[TypeBase::CHAINE];
-		decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-		fonction->params_sorties.pousse(decl_sortie);
-
-		auto types_entrees = dls::tablet<Type *, 6>(0);
-
-		auto types_sorties = dls::tablet<Type *, 6>(1);
-		types_sorties[0] = espace->typeuse[TypeBase::CHAINE];
-
-		fonction->type = espace->typeuse.type_fonction(types_entrees, types_sorties);
-		fonction->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-		metaprogramme = espace->cree_metaprogramme();
-		metaprogramme->corps_texte = decl;
-		metaprogramme->recipiente_corps_texte = entete;
-		metaprogramme->fonction = fonction;
+		fonction->bloc_parent = entete->bloc_parent;
+		nouveau_corps->bloc_parent = decl->bloc_parent;
 
 		fonction->est_monomorphisation = entete->est_monomorphisation;
 
@@ -2966,6 +2983,28 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 		decl->type->drapeaux |= TYPE_FUT_VALIDE;
 		return false;
+	}
+
+	if (decl->est_corps_texte) {
+		auto metaprogramme = cree_metaprogramme_corps_texte(decl->bloc, decl->bloc_parent, decl->lexeme);
+		auto fonction = metaprogramme->fonction;
+		fonction->corps->arbre_aplatis = decl->arbre_aplatis;
+
+		metaprogramme->corps_texte_pour_structure = decl;
+
+		if (decl->est_monomorphisation) {
+			POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
+				fonction->bloc_constantes->membres->pousse(it);
+			}
+		}
+
+		m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, fonction->corps);
+		m_compilatrice.ordonnanceuse->cree_tache_pour_execution(espace, metaprogramme);
+
+		unite->attend_sur_metaprogramme(metaprogramme);
+
+		// retourne faux, nous retyperons quand le corps sera généré et parsé
+		return true;
 	}
 
 	if (valide_arbre_aplatis(decl->arbre_aplatis)) {

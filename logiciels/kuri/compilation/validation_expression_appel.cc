@@ -1577,6 +1577,7 @@ static NoeudStruct *monomorphise_au_besoin(
 			decl_constante->valeur_expression = it.valeur;
 		}
 
+		copie->bloc_constantes->membres->pousse(decl_constante);
 		copie->bloc->membres->pousse(decl_constante);
 	}
 

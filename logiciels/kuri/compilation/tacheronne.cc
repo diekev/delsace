@@ -825,6 +825,15 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 			auto type = unite->type_attendu;
 
 			if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+
+				if (type->est_structure()) {
+					auto decl_struct = type->comme_structure()->decl;
+
+					if (decl_struct->unite->etat() == UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME) {
+						unite->cycle -= 1;
+					}
+				}
+
 				return false;
 			}
 
@@ -1036,6 +1045,8 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 			if (!resultat) {
 				rapporte_erreur(espace, metaprogramme->directive, "Échec de l'assertion");
 			}
+
+			metaprogramme->fut_execute = true;
 		}
 		else if (metaprogramme->corps_texte) {
 			auto resultat = *reinterpret_cast<kuri::chaine *>(mv.pointeur_pile);
@@ -1069,8 +1080,6 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 				compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 			}
 		}
-
-		metaprogramme->fut_execute = true;
 	}
 
 	unite->espace->tache_execution_terminee(&(*compilatrice.messagere.verrou_ecriture()));
