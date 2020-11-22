@@ -311,6 +311,20 @@ public:
 	{
 		return *this;
 	}
+
+	template <typename Fonction>
+	void avec_verrou_lecture(Fonction &&fonction) const
+	{
+		operator->();
+		fonction(m_donnee);
+	}
+
+	template <typename Fonction>
+	void avec_verrou_ecriture(Fonction &&fonction)
+	{
+		operator->();
+		fonction(m_donnee);
+	}
 };
 
 #define ARG_1(a, ...) a
