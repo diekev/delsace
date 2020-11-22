@@ -348,11 +348,19 @@ void EspaceDeTravail::tache_parsage_ajoutee()
 
 void EspaceDeTravail::tache_typage_ajoutee()
 {
+	if (phase > PhaseCompilation::PARSAGE_TERMINE) {
+		phase = PhaseCompilation::PARSAGE_TERMINE;
+	}
+
 	nombre_taches_typage += 1;
 }
 
 void EspaceDeTravail::tache_ri_ajoutee()
 {
+	if (phase > PhaseCompilation::TYPAGE_TERMINE) {
+		phase = PhaseCompilation::TYPAGE_TERMINE;
+	}
+
 	nombre_taches_ri += 1;
 }
 
