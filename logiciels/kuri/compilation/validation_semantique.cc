@@ -2129,11 +2129,14 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 
 	/* Valide les constantes polymorphiques. */
 	if (decl->est_polymorphe) {
-		POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
-			auto type_poly = espace->typeuse.cree_polymorphique(it->ident);
-			it->type = espace->typeuse.type_type_de_donnees(type_poly);
-			it->drapeaux |= DECLARATION_FUT_VALIDEE;
-		}
+		decl->bloc_constantes->membres.avec_verrou_ecriture([this](kuri::tableau<NoeudDeclaration *> &membres)
+		{
+			POUR (membres) {
+				auto type_poly = espace->typeuse.cree_polymorphique(it->ident);
+				it->type = espace->typeuse.type_type_de_donnees(type_poly);
+				it->drapeaux |= DECLARATION_FUT_VALIDEE;
+			}
+		});
 	}
 
 	{
@@ -2307,23 +2310,32 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 		// À FAIRE(moultfilage) : vérifie l'utilisation des synchrones pour les tableaux
 		{
 			CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (redéfinition)");
-			POUR (*decl->bloc_parent->membres.verrou_lecture()) {
-				if (it == decl) {
-					continue;
-				}
+			auto eu_erreur = false;
+			decl->bloc_parent->membres.avec_verrou_lecture([&](const kuri::tableau<NoeudDeclaration *> &membres)
+			{
+				POUR (membres) {
+					if (it == decl) {
+						continue;
+					}
 
-				if (it->genre != GenreNoeud::DECLARATION_ENTETE_FONCTION) {
-					continue;
-				}
+					if (it->genre != GenreNoeud::DECLARATION_ENTETE_FONCTION) {
+						continue;
+					}
 
-				if (it->ident != decl->ident) {
-					continue;
-				}
+					if (it->ident != decl->ident) {
+						continue;
+					}
 
-				if (it->type == decl->type) {
-					rapporte_erreur_redefinition_fonction(decl, it);
-					return true;
+					if (it->type == decl->type) {
+						rapporte_erreur_redefinition_fonction(decl, it);
+						eu_erreur = true;
+						break;
+					}
 				}
+			});
+
+			if (eu_erreur) {
+				return true;
 			}
 		}
 	}
@@ -2993,9 +3005,12 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		metaprogramme->corps_texte_pour_structure = decl;
 
 		if (decl->est_monomorphisation) {
-			POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
-				fonction->bloc_constantes->membres->pousse(it);
-			}
+			decl->bloc_constantes->membres.avec_verrou_ecriture([fonction](kuri::tableau<NoeudDeclaration *> &membres)
+			{
+				POUR (membres) {
+					fonction->bloc_constantes->membres->pousse(it);
+				}
+			});
 		}
 
 		m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, fonction->corps);

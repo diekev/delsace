@@ -802,9 +802,12 @@ static auto apparie_appel_fonction(
 	auto monomorpheuse = Monomorpheuse();
 
 	if (decl->est_polymorphe) {
-		POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
-			monomorpheuse.ajoute_item(it->ident);
-		}
+		decl->bloc_constantes->membres.avec_verrou_lecture([&monomorpheuse](const kuri::tableau<NoeudDeclaration *> &membres)
+		{
+			POUR (membres) {
+				monomorpheuse.ajoute_item(it->ident);
+			}
+		});
 
 		for (auto i = 0l; i < slots.taille(); ++i) {
 			auto index_arg = std::min(i, decl->params.taille - 1);
