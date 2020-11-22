@@ -123,7 +123,7 @@ public:
         return m_espace;
     }
 
-	InstructionAllocation *cree_allocation(Type *type, IdentifiantCode *ident, bool cree_seulement = false);
+	InstructionAllocation *cree_allocation(NoeudExpression *site_, Type *type, IdentifiantCode *ident, bool cree_seulement = false);
 
 	void rassemble_statistiques(Statistiques &stats);
 
@@ -146,26 +146,26 @@ private:
 	AtomeConstante *cree_tableau_global(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
 	AtomeConstante *cree_tableau_global(AtomeConstante *tableau_fixe);
 
-	InstructionBranche *cree_branche(InstructionLabel *label, bool cree_seulement = false);
-	InstructionBrancheCondition *cree_branche_condition(Atome *valeur, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
-	InstructionLabel *cree_label();
-	InstructionLabel *reserve_label();
+	InstructionBranche *cree_branche(NoeudExpression *site_, InstructionLabel *label, bool cree_seulement = false);
+	InstructionBrancheCondition *cree_branche_condition(NoeudExpression *site_, Atome *valeur, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
+	InstructionLabel *cree_label(NoeudExpression *site_);
+	InstructionLabel *reserve_label(NoeudExpression *site_);
 	void insere_label(InstructionLabel *label);
-	InstructionRetour *cree_retour(Atome *valeur);
-	InstructionStockeMem *cree_stocke_mem(Atome *ou, Atome *valeur, bool cree_seulement = false);
-	InstructionChargeMem *cree_charge_mem(Atome *ou);
-	InstructionAppel *cree_appel(Lexeme const *lexeme, Atome *appele);
-	InstructionAppel *cree_appel(Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args);
+	InstructionRetour *cree_retour(NoeudExpression *site_, Atome *valeur);
+	InstructionStockeMem *cree_stocke_mem(NoeudExpression *site_, Atome *ou, Atome *valeur, bool cree_seulement = false);
+	InstructionChargeMem *cree_charge_mem(NoeudExpression *site_, Atome *ou);
+	InstructionAppel *cree_appel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele);
+	InstructionAppel *cree_appel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args);
 
-	InstructionOpUnaire *cree_op_unaire(Type *type, OperateurUnaire::Genre op, Atome *valeur);
-	InstructionOpBinaire *cree_op_binaire(Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
-	InstructionOpBinaire *cree_op_comparaison(OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
+	InstructionOpUnaire *cree_op_unaire(NoeudExpression *site_, Type *type, OperateurUnaire::Genre op, Atome *valeur);
+	InstructionOpBinaire *cree_op_binaire(NoeudExpression *site_, Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
+	InstructionOpBinaire *cree_op_comparaison(NoeudExpression *site_, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
 
-	InstructionAccedeIndex *cree_acces_index(Atome *accede, Atome *index);
-	InstructionAccedeMembre *cree_acces_membre(Atome *accede, long index);
-	Instruction *cree_acces_membre_et_charge(Atome *accede, long index);
+	InstructionAccedeIndex *cree_acces_index(NoeudExpression *site_, Atome *accede, Atome *index);
+	InstructionAccedeMembre *cree_acces_membre(NoeudExpression *site_, Atome *accede, long index);
+	Instruction *cree_acces_membre_et_charge(NoeudExpression *site_, Atome *accede, long index);
 
-	InstructionTranstype *cree_transtype(Type *type, Atome *valeur, TypeTranstypage op);
+	InstructionTranstype *cree_transtype(NoeudExpression *site_, Type *type, Atome *valeur, TypeTranstypage op);
 
 	TranstypeConstant *cree_transtype_constant(Type *type, AtomeConstante *valeur);
 	OpUnaireConstant *cree_op_unaire_constant(Type *type, OperateurUnaire::Genre op, AtomeConstante *valeur);
@@ -212,13 +212,13 @@ private:
 	AtomeConstante *cree_info_type_defaut(unsigned index, unsigned taille_octet);
 	AtomeConstante *cree_info_type_entier(unsigned taille_octet, bool est_relatif);
 
-	Atome *converti_vers_tableau_dyn(Atome *pointeur_tableau_fixe, TypeTableauFixe *type_tableau_fixe, Atome *place);
+	Atome *converti_vers_tableau_dyn(NoeudExpression *noeud, Atome *pointeur_tableau_fixe, TypeTableauFixe *type_tableau_fixe, Atome *place);
 
 	AtomeConstante *cree_chaine(dls::vue_chaine_compacte const &chaine);
 
 	void imprime_instruction(Instruction const *inst, std::ostream &os) const;
 	Atome *valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident);
-	void cree_incrementation_valeur(Type *type, Atome *valeur);
+	void cree_incrementation_valeur(NoeudExpression *noeud, Type *type, Atome *valeur);
 
 	void empile_valeur(Atome *valeur);
 	Atome *depile_valeur();

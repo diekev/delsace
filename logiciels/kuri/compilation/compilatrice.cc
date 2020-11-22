@@ -160,25 +160,25 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	params.reserve(decl->params.taille);
 
 	if (!decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX)) {
-		auto atome = constructrice.cree_allocation(typeuse.type_contexte, ID::contexte);
+		auto atome = constructrice.cree_allocation(decl, typeuse.type_contexte, ID::contexte);
 		params.pousse(atome);
 	}
 
 	for (auto i = 0; i < decl->params.taille; ++i) {
 		auto param = decl->parametre_entree(i);
-		auto atome = constructrice.cree_allocation(param->type, param->ident);
+		auto atome = constructrice.cree_allocation(decl, param->type, param->ident);
 		params.pousse(atome);
 	}
 
 	auto params_sortie = kuri::tableau<Atome *>();
 	if (decl->params_sorties.taille == 1) {
 		auto param_sortie = decl->params_sorties[0];
-		auto atome = constructrice.cree_allocation(param_sortie->type, param_sortie->ident);
+		auto atome = constructrice.cree_allocation(decl, param_sortie->type, param_sortie->ident);
 		params_sortie.pousse(atome);
 	}
 	else {
 		POUR (decl->params_sorties) {
-			auto atome = constructrice.cree_allocation(typeuse.type_pointeur_pour(it->type), it->ident);
+			auto atome = constructrice.cree_allocation(decl, typeuse.type_pointeur_pour(it->type), it->ident);
 			params.pousse(atome);
 		}
 	}
@@ -216,11 +216,11 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 	types_sorties[0] = typeuse[TypeBase::RIEN];
 
 	auto params = kuri::tableau<Atome *>(2);
-	params[0] = constructrice.cree_allocation(types_entrees[0], ID::contexte);
-	params[1] = constructrice.cree_allocation(types_entrees[1], ID::pointeur);
+	params[0] = constructrice.cree_allocation(nullptr, types_entrees[0], ID::contexte);
+	params[1] = constructrice.cree_allocation(nullptr, types_entrees[1], ID::pointeur);
 
 	auto params_sortie = kuri::tableau<Atome *>();
-	auto atome = constructrice.cree_allocation(typeuse[TypeBase::RIEN], nullptr);
+	auto atome = constructrice.cree_allocation(nullptr, typeuse[TypeBase::RIEN], nullptr);
 	params_sortie.pousse(atome);
 
 	auto atome_fonc = fonctions.ajoute_element(nullptr, nom_fonction, std::move(params));

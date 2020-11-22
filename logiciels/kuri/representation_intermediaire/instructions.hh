@@ -278,6 +278,7 @@ struct Instruction : public Atome {
 	Genre genre = Genre::INVALIDE;
 	int numero = 0;
 	int drapeaux = 0;
+	NoeudExpression *site = nullptr;
 
 	Instruction() { genre_atome = Atome::Genre::INSTRUCTION; }
 
@@ -329,7 +330,7 @@ inline Instruction const *Atome::comme_instruction() const
 }
 
 struct InstructionAppel : public Instruction {
-	InstructionAppel() { genre = Instruction::Genre::APPEL; }
+	explicit InstructionAppel(NoeudExpression *site_) { site = site_; genre = Instruction::Genre::APPEL; }
 
 	Atome *appele = nullptr;
 	kuri::tableau<Atome *> args{};
@@ -340,13 +341,14 @@ struct InstructionAppel : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionAppel);
 
-	InstructionAppel(Lexeme const *lexeme, Atome *appele);
-	InstructionAppel(Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args);
+	InstructionAppel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele);
+	InstructionAppel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args);
 };
 
 struct InstructionAllocation : public Instruction {
-	InstructionAllocation()
+	explicit InstructionAllocation(NoeudExpression *site_)
 	{
+		site = site_;
 		genre = Instruction::Genre::ALLOCATION;
 		est_chargeable = true;
 	}
@@ -357,21 +359,21 @@ struct InstructionAllocation : public Instruction {
 	// le décalage en octet où se trouve l'allocation sur la pile
 	int decalage_pile = 0;
 
-	InstructionAllocation(Type *type, IdentifiantCode *ident);
+	InstructionAllocation(NoeudExpression *site_, Type *type, IdentifiantCode *ident);
 };
 
 struct InstructionRetour : public Instruction {
-	InstructionRetour() { genre = Instruction::Genre::RETOUR; }
+	explicit InstructionRetour(NoeudExpression *site_) { site = site_; genre = Instruction::Genre::RETOUR; }
 
 	Atome *valeur = nullptr;
 
 	COPIE_CONSTRUCT(InstructionRetour);
 
-	InstructionRetour(Atome *valeur);
+	InstructionRetour(NoeudExpression *site_, Atome *valeur);
 };
 
 struct InstructionOpBinaire : public Instruction {
-	InstructionOpBinaire() { genre = Instruction::Genre::OPERATION_BINAIRE; }
+	explicit InstructionOpBinaire(NoeudExpression *site_) { site = site_; genre = Instruction::Genre::OPERATION_BINAIRE; }
 
 	OperateurBinaire::Genre op{};
 	Atome *valeur_gauche = nullptr;
@@ -379,23 +381,24 @@ struct InstructionOpBinaire : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionOpBinaire);
 
-	InstructionOpBinaire(Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
+	InstructionOpBinaire(NoeudExpression *site_, Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
 };
 
 struct InstructionOpUnaire : public Instruction {
-	InstructionOpUnaire() { genre = Instruction::Genre::OPERATION_UNAIRE; }
+	explicit InstructionOpUnaire(NoeudExpression *site_) { site = site_; genre = Instruction::Genre::OPERATION_UNAIRE; }
 
 	OperateurUnaire::Genre op{};
 	Atome *valeur = nullptr;
 
 	COPIE_CONSTRUCT(InstructionOpUnaire);
 
-	InstructionOpUnaire(Type *type, OperateurUnaire::Genre op, Atome *valeur);
+	InstructionOpUnaire(NoeudExpression *site_, Type *type, OperateurUnaire::Genre op, Atome *valeur);
 };
 
 struct InstructionChargeMem : public Instruction {
-	InstructionChargeMem()
+	explicit InstructionChargeMem(NoeudExpression *site_)
 	{
+		site = site_;
 		genre = Instruction::Genre::CHARGE_MEMOIRE;
 		est_chargeable = true;
 	}
@@ -404,40 +407,40 @@ struct InstructionChargeMem : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionChargeMem);
 
-	InstructionChargeMem(Type *type, Atome *chargee);
+	InstructionChargeMem(NoeudExpression *site_, Type *type, Atome *chargee);
 };
 
 struct InstructionStockeMem : public Instruction {
-	InstructionStockeMem() { genre = Instruction::Genre::STOCKE_MEMOIRE; }
+	explicit InstructionStockeMem(NoeudExpression *site_) { site = site_; genre = Instruction::Genre::STOCKE_MEMOIRE; }
 
 	Atome *ou = nullptr;
 	Atome *valeur = nullptr;
 
 	COPIE_CONSTRUCT(InstructionStockeMem);
 
-	InstructionStockeMem(Type *type, Atome *ou, Atome *valeur);
+	InstructionStockeMem(NoeudExpression *site_, Type *type, Atome *ou, Atome *valeur);
 };
 
 struct InstructionLabel : public Instruction {
-	InstructionLabel() { genre = Instruction::Genre::LABEL; }
+	explicit InstructionLabel(NoeudExpression *site_) { site = site_; genre = Instruction::Genre::LABEL; }
 
 	int id = 0;
 
-	InstructionLabel(int id);
+	InstructionLabel(NoeudExpression *site_, int id);
 };
 
 struct InstructionBranche : public Instruction {
-	InstructionBranche() { genre = Instruction::Genre::BRANCHE; }
+	explicit InstructionBranche(NoeudExpression *site_) { site = site_; genre = Instruction::Genre::BRANCHE; }
 
 	InstructionLabel *label = nullptr;
 
 	COPIE_CONSTRUCT(InstructionBranche);
 
-	InstructionBranche(InstructionLabel *label);
+	InstructionBranche(NoeudExpression *site_, InstructionLabel *label);
 };
 
 struct InstructionBrancheCondition : public Instruction {
-	InstructionBrancheCondition() { genre = Instruction::Genre::BRANCHE_CONDITION; }
+	explicit InstructionBrancheCondition(NoeudExpression *site_) { site = site_; genre = Instruction::Genre::BRANCHE_CONDITION; }
 
 	Atome *condition = nullptr;
 	InstructionLabel *label_si_vrai = nullptr;
@@ -445,12 +448,13 @@ struct InstructionBrancheCondition : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionBrancheCondition);
 
-	InstructionBrancheCondition(Atome *condition, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
+	InstructionBrancheCondition(NoeudExpression *site_, Atome *condition, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
 };
 
 struct InstructionAccedeMembre : public Instruction {
-	InstructionAccedeMembre()
+	explicit InstructionAccedeMembre(NoeudExpression *site_)
 	{
+		site = site_;
 		genre = Instruction::Genre::ACCEDE_MEMBRE;
 		est_chargeable = true;
 	}
@@ -460,12 +464,13 @@ struct InstructionAccedeMembre : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionAccedeMembre);
 
-	InstructionAccedeMembre(Type *type, Atome *accede, Atome *index);
+	InstructionAccedeMembre(NoeudExpression *site_, Type *type, Atome *accede, Atome *index);
 };
 
 struct InstructionAccedeIndex : public Instruction {
-	InstructionAccedeIndex()
+	explicit InstructionAccedeIndex(NoeudExpression *site_)
 	{
+		site = site_;
 		genre = Instruction::Genre::ACCEDE_INDEX;
 		est_chargeable = true;
 	}
@@ -475,7 +480,7 @@ struct InstructionAccedeIndex : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionAccedeIndex);
 
-	InstructionAccedeIndex(Type *type, Atome *accede, Atome *index);
+	InstructionAccedeIndex(NoeudExpression *site_, Type *type, Atome *accede, Atome *index);
 };
 
 enum TypeTranstypage {
@@ -494,8 +499,9 @@ enum TypeTranstypage {
 };
 
 struct InstructionTranstype : public Instruction {
-	InstructionTranstype()
+	explicit InstructionTranstype(NoeudExpression *site_)
 	{
+		site = site_;
 		genre = Instruction::Genre::TRANSTYPE;
 		est_chargeable = false; // À FAIRE : uniquement si la valeur est un pointeur
 	}
@@ -505,7 +511,7 @@ struct InstructionTranstype : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionTranstype);
 
-	InstructionTranstype(Type *type, Atome *valeur, TypeTranstypage op_);
+	InstructionTranstype(NoeudExpression *site_, Type *type, Atome *valeur, TypeTranstypage op_);
 };
 
 #define COMME_INST(Type, Genre) \

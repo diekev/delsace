@@ -478,7 +478,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::APPEL:
 		{
 			auto appel = inst->comme_appel();
-			auto nouvelle_appel = constructrice.insts_appel.ajoute_element();
+			auto nouvelle_appel = constructrice.insts_appel.ajoute_element(inst->site);
 			nouvelle_appel->drapeaux = appel->drapeaux;
 			nouvelle_appel->appele = copie_atome(constructrice, appel->appele);
 			nouvelle_appel->lexeme = appel->lexeme;
@@ -495,7 +495,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::CHARGE_MEMOIRE:
 		{
 			auto charge = inst->comme_charge();
-			auto n_charge = constructrice.insts_charge_memoire.ajoute_element();
+			auto n_charge = constructrice.insts_charge_memoire.ajoute_element(inst->site);
 			n_charge->chargee = copie_atome(constructrice, charge->chargee);
 			nouvelle_inst = n_charge;
 			break;
@@ -503,7 +503,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::STOCKE_MEMOIRE:
 		{
 			auto stocke = inst->comme_stocke_mem();
-			auto n_stocke = constructrice.insts_stocke_memoire.ajoute_element();
+			auto n_stocke = constructrice.insts_stocke_memoire.ajoute_element(inst->site);
 			n_stocke->ou = copie_atome(constructrice, stocke->ou);
 			n_stocke->valeur = copie_atome(constructrice, stocke->valeur);
 			nouvelle_inst = n_stocke;
@@ -512,7 +512,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::OPERATION_UNAIRE:
 		{
 			auto op = inst->comme_op_unaire();
-			auto n_op = constructrice.insts_opunaire.ajoute_element();
+			auto n_op = constructrice.insts_opunaire.ajoute_element(inst->site);
 			n_op->op = op->op;
 			n_op->valeur = copie_atome(constructrice, op->valeur);
 			nouvelle_inst = n_op;
@@ -521,7 +521,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::OPERATION_BINAIRE:
 		{
 			auto op = inst->comme_op_binaire();
-			auto n_op = constructrice.insts_opbinaire.ajoute_element();
+			auto n_op = constructrice.insts_opbinaire.ajoute_element(inst->site);
 			n_op->op = op->op;
 			n_op->valeur_gauche = copie_atome(constructrice, op->valeur_gauche);
 			n_op->valeur_droite = copie_atome(constructrice, op->valeur_droite);
@@ -531,7 +531,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::ACCEDE_INDEX:
 		{
 			auto acces = inst->comme_acces_index();
-			auto n_acces = constructrice.insts_accede_index.ajoute_element();
+			auto n_acces = constructrice.insts_accede_index.ajoute_element(inst->site);
 			n_acces->index = copie_atome(constructrice, acces->index);
 			n_acces->accede = copie_atome(constructrice, acces->accede);
 			nouvelle_inst = n_acces;
@@ -540,7 +540,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::ACCEDE_MEMBRE:
 		{
 			auto acces = inst->comme_acces_membre();
-			auto n_acces = constructrice.insts_accede_membre.ajoute_element();
+			auto n_acces = constructrice.insts_accede_membre.ajoute_element(inst->site);
 			n_acces->index = copie_atome(constructrice, acces->index);
 			n_acces->accede = copie_atome(constructrice, acces->accede);
 			nouvelle_inst = n_acces;
@@ -549,7 +549,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::TRANSTYPE:
 		{
 			auto transtype = inst->comme_transtype();
-			auto n_transtype = constructrice.insts_transtype.ajoute_element();
+			auto n_transtype = constructrice.insts_transtype.ajoute_element(inst->site);
 			n_transtype->op = transtype->op;
 			n_transtype->valeur = copie_atome(constructrice, transtype->valeur);
 			nouvelle_inst = n_transtype;
@@ -558,7 +558,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::BRANCHE_CONDITION:
 		{
 			auto branche = inst->comme_branche_cond();
-			auto n_branche = constructrice.insts_branche_condition.ajoute_element();
+			auto n_branche = constructrice.insts_branche_condition.ajoute_element(inst->site);
 			n_branche->condition = copie_atome(constructrice, branche->condition);
 			n_branche->label_si_faux = copie_atome(constructrice, branche->label_si_faux)->comme_instruction()->comme_label();
 			n_branche->label_si_vrai = copie_atome(constructrice, branche->label_si_vrai)->comme_instruction()->comme_label();
@@ -568,7 +568,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::BRANCHE:
 		{
 			auto branche = inst->comme_branche();
-			auto n_branche = constructrice.insts_branche.ajoute_element();
+			auto n_branche = constructrice.insts_branche.ajoute_element(inst->site);
 			n_branche->label = copie_atome(constructrice, branche->label)->comme_instruction()->comme_label();
 			nouvelle_inst = n_branche;
 			break;
@@ -576,7 +576,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::RETOUR:
 		{
 			auto retour = inst->comme_retour();
-			auto n_retour = constructrice.insts_retour.ajoute_element();
+			auto n_retour = constructrice.insts_retour.ajoute_element(inst->site);
 			n_retour->valeur = copie_atome(constructrice, retour->valeur);
 			nouvelle_inst = n_retour;
 			break;
@@ -584,7 +584,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::ALLOCATION:
 		{
 			auto alloc = inst->comme_alloc();
-			auto n_alloc = constructrice.insts_allocation.ajoute_element();
+			auto n_alloc = constructrice.insts_allocation.ajoute_element(inst->site);
 			n_alloc->ident = alloc->ident;
 			nouvelle_inst = n_alloc;
 			break;
@@ -592,7 +592,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 		case Instruction::Genre::LABEL:
 		{
 			auto label = inst->comme_label();
-			auto n_label = constructrice.insts_label.ajoute_element();
+			auto n_label = constructrice.insts_label.ajoute_element(inst->site);
 			n_label->id = label->id;
 			nouvelle_inst = n_label;
 			break;
@@ -674,11 +674,11 @@ void performe_enlignage(
 			auto retour = n_it->comme_retour();
 
 			if (retour->valeur) {
-				auto stockage = constructrice.cree_stocke_mem(adresse_retour, retour->valeur, true);
+				auto stockage = constructrice.cree_stocke_mem(nullptr, adresse_retour, retour->valeur, true);
 				nouvelles_instructions.pousse(stockage);
 			}
 
-			auto branche = constructrice.cree_branche(label_post, true);
+			auto branche = constructrice.cree_branche(nullptr, label_post, true);
 			nouvelles_instructions.pousse(branche);
 			continue;
 		}
@@ -907,11 +907,11 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 		auto adresse_retour = static_cast<InstructionAllocation *>(nullptr);
 
 		if (appel->type->genre != GenreType::RIEN) {
-			adresse_retour = constructrice.cree_allocation(appel->type, nullptr, true);
+			adresse_retour = constructrice.cree_allocation(nullptr, appel->type, nullptr, true);
 			nouvelle_instructions.pousse(adresse_retour);
 		}
 
-		auto label_post = constructrice.reserve_label();
+		auto label_post = constructrice.reserve_label(nullptr);
 		label_post->id = nombre_labels++;
 
 		performe_enlignage(constructrice, nouvelle_instructions, instructions, atome_fonc_appelee, appel->args, nombre_labels, label_post, adresse_retour);
