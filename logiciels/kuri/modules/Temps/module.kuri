@@ -1,3 +1,4 @@
+importe Fondation
 importe GlibC
 
 Instantané :: struct {
@@ -170,4 +171,148 @@ hui_système :: fonc () -> Date
     date.jour_semaine = jour_semaine comme z32
 
     retourne date
+}
+
+/*
+  formattage date :
+    - A : année
+    - M : mois
+    - J : jour
+    - h : heure
+    - m : minute
+    - s : seconde
+*/
+formatte :: fonc (date: &Date, format: chaine) -> chaine
+{
+    i : z64 = 0
+
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    tantque i < format.taille {
+        si format[i] == '%' {
+            i += 1
+
+            c := format[i]
+
+            discr c {
+                'A' {
+                    ajoute_au_tampon(*enchaineuse, date.année)
+                }
+                'M' {
+                    ajoute_au_tampon(*enchaineuse, date.mois + 1)
+                }
+                'J' {
+                    ajoute_au_tampon(*enchaineuse, date.jour)
+                }
+                'h' {
+                    ajoute_au_tampon(*enchaineuse, date.heure)
+                }
+                'm' {
+                    ajoute_au_tampon(*enchaineuse, date.minute)
+                }
+                's' {
+                    ajoute_au_tampon(*enchaineuse, date.seconde)
+                }
+                sinon {
+                    continue
+                }
+            }
+
+            i += 1
+            continue
+        }
+
+        chn := construit_chaine(*format[i], 1)
+        ajoute_au_tampon(*enchaineuse, chn)
+
+        i += 1
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+parse_date :: fonc (chaine_date: chaine, format: chaine) -> Date
+{
+    résultat : Date
+
+    si chaine_date.taille != format.taille {
+        retourne résultat
+    }
+
+
+    pour format {
+        c := chaine_date[index_it]
+
+        discr it {
+            'A' {
+                résultat.année *= 10
+                résultat.année += (c - '0') comme z32
+            }
+            'M' {
+                résultat.mois *= 10
+                résultat.mois += (c - '0') comme z32
+            }
+            'J' {
+                résultat.jour *= 10
+                résultat.jour += (c - '0') comme z32
+            }
+            'h' {
+                résultat.heure *= 10
+                résultat.heure += (c - '0') comme z32
+            }
+            'm' {
+                résultat.minute *= 10
+                résultat.minute += (c - '0') comme z32
+            }
+            's' {
+                résultat.seconde *= 10
+                résultat.seconde += (c - '0') comme z32
+            }
+            sinon {
+                continue
+            }
+        }
+    }
+
+    résultat.mois -= 1
+
+    retourne résultat
+}
+
+// ---------------------------------------------------
+// Tests
+
+importe Compilatrice
+
+#test {
+    date := parse_date("2020/11/22 6:37:20", "AAAA/MM/JJ h:mm:ss")
+
+    compilatrice_vérifie_égalité(date.jour, 22)
+    compilatrice_vérifie_égalité(date.mois, 10)
+    compilatrice_vérifie_égalité(date.année, 2020)
+    compilatrice_vérifie_égalité(date.heure, 6)
+    compilatrice_vérifie_égalité(date.minute, 37)
+    compilatrice_vérifie_égalité(date.seconde, 20)
+}
+
+// À FAIRE(langage) : crash dans la génération des types de fonctions pour le métaprogramme quand nous avons des instructions déloge
+#test {
+    date := parse_date("2020/11/22 6:37:20", "AAAA/MM/JJ h:mm:ss")
+
+    résultat := date.formatte("%h:%m:%s")
+    compilatrice_vérifie_égalité(résultat, "6:37:20")
+    // déloge résultat
+
+    résultat = date.formatte("%J/%M/%A")
+    compilatrice_vérifie_égalité(résultat, "22/11/2020")
+    // déloge résultat
+
+    résultat = date.formatte("%J/%M/%A %h:%m:%s")
+    compilatrice_vérifie_égalité(résultat, "22/11/2020 6:37:20")
+    // déloge résultat
+
+    résultat = date.formatte("%h:%m:%s %J/%M/%A")
+    compilatrice_vérifie_égalité(résultat, "6:37:20 22/11/2020")
+    // déloge résultat
 }
