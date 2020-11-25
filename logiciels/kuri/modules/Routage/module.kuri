@@ -354,3 +354,10 @@ méhode_non_autorisée :: fonc () -> RésultatRequête
 {
     retourne RésultatRequête(status = CodeÉtatHTTP.METHOD_NOT_ALLOWED)
 }
+
+redirige :: fonc (chemin: chaine) -> RésultatRequête
+{
+    résultat := RésultatRequête(status = CodeÉtatHTTP.SEE_OTHER)
+    résultat.ajoute_entête("Location", chemin)
+    retourne résultat
+}
