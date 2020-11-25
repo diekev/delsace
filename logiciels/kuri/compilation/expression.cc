@@ -446,6 +446,27 @@ ResultatExpression evalue_expression(
 				return res;
 			}
 
+			if (type_accede->est_tableau_fixe()) {
+				if (!ref_membre->membre->est_ref_decl()) {
+					auto res = ResultatExpression();
+					res.est_errone = true;
+					res.noeud_erreur = b;
+					res.message_erreur = "L'expression n'est pas constante et ne peut être calculée !";
+
+					return res;
+				}
+
+				auto ref_decl_membre = ref_membre->membre->comme_ref_decl();
+
+				if (ref_decl_membre->ident->nom == "taille") {
+					auto res = ResultatExpression();
+					res.est_errone = false;
+					res.entier = type_accede->comme_tableau_fixe()->taille;
+					res.type = TypeExpression::ENTIER;
+					return res;
+				}
+			}
+
 			auto res = ResultatExpression();
 			res.est_errone = true;
 			res.noeud_erreur = b;
