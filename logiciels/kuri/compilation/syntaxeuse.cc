@@ -833,6 +833,16 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			}
 
 			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU, lexeme);
+
+			/* Le reste de la pipeline suppose que l'expression est une virgule,
+			 * donc créons une telle expression au cas où nous n'avons qu'un seul
+			 * élément dans le tableau. */
+			if (!expression_entre_crochets->est_virgule()) {
+				auto virgule = CREE_NOEUD(NoeudExpressionVirgule, GenreNoeud::EXPRESSION_VIRGULE, lexeme);
+				virgule->expressions.pousse(expression_entre_crochets);
+				expression_entre_crochets = virgule;
+			}
+
 			noeud->expr = expression_entre_crochets;
 
 			return noeud;
