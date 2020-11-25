@@ -6,7 +6,6 @@ importe Numérique
 // https://tools.ietf.org/html/rfc4291
 // https://tools.ietf.org/html/rfc5952
 
-// À FAIRE : parser les adresses IPv6 contenant une adresse IPv4 (x:x:x:x:x:x:255.255.255.255)
 // À FAIRE : représenter les adresses IPv4 dans les chaines IPv6
 // À FAIRE : parser les adresses IPv4 et IPv6 avec préfixes
 
