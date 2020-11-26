@@ -740,3 +740,37 @@ crée_contexte :: fonc () -> rien #création_contexte
         init_de(BaseAllocatrice)(*base_allocatrice)
     }
 }
+
+/*
+
+__contexte_fil_principal : ContexteProgramme = ---
+__arguments_ligne_commande : []*z8 = ---
+
+__init_exécution_kuri :: fonc (argc: z32, argv: **z8) -> *ContexteProgramme #interface #nulctx
+{
+    __arguments_ligne_commande.taille = argc
+    __arguments_ligne_commande.pointeur = argv
+
+    contexte := *__contexte_fil_principale
+    init_de(ContexteProgramme)(contexte)
+    retourne contexte
+}
+
+__fini_exécution_kuri :: fonc (contexte: *ContexteProgramme) #interface
+{
+    // rien à faire pour le moment
+}
+
+__point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #interface #nulctx #sansbroyage
+{
+    contexte := __init_exécution_kuri(argc, argv)
+
+    // À FAIRE(langage) : passe le pointeur comme référence quand nous aurons corrigé cette fonction
+    résultat := principale(mémoire(contexte))
+
+    __fini_exécution_kuri(contexte)
+
+    retourne 0
+}
+
+*/
