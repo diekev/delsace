@@ -109,7 +109,7 @@ EmpreinteParfaite::calcule_empreinte (const char *str, size_t len)
 		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
 		75, 75, 75, 75, 75, 75
 	};
-	unsigned int hval = len;
+	unsigned int hval = static_cast<unsigned int>(len);
 
 	switch (hval)
 	{
