@@ -4225,6 +4225,10 @@ Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction
 	auto constructeurs_globaux = m_espace->constructeurs_globaux.verrou_lecture();
 
 	POUR (*constructeurs_globaux) {
+		if (it.expression->est_non_initialisation()) {
+			continue;
+		}
+
 		genere_ri_transformee_pour_noeud(it.expression, it.atome, it.transformation);
 	}
 
