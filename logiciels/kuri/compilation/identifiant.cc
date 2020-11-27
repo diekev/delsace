@@ -165,6 +165,7 @@ IdentifiantCode *si;
 IdentifiantCode *pointeur;
 IdentifiantCode *corps_texte;
 IdentifiantCode *cuisine;
+IdentifiantCode *opaque;
 
 }
 
@@ -243,4 +244,5 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::pointeur = table.identifiant_pour_chaine("pointeur");
 	ID::corps_texte = table.identifiant_pour_chaine("corps_texte");
 	ID::cuisine = table.identifiant_pour_chaine("cuisine");
+	ID::opaque = table.identifiant_pour_chaine("opaque");
 }
