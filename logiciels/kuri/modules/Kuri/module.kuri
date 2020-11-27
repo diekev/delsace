@@ -745,8 +745,9 @@ crée_contexte :: fonc () -> rien #création_contexte
 
 __contexte_fil_principal : ContexteProgramme = ---
 __arguments_ligne_commande : []*z8 = ---
+__tampon_stockage_tamporaire : [16384]z8
 
-__init_exécution_kuri :: fonc (argc: z32, argv: **z8) -> *ContexteProgramme #interface #nulctx
+__init_exécution_kuri :: fonc (argc: z32, argv: **z8) -> *ContexteProgramme #nulctx
 {
     __arguments_ligne_commande.taille = argc
     __arguments_ligne_commande.pointeur = argv
@@ -756,17 +757,35 @@ __init_exécution_kuri :: fonc (argc: z32, argv: **z8) -> *ContexteProgramme #in
     retourne contexte
 }
 
-__fini_exécution_kuri :: fonc (contexte: *ContexteProgramme) #interface
+__fini_exécution_kuri :: fonc (contexte: *ContexteProgramme)
 {
     // rien à faire pour le moment
 }
 
-__point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #interface #nulctx #sansbroyage
+// Ceci sera remplacé par la fonction principale ou par les métaprogramme
+__principale :: fonc (contexte: ContexteProgramme) -> z32 #externe
+
+__point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbroyage
 {
     contexte := __init_exécution_kuri(argc, argv)
 
+    // initalise les autres membres du contexte
+    info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = "module.kuri", adresse = __point_d_entree_systeme)
+    trace_appel := TraceAppel(info_fonction = *info_trace_appel)
+    contexte.trace_appel = *trace_appel
+
+    base_allocatrice : BaseAllocatrice
+    contexte.données_allocatrice = *base_allocatrice
+
+    stockage_temporaire : StockageTemporaire = ---
+    stockage_temporaire.données = *__tampon_stockage_temporaire[0]
+    stockage_temporaire.taille = __tampon_stockage_tempoaire.taille
+    stockage_temporaire.occupé = 0
+    stockage_temporaire.occupation_maximale = 0
+    contexte.stockage_temporaire = *stockage_temporaire
+
     // À FAIRE(langage) : passe le pointeur comme référence quand nous aurons corrigé cette fonction
-    résultat := principale(mémoire(contexte))
+    résultat := __principale(mémoire(contexte))
 
     __fini_exécution_kuri(contexte)
 
