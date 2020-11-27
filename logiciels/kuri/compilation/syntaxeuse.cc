@@ -2059,6 +2059,11 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		}
 
 		m_unite->espace->fonction_principale = noeud;
+		noeud->drapeaux |= EST_RACINE;
+	}
+	else if (noeud->ident == ID::__point_d_entree_systeme) {
+		m_unite->espace->fonction_point_d_entree = noeud;
+		noeud->drapeaux |= EST_RACINE;
 	}
 
 	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
@@ -2327,7 +2332,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 				consomme();
 			}
 
-			auto const doit_etre_type = noeud->ident == ID::principale || noeud->possede_drapeau(EST_RACINE);
+			auto const doit_etre_type = noeud->possede_drapeau(EST_RACINE);
 			if (doit_etre_type) {
 				m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud_corps);
 			}

@@ -166,6 +166,7 @@ IdentifiantCode *pointeur;
 IdentifiantCode *corps_texte;
 IdentifiantCode *cuisine;
 IdentifiantCode *opaque;
+IdentifiantCode *__point_d_entree_systeme;
 
 }
 
@@ -245,4 +246,5 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::corps_texte = table.identifiant_pour_chaine("corps_texte");
 	ID::cuisine = table.identifiant_pour_chaine("cuisine");
 	ID::opaque = table.identifiant_pour_chaine("opaque");
+	ID::__point_d_entree_systeme = table.identifiant_pour_chaine("__point_d_entree_systeme");
 }

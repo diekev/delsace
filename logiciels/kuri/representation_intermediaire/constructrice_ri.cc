@@ -99,10 +99,10 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *esp
 	genere_ri_pour_fonction_metaprogramme(fonction);
 }
 
-AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main(EspaceDeTravail *espace)
+AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(EspaceDeTravail *espace)
 {
 	m_espace = espace;
-	return genere_ri_pour_fonction_main();
+	return genere_ri_pour_fonction_principale();
 }
 
 AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(EspaceDeTravail *espace, const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour)
@@ -4016,38 +4016,25 @@ AtomeConstante *ConstructriceRI::cree_chaine(dls::vue_chaine_compacte const &cha
 	return constante_chaine;
 }
 
-AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
+AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
 {
 	nombre_labels = 0;
 
-	// déclare une fonction de type int(int, char**) appelée main
-	auto type_int = m_espace->typeuse[TypeBase::Z32];
-	auto type_argc = type_int;
-
-	auto type_argv = m_espace->typeuse[TypeBase::Z8];
-	type_argv = m_espace->typeuse.type_pointeur_pour(type_argv);
-	type_argv = m_espace->typeuse.type_pointeur_pour(type_argv);
-
-	auto types_entrees = dls::tablet<Type *, 6>(2);
-	types_entrees[0] = type_argc;
-	types_entrees[1] = type_argv;
+	// déclare une fonction de type int(ContexteProgramme) appelée __principale
+	auto types_entrees = dls::tablet<Type *, 6>(1);
+	types_entrees[0] = m_espace->typeuse.type_contexte;
 
 	auto types_sorties = dls::tablet<Type *, 6>(1);
-	types_sorties[0] = type_int;
+	types_sorties[0] = m_espace->typeuse[TypeBase::Z32];
 
 	auto type_fonction = m_espace->typeuse.type_fonction(types_entrees, types_sorties);
 
-	auto ident_argc = m_compilatrice.table_identifiants->identifiant_pour_chaine("argc");
-	auto ident_argv = m_compilatrice.table_identifiants->identifiant_pour_chaine("argv");
+	auto alloc_contexte = cree_allocation(nullptr, m_espace->typeuse.type_contexte, ID::contexte);
 
-	auto alloc_argc = cree_allocation(nullptr, type_argc, ident_argc);
-	auto alloc_argv = cree_allocation(nullptr, type_argv, ident_argv);
+	auto params = kuri::tableau<Atome *>(1);
+	params[0] = alloc_contexte;
 
-	auto params = kuri::tableau<Atome *>(2);
-	params[0] = alloc_argc;
-	params[1] = alloc_argv;
-
-	auto fonction = m_espace->cree_fonction(nullptr, "main", std::move(params));
+	auto fonction = m_espace->cree_fonction(nullptr, "__principale", std::move(params));
 	fonction->type = type_fonction;
 	fonction->sanstrace = true;
 	fonction->nombre_utilisations = 1;
@@ -4056,33 +4043,25 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_main()
 
 	cree_label(nullptr);
 
-	auto ident_ARGC = IDENT_CODE("__ARGC");
-	auto ident_ARGV = IDENT_CODE("__ARGV");
+	// ----------------------------------
+	// initialise les variables globales
+	table_locales[ID::contexte] = alloc_contexte;
+	auto constructeurs_globaux = m_espace->constructeurs_globaux.verrou_lecture();
 
-	auto decl_ARGC = cherche_symbole_dans_module(*m_espace, "Kuri", ident_ARGC);
-	auto decl_ARGV = cherche_symbole_dans_module(*m_espace, "Kuri", ident_ARGV);
+	POUR (*constructeurs_globaux) {
+		if (it.expression->est_non_initialisation()) {
+			continue;
+		}
 
-	auto valeur_ARGC = m_espace->trouve_globale(decl_ARGC);
-	auto valeur_ARGV = m_espace->trouve_globale(decl_ARGV);
-
-	if (valeur_ARGC) {
-		auto charge_argc = cree_charge_mem(nullptr, alloc_argc);
-		cree_stocke_mem(nullptr, valeur_ARGC, charge_argc);
+		genere_ri_transformee_pour_noeud(it.expression, it.atome, it.transformation);
 	}
-
-	if (valeur_ARGV) {
-		auto charge_argv = cree_charge_mem(nullptr, alloc_argv);
-		cree_stocke_mem(nullptr, valeur_ARGV, charge_argv);
-	}
-
-	auto alloc_contexte = genere_ri_pour_creation_contexte(fonction);
 
 	// ----------------------------------
 	// appel notre fonction principale en passant le contexte et le tableau
 	auto fonc_princ = m_espace->fonction_principale;
 
 	auto params_principale = kuri::tableau<Atome *>(1);
-	params_principale[0] = cree_charge_mem(nullptr, alloc_contexte);
+	params_principale[0] = cree_charge_mem(nullptr, fonction->params_entrees[0]);
 
 	static Lexeme lexeme_appel_principale = { "principale", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
 	lexeme_appel_principale.ident = ID::principale;
@@ -4128,122 +4107,6 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnte
 	fonction->drapeaux |= RI_FUT_GENEREE;
 
 	fonction_courante = nullptr;
-}
-
-Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction)
-{
-	auto assigne_membre = [this](Atome *structure, unsigned index, Atome *valeur)
-	{
-		auto ptr = cree_acces_membre(nullptr, structure, index);
-		cree_stocke_mem(nullptr, ptr, valeur);
-	};
-
-	// ----------------------------------
-	// création de l'information trace d'appel
-	auto type_info_trace_appel = m_espace->typeuse.type_info_fonction_trace_appel;
-	auto alloc_info_trace_appel = cree_allocation(nullptr, type_info_trace_appel, IDENT_CODE("mon_info"));
-	assigne_membre(alloc_info_trace_appel, trouve_index_membre(type_info_trace_appel, "nom"), cree_chaine("main"));
-	assigne_membre(alloc_info_trace_appel, trouve_index_membre(type_info_trace_appel, "fichier"), cree_chaine("???"));
-	assigne_membre(alloc_info_trace_appel, trouve_index_membre(type_info_trace_appel, "adresse"), cree_transtype(nullptr, m_espace->typeuse[TypeBase::PTR_RIEN], fonction, TypeTranstypage::BITS));
-
-	// ----------------------------------
-	// création de la trace d'appel
-	auto type_trace_appel = m_espace->typeuse.type_trace_appel;
-	auto alloc_trace = cree_allocation(nullptr, type_trace_appel, IDENT_CODE("ma_trace"));
-	cree_stocke_mem(nullptr, alloc_trace, genere_initialisation_defaut_pour_type(type_trace_appel));
-	assigne_membre(alloc_trace, trouve_index_membre(type_trace_appel, "info_fonction"), alloc_info_trace_appel);
-
-	// ----------------------------------
-	// création du stockage temporaire
-	auto ident_stock_temp = IDENT_CODE("STOCKAGE_TEMPORAIRE");
-	auto type_tabl_stock_temp = m_espace->typeuse[TypeBase::OCTET];
-	type_tabl_stock_temp = m_espace->typeuse.type_tableau_fixe(type_tabl_stock_temp, 16384);
-	auto tabl_stock_temp = cree_globale(type_tabl_stock_temp, nullptr, false, false);
-	tabl_stock_temp->ident = ident_stock_temp;
-
-	auto type_stock_temp = m_espace->typeuse.type_stockage_temporaire;
-
-	auto alloc_stocke_temp = cree_allocation(nullptr, type_stock_temp, IDENT_CODE("stockage_temporaire"));
-	auto ptr_tabl_stock_temp = cree_acces_index(nullptr, tabl_stock_temp, cree_z64(0));
-
-	assigne_membre(alloc_stocke_temp, trouve_index_membre(type_stock_temp, "données"), ptr_tabl_stock_temp);
-	assigne_membre(alloc_stocke_temp, trouve_index_membre(type_stock_temp, "taille"), cree_z32(16384));
-	assigne_membre(alloc_stocke_temp, trouve_index_membre(type_stock_temp, "occupé"), cree_z32(0));
-	assigne_membre(alloc_stocke_temp, trouve_index_membre(type_stock_temp, "occupation_maximale"), cree_z32(0));
-
-	// ----------------------------------
-	// création de l'allocatrice de base
-	auto type_base_alloc = m_espace->typeuse.type_base_allocatrice;
-	auto alloc_base_alloc = cree_allocation(nullptr, type_base_alloc, IDENT_CODE("base_allocatrice"));
-
-	// ----------------------------------
-	// construit le contexte du programme
-
-	auto alloc_contexte = cree_allocation(nullptr, m_espace->typeuse.type_contexte, ID::contexte);
-
-	// À FAIRE : la trace d'appel est réinitialisée après l'initialisation
-	assigne_membre(alloc_contexte, trouve_index_membre(m_espace->typeuse.type_contexte, "trace_appel"), alloc_trace);
-
-	{
-		auto fonction_init = m_espace->trouve_ou_insere_fonction_init(*this, m_espace->typeuse.type_contexte);
-
-		auto params_init = kuri::tableau<Atome *>(1);
-		params_init[0] = alloc_contexte;
-
-		static Lexeme lexeme_appel_init = { "initialise_contexte", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-		lexeme_appel_init.ident = ID::initialise_contexte;
-
-		cree_appel(nullptr, &lexeme_appel_init, fonction_init, std::move(params_init));
-	}
-
-	// après avoir appelé la fonction d'initialisation il nous reste à
-	// manuellement initialiser les membres suivants
-	// - données allocatrice
-	// - stockage temporaire
-	// - trace appel
-	assigne_membre(alloc_contexte, trouve_index_membre(m_espace->typeuse.type_contexte, "données_allocatrice"), alloc_base_alloc);
-	assigne_membre(alloc_contexte, trouve_index_membre(m_espace->typeuse.type_contexte, "stockage_temporaire"), alloc_stocke_temp);
-	assigne_membre(alloc_contexte, trouve_index_membre(m_espace->typeuse.type_contexte, "trace_appel"), alloc_trace);
-
-	// ----------------------------------
-	// initialise l'allocatrice défaut
-	{
-		auto fonction_init = m_espace->trouve_ou_insere_fonction_init(*this, type_base_alloc);
-
-		auto params_init = kuri::tableau<Atome *>(1);
-		params_init[0] = alloc_base_alloc;
-
-		static Lexeme lexeme_appel_init = { "initialise_alloc", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-		lexeme_appel_init.ident = ID::initialise_alloc;
-
-		cree_appel(nullptr, &lexeme_appel_init, fonction_init, std::move(params_init));
-	}
-
-	// ----------------------------------
-	// constructeur des valeurs globales
-	table_locales[ID::contexte] = alloc_contexte;
-	auto constructeurs_globaux = m_espace->constructeurs_globaux.verrou_lecture();
-
-	POUR (*constructeurs_globaux) {
-		if (it.expression->est_non_initialisation()) {
-			continue;
-		}
-
-		genere_ri_transformee_pour_noeud(it.expression, it.atome, it.transformation);
-	}
-
-	// ----------------------------------
-	// construit l'info pour l'appel
-
-	auto type_info_appel = m_espace->typeuse.type_info_appel_trace_appel;
-	auto alloc_info_appel = cree_allocation(nullptr, type_info_appel, IDENT_CODE("info_appel"));
-	assigne_membre(alloc_info_appel, trouve_index_membre(type_info_appel, "ligne"), cree_z32(1));
-	assigne_membre(alloc_info_appel, trouve_index_membre(type_info_appel, "colonne"), cree_z32(0));
-	assigne_membre(alloc_info_appel, trouve_index_membre(type_info_appel, "texte"), cree_chaine("principale(contexte);"));
-
-	assigne_membre(alloc_trace, trouve_index_membre(type_trace_appel, "info_appel"), alloc_info_appel);
-
-	return alloc_contexte;
 }
 
 void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl)

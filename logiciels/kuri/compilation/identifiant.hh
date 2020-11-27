@@ -134,6 +134,7 @@ extern IdentifiantCode *pointeur;
 extern IdentifiantCode *corps_texte;
 extern IdentifiantCode *cuisine;
 extern IdentifiantCode *opaque;
+extern IdentifiantCode *__point_d_entree_systeme;
 
 }
 

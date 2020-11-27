@@ -148,6 +148,8 @@ public:
 	/* mise en cache de la fonction principale, si vue dans la Syntaxeuse */
 	NoeudDeclarationEnteteFonction *fonction_principale = nullptr;
 
+	NoeudDeclarationEnteteFonction *fonction_point_d_entree = nullptr;
+
 	explicit EspaceDeTravail(OptionsCompilation opts);
 
 	COPIE_CONSTRUCT(EspaceDeTravail);

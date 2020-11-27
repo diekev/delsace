@@ -1373,10 +1373,6 @@ static void genere_code_C_depuis_fonction_principale(
 		erreur::fonction_principale_manquante(espace);
 	}
 
-	// nous devons générer la fonction main ici, car elle défini le type du tableau de
-	// stockage temporaire, et les typedefs pour les types sont générés avant les fonctions.
-	auto atome_main = constructrice_ri.genere_ri_pour_fonction_main(&espace);
-
 	genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
 	genere_code_pour_types(compilatrice, graphe, enchaineuse);
@@ -1384,8 +1380,15 @@ static void genere_code_C_depuis_fonction_principale(
 	dls::ensemble<AtomeFonction *> utilises;
 	kuri::tableau<AtomeFonction *> fonctions;
 	graphe->rassemble_fonctions_utilisees(fonction_principale->noeud_dependance, fonctions, utilises);
+	graphe->rassemble_fonctions_utilisees(espace.fonction_point_d_entree->noeud_dependance, fonctions, utilises);
 
-	fonctions.pousse(atome_main);
+	// génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme et principale
+	auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(&espace);
+	fonctions.pousse(atome_principale);
+
+	// fais en sors que point_d_entree_systeme est utilisée, et renomme en « main » pour ne pas avoir à créer une autre fonction
+	espace.fonction_point_d_entree->atome_fonction->nombre_utilisations = 1;
+	espace.fonction_point_d_entree->atome_fonction->nom = "main";
 
 	auto generatrice = GeneratriceCodeC(espace);
 	generatrice.genere_code(espace.globales, fonctions, enchaineuse);

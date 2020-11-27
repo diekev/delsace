@@ -686,16 +686,13 @@ tableau_supprime_index :: fonc (tabl: *[]$T, index: z64) -> rien
 
 // --------------------------------
 
-externe __ARGV : **z8
-externe __ARGC : z32
-
 strlen :: fonc (str: *z8) -> z64 #externe
 
 arguments_ligne_commande :: fonc () -> []chaine
 {
     tabl_args : []chaine
 
-    si __ARGC == 0 {
+    si __arguments_ligne_commande.taille == 0 {
         retourne tabl_args
     }
 
@@ -703,12 +700,12 @@ arguments_ligne_commande :: fonc () -> []chaine
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     pousse_contexte nouveau_contexte {
-        tabl_args = loge [__ARGC]chaine
+        tabl_args = loge [__arguments_ligne_commande.taille]chaine
 
-        pour idx dans 0 ... __ARGC - 1 {
+        pour __arguments_ligne_commande {
             chn : chaine
-            chn.pointeur = __ARGV[idx]
-            chn.taille = strlen(__ARGV[idx])
+            chn.pointeur = it
+            chn.taille = strlen(it)
             tableau_ajoute(*tabl_args, chn)
         }
 
@@ -741,28 +738,26 @@ crée_contexte :: fonc () -> rien #création_contexte
     }
 }
 
-/*
-
 __contexte_fil_principal : ContexteProgramme = ---
 __arguments_ligne_commande : []*z8 = ---
-__tampon_stockage_tamporaire : [16384]z8
+__tampon_stockage_tamporaire : [16384]z8 = ---
 
 __init_exécution_kuri :: fonc (argc: z32, argv: **z8) -> *ContexteProgramme #nulctx
 {
     __arguments_ligne_commande.taille = argc
     __arguments_ligne_commande.pointeur = argv
 
-    contexte := *__contexte_fil_principale
+    contexte := *__contexte_fil_principal
     init_de(ContexteProgramme)(contexte)
     retourne contexte
 }
 
-__fini_exécution_kuri :: fonc (contexte: *ContexteProgramme)
+__fini_exécution_kuri :: fonc (contexte: *ContexteProgramme) #nulctx
 {
     // rien à faire pour le moment
 }
 
-// Ceci sera remplacé par la fonction principale ou par les métaprogramme
+// Ceci sera remplacé par la fonction principale ou par les métaprogrammes
 __principale :: fonc (contexte: ContexteProgramme) -> z32 #externe
 
 __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbroyage
@@ -770,7 +765,8 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbro
     contexte := __init_exécution_kuri(argc, argv)
 
     // initalise les autres membres du contexte
-    info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = "module.kuri", adresse = __point_d_entree_systeme)
+    // À FAIRE(langage) : prendre les adresses des fonctions
+    info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = "module.kuri", adresse = nul)
     trace_appel := TraceAppel(info_fonction = *info_trace_appel)
     contexte.trace_appel = *trace_appel
 
@@ -778,8 +774,8 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbro
     contexte.données_allocatrice = *base_allocatrice
 
     stockage_temporaire : StockageTemporaire = ---
-    stockage_temporaire.données = *__tampon_stockage_temporaire[0]
-    stockage_temporaire.taille = __tampon_stockage_tempoaire.taille
+    stockage_temporaire.données = *__tampon_stockage_tamporaire[0]
+    stockage_temporaire.taille = __tampon_stockage_tamporaire.taille comme z32
     stockage_temporaire.occupé = 0
     stockage_temporaire.occupation_maximale = 0
     contexte.stockage_temporaire = *stockage_temporaire
@@ -791,5 +787,3 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbro
 
     retourne 0
 }
-
-*/
