@@ -2849,9 +2849,8 @@ void ConstructriceRI::genere_ri_pour_logement(Type *type, int mode, NoeudExpress
 			if (mode == 0 && type_deref && (type_deref->genre == GenreType::STRUCTURE || type_deref->genre == GenreType::UNION)) {
 				auto atome_fonction = m_espace->trouve_ou_insere_fonction_init(*this, type_deref);
 
-				auto params_init = kuri::tableau<Atome *>(2);
-				params_init[0] = cree_charge_mem(noeud, ptr_contexte);
-				params_init[1] = ptr_transtype;
+				auto params_init = kuri::tableau<Atome *>(1);
+				params_init[0] = ptr_transtype;
 
 				cree_appel(noeud, noeud->lexeme, atome_fonction, std::move(params_init));
 			}
@@ -2953,14 +2952,13 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	charge_mems.taille = 0;
 
 	auto fonction = m_espace->trouve_ou_insere_fonction_init(*this, type);
-	auto ptr_contexte = fonction->params_entrees[0];
 	fonction_courante = fonction;
 	cree_label(noeud);
 
 	if (type->genre == GenreType::UNION) {
 		auto type_union = type->comme_union();
 		auto index_membre = 0u;
-		auto pointeur_union = cree_charge_mem(noeud, fonction->params_entrees[1]);
+		auto pointeur_union = cree_charge_mem(noeud, fonction->params_entrees[0]);
 
 		// À FAIRE(union) : test proprement cette logique
 		POUR (type_union->membres) {
@@ -3001,7 +2999,7 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	else if (type->genre == GenreType::STRUCTURE) {
 		auto type_struct = type->comme_structure();
 		auto index_membre = 0u;
-		auto pointeur_struct = cree_charge_mem(noeud, fonction->params_entrees[1]);
+		auto pointeur_struct = cree_charge_mem(noeud, fonction->params_entrees[0]);
 
 		POUR (type_struct->membres) {
 			if (it.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
@@ -3020,9 +3018,8 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 				if (it.type->genre == GenreType::STRUCTURE || it.type->genre == GenreType::UNION) {
 					auto atome_fonction = m_espace->trouve_ou_insere_fonction_init(*this, it.type);
 
-					auto params_init = kuri::tableau<Atome *>(2);
-					params_init[0] = cree_charge_mem(noeud, ptr_contexte);
-					params_init[1] = pointeur;
+					auto params_init = kuri::tableau<Atome *>(1);
+					params_init[0] = pointeur;
 
 					cree_appel(noeud, noeud->lexeme, atome_fonction, std::move(params_init));
 				}
@@ -4190,9 +4187,8 @@ Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction
 	{
 		auto fonction_init = m_espace->trouve_ou_insere_fonction_init(*this, m_espace->typeuse.type_contexte);
 
-		auto params_init = kuri::tableau<Atome *>(2);
-		params_init[0] = cree_charge_mem(nullptr, alloc_contexte);
-		params_init[1] = alloc_contexte;
+		auto params_init = kuri::tableau<Atome *>(1);
+		params_init[0] = alloc_contexte;
 
 		static Lexeme lexeme_appel_init = { "initialise_contexte", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
 		lexeme_appel_init.ident = ID::initialise_contexte;
@@ -4214,9 +4210,8 @@ Atome *ConstructriceRI::genere_ri_pour_creation_contexte(AtomeFonction *fonction
 	{
 		auto fonction_init = m_espace->trouve_ou_insere_fonction_init(*this, type_base_alloc);
 
-		auto params_init = kuri::tableau<Atome *>(2);
-		params_init[0] = cree_charge_mem(nullptr, alloc_contexte);
-		params_init[1] = alloc_base_alloc;
+		auto params_init = kuri::tableau<Atome *>(1);
+		params_init[0] = alloc_base_alloc;
 
 		static Lexeme lexeme_appel_init = { "initialise_alloc", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
 		lexeme_appel_init.ident = ID::initialise_alloc;
@@ -4353,9 +4348,8 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 				else if (var->type->genre == GenreType::STRUCTURE || var->type->genre == GenreType::UNION) {
 					auto atome_fonction = m_espace->trouve_ou_insere_fonction_init(*this, var->type);
 
-					auto params_init = kuri::tableau<Atome *>(2);
-					params_init[0] = cree_charge_mem(var, table_locales[ID::contexte]);
-					params_init[1] = pointeur;
+					auto params_init = kuri::tableau<Atome *>(1);
+					params_init[0] = pointeur;
 
 					cree_appel(var, var->lexeme, atome_fonction, std::move(params_init));
 				}

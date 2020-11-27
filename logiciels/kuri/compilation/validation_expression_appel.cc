@@ -590,6 +590,7 @@ static auto apparie_appel_init_de(
 	resultat.poids_args = 1.0;
 	resultat.exprs = exprs;
 	resultat.transformations = transformations;
+	resultat.requiers_contexte = false;
 
 	return resultat;
 }
@@ -1871,6 +1872,7 @@ bool valide_appel_fonction(
 	else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
 		// le type du retour
 		expr->type = espace.typeuse[TypeBase::RIEN];
+		expr->drapeaux |= FORCE_NULCTX;
 	}
 
 #ifdef CHRONOMETRE_TYPAGE
