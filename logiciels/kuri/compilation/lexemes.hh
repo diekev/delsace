@@ -113,6 +113,7 @@ enum class GenreLexeme : unsigned int {
 	DIFFERE,
 	DISCR,
 	DYN,
+	DEFINIS,
 	DELOGE,
 	EINI,
 	EINI_ERREUR,

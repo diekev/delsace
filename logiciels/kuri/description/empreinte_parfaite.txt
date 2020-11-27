@@ -24,6 +24,7 @@ struct EntreeTable {  const char *nom; GenreLexeme genre;  };
 "diffère", GenreLexeme::DIFFERE
 "discr", GenreLexeme::DISCR
 "dyn", GenreLexeme::DYN
+"définis", GenreLexeme::DEFINIS
 "déloge", GenreLexeme::DELOGE
 "eini", GenreLexeme::EINI
 "eini_erreur", GenreLexeme::EINI_ERREUR

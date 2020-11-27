@@ -60,14 +60,14 @@
 struct EntreeTable {  const char *nom; GenreLexeme genre;  };
 enum
 {
-	TOTAL_KEYWORDS = 64,
+	TOTAL_KEYWORDS = 65,
 	MIN_WORD_LENGTH = 2,
 	MAX_WORD_LENGTH = 16,
 	MIN_HASH_VALUE = 3,
-	MAX_HASH_VALUE = 73
+	MAX_HASH_VALUE = 74
 };
 
-/* maximum key range = 71, duplicates = 0 */
+/* maximum key range = 72, duplicates = 0 */
 
 struct EmpreinteParfaite
 {
@@ -82,34 +82,34 @@ EmpreinteParfaite::calcule_empreinte (const char *str, size_t len)
 {
 	static const unsigned char asso_values[] =
 	{
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		48, 74, 44, 74, 38, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 21, 33, 19,
-		27,  1, 17, 24, 74,  0, 74, 74, 21, 16,
-		1, 10, 10, 74,  8,  6,  2,  4, 28, 74,
-		15, 74, 19, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74,  6, 18,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 29, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74, 74, 74, 74, 74,
-		74, 74, 74, 74, 74, 74
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		63, 75, 45, 75, 37, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 23, 38, 23,
+		29,  1, 14, 28, 75,  0, 75, 75, 21, 18,
+		1, 10, 10, 75,  8,  6,  2,  4, 26, 75,
+		28, 75,  3, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75,  0, 11,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 28, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+		75, 75, 75, 75, 75, 75
 	};
-	unsigned int hval = static_cast<unsigned int>(len);
+	unsigned int hval = len;
 
 	switch (hval)
 	{
@@ -129,12 +129,12 @@ EmpreinteParfaite::calcule_empreinte (const char *str, size_t len)
 
 static const unsigned char lengthtable[] =
 {
-	0,  0,  0,  2,  0,  0,  4,  0,  2,  7,  5,  7,  7, 11,
-	4,  7,  6,  7,  5,  5,  7,  2,  5, 10,  6,  3,  4,  7,
-	8, 16,  8,  3,  9,  6,  7, 15,  4, 14,  4,  5,  4,  4,
-	3,  6,  8,  6,  6, 13,  3,  3,  4,  6,  3,  4,  6,  3,
-	5,  5,  8,  3,  3,  0,  6,  0,  5,  7,  3, 10,  4,  8,
-	3,  0,  0,  7
+	0,  0,  0,  2,  0,  2,  4,  0,  2,  7,  5,  7,  7, 11,
+	4,  7,  6,  7,  5,  5,  7,  0,  5, 10,  6,  3,  4,  7,
+	8, 16,  6,  7,  9,  3,  8, 15,  4,  8,  5, 14,  4,  3,
+	4,  3,  6,  6, 13,  6,  3,  3,  4,  3,  6,  4,  4,  8,
+	3,  0,  0, 10,  6,  0,  8,  5,  5,  8,  7,  3,  7,  3,
+	5,  6,  0,  4,  3
 };
 
 static const struct EntreeTable wordlist[] =
@@ -144,7 +144,7 @@ static const struct EntreeTable wordlist[] =
 {"",GenreLexeme::CHAINE_CARACTERE},
 {"n8", GenreLexeme::N8},
 {"",GenreLexeme::CHAINE_CARACTERE},
-{"",GenreLexeme::CHAINE_CARACTERE},
+{"z8", GenreLexeme::Z8},
 {"eini", GenreLexeme::EINI},
 {"",GenreLexeme::CHAINE_CARACTERE},
 {"si", GenreLexeme::SI},
@@ -160,7 +160,7 @@ static const struct EntreeTable wordlist[] =
 {"octet", GenreLexeme::OCTET},
 {"union", GenreLexeme::UNION},
 {"type_de", GenreLexeme::TYPE_DE},
-{"z8", GenreLexeme::Z8},
+{"",GenreLexeme::CHAINE_CARACTERE},
 {"sinon", GenreLexeme::SINON},
 {"sansarr\303\252t", GenreLexeme::SANSARRET},
 {"struct", GenreLexeme::STRUCT},
@@ -169,50 +169,51 @@ static const struct EntreeTable wordlist[] =
 {"importe", GenreLexeme::IMPORTE},
 {"retourne", GenreLexeme::RETOURNE},
 {"type_de_donn\303\251es", GenreLexeme::TYPE_DE_DONNEES},
-{"continue", GenreLexeme::CONTINUE},
-{"dyn", GenreLexeme::DYN},
-{"taille_de", GenreLexeme::TAILLE_DE},
 {"saufsi", GenreLexeme::SAUFSI},
 {"info_de", GenreLexeme::INFO_DE},
+{"taille_de", GenreLexeme::TAILLE_DE},
+{"dyn", GenreLexeme::DYN},
+{"continue", GenreLexeme::CONTINUE},
 {"pousse_contexte", GenreLexeme::POUSSE_CONTEXTE},
 {"empl", GenreLexeme::EMPL},
+{"r\303\251p\303\250te", GenreLexeme::REPETE},
+{"\303\251num", GenreLexeme::ENUM},
 {"nonatteignable", GenreLexeme::NONATTEIGNABLE},
 {"dans", GenreLexeme::DANS},
-{"\303\251num", GenreLexeme::ENUM},
-{"faux", GenreLexeme::FAUX},
-{"fonc", GenreLexeme::FONC},
 {"n16", GenreLexeme::N16},
-{"corout", GenreLexeme::COROUT},
-{"r\303\251p\303\250te", GenreLexeme::REPETE},
-{"reloge", GenreLexeme::RELOGE},
-{"chaine", GenreLexeme::CHAINE},
-{"\303\251num_drapeau", GenreLexeme::ENUM_DRAPEAU},
-{"n64", GenreLexeme::N64},
-{"r16", GenreLexeme::R16},
-{"loge", GenreLexeme::LOGE},
-{"pi\303\250ge", GenreLexeme::PIEGE},
-{"n32", GenreLexeme::N32},
-{"vrai", GenreLexeme::VRAI},
-{"charge", GenreLexeme::CHARGE},
-{"r64", GenreLexeme::R64},
-{"comme", GenreLexeme::COMME},
-{"discr", GenreLexeme::DISCR},
-{"m\303\251moire", GenreLexeme::MEMOIRE},
-{"r32", GenreLexeme::R32},
+{"fonc", GenreLexeme::FONC},
 {"z16", GenreLexeme::Z16},
+{"pi\303\250ge", GenreLexeme::PIEGE},
+{"reloge", GenreLexeme::RELOGE},
+{"\303\251num_drapeau", GenreLexeme::ENUM_DRAPEAU},
+{"corout", GenreLexeme::COROUT},
+{"r16", GenreLexeme::R16},
+{"n64", GenreLexeme::N64},
+{"faux", GenreLexeme::FAUX},
+{"z64", GenreLexeme::Z64},
+{"chaine", GenreLexeme::CHAINE},
+{"vrai", GenreLexeme::VRAI},
+{"loge", GenreLexeme::LOGE},
+{"m\303\251moire", GenreLexeme::MEMOIRE},
+{"r64", GenreLexeme::R64},
 {"",GenreLexeme::CHAINE_CARACTERE},
+{"",GenreLexeme::CHAINE_CARACTERE},
+{"op\303\251rateur", GenreLexeme::OPERATEUR},
+{"charge", GenreLexeme::CHARGE},
+{"",GenreLexeme::CHAINE_CARACTERE},
+{"d\303\251finis", GenreLexeme::DEFINIS},
+{"discr", GenreLexeme::DISCR},
+{"comme", GenreLexeme::COMME},
+{"diff\303\250re", GenreLexeme::DIFFERE},
+{"arr\303\252te", GenreLexeme::ARRETE},
+{"n32", GenreLexeme::N32},
+{"d\303\251loge", GenreLexeme::DELOGE},
+{"z32", GenreLexeme::Z32},
+{"garde", GenreLexeme::GARDE},
 {"boucle", GenreLexeme::BOUCLE},
 {"",GenreLexeme::CHAINE_CARACTERE},
-{"garde", GenreLexeme::GARDE},
-{"arr\303\252te", GenreLexeme::ARRETE},
-{"z64", GenreLexeme::Z64},
-{"op\303\251rateur", GenreLexeme::OPERATEUR},
 {"bool", GenreLexeme::BOOL},
-{"diff\303\250re", GenreLexeme::DIFFERE},
-{"z32", GenreLexeme::Z32},
-{"",GenreLexeme::CHAINE_CARACTERE},
-{"",GenreLexeme::CHAINE_CARACTERE},
-{"d\303\251loge", GenreLexeme::DELOGE}
+{"r32", GenreLexeme::R32}
 };
 
 GenreLexeme

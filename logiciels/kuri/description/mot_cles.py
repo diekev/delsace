@@ -67,6 +67,7 @@ mot_cles = [
 	u'comme',
 	u'init_de',
 	u'type_de_données',
+	u'définis',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)

@@ -43,6 +43,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("diffère"), GenreLexeme::DIFFERE },
 	dls::paire{ dls::vue_chaine_compacte("discr"), GenreLexeme::DISCR },
 	dls::paire{ dls::vue_chaine_compacte("dyn"), GenreLexeme::DYN },
+	dls::paire{ dls::vue_chaine_compacte("définis"), GenreLexeme::DEFINIS },
 	dls::paire{ dls::vue_chaine_compacte("déloge"), GenreLexeme::DELOGE },
 	dls::paire{ dls::vue_chaine_compacte("eini"), GenreLexeme::EINI },
 	dls::paire{ dls::vue_chaine_compacte("eini_erreur"), GenreLexeme::EINI_ERREUR },
@@ -264,6 +265,8 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 			return "GenreLexeme::DISCR";
 		case GenreLexeme::DYN:
 			return "GenreLexeme::DYN";
+		case GenreLexeme::DEFINIS:
+			return "GenreLexeme::DEFINIS";
 		case GenreLexeme::DELOGE:
 			return "GenreLexeme::DELOGE";
 		case GenreLexeme::EINI:
@@ -539,6 +542,8 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 			return "discr";
 		case GenreLexeme::DYN:
 			return "dyn";
+		case GenreLexeme::DEFINIS:
+			return "définis";
 		case GenreLexeme::DELOGE:
 			return "déloge";
 		case GenreLexeme::EINI:
@@ -670,8 +675,6 @@ void construit_tables_caractere_speciaux()
 
 GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
 {
-	Prof(id_chaine);
-
 	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
 		return GenreLexeme::CHAINE_CARACTERE;
 	}
