@@ -827,7 +827,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 					noeud->expr1 = expression_entre_crochets;
 				}
 
-				noeud->expr2 = analyse_expression({}, racine_expression, lexeme_final);
+				noeud->expr2 = analyse_expression({ PRECEDENCE_TYPE, Associativite::GAUCHE }, racine_expression, lexeme_final);
 
 				return noeud;
 			}
