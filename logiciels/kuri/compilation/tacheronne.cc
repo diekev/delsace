@@ -412,12 +412,42 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, DrapeauxTacher
 		return taches_message.defile();
 	}
 
+	/* Nous pouvons avoir des dépendances entre le typage et la génération de RI
+	 * quand nous exécutons des métaprogrammes #corps_texte : on ne peut typer une
+	 * fonction restante tant que le #corps_texte ne fut pas généré, mais nous ne
+	 * pouvons générer les #corps_texte tant que toutes les dépendances n'ont pas
+	 * eu leurs RI générées. Or, à cause de l'ordre dans lequel nous donnons les
+	 * tâches, le typage se fait avant la génération de RI. Donc afin d'éviter
+	 * de rester bloqué dans le typage, prenons une tâche de typage et une de RI
+	 * et donnons celle de RI si le typage attend sur un métaprogramme.
+	 *
+	 * Il nous faudra une meilleure manière de gérer ce cas.
+	 */
+	auto tache_typage = static_cast<Tache *>(nullptr);
+	auto tache_ri = static_cast<Tache *>(nullptr);
+
 	if (!taches_typage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER))) {
-		return taches_typage.defile();
+		tache_typage = &taches_typage.front();
 	}
 
 	if (!taches_generation_ri.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI))) {
+		tache_ri = &taches_generation_ri.front();
+	}
+
+	if (tache_typage && !tache_ri) {
+		return taches_typage.defile();
+	}
+
+	if (tache_ri && !tache_typage) {
 		return taches_generation_ri.defile();
+	}
+
+	if (tache_ri && tache_typage) {
+		if (tache_typage->unite->etat() == UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME) {
+			return taches_generation_ri.defile();
+		}
+
+		return taches_typage.defile();
 	}
 
 	if (espace->peut_generer_code_final()) {
