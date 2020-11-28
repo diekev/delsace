@@ -938,14 +938,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 				profondeur_appel--;
 
 				if (profondeur_appel == 0) {
-					if (pointeur_pile != pile) {
-						pointeur_pile = pointeur_debut_retour;
-						if (type_fonction->types_sorties[0]->genre == GenreType::ENTIER_RELATIF && type_fonction->types_sorties[0]->taille_octet == 4) {
-							auto resultat = *reinterpret_cast<int *>(pointeur_debut_retour);
-							std::cerr << "Résultat : " << resultat << '\n';
-						}
-					}
-
 					auto temps = debut_execution.temps();
 					temps_execution_metaprogammes += temps;
 
