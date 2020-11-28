@@ -447,6 +447,28 @@ dls::chaine broye_nom_fonction(
 	enchaineuse << nom_ascii;
 
 	/* paramètres */
+	enchaineuse << "_P";
+	enchaineuse << decl->bloc_constantes->membres->taille;
+	enchaineuse << "_";
+
+	decl->bloc_constantes->membres.avec_verrou_lecture([&](kuri::tableau<NoeudDeclaration *> const &membres)
+	{
+		POUR (membres) {
+			nom_ascii = broye_nom_simple(it->ident->nom);
+			enchaineuse << nom_ascii.taille();
+			enchaineuse << nom_ascii;
+
+			auto type = it->type;
+
+			if (type->est_type_de_donnees() && type->comme_type_de_donnees()->type_connu) {
+				type = type->comme_type_de_donnees()->type_connu;
+			}
+
+			auto const &nom_broye = nom_broye_type(type);
+			enchaineuse << nom_broye.taille();
+			enchaineuse << nom_broye;
+		}
+	});
 
 	/* entrées */
 	enchaineuse << "_E";
