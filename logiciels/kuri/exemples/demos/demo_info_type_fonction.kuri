@@ -16,42 +16,42 @@ imprime_type :: fonc(info : *InfoType) -> rien
 		    info_arg := info comme *InfoTypeEntier
 
             si info_arg.est_signé {
-			    si info_arg.taille_en_octet == 8 {
+			    si info_arg.taille_en_octet == 1 {
 				    imprime("z8")
 				}
-				sinon si info_arg.taille_en_octet == 16 {
+				sinon si info_arg.taille_en_octet == 2 {
 				    imprime("z16")
 				}
-				sinon si info_arg.taille_en_octet == 32 {
+				sinon si info_arg.taille_en_octet == 4 {
 				    imprime("z32")
 				}
-				sinon si info_arg.taille_en_octet == 64 {
+				sinon si info_arg.taille_en_octet == 8 {
 				    imprime("z64")
 				}
 			}
 			sinon {
-			    si info_arg.taille_en_octet == 8 {
+			    si info_arg.taille_en_octet == 1 {
 				    imprime("n8")
 				}
-				sinon si info_arg.taille_en_octet == 16 {
+				sinon si info_arg.taille_en_octet == 2 {
 				    imprime("n16")
 				}
-				sinon si info_arg.taille_en_octet == 32 {
+				sinon si info_arg.taille_en_octet == 4 {
 				    imprime("n32")
 				}
-				sinon si info_arg.taille_en_octet == 64 {
+				sinon si info_arg.taille_en_octet == 8 {
 				    imprime("n64")
 				}
 			}
 		}
 		RÉEL {
-            si info.taille_en_octet == 16 {
+            si info.taille_en_octet == 2 {
 			    imprime("r16")
 			}
-			sinon si info.taille_en_octet == 32 {
+			sinon si info.taille_en_octet == 4 {
 			    imprime("r32")
 			}
-			sinon si info.taille_en_octet == 64 {
+			sinon si info.taille_en_octet == 8 {
 			    imprime("r64")
 			}
 		}
