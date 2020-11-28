@@ -328,6 +328,14 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				assert(decl->type || decl->genre == GenreNoeud::DECLARATION_ENTETE_FONCTION);
 				expr->decl = decl;
 				expr->type = decl->type;
+
+				/* si nous avons une valeur polymorphique, crée un type de données
+				 * temporaire pour que la validation soit contente, elle sera
+				 * remplacée par une constante appropriée lors de la validation
+				 * de l'appel */
+				if (decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+					expr->type = espace->typeuse.type_type_de_donnees(expr->type);
+				}
 			}
 
 			if (decl->possede_drapeau(EST_CONSTANTE)) {
