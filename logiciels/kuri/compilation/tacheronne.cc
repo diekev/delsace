@@ -575,7 +575,7 @@ void Tacheronne::gere_tache()
 				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER));
 				auto unite = tache.unite;
 
-				if (unite->cycle > 10) {
+				if (unite->est_bloquee()) {
 					mv.stop = true;
 					compilatrice.possede_erreur = true;
 
@@ -590,8 +590,8 @@ void Tacheronne::gere_tache()
 
 						// À FAIRE : ne devrait pas arriver
 						if (unite_decl) {
-							erreur.ajoute_message("Note : la déclaration ne peut être typée car elle attend sur ")
-									.ajoute_message(chaine_etat_unite(unite_decl->etat()))
+							erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+									.ajoute_message(chaine_attentes_recursives(unite))
 									.ajoute_message("\n");
 						}
 					}

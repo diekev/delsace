@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/chaine.hh"
 
 #include <iostream>
 
@@ -124,8 +125,16 @@ struct UniteCompilation {
 		this->etat_ = Etat::ATTEND_SUR_METAPROGRAMME;
 		this->metaprogramme_attendu = metaprogramme_attendu_;
 	}
+
+	bool est_bloquee() const;
+
+	dls::chaine commentaire() const;
+
+	UniteCompilation *unite_attendue() const;
 };
 
 const char *chaine_etat_unite(UniteCompilation::Etat etat);
 
 std::ostream &operator<<(std::ostream &os, UniteCompilation::Etat etat);
+
+dls::chaine chaine_attentes_recursives(UniteCompilation *unite);
