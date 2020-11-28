@@ -1603,6 +1603,10 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 		POUR (copie->params) {
 			aplatis_arbre(it, copie->arbre_aplatis, {});
 		}
+
+		POUR (copie->params_sorties) {
+			aplatis_arbre(it, copie->arbre_aplatis, {});
+		}
 	}
 
 	monomorphisations->pousse({ items_monomorphisation, copie });
