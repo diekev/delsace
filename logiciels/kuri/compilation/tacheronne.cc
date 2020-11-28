@@ -749,7 +749,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 					auto decl = static_cast<NoeudDeclarationCorpsFonction *>(unite->noeud);
 
 					if (!decl->entete->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-						unite->attend_sur_declaration(decl);
+						unite->attend_sur_declaration(decl->entete);
 						return false;
 					}
 
