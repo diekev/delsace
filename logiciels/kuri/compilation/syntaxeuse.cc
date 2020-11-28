@@ -2091,7 +2091,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			auto decl_var = static_cast<NoeudDeclarationVariable *>(param);
 			if (valeur_poly) {
 				decl_var->drapeaux |= EST_VALEUR_POLYMORPHIQUE;
-				noeud->bloc_constantes->membres->pousse(decl_var);
+				params.pousse(decl_var);
+				noeud->est_polymorphe = true;
 			}
 			else {
 				decl_var->drapeaux |= EST_PARAMETRE;

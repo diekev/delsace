@@ -46,7 +46,38 @@ struct Monomorpheuse {
 
 	void ajoute_item(IdentifiantCode *ident)
 	{
+		POUR (items) {
+			if (it.premier == ident) {
+				return;
+			}
+		}
+
 		items.pousse({ident, nullptr});
+	}
+
+	bool ajoute_contrainte(IdentifiantCode *ident, Type *type_contrainte, Type *type_donne)
+	{
+		// si le type n'obéis pas à la contrainte, retourne
+		if (type_contrainte->est_type_de_donnees() && !type_donne->est_type_de_donnees()) {
+			return false;
+		}
+
+		auto type = type_donne->comme_type_de_donnees()->type_connu;
+
+		if (!type) {
+			return false;
+		}
+
+		POUR (items) {
+			if (it.premier != ident) {
+				continue;
+			}
+
+			it.second = type;
+			return true;
+		}
+
+		return false;
 	}
 
 	bool ajoute_paire_types(Type *type_poly, Type *type_cible)
@@ -810,11 +841,28 @@ static auto apparie_appel_fonction(
 			}
 		});
 
+		POUR (decl->params) {
+			if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+				monomorpheuse.ajoute_item(it->ident);
+			}
+		}
+
 		for (auto i = 0l; i < slots.taille(); ++i) {
 			auto index_arg = std::min(i, decl->params.taille - 1);
 			auto param = decl->parametre_entree(index_arg);
 			auto arg = param->valeur;
 			auto slot = slots[i];
+
+			if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+				if (!monomorpheuse.ajoute_contrainte(param->ident, arg->type, slot->type)) {
+					poids_args = 0.0;
+					res.raison = METYPAGE_ARG;
+					res.type_attendu = arg->type;
+					res.type_obtenu = slot->type;
+					res.noeud_erreur = slot;
+					return false;
+				}
+			}
 
 			if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 				if (!monomorpheuse.ajoute_paire_types(arg->type, slot->type)) {
@@ -1027,10 +1075,28 @@ static auto apparie_appel_fonction(
 		}
 	}
 
+	// Il faut supprimer de l'appel les constantes correspondant aux valeur polymorphiques.
+	for (auto i = 0l; i < slots.taille(); ++i) {
+		auto index_arg = std::min(i, decl->params.taille - 1);
+		auto param = decl->parametre_entree(index_arg);
+
+		if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+			continue;
+		}
+
+		res.exprs.pousse(slots[i]);
+
+		if (i < transformations.taille()) {
+			res.transformations.pousse(transformations[i]);
+		}
+	}
+
+	for (auto i = slots.taille(); i < transformations.taille(); ++i) {
+		res.transformations.pousse(transformations[i]);
+	}
+
 	res.poids_args = poids_args;
-	res.exprs = slots;
 	res.etat = FONCTION_TROUVEE;
-	res.transformations = transformations;
 
 	if (decl->est_polymorphe) {
 		res.items_monomorphisation.reserve(monomorpheuse.items.taille());
@@ -1516,6 +1582,27 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 		}
 
 		copie->bloc_constantes->membres->pousse(decl_constante);
+	}
+
+	// Supprime les valeurs polymorphiques
+	// À FAIRE : optimise
+	auto nouveau_params = kuri::tableau<NoeudDeclarationVariable *>();
+	POUR (copie->params) {
+		if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+			continue;
+		}
+
+		nouveau_params.pousse(it);
+	}
+
+	// il faut également réaplatir l'arbre...
+	if (nouveau_params.taille != copie->params.taille) {
+		copie->params = nouveau_params;
+		copie->arbre_aplatis.taille = 0;
+
+		POUR (copie->params) {
+			aplatis_arbre(it, copie->arbre_aplatis, {});
+		}
 	}
 
 	monomorphisations->pousse({ items_monomorphisation, copie });
