@@ -1,0 +1,427 @@
+/* Bibliothèque de parsage de données encodées au format URL.
+ *
+ * Le format URL est une chaine contenant des paires nom-valeur séparées par des esperluettes ('&').
+ * Les noms et valeurs sont quant à séparés par un égal ('=') : la valeur est assignée au nom.
+ *
+ * Par exemple :
+ *
+ * video=IuK93dq3&temps=137
+ *
+ * possède un champs « video » de valeur « IuK93dq3 » et un champs « temps » de valeur « 137 ».
+ */
+
+importe Compilatrice
+importe Fondation
+importe Numérique
+
+/* FonctionParsage
+ *
+ * Une FonctionParsage fait correspondre un InfoType à une fonction de rappel devant être
+ * utilisée pour parser une chaine de caractère correspondant à une pouvant être tenue
+ * par le type pointé par l'InfoType.
+ *
+ * La fonction de rappel est de type fonc(chaine, []octet)(bool), et doit parser la chaine,
+ * créer si possible une valeur du bon type à partir de celle-ci et ajourner le tampon de
+ * type []octet passé à la fonction. Si le parsage est réussi, la fonction devra retourner
+ * vrai, ou faux le cas échéant.
+ *
+ * Il est possible de définir des fonctions de parsage pour n'importe quel type connu lors
+ * de la compilation.
+ */
+FonctionParsage :: struct {
+    info_type : *InfoType
+    rappel : fonc (chaine, []octet)(bool)
+}
+
+/* Trouve une FonctionParsage pour un InfoType précisé et retourne un pointeur vers celle-ci,
+ * ou nul le cas échéant.
+ */
+trouve_fonction_pour_type :: fonc (fonctions: []FonctionParsage, info_type: *InfoType) -> *FonctionParsage
+{
+    pour fonctions {
+        si info_type == it.info_type {
+            retourne *it
+        }
+    }
+
+    retourne nul
+}
+
+/* Crée une FonctionParsage à partir de l'InfoType et du rappel précisés et ajoute-la au tableau.
+ * S'il existe une FonctionParsage pour l'InfoType, le rappel de celle-ci est ajourné et aucune
+ * nouvelle FonctionParsage n'est crée.
+ */
+ajoute_fonction :: fonc (fonctions: *[]FonctionParsage, info_type: *InfoType, rappel: fonc(chaine, []octet)(bool))
+{
+    pour mémoire(fonctions) {
+        si it.info_type == info_type {
+            it.rappel = rappel
+            retourne
+        }
+    }
+
+    fonction : FonctionParsage
+    fonction.info_type = info_type
+    fonction.rappel = rappel
+
+    tableau_ajoute(fonctions, fonction)
+}
+
+/* ParseuseFormatURL
+ *
+ * La ParseuseFormatURL est une ParseuseChaine et agit comme celle-ci. En outre, elle possède
+ * un tableau de FonctionParsage qu'elle utilisera pour parser les valeurs trouvée dans la
+ * chaine au format URL.
+ */
+ParseuseFormatURL :: struct {
+    empl base: ParseuseChaine
+
+    fonctions : []FonctionParsage
+}
+
+/* Initialise la parseuse pour avoir des fonctions de parsage pour les types
+ * de bases (hors pointeur, référence, ou tableau).
+ */
+initalise_types_base :: fonc (parseuse: *ParseuseFormatURL)
+{
+    ajoute_fonction(parseuse, info_de(chaine), parse_chaine)
+    ajoute_fonction(parseuse, info_de(n8), parse_n8)
+    ajoute_fonction(parseuse, info_de(n16), parse_n16)
+    ajoute_fonction(parseuse, info_de(n32), parse_n32)
+    ajoute_fonction(parseuse, info_de(n64), parse_n64)
+    ajoute_fonction(parseuse, info_de(z8), parse_z8)
+    ajoute_fonction(parseuse, info_de(z16), parse_z16)
+    ajoute_fonction(parseuse, info_de(z32), parse_z32)
+    ajoute_fonction(parseuse, info_de(z64), parse_z64)
+    ajoute_fonction(parseuse, info_de(r16), parse_r16)
+    ajoute_fonction(parseuse, info_de(r32), parse_r32)
+    ajoute_fonction(parseuse, info_de(r64), parse_r64)
+    ajoute_fonction(parseuse, info_de(bool), parse_bool)
+}
+
+/* Ajoute une FonctionParsage pour l'InfoType et le rappel précisés. Voir ajoute_fonction sur
+ * []FonctionParsage pour plus de détail.
+ */
+ajoute_fonction :: fonc (parseuse: *ParseuseFormatURL, info_type: *InfoType, rappel: fonc(chaine, []octet)(bool))
+{
+    ajoute_fonction(*parseuse.fonctions, info_type, rappel)
+}
+
+/* Trouve une FonctionParsage pour l'InfoType précisé. Voir trouve_fonction_pour_type sur
+ * []FonctionParsage pour plus de détail.
+ */
+trouve_fonction_pour_type :: fonc (parseuse: *ParseuseFormatURL, info_type: *InfoType) -> *FonctionParsage
+{
+    retourne trouve_fonction_pour_type(parseuse.fonctions, info_type)
+}
+
+/* structure auxilliaire pour l'algorithme de parsage */
+InfoDonnées :: struct {
+    info : *InfoTypeMembreStructure
+    ptr_résultat : *z8
+    ptr_données : *bool
+}
+
+/* fonction auxilliaire pour l'algorithme de parsage */
+trouve_info_données :: fonc (infos: []InfoDonnées, nom: chaine) -> *InfoDonnées
+{
+    pour infos {
+        si it.info.nom == nom {
+            retourne *it
+        }
+    }
+
+    retourne nul
+}
+
+RésultatParsage :: énum {
+    /* Tout c'est bien passé, le texte put être parsé avec succès. */
+    Succès
+
+    /* Le texte contient un champs dont le nom ne correspond à ancun membre de la structure
+     * cible. */
+    MembreInconnu
+
+    /* Aucune fonction de parsage n'existe pour le type du membre de la structure cible. */
+    FonctionParsageInexistante
+
+    /* Une valeur ne put être parsée. */
+    ÉchecParsageValeur
+
+    /* Texte malformé, une valeur peut manqué, ou le texte contient un caractère '&' final. */
+    TexteMalformé
+}
+
+/* Parse une chaine au format URL pour le type T précisé et retourne une structure de ce type
+ * contenant les valeurs trouvées dans le texte, ainsi qu'une DonnéesRésultat pour le type T
+ * contenant des renseignements sur quels membres ont été trouvés dans le texte. La fonction
+ * retourne également un drapeau pour définir si une erreur est survenue.
+ *
+ * Les erreurs peuvent exister si le texte est malformé, ou si une valeur ne peut être parser,
+ * ou encore si un nom dans le texte ne correspond pas à un membre du type T.
+ *
+ * Le type T doit être une structure.
+ */
+parse_texte_format_url :: fonc (parseuse: *ParseuseFormatURL, texte: chaine, $T: type_de_données) -> RésultatParsage, DonnéesRésultat(T = T), T
+{
+    #assert info_de(T).id == id_info.STRUCTURE
+
+    parseuse.chn = texte
+
+    données : DonnéesRésultat(T = T)
+    résultat : T
+
+    info := info_de(T)
+
+    pointeurs : []InfoDonnées
+    diffère { déloge pointeurs }
+
+    pour info.membres {
+        id : InfoDonnées = ---
+        id.info = it
+        id.ptr_résultat = (*résultat comme *z8 + it.décalage)
+
+        tableau_ajoute(*pointeurs, id)
+    }
+
+    info_données := info_de(type_de(données))
+    pour info_données.membres {
+        id := trouve_info_données(pointeurs, it.nom)
+
+        si id {
+            id.ptr_données = (*données comme *bool + it.décalage)
+        }
+    }
+
+    tantque !fini(parseuse) {
+        pos := trouve_prochain(parseuse, '=')
+
+        si pos <= 0 {
+            retourne RésultatParsage.TexteMalformé, données, résultat
+        }
+
+        nom := sous_chaine_jusque_index(parseuse, pos)
+
+        positionne(parseuse, pos + 1)
+
+        pos = trouve_prochain(parseuse, '&')
+
+        si pos <= 0 {
+            pos = texte.taille
+        }
+
+        valeur := sous_chaine_jusque_index(parseuse, pos)
+
+        positionne(parseuse, pos + 1)
+
+        id := trouve_info_données(pointeurs, nom)
+
+        saufsi id {
+            retourne RésultatParsage.MembreInconnu, données, résultat
+        }
+
+        fonction_parsage := trouve_fonction_pour_type(parseuse, id.info.id)
+
+        saufsi fonction_parsage {
+            retourne RésultatParsage.FonctionParsageInexistante, données, résultat
+        }
+
+        tampon : []octet
+        tampon.pointeur = id.ptr_résultat comme *octet
+        tampon.taille = id.info.id.taille_en_octet comme z64
+
+        // fonction_parsage.rappel ajournera le ptr_résultat via le tampon
+        saufsi fonction_parsage.rappel(valeur, tampon) {
+            retourne RésultatParsage.ÉchecParsageValeur, données, résultat
+        }
+
+        mémoire(id.ptr_données) = vrai
+    }
+
+    retourne RésultatParsage.Succès, données, résultat
+}
+
+/* DonnéesRésultat
+ *
+ * Cette structure polymorphique est monomorphée à partir du type passé en paramètre
+ * et possède un membre correspond pour chaque membre de ce dernier.
+ *
+ * Les membres sont de types bool et leurs valeurs sont ajournées lors du parsage du
+ * texte : si le texte possède une valeur dont le nom est celui d'un membre, celui-ci
+ * aura pour valeur « vrai » dans le résultat du parsage ; si le texte ne possède pas
+ * un tel nom, ou si la valeur ne peut être parsée, le membre aura pour valeur « faux ».
+ */
+DonnéesRésultat :: struct ($T: type_de_données) #corps_texte {
+    info := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour info.membres {
+        ajoute_au_tampon(*enchaineuse, it.nom)
+        ajoute_au_tampon(*enchaineuse, ":= faux\n")
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+// ------------------------
+// Fonctions pour parser les types de bases.
+
+/* Parse une chaine depuis le texte d'entrée. La chaine est simplement équivalent au texte,
+ * aucune copie n'en est faite, nous supposons que le texte est toujours valide. */
+parse_chaine :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    copie_mem_nonsur(src = *texte, dst = tampon.pointeur, taille = tampon.taille)
+    retourne vrai
+}
+
+parse_n8 :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    v := tente extrait_n8(texte) piège err {
+        retourne faux
+    }
+
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
+    retourne vrai
+}
+
+parse_n16 :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    v := tente extrait_n16(texte) piège err {
+        retourne faux
+    }
+
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
+    retourne vrai
+}
+
+parse_n32 :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    v := tente extrait_n32(texte) piège err {
+        retourne faux
+    }
+
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
+    retourne vrai
+}
+
+parse_n64 :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    v := tente extrait_n64(texte) piège err {
+        retourne faux
+    }
+
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
+    retourne vrai
+}
+
+parse_z8 :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    v := tente extrait_z8(texte) piège err {
+        retourne faux
+    }
+
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
+    retourne vrai
+}
+
+parse_z16 :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    v := tente extrait_z16(texte) piège err {
+        retourne faux
+    }
+
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
+    retourne vrai
+}
+
+parse_z32 :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    v := tente extrait_z32(texte) piège err {
+        retourne faux
+    }
+
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
+    retourne vrai
+}
+
+parse_z64 :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    v := tente extrait_z64(texte) piège err {
+        retourne faux
+    }
+
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
+    retourne vrai
+}
+
+parse_r16 :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    v := tente extrait_r16(texte) piège err {
+        retourne faux
+    }
+
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
+    retourne vrai
+}
+
+parse_r32 :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    v := tente extrait_r32(texte) piège err {
+        retourne faux
+    }
+
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
+    retourne vrai
+}
+
+parse_r64 :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    v := tente extrait_r64(texte) piège err {
+        retourne faux
+    }
+
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
+    retourne vrai
+}
+
+parse_bool :: fonc (texte: chaine, tampon: []octet) -> bool
+{
+    si texte == "vrai" {
+        tampon[0] = 1
+        retourne vrai
+    }
+
+    si texte == "faux" {
+        tampon[0] = 0
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+/*
+InformationConnexion :: struct {
+    courriel: chaine
+    mot_de_passe: chaine
+}
+
+    À FAIRE(langage) : les tests échouent car les assignations via les pointeurs ne sont pas correctes
+#test {
+    parseuse : ParseuseFormatURL
+    initalise_types_base(*parseuse)
+
+    requête := "courriel=exemple@courriel.fr&mot_de_passe=M0tDeP4sS3"
+
+    raison, résultat, info := parse_texte_format_url(*parseuse, requête, InformationConnexion)
+
+    compilatrice_vérifie_égalité(raison, RésultatParsage.Succès)
+
+    compilatrice_vérifie_égalité(résultat.courriel, vrai)
+    compilatrice_vérifie_égalité(résultat.mot_de_passe, vrai)
+
+    compilatrice_vérifie_égalité(info.courriel, "exemple@courriel.fr")
+    compilatrice_vérifie_égalité(info.mot_de_passe, "M0tDeP4sS3")
+}
+*/
