@@ -994,7 +994,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						auto entete = fonction_appelee->comme_entete_fonction();
 
 						if (entete->est_coroutine) {
-							::rapporte_erreur(espace, enfant2, "Les coroutines ne sont plus supportés dans le langage pour le moment");
+							::rapporte_erreur(espace, enfant2, "Les coroutines ne sont plus supportées dans le langage pour le moment");
 //							enfant1->type = enfant2->type;
 
 //							df = enfant2->df;
