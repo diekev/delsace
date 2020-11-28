@@ -1217,6 +1217,16 @@ static auto apparie_appel_structure(
 		// détecte les arguments polymorphiques dans les fonctions polymorphiques
 		auto est_type_argument_polymorphique = false;
 		POUR (arguments) {
+			// vérifie si l'argument est une valeur polymorphique de la fonction
+			if (it.expr->est_ref_decl()) {
+				auto ref_decl = it.expr->comme_ref_decl();
+
+				if (ref_decl->decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+					est_type_argument_polymorphique = true;
+					break;
+				}
+			}
+
 			if (it.expr->type->est_type_de_donnees()) {
 				auto type_connu = it.expr->type->comme_type_de_donnees()->type_connu;
 
@@ -1234,6 +1244,15 @@ static auto apparie_appel_structure(
 			type_poly->structure = decl_struct;
 
 			POUR (arguments) {
+				if (it.expr->est_ref_decl()) {
+					auto ref_decl = it.expr->comme_ref_decl();
+
+					if (ref_decl->decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+						type_poly->types_constants_structure.pousse(it.expr->type);
+						break;
+					}
+				}
+
 				if (it.expr->type->est_type_de_donnees()) {
 					auto type_connu = it.expr->type->comme_type_de_donnees()->type_connu;
 
