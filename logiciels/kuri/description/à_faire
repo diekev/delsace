@@ -8,8 +8,6 @@
 
 // --------------------
 
-valeurs polymorphiques pour les fonctions
-
 plusieurs threads d'exécutions pour le typage ou la génération de RI
 
 remplace les noeuds de dépendances par des unités de compilations
@@ -41,8 +39,6 @@ ajout de l'information de présence de contexte aux blocs afin de pouvoir défin
             fonction_avec_contexte()  // erreur de compilation
         }
     }
-
-    pour les initialisation de structures, il nous faudra savoir là où la structure est initialisé si nous avons un contexte si une fonction utilisée dans l'initialisation requiers un tel contexte
 
 
 // --------------------------- Fonctions
@@ -130,7 +126,7 @@ directive #exécute dans les fonctions
     tiré le résultat et son type
     le métaprogramme devra avoir des constantes comme entrée
 
-vérifie que les entrées des métaprogrammes soit des constantes
+vérifie que les entrées des métaprogrammes sont des constantes
 
 - pouvoir changer le contenu d'une fonction (par exemple pour profiler l'exécutable)
 
@@ -197,13 +193,13 @@ ajout de tranches pour les tableaux et les chaines
 
 ajout de types produits (tuples) avec accès par x.0, x.1, etc...
 
-avoir un bon système d'alias de type, avec sûreté de typage, pour ne avoir à déclarer des structures ne contenant qu'un seul membre
+avoir un bon système d'opacification de type, avec sûreté de typage, pour ne pas avoir à déclarer des structures ne contenant qu'un seul membre
 
     AdresseEmail :: struct {
         chn: chaine
     }
 
-    AdresseEmail :: #alias chaine
+    AdresseEmail :: #opaque chaine
 
 typage un peu libre des énumérations
 
@@ -226,7 +222,7 @@ typage un peu libre des énumérations
 constructions de la table de types
     requiers d'avoir des fonctions d'initialisations pour tous les types
 
-ajout d'un type pour les caractères, au lieu de z8 ou n32 (peut se faire via un alias, mais les chaines seraient brisées)
+ajout d'un type pour les caractères, au lieu de z8 ou n32 (peut se faire via une opacité, mais les chaines seraient brisées)
 
 charge/données personnalisées pour les erreurs afin de transmettre plus de détails à la fonction appelante
 
@@ -501,7 +497,7 @@ Idées
 - passer uniquement par référence, ou utilisation d'un mot-clé spécifique pour dire qu'un paramètre peut-être nul
 - mot-clés pour un mutli-threading par système de tâches concurrentes, avec maintenance des fonctions auxilliaires par le compileur
 - transformer les messages d'erreur en tutoriaux
-- ajout de nom et valeur par défaut au type de retour
+- ajout de valeur par défaut au type de retour
 - constructeurs/destructeurs via mot-clés et pointeurs de fonction
 - concaténation des chaînes littérales connues lors de la compilation via l'opérateur '+'
 - opérateurs prenant des listes :
