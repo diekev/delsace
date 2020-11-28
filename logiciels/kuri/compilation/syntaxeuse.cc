@@ -2658,7 +2658,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 			if (apparie_expression()) {
 				auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
 
-				if (!noeud->est_declaration() && !noeud->est_assignation() && !noeud->est_empl()) {
+				if (!noeud_decl->est_corps_texte && !noeud->est_declaration() && !noeud->est_assignation() && !noeud->est_empl()) {
 					rapporte_erreur(m_unite->espace, noeud, "Attendu une déclaration ou une assignation dans le bloc de la structure");
 				}
 
