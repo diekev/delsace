@@ -64,7 +64,7 @@ bool UniteCompilation::est_bloquee() const
 		}
 		case UniteCompilation::Etat::ATTEND_SUR_OPERATEUR:
 		{
-			return false;
+			return cycle > CYCLES_MAXIMUM;
 		}
 		case UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME:
 		{
