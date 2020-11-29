@@ -2936,13 +2936,16 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 		 * n'est jamais incrémentée (res étant assigné à dernier_resultat) */
 		res.est_errone = false;
 
-		// À FAIRE(erreur) : vérifie qu'aucune expression s'évalue à zéro
 		if (expr != nullptr) {
 			res = evalue_expression(espace, decl->bloc, expr);
 
 			if (res.est_errone) {
 				rapporte_erreur(res.message_erreur, res.noeud_erreur, erreur::Genre::VARIABLE_REDEFINIE);
 				return true;
+			}
+
+			if (res.entier == 0 && type_enum->est_erreur) {
+				::rapporte_erreur(espace, expr, "L'expression d'une enumération erreur ne peut s'évaluer à 0 (cette valeur est réservée par la compilatrice).");
 			}
 		}
 		else {
