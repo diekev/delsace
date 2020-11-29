@@ -30,6 +30,7 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/identifiant.hh"
 #include "compilation/broyage.hh"
+#include "compilation/erreur.h"
 #include "compilation/structures.hh"
 
 #include "instructions.hh"
@@ -686,6 +687,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 	/* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
 	auto pointeur_debut = frame->pointeur;
 	auto instruction = LIS_OCTET();
+	auto site = LIS_POINTEUR(NoeudExpression);
+	static_cast<void>(site);
 
 	switch (instruction) {
 		case OP_LABEL:

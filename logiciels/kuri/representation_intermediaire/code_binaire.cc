@@ -85,7 +85,7 @@ void Chunk::agrandis_si_necessaire(long taille)
 	}
 }
 
-int Chunk::emets_allocation(Type *type, IdentifiantCode *ident)
+int Chunk::emets_allocation(NoeudExpression *site, Type *type, IdentifiantCode *ident)
 {
 	// XXX - À FAIRE : normalise les entiers constants
 	if (type->genre == GenreType::ENTIER_CONSTANT) {
@@ -93,6 +93,7 @@ int Chunk::emets_allocation(Type *type, IdentifiantCode *ident)
 	}
 	assert(type->taille_octet);
 	emets(OP_ALLOUE);
+	emets(site);
 	emets(type);
 	emets(ident);
 
@@ -101,78 +102,88 @@ int Chunk::emets_allocation(Type *type, IdentifiantCode *ident)
 	return decalage;
 }
 
-void Chunk::emets_assignation(Type *type)
+void Chunk::emets_assignation(NoeudExpression *site, Type *type)
 {
 	assert(type->taille_octet);
 	emets(OP_ASSIGNE);
+	emets(site);
 	emets(type->taille_octet);
 }
 
-void Chunk::emets_charge(Type *type)
+void Chunk::emets_charge(NoeudExpression *site, Type *type)
 {
 	assert(type->taille_octet);
 	emets(OP_CHARGE);
+	emets(site);
 	emets(type->taille_octet);
 }
 
-void Chunk::emets_charge_variable(int pointeur, Type *type)
+void Chunk::emets_charge_variable(NoeudExpression *site, int pointeur, Type *type)
 {
 	assert(type->taille_octet);
-	emets_reference_variable(pointeur);
-	emets_charge(type);
+	emets_reference_variable(site, pointeur);
+	emets_charge(site, type);
 }
 
-void Chunk::emets_reference_globale(int pointeur)
+void Chunk::emets_reference_globale(NoeudExpression *site, int pointeur)
 {
 	emets(OP_REFERENCE_GLOBALE);
+	emets(site);
 	emets(pointeur);
 }
 
-void Chunk::emets_reference_variable(int pointeur)
+void Chunk::emets_reference_variable(NoeudExpression *site, int pointeur)
 {
 	emets(OP_REFERENCE_VARIABLE);
+	emets(site);
 	emets(pointeur);
 }
 
-void Chunk::emets_reference_membre(unsigned decalage)
+void Chunk::emets_reference_membre(NoeudExpression *site, unsigned decalage)
 {
 	emets(OP_REFERENCE_MEMBRE);
+	emets(site);
 	emets(decalage);
 }
 
-void Chunk::emets_appel(AtomeFonction *fonction, unsigned taille_arguments, InstructionAppel *inst_appel)
+void Chunk::emets_appel(NoeudExpression *site, AtomeFonction *fonction, unsigned taille_arguments, InstructionAppel *inst_appel)
 {
 	emets(OP_APPEL);
+	emets(site);
 	emets(fonction);
 	emets(taille_arguments);
 	emets(inst_appel);
 }
 
-void Chunk::emets_appel_externe(AtomeFonction *fonction, unsigned taille_arguments, InstructionAppel *inst_appel)
+void Chunk::emets_appel_externe(NoeudExpression *site, AtomeFonction *fonction, unsigned taille_arguments, InstructionAppel *inst_appel)
 {
 	emets(OP_APPEL_EXTERNE);
+	emets(site);
 	emets(fonction);
 	emets(taille_arguments);
 	emets(inst_appel);
 }
 
-void Chunk::emets_appel_pointeur(unsigned taille_arguments, InstructionAppel *inst_appel)
+void Chunk::emets_appel_pointeur(NoeudExpression *site, unsigned taille_arguments, InstructionAppel *inst_appel)
 {
 	emets(OP_APPEL_POINTEUR);
+	emets(site);
 	emets(taille_arguments);
 	emets(inst_appel);
 }
 
-void Chunk::emets_acces_index(Type *type)
+void Chunk::emets_acces_index(NoeudExpression *site, Type *type)
 {
 	assert(type->taille_octet);
 	emets(OP_ACCEDE_INDEX);
+	emets(site);
 	emets(type->taille_octet);
 }
 
-void Chunk::emets_branche(dls::tableau<PatchLabel> &patchs_labels, int index)
+void Chunk::emets_branche(NoeudExpression *site, dls::tableau<PatchLabel> &patchs_labels, int index)
 {
 	emets(OP_BRANCHE);
+	emets(site);
 	emets(0);
 
 	auto patch = PatchLabel();
@@ -181,9 +192,10 @@ void Chunk::emets_branche(dls::tableau<PatchLabel> &patchs_labels, int index)
 	patchs_labels.pousse(patch);
 }
 
-void Chunk::emets_branche_condition(dls::tableau<PatchLabel> &patchs_labels, int index_label_si_vrai, int index_label_si_faux)
+void Chunk::emets_branche_condition(NoeudExpression *site, dls::tableau<PatchLabel> &patchs_labels, int index_label_si_vrai, int index_label_si_faux)
 {
 	emets(OP_BRANCHE_CONDITION);
+	emets(site);
 	emets(0);
 	emets(0);
 
@@ -198,7 +210,7 @@ void Chunk::emets_branche_condition(dls::tableau<PatchLabel> &patchs_labels, int
 	patchs_labels.pousse(patch);
 }
 
-void Chunk::emets_label(int index)
+void Chunk::emets_label(NoeudExpression *site, int index)
 {
 	if (decalages_labels.taille() <= index) {
 		decalages_labels.redimensionne(index + 1);
@@ -206,6 +218,7 @@ void Chunk::emets_label(int index)
 
 	decalages_labels[index] = static_cast<int>(compte);
 	emets(OP_LABEL);
+	emets(site);
 	emets(index);
 }
 
@@ -407,6 +420,8 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
 	os << std::setfill('0') << std::setw(4) << decalage << ' ';
 
 	auto instruction = chunk.code[decalage];
+	/* ignore le site */
+	decalage += 8;
 
 	switch (instruction) {
 		case OP_RETOURNE:
@@ -851,7 +866,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 	POUR (fonction->params_entrees) {
 		auto alloc = it->comme_instruction()->comme_alloc();
 		auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
-		auto adresse = chunk.emets_allocation(type_pointe, alloc->ident);
+		auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
 		alloc->index_locale = static_cast<int>(chunk.locales.taille());
 		chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
 	}
@@ -867,7 +882,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 		if (it->est_alloc()) {
 			auto alloc = it->comme_alloc();
 			auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
-			auto adresse = chunk.emets_allocation(type_pointe, alloc->ident);
+			auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
 			alloc->index_locale = static_cast<int>(chunk.locales.taille());
 			chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
 		}
@@ -915,20 +930,20 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		case Instruction::Genre::LABEL:
 		{
 			auto label = instruction->comme_label();
-			chunk.emets_label(label->id);
+			chunk.emets_label(label->site, label->id);
 			break;
 		}
 		case Instruction::Genre::BRANCHE:
 		{
 			auto branche = instruction->comme_branche();
-			chunk.emets_branche(patchs_labels, branche->label->id);
+			chunk.emets_branche(branche->site, patchs_labels, branche->label->id);
 			break;
 		}
 		case Instruction::Genre::BRANCHE_CONDITION:
 		{
 			auto branche = instruction->comme_branche_cond();
 			genere_code_binaire_pour_atome(branche->condition, chunk, true);
-			chunk.emets_branche_condition(patchs_labels, branche->label_si_vrai->id, branche->label_si_faux->id);
+			chunk.emets_branche_condition(branche->site, patchs_labels, branche->label_si_vrai->id, branche->label_si_faux->id);
 			break;
 		}
 		case Instruction::Genre::ALLOCATION:
@@ -936,7 +951,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 			auto alloc = instruction->comme_alloc();
 
 			if (pour_operande) {
-				chunk.emets_reference_variable(alloc->index_locale);
+				chunk.emets_reference_variable(alloc->site, alloc->index_locale);
 			}
 #ifdef OPTIMISE_ALLOCS
 			else {
@@ -950,7 +965,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				}
 
 				auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
-				auto adresse = chunk.emets_allocation(type_pointe, alloc->ident);
+				auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
 				alloc->index_locale = static_cast<int>(chunk.locales.taille());
 				chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
 			}
@@ -962,7 +977,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		{
 			auto charge = instruction->comme_charge();
 			genere_code_binaire_pour_atome(charge->chargee, chunk, true);
-			chunk.emets_charge(charge->type);
+			chunk.emets_charge(charge->site, charge->type);
 			break;
 		}
 		case Instruction::Genre::STOCKE_MEMOIRE:
@@ -971,7 +986,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 			genere_code_binaire_pour_atome(stocke->valeur, chunk, true);
 			// l'adresse de la valeur doit être au sommet de la pile lors de l'assignation
 			genere_code_binaire_pour_atome(stocke->ou, chunk, true);
-			chunk.emets_assignation(stocke->valeur->type);
+			chunk.emets_assignation(stocke->site, stocke->valeur->type);
 			break;
 		}
 		case Instruction::Genre::APPEL:
@@ -1002,15 +1017,15 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				auto atome_appelee = static_cast<AtomeFonction *>(appelee);
 
 				if (atome_appelee->est_externe) {
-					chunk.emets_appel_externe(atome_appelee, taille_arguments, appel);
+					chunk.emets_appel_externe(appel->site, atome_appelee, taille_arguments, appel);
 				}
 				else {
-					chunk.emets_appel(atome_appelee, taille_arguments, appel);
+					chunk.emets_appel(appel->site, atome_appelee, taille_arguments, appel);
 				}
 			}
 			else {
 				genere_code_binaire_pour_atome(appelee, chunk, true);
-				chunk.emets_appel_pointeur(taille_arguments, appel);
+				chunk.emets_appel_pointeur(appel->site, taille_arguments, appel);
 			}
 
 			break;
@@ -1024,6 +1039,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 			}
 
 			chunk.emets(OP_RETOURNE);
+			chunk.emets(retour->site);
 			break;
 		}
 		case Instruction::Genre::TRANSTYPE:
@@ -1046,6 +1062,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				case TypeTranstypage::AUGMENTE_REEL:
 				{
 					chunk.emets(OP_AUGMENTE_REEL);
+					chunk.emets(transtype->site);
 					chunk.emets(4);
 					chunk.emets(8);
 					break;
@@ -1053,6 +1070,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				case TypeTranstypage::AUGMENTE_NATUREL:
 				{
 					chunk.emets(OP_AUGMENTE_NATUREL);
+					chunk.emets(transtype->site);
 					chunk.emets(valeur->type->taille_octet);
 					chunk.emets(transtype->type->taille_octet);
 					break;
@@ -1060,6 +1078,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				case TypeTranstypage::AUGMENTE_RELATIF:
 				{
 					chunk.emets(OP_AUGMENTE_RELATIF);
+					chunk.emets(transtype->site);
 					chunk.emets(valeur->type->taille_octet);
 					chunk.emets(transtype->type->taille_octet);
 					break;
@@ -1067,6 +1086,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				case TypeTranstypage::DIMINUE_REEL:
 				{
 					chunk.emets(OP_DIMINUE_REEL);
+					chunk.emets(transtype->site);
 					chunk.emets(8);
 					chunk.emets(4);
 					break;
@@ -1074,6 +1094,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				case TypeTranstypage::DIMINUE_NATUREL:
 				{
 					chunk.emets(OP_DIMINUE_NATUREL);
+					chunk.emets(transtype->site);
 					chunk.emets(valeur->type->taille_octet);
 					chunk.emets(transtype->type->taille_octet);
 					break;
@@ -1081,6 +1102,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				case TypeTranstypage::DIMINUE_RELATIF:
 				{
 					chunk.emets(OP_DIMINUE_RELATIF);
+					chunk.emets(transtype->site);
 					chunk.emets(valeur->type->taille_octet);
 					chunk.emets(transtype->type->taille_octet);
 					break;
@@ -1102,11 +1124,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 
 				// l'accédé est le pointeur vers le pointeur, donc déréférence-le
 				if (type_accede->genre == GenreType::POINTEUR) {
-					chunk.emets_charge(type_pointeur);
+					chunk.emets_charge(index->site, type_pointeur);
 				}
 			}
 
-			chunk.emets_acces_index(type_pointeur->type_pointe);
+			chunk.emets_acces_index(index->site, type_pointeur->type_pointe);
 			break;
 		}
 		case Instruction::Genre::ACCEDE_MEMBRE:
@@ -1119,7 +1141,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 
 			auto decalage = type_compose->membres[index_membre].decalage;
 			genere_code_binaire_pour_atome(membre->accede, chunk, true);
-			chunk.emets_reference_membre(decalage);
+			chunk.emets_reference_membre(membre->site, decalage);
 
 			break;
 		}
@@ -1133,13 +1155,16 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 			if (op_unaire->op == OperateurUnaire::Genre::Complement) {
 				if (type->genre == GenreType::REEL) {
 					chunk.emets(OP_COMPLEMENT_REEL);
+					chunk.emets(op_unaire->site);
 				}
 				else {
 					chunk.emets(OP_COMPLEMENT_ENTIER);
+					chunk.emets(op_unaire->site);
 				}
 			}
 			else if (op_unaire->op == OperateurUnaire::Genre::Non_Binaire) {
 				chunk.emets(OP_NON_BINAIRE);
+				chunk.emets(op_unaire->site);
 			}
 
 
@@ -1161,6 +1186,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 
 			auto op_comp = converti_op_binaire(op_binaire->op);
 			chunk.emets(op_comp);
+			chunk.emets(op_binaire->site);
 
 			auto type_gauche = op_binaire->valeur_gauche->type;
 
@@ -1284,6 +1310,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
 						if (tableau_valeur[0]->genre == AtomeConstante::Genre::VALEUR) {
 							// valeur nulle pour les chaines initilisées à zéro
 							chunk.emets(OP_CHAINE_CONSTANTE);
+							chunk.emets(nullptr); /* site */
 							chunk.emets(nullptr);
 							chunk.emets(0l);
 						}
@@ -1298,6 +1325,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
 							chaine.taille = tableau->valeur.valeur_tdc.taille;
 
 							chunk.emets(OP_CHAINE_CONSTANTE);
+							chunk.emets(nullptr); /* site */
 							chunk.emets(chaine.pointeur);
 							chunk.emets(chaine.taille);
 
@@ -1608,7 +1636,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk
 				}
 			}
 
-			chunk.emets_reference_globale(atome_globale->index);
+			chunk.emets_reference_globale(nullptr, atome_globale->index);
 			break;
 		}
 		case Atome::Genre::FONCTION:

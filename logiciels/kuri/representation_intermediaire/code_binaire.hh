@@ -239,28 +239,29 @@ struct Chunk {
 	void emets_constante(T v)
 	{
 		emets(OP_CONSTANTE);
+		emets(nullptr); /* site */
 		emets(drapeau_pour_constante<T>::valeur);
 		emets(v);
 	}
 
 	void agrandis_si_necessaire(long taille);
 
-	int emets_allocation(Type *type, IdentifiantCode *ident);
-	void emets_assignation(Type *type);
-	void emets_charge(Type *type);
-	void emets_charge_variable(int pointeur, Type *type);
-	void emets_reference_globale(int pointeur);
-	void emets_reference_variable(int pointeur);
-	void emets_reference_membre(unsigned decalage);
-	void emets_appel(AtomeFonction *fonction, unsigned taille_arguments, InstructionAppel *inst_appel);
-	void emets_appel_externe(AtomeFonction *fonction, unsigned taille_arguments, InstructionAppel *inst_appel);
-	void emets_appel_pointeur(unsigned taille_arguments, InstructionAppel *inst_appel);
-	void emets_acces_index(Type *type);
+	int emets_allocation(NoeudExpression *site, Type *type, IdentifiantCode *ident);
+	void emets_assignation(NoeudExpression *site, Type *type);
+	void emets_charge(NoeudExpression *site, Type *type);
+	void emets_charge_variable(NoeudExpression *site, int pointeur, Type *type);
+	void emets_reference_globale(NoeudExpression *site, int pointeur);
+	void emets_reference_variable(NoeudExpression *site, int pointeur);
+	void emets_reference_membre(NoeudExpression *site, unsigned decalage);
+	void emets_appel(NoeudExpression *site, AtomeFonction *fonction, unsigned taille_arguments, InstructionAppel *inst_appel);
+	void emets_appel_externe(NoeudExpression *site, AtomeFonction *fonction, unsigned taille_arguments, InstructionAppel *inst_appel);
+	void emets_appel_pointeur(NoeudExpression *site, unsigned taille_arguments, InstructionAppel *inst_appel);
+	void emets_acces_index(NoeudExpression *site, Type *type);
 
-	void emets_branche(dls::tableau<PatchLabel> &patchs_labels, int index);
-	void emets_branche_condition(dls::tableau<PatchLabel> &patchs_labels, int index_label_si_vrai, int index_label_si_faux);
+	void emets_branche(NoeudExpression *site, dls::tableau<PatchLabel> &patchs_labels, int index);
+	void emets_branche_condition(NoeudExpression *site, dls::tableau<PatchLabel> &patchs_labels, int index_label_si_vrai, int index_label_si_faux);
 
-	void emets_label(int index);
+	void emets_label(NoeudExpression *site, int index);
 };
 
 void desassemble(Chunk const &chunk, const char *nom, std::ostream &os);
