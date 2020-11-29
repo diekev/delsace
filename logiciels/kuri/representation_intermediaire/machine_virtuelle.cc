@@ -639,12 +639,13 @@ void MachineVirtuelle::empile_constante(FrameAppel *frame)
 
 void MachineVirtuelle::installe_metaprogramme(MetaProgramme *metaprogramme)
 {
-	profondeur_appel = metaprogramme->donnees_execution->profondeur_appel;
-	pile = metaprogramme->donnees_execution->pile;
-	pointeur_pile = metaprogramme->donnees_execution->pointeur_pile;
-	frames = metaprogramme->donnees_execution->frames;
-	ptr_donnees_constantes = metaprogramme->donnees_execution->donnees_constantes.donnees();
-	ptr_donnees_globales = metaprogramme->donnees_execution->donnees_globales.donnees();
+	auto de = metaprogramme->donnees_execution;
+	profondeur_appel = de->profondeur_appel;
+	pile = de->pile;
+	pointeur_pile = de->pointeur_pile;
+	frames = de->frames;
+	ptr_donnees_constantes = de->donnees_constantes.donnees();
+	ptr_donnees_globales = de->donnees_globales.donnees();
 
 	assert(pile);
 	assert(pointeur_pile);
@@ -655,8 +656,8 @@ void MachineVirtuelle::installe_metaprogramme(MetaProgramme *metaprogramme)
 void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
 {
 	auto de = metaprogramme->donnees_execution;
-	metaprogramme->donnees_execution->profondeur_appel = profondeur_appel;
-	metaprogramme->donnees_execution->pointeur_pile = pointeur_pile;
+	de->profondeur_appel = profondeur_appel;
+	de->pointeur_pile = pointeur_pile;
 
 	assert(de->pointeur_pile >= de->pile && de->pointeur_pile < (de->pile + TAILLE_PILE));
 
