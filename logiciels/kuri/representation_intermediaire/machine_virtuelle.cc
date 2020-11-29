@@ -938,6 +938,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
 				profondeur_appel--;
 
 				if (profondeur_appel == 0) {
+					if (pointeur_pile != pile) {
+						pointeur_pile = pointeur_debut_retour;
+					}
+
 					auto temps = debut_execution.temps();
 					temps_execution_metaprogammes += temps;
 
