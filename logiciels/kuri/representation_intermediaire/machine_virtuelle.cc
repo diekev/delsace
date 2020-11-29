@@ -596,19 +596,19 @@ void MachineVirtuelle::empile_constante(FrameAppel *frame)
 	switch (drapeaux) {
 		case CONSTANTE_ENTIER_RELATIF | BITS_8:
 		{
-			EMPILE_CONSTANTE(char);
+			EMPILE_CONSTANTE(char)
 		}
 		case CONSTANTE_ENTIER_RELATIF | BITS_16:
 		{
-			EMPILE_CONSTANTE(short);
+			EMPILE_CONSTANTE(short)
 		}
 		case CONSTANTE_ENTIER_RELATIF | BITS_32:
 		{
-			EMPILE_CONSTANTE(int);
+			EMPILE_CONSTANTE(int)
 		}
 		case CONSTANTE_ENTIER_RELATIF | BITS_64:
 		{
-			EMPILE_CONSTANTE(long);
+			EMPILE_CONSTANTE(long)
 		}
 		case CONSTANTE_ENTIER_NATUREL | BITS_8:
 		{
@@ -618,23 +618,23 @@ void MachineVirtuelle::empile_constante(FrameAppel *frame)
 		}
 		case CONSTANTE_ENTIER_NATUREL | BITS_16:
 		{
-			EMPILE_CONSTANTE(unsigned short);
+			EMPILE_CONSTANTE(unsigned short)
 		}
 		case CONSTANTE_ENTIER_NATUREL | BITS_32:
 		{
-			EMPILE_CONSTANTE(unsigned int);
+			EMPILE_CONSTANTE(unsigned int)
 		}
 		case CONSTANTE_ENTIER_NATUREL | BITS_64:
 		{
-			EMPILE_CONSTANTE(unsigned long);
+			EMPILE_CONSTANTE(unsigned long)
 		}
 		case CONSTANTE_NOMBRE_REEL | BITS_32:
 		{
-			EMPILE_CONSTANTE(float);
+			EMPILE_CONSTANTE(float)
 		}
 		case CONSTANTE_NOMBRE_REEL | BITS_64:
 		{
-			EMPILE_CONSTANTE(double);
+			EMPILE_CONSTANTE(double)
 		}
 	}
 
@@ -732,220 +732,220 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 		}
 		case OP_COMPLEMENT_ENTIER:
 		{
-			OP_UNAIRE(-);
+			OP_UNAIRE(-)
 			break;
 		}
 		case OP_COMPLEMENT_REEL:
 		{
-			OP_UNAIRE_REEL(-);
+			OP_UNAIRE_REEL(-)
 			break;
 		}
 		case OP_NON_BINAIRE:
 		{
-			OP_UNAIRE(~);
+			OP_UNAIRE(~)
 			break;
 		}
 		case OP_AJOUTE:
 		{
-			OP_BINAIRE(oper::ajoute);
+			OP_BINAIRE(oper::ajoute)
 			break;
 		}
 		case OP_SOUSTRAIT:
 		{
-			OP_BINAIRE(oper::soustrait);
+			OP_BINAIRE(oper::soustrait)
 			break;
 		}
 		case OP_MULTIPLIE:
 		{
-			OP_BINAIRE(oper::multiplie);
+			OP_BINAIRE(oper::multiplie)
 			break;
 		}
 		case OP_DIVISE:
 		{
-			OP_BINAIRE_NATUREL(oper::divise);
+			OP_BINAIRE_NATUREL(oper::divise)
 			break;
 		}
 		case OP_DIVISE_RELATIF:
 		{
-			OP_BINAIRE(oper::divise);
+			OP_BINAIRE(oper::divise)
 			break;
 		}
 		case OP_AJOUTE_REEL:
 		{
-			OP_BINAIRE_REEL(oper::ajoute);
+			OP_BINAIRE_REEL(oper::ajoute)
 			break;
 		}
 		case OP_SOUSTRAIT_REEL:
 		{
-			OP_BINAIRE_REEL(oper::soustrait);
+			OP_BINAIRE_REEL(oper::soustrait)
 			break;
 		}
 		case OP_MULTIPLIE_REEL:
 		{
-			OP_BINAIRE_REEL(oper::multiplie);
+			OP_BINAIRE_REEL(oper::multiplie)
 			break;
 		}
 		case OP_DIVISE_REEL:
 		{
-			OP_BINAIRE_REEL(oper::divise);
+			OP_BINAIRE_REEL(oper::divise)
 			break;
 		}
 		case OP_RESTE_NATUREL:
 		{
-			OP_BINAIRE_NATUREL(oper::modulo);
+			OP_BINAIRE_NATUREL(oper::modulo)
 			break;
 		}
 		case OP_RESTE_RELATIF:
 		{
-			OP_BINAIRE(oper::modulo);
+			OP_BINAIRE(oper::modulo)
 			break;
 		}
 		case OP_COMP_EGAL:
 		{
-			OP_BINAIRE(oper::egal);
+			OP_BINAIRE(oper::egal)
 			break;
 		}
 		case OP_COMP_INEGAL:
 		{
-			OP_BINAIRE(oper::different);
+			OP_BINAIRE(oper::different)
 			break;
 		}
 		case OP_COMP_INF:
 		{
-			OP_BINAIRE(oper::inferieur);
+			OP_BINAIRE(oper::inferieur)
 			break;
 		}
 		case OP_COMP_INF_EGAL:
 		{
-			OP_BINAIRE(oper::inferieur_egal);
+			OP_BINAIRE(oper::inferieur_egal)
 			break;
 		}
 		case OP_COMP_SUP:
 		{
-			OP_BINAIRE(oper::superieur);
+			OP_BINAIRE(oper::superieur)
 			break;
 		}
 		case OP_COMP_SUP_EGAL:
 		{
-			OP_BINAIRE(oper::superieur_egal);
+			OP_BINAIRE(oper::superieur_egal)
 			break;
 		}
 		case OP_COMP_INF_NATUREL:
 		{
-			OP_BINAIRE_NATUREL(oper::inferieur);
+			OP_BINAIRE_NATUREL(oper::inferieur)
 			break;
 		}
 		case OP_COMP_INF_EGAL_NATUREL:
 		{
-			OP_BINAIRE_NATUREL(oper::inferieur_egal);
+			OP_BINAIRE_NATUREL(oper::inferieur_egal)
 			break;
 		}
 		case OP_COMP_SUP_NATUREL:
 		{
-			OP_BINAIRE_NATUREL(oper::superieur);
+			OP_BINAIRE_NATUREL(oper::superieur)
 			break;
 		}
 		case OP_COMP_SUP_EGAL_NATUREL:
 		{
-			OP_BINAIRE_NATUREL(oper::superieur_egal);
+			OP_BINAIRE_NATUREL(oper::superieur_egal)
 			break;
 		}
 		case OP_COMP_EGAL_REEL:
 		{
-			OP_BINAIRE_REEL(oper::egal);
+			OP_BINAIRE_REEL(oper::egal)
 			break;
 		}
 		case OP_COMP_INEGAL_REEL:
 		{
-			OP_BINAIRE_REEL(oper::different);
+			OP_BINAIRE_REEL(oper::different)
 			break;
 		}
 		case OP_COMP_INF_REEL:
 		{
-			OP_BINAIRE_REEL(oper::inferieur);
+			OP_BINAIRE_REEL(oper::inferieur)
 			break;
 		}
 		case OP_COMP_INF_EGAL_REEL:
 		{
-			OP_BINAIRE_REEL(oper::inferieur_egal);
+			OP_BINAIRE_REEL(oper::inferieur_egal)
 			break;
 		}
 		case OP_COMP_SUP_REEL:
 		{
-			OP_BINAIRE_REEL(oper::superieur);
+			OP_BINAIRE_REEL(oper::superieur)
 			break;
 		}
 		case OP_COMP_SUP_EGAL_REEL:
 		{
-			OP_BINAIRE_REEL(oper::superieur_egal);
+			OP_BINAIRE_REEL(oper::superieur_egal)
 			break;
 		}
 		case OP_ET_LOGIQUE:
 		{
-			OP_BINAIRE(oper::et_logique);
+			OP_BINAIRE(oper::et_logique)
 			break;
 		}
 		case OP_OU_LOGIQUE:
 		{
-			OP_BINAIRE(oper::ou_logique);
+			OP_BINAIRE(oper::ou_logique)
 			break;
 		}
 		case OP_ET_BINAIRE:
 		{
-			OP_BINAIRE(oper::et_binaire);
+			OP_BINAIRE(oper::et_binaire)
 			break;
 		}
 		case OP_OU_BINAIRE:
 		{
-			OP_BINAIRE(oper::ou_binaire);
+			OP_BINAIRE(oper::ou_binaire)
 			break;
 		}
 		case OP_OU_EXCLUSIF:
 		{
-			OP_BINAIRE(oper::oux_binaire);
+			OP_BINAIRE(oper::oux_binaire)
 			break;
 		}
 		case OP_DEC_GAUCHE:
 		{
-			OP_BINAIRE(oper::dec_gauche);
+			OP_BINAIRE(oper::dec_gauche)
 			break;
 		}
 		case OP_DEC_DROITE_ARITHM:
 		{
-			OP_BINAIRE(oper::dec_droite);
+			OP_BINAIRE(oper::dec_droite)
 			break;
 		}
 		case OP_DEC_DROITE_LOGIQUE:
 		{
-			OP_BINAIRE_NATUREL(oper::dec_droite);
+			OP_BINAIRE_NATUREL(oper::dec_droite)
 			break;
 		}
 		case OP_AUGMENTE_NATUREL:
 		{
 			auto taille_de = LIS_4_OCTETS();
 			auto taille_vers = LIS_4_OCTETS();
-			FAIS_TRANSTYPE_AUGMENTE(unsigned char, unsigned short, unsigned int, unsigned long);
+			FAIS_TRANSTYPE_AUGMENTE(unsigned char, unsigned short, unsigned int, unsigned long)
 			break;
 		}
 		case OP_DIMINUE_NATUREL:
 		{
 			auto taille_de = LIS_4_OCTETS();
 			auto taille_vers = LIS_4_OCTETS();
-			FAIS_TRANSTYPE_DIMINUE(unsigned char, unsigned short, unsigned int, unsigned long);
+			FAIS_TRANSTYPE_DIMINUE(unsigned char, unsigned short, unsigned int, unsigned long)
 			break;
 		}
 		case OP_AUGMENTE_RELATIF:
 		{
 			auto taille_de = LIS_4_OCTETS();
 			auto taille_vers = LIS_4_OCTETS();
-			FAIS_TRANSTYPE_AUGMENTE(char, short, int, long);
+			FAIS_TRANSTYPE_AUGMENTE(char, short, int, long)
 			break;
 		}
 		case OP_DIMINUE_RELATIF:
 		{
 			auto taille_de = LIS_4_OCTETS();
 			auto taille_vers = LIS_4_OCTETS();
-			FAIS_TRANSTYPE_DIMINUE(char, short, int, long);
+			FAIS_TRANSTYPE_DIMINUE(char, short, int, long)
 			break;
 		}
 		case OP_AUGMENTE_REEL:
