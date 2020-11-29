@@ -236,34 +236,29 @@ génère_page :: fonc(
 
             variable := noeud.enfants[0].données.chn
 
-            discr valeur.info.id  {
-                TABLEAU {
-                    itératrice := crée_itératrice_tableau(valeur)
+            si valeur.est_tableau() {
+                itératrice := crée_itératrice_tableau(valeur)
 
-                    boucle {
-                        valeur_ := itératrice.valeur_suivante()
+                boucle {
+                    valeur_ := itératrice.valeur_suivante()
 
-                        saufsi valeur_.est_valide() {
-                            arrête
-                        }
+                    saufsi valeur_.est_valide() {
+                        arrête
+                    }
 
-                        données.nom_variable_boucle = variable
-                        données.données_variable_boucle = valeur_
+                    données.nom_variable_boucle = variable
+                    données.données_variable_boucle = valeur_
 
-                        erreur_ := génère_page(données, noeud.enfants[2], enchaineuse)
+                    erreur_ := génère_page(données, noeud.enfants[2], enchaineuse)
 
-                        si erreur_ != ErreurGénérationPage.AUCUNE {
-                            retourne erreur_
-                        }
+                    si erreur_ != ErreurGénérationPage.AUCUNE {
+                        retourne erreur_
                     }
                 }
-                STRUCTURE {
-                    // itération sur les membres
-                }
-                sinon {
-                    ajoute_au_tampon(enchaineuse, "Objet nul n'est pas itérable !")
-                    retourne ErreurGénérationPage.OBJET_NON_ITÉRABLE
-                }
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, "Objet nul n'est pas itérable !")
+                retourne ErreurGénérationPage.OBJET_NON_ITÉRABLE
             }
         }
         SI {
