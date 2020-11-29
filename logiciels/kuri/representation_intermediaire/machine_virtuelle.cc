@@ -688,7 +688,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 	auto pointeur_debut = frame->pointeur;
 	auto instruction = LIS_OCTET();
 	auto site = LIS_POINTEUR(NoeudExpression);
-	static_cast<void>(site);
 
 	switch (instruction) {
 		case OP_LABEL:
@@ -1075,7 +1074,11 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 				auto espace_recu = static_cast<EspaceDeTravail *>(depile<void *>());
 
 				if (espace_recu->metaprogramme != m_metaprogramme) {
-					// À FAIRE : rapporte erreur, il nous faudra la ligne de l'appel
+					/* L'espace du « site » est celui de métaprogramme, et non
+					 * l'espace reçu en paramètre. */
+					rapporte_erreur(m_metaprogramme->unite->espace,
+									site,
+									"Le métaprogramme terminant l'interception n'est pas celui l'ayant commancé !");
 				}
 
 				espace_recu->metaprogramme = nullptr;
