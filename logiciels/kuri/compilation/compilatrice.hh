@@ -148,12 +148,13 @@ public:
 
 	std::mutex mutex_atomes_fonctions{};
 
-	PhaseCompilation phase = PhaseCompilation::PARSAGE_EN_COURS;
-
 	/* mise en cache de la fonction principale, si vue dans la Syntaxeuse */
 	NoeudDeclarationEnteteFonction *fonction_principale = nullptr;
 
 	NoeudDeclarationEnteteFonction *fonction_point_d_entree = nullptr;
+
+	/* Le métaprogramme controlant la compilation dans cette espace. */
+	MetaProgramme *metaprogramme = nullptr;
 
 	explicit EspaceDeTravail(OptionsCompilation opts);
 

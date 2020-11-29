@@ -1053,6 +1053,31 @@ ResultatInterpretation MachineVirtuelle::execute_instruction()
 				break;
 			}
 
+			if (ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(compilatrice_commence_interception)) {
+				auto espace_recu = static_cast<EspaceDeTravail *>(depile<void *>());
+
+				auto &messagere = compilatrice.messagere;
+				messagere->commence_interception(espace_recu);
+
+				espace_recu->metaprogramme = m_metaprogramme;
+				static_cast<void>(espace_recu);
+				break;
+			}
+
+			if (ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(compilatrice_termine_interception)) {
+				auto espace_recu = static_cast<EspaceDeTravail *>(depile<void *>());
+
+				if (espace_recu->metaprogramme != m_metaprogramme) {
+					// À FAIRE : rapporte erreur, il nous faudra la ligne de l'appel
+				}
+
+				espace_recu->metaprogramme = nullptr;
+
+				auto &messagere = compilatrice.messagere;
+				messagere->termine_interception(espace_recu);
+				compilatrice.ordonnanceuse->purge_messages();
+			}
+
 			appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
 			break;
 		}

@@ -432,11 +432,15 @@ bool EspaceDeTravail::peut_generer_code_final() const
 		return false;
 	}
 
-	if (nombre_taches_execution != 0) {
-		return false;
+	if (nombre_taches_execution == 0) {
+		return true;
 	}
 
-	return true;
+	if (nombre_taches_execution == 1 && metaprogramme) {
+		return true;
+	}
+
+	return false;
 }
 
 bool EspaceDeTravail::parsage_termine() const
@@ -763,15 +767,18 @@ EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine nom, OptionsCompilati
 	return ptr_compilatrice->demarre_un_espace_de_travail(*options, dls::chaine(nom.pointeur, nom.taille));
 }
 
-void compilatrice_commence_interception(EspaceDeTravail *espace)
+/* cette fonction est symbolique, afin de pouvoir la détecter dans les
+ * MachineVirtuelles, et y renseigner dans l'espace le métaprogramme en cours
+ * d'exécution */
+void compilatrice_commence_interception(EspaceDeTravail * /*espace*/)
 {
-	ptr_compilatrice->messagere->commence_interception(espace);
 }
 
-void compilatrice_termine_interception(EspaceDeTravail *espace)
+/* cette fonction est symbolique, afin de pouvoir la détecter dans les
+ * MachineVirtuelles, et y vérifier que le métaprogramme terminant l'interception
+ * est bel et bien celui l'ayant commencé */
+void compilatrice_termine_interception(EspaceDeTravail * /*espace*/)
 {
-	ptr_compilatrice->messagere->termine_interception(espace);
-	ptr_compilatrice->ordonnanceuse->purge_messages();
 }
 
 EspaceDeTravail *espace_defaut_compilation()
