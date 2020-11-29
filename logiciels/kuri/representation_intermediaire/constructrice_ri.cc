@@ -2316,7 +2316,7 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 			}
 		}
 		else {
-			// À FAIRE(tente) : extraction des valeurs de l'union
+			rapporte_erreur(espace(), noeud, "Utilisation de « tente » sur une union ayant plus de 2 membres !");
 		}
 
 		// test si membre actif est erreur
