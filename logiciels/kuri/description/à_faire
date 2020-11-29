@@ -29,18 +29,6 @@ utilisation d'une variable globale pour le contexte du thread principale
     -- mention dans test_moultfilage.kuri
     -- mention dans Jeu/application.kuri "imprime n'a pas de contexte"
 
-ajout de l'information de présence de contexte aux blocs afin de pouvoir définir si nous avons un contexte ou non
-
-    fonction_sans_contexte :: fonc () #nulctx
-    {
-        contexte := __contexte_principal
-
-        pousse_contexte contexte {
-            fonction_avec_contexte()  // erreur de compilation
-        }
-    }
-
-
 // --------------------------- Fonctions
 
 passe un type à une fonction pour instantier automatiquement une valeur temporaire dont on ne se soucie pas de la valeur

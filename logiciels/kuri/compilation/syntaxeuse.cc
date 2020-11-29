@@ -1625,7 +1625,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 	}
 }
 
-NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
+NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise, bool pour_pousse_contexte)
 {
 	Prof(Syntaxeuse_analyse_bloc);
 
@@ -1637,6 +1637,11 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
 	}
 
 	auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme);
+
+	if (pour_pousse_contexte) {
+		bloc->possede_contexte = true;
+	}
+
 	auto expressions = dls::tablet<NoeudExpression *, 32>();
 
 	while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
@@ -1857,7 +1862,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pousse_contexte()
 	consomme();
 
 	noeud->expr = analyse_expression({}, GenreLexeme::POUSSE_CONTEXTE, GenreLexeme::INCONNU);
-	noeud->bloc = analyse_bloc();
+	noeud->bloc = analyse_bloc(true, true);
 
 	return noeud;
 }
@@ -2248,6 +2253,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			else if (ident_directive == ID::nulctx) {
 				noeud->drapeaux |= FORCE_NULCTX;
 				noeud->drapeaux |= FORCE_SANSTRACE;
+				noeud->bloc_parametres->possede_contexte = false;
 			}
 			else if (ident_directive == ID::externe) {
 				noeud->drapeaux |= EST_EXTERNE;

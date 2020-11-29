@@ -709,6 +709,7 @@ struct NoeudBloc : public NoeudExpression {
 	bool est_differe = false;
 	bool est_nonsur = false;
 	bool est_bloc_fonction = false;
+	bool possede_contexte = false;
 
 	int nombre_recherches = 0;
 

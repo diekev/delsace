@@ -116,7 +116,7 @@ private:
 	NoeudExpression *analyse_expression_primaire(GenreLexeme racine_expression, GenreLexeme lexeme_final);
 	NoeudExpression *analyse_expression_secondaire(NoeudExpression *gauche, DonneesPrecedence const &donnees_precedence, GenreLexeme racine_expression, GenreLexeme lexeme_final);
 
-	NoeudBloc *analyse_bloc(bool accolade_requise = true);
+	NoeudBloc *analyse_bloc(bool accolade_requise = true, bool pour_pousse_contexte = false);
 
 	NoeudExpression *analyse_appel_fonction(NoeudExpression *gauche);
 

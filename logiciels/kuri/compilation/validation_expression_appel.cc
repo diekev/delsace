@@ -513,9 +513,7 @@ static auto apparie_appel_pointeur(
 	if (type_fonction->types_entrees.taille != 0 && type_fonction->types_entrees[0] == espace.typeuse.type_contexte) {
 		debut_params = 1;
 
-		auto fonc_courante = contexte.fonction_courante;
-
-		if (fonc_courante != nullptr && fonc_courante->possede_drapeau(FORCE_NULCTX)) {
+		if (!b->bloc_parent->possede_contexte) {
 			resultat.noeud_erreur = b;
 			resultat.etat = FONCTION_INTROUVEE;
 			resultat.raison = CONTEXTE_MANQUANT;
@@ -1814,7 +1812,7 @@ bool valide_appel_fonction(
 			using dls::outils::possede_drapeau;
 			auto decl_fonc = fonction_courante;
 
-			if (possede_drapeau(decl_fonc->drapeaux, FORCE_NULCTX)) {
+			if (!expr->bloc_parent->possede_contexte) {
 				auto decl_appel = decl_fonction_appelee;
 
 				if (!decl_appel->est_externe && !decl_appel->possede_drapeau(FORCE_NULCTX)) {

@@ -36,6 +36,14 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 	auto bloc = static_cast<NoeudBloc *>(cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, lexeme));
 	bloc->bloc_parent = bloc_courant();
 
+	if (bloc->bloc_parent) {
+		bloc->possede_contexte = bloc->bloc_parent->possede_contexte;
+	}
+	else {
+		/* vrai si le bloc ne possède pas de parent (bloc de module) */
+		bloc->possede_contexte = true;
+	}
+
 	m_blocs.empile(bloc);
 
 	return bloc;
