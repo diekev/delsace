@@ -39,6 +39,9 @@
 #undef DEBOGUE_VALEURS_ENTREE_SORTIE
 #undef DEBOGUE_LOCALES
 
+#define EST_FONCTION_COMPILATRICE(fonction) \
+	ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(fonction)
+
 namespace oper {
 
 #pragma GCC diagnostic push
@@ -1036,12 +1039,12 @@ ResultatInterpretation MachineVirtuelle::execute_instruction()
 			auto ptr_fonction = reinterpret_cast<AtomeFonction *>(valeur_ptr);
 			auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
 
-			if (ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(compilatrice_espace_courant)) {
+			if (EST_FONCTION_COMPILATRICE(compilatrice_espace_courant)) {
 				empile(m_metaprogramme->unite->espace);
 				break;
 			}
 
-			if (ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(compilatrice_attend_message)) {
+			if (EST_FONCTION_COMPILATRICE(compilatrice_attend_message)) {
 				auto &messagere = compilatrice.messagere;
 
 				if (!messagere->possede_message()) {
@@ -1054,7 +1057,7 @@ ResultatInterpretation MachineVirtuelle::execute_instruction()
 				break;
 			}
 
-			if (ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(compilatrice_commence_interception)) {
+			if (EST_FONCTION_COMPILATRICE(compilatrice_commence_interception)) {
 				auto espace_recu = static_cast<EspaceDeTravail *>(depile<void *>());
 
 				auto &messagere = compilatrice.messagere;
@@ -1065,7 +1068,7 @@ ResultatInterpretation MachineVirtuelle::execute_instruction()
 				break;
 			}
 
-			if (ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(compilatrice_termine_interception)) {
+			if (EST_FONCTION_COMPILATRICE(compilatrice_termine_interception)) {
 				auto espace_recu = static_cast<EspaceDeTravail *>(depile<void *>());
 
 				if (espace_recu->metaprogramme != m_metaprogramme) {
