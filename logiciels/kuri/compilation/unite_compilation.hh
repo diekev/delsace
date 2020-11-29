@@ -46,7 +46,6 @@ struct Type;
 	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_OPERATEUR) \
 	ENUMERE_ETAT_UNITE_EX(ATTEND_SUR_METAPROGRAMME)
 
-// À FAIRE : les unités devront également dépendre sur les opérateurs quand nous en aurons plus d'une tacheronne
 struct UniteCompilation {
 	enum class Etat {
 #define ENUMERE_ETAT_UNITE_EX(etat) etat,
