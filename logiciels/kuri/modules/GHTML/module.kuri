@@ -251,7 +251,7 @@ génère_page :: fonc(
                             données.nom_variable_boucle = variable
 
                             e : eini
-                            e.pointeur = pointeur + décalage * i
+                            e.pointeur = x.pointeur + décalage * i
                             e.info = info_arg.type_pointé
 
                             données.données_variable_boucle = e
@@ -279,7 +279,7 @@ génère_page :: fonc(
 
             idx_enfant := 0
 
-            si valeur.pointeur != nul {
+            si évalue_condition(valeur) {
                 idx_enfant = 1
             }
             sinon si noeud.enfants.taille > 2 {
@@ -295,4 +295,47 @@ génère_page :: fonc(
     }
 
     retourne ErreurGénérationPage.AUCUNE
+}
+
+évalue_condition :: fonc (valeur: eini) -> bool
+{
+    saufsi valeur.est_valide() {
+        retourne faux
+    }
+
+    si valeur.est_bool() {
+        retourne valeur.comme_bool()
+    }
+
+    si valeur.est_chaine() {
+        retourne valeur.comme_chaine() != ""
+    }
+
+    retourne faux
+}
+
+// À FAIRE(langage) : surcharge opérateur ! pour eini
+est_valide :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.pointeur != nul
+}
+
+est_bool :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.BOOLÉEN
+}
+
+est_chaine :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.CHAINE
+}
+
+comme_bool :: fonc (valeur: eini) -> bool
+{
+    retourne mémoire(valeur.pointeur comme *bool)
+}
+
+comme_chaine :: fonc (valeur: eini) -> chaine
+{
+    retourne mémoire(valeur.pointeur comme *chaine)
 }

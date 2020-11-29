@@ -13,10 +13,11 @@ TypeLexème :: énum z32 {
 	BLOC
 	FINBLOC
 	DÉBUT_VARIABLE
-	DÉBUT_EXPRESSION
+	DÉBUT_CONTROLE
 	FIN_VARIABLE
-	FIN_EXPRESSION
+	FIN_CONTROLE
 	CHAINE_CARACTÈRE
+	POINT
 }
 
 Lexème :: struct {
@@ -48,8 +49,8 @@ id_identifiant :: fonc(identifiant : chaine) -> TypeLexème
 //######################################
 
 ÉtatLexage :: énum z32 {
-    // L'état quand nous sommes dans un script de contrôle du gabarit
-	SCRIPT
+    // L'état quand nous sommes dans un controle du gabarit
+	CONTROLE
     // L'état quand nous sommes dans du code HTML
 	HTML
 }
@@ -87,7 +88,7 @@ détruit_lexeuse :: fonc(lexeuse : &Lexeuse) -> rien
 performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 {
     ÉTAT_HTML := 0
-    ÉTAT_SCRIPT := 1
+    ÉTAT_CONTROLE := 1
 
 	état := ÉTAT_HTML
 
@@ -98,7 +99,7 @@ performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 					lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
 				}
 
-				état = ÉTAT_SCRIPT
+				état = ÉTAT_CONTROLE
 
 				lexeuse.enregistre_position_mot()
 				lexeuse.pousse_caractère()
@@ -111,12 +112,12 @@ performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 					lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
 				}
 
-				état = ÉTAT_SCRIPT
+				état = ÉTAT_CONTROLE
 
 				lexeuse.enregistre_position_mot()
 				lexeuse.pousse_caractère()
 				lexeuse.pousse_caractère()
-				lexeuse.pousse_mot(TypeLexème.DÉBUT_EXPRESSION)
+				lexeuse.pousse_mot(TypeLexème.DÉBUT_CONTROLE)
 				lexeuse.avance(2)
 			}
 			sinon {
@@ -147,7 +148,7 @@ performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 			lexeuse.enregistre_position_mot()
 			lexeuse.pousse_caractère()
 			lexeuse.pousse_caractère()
-			lexeuse.pousse_mot(TypeLexème.FIN_EXPRESSION)
+			lexeuse.pousse_mot(TypeLexème.FIN_CONTROLE)
 			lexeuse.avance(2)
 		}
 		sinon {
@@ -212,6 +213,15 @@ analyse_caractère_simple :: fonc(lexeuse : &Lexeuse) -> rien
 		si (lexeuse.taille_mot_courant != 0) {
 			lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
 		}
+	}
+	sinon si lexeuse.caractère_courant() == '.' {
+		si (lexeuse.taille_mot_courant != 0) {
+			lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
+		}
+
+		lexeuse.enregistre_position_mot()
+		lexeuse.pousse_caractère()
+		lexeuse.pousse_mot(TypeLexème.POINT)
 	}
 	sinon {
 		si (lexeuse.taille_mot_courant == 0) {

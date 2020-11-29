@@ -14,7 +14,7 @@ Syntaxeuse :: struct {
 	inclusions : []*NoeudSyntaxique
 }
 
-construit_syntaxeuse :: fonc(lexèmes : &[]Lexème) -> Syntaxeuse
+construit_syntaxeuse :: fonc (lexèmes : &[]Lexème) -> Syntaxeuse
 {
     syntaxeuse : Syntaxeuse
     syntaxeuse.lexèmes = lexèmes
@@ -29,114 +29,121 @@ détruit_syntaxeuse :: fonc (syntaxeuse: &Syntaxeuse)
 	déloge syntaxeuse.inclusions
 }
 
-lexème_courant :: fonc(syntaxeuse : &Syntaxeuse) -> TypeLexème
+lexème_courant :: fonc (syntaxeuse : &Syntaxeuse) -> TypeLexème
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position].type_lexème
 }
 
-avance :: fonc(syntaxeuse : &Syntaxeuse) -> rien
+avance :: fonc (syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position += 1
 }
 
-recule :: fonc(syntaxeuse : &Syntaxeuse) -> rien
+recule :: fonc (syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position -= 1
 }
 
-requiers_lexème :: fonc(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
+consomme :: fonc (syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
 {
 	t := syntaxeuse.lexème_courant()
 	syntaxeuse.avance()
 	retourne t == type
 }
 
-est_lexème :: fonc(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
+apparie :: fonc (syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
 {
 	retourne syntaxeuse.lexème_courant() == type
 }
 
-données :: fonc(syntaxeuse : &Syntaxeuse) -> &Lexème
+données :: fonc (syntaxeuse : &Syntaxeuse) -> &Lexème
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position - 1]
 }
 
-position :: fonc(syntaxeuse : &Syntaxeuse) -> z32
+position :: fonc (syntaxeuse : &Syntaxeuse) -> z32
 {
     retourne syntaxeuse.position - 1
 }
 
-fini :: fonc(syntaxeuse : &Syntaxeuse) -> bool
+fini :: fonc (syntaxeuse : &Syntaxeuse) -> bool
 {
-    retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille
+    retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille || syntaxeuse.possède_erreurs()
 }
 
-performe_syntaxage :: fonc(syntaxeuse : &Syntaxeuse) -> rien
+possède_erreurs :: fonc (syntaxeuse: &Syntaxeuse) -> bool
 {
-	syntaxeuse.position = 0
+	retourne syntaxeuse.erreurs.taille != 0
+}
 
-	si (syntaxeuse.lexèmes.taille == 0) {
+performe_syntaxage :: fonc (syntaxeuse : &Syntaxeuse) -> rien
+{
+	saufsi syntaxeuse.lexèmes {
 		retourne
 	}
+
+	syntaxeuse.position = 0
 
     données_lexème : Lexème
 	_ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, données_lexème)
 
 	syntaxeuse.analyse_page()
 
-	pour syntaxeuse.erreurs {
-		imprime("%\n", it)
-	}
-
 	syntaxeuse.assembleuse.attend_type(TypeNoeud.BLOC)
 }
 
-analyse_page :: fonc(syntaxeuse : &Syntaxeuse) -> rien
+analyse_page :: fonc (syntaxeuse : &Syntaxeuse) -> rien
 {
 	tantque !syntaxeuse.fini() {
-		si (syntaxeuse.est_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+		si (syntaxeuse.apparie(TypeLexème.CHAINE_CARACTÈRE)) {
 			syntaxeuse.avance()
 			syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.CHAINE_CARACTÈRE, syntaxeuse.données())
 		}
-		sinon si (syntaxeuse.est_lexème(TypeLexème.DÉBUT_EXPRESSION)) {
-			syntaxeuse.analyse_expression()
+		sinon si (syntaxeuse.apparie(TypeLexème.DÉBUT_CONTROLE)) {
+			syntaxeuse.analyse_controle()
 		}
-		sinon si (syntaxeuse.est_lexème(TypeLexème.DÉBUT_VARIABLE)) {
+		sinon si (syntaxeuse.apparie(TypeLexème.DÉBUT_VARIABLE)) {
 			syntaxeuse.avance()
 
-			si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+			// À FAIRE : apparie_expression
+			si (!syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE)) {
 				syntaxeuse.rapporte_erreur("Attendu identifiant de la variable après '{{'")
+				retourne
 			}
 
 			syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
 
-			si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_VARIABLE)) {
+			si (!syntaxeuse.consomme(TypeLexème.FIN_VARIABLE)) {
 				syntaxeuse.rapporte_erreur("Attendu '}}' à la fin de la déclaration d'une variable")
+				retourne
 			}
 		}
 		sinon {
 			syntaxeuse.rapporte_erreur("Lexème inattendu")
+			retourne
 		}
 	}
 }
 
-analyse_expression :: fonc(syntaxeuse : &Syntaxeuse) -> rien
+analyse_controle :: fonc (syntaxeuse : &Syntaxeuse) -> rien
 {
-	si (!syntaxeuse.requiers_lexème(TypeLexème.DÉBUT_EXPRESSION)) {
+	si (!syntaxeuse.consomme(TypeLexème.DÉBUT_CONTROLE)) {
 		syntaxeuse.rapporte_erreur("Attendu '{%'")
+		retourne
 	}
 
-	si (syntaxeuse.est_lexème(TypeLexème.SI)) {
+	si (syntaxeuse.apparie(TypeLexème.SI)) {
 		syntaxeuse.analyse_si()
 	}
-	sinon si (syntaxeuse.est_lexème(TypeLexème.POUR)) {
+	sinon si (syntaxeuse.apparie(TypeLexème.POUR)) {
 		syntaxeuse.analyse_pour()
 	}
-	sinon si syntaxeuse.est_lexème(TypeLexème.ÉTEND) {
+	sinon si syntaxeuse.apparie(TypeLexème.ÉTEND) {
 		syntaxeuse.avance()
 
-		si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+		si (!syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE)) {
 			syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'étend'")
+			retourne
 		}
 
 		nom_fichier := syntaxeuse.données().chn
@@ -144,15 +151,17 @@ analyse_expression :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 		syntaxeuse.est_extension = vrai
 		syntaxeuse.fichier_étendu = nom_fichier
 
-		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+		si (!syntaxeuse.consomme(TypeLexème.FIN_CONTROLE)) {
 			syntaxeuse.rapporte_erreur("Attendu '%}'")
+			retourne
 		}
 	}
-	sinon si syntaxeuse.est_lexème(TypeLexème.INCLUS) {
+	sinon si syntaxeuse.apparie(TypeLexème.INCLUS) {
 		syntaxeuse.avance()
 
-		si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+		si (!syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE)) {
 			syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'inclus'")
+			retourne
 		}
 
 		noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
@@ -163,32 +172,36 @@ analyse_expression :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 
 		tableau_ajoute(*syntaxeuse.inclusions, noeud)
 
-		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+		si (!syntaxeuse.consomme(TypeLexème.FIN_CONTROLE)) {
 			syntaxeuse.rapporte_erreur("Attendu '%}'")
+			retourne
 		}
 
 	}
-	sinon si syntaxeuse.est_lexème(TypeLexème.BLOC) {
+	sinon si syntaxeuse.apparie(TypeLexème.BLOC) {
 		syntaxeuse.avance()
 		noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
 
-		si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+		si (!syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE)) {
 			syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'bloc'")
+			retourne
 		}
 
 		nom_bloc := syntaxeuse.données().chn
 		noeud.nom = nom_bloc
 
-		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+		si (!syntaxeuse.consomme(TypeLexème.FIN_CONTROLE)) {
 			syntaxeuse.rapporte_erreur("Attendu '%}'")
+			retourne
 		}
 	}
-	sinon si (syntaxeuse.est_lexème(TypeLexème.SINON)) {
+	sinon si (syntaxeuse.apparie(TypeLexème.SINON)) {
 		//assert(syntaxeuse.assembleuse.noeud_courant() == "SI")
 		syntaxeuse.avance()
 
-		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+		si (!syntaxeuse.consomme(TypeLexème.FIN_CONTROLE)) {
 			syntaxeuse.rapporte_erreur("Attendu '%}'")
+			retourne
 		}
 
 		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
@@ -199,58 +212,66 @@ analyse_expression :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 
 		syntaxeuse.analyse_page()
 	}
-	sinon si (syntaxeuse.est_lexème(TypeLexème.FINSI)) {
+	sinon si (syntaxeuse.apparie(TypeLexème.FINSI)) {
 		syntaxeuse.avance()
 
 		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
 
 		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.SI)
 
-		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+		si (!syntaxeuse.consomme(TypeLexème.FIN_CONTROLE)) {
 			syntaxeuse.rapporte_erreur("Attendu '%}'")
+			retourne
 		}
 	}
-	sinon si (syntaxeuse.est_lexème(TypeLexème.FINPOUR)) {
+	sinon si (syntaxeuse.apparie(TypeLexème.FINPOUR)) {
 		syntaxeuse.avance()
 
 		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
 
 		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.POUR)
 
-		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+		si (!syntaxeuse.consomme(TypeLexème.FIN_CONTROLE)) {
 			syntaxeuse.rapporte_erreur("Attendu '%}'")
+			retourne
 		}
 	}
-	sinon si syntaxeuse.est_lexème(TypeLexème.FINBLOC) {
+	sinon si syntaxeuse.apparie(TypeLexème.FINBLOC) {
 		syntaxeuse.avance()
 
 		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
 
-		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+		si (!syntaxeuse.consomme(TypeLexème.FIN_CONTROLE)) {
 			syntaxeuse.rapporte_erreur("Attendu '%}'")
+			retourne
 		}
 	}
 	sinon {
 		syntaxeuse.rapporte_erreur("Identifiant inconnu")
+		retourne
 	}
 }
 
-analyse_si :: fonc(syntaxeuse : &Syntaxeuse) -> rien
+analyse_si :: fonc (syntaxeuse : &Syntaxeuse) -> rien
 {
-	si (!syntaxeuse.requiers_lexème(TypeLexème.SI)) {
+	si (!syntaxeuse.consomme(TypeLexème.SI)) {
 		syntaxeuse.rapporte_erreur("Attendu 'si'")
+		retourne
 	}
 
 	_ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.SI, syntaxeuse.données())
 
-	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+	// À FAIRE : apparie_expression
+	si (!syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE)) {
 		syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'si'")
+		retourne
 	}
 
 	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
 
-	si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+	si (!syntaxeuse.consomme(TypeLexème.FIN_CONTROLE)) {
 		syntaxeuse.rapporte_erreur("Attendu '%}'")
+		retourne
 	}
 
 	_ = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
@@ -258,50 +279,44 @@ analyse_si :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 	syntaxeuse.analyse_page()
 }
 
-analyse_pour :: fonc(syntaxeuse : &Syntaxeuse) -> rien
+analyse_pour :: fonc (syntaxeuse : &Syntaxeuse) -> rien
 {
-	si (!syntaxeuse.requiers_lexème(TypeLexème.POUR)) {
+	si (!syntaxeuse.consomme(TypeLexème.POUR)) {
 		syntaxeuse.rapporte_erreur("Attendu 'pour'")
+		retourne
 	}
 
 	_ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.POUR, syntaxeuse.données())
 
-	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+	// À FAIRE : apparie_expression
+	si (!syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE)) {
 		syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'pour'")
+		retourne
 	}
 
 	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
 
-	si (!syntaxeuse.requiers_lexème(TypeLexème.DANS)) {
+	si (!syntaxeuse.consomme(TypeLexème.DANS)) {
 		syntaxeuse.rapporte_erreur("Attendu 'dans'")
+		retourne
 	}
 
-	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+	// À FAIRE : apparie_expression
+	si (!syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE)) {
 		syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'dans'")
+		retourne
 	}
 
 	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
 
-	si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+	si (!syntaxeuse.consomme(TypeLexème.FIN_CONTROLE)) {
 		syntaxeuse.rapporte_erreur("Attendu '%}'")
+		retourne
 	}
 
 	_ = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
 
 	syntaxeuse.analyse_page()
-}
-
-imprime_arbre :: fonc(racine : *NoeudSyntaxique, tab : z32) -> rien
-{
-	pour i dans 0 ... tab - 1 {
-		imprime("  ")
-	}
-
-	imprime("% (%)\n", racine.type, racine.données.chn)
-
-	pour noeud dans racine.enfants {
-		imprime_arbre(noeud, tab + 1)
-	}
 }
 
 rapporte_erreur :: fonc (syntaxeuse: &Syntaxeuse, message: chaine)
@@ -318,4 +333,29 @@ rapporte_erreur :: fonc (syntaxeuse: &Syntaxeuse, message: chaine)
 	message_erreur := chaine_depuis_enchaineuse(*enchaineuse)
 
 	tableau_ajoute(*syntaxeuse.erreurs, message_erreur)
+}
+
+apparie_expression :: fonc (syntaxeuse: &Syntaxeuse) -> bool
+{
+	retourne faux
+}
+
+apparie_expression_secondaire :: fonc (syntaxeuse: &Syntaxeuse) -> bool
+{
+	retourne faux
+}
+
+analyse_expression :: fonc (syntaxeuse: &Syntaxeuse)
+{
+
+}
+
+analyse_expression_primaire :: fonc (syntaxeuse: &Syntaxeuse)
+{
+
+}
+
+analyse_expression_secondaire :: fonc (syntaxeuse: &Syntaxeuse)
+{
+
 }
