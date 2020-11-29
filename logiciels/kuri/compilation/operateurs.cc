@@ -530,16 +530,22 @@ void Operateurs::ajoute_perso_unaire(
 	op->genre = genre_op_unaire_pour_lexeme(id);
 }
 
-void Operateurs::ajoute_operateur_basique_enum(Type *type)
+void Operateurs::ajoute_operateur_basique_enum(TypeEnum *type)
 {
+	auto indice_type_op = IndiceTypeOp();
+	if (type->type_donnees->est_entier_naturel()) {
+		indice_type_op = IndiceTypeOp::ENTIER_NATUREL;
+	}
+	else {
+		indice_type_op = IndiceTypeOp::ENTIER_RELATIF;
+	}
+
 	for (auto op : operateurs_comparaisons) {
-		/* À FAIRE: typage exacte de l'énumération */
-		this->ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_RELATIF);
+		this->ajoute_basique(op, type, type_bool, indice_type_op);
 	}
 
 	for (auto op : operateurs_entiers) {
-		/* À FAIRE: typage exacte de l'énumération */
-		this->ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF);
+		this->ajoute_basique(op, type, type, indice_type_op);
 	}
 
 	this->ajoute_basique_unaire(GenreLexeme::TILDE, type, type);

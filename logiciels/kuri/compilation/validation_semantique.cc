@@ -2887,7 +2887,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 	type_enum->taille_octet = type_enum->type_donnees->taille_octet;
 	type_enum->alignement = type_enum->type_donnees->alignement;
 
-	espace->operateurs->ajoute_operateur_basique_enum(decl->type);
+	espace->operateurs->ajoute_operateur_basique_enum(type_enum);
 
 	auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 32>();
 
