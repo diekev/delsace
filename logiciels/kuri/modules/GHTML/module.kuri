@@ -140,21 +140,40 @@ génère_page :: fonc(
 
 trouve_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembreStructure
 {
-    info := valeur.info
-
-    si info.id != id_info.STRUCTURE {
+    saufsi valeur.est_structure() {
         retourne nul
     }
 
-    info_struct := info comme *InfoTypeStructure
+    info := valeur.info comme *InfoTypeStructure
 
-    pour membre dans info_struct.membres {
-        si membre.nom == nom_membre {
+    pour info.membres {
+        si it.nom == nom_membre {
             retourne membre
         }
     }
 
     retourne nul
+}
+
+valeur_membre :: fonc (valeur: eini, nom_membre: chaine) -> eini
+{
+    résultat : eini
+
+    saufsi valeur.est_structure() {
+        retourne résultat
+    }
+
+    info := valeur.info comme *InfoTypeStructure
+
+    pour info.membres {
+        si it.nom == nom_membre {
+            résultat.pointeur = valeur.pointeur + it.décalage
+            résultat.info = it.id
+            retourne résultat
+        }
+    }
+
+    retourne résultat
 }
 
 DonnéesGénération :: struct {
@@ -165,21 +184,18 @@ DonnéesGénération :: struct {
 
 trouve_variable :: fonc (données: *DonnéesGénération, nom: chaine) -> eini
 {
-    info_membre := trouve_membre(données.valeur, nom)
+    valeur := valeur_membre(données.valeur, nom)
 
-    si info_membre != nul {
-        e: eini
-        e.pointeur = données.valeur.pointeur + info_membre.décalage
-        e.info = info_membre.id
-        retourne e
+    si valeur.est_valide() {
+        retourne valeur
     }
 
     si nom == données.nom_variable_boucle {
         retourne données.données_variable_boucle
     }
 
-    e: eini
-    retourne e
+    /* la valeur est invalide, donc nous pouvons sûrement la retourner */
+    retourne valeur
 }
 
 génère_page :: fonc(
@@ -204,7 +220,7 @@ génère_page :: fonc(
             variable := noeud.données.chn
             valeur := trouve_variable(données, variable)
 
-            si valeur.pointeur == nul {
+            saufsi valeur.est_valide() {
                 retourne ErreurGénérationPage.OBJET_NON_TROUVÉ
             }
 
@@ -214,7 +230,7 @@ génère_page :: fonc(
             propriété := noeud.enfants[1].données.chn
             valeur := trouve_variable(données, propriété)
 
-            si valeur.pointeur == nul {
+            saufsi valeur.est_valide() {
                 retourne ErreurGénérationPage.OBJET_NON_TROUVÉ
             }
 
@@ -222,45 +238,22 @@ génère_page :: fonc(
 
             discr valeur.info.id  {
                 TABLEAU {
-                    pointeur := valeur.pointeur
+                    itératrice := crée_itératrice_tableau(valeur)
 
-                    info_arg := valeur.info comme *InfoTypeTableau
-                    décalage := info_arg.type_pointé.taille_en_octet comme z32
+                    boucle {
+                        valeur_ := itératrice.valeur_suivante()
 
-                    si info_arg.est_tableau_fixe {
-                        pour i dans 0 ... info_arg.taille_fixe - 1 {
-                            données.nom_variable_boucle = variable
-
-                            e : eini
-                            e.pointeur = pointeur + décalage * i
-                            e.info = info_arg.type_pointé
-
-                            données.données_variable_boucle = e
-
-                            erreur_ := génère_page(données, noeud.enfants[2], enchaineuse)
-
-                            si erreur_ != ErreurGénérationPage.AUCUNE {
-                                retourne erreur_
-                            }
+                        saufsi valeur_.est_valide() {
+                            arrête
                         }
-                    }
-                    sinon {
-                        x := mémoire(pointeur comme *[]z8)
 
-                        pour i dans 0 ... x.taille - 1 {
-                            données.nom_variable_boucle = variable
+                        données.nom_variable_boucle = variable
+                        données.données_variable_boucle = valeur_
 
-                            e : eini
-                            e.pointeur = x.pointeur + décalage * i
-                            e.info = info_arg.type_pointé
+                        erreur_ := génère_page(données, noeud.enfants[2], enchaineuse)
 
-                            données.données_variable_boucle = e
-
-                            erreur_ := génère_page(données, noeud.enfants[2], enchaineuse)
-
-                            si erreur_ != ErreurGénérationPage.AUCUNE {
-                                retourne erreur_
-                            }
+                        si erreur_ != ErreurGénérationPage.AUCUNE {
+                            retourne erreur_
                         }
                     }
                 }
@@ -330,6 +323,16 @@ est_chaine :: fonc (valeur: eini) -> bool
     retourne valeur.info.id == id_info.CHAINE
 }
 
+est_structure :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.STRUCTURE
+}
+
+est_tableau :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.TABLEAU
+}
+
 comme_bool :: fonc (valeur: eini) -> bool
 {
     retourne mémoire(valeur.pointeur comme *bool)
@@ -338,4 +341,67 @@ comme_bool :: fonc (valeur: eini) -> bool
 comme_chaine :: fonc (valeur: eini) -> chaine
 {
     retourne mémoire(valeur.pointeur comme *chaine)
+}
+
+ItératriceTableau :: struct {
+    valeur: eini
+
+    pointeur: *z8
+    taille: z64
+
+    position: z64
+
+    type_pointé : *InfoType
+
+    décalage : z32
+}
+
+crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
+{
+    itératrice : ItératriceTableau
+
+    saufsi valeur.est_valide() {
+        retourne itératrice
+    }
+
+    saufsi valeur.est_tableau() {
+        retourne itératrice
+    }
+
+    info_tableau := valeur.info comme *InfoTypeTableau
+    type_pointé := info_tableau.type_pointé
+    décalage := type_pointé.taille_en_octet comme z32
+
+    si info_tableau.est_tableau_fixe {
+        itératrice.pointeur = valeur.pointeur
+        itératrice.taille = info_tableau.taille_fixe
+    }
+    sinon {
+        x := mémoire(valeur.pointeur comme *[]z8)
+
+        itératrice.pointeur = x.pointeur
+        itératrice.taille = x.taille
+    }
+
+    itératrice.valeur = valeur
+    itératrice.type_pointé = type_pointé
+    itératrice.décalage = décalage
+
+    retourne itératrice
+}
+
+valeur_suivante :: fonc (itératrice: &ItératriceTableau) -> eini
+{
+    résultat : eini
+
+    si itératrice.position >= itératrice.taille {
+        retourne résultat
+    }
+
+    résultat.pointeur = itératrice.pointeur + itératrice.décalage * itératrice.position
+    résultat.info = itératrice.type_pointé
+
+    itératrice.position += 1
+
+    retourne résultat
 }
