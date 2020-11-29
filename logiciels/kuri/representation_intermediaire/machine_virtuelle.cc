@@ -674,7 +674,7 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
 	m_metaprogramme = nullptr;
 }
 
-ResultatInterpretation MachineVirtuelle::execute_instruction()
+MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 {
 	auto frame = &frames[profondeur_appel - 1];
 
@@ -1049,7 +1049,7 @@ ResultatInterpretation MachineVirtuelle::execute_instruction()
 
 				if (!messagere->possede_message()) {
 					frame->pointeur = pointeur_debut;
-					return ResultatInterpretation::PASSE_SUIVANT;
+					return ResultatInterpretation::PASSE_AU_SUIVANT;
 				}
 
 				auto message = messagere->defile();
@@ -1276,12 +1276,12 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 		for (int j = 0; j < 100; ++j) {
 			auto res = execute_instruction();
 
-			if (res == ResultatInterpretation::PASSE_SUIVANT) {
+			if (res == ResultatInterpretation::PASSE_AU_SUIVANT) {
 				break;
 			}
 
 			if (res == ResultatInterpretation::ERREUR) {
-				it->resultat = res;
+				it->resultat = MetaProgramme::ResultatExecution::ERREUR;
 				m_metaprogrammes_termines.pousse(it);
 				std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
 				nombre_metaprogrammes -= 1;
@@ -1290,7 +1290,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 			}
 
 			if (res == ResultatInterpretation::TERMINE) {
-				it->resultat = ResultatInterpretation::OK;
+				it->resultat = MetaProgramme::ResultatExecution::SUCCES;
 				m_metaprogrammes_termines.pousse(it);
 				std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
 				nombre_metaprogrammes -= 1;

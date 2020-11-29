@@ -52,6 +52,12 @@ struct GeranteChaine {
 };
 
 struct MetaProgramme {
+	enum class ResultatExecution : int {
+		NON_INITIALISE,
+		ERREUR,
+		SUCCES,
+	};
+
 	/* non-nul pour les directives d'exécutions (exécute, corps texte, etc.) */
 	NoeudDirectiveExecution *directive = nullptr;
 
@@ -67,7 +73,7 @@ struct MetaProgramme {
 
 	bool fut_execute = false;
 
-	ResultatInterpretation resultat{};
+	ResultatExecution resultat{};
 
 	DonneesExecution *donnees_execution = nullptr;
 };

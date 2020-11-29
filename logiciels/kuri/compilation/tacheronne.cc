@@ -1092,7 +1092,7 @@ void Tacheronne::execute_metaprogrammes()
 		auto espace = it->unite->espace;
 
 		// À FAIRE : précision des messages d'erreurs
-		if (it->resultat == ResultatInterpretation::ERREUR) {
+		if (it->resultat == MetaProgramme::ResultatExecution::ERREUR) {
 			rapporte_erreur(espace, it->directive, "Erreur lors de l'exécution du métaprogramme");
 		}
 		else {

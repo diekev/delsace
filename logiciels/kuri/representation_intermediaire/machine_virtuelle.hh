@@ -83,14 +83,6 @@ struct PatchDonneesConstantes {
 
 std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch);
 
-enum class ResultatInterpretation : int {
-	OK,
-	ERREUR,
-	COMPILATION_ARRETEE,
-	TERMINE,
-	PASSE_SUIVANT,
-};
-
 static constexpr auto TAILLE_FRAMES_APPEL = 64;
 
 struct DonneesExecution {
@@ -108,6 +100,14 @@ struct DonneesExecution {
 
 struct MachineVirtuelle {
 private:
+    enum class ResultatInterpretation : int {
+        OK,
+        ERREUR,
+        COMPILATION_ARRETEE,
+        TERMINE,
+        PASSE_AU_SUIVANT,
+    };
+
 	Compilatrice &compilatrice;
 
 	tableau_page<DonneesExecution> donnees_execution{};
