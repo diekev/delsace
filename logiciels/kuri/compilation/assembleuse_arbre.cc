@@ -31,9 +31,9 @@ AssembleuseArbre::AssembleuseArbre(AllocatriceNoeud &allocatrice)
 {
 }
 
-NoeudBloc *AssembleuseArbre::empile_bloc()
+NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 {
-	auto bloc = static_cast<NoeudBloc *>(cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, nullptr));
+	auto bloc = static_cast<NoeudBloc *>(cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, lexeme));
 	bloc->bloc_parent = bloc_courant();
 
 	m_blocs.empile(bloc);

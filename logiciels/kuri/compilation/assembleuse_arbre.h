@@ -48,7 +48,7 @@ public:
 	explicit AssembleuseArbre(AllocatriceNoeud &allocatrice);
 	~AssembleuseArbre() = default;
 
-	NoeudBloc *empile_bloc();
+	NoeudBloc *empile_bloc(Lexeme const *lexeme);
 
 	NoeudBloc *bloc_courant() const;
 

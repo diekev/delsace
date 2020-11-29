@@ -2649,9 +2649,6 @@ bool ContexteValidationCode::valide_cuisine(NoeudDirectiveExecution *directive)
 
 MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte, NoeudBloc *bloc_parent, const Lexeme *lexeme)
 {
-	// À FAIRE : les blocs n'ont pas de lexèmes
-	bloc_corps_texte->lexeme = lexeme;
-
 	auto fonction = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_ENTETE_FONCTION, lexeme)->comme_entete_fonction();
 	auto nouveau_corps = fonction->corps;
 

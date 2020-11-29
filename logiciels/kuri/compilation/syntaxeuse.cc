@@ -346,7 +346,7 @@ Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite)
 	module->mutex.lock();
 	{
 		if (module->bloc == nullptr) {
-			module->bloc = m_tacheronne.assembleuse->empile_bloc();
+			module->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
 			module->bloc->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(module->nom());
 		}
 		else {
@@ -1629,13 +1629,14 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
 {
 	Prof(Syntaxeuse_analyse_bloc);
 
-	empile_etat("dans l'analyse du bloc", lexeme_courant());
+	auto lexeme = lexeme_courant();
+	empile_etat("dans l'analyse du bloc", lexeme);
 
 	if (accolade_requise) {
 		consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{'");
 	}
 
-	auto bloc = m_tacheronne.assembleuse->empile_bloc();
+	auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme);
 	auto expressions = dls::tablet<NoeudExpression *, 32>();
 
 	while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
@@ -1906,7 +1907,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 		 */
 
 		if (apparie(GenreLexeme::SI)) {
-			noeud->bloc_si_faux = m_tacheronne.assembleuse->empile_bloc();
+			noeud->bloc_si_faux = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
 
 			auto noeud_si = analyse_instruction_si(GenreNoeud::INSTRUCTION_SI);
 			noeud->bloc_si_faux->expressions->pousse(noeud_si);
@@ -1914,7 +1915,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 			m_tacheronne.assembleuse->depile_bloc();
 		}
 		else if (apparie(GenreLexeme::SAUFSI)) {
-			noeud->bloc_si_faux = m_tacheronne.assembleuse->empile_bloc();
+			noeud->bloc_si_faux = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
 
 			auto noeud_saufsi = analyse_instruction_si(GenreNoeud::INSTRUCTION_SAUFSI);
 			noeud->bloc_si_faux->expressions->pousse(noeud_saufsi);
@@ -1993,9 +1994,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 		noeud_decl->type = type;
 	}
 
+	auto lexeme_bloc = lexeme_courant();
 	consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 
-	auto bloc = m_tacheronne.assembleuse->empile_bloc();
+	auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
 
 	auto expressions = dls::tablet<NoeudExpression *, 16>();
 
@@ -2066,10 +2068,11 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		noeud->drapeaux |= EST_RACINE;
 	}
 
+	auto lexeme_bloc = lexeme_courant();
 	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
-	noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc();
-	noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc();
+	noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
+	noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
 
 	/* analyse les paramètres de la fonction */
 	auto params = dls::tablet<NoeudDeclarationVariable *, 16>();
@@ -2295,7 +2298,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			}
 
 			/* ajoute un bloc même pour les fonctions externes, afin de stocker les paramètres */
-			noeud->corps->bloc = m_tacheronne.assembleuse->empile_bloc();
+			noeud->corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
 			m_tacheronne.assembleuse->depile_bloc();
 		}
 		else {
@@ -2374,10 +2377,11 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	auto noeud = CREE_NOEUD(NoeudDeclarationEnteteFonction, GenreNoeud::DECLARATION_ENTETE_FONCTION, lexeme);
 	noeud->est_operateur = true;
 
+	auto lexeme_bloc = lexeme_courant();
 	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
-	noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc();
-	noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc();
+	noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
+	noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
 
 	/* analyse les paramètres de la fonction */
 	auto params = dls::tablet<NoeudDeclarationVariable *, 16>();
@@ -2571,9 +2575,9 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 	/* paramètres polymorphiques */
 	if (apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
-		consomme();
+		noeud_decl->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
 
-		noeud_decl->bloc_constantes = m_tacheronne.assembleuse->empile_bloc();
+		consomme();
 
 		while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
 			auto drapeaux = DrapeauxNoeud::AUCUN;
@@ -2644,7 +2648,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 	}
 
 	if (analyse_membres) {
-		auto bloc = m_tacheronne.assembleuse->empile_bloc();
+		auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
 		consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
 		auto expressions = dls::tablet<NoeudExpression *, 16>();
