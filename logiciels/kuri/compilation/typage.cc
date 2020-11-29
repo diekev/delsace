@@ -888,7 +888,7 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
 	return type;
 }
 
-TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
+TypeUnion *Typeuse::union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &membres)
 {
 	Prof(union_anonyme);
 
@@ -899,7 +899,7 @@ TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
 			continue;
 		}
 
-		if (it.membres.taille != membres.taille) {
+		if (it.membres.taille != membres.taille()) {
 			continue;
 		}
 
@@ -919,7 +919,12 @@ TypeUnion *Typeuse::union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres)
 
 	auto type = types_unions_->ajoute_element();
 	type->nom = "anonyme";
-	type->membres = std::move(membres);
+
+	type->membres.reserve(membres.taille());
+	POUR (membres) {
+		type->membres.pousse(it);
+	}
+
 	type->est_anonyme = true;
 	type->drapeaux |= (TYPE_FUT_VALIDE);
 

@@ -553,11 +553,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 							return true;
 						}
 
-						auto membres = kuri::tableau<TypeCompose::Membre>(2);
+						auto membres = dls::tablet<TypeCompose::Membre, 6>(2);
 						membres[0] = { type_type1->type_connu, "0" };
 						membres[1] = { type_type2->type_connu, "1" };
 
-						auto type_union = espace->typeuse.union_anonyme(std::move(membres));
+						auto type_union = espace->typeuse.union_anonyme(membres);
 						expr->type = espace->typeuse.type_type_de_donnees(type_union);
 						donnees_dependance.types_utilises.insere(type_union);
 

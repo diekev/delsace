@@ -598,7 +598,7 @@ struct Typeuse {
 
 	TypeUnion *reserve_type_union(NoeudStruct *decl);
 
-	TypeUnion *union_anonyme(kuri::tableau<TypeCompose::Membre> &&membres);
+	TypeUnion *union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &membres);
 
 	TypeEnum *reserve_type_erreur(NoeudEnum *decl);
 
