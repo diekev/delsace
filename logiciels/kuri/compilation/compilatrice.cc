@@ -370,12 +370,18 @@ void EspaceDeTravail::tache_execution_ajoutee(dls::outils::Synchrone<Messagere> 
 
 void EspaceDeTravail::tache_chargement_terminee(dls::outils::Synchrone<Messagere> &messagere, Fichier *fichier)
 {
-	nombre_taches_chargement -= 1;
 	messagere->ajoute_message_fichier_ferme(this, fichier->chemin());
+
+	/* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
+	tache_lexage_ajoutee(messagere);
+
+	nombre_taches_chargement -= 1;
 }
 
-void EspaceDeTravail::tache_lexage_terminee(dls::outils::Synchrone<Messagere> &/*messagere*/)
+void EspaceDeTravail::tache_lexage_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
+	/* Une fois que nous lexer quelque chose, il faut le parser. */
+	tache_parsage_ajoutee(messagere);
 	nombre_taches_lexage -= 1;
 }
 

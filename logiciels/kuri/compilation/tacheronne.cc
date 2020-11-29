@@ -268,7 +268,6 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 			}
 
 			espace->tache_chargement_terminee(m_compilatrice->messagere, unite->fichier);
-			espace->tache_lexage_ajoutee(m_compilatrice->messagere);
 			tache_terminee.genre = GenreTache::LEXE;
 			taches_lexage.enfile(tache_terminee);
 			break;
@@ -281,7 +280,6 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 			}
 
 			espace->tache_lexage_terminee(m_compilatrice->messagere);
-			espace->tache_parsage_ajoutee(m_compilatrice->messagere);
 			tache_terminee.genre = GenreTache::PARSE;
 			taches_parsage.enfile(tache_terminee);
 			break;
@@ -308,8 +306,6 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 				taches_typage.enfile(tache_terminee);
 				break;
 			}
-
-			espace->tache_typage_terminee(m_compilatrice->messagere);
 
 			auto generation_ri_requise = true;
 			auto noeud = unite->noeud;
@@ -341,6 +337,10 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 					taches_message.enfile(Tache::attend_message(unite));
 				}
 			}
+
+			/* Décrémente ceci après avoir ajouté le message de typage de code
+			 * pour éviter de prévenir trop tôt un métaprogramme. */
+			espace->tache_typage_terminee(m_compilatrice->messagere);
 
 			break;
 		}
