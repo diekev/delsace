@@ -435,18 +435,17 @@ MachineVirtuelle::MachineVirtuelle(Compilatrice &compilatrice_)
 	gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(ID::malloc_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_malloc));
 	gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(ID::realloc_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_realloc));
 	gestionnaire_bibliotheques.ajoute_fonction_pour_symbole(ID::free_, reinterpret_cast<GestionnaireBibliotheques::type_fonction>(notre_free));
-
-	pile = memoire::loge_tableau<octet_t>("MachineVirtuelle::pile", TAILLE_PILE);
 }
 
 MachineVirtuelle::~MachineVirtuelle()
 {
-	memoire::deloge_tableau("MachineVirtuelle::pile", pile, TAILLE_PILE);
-}
+	POUR (m_metaprogrammes) {
+		deloge_donnees_execution(it->donnees_execution);
+	}
 
-void MachineVirtuelle::reinitialise_pile()
-{
-	this->pointeur_pile = pile;
+	POUR (m_metaprogrammes_termines) {
+		deloge_donnees_execution(it->donnees_execution);
+	}
 }
 
 long MachineVirtuelle::depile()
@@ -474,10 +473,8 @@ T MachineVirtuelle::depile()
 	return *reinterpret_cast<T *>(this->pointeur_pile);
 }
 
-bool MachineVirtuelle::appel(AtomeFonction *fonction, int /*taille_argument*/)
+bool MachineVirtuelle::appel(AtomeFonction *fonction)
 {
-	assert(profondeur_appel < TAILLE_FRAMES_APPEL);
-
 	/* À FAIRE : il manquerait certaines fonctions dans la génération de code binaire (sans doute des dépendances manquantes) */
 	if (fonction->chunk.code == nullptr) {
 		genere_code_binaire_pour_fonction(fonction, this);
@@ -490,606 +487,96 @@ bool MachineVirtuelle::appel(AtomeFonction *fonction, int /*taille_argument*/)
 	return true;
 }
 
-MachineVirtuelle::ResultatInterpretation MachineVirtuelle::interprete(MetaProgramme *metaprogramme)
+bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction, int taille_argument, FrameAppel *&frame)
 {
-	m_metaprogramme = metaprogramme;
+	// puisque les arguments utilisent des instructions d'allocations retire la taille des arguments du pointeur
+	// de la pile pour ne pas que les allocations ne l'augmente
+	pointeur_pile -= taille_argument;
 
-	POUR (patchs_donnees_constantes) {
-		void *adresse_ou = nullptr;
-		void *adresse_quoi = nullptr;
+#ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
+	imprime_valeurs_entrees(pointeur_pile, ptr_fonction->type->comme_fonction(), ptr_fonction->nom, profondeur_appel);
+#endif
 
-		if (it.quoi == ADRESSE_CONSTANTE) {
-			adresse_quoi = donnees_constantes.donnees() + it.decalage_quoi;
-		}
-		else {
-			adresse_quoi = donnees_globales.donnees() + it.decalage_quoi;
-		}
-
-		if (it.ou == DONNEES_CONSTANTES) {
-			adresse_ou = donnees_constantes.donnees() + it.decalage_ou;
-		}
-		else {
-			adresse_ou = donnees_globales.donnees() + it.decalage_ou;
-		}
-
-		*reinterpret_cast<void **>(adresse_ou) = adresse_quoi;
-		//std::cerr << "Écris adresse : " << adresse_quoi << ", à " << adresse_ou << '\n';
+	if (!appel(ptr_fonction)) {
+		return false;
 	}
 
-	profondeur_appel = 0;
-	nombre_de_metaprogrammes_executes += 1;
-	reinitialise_pile();
-	appel(m_metaprogramme->fonction->atome_fonction, 0);
-	return lance();
+	frame = &frames[profondeur_appel - 1];
+	return true;
 }
 
-MachineVirtuelle::ResultatInterpretation MachineVirtuelle::lance()
+void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction, int taille_argument, InstructionAppel *inst_appel)
 {
-	auto frame = &frames[profondeur_appel - 1];
+	auto type_fonction = ptr_fonction->decl->type->comme_fonction();
+	auto &donnees_externe = ptr_fonction->donnees_externe;
 
-#ifdef DEBOGUE_INTERPRETEUSE
-	std::cerr << "== exécution " << frame->fonction->nom << " ==\n";
-#endif
-
-	auto debut_execution = dls::chrono::compte_seconde();
-
-	auto appel_fonction_interne = [this, &frame](AtomeFonction *ptr_fonction, int taille_argument)
-	{
-		// puisque les arguments utilisent des instructions d'allocations retire la taille des arguments du pointeur
-		// de la pile pour ne pas que les allocations ne l'augmente
-		pointeur_pile -= taille_argument;
+	auto pointeur_arguments = pointeur_pile - taille_argument;
 
 #ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
-		imprime_valeurs_entrees(pointeur_pile, ptr_fonction->type->comme_fonction(), ptr_fonction->nom, profondeur_appel);
+	imprime_valeurs_entrees(pointeur_arguments, type_fonction, ptr_fonction->nom, profondeur_appel);
 #endif
 
-		if (!appel(ptr_fonction, taille_argument)) {
-			return false;
-		}
+	auto pointeurs_arguments = dls::tablet<void *, 12>();
+	auto decalage_argument = 0u;
 
-		frame = &frames[profondeur_appel - 1];
-		return true;
-	};
+	if (ptr_fonction->decl->est_variadique) {
+		auto nombre_arguments_fixes = static_cast<unsigned>(type_fonction->types_entrees.taille - 1);
+		auto nombre_arguments_totaux = static_cast<unsigned>(inst_appel->args.taille);
 
-	auto appel_fonction_externe = [this](AtomeFonction *ptr_fonction, int taille_argument, InstructionAppel *inst_appel)
-	{
-		auto type_fonction = ptr_fonction->decl->type->comme_fonction();
-		auto &donnees_externe = ptr_fonction->donnees_externe;
+		donnees_externe.types_entrees.efface();
+		donnees_externe.types_entrees.reserve(nombre_arguments_totaux);
 
-		auto pointeur_arguments = pointeur_pile - taille_argument;
+		POUR (inst_appel->args) {
+			auto type = converti_type_ffi(it->type);
+			donnees_externe.types_entrees.pousse(type);
 
-#ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
-		imprime_valeurs_entrees(pointeur_arguments, type_fonction, ptr_fonction->nom, profondeur_appel);
-#endif
+			auto ptr = &pointeur_arguments[decalage_argument];
+			pointeurs_arguments.pousse(ptr);
 
-		auto pointeurs_arguments = dls::tablet<void *, 12>();
-		auto decalage_argument = 0u;
-
-		if (ptr_fonction->decl->est_variadique) {
-			auto nombre_arguments_fixes = static_cast<unsigned>(type_fonction->types_entrees.taille - 1);
-			auto nombre_arguments_totaux = static_cast<unsigned>(inst_appel->args.taille);
-
-			donnees_externe.types_entrees.efface();
-			donnees_externe.types_entrees.reserve(nombre_arguments_totaux);
-
-			POUR (inst_appel->args) {
-				auto type = converti_type_ffi(it->type);
-				donnees_externe.types_entrees.pousse(type);
-
-				auto ptr = &pointeur_arguments[decalage_argument];
-				pointeurs_arguments.pousse(ptr);
-
-				if (it->type->genre == GenreType::ENTIER_CONSTANT) {
-					decalage_argument += 4;
-				}
-				else {
-					decalage_argument += it->type->taille_octet;
-				}
-			}
-
-			donnees_externe.types_entrees.pousse(nullptr);
-
-			auto type_ffi_sortie = converti_type_ffi(type_fonction->types_sorties[0]);
-			auto ptr_types_entrees = donnees_externe.types_entrees.donnees();
-
-			auto status = ffi_prep_cif_var(&donnees_externe.cif, FFI_DEFAULT_ABI, nombre_arguments_fixes, nombre_arguments_totaux, type_ffi_sortie, ptr_types_entrees);
-
-			if (status != FFI_OK) {
-				std::cerr << "Impossible de préparer la fonction variadique externe !\n";
-				return;
-			}
-		}
-		else {
-			POUR (type_fonction->types_entrees) {
-				auto ptr = &pointeur_arguments[decalage_argument];
-				pointeurs_arguments.pousse(ptr);
-				decalage_argument += it->taille_octet;
-			}
-		}
-
-		ffi_call(&donnees_externe.cif, ptr_fonction->donnees_externe.ptr_fonction, pointeur_pile, pointeurs_arguments.donnees());
-
-		auto taille_type_retour = type_fonction->types_sorties[0]->taille_octet;
-
-		if (taille_type_retour != 0) {
-			if (taille_type_retour <= static_cast<unsigned int>(taille_argument)) {
-				memcpy(pointeur_arguments, pointeur_pile, taille_type_retour);
+			if (it->type->genre == GenreType::ENTIER_CONSTANT) {
+				decalage_argument += 4;
 			}
 			else {
-				memcpy(pointeur_arguments, pointeur_pile, static_cast<unsigned int>(taille_argument));
-				memcpy(pointeur_arguments + static_cast<unsigned int>(taille_argument), pointeur_pile + static_cast<unsigned int>(taille_argument), taille_type_retour - static_cast<unsigned int>(taille_argument));
+				decalage_argument += it->type->taille_octet;
 			}
 		}
 
-		// écrase la liste d'arguments
-		pointeur_pile = pointeur_arguments + taille_type_retour;
-	};
+		donnees_externe.types_entrees.pousse(nullptr);
 
-	while (!compilatrice.possede_erreur) {
-#ifdef DEBOGUE_INTERPRETEUSE
-		auto &sortie = std::cerr;
-		imprime_tab(sortie, profondeur_appel);
-		desassemble_instruction(frame->fonction->chunk, (frame->pointeur - frame->fonction->chunk.code), sortie);
-#endif
-		auto instruction = LIS_OCTET();
+		auto type_ffi_sortie = converti_type_ffi(type_fonction->types_sorties[0]);
+		auto ptr_types_entrees = donnees_externe.types_entrees.donnees();
 
-		switch (instruction) {
-			case OP_LABEL:
-			{
-				// saute le label
-				frame->pointeur += 4;
-				break;
-			}
-			case OP_BRANCHE:
-			{
-				auto decalage = LIS_4_OCTETS();
-				frame->pointeur = frame->fonction->chunk.code + decalage;
-				break;
-			}
-			case OP_BRANCHE_CONDITION:
-			{
-				auto decalage_si_vrai = LIS_4_OCTETS();
-				auto decalage_si_faux = LIS_4_OCTETS();
-				auto condition = depile<bool>();
+		auto status = ffi_prep_cif_var(&donnees_externe.cif, FFI_DEFAULT_ABI, nombre_arguments_fixes, nombre_arguments_totaux, type_ffi_sortie, ptr_types_entrees);
 
-				if (condition) {
-					frame->pointeur = frame->fonction->chunk.code + decalage_si_vrai;
-				}
-				else {
-					frame->pointeur = frame->fonction->chunk.code + decalage_si_faux;
-				}
-
-				break;
-			}
-			case OP_CONSTANTE:
-			{
-				empile_constante(frame);
-				break;
-			}
-			case OP_CHAINE_CONSTANTE:
-			{
-				auto pointeur_chaine = LIS_8_OCTETS();
-				auto taille_chaine = LIS_8_OCTETS();
-				empile(pointeur_chaine);
-				empile(taille_chaine);
-				break;
-			}
-			case OP_COMPLEMENT_ENTIER:
-			{
-				OP_UNAIRE(-);
-				break;
-			}
-			case OP_COMPLEMENT_REEL:
-			{
-				OP_UNAIRE_REEL(-);
-				break;
-			}
-			case OP_NON_BINAIRE:
-			{
-				OP_UNAIRE(~);
-				break;
-			}
-			case OP_AJOUTE:
-			{
-				OP_BINAIRE(oper::ajoute);
-				break;
-			}
-			case OP_SOUSTRAIT:
-			{
-				OP_BINAIRE(oper::soustrait);
-				break;
-			}
-			case OP_MULTIPLIE:
-			{
-				OP_BINAIRE(oper::multiplie);
-				break;
-			}
-			case OP_DIVISE:
-			{
-				OP_BINAIRE_NATUREL(oper::divise);
-				break;
-			}
-			case OP_DIVISE_RELATIF:
-			{
-				OP_BINAIRE(oper::divise);
-				break;
-			}
-			case OP_AJOUTE_REEL:
-			{
-				OP_BINAIRE_REEL(oper::ajoute);
-				break;
-			}
-			case OP_SOUSTRAIT_REEL:
-			{
-				OP_BINAIRE_REEL(oper::soustrait);
-				break;
-			}
-			case OP_MULTIPLIE_REEL:
-			{
-				OP_BINAIRE_REEL(oper::multiplie);
-				break;
-			}
-			case OP_DIVISE_REEL:
-			{
-				OP_BINAIRE_REEL(oper::divise);
-				break;
-			}
-			case OP_RESTE_NATUREL:
-			{
-				OP_BINAIRE_NATUREL(oper::modulo);
-				break;
-			}
-			case OP_RESTE_RELATIF:
-			{
-				OP_BINAIRE(oper::modulo);
-				break;
-			}
-			case OP_COMP_EGAL:
-			{
-				OP_BINAIRE(oper::egal);
-				break;
-			}
-			case OP_COMP_INEGAL:
-			{
-				OP_BINAIRE(oper::different);
-				break;
-			}
-			case OP_COMP_INF:
-			{
-				OP_BINAIRE(oper::inferieur);
-				break;
-			}
-			case OP_COMP_INF_EGAL:
-			{
-				OP_BINAIRE(oper::inferieur_egal);
-				break;
-			}
-			case OP_COMP_SUP:
-			{
-				OP_BINAIRE(oper::superieur);
-				break;
-			}
-			case OP_COMP_SUP_EGAL:
-			{
-				OP_BINAIRE(oper::superieur_egal);
-				break;
-			}
-			case OP_COMP_INF_NATUREL:
-			{
-				OP_BINAIRE_NATUREL(oper::inferieur);
-				break;
-			}
-			case OP_COMP_INF_EGAL_NATUREL:
-			{
-				OP_BINAIRE_NATUREL(oper::inferieur_egal);
-				break;
-			}
-			case OP_COMP_SUP_NATUREL:
-			{
-				OP_BINAIRE_NATUREL(oper::superieur);
-				break;
-			}
-			case OP_COMP_SUP_EGAL_NATUREL:
-			{
-				OP_BINAIRE_NATUREL(oper::superieur_egal);
-				break;
-			}
-			case OP_COMP_EGAL_REEL:
-			{
-				OP_BINAIRE_REEL(oper::egal);
-				break;
-			}
-			case OP_COMP_INEGAL_REEL:
-			{
-				OP_BINAIRE_REEL(oper::different);
-				break;
-			}
-			case OP_COMP_INF_REEL:
-			{
-				OP_BINAIRE_REEL(oper::inferieur);
-				break;
-			}
-			case OP_COMP_INF_EGAL_REEL:
-			{
-				OP_BINAIRE_REEL(oper::inferieur_egal);
-				break;
-			}
-			case OP_COMP_SUP_REEL:
-			{
-				OP_BINAIRE_REEL(oper::superieur);
-				break;
-			}
-			case OP_COMP_SUP_EGAL_REEL:
-			{
-				OP_BINAIRE_REEL(oper::superieur_egal);
-				break;
-			}
-			case OP_ET_LOGIQUE:
-			{
-				OP_BINAIRE(oper::et_logique);
-				break;
-			}
-			case OP_OU_LOGIQUE:
-			{
-				OP_BINAIRE(oper::ou_logique);
-				break;
-			}
-			case OP_ET_BINAIRE:
-			{
-				OP_BINAIRE(oper::et_binaire);
-				break;
-			}
-			case OP_OU_BINAIRE:
-			{
-				OP_BINAIRE(oper::ou_binaire);
-				break;
-			}
-			case OP_OU_EXCLUSIF:
-			{
-				OP_BINAIRE(oper::oux_binaire);
-				break;
-			}
-			case OP_DEC_GAUCHE:
-			{
-				OP_BINAIRE(oper::dec_gauche);
-				break;
-			}
-			case OP_DEC_DROITE_ARITHM:
-			{
-				OP_BINAIRE(oper::dec_droite);
-				break;
-			}
-			case OP_DEC_DROITE_LOGIQUE:
-			{
-				OP_BINAIRE_NATUREL(oper::dec_droite);
-				break;
-			}
-			case OP_AUGMENTE_NATUREL:
-			{
-				auto taille_de = LIS_4_OCTETS();
-				auto taille_vers = LIS_4_OCTETS();
-				FAIS_TRANSTYPE_AUGMENTE(unsigned char, unsigned short, unsigned int, unsigned long);
-				break;
-			}
-			case OP_DIMINUE_NATUREL:
-			{
-				auto taille_de = LIS_4_OCTETS();
-				auto taille_vers = LIS_4_OCTETS();
-				FAIS_TRANSTYPE_DIMINUE(unsigned char, unsigned short, unsigned int, unsigned long);
-				break;
-			}
-			case OP_AUGMENTE_RELATIF:
-			{
-				auto taille_de = LIS_4_OCTETS();
-				auto taille_vers = LIS_4_OCTETS();
-				FAIS_TRANSTYPE_AUGMENTE(char, short, int, long);
-				break;
-			}
-			case OP_DIMINUE_RELATIF:
-			{
-				auto taille_de = LIS_4_OCTETS();
-				auto taille_vers = LIS_4_OCTETS();
-				FAIS_TRANSTYPE_DIMINUE(char, short, int, long);
-				break;
-			}
-			case OP_AUGMENTE_REEL:
-			{
-				auto taille_de = LIS_4_OCTETS();
-				auto taille_vers = LIS_4_OCTETS();
-
-				if (taille_de == 4 && taille_vers == 8) {
-					auto v = depile<float>();
-					empile(static_cast<double>(v));
-				}
-
-				break;
-			}
-			case OP_DIMINUE_REEL:
-			{
-				auto taille_de = LIS_4_OCTETS();
-				auto taille_vers = LIS_4_OCTETS();
-
-				if (taille_de == 8 && taille_vers == 4) {
-					auto v = depile<double>();
-					empile(static_cast<float>(v));
-				}
-
-				break;
-			}
-			case OP_RETOURNE:
-			{
-				auto type_fonction = frame->fonction->type->comme_fonction();
-				auto taille_retour = 0;
-
-				POUR (type_fonction->types_sorties) {
-					taille_retour += static_cast<int>(it->taille_octet);
-				}
-
-				auto pointeur_debut_retour = pointeur_pile - taille_retour;
-
-#ifdef DEBOGUE_LOCALES
-				imprime_valeurs_locales(frame, profondeur_appel, std::cerr);
-#endif
-
-#ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
-				imprime_valeurs_sorties(pointeur_debut_retour, type_fonction, frame->fonction->nom, profondeur_appel);
-#endif
-
-				profondeur_appel--;
-
-				if (profondeur_appel == 0) {
-					if (pointeur_pile != pile) {
-						pointeur_pile = pointeur_debut_retour;
-					}
-
-					auto temps = debut_execution.temps();
-					temps_execution_metaprogammes += temps;
-
-#if defined(DEBOGUE_INTERPRETEUSE) || defined(CHRONOMETRE_INTERPRETATION)
-					std::cerr << "Temps exécution : " << temps * 1000.0 << " ms\n";
-#endif
-					return ResultatInterpretation::OK;
-				}
-
-				pointeur_pile = frame->pointeur_pile;
-
-				if (taille_retour != 0 && pointeur_pile != pointeur_debut_retour) {
-					memcpy(pointeur_pile, pointeur_debut_retour, static_cast<unsigned>(taille_retour));
-				}
-
-				pointeur_pile += taille_retour;
-
-				frame = &frames[profondeur_appel - 1];
-				break;
-			}
-			case OP_APPEL:
-			{
-				auto valeur_ptr = LIS_8_OCTETS();
-				auto taille_argument = LIS_4_OCTETS();
-				// saute l'instruction d'appel
-				frame->pointeur += 8;
-				auto ptr_fonction = reinterpret_cast<AtomeFonction *>(valeur_ptr);
-
-#ifdef DEBOGUE_INTERPRETEUSE
-				std::cerr << "-- appel : " << ptr_fonction->nom << '\n';
-#endif
-
-				if (!appel_fonction_interne(ptr_fonction, taille_argument)) {
-					return ResultatInterpretation::ERREUR;
-				}
-
-				break;
-			}
-			case OP_APPEL_EXTERNE:
-			{
-				auto valeur_ptr = LIS_8_OCTETS();
-				auto taille_argument = LIS_4_OCTETS();
-				auto valeur_inst = LIS_8_OCTETS();
-				auto ptr_fonction = reinterpret_cast<AtomeFonction *>(valeur_ptr);
-				auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
-
-				if (ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(compilatrice_espace_courant)) {
-					empile(m_metaprogramme->unite->espace);
-					break;
-				}
-
-				appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
-				break;
-			}
-			case OP_APPEL_POINTEUR:
-			{
-				auto taille_argument = LIS_4_OCTETS();
-				auto valeur_inst = LIS_8_OCTETS();
-				auto adresse = depile<void *>();
-				auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
-				auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
-
-				if (ptr_fonction->est_externe) {
-					appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
-				}
-				else {
-					if (!appel_fonction_interne(ptr_fonction, taille_argument)) {
-						return ResultatInterpretation::ERREUR;
-					}
-				}
-
-				break;
-			}
-			case OP_ASSIGNE:
-			{
-				auto taille = LIS_4_OCTETS();
-				auto adresse_ou = depile<void *>();
-				auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
-//				std::cerr << "----------------\n";
-//				std::cerr << "adresse_ou : " << adresse_ou << '\n';
-//				std::cerr << "adresse_de : " << adresse_de << '\n';
-//				std::cerr << "taille     : " << taille << '\n';
-				memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
-				depile(taille);
-				break;
-			}
-			case OP_ALLOUE:
-			{
-				auto type = LIS_POINTEUR(Type);
-				// saute l'identifiant
-				frame->pointeur += 8;
-//				std::cerr << "----------------\n";
-//				std::cerr << "alloue : " << type->taille_octet << '\n';
-				this->pointeur_pile += type->taille_octet;
-				break;
-			}
-			case OP_CHARGE:
-			{
-				auto taille = LIS_4_OCTETS();
-				auto adresse_de = depile<void *>();
-				auto adresse_ou = static_cast<void *>(this->pointeur_pile);
-				memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
-				this->pointeur_pile += taille;
-				break;
-			}
-			case OP_REFERENCE_VARIABLE:
-			{
-				auto index = LIS_4_OCTETS();
-				auto const &locale = frame->fonction->chunk.locales[index];
-				empile(&frame->pointeur_pile[locale.adresse]);
-				break;
-			}
-			case OP_REFERENCE_GLOBALE:
-			{
-				auto index = LIS_4_OCTETS();
-				auto const &globale = this->globales[index];
-				empile(&donnees_globales[globale.adresse]);
-				break;
-			}
-			case OP_REFERENCE_MEMBRE:
-			{
-				auto decalage = LIS_4_OCTETS();
-				auto adresse_de = depile<char *>();
-				empile(adresse_de + decalage);
-				//std::cerr << "adresse_de : " << static_cast<void *>(adresse_de) << '\n';
-				break;
-			}
-			case OP_ACCEDE_INDEX:
-			{
-				auto taille_donnees = LIS_4_OCTETS();
-				auto adresse = depile<char *>();
-				auto index = depile<long>();
-				auto nouvelle_adresse = adresse + index * taille_donnees;
-				empile(nouvelle_adresse);
-//				std::cerr << "nouvelle_adresse : " << static_cast<void *>(nouvelle_adresse) << '\n';
-//				std::cerr << "index            : " << index << '\n';
-//				std::cerr << "taille_donnees   : " << taille_donnees << '\n';
-				break;
-			}
-			default:
-			{
-				std::cerr << "Opération inconnue dans la MV\n";
-				return ResultatInterpretation::ERREUR;
-			}
+		if (status != FFI_OK) {
+			std::cerr << "Impossible de préparer la fonction variadique externe !\n";
+			return;
+		}
+	}
+	else {
+		POUR (type_fonction->types_entrees) {
+			auto ptr = &pointeur_arguments[decalage_argument];
+			pointeurs_arguments.pousse(ptr);
+			decalage_argument += it->taille_octet;
 		}
 	}
 
-	return ResultatInterpretation::COMPILATION_ARRETEE;
+	ffi_call(&donnees_externe.cif, ptr_fonction->donnees_externe.ptr_fonction, pointeur_pile, pointeurs_arguments.donnees());
+
+	auto taille_type_retour = type_fonction->types_sorties[0]->taille_octet;
+
+	if (taille_type_retour != 0) {
+		if (taille_type_retour <= static_cast<unsigned int>(taille_argument)) {
+			memcpy(pointeur_arguments, pointeur_pile, taille_type_retour);
+		}
+		else {
+			memcpy(pointeur_arguments, pointeur_pile, static_cast<unsigned int>(taille_argument));
+			memcpy(pointeur_arguments + static_cast<unsigned int>(taille_argument), pointeur_pile + static_cast<unsigned int>(taille_argument), taille_type_retour - static_cast<unsigned int>(taille_argument));
+		}
+	}
+
+	// écrase la liste d'arguments
+	pointeur_pile = pointeur_arguments + taille_type_retour;
 }
 
 void MachineVirtuelle::empile_constante(FrameAppel *frame)
@@ -1150,6 +637,505 @@ void MachineVirtuelle::empile_constante(FrameAppel *frame)
 #undef EMPILE_CONSTANTE
 }
 
+void MachineVirtuelle::installe_metaprogramme(MetaProgramme *metaprogramme)
+{
+	profondeur_appel = metaprogramme->donnees_execution->profondeur_appel;
+	pile = metaprogramme->donnees_execution->pile;
+	pointeur_pile = metaprogramme->donnees_execution->pointeur_pile;
+	frames = metaprogramme->donnees_execution->frames;
+	ptr_donnees_constantes = metaprogramme->donnees_execution->donnees_constantes.donnees();
+	ptr_donnees_globales = metaprogramme->donnees_execution->donnees_globales.donnees();
+
+	assert(pile);
+	assert(pointeur_pile);
+
+	m_metaprogramme = metaprogramme;
+}
+
+void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
+{
+	auto de = metaprogramme->donnees_execution;
+	metaprogramme->donnees_execution->profondeur_appel = profondeur_appel;
+	metaprogramme->donnees_execution->pointeur_pile = pointeur_pile;
+
+	assert(de->pointeur_pile >= de->pile && de->pointeur_pile < (de->pile + TAILLE_PILE));
+
+	profondeur_appel = 0;
+	pile = nullptr;
+	pointeur_pile = nullptr;
+	frames = nullptr;
+	ptr_donnees_constantes = nullptr;
+	ptr_donnees_globales = nullptr;
+
+	m_metaprogramme = nullptr;
+}
+
+ResultatInterpretation MachineVirtuelle::execute_instruction()
+{
+	auto frame = &frames[profondeur_appel - 1];
+
+#ifdef DEBOGUE_INTERPRETEUSE
+	auto &sortie = std::cerr;
+	imprime_tab(sortie, profondeur_appel);
+	desassemble_instruction(frame->fonction->chunk, (frame->pointeur - frame->fonction->chunk.code), sortie);
+#endif
+	auto instruction = LIS_OCTET();
+
+	switch (instruction) {
+		case OP_LABEL:
+		{
+			// saute le label
+			frame->pointeur += 4;
+			break;
+		}
+		case OP_BRANCHE:
+		{
+			auto decalage = LIS_4_OCTETS();
+			frame->pointeur = frame->fonction->chunk.code + decalage;
+			break;
+		}
+		case OP_BRANCHE_CONDITION:
+		{
+			auto decalage_si_vrai = LIS_4_OCTETS();
+			auto decalage_si_faux = LIS_4_OCTETS();
+			auto condition = depile<bool>();
+
+			if (condition) {
+				frame->pointeur = frame->fonction->chunk.code + decalage_si_vrai;
+			}
+			else {
+				frame->pointeur = frame->fonction->chunk.code + decalage_si_faux;
+			}
+
+			break;
+		}
+		case OP_CONSTANTE:
+		{
+			empile_constante(frame);
+			break;
+		}
+		case OP_CHAINE_CONSTANTE:
+		{
+			auto pointeur_chaine = LIS_8_OCTETS();
+			auto taille_chaine = LIS_8_OCTETS();
+			empile(pointeur_chaine);
+			empile(taille_chaine);
+			break;
+		}
+		case OP_COMPLEMENT_ENTIER:
+		{
+			OP_UNAIRE(-);
+			break;
+		}
+		case OP_COMPLEMENT_REEL:
+		{
+			OP_UNAIRE_REEL(-);
+			break;
+		}
+		case OP_NON_BINAIRE:
+		{
+			OP_UNAIRE(~);
+			break;
+		}
+		case OP_AJOUTE:
+		{
+			OP_BINAIRE(oper::ajoute);
+			break;
+		}
+		case OP_SOUSTRAIT:
+		{
+			OP_BINAIRE(oper::soustrait);
+			break;
+		}
+		case OP_MULTIPLIE:
+		{
+			OP_BINAIRE(oper::multiplie);
+			break;
+		}
+		case OP_DIVISE:
+		{
+			OP_BINAIRE_NATUREL(oper::divise);
+			break;
+		}
+		case OP_DIVISE_RELATIF:
+		{
+			OP_BINAIRE(oper::divise);
+			break;
+		}
+		case OP_AJOUTE_REEL:
+		{
+			OP_BINAIRE_REEL(oper::ajoute);
+			break;
+		}
+		case OP_SOUSTRAIT_REEL:
+		{
+			OP_BINAIRE_REEL(oper::soustrait);
+			break;
+		}
+		case OP_MULTIPLIE_REEL:
+		{
+			OP_BINAIRE_REEL(oper::multiplie);
+			break;
+		}
+		case OP_DIVISE_REEL:
+		{
+			OP_BINAIRE_REEL(oper::divise);
+			break;
+		}
+		case OP_RESTE_NATUREL:
+		{
+			OP_BINAIRE_NATUREL(oper::modulo);
+			break;
+		}
+		case OP_RESTE_RELATIF:
+		{
+			OP_BINAIRE(oper::modulo);
+			break;
+		}
+		case OP_COMP_EGAL:
+		{
+			OP_BINAIRE(oper::egal);
+			break;
+		}
+		case OP_COMP_INEGAL:
+		{
+			OP_BINAIRE(oper::different);
+			break;
+		}
+		case OP_COMP_INF:
+		{
+			OP_BINAIRE(oper::inferieur);
+			break;
+		}
+		case OP_COMP_INF_EGAL:
+		{
+			OP_BINAIRE(oper::inferieur_egal);
+			break;
+		}
+		case OP_COMP_SUP:
+		{
+			OP_BINAIRE(oper::superieur);
+			break;
+		}
+		case OP_COMP_SUP_EGAL:
+		{
+			OP_BINAIRE(oper::superieur_egal);
+			break;
+		}
+		case OP_COMP_INF_NATUREL:
+		{
+			OP_BINAIRE_NATUREL(oper::inferieur);
+			break;
+		}
+		case OP_COMP_INF_EGAL_NATUREL:
+		{
+			OP_BINAIRE_NATUREL(oper::inferieur_egal);
+			break;
+		}
+		case OP_COMP_SUP_NATUREL:
+		{
+			OP_BINAIRE_NATUREL(oper::superieur);
+			break;
+		}
+		case OP_COMP_SUP_EGAL_NATUREL:
+		{
+			OP_BINAIRE_NATUREL(oper::superieur_egal);
+			break;
+		}
+		case OP_COMP_EGAL_REEL:
+		{
+			OP_BINAIRE_REEL(oper::egal);
+			break;
+		}
+		case OP_COMP_INEGAL_REEL:
+		{
+			OP_BINAIRE_REEL(oper::different);
+			break;
+		}
+		case OP_COMP_INF_REEL:
+		{
+			OP_BINAIRE_REEL(oper::inferieur);
+			break;
+		}
+		case OP_COMP_INF_EGAL_REEL:
+		{
+			OP_BINAIRE_REEL(oper::inferieur_egal);
+			break;
+		}
+		case OP_COMP_SUP_REEL:
+		{
+			OP_BINAIRE_REEL(oper::superieur);
+			break;
+		}
+		case OP_COMP_SUP_EGAL_REEL:
+		{
+			OP_BINAIRE_REEL(oper::superieur_egal);
+			break;
+		}
+		case OP_ET_LOGIQUE:
+		{
+			OP_BINAIRE(oper::et_logique);
+			break;
+		}
+		case OP_OU_LOGIQUE:
+		{
+			OP_BINAIRE(oper::ou_logique);
+			break;
+		}
+		case OP_ET_BINAIRE:
+		{
+			OP_BINAIRE(oper::et_binaire);
+			break;
+		}
+		case OP_OU_BINAIRE:
+		{
+			OP_BINAIRE(oper::ou_binaire);
+			break;
+		}
+		case OP_OU_EXCLUSIF:
+		{
+			OP_BINAIRE(oper::oux_binaire);
+			break;
+		}
+		case OP_DEC_GAUCHE:
+		{
+			OP_BINAIRE(oper::dec_gauche);
+			break;
+		}
+		case OP_DEC_DROITE_ARITHM:
+		{
+			OP_BINAIRE(oper::dec_droite);
+			break;
+		}
+		case OP_DEC_DROITE_LOGIQUE:
+		{
+			OP_BINAIRE_NATUREL(oper::dec_droite);
+			break;
+		}
+		case OP_AUGMENTE_NATUREL:
+		{
+			auto taille_de = LIS_4_OCTETS();
+			auto taille_vers = LIS_4_OCTETS();
+			FAIS_TRANSTYPE_AUGMENTE(unsigned char, unsigned short, unsigned int, unsigned long);
+			break;
+		}
+		case OP_DIMINUE_NATUREL:
+		{
+			auto taille_de = LIS_4_OCTETS();
+			auto taille_vers = LIS_4_OCTETS();
+			FAIS_TRANSTYPE_DIMINUE(unsigned char, unsigned short, unsigned int, unsigned long);
+			break;
+		}
+		case OP_AUGMENTE_RELATIF:
+		{
+			auto taille_de = LIS_4_OCTETS();
+			auto taille_vers = LIS_4_OCTETS();
+			FAIS_TRANSTYPE_AUGMENTE(char, short, int, long);
+			break;
+		}
+		case OP_DIMINUE_RELATIF:
+		{
+			auto taille_de = LIS_4_OCTETS();
+			auto taille_vers = LIS_4_OCTETS();
+			FAIS_TRANSTYPE_DIMINUE(char, short, int, long);
+			break;
+		}
+		case OP_AUGMENTE_REEL:
+		{
+			auto taille_de = LIS_4_OCTETS();
+			auto taille_vers = LIS_4_OCTETS();
+
+			if (taille_de == 4 && taille_vers == 8) {
+				auto v = depile<float>();
+				empile(static_cast<double>(v));
+			}
+
+			break;
+		}
+		case OP_DIMINUE_REEL:
+		{
+			auto taille_de = LIS_4_OCTETS();
+			auto taille_vers = LIS_4_OCTETS();
+
+			if (taille_de == 8 && taille_vers == 4) {
+				auto v = depile<double>();
+				empile(static_cast<float>(v));
+			}
+
+			break;
+		}
+		case OP_RETOURNE:
+		{
+			auto type_fonction = frame->fonction->type->comme_fonction();
+			auto taille_retour = 0;
+
+			POUR (type_fonction->types_sorties) {
+				taille_retour += static_cast<int>(it->taille_octet);
+			}
+
+			auto pointeur_debut_retour = pointeur_pile - taille_retour;
+
+#ifdef DEBOGUE_LOCALES
+			imprime_valeurs_locales(frame, profondeur_appel, std::cerr);
+#endif
+
+#ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
+			imprime_valeurs_sorties(pointeur_debut_retour, type_fonction, frame->fonction->nom, profondeur_appel);
+#endif
+
+			profondeur_appel--;
+
+			if (profondeur_appel == 0) {
+				if (pointeur_pile != pile) {
+					pointeur_pile = pointeur_debut_retour;
+				}
+
+#if defined(DEBOGUE_INTERPRETEUSE) || defined(CHRONOMETRE_INTERPRETATION)
+				std::cerr << "Temps exécution : " << temps * 1000.0 << " ms\n";
+#endif
+				return ResultatInterpretation::TERMINE;
+			}
+
+			pointeur_pile = frame->pointeur_pile;
+
+			if (taille_retour != 0 && pointeur_pile != pointeur_debut_retour) {
+				memcpy(pointeur_pile, pointeur_debut_retour, static_cast<unsigned>(taille_retour));
+			}
+
+			pointeur_pile += taille_retour;
+
+			frame = &frames[profondeur_appel - 1];
+			break;
+		}
+		case OP_APPEL:
+		{
+			auto valeur_ptr = LIS_8_OCTETS();
+			auto taille_argument = LIS_4_OCTETS();
+			// saute l'instruction d'appel
+			frame->pointeur += 8;
+			auto ptr_fonction = reinterpret_cast<AtomeFonction *>(valeur_ptr);
+
+#ifdef DEBOGUE_INTERPRETEUSE
+			std::cerr << "-- appel : " << ptr_fonction->nom << '\n';
+#endif
+
+			if (!appel_fonction_interne(ptr_fonction, taille_argument, frame)) {
+				return ResultatInterpretation::ERREUR;
+			}
+
+			break;
+		}
+		case OP_APPEL_EXTERNE:
+		{
+			auto valeur_ptr = LIS_8_OCTETS();
+			auto taille_argument = LIS_4_OCTETS();
+			auto valeur_inst = LIS_8_OCTETS();
+			auto ptr_fonction = reinterpret_cast<AtomeFonction *>(valeur_ptr);
+			auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
+
+			if (ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(compilatrice_espace_courant)) {
+				empile(m_metaprogramme->unite->espace);
+				break;
+			}
+
+			appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
+			break;
+		}
+		case OP_APPEL_POINTEUR:
+		{
+			auto taille_argument = LIS_4_OCTETS();
+			auto valeur_inst = LIS_8_OCTETS();
+			auto adresse = depile<void *>();
+			auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
+			auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
+
+			if (ptr_fonction->est_externe) {
+				appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
+			}
+			else {
+				if (!appel_fonction_interne(ptr_fonction, taille_argument, frame)) {
+					return ResultatInterpretation::ERREUR;
+				}
+			}
+
+			break;
+		}
+		case OP_ASSIGNE:
+		{
+			auto taille = LIS_4_OCTETS();
+			auto adresse_ou = depile<void *>();
+			auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
+//			std::cerr << "----------------\n";
+//			std::cerr << "adresse_ou : " << adresse_ou << '\n';
+//			std::cerr << "adresse_de : " << adresse_de << '\n';
+//			std::cerr << "taille     : " << taille << '\n';
+			memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
+			depile(taille);
+			break;
+		}
+		case OP_ALLOUE:
+		{
+			auto type = LIS_POINTEUR(Type);
+			// saute l'identifiant
+			frame->pointeur += 8;
+//			std::cerr << "----------------\n";
+//			std::cerr << "alloue : " << type->taille_octet << '\n';
+			this->pointeur_pile += type->taille_octet;
+			break;
+		}
+		case OP_CHARGE:
+		{
+			auto taille = LIS_4_OCTETS();
+			auto adresse_de = depile<void *>();
+			auto adresse_ou = static_cast<void *>(this->pointeur_pile);
+			memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
+			this->pointeur_pile += taille;
+			break;
+		}
+		case OP_REFERENCE_VARIABLE:
+		{
+			auto index = LIS_4_OCTETS();
+			auto const &locale = frame->fonction->chunk.locales[index];
+			empile(&frame->pointeur_pile[locale.adresse]);
+			break;
+		}
+		case OP_REFERENCE_GLOBALE:
+		{
+			auto index = LIS_4_OCTETS();
+			auto const &globale = this->globales[index];
+			empile(&ptr_donnees_globales[globale.adresse]);
+			break;
+		}
+		case OP_REFERENCE_MEMBRE:
+		{
+			auto decalage = LIS_4_OCTETS();
+			auto adresse_de = depile<char *>();
+			empile(adresse_de + decalage);
+			//std::cerr << "adresse_de : " << static_cast<void *>(adresse_de) << '\n';
+			break;
+		}
+		case OP_ACCEDE_INDEX:
+		{
+			auto taille_donnees = LIS_4_OCTETS();
+			auto adresse = depile<char *>();
+			auto index = depile<long>();
+			auto nouvelle_adresse = adresse + index * taille_donnees;
+			empile(nouvelle_adresse);
+//				std::cerr << "nouvelle_adresse : " << static_cast<void *>(nouvelle_adresse) << '\n';
+//				std::cerr << "index            : " << index << '\n';
+//				std::cerr << "taille_donnees   : " << taille_donnees << '\n';
+			break;
+		}
+		default:
+		{
+			std::cerr << "Opération inconnue dans la MV\n";
+			return ResultatInterpretation::ERREUR;
+		}
+	}
+
+	return ResultatInterpretation::OK;
+}
+
 MachineVirtuelle::fonction_symbole MachineVirtuelle::trouve_symbole(IdentifiantCode *symbole)
 {
 	return gestionnaire_bibliotheques.fonction_pour_symbole(symbole);
@@ -1169,6 +1155,165 @@ int MachineVirtuelle::ajoute_globale(Type *type, IdentifiantCode *ident)
 	globales.pousse(globale);
 
 	return ptr;
+}
+
+void MachineVirtuelle::ajoute_metaprogramme(MetaProgramme *metaprogramme)
+{
+	installe_metaprogramme(metaprogramme);
+
+	/* appel le métaprogramme avant d'ajourner les données au cas où sa fonction
+	 * n'aurait pas été générée */
+	appel(metaprogramme->fonction->atome_fonction);
+
+	/* nous devons utiliser nos propres données pour les globales */
+	ptr_donnees_globales = donnees_globales.donnees();
+	ptr_donnees_constantes = donnees_constantes.donnees();
+
+	// initialise les globales pour le métaprogramme
+	POUR (patchs_donnees_constantes) {
+		void *adresse_ou = nullptr;
+		void *adresse_quoi = nullptr;
+
+		if (it.quoi == ADRESSE_CONSTANTE) {
+			adresse_quoi = ptr_donnees_constantes + it.decalage_quoi;
+		}
+		else {
+			adresse_quoi = ptr_donnees_globales + it.decalage_quoi;
+		}
+
+		if (it.ou == DONNEES_CONSTANTES) {
+			adresse_ou = ptr_donnees_constantes + it.decalage_ou;
+		}
+		else {
+			adresse_ou = ptr_donnees_globales + it.decalage_ou;
+		}
+
+		*reinterpret_cast<void **>(adresse_ou) = adresse_quoi;
+		//std::cerr << "Écris adresse : " << adresse_quoi << ", à " << adresse_ou << '\n';
+	}
+
+	/* copie les tableaux de données pour le métaprogramme, ceci est nécessaire
+	 * car le code binaire des fonctions n'est généré qu'une seule fois, mais
+	 * l'exécution des métaprogrammes a besoin de pointeurs valides pour trouver
+	 * les globales et les constantes ; pointeurs qui seraient invalidés quand
+	 * lors de l'ajout d'autres globales ou constantes */
+	metaprogramme->donnees_execution->donnees_globales = donnees_globales;
+	metaprogramme->donnees_execution->donnees_constantes = donnees_constantes;
+
+	/* l'appel a modifié les frames du métaprogramme, sauvegarde */
+	desinstalle_metaprogramme(metaprogramme);
+
+	m_metaprogrammes.pousse(metaprogramme);
+}
+
+void MachineVirtuelle::execute_metaprogrammes_courants()
+{
+	//std::cerr << "Exécution de " << m_metaprogrammes.taille() << '\n';
+
+	/* efface la liste de métaprogrammes dont l'exécution est finie */
+	if (m_metaprogrammes_termines_lu) {
+		m_metaprogrammes_termines.efface();
+		m_metaprogrammes_termines_lu = false;
+	}
+
+	auto nombre_metaprogrammes = m_metaprogrammes.taille();
+
+	dls::chrono::compte_seconde chrono_exec;
+
+	for (auto i = 0; i < nombre_metaprogrammes; ++i) {
+		auto it = m_metaprogrammes[i];
+
+#ifdef DEBOGUE_INTERPRETEUSE
+	std::cerr << "== exécution " << frame->fonction->nom << " ==\n";
+#endif
+
+		assert(it->donnees_execution->profondeur_appel >= 1);
+
+		installe_metaprogramme(it);
+
+		dls::chrono::compte_microseconde chrono;
+
+		while (chrono.temps() < 100 && !stop && !compilatrice.possede_erreur) {
+			auto res = execute_instruction();
+
+			if (res == ResultatInterpretation::ERREUR) {
+				it->resultat = res;
+				m_metaprogrammes_termines.pousse(it);
+				std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
+				nombre_metaprogrammes -= 1;
+				i -= 1;
+				break;
+			}
+
+			if (res == ResultatInterpretation::TERMINE) {
+				it->resultat = ResultatInterpretation::OK;
+				m_metaprogrammes_termines.pousse(it);
+				std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
+				nombre_metaprogrammes -= 1;
+				i -= 1;
+				break;
+			}
+		}
+
+		desinstalle_metaprogramme(it);
+	}
+
+	m_metaprogrammes.redimensionne(nombre_metaprogrammes);
+
+	temps_execution_metaprogammes += chrono_exec.temps();
+
+	nombre_de_metaprogrammes_executes += static_cast<int>(m_metaprogrammes_termines.taille());
+}
+
+dls::tableau<MetaProgramme *> const &MachineVirtuelle::metaprogrammes_termines()
+{
+	m_metaprogrammes_termines_lu = true;
+	return m_metaprogrammes_termines;
+}
+
+DonneesExecution *MachineVirtuelle::loge_donnees_execution()
+{
+	auto donnees = donnees_execution.ajoute_element();
+	donnees->pile = memoire::loge_tableau<octet_t>("MachineVirtuelle::pile", TAILLE_PILE);
+	donnees->pointeur_pile = donnees->pile;
+	return donnees;
+}
+
+void MachineVirtuelle::deloge_donnees_execution(DonneesExecution *&donnees)
+{
+	if (!donnees) {
+		return;
+	}
+
+	// À FAIRE : récupère la mémoire
+	memoire::deloge_tableau("MachineVirtuelle::pile", donnees->pile, TAILLE_PILE);
+	donnees = nullptr;
+}
+
+bool MachineVirtuelle::terminee() const
+{
+	return m_metaprogrammes.est_vide();
+}
+
+void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
+{
+	auto memoire_mv = 0l;
+
+	POUR_TABLEAU_PAGE (donnees_execution) {
+		memoire_mv += it.donnees_globales.taille();
+		memoire_mv += it.donnees_constantes.taille();
+	}
+
+	memoire_mv += donnees_execution.memoire_utilisee();
+	memoire_mv += globales.taille() * taille_de(Globale);
+	memoire_mv += donnees_constantes.taille();
+	memoire_mv += donnees_globales.taille();
+	memoire_mv += patchs_donnees_constantes.taille() * taille_de(PatchDonneesConstantes);
+	memoire_mv += gestionnaire_bibliotheques.memoire_utilisee();
+
+	stats.memoire_mv += memoire_mv;
+	stats.nombre_metaprogrammes_executes += nombre_de_metaprogrammes_executes;
+	stats.temps_metaprogrammes += temps_execution_metaprogammes;
 }
 
 std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch)

@@ -35,6 +35,7 @@
 #include "tacheronne.hh"
 
 struct Statistiques;
+struct DonneesExecution;
 
 struct GeranteChaine {
 	/* stocke la capacité réservée par la lexeuse en attendant d'avoir la capacité comme mebre de kuri::chaine */
@@ -65,6 +66,10 @@ struct MetaProgramme {
 	UniteCompilation *unite = nullptr;
 
 	bool fut_execute = false;
+
+	ResultatInterpretation resultat{};
+
+	DonneesExecution *donnees_execution = nullptr;
 };
 
 // Interface avec le module « Kuri », pour certaines fonctions intéressantes

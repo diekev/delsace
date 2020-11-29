@@ -219,7 +219,7 @@ void OrdonnanceuseTache::cree_tache_pour_execution(EspaceDeTravail *espace, Meta
 	taches_execution.enfile(tache);
 }
 
-Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_completee, int id, DrapeauxTacheronne drapeaux)
+Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_completee, int id, DrapeauxTacheronne drapeaux, bool mv_en_execution)
 {
 	auto unite = tache_terminee.unite;
 	auto espace = EspaceDeTravail::nul();
@@ -381,7 +381,15 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 		}
 	}
 
-	renseigne_etat_tacheronne(id, nouvelle_tache.genre);
+	/* indique que la tâcheronne est en exécution si elle a toujours des métaprogrammes à exécuter,
+	 * ceci car les métaprogrammes n'ont pas forcément finis leurs exécutions quand la tâcheronne
+	 * nous rend la tâche */
+	if (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER) && mv_en_execution && nouvelle_tache.genre == GenreTache::DORS) {
+		renseigne_etat_tacheronne(id, GenreTache::EXECUTE);
+	}
+	else {
+		renseigne_etat_tacheronne(id, nouvelle_tache.genre);
+	}
 
 	return nouvelle_tache;
 }
@@ -519,7 +527,7 @@ void Tacheronne::gere_tache()
 	auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
 	while (!compilatrice.possede_erreur) {
-		tache = ordonnanceuse->tache_suivante(tache, tache_fut_completee, id, drapeaux);
+		tache = ordonnanceuse->tache_suivante(tache, tache_fut_completee, id, drapeaux, !mv.terminee());
 
 		switch (tache.genre) {
 			case GenreTache::COMPILATION_TERMINEE:
@@ -535,9 +543,18 @@ void Tacheronne::gere_tache()
 			}
 			case GenreTache::DORS:
 			{
-				dls::chrono::dors_microsecondes(100);
-				tache_fut_completee = true;
-				temps_passe_a_dormir += 0.1;
+				/* les tâches d'exécutions sont marquées comme terminées dès que leurs métaprogrammes
+				 * sont ajoutés à la machine virtuelle, il se peut qu'il en reste à exécuter alors
+				 * qu'il n'y a plus de tâches à exécuter */
+				if (!mv.terminee()) {
+					execute_metaprogrammes();
+				}
+				else {
+					dls::chrono::dors_microsecondes(100);
+					tache_fut_completee = true;
+					temps_passe_a_dormir += 0.1;
+				}
+
 				break;
 			}
 			case GenreTache::CHARGE_FICHIER:
@@ -1034,85 +1051,97 @@ static void rassemble_globales_et_fonctions(
 bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 {
 	auto metaprogramme = unite->metaprogramme;
-
-	if ((metaprogramme->fonction->drapeaux & RI_FUT_GENEREE) == 0) {
-		return false;
-	}
-
 	auto espace = unite->espace;
 
-	dls::tableau<AtomeGlobale *> globales;
-	dls::tableau<AtomeFonction *> fonctions;
-	rassemble_globales_et_fonctions(espace, mv, metaprogramme->fonction->noeud_dependance, globales, fonctions);
+	auto peut_executer = (metaprogramme->fonction->drapeaux & RI_FUT_GENEREE) != 0;
 
-	auto fonction = metaprogramme->fonction->atome_fonction;
+	if (peut_executer) {
+		dls::tableau<AtomeGlobale *> globales;
+		dls::tableau<AtomeFonction *> fonctions;
+		rassemble_globales_et_fonctions(espace, mv, metaprogramme->fonction->noeud_dependance, globales, fonctions);
 
-	if (!fonction) {
-		rapporte_erreur(espace, metaprogramme->fonction, "Impossible de trouver la fonction pour le métaprogramme");
-	}
+		auto fonction = metaprogramme->fonction->atome_fonction;
 
-	if (globales.taille() != 0) {
-		auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(espace, globales, fonction);
-		fonctions.pousse(fonc_init);
-	}
-
-	POUR (fonctions) {
-		genere_code_binaire_pour_fonction(it, &mv);
-	}
-
-	//desassemble(fonction->chunk, metaprogramme->fonction->nom_broye(unite->espace).c_str(), std::cerr);
-
-	auto res = mv.interprete(metaprogramme);
-
-	// À FAIRE : précision des messages d'erreurs
-	if (res == MachineVirtuelle::ResultatInterpretation::ERREUR) {
-		rapporte_erreur(espace, metaprogramme->directive, "Erreur lors de l'exécution du métaprogramme");
-	}
-	else {
-		if (metaprogramme->directive && metaprogramme->directive->ident == ID::assert_) {
-			auto resultat = *reinterpret_cast<bool *>(mv.pointeur_pile);
-
-			if (!resultat) {
-				rapporte_erreur(espace, metaprogramme->directive, "Échec de l'assertion");
-			}
-
-			metaprogramme->fut_execute = true;
+		if (!fonction) {
+			rapporte_erreur(espace, metaprogramme->fonction, "Impossible de trouver la fonction pour le métaprogramme");
 		}
-		else if (metaprogramme->corps_texte) {
-			auto resultat = *reinterpret_cast<kuri::chaine *>(mv.pointeur_pile);
 
-			if (resultat.taille == 0) {
-				rapporte_erreur(espace, metaprogramme->corps_texte, "Le corps-texte a retourné une chaine vide");
-			}
-
-			auto fichier_racine = espace->fichier(metaprogramme->corps_texte->lexeme->fichier);
-			auto module = fichier_racine->module;
-
-			auto tampon = dls::chaine(resultat.pointeur, resultat.taille);
-
-			if (*tampon.fin() != ' ') {
-				tampon.pousse('\n');
-			}
-
-			auto nom_fichier = dls::vers_chaine(metaprogramme);
-			auto resultat_fichier = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, nom_fichier, nom_fichier, false);
-
-			if (resultat_fichier.tag_type() == FichierNeuf::tag) {
-				auto fichier = resultat_fichier.t2().fichier;
-				auto donnees_fichier = fichier->donnees_constantes;
-
-				fichier->module = module;
-				fichier->metaprogramme_corps_texte = metaprogramme;
-
-				donnees_fichier->charge_tampon(lng::tampon_source(tampon));
-
-				// À FAIRE : ajoute source aux chaines ajoutées
-				compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
-			}
+		if (globales.taille() != 0) {
+			auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(espace, globales, fonction);
+			fonctions.pousse(fonc_init);
 		}
+
+		POUR (fonctions) {
+			genere_code_binaire_pour_fonction(it, &mv);
+		}
+
+		//desassemble(fonction->chunk, metaprogramme->fonction->nom_broye(unite->espace).c_str(), std::cerr);
+
+		metaprogramme->donnees_execution = mv.loge_donnees_execution();
+		mv.ajoute_metaprogramme(metaprogramme);
 	}
 
-	unite->espace->tache_execution_terminee(&(*compilatrice.messagere.verrou_ecriture()));
+	execute_metaprogrammes();
+	return peut_executer;
+}
 
-	return true;
+void Tacheronne::execute_metaprogrammes()
+{
+	mv.execute_metaprogrammes_courants();
+
+	POUR (mv.metaprogrammes_termines()) {
+		auto espace = it->unite->espace;
+
+		// À FAIRE : précision des messages d'erreurs
+		if (it->resultat == ResultatInterpretation::ERREUR) {
+			rapporte_erreur(espace, it->directive, "Erreur lors de l'exécution du métaprogramme");
+		}
+		else {
+			if (it->directive && it->directive->ident == ID::assert_) {
+				auto resultat = *reinterpret_cast<bool *>(it->donnees_execution->pointeur_pile);
+
+				if (!resultat) {
+					rapporte_erreur(espace, it->directive, "Échec de l'assertion");
+				}
+
+				it->fut_execute = true;
+			}
+			else if (it->corps_texte) {
+				auto resultat = *reinterpret_cast<kuri::chaine *>(it->donnees_execution->pointeur_pile);
+
+				if (resultat.taille == 0) {
+					rapporte_erreur(espace, it->corps_texte, "Le corps-texte a retourné une chaine vide");
+				}
+
+				auto fichier_racine = espace->fichier(it->corps_texte->lexeme->fichier);
+				auto module = fichier_racine->module;
+
+				auto tampon = dls::chaine(resultat.pointeur, resultat.taille);
+
+				if (*tampon.fin() != ' ') {
+					tampon.pousse('\n');
+				}
+
+				auto nom_fichier = dls::vers_chaine(it);
+				auto resultat_fichier = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, nom_fichier, nom_fichier, false);
+
+				if (resultat_fichier.tag_type() == FichierNeuf::tag) {
+					auto fichier = resultat_fichier.t2().fichier;
+					auto donnees_fichier = fichier->donnees_constantes;
+
+					fichier->module = module;
+					fichier->metaprogramme_corps_texte = it;
+
+					donnees_fichier->charge_tampon(lng::tampon_source(tampon));
+
+					// À FAIRE : ajoute source aux chaines ajoutées
+					compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
+				}
+			}
+		}
+
+		mv.deloge_donnees_execution(it->donnees_execution);
+
+		espace->tache_execution_terminee(&(*compilatrice.messagere.verrou_ecriture()));
+	}
 }

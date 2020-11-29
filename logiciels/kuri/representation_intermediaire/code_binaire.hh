@@ -37,6 +37,7 @@
 
 struct AtomeFonction;
 struct Compilatrice;
+struct DonneesExecution;
 struct IdentifiantCode;
 struct InstructionAppel;
 struct MachineVirtuelle;

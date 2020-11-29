@@ -113,11 +113,6 @@ currying
 
 // --------------------------- Métaprogrammation
 
-exécute plusieurs métaprogrammes à la fois
-    système similaire à celui des systèmes d'exploitation (exécute le métaprogramme pendant X nanosecondes et passe au suivant)
-    ou alors plusieurs tacheronnes
-    dans tous les cas, il faudra n'exécuter qu'un seul métaprogramme à la fois pour ne pas modifier les globales
-
 permet de modifier la valeur des globales via les métaprogrammes, la génération de code final devra pendre les valeurs se trouvant dans le code binaire
     complexe
 

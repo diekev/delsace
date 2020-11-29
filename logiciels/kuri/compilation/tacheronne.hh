@@ -127,7 +127,7 @@ public:
 	void cree_tache_pour_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud);
 	void cree_tache_pour_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
-	Tache tache_suivante(Tache &tache_terminee, bool tache_completee, int id, DrapeauxTacheronne drapeaux);
+	Tache tache_suivante(Tache &tache_terminee, bool tache_completee, int id, DrapeauxTacheronne drapeaux, bool mv_en_execution);
 
 	long memoire_utilisee() const;
 
@@ -183,4 +183,6 @@ private:
 	bool gere_unite_pour_typage(UniteCompilation *unite);
 	bool gere_unite_pour_ri(UniteCompilation *unite);
 	bool gere_unite_pour_execution(UniteCompilation *unite);
+
+	void execute_metaprogrammes();
 };

@@ -403,16 +403,7 @@ int main(int argc, char *argv[])
 				it->constructrice_ri.rassemble_statistiques(stats);
 				it->allocatrice_noeud.rassemble_statistiques(stats);
 
-				auto memoire_mv = 0l;
-				memoire_mv += it->mv.globales.taille() * taille_de(Globale);
-				memoire_mv += it->mv.donnees_constantes.taille();
-				memoire_mv += it->mv.donnees_globales.taille();
-				memoire_mv += it->mv.patchs_donnees_constantes.taille() * taille_de(PatchDonneesConstantes);
-				memoire_mv += it->mv.gestionnaire_bibliotheques.memoire_utilisee();
-
-				stats.memoire_mv += memoire_mv;
-				stats.nombre_metaprogrammes_executes += it->mv.nombre_de_metaprogrammes_executes;
-				stats.temps_metaprogrammes += it->mv.temps_execution_metaprogammes;
+				it->mv.rassemble_statistiques(stats);
 
 				//std::cerr << "tâcheronne " << it->id << " a dormis pendant " << it->temps_passe_a_dormir << "ms\n";
 
