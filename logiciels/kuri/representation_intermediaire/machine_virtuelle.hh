@@ -88,6 +88,7 @@ enum class ResultatInterpretation : int {
 	ERREUR,
 	COMPILATION_ARRETEE,
 	TERMINE,
+	PASSE_SUIVANT,
 };
 
 static constexpr auto TAILLE_FRAMES_APPEL = 64;

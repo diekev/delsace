@@ -679,6 +679,8 @@ ResultatInterpretation MachineVirtuelle::execute_instruction()
 	imprime_tab(sortie, profondeur_appel);
 	desassemble_instruction(frame->fonction->chunk, (frame->pointeur - frame->fonction->chunk.code), sortie);
 #endif
+	/* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
+	auto pointeur_debut = frame->pointeur;
 	auto instruction = LIS_OCTET();
 
 	switch (instruction) {
@@ -1038,6 +1040,19 @@ ResultatInterpretation MachineVirtuelle::execute_instruction()
 				break;
 			}
 
+			if (ptr_fonction->donnees_externe.ptr_fonction == reinterpret_cast<fonction_symbole>(compilatrice_attend_message)) {
+				auto &messagere = compilatrice.messagere;
+
+				if (!messagere->possede_message()) {
+					frame->pointeur = pointeur_debut;
+					return ResultatInterpretation::PASSE_SUIVANT;
+				}
+
+				auto message = messagere->defile();
+				empile(message);
+				break;
+			}
+
 			appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
 			break;
 		}
@@ -1235,6 +1250,10 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
 		while (chrono.temps() < 100 && !stop && !compilatrice.possede_erreur) {
 			auto res = execute_instruction();
+
+			if (res == ResultatInterpretation::PASSE_SUIVANT) {
+				break;
+			}
 
 			if (res == ResultatInterpretation::ERREUR) {
 				it->resultat = res;

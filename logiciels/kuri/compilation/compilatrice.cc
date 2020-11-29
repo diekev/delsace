@@ -750,19 +750,12 @@ int fonction_test_variadique_externe(int sentinel, ...)
 	return i;
 }
 
+/* cette fonction est symbolique, afin de pouvoir la détecter dans les
+ * MachineVirtuelles, et y retourner le message disponible */
 Message const *compilatrice_attend_message()
 {
-	auto &messagere = ptr_compilatrice->messagere;
-
-	while (!messagere->possede_message() && !ptr_compilatrice->possede_erreur) {
-		usleep(1);
-	}
-
-	if (ptr_compilatrice->possede_erreur) {
-		return nullptr;
-	}
-
-	return messagere->defile();
+	assert(false);
+	return nullptr;
 }
 
 EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine nom, OptionsCompilation *options)
