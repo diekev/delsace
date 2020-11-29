@@ -27,10 +27,10 @@
 #include "biblinternes/chrono/chronometrage.hh"
 
 #include "compilation/arbre_syntaxique.hh"
-#include "compilation/compilatrice.hh"
-#include "compilation/identifiant.hh"
 #include "compilation/broyage.hh"
+#include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
+#include "compilation/identifiant.hh"
 #include "compilation/structures.hh"
 
 #include "instructions.hh"
