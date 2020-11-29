@@ -722,6 +722,11 @@ ffi_type *converti_type_ffi(Type *type)
 			// non supporté pour le moment, nous devrions uniquement passer des pointeurs
 			break;
 		}
+		case GenreType::OPAQUE:
+		{
+			// non supporté pour le moment
+			break;
+		}
 		case GenreType::UNION:
 		{
 			auto type_union = type->comme_union();

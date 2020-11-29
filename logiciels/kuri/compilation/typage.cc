@@ -333,6 +333,14 @@ TypePolymorphique::TypePolymorphique(IdentifiantCode *ident_)
 	this->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 }
 
+TypeOpaque::TypeOpaque(IdentifiantCode *ident_, Type *opacifie)
+	: TypeOpaque()
+{
+	this->ident = ident_;
+	this->type_opacifie = opacifie;
+	this->drapeaux |= TYPE_FUT_VALIDE;
+}
+
 /* ************************************************************************** */
 
 static Type *cree_type_pour_lexeme(GenreLexeme lexeme)
@@ -965,6 +973,11 @@ TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
 	return types_polymorphiques_->ajoute_element(ident);
 }
 
+TypeOpaque *Typeuse::cree_opaque(IdentifiantCode *ident, Type *type_opacifie)
+{
+	return types_opaques->ajoute_element(ident, type_opacifie);
+}
+
 void Typeuse::rassemble_statistiques(Statistiques &stats) const
 {
 #define DONNEES_ENTREE(Type, Tableau) \
@@ -1056,6 +1069,7 @@ void Typeuse::construit_table_types()
 	POUR_TABLEAU_PAGE ((*types_fonctions.verrou_ecriture())) { ASSIGNE_INDEX((&it)); }
 	POUR_TABLEAU_PAGE ((*types_variadiques.verrou_ecriture())) { ASSIGNE_INDEX((&it)); }
 	POUR_TABLEAU_PAGE ((*types_unions.verrou_ecriture())) { ASSIGNE_INDEX((&it)); }
+	POUR_TABLEAU_PAGE ((*types_opaques.verrou_ecriture())) { ASSIGNE_INDEX((&it)); }
 }
 
 /* ************************************************************************** */
@@ -1232,6 +1246,10 @@ dls::chaine chaine_type(const Type *type)
 			}
 
 			return res + type_polymorphique->ident->nom;
+		}
+		case GenreType::OPAQUE:
+		{
+			return static_cast<TypeOpaque const *>(type)->ident->nom;
 		}
 	}
 

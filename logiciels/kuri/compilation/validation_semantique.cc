@@ -324,17 +324,23 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					return true;
 				}
 
-				// les fonctions peuvent ne pas avoir de type au moment si elles sont des appels polymorphiques
-				assert(decl->type || decl->genre == GenreNoeud::DECLARATION_ENTETE_FONCTION);
-				expr->decl = decl;
-				expr->type = decl->type;
+				if (decl->type && decl->type->est_opaque() && decl->est_decl_var() && (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE)) {
+					expr->type = espace->typeuse.type_type_de_donnees(decl->type);
+					expr->decl = decl;
+				}
+				else {
+					// les fonctions peuvent ne pas avoir de type au moment si elles sont des appels polymorphiques
+					assert(decl->type || decl->genre == GenreNoeud::DECLARATION_ENTETE_FONCTION);
+					expr->decl = decl;
+					expr->type = decl->type;
 
-				/* si nous avons une valeur polymorphique, crée un type de données
-				 * temporaire pour que la validation soit contente, elle sera
-				 * remplacée par une constante appropriée lors de la validation
-				 * de l'appel */
-				if (decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-					expr->type = espace->typeuse.type_type_de_donnees(expr->type);
+					/* si nous avons une valeur polymorphique, crée un type de données
+					 * temporaire pour que la validation soit contente, elle sera
+					 * remplacée par une constante appropriée lors de la validation
+					 * de l'appel */
+					if (decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+						expr->type = espace->typeuse.type_type_de_donnees(expr->type);
+					}
 				}
 			}
 
@@ -1334,6 +1340,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				case GenreType::ERREUR:
 				{
 					type_info_type = espace->typeuse.type_info_type_enum;
+					break;
+				}
+				case GenreType::OPAQUE:
+				{
+					type_info_type = espace->typeuse.type_info_type_opaque;
 					break;
 				}
 			}
@@ -3279,6 +3290,21 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariable *decl)
 {
+	if (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE) {
+		auto type_opacifie = Type::nul();
+		resoud_type_final(decl->expression, type_opacifie);
+
+		if ((type_opacifie->drapeaux & TYPE_FUT_VALIDE) == 0) {
+			unite->attend_sur_type(type_opacifie);
+			return true;
+		}
+
+		auto type_opaque = espace->typeuse.cree_opaque(decl->ident, type_opacifie);
+		decl->type = type_opaque;
+		decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+		return false;
+	}
+
 	struct DeclarationEtReference {
 		NoeudExpression *ref_decl = nullptr;
 		NoeudDeclarationVariable *decl = nullptr;

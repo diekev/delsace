@@ -71,6 +71,7 @@ extern IdentifiantCode *InfoTypeEntier;
 extern IdentifiantCode *InfoTypeTableau;
 extern IdentifiantCode *InfoTypePointeur;
 extern IdentifiantCode *InfoTypeFonction;
+extern IdentifiantCode *InfoTypeOpaque;
 extern IdentifiantCode *PositionCodeSource;
 extern IdentifiantCode *InfoFonctionTraceAppel;
 extern IdentifiantCode *TraceAppel;

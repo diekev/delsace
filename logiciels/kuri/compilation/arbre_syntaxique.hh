@@ -165,6 +165,7 @@ enum DrapeauxNoeud : unsigned int {
 	EST_PARAMETRE              = (1 << 20), // decl var
 	EST_VALEUR_POLYMORPHIQUE   = (1 << 21), // decl var
 	POUR_CUISSON               = (1 << 22), // appel
+	EST_DECLARATION_TYPE_OPAQUE = (1 << 23), // decl var
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)
@@ -179,6 +180,7 @@ enum {
 	GENERE_BOUCLE_COROUTINE_INDEX,
 
 	APPEL_POINTEUR_FONCTION,
+	CONSTRUIT_OPAQUE,
 
 	ACCEDE_MODULE,
 

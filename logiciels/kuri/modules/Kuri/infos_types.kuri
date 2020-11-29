@@ -15,6 +15,7 @@ id_info :: énum z32 {
 	OCTET           :: 11
 	TYPE_DE_DONNÉES :: 12
 	UNION           :: 13
+	OPAQUE          :: 14
 }
 
 InfoType :: struct #interface {
@@ -87,4 +88,11 @@ InfoTypeÉnum :: struct #interface {
 	valeurs : []z32 // À FAIRE(langage) typage selon énum
 	noms : []chaine
 	est_drapeau : bool
+}
+
+InfoTypeOpaque :: struct #interface {
+	empl base : InfoType
+
+	nom : chaine
+	type_opacifié : *InfoType
 }

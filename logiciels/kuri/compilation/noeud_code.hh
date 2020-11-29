@@ -266,6 +266,11 @@ struct InfoTypeEnum : public InfoType {
 	bool est_drapeau = false;
 };
 
+struct InfoTypeOpaque : public InfoType {
+	kuri::chaine nom{};
+	InfoType *type_opacifie = nullptr;
+};
+
 struct ConvertisseuseNoeudCode {
 	tableau_page<NoeudCode> noeuds_codes{};
 	tableau_page<NoeudCodeEnteteFonction> noeuds_entetes_fonctions{};
@@ -302,6 +307,7 @@ struct ConvertisseuseNoeudCode {
 	tableau_page<InfoTypeStructure> infos_types_structures{};
 	tableau_page<InfoTypeTableau> infos_types_tableaux{};
 	tableau_page<InfoTypeUnion> infos_types_unions{};
+	tableau_page<InfoTypeOpaque> infos_types_opaques{};
 
 	NoeudCode *converti_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression *noeud_expression);
 

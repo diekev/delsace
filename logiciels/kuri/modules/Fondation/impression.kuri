@@ -742,6 +742,10 @@ imprime_valeur :: fonc(
 
             ajoute_au_tampon(enchaineuse, " }")
 		}
+		OPAQUE {
+			info_arg := info comme *InfoTypeOpaque
+			imprime_valeur(enchaineuse, pointeur, info_arg.type_opacifié, faux)
+		}
 	}
 }
 

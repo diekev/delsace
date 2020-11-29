@@ -773,6 +773,17 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			type->info_type = info_type;
 			break;
 		}
+		case GenreType::OPAQUE:
+		{
+			auto type_opaque = type->comme_opaque();
+
+			auto info_type = infos_types_opaques.ajoute_element();
+			info_type->nom = type_opaque->ident->nom;
+			info_type->type_opacifie = cree_info_type_pour(type_opaque->type_opacifie);
+
+			type->info_type = info_type;
+			break;
+		}
 	}
 
 	return type->info_type;
@@ -817,6 +828,7 @@ long ConvertisseuseNoeudCode::memoire_utilisee() const
 	memoire += infos_types_structures.memoire_utilisee();
 	memoire += infos_types_tableaux.memoire_utilisee();
 	memoire += infos_types_unions.memoire_utilisee();
+	memoire += infos_types_opaques.memoire_utilisee();
 
 	return memoire;
 }

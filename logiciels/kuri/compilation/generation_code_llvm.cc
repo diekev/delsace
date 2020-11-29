@@ -454,6 +454,12 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 			type_llvm = converti_type_llvm(type_enum->type_donnees);
 			break;
 		}
+		case GenreType::OPAQUE:
+		{
+			auto type_opaque = type->comme_opaque();
+			type_llvm = converti_type_llvm(type_opaque->type_opacifie);
+			break;
+		}
 	}
 
 	table_types[type] = type_llvm;

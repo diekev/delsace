@@ -64,6 +64,14 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 			enchaineuse << "typedef " << nom_broye_type_donnees << ' ' << nom_broye << ";\n";
 			break;
 		}
+		case GenreType::OPAQUE:
+		{
+			auto type_opaque = type->comme_opaque();
+			auto nom_broye_type_opacifie = nom_broye_type(type_opaque->type_opacifie);
+
+			enchaineuse << "typedef " << nom_broye_type_opacifie << ' ' << nom_broye << ";\n";
+			break;
+		}
 		case GenreType::BOOL:
 		{
 			enchaineuse << "typedef unsigned char " << nom_broye << ";\n";

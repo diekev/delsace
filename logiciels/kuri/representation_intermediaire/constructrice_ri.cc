@@ -638,6 +638,11 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto expr_appel = noeud->comme_appel();
 
+			if (expr_appel->aide_generation_code == CONSTRUIT_OPAQUE) {
+				genere_ri_transformee_pour_noeud(expr_appel->exprs[0], nullptr, { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, expr_appel->type });
+				break;
+			}
+
 			auto args = kuri::tableau<Atome *>();
 			args.reserve(expr_appel->exprs.taille);
 
@@ -3266,6 +3271,11 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
 			auto type_enum = type->comme_enum();
 			return cree_constante_entiere(type_enum, 0);
 		}
+		case GenreType::OPAQUE:
+		{
+			auto type_opaque = type->comme_opaque();
+			return genere_initialisation_defaut_pour_type(type_opaque->type_opacifie);
+		}
 	}
 
 	return nullptr;
@@ -3438,6 +3448,7 @@ struct IDInfoType {
 	static constexpr unsigned OCTET           = 11;
 	static constexpr unsigned TYPE_DE_DONNEES = 12;
 	static constexpr unsigned UNION           = 13;
+	static constexpr unsigned OPAQUE          = 14;
 };
 
 AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
@@ -3799,6 +3810,29 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		case GenreType::TYPE_DE_DONNEES:
 		{
 			type->atome_info_type = cree_info_type_defaut(IDInfoType::TYPE_DE_DONNEES, type->taille_octet);
+			break;
+		}
+		case GenreType::OPAQUE:
+		{
+			auto type_opaque = type->comme_opaque();
+			auto type_opacifie = type_opaque->type_opacifie;
+
+			/* { id, taille_en_octet, nom, type_opacifié } */
+			auto type_info_type_opaque = m_espace->typeuse.type_info_type_opaque;
+
+			auto valeur_id = cree_z32(IDInfoType::OPAQUE);
+			auto valeur_taille_octet = cree_z32(type_opacifie->taille_octet);
+			auto valeur_nom = cree_chaine(type_opaque->ident->nom);
+			auto valeur_type_opacifie = cree_info_type(type_opacifie);
+
+			auto valeurs = kuri::tableau<AtomeConstante *>(4);
+			valeurs[0] = valeur_id;
+			valeurs[1] = valeur_taille_octet;
+			valeurs[2] = valeur_nom;
+			valeurs[3] = valeur_type_opacifie;
+
+			auto initialisateur = cree_constante_structure(type_info_type_opaque, std::move(valeurs));
+			type->atome_info_type = cree_globale(type_info_type_opaque, initialisateur, false, true);
 			break;
 		}
 	}

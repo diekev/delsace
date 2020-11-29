@@ -1381,6 +1381,38 @@ static auto apparie_appel_structure(
 
 /* ************************************************************************** */
 
+static auto apparie_construction_opaque(
+		EspaceDeTravail &/*espace*/,
+		ContexteValidationCode &/*contexte*/,
+		NoeudExpressionAppel const *expr,
+		TypeOpaque *type_opaque,
+		kuri::tableau<IdentifiantEtExpression> const &arguments,
+		DonneesCandidate &resultat)
+{
+	if (arguments.taille > 1) {
+		resultat.etat = FONCTION_INTROUVEE;
+		resultat.raison = MECOMPTAGE_ARGS;
+		resultat.poids_args = 0.0;
+		return true;
+	}
+
+	if (arguments[0].expr->type != type_opaque->type_opacifie) {
+		resultat.etat = FONCTION_INTROUVEE;
+		resultat.raison = METYPAGE_ARG;
+		resultat.poids_args = 0.0;
+		return true;
+	}
+
+	resultat.type = type_opaque;
+	resultat.note = CANDIDATE_EST_INITIALISATION_OPAQUE;
+	resultat.etat = FONCTION_TROUVEE;
+	resultat.poids_args = 1.0;
+	resultat.exprs.pousse(arguments[0].expr);
+	return false;
+}
+
+/* ************************************************************************** */
+
 static auto trouve_candidates_pour_appel(
 		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
@@ -1511,6 +1543,14 @@ static auto trouve_candidates_pour_appel(
 						}
 						resultat.pousse(dc);
 					}
+					else if (type_connu->est_opaque()) {
+						auto type_opaque = type_connu->comme_opaque();
+
+						if (apparie_construction_opaque(espace, contexte, expr, type_opaque, args, dc)) {
+							return true;
+						}
+						resultat.pousse(dc);
+					}
 					else {
 						dc.etat = FONCTION_INTROUVEE;
 						dc.raison = TYPE_N_EST_PAS_FONCTION;
@@ -1522,6 +1562,14 @@ static auto trouve_candidates_pour_appel(
 					if (apparie_appel_pointeur(expr, decl->type, espace, contexte, args, dc)) {
 						return true;
 					}
+				}
+				else if (type->est_opaque()) {
+					auto type_opaque = type->comme_opaque();
+
+					if (apparie_construction_opaque(espace, contexte, expr, type_opaque, args, dc)) {
+						return true;
+					}
+					resultat.pousse(dc);
 				}
 				else {
 					dc.etat = FONCTION_INTROUVEE;
@@ -1981,6 +2029,10 @@ bool valide_appel_fonction(
 		// le type du retour
 		expr->type = espace.typeuse[TypeBase::RIEN];
 		expr->drapeaux |= FORCE_NULCTX;
+	}
+	else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
+		expr->aide_generation_code = CONSTRUIT_OPAQUE;
+		expr->type = candidate->type;
 	}
 
 #ifdef CHRONOMETRE_TYPAGE

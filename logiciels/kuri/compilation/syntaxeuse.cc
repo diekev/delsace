@@ -103,6 +103,7 @@ static auto renseigne_type_interface(Typeuse &typeuse, IdentifiantCode *ident, T
 	INIT_TYPE(type_base_allocatrice, ID::BaseAllocatrice)
 	INIT_TYPE(type_info_appel_trace_appel, ID::InfoAppelTraceAppel)
 	INIT_TYPE(type_stockage_temporaire, ID::StockageTemporaire)
+	INIT_TYPE(type_info_type_opaque, ID::InfoTypeOpaque)
 
 #undef INIT_TYPE
 }
@@ -1259,6 +1260,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		{
 			consomme();
 
+			bool est_declaration_type_opaque = false;
+
 			switch (lexeme_courant()->genre) {
 				default:
 				{
@@ -1294,6 +1297,23 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 				{
 					return analyse_declaration_enum(gauche);
 				}
+				case GenreLexeme::DIRECTIVE:
+				{
+					auto position = m_position;
+
+					consomme();
+
+					auto directive = lexeme_courant()->ident;
+
+					if (directive == ID::opaque) {
+						est_declaration_type_opaque = true;
+						consomme();
+					}
+					else {
+						m_position = position - 1;
+						consomme();
+					}
+				}
 			}
 
 			auto noeud = CREE_NOEUD(NoeudDeclarationVariable, GenreNoeud::DECLARATION_VARIABLE, lexeme);
@@ -1302,6 +1322,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 			noeud->expression = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
 			noeud->drapeaux |= EST_CONSTANTE;
 			gauche->drapeaux |= EST_CONSTANTE;
+
+			if (est_declaration_type_opaque) {
+				noeud->drapeaux |= EST_DECLARATION_TYPE_OPAQUE;
+				gauche->drapeaux |= EST_DECLARATION_TYPE_OPAQUE;
+			}
 
 			if (gauche->est_ref_decl()) {
 				gauche->comme_ref_decl()->decl = noeud;

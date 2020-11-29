@@ -103,6 +103,7 @@ IdentifiantCode *InfoTypeEntier;
 IdentifiantCode *InfoTypeTableau;
 IdentifiantCode *InfoTypePointeur;
 IdentifiantCode *InfoTypeFonction;
+IdentifiantCode *InfoTypeOpaque;
 IdentifiantCode *PositionCodeSource;
 IdentifiantCode *InfoFonctionTraceAppel;
 IdentifiantCode *TraceAppel;
@@ -183,6 +184,7 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::InfoTypeTableau = table.identifiant_pour_chaine("InfoTypeTableau");
 	ID::InfoTypePointeur = table.identifiant_pour_chaine("InfoTypePointeur");
 	ID::InfoTypeFonction = table.identifiant_pour_chaine("InfoTypeFonction");
+	ID::InfoTypeOpaque = table.identifiant_pour_chaine("InfoTypeOpaque");
 	ID::PositionCodeSource = table.identifiant_pour_chaine("PositionCodeSource");
 	ID::InfoFonctionTraceAppel = table.identifiant_pour_chaine("InfoFonctionTraceAppel");
 	ID::TraceAppel = table.identifiant_pour_chaine("TraceAppel");
