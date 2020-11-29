@@ -160,13 +160,18 @@ RésultatParsage :: énum {
  * Les erreurs peuvent exister si le texte est malformé, ou si une valeur ne peut être parser,
  * ou encore si un nom dans le texte ne correspond pas à un membre du type T.
  *
+ * Tout échappement URL du texte d'entrée est résolu avant le parsage.
+ *
  * Le type T doit être une structure.
  */
 parse_texte_format_url :: fonc (parseuse: *ParseuseFormatURL, texte: chaine, $T: type_de_données) -> RésultatParsage, DonnéesRésultat(T = T), T
 {
     #assert info_de(T).id == id_info.STRUCTURE
 
-    parseuse.chn = texte
+    parseuse.curseur = 0
+    parseuse.chn = résoud_échappement_url(texte)
+    // À FAIRE : nous ne pouvons pas libérer la mémoire car les chaines ne sont pas copiées
+    // À FAIRE : erreur quand nous différons ici
 
     données : DonnéesRésultat(T = T)
     résultat : T
@@ -207,7 +212,7 @@ parse_texte_format_url :: fonc (parseuse: *ParseuseFormatURL, texte: chaine, $T:
         pos = trouve_prochain(parseuse, '&')
 
         si pos <= 0 {
-            pos = texte.taille
+            pos = parseuse.chn.taille
         }
 
         valeur := sous_chaine_jusque_index(parseuse, pos)
