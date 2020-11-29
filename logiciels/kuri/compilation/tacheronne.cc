@@ -1133,7 +1133,7 @@ void Tacheronne::execute_metaprogrammes()
 
 					donnees_fichier->charge_tampon(lng::tampon_source(tampon));
 
-					// À FAIRE : ajoute source aux chaines ajoutées
+					compilatrice.chaines_ajoutees_a_la_compilation->pousse(dls::chaine(resultat.pointeur, resultat.taille));
 					compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 				}
 			}
