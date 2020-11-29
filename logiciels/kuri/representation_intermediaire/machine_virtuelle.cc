@@ -1223,8 +1223,6 @@ void MachineVirtuelle::ajoute_metaprogramme(MetaProgramme *metaprogramme)
 
 void MachineVirtuelle::execute_metaprogrammes_courants()
 {
-	//std::cerr << "Exécution de " << m_metaprogrammes.taille() << '\n';
-
 	/* efface la liste de métaprogrammes dont l'exécution est finie */
 	if (m_metaprogrammes_termines_lu) {
 		m_metaprogrammes_termines.efface();
