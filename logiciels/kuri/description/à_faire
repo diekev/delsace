@@ -25,10 +25,6 @@ Résultat de l'algorithme d'unification :
 
 utilisation d'une référence pour passer le contexte entre les fonctions, nous devrons correctement gérer les références dans ce cas
 
-utilisation d'une variable globale pour le contexte du thread principale
-    -- mention dans test_moultfilage.kuri
-    -- mention dans Jeu/application.kuri "imprime n'a pas de contexte"
-
 // --------------------------- Fonctions
 
 passe un type à une fonction pour instantier automatiquement une valeur temporaire dont on ne se soucie pas de la valeur

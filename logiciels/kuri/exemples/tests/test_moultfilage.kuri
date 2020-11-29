@@ -116,14 +116,18 @@ Tâche :: struct {
 lance_tâche :: fonc (tâche_: *rien) -> *rien #nulctx
 {
     tâche := tâche_ comme *Tâche
+
+    contexte := __contexte_fil_principal
     // contexte.id_tâche = tâche.id
-    tâche.rappel(tâche.données_rappel)
+
+    pousse_contexte contexte {
+        tâche.rappel(tâche.données_rappel)
+    }
+
     retourne nul
 }
 
-// comment passer le contexte ?
-// création d'un contexte par le programme ?
-crée_tâche :: fonc (rappel: #nulctx fonc(*rien)(*rien), données_rappel: *rien) -> *Tâche
+crée_tâche :: fonc (rappel: fonc(*rien)(*rien), données_rappel: *rien) -> *Tâche
 {
     tâche := loge Tâche
     tâche.données_rappel = données_rappel

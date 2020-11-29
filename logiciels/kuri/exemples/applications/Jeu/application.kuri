@@ -20,7 +20,7 @@ FileÉvènement :: struct {
 	taille : z64
 }
 
-enfile :: fonc(q : *FileÉvènement, évènement : Évènement) -> rien #nulctx
+enfile :: fonc(q : *FileÉvènement, évènement : Évènement) -> rien
 {
     si q.taille >= NOMBRE_MAXIMUM_ÉVÈNEMET {
         // À FAIRE: erreur?
@@ -32,12 +32,12 @@ enfile :: fonc(q : *FileÉvènement, évènement : Évènement) -> rien #nulctx
     q.taille += 1
 }
 
-est_vide :: fonc(q : *FileÉvènement) -> bool #nulctx
+est_vide :: fonc(q : *FileÉvènement) -> bool
 {
     retourne q.taille == 0
 }
 
-défile :: fonc(q : *FileÉvènement) -> Évènement #nulctx
+défile :: fonc(q : *FileÉvènement) -> Évènement
 {
     évènement : Évènement
 
@@ -66,79 +66,95 @@ VG_file_évènements : *FileÉvènement = nul
 
 rappel_erreur :: fonc(erreur_ : z32, desc : *z8) -> rien #nulctx
 {
-    // À FAIRE : imprime n'a pas de contexte.
-    //soit chn = converti_chaine_c(desc);
-    //imprime("Erreur ", erreur, " : ", chn, "\n");
+    contexte := __contexte_fil_principal
+    pousse_contexte contexte {
+        chn := converti_chaine_c(desc)
+        imprime("Erreur % : %\n", erreur_, chn);
+    }
 }
 
 rappel_clavier :: fonc(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, action : z32, mods : type_mod) -> rien #nulctx
 {
-    //glfwSetWindowShouldClose(fenetre, 1);
-    évènement : Évènement
+    contexte := __contexte_fil_principal
+    pousse_contexte contexte {
+        évènement : Évènement
 
-	si action == 1 {
-		évènement.type = type_évènement.CLE_PRESSEE
-	}
-	sinon si action == 0 {
-		évènement.type = type_évènement.CLE_RELACHEE
-	}
-	sinon si action == 2 {
-		évènement.type = type_évènement.CLE_REPETEE
-	}
+        si action == 1 {
+            évènement.type = type_évènement.CLE_PRESSEE
+        }
+        sinon si action == 0 {
+            évènement.type = type_évènement.CLE_RELACHEE
+        }
+        sinon si action == 2 {
+            évènement.type = type_évènement.CLE_REPETEE
+        }
 
-    évènement.mods = mods
-    évènement.cle = cle
+        évènement.mods = mods
+        évènement.cle = cle
 
-    enfile(VG_file_évènements, évènement)
+        enfile(VG_file_évènements, évènement)
+    }
 }
 
 rappel_bouton_souris :: fonc(fenetre : *GLFWwindow, bouton : bouton_souris, action : z32, mods : type_mod) -> rien #nulctx
 {
-    évènement : Évènement
+    contexte := __contexte_fil_principal
+    pousse_contexte contexte {
+        évènement : Évènement
 
-    si action == 1 {
-		évènement.type = type_évènement.SOURIS_PRESSEE
-	}
-	sinon si action == 0 {
-		évènement.type = type_évènement.SOURIS_RELACHEE
-	}
+        si action == 1 {
+            évènement.type = type_évènement.SOURIS_PRESSEE
+        }
+        sinon si action == 0 {
+            évènement.type = type_évènement.SOURIS_RELACHEE
+        }
 
-    évènement.mods = mods
-    évènement.souris = bouton
+        évènement.mods = mods
+        évènement.souris = bouton
 
-    enfile(VG_file_évènements, évènement)
+        enfile(VG_file_évènements, évènement)
+    }
 }
 
 rappel_position_souris :: fonc(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) -> rien #nulctx
 {
-    évènement : Évènement
-    évènement.type = type_évènement.SOURIS_BOUGEE
-    évènement.pos_x = pos_x comme r32
-    évènement.pos_y = pos_y comme r32
+    contexte := __contexte_fil_principal
+    pousse_contexte contexte {
+        évènement : Évènement
+        évènement.type = type_évènement.SOURIS_BOUGEE
+        évènement.pos_x = pos_x comme r32
+        évènement.pos_y = pos_y comme r32
 
-    enfile(VG_file_évènements, évènement)
+        enfile(VG_file_évènements, évènement)
+    }
 }
 
 rappel_roulette :: fonc(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) -> rien #nulctx
 {
-    évènement : Évènement
-    évènement.type = type_évènement.SOURIS_ROULETTE
-    évènement.delta_x = delta_x comme r32
-    évènement.delta_y = delta_y comme r32
+    contexte := __contexte_fil_principal
+    pousse_contexte contexte {
+        évènement : Évènement
+        évènement.type = type_évènement.SOURIS_ROULETTE
+        évènement.delta_x = delta_x comme r32
+        évènement.delta_y = delta_y comme r32
 
-    enfile(VG_file_évènements, évènement)
+        enfile(VG_file_évènements, évènement)
+    }
 }
 
 rappel_dimension :: fonc(fenetre : *GLFWwindow, x : z32, y : z32) -> rien #nulctx
 {
-	glViewport(0, 0, x, y)
+    glViewport(0, 0, x, y)
 
-    évènement : Évènement
-    évènement.type = type_évènement.REDIMENSION
-    évènement.delta_x = x comme r32
-    évènement.delta_y = y comme r32
+    contexte := __contexte_fil_principal
+    pousse_contexte contexte {
+        évènement : Évènement
+        évènement.type = type_évènement.REDIMENSION
+        évènement.delta_x = x comme r32
+        évènement.delta_y = y comme r32
 
-    enfile(VG_file_évènements, évènement)
+        enfile(VG_file_évènements, évènement)
+    }
 }
 
 //###############################################################################
