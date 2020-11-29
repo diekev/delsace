@@ -129,10 +129,8 @@ bool Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclara
 	return true;
 }
 
-void Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace, PhaseCompilation phase)
+void Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace)
 {
-	espace->phase = phase;
-
 	if (!interception_commencee) {
 		return;
 	}
@@ -140,7 +138,7 @@ void Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace, PhaseC
 	auto message = messages_phase_compilation.ajoute_element();
 	message->genre = GenreMessage::PHASE_COMPILATION;
 	message->espace = espace;
-	message->phase = phase;
+	message->phase = espace->phase_courante();
 
 	file_message.enfile({ nullptr, message });
 	pic_de_message = std::max(file_message.taille(), pic_de_message);

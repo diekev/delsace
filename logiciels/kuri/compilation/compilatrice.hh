@@ -108,6 +108,8 @@ private:
 	std::atomic<int> nombre_taches_ri = 0;
 	std::atomic<int> nombre_taches_execution = 0;
 
+	PhaseCompilation phase = PhaseCompilation::PARSAGE_EN_COURS;
+
 public:
 	dls::chaine nom{};
 	OptionsCompilation options{};
@@ -211,24 +213,27 @@ public:
 
 	MetaProgramme *cree_metaprogramme();
 
-	void tache_chargement_ajoutee();
-	void tache_lexage_ajoutee();
-	void tache_parsage_ajoutee();
-	void tache_typage_ajoutee();
-	void tache_ri_ajoutee();
-	void tache_execution_ajoutee();
+	void tache_chargement_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_lexage_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_parsage_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_typage_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_ri_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_execution_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
 
-	void tache_chargement_terminee(Messagere *messagere, Fichier *fichier);
-	void tache_lexage_terminee(Messagere *messagere);
-	void tache_parsage_terminee(Messagere *messagere);
-	void tache_typage_terminee(Messagere *messagere);
-	void tache_ri_terminee(Messagere *messagere);
-	void tache_execution_terminee(Messagere *messagere);
-	void tache_generation_objet_terminee(Messagere *messagere);
-	void tache_liaison_executable_terminee(Messagere *messagere);
+	void tache_chargement_terminee(dls::outils::Synchrone<Messagere> &messagere, Fichier *fichier);
+	void tache_lexage_terminee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_parsage_terminee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_ri_terminee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_execution_terminee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_generation_objet_terminee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_liaison_executable_terminee(dls::outils::Synchrone<Messagere> &messagere);
 
 	bool peut_generer_code_final() const;
 	bool parsage_termine() const;
+
+	void change_de_phase(dls::outils::Synchrone<Messagere> &messagere, PhaseCompilation nouvelle_phase);
+	PhaseCompilation phase_courante() const;
 };
 
 struct Compilatrice {

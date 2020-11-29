@@ -327,103 +327,98 @@ MetaProgramme *EspaceDeTravail::cree_metaprogramme()
 	return metaprogrammes->ajoute_element();
 }
 
-void EspaceDeTravail::tache_chargement_ajoutee()
+void EspaceDeTravail::tache_chargement_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	phase = PhaseCompilation::PARSAGE_EN_COURS;
+	change_de_phase(messagere, PhaseCompilation::PARSAGE_EN_COURS);
 	nombre_taches_chargement += 1;
 }
 
-void EspaceDeTravail::tache_lexage_ajoutee()
+void EspaceDeTravail::tache_lexage_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	phase = PhaseCompilation::PARSAGE_EN_COURS;
+	change_de_phase(messagere, PhaseCompilation::PARSAGE_EN_COURS);
 	nombre_taches_lexage += 1;
 }
 
-void EspaceDeTravail::tache_parsage_ajoutee()
+void EspaceDeTravail::tache_parsage_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	phase = PhaseCompilation::PARSAGE_EN_COURS;
+	change_de_phase(messagere, PhaseCompilation::PARSAGE_EN_COURS);
 	nombre_taches_parsage += 1;
 }
 
-void EspaceDeTravail::tache_typage_ajoutee()
+void EspaceDeTravail::tache_typage_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
 {
 	if (phase > PhaseCompilation::PARSAGE_TERMINE) {
-		phase = PhaseCompilation::PARSAGE_TERMINE;
+		change_de_phase(messagere, PhaseCompilation::PARSAGE_TERMINE);
 	}
 
 	nombre_taches_typage += 1;
 }
 
-void EspaceDeTravail::tache_ri_ajoutee()
+void EspaceDeTravail::tache_ri_ajoutee(dls::outils::Synchrone<Messagere> &messagere)
 {
 	if (phase > PhaseCompilation::TYPAGE_TERMINE) {
-		phase = PhaseCompilation::TYPAGE_TERMINE;
+		change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
 	}
 
 	nombre_taches_ri += 1;
 }
 
-void EspaceDeTravail::tache_execution_ajoutee()
+void EspaceDeTravail::tache_execution_ajoutee(dls::outils::Synchrone<Messagere> &/*messagere*/)
 {
 	nombre_taches_execution += 1;
 }
 
-void EspaceDeTravail::tache_chargement_terminee(Messagere *messagere, Fichier *fichier)
+void EspaceDeTravail::tache_chargement_terminee(dls::outils::Synchrone<Messagere> &messagere, Fichier *fichier)
 {
 	nombre_taches_chargement -= 1;
 	messagere->ajoute_message_fichier_ferme(this, fichier->chemin());
 }
 
-void EspaceDeTravail::tache_lexage_terminee(Messagere */*messagere*/)
+void EspaceDeTravail::tache_lexage_terminee(dls::outils::Synchrone<Messagere> &/*messagere*/)
 {
 	nombre_taches_lexage -= 1;
 }
 
-void EspaceDeTravail::tache_parsage_terminee(Messagere *messagere)
+void EspaceDeTravail::tache_parsage_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
 	nombre_taches_parsage -= 1;
 
 	if (parsage_termine()) {
-		phase = PhaseCompilation::PARSAGE_TERMINE;
-		messagere->ajoute_message_phase_compilation(this, phase);
+		change_de_phase(messagere, PhaseCompilation::PARSAGE_TERMINE);
 	}
 }
 
-void EspaceDeTravail::tache_typage_terminee(Messagere *messagere)
+void EspaceDeTravail::tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
 	nombre_taches_typage -= 1;
 
 	if (nombre_taches_typage == 0 && phase == PhaseCompilation::PARSAGE_TERMINE) {
-		phase = PhaseCompilation::TYPAGE_TERMINE;
-		messagere->ajoute_message_phase_compilation(this, phase);
+		change_de_phase(messagere, PhaseCompilation::TYPAGE_TERMINE);
 	}
 }
 
-void EspaceDeTravail::tache_ri_terminee(Messagere *messagere)
+void EspaceDeTravail::tache_ri_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
 	nombre_taches_ri -= 1;
 
 	if (nombre_taches_ri == 0 && phase == PhaseCompilation::TYPAGE_TERMINE) {
-		phase = PhaseCompilation::GENERATION_CODE_TERMINEE;
-		messagere->ajoute_message_phase_compilation(this, phase);
+		change_de_phase(messagere, PhaseCompilation::GENERATION_CODE_TERMINEE);
 	}
 }
 
-void EspaceDeTravail::tache_execution_terminee(Messagere */*messagere*/)
+void EspaceDeTravail::tache_execution_terminee(dls::outils::Synchrone<Messagere> &/*messagere*/)
 {
 	nombre_taches_execution -= 1;
 }
 
-void EspaceDeTravail::tache_generation_objet_terminee(Messagere *messagere)
+void EspaceDeTravail::tache_generation_objet_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	phase = PhaseCompilation::APRES_GENERATION_OBJET;
-	messagere->ajoute_message_phase_compilation(this, phase);
+	change_de_phase(messagere, PhaseCompilation::APRES_GENERATION_OBJET);
 }
 
-void EspaceDeTravail::tache_liaison_executable_terminee(Messagere *messagere)
+void EspaceDeTravail::tache_liaison_executable_terminee(dls::outils::Synchrone<Messagere> &messagere)
 {
-	phase = PhaseCompilation::APRES_LIAISON_EXECUTABLE;
-	messagere->ajoute_message_phase_compilation(this, phase);
+	change_de_phase(messagere, PhaseCompilation::APRES_LIAISON_EXECUTABLE);
 }
 
 bool EspaceDeTravail::peut_generer_code_final() const
@@ -446,6 +441,17 @@ bool EspaceDeTravail::peut_generer_code_final() const
 bool EspaceDeTravail::parsage_termine() const
 {
 	return nombre_taches_chargement == 0 && nombre_taches_lexage == 0 && nombre_taches_parsage == 0;
+}
+
+void EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere, PhaseCompilation nouvelle_phase)
+{
+	phase = nouvelle_phase;
+	messagere->ajoute_message_phase_compilation(this);
+}
+
+PhaseCompilation EspaceDeTravail::phase_courante() const
+{
+	return phase;
 }
 
 /* ************************************************************************** */

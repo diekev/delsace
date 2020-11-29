@@ -114,7 +114,7 @@ public:
 	void ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module);
 	void ajoute_message_module_ferme(EspaceDeTravail *espace, Module *module);
 	bool ajoute_message_typage_code(EspaceDeTravail *espace, NoeudDeclaration *noeud_decl, UniteCompilation *unite);
-	void ajoute_message_phase_compilation(EspaceDeTravail *espace, PhaseCompilation phase);
+	void ajoute_message_phase_compilation(EspaceDeTravail *espace);
 
 	long memoire_utilisee() const;
 

@@ -102,7 +102,7 @@ OrdonnanceuseTache::OrdonnanceuseTache(Compilatrice *compilatrice)
 
 void OrdonnanceuseTache::cree_tache_pour_chargement(EspaceDeTravail *espace, Fichier *fichier)
 {
-	espace->tache_chargement_ajoutee();
+	espace->tache_chargement_ajoutee(m_compilatrice->messagere);
 
 	auto unite = unites.ajoute_element(espace);
 	unite->fichier = fichier;
@@ -117,7 +117,7 @@ void OrdonnanceuseTache::cree_tache_pour_chargement(EspaceDeTravail *espace, Fic
 void OrdonnanceuseTache::cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier *fichier)
 {
 	assert(fichier->donnees_constantes->fut_charge);
-	espace->tache_lexage_ajoutee();
+	espace->tache_lexage_ajoutee(m_compilatrice->messagere);
 
 	auto unite = unites.ajoute_element(espace);
 	unite->fichier = fichier;
@@ -132,7 +132,7 @@ void OrdonnanceuseTache::cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier
 void OrdonnanceuseTache::cree_tache_pour_parsage(EspaceDeTravail *espace, Fichier *fichier)
 {
 	assert(fichier->donnees_constantes->fut_lexe);
-	espace->tache_parsage_ajoutee();
+	espace->tache_parsage_ajoutee(m_compilatrice->messagere);
 
 	auto unite = unites.ajoute_element(espace);
 	unite->fichier = fichier;
@@ -146,7 +146,7 @@ void OrdonnanceuseTache::cree_tache_pour_parsage(EspaceDeTravail *espace, Fichie
 
 void OrdonnanceuseTache::cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
-	espace->tache_typage_ajoutee();
+	espace->tache_typage_ajoutee(m_compilatrice->messagere);
 
 	auto unite = unites.ajoute_element(espace);
 	unite->noeud = noeud;
@@ -189,7 +189,7 @@ long OrdonnanceuseTache::nombre_de_taches_en_attente() const
 
 void OrdonnanceuseTache::cree_tache_pour_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
-	espace->tache_ri_ajoutee();
+	espace->tache_ri_ajoutee(m_compilatrice->messagere);
 
 	auto unite = unites.ajoute_element(espace);
 	unite->noeud = noeud;
@@ -205,7 +205,7 @@ void OrdonnanceuseTache::cree_tache_pour_generation_ri(EspaceDeTravail *espace, 
 
 void OrdonnanceuseTache::cree_tache_pour_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
 {
-	espace->tache_execution_ajoutee();
+	espace->tache_execution_ajoutee(m_compilatrice->messagere);
 
 	auto unite = unites.ajoute_element(espace);
 	unite->metaprogramme = metaprogramme;
@@ -267,8 +267,8 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 				break;
 			}
 
-			espace->tache_chargement_terminee(&(*m_compilatrice->messagere.verrou_ecriture()), unite->fichier);
-			espace->tache_lexage_ajoutee();
+			espace->tache_chargement_terminee(m_compilatrice->messagere, unite->fichier);
+			espace->tache_lexage_ajoutee(m_compilatrice->messagere);
 			tache_terminee.genre = GenreTache::LEXE;
 			taches_lexage.enfile(tache_terminee);
 			break;
@@ -280,15 +280,15 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 				break;
 			}
 
-			espace->tache_lexage_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
-			espace->tache_parsage_ajoutee();
+			espace->tache_lexage_terminee(m_compilatrice->messagere);
+			espace->tache_parsage_ajoutee(m_compilatrice->messagere);
 			tache_terminee.genre = GenreTache::PARSE;
 			taches_parsage.enfile(tache_terminee);
 			break;
 		}
 		case GenreTache::PARSE:
 		{
-			espace->tache_parsage_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
+			espace->tache_parsage_terminee(m_compilatrice->messagere);
 			break;
 		}
 		case GenreTache::TYPAGE:
@@ -309,7 +309,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 				break;
 			}
 
-			espace->tache_typage_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
+			espace->tache_typage_terminee(m_compilatrice->messagere);
 
 			auto generation_ri_requise = true;
 			auto noeud = unite->noeud;
@@ -328,7 +328,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 			}
 
 			if (generation_ri_requise) {
-				espace->tache_ri_ajoutee();
+				espace->tache_ri_ajoutee(m_compilatrice->messagere);
 				tache_terminee.genre = GenreTache::GENERE_RI;
 				tache_terminee.unite->cycle = 0;
 				taches_generation_ri.enfile(tache_terminee);
@@ -354,29 +354,28 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 				break;
 			}
 
-			espace->tache_ri_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
+			espace->tache_ri_terminee(m_compilatrice->messagere);
 			break;
 		}
 		case GenreTache::GENERE_FICHIER_OBJET:
 		{
-			espace->tache_generation_objet_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
+			espace->tache_generation_objet_terminee(m_compilatrice->messagere);
 
 			if (espace->options.objet_genere == ObjetGenere::Executable) {
-				espace->phase = PhaseCompilation::AVANT_LIAISON_EXECUTABLE;
-				m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
+				espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
 				renseigne_etat_tacheronne(id, GenreTache::LIAISON_EXECUTABLE);
 				return Tache::liaison_objet(espace);
 			}
 			else {
-				m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::COMPILATION_TERMINEE);
+				espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
 			}
 
 			break;
 		}
 		case GenreTache::LIAISON_EXECUTABLE:
 		{
-			espace->tache_liaison_executable_terminee(&(*m_compilatrice->messagere.verrou_ecriture()));
-			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::COMPILATION_TERMINEE);
+			espace->tache_liaison_executable_terminee(m_compilatrice->messagere);
+			espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
 			break;
 		}
 	}
@@ -460,10 +459,10 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, DrapeauxTacher
 
 	if (espace->peut_generer_code_final()) {
 		if (espace->options.objet_genere == ObjetGenere::Rien) {
-			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::COMPILATION_TERMINEE);
+			espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
 		}
 		else if (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE)) {
-			m_compilatrice->messagere->ajoute_message_phase_compilation(espace, PhaseCompilation::AVANT_GENERATION_OBJET);
+			espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::AVANT_GENERATION_OBJET);
 			return Tache::genere_fichier_objet(espace);
 		}
 	}
@@ -1142,6 +1141,6 @@ void Tacheronne::execute_metaprogrammes()
 
 		mv.deloge_donnees_execution(it->donnees_execution);
 
-		espace->tache_execution_terminee(&(*compilatrice.messagere.verrou_ecriture()));
+		espace->tache_execution_terminee(compilatrice.messagere);
 	}
 }
