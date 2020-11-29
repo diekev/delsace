@@ -1244,9 +1244,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
 		installe_metaprogramme(it);
 
-		dls::chrono::compte_microseconde chrono;
-
-		while (chrono.temps() < 100 && !stop && !compilatrice.possede_erreur) {
+		for (int j = 0; j < 100; ++j) {
 			auto res = execute_instruction();
 
 			if (res == ResultatInterpretation::PASSE_SUIVANT) {
@@ -1273,6 +1271,10 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 		}
 
 		desinstalle_metaprogramme(it);
+
+		if (stop || compilatrice.possede_erreur) {
+			break;
+		}
 	}
 
 	m_metaprogrammes.redimensionne(nombre_metaprogrammes);
