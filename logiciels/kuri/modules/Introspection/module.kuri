@@ -10,12 +10,12 @@ est_valide :: fonc (valeur: eini) -> bool
 
 est_bool :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.BOOLÉEN
+    retourne valeur.info == info_de(bool)
 }
 
 est_chaine :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.CHAINE
+    retourne valeur.info == info_de(chaine)
 }
 
 est_structure :: fonc (valeur: eini) -> bool
@@ -50,7 +50,7 @@ est_opaque :: fonc (valeur: eini) -> bool
 
 est_eini :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.EINI
+    retourne valeur.info == info_de(eini)
 }
 
 est_énum :: fonc (valeur: eini) -> bool
@@ -60,7 +60,7 @@ est_énum :: fonc (valeur: eini) -> bool
 
 est_octet :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.OCTET
+    retourne valeur.info == info_de(octet)
 }
 
 est_type_de_données :: fonc (valeur: eini) -> bool
@@ -73,64 +73,64 @@ est_union :: fonc (valeur: eini) -> bool
     retourne valeur.info.id == id_info.UNION
 }
 
-est_rien :: fonc (valeur: eini) -> bool
-{
-    retourne valeur.info.id == id_info.RIEN
-}
-
 est_z8 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 1
+    retourne valeur.info == info_de(z8)
 }
 
 est_z16 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 2
+    retourne valeur.info == info_de(z16)
 }
 
 est_z32 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 4
+    retourne valeur.info == info_de(z32)
 }
 
 est_z64 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 8
+    retourne valeur.info == info_de(z64)
 }
 
 est_n8 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 1
+    retourne valeur.info == info_de(n8)
 }
 
 est_n16 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 2
+    retourne valeur.info == info_de(n16)
 }
 
 est_n32 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 4
+    retourne valeur.info == info_de(n32)
 }
 
 est_n64 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 8
+    retourne valeur.info == info_de(n64)
 }
 
 est_r16 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.RÉEL && valeur.info.taille_en_octet == 2
+    retourne valeur.info == info_de(r16)
 }
 
 est_r32 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.RÉEL && valeur.info.taille_en_octet == 4
+    retourne valeur.info == info_de(r32)
 }
 
 est_r64 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == id_info.RÉEL && valeur.info.taille_en_octet == 8
+    retourne valeur.info == info_de(r64)
+}
+
+est_rien :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info == info_de(rien)
 }
 
 /* Assignation d'une valeur. */
