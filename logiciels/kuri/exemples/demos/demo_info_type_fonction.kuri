@@ -107,6 +107,10 @@ imprime_type :: fonc(info : *InfoType) -> rien
 		    info_arg := info comme *InfoTypeÉnum
 			imprime(info_arg.nom)
 		}
+		OPAQUE {
+			info_arg := info comme *InfoTypeOpaque
+			imprime(info_arg.nom)
+		}
 	}
 }
 
