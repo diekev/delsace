@@ -478,22 +478,20 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
     }
 
     si scanner.lexème == LexèmeJSON.TRUE {
-        si valeur.info.id != id_info.BOOLÉEN {
+        saufsi valeur.est_bool() {
             imprime("Attendu une chaine de caractère pour le membre de la structure\n")
             retourne LexèmeJSON.INVALIDE
         }
 
-        pointeur := valeur.pointeur comme *bool
-        mémoire(pointeur) = vrai
+        valeur.assigne_bool(vrai)
     }
     sinon si scanner.lexème == LexèmeJSON.FALSE {
-        si valeur.info.id != id_info.BOOLÉEN {
+        saufsi valeur.est_bool() {
             imprime("Attendu une chaine de caractère pour le membre de la structure\n")
             retourne LexèmeJSON.INVALIDE
         }
 
-        pointeur := valeur.pointeur comme *bool
-        mémoire(pointeur) = faux
+        valeur.assigne_bool(faux)
     }
     sinon si scanner.lexème == LexèmeJSON.GUILLEMET {
         résultat := scanner.lis_chaine()
@@ -503,16 +501,15 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
-        si valeur.info.id != id_info.CHAINE {
+        saufsi valeur.est_chaine() {
             imprime("Attendu une chaine de caractère pour le membre de la structure\n")
             retourne LexèmeJSON.INVALIDE
         }
 
-        pointeur := valeur.pointeur comme *chaine
-        mémoire(pointeur) = scanner.rappel_copie_chaine(scanner.chaine_caractère)
+        valeur.assigne_chaine(scanner.rappel_copie_chaine(scanner.chaine_caractère))
     }
     sinon si scanner.lexème == LexèmeJSON.NOMBRE_ENTIER {
-        si valeur.info.id != id_info.ENTIER {
+        saufsi valeur.est_entier() {
             imprime("Attendu une valeur entière pour le membre de la structure\n")
             retourne LexèmeJSON.INVALIDE
         }
@@ -526,21 +523,17 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
                 imprime("Le minimum est %, le maximum est % !\n", valeur_min(taille_en_octet, vrai), valeur_max(taille_en_octet, vrai))
             }
 
-            si taille_en_octet == 1 {
-                pointeur := valeur.pointeur comme *z8
-                mémoire(pointeur) = scanner.nombre_entier comme z8
+            si valeur.est_z8() {
+                valeur.assigne_z8(scanner.nombre_entier comme z8)
             }
-            sinon si taille_en_octet == 2 {
-                pointeur := valeur.pointeur comme *z16
-                mémoire(pointeur) = scanner.nombre_entier comme z16
+            sinon si valeur.est_z16() {
+                valeur.assigne_z16(scanner.nombre_entier comme z16)
             }
-            sinon si taille_en_octet == 4 {
-                pointeur := valeur.pointeur comme *z32
-                mémoire(pointeur) = scanner.nombre_entier comme z32
+            sinon si valeur.est_z32() {
+                valeur.assigne_z32(scanner.nombre_entier comme z32)
             }
-            sinon si taille_en_octet == 8 {
-                pointeur := valeur.pointeur comme *z64
-                mémoire(pointeur) = scanner.nombre_entier comme z64
+            sinon si valeur.est_z64() {
+                valeur.assigne_z64(scanner.nombre_entier comme z64)
             }
         }
         sinon {
@@ -554,53 +547,45 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
                 imprime("Le minimum est 0, le maximum est % !\n", valeur_max(taille_en_octet, faux))
             }
 
-            si taille_en_octet == 1 {
-                pointeur := valeur.pointeur comme *n8
-                mémoire(pointeur) = scanner.nombre_entier comme n8
+            si valeur.est_n8() {
+                valeur.assigne_n8(scanner.nombre_entier comme n8)
             }
-            sinon si taille_en_octet == 2 {
-                pointeur := valeur.pointeur comme *n16
-                mémoire(pointeur) = scanner.nombre_entier comme n16
+            sinon si valeur.est_n16() {
+                valeur.assigne_n16(scanner.nombre_entier comme n16)
             }
-            sinon si taille_en_octet == 4 {
-                pointeur := valeur.pointeur comme *n32
-                mémoire(pointeur) = scanner.nombre_entier comme n32
+            sinon si valeur.est_n32() {
+                valeur.assigne_n32(scanner.nombre_entier comme n32)
             }
-            sinon si taille_en_octet == 8 {
-                pointeur := valeur.pointeur comme *n64
-                mémoire(pointeur) = scanner.nombre_entier comme n64
+            sinon si valeur.est_n64() {
+                valeur.assigne_n64(scanner.nombre_entier comme n64)
             }
         }
     }
     sinon si scanner.lexème == LexèmeJSON.NOMBRE_RÉEL {
-        si valeur.info.id != id_info.RÉEL {
+        saufsi valeur.est_réel() {
             imprime("Attendu un nombre réel pour le membre de la structure\n")
             retourne LexèmeJSON.INVALIDE
         }
 
         taille_en_octet := valeur.info.taille_en_octet
 
-        si taille_en_octet == 2 {
-            pointeur := valeur.pointeur comme *r16
-            mémoire(pointeur) = scanner.nombre_réel
+        si valeur.est_r16() {
+            valeur.assigne_r16(scanner.nombre_réel)
         }
-        sinon si taille_en_octet == 4 {
-            pointeur := valeur.pointeur comme *r32
-            mémoire(pointeur) = scanner.nombre_réel comme r32
+        sinon si valeur.est_r32() {
+            valeur.assigne_r32(scanner.nombre_réel comme r32)
         }
-        sinon si taille_en_octet == 8 {
-            pointeur := valeur.pointeur comme *r64
-            mémoire(pointeur) = scanner.nombre_réel comme r64
+        sinon si valeur.est_r64() {
+            valeur.assigne_r64(scanner.nombre_réel)
         }
     }
     sinon si scanner.lexème == LexèmeJSON.NULL {
-        si valeur.info.id != id_info.POINTEUR {
+        saufsi valeur.est_pointeur() {
             imprime("Attendu un pointeur pour le membre de la structure\n")
             retourne LexèmeJSON.INVALIDE
         }
 
-        pointeur := valeur.pointeur comme **z8
-        mémoire(pointeur) = nul
+        valeur.assigne_pointeur(nul)
     }
     sinon si scanner.lexème == LexèmeJSON.ACCOLADE_OUVRANTE {
         // À FAIRE : type structure
