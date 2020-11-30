@@ -132,7 +132,15 @@ principale :: fonc () -> z32
     ajoute_fichier(*rendeuse_page.catalogue, "corps", "corps.html")
     ajoute_fichier(*rendeuse_page.catalogue, "extra", "extra.html")
 
-    données_page : eini
+    DonnéesPage :: struct {
+        titre := "Page Test"
+    }
+
+    Indirection :: struct {
+        indirection : DonnéesPage
+    }
+
+    données_page : Indirection
 
     chn := tente rends_page(*rendeuse_page, "base", données_page) piège err {
         imprime("erreur lors du rendu de la page : %\n", err)

@@ -133,6 +133,9 @@ génère_page :: fonc(
                 }
             }
         }
+        ACCÈS_MEMBRE {
+            // non-implémenté
+        }
     }
 
     retourne ErreurGénérationPage.AUCUNE
@@ -158,6 +161,14 @@ trouve_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembreStruc
 valeur_membre :: fonc (valeur: eini, nom_membre: chaine) -> eini
 {
     résultat : eini
+
+    si valeur.est_chaine() {
+        si nom_membre == "taille" {
+            résultat.pointeur = valeur.pointeur + 8
+            résultat.info = info_de(z64)
+            retourne résultat
+        }
+    }
 
     saufsi valeur.est_structure() {
         retourne résultat
@@ -280,6 +291,15 @@ génère_page :: fonc(
                 retourne erreur_
             }
         }
+        ACCÈS_MEMBRE {
+            valeur := trouve_valeur_pour_expression(données, noeud)
+
+            saufsi valeur.est_valide() {
+                retourne ErreurGénérationPage.OBJET_NON_TROUVÉ
+            }
+
+            imprime_valeur(enchaineuse, valeur.pointeur, valeur.info, faux)
+        }
     }
 
     retourne ErreurGénérationPage.AUCUNE
@@ -300,6 +320,35 @@ génère_page :: fonc(
     }
 
     retourne faux
+}
+
+trouve_valeur_pour_expression :: fonc (données: *DonnéesGénération, noeud: *NoeudSyntaxique) -> eini
+{
+    résultat : eini
+
+    discr noeud.type {
+        VARIABLE {
+            variable := noeud.données.chn
+            résultat = trouve_variable(données, variable)
+        }
+        ACCÈS_MEMBRE {
+            accédé := noeud.enfants[0]
+            membre := noeud.enfants[1].données.chn
+
+            valeur_accédée := trouve_valeur_pour_expression(données, accédé)
+
+            saufsi valeur_accédée.est_valide() {
+                retourne résultat
+            }
+
+            résultat = valeur_membre(valeur_accédée, membre)
+        }
+        sinon {
+            // mauvais type de neoud
+        }
+    }
+
+    retourne résultat
 }
 
 // À FAIRE(langage) : surcharge opérateur ! pour eini

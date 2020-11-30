@@ -7,6 +7,7 @@ TypeNoeud :: énum z32 {
 	BLOC
 	POUR
 	SI
+    ACCÈS_MEMBRE
 }
 
 NoeudSyntaxique :: struct {
@@ -92,6 +93,11 @@ ajoute_noeud :: fonc (assembleuse : &AssembleuseArbre,
                       données : &Lexème) -> rien
 {
 	noeud := assembleuse.crée_noeud(type_noeud, données)
+    assembleuse.ajoute_noeud(noeud)
+}
+
+ajoute_noeud :: fonc (assembleuse: &AssembleuseArbre, noeud: *NoeudSyntaxique)
+{
     noeud.parent = assembleuse.pile.tête()
 	ajoute_noeud(noeud.parent, noeud)
 }

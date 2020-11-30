@@ -105,13 +105,13 @@ analyse_page :: fonc (syntaxeuse : &Syntaxeuse) -> rien
 		sinon si (syntaxeuse.apparie(TypeLexème.DÉBUT_VARIABLE)) {
 			syntaxeuse.avance()
 
-			// À FAIRE : apparie_expression
-			si (!syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE)) {
-				syntaxeuse.rapporte_erreur("Attendu identifiant de la variable après '{{'")
+			si !syntaxeuse.apparie_expression() {
+				syntaxeuse.rapporte_erreur("attendu une expression après '{{'")
 				retourne
 			}
 
-			syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
+			expr := syntaxeuse.analyse_expression()
+			syntaxeuse.assembleuse.ajoute_noeud(expr)
 
 			si (!syntaxeuse.consomme(TypeLexème.FIN_VARIABLE)) {
 				syntaxeuse.rapporte_erreur("Attendu '}}' à la fin de la déclaration d'une variable")
@@ -337,25 +337,71 @@ rapporte_erreur :: fonc (syntaxeuse: &Syntaxeuse, message: chaine)
 
 apparie_expression :: fonc (syntaxeuse: &Syntaxeuse) -> bool
 {
+	lexème := syntaxeuse.lexème_courant()
+
+	si lexème == TypeLexème.CHAINE_CARACTÈRE {
+		retourne vrai
+	}
+
 	retourne faux
 }
 
 apparie_expression_secondaire :: fonc (syntaxeuse: &Syntaxeuse) -> bool
 {
+	lexème := syntaxeuse.lexème_courant()
+
+	si lexème == TypeLexème.POINT {
+		retourne vrai
+	}
+
 	retourne faux
 }
 
-analyse_expression :: fonc (syntaxeuse: &Syntaxeuse)
+analyse_expression :: fonc (syntaxeuse: &Syntaxeuse, précédence: z32 = 0) -> *NoeudSyntaxique
 {
+	expr := syntaxeuse.analyse_expression_primaire()
 
+	tantque syntaxeuse.apparie_expression_secondaire() {
+		si précédence == 1 {
+			arrête
+		}
+
+		expr = syntaxeuse.analyse_expression_secondaire(expr)
+	}
+
+	retourne expr
 }
 
-analyse_expression_primaire :: fonc (syntaxeuse: &Syntaxeuse)
+analyse_expression_primaire :: fonc (syntaxeuse: &Syntaxeuse) -> *NoeudSyntaxique
 {
+	lexème := syntaxeuse.lexème_courant()
 
+	si lexème == TypeLexème.CHAINE_CARACTÈRE {
+		syntaxeuse.avance()
+
+		noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
+
+		retourne noeud
+	}
+
+	retourne nul
 }
 
-analyse_expression_secondaire :: fonc (syntaxeuse: &Syntaxeuse)
+analyse_expression_secondaire :: fonc (syntaxeuse: &Syntaxeuse, gauche: *NoeudSyntaxique) -> *NoeudSyntaxique
 {
+	lexème := syntaxeuse.lexème_courant()
 
+	si lexème == TypeLexème.POINT {
+		syntaxeuse.avance()
+
+		noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ACCÈS_MEMBRE, syntaxeuse.données())
+		droite := syntaxeuse.analyse_expression(1)
+
+		noeud.ajoute_noeud(gauche)
+		noeud.ajoute_noeud(droite)
+
+		retourne noeud
+	}
+
+	retourne nul
 }
