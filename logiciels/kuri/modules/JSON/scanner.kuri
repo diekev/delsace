@@ -11,7 +11,9 @@
 // À FAIRE : meilleur gestion des erreurs, gestion des tableaux et des sous-structures, rapport des membres remplis
 
 importe Fondation
+importe Introspection
 importe Math
+importe Numérique
 
 LexèmeJSON :: énum z32 {
     INVALIDE
@@ -428,9 +430,9 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 
         nom := scanner.chaine_caractère
 
-        info_membre := trouve_info_membre(scanner.structure, nom)
+        valeur_membre := trouve_valeur_membre(scanner.structure, nom)
 
-        si info_membre == nul {
+        saufsi valeur_membre.est_valide() {
             imprime("Impossible de trouver le membre '%'\n", nom)
             retourne LexèmeJSON.INVALIDE
         }
@@ -444,8 +446,6 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 
         // -------------------------
         // la valeur elle-même
-
-        valeur_membre := eini_depuis_info_membre(scanner.structure, info_membre)
 
         scanner.lis()
 

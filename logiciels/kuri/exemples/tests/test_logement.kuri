@@ -1,5 +1,6 @@
 importe Fondation
 importe GlibC
+importe Introspection
 
 imprime_tableau :: fonc(tabl : []r32) -> rien
 {

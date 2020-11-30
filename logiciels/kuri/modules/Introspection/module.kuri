@@ -1,0 +1,365 @@
+// Bibliothèque d'introspection.
+
+// À FAIRE(langage) : surcharge opérateur ! pour eini
+est_valide :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.pointeur != nul
+}
+
+/* Enquête sur l'InfoType de l'eini. */
+
+est_bool :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.BOOLÉEN
+}
+
+est_chaine :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.CHAINE
+}
+
+est_structure :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.STRUCTURE
+}
+
+est_tableau :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.TABLEAU
+}
+
+est_entier :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.ENTIER
+}
+
+est_réel :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.RÉEL
+}
+
+est_pointeur :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.POINTEUR
+}
+
+est_opaque :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.OPAQUE
+}
+
+est_eini :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.EINI
+}
+
+est_énum :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.ÉNUM
+}
+
+est_octet :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.OCTET
+}
+
+est_type_de_données :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.TYPE_DE_DONNÉES
+}
+
+est_union :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.UNION
+}
+
+est_rien :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.RIEN
+}
+
+est_z8 :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 1
+}
+
+est_z16 :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 2
+}
+
+est_z32 :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 4
+}
+
+est_z64 :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 8
+}
+
+est_n8 :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 1
+}
+
+est_n16 :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 2
+}
+
+est_n32 :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 4
+}
+
+est_n64 :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.ENTIER && valeur.info.taille_en_octet == 8
+}
+
+est_r16 :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.RÉEL && valeur.info.taille_en_octet == 2
+}
+
+est_r32 :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.RÉEL && valeur.info.taille_en_octet == 4
+}
+
+est_r64 :: fonc (valeur: eini) -> bool
+{
+    retourne valeur.info.id == id_info.RÉEL && valeur.info.taille_en_octet == 8
+}
+
+/* Extraction d'une valeur depuis l'eini, seuls les types de bases sont supportés. */
+
+comme_bool :: fonc (valeur: eini) -> bool
+{
+    retourne mémoire(valeur.pointeur comme *bool)
+}
+
+comme_chaine :: fonc (valeur: eini) -> chaine
+{
+    retourne mémoire(valeur.pointeur comme *chaine)
+}
+
+comme_octet :: fonc (valeur: eini) -> octet
+{
+    retourne mémoire(valeur.pointeur comme *octet)
+}
+
+comme_type_de_données :: fonc (valeur: eini) -> bool
+{
+    retourne mémoire(valeur.pointeur comme *type_de_données)
+}
+
+comme_z8 :: fonc (valeur: eini) -> z8
+{
+    retourne mémoire(valeur.pointeur comme *z8)
+}
+
+comme_z16 :: fonc (valeur: eini) -> z16
+{
+    retourne mémoire(valeur.pointeur comme *z16)
+}
+
+comme_z32 :: fonc (valeur: eini) -> z32
+{
+    retourne mémoire(valeur.pointeur comme *z32)
+}
+
+comme_z64 :: fonc (valeur: eini) -> z64
+{
+    retourne mémoire(valeur.pointeur comme *z64)
+}
+
+comme_n8 :: fonc (valeur: eini) -> n8
+{
+    retourne mémoire(valeur.pointeur comme *n8)
+}
+
+comme_n16 :: fonc (valeur: eini) -> n16
+{
+    retourne mémoire(valeur.pointeur comme *n16)
+}
+
+comme_n32 :: fonc (valeur: eini) -> n32
+{
+    retourne mémoire(valeur.pointeur comme *n32)
+}
+
+comme_n64 :: fonc (valeur: eini) -> n64
+{
+    retourne mémoire(valeur.pointeur comme *n64)
+}
+
+comme_r16 :: fonc (valeur: eini) -> r16
+{
+    retourne mémoire(valeur.pointeur comme *r16)
+}
+
+comme_r32 :: fonc (valeur: eini) -> r32
+{
+    retourne mémoire(valeur.pointeur comme *r32)
+}
+
+comme_r64 :: fonc (valeur: eini) -> r64
+{
+    retourne mémoire(valeur.pointeur comme *r64)
+}
+
+/* Enquête sur les membres d'un eini pour une structure quelconque. */
+
+possède_membre :: fonc (valeur: eini, nom: chaine) -> bool
+{
+    saufsi valeur.est_structure() {
+		retourne faux
+	}
+
+	info := valeur.info comme *InfoTypeStructure
+
+    pour membre dans info.membres {
+        si membre.nom == nom {
+			retourne vrai
+        }
+    }
+
+	retourne faux
+}
+
+membres :: corout (valeur : eini) -> chaine
+{
+    saufsi valeur.est_structure() {
+		retourne
+	}
+
+	info := valeur.info comme *InfoTypeStructure
+
+    pour membre dans info.membres {
+		retiens membre.nom
+	}
+}
+
+eini_depuis_info_membre :: fonc (structure: eini, info_membre: *InfoTypeMembreStructure) -> eini
+{
+    e : eini
+    e.pointeur = structure.pointeur + info_membre.décalage
+    e.info = info_membre.id
+
+    retourne e
+}
+
+trouve_info_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembreStructure
+{
+    saufsi valeur.est_structure() {
+        retourne nul
+    }
+
+    info := valeur.info comme *InfoTypeStructure
+
+    pour info.membres {
+        si it.nom == nom_membre {
+            retourne membre
+        }
+    }
+
+    retourne nul
+}
+
+/* Trouve la valeur eini d'un membre d'une structure ou d'une chaine.
+ * Pour un type chaine, seul le membre "taille" renvoie une valeur pour le moment.
+ */
+trouve_valeur_membre :: fonc (valeur: eini, nom_membre: chaine) -> eini
+{
+    résultat : eini
+
+    si valeur.est_chaine() {
+        si nom_membre == "taille" {
+            résultat.pointeur = valeur.pointeur + 8
+            résultat.info = info_de(z64)
+            retourne résultat
+        }
+    }
+
+    saufsi valeur.est_structure() {
+        retourne résultat
+    }
+
+    info := valeur.info comme *InfoTypeStructure
+
+    pour info.membres {
+        si it.nom == nom_membre {
+            résultat.pointeur = valeur.pointeur + it.décalage
+            résultat.info = it.id
+            retourne résultat
+        }
+    }
+
+    retourne résultat
+}
+
+/* Itératrice sur les valeurs d'un eini provenant d'un type tableau (fixe ou dynamique). */
+ItératriceTableau :: struct {
+    valeur: eini
+
+    pointeur: *z8
+    taille: z64
+
+    position: z64
+
+    type_pointé : *InfoType
+
+    décalage : z32
+}
+
+crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
+{
+    itératrice : ItératriceTableau
+
+    saufsi valeur.est_valide() {
+        retourne itératrice
+    }
+
+    saufsi valeur.est_tableau() {
+        retourne itératrice
+    }
+
+    info_tableau := valeur.info comme *InfoTypeTableau
+    type_pointé := info_tableau.type_pointé
+    décalage := type_pointé.taille_en_octet comme z32
+
+    si info_tableau.est_tableau_fixe {
+        itératrice.pointeur = valeur.pointeur
+        itératrice.taille = info_tableau.taille_fixe
+    }
+    sinon {
+        x := mémoire(valeur.pointeur comme *[]z8)
+
+        itératrice.pointeur = x.pointeur
+        itératrice.taille = x.taille
+    }
+
+    itératrice.valeur = valeur
+    itératrice.type_pointé = type_pointé
+    itératrice.décalage = décalage
+
+    retourne itératrice
+}
+
+valeur_suivante :: fonc (itératrice: &ItératriceTableau) -> eini
+{
+    résultat : eini
+
+    si itératrice.position >= itératrice.taille {
+        retourne résultat
+    }
+
+    résultat.pointeur = itératrice.pointeur + itératrice.décalage * itératrice.position
+    résultat.info = itératrice.type_pointé
+
+    itératrice.position += 1
+
+    retourne résultat
+}

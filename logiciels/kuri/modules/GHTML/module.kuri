@@ -1,56 +1,11 @@
 importe Fondation // pour imprime_valeur
+importe Introspection
 
 // À FAIRE: ajout d'un message aux erreurs
 ErreurGénérationPage :: énum z32 {
     AUCUNE
     OBJET_NON_ITÉRABLE
     OBJET_NON_TROUVÉ
-}
-
-trouve_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembreStructure
-{
-    saufsi valeur.est_structure() {
-        retourne nul
-    }
-
-    info := valeur.info comme *InfoTypeStructure
-
-    pour info.membres {
-        si it.nom == nom_membre {
-            retourne membre
-        }
-    }
-
-    retourne nul
-}
-
-valeur_membre :: fonc (valeur: eini, nom_membre: chaine) -> eini
-{
-    résultat : eini
-
-    si valeur.est_chaine() {
-        si nom_membre == "taille" {
-            résultat.pointeur = valeur.pointeur + 8
-            résultat.info = info_de(z64)
-            retourne résultat
-        }
-    }
-
-    saufsi valeur.est_structure() {
-        retourne résultat
-    }
-
-    info := valeur.info comme *InfoTypeStructure
-
-    pour info.membres {
-        si it.nom == nom_membre {
-            résultat.pointeur = valeur.pointeur + it.décalage
-            résultat.info = it.id
-            retourne résultat
-        }
-    }
-
-    retourne résultat
 }
 
 DonnéesGénération :: struct {
@@ -61,7 +16,7 @@ DonnéesGénération :: struct {
 
 trouve_variable :: fonc (données: *DonnéesGénération, nom: chaine) -> eini
 {
-    valeur := valeur_membre(données.valeur, nom)
+    valeur := trouve_valeur_membre(données.valeur, nom)
 
     si valeur.est_valide() {
         retourne valeur
@@ -207,111 +162,12 @@ trouve_valeur_pour_expression :: fonc (données: *DonnéesGénération, noeud: *
                 retourne résultat
             }
 
-            résultat = valeur_membre(valeur_accédée, membre)
+            résultat = trouve_valeur_membre(valeur_accédée, membre)
         }
         sinon {
             // mauvais type de neoud
         }
     }
-
-    retourne résultat
-}
-
-// À FAIRE(langage) : surcharge opérateur ! pour eini
-est_valide :: fonc (valeur: eini) -> bool
-{
-    retourne valeur.pointeur != nul
-}
-
-est_bool :: fonc (valeur: eini) -> bool
-{
-    retourne valeur.info.id == id_info.BOOLÉEN
-}
-
-est_chaine :: fonc (valeur: eini) -> bool
-{
-    retourne valeur.info.id == id_info.CHAINE
-}
-
-est_structure :: fonc (valeur: eini) -> bool
-{
-    retourne valeur.info.id == id_info.STRUCTURE
-}
-
-est_tableau :: fonc (valeur: eini) -> bool
-{
-    retourne valeur.info.id == id_info.TABLEAU
-}
-
-comme_bool :: fonc (valeur: eini) -> bool
-{
-    retourne mémoire(valeur.pointeur comme *bool)
-}
-
-comme_chaine :: fonc (valeur: eini) -> chaine
-{
-    retourne mémoire(valeur.pointeur comme *chaine)
-}
-
-ItératriceTableau :: struct {
-    valeur: eini
-
-    pointeur: *z8
-    taille: z64
-
-    position: z64
-
-    type_pointé : *InfoType
-
-    décalage : z32
-}
-
-crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
-{
-    itératrice : ItératriceTableau
-
-    saufsi valeur.est_valide() {
-        retourne itératrice
-    }
-
-    saufsi valeur.est_tableau() {
-        retourne itératrice
-    }
-
-    info_tableau := valeur.info comme *InfoTypeTableau
-    type_pointé := info_tableau.type_pointé
-    décalage := type_pointé.taille_en_octet comme z32
-
-    si info_tableau.est_tableau_fixe {
-        itératrice.pointeur = valeur.pointeur
-        itératrice.taille = info_tableau.taille_fixe
-    }
-    sinon {
-        x := mémoire(valeur.pointeur comme *[]z8)
-
-        itératrice.pointeur = x.pointeur
-        itératrice.taille = x.taille
-    }
-
-    itératrice.valeur = valeur
-    itératrice.type_pointé = type_pointé
-    itératrice.décalage = décalage
-
-    retourne itératrice
-}
-
-valeur_suivante :: fonc (itératrice: &ItératriceTableau) -> eini
-{
-    résultat : eini
-
-    si itératrice.position >= itératrice.taille {
-        retourne résultat
-    }
-
-    résultat.pointeur = itératrice.pointeur + itératrice.décalage * itératrice.position
-    résultat.info = itératrice.type_pointé
-
-    itératrice.position += 1
 
     retourne résultat
 }
