@@ -133,6 +133,104 @@ est_r64 :: fonc (valeur: eini) -> bool
     retourne valeur.info.id == id_info.RÉEL && valeur.info.taille_en_octet == 8
 }
 
+/* Assignation d'une valeur. */
+
+assigne_z8 :: fonc (valeur: eini, v: z8)
+{
+    // assert(valeur.est_z8())
+    mémoire(valeur.pointeur comme *z8) = v
+}
+
+assigne_z16 :: fonc (valeur: eini, v: z16)
+{
+    // assert(valeur.est_z16())
+    mémoire(valeur.pointeur comme *z16) = v
+}
+
+assigne_z32 :: fonc (valeur: eini, v: z32)
+{
+    // assert(valeur.est_z32())
+    mémoire(valeur.pointeur comme *z32) = v
+}
+
+assigne_z64 :: fonc (valeur: eini, v: z64)
+{
+    // assert(valeur.est_z64())
+    mémoire(valeur.pointeur comme *z64) = v
+}
+
+assigne_n8 :: fonc (valeur: eini, v: n8)
+{
+    // assert(valeur.est_n8())
+    mémoire(valeur.pointeur comme *n8) = v
+}
+
+assigne_n16 :: fonc (valeur: eini, v: n16)
+{
+    // assert(valeur.est_n16())
+    mémoire(valeur.pointeur comme *n16) = v
+}
+
+assigne_n32 :: fonc (valeur: eini, v: n32)
+{
+    // assert(valeur.est_n32())
+    mémoire(valeur.pointeur comme *n32) = v
+}
+
+assigne_n64 :: fonc (valeur: eini, v: n64)
+{
+    // assert(valeur.est_n64())
+    mémoire(valeur.pointeur comme *n64) = v
+}
+
+assigne_r16 :: fonc (valeur: eini, v: r16)
+{
+    // assert(valeur.est_r16())
+    mémoire(valeur.pointeur comme *r16) = v
+}
+
+assigne_r32 :: fonc (valeur: eini, v: r32)
+{
+    // assert(valeur.est_r32())
+    mémoire(valeur.pointeur comme *r32) = v
+}
+
+assigne_r64 :: fonc (valeur: eini, v: r64)
+{
+    // assert(valeur.est_r64())
+    mémoire(valeur.pointeur comme *r64) = v
+}
+
+assigne_bool :: fonc (valeur: eini, v: bool)
+{
+    // assert(valeur.est_bool())
+    mémoire(valeur.pointeur comme *bool) = v
+}
+
+assigne_octet :: fonc (valeur: eini, v: octet)
+{
+    // assert(valeur.est_octet())
+    mémoire(valeur.pointeur comme *octet) = v
+}
+
+assigne_type_de_données :: fonc (valeur: eini, v: type_de_données)
+{
+    // assert(valeur.est_type_de_données())
+    mémoire(valeur.pointeur comme *type_de_données) = v
+}
+
+assigne_chaine :: fonc (valeur: eini, v: chaine)
+{
+    // assert(valeur.est_chaine())
+    mémoire(valeur.pointeur comme *chaine) = v
+}
+
+assigne_pointeur :: fonc (valeur: eini, v: *rien)
+{
+    // assert(valeur.est_pointeur())
+    mémoire(valeur.pointeur comme **z8) = v
+}
+
 /* Extraction d'une valeur depuis l'eini, seuls les types de bases sont supportés. */
 
 comme_bool :: fonc (valeur: eini) -> bool
