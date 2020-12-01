@@ -346,12 +346,18 @@ InstructionAllocation *ConstructriceRI::cree_allocation(NoeudExpression *site_, 
 
 InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_, Atome *ou, Atome *valeur, bool cree_seulement)
 {
-	assert_rappel(ou->type->genre == GenreType::POINTEUR, [&]() { std::cerr << "Le type n'est pas un pointeur : " << chaine_type(ou->type) << '\n'; } );
+	assert_rappel(ou->type->genre == GenreType::POINTEUR, [&]() {
+		std::cerr << "Le type n'est pas un pointeur : " << chaine_type(ou->type) << '\n';
+		erreur::imprime_site(*m_espace, site_);
+	});
+
 	auto type_pointeur = ou->type->comme_pointeur();
 	assert_rappel(type_pointeur->type_pointe == valeur->type || (type_pointeur->type_pointe->genre == GenreType::TYPE_DE_DONNEES && type_pointeur->type_pointe->genre == valeur->type->genre),
-					 [=]() {
+					 [&]() {
 		std::cerr << "\ttype_pointeur->type_pointe : " << chaine_type(type_pointeur->type_pointe) << " (" << type_pointeur->type_pointe << ") "
 				  << ", valeur->type : " << chaine_type(valeur->type) << " (" << valeur->type << ") " << '\n';
+
+		erreur::imprime_site(*m_espace, site_);
 	});
 
 	auto type = valeur->type;
