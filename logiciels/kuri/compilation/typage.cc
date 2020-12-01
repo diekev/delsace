@@ -617,6 +617,9 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 
 	auto operateurs = operateurs_.verrou_ecriture();
 
+	operateurs->ajoute_basique(GenreLexeme::EGALITE, resultat, idx_dt_bool, indice);
+	operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, resultat, idx_dt_bool, indice);
+
 	operateurs->ajoute_basique(GenreLexeme::EGALITE, resultat, idx_dt_ptr_nul, idx_dt_bool, indice);
 	operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, resultat, idx_dt_ptr_nul, idx_dt_bool, indice);
 	operateurs->ajoute_basique(GenreLexeme::INFERIEUR, resultat, idx_dt_bool, indice);
