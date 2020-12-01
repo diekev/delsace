@@ -914,6 +914,32 @@ void fonction_principale_manquante(EspaceDeTravail const &espace)
 	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::MEMBRE_INACTIF);
 }
 
+void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
+{
+	if (site == nullptr) {
+		return;
+	}
+
+	auto lexeme = site->lexeme;
+	imprime_fichier_ligne(espace, *lexeme);
+
+	dls::flux_chaine ss;
+
+	auto fichier = espace.fichier(lexeme->fichier);
+	auto etendue = calcule_etendue_noeud(site, fichier);
+	auto pos = position_lexeme(*lexeme);
+	auto const pos_mot = pos.pos;
+	auto ligne = fichier->tampon()[pos.index_ligne];
+	ss << ligne;
+	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
+	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
+	ss << '\n';
+
+	std::cerr << ss.chn();
+}
+
 }
 
 /* ************************************************************************** */

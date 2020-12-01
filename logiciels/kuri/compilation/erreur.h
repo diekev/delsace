@@ -83,6 +83,8 @@ void imprime_ligne_avec_message(
 		Lexeme const *lexeme,
 		const char *message);
 
+void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
+
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,
 		EspaceDeTravail const &espace,
