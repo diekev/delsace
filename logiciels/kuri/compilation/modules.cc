@@ -147,7 +147,7 @@ NoeudDeclaration *cherche_symbole_dans_module(
 	return trouve_dans_bloc(module->bloc, ident);
 }
 
-void imprime_fichier_ligne(EspaceDeTravail &espace, const Lexeme &lexeme)
+void imprime_fichier_ligne(const EspaceDeTravail &espace, const Lexeme &lexeme)
 {
 	auto fichier = espace.fichier(lexeme.fichier);
 	std::cerr << fichier->chemin() << ':' << lexeme.ligne + 1 << '\n';

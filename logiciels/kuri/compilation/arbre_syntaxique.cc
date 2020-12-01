@@ -1198,7 +1198,7 @@ void aplatis_arbre(
 	}
 }
 
-Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
+Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 {
 	if (racine == nullptr) {
 		return {};
@@ -1214,7 +1214,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 	switch (racine->genre) {
 		case GenreNoeud::DECLARATION_VARIABLE:
 		{
-			auto expr = static_cast<NoeudDeclarationVariable *>(racine);
+			auto expr = racine->comme_decl_var();
 
 			auto etendue_enfant = calcule_etendue_noeud(expr->valeur, fichier);
 
@@ -1263,7 +1263,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
 		{
-			auto expr = static_cast<NoeudExpressionBinaire *>(racine);
+			auto expr = static_cast<NoeudExpressionBinaire const *>(racine);
 
 			auto etendue_enfant = calcule_etendue_noeud(expr->expr1, fichier);
 
@@ -1280,7 +1280,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
-			auto expr = static_cast<NoeudExpressionMembre *>(racine);
+			auto expr = static_cast<NoeudExpressionMembre const *>(racine);
 
 			auto etendue_enfant = calcule_etendue_noeud(expr->accede, fichier);
 
@@ -1298,7 +1298,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::EXPRESSION_DELOGE:
 		case GenreNoeud::EXPRESSION_RELOGE:
 		{
-			auto expr = static_cast<NoeudExpressionLogement *>(racine);
+			auto expr = static_cast<NoeudExpressionLogement const *>(racine);
 
 			auto etendue_enfant = calcule_etendue_noeud(expr->expr, fichier);
 
@@ -1319,7 +1319,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::INSTRUCTION_CHARGE:
 		case GenreNoeud::INSTRUCTION_IMPORTE:
 		{
-			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
+			auto expr = static_cast<NoeudExpressionUnaire const *>(racine);
 
 			auto etendue_enfant = calcule_etendue_noeud(expr->expr, fichier);
 
@@ -1346,7 +1346,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
-			auto dir = static_cast<NoeudDirectiveExecution *>(racine);
+			auto dir = static_cast<NoeudDirectiveExecution const *>(racine);
 			auto etendue_enfant = calcule_etendue_noeud(dir->expr, fichier);
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
@@ -1354,7 +1354,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		}
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
-			auto expr = static_cast<NoeudExpressionAppel *>(racine);
+			auto expr = static_cast<NoeudExpressionAppel const *>(racine);
 
 			POUR (expr->params) {
 				auto etendue_enfant = calcule_etendue_noeud(it, fichier);
@@ -1369,7 +1369,7 @@ Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier)
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		{
-			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
+			auto expr = static_cast<NoeudExpressionUnaire const *>(racine);
 
 			auto etendue_enfant = calcule_etendue_noeud(expr->expr, fichier);
 

@@ -868,4 +868,4 @@ struct Etendue {
 	long pos_max = 0;
 };
 
-Etendue calcule_etendue_noeud(NoeudExpression *racine, Fichier *fichier);
+Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier);
