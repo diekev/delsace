@@ -586,6 +586,11 @@ static std::pair<bool, double> verifie_compatibilite(
 	}
 
 	if (transformation.type == TypeTransformation::INUTILE) {
+		/* ne convertissons pas implicitement vers *nul quand nous avons une opérande */
+		if (type_arg->est_pointeur() && type_arg->comme_pointeur()->type_pointe == nullptr && type_arg != type_enf) {
+			return { false, 0.0 };
+		}
+
 		return { false, 1.0 };
 	}
 
