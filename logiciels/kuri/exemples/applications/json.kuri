@@ -66,8 +66,70 @@ InformationInscription :: struct {
     mot_de_passe := ""
 }
 
+Repas :: struct {
+    nom : chaine
+    ingrédients : []Ingrédient
+    ingrédient_principal : Ingrédient
+}
+
+Ingrédient :: struct {
+    nom: chaine
+    quantité: z64
+}
+
 principale :: fonc () -> z32
 {
+    chaine_repas := «
+        {
+            "nom" : "riz fri oeufs",
+            "ingrédients" : [
+                {
+                    "nom": "riz",
+                    "quantité": 100
+                },
+                {
+                    "nom": "oeufs",
+                    "quantité": 1
+                },
+                {
+                    "nom": "sauce soja",
+                    "quantité": 1
+                },
+                {
+                    "nom": "aji no moto",
+                    "quantité": 1
+                },
+                {
+                    "nom": "galangal",
+                    "quantité": 1
+                },
+                {
+                    "nom": "sambal",
+                    "quantité": 1
+                },
+                {
+                    "nom": "rendang",
+                    "quantité": 1
+                }
+            ],
+            "ingrédient_principal":
+            {
+                "nom": "riz",
+                "quantité": 100
+            }
+        }
+    »
+
+    succès, repas := parse_struct_depuis_chaine_json(chaine_repas, Repas)
+
+    saufsi succès {
+        imprime("impossible de parser la chaine JSON\n")
+        retourne 1
+    }
+
+    imprime("repas :\n%\n", repas)
+
+    /*
     info : InformationConnexion
 
     chn := chaine_json_depuis_struct(info)
@@ -87,6 +149,6 @@ principale :: fonc () -> z32
     //objet_tori_depuis_json()
 
     imprime("%\n", info_)
-
+    */
     retourne 0
 }
