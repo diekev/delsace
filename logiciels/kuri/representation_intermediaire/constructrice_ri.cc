@@ -788,9 +788,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					for (auto i = 0; i < it.variables.taille; ++i) {
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
-						genere_ri_pour_noeud(expr_ass->variable);
+						genere_ri_pour_noeud(var);
 						auto pointeur = depile_valeur();
-						table_locales[var->ident] = pointeur;
 
 						auto valeur = depile_valeur();
 						transforme_valeur(expression, valeur, transformation, pointeur);
@@ -803,9 +802,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					for (auto i = 0; i < it.variables.taille; ++i) {
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
-						genere_ri_pour_noeud(expr_ass->variable);
+						genere_ri_pour_noeud(var);
 						auto pointeur = depile_valeur();
-						table_locales[var->ident] = pointeur;
 
 						transforme_valeur(expression, valeur, transformation, pointeur);
 						depile_valeur();
