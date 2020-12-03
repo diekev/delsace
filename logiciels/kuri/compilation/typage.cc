@@ -1355,10 +1355,6 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 		return type;
 	}
 
-	if ((type->drapeaux & TYPE_EST_NORMALISE) != 0) {
-		return type;
-	}
-
 	auto resultat = type;
 
 	if (type->genre == GenreType::UNION) {
