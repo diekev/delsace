@@ -1,20 +1,48 @@
 importe Fondation
 
+/* Cas assignation :
+ *  +--------+-----------+-----------+------------------------------+
+ *  | status | gauche    | droite    | action                       |
+ *  +--------+-----------+-----------+------------------------------+
+ *  | ok     | référence | valeur    | déréférence gauche           |
+ *  | ok     | référence | référence | déréférence gauche et droite |
+ *  | ok     | valeur    | référence | déréférence droite           |
+ *  +--------+-----------+-----------+------------------------------+
+ *
+ * Cas déclaration :
+ *  +--------+-----------+-----------+------------------------------------------+
+ *  | status | gauche    | droite    | action                                   |
+ *  +--------+-----------+-----------+------------------------------------------+
+ *  | ok     | référence | valeur    | prend référence                          |
+ *  | ok     | référence | référence | assigne référence (réfère au même objet) |
+ *  | ok     | valeur    | référence | déréférence droite                       |
+ *  +--------+-----------+-----------+------------------------------------------+
+ *
+ * Cas paramètre :
+ *  +--------+-----------+-----------+------------------------------------------+
+ *  | status | gauche    | droite    | action                                   |
+ *  +--------+-----------+-----------+------------------------------------------+
+ *  | ok     | référence | valeur    | prend référence                          |
+ *  | ok     | référence | référence | assigne référence (réfère au même objet) |
+ *  | ok     | valeur    | référence | déréférence droite                       |
+ *  +--------+-----------+-----------+------------------------------------------+
+ */
+
 FOO :: struct {
     a := 123
 }
 
-bar :: fonc(f : &FOO) -> rien
+assigne_membre_de_référence :: fonc (f: &FOO) -> rien
 {
     f.a = 987
 }
 
-foo :: fonc(a : &z32) -> rien
+assigne_valeur_à_référence :: fonc (a: &z32) -> rien
 {
     a = 7
 }
 
-échange :: fonc(a : &z32, b : &z32) -> rien
+assigne_référence_à_référence :: fonc (a: &z32, b: &z32) -> rien
 {
     tmp := a
     a = b
@@ -26,18 +54,16 @@ principale :: fonc () -> z32
     a := 5
     imprime("a = %\n", a)
 
-    foo(a)
-
+    assigne_valeur_à_référence(a)
     imprime("a = %\n", a)
 
-    //#####################
+    // //#####################
 
     foo : FOO
 
     imprime("%\n", foo)
 
-    bar(foo)
-
+    assigne_membre_de_référence(foo)
     imprime("%\n", foo)
 
     //#####################
@@ -46,18 +72,16 @@ principale :: fonc () -> z32
     y := 456
     imprime("x = %, y = %\n", x, y)
 
-    échange(x, y)
+    assigne_référence_à_référence(x, y)
     imprime("x = %, y = %\n", x, y)
 
     //#####################
 
     z := 5
-    w : &z32 = z
-
     imprime("z = %\n", z)
 
+    w : &z32 = z
     w = 10
-
     imprime("z = %\n", z)
 
     //#####################

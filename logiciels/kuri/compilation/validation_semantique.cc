@@ -3386,9 +3386,16 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 				donnees.transformations.pousse({ TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type });
 			}
 			else {
-				variable->type = type_de_l_expression;
-				donnees.variables.pousse(variable);
-				donnees.transformations.pousse({ TypeTransformation::INUTILE });
+				if (type_de_l_expression->est_reference()) {
+					variable->type = type_de_l_expression->comme_reference()->type_pointe;
+					donnees.variables.pousse(variable);
+					donnees.transformations.pousse({ TypeTransformation::DEREFERENCE });
+				}
+				else {
+					variable->type = type_de_l_expression;
+					donnees.variables.pousse(variable);
+					donnees.transformations.pousse({ TypeTransformation::INUTILE });
+				}
 			}
 		}
 		else {
@@ -3576,14 +3583,61 @@ bool ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
 
 	auto ajoute_variable = [this](DonneesAssignations &donnees, NoeudExpression *var, NoeudExpression *expression, Type *type_de_l_expression) -> bool
 	{
-		auto transformation = TransformationType();
-		if (cherche_transformation(*espace, *this, type_de_l_expression, var->type, transformation)) {
-			return false;
-		}
+		auto type_de_la_variable = var->type;
+		auto var_est_reference = type_de_la_variable->est_reference();
+		auto expr_est_reference = type_de_l_expression->est_reference();
 
-		if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-			rapporte_erreur_assignation_type_differents(var->type, type_de_l_expression, expression);
-			return false;
+		auto transformation = TransformationType();
+
+		if (var_est_reference && expr_est_reference) {
+			// déréférence les deux côtés
+			if (cherche_transformation(*espace, *this, type_de_l_expression, var->type, transformation)) {
+				return false;
+			}
+
+			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+				rapporte_erreur_assignation_type_differents(var->type, type_de_l_expression, expression);
+				return false;
+			}
+
+			transtype_si_necessaire(var, TypeTransformation::DEREFERENCE);
+			transformation = TypeTransformation::DEREFERENCE;
+		}
+		else if (var_est_reference) {
+			// déréférence var
+			type_de_la_variable = type_de_la_variable->comme_reference()->type_pointe;
+
+			if (cherche_transformation(*espace, *this, type_de_l_expression, type_de_la_variable, transformation)) {
+				return false;
+			}
+
+			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+				rapporte_erreur_assignation_type_differents(var->type, type_de_l_expression, expression);
+				return false;
+			}
+
+			transtype_si_necessaire(var, TypeTransformation::DEREFERENCE);
+		}
+		else if (expr_est_reference) {
+			// déréférence expr
+			if (cherche_transformation(*espace, *this, type_de_l_expression, var->type, transformation)) {
+				return false;
+			}
+
+			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+				rapporte_erreur_assignation_type_differents(var->type, type_de_l_expression, expression);
+				return false;
+			}
+		}
+		else {
+			if (cherche_transformation(*espace, *this, type_de_l_expression, var->type, transformation)) {
+				return false;
+			}
+
+			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+				rapporte_erreur_assignation_type_differents(var->type, type_de_l_expression, expression);
+				return false;
+			}
 		}
 
 		donnees.variables.pousse(var);

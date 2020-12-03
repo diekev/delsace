@@ -1375,6 +1375,13 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				break;
 			}
 
+			if (expression_gauche && inst->transformation.type == TypeTransformation::DEREFERENCE) {
+				genere_ri_pour_noeud(expr);
+				/* déréférence l'adresse du pointeur */
+				empile_valeur(cree_charge_mem(noeud, depile_valeur()));
+				break;
+			}
+
 			auto alloc = cree_allocation(noeud, inst->type, nullptr);
 			genere_ri_transformee_pour_noeud(expr, alloc, inst->transformation);
 			empile_valeur(alloc);
