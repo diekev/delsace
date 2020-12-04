@@ -5,6 +5,10 @@
 - sépare les files de compilation pour les entêtes et les corps, les entêtes ayant la précédence, afin de faire en sorte que les validations des appels ne recommencent pas trop
 - ajout d'un état aux validations des appels
 
+-- inclus les signes des nombres littéraux dans la lexeuse
+-- ajout de drapeaux aux lexèmes des nombres littéraux pour indiquer la taille du nombre
+-- utilisation de C++ pour compiler le code final afin de pouvoir retourner des tableaux fixes
+-- utilisation d'une énumération pour retourner si le typage retourne une erreur au lieu d'une valeur booléenne
 
 // --------------------
 
