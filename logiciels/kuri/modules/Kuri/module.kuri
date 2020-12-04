@@ -645,7 +645,7 @@ tableau_supprime_index :: fonc (tabl: *[]$T, index: z64) -> rien
 {
     tmp := mémoire(tabl)
 
-    pour i dans index + 1 ... tmp.taille - 2 {
+    pour i dans index ... tmp.taille - 2 {
         tmp[i] = tmp[i + 1]
     }
 
