@@ -47,7 +47,6 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/demos/demo_surcharge_fonctions.kuri" \
           "exemples/demos/demo_syntax_appel_uniforme.kuri" \
           "exemples/demos/demo_typage.kuri" \
-          "exemples/tests/test_alloc.kuri" \
           "exemples/tests/test_assert_dans_fonction.kuri" \
           "exemples/tests/test_annotations.kuri" \
           "exemples/tests/test_boucle_pour.kuri" \

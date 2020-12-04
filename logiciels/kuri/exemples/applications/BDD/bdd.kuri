@@ -148,7 +148,7 @@ exécute_insertion :: fonc (inst: *Instruction, table: *Table) -> RésultatExéc
 
     table.nombre_de_lignes += 1
 
-    déloge curseur
+    déloge(curseur)
 
     retourne RésultatExécution.SUCCÈS
 }
@@ -202,7 +202,7 @@ exécute_sélection :: fonc (inst: *Instruction, table: *Table) -> RésultatExé
         avance_curseur(curseur)
     }
 
-    déloge curseur
+    déloge(curseur)
 
     retourne RésultatExécution.SUCCÈS
 }

@@ -124,7 +124,7 @@ alloue :: fonc (v: ValeurMonnétaire, ratios: []z32) -> []ValeurMonnétaire
     }
 
     reste := v.quantité
-    résultat := loge [ratios.taille]ValeurMonnétaire
+    résultat := loge_tableau(ValeurMonnétaire, ratios.taille)
 
     pour r, i dans résultat {
         r.quantité = v.quantité * ratios[i] / total
@@ -170,7 +170,7 @@ principale :: fonc () -> z32
             imprime_valeur_monétaire(allocation)
         }
 
-        déloge allocations
+        déloge(allocations)
     }
 
     // calcul d'une TVA pour l'abonnement
@@ -193,7 +193,7 @@ principale :: fonc () -> z32
     imprime_valeur_monétaire(somme_redistribuée)
 
     nombre_associations := 1234
-    ratios := loge [nombre_associations]z32
+    ratios := loge_tableau(z32, nombre_associations)
 
     pour r dans ratios {
         r = nombre_aléatoire()
@@ -211,8 +211,8 @@ principale :: fonc () -> z32
         somme_allouée += allocation.quantité / 100 * 100
     }
 
-    déloge ratios
-    déloge allocations
+    déloge(ratios)
+    déloge(allocations)
 
     imprime("reste après allocation, ")
     imprime_valeur_monétaire(ValeurMonnétaire( quantité = somme_redistribuée.quantité - somme_allouée ))

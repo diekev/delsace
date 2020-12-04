@@ -162,7 +162,7 @@ fais_conversion_code :: fonc ()
                     si entête.nom == "pgdc" {
                         code_c := converti_fonction_C(code_fonction)
                         imprime("%\n", code_c)
-                        déloge code_c
+                        déloge(code_c)
                     }
                 }
                 sinon si code.genre == GenreNoeudCode.DECLARATION_STRUCTURE {

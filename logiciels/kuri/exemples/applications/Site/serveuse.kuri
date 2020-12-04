@@ -69,7 +69,7 @@ détruit_serveuse :: fonc (serveuse: *Serveuse) -> rien
         _ := close(serveuse.prise)
     }
 
-    déloge serveuse.routes
+    déloge(serveuse.routes)
 
     détruit_catalogue(*serveuse.fichiers_statiques)
 

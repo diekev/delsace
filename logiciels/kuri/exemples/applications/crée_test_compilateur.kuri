@@ -53,7 +53,7 @@ crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 	fichier := ouvre_fichier_ecriture(chemin)
     chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse)
 	écris_fichier(fichier, chaine_reponse)
-	déloge chaine_reponse
+	déloge(chaine_reponse)
 }
 
 principale :: fonc () -> z32

@@ -89,174 +89,148 @@ allocatrice_défaut :: fonc(
     }
 }
 
-/*
-// À FAIRE(langage) : considère remplacer loge, déloge, et reloge avec ces fonctions
-// À FAIRE : type dépendant (gabarits, il faudra que les types deviennent citoyens de première classe)
-// À FAIRE : infos types
+/* Fonctions de bases pour loger des valeurs en mémoire. */
 
-
-_loge :: fonc ($t : Type, pos := PositionCodeSource{}) -> *t
+loge_mémoire :: fonc (taille: z64, info: *InfoType, pos : PositionCodeSource) -> *rien
 {
-    info := info_de(t)
-
     ptr := contexte.allocatrice(
         ModeAllocatrice.ALLOUE,
-        info.taille_en_octet,
+        taille,
         0,
         nul,
         contexte.données_allocatrice,
         info,
         pos)
 
-    si ptr == nul {
-        avorte_hors_mémoire()
+    saufsi ptr {
+        panique_hors_mémoire()
     }
 
     retourne ptr
 }
 
-_reloge :: fonc (ancien_pointeur: *$T, pos := PositionCodeSource{}) -> *T
+reloge_mémoire :: fonc (ancienne_taille: z64, nouvelle_taille: z64, ancien_pointeur: *rien, info: *InfoType, pos: PositionCodeSource) -> *rien
 {
-    info := info_de(T)
-
-    ptr := contexte.allocatrice(
+    nouveau_pointeur := contexte.allocatrice(
         ModeAllocatrice.RÉALLOUE,
-        info.taille_en_octet,
-        info.taille_en_octet,
+        nouvelle_taille,
+        ancienne_taille,
         ancien_pointeur,
         contexte.données_allocatrice,
         info,
         pos)
 
-    retourne ptr
+    saufsi nouveau_pointeur {
+        panique_hors_mémoire()
+    }
+
+    retourne nouveau_pointeur
 }
 
-_déloge :: fonc (ancien_pointeur: *$T, pos := PositionCodeSource{}) -> *T
+déloge_mémoire :: fonc (taille: z64, pointeur: *rien, info: *InfoType, pos : PositionCodeSource)
+{
+    _ := contexte.allocatrice(
+        ModeAllocatrice.DÉSALLOUE,
+        taille,
+        0,
+        pointeur,
+        contexte.données_allocatrice,
+        info,
+        pos)
+}
+
+loge :: fonc ($T: type_de_données, pos := PositionCodeSource()) -> *T
 {
     info := info_de(T)
+    ptr := loge_mémoire(info.taille_en_octet comme z64, info, pos) comme *T
 
-    ptr := contexte.allocatrice(
-        ModeAllocatrice.RÉALLOUE,
-        info.taille_en_octet,
-        0,
-        ancien_pointeur,
-        contexte.données_allocatrice,
-        info,
-        pos)
+    init_de(T)(ptr)
 
     retourne ptr
 }
 
-_reloge :: fonc (ancien_tableau: []$T, nouvelle_taille: z64, pos := PositionCodeSource{}) -> []T
+reloge :: fonc (pointeur: &*$T, pos := PositionCodeSource())
 {
-    info := info_de([]T)
-
-    ptr := contexte.allocatrice(
-        ModeAllocatrice.RÉALLOUE,
-        ancien_tableau.taille,
-        nouvelle_taille,
-        ancien_tableau.pointeur,
-        contexte.données_allocatrice,
+    info := info_de(T)
+    ancien_pointeur := pointeur
+    nouveau_pointeur := reloge_mémoire(
+        info.taille_en_octet comme z64,
+        info.taille_en_octet comme z64,
+        ancien_pointeur,
         info,
         pos)
 
-    nouveau_tableau : []T
-    nouveau_tableau.pointeur = ptr
-    nouveau_tableau.taille = nouvelle_taille
-
-    retourne nouveau_tableau
+    pointeur = nouveau_pointeur
 }
 
-_déloge :: fonc (ancien_tableau: []$T, pos := PositionCodeSource{}) -> []T
+déloge :: fonc (pointeur: &*$T, pos := PositionCodeSource())
 {
-    info := info_de([]T)
-
-    ptr := ontexte.allocatrice(
-        ModeAllocatrice.DÉSALLOUE,
-        ancien_tableau.taille,
-        0,
-        ancien_tableau.pointeur,
-        contexte.données_allocatrice,
-        info,
-        pos)
-
-    nouveau_tableau : []T
-    retourne nouvelle_chaine
+    info := info_de(T)
+    ancien_pointeur := pointeur
+    déloge_mémoire(info.taille_en_octet comme z64, ancien_pointeur, info, pos)
+    pointeur = nul
 }
 
-_reloge :: fonc (ancienne_chaine : chaine, nouvelle_taille : z64, pos := PositionCodeSource{}) -> chaine
+loge_chaine :: fonc (taille: z64, pos := PositionCodeSource()) -> chaine
 {
-    info := info_de(chaine)
+    ptr := loge_mémoire(taille, info_de(chaine), pos)
 
-    ptr := contexte.allocatrice(
-        ModeAllocatrice.RÉALLOUE,
-        ancienne_chaine.taille,
-        nouvelle_taille,
-        ancienne_chaine.pointeur,
-        contexte.données_allocatrice,
-        info,
-        pos)
+    chn: chaine = ---
+    chn.pointeur = ptr
+    chn.taille = taille
 
-    nouvelle_chaine : chaine
-    nouvelle_chaine.pointeur = ptr
-    nouvelle_chaine.taille = taille
-
-    retourne nouvelle_chaine
+    retourne chn
 }
 
-_déloge :: fonc (ancienne_chaine: chaine, pos := PositionCodeSource{}) -> chaine
+reloge_chaine :: fonc (chn: &chaine, nouvelle_taille: z64, pos := PositionCodeSource())
 {
-    info := info_de(chaine)
+    ptr := reloge_mémoire(chn.taille, nouvelle_taille, chn.pointeur, info_de(chaine), pos)
 
-    ptr := ontexte.allocatrice(
-        ModeAllocatrice.DÉSALLOUE,
-        0,
-        ancienne_chaine.taille,
-        ancienne_chaine.pointeur,
-        contexte.données_allocatrice,
-        info,
-        pos)
-
-    nouvelle_chaine : chaine
-    retourne nouvelle_chaine
+    chn.pointeur = ptr
+    chn.taille = nouvelle_taille
 }
 
-alloue :: fonc(nouvelle_taille: z64) -> *rien
+déloge :: fonc (chn: &chaine, pos := PositionCodeSource())
 {
-    retourne contexte.allocatrice(
-        ModeAllocatrice.ALLOUE,
-        nouvelle_taille,
-        0,
-        nul,
-        contexte.données_allocatrice,
-        nul)
+    déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos)
+    chn.pointeur = nul
+    chn.taille = 0
 }
 
-réalloue :: fonc (pointeur: *rien, ancienne_taille: z64, nouvelle_taille: z64) -> *rien
+loge_tableau :: fonc ($T: type_de_données, taille: z64, pos := PositionCodeSource()) -> []T
 {
-    retourne contexte.allocatrice(
-        ModeAllocatrice.RÉALLOUE,
-        nouvelle_taille,
-        ancienne_taille,
-        pointeur,
-        contexte.données_allocatrice,
-        nul)
+    taille_en_octets := taille * (taille_de(T) comme z64)
+    ptr := loge_mémoire(taille_en_octets, info_de([]T), pos)
+
+    résultat : []T = ---
+    résultat.pointeur = ptr
+    résultat.taille = 0
+    résultat.capacité = taille
+
+    retourne résultat
 }
 
-désalloue :: fonc (pointeur: *rien, ancienne_taille: z64) -> *rien
+reloge_tableau :: fonc (tableau: &[]$T, nouvelle_taille: z64, pos := PositionCodeSource())
 {
-    retourne contexte.allocatrice(
-        ModeAllocatrice.DÉSALLOUE,
-        0,
-        ancienne_taille,
-        pointeur,
-        contexte.données_allocatrice,
-        nul)
+    ancienne_taille_en_octets := tableau.capacité * (taille_de(T) comme z64)
+    nouvelle_taille_en_octets := nouvelle_taille * (taille_de(T) comme z64)
+
+    ptr := reloge_mémoire(ancienne_taille_en_octets, nouvelle_taille_en_octets, tableau.pointeur, info_de([]T), pos)
+
+    tableau.pointeur = ptr
+    tableau.capacité = nouvelle_taille
 }
 
-// alloue_avec pour changer l'allocatrice
-// alloue_tableau, alloue_chaine, etc.
-*/
+déloge :: fonc (tableau: &[]$T, pos := PositionCodeSource())
+{
+    ancienne_taille_en_octets := tableau.capacité * (taille_de(T) comme z64)
+    déloge_mémoire(ancienne_taille_en_octets, tableau.pointeur, info_de([]T), pos)
+    tableau.pointeur = nul
+    tableau.capacité = 0
+    tableau.taille = 0
+}
+
+// ----------------------------
 
 SystèmeExploitation :: énum {
     AUCUN
@@ -476,7 +450,7 @@ logement_temp :: fonc(taille: z64) -> *octet
     ptr : *octet
 
     pousse_contexte nouveau_contexte {
-        tmp := loge [taille]octet
+        tmp := loge_tableau(octet, taille)
         ptr = tmp.pointeur
     }
 
@@ -592,7 +566,7 @@ tableau_ajoute :: fonc (tabl: *[]$T, valeur: T) -> rien
 
     si tmp.taille == tmp.capacité {
         capacité := tmp.capacité
-        reloge tmp: [capacité + 1]T
+        reloge_tableau(tmp, capacité + 1)
     }
 
     tmp.taille += 1
@@ -609,7 +583,7 @@ tableau_réserve :: fonc(tabl: *[]$T, taille: z64) -> rien
 
 	tmp := mémoire(tabl)
 
-	reloge tmp : [taille]T
+	reloge_tableau(tmp, taille)
 
 	mémoire(tabl) = tmp
 }
@@ -623,7 +597,7 @@ tableau_redimensionne :: fonc (tabl: *[]$T, taille: z64) -> rien
 
     tmp := mémoire(tabl)
 
-    reloge tmp: [taille]T
+    reloge_tableau(tmp, taille)
     tmp.taille = taille
 
     mémoire(tabl) = tmp
@@ -631,7 +605,7 @@ tableau_redimensionne :: fonc (tabl: *[]$T, taille: z64) -> rien
 
 tableau_copie :: fonc(tabl: []$T) -> []T
 {
-	tmp := loge [tabl.capacité]T
+	tmp := loge_tableau(T, tabl.capacité)
     copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * taille_de(z64) comme z64)
     tmp.taille = tabl.taille
     retourne tmp
@@ -641,7 +615,7 @@ tableau_insère_index :: fonc (tabl: *[]$T, valeur: T, où: z64) -> rien
 {
     tmp := mémoire(tabl)
 
-    reloge tmp: [tmp.taille + 1]chaine
+    reloge_tableau(tmp, tmp.taille + 1)
 
     pour i dans où ... tmp.taille - 2 {
         tmp[i + 1] = tmp[i]
@@ -666,7 +640,7 @@ tableau_supprime :: fonc(tabl: *[]$T, index: z32) -> rien
 		tmp[i] = tmp[i + 1]
 	}
 
-	reloge tmp : [taille - 1]T
+	reloge_tableau(tmp, taille - 1)
 
 	mémoire(tabl) = tmp
 }
@@ -700,7 +674,7 @@ arguments_ligne_commande :: fonc () -> []chaine
     nouveau_contexte.allocatrice = __stockage_temporaire
 
     pousse_contexte nouveau_contexte {
-        tabl_args = loge [__arguments_ligne_commande.taille]chaine
+        tabl_args = loge_tableau(chaine, __arguments_ligne_commande.taille)
 
         pour __arguments_ligne_commande {
             chn : chaine

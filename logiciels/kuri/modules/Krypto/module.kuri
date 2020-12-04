@@ -45,7 +45,7 @@ SHA512_genere_empreinte :: fonc (entree: *z8, taille: z64, sortie: *z8) -> rien 
 BCrypt_genere_empreinte :: fonc (mot_de_passe: chaine, charge_travail := 12) -> chaine
 {
     // loge un tampon afin de pouvoir gérer la mémoire de notre côté
-    résultat := loge chaine(BCrypt_taille_tampon())
+    résultat := loge_chaine(BCrypt_taille_tampon())
 
     BCrypt_genere_empreinte(mot_de_passe.pointeur, charge_travail, résultat.pointeur)
 
@@ -58,7 +58,7 @@ BCrypt_compare_empreinte :: fonc (mot_de_passe: chaine, empreinte: chaine) -> bo
 
     ok := nempreinte == empreinte
 
-    déloge nempreinte
+    déloge(nempreinte)
 
     retourne ok
 //    retourne BCrypt_compare_empreinte(mot_de_passe.pointeur, empreinte.pointeur) == 0
@@ -67,7 +67,7 @@ BCrypt_compare_empreinte :: fonc (mot_de_passe: chaine, empreinte: chaine) -> bo
 CRC32_genere_empreinte :: fonc (entree: chaine) -> chaine
 {
     // loge un tampon afin de pouvoir gérer la mémoire de notre côté
-    résultat := loge chaine(CRC32_taille_tampon())
+    résultat := loge_chaine(CRC32_taille_tampon())
 
     CRC32_genere_empreinte(entree.pointeur, entree.taille, résultat.pointeur)
 
@@ -77,7 +77,7 @@ CRC32_genere_empreinte :: fonc (entree: chaine) -> chaine
 MD5_genere_empreinte :: fonc (entree: chaine) -> chaine
 {
     // loge un tampon afin de pouvoir gérer la mémoire de notre côté
-    résultat := loge chaine(MD5_taille_tampon())
+    résultat := loge_chaine(MD5_taille_tampon())
 
     MD5_genere_empreinte(entree.pointeur, entree.taille, résultat.pointeur)
 
@@ -87,7 +87,7 @@ MD5_genere_empreinte :: fonc (entree: chaine) -> chaine
 SHA1_genere_empreinte :: fonc (entree: chaine) -> chaine
 {
     // loge un tampon afin de pouvoir gérer la mémoire de notre côté
-    résultat := loge chaine(SHA1_taille_tampon())
+    résultat := loge_chaine(SHA1_taille_tampon())
 
     SHA1_genere_empreinte(entree.pointeur, entree.taille, résultat.pointeur)
 
@@ -97,7 +97,7 @@ SHA1_genere_empreinte :: fonc (entree: chaine) -> chaine
 SHA256_genere_empreinte :: fonc (entree: chaine) -> chaine
 {
     // loge un tampon afin de pouvoir gérer la mémoire de notre côté
-    résultat := loge chaine(SHA256_taille_tampon())
+    résultat := loge_chaine(SHA256_taille_tampon())
 
     SHA256_genere_empreinte(entree.pointeur, entree.taille, résultat.pointeur)
 
@@ -107,7 +107,7 @@ SHA256_genere_empreinte :: fonc (entree: chaine) -> chaine
 SHA384_genere_empreinte :: fonc (entree: chaine) -> chaine
 {
     // loge un tampon afin de pouvoir gérer la mémoire de notre côté
-    résultat := loge chaine(SHA384_taille_tampon())
+    résultat := loge_chaine(SHA384_taille_tampon())
 
     SHA384_genere_empreinte(entree.pointeur, entree.taille, résultat.pointeur)
 
@@ -117,7 +117,7 @@ SHA384_genere_empreinte :: fonc (entree: chaine) -> chaine
 SHA512_genere_empreinte :: fonc (entree: chaine) -> chaine
 {
     // loge un tampon afin de pouvoir gérer la mémoire de notre côté
-    résultat := loge chaine(SHA512_taille_tampon())
+    résultat := loge_chaine(SHA512_taille_tampon())
 
     SHA512_genere_empreinte(entree.pointeur, entree.taille, résultat.pointeur)
 
@@ -126,7 +126,7 @@ SHA512_genere_empreinte :: fonc (entree: chaine) -> chaine
 
 HMAC_genere_empreinte :: fonc (clé: chaine, message: chaine) -> chaine
 {
-    résultat := loge chaine(HMAC_taille_tampon())
+    résultat := loge_chaine(HMAC_taille_tampon())
     HMAC_genere_empreinte(clé.pointeur comme *n8, clé.taille, message.pointeur comme *n8, message.taille, résultat.pointeur)
     retourne résultat
 }

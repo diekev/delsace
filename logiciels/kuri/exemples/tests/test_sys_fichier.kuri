@@ -8,7 +8,7 @@ test_chemin_courant :: fonc() -> rien
     chemin := chemin_courant()
 
     imprime("chemin courant : %\n", chemin.chn)
-    déloge chemin.chn
+    déloge(chemin.chn)
 
     chemin = construit_chemin("/home/kevin/src/")
     chemin_courant(chemin)
@@ -16,7 +16,7 @@ test_chemin_courant :: fonc() -> rien
     chemin = chemin_courant()
 
     imprime("chemin courant : %\n", chemin.chn)
-    déloge chemin.chn
+    déloge(chemin.chn)
 }
 
 test_itération_dossier :: fonc() -> rien
@@ -52,7 +52,7 @@ principale :: fonc () -> z32
 
     imprime(contenu, '\n');
 
-    déloge contenu
+    déloge(contenu)
 
     retourne 0
 }

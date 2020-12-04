@@ -30,7 +30,7 @@ génère_fonction_principale :: fonc ()
 
     ajoute_chaine_à_la_compilation(espace, chn_principale)
 
-    déloge chn_principale
+    déloge(chn_principale)
 }
 
 #exécute lance_compilation()

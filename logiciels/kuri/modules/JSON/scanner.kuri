@@ -725,7 +725,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
                 arrête
             }
 
-            reloge tampon_tableau : [tampon_tableau.taille + type_pointé.taille_en_octet comme z64]octet
+            reloge_tableau(tampon_tableau, tampon_tableau.taille + type_pointé.taille_en_octet comme z64)
             tampon_tableau.taille = tampon_tableau.capacité
 
             tampon := tampon_tableau.pointeur + type_pointé.taille_en_octet comme z32 * index
@@ -796,7 +796,7 @@ parse_struct_depuis_fichier_json :: fonc (chemin: chaine, $T: type_de_données) 
     // À FAIRE : erreur en cas d'absence du fichier
     chm := construit_chemin(chemin)
     script := contenu_fichier_texte(chm)
-    diffère { déloge script; }
+    diffère { déloge(script); }
 
     résultat : T = ---
 

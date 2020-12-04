@@ -68,7 +68,7 @@ construit_lexeuse :: fonc(chn : chaine) -> LexeuseJSON
 
 détruit_lexeuse :: fonc(lexeuse : &LexeuseJSON) -> rien
 {
-    déloge lexeuse.lexèmes
+    déloge(lexeuse.lexèmes)
 }
 
 a_fini :: fonc(lexeuse : &LexeuseJSON) -> bool

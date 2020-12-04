@@ -531,7 +531,6 @@ bool Syntaxeuse::apparie_expression() const
 		case GenreLexeme::COROUT:
 		case GenreLexeme::CROCHET_OUVRANT: // construit tableau
 		case GenreLexeme::DIRECTIVE:
-		case GenreLexeme::DELOGE:
 		case GenreLexeme::DOLLAR:
 		case GenreLexeme::EMPL:
 		case GenreLexeme::ENUM:
@@ -542,7 +541,6 @@ bool Syntaxeuse::apparie_expression() const
 		case GenreLexeme::FONC:
 		case GenreLexeme::INFO_DE:
 		case GenreLexeme::INIT_DE:
-		case GenreLexeme::LOGE:
 		case GenreLexeme::MEMOIRE:
 		case GenreLexeme::NOMBRE_ENTIER:
 		case GenreLexeme::NOMBRE_REEL:
@@ -550,7 +548,6 @@ bool Syntaxeuse::apparie_expression() const
 		case GenreLexeme::NUL:
 		case GenreLexeme::OPERATEUR:
 		case GenreLexeme::PARENTHESE_OUVRANTE: // expression entre parenthèse
-		case GenreLexeme::RELOGE:
 		case GenreLexeme::STRUCT:
 		case GenreLexeme::TABLEAU:
 		case GenreLexeme::TAILLE_DE:
@@ -818,16 +815,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			if (apparie_expression()) {
 				// nous avons l'expression d'un type
 				auto noeud = CREE_NOEUD(NoeudExpressionBinaire, GenreNoeud::OPERATEUR_BINAIRE, lexeme);
-
-				if (m_noeud_logement) {
-					m_noeud_logement->expr_taille = expression_entre_crochets;
-					// seule la première expression doit être considérer pour l'expression de la taille
-					m_noeud_logement = nullptr;
-				}
-				else {
-					noeud->expr1 = expression_entre_crochets;
-				}
-
+				noeud->expr1 = expression_entre_crochets;
 				noeud->expr2 = analyse_expression({ PRECEDENCE_TYPE, Associativite::GAUCHE }, racine_expression, lexeme_final);
 
 				return noeud;
@@ -965,63 +953,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			noeud->expr = analyse_expression({}, GenreLexeme::TYPE_DE, GenreLexeme::INCONNU);
 
 			consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après le type de 'type_de'");
-
-			return noeud;
-		}
-		case GenreLexeme::LOGE:
-		{
-			consomme();
-
-			auto noeud = CREE_NOEUD(NoeudExpressionLogement, GenreNoeud::EXPRESSION_LOGE, lexeme);
-			m_noeud_logement = noeud;
-			noeud->expression_type = analyse_expression_primaire(GenreLexeme::LOGE, GenreLexeme::INCONNU);
-			m_noeud_logement = nullptr;
-
-			if (noeud->expression_type->lexeme->genre == GenreLexeme::CHAINE) {
-				consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une paranthèse ouvrante '(");
-				noeud->expr_taille = analyse_expression({}, GenreLexeme::LOGE, GenreLexeme::INCONNU);
-				consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu une paranthèse fermante ')");
-			}
-
-			if (apparie(GenreLexeme::SINON)) {
-				consomme();
-				noeud->bloc = analyse_bloc();
-			}
-
-			return noeud;
-		}
-		case GenreLexeme::DELOGE:
-		{
-			consomme();
-
-			auto noeud = CREE_NOEUD(NoeudExpressionLogement, GenreNoeud::EXPRESSION_DELOGE, lexeme);
-			noeud->expr = analyse_expression({}, GenreLexeme::DELOGE, GenreLexeme::INCONNU);
-			return noeud;
-		}
-		case GenreLexeme::RELOGE:
-		{
-			consomme();
-
-			/* reloge nom : type; */
-			auto noeud = CREE_NOEUD(NoeudExpressionLogement, GenreNoeud::EXPRESSION_RELOGE, lexeme);
-			noeud->expr = analyse_expression({}, GenreLexeme::RELOGE, GenreLexeme::DOUBLE_POINTS);
-
-			consomme(GenreLexeme::DOUBLE_POINTS, "Attendu un double-points ':' après l'expression à reloger");
-
-			m_noeud_logement = noeud;
-			noeud->expression_type = analyse_expression_primaire(GenreLexeme::RELOGE, GenreLexeme::INCONNU);
-			m_noeud_logement = nullptr;
-
-			if (noeud->expression_type->lexeme->genre == GenreLexeme::CHAINE) {
-				consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une paranthèse ouvrante '(");
-				noeud->expr_taille = analyse_expression({}, GenreLexeme::RELOGE, GenreLexeme::INCONNU);
-				consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu une paranthèse fermante ')");
-			}
-
-			if (apparie(GenreLexeme::SINON)) {
-				consomme();
-				noeud->bloc = analyse_bloc();
-			}
 
 			return noeud;
 		}

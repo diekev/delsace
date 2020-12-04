@@ -41,7 +41,7 @@ initialise_élément :: fonc (élément: *Élément, document: *Document, texte:
 crée_élément_avec_tag :: fonc (document: *Document, tag: chaine) -> *Élément
 {
     // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
-    élément := loge Élément;
+    élément := loge(Élément);
     initialise_élément(élément, document, tag);
     retourne élément
 }

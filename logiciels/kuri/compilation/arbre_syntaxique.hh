@@ -51,7 +51,6 @@ struct NoeudDiscr;
 struct NoeudEnum;
 struct NoeudExpressionAppel;
 struct NoeudExpressionBinaire;
-struct NoeudExpressionLogement;
 struct NoeudExpressionMembre;
 struct NoeudExpressionReference;
 struct NoeudRetour;
@@ -80,7 +79,6 @@ struct UniteCompilation;
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_ASSIGNATION_VARIABLE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_CONSTRUCTION_STRUCTURE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_CONSTRUCTION_TABLEAU) \
-	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_DELOGE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_INDEXAGE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_INFO_DE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_INIT_DE) \
@@ -90,7 +88,6 @@ struct UniteCompilation;
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_LITTERALE_NOMBRE_REEL) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_LITTERALE_NOMBRE_ENTIER) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_LITTERALE_NUL) \
-	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_LOGE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_MEMOIRE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_PARENTHESE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_PLAGE) \
@@ -98,7 +95,6 @@ struct UniteCompilation;
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_REFERENCE_MEMBRE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_REFERENCE_MEMBRE_UNION) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_REFERENCE_TYPE) \
-	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_RELOGE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_TABLEAU_ARGS_VARIADIQUES) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_TAILLE_DE) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_TYPE_DE) \
@@ -281,7 +277,6 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(decl_discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
 	EST_NOEUD_GENRE(decl_var, GenreNoeud::DECLARATION_VARIABLE)
 	EST_NOEUD_GENRE(declaration, GenreNoeud::DECLARATION_VARIABLE, GenreNoeud::DECLARATION_CORPS_FONCTION, GenreNoeud::DECLARATION_ENTETE_FONCTION, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE)
-	EST_NOEUD_GENRE(deloge, GenreNoeud::EXPRESSION_DELOGE)
 	EST_NOEUD_GENRE(discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
 	EST_NOEUD_GENRE(enum, GenreNoeud::DECLARATION_ENUM)
 	EST_NOEUD_GENRE(entete_fonction, GenreNoeud::DECLARATION_ENTETE_FONCTION)
@@ -291,7 +286,6 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(indexage, GenreNoeud::EXPRESSION_INDEXAGE)
 	EST_NOEUD_GENRE(info_de, GenreNoeud::EXPRESSION_INFO_DE)
 	EST_NOEUD_GENRE(init_de, GenreNoeud::EXPRESSION_INIT_DE)
-	EST_NOEUD_GENRE(loge, GenreNoeud::EXPRESSION_LOGE)
 	EST_NOEUD_GENRE(memoire, GenreNoeud::EXPRESSION_MEMOIRE)
 	EST_NOEUD_GENRE(nombre_entier, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER)
 	EST_NOEUD_GENRE(nombre_reel, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL)
@@ -307,7 +301,6 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(ref_membre, GenreNoeud::EXPRESSION_REFERENCE_MEMBRE)
 	EST_NOEUD_GENRE(ref_membre_union, GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION)
 	EST_NOEUD_GENRE(ref_type, GenreNoeud::EXPRESSION_REFERENCE_TYPE)
-	EST_NOEUD_GENRE(reloge, GenreNoeud::EXPRESSION_RELOGE)
 	EST_NOEUD_GENRE(repete, GenreNoeud::INSTRUCTION_REPETE)
 	EST_NOEUD_GENRE(retiens, GenreNoeud::INSTRUCTION_RETIENS)
 	EST_NOEUD_GENRE(retour, GenreNoeud::INSTRUCTION_RETOUR)
@@ -342,7 +335,6 @@ struct NoeudExpression {
 	COMME_NOEUD(controle_boucle, NoeudExpressionUnaire)
 	COMME_NOEUD(decl_discr, NoeudDiscr)
 	COMME_NOEUD(decl_var, NoeudDeclarationVariable)
-	COMME_NOEUD(deloge, NoeudExpressionLogement)
 	COMME_NOEUD(discr, NoeudDiscr)
 	COMME_NOEUD(enum, NoeudEnum)
 	COMME_NOEUD(entete_fonction, NoeudDeclarationEnteteFonction)
@@ -352,7 +344,6 @@ struct NoeudExpression {
 	COMME_NOEUD(indexage, NoeudExpressionBinaire)
 	COMME_NOEUD(info_de, NoeudExpressionUnaire)
 	COMME_NOEUD(init_de, NoeudExpressionUnaire)
-	COMME_NOEUD(loge, NoeudExpressionLogement)
 	COMME_NOEUD(memoire, NoeudExpressionUnaire)
 	COMME_NOEUD(operateur_binaire, NoeudExpressionBinaire)
 	COMME_NOEUD(operateur_unaire, NoeudExpressionUnaire)
@@ -363,7 +354,6 @@ struct NoeudExpression {
 	COMME_NOEUD(ref_decl, NoeudExpressionReference)
 	COMME_NOEUD(ref_membre, NoeudExpressionMembre)
 	COMME_NOEUD(ref_membre_union, NoeudExpressionMembre)
-	COMME_NOEUD(reloge, NoeudExpressionLogement)
 	COMME_NOEUD(repete, NoeudBoucle)
 	COMME_NOEUD(retiens, NoeudRetour)
 	COMME_NOEUD(retour, NoeudRetour)
@@ -482,17 +472,6 @@ struct NoeudExpressionMembre : public NoeudExpression {
 	int index_membre = 0;
 
 	COPIE_CONSTRUCT(NoeudExpressionMembre);
-};
-
-struct NoeudExpressionLogement : public NoeudExpression {
-	NoeudExpressionLogement() {}
-
-	NoeudExpression *expr = nullptr;
-	NoeudExpression *expr_taille = nullptr;
-	NoeudExpression *expression_type = nullptr;
-	NoeudBloc *bloc = nullptr;
-
-	COPIE_CONSTRUCT(NoeudExpressionLogement);
 };
 
 struct ItemMonomorphisation {
@@ -809,7 +788,6 @@ struct NoeudComme : public NoeudExpression {
 	COMME_NOEUD(controle_boucle, NoeudExpressionUnaire)
 	COMME_NOEUD(decl_discr, NoeudDiscr)
 	COMME_NOEUD(decl_var, NoeudDeclarationVariable)
-	COMME_NOEUD(deloge, NoeudExpressionLogement)
 	COMME_NOEUD(discr, NoeudDiscr)
 	COMME_NOEUD(enum, NoeudEnum)
 	COMME_NOEUD(entete_fonction, NoeudDeclarationEnteteFonction)
@@ -819,7 +797,6 @@ struct NoeudComme : public NoeudExpression {
 	COMME_NOEUD(indexage, NoeudExpressionBinaire)
 	COMME_NOEUD(info_de, NoeudExpressionUnaire)
 	COMME_NOEUD(init_de, NoeudExpressionUnaire)
-	COMME_NOEUD(loge, NoeudExpressionLogement)
 	COMME_NOEUD(memoire, NoeudExpressionUnaire)
 	COMME_NOEUD(operateur_binaire, NoeudExpressionBinaire)
 	COMME_NOEUD(operateur_unaire, NoeudExpressionUnaire)
@@ -830,7 +807,6 @@ struct NoeudComme : public NoeudExpression {
 	COMME_NOEUD(ref_decl, NoeudExpressionReference)
 	COMME_NOEUD(ref_membre, NoeudExpressionMembre)
 	COMME_NOEUD(ref_membre_union, NoeudExpressionMembre)
-	COMME_NOEUD(reloge, NoeudExpressionLogement)
 	COMME_NOEUD(repete, NoeudBoucle)
 	COMME_NOEUD(retiens, NoeudRetour)
 	COMME_NOEUD(retour, NoeudRetour)

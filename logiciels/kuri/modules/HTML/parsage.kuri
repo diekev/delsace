@@ -43,8 +43,8 @@ détruit_parseuse :: fonc (parseuse: *Parseuse)
 {
     détruit_lexeuse(*parseuse.lexeuse)
     détruit_liste(*parseuse.liste_éléments_actifs_formattage)
-    déloge parseuse.pile_éléments_ouvert.éléments
-    déloge parseuse.pile_insertion_template
+    déloge(parseuse.pile_éléments_ouvert.éléments)
+    déloge(parseuse.pile_insertion_template)
 }
 
 parse :: fonc (parseuse: *Parseuse)

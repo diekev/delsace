@@ -77,7 +77,7 @@ principale :: fonc () -> z32
 
     imprime("%\n", maj)
 
-    déloge maj
+    déloge(maj)
 
     retourne 0
 }

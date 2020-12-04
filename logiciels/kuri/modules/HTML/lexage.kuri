@@ -87,25 +87,25 @@ détruit_lexème :: fonc (lexème: *Lexème)
 {
     discr lexème.genre {
         Doctype {
-            déloge lexème.nom
-            déloge lexème.identifiant_public_doctype
-            déloge lexème.identifiant_système_doctype
+            déloge(lexème.nom)
+            déloge(lexème.identifiant_public_doctype)
+            déloge(lexème.identifiant_système_doctype)
         }
         DébutTag {
-            déloge lexème.nom
+            déloge(lexème.nom)
 
             pour lexème.attributs {
-                déloge it.nom
-                déloge it.valeur
+                déloge(it.nom)
+                déloge(it.valeur)
             }
 
-            déloge lexème.attributs
+            déloge(lexème.attributs)
         }
         FinTag {
-            déloge lexème.nom
+            déloge(lexème.nom)
         }
         Commentaire {
-            déloge lexème.données
+            déloge(lexème.données)
         }
         Caractère {
             // RÀF
@@ -256,8 +256,8 @@ initialise_lexeuse :: fonc (document: chaine) -> Lexeuse
 détruit_lexeuse :: fonc (lexeuse: *Lexeuse)
 {
     détruit_chaine(*lexeuse.tampon_temporaire)
-    déloge lexeuse.nom_dernier_tag_début
-    déloge lexeuse.file_lexèmes.lexèmes
+    déloge(lexeuse.nom_dernier_tag_début)
+    déloge(lexeuse.file_lexèmes.lexèmes)
 }
 
 point_de_code_suivant :: fonc (lexeuse: *Lexeuse) -> n32
@@ -292,7 +292,7 @@ crée_lexème :: fonc (lexeuse: *Lexeuse, genre : GenreLexème)
 émet_lexème :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
     si lexeuse.lexème_courant.genre == GenreLexème.DébutTag {
-        déloge lexeuse.nom_dernier_tag_début
+        déloge(lexeuse.nom_dernier_tag_début)
         lexeuse.nom_dernier_tag_début = copie_chaine(lexeuse.lexème_courant.nom)
     }
 
@@ -605,12 +605,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == GUILLEMET {
                     // @erreur missing-whitespace-after-doctype-public-keyword
-                    déloge lexeuse.lexème_courant.identifiant_public_doctype
+                    déloge(lexeuse.lexème_courant.identifiant_public_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPEPublicIdentifierDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
                     // @erreur missing-whitespace-after-doctype-public-keyword
-                    déloge lexeuse.lexème_courant.identifiant_public_doctype
+                    déloge(lexeuse.lexème_courant.identifiant_public_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPEPublicIdentifierSingleQuoted
                 }
                 sinon si c == CHEVRON_FERMANT {
@@ -637,11 +637,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // ignore
                 }
                 sinon si c == GUILLEMET {
-                    déloge lexeuse.lexème_courant.identifiant_public_doctype
+                    déloge(lexeuse.lexème_courant.identifiant_public_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPEPublicIdentifierDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
-                    déloge lexeuse.lexème_courant.identifiant_public_doctype
+                    déloge(lexeuse.lexème_courant.identifiant_public_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPEPublicIdentifierSingleQuoted
                 }
                 sinon si c == CHEVRON_FERMANT {
@@ -718,11 +718,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème()
                 }
                 sinon si c == GUILLEMET {
-                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
-                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierSingleQuoted
                 }
                 sinon si c == FIN_DE_FICHIER {
@@ -747,11 +747,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème()
                 }
                 sinon si c == GUILLEMET {
-                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
-                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierSingleQuoted
                 }
                 sinon si c == FIN_DE_FICHIER {
@@ -773,12 +773,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == GUILLEMET {
                     // @erreur missing-whitespace-after-doctype-system-keyword
-                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
                     // @erreur missing-whitespace-after-doctype-system-keyword
-                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierSingleQuoted
                 }
                 sinon si c == CHEVRON_FERMANT {
@@ -805,11 +805,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // ignore
                 }
                 sinon si c == GUILLEMET {
-                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
-                    déloge lexeuse.lexème_courant.identifiant_système_doctype
+                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierSingleQuoted
                 }
                 sinon si c == CHEVRON_FERMANT {
@@ -1216,7 +1216,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     continue
                 }
 
-                déloge lexeuse.lexème_courant.nom
+                déloge(lexeuse.lexème_courant.nom)
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATA)
 
@@ -1273,7 +1273,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     continue
                 }
 
-                déloge lexeuse.lexème_courant.nom
+                déloge(lexeuse.lexème_courant.nom)
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXT)
 
@@ -1632,7 +1632,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     continue
                 }
 
-                déloge lexeuse.lexème_courant.nom
+                déloge(lexeuse.lexème_courant.nom)
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptData)
 
@@ -1770,7 +1770,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     continue
                 }
 
-                déloge lexeuse.lexème_courant.nom
+                déloge(lexeuse.lexème_courant.nom)
 
                 lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscaped)
 
@@ -1990,7 +1990,7 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
 
         résultat := ensemble_possède_rappel_si_possible(*symboles_entités, chn_temp, commence_par)
 
-        déloge chn_temp
+        déloge(chn_temp)
 
         si !résultat.trouvé {
             lexeuse.curseur -= 1

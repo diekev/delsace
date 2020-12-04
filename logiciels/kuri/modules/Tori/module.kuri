@@ -164,7 +164,7 @@ GestionnaireObjet :: struct {
 
 crée_dictionnaire :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetDictionnaire
 {
-	objet := loge ObjetDictionnaire
+	objet := loge(ObjetDictionnaire)
 	objet.id = TypeObjet.DICTIONNAIRE
 	objet.noms.taille = 0
 	objet.noms.pointeur = nul
@@ -178,7 +178,7 @@ crée_dictionnaire :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetDictionna
 
 crée_liste :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetListe
 {
-	objet := loge ObjetListe
+	objet := loge(ObjetListe)
 	objet.id = TypeObjet.LISTE
 	objet.valeur.taille = 0
 	objet.valeur.pointeur = nul
@@ -190,7 +190,7 @@ crée_liste :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetListe
 
 crée_entier :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetEntier
 {
-	objet := loge ObjetEntier
+	objet := loge(ObjetEntier)
 	objet.id = TypeObjet.ENTIER
 	objet.valeur = 0
 
@@ -201,7 +201,7 @@ crée_entier :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetEntier
 
 crée_réel :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetRéel
 {
-	objet := loge ObjetRéel
+	objet := loge(ObjetRéel)
 	objet.id = TypeObjet.RÉEL
 	objet.valeur = 0.0
 
@@ -212,7 +212,7 @@ crée_réel :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetRéel
 
 crée_chaine :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetChaine
 {
-	objet := loge ObjetChaine
+	objet := loge(ObjetChaine)
 	objet.id = TypeObjet.CHAINE
 	objet.valeur = ""
 
@@ -223,7 +223,7 @@ crée_chaine :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetChaine
 
 crée_nul :: fonc(gestionnaire : *GestionnaireObjet) -> *Objet
 {
-	objet := loge Objet
+	objet := loge(Objet)
 	objet.id = TypeObjet.NUL
 
 	tableau_ajoute(*gestionnaire.objets, objet)
@@ -235,32 +235,32 @@ détruit_objet :: fonc(objet : *Objet) -> rien
 {
 	discr objet.id {
 		NUL {
-			déloge objet
+			déloge(objet)
 		}
 		ENTIER {
 			obj := objet comme *ObjetEntier
-			déloge obj
+			déloge(obj)
 		}
 		RÉEL {
 			obj := objet comme *ObjetRéel
-			déloge obj
+			déloge(obj)
 		}
 		CHAINE {
 			obj := objet comme *ObjetChaine
-			déloge obj
+			déloge(obj)
 		}
 		LISTE {
 			obj := objet comme *ObjetListe
 
-			déloge obj.valeur
-			déloge obj
+			déloge(obj.valeur)
+			déloge(obj)
 		}
 		DICTIONNAIRE {
 			obj := objet comme *ObjetDictionnaire
 
-			déloge obj.noms
-			déloge obj.valeurs
-			déloge obj
+			déloge(obj.noms)
+			déloge(obj.valeurs)
+			déloge(obj)
 		}
 	}
 }
@@ -271,7 +271,7 @@ détruit :: fonc(gestionnaire : *GestionnaireObjet) -> rien
 		détruit_objet(obj)
 	}
 
-	déloge gestionnaire.objets
+	déloge(gestionnaire.objets)
 }
 
 imprime_tab :: fonc(n : z32) -> rien

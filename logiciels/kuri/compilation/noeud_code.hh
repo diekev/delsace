@@ -145,12 +145,6 @@ struct NoeudCodeReferenceMembre : public NoeudCode {
 	NoeudCode *membre = nullptr;
 };
 
-struct NoeudCodeLogement : public NoeudCode {
-	NoeudCode *expr = nullptr;
-	NoeudCode *expr_taille = nullptr;
-	NoeudCode *bloc = nullptr;
-};
-
 struct NoeudCodeAppel : public NoeudCode {
 	NoeudCode *expression = nullptr;
 	kuri::tableau<NoeudCode *> params{};
@@ -287,7 +281,6 @@ struct ConvertisseuseNoeudCode {
 	tableau_page<NoeudCodeDiscr> noeuds_discr{};
 	tableau_page<NoeudCodePousseContexte> noeuds_pousse_contexte{};
 	tableau_page<NoeudCodeReferenceMembre> noeuds_reference_membre{};
-	tableau_page<NoeudCodeLogement> noeuds_logements{};
 	tableau_page<NoeudCodeAppel> noeuds_appel{};
 	tableau_page<NoeudCodeVirgule> noeuds_virgule{};
 	tableau_page<NoeudCodeDirective> noeuds_directive{};

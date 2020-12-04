@@ -66,8 +66,8 @@ test_copie_mem :: fonc() -> rien
 
     // Les chaines statiques ne peuvent être modifiées.
     chn_stat := "0123456789";
-    chn := loge chaine(chn_stat.taille);
-    diffère { déloge chn; }
+    chn := loge_chaine(chn_stat.taille);
+    diffère { déloge(chn); }
 
     pour c, i dans chn_stat {
         chn[i] = c;

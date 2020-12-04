@@ -73,7 +73,7 @@ logement_tableau :: fonc() -> rien
     imprime("=========================================\n");
     imprime("            logements tableau            \n");
 
-    tabl := loge [32]r32;
+    tabl := loge_tableau(r32, 32);
 
     imprime("Tableau logé à l'addresse : %\n", tabl.pointeur);
     imprime("Taille tableau : %\n", tabl.taille);
@@ -87,7 +87,7 @@ logement_tableau :: fonc() -> rien
 
     imprime_tableau(tabl);
 
-    déloge tabl;
+    déloge(tabl);
 
     imprime("Tableau délogé : %\n", tabl.pointeur);
     imprime("Taille tableau : %\n", tabl.taille);
@@ -108,7 +108,7 @@ logement_chaine :: fonc() -> rien
 
     imprime("Résultat : %\n", chnr);
 
-    déloge chnr;
+    déloge(chnr);
 
     imprime("Chaîne délogée : %\n", chnr.pointeur);
     imprime("Taille chaîne  : %\n", chnr.taille);

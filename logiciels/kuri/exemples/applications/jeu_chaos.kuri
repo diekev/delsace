@@ -78,15 +78,15 @@ dessine_bmp :: fonc(
 	points : []Points2D,
 	rayon_point : z32) -> rien
 {
-	cannevas := loge : [hauteur * largeur * 4]z8;
-	diffère { déloge cannevas; }
+	cannevas := loge_tableau(z8, hauteur * largeur * 4)
+	diffère { déloge(cannevas); }
 
 	pour v dans cannevas {
 		v = 255;
 	}
 
 	points_ecran := points_vers_ecran(hauteur, largeur, monde, ecran, points);
-	diffère { déloge points_ecran; }
+	diffère { déloge(points_ecran); }
 
 	si rayon_point == 0 {
 		pour p dans points_ecran {

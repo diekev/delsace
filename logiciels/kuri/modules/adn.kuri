@@ -20,7 +20,7 @@ encode_adn :: fonc(valeurs : []octet) -> chaine
     }
 
 	codes := ['a', 'c', 'g', 't']
-	reloge chn : chaine(valeurs.taille * 4)
+	reloge_chaine(chn, valeurs.taille * 4)
 
     pour v, i dans valeurs {
 		chn[i * 4 + 0] = codes[(v & 0b11000000) >> 6]
@@ -47,7 +47,7 @@ décode_adn :: fonc(valeurs : []octet) -> chaine
 		retourne chn
     }
 
-	reloge chn : chaine(taille / 4)
+	reloge_chaine(chn, taille / 4)
 	val : z8 = 0
 
     pour v, i dans valeurs {

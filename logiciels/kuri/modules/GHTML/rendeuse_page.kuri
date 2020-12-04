@@ -16,7 +16,7 @@ détruit_rendeuse :: fonc (rendeuse_gabarit: *RendeusePage) -> rien
 
     détruit_catalogue(*rendeuse_gabarit.catalogue)
 
-    déloge rendeuse_gabarit.cache_page
+    déloge(rendeuse_gabarit.cache_page)
 }
 
 PageGabarit :: struct {
@@ -80,7 +80,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
         blocs : []*NoeudSyntaxique
         rassemble_blocs(racine, *blocs)
         remplace_blocs(nouvelle_racine, blocs)
-        déloge blocs
+        déloge(blocs)
 
         racine = nouvelle_racine
     }

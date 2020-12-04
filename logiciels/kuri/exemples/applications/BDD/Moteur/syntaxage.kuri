@@ -12,36 +12,36 @@ détruit_asa :: fonc (asa: *ASA) -> rien
                 inst_crée := inst comme *InstructionCréationTable
 
                 pour déf dans inst_crée.colonnes {
-                    déloge déf
+                    déloge(déf)
                 }
 
-                déloge inst_crée.colonnes
-                déloge inst_crée
+                déloge(inst_crée.colonnes)
+                déloge(inst_crée)
             }
             SÉLECTIONNE {
                 inst_sél := inst comme *InstructionSélection
 
                 pour expr dans inst_sél.items {
-                    déloge expr
+                    déloge(expr)
                 }
 
-                déloge inst_sél.items
-                déloge inst_sél
+                déloge(inst_sél.items)
+                déloge(inst_sél)
             }
             INSÈRE {
                 inst_insère := inst comme *InstructionInsère
 
                 pour expr dans inst_insère.valeurs {
-                    déloge expr
+                    déloge(expr)
                 }
 
-                déloge inst_insère.valeurs
-                déloge inst_insère
+                déloge(inst_insère.valeurs)
+                déloge(inst_insère)
             }
         }
     }
 
-    déloge asa.instructions
+    déloge(asa.instructions)
 }
 
 parse :: fonc (chn: chaine) -> ASA
@@ -54,7 +54,7 @@ parse :: fonc (chn: chaine) -> ASA
     }
 */
 
-    diffère { déloge lexèmes; }
+    diffère { déloge(lexèmes); }
 
     asa : ASA
 
@@ -119,20 +119,20 @@ parse_instruction_sélectionne :: fonc (lexèmes: []Lexème, ancien_curseur: *z3
     curseur := mémoire(ancien_curseur)
     diffère { mémoire(ancien_curseur) = curseur; }
 
-    inst := loge InstructionSélection
+    inst := loge(InstructionSélection)
     inst.genre = GenreInstruction.SÉLECTIONNE
     inst.items.taille = 0
     inst.items.pointeur = nul
 
     si !parse_expressions(lexèmes, *curseur, *inst.items) {
         imprime("Impossible de parser les expressions\n")
-        déloge inst // @fuite de mémoire
+        déloge(inst) // @fuite de mémoire
         retourne nul
     }
 
     si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_DEPUIS {
         imprime("Attendu 'depuis'\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -140,7 +140,7 @@ parse_instruction_sélectionne :: fonc (lexèmes: []Lexème, ancien_curseur: *z3
 
     si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
         imprime("Attendu 'identifiant'\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -150,7 +150,7 @@ parse_instruction_sélectionne :: fonc (lexèmes: []Lexème, ancien_curseur: *z3
 
     si lexèmes[curseur].genre != GenreLexème.POINT_VIRGULE {
         imprime("Attendu ';'\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -170,7 +170,7 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
     curseur := mémoire(ancien_curseur)
     diffère { mémoire(ancien_curseur) = curseur; }
 
-    inst := loge InstructionCréationTable
+    inst := loge(InstructionCréationTable)
     inst.genre = GenreInstruction.CRÉE
     inst.colonnes.taille = 0
     inst.colonnes.pointeur = nul
@@ -178,7 +178,7 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
     // 2. $nom-table
     si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
         imprime("Attendu 'identifiant'\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -189,7 +189,7 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
     // 3. (
     si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_OUVRANTE {
         imprime("Attendu '('\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -200,13 +200,13 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
             arrête
         }
 
-        desc := loge DéfinitionColonne
+        desc := loge(DéfinitionColonne)
         tableau_ajoute(*inst.colonnes, desc)
 
         // nom-colonne
         si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
             imprime("Attendu 'identifiant'\n")
-            déloge inst
+            déloge(inst)
             retourne nul
         }
 
@@ -217,7 +217,7 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
         // type-colonne
         si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_TEXTE && lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_ENTIER {
             imprime("Attendu 'entier' ou 'texte'\n")
-            déloge inst
+            déloge(inst)
             retourne nul
         }
 
@@ -236,7 +236,7 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
     // 5. )
     si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_FERMANTE {
         imprime("Attendu ')'\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -245,7 +245,7 @@ parse_instruction_crée :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) -> *
     // 6. ;
     si lexèmes[curseur].genre != GenreLexème.POINT_VIRGULE {
         imprime("Attendu ';'\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -267,7 +267,7 @@ parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) ->
     curseur := mémoire(ancien_curseur)
     diffère { mémoire(ancien_curseur) = curseur; }
 
-    inst := loge InstructionInsère
+    inst := loge(InstructionInsère)
     inst.genre = GenreInstruction.INSÈRE
     inst.valeurs.taille = 0
     inst.valeurs.pointeur = nul
@@ -275,7 +275,7 @@ parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) ->
     // 2. DANS
     si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_DANS {
         imprime("Attendu 'dans'\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -284,7 +284,7 @@ parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) ->
     // 3. $nom-table
     si lexèmes[curseur].genre != GenreLexème.IDENTIFIANT {
         imprime("Attendu 'identifiant'\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -295,7 +295,7 @@ parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) ->
     // 4. VALEURS
     si lexèmes[curseur].genre != GenreLexème.MOT_CLÉ_VALEURS {
         imprime("Attendu 'valeurs'\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -304,7 +304,7 @@ parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) ->
     // 5. (
     si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_OUVRANTE {
         imprime("Attendu '('\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -313,14 +313,14 @@ parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) ->
     // 6. $expression [, ...]
     si !parse_expressions(lexèmes, *curseur, *inst.valeurs) {
         imprime("Impossible de parser les expresssions pour INSÈRE !\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
     // 7. )
     si lexèmes[curseur].genre != GenreLexème.PARENTHÈSE_FERMANTE {
         imprime("Attendu '('\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -329,7 +329,7 @@ parse_instruction_insère :: fonc (lexèmes: []Lexème, ancien_curseur: *z32) ->
     // 8. ;
     si lexèmes[curseur].genre != GenreLexème.POINT_VIRGULE {
         imprime("Attendu ';'\n")
-        déloge inst
+        déloge(inst)
         retourne nul
     }
 
@@ -352,7 +352,7 @@ parse_expressions :: fonc (lexèmes: []Lexème, ancien_curseur: *z32, exprs: *[]
             retourne faux
         }
 
-        expr := loge Expression
+        expr := loge(Expression)
         expr.genre = GenreExpression.LITTÉRALE
         expr.littérale = lexèmes[curseur]
 

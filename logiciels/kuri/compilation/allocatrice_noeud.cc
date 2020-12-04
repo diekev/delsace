@@ -106,13 +106,6 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 			noeud = m_noeuds_appel.ajoute_element();
 			break;
 		}
-		case GenreNoeud::EXPRESSION_LOGE:
-		case GenreNoeud::EXPRESSION_DELOGE:
-		case GenreNoeud::EXPRESSION_RELOGE:
-		{
-			noeud = m_noeuds_expression_logement.ajoute_element();
-			break;
-		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_INIT_DE:
@@ -223,7 +216,6 @@ long AllocatriceNoeud::nombre_noeuds() const
 	noeuds += m_noeuds_expression_membre.taille();
 	noeuds += m_noeuds_expression_reference.taille();
 	noeuds += m_noeuds_appel.taille();
-	noeuds += m_noeuds_expression_logement.taille();
 	noeuds += m_noeuds_expression_unaire.taille();
 	noeuds += m_noeuds_expression.taille();
 	noeuds += m_noeuds_boucle.taille();
@@ -255,7 +247,6 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionBinaire", m_noeuds_expression_binaire) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionMembre", m_noeuds_expression_membre) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionReference", m_noeuds_expression_reference) });
-	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionLogement", m_noeuds_expression_logement) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionUnaire", m_noeuds_expression_unaire) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpression", m_noeuds_expression) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudBoucle", m_noeuds_boucle) });

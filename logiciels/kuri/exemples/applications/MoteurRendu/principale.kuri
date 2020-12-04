@@ -56,9 +56,9 @@ détruit_éditrice_vue_3d :: fonc (éditrice: *ÉditriceVue3D) -> rien
     détruit_tampon_texture(éditrice.tampon_texture)
     détruit_image(*éditrice.image)
     détruit_image(éditrice.matcap)
-    déloge éditrice.matcap
-    déloge éditrice.caméra
-    déloge éditrice
+    déloge(éditrice.matcap)
+    déloge(éditrice.caméra)
+    déloge(éditrice)
 }
 
 détruit_éditrice :: fonc (éditrice: *Éditrice) -> rien
@@ -68,7 +68,7 @@ détruit_éditrice :: fonc (éditrice: *Éditrice) -> rien
         détruit_éditrice_vue_3d(éditrice_vue_3d)
     }
     sinon {
-        déloge éditrice
+        déloge(éditrice)
     }
 }
 
@@ -90,7 +90,7 @@ ajoute_éditrice :: fonc (app: *Application) -> rien
 
 crée_éditrice_vue_3d :: fonc (app: *Application) -> *Éditrice
 {
-    éditrice := loge ÉditriceVue3D
+    éditrice := loge(ÉditriceVue3D)
     éditrice.x = 0
     éditrice.y = 0
     éditrice.largeur = app.largeur
@@ -109,7 +109,7 @@ crée_éditrice_vue_3d :: fonc (app: *Application) -> *Éditrice
 
     éditrice.tampon_texture = crée_tampon_texture()
 
-    caméra := loge Caméra3D
+    caméra := loge(Caméra3D)
     caméra.champs_de_vue = calcul_champs_de_vue_degrés(70.0, 35.0)
     caméra.position = crée_vec3r()
     caméra.direction_vue = crée_vec3r(z = 1.0)
@@ -163,7 +163,7 @@ détruit_application :: fonc (app: *Application) -> rien
         détruit_éditrice(éditrice)
     }
 
-    déloge app.éditrices
+    déloge(app.éditrices)
     détruit_maillage(app.maillage)
 }
 
@@ -480,7 +480,7 @@ trace_maillage :: fonc (
     mat_obj := mat_trans // multiplie(mat_rot, mat_trans)
 
     triangles_visible : []Triangle
-    diffère { déloge triangles_visible; }
+    diffère { déloge(triangles_visible); }
 
     min_boite := crée_vec3r(x =  100000000.0, y =  100000000.0, z =  100000000.0)
     max_boite := crée_vec3r(x = -100000000.0, y = -100000000.0, z = -100000000.0)
@@ -712,7 +712,7 @@ principale2 :: fonc () -> z32
 
         SDL_SetWindowTitle(window, chn_c)
 
-        déloge nouveau_titre
+        déloge(nouveau_titre)
     }
 
     retourne 0

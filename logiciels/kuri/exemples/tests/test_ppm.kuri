@@ -21,7 +21,7 @@ génére_image_damier :: fonc() -> Image
 
     nombre_caracteres := image.largeur * image.hauteur;
 
-    tampon := loge [nombre_caracteres]octet
+    tampon := loge_tableau(octet, nombre_caracteres)
     tampon.taille = nombre_caracteres
 
     taille_case := image.largeur / 8;
@@ -55,7 +55,7 @@ génére_image_noire :: fonc() -> Image
 
     nombre_caracteres := image.largeur * image.hauteur;
 
-    tampon := loge [nombre_caracteres]octet
+    tampon := loge_tableau(octet, nombre_caracteres)
     tampon.taille = nombre_caracteres
 
     taille_case := image.largeur / 8;
@@ -90,8 +90,8 @@ génére_image_noire :: fonc() -> Image
 
     nombre_caracteres := taille_x * taille_y;
 
-    tampon := loge chaine(nombre_caracteres);
-    diffère { déloge tampon; }
+    tampon := loge_chaine(nombre_caracteres);
+    diffère { déloge(tampon); }
 
     idx := 0;
     idx_image := 0;
@@ -175,7 +175,7 @@ génére_image_noire :: fonc() -> Image
 
 détruit_image :: fonc(image : *Image) -> rien
 {
-    déloge image.tampon;
+    déloge(image.tampon);
 }
 
 lis_jpeg :: fonc(chemin : chaine) -> Image
@@ -216,7 +216,7 @@ lis_jpeg :: fonc(chemin : chaine) -> Image
 	image.channels = channels;
 	image.chemin = chemin;
 
-	image.tampon = loge chaine(largeur * hauteur * channels);
+	image.tampon = loge_chaine(largeur * hauteur * channels);
 
 	stride := largeur * channels;
 

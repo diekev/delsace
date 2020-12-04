@@ -30,21 +30,21 @@ ArbreB :: struct ($C: type_de_données) {
 // À FAIRE : il faudrait avoir des valeurs polymorphiques sur les fonctions pour construire les noeuds ($C: type_de_données)
 construit_noeud :: fonc(t : z32, est_feuille : bool) -> *NoeudArbreB
 {
-    noeud := loge NoeudArbreB
+    noeud := loge(NoeudArbreB)
     noeud.t = t
     noeud.est_feuille = est_feuille
     noeud.n = 0
-    noeud.clés = loge [2 * t - 1]z32
-    noeud.enfants = loge [2 * t]*NoeudArbreB
+    noeud.clés = loge_tableau(z32, 2 * t - 1)
+    noeud.enfants = loge_tableau(*NoeudArbreB, 2 * t)
 
     retourne noeud
 }
 
 détruit_noeud :: fonc(noeud : *NoeudArbreB(C = $C)) -> rien
 {
-    déloge noeud.clés
-    déloge noeud.enfants
-    déloge noeud
+    déloge(noeud.clés)
+    déloge(noeud.enfants)
+    déloge(noeud)
 }
 
 traverse :: fonc(noeud: *NoeudArbreB(C = $C)) -> rien
@@ -421,7 +421,7 @@ détruit_arbre :: fonc(arbre: *ArbreB(C = $C)) -> rien
         détruit_noeud(noeud)
     }
 
-    déloge arbre.noeuds
+    déloge(arbre.noeuds)
 }
 
 traverse :: fonc(arbre: *ArbreB(C = $C)) -> rien

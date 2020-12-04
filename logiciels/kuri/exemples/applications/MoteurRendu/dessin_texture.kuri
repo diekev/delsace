@@ -37,7 +37,7 @@ crée_tampon_texture :: fonc () -> *TamponTexture
     }
     "
 
-    tampon_texture := loge TamponTexture
+    tampon_texture := loge(TamponTexture)
     tampon_texture.programme = charge_programme(source_vertex, source_fragment)
 
     // ------------------
@@ -103,7 +103,7 @@ détruit_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
     glDeleteBuffers(1, *tampon_texture.id_tampon_index)
     glDeleteProgram(tampon_texture.programme)
 
-    déloge tampon_texture
+    déloge(tampon_texture)
 }
 
 génère_texture :: fonc (

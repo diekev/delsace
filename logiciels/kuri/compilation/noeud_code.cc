@@ -210,20 +210,6 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			noeud_code = n;
 			break;
 		}
-		case GenreNoeud::EXPRESSION_LOGE:
-		case GenreNoeud::EXPRESSION_DELOGE:
-		case GenreNoeud::EXPRESSION_RELOGE:
-		{
-			auto noeud_logement = static_cast<NoeudExpressionLogement *>(noeud_expression);
-
-			auto n = noeuds_logements.ajoute_element();
-			n->expr = converti_noeud_syntaxique(espace, noeud_logement->expr);
-			n->expr_taille = converti_noeud_syntaxique(espace, noeud_logement->expr_taille);
-			n->bloc = converti_noeud_syntaxique(espace, noeud_logement->bloc);
-
-			noeud_code = n;
-			break;
-		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
 			auto directive = noeud_expression->comme_execute();
@@ -808,7 +794,6 @@ long ConvertisseuseNoeudCode::memoire_utilisee() const
 	memoire += noeuds_discr.memoire_utilisee();
 	memoire += noeuds_pousse_contexte.memoire_utilisee();
 	memoire += noeuds_reference_membre.memoire_utilisee();
-	memoire += noeuds_logements.memoire_utilisee();
 	memoire += noeuds_appel.memoire_utilisee();
 	memoire += noeuds_virgule.memoire_utilisee();
 	memoire += noeuds_ident.memoire_utilisee();

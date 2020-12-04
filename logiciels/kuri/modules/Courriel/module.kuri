@@ -34,8 +34,8 @@ Courriel :: struct {
 
 détruit_courriel :: fonc (courriel: *Courriel) -> rien
 {
-    déloge courriel.destinataires
-    déloge courriel.destinataires_cc
+    déloge(courriel.destinataires)
+    déloge(courriel.destinataires_cc)
 }
 
 ajoute_destinataire :: fonc (courriel: *Courriel, destinataire: chaine) -> rien
@@ -59,7 +59,7 @@ ConfigurationCourriel :: struct {
 envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> z32
 {
     message := ""
-    diffère { si message { déloge message } }
+    diffère { si message { déloge(message) } }
 
     si format {
         message = imprime_chaine(format, ...args)
@@ -84,7 +84,7 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
     }
 
     imprime("réponse: %\n", réponse)
-    diffère { déloge réponse }
+    diffère { déloge(réponse) }
 
     si réponse.taille < 3 {
         retourne 0
@@ -204,14 +204,14 @@ envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: Courriel) -> z
 
     // réponse : 334 VXNlcm5hbWU6
     nom_utilisateur_base64 := encode_base64(config.utilisateur)
-    diffère { déloge nom_utilisateur_base64 }
+    diffère { déloge(nom_utilisateur_base64) }
     si envoie_commande_smtp(*fichier, "%", nom_utilisateur_base64) == 0 {
         retourne 1
     }
 
     // réponse : 334 UGFzc3dvcmQ6
     mot_passe_base64 := encode_base64(config.mot_de_passe)
-    diffère { déloge mot_passe_base64 }
+    diffère { déloge(mot_passe_base64) }
     si envoie_commande_smtp(*fichier, "%", mot_passe_base64) == 0 {
         retourne 1
     }
@@ -246,7 +246,7 @@ envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: Courriel) -> z
     // 530 5.7.1 Client was not authenticated
     // 250 2.0.0 Ok: queued as ...
     message := crée_corps_message(courriel)
-    diffère { déloge message }
+    diffère { déloge(message) }
     si envoie_commande_smtp(*fichier, "%", message) == 0 {
         retourne 1
     }

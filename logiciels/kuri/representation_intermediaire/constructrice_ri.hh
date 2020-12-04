@@ -185,12 +185,6 @@ private:
 	void genere_ri_pour_discr(NoeudDiscr *noeud);
 	void genere_ri_pour_tente(NoeudTente *noeud);
 	void genere_ri_pour_boucle_pour(NoeudPour *noeud);
-	void genere_ri_pour_logement(Type *type,
-								   int mode,
-								   NoeudExpression *b,
-								   NoeudExpression *variable,
-								   NoeudExpression *expression,
-								   NoeudExpression *bloc_sinon);
 	void genere_ri_pour_comparaison_chainee(NoeudExpression *noeud, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
 	void genere_ri_pour_declaration_structure(NoeudStruct *noeud);
 	void genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud);

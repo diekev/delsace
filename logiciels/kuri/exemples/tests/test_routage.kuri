@@ -8,7 +8,7 @@ principale :: fonc () -> z32
     route := "/<id_utilisateur:chaine>/status/<id_post:entier>/"
 
     éléments := divise_url(route)
-    diffère { déloge éléments }
+    diffère { déloge(éléments) }
 
     pour éléments {
         imprime("- élément % : %\n", index_it, it)
@@ -32,7 +32,7 @@ principale :: fonc () -> z32
 
         retourne 1
     }
-    diffère { déloge règles }
+    diffère { déloge(règles) }
 
     imprime("RègleRoutages pour \"%\"\n", route)
 
@@ -54,7 +54,7 @@ principale :: fonc () -> z32
         }
 
         imprime("routage vers : %\n", it)
-        déloge résultat
+        déloge(résultat)
         arrête
     }
     sansarrêt {

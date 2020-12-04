@@ -306,7 +306,7 @@ lis_tout :: fonc (fichier: *FichierSSL) -> ChaineOuErreurSSL
 
         si taille > 0 {
             ancienne_taille := résultat.taille
-            reloge résultat : chaine(résultat.taille + taille)
+            reloge_chaine(résultat, résultat.taille + taille)
             copie_mem_nonsur(src=*tampon[0], dst=*résultat[ancienne_taille], taille=taille comme z64)
         }
         sinon si taille == 0 {

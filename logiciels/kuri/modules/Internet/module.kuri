@@ -74,7 +74,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
 
     // il ne peut y avoir qu'un seul :: par chaine
     morceaux := divise(chn, "::")
-    diffère { déloge morceaux }
+    diffère { déloge(morceaux) }
 
     si morceaux.taille > 2 {
         retourne ErreurParsageIP.NombreÉlémentsIncorrect
@@ -83,7 +83,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
     possède_raccourci := morceaux.taille == 2
 
     morceaux_nombre := divise(morceaux[0], ':')
-    diffère { déloge morceaux_nombre }
+    diffère { déloge(morceaux_nombre) }
 
     possède_ipv4 := faux
     ipv4 : AdresseIPv4 = ---
@@ -113,7 +113,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
     }
 
     si possède_raccourci {
-        déloge morceaux_nombre
+        déloge(morceaux_nombre)
         morceaux_nombre = divise(morceaux[1], ':')
 
         possède_ipv4 = parse_ipv4_pour_ipv6(morceaux_nombre[morceaux_nombre.taille - 1], *ipv4)
@@ -344,7 +344,7 @@ chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
         ptr_tampon += 1
     }
 
-    résultat := loge chaine(taille_tampon)
+    résultat := loge_chaine(taille_tampon)
     copie_mem_nonsur(src = ptr_tampon, dst = résultat.pointeur, taille = taille_tampon)
     retourne résultat
 }
@@ -352,7 +352,7 @@ chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
 parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
 {
     morceaux := divise(chn, '.')
-    diffère { déloge morceaux }
+    diffère { déloge(morceaux) }
 
     // il est possible d'obtenir des chaines contenant l'adresse au format décimale :
     // x * 256 ^ 3 + y * 256 ^ 2 + z ^ 256 + w
@@ -427,7 +427,7 @@ chaine_depuis_ipv4 :: fonc (ipv4: AdresseIPv4) -> chaine
         }
     }
 
-    résultat := loge chaine(taille_tampon)
+    résultat := loge_chaine(taille_tampon)
     copie_mem_nonsur(src = *tampon[0], dst = résultat.pointeur, taille = taille_tampon)
     retourne résultat
 }
@@ -499,7 +499,7 @@ test_raccourcissement_ipv6 :: fonc (donnée: chaine, attendue: chaine, pos := Po
 
     chn_ipv6 := chaine_depuis_ipv6(ipv6)
     compilatrice_vérifie_égalité(chn_ipv6, attendue)
-    déloge chn_ipv6
+    déloge(chn_ipv6)
 }
 
 #test {
@@ -538,7 +538,7 @@ test_parsage_ipv4_impl :: fonc (chn_donnée: chaine, chn_attendue: chaine, pos :
 
     chn_ipv4 := chaine_depuis_ipv4(ipv4)
     compilatrice_vérifie_égalité(chn_ipv4, chn_attendue)
-    déloge chn_ipv4
+    déloge(chn_ipv4)
 }
 
 test_parsage_ipv4 :: fonc (chn: chaine, pos := PositionCodeSource())
@@ -569,7 +569,7 @@ test_ipv6_depuis_ipv4 :: fonc (chn_ipv4: chaine, chn_ipv6: chaine, pos := Positi
 
     chn := chaine_depuis_ipv6(ipv6)
     compilatrice_vérifie_égalité(chn, chn_ipv6, pos)
-    déloge chn
+    déloge(chn)
 }
 
 #test {
@@ -598,7 +598,7 @@ test_ipv4_depuis_ipv6 :: fonc (chn_ipv6: chaine, chn_ipv4: chaine, pos := Positi
 
     chn := chaine_depuis_ipv4(ipv4)
     compilatrice_vérifie_égalité(chn, chn_ipv4, pos)
-    déloge chn
+    déloge(chn)
 }
 
 #test {

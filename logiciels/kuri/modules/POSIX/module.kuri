@@ -38,7 +38,7 @@ exécute_commande_externe :: fonc (args: ...chaine) -> bool
     ajoute_au_tampon(*enchaineuse, " ")
 
     commande := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère { déloge commande }
+    diffère { déloge(commande) }
 
     commande[commande.taille - 1] = '\0'
 

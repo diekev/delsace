@@ -192,13 +192,13 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     crée_réponse(résultat)
 
     si requête.contenu {
-        déloge requête.contenu
+        déloge(requête.contenu)
     }
     // À FAIRE(langage) : si ceci se trouve plus haut, la chaine est délogée avant la fin de la fonction...
-    déloge uri_normalisé
+    déloge(uri_normalisé)
 
     // Idem
-    diffère { déloge cookies }
+    diffère { déloge(cookies) }
 }
 
 crée_réponse :: fonc (résultat : &RésultatRequête)
@@ -212,7 +212,7 @@ crée_réponse :: fonc (résultat : &RésultatRequête)
     pour résultat.cookies {
         chn_cookie := chaine_cookie_pour_entête_http(it)
         imprime("Set-Cookie: %\n", chn_cookie)
-        déloge chn_cookie
+        déloge(chn_cookie)
     }
 
     si résultat.type_contenu {

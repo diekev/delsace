@@ -129,7 +129,7 @@ lance_tâche :: fonc (tâche_: *rien) -> *rien #nulctx
 
 crée_tâche :: fonc (rappel: fonc(*rien)(*rien), données_rappel: *rien) -> *Tâche
 {
-    tâche := loge Tâche
+    tâche := loge(Tâche)
     tâche.données_rappel = données_rappel
     tâche.rappel = rappel
     tâche.id = 0
@@ -138,7 +138,7 @@ crée_tâche :: fonc (rappel: fonc(*rien)(*rien), données_rappel: *rien) -> *T�
 
     si ret != 0 {
 		imprime("erreur : %\n", converti_chaine_c(strerror(ret)))
-        déloge tâche
+        déloge(t)âche
     }
 
     retourne tâche

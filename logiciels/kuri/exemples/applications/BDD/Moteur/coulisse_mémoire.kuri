@@ -9,6 +9,6 @@ détruit_coulisse :: fonc (cm: *CoulisseMémoire) -> rien
         ferme_base_de_données(table)
     }
 
-    déloge cm.noms_tables
-    déloge cm.tables
+    déloge(cm.noms_tables)
+    déloge(cm.tables)
 }

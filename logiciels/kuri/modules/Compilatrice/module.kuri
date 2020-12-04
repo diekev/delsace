@@ -630,5 +630,5 @@ compilatrice_vérifie_égalité :: fonc (a: $T, b: T, position_code := PositionC
 	espace := compilatrice_espace_courant()
 	compilatrice_rapporte_erreur(espace, position_code.fichier, position_code.ligne, message)
 
-	déloge message // @fuite de mémoire : la compilation s'arrêtera dès que l'erreur sera lancée
+	déloge(message) // @fuite de mémoire : la compilation s'arrêtera dès que l'erreur sera lancée
 }

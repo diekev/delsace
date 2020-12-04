@@ -20,7 +20,7 @@ ajoute_paire_entête :: fonc (entêtes: *EntêtesHTTP, clé: chaine, valeur: cha
 
 détruit_entêtes :: fonc (entêtes: *EntêtesHTTP) -> rien
 {
-    déloge entêtes.données
+    déloge(entêtes.données)
 }
 
 cherche_entête :: fonc (entêtes: *EntêtesHTTP, clé: chaine) -> *PaireEntête

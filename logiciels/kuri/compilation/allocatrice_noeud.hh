@@ -35,7 +35,6 @@ struct AllocatriceNoeud {
 	tableau_page<NoeudExpressionReference> m_noeuds_expression_reference{};
 	tableau_page<NoeudExpressionUnaire> m_noeuds_expression_unaire{};
 	tableau_page<NoeudExpressionBinaire> m_noeuds_expression_binaire{};
-	tableau_page<NoeudExpressionLogement> m_noeuds_expression_logement{};
 	tableau_page<NoeudExpressionMembre> m_noeuds_expression_membre{};
 	tableau_page<NoeudDeclarationCorpsFonction> m_noeuds_declaration_corps_fonction{};
 	tableau_page<NoeudDeclarationEnteteFonction> m_noeuds_declaration_entete_fonction{};

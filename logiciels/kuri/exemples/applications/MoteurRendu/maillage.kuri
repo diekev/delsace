@@ -8,7 +8,7 @@ Maillage :: struct {
 
 crée_maillage_cube :: fonc () -> *Maillage
 {
-    maillage := loge Maillage
+    maillage := loge(Maillage)
     maillage.tris.taille = 0
     maillage.tris.pointeur = nul
 
@@ -59,8 +59,8 @@ crée_maillage_cube :: fonc () -> *Maillage
 
 détruit_maillage :: fonc (maillage : *Maillage) -> rien
 {
-    déloge maillage.tris
-    déloge maillage
+    déloge(maillage.tris)
+    déloge(maillage)
 }
 
 DonnéesObj :: struct {
@@ -129,9 +129,9 @@ charge_maillage_depuis_obj :: fonc (chemin: chaine) -> *Maillage
     chm := construit_chemin(chemin)
 
     contenu := contenu_fichier_texte(chm)
-    diffère { déloge contenu; }
+    diffère { déloge(contenu); }
 
-    maillage := loge Maillage
+    maillage := loge(Maillage)
     maillage.tris.taille = 0
     maillage.tris.pointeur = nul
 
@@ -139,7 +139,7 @@ charge_maillage_depuis_obj :: fonc (chemin: chaine) -> *Maillage
     données.maillage = maillage
 
     pour_chaque_ligne(contenu, données, parse_ligne_obj)
-    déloge données.vecteurs
+    déloge(données.vecteurs)
 
     retourne maillage
 }

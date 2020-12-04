@@ -28,12 +28,12 @@ ArbreB :: struct {
 
 construit_noeud :: fonc(t : z32, est_feuille : bool) -> *NoeudArbreB
 {
-    noeud := loge NoeudArbreB
+    noeud := loge(NoeudArbreB)
     noeud.t = t
     noeud.est_feuille = est_feuille
     noeud.n = 0
-    noeud.clés = loge [2 * t - 1]z32
-    noeud.enfants = loge [2 * t]*NoeudArbreB
+    noeud.clés = loge_tableau(z32, 2 * t - 1)
+    noeud.enfants = loge_tableau(*NoeudArbreB, 2 * t)
 
     retourne noeud
 }
@@ -41,9 +41,9 @@ construit_noeud :: fonc(t : z32, est_feuille : bool) -> *NoeudArbreB
 détruit_noeud :: fonc(noeud : *NoeudArbreB) -> rien
 {
     imprime("détruit_noeud\n")
-    déloge noeud.clés
-    déloge noeud.enfants
-    déloge noeud
+    déloge(noeud.clés)
+    déloge(noeud.enfants)
+    déloge(noeud)
 }
 
 traverse :: fonc(noeud: *NoeudArbreB) -> rien
@@ -422,7 +422,7 @@ détruit_arbre :: fonc(arbre: *ArbreB) -> rien
         détruit_noeud(noeud)
     }
 
-    déloge arbre.noeuds
+    déloge(arbre.noeuds)
 }
 
 traverse :: fonc(arbre: *ArbreB) -> rien
@@ -513,7 +513,7 @@ NoeudFile :: struct {
 
 crée_noeud :: fonc(numéro_page: z32) -> *NoeudFile
 {
-    n := loge NoeudFile
+    n := loge(NoeudFile)
     n.numéro_page = numéro_page
     n.suivant = nul
     n.précédent = nul
@@ -531,7 +531,7 @@ File :: struct {
 
 crée_file :: fonc(nombre_de_pages: z32) -> *File
 {
-    f := loge File
+    f := loge(File)
     f.nombre_de_pages = nombre_de_pages
     f.nombre_de_pages_remplies = 0
     f.front = nul
@@ -567,7 +567,7 @@ défile :: fonc(file: *File) -> rien
         file.cul.suivant = nul
     }
 
-    déloge temp
+    déloge(temp)
 
     file.nombre_de_pages_remplies -= 1
 }
@@ -579,10 +579,10 @@ Hash :: struct {
 
 crée_hash :: fonc(capacité: z32) -> *Hash
 {
-    h := loge Hash
+    h := loge(Hash)
     h.capacité = 0
 
-    reloge h.noeuds: [capacité]*NoeudFile
+    reloge_tableau(h.noeuds, capacité)
 
     pour noeud dans h.noeuds {
         noeud = nul
@@ -654,8 +654,8 @@ CacheMRU :: struct {
 
 construit_cache :: fonc(capacité: z32) -> *CacheMRU
 {
-    cache := loge CacheMRU
-    cache.arbre = loge ArbreB
+    cache := loge(CacheMRU)
+    cache.arbre = loge(ArbreB)
     cache.arbre.t = 3
     cache.arbre.racine = nul
     cache.file = crée_file(capacité)
@@ -667,8 +667,8 @@ détruit_cache :: fonc(cache: *CacheMRU) -> rien
 {
     détruit_file(cache.file)
     détruit_arbre(cache.arbre)
-    déloge cache.arbre
-    déloge cache
+    déloge(cache.arbre)
+    déloge(cache)
 }
 
 référence_page :: fonc(cache: *CacheMRU, x: z32) -> rien
@@ -680,7 +680,7 @@ référence_page :: fonc(cache: *CacheMRU, x: z32) -> rien
             dernière := cache.file.cul
             cache.arbre.supprime(dernière.numéro_page)
             dernière.précédent.suivant = nul
-            déloge dernière
+            déloge(dernière)
         }
     }
     sinon {
@@ -706,17 +706,17 @@ détruit_file :: fonc(file: *File) -> rien
 
     tantque ptr != nul {
         temp := ptr.suivant
-        déloge ptr
+        déloge(ptr)
         ptr = temp
     }
 
-    déloge file
+    déloge(file)
 }
 
 détruit_hash :: fonc(hash: *Hash) -> rien
 {
-    déloge hash.noeuds
-    déloge hash
+    déloge(hash.noeuds)
+    déloge(hash)
 }
 
 cherche_clé :: fonc(arbre: *ArbreB, clé: z32) -> rien

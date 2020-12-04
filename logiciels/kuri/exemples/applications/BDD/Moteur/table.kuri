@@ -104,15 +104,15 @@ Table :: struct {
 
 détruit_table :: fonc (table: *Table) -> rien
 {
-    déloge table.desc_colonnes
-    déloge table.paginatrice
-    déloge table
+    déloge(table.desc_colonnes)
+    déloge(table.paginatrice)
+    déloge(table)
 }
 
 imprime_table :: fonc (table: *Table) -> rien
 {
     curseur := curseur_début_de_table(table)
-    diffère { déloge curseur; }
+    diffère { déloge(curseur); }
 
     ligne_titre : LigneTabuleuse
 
@@ -159,7 +159,7 @@ ouvre_base_de_données :: fonc (fichier: chaine) -> *Table
     paginatrice := ouvre_paginatrice(fichier)
     nombre_de_lignes := paginatrice.taille_fichier / TAILLE_LIGNE
 
-    table := loge Table
+    table := loge(Table)
     table.paginatrice = paginatrice
     table.nombre_de_lignes = nombre_de_lignes comme z32
 
@@ -168,7 +168,7 @@ ouvre_base_de_données :: fonc (fichier: chaine) -> *Table
 
 ouvre_base_de_données_mémoire :: fonc (colonnes : []Colonne) -> *Table
 {
-    table := loge Table
+    table := loge(Table)
     table.desc_colonnes = colonnes
 
     pour colonne dans colonnes {
@@ -198,7 +198,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
             flush_paginatrice(paginatrice, i, TAILLE_PAGE)
         }
 
-        déloge paginatrice.pages[i]
+        déloge(paginatrice.pages[i])
     }
 
     // Une page partielle peut toujours être à écrire à la fin du fichier
@@ -213,7 +213,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
                 flush_paginatrice(paginatrice, index_page, TAILLE_PAGE)
             }
 
-            déloge paginatrice.pages[index_page]
+            déloge(paginatrice.pages[index_page])
         }
     }
 
@@ -228,7 +228,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
 
     pour page dans paginatrice.pages {
         si page.pointeur != nul {
-            déloge page
+            déloge(page)
         }
     }
 

@@ -60,10 +60,10 @@ Document :: struct {
 détruit_document :: fonc (document: *Document) -> rien
 {
     pour ligne dans document.lignes {
-        déloge ligne.fragments
+        déloge(ligne.fragments)
     }
 
-    déloge document.lignes
+    déloge(document.lignes)
 }
 
 crée_document_depuis_texte :: fonc (texte: chaine) -> Document
@@ -72,7 +72,7 @@ crée_document_depuis_texte :: fonc (texte: chaine) -> Document
     document.texte = texte
 
     fragments := fragmente_texte(texte)
-    diffère { déloge fragments; }
+    diffère { déloge(fragments); }
 
     ligne_courante : Ligne
 

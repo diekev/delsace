@@ -212,7 +212,7 @@ principale :: fonc () -> z32
     diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
 
     image := charge_image_png("/home/kevin/Images/pic1.png")
-    diffère { détruit_image(image); déloge image; }
+    diffère { détruit_image(image); déloge(image); }
 
     hachis := tente blurHashForPixels(4, 3, image) piège err {
         imprime("Erreur lors du calcul du hachis : %\n", err)

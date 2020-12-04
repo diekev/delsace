@@ -6,7 +6,7 @@ Curseur :: struct {
 
 curseur_début_de_table :: fonc (table: *Table) -> *Curseur
 {
-    curseur := loge Curseur
+    curseur := loge(Curseur)
     curseur.table = table
     curseur.index_ligne = 0
     curseur.est_fin_de_table = table.nombre_de_lignes == 0
@@ -16,7 +16,7 @@ curseur_début_de_table :: fonc (table: *Table) -> *Curseur
 
 curseur_fin_de_table :: fonc (table: *Table) -> *Curseur
 {
-    curseur := loge Curseur
+    curseur := loge(Curseur)
     curseur.table = table
     curseur.index_ligne = table.nombre_de_lignes
     curseur.est_fin_de_table = vrai

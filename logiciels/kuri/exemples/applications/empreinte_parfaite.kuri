@@ -89,7 +89,7 @@ principale :: fonc () -> z32
     imprime("nombre de commandes %\n", commandes.taille)
 
     nombre_de_slots := commandes.taille * 2
-    slots := loge [nombre_de_slots]bool
+    slots := loge_tableau(bool, nombre_de_slots)
     slots.taille = nombre_de_slots
     facteur : n32 = 0
 

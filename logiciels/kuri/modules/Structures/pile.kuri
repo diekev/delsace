@@ -7,7 +7,7 @@ Pile :: struct ($T: type_de_données) {
 
 détruit :: fonc (pile : &Pile(T = $T)) -> rien
 {
-    déloge pile.données
+    déloge(pile.données)
     pile.curseur = 0
 }
 
@@ -15,7 +15,7 @@ empile :: fonc (pile : &Pile(T = $T), valeur : T) -> rien
 {
     si pile.curseur == pile.données.taille {
         taille := pile.données.taille
-        reloge pile.données : [taille + 1]T
+        reloge_tableau(pile.données, taille + 1)
         pile.données.taille = taille + 1
     }
 

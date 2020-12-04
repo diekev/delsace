@@ -25,8 +25,8 @@ construit_syntaxeuse :: fonc (lexèmes : &[]Lexème) -> Syntaxeuse
 
 détruit_syntaxeuse :: fonc (syntaxeuse: &Syntaxeuse)
 {
-	déloge syntaxeuse.erreurs
-	déloge syntaxeuse.inclusions
+	déloge(syntaxeuse.erreurs)
+	déloge(syntaxeuse.inclusions)
 }
 
 lexème_courant :: fonc (syntaxeuse : &Syntaxeuse) -> TypeLexème

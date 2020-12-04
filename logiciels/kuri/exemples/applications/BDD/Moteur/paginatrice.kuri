@@ -27,7 +27,7 @@ ouvre_paginatrice :: fonc (fichier: chaine) -> *Paginatrice
 
     taille_fichier := lseek(fd, 0, SEEK_END)
 
-    paginatrice := loge Paginatrice
+    paginatrice := loge(Paginatrice)
     paginatrice.utilise_stockage_disque = vrai
     paginatrice.descripteur_fichier = fd
     paginatrice.taille_fichier = taille_fichier
@@ -41,7 +41,7 @@ ouvre_paginatrice :: fonc (fichier: chaine) -> *Paginatrice
 
 ouvre_paginatrice_mémoire :: fonc () -> *Paginatrice
 {
-    paginatrice := loge Paginatrice
+    paginatrice := loge(Paginatrice)
     paginatrice.descripteur_fichier = -1
     paginatrice.taille_fichier = 0
 
@@ -63,7 +63,7 @@ trouve_page :: fonc (paginatrice: *Paginatrice, index_page: z32) -> []octet
 
     si page.pointeur == nul {
         // Cache miss
-        page = loge [TAILLE_PAGE]octet
+        page = loge_tableau(octet, TAILLE_PAGE)
 
         nombre_de_pages := paginatrice.taille_fichier / TAILLE_PAGE
 

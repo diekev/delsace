@@ -51,7 +51,7 @@ console_affiche_prompt :: fonc (prompt: chaine, rappel: fonc(chaine, CléConsole
             si taille_écrite != 0 {
                 taille_écrite -= 1
                 // À FAIRE : optimise ceci
-                reloge tampon: chaine(tampon.taille - 1)
+                reloge_chaine(tampon, tampon.taille - 1)
             }
         }
         si c == CléConsole.Échappement {
@@ -61,7 +61,7 @@ console_affiche_prompt :: fonc (prompt: chaine, rappel: fonc(chaine, CléConsole
                 rappel(tampon, c)
             }
 
-            déloge tampon
+            déloge(tampon)
             arrête
         }
         sinon si c == CléConsole.RetourChariot {
@@ -77,7 +77,7 @@ console_affiche_prompt :: fonc (prompt: chaine, rappel: fonc(chaine, CléConsole
         }
         sinon si (!iscntrl(c comme z32 comme z8) && c <= CléConsole.Retour) {
             // À FAIRE : optimise ceci
-            reloge tampon: chaine(tampon.taille + 1)
+            reloge_chaine(tampon, tampon.taille + 1)
             tampon[taille_écrite] = c comme z32 comme z8
             taille_écrite += 1
         }
@@ -151,7 +151,7 @@ rappel_recherche :: fonc (requête: chaine, clé: CléConsole) -> rien
     requête := console_affiche_prompt("Recherche (Echap pour annuler) : ", rappel_recherche)
 
     si requête.pointeur != nul {
-        déloge requête
+        déloge(requête)
     }
     sinon {
         E.cx = sauvegarde_cx

@@ -10,12 +10,12 @@ vérifie_compilation :: fonc (id_nuanceur: n32) -> bool
     glGetShaderiv(id_nuanceur, OGL.INFO_LOG_LENGTH, *longueur_info_log)
 
     si longueur_info_log > 0 {
-		message_erreur := loge chaine(longueur_info_log + 1)
+		message_erreur := loge_chaine(longueur_info_log + 1)
 		glGetShaderInfoLog(id_nuanceur, longueur_info_log, nul, message_erreur.pointeur)
 
         imprime("!!!!! Erreur de compilation du nuanceur OpenGL :\n%\n", message_erreur)
 
-        déloge message_erreur
+        déloge(message_erreur)
 
         retourne faux
 	}
@@ -32,12 +32,12 @@ vérifie_liaison :: fonc (id_programme: n32) -> bool
 	glGetProgramiv(id_programme, OGL.INFO_LOG_LENGTH, *longueur_info_log)
 
     si longueur_info_log > 0 {
-		message_erreur := loge chaine(longueur_info_log + 1)
+		message_erreur := loge_chaine(longueur_info_log + 1)
 		glGetProgramInfoLog(id_programme, longueur_info_log, nul, message_erreur.pointeur)
 
         imprime("!!!!! Erreur de liaison du programme OpenGL :\n%\n", message_erreur)
 
-        déloge message_erreur
+        déloge(message_erreur)
 
         retourne faux
 	}

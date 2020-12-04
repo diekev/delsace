@@ -160,13 +160,13 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 
 		si lu == -1 {
 			// À FAIRE : erreur
-			déloge contenu
+			déloge(contenu)
 			arrête
 		}
 
 		taille_courante := contenu.taille
 
-		reloge contenu : [taille_courante + lu]octet
+		reloge_tableau(contenu, taille_courante + lu)
         contenu.taille += lu
 
 		src := *tampon[0]
@@ -247,7 +247,7 @@ FileDir :: struct {
 
 crée_file_dir :: fonc() -> *FileDir
 {
-	q := loge FileDir
+	q := loge(FileDir)
 	retourne q
 }
 
@@ -255,14 +255,14 @@ decrée_file :: fonc(q : *FileDir) -> rien
 {
 	q.taille = 0
 	q.capacité = 0
-	déloge q.tampon
-	déloge q
+	déloge(q.tampon)
+	déloge(q)
 }
 
 enfile :: fonc(q : *FileDir, d : *DIR) -> rien
 {
     si q.taille == q.capacité {
-		reloge q.tampon : [(q.taille + 1)]*DIR
+		reloge_tableau(q.tampon, (q.taille + 1))
 		q.capacité += 1
     }
 
@@ -307,7 +307,7 @@ enfile_dossier :: fonc(file : *FileDir, dir : *dirent, chemin : &CheminFichier) 
 
     // Trouve le chemin absolu.
     chn : chaine
-    diffère { déloge chn; }
+    diffère { déloge(chn); }
 
     si chemin.chn[chemin.chn.taille - 1] != '/' {
         chn = enchaine(chemin.chn, "/", chm.chn)
@@ -375,8 +375,8 @@ chemin_courant :: fonc() -> CheminFichier
     // tampon : [1024]z8
     // pointeur := getcwd(*tampon[0], 1024)
 
-    tampon := loge chaine(1024)
-    diffère { déloge tampon }
+    tampon := loge_chaine(1024)
+    diffère { déloge(tampon) }
 
     pointeur := getcwd(tampon.pointeur, tampon.taille)
 

@@ -50,10 +50,10 @@ charge_programme :: fonc() -> n32
 	glGetShaderiv(VertexShaderID, OGL.INFO_LOG_LENGTH, *InfoLogLength)
 
     si InfoLogLength > 0 {
-		ProgramErrorMessage := loge chaine(InfoLogLength+1)
+		ProgramErrorMessage := loge_chaine(InfoLogLength+1)
 		glGetShaderInfoLog(VertexShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
 		imprime("!!!!! Erreur compilation : VertexShaderID %\n", ProgramErrorMessage)
-        déloge ProgramErrorMessage
+        déloge(ProgramErrorMessage)
 	}
 
     taille_src_fragment := source_fragment.taille comme z32
@@ -67,10 +67,10 @@ charge_programme :: fonc() -> n32
 	glGetShaderiv(FragmentShaderID, OGL.INFO_LOG_LENGTH, *InfoLogLength)
 
     si InfoLogLength > 0 {
-		ProgramErrorMessage := loge chaine(InfoLogLength+1)
+		ProgramErrorMessage := loge_chaine(InfoLogLength+1)
 		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
 		imprime("!!!!! Erreur compilation : FragmentShaderID %\n", ProgramErrorMessage)
-        déloge ProgramErrorMessage
+        déloge(ProgramErrorMessage)
 	}
 
     ProgramID_ := glCreateProgram()
@@ -85,10 +85,10 @@ charge_programme :: fonc() -> n32
 	glGetProgramiv(ProgramID_, OGL.INFO_LOG_LENGTH, *InfoLogLength)
 
     si InfoLogLength > 0 {
-		ProgramErrorMessage := loge chaine(InfoLogLength+1)
+		ProgramErrorMessage := loge_chaine(InfoLogLength+1)
 		glGetProgramInfoLog(ProgramID_, InfoLogLength, nul, ProgramErrorMessage.pointeur)
 		imprime("!!!!! Erreur liaison : ProgramID %\n", ProgramErrorMessage)
-        déloge ProgramErrorMessage
+        déloge(ProgramErrorMessage)
 	}
 
 	glDetachShader(ProgramID_, VertexShaderID)
@@ -116,8 +116,8 @@ issitialise_tampon_dessin :: fonc() -> rien
     glDeleteVertexArrays(1, *VertexArrayID)
     glDeleteBuffers(1, *vertexbuffer)
     glDeleteBuffers(1, *colorbuffer)
-    déloge tabl_sommets
-    déloge tabl_couleur
+    déloge(tabl_sommets)
+    déloge(tabl_couleur)
     glDeleteProgram(ProgramID)
 }
 

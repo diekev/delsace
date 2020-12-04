@@ -6,7 +6,7 @@ chaine_ajoute :: fonc (chn: *chaine, c: z8)
     tmp := mémoire(chn)
 
 	taille := chn.taille
-	reloge tmp: chaine(taille + 1)
+	reloge_chaine(tmp, taille + 1)
 	tmp[taille] = c
 
 	mémoire(chn) = tmp
@@ -25,7 +25,7 @@ chaine_ajoute :: fonc (chn: *chaine, point_de_code: n32)
 	}
 
 	taille := chn.taille
-	reloge tmp: chaine(taille + nombre_octets)
+	reloge_chaine(tmp, taille + nombre_octets)
 
 	pour 0 ... nombre_octets - 1 {
 		tmp[taille + it] = séquence[it] comme z8
@@ -43,7 +43,7 @@ chaine_ajoute :: fonc (chn: *chaine, donnée: chaine)
     tmp := mémoire(chn)
 
 	taille := chn.taille
-	reloge tmp: chaine(taille + donnée.taille)
+	reloge_chaine(tmp, taille + donnée.taille)
 
     pour donnée {
         tmp[taille + index_it] = it
@@ -69,7 +69,7 @@ inverse :: fonc (chn: *chaine) -> rien
 
 copie_chaine :: fonc (chn: chaine) -> chaine
 {
-	nchn := loge chaine(chn.taille)
+	nchn := loge_chaine(chn.taille)
 	copie_mem_nonsur(src = chn.pointeur, dst = nchn.pointeur, taille = chn.taille)
 	retourne nchn
 }
@@ -108,7 +108,7 @@ copie_chaine_c :: fonc (chaine_c: *z8) -> chaine
 	}
 
 	taille := taille_chaine_c(chaine_c)
-	chn := loge chaine(taille)
+	chn := loge_chaine(taille)
 
 	copie_mem_nonsur(src = chaine_c, dst = chn.pointeur, taille = taille)
 
@@ -129,7 +129,7 @@ chaine_c_temp :: fonc(chn: chaine) -> *z8
 
 crée_chaine_c :: fonc (chn: chaine) -> chaine
 {
-	tampon := loge chaine(chn.taille + 1)
+	tampon := loge_chaine(chn.taille + 1)
     copie_mem_nonsur(src = chn.pointeur, dst = tampon.pointeur, taille = chn.taille)
     tampon[chn.taille] = '\0'
 	retourne tampon
@@ -499,7 +499,7 @@ distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
 		retourne m
 	}
 
-	coûts := loge [n + 1]z64
+	coûts := loge_tableau(z64, n + 1)
 
 	pour c, idx dans coûts {
 		c = idx
@@ -549,7 +549,7 @@ append :: fonc (vers: *chaine, chn: chaine) -> rien
     tmp := mémoire(vers)
 
     taille := tmp.taille
-    reloge tmp : chaine(tmp.taille + chn.taille)
+    reloge_chaine(tmp, tmp.taille + chn.taille)
 
     pour idx_vers, idx_chn dans taille ... tmp.taille - 1 {
         tmp[idx_vers] = chn[idx_chn]

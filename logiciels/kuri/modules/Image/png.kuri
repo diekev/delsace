@@ -75,7 +75,7 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
     _PNG_FILLER_AFTER := 1
     _PNG_INFO_tRNS : n32 = 0x0010
 
-    image := loge Image
+    image := loge(Image)
 
 	png := png_create_read_struct("1.6.34".pointeur, nul, nul, nul)
 
@@ -140,7 +140,7 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
 
 	png_read_update_info(png, info)
 
-	row_pointers := loge [hauteur]*n8
+	row_pointers := loge_tableau(*n8, hauteur)
 	row_pointers.taille = hauteur comme z64
 
 	pour y dans 0 ... hauteur comme z32 - 1 {
@@ -152,7 +152,7 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
 
     image.hauteur = hauteur comme z32
     image.largeur = largeur comme z32
-    image.tampon = loge [image.hauteur * image.largeur]Couleur
+    image.tampon = loge_tableau(Couleur, image.hauteur * image.largeur)
 	image.tampon.taille = image.hauteur * image.largeur
 
     index : z64 = 0
@@ -176,7 +176,7 @@ charge_image_png :: fonc (chemin: chaine) -> *Image
         free(row)
 	}
 
-    déloge row_pointers
+    déloge(row_pointers)
 
     retourne image
 }

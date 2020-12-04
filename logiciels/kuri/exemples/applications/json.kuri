@@ -133,7 +133,7 @@ principale :: fonc () -> z32
     info : InformationConnexion
 
     chn := chaine_json_depuis_struct(info)
-    diffère { déloge chn; }
+    diffère { déloge(chn); }
 
     imprime("JSON : %\n", chn)
 

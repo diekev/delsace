@@ -15,8 +15,8 @@ TableHachage :: struct {
 
 crée_table_hachage :: fonc() -> *TableHachage
 {
-    table := loge TableHachage
-    table.alvéoles = loge [10000]*NoeudTableHachage
+    table := loge(TableHachage)
+    table.alvéoles = loge_tableau(*NoeudTableHachage, 10000)
 
     pour i dans 0 ... 9999 {
         table.alvéoles[i] = nul
@@ -32,18 +32,18 @@ décrée_table_hachage :: fonc(table : *TableHachage) -> rien
 
         tantque n != nul {
             ns := n.suivant
-            déloge n
+            déloge(n)
             n = ns
         }
     }
 
-    déloge table.alvéoles
-    déloge table
+    déloge(table.alvéoles)
+    déloge(table)
 }
 
 crée_noeud :: fonc(clé : chaine, valeur : chaine) -> *NoeudTableHachage
 {
-    n := loge NoeudTableHachage
+    n := loge(NoeudTableHachage)
     n.clé = clé
     n.valeur = valeur
     n.suivant = nul

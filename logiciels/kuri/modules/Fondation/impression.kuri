@@ -59,7 +59,7 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> chaine
 		retourne copie_chaine("")
 	}
 
-    chn := loge chaine(taille)
+    chn := loge_chaine(taille)
 
     tampon_courant := *enchaineuse.tampon
 
@@ -106,7 +106,7 @@ détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
 
     tantque tampon_courant != nul {
         suivant := tampon_courant.suivant
-        déloge tampon_courant
+        déloge(tampon_courant)
         tampon_courant = suivant
     }
 }
@@ -131,7 +131,7 @@ ajoute_tampon :: fonc (enchaineuse: *Enchaineuse) -> *TamponEnchaineuse
 {
     tampon := enchaineuse.tampon_courant
 
-	nouveau_tampon := loge TamponEnchaineuse
+	nouveau_tampon := loge(TamponEnchaineuse)
     nouveau_tampon.occupé = 0
 	nouveau_tampon.suivant = nul
 
@@ -298,7 +298,7 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
 
 	inverse(*chn_part_entière)
 	ajoute_au_tampon(enchaineuse, chn_part_entière)
-	déloge chn_part_entière
+	déloge(chn_part_entière)
 
 	// Ajout le point décimal.
 	ajoute_au_tampon(enchaineuse, '.')
@@ -784,7 +784,7 @@ imprime_log :: fonc (ident: chaine, mode: ModeLogage, format: chaine, args: ...e
 {
 	message := imprime_chaine(format, ...args)
     contexte.logueur(message, ident, mode, contexte.données_logueur)
-	déloge message
+	déloge(message)
 }
 
 imprime_log :: fonc (ident: chaine, format: chaine, args: ...eini) -> rien

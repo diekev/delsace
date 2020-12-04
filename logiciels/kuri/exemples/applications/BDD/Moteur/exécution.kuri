@@ -75,8 +75,8 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> ErreurExé
     décalage := 0
 
     // Utilisation d'un tampon pour stocker les valeurs afin de ne pas polluer la base en cas d'erreur
-    tampon_insertion := loge [table.taille_octet_ligne]octet
-    diffère { déloge tampon_insertion; }
+    tampon_insertion := loge_tableau(octet, table.taille_octet_ligne)
+    diffère { déloge(tampon_insertion); }
 
     pour expr, idx_valeur dans inst.valeurs {
         colonne := table.desc_colonnes[idx_valeur]
@@ -117,7 +117,7 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> ErreurExé
     // ---------------------
 
     curseur := curseur_fin_de_table(table)
-    diffère { déloge curseur; }
+    diffère { déloge(curseur); }
 
     ligne := valeur_curseur(curseur)
 
@@ -144,12 +144,12 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
     colonnes_résultat : []Colonne
 
     index_colonnes : []z64
-    diffère { déloge index_colonnes; }
+    diffère { déloge(index_colonnes); }
 
     // trouve les colonnes dans la table
     pour expr dans inst.items {
         si expr.genre != GenreExpression.LITTÉRALE {
-            déloge colonnes_résultat
+            déloge(colonnes_résultat)
             retourne ErreurExécution.ExpressionNonLittérale
         }
 
@@ -173,7 +173,7 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
         }
 
         si !trouvée {
-            déloge colonnes_résultat
+            déloge(colonnes_résultat)
             retourne ErreurExécution.ColonneInexistante
         }
     }
@@ -183,7 +183,7 @@ sélectionne :: fonc (cm: *CoulisseMémoire, inst: *InstructionSélection) -> R�
     table_résultat := ouvre_base_de_données_mémoire(colonnes_résultat)
 
     curseur_résultat := curseur_début_de_table(table_résultat)
-    diffère { déloge curseur_résultat; }
+    diffère { déloge(curseur_résultat); }
 
     // recherche dans la table
     tantque !curseur_source.est_fin_de_table {
@@ -229,7 +229,7 @@ sélectionne_tables :: fonc (cm: *CoulisseMémoire) -> *Table
     table_résultat := ouvre_base_de_données_mémoire(colonnes_résultat)
 
     curseur_résultat := curseur_début_de_table(table_résultat)
-    diffère { déloge curseur_résultat; }
+    diffère { déloge(curseur_résultat); }
 
     pour nom dans cm.noms_tables {
         ligne := valeur_curseur(curseur_résultat)

@@ -27,7 +27,7 @@ RendeuseTexte :: struct {
 
 crée_rendeuse_texte :: fonc (largeur: z32, hauteur: z32) -> *RendeuseTexte
 {
-    rendeuse := loge RendeuseTexte
+    rendeuse := loge(RendeuseTexte)
     rendeuse.largeur = largeur
     rendeuse.hauteur = hauteur
     rendeuse.décalage = 1.0
@@ -50,7 +50,7 @@ détruit_rendeuse_texte :: fonc (rendeuse: *RendeuseTexte) -> rien
 
     glDeleteProgram(rendeuse.programme)
 
-    déloge rendeuse
+    déloge(rendeuse)
 }
 
 crée_tampon :: fonc (rendeuse: *RendeuseTexte) -> rien
@@ -149,10 +149,10 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 	indices : []z32
 
     diffère {
-        déloge sommets
-        déloge uvs
-        déloge couleurs
-        déloge indices
+        déloge(sommets)
+        déloge(uvs)
+        déloge(couleurs)
+        déloge(indices)
     }
 
     couleur := Couleur(

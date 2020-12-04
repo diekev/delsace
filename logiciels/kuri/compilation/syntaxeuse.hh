@@ -37,7 +37,6 @@ struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
-struct NoeudExpressionLogement;
 struct NoeudExpressionReference;
 struct NoeudExpressionVirgule;
 struct NoeudStruct;
@@ -68,9 +67,6 @@ private:
 	dls::chrono::metre_seconde m_chrono_analyse{};
 
 	Lexeme *m_lexeme_courant{};
-
-	// pour séparer les expression de la taille des tableaux pour les expressions loge et reloge
-	NoeudExpressionLogement *m_noeud_logement = nullptr;
 
 	/* Pour les messages d'erreurs. */
 	struct DonneesEtatSyntaxage {
@@ -109,7 +105,6 @@ private:
 	bool apparie_expression_secondaire() const;
 	bool apparie_instruction() const;
 
-	/* NOTE: racine_expression n'est pour le moment utilisé que pour éviter de consommer les expressions des types pour les expressions de relogement. */
 	/* NOTE: lexeme_final n'est utilisé que pour éviter de traiter les virgules comme des opérateurs dans les expressions des appels et déclarations de paramètres de fonctions. */
 	NoeudExpression *analyse_expression(DonneesPrecedence const &donnees_precedence, GenreLexeme racine_expression, GenreLexeme lexeme_final);
 	NoeudExpression *analyse_expression_unaire(GenreLexeme lexeme_final);

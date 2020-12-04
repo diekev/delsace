@@ -164,9 +164,6 @@ bool est_mot_cle(GenreLexeme id)
 		case GenreLexeme::SINON:
 		case GenreLexeme::SI:
 		case GenreLexeme::SAUFSI:
-		case GenreLexeme::LOGE:
-		case GenreLexeme::DELOGE:
-		case GenreLexeme::RELOGE:
 		case GenreLexeme::DISCR:
 		case GenreLexeme::Z8:
 		case GenreLexeme::Z16:

@@ -77,7 +77,7 @@ ErreurOuRèglesRoutage :: union {
 parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
 {
     éléments := divise_url(route)
-    diffère { déloge éléments }
+    diffère { déloge(éléments) }
 
     résultat : []RègleRoutage
 
@@ -88,12 +88,12 @@ parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
             pos_double_points := trouve_caractère_depuis_le_début(it, ':')
 
             si pos_double_points == -1 {
-                déloge résultat
+                déloge(résultat)
                 retourne ErreurParsage.RègleDénuéeDeNom
             }
 
             si it[it.taille - 1] != '>' {
-                déloge résultat
+                déloge(résultat)
                 retourne ErreurParsage.ChevronFermantManquant
             }
 
@@ -107,13 +107,13 @@ parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
                 règle.action = ActionRègleRoutage.ApparieChaine
             }
             sinon {
-                déloge résultat
+                déloge(résultat)
                 retourne ErreurParsage.TypeActionInconnue
             }
 
             pour r dans résultat {
                 si r.nom_données == nom_données {
-                    déloge résultat
+                    déloge(résultat)
                     retourne ErreurParsage.NomRègleRedéfini
                 }
             }
@@ -163,7 +163,7 @@ DonnéesRouteOuErreur :: union {
 apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> DonnéesRouteOuErreur
 {
     éléments := divise_url(route)
-    diffère { déloge éléments }
+    diffère { déloge(éléments) }
 
     si règles.taille != éléments.taille {
         retourne ErreurAppariement.RègleEtRouteOntTaillesDifférentes
@@ -176,7 +176,7 @@ apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> Do
 
         discr règle.action {
             Invalide {
-                déloge résultat
+                déloge(résultat)
                 retourne ErreurAppariement.RègleInvalide
             }
             ApparieChaine {
@@ -184,7 +184,7 @@ apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> Do
             }
             ApparieChaineLittérale {
                 si it != règle.chn {
-                    déloge résultat
+                    déloge(résultat)
                     retourne ErreurAppariement.ÉlémentDoitÊtreUneChaine
                 }
 
@@ -196,7 +196,7 @@ apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> Do
             }
             ApparieNombreEntier {
                 si !est_seulement_nombre(it) {
-                    déloge résultat
+                    déloge(résultat)
                     retourne ErreurAppariement.ÉlémentDoitÊtreUnNombre
                 }
 
@@ -257,7 +257,7 @@ ajoute_cookie :: fonc (résultat: &RésultatRequête, cookie: Cookie)
 
 détruit_résultat :: fonc (résultat: &RésultatRequête)
 {
-    déloge résultat.entêtes
+    déloge(résultat.entêtes)
 }
 
 // La routeuse.
@@ -281,7 +281,7 @@ Routeuse :: struct ($T: type_de_données) {
 
 détruit_routeuse :: fonc (routeuse: *Routeuse(T = $T)) -> rien
 {
-    déloge routeuse.routes
+    déloge(routeuse.routes)
 }
 
 ajoute_route :: fonc (routeuse: *Routeuse(T = $T), chemin: chaine, méthode_get: fonc(*Requête, *T)(RésultatRequête), méthode_post: fonc(*Requête,*T)(RésultatRequête)) -> rien

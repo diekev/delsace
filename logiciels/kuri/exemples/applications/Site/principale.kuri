@@ -97,7 +97,7 @@ procède_requête :: fonc (
         retourne
     }
 
-    diffère { déloge requête; }
+    diffère { déloge(requête); }
 
     // ------------------------------
 
@@ -131,7 +131,7 @@ procède_requête :: fonc (
     données_requête.contenu = contenu_requête
 
     réponse : RéponseRequête
-    diffère { déloge réponse.contenu; }
+    diffère { déloge(réponse.contenu); }
 
     // À FAIRE : gère les chemin vers les fichiers
     chn_chemin := construit_chaine(uri.chemin.pointeur + 1, uri.chemin.taille - 1)
@@ -222,7 +222,7 @@ procède_requête :: fonc (
     ajoute_au_tampon(*enchaineuse, contenu)
 
     chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère { déloge chaine_reponse; }
+    diffère { déloge(chaine_reponse); }
 
     si écris(*cliente.fichier, chaine_reponse) == -1 {
         perror("send".pointeur)
@@ -308,7 +308,7 @@ principale :: fonc () -> z32
 
     chemin := construit_chemin(args[1])
     script := contenu_fichier_texte(chemin)
-    diffère { déloge script; }
+    diffère { déloge(script); }
 
     si script.taille == 0 {
         imprime("Le fichier de configuration est vide !\n")

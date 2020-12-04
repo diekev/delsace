@@ -216,20 +216,6 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)
 
 			break;
 		}
-		case GenreNoeud::EXPRESSION_LOGE:
-		case GenreNoeud::EXPRESSION_DELOGE:
-		case GenreNoeud::EXPRESSION_RELOGE:
-		{
-			auto expr = static_cast<NoeudExpressionLogement *>(racine);
-
-			imprime_tab(os, tab);
-			os << "expr logement : " << expr->lexeme->chaine << '\n';
-
-			imprime_arbre(expr->expr, os, tab + 1);
-			imprime_arbre(expr->expr_taille, os, tab + 1);
-			imprime_arbre(expr->bloc, os, tab + 1);
-			break;
-		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
@@ -652,19 +638,6 @@ NoeudExpression *copie_noeud(
 
 			break;
 		}
-		case GenreNoeud::EXPRESSION_LOGE:
-		case GenreNoeud::EXPRESSION_DELOGE:
-		case GenreNoeud::EXPRESSION_RELOGE:
-		{
-			auto expr = static_cast<NoeudExpressionLogement const *>(racine);
-			auto nexpr = static_cast<NoeudExpressionLogement *>(nracine);
-
-			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
-			nexpr->expr_taille = copie_noeud(assem, expr->expr_taille, bloc_parent);
-			nexpr->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, expr->bloc, bloc_parent));
-			nexpr->expression_type = copie_noeud(assem, expr->expression_type, bloc_parent);
-			break;
-		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_INIT_DE:
@@ -990,21 +963,6 @@ void aplatis_arbre(
 
 			break;
 		}
-		case GenreNoeud::EXPRESSION_LOGE:
-		case GenreNoeud::EXPRESSION_DELOGE:
-		case GenreNoeud::EXPRESSION_RELOGE:
-		{
-			auto expr = static_cast<NoeudExpressionLogement *>(racine);
-			expr->drapeaux |= drapeau;
-
-			aplatis_arbre(expr->expr, arbre_aplatis, drapeau);
-			aplatis_arbre(expr->expr_taille, arbre_aplatis, drapeau);
-			aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
-			arbre_aplatis.pousse(expr);
-			aplatis_arbre(expr->bloc, arbre_aplatis, drapeau);
-
-			break;
-		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		case GenreNoeud::EXPRESSION_INFO_DE:
 		case GenreNoeud::EXPRESSION_MEMOIRE:
@@ -1288,19 +1246,6 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
 
 			etendue_enfant = calcule_etendue_noeud(expr->membre, fichier);
-
-			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
-			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
-
-			break;
-		}
-		case GenreNoeud::EXPRESSION_LOGE:
-		case GenreNoeud::EXPRESSION_DELOGE:
-		case GenreNoeud::EXPRESSION_RELOGE:
-		{
-			auto expr = static_cast<NoeudExpressionLogement const *>(racine);
-
-			auto etendue_enfant = calcule_etendue_noeud(expr->expr, fichier);
 
 			etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
 			etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);

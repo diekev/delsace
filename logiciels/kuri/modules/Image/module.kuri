@@ -10,7 +10,7 @@ Image :: struct {
 crée_image :: fonc (largeur: z32, hauteur: z32) -> Image
 {
     image: Image
-    image.tampon = loge [largeur * hauteur]Couleur
+    image.tampon = loge_tableau(Couleur, largeur * hauteur)
     image.largeur = largeur
     image.hauteur = hauteur
 
@@ -19,7 +19,7 @@ crée_image :: fonc (largeur: z32, hauteur: z32) -> Image
 
 détruit_image :: fonc (image: *Image) -> rien
 {
-    déloge image.tampon
+    déloge(image.tampon)
 }
 
 remplis_image :: fonc (image : *Image, couleur: Couleur) -> rien

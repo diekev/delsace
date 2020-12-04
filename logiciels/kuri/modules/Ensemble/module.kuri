@@ -29,7 +29,7 @@ ensemble_ajoute :: fonc (ensemble: *[]$T, donnée: T) -> rien
 
     tmp := mémoire(ensemble)
 
-    reloge tmp : [taille + 1]T
+    reloge_tableau(tmp, taille + 1)
     tmp.taille = taille + 1
 
     i := taille

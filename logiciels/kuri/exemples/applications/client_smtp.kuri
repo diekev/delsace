@@ -150,7 +150,7 @@ procède_requête :: fonc (serveuse: *Fichier, cliente: *Fichier) -> rien
 
 		imprime("instruction : %\n", instruction)
 
-		diffère { déloge instruction }
+		diffère { déloge(instruction) }
 
 		si instruction == "" && état == ÉtatServeuse.PingDébut {
 			état = ÉtatServeuse.AttendHelo
@@ -351,7 +351,7 @@ principale :: fonc () -> z32
 	}
 
 	courriel := chaine_depuis_enchaineuse(@enchaineuse)
-	diffère { déloge courriel; }
+	diffère { déloge(courriel); }
 
 	imprime("\nEnvoie du mail :\n%\n", courriel)
 

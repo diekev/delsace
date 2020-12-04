@@ -44,7 +44,6 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("discr"), GenreLexeme::DISCR },
 	dls::paire{ dls::vue_chaine_compacte("dyn"), GenreLexeme::DYN },
 	dls::paire{ dls::vue_chaine_compacte("définis"), GenreLexeme::DEFINIS },
-	dls::paire{ dls::vue_chaine_compacte("déloge"), GenreLexeme::DELOGE },
 	dls::paire{ dls::vue_chaine_compacte("eini"), GenreLexeme::EINI },
 	dls::paire{ dls::vue_chaine_compacte("eini_erreur"), GenreLexeme::EINI_ERREUR },
 	dls::paire{ dls::vue_chaine_compacte("empl"), GenreLexeme::EMPL },
@@ -56,7 +55,6 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("importe"), GenreLexeme::IMPORTE },
 	dls::paire{ dls::vue_chaine_compacte("info_de"), GenreLexeme::INFO_DE },
 	dls::paire{ dls::vue_chaine_compacte("init_de"), GenreLexeme::INIT_DE },
-	dls::paire{ dls::vue_chaine_compacte("loge"), GenreLexeme::LOGE },
 	dls::paire{ dls::vue_chaine_compacte("mémoire"), GenreLexeme::MEMOIRE },
 	dls::paire{ dls::vue_chaine_compacte("n16"), GenreLexeme::N16 },
 	dls::paire{ dls::vue_chaine_compacte("n32"), GenreLexeme::N32 },
@@ -73,7 +71,6 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("r16"), GenreLexeme::R16 },
 	dls::paire{ dls::vue_chaine_compacte("r32"), GenreLexeme::R32 },
 	dls::paire{ dls::vue_chaine_compacte("r64"), GenreLexeme::R64 },
-	dls::paire{ dls::vue_chaine_compacte("reloge"), GenreLexeme::RELOGE },
 	dls::paire{ dls::vue_chaine_compacte("retiens"), GenreLexeme::RETIENS },
 	dls::paire{ dls::vue_chaine_compacte("retourne"), GenreLexeme::RETOURNE },
 	dls::paire{ dls::vue_chaine_compacte("rien"), GenreLexeme::RIEN },
@@ -267,8 +264,6 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 			return "GenreLexeme::DYN";
 		case GenreLexeme::DEFINIS:
 			return "GenreLexeme::DEFINIS";
-		case GenreLexeme::DELOGE:
-			return "GenreLexeme::DELOGE";
 		case GenreLexeme::EINI:
 			return "GenreLexeme::EINI";
 		case GenreLexeme::EINI_ERREUR:
@@ -291,8 +286,6 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 			return "GenreLexeme::INFO_DE";
 		case GenreLexeme::INIT_DE:
 			return "GenreLexeme::INIT_DE";
-		case GenreLexeme::LOGE:
-			return "GenreLexeme::LOGE";
 		case GenreLexeme::MEMOIRE:
 			return "GenreLexeme::MEMOIRE";
 		case GenreLexeme::N16:
@@ -325,8 +318,6 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 			return "GenreLexeme::R32";
 		case GenreLexeme::R64:
 			return "GenreLexeme::R64";
-		case GenreLexeme::RELOGE:
-			return "GenreLexeme::RELOGE";
 		case GenreLexeme::RETIENS:
 			return "GenreLexeme::RETIENS";
 		case GenreLexeme::RETOURNE:
@@ -544,8 +535,6 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 			return "dyn";
 		case GenreLexeme::DEFINIS:
 			return "définis";
-		case GenreLexeme::DELOGE:
-			return "déloge";
 		case GenreLexeme::EINI:
 			return "eini";
 		case GenreLexeme::EINI_ERREUR:
@@ -568,8 +557,6 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 			return "info_de";
 		case GenreLexeme::INIT_DE:
 			return "init_de";
-		case GenreLexeme::LOGE:
-			return "loge";
 		case GenreLexeme::MEMOIRE:
 			return "mémoire";
 		case GenreLexeme::N16:
@@ -602,8 +589,6 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 			return "r32";
 		case GenreLexeme::R64:
 			return "r64";
-		case GenreLexeme::RELOGE:
-			return "reloge";
 		case GenreLexeme::RETIENS:
 			return "retiens";
 		case GenreLexeme::RETOURNE:

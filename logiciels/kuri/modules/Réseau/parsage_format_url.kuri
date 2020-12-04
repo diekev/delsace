@@ -114,7 +114,7 @@ parse_texte_format_url :: fonc (parseuse: *ParseuseFormatURL, texte: chaine, $T:
     info := info_de(T)
 
     pointeurs : []InfoDonnées
-    diffère { déloge pointeurs }
+    diffère { déloge(pointeurs) }
 
     pour info.membres {
         id : InfoDonnées = ---

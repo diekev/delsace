@@ -23,8 +23,8 @@ test_codec :: fonc () -> rien
         imprime("La chaine décodée n'est pas bonne !\n")
     }
 
-    déloge rés
-    déloge déc
+    déloge(rés)
+    déloge(déc)
 }
 
 principale :: fonc () -> z32
@@ -41,12 +41,12 @@ principale :: fonc () -> z32
     si args[1] == "-encode" {
         résultat := encode_base64(args[2])
         imprime("%\n", résultat)
-        déloge résultat
+        déloge(résultat)
     }
     sinon si args[1] == "-décode" {
         résultat := décode_base64(args[2])
         imprime("%\n", résultat)
-        déloge résultat
+        déloge(résultat)
     }
     sinon {
         imprime("Mauvais argument d'encodage/décodage, obtenu : %\n", args[1])

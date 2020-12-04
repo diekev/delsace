@@ -70,7 +70,7 @@ charge_donnees_requete :: fonc(prise : z32, mon_addresse : &sockaddr_in) -> chai
 
         si taille_reçue > 0 {
             ancienne_taille := requete.taille
-            reloge requete : chaine(requete.taille + taille_reçue)
+            reloge_chaine(requete, requete.taille + taille_reçue)
             copie_mem_nonsur(src=*tampon[0], dst=*requete[ancienne_taille], taille=taille_reçue)
 
             si taille_reçue < MAXDATASIZE {
@@ -135,7 +135,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
                 perror("send".pointeur)
             }
 
-            déloge chaine_reponse
+            déloge(chaine_reponse)
 
             _ := close(prise)
             exit(0)

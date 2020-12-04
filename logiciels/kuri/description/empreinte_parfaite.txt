@@ -25,7 +25,6 @@ struct EntreeTable {  const char *nom; GenreLexeme genre;  };
 "discr", GenreLexeme::DISCR
 "dyn", GenreLexeme::DYN
 "définis", GenreLexeme::DEFINIS
-"déloge", GenreLexeme::DELOGE
 "eini", GenreLexeme::EINI
 "eini_erreur", GenreLexeme::EINI_ERREUR
 "empl", GenreLexeme::EMPL
@@ -37,7 +36,6 @@ struct EntreeTable {  const char *nom; GenreLexeme genre;  };
 "importe", GenreLexeme::IMPORTE
 "info_de", GenreLexeme::INFO_DE
 "init_de", GenreLexeme::INIT_DE
-"loge", GenreLexeme::LOGE
 "mémoire", GenreLexeme::MEMOIRE
 "n16", GenreLexeme::N16
 "n32", GenreLexeme::N32
@@ -54,7 +52,6 @@ struct EntreeTable {  const char *nom; GenreLexeme genre;  };
 "r16", GenreLexeme::R16
 "r32", GenreLexeme::R32
 "r64", GenreLexeme::R64
-"reloge", GenreLexeme::RELOGE
 "retiens", GenreLexeme::RETIENS
 "retourne", GenreLexeme::RETOURNE
 "rien", GenreLexeme::RIEN

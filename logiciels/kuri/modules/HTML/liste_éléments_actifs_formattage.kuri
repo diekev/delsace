@@ -19,7 +19,7 @@ détruit_liste :: fonc (liste: *ListeÉlémentsActifsFormattage)
         détruit_lexème(*it.lexème)
     }
 
-    déloge liste.entrées
+    déloge(liste.entrées)
 }
 
 est_vide :: fonc (liste: *ListeÉlémentsActifsFormattage) -> bool

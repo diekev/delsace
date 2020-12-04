@@ -12,8 +12,8 @@ IndexTrigraphe :: struct {
 
 détruit_index :: fonc (index: *IndexTrigraphe) -> rien
 {
-    déloge index.trigraphes
-    déloge index.index
+    déloge(index.trigraphes)
+    déloge(index.index)
 }
 
 ajoute :: fonc (index: *IndexTrigraphe, donnée: chaine) -> rien
@@ -59,7 +59,7 @@ principale :: fonc () -> z32
     diffère { détruit_index(*index); }
 
     ensemble : []chaine
-    diffère { déloge ensemble; }
+    diffère { déloge(ensemble); }
 
     pour document dans documents {
         pour i dans 2 ... document.taille - 1 {
@@ -78,14 +78,14 @@ principale :: fonc () -> z32
 
 //    imprime_index(@index)
 
-    index_avant := loge [ensemble.taille][]z64
+    index_avant := loge_tableau([]z64, ensemble.taille)
     index_avant.taille = index_avant.capacité
     diffère {
         pour tabl dans index_avant {
-            déloge tabl
+            déloge(tabl)
         }
 
-        déloge index_avant;
+        déloge(index_avant);
     }
 
     // --------------------------
@@ -116,19 +116,19 @@ principale :: fonc () -> z32
 
     recherche := "Google code"
     documents_résultat : []z64
-    diffère { déloge documents_résultat; }
+    diffère { déloge(documents_résultat); }
 
-    vecteur_résultat := loge [documents.taille]r32
+    vecteur_résultat := loge_tableau(r32, documents.taille)
     vecteur_résultat.taille = vecteur_résultat.capacité
-    diffère { déloge vecteur_résultat; }
+    diffère { déloge(vecteur_résultat); }
 
     pour v dans vecteur_résultat {
         v = 1.0
     }
 
-    vecteur_trigraphe := loge [documents.taille]r32
+    vecteur_trigraphe := loge_tableau(r32, documents.taille)
     vecteur_trigraphe.taille = vecteur_trigraphe.capacité
-    diffère { déloge vecteur_trigraphe; }
+    diffère { déloge(vecteur_trigraphe); }
 
     pour i dans 2 ... recherche.taille - 1 {
         tri := construit_chaine(recherche.pointeur + (i - 2), 3)

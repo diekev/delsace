@@ -41,8 +41,8 @@ crée_labyrinthe :: fonc (hauteur : z32, largeur : z32) -> Labyrinthe
 
 détruit_labyrinthe :: fonc (labyrinthe : *Labyrinthe) -> rien
 {
-    déloge labyrinthe.ligne
-    déloge labyrinthe.taille_groupe
+    déloge(labyrinthe.ligne)
+    déloge(labyrinthe.taille_groupe)
 }
 
 imprime_ligne :: fonc (labyrinthe: *Labyrinthe) -> rien

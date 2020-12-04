@@ -72,30 +72,30 @@ détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
 {
     discr noeud.genre {
         Invalide {
-            déloge noeud
+            déloge(noeud)
         }
         Document {
             document := noeud comme *Document
-            déloge document
+            déloge(document)
         }
         Commentaire {
             commentaire := noeud comme *NoeudCommentaire
-            déloge commentaire.données
-            déloge commentaire
+            déloge(commentaire.données)
+            déloge(commentaire)
         }
         Élément {
             élément := noeud comme *Élément
-            déloge élément.texte
-            déloge élément
+            déloge(élément.texte)
+            déloge(élément)
         }
         Texte {
             texte := noeud comme *NoeudTexte
-            déloge texte.données
-            déloge texte
+            déloge(texte.données)
+            déloge(texte)
         }
         Doctype {
             type_document := noeud comme *DocumentType
-            déloge type_document
+            déloge(type_document)
         }
     }
 }
@@ -107,11 +107,11 @@ détruit_noeud :: fonc (noeud: *Noeud)
     }
 
     pour noeud.attributs {
-        déloge it.nom
-        déloge it.valeur
+        déloge(it.nom)
+        déloge(it.valeur)
     }
 
-    déloge noeud.attributs
-    déloge noeud.enfants
+    déloge(noeud.attributs)
+    déloge(noeud.enfants)
     détruit_noeud_selon_genre(noeud)
 }

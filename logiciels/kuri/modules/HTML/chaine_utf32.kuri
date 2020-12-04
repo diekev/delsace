@@ -6,7 +6,7 @@ ChaineUTF32 :: struct {
 
 détruit_chaine :: fonc (chn: *ChaineUTF32)
 {
-    déloge chn.points_de_code
+    déloge(chn.points_de_code)
     chn.points_de_code.taille = 0
     chn.points_de_code.capacité = 0
 }

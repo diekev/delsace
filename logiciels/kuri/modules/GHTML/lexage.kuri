@@ -82,7 +82,7 @@ construit_lexeuse :: fonc(chn : chaine) -> Lexeuse
 
 détruit_lexeuse :: fonc(lexeuse : &Lexeuse) -> rien
 {
-	déloge lexeuse.lexèmes
+	déloge(lexeuse.lexèmes)
 }
 
 performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien

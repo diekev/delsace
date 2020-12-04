@@ -7,7 +7,7 @@ NoeudMatrice :: struct ($T: type_de_données) {
 
 crée_noeud :: fonc(colonne : z32, valeur : $T) -> *NoeudMatrice(T)
 {
-	noeud := loge NoeudMatrice
+	noeud := loge(NoeudMatrice)
 	noeud.colonne = colonne
 	noeud.valeur = valeur
 	retourne noeud
@@ -31,7 +31,7 @@ MatriceÉparse :: struct ($T: type_de_données) {
 construit_matrice_éparse :: fonc(nombre_lignes : z32) -> MatriceÉparse(T)
 {
 	matrice : MatriceÉparse
-	matrice.lignes = loge [lignes]*NoeudMatrice(T)
+	matrice.lignes = loge_tableau(*NoeudMatrice(T), lignes)
 	retourne matrice
 }
 
