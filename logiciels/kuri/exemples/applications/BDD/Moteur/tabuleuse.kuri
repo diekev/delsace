@@ -24,7 +24,7 @@ crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
 
     ajoute_ligne(*tabuleuse, ...titres)
 
-    tableau_redimensionne(*tabuleuse.alignements, titres.taille)
+    tableau_redimensionne(tabuleuse.alignements, titres.taille)
 
     pour a dans tabuleuse.alignements {
         a = Alignement.GAUCHE
@@ -39,7 +39,7 @@ crée_tabuleuse :: fonc  (ligne_titre: LigneTabuleuse) -> Tabuleuse
 
     ajoute_ligne(*tabuleuse, ligne_titre)
 
-    tableau_redimensionne(*tabuleuse.alignements, ligne_titre.colonnes.taille)
+    tableau_redimensionne(tabuleuse.alignements, ligne_titre.colonnes.taille)
 
     pour a dans tabuleuse.alignements {
         a = Alignement.GAUCHE
@@ -135,7 +135,7 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
 	}
 
     tailles_max_colonnes : []z64
-    tableau_redimensionne(*tailles_max_colonnes, nombre_colonnes)
+    tableau_redimensionne(tailles_max_colonnes, nombre_colonnes)
     diffère { déloge(tailles_max_colonnes); }
 
     pour t dans tailles_max_colonnes {

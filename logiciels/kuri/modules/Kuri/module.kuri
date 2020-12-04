@@ -588,19 +588,15 @@ tableau_réserve :: fonc(tabl: *[]$T, taille: z64) -> rien
 	mémoire(tabl) = tmp
 }
 
-tableau_redimensionne :: fonc (tabl: *[]$T, taille: z64) -> rien
+tableau_redimensionne :: fonc (tabl: &[]$T, taille: z64) -> rien
 {
     si taille == tabl.capacité {
         tabl.taille = tabl.capacité
         retourne
     }
 
-    tmp := mémoire(tabl)
-
-    reloge_tableau(tmp, taille)
-    tmp.taille = taille
-
-    mémoire(tabl) = tmp
+    reloge_tableau(tabl, taille)
+    tabl.taille = taille
 }
 
 tableau_copie :: fonc(tabl: []$T) -> []T

@@ -166,8 +166,7 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 
 		taille_courante := contenu.taille
 
-		reloge_tableau(contenu, taille_courante + lu)
-        contenu.taille += lu
+		tableau_redimensionne(contenu, taille_courante + lu)
 
 		src := *tampon[0]
 		dst := *contenu[taille_courante]
@@ -262,7 +261,7 @@ decrée_file :: fonc(q : *FileDir) -> rien
 enfile :: fonc(q : *FileDir, d : *DIR) -> rien
 {
     si q.taille == q.capacité {
-		reloge_tableau(q.tampon, (q.taille + 1))
+		tableau_redimensionne(q.tampon, (q.taille + 1))
 		q.capacité += 1
     }
 

@@ -725,8 +725,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
                 arrête
             }
 
-            reloge_tableau(tampon_tableau, tampon_tableau.taille + type_pointé.taille_en_octet comme z64)
-            tampon_tableau.taille = tampon_tableau.capacité
+            tableau_redimensionne(tampon_tableau, tampon_tableau.taille + type_pointé.taille_en_octet comme z64)
 
             tampon := tampon_tableau.pointeur + type_pointé.taille_en_octet comme z32 * index
 

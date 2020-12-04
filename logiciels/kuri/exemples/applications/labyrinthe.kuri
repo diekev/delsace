@@ -33,8 +33,8 @@ nombre_aléatoire :: fonc () -> z32
 crée_labyrinthe :: fonc (hauteur : z32, largeur : z32) -> Labyrinthe
 {
     labyrinthe := Labyrinthe(hauteur = hauteur, largeur = largeur)
-    tableau_redimensionne(*labyrinthe.ligne, largeur)
-    tableau_redimensionne(*labyrinthe.taille_groupe, largeur)
+    tableau_redimensionne(labyrinthe.ligne, largeur)
+    tableau_redimensionne(labyrinthe.taille_groupe, largeur)
 
     retourne labyrinthe
 }
