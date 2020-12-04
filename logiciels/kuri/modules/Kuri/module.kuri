@@ -131,8 +131,8 @@ déloge_mémoire :: fonc (taille: z64, pointeur: *rien, info: *InfoType, pos : P
 {
     _ := contexte.allocatrice(
         ModeAllocatrice.DÉSALLOUE,
-        taille,
         0,
+        taille,
         pointeur,
         contexte.données_allocatrice,
         info,
