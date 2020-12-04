@@ -1,6 +1,7 @@
 importe Couleur
 importe Fondation
 importe OpenGL
+importe Structures
 
 charge "dessin_opengl"
 charge "evenements"
@@ -10,59 +11,7 @@ charge "glfw"
 
 //###############################################################################
 
-// Puisqu'on ne peut pas passer de contexte aux méthodes de « file » via les
-// fonctions de rappel, cette structure est spécialisée pour les file d'évènements.
-// Cependant elle est limitée à un certain nombre d'événement
-NOMBRE_MAXIMUM_ÉVÈNEMET := 32
-
-FileÉvènement :: struct {
-	tampon : []Évènement
-	taille : z64
-}
-
-enfile :: fonc(q : *FileÉvènement, évènement : Évènement) -> rien
-{
-    si q.taille >= NOMBRE_MAXIMUM_ÉVÈNEMET {
-        // À FAIRE: erreur?
-        retourne
-    }
-
-    index := q.taille
-    q.tampon[index] = évènement
-    q.taille += 1
-}
-
-est_vide :: fonc(q : *FileÉvènement) -> bool
-{
-    retourne q.taille == 0
-}
-
-défile :: fonc(q : *FileÉvènement) -> Évènement
-{
-    évènement : Évènement
-
-    si est_vide(q) {
-        retourne évènement
-    }
-
-    évènement = q.tampon[0]
-
-    // réajuste la file en décalant les données
-
-    si q.taille > 1 {
-	    ptr_dst := *q.tampon[0]
-		ptr_src := *q.tampon[1]
-        copie_mem_nonsur(ptr_src, ptr_dst, taille_de(Évènement) comme z64 * (q.taille - 1))
-    }
-
-    q.taille -= 1
-
-    retourne évènement
-}
-
-//###############################################################################
-
-VG_file_évènements : *FileÉvènement = nul
+VG_file_évènements : File(T = Évènement)
 
 rappel_erreur :: fonc(erreur_ : z32, desc : *z8) -> rien #nulctx
 {
@@ -339,13 +288,6 @@ lance_application :: fonc(app : &Application) -> z32
         retourne 1
     }
 
-    // initialise la file d'évènements
-    file_évènement : FileÉvènement
-    nonsûr {
-        VG_file_évènements = *file_évènement
-        VG_file_évènements.tampon = loge_tableau(Évènement, NOMBRE_MAXIMUM_ÉVÈNEMET)
-    }
-
     largeur : z32 = TAILLE_TUILE * TUILES_X
     hauteur : z32 = TAILLE_TUILE * TUILES_Y
 
@@ -392,7 +334,7 @@ lance_application :: fonc(app : &Application) -> z32
 
     glfwTerminate()
 
-    déloge(file_évènement.tampon)
+    détruit(VG_file_évènements)
 
     retourne 0
 }

@@ -1,5 +1,6 @@
 importe Fondation
 importe GlibC
+importe Structures
 
 CheminFichier :: struct {
     chn : chaine
@@ -237,62 +238,7 @@ chaque_chemin :: corout(chemin : &CheminFichier) -> CheminFichier
 
 //###############################################################################
 
-// File spécialisé pour les DIR.
-FileDir :: struct {
-	taille : z64
-	capacité : z64
-	tampon : []*DIR
-}
-
-crée_file_dir :: fonc() -> *FileDir
-{
-	q := loge(FileDir)
-	retourne q
-}
-
-decrée_file :: fonc(q : *FileDir) -> rien
-{
-	q.taille = 0
-	q.capacité = 0
-	déloge(q.tampon)
-	déloge(q)
-}
-
-enfile :: fonc(q : *FileDir, d : *DIR) -> rien
-{
-    si q.taille == q.capacité {
-		tableau_redimensionne(q.tampon, (q.taille + 1))
-		q.capacité += 1
-    }
-
-	q.tampon[q.taille] = d
-	q.taille += 1
-}
-
-est_vide :: fonc(q : *FileDir) -> bool
-{
-	retourne q.taille == 0
-}
-
-défile :: fonc(q : *FileDir) -> *DIR
-{
-    si est_vide(q) {
-		retourne nul
-    }
-
-    ret := q.tampon[0]
-	q.taille -= 1
-
-    pour i dans 1 ... q.taille - 1 {
-        q.tampon[i - 1] = q.tampon[i]
-    }
-
-    retourne ret
-}
-
-//###############################################################################
-
-enfile_dossier :: fonc(file : *FileDir, dir : *dirent, chemin : &CheminFichier) -> rien
+enfile_dossier :: fonc(file : &File(T = *DIR), dir : *dirent, chemin : &CheminFichier) -> rien
 {
     chm := chemin_pour_dirname(dir)
 
@@ -339,7 +285,7 @@ chaque_chemin_récursif :: corout(chemin : &CheminFichier) -> CheminFichier
         retourne
     }
 
-    file := crée_file_dir()
+    file : File(T = *DIR)
 
     enfile(file, d)
 

@@ -1,0 +1,62 @@
+/* Implémentation d'une file « premier entré, premier sorti ».
+ * https://fr.wikipedia.org/wiki/File_(structure_de_donn%C3%A9es)
+ */
+
+File :: struct ($T: type_de_données) {
+    données: []T
+    taille: z32
+}
+
+détruit :: fonc (file: &File(T = $T))
+{
+    déloge(file.données)
+    file.taille = 0
+}
+
+enfile :: fonc (file: &File(T = $T), valeur: T)
+{
+    tableau_ajoute(*file.données, valeur)
+    file.taille += 1
+}
+
+défile :: fonc (file: &File(T = $T)) -> T
+{
+    élément := file.données[0]
+    tableau_supprime_index(*file.données, 0)
+    file.taille -= 1
+    retourne élément
+}
+
+est_vide :: fonc (file: &File(T = $T)) -> bool
+{
+    retourne file.taille == 0
+}
+
+nombre_éléments :: fonc (file: &File(T = $T)) -> z32
+{
+    retourne file.taille
+}
+
+/*
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    file: File(T = z32)
+
+    pour 0 ... 10 {
+        file.enfile(it)
+    }
+
+    pour file.données {
+        imprime("it : %\n", it)
+    }
+
+    tantque !file.est_vide() {
+        i := file.défile()
+        imprime("i := %\n", i)
+    }
+
+    retourne 0
+}
+*/
