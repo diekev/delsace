@@ -3057,6 +3057,10 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
 			valeurs.reserve(type_compose->membres.taille);
 
 			POUR (type_compose->membres) {
+				if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
+					continue;
+				}
+
 				auto valeur = genere_initialisation_defaut_pour_type(it.type);
 				valeurs.pousse(valeur);
 			}
