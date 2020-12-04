@@ -9,6 +9,7 @@
 -- ajout de drapeaux aux lexèmes des nombres littéraux pour indiquer la taille du nombre
 -- utilisation de C++ pour compiler le code final afin de pouvoir retourner des tableaux fixes
 -- utilisation d'une énumération pour retourner si le typage retourne une erreur au lieu d'une valeur booléenne
+-- opérateur []
 
 // --------------------
 
