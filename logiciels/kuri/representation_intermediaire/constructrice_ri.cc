@@ -63,12 +63,6 @@ static auto trouve_index_membre(TypeCompose *type_compose, dls::vue_chaine_compa
 	return idx_membre;
 }
 
-static auto trouve_index_membre(Type *type, dls::vue_chaine_compacte const &nom_membre)
-{
-	auto type_compose = static_cast<TypeCompose *>(type);
-	return trouve_index_membre(type_compose, nom_membre);
-}
-
 static auto trouve_index_membre(NoeudStruct *noeud_struct, dls::vue_chaine_compacte const &nom_membre)
 {
 	auto type_compose = static_cast<TypeCompose *>(noeud_struct->type);
