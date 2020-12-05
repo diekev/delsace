@@ -42,7 +42,7 @@ class CRC32 //: public Hash
 {
 public:
   /// hash is 4 bytes long
-  enum { HashBytes = 4 };
+  enum { BlockSize = 1, HashBytes = 4 };
 
   /// same as reset()
   CRC32();
