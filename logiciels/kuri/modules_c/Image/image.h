@@ -47,4 +47,6 @@ ResultatOperation IMG_ecris_image(const char *chemin, Image *image);
 
 void IMG_detruit_image(Image *image);
 
+void IMG_calcul_empreinte_floue(const char *chemin, int composant_x, int composant_y, char *resultat, long *taille_resultat);
+
 }

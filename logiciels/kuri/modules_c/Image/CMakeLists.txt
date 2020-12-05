@@ -39,7 +39,7 @@ add_library(${NOM_PROJET} STATIC
 	${ENTETES}
 )
 
-set_property(TARGET ${NOM_PROJET} PROPERTY CXX_STANDARD 11)
+set_property(TARGET ${NOM_PROJET} PROPERTY CXX_STANDARD 14)
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 
