@@ -1524,7 +1524,7 @@ static dls::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, Opt
 	}
 
 	for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
-		commande += " ";
+		commande += " -L";
 		commande += chm;
 	}
 
@@ -1594,7 +1594,7 @@ bool coulisse_C_cree_executable(
 	}
 
 	for (auto const &chm : *compilatrice.chemins.verrou_lecture()) {
-		commande += " ";
+		commande += " -L";
 		commande += chm;
 	}
 
