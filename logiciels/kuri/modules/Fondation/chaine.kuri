@@ -257,6 +257,71 @@ divise :: fonc (chn: chaine, séparation: chaine) -> []chaine
     retourne résultat
 }
 
+divise_depuis_le_début :: fonc (entrée: chaine, séparateur: chaine, nombre_max := -1) -> []chaine
+{
+    résultat_temp := divise(entrée, séparateur)
+
+    si résultat_temp.taille <= nombre_max || nombre_max <= 0 {
+        retourne résultat_temp
+    }
+
+    résultat : []chaine
+
+    taille_chaine : z64 = 0
+
+    pour i dans 0 ... nombre_max - 1 {
+        taille_chaine += résultat_temp[i].taille
+        taille_chaine += séparateur.taille
+
+        tableau_ajoute(*résultat, résultat_temp[i])
+    }
+
+    dernière_chaine := avance(entrée, taille_chaine)
+    tableau_ajoute(*résultat, dernière_chaine)
+
+    déloge(résultat_temp)
+
+    retourne résultat
+}
+
+divise_depuis_la_fin :: fonc (entrée: chaine, séparateur: chaine, divisions_maximums := -1) -> []chaine
+{
+    résultat_temp := divise(entrée, séparateur)
+
+    si résultat_temp.taille <= divisions_maximums || divisions_maximums <= 0 {
+        retourne résultat_temp
+    }
+
+    résultat : []chaine
+
+    nombre_de_divions := résultat_temp.taille - 1
+    delta := nombre_de_divions - divisions_maximums
+
+    // copie les deltas chaines
+
+    taille_chaine : z64 = 0
+
+    pour i dans 0 ... delta {
+        taille_chaine += résultat_temp[i].taille
+        taille_chaine += séparateur.taille
+    }
+
+    // exclus le dernier séparateur
+    taille_chaine -= séparateur.taille
+
+    // copie la première chaine
+    première_chaine := sous_chaine(entrée, 0, taille_chaine)
+    tableau_ajoute(*résultat, première_chaine)
+
+    pour i dans delta + 1 ... résultat_temp.taille - 1 {
+        tableau_ajoute(*résultat, résultat_temp[i])
+    }
+
+    déloge(résultat_temp)
+
+    retourne résultat
+}
+
 avance :: fonc (ligne: chaine, compte: z64) -> chaine
 {
     retourne construit_chaine(ligne.pointeur + compte, ligne.taille - compte)
