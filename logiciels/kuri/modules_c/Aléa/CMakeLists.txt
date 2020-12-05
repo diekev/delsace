@@ -28,13 +28,10 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 )
 
-set(ENTETES
-	alea.h
-)
-
 add_library(${NOM_PROJET} STATIC
     alea.cc
-	${ENTETES}
+
+    alea.h
 )
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
@@ -44,8 +41,4 @@ target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 install(
 	TARGETS ${NOM_PROJET}
 	ARCHIVE
-	DESTINATION /opt/bin/kuri/modules/Aléa/)
-
-install(
-	FILES ${ENTETES}
 	DESTINATION /opt/bin/kuri/modules/Aléa/)

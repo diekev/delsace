@@ -30,13 +30,10 @@ set(BIBLIOTHEQUES
     /opt/lib/oiio/lib/libOpenImageIO.so
 )
 
-set(ENTETES
-	image.h
-)
-
 add_library(${NOM_PROJET} STATIC
     image.cc
-	${ENTETES}
+
+    image.h
 )
 
 set_property(TARGET ${NOM_PROJET} PROPERTY CXX_STANDARD 14)
@@ -48,8 +45,4 @@ target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 install(
 	TARGETS ${NOM_PROJET}
 	ARCHIVE
-	DESTINATION /opt/bin/kuri/modules/Image/)
-
-install(
-	FILES ${ENTETES}
 	DESTINATION /opt/bin/kuri/modules/Image/)

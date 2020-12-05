@@ -40,7 +40,7 @@ add_library(${NOM_PROJET} STATIC
 	wrapper.c
 
 	crc32.cpp
-	#digest.cpp
+    #digest.cpp
 	#keccak.cpp
 	md5.cpp
 	sha1.cpp
@@ -86,8 +86,4 @@ target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 install(
 	TARGETS ${NOM_PROJET}
 	ARCHIVE
-	DESTINATION /opt/bin/kuri/modules/Krypto/)
-
-install(
-	FILES krypto.hh
 	DESTINATION /opt/bin/kuri/modules/Krypto/)

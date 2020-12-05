@@ -30,17 +30,6 @@ set(BIBLIOTHEQUES
 	freetype
 )
 
-set(ENTETES
-	freetype-gl.h
-	markup.h
-	mat4.h
-	opengl.h
-	texture-atlas.h
-	texture-font.h
-	vec234.h
-	vector.h
-)
-
 add_library(${NOM_PROJET} STATIC
     distance-field.c
     edtaa3func.c
@@ -54,7 +43,14 @@ add_library(${NOM_PROJET} STATIC
 	edtaa3func.h
 	utf8-utils.h
 
-	${ENTETES}
+    freetype-gl.h
+    markup.h
+    mat4.h
+    opengl.h
+    texture-atlas.h
+    texture-font.h
+    vec234.h
+    vector.h
 )
 
 get_target_property(EXTLIB_COMPILE_FLAGS ${NOM_PROJET} COMPILE_OPTIONS)
@@ -84,8 +80,4 @@ target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 install(
 	TARGETS ${NOM_PROJET}
 	ARCHIVE
-	DESTINATION /opt/bin/kuri/modules/FTGL/)
-
-install(
-	FILES ${ENTETES}
 	DESTINATION /opt/bin/kuri/modules/FTGL/)
