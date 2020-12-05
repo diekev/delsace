@@ -1,7 +1,6 @@
 importe Fondation
 importe GlibC
 importe Math
-importe JPEG
 importe SysFichier
 
 Image :: struct {
@@ -178,124 +177,6 @@ détruit_image :: fonc(image : *Image) -> rien
     déloge(image.tampon);
 }
 
-lis_jpeg :: fonc(chemin : chaine) -> Image
-{
-    image : Image;
-	ptr_tampon := chaine_c_temp(chemin);
-
-    modes := "rb";
-
-    file := fopen(ptr_tampon, modes.pointeur);
-    diffère { fclose(file); }
-
-    si file == nul {
-        imprime("Ne peut ouvrir le fichier image...\n");
-        retourne image;
-    }
-
-    erreur_jpeg : jpeg_error_mgr;
-    info : jpeg_decompress_struct;
-
-	jpeg_create_decompress(*info);
-	info.err = jpeg_std_error(*erreur_jpeg);
-
-	jpeg_stdio_src(*info, file);
-
-	jpeg_save_markers(*info, 0xE1, 0xffff);
-
-	jpeg_read_header(*info, 1);
-
-	jpeg_start_decompress(*info);
-
-    largeur := info.output_width comme z32;
-	hauteur := info.output_height comme z32;
-	channels := info.output_components comme z32;
-
-	image.largeur = largeur;
-	image.hauteur = hauteur;
-	image.channels = channels;
-	image.chemin = chemin;
-
-	image.tampon = loge_chaine(largeur * hauteur * channels);
-
-	stride := largeur * channels;
-
-    imprime("Hauteur = ", hauteur, '\n');
-    imprime("Largeur = ", largeur, '\n');
-
-	pour xi dans 0...hauteur - 1 {
-        buffer := *image.tampon[xi * stride]
-		jpeg_read_scanlines(*info, *buffer, 1);
-	}
-
-	jpeg_finish_decompress(*info);
-	jpeg_destroy_decompress(*info);
-
-    retourne image;
-}
-
-écris_jpeg :: fonc(image : Image, chemin : chaine) -> rien
-{
-	ptr_tampon := chaine_c_temp(chemin);
-
-    modes := "wb";
-
-    file := fopen(ptr_tampon, modes.pointeur);
-    diffère { fclose(file); }
-
-	//fseek(file, 0L, SEEK_SET);
-
-	info : jpeg_compress_struct;
-	jerr : jpeg_error_mgr;
-
-	jpeg_create_compress(*info);
-	info.err = jpeg_std_error(*jerr);
-
-	jpeg_stdio_dest(*info, file);
-	info.image_width = image.largeur comme n32;
-	info.image_height = image.hauteur comme n32;
-	info.input_components = image.channels;
-
-	discr (info.input_components) {
-		1 { info.in_color_space = _JCS_GRAYSCALE; }
-		3 { info.in_color_space = _JCS_RGB; }
-	}
-
-	jpeg_set_defaults(*info);
-
-    info.comp_info[0].h_samp_factor = 2;
-    info.comp_info[0].v_samp_factor = 2;
-
-	jpeg_set_quality(*info, 95, 0);
-    jpeg_start_compress(*info, 1);
-
-	stride := image.largeur * image.channels;
-
-	pour x dans 0...image.hauteur - 1 {
-        buffer := *image.tampon[x * stride]
-		jpeg_write_scanlines(*info, *buffer, 1);
-	}
-
-	jpeg_finish_compress(*info);
-	jpeg_destroy_compress(*info);
-}
-
-test_jpeg :: fonc() -> rien
-{
-    imprime("Entrée jpeg : mémoire utilisée : %o\n", mémoire_utilisée());
-
-    image := lis_jpeg("/home/kevin/Images/59446046_185101052475540_1803696242081923072_n.jpg");
-
-    chemin := "/home/kevin/test.pnm";
-    écris_pnm(image, chemin);
-
-    //imprime(image, '\n');
-
-    imprime("Mémoire utilisée : %o\n", mémoire_utilisée());
-
-    détruit_image(*image);
-}
-
 //####################
 
 principale :: fonc () -> z32
@@ -308,8 +189,6 @@ principale :: fonc () -> z32
     écris_pnm(image, "/home/kevin/test_p2.pgm");
 
     détruit_image(*image);
-
-    //test_jpeg();
 
     diffère { imprime("Mémoire utilisée : %o\n", mémoire_utilisée()); }
 
