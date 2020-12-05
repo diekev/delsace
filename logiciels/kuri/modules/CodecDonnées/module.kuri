@@ -146,3 +146,24 @@ décode_base64 :: fonc(chn : chaine) -> chaine
 
 	retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
+
+CodecBase64 :: struct {
+    encode: fonc (chaine)(chaine)
+    décode: fonc (chaine)(chaine)
+}
+
+crée_codec_base64 :: fonc () -> CodecBase64
+{
+    codec : CodecBase64 = ---
+    codec.encode = encode_base64
+    codec.décode = décode_base64
+    retourne codec
+}
+
+crée_codec_base64_url :: fonc () -> CodecBase64
+{
+    codec : CodecBase64 = ---
+    codec.encode = encode_base64_pour_url
+    codec.décode = décode_base64
+    retourne codec
+}
