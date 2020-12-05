@@ -44,3 +44,24 @@ remplis_image :: fonc (image : *Image, couleur: Couleur) -> rien
 
     retourne image.tampon[index]
 }
+
+#bibliothèque_statique "libmodule_c_image.a"
+
+#chemin "/opt/lib/oiio/lib/"
+
+#bibliothèque_dynamique "OpenImageIO"
+
+ImageIO :: struct {
+    données : *r32
+    taille_données : z64
+
+    largeur : z32
+    hauteur : z32
+    composants : z32
+}
+
+IMG_ouvre_image :: fonc (chemin: *z8, image: *ImageIO) -> z32 #externe
+
+IMG_ecris_image :: fonc (chemin: *z8, image: *ImageIO) -> z32 #externe
+
+IMG_detruit_image :: fonc (image: *ImageIO) #externe
