@@ -1584,7 +1584,7 @@ bool coulisse_C_cree_executable(
 	compile_objet_r16(compilatrice.racine_kuri.c_str(), espace.options.architecture_cible);
 
 	auto debut_executable = dls::chrono::compte_seconde();
-	auto commande = dls::chaine("/usr/bin/gcc-9 /tmp/compilation_kuri.o ");
+	auto commande = dls::chaine("/usr/bin/g++-9 /tmp/compilation_kuri.o ");
 
 	if (espace.options.architecture_cible == ArchitectureCible::X86) {
 		commande += " /tmp/r16_tables_x86.o ";
