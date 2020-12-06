@@ -64,6 +64,7 @@ jusque_prochaine_millis :: fonc (dernier_horodotage: z64) -> z64
     retourne horodotage
 }
 
+/*
 principale :: fonc () -> z32
 {
     pour 0 ... 15 {
@@ -73,3 +74,4 @@ principale :: fonc () -> z32
 
     retourne 0
 }
+*/
