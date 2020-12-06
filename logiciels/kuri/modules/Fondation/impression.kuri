@@ -1,6 +1,7 @@
 // Bibliothèque de flux, d'impression dans stdout.
 
 importe GlibC
+importe Introspection
 importe Numérique
 importe SysFichier
 
@@ -118,7 +119,7 @@ imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, arg
 	pour c dans format {
 		si c == '%' && index < args.taille {
 			arg := args[index]
-			imprime_valeur(enchaineuse, arg.pointeur, arg.info, faux)
+			imprime_valeur(enchaineuse, arg, faux)
 			index += 1
 		}
 		sinon {
@@ -218,7 +219,7 @@ ajoute_au_tampon :: fonc (enchaineuse : *Enchaineuse, chns: ...chaine) -> rien
 ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, args: ...eini) -> rien
 {
 	pour arg dans args {
-		imprime_valeur(enchaineuse, arg.pointeur, arg.info, faux)
+		imprime_valeur(enchaineuse, arg, faux)
 	}
 }
 
@@ -496,38 +497,20 @@ imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> 
 	} tantque frac < 1.0 && frac != 0.0 && p >= 0
 }
 
-imprime_valeur :: fonc(
-	enchaineuse : *Enchaineuse,
-	pointeur : *z8,
-	info : *InfoType,
-	échappe_chn : bool) -> rien
+imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn : bool) -> rien
 {
-    discr info.id {
+    discr valeur.info.id {
 		OCTET {
-			e : eini
-			e.pointeur = pointeur
-			e.info = info
-
-			fmt := FormatEntier(valeur = e, base = 16)
-			imprime_nombre_entier(enchaineuse, fmt)
+			imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur, base = 16))
 		}
 		ENTIER {
-			e : eini
-			e.pointeur = pointeur
-			e.info = info
-
-			fmt := FormatEntier(valeur = e)
-			imprime_nombre_entier(enchaineuse, fmt)
+			imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur))
 		}
 		RÉEL {
-			e : eini
-			e.pointeur = pointeur
-			e.info = info
-
-			imprime_nombre_réel(enchaineuse, FormatRéel(valeur = e))
+			imprime_nombre_réel(enchaineuse, FormatRéel(valeur = valeur))
 		}
 		BOOLÉEN {
-			x := mémoire(pointeur comme *bool)
+			x := valeur.comme_bool()
 
             si x {
 				ajoute_au_tampon(enchaineuse, "vrai")
@@ -537,7 +520,7 @@ imprime_valeur :: fonc(
 			}
 		}
 		CHAINE {
-			x := mémoire(pointeur comme *chaine)
+			x := valeur.comme_chaine()
 
             si échappe_chn {
 				ajoute_au_tampon(enchaineuse, '"')
@@ -550,50 +533,57 @@ imprime_valeur :: fonc(
 			}
 		}
 		STRUCTURE {
-			info_arg := info comme *InfoTypeStructure
+			info_arg := valeur.info comme *InfoTypeStructure
 
 			si info_arg == info_de(FormatEntier) {
-				imprime_nombre_entier(enchaineuse, mémoire(pointeur comme *FormatEntier))
+				imprime_nombre_entier(enchaineuse, mémoire(valeur.pointeur comme *FormatEntier))
 				retourne
 			}
 
 			si info_arg == info_de(FormatRéel) {
-				imprime_nombre_réel(enchaineuse, mémoire(pointeur comme *FormatRéel))
+				imprime_nombre_réel(enchaineuse, mémoire(valeur.pointeur comme *FormatRéel))
 				retourne
 			}
 
             ajoute_au_tampon(enchaineuse, info_arg.nom)
             ajoute_au_tampon(enchaineuse, " {")
 
-            pour membre, idx dans info_arg.membres {
+			idx := 0
+
+            pour membre dans info_arg.membres {
 				si (membre.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 {
 					continue
 				}
-
-				nom := membre.nom
-                décalage := membre.décalage
-				id := membre.id
 
                 si idx != 0 {
                     ajoute_au_tampon(enchaineuse, ',')
                 }
 
+				nom := membre.nom
+                décalage := membre.décalage
+
                 ajoute_au_tampon(enchaineuse, nom)
                 ajoute_au_tampon(enchaineuse, " = ")
 
-				imprime_valeur(enchaineuse, pointeur + décalage, id, vrai)
+				valeur_membre : eini = ---
+				valeur_membre.pointeur = valeur.pointeur + décalage
+				valeur_membre.info = membre.id
+
+				imprime_valeur(enchaineuse, valeur_membre, vrai)
+				idx += 1
 			}
 
             ajoute_au_tampon(enchaineuse, " }")
 		}
 		POINTEUR {
-			info_arg := info comme *InfoTypePointeur
+			info_arg := valeur.info comme *InfoTypePointeur
 
 		    // Ne pas oublier qu'il y a un niveau d'indirection.
-			x := mémoire(pointeur comme **z8)
+			x := mémoire(valeur.pointeur comme **z8)
 
 			si info_arg.est_référence {
-				imprime_valeur(enchaineuse, x, info_arg.type_pointé, vrai)
+				valeur.info = info_arg.type_pointé
+				imprime_valeur(enchaineuse, valeur, vrai)
 			}
 			sinon {
 				fmt := FormatEntier(valeur = x comme n64, base = 16)
@@ -602,12 +592,12 @@ imprime_valeur :: fonc(
 		}
 		FONCTION {
 		    // Ne pas oublier qu'il y a un niveau d'indirection.
-			x := mémoire(pointeur comme **z8)
+			x := mémoire(valeur.pointeur comme **z8)
 			fmt := FormatEntier(valeur = x comme n64, base = 16)
 			imprime_nombre_entier(enchaineuse, fmt)
 		}
 		EINI {
-			x := mémoire(pointeur comme *eini)
+			x := mémoire(valeur.pointeur comme *eini)
 
             ajoute_au_tampon(enchaineuse, "eini { ptr = ")
 			fmt := FormatEntier(valeur = x.pointeur comme n64, base = 16)
@@ -621,65 +611,47 @@ imprime_valeur :: fonc(
             ajoute_au_tampon(enchaineuse, "rien")
 		}
 		TABLEAU {
-			info_arg := info comme *InfoTypeTableau
-
-            décalage := info_arg.type_pointé.taille_en_octet comme z32
-
+			index := 0
 			max_élément := 5
+
+			itératrice := crée_itératrice_tableau(valeur)
 
             ajoute_au_tampon(enchaineuse, "[")
 
-            si info_arg.est_tableau_fixe {
-				si info_arg.taille_fixe < max_élément {
-					max_élément = info_arg.taille_fixe
+			boucle {
+				valeur_ := itératrice.valeur_suivante()
+
+				saufsi valeur_.est_valide() {
+					arrête
 				}
 
-                pour i dans 0 ... max_élément - 1 {
-                    si i != 0 {
-                        ajoute_au_tampon(enchaineuse, ',')
-                    }
-
-                    imprime_valeur(enchaineuse, pointeur + décalage * i, info_arg.type_pointé, vrai)
-                }
-
-				si info_arg.taille_fixe > max_élément {
+				si index >= max_élément {
             		ajoute_au_tampon(enchaineuse, ", ...")
-				}
-            }
-            sinon {
-                x := mémoire(pointeur comme *[]z8)
-
-				si x.taille < max_élément {
-					max_élément = x.taille comme z32
+					arrête
 				}
 
-                pour i dans 0 ... max_élément - 1 {
-                    si i != 0 {
-                        ajoute_au_tampon(enchaineuse, ',')
-                    }
-
-                    imprime_valeur(enchaineuse, x.pointeur + décalage * i, info_arg.type_pointé, vrai)
-                }
-
-				si x.taille > max_élément {
-            		ajoute_au_tampon(enchaineuse, ", ...")
+				si index != 0 {
+					ajoute_au_tampon(enchaineuse, ',')
 				}
-            }
+
+                imprime_valeur(enchaineuse, valeur_, vrai)
+				index += 1
+			}
 
             ajoute_au_tampon(enchaineuse, "]")
 		}
 		ÉNUM {
-			info_arg := info comme *InfoTypeÉnum
+			info_arg := valeur.info comme *InfoTypeÉnum
 
 			// À FAIRE(langage) : typage selon énum
-			valeur := mémoire(pointeur comme *z32)
+			valeur_ := mémoire(valeur.pointeur comme *z32)
 			noms := info_arg.noms
 
 			si info_arg.est_drapeau {
 				valeur_trouvée := faux
 
 				pour v, i dans info_arg.valeurs {
-					si (v & valeur) != 0 {
+					si (v & valeur_) != 0 {
 						si valeur_trouvée {
 							ajoute_au_tampon(enchaineuse, " | ")
 						}
@@ -695,7 +667,7 @@ imprime_valeur :: fonc(
 			}
 			sinon {
 				pour v, i dans info_arg.valeurs {
-					si v == valeur {
+					si v == valeur_ {
 						ajoute_au_tampon(enchaineuse, noms[i])
 						arrête
 					}
@@ -704,23 +676,16 @@ imprime_valeur :: fonc(
 		}
 		TYPE_DE_DONNÉES {
 			// XXX - ceci est un hack, il faudra plutôt imprimer le nom du type via une table de types
-			e : eini
-			e.pointeur = pointeur
-			e.info = info
-
-			fmt := FormatEntier(valeur = e)
-			imprime_nombre_entier(enchaineuse, fmt)
+			imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur))
 		}
 		UNION {
-			info_arg := info comme *InfoTypeUnion
+			info_arg := valeur.info comme *InfoTypeUnion
 
             ajoute_au_tampon(enchaineuse, info_arg.nom)
             ajoute_au_tampon(enchaineuse, " { ")
 
-			valeur := mémoire(pointeur comme *z32)
-
 			si info_arg.est_sûre {
-				pointeur_index := (pointeur + info_arg.décalage_index) comme *z32
+				pointeur_index := (valeur.pointeur + info_arg.décalage_index) comme *z32
 				index := mémoire(pointeur_index)
 
 				// note le membre_actif est l'index du membre + 1, 0 étant une valeur montrant que l'union est invalide
@@ -733,18 +698,24 @@ imprime_valeur :: fonc(
 					ajoute_au_tampon(enchaineuse, membre.nom)
 					ajoute_au_tampon(enchaineuse, " = ")
 
-					imprime_valeur(enchaineuse, pointeur, membre.id, vrai)
+					valeur_membre : eini = ---
+					valeur_membre.pointeur = valeur.pointeur
+					valeur_membre.info = membre.id
+
+					imprime_valeur(enchaineuse, valeur_membre, vrai)
 				}
 			}
 			sinon {
-				imprime_valeur(enchaineuse, pointeur, info_arg.type_le_plus_grand, faux)
+				valeur.info = info_arg.type_le_plus_grand
+				imprime_valeur(enchaineuse, valeur, faux)
 			}
 
             ajoute_au_tampon(enchaineuse, " }")
 		}
 		OPAQUE {
-			info_arg := info comme *InfoTypeOpaque
-			imprime_valeur(enchaineuse, pointeur, info_arg.type_opacifié, faux)
+			info_arg := valeur.info comme *InfoTypeOpaque
+			valeur.info = info_arg.type_opacifié
+			imprime_valeur(enchaineuse, valeur, échappe_chn)
 		}
 	}
 }

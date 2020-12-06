@@ -56,7 +56,7 @@ génère_page :: fonc(
                 retourne ErreurGénérationPage.OBJET_NON_TROUVÉ
             }
 
-            imprime_valeur(enchaineuse, valeur.pointeur, valeur.info, faux)
+            imprime_valeur(enchaineuse, valeur, faux)
         }
         POUR {
             propriété := noeud.enfants[1].données.chn
@@ -119,7 +119,7 @@ génère_page :: fonc(
                 retourne ErreurGénérationPage.OBJET_NON_TROUVÉ
             }
 
-            imprime_valeur(enchaineuse, valeur.pointeur, valeur.info, faux)
+            imprime_valeur(enchaineuse, valeur, faux)
         }
     }
 

@@ -1,48 +1,22 @@
 importe Fondation
+importe Introspection
 
-imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *InfoType) -> rien
+imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
 {
-    discr info.id {
+    discr valeur.info.id {
 		OCTET {
-			x := mémoire(pointeur comme *octet)
-            chiffres_hex := "0123456789ABCDEF"
-
-			chiffre := (x >> 4 comme octet) & 0x0F comme octet
-			ajoute_au_tampon(enchaineuse, chiffres_hex[chiffre])
-
-			chiffre = x & 0x0F comme octet
-			ajoute_au_tampon(enchaineuse, chiffres_hex[chiffre])
+            imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur))
 		}
 		ENTIER {
-			info_arg := info comme *InfoTypeEntier
-
-            e : eini
-            e.pointeur = pointeur
-            e.info = info_arg
-
-            imprime_nombre_entier(enchaineuse, FormatEntier(valeur = e))
+            imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur))
 		}
 		RÉEL {
-			y : r32
-
-            si info.taille_en_octet == 2 {
-				x := mémoire(pointeur comme *r16)
-				y = x
-			}
-			sinon si info.taille_en_octet == 4 {
-				y = mémoire(pointeur comme *r32)
-			}
-			sinon si info.taille_en_octet == 8 {
-				x := mémoire(pointeur comme *r64)
-				y = x comme r32
-			}
-
-			imprime_nombre_réel(enchaineuse, FormatRéel(valeur = y))
+			imprime_nombre_réel(enchaineuse, FormatRéel(valeur = valeur))
 		}
 		BOOLÉEN {
-			x := mémoire(pointeur comme *bool)
+			valeur_ := valeur.comme_bool()
 
-            si x {
+            si valeur_ {
 				ajoute_au_tampon(enchaineuse, "true")
 			}
 			sinon {
@@ -50,78 +24,74 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 			}
 		}
 		CHAINE {
-			x := mémoire(pointeur comme *chaine)
-
-			ajoute_au_tampon(enchaineuse, '"')
-			ajoute_au_tampon(enchaineuse, x)
-			ajoute_au_tampon(enchaineuse, '"')
+			ajoute_au_tampon(enchaineuse, "\"", valeur.comme_chaine(), "\"")
 		}
 		STRUCTURE {
-			info_arg := info comme *InfoTypeStructure
+			info_arg := valeur.info comme *InfoTypeStructure
 
             ajoute_au_tampon(enchaineuse, "{")
+			idx := 0
 
-            pour membre, idx dans info_arg.membres {
+            pour membre dans info_arg.membres {
+				si (membre.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 {
+					continue
+				}
+
 				nom := membre.nom
                 décalage := membre.décalage
-				id := membre.id
 
                 si idx != 0 {
                     ajoute_au_tampon(enchaineuse, ',')
                 }
 
-                ajoute_au_tampon(enchaineuse, '"')
-                ajoute_au_tampon(enchaineuse, nom)
-                ajoute_au_tampon(enchaineuse, '"')
-                ajoute_au_tampon(enchaineuse, ":")
+				ajoute_au_tampon(enchaineuse, "\"", nom, "\":")
 
-				imprime_valeur_json(enchaineuse, pointeur + décalage, id)
+				valeur_membre : eini = ---
+				valeur_membre.pointeur = valeur.pointeur + décalage
+				valeur_membre.info = membre.id
+
+				imprime_valeur_json(enchaineuse, valeur_membre)
+
+				idx += 1
 			}
 
             ajoute_au_tampon(enchaineuse, "}")
 		}
 		TABLEAU {
-			info_arg := info comme *InfoTypeTableau
+			index := 0
+			itératrice := crée_itératrice_tableau(valeur)
 
             ajoute_au_tampon(enchaineuse, "[")
 
-            décalage := info_arg.type_pointé.taille_en_octet comme z32
+			boucle {
+				valeur_ := itératrice.valeur_suivante()
 
-            si info_arg.est_tableau_fixe {
-                pour i dans 0 ... info_arg.taille_fixe - 1 {
-                    si i != 0 {
-                        ajoute_au_tampon(enchaineuse, ',')
-                    }
+				saufsi valeur_.est_valide() {
+					arrête
+				}
 
-                    imprime_valeur_json(enchaineuse, pointeur + décalage * i, info_arg.type_pointé)
-                }
-            }
-            sinon {
-                x := mémoire(pointeur comme *[]z8)
+				si index != 0 {
+					ajoute_au_tampon(enchaineuse, ',')
+				}
 
-                pour i dans 0 ... x.taille - 1 {
-                    si i != 0 {
-                        ajoute_au_tampon(enchaineuse, ',')
-                    }
-
-                    imprime_valeur_json(enchaineuse, x.pointeur + décalage * i, info_arg.type_pointé)
-                }
-            }
+                imprime_valeur(enchaineuse, valeur_, vrai)
+				index += 1
+			}
 
             ajoute_au_tampon(enchaineuse, "]")
 		}
 		ÉNUM {
-			info_arg := info comme *InfoTypeÉnum
+			info_arg := valeur.info comme *InfoTypeÉnum
 
 			// À FAIRE(langage) : typage selon énum
-			valeur := mémoire(pointeur comme *z32)
+			valeur_ := mémoire(valeur.pointeur comme *z32)
 			noms := info_arg.noms
 
 			si info_arg.est_drapeau {
 				valeur_trouvée := faux
 
 				pour v, i dans info_arg.valeurs {
-					si (v & valeur) != 0 {
+					si (v & valeur_) != 0 {
 						si valeur_trouvée {
 							ajoute_au_tampon(enchaineuse, " | ")
 						}
@@ -137,12 +107,17 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, pointeur: *z8, info: *In
 			}
 			sinon {
 				pour v, i dans info_arg.valeurs {
-					si v == valeur {
+					si v == valeur_ {
 						ajoute_au_tampon(enchaineuse, noms[i])
 						arrête
 					}
 				}
 			}
+		}
+		OPAQUE {
+			info_arg := valeur.info comme *InfoTypeOpaque
+			valeur.info = info_arg.type_opacifié
+			imprime_valeur(enchaineuse, valeur, vrai)
 		}
         sinon {
             ajoute_au_tampon(enchaineuse, "null")
@@ -337,7 +312,7 @@ chaine_json_depuis_struct :: fonc (arg: eini) -> chaine
 	initialise_enchaineuse(*enchaineuse)
     diffère { détruit_tampons(*enchaineuse) }
 
-    imprime_valeur_json(*enchaineuse, arg.pointeur, arg.info)
+    imprime_valeur_json(*enchaineuse, arg)
 
 	retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
