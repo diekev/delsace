@@ -465,6 +465,59 @@ valeur_suivante :: fonc (itératrice: &ItératriceTableau) -> eini
     retourne résultat
 }
 
+/* Itératrice sur les membres d'un eini provenant d'une structure. */
+ItératriceMembreStructure :: struct {
+    valeur: eini
+
+    pointeur: *z8
+    taille: z64
+
+    position: z64
+}
+
+crée_itératrice_membre :: fonc (structure: eini, ignore_membres_constants := vrai) -> ItératriceMembreStructure
+{
+    itératrice : ItératriceMembreStructure
+
+    si !structure.est_structure() {
+        retourne itératrice
+    }
+
+    info := structure.info comme *InfoTypeStructure
+
+    itératrice.valeur = structure
+    itératrice.taille = info.membres.taille
+
+    retourne itératrice
+}
+
+membre_suivant :: fonc (itératrice: &ItératriceMembreStructure) -> eini, chaine
+{
+    résultat : eini
+    nom : chaine
+
+    info := itératrice.valeur.info comme *InfoTypeStructure
+
+    tantque itératrice.position < itératrice.taille {
+        membre := info.membres[itératrice.position]
+
+        si (membre.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 {
+            itératrice.position += 1
+            continue
+        }
+
+        résultat.pointeur = itératrice.valeur.pointeur + membre.décalage
+        résultat.info = membre.id
+
+        nom = membre.nom
+
+        itératrice.position += 1
+        arrête
+    }
+
+    retourne résultat, nom
+}
+
 /* FonctionParsage
  *
  * Une FonctionParsage fait correspondre un InfoType à une fonction de rappel devant être
