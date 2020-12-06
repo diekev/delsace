@@ -23,6 +23,7 @@
 */
 
 importe Fondation
+importe Introspection
 
 // ------------------------------
 // fonctions auxilliares
@@ -455,6 +456,45 @@ résoud_échappement_url :: fonc (chn: chaine) -> chaine
     }
 
     retourne nchn
+}
+
+/* Crée un chemin URL avec des paramètres provenant d'une structure :
+ *
+ * /mon/chemin/?membre1=valeur1&membre2=valeur2
+ */
+chemin_url_avec_paramètres :: fonc (chemin: chaine, paramètres: eini) -> chaine
+{
+    saufsi paramètres.est_structure() {
+        retourne ""
+    }
+
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, chemin)
+
+    si chemin.taille != 0 && chemin[chemin.taille - 1] != '/' {
+        ajoute_au_tampon(*enchaineuse, "/")
+    }
+
+    itératrice := crée_itératrice_membre(paramètres)
+
+    séparateur := "?"
+
+    boucle {
+        valeur, nom := itératrice.membre_suivant()
+
+        saufsi valeur.est_valide() {
+            arrête
+        }
+
+        ajoute_au_tampon(*enchaineuse, séparateur, nom, "=")
+        imprime_valeur(*enchaineuse, valeur, faux)
+
+        séparateur = "&"
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 // -----------------------------------------------
