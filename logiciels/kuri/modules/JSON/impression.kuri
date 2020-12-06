@@ -1,0 +1,126 @@
+importe Fondation
+importe Introspection
+
+imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
+{
+    discr valeur.info.id {
+		OCTET {
+            imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur))
+		}
+		ENTIER {
+            imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur))
+		}
+		RÉEL {
+			imprime_nombre_réel(enchaineuse, FormatRéel(valeur = valeur))
+		}
+		BOOLÉEN {
+			valeur_ := valeur.comme_bool()
+
+            si valeur_ {
+				ajoute_au_tampon(enchaineuse, "true")
+			}
+			sinon {
+				ajoute_au_tampon(enchaineuse, "false")
+			}
+		}
+		CHAINE {
+			ajoute_au_tampon(enchaineuse, "\"", valeur.comme_chaine(), "\"")
+		}
+		STRUCTURE {
+			info_arg := valeur.info comme *InfoTypeStructure
+
+            ajoute_au_tampon(enchaineuse, "{")
+			idx := 0
+
+            pour membre dans info_arg.membres {
+				si (membre.drapeaux & InfoTypeMembreStructure.Drapeaux.EST_CONSTANT) != 0 {
+					continue
+				}
+
+				nom := membre.nom
+                décalage := membre.décalage
+
+                si idx != 0 {
+                    ajoute_au_tampon(enchaineuse, ',')
+                }
+
+				ajoute_au_tampon(enchaineuse, "\"", nom, "\":")
+
+				valeur_membre : eini = ---
+				valeur_membre.pointeur = valeur.pointeur + décalage
+				valeur_membre.info = membre.id
+
+				imprime_valeur_json(enchaineuse, valeur_membre)
+
+				idx += 1
+			}
+
+            ajoute_au_tampon(enchaineuse, "}")
+		}
+		TABLEAU {
+			index := 0
+			itératrice := crée_itératrice_tableau(valeur)
+
+            ajoute_au_tampon(enchaineuse, "[")
+
+			boucle {
+				valeur_ := itératrice.valeur_suivante()
+
+				saufsi valeur_.est_valide() {
+					arrête
+				}
+
+				si index != 0 {
+					ajoute_au_tampon(enchaineuse, ',')
+				}
+
+                imprime_valeur(enchaineuse, valeur_, vrai)
+				index += 1
+			}
+
+            ajoute_au_tampon(enchaineuse, "]")
+		}
+		ÉNUM {
+			info_arg := valeur.info comme *InfoTypeÉnum
+
+			// À FAIRE(langage) : typage selon énum
+			valeur_ := mémoire(valeur.pointeur comme *z32)
+			noms := info_arg.noms
+
+			si info_arg.est_drapeau {
+				valeur_trouvée := faux
+
+				pour v, i dans info_arg.valeurs {
+					si (v & valeur_) != 0 {
+						si valeur_trouvée {
+							ajoute_au_tampon(enchaineuse, " | ")
+						}
+
+						ajoute_au_tampon(enchaineuse, noms[i])
+						valeur_trouvée = vrai
+					}
+				}
+
+				si !valeur_trouvée {
+					ajoute_au_tampon(enchaineuse, "0")
+				}
+			}
+			sinon {
+				pour v, i dans info_arg.valeurs {
+					si v == valeur_ {
+						ajoute_au_tampon(enchaineuse, noms[i])
+						arrête
+					}
+				}
+			}
+		}
+		OPAQUE {
+			info_arg := valeur.info comme *InfoTypeOpaque
+			valeur.info = info_arg.type_opacifié
+			imprime_valeur(enchaineuse, valeur, vrai)
+		}
+        sinon {
+            ajoute_au_tampon(enchaineuse, "null")
+        }
+	}
+}

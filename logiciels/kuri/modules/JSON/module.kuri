@@ -1,0 +1,76 @@
+/* Module de lecture et d'écriture de données sérialisées en JSON. */
+
+importe Fondation
+importe SysFichier
+
+charge "impression"
+charge "scanner"
+
+/* Retourne une chaine JSON pour la structure passée. */
+chaine_json_depuis_struct :: fonc (arg: eini) -> chaine
+{
+    enchaineuse : Enchaineuse
+	initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
+
+    imprime_valeur_json(*enchaineuse, arg)
+
+	retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+rappel_copie_chaine :: fonc (chn: chaine) -> chaine
+{
+    retourne chn
+}
+
+/* Parse une structure depuis une chaine JSON. Les valeurs chaines de caractères sont
+ * prises depuis la chaine originelle, ce qui implique que la chaine JSON originelle
+ * doit être valide pour la durée de vie de la structure retournée.
+ */
+parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -> bool, T
+{
+    #assert info_de(T).id == id_info.STRUCTURE
+
+    résultat : T = ---
+
+    scanner : ScannerJSON
+    initialise_scanner(*scanner, script, résultat, rappel_copie_chaine)
+
+    empile(*scanner, résultat)
+
+    succès := lis_objet(*scanner) == LexèmeJSON.FIN_OBJET
+
+    dépile(*scanner)
+
+    retourne succès, résultat
+}
+
+/* Parse une structure depuis un fichier JSON. Les chaines de caractères contenu dans le fichier
+ * sont copiées dans la structure, et devront être délogées par quiconque nous appelle.
+ */
+parse_struct_depuis_fichier_json :: fonc (chemin: chaine, $T: type_de_données) -> bool, T
+{
+    #assert info_de(T).id == id_info.STRUCTURE
+
+    // À FAIRE : erreur en cas d'absence du fichier
+    chm := construit_chemin(chemin)
+    script := contenu_fichier_texte(chm)
+    diffère { déloge(script); }
+
+    résultat : T = ---
+
+    si !script {
+        retourne faux, résultat
+    }
+
+    scanner : ScannerJSON
+    initialise_scanner(*scanner, script, structure, copie_chaine)
+
+    empile(*scanner, résultat)
+
+    succès := lis_objet(*scanner) == LexèmeJSON.FIN_OBJET
+
+    dépile(*scanner)
+
+    retourne succès, résultat
+}
