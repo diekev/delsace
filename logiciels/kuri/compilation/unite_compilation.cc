@@ -132,7 +132,7 @@ dls::chaine UniteCompilation::commentaire() const
 		}
 		case UniteCompilation::Etat::PRETE:
 		{
-			break;
+			return "prête";
 		}
 	}
 
