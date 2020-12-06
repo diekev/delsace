@@ -450,7 +450,7 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, DrapeauxTacher
 	}
 
 	if (tache_ri && tache_typage) {
-		if (tache_typage->unite->etat() == UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME) {
+		if (tache_typage->unite->etat() == UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME && taches_generation_ri.taille() > taches_typage.taille()) {
 			return taches_generation_ri.defile();
 		}
 
