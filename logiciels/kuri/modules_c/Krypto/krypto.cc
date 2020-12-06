@@ -417,7 +417,7 @@ int KRYPTO_HACHEUSE_compare_condensat(const unsigned char *a, unsigned long tail
 	}
 
 	for (unsigned long i = 0; i < longueur; ++i) {
-		resultat |= *gauche++ ^ *droite++;
+		resultat = resultat | (*gauche++ ^ *droite++);
 	}
 
 	return (resultat == 0 ? 0 : 1);

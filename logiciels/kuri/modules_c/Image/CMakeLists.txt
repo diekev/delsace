@@ -34,6 +34,7 @@ add_library(${NOM_PROJET} STATIC
     image.cc
 
     image.h
+    oiio.h
 )
 
 set_property(TARGET ${NOM_PROJET} PROPERTY CXX_STANDARD 14)
