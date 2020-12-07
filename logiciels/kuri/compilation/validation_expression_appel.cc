@@ -722,7 +722,7 @@ static auto apparie_appel_fonction(
 	auto index = 0l;
 	auto arguments_nommes = false;
 	auto dernier_arg_variadique = false;
-	dls::ensemble<IdentifiantCode *> args_rencontres;
+	dls::ensemblon<IdentifiantCode *, 10> args_rencontres;
 
 	POUR (args) {
 		if (it.ident != nullptr) {
@@ -749,7 +749,7 @@ static auto apparie_appel_fonction(
 				return false;
 			}
 
-			if ((args_rencontres.trouve(it.ident) != args_rencontres.fin()) && !param->possede_drapeau(EST_VARIADIQUE)) {
+			if ((args_rencontres.possede(it.ident)) && !param->possede_drapeau(EST_VARIADIQUE)) {
 				res.etat = FONCTION_INTROUVEE;
 				res.raison = RENOMMAGE_ARG;
 				res.nom_arg = it.ident->nom;
@@ -1300,7 +1300,7 @@ static auto apparie_appel_structure(
 		index_membre += 1;
 	}
 
-	auto noms_rencontres = dls::ensemble<IdentifiantCode *>();
+	auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 10>();
 	auto poids_appariement = 1.0;
 
 	POUR (arguments) {
@@ -1312,7 +1312,7 @@ static auto apparie_appel_structure(
 			return false;
 		}
 
-		if (noms_rencontres.trouve(it.ident) != noms_rencontres.fin()) {
+		if (noms_rencontres.possede(it.ident)) {
 			resultat.etat = FONCTION_TROUVEE;
 			resultat.raison = RENOMMAGE_ARG;
 			resultat.poids_args = 0.0;
