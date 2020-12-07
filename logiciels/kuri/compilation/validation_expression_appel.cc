@@ -1759,7 +1759,7 @@ bool valide_appel_fonction(
 {
 	Prof(valide_appel_fonction);
 
-#ifdef CHRONOMETRE_TYPAGE
+#ifdef STATISTIQUES_DETAILLEES
 	auto possede_erreur = true;
 	dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
 		if (possede_erreur) {
@@ -2035,7 +2035,7 @@ bool valide_appel_fonction(
 		expr->type = candidate->type;
 	}
 
-#ifdef CHRONOMETRE_TYPAGE
+#ifdef STATISTIQUES_DETAILLEES
 	possede_erreur = false;
 #endif
 

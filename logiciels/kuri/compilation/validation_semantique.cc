@@ -1981,7 +1981,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 {
 	Prof(valide_type_fonction);
 
-#ifdef CHRONOMETRE_TYPAGE
+#ifdef STATISTIQUES_DETAILLEES
 	auto possede_erreur = true;
 	dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
 		if (possede_erreur) {
@@ -2212,7 +2212,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 	graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-#ifdef CHRONOMETRE_TYPAGE
+#ifdef STATISTIQUES_DETAILLEES
 	possede_erreur = false;
 #endif
 

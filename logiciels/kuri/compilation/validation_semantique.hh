@@ -52,17 +52,6 @@ namespace erreur {
 enum class Genre : int;
 }
 
-#undef CHRONOMETRE_TYPAGE
-
-#ifdef CHRONOMETRE_TYPAGE
-#	define CHRONO_TYPAGE(entree_stats, nom) \
-	dls::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)([&](double temps) { \
-		entree_stats.fusionne_entree({ nom, temps }); \
-	})
-#else
-#	define CHRONO_TYPAGE(entree_stats, nom)
-#endif
-
 struct ContexteValidationCode {
 	Compilatrice &m_compilatrice;
 	Tacheronne &m_tacheronne;

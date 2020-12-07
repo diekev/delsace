@@ -27,6 +27,17 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#undef STATISTIQUES_DETAILLEES
+
+#ifdef STATISTIQUES_DETAILLEES
+#	define CHRONO_TYPAGE(entree_stats, nom) \
+	dls::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)([&](double temps) { \
+		entree_stats.fusionne_entree({ nom, temps }); \
+	})
+#else
+#	define CHRONO_TYPAGE(entree_stats, nom)
+#endif
+
 #if defined __cpp_concepts && __cpp_concepts >= 201507
 template <typename T>
 concept TypeEntreesStats = requires(T a, T b)

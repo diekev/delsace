@@ -407,7 +407,7 @@ int main(int argc, char *argv[])
 
 				//std::cerr << "tâcheronne " << it->id << " a dormis pendant " << it->temps_passe_a_dormir << "ms\n";
 
-#if 0
+#ifdef STATISTIQUES_DETAILLEES
 				auto imprime_stats = [](const EntreesStats<EntreeTemps> &entrees) {
 					std::cerr << entrees.nom << " :\n";
 					for (auto &entree : entrees.entrees) {
@@ -450,7 +450,9 @@ int main(int argc, char *argv[])
 
 	if (!compilatrice.possede_erreur && compilatrice.espace_de_travail_defaut->options.emets_metriques) {
 		imprime_stats(stats, debut_compilation);
-		//imprime_stats_detaillee(stats);
+#ifdef STATISTIQUES_DETAILLEES
+		imprime_stats_detaillee(stats);
+#endif
 	}
 
 #ifdef AVEC_LLVM
