@@ -193,10 +193,3 @@ struct PositionLexeme {
 PositionLexeme position_lexeme(Lexeme const &lexeme);
 
 void imprime_fichier_ligne(const EspaceDeTravail &espace, Lexeme const &lexeme);
-
-/* ************************************************************************** */
-
-NoeudDeclaration *cherche_symbole_dans_module(
-		EspaceDeTravail &espace,
-		dls::vue_chaine_compacte const &nom_module,
-		IdentifiantCode *ident);

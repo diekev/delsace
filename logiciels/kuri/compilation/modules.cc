@@ -138,15 +138,6 @@ PositionLexeme position_lexeme(Lexeme const &lexeme)
 	return pos;
 }
 
-NoeudDeclaration *cherche_symbole_dans_module(
-		EspaceDeTravail &espace,
-		dls::vue_chaine_compacte const &nom_module,
-		IdentifiantCode *ident)
-{
-	auto module = espace.module(nom_module);
-	return trouve_dans_bloc(module->bloc, ident);
-}
-
 void imprime_fichier_ligne(const EspaceDeTravail &espace, const Lexeme &lexeme)
 {
 	auto fichier = espace.fichier(lexeme.fichier);
