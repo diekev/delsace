@@ -1384,7 +1384,7 @@ static auto apparie_appel_structure(
 static auto apparie_construction_opaque(
 		EspaceDeTravail &/*espace*/,
 		ContexteValidationCode &/*contexte*/,
-		NoeudExpressionAppel const *expr,
+		NoeudExpressionAppel const */*expr*/,
 		TypeOpaque *type_opaque,
 		kuri::tableau<IdentifiantEtExpression> const &arguments,
 		DonneesCandidate &resultat)
