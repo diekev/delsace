@@ -73,9 +73,12 @@ construit_lexeuse :: fonc(chn : chaine) -> Lexeuse
 {
     lexeuse : Lexeuse
     lexeuse.tampon = chn
-    lexeuse.début = *chn[0]
-    lexeuse.début_mot = *chn[0]
-    lexeuse.fin = lexeuse.début + chn.taille
+
+	si chn {
+		lexeuse.début = *chn[0]
+		lexeuse.début_mot = *chn[0]
+		lexeuse.fin = lexeuse.début + chn.taille
+	}
 
     retourne lexeuse
 }

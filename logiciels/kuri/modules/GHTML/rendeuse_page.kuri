@@ -65,7 +65,12 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
         retourne nul
     }
 
-    racine := syntaxeuse.assembleuse.pile.tête()
+    racine : *NoeudSyntaxique = nul
+
+    /* le fichier est vide */
+    saufsi syntaxeuse.assembleuse.pile.est_vide() {
+        racine = syntaxeuse.assembleuse.pile.tête()
+    }
 
     si syntaxeuse.est_extension {
         page_étendue := trouve_dans_cache(rendeuse_gabarit, syntaxeuse.fichier_étendu)
@@ -173,6 +178,11 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
 
     si page == nul {
         retourne ErreurRenduPage.PageManquante
+    }
+
+    /* la page est vide */
+    saufsi page.racine {
+        retourne copie_chaine("")
     }
 
     données_génération : DonnéesGénération
