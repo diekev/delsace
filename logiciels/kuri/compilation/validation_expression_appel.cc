@@ -588,7 +588,7 @@ static auto apparie_appel_init_de(
 {
 	Prof(apparie_appel_init_de);
 
-	auto resultat = DonneesCandidate{};
+	auto resultat = DonneesCandidate();
 
 	if (args.taille > 1) {
 		resultat.etat = FONCTION_INTROUVEE;
@@ -1465,7 +1465,7 @@ static auto trouve_candidates_pour_appel(
 			if (apparie_appel_pointeur(expr, it.decl->type, espace, contexte, args, dc)) {
 				return true;
 			}
-			resultat.pousse(dc);
+			resultat.pousse(std::move(dc));
 		}
 		else if (it.quoi == CANDIDATE_EST_DECLARATION) {
 			auto decl = it.decl;
@@ -1486,7 +1486,7 @@ static auto trouve_candidates_pour_appel(
 				if (apparie_appel_structure(espace, contexte, expr, decl_struct, args, dc)) {
 					return true;
 				}
-				resultat.pousse(dc);
+				resultat.pousse(std::move(dc));
 			}
 			else if (decl->est_entete_fonction()) {
 				auto decl_fonc = decl->comme_entete_fonction();
@@ -1500,7 +1500,7 @@ static auto trouve_candidates_pour_appel(
 				if (apparie_appel_fonction(espace, contexte, expr, decl_fonc, args, dc)) {
 					return true;
 				}
-				resultat.pousse(dc);
+				resultat.pousse(std::move(dc));
 			}
 			else if (decl->est_decl_var()) {
 				auto type = decl->type;
@@ -1523,7 +1523,7 @@ static auto trouve_candidates_pour_appel(
 					if (!type_connu) {
 						dc.etat = FONCTION_INTROUVEE;
 						dc.raison = TYPE_N_EST_PAS_FONCTION;
-						resultat.pousse(dc);
+						resultat.pousse(std::move(dc));
 						return true;
 					}
 
@@ -1533,7 +1533,7 @@ static auto trouve_candidates_pour_appel(
 						if (apparie_appel_structure(espace, contexte, expr, type_struct->decl, args, dc)) {
 							return true;
 						}
-						resultat.pousse(dc);
+						resultat.pousse(std::move(dc));
 					}
 					else if (type_connu->est_union()) {
 						auto type_union = type_connu->comme_union();
@@ -1541,7 +1541,7 @@ static auto trouve_candidates_pour_appel(
 						if (apparie_appel_structure(espace, contexte, expr, type_union->decl, args, dc)) {
 							return true;
 						}
-						resultat.pousse(dc);
+						resultat.pousse(std::move(dc));
 					}
 					else if (type_connu->est_opaque()) {
 						auto type_opaque = type_connu->comme_opaque();
@@ -1549,12 +1549,12 @@ static auto trouve_candidates_pour_appel(
 						if (apparie_construction_opaque(espace, contexte, expr, type_opaque, args, dc)) {
 							return true;
 						}
-						resultat.pousse(dc);
+						resultat.pousse(std::move(dc));
 					}
 					else {
 						dc.etat = FONCTION_INTROUVEE;
 						dc.raison = TYPE_N_EST_PAS_FONCTION;
-						resultat.pousse(dc);
+						resultat.pousse(std::move(dc));
 						return false;
 					}
 				}
@@ -1569,29 +1569,29 @@ static auto trouve_candidates_pour_appel(
 					if (apparie_construction_opaque(espace, contexte, expr, type_opaque, args, dc)) {
 						return true;
 					}
-					resultat.pousse(dc);
+					resultat.pousse(std::move(dc));
 				}
 				else {
 					dc.etat = FONCTION_INTROUVEE;
 					dc.raison = TYPE_N_EST_PAS_FONCTION;
-					resultat.pousse(dc);
+					resultat.pousse(std::move(dc));
 					return false;
 				}
 
-				resultat.pousse(dc);
+				resultat.pousse(std::move(dc));
 			}
 		}
 		else if (it.quoi == CANDIDATE_EST_INIT_DE) {
 			// ici nous pourrions directement retourner si le type est correcte...
 			auto dc = apparie_appel_init_de(it.decl, args);
-			resultat.pousse(dc);
+			resultat.pousse(std::move(dc));
 		}
 		else if (it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
 			auto dc = DonneesCandidate();
 			if (apparie_appel_pointeur(expr, it.decl->type, espace, contexte, args, dc)) {
 				return true;
 			}
-			resultat.pousse(dc);
+			resultat.pousse(std::move(dc));
 		}
 	}
 

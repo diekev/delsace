@@ -113,6 +113,43 @@ struct DonneesCandidate {
 	IdentifiantCode *ident_poly_manquant = nullptr;
 
 	POINTEUR_NUL(DonneesCandidate)
+
+	DonneesCandidate() = default;
+
+	DonneesCandidate(DonneesCandidate &&autre)
+	{
+		this->permute(autre);
+	}
+
+	DonneesCandidate &operator=(DonneesCandidate &&autre)
+	{
+		this->permute(autre);
+		return *this;
+	}
+
+	void permute(DonneesCandidate &autre)
+	{
+		if (this == &autre) {
+			return;
+		}
+
+		std::swap(etat, autre.etat);
+		std::swap(raison, autre.raison);
+		std::swap(poids_args, autre.poids_args);
+		std::swap(nom_arg, autre.nom_arg);
+		std::swap(note, autre.note);
+		std::swap(requiers_contexte, autre.requiers_contexte);
+		std::swap(type, autre.type);
+		std::swap(type_attendu, autre.type_attendu);
+		std::swap(type_obtenu, autre.type_obtenu);
+		std::swap(noeud_erreur, autre.noeud_erreur);
+		std::swap(noeud_decl, autre.noeud_decl);
+		std::swap(ident_poly_manquant, autre.ident_poly_manquant);
+		exprs.echange(autre.exprs);
+		arguments_manquants.echange(autre.arguments_manquants);
+		transformations.echange(autre.transformations);
+		items_monomorphisation.echange(autre.items_monomorphisation);
+	}
 };
 
 bool valide_appel_fonction(
