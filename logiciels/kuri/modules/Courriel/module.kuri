@@ -14,16 +14,42 @@ importe SysFichier
  * config.mot_de_passe = "Mot!DeP#s53"
  *
  * courriel : Courriel
- * diffère { détruit_courriel(@courriel) }
+ * diffère { détruit_courriel(*courriel) }
  *
  * courriel.expéditeur = "expéditeur@courri.el"
  * courriel.message = "Le Message"
  *
- * ajoute_destinataire(@courriel, "destinataire@courri.el")
- * ajoute_destinataire_cc(@courriel, "detinataire.cc@courri.el")
+ * ajoute_destinataire(*courriel, "destinataire@courri.el")
+ * ajoute_destinataire_cc(*courriel, "detinataire.cc@courri.el")
  *
  * retourne envoie_courriel(config, courriel)
  */
+
+/* Représentation d'une adresse courriel. Contient la chaine originelle, et ses composants de nom et d'hôte. */
+AdresseCourriel :: struct {
+    chn: chaine
+    nom: chaine
+    hôte: chaine
+}
+
+/* Fonction auxilliaire pour parser un courriel pour les FonctionParsages du module Introspection. */
+parse_courriel_pour_info_type :: fonc (chn: chaine, tampon: []octet) -> bool
+{
+    pos_arobase := trouve_caractère_depuis_le_début(chn, '@')
+
+    si pos_arobase <= 0 {
+        retourne faux
+    }
+
+    courriel : AdresseCourriel = ---
+    courriel.chn = chn
+    courriel.nom = chn.sous_chaine(0, pos_arobase)
+    courriel.hôte = chn.sous_chaine(pos_arobase + 1, chn.taille)
+
+    copie_mem(src = courriel, dst = tampon, taille = tampon.taille)
+
+    retourne vrai
+}
 
 Courriel :: struct {
     message: chaine
