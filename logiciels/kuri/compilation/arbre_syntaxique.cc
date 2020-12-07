@@ -461,6 +461,7 @@ NoeudExpression *copie_noeud(
 			nbloc->membres->reserve(bloc->membres->taille);
 			nbloc->expressions->reserve(bloc->expressions->taille);
 			nbloc->possede_contexte = bloc->possede_contexte;
+			nbloc->est_differe = bloc->est_differe;
 
 			POUR (*bloc->expressions.verrou_lecture()) {
 				auto nexpr = copie_noeud(assem, it, nbloc);
