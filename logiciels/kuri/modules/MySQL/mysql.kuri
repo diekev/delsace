@@ -1,7 +1,7 @@
 #bibliothèque_dynamique "mysqlclient"
 
-#chemin "-L/opt/lib/mysql/lib/"
-#chemin "-I/opt/lib/mysql/include/"
+#chemin "/opt/lib/mysql/lib/"
+// #chemin "-I/opt/lib/mysql/include/"
 
 // Column types for MySQL
 enum_field_types :: énum n32 {
@@ -166,7 +166,8 @@ mysql_compress_context :: struct #externe {
 	// Compression algorithm name.
 	algorithm : enum_compression_algorithm
 
-	u : anonyme4
+	// À FAIRE(langage)
+	// u : anonyme4
 }
 
 // Get default compression level corresponding to a given compression method.

@@ -80,29 +80,41 @@ détruit_curseur :: fonc (curseur : *CurseurRésultat) -> rien
 
 exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> CurseurRésultat
 {
-	succès := mysql_query(*connexion.mysql, chaine_requête.pointeur)
+	curseur : CurseurRésultat
+
+	requête := chaine_c_temp(chaine_requête)
+	succès := mysql_query(*connexion.mysql, requête)
 
 	si succès != 0 {
-		e := mysql_error(*connexion.mysql)
-		chn := converti_chaine_c(e)
-		imprime("Une erreur est survenue lors de la requête : % !\n", chn)
-	}
-
-	résultat := mysql_store_result(*connexion.mysql)
-
-	si résultat == nul {
 		e := mysql_error(*connexion.mysql)
 
 		si e != nul {
 			chn := converti_chaine_c(e)
 			imprime("Une erreur est survenue lors de la requête : % !\n", chn)
 		}
+
+		retourne curseur
+	}
+
+	résultat := mysql_store_result(*connexion.mysql)
+
+	si résultat == nul {
+		/* ces types de requête ne retournent aucune donnée */
+		saufsi commence_par(chaine_requête, "INSERT", "UPDATE") {
+			e := mysql_error(*connexion.mysql)
+
+			si e != nul {
+				chn := converti_chaine_c(e)
+				imprime("Une erreur est survenue lors du stockage du résultat : % !\n", chn)
+			}
+		}
+
+		retourne curseur
 	}
 
 	nombre_résultat := mysql_num_rows(résultat)
 	nombre_champs := mysql_num_fields(résultat);
 
-	curseur : CurseurRésultat
 	curseur.résultat = résultat
 	curseur.nombre_colonne = nombre_champs
 	curseur.nombre_résultat = nombre_résultat
@@ -112,6 +124,10 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
 
 ligne_suivante :: fonc (curseur: *CurseurRésultat) -> **z8
 {
+	si curseur.résultat == nul {
+		retourne nul
+	}
+
 	ligne := mysql_fetch_row(curseur.résultat)
 
 	curseur.index_colonne = 0
@@ -126,4 +142,143 @@ colonne_suivante :: fonc (curseur: *CurseurRésultat) -> chaine
 	chn := construit_chaine(curseur.ligne[curseur.index_colonne], curseur.longueurs[curseur.index_colonne] comme z64)
 	curseur.index_colonne += 1
 	retourne chn
+}
+
+/* Retourne les noms des tables dans la base de données de la configuration. */
+requiers_tables_mysql :: fonc (config: &ConfigurationMySQL) -> []chaine
+{
+	résultat : []chaine
+
+	connexion := tente connecte(config) piège err {
+		retourne résultat
+	}
+
+	diffère { ferme_connexion(*connexion) }
+
+	curseur := exécute(*connexion, "SHOW TABLES")
+
+	tantque ligne_suivante(*curseur) != nul {
+		pour i dans 0 ... curseur.nombre_colonne - 1 {
+			chn := colonne_suivante(*curseur)
+			tableau_ajoute(*résultat, chn)
+		}
+	}
+
+	retourne résultat
+}
+
+importe Introspection
+
+/*
+
+table.insère([]structure, colonne...)
+
+
+insère :: fonc (table: &TableMySQL, valeur: eini, colonnes: ...chaine)
+{
+	requête := "INSERT INTO % (colonnes...) VALUES (valeur...)"
+
+	exécute(*connexion,
+}
+
+ajourne :: fonc (...)
+
+
+supprime :: fonc (...)
+
+ */
+
+TableMySQL :: struct {
+	nom : chaine
+	config : ConfigurationMySQL
+}
+
+crée_table :: fonc (nom: chaine, config: &ConfigurationMySQL) -> TableMySQL
+{
+	table : TableMySQL = ---
+	table.nom = nom
+	table.config = config
+	retourne table
+}
+
+sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...chaine) -> []T
+{
+	#assert info_de(T).id == id_info.STRUCTURE
+
+	résultat : []T
+	info := info_de(T)
+
+	// À FAIRE : vérifie que la table possède les noms des colonnes
+
+	infos_membres : []*InfoTypeMembreStructure
+	diffère { déloge(infos_membres) }
+
+	/* vérifie que le type possède les noms des colonnes */
+	pour colonnes {
+		pour membre dans info.membres {
+			si membre.nom == it {
+				tableau_ajoute(*infos_membres, membre)
+				arrête
+			}
+		}
+		sansarrêt {
+			imprime("le type ne possède pas la colonne % !\n", it)
+			retourne résultat
+		}
+	}
+
+	/* construit la chaine de la requête */
+	enchaineuse : Enchaineuse
+	initialise_enchaineuse(*enchaineuse)
+
+	ajoute_au_tampon(*enchaineuse, "SELECT ")
+
+	virgule := ""
+	pour colonnes {
+		ajoute_au_tampon(*enchaineuse, virgule, it)
+		virgule = ", "
+	}
+
+	ajoute_au_tampon(*enchaineuse, " FROM ", table.nom)
+
+	requête := chaine_depuis_enchaineuse(*enchaineuse)
+	diffère { déloge(requête) }
+
+	// imprime("requête : %\n", requête)
+
+	/* tente de nous connecté à la base de données */
+	connexion := tente connecte(table.config) piège err {
+		retourne résultat
+	}
+	diffère { ferme_connexion(*connexion) }
+
+	/* exécute la requête et construit le résultat */
+	curseur := exécute(*connexion, requête)
+	diffère { détruit_curseur(*curseur) }
+
+	si (curseur.nombre_colonne comme z64) != colonnes.taille {
+		retourne résultat
+	}
+
+	tantque ligne_suivante(*curseur) != nul {
+		valeur : T
+
+		eini_valeur : eini = valeur
+
+		pour i dans 0 ... curseur.nombre_colonne - 1 {
+			membre := infos_membres[i]
+
+			valeur_membre : eini = ---
+			valeur_membre.pointeur = eini_valeur.pointeur + membre.décalage
+			valeur_membre.info = membre.id
+
+			chn := colonne_suivante(*curseur)
+
+			valeur_membre.assigne_chaine(copie_chaine(chn))
+		}
+
+		tableau_ajoute(*résultat, valeur)
+	}
+
+	retourne résultat
 }
