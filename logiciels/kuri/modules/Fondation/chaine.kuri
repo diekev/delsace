@@ -468,6 +468,17 @@ commence_par :: fonc (ligne: chaine, motif: chaine) -> bool
     retourne tmp == motif
 }
 
+commence_par :: fonc (ligne: chaine, motifs: ...chaine) -> bool
+{
+    pour motifs {
+        si commence_par(ligne, it) {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
 fini_par :: fonc (ligne: chaine, motif: chaine) -> bool
 {
     si ligne.taille < motif.taille {
