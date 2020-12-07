@@ -516,7 +516,7 @@ private:
 			m_memoire = memoire::loge_tableau<T>("tablet", nouvelle_capacite);
 
 			for (int i = 0; i < m_taille; ++i) {
-				m_memoire[i] = m_tablet[i];
+				m_memoire[i] = std::move(m_tablet[i]);
 			}
 		}
 
