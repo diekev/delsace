@@ -3,6 +3,9 @@ importe Structures
 
 charge "catalogue_fichier"
 
+// À FAIRE : erreur si le fichier est inexistant
+// À FAIRE : initialise depuis un dossier
+
 RendeusePage :: struct {
     catalogue : CatalogueFichier
     cache_page : []PageGabarit
