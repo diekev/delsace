@@ -386,8 +386,8 @@ static auto trouve_candidates_pour_fonction_appelee(
 		auto accede = acces->accede;
 		auto membre = acces->membre;
 
-		if (accede->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION && fichier->importe_module(accede->ident->nom)) {
-			auto module = espace.module(accede->ident->nom);
+		if (accede->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION && fichier->importe_module(accede->ident)) {
+			auto module = espace.module(accede->ident);
 			auto declarations = dls::tablet<NoeudDeclaration *, 10>();
 			trouve_declarations_dans_bloc(declarations, module->bloc, membre->ident);
 

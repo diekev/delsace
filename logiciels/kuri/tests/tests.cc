@@ -288,7 +288,7 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
 	compilatrice.importe_module(espace, "Kuri", {});
 
 	/* Ne nomme pas le module, car c'est le module racine. */
-	auto module = espace->trouve_ou_cree_module(compilatrice.sys_module, "", "");
+	auto module = espace->trouve_ou_cree_module(compilatrice.sys_module, ID::chaine_vide, "");
 	auto resultat = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, "", "", false);
 	auto fichier = resultat.t2().fichier;
 	auto donnees_fichier = fichier->donnees_constantes;

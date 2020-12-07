@@ -348,7 +348,7 @@ Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite)
 	{
 		if (module->bloc == nullptr) {
 			module->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
-			module->bloc->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(module->nom());
+			module->bloc->ident = module->nom();
 		}
 		else {
 			m_tacheronne.assembleuse->bloc_courant(module->bloc);

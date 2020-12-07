@@ -50,7 +50,7 @@ EspaceDeTravail::~EspaceDeTravail()
 {
 }
 
-Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module, dls::vue_chaine nom_module, dls::vue_chaine chemin)
+Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module, IdentifiantCode *nom_module, dls::vue_chaine chemin)
 {
 	auto donnees_module = sys_module->trouve_ou_cree_module(nom_module, chemin);
 
@@ -65,7 +65,7 @@ Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeMod
 	return modules_->ajoute_element(donnees_module);
 }
 
-Module *EspaceDeTravail::module(const dls::vue_chaine_compacte &nom_module) const
+Module *EspaceDeTravail::module(const IdentifiantCode *nom_module) const
 {
 	auto modules_ = modules.verrou_lecture();
 	POUR_TABLEAU_PAGE ((*modules_)) {
@@ -92,7 +92,7 @@ ResultatFichier EspaceDeTravail::trouve_ou_cree_fichier(dls::outils::Synchrone<S
 	auto fichier = fichiers_->ajoute_element(donnees_fichier);
 
 	if (importe_kuri) {
-		fichier->modules_importes.insere("Kuri");
+		fichier->modules_importes.insere(ID::Kuri);
 	}
 
 	fichier->module = module;
@@ -503,7 +503,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 	auto nom_dossier = chemin_absolu.filename();
 
 	// @concurrence critique
-	auto module = espace->trouve_ou_cree_module(sys_module, nom_dossier.c_str(), chemin_absolu.c_str());
+	auto module = espace->trouve_ou_cree_module(sys_module, ptr_compilatrice->table_identifiants->identifiant_pour_nouvelle_chaine(nom_dossier.c_str()), chemin_absolu.c_str());
 
 	if (module->importe) {
 		return module;
@@ -531,7 +531,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 		}
 	}
 
-	if (module->nom() == "Kuri") {
+	if (module->nom() == ID::Kuri) {
 		auto resultat = espace->trouve_ou_cree_fichier(sys_module, module, "constantes", "constantes.kuri", false);
 
 		if (resultat.tag_type() == FichierNeuf::tag) {
@@ -702,7 +702,7 @@ void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chain
 
 	ptr_compilatrice->chaines_ajoutees_a_la_compilation->pousse(chaine);
 
-	auto module = espace->trouve_ou_cree_module(ptr_compilatrice->sys_module, "", "");
+	auto module = espace->trouve_ou_cree_module(ptr_compilatrice->sys_module, ID::chaine_vide, "");
 	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, "métaprogramme", "", ptr_compilatrice->importe_kuri);
 
 	if (resultat.tag_type() == FichierNeuf::tag) {
@@ -742,7 +742,7 @@ void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chai
 		return;
 	}
 
-	auto module = espace->trouve_ou_cree_module(ptr_compilatrice->sys_module, "", "");
+	auto module = espace->trouve_ou_cree_module(ptr_compilatrice->sys_module, ID::chaine_vide, "");
 	ptr_compilatrice->ajoute_fichier_a_la_compilation(espace, chemin.stem().c_str(), module, {});
 }
 
@@ -840,7 +840,7 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne)
 
 	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
 
-	auto module = espace->module("");
+	auto module = espace->module(ID::chaine_vide);
 
 	auto resultat = espace->trouve_ou_cree_fichier(
 				ptr_compilatrice->sys_module,

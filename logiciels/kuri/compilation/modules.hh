@@ -78,7 +78,7 @@ struct Fichier {
 
 	DonneesConstantesFichier *donnees_constantes = nullptr;
 
-	dls::ensemblon<dls::vue_chaine_compacte, 16> modules_importes{};
+	dls::ensemblon<IdentifiantCode *, 16> modules_importes{};
 
 	Module *module = nullptr;
 	MetaProgramme *metaprogramme_corps_texte = nullptr;
@@ -94,7 +94,7 @@ struct Fichier {
 	/**
 	 * Retourne vrai si le fichier importe un module du nom spécifié.
 	 */
-	bool importe_module(dls::vue_chaine_compacte const &nom_module) const;
+	bool importe_module(IdentifiantCode *nom_module) const;
 
 	dls::chaine const &chemin() const
 	{
@@ -135,7 +135,7 @@ using ResultatFichier = Resultat<FichierExistant, FichierNeuf>;
 
 struct DonneesConstantesModule {
 	/* le nom du module, qui est le nom du dossier où se trouve les fichiers */
-	dls::chaine nom{""};
+	IdentifiantCode *nom = nullptr;
 	dls::chaine chemin{""};
 };
 
@@ -159,7 +159,7 @@ struct Module {
 		return donnees_constantes->chemin;
 	}
 
-	dls::chaine const &nom() const
+	IdentifiantCode *const &nom() const
 	{
 		return donnees_constantes->nom;
 	}
@@ -169,9 +169,9 @@ struct SystemeModule {
 	tableau_page<DonneesConstantesModule> donnees_modules{};
 	tableau_page<DonneesConstantesFichier> donnees_fichiers{};
 
-	DonneesConstantesModule *trouve_ou_cree_module(dls::vue_chaine nom, dls::vue_chaine chemin);
+	DonneesConstantesModule *trouve_ou_cree_module(IdentifiantCode *nom, dls::vue_chaine chemin);
 
-	DonneesConstantesModule *cree_module(dls::vue_chaine nom, dls::vue_chaine chemin);
+	DonneesConstantesModule *cree_module(IdentifiantCode *nom, dls::vue_chaine chemin);
 
 	DonneesConstantesFichier *trouve_ou_cree_fichier(dls::vue_chaine nom, dls::vue_chaine chemin);
 

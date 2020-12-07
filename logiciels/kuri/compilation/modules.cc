@@ -35,12 +35,12 @@ const int FichierNeuf::tag = tags++;
 
 /* ************************************************************************** */
 
-bool Fichier::importe_module(dls::vue_chaine_compacte const &nom_module) const
+bool Fichier::importe_module(IdentifiantCode *nom_module) const
 {
 	return modules_importes.possede(nom_module);
 }
 
-DonneesConstantesModule *SystemeModule::trouve_ou_cree_module(dls::vue_chaine nom, dls::vue_chaine chemin)
+DonneesConstantesModule *SystemeModule::trouve_ou_cree_module(IdentifiantCode *nom, dls::vue_chaine chemin)
 {
 	auto chemin_normalise = dls::chaine(chemin);
 
@@ -57,7 +57,7 @@ DonneesConstantesModule *SystemeModule::trouve_ou_cree_module(dls::vue_chaine no
 	return cree_module(nom, chemin_normalise);
 }
 
-DonneesConstantesModule *SystemeModule::cree_module(dls::vue_chaine nom, dls::vue_chaine chemin)
+DonneesConstantesModule *SystemeModule::cree_module(IdentifiantCode *nom, dls::vue_chaine chemin)
 {
 	auto dm = donnees_modules.ajoute_element();
 	dm->nom = nom;
@@ -120,7 +120,6 @@ long SystemeModule::memoire_utilisee() const
 	}
 
 	POUR_TABLEAU_PAGE (donnees_modules) {
-		memoire += it.nom.taille();
 		memoire += it.chemin.taille();
 	}
 

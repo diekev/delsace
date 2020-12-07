@@ -176,13 +176,13 @@ public:
 	 * Retourne un pointeur vers le module avec le nom et le chemin spécifiés.
 	 * Si un tel module n'existe pas, un nouveau module est créé.
 	 */
-	Module *trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module, dls::vue_chaine nom_module, dls::vue_chaine chemin);
+	Module *trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module, IdentifiantCode *nom_module, dls::vue_chaine chemin);
 
 	/**
 	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
 	 * module n'a ce nom, retourne nullptr.
 	 */
-	Module *module(const dls::vue_chaine_compacte &nom_module) const;
+	Module *module(const IdentifiantCode *nom_module) const;
 
 	/**
 	 * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le

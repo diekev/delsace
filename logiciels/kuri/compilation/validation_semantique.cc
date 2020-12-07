@@ -388,7 +388,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			if (enfant1->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
 				auto fichier = espace->fichier(noeud->lexeme->fichier);
 
-				auto const nom_symbole = enfant1->ident->nom;
+				auto const nom_symbole = enfant1->ident;
 				if (fichier->importe_module(nom_symbole)) {
 					/* À FAIRE(réusinage arbre) */
 //					auto module_importe = m_compilatrice.module(nom_symbole);

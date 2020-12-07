@@ -479,7 +479,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto tacheronne = Tacheronne(compilatrice);
 		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
 
-		auto module = espace->trouve_ou_cree_module(compilatrice.sys_module, "", "");
+		auto module = espace->trouve_ou_cree_module(compilatrice.sys_module, ID::chaine_vide, "");
 		auto resultat = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, "", "", true);
 		auto fichier = resultat.t2().fichier;
 

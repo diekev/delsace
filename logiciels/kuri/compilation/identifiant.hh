@@ -60,6 +60,8 @@ private:
 
 namespace ID {
 
+extern IdentifiantCode *chaine_vide;
+extern IdentifiantCode *Kuri;
 extern IdentifiantCode *contexte;
 extern IdentifiantCode *ContexteProgramme;
 extern IdentifiantCode *InfoType;

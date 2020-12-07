@@ -92,6 +92,8 @@ IdentifiantCode *TableIdentifiant::ajoute_identifiant(const dls::vue_chaine_comp
 
 namespace ID {
 
+IdentifiantCode *chaine_vide;
+IdentifiantCode *Kuri;
 IdentifiantCode *contexte;
 IdentifiantCode *ContexteProgramme;
 IdentifiantCode *InfoType;
@@ -173,6 +175,8 @@ IdentifiantCode *__point_d_entree_systeme;
 
 void initialise_identifiants(TableIdentifiant &table)
 {
+	ID::chaine_vide = table.identifiant_pour_chaine("");
+	ID::Kuri = table.identifiant_pour_chaine("Kuri");
 	ID::contexte = table.identifiant_pour_chaine("contexte");
 	ID::ContexteProgramme = table.identifiant_pour_chaine("ContexteProgramme");
 	ID::InfoType = table.identifiant_pour_chaine("InfoType");

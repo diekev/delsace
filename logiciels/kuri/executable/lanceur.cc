@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 
-		auto module = espace_defaut->trouve_ou_cree_module(compilatrice.sys_module, "", dossier.c_str());
+		auto module = espace_defaut->trouve_ou_cree_module(compilatrice.sys_module, ID::chaine_vide, dossier.c_str());
 		compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier.c_str(), module, {});
 
 #ifdef AVEC_THREADS
