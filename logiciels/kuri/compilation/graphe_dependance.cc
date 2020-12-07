@@ -154,7 +154,7 @@ void GrapheDependance::rassemble_statistiques(Statistiques &stats) const
 	}
 
 	auto &stats_graphe = stats.stats_graphe_dependance;
-	stats_graphe.ajoute_entree({ "NoeudDependance", noeuds.taille(), memoire });
+	stats_graphe.fusionne_entree({ "NoeudDependance", noeuds.taille(), memoire });
 }
 
 void GrapheDependance::ajoute_dependances(

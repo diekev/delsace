@@ -570,8 +570,8 @@ void Operateurs::rassemble_statistiques(Statistiques &stats) const
 	}
 
 	auto &stats_ops = stats.stats_operateurs;
-	stats_ops.ajoute_entree({ "OperateurUnaire", nombre_unaires, memoire_unaires });
-	stats_ops.ajoute_entree({ "OperateurBinaire", nombre_binaires, memoire_binaires });
+	stats_ops.fusionne_entree({ "OperateurUnaire", nombre_unaires, memoire_unaires });
+	stats_ops.fusionne_entree({ "OperateurBinaire", nombre_binaires, memoire_binaires });
 }
 
 static std::pair<bool, double> verifie_compatibilite(

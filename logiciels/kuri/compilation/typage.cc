@@ -988,60 +988,60 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
 
 	auto &stats_types = stats.stats_types;
 
-	stats_types.ajoute_entree({ DONNEES_ENTREE(Type, types_simples) });
-	stats_types.ajoute_entree({ DONNEES_ENTREE(TypePointeur, types_pointeurs) });
-	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeReference, types_references) });
-	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeTypeDeDonnees, types_type_de_donnees) });
-	stats_types.ajoute_entree({ DONNEES_ENTREE(TypePolymorphique, types_polymorphiques) });
+	stats_types.fusionne_entree({ DONNEES_ENTREE(Type, types_simples) });
+	stats_types.fusionne_entree({ DONNEES_ENTREE(TypePointeur, types_pointeurs) });
+	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeReference, types_references) });
+	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeTypeDeDonnees, types_type_de_donnees) });
+	stats_types.fusionne_entree({ DONNEES_ENTREE(TypePolymorphique, types_polymorphiques) });
 
 	auto memoire_membres_structures = 0l;
 	POUR_TABLEAU_PAGE ((*types_structures.verrou_lecture())) {
 		memoire_membres_structures += it.membres.taille * taille_de(TypeCompose::Membre);
 	}
-	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeStructure, types_structures) + memoire_membres_structures });
+	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeStructure, types_structures) + memoire_membres_structures });
 
 	auto memoire_membres_enums = 0l;
 	POUR_TABLEAU_PAGE ((*types_enums.verrou_lecture())) {
 		memoire_membres_enums += it.membres.taille * taille_de(TypeCompose::Membre);
 	}
-	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeEnum, types_enums) + memoire_membres_enums });
+	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeEnum, types_enums) + memoire_membres_enums });
 
 	auto memoire_membres_unions = 0l;
 	POUR_TABLEAU_PAGE ((*types_unions.verrou_lecture())) {
 		memoire_membres_unions += it.membres.taille * taille_de(TypeCompose::Membre);
 	}
-	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeUnion, types_unions) + memoire_membres_unions });
+	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeUnion, types_unions) + memoire_membres_unions });
 
 	auto memoire_membres_tfixes = 0l;
 	POUR_TABLEAU_PAGE ((*types_tableaux_fixes.verrou_lecture())) {
 		memoire_membres_tfixes += it.membres.taille * taille_de(TypeCompose::Membre);
 	}
-	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeTableauFixe, types_tableaux_fixes) + memoire_membres_tfixes });
+	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeTableauFixe, types_tableaux_fixes) + memoire_membres_tfixes });
 
 	auto memoire_membres_tdyns = 0l;
 	POUR_TABLEAU_PAGE ((*types_tableaux_dynamiques.verrou_lecture())) {
 		memoire_membres_tdyns += it.membres.taille * taille_de(TypeCompose::Membre);
 	}
-	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeTableauDynamique, types_tableaux_dynamiques) + memoire_membres_tdyns });
+	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeTableauDynamique, types_tableaux_dynamiques) + memoire_membres_tdyns });
 
 	auto memoire_membres_tvars = 0l;
 	POUR_TABLEAU_PAGE ((*types_variadiques.verrou_lecture())) {
 		memoire_membres_tvars += it.membres.taille * taille_de(TypeCompose::Membre);
 	}
-	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeVariadique, types_variadiques) + memoire_membres_tvars });
+	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeVariadique, types_variadiques) + memoire_membres_tvars });
 
 	auto memoire_params_fonctions = 0l;
 	POUR_TABLEAU_PAGE ((*types_fonctions.verrou_lecture())) {
 		memoire_params_fonctions += it.types_entrees.taille * taille_de(Type *);
 		memoire_params_fonctions += it.types_sorties.taille * taille_de(Type *);
 	}
-	stats_types.ajoute_entree({ DONNEES_ENTREE(TypeFonction, types_fonctions) + memoire_params_fonctions });
+	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeFonction, types_fonctions) + memoire_params_fonctions });
 
 	// les types communs sont dans les types simples, ne comptons que la mémoire du tableau
-	stats_types.ajoute_entree({ "TypeCommun", types_communs.taille(), types_communs.taille() * taille_de(Type *) });
+	stats_types.fusionne_entree({ "TypeCommun", types_communs.taille(), types_communs.taille() * taille_de(Type *) });
 
-	stats_types.ajoute_entree({ "eini", 1, taille_de(TypeCompose) + taille_de(TypeCompose *) + type_eini->membres.taille * taille_de(TypeCompose::Membre) });
-	stats_types.ajoute_entree({ "chaine", 1, taille_de(TypeCompose) + taille_de(TypeCompose *) + type_chaine->membres.taille * taille_de(TypeCompose::Membre) });
+	stats_types.fusionne_entree({ "eini", 1, taille_de(TypeCompose) + taille_de(TypeCompose *) + type_eini->membres.taille * taille_de(TypeCompose::Membre) });
+	stats_types.fusionne_entree({ "chaine", 1, taille_de(TypeCompose) + taille_de(TypeCompose *) + type_chaine->membres.taille * taille_de(TypeCompose::Membre) });
 
 #undef DONNES_ENTREE
 }
