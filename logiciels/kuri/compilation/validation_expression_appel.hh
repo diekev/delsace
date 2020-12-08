@@ -116,10 +116,14 @@ struct DonneesCandidate {
 
 	DonneesCandidate() = default;
 
+	DonneesCandidate(DonneesCandidate const &) = default;
+
 	DonneesCandidate(DonneesCandidate &&autre)
 	{
 		this->permute(autre);
 	}
+
+	DonneesCandidate &operator=(DonneesCandidate const &) = default;
 
 	DonneesCandidate &operator=(DonneesCandidate &&autre)
 	{
