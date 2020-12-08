@@ -189,6 +189,53 @@ BUGS
 -- les graphes de simulation n'ont pas de menu après avoir ouvert un fichier de sauvegarde
 -- fuite de mémoire dans l'exécution de LCC
 
+
+- courbes :
+-- controles des dimensions, controles de l'interpolation par point
+- projection triplanaire :
+-- répétition, rotation (degrée), décalage U/V, échelle U/V, falloff start, end
+
+- outils/manipulatrices 2d :
+-- brosse pour peinture 2d
+-- manipulatrice pour bouger/tourner/échelliser
+-- cerces pour la rotoscopie
+
+enum class type_outil : int {
+	AUCUN,
+	BROSSE,
+	MANIPULATRICE_POSITION,
+	MANIPULATRICE_ECHELLE,
+	MANIPULATRICE_ROTATION,
+	CERCE,
+};
+
+brosse_2d -> couleur, mode fusion, alpha
+
+operatrice {
+	virtual type_outil outils_posssedes() const;
+}
+
+------------------------------------------------------------------------
+
+petits projets :
+-- réimplémentation de l'opératrice kelvinlets
+---- utilisation d'attributs crées via des scripts
+---- implémentation d'un système de sélection de points
+---- création d'une animation où un homme frappe dans le vide avec les ondes de chocs se propageant sur son corps
+-- implémentation d'une nuée de lucioles
+---- implémentation d'une fonction dans LCC permettant de chercher les points dans un voisinage
+
+------------------------------------------------------------------------
+
+effets :
+	muscle/peau
+	explosion
+	fracture physique / rigid body
+	simulation particule
+	simulation cheveux
+
+multi-threaded evaluation of scene animation
+
 ################################################################################
 danjo
 
