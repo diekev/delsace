@@ -3,10 +3,20 @@ importe JSON
 importe Introspection
 
 ConfigurationMySQL :: struct {
+	// @note : l'hôte doit être une adresse IP
 	hôte : chaine
 	utilisateur : chaine
 	mot_de_passe : chaine
 	base_de_données : chaine
+}
+
+ErreurPiloteMySQL :: erreur {
+	XXX
+}
+
+PiloteMySQL :: struct {
+	config: ConfigurationMySQL
+	fonctions_parsage : []FonctionParsage
 }
 
 ConnexionMySQL :: struct {
@@ -28,7 +38,51 @@ RésultatConnexionMySQL :: union {
 	c: ConnexionMySQL
 }
 
-connecte :: fonc (config: ConfigurationMySQL) -> RésultatConnexionMySQL
+crée_pilote_mysql :: fonc (fichier_config: chaine) -> PiloteMySQL | ErreurPiloteMySQL
+{
+	succès, config := parse_struct_depuis_fichier_json(fichier_config, ConfigurationMySQL)
+
+	si !succès {
+		imprime_log("[MySQL]", "impossible de parser la configuration\n")
+		retourne ErreurPiloteMySQL.XXX
+	}
+
+	pilote : PiloteMySQL
+	pilote.config = config
+	initalise_types_base(*pilote.fonctions_parsage)
+
+	retourne pilote
+}
+
+ajoute_fonction_parsage :: fonc (pilote: &PiloteMySQL, info: *InfoType, rappel: fonc(chaine, []octet)(bool))
+{
+	ajoute_fonction(*pilote.fonctions_parsage, info, rappel)
+}
+
+/* Retourne les noms des tables dans la base de données du pilote. */
+requiers_tables_mysql :: fonc (pilote: *PiloteMySQL) -> []chaine
+{
+	résultat : []chaine
+
+	connexion := tente crée_connexion(pilote) piège err {
+		retourne résultat
+	}
+
+	diffère { ferme_connexion(*connexion) }
+
+	curseur := exécute(*connexion, "SHOW TABLES")
+
+	tantque ligne_suivante(*curseur) != nul {
+		pour i dans 0 ... curseur.nombre_colonne - 1 {
+			chn := colonne_suivante(*curseur)
+			tableau_ajoute(*résultat, chn)
+		}
+	}
+
+	retourne résultat
+}
+
+crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
 {
 	mysql : MYSQL
 	handler := mysql_init(*mysql)
@@ -37,26 +91,24 @@ connecte :: fonc (config: ConfigurationMySQL) -> RésultatConnexionMySQL
 
     // handler ne peut être nul que si le paramètre passé à mysql_init est nul, auquel cas une allocation aura lieu
     si handler == nul {
-        imprime("impossible d'allouer de la mémoire pour l'initialisation de MySQL !\n")
+        imprime_log("[MySQL]", "impossible d'allouer de la mémoire pour l'initialisation de MySQL !\n")
         retourne ErreurConnexionMySQL.MémoireInsuffisante
     }
 
-/*
-	succès := mysql_options(@mysql, mysql_option.MYSQL_READ_DEFAULT_GROUP,"option".pointeur);
+	marque := obtiens_marque_stockage_temporaire()
+	diffère { set_marque_stockage_temporaire(marque) }
 
-    si succès != 0 {
-        imprime("erreur lors de la mise en place d'une option !\n")
-        retourne 1
-    }
-*/
+	hôte := chaine_c_temp(pilote.config.hôte)
+	utilisateur := chaine_c_temp(pilote.config.utilisateur)
+	mot_de_passe := chaine_c_temp(pilote.config.mot_de_passe)
+	base_de_données := chaine_c_temp(pilote.config.base_de_données)
 
-	// @note : l'hôte doit être une adresse IP
-	c := mysql_real_connect(*mysql, config.hôte.pointeur, config.utilisateur.pointeur, config.mot_de_passe.pointeur, config.base_de_données.pointeur, 0, nul, 0);
+	c := mysql_real_connect(*mysql, hôte, utilisateur, mot_de_passe, base_de_données, 0, nul, 0);
 
 	si (c == nul) {
 		e := mysql_error(*mysql)
 		chn := converti_chaine_c(e)
-		imprime("[MYSQL] : %\n", chn);
+		imprime_log("[MySQL]", "erreur lors de la connexion : %\n", chn);
 		retourne ErreurConnexionMySQL.MauvaiseConnexion
 	}
 
@@ -82,6 +134,7 @@ détruit_curseur :: fonc (curseur : *CurseurRésultat) -> rien
 	mysql_free_result(curseur.résultat)
 }
 
+// À FAIRE : erreur
 exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> CurseurRésultat
 {
 	curseur : CurseurRésultat
@@ -96,7 +149,7 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
 
 		si e != nul {
 			chn := converti_chaine_c(e)
-			imprime("Une erreur est survenue lors de la requête : % !\n", chn)
+			imprime_log("[MySQL]", "Une erreur est survenue lors de la requête : % !\n", chn)
 		}
 
 		retourne curseur
@@ -111,7 +164,7 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
 
 			si e != nul {
 				chn := converti_chaine_c(e)
-				imprime("Une erreur est survenue lors du stockage du résultat : % !\n", chn)
+				imprime_log("[MySQL]", "Une erreur est survenue lors du stockage du résultat : % !\n", chn)
 			}
 		}
 
@@ -148,78 +201,6 @@ colonne_suivante :: fonc (curseur: *CurseurRésultat) -> chaine
 	chn := construit_chaine(curseur.ligne[curseur.index_colonne], curseur.longueurs[curseur.index_colonne] comme z64)
 	curseur.index_colonne += 1
 	retourne chn
-}
-
-/* Retourne les noms des tables dans la base de données de la configuration. */
-requiers_tables_mysql :: fonc (config: &ConfigurationMySQL) -> []chaine
-{
-	résultat : []chaine
-
-	connexion := tente connecte(config) piège err {
-		retourne résultat
-	}
-
-	diffère { ferme_connexion(*connexion) }
-
-	curseur := exécute(*connexion, "SHOW TABLES")
-
-	tantque ligne_suivante(*curseur) != nul {
-		pour i dans 0 ... curseur.nombre_colonne - 1 {
-			chn := colonne_suivante(*curseur)
-			tableau_ajoute(*résultat, chn)
-		}
-	}
-
-	retourne résultat
-}
-
-/*
-
-table.insère([]structure, colonne...)
-
-
-insère :: fonc (table: &TableMySQL, valeur: eini, colonnes: ...chaine)
-{
-	requête := "INSERT INTO % (colonnes...) VALUES (valeur...)"
-
-	exécute(*connexion,
-}
-
-ajourne :: fonc (...)
-
-
-supprime :: fonc (...)
-
- */
-
-ErreurPiloteMySQL :: erreur {
-	XXX
-}
-
-PiloteMySQL :: struct {
-	config: ConfigurationMySQL
-	fonctions_parsage : []FonctionParsage
-}
-
-crée_pilote_mysql :: fonc (fichier_config: chaine) -> PiloteMySQL | ErreurPiloteMySQL
-{
-	succès, config := parse_struct_depuis_fichier_json(fichier_config, ConfigurationMySQL)
-
-	si !succès {
-		imprime("impossible de parser la configuration\n")
-		retourne ErreurPiloteMySQL.XXX
-	}
-
-	pilote : PiloteMySQL
-	pilote.config = config
-	initalise_types_base(*pilote.fonctions_parsage)
-
-	retourne pilote
-}
-
-ajoute_fonction_parsage :: fonc (pilote: &PiloteMySQL, info: *InfoType, rappel: fonc(chaine, []octet)(bool))
-{
-	ajoute_fonction(*pilote.fonctions_parsage, info, rappel)
 }
 
 accède_table :: fonc (pilote: *PiloteMySQL, nom: chaine) -> TableMySQL
@@ -269,7 +250,7 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 	infos_membres := trouve_info_membres_pour_colonnes("[MySQL.sélection]", info, ...colonnes)
 
 	saufsi infos_membres {
-		imprime("colonne(s) manquante(s) pour la sélection\n")
+		imprime_log("[MySQL]", "colonne(s) manquante(s) pour la sélection\n")
 		retourne résultat
 	}
 
@@ -292,10 +273,8 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 	requête := chaine_depuis_enchaineuse(*enchaineuse)
 	diffère { déloge(requête) }
 
-	// imprime("requête : %\n", requête)
-
 	/* tente de nous connecté à la base de données */
-	connexion := tente connecte(table.pilote.config) piège err {
+	connexion := tente crée_connexion(table.pilote) piège err {
 		retourne résultat
 	}
 	diffère { ferme_connexion(*connexion) }
@@ -356,7 +335,7 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
 	infos_membres := trouve_info_membres_pour_colonnes("[MySQL.sélection]", info, ...colonnes)
 
 	saufsi infos_membres {
-		imprime("colonne(s) manquante(s) pour la sélection\n")
+		imprime_log("[MySQL]", "colonne(s) manquante(s) pour la sélection\n")
 		retourne faux
 	}
 
@@ -392,12 +371,12 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
 	diffère { déloge(requête) }
 
 	/* tente de nous connecté à la base de données */
-	connexion := tente connecte(table.pilote.config) piège err {
+	connexion := tente crée_connexion(table.pilote) piège err {
 		retourne faux
 	}
 	diffère { ferme_connexion(*connexion) }
 
-	/* exécute la requête et construit le résultat */
+	/* exécute la requête */
 	curseur := exécute(*connexion, requête)
 	diffère { détruit_curseur(*curseur) }
 
