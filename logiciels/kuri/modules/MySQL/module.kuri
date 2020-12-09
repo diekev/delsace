@@ -33,6 +33,8 @@ connecte :: fonc (config: ConfigurationMySQL) -> RésultatConnexionMySQL
 	mysql : MYSQL
 	handler := mysql_init(*mysql)
 
+	_ := mysql_set_character_set(*mysql, "utf8".pointeur)
+
     // handler ne peut être nul que si le paramètre passé à mysql_init est nul, auquel cas une allocation aura lieu
     si handler == nul {
         imprime("impossible d'allouer de la mémoire pour l'initialisation de MySQL !\n")
@@ -285,7 +287,7 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 		virgule = ", "
 	}
 
-	ajoute_au_tampon(*enchaineuse, " FROM ", table.nom)
+	ajoute_au_tampon(*enchaineuse, " FROM ", table.nom, "")
 
 	requête := chaine_depuis_enchaineuse(*enchaineuse)
 	diffère { déloge(requête) }
