@@ -1,4 +1,6 @@
 importe Fondation
+importe JSON
+importe Introspection
 
 ConfigurationMySQL :: struct {
 	hôte : chaine
@@ -85,6 +87,8 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
 	requête := chaine_c_temp(chaine_requête)
 	succès := mysql_query(*connexion.mysql, requête)
 
+	imprime_log("[MySQL]", "exécution de la requête : %\n", chaine_requête)
+
 	si succès != 0 {
 		e := mysql_error(*connexion.mysql)
 
@@ -167,8 +171,6 @@ requiers_tables_mysql :: fonc (config: &ConfigurationMySQL) -> []chaine
 	retourne résultat
 }
 
-importe Introspection
-
 /*
 
 table.insère([]structure, colonne...)
@@ -188,17 +190,69 @@ supprime :: fonc (...)
 
  */
 
-TableMySQL :: struct {
-	nom : chaine
-	config : ConfigurationMySQL
+ErreurPiloteMySQL :: erreur {
+	XXX
 }
 
-crée_table :: fonc (nom: chaine, config: &ConfigurationMySQL) -> TableMySQL
+PiloteMySQL :: struct {
+	config: ConfigurationMySQL
+	fonctions_parsage : []FonctionParsage
+}
+
+crée_pilote_mysql :: fonc (fichier_config: chaine) -> PiloteMySQL | ErreurPiloteMySQL
 {
-	table : TableMySQL = ---
+	succès, config := parse_struct_depuis_fichier_json(fichier_config, ConfigurationMySQL)
+
+	si !succès {
+		imprime("impossible de parser la configuration\n")
+		retourne ErreurPiloteMySQL.XXX
+	}
+
+	pilote : PiloteMySQL
+	pilote.config = config
+	initalise_types_base(*pilote.fonctions_parsage)
+
+	retourne pilote
+}
+
+ajoute_fonction_parsage :: fonc (pilote: &PiloteMySQL, info: *InfoType, rappel: fonc(chaine, []octet)(bool))
+{
+	ajoute_fonction(*pilote.fonctions_parsage, info, rappel)
+}
+
+accède_table :: fonc (pilote: *PiloteMySQL, nom: chaine) -> TableMySQL
+{
+	table : TableMySQL
 	table.nom = nom
-	table.config = config
+	table.pilote = pilote
 	retourne table
+}
+
+TableMySQL :: struct {
+	nom : chaine
+	pilote : *PiloteMySQL
+}
+
+trouve_info_membres_pour_colonnes :: fonc (agent: chaine, info: *InfoTypeStructure, colonnes: ...chaine) -> []*InfoTypeMembreStructure
+{
+	infos_membres : []*InfoTypeMembreStructure
+
+	/* vérifie que le type possède les noms des colonnes */
+	pour colonnes {
+		pour membre dans info.membres {
+			si membre.nom == it {
+				tableau_ajoute(*infos_membres, membre)
+				arrête
+			}
+		}
+		sansarrêt {
+			imprime_log(agent, "le type ne possède pas la colonne % !\n", it)
+			déloge(infos_membres)
+			retourne infos_membres
+		}
+	}
+
+	retourne infos_membres
 }
 
 sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...chaine) -> []T
@@ -210,22 +264,14 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 
 	// À FAIRE : vérifie que la table possède les noms des colonnes
 
-	infos_membres : []*InfoTypeMembreStructure
-	diffère { déloge(infos_membres) }
+	infos_membres := trouve_info_membres_pour_colonnes("[MySQL.sélection]", info, ...colonnes)
 
-	/* vérifie que le type possède les noms des colonnes */
-	pour colonnes {
-		pour membre dans info.membres {
-			si membre.nom == it {
-				tableau_ajoute(*infos_membres, membre)
-				arrête
-			}
-		}
-		sansarrêt {
-			imprime("le type ne possède pas la colonne % !\n", it)
-			retourne résultat
-		}
+	saufsi infos_membres {
+		imprime("colonne(s) manquante(s) pour la sélection\n")
+		retourne résultat
 	}
+
+	diffère { déloge(infos_membres) }
 
 	/* construit la chaine de la requête */
 	enchaineuse : Enchaineuse
@@ -247,7 +293,7 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 	// imprime("requête : %\n", requête)
 
 	/* tente de nous connecté à la base de données */
-	connexion := tente connecte(table.config) piège err {
+	connexion := tente connecte(table.pilote.config) piège err {
 		retourne résultat
 	}
 	diffère { ferme_connexion(*connexion) }
@@ -272,13 +318,86 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 			valeur_membre.pointeur = eini_valeur.pointeur + membre.décalage
 			valeur_membre.info = membre.id
 
+			fonction := trouve_fonction_pour_type(table.pilote.fonctions_parsage, membre.id)
+
+			saufsi fonction {
+				déloge(résultat)
+				retourne résultat
+			}
+
 			chn := colonne_suivante(*curseur)
 
-			valeur_membre.assigne_chaine(copie_chaine(chn))
+			tampon : []octet
+			tampon.pointeur = valeur_membre.pointeur comme *z8
+			tampon.taille = membre.id.taille_en_octet comme z64
+
+			saufsi fonction.rappel(chn, tampon) {
+				déloge(résultat)
+				retourne résultat
+			}
 		}
 
 		tableau_ajoute(*résultat, valeur)
 	}
 
 	retourne résultat
+}
+
+insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
+{
+	#assert info_de(T).id == id_info.STRUCTURE
+
+	info := info_de(T)
+
+	// À FAIRE : vérifie que la table possède les noms des colonnes
+
+	infos_membres := trouve_info_membres_pour_colonnes("[MySQL.sélection]", info, ...colonnes)
+
+	saufsi infos_membres {
+		imprime("colonne(s) manquante(s) pour la sélection\n")
+		retourne faux
+	}
+
+	diffère { déloge(infos_membres) }
+
+	enchaineuse : Enchaineuse
+	initialise_enchaineuse(*enchaineuse)
+
+	ajoute_au_tampon(*enchaineuse, "INSERT INTO ", table.nom)
+
+	virgule := " ("
+	pour colonnes {
+		ajoute_au_tampon(*enchaineuse, virgule, it)
+		virgule = ", "
+	}
+
+	ajoute_au_tampon(*enchaineuse, ") VALUES ")
+
+	virgule = " ("
+	pour membre dans infos_membres {
+		valeur_membre : eini = ---
+		valeur_membre.pointeur = *valeur comme *z8 + membre.décalage
+		valeur_membre.info = membre.id
+
+		ajoute_au_tampon(*enchaineuse, virgule)
+		imprime_valeur(*enchaineuse, valeur_membre, vrai)
+		virgule = ", "
+	}
+
+	ajoute_au_tampon(*enchaineuse, ")")
+
+	requête := chaine_depuis_enchaineuse(*enchaineuse)
+	diffère { déloge(requête) }
+
+	/* tente de nous connecté à la base de données */
+	connexion := tente connecte(table.pilote.config) piège err {
+		retourne faux
+	}
+	diffère { ferme_connexion(*connexion) }
+
+	/* exécute la requête et construit le résultat */
+	curseur := exécute(*connexion, requête)
+	diffère { détruit_curseur(*curseur) }
+
+	retourne vrai
 }
