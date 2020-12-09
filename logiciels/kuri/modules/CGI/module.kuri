@@ -146,6 +146,7 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
 
     // prépare les données de la requête
     uri_normalisé := résoud_échappement_url(données.uri)
+    diffère { déloge(uri_normalisé) }
 
     uri := tente parse_uri_depuis_chemin_requête(uri_normalisé) piège err {
         imprime("Status: 400 Bad Request\n")
@@ -155,6 +156,7 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     }
 
     cookies := parse_cookie_client(données.cookie)
+    diffère { déloge(cookies) }
 
     requête : Requête
     requête.uri = uri
@@ -194,11 +196,6 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     si requête.contenu {
         déloge(requête.contenu)
     }
-    // À FAIRE(langage) : si ceci se trouve plus haut, la chaine est délogée avant la fin de la fonction...
-    déloge(uri_normalisé)
-
-    // Idem
-    diffère { déloge(cookies) }
 }
 
 crée_réponse :: fonc (résultat : &RésultatRequête)

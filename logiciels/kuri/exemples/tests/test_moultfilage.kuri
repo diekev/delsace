@@ -1,5 +1,3 @@
-// À FAIRE(langage) : permet de préciser le ctx pour les fonctions avec contexte appelée dans des fonctions sans
-
 // https://franckh.developpez.com/tutoriels/posix/pthreads/
 
 importe Fondation

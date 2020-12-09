@@ -2,6 +2,12 @@
 // nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
 // compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
 
+les typedefs pour les tableaux d'arguments variadiques ne sont pas générés si un type tableau correspondant n'existe pas
+-- voir test_polymorphique.kuri
+crash quand nous retournons une valeur d'une fonction n'ayant pas de type de retour
+crash dans les exécutables quand nous prenont l'adresse d'une référence
+crash quand nous paniquons sur un membre non-actif d'une union
+
 - sépare les files de compilation pour les entêtes et les corps, les entêtes ayant la précédence, afin de faire en sorte que les validations des appels ne recommencent pas trop
 - ajout d'un état aux validations des appels
 
@@ -254,6 +260,8 @@ initialisation de tableaux fixes :
 - réusine les emplois de variables dans les structures, pour les infos types, il nous faut la structure, mais pour la validation la structure et ses membres, ses membres ne doivent être ceux de l'employeuse
 
 // --------------------------- Discriminations
+
+discr sur union anonyme
 
 avoir une meilleure sécurité de type pour les einis, via discr et un transtypage automatique
 
