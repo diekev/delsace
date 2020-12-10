@@ -107,10 +107,10 @@ données_cgi :: fonc () -> DonnéesCGI
 
 ServeuseCGI :: struct ($T: type_de_données) {
     routeuse : Routeuse(T = T)
-    intergiciel : fonc(*Requête, *T)(rien)
+    intergiciel : fonc(*Requête, *T)(RésultatRequête)
 }
 
-construit_serveuse_cgi :: fonc (données: *$T, intergiciel: fonc(*Requête, *T)(rien)) -> ServeuseCGI(T = T)
+construit_serveuse_cgi :: fonc (données: *$T, intergiciel: fonc(*Requête, *T)(RésultatRequête)) -> ServeuseCGI(T = T)
 {
     serveuse : ServeuseCGI(T = T)
     serveuse.routeuse.données_serveuse = données
@@ -170,6 +170,12 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
         retourne
     }
 
+    diffère {
+        si requête.contenu {
+            déloge(requête.contenu)
+        }
+    }
+
     si données.méthode == "POST" && données.taille_contenu != "" && données.taille_contenu != "0" {
     //taille_contenu := parse_nombre_entier(données.taille_contenu)
     // type_contenu := données.type_contenu // application/x-www-form-urlencoded
@@ -184,7 +190,12 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     }
 
     si serveuse.intergiciel {
-        serveuse.intergiciel(*requête, serveuse.routeuse.données_serveuse)
+        résultat := serveuse.intergiciel(*requête, serveuse.routeuse.données_serveuse)
+
+        si résultat.status != CodeÉtatHTTP.OK {
+            crée_réponse(résultat)
+            retourne
+        }
     }
 
     // résoud la requête
@@ -192,10 +203,6 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
 
     // envoie la réponse au client
     crée_réponse(résultat)
-
-    si requête.contenu {
-        déloge(requête.contenu)
-    }
 }
 
 crée_réponse :: fonc (résultat : &RésultatRequête)
