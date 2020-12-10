@@ -8,6 +8,8 @@ crash quand nous retournons une valeur d'une fonction n'ayant pas de type de ret
 crash dans les exécutables quand nous prenont l'adresse d'une référence
 crash quand nous paniquons sur un membre non-actif d'une union
 
+erreur de compilation si nous définisson une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
+
 - sépare les files de compilation pour les entêtes et les corps, les entêtes ayant la précédence, afin de faire en sorte que les validations des appels ne recommencent pas trop
 - ajout d'un état aux validations des appels
 
