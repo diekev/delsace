@@ -1,7 +1,11 @@
-#bibliothèque_dynamique "mysqlclient"
+#bibliothèque_statique "/opt/lib/mysql/lib/libmysqlclient.a"
+#bibliothèque_statique "/opt/lib/mysql/lib/libmysqlservices.a"
 
-#chemin "/opt/lib/mysql/lib/"
-// #chemin "-I/opt/lib/mysql/include/"
+#bibliothèque_dynamique "crypto"
+#bibliothèque_dynamique "ssl"
+#bibliothèque_dynamique "dl"
+
+#chemin "/opt/lib/mysql/lib/private/"
 
 // Column types for MySQL
 enum_field_types :: énum n32 {
