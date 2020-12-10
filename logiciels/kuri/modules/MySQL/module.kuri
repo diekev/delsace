@@ -19,6 +19,18 @@ PiloteMySQL :: struct {
 	fonctions_parsage : []FonctionParsage
 }
 
+détruit_pilote :: fonc (pilote: *PiloteMySQL, détruit_config: bool)
+{
+	déloge(pilote.fonctions_parsage)
+
+	si détruit_config {
+		déloge(pilote.config.hôte)
+		déloge(pilote.config.utilisateur)
+		déloge(pilote.config.mot_de_passe)
+		déloge(pilote.config.base_de_données)
+	}
+}
+
 ConnexionMySQL :: struct {
 	mysql : MYSQL
 }

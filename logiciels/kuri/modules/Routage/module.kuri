@@ -259,6 +259,8 @@ ajoute_cookie :: fonc (résultat: &RésultatRequête, cookie: Cookie)
 
 détruit_résultat :: fonc (résultat: &RésultatRequête)
 {
+    déloge(résultat.cookies)
+    déloge(résultat.contenu)
     déloge(résultat.entêtes)
 }
 
@@ -283,6 +285,10 @@ Routeuse :: struct ($T: type_de_données) {
 
 détruit_routeuse :: fonc (routeuse: *Routeuse(T = $T)) -> rien
 {
+    pour routeuse.routes {
+        déloge(it.règles_routage)
+    }
+
     déloge(routeuse.routes)
 }
 

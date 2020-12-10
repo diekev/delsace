@@ -26,6 +26,11 @@ ParseuseFormatURL :: struct {
     fonctions : []FonctionParsage
 }
 
+détruit_parseuse :: fonc (parseuse: *ParseuseFormatURL)
+{
+    déloge(parseuse.fonctions)
+}
+
 /* Initialise la parseuse pour avoir des fonctions de parsage pour les types
  * de bases (hors pointeur, référence, ou tableau).
  */
