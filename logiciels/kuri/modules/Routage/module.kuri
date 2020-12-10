@@ -226,6 +226,8 @@ Requête :: struct {
     type_contenu : chaine
     méthode : chaine
     adresse_ip : AdresseIPv4
+
+    données_route : []DonnéesAppariement
 }
 
 // Le résultat d'une requête.
@@ -304,6 +306,9 @@ apparie_route :: fonc (routeuse: *Routeuse(T = $T), requête: *Requête) -> Rés
         données := tente apparie_règles_et_route(it.règles_routage, requête.uri.chemin) piège err {
             continue
         }
+
+        diffère { déloge(données) }
+        requête.données_route = données
 
         si requête.méthode == "GET" {
             si it.méthode_get {
