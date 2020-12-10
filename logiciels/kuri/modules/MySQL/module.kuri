@@ -382,3 +382,62 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
 
 	retourne vrai
 }
+
+exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, colonnes: ...chaine) -> []T
+{
+	#assert info_de(T).id == id_info.STRUCTURE
+
+	info := info_de(T)
+	résultat : []T
+
+	infos_membres := trouve_info_membres_pour_colonnes("[MySQL]", info, ...colonnes)
+	diffère { déloge(infos_membres) }
+
+	/* tente de nous connecté à la base de données */
+	connexion := tente crée_connexion(pilote) piège err {
+		retourne résultat
+	}
+	diffère { ferme_connexion(*connexion) }
+
+	curseur := exécute(*connexion, requête)
+
+	si (curseur.nombre_colonne comme z64) != colonnes.taille {
+		retourne résultat
+	}
+
+	tantque ligne_suivante(*curseur) != nul {
+		valeur : T
+
+		eini_valeur : eini = valeur
+
+		pour i dans 0 ... curseur.nombre_colonne - 1 {
+			membre := infos_membres[i]
+
+			valeur_membre : eini = ---
+			valeur_membre.pointeur = eini_valeur.pointeur + membre.décalage
+			valeur_membre.info = membre.id
+
+			fonction := trouve_fonction_pour_type(pilote.fonctions_parsage, membre.id)
+
+			saufsi fonction {
+				déloge(résultat)
+				retourne résultat
+			}
+
+			chn := colonne_suivante(*curseur)
+
+			tampon : []octet
+			tampon.pointeur = valeur_membre.pointeur comme *z8
+			tampon.taille = membre.id.taille_en_octet comme z64
+
+			saufsi fonction.rappel(chn, tampon) {
+				déloge(résultat)
+				retourne résultat
+			}
+		}
+
+		tableau_ajoute(*résultat, valeur)
+	}
+
+	retourne résultat
+}
