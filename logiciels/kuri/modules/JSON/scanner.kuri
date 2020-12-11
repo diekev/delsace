@@ -87,6 +87,12 @@ initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: ei
     scanner.lis()
 }
 
+détruit_scanner :: fonc (scanner: *ScannerJSON)
+{
+    détruit(scanner.pile)
+    déloge(scanner.erreurs)
+}
+
 empile :: fonc (scanner: *ScannerJSON, valeur: eini)
 {
     empile(scanner.pile, valeur)
