@@ -1,0 +1,105 @@
+#bibliothèque_statique "libalembic.a"
+#bibliothèque_dynamique "Alembic"
+
+#chemin "/opt/lib/alembic/lib"
+
+IArchive :: struct #externe
+IObject :: struct #externe
+
+/* les types d'objets */
+IMaillage :: struct #externe
+ISubdivision :: struct #externe
+IXform :: struct #externe
+IPoints :: struct #externe
+ICamera :: struct #externe
+ICourbes :: struct #externe
+
+/* les schémas des objets */
+ISchemaMaillage :: struct #externe
+ISchemaSubdivision :: struct #externe
+ISchemaXform :: struct #externe
+ISchemaPoints :: struct #externe
+ISchemaCamera :: struct #externe
+ISchemaCourbes :: struct #externe
+
+/* les échantillons des objets */
+IEchantillonMaillage :: struct #externe
+IEchantillonSubdivision :: struct #externe
+IEchantillonXform :: struct #externe
+IEchantillonPoints :: struct #externe
+IEchantillonCamera :: struct #externe
+IEchantillonCourbes :: struct #externe
+
+ABC_ouvre_archive :: fonc (chemin: chaine) -> *IArchive #externe
+ABC_ferme_archive :: fonc (archive: *IArchive) -> rien #externe
+ABC_archive_iobject_racine :: fonc (archive: *IArchive) -> *IObject #externe
+
+ABC_iobject_nombre_enfants :: fonc (iobject: *IObject) -> z64 #externe
+ABC_iobject_enfant_index :: fonc (iobject: *IObject, index: z64) -> *IObject #externe
+ABC_iobject_enfant_nom :: fonc (iobject: *IObject, nom: chaine) -> *IObject #externe
+ABC_iobject_nom :: fonc (iobject: *IObject) -> chaine #externe
+ABC_iobject_chemin :: fonc (iobject: *IObject) -> chaine #externe
+ABC_detruit_iobject :: fonc (iobject: *IObject) #externe
+
+ABC_est_maillage :: fonc (iobject: *IObject) -> bool #externe
+ABC_est_subdivision :: fonc (iobject: *IObject) -> bool #externe
+ABC_est_xform :: fonc (iobject: *IObject) -> bool #externe
+ABC_est_points :: fonc (iobject: *IObject) -> bool #externe
+ABC_est_camera :: fonc (iobject: *IObject) -> bool #externe
+ABC_est_courbes :: fonc (iobject: *IObject) -> bool #externe
+
+ABC_comme_maillage :: fonc (iobject: *IObject) -> *IMaillage #externe
+ABC_comme_subdivision :: fonc (iobject: *IObject) -> *ISubdivision #externe
+ABC_comme_xform :: fonc (iobject: *IObject) -> *IXform #externe
+ABC_comme_points :: fonc (iobject: *IObject) -> *IPoints #externe
+ABC_comme_camera :: fonc (iobject: *IObject) -> *ICamera #externe
+ABC_comme_courbes :: fonc (iobject: *IObject) -> *ICourbes #externe
+
+ABC_schema_maillage :: fonc (iobject: *IMaillage) -> *ISchemaMaillage #externe
+ABC_schema_subdivision :: fonc (iobject: *ISubdivision) -> *ISchemaSubdivision #externe
+ABC_schema_camera :: fonc (iobject: *ICamera) -> *ISchemaCamera #externe
+ABC_schema_courbes :: fonc (iobject: *ICourbes) -> *ISchemaCourbes #externe
+ABC_schema_points :: fonc (iobject: *IPoints) -> *ISchemaPoints #externe
+ABC_schema_xform :: fonc (iobject: *IXform) -> *ISchemaXform #externe
+
+ABC_nombre_echant_maillage :: fonc (ischema: *ISchemaMaillage) -> z64 #externe
+
+ABC_echant_maillage_index :: fonc (ischema: *ISchemaMaillage, index: z64) -> *IEchantillonMaillage #externe
+
+ABC_echant_maillage_temps :: fonc (ischema: *ISchemaMaillage, temps: r64) -> *IEchantillonMaillage #externe
+
+/*
+
+    ISchemaMaillage :: struct externe
+    ISchemaCourbe :: struct externe
+    ISchemaPoint :: struct externe
+    ISchemaSubdivision :: struct externe
+    ISchemaCamera :: struct externe
+
+    ABC_maillage :: fonc (iobject: *IObject) -> *IObjectMaillage
+    ABC_subdivision :: fonc (iobject: *IObject) -> *ISchemaSubdivision
+    ABC_courbe :: fonc (iobject: *IObject) -> *IObjectCourbe
+    ABC_point :: fonc (iobject: *IObject) -> *IObjectPoint
+    ABC_camera :: fonc (iobject: *IObject) -> *IObjectCamera
+
+    ABC_est_maillage :: fonc (iobject: *IObject) -> bool
+    ABC_est_subdivision :: fonc (iobject: *IObject) -> bool
+    ABC_est_courbe :: fonc (iobject: *IObject) -> bool
+    ABC_est_point :: fonc (iobject: *IObject) -> bool
+    ABC_est_camera :: fonc (iobject: *IObject) -> bool
+
+    ABC_schema_maillage :: fonc (iobject: *IObjectMaillage) -> ISchemaMaillage
+    ABC_schema_subdivision :: fonc (iobject: *IObject) -> ISchemaSubdivision
+    ABC_schema_courbe :: fonc (iobject: *IObject) -> ISchemaCourbe
+    ABC_schema_point :: fonc (iobject: *IObject) -> ISchemaPoint
+    ABC_schema_camera :: fonc (iobject: *IObject) -> ISchemaCamera
+
+    ABC_lis_points()
+    ABC_traverse_hiérarchie()
+    ABC_nombre_enfants()
+    ABC_cherche_enfants()
+    ABC_ouvre_archive()
+
+    ABC_lis_points :: fonc ()
+    ABC_lis_polygones :: fonc ()
+ */

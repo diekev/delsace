@@ -14,36 +14,38 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2020 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# ------------------------------------------------------------------------------
+set(NOM_PROJET alembic)
 
-option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
+    /opt/lib/alembic/include/
+    /opt/lib/openexr/include/
+    /opt/lib/openexr/include/OpenEXR
+)
 
-if(AVEC_LLVM)
-	find_package(LLVM REQUIRED)
-	add_definitions(-DAVEC_LLVM)
-endif()
+set(BIBLIOTHEQUES
+    /opt/lib/alembic/lib/libAlembic.so
+)
 
-# ------------------------------------------------------------------------------
+add_library(${NOM_PROJET} STATIC
+    abc_ipa_c.cc
 
-set(RACINE_INSTALLATION kuri)
+    abc_ipa_c.h
+    alembic.h
+)
 
-add_subdirectory(compilation)
-add_subdirectory(executable)
-add_subdirectory(exemples)
-add_subdirectory(modules_c/Alembic)
-add_subdirectory(modules_c/Aléa)
-add_subdirectory(modules_c/FTGL)
-add_subdirectory(modules_c/Image)
-add_subdirectory(modules_c/Krypto)
-add_subdirectory(representation_intermediaire)
-add_subdirectory(tests)
+set_property(TARGET ${NOM_PROJET} PROPERTY CXX_STANDARD 14)
+
+target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 
 install(
-	DIRECTORY modules
-	DESTINATION ${RACINE_INSTALLATION}
-)
+	TARGETS ${NOM_PROJET}
+	ARCHIVE
+	DESTINATION /opt/bin/kuri/modules/Alembic/)
