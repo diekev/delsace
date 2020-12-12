@@ -291,14 +291,14 @@ lance_application :: fonc(app : &Application) -> z32
     largeur : z32 = TAILLE_TUILE * TUILES_X
     hauteur : z32 = TAILLE_TUILE * TUILES_Y
 
-    //donnees_moniteur = transtype(glfwGetVideoMode(glfwGetPrimaryMonitor()) : *DonneesMoniteur);
+    // donnees_moniteur := glfwGetVideoMode(glfwGetPrimaryMonitor()) comme *DonneesMoniteur
 
-    //si donnees_moniteur != nul {
+    // si donnees_moniteur != nul {
     //    largeur = donnees_moniteur.largeur;
     //    hauteur = donnees_moniteur.hauteur;
-    //}
+    // }
 
-    //imprime(mémoire(donnees_moniteur), "\n");
+    // imprime("%\n", mémoire(donnees_moniteur));
 
     titre := "Créathèque"
 

@@ -479,6 +479,9 @@ SDL_KeyboardEvent :: struct {
 SDL_Event :: union nonsûr #externe {
     type : SDL_EventType
     key : SDL_KeyboardEvent
+
+    /* force la taille de l'union à être de 56 octets */
+    padding: [56]z8
 }
 
 SDL_PollEvent :: fonc (event: *SDL_Event) -> z32 #externe
