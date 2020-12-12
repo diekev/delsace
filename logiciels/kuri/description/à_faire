@@ -2,8 +2,6 @@
 // nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
 // compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
 
-les typedefs pour les tableaux d'arguments variadiques ne sont pas générés si un type tableau correspondant n'existe pas
--- voir test_polymorphique.kuri
 crash dans les exécutables quand nous prenont l'adresse d'une référence
 crash quand nous paniquons sur un membre non-actif d'une union
 

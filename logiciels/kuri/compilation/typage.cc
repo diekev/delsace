@@ -745,8 +745,12 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 	auto type = types_variadiques_->ajoute_element(type_pointe, std::move(membres));
 
 	if (type_pointe != nullptr) {
+		/* crée un tableau dynamique correspond pour que la génération */
+		auto tableau_dyn = type_tableau_dynamique(type_pointe);
+
 		auto graphe = graphe_.verrou_ecriture();
 		graphe->connecte_type_type(type, type_pointe);
+		graphe->connecte_type_type(type, tableau_dyn);
 	}
 
 	return type;
