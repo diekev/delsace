@@ -3159,6 +3159,10 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	decl->type->drapeaux |= TYPE_FUT_VALIDE;
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
+	POUR (type_struct->types_employes) {
+		graphe->connecte_type_type(type_struct, it);
+	}
+
 	POUR (type_compose->membres) {
 		graphe->connecte_type_type(type_compose, it.type);
 	}
