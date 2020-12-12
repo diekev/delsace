@@ -4,7 +4,6 @@
 
 les typedefs pour les tableaux d'arguments variadiques ne sont pas générés si un type tableau correspondant n'existe pas
 -- voir test_polymorphique.kuri
-crash quand nous retournons une valeur d'une fonction n'ayant pas de type de retour
 crash dans les exécutables quand nous prenont l'adresse d'une référence
 crash quand nous paniquons sur un membre non-actif d'une union
 

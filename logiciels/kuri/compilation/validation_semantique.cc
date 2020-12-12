@@ -2349,6 +2349,11 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 
 	auto nombre_retour = type_fonc->types_sorties.taille;
 
+	if (nombre_retour == 1 && type_fonc->types_sorties[0]->est_rien()) {
+		::rapporte_erreur(espace, inst->expr, "Retour d'une valeur d'une fonction qui ne retourne rien");
+		return true;
+	}
+
 	dls::file<NoeudExpression *> variables;
 
 	POUR (fonction_courante->params_sorties) {
