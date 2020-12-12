@@ -3128,7 +3128,29 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 	}
 
-	calcule_taille_type_compose(type_compose);
+	/* À FAIRE: ceci est pour supporter les héritages dans les structures externes :
+	 *
+	 * BaseExterne :: struct #externe
+	 *
+	 * DérivéeExterne :: struct #externe {
+	 *	  empl base: BaseExterne
+	 * }
+	 *
+	 * Ici nous n'aurons aucun membre.
+	 *
+	 * Il nous faudra une meilleure manière de gérer ce cas, peut-être via une
+	 * erreur de compilation si nous tentons d'utiliser un tel type par valeur.
+	 * Il faudra également proprement gérer le cas pour les infos types.
+	 */
+	if (type_compose->membres.taille == 0) {
+		if (!decl->est_externe) {
+			::rapporte_erreur(espace, decl, "Le type n'a aucun membre et n'est pas un marqué comme externe !");
+		}
+	}
+	else {
+		calcule_taille_type_compose(type_compose);
+	}
+
 	decl->type->drapeaux |= TYPE_FUT_VALIDE;
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 
