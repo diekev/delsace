@@ -2851,6 +2851,8 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	decl->noeud_dependance = noeud_dependance;
 
 	if (decl->est_externe && decl->bloc == nullptr) {
+		decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+		decl->type->drapeaux |= TYPE_FUT_VALIDE;
 		return false;
 	}
 
