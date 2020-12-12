@@ -4,42 +4,130 @@
 #chemin "/opt/lib/alembic/lib"
 
 IArchive :: struct #externe
-IObject :: struct #externe
 
 /* les types d'objets */
-IMaillage :: struct #externe
-ISubdivision :: struct #externe
-IXform :: struct #externe
-IPoints :: struct #externe
-ICamera :: struct #externe
-ICourbes :: struct #externe
+IObject :: struct #externe
+
+EnteteIObject :: struct #externe
+
+IMaillage :: struct #externe {
+    empl base: IObject
+}
+
+ISubdivision :: struct #externe {
+    empl base: IObject
+}
+
+IXform :: struct #externe {
+    empl base: IObject
+}
+
+IPoints :: struct #externe {
+    empl base: IObject
+}
+
+ICamera :: struct #externe {
+    empl base: IObject
+}
+
+ICourbes :: struct #externe {
+    empl base: IObject
+}
+
+ILumiere :: struct #externe {
+    empl base: IObject
+}
+
+IMateriau :: struct #externe {
+    empl base: IObject
+}
+
+IGroupePoly :: struct #externe {
+    empl base: IObject
+}
+
+IProprieteComposee :: struct #externe
+
+ISchema :: struct #externe {
+    empl base: IProprieteComposee
+}
 
 /* les schémas des objets */
-ISchemaMaillage :: struct #externe
-ISchemaSubdivision :: struct #externe
-ISchemaXform :: struct #externe
-ISchemaPoints :: struct #externe
-ISchemaCamera :: struct #externe
-ISchemaCourbes :: struct #externe
+ISchemaMaillage :: struct #externe {
+    empl base: ISchema
+}
+
+ISchemaSubdivision :: struct #externe {
+    empl base: ISchema
+}
+
+ISchemaXform :: struct #externe {
+    empl base: ISchema
+}
+
+ISchemaPoints :: struct #externe {
+    empl base: ISchema
+}
+
+ISchemaCamera :: struct #externe {
+    empl base: ISchema
+}
+
+ISchemaCourbes :: struct #externe {
+    empl base: ISchema
+}
+
+ISchemaLumiere :: struct #externe {
+    empl base: ISchema
+}
+
+ISchemaMateriau :: struct #externe {
+    empl base: ISchema
+}
+
+ISchemaGroupePoly :: struct #externe {
+    empl base: ISchema
+}
+
+EntetePropriete :: struct #externe
+EchantillonageTemps :: struct #externe
 
 /* les échantillons des objets */
-IEchantillonMaillage :: struct #externe
-IEchantillonSubdivision :: struct #externe
-IEchantillonXform :: struct #externe
-IEchantillonPoints :: struct #externe
-IEchantillonCamera :: struct #externe
-IEchantillonCourbes :: struct #externe
+IEchantMaillage :: struct #externe
+IEchantSubdivision :: struct #externe
+IEchantXform :: struct #externe
+IEchantPoints :: struct #externe
+IEchantCamera :: struct #externe
+IEchantCourbes :: struct #externe
+IEchantGroupePoly :: struct #externe
+
+/* interface IArchive */
 
 ABC_ouvre_archive :: fonc (chemin: chaine) -> *IArchive #externe
 ABC_ferme_archive :: fonc (archive: *IArchive) -> rien #externe
 ABC_archive_iobject_racine :: fonc (archive: *IArchive) -> *IObject #externe
 
+/* interface IObject */
+
+ABC_iobject_parent :: fonc (iobject: *IObject) -> *IObject #externe
+ABC_iobject_entete :: fonc (iobject: *IObject) -> *EnteteIObject #externe
+ABC_iobject_entete_enfant_par_index :: fonc (iobject: *IObject, index: z64) -> *EnteteIObject #externe
+ABC_iobject_entete_enfant_par_nom :: fonc (iobject: *IObject, nom: chaine) -> *EnteteIObject #externe
 ABC_iobject_nombre_enfants :: fonc (iobject: *IObject) -> z64 #externe
 ABC_iobject_enfant_index :: fonc (iobject: *IObject, index: z64) -> *IObject #externe
 ABC_iobject_enfant_nom :: fonc (iobject: *IObject, nom: chaine) -> *IObject #externe
 ABC_iobject_nom :: fonc (iobject: *IObject) -> chaine #externe
 ABC_iobject_chemin :: fonc (iobject: *IObject) -> chaine #externe
-ABC_detruit_iobject :: fonc (iobject: *IObject) #externe
+ABC_iobject_detruit :: fonc (iobject: *IObject) #externe
+ABC_iobject_est_racine_instance :: fonc (iobject: *IObject) -> bool #externe
+ABC_iobject_est_descendant_instance :: fonc (iobject: *IObject) -> bool #externe
+ABC_iobject_chemin_source_instance :: fonc (iobject: *IObject) -> chaine #externe
+ABC_iobject_est_enfant_par_nom_instance :: fonc (iobject: *IObject, nom: chaine) -> bool #externe
+ABC_iobject_est_enfant_par_index_instance :: fonc (iobject: *IObject, index: z64) -> bool #externe
+ABC_iobject_pointeur_instance :: fonc (iobject: *IObject) -> *IObject #externe
+ABC_iobject_proprietes :: fonc (iobject: *IObject) -> IProprieteComposee #externe
+
+/* enquêtes sur type objet */
 
 ABC_est_maillage :: fonc (iobject: *IObject) -> bool #externe
 ABC_est_subdivision :: fonc (iobject: *IObject) -> bool #externe
@@ -47,6 +135,11 @@ ABC_est_xform :: fonc (iobject: *IObject) -> bool #externe
 ABC_est_points :: fonc (iobject: *IObject) -> bool #externe
 ABC_est_camera :: fonc (iobject: *IObject) -> bool #externe
 ABC_est_courbes :: fonc (iobject: *IObject) -> bool #externe
+ABC_est_lumiere :: fonc (iobject: *IObject) -> bool #externe
+ABC_est_materiau :: fonc (iobject: *IObject) -> bool #externe
+ABC_est_groupe_poly :: fonc (iobject: *IObject) -> bool #externe
+
+/* conversions vers type objet */
 
 ABC_comme_maillage :: fonc (iobject: *IObject) -> *IMaillage #externe
 ABC_comme_subdivision :: fonc (iobject: *IObject) -> *ISubdivision #externe
@@ -54,6 +147,11 @@ ABC_comme_xform :: fonc (iobject: *IObject) -> *IXform #externe
 ABC_comme_points :: fonc (iobject: *IObject) -> *IPoints #externe
 ABC_comme_camera :: fonc (iobject: *IObject) -> *ICamera #externe
 ABC_comme_courbes :: fonc (iobject: *IObject) -> *ICourbes #externe
+ABC_comme_lumiere :: fonc (iobject: *IObject) -> *ILumiere #externe
+ABC_comme_materiau :: fonc (iobject: *IObject) -> *IMateriau #externe
+ABC_comme_groupe_poly :: fonc (iobject: *IObject) -> *IGroupePoly #externe
+
+/* schémas depuis objets */
 
 ABC_schema_maillage :: fonc (iobject: *IMaillage) -> *ISchemaMaillage #externe
 ABC_schema_subdivision :: fonc (iobject: *ISubdivision) -> *ISchemaSubdivision #externe
@@ -61,45 +159,223 @@ ABC_schema_camera :: fonc (iobject: *ICamera) -> *ISchemaCamera #externe
 ABC_schema_courbes :: fonc (iobject: *ICourbes) -> *ISchemaCourbes #externe
 ABC_schema_points :: fonc (iobject: *IPoints) -> *ISchemaPoints #externe
 ABC_schema_xform :: fonc (iobject: *IXform) -> *ISchemaXform #externe
+ABC_schema_lumiere :: fonc (iobject: *IXform) -> *ISchemaLumiere #externe
+ABC_schema_groupe_poly :: fonc (iobject: *IXform) -> *ISchemaGroupePoly #externe
+ABC_schema_materiau :: fonc (iobject: *IXform) -> *ISchemaMateriau #externe
 
-ABC_nombre_echant_maillage :: fonc (ischema: *ISchemaMaillage) -> z64 #externe
+/* propriétés arbitraires depuis schémas */
 
-ABC_echant_maillage_index :: fonc (ischema: *ISchemaMaillage, index: z64) -> *IEchantillonMaillage #externe
+ABC_maillage_props_arbitraires :: fonc (ischema: *ISchemaMaillage) -> *IProprieteComposee #externe
+ABC_points_props_arbitraires :: fonc (ischema: *ISchemaPoints) -> *IProprieteComposee #externe
+ABC_courbes_props_arbitraires :: fonc (ischema: *ISchemaCourbes) -> *IProprieteComposee #externe
+ABC_subdivision_props_arbitraires :: fonc (ischema: *ISchemaSubdivision) -> *IProprieteComposee #externe
+ABC_camera_props_arbitraires :: fonc (ischema: *ISchemaCamera) -> *IProprieteComposee #externe
+ABC_lumiere_props_arbitraires :: fonc (ischema: *ISchemaLumiere) -> *IProprieteComposee #externe
+ABC_groupe_poly_props_arbitraires :: fonc (ischema: *ISchemaGroupePoly) -> *IProprieteComposee #externe
+ABC_xform_props_arbitraires :: fonc (ischema: *ISchemaXform) -> *IProprieteComposee #externe
 
-ABC_echant_maillage_temps :: fonc (ischema: *ISchemaMaillage, temps: r64) -> *IEchantillonMaillage #externe
+/* propriétés utilisateurs depuis schémas */
 
-/*
+ABC_maillage_props_utilisateurs :: fonc (ischema: *ISchemaMaillage) -> *IProprieteComposee #externe
+ABC_points_props_utilisateurs :: fonc (ischema: *ISchemaPoints) -> *IProprieteComposee #externe
+ABC_courbes_props_utilisateurs :: fonc (ischema: *ISchemaCourbes) -> *IProprieteComposee #externe
+ABC_subdivision_props_utilisateurs :: fonc (ischema: *ISchemaSubdivision) -> *IProprieteComposee #externe
+ABC_camera_props_utilisateurs :: fonc (ischema: *ISchemaCamera) -> *IProprieteComposee #externe
+ABC_lumiere_props_utilisateurs :: fonc (ischema: *ISchemaLumiere) -> *IProprieteComposee #externe
+ABC_groupe_poly_props_utilisateurs :: fonc (ischema: *ISchemaGroupePoly) -> *IProprieteComposee #externe
+ABC_xform_props_utilisateurs :: fonc (ischema: *ISchemaXform) -> *IProprieteComposee #externe
 
-    ISchemaMaillage :: struct externe
-    ISchemaCourbe :: struct externe
-    ISchemaPoint :: struct externe
-    ISchemaSubdivision :: struct externe
-    ISchemaCamera :: struct externe
+/* interface IProprieteComposee */
 
-    ABC_maillage :: fonc (iobject: *IObject) -> *IObjectMaillage
-    ABC_subdivision :: fonc (iobject: *IObject) -> *ISchemaSubdivision
-    ABC_courbe :: fonc (iobject: *IObject) -> *IObjectCourbe
-    ABC_point :: fonc (iobject: *IObject) -> *IObjectPoint
-    ABC_camera :: fonc (iobject: *IObject) -> *IObjectCamera
+ABC_prop_parent :: fonc (iprop: *IProprieteComposee) -> *IProprieteComposee #externe
+ABC_nombre_proprietes :: fonc (iprop: *IProprieteComposee) -> z64 #externe
+ABC_entete_prop_par_index :: fonc (iprop: *IProprieteComposee, index: z64) -> *EntetePropriete #externe
+ABC_entete_prop_par_nom :: fonc (iprop: *IProprieteComposee, nom: chaine) -> *EntetePropriete #externe
 
-    ABC_est_maillage :: fonc (iobject: *IObject) -> bool
-    ABC_est_subdivision :: fonc (iobject: *IObject) -> bool
-    ABC_est_courbe :: fonc (iobject: *IObject) -> bool
-    ABC_est_point :: fonc (iobject: *IObject) -> bool
-    ABC_est_camera :: fonc (iobject: *IObject) -> bool
+/* interface EntetePropriete */
 
-    ABC_schema_maillage :: fonc (iobject: *IObjectMaillage) -> ISchemaMaillage
-    ABC_schema_subdivision :: fonc (iobject: *IObject) -> ISchemaSubdivision
-    ABC_schema_courbe :: fonc (iobject: *IObject) -> ISchemaCourbe
-    ABC_schema_point :: fonc (iobject: *IObject) -> ISchemaPoint
-    ABC_schema_camera :: fonc (iobject: *IObject) -> ISchemaCamera
+ABC_entete_propriete_nom :: fonc (entete: *EntetePropriete) -> chaine #externe
+ABC_entete_prop_est_scalaire :: fonc (entete: *EntetePropriete) -> bool #externe
+ABC_entete_prop_est_tableau :: fonc (entete: *EntetePropriete) -> bool #externe
+ABC_entete_prop_est_composee :: fonc (entete: *EntetePropriete) -> bool #externe
+ABC_entete_prop_est_simple :: fonc (entete: *EntetePropriete) -> bool #externe
+ABC_entete_prop_echant_temps :: fonc (entete: *EntetePropriete) -> *EchantillonageTemps #externe
 
-    ABC_lis_points()
-    ABC_traverse_hiérarchie()
-    ABC_nombre_enfants()
-    ABC_cherche_enfants()
-    ABC_ouvre_archive()
+/* doit apparier la définition dans alembic */
+VarianceTopologie :: énum z32 {
+    Constante :: 0
+    Homogène :: 1
+    Hétérogène :: 2
+}
 
-    ABC_lis_points :: fonc ()
-    ABC_lis_polygones :: fonc ()
- */
+/* interface ISchemaMaillage */
+
+ABC_maillage_nombre_echantillons :: fonc (schema: *ISchemaMaillage) -> z64 #externe
+ABC_maillage_variance_topologie :: fonc (schema: *ISchemaMaillage) -> VarianceTopologie #externe
+ABC_maillage_est_constant :: fonc (schema: *ISchemaMaillage) -> bool #externe
+ABC_maillage_echantillonage_temps :: fonc (schema: *ISchemaMaillage) -> *EchantillonageTemps #externe
+
+/* interface ISchemaPoints */
+
+ABC_points_nombre_echantillons :: fonc (schema: *ISchemaPoints) -> z64 #externe
+ABC_points_est_constant :: fonc (schema: *ISchemaPoints) -> bool #externe
+ABC_points_echantillonage_temps :: fonc (schema: *ISchemaPoints) -> *EchantillonageTemps #externe
+
+/* interface ISchemaSubdivision */
+
+ABC_subdivision_nombre_echantillons :: fonc (schema: *ISchemaSubdivision) -> z64 #externe
+ABC_subdivision_variance_topologie :: fonc (schema: *ISchemaSubdivision) -> VarianceTopologie #externe
+ABC_subdivision_est_constant :: fonc (schema: *ISchemaSubdivision) -> bool #externe
+ABC_subdivision_echantillonage_temps :: fonc (schema: *ISchemaMaillage) -> *EchantillonageTemps #externe
+
+/* interface ISchemaXform */
+
+ABC_xform_nombre_echantillons :: fonc (schema: *ISchemaXform) -> z64 #externe
+ABC_xform_est_constant :: fonc (schema: *ISchemaXform) -> bool #externe
+ABC_xform_est_constant_identite :: fonc (schema: *ISchemaXform) -> bool #externe
+ABC_xform_echantillonage_temps :: fonc (schema: *ISchemaXform) -> *EchantillonageTemps #externe
+
+/* interface ISchemaCamera */
+
+ABC_camera_nombre_echantillons :: fonc (schema: *ISchemaCamera) -> z64 #externe
+ABC_camera_est_constant :: fonc (schema: *ISchemaCamera) -> bool #externe
+ABC_camera_echantillonage_temps :: fonc (schema: *ISchemaCamera) -> *EchantillonageTemps #externe
+
+/* interface ISchemaCourbes */
+
+ABC_courbes_nombre_echantillons :: fonc (schema: *ISchemaCourbes) -> z64 #externe
+ABC_courbes_est_constant :: fonc (schema: *ISchemaCourbes) -> bool #externe
+ABC_courbes_variance_topologie :: fonc (schema: *ISchemaCourbes) -> VarianceTopologie #externe
+ABC_courbes_echantillonage_temps :: fonc (schema: *ISchemaCourbes) -> *EchantillonageTemps #externe
+
+/* interface ISchemaLumiere */
+
+ABC_lumiere_nombre_echantillons :: fonc (schema: *ISchemaLumiere) -> z64 #externe
+ABC_lumiere_est_constant :: fonc (schema: *ISchemaLumiere) -> bool #externe
+ABC_lumiere_echantillonage_temps :: fonc (schema: *ISchemaLumiere) -> *EchantillonageTemps #externe
+
+/* interface ISchemaGroupePoly */
+
+ABC_groupe_poly_nombre_echantillons :: fonc (schema: *ISchemaGroupePoly) -> z64 #externe
+ABC_groupe_poly_est_constant :: fonc (schema: *ISchemaGroupePoly) -> bool #externe
+ABC_groupe_poly_echantillonage_temps :: fonc (schema: *ISchemaGroupePoly) -> *EchantillonageTemps #externe
+
+/* interface ISchemaMateriau */
+
+ABC_materiau_echantillonage_temps :: fonc (schema: *ISchemaMateriau) -> *EchantillonageTemps #externe
+
+/* interface EchantillonTableau */
+
+EchantillonTableau :: struct #externe
+
+ABC_echant_tableau_taille :: fonc (echant: *EchantillonTableau) -> z64 #externe
+ABC_echant_tableau_donnees :: fonc (echant: *EchantillonTableau) -> *rien #externe
+ABC_echant_tableau_valide :: fonc (echant: *EchantillonTableau) -> bool #externe
+
+/* interface IEchantPoints */
+
+ABC_points_echantillon_pour_index :: fonc (schema: *ISchemaPoints, index: z64) -> *IEchantPoints #externe
+ABC_points_echantillon_pour_temps :: fonc (schema: *ISchemaPoints, temps: r64) -> *IEchantPoints #externe
+ABC_echant_points_detruit :: fonc (echant: *IEchantPoints) #externe
+
+ABC_echant_points_positions :: fonc (echant: *IEchantPoints) -> *EchantillonTableau #externe
+ABC_echant_points_ids :: fonc (echant: *IEchantPoints) -> *EchantillonTableau #externe
+ABC_echant_points_velocites :: fonc (echant: *IEchantPoints) -> *EchantillonTableau #externe
+ABC_echant_points_valide :: fonc (echant: *IEchantPoints) -> bool #externe
+
+/* interface IEchantCamera */
+
+ABC_camera_echantillon_pour_index :: fonc (schema: *ISchemaCamera, index: z64) -> *IEchantCamera #externe
+ABC_camera_echantillon_pour_temps :: fonc (schema: *ISchemaCamera, temps: r64) -> *IEchantCamera #externe
+ABC_echant_camera_detruit :: fonc (echant: *IEchantCamera) #externe
+
+// À FAIRE
+
+/* interface IEchantMaillage */
+
+ABC_maillage_echantillon_pour_index :: fonc (schema: *ISchemaMaillage, index: z64) -> *IEchantMaillage #externe
+ABC_maillage_echantillon_pour_temps :: fonc (schema: *ISchemaMaillage, temps: r64) -> *IEchantMaillage #externe
+ABC_echant_maillage_detruit :: fonc (echant: *IEchantMaillage) #externe
+
+ABC_echant_maillage_positions :: fonc (echant: *IEchantMaillage) -> *EchantillonTableau #externe
+ABC_echant_maillage_compte_poly :: fonc (echant: *IEchantMaillage) -> *EchantillonTableau #externe
+ABC_echant_maillage_index_poly :: fonc (echant: *IEchantMaillage) -> *EchantillonTableau #externe
+ABC_echant_maillage_velocites :: fonc (echant: *IEchantMaillage) -> *EchantillonTableau #externe
+ABC_echant_maillage_valide :: fonc (echant: *IEchantMaillage) -> bool #externe
+
+/* interface IEchantSubdivision */
+
+ABC_subdivision_echantillon_pour_index :: fonc (schema: *ISchemaSubdivision, index: z64) -> *IEchantSubdivision #externe
+ABC_subdivision_echantillon_pour_temps :: fonc (schema: *ISchemaSubdivision, temps: r64) -> *IEchantSubdivision #externe
+ABC_echant_subdivision_detruit :: fonc (echant: *IEchantSubdivision) #externe
+
+ABC_echant_subdivision_positions :: fonc (echant: *IEchantSubdivision) -> *EchantillonTableau #externe
+ABC_echant_subdivision_compte_poly :: fonc (echant: *IEchantSubdivision) -> *EchantillonTableau #externe
+ABC_echant_subdivision_index_poly :: fonc (echant: *IEchantSubdivision) -> *EchantillonTableau #externe
+ABC_echant_subdivision_velocites :: fonc (echant: *IEchantSubdivision) -> *EchantillonTableau #externe
+ABC_echant_subdivision_index_coins :: fonc (echant: *IEchantSubdivision) -> *EchantillonTableau #externe
+ABC_echant_subdivision_tranchant_coins :: fonc (echant: *IEchantSubdivision) -> *EchantillonTableau #externe
+ABC_echant_subdivision_index_plis :: fonc (echant: *IEchantSubdivision) -> *EchantillonTableau #externe
+ABC_echant_subdivision_longueur_plis :: fonc (echant: *IEchantSubdivision) -> *EchantillonTableau #externe
+ABC_echant_subdivision_tranchant_plis :: fonc (echant: *IEchantSubdivision) -> *EchantillonTableau #externe
+ABC_echant_subdivision_trous :: fonc (echant: *IEchantSubdivision) -> *EchantillonTableau #externe
+ABC_echant_subdivision_schema_subdivision :: fonc (echant: *IEchantSubdivision) -> chaine #externe
+ABC_echant_subdivision_interp_frontiere_fv :: fonc (echant: *IEchantSubdivision) -> z32 #externe
+ABC_echant_subdivision_propage_coins_fv :: fonc (echant: *IEchantSubdivision) -> z32 #externe
+ABC_echant_subdivision_interp_frontiere :: fonc (echant: *IEchantSubdivision) -> z32 #externe
+ABC_echant_subdivision_valide :: fonc (echant: *IEchantSubdivision) -> bool #externe
+
+/* interface IEchantCourbes */
+
+ABC_courbes_echantillon_pour_index :: fonc (schema: *ISchemaCourbes, index: z64) -> *IEchantCourbes #externe
+ABC_courbes_echantillon_pour_temps :: fonc (schema: *ISchemaCourbes, temps: r64) -> *IEchantCourbes #externe
+ABC_echant_courbes_detruit :: fonc (echant: *IEchantCourbes) #externe
+
+TypeCourbe :: énum z32 {
+    Cubique :: 0
+    Linéaire :: 1
+    OrdreVariable :: 2
+}
+
+PériodicitéCourbe :: énum z32 {
+    NonPériodique :: 0
+    Périodique :: 1
+}
+
+BaseCourbe :: énum z32 {
+    AucuneBase :: 0
+    Bézize :: 1
+    CerceB :: 2
+    Catmullrom :: 3
+    Hermite :: 4
+    Puissance :: 5
+}
+
+ABC_echant_courbes_nombre_courbes :: fonc (echant: *IEchantCourbes) -> z64 #externe
+ABC_echant_courbes_type :: fonc (echant: *IEchantCourbes) -> TypeCourbe #externe
+ABC_echant_courbes_periodicite :: fonc (echant: *IEchantCourbes) -> PériodicitéCourbe #externe
+ABC_echant_courbes_base :: fonc (echant: *IEchantCourbes) -> BaseCourbe #externe
+ABC_echant_courbes_nombre_vertex :: fonc (echant: *IEchantCourbes) -> *EchantillonTableau #externe
+ABC_echant_courbes_ordres :: fonc (echant: *IEchantCourbes) -> *EchantillonTableau #externe
+ABC_echant_courbes_noeuds :: fonc (echant: *IEchantCourbes) -> *EchantillonTableau #externe
+ABC_echant_courbes_positions :: fonc (echant: *IEchantCourbes) -> *EchantillonTableau #externe
+ABC_echant_courbes_poids_positions :: fonc (echant: *IEchantCourbes) -> *EchantillonTableau #externe
+ABC_echant_courbes_velocites :: fonc (echant: *IEchantCourbes) -> *EchantillonTableau #externe
+ABC_echant_courbes_valide :: fonc (echant: *IEchantCourbes) -> bool #externe
+
+/* interface IEchantGroupePoly */
+
+ABC_groupe_poly_echantillon_pour_index :: fonc (schema: *ISchemaGroupePoly, index: z64) -> *IEchantGroupePoly #externe
+ABC_groupe_poly_echantillon_pour_temps :: fonc (schema: *ISchemaGroupePoly, temps: r64) -> *IEchantGroupePoly #externe
+ABC_echant_groupe_poly_detruit :: fonc (echant: *IEchantGroupePoly) #externe
+
+ABC_echant_groupe_poly_polygones :: fonc (echant: *IEchantGroupePoly) -> *EchantillonTableau #externe
+ABC_echant_groupe_poly_valide :: fonc (echant: *IEchantGroupePoly) -> bool #externe
+
+/* interface IEchantXform */
+
+ABC_xform_echantillon_pour_index :: fonc (schema: *ISchemaXform, index: z64) -> *IEchantXform #externe
+ABC_xform_echantillon_pour_temps :: fonc (schema: *ISchemaXform, temps: r64) -> *IEchantXform #externe
+ABC_echant_xform_detruit :: fonc (echant: *IEchantXform) #externe
+
+// À FAIRE
