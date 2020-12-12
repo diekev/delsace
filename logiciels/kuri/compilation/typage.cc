@@ -978,7 +978,9 @@ TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
 
 TypeOpaque *Typeuse::cree_opaque(IdentifiantCode *ident, Type *type_opacifie)
 {
-	return types_opaques->ajoute_element(ident, type_opacifie);
+	auto type = types_opaques->ajoute_element(ident, type_opacifie);
+	graphe_->connecte_type_type(type, type_opacifie);
+	return type;
 }
 
 void Typeuse::rassemble_statistiques(Statistiques &stats) const
