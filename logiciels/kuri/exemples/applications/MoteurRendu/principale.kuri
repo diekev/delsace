@@ -807,7 +807,19 @@ rends_scène :: fonc (jeu: *Jeu) -> rien
 {
     glClear(0x00004000)
 
-    glClearColor(0.5, 0.5, 1.0, 1.0)
+    //glClearColor(0.5, 0.5, 1.0, 1.0)
+
+    rendeuse_texte := crée_rendeuse_texte(640, 480)
+
+    glBlendFunc(_GL_SRC_ALPHA, _GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(_GL_BLEND);
+
+    dessine_texte(rendeuse_texte, "test de dessin de texte")
+    dessine_texte(rendeuse_texte, "test de dessin de texte, ligne 2")
+
+    glDisable(_GL_BLEND);
+
+    détruit_rendeuse_texte(rendeuse_texte)
 
     SDL_GL_SwapWindow(jeu.fenêtre)
 }

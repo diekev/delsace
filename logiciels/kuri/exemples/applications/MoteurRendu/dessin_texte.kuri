@@ -91,7 +91,7 @@ crée_tampon :: fonc (rendeuse: *RendeuseTexte) -> rien
 
 dessine_texte :: fonc (rendeuse: *RendeuseTexte, texte: chaine) -> rien
 {
-    chemin_fonte := "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
+    chemin_fonte := "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf\0"
 
     // À FAIRE : passe la couleur
     blanc := vec4( x = 1.0, y = 1.0, z = 1.0, w = 1.0 )

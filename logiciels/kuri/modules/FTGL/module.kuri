@@ -39,6 +39,7 @@ texture_atlas_delete :: fonc (atlas: *texture_atlas_t) -> rien #externe
 texture_font_t :: struct #externe {
     glyphs : *vector_t
     atlas : *texture_atlas_t
+    location: z32
     filename : *z8
     memory_size : n64
     size : r32
