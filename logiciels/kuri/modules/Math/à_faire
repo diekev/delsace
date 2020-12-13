@@ -99,3 +99,12 @@ produit_vectoriel -> Vec
 longueur -> r32
 
 Matrice -> colonne majeur, ligne majeure, droitière, gauchère
+
+// -----------------
+// Statistiques
+// -----------------
+
+[ ] Moyenne
+[ ] Médianne
+[ ] Mode
+[ ] Écart-Type
