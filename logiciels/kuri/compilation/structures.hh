@@ -150,7 +150,7 @@ struct tableau {
 	{
 		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, autre.taille);
 		this->taille = autre.taille;
-		this->capacite = autre.capacite;
+        this->capacite = autre.taille;
 
 		for (auto i = 0; i < autre.taille; ++i) {
 			this->pointeur[i] = autre.pointeur[i];
@@ -161,7 +161,7 @@ struct tableau {
 	{
 		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, autre.taille);
 		this->taille = autre.taille;
-		this->capacite = autre.capacite;
+        this->capacite = autre.taille;
 
 		for (auto i = 0; i < autre.taille; ++i) {
 			this->pointeur[i] = autre.pointeur[i];
