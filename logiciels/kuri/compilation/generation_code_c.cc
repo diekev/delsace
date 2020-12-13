@@ -1099,6 +1099,8 @@ struct GeneratriceCodeC {
 					valeur_accede = broye_nom_simple(table_globales[accede]);
 				}
 
+				assert(valeur_accede != "");
+
 				auto type_pointeur = inst_acces->accede->type->comme_pointeur();
 				auto type_compose = static_cast<TypeCompose *>(type_pointeur->type_pointe);
 				auto index_membre = static_cast<long>(static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere);
