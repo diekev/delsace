@@ -682,6 +682,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 				expr->type = meilleur_candidat->op->type_resultat;
 				expr->op = meilleur_candidat->op;
+				expr->permute_operandes = meilleur_candidat->permute_operandes;
 				transtype_si_necessaire(expr->expr1, meilleur_candidat->transformation_type1);
 				transtype_si_necessaire(expr->expr2, meilleur_candidat->transformation_type2);
 

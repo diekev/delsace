@@ -460,6 +460,8 @@ struct NoeudExpressionBinaire : public NoeudExpression {
 
 	OperateurBinaire const *op = nullptr;
 
+	bool permute_operandes = false;
+
 	COPIE_CONSTRUCT(NoeudExpressionBinaire);
 };
 

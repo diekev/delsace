@@ -686,7 +686,7 @@ bool cherche_candidats_operateurs(
 				candidat.poids = poids;
 				candidat.transformation_type1 = seq1;
 				candidat.transformation_type2 = seq2;
-				candidat.inverse_operandes = true;
+				candidat.permute_operandes = true;
 
 				candidats.pousse(candidat);
 			}

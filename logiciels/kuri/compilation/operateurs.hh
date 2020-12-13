@@ -178,7 +178,7 @@ struct OperateurCandidat {
 	TransformationType transformation_type1{};
 	TransformationType transformation_type2{};
 	double poids = 0.0;
-	bool inverse_operandes = false;
+    bool permute_operandes = false;
 
 	OperateurCandidat() = default;
 

@@ -878,7 +878,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			auto traduit_operation_binaire = [&](OperateurBinaire const *op, Atome *valeur_gauche, Atome *valeur_droite) -> Atome*
+			auto traduit_operation_binaire = [&](OperateurBinaire const *op, bool permute_operandes, Atome *valeur_gauche, Atome *valeur_droite) -> Atome*
 			{
 				// À FAIRE(ri) : arithmétique de pointeur, opérateurs logiques
 				if (op->est_basique) {
@@ -894,8 +894,14 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					args[0] = cree_charge_mem(noeud, table_locales[ID::contexte]);
 				}
 
-				args[0 + requiers_contexte] = valeur_gauche;
-				args[1 + requiers_contexte] = valeur_droite;
+				if (permute_operandes) {
+					args[0 + requiers_contexte] = valeur_droite;
+					args[1 + requiers_contexte] = valeur_gauche;
+				}
+				else {
+					args[0 + requiers_contexte] = valeur_gauche;
+					args[1 + requiers_contexte] = valeur_droite;
+				}
 
 				return cree_appel(noeud, noeud->lexeme, atome_fonction, std::move(args));
 			};
@@ -907,7 +913,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				genere_ri_pour_expression_droite(expr_bin->expr2, nullptr);
 				auto valeur_droite = depile_valeur();
 
-				auto valeur = traduit_operation_binaire(expr_bin->op, valeur_gauche, valeur_droite);
+				auto valeur = traduit_operation_binaire(expr_bin->op, expr_bin->permute_operandes, valeur_gauche, valeur_droite);
 				empile_valeur(cree_stocke_mem(noeud, pointeur, valeur));
 				return;
 			}
@@ -921,7 +927,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto valeur_gauche = depile_valeur();
 			genere_ri_pour_expression_droite(expr_bin->expr2, nullptr);
 			auto valeur_droite = depile_valeur();
-			auto resultat = traduit_operation_binaire(expr_bin->op, valeur_gauche, valeur_droite);
+			auto resultat = traduit_operation_binaire(expr_bin->op, expr_bin->permute_operandes, valeur_gauche, valeur_droite);
 
 			auto alloc = cree_allocation(noeud, expr_bin->type, nullptr);
 			cree_stocke_mem(noeud, alloc, resultat);
