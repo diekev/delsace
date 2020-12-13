@@ -644,21 +644,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			else {
 				if (assignation_composee) {
 					type_op = operateur_pour_assignation_composee(type_op);
-					expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
-
-					// exclue les arithmétiques de pointeur
-					if (!(type1->genre == GenreType::POINTEUR && (est_type_entier(type2) || type2->genre == GenreType::ENTIER_CONSTANT))) {
-
-						auto transformation = TransformationType();
-						if (cherche_transformation(*espace, *this, type2, type1, transformation)) {
-							return true;
-						}
-
-						if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-							rapporte_erreur_assignation_type_differents(type1, type2, enfant2);
-							return true;
-						}
-					}
 				}
 
 				auto candidats = dls::tablet<OperateurCandidat, 10>();
@@ -692,6 +677,20 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 					if (decl_op->corps->unite == nullptr) {
 						m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl_op->corps);
+					}
+				}
+
+				if (assignation_composee) {
+					expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
+
+					auto transformation = TransformationType();
+					if (cherche_transformation(*espace, *this, expr->type, type1, transformation)) {
+						return true;
+					}
+
+					if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+						rapporte_erreur_assignation_type_differents(type1, expr->type, enfant2);
+						return true;
 					}
 				}
 			}
