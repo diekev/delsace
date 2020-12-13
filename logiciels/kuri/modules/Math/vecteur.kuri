@@ -257,3 +257,80 @@ Vec4z :: struct {
     z := 0
     w := 0
 }
+
+
+// À considérer: opérateurs de bases si la structure ne contient que des scalaires
+Vec3 :: struct {
+    x: r32
+    y: r32
+    z: r32
+}
+
+opérateur + :: fonc (u: Vec3, s: r32) -> Vec3
+{
+    r : Vec3 = ---
+    r.x = u.x + s
+    r.y = u.y + s
+    r.z = u.z + s
+    retourne r
+}
+
+opérateur - :: fonc (u: Vec3, s: r32) -> Vec3
+{
+    r : Vec3 = ---
+    r.x = u.x - s
+    r.y = u.y - s
+    r.z = u.z - s
+    retourne r
+}
+
+opérateur * :: fonc (u: Vec3, s: r32) -> Vec3
+{
+    r : Vec3 = ---
+    r.x = u.x * s
+    r.y = u.y * s
+    r.z = u.z * s
+    retourne r
+}
+
+opérateur / :: fonc (u: Vec3, s: r32) -> Vec3
+{
+    r : Vec3 = ---
+    r.x = u.x / s
+    r.y = u.y / s
+    r.z = u.z / s
+    retourne r
+}
+
+// opérateur pour calculer des réciproques
+opérateur / :: fonc (s: r32, u: Vec3) -> Vec3
+{
+    r : Vec3 = ---
+    r.x = s / u.x
+    r.y = s / u.y
+    r.z = s / u.z
+    retourne r
+}
+
+opérateur == :: fonc (u: Vec3, v: Vec3) -> bool
+{
+    retourne u.x == v.x && u.y == v.y && u.z == v.z
+}
+
+opérateur == :: fonc (u: Vec3, s: r32) -> bool
+{
+    retourne u.x == s && u.y == s && u.z == s
+}
+
+opérateur < :: fonc (u: Vec3, s: r32) -> bool
+{
+    retourne u.x < s && u.y < s && u.z < s
+}
+
+opérateur > :: fonc (u: Vec3, s: r32) -> bool
+{
+    retourne u.x > s && u.y > s && u.z > s
+}
+
+Point3 :: #opaque Vec3
+Norm3 :: #opaque Vec3
