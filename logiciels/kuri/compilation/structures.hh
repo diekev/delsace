@@ -229,6 +229,16 @@ struct tableau {
 		this->pointeur[0] = valeur;
 	}
 
+    void supprime_dernier()
+    {
+        if (this->taille == 0) {
+            return;
+        }
+
+        this->pointeur[this->taille - 1].~T();
+        this->taille -= 1;
+    }
+
 	void reserve(long nombre)
 	{
 		if (capacite >= nombre) {
