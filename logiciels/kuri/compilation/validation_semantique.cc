@@ -1449,7 +1449,59 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			if (type->genre == GenreType::UNION) {
+			if (type->genre == GenreType::UNION && type->comme_union()->est_anonyme) {
+				// vérifie que tous les membres sont discriminés
+				auto type_union = type->comme_union();
+
+				auto membres_rencontres = dls::ensemblon<Type *, 16>();
+
+				noeud->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
+
+				for (int i = 0; i < inst->paires_discr.taille; ++i) {
+					auto expr_paire = inst->paires_discr[i].first->comme_virgule()->expressions[0];
+					auto bloc_paire = inst->paires_discr[i].second;
+
+					valide_semantique_noeud(expr_paire);
+
+					Type *type_expr;
+					if (resoud_type_final(expr_paire, type_expr)) {
+						rapporte_erreur("Ne peut résoudre le type", expr_paire);
+						return true;
+					}
+
+					expr_paire->type = type_expr;
+
+					auto trouve = false;
+
+					POUR (type_union->membres) {
+						if (it.type == type_expr) {
+							membres_rencontres.insere(type_expr);
+							trouve = true;
+							break;
+						}
+					}
+
+					if (!trouve) {
+						rapporte_erreur("Le type n'est pas membre de l'union", expr_paire);
+					}
+
+					/* pousse la variable dans le bloc suivant */
+					auto decl_expr = static_cast<NoeudDeclaration *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, expr_paire->lexeme));
+					decl_expr->ident = expr_paire->ident;
+					decl_expr->lexeme = expr_paire->lexeme;
+					decl_expr->bloc_parent = bloc_paire;
+					decl_expr->drapeaux |= EMPLOYE;
+					decl_expr->type = expr_paire->type;
+					// À FAIRE: mise en place des informations d'emploi
+
+					bloc_paire->membres->pousse(decl_expr);
+				}
+
+				if (inst->bloc_sinon == nullptr) {
+					//return valide_presence_membres();
+				}
+			}
+			else if (type->genre == GenreType::UNION) {
 				auto type_union = type->comme_union();
 				auto decl = type_union->decl;
 

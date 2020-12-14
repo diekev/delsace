@@ -2189,11 +2189,30 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 					valeur_f = valeur_enum(expression->type->comme_enum(), f->ident);
 				}
 				else if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
-					auto idx_membre = trouve_index_membre(decl_struct, f->ident->nom);
-					valeur_f = cree_z32(idx_membre + 1);
+					auto type_union = noeud->expr->type->comme_union();
+					if (type_union->est_anonyme) {
+						unsigned idx_membre = 0;
 
-					auto valeur = cree_acces_membre(noeud, ptr_structure, 0);
-					table_locales[f->ident] = valeur;
+						POUR (type_union->membres) {
+							if (it.type == f->type) {
+								break;
+							}
+
+							idx_membre += 1;
+						}
+
+						valeur_f = cree_z32(idx_membre + 1);
+
+						auto valeur = cree_acces_membre(noeud, ptr_structure, 0);
+						table_locales[f->ident] = valeur;
+					}
+					else {
+						auto idx_membre = trouve_index_membre(decl_struct, f->ident->nom);
+						valeur_f = cree_z32(idx_membre + 1);
+
+						auto valeur = cree_acces_membre(noeud, ptr_structure, 0);
+						table_locales[f->ident] = valeur;
+					}
 				}
 				else {
 					genere_ri_pour_expression_droite(f, nullptr);
