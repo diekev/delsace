@@ -42,6 +42,10 @@
  * -- https://github.com/dlang/dmd/pull/5208
  * - utilisation d'une table pour définir quand arrêter de scanner une chaine
  * -- https://v8.dev/blog/scanner
+ *
+ * - dans les profiles, identifiant_pour_chaine se montre, notamment pour la comparaison des chaines
+ *   nous pourrions revoir la structure vue_chaine_compacte, pour y ajouter une empreinte que nous calculerions lors du lexage
+ *   pousse_caractere pourrait ajourner l'empreinte
  */
 
 /* ************************************************************************** */
