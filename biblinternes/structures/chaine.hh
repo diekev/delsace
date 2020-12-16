@@ -97,7 +97,10 @@ public:
 
 	bool est_vide() const;
 
-	long taille() const;
+	inline long taille() const
+	{
+		return static_cast<long>(m_chaine.size());
+	}
 
 	long capacite() const;
 
@@ -125,9 +128,15 @@ public:
 
 	void remplace(long pos, long combien, chaine const &motif);
 
-	char &operator[](long idx);
+	inline char &operator[](long idx)
+	{
+		return m_chaine[static_cast<size_t>(idx)];
+	}
 
-	char const &operator[](long idx) const;
+	inline char const &operator[](long idx) const
+	{
+		return m_chaine[static_cast<size_t>(idx)];
+	}
 
 	char const *c_str() const;
 

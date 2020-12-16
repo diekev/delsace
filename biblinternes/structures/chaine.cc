@@ -101,11 +101,6 @@ bool chaine::est_vide() const
 	return m_chaine.empty();
 }
 
-long chaine::taille() const
-{
-	return static_cast<long>(m_chaine.size());
-}
-
 long chaine::capacite() const
 {
 	return static_cast<long>(m_chaine.capacity());
@@ -169,16 +164,6 @@ void chaine::insere(long pos, long combien, char c)
 void chaine::remplace(long pos, long combien, const chaine &motif)
 {
 	m_chaine.replace(static_cast<size_t>(pos), static_cast<size_t>(combien), motif.m_chaine);
-}
-
-char &chaine::operator[](long idx)
-{
-	return m_chaine[static_cast<size_t>(idx)];
-}
-
-const char &chaine::operator[](long idx) const
-{
-	return m_chaine[static_cast<size_t>(idx)];
 }
 
 const char *chaine::c_str() const
