@@ -79,6 +79,13 @@ Enchaineuse &operator << (Enchaineuse &enchaineuse, T const &valeur)
 	return enchaineuse;
 }
 
+template <>
+inline Enchaineuse &operator << (Enchaineuse &enchaineuse, char const &valeur)
+{
+	enchaineuse.pousse_caractere(valeur);
+	return enchaineuse;
+}
+
 template <size_t N>
 Enchaineuse &operator << (Enchaineuse &enchaineuse, const char (&c)[N])
 {
