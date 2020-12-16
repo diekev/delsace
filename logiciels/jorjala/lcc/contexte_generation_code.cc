@@ -43,7 +43,7 @@ DonneesModule *ContexteGenerationCode::cree_module(const dls::chaine &nom)
 	module->id = static_cast<size_t>(modules.taille());
 	module->nom = nom;
 
-	modules.pousse(module);
+	modules.ajoute(module);
 
 	return module;
 }
@@ -87,7 +87,7 @@ void ContexteGenerationCode::pousse_locale(const dls::vue_chaine &nom, int valeu
 		}
 	}
 
-	m_locales.pousse({nom, {valeur, donnees_type}});
+	m_locales.ajoute({nom, {valeur, donnees_type}});
 }
 
 int ContexteGenerationCode::valeur_locale(const dls::vue_chaine &nom)

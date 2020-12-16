@@ -100,7 +100,7 @@ static int ajoute_vertex(
 
 	auto vertex_offset = static_cast<int>(vertex.taille());
 	utilises[vert_key] = vertex_offset;
-	vertex.pousse(v);
+	vertex.ajoute(v);
 	return vertex_offset;
 }
 
@@ -119,22 +119,22 @@ static void ajoute_quad(
 	auto v2 = ajoute_vertex(vertex, utilises, res, coins[quads_indices[i][2]]);
 	auto v3 = ajoute_vertex(vertex, utilises, res, coins[quads_indices[i][3]]);
 
-	maillage->quads.pousse(v0);
-	maillage->quads.pousse(v1);
-	maillage->quads.pousse(v2);
-	maillage->quads.pousse(v3);
+	maillage->quads.ajoute(v0);
+	maillage->quads.ajoute(v1);
+	maillage->quads.ajoute(v2);
+	maillage->quads.ajoute(v3);
 
-	maillage->normaux_quads.pousse(decalage_normal);
-	maillage->normaux_quads.pousse(decalage_normal);
-	maillage->normaux_quads.pousse(decalage_normal);
-	maillage->normaux_quads.pousse(decalage_normal);
+	maillage->normaux_quads.ajoute(decalage_normal);
+	maillage->normaux_quads.ajoute(decalage_normal);
+	maillage->normaux_quads.ajoute(decalage_normal);
+	maillage->normaux_quads.ajoute(decalage_normal);
 
 	auto normal = dls::math::converti_type<float>(quads_normals[i]);
 
 #ifdef COMPRESSE_NORMAUX
-	maillage->normaux.pousse(kdo::encode_et_quantifie(normal));
+	maillage->normaux.ajoute(kdo::encode_et_quantifie(normal));
 #else
-	maillage->normaux.pousse(normal);
+	maillage->normaux.ajoute(normal);
 #endif
 }
 
@@ -179,7 +179,7 @@ static void ajoute_volume(
 	if (grille->est_eparse()) {
 		auto grille_eprs = dynamic_cast<wlk::grille_eparse<float> *>(grille);
 
-		scene.volumes.pousse(grille_eprs);
+		scene.volumes.ajoute(grille_eprs);
 		maillage->volume = static_cast<int>(scene.volumes.taille() - 1);
 
 		/* ajoute un cube pour chaque tuile de la grille */
@@ -245,7 +245,7 @@ static void ajoute_volume(
 
 		for (auto const &v : vertex) {
 			auto vmnd = grille_eprs->index_vers_monde(v);
-			maillage->points.pousse(vmnd);
+			maillage->points.ajoute(vmnd);
 		}
 	}
 }
@@ -258,7 +258,7 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 	maillage->points.reserve(points.taille());
 
 	for (auto j = 0; j < points.taille(); ++j) {
-		maillage->points.pousse(points.point_monde(j));
+		maillage->points.ajoute(points.point_monde(j));
 	}
 
 	auto taille_indices_points = kdo::tableau_index::octets_pour_taille(points.taille());
@@ -274,9 +274,9 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 			extrait(attr_N->r32(j), n);
 
 #ifdef COMPRESSE_NORMAUX
-			maillage->normaux.pousse(kdo::encode_et_quantifie(n));
+			maillage->normaux.ajoute(kdo::encode_et_quantifie(n));
 #else
-			maillage->normaux.pousse(n);
+			maillage->normaux.ajoute(n);
 #endif
 		}
 
@@ -302,10 +302,10 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 			auto i2 = static_cast<int>(poly->index_point(2));
 			auto i3 = static_cast<int>(poly->index_point(3));
 
-			maillage->quads.pousse(i0);
-			maillage->quads.pousse(i1);
-			maillage->quads.pousse(i2);
-			maillage->quads.pousse(i3);
+			maillage->quads.ajoute(i0);
+			maillage->quads.ajoute(i1);
+			maillage->quads.ajoute(i2);
+			maillage->quads.ajoute(i3);
 
 			maillage->nombre_quads += 1;
 
@@ -345,16 +345,16 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 				n3 = n0;
 
 #ifdef COMPRESSE_NORMAUX
-				maillage->normaux.pousse(kdo::encode_et_quantifie(N));
+				maillage->normaux.ajoute(kdo::encode_et_quantifie(N));
 #else
-				maillage->normaux.pousse(N);
+				maillage->normaux.ajoute(N);
 #endif
 			}
 
-			maillage->normaux_quads.pousse(n0);
-			maillage->normaux_quads.pousse(n1);
-			maillage->normaux_quads.pousse(n2);
-			maillage->normaux_quads.pousse(n3);
+			maillage->normaux_quads.ajoute(n0);
+			maillage->normaux_quads.ajoute(n1);
+			maillage->normaux_quads.ajoute(n2);
+			maillage->normaux_quads.ajoute(n3);
 		}
 		else {
 			for (auto j = 2; j < poly->nombre_sommets(); ++j) {
@@ -362,9 +362,9 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 				auto i1 = static_cast<int>(poly->index_point(j - 1));
 				auto i2 = static_cast<int>(poly->index_point(j));
 
-				maillage->triangles.pousse(i0);
-				maillage->triangles.pousse(i1);
-				maillage->triangles.pousse(i2);
+				maillage->triangles.ajoute(i0);
+				maillage->triangles.ajoute(i1);
+				maillage->triangles.ajoute(i2);
 
 				maillage->nombre_triangles += 1;
 
@@ -399,15 +399,15 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 					n2 = n0;
 
 #ifdef COMPRESSE_NORMAUX
-					maillage->normaux.pousse(kdo::encode_et_quantifie(N));
+					maillage->normaux.ajoute(kdo::encode_et_quantifie(N));
 #else
-					maillage->normaux.pousse(N);
+					maillage->normaux.ajoute(N);
 #endif
 				}
 
-				maillage->normaux_triangles.pousse(n0);
-				maillage->normaux_triangles.pousse(n1);
-				maillage->normaux_triangles.pousse(n2);
+				maillage->normaux_triangles.ajoute(n0);
+				maillage->normaux_triangles.ajoute(n1);
+				maillage->normaux_triangles.ajoute(n2);
 			}
 		}
 	});
@@ -426,7 +426,7 @@ static void ajoute_sphere(
 		sphere_kdo->rayon = sphere->rayon;
 		sphere_kdo->index = static_cast<int>(scene_koudou.noeuds.taille());
 
-		scene_koudou.noeuds.pousse(sphere_kdo);
+		scene_koudou.noeuds.ajoute(sphere_kdo);
 	});
 }
 
@@ -493,7 +493,7 @@ void MoteurRenduKoudou::calcule_rendu(
 					stats.nombre_polygones += maillage->nombre_triangles;
 
 					maillage->index = static_cast<int>(scene_koudou.noeuds.taille());
-					scene_koudou.noeuds.pousse(maillage);
+					scene_koudou.noeuds.ajoute(maillage);
 				}
 			}
 			else if (objet->type == type_objet::LUMIERE) {
@@ -522,7 +522,7 @@ void MoteurRenduKoudou::calcule_rendu(
 								intensite);
 				}
 
-				scene_koudou.noeuds.pousse(lumiere_koudou);
+				scene_koudou.noeuds.ajoute(lumiere_koudou);
 			}
 
 			stats.nombre_objets += 1;
@@ -580,7 +580,7 @@ void MoteurRenduKoudou::calcule_rendu(
 			carreau.largeur = std::min(largeur_carreau, largeur_pellicule - carreau.x);
 			carreau.hauteur = std::min(hauteur_carreau, hauteur_pellicule - carreau.y);
 
-			carreaux.pousse(carreau);
+			carreaux.ajoute(carreau);
 		}
 	}
 

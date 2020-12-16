@@ -84,7 +84,7 @@ static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &
 		switch (morceaux.taille()) {
 			case 1:
 			{
-				index_polygones.pousse(std::stoi(morceaux[0].c_str()) - 1);
+				index_polygones.ajoute(std::stoi(morceaux[0].c_str()) - 1);
 
 				ptr_index = index_polygones.donnees();
 
@@ -92,8 +92,8 @@ static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &
 			}
 			case 2:
 			{
-				index_polygones.pousse(std::stoi(morceaux[0].c_str()) - 1);
-				index_coords_uv.pousse(std::stoi(morceaux[1].c_str()) - 1);
+				index_polygones.ajoute(std::stoi(morceaux[0].c_str()) - 1);
+				index_coords_uv.ajoute(std::stoi(morceaux[1].c_str()) - 1);
 
 				ptr_index = index_polygones.donnees();
 				ptr_coords = index_coords_uv.donnees();
@@ -102,14 +102,14 @@ static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &
 			}
 			case 3:
 			{
-				index_polygones.pousse(std::stoi(morceaux[0].c_str()) - 1);
+				index_polygones.ajoute(std::stoi(morceaux[0].c_str()) - 1);
 
 				if (!morceaux[1].est_vide()) {
-					index_coords_uv.pousse(std::stoi(morceaux[1].c_str()) - 1);
+					index_coords_uv.ajoute(std::stoi(morceaux[1].c_str()) - 1);
 					ptr_coords = index_coords_uv.donnees();
 				}
 
-				index_normaux.pousse(std::stoi(morceaux[2].c_str()) - 1);
+				index_normaux.ajoute(std::stoi(morceaux[2].c_str()) - 1);
 
 				ptr_index = index_polygones.donnees();
 				ptr_normaux = index_normaux.donnees();
@@ -140,7 +140,7 @@ static void lis_ligne(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 	dls::tableau<int> index;
 
 	while (is >> info_poly) {
-		index.pousse(std::stoi(info_poly.c_str()) - 1);
+		index.ajoute(std::stoi(info_poly.c_str()) - 1);
 	}
 
 	adaptrice->ajoute_ligne(index.donnees(), static_cast<size_t>(index.taille()));
@@ -152,7 +152,7 @@ static void lis_groupes_geometries(AdaptriceCreationObjet *adaptrice, std::istri
 	dls::tableau<dls::chaine> groupes;
 
 	while (is >> groupe) {
-		groupes.pousse(groupe);
+		groupes.ajoute(groupe);
 	}
 
 	adaptrice->groupes(groupes);

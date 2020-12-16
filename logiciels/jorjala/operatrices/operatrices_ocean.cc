@@ -440,23 +440,23 @@ static void simule_ocean(
 	dls::tableau<fftw_plan> plans;
 
 	if (!o.disp_y.est_vide()) {
-		plans.pousse(o.disp_y_plan);
+		plans.ajoute(o.disp_y_plan);
 	}
 
 	if (o.calcul_chop) {
-		plans.pousse(o.disp_x_plan);
-		plans.pousse(o.disp_z_plan);
+		plans.ajoute(o.disp_x_plan);
+		plans.ajoute(o.disp_z_plan);
 	}
 
 	if (o.calcul_normaux) {
-		plans.pousse(o.N_x_plan);
-		plans.pousse(o.N_z_plan);
+		plans.ajoute(o.N_x_plan);
+		plans.ajoute(o.N_z_plan);
 	}
 
 	if (o.calcul_ecume) {
-		plans.pousse(o.Jxx_plan);
-		plans.pousse(o.Jzz_plan);
-		plans.pousse(o.Jxz_plan);
+		plans.ajoute(o.Jxx_plan);
+		plans.ajoute(o.Jzz_plan);
+		plans.ajoute(o.Jxz_plan);
 	}
 
 	tbb::parallel_for(0l, plans.taille(),

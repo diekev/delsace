@@ -44,12 +44,12 @@ Enchaineuse::~Enchaineuse()
 	}
 }
 
-void Enchaineuse::pousse(const dls::vue_chaine &chn)
+void Enchaineuse::ajoute(const dls::vue_chaine &chn)
 {
-	pousse(&chn[0], chn.taille());
+	ajoute(&chn[0], chn.taille());
 }
 
-void Enchaineuse::pousse(const char *c_str, long N)
+void Enchaineuse::ajoute(const char *c_str, long N)
 {
 	auto tampon = tampon_courant;
 
@@ -168,13 +168,13 @@ dls::chaine Enchaineuse::chaine() const
 
 Enchaineuse &operator <<(Enchaineuse &enchaineuse, const dls::vue_chaine_compacte &chn)
 {
-	enchaineuse.pousse(chn.pointeur(), chn.taille());
+	enchaineuse.ajoute(chn.pointeur(), chn.taille());
 	return enchaineuse;
 }
 
 Enchaineuse &operator <<(Enchaineuse &enchaineuse, const dls::chaine &chn)
 {
-	enchaineuse.pousse(chn.c_str(), chn.taille());
+	enchaineuse.ajoute(chn.c_str(), chn.taille());
 	return enchaineuse;
 }
 
@@ -186,7 +186,7 @@ Enchaineuse &operator << (Enchaineuse &enchaineuse, const char *chn)
 		++chn;
 	}
 
-	enchaineuse.pousse(ptr, chn - ptr);
+	enchaineuse.ajoute(ptr, chn - ptr);
 
 	return enchaineuse;
 }

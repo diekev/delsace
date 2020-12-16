@@ -96,7 +96,7 @@ ResultatFichier EspaceDeTravail::trouve_ou_cree_fichier(dls::outils::Synchrone<S
 	}
 
 	fichier->module = module;
-	module->fichiers.pousse(fichier);
+	module->fichiers.ajoute(fichier);
 
 	return FichierNeuf(*fichier);
 }
@@ -161,25 +161,25 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 
 	if (!decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX)) {
 		auto atome = constructrice.cree_allocation(decl, typeuse.type_contexte, ID::contexte);
-		params.pousse(atome);
+		params.ajoute(atome);
 	}
 
 	for (auto i = 0; i < decl->params.taille; ++i) {
 		auto param = decl->parametre_entree(i);
 		auto atome = constructrice.cree_allocation(decl, param->type, param->ident);
-		params.pousse(atome);
+		params.ajoute(atome);
 	}
 
 	auto params_sortie = kuri::tableau<Atome *>();
 	if (decl->params_sorties.taille == 1) {
 		auto param_sortie = decl->params_sorties[0];
 		auto atome = constructrice.cree_allocation(decl, param_sortie->type, param_sortie->ident);
-		params_sortie.pousse(atome);
+		params_sortie.ajoute(atome);
 	}
 	else {
 		POUR (decl->params_sorties) {
 			auto atome = constructrice.cree_allocation(decl, typeuse.type_pointeur_pour(it->type), it->ident);
-			params.pousse(atome);
+			params.ajoute(atome);
 		}
 	}
 
@@ -219,7 +219,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 
 	auto params_sortie = kuri::tableau<Atome *>();
 	auto atome = constructrice.cree_allocation(nullptr, typeuse[TypeBase::RIEN], nullptr);
-	params_sortie.pousse(atome);
+	params_sortie.ajoute(atome);
 
 	auto atome_fonc = fonctions.ajoute_element(nullptr, nom_fonction, std::move(params));
 	atome_fonc->type = typeuse.type_fonction(types_entrees, types_sorties);
@@ -467,8 +467,8 @@ static Compilatrice *ptr_compilatrice = nullptr;
 Compilatrice::Compilatrice()
 	: ordonnanceuse(this)
 {
-	this->bibliotheques_dynamiques->pousse("pthread");
-	this->definitions->pousse("_REENTRANT");
+	this->bibliotheques_dynamiques->ajoute("pthread");
+	this->definitions->ajoute("_REENTRANT");
 
 	ptr_compilatrice = this;
 }
@@ -676,7 +676,7 @@ GeranteChaine::~GeranteChaine()
 
 void GeranteChaine::ajoute_chaine(const kuri::chaine &chaine, long capacite)
 {
-	m_table.pousse({ chaine, capacite });
+	m_table.ajoute({ chaine, capacite });
 }
 
 /* ************************************************************************** */
@@ -700,7 +700,7 @@ void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chain
 {
 	auto chaine = dls::chaine(c.pointeur, c.taille);
 
-	ptr_compilatrice->chaines_ajoutees_a_la_compilation->pousse(chaine);
+	ptr_compilatrice->chaines_ajoutees_a_la_compilation->ajoute(chaine);
 
 	auto module = espace->trouve_ou_cree_module(ptr_compilatrice->sys_module, ID::chaine_vide, "");
 	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, "métaprogramme", "", ptr_compilatrice->importe_kuri);
@@ -718,7 +718,7 @@ void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chai
 {
 	auto chaine = dls::chaine(c.pointeur, c.taille);
 
-	ptr_compilatrice->chaines_ajoutees_a_la_compilation->pousse(chaine);
+	ptr_compilatrice->chaines_ajoutees_a_la_compilation->ajoute(chaine);
 
 	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, "métaprogramme", "", ptr_compilatrice->importe_kuri);
 
@@ -809,7 +809,7 @@ static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(dls::tableau<Lexeme>
 	resultat.reserve(lexemes.taille());
 
 	POUR (lexemes) {
-		resultat.pousse({ static_cast<int>(it.genre), it.chaine });
+		resultat.ajoute({ static_cast<int>(it.genre), it.chaine });
 	}
 
 	return resultat;

@@ -60,7 +60,7 @@ dls::tableau<Particle*> ParticleGrid::GetWallNeighbors(
 				if (cellindex != -1l) {
 					auto cellparticlecount = m_cells[cellindex].taille();
 					for (auto a = 0l; a<cellparticlecount; a++) {
-						neighbors.pousse(m_cells[cellindex][a]);
+						neighbors.ajoute(m_cells[cellindex][a]);
 					}
 				}
 			}

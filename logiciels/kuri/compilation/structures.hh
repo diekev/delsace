@@ -100,7 +100,7 @@ struct chaine {
 		return this->begin() + this->taille;
 	}
 
-	void pousse(char c)
+	void ajoute(char c)
 	{
 		memoire::reloge_tableau("chaine", this->pointeur, this->taille, this->taille + 1);
 		pousse_reserve(c);
@@ -203,14 +203,14 @@ struct tableau {
 		return this->pointeur[i];
 	}
 
-	void pousse(T const &valeur)
+	void ajoute(T const &valeur)
 	{
 		reserve(this->taille + 1);
 		this->taille += 1;
 		this->pointeur[this->taille - 1] = valeur;
 	}
 
-	void pousse(T &&valeur)
+	void ajoute(T &&valeur)
 	{
 		reserve(this->taille + 1);
 		this->taille += 1;
@@ -301,7 +301,7 @@ struct tableau {
 };
 
 template <typename T>
-void pousse(tableau<T> *tabl, T valeur)
+void ajoute(tableau<T> *tabl, T valeur)
 {
 	memoire::reloge_tableau("kuri::tableau", tabl->pointeur, tabl->taille, tabl->taille + 1);
 	tabl->taille += 1;

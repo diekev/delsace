@@ -191,7 +191,7 @@ struct Arbre {
 	Arbre()
 		: racine(new NoeudDispostion{})
 	{
-		noeuds.pousse(racine);
+		noeuds.ajoute(racine);
 	}
 };
 #endif

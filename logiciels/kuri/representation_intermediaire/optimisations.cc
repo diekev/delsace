@@ -63,11 +63,11 @@ void corrige_labels(AtomeFonction *atome_fonc)
 			auto label = it->comme_label();
 
 			if (!branche_ou_retour_rencontre) {
-				paires_labels.pousse({ label_courant, label });
+				paires_labels.ajoute({ label_courant, label });
 			}
 
 			if (label_courant) {
-				nombre_instructions.pousse({ label_courant, nombre_instructions_label });
+				nombre_instructions.ajoute({ label_courant, nombre_instructions_label });
 			}
 
 			label_courant = label;
@@ -84,18 +84,18 @@ void corrige_labels(AtomeFonction *atome_fonc)
 			}
 			else {
 				auto branche = it->comme_branche();
-				paires_labels.pousse({ label_courant, branche->label });
+				paires_labels.ajoute({ label_courant, branche->label });
 				branche_ou_retour_rencontre = true;
 			}
 		}
 		else if (it->est_branche_cond()) {
 			auto branche = it->comme_branche_cond();
-			paires_labels.pousse({ label_courant, branche->label_si_vrai });
-			paires_labels.pousse({ label_courant, branche->label_si_faux });
+			paires_labels.ajoute({ label_courant, branche->label_si_vrai });
+			paires_labels.ajoute({ label_courant, branche->label_si_faux });
 			branche_ou_retour_rencontre = true;
 		}
 		else if (it->est_retour()) {
-			paires_labels.pousse({ label_courant, nullptr });
+			paires_labels.ajoute({ label_courant, nullptr });
 			branche_ou_retour_rencontre = true;
 		}
 
@@ -113,7 +113,7 @@ void corrige_labels(AtomeFonction *atome_fonc)
 			if (paires_labels[i].first == it.first) {
 				it.first->drapeaux |= Instruction::SUPPRIME_INSTRUCTION;
 				instructions_a_supprimer += 1;
-				paires_remplacement.pousse({ it.first, paires_labels[i].second });
+				paires_remplacement.ajoute({ it.first, paires_labels[i].second });
 			}
 		}
 	}
@@ -146,7 +146,7 @@ void corrige_labels(AtomeFonction *atome_fonc)
 
 		POUR (atome_fonc->instructions) {
 			if ((it->drapeaux & Instruction::SUPPRIME_INSTRUCTION) == 0) {
-				nouvelles_instructions.pousse(it);
+				nouvelles_instructions.ajoute(it);
 			}
 		}
 
@@ -405,7 +405,7 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 			continue;
 		}
 
-		nouvelles_instructions.pousse(it);
+		nouvelles_instructions.ajoute(it);
 	}
 
 	atome_fonc->instructions = nouvelles_instructions;
@@ -436,7 +436,7 @@ void supprime_code_mort(AtomeFonction *atome_fonc)
 			}
 
 			if (ou->etat == VALEUR_NE_FUT_PAS_INITIALISEE) {
-				anciennes_valeurs.pousse({ ou->comme_alloc(), stocke_mem });
+				anciennes_valeurs.ajoute({ ou->comme_alloc(), stocke_mem });
 				ou->etat = VALEUR_FUT_INITIALISEE;
 			}
 			else if (ou->etat == VALEUR_FUT_INITIALISEE) {
@@ -487,7 +487,7 @@ Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome)
 			nouvelle_appel->args.reserve(appel->args.taille);
 
 			POUR (appel->args) {
-				nouvelle_appel->args.pousse(copie_atome(constructrice, it));
+				nouvelle_appel->args.ajoute(copie_atome(constructrice, it));
 			}
 
 			break;
@@ -644,7 +644,7 @@ void performe_enlignage(
 							auto charge = it->comme_charge();
 
 							if (charge->chargee == fonction_appelee->params_entrees[i]) {
-								substitution.pousse({ charge, atome });
+								substitution.ajoute({ charge, atome });
 							}
 						}
 					}
@@ -652,7 +652,7 @@ void performe_enlignage(
 			}
 		}
 
-		substitution.pousse({ fonction_appelee->params_entrees[i], atome });
+		substitution.ajoute({ fonction_appelee->params_entrees[i], atome });
 	}
 
 	// À FAIRE : pour les paramètres il nous faudrait plutôt les adresses des variables chargées...
@@ -675,11 +675,11 @@ void performe_enlignage(
 
 			if (retour->valeur) {
 				auto stockage = constructrice.cree_stocke_mem(nullptr, adresse_retour, retour->valeur, true);
-				nouvelles_instructions.pousse(stockage);
+				nouvelles_instructions.ajoute(stockage);
 			}
 
 			auto branche = constructrice.cree_branche(nullptr, label_post, true);
-			nouvelles_instructions.pousse(branche);
+			nouvelles_instructions.ajoute(branche);
 			continue;
 		}
 		else if (n_it->genre == Instruction::Genre::CHARGE_MEMOIRE) {
@@ -713,7 +713,7 @@ void performe_enlignage(
 			}
 		}
 
-		nouvelles_instructions.pousse(n_it);
+		nouvelles_instructions.ajoute(n_it);
 	}
 }
 
@@ -749,7 +749,7 @@ public:
 			}
 		}
 
-		substitutions.pousse({ original, substitut, substitut_dans });
+		substitutions.ajoute({ original, substitut, substitut_dans });
 	}
 
 	Instruction *instruction_substituee(Instruction *instruction)
@@ -850,7 +850,7 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
 	POUR (atome_fonc->instructions) {
 		if (it->genre != Instruction::Genre::APPEL) {
-			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+			nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
 			continue;
 		}
 
@@ -858,7 +858,7 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 		auto appele = appel->appele;
 
 		if (appele->genre_atome != Atome::Genre::FONCTION) {
-			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+			nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
 			continue;
 		}
 
@@ -868,16 +868,16 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
 		if (atome_fonc_appelee->decl) {
 			if (atome_fonc_appelee->decl->est_externe) {
-				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+				nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
 				continue;
 			}
 
 			if (!atome_fonc_appelee->decl->possede_drapeau(FORCE_ENLIGNE)) {
-				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+				nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
 				continue;
 			}
 			else if (atome_fonc_appelee->decl->possede_drapeau(FORCE_HORSLIGNE)) {
-				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+				nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
 				continue;
 			}
 		}
@@ -887,17 +887,17 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 			// quelle fonction prenant un pointeur, il faudra convertir les types pour enlever le pointeur
 			// si le pointeur est l'adresse de la variable
 			if (instructions.taille >= 32) {
-				nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+				nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
 				continue;
 			}
-//			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+//			nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
 //			continue;
 		}
 
 		// À FAIRE : attend que les fonctions soient disponibles
 		// À FAIRE : les instructions ne pourraient être composées que de retour « rien » et de labels
 		if (instructions.est_vide()) {
-			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+			nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
 			continue;
 		}
 
@@ -908,7 +908,7 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
 		if (appel->type->genre != GenreType::RIEN) {
 			adresse_retour = constructrice.cree_allocation(nullptr, appel->type, nullptr, true);
-			nouvelle_instructions.pousse(adresse_retour);
+			nouvelle_instructions.ajoute(adresse_retour);
 		}
 
 		auto label_post = constructrice.reserve_label(nullptr);
@@ -918,7 +918,7 @@ void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
 		atome_fonc_appelee->nombre_utilisations -= 1;
 
-		nouvelle_instructions.pousse(label_post);
+		nouvelle_instructions.ajoute(label_post);
 
 		if (adresse_retour) {
 			// nous ne substituons l'adresse que pour le chargement de sa valeur, ainsi lors du stockage de la valeur
@@ -960,7 +960,7 @@ void propage_constantes_et_temporaires(AtomeFonction *atome_fonc)
 			}
 		}
 
-		dernieres_valeurs.pousse({ ptr, valeur });
+		dernieres_valeurs.ajoute({ ptr, valeur });
 	};
 
 	auto substitutrice = Substitutrice();
@@ -971,7 +971,7 @@ void propage_constantes_et_temporaires(AtomeFonction *atome_fonc)
 
 			stocke->valeur = substitutrice.valeur_substituee(stocke->valeur);
 			renseigne_derniere_valeur(stocke->ou, stocke->valeur);
-			nouvelle_instructions.pousse(it);
+			nouvelle_instructions.ajoute(it);
 		}
 		else if (it->genre == Instruction::Genre::CHARGE_MEMOIRE) {
 			auto charge = it->comme_charge();
@@ -983,10 +983,10 @@ void propage_constantes_et_temporaires(AtomeFonction *atome_fonc)
 				}
 			}
 
-			nouvelle_instructions.pousse(it);
+			nouvelle_instructions.ajoute(it);
 		}
 		else {
-			nouvelle_instructions.pousse(substitutrice.instruction_substituee(it));
+			nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
 		}
 	}
 

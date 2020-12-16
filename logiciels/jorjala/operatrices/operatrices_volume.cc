@@ -112,7 +112,7 @@ static res_exec cree_volume(
 	});
 
 	auto volume = memoire::loge<Volume>("Volume", grille_scalaire);
-	op.corps()->prims()->pousse(volume);
+	op.corps()->prims()->ajoute(volume);
 
 	return res_exec::REUSSIE;
 }
@@ -287,7 +287,7 @@ static res_exec maillage_vers_volume(
 	auto volume =  memoire::loge<Volume>("Volume", grille_scalaire);
 #endif
 
-	op.corps()->prims()->pousse(volume);
+	op.corps()->prims()->ajoute(volume);
 
 	return res_exec::REUSSIE;
 }
@@ -470,7 +470,7 @@ static res_exec ratisse_primitives(
 	chef->indique_progression(100.0f);
 
 	auto volume = memoire::loge<Volume>("Volume", grille_scalaire);
-	op.corps()->prims()->pousse(volume);
+	op.corps()->prims()->ajoute(volume);
 
 	return res_exec::REUSSIE;
 }
@@ -561,7 +561,7 @@ static void ajoute_volume_temps(
 
 			if (!debut) {
 				for (auto i = 0; i < wlk::VOXELS_TUILE; ++i) {
-					tuile_aux->donnees[i].pousse({ 0.0f, temps - dt });
+					tuile_aux->donnees[i].ajoute({ 0.0f, temps - dt });
 				}
 			}
 		}
@@ -569,7 +569,7 @@ static void ajoute_volume_temps(
 		/* Étape 2 : insère les valeurs pour ce temps.
 		 */
 		for (auto i = 0; i < wlk::VOXELS_TUILE; ++i) {
-			tuile_aux->donnees[i].pousse({ tuile->donnees[i], temps });
+			tuile_aux->donnees[i].ajoute({ tuile->donnees[i], temps });
 		}
 
 		tuile_aux->visite = true;
@@ -587,7 +587,7 @@ static void ajoute_volume_temps(
 		}
 		else {
 			for (auto i = 0; i < wlk::VOXELS_TUILE; ++i) {
-				tuile->donnees[i].pousse({ 0.0f, temps });
+				tuile->donnees[i].ajoute({ 0.0f, temps });
 			}
 		}
 	});
@@ -622,7 +622,7 @@ static void simplifie_courbes(
 			/* Étape 1 : enlève les valeurs répétées puisque nous présumons une
 			 * entrepolation linéaire. */
 			auto nv_courbe = wlk::type_courbe();
-			nv_courbe.pousse(donnees[0]);
+			nv_courbe.ajoute(donnees[0]);
 
 			for (auto j = 1; j < donnees.taille() - 1; ++j) {
 				auto const &v0 = donnees[j - 1].valeur;
@@ -633,16 +633,16 @@ static void simplifie_courbes(
 					continue;
 				}
 
-				nv_courbe.pousse(donnees[j]);
+				nv_courbe.ajoute(donnees[j]);
 			}
 
-			nv_courbe.pousse(donnees.back());
+			nv_courbe.ajoute(donnees.back());
 
 			donnees = nv_courbe;
 
 			/* Étape 2 : enlève les points les moins saillants. */
 			nv_courbe = wlk::type_courbe();
-			nv_courbe.pousse(donnees[0]);
+			nv_courbe.ajoute(donnees[0]);
 
 			auto const valeur_totale = (donnees.back().valeur - donnees.front().valeur);
 			auto const temps_total = (donnees.back().temps - donnees.front().temps);
@@ -655,7 +655,7 @@ static void simplifie_courbes(
 				/* les points avec une valeur à zéro sont préservés pour ne pas
 				 * risquer d'introduire de matière quand il ne faut pas */
 				if (p.valeur == 0.0f) {
-					nv_courbe.pousse(donnees[j]);
+					nv_courbe.ajoute(donnees[j]);
 					continue;
 				}
 
@@ -669,10 +669,10 @@ static void simplifie_courbes(
 					continue;
 				}
 
-				nv_courbe.pousse(donnees[j]);
+				nv_courbe.ajoute(donnees[j]);
 			}
 
-			nv_courbe.pousse(donnees.back());
+			nv_courbe.ajoute(donnees.back());
 
 			donnees = nv_courbe;
 #ifdef LOG_COMPRESSION
@@ -898,7 +898,7 @@ public:
 		auto grille = echantillonne_grille_temp(*m_grille_temps, temps);
 
 		auto volume = memoire::loge<Volume>("Volume", grille);
-		m_corps.prims()->pousse(volume);
+		m_corps.prims()->ajoute(volume);
 
 		return res_exec::REUSSIE;
 	}
@@ -977,7 +977,7 @@ public:
 		auto grille = wlk::floute_volume(*grille_entree, taille_fenetre);
 
 		auto volume = memoire::loge<Volume>("Volume", grille);
-		m_corps.prims()->pousse(volume);
+		m_corps.prims()->ajoute(volume);
 
 		return res_exec::REUSSIE;
 	}
@@ -1056,7 +1056,7 @@ public:
 		auto grille = wlk::affine_volume(*grille_entree, taille_fenetre, 0.5f);
 
 		auto volume = memoire::loge<Volume>("Volume", grille);
-		m_corps.prims()->pousse(volume);
+		m_corps.prims()->ajoute(volume);
 
 		return res_exec::REUSSIE;
 	}
@@ -1641,8 +1641,8 @@ public:
 						}
 
 						auto pos_monde = grille_entree->index_vers_monde(pos_tuile);
-						positions.pousse(pos_monde);
-						intensites.pousse(dls::math::vec3f(intensite));
+						positions.ajoute(pos_monde);
+						intensites.ajoute(dls::math::vec3f(intensite));
 					}
 				}
 			}

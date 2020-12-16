@@ -46,7 +46,7 @@ int Observatrice::montre_dialogue(int dialogue)
 
 void Sujette::ajoute_observatrice(Observatrice *observatrice)
 {
-	m_observatrices.pousse(observatrice);
+	m_observatrices.ajoute(observatrice);
 }
 
 void Sujette::enleve_observatrice(Observatrice *observatrice)

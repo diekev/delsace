@@ -496,7 +496,7 @@ long OrdonnanceuseTache::memoire_utilisee() const
 
 int OrdonnanceuseTache::enregistre_tacheronne(Badge<Tacheronne> /*badge*/)
 {
-	etats_tacheronnes.pousse(GenreTache::DORS);
+	etats_tacheronnes.ajoute(GenreTache::DORS);
 	return nombre_de_tacheronnes++;
 }
 
@@ -1000,7 +1000,7 @@ static void rassemble_globales_et_fonctions(
 			}
 
 			auto atome_fonction = decl_noeud->atome_fonction;
-			fonctions.pousse(atome_fonction);
+			fonctions.ajoute(atome_fonction);
 			decl_noeud->drapeaux |= CODE_BINAIRE_FUT_GENERE;
 		}
 		else if (noeud_dep->est_type()) {
@@ -1015,7 +1015,7 @@ static void rassemble_globales_et_fonctions(
 			if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
 				auto atome_fonction = type->fonction_init;
 				assert(atome_fonction);
-				fonctions.pousse(atome_fonction);
+				fonctions.ajoute(atome_fonction);
 				type->drapeaux |= CODE_BINAIRE_TYPE_FUT_GENERE;
 			}
 		}
@@ -1036,7 +1036,7 @@ static void rassemble_globales_et_fonctions(
 				atome_globale->index = mv.ajoute_globale(decl_noeud->type, decl_noeud->ident);
 			}
 
-			globales.pousse(atome_globale);
+			globales.ajoute(atome_globale);
 
 			decl_noeud->drapeaux |= CODE_BINAIRE_FUT_GENERE;
 		}
@@ -1067,7 +1067,7 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 
 		if (globales.taille() != 0) {
 			auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(espace, globales, fonction);
-			fonctions.pousse(fonc_init);
+			fonctions.ajoute(fonc_init);
 		}
 
 		POUR (fonctions) {
@@ -1118,7 +1118,7 @@ void Tacheronne::execute_metaprogrammes()
 				auto tampon = dls::chaine(resultat.pointeur, resultat.taille);
 
 				if (*tampon.fin() != ' ') {
-					tampon.pousse('\n');
+					tampon.ajoute('\n');
 				}
 
 				auto nom_fichier = dls::vers_chaine(it);
@@ -1133,7 +1133,7 @@ void Tacheronne::execute_metaprogrammes()
 
 					donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
-					compilatrice.chaines_ajoutees_a_la_compilation->pousse(dls::chaine(resultat.pointeur, resultat.taille));
+					compilatrice.chaines_ajoutees_a_la_compilation->ajoute(dls::chaine(resultat.pointeur, resultat.taille));
 					compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 				}
 			}

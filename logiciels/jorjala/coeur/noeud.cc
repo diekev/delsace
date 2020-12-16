@@ -141,7 +141,7 @@ void Noeud::ajoute_entree(dls::chaine const &name, const type_prise type_p, bool
 	prise->type = type_p;
 	prise->multiple_connexions = connexions_multiples;
 
-	this->entrees.pousse(prise);
+	this->entrees.ajoute(prise);
 }
 
 void Noeud::ajoute_sortie(dls::chaine const &name, const type_prise type_p)
@@ -150,7 +150,7 @@ void Noeud::ajoute_sortie(dls::chaine const &name, const type_prise type_p)
 	prise->parent = this;
 	prise->type = type_p;
 
-	this->sorties.pousse(prise);
+	this->sorties.ajoute(prise);
 }
 
 PriseEntree *Noeud::entree(long index) const

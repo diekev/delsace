@@ -34,5 +34,5 @@ Nuanceur::Nuanceur(Noeud &n)
 	noeud.donnees = this;
 	noeud.graphe.type = type_graphe::DETAIL;
 	noeud.graphe.donnees.efface();
-	noeud.graphe.donnees.pousse(static_cast<int>(DETAIL_NUANCAGE));
+	noeud.graphe.donnees.ajoute(static_cast<int>(DETAIL_NUANCAGE));
 }

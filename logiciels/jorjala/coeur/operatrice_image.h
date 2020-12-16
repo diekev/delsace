@@ -251,7 +251,7 @@ public:
 	{
 		auto flux = dls::flux_chaine();
 		ajoute_avertissement_flux(flux, t, ts...);
-		m_avertissements.pousse(flux.chn());
+		m_avertissements.ajoute(flux.chn());
 	}
 
 	void reinitialise_avertisements();

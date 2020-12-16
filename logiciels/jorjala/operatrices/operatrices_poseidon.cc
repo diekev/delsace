@@ -166,7 +166,7 @@ public:
 	{
 		if (raison == "nom_objet") {
 			for (auto &objet : contexte.bdd->objets()) {
-				liste.pousse(objet->noeud->nom);
+				liste.ajoute(objet->noeud->nom);
 			}
 		}
 	}
@@ -237,7 +237,7 @@ public:
 			params.fusion = plage_mode.front().second;
 		}
 
-		poseidon_gaz->monde.sources.pousse(params);
+		poseidon_gaz->monde.sources.ajoute(params);
 
 		return res_exec::REUSSIE;
 	}
@@ -333,7 +333,7 @@ public:
 	{
 		if (raison == "nom_objet") {
 			for (auto &objet : contexte.bdd->objets()) {
-				liste.pousse(objet->noeud->nom);
+				liste.ajoute(objet->noeud->nom);
 			}
 		}
 	}
@@ -1459,7 +1459,7 @@ public:
 		noeud.peut_avoir_graphe = true;
 		noeud.graphe.type = type_graphe::DETAIL;
 		noeud.graphe.donnees.efface();
-		noeud.graphe.donnees.pousse(static_cast<int>(DETAIL_POSEIDON_GAZ));
+		noeud.graphe.donnees.ajoute(static_cast<int>(DETAIL_POSEIDON_GAZ));
 	}
 
 	const char *chemin_entreface() const override

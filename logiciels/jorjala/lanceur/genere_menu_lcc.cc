@@ -35,7 +35,7 @@ int main()
 	auto nom_categories = dls::tableau<dls::chaine>();
 
 	for (auto const &paire_df : lcc.fonctions.table_categories) {
-		nom_categories.pousse(paire_df.first);
+		nom_categories.ajoute(paire_df.first);
 	}
 
 	std::sort(begin(nom_categories), end(nom_categories));

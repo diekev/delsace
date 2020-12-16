@@ -118,10 +118,10 @@ static triade_types types_fonctions_finaux(
 
 	for (auto i = 0; i < taille; ++i) {
 		if (entrees.type(i) == type_var::POLYMORPHIQUE) {
-			types_finaux_entrees.types.pousse(type_specialise);
+			types_finaux_entrees.types.ajoute(type_specialise);
 		}
 		else {
-			types_finaux_entrees.types.pousse(entrees.type(i));
+			types_finaux_entrees.types.ajoute(entrees.type(i));
 		}
 	}
 
@@ -131,10 +131,10 @@ static triade_types types_fonctions_finaux(
 
 	for (auto i = 0; i < taille; ++i) {
 		if (sorties.type(i) == type_var::POLYMORPHIQUE) {
-			types_finaux_sorties.types.pousse(type_specialise);
+			types_finaux_sorties.types.ajoute(type_specialise);
 		}
 		else {
-			types_finaux_sorties.types.pousse(sorties.type(i));
+			types_finaux_sorties.types.ajoute(sorties.type(i));
 		}
 	}
 
@@ -157,14 +157,14 @@ donnees_fonction *magasin_fonctions::ajoute_fonction(const dls::chaine &nom, cod
 
 	if (iter == table.fin()) {
 		auto tableau = dls::tableau<donnees_fonction>{};
-		tableau.pousse({seing, type, ctx});
+		tableau.ajoute({seing, type, ctx});
 
 		table.insere({nom, tableau});
 
 		df = &table.trouve(nom)->second.back();
 	}
 	else {
-		iter->second.pousse({seing, type, ctx});
+		iter->second.ajoute({seing, type, ctx});
 		df = &iter->second.back();
 	}
 

@@ -117,19 +117,19 @@ struct ObjetTableau final : public Objet {
 	static std::shared_ptr<Objet> construit(Args &&... args)
 	{
 		auto tableau = std::make_shared<ObjetTableau>();
-		(tableau->pousse(args), ...);
+		(tableau->ajoute(args), ...);
 		return tableau;
 	}
 
 	template <typename T>
-	void pousse(T const &v)
+	void ajoute(T const &v)
 	{
-		valeur.pousse(construit_objet(v));
+		valeur.ajoute(construit_objet(v));
 	}
 
-	void pousse(std::shared_ptr<Objet> const &v)
+	void ajoute(std::shared_ptr<Objet> const &v)
 	{
-		valeur.pousse(v);
+		valeur.ajoute(v);
 	}
 };
 

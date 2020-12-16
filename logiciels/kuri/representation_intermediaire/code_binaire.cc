@@ -189,7 +189,7 @@ void Chunk::emets_branche(NoeudExpression *site, dls::tableau<PatchLabel> &patch
 	auto patch = PatchLabel();
 	patch.index_label = index;
 	patch.adresse = static_cast<int>(compte - 4);
-	patchs_labels.pousse(patch);
+	patchs_labels.ajoute(patch);
 }
 
 void Chunk::emets_branche_condition(NoeudExpression *site, dls::tableau<PatchLabel> &patchs_labels, int index_label_si_vrai, int index_label_si_faux)
@@ -202,12 +202,12 @@ void Chunk::emets_branche_condition(NoeudExpression *site, dls::tableau<PatchLab
 	auto patch = PatchLabel();
 	patch.index_label = index_label_si_vrai;
 	patch.adresse = static_cast<int>(compte - 8);
-	patchs_labels.pousse(patch);
+	patchs_labels.ajoute(patch);
 
 	patch = PatchLabel();
 	patch.index_label = index_label_si_faux;
 	patch.adresse = static_cast<int>(compte - 4);
-	patchs_labels.pousse(patch);
+	patchs_labels.ajoute(patch);
 }
 
 void Chunk::emets_label(NoeudExpression *site, int index)
@@ -842,7 +842,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 		donnees_externe.types_entrees.reserve(type_fonction->types_entrees.taille);
 
 		POUR (type_fonction->types_entrees) {
-			donnees_externe.types_entrees.pousse(converti_type_ffi(it));
+			donnees_externe.types_entrees.ajoute(converti_type_ffi(it));
 		}
 
 		auto type_ffi_sortie = converti_type_ffi(type_fonction->types_sorties[0]);
@@ -868,7 +868,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 		auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
 		auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
 		alloc->index_locale = static_cast<int>(chunk.locales.taille());
-		chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
+		chunk.locales.ajoute({ alloc->ident, alloc->type, adresse });
 	}
 
 	// À FAIRE : l'optimisation pour la réutilisation de la mémoire des locales en se basant sur la durée de vie de celles-ci ne fonctionne pas
@@ -884,7 +884,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 			auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
 			auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
 			alloc->index_locale = static_cast<int>(chunk.locales.taille());
-			chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
+			chunk.locales.ajoute({ alloc->ident, alloc->type, adresse });
 		}
 	}
 #endif
@@ -967,7 +967,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
 				auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
 				alloc->index_locale = static_cast<int>(chunk.locales.taille());
-				chunk.locales.pousse({ alloc->ident, alloc->type, adresse });
+				chunk.locales.ajoute({ alloc->ident, alloc->type, adresse });
 			}
 #endif
 
@@ -1546,7 +1546,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 							patch.decalage_ou = decalage + static_cast<int>(decalage_membre);
 							patch.decalage_quoi = adresse_tableau;
 
-							mv->patchs_donnees_constantes.pousse(patch);
+							mv->patchs_donnees_constantes.ajoute(patch);
 
 							auto donnees_ = mv->donnees_globales.donnees() + decalage + static_cast<int>(decalage_membre);
 							*reinterpret_cast<long *>(donnees_ + 8) = taille;
@@ -1587,7 +1587,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 			patch.decalage_ou = decalage;
 			patch.decalage_quoi = globale.adresse;
 
-			mv->patchs_donnees_constantes.pousse(patch);
+			mv->patchs_donnees_constantes.ajoute(patch);
 
 			break;
 		}

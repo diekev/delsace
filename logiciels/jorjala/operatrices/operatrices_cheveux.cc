@@ -315,7 +315,7 @@ static void traverse_arbre(
 		dls::tableau<arbre_octernaire::noeud const *> &noeuds)
 {
 	if (racine->est_feuille) {
-		noeuds.pousse(racine);
+		noeuds.ajoute(racine);
 		return;
 	}
 
@@ -522,7 +522,7 @@ public:
 						donnees_collesion.idx_courbe = idx;
 						donnees_collesion.idx_segment = i;
 
-						donnees_collesions.pousse(donnees_collesion);
+						donnees_collesions.ajoute(donnees_collesion);
 
 						return;
 					}
@@ -1140,8 +1140,8 @@ public:
 				tableau_vec3 point_forces;
 
 				for (int p = 0; p < (num_hair_points); p++) {
-					point_velocities.pousse(dls::math::vec3f(0.0f));
-					point_forces.pousse(dls::math::vec3f(0.0f));
+					point_velocities.ajoute(dls::math::vec3f(0.0f));
+					point_forces.ajoute(dls::math::vec3f(0.0f));
 
 					auto idx_point = points.ajoute_point(point_base);
 					m_corps.ajoute_sommet(poly, idx_point);
@@ -1149,17 +1149,17 @@ public:
 					point_base += normal * segment_length;
 				}
 
-				velocities.pousse(point_velocities);
-				forces.pousse(point_forces);
+				velocities.ajoute(point_velocities);
+				forces.ajoute(point_forces);
 			}
 
 			for (auto i = 1u ; i < static_cast<unsigned>(num_hair_points); i++) {
 				dls::tableau<Spring*> springs_attached_to_point;
 
-				springs_attached_to_point.pousse(
+				springs_attached_to_point.ajoute(
 							new Spring(i - 1, i, segment_length, 20 * static_cast<float>(static_cast<unsigned>(num_hair_points) - i)));
 				if (i > 1) {
-					springs_attached_to_point.pousse(
+					springs_attached_to_point.ajoute(
 								new Spring(i - 2, i, segment_length * curviness , 35 * static_cast<float>((static_cast<unsigned>(num_hair_points) - i))));
 					// if (i > 2) {
 					//   springs_attached_to_point.push_back(
@@ -1167,7 +1167,7 @@ public:
 					// }
 				}
 
-				springs.pousse(springs_attached_to_point);
+				springs.ajoute(springs_attached_to_point);
 			}
 		}
 		else {

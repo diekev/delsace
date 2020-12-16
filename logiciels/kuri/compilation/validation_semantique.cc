@@ -109,7 +109,7 @@ void ContexteValidationCode::renseigne_membre_actif(const dls::vue_chaine_compac
 		}
 	}
 
-	membres_actifs.pousse({ nom_union, nom_membre });
+	membres_actifs.ajoute({ nom_union, nom_membre });
 }
 
 bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
@@ -230,7 +230,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			decl_sortie->type = noeud_directive->expr->type;
 			decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-			decl_entete->params_sorties.pousse(decl_sortie);
+			decl_entete->params_sorties.ajoute(decl_sortie);
 
 			auto types_entrees = dls::tablet<Type *, 6>(0);
 
@@ -256,10 +256,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				fonction_courante = ancienne_fonction_courante;
 			}
 			else {
-				decl_corps->bloc->expressions->pousse(noeud_directive->expr);
+				decl_corps->bloc->expressions->ajoute(noeud_directive->expr);
 			}
 
-			decl_corps->bloc->expressions->pousse(expr_ret);
+			decl_corps->bloc->expressions->ajoute(expr_ret);
 
 			auto graphe = espace->graphe_dependance.verrou_ecriture();
 			auto noeud_dep = graphe->cree_noeud_fonction(decl_entete);
@@ -1073,7 +1073,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				decl_f->type = type;
 				decl_f->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-				enfant3->membres->pousse(decl_f);
+				enfant3->membres->ajoute(decl_f);
 			}
 
 			if (requiers_index) {
@@ -1087,7 +1087,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 
 				decl_idx->drapeaux |= DECLARATION_FUT_VALIDEE;
-				enfant3->membres->pousse(decl_idx);
+				enfant3->membres->ajoute(decl_idx);
 			}
 
 			break;
@@ -1494,7 +1494,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					decl_expr->type = expr_paire->type;
 					// À FAIRE: mise en place des informations d'emploi
 
-					bloc_paire->membres->pousse(decl_expr);
+					bloc_paire->membres->ajoute(decl_expr);
 				}
 
 				if (inst->bloc_sinon == nullptr) {
@@ -1577,7 +1577,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					decl_expr->type = expr_paire->type;
 					// À FAIRE: mise en place des informations d'emploi
 
-					bloc_paire->membres->pousse(decl_expr);
+					bloc_paire->membres->ajoute(decl_expr);
 				}
 
 				if (inst->bloc_sinon == nullptr) {
@@ -1921,7 +1921,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				decl_membre->index_membre_employe = index_membre++;
 				decl_membre->expression = it.expression_valeur_defaut;
 
-				bloc_parent->membres->pousse(decl_membre);
+				bloc_parent->membres->ajoute(decl_membre);
 			}
 			break;
 		}
@@ -2132,11 +2132,11 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 		types_entrees.reserve(decl->params.taille + possede_contexte);
 
 		if (possede_contexte) {
-			types_entrees.pousse(espace->typeuse.type_contexte);
+			types_entrees.ajoute(espace->typeuse.type_contexte);
 		}
 
 		POUR (decl->params) {
-			types_entrees.pousse(it->type);
+			types_entrees.ajoute(it->type);
 		}
 
 		dls::tablet<Type *, 6> types_sorties;
@@ -2147,7 +2147,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 			if (resoud_type_final(type_declare->expression_type, type_sortie)) {
 				return true;
 			}
-			types_sorties.pousse(type_sortie);
+			types_sorties.ajoute(type_sortie);
 		}
 
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (type_fonction)");
@@ -2307,11 +2307,11 @@ static void rassemble_expressions(NoeudExpression *expr, dls::tablet<NoeudExpres
 		auto virgule = expr->comme_virgule();
 
 		POUR (virgule->expressions) {
-			expressions.pousse(it);
+			expressions.ajoute(it);
 		}
 	}
 	else {
-		expressions.pousse(expr);
+		expressions.ajoute(expr);
 	}
 }
 
@@ -2332,20 +2332,20 @@ static void rassemble_expressions(NoeudExpression *expr, dls::tablet<VariableEtE
 		POUR (virgule->expressions) {
 			if (it->est_assignation()) {
 				auto assignation = it->comme_assignation();
-				expressions.pousse({ assignation->variable->ident, assignation->expression });
+				expressions.ajoute({ assignation->variable->ident, assignation->expression });
 			}
 			else {
-				expressions.pousse({ nullptr, it });
+				expressions.ajoute({ nullptr, it });
 			}
 		}
 	}
 	else {
 		if (expr->est_assignation()) {
 			auto assignation = expr->comme_assignation();
-			expressions.pousse({ assignation->variable->ident, assignation->expression });
+			expressions.ajoute({ assignation->variable->ident, assignation->expression });
 		}
 		else {
-			expressions.pousse({ nullptr, expr });
+			expressions.ajoute({ nullptr, expr });
 		}
 	}
 }
@@ -2389,10 +2389,10 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 
 		DonneesAssignations donnees;
 		donnees.expression = inst->expr;
-		donnees.variables.pousse(fonction_courante->params_sorties[0]);
-		donnees.transformations.pousse({});
+		donnees.variables.ajoute(fonction_courante->params_sorties[0]);
+		donnees.transformations.ajoute({});
 
-		inst->donnees_exprs.pousse(donnees);
+		inst->donnees_exprs.ajoute(donnees);
 
 		donnees_dependance.types_utilises.insere(inst->type);
 
@@ -2480,8 +2480,8 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 			return false;
 		}
 
-		donnees.variables.pousse(variable);
-		donnees.transformations.pousse(transformation);
+		donnees.variables.ajoute(variable);
+		donnees.transformations.ajoute(transformation);
 		return true;
 	};
 
@@ -2522,7 +2522,7 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 			}
 		}
 
-		donnees_retour.pousse(donnees);
+		donnees_retour.ajoute(donnees);
 	}
 
 	// À FAIRE : valeur par défaut des expressions
@@ -2540,7 +2540,7 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 
 	inst->donnees_exprs.reserve(donnees_retour.taille());
 	POUR (donnees_retour) {
-		inst->donnees_exprs.pousse(it);
+		inst->donnees_exprs.ajoute(it);
 	}
 
 	donnees_dependance.types_utilises.insere(inst->type);
@@ -2587,7 +2587,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
 	decl_sortie->type = espace->typeuse[TypeBase::CHAINE];
 	decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-	fonction->params_sorties.pousse(decl_sortie);
+	fonction->params_sorties.ajoute(decl_sortie);
 
 	auto types_entrees = dls::tablet<Type *, 6>(0);
 
@@ -2640,7 +2640,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 		// préserve les constantes polymorphiques
 		if (fonction->est_monomorphisation) {
 			POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
-				fonction->bloc_constantes->membres->pousse(it);
+				fonction->bloc_constantes->membres->ajoute(it);
 			}
 		}
 
@@ -2668,7 +2668,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 			decl_ctx->ident = val_ctx->ident;
 			decl_ctx->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-			decl->bloc->membres->pousse(decl_ctx);
+			decl->bloc->membres->ajoute(decl_ctx);
 		}
 	}
 
@@ -2739,7 +2739,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *dec
 			decl_ctx->ident = val_ctx->ident;
 			decl_ctx->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-			decl->bloc->membres->pousse(decl_ctx);
+			decl->bloc->membres->ajoute(decl_ctx);
 		}
 	}
 
@@ -2768,7 +2768,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 	auto &membres = type_enum->membres;
 
 	// nous avons besoin du symbole le plus rapidement possible pour déterminer les types l'utilisant
-	decl->bloc_parent->membres->pousse(decl);
+	decl->bloc_parent->membres->ajoute(decl);
 
 	if (type_enum->est_erreur) {
 		type_enum->type_donnees = espace->typeuse[TypeBase::Z32];
@@ -2820,7 +2820,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 		auto decl_expr = it->comme_decl_var();
 		decl_expr->type = type_enum;
 
-		decl->bloc->membres->pousse(decl_expr);
+		decl->bloc->membres->ajoute(decl_expr);
 
 		auto var = decl_expr->valeur;
 
@@ -2888,12 +2888,12 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 			}
 		}
 
-		membres.pousse({ type_enum, var->ident, 0, static_cast<int>(res.entier) });
+		membres.ajoute({ type_enum, var->ident, 0, static_cast<int>(res.entier) });
 
 		dernier_res = res;
 	}
 
-	membres.pousse({ espace->typeuse[TypeBase::Z32], ID::nombre_elements, 0, static_cast<int>(membres.taille), nullptr, TypeCompose::Membre::EST_IMPLICITE });
+	membres.ajoute({ espace->typeuse[TypeBase::Z32], ID::nombre_elements, 0, static_cast<int>(membres.taille), nullptr, TypeCompose::Membre::EST_IMPLICITE });
 
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 	decl->type->drapeaux |= TYPE_FUT_VALIDE;
@@ -2936,7 +2936,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			decl->bloc_constantes->membres.avec_verrou_ecriture([fonction](kuri::tableau<NoeudDeclaration *> &membres)
 			{
 				POUR (membres) {
-					fonction->bloc_constantes->membres->pousse(it);
+					fonction->bloc_constantes->membres->ajoute(it);
 				}
 			});
 		}
@@ -3021,7 +3021,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			return true;
 		}
 
-		type_compose->membres.pousse({ enfant->type, enfant->ident, 0, 0, expr_valeur });
+		type_compose->membres.ajoute({ enfant->type, enfant->ident, 0, 0, expr_valeur });
 
 		donnees_dependance.types_utilises.insere(type_membre);
 
@@ -3088,7 +3088,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 
 		graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
-		decl->bloc_parent->membres->pousse(decl);
+		decl->bloc_parent->membres->ajoute(decl);
 		return false;
 	}
 
@@ -3098,7 +3098,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		if (dls::outils::est_element(it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
 			// utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
 			auto type_de_donnees = espace->typeuse.type_type_de_donnees(it->type);
-			type_compose->membres.pousse({ type_de_donnees, it->ident, 0, 0, nullptr, TypeCompose::Membre::EST_CONSTANT });
+			type_compose->membres.ajoute({ type_de_donnees, it->ident, 0, 0, nullptr, TypeCompose::Membre::EST_CONSTANT });
 
 			// l'utilisation d'un type de données brise le graphe de dépendance
 			donnees_dependance.types_utilises.insere(it->type);
@@ -3106,7 +3106,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 
 		if (it->possede_drapeau(EMPLOYE)) {
-			type_struct->types_employes.pousse(it->type->comme_structure());
+			type_struct->types_employes.ajoute(it->type->comme_structure());
 			continue;
 		}
 
@@ -3118,7 +3118,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		auto decl_var = it->comme_decl_var();
 
 		if (decl_var->possede_drapeau(EST_CONSTANTE)) {
-			type_compose->membres.pousse({ it->type, it->ident, 0, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
+			type_compose->membres.ajoute({ it->type, it->ident, 0, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
 			continue;
 		}
 
@@ -3317,19 +3317,19 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 		if (variable->type == nullptr) {
 			if (type_de_l_expression->genre == GenreType::ENTIER_CONSTANT) {
 				variable->type = espace->typeuse[TypeBase::Z32];
-				donnees.variables.pousse(variable);
-				donnees.transformations.pousse({ TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type });
+				donnees.variables.ajoute(variable);
+				donnees.transformations.ajoute({ TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type });
 			}
 			else {
 				if (type_de_l_expression->est_reference()) {
 					variable->type = type_de_l_expression->comme_reference()->type_pointe;
-					donnees.variables.pousse(variable);
-					donnees.transformations.pousse({ TypeTransformation::DEREFERENCE });
+					donnees.variables.ajoute(variable);
+					donnees.transformations.ajoute({ TypeTransformation::DEREFERENCE });
 				}
 				else {
 					variable->type = type_de_l_expression;
-					donnees.variables.pousse(variable);
-					donnees.transformations.pousse({ TypeTransformation::INUTILE });
+					donnees.variables.ajoute(variable);
+					donnees.transformations.ajoute({ TypeTransformation::INUTILE });
 				}
 			}
 		}
@@ -3344,8 +3344,8 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 				return false;
 			}
 
-			donnees.variables.pousse(variable);
-			donnees.transformations.pousse(transformation);
+			donnees.variables.ajoute(variable);
+			donnees.transformations.ajoute(transformation);
 		}
 
 		if (decl->drapeaux & EST_CONSTANTE && !type_de_l_expression->est_type_de_donnees()) {
@@ -3391,8 +3391,8 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 			}
 
 			if (it->est_non_initialisation()) {
-				donnees.variables.pousse(variables.defile());
-				donnees.transformations.pousse({ TypeTransformation::INUTILE });
+				donnees.variables.ajoute(variables.defile());
+				donnees.transformations.ajoute({ TypeTransformation::INUTILE });
 			}
 			else if (it->est_appel() && it->comme_appel()->noeud_fonction_appelee && it->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
 				auto type_fonction = it->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
@@ -3419,11 +3419,11 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 				}
 			}
 
-			donnees_assignations.pousse(donnees);
+			donnees_assignations.ajoute(donnees);
 		}
 
 		if (donnees_assignations.est_vide()) {
-			donnees_assignations.pousse({});
+			donnees_assignations.ajoute({});
 		}
 
 		// a, b := c
@@ -3441,8 +3441,8 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 				}
 			}
 
-			donnees->variables.pousse(var);
-			donnees->transformations.pousse(transformation);
+			donnees->variables.ajoute(var);
+			donnees->transformations.ajoute(transformation);
 		}
 	}
 
@@ -3466,7 +3466,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 			}
 
 			auto bloc_parent = decl_var->bloc_parent;
-			bloc_parent->membres->pousse(decl_var);
+			bloc_parent->membres->ajoute(decl_var);
 
 			decl_var->drapeaux |= DECLARATION_FUT_VALIDEE;
 			donnees_dependance.types_utilises.insere(decl_var->type);
@@ -3479,7 +3479,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 		decl->donnees_decl.reserve(donnees_assignations.taille());
 
 		POUR (donnees_assignations) {
-			decl->donnees_decl.pousse(std::move(it));
+			decl->donnees_decl.ajoute(std::move(it));
 		}
 	}
 
@@ -3575,8 +3575,8 @@ bool ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
 			}
 		}
 
-		donnees.variables.pousse(var);
-		donnees.transformations.pousse(transformation);
+		donnees.variables.ajoute(var);
+		donnees.transformations.ajoute(transformation);
 		return true;
 	};
 
@@ -3622,7 +3622,7 @@ bool ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
 			}
 		}
 
-		donnees_assignations.pousse(donnees);
+		donnees_assignations.ajoute(donnees);
 	}
 
 	// a, b = c
@@ -3635,7 +3635,7 @@ bool ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
 
 	inst->donnees_exprs.reserve(donnees_assignations.taille());
 	POUR (donnees_assignations) {
-		inst->donnees_exprs.pousse(it);
+		inst->donnees_exprs.ajoute(it);
 	}
 
 	return false;

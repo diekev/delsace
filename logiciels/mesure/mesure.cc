@@ -130,7 +130,7 @@ static auto compte_lignes(std::ifstream &is, Fichier *fichier)
 				inclusion = inclusion.sous_chaine(pos_dernier_slash + 1);
 			}
 
-			fichier->inclusions.pousse(inclusion);
+			fichier->inclusions.ajoute(inclusion);
 			nombre_lignes++;
 			return;
 		}
@@ -376,7 +376,7 @@ int main()
 		nombre_total_lignes += nombre_lignes.first;
 		nombre_total_commentaires += nombre_lignes.second;
 
-		//table.pousse({ dls::chaine(chemin_fichier.filename().c_str()	), nombre_lignes });
+		//table.ajoute({ dls::chaine(chemin_fichier.filename().c_str()	), nombre_lignes });
 	}
 
 	auto index = 0;

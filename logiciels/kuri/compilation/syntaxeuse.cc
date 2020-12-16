@@ -114,7 +114,7 @@ static auto copie_tablet_tableau(dls::tablet<T, N> const &src, kuri::tableau<T> 
 	dst.reserve(src.taille());
 
 	POUR (src) {
-		dst.pousse(it);
+		dst.ajoute(it);
 	}
 }
 
@@ -392,7 +392,7 @@ void Syntaxeuse::lance_analyse()
 			recipiente->bloc = analyse_bloc(false);
 
 			POUR ((*recipiente->bloc_constantes->membres.verrou_lecture())) {
-				recipiente->bloc->membres->pousse(it);
+				recipiente->bloc->membres->ajoute(it);
 			}
 
 			aplatis_arbre(recipiente->bloc, recipiente->arbre_aplatis, {});
@@ -419,7 +419,7 @@ void Syntaxeuse::lance_analyse()
 			consomme();
 
 			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_IMPORTE, lexeme);
-			noeud->bloc_parent->expressions->pousse(noeud);
+			noeud->bloc_parent->expressions->ajoute(noeud);
 
 			if (!apparie(GenreLexeme::CHAINE_LITTERALE) && !apparie(GenreLexeme::CHAINE_CARACTERE)) {
 				lance_erreur("Attendu une chaine littérale après 'importe'");
@@ -435,7 +435,7 @@ void Syntaxeuse::lance_analyse()
 			consomme();
 
 			auto noeud = CREE_NOEUD(NoeudExpressionUnaire, GenreNoeud::INSTRUCTION_CHARGE, lexeme);
-			noeud->bloc_parent->expressions->pousse(noeud);
+			noeud->bloc_parent->expressions->ajoute(noeud);
 
 			if (!apparie(GenreLexeme::CHAINE_LITTERALE) && !apparie(GenreLexeme::CHAINE_CARACTERE)) {
 				lance_erreur("Attendu une chaine littérale après 'charge'");
@@ -461,12 +461,12 @@ void Syntaxeuse::lance_analyse()
 						auto decl_var = noeud->comme_decl_var();
 						decl_var->arbre_aplatis.reserve(nombre_noeuds_alloues);
 						aplatis_arbre(decl_var, decl_var->arbre_aplatis, DrapeauxNoeud::AUCUN);
-						noeud->bloc_parent->membres->pousse(decl_var);
+						noeud->bloc_parent->membres->ajoute(decl_var);
 						m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 					}
 				}
 
-				noeud->bloc_parent->expressions->pousse(noeud);
+				noeud->bloc_parent->expressions->ajoute(noeud);
 			}
 		}
 		else {
@@ -828,7 +828,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			 * élément dans le tableau. */
 			if (!expression_entre_crochets->est_virgule()) {
 				auto virgule = CREE_NOEUD(NoeudExpressionVirgule, GenreNoeud::EXPRESSION_VIRGULE, lexeme);
-				virgule->expressions.pousse(expression_entre_crochets);
+				virgule->expressions.ajoute(expression_entre_crochets);
 				expression_entre_crochets = virgule;
 			}
 
@@ -991,20 +991,20 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 				consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 				auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
-				m_compilatrice.bibliotheques_dynamiques->pousse(chaine);
+				m_compilatrice.bibliotheques_dynamiques->ajoute(chaine);
 			}
 			else if (directive == ID::bibliotheque_statique) {
 				auto chaine_bib = lexeme_courant()->chaine;
 				consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 				auto chaine = trouve_chemin_si_dans_dossier(m_fichier->module, chaine_bib);
-				m_compilatrice.bibliotheques_statiques->pousse(chaine);
+				m_compilatrice.bibliotheques_statiques->ajoute(chaine);
 			}
 			else if (directive == ID::def) {
 				auto chaine = lexeme_courant()->chaine;
 				consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-				m_compilatrice.definitions->pousse(chaine);
+				m_compilatrice.definitions->ajoute(chaine);
 			}
 			else if (directive == ID::execute || directive == ID::assert_ || directive == ID::test) {
 				auto noeud = CREE_NOEUD(NoeudDirectiveExecution, GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
@@ -1029,7 +1029,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 				auto chaine = lexeme_courant()->chaine;
 				consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
-				m_compilatrice.chemins->pousse(chaine);
+				m_compilatrice.chemins->ajoute(chaine);
 			}
 			else if (directive == ID::nulctx) {
 				lexeme = lexeme_courant();
@@ -1073,11 +1073,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			noeud_decl_param->drapeaux |= (DECLARATION_TYPE_POLYMORPHIQUE | EST_CONSTANTE);
 
 			if (fonction_courante) {
-				fonction_courante->bloc_constantes->membres->pousse(noeud_decl_param);
+				fonction_courante->bloc_constantes->membres->ajoute(noeud_decl_param);
 				fonction_courante->est_polymorphe = true;
 			}
 			else if (structure_courante) {
-				structure_courante->bloc_constantes->membres->pousse(noeud_decl_param);
+				structure_courante->bloc_constantes->membres->ajoute(noeud_decl_param);
 				structure_courante->est_polymorphe = true;
 			}
 			else {
@@ -1164,14 +1164,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 
 			if (!m_noeud_expression_virgule) {
 				m_noeud_expression_virgule = CREE_NOEUD(NoeudExpressionVirgule, GenreNoeud::EXPRESSION_VIRGULE, lexeme);
-				m_noeud_expression_virgule->expressions.pousse(gauche);
+				m_noeud_expression_virgule->expressions.ajoute(gauche);
 				noeud_expression_virgule = m_noeud_expression_virgule;
 			}
 
 			auto droite = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
 
 			m_noeud_expression_virgule = noeud_expression_virgule;
-			m_noeud_expression_virgule->expressions.pousse(droite);
+			m_noeud_expression_virgule->expressions.ajoute(droite);
 
 			return m_noeud_expression_virgule;
 		}
@@ -1476,7 +1476,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 
 				while (true) {
 					auto expr = analyse_expression({}, GenreLexeme::RETIENS, GenreLexeme::VIRGULE);
-					expressions.pousse(expr);
+					expressions.ajoute(expr);
 
 					if (!apparie(GenreLexeme::VIRGULE)) {
 						break;
@@ -1514,7 +1514,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 
 				while (true) {
 					auto expr = analyse_expression({}, GenreLexeme::RETOURNE, GenreLexeme::VIRGULE);
-					expressions.pousse(expr);
+					expressions.ajoute(expr);
 
 					if (!apparie(GenreLexeme::VIRGULE)) {
 						break;
@@ -1608,11 +1608,11 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise, bool pour_pousse_cont
 
 		if (apparie_instruction()) {
 			auto noeud = analyse_instruction();
-			expressions.pousse(noeud);
+			expressions.ajoute(noeud);
 		}
 		else if (apparie_expression()) {
 			auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
-			expressions.pousse(noeud);
+			expressions.ajoute(noeud);
 		}
 		else {
 			lance_erreur("attendu une expression ou une instruction");
@@ -1644,7 +1644,7 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
 
 	while (apparie_expression()) {
 		auto expr = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
-		params.pousse(expr);
+		params.ajoute(expr);
 
 		/* point-virgule implicite */
 		if (apparie(GenreLexeme::POINT_VIRGULE)) {
@@ -1710,7 +1710,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
 
 			if (!expr->est_virgule()) {
 				auto noeud_virgule = CREE_NOEUD(NoeudExpressionVirgule, GenreNoeud::EXPRESSION_VIRGULE, expr->lexeme);
-				noeud_virgule->expressions.pousse(expr);
+				noeud_virgule->expressions.ajoute(expr);
 
 				expr = noeud_virgule;
 			}
@@ -1718,7 +1718,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
 				m_noeud_expression_virgule = nullptr;
 			}
 
-			paires_discr.pousse({ expr, bloc });
+			paires_discr.ajoute({ expr, bloc });
 		}
 	}
 
@@ -1759,7 +1759,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 		if (!expression->est_virgule()) {
 			static Lexeme lexeme_virgule = { ",", {}, GenreLexeme::VIRGULE, 0, 0, 0 };
 			auto noeud_virgule = CREE_NOEUD(NoeudExpressionVirgule, GenreNoeud::EXPRESSION_VIRGULE, &lexeme_virgule);
-			noeud_virgule->expressions.pousse(expression);
+			noeud_virgule->expressions.ajoute(expression);
 
 			expression = noeud_virgule;
 		}
@@ -1787,8 +1787,8 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 
 		static Lexeme lexeme_virgule = { ",", {}, GenreLexeme::VIRGULE, 0, 0, 0 };
 		auto noeud_virgule = CREE_NOEUD(NoeudExpressionVirgule, GenreNoeud::EXPRESSION_VIRGULE, &lexeme_virgule);
-		noeud_virgule->expressions.pousse(noeud_it);
-		noeud_virgule->expressions.pousse(noeud_index);
+		noeud_virgule->expressions.ajoute(noeud_it);
+		noeud_virgule->expressions.ajoute(noeud_index);
 
 		noeud->variable = noeud_virgule;
 		noeud->expression = expression;
@@ -1871,7 +1871,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 			noeud->bloc_si_faux = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
 
 			auto noeud_si = analyse_instruction_si(GenreNoeud::INSTRUCTION_SI);
-			noeud->bloc_si_faux->expressions->pousse(noeud_si);
+			noeud->bloc_si_faux->expressions->ajoute(noeud_si);
 
 			m_tacheronne.assembleuse->depile_bloc();
 		}
@@ -1879,7 +1879,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 			noeud->bloc_si_faux = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
 
 			auto noeud_saufsi = analyse_instruction_si(GenreNoeud::INSTRUCTION_SAUFSI);
-			noeud->bloc_si_faux->expressions->pousse(noeud_saufsi);
+			noeud->bloc_si_faux->expressions->ajoute(noeud_saufsi);
 
 			m_tacheronne.assembleuse->depile_bloc();
 		}
@@ -1938,7 +1938,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 	consomme();
 
 	auto noeud_decl = CREE_NOEUD(NoeudEnum, GenreNoeud::DECLARATION_ENUM, gauche->lexeme);
-	noeud_decl->bloc_parent->membres->pousse(noeud_decl);
+	noeud_decl->bloc_parent->membres->ajoute(noeud_decl);
 
 	if (lexeme->genre != GenreLexeme::ERREUR) {
 		if (!apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
@@ -1972,10 +1972,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 			auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
 
 			if (noeud->est_ref_decl()) {
-				expressions.pousse(cree_declaration_pour_ref(noeud->comme_ref_decl()));
+				expressions.ajoute(cree_declaration_pour_ref(noeud->comme_ref_decl()));
 			}
 			else {
-				expressions.pousse(noeud);
+				expressions.ajoute(noeud);
 			}
 		}
 	}
@@ -2055,19 +2055,19 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			auto decl_var = static_cast<NoeudDeclarationVariable *>(param);
 			if (valeur_poly) {
 				decl_var->drapeaux |= EST_VALEUR_POLYMORPHIQUE;
-				params.pousse(decl_var);
+				params.ajoute(decl_var);
 				noeud->est_polymorphe = true;
 			}
 			else {
 				decl_var->drapeaux |= EST_PARAMETRE;
-				params.pousse(decl_var);
+				params.ajoute(decl_var);
 			}
 
 			eu_declarations = true;
 		}
 		else {
 			// XXX - hack
-			params.pousse(static_cast<NoeudDeclarationVariable *>(param));
+			params.ajoute(static_cast<NoeudDeclarationVariable *>(param));
 		}
 
 		if (!apparie(GenreLexeme::VIRGULE)) {
@@ -2107,7 +2107,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 			noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
-			noeud->params_sorties.pousse(static_cast<NoeudDeclarationVariable *>(type_declare));
+			noeud->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(type_declare));
 			aplatis_arbre(type_declare, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 			if (!apparie(GenreLexeme::VIRGULE)) {
@@ -2120,14 +2120,14 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		// pousse les constantes polymorphiques de cette fonction dans ceux de la fonction-mère
 		if (ancienne_fonction) {
 			POUR (*noeud->bloc_constantes->membres.verrou_lecture()) {
-				ancienne_fonction->bloc_constantes->membres->pousse(it);
+				ancienne_fonction->bloc_constantes->membres->ajoute(it);
 			}
 		}
 
 		consomme(GenreLexeme::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");
 	}
 	else {
-		noeud->bloc_parent->membres->pousse(noeud);
+		noeud->bloc_parent->membres->ajoute(noeud);
 
 		// nous avons la déclaration d'une fonction
 		if (apparie(GenreLexeme::RETOUR_TYPE)) {
@@ -2160,7 +2160,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 				nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 				noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
-				noeud->params_sorties.pousse(decl_sortie->comme_decl_var());
+				noeud->params_sorties.ajoute(decl_sortie->comme_decl_var());
 				aplatis_arbre(decl_sortie, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 				if (!apparie(GenreLexeme::VIRGULE)) {
@@ -2186,7 +2186,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			auto decl = cree_declaration_pour_ref(ref);
 			decl->expression_type = type_declare;
 
-			noeud->params_sorties.pousse(decl);
+			noeud->params_sorties.ajoute(decl);
 			aplatis_arbre(type_declare, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 		}
 
@@ -2293,7 +2293,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 				}
 
 				auto lexeme_annotation = lexeme_courant();
-				noeud->annotations.pousse(lexeme_annotation->chaine);
+				noeud->annotations.ajoute(lexeme_annotation->chaine);
 
 				consomme();
 			}
@@ -2358,7 +2358,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 		auto decl_var = param->comme_decl_var();
 		decl_var->drapeaux |= EST_PARAMETRE;
-		params.pousse(decl_var);
+		params.ajoute(decl_var);
 
 		if (!apparie(GenreLexeme::VIRGULE)) {
 			break;
@@ -2422,7 +2422,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 		nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 		noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
-		noeud->params_sorties.pousse(decl_sortie->comme_decl_var());
+		noeud->params_sorties.ajoute(decl_sortie->comme_decl_var());
 		aplatis_arbre(decl_sortie, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 		if (!apparie(GenreLexeme::VIRGULE)) {
@@ -2478,7 +2478,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		}
 
 		auto lexeme_annotation = lexeme_courant();
-		noeud->annotations.pousse(lexeme_annotation->chaine);
+		noeud->annotations.ajoute(lexeme_annotation->chaine);
 
 		consomme();
 	}
@@ -2504,7 +2504,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 	auto noeud_decl = CREE_NOEUD(NoeudStruct, GenreNoeud::DECLARATION_STRUCTURE, gauche->lexeme);
 	noeud_decl->est_union = (lexeme_mot_cle->genre == GenreLexeme::UNION);
-	noeud_decl->bloc_parent->membres->pousse(noeud_decl);
+	noeud_decl->bloc_parent->membres->ajoute(noeud_decl);
 
 	auto cree_tache = false;
 
@@ -2559,7 +2559,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 			auto decl_var = expression->comme_decl_var();
 			decl_var->drapeaux |= drapeaux;
 
-			noeud_decl->params_polymorphiques.pousse(decl_var);
+			noeud_decl->params_polymorphiques.ajoute(decl_var);
 			aplatis_arbre(decl_var, noeud_decl->arbre_aplatis_params, {});
 
 			if (!apparie(GenreLexeme::VIRGULE)) {
@@ -2628,11 +2628,11 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 					rapporte_erreur(m_unite->espace, noeud, "Attendu une déclaration ou une assignation dans le bloc de la structure");
 				}
 
-				expressions.pousse(noeud);
+				expressions.ajoute(noeud);
 			}
 			else if (apparie_instruction()) {
 				auto inst = analyse_instruction();
-				expressions.pousse(inst);
+				expressions.ajoute(inst);
 			}
 			else {
 				lance_erreur("attendu une expression ou une instruction");
@@ -2685,7 +2685,7 @@ void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::Genre genre)
 
 void Syntaxeuse::empile_etat(const char *message, Lexeme *lexeme)
 {
-	m_donnees_etat_syntaxage.pousse({ lexeme, message });
+	m_donnees_etat_syntaxage.ajoute({ lexeme, message });
 }
 
 void Syntaxeuse::depile_etat()

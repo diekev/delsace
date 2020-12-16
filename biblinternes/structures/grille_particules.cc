@@ -44,7 +44,7 @@ GrilleParticules::GrilleParticules(const dls::math::point3d &min, const dls::mat
 void GrilleParticules::ajoute(const dls::math::vec3f &position)
 {
 	auto index = calcul_index_pos(position);
-	m_grille[index].pousse(position);
+	m_grille[index].ajoute(position);
 }
 
 bool GrilleParticules::verifie_distance_minimal(const dls::math::vec3f &point, float distance)

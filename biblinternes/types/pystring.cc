@@ -425,7 +425,7 @@ dls::tableau<pystring> pystring::split(const pystring &sep, int maxsplit) const
 				break;
 			}
 
-			v.pousse(substr(j, i - j));
+			v.ajoute(substr(j, i - j));
 			i = j = i + n;
 		}
 		else {
@@ -458,7 +458,7 @@ dls::tableau<pystring> pystring::rsplit(const pystring &sep, int maxsplit) const
 				break;
 			}
 
-			result.pousse(substr(i, j - i));
+			result.ajoute(substr(i, j - i));
 			i = j = i - n;
 		}
 		else {
@@ -466,7 +466,7 @@ dls::tableau<pystring> pystring::rsplit(const pystring &sep, int maxsplit) const
 		}
 	}
 
-	result.pousse(substr(0, j));
+	result.ajoute(substr(0, j));
 	reverse_strings(result);
 
 	return result;
@@ -719,13 +719,13 @@ dls::tableau<pystring> pystring::splitlines(bool keepends) const
 				eol = i;
 		}
 
-		result.pousse(substr(j, eol - j));
+		result.ajoute(substr(j, eol - j));
 		j = i;
 
 	}
 
 	if (j < m_size) {
-		result.pousse(substr(j, m_size - j));
+		result.ajoute(substr(j, m_size - j));
 	}
 
 	return result;
@@ -820,7 +820,7 @@ dls::tableau<pystring> pystring::split_whitespace(int maxsplit) const
 				break;
 			}
 
-			v.pousse(substr(j, i - j));
+			v.ajoute(substr(j, i - j));
 
 			while (i < m_size && ::isspace(m_data[i])) {
 				++i;
@@ -831,7 +831,7 @@ dls::tableau<pystring> pystring::split_whitespace(int maxsplit) const
 	}
 
 	if (j < m_size) {
-		v.pousse(substr(j, m_size - j));
+		v.ajoute(substr(j, m_size - j));
 	}
 
 	return v;
@@ -860,7 +860,7 @@ dls::tableau<pystring> pystring::rsplit_whitespace(int maxsplit) const
 		if (j > i) {
 			if (maxsplit-- <= 0) break;
 
-			result.pousse(substr(i, j - i));
+			result.ajoute(substr(i, j - i));
 
 			while (i > 0 && ::isspace(m_data[i - 1]))
 				i--;
@@ -870,7 +870,7 @@ dls::tableau<pystring> pystring::rsplit_whitespace(int maxsplit) const
 	}
 
 	if (j > 0) {
-		result.pousse(substr(0, j));
+		result.ajoute(substr(0, j));
 	}
 
 	//std::reverse(result, result.debut(), result.fin());

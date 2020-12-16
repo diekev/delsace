@@ -138,7 +138,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 				chn = "Le fichier « ";
 				chn += chemin_entreface;
 				chn += " » n'existe pas !";
-				avertissements.pousse(chn);
+				avertissements.ajoute(chn);
 				ajoute_avertissements(avertissements);
 			}
 

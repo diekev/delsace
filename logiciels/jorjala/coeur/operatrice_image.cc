@@ -77,7 +77,7 @@ Image const *EntreeOperatrice::requiers_image(
 	auto image = operatrice->image();
 
 	for (auto const &calque : image->calques()) {
-		m_liste_noms_calques.pousse(calque->nom);
+		m_liste_noms_calques.ajoute(calque->nom);
 	}
 
 	return image;
@@ -98,7 +98,7 @@ Image *EntreeOperatrice::requiers_copie_image(
 	image = *image_op;
 
 	for (auto const &calque : image.calques()) {
-		m_liste_noms_calques.pousse(calque->nom);
+		m_liste_noms_calques.ajoute(calque->nom);
 	}
 
 	return &image;
@@ -174,7 +174,7 @@ void EntreeOperatrice::obtiens_liste_attributs(dls::tableau<dls::chaine> &chaine
 	}
 
 	for (auto const &attributs : corps->attributs()) {
-		chaines.pousse(attributs.nom());
+		chaines.ajoute(attributs.nom());
 	}
 }
 
@@ -199,7 +199,7 @@ void EntreeOperatrice::obtiens_liste_groupes_prims(dls::tableau<dls::chaine> &ch
 	}
 
 	for (auto const &groupe : corps->groupes_prims()) {
-		chaines.pousse(groupe.nom);
+		chaines.ajoute(groupe.nom);
 	}
 }
 
@@ -224,7 +224,7 @@ void EntreeOperatrice::obtiens_liste_groupes_points(dls::tableau<dls::chaine> &c
 	}
 
 	for (auto const &groupe : corps->groupes_points()) {
-		chaines.pousse(groupe.nom);
+		chaines.ajoute(groupe.nom);
 	}
 }
 
@@ -255,7 +255,7 @@ void EntreeOperatrice::signale_cache(ChefExecution *chef) const
 	while (!pile.est_vide()) {
 		auto noeud = pile.depile();
 
-		liste.pousse(noeud);
+		liste.ajoute(noeud);
 
 		for (auto entree : noeud->entrees) {
 			for (auto sortie : entree->liens) {
@@ -444,7 +444,7 @@ void OperatriceImage::transfere_image(Image &image)
 
 void OperatriceImage::ajoute_avertissement(dls::chaine const &avertissement)
 {
-	m_avertissements.pousse(avertissement);
+	m_avertissements.ajoute(avertissement);
 }
 
 void OperatriceImage::reinitialise_avertisements()

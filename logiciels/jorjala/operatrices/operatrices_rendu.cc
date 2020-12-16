@@ -89,7 +89,7 @@ public:
 		delegue->objets.efface();
 
 		for (auto objet : contexte.bdd->objets()) {
-			delegue->objets.pousse({objet, {}});
+			delegue->objets.ajoute({objet, {}});
 		}
 
 		return res_exec::REUSSIE;

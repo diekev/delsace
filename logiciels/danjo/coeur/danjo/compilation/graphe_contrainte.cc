@@ -42,12 +42,12 @@ graphe_contrainte::~graphe_contrainte()
 
 void graphe_contrainte::ajoute_contrainte(contrainte *c)
 {
-	m_contraintes.pousse(c);
+	m_contraintes.ajoute(c);
 }
 
 void graphe_contrainte::ajoute_variable(Variable *v)
 {
-	m_variables.pousse(v);
+	m_variables.ajoute(v);
 }
 
 graphe_contrainte::iterateur_contrainte graphe_contrainte::debut_contrainte()
@@ -92,8 +92,8 @@ graphe_contrainte::iterateur_variable_const graphe_contrainte::fin_variable() co
 
 void connecte(contrainte *c, Variable *v)
 {
-	c->m_variables.pousse(v);
-	v->m_contraintes.pousse(c);
+	c->m_variables.ajoute(v);
+	v->m_contraintes.ajoute(c);
 }
 
 void imprime_graphe(std::ostream &os, const graphe_contrainte &graphe)

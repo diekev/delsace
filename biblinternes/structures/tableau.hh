@@ -146,12 +146,12 @@ public:
 		m_vecteur.pop_back();
 	}
 
-	void pousse(type_reference_const valeur)
+	void ajoute(type_reference_const valeur)
 	{
 		m_vecteur.push_back(valeur);
 	}
 
-	void pousse(type_valeur &&valeur)
+	void ajoute(type_valeur &&valeur)
 	{
 		m_vecteur.push_back(std::move(valeur));
 	}

@@ -139,7 +139,7 @@ void analyseuse_grammaire::analyse_declaration_table()
 		lance_erreur("La déclaration d'une table doit terminer par une accolade fermante '}'");
 	}
 
-	m_schema.tables.pousse(table);
+	m_schema.tables.ajoute(table);
 
 	this->analyse_declaration_table();
 }
@@ -186,7 +186,7 @@ void analyseuse_grammaire::analyse_declaration_colonne(Table &table)
 	}
 
 	/* À FAIRE : validation des propriétés. */
-	table.colonnes.pousse(colonne);
+	table.colonnes.ajoute(colonne);
 
 	if (est_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		this->analyse_declaration_colonne(table);

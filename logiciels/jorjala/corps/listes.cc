@@ -36,8 +36,8 @@ void Polygone::ajoute_point(long idx_point, long idx_sommet)
 {
 	assert(idx_point >= 0);
 	assert(idx_sommet >= 0);
-	m_idx_points.pousse(idx_point);
-	m_idx_sommets.pousse(idx_sommet);
+	m_idx_points.ajoute(idx_point);
+	m_idx_sommets.ajoute(idx_sommet);
 }
 
 void Polygone::reserve_sommets(long nombre)
@@ -127,10 +127,10 @@ long ListePoints3D::taille() const
 	return m_sommets->taille();
 }
 
-void ListePoints3D::pousse(const dls::math::vec3f &s)
+void ListePoints3D::ajoute(const dls::math::vec3f &s)
 {
 	detache();
-	m_sommets->pousse(s);
+	m_sommets->ajoute(s);
 }
 
 dls::math::vec3f ListePoints3D::point(long i) const
@@ -155,7 +155,7 @@ void ListePoints3D::detache()
 		m_sommets->reserve(tmp->taille());
 
 		for (auto sommet : (*tmp)) {
-			m_sommets->pousse(sommet);
+			m_sommets->ajoute(sommet);
 		}
 	}
 	else if (tmp == nullptr) {
@@ -229,10 +229,10 @@ long ListePrimitives::taille() const
 	return m_primitives->taille();
 }
 
-void ListePrimitives::pousse(Primitive *s)
+void ListePrimitives::ajoute(Primitive *s)
 {
 	detache();
-	m_primitives->pousse(s);
+	m_primitives->ajoute(s);
 }
 
 Primitive *ListePrimitives::prim(long index) const
@@ -267,7 +267,7 @@ void ListePrimitives::detache()
 					p->ajoute_point(polygone->index_point(i), polygone->index_sommet(i));
 				}
 
-				m_primitives->pousse(p);
+				m_primitives->ajoute(p);
 			}
 			else if (prim->type_prim() == type_primitive::VOLUME) {
 				auto volume = dynamic_cast<Volume *>(prim);
@@ -279,14 +279,14 @@ void ListePrimitives::detache()
 
 				auto nouveau_volume = memoire::loge<Volume>("Volume", grille);
 				nouveau_volume->index = volume->index;
-				m_primitives->pousse(nouveau_volume);
+				m_primitives->ajoute(nouveau_volume);
 			}
 			else if (prim->type_prim() == type_primitive::SPHERE) {
 				auto sphere = dynamic_cast<Sphere *>(prim);
 
 				auto nvl_volume = memoire::loge<Sphere>("Sphère", sphere->idx_point, sphere->rayon);
 				nvl_volume->index = sphere->index;
-				m_primitives->pousse(nvl_volume);
+				m_primitives->ajoute(nvl_volume);
 			}
 		}
 	}

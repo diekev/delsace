@@ -134,7 +134,7 @@ static auto rassemble_chemins_objets(
 	}
 
 	for (size_t i = 0; i < object.getNumChildren(); ++i) {
-		chemins.pousse(object.getChild(i).getFullName().c_str());
+		chemins.ajoute(object.getChild(i).getFullName().c_str());
 		rassemble_chemins_objets(object.getChild(i), chemins);
 	}
 }

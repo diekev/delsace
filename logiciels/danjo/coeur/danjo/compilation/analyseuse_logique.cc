@@ -203,28 +203,28 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 
 		if (est_identifiant(id_morceau::NOMBRE_ENTIER)) {
 			symbole.valeur = std::any(std::stoi(valeur.c_str()));
-			expression.pousse(symbole);
+			expression.ajoute(symbole);
 		}
 		else if (est_identifiant(id_morceau::NOMBRE_REEL)) {
 			symbole.valeur = std::any(std::stof(valeur.c_str()));
-			expression.pousse(symbole);
+			expression.ajoute(symbole);
 		}
 		else if (est_identifiant(id_morceau::VRAI) || est_identifiant(id_morceau::FAUX)) {
 			symbole.valeur = (valeur == "vrai");
 			symbole.genre = id_morceau::BOOL;
-			expression.pousse(symbole);
+			expression.ajoute(symbole);
 		}
 		else if (est_identifiant(id_morceau::COULEUR)) {
 			/* À FAIRE */
-			expression.pousse(symbole);
+			expression.ajoute(symbole);
 		}
 		else if (est_identifiant(id_morceau::VECTEUR)) {
 			/* À FAIRE */
-			expression.pousse(symbole);
+			expression.ajoute(symbole);
 		}
 		else if (est_identifiant(id_morceau::CHAINE_LITTERALE)) {
 			symbole.valeur = valeur;
-			expression.pousse(symbole);
+			expression.ajoute(symbole);
 		}
 		else if (est_identifiant(id_morceau::CHAINE_CARACTERE)) {
 			if (!m_assembleuse.variable_connue(valeur)) {
@@ -237,14 +237,14 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 			}
 
 			symbole.valeur = std::any(valeur);
-			expression.pousse(symbole);
+			expression.ajoute(symbole);
 		}
 		else if (est_operateur(symbole.genre)) {
 			while (!pile.est_vide()
 				   && est_operateur(pile.haut().genre)
 				   && (precedence_faible(symbole.genre, pile.haut().genre)))
 			{
-				expression.pousse(pile.depile());
+				expression.ajoute(pile.depile());
 			}
 
 			symbole.valeur = std::any(valeur);
@@ -259,7 +259,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 			}
 
 			while (pile.haut().genre != id_morceau::PARENTHESE_OUVRANTE) {
-				expression.pousse(pile.depile());
+				expression.ajoute(pile.depile());
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
@@ -276,7 +276,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		expression.pousse(pile.depile());
+		expression.ajoute(pile.depile());
 	}
 
 #ifdef DEBOGUE_EXPRESSION

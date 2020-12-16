@@ -73,17 +73,17 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 
 			POUR (decl->params) {
 				auto n_param = converti_noeud_syntaxique(espace, it);
-				n->params_entree.pousse(static_cast<NoeudCodeDeclaration *>(n_param));
+				n->params_entree.ajoute(static_cast<NoeudCodeDeclaration *>(n_param));
 			}
 
 			POUR (decl->params_sorties) {
 				auto n_param = converti_noeud_syntaxique(espace, it);
-				n->params_sortie.pousse(static_cast<NoeudCodeDeclaration *>(n_param));
+				n->params_sortie.ajoute(static_cast<NoeudCodeDeclaration *>(n_param));
 			}
 
 			n->annotations.reserve(decl->annotations.taille());
 			POUR (decl->annotations) {
-				n->annotations.pousse(it);
+				n->annotations.ajoute(it);
 			}
 
 			n->est_coroutine = decl->est_coroutine;
@@ -144,7 +144,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			n->expressions.reserve(expressions->taille);
 
 			POUR (*expressions) {
-				n->expressions.pousse(converti_noeud_syntaxique(espace, it));
+				n->expressions.ajoute(converti_noeud_syntaxique(espace, it));
 			}
 
 			auto membres = noeud_bloc->membres.verrou_lecture();
@@ -156,7 +156,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 					converti_noeud_syntaxique(espace, it);
 				}
 
-				n->membres.pousse(static_cast<NoeudCodeDeclaration *>(it->noeud_code));
+				n->membres.ajoute(static_cast<NoeudCodeDeclaration *>(it->noeud_code));
 			}
 
 			noeud_code = n;
@@ -231,7 +231,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			n->params.reserve(noeud_appel->params.taille);
 
 			POUR (noeud_appel->params) {
-				n->params.pousse(converti_noeud_syntaxique(espace, it));
+				n->params.ajoute(converti_noeud_syntaxique(espace, it));
 			}
 
 			noeud_code = n;
@@ -416,7 +416,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 				auto expr = converti_noeud_syntaxique(espace, it.first);
 				auto bloc = converti_noeud_syntaxique(espace, it.second);
 
-				n->paires_discr.pousse({ expr, bloc });
+				n->paires_discr.ajoute({ expr, bloc });
 			}
 
 			noeud_code = n;
@@ -463,7 +463,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			n->expressions.reserve(noeud_virgule->expressions.taille);
 
 			POUR (noeud_virgule->expressions) {
-				n->expressions.pousse(converti_noeud_syntaxique(espace, it));
+				n->expressions.ajoute(converti_noeud_syntaxique(espace, it));
 			}
 
 			noeud_code = n;
@@ -682,7 +682,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 				info_type_membre->nom = it.nom->nom;
 				info_type_membre->drapeaux = it.drapeaux;
 
-				info_type->membres.pousse(info_type_membre);
+				info_type->membres.ajoute(info_type_membre);
 			}
 
 			break;
@@ -707,7 +707,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 				info_type_membre->nom = it.nom->nom;
 				info_type_membre->drapeaux = it.drapeaux;
 
-				info_type->membres.pousse(info_type_membre);
+				info_type->membres.ajoute(info_type_membre);
 			}
 
 			type->info_type = info_type;
@@ -728,8 +728,8 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->valeurs.reserve(type_enum->membres.taille);
 
 			POUR (type_enum->membres) {
-				info_type->noms.pousse(it.nom->nom);
-				info_type->valeurs.pousse(it.valeur);
+				info_type->noms.ajoute(it.nom->nom);
+				info_type->valeurs.ajoute(it.valeur);
 			}
 
 			type->info_type = info_type;
@@ -747,13 +747,13 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->types_entrees.reserve(type_fonction->types_entrees.taille);
 
 			POUR (type_fonction->types_entrees) {
-				info_type->types_entrees.pousse(cree_info_type_pour(it));
+				info_type->types_entrees.ajoute(cree_info_type_pour(it));
 			}
 
 			info_type->types_sorties.reserve(type_fonction->types_sorties.taille);
 
 			POUR (type_fonction->types_sorties) {
-				info_type->types_sorties.pousse(cree_info_type_pour(it));
+				info_type->types_sorties.ajoute(cree_info_type_pour(it));
 			}
 
 			type->info_type = info_type;

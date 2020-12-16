@@ -120,7 +120,7 @@ int main()
 		auto ctx_exec = lcc::ctx_exec{};
 		ctx_exec.chaines = contexte.chaines;
 		auto ptr_ligne = static_cast<int>(ctx_exec.chaines.taille());
-		ctx_exec.chaines.pousse("texte,test,ok,non,57.69");
+		ctx_exec.chaines.ajoute("texte,test,ok,non,57.69");
 
 		for (auto entree : entrees) {			
 			auto ctx_local = lcc::ctx_local{};

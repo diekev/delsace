@@ -285,10 +285,10 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tab
 				for (auto y = carreau.y; y < carreau.y + carreau.hauteur; ++y) {
 					//auto echantillon_camera = genere_echantillon_cmj(x + camera->largeur() * y, camera->hauteur(), camera->largeur(), echantillon);
 					auto echantillon_camera = genere_echantillon(gna, x, y);
-					echants.pousse(echantillon_camera);
+					echants.ajoute(echantillon_camera);
 
 					auto rayon = genere_rayon(camera, echantillon_camera);
-					rayons.pousse(rayon);
+					rayons.ajoute(rayon);
 				}
 			}
 
@@ -301,7 +301,7 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tab
 
 			for (auto &rayon : rayons) {
 				auto spectre = calcul_spectre(gna, parametres, rayon);
-				spectres.pousse(spectre);
+				spectres.ajoute(spectre);
 			}
 
 			/* Corrige gamma. */
@@ -400,7 +400,7 @@ void TacheRendu::commence(Koudou const &koudou)
 			carreau.largeur = std::min(largeur_carreau, largeur_pellicule - carreau.x);
 			carreau.hauteur = std::min(hauteur_carreau, hauteur_pellicule - carreau.y);
 
-			carreaux.pousse(carreau);
+			carreaux.ajoute(carreau);
 		}
 	}
 

@@ -839,7 +839,7 @@ public:
 
 		for (auto i = 0; i < nombre_points; ++i) {
 			auto pos = liste_points.point_local(i);
-			bhps.pousse(BHP(pos, 1.0f));
+			bhps.ajoute(BHP(pos, 1.0f));
 		}
 
 		BarnesHutSummation bhs;

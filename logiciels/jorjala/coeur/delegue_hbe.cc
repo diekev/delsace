@@ -48,7 +48,7 @@ void DeleguePrim::coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) c
 
 	for (auto i = 0; i < poly->nombre_sommets(); ++i) {
 		auto p = points.point_monde(poly->index_point(i));
-		cos.pousse(p);
+		cos.ajoute(p);
 	}
 }
 

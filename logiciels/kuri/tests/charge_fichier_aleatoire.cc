@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 		dm.chaine = "texte_test";
 		dm.ligne_pos = 0ul;
 		dm.module = 0;
-		morceaux.pousse(dm);
+		morceaux.ajoute(dm);
 	}
 
 	std::cerr << "Il y a " << nombre_morceaux << " morceaux.\n";

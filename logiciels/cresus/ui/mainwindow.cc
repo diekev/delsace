@@ -150,28 +150,28 @@ auto MainWindow::createUser(const QString &name) -> void
 	m_user = new Utilisateur(name);
 
 	if (!(std::find(m_users.debut(), m_users.fin(), m_user) != m_users.fin())) {
-		m_users.pousse(m_user);
+		m_users.ajoute(m_user);
 	}
 }
 
 auto MainWindow::createDefaultTableWidgets() -> void
 {
 	ui->m_net_salary->setCategory(tr("Salaire Net"));
-	m_active_revenues.pousse(ui->m_net_salary);
+	m_active_revenues.ajoute(ui->m_net_salary);
 
 	ui->m_interests->setCategory(tr("Intérêts"));
-	m_passive_revenues.pousse(ui->m_interests);
+	m_passive_revenues.ajoute(ui->m_interests);
 
 	ui->m_groceries->setCategory(tr("Alimentaire"));
-	m_personal_expenses.pousse(ui->m_groceries);
+	m_personal_expenses.ajoute(ui->m_groceries);
 	ui->m_clothing->setCategory(tr("Habillement"));
-	m_personal_expenses.pousse(ui->m_clothing);
+	m_personal_expenses.ajoute(ui->m_clothing);
 	ui->m_hygiene->setCategory(tr("Hygiène"));
-	m_personal_expenses.pousse(ui->m_hygiene);
+	m_personal_expenses.ajoute(ui->m_hygiene);
 	ui->m_health->setCategory(tr("Santé"));
-	m_personal_expenses.pousse(ui->m_health);
+	m_personal_expenses.ajoute(ui->m_health);
 	ui->m_phone->setCategory(tr("Téléphone"));
-	m_personal_expenses.pousse(ui->m_phone);
+	m_personal_expenses.ajoute(ui->m_phone);
 
 	/* À FAIRE: make it a separate function */
 	for (const auto &expense : m_personal_expenses) {
@@ -196,7 +196,7 @@ auto MainWindow::createWidgetForAccount(const Compte &compte) -> void
 	auto widget = new AccountWidget(name, compte.value());
 	connect(widget, SIGNAL(valueChanged(QString, double)),
 			this, SLOT(editAccount(QString, double)));
-	m_account_widgets.pousse(widget);
+	m_account_widgets.ajoute(widget);
 
 	if (compte.type() == COMPTE_COURANT) {
 		ui->m_capital_liquid->layout()->addWidget(widget);

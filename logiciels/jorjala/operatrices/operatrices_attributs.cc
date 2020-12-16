@@ -1085,10 +1085,10 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 				auto nombre_points = prim->nombre_sommets();
 
 				for (auto i = 0l; i < nombre_points; ++i) {
-					donnee.paires_idx_poids.pousse({prim->index_point(i), 1.0f / static_cast<float>(nombre_points)});
+					donnee.paires_idx_poids.ajoute({prim->index_point(i), 1.0f / static_cast<float>(nombre_points)});
 				}
 
-				donnees.pousse(donnee);
+				donnees.ajoute(donnee);
 			});
 		}
 		else if (portee_dest == portee_attr::VERTEX) {
@@ -1102,8 +1102,8 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 				for (auto i = 0l; i < nombre_points; ++i) {
 					auto donnee = donnees_promotion{};
 					donnee.idx_dest = prim->index_sommet(i);
-					donnee.paires_idx_poids.pousse({prim->index_point(i), 1.0f});
-					donnees.pousse(donnee);
+					donnee.paires_idx_poids.ajoute({prim->index_point(i), 1.0f});
+					donnees.ajoute(donnee);
 				}
 			});
 		}
@@ -1113,10 +1113,10 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 			donnee.idx_dest = 0;
 
 			for (auto i = 0l; i < attr_orig.taille(); ++i) {
-				donnee.paires_idx_poids.pousse({i, static_cast<float>(i) / static_cast<float>(attr_orig.taille())});
+				donnee.paires_idx_poids.ajoute({i, static_cast<float>(i) / static_cast<float>(attr_orig.taille())});
 			}
 
-			donnees.pousse(donnee);
+			donnees.ajoute(donnee);
 		}
 	}
 	else if (portee_orig == portee_attr::PRIMITIVE) {
@@ -1131,8 +1131,8 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 				for (auto i = 0l; i < nombre_points; ++i) {
 					auto donnee = donnees_promotion{};
 					donnee.idx_dest = prim->index_point(i);
-					donnee.paires_idx_poids.pousse({prim->index, 1.0f});
-					donnees.pousse(donnee);
+					donnee.paires_idx_poids.ajoute({prim->index, 1.0f});
+					donnees.ajoute(donnee);
 				}
 			});
 		}
@@ -1147,8 +1147,8 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 				for (auto i = 0l; i < nombre_points; ++i) {
 					auto donnee = donnees_promotion{};
 					donnee.idx_dest = prim->index_sommet(i);
-					donnee.paires_idx_poids.pousse({prim->index, 1.0f});
-					donnees.pousse(donnee);
+					donnee.paires_idx_poids.ajoute({prim->index, 1.0f});
+					donnees.ajoute(donnee);
 				}
 			});
 		}
@@ -1158,10 +1158,10 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 			donnee.idx_dest = 0;
 
 			for (auto i = 0l; i < attr_orig.taille(); ++i) {
-				donnee.paires_idx_poids.pousse({i, static_cast<float>(i) / static_cast<float>(attr_orig.taille())});
+				donnee.paires_idx_poids.ajoute({i, static_cast<float>(i) / static_cast<float>(attr_orig.taille())});
 			}
 
-			donnees.pousse(donnee);
+			donnees.ajoute(donnee);
 		}
 	}
 	else if (portee_orig == portee_attr::VERTEX) {
@@ -1176,8 +1176,8 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 				for (auto i = 0l; i < nombre_points; ++i) {
 					auto donnee = donnees_promotion{};
 					donnee.idx_dest = prim->index_point(i);
-					donnee.paires_idx_poids.pousse({prim->index_sommet(i), 1.0f});
-					donnees.pousse(donnee);
+					donnee.paires_idx_poids.ajoute({prim->index_sommet(i), 1.0f});
+					donnees.ajoute(donnee);
 				}
 			});
 		}
@@ -1192,8 +1192,8 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 				for (auto i = 0l; i < nombre_points; ++i) {
 					auto donnee = donnees_promotion{};
 					donnee.idx_dest = prim->index;
-					donnee.paires_idx_poids.pousse({prim->index_sommet(i), 1.0f / static_cast<float>(nombre_points)});
-					donnees.pousse(donnee);
+					donnee.paires_idx_poids.ajoute({prim->index_sommet(i), 1.0f / static_cast<float>(nombre_points)});
+					donnees.ajoute(donnee);
 				}
 			});
 		}
@@ -1203,10 +1203,10 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 			donnee.idx_dest = 0;
 
 			for (auto i = 0l; i < attr_orig.taille(); ++i) {
-				donnee.paires_idx_poids.pousse({i, static_cast<float>(i) / static_cast<float>(attr_orig.taille())});
+				donnee.paires_idx_poids.ajoute({i, static_cast<float>(i) / static_cast<float>(attr_orig.taille())});
 			}
 
-			donnees.pousse(donnee);
+			donnees.ajoute(donnee);
 		}
 	}
 	else if (portee_orig == portee_attr::CORPS) {
@@ -1214,9 +1214,9 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 		for (auto i = 0l; i < attr_dest->taille(); ++i) {
 			auto donnee = donnees_promotion{};
 			donnee.idx_dest = i;
-			donnee.paires_idx_poids.pousse({0, 1.0f});
+			donnee.paires_idx_poids.ajoute({0, 1.0f});
 
-			donnees.pousse(donnee);
+			donnees.ajoute(donnee);
 		}
 	}
 	else if (portee_orig == portee_attr::GROUPE) {
@@ -1650,7 +1650,7 @@ public:
 	{
 		if (raison == "nom_caméra") {
 			for (auto &objet : contexte.bdd->objets()) {
-				liste.pousse(objet->noeud->nom);
+				liste.ajoute(objet->noeud->nom);
 			}
 		}
 	}
@@ -1752,7 +1752,7 @@ struct OpAttributNuanceur final : public OperatriceCorps {
 	{
 		if (raison == "nom_nuanceur") {
 			for (auto &nuanceur : contexte.bdd->nuanceurs()) {
-				liste.pousse(nuanceur->noeud.nom);
+				liste.ajoute(nuanceur->noeud.nom);
 			}
 		}
 	}
@@ -1886,7 +1886,7 @@ struct OpImprimeAttribut final : public OperatriceCorps {
 	{
 		if (raison == "nom_nuanceur") {
 			for (auto &nuanceur : contexte.bdd->nuanceurs()) {
-				liste.pousse(nuanceur->noeud.nom);
+				liste.ajoute(nuanceur->noeud.nom);
 			}
 		}
 	}

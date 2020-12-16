@@ -136,11 +136,11 @@ auto construit_arbre_hbe(
 	auto liste_ref_finale = dls::tableau<long>();
 
 	/* crée un noeud nul pour l'index 0; l'arbre commence à l'index 1 */
-	arbre.pousse(ArbreHBE::Noeud());
+	arbre.ajoute(ArbreHBE::Noeud());
 	++compte_noeud;
 
 	/* crée une racine avec une boîte englobant toutes les autres */
-	arbre.pousse(ArbreHBE::Noeud());
+	arbre.ajoute(ArbreHBE::Noeud());
 	++compte_noeud;
 
 	auto racine = &arbre[1];
@@ -158,11 +158,11 @@ auto construit_arbre_hbe(
 	references_racine.reserve(nombre_de_boites);
 
 	for (auto const &boite : boites_alignees) {
-		references_racine.pousse(boite.id);
+		references_racine.ajoute(boite.id);
 	}
 
-	couche_courante.pousse(racine);
-	refs_courantes.pousse(references_racine);
+	couche_courante.ajoute(racine);
+	refs_courantes.ajoute(references_racine);
 
 	/* pour chaque couche, scinde les noeuds et va à la suivante */
 	for (auto couche = 0u; couche < profondeur_max; ++couche) {
@@ -187,7 +187,7 @@ auto construit_arbre_hbe(
 				noeud->decalage_reference = liste_ref_finale.taille();
 
 				for (auto j = 0; j < noeud->nombre_references; ++j) {
-					liste_ref_finale.pousse(refs_courantes[i][j]);
+					liste_ref_finale.ajoute(refs_courantes[i][j]);
 				}
 			}
 			else {
@@ -243,12 +243,12 @@ auto construit_arbre_hbe(
 					noeud->decalage_reference = liste_ref_finale.taille();
 
 					for (auto j = 0; j < noeud->nombre_references; ++j) {
-						liste_ref_finale.pousse(refs_courantes[i][j]);
+						liste_ref_finale.ajoute(refs_courantes[i][j]);
 					}
 				}
 				else {
 					/* crée les noeuds gauche et droite */
-					arbre.pousse(ArbreHBE::Noeud());
+					arbre.ajoute(ArbreHBE::Noeud());
 					++compte_noeud;
 
 					auto id_gauche = arbre.taille() - 1;
@@ -256,7 +256,7 @@ auto construit_arbre_hbe(
 					gauche->id_noeud = id_gauche;
 					gauche->nombre_references = compte_gauche;
 
-					arbre.pousse(ArbreHBE::Noeud());
+					arbre.ajoute(ArbreHBE::Noeud());
 					++compte_noeud;
 
 					auto id_droite = arbre.taille() - 1;
@@ -280,21 +280,21 @@ auto construit_arbre_hbe(
 						auto const &ref = boites_alignees[index_ref];
 
 						if (ref.centroide[static_cast<size_t>(axe_scission)] <= meilleure_scission) {
-							refs_gauche.pousse(index_ref);
+							refs_gauche.ajoute(index_ref);
 							gauche->limites.etend(ref);
 						}
 						else {
-							refs_droite.pousse(index_ref);
+							refs_droite.ajoute(index_ref);
 							droite->limites.etend(ref);
 						}
 					}
 
 					/* ajoute les enfants à la couche suivante */
-					couche_suivante.pousse(gauche);
-					couche_suivante.pousse(droite);
+					couche_suivante.ajoute(gauche);
+					couche_suivante.ajoute(droite);
 
-					couche_refs_suivante.pousse(refs_gauche);
-					couche_refs_suivante.pousse(refs_droite);
+					couche_refs_suivante.ajoute(refs_gauche);
+					couche_refs_suivante.ajoute(refs_droite);
 				}
 			}
 		}

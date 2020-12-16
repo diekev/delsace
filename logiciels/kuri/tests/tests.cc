@@ -328,7 +328,7 @@ static auto decoupe_tampon(lng::tampon_source const &tampon)
 
 			if (debut_cas < fin_cas) {
 				auto sous_tampon = tampon.sous_tampon(debut_cas, fin_cas);
-				resultat.pousse(sous_tampon);
+				resultat.ajoute(sous_tampon);
 			}
 		}
 	}
@@ -337,7 +337,7 @@ static auto decoupe_tampon(lng::tampon_source const &tampon)
 
 	if (debut_cas < fin_cas) {
 		auto sous_tampon = tampon.sous_tampon(debut_cas, fin_cas);
-		resultat.pousse(sous_tampon);
+		resultat.ajoute(sous_tampon);
 	}
 
 	return resultat;
@@ -417,7 +417,7 @@ int main()
 							rt.fichier_origine = it.source;
 							rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
 
-							resultats_tests.pousse(rt);
+							resultats_tests.ajoute(rt);
 
 							test_echoues += 1;
 							break;
@@ -429,7 +429,7 @@ int main()
 								rt.fichier_origine = it.source;
 								rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
 
-								resultats_tests.pousse(rt);
+								resultats_tests.ajoute(rt);
 
 								test_echoues += 1;
 							}
@@ -445,7 +445,7 @@ int main()
 									rt.fichier_origine = it.source;
 									rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
 
-									resultats_tests.pousse(rt);
+									resultats_tests.ajoute(rt);
 
 									test_echoues += 1;
 								}
@@ -464,7 +464,7 @@ int main()
 							rt.fichier_origine = it.source;
 							rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
 
-							resultats_tests.pousse(rt);
+							resultats_tests.ajoute(rt);
 
 							test_echoues += 1;
 							break;

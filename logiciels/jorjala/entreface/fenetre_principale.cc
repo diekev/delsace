@@ -149,7 +149,7 @@ void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
 		donnees.nom = name.toStdString();
 		donnees.metadonnee = fichier_recent;
 
-		donnees_actions.pousse(donnees);
+		donnees_actions.ajoute(donnees);
 	}
 
 	m_jorjala.gestionnaire_entreface->recree_menu("Projets Récents", donnees_actions);

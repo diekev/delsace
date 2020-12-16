@@ -45,7 +45,7 @@ assembleuse_objet::ptr_objet assembleuse_objet::cree_objet(const dls::vue_chaine
 		}
 		else {
 			auto tabl = static_cast<tori::ObjetTableau *>(objet_haut);
-			tabl->pousse(objet);
+			tabl->ajoute(objet);
 		}
 	}
 

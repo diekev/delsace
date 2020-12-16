@@ -113,7 +113,7 @@ static void ajoute_baton_axe(
 	sommets.reserve(sommets.taille() + 8);
 
 	for (auto const &coin : coins) {
-		sommets.pousse(coin);
+		sommets.ajoute(coin);
 	}
 
 	const unsigned int polygones[6][4] = {
@@ -128,13 +128,13 @@ static void ajoute_baton_axe(
 	indices.reserve(indices.taille() + 36);
 
 	for (size_t	 i = 0; i < 6; ++i) {
-		indices.pousse(static_cast<unsigned>(decalage + polygones[i][0]));
-		indices.pousse(static_cast<unsigned>(decalage + polygones[i][1]));
-		indices.pousse(static_cast<unsigned>(decalage + polygones[i][2]));
+		indices.ajoute(static_cast<unsigned>(decalage + polygones[i][0]));
+		indices.ajoute(static_cast<unsigned>(decalage + polygones[i][1]));
+		indices.ajoute(static_cast<unsigned>(decalage + polygones[i][2]));
 
-		indices.pousse(static_cast<unsigned>(decalage + polygones[i][0]));
-		indices.pousse(static_cast<unsigned>(decalage + polygones[i][2]));
-		indices.pousse(static_cast<unsigned>(decalage + polygones[i][3]));
+		indices.ajoute(static_cast<unsigned>(decalage + polygones[i][0]));
+		indices.ajoute(static_cast<unsigned>(decalage + polygones[i][2]));
+		indices.ajoute(static_cast<unsigned>(decalage + polygones[i][3]));
 	}
 }
 
@@ -160,7 +160,7 @@ static void ajoute_poignee_axe(
 	sommets.reserve(sommets.taille() + 8);
 
 	for (auto const &coin : coins) {
-		sommets.pousse(coin);
+		sommets.ajoute(coin);
 	}
 
 	const unsigned int polygones[6][4] = {
@@ -173,13 +173,13 @@ static void ajoute_poignee_axe(
 	};
 
 	for (size_t	 i = 0; i < 6; ++i) {
-		indices.pousse(static_cast<unsigned>(decalage + polygones[i][0]));
-		indices.pousse(static_cast<unsigned>(decalage + polygones[i][1]));
-		indices.pousse(static_cast<unsigned>(decalage + polygones[i][2]));
+		indices.ajoute(static_cast<unsigned>(decalage + polygones[i][0]));
+		indices.ajoute(static_cast<unsigned>(decalage + polygones[i][1]));
+		indices.ajoute(static_cast<unsigned>(decalage + polygones[i][2]));
 
-		indices.pousse(static_cast<unsigned>(decalage + polygones[i][0]));
-		indices.pousse(static_cast<unsigned>(decalage + polygones[i][2]));
-		indices.pousse(static_cast<unsigned>(decalage + polygones[i][3]));
+		indices.ajoute(static_cast<unsigned>(decalage + polygones[i][0]));
+		indices.ajoute(static_cast<unsigned>(decalage + polygones[i][2]));
+		indices.ajoute(static_cast<unsigned>(decalage + polygones[i][3]));
 	}
 }
 
@@ -464,7 +464,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 				point[1] = std::sin(phi);
 				point[2] = std::cos(phi);
 
-				sommets.pousse(point);
+				sommets.ajoute(point);
 			}
 			break;
 		}
@@ -480,7 +480,7 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 				point[1] = 0.0f;
 				point[2] = std::cos(phi);
 
-				sommets.pousse(point);
+				sommets.ajoute(point);
 			}
 			break;
 		}
@@ -496,15 +496,15 @@ static TamponRendu *cree_tampon_cercle_axe(int axe)
 				point[1] = std::cos(phi);
 				point[2] = 0.0f;
 
-				sommets.pousse(point);
+				sommets.ajoute(point);
 			}
 			break;
 		}
 	}
 
 	for (auto i = 0u; i < segments; ++i) {
-		indices.pousse(i);
-		indices.pousse((i + 1) % segments);
+		indices.ajoute(i);
+		indices.ajoute((i + 1) % segments);
 	}
 
 	ParametresTampon parametres_tampon;

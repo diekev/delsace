@@ -774,7 +774,7 @@ struct GeneratriceCodeC {
 				auto arguments = dls::tablet<dls::chaine, 10>();
 
 				POUR (inst_appel->args) {
-					arguments.pousse(genere_code_pour_atome(it, os, false));
+					arguments.ajoute(genere_code_pour_atome(it, os, false));
 				}
 
 				os << "  ";
@@ -1394,7 +1394,7 @@ static void genere_code_C_depuis_fonction_principale(
 
 	// génère finalement la fonction __principale qui sers de pont entre __point_d_entree_systeme et principale
 	auto atome_principale = constructrice_ri.genere_ri_pour_fonction_principale(&espace);
-	fonctions.pousse(atome_principale);
+	fonctions.ajoute(atome_principale);
 
 	// fais en sors que point_d_entree_systeme est utilisée, et renomme en « main » pour ne pas avoir à créer une autre fonction
 	espace.fonction_point_d_entree->atome_fonction->nombre_utilisations = 1;
@@ -1425,7 +1425,7 @@ static void genere_code_C_depuis_fonctions_racines(
 	POUR_TABLEAU_PAGE (espace.fonctions) {
 		if (it.decl && it.decl->possede_drapeau(EST_RACINE)) {
 			it.nombre_utilisations = 1;
-			fonctions_racines.pousse(&it);
+			fonctions_racines.ajoute(&it);
 		}
 	}
 

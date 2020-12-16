@@ -125,7 +125,7 @@ void trie_echantillons_spectre(
 	vec.reserve(n);
 
 	for (auto i = 0; i < n; ++i) {
-		vec.pousse(std::make_pair(lambdas[i], valeurs[i]));
+		vec.ajoute(std::make_pair(lambdas[i], valeurs[i]));
 	}
 
 	std::sort(vec.debut(), vec.fin());

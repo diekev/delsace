@@ -147,7 +147,7 @@ void CompilatriceReseau::cree_noeud(Noeud *noeud)
 
 	auto noeud_reseau = memoire::loge<NoeudReseau>("NoeudReseau");
 	noeud_reseau->noeud = noeud;
-	reseau->noeuds.pousse(noeud_reseau);
+	reseau->noeuds.ajoute(noeud_reseau);
 
 	m_table_noeud_noeud.insere({noeud, noeud_reseau});
 }

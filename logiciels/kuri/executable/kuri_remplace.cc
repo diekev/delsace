@@ -62,7 +62,7 @@ static void analyse_liste_chemin(
 		}
 
 		auto obj_chaine = extrait_chaine(objet.get());
-		chaines.pousse(obj_chaine->valeur);
+		chaines.ajoute(obj_chaine->valeur);
 	}
 }
 
@@ -113,7 +113,7 @@ static Configuration analyse_configuration(const char *chemin)
 			}
 
 			auto obj_chaine = extrait_chaine(objet.second.get());
-			config.mots_cles.pousse({ nom_objet, obj_chaine->valeur });
+			config.mots_cles.ajoute({ nom_objet, obj_chaine->valeur });
 
 			//std::cerr << "Remplacement de '" << nom_objet << "' par '" << obj_chaine->valeur << "'\n";
 		}

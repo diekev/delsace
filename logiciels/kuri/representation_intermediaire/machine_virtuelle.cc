@@ -391,7 +391,7 @@ static void notre_free(void *ptr)
 void GestionnaireBibliotheques::ajoute_bibliotheque(dls::chaine const &chemin)
 {
 	auto objet = dls::systeme_fichier::shared_library(chemin.c_str());
-	bibliotheques.pousse({ std::move(objet), chemin });
+	bibliotheques.ajoute({ std::move(objet), chemin });
 }
 
 void GestionnaireBibliotheques::ajoute_fonction_pour_symbole(IdentifiantCode *symbole, GestionnaireBibliotheques::type_fonction fonction)
@@ -532,10 +532,10 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction, int t
 
 		POUR (inst_appel->args) {
 			auto type = converti_type_ffi(it->type);
-			donnees_externe.types_entrees.pousse(type);
+			donnees_externe.types_entrees.ajoute(type);
 
 			auto ptr = &pointeur_arguments[decalage_argument];
-			pointeurs_arguments.pousse(ptr);
+			pointeurs_arguments.ajoute(ptr);
 
 			if (it->type->genre == GenreType::ENTIER_CONSTANT) {
 				decalage_argument += 4;
@@ -545,7 +545,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction, int t
 			}
 		}
 
-		donnees_externe.types_entrees.pousse(nullptr);
+		donnees_externe.types_entrees.ajoute(nullptr);
 
 		auto type_ffi_sortie = converti_type_ffi(type_fonction->types_sorties[0]);
 		auto ptr_types_entrees = donnees_externe.types_entrees.donnees();
@@ -560,7 +560,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction, int t
 	else {
 		POUR (type_fonction->types_entrees) {
 			auto ptr = &pointeur_arguments[decalage_argument];
-			pointeurs_arguments.pousse(ptr);
+			pointeurs_arguments.ajoute(ptr);
 			decalage_argument += it->taille_octet;
 		}
 	}
@@ -1202,7 +1202,7 @@ int MachineVirtuelle::ajoute_globale(Type *type, IdentifiantCode *ident)
 
 	auto ptr = static_cast<int>(globales.taille());
 
-	globales.pousse(globale);
+	globales.ajoute(globale);
 
 	return ptr;
 }
@@ -1253,7 +1253,7 @@ void MachineVirtuelle::ajoute_metaprogramme(MetaProgramme *metaprogramme)
 	/* l'appel a modifié les frames du métaprogramme, sauvegarde */
 	desinstalle_metaprogramme(metaprogramme);
 
-	m_metaprogrammes.pousse(metaprogramme);
+	m_metaprogrammes.ajoute(metaprogramme);
 }
 
 void MachineVirtuelle::execute_metaprogrammes_courants()
@@ -1288,7 +1288,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
 			if (res == ResultatInterpretation::ERREUR) {
 				it->resultat = MetaProgramme::ResultatExecution::ERREUR;
-				m_metaprogrammes_termines.pousse(it);
+				m_metaprogrammes_termines.ajoute(it);
 				std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
 				nombre_metaprogrammes -= 1;
 				i -= 1;
@@ -1297,7 +1297,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
 			if (res == ResultatInterpretation::TERMINE) {
 				it->resultat = MetaProgramme::ResultatExecution::SUCCES;
-				m_metaprogrammes_termines.pousse(it);
+				m_metaprogrammes_termines.ajoute(it);
 				std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
 				nombre_metaprogrammes -= 1;
 				i -= 1;

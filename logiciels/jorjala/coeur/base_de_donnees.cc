@@ -56,10 +56,10 @@ BaseDeDonnees::BaseDeDonnees()
 	m_racine_nuanceurs.graphe.type = type_graphe::RACINE_NUANCEUR;
 	m_racine_rendus.graphe.type = type_graphe::RACINE_RENDU;
 
-	m_racine.enfants.pousse(&m_racine_objets);
-	m_racine.enfants.pousse(&m_racine_composites);
-	m_racine.enfants.pousse(&m_racine_nuanceurs);
-	m_racine.enfants.pousse(&m_racine_rendus);
+	m_racine.enfants.ajoute(&m_racine_objets);
+	m_racine.enfants.ajoute(&m_racine_composites);
+	m_racine.enfants.ajoute(&m_racine_nuanceurs);
+	m_racine.enfants.ajoute(&m_racine_rendus);
 }
 
 BaseDeDonnees::~BaseDeDonnees()
@@ -149,7 +149,7 @@ Objet *BaseDeDonnees::cree_objet(dls::chaine const &nom, type_objet type)
 	noeud->peut_avoir_graphe = true;
 	noeud->graphe.type = type_graphe::OBJET;
 
-	m_objets.pousse(objet);
+	m_objets.ajoute(objet);
 
 	return objet;
 }
@@ -203,7 +203,7 @@ Composite *BaseDeDonnees::cree_composite(dls::chaine const &nom)
 	noeud->peut_avoir_graphe = true;
 	noeud->graphe.type = type_graphe::COMPOSITE;
 
-	m_composites.pousse(compo);
+	m_composites.ajoute(compo);
 
 	return compo;
 }
@@ -251,7 +251,7 @@ Nuanceur *BaseDeDonnees::cree_nuanceur(const dls::chaine &nom)
 	auto noeud = m_racine_nuanceurs.graphe.cree_noeud(nom, type_noeud::NUANCEUR);
 	auto nuance = memoire::loge<Nuanceur>("nuanceur", *noeud);
 
-	m_nuanceurs.pousse(nuance);
+	m_nuanceurs.ajoute(nuance);
 
 	return nuance;
 }
@@ -299,7 +299,7 @@ Rendu *BaseDeDonnees::cree_rendu(const dls::chaine &nom)
 	auto noeud = m_racine_rendus.graphe.cree_noeud(nom, type_noeud::RENDU);
 	auto rend = memoire::loge<Rendu>("rendu", *noeud);
 
-	m_rendus.pousse(rend);
+	m_rendus.ajoute(rend);
 
 	return rend;
 }

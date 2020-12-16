@@ -76,8 +76,8 @@ TamponRendu *genere_tampon_arrete(Arbre *arbre)
 
 	/* OpenGL ne travaille qu'avec des floats. */
 	for (Arrete *arrete : arbre->arretes()) {
-		sommets.pousse(arrete->s[0]->pos);
-		sommets.pousse(arrete->s[1]->pos);
+		sommets.ajoute(arrete->s[0]->pos);
+		sommets.ajoute(arrete->s[1]->pos);
 	}
 
 	dls::tableau<unsigned int> indices(sommets.taille());

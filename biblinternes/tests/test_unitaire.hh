@@ -184,7 +184,7 @@ public:
 	template <ConceptFonctionTest FonctionTest>
 	void ajoute_fonction(FonctionTest &&test)
 	{
-		m_fonctions.pousse(test);
+		m_fonctions.ajoute(test);
 	}
 
 	/**

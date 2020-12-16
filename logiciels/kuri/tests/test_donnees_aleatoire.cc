@@ -47,7 +47,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		texte.reserve(static_cast<long>(taille) + 1l);
 
 		for (auto i = 0ul; i < taille; ++i) {
-			texte.pousse(donnees_char[i]);
+			texte.ajoute(donnees_char[i]);
 		}
 
 		auto compilatrice = Compilatrice{};
@@ -256,14 +256,14 @@ struct arbre {
 
 		if (profondeur >= 32) {
 			auto noeud = new variable{};
-			this->noeuds.pousse(noeud);
+			this->noeuds.ajoute(noeud);
 			return noeud;
 		}
 
 		if (p > 0.5) {
 			auto noeud = new parenthese{};
 			noeud->centre = construit_expression_ex(prob / 1.2, profondeur + 1);
-			this->noeuds.pousse(noeud);
+			this->noeuds.ajoute(noeud);
 			return noeud;
 		}
 
@@ -273,14 +273,14 @@ struct arbre {
 			case 0:
 			{
 				auto noeud = new variable{};
-				this->noeuds.pousse(noeud);
+				this->noeuds.ajoute(noeud);
 				return noeud;
 			}
 			case 1:
 			{
 				auto noeud = new operation_unaire{};
 				noeud->droite = construit_expression_ex(prob / 1.2, profondeur + 1);
-				this->noeuds.pousse(noeud);
+				this->noeuds.ajoute(noeud);
 				return noeud;
 			}
 			case 2:
@@ -292,17 +292,17 @@ struct arbre {
 				for (auto i = 0ul; i < n; ++i) {
 					/* construction d'une nouvelle expression, donc réinitialise prob */
 					auto enfant = construit_expression_ex(1.0, profondeur + 1);
-					noeud->params.pousse(enfant);
+					noeud->params.ajoute(enfant);
 				}
 
-				this->noeuds.pousse(noeud);
+				this->noeuds.ajoute(noeud);
 				return noeud;
 			}
 			case 3:
 			{
 				auto noeud = new acces_tableau{};
 				noeud->param = construit_expression_ex(prob / 1.2, profondeur + 1);
-				this->noeuds.pousse(noeud);
+				this->noeuds.ajoute(noeud);
 				return noeud;
 			}
 			default:
@@ -311,7 +311,7 @@ struct arbre {
 				auto noeud = new operation_binaire{};
 				noeud->droite = construit_expression_ex(prob / 1.2, profondeur + 1);
 				noeud->gauche = construit_expression_ex(prob / 1.2, profondeur + 1);
-				this->noeuds.pousse(noeud);
+				this->noeuds.ajoute(noeud);
 				return noeud;
 			}
 		}
@@ -334,7 +334,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 
 	for (auto id : sequence_declaration_fonction) {
 		dm.genre = id;
-		lexemes.pousse(dm);
+		lexemes.ajoute(dm);
 	}
 
 	for (auto n = lexemes.taille(); n < max_lexemes - 1; ++n) {
@@ -344,19 +344,19 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 		auto visiteur = [&](id_lexeme id)
 		{
 			dm.genre = static_cast<id_lexeme>(id);
-			lexemes.pousse(dm);
+			lexemes.ajoute(dm);
 		};
 
 		arbre.visite(visiteur);
 
 		dm.genre = id_lexeme::POINT_VIRGULE;
-		lexemes.pousse(dm);
+		lexemes.ajoute(dm);
 
 		n += arbre.noeuds.taille();
 	}
 
 	dm.genre = id_lexeme::ACCOLADE_FERMANTE;
-	lexemes.pousse(dm);
+	lexemes.ajoute(dm);
 
 	auto const taille_octet = sizeof(Lexeme) * lexemes.taille();
 
@@ -368,7 +368,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 	lexemes.reserve(static_cast<long>(max_lexemes));
 
 	for (auto id : sequence_declaration_fonction) {
-		lexemes.pousse(id);
+		lexemes.ajoute(id);
 	}
 
 	for (auto n = lexemes.taille(); n < static_cast<long>(max_lexemes) - 1; ++n) {
@@ -377,17 +377,17 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 
 		auto visiteur = [&](GenreLexeme id)
 		{
-			lexemes.pousse(id);
+			lexemes.ajoute(id);
 		};
 
 		arbre.visite(visiteur);
 
-		lexemes.pousse(GenreLexeme::POINT_VIRGULE);
+		lexemes.ajoute(GenreLexeme::POINT_VIRGULE);
 
 		n += arbre.noeuds.taille();
 	}
 
-	lexemes.pousse(GenreLexeme::ACCOLADE_FERMANTE);
+	lexemes.ajoute(GenreLexeme::ACCOLADE_FERMANTE);
 
 	auto const taille_octet = sizeof(Lexeme) * static_cast<size_t>(lexemes.taille());
 
@@ -415,16 +415,16 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 
 	for (auto id : sequence_declaration_fonction) {
 		dm.genre = id;
-		lexemes.pousse(dm);
+		lexemes.ajoute(dm);
 	}
 
 	for (auto n = lexemes.taille(); n < max_lexemes - 1; ++n) {
 		dm.genre = static_cast<id_lexeme>(rng(device));
-		lexemes.pousse(dm);
+		lexemes.ajoute(dm);
 	}
 
 	dm.genre = id_lexeme::ACCOLADE_FERMANTE;
-	lexemes.pousse(dm);
+	lexemes.ajoute(dm);
 
 	auto const taille_octet = sizeof(Lexeme) * lexemes.taille();
 
@@ -442,14 +442,14 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 	lexemes.reserve(static_cast<long>(max_lexemes));
 
 	for (auto id : sequence_declaration_fonction) {
-		lexemes.pousse(id);
+		lexemes.ajoute(id);
 	}
 
 	for (auto n = lexemes.taille(); n < static_cast<long>(max_lexemes) - 1; ++n) {
-		lexemes.pousse(static_cast<GenreLexeme>(rng(device)));
+		lexemes.ajoute(static_cast<GenreLexeme>(rng(device)));
 	}
 
-	lexemes.pousse(GenreLexeme::ACCOLADE_FERMANTE);
+	lexemes.ajoute(GenreLexeme::ACCOLADE_FERMANTE);
 
 	auto const taille_octet = sizeof(Lexeme) * static_cast<size_t>(lexemes.taille());
 
@@ -471,7 +471,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 	for (size_t i = 0; i < nombre_lexemes; ++i) {
 		dm.genre = donnees_lexemes[i];
-		lexemes.pousse(dm);
+		lexemes.ajoute(dm);
 	}
 
 	try {

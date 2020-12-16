@@ -53,19 +53,19 @@ public:
 	}
 
 	template <typename T>
-	void pousse(T const &v)
+	void ajoute(T const &v)
 	{
-		m_donnees.pousse(transbit<float>(v));
+		m_donnees.ajoute(transbit<float>(v));
 	}
 
-	void pousse(code_inst inst)
+	void ajoute(code_inst inst)
 	{
-		m_donnees.pousse(static_cast<float>(inst));
+		m_donnees.ajoute(static_cast<float>(inst));
 	}
 
-	void pousse(type_var var)
+	void ajoute(type_var var)
 	{
-		m_donnees.pousse(static_cast<float>(var));
+		m_donnees.ajoute(static_cast<float>(var));
 	}
 
 	long taille() const

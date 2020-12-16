@@ -68,7 +68,7 @@ static btCollisionShape *cree_forme_pour_corps(Corps &corps)
 //	verts.reserve(corps.points()->taille());
 
 //	for (auto i = 0; i < corps.points()->taille(); ++i) {
-//		verts.pousse(point);
+//		verts.ajoute(point);
 //	}
 
 	auto limites = calcule_limites_mondiales_corps(corps);
@@ -437,7 +437,7 @@ public:
 	{
 		if (raison == "nom_objet") {
 			for (auto &objet : contexte.bdd->objets()) {
-				liste.pousse(objet->noeud->nom);
+				liste.ajoute(objet->noeud->nom);
 			}
 		}
 	}

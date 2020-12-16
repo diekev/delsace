@@ -625,15 +625,15 @@ bool cherche_candidats_operateurs(
 
 		if (op->type1 == type1 && op->type2 == type2) {
 			op_candidats.efface();
-			op_candidats.pousse(op);
+			op_candidats.ajoute(op);
 			break;
 		}
 
 		if (op->type1 == type1 || op->type2 == type2) {
-			op_candidats.pousse(op);
+			op_candidats.ajoute(op);
 		}
 		else if (op->est_commutatif && (op->type2 == type1 || op->type1 == type2)) {
-			op_candidats.pousse(op);
+			op_candidats.ajoute(op);
 		}
 	}
 
@@ -662,7 +662,7 @@ bool cherche_candidats_operateurs(
 			candidat.transformation_type1 = seq1;
 			candidat.transformation_type2 = seq2;
 
-			candidats.pousse(candidat);
+			candidats.ajoute(candidat);
 		}
 
 		if (op->est_commutatif && poids != 1.0) {
@@ -688,7 +688,7 @@ bool cherche_candidats_operateurs(
 				candidat.transformation_type2 = seq2;
 				candidat.permute_operandes = true;
 
-				candidats.pousse(candidat);
+				candidats.ajoute(candidat);
 			}
 		}
 	}

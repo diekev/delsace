@@ -81,17 +81,17 @@ auto formatte_nombre_entier(T nombre)
 	resultat.reserve(taille + taille / 3);
 
 	for (auto i = 0l; i < reste; ++i) {
-		resultat.pousse(resultat_tmp[i]);
+		resultat.ajoute(resultat_tmp[i]);
 	}
 
 	for (auto i = reste; i < taille; i += 3) {
 		if (reste != 0 || i != reste) {
-			resultat.pousse(' ');
+			resultat.ajoute(' ');
 		}
 
-		resultat.pousse(resultat_tmp[i + 0]);
-		resultat.pousse(resultat_tmp[i + 1]);
-		resultat.pousse(resultat_tmp[i + 2]);
+		resultat.ajoute(resultat_tmp[i + 0]);
+		resultat.ajoute(resultat_tmp[i + 1]);
+		resultat.ajoute(resultat_tmp[i + 2]);
 	}
 
 	return resultat;

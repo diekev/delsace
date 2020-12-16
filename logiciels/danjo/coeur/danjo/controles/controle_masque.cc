@@ -63,7 +63,7 @@ static void construit_table_cerce(CerceBezier &cerce)
 		const auto &x_pt1 = p2.co[POINT_CONTROLE1].x;
 		const auto &y_pt1 = p2.co[POINT_CONTROLE1].y;
 
-		cerce.table.pousse(Point{x1, y1});
+		cerce.table.ajoute(Point{x1, y1});
 
 		for (int j = 1; j <= res_courbe; ++j) {
 			const auto fac_i = facteur * static_cast<float>(j);
@@ -92,7 +92,7 @@ static void construit_table_cerce(CerceBezier &cerce)
 			const auto xt2 = mfac_i * x_c_pt1 + fac_i * x_pt2_c;
 			const auto yt2 = mfac_i * y_c_pt1 + fac_i * y_pt2_c;
 
-			cerce.table.pousse(Point{xt2, yt2});
+			cerce.table.ajoute(Point{xt2, yt2});
 		}
 	}
 }
@@ -107,7 +107,7 @@ static void ajoute_point_cerce(CerceBezier &cerce, float x, float y)
 	point.co[POINT_CONTROLE2].x = x + 0.1f;
 	point.co[POINT_CONTROLE2].y = y;
 
-	cerce.points.pousse(point);
+	cerce.points.ajoute(point);
 
 	cerce.min.x = std::min(cerce.min.x, x);
 	cerce.min.y = std::min(cerce.min.y, y);
@@ -222,7 +222,7 @@ void ControleMasque::paintEvent(QPaintEvent *)
 				auto fy = static_cast<float>(j) * hauteur_inv;
 
 				if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
-					carreaux.pousse(carreau);
+					carreaux.ajoute(carreau);
 					continue;
 				}
 
@@ -230,7 +230,7 @@ void ControleMasque::paintEvent(QPaintEvent *)
 				fy = static_cast<float>(j) * hauteur_inv;
 
 				if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
-					carreaux.pousse(carreau);
+					carreaux.ajoute(carreau);
 					continue;
 				}
 
@@ -238,7 +238,7 @@ void ControleMasque::paintEvent(QPaintEvent *)
 				fy = static_cast<float>(j + carreau.hauteur) * hauteur_inv;
 
 				if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
-					carreaux.pousse(carreau);
+					carreaux.ajoute(carreau);
 					continue;
 				}
 
@@ -246,7 +246,7 @@ void ControleMasque::paintEvent(QPaintEvent *)
 				fy = static_cast<float>(j + carreau.hauteur) * hauteur_inv;
 
 				if (contenu_dans_courbe(m_cerce, fx, 1.0f - fy)) {
-					carreaux.pousse(carreau);
+					carreaux.ajoute(carreau);
 					continue;
 				}
 			}

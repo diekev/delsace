@@ -169,7 +169,7 @@ public:
 					t->max = t->min + dls::math::vec3i(TAILLE_TUILE);
 
 					m_index_tuiles[idx_tuile] = m_tuiles.taille();
-					m_tuiles.pousse(t);
+					m_tuiles.ajoute(t);
 				}
 			}
 		}
@@ -184,7 +184,7 @@ public:
 
 			for (auto i = 0; i < (VOXELS_TUILE); ++i) {
 				if (t->donnees[i] != m_arriere_plan) {
-					tuiles_gardees.pousse(t);
+					tuiles_gardees.ajoute(t);
 					t->garde = true;
 					break;
 				}
@@ -264,7 +264,7 @@ public:
 		t->min = co;
 		t->max = t->min + dls::math::vec3i(TAILLE_TUILE);
 		m_index_tuiles[idx] = m_tuiles.taille();
-		m_tuiles.pousse(t);
+		m_tuiles.ajoute(t);
 		return t;
 	}
 

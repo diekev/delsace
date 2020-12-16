@@ -67,7 +67,7 @@ mi_sommet *Polyedre::cree_sommet(const dls::math::vec3f &p)
 	s->p = p;
 	s->index = sommets.taille();
 
-	sommets.pousse(s);
+	sommets.ajoute(s);
 
 	return s;
 }
@@ -81,7 +81,7 @@ mi_arete *Polyedre::cree_arete(mi_sommet *s, mi_face *f)
 
 	s->arete = a;
 
-	aretes.pousse(a);
+	aretes.ajoute(a);
 
 	return a;
 }
@@ -90,7 +90,7 @@ mi_face *Polyedre::cree_face()
 {
 	auto f = memoire::loge<mi_face>("mi_face");
 	f->index = faces.taille();
-	faces.pousse(f);
+	faces.ajoute(f);
 	return f;
 }
 

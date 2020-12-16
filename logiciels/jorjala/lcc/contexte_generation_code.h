@@ -39,7 +39,7 @@ struct compileuse_lng {
 	template <typename T>
 	void ajoute_instructions(T inst)
 	{
-		m_instructions.pousse(inst);
+		m_instructions.ajoute(inst);
 	}
 
 	lcc::pile &donnees()
@@ -125,7 +125,7 @@ struct gestionnaire_propriete {
 	donnees_propriete *ajoute_propriete(dls::chaine const &nom, lcc::type_var type, int idx)
 	{
 		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, true, idx);
-		donnees.pousse(prop);
+		donnees.ajoute(prop);
 		return prop;
 	}
 
@@ -137,15 +137,15 @@ struct gestionnaire_propriete {
 
 	void ajoute_attribut(dls::chaine const &nom, lcc::type_var type, int idx)
 	{
-		donnees.pousse(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, false, idx));
+		donnees.ajoute(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, false, idx));
 	}
 
 	void requiers_attr(dls::chaine const &nom, lcc::type_var type, int idx)
 	{
 		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, true, false, idx);
 		prop->est_modifiee = true;
-		donnees.pousse(prop);
-		requetes.pousse(prop);
+		donnees.ajoute(prop);
+		requetes.ajoute(prop);
 	}
 
 	bool propriete_existe(dls::vue_chaine const &nom)

@@ -224,10 +224,10 @@ public:
 		pour_chaque_polygone_ferme(*corps_entree,
 								   [&](Corps const &, Polygone *poly)
 		{
-			nombre_sommets_par_poly.pousse(static_cast<int>(poly->nombre_sommets()));
+			nombre_sommets_par_poly.ajoute(static_cast<int>(poly->nombre_sommets()));
 
 			for (long i = 0; i < poly->nombre_sommets(); ++i) {
-				index_sommets_polys.pousse(static_cast<int>(poly->index_point(i)));
+				index_sommets_polys.ajoute(static_cast<int>(poly->index_point(i)));
 			}
 		});
 
@@ -256,8 +256,8 @@ public:
 
 		for (auto const &attr : corps_entree->attributs()) {
 			if (attr.portee == portee_attr::POINT && attr.type() == type_attribut::R32 && attr.dimensions == 3) {
-				tampon_attr_points.pousse(dls::tableau<SommetOSD>(rafineur->GetNumVerticesTotal()));
-				attrs_points.pousse(&attr);
+				tampon_attr_points.ajoute(dls::tableau<SommetOSD>(rafineur->GetNumVerticesTotal()));
+				attrs_points.ajoute(&attr);
 			}
 
 			if (attr.portee == portee_attr::PRIMITIVE && attr.type() == type_attribut::R32 && attr.dimensions == 3) {
@@ -266,17 +266,17 @@ public:
 					continue;
 				}
 
-				tampon_attr_prims.pousse(dls::tableau<SommetOSD>(rafineur->GetNumFacesTotal()));
-				attrs_prims.pousse(&attr);
+				tampon_attr_prims.ajoute(dls::tableau<SommetOSD>(rafineur->GetNumFacesTotal()));
+				attrs_prims.ajoute(&attr);
 			}
 		}
 
 		for (auto &attr : tampon_attr_points) {
-			ptr_attrs_pnt.pousse(&attr[0]);
+			ptr_attrs_pnt.ajoute(&attr[0]);
 		}
 
 		for (auto &attr : tampon_attr_prims) {
-			ptr_attrs_prims.pousse(&attr[0]);
+			ptr_attrs_prims.ajoute(&attr[0]);
 		}
 
 		/* Initialise les positions du maillage grossier. */

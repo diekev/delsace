@@ -52,7 +52,7 @@ struct Monomorpheuse {
 			}
 		}
 
-		items.pousse({ident, nullptr});
+		items.ajoute({ident, nullptr});
 	}
 
 	bool ajoute_contrainte(IdentifiantCode *ident, Type *type_contrainte, Type *type_donne)
@@ -173,10 +173,10 @@ struct Monomorpheuse {
 							}
 						}
 
-						paires_types.pousse({ type1, type2 });
+						paires_types.ajoute({ type1, type2 });
 					}
 
-					table_structures.pousse({type_polymorphique, type_cible});
+					table_structures.ajoute({type_polymorphique, type_cible});
 					return true;
 				}
 
@@ -192,7 +192,7 @@ struct Monomorpheuse {
 			type_courant_poly = type_dereference_pour(type_courant_poly);
 		}
 
-		paires_types.pousse({type_polymorphique, type_cible});
+		paires_types.ajoute({type_polymorphique, type_cible});
 		return true;
 	}
 
@@ -309,10 +309,10 @@ struct Monomorpheuse {
 			POUR (type_fonction->types_entrees) {
 				if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 					auto type_param = resoud_type_final(typeuse, it);
-					types_entrees.pousse(type_param);
+					types_entrees.ajoute(type_param);
 				}
 				else {
-					types_entrees.pousse(it);
+					types_entrees.ajoute(it);
 				}
 			}
 
@@ -322,10 +322,10 @@ struct Monomorpheuse {
 			POUR (type_fonction->types_sorties) {
 				if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 					auto type_param = resoud_type_final(typeuse, it);
-					types_sorties.pousse(type_param);
+					types_sorties.ajoute(type_param);
 				}
 				else {
-					types_sorties.pousse(it);
+					types_sorties.ajoute(it);
 				}
 			}
 
@@ -377,7 +377,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 				}
 			}
 
-			candidates.pousse({ CANDIDATE_EST_DECLARATION, it });
+			candidates.ajoute({ CANDIDATE_EST_DECLARATION, it });
 		}
 	}
 	else if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
@@ -392,7 +392,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 			trouve_declarations_dans_bloc(declarations, module->bloc, membre->ident);
 
 			POUR (declarations) {
-				candidates.pousse({ CANDIDATE_EST_DECLARATION, it });
+				candidates.ajoute({ CANDIDATE_EST_DECLARATION, it });
 			}
 		}
 		else {
@@ -427,21 +427,21 @@ static auto trouve_candidates_pour_fonction_appelee(
 				}
 
 				if (membre_trouve != false) {
-					candidates.pousse({ CANDIDATE_EST_ACCES, acces });
+					candidates.ajoute({ CANDIDATE_EST_ACCES, acces });
 					acces->index_membre = index_membre;
 					return false;
 				}
 			}
 
-			candidates.pousse({ CANDIDATE_EST_APPEL_UNIFORME, acces });
+			candidates.ajoute({ CANDIDATE_EST_APPEL_UNIFORME, acces });
 		}
 	}
 	else if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
-		candidates.pousse({ CANDIDATE_EST_INIT_DE, appelee });
+		candidates.ajoute({ CANDIDATE_EST_INIT_DE, appelee });
 	}
 	else {
 		if (appelee->type->genre == GenreType::FONCTION) {
-			candidates.pousse({ CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelee });
+			candidates.ajoute({ CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelee });
 		}
 		else {
 			contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelee);
@@ -569,7 +569,7 @@ static auto apparie_appel_pointeur(
 
 		transformations[i - debut_params] = transformation;
 
-		exprs.pousse(arg);
+		exprs.ajoute(arg);
 	}
 
 	resultat.note = CANDIDATE_EST_APPEL_POINTEUR;
@@ -608,7 +608,7 @@ static auto apparie_appel_init_de(
 	}
 
 	auto exprs = dls::tablet<NoeudExpression *, 10>();
-	exprs.pousse(args[0].expr);
+	exprs.ajoute(args[0].expr);
 
 	auto transformations = dls::tableau<TransformationType>(1);
 	transformations[0] = { TypeTransformation::INUTILE };
@@ -687,7 +687,7 @@ static auto apparie_appel_fonction(
 
 			// À FAIRE : contraites, ceci ne gère que les cas suivant : a : $T
 			auto type = it.expr->type->comme_type_de_donnees();
-			res.items_monomorphisation.pousse({ it.ident, type->type_connu, ResultatExpression(), true });
+			res.items_monomorphisation.ajoute({ it.ident, type->type_connu, ResultatExpression(), true });
 		}
 
 		res.etat = FONCTION_TROUVEE;
@@ -762,7 +762,7 @@ static auto apparie_appel_fonction(
 			args_rencontres.insere(it.ident);
 
 			if (dernier_arg_variadique || index_param >= slots.taille()) {
-				slots.pousse(it.expr);
+				slots.ajoute(it.expr);
 			}
 			else {
 				if (slots[index_param] != param->expression) {
@@ -785,7 +785,7 @@ static auto apparie_appel_fonction(
 			}
 
 			if (dernier_arg_variadique || index >= slots.taille()) {
-				slots.pousse(it.expr);
+				slots.ajoute(it.expr);
 				index++;
 			}
 			else {
@@ -799,7 +799,7 @@ static auto apparie_appel_fonction(
 	for (auto i = 0; i < nombre_args - decl->est_variadique; ++i) {
 		if (slots[i] == nullptr) {
 			auto dp = decl->params[i];
-			params_manquants.pousse(dp->ident);
+			params_manquants.ajoute(dp->ident);
 		}
 	}
 
@@ -1059,11 +1059,11 @@ static auto apparie_appel_fonction(
 			noeud_tableau->exprs.reserve(slots.taille() - index_premier_var_arg);
 
 			for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
-				noeud_tableau->exprs.pousse(slots[i]);
+				noeud_tableau->exprs.ajoute(slots[i]);
 			}
 
 			if (index_premier_var_arg >= slots.taille()) {
-				slots.pousse(noeud_tableau);
+				slots.ajoute(noeud_tableau);
 			}
 			else {
 				slots[index_premier_var_arg] = noeud_tableau;
@@ -1082,15 +1082,15 @@ static auto apparie_appel_fonction(
 			continue;
 		}
 
-		res.exprs.pousse(slots[i]);
+		res.exprs.ajoute(slots[i]);
 
 		if (i < transformations.taille()) {
-			res.transformations.pousse(transformations[i]);
+			res.transformations.ajoute(transformations[i]);
 		}
 	}
 
 	for (auto i = slots.taille(); i < transformations.taille(); ++i) {
-		res.transformations.pousse(transformations[i]);
+		res.transformations.ajoute(transformations[i]);
 	}
 
 	res.poids_args = poids_args;
@@ -1100,7 +1100,7 @@ static auto apparie_appel_fonction(
 		res.items_monomorphisation.reserve(monomorpheuse.items.taille());
 
 		POUR (monomorpheuse.items) {
-			res.items_monomorphisation.pousse({ it.premier, it.second, ResultatExpression(), true });
+			res.items_monomorphisation.ajoute({ it.premier, it.second, ResultatExpression(), true });
 		}
 	}
 
@@ -1184,7 +1184,7 @@ static auto apparie_appel_structure(
 						return false;
 					}
 
-					resultat.items_monomorphisation.pousse({ it.ident, it.expr->type, ResultatExpression(), true });
+					resultat.items_monomorphisation.ajoute({ it.ident, it.expr->type, ResultatExpression(), true });
 				}
 				else {
 					if (!(it.expr->type == param->type || (it.expr->type->est_entier_constant() && est_type_entier(param->type)))) {
@@ -1204,7 +1204,7 @@ static auto apparie_appel_structure(
 						rapporte_erreur(&espace, it.expr, "La valeur n'est pas constante");
 					}
 
-					resultat.items_monomorphisation.pousse({ it.ident, param->type, valeur, false });
+					resultat.items_monomorphisation.ajoute({ it.ident, param->type, valeur, false });
 				}
 			}
 			else {
@@ -1246,7 +1246,7 @@ static auto apparie_appel_structure(
 					auto ref_decl = it.expr->comme_ref_decl();
 
 					if (ref_decl->decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-						type_poly->types_constants_structure.pousse(it.expr->type);
+						type_poly->types_constants_structure.ajoute(it.expr->type);
 						break;
 					}
 				}
@@ -1255,7 +1255,7 @@ static auto apparie_appel_structure(
 					auto type_connu = it.expr->type->comme_type_de_donnees()->type_connu;
 
 					if (type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-						type_poly->types_constants_structure.pousse(type_connu);
+						type_poly->types_constants_structure.ajoute(type_connu);
 					}
 				}
 			}
@@ -1407,7 +1407,7 @@ static auto apparie_construction_opaque(
 	resultat.note = CANDIDATE_EST_INITIALISATION_OPAQUE;
 	resultat.etat = FONCTION_TROUVEE;
 	resultat.poids_args = 1.0;
-	resultat.exprs.pousse(arguments[0].expr);
+	resultat.exprs.ajoute(arguments[0].expr);
 	return false;
 }
 
@@ -1449,11 +1449,11 @@ static auto trouve_candidates_pour_appel(
 			args.pousse_front({ nullptr, nullptr, acces->expr1 });
 
 			for (auto c : candidates) {
-				nouvelles_candidates.pousse(c);
+				nouvelles_candidates.ajoute(c);
 			}
 		}
 		else {
-			nouvelles_candidates.pousse(it);
+			nouvelles_candidates.ajoute(it);
 		}
 	}
 
@@ -1465,7 +1465,7 @@ static auto trouve_candidates_pour_appel(
 			if (apparie_appel_pointeur(expr, it.decl->type, espace, contexte, args, dc)) {
 				return true;
 			}
-			resultat.pousse(std::move(dc));
+			resultat.ajoute(std::move(dc));
 		}
 		else if (it.quoi == CANDIDATE_EST_DECLARATION) {
 			auto decl = it.decl;
@@ -1486,7 +1486,7 @@ static auto trouve_candidates_pour_appel(
 				if (apparie_appel_structure(espace, contexte, expr, decl_struct, args, dc)) {
 					return true;
 				}
-				resultat.pousse(std::move(dc));
+				resultat.ajoute(std::move(dc));
 			}
 			else if (decl->est_entete_fonction()) {
 				auto decl_fonc = decl->comme_entete_fonction();
@@ -1500,7 +1500,7 @@ static auto trouve_candidates_pour_appel(
 				if (apparie_appel_fonction(espace, contexte, expr, decl_fonc, args, dc)) {
 					return true;
 				}
-				resultat.pousse(std::move(dc));
+				resultat.ajoute(std::move(dc));
 			}
 			else if (decl->est_decl_var()) {
 				auto type = decl->type;
@@ -1523,7 +1523,7 @@ static auto trouve_candidates_pour_appel(
 					if (!type_connu) {
 						dc.etat = FONCTION_INTROUVEE;
 						dc.raison = TYPE_N_EST_PAS_FONCTION;
-						resultat.pousse(std::move(dc));
+						resultat.ajoute(std::move(dc));
 						return true;
 					}
 
@@ -1533,7 +1533,7 @@ static auto trouve_candidates_pour_appel(
 						if (apparie_appel_structure(espace, contexte, expr, type_struct->decl, args, dc)) {
 							return true;
 						}
-						resultat.pousse(std::move(dc));
+						resultat.ajoute(std::move(dc));
 					}
 					else if (type_connu->est_union()) {
 						auto type_union = type_connu->comme_union();
@@ -1541,7 +1541,7 @@ static auto trouve_candidates_pour_appel(
 						if (apparie_appel_structure(espace, contexte, expr, type_union->decl, args, dc)) {
 							return true;
 						}
-						resultat.pousse(std::move(dc));
+						resultat.ajoute(std::move(dc));
 					}
 					else if (type_connu->est_opaque()) {
 						auto type_opaque = type_connu->comme_opaque();
@@ -1549,12 +1549,12 @@ static auto trouve_candidates_pour_appel(
 						if (apparie_construction_opaque(espace, contexte, expr, type_opaque, args, dc)) {
 							return true;
 						}
-						resultat.pousse(std::move(dc));
+						resultat.ajoute(std::move(dc));
 					}
 					else {
 						dc.etat = FONCTION_INTROUVEE;
 						dc.raison = TYPE_N_EST_PAS_FONCTION;
-						resultat.pousse(std::move(dc));
+						resultat.ajoute(std::move(dc));
 						return false;
 					}
 				}
@@ -1569,29 +1569,29 @@ static auto trouve_candidates_pour_appel(
 					if (apparie_construction_opaque(espace, contexte, expr, type_opaque, args, dc)) {
 						return true;
 					}
-					resultat.pousse(std::move(dc));
+					resultat.ajoute(std::move(dc));
 				}
 				else {
 					dc.etat = FONCTION_INTROUVEE;
 					dc.raison = TYPE_N_EST_PAS_FONCTION;
-					resultat.pousse(std::move(dc));
+					resultat.ajoute(std::move(dc));
 					return false;
 				}
 
-				resultat.pousse(std::move(dc));
+				resultat.ajoute(std::move(dc));
 			}
 		}
 		else if (it.quoi == CANDIDATE_EST_INIT_DE) {
 			// ici nous pourrions directement retourner si le type est correcte...
 			auto dc = apparie_appel_init_de(it.decl, args);
-			resultat.pousse(std::move(dc));
+			resultat.ajoute(std::move(dc));
 		}
 		else if (it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
 			auto dc = DonneesCandidate();
 			if (apparie_appel_pointeur(expr, it.decl->type, espace, contexte, args, dc)) {
 				return true;
 			}
-			resultat.pousse(std::move(dc));
+			resultat.ajoute(std::move(dc));
 		}
 	}
 
@@ -1646,7 +1646,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 			decl_constante->valeur_expression = it.valeur;
 		}
 
-		copie->bloc_constantes->membres->pousse(decl_constante);
+		copie->bloc_constantes->membres->ajoute(decl_constante);
 	}
 
 	// Supprime les valeurs polymorphiques
@@ -1657,7 +1657,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 			continue;
 		}
 
-		nouveau_params.pousse(it);
+		nouveau_params.ajoute(it);
 	}
 
 	// il faut également réaplatir l'arbre...
@@ -1674,7 +1674,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 		}
 	}
 
-	monomorphisations->pousse({ items_monomorphisation, copie });
+	monomorphisations->ajoute({ items_monomorphisation, copie });
 
 	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, copie);
 	compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, copie->corps);
@@ -1737,11 +1737,11 @@ static NoeudStruct *monomorphise_au_besoin(
 			decl_constante->valeur_expression = it.valeur;
 		}
 
-		copie->bloc_constantes->membres->pousse(decl_constante);
-		copie->bloc->membres->pousse(decl_constante);
+		copie->bloc_constantes->membres->ajoute(decl_constante);
+		copie->bloc->membres->ajoute(decl_constante);
 	}
 
-	monomorphisations->pousse({ items_monomorphisation, copie });
+	monomorphisations->ajoute({ items_monomorphisation, copie });
 
 	contexte.m_compilatrice.ordonnanceuse->cree_tache_pour_typage(&espace, copie);
 
@@ -1788,10 +1788,10 @@ bool valide_appel_fonction(
 				auto nom_arg = assign->variable;
 				auto arg = assign->expression;
 
-				args.pousse({ nom_arg->ident, nom_arg, arg });
+				args.ajoute({ nom_arg->ident, nom_arg, arg });
 			}
 			else {
-				args.pousse({ nullptr, nullptr, it });
+				args.ajoute({ nullptr, nullptr, it });
 			}
 		}
 	}
@@ -1849,7 +1849,7 @@ bool valide_appel_fonction(
 	expr->exprs.reserve(candidate->exprs.taille());
 
 	for (auto enfant : candidate->exprs) {
-		expr->exprs.pousse(enfant);
+		expr->exprs.ajoute(enfant);
 	}
 
 	if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {

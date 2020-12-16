@@ -69,7 +69,7 @@ type_point AccesseusePointEcriture::point_monde(long idx) const
 long AccesseusePointEcriture::ajoute_point(const type_point &pnt)
 {
 	auto decalage = m_points.taille();
-	m_points.pousse(pnt);
+	m_points.ajoute(pnt);
 	m_corps.redimensionne_attributs(portee_attr::POINT);
 
 	return decalage;

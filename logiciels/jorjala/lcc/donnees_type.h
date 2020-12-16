@@ -78,7 +78,7 @@ public:
 
 	parametres_fonction(donnees_parametre type0)
 	{
-		m_donnees.pousse(type0);
+		m_donnees.ajoute(type0);
 	}
 
 	template <typename... Ts>
@@ -127,7 +127,7 @@ struct donnees_type {
 
 	donnees_type(type_var type0)
 	{
-		types.pousse(type0);
+		types.ajoute(type0);
 	}
 
 	template <typename... Ts>
@@ -139,7 +139,7 @@ struct donnees_type {
 
 	void ajoute(type_var type)
 	{
-		types.pousse(type);
+		types.ajoute(type);
 	}
 };
 
@@ -162,7 +162,7 @@ auto extrait_types(parametres_fonction<N> const &params)
 	dt.types.reserve(params.taille());
 
 	for (auto i = 0; i < params.taille(); ++i) {
-		dt.types.pousse(params.type(i));
+		dt.types.ajoute(params.type(i));
 	}
 
 	return dt;

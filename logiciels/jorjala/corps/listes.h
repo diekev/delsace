@@ -102,7 +102,7 @@ public:
 
 	long taille() const;
 
-	void pousse(dls::math::vec3f const &p);
+	void ajoute(dls::math::vec3f const &p);
 
 	dls::math::vec3f point(long i) const;
 
@@ -133,7 +133,7 @@ public:
 
 	long taille() const;
 
-	void pousse(Primitive *s);
+	void ajoute(Primitive *s);
 
 	Primitive *prim(long index) const;
 

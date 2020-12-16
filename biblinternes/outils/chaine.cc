@@ -41,7 +41,7 @@ tableau<chaine> morcelle(chaine const &texte, char const delimiteur)
 			continue;
 		}
 
-		morceaux.pousse(morceau);
+		morceaux.ajoute(morceau);
 	}
 
 	return morceaux;
@@ -56,7 +56,7 @@ tableau<chaine> morcelle(chaine const &texte, chaine const &delimitrice)
 	auto p = std::strtok(cstr, delimitrice.c_str());
 
 	while (p != nullptr) {
-		results.pousse(p);
+		results.ajoute(p);
 		p = strtok(nullptr, delimitrice.c_str());
 	}
 

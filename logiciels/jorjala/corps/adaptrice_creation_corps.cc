@@ -56,7 +56,7 @@ void AdaptriceCreationCorps::ajoute_coord_uv_sommet(const float u, const float v
 {
 	INUTILISE(w);
 
-	uvs.pousse(dls::math::vec2f(u, v));
+	uvs.ajoute(dls::math::vec2f(u, v));
 }
 
 void AdaptriceCreationCorps::ajoute_parametres_sommet(const float x, const float y, const float z)
@@ -147,7 +147,7 @@ void AdaptriceCreationCorps::groupes(dls::tableau<dls::chaine> const &noms)
 
 	for (auto const &nom : noms) {
 		auto groupe = corps->ajoute_groupe_primitive(nom);
-		groupes_courant.pousse(groupe);
+		groupes_courant.ajoute(groupe);
 	}
 }
 

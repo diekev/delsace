@@ -76,7 +76,7 @@ void test_tableau_compact(dls::test_unitaire::Controleuse &controleuse)
 	CU_DEBUTE_PROPOSITION(controleuse, "Un tableau compact tient trace de sa taille et de ses valeurs");
 	{
 		for (auto i = 0; i < 256; ++i) {
-			tabl.pousse(i * 2);
+			tabl.ajoute(i * 2);
 
 			CU_VERIFIE_EGALITE(controleuse, tabl[i], i * 2);
 			CU_VERIFIE_EGALITE(controleuse, tabl.taille(), i + 1);

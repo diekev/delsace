@@ -65,13 +65,13 @@ public:
 
 	void enfile(type_reference_const valeur)
 	{
-		m_file.pousse(valeur);
+		m_file.ajoute(valeur);
 	}
 
 	void enfile(tableau<type_valeur> const &valeurs)
 	{
 		for (auto const &valeur : valeurs) {
-			m_file.pousse(valeur);
+			m_file.ajoute(valeur);
 		}
 	}
 
@@ -87,7 +87,7 @@ public:
 		auto ret = tableau<type_valeur>(compte);
 
 		for (auto i = 0; i < compte; ++i) {
-			ret.pousse(m_file.front());
+			ret.ajoute(m_file.front());
 			m_file.pop_front();
 		}
 

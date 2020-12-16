@@ -44,7 +44,7 @@ private:
 	type_liste m_liste{};
 
 public:
-	void pousse(type_reference_const v)
+	void ajoute(type_reference_const v)
 	{
 		m_liste.push_back(v);
 	}
@@ -71,7 +71,7 @@ public:
 		m_liste.push_front(v);
 	}
 
-	void pousse(type_valeur &&v)
+	void ajoute(type_valeur &&v)
 	{
 		m_liste.push_front(v);
 	}

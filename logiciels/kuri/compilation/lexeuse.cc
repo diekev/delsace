@@ -780,7 +780,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant)
 		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_donnees->id), m_compte_ligne, m_pos_mot
 	};
 
-	m_donnees->lexemes.pousse(lexeme);
+	m_donnees->lexemes.ajoute(lexeme);
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }
@@ -791,7 +791,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant, unsigned valeur)
 		m_donnees->lexemes.reserve(m_donnees->lexemes.taille() + 128);
 	}
 
-	m_donnees->lexemes.pousse({ mot_courant(), { valeur }, identifiant, static_cast<int>(m_donnees->id), m_compte_ligne, m_pos_mot });
+	m_donnees->lexemes.ajoute({ mot_courant(), { valeur }, identifiant, static_cast<int>(m_donnees->id), m_compte_ligne, m_pos_mot });
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }
@@ -1381,7 +1381,7 @@ void Lexeuse::pousse_lexeme_entier(unsigned long long valeur)
 	lexeme.ligne = m_compte_ligne;
 	lexeme.chaine = mot_courant();
 
-	m_donnees->lexemes.pousse(lexeme);
+	m_donnees->lexemes.ajoute(lexeme);
 
 	m_taille_mot_courant = 0;
 	m_dernier_id = GenreLexeme::NOMBRE_ENTIER;
@@ -1401,7 +1401,7 @@ void Lexeuse::pousse_lexeme_reel(double valeur)
 	lexeme.ligne = m_compte_ligne;
 	lexeme.chaine = mot_courant();
 
-	m_donnees->lexemes.pousse(lexeme);
+	m_donnees->lexemes.ajoute(lexeme);
 
 	m_taille_mot_courant = 0;
 	m_dernier_id = GenreLexeme::NOMBRE_REEL;

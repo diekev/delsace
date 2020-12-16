@@ -742,7 +742,7 @@ void cree_particule(Fluide *fluide, long nombre)
 					p.pos.z = pos_p.z + dist_z(rng);
 					p.vel = dls::math::vec3f(0.0f);
 
-					fluide->particules.pousse(p);
+					fluide->particules.ajoute(p);
 				}
 			}
 		}
@@ -2057,7 +2057,7 @@ void FlipSim::Init()
 				p->m_p = (dls::math::vec3f(static_cast<float>(i), static_cast<float>(j), static_cast<float>(k)) + dls::math::vec3f(0.5f))*h;
 				p->m_type = FLUID;
 				p->m_mass = 1.0f;
-				m_particles.pousse(p);
+				m_particles.ajoute(p);
 			}
 		}
 	}
@@ -2161,7 +2161,7 @@ void FlipSim::AdjustParticlesStuckInSolids()
 	stuckParticles.reserve(particleCount);
 	for (unsigned int p=0; p<particleCount; p++) {
 		if (particleInSolidChecks[p]==true) {
-			stuckParticles.pousse(m_particles[p]);
+			stuckParticles.ajoute(m_particles[p]);
 			m_particles[p]->m_pt = m_particles[p]->m_p;
 		}
 	}

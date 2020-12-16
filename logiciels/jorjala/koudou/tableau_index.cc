@@ -43,7 +43,7 @@ int tableau_index::octets_pour_taille(long taille)
 	return 2;
 }
 
-void tableau_index::pousse(int v)
+void tableau_index::ajoute(int v)
 {
 	switch (octets) {
 		case 0:
@@ -67,7 +67,7 @@ void tableau_index::pousse(int v)
 void tableau_index::pousse_impl(unsigned char v)
 {
 	assert(octets == 0);
-	donnees.pousse(v);
+	donnees.ajoute(v);
 	assert((*this)[taille] >= 0 && (*this)[taille] < 256);
 	taille += 1;
 }
@@ -109,9 +109,9 @@ int tableau_index_comprime::operator[](long idx) const
 	return donnees.back().second;
 }
 
-void tableau_index_comprime::pousse(int decalage, int valeur)
+void tableau_index_comprime::ajoute(int decalage, int valeur)
 {
-	donnees.pousse({ decalage, valeur });
+	donnees.ajoute({ decalage, valeur });
 }
 
 /* ****************************************************************** */
@@ -149,7 +149,7 @@ tableau_index_comprime comprimes_tableau_index(tableau_index const &entree)
 			}
 		}
 
-		sortie.pousse(decalage, valeur);
+		sortie.ajoute(decalage, valeur);
 		decalage = i;
 	}
 

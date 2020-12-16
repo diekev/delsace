@@ -55,7 +55,7 @@ void echantillonne_groupe(
 	index_possibles.reserve(params.n);
 
 	for (auto i = params.depart; i < params.n; i += params.decalage) {
-		index_possibles.pousse(i);
+		index_possibles.ajoute(i);
 	}
 
 	/* à partir de là, 'n' doit être le nombre d'index possibles, qui peut être

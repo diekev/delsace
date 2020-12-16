@@ -35,7 +35,7 @@ size_t HachageSpatial::fonction_empreinte(dls::math::vec3f const &position)
 void HachageSpatial::ajoute(dls::math::vec3f const &position)
 {
 	auto const empreinte = fonction_empreinte(position);
-	m_tableau[empreinte].pousse(position);
+	m_tableau[empreinte].ajoute(position);
 }
 
 dls::tableau<dls::math::vec3f> const &HachageSpatial::particules(dls::math::vec3f const &position)

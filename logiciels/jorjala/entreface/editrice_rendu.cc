@@ -104,5 +104,5 @@ void EditriceRendu::obtiens_liste(
 		dls::tableau<dls::chaine> &chaines)
 {
 	/* À FAIRE */
-	chaines.pousse("image");
+	chaines.ajoute("image");
 }

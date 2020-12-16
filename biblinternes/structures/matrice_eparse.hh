@@ -235,8 +235,8 @@ private:
 		auto n = memoire::loge<noeud>("matrice_colonne_eparse::noeud");
 		n->colonne = colonne;
 
-		noeuds.pousse(n);
-		lignes[ligne].pousse(n);
+		noeuds.ajoute(n);
+		lignes[ligne].ajoute(n);
 
 		return n;
 	}

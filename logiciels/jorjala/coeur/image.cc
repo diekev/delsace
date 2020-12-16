@@ -177,7 +177,7 @@ calque_image *Image::ajoute_calque(dls::chaine const &nom, wlk::desc_grille_2d c
 
 	*calque = calque_image::construit_calque(desc, type);
 
-	m_calques.pousse(ptr_calque_profond(calque, supprime_calque_image));
+	m_calques.ajoute(ptr_calque_profond(calque, supprime_calque_image));
 
 	return calque;
 }
@@ -189,7 +189,7 @@ calque_image *Image::ajoute_calque_profond(const dls::chaine &nom, wlk::desc_gri
 
 	*calque = calque_image::construit_calque(desc, type);
 
-	m_calques_profond.pousse(ptr_calque_profond(calque, supprime_calque_image));
+	m_calques_profond.ajoute(ptr_calque_profond(calque, supprime_calque_image));
 
 	return calque;
 }

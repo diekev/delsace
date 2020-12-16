@@ -104,9 +104,9 @@ void ajoute_polygone_surface(
 		dls::tableau<dls::math::vec3f> &couleurs)
 {
 	for (long i = 2; i < polygone->nombre_sommets(); ++i) {
-		points.pousse(liste_points.point_local(polygone->index_point(0)));
-		points.pousse(liste_points.point_local(polygone->index_point(i - 1)));
-		points.pousse(liste_points.point_local(polygone->index_point(i)));
+		points.ajoute(liste_points.point_local(polygone->index_point(0)));
+		points.ajoute(liste_points.point_local(polygone->index_point(i - 1)));
+		points.ajoute(liste_points.point_local(polygone->index_point(i)));
 
 		if (attr_normaux) {
 			auto idx = normaux.taille();
@@ -155,9 +155,9 @@ void ajoute_polygone_surface(
 			}
 		}
 		else {
-			couleurs.pousse(dls::math::vec3f(0.8f));
-			couleurs.pousse(dls::math::vec3f(0.8f));
-			couleurs.pousse(dls::math::vec3f(0.8f));
+			couleurs.ajoute(dls::math::vec3f(0.8f));
+			couleurs.ajoute(dls::math::vec3f(0.8f));
+			couleurs.ajoute(dls::math::vec3f(0.8f));
 		}
 	}
 }
@@ -170,8 +170,8 @@ void ajoute_polygone_segment(
 		dls::tableau<dls::math::vec3f> &couleurs)
 {
 	for (long i = 0; i < polygone->nombre_segments(); ++i) {
-		points.pousse(liste_points.point_local(polygone->index_point(i)));
-		points.pousse(liste_points.point_local(polygone->index_point(i + 1)));
+		points.ajoute(liste_points.point_local(polygone->index_point(i)));
+		points.ajoute(liste_points.point_local(polygone->index_point(i + 1)));
 
 		if (attr_couleurs) {
 			auto idx = couleurs.taille();
@@ -191,8 +191,8 @@ void ajoute_polygone_segment(
 			}
 		}
 		else {
-			couleurs.pousse(dls::math::vec3f(0.8f));
-			couleurs.pousse(dls::math::vec3f(0.8f));
+			couleurs.ajoute(dls::math::vec3f(0.8f));
+			couleurs.ajoute(dls::math::vec3f(0.8f));
 		}
 	}
 }
@@ -310,18 +310,18 @@ static void ajoute_primitive_sphere(
 	auto pos_sphere = liste_points.point_local(sphere->idx_point);
 
 	for (auto i = 0; i < 32; ++i) {
-		points.pousse(points_cercle_XZ[i] * sphere->rayon + pos_sphere);
-		points.pousse(points_cercle_XZ[(i + 1) % 32] * sphere->rayon + pos_sphere);
+		points.ajoute(points_cercle_XZ[i] * sphere->rayon + pos_sphere);
+		points.ajoute(points_cercle_XZ[(i + 1) % 32] * sphere->rayon + pos_sphere);
 	}
 
 	for (auto i = 0; i < 32; ++i) {
-		points.pousse(points_cercle_XY[i] * sphere->rayon + pos_sphere);
-		points.pousse(points_cercle_XY[(i + 1) % 32] * sphere->rayon + pos_sphere);
+		points.ajoute(points_cercle_XY[i] * sphere->rayon + pos_sphere);
+		points.ajoute(points_cercle_XY[(i + 1) % 32] * sphere->rayon + pos_sphere);
 	}
 
 	for (auto i = 0; i < 32; ++i) {
-		points.pousse(points_cercle_YZ[i] * sphere->rayon + pos_sphere);
-		points.pousse(points_cercle_YZ[(i + 1) % 32] * sphere->rayon + pos_sphere);
+		points.ajoute(points_cercle_YZ[i] * sphere->rayon + pos_sphere);
+		points.ajoute(points_cercle_YZ[(i + 1) % 32] * sphere->rayon + pos_sphere);
 	}
 
 	auto couleur = dls::math::vec3f(0.8f);
@@ -460,10 +460,10 @@ static auto slice(
 		v2[m_axis] = depth;
 		v3[m_axis] = depth;
 
-		points.pousse(v0); //  * glm::mat3(m_inv_matrix)
-		points.pousse(v1);
-		points.pousse(v2);
-		points.pousse(v3);
+		points.ajoute(v0); //  * glm::mat3(m_inv_matrix)
+		points.ajoute(v1);
+		points.ajoute(v2);
+		points.ajoute(v3);
 
 		indices[idx_count++] = idx + 0;
 		indices[idx_count++] = idx + 1;
@@ -777,7 +777,7 @@ void RenduCorps::initialise(
 			continue;
 		}
 
-		points.pousse(liste_points.point_local(i));
+		points.ajoute(liste_points.point_local(i));
 
 		if ((attr_C != nullptr) && (attr_C->portee == portee_attr::POINT)) {
 			auto idx = couleurs.taille();

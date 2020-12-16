@@ -49,10 +49,10 @@ struct Noeud {
 			return;
 		}
 
-		enfants.pousse(new Noeud(this->nom + "/enfant_a", false));
-		enfants.pousse(new Noeud(this->nom + "/enfant_b", false));
-		enfants.pousse(new Noeud(this->nom + "/enfant_c", false));
-		enfants.pousse(new Noeud(this->nom + "/enfant_d", false));
+		enfants.ajoute(new Noeud(this->nom + "/enfant_a", false));
+		enfants.ajoute(new Noeud(this->nom + "/enfant_b", false));
+		enfants.ajoute(new Noeud(this->nom + "/enfant_c", false));
+		enfants.ajoute(new Noeud(this->nom + "/enfant_d", false));
 
 		for (Noeud *enfant : this->enfants) {
 			enfant->parent = this;
@@ -181,7 +181,7 @@ struct Arborescence {
 
 	void push_back(Noeud *noeud)
 	{
-		this->racine->enfants.pousse(noeud);
+		this->racine->enfants.ajoute(noeud);
 	}
 };
 

@@ -102,26 +102,26 @@ inline auto description_commande(
 
 	*tampon = *reinterpret_cast<char *>(&description.souris);
 
-	identifiant.pousse(tampon[0]);
-	identifiant.pousse(tampon[1]);
-	identifiant.pousse(tampon[2]);
-	identifiant.pousse(tampon[3]);
+	identifiant.ajoute(tampon[0]);
+	identifiant.ajoute(tampon[1]);
+	identifiant.ajoute(tampon[2]);
+	identifiant.ajoute(tampon[3]);
 
 	*tampon = *reinterpret_cast<char *>(&description.modificateur);
 
-	identifiant.pousse(tampon[0]);
-	identifiant.pousse(tampon[1]);
-	identifiant.pousse(tampon[2]);
-	identifiant.pousse(tampon[3]);
+	identifiant.ajoute(tampon[0]);
+	identifiant.ajoute(tampon[1]);
+	identifiant.ajoute(tampon[2]);
+	identifiant.ajoute(tampon[3]);
 
 	*tampon = *reinterpret_cast<char *>(&description.cle);
 
-	identifiant.pousse(tampon[0]);
-	identifiant.pousse(tampon[1]);
-	identifiant.pousse(tampon[2]);
-	identifiant.pousse(tampon[3]);
+	identifiant.ajoute(tampon[0]);
+	identifiant.ajoute(tampon[1]);
+	identifiant.ajoute(tampon[2]);
+	identifiant.ajoute(tampon[3]);
 
-	identifiant.pousse('\0' + static_cast<char>(double_clique));
+	identifiant.ajoute('\0' + static_cast<char>(double_clique));
 
 	std::cerr << "Tampon commande " << identifiant << '\n';
 #endif

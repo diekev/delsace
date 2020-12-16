@@ -1134,7 +1134,7 @@ static void trouve_points_voisins(
 		}
 
 		if (longueur(point - pi) < radius) {
-			rpoints.pousse(pi);
+			rpoints.ajoute(pi);
 		}
 	}
 }
@@ -1827,7 +1827,7 @@ public:
 					INUTILISE(idx);
 					INUTILISE(d2);
 					INUTILISE(r2);
-					points_voisins.pousse(pnt);
+					points_voisins.ajoute(pnt);
 				});
 
 				if (points_voisins.est_vide()) {

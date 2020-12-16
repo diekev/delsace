@@ -65,7 +65,7 @@ static void rassemble_noeuds(
 		return;
 	}
 
-	noeuds.pousse(noeud);
+	noeuds.ajoute(noeud);
 	noeuds_visites.insere(noeud);
 
 	for (auto enfant : noeud->sorties) {

@@ -80,7 +80,7 @@ struct tableau_page {
 	{
 		auto p = page();
 		p.donnees = memoire::loge_tableau<T>("page", TAILLE_PAGE);
-		pages.pousse(p);
+		pages.ajoute(p);
 
 		page_courante = &pages.back();
 	}

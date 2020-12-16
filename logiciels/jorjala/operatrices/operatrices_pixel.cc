@@ -342,7 +342,7 @@ public:
 
 			auto tpn = extrait_grille_couleur(clq);
 
-			tampons.pousse(tpn);
+			tampons.ajoute(tpn);
 
 			auto desc1 = tpn->desc();
 			desc.etendue.min.x = std::min(desc.etendue.min.x, desc1.etendue.min.x);

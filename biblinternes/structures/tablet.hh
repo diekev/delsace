@@ -333,14 +333,14 @@ public:
 		m_taille = 0;
 	}
 
-    void pousse(T const &t)
+    void ajoute(T const &t)
     {
         assert(m_taille < std::numeric_limits<long>::max());
         garantie_capacite(m_taille + 1);
         m_memoire[m_taille++] = t;
     }
 
-    void pousse(T &&t)
+    void ajoute(T &&t)
     {
         assert(m_taille < std::numeric_limits<long>::max());
         garantie_capacite(m_taille + 1);

@@ -193,7 +193,7 @@ void decoupeuse_texte::pousse_caractere()
 
 void decoupeuse_texte::pousse_mot(id_morceau identifiant)
 {
-	m_morceaux.pousse({ mot_courant(), static_cast<size_t>((m_compte_ligne << 32) | m_pos_mot), identifiant });
+	m_morceaux.ajoute({ mot_courant(), static_cast<size_t>((m_compte_ligne << 32) | m_pos_mot), identifiant });
 	m_taille_mot_courant = 0;
 	m_debut_mot = nullptr;
 }

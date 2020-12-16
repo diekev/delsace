@@ -153,7 +153,7 @@ public:
 		auto tampon_source = lng::tampon_source(std::move(texte_));
 
 		auto decalage_chn = compileuse.m_ctx_global.chaines.taille();
-		compileuse.m_ctx_global.chaines.pousse("");
+		compileuse.m_ctx_global.chaines.ajoute("");
 
 		for (auto i = 0ul; i < tampon_source.nombre_lignes(); ++i) {
 			if (chef->interrompu()) {

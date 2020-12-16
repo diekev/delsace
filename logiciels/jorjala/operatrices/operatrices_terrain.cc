@@ -1099,7 +1099,7 @@ public:
 		noeud.peut_avoir_graphe = true;
 		noeud.graphe.type = type_graphe::DETAIL;
 		noeud.graphe.donnees.efface();
-		noeud.graphe.donnees.pousse(static_cast<int>(DETAIL_TERRAIN));
+		noeud.graphe.donnees.ajoute(static_cast<int>(DETAIL_TERRAIN));
 	}
 
 	const char *nom_classe() const override

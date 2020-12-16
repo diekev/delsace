@@ -68,7 +68,7 @@ void NoeudDependance::ajoute_relation(Badge<GrapheDependance>, const Relation &r
 		}
 	}
 
-	m_relations.pousse(relation);
+	m_relations.ajoute(relation);
 }
 
 dls::tableau<Relation> const &NoeudDependance::relations() const
@@ -299,7 +299,7 @@ void GrapheDependance::reduction_transitive()
 				continue;
 			}
 
-			relations_filtrees.pousse(relation);
+			relations_filtrees.ajoute(relation);
 		}
 
 		cible.relations({}, std::move(relations_filtrees));
@@ -323,7 +323,7 @@ void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine, ku
 				return;
 			}
 
-			fonctions.pousse(atome_fonction);
+			fonctions.ajoute(atome_fonction);
 
 			utilises.insere(atome_fonction);
 		}
@@ -333,7 +333,7 @@ void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine, ku
 			if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
 				auto atome_fonction = type->fonction_init;
 				assert(atome_fonction);
-				fonctions.pousse(atome_fonction);
+				fonctions.ajoute(atome_fonction);
 			}
 		}
 	});

@@ -47,14 +47,14 @@ private:
 public:
 	tableau_boucle() = default;
 
-	void pousse(type_valeur &&valeur)
+	void ajoute(type_valeur &&valeur)
 	{
-		m_tabl.pousse(valeur);
+		m_tabl.ajoute(valeur);
 	}
 
-	void pousse(type_reference_const valeur)
+	void ajoute(type_reference_const valeur)
 	{
-		m_tabl.pousse(valeur);
+		m_tabl.ajoute(valeur);
 	}
 
 	type_reference_const element()

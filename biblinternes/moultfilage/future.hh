@@ -78,7 +78,7 @@ struct shared_base {
 		dls::tableau<std::function<void()>> then;
 		{
 			lock_t lock(_mutex);
-			_r.pousse(std::move(r));
+			_r.ajoute(std::move(r));
 			swap(_then, then);
 		}
 
@@ -99,7 +99,7 @@ struct shared_base {
 
 			/* check whether or not the value already arrived */
 			if (_r.est_vide()) {
-				_then.pousse(std::forward<F>(f));
+				_then.ajoute(std::forward<F>(f));
 			}
 			else {
 				resolved = true;

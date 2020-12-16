@@ -128,8 +128,8 @@ void delegue_sphere::coords_element(int idx, dls::tableau<dls::math::vec3f> &cos
 {
 	INUTILISE(idx);
 	cos.efface();
-	cos.pousse(ptr_sphere.point - dls::math::vec3f(ptr_sphere.rayon));
-	cos.pousse(ptr_sphere.point + dls::math::vec3f(ptr_sphere.rayon));
+	cos.ajoute(ptr_sphere.point - dls::math::vec3f(ptr_sphere.rayon));
+	cos.ajoute(ptr_sphere.point + dls::math::vec3f(ptr_sphere.rayon));
 }
 
 dls::phys::esectd delegue_sphere::intersecte_element(long idx, const dls::phys::rayond &rayon) const

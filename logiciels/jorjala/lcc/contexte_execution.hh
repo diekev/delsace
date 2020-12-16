@@ -70,7 +70,7 @@ struct magasin_tableau {
 
 	std::pair<dls::tableau<int> &, long> cree_tableau()
 	{
-		tableaux.pousse({});
+		tableaux.ajoute({});
 		return { tableaux.back(), tableaux.taille() - 1};
 	}
 

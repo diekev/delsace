@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
 		tacheronnes.reserve(nombre_tacheronnes);
 
 		for (auto i = 0u; i < nombre_tacheronnes; ++i) {
-			tacheronnes.pousse(memoire::loge<Tacheronne>("Tacheronne", compilatrice));
+			tacheronnes.ajoute(memoire::loge<Tacheronne>("Tacheronne", compilatrice));
 		}
 
 		// pour le moment, une seule tacheronne peut exécuter du code
@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
 		threads.reserve(nombre_tacheronnes);
 
 		POUR (tacheronnes) {
-			threads.pousse(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
+			threads.ajoute(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
 		}
 
 		POUR (threads) {

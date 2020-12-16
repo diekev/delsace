@@ -171,7 +171,7 @@ void Propriete::ajoute_cle_impl(const std::any &v, int temps)
 	}
 
 	if (!insere) {
-		courbe.pousse(std::make_pair(temps, v));
+		courbe.ajoute(std::make_pair(temps, v));
 	}
 }
 

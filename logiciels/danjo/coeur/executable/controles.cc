@@ -52,8 +52,8 @@ public:
 			const dls::chaine &/*attache*/,
 			dls::tableau<dls::chaine> &chaines) override
 	{
-		chaines.pousse("action1");
-		chaines.pousse("action2");
+		chaines.ajoute("action1");
+		chaines.ajoute("action2");
 	}
 };
 

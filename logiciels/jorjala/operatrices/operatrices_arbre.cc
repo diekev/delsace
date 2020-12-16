@@ -89,7 +89,7 @@ struct MTreeNode {
 		/* seuls les extremités peuvent être poussées */
 		if (this->children.est_vide()) {
 			if (this->creator == creator_) {
-				candidats.pousse(this);
+				candidats.ajoute(this);
 				max_height = min_height = this->position.z;
 			}
 		}
@@ -135,7 +135,7 @@ struct MTreeNode {
 				this->position_in_branch = (this->position_in_branch - start) / (end-start); // transform the position in branch so that a position at offset is 0
 			}
 
-			candidates.pousse(this);
+			candidates.ajoute(this);
 		}
 
 		for (auto &child : this->children) {
@@ -155,7 +155,7 @@ struct MTreeNode {
 			}
 
 			// XXX
-			//candidates.pousse(memoire::loge<MTreeNode>("MTreeNode", this->position, direction, length, this->radius, extremity))
+			//candidates.ajoute(memoire::loge<MTreeNode>("MTreeNode", this->position, direction, length, this->radius, extremity))
 		}
 
 		for (auto &child : this->children) {
@@ -172,8 +172,8 @@ struct MTreeNode {
 		/* populate list of list of points of each branch */
 
 		auto pos = first_branch ? *parent_pos : this->position;
-		positions.back().pousse(dls::math::vec4f(pos.x, pos.y, pos.z, 0.0f));// # add position to last branch
-		radii.back().pousse(this->radius); // add radius to last branch
+		positions.back().ajoute(dls::math::vec4f(pos.x, pos.y, pos.z, 0.0f));// # add position to last branch
+		radii.back().ajoute(this->radius); // add radius to last branch
 
 		for (auto i = 0l; i < this->children.taille(); ++i) {
 			if (i > 0) { // if child is begining of new branch
@@ -192,7 +192,7 @@ struct MTreeNode {
 
 		if (this->radius > min_radius && !this->children.est_vide()) { // if radius is greater than max radius, add data to armature data
 		   // auto child = this->children[0];
-		   // armature_data.back().pousse(memoire::loge<MTreeNode>("MTreeNode", this->position, child.position, this->radius, child->radius, parent_index));
+		   // armature_data.back().ajoute(memoire::loge<MTreeNode>("MTreeNode", this->position, child.position, this->radius, child->radius, parent_index));
 			this->bone_name = "bone_" + std::to_string(bone_index[0]);
 			index = bone_index[0];
 			bone_index[0] += 1;
@@ -286,13 +286,13 @@ auto add_candidates(dls::tableau<CandidatFeuille> &leaf_candidates, int dupli_nu
 
 		for (auto i = 0; i < dupli_number; ++i) {
 			auto pos = candidat.position + candidat.direction * candidat.length * (static_cast<float>(i) + 1.0f) / (static_cast<float>(dupli_number) + 2.0f);
-			new_candidates.pousse({pos, candidat.direction, candidat.length, candidat.radius, candidat.is_end});
+			new_candidates.ajoute({pos, candidat.direction, candidat.length, candidat.radius, candidat.is_end});
 		}
 	}
 
 	//leaf_candidates.extend(new_candidates);
 	for (auto candidat : new_candidates) {
-		leaf_candidates.pousse(candidat);
+		leaf_candidates.ajoute(candidat);
 	}
 }
 
@@ -337,7 +337,7 @@ struct MTree {
 			auto position = extremity->position + extremity->direction / resolution; // position of new TreeNode
 			auto rad = radius * std::pow(remaining_length/length, shape) + (1.0f - remaining_length/length) * end_radius; // radius of new TreeNode
 			auto new_node = memoire::loge<MTreeNode>("MTreeNode", position, direction, rad, creator); // new TreeNode
-			extremity->children.pousse(new_node); // Add new TreeNode to extremity's children
+			extremity->children.ajoute(new_node); // Add new TreeNode to extremity's children
 			extremity = new_node; // replace extremity by new TreeNode
 			remaining_length -= 1.0f / resolution;
 		}
@@ -437,10 +437,10 @@ struct MTree {
 					child->is_branch_origin = true;
 				}
 
-				node->children.pousse(child);
+				node->children.ajoute(child);
 
 				if (growth < node->growth_goal) {
-					grow_candidates.pousse(child); // if child can still grow, add it to the grow candidates
+					grow_candidates.ajoute(child); // if child can still grow, add it to the grow candidates
 				}
 			}
 		}
@@ -485,7 +485,7 @@ struct MTree {
 				child->position_in_branch = node->position_in_branch;
 				child->is_branch_origin = true;
 				child->can_spawn_leaf = false;
-				node->children.pousse(child);
+				node->children.ajoute(child);
 				tangent = rotate_quat(tangent, rot);
 			}
 		}
@@ -535,7 +535,7 @@ struct MTree {
 
 		auto roots_origin = memoire::loge<MTreeNode>("MTreeNode", this->stem->position, -this->stem->direction, this->stem->radius, -1);
 		roots_origin->is_branch_origin = true;
-		this->stem->children.pousse(roots_origin); // stem is set as branch origin, so it cannot be splitted by split function. second children of stem will then always be root origin
+		this->stem->children.ajoute(roots_origin); // stem is set as branch origin, so it cannot be splitted by split function. second children of stem will then always be root origin
 
 		this->grow(length, 1, 1, 0, resolution, randomness, split_proba, 0.5f, 0.6f, 0, 0, -0.1f, -1, false, creator, -1);
 	}
@@ -1424,7 +1424,7 @@ void kickstart_trunk(
 	auto newSpline = new Spline; // 'BEZIER'
 	cu.resolution_u = resU;
 	auto point_bezier = new BezierPoint{};
-	newSpline->bezier_points.pousse(point_bezier);
+	newSpline->bezier_points.ajoute(point_bezier);
 
 	auto newPoint = newSpline->bezier_points.back();
 	newPoint->co = dls::math::vec3f(0.0f, 0.0f, 0.0f);
@@ -1449,7 +1449,7 @@ void kickstart_trunk(
 			childStems, startRad, endRad, 0, 0, {}
 			);
 
-	addstem.pousse(stem);
+	addstem.ajoute(stem);
 }
 
 struct childPoint {
@@ -1612,7 +1612,7 @@ void fabricate_stems(
 
 		for (auto const &p : childP) {
 			if (p.offset == 1) {
-				childP_L.pousse(p);
+				childP_L.ajoute(p);
 			}
 			else {
 				auto iter = std::find(childP_T0.debut(), childP_T0.fin(), p.offset);
@@ -1621,7 +1621,7 @@ void fabricate_stems(
 					childP_T0[p.offset] = { p };
 				}
 				else {
-					childP_T0[p.offset].pousse(p);
+					childP_T0[p.offset].ajoute(p);
 				}
 			}
 		}
@@ -1650,7 +1650,7 @@ void fabricate_stems(
 				for (auto &a  { p) {
 					auto a2 = std::atan2(a.co[0], -a.co[1]);
 					auto d = std::min(std::fmod(a1 - a2 + constantes<double>::TAU, constantes<double>::TAU), std::fmod(a2 - a1 + constantes<double>::TAU, constantes<double>::TAU));
-					a_diff.pousse(d);
+					a_diff.ajoute(d);
 				}
 
 				auto idx = 0ul;// a_diff.index(min(a_diff));
@@ -1700,20 +1700,20 @@ void fabricate_stems(
 					childP.append(p[randint(0, len(p)-1)])
 					rot_a.append(bRotate)// + pi)
 				*/
-				childP.pousse(p[idx]);
-				rot_a.pousse(a);
+				childP.ajoute(p[idx]);
+				rot_a.ajoute(a);
 
 			}
 			else {
 				// À FAIRE
 				auto idx = 0ul; //randint(0, p.taille() - 1);
-				childP.pousse(p[idx]);
+				childP.ajoute(p[idx]);
 			}
 			// childP.append(p[idx])
 
 			for (auto const &p  { childP_L) {
-				childP.pousse(p);
-				rot_a.pousse(0);
+				childP.ajoute(p);
+				rot_a.ajoute(0);
 			}
 
 			oldRotate = 0;
@@ -1724,7 +1724,7 @@ void fabricate_stems(
 	for (auto const &p : childP) {
 		// Add a spline and set the coordinate of the first point.
 		auto newSpline = new Spline{}; // 'BEZIER'
-		cu.splines.pousse(newSpline);
+		cu.splines.ajoute(newSpline);
 		cu.resolution_u = resU;
 
 		auto newPoint = newSpline->bezier_points.back();
@@ -1866,7 +1866,7 @@ void fabricate_stems(
 					startRad, endRad, cu.splines.taille() - 1, 0, p.quat
 					);
 
-		addstem.pousse(stem);
+		addstem.ajoute(stem);
 
 		//  auto bone = roundBone(p.parBone, boneStep[n - 1]);
 		//isend == (p.offset == 1);
@@ -1954,7 +1954,7 @@ void perform_pruning(
 			}
 
 			auto newSpline = new Spline; //cu.splines.new('BEZIER');
-			cu.splines.pousse(newSpline);
+			cu.splines.ajoute(newSpline);
 
 			auto newPoint = newSpline->bezier_points.back();
 			newPoint->co = originalCo;
@@ -1974,7 +1974,7 @@ void perform_pruning(
 
 		// Initialise the spline list for those contained in the current level of branching
 		splineList = dls::tableau<stemSpline>{};
-		splineList.pousse(st);
+		splineList.ajoute(st);
 
 		// split length variation
 		auto stemsegL = splineList[0].segL;  // initial segment length used for variation
@@ -2373,7 +2373,7 @@ public {
 							rotate, rotateV
 							);
 
-				levelCount.pousse(cu.splines.taille());
+				levelCount.ajoute(cu.splines.taille());
 			}
 		}
 #endif

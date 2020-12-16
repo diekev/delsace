@@ -15,7 +15,7 @@ template <typename R>
 concept bool ConceptRangeeSortie = requires(R r, typename R::type_valeur e)
 {
 	typename R::type_valeur;
-	{ r.pousse(e) } -> void;
+	{ r.ajoute(e) } -> void;
 };
 
 template <typename R>
@@ -48,7 +48,7 @@ template <ConceptRangeeEntree RE, ConceptRangeeSortie RS>
 static auto copie(RE entree, RS &sortie) -> RS
 {
 	while (!entree.vide()) {
-		sortie.pousse(entree.front());
+		sortie.ajoute(entree.front());
 		entree.effronte();
 	}
 
@@ -62,7 +62,7 @@ static auto copie_carre(RE entree, RS &sortie) -> RS
 		auto sauvegarde = entree.sauvegarde();
 
 		while (!sauvegarde.vide()) {
-			sortie.pousse(sauvegarde.front());
+			sortie.ajoute(sauvegarde.front());
 			sauvegarde.effronte();
 		}
 
@@ -76,7 +76,7 @@ template <ConceptRangeeBidirectionelle RE, ConceptRangeeSortie RS>
 static auto inverse(RE entree, RS &sortie) -> RS
 {
 	while (!entree.vide()) {
-		sortie.pousse(entree.cul());
+		sortie.ajoute(entree.cul());
 		entree.ecule();
 	}
 

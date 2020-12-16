@@ -274,8 +274,8 @@ void delegue_scene::coords_element(int idx, dls::tableau<dls::math::vec3f> &cos)
 	auto lims = n->calcule_limites();
 
 	cos.efface();
-	cos.pousse(dls::math::converti_type<float>(lims.min));
-	cos.pousse(dls::math::converti_type<float>(lims.max));
+	cos.ajoute(dls::math::converti_type<float>(lims.min));
+	cos.ajoute(dls::math::converti_type<float>(lims.max));
 }
 
 dls::phys::esectd delegue_scene::intersecte_element(long idx, const dls::phys::rayond &r) const

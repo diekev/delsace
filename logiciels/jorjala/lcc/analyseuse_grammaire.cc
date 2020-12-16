@@ -422,7 +422,7 @@ void analyseuse_grammaire::analyse_expression(
 			   && pile.back() != NOEUD_PARENTHESE
 			   && (precedence_faible(id_operateur, pile.back()->identifiant())))
 		{
-			expression.pousse(pile.back());
+			expression.ajoute(pile.back());
 			pile.pop_back();
 		}
 	};
@@ -457,12 +457,12 @@ void analyseuse_grammaire::analyse_expression(
 
 					m_assembleuse->depile_noeud(lcc::noeud::type_noeud::FONCTION);
 
-					expression.pousse(noeud);
+					expression.ajoute(noeud);
 				}
 				/* variable : chaine */
 				else {
 					auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::VARIABLE, m_contexte, morceau);
-					expression.pousse(noeud);
+					expression.ajoute(noeud);
 				}
 
 				break;
@@ -470,7 +470,7 @@ void analyseuse_grammaire::analyse_expression(
 			case id_morceau::NOMBRE_REEL:
 			{
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::VALEUR, m_contexte, morceau);
-				expression.pousse(noeud);
+				expression.ajoute(noeud);
 				break;
 			}
 			case id_morceau::NOMBRE_BINAIRE:
@@ -479,7 +479,7 @@ void analyseuse_grammaire::analyse_expression(
 			case id_morceau::NOMBRE_OCTAL:
 			{
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::VALEUR, m_contexte, morceau);
-				expression.pousse(noeud);
+				expression.ajoute(noeud);
 				break;
 			}
 			case id_morceau::VEC2:
@@ -502,25 +502,25 @@ void analyseuse_grammaire::analyse_expression(
 
 				m_assembleuse->depile_noeud(lcc::noeud::type_noeud::VALEUR);
 
-				expression.pousse(noeud);
+				expression.ajoute(noeud);
 				break;
 			}
 			case id_morceau::CHAINE_LITTERALE:
 			{
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::VALEUR, m_contexte, morceau);
-				expression.pousse(noeud);
+				expression.ajoute(noeud);
 				break;
 			}
 			case id_morceau::CARACTERE:
 			{
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::VALEUR, m_contexte, morceau);
-				expression.pousse(noeud);
+				expression.ajoute(noeud);
 				break;
 			}
 			case id_morceau::NUL:
 			{
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::VALEUR, m_contexte, morceau);
-				expression.pousse(noeud);
+				expression.ajoute(noeud);
 				break;
 			}
 			case id_morceau::VRAI:
@@ -529,13 +529,13 @@ void analyseuse_grammaire::analyse_expression(
 				/* remplace l'identifiant par id_morceau::BOOL */
 				morceau.genre = id_morceau::BOOL;
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::VALEUR, m_contexte, morceau);
-				expression.pousse(noeud);
+				expression.ajoute(noeud);
 				break;
 			}
 			case id_morceau::PARENTHESE_OUVRANTE:
 			{
 				++paren;
-				pile.pousse(NOEUD_PARENTHESE);
+				pile.ajoute(NOEUD_PARENTHESE);
 				break;
 			}
 			case id_morceau::PARENTHESE_FERMANTE:
@@ -556,7 +556,7 @@ void analyseuse_grammaire::analyse_expression(
 				}
 
 				while (pile.back() != NOEUD_PARENTHESE) {
-					expression.pousse(pile.back());
+					expression.ajoute(pile.back());
 					pile.pop_back();
 				}
 
@@ -590,7 +590,7 @@ void analyseuse_grammaire::analyse_expression(
 
 				vide_pile_operateur(id_operateur);
 
-				pile.pousse(noeud);
+				pile.ajoute(noeud);
 
 				break;
 			}
@@ -623,7 +623,7 @@ void analyseuse_grammaire::analyse_expression(
 
 				vide_pile_operateur(morceau.genre);
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::OPERATION_BINAIRE, m_contexte, morceau);
-				pile.pousse(noeud);
+				pile.ajoute(noeud);
 
 				break;
 			}
@@ -632,7 +632,7 @@ void analyseuse_grammaire::analyse_expression(
 				vide_pile_operateur(morceau.genre);
 
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::ASSIGNATION, m_contexte, morceau);
-				pile.pousse(noeud);
+				pile.ajoute(noeud);
 				break;
 			}
 			case id_morceau::CROCHET_OUVRANT:
@@ -642,7 +642,7 @@ void analyseuse_grammaire::analyse_expression(
 					vide_pile_operateur(morceau.genre);
 
 					auto noeud = m_assembleuse->empile_noeud(lcc::noeud::type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
-					pile.pousse(noeud);
+					pile.ajoute(noeud);
 
 					analyse_expression(id_morceau::CROCHET_FERMANT);
 
@@ -651,7 +651,7 @@ void analyseuse_grammaire::analyse_expression(
 				else {
 					morceau.genre = id_morceau::TABLEAU;
 					auto noeud = m_assembleuse->empile_noeud(lcc::noeud::type_noeud::VALEUR, m_contexte, morceau, false);
-					pile.pousse(noeud);
+					pile.ajoute(noeud);
 
 					analyse_expression(id_morceau::CROCHET_FERMANT);
 
@@ -668,7 +668,7 @@ void analyseuse_grammaire::analyse_expression(
 			{
 				vide_pile_operateur(morceau.genre);
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::OPERATION_UNAIRE, m_contexte, morceau);
-				pile.pousse(noeud);
+				pile.ajoute(noeud);
 				break;
 			}
 			case id_morceau::DOLLAR:
@@ -684,7 +684,7 @@ void analyseuse_grammaire::analyse_expression(
 							m_contexte,
 							m_identifiants[position()]);
 
-				expression.pousse(noeud);
+				expression.ajoute(noeud);
 
 				break;
 			}
@@ -701,7 +701,7 @@ void analyseuse_grammaire::analyse_expression(
 							m_contexte,
 							m_identifiants[position()]);
 
-				expression.pousse(noeud);
+				expression.ajoute(noeud);
 
 				break;
 			}
@@ -709,14 +709,14 @@ void analyseuse_grammaire::analyse_expression(
 			{
 				vide_pile_operateur(morceau.genre);
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::ACCES_MEMBRE_POINT, m_contexte, morceau);
-				pile.pousse(noeud);
+				pile.ajoute(noeud);
 				break;
 			}
 			case id_morceau::TROIS_POINTS:
 			{
 				vide_pile_operateur(morceau.genre);
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::PLAGE, m_contexte, morceau);
-				pile.pousse(noeud);
+				pile.ajoute(noeud);
 				break;
 			}
 			default:
@@ -744,7 +744,7 @@ void analyseuse_grammaire::analyse_expression(
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		expression.pousse(pile.back());
+		expression.ajoute(pile.back());
 		pile.pop_back();
 	}
 
@@ -773,7 +773,7 @@ void analyseuse_grammaire::analyse_expression(
 			noeud->ajoute_noeud(n1);
 			noeud->ajoute_noeud(n2);
 
-			pile.pousse(noeud);
+			pile.ajoute(noeud);
 		}
 		else if (est_operateur_unaire(noeud->identifiant())) {
 			auto n1 = pile.back();
@@ -781,10 +781,10 @@ void analyseuse_grammaire::analyse_expression(
 
 			noeud->ajoute_noeud(n1);
 
-			pile.pousse(noeud);
+			pile.ajoute(noeud);
 		}
 		else {
-			pile.pousse(noeud);
+			pile.ajoute(noeud);
 		}
 	}
 
@@ -881,7 +881,7 @@ void analyseuse_grammaire::analyse_parametre(lcc::type_var type_param)
 				lance_erreur("Le paramètre n'a pas de nom !");
 			}
 
-			m_contexte.params_declare.pousse(param);
+			m_contexte.params_declare.ajoute(param);
 
 			return;
 		}

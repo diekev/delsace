@@ -74,11 +74,11 @@ res_exec OperatriceSimulation::execute(ContexteEvaluation const &contexte, Donne
 		m_corps2.reinitialise();
 
 		noeud.graphe.entrees.efface();
-		noeud.graphe.entrees.pousse(&m_corps1);
-		noeud.graphe.entrees.pousse(&m_corps2);
+		noeud.graphe.entrees.ajoute(&m_corps1);
+		noeud.graphe.entrees.ajoute(&m_corps2);
 
 		noeud.graphe.donnees.efface();
-		noeud.graphe.donnees.pousse(&m_corps);
+		noeud.graphe.donnees.ajoute(&m_corps);
 
 		/* copie l'état de base */
 		auto corps = entree(0)->requiers_corps(contexte, donnees_aval);

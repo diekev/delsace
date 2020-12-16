@@ -75,7 +75,7 @@ static auto stocke_attributs(
 			case type_attribut::CHAINE:
 			{
 				auto decalage_chn = ctx_local.chaines.taille();
-				ctx_local.chaines.pousse(*attr->chaine(idx_attr));
+				ctx_local.chaines.ajoute(*attr->chaine(idx_attr));
 				donnees.stocke(idx_pile, static_cast<int>(decalage_chn));
 				break;
 			}
@@ -740,11 +740,11 @@ bool CompileuseScriptLCC::compile_script(
 	}
 
 	for (auto donnee : ctx_gen.gest_attrs.donnees) {
-		m_gest_attrs.donnees.pousse(donnee);
+		m_gest_attrs.donnees.ajoute(donnee);
 	}
 
 	for (auto donnee : ctx_gen.gest_attrs.requetes) {
-		m_gest_attrs.requetes.pousse(donnee);
+		m_gest_attrs.requetes.ajoute(donnee);
 	}
 
 	ctx_gen.gest_attrs.donnees.efface();

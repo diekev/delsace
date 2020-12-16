@@ -101,7 +101,7 @@ static void rassemble_feuilles(base *noeud_base, dls::tableau<base *> &feuilles)
 			rassemble_feuilles(enfant, feuilles);
 		}
 		else {
-			feuilles.pousse(enfant);
+			feuilles.ajoute(enfant);
 		}
 	}
 }
@@ -118,7 +118,7 @@ base::base(ContexteGenerationCode &contexte, DonneesMorceaux const &donnees_, ty
 
 void base::ajoute_noeud(base *noeud)
 {
-	enfants.pousse(noeud);
+	enfants.ajoute(noeud);
 }
 
 const DonneesMorceaux &base::donnees_morceau() const
@@ -403,7 +403,7 @@ int genere_code(
 					b->pointeur_donnees = compileuse.donnees().loge_donnees(1);
 					auto ptr = b->pointeur_donnees;
 					compileuse.donnees().stocke(ptr, static_cast<int>(contexte_generation.chaines.taille()));
-					contexte_generation.chaines.pousse(b->chaine());
+					contexte_generation.chaines.ajoute(b->chaine());
 					break;
 				}
 				case type_var::COULEUR:
@@ -423,7 +423,7 @@ int genere_code(
 
 			for (auto enfant : b->enfants) {
 				genere_code(enfant, contexte_generation, compileuse, expr_gauche);
-				types_params.types.pousse(enfant->donnees_type);
+				types_params.types.ajoute(enfant->donnees_type);
 			}
 
 			auto donnees_fonc = contexte_generation.fonctions.meilleure_candidate(
@@ -449,7 +449,7 @@ int genere_code(
 				auto type_entree = donnees_fonc.entrees.types[i];
 
 				if ((*enfant)->donnees_type == type_entree) {
-					pointeurs.pousse((*enfant)->pointeur_donnees);
+					pointeurs.ajoute((*enfant)->pointeur_donnees);
 				}
 				else {
 					/* À FAIRE : erreur si conversion impossible. */
@@ -459,7 +459,7 @@ int genere_code(
 								type_entree,
 								(*enfant)->pointeur_donnees);
 
-					pointeurs.pousse(ptr);
+					pointeurs.ajoute(ptr);
 				}
 
 				++enfant;
@@ -1094,7 +1094,7 @@ int genere_code(
 			compileuse.ajoute_instructions(0);
 
 			auto donnees_boucle = contexte_generation.boucles.haut();
-			donnees_boucle->arretes.pousse(decalage_inst);
+			donnees_boucle->arretes.ajoute(decalage_inst);
 			break;
 		}
 		case type_noeud::CONTINUE:
@@ -1105,7 +1105,7 @@ int genere_code(
 			compileuse.ajoute_instructions(0);
 
 			auto donnees_boucle = contexte_generation.boucles.haut();
-			donnees_boucle->continues.pousse(decalage_inst);
+			donnees_boucle->continues.ajoute(decalage_inst);
 			break;
 		}
 		case type_noeud::RETOURNE:

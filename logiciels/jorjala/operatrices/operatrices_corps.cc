@@ -1331,7 +1331,7 @@ static auto ajoute_deformeur(
 	Kelvinlet::DynaBase::Ptr ptr;
 	ptr.reset(new DynaType(def));
 
-	deformeurs.pousse(ptr);
+	deformeurs.ajoute(ptr);
 }
 
 static auto deforme_kelvinlet(
@@ -1616,7 +1616,7 @@ static void ajoute_deformeur(
 
 	Kelvinlet::BrushBase::Ptr ptr;
 	ptr.reset(new BrushType(def));
-	deformer.pousse(ptr);
+	deformer.ajoute(ptr);
 }
 
 static Vector3 deforme_kelvinlet_brosse(
@@ -1931,7 +1931,7 @@ public:
 	{
 		if (raison == "nom_caméra") {
 			for (auto &objet : contexte.bdd->objets()) {
-				liste.pousse(objet->noeud->nom);
+				liste.ajoute(objet->noeud->nom);
 			}
 		}
 	}

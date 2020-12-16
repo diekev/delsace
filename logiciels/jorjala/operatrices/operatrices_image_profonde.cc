@@ -286,7 +286,7 @@ public:
 			auto img = cherche_image_profonde(*this, 0, contexte, donnees_aval, i);
 
 			if (img != nullptr) {
-				images.pousse(img);
+				images.ajoute(img);
 			}
 		}
 
@@ -325,12 +325,12 @@ public:
 			auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> const *>(A->tampon());
 			auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> const *>(Z->tampon());
 
-			tampons_S.pousse(tampon_S);
-			tampons_R.pousse(tampon_R);
-			tampons_G.pousse(tampon_G);
-			tampons_B.pousse(tampon_B);
-			tampons_A.pousse(tampon_A);
-			tampons_Z.pousse(tampon_Z);
+			tampons_S.ajoute(tampon_S);
+			tampons_R.ajoute(tampon_R);
+			tampons_G.ajoute(tampon_G);
+			tampons_B.ajoute(tampon_B);
+			tampons_A.ajoute(tampon_A);
+			tampons_Z.ajoute(tampon_Z);
 
 			auto desc1 = tampon_S->desc();
 			desc.etendue.min.x = std::min(desc.etendue.min.x, desc1.etendue.min.x);
@@ -670,7 +670,7 @@ public:
 					continue;
 				}
 
-				liste.pousse(objet->noeud->nom);
+				liste.ajoute(objet->noeud->nom);
 			}
 		}
 	}

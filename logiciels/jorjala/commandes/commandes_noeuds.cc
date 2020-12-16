@@ -422,7 +422,7 @@ public:
 		 * l'opératrice ne fut pas exécutée avant que des noeuds soient ajoutés
 		 * dans son graphe */
 		noeud->graphe.donnees.efface();
-		noeud->graphe.donnees.pousse(type_detail);
+		noeud->graphe.donnees.ajoute(type_detail);
 		noeud->graphe.type = type_graphe::DETAIL;
 
 		/* la synchronisation doit se faire après puisque nous avons besoin du

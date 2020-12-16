@@ -248,7 +248,7 @@ void AssembleurDisposition::ajoute_item_liste(const dls::chaine &nom, const dls:
 		return;
 	}
 
-	m_donnees_controle.valeur_enum.pousse({nom, valeur});
+	m_donnees_controle.valeur_enum.ajoute({nom, valeur});
 }
 
 void AssembleurDisposition::ajoute_bouton()
@@ -445,7 +445,7 @@ void AssembleurDisposition::ajoute_menu(const dls::chaine &nom)
 		m_menu_racine = menu;
 	}
 
-	m_donnees_menus.pousse({nom, menu});
+	m_donnees_menus.ajoute({nom, menu});
 
 	m_pile_menus.empile(menu);
 }

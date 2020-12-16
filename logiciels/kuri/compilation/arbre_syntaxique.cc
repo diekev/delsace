@@ -465,10 +465,10 @@ NoeudExpression *copie_noeud(
 
 			POUR (*bloc->expressions.verrou_lecture()) {
 				auto nexpr = copie_noeud(assem, it, nbloc);
-				nbloc->expressions->pousse(nexpr);
+				nbloc->expressions->ajoute(nexpr);
 
 				if (nexpr->est_declaration()) {
-					nbloc->membres->pousse(static_cast<NoeudDeclaration *>(nexpr));
+					nbloc->membres->ajoute(static_cast<NoeudDeclaration *>(nexpr));
 				}
 			}
 
@@ -494,13 +494,13 @@ NoeudExpression *copie_noeud(
 
 			POUR (expr->params) {
 				auto copie = copie_noeud(assem, it, bloc_parent);
-				nexpr->params.pousse(static_cast<NoeudDeclarationVariable *>(copie));
+				nexpr->params.ajoute(static_cast<NoeudDeclarationVariable *>(copie));
 				aplatis_arbre(copie, nexpr->arbre_aplatis, DrapeauxNoeud::AUCUN);
 			}
 
 			POUR (expr->params_sorties) {
 				auto copie = copie_noeud(assem, it, bloc_parent);
-				nexpr->params_sorties.pousse(static_cast<NoeudDeclarationVariable *>(copie));
+				nexpr->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(copie));
 				aplatis_arbre(copie, nexpr->arbre_aplatis, DrapeauxNoeud::AUCUN);
 			}
 
@@ -634,7 +634,7 @@ NoeudExpression *copie_noeud(
 			nexpr->params.reserve(expr->params.taille);
 
 			POUR (expr->params) {
-				nexpr->params.pousse(copie_noeud(assem, it, bloc_parent));
+				nexpr->params.ajoute(copie_noeud(assem, it, bloc_parent));
 			}
 
 			break;
@@ -699,7 +699,7 @@ NoeudExpression *copie_noeud(
 			nexpr->exprs.reserve(expr->exprs.taille);
 
 			POUR (expr->exprs) {
-				nexpr->exprs.pousse(copie_noeud(assem, it, bloc_parent));
+				nexpr->exprs.ajoute(copie_noeud(assem, it, bloc_parent));
 			}
 
 			break;
@@ -744,7 +744,7 @@ NoeudExpression *copie_noeud(
 				auto nexpr_paire = copie_noeud(assem, it.first, bloc_parent);
 				auto nbloc_paire = static_cast<NoeudBloc *>(copie_noeud(assem, it.second, bloc_parent));
 
-				nexpr->paires_discr.pousse({ nexpr_paire, nbloc_paire });
+				nexpr->paires_discr.ajoute({ nexpr_paire, nbloc_paire });
 			}
 
 			break;
@@ -801,7 +801,7 @@ NoeudExpression *copie_noeud(
 			nexpr->expressions.reserve(expr->expressions.taille);
 
 			POUR (expr->expressions) {
-				nexpr->expressions.pousse(copie_noeud(assem, it, bloc_parent));
+				nexpr->expressions.ajoute(copie_noeud(assem, it, bloc_parent));
 			}
 
 			break;
@@ -830,7 +830,7 @@ void aplatis_arbre(
 			}
 
 			// Il nous faut le bloc pour savoir quoi différer
-			arbre_aplatis.pousse(bloc);
+			arbre_aplatis.ajoute(bloc);
 
 			break;
 		}
@@ -838,17 +838,17 @@ void aplatis_arbre(
 		case GenreNoeud::DECLARATION_CORPS_FONCTION:
 		{
 			/* L'aplatissement d'une fonction dans une fonction doit déjà avoir été fait */
-			arbre_aplatis.pousse(racine);
+			arbre_aplatis.ajoute(racine);
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENUM:
 		{
-			arbre_aplatis.pousse(racine);
+			arbre_aplatis.ajoute(racine);
 			break;
 		}
 		case GenreNoeud::DECLARATION_STRUCTURE:
 		{
-			arbre_aplatis.pousse(racine);
+			arbre_aplatis.ajoute(racine);
 			break;
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
@@ -858,7 +858,7 @@ void aplatis_arbre(
 			// N'aplatis pas expr->valeur car ça ne sers à rien dans ce cas.
 			aplatis_arbre(expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
 			aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr);
 
 			break;
 		}
@@ -869,7 +869,7 @@ void aplatis_arbre(
 
 			aplatis_arbre(expr->variable, arbre_aplatis, drapeau);
 			aplatis_arbre(expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr);
 
 			break;
 		}
@@ -879,7 +879,7 @@ void aplatis_arbre(
 			expr->drapeaux |= drapeau;
 			aplatis_arbre(expr->expression, arbre_aplatis, drapeau);
 			aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_INDEXAGE:
@@ -891,7 +891,7 @@ void aplatis_arbre(
 
 			aplatis_arbre(expr->expr1, arbre_aplatis, drapeau);
 			aplatis_arbre(expr->expr2, arbre_aplatis, drapeau);
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr);
 
 			break;
 		}
@@ -908,7 +908,7 @@ void aplatis_arbre(
 			aplatis_arbre(expr->expr2, arbre_aplatis, drapeau);
 
 			if (expr->lexeme->genre != GenreLexeme::VIRGULE) {
-				arbre_aplatis.pousse(expr);
+				arbre_aplatis.ajoute(expr);
 			}
 
 			break;
@@ -924,7 +924,7 @@ void aplatis_arbre(
 			// n'ajoute pas le membre, car la validation sémantique le considérera
 			// comme une référence déclaration, ce qui soit clashera avec une variable
 			// du même nom, soit résultera en une erreur de compilation
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr);
 
 			break;
 		}
@@ -960,7 +960,7 @@ void aplatis_arbre(
 				}
 			}
 
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr);
 
 			break;
 		}
@@ -978,14 +978,14 @@ void aplatis_arbre(
 			auto expr = static_cast<NoeudExpressionUnaire *>(racine);
 			expr->drapeaux |= drapeau;
 			aplatis_arbre(expr->expr, arbre_aplatis, drapeau);
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr);
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_CHARGE:
 		case GenreNoeud::INSTRUCTION_IMPORTE:
 		{
 			racine->drapeaux |= drapeau;
-			arbre_aplatis.pousse(racine);
+			arbre_aplatis.ajoute(racine);
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
@@ -994,7 +994,7 @@ void aplatis_arbre(
 			inst->drapeaux |= drapeau;
 			drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
 			aplatis_arbre(inst->expr, arbre_aplatis, drapeau);
-			arbre_aplatis.pousse(inst);
+			arbre_aplatis.ajoute(inst);
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETIENS:
@@ -1003,7 +1003,7 @@ void aplatis_arbre(
 			inst->drapeaux |= drapeau;
 			drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
 			aplatis_arbre(inst->expr, arbre_aplatis, drapeau);
-			arbre_aplatis.pousse(inst);
+			arbre_aplatis.ajoute(inst);
 			break;
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
@@ -1021,14 +1021,14 @@ void aplatis_arbre(
 			}
 
 			aplatis_arbre(expr->expr, arbre_aplatis, drapeau);
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_INIT_DE:
 		{
 			auto init_de = racine->comme_init_de();
 			aplatis_arbre(init_de->expr, arbre_aplatis, drapeau);
-			arbre_aplatis.pousse(racine);
+			arbre_aplatis.ajoute(racine);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
@@ -1040,7 +1040,7 @@ void aplatis_arbre(
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		{
-			arbre_aplatis.pousse(racine);
+			arbre_aplatis.ajoute(racine);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
@@ -1055,7 +1055,7 @@ void aplatis_arbre(
 			auto expr = static_cast<NoeudBoucle *>(racine);
 
 			aplatis_arbre(expr->condition, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr);
 			aplatis_arbre(expr->bloc, arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 			break;
@@ -1066,7 +1066,7 @@ void aplatis_arbre(
 
 			// n'ajoute pas la variable, sa déclaration n'a pas de type
 			aplatis_arbre(expr->expression, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr);
 
 			aplatis_arbre(expr->bloc, arbre_aplatis, DrapeauxNoeud::AUCUN);
 			aplatis_arbre(expr->bloc_sansarret, arbre_aplatis, DrapeauxNoeud::AUCUN);
@@ -1081,7 +1081,7 @@ void aplatis_arbre(
 			auto expr = static_cast<NoeudDiscr *>(racine);
 
 			aplatis_arbre(expr->expr, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr);
 
 			POUR (expr->paires_discr) {
 				aplatis_arbre(it.second, arbre_aplatis, DrapeauxNoeud::AUCUN);
@@ -1097,7 +1097,7 @@ void aplatis_arbre(
 			auto expr = static_cast<NoeudSi *>(racine);
 
 			aplatis_arbre(expr->condition, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr);
 			aplatis_arbre(expr->bloc_si_vrai, arbre_aplatis, DrapeauxNoeud::AUCUN);
 			aplatis_arbre(expr->bloc_si_faux, arbre_aplatis, DrapeauxNoeud::AUCUN);
 
@@ -1107,9 +1107,9 @@ void aplatis_arbre(
 		{
 			auto inst = racine->comme_si_statique();
 			aplatis_arbre(inst->condition, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
-			arbre_aplatis.pousse(inst);
+			arbre_aplatis.ajoute(inst);
 			aplatis_arbre(inst->bloc_si_vrai, arbre_aplatis, DrapeauxNoeud::AUCUN);
-			arbre_aplatis.pousse(inst); // insère une deuxième fois pour pouvoir sauter le code du bloc_si_faux si la condition évalue à « vrai »
+			arbre_aplatis.ajoute(inst); // insère une deuxième fois pour pouvoir sauter le code du bloc_si_faux si la condition évalue à « vrai »
 			inst->index_bloc_si_faux = static_cast<int>(arbre_aplatis.taille - 1);
 			aplatis_arbre(inst->bloc_si_faux, arbre_aplatis, DrapeauxNoeud::AUCUN);
 			inst->index_apres = static_cast<int>(arbre_aplatis.taille - 1);
@@ -1119,8 +1119,8 @@ void aplatis_arbre(
 		{
 			auto expr = static_cast<NoeudPousseContexte *>(racine);
 
-			arbre_aplatis.pousse(expr->expr);
-			arbre_aplatis.pousse(expr);
+			arbre_aplatis.ajoute(expr->expr);
+			arbre_aplatis.ajoute(expr);
 			aplatis_arbre(expr->bloc, arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 			break;
@@ -1134,14 +1134,14 @@ void aplatis_arbre(
 			}
 
 			aplatis_arbre(inst->expr_appel, arbre_aplatis, drapeau);
-			arbre_aplatis.pousse(inst);
+			arbre_aplatis.ajoute(inst);
 			aplatis_arbre(inst->bloc, arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		{
-			arbre_aplatis.pousse(racine);
+			arbre_aplatis.ajoute(racine);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_VIRGULE:

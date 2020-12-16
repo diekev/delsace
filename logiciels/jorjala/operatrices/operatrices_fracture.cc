@@ -111,40 +111,40 @@ struct delegue_polyedre_hbe {
 		cos.reserve(3);
 
 		auto arete = tri->arete;
-		cos.pousse(arete->sommet->p);
+		cos.ajoute(arete->sommet->p);
 
 		arete = arete->suivante;
-		cos.pousse(arete->sommet->p);
+		cos.ajoute(arete->sommet->p);
 
 		arete = arete->suivante;
-		cos.pousse(arete->sommet->p);
+		cos.ajoute(arete->sommet->p);
 	}
 
 	void element_chevauche(int idx, mi_face *triangle)
 	{
 		if (triangle->label == 0xFFFFFFFF) {
-			this->donnees.triangles.pousse(triangle);
+			this->donnees.triangles.ajoute(triangle);
 
 			triangle->label = j++;
 			triangle->arete->label = i++;
 			triangle->arete->suivante->label = i++;
 			triangle->arete->suivante->suivante->label = i++;
 
-			this->donnees.triangles_esect.pousse(
+			this->donnees.triangles_esect.ajoute(
 						mi_triangle_coupe(calcul_direction_normal(triangle->arete), !est_A));
 		}
 
 		auto prim = polyedre.faces[idx];
 
 		if (prim->label == 0xFFFFFFFF) {
-			this->donnees.triangles.pousse(prim);
+			this->donnees.triangles.ajoute(prim);
 
 			prim->label = j++;
 			prim->arete->label = i++;
 			prim->arete->suivante->label = i++;
 			prim->arete->suivante->suivante->label = i++;
 
-			this->donnees.triangles_esect.pousse(
+			this->donnees.triangles_esect.ajoute(
 						mi_triangle_coupe(calcul_direction_normal(prim->arete), est_A));
 		}
 
@@ -813,8 +813,8 @@ public:
 			Get_Segment(donnees_booleens, inter, ptInter);
 			//and we build the opposite segment in ptInterInv
 			dls::tableau<unsigned> ptInterInv;
-			ptInterInv.pousse(ptInter[1]);
-			ptInterInv.pousse(ptInter[0]);
+			ptInterInv.ajoute(ptInter[1]);
+			ptInterInv.ajoute(ptInter[0]);
 
 			//the segments are stored in the concerned triangles, and oriented
 			if(produit_scalaire(produit_croix(nA, nB), (InterPts[ptInter[1]] - InterPts[ptInter[0]])) * ((invert_direction == true)?-1:1) > 0)
@@ -822,26 +822,26 @@ public:
 				switch(m_BOOP)
 				{
 					case UNION:
-						donnees_booleens.triangles_esect[fA->label].CutList.pousse(ptInter);
+						donnees_booleens.triangles_esect[fA->label].CutList.ajoute(ptInter);
 						if(edgeA != 3)
-							donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInter);
+							donnees_booleens.triangles_esect[fA2->label].CutList.ajoute(ptInter);
 
-						donnees_booleens.triangles_esect[fB->label].CutList.pousse(ptInterInv);
+						donnees_booleens.triangles_esect[fB->label].CutList.ajoute(ptInterInv);
 
 						if(edgeB != 3)
-							donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInterInv);
+							donnees_booleens.triangles_esect[fB2->label].CutList.ajoute(ptInterInv);
 						break;
 					case INTER:
-						donnees_booleens.triangles_esect[fA->label].CutList.pousse(ptInterInv);
-						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInterInv);
-						donnees_booleens.triangles_esect[fB->label].CutList.pousse(ptInter);
-						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInter);
+						donnees_booleens.triangles_esect[fA->label].CutList.ajoute(ptInterInv);
+						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.ajoute(ptInterInv);
+						donnees_booleens.triangles_esect[fB->label].CutList.ajoute(ptInter);
+						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.ajoute(ptInter);
 						break;
 					case MINUS:
-						donnees_booleens.triangles_esect[fA->label].CutList.pousse(ptInter);
-						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInter);
-						donnees_booleens.triangles_esect[fB->label].CutList.pousse(ptInter);
-						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInter);
+						donnees_booleens.triangles_esect[fA->label].CutList.ajoute(ptInter);
+						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.ajoute(ptInter);
+						donnees_booleens.triangles_esect[fB->label].CutList.ajoute(ptInter);
+						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.ajoute(ptInter);
 						break;
 				}
 			}
@@ -850,22 +850,22 @@ public:
 				switch(m_BOOP)
 				{
 					case UNION:
-						donnees_booleens.triangles_esect[fA->label].CutList.pousse(ptInterInv);
-						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInterInv);
-						donnees_booleens.triangles_esect[fB->label].CutList.pousse(ptInter);
-						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInter);
+						donnees_booleens.triangles_esect[fA->label].CutList.ajoute(ptInterInv);
+						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.ajoute(ptInterInv);
+						donnees_booleens.triangles_esect[fB->label].CutList.ajoute(ptInter);
+						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.ajoute(ptInter);
 						break;
 					case INTER:
-						donnees_booleens.triangles_esect[fA->label].CutList.pousse(ptInter);
-						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInter);
-						donnees_booleens.triangles_esect[fB->label].CutList.pousse(ptInterInv);
-						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInterInv);
+						donnees_booleens.triangles_esect[fA->label].CutList.ajoute(ptInter);
+						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.ajoute(ptInter);
+						donnees_booleens.triangles_esect[fB->label].CutList.ajoute(ptInterInv);
+						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.ajoute(ptInterInv);
 						break;
 					case MINUS:
-						donnees_booleens.triangles_esect[fA->label].CutList.pousse(ptInterInv);
-						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInterInv);
-						donnees_booleens.triangles_esect[fB->label].CutList.pousse(ptInterInv);
-						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInterInv);
+						donnees_booleens.triangles_esect[fA->label].CutList.ajoute(ptInterInv);
+						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.ajoute(ptInterInv);
+						donnees_booleens.triangles_esect[fB->label].CutList.ajoute(ptInterInv);
+						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.ajoute(ptInterInv);
 						break;
 				}
 			}
@@ -1110,7 +1110,7 @@ public:
 			if(inter[i].Id != 0xFFFFFFFF)
 			{
 				//the Id is stored if it is not already done
-				if(I.taille() == 0 || I[0] != inter[i].Id) I.pousse(inter[i].Id);
+				if(I.taille() == 0 || I[0] != inter[i].Id) I.ajoute(inter[i].Id);
 			}
 			//else if the point is valid
 			else if(inter[i].res != 7)
@@ -1120,7 +1120,7 @@ public:
 				if(I.taille() == 0 || InterPts[I[0]] != inter[i].pt)
 				{
 					Store_Intersection(donnees_booleens, &inter[i]);
-					I.pousse(inter[i].Id);
+					I.ajoute(inter[i].Id);
 				}
 			}
 			//return if the two points are founded
@@ -1139,7 +1139,7 @@ public:
 		//store the point to the list of the intersections and store its new Id
 		inter->Id = static_cast<unsigned>(InterPts.taille());
 		I = inter->Id;
-		InterPts.pousse(inter->pt);
+		InterPts.ajoute(inter->pt);
 
 		//add this point as a vertex of the result
 		ppbuilder.add_vertex(inter->pt, inter->Id);
@@ -1632,7 +1632,7 @@ public:
 			/* volume */
 			c.volume = static_cast<float>(vc.volume());
 
-			cells.pousse(c);
+			cells.ajoute(c);
 		}
 		while(vl.inc());
 	}

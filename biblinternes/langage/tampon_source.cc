@@ -153,7 +153,7 @@ void tampon_source::construit_lignes()
 		auto pos = &m_tampon[i];
 		auto taille = trouve_fin_ligne(pos, this->fin());
 
-		m_lignes.pousse(dls::vue_chaine{pos, taille});
+		m_lignes.ajoute(dls::vue_chaine{pos, taille});
 
 		i += taille;
 	}

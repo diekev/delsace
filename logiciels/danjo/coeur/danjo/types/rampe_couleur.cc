@@ -50,7 +50,7 @@ void ajoute_point_rampe(RampeCouleur &rampe, float x, const dls::phys::couleur32
 	p.position = x;
 	p.couleur = couleur;
 
-	rampe.points.pousse(p);
+	rampe.points.ajoute(p);
 
 	tri_points_rampe(rampe);
 }

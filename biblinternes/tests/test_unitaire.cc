@@ -128,7 +128,7 @@ void Controleuse::pousse_erreur(const dls::chaine &erreur)
 		m_taille_max_erreur = erreur.taille();
 	}
 
-	m_echecs.pousse(chaine);
+	m_echecs.ajoute(chaine);
 }
 
 }  /* namespace test_unitaire */

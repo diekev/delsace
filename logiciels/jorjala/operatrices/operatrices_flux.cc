@@ -1269,7 +1269,7 @@ public:
 	{
 		if (raison == "nom_objet") {
 			for (auto &objet : contexte.bdd->objets()) {
-				liste.pousse(objet->noeud->nom);
+				liste.ajoute(objet->noeud->nom);
 			}
 		}
 	}

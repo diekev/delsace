@@ -151,7 +151,7 @@ public:
 		chm.nom = nom;
 		chm.type = type;
 
-		m_champs.pousse(chm);
+		m_champs.ajoute(chm);
 	}
 
 	type_index ajoute_particule()
@@ -251,7 +251,7 @@ public:
 		}
 
 		m_grille.valeur(idx) = static_cast<int>(m_cellules.taille());
-		m_cellules.pousse({});
+		m_cellules.ajoute({});
 
 		return m_cellules.back();
 	}
@@ -289,7 +289,7 @@ public:
 						auto cellparticlecount = m_cellules[cellindex].taille();
 
 						for (auto a = 0l; a < cellparticlecount; a++) {
-							neighbors.pousse(m_cellules[cellindex][a]);
+							neighbors.ajoute(m_cellules[cellindex][a]);
 						}
 					}
 				}
@@ -311,7 +311,7 @@ public:
 			auto pos_idx = m_grille.monde_vers_index(pos[i]);
 			auto idx = m_grille.calcul_index(pos_idx);
 			auto &cellule_idx = this->cellule(idx);
-			cellule_idx.pousse(i);
+			cellule_idx.ajoute(i);
 		}
 	}
 };

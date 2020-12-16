@@ -137,7 +137,7 @@ void trouve_declarations_dans_bloc(
 		auto membres = bloc_courant->membres.verrou_lecture();
 		POUR (*membres) {
 			if (it->ident == ident) {
-				declarations.pousse(it);
+				declarations.ajoute(it);
 			}
 		}
 

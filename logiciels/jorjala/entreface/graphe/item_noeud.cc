@@ -216,7 +216,7 @@ void ItemNoeud::dessine_noeud_detail(
 	for (auto prise : noeud->entrees) {
 		auto texte_prise = new QGraphicsTextItem(prise->nom.c_str(), this);
 		texte_prise->setFont(police);
-		textes_entrees.pousse(texte_prise);
+		textes_entrees.ajoute(texte_prise);
 
 		largeur_entrees = std::max(largeur_entrees, texte_prise->boundingRect().width());
 		hauteur_entrees += texte_prise->boundingRect().height();
@@ -232,7 +232,7 @@ void ItemNoeud::dessine_noeud_detail(
 	for (auto prise : noeud->sorties) {
 		auto texte_prise = new QGraphicsTextItem(prise->nom.c_str(), this);
 		texte_prise->setFont(police);
-		textes_sorties.pousse(texte_prise);
+		textes_sorties.ajoute(texte_prise);
 
 		largeur_sorties = std::max(largeur_sorties, texte_prise->boundingRect().width());
 		hauteur_sorties += texte_prise->boundingRect().height();

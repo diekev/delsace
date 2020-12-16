@@ -36,12 +36,12 @@
 
 void ParametresProgramme::ajoute_attribut(dls::chaine const &nom)
 {
-	m_attributs.pousse(nom);
+	m_attributs.ajoute(nom);
 }
 
 void ParametresProgramme::ajoute_uniforme(dls::chaine const &nom)
 {
-	m_uniformes.pousse(nom);
+	m_uniformes.ajoute(nom);
 }
 
 dls::tableau<dls::chaine> const &ParametresProgramme::attributs() const

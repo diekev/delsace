@@ -47,7 +47,7 @@ void WidgetTest::obtiens_liste(const dls::chaine &attache, dls::tableau<dls::cha
 {
 	std::cerr << "Obtention de la liste pour l'attache : " << attache << '\n';
 
-	chaines.pousse("image");
+	chaines.ajoute("image");
 }
 
 /* ************************************************************************** */

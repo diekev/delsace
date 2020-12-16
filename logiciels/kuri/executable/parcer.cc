@@ -88,62 +88,62 @@ static auto morcelle_type(dls::chaine const &str)
 	for (auto i = 0; i < str.taille(); ++i) {
 		if (str[i] == ' ') {
 			if (taille_mot != 0) {
-				ret.pousse({ ptr, taille_mot });
+				ret.ajoute({ ptr, taille_mot });
 				taille_mot = 0;
 			}
 		}
 		else if (str[i] == '*') {
 			if (taille_mot != 0) {
-				ret.pousse({ ptr, taille_mot });
+				ret.ajoute({ ptr, taille_mot });
 				taille_mot = 0;
 			}
 
 			ptr = &str[i];
-			ret.pousse({ ptr, 1 });
+			ret.ajoute({ ptr, 1 });
 
 			taille_mot = 0;
 		}
 		else if (str[i] == '&') {
 			if (taille_mot != 0) {
-				ret.pousse({ ptr, taille_mot });
+				ret.ajoute({ ptr, taille_mot });
 				taille_mot = 0;
 			}
 
 			ptr = &str[i];
-			ret.pousse({ ptr, 1 });
+			ret.ajoute({ ptr, 1 });
 
 			taille_mot = 0;
 		}
 		else if (str[i] == '(') {
 			if (taille_mot != 0) {
-				ret.pousse({ ptr, taille_mot });
+				ret.ajoute({ ptr, taille_mot });
 				taille_mot = 0;
 			}
 
 			ptr = &str[i];
-			ret.pousse({ ptr, 1 });
+			ret.ajoute({ ptr, 1 });
 
 			taille_mot = 0;
 		}
 		else if (str[i] == ')') {
 			if (taille_mot != 0) {
-				ret.pousse({ ptr, taille_mot });
+				ret.ajoute({ ptr, taille_mot });
 				taille_mot = 0;
 			}
 
 			ptr = &str[i];
-			ret.pousse({ ptr, 1 });
+			ret.ajoute({ ptr, 1 });
 
 			taille_mot = 0;
 		}
 		else if (str[i] == ',') {
 			if (taille_mot != 0) {
-				ret.pousse({ ptr, taille_mot });
+				ret.ajoute({ ptr, taille_mot });
 				taille_mot = 0;
 			}
 
 			ptr = &str[i];
-			ret.pousse({ ptr, 1 });
+			ret.ajoute({ ptr, 1 });
 
 			taille_mot = 0;
 		}
@@ -157,7 +157,7 @@ static auto morcelle_type(dls::chaine const &str)
 	}
 
 	if (taille_mot != 0) {
-		ret.pousse({ ptr, taille_mot });
+		ret.ajoute({ ptr, taille_mot });
 	}
 
 	return ret;
@@ -368,7 +368,7 @@ static dls::chaine converti_type(
 							break;
 						}
 
-						type_retour.pousse(m);
+						type_retour.ajoute(m);
 						decalage++;
 					}
 
@@ -385,7 +385,7 @@ static dls::chaine converti_type(
 							type_param.efface();
 						}
 						else {
-							type_param.pousse(m);
+							type_param.ajoute(m);
 						}
 					}
 
@@ -434,7 +434,7 @@ static dls::chaine converti_type_sizeof(
 		auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
 		auto c_str = clang_getCString(spelling);
 
-		donnees_types.pousse(c_str);
+		donnees_types.ajoute(c_str);
 
 		clang_disposeString(spelling);
 	}
@@ -453,7 +453,7 @@ static auto rassemble_enfants(CXCursor cursor)
 				[](CXCursor c, CXCursor parent, CXClientData client_data)
 	{
 		auto ptr_enfants = static_cast<dls::tableau<CXCursor> *>(client_data);
-		ptr_enfants->pousse(c);
+		ptr_enfants->ajoute(c);
 		return CXChildVisit_Continue;
 	},
 	&enfants);
@@ -786,7 +786,7 @@ static auto tokens_typedef(
 
 	for (auto i = 1u; i < nombre_tokens - 1; ++i) {
 		auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
-		morceaux.pousse(converti_chaine(spelling));
+		morceaux.ajoute(converti_chaine(spelling));
 	}
 
 	dico.insere({ nom, morceaux });
@@ -816,7 +816,7 @@ static auto tokens_typealias(
 
 	for (auto i = 3u; i < nombre_tokens; ++i) {
 		auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
-		morceaux.pousse(converti_chaine(spelling));
+		morceaux.ajoute(converti_chaine(spelling));
 	}
 
 	dico.insere({ nom, morceaux });
@@ -970,7 +970,7 @@ struct Convertisseuse {
 						continue;
 					}
 
-					enfants_filtres.pousse(enfant);
+					enfants_filtres.ajoute(enfant);
 				}
 
 				/* S'il n'y a pas d'enfants, nous avons une déclaration, donc ignore. */
@@ -1506,7 +1506,7 @@ struct Convertisseuse {
 
 				while (enfant.kind == CXCursorKind::CXCursor_CaseStmt) {
 					auto petits_enfants = rassemble_enfants(enfant);
-					cas_similaires.pousse(petits_enfants[0]);
+					cas_similaires.ajoute(petits_enfants[0]);
 					enfant = petits_enfants[1];
 				}
 
@@ -1911,7 +1911,7 @@ static auto analyse_configuration(const char *chemin)
 			}
 
 			auto obj_chaine = extrait_chaine(objet.get());
-			config.args.pousse(obj_chaine->valeur);
+			config.args.ajoute(obj_chaine->valeur);
 		}
 	}
 
@@ -1925,7 +1925,7 @@ static auto analyse_configuration(const char *chemin)
 			}
 
 			auto obj_chaine = extrait_chaine(objet.get());
-			config.inclusions.pousse(obj_chaine->valeur);
+			config.inclusions.ajoute(obj_chaine->valeur);
 		}
 	}
 
@@ -1954,12 +1954,12 @@ int main(int argc, char **argv)
 	auto args = dls::tableau<const char *>();
 
 	for (auto const &arg : config.args) {
-		args.pousse(arg.c_str());
+		args.ajoute(arg.c_str());
 	}
 
 	for (auto const &inclusion : config.inclusions) {
-		args.pousse("-I");
-		args.pousse(inclusion.c_str());
+		args.ajoute("-I");
+		args.ajoute(inclusion.c_str());
 	}
 
 	CXIndex index = clang_createIndex(0, 0);

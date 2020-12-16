@@ -48,17 +48,17 @@ void delegue_maillage::coords_element(int idx, dls::tableau<dls::math::vec3f> &c
 	if (idx < ptr_maillage.nombre_triangles) {
 		auto idx_tri = idx * 3;
 
-		cos.pousse(ptr_maillage.points[ptr_maillage.triangles[idx_tri    ]]);
-		cos.pousse(ptr_maillage.points[ptr_maillage.triangles[idx_tri + 1]]);
-		cos.pousse(ptr_maillage.points[ptr_maillage.triangles[idx_tri + 2]]);
+		cos.ajoute(ptr_maillage.points[ptr_maillage.triangles[idx_tri    ]]);
+		cos.ajoute(ptr_maillage.points[ptr_maillage.triangles[idx_tri + 1]]);
+		cos.ajoute(ptr_maillage.points[ptr_maillage.triangles[idx_tri + 2]]);
 	}
 	else {
 		auto idx_quad = (idx - ptr_maillage.nombre_triangles) * 4;
 
-		cos.pousse(ptr_maillage.points[ptr_maillage.quads[idx_quad    ]]);
-		cos.pousse(ptr_maillage.points[ptr_maillage.quads[idx_quad + 1]]);
-		cos.pousse(ptr_maillage.points[ptr_maillage.quads[idx_quad + 2]]);
-		cos.pousse(ptr_maillage.points[ptr_maillage.quads[idx_quad + 3]]);
+		cos.ajoute(ptr_maillage.points[ptr_maillage.quads[idx_quad    ]]);
+		cos.ajoute(ptr_maillage.points[ptr_maillage.quads[idx_quad + 1]]);
+		cos.ajoute(ptr_maillage.points[ptr_maillage.quads[idx_quad + 2]]);
+		cos.ajoute(ptr_maillage.points[ptr_maillage.quads[idx_quad + 3]]);
 	}
 }
 

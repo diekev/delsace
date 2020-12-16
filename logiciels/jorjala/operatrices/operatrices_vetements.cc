@@ -572,7 +572,7 @@ public:
 
 				c.longueur_repos = longueur(points_entree.point_local(c.v0) - points_entree.point_local(c.v1));
 
-				m_donnees_verlet.contrainte_distance.pousse(c);
+				m_donnees_verlet.contrainte_distance.ajoute(c);
 			}
 		}
 
@@ -638,7 +638,7 @@ public:
 							etirement,
 							iterations);
 
-				d_constraints.pousse(c);
+				d_constraints.ajoute(c);
 			}
 		}
 
@@ -658,7 +658,7 @@ public:
 								courbe,
 								iterations);
 
-					b_constraints.pousse(c);
+					b_constraints.ajoute(c);
 				}
 			});
 		}
@@ -980,11 +980,11 @@ public:
 
 		// Create a list of triangles, and add the supertriangle in it
 		auto offset = _vertices.taille();
-		_vertices.pousse(p1);
-		_vertices.pousse(p2);
-		_vertices.pousse(p3);
+		_vertices.ajoute(p1);
+		_vertices.ajoute(p2);
+		_vertices.ajoute(p3);
 
-		_triangles.pousse(TriangleType(offset + 0, offset + 1, offset + 2));
+		_triangles.ajoute(TriangleType(offset + 0, offset + 1, offset + 2));
 
 		for (auto i = 0l; i < vertices.taille(); ++i) {
 			dls::tableau<EdgeType> polygone;
@@ -992,9 +992,9 @@ public:
 			for (auto &t : _triangles) {
 				if (cercle_circontient(t, vertices[i])) {
 					t.isBad = true;
-					polygone.pousse(t.e1);
-					polygone.pousse(t.e2);
-					polygone.pousse(t.e3);
+					polygone.ajoute(t.e1);
+					polygone.ajoute(t.e2);
+					polygone.ajoute(t.e3);
 				}
 				else {
 					// message erreur?
@@ -1019,7 +1019,7 @@ public:
 						   }), end(polygone));
 
 			for(const auto &e : polygone) {
-				_triangles.pousse(TriangleType(e.p1, e.p2, i));
+				_triangles.ajoute(TriangleType(e.p1, e.p2, i));
 			}
 		}
 
@@ -1029,9 +1029,9 @@ public:
 
 		for(const auto &t : _triangles)
 		{
-			_edges.pousse(t.e1);
-			_edges.pousse(t.e2);
-			_edges.pousse(t.e3);
+			_edges.ajoute(t.e1);
+			_edges.ajoute(t.e2);
+			_edges.ajoute(t.e3);
 		}
 
 		// retire les trois vertices du super-triangle
@@ -1121,7 +1121,7 @@ public:
 		[&vertices](dls::math::point2f const &p)
 		{
 			//m_corps.ajoute_point(p.x, 0.0f, p.y);
-			vertices.pousse(dls::math::vec2f(p.x, p.y));
+			vertices.ajoute(dls::math::vec2f(p.x, p.y));
 		}
 		);
 

@@ -408,7 +408,7 @@ public:
 		for (auto const &grp : corps_entree->groupes_prims()) {
 			auto ngrp = m_corps.ajoute_groupe_primitive(grp.nom);
 
-			paires_grps.pousse({ &grp, ngrp });
+			paires_grps.ajoute({ &grp, ngrp });
 		}
 
 		/* triangule */

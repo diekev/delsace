@@ -110,7 +110,7 @@ struct EntreesStats {
     void ajoute_entree(T const &entree)
     {
         totaux += entree;
-        entrees.pousse(entree);
+        entrees.ajoute(entree);
     }
 
     void fusionne_entree(T const &entree)
@@ -124,7 +124,7 @@ struct EntreesStats {
             }
         }
 
-        entrees.pousse(entree);
+        entrees.ajoute(entree);
     }
 };
 

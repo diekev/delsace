@@ -73,7 +73,7 @@ struct tableau_index {
 		return 0;
 	}
 
-	void pousse(int v);
+	void ajoute(int v);
 
 private:
 	void pousse_impl(unsigned char v);
@@ -90,7 +90,7 @@ struct tableau_index_comprime {
 
 	int operator[](long idx) const;
 
-	void pousse(int decalage, int valeur);
+	void ajoute(int decalage, int valeur);
 };
 
 /* ****************************************************************** */

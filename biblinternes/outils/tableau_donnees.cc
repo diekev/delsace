@@ -62,7 +62,7 @@ Tableau::Tableau(const std::initializer_list<ChaineUTF8> &titres)
 	ajoute_ligne(titres);
 
 	for (auto i = 0; i < nombre_colonnes; ++i) {
-		alignements.pousse(Alignement::GAUCHE);
+		alignements.ajoute(Alignement::GAUCHE);
 	}
 }
 
@@ -78,10 +78,10 @@ void Tableau::ajoute_ligne(const std::initializer_list<ChaineUTF8> &valeurs)
 	auto ligne = Ligne{};
 
 	for (auto const &valeur : valeurs) {
-		ligne.colonnes.pousse(valeur);
+		ligne.colonnes.ajoute(valeur);
 	}
 
-	lignes.pousse(ligne);
+	lignes.ajoute(ligne);
 }
 
 static void imprime_ligne_demarcation(dls::tableau<long> const &tailles_max_colonnes)

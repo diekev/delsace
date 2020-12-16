@@ -704,7 +704,7 @@ static void lecture_noeud(
 					 * l'opératrice n'est pas exécutée quand les noeuds sont
 					 * ajoutés dans son graphe */
 					noeud->graphe.donnees.efface();
-					noeud->graphe.donnees.pousse(op_detail->type_detail);
+					noeud->graphe.donnees.ajoute(op_detail->type_detail);
 				}
 
 				/* il nous faut savoir le type de détail avant de pouvoir synchroniser */
@@ -749,7 +749,7 @@ static void lecture_noeud(
 				break;
 			}
 
-			donnees_connexion.tableau_connexion_id.pousse({ id_prise, connexion });
+			donnees_connexion.tableau_connexion_id.ajoute({ id_prise, connexion });
 		}
 
 		donnees_connexion.tableau_id_prise_entree[id_prise] = noeud->entree(nom_prise);

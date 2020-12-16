@@ -134,7 +134,7 @@ utf8::utf8(const char *c_str)
 			throw "Impossible de décoder la chaine avec le codec UTF-8 !";
 		}
 
-		m_donnees.pousse(valeur);
+		m_donnees.ajoute(valeur);
 	}
 }
 

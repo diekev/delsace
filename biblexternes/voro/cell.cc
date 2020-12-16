@@ -1390,7 +1390,7 @@ void voronoicell_base::face_areas(dls::tableau<double> &v) {
 				k=m;l=n;
 				m=ed[k][l];ed[k][l]=-1-m;
 			}
-			v.pousse(0.125*area);
+			v.ajoute(0.125*area);
 		}
 	}
 	reset_edges();
@@ -1719,9 +1719,9 @@ inline void voronoicell_base::normals_search(dls::tableau<double> &v,int i,int j
 
 					// Construct the normal vector and print it
 					wmag=1/sqrt(wmag);
-					v.pousse(wx*wmag);
-					v.pousse(wy*wmag);
-					v.pousse(wz*wmag);
+					v.ajoute(wx*wmag);
+					v.ajoute(wy*wmag);
+					v.ajoute(wz*wmag);
 
 					// Mark all of the remaining edges of this
 					// face and exit
@@ -1732,17 +1732,17 @@ inline void voronoicell_base::normals_search(dls::tableau<double> &v,int i,int j
 					return;
 				}
 			}
-			v.pousse(0);
-			v.pousse(0);
-			v.pousse(0);
+			v.ajoute(0);
+			v.ajoute(0);
+			v.ajoute(0);
 			return;
 		}
 		l=cycle_up(ed[k][nu[k]+l],m);
 		k=m;
 	} while (k!=i);
-	v.pousse(0);
-	v.pousse(0);
-	v.pousse(0);
+	v.ajoute(0);
+	v.ajoute(0);
+	v.ajoute(0);
 }
 
 
@@ -1865,7 +1865,7 @@ void voronoicell_base::face_perimeters(dls::tableau<double> &v) {
 				l=cycle_up(ed[k][nu[k]+l],m);
 				k=m;
 			} while (k!=i);
-			v.pousse(0.5*perim);
+			v.ajoute(0.5*perim);
 		}
 	}
 	reset_edges();
@@ -1885,13 +1885,13 @@ void voronoicell_base::face_vertices(dls::tableau<int> &v)
 		for (int j = 0; j < nu[i]; j++) {
 			auto k=ed[i][j];
 			if (k >= 0) {
-				v.pousse(0);
-				v.pousse(i);
+				v.ajoute(0);
+				v.ajoute(i);
 				ed[i][j]=-1-k;
 				auto l = cycle_up(ed[i][nu[i]+j],k);
 
 				do {
-					v.pousse(k);
+					v.ajoute(k);
 					auto m=ed[k][l];
 					ed[k][l]=-1-m;
 					l=cycle_up(ed[k][nu[k]+l],m);
@@ -1929,7 +1929,7 @@ void voronoicell_base::face_orders(dls::tableau<int> &v)
 					l=cycle_up(ed[k][nu[k]+l],m);
 					k=m;
 				} while (k!=i);
-				v.pousse(q);
+				v.ajoute(q);
 			}
 		}
 	}
@@ -2264,7 +2264,7 @@ void voronoicell_neighbor::neighbors(dls::tableau<int> &v) {
 	for (i=1;i<p;i++) for (j=0;j<nu[i];j++) {
 		k=ed[i][j];
 		if(k>=0) {
-			v.pousse(ne[i][j]);
+			v.ajoute(ne[i][j]);
 			ed[i][j]=-1-k;
 			l=cycle_up(ed[i][nu[i]+j],k);
 			do {

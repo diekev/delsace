@@ -47,9 +47,9 @@ struct Enchaineuse {
 
 	~Enchaineuse();
 
-	void pousse(dls::vue_chaine const &chn);
+	void ajoute(dls::vue_chaine const &chn);
 
-	void pousse(const char *c_str, long N);
+	void ajoute(const char *c_str, long N);
 
 	void pousse_caractere(char c);
 
@@ -89,7 +89,7 @@ inline Enchaineuse &operator << (Enchaineuse &enchaineuse, char const &valeur)
 template <size_t N>
 Enchaineuse &operator << (Enchaineuse &enchaineuse, const char (&c)[N])
 {
-	enchaineuse.pousse(c, static_cast<long>(N));
+	enchaineuse.ajoute(c, static_cast<long>(N));
 	return enchaineuse;
 }
 

@@ -43,7 +43,7 @@ public:
 
 	void empile(type_reference_const valeur)
 	{
-		m_pile.pousse(valeur);
+		m_pile.ajoute(valeur);
 	}
 
 	type_valeur depile()

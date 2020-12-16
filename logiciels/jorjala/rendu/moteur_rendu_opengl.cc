@@ -409,11 +409,11 @@ void MoteurRenduOpenGL::calcule_rendu(
 		for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
 			auto objet = m_delegue->objet(i);
 
-			pile.pousse(objet->transformation.matrice());
+			pile.ajoute(objet->transformation.matrice());
 
 			objet->corps.accede_lecture([&pile, &contexte, this, &image](Corps const &corps)
 			{
-				pile.pousse(corps.transformation.matrice());
+				pile.ajoute(corps.transformation.matrice());
 
 				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
 
@@ -533,7 +533,7 @@ void MoteurRenduOpenGL::calcule_rendu(
 			continue;
 		}
 
-		pile.pousse(objet->transformation.matrice());
+		pile.ajoute(objet->transformation.matrice());
 
 		objet->donnees.accede_lecture([&objet, &pile, &contexte, &stats, &objet_rendu](DonneesObjet const *donnees)
 		{
@@ -547,7 +547,7 @@ void MoteurRenduOpenGL::calcule_rendu(
 				auto matrice = dls::math::mat4x4d(1.0);
 				matrice = dls::math::translation(matrice, dls::math::vec3d(camera.pos()));
 				matrice = dls::math::dimension(matrice, dls::math::vec3d(static_cast<double>(1.0f / camera.eloigne())));
-				pile.pousse(matrice);
+				pile.ajoute(matrice);
 				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
 
 				RenduCamera rendu_camera(const_cast<vision::Camera3D *>(&camera));
@@ -569,7 +569,7 @@ void MoteurRenduOpenGL::calcule_rendu(
 				auto const &corps = extrait_corps(donnees);
 
 				if (objet_rendu.matrices.taille() == 0) {
-					pile.pousse(corps.transformation.matrice());
+					pile.ajoute(corps.transformation.matrice());
 				}
 
 				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));

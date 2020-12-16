@@ -236,7 +236,7 @@ struct DonneesSite {
 
 	void ajoute_erreur(dls::vue_chaine const &message)
 	{
-		erreurs.pousse(message);
+		erreurs.ajoute(message);
 	}
 };
 
@@ -300,7 +300,7 @@ static auto analyse_configuration(const char *chemin)
 				continue;
 			}
 
-			donnees_script.remplace_html.pousse({ obj_de->valeur, obj_a->valeur });
+			donnees_script.remplace_html.ajoute({ obj_de->valeur, obj_a->valeur });
 		}
 	}
 
@@ -433,7 +433,7 @@ static auto copie_fichiers(DonneesSite &donnees, DonneesScript &donnees_script)
 		}
 
 		if (!filesystem::is_directory(chemin_source)) {
-			donnees.chemins_fichiers.pousse({ chemin_cible, ch_relatif });
+			donnees.chemins_fichiers.ajoute({ chemin_cible, ch_relatif });
 		}
 
 		//std::cout << "Copie de " << chemin_source << "\n\t-- cible : " << chemin_cible << '\n';
@@ -504,7 +504,7 @@ static bool envoie_fichiers(DonneesSite &donnees)
 
 		if (paire.second.filename() == filesystem::path(donnees.ftp.nom_exec.c_str())) {
 			auto commande = dls::chaine("SITE CHMOD 705 ") + "/" + chemin_cible.c_str();
-			commandes.pousse(commande);
+			commandes.ajoute(commande);
 		}
 
 		std::cout << '.' << std::endl;

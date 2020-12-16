@@ -261,7 +261,7 @@ dls::tableau<DescOperatrice> UsineOperatrice::keys() const
 	v.reserve(num_entries());
 
 	for (auto const &entry : m_map) {
-		v.pousse(entry.second);
+		v.ajoute(entry.second);
 	}
 
 	return v;

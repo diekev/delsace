@@ -48,13 +48,13 @@ public:
 	template <typename ObserverType>
 	void add(const EventType &e, ObserverType &&observer)
 	{
-		(m_observers[e]).pousse(std::forward<ObserverType>(observer));
+		(m_observers[e]).ajoute(std::forward<ObserverType>(observer));
 	}
 
 	template <typename ObserverType>
 	void add(EventType &&e, ObserverType &&observer)
 	{
-		(m_observers[std::move(e)]).pousse(std::forward<ObserverType>(observer));
+		(m_observers[std::move(e)]).ajoute(std::forward<ObserverType>(observer));
 	}
 
 	void notify(const EventType &e) const

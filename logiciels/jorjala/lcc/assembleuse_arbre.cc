@@ -71,7 +71,7 @@ lcc::noeud::base *assembleuse_arbre::cree_noeud(
 				type);
 
 	if (noeud != nullptr) {
-		m_noeuds.pousse(noeud);
+		m_noeuds.ajoute(noeud);
 	}
 
 	return noeud;

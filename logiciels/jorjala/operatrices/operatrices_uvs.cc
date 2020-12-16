@@ -123,7 +123,7 @@ struct PolyedreUV {
 		auto pnt = memoire::loge<mi_point_uv>("mi_point_uv");
 		pnt->pos = pos;
 		pnt->index = points.taille();
-		points.pousse(pnt);
+		points.ajoute(pnt);
 		return pnt;
 	}
 
@@ -131,7 +131,7 @@ struct PolyedreUV {
 	{
 		auto smt = memoire::loge<mi_sommet_uv>("mi_sommet_uv");
 		smt->p = pnt;
-		sommets.pousse(smt);
+		sommets.ajoute(smt);
 		return smt;
 	}
 
@@ -140,14 +140,14 @@ struct PolyedreUV {
 		auto art = memoire::loge<mi_arete_uv>("mi_arete_uv");
 		art->smt = smt;
 		art->face = face;
-		aretes.pousse(art);
+		aretes.ajoute(art);
 		return art;
 	}
 
 	mi_face_uv *cree_face()
 	{
 		auto fac = memoire::loge<mi_face_uv>("mi_arete_uv");
-		faces.pousse(fac);
+		faces.ajoute(fac);
 		return fac;
 	}
 };

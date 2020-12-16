@@ -85,7 +85,7 @@ void chaine::redimensionne(long combien, char c)
 	m_chaine.resize(static_cast<size_t>(combien), c);
 }
 
-void chaine::pousse(char c)
+void chaine::ajoute(char c)
 {
 	m_chaine.push_back(c);
 }
@@ -218,7 +218,7 @@ chaine::const_iteratrice_inverse chaine::fin_inverse() const
 
 chaine &chaine::operator+=(char c)
 {
-	this->pousse(c);
+	this->ajoute(c);
 	return *this;
 }
 

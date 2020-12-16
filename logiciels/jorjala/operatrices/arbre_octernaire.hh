@@ -157,7 +157,7 @@ private:
 	void insert_element(noeud *racine, long idx, type_limites const &limites)
 	{
 		if (racine->est_feuille) {
-			racine->refs.pousse(idx);
+			racine->refs.ajoute(idx);
 			return;
 		}
 

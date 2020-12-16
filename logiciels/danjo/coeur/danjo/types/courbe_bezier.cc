@@ -114,7 +114,7 @@ void ajoute_point_courbe(CourbeBezier &courbe, float x, float y)
 	point.co[POINT_CONTROLE2].x = x + 0.1f;
 	point.co[POINT_CONTROLE2].y = y;
 
-	courbe.points.pousse(point);
+	courbe.points.ajoute(point);
 
 	std::sort(courbe.points.debut(), courbe.points.fin(),
 			  [](const PointBezier &p1, const PointBezier &p2)
@@ -158,7 +158,7 @@ void construit_table_courbe(CourbeBezier &courbe)
 		const auto &x3 =     p2.co[POINT_CENTRE].x;
 		const auto &y3 =     p2.co[POINT_CENTRE].y;
 
-		courbe.table.pousse(Point{x0, y0});
+		courbe.table.ajoute(Point{x0, y0});
 
 		for (int j = 1; j <= res_courbe; ++j) {
 			const auto fac_i = facteur * static_cast<float>(j);
@@ -173,7 +173,7 @@ void construit_table_courbe(CourbeBezier &courbe)
 			const auto p3x = x3 * std::pow(fac_i, 3.0f);
 			const auto p3y = y3 * std::pow(fac_i, 3.0f);
 
-			courbe.table.pousse(Point{p0x + p1x + p2x + p3x, p0y + p1y + p2y + p3y});
+			courbe.table.ajoute(Point{p0x + p1x + p2x + p3x, p0y + p1y + p2y + p3y});
 		}
 	}
 }

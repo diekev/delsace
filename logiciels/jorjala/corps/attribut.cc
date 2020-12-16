@@ -190,7 +190,7 @@ TransferanteAttribut::TransferanteAttribut(const Corps &corps_orig, Corps &corps
 			{
 				if ((drapeaux & TRANSFERE_ATTR_POINTS) != 0) {
 					auto nattr = corps_dest.ajoute_attribut(attr.nom(), attr.type(), attr.dimensions, attr.portee);
-					m_attr_points.pousse({ &attr, nattr });
+					m_attr_points.ajoute({ &attr, nattr });
 				}
 
 				break;
@@ -199,7 +199,7 @@ TransferanteAttribut::TransferanteAttribut(const Corps &corps_orig, Corps &corps
 			{
 				if ((drapeaux & TRANSFERE_ATTR_PRIMS) != 0) {
 					auto nattr = corps_dest.ajoute_attribut(attr.nom(), attr.type(), attr.dimensions, attr.portee);
-					m_attr_prims.pousse({ &attr, nattr });
+					m_attr_prims.ajoute({ &attr, nattr });
 				}
 
 				break;
@@ -208,7 +208,7 @@ TransferanteAttribut::TransferanteAttribut(const Corps &corps_orig, Corps &corps
 			{
 				if ((drapeaux & TRANSFERE_ATTR_SOMMETS) != 0) {
 					auto nattr = corps_dest.ajoute_attribut(attr.nom(), attr.type(), attr.dimensions, attr.portee);
-					m_attr_sommets.pousse({ &attr, nattr });
+					m_attr_sommets.ajoute({ &attr, nattr });
 				}
 
 				break;
@@ -217,7 +217,7 @@ TransferanteAttribut::TransferanteAttribut(const Corps &corps_orig, Corps &corps
 			{
 				if ((drapeaux & TRANSFERE_ATTR_CORPS) != 0) {
 					auto nattr = corps_dest.ajoute_attribut(attr.nom(), attr.type(), attr.dimensions, attr.portee);
-					m_attr_corps.pousse({ &attr, nattr });
+					m_attr_corps.ajoute({ &attr, nattr });
 				}
 
 				break;
@@ -226,7 +226,7 @@ TransferanteAttribut::TransferanteAttribut(const Corps &corps_orig, Corps &corps
 			{
 				if ((drapeaux & TRANSFERE_ATTR_GROUPES) != 0) {
 					auto nattr = corps_dest.ajoute_attribut(attr.nom(), attr.type(), attr.dimensions, attr.portee);
-					m_attr_groupes.pousse({ &attr, nattr });
+					m_attr_groupes.ajoute({ &attr, nattr });
 				}
 
 				break;

@@ -346,7 +346,7 @@ void Decoupeuse::lance_erreur(const dls::chaine &quoi) const
 
 void Decoupeuse::ajoute_identifiant(id_morceau identifiant, const dls::vue_chaine &contenu)
 {
-	m_identifiants.pousse({contenu, static_cast<size_t>((m_ligne << 32) | m_position_ligne), identifiant});
+	m_identifiants.ajoute({contenu, static_cast<size_t>((m_ligne << 32) | m_position_ligne), identifiant});
 }
 
 dls::tableau<DonneesMorceaux> &Decoupeuse::morceaux()
@@ -361,7 +361,7 @@ void Decoupeuse::pousse_caractere()
 
 void Decoupeuse::pousse_mot(id_morceau identifiant)
 {
-	m_identifiants.pousse({ mot_courant(), static_cast<size_t>((m_ligne << 32) | m_position_ligne), identifiant });
+	m_identifiants.ajoute({ mot_courant(), static_cast<size_t>((m_ligne << 32) | m_position_ligne), identifiant });
 	m_taille_mot_courant = 0;
 }
 

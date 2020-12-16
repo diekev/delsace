@@ -91,7 +91,7 @@ public:
 
 	void redimensionne(long combien, char c);
 
-	void pousse(char c);
+	void ajoute(char c);
 
 	chaine &append(chaine const &c);
 

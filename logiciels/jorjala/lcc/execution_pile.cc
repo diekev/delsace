@@ -867,7 +867,7 @@ auto cree_bruit(
 
 	bruit::construit(type_bruit, params, graine);
 
-	ctx.params_bruits.pousse(params);
+	ctx.params_bruits.ajoute(params);
 	auto idx = ctx.params_bruits.taille() - 1;
 
 	pile_donnees.stocke(inst_courante, insts, static_cast<int>(idx));
@@ -1683,7 +1683,7 @@ void execute_pile(
 
 					for (auto const &v : tableau) {
 						auto idx = corps->ajoute_sommet(poly, v);
-						tabl_smt.pousse(static_cast<int>(idx));
+						tabl_smt.ajoute(static_cast<int>(idx));
 					}
 				});
 
@@ -1728,7 +1728,7 @@ void execute_pile(
 
 					do {
 						auto voisin = debut->paire->sommet->label;
-						tableau.pousse(static_cast<int>(voisin));
+						tableau.ajoute(static_cast<int>(voisin));
 						debut = suivante_autour_point(debut);
 					} while (debut != fin && debut != nullptr);
 				}
@@ -1751,7 +1751,7 @@ void execute_pile(
 					arbre_kd.cherche_points(pos, rayon, [&](
 											int idx, dls::math::vec3f const &, float, float &)
 					{
-						tableau.pousse(idx);
+						tableau.ajoute(idx);
 					});
 				}
 
@@ -1975,7 +1975,7 @@ void execute_pile(
 					{
 						for (auto i = 0; i < nombre_donnees; ++i) {
 							auto val = pile_donnees.charge_entier(compteur, insts);
-							tableau.pousse(val);
+							tableau.ajoute(val);
 						}
 						break;
 					}
@@ -2129,8 +2129,8 @@ void execute_pile(
 
 				for (auto i = 0; i < morceaux.taille(); ++i) {
 					auto idx_chn = contexte_local.chaines.taille();
-					contexte_local.chaines.pousse(morceaux[i]);
-					tableau.pousse(static_cast<int>(contexte.chaines.taille() + idx_chn));
+					contexte_local.chaines.ajoute(morceaux[i]);
+					tableau.ajoute(static_cast<int>(contexte.chaines.taille() + idx_chn));
 				}
 
 				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));

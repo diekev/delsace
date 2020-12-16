@@ -62,7 +62,7 @@ struct liste_recyclee {
 		}
 	}
 
-	void pousse(T const &donnees)
+	void ajoute(T const &donnees)
 	{
 		auto n = static_cast<noeud *>(nullptr);
 

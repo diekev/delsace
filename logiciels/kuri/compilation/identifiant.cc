@@ -58,7 +58,7 @@ IdentifiantCode *TableIdentifiant::identifiant_pour_nouvelle_chaine(dls::chaine 
 	}
 
 	auto ptr = &tampon_courant->donnees[tampon_courant->occupe];
-	enchaineuse.pousse(nom);
+	enchaineuse.ajoute(nom);
 
 	auto vue_nom = dls::vue_chaine_compacte(ptr, nom.taille());
 	return ajoute_identifiant(vue_nom);

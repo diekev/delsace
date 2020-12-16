@@ -136,7 +136,7 @@ void VisionneurScene::peint_opengl()
 		auto pos = m_jorjala.manipulatrice_3d->pos();
 		auto matrice = dls::math::mat4x4d(1.0);
 		matrice = dls::math::translation(matrice, dls::math::vec3d(pos.x, pos.y, pos.z));
-		m_stack.pousse(matrice);
+		m_stack.ajoute(matrice);
 		m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
 
 		if (m_jorjala.type_manipulation_3d == MANIPULATION_ROTATION) {

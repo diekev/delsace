@@ -65,10 +65,10 @@ int main()
 			}
 
 			if (est_polymorphique) {
-				fonc_polymorphiques.pousse({ paire_df.first, &df });
+				fonc_polymorphiques.ajoute({ paire_df.first, &df });
 			}
 			else {
-				fonc_normales.pousse({ paire_df.first, &df });
+				fonc_normales.ajoute({ paire_df.first, &df });
 			}
 		}
 	}

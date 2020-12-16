@@ -50,7 +50,7 @@ public:
 	 * à la matrice alors au sommet multipliée par la matrice passée en
 	 * paramètre.
 	 */
-	inline void pousse(dls::math::mat4x4d const &mat);
+	inline void ajoute(dls::math::mat4x4d const &mat);
 
 	/**
 	 * Fais sauter le sommet de la pile de celle-ci.
@@ -65,7 +65,7 @@ public:
 
 /* Implémentation des méthodes inlignées. */
 
-inline void PileMatrice::pousse(dls::math::mat4x4d const &mat)
+inline void PileMatrice::ajoute(dls::math::mat4x4d const &mat)
 {
 	m_pile.empile(m_pile.haut() * mat);
 }

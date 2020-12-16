@@ -331,7 +331,7 @@ QToolBar *GestionnaireInterface::compile_barre_outils_texte(
 		return nullptr;
 	}
 
-	m_barres_outils.pousse(assembleur.barre_outils());
+	m_barres_outils.ajoute(assembleur.barre_outils());
 
 	return assembleur.barre_outils();
 }

@@ -124,7 +124,7 @@ OperatriceGrapheDetail::OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noe
 	noeud.peut_avoir_graphe = true;
 	noeud.graphe.type = type_graphe::DETAIL;
 	noeud.graphe.donnees.efface();
-	noeud.graphe.donnees.pousse(type_detail);
+	noeud.graphe.donnees.ajoute(type_detail);
 
 	entrees(1);
 	sorties(1);
@@ -180,7 +180,7 @@ res_exec OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, Don
 	}
 
 	noeud.graphe.donnees.efface();
-	noeud.graphe.donnees.pousse(type_detail);
+	noeud.graphe.donnees.ajoute(type_detail);
 
 	if (type_detail == DETAIL_PIXELS) {
 		return execute_detail_pixel(contexte, donnees_aval);
@@ -666,7 +666,7 @@ res_exec OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, D
 				}
 			}
 
-			pointeurs.pousse(decalage);
+			pointeurs.ajoute(decalage);
 		}
 		else {
 			/* alloue une valeur par défaut et prend le pointeurs */
@@ -748,7 +748,7 @@ res_exec OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, D
 				}
 			}
 
-			pointeurs.pousse(ptr);
+			pointeurs.ajoute(ptr);
 		}
 	}
 
@@ -1460,7 +1460,7 @@ public:
 
 		compileuse->donnees().stocke(ptr, static_cast<int>(ctx_global->images.taille()));
 
-		ctx_global->images.pousse(image);
+		ctx_global->images.ajoute(image);
 
 		return res_exec::REUSSIE;
 	}
@@ -1484,7 +1484,7 @@ public:
 		if (raison == "chemin_noeud") {
 			for (auto composite : contexte.bdd->composites()) {
 				for (auto enfant : composite->noeud->enfants) {
-					liste.pousse(enfant->chemin());
+					liste.ajoute(enfant->chemin());
 				}
 			}
 		}
@@ -1573,17 +1573,17 @@ public:
 		if (O == 0) {
 			auto courbe_couleur = evalue_courbe_couleur("courbe");
 			compileuse->donnees().stocke(ptr, static_cast<int>(ctx_global->courbes_couleur.taille()));
-			ctx_global->courbes_couleur.pousse(courbe_couleur);
+			ctx_global->courbes_couleur.ajoute(courbe_couleur);
 		}
 		else if (O == 1) {
 			auto courbe_valeur = evalue_courbe_valeur("courbe");
 			compileuse->donnees().stocke(ptr, static_cast<int>(ctx_global->courbes_valeur.taille()));
-			ctx_global->courbes_valeur.pousse(courbe_valeur);
+			ctx_global->courbes_valeur.ajoute(courbe_valeur);
 		}
 		else if (O == 2) {
 			auto rampe_valeur = evalue_rampe_couleur("rampe");
 			compileuse->donnees().stocke(ptr, static_cast<int>(ctx_global->rampes_couleur.taille()));
-			ctx_global->rampes_couleur.pousse(rampe_valeur);
+			ctx_global->rampes_couleur.ajoute(rampe_valeur);
 		}
 
 		return res_exec::REUSSIE;
@@ -1677,7 +1677,7 @@ public:
 			camera = &extrait_camera(donnees);
 		});
 
-		ctx_global->cameras.pousse(camera);
+		ctx_global->cameras.ajoute(camera);
 
 		return res_exec::REUSSIE;
 	}
@@ -1722,7 +1722,7 @@ public:
 					continue;
 				}
 
-				liste.pousse(objet->noeud->nom);
+				liste.ajoute(objet->noeud->nom);
 			}
 		}
 	}

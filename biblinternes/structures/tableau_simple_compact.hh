@@ -107,7 +107,7 @@ public:
 		return taille() == 0;
 	}
 
-	void pousse(T const &valeur)
+	void ajoute(T const &valeur)
 	{
 		assert(taille() < 65536);
 

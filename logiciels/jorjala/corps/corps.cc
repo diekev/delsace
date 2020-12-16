@@ -46,7 +46,7 @@ bool Corps::possede_attribut(dls::chaine const &nom_attribut)
 
 void Corps::ajoute_attribut(Attribut *attr)
 {
-	this->m_attributs.pousse(*attr);
+	this->m_attributs.ajoute(*attr);
 }
 
 Attribut *Corps::ajoute_attribut(
@@ -85,7 +85,7 @@ Attribut *Corps::ajoute_attribut(
 		}
 
 		auto nattr = Attribut(nom_attribut, type_, dimensions, portee, taille_attrib);
-		m_attributs.pousse(nattr);
+		m_attributs.ajoute(nattr);
 		attr = &m_attributs.back();
 	}
 
@@ -136,7 +136,7 @@ Attribut const *Corps::attribut(dls::chaine const &nom_attribut) const
 void Corps::ajoute_primitive(Primitive *p)
 {
 	p->index = m_prims.taille();
-	m_prims.pousse(p);
+	m_prims.ajoute(p);
 }
 
 void Corps::copie_points(const Corps autre)
@@ -238,16 +238,16 @@ void Corps::copie_vers(Corps *corps) const
 
 	/* copie les attributs */
 	for (auto attr : this->m_attributs) {
-		corps->m_attributs.pousse(attr);
+		corps->m_attributs.ajoute(attr);
 	}
 
 	/* copie les groupes */
 	for (auto groupe : this->m_groupes_points) {
-		corps->m_groupes_points.pousse(groupe);
+		corps->m_groupes_points.ajoute(groupe);
 	}
 
 	for (auto groupe : this->m_groupes_prims) {
-		corps->m_groupes_prims.pousse(groupe);
+		corps->m_groupes_prims.ajoute(groupe);
 	}
 }
 
@@ -274,7 +274,7 @@ GroupePoint *Corps::ajoute_groupe_point(const dls::chaine &nom_groupe)
 	auto groupe = GroupePoint{};
 	groupe.nom = nom_groupe;
 
-	m_groupes_points.pousse(groupe);
+	m_groupes_points.ajoute(groupe);
 
 	redimensionne_attributs(portee_attr::GROUPE);
 
@@ -319,7 +319,7 @@ GroupePrimitive *Corps::ajoute_groupe_primitive(dls::chaine const &nom_groupe)
 	auto groupe = GroupePrimitive{};
 	groupe.nom = nom_groupe;
 
-	m_groupes_prims.pousse(groupe);
+	m_groupes_prims.ajoute(groupe);
 
 	redimensionne_attributs(portee_attr::GROUPE);
 

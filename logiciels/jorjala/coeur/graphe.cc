@@ -44,7 +44,7 @@ Noeud *Graphe::cree_noeud(const dls::chaine &nom_noeud, type_noeud type_n)
 	n->nom = nom_noeud;
 	n->type = type_n;
 	n->parent = &this->noeud_parent;
-	n->parent->enfants.pousse(n);
+	n->parent->enfants.ajoute(n);
 	ajoute(n);
 
 	return n;
@@ -55,7 +55,7 @@ void Graphe::ajoute(Noeud *noeud)
 	/* vérifie que le nom du noeud est unique */
 	noeud->nom = rend_nom_unique(noeud->nom);
 
-	m_noeuds.pousse(noeud);
+	m_noeuds.ajoute(noeud);
 
 	this->vide_selection();
 	this->ajoute_selection(noeud);
@@ -136,8 +136,8 @@ void Graphe::connecte(PriseSortie *sortie, PriseEntree *entree)
 		}
 	}
 
-	entree->liens.pousse(sortie);
-	sortie->liens.pousse(entree);
+	entree->liens.ajoute(sortie);
+	sortie->liens.ajoute(entree);
 
 	marque_surannee(entree->parent, nullptr);
 
