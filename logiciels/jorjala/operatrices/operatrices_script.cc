@@ -149,7 +149,8 @@ public:
 			CompileuseScriptLCC &compileuse,
 			dls::chaine const &contenu_fichier)
 	{
-		auto tampon_source = lng::tampon_source(contenu_fichier);
+		auto texte_ = contenu_fichier;
+		auto tampon_source = lng::tampon_source(std::move(texte_));
 
 		auto decalage_chn = compileuse.m_ctx_global.chaines.taille();
 		compileuse.m_ctx_global.chaines.pousse("");

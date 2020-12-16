@@ -126,7 +126,8 @@ QMenu *GestionnaireInterface::compile_menu_texte(
 				donnees.repondant_bouton,
 				donnees.conteneur);
 
-	auto tampon = lng::tampon_source(texte);
+	auto texte_ = texte;
+	auto tampon = lng::tampon_source(std::move(texte_));
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
@@ -175,7 +176,8 @@ QBoxLayout *GestionnaireInterface::compile_entreface_texte(
 				donnees.conteneur,
 				temps);
 
-	auto tampon = lng::tampon_source(texte);
+	auto texte_ = texte;
+	auto tampon = lng::tampon_source(std::move(texte_));
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
@@ -258,7 +260,8 @@ void GestionnaireInterface::initialise_entreface_texte(
 				0,
 				true);
 
-	auto tampon = lng::tampon_source(texte);
+	auto texte_ = texte;
+	auto tampon = lng::tampon_source(std::move(texte_));
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
@@ -308,7 +311,8 @@ QToolBar *GestionnaireInterface::compile_barre_outils_texte(
 				donnees.repondant_bouton,
 				donnees.conteneur);
 
-	auto tampon = lng::tampon_source(texte);
+	auto texte_ = texte;
+	auto tampon = lng::tampon_source(std::move(texte_));
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {

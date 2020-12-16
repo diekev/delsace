@@ -51,7 +51,7 @@ static lng::tampon_source charge_fichier(const char *chemin_fichier)
 		res.pousse('\n');
 	});
 
-	return lng::tampon_source{res};
+	return lng::tampon_source(std::move(res));
 }
 
 struct OptionsCompilation {

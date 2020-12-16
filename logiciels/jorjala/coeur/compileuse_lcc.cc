@@ -656,7 +656,8 @@ bool CompileuseScriptLCC::compile_script(
 	ctx_gen = lcc::cree_contexte(*contexte.lcc);
 
 	auto donnees_module = ctx_gen.cree_module("racine");
-	donnees_module->tampon = lng::tampon_source(texte);
+	auto texte_ = texte;
+	donnees_module->tampon = lng::tampon_source(std::move(texte_));
 
 	try {
 		auto decoupeuse = decoupeuse_texte(donnees_module);
