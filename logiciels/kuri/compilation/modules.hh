@@ -66,9 +66,9 @@ struct DonneesConstantesFichier {
 	bool en_chargement = false;
 	bool en_lexage = false;
 
-	void charge_tampon(lng::tampon_source const &t)
+	void charge_tampon(lng::tampon_source &&t)
 	{
-		tampon = t;
+		tampon = std::move(t);
 		fut_charge = true;
 	}
 };
