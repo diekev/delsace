@@ -96,7 +96,7 @@ public:
 		return m_ensemble.find(valeur);
 	}
 
-	void echange(ensemble &autre)
+	void permute(ensemble &autre)
 	{
 		m_ensemble.swap(autre.m_ensemble);
 	}

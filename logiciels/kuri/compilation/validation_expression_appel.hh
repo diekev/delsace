@@ -149,10 +149,10 @@ struct DonneesCandidate {
 		std::swap(noeud_erreur, autre.noeud_erreur);
 		std::swap(noeud_decl, autre.noeud_decl);
 		std::swap(ident_poly_manquant, autre.ident_poly_manquant);
-		exprs.echange(autre.exprs);
-		arguments_manquants.echange(autre.arguments_manquants);
-		transformations.echange(autre.transformations);
-		items_monomorphisation.echange(autre.items_monomorphisation);
+		exprs.permute(autre.exprs);
+		arguments_manquants.permute(autre.arguments_manquants);
+		transformations.permute(autre.transformations);
+		items_monomorphisation.permute(autre.items_monomorphisation);
 	}
 };
 

@@ -32,16 +32,16 @@
 
 Polyedre::Polyedre(Polyedre &&autre)
 {
-	sommets.echange(autre.sommets);
-	aretes.echange(autre.aretes);
-	faces.echange(autre.faces);
+	sommets.permute(autre.sommets);
+	aretes.permute(autre.aretes);
+	faces.permute(autre.faces);
 }
 
 Polyedre &Polyedre::operator=(Polyedre &&autre)
 {
-	sommets.echange(autre.sommets);
-	aretes.echange(autre.aretes);
-	faces.echange(autre.faces);
+	sommets.permute(autre.sommets);
+	aretes.permute(autre.aretes);
+	faces.permute(autre.faces);
 
 	return *this;
 }

@@ -341,15 +341,15 @@ public:
 		return true;
 	}
 
-	void echange(grille_eparse<T, type_tuile> &autre)
+	void permute(grille_eparse<T, type_tuile> &autre)
 	{
 		std::swap(m_desc.etendue, autre.m_desc.etendue);
 		std::swap(m_desc.resolution, autre.m_desc.resolution);
 		std::swap(m_desc.fenetre_donnees, autre.m_desc.fenetre_donnees);
 		std::swap(m_desc.taille_voxel, autre.m_desc.taille_voxel);
 
-		m_index_tuiles.echange(autre.m_index_tuiles);
-		m_tuiles.echange(autre.m_tuiles);
+		m_index_tuiles.permute(autre.m_index_tuiles);
+		m_tuiles.permute(autre.m_tuiles);
 
 		std::swap(m_arriere_plan, autre.m_arriere_plan);
 		std::swap(m_tuiles_x, autre.m_tuiles_x);

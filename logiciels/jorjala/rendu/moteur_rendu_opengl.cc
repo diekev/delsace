@@ -205,7 +205,7 @@ static auto remplis_triangle_haut_plat(
 	}
 }
 
-static auto echange(dls::math::vec2d &v1, dls::math::vec2d &v2)
+static auto permute(dls::math::vec2d &v1, dls::math::vec2d &v2)
 {
 	std::swap(v1.x, v2.x);
 	std::swap(v1.y, v2.y);
@@ -242,11 +242,11 @@ static auto ratisse_triangle(
 		}
 
 		if (v2.y < v1.y) {
-			echange(v1, v2);
+			permute(v1, v2);
 		}
 
 		if (v3.y < v2.y) {
-			echange(v2, v3);
+			permute(v2, v3);
 		}
 	}
 
@@ -284,11 +284,11 @@ static auto ratisse_triangle(
 		}
 
 		if (v2.y < v1.y) {
-			echange(v1, v2);
+			permute(v1, v2);
 		}
 
 		if (v3.y < v2.y) {
-			echange(v2, v3);
+			permute(v2, v3);
 		}
 	}
 

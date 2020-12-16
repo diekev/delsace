@@ -212,7 +212,7 @@ public:
 		m_file.emplace(std::forward<Args...>(args...));
 	}
 
-	void echange(file_priorite &autre)
+	void permute(file_priorite &autre)
 	{
 		m_file.swap(autre);
 	}

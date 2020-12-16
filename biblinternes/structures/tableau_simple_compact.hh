@@ -72,12 +72,12 @@ public:
 
 	tableau_simple_compact(tableau_simple_compact &&autre)
 	{
-		x.echange(autre.x);
+		x.permute(autre.x);
 	}
 
 	tableau_simple_compact &operator=(tableau_simple_compact &&autre)
 	{
-		x.echange(autre.x);
+		x.permute(autre.x);
 		return *this;
 	}
 

@@ -81,14 +81,14 @@ tampon_source &tampon_source::operator=(const tampon_source &autre)
 
 tampon_source::tampon_source(tampon_source &&autre)
 {
-	m_tampon.echange(autre.m_tampon);
-	m_lignes.echange(autre.m_lignes);
+	m_tampon.permute(autre.m_tampon);
+	m_lignes.permute(autre.m_lignes);
 }
 
 tampon_source &tampon_source::operator=(tampon_source &&autre)
 {
-	m_tampon.echange(autre.m_tampon);
-	m_lignes.echange(autre.m_lignes);
+	m_tampon.permute(autre.m_tampon);
+	m_lignes.permute(autre.m_lignes);
 	return *this;
 }
 

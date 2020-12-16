@@ -228,7 +228,7 @@ chaine &chaine::operator+=(const chaine &autre)
 	return *this;
 }
 
-void chaine::echange(chaine &autre)
+void chaine::permute(chaine &autre)
 {
 	m_chaine.swap(autre.m_chaine);
 }

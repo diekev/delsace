@@ -51,12 +51,12 @@ public:
 
 	ensemblon(ensemblon &&autre)
 	{
-		echange(autre);
+		permute(autre);
 	}
 
 	ensemblon &operator=(ensemblon &&autre)
 	{
-		echange(autre);
+		permute(autre);
 	}
 
 	~ensemblon() = default;
@@ -66,7 +66,7 @@ public:
 		return m_taille <= static_cast<long>(TAILLE_INITIALE);
 	}
 
-	void echange(ensemblon &autre)
+	void permute(ensemblon &autre)
 	{
 		if (this->est_stocke_dans_classe() && autre.est_stocke_dans_classe()) {
 			for (auto i = 0; i < TAILLE_INITIALE; ++i) {
@@ -74,13 +74,13 @@ public:
 			}
 		}
 		else if (this->est_stocke_dans_classe()) {
-			echange_donnees(*this, autre);
+			permute_donnees(*this, autre);
 		}
 		else if (autre.est_stocke_dans_classe()) {
-			echange_donnees(autre, *this);
+			permute_donnees(autre, *this);
 		}
 		else {
-			m_ensemble.echange(autre.m_ensemble);
+			m_ensemble.permute(autre.m_ensemble);
 		}
 
 		std::swap(m_taille, autre.m_taille);
@@ -165,13 +165,13 @@ public:
 	}
 
 private:
-	void echange_donnees(ensemblon &ensemblon_local, ensemblon &ensemblon_memoire)
+	void permute_donnees(ensemblon &ensemblon_local, ensemblon &ensemblon_memoire)
 	{
 		for (auto i = 0; i < TAILLE_INITIALE; ++i) {
 			std::swap(ensemblon_local.m_ensemblon[i], ensemblon_memoire.m_ensemblon[i]);
 		}
 
-		ensemblon_local.m_ensemble.echange(ensemblon_memoire.m_ensemble);
+		ensemblon_local.m_ensemble.permute(ensemblon_memoire.m_ensemble);
 	}
 };
 

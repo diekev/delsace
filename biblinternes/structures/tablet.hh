@@ -288,12 +288,12 @@ public:
 	tablet(tablet &&autre)
 		: tablet()
 	{
-		echange(autre);
+		permute(autre);
 	}
 
 	tablet &operator=(tablet &&autre)
 	{
-		echange(autre);
+		permute(autre);
 		return *this;
 	}
 
@@ -302,7 +302,7 @@ public:
 		supprime_donnees();
 	}
 
-	void echange(tablet &autre)
+	void permute(tablet &autre)
 	{
 		if (this->est_stocke_dans_classe() && autre.est_stocke_dans_classe()) {
 			for (auto i = 0ul; i < TAILLE_INITIALE; ++i) {
@@ -310,10 +310,10 @@ public:
 			}
 		}
 		else if (this->est_stocke_dans_classe()) {
-			echange_tablet_memoire(*this, autre);
+			permute_tablet_memoire(*this, autre);
 		}
 		else if (autre.est_stocke_dans_classe()) {
-			echange_tablet_memoire(autre, *this);
+			permute_tablet_memoire(autre, *this);
 		}
 		else {
 			std::swap(m_memoire, autre.m_memoire);
@@ -543,7 +543,7 @@ private:
 		}
 	}
 
-	void echange_tablet_memoire(tablet &tablet_tablet, tablet &tablet_memoire)
+	void permute_tablet_memoire(tablet &tablet_tablet, tablet &tablet_memoire)
 	{
 		for (auto i = 0ul; i < TAILLE_INITIALE; ++i) {
 			std::swap(tablet_tablet.m_tablet[i], tablet_memoire.m_tablet[i]);

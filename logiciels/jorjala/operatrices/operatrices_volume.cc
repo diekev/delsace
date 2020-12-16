@@ -522,7 +522,7 @@ static res_exec reechantillonne_volume(
 	auto resultat = wlk::reechantillonne(*grille_scalaire, grille_scalaire->desc().taille_voxel * 2.0);
 
 	auto grille = memoire::loge<wlk::grille_dense_3d<float>>("grille");
-	grille->echange(resultat);
+	grille->permute(resultat);
 
 	auto volume = memoire::loge<Volume>("Volume", grille);
 	op.corps()->ajoute_primitive(volume);

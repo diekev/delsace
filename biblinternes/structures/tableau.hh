@@ -65,7 +65,7 @@ public:
 
 	tableau(tableau &&autre)
 	{
-		this->echange(autre);
+		this->permute(autre);
 	}
 
 	template <typename __iter_horsin, typename = std::_RequireInputIter<__iter_horsin>>
@@ -93,11 +93,11 @@ public:
 
 	tableau &operator=(tableau &&autre)
 	{
-		this->echange(autre);
+		this->permute(autre);
 		return *this;
 	}
 
-	void echange(tableau &autre)
+	void permute(tableau &autre)
 	{
 		m_vecteur.swap(autre.m_vecteur);
 	}

@@ -1075,7 +1075,7 @@ void Scene::GenerateParticles(dls::tableau<fluidCore::Particle*>& particles,
 	});
 
 	//add new particles to main particles list
-	dls::tableau<fluidCore::Particle*>().echange(particles);
+	dls::tableau<fluidCore::Particle*>().permute(particles);
 	particles.reserve(static_cast<long>(m_liquidParticles.size()+m_permaSolidParticles.size()+
 					  m_solidParticles.size()));
 	particles.insere(particles.fin(), m_liquidParticles.begin(), m_liquidParticles.end());

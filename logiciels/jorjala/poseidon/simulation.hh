@@ -231,7 +231,7 @@ auto advecte_semi_lagrange(
 	advection_semi_lagrange(vel, fwd, orig, dt);
 
 	if (order == 1) {
-		orig.echange(fwd);
+		orig.permute(fwd);
 	}
 	/* MacCormack */
 	else if (order == 2) {
@@ -247,7 +247,7 @@ auto advecte_semi_lagrange(
 		// clamp values
 		restriction_maccormarck(flags, vel, newGrid, orig, fwd, dt, 1);
 
-		orig.echange(newGrid);
+		orig.permute(newGrid);
 	}
 }
 
