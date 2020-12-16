@@ -292,7 +292,7 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
 	auto resultat = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, "", "", false);
 	auto fichier = resultat.t2().fichier;
 	auto donnees_fichier = fichier->donnees_constantes;
-	donnees_fichier->charge_tampon(tampon);
+	donnees_fichier->charge_tampon(std::move(tampon));
 
 	compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 
@@ -385,7 +385,7 @@ int main()
 			auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
 
 			auto contenu_fichier = charge_fichier(chemin.c_str(), *espace, {});
-			auto tampon = lng::tampon_source(contenu_fichier);
+			auto tampon = lng::tampon_source(std::move(contenu_fichier));
 
 			if (tampon.nombre_lignes() == 0) {
 				//std::cerr << "Le fichier " << chemin << " est vide\n";

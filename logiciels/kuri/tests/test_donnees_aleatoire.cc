@@ -53,7 +53,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto compilatrice = Compilatrice{};
 		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
 		auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
-		donnees_fichier->charge_tampon(lng::tampon_source(texte));
+		donnees_fichier->charge_tampon(lng::tampon_source(std::move(texte)));
 
 		Lexeuse lexeuse(compilatrice, donnees_fichier);
 		lexeuse.performe_lexage();

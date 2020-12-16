@@ -570,7 +570,7 @@ void Tacheronne::gere_tache()
 						temps_chargement += debut_chargement.temps();
 
 						auto debut_tampon = dls::chrono::compte_seconde();
-						donnees->charge_tampon(lng::tampon_source(texte));
+						donnees->charge_tampon(lng::tampon_source(std::move(texte)));
 						temps_tampons += debut_tampon.temps();
 					}
 
@@ -1131,7 +1131,7 @@ void Tacheronne::execute_metaprogrammes()
 					fichier->module = module;
 					fichier->metaprogramme_corps_texte = it;
 
-					donnees_fichier->charge_tampon(lng::tampon_source(tampon));
+					donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
 					compilatrice.chaines_ajoutees_a_la_compilation->pousse(dls::chaine(resultat.pointeur, resultat.taille));
 					compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);

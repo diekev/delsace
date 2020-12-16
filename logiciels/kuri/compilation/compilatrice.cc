@@ -708,7 +708,7 @@ void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chain
 	if (resultat.tag_type() == FichierNeuf::tag) {
 		auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
 		if (!donnees_fichier->fut_charge) {
-			donnees_fichier->charge_tampon(lng::tampon_source(chaine));
+			donnees_fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
 		}
 		ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, resultat.t2().fichier);
 	}
@@ -725,7 +725,7 @@ void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chai
 	if (resultat.tag_type() == FichierNeuf::tag) {
 		auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
 		if (!donnees_fichier->fut_charge) {
-			donnees_fichier->charge_tampon(lng::tampon_source(chaine));
+			donnees_fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
 		}
 		ptr_compilatrice->ordonnanceuse->cree_tache_pour_lexage(espace, resultat.t2().fichier);
 	}
@@ -856,7 +856,7 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne)
 
 	auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
 	auto tampon = charge_fichier(chemin.c_str(), *espace, {});
-	donnees_fichier->charge_tampon(lng::tampon_source(tampon));
+	donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
 	auto lexeuse = Lexeuse(*ptr_compilatrice, donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
 	lexeuse.performe_lexage();

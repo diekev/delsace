@@ -141,7 +141,7 @@ int main(int argc, char **argv)
 		auto espace = compilatrice.demarre_un_espace_de_travail({}, "");
 		auto donnees_fichier = compilatrice.sys_module->cree_fichier("", "");
 		auto tampon = charge_fichier(chemin.c_str(), *espace, {});
-		donnees_fichier->charge_tampon(lng::tampon_source(tampon));
+		donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
 		auto lexeuse = Lexeuse(compilatrice, donnees_fichier);
 		lexeuse.performe_lexage();

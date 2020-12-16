@@ -59,7 +59,7 @@ tampon_source::tampon_source(const char *chaine)
 	construit_lignes();
 }
 
-tampon_source::tampon_source(dls::chaine chaine) noexcept
+tampon_source::tampon_source(dls::chaine &&chaine) noexcept
 	: m_tampon(std::move(chaine))
 {
 	construit_lignes();

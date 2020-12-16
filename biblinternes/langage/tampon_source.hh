@@ -45,7 +45,7 @@ public:
 	 * est 'bougée' dans la tampon. Après cette opération la dls::chaine
 	 * passée en paramètre sera vide.
 	 */
-	explicit tampon_source(dls::chaine chaine) noexcept;
+    explicit tampon_source(dls::chaine &&chaine) noexcept;
 
 	tampon_source(tampon_source const &autre);
 
