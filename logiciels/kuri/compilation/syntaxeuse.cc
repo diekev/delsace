@@ -2512,13 +2512,13 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		noeud_decl->type = m_unite->espace->typeuse.type_info_type_;
 		auto type_info_type = m_unite->espace->typeuse.type_info_type_->comme_structure();
 		type_info_type->decl = noeud_decl;
-		type_info_type->nom = noeud_decl->ident->nom;
+		type_info_type->nom = noeud_decl->ident;
 	}
 	else if (gauche->ident == ID::ContexteProgramme) {
 		auto type_contexte = m_unite->espace->typeuse.type_contexte->comme_structure();
 		noeud_decl->type = type_contexte;
 		type_contexte->decl = noeud_decl;
-		type_contexte->nom = noeud_decl->ident->nom;
+		type_contexte->nom = noeud_decl->ident;
 		cree_tache = true;
 	}
 	else {

@@ -167,7 +167,7 @@ struct Monomorpheuse {
 						auto type2 = Type::nul();
 
 						POUR (type_courant->comme_structure()->membres) {
-							if (it.nom == type1->ident->nom) {
+							if (it.nom == type1->ident) {
 								type2 = it.type->comme_type_de_donnees()->type_connu;
 								break;
 							}
@@ -417,7 +417,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 				auto index_membre = 0;
 
 				POUR (type_struct->membres) {
-					if (it.nom == membre->ident->nom) {
+					if (it.nom == membre->ident) {
 						acces->type = it.type;
 						membre_trouve = true;
 						break;

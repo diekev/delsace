@@ -360,8 +360,8 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		{
 			auto type_struct = type->comme_union();
 			auto decl_struct = type_struct->decl;
-			auto nom_nonsur = "union_nonsure." + type_struct->nom;
-			auto nom = "union." + type_struct->nom;
+			auto nom_nonsur = "union_nonsure." + type_struct->nom->nom;
+			auto nom = "union." + type_struct->nom->nom;
 
 			// création d'une structure ne contenant que le membre le plus grand
 			auto taille_max = 0u;
@@ -390,7 +390,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		case GenreType::STRUCTURE:
 		{
 			auto type_struct = type->comme_structure();
-			auto nom = "struct." + type_struct->nom;
+			auto nom = "struct." + type_struct->nom->nom;
 
 			/* Pour les structures récursives, il faut créer un type
 			 * opaque, dont le corps sera renseigné à la fin */

@@ -138,6 +138,15 @@ extern IdentifiantCode *corps_texte;
 extern IdentifiantCode *cuisine;
 extern IdentifiantCode *opaque;
 extern IdentifiantCode *__point_d_entree_systeme;
+extern IdentifiantCode *taille;
+extern IdentifiantCode *capacite;
+extern IdentifiantCode *anonyme;
+extern IdentifiantCode *valeur;
+extern IdentifiantCode *membre_actif;
+extern IdentifiantCode *info;
+extern IdentifiantCode *_0;
+extern IdentifiantCode *_1;
+extern IdentifiantCode *nombre_elements;
 
 }
 

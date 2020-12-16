@@ -671,7 +671,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
 			info_type->genre = GenreInfoType::STRUCTURE;
 			info_type->taille_en_octet = type->taille_octet;
-			info_type->nom = type_struct->nom;
+			info_type->nom = type_struct->nom->nom;
 
 			info_type->membres.reserve(type_struct->membres.taille);
 
@@ -679,7 +679,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 				auto info_type_membre = infos_types_membres_structures.ajoute_element();
 				info_type_membre->info = cree_info_type_pour(it.type);
 				info_type_membre->decalage = it.decalage;
-				info_type_membre->nom = it.nom;
+				info_type_membre->nom = it.nom->nom;
 				info_type_membre->drapeaux = it.drapeaux;
 
 				info_type->membres.pousse(info_type_membre);
@@ -704,7 +704,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 				auto info_type_membre = infos_types_membres_structures.ajoute_element();
 				info_type_membre->info = cree_info_type_pour(it.type);
 				info_type_membre->decalage = it.decalage;
-				info_type_membre->nom = it.nom;
+				info_type_membre->nom = it.nom->nom;
 				info_type_membre->drapeaux = it.drapeaux;
 
 				info_type->membres.pousse(info_type_membre);
@@ -720,7 +720,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
 			auto info_type = infos_types_enums.ajoute_element();
 			info_type->genre = GenreInfoType::ENUM;
-			info_type->nom = type_enum->nom;
+			info_type->nom = type_enum->nom->nom;
 			info_type->est_drapeau = type_enum->est_drapeau;
 			info_type->taille_en_octet = type_enum->taille_octet;
 
@@ -728,7 +728,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->valeurs.reserve(type_enum->membres.taille);
 
 			POUR (type_enum->membres) {
-				info_type->noms.pousse(it.nom);
+				info_type->noms.pousse(it.nom->nom);
 				info_type->valeurs.pousse(it.valeur);
 			}
 

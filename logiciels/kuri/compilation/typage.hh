@@ -291,7 +291,7 @@ struct TypeCompose : public Type {
 		};
 
 		Type *type = nullptr;
-		dls::vue_chaine_compacte nom = "";
+		IdentifiantCode *nom = nullptr;
 		unsigned decalage = 0;
 		int valeur = 0; // pour les énumérations
 		NoeudExpression *expression_valeur_defaut = nullptr; // pour les membres des structures
@@ -301,7 +301,7 @@ struct TypeCompose : public Type {
 	kuri::tableau<Membre> membres{};
 
 	/* Le nom tel que donné dans le script (p.e. Structure, pour Structure :: struct ...). */
-	dls::vue_chaine_compacte nom{};
+	IdentifiantCode *nom = nullptr;
 
 	/* Le nom final, contenant les informations de portée (p.e. ModuleStructure, pour Structure :: struct dans le module Module). */
 	dls::chaine nom_portable_{};

@@ -269,7 +269,7 @@ ResultatExpression evalue_expression(
 					auto type_enum = decl_var->type->comme_enum();
 
 					POUR (type_enum->membres) {
-						if (it.nom == decl_var->ident->nom) {
+						if (it.nom == decl_var->ident) {
 							res.entier = it.valeur;
 							res.type = TypeExpression::ENTIER;
 							res.est_errone = false;

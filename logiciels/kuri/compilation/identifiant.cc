@@ -170,6 +170,15 @@ IdentifiantCode *corps_texte;
 IdentifiantCode *cuisine;
 IdentifiantCode *opaque;
 IdentifiantCode *__point_d_entree_systeme;
+IdentifiantCode *taille;
+IdentifiantCode *capacite;
+IdentifiantCode *anonyme;
+IdentifiantCode *valeur;
+IdentifiantCode *membre_actif;
+IdentifiantCode *info;
+IdentifiantCode *_0;
+IdentifiantCode *_1;
+IdentifiantCode *nombre_elements;
 
 }
 
@@ -253,4 +262,13 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::cuisine = table.identifiant_pour_chaine("cuisine");
 	ID::opaque = table.identifiant_pour_chaine("opaque");
 	ID::__point_d_entree_systeme = table.identifiant_pour_chaine("__point_d_entree_systeme");
+	ID::taille = table.identifiant_pour_chaine("taille");
+	ID::capacite = table.identifiant_pour_chaine("capacité");
+	ID::anonyme = table.identifiant_pour_chaine("anonyme");
+	ID::valeur = table.identifiant_pour_chaine("valeur");
+	ID::membre_actif = table.identifiant_pour_chaine("membre_actif");
+	ID::info = table.identifiant_pour_chaine("info");
+	ID::_0 = table.identifiant_pour_chaine("0");
+	ID::_1 = table.identifiant_pour_chaine("1");
+	ID::nombre_elements = table.identifiant_pour_chaine("nombre_éléments");
 }

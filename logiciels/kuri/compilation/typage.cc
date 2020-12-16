@@ -476,14 +476,14 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synch
 	type_info_type_ = reserve_type_structure(nullptr);
 
 	auto membres_eini = kuri::tableau<TypeCompose::Membre>();
-	membres_eini.pousse({ types_communs[static_cast<long>(TypeBase::PTR_RIEN)], "pointeur", 0 });
-	membres_eini.pousse({ type_pointeur_pour(type_info_type_), "info", 8 });
+	membres_eini.pousse({ types_communs[static_cast<long>(TypeBase::PTR_RIEN)], ID::pointeur, 0 });
+	membres_eini.pousse({ type_pointeur_pour(type_info_type_), ID::info, 8 });
 	type_eini->membres = std::move(membres_eini);
 	type_eini->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
 
 	auto membres_chaine = kuri::tableau<TypeCompose::Membre>();
-	membres_chaine.pousse({ types_communs[static_cast<long>(TypeBase::PTR_Z8)], "pointeur", 0 });
-	membres_chaine.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "taille", 8 });
+	membres_chaine.pousse({ types_communs[static_cast<long>(TypeBase::PTR_Z8)], ID::pointeur, 0 });
+	membres_chaine.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8 });
 	type_chaine->membres = std::move(membres_chaine);
 	type_chaine->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
 
@@ -687,8 +687,8 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 
 	// les décalages sont à zéros car ceci n'est pas vraiment une structure
 	auto membres = kuri::tableau<TypeCompose::Membre>();
-	membres.pousse({ type_pointeur_pour(type_pointe), "pointeur", 0 });
-	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "taille", 0 });
+	membres.pousse({ type_pointeur_pour(type_pointe), ID::pointeur, 0 });
+	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 0 });
 
 	auto type = types_tableaux_fixes_->ajoute_element(type_pointe, taille, std::move(membres));
 
@@ -713,9 +713,9 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 	}
 
 	auto membres = kuri::tableau<TypeCompose::Membre>();
-	membres.pousse({ type_pointeur_pour(type_pointe), "pointeur", 0 });
-	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "taille", 8 });
-	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "capacité", 16 });
+	membres.pousse({ type_pointeur_pour(type_pointe), ID::pointeur, 0 });
+	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8 });
+	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], ID::capacite, 16 });
 
 	auto type = types_tableaux_dynamiques_->ajoute_element(type_pointe, std::move(membres));
 
@@ -738,9 +738,9 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 	}
 
 	auto membres = kuri::tableau<TypeCompose::Membre>();
-	membres.pousse({ type_pointeur_pour(type_pointe), "pointeur", 0 });
-	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "taille", 8 });
-	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], "capacité", 16 });
+	membres.pousse({ type_pointeur_pour(type_pointe), ID::pointeur, 0 });
+	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8 });
+	membres.pousse({ types_communs[static_cast<long>(TypeBase::Z64)], ID::capacite, 16 });
 
 	auto type = types_variadiques_->ajoute_element(type_pointe, std::move(membres));
 
@@ -878,7 +878,7 @@ TypeStructure *Typeuse::reserve_type_structure(NoeudStruct *decl)
 
 	// decl peut être nulle pour la réservation du type pour InfoType
 	if (type->decl) {
-		type->nom = decl->lexeme->chaine;
+		type->nom = decl->lexeme->ident;
 	}
 
 	return type;
@@ -887,7 +887,7 @@ TypeStructure *Typeuse::reserve_type_structure(NoeudStruct *decl)
 TypeEnum *Typeuse::reserve_type_enum(NoeudEnum *decl)
 {
 	auto type = types_enums->ajoute_element();
-	type->nom = decl->lexeme->chaine;
+	type->nom = decl->lexeme->ident;
 	type->decl = decl;
 	type->drapeaux |= (RI_TYPE_FUT_GENEREE);
 
@@ -897,7 +897,7 @@ TypeEnum *Typeuse::reserve_type_enum(NoeudEnum *decl)
 TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
 {
 	auto type = types_unions->ajoute_element();
-	type->nom = decl->lexeme->chaine;
+	type->nom = decl->lexeme->ident;
 	type->decl = decl;
 
 	return type;
@@ -933,7 +933,7 @@ TypeUnion *Typeuse::union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &mem
 	}
 
 	auto type = types_unions_->ajoute_element();
-	type->nom = "anonyme";
+	type->nom = ID::anonyme;
 
 	type->membres.reserve(membres.taille());
 	POUR (membres) {
@@ -1180,11 +1180,11 @@ dls::chaine chaine_type(const Type *type)
 		}
 		case GenreType::UNION:
 		{
-			return static_cast<TypeUnion const *>(type)->nom;
+			return static_cast<TypeUnion const *>(type)->nom->nom;
 		}
 		case GenreType::STRUCTURE:
 		{
-			return static_cast<TypeStructure const *>(type)->nom;
+			return static_cast<TypeStructure const *>(type)->nom->nom;
 		}
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
@@ -1239,7 +1239,7 @@ dls::chaine chaine_type(const Type *type)
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
 		{
-			return static_cast<TypeEnum const *>(type)->nom;
+			return static_cast<TypeEnum const *>(type)->nom->nom;
 		}
 		case GenreType::TYPE_DE_DONNEES:
 		{
@@ -1339,8 +1339,8 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
 	assert(!est_nonsure);
 
 	auto membres_ = kuri::tableau<TypeCompose::Membre>(2);
-	membres_[0] = { type_le_plus_grand, "valeur", 0 };
-	membres_[1] = { typeuse[TypeBase::Z32], "membre_actif", alignement_membre_actif };
+	membres_[0] = { type_le_plus_grand, ID::valeur, 0 };
+	membres_[1] = { typeuse[TypeBase::Z32], ID::membre_actif, alignement_membre_actif };
 
 	type_structure = typeuse.reserve_type_structure(nullptr);
 	type_structure->membres = std::move(membres_);
@@ -1528,7 +1528,7 @@ const dls::chaine &TypeStructure::nom_portable()
 		return nom_portable_;
 	}
 
-	nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom);
+	nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom->nom);
 	return nom_portable_;
 }
 
@@ -1538,7 +1538,7 @@ const dls::chaine &TypeUnion::nom_portable()
 		return nom_portable_;
 	}
 
-	nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom);
+	nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom->nom);
 	return nom_portable_;
 }
 
@@ -1548,6 +1548,6 @@ const dls::chaine &TypeEnum::nom_portable()
 		return nom_portable_;
 	}
 
-	nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom);
+	nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom->nom);
 	return nom_portable_;
 }

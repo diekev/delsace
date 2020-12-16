@@ -802,7 +802,7 @@ void membre_inconnu(
 	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
 
 	POUR (type->membres) {
-		membres.insere(it.nom);
+		membres.insere(it.nom->nom);
 	}
 
 	const char *message;

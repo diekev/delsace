@@ -351,7 +351,7 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeStructure
 			continue;
 		}
 
-		auto nom = broye_nom_simple(it.nom);
+		auto nom = broye_nom_simple(it.nom->nom);
 		enchaineuse << nom_broye_type(it.type) << ' ';
 		enchaineuse << nom << ";\n";
 	}
@@ -626,7 +626,7 @@ struct GeneratriceCodeC {
 									virgule_placee = true;
 
 									resultat += ".";
-									resultat += broye_nom_simple(type->membres[i].nom);
+									resultat += broye_nom_simple(type->membres[i].nom->nom);
 									resultat += " = ";
 									resultat += genere_code_pour_atome(tableau_valeur[index_membre], os, pour_globale);
 
@@ -1112,7 +1112,7 @@ struct GeneratriceCodeC {
 					valeur_accede = "&" + valeur_accede + "->";
 				}
 
-				valeur_accede += broye_nom_simple(type_compose->membres[index_membre].nom);
+				valeur_accede += broye_nom_simple(type_compose->membres[index_membre].nom->nom);
 
 				table_valeurs[inst_acces] = valeur_accede;
 				break;

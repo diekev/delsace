@@ -48,7 +48,7 @@
 
 /* ************************************************************************** */
 
-static auto trouve_index_membre(TypeCompose *type_compose, dls::vue_chaine_compacte const &nom_membre)
+static auto trouve_index_membre(TypeCompose *type_compose, IdentifiantCode *nom_membre)
 {
 	auto idx_membre = 0u;
 
@@ -63,7 +63,7 @@ static auto trouve_index_membre(TypeCompose *type_compose, dls::vue_chaine_compa
 	return idx_membre;
 }
 
-static auto trouve_index_membre(NoeudStruct *noeud_struct, dls::vue_chaine_compacte const &nom_membre)
+static auto trouve_index_membre(NoeudStruct *noeud_struct, IdentifiantCode *nom_membre)
 {
 	auto type_compose = static_cast<TypeCompose *>(noeud_struct->type);
 	return trouve_index_membre(type_compose, nom_membre);
@@ -2207,7 +2207,7 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 						table_locales[f->ident] = valeur;
 					}
 					else {
-						auto idx_membre = trouve_index_membre(decl_struct, f->ident->nom);
+						auto idx_membre = trouve_index_membre(decl_struct, f->ident);
 						valeur_f = cree_z32(idx_membre + 1);
 
 						auto valeur = cree_acces_membre(noeud, ptr_structure, 0);
@@ -3355,7 +3355,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			auto valeur_taille_octet = cree_z32(type->taille_octet);
 			auto est_drapeau = cree_constante_booleenne(type_enum->est_drapeau);
 
-			auto struct_chaine = cree_chaine(type_enum->nom);
+			auto struct_chaine = cree_chaine(type_enum->nom->nom);
 
 			/* création des tableaux de valeurs et de noms */
 
@@ -3371,7 +3371,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			noms_enum.reserve(type_enum->membres.taille);
 
 			POUR (type_enum->membres) {
-				auto chaine_nom = cree_chaine(it.nom);
+				auto chaine_nom = cree_chaine(it.nom->nom);
 				noms_enum.pousse(chaine_nom);
 			}
 
@@ -3427,7 +3427,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 							m_espace->typeuse.type_pointeur_pour(m_espace->typeuse.type_info_type_),
 							info_type);
 
-				auto valeur_nom = cree_chaine(it.nom);
+				auto valeur_nom = cree_chaine(it.nom->nom);
 				auto valeur_decalage = cree_z64(static_cast<uint64_t>(it.decalage));
 				auto valeur_drapeaux = cree_z32(static_cast<unsigned>(it.drapeaux));
 
@@ -3509,7 +3509,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 							m_espace->typeuse.type_pointeur_pour(m_espace->typeuse.type_info_type_),
 							info_type);
 
-				auto valeur_nom = cree_chaine(it.nom);
+				auto valeur_nom = cree_chaine(it.nom->nom);
 				auto valeur_decalage = cree_z64(static_cast<uint64_t>(it.decalage));
 				auto valeur_drapeaux = cree_z32(static_cast<unsigned>(it.drapeaux));
 
@@ -3530,7 +3530,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 
 			auto valeur_id = cree_z32(IDInfoType::STRUCTURE);
 			auto valeur_taille_octet = cree_z32(type->taille_octet);
-			auto valeur_nom = cree_chaine(type_struct->nom);
+			auto valeur_nom = cree_chaine(type_struct->nom->nom);
 
 			// Pour les références à des globales, nous devons avoir un type pointeur.
 			auto type_membre = m_espace->typeuse.type_pointeur_pour(type_struct_membre);

@@ -560,8 +560,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						}
 
 						auto membres = dls::tablet<TypeCompose::Membre, 6>(2);
-						membres[0] = { type_type1->type_connu, "0" };
-						membres[1] = { type_type2->type_connu, "1" };
+						membres[0] = { type_type1->type_connu, ID::_0 };
+						membres[1] = { type_type2->type_connu, ID::_1 };
 
 						auto type_union = espace->typeuse.union_anonyme(membres);
 						expr->type = espace->typeuse.type_type_de_donnees(type_union);
@@ -1587,7 +1587,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			else if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
 				auto type_enum = type->comme_enum();
 
-				auto membres_rencontres = dls::ensemblon<dls::vue_chaine_compacte, 16>();
+				auto membres_rencontres = dls::ensemblon<IdentifiantCode *, 16>();
 				noeud->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
 
 				for (int i = 0; i < inst->paires_discr.taille; ++i) {
@@ -1601,7 +1601,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 							return true;
 						}
 
-						auto nom_membre = f->ident->nom;
+						auto nom_membre = f->ident;
 
 						auto nom_trouve = false;
 
@@ -1631,7 +1631,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 					POUR (type_enum->membres) {
 						if (!membres_rencontres.possede(it.nom) && (it.drapeaux & TypeCompose::Membre::EST_IMPLICITE) == 0) {
-							valeurs_manquantes.insere(it.nom);
+							valeurs_manquantes.insere(it.nom->nom);
 						}
 					}
 
@@ -1913,7 +1913,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			POUR (type_structure->membres) {
 				auto decl_membre = static_cast<NoeudDeclarationVariable *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
-				decl_membre->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(it.nom);
+				decl_membre->ident = it.nom;
 				decl_membre->type = it.type;
 				decl_membre->bloc_parent = bloc_parent;
 				decl_membre->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -1969,7 +1969,7 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 		auto membre_est_constant = false;;
 
 		POUR (type_compose->membres) {
-			if (it.nom == membre->ident->nom) {
+			if (it.nom == membre->ident) {
 				expression_membre->type = it.type;
 				membre_trouve = true;
 				membre_est_constant = it.drapeaux == TypeCompose::Membre::EST_CONSTANT;
@@ -2888,12 +2888,12 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 			}
 		}
 
-		membres.pousse({ type_enum, var->ident->nom, 0, static_cast<int>(res.entier) });
+		membres.pousse({ type_enum, var->ident, 0, static_cast<int>(res.entier) });
 
 		dernier_res = res;
 	}
 
-	membres.pousse({ espace->typeuse[TypeBase::Z32], "nombre_éléments", 0, static_cast<int>(membres.taille), nullptr, TypeCompose::Membre::EST_IMPLICITE });
+	membres.pousse({ espace->typeuse[TypeBase::Z32], ID::nombre_elements, 0, static_cast<int>(membres.taille), nullptr, TypeCompose::Membre::EST_IMPLICITE });
 
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 	decl->type->drapeaux |= TYPE_FUT_VALIDE;
@@ -3021,7 +3021,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			return true;
 		}
 
-		type_compose->membres.pousse({ enfant->type, enfant->ident->nom, 0, 0, expr_valeur });
+		type_compose->membres.pousse({ enfant->type, enfant->ident, 0, 0, expr_valeur });
 
 		donnees_dependance.types_utilises.insere(type_membre);
 
@@ -3098,7 +3098,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		if (dls::outils::est_element(it->genre, GenreNoeud::DECLARATION_STRUCTURE, GenreNoeud::DECLARATION_ENUM)) {
 			// utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
 			auto type_de_donnees = espace->typeuse.type_type_de_donnees(it->type);
-			type_compose->membres.pousse({ type_de_donnees, it->ident->nom, 0, 0, nullptr, TypeCompose::Membre::EST_CONSTANT });
+			type_compose->membres.pousse({ type_de_donnees, it->ident, 0, 0, nullptr, TypeCompose::Membre::EST_CONSTANT });
 
 			// l'utilisation d'un type de données brise le graphe de dépendance
 			donnees_dependance.types_utilises.insere(it->type);
@@ -3118,7 +3118,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		auto decl_var = it->comme_decl_var();
 
 		if (decl_var->possede_drapeau(EST_CONSTANTE)) {
-			type_compose->membres.pousse({ it->type, it->ident->nom, 0, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
+			type_compose->membres.pousse({ it->type, it->ident, 0, 0, decl_var->expression, TypeCompose::Membre::EST_CONSTANT });
 			continue;
 		}
 
@@ -3177,7 +3177,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			auto variable = expr_assign->variable;
 
 			for (auto &membre : type_compose->membres) {
-				if (membre.nom == variable->ident->nom) {
+				if (membre.nom == variable->ident) {
 					membre.expression_valeur_defaut = expr_assign->expression;
 					break;
 				}
