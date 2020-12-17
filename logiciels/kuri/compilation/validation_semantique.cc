@@ -27,6 +27,7 @@
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/structures/flux_chaine.hh"
+#include "biblinternes/structures/file_fixe.hh"
 
 #include "arbre_syntaxique.hh"
 #include "assembleuse_arbre.h"
@@ -2406,7 +2407,7 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 		return true;
 	}
 
-	dls::file<NoeudExpression *> variables;
+	dls::file_fixe<NoeudExpression *, 6> variables;
 
 	POUR (fonction_courante->params_sorties) {
 		variables.enfile(it);
@@ -3301,7 +3302,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 	// pour chaque expression, associe les variables qui doivent recevoir leurs résultats
 	// si une variable n'a pas de valeur, prend la valeur de la dernière expression
 
-	auto variables = dls::file<NoeudExpression *>();
+	auto variables = file_fixe<NoeudExpression *, 6>();
 	{
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "enfile variables");
 
@@ -3491,7 +3492,7 @@ bool ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
 	CHRONO_TYPAGE(m_tacheronne.stats_typage.assignations, "valide assignation");
 	auto variable = inst->variable;
 
-	dls::file<NoeudExpression *> variables;
+	dls::file_fixe<NoeudExpression *, 6> variables;
 
 	if (variable->est_virgule()) {
 		auto virgule = variable->comme_virgule();
