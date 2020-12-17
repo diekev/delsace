@@ -69,6 +69,7 @@ add_library(${NOM_CIBLE} STATIC
 	ensemble.hh
 	ensemblon.hh
 	file.hh
+    file_fixe.hh
 	flux_chaine.hh
 	grille_particules.hh
 	hachage_spatiale.hh
