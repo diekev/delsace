@@ -216,7 +216,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			// crée une fonction pour l'exécution
-			auto decl_entete = static_cast<NoeudDeclarationEnteteFonction *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_ENTETE_FONCTION, noeud->lexeme));
+			auto decl_entete = m_tacheronne.assembleuse->cree_entete_fonction(noeud->lexeme);
 			auto decl_corps  = decl_entete->corps;
 
 			decl_entete->bloc_parent = noeud->bloc_parent;
@@ -226,7 +226,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			decl_entete->est_metaprogramme = true;
 
 			// le type de la fonction est fonc () -> (type_expression)
-			auto decl_sortie = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, noeud->lexeme)->comme_decl_var();
+			auto decl_sortie = m_tacheronne.assembleuse->cree_declaration(noeud->lexeme);
 			decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
 			decl_sortie->type = noeud_directive->expr->type;
 			decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -241,10 +241,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type_fonction = espace->typeuse.type_fonction(types_entrees, types_sorties);
 			decl_entete->type = type_fonction;
 
-			decl_corps->bloc = static_cast<NoeudBloc *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, noeud->lexeme));
+			decl_corps->bloc = m_tacheronne.assembleuse->cree_bloc_seul(noeud->lexeme);
 
 			static Lexeme lexeme_retourne = { "retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0 };
-			auto expr_ret = static_cast<NoeudRetour *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_RETOUR, &lexeme_retourne));
+			auto expr_ret = m_tacheronne.assembleuse->cree_retour(&lexeme_retourne);
 
 			if (noeud_directive->expr->type != espace->typeuse[TypeBase::RIEN]) {
 				expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
@@ -571,7 +571,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						// @concurrence critique
 						if (type_union->decl == nullptr) {
 							static Lexeme lexeme_union = { "anonyme", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-							auto decl_struct = static_cast<NoeudStruct *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_STRUCTURE, &lexeme_union));
+							auto decl_struct = m_tacheronne.assembleuse->cree_struct(&lexeme_union);
 							decl_struct->type = type_union;
 
 							type_union->decl = decl_struct;
@@ -1487,7 +1487,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 
 					/* pousse la variable dans le bloc suivant */
-					auto decl_expr = static_cast<NoeudDeclaration *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, expr_paire->lexeme));
+					auto decl_expr = m_tacheronne.assembleuse->cree_declaration(expr_paire->lexeme);
 					decl_expr->ident = expr_paire->ident;
 					decl_expr->lexeme = expr_paire->lexeme;
 					decl_expr->bloc_parent = bloc_paire;
@@ -1570,7 +1570,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 
 					/* pousse la variable dans le bloc suivant */
-					auto decl_expr = static_cast<NoeudDeclaration *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, expr_paire->lexeme));
+					auto decl_expr = m_tacheronne.assembleuse->cree_declaration(expr_paire->lexeme);
 					decl_expr->ident = expr_paire->ident;
 					decl_expr->lexeme = expr_paire->lexeme;
 					decl_expr->bloc_parent = bloc_paire;
@@ -1848,7 +1848,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 				var_piege->type = type_de_l_erreur;
 
-				auto decl_var_piege = static_cast<NoeudDeclarationVariable *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, var_piege->lexeme));
+				auto decl_var_piege = m_tacheronne.assembleuse->cree_declaration(var_piege->lexeme);
 				decl_var_piege->bloc_parent = inst->bloc;
 				decl_var_piege->valeur = var_piege;
 				decl_var_piege->type = var_piege->type;
@@ -1913,7 +1913,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			POUR (type_structure->membres) {
-				auto decl_membre = static_cast<NoeudDeclarationVariable *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
+				auto decl_membre = m_tacheronne.assembleuse->cree_declaration(decl->lexeme);
 				decl_membre->ident = it.nom;
 				decl_membre->type = it.type;
 				decl_membre->bloc_parent = bloc_parent;
@@ -2568,11 +2568,11 @@ bool ContexteValidationCode::valide_cuisine(NoeudDirectiveExecution *directive)
 
 MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte, NoeudBloc *bloc_parent, const Lexeme *lexeme)
 {
-	auto fonction = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_ENTETE_FONCTION, lexeme)->comme_entete_fonction();
+	auto fonction = m_tacheronne.assembleuse->cree_entete_fonction(lexeme);
 	auto nouveau_corps = fonction->corps;
 
-	fonction->bloc_constantes = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, lexeme)->comme_bloc();
-	fonction->bloc_parametres = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, lexeme)->comme_bloc();
+	fonction->bloc_constantes = m_tacheronne.assembleuse->cree_bloc_seul(lexeme);
+	fonction->bloc_parametres = m_tacheronne.assembleuse->cree_bloc_seul(lexeme);
 	fonction->bloc_constantes->bloc_parent = bloc_parent;
 	fonction->bloc_parametres->bloc_parent = fonction->bloc_constantes;
 
@@ -2583,7 +2583,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
 	/* mise en place du type de la fonction : () -> chaine */
 	fonction->est_metaprogramme = true;
 
-	auto decl_sortie = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, lexeme)->comme_decl_var();
+	auto decl_sortie = m_tacheronne.assembleuse->cree_declaration(lexeme);
 	decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
 	decl_sortie->type = espace->typeuse[TypeBase::CHAINE];
 	decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -2657,12 +2657,12 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 		auto requiers_contexte = !decl->entete->possede_drapeau(FORCE_NULCTX);
 
 		if (requiers_contexte) {
-			auto val_ctx = static_cast<NoeudExpressionReference *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
+			auto val_ctx = m_tacheronne.assembleuse->cree_ref_decl(decl->lexeme);
 			val_ctx->type = espace->typeuse.type_contexte;
 			val_ctx->bloc_parent = decl->bloc_parent;
 			val_ctx->ident = ID::contexte;
 
-			auto decl_ctx = static_cast<NoeudDeclarationVariable *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
+			auto decl_ctx = m_tacheronne.assembleuse->cree_declaration(decl->lexeme);
 			decl_ctx->bloc_parent = decl->bloc_parent;
 			decl_ctx->valeur = val_ctx;
 			decl_ctx->type = val_ctx->type;
@@ -2728,12 +2728,12 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *dec
 		decl->bloc->membres->reserve(entete->params.taille + requiers_contexte);
 
 		if (requiers_contexte) {
-			auto val_ctx = static_cast<NoeudExpressionReference *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, decl->lexeme));
+			auto val_ctx = m_tacheronne.assembleuse->cree_ref_decl(decl->lexeme);
 			val_ctx->type = espace->typeuse.type_contexte;
 			val_ctx->bloc_parent = decl->bloc_parent;
 			val_ctx->ident = ID::contexte;
 
-			auto decl_ctx = static_cast<NoeudDeclarationVariable *>(m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl->lexeme));
+			auto decl_ctx = m_tacheronne.assembleuse->cree_declaration(decl->lexeme);
 			decl_ctx->bloc_parent = decl->bloc_parent;
 			decl_ctx->valeur = val_ctx;
 			decl_ctx->type = val_ctx->type;
@@ -3809,7 +3809,7 @@ bool ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
 		}
 	}
 
-	auto noeud_comme = m_tacheronne.assembleuse->cree_noeud(GenreNoeud::EXPRESSION_COMME, expression->lexeme)->comme_comme();
+	auto noeud_comme = m_tacheronne.assembleuse->cree_comme(expression->lexeme);
 	noeud_comme->type = type_cible;
 	noeud_comme->expression = expression;
 	noeud_comme->transformation = transformation;

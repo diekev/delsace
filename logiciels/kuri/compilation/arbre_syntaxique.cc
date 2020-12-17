@@ -484,10 +484,10 @@ NoeudExpression *copie_noeud(
 			nexpr->arbre_aplatis.reserve(expr->arbre_aplatis.taille);
 			nexpr->est_declaration_type = expr->est_declaration_type;
 
-			nexpr->bloc_constantes = assem->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, nullptr)->comme_bloc();
+			nexpr->bloc_constantes = assem->cree_bloc_seul(nullptr);
 			nexpr->bloc_constantes->bloc_parent = bloc_parent;
 
-			nexpr->bloc_parametres = assem->cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, nullptr)->comme_bloc();
+			nexpr->bloc_parametres = assem->cree_bloc_seul(nullptr);
 			nexpr->bloc_parametres->bloc_parent = nexpr->bloc_constantes;
 
 			bloc_parent = nexpr->bloc_parametres;

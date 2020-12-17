@@ -1052,8 +1052,7 @@ static auto apparie_appel_fonction(
 			/* Pour les fonctions variadiques interne, nous créons un tableau
 			 * correspondant au types des arguments. */
 			static Lexeme lexeme_tableau = { "", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-			auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(contexte.m_tacheronne.assembleuse->cree_noeud(
-						GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, &lexeme_tableau));
+			auto noeud_tableau = contexte.m_tacheronne.assembleuse->cree_tableau_variadique(&lexeme_tableau);
 
 			noeud_tableau->type = type_donnees_argument_variadique;
 			noeud_tableau->exprs.reserve(slots.taille() - index_premier_var_arg);
@@ -1637,7 +1636,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 	// ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
 	POUR (items_monomorphisation) {
 		// À FAIRE(poly) : lexème pour la  constante
-		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, copie->lexeme)->comme_decl_var();
+		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration(copie->lexeme);
 		decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
 		decl_constante->ident = it.ident;
 		decl_constante->type = espace.typeuse.type_type_de_donnees(it.type);
@@ -1728,7 +1727,7 @@ static NoeudStruct *monomorphise_au_besoin(
 	// ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
 	POUR (items_monomorphisation) {
 		// À FAIRE(poly) : lexème pour la  constante
-		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, decl_struct->lexeme)->comme_decl_var();
+		auto decl_constante = contexte.m_tacheronne.assembleuse->cree_declaration(decl_struct->lexeme);
 		decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
 		decl_constante->ident = it.ident;
 		decl_constante->type = it.type;
