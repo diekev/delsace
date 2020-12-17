@@ -2523,7 +2523,7 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 			}
 		}
 
-		donnees_retour.ajoute(donnees);
+		donnees_retour.ajoute(std::move(donnees));
 	}
 
 	// À FAIRE : valeur par défaut des expressions
@@ -3420,7 +3420,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 				}
 			}
 
-			donnees_assignations.ajoute(donnees);
+			donnees_assignations.ajoute(std::move(donnees));
 		}
 
 		if (donnees_assignations.est_vide()) {
@@ -3623,7 +3623,7 @@ bool ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
 			}
 		}
 
-		donnees_assignations.ajoute(donnees);
+		donnees_assignations.ajoute(std::move(donnees));
 	}
 
 	// a, b = c
