@@ -226,6 +226,8 @@ investigue l'utilisation des types entiers, des représentations binaires et des
 
 passe en revue les arithmétiques de pointeurs
 
+meilleur gestion des modulos : négatif % positif => négatif, positif % négatif => négatif, ceci est à éviter
+
 amélioration du typage des expressions de tableaux constants
     plusieurs problèmes de l'approche courrante
     - le premier élément défini le type du tableau ce qui fait échoué les tableaux mélangeant des constantes de nombre et de caractère (voir Noyau)
