@@ -90,16 +90,47 @@ public:
 	void lance_analyse();
 
 private:
-	Lexeme consomme();
+	inline Lexeme consomme()
+	{
+		auto vieux_lexeme = m_lexemes[m_position];
+		m_position += 1;
 
-	Lexeme consomme(GenreLexeme genre_lexeme, const char *message);
+		if (!fini()) {
+			m_lexeme_courant = &m_lexemes[m_position];
+		}
 
-	Lexeme *lexeme_courant();
-	Lexeme const *lexeme_courant() const;
+		return vieux_lexeme;
+	}
 
-	bool fini() const;
+	inline Lexeme consomme(GenreLexeme genre_lexeme, const char *message)
+	{
+		if (m_lexemes[m_position].genre != genre_lexeme) {
+			lance_erreur(message);
+		}
 
-	bool apparie(GenreLexeme genre_lexeme) const;
+		return consomme();
+	}
+
+	inline Lexeme *lexeme_courant()
+	{
+		return m_lexeme_courant;
+	}
+
+	inline Lexeme const *lexeme_courant() const
+	{
+		return m_lexeme_courant;
+	}
+
+	inline bool fini() const
+	{
+		return m_position >= m_lexemes.taille();
+	}
+
+	inline bool apparie(GenreLexeme genre_lexeme) const
+	{
+		return m_lexeme_courant->genre == genre_lexeme;
+	}
+
 	bool apparie_expression() const;
 	bool apparie_expression_unaire() const;
 	bool apparie_expression_secondaire() const;

@@ -479,47 +479,6 @@ void Syntaxeuse::lance_analyse()
 	m_tacheronne.assembleuse->depile_tout();
 }
 
-Lexeme Syntaxeuse::consomme()
-{
-	auto vieux_lexeme = m_lexemes[m_position];
-	m_position += 1;
-
-	if (!fini()) {
-		m_lexeme_courant = &m_lexemes[m_position];
-	}
-
-	return vieux_lexeme;
-}
-
-Lexeme Syntaxeuse::consomme(GenreLexeme genre_lexeme, const char *message)
-{
-	if (m_lexemes[m_position].genre != genre_lexeme) {
-		lance_erreur(message);
-	}
-
-	return consomme();
-}
-
-Lexeme *Syntaxeuse::lexeme_courant()
-{
-	return m_lexeme_courant;
-}
-
-const Lexeme *Syntaxeuse::lexeme_courant() const
-{
-	return m_lexeme_courant;
-}
-
-bool Syntaxeuse::fini() const
-{
-	return m_position >= m_lexemes.taille();
-}
-
-bool Syntaxeuse::apparie(GenreLexeme genre_lexeme) const
-{
-	return m_lexeme_courant->genre == genre_lexeme;
-}
-
 bool Syntaxeuse::apparie_expression() const
 {
 	auto genre = lexeme_courant()->genre;
