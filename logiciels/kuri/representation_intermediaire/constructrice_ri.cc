@@ -779,7 +779,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				expression_gauche = ancienne_expression_gauche;
 
 				if (it.multiple_retour) {
-					for (auto i = 0; i < it.variables.taille; ++i) {
+					for (auto i = 0; i < it.variables.taille(); ++i) {
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						genere_ri_pour_noeud(var);
@@ -793,7 +793,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				else {
 					auto valeur = depile_valeur();
 
-					for (auto i = 0; i < it.variables.taille; ++i) {
+					for (auto i = 0; i < it.variables.taille(); ++i) {
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						genere_ri_pour_noeud(var);
@@ -1165,7 +1165,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				expression_gauche = ancienne_expression_gauche;
 
 				if (it.multiple_retour) {
-					for (auto i = 0; i < it.variables.taille; ++i) {
+					for (auto i = 0; i < it.variables.taille(); ++i) {
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						auto pointeur = table_locales[var->ident];
@@ -1182,7 +1182,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				else {
 					auto valeur = depile_valeur();
 
-					for (auto i = 0; i < it.variables.taille; ++i) {
+					for (auto i = 0; i < it.variables.taille(); ++i) {
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						auto pointeur = table_locales[var->ident];
@@ -3972,7 +3972,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 
 	if (fonction_courante == nullptr) {
 		POUR (decl->donnees_decl) {
-			for (auto i = 0; i < it.variables.taille; ++i) {
+			for (auto i = 0; i < it.variables.taille(); ++i) {
 				auto var = it.variables[i];
 				auto est_externe = dls::outils::possede_drapeau(decl->drapeaux, EST_EXTERNE);
 				auto valeur = static_cast<AtomeConstante *>(nullptr);
@@ -4028,7 +4028,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 				expression_gauche = ancienne_expression_gauche;
 
 				if (it.multiple_retour) {
-					for (auto i = 0; i < it.variables.taille; ++i) {
+					for (auto i = 0; i < it.variables.taille(); ++i) {
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						auto pointeur = alloc_pointeur(var);
@@ -4042,7 +4042,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 				else {
 					auto valeur = depile_valeur();
 
-					for (auto i = 0; i < it.variables.taille; ++i) {
+					for (auto i = 0; i < it.variables.taille(); ++i) {
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						auto pointeur = alloc_pointeur(var);

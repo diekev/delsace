@@ -384,8 +384,8 @@ struct NoeudDeclaration : public NoeudExpression {
 struct DonneesAssignations {
     NoeudExpression *expression = nullptr;
     bool multiple_retour = false;
-	kuri::tableau<NoeudExpression *> variables{};
-	kuri::tableau<TransformationType> transformations{};
+	dls::tablet<NoeudExpression *, 6> variables{};
+	dls::tablet<TransformationType, 6> transformations{};
 };
 
 struct NoeudDeclarationVariable final : public NoeudDeclaration {

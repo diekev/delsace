@@ -3036,7 +3036,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			auto decl_var = it->comme_decl_var();
 
 			for (auto &donnees : decl_var->donnees_decl) {
-				for (auto i = 0; i < donnees.variables.taille; ++i) {
+				for (auto i = 0; i < donnees.variables.taille(); ++i) {
 					auto var = donnees.variables[i];
 
 					if (var->type->est_rien()) {
@@ -3132,7 +3132,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 
 		for (auto &donnees : decl_var->donnees_decl) {
-			for (auto i = 0; i < donnees.variables.taille; ++i) {
+			for (auto i = 0; i < donnees.variables.taille(); ++i) {
 				auto var = donnees.variables[i];
 
 				if (var->type->est_rien()) {
