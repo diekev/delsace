@@ -443,6 +443,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			noeud->genre_valeur = GenreValeur::DROITE;
 			noeud->type = espace->typeuse[TypeBase::R32];
+			noeud->comme_litterale()->valeur_reelle = noeud->lexeme->valeur_reelle;
 
 			donnees_dependance.types_utilises.insere(noeud->type);
 			break;
@@ -451,6 +452,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			noeud->genre_valeur = GenreValeur::DROITE;
 			noeud->type = espace->typeuse[TypeBase::ENTIER_CONSTANT];
+			noeud->comme_litterale()->valeur_entiere = noeud->lexeme->valeur_entiere;
 
 			donnees_dependance.types_utilises.insere(noeud->type);
 			break;
@@ -877,6 +879,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			noeud->genre_valeur = GenreValeur::DROITE;
 			noeud->type = espace->typeuse[TypeBase::BOOL];
+			noeud->comme_litterale()->valeur_bool = noeud->lexeme->chaine == "vrai";
 
 			donnees_dependance.types_utilises.insere(noeud->type);
 			break;
@@ -885,6 +888,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 		{
 			noeud->genre_valeur = GenreValeur::DROITE;
 			noeud->type = espace->typeuse[TypeBase::Z8];
+			noeud->comme_litterale()->valeur_entiere = noeud->lexeme->valeur_entiere;
 			donnees_dependance.types_utilises.insere(noeud->type);
 			break;
 		}

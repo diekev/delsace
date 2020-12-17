@@ -687,6 +687,12 @@ NoeudExpression *copie_noeud(
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
+		{
+			auto lit = racine->comme_litterale();
+			auto nlit = nracine->comme_litterale();
+			nlit->valeur_entiere = lit->valeur_entiere;
+			break;
+		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		{

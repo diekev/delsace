@@ -54,6 +54,7 @@ struct NoeudExpressionBinaire;
 struct NoeudExpressionMembre;
 struct NoeudExpressionReference;
 struct NoeudRetour;
+struct NoeudExpressionLitterale;
 struct NoeudExpressionUnaire;
 struct NoeudExpressionVirgule;
 struct NoeudPour;
@@ -286,6 +287,7 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(indexage, GenreNoeud::EXPRESSION_INDEXAGE)
 	EST_NOEUD_GENRE(info_de, GenreNoeud::EXPRESSION_INFO_DE)
 	EST_NOEUD_GENRE(init_de, GenreNoeud::EXPRESSION_INIT_DE)
+	EST_NOEUD_GENRE(litterale, GenreNoeud::EXPRESSION_LITTERALE_CHAINE, GenreNoeud::EXPRESSION_LITTERALE_CARACTERE, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL, GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN, GenreNoeud::EXPRESSION_LITTERALE_NUL)
 	EST_NOEUD_GENRE(memoire, GenreNoeud::EXPRESSION_MEMOIRE)
 	EST_NOEUD_GENRE(nombre_entier, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER)
 	EST_NOEUD_GENRE(nombre_reel, GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL)
@@ -344,6 +346,7 @@ struct NoeudExpression {
 	COMME_NOEUD(indexage, NoeudExpressionBinaire)
 	COMME_NOEUD(info_de, NoeudExpressionUnaire)
 	COMME_NOEUD(init_de, NoeudExpressionUnaire)
+	COMME_NOEUD(litterale, NoeudExpressionLitterale)
 	COMME_NOEUD(memoire, NoeudExpressionUnaire)
 	COMME_NOEUD(operateur_binaire, NoeudExpressionBinaire)
 	COMME_NOEUD(operateur_unaire, NoeudExpressionUnaire)
@@ -373,6 +376,15 @@ struct NoeudExpression {
 #undef COMME_NOEUD
 
 	POINTEUR_NUL(NoeudExpression)
+};
+
+struct NoeudExpressionLitterale : public NoeudExpression {
+	// À FAIRE: ajout des chaines
+	union {
+		double valeur_reelle;
+		unsigned long valeur_entiere;
+		bool valeur_bool;
+	};
 };
 
 struct NoeudDeclaration : public NoeudExpression {
@@ -799,6 +811,7 @@ struct NoeudComme : public NoeudExpression {
 	COMME_NOEUD(indexage, NoeudExpressionBinaire)
 	COMME_NOEUD(info_de, NoeudExpressionUnaire)
 	COMME_NOEUD(init_de, NoeudExpressionUnaire)
+	COMME_NOEUD(litterale, NoeudExpressionLitterale)
 	COMME_NOEUD(memoire, NoeudExpressionUnaire)
 	COMME_NOEUD(operateur_binaire, NoeudExpressionBinaire)
 	COMME_NOEUD(operateur_unaire, NoeudExpressionUnaire)

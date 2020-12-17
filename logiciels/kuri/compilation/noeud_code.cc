@@ -322,7 +322,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		{
 			auto n = noeuds_litterale_booleen.ajoute_element();
-			n->valeur = noeud_expression->lexeme->chaine == "vrai";
+			n->valeur = noeud_expression->comme_litterale()->valeur_bool;
 
 			noeud_code = n;
 			break;
@@ -330,7 +330,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		{
 			auto n = noeuds_litterale_caractere.ajoute_element();
-			n->valeur = static_cast<char>(noeud_expression->lexeme->valeur_entiere);
+			n->valeur = static_cast<char>(noeud_expression->comme_litterale()->valeur_entiere);
 
 			noeud_code = n;
 			break;
@@ -346,7 +346,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		{
 			auto n = noeuds_litterale_reel.ajoute_element();
-			n->valeur = noeud_expression->lexeme->valeur_reelle;
+			n->valeur = noeud_expression->comme_litterale()->valeur_reelle;
 
 			noeud_code = n;
 			break;
@@ -354,7 +354,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		{
 			auto n = noeuds_litterale_entier.ajoute_element();
-			n->valeur = noeud_expression->lexeme->valeur_entiere;
+			n->valeur = noeud_expression->comme_litterale()->valeur_entiere;
 
 			noeud_code = n;
 			break;

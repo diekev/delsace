@@ -140,6 +140,10 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
+		{
+			noeud = m_noeuds_litterales.ajoute_element();
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		{
@@ -226,6 +230,7 @@ long AllocatriceNoeud::nombre_noeuds() const
 	noeuds += m_noeuds_tableau_args_variadiques.taille();
 	noeuds += m_noeuds_directive_execution.taille();
 	noeuds += m_noeuds_expression_virgule.taille();
+	noeuds += m_noeuds_litterales.taille();
 
 	return noeuds;
 }
@@ -257,6 +262,7 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudTente", m_noeuds_tente) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudDirectiveExecution", m_noeuds_directive_execution) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudComme", m_noeuds_comme) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionLitterale", m_noeuds_litterales) });
 
 	auto memoire_retour = 0l;
 	pour_chaque_element(m_noeuds_retour, [&](NoeudRetour const &noeud)

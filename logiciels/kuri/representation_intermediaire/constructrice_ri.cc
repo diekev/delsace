@@ -814,16 +814,16 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		{
-			empile_valeur(cree_constante_reelle(noeud->type, noeud->lexeme->valeur_reelle));
+			empile_valeur(cree_constante_reelle(noeud->type, noeud->comme_litterale()->valeur_reelle));
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		{
 			if (noeud->type->est_reel()) {
-				empile_valeur(cree_constante_reelle(noeud->type, static_cast<double>(noeud->lexeme->valeur_entiere)));
+				empile_valeur(cree_constante_reelle(noeud->type, static_cast<double>(noeud->comme_litterale()->valeur_entiere)));
 			}
 			else {
-				empile_valeur(cree_constante_entiere(noeud->type, noeud->lexeme->valeur_entiere));
+				empile_valeur(cree_constante_entiere(noeud->type, noeud->comme_litterale()->valeur_entiere));
 			}
 
 			break;
@@ -847,13 +847,13 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		{
-			empile_valeur(cree_constante_booleenne(noeud->lexeme->chaine == "vrai"));
+			empile_valeur(cree_constante_booleenne(noeud->comme_litterale()->valeur_bool));
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		{
 			// À FAIRE : caractères Unicode
-			auto caractere = static_cast<unsigned char>(noeud->lexeme->valeur_entiere);
+			auto caractere = static_cast<unsigned char>(noeud->comme_litterale()->valeur_entiere);
 			empile_valeur(cree_constante_caractere(noeud->type, caractere));
 			break;
 		}

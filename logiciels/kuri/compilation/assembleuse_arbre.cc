@@ -220,51 +220,49 @@ NoeudExpressionAppel *AssembleuseArbre::cree_appel(const Lexeme *lexeme, NoeudEx
 	return appel;
 }
 
-NoeudExpression *AssembleuseArbre::cree_lit_chaine(const Lexeme *lexeme)
+NoeudExpressionLitterale *AssembleuseArbre::cree_lit_chaine(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CHAINE, lexeme);
+	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CHAINE, lexeme)->comme_litterale();
 }
 
-NoeudExpression *AssembleuseArbre::cree_lit_caractere(const Lexeme *lexeme)
+NoeudExpressionLitterale *AssembleuseArbre::cree_lit_caractere(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CARACTERE, lexeme);
+	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CARACTERE, lexeme)->comme_litterale();
 }
 
-NoeudExpression *AssembleuseArbre::cree_lit_entier(const Lexeme *lexeme)
+NoeudExpressionLitterale *AssembleuseArbre::cree_lit_entier(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER, lexeme);
+	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER, lexeme)->comme_litterale();
 }
 
-NoeudExpression *AssembleuseArbre::cree_lit_reel(const Lexeme *lexeme)
+NoeudExpressionLitterale *AssembleuseArbre::cree_lit_reel(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL, lexeme);
+	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL, lexeme)->comme_litterale();
 }
 
-NoeudExpression *AssembleuseArbre::cree_lit_nul(const Lexeme *lexeme)
+NoeudExpressionLitterale *AssembleuseArbre::cree_lit_nul(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NUL, lexeme);
+	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NUL, lexeme)->comme_litterale();
 }
 
-NoeudExpression *AssembleuseArbre::cree_lit_bool(const Lexeme *lexeme)
+NoeudExpressionLitterale *AssembleuseArbre::cree_lit_bool(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN, lexeme);
+	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN, lexeme)->comme_litterale();
 }
 
-NoeudExpression *AssembleuseArbre::cree_lit_entier(Lexeme const *lexeme, Type *type, unsigned long valeur)
+NoeudExpressionLitterale *AssembleuseArbre::cree_lit_entier(Lexeme const *lexeme, Type *type, unsigned long valeur)
 {
-	auto lit = cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER, lexeme);
+	auto lit = cree_lit_entier(lexeme);
 	lit->type = type;
-	// XXX
-	const_cast<Lexeme *>(lit->lexeme)->valeur_entiere = valeur;
+	lit->valeur_entiere = valeur;
 	return lit;
 }
 
-NoeudExpression *AssembleuseArbre::cree_lit_reel(Lexeme const *lexeme, Type *type, double valeur)
+NoeudExpressionLitterale *AssembleuseArbre::cree_lit_reel(Lexeme const *lexeme, Type *type, double valeur)
 {
-	auto lit = cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL, lexeme);
+	auto lit = cree_lit_reel(lexeme);
 	lit->type = type;
-	// XXX
-	const_cast<Lexeme *>(lit->lexeme)->valeur_reelle = valeur;
+	lit->valeur_reelle = valeur;
 	return lit;
 }
 
