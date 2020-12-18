@@ -148,7 +148,7 @@ struct tableau {
 
 	tableau(tableau const &autre)
 	{
-		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, autre.taille);
+		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->capacite, autre.taille);
 		this->taille = autre.taille;
         this->capacite = autre.taille;
 
@@ -159,7 +159,7 @@ struct tableau {
 
 	tableau &operator=(tableau const &autre)
 	{
-		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->taille, autre.taille);
+		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->capacite, autre.taille);
 		this->taille = autre.taille;
         this->capacite = autre.taille;
 
