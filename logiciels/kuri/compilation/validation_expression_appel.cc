@@ -577,7 +577,7 @@ static auto apparie_appel_pointeur(
 	resultat.etat = FONCTION_TROUVEE;
 	resultat.poids_args = poids_args;
 	resultat.exprs = exprs;
-	resultat.transformations = transformations;
+	resultat.transformations = std::move(transformations);
 
 	return false;
 }
@@ -618,7 +618,7 @@ static auto apparie_appel_init_de(
 	resultat.type = expr->type;
 	resultat.poids_args = 1.0;
 	resultat.exprs = exprs;
-	resultat.transformations = transformations;
+	resultat.transformations = std::move(transformations);
 	resultat.requiers_contexte = false;
 
 	return resultat;
@@ -1373,7 +1373,7 @@ static auto apparie_appel_structure(
 	resultat.raison = AUCUNE_RAISON;
 	resultat.poids_args = poids_appariement;
 	resultat.exprs = slots;
-	resultat.transformations = transformations;
+	resultat.transformations = std::move(transformations);
 
 	return false;
 }
@@ -1660,7 +1660,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 	}
 
 	if (nouveau_params.taille != copie->params.taille) {
-		copie->params = nouveau_params;
+		copie->params = std::move(nouveau_params);
 	}
 
 	monomorphisations->ajoute({ items_monomorphisation, copie });
