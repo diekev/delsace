@@ -495,13 +495,11 @@ NoeudExpression *copie_noeud(
 			POUR (expr->params) {
 				auto copie = copie_noeud(assem, it, bloc_parent);
 				nexpr->params.ajoute(static_cast<NoeudDeclarationVariable *>(copie));
-				aplatis_arbre(copie, nexpr->arbre_aplatis, DrapeauxNoeud::AUCUN);
 			}
 
 			POUR (expr->params_sorties) {
 				auto copie = copie_noeud(assem, it, bloc_parent);
 				nexpr->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(copie));
-				aplatis_arbre(copie, nexpr->arbre_aplatis, DrapeauxNoeud::AUCUN);
 			}
 
 			/* copie le corps du noeud directement */
@@ -518,8 +516,6 @@ NoeudExpression *copie_noeud(
 
 				nexpr_corps->arbre_aplatis.reserve(expr_corps->arbre_aplatis.taille);
 				nexpr_corps->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, expr_corps->bloc, bloc_parent));
-
-				aplatis_arbre(nexpr_corps->bloc, nexpr_corps->arbre_aplatis, DrapeauxNoeud::AUCUN);
 			}
 
 			break;
@@ -555,7 +551,6 @@ NoeudExpression *copie_noeud(
 			}
 
 			ndecl->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, decl->bloc, bloc_parent));
-			aplatis_arbre(ndecl->bloc, ndecl->arbre_aplatis, {});
 			break;
 		}
 		case GenreNoeud::DECLARATION_VARIABLE:
@@ -817,7 +812,7 @@ NoeudExpression *copie_noeud(
 	return nracine;
 }
 
-void aplatis_arbre(
+static void aplatis_arbre(
 		NoeudExpression *racine,
 		kuri::tableau<NoeudExpression *> &arbre_aplatis,
 		DrapeauxNoeud drapeau)
@@ -1160,6 +1155,62 @@ void aplatis_arbre(
 
 			break;
 		}
+	}
+}
+
+void aplatis_arbre(NoeudExpression *declaration)
+{
+	if (declaration->est_entete_fonction()) {
+		auto entete = declaration->comme_entete_fonction();
+		if (entete->arbre_aplatis.taille == 0) {
+			aplatis_arbre(entete->bloc_constantes, entete->arbre_aplatis, {});
+			aplatis_arbre(entete->bloc_parametres, entete->arbre_aplatis, {});
+
+			POUR (entete->params) {
+				aplatis_arbre(it, entete->arbre_aplatis, {});
+			}
+
+			POUR (entete->params_sorties) {
+				aplatis_arbre(it, entete->arbre_aplatis, {});
+			}
+		}
+		return;
+	}
+
+	if (declaration->est_corps_fonction()) {
+		auto corps = declaration->comme_corps_fonction();
+		if (corps->arbre_aplatis.taille == 0) {
+			aplatis_arbre(corps->bloc, corps->arbre_aplatis, {});
+		}
+		return;
+	}
+
+	if (declaration->est_structure()) {
+		auto structure = declaration->comme_structure();
+		if (structure->arbre_aplatis.taille == 0) {
+			POUR (structure->params_polymorphiques) {
+				aplatis_arbre(it, structure->arbre_aplatis_params, {});
+			}
+
+			aplatis_arbre(structure->bloc, structure->arbre_aplatis, {});
+		}
+		return;
+	}
+
+	if (declaration->est_execute()) {
+		auto execute = declaration->comme_execute();
+		if (execute->arbre_aplatis.taille == 0) {
+			aplatis_arbre(execute, execute->arbre_aplatis, {});
+		}
+		return;
+	}
+
+	if (declaration->est_decl_var()) {
+		auto decl_var = declaration->comme_decl_var();
+		if (decl_var->arbre_aplatis.taille == 0) {
+			aplatis_arbre(decl_var, decl_var->arbre_aplatis, {});
+		}
+		return;
 	}
 }
 

@@ -95,7 +95,7 @@ struct ContexteValidationCode {
 	bool valide_structure(NoeudStruct *);
 	bool valide_declaration_variable(NoeudDeclarationVariable *decl);
 	bool valide_assignation(NoeudAssignation *inst);
-	bool valide_arbre_aplatis(kuri::tableau<NoeudExpression *> &arbre_aplatis);
+	bool valide_arbre_aplatis(NoeudExpression *declaration, kuri::tableau<NoeudExpression *> &arbre_aplatis);
 	bool valide_expression_retour(NoeudRetour *inst_retour);
 	bool valide_cuisine(NoeudDirectiveExecution *directive);
 	bool resoud_type_final(NoeudExpression *expression_type, Type *&type_final);

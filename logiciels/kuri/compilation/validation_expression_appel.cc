@@ -1659,18 +1659,8 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 		nouveau_params.ajoute(it);
 	}
 
-	// il faut également réaplatir l'arbre...
 	if (nouveau_params.taille != copie->params.taille) {
 		copie->params = nouveau_params;
-		copie->arbre_aplatis.taille = 0;
-
-		POUR (copie->params) {
-			aplatis_arbre(it, copie->arbre_aplatis, {});
-		}
-
-		POUR (copie->params_sorties) {
-			aplatis_arbre(it, copie->arbre_aplatis, {});
-		}
 	}
 
 	monomorphisations->ajoute({ items_monomorphisation, copie });

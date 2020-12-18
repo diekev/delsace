@@ -373,7 +373,6 @@ void Syntaxeuse::lance_analyse()
 			m_tacheronne.assembleuse->bloc_courant(recipiente->bloc_parametres);
 
 			recipiente->corps->bloc = analyse_bloc(false);
-			aplatis_arbre(recipiente->corps->bloc, recipiente->corps->arbre_aplatis, {});
 			recipiente->corps->est_corps_texte = false;
 			recipiente->est_metaprogramme = false;
 			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, recipiente->corps);
@@ -390,7 +389,6 @@ void Syntaxeuse::lance_analyse()
 				recipiente->bloc->membres->ajoute(it);
 			}
 
-			aplatis_arbre(recipiente->bloc, recipiente->arbre_aplatis, {});
 			recipiente->est_corps_texte = false;
 		}
 
@@ -443,9 +441,7 @@ void Syntaxeuse::lance_analyse()
 			consomme();
 		}
 		else if (apparie_expression()) {
-			auto nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 			auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
-			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
 
 			// noeud peut-être nul si nous avons une directive
 			if (noeud != nullptr) {
@@ -454,8 +450,6 @@ void Syntaxeuse::lance_analyse()
 
 					if (noeud->est_decl_var()) {
 						auto decl_var = noeud->comme_decl_var();
-						decl_var->arbre_aplatis.reserve(nombre_noeuds_alloues);
-						aplatis_arbre(decl_var, decl_var->arbre_aplatis, DrapeauxNoeud::AUCUN);
 						noeud->bloc_parent->membres->ajoute(decl_var);
 						m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 					}
@@ -971,8 +965,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 					noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
 				}
 
-				aplatis_arbre(noeud, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
-
 				if (!est_dans_fonction && (directive != ID::test || m_compilatrice.active_tests)) {
 					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(m_unite->espace, noeud);
 				}
@@ -999,9 +991,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 				auto noeud = m_tacheronne.assembleuse->cree_execution(lexeme);
 				noeud->ident = directive;
 				noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
-
-				aplatis_arbre(noeud, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
-
 				return noeud;
 			}
 			else {
@@ -1991,7 +1980,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 	/* analyse les paramètres de la fonction */
 	auto params = dls::tablet<NoeudDeclarationVariable *, 16>();
-	auto nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 
 	auto eu_declarations = false;
 
@@ -2031,14 +2019,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		consomme();
 	}
 
-	nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-	noeud->arbre_aplatis.reserve(nombre_noeuds_alloues);
-
 	copie_tablet_tableau(params, noeud->params);
-
-	POUR (noeud->params) {
-		aplatis_arbre(it, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
-	}
 
 	consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' à la fin des paramètres de la fonction");
 
@@ -2057,12 +2038,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		}
 
 		while (true) {
-			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 			auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
-			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-			noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
 			noeud->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(type_declare));
-			aplatis_arbre(type_declare, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 			if (!apparie(GenreLexeme::VIRGULE)) {
 				break;
@@ -2094,7 +2071,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			}
 
 			while (true) {
-				nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 				auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 
 				if (!decl_sortie->est_decl_var()) {
@@ -2112,10 +2088,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 				decl_sortie->drapeaux |= EST_PARAMETRE;
 
-				nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-				noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
 				noeud->params_sorties.ajoute(decl_sortie->comme_decl_var());
-				aplatis_arbre(decl_sortie, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 				if (!apparie(GenreLexeme::VIRGULE)) {
 					break;
@@ -2141,7 +2114,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			decl->expression_type = type_declare;
 
 			noeud->params_sorties.ajoute(decl);
-			aplatis_arbre(type_declare, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 		}
 
 		/* ignore les points-virgules implicites */
@@ -2225,19 +2197,10 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 			auto noeud_corps = noeud->corps;
 
-			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 			auto ancien_est_dans_fonction = est_dans_fonction;
 			est_dans_fonction = true;
 			noeud_corps->bloc = analyse_bloc();
 			est_dans_fonction = ancien_est_dans_fonction;
-			nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-
-			/* À FAIRE : quand nous aurons des fonctions dans des fonctions, il
-			 * faudra soustraire le nombre de noeuds des fonctions enfants. Il
-			 * faudra également faire attention au moultfilage futur.
-			 */
-			noeud_corps->arbre_aplatis.reserve(nombre_noeuds_alloues);
-			aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 			while (apparie(GenreLexeme::AROBASE)) {
 				consomme();
@@ -2301,7 +2264,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 	/* analyse les paramètres de la fonction */
 	auto params = dls::tablet<NoeudDeclarationVariable *, 16>();
-	auto nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 
 	while (!apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
 		auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
@@ -2344,20 +2306,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		}
 	}
 
-	nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-	noeud->arbre_aplatis.reserve(nombre_noeuds_alloues);
-
-	POUR (noeud->params) {
-		aplatis_arbre(it, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
-	}
-
 	consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' à la fin des paramètres de la fonction");
 
 	/* analyse les types de retour de la fonction */
 	consomme(GenreLexeme::RETOUR_TYPE, "Attendu un retour de type");
 
 	while (true) {
-		nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds();
 		auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 
 		if (!decl_sortie->est_decl_var()) {
@@ -2374,10 +2328,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 		decl_sortie->drapeaux |= EST_PARAMETRE;
 
-		nombre_noeuds_alloues = m_tacheronne.allocatrice_noeud.nombre_noeuds() - nombre_noeuds_alloues;
-		noeud->arbre_aplatis.reserve_delta(nombre_noeuds_alloues);
 		noeud->params_sorties.ajoute(decl_sortie->comme_decl_var());
-		aplatis_arbre(decl_sortie, noeud->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 		if (!apparie(GenreLexeme::VIRGULE)) {
 			break;
@@ -2422,7 +2373,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	est_dans_fonction = true;
 	noeud_corps->bloc = analyse_bloc();
 	est_dans_fonction = ancien_est_dans_fonction;
-	aplatis_arbre(noeud_corps->bloc, noeud_corps->arbre_aplatis, DrapeauxNoeud::AUCUN);
 
 	while (apparie(GenreLexeme::AROBASE)) {
 		consomme();
@@ -2514,7 +2464,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 			decl_var->drapeaux |= drapeaux;
 
 			noeud_decl->params_polymorphiques.ajoute(decl_var);
-			aplatis_arbre(decl_var, noeud_decl->arbre_aplatis_params, {});
 
 			if (!apparie(GenreLexeme::VIRGULE)) {
 				break;
@@ -2594,10 +2543,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		}
 
 		copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
-
-		POUR (*bloc->expressions.verrou_lecture()) {
-			aplatis_arbre(it, noeud_decl->arbre_aplatis, DrapeauxNoeud::AUCUN);
-		}
 
 		consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de la structure");
 

@@ -153,6 +153,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto decl = noeud->comme_entete_fonction();
 
 			if (decl->est_declaration_type) {
+				aplatis_arbre(decl);
 				POUR (decl->arbre_aplatis) {
 					if (valide_semantique_noeud(it)) {
 						return true;
@@ -2067,7 +2068,7 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 
 	{
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (arbre aplatis)");
-		if (valide_arbre_aplatis(decl->arbre_aplatis)) {
+		if (valide_arbre_aplatis(decl, decl->arbre_aplatis)) {
 			graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 			return true;
 		}
@@ -2276,8 +2277,10 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 	return false;
 }
 
-bool ContexteValidationCode::valide_arbre_aplatis(kuri::tableau<NoeudExpression *> &arbre_aplatis)
+bool ContexteValidationCode::valide_arbre_aplatis(NoeudExpression *declaration, kuri::tableau<NoeudExpression *> &arbre_aplatis)
 {
+	aplatis_arbre(declaration);
+
 	for (; unite->index_courant < arbre_aplatis.taille; ++unite->index_courant) {
 		auto noeud_enfant = arbre_aplatis[unite->index_courant];
 
@@ -2679,7 +2682,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 
 	CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide fonction");
 
-	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
+	if (valide_arbre_aplatis(decl, decl->arbre_aplatis)) {
 		graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 		return true;
 	}
@@ -2748,7 +2751,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *dec
 		}
 	}
 
-	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
+	if (valide_arbre_aplatis(decl, decl->arbre_aplatis)) {
 		graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 		return true;
 	}
@@ -2919,7 +2922,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	}
 
 	if (decl->est_polymorphe) {
-		if (valide_arbre_aplatis(decl->arbre_aplatis_params)) {
+		if (valide_arbre_aplatis(decl, decl->arbre_aplatis_params)) {
 			graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
 			return true;
 		}
@@ -2955,7 +2958,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		return true;
 	}
 
-	if (valide_arbre_aplatis(decl->arbre_aplatis)) {
+	if (valide_arbre_aplatis(decl, decl->arbre_aplatis)) {
 		graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
 		return true;
 	}

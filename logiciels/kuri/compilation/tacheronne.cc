@@ -818,6 +818,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 				case GenreNoeud::DECLARATION_VARIABLE:
 				{
 					auto decl = static_cast<NoeudDeclarationVariable *>(unite->noeud);
+					aplatis_arbre(decl);
 
 					for (; unite->index_courant < decl->arbre_aplatis.taille; ++unite->index_courant) {
 						if (contexte.valide_semantique_noeud(decl->arbre_aplatis[unite->index_courant])) {
@@ -837,6 +838,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 				case GenreNoeud::DIRECTIVE_EXECUTION:
 				{
 					auto dir = static_cast<NoeudDirectiveExecution *>(unite->noeud);
+					aplatis_arbre(dir);
 
 					// À FAIRE : ne peut pas préserver les dépendances si nous échouons avant la fin
 					for (unite->index_courant = 0; unite->index_courant < dir->arbre_aplatis.taille; ++unite->index_courant) {

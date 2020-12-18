@@ -849,10 +849,7 @@ NoeudExpression *copie_noeud(
 		NoeudExpression const *racine,
 		NoeudBloc *bloc_parent);
 
-void aplatis_arbre(
-		NoeudExpression *racine,
-		kuri::tableau<NoeudExpression *> &arbre_aplatis,
-		DrapeauxNoeud drapeau);
+void aplatis_arbre(NoeudExpression *declaration);
 
 struct Etendue {
 	long pos_min = 0;
