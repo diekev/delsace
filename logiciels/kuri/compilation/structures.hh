@@ -295,14 +295,6 @@ struct tableau {
 	}
 };
 
-template <typename T>
-void ajoute(tableau<T> *tabl, T valeur)
-{
-	memoire::reloge_tableau("kuri::tableau", tabl->pointeur, tabl->taille, tabl->taille + 1);
-	tabl->taille += 1;
-	tabl->pointeur[tabl->taille - 1] = valeur;
-}
-
 /* Structure pour passer les lexèmes aux métaprogrammes, via compilatrice_lèxe_fichier
  */
 struct Lexeme {
