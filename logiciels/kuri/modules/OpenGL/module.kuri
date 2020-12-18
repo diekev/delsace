@@ -1,52 +1,64 @@
 #bibliothèque_dynamique "GL"
 #bibliothèque_dynamique "GLEW"
 
-OGL :: énum n32 {
-    ARRAY_BUFFER :: 0x8892
-    ELEMENT_ARRAY_BUFFER :: 0x8893
-    STATIC_DRAW :: 0x88E4
-    TRIANGLES :: 0x0004
-    FLOAT :: 0x1406
-    RED :: 0x1903
-    GREEN :: 0x1904
-    BLUE :: 0x1905
-    ALPHA :: 0x1906
-    RGB :: 0x1907
-    RGBA :: 0x1908
-    LUMINANCE :: 0x1909
-    LUMINANCE_ALPHA :: 0x190A
-    FALSE :: 0
-    VERTEX_SHADER :: 0x8B31
-    FRAGMENT_SHADER :: 0x8B30
-    LINK_STATUS :: 0x8B82
-    INFO_LOG_LENGTH :: 0x8B84
-    COMPILE_STATUS :: 0x8B81
-}
+GLenum :: n32
+GLboolean :: n8
+GLbitfield :: n32
+GLbyte :: z8
+GLshort :: z16
+GLint :: z32
+GLsizei :: z32
+GLubyte :: n8
+GLushort :: n16
+GLuint :: n32
+GLfloat :: r32
+GLclampf :: r32
+GLvoid :: rien
+GLintptrARB :: z32
+GLsizeiptrARB :: z32
+GLfixed :: z32
+GLclampx :: z32
 
-_GL_BLEND : n32 = 0x0BE2
-_GL_SRC_ALPHA : n32 = 0x0302
-_GL_ONE_MINUS_SRC_ALPHA : n32 = 0x0303
-_GL_TEXTURE0 :: 0x84C0
-_GL_TEXTURE_1D :: 0x0DE0
-_GL_TEXTURE_2D :: 0x0DE1
-_GL_UNSIGNED_BYTE :: 0x1401
-_GL_UNSIGNED_INT :: 0x1405
-_GL_FLOAT :: 0x1406
-_GL_RED :: 0x1903
-_GL_RGBA :: 0x1908
-_GL_NEAREST :: 0x2600
-_GL_LINEAR :: 0x2601
-_GL_TEXTURE_MIN_FILTER :: 0x2800
-_GL_TEXTURE_MAG_FILTER :: 0x2801
-_GL_TEXTURE_WRAP_S :: 0x2802
-_GL_TEXTURE_WRAP_T :: 0x2803
-_GL_CLAMP :: 0x2900
-_GL_REPEAT :: 0x2901
-_GL_CLAMP_TO_EDGE :: 0x812F
-_GL_INVALID_ENUM : n32 = 0x0500
-_GL_INVALID_VALUE : n32 = 0x0501
-_GL_INVALID_OPERATION : n32 = 0x0502
-_GL_INVALID_FRAMEBUFFER_OPERATION : n32 = 0x0506
+GL_ARRAY_BUFFER : GLenum : 0x8892
+GL_ELEMENT_ARRAY_BUFFER : GLenum : 0x8893
+GL_STATIC_DRAW : GLenum : 0x88E4
+GL_TRIANGLES : GLenum : 0x0004
+GL_FALSE : GLenum : 0
+GL_VERTEX_SHADER : GLenum : 0x8B31
+GL_FRAGMENT_SHADER : GLenum : 0x8B30
+GL_LINK_STATUS : GLenum : 0x8B82
+GL_INFO_LOG_LENGTH : GLenum : 0x8B84
+GL_COMPILE_STATUS : GLenum : 0x8B81
+GL_BLEND : GLenum : 0x0BE2
+GL_SRC_ALPHA : GLenum : 0x0302
+GL_ONE_MINUS_SRC_ALPHA : GLenum : 0x0303
+GL_TEXTURE0 : GLenum : 0x84C0
+GL_TEXTURE_1D : GLenum : 0x0DE0
+GL_TEXTURE_2D : GLenum : 0x0DE1
+GL_UNSIGNED_BYTE : GLenum : 0x1401
+GL_UNSIGNED_INT : GLenum : 0x1405
+GL_FLOAT : GLenum : 0x1406
+GL_RED : GLenum : 0x1903
+GL_GREEN : GLenum : 0x1904
+GL_BLUE : GLenum : 0x1905
+GL_ALPHA : GLenum : 0x1906
+GL_RGB : GLenum : 0x1907
+GL_RGBA : GLenum : 0x1908
+GL_LUMINANCE : GLenum : 0x1909
+GL_LUMINANCE_ALPHA : GLenum : 0x190A
+GL_NEAREST : GLenum : 0x2600
+GL_LINEAR : GLenum : 0x2601
+GL_TEXTURE_MIN_FILTER : GLenum : 0x2800
+GL_TEXTURE_MAG_FILTER : GLenum : 0x2801
+GL_TEXTURE_WRAP_S : GLenum : 0x2802
+GL_TEXTURE_WRAP_T : GLenum : 0x2803
+GL_CLAMP : GLenum : 0x2900
+GL_REPEAT : GLenum : 0x2901
+GL_CLAMP_TO_EDGE : GLenum : 0x812F
+GL_INVALID_ENUM : GLenum : 0x0500
+GL_INVALID_VALUE : GLenum : 0x0501
+GL_INVALID_OPERATION : GLenum : 0x0502
+GL_INVALID_FRAMEBUFFER_OPERATION : GLenum : 0x0506
 
 externe glewExperimental : z32
 
@@ -55,8 +67,8 @@ glewInit :: fonc () -> z32 #externe
 glClear :: fonc (bit : z32) -> rien #externe
 glClearColor :: fonc (r : r32, g : r32, b : r32, a : r32) -> rien #externe
 
-glEnable :: fonc (cap: n32) -> rien #externe
-glDisable :: fonc (cap: n32) -> rien #externe
+glEnable :: fonc (cap: GLenum) -> rien #externe
+glDisable :: fonc (cap: GLenum) -> rien #externe
 glBlendFunc :: fonc (sfactor: n32, dfactor: n32) -> rien #externe
 
 glViewport :: fonc (px : z32, py : z32, tx : z32, ty : z32) -> rien #externe
@@ -64,44 +76,44 @@ glViewport :: fonc (px : z32, py : z32, tx : z32, ty : z32) -> rien #externe
 //# foncs de VAO
 glGenVertexArrays :: fonc (n : z32, ptr : *n32) -> rien #externe
 glDeleteVertexArrays :: fonc (n : z32, ptr : *n32) -> rien #externe
-glBindVertexArray :: fonc (id : n32) -> rien #externe
+glBindVertexArray :: fonc (id : GLenum) -> rien #externe
 
 //# foncs de VBO
 glGenBuffers :: fonc (n : z32, ptr : *n32) -> rien #externe
 glDeleteBuffers :: fonc (n : z32, ptr : *n32) -> rien #externe
-glBindBuffer :: fonc (target : OGL, id : n32) -> rien #externe
-glBufferData :: fonc (target : OGL, size : n64, data : *rien, usage : OGL) -> rien #externe
+glBindBuffer :: fonc (target : GLenum, id : n32) -> rien #externe
+glBufferData :: fonc (target : GLenum, size : n64, data : *rien, usage : n32) -> rien #externe
 
 //# foncs Arrays
 glEnableVertexAttribArray :: fonc (id : n32) -> rien #externe
 glDisableVertexAttribArray :: fonc (id : n32) -> rien #externe
-glVertexAttribPointer :: fonc (index : n32, size : z32, type_ : OGL, normalized : OGL, stride : z32, pointer : *rien) -> rien #externe
-glDrawArrays :: fonc (mode : OGL, first : z32, count : z64) -> rien #externe
-glDrawElements :: fonc (mode : OGL, count: z64, type: z32, indices: *rien) -> rien #externe
+glVertexAttribPointer :: fonc (index : n32, size : z32, type_ : n32, normalized : n32, stride : z32, pointer : *rien) -> rien #externe
+glDrawArrays :: fonc (mode : n32, first : z32, count : z64) -> rien #externe
+glDrawElements :: fonc (mode : GLenum, count: z64, type: GLenum, indices: *rien) -> rien #externe
 glUniform1ui :: fonc (loc: n32, uniform: n32) -> rien #externe
 
 // textures
-glGenTextures :: fonc (n: z32, id: *n32) -> rien #externe
-glDeleteTextures :: fonc (n: z32, id: *n32) -> rien #externe
-glIsTexture :: fonc (id: n32) -> bool #externe
-glActiveTexture :: fonc (id: z32) -> rien #externe
-glBindTexture :: fonc (cible: z32, id: n32) -> rien #externe
-glTexParameteri :: fonc (cible: z32, a: z32, b: z32) -> rien #externe
+glGenTextures :: fonc (n: GLenum, id: *n32) -> rien #externe
+glDeleteTextures :: fonc (n: GLenum, id: *n32) -> rien #externe
+glIsTexture :: fonc (id: GLenum) -> bool #externe
+glActiveTexture :: fonc (id: GLenum) -> rien #externe
+glBindTexture :: fonc (cible: GLenum, id: n32) -> rien #externe
+glTexParameteri :: fonc (cible: GLenum, a: GLenum, b: GLenum) -> rien #externe
 
 glTexImage2D :: fonc (
-    cible: z32,
-    x: z32,
-    format_interne: z32,
+    cible: GLenum,
+    x: GLenum,
+    format_interne: GLenum,
     taille_x: z32,
     taille_z: z32,
-    bordure: z32,
-    format: z32,
-    type: z32,
+    bordure: GLenum,
+    format: GLenum,
+    type: GLenum,
     données: *rien) -> rien #externe
 
 //# foncs de nuanceurs/programmes
 glShaderSource :: fonc (shader : n32, count : z64, string : **z8, length : *z32) -> rien #externe
-glCreateShader :: fonc (shaderType : OGL) -> n32 #externe
+glCreateShader :: fonc (shaderType : n32) -> n32 #externe
 glCompileShader :: fonc (shader : n32) -> rien #externe
 glDeleteShader :: fonc (shader : n32) -> rien #externe
 glDetachShader :: fonc (program : n32, shader : n32) -> rien #externe
@@ -110,9 +122,9 @@ glAttachShader :: fonc (program : n32, shader : n32) -> rien #externe
 glLinkProgram :: fonc (program : n32) -> rien #externe
 glUseProgram :: fonc (program : n32) -> rien #externe
 glDeleteProgram :: fonc (program : n32) -> rien #externe
-glGetShaderiv :: fonc (shader : n32, pname : OGL, params : *z32) -> rien #externe
+glGetShaderiv :: fonc (shader : n32, pname : n32, params : *z32) -> rien #externe
 glGetShaderInfoLog :: fonc (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien #externe
-glGetProgramiv :: fonc (program : n32, pname : OGL, params : *z32) -> rien #externe
+glGetProgramiv :: fonc (program : n32, pname : n32, params : *z32) -> rien #externe
 glGetProgramInfoLog :: fonc (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien #externe
 glGetAttribLocation :: fonc (programme : n32, nom: *z8) -> n32 #externe
 glGetUniformLocation :: fonc (programme : n32, nom: *z8) -> n32 #externe
@@ -145,16 +157,16 @@ vérifie_erreur :: fonc() -> rien
 	imprime("erreur OpenGL !\n")
 
     discr erreur_ {
-        _GL_INVALID_ENUM {
+        GL_INVALID_ENUM {
             imprime("-- énumération invalide\n")
         }
-        _GL_INVALID_VALUE {
+        GL_INVALID_VALUE {
             imprime("-- valeur invalide\n")
         }
-        _GL_INVALID_OPERATION {
+        GL_INVALID_OPERATION {
             imprime("-- opération invalide\n")
         }
-        _GL_INVALID_FRAMEBUFFER_OPERATION {
+        GL_INVALID_FRAMEBUFFER_OPERATION {
             imprime("-- opération invalide sur framebuffer\n")
         }
         sinon {

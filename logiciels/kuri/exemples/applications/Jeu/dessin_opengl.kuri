@@ -36,8 +36,8 @@ charge_programme :: fonc() -> n32
     "
 
     // crée les nuanceurs
-	VertexShaderID := glCreateShader(OGL.VERTEX_SHADER)
-	FragmentShaderID := glCreateShader(OGL.FRAGMENT_SHADER)
+	VertexShaderID := glCreateShader(GL_VERTEX_SHADER)
+	FragmentShaderID := glCreateShader(GL_FRAGMENT_SHADER)
 
     taille_src_vertex := source_vertex.taille comme z32
 	glShaderSource(VertexShaderID, 1, *source_vertex.pointeur , *taille_src_vertex)
@@ -46,8 +46,8 @@ charge_programme :: fonc() -> n32
     // verifie la compilation
     Result : z32 = 0
     InfoLogLength : z32 = 0
-    glGetShaderiv(VertexShaderID, OGL.LINK_STATUS, *Result)
-	glGetShaderiv(VertexShaderID, OGL.INFO_LOG_LENGTH, *InfoLogLength)
+    glGetShaderiv(VertexShaderID, GL_LINK_STATUS, *Result)
+	glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, *InfoLogLength)
 
     si InfoLogLength > 0 {
 		ProgramErrorMessage := loge_chaine(InfoLogLength+1)
@@ -63,8 +63,8 @@ charge_programme :: fonc() -> n32
     // verifie la compilation
     Result = 0
     InfoLogLength = 0
-    glGetShaderiv(FragmentShaderID, OGL.LINK_STATUS, *Result)
-	glGetShaderiv(FragmentShaderID, OGL.INFO_LOG_LENGTH, *InfoLogLength)
+    glGetShaderiv(FragmentShaderID, GL_LINK_STATUS, *Result)
+	glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, *InfoLogLength)
 
     si InfoLogLength > 0 {
 		ProgramErrorMessage := loge_chaine(InfoLogLength+1)
@@ -81,8 +81,8 @@ charge_programme :: fonc() -> n32
     // verifie la liaison
     Result = 0
     InfoLogLength = 0
-    glGetProgramiv(ProgramID_, OGL.COMPILE_STATUS, *Result)
-	glGetProgramiv(ProgramID_, OGL.INFO_LOG_LENGTH, *InfoLogLength)
+    glGetProgramiv(ProgramID_, GL_COMPILE_STATUS, *Result)
+	glGetProgramiv(ProgramID_, GL_INFO_LOG_LENGTH, *InfoLogLength)
 
     si InfoLogLength > 0 {
 		ProgramErrorMessage := loge_chaine(InfoLogLength+1)
@@ -131,16 +131,16 @@ termine_dessin :: fonc() -> rien
     glUseProgram(ProgramID)
 
     glEnableVertexAttribArray(0)
-    glBindBuffer(OGL.ARRAY_BUFFER, vertexbuffer)
-	glBufferData(OGL.ARRAY_BUFFER, tabl_sommets.taille comme n64 * taille_de(z32), tabl_sommets.pointeur, OGL.STATIC_DRAW)
-    glVertexAttribPointer(0, 3, OGL.FLOAT, OGL.FALSE, 0, nul)
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer)
+	glBufferData(GL_ARRAY_BUFFER, tabl_sommets.taille comme n64 * taille_de(z32), tabl_sommets.pointeur, GL_STATIC_DRAW)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nul)
 
     glEnableVertexAttribArray(1)
-    glBindBuffer(OGL.ARRAY_BUFFER, colorbuffer)
-	glBufferData(OGL.ARRAY_BUFFER, tabl_couleur.taille comme n64 * taille_de(Couleur), tabl_couleur.pointeur, OGL.STATIC_DRAW)
-    glVertexAttribPointer(1, 4, OGL.FLOAT, OGL.FALSE, 0, nul)
+    glBindBuffer(GL_ARRAY_BUFFER, colorbuffer)
+	glBufferData(GL_ARRAY_BUFFER, tabl_couleur.taille comme n64 * taille_de(Couleur), tabl_couleur.pointeur, GL_STATIC_DRAW)
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nul)
 
-    glDrawArrays(OGL.TRIANGLES, 0, tabl_sommets.taille / 3)
+    glDrawArrays(GL_TRIANGLES, 0, tabl_sommets.taille / 3)
     glDisableVertexAttribArray(0)
 
     glUseProgram(0)

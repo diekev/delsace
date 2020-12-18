@@ -811,13 +811,13 @@ rends_scène :: fonc (jeu: *Jeu) -> rien
 
     rendeuse_texte := crée_rendeuse_texte(640, 480)
 
-    glBlendFunc(_GL_SRC_ALPHA, _GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(_GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
 
     dessine_texte(rendeuse_texte, "test de dessin de texte")
     dessine_texte(rendeuse_texte, "test de dessin de texte, ligne 2")
 
-    glDisable(_GL_BLEND);
+    glDisable(GL_BLEND);
 
     détruit_rendeuse_texte(rendeuse_texte)
 

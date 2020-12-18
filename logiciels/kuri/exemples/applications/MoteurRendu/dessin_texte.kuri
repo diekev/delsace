@@ -228,30 +228,30 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 
     // --------------------------------------
 
-    glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_vertex);
-	glBufferData(OGL.ARRAY_BUFFER, sommets.taille comme n64 * taille_de(Vec2r), *sommets[0], OGL.STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, rendeuse.id_tampon_vertex);
+	glBufferData(GL_ARRAY_BUFFER, sommets.taille comme n64 * taille_de(Vec2r), *sommets[0], GL_STATIC_DRAW);
 
-	glBindBuffer(OGL.ELEMENT_ARRAY_BUFFER, rendeuse.id_tampon_index);
-	glBufferData(OGL.ELEMENT_ARRAY_BUFFER, indices.taille comme n64 * taille_de(z32), *indices[0], OGL.STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendeuse.id_tampon_index);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.taille comme n64 * taille_de(z32), *indices[0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, OGL.FLOAT, OGL.FALSE, 0, nul);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nul);
 
     // --------------------------------------
 
-    glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_tex_coord);
-	glBufferData(OGL.ARRAY_BUFFER, uvs.taille comme n64 * taille_de(Vec2r), *uvs[0], OGL.STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, rendeuse.id_tampon_tex_coord);
+	glBufferData(GL_ARRAY_BUFFER, uvs.taille comme n64 * taille_de(Vec2r), *uvs[0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, OGL.FLOAT, OGL.FALSE, 0, nul);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nul);
 
     // --------------------------------------
 
-    glBindBuffer(OGL.ARRAY_BUFFER, rendeuse.id_tampon_couleur);
-	glBufferData(OGL.ARRAY_BUFFER, couleurs.taille comme n64 * taille_de(Vec4r), *couleurs[0], OGL.STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, rendeuse.id_tampon_couleur);
+	glBufferData(GL_ARRAY_BUFFER, couleurs.taille comme n64 * taille_de(Vec4r), *couleurs[0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, OGL.FLOAT, OGL.FALSE, 0, nul);
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, nul);
 
     // --------------------------------------
 
@@ -267,14 +267,14 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 	}
 
 	glGenTextures(1, *atlas.id )
-	glBindTexture(_GL_TEXTURE_2D, atlas.id)
-	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_WRAP_S, _GL_CLAMP_TO_EDGE );
-	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_WRAP_T, _GL_CLAMP_TO_EDGE );
-	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_MAG_FILTER, _GL_LINEAR );
-	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_MIN_FILTER, _GL_LINEAR );
+	glBindTexture(GL_TEXTURE_2D, atlas.id)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    glTexImage2D(_GL_TEXTURE_2D, 0, _GL_RED, atlas.width comme z32, atlas.height comme z32,
-				  0, _GL_RED, _GL_UNSIGNED_BYTE, atlas.data )
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, atlas.width comme z32, atlas.height comme z32,
+				  0, GL_RED, GL_UNSIGNED_BYTE, atlas.data )
 
 	{
 		glUseProgram(rendeuse.programme)
@@ -283,7 +283,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
         loc := glGetUniformLocation(rendeuse.programme, "atlas".pointeur)
 	    glUniform1ui(loc, 0);
 
-		glDrawElements(OGL.TRIANGLES, indices.taille comme z32, _GL_UNSIGNED_INT, nul);
+		glDrawElements(GL_TRIANGLES, indices.taille comme z32, GL_UNSIGNED_INT, nul);
 
         glBindVertexArray(0)
         glUseProgram(0)
