@@ -3,6 +3,7 @@ importe Fondation
 importe Image
 importe OpenGL
 importe Math
+importe SDL2
 
 charge "caméra_3d"
 charge "dessin_texte"
@@ -10,7 +11,6 @@ charge "dessin_texture"
 charge "maillage"
 charge "programme"
 charge "ratissage"
-charge "sdl2"
 charge "triangle"
 
 // ratissage basé sur le tutorial :
