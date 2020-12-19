@@ -1016,16 +1016,6 @@ struct GeneratriceCodeC {
 						os << " >= ";
 						break;
 					}
-					case OperateurBinaire::Genre::Et_Logique:
-					{
-						os << " && ";
-						break;
-					}
-					case OperateurBinaire::Genre::Ou_Logique:
-					{
-						os << " || ";
-						break;
-					}
 					case OperateurBinaire::Genre::Et_Binaire:
 					{
 						os << " & ";

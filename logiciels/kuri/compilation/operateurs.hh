@@ -100,8 +100,6 @@ const char *chaine_pour_genre_op(OperateurUnaire::Genre genre);
 	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal_Reel) \
 	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Reel) \
 	ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal_Reel) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Et_Logique) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Ou_Logique) \
 	ENUMERE_GENRE_OPBINAIRE_EX(Et_Binaire) \
 	ENUMERE_GENRE_OPBINAIRE_EX(Ou_Binaire) \
 	ENUMERE_GENRE_OPBINAIRE_EX(Ou_Exclusif) \

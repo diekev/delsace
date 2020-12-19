@@ -642,6 +642,17 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 				}
 			}
+			else if (dls::outils::est_element(noeud->lexeme->genre, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
+				if (!est_type_conditionnable(enfant1->type)) {
+					::rapporte_erreur(espace, enfant1, "Expression non conditionnable à gauche de l'opérateur logique !");
+				}
+
+				if (!est_type_conditionnable(enfant2->type)) {
+					::rapporte_erreur(espace, enfant2, "Expression non conditionnable à droite de l'opérateur logique !");
+				}
+
+				noeud->type = espace->typeuse[TypeBase::BOOL];
+			}
 			else {
 				if (assignation_composee) {
 					type_op = operateur_pour_assignation_composee(type_op);

@@ -91,14 +91,6 @@ static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 		{
 			return OperateurBinaire::Genre::Dec_Gauche;
 		}
-		case GenreLexeme::ESP_ESP:
-		{
-			return OperateurBinaire::Genre::Et_Logique;
-		}
-		case GenreLexeme::BARRE_BARRE:
-		{
-			return OperateurBinaire::Genre::Ou_Logique;
-		}
 		case GenreLexeme::ESPERLUETTE:
 		{
 			return OperateurBinaire::Genre::Et_Binaire;
@@ -365,14 +357,6 @@ const char *chaine_pour_genre_op(OperateurBinaire::Genre genre)
 		case OperateurBinaire::Genre::Comp_Sup_Egal_Reel:
 		{
 			return "supegr";
-		}
-		case OperateurBinaire::Genre::Et_Logique:
-		{
-			return "et";
-		}
-		case OperateurBinaire::Genre::Ou_Logique:
-		{
-			return "ou";
 		}
 		case OperateurBinaire::Genre::Et_Binaire:
 		{
@@ -780,12 +764,10 @@ void enregistre_operateurs_basiques(
 		operateurs.ajoute_basique(op, type_entier_constant, type_entier_constant, IndiceTypeOp::ENTIER_NATUREL);
 	}
 
-	// operateurs booléens & | ^ && || == !=
+	// operateurs booléens & | ^ == !=
 	operateurs.ajoute_basique(GenreLexeme::CHAPEAU, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 	operateurs.ajoute_basique(GenreLexeme::ESPERLUETTE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 	operateurs.ajoute_basique(GenreLexeme::BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
-	operateurs.ajoute_basique(GenreLexeme::ESP_ESP, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
-	operateurs.ajoute_basique(GenreLexeme::BARRE_BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 	operateurs.ajoute_basique(GenreLexeme::EGALITE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 	operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 

@@ -81,8 +81,6 @@ static auto inst_llvm_depuis_operateur(OperateurBinaire::Genre genre)
 		case Genre::Division_Relatif:    return llvm::Instruction::SDiv;
 		case Genre::Reste_Naturel:       return llvm::Instruction::URem;
 		case Genre::Reste_Relatif:       return llvm::Instruction::SRem;
-		case Genre::Et_Logique:          return llvm::Instruction::And;
-		case Genre::Ou_Logique:          return llvm::Instruction::Or;
 		case Genre::Et_Binaire:          return llvm::Instruction::And;
 		case Genre::Ou_Binaire:          return llvm::Instruction::Or;
 		case Genre::Ou_Exclusif:         return llvm::Instruction::Xor;
@@ -145,8 +143,6 @@ static auto cmp_llvm_depuis_operateur(OperateurBinaire::Genre genre)
 		case Genre::Division_Relatif:
 		case Genre::Reste_Naturel:
 		case Genre::Reste_Relatif:
-		case Genre::Et_Logique:
-		case Genre::Ou_Logique:
 		case Genre::Et_Binaire:
 		case Genre::Ou_Binaire:
 		case Genre::Ou_Exclusif:

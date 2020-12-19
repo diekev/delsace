@@ -1,7 +1,4 @@
 
--- chn1 && chn2
-    Delsace/Curl saufsi fichier_local.taille != 0 && fichier_distant.taille != 0
-
 améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_valeur_énum comme type_entier, etc.)
 
 trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)

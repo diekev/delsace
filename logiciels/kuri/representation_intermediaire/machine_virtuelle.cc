@@ -76,8 +76,6 @@ DEFINIS_OPERATEUR(inferieur, <, T, bool)
 DEFINIS_OPERATEUR(inferieur_egal, <=, T, bool)
 DEFINIS_OPERATEUR(superieur, >, T, bool)
 DEFINIS_OPERATEUR(superieur_egal, >=, T, bool)
-DEFINIS_OPERATEUR(et_logique, &&, T, bool)
-DEFINIS_OPERATEUR(ou_logique, ||, T, bool)
 DEFINIS_OPERATEUR(et_binaire, &, T, T)
 DEFINIS_OPERATEUR(ou_binaire, |, T, T)
 DEFINIS_OPERATEUR(oux_binaire, ^, T, T)
@@ -878,16 +876,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 		case OP_COMP_SUP_EGAL_REEL:
 		{
 			OP_BINAIRE_REEL(oper::superieur_egal)
-			break;
-		}
-		case OP_ET_LOGIQUE:
-		{
-			OP_BINAIRE(oper::et_logique)
-			break;
-		}
-		case OP_OU_LOGIQUE:
-		{
-			OP_BINAIRE(oper::ou_logique)
 			break;
 		}
 		case OP_ET_BINAIRE:

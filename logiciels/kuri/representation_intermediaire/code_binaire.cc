@@ -335,14 +335,6 @@ static octet_t converti_op_binaire(OperateurBinaire::Genre genre)
 		{
 			return OP_COMP_EGAL_REEL;
 		}
-		case OperateurBinaire::Genre::Et_Logique:
-		{
-			return OP_ET_LOGIQUE;
-		}
-		case OperateurBinaire::Genre::Ou_Logique:
-		{
-			return OP_OU_LOGIQUE;
-		}
 		case OperateurBinaire::Genre::Et_Binaire:
 		{
 			return OP_ET_BINAIRE;
@@ -531,8 +523,6 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
 		case OP_COMP_INF_EGAL_REEL:
 		case OP_COMP_SUP_REEL:
 		case OP_COMP_SUP_EGAL_REEL:
-		case OP_ET_LOGIQUE:
-		case OP_OU_LOGIQUE:
 		case OP_ET_BINAIRE:
 		case OP_OU_BINAIRE:
 		case OP_OU_EXCLUSIF:
