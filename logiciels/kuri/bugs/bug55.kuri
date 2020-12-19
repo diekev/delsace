@@ -1,0 +1,16 @@
+// erreur de compilation quand nous accédons à une soustructure via une expression d'appel
+// Note : corriger
+
+Parent :: struct {
+    Enfant :: struct {
+        z : r32
+    }
+
+    y : r32
+}
+
+principale :: fonc () -> z32
+{
+    e := Parent.Enfant(z = 1.0)
+    retourne 0
+}
