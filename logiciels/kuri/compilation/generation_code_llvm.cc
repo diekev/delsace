@@ -1228,8 +1228,6 @@ static void ajoute_passes(
 	builder.SizeLevel = niveau_taille;
 	builder.DisableUnrollLoops = (niveau_optimisation == 0);
 
-	/* À FAIRE : enlignage. */
-
 	/* Pour plus d'informations sur les vectoriseurs, suivre le lien :
 	 * http://llvm.org/docs/Vectorizers.html */
 	builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
