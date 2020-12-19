@@ -28,8 +28,6 @@
 
 #include "biblinternes/structures/dico_fixe.hh"
 
-#include "profilage.hh"
-
 static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("arrête"), GenreLexeme::ARRETE },
 	dls::paire{ dls::vue_chaine_compacte("bool"), GenreLexeme::BOOL },

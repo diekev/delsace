@@ -36,7 +36,6 @@
 #include "compilation/generation_code_llvm.hh"
 #include "compilation/modules.hh"
 #include "compilation/options.hh"
-#include "compilation/profilage.hh"
 #include "compilation/statistiques.hh"
 #include "compilation/tacheronne.hh"
 
@@ -56,7 +55,6 @@ static void imprime_stats(
 		Statistiques const &stats,
 		dls::chrono::compte_seconde debut_compilation)
 {
-	Prof(imprime_stats);
 	auto const temps_total = debut_compilation.temps();
 
 	auto const temps_tampons = stats.temps_tampons;
@@ -257,8 +255,6 @@ static void valide_blocs_modules(Compilatrice &compilatrice)
 
 int main(int argc, char *argv[])
 {
-	Prof(main);
-
 	std::ios::sync_with_stdio(false);
 
 	if (argc < 2) {

@@ -29,7 +29,6 @@
 #include "compilatrice.hh"
 #include "operateurs.hh"
 #include "outils_lexemes.hh"
-#include "profilage.hh"
 #include "statistiques.hh"
 
 /* ************************************************************************** */
@@ -587,8 +586,6 @@ Type *Typeuse::type_pour_lexeme(GenreLexeme lexeme)
 
 TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 {
-	Prof(type_pointeur_pour);
-
 	if (!type) {
 		return ((*this)[TypeBase::PTR_NUL])->comme_pointeur();
 	}
@@ -651,8 +648,6 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 
 TypeReference *Typeuse::type_reference_pour(Type *type)
 {
-	Prof(type_reference_pour);
-
 	auto types_references_ = types_references.verrou_ecriture();
 
 	if ((type->drapeaux & POSSEDE_TYPE_REFERENCE) != 0) {
@@ -673,8 +668,6 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
 
 TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 {
-	Prof(type_tableau_fixe);
-
 	auto types_tableaux_fixes_ = types_tableaux_fixes.verrou_ecriture();
 
 	if ((type_pointe->drapeaux & POSSEDE_TYPE_TABLEAU_FIXE) != 0) {
@@ -700,8 +693,6 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 
 TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 {
-	Prof(type_tableau_dynamique);
-
 	auto types_tableaux_dynamiques_ = types_tableaux_dynamiques.verrou_ecriture();
 
 	if ((type_pointe->drapeaux & POSSEDE_TYPE_TABLEAU_DYNAMIQUE) != 0) {
@@ -727,8 +718,6 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 
 TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 {
-	Prof(type_variadique);
-
 	auto types_variadiques_ = types_variadiques.verrou_ecriture();
 
 	POUR_TABLEAU_PAGE ((*types_variadiques_)) {
@@ -786,8 +775,6 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *,
 
 TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties)
 {
-	Prof(type_fonction);
-
 	//nombre_appels += 1;
 
 	auto types_fonctions_ = types_fonctions.verrou_ecriture();
@@ -852,8 +839,6 @@ TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, dls:
 
 TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
 {
-	Prof(type_type_de_donnees);
-
 	if (type_connu == nullptr) {
 		return type_type_de_donnees_;
 	}
@@ -905,8 +890,6 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
 
 TypeUnion *Typeuse::union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &membres)
 {
-	Prof(union_anonyme);
-
 	auto types_unions_ = types_unions.verrou_ecriture();
 
 	POUR_TABLEAU_PAGE ((*types_unions_)) {
@@ -960,8 +943,6 @@ TypeEnum *Typeuse::reserve_type_erreur(NoeudEnum *decl)
 
 TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
 {
-	Prof(cree_polymorphique);
-
 	auto types_polymorphiques_ = types_polymorphiques.verrou_ecriture();
 
 	// pour le moment un ident nul est utilisé pour les types polymorphiques des
@@ -1267,8 +1248,6 @@ dls::chaine chaine_type(const Type *type)
 
 Type *type_dereference_pour(Type *type)
 {
-	Prof(type_dereference_pour);
-
 	if (type->genre == GenreType::TABLEAU_FIXE) {
 		return type->comme_tableau_fixe()->type_pointe;
 	}

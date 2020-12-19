@@ -35,7 +35,6 @@
 #include "compilatrice.hh"
 #include "erreur.h"
 #include "outils_lexemes.hh"
-#include "profilage.hh"
 #include "portee.hh"
 #include "tacheronne.hh"
 #include "validation_expression_appel.hh"
@@ -115,8 +114,6 @@ void ContexteValidationCode::renseigne_membre_actif(const dls::vue_chaine_compac
 
 bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 {
-	Prof(valide_semantique_noeud);
-
 	switch (noeud->genre) {
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
@@ -1938,8 +1935,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expression_membre)
 {
-	Prof(valide_acces_membre);
-
 	auto structure = expression_membre->accede;
 	auto membre = expression_membre->membre;
 	auto type = structure->type;
@@ -2037,8 +2032,6 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 
 bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction *decl)
 {
-	Prof(valide_type_fonction);
-
 #ifdef STATISTIQUES_DETAILLEES
 	auto possede_erreur = true;
 	dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
@@ -3653,8 +3646,6 @@ bool ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
 
 bool ContexteValidationCode::resoud_type_final(NoeudExpression *expression_type, Type *&type_final)
 {
-	Prof(resoud_type_final);
-
 	if (expression_type == nullptr) {
 		type_final = nullptr;
 		return false;

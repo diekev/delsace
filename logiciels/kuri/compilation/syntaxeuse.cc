@@ -34,7 +34,6 @@
 #include "compilatrice.hh"
 #include "modules.hh"
 #include "outils_lexemes.hh"
-#include "profilage.hh"
 #include "typage.hh"
 
 // Pour les bibliothèques externes ou les inclusions, détermine le chemin absolu selon le fichier courant, au cas où la bibliothèque serait dans le même dossier que le fichier
@@ -354,8 +353,6 @@ Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite)
 
 void Syntaxeuse::lance_analyse()
 {
-	Prof(Syntaxeuse_lance_analyse);
-
 	m_position = 0;
 	m_fichier->temps_analyse = 0.0;
 
@@ -625,8 +622,6 @@ bool Syntaxeuse::apparie_instruction() const
 
 NoeudExpression *Syntaxeuse::analyse_expression(DonneesPrecedence const &donnees_precedence, GenreLexeme racine_expression, GenreLexeme lexeme_final)
 {
-	Prof(Syntaxeuse_analyse_expression);
-
 	auto expression = analyse_expression_primaire(racine_expression, lexeme_final);
 
 	while (apparie_expression_secondaire() && lexeme_courant()->genre != lexeme_final) {
@@ -649,8 +644,6 @@ NoeudExpression *Syntaxeuse::analyse_expression(DonneesPrecedence const &donnees
 
 NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
 {
-	Prof(Syntaxeuse_analyse_expression_unaire);
-
 	auto lexeme = lexeme_courant();
 	auto genre_noeud = GenreNoeud::OPERATEUR_UNAIRE;
 
@@ -715,8 +708,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
 
 NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expression, GenreLexeme lexeme_final)
 {
-	Prof(Syntaxeuse_analyse_expression_primaire);
-
 	if (apparie_expression_unaire()) {
 		return analyse_expression_unaire(lexeme_final);
 	}
@@ -1058,8 +1049,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
 NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauche, const DonneesPrecedence &donnees_precedence, GenreLexeme racine_expression, GenreLexeme lexeme_final)
 {
-	Prof(Syntaxeuse_analyse_expression_secondaire);
-
 	auto lexeme = lexeme_courant();
 
 	switch (lexeme->genre) {
@@ -1372,8 +1361,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 
 NoeudExpression *Syntaxeuse::analyse_instruction()
 {
-	Prof(Syntaxeuse_analyse_instruction);
-
 	auto lexeme = lexeme_courant();
 
 	switch (lexeme->genre) {
@@ -1526,8 +1513,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 
 NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise, bool pour_pousse_contexte)
 {
-	Prof(Syntaxeuse_analyse_bloc);
-
 	auto lexeme = lexeme_courant();
 	empile_etat("dans l'analyse du bloc", lexeme);
 
@@ -1576,8 +1561,6 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise, bool pour_pousse_cont
 
 NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
 {
-	Prof(Syntaxeuse_analyse_appel_fonction);
-
 	auto noeud = m_tacheronne.assembleuse->cree_appel(lexeme_courant());
 	noeud->appelee = gauche;
 
@@ -1611,8 +1594,6 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
 
 NoeudExpression *Syntaxeuse::analyse_instruction_boucle()
 {
-	Prof(Syntaxeuse_analyse_instruction_boucle);
-
 	auto noeud = m_tacheronne.assembleuse->cree_boucle(lexeme_courant());
 	consomme();
 	noeud->bloc = analyse_bloc();
@@ -1622,8 +1603,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction_boucle()
 
 NoeudExpression *Syntaxeuse::analyse_instruction_discr()
 {
-	Prof(Syntaxeuse_analyse_instruction_discr);
-
 	auto noeud_discr = m_tacheronne.assembleuse->cree_discr(lexeme_courant());
 	consomme();
 
@@ -1689,8 +1668,6 @@ NoeudDeclarationVariable *Syntaxeuse::cree_declaration(Lexeme *lexeme)
 
 NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 {
-	Prof(Syntaxeuse_analyse_instruction_pour);
-
 	auto noeud = m_tacheronne.assembleuse->cree_pour(lexeme_courant());
 	consomme();
 
@@ -1755,8 +1732,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 
 NoeudExpression *Syntaxeuse::analyse_instruction_pousse_contexte()
 {
-	Prof(Syntaxeuse_analyse_instruction_pousse_contexte);
-
 	auto noeud = m_tacheronne.assembleuse->cree_pousse_contexte(lexeme_courant());
 	consomme();
 
@@ -1768,8 +1743,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pousse_contexte()
 
 NoeudExpression *Syntaxeuse::analyse_instruction_repete()
 {
-	Prof(Syntaxeuse_analyse_instruction_repete);
-
 	auto noeud = m_tacheronne.assembleuse->cree_repete(lexeme_courant());
 	consomme();
 
@@ -1785,8 +1758,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction_repete()
 
 NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 {
-	Prof(Syntaxeuse_analyse_instruction_si);
-
 	empile_etat("dans l'analyse de l'instruction si", lexeme_courant());
 
 	auto noeud = m_tacheronne.assembleuse->cree_si(lexeme_courant(), genre_noeud);
@@ -1838,8 +1809,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 
 NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexeme *lexeme)
 {
-	Prof(Syntaxeuse_analyse_instruction_si_statique);
-
 	empile_etat("dans l'analyse de l'instruction #si", lexeme);
 
 	auto noeud = m_tacheronne.assembleuse->cree_si_statique(lexeme);
@@ -1860,8 +1829,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexeme *lexeme)
 
 NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
 {
-	Prof(Syntaxeuse_analyse_instruction_tantque);
-
 	auto noeud = m_tacheronne.assembleuse->cree_tantque(lexeme_courant());
 	consomme();
 
@@ -1874,8 +1841,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
 
 NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 {
-	Prof(Syntaxeuse_analyse_declaration_enum);
-
 	auto lexeme = lexeme_courant();
 	empile_etat("dans le syntaxage de l'énumération", lexeme);
 	consomme();
@@ -1939,8 +1904,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 
 NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme const *lexeme)
 {
-	Prof(Syntaxeuse_analyse_declaration_fonction);
-
 	auto lexeme_mot_cle = lexeme_courant();
 
 	empile_etat("dans le syntaxage de la fonction", lexeme_mot_cle);
@@ -2235,8 +2198,6 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
 NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 {
-	Prof(Syntaxeuse_analyse_declaration_operateur);
-
 	empile_etat("dans le syntaxage de l'opérateur", lexeme_courant());
 	consomme();
 
@@ -2400,8 +2361,6 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauche)
 {
-	Prof(Syntaxeuse_analyse_declaration_structure);
-
 	auto lexeme_mot_cle = lexeme_courant();
 	empile_etat("dans le syntaxage de la structure", lexeme_mot_cle);
 	consomme();

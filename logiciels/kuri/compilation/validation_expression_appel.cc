@@ -31,7 +31,6 @@
 #include "compilatrice.hh"
 #include "erreur.h"
 #include "portee.hh"
-#include "profilage.hh"
 #include "validation_semantique.hh"
 
 struct Monomorpheuse {
@@ -360,8 +359,6 @@ static auto trouve_candidates_pour_fonction_appelee(
 		NoeudExpression *appelee,
 		dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT> &candidates)
 {
-	Prof(trouve_candidates_pour_fonction_appelee);
-
 	auto fichier = espace.fichier(appelee->lexeme->fichier);
 
 	if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
@@ -460,8 +457,6 @@ static std::pair<bool, double> verifie_compatibilite(
 		NoeudExpression *enfant,
 		TransformationType &transformation)
 {
-	Prof(verifie_compatibilite_appel);
-
 	if (cherche_transformation(espace, contexte, type_enf, type_arg, transformation)) {
 		return { true, 0.0 };
 	}
@@ -491,8 +486,6 @@ static auto apparie_appel_pointeur(
 		kuri::tableau<IdentifiantEtExpression> const &args,
 		DonneesCandidate &resultat)
 {
-	Prof(apparie_appel_pointeur);
-
 	POUR (args) {
 		if (it.ident == nullptr) {
 			continue;
@@ -586,8 +579,6 @@ static auto apparie_appel_init_de(
 		NoeudExpression *expr,
 		kuri::tableau<IdentifiantEtExpression> const &args)
 {
-	Prof(apparie_appel_init_de);
-
 	auto resultat = DonneesCandidate();
 
 	if (args.taille > 1) {
@@ -634,8 +625,6 @@ static auto apparie_appel_fonction(
 		kuri::tableau<IdentifiantEtExpression> const &args,
 		DonneesCandidate &res)
 {
-	Prof(apparie_appel_fonction);
-
 	res.note = CANDIDATE_EST_APPEL_FONCTION;
 	res.noeud_decl = decl;
 	res.type = decl->type;
@@ -1116,8 +1105,6 @@ static auto apparie_appel_structure(
 		kuri::tableau<IdentifiantEtExpression> const &arguments,
 		DonneesCandidate &resultat)
 {
-	Prof(apparie_appel_structure);
-
 	auto type_compose = decl_struct->type->comme_compose();
 
 	if (decl_struct->est_polymorphe) {
@@ -1419,8 +1406,6 @@ static auto trouve_candidates_pour_appel(
 		kuri::tableau<IdentifiantEtExpression> &args,
 		dls::tablet<DonneesCandidate, 10> &resultat)
 {
-	Prof(trouve_candidates_pour_appel);
-
 	auto candidates_appel = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>();
 	if (trouve_candidates_pour_fonction_appelee(contexte, espace, expr->appelee, candidates_appel)) {
 		return true;
@@ -1746,8 +1731,6 @@ bool valide_appel_fonction(
 		ContexteValidationCode &contexte,
 		NoeudExpressionAppel *expr)
 {
-	Prof(valide_appel_fonction);
-
 #ifdef STATISTIQUES_DETAILLEES
 	auto possede_erreur = true;
 	dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {

@@ -29,12 +29,9 @@
 #include "arbre_syntaxique.hh"
 #include "compilatrice.hh"
 #include "modules.hh"
-#include "profilage.hh"
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 {
-	Prof(trouve_ident_dans_bloc);
-
 	auto bloc_courant = bloc;
 
 	while (bloc_courant != nullptr) {
@@ -54,8 +51,6 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl)
 {
-	Prof(trouve_decl_dans_bloc);
-
 	auto bloc_courant = bloc;
 
 	while (bloc_courant != nullptr) {
@@ -75,8 +70,6 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, NoeudDeclaration *decl)
 
 NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, NoeudExpression *noeud)
 {
-	Prof(trouve_decl_dans_bloc_seul);
-
 	auto membres = bloc->membres.verrou_lecture();
 	bloc->nombre_recherches += 1;
 	POUR (*membres) {
@@ -98,8 +91,6 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
 		IdentifiantCode *ident,
 		Fichier *fichier)
 {
-	Prof(trouve_ident_dans_bloc_ou_module);
-
 	auto decl = trouve_dans_bloc(bloc, ident);
 
 	if (decl != nullptr) {
@@ -128,8 +119,6 @@ void trouve_declarations_dans_bloc(
 		NoeudBloc *bloc,
 		IdentifiantCode *ident)
 {
-	Prof(trouve_declarations_dans_bloc);
-
 	auto bloc_courant = bloc;
 
 	while (bloc_courant != nullptr) {
@@ -152,8 +141,6 @@ void trouve_declarations_dans_bloc_ou_module(
 		IdentifiantCode *ident,
 		Fichier *fichier)
 {
-	Prof(trouve_declarations_dans_bloc_ou_module);
-
 	trouve_declarations_dans_bloc(declarations, bloc, ident);
 
 	/* cherche dans les modules importés */
@@ -188,8 +175,6 @@ bool bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle)
 
 NoeudExpression *derniere_instruction(NoeudBloc *b)
 {
-	Prof(derniere_instruction);
-
 	auto expressions = b->expressions.verrou_lecture();
 	auto taille = expressions->taille;
 

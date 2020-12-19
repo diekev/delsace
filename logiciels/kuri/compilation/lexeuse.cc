@@ -34,7 +34,6 @@
 #include "erreur.h"
 #include "empreinte_parfaite.hh"
 #include "identifiant.hh"
-#include "profilage.hh"
 
 /**
  * Idées pour des optimisations :
@@ -217,8 +216,6 @@ Lexeuse::Lexeuse(Compilatrice &compilatrice, DonneesConstantesFichier *donnees, 
 
 void Lexeuse::performe_lexage()
 {
-	Prof(performe_lexage);
-
 #define POUSSE_CARACTERE(id) \
 	this->enregistre_pos_mot(); \
 	this->pousse_caractere(); \
@@ -812,8 +809,6 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant, unsigned valeur)
 
 void Lexeuse::lexe_commentaire()
 {
-	Prof(lexe_commentaire);
-
 	if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
 		this->enregistre_pos_mot();
 	}
@@ -835,8 +830,6 @@ void Lexeuse::lexe_commentaire()
 
 void Lexeuse::lexe_commentaire_bloc()
 {
-	Prof(lexe_commentaire_bloc);
-
 	if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
 		this->enregistre_pos_mot();
 	}
@@ -882,8 +875,6 @@ void Lexeuse::lexe_commentaire_bloc()
 
 void Lexeuse::lexe_nombre()
 {
-	Prof(lexe_nombre);
-
 	this->enregistre_pos_mot();
 
 	if (this->caractere_courant() == '0') {
@@ -915,8 +906,6 @@ void Lexeuse::lexe_nombre()
 
 void Lexeuse::lexe_nombre_decimal()
 {
-	Prof(lexe_nombre_decimal);
-
 	unsigned long long resultat_entier = 0;
 	unsigned nombre_de_chiffres = 0;
 	auto point_trouve = false;
@@ -1004,8 +993,6 @@ void Lexeuse::lexe_nombre_decimal()
 
 void Lexeuse::lexe_nombre_hexadecimal()
 {
-	Prof(lexe_nombre_hexadecimal);
-
 	this->avance_fixe<2>();
 	this->pousse_caractere(2);
 
@@ -1050,8 +1037,6 @@ void Lexeuse::lexe_nombre_hexadecimal()
 
 void Lexeuse::lexe_nombre_reel_hexadecimal()
 {
-	Prof(lexe_nombre_reel_hexadecimal);
-
 	this->avance_fixe<2>();
 	this->pousse_caractere(2);
 
@@ -1102,8 +1087,6 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
 
 void Lexeuse::lexe_nombre_binaire()
 {
-	Prof(lexe_nombre_binaire);
-
 	this->avance_fixe<2>();
 	this->pousse_caractere(2);
 
@@ -1145,8 +1128,6 @@ void Lexeuse::lexe_nombre_binaire()
 
 void Lexeuse::lexe_nombre_octal()
 {
-	Prof(lexe_nombre_octal);
-
 	this->avance_fixe<2>();
 	this->pousse_caractere(2);
 
@@ -1218,8 +1199,6 @@ static int hex_depuis_char(char c)
  */
 unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 {
-	Prof(lexe_caractere_litteral);
-
 	auto c = this->caractere_courant();
 	this->avance_fixe<1>();
 	this->pousse_caractere();

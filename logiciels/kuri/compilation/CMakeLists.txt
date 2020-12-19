@@ -34,7 +34,6 @@ set(BIBLIOTHEQUES
 	bib_moultfilage
 	bib_structures
 	memoire
-	iprof
 )
 
 set(SOURCES
@@ -59,7 +58,6 @@ set(SOURCES
 	operateurs.hh
 	outils_lexemes.hh
 	portee.hh
-	profilage.hh
   statistiques.hh
 	structures.hh
 	syntaxeuse.hh
@@ -90,7 +88,6 @@ set(SOURCES
 	options.cc
 	outils_lexemes.cc
 	portee.cc
-	profilage.cc
   statistiques.cc
 	structures.cc
 	syntaxeuse.cc

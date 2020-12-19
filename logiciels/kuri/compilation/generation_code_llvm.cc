@@ -1276,7 +1276,6 @@ static void initialise_optimisation(
 
 static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module &module)
 {
-	Prof(ecris_fichier_objet);
 #if 1
 	auto chemin_sortie = "/tmp/kuri.o";
 	std::error_code ec;
@@ -1324,7 +1323,6 @@ static bool valide_llvm_ir(llvm::Module &module)
 
 static bool cree_executable(const kuri::chaine &dest, const std::filesystem::path &racine_kuri)
 {
-	Prof(cree_executable);
 	/* Compile le fichier objet qui appelera 'fonction principale'. */
 	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
 		auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";

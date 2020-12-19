@@ -25,7 +25,6 @@
 #include "graphe_dependance.hh"
 
 #include "arbre_syntaxique.hh"
-#include "profilage.hh"
 #include "statistiques.hh"
 #include "typage.hh"
 
@@ -83,8 +82,6 @@ void NoeudDependance::relations(Badge<GrapheDependance>, dls::tableau<Relation> 
 
 NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationEnteteFonction *noeud_syntaxique)
 {
-	Prof(cree_noeud_fonction);
-
 	if (noeud_syntaxique->noeud_dependance == nullptr) {
 		auto noeud = noeuds.ajoute_element(noeud_syntaxique);
 		noeud_syntaxique->noeud_dependance = noeud;
@@ -95,8 +92,6 @@ NoeudDependance *GrapheDependance::cree_noeud_fonction(NoeudDeclarationEnteteFon
 
 NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique)
 {
-	Prof(cree_noeud_globale);
-
 	if (noeud_syntaxique->noeud_dependance == nullptr) {
 		auto noeud = noeuds.ajoute_element(noeud_syntaxique);
 		noeud_syntaxique->noeud_dependance = noeud;
@@ -107,8 +102,6 @@ NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *
 
 NoeudDependance *GrapheDependance::cree_noeud_type(Type *type)
 {
-	Prof(cree_noeud_type);
-
 	if (type->noeud_dependance == nullptr) {
 		auto noeud = noeuds.ajoute_element(type);
 		type->noeud_dependance = noeud;
@@ -119,8 +112,6 @@ NoeudDependance *GrapheDependance::cree_noeud_type(Type *type)
 
 void GrapheDependance::connecte_type_type(NoeudDependance &type1, NoeudDependance &type2, TypeRelation type_rel)
 {
-	Prof(connecte_type_type);
-
 	assert(type1.est_type());
 	assert(type2.est_type());
 
@@ -140,7 +131,6 @@ void GrapheDependance::connecte_noeuds(
 		NoeudDependance &noeud2,
 		TypeRelation type_relation)
 {
-	Prof(connecte_noeuds);
 	noeud1.ajoute_relation({}, { type_relation, &noeud1, &noeud2 });
 }
 
@@ -161,8 +151,6 @@ void GrapheDependance::ajoute_dependances(
 		NoeudDependance &noeud,
 		DonneesDependance &donnees)
 {
-	Prof(ajoute_dependances);
-
 	dls::pour_chaque_element(donnees.types_utilises, [&](auto &type)
 	{
 		auto noeud_type = cree_noeud_type(type);
@@ -265,8 +253,6 @@ static void marque_chemins_atteignables(NoeudDependance &noeud)
 
 void GrapheDependance::reduction_transitive()
 {
-	Prof(reduction_transitive);
-
 	std::cout << "Réduction transitive du graphe..." << std::endl;
 
 	auto relations_supprimees = 0;

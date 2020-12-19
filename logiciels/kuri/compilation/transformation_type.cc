@@ -26,7 +26,6 @@
 
 #include "compilatrice.hh"
 #include "outils_lexemes.hh"
-#include "profilage.hh"
 #include "validation_semantique.hh"
 
 const char *chaine_transformation(TypeTransformation type)
@@ -83,8 +82,6 @@ bool cherche_transformation(
 		Type *type_vers,
 		TransformationType &transformation)
 {
-	Prof(cherche_transformation);
-
 	if (type_de == type_vers) {
 		transformation = TypeTransformation::INUTILE;
 		return false;
