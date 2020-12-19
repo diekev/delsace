@@ -1,5 +1,4 @@
 // erreur de compilation quand nous accédons à une soustructure via une expression d'appel
-// Note : corriger
 
 Parent :: struct {
     Enfant :: struct {
