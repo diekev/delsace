@@ -6,8 +6,6 @@ améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_
 
 trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
 
-// remplace DonneesCandidate::raison par une chaine de caractère
-// nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
 // compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
 
 permet l'utilisation d'expressions non-blocs pour les si/saufsi
@@ -15,29 +13,36 @@ permet l'utilisation d'expressions non-blocs pour les si/saufsi
 crash dans les exécutables quand nous prenont l'adresse d'une référence
 crash quand nous paniquons sur un membre non-actif d'une union
 
-erreur de compilation si nous définisson une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
+erreur de compilation si nous définissons une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
 
-- sépare les files de compilation pour les entêtes et les corps, les entêtes ayant la précédence, afin de faire en sorte que les validations des appels ne recommencent pas trop
-- ajout d'un état aux validations des appels
-
--- inclus les signes des nombres littéraux dans la lexeuse
--- ajout de drapeaux aux lexèmes des nombres littéraux pour indiquer la taille du nombre
--- utilisation de C++ pour compiler le code final afin de pouvoir retourner des tableaux fixes
--- utilisation d'une énumération pour retourner si le typage retourne une erreur au lieu d'une valeur booléenne
 -- opérateur []
 -- travail sur les itérateurs (via macros comme JAI?)
+
+// --------------------------- Compilatrice
+
+remplace DonneesCandidate::raison par une chaine de caractère
+nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
+sépare les files de compilation pour les entêtes et les corps, les entêtes ayant la précédence, afin de faire en sorte que les validations des appels ne recommencent pas trop
+ajout d'un état aux validations des appels-- utilisation de C++ pour compiler le code final afin de pouvoir retourner des tableaux fixes
+utilisation d'une énumération pour retourner si le typage retourne une erreur au lieu d'une valeur booléenne
+
+plusieurs threads d'exécutions pour le typage ou la génération de RI
+
+remplace les noeuds de dépendances par des unités de compilations
+-- ajoute la liste des dépendances aux unités, ainsi que la raison de la dépendance
+
+statistiques pour les reprises de compilation (temps, nombre, où), ainsi que pour le temps passé dans chaque feuille de l'arbre de typage (hors arbre aplatis)
+ajout de la construction des messages dans les tâches
+fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'améliorer la cohérence de cache)
 
 // --------------------------- Lexage
 
 nombre décimaux de la forme 1e-6
     voir cas dans chrono
 
-// --------------------
+inclus les signes des nombres littéraux dans la lexeuse
 
-plusieurs threads d'exécutions pour le typage ou la génération de RI
-
-remplace les noeuds de dépendances par des unités de compilations
--- ajoute la liste des dépendances aux unités, ainsi que la raison de la dépendance
+ajout de drapeaux aux lexèmes des nombres littéraux pour indiquer la taille du nombre
 
 // -------------------
 
@@ -270,6 +275,7 @@ amélioration du typage des expressions de tableaux constants
 normalisation de tous les types pour supprimer les unions et les entiers constants de la RI
     -- mention dans Internet/module.kuri
     -- // u : anonyme4 dans MySQL/mysql.kuri
+    - passe en revue les initialisations des unions
 
 déclaration d'énum, de structures, et d'unions anonymes :
     énum {
@@ -482,10 +488,9 @@ considération des assertions statiques lors de la compilation de plusieurs espa
 - diffère_err pour différer un bloc si une erreur est retournée
 - possibilité de déclarer une variable dans une condition (si a := foo() { ... })
 
-- appel les fonctions d'initialisation pour les constructions de structure si un membre est une structure
 - généralisation de l'utilisation de temporaires pour simplifier la génération de la RI, supprimant les cas spéciaux
 -- paramètres des appels
-- optimisations de l'accès aux membres des blocs (table de hachage avec tableau continu, en cours)
+- optimisations de l'accès aux membres des blocs (table de hachage avec tableau continu)
 - pouvoir passer des expressions à exécuter à la ligne de commande (kuri -exec "..." fichier.kuri)
 - nettoie la génération de code de création de contexte pour la fonction principale pour utiliser le noeud de la création de contexte du module Kuri
 - pouvoir utiliser un #! en début de fichier pour utiliser les programmes comme des scripts (cela compilera et exécutera l'exécutable ou alors juste les métaprogrammes, #! n'est pas cohérent sur toutes les plateformes...)
@@ -510,13 +515,6 @@ considération des assertions statiques lors de la compilation de plusieurs espa
 ---- #exécute -> crée une constante pour le résultat
 ---- #si -> insère bloc de code exécuté
 
-
-- statistiques pour les reprises de compilation (temps, nombre, où), ainsi que pour le temps passé dans chaque feuille de l'arbre de typage (hors arbre aplatis)
-- ajout de la construction des messages dans les tâches
-- fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'améliorer la cohérence de cache)
-- ajout de tâches pour le chargement des fichiers, et la construction des tampons
-- ajout d'une interface à la compilatrice pour définir des fonctions racines depuis des annotations
-- lèxe les nombres littéraux avec le caractère de signe (+/-)
 
 À faire (architecture)
 ----------------------
