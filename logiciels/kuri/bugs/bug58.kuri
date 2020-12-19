@@ -1,0 +1,14 @@
+// impossible de construire une structure depuis une monomorphisation
+// NOTE : voir cas dans test_structure_poly.kuri
+
+importe Fondation
+
+Poly :: struct ($T: type_de_données) {
+    x : T
+}
+
+principale :: fonc () -> z32
+{
+    p := Poly(T = z32)(x = 5)
+    retourne 0
+}
