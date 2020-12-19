@@ -303,8 +303,6 @@ initialisation de tableaux fixes :
 
 « rien » dans les unions
 
-- possiblité de ne pas avoir de membres dans les structures comme en C++
-
 - impossible d'utiliser mémoire sur un pointeur de tableau fixe (voir Unicode, qui devrait prendre un *[4]n8 au lieu d'un *n8)
 
 - corrige les infos types des énumérations pour prendre en compte la taille en octet du type

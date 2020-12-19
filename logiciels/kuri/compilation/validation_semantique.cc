@@ -2901,6 +2901,20 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 	return false;
 }
 
+/* À FAIRE: les héritages dans les structures externes :
+ *
+ * BaseExterne :: struct #externe
+ *
+ * DérivéeExterne :: struct #externe {
+ *	  empl base: BaseExterne
+ * }
+ *
+ * Ici nous n'aurons aucun membre.
+ *
+ * Il nous faudra une meilleure manière de gérer ce cas, peut-être via une
+ * erreur de compilation si nous tentons d'utiliser un tel type par valeur.
+ * Il faudra également proprement gérer le cas pour les infos types.
+ */
 bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 {
 	auto &graphe = espace->graphe_dependance;
@@ -3190,23 +3204,11 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		++nombre_membres_non_constants;
 	}
 
-	/* À FAIRE: ceci est pour supporter les héritages dans les structures externes :
-	 *
-	 * BaseExterne :: struct #externe
-	 *
-	 * DérivéeExterne :: struct #externe {
-	 *	  empl base: BaseExterne
-	 * }
-	 *
-	 * Ici nous n'aurons aucun membre.
-	 *
-	 * Il nous faudra une meilleure manière de gérer ce cas, peut-être via une
-	 * erreur de compilation si nous tentons d'utiliser un tel type par valeur.
-	 * Il faudra également proprement gérer le cas pour les infos types.
-	 */
 	if (nombre_membres_non_constants == 0) {
 		if (!decl->est_externe) {
-			::rapporte_erreur(espace, decl, "Le type n'a aucun membre et n'est pas un marqué comme externe !");
+			/* Ajoute un membre, d'un octet de taille. */
+			type_compose->membres.ajoute({ espace->typeuse[TypeBase::BOOL], ID::chaine_vide, 0, 0, nullptr });
+			calcule_taille_type_compose(type_compose);
 		}
 	}
 	else {

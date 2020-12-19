@@ -351,9 +351,15 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeStructure
 			continue;
 		}
 
-		auto nom = broye_nom_simple(it.nom->nom);
 		enchaineuse << nom_broye_type(it.type) << ' ';
-		enchaineuse << nom << ";\n";
+
+		/* Cas pour les structures vides. */
+		if (it.nom == ID::chaine_vide) {
+			enchaineuse << "membre_invisible" << ";\n";
+		}
+		else {
+			enchaineuse << broye_nom_simple(it.nom->nom) << ";\n";
+		}
 	}
 
 	enchaineuse << "} " << nom_broye;
@@ -1112,7 +1118,15 @@ struct GeneratriceCodeC {
 					valeur_accede = "&" + valeur_accede + "->";
 				}
 
-				valeur_accede += broye_nom_simple(type_compose->membres[index_membre].nom->nom);
+				auto const &membre = type_compose->membres[index_membre];
+
+				/* Cas pour les structures vides (dans leurs fonctions d'initialisation). */
+				if (membre.nom == ID::chaine_vide) {
+					valeur_accede += "membre_invisible";
+				}
+				else {
+					valeur_accede += broye_nom_simple(membre.nom->nom);
+				}
 
 				table_valeurs[inst_acces] = valeur_accede;
 				break;
