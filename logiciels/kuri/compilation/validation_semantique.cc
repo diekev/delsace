@@ -2958,11 +2958,6 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 	CHRONO_TYPAGE(m_tacheronne.stats_typage.structures, "valide structure");
 
-	if (decl->bloc->membres->est_vide()) {
-		rapporte_erreur("Bloc vide pour la déclaration de structure", decl);
-		return true;
-	}
-
 	if (!decl->est_monomorphisation) {
 		auto decl_precedente = trouve_dans_bloc(decl->bloc_parent, decl);
 
@@ -3185,6 +3180,16 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 	}
 
+	auto nombre_membres_non_constants = 0;
+
+	POUR (type_compose->membres) {
+		if (it.drapeaux & (TypeCompose::Membre::EST_CONSTANT | TypeCompose::Membre::EST_IMPLICITE)) {
+			continue;
+		}
+
+		++nombre_membres_non_constants;
+	}
+
 	/* À FAIRE: ceci est pour supporter les héritages dans les structures externes :
 	 *
 	 * BaseExterne :: struct #externe
@@ -3199,7 +3204,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	 * erreur de compilation si nous tentons d'utiliser un tel type par valeur.
 	 * Il faudra également proprement gérer le cas pour les infos types.
 	 */
-	if (type_compose->membres.taille == 0) {
+	if (nombre_membres_non_constants == 0) {
 		if (!decl->est_externe) {
 			::rapporte_erreur(espace, decl, "Le type n'a aucun membre et n'est pas un marqué comme externe !");
 		}
