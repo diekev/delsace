@@ -217,8 +217,6 @@ converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
     retourne résultat
 }
 
-// À FAIRE(langage) : séquence devrait être un *[4]n8, mais la génération de RI ou code C n'est pas correcte
-// pour les expression de type mémoire(séquence)[0] = ...
 point_de_code_vers_utf8 :: fonc (point_de_code: n32, séquence: *n8) -> z32
 {
 	/* caractère ASCII */

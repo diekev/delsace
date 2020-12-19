@@ -100,7 +100,7 @@ compile :: fonc ()
                 }
 
                 sous_lexèmes.taille -= 1
-                // À FAIRE(langage) : arithmétique de pointeur
+                // @arithmétique de pointeur
                 sous_lexèmes.pointeur += (1 * taille_de(Lexème))
             }
 

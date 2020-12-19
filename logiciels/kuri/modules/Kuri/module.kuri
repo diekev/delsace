@@ -253,8 +253,6 @@ ModeLogage :: énum z32 {
 
 // Le StockageTemporaire est un stockage mis en place par le compilateur, qui réserve
 // une certaine taille dans l'exécutable où mettre des données temporaire.
-// À FAIRE(langage) : option de compilation pour définir la taille du stockage temporaire
-// on attendra que la métoprogrammation soit ici pour passer les options par celle-ci
 StockageTemporaire :: struct #interface {
     données : *octet
     taille : z32
@@ -288,8 +286,6 @@ TraceAppel :: struct #interface {
 }
 
 // Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
-// À FAIRE(langage) : permettre aux utilisateurs du langage d'ajouter des variables dans
-// cette structure.
 ContexteProgramme :: struct {
     allocatrice := allocatrice_défaut
     données_allocatrice : *BaseAllocatrice = nul
@@ -685,7 +681,6 @@ arguments_ligne_commande :: fonc () -> []chaine
 
 crée_contexte :: fonc () -> rien #création_contexte
 {
-    // À FAIRE(langage) : déplace cela dans une globale mise en place par la compilatrice
     info_trace_appel := InfoFonctionTraceAppel(nom = "main", fichier = "module.kuri", adresse = nul)
 
     trace_appel := TraceAppel(info_fonction = *info_trace_appel)
@@ -735,7 +730,6 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbro
     contexte := __init_exécution_kuri(argc, argv)
 
     // initalise les autres membres du contexte
-    // À FAIRE(langage) : prendre les adresses des fonctions
     info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = "module.kuri", adresse = nul)
     trace_appel := TraceAppel(info_fonction = *info_trace_appel)
     contexte.trace_appel = *trace_appel
@@ -750,7 +744,6 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbro
     stockage_temporaire.occupation_maximale = 0
     contexte.stockage_temporaire = *stockage_temporaire
 
-    // À FAIRE(langage) : passe le pointeur comme référence quand nous aurons corrigé cette fonction
     résultat := __principale(mémoire(contexte))
 
     __fini_exécution_kuri(contexte)

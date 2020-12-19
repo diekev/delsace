@@ -1,8 +1,5 @@
 importe Fondation
 
-// À FAIRE(langage) : information que la structure est polymorphique dans les infos-types
-// À FAIRE(langage) : impression des paramètres dans les messages d'erreur en cas de mésappariement
-
 Vec3 :: struct ($T: type_de_données) {
     x : T
     y : T
@@ -35,7 +32,6 @@ principale :: fonc () -> z32
     imprime("%\n", v)
 
 /*
-    À FAIRE(langage) : ceci n'est pas supporté dans le langage apparement
     w := Vec3(T = r32)(x = 1.0, y = 2.0, z = 3.0)
     imprime("%\n", w)
 */

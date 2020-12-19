@@ -85,7 +85,7 @@ InfoTypeÉnum :: struct #interface {
 	empl base : InfoType
 
 	nom : chaine
-	valeurs : []z32 // À FAIRE(langage) typage selon énum
+	valeurs : []z32
 	noms : []chaine
 	est_drapeau : bool
 }

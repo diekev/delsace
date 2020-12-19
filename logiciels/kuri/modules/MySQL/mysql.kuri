@@ -170,7 +170,6 @@ mysql_compress_context :: struct #externe {
 	// Compression algorithm name.
 	algorithm : enum_compression_algorithm
 
-	// À FAIRE(langage)
 	// u : anonyme4
 }
 

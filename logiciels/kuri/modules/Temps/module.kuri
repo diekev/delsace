@@ -296,23 +296,22 @@ importe Compilatrice
     compilatrice_vérifie_égalité(date.seconde, 20)
 }
 
-// À FAIRE(langage) : crash dans la génération des types de fonctions pour le métaprogramme quand nous avons des instructions déloge
 #test {
     date := parse_date("2020/11/22 6:37:20", "AAAA/MM/JJ h:mm:ss")
 
     résultat := date.formatte("%h:%m:%s")
     compilatrice_vérifie_égalité(résultat, "6:37:20")
-    // déloge(résultat)
+    déloge(résultat)
 
     résultat = date.formatte("%J/%M/%A")
     compilatrice_vérifie_égalité(résultat, "22/11/2020")
-    // déloge(résultat)
+    déloge(résultat)
 
     résultat = date.formatte("%J/%M/%A %h:%m:%s")
     compilatrice_vérifie_égalité(résultat, "22/11/2020 6:37:20")
-    // déloge(résultat)
+    déloge(résultat)
 
     résultat = date.formatte("%h:%m:%s %J/%M/%A")
     compilatrice_vérifie_égalité(résultat, "6:37:20 22/11/2020")
-    // déloge(résultat)
+    déloge(résultat)
 }

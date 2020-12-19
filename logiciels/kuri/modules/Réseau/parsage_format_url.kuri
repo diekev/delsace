@@ -216,7 +216,6 @@ InformationConnexion :: struct {
     mot_de_passe: chaine
 }
 
-    À FAIRE(langage) : les tests échouent car les assignations via les pointeurs ne sont pas correctes
 #test {
     parseuse : ParseuseFormatURL
     initalise_types_base(*parseuse)

@@ -152,7 +152,6 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 	tampon : [1024]z8
 
     boucle {
-	    // À FAIRE(langage) : prend pointeur automatiquement
 		lu := read(fd, *tampon[0], 1024)
 
 		si lu == 0 {
@@ -316,14 +315,8 @@ chaque_chemin_récursif :: corout(chemin : &CheminFichier) -> CheminFichier
 
 chemin_courant :: fonc() -> CheminFichier
 {
-    // À FAIRE(langage) : dans les métaprogrammes, la prise de pointeur vers *tampon[0] ne semble pas fonctionner
-    // tampon : [1024]z8
-    // pointeur := getcwd(*tampon[0], 1024)
-
-    tampon := loge_chaine(1024)
-    diffère { déloge(tampon) }
-
-    pointeur := getcwd(tampon.pointeur, tampon.taille)
+    tampon : [1024]z8
+    pointeur := getcwd(*tampon[0], 1024)
 
     si pointeur == nul {
         // @erreur

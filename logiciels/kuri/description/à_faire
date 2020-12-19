@@ -1,3 +1,11 @@
+
+-- chn1 && chn2
+    Delsace/Curl saufsi fichier_local.taille != 0 && fichier_distant.taille != 0
+
+améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_valeur_énum comme type_entier, etc.)
+
+trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
+
 // remplace DonneesCandidate::raison par une chaine de caractère
 // nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
 // compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
@@ -17,6 +25,12 @@ erreur de compilation si nous définisson une structure dans une fonction et que
 -- utilisation de C++ pour compiler le code final afin de pouvoir retourner des tableaux fixes
 -- utilisation d'une énumération pour retourner si le typage retourne une erreur au lieu d'une valeur booléenne
 -- opérateur []
+-- travail sur les itérateurs (via macros comme JAI?)
+
+// --------------------------- Lexage
+
+nombre décimaux de la forme 1e-6
+    voir cas dans chrono
 
 // --------------------
 
@@ -37,6 +51,10 @@ Résultat de l'algorithme d'unification :
 
 utilisation d'une référence pour passer le contexte entre les fonctions, nous devrons correctement gérer les références dans ce cas
 
+permettre aux utilisateurs du langage d'y ajouter des variables
+
+option de compilation pour définir la taille du stockage temporaire
+
 // --------------------------- Fonctions
 
 passe un type à une fonction pour instantier automatiquement une valeur temporaire dont on ne se soucie pas de la valeur
@@ -48,6 +66,17 @@ passe un type à une fonction pour instantier automatiquement une valeur tempora
     faire :
     fonction(MonType)
 
+pouvoir prendre les adresses des fonctions
+    il faut définir le type de manière générique (*rien ?)
+    voir mise en place de la trace d'appel dans Kuri/module.kuri
+
+
+permet de ne pas avoir un retour si la dernière instruction est celle d'une discrimination qui retourne de toute manière
+    Ici x n'a que deux valeurs possibles
+    discr x {
+        cas_1 { retourne 0 }
+        cas_2 { retourne 1 }
+    }
 
 // --------------------------- Polymorphie / Monomorphisation
 
@@ -106,6 +135,10 @@ De Jorjala/attribut.kuri
 currying
     #cuis_constantes ma_fonction(T = z32)  // crée une nouvelle fonction ou le paramètre polymorphique T est remplacé par le type z32
     #cuis_valeurs    ma_fonction(x = 5)  // crée une nouvelle fonction ou le paramètre x est remplacé par la constante 5
+
+information que la structure est polymorphique dans les infos-types
+
+impression des paramètres dans les messages d'erreur en cas de mésappariement
 
 // --------------------------- Métaprogrammation
 
@@ -232,10 +265,11 @@ amélioration du typage des expressions de tableaux constants
     plusieurs problèmes de l'approche courrante
     - le premier élément défini le type du tableau ce qui fait échoué les tableaux mélangeant des constantes de nombre et de caractère (voir Noyau)
     - les nombres constants sont définis comme z32, nous ne pouvons avoir un tableau de n32 par exemple avec uniquement des constantes
-        -- mention dans HTML/Autres/parse_entite.kuri
+        -- voir cas dans HTML/Autres/parse_entite.kuri
 
 normalisation de tous les types pour supprimer les unions et les entiers constants de la RI
     -- mention dans Internet/module.kuri
+    -- // u : anonyme4 dans MySQL/mysql.kuri
 
 déclaration d'énum, de structures, et d'unions anonymes :
     énum {
@@ -263,6 +297,22 @@ initialisation de tableaux fixes :
 - réusine les emplois de variables dans les structures, pour les infos types, il nous faut la structure, mais pour la validation la structure et ses membres, ses membres ne doivent être ceux de l'employeuse
 
 - explore représenter les types comme de noeuds_syntaxiques afin de simplifier les appariements de gabarits
+
+- impression des types via imprime (requiers une table de types)
+    voir cas dans Jorjala/LCC
+
+« rien » dans les unions
+
+- possiblité de ne pas avoir de membres dans les structures comme en C++
+    le code pour vérifier si une structure n'a aucun membre contient un bug :
+        il ne vérifie que si le bloc n'a aucun membre, mais ceci ignore les cas où la structure
+
+- impossible d'utiliser mémoire sur un pointeur de tableau fixe (voir Unicode, qui devrait prendre un *[4]n8 au lieu d'un *n8)
+
+- corrige les infos types des énumérations pour prendre en compte la taille en octet du type
+    voir toutes les utilisations de id_info.ÉNUM ou ajoute une fonction dans Introspection
+
+- pouvoir passer des pointeur comme référence (voir création du contexte qui utilise pour le moment une valeur)
 
 // --------------------------- Discriminations
 

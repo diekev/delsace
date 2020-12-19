@@ -276,7 +276,6 @@ NoeudCodeEntêteFonction :: struct {
 
 	annotations : []chaine
 
-	// À FAIRE(langage) : remplace par des drapeaux
 	est_opérateur : bool
 	est_coroutine : bool
 }

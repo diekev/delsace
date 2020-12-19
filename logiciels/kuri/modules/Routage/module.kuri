@@ -236,12 +236,6 @@ RésultatRequête :: struct {
     contenu : chaine
     type_contenu : chaine
 
-    // À FAIRE(langage) : erreur de compilation quand nous accédons à ceci via une expression d'appel
-    // Entête :: struct {
-    //     nom: chaine
-    //     valeur: chaine
-    // }
-
     entêtes : []Entête
     cookies : []Cookie
 }

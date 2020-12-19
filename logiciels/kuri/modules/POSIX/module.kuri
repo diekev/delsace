@@ -34,13 +34,10 @@ exécute_commande_externe :: fonc (args: ...chaine) -> bool
         ajoute_au_tampon(*enchaineuse, " ")
     }
 
-    // À FAIRE(langage) : ne peut pas utiliser "\0" dans la coulisse C
-    ajoute_au_tampon(*enchaineuse, " ")
+    ajoute_au_tampon(*enchaineuse, '\0')
 
     commande := chaine_depuis_enchaineuse(*enchaineuse)
     diffère { déloge(commande) }
-
-    commande[commande.taille - 1] = '\0'
 
     si system(commande.pointeur) != 0 {
         retourne faux

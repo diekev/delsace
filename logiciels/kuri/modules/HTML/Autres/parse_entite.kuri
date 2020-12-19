@@ -124,7 +124,6 @@ principale :: fonc () -> z32
 
     ajoute_au_tampon(*enchaineuse, "]\n\n")
 
-    // À FAIRE(langage) : ceci devrait être un tableau de n32, mais notre code pour définir le type des entiers constants utilise z32 par défaut
     ajoute_au_tampon(*enchaineuse, "points_de_code_entités : [][2]z32 = ")
 
     virgule = "[ "
