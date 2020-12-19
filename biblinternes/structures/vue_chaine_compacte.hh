@@ -44,19 +44,39 @@ public:
 
 	vue_chaine_compacte(char const *ptr);
 
-	vue_chaine_compacte(char const *ptr, long taille);
+	inline vue_chaine_compacte(char const *ptr, long taille)
+		: m_ptr(ptr, static_cast<int>(taille))
+	{}
 
-	char const &operator[](long idx) const;
+	inline char const &operator[](long idx) const
+	{
+		return pointeur()[idx];
+	}
 
-	long taille() const;
+	inline long taille() const
+	{
+		return m_ptr.marque();
+	}
 
-	bool est_vide() const;
+	inline bool est_vide() const
+	{
+		return taille() == 0;
+	}
 
-	char const *pointeur() const;
+	inline char const *pointeur() const
+	{
+		return m_ptr.pointeur();
+	}
 
-	const char *begin() const;
+	inline const char *begin() const
+	{
+		return pointeur();
+	}
 
-	const char *end() const;
+	inline const char *end() const
+	{
+		return pointeur() + taille();
+	}
 };
 
 bool operator<(vue_chaine_compacte const &c1, vue_chaine_compacte const &c2);

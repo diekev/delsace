@@ -33,40 +33,6 @@ vue_chaine_compacte::vue_chaine_compacte(const char *ptr)
 	: m_ptr(ptr, static_cast<int>(std::strlen(ptr)))
 {}
 
-vue_chaine_compacte::vue_chaine_compacte(const char *ptr, long taille)
-	: m_ptr(ptr, static_cast<int>(taille))
-{}
-
-const char &vue_chaine_compacte::operator[](long idx) const
-{
-	return pointeur()[idx];
-}
-
-long vue_chaine_compacte::taille() const
-{
-	return m_ptr.marque();
-}
-
-bool vue_chaine_compacte::est_vide() const
-{
-	return taille() == 0;
-}
-
-const char *vue_chaine_compacte::pointeur() const
-{
-	return m_ptr.pointeur();
-}
-
-const char *vue_chaine_compacte::begin() const
-{
-	return pointeur();
-}
-
-const char *vue_chaine_compacte::end() const
-{
-	return pointeur() + taille();
-}
-
 static int compare_chaine(vue_chaine_compacte const &chn1, vue_chaine_compacte const &chn2)
 {
 	auto p1 = chn1.pointeur();
