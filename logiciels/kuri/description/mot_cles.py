@@ -67,8 +67,6 @@ mot_cles = [
 	u'définis',
 ]
 
-taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
-
 mot_cles = sorted(mot_cles)
 
 caracteres_simple = [
@@ -104,7 +102,7 @@ caracteres_simple = [
 
 caracteres_simple = sorted(caracteres_simple)
 
-digraphes = [
+digrammes = [
 	[u'<=', u'INFERIEUR_EGAL'],
 	[u'>=', u'SUPERIEUR_EGAL'],
 	[u'==', u'EGALITE'],
@@ -129,16 +127,16 @@ digraphes = [
 	[u'*/', u'FIN_BLOC_COMMENTAIRE'],
 ]
 
-digraphes = sorted(digraphes)
+digrammes = sorted(digrammes)
 
-trigraphes = [
+trigrammes = [
 	[u'<<=', u'DEC_GAUCHE_EGAL'],
 	[u'>>=', u'DEC_DROITE_EGAL'],
 	[u'...', u'TROIS_POINTS'],
 	[u'---', u'NON_INITIALISATION'],
 ]
 
-trigraphes = sorted(trigraphes)
+trigrammes = sorted(trigrammes)
 
 id_extra = [
 	[u'1.234', u'NOMBRE_REEL'],
@@ -197,36 +195,16 @@ def construit_structures():
 
 	return structures
 
-
-def construit_tableaux():
-	tableaux = u''
-
-	tableaux += u'static auto paires_mots_cles = dls::cree_dico(\n'
-
-	virgule = ''
-
-	for mot in mot_cles:
-		tableaux += virgule
-		m = enleve_accent(mot)
-		m = m.upper()
-		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), GenreLexeme::{} }}'.format(mot, m)
-		virgule = ',\n'
-
-	tableaux += u'\n);\n\n'
-
-	return tableaux
-
-
 def constuit_enumeration():
 	enumeration = u'enum class GenreLexeme : unsigned int {\n'
 
 	for car in caracteres_simple:
 		enumeration += u'\t{},\n'.format(car[1])
 
-	for car in digraphes:
+	for car in digrammes:
 		enumeration += u'\t{},\n'.format(car[1])
 
-	for car in trigraphes:
+	for car in trigrammes:
 		enumeration += u'\t{},\n'.format(car[1])
 
 	for car in id_extra:
@@ -251,11 +229,11 @@ def construit_fonction_chaine_du_genre_de_lexeme():
 		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
 		fonction += u'\t\t\treturn "GenreLexeme::{}";\n'.format(car[1])
 
-	for car in digraphes:
+	for car in digrammes:
 		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
 		fonction += u'\t\t\treturn "GenreLexeme::{}";\n'.format(car[1])
 
-	for car in trigraphes:
+	for car in trigrammes:
 		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
 		fonction += u'\t\t\treturn "GenreLexeme::{}";\n'.format(car[1])
 
@@ -270,7 +248,7 @@ def construit_fonction_chaine_du_genre_de_lexeme():
 		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(m)
 		fonction += u'\t\t\treturn "GenreLexeme::{}";\n'.format(m)
 
-	fonction += u'\t};\n'
+	fonction += u'\t}\n'
 	fonction += u'\n\treturn "ERREUR";\n'
 	fonction += u'}\n'
 
@@ -289,11 +267,11 @@ def construit_fonction_chaine_du_lexeme():
 		else:
 		    fonction += u'\t\t\treturn "{}";\n'.format(car[0])
 
-	for car in digraphes:
+	for car in digrammes:
 		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
 		fonction += u'\t\t\treturn "{}";\n'.format(car[0])
 
-	for car in trigraphes:
+	for car in trigrammes:
 		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
 		fonction += u'\t\t\treturn "{}";\n'.format(car[0])
 
@@ -308,7 +286,7 @@ def construit_fonction_chaine_du_lexeme():
 		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(m)
 		fonction += u'\t\t\treturn "{}";\n'.format(mot)
 
-	fonction += u'\t};\n'
+	fonction += u'\t}\n'
 	fonction += u'\n\treturn "ERREUR";\n'
 	fonction += u'}\n'
 
@@ -342,104 +320,20 @@ license_ = u"""/*
  /* Ce fichier est généré automatiquement. NE PAS ÉDITER ! */
  """
 
-enumeration = constuit_enumeration()
-fonction = construit_fonction_chaine_du_genre_de_lexeme()
-structures = construit_structures()
-tableaux = construit_tableaux()
-
-fonctions = u"""
-static bool tables_mots_cles[256] = {};
-
-void construit_tables_caractere_speciaux()
-{
-	for (int i = 0; i < 256; ++i) {
-		tables_mots_cles[i] = false;
-	}
-
-    {
-	    auto plg = paires_mots_cles.plage();
-
-	    while (!plg.est_finie()) {
-		    tables_mots_cles[static_cast<unsigned char>(plg.front().premier[0])] = true;
-	   		plg.effronte();
-	    }
-	}
-}
-
-GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
-{
-	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
-		return GenreLexeme::CHAINE_CARACTERE;
-	}
-
-	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
-		return GenreLexeme::CHAINE_CARACTERE;
-	}
-
-	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
-
-	if (!iterateur.est_finie()) {
-		return iterateur.front().second;
-	}
-
-	return GenreLexeme::CHAINE_CARACTERE;
-}
-"""
-
-fonctions_enumeration = u"""
-inline GenreLexeme operator&(GenreLexeme id1, int id2)
-{
-	return static_cast<GenreLexeme>(static_cast<int>(id1) & id2);
-}
-
-inline GenreLexeme operator|(GenreLexeme id1, int id2)
-{
-	return static_cast<GenreLexeme>(static_cast<int>(id1) | id2);
-}
-
-inline GenreLexeme operator|(GenreLexeme id1, GenreLexeme id2)
-{
-	return static_cast<GenreLexeme>(static_cast<int>(id1) | static_cast<int>(id2));
-}
-
-inline GenreLexeme operator<<(GenreLexeme id1, int id2)
-{
-	return static_cast<GenreLexeme>(static_cast<int>(id1) << id2);
-}
-
-inline GenreLexeme operator>>(GenreLexeme id1, int id2)
-{
-	return static_cast<GenreLexeme>(static_cast<int>(id1) >> id2);
-}
-"""
-
-declaration_fonctions = u"""
-const char *chaine_du_genre_de_lexeme(GenreLexeme id);
-
-const char *chaine_du_lexeme(GenreLexeme genre);
-
-void construit_tables_caractere_speciaux();
-
-GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine);
-"""
-
 with io.open(u"../compilation/lexemes.hh", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
 	entete.write(u'struct IdentifiantCode;\n\n')
 	entete.write(u'#include "biblinternes/structures/chaine.hh"\n\n')
-	entete.write(enumeration)
-	entete.write(fonctions_enumeration)
-	entete.write(structures)
-	entete.write(declaration_fonctions)
+	entete.write(constuit_enumeration())
+	entete.write(construit_structures())
+	entete.write(u"\n")
+	entete.write(u"const char *chaine_du_genre_de_lexeme(GenreLexeme id);\n")
+	entete.write(u"const char *chaine_du_lexeme(GenreLexeme genre);")
 
 
 with io.open(u'../compilation/lexemes.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "lexemes.hh"\n\n')
-	source.write(u'#include "biblinternes/structures/dico_fixe.hh"\n\n')
-	source.write(tableaux)
-	source.write(fonction)
+	source.write(construit_fonction_chaine_du_genre_de_lexeme())
 	source.write(construit_fonction_chaine_du_lexeme())
-	source.write(u'\nstatic constexpr auto TAILLE_MAX_MOT_CLE = {};\n'.format(taille_max_mot_cles))
-	source.write(fonctions)

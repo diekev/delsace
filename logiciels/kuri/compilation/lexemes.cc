@@ -26,73 +26,6 @@
  
 #include "lexemes.hh"
 
-#include "biblinternes/structures/dico_fixe.hh"
-
-static auto paires_mots_cles = dls::cree_dico(
-	dls::paire{ dls::vue_chaine_compacte("arrête"), GenreLexeme::ARRETE },
-	dls::paire{ dls::vue_chaine_compacte("bool"), GenreLexeme::BOOL },
-	dls::paire{ dls::vue_chaine_compacte("boucle"), GenreLexeme::BOUCLE },
-	dls::paire{ dls::vue_chaine_compacte("chaine"), GenreLexeme::CHAINE },
-	dls::paire{ dls::vue_chaine_compacte("charge"), GenreLexeme::CHARGE },
-	dls::paire{ dls::vue_chaine_compacte("comme"), GenreLexeme::COMME },
-	dls::paire{ dls::vue_chaine_compacte("continue"), GenreLexeme::CONTINUE },
-	dls::paire{ dls::vue_chaine_compacte("corout"), GenreLexeme::COROUT },
-	dls::paire{ dls::vue_chaine_compacte("dans"), GenreLexeme::DANS },
-	dls::paire{ dls::vue_chaine_compacte("diffère"), GenreLexeme::DIFFERE },
-	dls::paire{ dls::vue_chaine_compacte("discr"), GenreLexeme::DISCR },
-	dls::paire{ dls::vue_chaine_compacte("dyn"), GenreLexeme::DYN },
-	dls::paire{ dls::vue_chaine_compacte("définis"), GenreLexeme::DEFINIS },
-	dls::paire{ dls::vue_chaine_compacte("eini"), GenreLexeme::EINI },
-	dls::paire{ dls::vue_chaine_compacte("eini_erreur"), GenreLexeme::EINI_ERREUR },
-	dls::paire{ dls::vue_chaine_compacte("empl"), GenreLexeme::EMPL },
-	dls::paire{ dls::vue_chaine_compacte("erreur"), GenreLexeme::ERREUR },
-	dls::paire{ dls::vue_chaine_compacte("externe"), GenreLexeme::EXTERNE },
-	dls::paire{ dls::vue_chaine_compacte("faux"), GenreLexeme::FAUX },
-	dls::paire{ dls::vue_chaine_compacte("fonc"), GenreLexeme::FONC },
-	dls::paire{ dls::vue_chaine_compacte("garde"), GenreLexeme::GARDE },
-	dls::paire{ dls::vue_chaine_compacte("importe"), GenreLexeme::IMPORTE },
-	dls::paire{ dls::vue_chaine_compacte("info_de"), GenreLexeme::INFO_DE },
-	dls::paire{ dls::vue_chaine_compacte("init_de"), GenreLexeme::INIT_DE },
-	dls::paire{ dls::vue_chaine_compacte("mémoire"), GenreLexeme::MEMOIRE },
-	dls::paire{ dls::vue_chaine_compacte("n16"), GenreLexeme::N16 },
-	dls::paire{ dls::vue_chaine_compacte("n32"), GenreLexeme::N32 },
-	dls::paire{ dls::vue_chaine_compacte("n64"), GenreLexeme::N64 },
-	dls::paire{ dls::vue_chaine_compacte("n8"), GenreLexeme::N8 },
-	dls::paire{ dls::vue_chaine_compacte("nonatteignable"), GenreLexeme::NONATTEIGNABLE },
-	dls::paire{ dls::vue_chaine_compacte("nonsûr"), GenreLexeme::NONSUR },
-	dls::paire{ dls::vue_chaine_compacte("nul"), GenreLexeme::NUL },
-	dls::paire{ dls::vue_chaine_compacte("octet"), GenreLexeme::OCTET },
-	dls::paire{ dls::vue_chaine_compacte("opérateur"), GenreLexeme::OPERATEUR },
-	dls::paire{ dls::vue_chaine_compacte("piège"), GenreLexeme::PIEGE },
-	dls::paire{ dls::vue_chaine_compacte("pour"), GenreLexeme::POUR },
-	dls::paire{ dls::vue_chaine_compacte("pousse_contexte"), GenreLexeme::POUSSE_CONTEXTE },
-	dls::paire{ dls::vue_chaine_compacte("r16"), GenreLexeme::R16 },
-	dls::paire{ dls::vue_chaine_compacte("r32"), GenreLexeme::R32 },
-	dls::paire{ dls::vue_chaine_compacte("r64"), GenreLexeme::R64 },
-	dls::paire{ dls::vue_chaine_compacte("retiens"), GenreLexeme::RETIENS },
-	dls::paire{ dls::vue_chaine_compacte("retourne"), GenreLexeme::RETOURNE },
-	dls::paire{ dls::vue_chaine_compacte("rien"), GenreLexeme::RIEN },
-	dls::paire{ dls::vue_chaine_compacte("répète"), GenreLexeme::REPETE },
-	dls::paire{ dls::vue_chaine_compacte("sansarrêt"), GenreLexeme::SANSARRET },
-	dls::paire{ dls::vue_chaine_compacte("saufsi"), GenreLexeme::SAUFSI },
-	dls::paire{ dls::vue_chaine_compacte("si"), GenreLexeme::SI },
-	dls::paire{ dls::vue_chaine_compacte("sinon"), GenreLexeme::SINON },
-	dls::paire{ dls::vue_chaine_compacte("struct"), GenreLexeme::STRUCT },
-	dls::paire{ dls::vue_chaine_compacte("taille_de"), GenreLexeme::TAILLE_DE },
-	dls::paire{ dls::vue_chaine_compacte("tantque"), GenreLexeme::TANTQUE },
-	dls::paire{ dls::vue_chaine_compacte("tente"), GenreLexeme::TENTE },
-	dls::paire{ dls::vue_chaine_compacte("type_de"), GenreLexeme::TYPE_DE },
-	dls::paire{ dls::vue_chaine_compacte("type_de_données"), GenreLexeme::TYPE_DE_DONNEES },
-	dls::paire{ dls::vue_chaine_compacte("union"), GenreLexeme::UNION },
-	dls::paire{ dls::vue_chaine_compacte("vrai"), GenreLexeme::VRAI },
-	dls::paire{ dls::vue_chaine_compacte("z16"), GenreLexeme::Z16 },
-	dls::paire{ dls::vue_chaine_compacte("z32"), GenreLexeme::Z32 },
-	dls::paire{ dls::vue_chaine_compacte("z64"), GenreLexeme::Z64 },
-	dls::paire{ dls::vue_chaine_compacte("z8"), GenreLexeme::Z8 },
-	dls::paire{ dls::vue_chaine_compacte("énum"), GenreLexeme::ENUM },
-	dls::paire{ dls::vue_chaine_compacte("énum_drapeau"), GenreLexeme::ENUM_DRAPEAU }
-);
-
 const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 {
 	switch (id) {
@@ -360,7 +293,7 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 			return "GenreLexeme::ENUM";
 		case GenreLexeme::ENUM_DRAPEAU:
 			return "GenreLexeme::ENUM_DRAPEAU";
-	};
+	}
 
 	return "ERREUR";
 }
@@ -631,46 +564,7 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 			return "énum";
 		case GenreLexeme::ENUM_DRAPEAU:
 			return "énum_drapeau";
-	};
+	}
 
 	return "ERREUR";
-}
-
-static constexpr auto TAILLE_MAX_MOT_CLE = 16;
-
-static bool tables_mots_cles[256] = {};
-
-void construit_tables_caractere_speciaux()
-{
-	for (int i = 0; i < 256; ++i) {
-		tables_mots_cles[i] = false;
-	}
-
-    {
-	    auto plg = paires_mots_cles.plage();
-
-	    while (!plg.est_finie()) {
-		    tables_mots_cles[static_cast<unsigned char>(plg.front().premier[0])] = true;
-	   		plg.effronte();
-	    }
-	}
-}
-
-GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
-{
-	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
-		return GenreLexeme::CHAINE_CARACTERE;
-	}
-
-	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
-		return GenreLexeme::CHAINE_CARACTERE;
-	}
-
-	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
-
-	if (!iterateur.est_finie()) {
-		return iterateur.front().second;
-	}
-
-	return GenreLexeme::CHAINE_CARACTERE;
 }

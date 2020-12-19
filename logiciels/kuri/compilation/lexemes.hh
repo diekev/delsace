@@ -165,31 +165,6 @@ enum class GenreLexeme : unsigned int {
 	ENUM_DRAPEAU,
 };
 
-inline GenreLexeme operator&(GenreLexeme id1, int id2)
-{
-	return static_cast<GenreLexeme>(static_cast<int>(id1) & id2);
-}
-
-inline GenreLexeme operator|(GenreLexeme id1, int id2)
-{
-	return static_cast<GenreLexeme>(static_cast<int>(id1) | id2);
-}
-
-inline GenreLexeme operator|(GenreLexeme id1, GenreLexeme id2)
-{
-	return static_cast<GenreLexeme>(static_cast<int>(id1) | static_cast<int>(id2));
-}
-
-inline GenreLexeme operator<<(GenreLexeme id1, int id2)
-{
-	return static_cast<GenreLexeme>(static_cast<int>(id1) << id2);
-}
-
-inline GenreLexeme operator>>(GenreLexeme id1, int id2)
-{
-	return static_cast<GenreLexeme>(static_cast<int>(id1) >> id2);
-}
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 struct Lexeme {
@@ -212,9 +187,4 @@ struct Lexeme {
 #pragma GCC diagnostic pop
 
 const char *chaine_du_genre_de_lexeme(GenreLexeme id);
-
 const char *chaine_du_lexeme(GenreLexeme genre);
-
-void construit_tables_caractere_speciaux();
-
-GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine);

@@ -210,9 +210,7 @@ Lexeuse::Lexeuse(Compilatrice &compilatrice, DonneesConstantesFichier *donnees, 
 	, m_debut(donnees->tampon.debut())
 	, m_fin(donnees->tampon.fin())
 	, m_drapeaux(drapeaux)
-{
-	construit_tables_caractere_speciaux();
-}
+{}
 
 void Lexeuse::performe_lexage()
 {
