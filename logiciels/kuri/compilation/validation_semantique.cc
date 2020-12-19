@@ -2967,7 +2967,6 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		auto decl_precedente = trouve_dans_bloc(decl->bloc_parent, decl);
 
 		// la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les structres (p.e. stat)
-		// @vérifie si utile
 		if (decl_precedente != nullptr && decl_precedente->genre == decl->genre) {
 			rapporte_erreur_redefinition_symbole(decl, decl_precedente);
 			return true;
