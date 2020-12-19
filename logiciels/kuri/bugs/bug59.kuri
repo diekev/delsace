@@ -1,0 +1,21 @@
+// mauvais résultats quand nous avons des retours multiples dans la MV
+
+importe Fondation
+
+retourne_multiple :: fonc () -> z32, z32
+{
+    retourne 9, 10
+}
+
+test :: fonc ()
+{
+    a, b := retourne_multiple()
+    imprime("a, b : %, %\n", a, b)
+}
+
+#exécute test()
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}
