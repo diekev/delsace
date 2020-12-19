@@ -1,0 +1,17 @@
+// erreur de compilation quand nous utilisons un type qui a le même nom qu'une fonction
+// si la fonction est déclarée avant le type
+
+stat :: fonc ()
+{
+
+}
+
+stat :: struct {
+    i: z32
+}
+
+principale :: fonc () -> z32
+{
+    s : stat
+    retourne 0
+}
