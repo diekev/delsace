@@ -1,0 +1,19 @@
+// les arithmétiques de pointeurs ne prennent pas en compte la taille du type pointé, dans la machine virtuelle
+// NOTE : voir cas dans Documentation/construit_documentation.kuri
+
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    x : [3]z32
+    y := *x[0]
+
+    mémoire(y) = 1
+    y += 1
+
+    mémoire(y) = 2
+
+    imprime("x : %\n", x)
+
+    retourne 0
+}
