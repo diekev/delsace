@@ -1,0 +1,13 @@
+// exception en point flottant quand une structure n'a pas de membre, autre que d'autres structures
+
+Structure :: struct {
+    SousStructure :: struct {
+        z: r32
+    }
+}
+
+principale :: fonc () -> z32
+{
+    s : Structure
+    retourne 0
+}
