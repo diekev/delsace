@@ -1094,6 +1094,16 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 						valeur = cree_op_comparaison(noeud, OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
 						break;
 					}
+					case GenreType::EINI:
+					{
+						genere_ri_pour_noeud(condition);
+						auto pointeur = depile_valeur();
+						auto pointeur_pointeur = cree_acces_membre(noeud, pointeur, 0);
+						auto valeur1 = cree_charge_mem(noeud, pointeur_pointeur);
+						auto valeur2 = cree_constante_nulle(valeur1->type);
+						valeur = cree_op_comparaison(noeud, OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+						break;
+					}
 					case GenreType::CHAINE:
 					case GenreType::TABLEAU_DYNAMIQUE:
 					{
@@ -3178,6 +3188,16 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition, Instr
 				genere_ri_pour_expression_droite(condition, nullptr);
 				auto valeur1 = depile_valeur();
 				auto valeur2 = cree_constante_nulle(type_condition);
+				valeur = cree_op_comparaison(condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+				break;
+			}
+			case GenreType::EINI:
+			{
+				genere_ri_pour_noeud(condition);
+				auto pointeur = depile_valeur();
+				auto pointeur_pointeur = cree_acces_membre(condition, pointeur, 0);
+				auto valeur1 = cree_charge_mem(condition, pointeur_pointeur);
+				auto valeur2 = cree_constante_nulle(valeur1->type);
 				valeur = cree_op_comparaison(condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
 				break;
 			}

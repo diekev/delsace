@@ -3,7 +3,6 @@
 importe Fondation
 importe Numérique
 
-// À FAIRE(langage) : surcharge opérateur ! pour eini
 est_valide :: fonc (valeur: eini) -> bool
 {
     retourne valeur.pointeur != nul

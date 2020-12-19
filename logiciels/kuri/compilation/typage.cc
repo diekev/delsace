@@ -1304,6 +1304,7 @@ bool est_type_conditionnable(Type *type)
 				type->genre,
 				GenreType::BOOL,
 				GenreType::CHAINE,
+				GenreType::EINI,
 				GenreType::ENTIER_CONSTANT,
 				GenreType::ENTIER_NATUREL,
 				GenreType::ENTIER_RELATIF,
