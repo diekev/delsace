@@ -33,10 +33,11 @@ TableIdentifiant::TableIdentifiant()
 
 IdentifiantCode *TableIdentifiant::identifiant_pour_chaine(const dls::vue_chaine_compacte &nom)
 {
-	auto iter = table.trouve(nom);
+	auto trouve = false;
+	auto iter = table.trouve(nom, trouve);
 
-	if (iter != table.fin()) {
-		return iter->second;
+	if (trouve) {
+		return iter;
 	}
 
 	return ajoute_identifiant(nom);
@@ -44,10 +45,11 @@ IdentifiantCode *TableIdentifiant::identifiant_pour_chaine(const dls::vue_chaine
 
 IdentifiantCode *TableIdentifiant::identifiant_pour_nouvelle_chaine(dls::chaine const &nom)
 {
-	auto iter = table.trouve(nom);
+	auto trouve = false;
+	auto iter = table.trouve(nom, trouve);
 
-	if (iter != table.fin()) {
-		return iter->second;
+	if (trouve) {
+		return iter;
 	}
 
 	auto tampon_courant = enchaineuse.tampon_courant;
@@ -83,7 +85,7 @@ IdentifiantCode *TableIdentifiant::ajoute_identifiant(const dls::vue_chaine_comp
 	auto ident = identifiants.ajoute_element();
 	ident->nom = nom;
 
-	table.insere({ nom, ident });
+	table.insere(nom, ident);
 
 	return ident;
 }

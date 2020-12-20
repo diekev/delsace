@@ -25,9 +25,10 @@
 #pragma once
 
 #include "biblinternes/outils/enchaineuse.hh"
-#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau_page.hh"
 #include "biblinternes/structures/vue_chaine_compacte.hh"
+
+#include "table_hachage.hh"
 
 struct IdentifiantCode {
 	dls::vue_chaine_compacte nom{};
@@ -38,7 +39,7 @@ private:
 	// À FAIRE : il serait bien d'utiliser un dico simple car plus rapide, ne
 	// nécissitant pas de hachage, mais dico échoue lors des comparaisons de
 	// vue_chaine_compacte par manque de caractère nul à la fin des chaines
-	dls::dico_desordonne<dls::vue_chaine_compacte, IdentifiantCode *> table{};
+	table_hachage<dls::vue_chaine_compacte, IdentifiantCode *> table{};
 	tableau_page<IdentifiantCode, 1024> identifiants{};
 
 	Enchaineuse enchaineuse{};
