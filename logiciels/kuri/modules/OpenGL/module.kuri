@@ -59,6 +59,8 @@ GL_INVALID_ENUM : GLenum : 0x0500
 GL_INVALID_VALUE : GLenum : 0x0501
 GL_INVALID_OPERATION : GLenum : 0x0502
 GL_INVALID_FRAMEBUFFER_OPERATION : GLenum : 0x0506
+GL_STREAM_DRAW : GLenum : 0x88E0
+GL_ARRAY_BUFFER_BINDING : GLenum : 0x8894
 
 externe glewExperimental : z32
 
@@ -87,10 +89,12 @@ glBufferData :: fonc (target : GLenum, size : n64, data : *rien, usage : n32) ->
 //# foncs Arrays
 glEnableVertexAttribArray :: fonc (id : n32) -> rien #externe
 glDisableVertexAttribArray :: fonc (id : n32) -> rien #externe
-glVertexAttribPointer :: fonc (index : n32, size : z32, type_ : n32, normalized : n32, stride : z32, pointer : *rien) -> rien #externe
+glVertexAttribPointer :: fonc (index : n32, size : z32, type_ : n32, normalized : n32, stride : n32, pointer : *rien) -> rien #externe
 glDrawArrays :: fonc (mode : n32, first : z32, count : z64) -> rien #externe
 glDrawElements :: fonc (mode : GLenum, count: z64, type: GLenum, indices: *rien) -> rien #externe
 glUniform1ui :: fonc (loc: n32, uniform: n32) -> rien #externe
+
+glGetIntegerv :: fonc (pname: GLenum, data: *GLint) -> GLvoid #externe
 
 // textures
 glGenTextures :: fonc (n: GLenum, id: *n32) -> rien #externe
@@ -129,6 +133,7 @@ glGetProgramInfoLog :: fonc (shader : n32, maxLength : z32, length : *z32, infoL
 glGetAttribLocation :: fonc (programme : n32, nom: *z8) -> n32 #externe
 glGetUniformLocation :: fonc (programme : n32, nom: *z8) -> n32 #externe
 glIsShader :: fonc (shader: n32) -> bool #externe
+glIsProgram :: fonc (program: GLuint) -> GLboolean #externe
 
 glGetError :: fonc () -> n32 #externe
 
@@ -146,7 +151,7 @@ initialise_opengl :: fonc () -> bool
     retourne erreur_ == 0
 }
 
-vérifie_erreur :: fonc() -> rien
+vérifie_erreur :: fonc (raison: chaine = "") -> rien
 {
     erreur_ := glGetError()
 
@@ -154,7 +159,12 @@ vérifie_erreur :: fonc() -> rien
         retourne
 	}
 
-	imprime("erreur OpenGL !\n")
+    si raison {
+        imprime("[%] erreur OpenGL !\n", raison)
+    }
+    sinon {
+	    imprime("erreur OpenGL !\n")
+    }
 
     discr erreur_ {
         GL_INVALID_ENUM {
