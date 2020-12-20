@@ -15,6 +15,35 @@ erreur de compilation si nous définissons une structure dans une fonction et qu
 -- opérateur []
 -- travail sur les itérateurs (via macros comme JAI?)
 
+// --------------------------- Branches
+
+kuri_allocations
+-- inutile ?
+-- optimisation prématurée
+kuri_appel_structure
+-- À FAIRE de manière générale
+-- trouve une bonne manière d'apparier ce que nous appelons
+kuri_coulisse_asm
+-- À FAIRE de manière générale
+kuri_encapsulation_membres
+-- remplace les boucles pour prendre des rappels
+kuri_optimisations
+-- optimise les temporaires dans les expressions d'appels
+-- supprime les instructions de stockages inutiles, redondantes
+-- ajout d'une manière de désactiver les optimisations
+-- bug dans la fusion des blocs, qui nous laissent avec des labels inconnus
+kuri_ref_contexte
+-- dépend sur la normalisation des types
+kuri_reusinage_atomes
+-- inutile ?
+kuri_simplification_arbre
+-- discr à finir
+-- implémentation de la logique pour simplifier les globales
+-- ajout de tâches pour la génération des messages, les fonctions devant attendre qu'un message fut envoyé avant de pouvoir simplifier l'arbre et générer la RI
+-- ajout de tâches pour avant la génération de la RI
+kuri_structures
+-- À FAIRE de manière générale
+
 // --------------------------- Compilatrice
 
 remplace DonneesCandidate::raison par une chaine de caractère
