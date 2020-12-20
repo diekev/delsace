@@ -31,7 +31,7 @@
 
 #include "instructions.hh"
 
-static void imprime_atome(Atome const *atome, std::ostream &os)
+void imprime_atome(Atome const *atome, std::ostream &os)
 {
 	if (atome->genre_atome == Atome::Genre::CONSTANTE) {
 		auto atome_const = static_cast<AtomeConstante const *>(atome);
