@@ -190,6 +190,12 @@ contenu_fichier_texte :: fonc(chemin : &CheminFichier) -> chaine
     retourne chn
 }
 
+contenu_fichier_texte :: fonc (chemin: chaine) -> chaine
+{
+    chm := CheminFichier(chn = chemin)
+    retourne contenu_fichier_texte(chm)
+}
+
 écris_fichier :: fonc(fd : z32, contenu : chaine) -> rien
 {
     // @erreur
