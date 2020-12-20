@@ -350,16 +350,22 @@ void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os, bool in
 	os << '\n';
 
 	auto numero_instruction = static_cast<int>(atome_fonc->params_entrees.taille);
+	imprime_instructions(atome_fonc->instructions, numero_instruction, os, inclus_nombre_utilisations, surligne_inutilisees);
+}
+
+void imprime_instructions(kuri::tableau<Instruction *> const &instructions, int numero_de_base, std::ostream &os, bool inclus_nombre_utilisations, bool surligne_inutilisees)
+{
+	auto numero_instruction = numero_de_base;
 	auto max_utilisations = 0;
 
-	POUR (atome_fonc->instructions) {
+	POUR (instructions) {
 		it->numero = numero_instruction++;
 		max_utilisations = std::max(max_utilisations, it->nombre_utilisations);
 	}
 
 	using dls::num::nombre_de_chiffres;
 
-	POUR (atome_fonc->instructions) {
+	POUR (instructions) {
 		if (surligne_inutilisees && it->nombre_utilisations == 0) {
 			std::cerr << "\033[0;31m";
 		}
@@ -375,7 +381,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os, bool in
 			os << it->nombre_utilisations << ") ";
 		}
 
-		auto nombre_zero_avant_numero = nombre_de_chiffres(atome_fonc->instructions.taille) - nombre_de_chiffres(it->numero);
+		auto nombre_zero_avant_numero = nombre_de_chiffres(instructions.taille) - nombre_de_chiffres(it->numero);
 
 		for (auto i = 0; i < nombre_zero_avant_numero; ++i) {
 			os << ' ';
