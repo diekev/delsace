@@ -528,6 +528,10 @@ void Tacheronne::gere_tache()
 	while (!compilatrice.possede_erreur) {
 		tache = ordonnanceuse->tache_suivante(tache, tache_fut_completee, id, drapeaux, !mv.terminee());
 
+		if (tache.genre != GenreTache::DORS) {
+			nombre_dodos = 0;
+		}
+
 		switch (tache.genre) {
 			case GenreTache::COMPILATION_TERMINEE:
 			{
@@ -546,12 +550,14 @@ void Tacheronne::gere_tache()
 				 * sont ajoutés à la machine virtuelle, il se peut qu'il en reste à exécuter alors
 				 * qu'il n'y a plus de tâches à exécuter */
 				if (!mv.terminee()) {
+					nombre_dodos = 0;
 					execute_metaprogrammes();
 				}
 				else {
-					dls::chrono::dors_microsecondes(100);
+					nombre_dodos += 1;
+					dls::chrono::dors_microsecondes(100 * nombre_dodos);
 					tache_fut_completee = true;
-					temps_passe_a_dormir += 0.1;
+					temps_passe_a_dormir += 0.1 * nombre_dodos;
 				}
 
 				break;

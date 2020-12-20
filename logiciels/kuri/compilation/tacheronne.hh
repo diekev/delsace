@@ -169,6 +169,7 @@ struct Tacheronne {
 	DrapeauxTacheronne drapeaux = DrapeauxTacheronne::PEUT_TOUT_FAIRE;
 
 	int id = 0;
+	int nombre_dodos = 0;
 	double temps_passe_a_dormir = 0.0;
 
 	Tacheronne(Compilatrice &comp);
