@@ -748,5 +748,5 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbro
 
     __fini_exécution_kuri(contexte)
 
-    retourne 0
+    retourne résultat
 }
