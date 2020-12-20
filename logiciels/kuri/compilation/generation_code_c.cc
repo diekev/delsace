@@ -1125,7 +1125,7 @@ struct GeneratriceCodeC {
 			{
 				auto inst_transtype = inst->comme_transtype();
 				auto valeur = genere_code_pour_atome(inst_transtype->valeur, os, false);
-				valeur = "(" + nom_broye_type(inst_transtype->type) + ")(" + valeur + ")";
+				valeur = "((" + nom_broye_type(inst_transtype->type) + ")(" + valeur + "))";
 				table_valeurs[inst] = valeur;
 				break;
 			}
