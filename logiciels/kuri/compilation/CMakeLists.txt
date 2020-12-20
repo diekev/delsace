@@ -62,6 +62,7 @@ set(SOURCES
 	structures.hh
 	syntaxeuse.hh
 	tacheronne.hh
+    table_hachage.hh
 	transformation_type.hh
 	typage.hh
 	unite_compilation.hh
@@ -92,6 +93,7 @@ set(SOURCES
 	structures.cc
 	syntaxeuse.cc
 	tacheronne.cc
+    table_hachage.cc
 	transformation_type.cc
 	typage.cc
 	unite_compilation.cc
