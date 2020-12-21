@@ -28,10 +28,10 @@ kuri_coulisse_asm
 kuri_encapsulation_membres
 -- remplace les boucles pour prendre des rappels
 kuri_optimisations
--- optimise les temporaires dans les expressions d'appels
--- supprime les instructions de stockages inutiles, redondantes
+-- problème avec l'enlignage, il semblerait que les pointeurs ne soit pas correctement « enlignés »
 -- ajout d'une manière de désactiver les optimisations
 -- bug dans la fusion des blocs, qui nous laissent avec des labels inconnus
+-- déplace les instruction dans les blocs au plus près de leurs utilisations
 kuri_ref_contexte
 -- dépend sur la normalisation des types
 kuri_reusinage_atomes
