@@ -1,0 +1,14 @@
+// Cette expression fait crasher la compilatrice
+
+Structure :: struct {
+    valeur: z32
+}
+
+tableau := []Structure = [
+    Structure(valeur = 0)
+]
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}
