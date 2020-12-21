@@ -61,6 +61,15 @@ statistiques pour les reprises de compilation (temps, nombre, où), ainsi que po
 ajout de la construction des messages dans les tâches
 fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'améliorer la cohérence de cache)
 
+considère revoir l'arbre syntaxique des références de membres, pour simpilfier la génération de code et économiser de la mémoire
+
+    .
+        accédé
+        membre
+
+    membre
+        accédé
+
 // --------------------------- Lexage
 
 nombre décimaux de la forme 1e-6
