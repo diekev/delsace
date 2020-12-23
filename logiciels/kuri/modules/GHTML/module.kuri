@@ -124,7 +124,7 @@ génère_page :: fonc(
     }
 
     retourne ErreurGénérationPage.AUCUNE
-}
+} @IgnoreNASA
 
 évalue_condition :: fonc (valeur: eini) -> bool
 {

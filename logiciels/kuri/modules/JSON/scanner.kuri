@@ -430,7 +430,7 @@ lis_nombre :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
     // ------------------------
 
     retourne lexème_nombre
-}
+} @IgnoreNASA
 
 lis_chiffre :: fonc (scanner: *ScannerJSON, min: z8, max: z8) -> bool
 {
@@ -524,7 +524,7 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
     }
 
     retourne LexèmeJSON.FIN_OBJET
-}
+} @IgnoreNASA
 
 lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
 {
@@ -671,7 +671,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
     }
 
     retourne LexèmeJSON.FIN_VALEUR
-}
+} @IgnoreNASA
 
 lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
 {
@@ -762,4 +762,4 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
     }
 
     retourne LexèmeJSON.CROCHET_FERMANT
-}
+} @IgnoreNASA

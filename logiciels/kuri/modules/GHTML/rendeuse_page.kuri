@@ -113,7 +113,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
     tableau_ajoute(*rendeuse_gabarit.cache_page, page)
 
     retourne *rendeuse_gabarit.cache_page[rendeuse_gabarit.cache_page.taille - 1]
-}
+} @IgnoreNASA
 
 remplace_enfant :: fonc (parent: *NoeudSyntaxique, enfant: *NoeudSyntaxique, par: *NoeudSyntaxique)
 {
