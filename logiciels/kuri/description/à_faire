@@ -32,6 +32,8 @@ kuri_optimisations
 -- ajout d'une manière de désactiver les optimisations
 -- bug dans la fusion des blocs, qui nous laissent avec des labels inconnus
 -- déplace les instruction dans les blocs au plus près de leurs utilisations
+-- enlignage -> n'enligne pas les fonctions récursives, directement ou indirectement
+-- enlignage -> change la métriques pour être sur le nombre de lignes, et non le nombre d'instructions
 kuri_ref_contexte
 -- dépend sur la normalisation des types
 kuri_reusinage_atomes
