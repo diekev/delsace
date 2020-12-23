@@ -139,6 +139,13 @@ ajoute_route :: fonc (serveuse: &ServeuseCGI(T = $T), chemin: chaine, méthode_g
     ajoute_route(*serveuse.routeuse, chemin, méthode_get, méthode_post)
 }
 
+écris_bad_request :: fonc (message: chaine)
+{
+    imprime("Status: 400 Bad Request\n")
+    imprime("Content-Type: text/html;charset=utf-8\n\n")
+    imprime("<p>%</p>", message)
+}
+
 lance :: fonc (serveuse: &ServeuseCGI(T = $T))
 {
     // accepte_connexion
@@ -146,12 +153,10 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
 
     // prépare les données de la requête
     uri_normalisé := résoud_échappement_url(données.uri)
-    diffère { déloge(uri_normalisé) }
+    diffère { déloge(uri_normalisé) }
 
     uri := tente parse_uri_depuis_chemin_requête(uri_normalisé) piège err {
-        imprime("Status: 400 Bad Request\n")
-        imprime("Content-Type: text/html;charset=utf-8\n\n")
-        imprime("<p>Chemin malformé</p>")
+        écris_bad_request("Chemin malformé")
         retourne
     }
 
@@ -164,9 +169,7 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     requête.méthode = données.méthode
 
     requête.adresse_ip = tente parse_ipv4(données.adresse_client) piège err {
-        imprime("Status: 400 Bad Request\n")
-        imprime("Content-Type: text/html;charset=utf-8\n\n")
-        imprime("<p>IP invalide</p>")
+        écris_bad_request("IP invalide")
         retourne
     }
 

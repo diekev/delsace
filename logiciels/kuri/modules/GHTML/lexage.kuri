@@ -88,6 +88,24 @@ détruit_lexeuse :: fonc(lexeuse : &Lexeuse) -> rien
 	déloge(lexeuse.lexèmes)
 }
 
+ajoute_lexème_script :: fonc (lexeuse: &Lexeuse, type_lexème: TypeLexème) #enligne
+{
+	lexeuse.ajoute_lexème_potentiel()
+
+	lexeuse.enregistre_position_mot()
+	lexeuse.pousse_caractère()
+	lexeuse.pousse_caractère()
+	lexeuse.pousse_mot(type_lexème)
+	lexeuse.avance(2)
+}
+
+ajoute_lexème_potentiel :: fonc (lexeuse: &Lexeuse) #enligne
+{
+	si (lexeuse.taille_mot_courant != 0) {
+		lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
+	}
+}
+
 performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 {
     ÉTAT_HTML := 0
@@ -98,30 +116,12 @@ performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 	tantque !lexeuse.fini() {
 		si (lexeuse.caractère_courant() == '{') {
 			si (lexeuse.caractère_voisin(1) == '{') {
-				si (lexeuse.taille_mot_courant != 0) {
-					lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
-				}
-
 				état = ÉTAT_CONTROLE
-
-				lexeuse.enregistre_position_mot()
-				lexeuse.pousse_caractère()
-				lexeuse.pousse_caractère()
-				lexeuse.pousse_mot(TypeLexème.DÉBUT_VARIABLE)
-				lexeuse.avance(2)
+				lexeuse.ajoute_lexème_script(TypeLexème.DÉBUT_VARIABLE)
 			}
 			sinon si (lexeuse.caractère_voisin(1) == '%') {
-				si (lexeuse.taille_mot_courant != 0) {
-					lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
-				}
-
 				état = ÉTAT_CONTROLE
-
-				lexeuse.enregistre_position_mot()
-				lexeuse.pousse_caractère()
-				lexeuse.pousse_caractère()
-				lexeuse.pousse_mot(TypeLexème.DÉBUT_CONTROLE)
-				lexeuse.avance(2)
+				lexeuse.ajoute_lexème_script(TypeLexème.DÉBUT_CONTROLE)
 			}
 			sinon {
 				lexeuse.pousse_caractère()
@@ -129,30 +129,12 @@ performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 			}
 		}
 		sinon si (lexeuse.caractère_courant() == '}' && lexeuse.caractère_voisin(1) == '}') {
-			si (lexeuse.taille_mot_courant != 0) {
-				lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
-			}
-
 			état = ÉTAT_HTML
-
-			lexeuse.enregistre_position_mot()
-			lexeuse.pousse_caractère()
-			lexeuse.pousse_caractère()
-			lexeuse.pousse_mot(TypeLexème.FIN_VARIABLE)
-			lexeuse.avance(2)
+			lexeuse.ajoute_lexème_script(TypeLexème.FIN_VARIABLE)
 		}
 		sinon si (lexeuse.caractère_courant() == '%' && lexeuse.caractère_voisin(1) == '}') {
-			si (lexeuse.taille_mot_courant != 0) {
-				lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
-			}
-
 			état = ÉTAT_HTML
-
-			lexeuse.enregistre_position_mot()
-			lexeuse.pousse_caractère()
-			lexeuse.pousse_caractère()
-			lexeuse.pousse_mot(TypeLexème.FIN_CONTROLE)
-			lexeuse.avance(2)
+			lexeuse.ajoute_lexème_script(TypeLexème.FIN_CONTROLE)
 		}
 		sinon {
 			si (état == ÉTAT_HTML) {
