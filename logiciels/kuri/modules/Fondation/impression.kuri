@@ -424,10 +424,20 @@ FormatRéel :: struct {
 	précision := 6
 }
 
-imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> rien
+abs :: fonc (x: $T) -> T #enligne
 {
-	info := format.valeur.info
-	pointeur := format.valeur.pointeur
+	si x < 0 {
+		retourne -x
+	}
+
+	retourne x
+}
+
+r32_depuis_eini :: fonc (e: eini) -> r32
+{
+	info := e.info
+	pointeur := e.pointeur
+
 	f : r32
 
 	si info.taille_en_octet == 2 {
@@ -441,6 +451,13 @@ imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> 
 		x := mémoire(pointeur comme *r64)
 		f = x comme r32
 	}
+
+	retourne f
+}
+
+imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> rien
+{
+	f := r32_depuis_eini(format.valeur)
 
 	// Mets le nombre dans notre union magique afin d'extraire les composants
 	num := construit_entier_ou_décimal(f)
@@ -468,11 +485,7 @@ imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> 
 		retourne
 	}
 
-	x := f
-
-	si f < 0.0 {
-		x = -x
-	}
+	x := abs(f)
 
 	part_entière := x comme n64
 
