@@ -830,9 +830,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
 		{
-			auto chaine = kuri::chaine();
-			chaine.pointeur = noeud->lexeme->pointeur;
-			chaine.taille = noeud->lexeme->taille;
+			auto chaine = compilatrice().gerante_chaine->chaine_pour_adresse(noeud->lexeme->index_chaine);
 			auto constante = cree_chaine(dls::vue_chaine_compacte(chaine.pointeur, chaine.taille));
 
 			if (fonction_courante == nullptr) {

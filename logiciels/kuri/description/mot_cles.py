@@ -182,7 +182,7 @@ def construit_structures():
 	structures += u'\tunion {\n'
 	structures += u'\t\tunsigned long long valeur_entiere;\n'
 	structures += u'\t\tdouble valeur_reelle;\n'
-	structures += u'\t\tstruct { char *pointeur; long taille; };\n'
+	structures += u'\t\tlong index_chaine;\n'
 	structures += u'\t\tIdentifiantCode *ident;\n'
 	structures += u'\t};\n'
 	structures += u'\n'

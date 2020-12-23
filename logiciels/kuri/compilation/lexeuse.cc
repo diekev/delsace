@@ -707,6 +707,9 @@ void Lexeuse::performe_lexage()
 	{
 		auto gerante_chaine = m_compilatrice.gerante_chaine.verrou_ecriture();
 
+		/* en dehors de la boucle car nous l'utilisons comme tampon */
+		dls::chaine chaine;
+
 		POUR (m_donnees->lexemes) {
 			if (it.genre != GenreLexeme::CHAINE_LITTERALE) {
 				continue;
@@ -715,17 +718,14 @@ void Lexeuse::performe_lexage()
 			this->m_debut = it.chaine.pointeur();
 			auto fin_chaine = this->m_debut + it.chaine.taille();
 
-			kuri::chaine chaine;
+			chaine.efface();
 			chaine.reserve(it.chaine.taille());
 
 			while (m_debut != fin_chaine) {
 				this->lexe_caractere_litteral(&chaine);
 			}
 
-			gerante_chaine->ajoute_chaine(chaine, it.chaine.taille());
-
-			it.pointeur = chaine.pointeur;
-			it.taille = chaine.taille;
+			it.index_chaine = gerante_chaine->ajoute_chaine(chaine);
 		}
 	}
 
@@ -1195,7 +1195,7 @@ static int hex_depuis_char(char c)
  * \Unnnnnnnn : insère un caractère Unicode sur 32-bits, où n est un nombre hexadécimal
  * \xnn       : insère une valeur hexadécimale, où n est un nombre hexadécimal
  */
-unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
+unsigned Lexeuse::lexe_caractere_litteral(dls::chaine *chaine)
 {
 	auto c = this->caractere_courant();
 	this->avance_fixe<1>();
@@ -1205,7 +1205,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 
 	if (c != '\\') {
 		if (chaine) {
-			chaine->pousse_reserve(c);
+			chaine->ajoute(c);
 		}
 
 		return v;
@@ -1241,7 +1241,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 
 		if (chaine) {
 			for (auto j = 0; j < n; ++j) {
-				chaine->pousse_reserve(static_cast<char>(sequence[j]));
+				chaine->ajoute(static_cast<char>(sequence[j]));
 			}
 		}
 
@@ -1274,7 +1274,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 
 		if (chaine) {
 			for (auto j = 0; j < n; ++j) {
-				chaine->pousse_reserve(static_cast<char>(sequence[j]));
+				chaine->ajoute(static_cast<char>(sequence[j]));
 			}
 		}
 
@@ -1352,7 +1352,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 	}
 
 	if (chaine) {
-		chaine->pousse_reserve(static_cast<char>(v));
+		chaine->ajoute(static_cast<char>(v));
 	}
 
 	return v;

@@ -623,10 +623,7 @@ long Compilatrice::memoire_utilisee() const
 	memoire += ordonnanceuse->memoire_utilisee();
 	memoire += table_identifiants->memoire_utilisee();
 
-	memoire += gerante_chaine->m_table.taille() * taille_de(dls::chaine);
-	POUR (gerante_chaine->m_table) {
-		memoire += it.capacite;
-	}
+	memoire += gerante_chaine->memoire_utilisee();
 
 	POUR_TABLEAU_PAGE ((*espaces_de_travail.verrou_lecture())) {
 		memoire += it.memoire_utilisee();
@@ -666,17 +663,54 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation c
 
 /* ************************************************************************** */
 
-GeranteChaine::~GeranteChaine()
+long GeranteChaine::ajoute_chaine(const dls::chaine &chaine)
 {
-	POUR (m_table) {
-		it.chaine.taille = it.capacite;
-		kuri::detruit_chaine(it.chaine);
+	if ((enchaineuse.tampon_courant->occupe + chaine.taille()) >= Enchaineuse::TAILLE_TAMPON) {
+		enchaineuse.ajoute_tampon();
 	}
+
+	// calcul l'adresse de la chaine
+	auto adresse = (enchaineuse.nombre_tampons() - 1) * Enchaineuse::TAILLE_TAMPON + enchaineuse.tampon_courant->occupe;
+
+	adresse_et_taille.ajoute(static_cast<int>(adresse));
+	adresse_et_taille.ajoute(static_cast<int>(chaine.taille()));
+
+	enchaineuse.ajoute(chaine);
+
+	return adresse;
 }
 
-void GeranteChaine::ajoute_chaine(const kuri::chaine &chaine, long capacite)
+kuri::chaine GeranteChaine::chaine_pour_adresse(long adresse) const
 {
-	m_table.ajoute({ chaine, capacite });
+	assert(adresse >= 0);
+
+	auto taille = 0;
+
+	for (auto i = 0; i < adresse_et_taille.taille(); i += 2) {
+		if (adresse_et_taille[i] == adresse) {
+			taille = adresse_et_taille[i + 1];
+			break;
+		}
+	}
+
+	auto tampon_courant = &enchaineuse.m_tampon_base;
+
+	while (adresse >= Enchaineuse::TAILLE_TAMPON) {
+		adresse -= Enchaineuse::TAILLE_TAMPON;
+		tampon_courant = tampon_courant->suivant;
+	}
+
+	assert(tampon_courant);
+
+	auto resultat = kuri::chaine();
+	resultat.taille = taille;
+	resultat.pointeur = const_cast<char *>(&tampon_courant->donnees[adresse]);
+	return resultat;
+}
+
+long GeranteChaine::memoire_utilisee() const
+{
+	return enchaineuse.nombre_tampons_alloues() * Enchaineuse::TAILLE_TAMPON + adresse_et_taille.taille() * taille_de(int);
 }
 
 /* ************************************************************************** */

@@ -38,17 +38,16 @@ struct Statistiques;
 struct DonneesExecution;
 
 struct GeranteChaine {
-	/* stocke la capacité réservée par la lexeuse en attendant d'avoir la capacité comme mebre de kuri::chaine */
-	struct ChainteEtCapacite {
-		kuri::chaine chaine;
-		long capacite;
-	};
+private:
+	Enchaineuse enchaineuse;
+	dls::tableau<int> adresse_et_taille{};
 
-	dls::tableau<ChainteEtCapacite> m_table{};
+public:
+	long ajoute_chaine(dls::chaine const &chaine);
 
-	~GeranteChaine();
+	kuri::chaine chaine_pour_adresse(long adresse) const;
 
-	void ajoute_chaine(kuri::chaine const &chaine, long capacite);
+	long memoire_utilisee() const;
 };
 
 struct MetaProgramme {

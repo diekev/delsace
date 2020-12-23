@@ -113,7 +113,7 @@ private:
 	void lexe_nombre_octal();
 	void lexe_nombre_reel_hexadecimal();
 
-	unsigned lexe_caractere_litteral(kuri::chaine *chaine);
+	unsigned lexe_caractere_litteral(dls::chaine *chaine);
 
 	void pousse_lexeme_entier(unsigned long long valeur);
 	void pousse_lexeme_reel(double valeur);
