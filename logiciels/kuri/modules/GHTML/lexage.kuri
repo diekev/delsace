@@ -108,8 +108,8 @@ ajoute_lexème_potentiel :: fonc (lexeuse: &Lexeuse) #enligne
 
 performe_lexage :: fonc(lexeuse : &Lexeuse) -> rien
 {
-    ÉTAT_HTML := 0
-    ÉTAT_CONTROLE := 1
+    ÉTAT_HTML :: 0
+    ÉTAT_CONTROLE :: 1
 
 	état := ÉTAT_HTML
 
