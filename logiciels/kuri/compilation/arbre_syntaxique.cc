@@ -502,6 +502,11 @@ NoeudExpression *copie_noeud(
 				nexpr->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(copie));
 			}
 
+			nexpr->annotations.reserve(expr->annotations.taille());
+			POUR (expr->annotations) {
+				nexpr->annotations.ajoute(it);
+			}
+
 			/* copie le corps du noeud directement */
 			{
 				auto expr_corps = expr->corps;
