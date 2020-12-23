@@ -1084,8 +1084,8 @@ Erreur rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne,
 	const Fichier *f = espace->fichier({ fichier.pointeur, fichier.taille });
 
 	flux << "Dans l'espace de travail \"" << espace->nom << "\" :\n";
-	flux << "\nErreur : " << f->chemin() << ":" << ligne << ":\n";
-	flux << f->tampon()[ligne - 1];
+ flux << "\nErreur : " << f->chemin() << ":" << (ligne + 1) << ":\n";
+ flux << f->tampon()[ligne];
 	flux << '\n';
 	flux << message;
 	flux << '\n';
