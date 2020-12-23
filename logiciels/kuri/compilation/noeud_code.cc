@@ -100,6 +100,11 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			n->bloc = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, decl->bloc));
 			n->entete = static_cast<NoeudCodeEnteteFonction *>(converti_noeud_syntaxique(espace, decl->entete));
 
+			n->arbre_aplatis.reserve(decl->arbre_aplatis.taille);
+			POUR (decl->arbre_aplatis) {
+				n->arbre_aplatis.ajoute(converti_noeud_syntaxique(espace, it));
+			}
+
 			noeud_code = n;
 			break;
 		}

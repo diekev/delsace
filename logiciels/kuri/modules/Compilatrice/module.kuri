@@ -285,6 +285,8 @@ NoeudCodeCorpsFonction :: struct {
 
 	entête : *NoeudCodeEntêteFonction
     bloc : *NoeudCodeBloc
+
+	arbre_aplatis : []*NoeudCode
 }
 
 NoeudCodeAssignation :: struct {

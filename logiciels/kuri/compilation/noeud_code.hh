@@ -73,6 +73,8 @@ struct NoeudCodeEnteteFonction : public NoeudCode {
 struct NoeudCodeCorpsFonction : public NoeudCode {
 	NoeudCodeEnteteFonction *entete = nullptr;
 	NoeudCodeBloc *bloc = nullptr;
+
+	kuri::tableau<NoeudCode *> arbre_aplatis{};
 };
 
 struct NoeudCodeAssignation : public NoeudCode {
