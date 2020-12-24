@@ -672,7 +672,7 @@ long GeranteChaine::ajoute_chaine(const dls::chaine &chaine)
 	// calcul l'adresse de la chaine
 	auto adresse = (enchaineuse.nombre_tampons() - 1) * Enchaineuse::TAILLE_TAMPON + enchaineuse.tampon_courant->occupe;
 
-	adresse_et_taille.ajoute(static_cast<int>(adresse));
+	adresse_et_taille.ajoute(adresse);
 	adresse_et_taille.ajoute(static_cast<int>(chaine.taille()));
 
 	enchaineuse.ajoute(chaine);

@@ -39,7 +39,7 @@ struct DonneesExecution;
 
 struct GeranteChaine {
 private:
-	Enchaineuse enchaineuse;
+	Enchaineuse enchaineuse{};
 	dls::tableau<int> adresse_et_taille{};
 
 public:

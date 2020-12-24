@@ -720,7 +720,14 @@ void Tacheronne::gere_tache()
 			case GenreTache::GENERE_FICHIER_OBJET:
 			{
 				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
-				coulisse_C_cree_fichier_objet(compilatrice, constructrice_ri, *tache.espace, temps_generation_code, temps_fichier_objet);
+
+				if (tache.espace->options.type_coulisse == TypeCoulisse::C) {
+					coulisse_C_cree_fichier_objet(compilatrice, constructrice_ri, *tache.espace, temps_generation_code, temps_fichier_objet);
+				}
+				else if (tache.espace->options.type_coulisse == TypeCoulisse::LLVM) {
+					coulisse_llvm_cree_executable(compilatrice, *tache.espace, temps_generation_code, temps_executable, temps_fichier_objet);
+				}
+
 				tache_fut_completee = true;
 				break;
 			}
