@@ -199,6 +199,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto n = noeuds_operations_binaire.ajoute_element();
 			n->operande_gauche = converti_noeud_syntaxique(espace, noeud_op_bin->expr1);
 			n->operande_droite = converti_noeud_syntaxique(espace, noeud_op_bin->expr2);
+			n->op = noeud_op_bin->lexeme->chaine;
 
 			noeud_code = n;
 			break;
@@ -257,6 +258,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 
 			auto n = noeuds_operations_unaire.ajoute_element();
 			n->operande = converti_noeud_syntaxique(espace, expr->expr);
+			n->op = expr->lexeme->chaine;
 
 			noeud_code = n;
 			break;

@@ -89,11 +89,15 @@ struct NoeudCodeDeclaration : public NoeudCode {
 
 struct NoeudCodeOperationUnaire : public NoeudCode {
 	NoeudCode *operande = nullptr;
+
+	kuri::chaine op{};
 };
 
 struct NoeudCodeOperationBinaire : public NoeudCode {
 	NoeudCode *operande_gauche = nullptr;
 	NoeudCode *operande_droite = nullptr;
+
+	kuri::chaine op{};
 };
 
 struct NoeudCodeBloc : public NoeudCode {

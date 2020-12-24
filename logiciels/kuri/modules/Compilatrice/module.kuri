@@ -304,6 +304,7 @@ NoeudCodeOpérationUnaire :: struct {
     empl base : NoeudCode
 
     opérande : *NoeudCode
+	op : chaine
 }
 
 NoeudCodeOpérationBinaire :: struct {
@@ -311,6 +312,7 @@ NoeudCodeOpérationBinaire :: struct {
 
     opérande_gauche : *NoeudCode
     opérande_droite : *NoeudCode
+	op : chaine
 }
 
 NoeudCodeComme :: struct {
