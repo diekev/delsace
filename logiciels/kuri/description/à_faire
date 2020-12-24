@@ -72,6 +72,17 @@ considère revoir l'arbre syntaxique des références de membres, pour simpilfie
     membre
         accédé
 
+// stabilité de pointeur pour les infos types
+
+- utilisation d'une poule de mémoire
+- pour les chaines, prise de pointeurs via la gérante de chaine
+- pour les membres des structures, création des infos-types des membres avant ceux-ci
+- pour les noms des énumérations, prise de pointeurs via la gérant de chaine
+- pour les valeurs des énumérations, utilisation d'un tampon auxiliaire où stocker les données
+  -- prise d'un pointeur
+- création des globales pour la RI via les InfoType
+
+
 // --------------------------- Lexage
 
 nombre décimaux de la forme 1e-6
