@@ -2,6 +2,7 @@
 
 importe GlibC
 importe Introspection
+importe Math // pour abs, ça fait beaucoup...
 importe Numérique
 importe SysFichier
 
@@ -422,15 +423,6 @@ n64_depuis_pointeur :: fonc (pointeur: *z8, taille: n32) -> n64
 FormatRéel :: struct {
 	valeur: eini
 	précision := 6
-}
-
-abs :: fonc (x: $T) -> T #enligne
-{
-	si x < 0 {
-		retourne -x
-	}
-
-	retourne x
 }
 
 r32_depuis_eini :: fonc (e: eini) -> r32
