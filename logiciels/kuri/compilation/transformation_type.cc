@@ -209,12 +209,12 @@ bool cherche_transformation(
 
 	if (POUR_TRANSTYPAGE) {
 		if (est_type_entier(type_de) && type_vers->genre == GenreType::REEL) {
-			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			transformation = { TypeTransformation::ENTIER_VERS_REEL, type_vers };
 			return false;
 		}
 
 		if (est_type_entier(type_vers) && type_de->genre == GenreType::REEL) {
-			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			transformation = { TypeTransformation::REEL_VERS_ENTIER, type_vers };
 			return false;
 		}
 

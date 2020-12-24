@@ -1883,6 +1883,22 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud, Atome *valeur, T
 
 			break;
 		}
+		case TypeTransformation::ENTIER_VERS_REEL:
+		{
+			if (valeur->est_chargeable) {
+				valeur = cree_charge_mem(noeud, valeur);
+			}
+			valeur = cree_transtype(noeud, transformation.type_cible, valeur, TypeTranstypage::ENTIER_VERS_REEL);
+			break;
+		}
+		case TypeTransformation::REEL_VERS_ENTIER:
+		{
+			if (valeur->est_chargeable) {
+				valeur = cree_charge_mem(noeud, valeur);
+			}
+			valeur = cree_transtype(noeud, transformation.type_cible, valeur, TypeTranstypage::REEL_VERS_ENTIER);
+			break;
+		}
 		case TypeTransformation::REDUIT_TAILLE_TYPE:
 		{
 			if (valeur->est_chargeable) {

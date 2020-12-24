@@ -954,6 +954,63 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 
 			break;
 		}
+		case OP_ENTIER_VERS_REEL:
+		{
+			// @Incomplet : on perd l'information du signe dans le nombre entier
+			auto taille_de = LIS_4_OCTETS();
+			auto taille_vers = LIS_4_OCTETS();
+
+#define TRANSTYPE_EVR(type_) \
+			if (taille_de == static_cast<int>(taille_de(type_))) {\
+				auto v = depile<type_>(); \
+				if (taille_vers == 2) { \
+					/* @Incomplet : r16 */ \
+				} \
+				else if (taille_vers == 4) { \
+					empile(static_cast<float>(v)); \
+				} \
+				else if (taille_vers == 8) { \
+					empile(static_cast<double>(v)); \
+				} \
+			}
+
+			TRANSTYPE_EVR(char)
+			TRANSTYPE_EVR(short)
+			TRANSTYPE_EVR(int)
+			TRANSTYPE_EVR(long)
+
+#undef TRANSTYPE_EVR
+			break;
+		}
+		case OP_REEL_VERS_ENTIER:
+		{
+			// @Incomplet : on perd l'information du signe dans le nombre entier
+			auto taille_de = LIS_4_OCTETS();
+			auto taille_vers = LIS_4_OCTETS();
+
+#define TRANSTYPE_RVE(type_) \
+			if (taille_de == static_cast<int>(taille_de(type_))) {\
+				auto v = depile<type_>(); \
+				if (taille_vers == 1) { \
+					empile(static_cast<char>(v)); \
+				} \
+				else if (taille_vers == 2) { \
+					empile(static_cast<short>(v)); \
+				} \
+				else if (taille_vers == 4) { \
+					empile(static_cast<int>(v)); \
+				} \
+				else if (taille_vers == 8) { \
+					empile(static_cast<long>(v)); \
+				} \
+			}
+
+			TRANSTYPE_RVE(float)
+			TRANSTYPE_RVE(double)
+
+#undef TRANSTYPE_RVE
+			break;
+		}
 		case OP_RETOURNE:
 		{
 			auto type_fonction = frame->fonction->type->comme_fonction();

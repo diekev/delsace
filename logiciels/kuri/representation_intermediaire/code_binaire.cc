@@ -568,6 +568,8 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
 		case OP_DIMINUE_RELATIF:
 		case OP_AUGMENTE_REEL:
 		case OP_DIMINUE_REEL:
+		case OP_ENTIER_VERS_REEL:
+		case OP_REEL_VERS_ENTIER:
 		{
 			return instruction_2d<int, int>(chunk, chaine_code_operation(instruction), decalage, os);
 		}
@@ -1044,9 +1046,23 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 				case TypeTranstypage::DEFAUT:
 				case TypeTranstypage::POINTEUR_VERS_ENTIER:
 				case TypeTranstypage::ENTIER_VERS_POINTEUR:
+				{
+					break;
+				}
 				case TypeTranstypage::REEL_VERS_ENTIER:
+				{
+					chunk.emets(OP_REEL_VERS_ENTIER);
+					chunk.emets(transtype->site);
+					chunk.emets(valeur->type->taille_octet);
+					chunk.emets(transtype->type->taille_octet);
+					break;
+				}
 				case TypeTranstypage::ENTIER_VERS_REEL:
 				{
+					chunk.emets(OP_ENTIER_VERS_REEL);
+					chunk.emets(transtype->site);
+					chunk.emets(valeur->type->taille_octet);
+					chunk.emets(transtype->type->taille_octet);
 					break;
 				}
 				case TypeTranstypage::AUGMENTE_REEL:
