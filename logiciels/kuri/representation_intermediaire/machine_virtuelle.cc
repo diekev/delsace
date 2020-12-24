@@ -450,12 +450,6 @@ MachineVirtuelle::~MachineVirtuelle()
 	}
 }
 
-long MachineVirtuelle::depile()
-{
-	pointeur_pile -= 8;
-	return *reinterpret_cast<long *>(pointeur_pile);
-}
-
 void MachineVirtuelle::depile(long n)
 {
 	pointeur_pile -= n;

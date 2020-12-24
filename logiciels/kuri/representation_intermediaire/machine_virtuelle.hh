@@ -173,8 +173,6 @@ private:
 	template <typename T>
 	T depile();
 
-	long depile();
-
 	void depile(long n);
 
 	bool appel(AtomeFonction *fonction);
