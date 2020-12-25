@@ -1,0 +1,16 @@
+// les nombres réels ne sont pas imprimés correctement via les métaprogrammes
+
+importe Fondation
+
+imprime_réel :: fonc ()
+{
+    x := 1.0
+    imprime("%\n", x)
+}
+
+#exécute imprime_réel()
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}
