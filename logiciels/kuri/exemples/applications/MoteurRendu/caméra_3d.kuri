@@ -2,8 +2,8 @@ importe Fondation
 importe Math
 
 Caméra3D :: struct {
-    position : Vec3r
-    direction_vue : Vec3r
+    position : Vec3
+    direction_vue : Vec3
     yaw := 0.0
     projection : Mat4r
     monde_vers_caméra : Mat4r
@@ -15,7 +15,7 @@ Caméra3D :: struct {
     largeur := 0
 }
 
-projette_dans_monde :: fonc (caméra: *Caméra3D, pos: *Vec3r) -> Vec3r
+projette_dans_monde :: fonc (caméra: *Caméra3D, pos: *Vec3) -> Vec3
 {
     proj := caméra.projection
     model := caméra.monde_vers_caméra
@@ -36,7 +36,7 @@ projette_dans_monde :: fonc (caméra: *Caméra3D, pos: *Vec3r) -> Vec3r
 	retourne crée_vec3r(obj.x, obj.y, obj.z)
 }
 
-direction_via_pixel :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> Vec3r
+direction_via_pixel :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> Vec3
 {
     pos := crée_vec3r(pos_pixel.x, pos_pixel.y, 0.0)
     début := projette_dans_monde(caméra, *pos)
@@ -48,13 +48,13 @@ direction_via_pixel :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> Vec3r
 }
 
 // c'est plus rapide qu'en haut, mais il y a toujours l'inversion de matrice qui prend du temps...
-direction_via_pixel_rapide :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> Vec3r
+direction_via_pixel_rapide :: fonc (caméra: *Caméra3D, pos_pixel: *Vec2r) -> Vec3
 {
     PM := multiplie(caméra.projection, caméra.monde_vers_caméra)
     inverse := inverse(*PM)
 
-    début : Vec3r
-    fin : Vec3r
+    début : Vec3
+    fin : Vec3
 
     x := pos_pixel.x * 2.0 - 1.0
     y := pos_pixel.y * 2.0 - 1.0

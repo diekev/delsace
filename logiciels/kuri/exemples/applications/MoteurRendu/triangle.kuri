@@ -1,12 +1,12 @@
 importe Math
 
 Triangle :: struct {
-    p0 : Vec3r
-    p1 : Vec3r
-    p2 : Vec3r
+    p0 : Vec3
+    p1 : Vec3
+    p2 : Vec3
 }
 
-crée_triangle :: fonc (p0 : Vec3r, p1 : Vec3r, p2 : Vec3r) -> Triangle
+crée_triangle :: fonc (p0 : Vec3, p1 : Vec3, p2 : Vec3) -> Triangle
 {
     tri : Triangle
     tri.p0 = p0
@@ -49,7 +49,7 @@ tri_sélection :: fonc (triangles: []Triangle) -> rien
     mémoire(tri1) = tmp
 }
 
-centre_triangle :: fonc (tri: *Triangle) -> Vec3r
+centre_triangle :: fonc (tri: *Triangle) -> Vec3
 {
     retourne divise(ajoute(ajoute(tri.p0, tri.p1), tri.p2), 3.0)
 }

@@ -6,15 +6,19 @@ Vec2r :: struct {
     y := 0.0
 }
 
-Vec3r :: struct {
-    x := 0.0
-    y := 0.0
-    z := 0.0
+// À considérer: opérateurs de bases si la structure ne contient que des scalaires
+Vec3 :: struct {
+    x: r32
+    y: r32
+    z: r32
 }
 
-crée_vec3r :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Vec3r
+Point3 :: #opaque Vec3
+Norm3 :: #opaque Vec3
+
+crée_vec3r :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Vec3
 {
-    retourne Vec3r( x = x, y = y, z = z )
+    retourne Vec3( x = x, y = y, z = z )
 }
 
 Vec4r :: struct {
@@ -24,14 +28,14 @@ Vec4r :: struct {
     w := 0.0
 }
 
-produit_scalaire :: fonc (u: Vec3r, v: Vec3r) -> r32
+produit_scalaire :: fonc (u: Vec3, v: Vec3) -> r32
 {
     retourne u.x * v.x + u.y * v.y + u.z * v.z
 }
 
-produit_vectoriel :: fonc (u: *Vec3r, v: *Vec3r) -> Vec3r
+produit_vectoriel :: fonc (u: *Vec3, v: *Vec3) -> Vec3
 {
-    résultat : Vec3r
+    résultat : Vec3
 
     résultat.x = u.y * v.z - u.z * v.y
     résultat.y = u.z * v.x - u.x * v.z
@@ -40,98 +44,133 @@ produit_vectoriel :: fonc (u: *Vec3r, v: *Vec3r) -> Vec3r
     retourne résultat
 }
 
-longueur :: fonc (u: Vec3r) -> r32
+longueur :: fonc (u: Vec3) -> r32
 {
     retourne u.x * u.x + u.y * u.y + u.z * u.z
     //retourne sqrt(u.x * u.x + u.y * u.y + u.z * u.z)
 }
 
-longueur_carrée :: fonc (u: Vec3r) -> r32
+longueur_carrée :: fonc (u: Vec3) -> r32
 {
     retourne u.x * u.x + u.y * u.y + u.z * u.z
 }
 
-échange :: fonc (tri1 : *Vec3r, tri2 : *Vec3r) -> rien
+échange :: fonc (tri1 : *Vec3, tri2 : *Vec3) -> rien
 {
     tmp := mémoire(tri2)
     mémoire(tri2) = mémoire(tri1)
     mémoire(tri1) = tmp
 }
 
-ajoute :: fonc (v1: Vec3r, v2: Vec3r) -> Vec3r
+opérateur - :: fonc (v: Vec3) -> Vec3
 {
-    résultat : Vec3r
-    résultat.x = v1.x + v2.x
-    résultat.y = v1.y + v2.y
-    résultat.z = v1.z + v2.z
-
-    retourne résultat
+    retourne Vec3(x = -v.x, y = -v.y, z = -v.z)
 }
 
-soustrait :: fonc (a: Vec3r, b: Vec3r) -> Vec3r
+opérateur + :: fonc (v1: Vec3, v2: Vec3) -> Vec3
 {
-    rés : Vec3r
-
-    rés.x = a.x - b.x
-    rés.y = a.y - b.y
-    rés.z = a.z - b.z
-
-    retourne rés
+    retourne Vec3(x = v1.x + v2.x, y = v1.y + v2.y, z = v1.z + v2.z)
 }
 
-multiplie :: fonc (v1: Vec3r, v: r32) -> Vec3r
+opérateur + :: fonc (u: Vec3, s: r32) -> Vec3
 {
-    résultat : Vec3r
+    r : Vec3 = ---
+    r.x = u.x + s
+    r.y = u.y + s
+    r.z = u.z + s
+    retourne r
+}
 
-    si v != 0.0 {
-        résultat.x = v1.x * v
-        résultat.y = v1.y * v
-        résultat.z = v1.z * v
+opérateur - :: fonc (u: Vec3, s: r32) -> Vec3
+{
+    r : Vec3 = ---
+    r.x = u.x - s
+    r.y = u.y - s
+    r.z = u.z - s
+    retourne r
+}
+
+opérateur - :: fonc (v1: Vec3, v2: Vec3) -> Vec3
+{
+    retourne Vec3(x = v1.x - v2.x, y = v1.y - v2.y, z = v1.z - v2.z)
+}
+
+opérateur * :: fonc (u: Vec3, s: r32) -> Vec3
+{
+    r : Vec3
+
+    si s != 0.0 {
+        r.x = u.x * s
+        r.y = u.y * s
+        r.z = u.z * s
     }
 
-    retourne résultat
+    retourne r
 }
 
-multiplie :: fonc (a: Vec3r, b: Vec3r) -> Vec3r
+opérateur / :: fonc (u: Vec3, s: r32) -> Vec3
 {
-    rés : Vec3r
+    r : Vec3
 
-    rés.x = a.x * b.x
-    rés.y = a.y * b.y
-    rés.z = a.z * b.z
-
-    retourne rés
-}
-
-divise :: fonc (v1: Vec3r, v: r32) -> Vec3r
-{
-    résultat : Vec3r
-
-    si v != 0.0 {
-        résultat.x = v1.x / v
-        résultat.y = v1.y / v
-        résultat.z = v1.z / v
+    si s != 0.0 {
+        r.x = u.x / s
+        r.y = u.y / s
+        r.z = u.z / s
     }
 
-    retourne résultat
+    retourne r
 }
 
-est_inférieur :: fonc (v1: Vec3r, v2: Vec3r) -> bool
+// opérateur pour calculer des réciproques
+opérateur / :: fonc (s: r32, u: Vec3) -> Vec3
 {
-    retourne v1.x < v2.x || v1.y < v2.y || v1.z < v2.z
+    r : Vec3
+
+    si s != 0.0 {
+        r.x = s / u.x
+        r.y = s / u.y
+        r.z = s / u.z
+    }
+
+    retourne r
 }
 
-est_inférieur_ou_égal :: fonc (v1: Vec3r, v2: Vec3r) -> bool
+opérateur == :: fonc (u: Vec3, v: Vec3) -> bool
+{
+    retourne u.x == v.x && u.y == v.y && u.z == v.z
+}
+
+opérateur == :: fonc (u: Vec3, s: r32) -> bool
+{
+    retourne u.x == s && u.y == s && u.z == s
+}
+
+opérateur < :: fonc (u: Vec3, s: r32) -> bool
+{
+    retourne u.x < s && u.y < s && u.z < s
+}
+
+opérateur > :: fonc (u: Vec3, s: r32) -> bool
+{
+    retourne u.x > s && u.y > s && u.z > s
+}
+
+opérateur < :: fonc (v1: Vec3, v2: Vec3) -> bool
+{
+    retourne v1.x < v2.x && v1.y < v2.y && v1.z < v2.z
+}
+
+opérateur <= :: fonc (v1: Vec3, v2: Vec3) -> bool
 {
     retourne v1.x <= v2.x && v1.y <= v2.y && v1.z <= v2.z
 }
 
-est_supérieur :: fonc (v1: Vec3r, v2: Vec3r) -> bool
+opérateur > :: fonc (v1: Vec3, v2: Vec3) -> bool
 {
-    retourne v1.x > v2.x || v1.y > v2.y || v1.z > v2.z
+    retourne v1.x > v2.x && v1.y > v2.y && v1.z > v2.z
 }
 
-est_supérieur_ou_égal :: fonc (v1: Vec3r, v2: Vec3r) -> bool
+opérateur >= :: fonc (v1: Vec3, v2: Vec3) -> bool
 {
     retourne v1.x >= v2.x && v1.y >= v2.y && v1.z >= v2.z
 }
@@ -167,15 +206,9 @@ soustrait :: fonc (v1: Vec4r, v: r32) -> Vec4r
     retourne résultat
 }
 
-Nor3r :: struct {
-    x := 0.0
-    y := 0.0
-    z := 0.0
-}
-
-calcul_normal :: fonc (a: Vec3r, b: Vec3r) -> Nor3r
+calcul_normal :: fonc (a: Vec3, b: Vec3) -> Norm3
 {
-    nor : Nor3r
+    nor : Norm3
 
     nor.x = a.y * b.z - a.z * b.y
     nor.y = a.z * b.x - a.x * b.z
@@ -184,9 +217,9 @@ calcul_normal :: fonc (a: Vec3r, b: Vec3r) -> Nor3r
     retourne nor
 }
 
-calcul_normal_normalisé :: fonc (a: Vec3r, b: Vec3r) -> Nor3r
+calcul_normal_normalisé :: fonc (a: Vec3, b: Vec3) -> Norm3
 {
-    nor : Nor3r
+    nor : Norm3
 
     nor.x = a.y * b.z - a.z * b.y
     nor.y = a.z * b.x - a.x * b.z
@@ -200,21 +233,21 @@ calcul_normal_normalisé :: fonc (a: Vec3r, b: Vec3r) -> Nor3r
     retourne nor
 }
 
-normalise :: fonc (v: *Vec3r) -> Vec3r
+normalise :: fonc (v: *Vec3) -> Vec3
 {
     résultat := mémoire(v)
     l := longueur(résultat)
     retourne divise(résultat, l)
 }
 
-vec_depuis_nor :: fonc (n: Nor3r) -> Vec3r
+vec_depuis_nor :: fonc (n: Norm3) -> Vec3
 {
-    retourne mémoire(*n comme *Vec3r)
+    retourne mémoire(*n comme *Vec3)
 }
 
 // Calcul des coordonnées UV depuis une vecteur de direction (I) et d'un
 // vecteur normal (N) pour échantillonner une capmat.
-calcul_uv_capmat :: fonc (I: *Vec3r, N: *Vec3r, inversé: bool) -> Vec2r
+calcul_uv_capmat :: fonc (I: *Vec3, N: *Vec3, inversé: bool) -> Vec2r
 {
     // Création rapide d'une base orthonormale
     a := 1.0 / (1.0 + I.z);
@@ -257,80 +290,3 @@ Vec4z :: struct {
     z := 0
     w := 0
 }
-
-
-// À considérer: opérateurs de bases si la structure ne contient que des scalaires
-Vec3 :: struct {
-    x: r32
-    y: r32
-    z: r32
-}
-
-opérateur + :: fonc (u: Vec3, s: r32) -> Vec3
-{
-    r : Vec3 = ---
-    r.x = u.x + s
-    r.y = u.y + s
-    r.z = u.z + s
-    retourne r
-}
-
-opérateur - :: fonc (u: Vec3, s: r32) -> Vec3
-{
-    r : Vec3 = ---
-    r.x = u.x - s
-    r.y = u.y - s
-    r.z = u.z - s
-    retourne r
-}
-
-opérateur * :: fonc (u: Vec3, s: r32) -> Vec3
-{
-    r : Vec3 = ---
-    r.x = u.x * s
-    r.y = u.y * s
-    r.z = u.z * s
-    retourne r
-}
-
-opérateur / :: fonc (u: Vec3, s: r32) -> Vec3
-{
-    r : Vec3 = ---
-    r.x = u.x / s
-    r.y = u.y / s
-    r.z = u.z / s
-    retourne r
-}
-
-// opérateur pour calculer des réciproques
-opérateur / :: fonc (s: r32, u: Vec3) -> Vec3
-{
-    r : Vec3 = ---
-    r.x = s / u.x
-    r.y = s / u.y
-    r.z = s / u.z
-    retourne r
-}
-
-opérateur == :: fonc (u: Vec3, v: Vec3) -> bool
-{
-    retourne u.x == v.x && u.y == v.y && u.z == v.z
-}
-
-opérateur == :: fonc (u: Vec3, s: r32) -> bool
-{
-    retourne u.x == s && u.y == s && u.z == s
-}
-
-opérateur < :: fonc (u: Vec3, s: r32) -> bool
-{
-    retourne u.x < s && u.y < s && u.z < s
-}
-
-opérateur > :: fonc (u: Vec3, s: r32) -> bool
-{
-    retourne u.x > s && u.y > s && u.z > s
-}
-
-Point3 :: #opaque Vec3
-Norm3 :: #opaque Vec3

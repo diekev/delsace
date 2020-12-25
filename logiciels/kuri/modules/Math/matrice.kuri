@@ -67,7 +67,7 @@ inverse_matrice_sans_échelle :: fonc (mat: *Mat4r) -> Mat4r
     retourne résultat
 }
 
-matrice_de_visé :: fonc (pos: *Vec3r, cible: *Vec3r, haut: *Vec3r) -> Mat4r
+matrice_de_visé :: fonc (pos: *Vec3, cible: *Vec3, haut: *Vec3) -> Mat4r
 {
     dir_avant := soustrait(mémoire(cible), mémoire(pos))
     dir_avant = normalise(*dir_avant)
@@ -151,7 +151,7 @@ matrice_translation :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Mat4r
     retourne résultat
 }
 
-matrice_translation :: fonc (v : Vec3r) -> Mat4r
+matrice_translation :: fonc (v : Vec3) -> Mat4r
 {
     retourne matrice_translation(v.x, v.y, v.z)
 }
@@ -167,7 +167,7 @@ matrice_échelle :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Mat4r
     retourne résultat
 }
 
-matrice_échelle :: fonc (v : Vec3r) -> Mat4r
+matrice_échelle :: fonc (v : Vec3) -> Mat4r
 {
     retourne matrice_échelle(v.x, v.y, v.z)
 }
@@ -191,9 +191,9 @@ multiplie :: fonc (m1: Mat4r, m2: Mat4r) -> Mat4r
     retourne résultat
 }
 
-transforme :: fonc (mat: Mat4r, vec: Vec3r) -> Vec3r
+transforme :: fonc (mat: Mat4r, vec: Vec3) -> Vec3
 {
-    rés : Vec3r
+    rés : Vec3
 
     rés.x = vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0] + mat.m[3][0]
     rés.y = vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1] + mat.m[3][1]

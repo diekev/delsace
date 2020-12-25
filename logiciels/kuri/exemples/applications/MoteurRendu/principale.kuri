@@ -297,9 +297,9 @@ ratisse_maillage :: fonc (
 // ----------------------------------------------------------------------------
 
 Rayon :: struct {
-    origine : Vec3r
-    direction : Vec3r
-    direction_inverse : Vec3r
+    origine : Vec3
+    direction : Vec3
+    direction_inverse : Vec3
 }
 
 // http://docs.pixologic.com/getting-started/basic-concepts/the-pixol/
@@ -317,16 +317,16 @@ Pixol :: struct {
     p : r32
 
     // orientation ? quaternion ? normal ?
-    o : Vec3r
+    o : Vec3
 
     // matériau
     m : z32
 }
 
 entresecte_triangle :: fonc (
-		vertex0: Vec3r,
-		vertex1: Vec3r,
-		vertex2: Vec3r,
+		vertex0: Vec3,
+		vertex1: Vec3,
+		vertex2: Vec3,
 		rayon: *Rayon,
 		distance: *r32,
 		r_u : *r32,
@@ -384,8 +384,8 @@ entresecte_triangle :: fonc (
 
 entresection_rapide_min_max :: fonc (
 		r: *Rayon,
-		min_boite: *Vec3r,
-		max_boite: *Vec3r) -> r32
+		min_boite: *Vec3,
+		max_boite: *Vec3) -> r32
 {
 	//si est_supérieur_ou_égal(r.origine, mémoire(min_boite)) && est_inférieur_ou_égal(r.origine, mémoire(max_boite)) {
 	//	retourne 0.0
@@ -424,7 +424,7 @@ entresection_rapide_min_max :: fonc (
 	retourne tmin;
 }
 
-min_max :: fonc (v: *Vec3r, min_boite: *Vec3r, max_boite: *Vec3r) -> rien
+min_max :: fonc (v: *Vec3, min_boite: *Vec3, max_boite: *Vec3) -> rien
 {
     si v.x < min_boite.x {
         min_boite.x = v.x

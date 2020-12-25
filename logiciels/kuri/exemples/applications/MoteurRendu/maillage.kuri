@@ -64,7 +64,7 @@ détruit_maillage :: fonc (maillage : *Maillage) -> rien
 }
 
 DonnéesObj :: struct {
-    vecteurs : []Vec3r
+    vecteurs : []Vec3
     maillage : *Maillage
 }
 
@@ -110,7 +110,7 @@ parse_ligne_obj :: fonc (ligne: chaine, données: eini) -> rien
     sinon si ligne.commence_par("v ") {
         tmp := avance(ligne, 2)
 
-        vec : Vec3r
+        vec : Vec3
 
         pousse_contexte nouveau_contexte {
             mots := divise(tmp, ' ')
