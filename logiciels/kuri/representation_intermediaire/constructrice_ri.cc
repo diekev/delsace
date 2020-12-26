@@ -3879,10 +3879,11 @@ Atome *ConstructriceRI::converti_vers_tableau_dyn(NoeudExpression *noeud, Atome 
 AtomeConstante *ConstructriceRI::cree_chaine(dls::vue_chaine_compacte const &chaine)
 {
 	auto table_chaines = m_espace->table_chaines.verrou_ecriture();
-	auto iter = table_chaines->trouve(chaine);
+	auto trouve = false;
+	auto valeur = table_chaines->trouve(chaine, trouve);
 
-	if (iter != table_chaines->fin()) {
-		return iter->second;
+	if (trouve) {
+		return valeur;
 	}
 
 	auto type_chaine = m_espace->typeuse.type_chaine;
@@ -3900,7 +3901,7 @@ AtomeConstante *ConstructriceRI::cree_chaine(dls::vue_chaine_compacte const &cha
 
 	auto constante_chaine = cree_constante_structure(type_chaine, std::move(membres));
 
-	table_chaines->insere({ chaine, constante_chaine });
+	table_chaines->insere(chaine, constante_chaine);
 
 	return constante_chaine;
 }

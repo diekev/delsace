@@ -150,7 +150,7 @@ public:
 	using ConteneurConstructeursGlobales = dls::tableau<DonneesConstructeurGlobale>;
 	dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
-	using TableChaine = dls::dico<dls::chaine, AtomeConstante *>;
+	using TableChaine = table_hachage<dls::chaine, AtomeConstante *>;
 	dls::outils::Synchrone<TableChaine> table_chaines{};
 
 	std::mutex mutex_atomes_fonctions{};
