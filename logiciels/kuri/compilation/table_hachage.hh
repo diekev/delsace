@@ -120,6 +120,18 @@ public:
         return valeurs[index];
     }
 
+	Valeur valeur_ou(Cle const &cle, Valeur defaut)
+	{
+		auto trouvee = false;
+		auto valeur = trouve(cle, trouvee);
+
+		if (!trouvee) {
+			return defaut;
+		}
+
+		return valeur;
+	}
+
     bool possed(Cle const &cle)
     {
         auto empreinte = calcule_empreinte(cle);
@@ -156,4 +168,14 @@ public:
     {
         return nombre_elements;
     }
+
+	void efface()
+	{
+		occupes.efface();
+		empreintes.efface();
+		cles.efface();
+		valeurs.efface();
+		capacite = 0;
+		nombre_elements = 0;
+	}
 };
