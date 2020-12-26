@@ -584,7 +584,7 @@ Type *Typeuse::type_pour_lexeme(GenreLexeme lexeme)
 	}
 }
 
-TypePointeur *Typeuse::type_pointeur_pour(Type *type)
+TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool ajoute_operateurs)
 {
 	if (!type) {
 		return ((*this)[TypeBase::PTR_NUL])->comme_pointeur();
@@ -607,41 +607,43 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type)
 		graphe->connecte_type_type(resultat, type);
 	}
 
-	auto indice = IndiceTypeOp::ENTIER_RELATIF;
+	if (ajoute_operateurs) {
+		auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-	auto const &idx_dt_ptr_nul = types_communs[static_cast<long>(TypeBase::PTR_NUL)];
-	auto const &idx_dt_bool = types_communs[static_cast<long>(TypeBase::BOOL)];
+		auto const &idx_dt_ptr_nul = types_communs[static_cast<long>(TypeBase::PTR_NUL)];
+		auto const &idx_dt_bool = types_communs[static_cast<long>(TypeBase::BOOL)];
 
-	auto operateurs = operateurs_.verrou_ecriture();
+		auto operateurs = operateurs_.verrou_ecriture();
 
-	operateurs->ajoute_basique(GenreLexeme::EGALITE, resultat, idx_dt_bool, indice);
-	operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, resultat, idx_dt_bool, indice);
+		operateurs->ajoute_basique(GenreLexeme::EGALITE, resultat, idx_dt_bool, indice);
+		operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, resultat, idx_dt_bool, indice);
 
-	operateurs->ajoute_basique(GenreLexeme::EGALITE, resultat, idx_dt_ptr_nul, idx_dt_bool, indice);
-	operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, resultat, idx_dt_ptr_nul, idx_dt_bool, indice);
-	operateurs->ajoute_basique(GenreLexeme::INFERIEUR, resultat, idx_dt_bool, indice);
-	operateurs->ajoute_basique(GenreLexeme::INFERIEUR_EGAL, resultat, idx_dt_bool, indice);
-	operateurs->ajoute_basique(GenreLexeme::SUPERIEUR, resultat, idx_dt_bool, indice);
-	operateurs->ajoute_basique(GenreLexeme::SUPERIEUR_EGAL, resultat, idx_dt_bool, indice);
+		operateurs->ajoute_basique(GenreLexeme::EGALITE, resultat, idx_dt_ptr_nul, idx_dt_bool, indice);
+		operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, resultat, idx_dt_ptr_nul, idx_dt_bool, indice);
+		operateurs->ajoute_basique(GenreLexeme::INFERIEUR, resultat, idx_dt_bool, indice);
+		operateurs->ajoute_basique(GenreLexeme::INFERIEUR_EGAL, resultat, idx_dt_bool, indice);
+		operateurs->ajoute_basique(GenreLexeme::SUPERIEUR, resultat, idx_dt_bool, indice);
+		operateurs->ajoute_basique(GenreLexeme::SUPERIEUR_EGAL, resultat, idx_dt_bool, indice);
 
-	/* Pour l'arithmétique de pointeur nous n'utilisons que le type le plus
-	 * gros, la résolution de l'opérateur ajoutera une transformation afin
-	 * que le type plus petit soit transtyper à la bonne taille. */
-	auto idx_type_entier = types_communs[static_cast<long>(TypeBase::Z64)];
+		/* Pour l'arithmétique de pointeur nous n'utilisons que le type le plus
+		 * gros, la résolution de l'opérateur ajoutera une transformation afin
+		 * que le type plus petit soit transtyper à la bonne taille. */
+		auto idx_type_entier = types_communs[static_cast<long>(TypeBase::Z64)];
 
-	operateurs->ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice);
-	operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice);
-	operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, resultat, idx_type_entier, indice);
-	operateurs->ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice);
-	operateurs->ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice);
+		operateurs->ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice);
+		operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice);
+		operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, resultat, idx_type_entier, indice);
+		operateurs->ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice);
+		operateurs->ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice);
 
-	idx_type_entier = types_communs[static_cast<long>(TypeBase::N64)];
-	indice = IndiceTypeOp::ENTIER_NATUREL;
+		idx_type_entier = types_communs[static_cast<long>(TypeBase::N64)];
+		indice = IndiceTypeOp::ENTIER_NATUREL;
 
-	operateurs->ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice);
-	operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice);
-	operateurs->ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice);
-	operateurs->ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice);
+		operateurs->ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice);
+		operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice);
+		operateurs->ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice);
+		operateurs->ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice);
+	}
 
 	return resultat;
 }
@@ -773,7 +775,7 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *,
 //static int nombre_types_apparies = 0;
 //static int nombre_appels = 0;
 
-TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties)
+TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties, bool ajoute_operateurs)
 {
 	//nombre_appels += 1;
 
@@ -809,18 +811,20 @@ TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, dls:
 	type->tag_entrees = tag_entrees;
 	type->tag_sorties = tag_sorties;
 
-	auto indice = IndiceTypeOp::ENTIER_RELATIF;
+	if (ajoute_operateurs) {
+		auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-	auto const &idx_dt_ptr_nul = types_communs[static_cast<long>(TypeBase::PTR_NUL)];
-	auto const &idx_dt_bool = types_communs[static_cast<long>(TypeBase::BOOL)];
+		auto const &idx_dt_ptr_nul = types_communs[static_cast<long>(TypeBase::PTR_NUL)];
+		auto const &idx_dt_bool = types_communs[static_cast<long>(TypeBase::BOOL)];
 
-	auto operateurs = operateurs_.verrou_ecriture();
+		auto operateurs = operateurs_.verrou_ecriture();
 
-	operateurs->ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
-	operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
+		operateurs->ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
+		operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
 
-	operateurs->ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_bool, indice);
-	operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_bool, indice);
+		operateurs->ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_bool, indice);
+		operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_bool, indice);
+	}
 
 	auto graphe = graphe_.verrou_ecriture();
 
@@ -1379,13 +1383,13 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 		auto type_normalise = normalise_type(typeuse, type_pointeur->type_pointe);
 
 		if (type_normalise != type_pointeur) {
-			resultat = typeuse.type_pointeur_pour(type_pointeur->type_pointe);
+			resultat = typeuse.type_pointeur_pour(type_pointeur->type_pointe, false);
 		}
 	}
 	else if (type->genre == GenreType::REFERENCE) {
 		auto type_reference = type->comme_reference();
 		auto type_normalise = normalise_type(typeuse, type_reference->type_pointe);
-		resultat = typeuse.type_pointeur_pour(type_normalise);
+		resultat = typeuse.type_pointeur_pour(type_normalise, false);
 	}
 	else if (type->genre == GenreType::FONCTION) {
 		auto type_fonction = type->comme_fonction();
@@ -1404,7 +1408,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 			types_sorties.ajoute(normalise_type(typeuse, it));
 		}
 
-		resultat = typeuse.type_fonction(types_entrees, types_sorties);
+		resultat = typeuse.type_fonction(types_entrees, types_sorties, false);
 	}
 
 	resultat->drapeaux |= TYPE_EST_NORMALISE;

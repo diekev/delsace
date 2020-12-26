@@ -599,7 +599,7 @@ struct Typeuse {
 
 	Type *type_pour_lexeme(GenreLexeme lexeme);
 
-	TypePointeur *type_pointeur_pour(Type *type);
+	TypePointeur *type_pointeur_pour(Type *type, bool ajoute_operateurs = true);
 
 	TypeReference *type_reference_pour(Type *type);
 
@@ -611,7 +611,7 @@ struct Typeuse {
 
 	TypeFonction *discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties);
 
-	TypeFonction *type_fonction(dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties);
+	TypeFonction *type_fonction(dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties, bool ajoute_operateurs = true);
 
 	TypeTypeDeDonnees *type_type_de_donnees(Type *type_connu);
 

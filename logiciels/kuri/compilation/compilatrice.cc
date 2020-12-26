@@ -178,7 +178,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	}
 	else {
 		POUR (decl->params_sorties) {
-			auto atome = constructrice.cree_allocation(decl, typeuse.type_pointeur_pour(it->type), it->ident);
+			auto atome = constructrice.cree_allocation(decl, typeuse.type_pointeur_pour(it->type, false), it->ident);
 			params.ajoute(atome);
 		}
 	}
@@ -209,7 +209,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 	SAUVEGARDE_ETAT(constructrice.fonction_courante);
 
 	auto types_entrees = dls::tablet<Type *, 6>(1);
-	types_entrees[0] = typeuse.type_pointeur_pour(normalise_type(typeuse, type));
+	types_entrees[0] = typeuse.type_pointeur_pour(normalise_type(typeuse, type), false);
 
 	auto types_sorties = dls::tablet<Type *, 6>(1);
 	types_sorties[0] = typeuse[TypeBase::RIEN];
@@ -222,7 +222,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 	params_sortie.ajoute(atome);
 
 	auto atome_fonc = fonctions.ajoute_element(nullptr, nom_fonction, std::move(params));
-	atome_fonc->type = typeuse.type_fonction(types_entrees, types_sorties);
+	atome_fonc->type = typeuse.type_fonction(types_entrees, types_sorties, false);
 	atome_fonc->params_sorties = std::move(params_sortie);
 	atome_fonc->enligne = true;
 	atome_fonc->sanstrace = true;
@@ -234,7 +234,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 
 AtomeGlobale *EspaceDeTravail::cree_globale(Type *type, AtomeConstante *initialisateur, bool est_externe, bool est_constante)
 {
-	return globales.ajoute_element(typeuse.type_pointeur_pour(type), initialisateur, est_externe, est_constante);
+	return globales.ajoute_element(typeuse.type_pointeur_pour(type, false), initialisateur, est_externe, est_constante);
 }
 
 void EspaceDeTravail::ajoute_globale(NoeudDeclaration *decl, AtomeGlobale *atome)
