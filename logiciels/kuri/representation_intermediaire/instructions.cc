@@ -90,6 +90,7 @@ AtomeValeurConstante::AtomeValeurConstante(Type *type_, kuri::tableau<AtomeConst
 	this->valeur.genre = Valeur::Genre::STRUCTURE;
 	this->valeur.valeur_structure.pointeur = valeurs.pointeur;
 	this->valeur.valeur_structure.taille = valeurs.taille;
+	this->valeur.valeur_structure.capacite = valeurs.capacite;
 	valeurs.pointeur = nullptr;
 	valeurs.taille = 0;
 }

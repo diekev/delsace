@@ -109,8 +109,8 @@ struct AtomeValeurConstante : public AtomeConstante {
 			double valeur_reelle;
 			bool valeur_booleenne;
 			struct { char *pointeur; long taille; } valeur_tdc;
-			struct { AtomeConstante **pointeur; long taille; } valeur_structure;
-			struct { AtomeConstante **pointeur; long taille; } valeur_tableau;
+			struct { AtomeConstante **pointeur; long taille; long capacite; } valeur_structure;
+			struct { AtomeConstante **pointeur; long taille; long capacite; } valeur_tableau;
 			Type *type;
 		};
 
@@ -132,11 +132,11 @@ struct AtomeValeurConstante : public AtomeConstante {
 		~Valeur()
 		{
 			if (genre == Genre::STRUCTURE) {
-				memoire::deloge_tableau("kuri::tableau", valeur_structure.pointeur, valeur_structure.taille);
+				memoire::deloge_tableau("valeur_structure", valeur_structure.pointeur, valeur_structure.capacite);
 			}
 
 			if (genre == Genre::TABLEAU_FIXE) {
-				memoire::deloge_tableau("kuri::tableau", valeur_tableau.pointeur, valeur_tableau.taille);
+				memoire::deloge_tableau("valeur_tableau", valeur_tableau.pointeur, valeur_tableau.capacite);
 			}
 		}
 	};
