@@ -596,12 +596,11 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				}
 
 				auto ident_var_employee = decl_var->declaration_vient_d_un_emploi->ident;
-				auto pointeur_struct = table_locales[ident_var_employee];
+				auto pointeur_struct = table_locales.valeur_ou(ident_var_employee, nullptr);
 
 				if (pointeur_struct == nullptr) {
 					pointeur_struct = cree_allocation(decl_var, decl_var->declaration_vient_d_un_emploi->type, ident_var_employee);
-					// utilise table_locales[] car son utilisation au-dessus insère une entrée pour ident_var_employee ce qui ferait échouer un appel à « insere »
-					table_locales[ident_var_employee] = pointeur_struct;
+					table_locales.insere(ident_var_employee, pointeur_struct);
 				}
 
 				if (decl_var->declaration_vient_d_un_emploi->type->genre == GenreType::POINTEUR) {
@@ -609,7 +608,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				}
 
 				auto valeur = cree_acces_membre(decl_var, pointeur_struct, decl_var->index_membre_employe);
-				table_locales.insere({ decl_var->ident, valeur });
+				table_locales.insere(decl_var->ident, valeur);
 			}
 
 			auto ancienne_taille_allouee = taille_allouee;
@@ -647,7 +646,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			args.reserve(expr_appel->exprs.taille);
 
 			if (!expr_appel->possede_drapeau(FORCE_NULCTX)) {
-				args.ajoute(cree_charge_mem(expr_appel, table_locales[ID::contexte]));
+				args.ajoute(cree_charge_mem(expr_appel, table_locales.valeur_ou(ID::contexte, nullptr)));
 			}
 
 			auto ancien_pour_appel = m_noeud_pour_appel;
@@ -745,7 +744,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			auto locale = table_locales[noeud->ident];
+			auto locale = table_locales.valeur_ou(noeud->ident, nullptr);
 			assert_rappel(locale, [&]() { imprime_fichier_ligne(*m_espace, *noeud->lexeme); std::cerr << "Aucune locale trouvée pour " << noeud->ident->nom << '\n'; });
 			empile_valeur(locale);
 			break;
@@ -889,7 +888,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				auto args = kuri::tableau<Atome *>(2 + requiers_contexte);
 
 				if (requiers_contexte) {
-					args[0] = cree_charge_mem(noeud, table_locales[ID::contexte]);
+					args[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
 				}
 
 				if (permute_operandes) {
@@ -977,7 +976,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				insere_label(label1);
 
 				auto params = kuri::tableau<Atome *>(3);
-				params[0] = cree_charge_mem(noeud, table_locales[ID::contexte]);
+				params[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
 				params[1] = acces_taille;
 				params[2] = valeur_;
 				cree_appel(noeud, noeud->lexeme, fonction, std::move(params));
@@ -990,7 +989,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				insere_label(label3);
 
 				params = kuri::tableau<Atome *>(3);
-				params[0] = cree_charge_mem(noeud, table_locales[ID::contexte]);
+				params[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
 				params[1] = acces_taille;
 				params[2] = valeur_;
 				cree_appel(noeud, noeud->lexeme, fonction, std::move(params));
@@ -1001,7 +1000,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			// À FAIRE : les fonctions sans contexte ne peuvent pas avoir des vérifications de limites
 
 			if (type_gauche->genre == GenreType::TABLEAU_FIXE) {
-				if (table_locales[ID::contexte] != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
+				if (table_locales.valeur_ou(ID::contexte, nullptr) != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
 					auto type_tableau_fixe = type_gauche->comme_tableau_fixe();
 					auto acces_taille = cree_z64(static_cast<unsigned long>(type_tableau_fixe->taille));
 					genere_protection_limites(acces_taille, valeur, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_tableau));
@@ -1011,7 +1010,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			}
 
 			if (type_gauche->genre == GenreType::TABLEAU_DYNAMIQUE || type_gauche->genre == GenreType::VARIADIQUE) {
-				if (table_locales[ID::contexte] != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
+				if (table_locales.valeur_ou(ID::contexte, nullptr) != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
 					auto acces_taille = cree_acces_membre_et_charge(noeud, pointeur, 1);
 					genere_protection_limites(acces_taille, valeur, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_tableau));
 				}
@@ -1021,7 +1020,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			}
 
 			if (type_gauche->genre == GenreType::CHAINE) {
-				if (table_locales[ID::contexte] != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
+				if (table_locales.valeur_ou(ID::contexte, nullptr) != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
 					auto acces_taille = cree_acces_membre_et_charge(noeud, pointeur, 1);
 					genere_protection_limites(acces_taille, valeur, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_chaine));
 				}
@@ -1137,7 +1136,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto args = kuri::tableau<Atome *>(1 + requiers_contexte);
 
 			if (requiers_contexte) {
-				args[0] = cree_charge_mem(noeud, table_locales[ID::contexte]);
+				args[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
 			}
 
 			args[0 + requiers_contexte] = valeur;
@@ -1161,7 +1160,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			if (!multiple_valeurs && !type_fonction->types_sorties[0]->est_rien()) {
 				auto ident = fonction_courante->params_sorties[0]->ident;
 				valeur_ret = cree_allocation(noeud, type_fonction->types_sorties[0], nullptr);
-				table_locales[ident] = valeur_ret;
+				table_locales.insere(ident, valeur_ret);
 			}
 
 			POUR (inst->donnees_exprs) {
@@ -1176,7 +1175,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					for (auto i = 0; i < it.variables.taille(); ++i) {
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
-						auto pointeur = table_locales[var->ident];
+						auto pointeur = table_locales.valeur_ou(var->ident, nullptr);
 
 						if (multiple_valeurs) {
 							pointeur = cree_charge_mem(var, pointeur);
@@ -1193,7 +1192,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					for (auto i = 0; i < it.variables.taille(); ++i) {
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
-						auto pointeur = table_locales[var->ident];
+						auto pointeur = table_locales.valeur_ou(var->ident, nullptr);
 
 						if (multiple_valeurs) {
 							pointeur = cree_charge_mem(var, pointeur);
@@ -1621,11 +1620,11 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto noeud_pc = noeud->comme_pousse_contexte();
 			genere_ri_pour_noeud(noeud_pc->expr);
 			auto atome_nouveau_contexte = depile_valeur();
-			auto atome_ancien_contexte = table_locales[ID::contexte];
+			auto atome_ancien_contexte = table_locales.valeur_ou(ID::contexte, nullptr);
 
-			table_locales[ID::contexte] = atome_nouveau_contexte;
+			table_locales.insere(ID::contexte, atome_nouveau_contexte);
 			genere_ri_pour_noeud(noeud_pc->bloc);
-			table_locales[ID::contexte] = atome_ancien_contexte;
+			table_locales.insere(ID::contexte, atome_ancien_contexte);
 
 			break;
 		}
@@ -1671,7 +1670,7 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 	charge_mems.taille = 0;
 
 	POUR (atome_fonc->params_entrees) {
-		table_locales.insere({ it->ident, it });
+		table_locales.insere(it->ident, it);
 	}
 
 	cree_label(decl);
@@ -1826,7 +1825,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud, Atome *valeur, T
 				insere_label(label_si_vrai);
 				// À FAIRE : nous pourrions avoir une erreur différente ici.
 				auto params = kuri::tableau<Atome *>(1);
-				params[0] = cree_charge_mem(noeud, table_locales[ID::contexte]);
+				params[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
 				cree_appel(noeud, noeud->lexeme, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_membre_union), std::move(params));
 				insere_label(label_si_faux);
 
@@ -2228,14 +2227,14 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 						valeur_f = cree_z32(idx_membre + 1);
 
 						auto valeur = cree_acces_membre(noeud, ptr_structure, 0);
-						table_locales[f->ident] = valeur;
+						table_locales.insere(f->ident, valeur);
 					}
 					else {
 						auto idx_membre = trouve_index_membre(decl_struct, f->ident);
 						valeur_f = cree_z32(idx_membre + 1);
 
 						auto valeur = cree_acces_membre(noeud, ptr_structure, 0);
-						table_locales[f->ident] = valeur;
+						table_locales.insere(f->ident, valeur);
 					}
 				}
 				else {
@@ -2260,7 +2259,7 @@ void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
 					auto args = kuri::tableau<Atome *>(2 + requiers_contexte);
 
 					if (requiers_contexte) {
-						args[0] = cree_charge_mem(noeud, table_locales[ID::contexte]);
+						args[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
 					}
 
 					args[0 + requiers_contexte] = valeur_expression;
@@ -2327,12 +2326,12 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 		insere_label(label_si_vrai);
 		if (noeud->expr_piege == nullptr) {
 			auto params = kuri::tableau<Atome *>(1);
-			params[0] = cree_charge_mem(noeud, table_locales[ID::contexte]);
+			params[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
 			cree_appel(noeud, noeud->lexeme, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_erreur), std::move(params));
 		}
 		else {
 			auto var_expr_piege = cree_allocation(noeud, gen_tente.type_piege, noeud->expr_piege->ident);
-			table_locales[noeud->expr_piege->ident] = var_expr_piege;
+			table_locales.insere(noeud->expr_piege->ident, var_expr_piege);
 			genere_ri_pour_noeud(noeud->bloc);
 		}
 
@@ -2380,14 +2379,14 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 		insere_label(label_si_vrai);
 		if (noeud->expr_piege == nullptr) {
 			auto params = kuri::tableau<Atome *>(1);
-			params[0] = cree_charge_mem(noeud, table_locales[ID::contexte]);
+			params[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
 			cree_appel(noeud, noeud->lexeme, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_erreur), std::move(params));
 		}
 		else {
 			Instruction *membre_erreur = cree_acces_membre(noeud, valeur_union, 0);
 			membre_erreur = cree_transtype(noeud, m_espace->typeuse.type_pointeur_pour(gen_tente.type_piege, false), membre_erreur, TypeTranstypage::BITS);
 			membre_erreur->est_chargeable = true;
-			table_locales[noeud->expr_piege->ident] = membre_erreur;
+			table_locales.insere(noeud->expr_piege->ident, membre_erreur);
 			genere_ri_pour_noeud(noeud->bloc);
 		}
 
@@ -2493,9 +2492,9 @@ void ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 
 			cree_branche_condition(inst, condition, label_corps, (label_sansarret != nullptr) ? label_sansarret : label_apres);
 
-			table_locales[var->ident] = valeur_debut;
+			table_locales.insere(var->ident, valeur_debut);
 			if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
-				table_locales[idx->ident] = valeur_index;
+				table_locales.insere(idx->ident, valeur_index);
 			}
 
 			/* corps */
@@ -2563,9 +2562,9 @@ void ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
 				valeur_arg = cree_acces_index(inst, pointeur, cree_charge_mem(inst, valeur_debut));
 			}
 
-			table_locales[var->ident] = valeur_arg;
+			table_locales.insere(var->ident, valeur_arg);
 			if (inst->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
-				table_locales[idx->ident] = valeur_index;
+				table_locales.insere(idx->ident, valeur_index);
 			}
 
 			/* corps */
@@ -3016,7 +3015,7 @@ void ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *n
 		cree_branche_condition(noeud, condition, label_si_vrai, label_si_faux);
 		insere_label(label_si_vrai);
 		auto params = kuri::tableau<Atome *>(1);
-		params[0] = cree_charge_mem(noeud, table_locales[ID::contexte]);
+		params[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
 		cree_appel(noeud, noeud->lexeme, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_membre_union), std::move(params));
 		insere_label(label_si_faux);
 	}
@@ -3935,7 +3934,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
 
 	// ----------------------------------
 	// initialise les variables globales
-	table_locales[ID::contexte] = alloc_contexte;
+	table_locales.insere(ID::contexte, alloc_contexte);
 	auto constructeurs_globaux = m_espace->constructeurs_globaux.verrou_lecture();
 
 	POUR (*constructeurs_globaux) {
@@ -3986,7 +3985,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnte
 		atome_fonc->instructions.ajoute(it);
 
 		if (it->genre == Instruction::Genre::ALLOCATION) {
-			table_locales.insere({ it->ident, it });
+			table_locales.insere(it->ident, it);
 		}
 	}
 
@@ -4042,7 +4041,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 
 		// les allocations pour les variables employées sont créées lors de la génération de code pour les blocs
 		if (decl->drapeaux & EMPLOYE) {
-			pointeur = table_locales[var->ident];
+			pointeur = table_locales.valeur_ou(var->ident, nullptr);
 			assert_rappel(pointeur != nullptr, [=](){ std::cerr << "Aucune allocation pour « " << var->ident->nom << " »\n."; });
 		}
 		else {
@@ -4067,7 +4066,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						auto pointeur = alloc_pointeur(var);
-						table_locales[var->ident] = pointeur;
+						table_locales.insere(var->ident, pointeur);
 
 						auto valeur = depile_valeur();
 						transforme_valeur(expression, valeur, transformation, pointeur);
@@ -4081,7 +4080,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						auto pointeur = alloc_pointeur(var);
-						table_locales[var->ident] = pointeur;
+						table_locales.insere(var->ident, pointeur);
 
 						transforme_valeur(expression, valeur, transformation, pointeur);
 						depile_valeur();
@@ -4091,7 +4090,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 			else {
 				for (auto &var : it.variables) {
 					auto pointeur = alloc_pointeur(var);
-					table_locales[var->ident] = pointeur;
+					table_locales.insere(var->ident, pointeur);
 				}
 			}
 		}
@@ -4115,7 +4114,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 					cree_stocke_mem(var, pointeur, valeur);
 				}
 
-				table_locales[var->ident] = pointeur;
+				table_locales.insere(var->ident, pointeur);
 			}
 		}
 	}

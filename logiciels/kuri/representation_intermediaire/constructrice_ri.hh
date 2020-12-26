@@ -32,6 +32,8 @@
 #include "biblinternes/structures/tablet.hh"
 #include "biblinternes/structures/tuples.hh"
 
+#include "compilation/table_hachage.hh"
+
 struct Compilatrice;
 struct NoeudBloc;
 struct NoeudDeclarationVariable;
@@ -82,7 +84,7 @@ private:
 
 	NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
 
-	dls::dico<IdentifiantCode *, Atome *> table_locales{};
+	table_hachage<IdentifiantCode *, Atome *> table_locales{};
 
 	dls::tablet<dls::triplet<IdentifiantCode *, InstructionLabel *, InstructionLabel *>, 12> insts_continue_arrete{};
 
