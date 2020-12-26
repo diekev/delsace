@@ -37,6 +37,12 @@
 
 namespace memoire {
 
+template <typename T>
+inline constexpr long calcule_memoire(long nombre)
+{
+	return static_cast<long>(sizeof(T)) * nombre;
+}
+
 struct logeuse_memoire {
 	std::atomic_long memoire_consommee = 0;
 	std::atomic_long memoire_allouee = 0;
@@ -66,15 +72,13 @@ struct logeuse_memoire {
 	template <typename T, typename... Args>
 	[[nodiscard]] T *loge(const char *message, Args &&... args)
 	{
-		auto ptr = new T(args...);
+		auto ptr = static_cast<T *>(loge_generique(message, calcule_memoire<T>(1)));
 
 		if (ptr == nullptr) {
 			throw std::bad_alloc();
 		}
 
-		ajoute_memoire(message, static_cast<long>(sizeof(T)));
-
-		nombre_allocations += 1;
+		new (ptr) T(args...);
 
 		return ptr;
 	}
@@ -84,15 +88,11 @@ struct logeuse_memoire {
 	{
 		assert(nombre >= 0);
 
-		auto ptr = static_cast<T *>(malloc(sizeof(T) * static_cast<size_t>(nombre)));
+		auto ptr = static_cast<T *>(loge_generique(message, calcule_memoire<T>(nombre)));
 
 		if (ptr == nullptr) {
 			throw std::bad_alloc();
 		}
-
-		ajoute_memoire(message, static_cast<long>(sizeof(T)) * nombre);
-
-		nombre_allocations += 1;
 
 		return ptr;
 	}
@@ -104,10 +104,10 @@ struct logeuse_memoire {
 		assert(nouvelle_taille >= 0);
 
 		if constexpr (std::is_trivially_copyable_v<T>) {
-			ptr = static_cast<T *>(realloc(ptr, sizeof(T) * static_cast<size_t>(nouvelle_taille)));
+			ptr = static_cast<T *>(reloge_generique(message, ptr, calcule_memoire<T>(ancienne_taille), calcule_memoire<T>(nouvelle_taille)));
 		}
 		else {
-			auto res = static_cast<T *>(malloc(sizeof(T) * static_cast<size_t>(nouvelle_taille)));
+			auto res = static_cast<T *>(loge_generique(message, calcule_memoire<T>(nouvelle_taille)));
 
 			for (auto i = 0; i < nouvelle_taille; ++i) {
 				new (&res[i]) T();
@@ -117,13 +117,9 @@ struct logeuse_memoire {
 				res[i] = std::move(ptr[i]);
 			}
 
-			free(ptr);
+			deloge_generique(message, ptr, calcule_memoire<T>(ancienne_taille));
 			ptr = res;
 		}
-
-		ajoute_memoire(message, static_cast<long>(sizeof(T)) * (nouvelle_taille - ancienne_taille));
-		nombre_allocations += 1;
-		nombre_reallocations += 1;
 	}
 
 	template <typename T>
@@ -133,11 +129,10 @@ struct logeuse_memoire {
 			return;
 		}
 
-		delete ptr;
-		ptr = nullptr;
+		ptr->~T();
 
-		enleve_memoire(message, static_cast<long>(sizeof(T)));
-		nombre_deallocations += 1;
+		deloge_generique(message, ptr, calcule_memoire<T>(1));
+		ptr = nullptr;
 	}
 
 	template <typename T>
@@ -145,21 +140,20 @@ struct logeuse_memoire {
 	{
 		assert(nombre >= 0);
 
-		if (ptr == nullptr) {
-			return;
-		}
-
-		free(ptr);
+		deloge_generique(message, ptr, calcule_memoire<T>(nombre));
 		ptr = nullptr;
-
-		enleve_memoire(message, static_cast<long>(sizeof(T)) * nombre);
-		nombre_deallocations += 1;
 	}
 
 	static logeuse_memoire &instance();
 
 private:
 	static logeuse_memoire m_instance;
+
+	void *loge_generique(const char *message, long taille);
+
+	void *reloge_generique(const char *message, void *ptr, long ancienne_taille, long nouvelle_taille);
+
+	void deloge_generique(const char *message, void *ptr, long taille);
 };
 
 /**

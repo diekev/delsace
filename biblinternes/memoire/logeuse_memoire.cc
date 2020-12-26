@@ -77,6 +77,109 @@ void logeuse_memoire::enleve_memoire(const char *message, long taille)
 
 /* ************************************************************************** */
 
+#define PROTEGE_MEMOIRE
+
+inline long taille_alignee(long taille)
+{
+	return (taille + 3) & (~3);
+}
+
+struct EnteteMemoire {
+	const char *message = nullptr;
+	long taille = 0;
+};
+
+void *logeuse_memoire::loge_generique(const char *message, long taille)
+{
+#ifndef PROTEGE_MEMOIRE
+	return malloc(static_cast<size_t>(taille));
+#else
+	/* aligne la taille désirée */
+	taille = taille_alignee(taille);
+
+	EnteteMemoire *entete = static_cast<EnteteMemoire *>(malloc(static_cast<size_t>(taille) + sizeof(EnteteMemoire)));
+	entete->message = message;
+	entete->taille = taille;
+
+	ajoute_memoire(message, taille);
+	nombre_allocations += 1;
+
+	/* saute l'entête et retourne le bloc de la taille désirée */
+	return static_cast<void *>(++entete);
+#endif
+}
+
+void *logeuse_memoire::reloge_generique(const char *message, void *ptr, long ancienne_taille, long nouvelle_taille)
+{
+#ifndef PROTEGE_MEMOIRE
+	return realloc(ptr, static_cast<size_t>(nouvelle_taille));
+#else
+
+	assert(ptr || ancienne_taille == 0);
+
+	/* calcule la taille alignée correspondante à l'allocation */
+	ancienne_taille = taille_alignee(ancienne_taille);
+
+	/* calcule la taille alignée correspondante à l'allocation */
+	nouvelle_taille = taille_alignee(nouvelle_taille);
+
+	EnteteMemoire *entete = static_cast<EnteteMemoire *>(ptr);
+
+	/* il est possible d'utiliser reloge avec un pointeur nul, ce qui agit comme un loge */
+	if (entete) {
+		/* le pointeur pointe sur le bloc, recule d'une EnteteMemoire pour retrouvre l'entête */
+		entete -= 1;
+
+		if (entete->taille != ancienne_taille) {
+			std::cerr << "Désynchronisation pour le bloc '" << entete->message << "' ('" << message << "') lors du relogement !\n";
+			std::cerr << "La taille du logement était de " << entete->taille << ", mais la taille reçue est de " << ancienne_taille << " !\n";
+		}
+	}
+
+	entete = static_cast<EnteteMemoire *>(realloc(entete, sizeof(EnteteMemoire) + static_cast<size_t>(nouvelle_taille)));
+	entete->taille = nouvelle_taille;
+	entete->message = message;
+
+	ajoute_memoire(message, nouvelle_taille - ancienne_taille);
+	nombre_allocations += 1;
+	nombre_reallocations += 1;
+
+	/* saute l'entête et retourne le bloc de la taille désirée */
+	return static_cast<void *>(++entete);
+#endif
+}
+
+void logeuse_memoire::deloge_generique(const char *message, void *ptr, long taille)
+{
+#ifndef PROTEGE_MEMOIRE
+	free(ptr);
+#else
+	if (ptr == nullptr) {
+		return;
+	}
+
+	/* calcule la taille alignée correspondante à l'allocation */
+	taille = taille_alignee(taille);
+
+	EnteteMemoire *entete = static_cast<EnteteMemoire *>(ptr);
+
+	/* le pointeur pointe sur le bloc, recule d'une EnteteMemoire pour retrouvre l'entête */
+	entete--;
+
+	if (entete->taille != taille) {
+		std::cerr << "Désynchronisation pour le bloc '" << entete->message << "' ('" << message << "') lors du délogement !\n";
+		std::cerr << "La taille du logement était de " << entete->taille << ", mais la taille reçue est de " << taille << " !\n";
+	}
+
+	free(entete);
+
+	enleve_memoire(message, taille);
+	nombre_deallocations += 1;
+#endif
+}
+
+/* ************************************************************************** */
+
 long allouee()
 {
 	auto &logeuse = logeuse_memoire::instance();
