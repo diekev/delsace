@@ -245,14 +245,14 @@ struct tableau {
 			return;
 		}
 
-//		if (capacite == 0) {
-//			if (nombre < 8) {
-//				nombre = 8;
-//			}
-//		}
-//		else if (nombre < (capacite * 2)) {
-//			nombre = capacite * 2;
-//		}
+		if (capacite == 0) {
+			if (nombre < 8) {
+				nombre = 8;
+			}
+		}
+		else if (nombre < (capacite * 2)) {
+			nombre = capacite * 2;
+		}
 
 		memoire::reloge_tableau("kuri::tableau", this->pointeur, this->capacite, nombre);
 		this->capacite = nombre;
