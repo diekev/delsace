@@ -30,6 +30,7 @@
 #include "biblinternes/structures/chaine.hh"
 
 #include "compilation/operateurs.hh"
+#include "compilation/typage.hh"
 #include "compilation/structures.hh"
 
 #include "code_binaire.hh"
@@ -143,14 +144,74 @@ struct AtomeValeurConstante : public AtomeConstante {
 
 	Valeur valeur{};
 
-	AtomeValeurConstante(Type *type, unsigned long long valeur);
-	AtomeValeurConstante(Type *type, double valeur);
-	AtomeValeurConstante(Type *type, bool valeur);
-	AtomeValeurConstante(Type *type);
-	AtomeValeurConstante(Type *type, Type *pointeur_type);
-	AtomeValeurConstante(Type *type, kuri::tableau<char> &&donnees_constantes);
-	AtomeValeurConstante(Type *type, char *pointeur, long taille);
-	AtomeValeurConstante(Type *type, kuri::tableau<AtomeConstante *> &&valeurs);
+	AtomeValeurConstante(Type *type_, unsigned long long valeur_)
+		: AtomeValeurConstante()
+	{
+		this->type = type_;
+		this->valeur.genre = Valeur::Genre::ENTIERE;
+		this->valeur.valeur_entiere = valeur_;
+	}
+
+	AtomeValeurConstante(Type *type_, double valeur_)
+		: AtomeValeurConstante()
+	{
+		this->type = type_;
+		this->valeur.genre = Valeur::Genre::REELLE;
+		this->valeur.valeur_reelle = valeur_;
+	}
+
+	AtomeValeurConstante(Type *type_, bool valeur_)
+		: AtomeValeurConstante()
+	{
+		this->type = type_;
+		this->valeur.genre = Valeur::Genre::BOOLEENNE;
+		this->valeur.valeur_booleenne = valeur_;
+	}
+
+	AtomeValeurConstante(Type *type_)
+		: AtomeValeurConstante()
+	{
+		this->type = type_;
+		this->valeur.genre = Valeur::Genre::NULLE;
+	}
+
+	AtomeValeurConstante(Type *type_, Type *pointeur_type)
+		: AtomeValeurConstante()
+	{
+		this->type = type_;
+		this->valeur.genre = Valeur::Genre::TYPE;
+		this->valeur.type = pointeur_type;
+	}
+
+	AtomeValeurConstante(Type *type_, kuri::tableau<char> &&donnees_constantes)
+		: AtomeValeurConstante()
+	{
+		this->type = type_;
+		this->valeur.genre = Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
+		this->valeur.valeur_tdc.pointeur = donnees_constantes.pointeur;
+		this->valeur.valeur_tdc.taille = donnees_constantes.taille;
+	}
+
+	AtomeValeurConstante(Type *type_, char *pointeur, long taille)
+		: AtomeValeurConstante()
+	{
+		this->type = type_;
+		this->valeur.genre = Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
+		this->valeur.valeur_tdc.pointeur = pointeur;
+		this->valeur.valeur_tdc.taille = taille;
+	}
+
+	AtomeValeurConstante(Type *type_, kuri::tableau<AtomeConstante *> &&valeurs)
+		: AtomeValeurConstante()
+	{
+		this->type = type_;
+		this->valeur.genre = Valeur::Genre::STRUCTURE;
+		this->valeur.valeur_structure.pointeur = valeurs.pointeur;
+		this->valeur.valeur_structure.taille = valeurs.taille;
+		this->valeur.valeur_structure.capacite = valeurs.capacite;
+		valeurs.pointeur = nullptr;
+		valeurs.taille = 0;
+	}
 };
 
 struct AtomeGlobale : public AtomeConstante {
@@ -165,7 +226,14 @@ struct AtomeGlobale : public AtomeConstante {
 
 	COPIE_CONSTRUCT(AtomeGlobale);
 
-	AtomeGlobale(Type *type, AtomeConstante *initialisateur, bool est_externe, bool est_constante);
+	AtomeGlobale(Type *type_, AtomeConstante *initialisateur_, bool est_externe_, bool est_constante_)
+		: AtomeGlobale()
+	{
+		this->type = type_;
+		this->initialisateur = initialisateur_;
+		this->est_externe = est_externe_;
+		this->est_constante = est_constante_;
+	}
 };
 
 struct TranstypeConstant : public AtomeConstante {
@@ -175,7 +243,12 @@ struct TranstypeConstant : public AtomeConstante {
 
 	COPIE_CONSTRUCT(TranstypeConstant);
 
-	TranstypeConstant(Type *type, AtomeConstante *valeur);
+	TranstypeConstant(Type *type_, AtomeConstante *valeur_)
+		: TranstypeConstant()
+	{
+		this->type = type_;
+		this->valeur = valeur_;
+	}
 };
 
 struct OpBinaireConstant : public AtomeConstante {
@@ -187,7 +260,14 @@ struct OpBinaireConstant : public AtomeConstante {
 
 	COPIE_CONSTRUCT(OpBinaireConstant);
 
-	OpBinaireConstant(Type *type, OperateurBinaire::Genre op, AtomeConstante *operande_gauche, AtomeConstante *operande_droite);
+	OpBinaireConstant(Type *type_, OperateurBinaire::Genre op_, AtomeConstante *operande_gauche_, AtomeConstante *operande_droite_)
+		: OpBinaireConstant()
+	{
+		this->type = type_;
+		this->op = op_;
+		this->operande_gauche = operande_gauche_;
+		this->operande_droite = operande_droite_;
+	}
 };
 
 struct OpUnaireConstant : public AtomeConstante {
@@ -198,7 +278,13 @@ struct OpUnaireConstant : public AtomeConstante {
 
 	COPIE_CONSTRUCT(OpUnaireConstant);
 
-	OpUnaireConstant(Type *type, OperateurUnaire::Genre op, AtomeConstante *operande);
+	OpUnaireConstant(Type *type_, OperateurUnaire::Genre op_, AtomeConstante *operande_)
+		: OpUnaireConstant()
+	{
+		this->type = type_;
+		this->op = op_;
+		this->operande = operande_;
+	}
 };
 
 struct AccedeIndexConstant : public AtomeConstante {
@@ -212,7 +298,13 @@ struct AccedeIndexConstant : public AtomeConstante {
 
 	COPIE_CONSTRUCT(AccedeIndexConstant);
 
-	AccedeIndexConstant(Type *type, AtomeConstante *accede, AtomeConstante *index);
+	AccedeIndexConstant(Type *type_, AtomeConstante *accede_, AtomeConstante *index_)
+		: AccedeIndexConstant()
+	{
+		this->type = type_;
+		this->accede = accede_;
+		this->index = index_;
+	}
 };
 
 struct AtomeFonction : public Atome {
@@ -244,8 +336,18 @@ struct AtomeFonction : public Atome {
 
 	DonneesFonctionExterne donnees_externe{};
 
-	AtomeFonction(Lexeme const *lexeme, dls::chaine const &nom);
-	AtomeFonction(Lexeme const *lexeme, dls::chaine const &nom, kuri::tableau<Atome *> &&params);
+	AtomeFonction(Lexeme const *lexeme_, dls::chaine const &nom_)
+		: nom(nom_)
+		, lexeme(lexeme_)
+	{
+		genre_atome = Atome::Genre::FONCTION;
+	}
+
+	AtomeFonction(Lexeme const *lexeme_, dls::chaine const &nom_, kuri::tableau<Atome *> &&params_)
+		: AtomeFonction(lexeme_, nom_)
+	{
+		this->params_entrees = std::move(params_);
+	}
 
 	Instruction *derniere_instruction() const;
 
@@ -341,8 +443,22 @@ struct InstructionAppel : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionAppel);
 
-	InstructionAppel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele);
-	InstructionAppel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args);
+	InstructionAppel(NoeudExpression *site_, Lexeme const *lexeme_, Atome *appele_)
+		: InstructionAppel(site_)
+	{
+		auto type_fonction = appele_->type->comme_fonction();
+		// À FAIRE(retours multiples)
+		this->type = type_fonction->types_sorties[0];
+
+		this->appele = appele_;
+		this->lexeme = lexeme_;
+	}
+
+	InstructionAppel(NoeudExpression *site_, Lexeme const *lexeme_, Atome *appele_, kuri::tableau<Atome *> &&args_)
+		: InstructionAppel(site_, lexeme_, appele_)
+	{
+		this->args = std::move(args_);
+	}
 };
 
 struct InstructionAllocation : public Instruction {
@@ -359,7 +475,12 @@ struct InstructionAllocation : public Instruction {
 	// le décalage en octet où se trouve l'allocation sur la pile
 	int decalage_pile = 0;
 
-	InstructionAllocation(NoeudExpression *site_, Type *type, IdentifiantCode *ident);
+	InstructionAllocation(NoeudExpression *site_, Type *type_, IdentifiantCode *ident_)
+		: InstructionAllocation(site_)
+	{
+		this->type = type_;
+		this->ident = ident_;
+	}
 };
 
 struct InstructionRetour : public Instruction {
@@ -369,7 +490,11 @@ struct InstructionRetour : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionRetour);
 
-	InstructionRetour(NoeudExpression *site_, Atome *valeur);
+	InstructionRetour(NoeudExpression *site_, Atome *valeur_)
+		: InstructionRetour(site_)
+	{
+		this->valeur = valeur_;
+	}
 };
 
 struct InstructionOpBinaire : public Instruction {
@@ -381,7 +506,14 @@ struct InstructionOpBinaire : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionOpBinaire);
 
-	InstructionOpBinaire(NoeudExpression *site_, Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
+	InstructionOpBinaire(NoeudExpression *site_, Type *type_, OperateurBinaire::Genre op_, Atome *valeur_gauche_, Atome *valeur_droite_)
+		: InstructionOpBinaire(site_)
+	{
+		this->type = type_;
+		this->op = op_;
+		this->valeur_gauche = valeur_gauche_;
+		this->valeur_droite = valeur_droite_;
+	}
 };
 
 struct InstructionOpUnaire : public Instruction {
@@ -392,7 +524,13 @@ struct InstructionOpUnaire : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionOpUnaire);
 
-	InstructionOpUnaire(NoeudExpression *site_, Type *type, OperateurUnaire::Genre op, Atome *valeur);
+	InstructionOpUnaire(NoeudExpression *site_, Type *type_, OperateurUnaire::Genre op_, Atome *valeur_)
+		: InstructionOpUnaire(site_)
+	{
+		this->type = type_;
+		this->op = op_;
+		this->valeur = valeur_;
+	}
 };
 
 struct InstructionChargeMem : public Instruction {
@@ -407,7 +545,13 @@ struct InstructionChargeMem : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionChargeMem);
 
-	InstructionChargeMem(NoeudExpression *site_, Type *type, Atome *chargee);
+	InstructionChargeMem(NoeudExpression *site_, Type *type_, Atome *chargee_)
+		: InstructionChargeMem(site_)
+	{
+		this->type = type_;
+		this->chargee = chargee_;
+		this->est_chargeable = type->genre == GenreType::POINTEUR;
+	}
 };
 
 struct InstructionStockeMem : public Instruction {
@@ -418,7 +562,13 @@ struct InstructionStockeMem : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionStockeMem);
 
-	InstructionStockeMem(NoeudExpression *site_, Type *type, Atome *ou, Atome *valeur);
+	InstructionStockeMem(NoeudExpression *site_, Type *type_, Atome *ou_, Atome *valeur_)
+		: InstructionStockeMem(site_)
+	{
+		this->type = type_;
+		this->ou = ou_;
+		this->valeur = valeur_;
+	}
 };
 
 struct InstructionLabel : public Instruction {
@@ -426,7 +576,11 @@ struct InstructionLabel : public Instruction {
 
 	int id = 0;
 
-	InstructionLabel(NoeudExpression *site_, int id);
+	InstructionLabel(NoeudExpression *site_, int id_)
+		: InstructionLabel(site_)
+	{
+		this->id = id_;
+	}
 };
 
 struct InstructionBranche : public Instruction {
@@ -436,7 +590,11 @@ struct InstructionBranche : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionBranche);
 
-	InstructionBranche(NoeudExpression *site_, InstructionLabel *label);
+	InstructionBranche(NoeudExpression *site_, InstructionLabel *label_)
+		: InstructionBranche(site_)
+	{
+		this->label = label_;
+	}
 };
 
 struct InstructionBrancheCondition : public Instruction {
@@ -448,7 +606,13 @@ struct InstructionBrancheCondition : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionBrancheCondition);
 
-	InstructionBrancheCondition(NoeudExpression *site_, Atome *condition, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
+	InstructionBrancheCondition(NoeudExpression *site_, Atome *condition_, InstructionLabel *label_si_vrai_, InstructionLabel *label_si_faux_)
+		: InstructionBrancheCondition(site_)
+	{
+		this->condition = condition_;
+		this->label_si_vrai = label_si_vrai_;
+		this->label_si_faux = label_si_faux_;
+	}
 };
 
 struct InstructionAccedeMembre : public Instruction {
@@ -464,7 +628,13 @@ struct InstructionAccedeMembre : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionAccedeMembre);
 
-	InstructionAccedeMembre(NoeudExpression *site_, Type *type, Atome *accede, Atome *index);
+	InstructionAccedeMembre(NoeudExpression *site_, Type *type_, Atome *accede_, Atome *index_)
+		: InstructionAccedeMembre(site_)
+	{
+		this->type = type_;
+		this->accede = accede_;
+		this->index = index_;
+	}
 };
 
 struct InstructionAccedeIndex : public Instruction {
@@ -480,7 +650,13 @@ struct InstructionAccedeIndex : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionAccedeIndex);
 
-	InstructionAccedeIndex(NoeudExpression *site_, Type *type, Atome *accede, Atome *index);
+	InstructionAccedeIndex(NoeudExpression *site_, Type *type_, Atome *accede_, Atome *index_)
+		: InstructionAccedeIndex(site_)
+	{
+		this->type = type_;
+		this->accede = accede_;
+		this->index = index_;
+	}
 };
 
 enum TypeTranstypage {
@@ -511,7 +687,13 @@ struct InstructionTranstype : public Instruction {
 
 	COPIE_CONSTRUCT(InstructionTranstype);
 
-	InstructionTranstype(NoeudExpression *site_, Type *type, Atome *valeur, TypeTranstypage op_);
+	InstructionTranstype(NoeudExpression *site_, Type *type_, Atome *valeur_, TypeTranstypage op_)
+		: InstructionTranstype(site_)
+	{
+		this->type = type_;
+		this->valeur = valeur_;
+		this->op = op_;
+	}
 };
 
 #define COMME_INST(Type, Genre) \
