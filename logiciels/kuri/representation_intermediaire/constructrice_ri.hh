@@ -28,7 +28,6 @@
 
 #include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/tablet.hh"
 #include "biblinternes/structures/tuples.hh"
 
