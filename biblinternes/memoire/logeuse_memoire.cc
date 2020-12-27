@@ -89,6 +89,17 @@ struct EnteteMemoire {
 	long taille = 0;
 };
 
+inline void *pointeur_depuis_entete(EnteteMemoire *entete)
+{
+	return entete + 1;
+}
+
+inline EnteteMemoire *entete_depuis_pointeur(void *pointeur)
+{
+	/* le pointeur pointe sur le bloc, recule d'une EnteteMemoire pour retrouvre l'entête */
+	return static_cast<EnteteMemoire *>(pointeur) - 1;
+}
+
 void *logeuse_memoire::loge_generique(const char *message, long taille)
 {
 #ifndef PROTEGE_MEMOIRE
@@ -105,7 +116,7 @@ void *logeuse_memoire::loge_generique(const char *message, long taille)
 	nombre_allocations += 1;
 
 	/* saute l'entête et retourne le bloc de la taille désirée */
-	return static_cast<void *>(++entete);
+	return pointeur_depuis_entete(entete);
 #endif
 }
 
@@ -128,7 +139,7 @@ void *logeuse_memoire::reloge_generique(const char *message, void *ptr, long anc
 	/* il est possible d'utiliser reloge avec un pointeur nul, ce qui agit comme un loge */
 	if (entete) {
 		/* le pointeur pointe sur le bloc, recule d'une EnteteMemoire pour retrouvre l'entête */
-		entete -= 1;
+		entete = entete_depuis_pointeur(entete);
 
 		if (entete->taille != ancienne_taille) {
 			std::cerr << "Désynchronisation pour le bloc '" << entete->message << "' ('" << message << "') lors du relogement !\n";
@@ -145,7 +156,7 @@ void *logeuse_memoire::reloge_generique(const char *message, void *ptr, long anc
 	nombre_reallocations += 1;
 
 	/* saute l'entête et retourne le bloc de la taille désirée */
-	return static_cast<void *>(++entete);
+	return pointeur_depuis_entete(entete);
 #endif
 }
 
@@ -161,10 +172,7 @@ void logeuse_memoire::deloge_generique(const char *message, void *ptr, long tail
 	/* calcule la taille alignée correspondante à l'allocation */
 	taille = taille_alignee(taille);
 
-	EnteteMemoire *entete = static_cast<EnteteMemoire *>(ptr);
-
-	/* le pointeur pointe sur le bloc, recule d'une EnteteMemoire pour retrouvre l'entête */
-	entete--;
+	EnteteMemoire *entete = entete_depuis_pointeur(ptr);
 
 	if (entete->taille != taille) {
 		std::cerr << "Désynchronisation pour le bloc '" << entete->message << "' ('" << message << "') lors du délogement !\n";
