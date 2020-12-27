@@ -19,32 +19,22 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# ------------------------------------------------------------------------------
+set(NOM_CIBLE kuri_structures)
 
-option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
-
-if(AVEC_LLVM)
-	find_package(LLVM REQUIRED)
-	add_definitions(-DAVEC_LLVM)
-endif()
-
-# ------------------------------------------------------------------------------
-
-set(RACINE_INSTALLATION kuri)
-
-add_subdirectory(compilation)
-add_subdirectory(executable)
-add_subdirectory(exemples)
-add_subdirectory(modules_c/Alembic)
-add_subdirectory(modules_c/Aléa)
-add_subdirectory(modules_c/FTGL)
-add_subdirectory(modules_c/Image)
-add_subdirectory(modules_c/Krypto)
-add_subdirectory(representation_intermediaire)
-add_subdirectory(structures)
-add_subdirectory(tests)
-
-install(
-	DIRECTORY modules
-	DESTINATION ${RACINE_INSTALLATION}
+set(INCLUSIONS
 )
+
+set(BIBLIOTHEQUES
+)
+
+set(SOURCES
+    chaine.cc
+
+    chaine.hh
+)
+
+add_library(${NOM_CIBLE} STATIC "${SOURCES}")
+
+target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")

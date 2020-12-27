@@ -43,8 +43,6 @@ kuri_simplification_arbre
 -- implémentation de la logique pour simplifier les globales
 -- ajout de tâches pour la génération des messages, les fonctions devant attendre qu'un message fut envoyé avant de pouvoir simplifier l'arbre et générer la RI
 -- ajout de tâches pour avant la génération de la RI
-kuri_structures
--- À FAIRE de manière générale
 
 // --------------------------- Compilatrice
 
