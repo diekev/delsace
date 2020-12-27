@@ -262,6 +262,12 @@ struct tableau {
 		this->capacite = nombre;
 	}
 
+	void redimensionne(long nombre)
+	{
+		reserve(nombre);
+		taille = nombre;
+	}
+
 	void reserve_delta(long delta)
 	{
 		reserve(taille + delta);
