@@ -25,9 +25,12 @@
 #include "logeuse_memoire.hh"
 
 #include <iostream>
+#include <mutex>
 #include <sstream>
 
 namespace memoire {
+
+static void imprime_blocs_memoire();
 
 logeuse_memoire logeuse_memoire::m_instance = logeuse_memoire{};
 
@@ -37,10 +40,12 @@ logeuse_memoire::~logeuse_memoire()
 		std::cerr << "Fuite de mémoire ou désynchronisation : "
 				  << formate_taille(memoire_allouee) << '\n';
 
+		imprime_blocs_memoire();
+
 #ifdef DEBOGUE_MEMOIRE
 		for (auto &alveole : tableau_allocation) {
 			if (alveole.second != 0) {
-				std::cerr << '\t' << alveole.first << " : " << formate_taille(alveole.second) << '\n';
+				std::cerr << '\t' << alveole.premier << " : " << formate_taille(alveole.second) << '\n';
 			}
 		}
 #endif
@@ -79,6 +84,53 @@ void logeuse_memoire::enleve_memoire(const char *message, long taille)
 
 #define PROTEGE_MEMOIRE
 
+struct LienLocal {
+	LienLocal *suivant, *precedent;
+};
+
+struct ListeChainee {
+	void *premier, *dernier;
+};
+
+static std::mutex g_mutex;
+static volatile struct ListeChainee _g_liste_mem;
+static volatile struct ListeChainee *g_liste_mem = &_g_liste_mem;
+
+static void ajoute_lien(volatile ListeChainee *liste, void *vlien)
+{
+	struct LienLocal *lien = static_cast<LienLocal *>(vlien);
+
+	lien->suivant = nullptr;
+	lien->precedent = static_cast<LienLocal *>(liste->dernier);
+
+	if (liste->dernier) {
+		static_cast<LienLocal *>(liste->dernier)->suivant = lien;
+	}
+	if (liste->premier == nullptr) {
+		liste->premier = lien;
+	}
+	liste->dernier = lien;
+}
+
+static void enleve_lien(volatile ListeChainee *liste, void *vlien)
+{
+	LienLocal *lien = static_cast<LienLocal *>(vlien);
+
+	if (lien->suivant) {
+		lien->suivant->precedent = lien->precedent;
+	}
+	if (lien->precedent) {
+		lien->precedent->suivant = lien->suivant;
+	}
+
+	if (liste->dernier == lien) {
+		liste->dernier = lien->precedent;
+	}
+	if (liste->premier == lien) {
+		liste->premier = lien->suivant;
+	}
+}
+
 inline long taille_alignee(long taille)
 {
 	return (taille + 3) & (~3);
@@ -87,6 +139,9 @@ inline long taille_alignee(long taille)
 struct EnteteMemoire {
 	const char *message = nullptr;
 	long taille = 0;
+
+	EnteteMemoire *suivant = nullptr;
+	EnteteMemoire *precedent = nullptr;
 };
 
 inline void *pointeur_depuis_entete(EnteteMemoire *entete)
@@ -100,6 +155,18 @@ inline EnteteMemoire *entete_depuis_pointeur(void *pointeur)
 	return static_cast<EnteteMemoire *>(pointeur) - 1;
 }
 
+#define ENTETE_DEPUIS_LIEN(x) (reinterpret_cast<EnteteMemoire *>((static_cast<char *>(x)) - offsetof(EnteteMemoire, suivant)))
+static void imprime_blocs_memoire()
+{
+	auto premier = g_liste_mem->premier;
+
+	while (premier != g_liste_mem->dernier) {
+		auto entete = ENTETE_DEPUIS_LIEN(premier);
+		std::cerr << entete->message << ", " << entete->taille << '\n';
+		premier = entete->suivant;
+	}
+}
+
 void *logeuse_memoire::loge_generique(const char *message, long taille)
 {
 #ifndef PROTEGE_MEMOIRE
@@ -111,6 +178,11 @@ void *logeuse_memoire::loge_generique(const char *message, long taille)
 	EnteteMemoire *entete = static_cast<EnteteMemoire *>(malloc(static_cast<size_t>(taille) + sizeof(EnteteMemoire)));
 	entete->message = message;
 	entete->taille = taille;
+
+	{
+		std::unique_lock l(g_mutex);
+		ajoute_lien(g_liste_mem, &entete->suivant);
+	}
 
 	ajoute_memoire(message, taille);
 	nombre_allocations += 1;
@@ -147,9 +219,19 @@ void *logeuse_memoire::reloge_generique(const char *message, void *ptr, long anc
 		}
 	}
 
+	if (ptr) {
+		std::unique_lock l(g_mutex);
+		enleve_lien(g_liste_mem, &entete->suivant);
+	}
+
 	entete = static_cast<EnteteMemoire *>(realloc(entete, sizeof(EnteteMemoire) + static_cast<size_t>(nouvelle_taille)));
 	entete->taille = nouvelle_taille;
 	entete->message = message;
+
+	{
+		std::unique_lock l(g_mutex);
+		ajoute_lien(g_liste_mem, &entete->suivant);
+	}
 
 	ajoute_memoire(message, nouvelle_taille - ancienne_taille);
 	nombre_allocations += 1;
@@ -179,6 +261,10 @@ void logeuse_memoire::deloge_generique(const char *message, void *ptr, long tail
 		std::cerr << "La taille du logement était de " << entete->taille << ", mais la taille reçue est de " << taille << " !\n";
 	}
 
+	{
+		std::unique_lock l(g_mutex);
+		enleve_lien(g_liste_mem, &entete->suivant);
+	}
 	free(entete);
 
 	enleve_memoire(message, taille);
