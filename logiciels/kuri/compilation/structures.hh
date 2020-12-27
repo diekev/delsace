@@ -188,6 +188,10 @@ struct tableau {
 
 	~tableau()
 	{
+		for (auto i = 0; i < taille; ++i) {
+			this->pointeur[i].~T();
+		}
+
 		memoire::deloge_tableau("kuri::tableau", this->pointeur, this->capacite);
 	}
 
