@@ -75,6 +75,33 @@ void imprime_ligne_avec_message(
 	flux << '\n';
 }
 
+static void imprime_site(
+		EspaceDeTravail const &espace,
+		NoeudExpression *site,
+		dls::flux_chaine &flux)
+{
+	auto lexeme = site->lexeme;
+	auto fichier = espace.fichier(lexeme->fichier);
+	auto pos = position_lexeme(*lexeme);
+	auto const pos_mot = pos.pos;
+	auto const &ligne = fichier->tampon()[lexeme->ligne];
+	auto etendue = calcule_etendue_noeud(site, fichier);
+
+	auto nc = dls::num::nombre_de_chiffres(lexeme->ligne + 1);
+
+	for (auto i = 0; i < 5 - nc; ++i) {
+		flux << ' ';
+	}
+
+	flux << lexeme->ligne + 1 << " | " << ligne;
+	flux << "      | ";
+	lng::erreur::imprime_caractere_vide(flux, etendue.pos_min, ligne);
+	lng::erreur::imprime_tilde(flux, ligne, etendue.pos_min, pos_mot);
+	flux << '^';
+	lng::erreur::imprime_tilde(flux, ligne, pos_mot + 1, etendue.pos_max);
+	flux << '\n';
+}
+
 void lance_erreur(
 		const dls::chaine &quoi,
 		EspaceDeTravail const &espace,
@@ -350,20 +377,13 @@ void lance_erreur_fonction_inconnue(
 	auto const &lexeme = b->lexeme;
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon()[pos.index_ligne];
 
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
 	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n';
-	ss << "\nDans l'appel de la fonction '" << b->lexeme->chaine << "'\n";
-	ss << ligne;
-
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme->chaine);
-	ss << '\n';
+	ss << "\nDans l'expression d'appel :\n";
+	imprime_site(espace, b, ss);
 
 	if (candidates.est_vide()) {
 		ss << "\nFonction inconnue : aucune candidate trouvée\n";
@@ -372,7 +392,15 @@ void lance_erreur_fonction_inconnue(
 		throw erreur::frappe(ss.chn().c_str(), erreur::Genre::FONCTION_INCONNUE);
 	}
 
-	ss << "\nAucune candidate trouvée pour la fonction '" << b->lexeme->chaine << "'\n";
+	ss << "\nAucune candidate trouvée pour l'expression '";
+	auto etendue_expr = calcule_etendue_noeud(b->comme_appel()->appelee, fichier);
+	auto ligne = fichier->tampon()[lexeme->ligne];
+
+	for (auto i = etendue_expr.pos_min; i < etendue_expr.pos_max; ++i) {
+		ss << ligne[i];
+	}
+
+	ss << "'\n";
 
 	auto type_erreur = erreur::Genre::FONCTION_INCONNUE;
 
@@ -428,11 +456,22 @@ void lance_erreur_fonction_inconnue(
 				type_erreur = erreur::Genre::ARGUMENT_INCONNU;
 			}
 			else if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
-				auto type_struct = static_cast<NoeudStruct const *>(decl)->type->comme_structure();
-				ss << "\tLes membres de la structure sont : \n";
+				auto decl_struct = decl->comme_structure();
 
-				POUR (type_struct->membres) {
-					ss << "\t\t" << it.nom << '\n';
+				if (decl_struct->est_polymorphe) {
+					ss << "\tLes paramètres de la structure sont : \n";
+
+					POUR (decl_struct->params_polymorphiques) {
+						ss << "\t\t" << it->ident->nom << '\n';
+					}
+				}
+				else {
+					ss << "\tLes membres de la structure sont : \n";
+
+					auto type_struct = decl_struct->type->comme_structure();
+					POUR (type_struct->membres) {
+						ss << "\t\t" << it.nom << '\n';
+					}
 				}
 
 				type_erreur = erreur::Genre::MEMBRE_INCONNU;
