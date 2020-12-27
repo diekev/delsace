@@ -65,6 +65,9 @@ struct tableau_page {
 	tableau_page(tableau_page const &) = delete;
 	tableau_page &operator=(tableau_page const &) = delete;
 
+    tableau_page(tableau_page &&) = default;
+    tableau_page &operator=(tableau_page &&) = default;
+
 	~tableau_page()
 	{
 		for (auto &it : pages) {
