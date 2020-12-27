@@ -20,9 +20,6 @@ erreur de compilation si nous définissons une structure dans une fonction et qu
 kuri_allocations
 -- inutile ?
 -- optimisation prématurée
-kuri_appel_structure
--- À FAIRE de manière générale
--- trouve une bonne manière d'apparier ce que nous appelons
 kuri_coulisse_asm
 -- À FAIRE de manière générale
 kuri_encapsulation_membres

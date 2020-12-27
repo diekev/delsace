@@ -338,6 +338,122 @@ struct Monomorpheuse {
 	}
 };
 
+struct ApparieuseParams {
+private:
+	dls::tablet<IdentifiantCode *, 10> m_noms{};
+	dls::tablet<NoeudExpression *, 10> m_slots{};
+	dls::ensemblon<IdentifiantCode *, 10> args_rencontres{};
+	bool m_arguments_nommes = false;
+	bool m_dernier_argument_est_variadique = false;
+	bool m_est_variadique = false;
+	int m_index = 0;
+	DonneesCandidate &res;
+
+public:
+	ApparieuseParams(DonneesCandidate &res_) : res(res_) {}
+
+	void ajoute_param(IdentifiantCode *ident, NoeudExpression *valeur_defaut, bool est_variadique)
+	{
+		m_noms.ajoute(ident);
+
+		// Ajoute uniquement la valeur défaut si le paramètre n'est pas variadique,
+		// car le code d'appariement de type dépend de ce comportement.
+		if (!est_variadique) {
+			m_slots.ajoute(valeur_defaut);
+		}
+
+		m_est_variadique = est_variadique;
+	}
+
+	bool ajoute_expression(IdentifiantCode *ident, NoeudExpression *expr, NoeudExpression *expr_ident)
+	{
+		if (ident) {
+			m_arguments_nommes = true;
+
+			auto index_param = 0l;
+
+			POUR (m_noms) {
+				if (ident == it) {
+					break;
+				}
+
+				index_param += 1;
+			}
+
+			if (index_param >= m_noms.taille()) {
+				res.etat = FONCTION_INTROUVEE;
+				res.raison = MENOMMAGE_ARG;
+				res.nom_arg = ident->nom;
+				res.noeud_erreur = expr_ident;
+				return false;
+			}
+
+			auto est_parametre_variadique = index_param == m_noms.taille() - 1 && m_est_variadique;
+
+			if ((args_rencontres.possede(ident)) && !est_parametre_variadique) {
+				res.etat = FONCTION_INTROUVEE;
+				res.raison = RENOMMAGE_ARG;
+				res.nom_arg = ident->nom;
+				res.noeud_erreur = expr_ident;
+				return false;
+			}
+
+			m_dernier_argument_est_variadique = est_parametre_variadique;
+
+			args_rencontres.insere(ident);
+
+			if (m_dernier_argument_est_variadique || index_param >= m_slots.taille()) {
+				m_slots.ajoute(expr);
+			}
+			else {
+				m_slots[index_param] = expr;
+			}
+		}
+		else {
+			if (m_arguments_nommes == true && m_dernier_argument_est_variadique == false) {
+				res.etat = FONCTION_INTROUVEE;
+				res.raison = MANQUE_NOM_APRES_VARIADIC;
+				res.noeud_erreur = expr;
+				return false;
+			}
+
+			if (m_dernier_argument_est_variadique || m_index >= m_slots.taille()) {
+				args_rencontres.insere(m_noms[m_noms.taille() - 1]);
+				m_slots.ajoute(expr);
+				m_index++;
+			}
+			else {
+				args_rencontres.insere(m_noms[m_index]);
+				m_slots[m_index++] = expr;
+			}
+		}
+
+		return true;
+	}
+
+	bool tous_les_slots_sont_remplis() const
+	{
+		for (auto i = 0; i < m_noms.taille() - m_est_variadique; ++i) {
+			if (m_slots[i] == nullptr) {
+				res.arguments_manquants.ajoute(m_noms[i]);
+			}
+		}
+
+		if (!res.arguments_manquants.est_vide()) {
+			res.etat = FONCTION_INTROUVEE;
+			res.raison = ARGUMENTS_MANQUANTS;
+			return false;
+		}
+
+		return true;
+	}
+
+	dls::tablet<NoeudExpression *, 10> &slots()
+	{
+		return m_slots;
+	}
+};
+
 enum {
 	CANDIDATE_EST_DECLARATION,
 	CANDIDATE_EST_ACCES,
@@ -700,102 +816,22 @@ static auto apparie_appel_fonction(
 		return false;
 	}
 
-	dls::tablet<NoeudExpression *, 10> slots;
-	slots.redimensionne(nombre_args - decl->est_variadique);
+	auto apparieuse_params = ApparieuseParams(res);
+	//slots.redimensionne(nombre_args - decl->est_variadique);
 
-	for (auto i = 0; i < slots.taille(); ++i) {
+	for (auto i = 0; i < decl->params.taille; ++i) {
 		auto param = decl->parametre_entree(i);
-		slots[i] = param->expression;
+		apparieuse_params.ajoute_param(param->ident, param->expression, param->possede_drapeau(EST_VARIADIQUE));
 	}
-
-	auto index = 0l;
-	auto arguments_nommes = false;
-	auto dernier_arg_variadique = false;
-	dls::ensemblon<IdentifiantCode *, 10> args_rencontres;
 
 	POUR (args) {
-		if (it.ident != nullptr) {
-			arguments_nommes = true;
-
-			auto param = NoeudDeclarationVariable::nul();
-			auto index_param = 0l;
-
-			for (auto i = 0; i < decl->params.taille; ++i) {
-				auto dp = decl->parametre_entree(i);
-
-				if (dp->ident == it.ident) {
-					param = dp;
-					index_param = i;
-					break;
-				}
-			}
-
-			if (param == nullptr) {
-				res.etat = FONCTION_INTROUVEE;
-				res.raison = MENOMMAGE_ARG;
-				res.nom_arg = it.ident->nom;
-				res.noeud_erreur = it.expr_ident;
-				return false;
-			}
-
-			if ((args_rencontres.possede(it.ident)) && !param->possede_drapeau(EST_VARIADIQUE)) {
-				res.etat = FONCTION_INTROUVEE;
-				res.raison = RENOMMAGE_ARG;
-				res.nom_arg = it.ident->nom;
-				res.noeud_erreur = it.expr_ident;
-				return false;
-			}
-
-			dernier_arg_variadique = param->possede_drapeau(EST_VARIADIQUE);
-
-			args_rencontres.insere(it.ident);
-
-			if (dernier_arg_variadique || index_param >= slots.taille()) {
-				slots.ajoute(it.expr);
-			}
-			else {
-				if (slots[index_param] != param->expression) {
-					res.etat = FONCTION_INTROUVEE;
-					res.raison = RENOMMAGE_ARG;
-					res.nom_arg = it.ident->nom;
-					res.noeud_erreur = it.expr_ident;
-					return false;
-				}
-
-				slots[index_param] = it.expr;
-			}
-		}
-		else {
-			if (arguments_nommes == true && dernier_arg_variadique == false) {
-				res.etat = FONCTION_INTROUVEE;
-				res.raison = MANQUE_NOM_APRES_VARIADIC;
-				res.noeud_erreur = it.expr;
-				return false;
-			}
-
-			if (dernier_arg_variadique || index >= slots.taille()) {
-				slots.ajoute(it.expr);
-				index++;
-			}
-			else {
-				slots[index++] = it.expr;
-			}
+		if (!apparieuse_params.ajoute_expression(it.ident, it.expr, it.expr_ident)) {
+			// l'apparieuse aura déjà ajourné les données pour cette candidate
+			return false;
 		}
 	}
 
-	dls::tablet<IdentifiantCode *, TAILLE_CANDIDATES_DEFAUT> params_manquants;
-
-	for (auto i = 0; i < nombre_args - decl->est_variadique; ++i) {
-		if (slots[i] == nullptr) {
-			auto dp = decl->params[i];
-			params_manquants.ajoute(dp->ident);
-		}
-	}
-
-	if (!params_manquants.est_vide()) {
-		res.etat = FONCTION_INTROUVEE;
-		res.raison = ARGUMENTS_MANQUANTS;
-		res.arguments_manquants = params_manquants;
+	if (!apparieuse_params.tous_les_slots_sont_remplis()) {
 		return false;
 	}
 
@@ -803,6 +839,7 @@ static auto apparie_appel_fonction(
 	auto fonction_variadique_interne = decl->est_variadique && !decl->est_externe;
 	auto expansion_rencontree = false;
 
+	auto &slots = apparieuse_params.slots();
 	auto transformations = dls::tableau<TransformationType>(slots.taille());
 
 	auto nombre_arg_variadiques_rencontres = 0;
@@ -1115,82 +1152,64 @@ static auto apparie_appel_structure(
 			return false;
 		}
 
-		auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 10>();
+		auto apparieuse_params = ApparieuseParams(resultat);
 
-		// À FAIRE(poly) : cas où il manque des paramètres
-		// À FAIRE(poly) : paramètres dans le désordre
+		POUR (decl_struct->params_polymorphiques) {
+			apparieuse_params.ajoute_param(it->ident, nullptr, false);
+		}
+
 		POUR (arguments) {
-			if (it.ident == nullptr) {
-				resultat.etat = FONCTION_TROUVEE;
-				resultat.raison = NOM_ARGUMENT_REQUIS;
-				resultat.poids_args = 0.0;
-				resultat.noeud_erreur = it.expr;
-				return false;
-			}
-
-			if (noms_rencontres.possede(it.ident)) {
-				resultat.etat = FONCTION_TROUVEE;
-				resultat.raison = RENOMMAGE_ARG;
-				resultat.poids_args = 0.0;
-				resultat.noeud_erreur = it.expr;
-				return false;
-			}
-
-			noms_rencontres.insere(it.ident);
-
-			auto param = NoeudDeclarationVariable::nul();
-
-			for (auto &p : decl_struct->params_polymorphiques) {
-				if (p->ident == it.ident) {
-					param = p;
-					break;
-				}
-			}
-
-			if (param == nullptr) {
-				resultat.etat = FONCTION_TROUVEE;
-				resultat.raison = MENOMMAGE_ARG;
-				resultat.poids_args = 0.0;
-				resultat.noeud_erreur = it.expr;
+			if (!apparieuse_params.ajoute_expression(it.ident, it.expr, it.expr_ident)) {
+				// À FAIRE : si ceci est au début de la fonction, nous avons des messages d'erreurs assez étranges...
 				resultat.noeud_decl = decl_struct;
 				return false;
 			}
+		}
+
+		if (!apparieuse_params.tous_les_slots_sont_remplis()) {
+			return false;
+		}
+
+		auto index_param = 0;
+		POUR (apparieuse_params.slots()) {
+			auto param = decl_struct->params_polymorphiques[index_param];
+			index_param += 1;
 
 			// vérifie la contrainte
 			if (param->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
 				if (param->type->est_type_de_donnees()) {
-					if (!it.expr->type->est_type_de_donnees()) {
+					if (!it->type->est_type_de_donnees()) {
 						resultat.etat = FONCTION_TROUVEE;
 						resultat.raison = METYPAGE_ARG;
 						resultat.poids_args = 0.0;
 						resultat.type_attendu = param->type;
-						resultat.type_obtenu = it.expr->type;
-						resultat.noeud_erreur = it.expr;
+						resultat.type_obtenu = it->type;
+						resultat.noeud_erreur = it;
 						resultat.noeud_decl = decl_struct;
 						return false;
 					}
 
-					resultat.items_monomorphisation.ajoute({ it.ident, it.expr->type, ResultatExpression(), true });
+					resultat.items_monomorphisation.ajoute({ param->ident, it->type, ResultatExpression(), true });
 				}
 				else {
-					if (!(it.expr->type == param->type || (it.expr->type->est_entier_constant() && est_type_entier(param->type)))) {
+					if (!(it->type == param->type || (it->type->est_entier_constant() && est_type_entier(param->type)))) {
 						resultat.etat = FONCTION_TROUVEE;
 						resultat.raison = METYPAGE_ARG;
 						resultat.poids_args = 0.0;
 						resultat.type_attendu = param->type;
-						resultat.type_obtenu = it.expr->type;
-						resultat.noeud_erreur = it.expr;
+						resultat.type_obtenu = it->type;
+						resultat.noeud_erreur = it;
 						resultat.noeud_decl = decl_struct;
 						return false;
 					}
 
-					auto valeur = evalue_expression(&espace, it.expr->bloc_parent, it.expr);
+					auto valeur = evalue_expression(&espace, it->bloc_parent, it);
 
 					if (valeur.est_errone) {
-						rapporte_erreur(&espace, it.expr, "La valeur n'est pas constante");
+						rapporte_erreur(&espace, it, "La valeur n'est pas constante");
 					}
 
-					resultat.items_monomorphisation.ajoute({ it.ident, param->type, valeur, false });
+					resultat.items_monomorphisation.ajoute({ param->ident, param->type, valeur, false });
 				}
 			}
 			else {
@@ -1276,63 +1295,33 @@ static auto apparie_appel_structure(
 		}
 	}
 
-	auto slots = dls::tablet<NoeudExpression *, 10>();
-	slots.redimensionne(type_compose->membres.taille);
-	auto transformations = dls::tableau<TransformationType>(slots.taille());
+	// À FAIRE : détecte quand nous avons des constantes
+	auto apparieuse_params = ApparieuseParams(resultat);
 
-	auto index_membre = 0;
 	POUR (type_compose->membres) {
-		slots[index_membre] = it.expression_valeur_defaut;
-		index_membre += 1;
+		apparieuse_params.ajoute_param(it.nom, it.expression_valeur_defaut, false);
 	}
 
-	auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 10>();
+	POUR (arguments) {
+		if (!apparieuse_params.ajoute_expression(it.ident, it.expr, it.expr_ident)) {
+			return false;
+		}
+	}
+
+	auto transformations = dls::tableau<TransformationType>(type_compose->membres.taille);
 	auto poids_appariement = 1.0;
 
-	POUR (arguments) {
-		if (it.ident == nullptr) {
-			resultat.etat = FONCTION_TROUVEE;
-			resultat.raison = NOM_ARGUMENT_REQUIS;
-			resultat.poids_args = 0.0;
-			resultat.noeud_erreur = it.expr;
-			return false;
-		}
-
-		if (noms_rencontres.possede(it.ident)) {
-			resultat.etat = FONCTION_TROUVEE;
-			resultat.raison = RENOMMAGE_ARG;
-			resultat.poids_args = 0.0;
-			resultat.noeud_erreur = it.expr;
-			return false;
-		}
-
-		auto type_membre = Type::nul();
-		auto decl_membre = NoeudDeclaration::nul();
-		index_membre = 0;
-
-		for (auto &membre : *decl_struct->bloc->membres.verrou_lecture()) {
-			if (membre->ident == it.ident) {
-				type_membre = membre->type;
-				decl_membre = membre;
-				break;
-			}
-
+	auto index_membre = 0;
+	POUR (apparieuse_params.slots()) {
+		if (it == nullptr) {
 			index_membre += 1;
+			continue;
 		}
 
-		noms_rencontres.insere(it.ident);
-
-		if (decl_membre == nullptr) {
-			resultat.etat = FONCTION_TROUVEE;
-			resultat.raison = MENOMMAGE_ARG;
-			resultat.poids_args = 0.0;
-			resultat.noeud_erreur = it.expr;
-			resultat.noeud_decl = decl_struct;
-			return false;
-		}
+		auto &membre = type_compose->membres[index_membre];
 
 		auto transformation = TransformationType{};
-		auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(espace, contexte, type_membre, it.expr->type, it.expr, transformation);
+		auto [erreur_dep, poids_pour_enfant] = verifie_compatibilite(espace, contexte, membre.type, it->type, it, transformation);
 
 		if (erreur_dep) {
 			return true;
@@ -1344,14 +1333,14 @@ static auto apparie_appel_structure(
 			resultat.etat = FONCTION_TROUVEE;
 			resultat.raison = METYPAGE_ARG;
 			resultat.poids_args = 0.0;
-			resultat.noeud_erreur = it.expr;
-			resultat.type_attendu = type_membre;
-			resultat.type_obtenu = it.expr->type;
+			resultat.noeud_erreur = it;
+			resultat.type_attendu = membre.type;
+			resultat.type_obtenu = it->type;
 			return false;
 		}
 
-		slots[index_membre] = it.expr;
 		transformations[index_membre] = transformation;
+		index_membre += 1;
 	}
 
 	resultat.type = decl_struct->type;
@@ -1359,7 +1348,7 @@ static auto apparie_appel_structure(
 	resultat.etat = FONCTION_TROUVEE;
 	resultat.raison = AUCUNE_RAISON;
 	resultat.poids_args = poids_appariement;
-	resultat.exprs = slots;
+	resultat.exprs = apparieuse_params.slots();
 	resultat.transformations = std::move(transformations);
 
 	return false;
