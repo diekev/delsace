@@ -41,14 +41,6 @@ logeuse_memoire::~logeuse_memoire()
 				  << formate_taille(memoire_allouee) << '\n';
 
 		imprime_blocs_memoire();
-
-#ifdef DEBOGUE_MEMOIRE
-		for (auto &alveole : tableau_allocation) {
-			if (alveole.second != 0) {
-				std::cerr << '\t' << alveole.premier << " : " << formate_taille(alveole.second) << '\n';
-			}
-		}
-#endif
 	}
 }
 
@@ -57,26 +49,14 @@ logeuse_memoire &logeuse_memoire::instance()
 	return m_instance;
 }
 
-void logeuse_memoire::ajoute_memoire(const char *message, long taille)
+void logeuse_memoire::ajoute_memoire(long taille)
 {
-#ifdef DEBOGUE_MEMOIRE
-	tableau_allocation[message] += taille;
-#else
-	static_cast<void>(message);
-#endif
-
 	this->memoire_allouee += taille;
 	this->memoire_consommee = std::max(this->memoire_allouee.load(), this->memoire_consommee.load());
 }
 
-void logeuse_memoire::enleve_memoire(const char *message, long taille)
+void logeuse_memoire::enleve_memoire(long taille)
 {
-#ifdef DEBOGUE_MEMOIRE
-	tableau_allocation[message] -= taille;
-#else
-	static_cast<void>(message);
-#endif
-
 	this->memoire_allouee -= taille;
 }
 
@@ -184,7 +164,7 @@ void *logeuse_memoire::loge_generique(const char *message, long taille)
 		ajoute_lien(g_liste_mem, &entete->suivant);
 	}
 
-	ajoute_memoire(message, taille);
+	ajoute_memoire(taille);
 	nombre_allocations += 1;
 
 	/* saute l'entête et retourne le bloc de la taille désirée */
@@ -219,6 +199,7 @@ void *logeuse_memoire::reloge_generique(const char *message, void *ptr, long anc
 		}
 	}
 
+	/* enlève le lien au cas où realloc change le pointeur d'adresse */
 	if (ptr) {
 		std::unique_lock l(g_mutex);
 		enleve_lien(g_liste_mem, &entete->suivant);
@@ -233,7 +214,7 @@ void *logeuse_memoire::reloge_generique(const char *message, void *ptr, long anc
 		ajoute_lien(g_liste_mem, &entete->suivant);
 	}
 
-	ajoute_memoire(message, nouvelle_taille - ancienne_taille);
+	ajoute_memoire(nouvelle_taille - ancienne_taille);
 	nombre_allocations += 1;
 	nombre_reallocations += 1;
 
@@ -267,7 +248,7 @@ void logeuse_memoire::deloge_generique(const char *message, void *ptr, long tail
 	}
 	free(entete);
 
-	enleve_memoire(message, taille);
+	enleve_memoire(taille);
 	nombre_deallocations += 1;
 #endif
 }

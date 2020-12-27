@@ -29,12 +29,6 @@
 #include <cassert>
 #include <string>
 
-#undef DEBOGUE_MEMOIRE
-
-#ifdef DEBOGUE_MEMOIRE
-#	include "biblinternes/structures/dico.hh"
-#endif
-
 namespace memoire {
 
 template <typename T>
@@ -50,11 +44,6 @@ struct logeuse_memoire {
 	std::atomic_long nombre_reallocations = 0;
 	std::atomic_long nombre_deallocations = 0;
 
-#ifdef DEBOGUE_MEMOIRE
-	/* XXX - il est possible d'avoir une situation de concurence sur la table */
-	dls::dico<const char *, std::atomic_long> tableau_allocation;
-#endif
-
 	logeuse_memoire() = default;
 
 	~logeuse_memoire();
@@ -64,10 +53,6 @@ struct logeuse_memoire {
 
 	logeuse_memoire &operator=(logeuse_memoire const &) = delete;
 	logeuse_memoire &operator=(logeuse_memoire &&) = delete;
-
-	void ajoute_memoire(const char *message, long taille);
-
-	void enleve_memoire(const char *message, long taille);
 
 	template <typename T, typename... Args>
 	[[nodiscard]] T *loge(const char *message, Args &&... args)
@@ -148,6 +133,10 @@ struct logeuse_memoire {
 
 private:
 	static logeuse_memoire m_instance;
+
+	void ajoute_memoire(long taille);
+
+	void enleve_memoire(long taille);
 
 	void *loge_generique(const char *message, long taille);
 
