@@ -423,18 +423,53 @@ const char *chaine_pour_genre_op(OperateurUnaire::Genre genre)
 	return "inconnu";
 }
 
+inline int index_op_binaire(GenreLexeme lexeme)
+{
+	// À FAIRE: l'indice n'est pas bon, nous devrions utiliser le genre pour le bon type de données
+	return static_cast<int>(genre_op_binaire_pour_lexeme(lexeme, IndiceTypeOp::ENTIER_NATUREL));
+}
+
+inline int index_op_unaire(GenreLexeme lexeme)
+{
+	return static_cast<int>(genre_op_unaire_pour_lexeme(lexeme));
+}
+
+constexpr inline int nombre_genre_op_binaires()
+{
+	int compte = 0;
+#define ENUMERE_GENRE_OPBINAIRE_EX(x) compte += 1;
+	ENUMERE_OPERATEURS_BINAIRE
+#undef ENUMERE_GENRE_OPBINAIRE_EX
+	return compte;
+}
+
+constexpr inline int nombre_genre_op_unaires()
+{
+	int compte = 0;
+#define ENUMERE_GENRE_OPUNAIRE_EX(x) compte += 1;
+	ENUMERE_OPERATEURS_UNAIRE
+#undef ENUMERE_GENRE_OPUNAIRE_EX
+	return compte;
+}
+
+Operateurs::Operateurs()
+{
+	operateurs_unaires.redimensionne(nombre_genre_op_unaires());
+	operateurs_binaires.redimensionne(nombre_genre_op_binaires());
+}
+
 Operateurs::~Operateurs()
 {
 }
 
 const Operateurs::type_conteneur_unaire &Operateurs::trouve_unaire(GenreLexeme id) const
 {
-	return operateurs_unaires.trouve(id)->second;
+	return operateurs_unaires[index_op_unaire(id)];
 }
 
 const Operateurs::type_conteneur_binaire &Operateurs::trouve_binaire(GenreLexeme id) const
 {
-	return operateurs_binaires.trouve(id)->second;
+	return operateurs_binaires[index_op_binaire(id)];
 }
 
 OperateurBinaire *Operateurs::ajoute_basique(
@@ -456,7 +491,7 @@ OperateurBinaire *Operateurs::ajoute_basique(
 	assert(type1);
 	assert(type2);
 
-	auto op = operateurs_binaires[id].ajoute_element();
+	auto op = operateurs_binaires[index_op_binaire(id)].ajoute_element();
 	op->type1 = type1;
 	op->type2 = type2;
 	op->type_resultat = type_resultat;
@@ -468,7 +503,7 @@ OperateurBinaire *Operateurs::ajoute_basique(
 
 void Operateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat)
 {
-	auto op = operateurs_unaires[id].ajoute_element();
+	auto op = operateurs_unaires[index_op_unaire(id)].ajoute_element();
 	op->type_operande = type;
 	op->type_resultat = type_resultat;
 	op->est_basique = true;
@@ -482,7 +517,7 @@ void Operateurs::ajoute_perso(
 		Type *type_resultat,
 		NoeudDeclarationEnteteFonction *decl)
 {
-	auto op = operateurs_binaires[id].ajoute_element();
+	auto op = operateurs_binaires[index_op_binaire(id)].ajoute_element();
 	op->type1 = type1;
 	op->type2 = type2;
 	op->type_resultat = type_resultat;
@@ -497,7 +532,7 @@ void Operateurs::ajoute_perso_unaire(
 		Type *type_resultat,
 		NoeudDeclarationEnteteFonction *decl)
 {
-	auto op = operateurs_unaires[id].ajoute_element();
+	auto op = operateurs_unaires[index_op_unaire(id)].ajoute_element();
 	op->type_operande = type;
 	op->type_resultat = type_resultat;
 	op->est_basique = false;
@@ -529,19 +564,19 @@ void Operateurs::ajoute_operateur_basique_enum(TypeEnum *type)
 void Operateurs::rassemble_statistiques(Statistiques &stats) const
 {
 	auto nombre_unaires = 0l;
-	auto memoire_unaires = operateurs_unaires.taille() * (taille_de(GenreLexeme) + taille_de(type_conteneur_unaire));
+	auto memoire_unaires = operateurs_unaires.taille * (taille_de(GenreLexeme) + taille_de(type_conteneur_unaire));
 
 	POUR (operateurs_unaires) {
-		memoire_unaires += it.second.memoire_utilisee();
-		nombre_unaires += it.second.taille();
+		memoire_unaires += it.memoire_utilisee();
+		nombre_unaires += it.taille();
 	}
 
 	auto nombre_binaires = 0l;
-	auto memoire_binaires = operateurs_binaires.taille() * (taille_de(GenreLexeme) + taille_de(type_conteneur_binaire));
+	auto memoire_binaires = operateurs_binaires.taille * (taille_de(GenreLexeme) + taille_de(type_conteneur_binaire));
 
 	POUR (operateurs_binaires) {
-		memoire_binaires += it.second.memoire_utilisee();
-		nombre_binaires += it.second.taille();
+		memoire_binaires += it.memoire_utilisee();
+		nombre_binaires += it.taille();
 	}
 
 	auto &stats_ops = stats.stats_operateurs;

@@ -52,6 +52,7 @@
 #include "biblexternes/iprof/prof.h"
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 
 #include "compilatrice.hh"
 

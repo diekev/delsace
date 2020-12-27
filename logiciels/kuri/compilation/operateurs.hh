@@ -26,11 +26,11 @@
 
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau_page.hh"
 #include "biblinternes/structures/tablet.hh"
 
 #include "transformation_type.hh"
+#include "structures.hh"
 
 enum class GenreLexeme : unsigned int;
 struct EspaceDeTravail;
@@ -137,15 +137,18 @@ struct Operateurs {
 	using type_conteneur_binaire = tableau_page<OperateurBinaire>;
 	using type_conteneur_unaire = tableau_page<OperateurUnaire>;
 
-	dls::dico_desordonne<GenreLexeme, type_conteneur_binaire> operateurs_binaires;
-	dls::dico_desordonne<GenreLexeme, type_conteneur_unaire> operateurs_unaires;
+	kuri::tableau<type_conteneur_binaire> operateurs_binaires{};
+	kuri::tableau<type_conteneur_unaire> operateurs_unaires{};
 
 	Type *type_bool = nullptr;
 
 	OperateurBinaire *op_comp_egal_types = nullptr;
 	OperateurBinaire *op_comp_diff_types = nullptr;
 
+	Operateurs();
 	~Operateurs();
+
+	COPIE_CONSTRUCT(Operateurs);
 
 	type_conteneur_binaire const &trouve_binaire(GenreLexeme id) const;
 	type_conteneur_unaire const &trouve_unaire(GenreLexeme id) const;
