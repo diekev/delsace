@@ -62,24 +62,6 @@ std::ostream &operator<<(std::ostream &os, GenreNoeud genre)
 	return os;
 }
 
-bool est_expression_logique(NoeudExpression *noeud)
-{
-	if (noeud->genre == GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE) {
-		return true;
-	}
-
-	if (noeud->lexeme->genre == GenreLexeme::BARRE_BARRE || noeud->lexeme->genre == GenreLexeme::ESP_ESP) {
-		return true;
-	}
-
-	if (noeud->genre == GenreNoeud::EXPRESSION_PARENTHESE) {
-		auto expr_paren = static_cast<NoeudExpressionUnaire *>(noeud);
-		return est_expression_logique(expr_paren->expr);
-	}
-
-	return false;
-}
-
 /* ************************************************************************** */
 
 void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab)

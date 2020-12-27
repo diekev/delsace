@@ -842,8 +842,6 @@ struct NoeudComme : public NoeudExpression {
 
 void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab);
 
-bool est_expression_logique(NoeudExpression *noeud);
-
 NoeudExpression *copie_noeud(
 		AssembleuseArbre *assem,
 		NoeudExpression const *racine,
