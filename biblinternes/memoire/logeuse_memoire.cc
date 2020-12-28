@@ -34,14 +34,18 @@ static void imprime_blocs_memoire();
 
 logeuse_memoire logeuse_memoire::m_instance = logeuse_memoire{};
 
+#undef IMPRIME_ERREUR_MEMOIRE
+
 logeuse_memoire::~logeuse_memoire()
 {
+#ifdef IMPRIME_ERREUR_MEMOIRE
 	if (memoire_allouee != 0) {
 		std::cerr << "Fuite de mémoire ou désynchronisation : "
 				  << formate_taille(memoire_allouee) << '\n';
 
 		imprime_blocs_memoire();
 	}
+#endif
 }
 
 logeuse_memoire &logeuse_memoire::instance()
