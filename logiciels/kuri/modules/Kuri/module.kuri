@@ -744,6 +744,8 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #nulctx #sansbro
     stockage_temporaire.occupation_maximale = 0
     contexte.stockage_temporaire = *stockage_temporaire
 
+    info_appel := InfoAppelTraceAppel(ligne = 749, colonne = 27, texte = "    résultat := principale(contexte)\n")
+    trace_appel.info_appel = *info_appel
     résultat := __principale(mémoire(contexte))
 
     __fini_exécution_kuri(contexte)
