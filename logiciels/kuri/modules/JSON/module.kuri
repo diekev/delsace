@@ -42,6 +42,17 @@ parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -
 
     dépile(*scanner)
 
+    pour scanner.erreurs {
+        imprime("Erreur :\n")
+        imprime("%\n", script)
+
+        pour i dans 0 ... it.position - 1 {
+            imprime(" ")
+        }
+        imprime("^\n")
+        imprime("%\n", it.chn)
+    }
+
     détruit_scanner(*scanner)
 
     retourne succès, résultat
