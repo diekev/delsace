@@ -77,6 +77,7 @@ considère revoir l'arbre syntaxique des références de membres, pour simpilfie
   -- prise d'un pointeur
 - création des globales pour la RI via les InfoType
 
+- déduplique TypeTranstypage et TypeTransformation
 
 // --------------------------- Lexage
 
