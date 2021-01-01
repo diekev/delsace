@@ -497,14 +497,12 @@ bool cherche_transformation(
 
 	if (POUR_TRANSTYPAGE) {
 		if ((type_de->est_pointeur() || type_de->est_fonction()) && est_type_entier(type_vers) && type_vers->taille_octet == 8) {
-			// À FAIRE : POINTEUR_VERS_ENTIER
-			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			transformation = { TypeTransformation::POINTEUR_VERS_ENTIER, type_vers };
 			return false;
 		}
 
-		// À FAIRE : ENTIER_VERS_POINTEUR
 		if (type_vers->genre == GenreType::POINTEUR && (est_type_entier(type_de) || type_de->genre == GenreType::ENTIER_CONSTANT)) {
-			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			transformation = { TypeTransformation::ENTIER_VERS_POINTEUR, type_vers };
 			return false;
 		}
 	}

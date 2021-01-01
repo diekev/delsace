@@ -1858,6 +1858,37 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud, Atome *valeur, T
 			valeur = cree_transtype(noeud, transformation.type_cible, valeur, TypeTranstypage::DEFAUT);
 			break;
 		}
+		case TypeTransformation::POINTEUR_VERS_ENTIER:
+		{
+			if (valeur->est_chargeable) {
+				valeur = cree_charge_mem(noeud, valeur);
+			}
+
+			valeur = cree_transtype(noeud, transformation.type_cible, valeur, TypeTranstypage::POINTEUR_VERS_ENTIER);
+			break;
+		}
+		case TypeTransformation::ENTIER_VERS_POINTEUR:
+		{
+			if (valeur->est_chargeable) {
+				valeur = cree_charge_mem(noeud, valeur);
+			}
+
+			/* Augmente la taille du type ici pour éviter de le faire dans les coulisses.
+			 * Nous ne pouvons le faire via l'arbre syntaxique car les arbres des expressions
+			 * d'assigations ou de retours ne peuvent être modifiés. */
+			auto type = valeur->type;
+			if (type->taille_octet != 8) {
+				if (type->est_entier_naturel()) {
+					valeur = cree_transtype(noeud, m_espace->typeuse[TypeBase::N64], valeur, TypeTranstypage::AUGMENTE_NATUREL);
+				}
+				else {
+					valeur = cree_transtype(noeud, m_espace->typeuse[TypeBase::Z64], valeur, TypeTranstypage::AUGMENTE_RELATIF);
+				}
+			}
+
+			valeur = cree_transtype(noeud, transformation.type_cible, valeur, TypeTranstypage::ENTIER_VERS_POINTEUR);
+			break;
+		}
 		case TypeTransformation::AUGMENTE_TAILLE_TYPE:
 		{
 			if (valeur->est_chargeable) {

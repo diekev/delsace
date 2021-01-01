@@ -1020,3 +1020,35 @@ test_info_de_structure :: fonc () -> bool
 
 // ----------------------------------------------------------------------------
 //
+
+test_entier_vers_pointeur_impl :: fonc (valeur: $T, nom: chaine)
+{
+    ptr := valeur comme *rien
+    imprime("ptr_% = %, valeur = %\n", nom, ptr, FormatEntier(valeur, base = 16))
+}
+
+test_entier_vers_pointeur :: fonc ()
+{
+    a : z8  = 0x8
+    test_entier_vers_pointeur_impl(a, "a")
+    b : z16 = 0x16
+    test_entier_vers_pointeur_impl(b, "b")
+    c : z32 = 0x32
+    test_entier_vers_pointeur_impl(c, "c")
+    d : z64 = 0x64
+    test_entier_vers_pointeur_impl(d, "d")
+
+    e : n8  = 0x18
+    test_entier_vers_pointeur_impl(e, "e")
+    f : n16 = 0x116
+    test_entier_vers_pointeur_impl(f, "f")
+    g : n32 = 0x132
+    test_entier_vers_pointeur_impl(g, "g")
+    h : n64 = 0x164
+    test_entier_vers_pointeur_impl(h, "h")
+
+    i := 0x80000 comme *z8
+    test_entier_vers_pointeur_impl(i, "i")
+}
+
+#exécute test_entier_vers_pointeur()
