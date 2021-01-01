@@ -1037,9 +1037,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 					pointeur_pile = pointeur_debut_retour;
 				}
 
-#if defined(DEBOGUE_INTERPRETEUSE) || defined(CHRONOMETRE_INTERPRETATION)
-				std::cerr << "Temps exécution : " << temps * 1000.0 << " ms\n";
-#endif
 				return ResultatInterpretation::TERMINE;
 			}
 
@@ -1311,7 +1308,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 		auto it = m_metaprogrammes[i];
 
 #ifdef DEBOGUE_INTERPRETEUSE
-	std::cerr << "== exécution " << frame->fonction->nom << " ==\n";
+	std::cerr << "== exécution " << it->fonction->nom_broye(it->unite->espace) << " ==\n";
 #endif
 
 		assert(it->donnees_execution->profondeur_appel >= 1);
