@@ -360,6 +360,17 @@ initialisation de tableaux fixes :
 
 - pouvoir passer des pointeur comme référence (voir création du contexte qui utilise pour le moment une valeur)
 
+- énum_drapeaux : mise en places et tests des bits via vrai/faux
+
+    a.X = vrai (-> a |= Type.X)
+    a.X = faux (-> a &= ~Type.X)
+
+    si a.X (-> si a & Type.X != 0)
+
+    si a.X && a.Y  (-> si a & (Type.X | Type.Y) != 0)
+
+
+
 // --------------------------- Discriminations
 
 discr sur union anonyme
