@@ -7,6 +7,7 @@ getuid :: fonc () -> z32 #externe
 system :: fonc (command: *z8) -> z32 #externe
 usleep :: fonc (µsec: n32) -> z32 #externe
 symlink :: fonc (target: *z8, linkpath: *z8) -> z32 #externe
+mkdir :: fonc (chemin: *z8, mode: z32) -> z32 #externe
 
 chaine_environnement :: fonc (nom: chaine) -> chaine
 {

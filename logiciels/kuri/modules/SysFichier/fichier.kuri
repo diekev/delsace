@@ -259,6 +259,48 @@ crée_lien_symbolique :: fonc (cible: chaine, chemin_lien: chaine) -> ErreurFich
     retourne 0 comme ErreurFichier
 }
 
+système_crée_dossier :: fonc (chemin: chaine, mode: z32) -> ErreurFichier
+{
+    pos_dossier_parent := trouve_caractère_depuis_la_fin(chemin, '/')
+
+    si pos_dossier_parent <= 0 {
+        pos_dossier_parent = chemin.taille
+    }
+
+    chemin_dossier := chemin.sous_chaine(0, pos_dossier_parent)
+
+    ptr_chemin := chaine_c_temp(chemin_dossier)
+
+    résultat := mkdir(ptr_chemin, mode)
+
+    si résultat == -1 {
+        err := lis_errno()
+
+        discr err {
+            EACCES       { retourne ErreurFichier.PermissionNonAccordé }
+            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant }
+            /* ignore si le dossier existe déjà, vérifier si le dossier existe
+             * avant d'appeler cette fonction peut laisser la porte ouverte à des
+             * pirates pour créer leur propre dossier */
+            EEXIST       { retourne 0 comme ErreurFichier }
+            EFAULT       { retourne ErreurFichier.MauvaisEspaceAdressage }
+            EINVAL       { retourne ErreurFichier.ValeurInvalide}
+            ELOOP        { retourne ErreurFichier.TropDeLiensSymboliques }
+            EMLINK       { retourne ErreurFichier.TropDeLiensSymboliques }
+            ENAMETOOLONG { retourne ErreurFichier.NomTropGrand }
+            ENOENT       { retourne ErreurFichier.FichierInexistant }
+            ENOMEM       { retourne ErreurFichier.MémoireInsuffisante }
+            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
+            ENOTDIR      { retourne ErreurFichier.PasDansUnDossier }
+            EPERM        { retourne ErreurFichier.PermissionNonAccordé }
+            EROFS        { retourne ErreurFichier.FichierEstLectureSeul }
+            sinon        { retourne ErreurFichier.Inconnue }
+        }
+    }
+
+    retourne 0 comme ErreurFichier
+}
+
 // ----------------------------------------------------------
 
 Fichier :: struct {
@@ -289,6 +331,10 @@ ouvre_fichier :: fonc (chemin: chaine) -> RésultatFichier
 ouvre_fichier_crée_si_non_existant :: fonc (chemin: chaine, drapeaux: z32) -> RésultatFichier
 {
     drapeaux |= CREATION
+
+    tente système_crée_dossier(chemin, 0o755) piège err {
+        retourne err
+    }
 
     ptr_chemin := chaine_c_temp(chemin)
 
