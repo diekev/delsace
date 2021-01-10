@@ -1130,6 +1130,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			auto transformation = TransformationType();
 
+			if (enfant->type->est_reference() && !noeud->type->est_reference()) {
+				transtype_si_necessaire(expr->expression, TypeTransformation::DEREFERENCE);
+			}
+
 			if (cherche_transformation_pour_transtypage(*espace, *this, expr->expression->type, noeud->type, transformation)) {
 				return true;
 			}
