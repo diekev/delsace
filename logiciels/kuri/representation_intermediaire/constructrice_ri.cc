@@ -4011,6 +4011,14 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnte
 	charge_mems.taille = 0;
 	taille_allouee = 0;
 
+	POUR (atome_fonc->params_entrees) {
+		table_locales.insere(it->ident, it);
+	}
+
+	POUR (atome_fonc->params_sorties) {
+		table_locales.insere(it->ident, it);
+	}
+
 	auto decl_creation_contexte = m_espace->interface_kuri->decl_creation_contexte;
 
 	auto atome_creation_contexte = m_espace->trouve_ou_insere_fonction(*this, decl_creation_contexte);
