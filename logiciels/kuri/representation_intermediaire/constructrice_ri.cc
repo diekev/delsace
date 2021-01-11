@@ -458,7 +458,10 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(NoeudExpression *sit
 {
 	assert_rappel(accede->type->genre == GenreType::POINTEUR || accede->type->genre == GenreType::REFERENCE, [=](){ std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
 	auto type_pointeur = accede->type->comme_pointeur();
-	assert_rappel(est_type_compose(type_pointeur->type_pointe), [=](){ std::cerr << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'\n"; });
+	assert_rappel(est_type_compose(type_pointeur->type_pointe), [&](){
+		std::cerr << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'\n";
+		erreur::imprime_site(*espace(), site_);
+	});
 	assert_rappel(type_pointeur->type_pointe->genre != GenreType::UNION, [=](){ std::cerr << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'\n"; });
 
 	POUR (acces_membres) {
