@@ -455,9 +455,5 @@ int main(int argc, char *argv[])
 	issitialise_llvm();
 #endif
 
-#ifdef PROFILAGE
-	imprime_profilage(std::cerr);
-#endif
-
 	return resultat;
 }
