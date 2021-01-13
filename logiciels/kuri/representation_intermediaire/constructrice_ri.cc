@@ -749,7 +749,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			auto locale = table_locales.valeur_ou(noeud->ident, nullptr);
 			assert_rappel(locale, [&]() {
-				imprime_fichier_ligne(*m_espace, *noeud->lexeme);
+				erreur::imprime_site(*m_espace, noeud);
 				std::cerr << "Aucune locale trouvée pour " << noeud->ident->nom << " (" << chaine_type(noeud->type) << ")\n";
 			});
 			empile_valeur(locale);
@@ -1727,7 +1727,7 @@ void ConstructriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud, A
 
 	assert_rappel(valeur, [&] {
 		std::cerr << __func__ << ", valeur est nulle pour " << chaine_genre_noeud(noeud->genre) << '\n';
-		imprime_fichier_ligne(*m_espace, *noeud->lexeme);
+		erreur::imprime_site(*m_espace, noeud);
 	});
 
 	transforme_valeur(noeud, valeur, transformation, place);

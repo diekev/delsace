@@ -136,9 +136,3 @@ PositionLexeme position_lexeme(Lexeme const &lexeme)
 	pos.index_ligne = lexeme.ligne;
 	return pos;
 }
-
-void imprime_fichier_ligne(const EspaceDeTravail &espace, const Lexeme &lexeme)
-{
-	auto fichier = espace.fichier(lexeme.fichier);
-	std::cerr << fichier->chemin() << ':' << lexeme.ligne + 1 << '\n';
-}

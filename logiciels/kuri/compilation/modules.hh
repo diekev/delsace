@@ -191,5 +191,3 @@ struct PositionLexeme {
 };
 
 PositionLexeme position_lexeme(Lexeme const &lexeme);
-
-void imprime_fichier_ligne(const EspaceDeTravail &espace, Lexeme const &lexeme);

@@ -960,11 +960,11 @@ void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
 	}
 
 	auto lexeme = site->lexeme;
-	imprime_fichier_ligne(espace, *lexeme);
+	auto fichier = espace.fichier(lexeme->fichier);
+	std::cerr << fichier->chemin() << ':' << lexeme->ligne + 1 << '\n';
 
 	dls::flux_chaine ss;
 
-	auto fichier = espace.fichier(lexeme->fichier);
 	auto etendue = calcule_etendue_noeud(site, fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
