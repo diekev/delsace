@@ -33,11 +33,12 @@ struct NoeudExpression;
 /* ************************************************************************** */
 
 enum class TypeExpression : char {
+	INVALIDE,
 	ENTIER,
 	REEL,
 };
 
-struct ResultatExpression {
+struct ValeurExpression {
 	union {
 		long entier = 0;
 		double reel;
@@ -45,6 +46,27 @@ struct ResultatExpression {
 	};
 
 	TypeExpression type{};
+
+	ValeurExpression() = default;
+
+	ValeurExpression(long e)
+		: entier(e)
+		, type(TypeExpression::ENTIER)
+	{}
+
+	ValeurExpression(double r)
+		: reel(r)
+		, type(TypeExpression::REEL)
+	{}
+
+	ValeurExpression(bool c)
+		: condition(c)
+		, type(TypeExpression::ENTIER)
+	{}
+};
+
+struct ResultatExpression {
+	ValeurExpression valeur{};
 	bool est_errone = true;
 	NoeudExpression *noeud_erreur = nullptr;
 	const char *message_erreur = nullptr;

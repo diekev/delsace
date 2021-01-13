@@ -262,8 +262,10 @@ ResultatExpression evalue_expression(
 
 			auto decl_var = static_cast<NoeudDeclarationVariable *>(decl);
 
-			if (!decl_var->valeur_expression.est_errone) {
-				return decl_var->valeur_expression;
+			if (decl_var->valeur_expression.type != TypeExpression::INVALIDE) {
+				res.est_errone = false;
+				res.valeur = decl_var->valeur_expression;
+				return res;
 			}
 
 			if (decl_var->expression == nullptr) {
@@ -272,8 +274,8 @@ ResultatExpression evalue_expression(
 
 					POUR (type_enum->membres) {
 						if (it.nom == decl_var->ident) {
-							res.entier = it.valeur;
-							res.type = TypeExpression::ENTIER;
+							res.valeur.entier = it.valeur;
+							res.valeur.type = TypeExpression::ENTIER;
 							res.est_errone = false;
 							return res;
 						}
@@ -295,8 +297,8 @@ ResultatExpression evalue_expression(
 			auto type = expr_taille_de->expr->type;
 
 			auto res = ResultatExpression();
-			res.type = TypeExpression::ENTIER;
-			res.entier = type->taille_octet;
+			res.valeur.type = TypeExpression::ENTIER;
+			res.valeur.entier = type->taille_octet;
 			res.est_errone = false;
 
 			return res;
@@ -304,8 +306,8 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		{
 			auto res = ResultatExpression();
-			res.type = TypeExpression::ENTIER;
-			res.entier = b->lexeme->chaine == "vrai";
+			res.valeur.type = TypeExpression::ENTIER;
+			res.valeur.entier = b->lexeme->chaine == "vrai";
 			res.est_errone = false;
 
 			return res;
@@ -313,8 +315,8 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		{
 			auto res = ResultatExpression();
-			res.type = TypeExpression::ENTIER;
-			res.entier = static_cast<long>(b->lexeme->valeur_entiere);
+			res.valeur.type = TypeExpression::ENTIER;
+			res.valeur.entier = static_cast<long>(b->lexeme->valeur_entiere);
 			res.est_errone = false;
 
 			return res;
@@ -322,8 +324,8 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		{
 			auto res = ResultatExpression();
-			res.type = TypeExpression::ENTIER;
-			res.entier = static_cast<long>(b->lexeme->valeur_entiere);
+			res.valeur.type = TypeExpression::ENTIER;
+			res.valeur.entier = static_cast<long>(b->lexeme->valeur_entiere);
 			res.est_errone = false;
 
 			return res;
@@ -331,8 +333,8 @@ ResultatExpression evalue_expression(
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		{
 			auto res = ResultatExpression();
-			res.type = TypeExpression::REEL;
-			res.reel = b->lexeme->valeur_reelle;
+			res.valeur.type = TypeExpression::REEL;
+			res.valeur.reel = b->lexeme->valeur_reelle;
 			res.est_errone = false;
 
 			return res;
@@ -348,14 +350,14 @@ ResultatExpression evalue_expression(
 				return res;
 			}
 
-			if (res.type != TypeExpression::ENTIER) {
+			if (res.valeur.type != TypeExpression::ENTIER) {
 				res.est_errone = true;
 				res.noeud_erreur = b;
 				res.message_erreur = "L'expression n'est pas de type booléen !";
 				return res;
 			}
 
-			if (res.condition == (b->genre == GenreNoeud::INSTRUCTION_SI)) {
+			if (res.valeur.condition == (b->genre == GenreNoeud::INSTRUCTION_SI)) {
 				res = evalue_expression(espace, bloc, inst->bloc_si_vrai);
 			}
 			else {
@@ -375,11 +377,11 @@ ResultatExpression evalue_expression(
 				return res;
 			}
 
-			if (res.type == TypeExpression::REEL) {
-				applique_operateur_unaire(inst->lexeme->genre, res.reel);
+			if (res.valeur.type == TypeExpression::REEL) {
+				applique_operateur_unaire(inst->lexeme->genre, res.valeur.reel);
 			}
 			else {
-				applique_operateur_unaire(inst->lexeme->genre, res.entier);
+				applique_operateur_unaire(inst->lexeme->genre, res.valeur.entier);
 			}
 
 			return res;
@@ -400,23 +402,23 @@ ResultatExpression evalue_expression(
 			}
 
 			auto res = ResultatExpression();
-			res.type = res1.type;
+			res.valeur.type = res1.valeur.type;
 			res.est_errone = false;
 
 			if (est_operateur_bool(inst->lexeme->genre)) {
-				if (res.type == TypeExpression::REEL) {
-					res.condition = applique_operateur_binaire_comp(inst->lexeme->genre, res1.reel, res2.reel);
+				if (res.valeur.type == TypeExpression::REEL) {
+					res.valeur.condition = applique_operateur_binaire_comp(inst->lexeme->genre, res1.valeur.reel, res2.valeur.reel);
 				}
 				else {
-					res.condition = applique_operateur_binaire_comp(inst->lexeme->genre, res1.entier, res2.entier);
+					res.valeur.condition = applique_operateur_binaire_comp(inst->lexeme->genre, res1.valeur.entier, res2.valeur.entier);
 				}
 			}
 			else {
-				if (res.type == TypeExpression::REEL) {
-					res.reel = applique_operateur_binaire(inst->lexeme->genre, res1.reel, res2.reel);
+				if (res.valeur.type == TypeExpression::REEL) {
+					res.valeur.reel = applique_operateur_binaire(inst->lexeme->genre, res1.valeur.reel, res2.valeur.reel);
 				}
 				else {
-					res.entier = applique_operateur_binaire(inst->lexeme->genre, res1.entier, res2.entier);
+					res.valeur.entier = applique_operateur_binaire(inst->lexeme->genre, res1.valeur.entier, res2.valeur.entier);
 				}
 			}
 
@@ -443,8 +445,8 @@ ResultatExpression evalue_expression(
 				auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
 				auto res = ResultatExpression();
 				res.est_errone = false;
-				res.entier = valeur_enum;
-				res.type = TypeExpression::ENTIER;
+				res.valeur.entier = valeur_enum;
+				res.valeur.type = TypeExpression::ENTIER;
 				return res;
 			}
 
@@ -463,8 +465,8 @@ ResultatExpression evalue_expression(
 				if (ref_decl_membre->ident->nom == "taille") {
 					auto res = ResultatExpression();
 					res.est_errone = false;
-					res.entier = type_accede->comme_tableau_fixe()->taille;
-					res.type = TypeExpression::ENTIER;
+					res.valeur.entier = type_accede->comme_tableau_fixe()->taille;
+					res.valeur.type = TypeExpression::ENTIER;
 					return res;
 				}
 			}

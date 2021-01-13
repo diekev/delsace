@@ -489,12 +489,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						return true;
 					}
 
-					if (res.type != TypeExpression::ENTIER) {
+					if (res.valeur.type != TypeExpression::ENTIER) {
 						rapporte_erreur("L'expression n'est pas de type entier", expression_taille);
 						return true;
 					}
 
-					taille_tableau = res.entier;
+					taille_tableau = res.valeur.entier;
 				}
 
 				if (taille_tableau != 0) {
@@ -813,8 +813,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					auto res = evalue_expression(espace, enfant2->bloc_parent, enfant2);
 
 					if (!res.est_errone) {
-						if (res.entier >= type_tabl->taille) {
-							rapporte_erreur_acces_hors_limites(enfant2, type_tabl, res.entier);
+						if (res.valeur.entier >= type_tabl->taille) {
+							rapporte_erreur_acces_hors_limites(enfant2, type_tabl, res.valeur.entier);
 							return true;
 						}
 
@@ -935,7 +935,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					return true;
 				}
 
-				auto condition_est_vraie = res.entier != 0;
+				auto condition_est_vraie = res.valeur.entier != 0;
 				inst->condition_est_vraie = condition_est_vraie;
 
 				if (!condition_est_vraie) {
@@ -2875,7 +2875,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 				return true;
 			}
 
-			if (res.entier == 0 && type_enum->est_erreur) {
+			if (res.valeur.entier == 0 && type_enum->est_erreur) {
 				::rapporte_erreur(espace, expr, "L'expression d'une enumération erreur ne peut s'évaluer à 0 (cette valeur est réservée par la compilatrice).");
 			}
 		}
@@ -2885,26 +2885,26 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 				dernier_res.est_errone = false;
 
 				if (type_enum->est_drapeau || type_enum->est_erreur) {
-					res.type = TypeExpression::ENTIER;
-					res.entier = 1;
+					res.valeur.type = TypeExpression::ENTIER;
+					res.valeur.entier = 1;
 				}
 			}
 			else {
-				if (dernier_res.type == TypeExpression::ENTIER) {
+				if (dernier_res.valeur.type == TypeExpression::ENTIER) {
 					if (type_enum->est_drapeau) {
-						res.entier = dernier_res.entier * 2;
+						res.valeur.entier = dernier_res.valeur.entier * 2;
 					}
 					else {
-						res.entier = dernier_res.entier + 1;
+						res.valeur.entier = dernier_res.valeur.entier + 1;
 					}
 				}
 				else {
-					res.reel = dernier_res.reel + 1;
+					res.valeur.reel = dernier_res.valeur.reel + 1;
 				}
 			}
 		}
 
-		membres.ajoute({ type_enum, var->ident, 0, static_cast<int>(res.entier) });
+		membres.ajoute({ type_enum, var->ident, 0, static_cast<int>(res.valeur.entier) });
 
 		dernier_res = res;
 	}
@@ -3378,7 +3378,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 				return false;
 			}
 
-			decl->valeur_expression = res_exec;
+			decl->valeur_expression = res_exec.valeur;
 		}
 
 		return true;

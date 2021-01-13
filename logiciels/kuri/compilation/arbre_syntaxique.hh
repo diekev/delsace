@@ -414,7 +414,7 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 
 	NoeudExpression *expression_type = nullptr;
 
-	ResultatExpression valeur_expression{};
+	ValeurExpression valeur_expression{};
 
 	NoeudDeclaration *declaration_vient_d_un_emploi = nullptr;
 	int index_membre_employe = 0;
@@ -491,7 +491,7 @@ struct NoeudExpressionMembre : public NoeudExpression {
 struct ItemMonomorphisation {
 	IdentifiantCode *ident = nullptr;
 	Type *type = nullptr;
-	ResultatExpression valeur{};
+	ValeurExpression valeur{};
 	bool est_type = false;
 
 	bool operator == (ItemMonomorphisation const &autre)

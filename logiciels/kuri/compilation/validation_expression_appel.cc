@@ -792,7 +792,7 @@ static auto apparie_appel_fonction(
 
 			// À FAIRE : contraites, ceci ne gère que les cas suivant : a : $T
 			auto type = it.expr->type->comme_type_de_donnees();
-			res.items_monomorphisation.ajoute({ it.ident, type->type_connu, ResultatExpression(), true });
+			res.items_monomorphisation.ajoute({ it.ident, type->type_connu, ValeurExpression(), true });
 		}
 
 		res.etat = FONCTION_TROUVEE;
@@ -1125,7 +1125,7 @@ static auto apparie_appel_fonction(
 		res.items_monomorphisation.reserve(monomorpheuse.items.taille());
 
 		POUR (monomorpheuse.items) {
-			res.items_monomorphisation.ajoute({ it.premier, it.second, ResultatExpression(), true });
+			res.items_monomorphisation.ajoute({ it.premier, it.second, ValeurExpression(), true });
 		}
 	}
 
@@ -1189,7 +1189,7 @@ static auto apparie_appel_structure(
 						return false;
 					}
 
-					resultat.items_monomorphisation.ajoute({ param->ident, it->type, ResultatExpression(), true });
+					resultat.items_monomorphisation.ajoute({ param->ident, it->type, ValeurExpression(), true });
 				}
 				else {
 					if (!(it->type == param->type || (it->type->est_entier_constant() && est_type_entier(param->type)))) {
@@ -1209,7 +1209,7 @@ static auto apparie_appel_structure(
 						rapporte_erreur(&espace, it, "La valeur n'est pas constante");
 					}
 
-					resultat.items_monomorphisation.ajoute({ param->ident, param->type, valeur, false });
+					resultat.items_monomorphisation.ajoute({ param->ident, param->type, valeur.valeur, false });
 				}
 			}
 			else {
