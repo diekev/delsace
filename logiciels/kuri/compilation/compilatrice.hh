@@ -239,6 +239,9 @@ public:
 
 	void change_de_phase(dls::outils::Synchrone<Messagere> &messagere, PhaseCompilation nouvelle_phase);
 	PhaseCompilation phase_courante() const;
+
+	/* Imprime la RI de toutes les fonctions de l'espace de travail. */
+	void imprime_programme() const;
 };
 
 struct Compilatrice {

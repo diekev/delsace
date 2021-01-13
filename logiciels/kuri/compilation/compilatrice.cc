@@ -36,6 +36,8 @@
 #include "modules.hh"
 #include "statistiques.hh"
 
+#include "representation_intermediaire/impression.hh"
+
 /* ************************************************************************** */
 
 EspaceDeTravail::EspaceDeTravail(OptionsCompilation opts)
@@ -458,6 +460,16 @@ void EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &message
 PhaseCompilation EspaceDeTravail::phase_courante() const
 {
 	return phase;
+}
+
+void EspaceDeTravail::imprime_programme() const
+{
+	std::ofstream os;
+	os.open("/tmp/ri_programme.kr");
+
+	POUR_TABLEAU_PAGE(fonctions) {
+		imprime_fonction(&it, os);
+	}
 }
 
 /* ************************************************************************** */

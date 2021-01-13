@@ -112,8 +112,6 @@ public:
 	AtomeFonction *genere_ri_pour_fonction_principale(EspaceDeTravail *espace);
 	AtomeFonction *genere_fonction_init_globales_et_appel(EspaceDeTravail *espace, const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
 
-	void imprime_programme(EspaceDeTravail *espace) const;
-
 	Compilatrice &compilatrice() const
 	{
 		return m_compilatrice;

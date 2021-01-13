@@ -105,16 +105,6 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(EspaceDeT
 	return genere_fonction_init_globales_et_appel(globales, fonction_pour);
 }
 
-void ConstructriceRI::imprime_programme(EspaceDeTravail *espace) const
-{
-	std::ofstream os;
-	os.open("/tmp/ri_programme.kr");
-
-	POUR_TABLEAU_PAGE(espace->fonctions) {
-		imprime_fonction(&it, os);
-	}
-}
-
 AtomeConstante *ConstructriceRI::cree_constante_entiere(Type *type, unsigned long long valeur)
 {
 	return atomes_constante.ajoute_element(type, valeur);
