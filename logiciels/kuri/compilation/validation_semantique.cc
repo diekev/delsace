@@ -2822,7 +2822,7 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 
 	auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 32>();
 
-	auto dernier_res = ResultatExpression();
+	auto derniere_valeur = ValeurExpression();
 
 	membres.reserve(decl->bloc->expressions->taille);
 	decl->bloc->membres->reserve(decl->bloc->expressions->taille);
@@ -2861,14 +2861,10 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 
 		it->ident = var->ident;
 
-		auto res = ResultatExpression();
-		/* est_errone est utilisé pour indiquer que dernier_resultat est la
-		 * première valeur, si res.est_errone est également vrai, la valeur
-		 * n'est jamais incrémentée (res étant assigné à dernier_resultat) */
-		res.est_errone = false;
+		auto valeur = ValeurExpression();
 
 		if (expr != nullptr) {
-			res = evalue_expression(espace, decl->bloc, expr);
+			auto res = evalue_expression(espace, decl->bloc, expr);
 
 			if (res.est_errone) {
 				rapporte_erreur(res.message_erreur, res.noeud_erreur, erreur::Genre::VARIABLE_REDEFINIE);
@@ -2878,35 +2874,35 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 			if (res.valeur.entier == 0 && type_enum->est_erreur) {
 				::rapporte_erreur(espace, expr, "L'expression d'une enumération erreur ne peut s'évaluer à 0 (cette valeur est réservée par la compilatrice).");
 			}
+
+			valeur = res.valeur;
 		}
 		else {
-			if (dernier_res.est_errone) {
-				/* première valeur, laisse à zéro si énum normal */
-				dernier_res.est_errone = false;
-
-				if (type_enum->est_drapeau || type_enum->est_erreur) {
-					res.valeur.type = TypeExpression::ENTIER;
-					res.valeur.entier = 1;
-				}
+			/* TypeExpression::INVALIDE indique que nous sommes dans la première itération. */
+			if (derniere_valeur.type == TypeExpression::INVALIDE) {
+				valeur.type = TypeExpression::ENTIER;
+				valeur.entier = (type_enum->est_drapeau || type_enum->est_erreur) ? 1 : 0;
 			}
 			else {
-				if (dernier_res.valeur.type == TypeExpression::ENTIER) {
+				valeur.type = derniere_valeur.type;
+
+				if (derniere_valeur.type == TypeExpression::ENTIER) {
 					if (type_enum->est_drapeau) {
-						res.valeur.entier = dernier_res.valeur.entier * 2;
+						valeur.entier = derniere_valeur.entier * 2;
 					}
 					else {
-						res.valeur.entier = dernier_res.valeur.entier + 1;
+						valeur.entier = derniere_valeur.entier + 1;
 					}
 				}
 				else {
-					res.valeur.reel = dernier_res.valeur.reel + 1;
+					valeur.reel = derniere_valeur.reel + 1;
 				}
 			}
 		}
 
-		membres.ajoute({ type_enum, var->ident, 0, static_cast<int>(res.valeur.entier) });
+		membres.ajoute({ type_enum, var->ident, 0, static_cast<int>(valeur.entier) });
 
-		dernier_res = res;
+		derniere_valeur = valeur;
 	}
 
 	membres.ajoute({ espace->typeuse[TypeBase::Z32], ID::nombre_elements, 0, static_cast<int>(membres.taille), nullptr, TypeCompose::Membre::EST_IMPLICITE });
