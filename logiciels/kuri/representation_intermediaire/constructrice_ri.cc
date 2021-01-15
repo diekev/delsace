@@ -3982,7 +3982,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
 	static Lexeme lexeme_appel_principale = { "principale", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
 	lexeme_appel_principale.ident = ID::principale;
 
-	auto valeur_princ = cree_appel(nullptr, &lexeme_appel_principale, fonc_princ->atome_fonction, std::move(params_principale));
+	auto valeur_princ = cree_appel(nullptr, &lexeme_appel_principale, fonc_princ->atome, std::move(params_principale));
 
 	// return
 	cree_retour(nullptr, valeur_princ);

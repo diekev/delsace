@@ -24,6 +24,8 @@
 
 #include "graphe_dependance.hh"
 
+#include "representation_intermediaire/instructions.hh"
+
 #include "arbre_syntaxique.hh"
 #include "statistiques.hh"
 #include "typage.hh"
@@ -302,7 +304,7 @@ void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine, ku
 	{
 		if (noeud->est_fonction()) {
 			auto noeud_fonction = noeud->fonction();
-			auto atome_fonction = noeud_fonction->atome_fonction;
+			auto atome_fonction = static_cast<AtomeFonction *>(noeud_fonction->atome);
 			assert(atome_fonction);
 
 			if (utilises.trouve(atome_fonction) != utilises.fin()) {

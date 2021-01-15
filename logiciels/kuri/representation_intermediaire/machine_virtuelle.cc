@@ -1258,7 +1258,7 @@ void MachineVirtuelle::ajoute_metaprogramme(MetaProgramme *metaprogramme)
 
 	/* appel le métaprogramme avant d'ajourner les données au cas où sa fonction
 	 * n'aurait pas été générée */
-	appel(metaprogramme->fonction->atome_fonction, metaprogramme->directive);
+	appel(static_cast<AtomeFonction *>(metaprogramme->fonction->atome), metaprogramme->directive);
 
 	/* nous devons utiliser nos propres données pour les globales */
 	ptr_donnees_globales = donnees_globales.donnees();

@@ -1401,8 +1401,9 @@ static void genere_code_C_depuis_fonction_principale(
 	fonctions.ajoute(atome_principale);
 
 	// fais en sors que point_d_entree_systeme est utilisée, et renomme en « main » pour ne pas avoir à créer une autre fonction
-	espace.fonction_point_d_entree->atome_fonction->nombre_utilisations = 1;
-	espace.fonction_point_d_entree->atome_fonction->nom = "main";
+	auto atome_fonc = static_cast<AtomeFonction *>(espace.fonction_point_d_entree->atome);
+	atome_fonc->nombre_utilisations = 1;
+	atome_fonc->nom = "main";
 
 	auto generatrice = GeneratriceCodeC(espace);
 	generatrice.genere_code(espace.globales, fonctions, enchaineuse);

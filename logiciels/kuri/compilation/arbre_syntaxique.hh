@@ -34,7 +34,7 @@
 #include "typage.hh"
 
 struct AssembleuseArbre;
-struct AtomeFonction;
+struct Atome;
 struct Fichier;
 struct IdentifiantCode;
 struct NoeudAssignation;
@@ -389,6 +389,7 @@ struct NoeudExpressionLitterale : public NoeudExpression {
 
 struct NoeudDeclaration : public NoeudExpression {
 	NoeudDependance *noeud_dependance = nullptr;
+	Atome *atome = nullptr;
 
 	POINTEUR_NUL(NoeudDeclaration)
 };
@@ -556,8 +557,6 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
 
 	tableau_synchrone<dls::paire<tableau_item_monomorphisation, NoeudDeclarationEnteteFonction *>> monomorphisations{};
-
-	AtomeFonction *atome_fonction = nullptr;
 
 	dls::tableau<dls::vue_chaine_compacte> annotations{};
 

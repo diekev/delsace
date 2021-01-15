@@ -152,8 +152,8 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 {
 	std::unique_lock lock(mutex_atomes_fonctions);
 
-	if (decl->atome_fonction) {
-		return decl->atome_fonction;
+	if (decl->atome) {
+		return static_cast<AtomeFonction *>(decl->atome);
 	}
 
 	SAUVEGARDE_ETAT(constructrice.fonction_courante);
@@ -193,7 +193,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	atome_fonc->params_sorties = std::move(params_sortie);
 	atome_fonc->enligne = decl->possede_drapeau(FORCE_ENLIGNE);
 
-	decl->atome_fonction = atome_fonc;
+	decl->atome = atome_fonc;
 
 	return atome_fonc;
 }

@@ -1014,7 +1014,7 @@ static void rassemble_globales_et_fonctions(
 				return;
 			}
 
-			auto atome_fonction = decl_noeud->atome_fonction;
+			auto atome_fonction = static_cast<AtomeFonction *>(decl_noeud->atome);
 			fonctions.ajoute(atome_fonction);
 			decl_noeud->drapeaux |= CODE_BINAIRE_FUT_GENERE;
 		}
@@ -1074,7 +1074,7 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 		dls::tableau<AtomeFonction *> fonctions;
 		rassemble_globales_et_fonctions(espace, mv, metaprogramme->fonction->noeud_dependance, globales, fonctions);
 
-		auto fonction = metaprogramme->fonction->atome_fonction;
+		auto fonction = static_cast<AtomeFonction *>(metaprogramme->fonction->atome);
 
 		if (!fonction) {
 			rapporte_erreur(espace, metaprogramme->fonction, "Impossible de trouver la fonction pour le métaprogramme");
