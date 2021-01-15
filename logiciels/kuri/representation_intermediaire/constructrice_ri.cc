@@ -328,6 +328,19 @@ InstructionAllocation *ConstructriceRI::cree_allocation(NoeudExpression *site_, 
 	return inst;
 }
 
+bool est_reference_compatible_pointeur(Type *type_pointeur, Type *type_ref)
+{
+	if (!type_ref->est_reference()) {
+		return false;
+	}
+
+	if (type_ref->comme_reference()->type_pointe != type_pointeur->comme_pointeur()->type_pointe) {
+		return false;
+	}
+
+	return true;
+}
+
 InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_, Atome *ou, Atome *valeur, bool cree_seulement)
 {
 	assert_rappel(ou->type->genre == GenreType::POINTEUR, [&]() {
@@ -336,7 +349,7 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_, A
 	});
 
 	auto type_pointeur = ou->type->comme_pointeur();
-	assert_rappel(type_pointeur->type_pointe == valeur->type || (type_pointeur->type_pointe->genre == GenreType::TYPE_DE_DONNEES && type_pointeur->type_pointe->genre == valeur->type->genre),
+	assert_rappel(type_pointeur->type_pointe == valeur->type || est_reference_compatible_pointeur(type_pointeur->type_pointe, valeur->type) || (type_pointeur->type_pointe->genre == GenreType::TYPE_DE_DONNEES && type_pointeur->type_pointe->genre == valeur->type->genre),
 					 [&]() {
 		std::cerr << "\ttype_pointeur->type_pointe : " << chaine_type(type_pointeur->type_pointe) << " (" << type_pointeur->type_pointe << ") "
 				  << ", valeur->type : " << chaine_type(valeur->type) << " (" << valeur->type << ") " << '\n';
