@@ -646,8 +646,8 @@ struct NoeudSi : public NoeudExpression {
 	NoeudSi() { genre = GenreNoeud::INSTRUCTION_SI; }
 
 	NoeudExpression *condition = nullptr;
-	NoeudBloc *bloc_si_vrai = nullptr;
-	NoeudBloc *bloc_si_faux = nullptr;
+	NoeudExpression *bloc_si_vrai = nullptr;
+	NoeudExpression *bloc_si_faux = nullptr;
 
 	COPIE_CONSTRUCT(NoeudSi);
 };

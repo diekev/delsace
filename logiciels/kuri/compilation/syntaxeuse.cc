@@ -1782,18 +1782,20 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 		 */
 
 		if (apparie(GenreLexeme::SI)) {
-			noeud->bloc_si_faux = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+			auto bloc_si_faux = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+			noeud->bloc_si_faux = bloc_si_faux;
 
 			auto noeud_si = analyse_instruction_si(GenreNoeud::INSTRUCTION_SI);
-			noeud->bloc_si_faux->expressions->ajoute(noeud_si);
+			bloc_si_faux->expressions->ajoute(noeud_si);
 
 			m_tacheronne.assembleuse->depile_bloc();
 		}
 		else if (apparie(GenreLexeme::SAUFSI)) {
-			noeud->bloc_si_faux = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+			auto bloc_si_faux = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+			noeud->bloc_si_faux = bloc_si_faux;
 
 			auto noeud_saufsi = analyse_instruction_si(GenreNoeud::INSTRUCTION_SAUFSI);
-			noeud->bloc_si_faux->expressions->ajoute(noeud_saufsi);
+			bloc_si_faux->expressions->ajoute(noeud_saufsi);
 
 			m_tacheronne.assembleuse->depile_bloc();
 		}

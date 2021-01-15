@@ -195,7 +195,11 @@ NoeudExpression *derniere_instruction(NoeudBloc *b)
 			return NoeudExpression::nul();
 		}
 
-		return derniere_instruction(inst->bloc_si_faux);
+		if (!inst->bloc_si_faux->est_bloc()) {
+			return inst->bloc_si_faux;
+		}
+
+		return derniere_instruction(inst->bloc_si_faux->comme_bloc());
 	}
 
 	if (di->genre == GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE) {
