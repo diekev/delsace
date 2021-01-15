@@ -741,8 +741,8 @@ NoeudExpression *copie_noeud(
 			auto nexpr = static_cast<NoeudSi *>(nracine);
 
 			nexpr->condition = copie_noeud(assem, expr->condition, bloc_parent);
-			nexpr->bloc_si_vrai = static_cast<NoeudBloc	*>(copie_noeud(assem, expr->bloc_si_vrai, bloc_parent));
-			nexpr->bloc_si_faux = static_cast<NoeudBloc	*>(copie_noeud(assem, expr->bloc_si_faux, bloc_parent));
+			nexpr->bloc_si_vrai = copie_noeud(assem, expr->bloc_si_vrai, bloc_parent);
+			nexpr->bloc_si_faux = copie_noeud(assem, expr->bloc_si_faux, bloc_parent);
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
