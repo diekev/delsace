@@ -976,7 +976,12 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto enfant3 = inst->bloc;
 			auto feuilles = enfant1->comme_virgule();
 
-			for (auto f : feuilles->expressions) {
+			for (auto &f : feuilles->expressions) {
+				/* transforme les références en déclarations, nous faisons ça ici et non lors
+				 * du syntaxage ou de la simplification de l'arbre afin de prendre en compte
+				 * les cas où nous avons une fonction polymorphique : les données des déclarations
+				 * ne sont pas copiées */
+				f = m_tacheronne.assembleuse->cree_declaration(f->comme_ref_decl(), nullptr);
 				auto decl_f = trouve_dans_bloc(noeud->bloc_parent, f->ident);
 
 				if (decl_f != nullptr) {

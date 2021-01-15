@@ -1687,23 +1687,15 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 			m_noeud_expression_virgule = nullptr;
 		}
 
-		auto expression_virgule = expression->comme_virgule();
-
-		for (auto &expr : expression_virgule->expressions) {
-			expr = cree_declaration_pour_ref(expr->comme_ref_decl());
-		}
-
 		noeud->variable = expression;
 		noeud->expression = analyse_expression({}, GenreLexeme::DANS, GenreLexeme::INCONNU);
 	}
 	else {
-		static Lexeme lexeme_it = { "it", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-		lexeme_it.ident = ID::it;
-		auto noeud_it = cree_declaration(&lexeme_it);
+		auto noeud_it = m_tacheronne.assembleuse->cree_ref_decl(noeud->lexeme);
+		noeud_it->ident = ID::it;
 
-		static Lexeme lexeme_index = { "index_it", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
-		lexeme_index.ident = ID::index_it;
-		auto noeud_index = cree_declaration(&lexeme_index);
+		auto noeud_index = m_tacheronne.assembleuse->cree_ref_decl(noeud->lexeme);
+		noeud_index->ident = ID::index_it;
 
 		static Lexeme lexeme_virgule = { ",", {}, GenreLexeme::VIRGULE, 0, 0, 0 };
 		auto noeud_virgule = m_tacheronne.assembleuse->cree_virgule(&lexeme_virgule);

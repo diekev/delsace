@@ -182,13 +182,25 @@ NoeudAssignation *AssembleuseArbre::cree_assignation(const Lexeme *lexeme, Noeud
 
 NoeudDeclarationVariable *AssembleuseArbre::cree_declaration(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression)
 {
-	auto declaration = cree_declaration(lexeme);
-	declaration->ident = ident;
-	declaration->type = type;
+	auto ref = cree_ref_decl(lexeme);
+	ref->ident = ident;
+	ref->type = type;
+	return cree_declaration(ref, expression);
+}
+
+NoeudDeclarationVariable *AssembleuseArbre::cree_declaration(NoeudExpressionReference *ref, NoeudExpression *expression)
+{
+	auto declaration = cree_declaration(ref->lexeme);
+	declaration->ident = ref->ident;
+	declaration->type = ref->type;
+	declaration->valeur = ref;
+	declaration->expression = expression;
+
+	ref->decl = declaration;
 
 	auto donnees = DonneesAssignations();
 	donnees.expression = expression;
-	donnees.variables.ajoute(declaration);
+	donnees.variables.ajoute(ref);
 	donnees.transformations.ajoute({});
 
 	declaration->donnees_decl.ajoute(donnees);
