@@ -372,7 +372,10 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_, A
 InstructionChargeMem *ConstructriceRI::cree_charge_mem(NoeudExpression *site_, Atome *ou)
 {
 	/* nous chargeons depuis une adresse en mémoire, donc nous devons avoir un pointeur */
-	assert_rappel(ou->type->genre == GenreType::POINTEUR || ou->type->genre == GenreType::REFERENCE, [=](){ std::cerr << "Le type est '" << chaine_type(ou->type) << "'\n"; });
+	assert_rappel(ou->type->genre == GenreType::POINTEUR || ou->type->genre == GenreType::REFERENCE, [&](){
+		std::cerr << "Le type est '" << chaine_type(ou->type) << "'\n";
+		erreur::imprime_site(*m_espace, site_);
+	});
 	auto type_pointeur = ou->type->comme_pointeur();
 
 	POUR (charge_mems) {
