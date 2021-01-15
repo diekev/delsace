@@ -239,7 +239,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type_fonction = espace->typeuse.type_fonction(types_entrees, types_sorties);
 			decl_entete->type = type_fonction;
 
-			decl_corps->bloc = m_tacheronne.assembleuse->cree_bloc_seul(noeud->lexeme);
+			decl_corps->bloc = m_tacheronne.assembleuse->cree_bloc_seul(noeud->lexeme, nullptr);
 
 			static Lexeme lexeme_retourne = { "retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0 };
 			auto expr_ret = m_tacheronne.assembleuse->cree_retour(&lexeme_retourne);
@@ -2586,10 +2586,8 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
 	auto fonction = m_tacheronne.assembleuse->cree_entete_fonction(lexeme);
 	auto nouveau_corps = fonction->corps;
 
-	fonction->bloc_constantes = m_tacheronne.assembleuse->cree_bloc_seul(lexeme);
-	fonction->bloc_parametres = m_tacheronne.assembleuse->cree_bloc_seul(lexeme);
-	fonction->bloc_constantes->bloc_parent = bloc_parent;
-	fonction->bloc_parametres->bloc_parent = fonction->bloc_constantes;
+	fonction->bloc_constantes = m_tacheronne.assembleuse->cree_bloc_seul(lexeme, bloc_parent);
+	fonction->bloc_parametres = m_tacheronne.assembleuse->cree_bloc_seul(lexeme, fonction->bloc_constantes);
 
 	fonction->bloc_parent = bloc_parent;
 	nouveau_corps->bloc_parent = fonction->bloc_parametres;

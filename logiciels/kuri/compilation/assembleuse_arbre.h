@@ -93,7 +93,7 @@ public:
 	NoeudAssignation *cree_assignation(const Lexeme *lexeme);
 	NoeudAssignation *cree_assignation(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression);
 	NoeudAssignation *cree_incrementation(const Lexeme *lexeme, NoeudExpression *valeur);
-	NoeudBloc *cree_bloc_seul(const Lexeme *lexeme);
+	NoeudBloc *cree_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent);
 	NoeudBoucle *cree_boucle(Lexeme const *lexeme);
 	NoeudBoucle *cree_repete(const Lexeme *lexeme);
 	NoeudBoucle *cree_tantque(const Lexeme *lexeme);

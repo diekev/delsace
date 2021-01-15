@@ -143,9 +143,11 @@ NoeudSi *AssembleuseArbre::cree_si(const Lexeme *lexeme, GenreNoeud genre_noeud)
 	return static_cast<NoeudSi *>(cree_noeud(genre_noeud, lexeme));
 }
 
-NoeudBloc *AssembleuseArbre::cree_bloc_seul(const Lexeme *lexeme)
+NoeudBloc *AssembleuseArbre::cree_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, lexeme)->comme_bloc();
+	auto bloc = cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, lexeme)->comme_bloc();
+	bloc->bloc_parent = bloc_parent;
+	return bloc;
 }
 
 NoeudExpression *AssembleuseArbre::cree_arrete(const Lexeme *lexeme)
