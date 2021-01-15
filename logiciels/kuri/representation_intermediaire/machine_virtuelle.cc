@@ -469,7 +469,7 @@ T MachineVirtuelle::depile()
 	return *reinterpret_cast<T *>(this->pointeur_pile);
 }
 
-bool MachineVirtuelle::appel(AtomeFonction *fonction)
+bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression *site)
 {
 	/* À FAIRE : il manquerait certaines fonctions dans la génération de code binaire (sans doute des dépendances manquantes) */
 	if (fonction->chunk.code == nullptr) {
@@ -478,12 +478,13 @@ bool MachineVirtuelle::appel(AtomeFonction *fonction)
 
 	auto frame = &frames[profondeur_appel++];
 	frame->fonction = fonction;
+	frame->site = site;
 	frame->pointeur = fonction->chunk.code;
 	frame->pointeur_pile = pointeur_pile;
 	return true;
 }
 
-bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction, int taille_argument, FrameAppel *&frame)
+bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction, int taille_argument, FrameAppel *&frame, NoeudExpression *site)
 {
 	// puisque les arguments utilisent des instructions d'allocations retire la taille des arguments du pointeur
 	// de la pile pour ne pas que les allocations ne l'augmente
@@ -493,7 +494,7 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction, int t
 	imprime_valeurs_entrees(pointeur_pile, ptr_fonction->type->comme_fonction(), ptr_fonction->nom, profondeur_appel);
 #endif
 
-	if (!appel(ptr_fonction)) {
+	if (!appel(ptr_fonction, site)) {
 		return false;
 	}
 
@@ -1063,7 +1064,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 			std::cerr << "-- appel : " << ptr_fonction->nom << '\n';
 #endif
 
-			if (!appel_fonction_interne(ptr_fonction, taille_argument, frame)) {
+			if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
 				return ResultatInterpretation::ERREUR;
 			}
 
@@ -1139,7 +1140,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 				appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
 			}
 			else {
-				if (!appel_fonction_interne(ptr_fonction, taille_argument, frame)) {
+				if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
 					return ResultatInterpretation::ERREUR;
 				}
 			}
@@ -1222,6 +1223,14 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 	return ResultatInterpretation::OK;
 }
 
+void MachineVirtuelle::imprime_trace_appel(NoeudExpression *site)
+{
+	erreur::imprime_site(*m_metaprogramme->unite->espace, site);
+	for (int i = profondeur_appel - 1; i >= 0; --i) {
+		erreur::imprime_site(*m_metaprogramme->unite->espace, frames[i].site);
+	}
+}
+
 MachineVirtuelle::fonction_symbole MachineVirtuelle::trouve_symbole(IdentifiantCode *symbole)
 {
 	return gestionnaire_bibliotheques.fonction_pour_symbole(symbole);
@@ -1249,7 +1258,7 @@ void MachineVirtuelle::ajoute_metaprogramme(MetaProgramme *metaprogramme)
 
 	/* appel le métaprogramme avant d'ajourner les données au cas où sa fonction
 	 * n'aurait pas été générée */
-	appel(metaprogramme->fonction->atome_fonction);
+	appel(metaprogramme->fonction->atome_fonction, metaprogramme->directive);
 
 	/* nous devons utiliser nos propres données pour les globales */
 	ptr_donnees_globales = donnees_globales.donnees();

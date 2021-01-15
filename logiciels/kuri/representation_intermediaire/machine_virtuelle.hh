@@ -57,6 +57,7 @@ public:
 
 struct FrameAppel {
 	AtomeFonction *fonction = nullptr;
+	NoeudExpression *site = nullptr;
 	octet_t *pointeur = nullptr;
 	octet_t *pointeur_pile = nullptr;
 };
@@ -175,9 +176,9 @@ private:
 
 	void depile(long n);
 
-	bool appel(AtomeFonction *fonction);
+	bool appel(AtomeFonction *fonction, NoeudExpression *site);
 
-	bool appel_fonction_interne(AtomeFonction *ptr_fonction, int taille_argument, FrameAppel *&frame);
+	bool appel_fonction_interne(AtomeFonction *ptr_fonction, int taille_argument, FrameAppel *&frame, NoeudExpression *site);
 	void appel_fonction_externe(AtomeFonction *ptr_fonction, int taille_argument, InstructionAppel *inst_appel);
 
 	void empile_constante(FrameAppel *frame);
@@ -187,4 +188,6 @@ private:
 	void desinstalle_metaprogramme(MetaProgramme *metaprogramme);
 
 	ResultatInterpretation execute_instruction();
+
+	void imprime_trace_appel(NoeudExpression *site);
 };
