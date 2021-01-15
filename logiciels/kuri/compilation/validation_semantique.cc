@@ -654,8 +654,15 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				noeud->type = espace->typeuse[TypeBase::BOOL];
 			}
 			else {
+				bool type_gauche_est_reference = false;
 				if (assignation_composee) {
 					type_op = operateur_pour_assignation_composee(type_op);
+
+					if (type1->est_reference()) {
+						type_gauche_est_reference = true;
+						type1 = type1->comme_reference()->type_pointe;
+						transtype_si_necessaire(expr->expr1, TypeTransformation::DEREFERENCE);
+					}
 				}
 
 				auto candidats = dls::tablet<OperateurCandidat, 10>();
@@ -680,6 +687,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				expr->type = meilleur_candidat->op->type_resultat;
 				expr->op = meilleur_candidat->op;
 				expr->permute_operandes = meilleur_candidat->permute_operandes;
+
+				if (type_gauche_est_reference && meilleur_candidat->transformation_type1.type != TypeTransformation::INUTILE) {
+					::rapporte_erreur(espace, expr->expr1, "Impossible de transtyper la valeur à gauche pour une assignation composée.");
+				}
+
 				transtype_si_necessaire(expr->expr1, meilleur_candidat->transformation_type1);
 				transtype_si_necessaire(expr->expr2, meilleur_candidat->transformation_type2);
 
