@@ -133,6 +133,8 @@ NoeudExpressionReference *AssembleuseArbre::cree_ref_decl(const Lexeme *lexeme, 
 {
 	auto ref = cree_ref_decl(lexeme);
 	ref->decl = decl;
+	ref->type = decl->type;
+	ref->ident = decl->ident;
 	return ref;
 }
 
