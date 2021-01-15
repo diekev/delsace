@@ -757,6 +757,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			assert_rappel(locale, [&]() {
 				erreur::imprime_site(*m_espace, noeud);
 				std::cerr << "Aucune locale trouvée pour " << noeud->ident->nom << " (" << chaine_type(noeud->type) << ")\n";
+				std::cerr << "\nLa locale fut déclarée ici :\n";
+				erreur::imprime_site(*m_espace, decl_ref);
 			});
 			empile_valeur(locale);
 			break;
