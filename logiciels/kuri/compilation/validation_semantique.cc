@@ -1892,6 +1892,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				decl_var_piege->ident = var_piege->ident;
 				decl_var_piege->drapeaux |= DECLARATION_FUT_VALIDEE;
 
+				inst->expr_piege->comme_ref_decl()->decl = decl_var_piege;
+
 				// ne l'ajoute pas aux expressions, car nous devons l'initialiser manuellement
 				inst->bloc->membres->pousse_front(decl_var_piege);
 
