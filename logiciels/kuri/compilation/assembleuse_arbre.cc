@@ -25,6 +25,7 @@
 #include "assembleuse_arbre.h"
 
 #include "allocatrice_noeud.hh"
+#include "operateurs.hh"
 
 AssembleuseArbre::AssembleuseArbre(AllocatriceNoeud &allocatrice)
 	: m_allocatrice_noeud(allocatrice)
@@ -284,11 +285,13 @@ NoeudExpression *AssembleuseArbre::cree_ref_type(Lexeme const *lexeme, Type *typ
 
 NoeudAssignation *AssembleuseArbre::cree_incrementation(const Lexeme *lexeme, NoeudExpression *valeur)
 {
-	auto inc = cree_op_binaire(lexeme);
-	// À FAIRE: op
-	inc->expr1 = valeur;
-
 	auto type = valeur->type;
+
+	auto inc = cree_op_binaire(lexeme);
+	inc->op = type->operateur_ajt;
+	assert(inc->op);
+	inc->expr1 = valeur;
+	inc->type = type;
 
 	if (est_type_entier(type)) {
 		inc->expr2 = cree_lit_entier(valeur->lexeme, type, 1);

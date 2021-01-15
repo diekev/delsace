@@ -551,7 +551,11 @@ void Operateurs::ajoute_operateur_basique_enum(TypeEnum *type)
 	}
 
 	for (auto op : operateurs_comparaisons) {
-		this->ajoute_basique(op, type, type_bool, indice_type_op);
+		auto op_bin = this->ajoute_basique(op, type, type_bool, indice_type_op);
+
+		if (op == GenreLexeme::EGALITE) {
+			type->operateur_egt = op_bin;
+		}
 	}
 
 	for (auto op : operateurs_entiers) {
@@ -754,15 +758,27 @@ void enregistre_operateurs_basiques(
 
 	for (auto op : operateurs_entiers_reels) {
 		for (auto type : types_entiers_relatifs) {
-			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF);
+			auto operateur = operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF);
+
+			if (op == GenreLexeme::PLUS) {
+				type->operateur_ajt = operateur;
+			}
 		}
 
 		for (auto type : types_entiers_naturels) {
-			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_NATUREL);
+			auto operateur = operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_NATUREL);
+
+			if (op == GenreLexeme::PLUS) {
+				type->operateur_ajt = operateur;
+			}
 		}
 
 		for (auto type : types_reels) {
-			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::REEL);
+			auto operateur = operateurs.ajoute_basique(op, type, type, IndiceTypeOp::REEL);
+
+			if (op == GenreLexeme::PLUS) {
+				type->operateur_ajt = operateur;
+			}
 		}
 
 		operateurs.ajoute_basique(op, type_octet, type_octet, IndiceTypeOp::ENTIER_RELATIF);
@@ -771,15 +787,36 @@ void enregistre_operateurs_basiques(
 
 	for (auto op : operateurs_comparaisons) {
 		for (auto type : types_entiers_relatifs) {
-			operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_RELATIF);
+			auto operateur = operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_RELATIF);
+
+			if (op == GenreLexeme::SUPERIEUR) {
+				type->operateur_sup = operateur;
+			}
+			else if (op == GenreLexeme::SUPERIEUR_EGAL) {
+				type->operateur_seg = operateur;
+			}
 		}
 
 		for (auto type : types_entiers_naturels) {
-			operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+			auto operateur = operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+
+			if (op == GenreLexeme::SUPERIEUR) {
+				type->operateur_sup = operateur;
+			}
+			else if (op == GenreLexeme::SUPERIEUR_EGAL) {
+				type->operateur_seg = operateur;
+			}
 		}
 
 		for (auto type : types_reels) {
-			operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::REEL);
+			auto operateur = operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::REEL);
+
+			if (op == GenreLexeme::SUPERIEUR) {
+				type->operateur_sup = operateur;
+			}
+			else if (op == GenreLexeme::SUPERIEUR_EGAL) {
+				type->operateur_seg = operateur;
+			}
 		}
 
 		operateurs.ajoute_basique(op, type_octet, type_bool, IndiceTypeOp::ENTIER_RELATIF);

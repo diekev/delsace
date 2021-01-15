@@ -39,6 +39,7 @@ struct GrapheDependance;
 struct IdentifiantCode;
 struct InfoType;
 struct Operateurs;
+struct OperateurBinaire;
 struct NoeudDependance;
 struct NoeudEnum;
 struct NoeudExpression;
@@ -196,6 +197,12 @@ struct Type {
 	NoeudDependance *noeud_dependance = nullptr;
 
 	AtomeFonction *fonction_init = nullptr;
+
+	/* À FAIRE : ces opérateurs ne sont que pour la simplification du code, nous devrions les généraliser */
+	OperateurBinaire *operateur_ajt = nullptr;
+	OperateurBinaire *operateur_sup = nullptr;
+	OperateurBinaire *operateur_seg = nullptr;
+	OperateurBinaire *operateur_egt = nullptr;
 
 	POINTEUR_NUL(Type)
 

@@ -1604,6 +1604,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 			else if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
 				auto type_enum = type->comme_enum();
+				inst->op = type_enum->operateur_egt;
 
 				auto membres_rencontres = dls::ensemblon<IdentifiantCode *, 16>();
 				noeud->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
