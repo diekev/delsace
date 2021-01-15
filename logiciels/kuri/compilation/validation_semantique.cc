@@ -1102,6 +1102,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				auto decl_f = feuilles->expressions[i]->comme_decl_var();
 
 				decl_f->type = type;
+				decl_f->valeur->type = type;
 				decl_f->drapeaux |= DECLARATION_FUT_VALIDEE;
 
 				enfant3->membres->ajoute(decl_f);
@@ -1117,6 +1118,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					decl_idx->type = espace->typeuse[TypeBase::Z64];
 				}
 
+				decl_idx->valeur->type = decl_idx->type;
 				decl_idx->drapeaux |= DECLARATION_FUT_VALIDEE;
 				enfant3->membres->ajoute(decl_idx);
 			}
