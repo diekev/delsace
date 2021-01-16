@@ -38,7 +38,72 @@ kuri_reusinage_atomes
 remplace DonneesCandidate::raison par une chaine de caractère
 nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
 sépare les files de compilation pour les entêtes et les corps, les entêtes ayant la précédence, afin de faire en sorte que les validations des appels ne recommencent pas trop
-ajout d'un état aux validations des appels-- utilisation de C++ pour compiler le code final afin de pouvoir retourner des tableaux fixes
+
+-- ajout d'un état aux validations des appels
+    - étape rassemble candidates
+    - valide candidates
+    - candidate choisie
+
+struct EtatValidationAppel {
+    enum {
+        NON_COMMENCE,
+        CANDIDATES_RASSEMBLEES,
+        CANDIDATES_VALIDEES,
+        CANDIDATE_CHOISIE,
+        VALIDATION_TERMINEE,
+    };
+
+    int etat = NON_COMMENCE;
+
+    dls::tablet<Candidates> candidates{};
+    Candidate *candidate_choisie = nullptr;
+
+    /* l'index pour reprendre la validation des candidates */
+    int index = 0;
+
+
+};
+
+switch (expr->etat_validation.etat) {
+    case EtatValidationAppel::NON_COMMENCE:
+    {
+        break;
+    }
+    case EtatValidationAppel::CANDIDATES_RASSEMBLEES:
+    {
+        /* reprend la validation des candidates là où nous sommes arrêtés */
+        if (valide_candidates(...)) {
+            return true;
+        }
+
+        auto candidate_choisie = ...;
+
+
+        expr->etat_validation.candidate_choisie = candidate_choisie;
+        expr->etat_validation.etat = EtatValidationAppel.CANDIDATES_VALIDEES;
+
+        if (valide_candidate_choisie()) {
+
+        }
+
+        break;
+    }
+    case EtatValidationAppel::CANDIDATE_CHOISIE:
+    {
+        if (valide_candidate_choisie(...)) {
+
+        }
+
+        break;
+    }
+    case EtatValidationAppel::VALIDATION_TERMINEE:
+    {
+        break;
+    }
+}
+
+
+utilisation de C++ pour compiler le code final afin de pouvoir retourner des tableaux fixes
 utilisation d'une énumération pour retourner si le typage retourne une erreur au lieu d'une valeur booléenne
 
 plusieurs threads d'exécutions pour le typage ou la génération de RI
@@ -717,68 +782,3 @@ struct Allocatrice {
 -- appels fonction (syntaxe uniforme)
 -- métaprogrammation (#si, #assert, #exécute, #corps_texte, #test)
 -- compilatrice
-
-
-validation appel :
-    - étape rassemble candidates
-    - valide candidates
-    - candidate choisie
-
-
-struct EtatValidationAppel {
-    enum {
-        NON_COMMENCE,
-        CANDIDATES_RASSEMBLEES,
-        CANDIDATES_VALIDEES,
-        CANDIDATE_CHOISIE,
-        VALIDATION_TERMINEE,
-    };
-
-    int etat = NON_COMMENCE;
-
-    dls::tablet<Candidates> candidates{};
-    Candidate *candidate_choisie = nullptr;
-
-    /* l'index pour reprendre la validation des candidates */
-    int index = 0;
-
-
-};
-
-switch (expr->etat_validation.etat) {
-    case EtatValidationAppel::NON_COMMENCE:
-    {
-        break;
-    }
-    case EtatValidationAppel::CANDIDATES_RASSEMBLEES:
-    {
-        /* reprend la validation des candidates là où nous sommes arrêtés */
-        if (valide_candidates(...)) {
-            return true;
-        }
-
-        auto candidate_choisie = ...;
-
-
-        expr->etat_validation.candidate_choisie = candidate_choisie;
-        expr->etat_validation.etat = EtatValidationAppel.CANDIDATES_VALIDEES;
-
-        if (valide_candidate_choisie()) {
-
-        }
-
-        break;
-    }
-    case EtatValidationAppel::CANDIDATE_CHOISIE:
-    {
-        if (valide_candidate_choisie(...)) {
-
-        }
-
-        break;
-    }
-    case EtatValidationAppel::VALIDATION_TERMINEE:
-    {
-        break;
-    }
-}
