@@ -120,6 +120,17 @@ NoeudExpressionBinaire *AssembleuseArbre::cree_op_binaire(Lexeme const *lexeme)
 	return cree_noeud(GenreNoeud::OPERATEUR_BINAIRE, lexeme)->comme_operateur_binaire();
 }
 
+NoeudExpressionBinaire *AssembleuseArbre::cree_op_binaire(const Lexeme *lexeme, const OperateurBinaire *op, NoeudExpression *expr1, NoeudExpression *expr2)
+{
+	assert(op);
+	auto op_bin = cree_op_binaire(lexeme);
+	op_bin->expr1 = expr1;
+	op_bin->expr2 = expr2;
+	op_bin->op = op;
+	op_bin->type = op->type_resultat;
+	return op_bin;
+}
+
 NoeudDeclarationVariable *AssembleuseArbre::cree_declaration(const Lexeme *lexeme)
 {
 	return cree_noeud(GenreNoeud::DECLARATION_VARIABLE, lexeme)->comme_decl_var();
@@ -213,6 +224,15 @@ NoeudExpressionMembre *AssembleuseArbre::cree_acces_membre(const Lexeme *lexeme)
 	return cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_MEMBRE, lexeme)->comme_ref_membre();
 }
 
+NoeudExpressionMembre *AssembleuseArbre::cree_acces_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index)
+{
+	auto acces = cree_acces_membre(lexeme);
+	acces->accede = accede;
+	acces->type = type;
+	acces->index_membre = index;
+	return acces;
+}
+
 NoeudExpressionUnaire *AssembleuseArbre::cree_op_unaire(const Lexeme *lexeme)
 {
 	return cree_noeud(GenreNoeud::OPERATEUR_UNAIRE, lexeme)->comme_operateur_unaire();
@@ -224,16 +244,36 @@ NoeudExpressionBinaire *AssembleuseArbre::cree_indexage(const Lexeme *lexeme)
 	return indexage;
 }
 
+NoeudExpressionBinaire *AssembleuseArbre::cree_indexage(const Lexeme *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification)
+{
+	auto indexage = cree_noeud(GenreNoeud::EXPRESSION_INDEXAGE, lexeme)->comme_indexage();
+	indexage->expr1 = expr1;
+	indexage->expr2 = expr2;
+	indexage->type = type_dereference_pour(expr1->type);
+	if (ignore_verification) {
+		indexage->aide_generation_code = IGNORE_VERIFICATION;
+	}
+	return indexage;
+}
+
 NoeudExpressionAppel *AssembleuseArbre::cree_appel(const Lexeme *lexeme)
 {
 	return cree_noeud(GenreNoeud::EXPRESSION_APPEL_FONCTION, lexeme)->comme_appel();
 }
 
-NoeudExpressionAppel *AssembleuseArbre::cree_appel(const Lexeme *lexeme, NoeudExpression *appelee)
+NoeudExpressionAppel *AssembleuseArbre::cree_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type)
 {
 	auto appel = cree_appel(lexeme);
 	appel->noeud_fonction_appelee =	appelee;
-	appel->appelee = appelee;
+	appel->type = type;
+
+	if (appelee->est_entete_fonction()) {
+		appel->appelee = cree_ref_decl(lexeme, appelee->comme_entete_fonction());
+	}
+	else {
+		appel->appelee = appelee;
+	}
+
 	return appel;
 }
 

@@ -60,6 +60,7 @@ struct NoeudSiStatique;
 struct NoeudStruct;
 struct NoeudTableauArgsVariadiques;
 struct NoeudTente;
+struct OperateurBinaire;
 struct Type;
 
 struct AssembleuseArbre {
@@ -119,11 +120,14 @@ public:
 	NoeudExpression *cree_ref_type(const Lexeme *lexeme);
 	NoeudExpression *cree_ref_type(const Lexeme *lexeme, Type *type);
 	NoeudExpressionAppel *cree_appel(const Lexeme *lexeme);
-	NoeudExpressionAppel *cree_appel(const Lexeme *lexeme, NoeudExpression *appelee);
+	NoeudExpressionAppel *cree_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type);
 	NoeudExpressionBinaire *cree_indexage(const Lexeme *lexeme);
+	NoeudExpressionBinaire *cree_indexage(const Lexeme *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification);
 	NoeudExpressionBinaire *cree_op_binaire(const Lexeme *lexeme);
+	NoeudExpressionBinaire *cree_op_binaire(const Lexeme *lexeme, OperateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
 	NoeudExpressionBinaire *cree_plage(const Lexeme *lexeme);
 	NoeudExpressionMembre *cree_acces_membre(const Lexeme *lexeme);
+	NoeudExpressionMembre *cree_acces_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index);
 	NoeudExpressionReference *cree_ref_decl(const Lexeme *lexeme);
 	NoeudExpressionReference *cree_ref_decl(const Lexeme *lexeme, NoeudDeclaration *decl);
 	NoeudExpressionUnaire *cree_charge(Lexeme const *lexeme);
