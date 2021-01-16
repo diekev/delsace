@@ -144,7 +144,7 @@ procède_requête :: fonc (
     sinon {
         trouvée := faux
 
-        pour route dans serveuse.routes {
+        pour & route dans serveuse.routes {
             si uri.chemin != route.url {
                 continue
             }

@@ -48,29 +48,6 @@
 
 /* ************************************************************************** */
 
-static auto trouve_index_membre(TypeCompose *type_compose, IdentifiantCode *nom_membre)
-{
-	auto idx_membre = 0u;
-
-	POUR (type_compose->membres) {
-		if (it.nom == nom_membre) {
-			break;
-		}
-
-		idx_membre += 1;
-	}
-
-	return idx_membre;
-}
-
-static auto trouve_index_membre(NoeudStruct *noeud_struct, IdentifiantCode *nom_membre)
-{
-	auto type_compose = static_cast<TypeCompose *>(noeud_struct->type);
-	return trouve_index_membre(type_compose, nom_membre);
-}
-
-/* ************************************************************************** */
-
 #define IDENT_CODE(x) m_compilatrice.table_identifiants->identifiant_pour_chaine((x))
 
 ConstructriceRI::ConstructriceRI(Compilatrice &compilatrice)
@@ -260,7 +237,6 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const dls
 	fonction->type = m_espace->typeuse.type_fonction(types_entrees, types_sorties, false);
 
 	this->fonction_courante = fonction;
-	this->table_locales.efface();
 	this->m_pile.efface();
 
 	auto constructeurs = m_espace->constructeurs_globaux.verrou_lecture();
@@ -534,9 +510,9 @@ AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *
 	return accede_index_constants.ajoute_element(type, accede, index);
 }
 
-void ConstructriceRI::empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_arrete)
+void ConstructriceRI::empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_arrete, InstructionLabel *label_arrete_implicite)
 {
-	insts_continue_arrete.ajoute({ ident, label_continue, label_arrete });
+	insts_continue_arrete.ajoute({ ident, label_continue, label_arrete, label_arrete_implicite });
 }
 
 void ConstructriceRI::depile_controle_boucle()
@@ -546,30 +522,64 @@ void ConstructriceRI::depile_controle_boucle()
 
 void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 {
+	if (noeud->substitution) {
+		genere_ri_pour_noeud(noeud->substitution);
+		return;
+	}
+
 	switch (noeud->genre) {
 		case GenreNoeud::DECLARATION_ENUM:
 		case GenreNoeud::EXPRESSION_PLAGE:
-		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
-		case GenreNoeud::INSTRUCTION_EMPL:
 		case GenreNoeud::EXPRESSION_VIRGULE:
 		case GenreNoeud::INSTRUCTION_CHARGE:
+		case GenreNoeud::INSTRUCTION_EMPL:
 		case GenreNoeud::INSTRUCTION_IMPORTE:
+		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
 		{
 			break;
 		}
+		/* ceux-ci sont simplifiés */
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
 			auto directive = noeud->comme_execute();
 
 			if (directive->ident == ID::cuisine) {
-				auto expr = directive->expr->comme_appel();
-
-				auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, expr->appelee->comme_entete_fonction());
-				// voir commentaire dans cree_appel
-				atome_fonc->nombre_utilisations += 1;
-				empile_valeur(atome_fonc);
+				assert_rappel(false, [&](){
+					std::cerr << "Erreur interne : une directive #cuisine ne fut pas simplifiée !\n";
+					erreur::imprime_site(*m_espace, noeud);
+				});
 			}
 
+			break;
+		}
+		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
+		{
+			auto inst = noeud->comme_si_statique();
+
+			if (!inst->condition_est_vraie && inst->bloc_si_faux) {
+				assert_rappel(false, [&](){
+					std::cerr << "Erreur interne : une directive #si ne fut pas simplifiée !\n";
+					erreur::imprime_site(*m_espace, noeud);
+				});
+			}
+
+			break;
+		}
+		case GenreNoeud::EXPRESSION_PARENTHESE:
+		case GenreNoeud::EXPRESSION_TAILLE_DE:
+		case GenreNoeud::EXPRESSION_TYPE_DE:
+		case GenreNoeud::INSTRUCTION_DISCR:
+		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
+		case GenreNoeud::INSTRUCTION_DISCR_UNION:
+		case GenreNoeud::INSTRUCTION_POUR:
+		case GenreNoeud::INSTRUCTION_RETIENS:
+		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+		{
+			assert_rappel(false, [&](){
+				std::cerr << "Erreur interne : un noeud ne fut pas simplifié !\n";
+				std::cerr << "Le noeud est de genre : " << noeud->genre << '\n';
+				erreur::imprime_site(*m_espace, noeud);
+			});
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
@@ -605,19 +615,18 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				}
 
 				auto ident_var_employee = decl_var->declaration_vient_d_un_emploi->ident;
-				auto pointeur_struct = table_locales.valeur_ou(ident_var_employee, nullptr);
+				auto pointeur_struct = decl_var->declaration_vient_d_un_emploi->atome;
 
 				if (pointeur_struct == nullptr) {
 					pointeur_struct = cree_allocation(decl_var, decl_var->declaration_vient_d_un_emploi->type, ident_var_employee);
-					table_locales.insere(ident_var_employee, pointeur_struct);
+					decl_var->declaration_vient_d_un_emploi->atome = pointeur_struct;
 				}
 
 				if (decl_var->declaration_vient_d_un_emploi->type->genre == GenreType::POINTEUR) {
 					pointeur_struct = cree_charge_mem(decl_var, pointeur_struct);
 				}
 
-				auto valeur = cree_acces_membre(decl_var, pointeur_struct, decl_var->index_membre_employe);
-				table_locales.insere(decl_var->ident, valeur);
+				decl_var->atome = cree_acces_membre(decl_var, pointeur_struct, decl_var->index_membre_employe);
 			}
 
 			auto ancienne_taille_allouee = taille_allouee;
@@ -646,16 +655,11 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto expr_appel = noeud->comme_appel();
 
-			if (expr_appel->aide_generation_code == CONSTRUIT_OPAQUE) {
-				genere_ri_transformee_pour_noeud(expr_appel->exprs[0], nullptr, { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, expr_appel->type });
-				break;
-			}
-
 			auto args = kuri::tableau<Atome *>();
 			args.reserve(expr_appel->exprs.taille);
 
 			if (!expr_appel->possede_drapeau(FORCE_NULCTX)) {
-				args.ajoute(cree_charge_mem(expr_appel, table_locales.valeur_ou(ID::contexte, nullptr)));
+				args.ajoute(cree_charge_mem(expr_appel, contexte));
 			}
 
 			auto ancien_pour_appel = m_noeud_pour_appel;
@@ -668,20 +672,28 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			m_noeud_pour_appel = ancien_pour_appel;
 
-			auto atome_fonc = static_cast<Atome *>(nullptr);
+			genere_ri_pour_expression_droite(expr_appel->appelee, nullptr);
+			auto atome_fonc = depile_valeur();
 
-			if (expr_appel->aide_generation_code == APPEL_POINTEUR_FONCTION) {
-				genere_ri_pour_expression_droite(expr_appel->appelee, nullptr);
-				atome_fonc = depile_valeur();
-			}
-			else if (expr_appel->appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
-				genere_ri_pour_noeud(expr_appel->appelee);
-				atome_fonc = depile_valeur();
-			}
-			else {
-				auto decl = expr_appel->noeud_fonction_appelee->comme_entete_fonction();
-				atome_fonc = m_espace->trouve_ou_insere_fonction(*this, const_cast<NoeudDeclarationEnteteFonction *>(decl));
-			}
+			assert_rappel(atome_fonc && atome_fonc->type != nullptr, [&]{
+				if (atome_fonc == nullptr) {
+					std::cerr << "L'atome est nul !\n";
+				}
+				else if (atome_fonc->type == nullptr) {
+					std::cerr << "Le type de l'atome est nul !\n";
+				}
+
+				erreur::imprime_site(*m_espace, expr_appel);
+			});
+
+			assert_rappel(atome_fonc->type->est_fonction(), [&]{
+				std::cerr << "L'atome n'est pas de type fonction mais de type " << chaine_type(atome_fonc->type) << " !\n";
+				erreur::imprime_site(*espace(), expr_appel);
+				erreur::imprime_site(*espace(), expr_appel->appelee);
+				if (!expr_appel->appelee->substitution) {
+					std::cerr << "L'appelée n'a pas de substitution !\n";
+				}
+			});
 
 			auto type_fonction = atome_fonc->type->comme_fonction();
 			dls::tablet<InstructionAllocation *, 6> adresses_retours;
@@ -722,19 +734,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto expr_ref = noeud->comme_ref_decl();
 			auto decl_ref = expr_ref->decl;
 
-			if (decl_ref->drapeaux & EST_CONSTANTE) {
-				auto decl_const = decl_ref->comme_decl_var();
-
-				if (decl_ref->type->est_reel()) {
-					empile_valeur(cree_constante_reelle(decl_ref->type, decl_const->valeur_expression.reel));
-					return;
-				}
-
-				auto valeur = cree_constante_entiere(decl_ref->type, static_cast<unsigned long>(decl_const->valeur_expression.entier));
-				empile_valeur(valeur);
-				return;
-			}
-
 			if (decl_ref->est_entete_fonction()) {
 				auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl_ref->comme_entete_fonction());
 				// voir commentaire dans cree_appel
@@ -743,17 +742,12 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			if (dls::outils::est_element(decl_ref->genre, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE)) {
-				empile_valeur(cree_constante_type(decl_ref->type));
-				return;
-			}
-
 			if (decl_ref->possede_drapeau(EST_GLOBALE)) {
 				empile_valeur(m_espace->trouve_ou_insere_globale(decl_ref));
 				return;
 			}
 
-			auto locale = table_locales.valeur_ou(noeud->ident, nullptr);
+			auto locale = decl_ref->atome;
 			assert_rappel(locale, [&]() {
 				erreur::imprime_site(*m_espace, noeud);
 				std::cerr << "Aucune locale trouvée pour " << noeud->ident->nom << " (" << chaine_type(noeud->type) << ")\n";
@@ -776,7 +770,13 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		{
 			auto type_de_donnees = noeud->type->comme_type_de_donnees();
-			empile_valeur(cree_constante_type(type_de_donnees->type_connu));
+
+			if (type_de_donnees->type_connu) {
+				empile_valeur(cree_constante_type(type_de_donnees->type_connu));
+				return;
+			}
+
+			empile_valeur(cree_constante_type(type_de_donnees));
 			break;
 		}
 		case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
@@ -877,77 +877,21 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto expr_bin = noeud->comme_operateur_binaire();
 
-			if (expr_bin->type->genre == GenreType::TYPE_DE_DONNEES) {
-				auto type_de_donnees = expr_bin->type->comme_type_de_donnees();
-
-				if (type_de_donnees->type_connu) {
-					empile_valeur(cree_constante_type(type_de_donnees->type_connu));
-					return;
-				}
-
-				empile_valeur(cree_constante_type(type_de_donnees));
-				return;
-			}
-
-			auto traduit_operation_binaire = [&](OperateurBinaire const *op, bool permute_operandes, Atome *valeur_gauche, Atome *valeur_droite) -> Atome*
-			{
-				// À FAIRE(ri) : arithmétique de pointeur, opérateurs logiques
-				if (op->est_basique) {
-					return cree_op_binaire(noeud, noeud->type, op->genre, valeur_gauche, valeur_droite);
-				}
-
-				auto decl = op->decl;
-				auto requiers_contexte = !decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX);
-				auto atome_fonction = m_espace->trouve_ou_insere_fonction(*this, decl);
-				auto args = kuri::tableau<Atome *>(2 + requiers_contexte);
-
-				if (requiers_contexte) {
-					args[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
-				}
-
-				if (permute_operandes) {
-					args[0 + requiers_contexte] = valeur_droite;
-					args[1 + requiers_contexte] = valeur_gauche;
-				}
-				else {
-					args[0 + requiers_contexte] = valeur_gauche;
-					args[1 + requiers_contexte] = valeur_droite;
-				}
-
-				return cree_appel(noeud, noeud->lexeme, atome_fonction, std::move(args));
-			};
-
-			if (expr_bin->possede_drapeau(EST_ASSIGNATION_COMPOSEE)) {
-				genere_ri_pour_noeud(expr_bin->expr1);
-				auto pointeur = depile_valeur();
-				auto valeur_gauche = cree_charge_mem(noeud, pointeur);
-				genere_ri_pour_expression_droite(expr_bin->expr2, nullptr);
-				auto valeur_droite = depile_valeur();
-
-				auto valeur = traduit_operation_binaire(expr_bin->op, expr_bin->permute_operandes, valeur_gauche, valeur_droite);
-				empile_valeur(cree_stocke_mem(noeud, pointeur, valeur));
-				return;
-			}
-
 			if (dls::outils::est_element(noeud->lexeme->genre, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
 				genere_ri_pour_expression_logique(noeud, nullptr);
 				return;
 			}
 
+			// À FAIRE(ri) : arithmétique de pointeur
 			genere_ri_pour_expression_droite(expr_bin->expr1, nullptr);
 			auto valeur_gauche = depile_valeur();
 			genere_ri_pour_expression_droite(expr_bin->expr2, nullptr);
 			auto valeur_droite = depile_valeur();
-			auto resultat = traduit_operation_binaire(expr_bin->op, expr_bin->permute_operandes, valeur_gauche, valeur_droite);
+			auto resultat = cree_op_binaire(noeud, noeud->type, expr_bin->op->genre, valeur_gauche, valeur_droite);
 
 			auto alloc = cree_allocation(noeud, expr_bin->type, nullptr);
 			cree_stocke_mem(noeud, alloc, resultat);
 			empile_valeur(alloc);
-			break;
-		}
-		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
-		{
-			genere_ri_pour_expression_logique(noeud, nullptr);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_INDEXAGE:
@@ -990,7 +934,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				insere_label(label1);
 
 				auto params = kuri::tableau<Atome *>(3);
-				params[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
+				params[0] = cree_charge_mem(noeud, contexte);
 				params[1] = acces_taille;
 				params[2] = valeur_;
 				cree_appel(noeud, noeud->lexeme, fonction, std::move(params));
@@ -1003,7 +947,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				insere_label(label3);
 
 				params = kuri::tableau<Atome *>(3);
-				params[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
+				params[0] = cree_charge_mem(noeud, contexte);
 				params[1] = acces_taille;
 				params[2] = valeur_;
 				cree_appel(noeud, noeud->lexeme, fonction, std::move(params));
@@ -1014,7 +958,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			// À FAIRE : les fonctions sans contexte ne peuvent pas avoir des vérifications de limites
 
 			if (type_gauche->genre == GenreType::TABLEAU_FIXE) {
-				if (table_locales.valeur_ou(ID::contexte, nullptr) != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
+				if (contexte != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
 					auto type_tableau_fixe = type_gauche->comme_tableau_fixe();
 					auto acces_taille = cree_z64(static_cast<unsigned long>(type_tableau_fixe->taille));
 					genere_protection_limites(acces_taille, valeur, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_tableau));
@@ -1024,7 +968,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			}
 
 			if (type_gauche->genre == GenreType::TABLEAU_DYNAMIQUE || type_gauche->genre == GenreType::VARIADIQUE) {
-				if (table_locales.valeur_ou(ID::contexte, nullptr) != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
+				if (contexte != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
 					auto acces_taille = cree_acces_membre_et_charge(noeud, pointeur, 1);
 					genere_protection_limites(acces_taille, valeur, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_tableau));
 				}
@@ -1034,7 +978,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			}
 
 			if (type_gauche->genre == GenreType::CHAINE) {
-				if (table_locales.valeur_ou(ID::contexte, nullptr) != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
+				if (contexte != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
 					auto acces_taille = cree_acces_membre_et_charge(noeud, pointeur, 1);
 					genere_protection_limites(acces_taille, valeur, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_chaine));
 				}
@@ -1049,12 +993,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto expr_un = noeud->comme_operateur_unaire();
 
-			if (expr_un->type->genre == GenreType::TYPE_DE_DONNEES) {
-				auto type_de_donnees = expr_un->type->comme_type_de_donnees();
-				empile_valeur(cree_constante_type(type_de_donnees->type_connu));
-				return;
-			}
-
+			/* prise d'adresse */
 			if (noeud->lexeme->genre == GenreLexeme::FOIS_UNAIRE) {
 				genere_ri_pour_noeud(expr_un->expr);
 				auto valeur = depile_valeur();
@@ -1072,6 +1011,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
+			// @simplifie
 			if (noeud->lexeme->genre == GenreLexeme::EXCLAMATION) {
 				auto condition = expr_un->expr;
 				auto type_condition = condition->type;
@@ -1138,92 +1078,21 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			genere_ri_pour_expression_droite(expr_un->expr, nullptr);
 			auto valeur = depile_valeur();
-
-			if (expr_un->op->est_basique) {
-				empile_valeur(cree_op_unaire(noeud, expr_un->type, expr_un->op->genre, valeur));
-				return;
-			}
-
-			auto decl = expr_un->op->decl;
-			auto requiers_contexte = !decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX);
-			auto atome_fonction = m_espace->trouve_ou_insere_fonction(*this, decl);
-			auto args = kuri::tableau<Atome *>(1 + requiers_contexte);
-
-			if (requiers_contexte) {
-				args[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
-			}
-
-			args[0 + requiers_contexte] = valeur;
-
-			empile_valeur(cree_appel(noeud, noeud->lexeme, atome_fonction, std::move(args)));
-			break;
-		}
-		case GenreNoeud::INSTRUCTION_RETIENS:
-		{
-			genere_ri_pour_retiens(noeud);
+			empile_valeur(cree_op_unaire(noeud, expr_un->type, expr_un->op->genre, valeur));
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
 		{
 			auto inst = noeud->comme_retour();
-			auto type_fonction = fonction_courante->type->comme_fonction();
-			auto multiple_valeurs = type_fonction->types_sorties.taille > 1;
 
 			auto valeur_ret = static_cast<Atome *>(nullptr);
 
-			if (!multiple_valeurs && !type_fonction->types_sorties[0]->est_rien()) {
-				auto ident = fonction_courante->params_sorties[0]->ident;
-				valeur_ret = cree_allocation(noeud, type_fonction->types_sorties[0], nullptr);
-				table_locales.insere(ident, valeur_ret);
-			}
-
-			POUR (inst->donnees_exprs) {
-				auto expression = it.expression;
-
-				auto ancienne_expression_gauche = expression_gauche;
-				expression_gauche = false;
-				genere_ri_pour_noeud(expression);
-				expression_gauche = ancienne_expression_gauche;
-
-				if (it.multiple_retour) {
-					for (auto i = 0; i < it.variables.taille(); ++i) {
-						auto var = it.variables[i];
-						auto &transformation = it.transformations[i];
-						auto pointeur = table_locales.valeur_ou(var->ident, nullptr);
-
-						if (multiple_valeurs) {
-							pointeur = cree_charge_mem(var, pointeur);
-						}
-
-						auto valeur = depile_valeur();
-						transforme_valeur(expression, valeur, transformation, pointeur);
-						depile_valeur();
-					}
-				}
-				else {
-					auto valeur = depile_valeur();
-
-					for (auto i = 0; i < it.variables.taille(); ++i) {
-						auto var = it.variables[i];
-						auto &transformation = it.transformations[i];
-						auto pointeur = table_locales.valeur_ou(var->ident, nullptr);
-
-						if (multiple_valeurs) {
-							pointeur = cree_charge_mem(var, pointeur);
-						}
-
-						transforme_valeur(expression, valeur, transformation, pointeur);
-						depile_valeur();
-					}
-				}
+			if (inst->expr) {
+				genere_ri_pour_expression_droite(inst->expr, nullptr);
+				valeur_ret = depile_valeur();
 			}
 
 			genere_ri_blocs_differes(noeud->bloc_parent);
-
-			if (valeur_ret) {
-				valeur_ret = cree_charge_mem(noeud, valeur_ret);
-			}
-
 			cree_retour(noeud, valeur_ret);
 			break;
 		}
@@ -1266,88 +1135,89 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
-		{
-			auto inst = noeud->comme_si_statique();
-
-			if (inst->condition_est_vraie) {
-				genere_ri_pour_noeud(inst->bloc_si_vrai);
-			}
-			else if (inst->bloc_si_faux) {
-				genere_ri_pour_noeud(inst->bloc_si_faux);
-			}
-
-			break;
-		}
-		case GenreNoeud::INSTRUCTION_POUR:
-		{
-			genere_ri_pour_boucle_pour(noeud->comme_pour());
-			break;
-		}
 		case GenreNoeud::INSTRUCTION_BOUCLE:
+		case GenreNoeud::INSTRUCTION_REPETE:
+		case GenreNoeud::INSTRUCTION_TANTQUE:
 		{
-			auto inst_boucle = noeud->comme_boucle();
+			auto boucle = static_cast<NoeudBoucle *>(noeud);
+
+			/* labels pour les différents blocs possible */
 			auto label_boucle = reserve_label(noeud);
+			auto label_pour_bloc_inc = static_cast<InstructionLabel *>(nullptr);
+			auto label_pour_sansarret = static_cast<InstructionLabel *>(nullptr);
+			auto label_pour_sinon = static_cast<InstructionLabel *>(nullptr);
 			auto label_apres_boucle = reserve_label(noeud);
 
-			empile_controle_boucle(nullptr, label_boucle, label_apres_boucle);
+			/* labels pour les controles des boucles */
+			auto label_pour_continue = static_cast<InstructionLabel *>(nullptr);
+			auto label_pour_arret = static_cast<InstructionLabel *>(nullptr);
+			auto label_pour_arret_implicite = static_cast<InstructionLabel *>(nullptr);
+
+			if (boucle->bloc_inc) {
+				label_pour_bloc_inc = reserve_label(boucle);
+				label_pour_continue = label_pour_bloc_inc;
+			}
+			else {
+				label_pour_continue = label_boucle;
+			}
+
+			if (boucle->bloc_sansarret) {
+				label_pour_sansarret = reserve_label(boucle);
+				label_pour_arret_implicite = label_pour_sansarret;
+			}
+			else {
+				label_pour_arret_implicite = label_apres_boucle;
+			}
+
+			if (boucle->bloc_sinon) {
+				label_pour_sinon = reserve_label(noeud);
+				label_pour_arret = label_pour_sinon;
+			}
+			else {
+				label_pour_arret = label_apres_boucle;
+			}
+
+			empile_controle_boucle(boucle->ident, label_pour_continue, label_pour_arret, label_pour_arret_implicite);
+
+			if (boucle->bloc_pre) {
+				genere_ri_pour_noeud(boucle->bloc_pre);
+				cree_branche(noeud, label_boucle);
+			}
 
 			insere_label(label_boucle);
-			genere_ri_pour_noeud(inst_boucle->bloc);
+			genere_ri_pour_noeud(boucle->bloc);
 
 			auto di = fonction_courante->derniere_instruction();
+
+			if (boucle->bloc_inc) {
+				insere_label(label_pour_bloc_inc);
+				genere_ri_pour_noeud(boucle->bloc_inc);
+
+				if (di->est_branche_ou_retour()) {
+					cree_branche(noeud, label_boucle);
+				}
+			}
+
 			if (!di->est_branche_ou_retour()) {
 				cree_branche(noeud, label_boucle);
 			}
 
-			insere_label(label_apres_boucle);
-
+			/* dépile les controles de suites, afin qu'ils n'interfèrent pas avec
+			 * des controles sensés être pour la boucle parente */
 			depile_controle_boucle();
 
-			break;
-		}
-		case GenreNoeud::INSTRUCTION_REPETE:
-		{
-			auto inst_boucle = noeud->comme_repete();
-			auto label_boucle = reserve_label(noeud);
-			auto label_condition = reserve_label(noeud);
-			auto label_apres_boucle = reserve_label(noeud);
+			if (boucle->bloc_sansarret) {
+				insere_label(label_pour_sansarret);
+				genere_ri_pour_noeud(boucle->bloc_sansarret);
+				cree_branche(boucle, label_apres_boucle);
+			}
 
-			empile_controle_boucle(nullptr, label_condition, label_apres_boucle);
-
-			insere_label(label_boucle);
-			genere_ri_pour_noeud(inst_boucle->bloc);
-			insere_label(label_condition);
-			genere_ri_pour_condition(inst_boucle->condition, label_boucle, label_apres_boucle);
-			insere_label(label_apres_boucle);
-
-			depile_controle_boucle();
-
-			break;
-		}
-		case GenreNoeud::INSTRUCTION_TANTQUE:
-		{
-			auto inst_boucle = noeud->comme_tantque();
-			auto label_condition = reserve_label(noeud);
-			auto label_boucle = reserve_label(noeud);
-			auto label_apres_boucle = reserve_label(noeud);
-
-			empile_controle_boucle(nullptr, label_condition, label_apres_boucle);
-
-			insere_label(label_condition);
-			genere_ri_pour_condition(inst_boucle->condition, label_boucle, label_apres_boucle);
-
-			insere_label(label_boucle);
-			genere_ri_pour_noeud(inst_boucle->bloc);
-
-			auto di = fonction_courante->derniere_instruction();
-			if (!di->est_branche_ou_retour()) {
-				cree_branche(noeud, label_condition);
+			if (boucle->bloc_sinon) {
+				insere_label(label_pour_sinon);
+				genere_ri_pour_noeud(boucle->bloc_sinon);
 			}
 
 			insere_label(label_apres_boucle);
-
-			depile_controle_boucle();
 
 			break;
 		}
@@ -1358,25 +1228,31 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			if (inst->expr == nullptr) {
 				if (inst->lexeme->genre == GenreLexeme::CONTINUE) {
-					label = insts_continue_arrete.back().t1;
+					label = insts_continue_arrete.back().label_continue;
+				}
+				else if (inst->possede_drapeau(EST_IMPLICITE)) {
+					label = insts_continue_arrete.back().label_arrete_implicite;
 				}
 				else {
-					label = insts_continue_arrete.back().t2;
+					label = insts_continue_arrete.back().label_arrete;
 				}
 			}
 			else {
 				auto ident = inst->expr->ident;
 
 				POUR (insts_continue_arrete) {
-					if (it.t0 != ident) {
+					if (it.ident != ident) {
 						continue;
 					}
 
 					if (inst->lexeme->genre == GenreLexeme::CONTINUE) {
-						label = it.t1;
+						label = it.label_continue;
+					}
+					else if (inst->possede_drapeau(EST_IMPLICITE)) {
+						label = it.label_arrete_implicite;
 					}
 					else {
-						label = it.t2;
+						label = it.label_arrete;
 					}
 
 					break;
@@ -1391,11 +1267,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto inst = noeud->comme_comme();
 			auto expr = inst->expression;
 
-			if (expr->type == inst->type) {
-				genere_ri_pour_noeud(expr);
-				break;
-			}
-
 			if (expression_gauche && inst->transformation.type == TypeTransformation::DEREFERENCE) {
 				genere_ri_pour_noeud(expr);
 				/* déréférence l'adresse du pointeur */
@@ -1406,13 +1277,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto alloc = cree_allocation(noeud, inst->type, nullptr);
 			genere_ri_transformee_pour_noeud(expr, alloc, inst->transformation);
 			empile_valeur(alloc);
-			break;
-		}
-		case GenreNoeud::EXPRESSION_TAILLE_DE:
-		{
-			auto expr = noeud->comme_taille();
-			auto type = expr->expr->type;
-			empile_valeur(cree_constante_entiere(noeud->type, type->taille_octet));
 			break;
 		}
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
@@ -1567,23 +1431,11 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_INIT_DE:
 		{
+			// @simplifie
 			auto type_fonction = noeud->type->comme_fonction();
 			auto type_pointeur = type_fonction->types_entrees[1];
 			auto type_arg = type_pointeur->comme_pointeur()->type_pointe;
 			empile_valeur(m_espace->trouve_ou_insere_fonction_init(*this, type_arg));
-			break;
-		}
-		case GenreNoeud::EXPRESSION_TYPE_DE:
-		{
-			auto expr = noeud->comme_type_de();
-			auto type_de_donnees = expr->type->comme_type_de_donnees();
-
-			if (type_de_donnees->type_connu == nullptr) {
-				empile_valeur(cree_constante_type(type_de_donnees));
-				return;
-			}
-
-			empile_valeur(cree_constante_type(type_de_donnees->type_connu));
 			break;
 		}
 		case GenreNoeud::EXPRESSION_MEMOIRE:
@@ -1617,28 +1469,16 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			genere_ri_pour_declaration_structure(noeud->comme_structure());
 			break;
 		}
-		case GenreNoeud::INSTRUCTION_DISCR:
-		case GenreNoeud::INSTRUCTION_DISCR_ENUM:
-		case GenreNoeud::INSTRUCTION_DISCR_UNION:
-		{
-			genere_ri_pour_discr(noeud->comme_discr());
-			break;
-		}
-		case GenreNoeud::EXPRESSION_PARENTHESE:
-		{
-			genere_ri_pour_noeud(noeud->comme_parenthese()->expr);
-			break;
-		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
 		{
 			auto noeud_pc = noeud->comme_pousse_contexte();
 			genere_ri_pour_noeud(noeud_pc->expr);
 			auto atome_nouveau_contexte = depile_valeur();
-			auto atome_ancien_contexte = table_locales.valeur_ou(ID::contexte, nullptr);
+			auto atome_ancien_contexte = contexte;
 
-			table_locales.insere(ID::contexte, atome_nouveau_contexte);
+			contexte = atome_nouveau_contexte;
 			genere_ri_pour_noeud(noeud_pc->bloc);
-			table_locales.insere(ID::contexte, atome_ancien_contexte);
+			contexte = atome_ancien_contexte;
 
 			break;
 		}
@@ -1657,11 +1497,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl)
 {
-	if (decl->est_declaration_type) {
-		empile_valeur(cree_constante_type(decl->type));
-		return;
-	}
-
 	fonction_courante = nullptr;
 	nombre_labels = 0;
 	taille_allouee = 0;
@@ -1673,18 +1508,19 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 		return;
 	}
 
-	if (decl->est_coroutine) {
-		genere_ri_pour_coroutine(decl->corps);
-		return;
-	}
-
 	fonction_courante = atome_fonc;
-	table_locales.efface();
 	acces_membres.taille = 0;
 	charge_mems.taille = 0;
 
-	POUR (atome_fonc->params_entrees) {
-		table_locales.insere(it->ident, it);
+	if (!decl->possede_drapeau(FORCE_NULCTX)) {
+		contexte = atome_fonc->params_entrees[0];
+
+		POUR ((*decl->corps->bloc->membres.verrou_lecture())) {
+			if (it->ident == ID::contexte) {
+				it->atome = contexte;
+				break;
+			}
+		}
 	}
 
 	cree_label(decl);
@@ -1702,6 +1538,7 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 	//analyse_ri(*m_espace, atome_fonc);
 
 	fonction_courante = nullptr;
+	contexte = nullptr;
 	this->m_pile.efface();
 }
 
@@ -1839,7 +1676,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud, Atome *valeur, T
 				insere_label(label_si_vrai);
 				// À FAIRE : nous pourrions avoir une erreur différente ici.
 				auto params = kuri::tableau<Atome *>(1);
-				params[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
+				params[0] = cree_charge_mem(noeud, contexte);
 				cree_appel(noeud, noeud->lexeme, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_membre_union), std::move(params));
 				insere_label(label_si_faux);
 
@@ -2160,179 +1997,6 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud, Atome *valeur, T
 	empile_valeur(valeur);
 }
 
-void ConstructriceRI::genere_ri_pour_discr(NoeudDiscr *noeud)
-{
-	auto expression = noeud->expr;
-	auto op = noeud->op;
-	auto decl_struct = static_cast<NoeudStruct *>(nullptr);
-
-	if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
-		auto type_struct = expression->type->comme_union();
-		decl_struct = type_struct->decl;
-	}
-
-	struct DonneesPaireDiscr {
-		NoeudExpression *expr = nullptr;
-		NoeudBloc *bloc = nullptr;
-		InstructionLabel *label_de_la_condition = nullptr;
-		InstructionLabel *label_si_vrai = nullptr;
-		InstructionLabel *label_si_faux = nullptr;
-	};
-
-	auto label_post_discr = reserve_label(noeud);
-
-	dls::tableau<DonneesPaireDiscr> donnees_paires;
-	donnees_paires.reserve(noeud->paires_discr.taille + noeud->bloc_sinon != nullptr);
-
-	POUR (noeud->paires_discr) {
-		auto donnees = DonneesPaireDiscr();
-		donnees.expr = it.first;
-		donnees.bloc = it.second;
-		donnees.label_de_la_condition = reserve_label(noeud);
-		donnees.label_si_vrai = reserve_label(noeud);
-
-		if (!donnees_paires.est_vide()) {
-			donnees_paires.back().label_si_faux = donnees.label_de_la_condition;
-		}
-
-		donnees_paires.ajoute(donnees);
-	}
-
-	if (noeud->bloc_sinon) {
-		auto donnees = DonneesPaireDiscr();
-		donnees.bloc = noeud->bloc_sinon;
-		donnees.label_si_vrai = reserve_label(noeud);
-
-		if (!donnees_paires.est_vide()) {
-			donnees_paires.back().label_si_faux = donnees.label_si_vrai;
-		}
-
-		donnees_paires.ajoute(donnees);
-	}
-
-	donnees_paires.back().label_si_faux = label_post_discr;
-
-	auto valeur_expression = static_cast<Atome *>(nullptr);
-	auto ptr_structure = static_cast<Atome *>(nullptr);
-
-	if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
-		// prend l'index de discrimination
-		genere_ri_pour_noeud(expression);
-		valeur_expression = depile_valeur();
-		ptr_structure = valeur_expression;
-		valeur_expression = cree_acces_membre(noeud, valeur_expression, 1);
-		valeur_expression = cree_charge_mem(noeud, valeur_expression);
-	}
-	else {
-		genere_ri_pour_expression_droite(expression, nullptr);
-		valeur_expression = depile_valeur();
-		ptr_structure = valeur_expression;
-	}
-
-	cree_branche(noeud, donnees_paires.front().label_de_la_condition);
-
-	for (auto &donnees : donnees_paires) {
-		auto enf0 = donnees.expr;
-		auto enf1 = donnees.bloc;
-
-		if (enf0 != nullptr) {
-			insere_label(donnees.label_de_la_condition);
-
-			auto feuilles = enf0->comme_virgule();
-
-			// les différentes feuilles sont évaluées dans des blocs
-			// séparés afin de pouvoir éviter de tester trop de conditions
-			// dès qu'une condition est vraie, nous allons dans le bloc_si_vrai
-			// sinon nous allons dans le bloc pour la feuille suivante
-			for (auto f : feuilles->expressions) {
-				auto label_si_faux = donnees.label_si_faux;
-
-				if (f != feuilles->expressions[feuilles->expressions.taille - 1]) {
-					label_si_faux = reserve_label(noeud);
-				}
-
-				auto valeur_f = static_cast<Atome *>(nullptr);
-
-				if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_ENUM) {
-					valeur_f = valeur_enum(expression->type->comme_enum(), f->ident);
-				}
-				else if (noeud->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
-					auto type_union = noeud->expr->type->comme_union();
-					if (type_union->est_anonyme) {
-						unsigned idx_membre = 0;
-
-						POUR (type_union->membres) {
-							if (it.type == f->type) {
-								break;
-							}
-
-							idx_membre += 1;
-						}
-
-						valeur_f = cree_z32(idx_membre + 1);
-
-						auto valeur = cree_acces_membre(noeud, ptr_structure, 0);
-						table_locales.insere(f->ident, valeur);
-					}
-					else {
-						auto idx_membre = trouve_index_membre(decl_struct, f->ident);
-						valeur_f = cree_z32(idx_membre + 1);
-
-						auto valeur = cree_acces_membre(noeud, ptr_structure, 0);
-						table_locales.insere(f->ident, valeur);
-					}
-				}
-				else {
-					genere_ri_pour_expression_droite(f, nullptr);
-					valeur_f = depile_valeur();
-				}
-
-				// op est nul pour les énums
-				if (!op || op->est_basique) {
-					auto condition = cree_op_comparaison(
-								noeud,
-								OperateurBinaire::Genre::Comp_Egal,
-								valeur_expression,
-								valeur_f);
-
-					cree_branche_condition(noeud, condition, donnees.label_si_vrai, label_si_faux);
-				}
-				else {
-					auto decl = op->decl;
-					auto requiers_contexte = !decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX);
-					auto atome_fonction = m_espace->trouve_ou_insere_fonction(*this, decl);
-					auto args = kuri::tableau<Atome *>(2 + requiers_contexte);
-
-					if (requiers_contexte) {
-						args[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
-					}
-
-					args[0 + requiers_contexte] = valeur_expression;
-					args[1 + requiers_contexte] = valeur_f;
-
-					auto condition = cree_appel(noeud, noeud->lexeme, atome_fonction, std::move(args));
-					cree_branche_condition(noeud, condition, donnees.label_si_vrai, label_si_faux);
-				}
-
-				if (f != feuilles->expressions[feuilles->expressions.taille - 1]) {
-					insere_label(label_si_faux);
-				}
-			}
-		}
-
-		insere_label(donnees.label_si_vrai);
-
-		genere_ri_pour_noeud(enf1);
-
-		auto di = fonction_courante->derniere_instruction();
-		if (!di->est_branche_ou_retour()) {
-			cree_branche(noeud, label_post_discr);
-		}
-	}
-
-	insere_label(label_post_discr);
-}
-
 void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 {
 	// À FAIRE(retours multiples)
@@ -2371,12 +2035,13 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 		insere_label(label_si_vrai);
 		if (noeud->expr_piege == nullptr) {
 			auto params = kuri::tableau<Atome *>(1);
-			params[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
+			params[0] = cree_charge_mem(noeud, contexte);
 			cree_appel(noeud, noeud->lexeme, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_erreur), std::move(params));
 		}
 		else {
-			auto var_expr_piege = cree_allocation(noeud, gen_tente.type_piege, noeud->expr_piege->ident);
-			table_locales.insere(noeud->expr_piege->ident, var_expr_piege);
+			auto var_expr_piegee = cree_allocation(noeud, gen_tente.type_piege, noeud->expr_piege->ident);
+			auto decl_expr_piegee = noeud->expr_piege->comme_ref_decl()->decl;
+			decl_expr_piegee->atome = var_expr_piegee;
 			genere_ri_pour_noeud(noeud->bloc);
 		}
 
@@ -2424,14 +2089,15 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 		insere_label(label_si_vrai);
 		if (noeud->expr_piege == nullptr) {
 			auto params = kuri::tableau<Atome *>(1);
-			params[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
+			params[0] = cree_charge_mem(noeud, contexte);
 			cree_appel(noeud, noeud->lexeme, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_erreur), std::move(params));
 		}
 		else {
 			Instruction *membre_erreur = cree_acces_membre(noeud, valeur_union, 0);
 			membre_erreur = cree_transtype(noeud, m_espace->typeuse.type_pointeur_pour(gen_tente.type_piege, false), membre_erreur, TypeTranstypage::BITS);
 			membre_erreur->est_chargeable = true;
-			table_locales.insere(noeud->expr_piege->ident, membre_erreur);
+			auto decl_expr_piegee = noeud->expr_piege->comme_ref_decl()->decl;
+			decl_expr_piegee->atome = membre_erreur;
 			genere_ri_pour_noeud(noeud->bloc);
 		}
 
@@ -2442,308 +2108,6 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 	}
 
 	empile_valeur(valeur_expression);
-}
-
-void ConstructriceRI::genere_ri_pour_boucle_pour(NoeudPour *inst)
-{
-	/* on génère d'abord le type de la variable */
-	auto enfant1 = inst->variable;
-	auto enfant2 = inst->expression;
-	auto enfant3 = inst->bloc;
-	auto enfant_sans_arret = inst->bloc_sansarret;
-	auto enfant_sinon = inst->bloc_sinon;
-
-	auto type = enfant2->type;
-	enfant1->type = type;
-
-	/* création des labels */
-	auto label_boucle = reserve_label(inst);
-	auto label_corps = reserve_label(inst);
-	auto label_inc = reserve_label(inst);
-
-	auto label_sansarret = static_cast<InstructionLabel *>(nullptr);
-	auto label_sinon = static_cast<InstructionLabel *>(nullptr);
-
-	if (enfant_sans_arret) {
-		label_sansarret = reserve_label(inst);
-	}
-
-	if (enfant_sinon) {
-		label_sinon = reserve_label(inst);
-	}
-
-	auto label_apres = reserve_label(inst);
-
-	auto feuilles = enfant1->comme_virgule();
-
-	auto var = feuilles->expressions[0];
-	auto idx = NoeudExpression::nul();
-
-	if (feuilles->expressions.taille == 2) {
-		idx = feuilles->expressions[1];
-	}
-
-	empile_controle_boucle(var->ident, label_inc, (label_sinon != nullptr) ? label_sinon : label_apres);
-
-	auto type_de_la_variable = static_cast<Type *>(nullptr);
-	auto type_de_l_index = static_cast<Type *>(nullptr);
-
-	if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE || inst->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
-		type_de_la_variable = enfant2->type;
-		type_de_l_index = enfant2->type;
-	}
-	else {
-		type_de_la_variable = m_espace->typeuse[TypeBase::Z64];
-		type_de_l_index = m_espace->typeuse[TypeBase::Z64];
-	}
-
-	auto valeur_debut = cree_allocation(inst, type_de_la_variable, var->ident);
-	auto valeur_index = static_cast<Atome *>(nullptr);
-
-	if (idx != nullptr) {
-		valeur_index = cree_allocation(inst, type_de_l_index, idx->ident);
-		cree_stocke_mem(inst, valeur_index, cree_constante_entiere(type_de_l_index, 0));
-	}
-
-	if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE || inst->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
-		auto expr_plage = enfant2->comme_plage();
-		genere_ri_pour_expression_droite(expr_plage->expr1, nullptr);
-		auto init_debut = depile_valeur();
-		cree_stocke_mem(inst, valeur_debut, init_debut);
-	}
-	else {
-		cree_stocke_mem(inst, valeur_debut, cree_z64(0));
-	}
-
-	/* boucle */
-	insere_label(label_boucle);
-
-	auto pointeur_tableau = static_cast<Atome *>(nullptr);
-
-	switch (inst->aide_generation_code) {
-		case GENERE_BOUCLE_PLAGE:
-		case GENERE_BOUCLE_PLAGE_INDEX:
-		{
-			/* condition */
-			auto expr_plage = enfant2->comme_plage();
-			genere_ri_pour_expression_droite(expr_plage->expr2, nullptr);
-			auto valeur_fin = depile_valeur();
-
-			auto condition = cree_op_comparaison(
-						inst,
-					OperateurBinaire::Genre::Comp_Inf_Egal,
-					cree_charge_mem(inst, valeur_debut),
-					valeur_fin);
-
-			cree_branche_condition(inst, condition, label_corps, (label_sansarret != nullptr) ? label_sansarret : label_apres);
-
-			table_locales.insere(var->ident, valeur_debut);
-			if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
-				table_locales.insere(idx->ident, valeur_index);
-			}
-
-			/* corps */
-			insere_label(label_corps);
-
-			genere_ri_pour_noeud(enfant3);
-
-			/* suivant */
-			insere_label(label_inc);
-
-			cree_incrementation_valeur(var, type_de_la_variable, valeur_debut);
-
-			if (valeur_index) {
-				cree_incrementation_valeur(idx, type_de_l_index, valeur_index);
-			}
-
-			cree_branche(inst, label_boucle);
-
-			break;
-		}
-		case GENERE_BOUCLE_TABLEAU:
-		case GENERE_BOUCLE_TABLEAU_INDEX:
-		{
-			/* condition */
-			auto taille_tableau = 0l;
-
-			if (type->genre == GenreType::TABLEAU_FIXE) {
-				taille_tableau = type->comme_tableau_fixe()->taille;
-			}
-
-			auto valeur_fin = static_cast<Atome *>(nullptr);
-
-			if (taille_tableau != 0) {
-				valeur_fin = cree_constante_entiere(m_espace->typeuse[TypeBase::Z64], static_cast<unsigned long>(taille_tableau));
-			}
-			else {
-				genere_ri_pour_noeud(enfant2);
-				pointeur_tableau = depile_valeur();
-				valeur_fin = cree_acces_membre(inst, pointeur_tableau, 1);
-				valeur_fin = cree_charge_mem(inst, valeur_fin);
-			}
-
-			auto condition = cree_op_comparaison(
-						inst,
-					OperateurBinaire::Genre::Comp_Inf,
-					cree_charge_mem(inst, valeur_debut),
-					valeur_fin);
-
-			cree_branche_condition(inst,
-						condition,
-						label_corps,
-						(label_sansarret != nullptr) ? label_sansarret : label_apres);
-
-			insere_label(label_corps);
-
-			auto valeur_arg = static_cast<Atome *>(nullptr);
-
-			if (taille_tableau != 0) {
-				genere_ri_pour_noeud(enfant2);
-				auto valeur_tableau = depile_valeur();
-				valeur_arg = cree_acces_index(inst, valeur_tableau, cree_charge_mem(inst, valeur_debut));
-			}
-			else {
-				auto pointeur = cree_acces_membre(inst, pointeur_tableau, 0);
-				valeur_arg = cree_acces_index(inst, pointeur, cree_charge_mem(inst, valeur_debut));
-			}
-
-			table_locales.insere(var->ident, valeur_arg);
-			if (inst->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
-				table_locales.insere(idx->ident, valeur_index);
-			}
-
-			/* corps */
-			genere_ri_pour_noeud(enfant3);
-
-			/* suivant */
-			insere_label(label_inc);
-
-			cree_incrementation_valeur(var, type_de_la_variable, valeur_debut);
-
-			if (valeur_index) {
-				cree_incrementation_valeur(idx, type_de_l_index, valeur_index);
-			}
-
-			cree_branche(inst, label_boucle);
-
-			break;
-		}
-		case GENERE_BOUCLE_COROUTINE:
-		case GENERE_BOUCLE_COROUTINE_INDEX:
-		{
-			/* À FAIRE(ri) : coroutine */
-#if 0
-			auto expr_appel = static_cast<NoeudExpressionAppel *>(enfant2);
-			auto decl_fonc = static_cast<NoeudDeclarationCorpsFonction const *>(expr_appel->noeud_fonction_appelee);
-			auto nom_etat = "__etat" + dls::vers_chaine(enfant2);
-			auto nom_type_coro = "__etat_coro" + decl_fonc->nom_broye;
-
-			constructrice << nom_type_coro << " " << nom_etat << " = {\n";
-			constructrice << ".mutex_boucle = PTHREAD_MUTEX_INITIALIZER,\n";
-			constructrice << ".mutex_coro = PTHREAD_MUTEX_INITIALIZER,\n";
-			constructrice << ".cond_coro = PTHREAD_COND_INITIALIZER,\n";
-			constructrice << ".cond_boucle = PTHREAD_COND_INITIALIZER,\n";
-			constructrice << ".contexte = contexte,\n";
-			constructrice << ".__termine_coro = 0\n";
-			constructrice << "};\n";
-
-			/* intialise les arguments de la fonction. */
-			POUR (expr_appel->params) {
-				genere_code_C(it, constructrice, compilatrice, false);
-			}
-
-			auto iter_enf = expr_appel->params.begin();
-
-			POUR (decl_fonc->params) {
-				auto nom_broye = broye_nom_simple(it->ident->nom);
-				constructrice << nom_etat << '.' << nom_broye << " = ";
-				constructrice << (*iter_enf)->chaine_calculee();
-				constructrice << ";\n";
-				++iter_enf;
-			}
-
-			constructrice << "pthread_t fil_coro;\n";
-			constructrice << "pthread_create(&fil_coro, NULL, " << decl_fonc->nom_broye << ", &" << nom_etat << ");\n";
-			constructrice << "pthread_mutex_lock(&" << nom_etat << ".mutex_boucle);\n";
-			constructrice << "pthread_cond_wait(&" << nom_etat << ".cond_boucle, &" << nom_etat << ".mutex_boucle);\n";
-			constructrice << "pthread_mutex_unlock(&" << nom_etat << ".mutex_boucle);\n";
-
-			/* À FAIRE : utilisation du type */
-			auto nombre_vars_ret = decl_fonc->type_fonc->types_sorties.taille;
-
-			auto feuilles = dls::tablet<NoeudExpression *, 10>{};
-			rassemble_feuilles(enfant1, feuilles);
-
-			auto idx = static_cast<NoeudExpression *>(nullptr);
-			auto nom_idx = dls::chaine{};
-
-			if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
-				idx = feuilles.back();
-				nom_idx = "__idx" + dls::vers_chaine(b);
-				constructrice << "int " << nom_idx << " = 0;";
-			}
-
-			constructrice << "while (" << nom_etat << ".__termine_coro == 0) {\n";
-			constructrice << "pthread_mutex_lock(&" << nom_etat << ".mutex_boucle);\n";
-
-			for (auto i = 0l; i < nombre_vars_ret; ++i) {
-				auto f = feuilles[i];
-				auto nom_var_broye = broye_chaine(f);
-				constructrice.declare_variable(type, nom_var_broye, "");
-				constructrice << nom_var_broye << " = "
-							   << nom_etat << '.' << decl_fonc->noms_retours[i]
-							   << ";\n";
-			}
-
-			constructrice << "pthread_mutex_lock(&" << nom_etat << ".mutex_coro);\n";
-			constructrice << "pthread_cond_signal(&" << nom_etat << ".cond_coro);\n";
-			constructrice << "pthread_mutex_unlock(&" << nom_etat << ".mutex_coro);\n";
-			constructrice << "pthread_cond_wait(&" << nom_etat << ".cond_boucle, &" << nom_etat << ".mutex_boucle);\n";
-			constructrice << "pthread_mutex_unlock(&" << nom_etat << ".mutex_boucle);\n";
-
-			if (idx) {
-				constructrice << "int " << broye_chaine(idx) << " = " << nom_idx << ";\n";
-				constructrice << nom_idx << " += 1;";
-			}
-#endif
-			break;
-		}
-	}
-
-	/* 'continue'/'arrête' dans les blocs 'sinon'/'sansarrêt' n'a aucun sens */
-	depile_controle_boucle();
-
-	if (enfant_sans_arret) {
-		insere_label(label_sansarret);
-		genere_ri_pour_noeud(enfant_sans_arret);
-		cree_branche(inst, label_apres);
-	}
-
-	if (enfant_sinon) {
-		insere_label(label_sinon);
-		genere_ri_pour_noeud(enfant_sinon);
-	}
-
-	insere_label(label_apres);
-}
-
-void ConstructriceRI::cree_incrementation_valeur(NoeudExpression *noeud, Type *type, Atome *valeur)
-{
-	auto val_inc = static_cast<Atome *>(nullptr);
-
-	if (type->genre == GenreType::ENTIER_NATUREL) {
-		val_inc = cree_constante_entiere(type, 1);
-	}
-	else if (type->genre == GenreType::ENTIER_RELATIF) {
-		val_inc = cree_constante_entiere(type, 1);
-	}
-	// À FAIRE(ri) : r16
-	else if (type->genre == GenreType::REEL) {
-		val_inc = cree_constante_reelle(type, 1.0);
-	}
-
-	auto inc = cree_op_binaire(noeud, type, OperateurBinaire::Genre::Addition, cree_charge_mem(noeud, valeur), val_inc);
-	cree_stocke_mem(noeud, valeur, inc);
 }
 
 void ConstructriceRI::empile_valeur(Atome *valeur)
@@ -2758,70 +2122,6 @@ Atome *ConstructriceRI::depile_valeur()
 	return v;
 }
 
-struct DonneesComparaisonChainee {
-	NoeudExpression *operande_gauche = nullptr;
-	NoeudExpression *operande_droite = nullptr;
-	OperateurBinaire const *op = nullptr;
-};
-
-static void rassemble_operations_chainees(
-		NoeudExpression *racine,
-		kuri::tableau<DonneesComparaisonChainee> &comparaisons)
-{
-	auto expr_bin = static_cast<NoeudExpressionBinaire *>(racine);
-
-	if (est_operateur_comp(expr_bin->expr1->lexeme->genre)) {
-		rassemble_operations_chainees(expr_bin->expr1, comparaisons);
-
-		auto expr_operande = static_cast<NoeudExpressionBinaire *>(expr_bin->expr1);
-
-		auto comparaison = DonneesComparaisonChainee{};
-		comparaison.operande_gauche = expr_operande->expr2;
-		comparaison.operande_droite = expr_bin->expr2;
-		comparaison.op = expr_bin->op;
-
-		comparaisons.ajoute(comparaison);
-	}
-	else {
-		auto comparaison = DonneesComparaisonChainee{};
-		comparaison.operande_gauche = expr_bin->expr1;
-		comparaison.operande_droite = expr_bin->expr2;
-		comparaison.op = expr_bin->op;
-
-		comparaisons.ajoute(comparaison);
-	}
-}
-
-void ConstructriceRI::genere_ri_pour_comparaison_chainee(NoeudExpression *noeud, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux)
-{
-	auto comparaisons = kuri::tableau<DonneesComparaisonChainee>();
-	rassemble_operations_chainees(noeud, comparaisons);
-
-	auto nouveau_label = reserve_label(noeud);
-
-	for (auto i = 0; i < comparaisons.taille; ++i) {
-		auto &it = comparaisons[i];
-		genere_ri_pour_expression_droite(it.operande_gauche, nullptr);
-		auto atome_gauche = depile_valeur();
-		genere_ri_pour_expression_droite(it.operande_droite, nullptr);
-		auto atome_droite = depile_valeur();
-		auto atome_op_bin = cree_op_binaire(noeud, noeud->type, it.op->genre, atome_gauche, atome_droite);
-
-		cree_branche_condition(noeud, atome_op_bin, nouveau_label, label_si_faux);
-
-		if (i < comparaisons.taille - 1) {
-			insere_label(nouveau_label);
-
-			if (i < comparaisons.taille - 2) {
-				nouveau_label = reserve_label(noeud);
-			}
-			else {
-				nouveau_label = label_si_vrai;
-			}
-		}
-	}
-}
-
 void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 {
 	auto type = noeud->type;
@@ -2834,7 +2134,6 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	}
 
 	SAUVEGARDE_ETAT(m_pile);
-	SAUVEGARDE_ETAT(table_locales);
 	SAUVEGARDE_ETAT(fonction_courante);
 	SAUVEGARDE_ETAT(nombre_labels);
 	SAUVEGARDE_ETAT(taille_allouee);
@@ -2934,73 +2233,17 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	cree_retour(noeud, nullptr);
 }
 
-Atome *ConstructriceRI::valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident)
-{
-	auto decl_enum = type_enum->decl;
-
-	auto index_membre = 0;
-
-	POUR (*decl_enum->bloc->membres.verrou_lecture()) {
-		if (it->ident == ident) {
-			break;
-		}
-
-		index_membre += 1;
-	}
-
-	auto valeur = type_enum->membres[index_membre].valeur;
-	return cree_constante_entiere(type_enum, static_cast<unsigned>(valeur));
-}
-
 void ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud)
 {
 	// À FAIRE(ri) : ceci ignore les espaces de noms.
 	auto accede = noeud->accede;
 	auto type_accede = accede->type;
 
-	auto est_pointeur = type_accede->genre == GenreType::POINTEUR || type_accede->genre == GenreType::REFERENCE;
-
-	while (type_accede->genre == GenreType::POINTEUR || type_accede->genre == GenreType::REFERENCE) {
-		type_accede = type_dereference_pour(type_accede);
-	}
-
-	if (type_accede->genre == GenreType::TABLEAU_FIXE) {
-		auto taille = type_accede->comme_tableau_fixe()->taille;
-		empile_valeur(cree_constante_entiere(noeud->type, static_cast<unsigned long>(taille)));
-		return;
-	}
-
-	if (type_accede->genre == GenreType::ENUM || type_accede->genre == GenreType::ERREUR) {
-		auto type_enum = type_accede->comme_enum();
-		auto valeur_enum = type_enum->membres[noeud->index_membre].valeur;
-		empile_valeur(cree_constante_entiere(type_enum, static_cast<unsigned>(valeur_enum)));
-		return;
-	}
-
-	if (noeud->type->genre == GenreType::TYPE_DE_DONNEES && noeud->genre_valeur == GenreValeur::DROITE) {
-		auto type_de_donnees = noeud->type->comme_type_de_donnees();
-
-		if (type_de_donnees->type_connu) {
-			empile_valeur(cree_constante_type(type_de_donnees->type_connu));
-			return;
-		}
-
-		empile_valeur(cree_constante_type(type_de_donnees));
-		return;
-	}
-
-	auto type_compose = static_cast<TypeCompose *>(type_accede);
-	auto &membre = type_compose->membres[noeud->index_membre];
-
-	if (membre.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
-		genere_ri_pour_expression_droite(membre.expression_valeur_defaut, nullptr);
-		return;
-	}
-
 	genere_ri_pour_noeud(accede);
 	auto pointeur_accede = depile_valeur();
 
-	if (est_pointeur) {
+	while (type_accede->genre == GenreType::POINTEUR || type_accede->genre == GenreType::REFERENCE) {
+		type_accede = type_dereference_pour(type_accede);
 		pointeur_accede = cree_charge_mem(noeud, pointeur_accede);
 	}
 
@@ -3060,7 +2303,7 @@ void ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *n
 		cree_branche_condition(noeud, condition, label_si_vrai, label_si_faux);
 		insere_label(label_si_vrai);
 		auto params = kuri::tableau<Atome *>(1);
-		params[0] = cree_charge_mem(noeud, table_locales.valeur_ou(ID::contexte, nullptr));
+		params[0] = cree_charge_mem(noeud, contexte);
 		cree_appel(noeud, noeud->lexeme, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_membre_union), std::move(params));
 		insere_label(label_si_faux);
 	}
@@ -3078,7 +2321,6 @@ void ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *n
 AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *type)
 {
 	switch (type->genre) {
-		case GenreType::REFERENCE:
 		case GenreType::RIEN:
 		case GenreType::POLYMORPHIQUE:
 		{
@@ -3088,6 +2330,8 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
 		{
 			return cree_constante_booleenne(false);
 		}
+		/* Les seules réféences pouvant être nulles sont celles générées par la compilatrice pour les boucles pour. */
+		case GenreType::REFERENCE:
 		case GenreType::POINTEUR:
 		case GenreType::FONCTION:
 		{
@@ -3176,14 +2420,9 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition, Instr
 	auto genre_lexeme = condition->lexeme->genre;
 
 	if (est_operateur_comp(genre_lexeme)) {
-		if (condition->genre == GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE) {
-			genere_ri_pour_comparaison_chainee(condition, label_si_vrai, label_si_faux);
-		}
-		else {
-			genere_ri_pour_expression_droite(condition, nullptr);
-			auto valeur = depile_valeur();
-			cree_branche_condition(condition, valeur, label_si_vrai, label_si_faux);
-		}
+		genere_ri_pour_expression_droite(condition, nullptr);
+		auto valeur = depile_valeur();
+		cree_branche_condition(condition, valeur, label_si_vrai, label_si_faux);
 	}
 	else if (genre_lexeme == GenreLexeme::ESP_ESP) {
 		auto expr_bin = condition->comme_operateur_binaire();
@@ -3813,93 +3052,6 @@ void ConstructriceRI::genere_ri_pour_position_code_source(NoeudExpression *noeud
 	empile_valeur(alloc);
 }
 
-void ConstructriceRI::genere_ri_pour_coroutine(NoeudDeclarationCorpsFonction *decl)
-{
-#if 0
-	compilatrice.commence_fonction(decl);
-
-	/* Crée fonction */
-	auto nom_fonction = decl->nom_broye;
-	auto nom_type_coro = "__etat_coro" + nom_fonction;
-
-	/* Déclare la structure d'état de la coroutine. */
-	constructrice << "typedef struct " << nom_type_coro << " {\n";
-	constructrice << "pthread_mutex_t mutex_boucle;\n";
-	constructrice << "pthread_cond_t cond_boucle;\n";
-	constructrice << "pthread_mutex_t mutex_coro;\n";
-	constructrice << "pthread_cond_t cond_coro;\n";
-	constructrice << "bool __termine_coro;\n";
-	constructrice << "ContexteProgramme contexte;\n";
-
-	auto idx_ret = 0l;
-	POUR (decl->type_fonc->types_sorties) {
-		auto &nom_ret = decl->noms_retours[idx_ret++];
-		constructrice.declare_variable(it, nom_ret, "");
-	}
-
-	POUR (decl->params) {
-		auto nom_broye = broye_nom_simple(it->ident->nom);
-		constructrice.declare_variable(it->type, nom_broye, "");
-	}
-
-	constructrice << " } " << nom_type_coro << ";\n";
-
-	/* Déclare la fonction. */
-	constructrice << "static void *" << nom_fonction << "(\nvoid *data)\n";
-	constructrice << "{\n";
-	constructrice << nom_type_coro << " *__etat = (" << nom_type_coro << " *) data;\n";
-	constructrice << "ContexteProgramme contexte = __etat->contexte;\n";
-
-	/* déclare les paramètres. */
-	POUR (decl->params) {
-		auto nom_broye = broye_nom_simple(it->ident->nom);
-		constructrice.declare_variable(it->type, nom_broye, "__etat->" + nom_broye);
-	}
-
-	/* Crée code pour le bloc. */
-	genere_code_C(decl->bloc, constructrice, compilatrice, false);
-
-	if (b->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
-		genere_code_extra_pre_retour(decl->bloc, compilatrice, constructrice);
-	}
-
-	constructrice << "}\n";
-
-	compilatrice.termine_fonction();
-	noeud->drapeaux |= RI_FUT_GENEREE;
-#endif
-}
-
-void ConstructriceRI::genere_ri_pour_retiens(NoeudExpression */*noeud*/)
-{
-#if 0
-	auto inst = static_cast<NoeudExpressionUnaire *>(noeud);
-	auto df = compilatrice.donnees_fonction;
-	auto enfant = inst->expr;
-
-	constructrice << "pthread_mutex_lock(&__etat->mutex_coro);\n";
-
-	auto feuilles = dls::tablet<NoeudExpression *, 10>{};
-	rassemble_feuilles(enfant, feuilles);
-
-	for (auto i = 0l; i < feuilles.taille(); ++i) {
-		auto f = feuilles[i];
-
-		genere_code_C(f, constructrice, compilatrice, true);
-
-		constructrice << "__etat->" << df->noms_retours[i] << " = ";
-		constructrice << f->chaine_calculee();
-		constructrice << ";\n";
-	}
-
-	constructrice << "pthread_mutex_lock(&__etat->mutex_boucle);\n";
-	constructrice << "pthread_cond_signal(&__etat->cond_boucle);\n";
-	constructrice << "pthread_mutex_unlock(&__etat->mutex_boucle);\n";
-	constructrice << "pthread_cond_wait(&__etat->cond_coro, &__etat->mutex_coro);\n";
-	constructrice << "pthread_mutex_unlock(&__etat->mutex_coro);\n";
-#endif
-}
-
 Atome *ConstructriceRI::converti_vers_tableau_dyn(NoeudExpression *noeud, Atome *pointeur_tableau_fixe, TypeTableauFixe *type_tableau_fixe, Atome *place)
 {
 	auto alloc_tableau_dyn = place;
@@ -3964,6 +3116,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
 	auto type_fonction = m_espace->typeuse.type_fonction(types_entrees, types_sorties, false);
 
 	auto alloc_contexte = cree_allocation(nullptr, m_espace->typeuse.type_contexte, ID::contexte);
+	contexte = alloc_contexte;
 
 	auto params = kuri::tableau<Atome *>(1);
 	params[0] = alloc_contexte;
@@ -3973,13 +3126,17 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
 	fonction->sanstrace = true;
 	fonction->nombre_utilisations = 1;
 
+	/* Crée également un paramètre pour le retour, les coulisses en ayant besoin,
+	 * car nous y devons prédéclarer les valeurs de retours. */
+	auto param_sortie = cree_allocation(nullptr, m_espace->typeuse[TypeBase::Z32], ID::valeur);
+	fonction->params_sorties.ajoute(param_sortie);
+
 	fonction_courante = fonction;
 
 	cree_label(nullptr);
 
 	// ----------------------------------
 	// initialise les variables globales
-	table_locales.insere(ID::contexte, alloc_contexte);
 	auto constructeurs_globaux = m_espace->constructeurs_globaux.verrou_lecture();
 
 	POUR (*constructeurs_globaux) {
@@ -4014,18 +3171,9 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnte
 	auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, fonction);
 
 	fonction_courante = atome_fonc;
-	table_locales.efface();
 	acces_membres.taille = 0;
 	charge_mems.taille = 0;
 	taille_allouee = 0;
-
-	POUR (atome_fonc->params_entrees) {
-		table_locales.insere(it->ident, it);
-	}
-
-	POUR (atome_fonc->params_sorties) {
-		table_locales.insere(it->ident, it);
-	}
 
 	auto decl_creation_contexte = m_espace->interface_kuri->decl_creation_contexte;
 
@@ -4037,8 +3185,8 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnte
 		auto it = atome_creation_contexte->instructions[i];
 		atome_fonc->instructions.ajoute(it);
 
-		if (it->genre == Instruction::Genre::ALLOCATION) {
-			table_locales.insere(it->ident, it);
+		if (it->genre == Instruction::Genre::ALLOCATION && it->ident == ID::contexte) {
+			contexte = it;
 		}
 	}
 
@@ -4049,6 +3197,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnte
 	fonction->drapeaux |= RI_FUT_GENEREE;
 
 	fonction_courante = nullptr;
+	contexte = nullptr;
 }
 
 void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl)
@@ -4094,7 +3243,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 
 		// les allocations pour les variables employées sont créées lors de la génération de code pour les blocs
 		if (decl->drapeaux & EMPLOYE) {
-			pointeur = table_locales.valeur_ou(var->ident, nullptr);
+			pointeur = decl->atome;
 			assert_rappel(pointeur != nullptr, [=](){ std::cerr << "Aucune allocation pour « " << var->ident->nom << " »\n."; });
 		}
 		else {
@@ -4119,7 +3268,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						auto pointeur = alloc_pointeur(var);
-						table_locales.insere(var->ident, pointeur);
+						var->comme_ref_decl()->decl->atome = pointeur;
 
 						auto valeur = depile_valeur();
 						transforme_valeur(expression, valeur, transformation, pointeur);
@@ -4133,7 +3282,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						auto pointeur = alloc_pointeur(var);
-						table_locales.insere(var->ident, pointeur);
+						var->comme_ref_decl()->decl->atome = pointeur;
 
 						transforme_valeur(expression, valeur, transformation, pointeur);
 						depile_valeur();
@@ -4143,7 +3292,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 			else {
 				for (auto &var : it.variables) {
 					auto pointeur = alloc_pointeur(var);
-					table_locales.insere(var->ident, pointeur);
+					var->comme_ref_decl()->decl->atome = pointeur;
 				}
 			}
 		}
@@ -4167,7 +3316,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 					cree_stocke_mem(var, pointeur, valeur);
 				}
 
-				table_locales.insere(var->ident, pointeur);
+				var->comme_ref_decl()->decl->atome = pointeur;
 			}
 		}
 	}

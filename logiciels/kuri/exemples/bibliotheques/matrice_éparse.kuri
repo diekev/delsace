@@ -19,7 +19,7 @@ Vecteur :: struct ($T: type_de_données, $N : z32) {
 
 copie :: fonc (a : [N]$T, b : [N]T, $N: z64) -> rien
 {
-	pour va, i dans a {
+	pour & va, i dans a {
 		va = b[i]
 	}
 }

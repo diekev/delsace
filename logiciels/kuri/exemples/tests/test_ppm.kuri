@@ -61,7 +61,7 @@ génére_image_noire :: fonc() -> Image
 
     image.tampon = tampon;
 
-    pour v dans tampon {
+    pour & v dans tampon {
         v = 0;
     }
 

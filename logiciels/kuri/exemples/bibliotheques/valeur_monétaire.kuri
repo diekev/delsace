@@ -195,7 +195,7 @@ principale :: fonc () -> z32
     nombre_associations := 1234
     ratios := loge_tableau(z32, nombre_associations)
 
-    pour r dans ratios {
+    pour & r dans ratios {
         r = nombre_aléatoire()
     }
 

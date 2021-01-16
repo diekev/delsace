@@ -137,14 +137,14 @@ principale :: fonc () -> z32
         idx_tri := trouve_index(*index, tri)
 
         si idx_tri == -1 {
-            pour v dans vecteur_résultat {
+            pour & v dans vecteur_résultat {
                 v = 0.0
             }
 
             arrête
         }
 
-        pour v dans vecteur_trigraphe {
+        pour & v dans vecteur_trigraphe {
             v = 0.0
         }
 

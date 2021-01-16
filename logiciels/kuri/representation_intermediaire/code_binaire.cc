@@ -863,6 +863,19 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 		chunk.locales.ajoute({ alloc->ident, alloc->type, adresse });
 	}
 
+	/* crée une variable local pour la valeur de sortie */
+	if (fonction->params_sorties.taille == 1) {
+		auto param = fonction->params_sorties[0];
+		auto alloc = param->comme_instruction()->comme_alloc();
+		auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
+
+		if (!type_pointe->est_rien()) {
+			auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
+			alloc->index_locale = static_cast<int>(chunk.locales.taille());
+			chunk.locales.ajoute({ alloc->ident, alloc->type, adresse });
+		}
+	}
+
 	// À FAIRE : l'optimisation pour la réutilisation de la mémoire des locales en se basant sur la durée de vie de celles-ci ne fonctionne pas
 	//           il existe des superposition partiells entre certaines variables
 	//           lors de la dernière investigation, il semberait que les instructions de retours au milieu des fonctions y soient pour quelque chose

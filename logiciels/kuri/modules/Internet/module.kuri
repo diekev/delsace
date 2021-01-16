@@ -89,7 +89,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
 
     chaines : [8]chaine
 
-    pour chaines {
+    pour & chaines {
         it = ""
     }
 

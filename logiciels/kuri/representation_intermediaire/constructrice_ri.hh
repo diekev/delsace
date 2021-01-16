@@ -31,8 +31,6 @@
 #include "biblinternes/structures/tablet.hh"
 #include "biblinternes/structures/tuples.hh"
 
-#include "compilation/table_hachage.hh"
-
 struct Compilatrice;
 struct NoeudBloc;
 struct NoeudDeclarationVariable;
@@ -82,10 +80,16 @@ private:
 	int taille_allouee = 0;
 
 	NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
+	Atome *contexte = nullptr;
 
-	table_hachage<IdentifiantCode *, Atome *> table_locales{};
+	struct LabelsControlesBoucle {
+		IdentifiantCode *ident = nullptr;
+		InstructionLabel *label_continue = nullptr;
+		InstructionLabel *label_arrete = nullptr;
+		InstructionLabel *label_arrete_implicite = nullptr;
+	};
 
-	dls::tablet<dls::triplet<IdentifiantCode *, InstructionLabel *, InstructionLabel *>, 12> insts_continue_arrete{};
+	dls::tablet<LabelsControlesBoucle, 12> insts_continue_arrete{};
 
 	bool expression_gauche = true;
 
@@ -172,7 +176,7 @@ private:
 	OpBinaireConstant *cree_op_comparaison_constant(OperateurBinaire::Genre op, AtomeConstante *valeur_gauche, AtomeConstante *valeur_droite);
 	AccedeIndexConstant *cree_acces_index_constant(AtomeConstante *accede, AtomeConstante *index);
 
-	void empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_arrete);
+	void empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_arrete, InstructionLabel *label_arrete_implicite);
 	void depile_controle_boucle();
 
 	void genere_ri_pour_noeud(NoeudExpression *noeud);
@@ -181,10 +185,7 @@ private:
 	AtomeFonction *genere_ri_pour_fonction_principale();
 	void genere_ri_pour_expression_droite(NoeudExpression *noeud, Atome *place);
 	void genere_ri_transformee_pour_noeud(NoeudExpression *noeud, Atome *place, TransformationType const &transformation);
-	void genere_ri_pour_discr(NoeudDiscr *noeud);
 	void genere_ri_pour_tente(NoeudTente *noeud);
-	void genere_ri_pour_boucle_pour(NoeudPour *noeud);
-	void genere_ri_pour_comparaison_chainee(NoeudExpression *noeud, InstructionLabel *label_si_vrai, InstructionLabel *label_si_faux);
 	void genere_ri_pour_declaration_structure(NoeudStruct *noeud);
 	void genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud);
 	void genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud);
@@ -194,9 +195,6 @@ private:
 	void genere_ri_blocs_differes(NoeudBloc *bloc);
 	void genere_ri_pour_position_code_source(NoeudExpression *noeud);
 	void genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl);
-
-	void genere_ri_pour_coroutine(NoeudDeclarationCorpsFonction *noeud);
-	void genere_ri_pour_retiens(NoeudExpression *noeud);
 
 	void transforme_valeur(NoeudExpression *noued, Atome *valeur, const TransformationType &transformation, Atome *place);
 
@@ -210,7 +208,6 @@ private:
 
 	void imprime_instruction(Instruction const *inst, std::ostream &os) const;
 	Atome *valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident);
-	void cree_incrementation_valeur(NoeudExpression *noeud, Type *type, Atome *valeur);
 
 	void empile_valeur(Atome *valeur);
 	Atome *depile_valeur();

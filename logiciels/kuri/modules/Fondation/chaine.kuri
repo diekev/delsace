@@ -441,7 +441,7 @@ en_minuscule :: fonc(c: z8) -> z8
 
 en_majuscule :: fonc(chn : chaine) -> chaine
 {
-	pour c dans chn {
+	pour & c dans chn {
 		c = en_majuscule(c)
 	}
 
@@ -450,7 +450,7 @@ en_majuscule :: fonc(chn : chaine) -> chaine
 
 en_minuscule :: fonc(chn : chaine) -> chaine
 {
-	pour c dans chn {
+	pour & c dans chn {
 		c = en_majuscule(c)
 	}
 
@@ -801,7 +801,7 @@ cherche_aiguille_par_boyer_moore_horspool :: fonc (botte_de_foin: chaine, aiguil
     // crée une table pour définir le nombre de caractères sûrement omissible
     table : [256]z32
 
-    pour table {
+    pour & table {
         it = aiguille.taille comme z32
     }
 

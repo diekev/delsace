@@ -13,8 +13,8 @@ RendeusePage :: struct {
 
 détruit_rendeuse :: fonc (rendeuse_gabarit: *RendeusePage) -> rien
 {
-    pour page dans rendeuse_gabarit.cache_page {
-        détruit_page_gabarit(*page)
+    pour * page dans rendeuse_gabarit.cache_page {
+        détruit_page_gabarit(page)
     }
 
     détruit_catalogue(*rendeuse_gabarit.catalogue)
@@ -38,9 +38,9 @@ détruit_page_gabarit :: fonc (page : *PageGabarit) -> rien
 
 trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -> *PageGabarit
 {
-    pour page dans rendeuse_gabarit.cache_page {
+    pour * page dans rendeuse_gabarit.cache_page {
         si page.fichier.nom_court == nom_court {
-            retourne *page
+            retourne page
         }
     }
 
@@ -93,7 +93,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
         racine = nouvelle_racine
     }
 
-    pour syntaxeuse.inclusions {
+    pour & syntaxeuse.inclusions {
         page_étendue := trouve_dans_cache(rendeuse_gabarit, it.nom)
 
         // À FAIRE : indique que la page est manquante
@@ -117,7 +117,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
 
 remplace_enfant :: fonc (parent: *NoeudSyntaxique, enfant: *NoeudSyntaxique, par: *NoeudSyntaxique)
 {
-    pour parent.enfants {
+    pour & parent.enfants {
         si it == enfant {
             it = par
         }
@@ -145,7 +145,7 @@ remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: []*NoeudSyntax
         retourne
     }
 
-    pour nouvelle_racine.enfants {
+    pour & nouvelle_racine.enfants {
         si it.type == TypeNoeud.BLOC && it.nom != "" {
             pour bloc dans blocs {
                 si it.nom == bloc.nom {

@@ -1308,6 +1308,17 @@ struct GeneratriceCodeC {
 
 			auto numero_inst = static_cast<int>(atome_fonc->params_entrees.taille);
 
+			/* crée une variable local pour la valeur de sortie */
+			if (type_fonction->types_sorties.taille == 1 && !type_fonction->types_sorties[0]->est_rien()) {
+				auto param = atome_fonc->params_sorties[0];
+				auto type_pointeur = param->type->comme_pointeur();
+				os << nom_broye_type(type_pointeur->type_pointe) << ' ';
+				os << broye_nom_simple(param->ident->nom);
+				os << ";\n";
+
+				table_valeurs.insere({ param, "&" + broye_nom_simple(param->ident->nom) });
+			}
+
 			for (auto inst : atome_fonc->instructions) {
 				inst->numero = numero_inst++;
 				genere_code_pour_instruction(inst, os);

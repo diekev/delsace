@@ -85,7 +85,7 @@ principale :: fonc () -> z32
     diffère { détruit_labyrinthe(*labyrinthe) }
 
     // 1. première ligne
-    pour c, idx dans labyrinthe.ligne {
+    pour & c, idx dans labyrinthe.ligne {
         c.position_mur |= PositionMur.HAUT
         c.groupe = 0
     }
@@ -98,7 +98,7 @@ principale :: fonc () -> z32
 
     pour i dans 0 ... labyrinthe.hauteur - 1 {
         // 2. joint les cellules n'étant pas dans un groupe
-        pour c, idx dans labyrinthe.ligne {
+        pour & c, idx dans labyrinthe.ligne {
 
             si c.groupe == 0 {
                 c.groupe = (idx + 1) comme z32
@@ -130,7 +130,7 @@ principale :: fonc () -> z32
             // A. nous ajoutons une ligne
             imprime_ligne(*labyrinthe)
 
-            pour c dans labyrinthe.ligne {
+            pour & c dans labyrinthe.ligne {
                 si (c.position_mur & PositionMur.BAS) != (0 comme PositionMur) {
                     c.groupe = 0
                 }

@@ -25,7 +25,7 @@ détruit_image :: fonc (image: *Image) -> rien
 
 remplis_image :: fonc (image : *Image, couleur: Couleur) -> rien
 {
-    pour pixel dans image.tampon {
+    pour & pixel dans image.tampon {
         pixel = couleur
     }
 }

@@ -147,7 +147,7 @@ init_mem :: fonc(destination : []octet, valeur : z8, taille : z64) -> rien #nulc
 		t = destination.taille
 	}
 
-    pour o, idx dans destination {
+    pour & o, idx dans destination {
 		o = valeur comme octet
 	}
 }

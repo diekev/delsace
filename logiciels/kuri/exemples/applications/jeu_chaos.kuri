@@ -81,7 +81,7 @@ dessine_bmp :: fonc(
 	cannevas := loge_tableau(z8, hauteur * largeur * 4)
 	diffère { déloge(cannevas); }
 
-	pour v dans cannevas {
+	pour & v dans cannevas {
 		v = 255;
 	}
 

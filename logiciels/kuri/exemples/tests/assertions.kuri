@@ -907,7 +907,7 @@ test_modification_tableau_boucle :: fonc () -> bool
 {
     t := [0, 1, 2]
 
-    pour t {
+    pour & t {
         it += 1
     }
 

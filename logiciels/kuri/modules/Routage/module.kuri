@@ -279,7 +279,7 @@ Routeuse :: struct ($T: type_de_données) {
 
 détruit_routeuse :: fonc (routeuse: *Routeuse(T = $T)) -> rien
 {
-    pour routeuse.routes {
+    pour & routeuse.routes {
         déloge(it.règles_routage)
     }
 
@@ -302,7 +302,7 @@ ajoute_route :: fonc (routeuse: *Routeuse(T = $T), chemin: chaine, méthode_get:
 
 apparie_route :: fonc (routeuse: *Routeuse(T = $T), requête: *Requête) -> RésultatRequête
 {
-    pour routeuse.routes {
+    pour & routeuse.routes {
         données := tente apparie_règles_et_route(it.règles_routage, requête.uri.chemin) piège err {
             continue
         }

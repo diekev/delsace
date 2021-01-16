@@ -6,9 +6,9 @@ CatalogueFichier :: struct {
 
 trouve_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine) -> *FichierTexte
 {
-    pour fichier dans catalogue.fichiers {
+    pour * fichier dans catalogue.fichiers {
         si fichier.nom_court == nom_court {
-            retourne *fichier
+            retourne fichier
         }
     }
 
@@ -32,7 +32,7 @@ ajoute_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine, chemin:
 
 détruit_catalogue :: fonc (catalogue: *CatalogueFichier) -> rien
 {
-    pour fichier dans catalogue.fichiers {
+    pour & fichier dans catalogue.fichiers {
         déloge(fichier.données)
     }
 

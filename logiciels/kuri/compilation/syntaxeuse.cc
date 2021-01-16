@@ -1671,6 +1671,15 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 	auto noeud = m_tacheronne.assembleuse->cree_pour(lexeme_courant());
 	consomme();
 
+	if (apparie(GenreLexeme::ESPERLUETTE) || apparie(GenreLexeme::ESP_UNAIRE)) {
+		noeud->prend_reference = true;
+		consomme();
+	}
+	else if (apparie(GenreLexeme::FOIS) || apparie(GenreLexeme::FOIS_UNAIRE)) {
+		noeud->prend_pointeur = true;
+		consomme();
+	}
+
 	auto expression = analyse_expression({}, GenreLexeme::POUR, GenreLexeme::INCONNU);
 
 	if (apparie(GenreLexeme::DANS)) {

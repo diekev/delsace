@@ -584,7 +584,7 @@ crée_hash :: fonc(capacité: z32) -> *Hash
 
     reloge_tableau(h.noeuds, capacité)
 
-    pour noeud dans h.noeuds {
+    pour & noeud dans h.noeuds {
         noeud = nul
     }
 

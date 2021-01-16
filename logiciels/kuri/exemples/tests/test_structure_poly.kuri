@@ -38,7 +38,7 @@ principale :: fonc () -> z32
 
     x : Tablet(N = 5, T = z32)
 
-    pour x.valeurs {
+    pour & x.valeurs {
         it = index_it comme z32
     }
 

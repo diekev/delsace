@@ -244,6 +244,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			static Lexeme lexeme_retourne = { "retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0 };
 			auto expr_ret = m_tacheronne.assembleuse->cree_retour(&lexeme_retourne);
 
+			simplifie_arbre(espace, m_tacheronne.assembleuse, espace->typeuse, noeud_directive->expr);
+
 			if (noeud_directive->expr->type != espace->typeuse[TypeBase::RIEN]) {
 				expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
 				expr_ret->expr = noeud_directive->expr;
@@ -1089,6 +1091,14 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			if (aide_generation_code == -1) {
 				return true;
+			}
+
+			/* il faut attendre de vérifier que le type est itérable avant de prendre cette indication en compte */
+			if (inst->prend_reference) {
+				type = espace->typeuse.type_reference_pour(type);
+			}
+			else if (inst->prend_pointeur) {
+				type = espace->typeuse.type_pointeur_pour(type);
 			}
 
 			noeud->aide_generation_code = aide_generation_code;
@@ -2734,6 +2744,8 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 
 	graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 
+	simplifie_arbre(unite->espace, m_tacheronne.assembleuse, espace->typeuse, entete);
+
 	if (est_corps_texte) {
 		/* Le dreapeaux nulctx est pour la génération de RI de l'entête, donc il
 		 * faut le mettre après avoir validé le corps, la création d'un contexte
@@ -2794,6 +2806,7 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *dec
 	graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
 
 	termine_fonction();
+	simplifie_arbre(unite->espace, m_tacheronne.assembleuse, espace->typeuse, entete);
 	return false;
 }
 
@@ -3258,6 +3271,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	}
 
 	graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
+	simplifie_arbre(unite->espace, m_tacheronne.assembleuse, espace->typeuse, decl);
 	return false;
 }
 
@@ -3519,6 +3533,10 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 		POUR (donnees_assignations) {
 			decl->donnees_decl.ajoute(std::move(it));
 		}
+	}
+
+	if (!fonction_courante) {
+		simplifie_arbre(unite->espace, m_tacheronne.assembleuse, espace->typeuse, decl);
 	}
 
 	return false;

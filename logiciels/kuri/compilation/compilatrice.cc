@@ -169,6 +169,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	for (auto i = 0; i < decl->params.taille; ++i) {
 		auto param = decl->parametre_entree(i);
 		auto atome = constructrice.cree_allocation(decl, param->type, param->ident);
+		param->atome = atome;
 		params.ajoute(atome);
 	}
 
@@ -176,11 +177,13 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	if (decl->params_sorties.taille == 1) {
 		auto param_sortie = decl->params_sorties[0];
 		auto atome = constructrice.cree_allocation(decl, param_sortie->type, param_sortie->ident);
+		param_sortie->atome = atome;
 		params_sortie.ajoute(atome);
 	}
 	else {
 		POUR (decl->params_sorties) {
 			auto atome = constructrice.cree_allocation(decl, typeuse.type_pointeur_pour(it->type, false), it->ident);
+			it->atome = atome;
 			params.ajoute(atome);
 		}
 	}

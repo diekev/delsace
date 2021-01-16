@@ -541,9 +541,9 @@ FonctionParsage :: struct {
  */
 trouve_fonction_pour_type :: fonc (fonctions: []FonctionParsage, info_type: *InfoType) -> *FonctionParsage
 {
-    pour fonctions {
+    pour * fonctions {
         si info_type == it.info_type {
-            retourne *it
+            retourne it
         }
     }
 

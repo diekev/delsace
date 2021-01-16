@@ -147,7 +147,7 @@ enum DrapeauxNoeud : unsigned int {
 	FORCE_SANSTRACE            = (1 << 5), // decl fonction
 	EST_ASSIGNATION_COMPOSEE   = (1 << 6), // operateur binaire
 	EST_VARIADIQUE             = (1 << 7), // decl var
-	/*  DISPONIBLE             = (1 << 8), */
+	EST_IMPLICITE              = (1 << 8), // controle boucle
 	EST_GLOBALE                = (1 << 9), // decl var
 	EST_CONSTANTE              = (1 << 10), // decl var
 	DECLARATION_TYPE_POLYMORPHIQUE = (1 << 11), // decl var
@@ -246,6 +246,9 @@ struct NoeudExpression {
 
 	UniteCompilation *unite = nullptr;
 	NoeudCode *noeud_code = nullptr;
+
+	/* Pour la simplification de l'arbre syntaxique. */
+	NoeudExpression *substitution = nullptr;
 
 	NoeudExpression() = default;
 
@@ -675,6 +678,9 @@ struct NoeudPour : public NoeudExpression {
 	NoeudBloc *bloc_sansarret = nullptr;
 	NoeudBloc *bloc_sinon = nullptr;
 
+	bool prend_reference = false;
+	bool prend_pointeur = false;
+
 	COPIE_CONSTRUCT(NoeudPour);
 };
 
@@ -683,6 +689,19 @@ struct NoeudBoucle : public NoeudExpression {
 
 	NoeudExpression *condition = nullptr;
 	NoeudBloc *bloc = nullptr;
+
+	/* pour la simplification du code des boucles pour */
+
+	/* bloc utilisé pour définir les varibles d'itérations */
+	NoeudBloc *bloc_pre = nullptr;
+
+	/* bloc utilisé pour définir l'incrémentation des variables d'itérations,
+	 * cible de l'instruction « continue » des « pour » */
+	NoeudBloc *bloc_inc = nullptr;
+
+	/* blocs venant directement du bloc pour */
+	NoeudBloc *bloc_sansarret = nullptr;
+	NoeudBloc *bloc_sinon = nullptr;
 
 	COPIE_CONSTRUCT(NoeudBoucle);
 };
@@ -839,7 +858,8 @@ struct NoeudComme : public NoeudExpression {
 
 #undef COMME_NOEUD
 
-void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab);
+void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab, bool substitution = false);
+void imprime_arbre_substitue(NoeudExpression *racine, std::ostream &os, int tab);
 
 NoeudExpression *copie_noeud(
 		AssembleuseArbre *assem,
@@ -854,3 +874,5 @@ struct Etendue {
 };
 
 Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier);
+
+void simplifie_arbre(EspaceDeTravail *espace, AssembleuseArbre *assem, Typeuse &typeuse, NoeudExpression *arbre);

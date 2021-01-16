@@ -226,7 +226,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
         }
     }
 
-    pour page dans paginatrice.pages {
+    pour & page dans paginatrice.pages {
         si page.pointeur != nul {
             déloge(page)
         }

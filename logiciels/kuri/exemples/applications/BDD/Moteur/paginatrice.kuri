@@ -32,7 +32,7 @@ ouvre_paginatrice :: fonc (fichier: chaine) -> *Paginatrice
     paginatrice.descripteur_fichier = fd
     paginatrice.taille_fichier = taille_fichier
 
-    pour page dans paginatrice.pages {
+    pour & page dans paginatrice.pages {
         page.pointeur = nul
     }
 
@@ -45,7 +45,7 @@ ouvre_paginatrice_mémoire :: fonc () -> *Paginatrice
     paginatrice.descripteur_fichier = -1
     paginatrice.taille_fichier = 0
 
-    pour page dans paginatrice.pages {
+    pour & page dans paginatrice.pages {
         page.pointeur = nul
     }
 

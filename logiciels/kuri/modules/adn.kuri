@@ -75,7 +75,7 @@ décode_adn :: fonc(valeurs : []octet) -> chaine
 // remplacée par sa paire.
 appariement :: fonc(chn : []octet) -> rien
 {
-    pour v dans chn {
+    pour & v dans chn {
         discr v {
 			'a' { v = 't' comme octet }
 			'c' { v = 'g' comme octet }

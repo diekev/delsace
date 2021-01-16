@@ -94,7 +94,7 @@ principale :: fonc () -> z32
     facteur : n32 = 0
 
     boucle {
-        pour slots {
+        pour & slots {
             it = faux
         }
 

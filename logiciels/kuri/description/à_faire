@@ -35,11 +35,6 @@ kuri_ref_contexte
 -- dépend sur la normalisation des types
 kuri_reusinage_atomes
 -- inutile ?
-kuri_simplification_arbre
--- discr à finir
--- implémentation de la logique pour simplifier les globales
--- ajout de tâches pour la génération des messages, les fonctions devant attendre qu'un message fut envoyé avant de pouvoir simplifier l'arbre et générer la RI
--- ajout de tâches pour avant la génération de la RI
 
 // --------------------------- Compilatrice
 
@@ -416,7 +411,6 @@ avoir un bon système d'appariement de motif :
 // --------------------------- Boucles
 
 - amélioration boucle pour :
--- obtenir un pointeur via : pour * ...
 -- inverse la direction via : pour inverse ...
 -- controle la condition finale via : pour <= ...
 -- itération sur plusieurs variables de même type
@@ -562,14 +556,6 @@ considération des assertions statiques lors de la compilation de plusieurs espa
 - ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés (pour permettre les emplois d'énumérations)
 - vérifie les appels superflux à empile_valeur (expr appel, transforme valeur)
 - considère supprimer noeud_expression_appel::noeud_déclaration_appel (surécris appele?)
-- transforme l'arbre syntaxique pour simplifier la validation sémantique ou la génération de RI (p.e. : remplace les boucles par des boucles pour) ?
----- a += 1 -> a = a + 1
----- a + b, où + est un opérateur surchargé -> appel(a, b)
----- -a, où - est un opérateur surchargé -> appel(a)
----- #cuisine -> référence déclaration pour prendre un pointeur vers la fonction
----- #exécute -> crée une constante pour le résultat
----- #si -> insère bloc de code exécuté
-
 
 À faire (architecture)
 ----------------------

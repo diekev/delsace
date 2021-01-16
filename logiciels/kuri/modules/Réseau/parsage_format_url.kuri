@@ -65,9 +65,9 @@ InfoDonnées :: struct {
 /* fonction auxilliaire pour l'algorithme de parsage */
 trouve_info_données :: fonc (infos: []InfoDonnées, nom: chaine) -> *InfoDonnées
 {
-    pour infos {
+    pour * infos {
         si it.info.nom == nom {
-            retourne *it
+            retourne it
         }
     }
 
