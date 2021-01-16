@@ -5,8 +5,6 @@ trouve comment prendre la chaine d'une expression (pour les assertions lors de l
 
 // compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
 
-permet l'utilisation d'expressions non-blocs pour les si/saufsi
-
 crash dans les exécutables quand nous prenont l'adresse d'une référence
 crash quand nous paniquons sur un membre non-actif d'une union
 
@@ -553,7 +551,6 @@ considération des assertions statiques lors de la compilation de plusieurs espa
 
 - ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés (pour permettre les emplois d'énumérations)
 - vérifie les appels superflux à empile_valeur (expr appel, transforme valeur)
-- considère supprimer noeud_expression_appel::noeud_déclaration_appel (surécris appele?)
 
 À faire (architecture)
 ----------------------
