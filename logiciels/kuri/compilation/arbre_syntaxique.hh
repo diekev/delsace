@@ -680,6 +680,7 @@ struct NoeudPour : public NoeudExpression {
 
 	bool prend_reference = false;
 	bool prend_pointeur = false;
+	GenreLexeme lexeme_op = GenreLexeme::INFERIEUR;
 
 	COPIE_CONSTRUCT(NoeudPour);
 };

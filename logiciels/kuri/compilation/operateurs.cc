@@ -763,6 +763,9 @@ void enregistre_operateurs_basiques(
 			if (op == GenreLexeme::PLUS) {
 				type->operateur_ajt = operateur;
 			}
+			else if (op == GenreLexeme::MOINS) {
+				type->operateur_sst = operateur;
+			}
 		}
 
 		for (auto type : types_entiers_naturels) {
@@ -771,6 +774,9 @@ void enregistre_operateurs_basiques(
 			if (op == GenreLexeme::PLUS) {
 				type->operateur_ajt = operateur;
 			}
+			else if (op == GenreLexeme::MOINS) {
+				type->operateur_sst = operateur;
+			}
 		}
 
 		for (auto type : types_reels) {
@@ -778,6 +784,9 @@ void enregistre_operateurs_basiques(
 
 			if (op == GenreLexeme::PLUS) {
 				type->operateur_ajt = operateur;
+			}
+			else if (op == GenreLexeme::MOINS) {
+				type->operateur_sst = operateur;
 			}
 		}
 
@@ -795,6 +804,12 @@ void enregistre_operateurs_basiques(
 			else if (op == GenreLexeme::SUPERIEUR_EGAL) {
 				type->operateur_seg = operateur;
 			}
+			else if (op == GenreLexeme::INFERIEUR) {
+				type->operateur_inf = operateur;
+			}
+			else if (op == GenreLexeme::INFERIEUR_EGAL) {
+				type->operateur_ieg = operateur;
+			}
 		}
 
 		for (auto type : types_entiers_naturels) {
@@ -806,6 +821,12 @@ void enregistre_operateurs_basiques(
 			else if (op == GenreLexeme::SUPERIEUR_EGAL) {
 				type->operateur_seg = operateur;
 			}
+			else if (op == GenreLexeme::INFERIEUR) {
+				type->operateur_inf = operateur;
+			}
+			else if (op == GenreLexeme::INFERIEUR_EGAL) {
+				type->operateur_ieg = operateur;
+			}
 		}
 
 		for (auto type : types_reels) {
@@ -816,6 +837,12 @@ void enregistre_operateurs_basiques(
 			}
 			else if (op == GenreLexeme::SUPERIEUR_EGAL) {
 				type->operateur_seg = operateur;
+			}
+			else if (op == GenreLexeme::INFERIEUR) {
+				type->operateur_inf = operateur;
+			}
+			else if (op == GenreLexeme::INFERIEUR_EGAL) {
+				type->operateur_ieg = operateur;
 			}
 		}
 

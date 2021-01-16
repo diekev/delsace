@@ -411,8 +411,6 @@ avoir un bon système d'appariement de motif :
 // --------------------------- Boucles
 
 - amélioration boucle pour :
--- inverse la direction via : pour inverse ...
--- controle la condition finale via : pour <= ...
 -- itération sur plusieurs variables de même type
 ---- pour chn1, chn2 { ... }, la variable implicite sera un type produit accédé via it.N où N est un nombre
 

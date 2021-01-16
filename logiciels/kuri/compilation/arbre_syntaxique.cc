@@ -1933,6 +1933,28 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 	return;
 }
 
+static OperateurBinaire const *operateur_pour_lexeme(GenreLexeme lexeme_op, Type *type, bool plage)
+{
+	/* NOTE : les opérateurs sont l'inverse de ce qu'indique les lexèmes car la condition est inversée. */
+	if (lexeme_op == GenreLexeme::INFERIEUR) {
+		if (plage) {
+			return type->operateur_sup;
+		}
+
+		return type->operateur_seg;
+	}
+
+	if (lexeme_op == GenreLexeme::SUPERIEUR) {
+		if (plage) {
+			return type->operateur_inf;
+		}
+
+		return type->operateur_ieg;
+	}
+
+	return nullptr;
+}
+
 void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 {
 	simplifie(inst->bloc);
@@ -1984,6 +2006,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 	boucle->bloc_pre = bloc_pre;
 	boucle->bloc_inc = bloc_inc;
 
+	auto const inverse_boucle = inst->lexeme_op == GenreLexeme::SUPERIEUR;
+
 	/* boucle */
 
 	switch (inst->aide_generation_code) {
@@ -2019,21 +2043,32 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 			simplifie(expr_plage->expr1);
 			simplifie(expr_plage->expr2);
 
-			auto init_it = assem->cree_assignation(ref_it->lexeme, ref_it, expr_plage->expr1);
+			auto expr_debut = inverse_boucle ? expr_plage->expr2 : expr_plage->expr1;
+			auto expr_fin   = inverse_boucle ? expr_plage->expr1 : expr_plage->expr2;
+
+			auto init_it = assem->cree_assignation(ref_it->lexeme, ref_it, expr_debut);
 			bloc_pre->expressions->ajoute(init_it);
 
-			condition->condition = assem->cree_op_binaire(inst->lexeme, ref_it->type->operateur_sup, ref_it, expr_plage->expr2);
+			auto op_comp = operateur_pour_lexeme(inst->lexeme_op, ref_it->type, true);
+			condition->condition = assem->cree_op_binaire(inst->lexeme, op_comp, ref_it, expr_fin);
 			boucle->bloc->expressions->ajoute(condition);
 
 			/* corps */
 			boucle->bloc->expressions->ajoute(bloc);
 
 			/* suivant */
-			auto inc_it = assem->cree_incrementation(ref_it->lexeme, ref_it);
+			if (inverse_boucle) {
+				auto inc_it = assem->cree_decrementation(ref_it->lexeme, ref_it);
+				bloc_inc->expressions->ajoute(inc_it);
+			}
+			else {
+				auto inc_it = assem->cree_incrementation(ref_it->lexeme, ref_it);
+				bloc_inc->expressions->ajoute(inc_it);
+			}
+
+			auto inc_it = assem->cree_incrementation(ref_index->lexeme, ref_index);
 			bloc_inc->expressions->ajoute(inc_it);
 
-			inc_it = assem->cree_incrementation(ref_index->lexeme, ref_index);
-			bloc_inc->expressions->ajoute(inc_it);
 			break;
 		}
 		case GENERE_BOUCLE_TABLEAU:
@@ -2093,7 +2128,14 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 				expr_pointeur = assem->cree_acces_membre(inst->lexeme, expression_iteree, type_compose->membres[0].type, 0);
 			}
 
-			auto indexage = assem->cree_indexage(inst->lexeme, expr_pointeur, ref_index, true);
+			NoeudExpression *expr_index = ref_index;
+
+			if (inverse_boucle) {
+				expr_index = assem->cree_op_binaire(inst->lexeme, ref_index->type->operateur_sst, expr_taille, ref_index);
+				expr_index = assem->cree_op_binaire(inst->lexeme, ref_index->type->operateur_sst, expr_index, assem->cree_lit_entier(ref_index->lexeme, ref_index->type, 1));
+			}
+
+			auto indexage = assem->cree_indexage(inst->lexeme, expr_pointeur, expr_index, true);
 			NoeudExpression *expression_assignee = indexage;
 
 			if (inst->prend_reference || inst->prend_pointeur) {

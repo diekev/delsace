@@ -1666,19 +1666,68 @@ NoeudDeclarationVariable *Syntaxeuse::cree_declaration(Lexeme *lexeme)
 	return cree_declaration_pour_ref(ref);
 }
 
+void Syntaxeuse::analyse_specifiants_instruction_pour(NoeudPour *noeud)
+{
+	bool eu_direction = false;
+
+	while (true) {
+		switch (lexeme_courant()->genre) {
+			default:
+			{
+				return;
+			}
+			case GenreLexeme::ESPERLUETTE:
+			case GenreLexeme::ESP_UNAIRE:
+			{
+				if (noeud->prend_reference) {
+					lance_erreur("redéfinition d'une prise de référence");
+				}
+
+				if (noeud->prend_pointeur) {
+					lance_erreur("définition d'une prise de référence alors qu'une prise de pointeur fut spécifiée");
+				}
+
+				noeud->prend_reference = true;
+				consomme();
+				break;
+			}
+			case GenreLexeme::FOIS:
+			case GenreLexeme::FOIS_UNAIRE:
+			{
+				if (noeud->prend_pointeur) {
+					lance_erreur("redéfinition d'une prise de pointeur");
+				}
+
+				if (noeud->prend_reference) {
+					lance_erreur("définition d'une prise de pointeur alors qu'une prise de référence fut spécifiée");
+				}
+
+				noeud->prend_pointeur = true;
+				consomme();
+				break;
+			}
+			case GenreLexeme::INFERIEUR:
+			case GenreLexeme::SUPERIEUR:
+			{
+				if (eu_direction) {
+					lance_erreur("redéfinition d'une direction alors qu'une autre a déjà été spécifiée");
+				}
+
+				noeud->lexeme_op = lexeme_courant()->genre;
+				eu_direction = true;
+				consomme();
+				break;
+			}
+		}
+	}
+}
+
 NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 {
 	auto noeud = m_tacheronne.assembleuse->cree_pour(lexeme_courant());
 	consomme();
 
-	if (apparie(GenreLexeme::ESPERLUETTE) || apparie(GenreLexeme::ESP_UNAIRE)) {
-		noeud->prend_reference = true;
-		consomme();
-	}
-	else if (apparie(GenreLexeme::FOIS) || apparie(GenreLexeme::FOIS_UNAIRE)) {
-		noeud->prend_pointeur = true;
-		consomme();
-	}
+	analyse_specifiants_instruction_pour(noeud);
 
 	auto expression = analyse_expression({}, GenreLexeme::POUR, GenreLexeme::INCONNU);
 

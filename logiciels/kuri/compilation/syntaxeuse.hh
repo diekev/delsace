@@ -39,6 +39,7 @@ struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct NoeudExpressionReference;
 struct NoeudExpressionVirgule;
+struct NoeudPour;
 struct NoeudStruct;
 struct Tacheronne;
 struct UniteCompilation;
@@ -155,6 +156,7 @@ private:
 	NoeudExpression *analyse_instruction_boucle();
 	NoeudExpression *analyse_instruction_discr();
 	NoeudExpression *analyse_instruction_pour();
+	void analyse_specifiants_instruction_pour(NoeudPour *noeud);
 	NoeudExpression *analyse_instruction_pousse_contexte();
 	NoeudExpression *analyse_instruction_repete();
 	NoeudExpression *analyse_instruction_si(GenreNoeud genre_noeud);

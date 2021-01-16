@@ -200,8 +200,11 @@ struct Type {
 
 	/* À FAIRE : ces opérateurs ne sont que pour la simplification du code, nous devrions les généraliser */
 	OperateurBinaire *operateur_ajt = nullptr;
+	OperateurBinaire *operateur_sst = nullptr;
 	OperateurBinaire *operateur_sup = nullptr;
 	OperateurBinaire *operateur_seg = nullptr;
+	OperateurBinaire *operateur_inf = nullptr;
+	OperateurBinaire *operateur_ieg = nullptr;
 	OperateurBinaire *operateur_egt = nullptr;
 
 	POINTEUR_NUL(Type)

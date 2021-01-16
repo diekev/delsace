@@ -356,6 +356,27 @@ NoeudAssignation *AssembleuseArbre::cree_incrementation(const Lexeme *lexeme, No
 	return cree_assignation(valeur->lexeme, valeur, inc);
 }
 
+NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme, NoeudExpression *valeur)
+{
+	auto type = valeur->type;
+
+	auto inc = cree_op_binaire(lexeme);
+	inc->op = type->operateur_sst;
+	assert(inc->op);
+	inc->expr1 = valeur;
+	inc->type = type;
+
+	if (est_type_entier(type)) {
+		inc->expr2 = cree_lit_entier(valeur->lexeme, type, 1);
+	}
+	else if (type->est_reel()) {
+		// À FAIRE : r16
+		inc->expr2 = cree_lit_reel(valeur->lexeme, type, 1.0);
+	}
+
+	return cree_assignation(valeur->lexeme, valeur, inc);
+}
+
 NoeudPour *AssembleuseArbre::cree_pour(const Lexeme *lexeme)
 {
 	return cree_noeud(GenreNoeud::INSTRUCTION_POUR, lexeme)->comme_pour();
