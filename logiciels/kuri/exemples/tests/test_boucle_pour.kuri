@@ -43,5 +43,23 @@ principale :: fonc () -> z32
 
 	boucle_avec_tableau(tableau);
 
-	retourne 0;
+    tabl : [10]z32
+
+    pour < 0 ... 9 {
+        tabl[index_it] = it
+    }
+
+    imprime("proitération :\n")
+
+    pour tabl {
+        imprime("% : %\n", index_it, it)
+    }
+
+    imprime("rétroitération :\n")
+
+    pour > tabl {
+        imprime("% : %\n", index_it, it)
+    }
+
+    retourne 0
 }
