@@ -1,0 +1,24 @@
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    Énum :: énum {
+        X
+        Y
+        Z
+        W
+    }
+
+    imprime("énum.nombre_éléments %\n", Énum.nombre_éléments)
+
+    imprime("%\n", SYS_EXP)
+
+    #si SYS_EXP == SystèmeExploitation.LINUX {
+        imprime("nous ne sommes pas sur linux !\n")
+    }
+    sinon {
+        imprime("nous sommes sur linux !\n")
+    }
+
+    retourne 0
+}

@@ -55,6 +55,7 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/tests/test_couleur_terminal.kuri" \
           "exemples/tests/test_dessin_texte.kuri" \
           "exemples/tests/test_emploi.kuri" \
+          "exemples/tests/test_énum.kuri" \
           "exemples/tests/test_énum_drapeau.kuri" \
           "exemples/tests/test_erreur.kuri" \
           "exemples/tests/test_logement.kuri" \
