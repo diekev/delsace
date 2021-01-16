@@ -442,6 +442,11 @@ dls::chaine broye_nom_fonction(
 				enchaineuse << "oux";
 				break;
 			}
+			case GenreLexeme::CROCHET_OUVRANT:
+			{
+				enchaineuse << "oux";
+				break;
+			}
 		}
 	}
 	else {

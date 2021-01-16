@@ -360,6 +360,7 @@ static octet_t converti_op_binaire(OperateurBinaire::Genre genre)
 			return OP_DEC_DROITE_LOGIQUE;
 		}
 		case OperateurBinaire::Genre::Invalide:
+		case OperateurBinaire::Genre::Indexage:
 		{
 			return static_cast<octet_t>(-1);
 		}

@@ -62,6 +62,11 @@ longueur_carrée :: fonc (u: Vec3) -> r32
     mémoire(tri1) = tmp
 }
 
+opérateur [] :: fonc (v: Vec3, index: z64) -> r32
+{
+	retourne (*v.x)[index]
+}
+
 opérateur - :: fonc (v: Vec3) -> Vec3
 {
     retourne Vec3(x = -v.x, y = -v.y, z = -v.z)

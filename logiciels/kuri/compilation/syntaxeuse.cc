@@ -145,6 +145,7 @@ static bool est_operateur_surchargeable(GenreLexeme genre)
 		case GenreLexeme::TILDE:
 		case GenreLexeme::EXCLAMATION:
 		case GenreLexeme::CHAPEAU:
+		case GenreLexeme::CROCHET_OUVRANT:
 		{
 			return true;
 		}
@@ -2261,6 +2262,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	}
 
 	consomme();
+
+	if (genre_operateur == GenreLexeme::CROCHET_OUVRANT) {
+		consomme(GenreLexeme::CROCHET_FERMANT, "Attendu ']' après '[' pour la déclaration de l'opérateur");
+	}
 
 	// :: fonc
 	consomme(GenreLexeme::DECLARATION_CONSTANTE, "Attendu :: après la déclaration de l'opérateur");

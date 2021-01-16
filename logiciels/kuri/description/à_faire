@@ -10,7 +10,6 @@ crash quand nous paniquons sur un membre non-actif d'une union
 
 erreur de compilation si nous définissons une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
 
--- opérateur []
 -- travail sur les itérateurs (via macros comme JAI?)
 
 // --------------------------- Branches

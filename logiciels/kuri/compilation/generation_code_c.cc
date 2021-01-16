@@ -1043,6 +1043,7 @@ struct GeneratriceCodeC {
 						break;
 					}
 					case OperateurBinaire::Genre::Invalide:
+					case OperateurBinaire::Genre::Indexage:
 					{
 						os << " invalide ";
 						break;

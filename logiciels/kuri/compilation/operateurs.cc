@@ -165,6 +165,10 @@ static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 			}
 			return OperateurBinaire::Genre::Comp_Inegal;
 		}
+		case GenreLexeme::CROCHET_OUVRANT:
+		{
+			return OperateurBinaire::Genre::Indexage;
+		}
 		default:
 		{
 			return OperateurBinaire::Genre::Invalide;
@@ -382,6 +386,7 @@ const char *chaine_pour_genre_op(OperateurBinaire::Genre genre)
 		{
 			return "decdl";
 		}
+		case OperateurBinaire::Genre::Indexage:
 		case OperateurBinaire::Genre::Invalide:
 		{
 			return "invalide";

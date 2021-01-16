@@ -804,6 +804,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto enfant1 = expr->expr1;
 			auto enfant2 = expr->expr2;
 			auto type1 = enfant1->type;
+			auto type2 = enfant2->type;
 
 			if (type1->genre == GenreType::REFERENCE) {
 				transtype_si_necessaire(expr->expr1, TypeTransformation::DEREFERENCE);
@@ -858,11 +859,40 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 				default:
 				{
-					dls::flux_chaine ss;
-					ss << "Le type '" << chaine_type(type1)
-					   << "' ne peut être déréférencé par opérateur[] !";
-					rapporte_erreur(ss.chn().c_str(), noeud, erreur::Genre::TYPE_DIFFERENTS);
-					return true;
+					auto candidats = dls::tablet<OperateurCandidat, 10>();
+					if (cherche_candidats_operateurs(*espace, *this, type1, type2, GenreLexeme::CROCHET_OUVRANT, candidats)) {
+						return true;
+					}
+					auto meilleur_candidat = OperateurCandidat::nul_const();
+					auto poids = 0.0;
+
+					for (auto const &candidat : candidats) {
+						if (candidat.poids > poids) {
+							poids = candidat.poids;
+							meilleur_candidat = &candidat;
+						}
+					}
+
+					if (meilleur_candidat == nullptr) {
+						unite->attend_sur_operateur(noeud);
+						return true;
+					}
+
+					expr->type = meilleur_candidat->op->type_resultat;
+					expr->op = meilleur_candidat->op;
+					expr->permute_operandes = meilleur_candidat->permute_operandes;
+
+					transtype_si_necessaire(expr->expr1, meilleur_candidat->transformation_type1);
+					transtype_si_necessaire(expr->expr2, meilleur_candidat->transformation_type2);
+
+					if (!expr->op->est_basique) {
+						auto decl_op = expr->op->decl;
+						donnees_dependance.fonctions_utilisees.insere(decl_op);
+
+						if (decl_op->corps->unite == nullptr) {
+							m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl_op->corps);
+						}
+					}
 				}
 			}
 

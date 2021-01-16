@@ -105,7 +105,8 @@ const char *chaine_pour_genre_op(OperateurUnaire::Genre genre);
 	ENUMERE_GENRE_OPBINAIRE_EX(Ou_Exclusif) \
 	ENUMERE_GENRE_OPBINAIRE_EX(Dec_Gauche) \
 	ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Arithm) \
-	ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Logique)
+	ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Logique) \
+	ENUMERE_GENRE_OPBINAIRE_EX(Indexage)
 
 struct OperateurBinaire {
 	enum class Genre : char {

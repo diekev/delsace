@@ -1893,6 +1893,11 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			auto indexage = noeud->comme_indexage();
 			simplifie(indexage->expr1);
 			simplifie(indexage->expr2);
+
+			if (indexage->op) {
+				indexage->substitution = simplifie_operateur_binaire(indexage, true);
+			}
+
 			return;
 		}
 		case GenreNoeud::DECLARATION_STRUCTURE:

@@ -105,6 +105,7 @@ static auto inst_llvm_depuis_operateur(OperateurBinaire::Genre genre)
 		case Genre::Comp_Inf_Egal_Reel:
 		case Genre::Comp_Sup_Reel:
 		case Genre::Comp_Sup_Egal_Reel:
+		case Genre::Indexage:
 			break;
 	}
 
@@ -150,6 +151,7 @@ static auto cmp_llvm_depuis_operateur(OperateurBinaire::Genre genre)
 		case Genre::Dec_Gauche:
 		case Genre::Dec_Droite_Arithm:
 		case Genre::Dec_Droite_Logique:
+		case Genre::Indexage:
 			break;
 	}
 
