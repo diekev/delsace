@@ -234,3 +234,13 @@ ppmc :: fonc(a : z32, b : z32) -> z32
 
 	retourne abs(a * b) / pgcd(a, b)
 }
+
+surarrondis_vers_multiple :: fonc (n: $T, multiple: T) -> T
+{
+    retourne ((n + multiple - 1) / multiple) * multiple
+}
+
+sousarrondis_vers_multiple :: fonc (n: $T, multiple: T) -> T
+{
+    retourne (n / multiple) * multiple
+}
