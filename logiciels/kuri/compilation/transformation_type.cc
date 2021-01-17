@@ -165,6 +165,12 @@ bool cherche_transformation(
 			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
 			return false;
 		}
+
+		if (type_de->est_opaque() && type_vers == type_de->comme_opaque()->type_opacifie) {
+			// on pourrait se passer de la conversion, ou normaliser le type
+			transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+			return false;
+		}
 	}
 
 	if (type_de->genre == GenreType::ENTIER_CONSTANT && type_vers->genre == GenreType::ENUM) {
