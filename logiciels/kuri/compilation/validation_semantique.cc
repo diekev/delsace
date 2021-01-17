@@ -3316,7 +3316,7 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 			return true;
 		}
 
-		auto type_opaque = espace->typeuse.cree_opaque(decl->ident, type_opacifie);
+		auto type_opaque = espace->typeuse.cree_opaque(decl, type_opacifie);
 		decl->type = type_opaque;
 		decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 		return false;

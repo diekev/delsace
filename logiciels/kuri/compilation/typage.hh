@@ -40,6 +40,7 @@ struct IdentifiantCode;
 struct InfoType;
 struct Operateurs;
 struct OperateurBinaire;
+struct NoeudDeclarationVariable;
 struct NoeudDependance;
 struct NoeudEnum;
 struct NoeudExpression;
@@ -448,12 +449,16 @@ struct TypePolymorphique : public Type {
 struct TypeOpaque : public Type {
 	TypeOpaque() { genre = GenreType::OPAQUE; }
 
-	TypeOpaque(IdentifiantCode *ident_, Type *opacifie);
+	TypeOpaque(NoeudDeclarationVariable *decl_, Type *opacifie);
 
 	COPIE_CONSTRUCT(TypeOpaque);
 
+	NoeudDeclarationVariable *decl = nullptr;
 	IdentifiantCode *ident = nullptr;
 	Type *type_opacifie = nullptr;
+	dls::chaine nom_portable_ = "";
+
+	dls::chaine const &nom_portable();
 };
 
 /* ************************************************************************** */
@@ -637,7 +642,7 @@ struct Typeuse {
 
 	TypePolymorphique *cree_polymorphique(IdentifiantCode *ident);
 
-	TypeOpaque *cree_opaque(IdentifiantCode *ident, Type *type_opacifie);
+	TypeOpaque *cree_opaque(NoeudDeclarationVariable *decl, Type *type_opacifie);
 
 	inline Type *operator[](TypeBase type_base) const
 	{

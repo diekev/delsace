@@ -280,7 +280,8 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 		}
 		case GenreType::OPAQUE:
 		{
-			enchaineuse << "Ks" << type->comme_opaque()->ident->nom;
+			enchaineuse << "Ks";
+			broye_nom_simple(enchaineuse, type->comme_opaque()->nom_portable());
 			break;
 		}
 	}

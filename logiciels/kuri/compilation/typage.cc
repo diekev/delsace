@@ -332,10 +332,11 @@ TypePolymorphique::TypePolymorphique(IdentifiantCode *ident_)
 	this->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
 }
 
-TypeOpaque::TypeOpaque(IdentifiantCode *ident_, Type *opacifie)
+TypeOpaque::TypeOpaque(NoeudDeclarationVariable *decl_, Type *opacifie)
 	: TypeOpaque()
 {
-	this->ident = ident_;
+	this->decl = decl_;
+	this->ident = decl_->ident;
 	this->type_opacifie = opacifie;
 	this->drapeaux |= TYPE_FUT_VALIDE;
 }
@@ -965,9 +966,9 @@ TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
 	return types_polymorphiques_->ajoute_element(ident);
 }
 
-TypeOpaque *Typeuse::cree_opaque(IdentifiantCode *ident, Type *type_opacifie)
+TypeOpaque *Typeuse::cree_opaque(NoeudDeclarationVariable *decl, Type *type_opacifie)
 {
-	auto type = types_opaques->ajoute_element(ident, type_opacifie);
+	auto type = types_opaques->ajoute_element(decl, type_opacifie);
 	graphe_->connecte_type_type(type, type_opacifie);
 	return type;
 }
@@ -1533,5 +1534,15 @@ const dls::chaine &TypeEnum::nom_portable()
 	}
 
 	nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom->nom);
+	return nom_portable_;
+}
+
+const dls::chaine &TypeOpaque::nom_portable()
+{
+	if (nom_portable_ != "") {
+		return nom_portable_;
+	}
+
+	nom_portable_ = ::nom_portable(decl->bloc_parent, ident->nom);
 	return nom_portable_;
 }
