@@ -1529,6 +1529,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			if (type->genre == GenreType::UNION && type->comme_union()->est_anonyme) {
 				// vérifie que tous les membres sont discriminés
 				auto type_union = type->comme_union();
+				inst->op = espace->typeuse[TypeBase::Z32]->operateur_egt;
 
 				auto membres_rencontres = dls::ensemblon<Type *, 16>();
 
@@ -1581,6 +1582,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			else if (type->genre == GenreType::UNION) {
 				auto type_union = type->comme_union();
 				auto decl = type_union->decl;
+				inst->op = espace->typeuse[TypeBase::Z32]->operateur_egt;
 
 				if (decl->est_nonsure) {
 					rapporte_erreur("« discr » ne peut prendre une union nonsûre", expression);

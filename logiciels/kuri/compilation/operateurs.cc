@@ -815,6 +815,9 @@ void enregistre_operateurs_basiques(
 			else if (op == GenreLexeme::INFERIEUR_EGAL) {
 				type->operateur_ieg = operateur;
 			}
+			else if (op == GenreLexeme::EGALITE) {
+				type->operateur_egt = operateur;
+			}
 		}
 
 		for (auto type : types_entiers_naturels) {
@@ -832,6 +835,9 @@ void enregistre_operateurs_basiques(
 			else if (op == GenreLexeme::INFERIEUR_EGAL) {
 				type->operateur_ieg = operateur;
 			}
+			else if (op == GenreLexeme::EGALITE) {
+				type->operateur_egt = operateur;
+			}
 		}
 
 		for (auto type : types_reels) {
@@ -848,6 +854,9 @@ void enregistre_operateurs_basiques(
 			}
 			else if (op == GenreLexeme::INFERIEUR_EGAL) {
 				type->operateur_ieg = operateur;
+			}
+			else if (op == GenreLexeme::EGALITE) {
+				type->operateur_egt = operateur;
 			}
 		}
 
