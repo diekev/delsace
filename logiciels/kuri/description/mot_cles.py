@@ -65,6 +65,7 @@ mot_cles = [
 	u'init_de',
 	u'type_de_données',
 	u'définis',
+	u'reprends',
 ]
 
 mot_cles = sorted(mot_cles)

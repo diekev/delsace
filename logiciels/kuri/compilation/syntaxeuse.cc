@@ -606,6 +606,7 @@ bool Syntaxeuse::apparie_instruction() const
 		case GenreLexeme::POUR:
 		case GenreLexeme::POUSSE_CONTEXTE:
 		case GenreLexeme::REPETE:
+		case GenreLexeme::REPRENDS:
 		case GenreLexeme::RETIENS:
 		case GenreLexeme::RETOURNE:
 		case GenreLexeme::SAUFSI:
@@ -1384,6 +1385,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 		}
 		case GenreLexeme::ARRETE:
 		case GenreLexeme::CONTINUE:
+		case GenreLexeme::REPRENDS:
 		{
 			auto noeud = m_tacheronne.assembleuse->cree_controle_boucle(lexeme);
 			consomme();

@@ -510,9 +510,9 @@ AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *
 	return accede_index_constants.ajoute_element(type, accede, index);
 }
 
-void ConstructriceRI::empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_arrete, InstructionLabel *label_arrete_implicite)
+void ConstructriceRI::empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_reprends, InstructionLabel *label_arrete, InstructionLabel *label_arrete_implicite)
 {
-	insts_continue_arrete.ajoute({ ident, label_continue, label_arrete, label_arrete_implicite });
+	insts_continue_arrete.ajoute({ ident, label_continue, label_reprends, label_arrete, label_arrete_implicite });
 }
 
 void ConstructriceRI::depile_controle_boucle()
@@ -1175,7 +1175,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				label_pour_arret = label_apres_boucle;
 			}
 
-			empile_controle_boucle(boucle->ident, label_pour_continue, label_pour_arret, label_pour_arret_implicite);
+			empile_controle_boucle(boucle->ident, label_pour_continue, label_boucle, label_pour_arret, label_pour_arret_implicite);
 
 			if (boucle->bloc_pre) {
 				genere_ri_pour_noeud(boucle->bloc_pre);
@@ -1228,6 +1228,9 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				if (inst->lexeme->genre == GenreLexeme::CONTINUE) {
 					label = insts_continue_arrete.back().label_continue;
 				}
+				else if (inst->lexeme->genre == GenreLexeme::REPRENDS) {
+					label = insts_continue_arrete.back().label_reprends;
+				}
 				else if (inst->possede_drapeau(EST_IMPLICITE)) {
 					label = insts_continue_arrete.back().label_arrete_implicite;
 				}
@@ -1245,6 +1248,9 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 					if (inst->lexeme->genre == GenreLexeme::CONTINUE) {
 						label = it.label_continue;
+					}
+					else if (inst->lexeme->genre == GenreLexeme::REPRENDS) {
+						label = it.label_reprends;
 					}
 					else if (inst->possede_drapeau(EST_IMPLICITE)) {
 						label = it.label_arrete_implicite;

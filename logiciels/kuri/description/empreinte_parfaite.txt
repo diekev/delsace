@@ -52,6 +52,7 @@ struct EntreeTable {  const char *nom; GenreLexeme genre;  };
 "r16", GenreLexeme::R16
 "r32", GenreLexeme::R32
 "r64", GenreLexeme::R64
+"reprends", GenreLexeme::REPRENDS
 "retiens", GenreLexeme::RETIENS
 "retourne", GenreLexeme::RETOURNE
 "rien", GenreLexeme::RIEN

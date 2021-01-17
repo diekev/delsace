@@ -249,6 +249,8 @@ const char *chaine_du_genre_de_lexeme(GenreLexeme id)
 			return "GenreLexeme::R32";
 		case GenreLexeme::R64:
 			return "GenreLexeme::R64";
+		case GenreLexeme::REPRENDS:
+			return "GenreLexeme::REPRENDS";
 		case GenreLexeme::RETIENS:
 			return "GenreLexeme::RETIENS";
 		case GenreLexeme::RETOURNE:
@@ -520,6 +522,8 @@ const char *chaine_du_lexeme(GenreLexeme genre)
 			return "r32";
 		case GenreLexeme::R64:
 			return "r64";
+		case GenreLexeme::REPRENDS:
+			return "reprends";
 		case GenreLexeme::RETIENS:
 			return "retiens";
 		case GenreLexeme::RETOURNE:

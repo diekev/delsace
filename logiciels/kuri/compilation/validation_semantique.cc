@@ -1280,7 +1280,18 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			if (ok == false) {
 				if (chaine_var == nullptr) {
-					rapporte_erreur("'continue' ou 'arrête' en dehors d'une boucle", noeud, erreur::Genre::CONTROLE_INVALIDE);
+					if (inst->lexeme->genre == GenreLexeme::CONTINUE) {
+						rapporte_erreur("'continue' en dehors d'une boucle", noeud, erreur::Genre::CONTROLE_INVALIDE);
+						return true;
+					}
+					else if (inst->lexeme->genre == GenreLexeme::ARRETE) {
+						rapporte_erreur("'arrête' en dehors d'une boucle", noeud, erreur::Genre::CONTROLE_INVALIDE);
+						return true;
+					}
+					else if (inst->lexeme->genre == GenreLexeme::REPRENDS) {
+						rapporte_erreur("'reprends' en dehors d'une boucle", noeud, erreur::Genre::CONTROLE_INVALIDE);
+						return true;
+					}
 					return true;
 				}
 

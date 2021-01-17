@@ -37,7 +37,7 @@
         },
         "control-keyword": {
             "name": "keyword.control.kuri",
-            "match": "\\b(définis|retourne|retiens|si|saufsi|sinon|boucle|tantque|répète|pour|dans|arrête|continue|discr|sansarrêt|diffère|pousse_contexte|tente|piège|nonatteignable)\\b"
+            "match": "\\b(définis|retourne|retiens|si|saufsi|sinon|boucle|tantque|répète|pour|dans|arrête|continue|reprends|discr|sansarrêt|diffère|pousse_contexte|tente|piège|nonatteignable)\\b"
         },
         "other-keyword": {
             "name": "keyword.other.kuri",

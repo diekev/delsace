@@ -141,6 +141,7 @@ enum class GenreLexeme : unsigned int {
 	R16,
 	R32,
 	R64,
+	REPRENDS,
 	RETIENS,
 	RETOURNE,
 	RIEN,
