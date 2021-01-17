@@ -1477,6 +1477,8 @@ private:
 	void simplifie_comparaison_chainee(NoeudExpressionBinaire *comp);
 	void simplifie_coroutine(NoeudDeclarationEnteteFonction *corout);
 	void simplifie_discr(NoeudDiscr *discr);
+	template<int N>
+	void simplifie_discr_impl(NoeudDiscr *discr);
 	void simplifie_retiens(NoeudRetour *retiens);
 	void simplifie_retour(NoeudRetour *inst);
 
@@ -2580,7 +2582,15 @@ static int valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident)
 	return type_enum->membres[index_membre].valeur;
 }
 
-void Simplificatrice::simplifie_discr(NoeudDiscr *discr)
+enum {
+	DISCR_UNION,
+	DISCR_UNION_ANONYME,
+	DISCR_DEFAUT,
+	DISCR_ENUM,
+};
+
+template <int N>
+void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 {
 	/*
 
@@ -2601,6 +2611,7 @@ void Simplificatrice::simplifie_discr(NoeudDiscr *discr)
 	  }
 
 	 */
+
 	static const Lexeme lexeme_ou = { ",", {}, GenreLexeme::BARRE_BARRE, 0, 0, 0 };
 
 	auto si = assem->cree_si(discr->lexeme, GenreNoeud::INSTRUCTION_SI);
@@ -2609,7 +2620,7 @@ void Simplificatrice::simplifie_discr(NoeudDiscr *discr)
 	discr->substitution = si;
 
 	auto expression = NoeudExpression::nul();
-	if (discr->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
+	if (N == DISCR_UNION || N == DISCR_UNION_ANONYME) {
 		/* nous utilisons directement un accès de membre... il faudra proprement gérer les unions */
 		expression = assem->cree_acces_membre(discr->expr->lexeme, discr->expr, typeuse[TypeBase::Z32], 1);
 	}
@@ -2630,24 +2641,22 @@ void Simplificatrice::simplifie_discr(NoeudDiscr *discr)
 			comparaison.op = discr->op;
 			comparaison.expr1 = expression;
 
-			if (discr->genre == GenreNoeud::INSTRUCTION_DISCR_ENUM) {
+			if (N == DISCR_ENUM) {
 				auto valeur = valeur_enum(expression->type->comme_enum(), expr->ident);
 				auto constante = assem->cree_lit_entier(expr->lexeme, expression->type, static_cast<unsigned long>(valeur));
 				comparaison.expr2 = constante;
 			}
-			else if (discr->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
-				auto type_union = discr->expr->type->comme_union();
-
-				if (type_union->est_anonyme) {
-					auto index = trouve_index_membre(type_union, expr->type);
-					auto constante = assem->cree_lit_entier(expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
-					comparaison.expr2 = constante;
-				}
-				else {
-					auto index = trouve_index_membre(type_union, expr->ident);
-					auto constante = assem->cree_lit_entier(expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
-					comparaison.expr2 = constante;
-				}
+			else if (N == DISCR_UNION) {
+				auto const type_union = discr->expr->type->comme_union();
+				auto index = trouve_index_membre(type_union, expr->ident);
+				auto constante = assem->cree_lit_entier(expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
+				comparaison.expr2 = constante;
+			}
+			else if (N == DISCR_UNION_ANONYME) {
+				auto const type_union = discr->expr->type->comme_union();
+				auto index = trouve_index_membre(type_union, expr->type);
+				auto constante = assem->cree_lit_entier(expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
+				comparaison.expr2 = constante;
 			}
 			else {
 				/* cette expression est simplifiée via cree_expression_pour_op_chainee */
@@ -2712,6 +2721,27 @@ void Simplificatrice::simplifie_discr(NoeudDiscr *discr)
 	}
 
 #endif
+}
+
+
+void Simplificatrice::simplifie_discr(NoeudDiscr *discr)
+{
+	if (discr->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
+		auto const type_union = discr->expr->type->comme_union();
+
+		if (type_union->est_anonyme) {
+			simplifie_discr_impl<DISCR_UNION_ANONYME>(discr);
+		}
+		else {
+			simplifie_discr_impl<DISCR_UNION>(discr);
+		}
+	}
+	else if (discr->genre == GenreNoeud::INSTRUCTION_DISCR_ENUM) {
+		simplifie_discr_impl<DISCR_ENUM>(discr);
+	}
+	else {
+		simplifie_discr_impl<DISCR_DEFAUT>(discr);
+	}
 }
 
 NoeudSi *Simplificatrice::cree_condition_boucle(NoeudExpression *inst, GenreNoeud genre_noeud)
