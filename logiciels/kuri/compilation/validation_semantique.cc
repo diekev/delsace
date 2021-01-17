@@ -1961,8 +1961,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type_employe = decl->type;
 
 			// permet le déréférencement de pointeur, mais uniquement sur un niveau
-			if (type_employe->genre == GenreType::POINTEUR) {
-				type_employe = type_employe->comme_pointeur()->type_pointe;
+			if (type_employe->est_pointeur() || type_employe->est_reference()) {
+				type_employe = type_dereference_pour(type_employe);
 			}
 
 			if (type_employe->genre != GenreType::STRUCTURE) {

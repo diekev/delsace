@@ -619,7 +619,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					decl_var->declaration_vient_d_un_emploi->atome = pointeur_struct;
 				}
 
-				if (decl_var->declaration_vient_d_un_emploi->type->genre == GenreType::POINTEUR) {
+				auto type_employe = decl_var->declaration_vient_d_un_emploi->type;
+				if (type_employe->est_pointeur() || type_employe->est_reference()) {
 					pointeur_struct = cree_charge_mem(decl_var, pointeur_struct);
 				}
 
