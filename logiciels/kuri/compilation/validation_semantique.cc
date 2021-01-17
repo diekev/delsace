@@ -1537,7 +1537,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 				for (int i = 0; i < inst->paires_discr.taille; ++i) {
 					auto expr_paire = inst->paires_discr[i].first->comme_virgule()->expressions[0];
-					auto bloc_paire = inst->paires_discr[i].second;
 
 					valide_semantique_noeud(expr_paire);
 
@@ -1563,16 +1562,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						rapporte_erreur("Le type n'est pas membre de l'union", expr_paire);
 					}
 
-					/* pousse la variable dans le bloc suivant */
-					auto decl_expr = m_tacheronne.assembleuse->cree_declaration(expr_paire->lexeme);
-					decl_expr->ident = expr_paire->ident;
-					decl_expr->lexeme = expr_paire->lexeme;
-					decl_expr->bloc_parent = bloc_paire;
-					decl_expr->drapeaux |= EMPLOYE;
-					decl_expr->type = expr_paire->type;
-					// À FAIRE: mise en place des informations d'emploi
-
-					bloc_paire->membres->ajoute(decl_expr);
+					/* À FAIRE : ajoute la variable dans le bloc suivant, il nous faudra un système de capture dans le cas où la variable est un accès */
 				}
 
 				if (inst->bloc_sinon == nullptr) {
