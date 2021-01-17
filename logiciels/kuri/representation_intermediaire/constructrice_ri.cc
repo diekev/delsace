@@ -2405,7 +2405,9 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
 		case GenreType::OPAQUE:
 		{
 			auto type_opaque = type->comme_opaque();
-			return genere_initialisation_defaut_pour_type(type_opaque->type_opacifie);
+			auto valeur = genere_initialisation_defaut_pour_type(type_opaque->type_opacifie);
+			valeur->type = type_opaque;
+			return valeur;
 		}
 	}
 
