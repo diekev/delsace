@@ -2621,7 +2621,7 @@ void Simplificatrice::simplifie_discr(NoeudDiscr *discr)
 				comparaison.expr2 = constante;
 			}
 			else if (discr->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
-				auto index = trouve_index_membre(expression->type->comme_union(), expr->ident);
+				auto index = trouve_index_membre(discr->expr->type->comme_union(), expr->ident);
 				auto constante = assem->cree_lit_entier(expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
 				comparaison.expr2 = constante;
 			}
