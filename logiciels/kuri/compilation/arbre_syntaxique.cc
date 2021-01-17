@@ -2549,6 +2549,21 @@ static auto trouve_index_membre(TypeCompose *type_compose, IdentifiantCode *nom_
 	return idx_membre;
 }
 
+static auto trouve_index_membre(TypeCompose *type_compose, Type *type_membre)
+{
+	auto idx_membre = 0u;
+
+	POUR (type_compose->membres) {
+		if (it.type == type_membre) {
+			break;
+		}
+
+		idx_membre += 1;
+	}
+
+	return idx_membre;
+}
+
 static int valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident)
 {
 	auto decl_enum = type_enum->decl;
@@ -2621,9 +2636,18 @@ void Simplificatrice::simplifie_discr(NoeudDiscr *discr)
 				comparaison.expr2 = constante;
 			}
 			else if (discr->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
-				auto index = trouve_index_membre(discr->expr->type->comme_union(), expr->ident);
-				auto constante = assem->cree_lit_entier(expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
-				comparaison.expr2 = constante;
+				auto type_union = discr->expr->type->comme_union();
+
+				if (type_union->est_anonyme) {
+					auto index = trouve_index_membre(type_union, expr->type);
+					auto constante = assem->cree_lit_entier(expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
+					comparaison.expr2 = constante;
+				}
+				else {
+					auto index = trouve_index_membre(type_union, expr->ident);
+					auto constante = assem->cree_lit_entier(expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
+					comparaison.expr2 = constante;
+				}
 			}
 			else {
 				/* cette expression est simplifiée via cree_expression_pour_op_chainee */
