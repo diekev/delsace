@@ -339,6 +339,8 @@ TypeOpaque::TypeOpaque(NoeudDeclarationVariable *decl_, Type *opacifie)
 	this->ident = decl_->ident;
 	this->type_opacifie = opacifie;
 	this->drapeaux |= TYPE_FUT_VALIDE;
+	this->taille_octet = opacifie->taille_octet;
+	this->alignement = opacifie->alignement;
 }
 
 /* ************************************************************************** */
