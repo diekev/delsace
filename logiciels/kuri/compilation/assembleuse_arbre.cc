@@ -437,6 +437,11 @@ NoeudExpressionUnaire *AssembleuseArbre::cree_controle_boucle(const Lexeme *lexe
 	return cree_noeud(GenreNoeud::INSTRUCTION_CONTINUE_ARRETE, lexeme)->comme_controle_boucle();
 }
 
+NoeudExpressionUnaire *AssembleuseArbre::cree_cuisine(const Lexeme *lexeme)
+{
+	return cree_noeud(GenreNoeud::DIRECTIVE_CUISINE, lexeme)->comme_cuisine();
+}
+
 NoeudComme *AssembleuseArbre::cree_comme(const Lexeme *lexeme)
 {
 	return cree_noeud(GenreNoeud::EXPRESSION_COMME, lexeme)->comme_comme();

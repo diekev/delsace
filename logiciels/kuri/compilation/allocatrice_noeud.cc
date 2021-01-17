@@ -119,6 +119,7 @@ NoeudExpression *AllocatriceNoeud::cree_noeud(GenreNoeud genre)
 		case GenreNoeud::INSTRUCTION_EMPL:
 		case GenreNoeud::INSTRUCTION_CHARGE:
 		case GenreNoeud::INSTRUCTION_IMPORTE:
+		case GenreNoeud::DIRECTIVE_CUISINE:
 		{
 			noeud = m_noeuds_expression_unaire.ajoute_element();
 			break;

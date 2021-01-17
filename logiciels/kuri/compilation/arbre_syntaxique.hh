@@ -75,6 +75,7 @@ struct UniteCompilation;
 	ENUMERE_GENRE_NOEUD_EX(DECLARATION_CORPS_FONCTION) \
 	ENUMERE_GENRE_NOEUD_EX(DECLARATION_STRUCTURE) \
 	ENUMERE_GENRE_NOEUD_EX(DECLARATION_VARIABLE) \
+	ENUMERE_GENRE_NOEUD_EX(DIRECTIVE_CUISINE) \
 	ENUMERE_GENRE_NOEUD_EX(DIRECTIVE_EXECUTION) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_APPEL_FONCTION) \
 	ENUMERE_GENRE_NOEUD_EX(EXPRESSION_ASSIGNATION_VARIABLE) \
@@ -278,6 +279,7 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(construction_struct, GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE)
 	EST_NOEUD_GENRE(construction_tableau, GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU)
 	EST_NOEUD_GENRE(controle_boucle, GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)
+	EST_NOEUD_GENRE(cuisine, GenreNoeud::DIRECTIVE_CUISINE)
 	EST_NOEUD_GENRE(decl_discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
 	EST_NOEUD_GENRE(decl_var, GenreNoeud::DECLARATION_VARIABLE)
 	EST_NOEUD_GENRE(declaration, GenreNoeud::DECLARATION_VARIABLE, GenreNoeud::DECLARATION_CORPS_FONCTION, GenreNoeud::DECLARATION_ENTETE_FONCTION, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE)
@@ -338,6 +340,7 @@ struct NoeudExpression {
 	COMME_NOEUD(construction_struct, NoeudExpressionAppel)
 	COMME_NOEUD(construction_tableau, NoeudExpressionUnaire)
 	COMME_NOEUD(controle_boucle, NoeudExpressionUnaire)
+	COMME_NOEUD(cuisine, NoeudExpressionUnaire)
 	COMME_NOEUD(decl_discr, NoeudDiscr)
 	COMME_NOEUD(decl_var, NoeudDeclarationVariable)
 	COMME_NOEUD(discr, NoeudDiscr)
@@ -819,6 +822,7 @@ struct NoeudComme : public NoeudExpression {
 	COMME_NOEUD(construction_struct, NoeudExpressionAppel)
 	COMME_NOEUD(construction_tableau, NoeudExpressionUnaire)
 	COMME_NOEUD(controle_boucle, NoeudExpressionUnaire)
+	COMME_NOEUD(cuisine, NoeudExpressionUnaire)
 	COMME_NOEUD(decl_discr, NoeudDiscr)
 	COMME_NOEUD(decl_var, NoeudDeclarationVariable)
 	COMME_NOEUD(discr, NoeudDiscr)

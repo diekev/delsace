@@ -979,8 +979,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 				return analyse_instruction_si_statique(lexeme);
 			}
 			else if (directive == ID::cuisine) {
-				// À FAIRE : noeud dédié
-				auto noeud = m_tacheronne.assembleuse->cree_execution(lexeme);
+				auto noeud = m_tacheronne.assembleuse->cree_cuisine(lexeme);
 				noeud->ident = directive;
 				noeud->expr = analyse_expression({}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
 				return noeud;

@@ -134,6 +134,7 @@ public:
 	NoeudExpressionUnaire *cree_charge(Lexeme const *lexeme);
 	NoeudExpressionUnaire *cree_construction_tableau(const Lexeme *lexeme);
 	NoeudExpressionUnaire *cree_controle_boucle(const Lexeme *lexeme);
+	NoeudExpressionUnaire *cree_cuisine(Lexeme const *lexeme);
 	NoeudExpressionUnaire *cree_empl(const Lexeme *lexeme);
 	NoeudExpressionUnaire *cree_importe(Lexeme const *lexeme);
 	NoeudExpressionUnaire *cree_info_de(const Lexeme *lexeme);

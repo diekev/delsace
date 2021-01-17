@@ -539,16 +539,12 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			break;
 		}
 		/* ceux-ci sont simplifiés */
-		case GenreNoeud::DIRECTIVE_EXECUTION:
+		case GenreNoeud::DIRECTIVE_CUISINE:
 		{
-			auto directive = noeud->comme_execute();
-
-			if (directive->ident == ID::cuisine) {
-				assert_rappel(false, [&](){
-					std::cerr << "Erreur interne : une directive #cuisine ne fut pas simplifiée !\n";
-					erreur::imprime_site(*m_espace, noeud);
-				});
-			}
+			assert_rappel(false, [&](){
+				std::cerr << "Erreur interne : une directive #cuisine ne fut pas simplifiée !\n";
+				erreur::imprime_site(*m_espace, noeud);
+			});
 
 			break;
 		}
@@ -565,6 +561,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			break;
 		}
+		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:

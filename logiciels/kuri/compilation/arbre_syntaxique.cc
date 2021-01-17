@@ -259,6 +259,14 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab, bool subs
 			imprime_arbre(inst->expr, os, tab + 1, substitution);
 			break;
 		}
+		case GenreNoeud::DIRECTIVE_CUISINE:
+		{
+			auto cuisine = racine->comme_cuisine();
+			imprime_tab(os, tab);
+			os << "cuisine :\n";
+			imprime_arbre(cuisine->expr, os, tab + 1, substitution);
+			break;
+		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
 			auto expr = static_cast<NoeudDirectiveExecution *>(racine);
@@ -666,6 +674,13 @@ NoeudExpression *copie_noeud(
 			ninst->expr = copie_noeud(assem, inst->expr, bloc_parent);
 			break;
 		}
+		case GenreNoeud::DIRECTIVE_CUISINE:
+		{
+			auto cuisine = racine->comme_cuisine();
+			auto ncuisine = nracine->comme_cuisine();
+			ncuisine->expr = copie_noeud(assem, cuisine->expr, bloc_parent);
+			break;
+		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
 			auto expr = static_cast<NoeudDirectiveExecution const *>(racine);
@@ -1005,6 +1020,18 @@ static void aplatis_arbre(
 			arbre_aplatis.ajoute(inst);
 			break;
 		}
+		case GenreNoeud::DIRECTIVE_CUISINE:
+		{
+			auto cuisine = racine->comme_cuisine();
+			cuisine->drapeaux |= drapeau;
+
+			drapeau |= DROITE_ASSIGNATION;
+			drapeau |= POUR_CUISSON;
+
+			aplatis_arbre(cuisine->expr, arbre_aplatis, drapeau);
+			arbre_aplatis.ajoute(cuisine);
+			break;
+		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
 			auto expr = static_cast<NoeudDirectiveExecution *>(racine);
@@ -1012,11 +1039,6 @@ static void aplatis_arbre(
 
 			if (expr->ident == ID::assert_ || expr->ident == ID::test) {
 				drapeau |= DROITE_ASSIGNATION;
-			}
-
-			if (expr->ident == ID::cuisine) {
-				drapeau |= DROITE_ASSIGNATION;
-				drapeau |= POUR_CUISSON;
 			}
 
 			aplatis_arbre(expr->expr, arbre_aplatis, drapeau);
@@ -1371,6 +1393,7 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 
 			break;
 		}
+		case GenreNoeud::DIRECTIVE_CUISINE:
 		case GenreNoeud::EXPRESSION_INIT_DE:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPRESSION_PARENTHESE:
@@ -1558,16 +1581,11 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			noeud->genre = GenreNoeud::EXPRESSION_REFERENCE_TYPE;
 			return;
 		}
-		case GenreNoeud::DIRECTIVE_EXECUTION:
+		case GenreNoeud::DIRECTIVE_CUISINE:
 		{
-			auto directive = noeud->comme_execute();
-
-			if (directive->ident == ID::cuisine) {
-				auto expr = directive->expr->comme_appel();
-				directive->substitution = assem->cree_ref_decl(expr->lexeme, expr->appelee->comme_entete_fonction());
-				return;
-			}
-
+			auto cuisine = noeud->comme_cuisine();
+			auto expr = cuisine->expr->comme_appel();
+			cuisine->substitution = assem->cree_ref_decl(expr->lexeme, expr->appelee->comme_entete_fonction());
 			return;
 		}
 		case GenreNoeud::INSTRUCTION_SI_STATIQUE:
@@ -1911,6 +1929,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
 			return;
 		}
+		case GenreNoeud::DIRECTIVE_EXECUTION:
 		case GenreNoeud::DECLARATION_ENUM:
 		case GenreNoeud::EXPANSION_VARIADIQUE:
 		case GenreNoeud::EXPRESSION_INFO_DE:

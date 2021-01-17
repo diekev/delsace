@@ -205,13 +205,13 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			expr->exprs = kuri::tableau<NoeudExpression *>();
 			return valide_appel_fonction(m_compilatrice, *espace, *this, expr);
 		}
+		case GenreNoeud::DIRECTIVE_CUISINE:
+		{
+			return valide_cuisine(noeud->comme_cuisine());
+		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
 			auto noeud_directive = noeud->comme_execute();
-
-			if (noeud_directive->ident == ID::cuisine) {
-				return valide_cuisine(noeud_directive);
-			}
 
 			// crée une fonction pour l'exécution
 			auto decl_entete = m_tacheronne.assembleuse->cree_entete_fonction(noeud->lexeme);
@@ -2625,7 +2625,7 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 	return false;
 }
 
-bool ContexteValidationCode::valide_cuisine(NoeudDirectiveExecution *directive)
+bool ContexteValidationCode::valide_cuisine(NoeudExpressionUnaire *directive)
 {
 	auto expr = directive->expr;
 

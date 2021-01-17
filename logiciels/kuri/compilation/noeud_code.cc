@@ -216,6 +216,17 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			noeud_code = n;
 			break;
 		}
+		case GenreNoeud::DIRECTIVE_CUISINE:
+		{
+			auto directive = noeud_expression->comme_cuisine();
+
+			auto n = noeuds_directive.ajoute_element();
+			n->ident = directive->ident->nom;
+			n->expression = converti_noeud_syntaxique(espace, directive->expr);
+
+			noeud_code = n;
+			break;
+		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
 		{
 			auto directive = noeud_expression->comme_execute();
