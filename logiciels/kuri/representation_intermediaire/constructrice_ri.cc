@@ -2960,6 +2960,9 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			auto valeur_taille_octet = cree_z32(type_opacifie->taille_octet);
 			auto valeur_nom = cree_chaine(type_opaque->ident->nom);
 			auto valeur_type_opacifie = cree_info_type(type_opacifie);
+			valeur_type_opacifie = cree_transtype_constant(
+						m_espace->typeuse.type_pointeur_pour(m_espace->typeuse.type_info_type_, false),
+						valeur_type_opacifie);
 
 			auto valeurs = kuri::tableau<AtomeConstante *>(4);
 			valeurs[0] = valeur_id;
