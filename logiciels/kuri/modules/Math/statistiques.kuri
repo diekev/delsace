@@ -8,7 +8,7 @@ interval_confiance_wilson :: fonc (positifs: z32, total: z32, confiance: r32) ->
 
     n := total comme r32
 
-    z := 1.281551565545 // confiance de 80 % ; Ruby : Statistics2.pnormaldist(1-(1-confiance)/2)
+    z := 1.281551565545 // p_distribution_normale(1.0 - (1.0 - confiance) / 2.0) avec confiance = 0.8
     p := (positifs comme r32) / n
 
     gauche := p + (z * z) / (2.0 * n)
@@ -19,4 +19,48 @@ interval_confiance_wilson :: fonc (positifs: z32, total: z32, confiance: r32) ->
     retourne (gauche - droite) / sous
 
     // (phat + z*z/(2*n) - z * Math.sqrt((phat*(1-phat)+z*z/(4*n))/n))/(1+z*z/n)
+}
+
+/* Retourne la valeur P d'une distribution normale.
+ *
+ * Dérivé de l'implémentation de Ruby, trouvé ici :
+ * - https://stackoverflow.com/questions/6116770/whats-the-equivalent-of-rubys-pnormaldist-statistics-function-in-haskell
+ *
+ * Publication originale en Japonais :
+ * - https://www.jstage.jst.go.jp/article/jappstat1971/22/1/22_1_13/_pdf
+ */
+p_distribution_normale :: fonc (qn: r32) -> r32
+{
+    b := [1.570796288, 0.03706987906, -0.0008364353589, -0.0002250947176, 0.000006841218299, 0.000005824238515, -0.00000104527497, 0.00000008360937017, -0.000000003231081277,
+        0.00000000003657763036, 0.0000000000006936233982
+    ]
+
+    si (qn < 0.0 || 1.0 < qn) {
+        // @erreur
+        retourne 0.0
+    }
+
+    si (qn == 0.5) {
+        retourne 0.0
+    }
+
+    w1 := qn
+
+    si (qn > 0.5) {
+        w1 = 1.0 - w1
+    }
+
+    w3 := -log(4.0 * w1 * (1.0 - w1))
+
+    w1 = b[0];
+
+    pour 1 ... b.taille - 1 {
+        w1 += b[it] * pow(w3, it comme r64) comme r32
+    }
+
+    si (qn > 0.5) {
+        retourne sqrt(w1 * w3) comme r32
+    }
+
+    retourne -sqrt(w1 * w3) comme r32
 }
