@@ -660,10 +660,11 @@ struct GeneratriceCodeC {
 								}
 
 								if (taille_tableau == 0) {
-									resultat += "{";
+									resultat += "{}";
 								}
-
-								resultat += " } }";
+								else {
+									resultat += " } }";
+								}
 
 								return resultat;
 							}
