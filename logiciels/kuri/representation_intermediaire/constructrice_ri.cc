@@ -2435,7 +2435,12 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
 		{
 			auto type_opaque = type->comme_opaque();
 			auto valeur = genere_initialisation_defaut_pour_type(type_opaque->type_opacifie);
-			valeur->type = type_opaque;
+
+			// À FAIRE : tableau fixe
+			if (valeur) {
+				valeur->type = type_opaque;
+			}
+
 			return valeur;
 		}
 	}
@@ -3332,10 +3337,16 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 			for (auto &var : it.variables) {
 				auto pointeur = alloc_pointeur(var);
 
-				if (var->type->genre == GenreType::TABLEAU_FIXE) {
+				// À FAIRE: appel pour les opaques étant des structures
+				auto type_var = var->type;
+				if (type_var->est_opaque()) {
+					type_var = type_var->comme_opaque()->type_opacifie;
+				}
+
+				if (type_var->genre == GenreType::TABLEAU_FIXE) {
 					// À FAIRE(ri) : valeur défaut pour tableau fixe
 				}
-				else if (var->type->genre == GenreType::STRUCTURE || var->type->genre == GenreType::UNION) {
+				else if (type_var->genre == GenreType::STRUCTURE || type_var->genre == GenreType::UNION) {
 					auto atome_fonction = m_espace->trouve_ou_insere_fonction_init(*this, var->type);
 
 					auto params_init = kuri::tableau<Atome *>(1);
@@ -3344,7 +3355,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 					cree_appel(var, var->lexeme, atome_fonction, std::move(params_init));
 				}
 				else {
-					auto valeur = genere_initialisation_defaut_pour_type(var->type);
+					auto valeur = genere_initialisation_defaut_pour_type(type_var);
 					cree_stocke_mem(var, pointeur, valeur);
 				}
 
