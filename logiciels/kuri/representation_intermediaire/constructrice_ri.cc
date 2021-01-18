@@ -440,11 +440,17 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(NoeudExpression *sit
 {
 	assert_rappel(accede->type->genre == GenreType::POINTEUR || accede->type->genre == GenreType::REFERENCE, [=](){ std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
 	auto type_pointeur = accede->type->comme_pointeur();
-	assert_rappel(est_type_compose(type_pointeur->type_pointe), [&](){
-		std::cerr << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'\n";
+
+	auto type_pointe = type_pointeur->type_pointe;
+	if (type_pointe->est_opaque()) {
+		type_pointe = type_pointe->comme_opaque()->type_opacifie;
+	}
+
+	assert_rappel(est_type_compose(type_pointe), [&](){
+		std::cerr << "Type accédé : '" << chaine_type(type_pointe) << "'\n";
 		erreur::imprime_site(*espace(), site_);
 	});
-	assert_rappel(type_pointeur->type_pointe->genre != GenreType::UNION, [=](){ std::cerr << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'\n"; });
+	assert_rappel(type_pointe->genre != GenreType::UNION, [=](){ std::cerr << "Type accédé : '" << chaine_type(type_pointe) << "'\n"; });
 
 	POUR (acces_membres) {
 		if (it->accede == accede && static_cast<AtomeValeurConstante *>(it->index)->valeur.valeur_entiere == static_cast<unsigned>(index)) {
@@ -452,7 +458,7 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(NoeudExpression *sit
 		}
 	}
 
-	auto type_compose = static_cast<TypeCompose *>(type_pointeur->type_pointe);
+	auto type_compose = static_cast<TypeCompose *>(type_pointe);
 	auto type = type_compose->membres[index].type;
 
 	/* nous retournons un pointeur vers le membre */

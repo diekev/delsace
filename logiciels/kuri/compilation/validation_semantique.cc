@@ -2033,6 +2033,10 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 		type = type_dereference_pour(type);
 	}
 
+	if (type->est_opaque()) {
+		type = type->comme_opaque()->type_opacifie;
+	}
+
 	// Il est possible d'avoir une chaine de type : Struct1.Struct2.Struct3...
 	if (type->genre == GenreType::TYPE_DE_DONNEES) {
 		auto type_de_donnees = type->comme_type_de_donnees();

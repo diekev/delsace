@@ -1638,6 +1638,10 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 				type_accede = type_dereference_pour(type_accede);
 			}
 
+			if (type_accede->est_opaque()) {
+				type_accede = type_accede->comme_opaque()->type_opacifie;
+			}
+
 			if (type_accede->est_tableau_fixe()) {
 				auto taille = type_accede->comme_tableau_fixe()->taille;
 				noeud->substitution = assem->cree_lit_entier(noeud->lexeme, noeud->type, static_cast<unsigned long>(taille));

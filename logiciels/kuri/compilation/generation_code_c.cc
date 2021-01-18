@@ -1089,7 +1089,13 @@ struct GeneratriceCodeC {
 				assert(valeur_accede != "");
 
 				auto type_pointeur = inst_acces->accede->type->comme_pointeur();
-				auto type_compose = static_cast<TypeCompose *>(type_pointeur->type_pointe);
+
+				auto type_pointe = type_pointeur->type_pointe;
+				if (type_pointe->est_opaque()) {
+					type_pointe = type_pointe->comme_opaque()->type_opacifie;
+				}
+
+				auto type_compose = static_cast<TypeCompose *>(type_pointe);
 				auto index_membre = static_cast<long>(static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere);
 
 				if (valeur_accede[0] == '&') {
