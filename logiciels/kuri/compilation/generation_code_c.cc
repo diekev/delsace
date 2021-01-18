@@ -206,25 +206,9 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		case GenreType::TABLEAU_FIXE:
 		{
 			auto type_pointe = type->comme_tableau_fixe()->type_pointe;
-
-			// [X][X]Type
-			if (type_pointe->genre == GenreType::TABLEAU_FIXE) {
-				auto type_tabl = type_pointe->comme_tableau_fixe();
-				auto taille_tableau = type_tabl->taille;
-
-				enchaineuse << "typedef " << nom_broye_type(type_tabl->type_pointe);
-				enchaineuse << "(" << nom_broye << ')';
-				enchaineuse << '[' << type->comme_tableau_fixe()->taille << ']';
-				enchaineuse << '[' << taille_tableau << ']';
-				enchaineuse << ";\n\n";
-			}
-			else {
-				enchaineuse << "typedef " << nom_broye_type(type_pointe);
-				enchaineuse << ' ' << nom_broye;
-				enchaineuse << '[' << type->comme_tableau_fixe()->taille << ']';
-				enchaineuse << ";\n\n";
-			}
-
+			enchaineuse << "typedef struct { " << nom_broye_type(type_pointe);
+			enchaineuse << " d[" << type->comme_tableau_fixe()->taille << "];";
+			enchaineuse << " } " << nom_broye << ";\n\n";
 			break;
 		}
 		case GenreType::VARIADIQUE:
@@ -495,9 +479,6 @@ R"(
 	/* pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
 	 *  de LibC dont les arguments variadiques ne sont pas typés */
 	enchaineuse << "#define Kv ...\n\n";
-
-	/* défini memcpy puisque nous l'utilisons pour copier les tableaux fixes */
-	enchaineuse << "void *memcpy(void *dest, void *src, unsigned long n);\n";
 }
 
 struct GeneratriceCodeC {
@@ -559,6 +540,11 @@ struct GeneratriceCodeC {
 						auto inst_acces = static_cast<AccedeIndexConstant const *>(atome_const);
 						auto valeur_accede = genere_code_pour_atome(inst_acces->accede, os, false);
 						auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
+
+						if (inst_acces->accede->type->comme_pointeur()->type_pointe->est_tableau_fixe()) {
+							valeur_accede += ".d";
+						}
+
 						return valeur_accede + "[" + valeur_index + "]";
 					}
 					case AtomeConstante::Genre::VALEUR:
@@ -660,7 +646,7 @@ struct GeneratriceCodeC {
 								auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
 								auto resultat = dls::chaine();
 
-								auto virgule = "{ ";
+								auto virgule = "{ .d = { ";
 
 								for (auto i = 0; i < taille_tableau; ++i) {
 									resultat += virgule;
@@ -672,7 +658,7 @@ struct GeneratriceCodeC {
 									resultat += "{";
 								}
 
-								resultat += " }";
+								resultat += " } }";
 
 								return resultat;
 							}
@@ -856,7 +842,6 @@ struct GeneratriceCodeC {
 			case Instruction::Genre::STOCKE_MEMOIRE:
 			{
 				auto inst_stocke = inst->comme_stocke_mem();
-				auto type_valeur = inst_stocke->valeur->type;
 				auto valeur = genere_code_pour_atome(inst_stocke->valeur, os, false);
 				auto ou = inst_stocke->ou;
 				auto valeur_ou = dls::chaine();
@@ -875,12 +860,7 @@ struct GeneratriceCodeC {
 					valeur_ou = "(*" + valeur_ou + ")";
 				}
 
-				if (type_valeur->genre == GenreType::TABLEAU_FIXE) {
-					os << "  memcpy(" << valeur_ou << ", " << valeur << ", " << type_valeur->taille_octet << ");\n";
-				}
-				else {
-					os << "  " << valeur_ou << " = " << valeur << ";\n";
-				}
+				os << "  " << valeur_ou << " = " << valeur << ";\n";
 
 				break;
 			}
@@ -1078,6 +1058,11 @@ struct GeneratriceCodeC {
 				auto inst_acces = inst->comme_acces_index();
 				auto valeur_accede = genere_code_pour_atome(inst_acces->accede, os, false);
 				auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
+
+				if (inst_acces->accede->type->comme_pointeur()->type_pointe->est_tableau_fixe()) {
+					valeur_accede += ".d";
+				}
+
 				auto valeur = valeur_accede + "[" + valeur_index + "]";
 				table_valeurs[inst] = valeur;
 				break;

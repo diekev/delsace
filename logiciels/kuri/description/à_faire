@@ -103,7 +103,6 @@ switch (expr->etat_validation.etat) {
 }
 
 
-utilisation de C++ pour compiler le code final afin de pouvoir retourner des tableaux fixes
 utilisation d'une énumération pour retourner si le typage retourne une erreur au lieu d'une valeur booléenne
 
 plusieurs threads d'exécutions pour le typage ou la génération de RI
