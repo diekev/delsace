@@ -425,7 +425,7 @@ InstructionAccedeIndex *ConstructriceRI::cree_acces_index(NoeudExpression *site_
 		type_pointe = type_pointeur->type_pointe;
 	}
 
-	assert_rappel(dls::outils::est_element(type_pointe->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE), [=](){ std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
+	assert_rappel(dls::outils::est_element(type_pointe->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE) || (type_pointe->est_opaque() && dls::outils::est_element(type_pointe->comme_opaque()->type_opacifie->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE)), [=](){ std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
 
 	auto type = m_espace->typeuse.type_pointeur_pour(type_dereference_pour(type_pointe), false);
 
@@ -896,6 +896,11 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto expr_bin = noeud->comme_indexage();
 			auto type_gauche = expr_bin->expr1->type;
+
+			if (type_gauche->est_opaque()) {
+				type_gauche = type_gauche->comme_opaque()->type_opacifie;
+			}
+
 			genere_ri_pour_noeud(expr_bin->expr1);
 			auto pointeur = depile_valeur();
 			genere_ri_pour_expression_droite(expr_bin->expr2, nullptr);

@@ -481,6 +481,11 @@ R"(
 	enchaineuse << "#define Kv ...\n\n";
 }
 
+static bool est_type_tableau_fixe(Type *type)
+{
+	return type->est_tableau_fixe() || (type->est_opaque() && type->comme_opaque()->type_opacifie->est_tableau_fixe());
+}
+
 struct GeneratriceCodeC {
 	dls::dico<Atome const *, dls::chaine> table_valeurs{};
 	dls::dico<Atome const *, dls::chaine> table_globales{};
@@ -541,7 +546,7 @@ struct GeneratriceCodeC {
 						auto valeur_accede = genere_code_pour_atome(inst_acces->accede, os, false);
 						auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
 
-						if (inst_acces->accede->type->comme_pointeur()->type_pointe->est_tableau_fixe()) {
+						if (est_type_tableau_fixe(inst_acces->accede->type->comme_pointeur()->type_pointe)) {
 							valeur_accede += ".d";
 						}
 
@@ -1059,7 +1064,7 @@ struct GeneratriceCodeC {
 				auto valeur_accede = genere_code_pour_atome(inst_acces->accede, os, false);
 				auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
 
-				if (inst_acces->accede->type->comme_pointeur()->type_pointe->est_tableau_fixe()) {
+				if (est_type_tableau_fixe(inst_acces->accede->type->comme_pointeur()->type_pointe)) {
 					valeur_accede += ".d";
 				}
 

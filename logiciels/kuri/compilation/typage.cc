@@ -1275,6 +1275,10 @@ Type *type_dereference_pour(Type *type)
 		return type->comme_variadique()->type_pointe;
 	}
 
+	if (type->est_opaque()) {
+		return type_dereference_pour(type->comme_opaque()->type_opacifie);
+	}
+
 	return nullptr;
 }
 

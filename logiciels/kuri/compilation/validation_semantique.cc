@@ -811,6 +811,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				type1 = type_dereference_pour(type1);
 			}
 
+			// À FAIRE : vérifie qu'aucun opérateur ne soit définie sur le type opaque
+			if (type1->est_opaque()) {
+				type1 = type1->comme_opaque()->type_opacifie;
+			}
+
 			switch (type1->genre) {
 				case GenreType::VARIADIQUE:
 				case GenreType::TABLEAU_DYNAMIQUE:
@@ -1042,6 +1047,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto requiers_index = feuilles->expressions.taille == 2;
 
 			auto type = enfant2->type;
+			if (type->est_opaque()) {
+				type = type->comme_opaque()->type_opacifie;
+				enfant2->type = type;
+			}
 
 			auto determine_iterande = [&, this](NoeudExpression *iterand) -> char {
 				/* NOTE : nous testons le type des noeuds d'abord pour ne pas que le

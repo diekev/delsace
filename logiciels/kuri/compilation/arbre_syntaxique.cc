@@ -2034,6 +2034,9 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
 	auto const inverse_boucle = inst->lexeme_op == GenreLexeme::SUPERIEUR;
 
+	auto type_itere = expression_iteree->type->est_opaque() ? expression_iteree->type->comme_opaque()->type_opacifie : expression_iteree->type;
+	expression_iteree->type = type_itere;
+
 	/* boucle */
 
 	switch (inst->aide_generation_code) {
@@ -2126,8 +2129,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 			/* condition */
 			auto expr_taille = NoeudExpression::nul();
 
-			if (expression_iteree->type->est_tableau_fixe()) {
-				auto taille_tableau = expression_iteree->type->comme_tableau_fixe()->taille;
+			if (type_itere->est_tableau_fixe()) {
+				auto taille_tableau = type_itere->comme_tableau_fixe()->taille;
 				expr_taille = assem->cree_lit_entier(inst->lexeme, typeuse[TypeBase::Z64], static_cast<unsigned long>(taille_tableau));
 			}
 			else {
@@ -2137,10 +2140,11 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 			auto type_z64 = typeuse[TypeBase::Z64];
 			condition->condition = assem->cree_op_binaire(inst->lexeme, type_z64->operateur_seg, ref_index, expr_taille);
 
-			auto expr_pointeur = NoeudExpression::nul();
-			auto type_compose = expression_iteree->type->comme_compose();
+			auto expr_pointeur = NoeudExpression::nul();		
 
-			if (expression_iteree->type->est_tableau_fixe()) {
+			auto type_compose = type_itere->comme_compose();
+
+			if (type_itere->est_tableau_fixe()) {
 				auto indexage = assem->cree_indexage(inst->lexeme, expression_iteree, zero, true);
 
 				static const Lexeme lexeme_adresse = { ",", {}, GenreLexeme::FOIS_UNAIRE, 0, 0, 0 };
