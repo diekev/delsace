@@ -14,13 +14,8 @@ ErreurParsageIP :: erreur {
     CaracètreInvalide
 }
 
-AdresseIPv4 :: struct {
-    données : [4]n8
-}
-
-AdresseIPv6 :: struct {
-    données: [8]n16
-}
+AdresseIPv4 :: #opaque [4]n8
+AdresseIPv6 :: #opaque [8]n16
 
 AdresseIP :: union {
     ipv4 : AdresseIPv4
@@ -128,9 +123,9 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
         }
     }
 
-    données : [8]n16
+    ipv6 : AdresseIPv6 = ---
 
-    pour données {
+    pour & ipv6 {
         it = 0
     }
 
@@ -139,18 +134,18 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
             continue
         }
 
-        données[index_it] = tente parse_hexadécimal_n16(it) piège err {
+        ipv6[index_it] = tente parse_hexadécimal_n16(it) piège err {
             // À FAIRE : erreur pour les dépassements de limites
             retourne ErreurParsageIP.CaracètreInvalide
         }
     }
 
     si possède_ipv4 {
-        données[6] = (ipv4.données[0] comme n16 << 8) | ipv4.données[1]
-        données[7] = (ipv4.données[2] comme n16 << 8) | ipv4.données[3]
+        ipv6[6] = (ipv4[0] comme n16 << 8) | ipv4[1]
+        ipv6[7] = (ipv4[2] comme n16 << 8) | ipv4[3]
     }
 
-    retourne AdresseIPv6(données = données)
+    retourne ipv6
 }
 
 chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
@@ -189,7 +184,7 @@ chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
     séquence : Séquence
     nombre_de_séquences : z64 = 0
 
-    pour ipv6.données {
+    pour ipv6 {
         si it == 0 {
             si nombre_zéros == 0 {
                 séquence.index_début = index_it
@@ -243,7 +238,7 @@ chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
         tampon[taille_tampon] = double_points
         taille_tampon += 1
 
-        v := ipv6.données[it]
+        v := ipv6[it]
 
         si v == 0 {
             tampon[taille_tampon] = '0'
@@ -296,7 +291,7 @@ chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
         tampon[taille_tampon] = double_points
         taille_tampon += 1
 
-        v := ipv6.données[it]
+        v := ipv6[it]
 
         si v == 0 {
             tampon[taille_tampon] = '0'
@@ -397,7 +392,7 @@ chaine_depuis_ipv4 :: fonc (ipv4: AdresseIPv4) -> chaine
     tampon : [15]z8
     taille_tampon := 0
 
-    pour ipv4.données {
+    pour ipv4 {
         d := it
         centaine := it / 100
 
@@ -436,21 +431,21 @@ ErreurConversionIP :: erreur {
 ipv4_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> AdresseIPv4 | ErreurConversionIP
 {
     pour 0 ... 4 {
-        si ipv6.données[it] != 0 {
+        si ipv6[it] != 0 {
             retourne ErreurConversionIP.AdresseIPv6NEstPasIPv4
         }
     }
 
-    si ipv6.données[5] != 0xffff {
+    si ipv6[5] != 0xffff {
         retourne ErreurConversionIP.AdresseIPv6NEstPasIPv4
     }
 
     ipv4 : AdresseIPv4 = ---
 
-    ipv4.données[0] = (ipv6.données[6] >> 8) comme n8
-    ipv4.données[1] = ((ipv6.données[6]) & 0xff) comme n8
-    ipv4.données[2] = (ipv6.données[7] >> 8) comme n8
-    ipv4.données[3] = ((ipv6.données[7]) & 0xff) comme n8
+    ipv4[0] = (ipv6[6] >> 8) comme n8
+    ipv4[1] = ((ipv6[6]) & 0xff) comme n8
+    ipv4[2] = (ipv6[7] >> 8) comme n8
+    ipv4[3] = ((ipv6[7]) & 0xff) comme n8
 
     retourne ipv4
 }
@@ -461,12 +456,12 @@ ipv6_depuis_ipv4 :: fonc (ipv4: AdresseIPv4) -> AdresseIPv6
     ipv6 : AdresseIPv6 = ---
 
     pour 0 ... 4 {
-        ipv6.données[it] = 0
+        ipv6[it] = 0
     }
 
-    ipv6.données[5] = 0xffff
-    ipv6.données[6] = ipv4.données[0] comme n16 << 8 | ipv4.données[1] comme n16
-    ipv6.données[7] = ipv4.données[2] comme n16 << 8 | ipv4.données[3] comme n16
+    ipv6[5] = 0xffff
+    ipv6[6] = ipv4[0] comme n16 << 8 | ipv4[1] comme n16
+    ipv6[7] = ipv4[2] comme n16 << 8 | ipv4[3] comme n16
 
     retourne ipv6
 }
