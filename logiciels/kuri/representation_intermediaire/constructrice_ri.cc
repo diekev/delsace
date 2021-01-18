@@ -568,6 +568,18 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			break;
 		}
 		case GenreNoeud::DIRECTIVE_EXECUTION:
+		{
+			auto directive = noeud->comme_execute();
+
+			if (directive->ident != ID::assert_) {
+				assert_rappel(false, [&](){
+					std::cerr << "Erreur interne : un directive ne fut pas simplifié !\n";
+					erreur::imprime_site(*m_espace, noeud);
+				});
+			}
+
+			break;
+		}
 		case GenreNoeud::EXPRESSION_PARENTHESE:
 		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		case GenreNoeud::EXPRESSION_TYPE_DE:
