@@ -3752,6 +3752,11 @@ bool ContexteValidationCode::resoud_type_final(NoeudExpression *expression_type,
 
 	auto type_var = expression_type->type;
 
+	if (type_var == nullptr) {
+		::rapporte_erreur(espace, expression_type, "Erreur interne, le type de l'expression est nul !");
+		return true;
+	}
+
 	if (type_var->genre != GenreType::TYPE_DE_DONNEES) {
 		rapporte_erreur("attendu un type de données", expression_type);
 		return true;
