@@ -106,12 +106,9 @@ struct ContexteValidationCode {
 	void rapporte_erreur_redefinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec);
 	void rapporte_erreur_redefinition_fonction(NoeudDeclarationEnteteFonction *decl, NoeudDeclaration *decl_prec);
 	void rapporte_erreur_type_arguments(NoeudExpression *type_arg, NoeudExpression *type_enf);
-	void rapporte_erreur_type_retour(const Type *type_arg, const Type *type_enf, NoeudExpression *racine);
 	void rapporte_erreur_assignation_type_differents(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud);
 	void rapporte_erreur_type_operation(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud);
 	void rapporte_erreur_type_operation(NoeudExpression *noeud);
-	void rapporte_erreur_type_indexage(NoeudExpression *noeud);
-	void rapporte_erreur_type_operation_unaire(NoeudExpression *noeud);
 	void rapporte_erreur_acces_hors_limites(NoeudExpression *b, TypeTableauFixe *type_tableau, long index_acces);
 	void rapporte_erreur_membre_inconnu(NoeudExpression *acces, NoeudExpression *structure, NoeudExpression *membre, TypeCompose *type);
 	void rapporte_erreur_membre_inactif(NoeudExpression *acces, NoeudExpression *structure, NoeudExpression *membre);

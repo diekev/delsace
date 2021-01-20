@@ -246,49 +246,6 @@ void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_re
 	throw frappe(ss.chn().c_str(), Genre::TYPE_ARGUMENT);
 }
 
-[[noreturn]] void lance_erreur_type_retour(
-		const Type *type_arg,
-		const Type *type_enf,
-		EspaceDeTravail const &espace,
-		NoeudExpression *racine)
-{
-	auto inst = static_cast<NoeudExpressionUnaire *>(racine);
-	auto lexeme = inst->expr->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon()[pos.index_ligne];
-	auto etendue = calcule_etendue_noeud(inst->expr, fichier);
-	auto chaine_expr = dls::vue_chaine_compacte(&ligne[etendue.pos_min], etendue.pos_max - etendue.pos_min);
-
-	dls::flux_chaine ss;
-	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
-	ss << "Dans l'expression de retour de la fonction :\n";
-	ss << ligne;
-
-	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
-	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
-	ss << '\n';
-
-	ss << '\n';
-	ss << "Le type de '" << chaine_expr << "' ne correspond pas à celui requis !\n";
-	ss << "Requiers : " << chaine_type(type_arg) << '\n';
-	ss << "Obtenu   : " << chaine_type(type_enf) << '\n';
-	ss << '\n';
-	ss << "Astuce :\n";
-	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
-
-	lng::erreur::imprime_ligne_entre(ss, ligne, 0, etendue.pos_min);
-	ss << "transtype(" << chaine_expr << " : " << chaine_type(type_arg) << ")";
-	lng::erreur::imprime_ligne_entre(ss, ligne, etendue.pos_max, ligne.taille());
-	ss << "\n----------------------------------------------------------------\n";
-
-	throw frappe(ss.chn().c_str(), Genre::TYPE_DIFFERENTS);
-}
-
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const Type *type_gauche,
 		const Type *type_droite,
@@ -339,32 +296,6 @@ void lance_erreur_type_operation(
 	ss << "Les types de l'opération sont différents !\n";
 	ss << "Type à gauche : " << chaine_type(type_gauche) << '\n';
 	ss << "Type à droite : " << chaine_type(type_droite) << '\n';
-
-	throw frappe(ss.chn().c_str(), Genre::TYPE_DIFFERENTS);
-}
-
-void type_indexage(
-		EspaceDeTravail const &espace,
-		const NoeudExpression *noeud)
-{
-	auto lexeme = noeud->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon()[pos.index_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
-	ss << ligne;
-
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme->chaine);
-	ss << '\n';
-
-	ss << "Le type de l'expression d'indexage est invalide !\n";
-	ss << "Requiers : z64\n";
-	ss << "Obtenu   : " << chaine_type(noeud->type) << '\n';
 
 	throw frappe(ss.chn().c_str(), Genre::TYPE_DIFFERENTS);
 }
@@ -705,49 +636,6 @@ void lance_erreur_type_operation(
 		ss << "Note : les variables sont de type : " << chaine_type(type_droite) << '\n';
 	}
 
-	ss << "----------------------------------------------------------------\n";
-
-	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::TYPE_DIFFERENTS);
-}
-
-void lance_erreur_type_operation_unaire(
-			EspaceDeTravail const &espace,
-			NoeudExpression *b)
-{
-	// soit l'opérateur n'a pas de surcharge (le typage n'est pas bon)
-	// soit l'opérateur n'est pas commutatif
-	// soit l'opérateur n'est pas défini pour le type
-
-	auto const &lexeme = b->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon()[pos.index_ligne];
-
-	auto inst = static_cast<NoeudExpressionUnaire *>(b);
-	auto etendue = calcule_etendue_noeud(inst, fichier);
-
-	auto enfant_droite = inst->expr;
-	auto const &type_droite = enfant_droite->type;
-	auto etendue_droite = calcule_etendue_noeud(enfant_droite, fichier);
-	auto expr_droite = dls::vue_chaine_compacte(&ligne[etendue_droite.pos_min], etendue_droite.pos_max - etendue_droite.pos_min);
-
-	dls::flux_chaine ss;
-
-	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n';
-	ss << ligne;
-
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
-	ss << '\n';
-
-	ss << "Aucun opérateur trouvé pour l'opération !\n";
-	ss << "Veuillez vous assurer que les types correspondent.\n";
-	ss << '\n';
-	ss << "L'expression à droite de l'opérateur, " << expr_droite << ", est de type : ";
-	ss << chaine_type(type_droite) << '\n';
 	ss << "----------------------------------------------------------------\n";
 
 	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::TYPE_DIFFERENTS);

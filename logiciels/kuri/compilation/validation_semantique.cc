@@ -3795,11 +3795,6 @@ void ContexteValidationCode::rapporte_erreur_type_arguments(NoeudExpression *typ
 	erreur::lance_erreur_type_arguments(type_arg->type, type_enf->type, *espace, type_enf->lexeme, type_arg->lexeme);
 }
 
-void ContexteValidationCode::rapporte_erreur_type_retour(const Type *type_arg, const Type *type_enf, NoeudExpression *racine)
-{
-	erreur::lance_erreur_type_retour(type_arg, type_enf, *espace, racine);
-}
-
 void ContexteValidationCode::rapporte_erreur_assignation_type_differents(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud)
 {
 	erreur::lance_erreur_assignation_type_differents(type_gauche, type_droite, *espace, noeud->lexeme);
@@ -3810,19 +3805,9 @@ void ContexteValidationCode::rapporte_erreur_type_operation(const Type *type_gau
 	erreur::lance_erreur_type_operation(type_gauche, type_droite, *espace, noeud->lexeme);
 }
 
-void ContexteValidationCode::rapporte_erreur_type_indexage(NoeudExpression *noeud)
-{
-	erreur::type_indexage(*espace, noeud);
-}
-
 void ContexteValidationCode::rapporte_erreur_type_operation(NoeudExpression *noeud)
 {
 	erreur::lance_erreur_type_operation(*espace, noeud);
-}
-
-void ContexteValidationCode::rapporte_erreur_type_operation_unaire(NoeudExpression *noeud)
-{
-	erreur::lance_erreur_type_operation_unaire(*espace, noeud);
 }
 
 void ContexteValidationCode::rapporte_erreur_acces_hors_limites(NoeudExpression *b, TypeTableauFixe *type_tableau, long index_acces)

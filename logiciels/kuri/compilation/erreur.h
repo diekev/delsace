@@ -108,12 +108,6 @@ void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 		const Lexeme *morceau_enfant,
 		const Lexeme *morceau);
 
-[[noreturn]] void lance_erreur_type_retour(
-		const Type *type_arg,
-		const Type *type_enf,
-		EspaceDeTravail const &espace,
-		NoeudExpression *racine);
-
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const Type *type_gauche,
 		const Type *type_droite,
@@ -144,15 +138,7 @@ void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 		Type *type_tableau,
 		long index_acces);
 
-[[noreturn]] void type_indexage(
-		EspaceDeTravail const &espace,
-		const NoeudExpression *noeud);
-
 [[noreturn]] void lance_erreur_type_operation(
-			EspaceDeTravail const &espace,
-			NoeudExpression *b);
-
-[[noreturn]] void lance_erreur_type_operation_unaire(
 			EspaceDeTravail const &espace,
 			NoeudExpression *b);
 
