@@ -1245,10 +1245,8 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto type_debut = enfant1->type;
 			auto type_fin   = enfant2->type;
 
-			if (type_debut == nullptr || type_fin == nullptr) {
-				rapporte_erreur("Les types de l'expression sont invalides !", noeud, erreur::Genre::TYPE_INCONNU);
-				return true;
-			}
+			assert(type_debut);
+			assert(type_fin);
 
 			if (type_debut != type_fin) {
 				if (type_debut->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_fin)) {
