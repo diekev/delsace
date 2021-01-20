@@ -294,14 +294,6 @@ ajout de tranches pour les tableaux et les chaines
 
 ajout de types produits (tuples) avec accès par x.0, x.1, etc...
 
-avoir un bon système d'opacification de type, avec sûreté de typage, pour ne pas avoir à déclarer des structures ne contenant qu'un seul membre
-
-    AdresseEmail :: struct {
-        chn: chaine
-    }
-
-    AdresseEmail :: #opaque chaine
-
 typage un peu libre des énumérations
 
     ExtensionImageSupportée :: chaine {
