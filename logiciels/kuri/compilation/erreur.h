@@ -167,6 +167,7 @@ void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 struct Erreur {
 	EspaceDeTravail const *espace = nullptr;
 	dls::chaine message{};
+	erreur::Genre genre = erreur::Genre::NORMAL;
 
 	Erreur(EspaceDeTravail const *espace_);
 
@@ -176,9 +177,17 @@ struct Erreur {
 
 	Erreur &ajoute_message(dls::chaine const &m);
 
+	template <typename... Ts>
+	Erreur &ajoute_message(Ts... ts);
+
 	Erreur &ajoute_site(NoeudExpression const *site);
 
 	Erreur &ajoute_conseil(dls::chaine const &c);
+
+	void genre_erreur(erreur::Genre genre_)
+	{
+		genre = genre_;
+	}
 };
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, dls::chaine const &message, erreur::Genre genre = erreur::Genre::NORMAL);

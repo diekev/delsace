@@ -75,140 +75,28 @@ void imprime_ligne_avec_message(
 	flux << '\n';
 }
 
-static void imprime_site(
-		EspaceDeTravail const &espace,
-		NoeudExpression *site,
-		dls::flux_chaine &flux)
-{
-	auto lexeme = site->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto const &ligne = fichier->tampon()[lexeme->ligne];
-	auto etendue = calcule_etendue_noeud(site, fichier);
-
-	auto nc = dls::num::nombre_de_chiffres(lexeme->ligne + 1);
-
-	for (auto i = 0; i < 5 - nc; ++i) {
-		flux << ' ';
-	}
-
-	flux << lexeme->ligne + 1 << " | " << ligne;
-	flux << "      | ";
-	lng::erreur::imprime_caractere_vide(flux, etendue.pos_min, ligne);
-	lng::erreur::imprime_tilde(flux, ligne, etendue.pos_min, pos_mot);
-	flux << '^';
-	lng::erreur::imprime_tilde(flux, ligne, pos_mot + 1, etendue.pos_max);
-	flux << '\n';
-}
-
 void lance_erreur(const dls::chaine &quoi,
 		EspaceDeTravail const &espace,
 		const NoeudExpression *site,
 		Genre type)
 {
-	auto lexeme = site->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto const identifiant = lexeme->genre;
-	auto const &chaine = lexeme->chaine;
-
-	auto ligne_courante = fichier->tampon()[pos.index_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
-	ss << ligne_courante;
-
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, chaine);
-	ss << '\n';
-
-	ss << quoi;
-	ss << ", obtenu : " << chaine << " (" << chaine_du_genre_de_lexeme(identifiant) << ')';
-
-	throw erreur::frappe(ss.chn().c_str(), type);
+	rapporte_erreur(&espace, site, quoi, type);
 }
 
 void redefinition_fonction(EspaceDeTravail const &espace,
 		const NoeudExpression *site_redefinition,
 		const NoeudExpression *site_original)
 {
-	auto lexeme_original = site_original->lexeme;
-	auto lexeme_redefinition = site_redefinition->lexeme;
-	auto fichier = espace.fichier(lexeme_redefinition->fichier);
-	auto pos = position_lexeme(*lexeme_redefinition);
-	auto pos_mot = pos.pos;
-	auto chaine = lexeme_redefinition->chaine;
-
-	auto ligne_courante = fichier->tampon()[pos.index_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
-	ss << ligne_courante;
-
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, chaine);
-	ss << '\n';
-
-	ss << "Redéfinition de la fonction !\n";
-	ss << "La fonction fût déjà définie ici :\n";
-
-	fichier = espace.fichier(lexeme_original->fichier);
-	pos = position_lexeme(*lexeme_original);
-	pos_mot = pos.pos;
-	chaine = lexeme_original->chaine;
-	ligne_courante = fichier->tampon()[pos.index_ligne];
-
-	ss << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
-	ss << ligne_courante;
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, chaine);
-	ss << '\n';
-
-	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::FONCTION_REDEFINIE);
+	rapporte_erreur(&espace, site_redefinition, "Redéfinition de la fonction !", Genre::FONCTION_REDEFINIE)
+			.ajoute_message("La fonction fut déjà définie ici :\n\n")
+			.ajoute_site(site_original);
 }
 
 void redefinition_symbole(EspaceDeTravail const &espace, const NoeudExpression *site_redefinition, const NoeudExpression *site_original)
 {
-	auto lexeme_original = site_original->lexeme;
-	auto lexeme_redefinition = site_redefinition->lexeme;
-	auto fichier = espace.fichier(lexeme_redefinition->fichier);
-	auto pos = position_lexeme(*lexeme_redefinition);
-	auto pos_mot = pos.pos;
-	auto chaine = lexeme_redefinition->chaine;
-
-	auto ligne_courante = fichier->tampon()[pos.index_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
-	ss << ligne_courante;
-
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, chaine);
-	ss << '\n';
-
-	ss << "Redéfinition du symbole !\n";
-	ss << "Le symbole fût déjà défini ici :\n";
-
-	fichier = espace.fichier(lexeme_original->fichier);
-	pos = position_lexeme(*lexeme_original);
-	pos_mot = pos.pos;
-	chaine = lexeme_original->chaine;
-	ligne_courante = fichier->tampon()[pos.index_ligne];
-
-	ss << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
-	ss << ligne_courante;
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, chaine);
-	ss << '\n';
-
-	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::VARIABLE_REDEFINIE);
+	rapporte_erreur(&espace, site_redefinition, "Redéfinition du symbole !", Genre::VARIABLE_REDEFINIE)
+			.ajoute_message("Le symbole fut déjà défini ici :\n\n")
+			.ajoute_site(site_original);
 }
 
 [[noreturn]] void lance_erreur_type_arguments(
@@ -218,37 +106,12 @@ void redefinition_symbole(EspaceDeTravail const &espace, const NoeudExpression *
 		const NoeudExpression *site_enfant,
 		const NoeudExpression *site)
 {
-	auto lexeme = site->lexeme;
+	// À FAIRE(erreur) : utilisée uniquement pour les transtypages, améliore le message
 	auto lexeme_enfant = site_enfant->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon()[pos.index_ligne];
-
-	dls::flux_chaine ss;
-	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
-	ss << "Dans l'appel de la fonction '" << lexeme->chaine << "':\n";
-	ss << ligne;
-
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme_enfant->chaine);
-	ss << '\n';
-
-	ss << "Le type de l'argument '" << lexeme_enfant->chaine << "' ne correspond pas à celui requis !\n";
-	ss << "Requiers : " << chaine_type(type_arg) << '\n';
-	ss << "Obtenu   : " << chaine_type(type_enf) << '\n';
-	ss << '\n';
-	ss << "Astuce :\n";
-	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
-
-	lng::erreur::imprime_ligne_entre(ss, ligne, 0, pos_mot);
-	ss << "transtype(" << lexeme_enfant->chaine << " : " << chaine_type(type_arg) << ")";
-	lng::erreur::imprime_ligne_entre(ss, ligne, pos_mot + lexeme_enfant->chaine.taille(), ligne.taille());
-	ss << "\n----------------------------------------------------------------\n";
-
-	throw frappe(ss.chn().c_str(), Genre::TYPE_ARGUMENT);
+	rapporte_erreur(&espace, site, "Dans l'expression d'appel.", Genre::TYPE_ARGUMENT)
+			.ajoute_message("Le type de l'argument '", lexeme_enfant->chaine, "' ne correspond pas à celui requis !\n")
+			.ajoute_message("Requiers : ", chaine_type(type_arg), "\n")
+			.ajoute_message("Obtenu   : ", chaine_type(type_enf), "\n\n");
 }
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
@@ -257,26 +120,9 @@ void redefinition_symbole(EspaceDeTravail const &espace, const NoeudExpression *
 		EspaceDeTravail const &espace,
 		const NoeudExpression *site)
 {
-	auto lexeme = site->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon()[pos.index_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
-	ss << ligne;
-
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme->chaine);
-	ss << '\n';
-
-	ss << "Ne peut pas assigner des types différents !\n";
-	ss << "Type à gauche : " << chaine_type(type_gauche) << '\n';
-	ss << "Type à droite : " << chaine_type(type_droite) << '\n';
-
-	throw frappe(ss.chn().c_str(), Genre::ASSIGNATION_MAUVAIS_TYPE);
+	rapporte_erreur(&espace, site, "Ne peut pas assigner des types différents !", Genre::ASSIGNATION_MAUVAIS_TYPE)
+			.ajoute_message("Type à gauche : ", chaine_type(type_gauche), "\n")
+			.ajoute_message("Type à droite : ", chaine_type(type_droite), "\n");
 }
 
 void lance_erreur_type_operation(
@@ -285,26 +131,18 @@ void lance_erreur_type_operation(
 		EspaceDeTravail const &espace,
 		const NoeudExpression *site)
 {
-	auto lexeme = site->lexeme;
+	rapporte_erreur(&espace, site, "Type incompatible pour l'opération !", Genre::TYPE_DIFFERENTS)
+			.ajoute_message("Type à gauche : ", chaine_type(type_gauche), "\n")
+			.ajoute_message("Type à droite : ", chaine_type(type_droite), "\n");
+}
+
+static auto chaine_expression(EspaceDeTravail const &espace, NoeudExpression *expr)
+{
+	auto lexeme = expr->lexeme;
 	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon()[pos.index_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << ":\n";
-	ss << ligne;
-
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme->chaine);
-	ss << '\n';
-
-	ss << "Les types de l'opération sont différents !\n";
-	ss << "Type à gauche : " << chaine_type(type_gauche) << '\n';
-	ss << "Type à droite : " << chaine_type(type_droite) << '\n';
-
-	throw frappe(ss.chn().c_str(), Genre::TYPE_DIFFERENTS);
+	auto etendue_expr = calcule_etendue_noeud(expr, fichier);
+	auto ligne = fichier->tampon()[lexeme->ligne];
+	return dls::vue_chaine_compacte(&ligne[etendue_expr.pos_min], etendue_expr.pos_max - etendue_expr.pos_min);
 }
 
 void lance_erreur_fonction_inconnue(
@@ -312,193 +150,162 @@ void lance_erreur_fonction_inconnue(
 		NoeudExpression *b,
 		dls::tablet<DonneesCandidate, 10> const &candidates)
 {
-	auto const &lexeme = b->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-
-	dls::flux_chaine ss;
-
-	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n';
-	ss << "\nDans l'expression d'appel :\n";
-	imprime_site(espace, b, ss);
+	auto e = rapporte_erreur(&espace, b, "Dans l'expression d'appel :", erreur::Genre::FONCTION_INCONNUE);
 
 	if (candidates.est_vide()) {
-		ss << "\nFonction inconnue : aucune candidate trouvée\n";
-		ss << "Vérifiez que la fonction existe bel et bien dans un fichier importé\n";
-
-		throw erreur::frappe(ss.chn().c_str(), erreur::Genre::FONCTION_INCONNUE);
+		e.ajoute_message("\nFonction inconnue : aucune candidate trouvée\n");
+		e.ajoute_message("Vérifiez que la fonction existe bel et bien dans un fichier importé\n");
 	}
+	else {
+		e.ajoute_message("Aucune candidate trouvée pour l'expression « ", chaine_expression(espace, b->comme_appel()->appelee), " » !\n");
 
-	ss << "\nAucune candidate trouvée pour l'expression '";
-	auto etendue_expr = calcule_etendue_noeud(b->comme_appel()->appelee, fichier);
-	auto ligne = fichier->tampon()[lexeme->ligne];
+		for (auto &dc : candidates) {
+			auto decl = dc.noeud_decl;
+			e.ajoute_message("\nCandidate :");
 
-	for (auto i = etendue_expr.pos_min; i < etendue_expr.pos_max; ++i) {
-		ss << ligne[i];
-	}
+			if (decl != nullptr) {
+				auto const &lexeme_df = decl->lexeme;
+				auto fichier_df = espace.fichier(lexeme_df->fichier);
+				auto pos_df = position_lexeme(*lexeme_df);
 
-	ss << "'\n";
-
-	auto type_erreur = erreur::Genre::FONCTION_INCONNUE;
-
-	for (auto &dc : candidates) {
-		auto decl = dc.noeud_decl;
-		ss << "\nCandidate :";
-
-		if (decl != nullptr) {
-			auto const &lexeme_df = decl->lexeme;
-			auto fichier_df = espace.fichier(lexeme_df->fichier);
-			auto pos_df = position_lexeme(*lexeme_df);
-
-			ss << ' ' << decl->ident->nom
-			   << " (trouvée à " << fichier_df->chemin() << ':' << pos_df.numero_ligne << ")\n";
-		}
-		else {
-			ss << '\n';
-		}
-
-		if (dc.raison == MECOMPTAGE_ARGS) {
-			auto noeud_appel = static_cast<NoeudExpressionAppel *>(b);
-			ss << "\tLe nombre d'arguments de la fonction est incorrect.\n";
-
-			if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
-				auto decl_fonc = decl->comme_entete_fonction();
-				ss << "\tRequiers " << decl_fonc->params.taille << " arguments\n";
-			}
-			else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
-				auto type_struct = static_cast<NoeudStruct const *>(decl)->type->comme_structure();
-				ss << "\tRequiers " << type_struct->membres.taille << " arguments\n";
+				e.ajoute_message(' ', decl->ident->nom, " (trouvée à ", fichier_df->chemin(), ':', pos_df.numero_ligne, ")\n");
 			}
 			else {
-				auto type_fonc = dc.type->comme_fonction();
-				ss << "\tRequiers " << type_fonc->types_entrees.taille - dc.requiers_contexte << " arguments\n";
+				e.ajoute_message('\n');
 			}
 
-			ss << "\tObtenu " << noeud_appel->params.taille << " arguments\n";
-			type_erreur = erreur::Genre::NOMBRE_ARGUMENT;
-		}
+			if (dc.raison == MECOMPTAGE_ARGS) {
+				auto noeud_appel = static_cast<NoeudExpressionAppel *>(b);
+				e.ajoute_message("\tLe nombre d'arguments de la fonction est incorrect.\n");
 
-		if (dc.raison == MENOMMAGE_ARG) {
-			imprime_ligne_avec_message(ss, fichier, dc.noeud_erreur->lexeme, "Argument inconnu");
-
-			if (decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
-				auto decl_fonc = decl->comme_entete_fonction();
-				ss << "\tLes arguments de la fonction sont : \n";
-
-				for (auto i = 0; i < decl_fonc->params.taille; ++i) {
-					auto param = decl_fonc->parametre_entree(i);
-					ss << "\t\t" << param->ident->nom << '\n';
+				if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
+					auto decl_fonc = decl->comme_entete_fonction();
+					e.ajoute_message("\tRequiers ", decl_fonc->params.taille, " arguments\n");
 				}
-
-				type_erreur = erreur::Genre::ARGUMENT_INCONNU;
-			}
-			else if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
-				auto decl_struct = decl->comme_structure();
-
-				if (decl_struct->est_polymorphe) {
-					ss << "\tLes paramètres de la structure sont : \n";
-
-					POUR (decl_struct->params_polymorphiques) {
-						ss << "\t\t" << it->ident->nom << '\n';
-					}
+				else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
+					auto type_struct = static_cast<NoeudStruct const *>(decl)->type->comme_structure();
+					e.ajoute_message("\tRequiers ", type_struct->membres.taille, " arguments\n");
 				}
 				else {
-					ss << "\tLes membres de la structure sont : \n";
-
-					auto type_struct = decl_struct->type->comme_structure();
-					POUR (type_struct->membres) {
-						ss << "\t\t" << it.nom << '\n';
-					}
+					auto type_fonc = dc.type->comme_fonction();
+					e.ajoute_message("\tRequiers ", type_fonc->types_entrees.taille - dc.requiers_contexte, " arguments\n");
 				}
 
-				type_erreur = erreur::Genre::MEMBRE_INCONNU;
+				e.ajoute_message("\tObtenu ", noeud_appel->params.taille, " arguments\n");
+				e.genre_erreur(erreur::Genre::NOMBRE_ARGUMENT);
 			}
-		}
+			else if (dc.raison == MENOMMAGE_ARG) {
+				e.ajoute_site(dc.noeud_erreur);
+				e.ajoute_message("Argument inconnu");
 
-		if (dc.raison == RENOMMAGE_ARG) {
-			type_erreur = erreur::Genre::ARGUMENT_REDEFINI;
-			imprime_ligne_avec_message(ss, fichier, dc.noeud_erreur->lexeme, "L'argument a déjà été nommé");
-		}
+				if (decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
+					auto decl_fonc = decl->comme_entete_fonction();
+					e.ajoute_message("\tLes arguments de la fonction sont : \n");
 
-		if (dc.raison == MANQUE_NOM_APRES_VARIADIC) {
-			type_erreur = erreur::Genre::ARGUMENT_INCONNU;
-			imprime_ligne_avec_message(ss, fichier, dc.noeud_erreur->lexeme, "Nom d'argument manquant, les arguments doivent être nommés s'ils sont précédés d'arguments déjà nommés");
-		}
+					for (auto i = 0; i < decl_fonc->params.taille; ++i) {
+						auto param = decl_fonc->parametre_entree(i);
+						e.ajoute_message("\t\t", param->ident->nom, '\n');
+					}
 
-		if (dc.raison == NOMMAGE_ARG_POINTEUR_FONCTION) {
-			ss << "\tLes arguments d'un pointeur fonction ne peuvent être nommés\n";
-			type_erreur = erreur::Genre::ARGUMENT_INCONNU;
-		}
+					e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
+				}
+				else if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
+					auto decl_struct = decl->comme_structure();
 
-		if (dc.raison == TYPE_N_EST_PAS_FONCTION) {
-			ss << "\tAppel d'une variable n'étant pas un pointeur de fonction\n";
-			type_erreur = erreur::Genre::FONCTION_INCONNUE;
-		}
+					if (decl_struct->est_polymorphe) {
+						e.ajoute_message("\tLes paramètres de la structure sont : \n");
 
-		if (dc.raison == TROP_D_EXPRESSION_POUR_UNION) {
-			ss << "\tOn ne peut initialiser qu'un seul membre d'une union à la fois\n";
-			type_erreur = erreur::Genre::NORMAL;
-		}
+						POUR (decl_struct->params_polymorphiques) {
+							e.ajoute_message("\t\t", it->ident->nom, '\n');
+						}
+					}
+					else {
+						e.ajoute_message("\tLes membres de la structure sont : \n");
 
-		if (dc.raison == EXPRESSION_MANQUANTE_POUR_UNION) {
-			ss << "\tOn doit initialiser au moins un membre de l'union\n";
-			type_erreur = erreur::Genre::NORMAL;
-		}
+						auto type_struct = decl_struct->type->comme_structure();
+						POUR (type_struct->membres) {
+							e.ajoute_message("\t\t", it.nom, '\n');
+						}
+					}
 
-		if (dc.raison == NOM_ARGUMENT_REQUIS) {
-			ss << "\tLe nom de l'argument est requis pour les constructions de structures\n";
-			type_erreur = erreur::Genre::MEMBRE_INCONNU;
-		}
-
-		if (dc.raison == CONTEXTE_MANQUANT) {
-			ss << "\tNe peut appeler une fonction avec contexte dans un bloc n'ayant pas de contexte\n";
-			type_erreur = erreur::Genre::NORMAL;
-		}
-		else if (dc.raison == EXPANSION_VARIADIQUE_FONCTION_EXTERNE) {
-			ss << "\tImpossible d'utiliser une expansion variadique dans une fonction variadique externe\n";
-			type_erreur = erreur::Genre::NORMAL;
-		}
-		else if (dc.raison == MULTIPLE_EXPANSIONS_VARIADIQUES) {
-			ss << "\tPlusieurs expansions variadiques trouvées\n";
-			type_erreur = erreur::Genre::NORMAL;
-		}
-		else if (dc.raison == EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES) {
-			ss << "\tTentative d'utiliser une expansion d'arguments variadiques alors que d'autres arguments ont déjà été précisés\n";
-			type_erreur = erreur::Genre::NORMAL;
-		}
-		else if (dc.raison == ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES) {
-			ss << "\tTentative d'ajouter des arguments variadiques supplémentaire alors qu'une expansion est également utilisée\n";
-			type_erreur = erreur::Genre::NORMAL;
-		}
-		else if (dc.raison == ARGUMENTS_MANQUANTS) {
-			if (dc.arguments_manquants.taille() == 1) {
-				ss << "\tUn argument est manquant :\n";
+					e.genre_erreur(erreur::Genre::MEMBRE_INCONNU);
+				}
 			}
-			else {
-				ss << "\tPlusieurs arguments sont manquants :\n";
+			else if (dc.raison == RENOMMAGE_ARG) {
+				e.genre_erreur(erreur::Genre::ARGUMENT_REDEFINI);
+				e.ajoute_site(dc.noeud_erreur);
+				e.ajoute_message("L'argument a déjà été nommé");
 			}
-
-			for (auto ident : dc.arguments_manquants) {
-				ss << "\t\t" << ident->nom << '\n';
+			else if (dc.raison == MANQUE_NOM_APRES_VARIADIC) {
+				e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
+				e.ajoute_site(dc.noeud_erreur);
+				e.ajoute_message("Nom d'argument manquant, les arguments doivent être nommés s'ils sont précédés d'arguments déjà nommés");
 			}
-		}
-		else if (dc.raison == IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE) {
-			ss << "\tImpossible de définir le type polymorphique " << dc.ident_poly_manquant->nom << '\n';
-		}
+			else if (dc.raison == NOMMAGE_ARG_POINTEUR_FONCTION) {
+				e.ajoute_message("\tLes arguments d'un pointeur fonction ne peuvent être nommés\n");
+				e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
+			}
+			else if (dc.raison == TYPE_N_EST_PAS_FONCTION) {
+				e.ajoute_message("\tAppel d'une variable n'étant pas un pointeur de fonction\n");
+				e.genre_erreur(erreur::Genre::FONCTION_INCONNUE);
+			}
+			else if(dc.raison == TROP_D_EXPRESSION_POUR_UNION) {
+				e.ajoute_message("\tOn ne peut initialiser qu'un seul membre d'une union à la fois\n");
+				e.genre_erreur(erreur::Genre::NORMAL);
+			}
+			else if(dc.raison == EXPRESSION_MANQUANTE_POUR_UNION) {
+				e.ajoute_message("\tOn doit initialiser au moins un membre de l'union\n");
+				e.genre_erreur(erreur::Genre::NORMAL);
+			}
+			else if (dc.raison == NOM_ARGUMENT_REQUIS) {
+				e.ajoute_message("\tLe nom de l'argument est requis pour les constructions de structures\n");
+				e.genre_erreur(erreur::Genre::MEMBRE_INCONNU);
+			}
+			else if (dc.raison == CONTEXTE_MANQUANT) {
+				e.ajoute_message("\tNe peut appeler une fonction avec contexte dans un bloc n'ayant pas de contexte\n");
+				e.genre_erreur(erreur::Genre::NORMAL);
+			}
+			else if (dc.raison == EXPANSION_VARIADIQUE_FONCTION_EXTERNE) {
+				e.ajoute_message("\tImpossible d'utiliser une expansion variadique dans une fonction variadique externe\n");
+				e.genre_erreur(erreur::Genre::NORMAL);
+			}
+			else if (dc.raison == MULTIPLE_EXPANSIONS_VARIADIQUES) {
+				e.ajoute_message("\tPlusieurs expansions variadiques trouvées\n");
+				e.genre_erreur(erreur::Genre::NORMAL);
+			}
+			else if (dc.raison == EXPANSION_VARIADIQUE_APRES_ARGUMENTS_VARIADIQUES) {
+				e.ajoute_message("\tTentative d'utiliser une expansion d'arguments variadiques alors que d'autres arguments ont déjà été précisés\n");
+				e.genre_erreur(erreur::Genre::NORMAL);
+			}
+			else if (dc.raison == ARGUMENTS_VARIADIQEUS_APRES_EXPANSION_VARIAQUES) {
+				e.ajoute_message("\tTentative d'ajouter des arguments variadiques supplémentaire alors qu'une expansion est également utilisée\n");
+				e.genre_erreur(erreur::Genre::NORMAL);
+			}
+			else if (dc.raison == ARGUMENTS_MANQUANTS) {
+				if (dc.arguments_manquants.taille() == 1) {
+					e.ajoute_message("\tUn argument est manquant :\n");
+				}
+				else {
+					e.ajoute_message("\tPlusieurs arguments sont manquants :\n");
+				}
 
-		if (dc.raison == METYPAGE_ARG) {
-			auto const &lexeme_enfant = dc.noeud_erreur->lexeme;
+				for (auto ident : dc.arguments_manquants) {
+					e.ajoute_message("\t\t", ident->nom, '\n');
+				}
+			}
+			else if (dc.raison == IMPOSSIBLE_DE_DEFINIR_UN_TYPE_POLYMORPHIQUE) {
+				e.ajoute_message("\tImpossible de définir le type polymorphique ", dc.ident_poly_manquant->nom, '\n');
+			}
+			else if (dc.raison == METYPAGE_ARG) {
+				auto const &lexeme_enfant = dc.noeud_erreur->lexeme;
 
-			ss << "\tLe type de l'argument '" << lexeme_enfant->chaine << "' ne correspond pas à celui requis !\n";
-			ss << "\tRequiers : " << chaine_type(dc.type_attendu) << '\n';
-			ss << "\tObtenu   : " << chaine_type(dc.type_obtenu) << '\n';
-			type_erreur = erreur::Genre::TYPE_ARGUMENT;
+				e.ajoute_message("\tLe type de l'argument '", lexeme_enfant->chaine, "' ne correspond pas à celui requis !\n");
+				e.ajoute_message("\tRequiers : ", chaine_type(dc.type_attendu), '\n');
+				e.ajoute_message("\tObtenu   : ", chaine_type(dc.type_obtenu), '\n');
+				e.genre_erreur(erreur::Genre::TYPE_ARGUMENT);
+			}
 		}
 	}
-	ss << "\n----------------------------------------------------------------\n";
-
-	throw erreur::frappe(ss.chn().c_str(), type_erreur);
 }
 
 void lance_erreur_fonction_nulctx(
@@ -507,44 +314,14 @@ void lance_erreur_fonction_nulctx(
 			NoeudExpression const *decl_fonc,
 			NoeudExpression const *decl_appel)
 {
-	auto const &lexeme = appl_fonc->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon()[pos.index_ligne];
-
-	dls::flux_chaine ss;
-
-	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n';
-	ss << "\nDans l'appel de la fonction « " << appl_fonc->lexeme->chaine << " »\n";
-	ss << ligne;
-
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme->chaine);
-	ss << '\n';
-
-	ss << "Ne peut appeler une fonction avec contexte dans une fonction sans contexte !\n";
-
-	ss << "Note : la fonction est appelée dans « " << decl_fonc->ident->nom << " » "
-	   << " qui a été déclarée sans contexte via #!nulctx.\n";
-
-	ss << "\n« " << decl_fonc->ident->nom << " » est déclarée ici :\n";
-	fichier = espace.fichier(decl_fonc->lexeme->fichier);
-	auto pos_decl = position_lexeme(*decl_fonc->lexeme);
-	ss << fichier->chemin() << ':' << pos_decl.numero_ligne << '\n' << '\n';
-	ss << fichier->tampon()[pos_decl.index_ligne];
-
-	ss << "\n« " << decl_appel->ident->nom << " » est déclarée ici :\n";
-	fichier = espace.fichier(decl_appel->lexeme->fichier);
-	auto pos_appel = position_lexeme(*decl_appel->lexeme);
-	ss << fichier->chemin() << ':' << pos_appel.numero_ligne << '\n' << '\n';
-	ss << fichier->tampon()[pos_appel.index_ligne];
-
-	ss << "\n----------------------------------------------------------------\n";
-
-	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::APPEL_INVALIDE);
+	rapporte_erreur(&espace, appl_fonc, "Ne peut appeler une fonction avec contexte dans une fonction sans contexte !", Genre::APPEL_INVALIDE)
+			.ajoute_message("Note : la fonction est appelée dans « ", decl_fonc->ident->nom, " » qui fut déclarée sans contexte via #!nulctx.\n\n")
+			.ajoute_message("« ", decl_fonc->ident->nom, " » fut déclarée ici :\n")
+			.ajoute_site(decl_fonc)
+			.ajoute_message("\n\n")
+			.ajoute_message("« ", decl_appel->ident->nom, " » fut déclarée ici :\n")
+			.ajoute_site(decl_fonc)
+			.ajoute_message("\n\n");
 }
 
 void lance_erreur_acces_hors_limites(
@@ -554,32 +331,9 @@ void lance_erreur_acces_hors_limites(
 			Type *type_tableau,
 			long index_acces)
 {
-	auto const &lexeme = b->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon()[pos.index_ligne];
-
-	dls::flux_chaine ss;
-
-	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n';
-	ss << ligne;
-
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, lexeme->chaine);
-	ss << '\n';
-
-	ss << "Accès au tableau hors de ses limites !\n";
-
-	ss << "\tLe tableau a une taille de " << taille_tableau << " (de type : "
-	   << chaine_type(type_tableau) << ").\n";
-	ss << "\tL'accès se fait à l'index " << index_acces << " (index maximal : " << taille_tableau - 1 << ").\n";
-
-	ss << "\n----------------------------------------------------------------\n";
-
-	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::NORMAL);
+	rapporte_erreur(&espace, b, "Accès au tableau hors de ses limites !", Genre::NORMAL)
+			.ajoute_message("\tLe tableau a une taille de ", taille_tableau, " (de type : ", chaine_type(type_tableau), ").\n")
+			.ajoute_message("\tL'accès se fait à l'index ", index_acces, " (index maximal : ", taille_tableau - 1, ").\n");
 }
 
 void lance_erreur_type_operation(
@@ -673,63 +427,10 @@ static auto trouve_candidat(
 	return candidat;
 }
 
-[[noreturn]] static void genere_erreur_membre_inconnu(
-			EspaceDeTravail const &espace,
-			NoeudExpression *acces,
-			NoeudExpression *structure,
-			NoeudExpression *membre,
-			dls::ensemble<dls::vue_chaine_compacte> const &membres,
-			const char *chaine_structure)
-{
-	auto candidat = trouve_candidat(membres, membre->ident->nom);
-
-	auto const &lexeme = acces->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon()[pos.index_ligne];
-
-	auto etendue = calcule_etendue_noeud(acces, fichier);
-
-	dls::flux_chaine ss;
-	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n' << '\n';
-
-	if (structure->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
-		auto noeud = static_cast<NoeudExpressionMembre *>(structure);
-		structure = noeud->membre;
-	}
-
-	ss << "Dans l'expression d'accès de membre :\n";
-	ss << ligne;
-
-	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
-	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
-	ss << '\n';
-
-	ss << '\n';
-	ss << "Le membre « " << membre->ident->nom << " » est inconnu !\n";
-
-	ss << '\n';
-	ss << "Les membres " << chaine_structure << " sont :\n";
-
-	for (auto nom : membres) {
-		ss << '\t' << nom << '\n';
-	}
-
-	ss << '\n';
-	ss << "Candidat possible : " << candidat.chaine << '\n';
-	ss << "----------------------------------------------------------------\n";
-
-	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::MEMBRE_INCONNU);
-}
-
 void membre_inconnu(
 			EspaceDeTravail const &espace,
 			NoeudExpression *acces,
-			NoeudExpression *structure,
+			NoeudExpression */*structure*/,
 			NoeudExpression *membre,
 			TypeCompose *type)
 {
@@ -754,7 +455,23 @@ void membre_inconnu(
 		message = "de la structure";
 	}
 
-	genere_erreur_membre_inconnu(espace, acces, structure, membre, membres, message);
+	auto candidat = trouve_candidat(membres, membre->ident->nom);
+
+	auto e = rapporte_erreur(&espace, acces, "Dans l'expression d'accès de membre", Genre::MEMBRE_INCONNU);
+	e.ajoute_message("Le membre « ", membre->ident->nom, " » est inconnu !\n\n");
+
+	if (membres.taille() == 0) {
+		e.ajoute_message("Aucun membre connu !\n");
+	}
+	else {
+		e.ajoute_message("Les membres ", message, " sont :\n");
+
+		POUR (membres) {
+			e.ajoute_message("\t", it, "\n");
+		}
+
+		e.ajoute_message("\nCandidat possible : ", candidat.chaine, "\n");
+	}
 }
 
 void membre_inactif(
@@ -764,32 +481,9 @@ void membre_inactif(
 			NoeudExpression *structure,
 			NoeudExpression *membre)
 {
-	auto const &lexeme = acces->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon()[pos.index_ligne];
-
-	auto etendue = calcule_etendue_noeud(acces, fichier);
-
-	dls::flux_chaine ss;
-	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n' << '\n';
-	ss << "Dans l'accès à « " << structure->ident->nom << " » :\n";
-	ss << ligne;
-
-	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
-	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
-	ss << '\n';
-
-	ss << '\n';
-	ss << "Le membre « " << membre->ident->nom << " » est inactif dans ce contexte !\n";
-	ss << "Le membre actif dans ce contexte est « " << contexte.trouve_membre_actif(structure->ident->nom) << " ».\n";
-	ss << "----------------------------------------------------------------\n";
-
-	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::MEMBRE_INACTIF);
+	rapporte_erreur(&espace, acces, "Accès à un membre inactif d'une union", Genre::MEMBRE_INACTIF)
+			.ajoute_message("Le membre « ", membre->ident->nom, " » est inactif dans ce contexte !\n")
+			.ajoute_message("Le membre actif dans ce contexte est « ", contexte.trouve_membre_actif(structure->ident->nom), " ».\n");
 }
 
 void valeur_manquante_discr(
@@ -797,44 +491,18 @@ void valeur_manquante_discr(
 			NoeudExpression *expression,
 			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes)
 {
-	auto const &lexeme = expression->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto pos = position_lexeme(*lexeme);
-	auto const pos_mot = pos.pos;
-	auto ligne = fichier->tampon()[pos.index_ligne];
-
-	auto etendue = calcule_etendue_noeud(expression, fichier);
-
-	dls::flux_chaine ss;
-	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << fichier->chemin() << ':' << pos.numero_ligne << '\n' << '\n';
-	ss << "Dans la discrimination de « ";
-	ss << dls::vue_chaine(ligne.begin() + etendue.pos_min, etendue.pos_max - etendue.pos_min);
-	ss << " » :\n";
-	ss << ligne;
-
-	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
-	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
-	ss << '\n';
-
-	ss << '\n';
+	auto e = rapporte_erreur(&espace, expression, "Dans l'expression de discrimination", Genre::NORMAL);
 
 	if (valeurs_manquantes.taille() == 1) {
-		ss << "Une valeur n'est pas prise en compte :\n";
+		e.ajoute_message("Une valeur n'est pas prise en compte :\n");
 	}
 	else {
-		ss << "Plusieurs valeurs ne sont pas prises en compte :\n";
+		e.ajoute_message("Plusieurs valeurs ne sont pas prises en compte :\n");
 	}
 
-	for (auto const &valeur : valeurs_manquantes) {
-		ss << '\t' << valeur << '\n';
+	POUR (valeurs_manquantes) {
+		e.ajoute_message('\t', it, '\n');
 	}
-
-	ss << "----------------------------------------------------------------\n";
-
-	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::MEMBRE_INACTIF);
 }
 
 void fonction_principale_manquante(EspaceDeTravail const &espace)
@@ -998,6 +666,7 @@ Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace, const dls::chain
 
 	auto erreur = Erreur(espace);
 	erreur.message = flux.chn();
+	erreur.genre_erreur(genre);
 	return erreur;
 }
 
@@ -1028,4 +697,13 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine fichier, int 
 	auto erreur = Erreur(espace);
 	erreur.message = flux.chn();
 	return erreur;
+}
+
+template <typename... Ts>
+Erreur &Erreur::ajoute_message(Ts... ts)
+{
+	dls::flux_chaine ss;
+	((ss << ts), ...);
+	message += ss.chn();
+	return *this;
 }
