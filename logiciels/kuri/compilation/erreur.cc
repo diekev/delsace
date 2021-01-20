@@ -878,7 +878,7 @@ void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
 
 /* ************************************************************************** */
 
-Erreur::Erreur(EspaceDeTravail *espace_)
+Erreur::Erreur(EspaceDeTravail const *espace_)
 	: espace(espace_)
 {}
 
@@ -893,7 +893,7 @@ Erreur &Erreur::ajoute_message(const dls::chaine &m)
 	return *this;
 }
 
-Erreur &Erreur::ajoute_site(NoeudExpression *site)
+Erreur &Erreur::ajoute_site(const NoeudExpression *site)
 {
 	assert(espace);
 
@@ -947,7 +947,7 @@ static dls::chaine chaine_pour_erreur(erreur::Genre genre)
 #define COULEUR_NORMALE "\033[0m"
 #define COULEUR_CYAN_GRAS "\033[1;36m"
 
-Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, const dls::chaine &message, erreur::Genre genre)
+Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, const dls::chaine &message, erreur::Genre genre)
 {
 	auto fichier = espace->fichier(site->lexeme->fichier);
 
@@ -976,7 +976,7 @@ Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, const dls
 	return erreur;
 }
 
-Erreur rapporte_erreur_sans_site(EspaceDeTravail *espace, const dls::chaine &message, erreur::Genre genre)
+Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace, const dls::chaine &message, erreur::Genre genre)
 {
 	auto flux = dls::flux_chaine();
 	flux << COULEUR_CYAN_GRAS << "-- ";
@@ -1001,7 +1001,7 @@ Erreur rapporte_erreur_sans_site(EspaceDeTravail *espace, const dls::chaine &mes
 	return erreur;
 }
 
-Erreur rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne, kuri::chaine message)
+Erreur rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine fichier, int ligne, kuri::chaine message)
 {
 	auto flux = dls::flux_chaine();
 	flux << COULEUR_CYAN_GRAS << "-- ";

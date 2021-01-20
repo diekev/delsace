@@ -165,10 +165,10 @@ void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 }
 
 struct Erreur {
-	EspaceDeTravail *espace = nullptr;
+	EspaceDeTravail const *espace = nullptr;
 	dls::chaine message{};
 
-	Erreur(EspaceDeTravail *espace_);
+	Erreur(EspaceDeTravail const *espace_);
 
 	COPIE_CONSTRUCT(Erreur);
 
@@ -176,13 +176,13 @@ struct Erreur {
 
 	Erreur &ajoute_message(dls::chaine const &m);
 
-	Erreur &ajoute_site(NoeudExpression *site);
+	Erreur &ajoute_site(NoeudExpression const *site);
 
 	Erreur &ajoute_conseil(dls::chaine const &c);
 };
 
-Erreur rapporte_erreur(EspaceDeTravail *espace, NoeudExpression *site, dls::chaine const &message, erreur::Genre genre = erreur::Genre::NORMAL);
+Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, dls::chaine const &message, erreur::Genre genre = erreur::Genre::NORMAL);
 
-Erreur rapporte_erreur_sans_site(EspaceDeTravail *espace, const dls::chaine &message, erreur::Genre genre = erreur::Genre::NORMAL);
+Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace, const dls::chaine &message, erreur::Genre genre = erreur::Genre::NORMAL);
 
-Erreur rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne, kuri::chaine message);
+Erreur rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine fichier, int ligne, kuri::chaine message);
