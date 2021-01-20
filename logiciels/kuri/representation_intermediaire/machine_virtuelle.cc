@@ -1123,6 +1123,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 				auto &messagere = compilatrice.messagere;
 				messagere->termine_interception(espace_recu);
 				compilatrice.ordonnanceuse->purge_messages();
+				break;
 			}
 
 			appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
