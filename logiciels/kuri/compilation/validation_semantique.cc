@@ -3805,11 +3805,6 @@ void ContexteValidationCode::rapporte_erreur_type_operation(const Type *type_gau
 	erreur::lance_erreur_type_operation(type_gauche, type_droite, *espace, noeud);
 }
 
-void ContexteValidationCode::rapporte_erreur_type_operation(NoeudExpression *noeud)
-{
-	erreur::lance_erreur_type_operation(*espace, noeud);
-}
-
 void ContexteValidationCode::rapporte_erreur_acces_hors_limites(NoeudExpression *b, TypeTableauFixe *type_tableau, long index_acces)
 {
 	erreur::lance_erreur_acces_hors_limites(*espace, b, type_tableau->taille, type_tableau, index_acces);

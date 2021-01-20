@@ -138,10 +138,6 @@ void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 		Type *type_tableau,
 		long index_acces);
 
-[[noreturn]] void lance_erreur_type_operation(
-			EspaceDeTravail const &espace,
-			NoeudExpression *b);
-
 [[noreturn]] void membre_inconnu(
 		EspaceDeTravail const &espace,
 		NoeudExpression *acces,
