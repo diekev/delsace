@@ -102,12 +102,12 @@ static void imprime_site(
 	flux << '\n';
 }
 
-void lance_erreur(
-		const dls::chaine &quoi,
+void lance_erreur(const dls::chaine &quoi,
 		EspaceDeTravail const &espace,
-		const Lexeme *lexeme,
+		const NoeudExpression *site,
 		Genre type)
 {
+	auto lexeme = site->lexeme;
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
@@ -131,11 +131,12 @@ void lance_erreur(
 	throw erreur::frappe(ss.chn().c_str(), type);
 }
 
-void redefinition_fonction(
-		EspaceDeTravail const &espace,
-		Lexeme const *lexeme_redefinition,
-		Lexeme const *lexeme_original)
+void redefinition_fonction(EspaceDeTravail const &espace,
+		const NoeudExpression *site_redefinition,
+		const NoeudExpression *site_original)
 {
+	auto lexeme_original = site_original->lexeme;
+	auto lexeme_redefinition = site_redefinition->lexeme;
 	auto fichier = espace.fichier(lexeme_redefinition->fichier);
 	auto pos = position_lexeme(*lexeme_redefinition);
 	auto pos_mot = pos.pos;
@@ -171,8 +172,10 @@ void redefinition_fonction(
 	throw erreur::frappe(ss.chn().c_str(), erreur::Genre::FONCTION_REDEFINIE);
 }
 
-void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_redefinition, const Lexeme *lexeme_original)
+void redefinition_symbole(EspaceDeTravail const &espace, const NoeudExpression *site_redefinition, const NoeudExpression *site_original)
 {
+	auto lexeme_original = site_original->lexeme;
+	auto lexeme_redefinition = site_redefinition->lexeme;
 	auto fichier = espace.fichier(lexeme_redefinition->fichier);
 	auto pos = position_lexeme(*lexeme_redefinition);
 	auto pos_mot = pos.pos;
@@ -212,9 +215,11 @@ void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_re
 		const Type *type_arg,
 		const Type *type_enf,
 		EspaceDeTravail const &espace,
-		const Lexeme *lexeme_enfant,
-		const Lexeme *lexeme)
+		const NoeudExpression *site_enfant,
+		const NoeudExpression *site)
 {
+	auto lexeme = site->lexeme;
+	auto lexeme_enfant = site_enfant->lexeme;
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
@@ -250,8 +255,9 @@ void redefinition_symbole(EspaceDeTravail const &espace, const Lexeme *lexeme_re
 		const Type *type_gauche,
 		const Type *type_droite,
 		EspaceDeTravail const &espace,
-		const Lexeme *lexeme)
+		const NoeudExpression *site)
 {
+	auto lexeme = site->lexeme;
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;
@@ -277,8 +283,9 @@ void lance_erreur_type_operation(
 		const Type *type_gauche,
 		const Type *type_droite,
 		EspaceDeTravail const &espace,
-		const Lexeme *lexeme)
+		const NoeudExpression *site)
 {
+	auto lexeme = site->lexeme;
 	auto fichier = espace.fichier(lexeme->fichier);
 	auto pos = position_lexeme(*lexeme);
 	auto const pos_mot = pos.pos;

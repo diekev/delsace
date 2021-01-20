@@ -314,11 +314,11 @@ struct Compilatrice {
 	 *
 	 * Le paramètre est_racine ne doit être vrai que pour le module racine.
 	 */
-	Module *importe_module(EspaceDeTravail *espace, dls::chaine const &nom, Lexeme const &lexeme);
+	Module *importe_module(EspaceDeTravail *espace, dls::chaine const &nom, NoeudExpression const *site);
 
 	/* ********************************************************************** */
 
-	void ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, dls::chaine const &chemin, Module *module, Lexeme const &lexeme);
+	void ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, dls::chaine const &chemin, Module *module, NoeudExpression const *site);
 
 	/* ********************************************************************** */
 
@@ -334,7 +334,7 @@ struct Compilatrice {
 dls::chaine charge_fichier(
 		dls::chaine const &chemin,
 		EspaceDeTravail &espace,
-		Lexeme const &lexeme);
+		NoeudExpression const *site);
 
 /* manipule les options de compilation pour l'espace de travail défaut */
 OptionsCompilation *obtiens_options_compilation();

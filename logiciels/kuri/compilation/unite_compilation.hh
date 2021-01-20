@@ -34,6 +34,7 @@ struct Fichier;
 struct Lexeme;
 struct MetaProgramme;
 struct NoeudDeclaration;
+struct NoeudExpressionReference;
 struct NoeudExpression;
 struct Type;
 
@@ -76,7 +77,7 @@ struct UniteCompilation {
 	// pour les dépendances
 	Type *type_attendu = nullptr;
 	NoeudDeclaration *declaration_attendue = nullptr;
-	Lexeme const *lexeme_attendu = nullptr;
+	NoeudExpressionReference const *symbole_attendu = nullptr;
 	const char *fonction_interface_attendue = nullptr;
 
 	Etat etat() const
@@ -107,10 +108,10 @@ struct UniteCompilation {
 		this->declaration_attendue = decl;
 	}
 
-	inline void attend_sur_symbole(Lexeme const *lexeme)
+	inline void attend_sur_symbole(NoeudExpressionReference const *symbole)
 	{
 		this->etat_ = UniteCompilation::Etat::ATTEND_SUR_SYMBOLE;
-		this->lexeme_attendu = lexeme;
+		this->symbole_attendu = symbole;
 	}
 
 	inline void attend_sur_operateur(NoeudExpression *expr)

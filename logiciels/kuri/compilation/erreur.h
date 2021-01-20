@@ -88,37 +88,37 @@ void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,
 		EspaceDeTravail const &espace,
-		const Lexeme *morceau,
+		const NoeudExpression *site,
 		Genre type = Genre::NORMAL);
 
 [[noreturn]] void redefinition_fonction(
 		EspaceDeTravail const &espace,
-		const Lexeme *lexeme_redefinition,
-		const Lexeme *lexeme_original);
+		const NoeudExpression *site_redefinition,
+		const NoeudExpression *site_original);
 
 [[noreturn]] void redefinition_symbole(
 		EspaceDeTravail const &espace,
-		const Lexeme *lexeme_redefinition,
-		const Lexeme *lexeme_original);
+		const NoeudExpression *site_redefinition,
+		const NoeudExpression *site_original);
 
 [[noreturn]] void lance_erreur_type_arguments(
 		const Type *type_arg,
 		const Type *type_enf,
 		EspaceDeTravail const &espace,
-		const Lexeme *morceau_enfant,
-		const Lexeme *morceau);
+		const NoeudExpression *site_enfant,
+		const NoeudExpression *site);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const Type *type_gauche,
 		const Type *type_droite,
 		EspaceDeTravail const &espace,
-		const Lexeme *morceau);
+		const NoeudExpression *site);
 
 [[noreturn]] void lance_erreur_type_operation(
 		const Type *type_gauche,
 		const Type *type_droite,
 		EspaceDeTravail const &espace,
-		const Lexeme *morceau);
+		const NoeudExpression *site);
 
 [[noreturn]] void lance_erreur_fonction_inconnue(
 		EspaceDeTravail const &espace,

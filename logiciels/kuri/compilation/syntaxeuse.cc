@@ -2308,7 +2308,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		erreur::lance_erreur(
 					"La surcharge d'opérateur ne peut prendre au plus 2 paramètres",
 					*m_unite->espace,
-					lexeme);
+					noeud);
 	}
 	else if (noeud->params.taille == 1) {
 		if (genre_operateur == GenreLexeme::PLUS) {
@@ -2321,7 +2321,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 			erreur::lance_erreur(
 						"La surcharge d'opérateur unaire n'est possible que pour '+', '-', '~', ou '!'",
 						*m_unite->espace,
-						lexeme);
+						noeud);
 		}
 	}
 

@@ -632,7 +632,7 @@ void Tacheronne::gere_tache()
 					compilatrice.possede_erreur = true;
 
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_SYMBOLE) {
-						erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un symbole inconnu", *unite->espace, unite->lexeme_attendu);
+						erreur::lance_erreur("Trop de cycles : arrêt de la compilation sur un symbole inconnu", *unite->espace, unite->symbole_attendu);
 					}
 
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_DECLARATION) {
@@ -663,7 +663,7 @@ void Tacheronne::gere_tache()
 					}
 
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI) {
-						erreur::lance_erreur("Trop de cycles : arrêt de la compilation car une déclaration attend sur une interface de Kuri", *unite->espace, unite->noeud->lexeme);
+						erreur::lance_erreur("Trop de cycles : arrêt de la compilation car une déclaration attend sur une interface de Kuri", *unite->espace, unite->noeud);
 					}
 
 					if (unite->etat() == UniteCompilation::Etat::ATTEND_SUR_OPERATEUR) {

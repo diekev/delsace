@@ -129,7 +129,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto lexeme = inst->expr->lexeme;
 			auto fichier = espace->fichier(inst->lexeme->fichier);
 			auto temps = dls::chrono::compte_seconde();
-			m_compilatrice.ajoute_fichier_a_la_compilation(espace, lexeme->chaine, fichier->module, *lexeme);
+			m_compilatrice.ajoute_fichier_a_la_compilation(espace, lexeme->chaine, fichier->module, inst->expr);
 			temps_chargement += temps.temps();
 			break;
 		}
@@ -139,7 +139,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto lexeme = inst->expr->lexeme;
 			auto fichier = espace->fichier(inst->lexeme->fichier);
 			auto temps = dls::chrono::compte_seconde();
-			auto module = m_compilatrice.importe_module(espace, dls::chaine(lexeme->chaine), *lexeme);
+			auto module = m_compilatrice.importe_module(espace, dls::chaine(lexeme->chaine), inst->expr);
 			temps_chargement += temps.temps();
 			// @concurrence critique
 			fichier->modules_importes.insere(module->nom());
@@ -298,7 +298,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			auto decl = trouve_dans_bloc_ou_module(*espace, bloc, expr->ident, fichier);
 
 			if (decl == nullptr) {
-				unite->attend_sur_symbole(expr->lexeme);
+				unite->attend_sur_symbole(expr);
 				return true;
 			}
 
@@ -3772,37 +3772,37 @@ bool ContexteValidationCode::resoud_type_final(NoeudExpression *expression_type,
 
 void ContexteValidationCode::rapporte_erreur(const char *message, NoeudExpression *noeud)
 {
-	erreur::lance_erreur(message, *espace, noeud->lexeme);
+	erreur::lance_erreur(message, *espace, noeud);
 }
 
 void ContexteValidationCode::rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::Genre genre)
 {
-	erreur::lance_erreur(message, *espace, noeud->lexeme, genre);
+	erreur::lance_erreur(message, *espace, noeud, genre);
 }
 
 void ContexteValidationCode::rapporte_erreur_redefinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec)
 {
-	erreur::redefinition_symbole(*espace, decl->lexeme, decl_prec->lexeme);
+	erreur::redefinition_symbole(*espace, decl, decl_prec);
 }
 
 void ContexteValidationCode::rapporte_erreur_redefinition_fonction(NoeudDeclarationEnteteFonction *decl, NoeudDeclaration *decl_prec)
 {
-	erreur::redefinition_fonction(*espace, decl_prec->lexeme, decl->lexeme);
+	erreur::redefinition_fonction(*espace, decl_prec, decl);
 }
 
 void ContexteValidationCode::rapporte_erreur_type_arguments(NoeudExpression *type_arg, NoeudExpression *type_enf)
 {
-	erreur::lance_erreur_type_arguments(type_arg->type, type_enf->type, *espace, type_enf->lexeme, type_arg->lexeme);
+	erreur::lance_erreur_type_arguments(type_arg->type, type_enf->type, *espace, type_enf, type_arg);
 }
 
 void ContexteValidationCode::rapporte_erreur_assignation_type_differents(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud)
 {
-	erreur::lance_erreur_assignation_type_differents(type_gauche, type_droite, *espace, noeud->lexeme);
+	erreur::lance_erreur_assignation_type_differents(type_gauche, type_droite, *espace, noeud);
 }
 
 void ContexteValidationCode::rapporte_erreur_type_operation(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud)
 {
-	erreur::lance_erreur_type_operation(type_gauche, type_droite, *espace, noeud->lexeme);
+	erreur::lance_erreur_type_operation(type_gauche, type_droite, *espace, noeud);
 }
 
 void ContexteValidationCode::rapporte_erreur_type_operation(NoeudExpression *noeud)

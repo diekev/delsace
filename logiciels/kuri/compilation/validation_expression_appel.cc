@@ -1415,7 +1415,7 @@ static auto trouve_candidates_pour_appel(
 			}
 
 			if (candidates.taille() == 0) {
-				contexte.unite->attend_sur_symbole(acces->expr2->lexeme);
+				contexte.unite->attend_sur_symbole(acces->expr2->comme_ref_decl());
 				return true;
 			}
 

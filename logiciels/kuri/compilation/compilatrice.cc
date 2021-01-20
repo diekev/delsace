@@ -488,7 +488,7 @@ Compilatrice::Compilatrice()
 	ptr_compilatrice = this;
 }
 
-Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine &nom, const Lexeme &lexeme)
+Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine &nom, NoeudExpression const *site)
 {
 	auto chemin = nom;
 
@@ -500,7 +500,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 			erreur::lance_erreur(
 						"Impossible de trouver le dossier correspondant au module",
 						*espace,
-						&lexeme,
+						site,
 						erreur::Genre::MODULE_INCONNU);
 		}
 	}
@@ -509,7 +509,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 		erreur::lance_erreur(
 					"Le nom du module ne pointe pas vers un dossier",
 					*espace,
-					&lexeme,
+					site,
 					erreur::Genre::MODULE_INCONNU);
 	}
 
@@ -570,7 +570,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine 
 dls::chaine charge_fichier(
 		const dls::chaine &chemin,
 		EspaceDeTravail &espace,
-		Lexeme const &lexeme)
+		NoeudExpression const *site)
 {
 	std::ifstream fichier;
 	fichier.open(chemin.c_str());
@@ -579,14 +579,14 @@ dls::chaine charge_fichier(
 		erreur::lance_erreur(
 					"Impossible d'ouvrir le fichier correspondant au module",
 					espace,
-					&lexeme,
+					site,
 					erreur::Genre::MODULE_INCONNU);
 	}
 
 	return dls::chaine(std::istreambuf_iterator<char>(fichier), std::istreambuf_iterator<char>());
 }
 
-void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, const dls::chaine &nom, Module *module, const Lexeme &lexeme)
+void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, const dls::chaine &nom, Module *module, NoeudExpression const *site)
 {
 	auto chemin = module->chemin() + nom + ".kuri";
 
@@ -594,7 +594,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 		erreur::lance_erreur(
 					"Impossible de trouver le fichier correspondant au module",
 					*espace,
-					&lexeme,
+					site,
 					erreur::Genre::MODULE_INCONNU);
 	}
 
@@ -602,7 +602,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 		erreur::lance_erreur(
 					"Le nom du fichier ne pointe pas vers un fichier régulier",
 					*espace,
-					&lexeme,
+					site,
 					erreur::Genre::MODULE_INCONNU);
 	}
 
@@ -866,24 +866,24 @@ static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(dls::tableau<Lexeme>
 
 kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne)
 {
-	static Lexeme lexeme = {};
-
 	auto espace = ptr_compilatrice->espace_de_travail_defaut;
 	auto chemin = dls::chaine(chemin_donne.pointeur, chemin_donne.taille);
 
 	if (!std::filesystem::exists(chemin.c_str())) {
+		// À FAIRE(erreur) : site
 		erreur::lance_erreur(
 					"Impossible de trouver le fichier correspondant au chemin",
 					*espace,
-					&lexeme,
+					nullptr,
 					erreur::Genre::MODULE_INCONNU);
 	}
 
 	if (!std::filesystem::is_regular_file(chemin.c_str())) {
+		// À FAIRE(erreur) : site
 		erreur::lance_erreur(
 					"Le nom du fichier ne pointe pas vers un fichier régulier",
 					*espace,
-					&lexeme,
+					nullptr,
 					erreur::Genre::MODULE_INCONNU);
 	}
 
@@ -904,7 +904,8 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne)
 	}
 
 	auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
-	auto tampon = charge_fichier(chemin.c_str(), *espace, {});
+	// À FAIRE(erreur) : site
+	auto tampon = charge_fichier(chemin.c_str(), *espace, nullptr);
 	donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
 	auto lexeuse = Lexeuse(*ptr_compilatrice, donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);

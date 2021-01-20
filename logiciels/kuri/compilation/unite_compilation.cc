@@ -96,7 +96,7 @@ dls::chaine UniteCompilation::commentaire() const
 		}
 		case UniteCompilation::Etat::ATTEND_SUR_SYMBOLE:
 		{
-			return lexeme_attendu->ident->nom;
+			return symbole_attendu->ident->nom;
 		}
 		case UniteCompilation::Etat::ATTEND_SUR_OPERATEUR:
 		{
