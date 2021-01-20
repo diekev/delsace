@@ -257,10 +257,6 @@ void lance_erreur_fonction_inconnue(
 				e.ajoute_message("\tOn doit initialiser au moins un membre de l'union\n");
 				e.genre_erreur(erreur::Genre::NORMAL);
 			}
-			else if (dc.raison == NOM_ARGUMENT_REQUIS) {
-				e.ajoute_message("\tLe nom de l'argument est requis pour les constructions de structures\n");
-				e.genre_erreur(erreur::Genre::MEMBRE_INCONNU);
-			}
 			else if (dc.raison == CONTEXTE_MANQUANT) {
 				e.ajoute_message("\tNe peut appeler une fonction avec contexte dans un bloc n'ayant pas de contexte\n");
 				e.genre_erreur(erreur::Genre::NORMAL);
