@@ -209,37 +209,9 @@ avoir un système de détermination de contraintes pour les fonctions polymorphi
     ajoute :: fonc (a: $T/TypeOuInterface) // force T à être un dérivé de TypeOuInterface
         comment faire pour contraindre sur des types scalaires (entier ou réél)
 
-De Jorjala/attribut.kuri
-// À FAIRE : définir une bonne interface pour accéder aux valeurs sans gabarits
-//
-// Idée tirée de JAI :
-//
-// déclaration d'un type gabarit    => x : $T
-// déclaration d'une valeur gabarit => $x : T
-// La valeur gabarit est l'équivalent des valeurs littérales des templates en C++
-// template <int N>, mais en plus flexible
-//
-// Une instruction #bake sers à instantier les fonctions selon les valeurs gabarits
-// par exemple (avec notre syntaxe)
-//
-// fonc nouveau_tableau_fixe($N : Type_de_N, x : $Type_du_tableau) : [N]$Type_du_tableau
-// crée_tableau_dix_éléments = #cuis nouveau_tableau_fixe($N = 10)
-//
-// On peut alors appeler : crée_tableau_dix_éléments(z32) pour créer un [10]z32
-//
-// Pour les attributs nous pourrions avoir un système similaire
-//
-// fonc valeur(attr : *Attribut, index : z64, $Type_de_valeur : Type, $T : TypeAttribut)
-//
-// valeur_z32 = #cuis valeur(Type_de_valeur = z32, T = TypeAttribut.Z32)
-// valeur_r32 = #cuis valeur(Type_de_valeur = r32, T = TypeAttribut.R32)
-// ....
-//
-// Ceci pourrait aisément remplacer le combo template + macro utilisé en C++
-
 currying
-    #cuis_constantes ma_fonction(T = z32)  // crée une nouvelle fonction ou le paramètre polymorphique T est remplacé par le type z32
-    #cuis_valeurs    ma_fonction(x = 5)  // crée une nouvelle fonction ou le paramètre x est remplacé par la constante 5
+    #cuisine ma_fonction(T = z32) // crée une nouvelle fonction ou le paramètre polymorphique T est remplacé par le type z32
+    #cuisine ma_fonction(x = 5)   // crée une nouvelle fonction ou le paramètre x est remplacé par la constante 5
 
 information que la structure est polymorphique dans les infos-types
 
