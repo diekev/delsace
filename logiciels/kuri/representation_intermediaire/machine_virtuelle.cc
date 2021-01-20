@@ -1126,6 +1126,13 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 				break;
 			}
 
+			if (EST_FONCTION_COMPILATRICE(compilatrice_lexe_fichier)) {
+				auto chemin_recu = depile<kuri::chaine>();
+				auto resultat = compilatrice_lexe_fichier(chemin_recu, site);
+				empile(resultat);
+				break;
+			}
+
 			appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
 			break;
 		}

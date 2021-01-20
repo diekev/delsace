@@ -356,4 +356,8 @@ void compilatrice_termine_interception(EspaceDeTravail *espace);
 
 void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne, kuri::chaine message);
 
-kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne);
+/* ATTENTION: le paramètre « site » ne fait pas partie de l'interface de la fonction !
+ * Cette fonction n'est pas appelée via FFI, mais est manuellement détectée et appelée
+ * avec le site renseigné.
+ */
+kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne, NoeudExpression const *site);

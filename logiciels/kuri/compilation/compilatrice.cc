@@ -864,26 +864,24 @@ static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(dls::tableau<Lexeme>
 	return resultat;
 }
 
-kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne)
+kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne, NoeudExpression const *site)
 {
 	auto espace = ptr_compilatrice->espace_de_travail_defaut;
 	auto chemin = dls::chaine(chemin_donne.pointeur, chemin_donne.taille);
 
 	if (!std::filesystem::exists(chemin.c_str())) {
-		// À FAIRE(erreur) : site
 		erreur::lance_erreur(
 					"Impossible de trouver le fichier correspondant au chemin",
 					*espace,
-					nullptr,
+					site,
 					erreur::Genre::MODULE_INCONNU);
 	}
 
 	if (!std::filesystem::is_regular_file(chemin.c_str())) {
-		// À FAIRE(erreur) : site
 		erreur::lance_erreur(
 					"Le nom du fichier ne pointe pas vers un fichier régulier",
 					*espace,
-					nullptr,
+					site,
 					erreur::Genre::MODULE_INCONNU);
 	}
 
@@ -904,8 +902,7 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne)
 	}
 
 	auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
-	// À FAIRE(erreur) : site
-	auto tampon = charge_fichier(chemin.c_str(), *espace, nullptr);
+	auto tampon = charge_fichier(chemin.c_str(), *espace, site);
 	donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
 	auto lexeuse = Lexeuse(*ptr_compilatrice, donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
