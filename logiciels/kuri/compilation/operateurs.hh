@@ -157,7 +157,7 @@ struct Operateurs {
 	OperateurBinaire *ajoute_basique(GenreLexeme id, Type *type, Type *type_resultat, IndiceTypeOp indice_type);
 	OperateurBinaire *ajoute_basique(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, IndiceTypeOp indice_type);
 
-	void ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat);
+	OperateurUnaire *ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat);
 
 	void ajoute_perso(GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, NoeudDeclarationEnteteFonction *decl);
 

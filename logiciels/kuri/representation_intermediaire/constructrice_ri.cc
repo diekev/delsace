@@ -2453,7 +2453,7 @@ void ConstructriceRI::genere_ri_pour_condition(NoeudExpression *condition, Instr
 {
 	auto genre_lexeme = condition->lexeme->genre;
 
-	if (est_operateur_comp(genre_lexeme)) {
+	if (est_operateur_comp(genre_lexeme) || condition->possede_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU)) {
 		genere_ri_pour_expression_droite(condition, nullptr);
 		auto valeur = depile_valeur();
 		cree_branche_condition(condition, valeur, label_si_vrai, label_si_faux);

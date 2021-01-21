@@ -1075,7 +1075,7 @@ static void aplatis_arbre(
 		{
 			auto expr = static_cast<NoeudBoucle *>(racine);
 
-			aplatis_arbre(expr->condition, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
+			aplatis_arbre(expr->condition, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION | DrapeauxNoeud::DROITE_CONDITION);
 			arbre_aplatis.ajoute(expr);
 			aplatis_arbre(expr->bloc, arbre_aplatis, DrapeauxNoeud::AUCUN);
 
@@ -1117,7 +1117,7 @@ static void aplatis_arbre(
 		{
 			auto expr = static_cast<NoeudSi *>(racine);
 
-			aplatis_arbre(expr->condition, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
+			aplatis_arbre(expr->condition, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION | DrapeauxNoeud::DROITE_CONDITION);
 			arbre_aplatis.ajoute(expr);
 			aplatis_arbre(expr->bloc_si_vrai, arbre_aplatis, DrapeauxNoeud::AUCUN);
 			aplatis_arbre(expr->bloc_si_faux, arbre_aplatis, DrapeauxNoeud::AUCUN);
@@ -1550,6 +1550,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			}
 
 			if (dls::outils::est_element(noeud->lexeme->genre, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
+				// À FAIRE : simplifie les accès à des énum_drapeaux dans les expressions || ou &&, il faudra également modifier la RI pour prendre en compte la substitution
 				return;
 			}
 
@@ -1633,6 +1634,28 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			auto ref_membre = noeud->comme_ref_membre();
 			auto accede = ref_membre->accede;
 			auto type_accede = accede->type;
+
+			if (ref_membre->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
+				/* Devraient être simplifié là où ils sont utilisés. */
+				if (!ref_membre->possede_drapeau(DROITE_CONDITION)) {
+					return;
+				}
+
+				// a.DRAPEAU => (a & DRAPEAU) != 0
+				auto type_enum = ref_membre->type->comme_enum();
+				auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
+
+				auto valeur_lit_enum = assem->cree_lit_entier(noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
+				auto op = type_enum->operateur_etb;
+				auto et = assem->cree_op_binaire(noeud->lexeme, op, accede, valeur_lit_enum);
+
+				auto zero = assem->cree_lit_entier(noeud->lexeme, type_enum, 0);
+				op = type_enum->operateur_dif;
+				auto dif = assem->cree_op_binaire(noeud->lexeme, op, et, zero);
+
+				ref_membre->substitution = dif;
+				return;
+			}
 
 			while (type_accede->est_pointeur() || type_accede->est_reference()) {
 				type_accede = type_dereference_pour(type_accede);
@@ -1891,7 +1914,42 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			simplifie(assignation->variable);
 
 			POUR (assignation->donnees_exprs) {
-				simplifie(it.expression);
+				auto expression_fut_simplifiee = false;
+
+				for (auto var : it.variables) {
+					if (var->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
+						auto ref_membre = var->comme_ref_membre();
+						auto ref_var = ref_membre->accede;
+
+						// À FAIRE : référence
+						auto nouvelle_ref = assem->cree_ref_decl(ref_var->lexeme, ref_var->comme_ref_decl()->decl);
+						var->substitution = nouvelle_ref;
+
+						auto type_enum = ref_membre->type->comme_enum();
+						auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
+
+						if (it.expression->comme_litterale()->valeur_bool) {
+							// a.DRAPEAU = vrai -> a = a | DRAPEAU
+							auto valeur_lit_enum = assem->cree_lit_entier(noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
+							auto op = type_enum->operateur_oub;
+							auto ou = assem->cree_op_binaire(noeud->lexeme, op, nouvelle_ref, valeur_lit_enum);
+							it.expression->substitution = ou;
+						}
+						else {
+							// a.DRAPEAU = faux -> a = a & ~DRAPEAU
+							auto valeur_lit_enum = assem->cree_lit_entier(noeud->lexeme, type_enum, ~static_cast<unsigned>(valeur_enum));
+							auto op = type_enum->operateur_etb;
+							auto et = assem->cree_op_binaire(noeud->lexeme, op, nouvelle_ref, valeur_lit_enum);
+							it.expression->substitution = et;
+						}
+
+						expression_fut_simplifiee = true;
+					}
+				}
+
+				if (!expression_fut_simplifiee) {
+					simplifie(it.expression);
+				}
 			}
 
 			return;

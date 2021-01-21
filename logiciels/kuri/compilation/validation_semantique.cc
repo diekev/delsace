@@ -645,11 +645,11 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				}
 			}
 			else if (dls::outils::est_element(noeud->lexeme->genre, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
-				if (!est_type_conditionnable(enfant1->type)) {
+				if (!est_type_conditionnable(enfant1->type) && !enfant1->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
 					::rapporte_erreur(espace, enfant1, "Expression non conditionnable à gauche de l'opérateur logique !");
 				}
 
-				if (!est_type_conditionnable(enfant2->type)) {
+				if (!est_type_conditionnable(enfant2->type) && !enfant2->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
 					::rapporte_erreur(espace, enfant2, "Expression non conditionnable à droite de l'opérateur logique !");
 				}
 
@@ -962,7 +962,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				return true;
 			}
 
-			if (!est_type_conditionnable(type_condition)) {
+			if (!est_type_conditionnable(type_condition) && !inst->condition->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
 				rapporte_erreur("Impossible de conditionner le type de l'expression 'si'", inst->condition, erreur::Genre::TYPE_DIFFERENTS);
 				return true;
 			}
@@ -2080,6 +2080,25 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 
 		if (membre_est_constant || type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
 			expression_membre->genre_valeur = GenreValeur::DROITE;
+
+			/* Nous voulons détecter les accès à des constantes d'énumérations via une variable, mais
+			 * nous devons également prendre en compte le fait que la variable peut-être une référence
+			 * à un type énumération.
+			 *
+			 * Par exemple :
+			 * - a.CONSTANTE, où a est une variable qui n'est pas de type énum_drapeau -> erreur de compilation
+			 * - MonÉnum.CONSTANTE, où MonÉnum est un type -> OK
+			 */
+			if (structure->est_ref_decl() && !structure->comme_ref_decl()->decl->est_enum() && !expression_membre->type->est_type_de_donnees()) {
+				if (type->est_enum() && type->comme_enum()->est_drapeau) {
+					expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
+					expression_membre->drapeaux |= ACCES_EST_ENUM_DRAPEAU;
+				}
+				else {
+					::rapporte_erreur(espace, expression_membre, "Impossible d'accéder à une variable de type énumération");
+					return true;
+				}
+			}
 		}
 		else if (type->genre == GenreType::UNION) {
 			auto noeud_struct = type->comme_union()->decl;
@@ -3623,6 +3642,17 @@ bool ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
 		auto expr_est_reference = type_de_l_expression->est_reference();
 
 		auto transformation = TransformationType();
+
+		if (var->possede_drapeau(ACCES_EST_ENUM_DRAPEAU) && expression->type->est_bool()) {
+			if (!expression->est_booleen()) {
+				::rapporte_erreur(espace, expression, "L'assignation d'une valeur d'une énum_drapeau doit être une littérale booléenne");
+				return false;
+			}
+
+			donnees.variables.ajoute(var);
+			donnees.transformations.ajoute(transformation);
+			return true;
+		}
 
 		if (var_est_reference && expr_est_reference) {
 			// déréférence les deux côtés

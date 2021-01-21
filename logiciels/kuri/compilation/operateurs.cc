@@ -506,13 +506,14 @@ OperateurBinaire *Operateurs::ajoute_basique(
 	return op;
 }
 
-void Operateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat)
+OperateurUnaire *Operateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat)
 {
 	auto op = operateurs_unaires[index_op_unaire(id)].ajoute_element();
 	op->type_operande = type;
 	op->type_resultat = type_resultat;
 	op->est_basique = true;
 	op->genre = genre_op_unaire_pour_lexeme(id);
+	return op;
 }
 
 void Operateurs::ajoute_perso(
@@ -561,13 +562,23 @@ void Operateurs::ajoute_operateur_basique_enum(TypeEnum *type)
 		if (op == GenreLexeme::EGALITE) {
 			type->operateur_egt = op_bin;
 		}
+		else if (op == GenreLexeme::DIFFERENCE) {
+			type->operateur_dif = op_bin;
+		}
 	}
 
 	for (auto op : operateurs_entiers) {
-		this->ajoute_basique(op, type, type, indice_type_op);
+		auto ptr_op = this->ajoute_basique(op, type, type, indice_type_op);
+
+		if (op == GenreLexeme::ESPERLUETTE) {
+			type->operateur_etb = ptr_op;
+		}
+		else if (op == GenreLexeme::BARRE) {
+			type->operateur_oub = ptr_op;
+		}
 	}
 
-	this->ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
+	type->operateur_non = this->ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
 }
 
 void Operateurs::rassemble_statistiques(Statistiques &stats) const

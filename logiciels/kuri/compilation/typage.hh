@@ -40,6 +40,7 @@ struct IdentifiantCode;
 struct InfoType;
 struct Operateurs;
 struct OperateurBinaire;
+struct OperateurUnaire;
 struct NoeudDeclarationVariable;
 struct NoeudDependance;
 struct NoeudEnum;
@@ -207,6 +208,10 @@ struct Type {
 	OperateurBinaire *operateur_inf = nullptr;
 	OperateurBinaire *operateur_ieg = nullptr;
 	OperateurBinaire *operateur_egt = nullptr;
+	OperateurBinaire *operateur_oub = nullptr;
+	OperateurBinaire *operateur_etb = nullptr;
+	OperateurBinaire *operateur_dif = nullptr;
+	OperateurUnaire *operateur_non  = nullptr;
 
 	POINTEUR_NUL(Type)
 
