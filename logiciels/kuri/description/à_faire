@@ -12,6 +12,13 @@ erreur de compilation si nous définissons une structure dans une fonction et qu
 
 -- travail sur les itérateurs (via macros comme JAI?)
 
+vérifie que les opérateurs sont surchargeables durant le typage (pour compenser les syntaxes correctes, mais sémantiques incorrectes)
+
+réusinage référence membre
+NoeudExpression::unite => NoeudDeclaration, NoeudExecution ?
+utilisation d'un ramasse miette pour les métaprogrammes ?
+stocke les labels pour les controles des boucles dans la structure Boucle, au lieu d'allouer de la mémoire et faire une recherche linéaire dans la RI
+
 // --------------------------- Branches
 
 kuri_allocations
@@ -756,3 +763,32 @@ struct Allocatrice {
 -- appels fonction (syntaxe uniforme)
 -- métaprogrammation (#si, #assert, #exécute, #corps_texte, #test)
 -- compilatrice
+
+struct GestionnaireUnite {
+    void remplis_files_de_compilation()
+    {
+        POUR (unites_pretes_pour_messages) {
+            if (toutes_les_dépendances_sont_satisfaites()) {
+                ordonnanceuse->ajoute_tache_pour_message(it);
+            }
+        }
+
+        POUR (unites_attendant_sur_message_recu) {
+            if (message_recu) {
+                unites_pretes_pour_ri.enfile(it);
+            }
+        }
+
+        POUR (unites_pretes_pour_ri) {
+            if (toutes_les_dépendances_sont_satisfaites()) {
+                ordonnanceuse->ajoute_tache_pour_ri(it);
+            }
+        }
+
+        POUR (unites_pretes_pour_optimisations) {
+            if (toutes_les_dépendances_sont_satisfaites()) {
+                ordonnanceuse->ajoute_tache_pour_optimisation(it);
+            }
+        }
+    }
+};
