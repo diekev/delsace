@@ -301,7 +301,7 @@ public:
 					texel.u = j;
 					texel.v = k;
 
-					seau->texels.pousse(texel);
+					seau->texels.ajoute(texel);
 				}
 			}
 		}
