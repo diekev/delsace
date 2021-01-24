@@ -27,6 +27,7 @@
 #include "modules.hh"
 
 #include "biblinternes/langage/erreur.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "structures.hh"
 #include "validation_expression_appel.hh"
@@ -174,7 +175,13 @@ struct Erreur {
 	Erreur &ajoute_message(dls::chaine const &m);
 
 	template <typename... Ts>
-	Erreur &ajoute_message(Ts... ts);
+	Erreur &ajoute_message(Ts... ts)
+	{
+		dls::flux_chaine ss;
+		((ss << ts), ...);
+		message += ss.chn();
+		return *this;
+	}
 
 	Erreur &ajoute_site(NoeudExpression const *site);
 

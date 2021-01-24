@@ -2873,41 +2873,122 @@ bool ContexteValidationCode::valide_operateur(NoeudDeclarationCorpsFonction *dec
 	return false;
 }
 
-bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
+enum {
+	VALIDE_ENUM_ERREUR,
+	VALIDE_ENUM_DRAPEAU,
+	VALIDE_ENUM_NORMAL,
+};
+
+template <typename  T>
+static inline bool est_puissance_de_2(T x)
 {
-	CHRONO_TYPAGE(m_tacheronne.stats_typage.enumerations, "valide énum");
-	auto type_enum = decl->type->comme_enum();
-	auto &membres = type_enum->membres;
+	return (x != 0) && (x & (x - 1)) == 0;
+}
 
-	// nous avons besoin du symbole le plus rapidement possible pour déterminer les types l'utilisant
-	decl->bloc_parent->membres->ajoute(decl);
-
-	if (type_enum->est_erreur) {
-		type_enum->type_donnees = espace->typeuse[TypeBase::Z32];
-	}
-	else if (decl->expression_type != nullptr) {
-		if (valide_semantique_noeud(decl->expression_type)) {
-			return true;
+static bool est_hors_des_limites(long valeur, Type *type)
+{
+	if (type->est_entier_naturel()) {
+		if (type->taille_octet == 1) {
+			return valeur >= std::numeric_limits<unsigned char>::max();
 		}
 
-		if (resoud_type_final(decl->expression_type, type_enum->type_donnees)) {
-			return true;
+		if (type->taille_octet == 2) {
+			return valeur > std::numeric_limits<unsigned short>::max();
 		}
 
-		/* les énum_drapeaux doivent être des types naturels pour éviter les problèmes d'arithmétiques binaire */
-		if (type_enum->est_drapeau && !type_enum->type_donnees->est_entier_naturel()) {
-			::rapporte_erreur(espace, decl->expression_type, "Les énum_drapeaux doivent être de type entier naturel (n8, n16, n32, ou n64).\n", erreur::Genre::TYPE_DIFFERENTS)
-					.ajoute_message("Note : un entier naturel est requis car certaines manipulations de bits en complément à deux, par exemple les décalages à droite avec l'opérateur >>, préserve le signe de la valeur. "
-									"Un décalage à droite sur l'octet de type relatif 10101010 produirait 10010101 et non 01010101 comme attendu. Ainsi, pour que je puisse garantir un programme bienformé, un type naturel doit être utilisé.\n");
+		if (type->taille_octet == 4) {
+			return valeur > std::numeric_limits<unsigned int>::max();
 		}
-	}
-	else if (type_enum->est_drapeau) {
-		type_enum->type_donnees = espace->typeuse[TypeBase::N32];
-	}
-	else {
-		type_enum->type_donnees = espace->typeuse[TypeBase::Z32];
+
+		// À FAIRE : trouve une bonne de détecter ceci
+		return false;
 	}
 
+	if (type->taille_octet == 1) {
+		return valeur < std::numeric_limits<char>::min() || valeur > std::numeric_limits<char>::max();
+	}
+
+	if (type->taille_octet == 2) {
+		return valeur < std::numeric_limits<short>::min() || valeur > std::numeric_limits<short>::max();
+	}
+
+	if (type->taille_octet == 4) {
+		return valeur < std::numeric_limits<int>::min() || valeur > std::numeric_limits<int>::max();
+	}
+
+	// À FAIRE : trouve une bonne de détecter ceci
+	return false;
+}
+
+static long valeur_min(Type *type)
+{
+	if (type->est_entier_naturel()) {
+		if (type->taille_octet == 1) {
+			return std::numeric_limits<unsigned char>::min();
+		}
+
+		if (type->taille_octet == 2) {
+			return std::numeric_limits<unsigned short>::min();
+		}
+
+		if (type->taille_octet == 4) {
+			return std::numeric_limits<unsigned int>::min();
+		}
+
+		return std::numeric_limits<unsigned long>::min();
+	}
+
+	if (type->taille_octet == 1) {
+		return std::numeric_limits<char>::min();
+	}
+
+	if (type->taille_octet == 2) {
+		return std::numeric_limits<short>::min();
+	}
+
+	if (type->taille_octet == 4) {
+		return std::numeric_limits<int>::min();
+	}
+
+	return std::numeric_limits<long>::min();
+}
+
+static unsigned long valeur_max(Type *type)
+{
+	if (type->est_entier_naturel()) {
+		if (type->taille_octet == 1) {
+			return std::numeric_limits<unsigned char>::max();
+		}
+
+		if (type->taille_octet == 2) {
+			return std::numeric_limits<unsigned short>::max();
+		}
+
+		if (type->taille_octet == 4) {
+			return std::numeric_limits<unsigned int>::max();
+		}
+
+		return std::numeric_limits<unsigned long>::max();
+	}
+
+	if (type->taille_octet == 1) {
+		return std::numeric_limits<char>::max();
+	}
+
+	if (type->taille_octet == 2) {
+		return std::numeric_limits<short>::max();
+	}
+
+	if (type->taille_octet == 4) {
+		return std::numeric_limits<int>::max();
+	}
+
+	return std::numeric_limits<long>::max();
+}
+
+template <int N>
+bool ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum)
+{
 	auto &graphe = espace->graphe_dependance;
 	graphe->connecte_type_type(type_enum, type_enum->type_donnees);
 
@@ -2920,8 +3001,11 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 
 	auto derniere_valeur = ValeurExpression();
 
+	auto &membres = type_enum->membres;
 	membres.reserve(decl->bloc->expressions->taille);
 	decl->bloc->membres->reserve(decl->bloc->expressions->taille);
+
+	// À FAIRE : ajout d'un masque pour les énums_drapeaux
 
 	POUR (*decl->bloc->expressions.verrou_ecriture()) {
 		if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
@@ -2963,12 +3047,20 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 			auto res = evalue_expression(espace, decl->bloc, expr);
 
 			if (res.est_errone) {
-				rapporte_erreur(res.message_erreur, res.noeud_erreur, erreur::Genre::VARIABLE_REDEFINIE);
+				::rapporte_erreur(espace, res.noeud_erreur, res.message_erreur);
 				return true;
 			}
 
-			if (res.valeur.entier == 0 && type_enum->est_erreur) {
-				::rapporte_erreur(espace, expr, "L'expression d'une enumération erreur ne peut s'évaluer à 0 (cette valeur est réservée par la compilatrice).");
+			if (N == VALIDE_ENUM_DRAPEAU || N == VALIDE_ENUM_ERREUR) {
+				if (res.valeur.entier == 0) {
+					::rapporte_erreur(espace, expr, "L'expression d'une enumération erreur ne peut s'évaluer à 0 (cette valeur est réservée par la compilatrice).");
+					return true;
+				}
+			}
+
+			if (res.valeur.type != TypeExpression::ENTIER) {
+				::rapporte_erreur(espace, expr, "L'expression d'une énumération doit être de type entier");
+				return true;
 			}
 
 			valeur = res.valeur;
@@ -2977,23 +3069,31 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 			/* TypeExpression::INVALIDE indique que nous sommes dans la première itération. */
 			if (derniere_valeur.type == TypeExpression::INVALIDE) {
 				valeur.type = TypeExpression::ENTIER;
-				valeur.entier = (type_enum->est_drapeau || type_enum->est_erreur) ? 1 : 0;
+				valeur.entier = (N == VALIDE_ENUM_DRAPEAU || N == VALIDE_ENUM_ERREUR) ? 1 : 0;
 			}
 			else {
 				valeur.type = derniere_valeur.type;
 
-				if (derniere_valeur.type == TypeExpression::ENTIER) {
-					if (type_enum->est_drapeau) {
-						valeur.entier = derniere_valeur.entier * 2;
-					}
-					else {
-						valeur.entier = derniere_valeur.entier + 1;
+				if (N == VALIDE_ENUM_DRAPEAU) {
+					valeur.entier = derniere_valeur.entier * 2;
+
+					if (!est_puissance_de_2(valeur.entier)) {
+						::rapporte_erreur(espace, decl_expr, "La valeur implicite d'une énumération drapeau doit être une puissance de 2 !");
+						return true;
 					}
 				}
 				else {
-					valeur.reel = derniere_valeur.reel + 1;
+					valeur.entier = derniere_valeur.entier + 1;
 				}
 			}
+		}
+
+		if (est_hors_des_limites(valeur.entier, type_enum->type_donnees)) {
+			auto e = ::rapporte_erreur(espace, decl_expr, "Valeur hors des limites pour le type de l'énumération");
+			e.ajoute_message("Le type des données de l'énumération est « ", chaine_type(type_enum->type_donnees), " ».");
+			e.ajoute_message("Les valeurs légales pour un tel type se trouvent entre ", valeur_min(type_enum->type_donnees), " et ", valeur_max(type_enum->type_donnees), ".\n");
+			e.ajoute_message("Or, la valeur courante est de ", valeur.entier, ".\n");
+			return true;
 		}
 
 		membres.ajoute({ type_enum, var->ident, 0, static_cast<int>(valeur.entier) });
@@ -3006,6 +3106,57 @@ bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 	decl->type->drapeaux |= TYPE_FUT_VALIDE;
 	return false;
+}
+
+bool ContexteValidationCode::valide_enum(NoeudEnum *decl)
+{
+	CHRONO_TYPAGE(m_tacheronne.stats_typage.enumerations, "valide énum");
+	auto type_enum = decl->type->comme_enum();
+
+	// nous avons besoin du symbole le plus rapidement possible pour déterminer les types l'utilisant
+	decl->bloc_parent->membres->ajoute(decl);
+
+	if (type_enum->est_erreur) {
+		type_enum->type_donnees = espace->typeuse[TypeBase::Z32];
+	}
+	else if (decl->expression_type != nullptr) {
+		if (valide_semantique_noeud(decl->expression_type)) {
+			return true;
+		}
+
+		if (resoud_type_final(decl->expression_type, type_enum->type_donnees)) {
+			return true;
+		}
+
+		/* les énum_drapeaux doivent être des types naturels pour éviter les problèmes d'arithmétiques binaire */
+		if (type_enum->est_drapeau && !type_enum->type_donnees->est_entier_naturel()) {
+			::rapporte_erreur(espace, decl->expression_type, "Les énum_drapeaux doivent être de type entier naturel (n8, n16, n32, ou n64).\n", erreur::Genre::TYPE_DIFFERENTS)
+					.ajoute_message("Note : un entier naturel est requis car certaines manipulations de bits en complément à deux, par exemple les décalages à droite avec l'opérateur >>, préserve le signe de la valeur. "
+									"Un décalage à droite sur l'octet de type relatif 10101010 produirait 10010101 et non 01010101 comme attendu. Ainsi, pour que je puisse garantir un programme bienformé, un type naturel doit être utilisé.\n");
+			return true;
+		}
+
+		if (!est_type_entier(type_enum->type_donnees)) {
+			::rapporte_erreur(espace, decl->expression_type, "Le type de données d'une énumération doit être de type entier");
+			return true;
+		}
+	}
+	else if (type_enum->est_drapeau) {
+		type_enum->type_donnees = espace->typeuse[TypeBase::N32];
+	}
+	else {
+		type_enum->type_donnees = espace->typeuse[TypeBase::Z32];
+	}
+
+	if (type_enum->est_erreur) {
+		return valide_enum_impl<VALIDE_ENUM_ERREUR>(decl, type_enum);
+	}
+
+	if (type_enum->est_drapeau) {
+		return valide_enum_impl<VALIDE_ENUM_DRAPEAU>(decl, type_enum);
+	}
+
+	return valide_enum_impl<VALIDE_ENUM_NORMAL>(decl, type_enum);
 }
 
 /* À FAIRE: les héritages dans les structures externes :

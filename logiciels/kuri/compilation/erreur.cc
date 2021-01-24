@@ -628,12 +628,3 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine fichier, int 
 	erreur.message = flux.chn();
 	return erreur;
 }
-
-template <typename... Ts>
-Erreur &Erreur::ajoute_message(Ts... ts)
-{
-	dls::flux_chaine ss;
-	((ss << ts), ...);
-	message += ss.chn();
-	return *this;
-}

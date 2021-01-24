@@ -46,6 +46,7 @@ struct NoeudRetour;
 struct NoeudStruct;
 struct Tacheronne;
 struct TypeCompose;
+struct TypeEnum;
 struct TypeTableauFixe;
 struct UniteCompilation;
 
@@ -92,7 +93,11 @@ struct ContexteValidationCode {
 	bool valide_type_fonction(NoeudDeclarationEnteteFonction *);
 	bool valide_fonction(NoeudDeclarationCorpsFonction *);
 	bool valide_operateur(NoeudDeclarationCorpsFonction *);
+
+	template<int N>
+	bool valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum);
 	bool valide_enum(NoeudEnum *);
+
 	bool valide_structure(NoeudStruct *);
 	bool valide_declaration_variable(NoeudDeclarationVariable *decl);
 	bool valide_assignation(NoeudAssignation *inst);
