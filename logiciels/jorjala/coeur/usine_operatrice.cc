@@ -49,7 +49,7 @@ public:
 
 	const char *texte_aide() const override;
 
-	const char *chemin_entreface() const override;
+	ResultatCheminEntreface chemin_entreface() const override;
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
@@ -73,9 +73,9 @@ const char *OperatriceCorpsSE::texte_aide() const
 	return m_aide;
 }
 
-const char *OperatriceCorpsSE::chemin_entreface() const
+ResultatCheminEntreface OperatriceCorpsSE::chemin_entreface() const
 {
-	return m_chemin_entreface;
+	return CheminFichier{m_chemin_entreface};
 }
 
 res_exec OperatriceCorpsSE::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
@@ -113,7 +113,7 @@ public:
 
 	const char *texte_aide() const override;
 
-	const char *chemin_entreface() const override;
+	ResultatCheminEntreface chemin_entreface() const override;
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
@@ -137,9 +137,9 @@ const char *OperatriceCorpsE0::texte_aide() const
 	return m_aide;
 }
 
-const char *OperatriceCorpsE0::chemin_entreface() const
+ResultatCheminEntreface OperatriceCorpsE0::chemin_entreface() const
 {
-	return m_chemin_entreface;
+	return CheminFichier{m_chemin_entreface};
 }
 
 res_exec OperatriceCorpsE0::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)

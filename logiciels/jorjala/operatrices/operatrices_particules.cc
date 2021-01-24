@@ -76,9 +76,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_suppression_point.jo";
+		return CheminFichier{"entreface/operatrice_suppression_point.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -259,9 +259,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_dispersion_points.jo";
+		return CheminFichier{"entreface/operatrice_dispersion_points.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -811,9 +811,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_tirage_fleche.jo";
+		return CheminFichier{"entreface/operatrice_tirage_fleche.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1255,9 +1255,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_enleve_doublons.jo";
+		return CheminFichier{"entreface/operatrice_enleve_doublons.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1447,9 +1447,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_gigue_points.jo";
+		return CheminFichier{"entreface/operatrice_gigue_points.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1511,9 +1511,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_trainee_points.jo";
+		return CheminFichier{"entreface/operatrice_trainee_points.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1720,9 +1720,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_force_interaction.jo";
+		return CheminFichier{"entreface/operatrice_force_interaction.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1988,9 +1988,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "";
+		return CheminFichier{""};
 	}
 
 	const char *nom_classe() const override

@@ -95,9 +95,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_gravite.jo";
+		return CheminFichier{"entreface/operatrice_gravite.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -149,9 +149,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_vent.jo";
+		return CheminFichier{"entreface/operatrice_vent.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -213,9 +213,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "";
+		return CheminFichier{""};
 	}
 
 	const char *nom_classe() const override
@@ -316,9 +316,9 @@ public:
 	{
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_collision.jo";
+		return CheminFichier{"entreface/operatrice_collision.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -790,9 +790,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_solveur_n_corps.jo";
+		return CheminFichier{"entreface/operatrice_solveur_n_corps.jo"};
 	}
 
 	const char *nom_classe() const override

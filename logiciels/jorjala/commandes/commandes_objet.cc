@@ -50,7 +50,7 @@ static auto cree_noeud_op(
 
 	auto op = usine(nom_op, graphe, *noeud);
 
-	gestionnaire->initialise_entreface_fichier(op, op->chemin_entreface());
+	initialise_entreface(gestionnaire, op, op->chemin_entreface());
 
 	synchronise_donnees_operatrice(*noeud);
 

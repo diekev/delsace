@@ -237,9 +237,9 @@ public:
 		entrees(2);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_terrain_vent.jo";
+		return CheminFichier{"entreface/operatrice_terrain_vent.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -779,9 +779,9 @@ public:
 		entrees(2);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_terrain_erosion.jo";
+		return CheminFichier{"entreface/operatrice_terrain_erosion.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1019,9 +1019,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_terrain_inclinaison.jo";
+		return CheminFichier{"entreface/operatrice_terrain_inclinaison.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1191,9 +1191,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_terrain_evaluation.jo";
+		return CheminFichier{"entreface/operatrice_terrain_evaluation.jo"};
 	}
 
 	const char *nom_classe() const override

@@ -65,9 +65,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_creation_attribut.jo";
+		return CheminFichier{"entreface/operatrice_3d_creation_attribut.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -217,9 +217,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_suppression_attribut.jo";
+		return CheminFichier{"entreface/operatrice_3d_suppression_attribut.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -367,9 +367,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_randomisation_attribut.jo";
+		return CheminFichier{"entreface/operatrice_3d_randomisation_attribut.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -552,9 +552,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_attr_couleur.jo";
+		return CheminFichier{"entreface/operatrice_attr_couleur.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -702,9 +702,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_normaux.jo";
+		return CheminFichier{"entreface/operatrice_3d_normaux.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -792,9 +792,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_compression_normaux.jo";
+		return CheminFichier{"entreface/operatrice_3d_compression_normaux.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -913,9 +913,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_transfere_attribut.jo";
+		return CheminFichier{"entreface/operatrice_transfere_attribut.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1305,9 +1305,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_attribut_promotion.jo";
+		return CheminFichier{"entreface/operatrice_attribut_promotion.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1423,9 +1423,9 @@ public:
 
 	COPIE_CONSTRUCT(OpVisibiliteCamera);
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_visibilite_camera.jo";
+		return CheminFichier{"entreface/operatrice_visibilite_camera.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1684,9 +1684,9 @@ struct OpAttributNuanceur final : public OperatriceCorps {
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_attribut_nuanceur.jo";
+		return CheminFichier{"entreface/operatrice_attribut_nuanceur.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1770,9 +1770,9 @@ struct OpImprimeAttribut final : public OperatriceCorps {
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_attribut_detail.jo";
+		return CheminFichier{"entreface/operatrice_attribut_detail.jo"};
 	}
 
 	const char *nom_classe() const override

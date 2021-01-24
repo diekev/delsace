@@ -104,9 +104,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_creation_groupe.jo";
+		return CheminFichier{"entreface/operatrice_creation_groupe.jo"};
 	}
 
 	const char *nom_classe() const override

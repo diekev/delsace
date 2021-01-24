@@ -165,9 +165,9 @@ public:
 		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_cube.jo";
+		return CheminFichier{"entreface/operatrice_3d_cube.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -209,9 +209,9 @@ public:
 		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_sphere_uv.jo";
+		return CheminFichier{"entreface/operatrice_3d_sphere_uv.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -255,9 +255,9 @@ public:
 		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_cylindre.jo";
+		return CheminFichier{"entreface/operatrice_3d_cylindre.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -302,9 +302,9 @@ public:
 		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_cone.jo";
+		return CheminFichier{"entreface/operatrice_3d_cone.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -348,9 +348,9 @@ public:
 		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_grille.jo";
+		return CheminFichier{"entreface/operatrice_3d_grille.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -395,9 +395,9 @@ public:
 		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_sphere_ico.jo";
+		return CheminFichier{"entreface/operatrice_3d_sphere_ico.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -439,9 +439,9 @@ public:
 		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_torus.jo";
+		return CheminFichier{"entreface/operatrice_3d_torus.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -486,9 +486,9 @@ public:
 		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_cercle.jo";
+		return CheminFichier{"entreface/operatrice_3d_cercle.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -535,9 +535,9 @@ public:
 		entrees(0);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_primitive_sphere.jo";
+		return CheminFichier{"entreface/operatrice_3d_primitive_sphere.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -579,9 +579,9 @@ public:
 		entrees(0);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_ligne.jo";
+		return CheminFichier{"entreface/operatrice_3d_ligne.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -652,9 +652,9 @@ public:
 	OpImportObjet(OpImportObjet const &) = default;
 	OpImportObjet &operator=(OpImportObjet const &) = default;
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_lecture_objet.jo";
+		return CheminFichier{"entreface/operatrice_lecture_objet.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1090,9 +1090,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_transformation.jo";
+		return CheminFichier{"entreface/operatrice_transformation.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1420,9 +1420,9 @@ public:
 		sorties(1); // À FAIRE : une seule connexion de sortie
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_creation_kelvinlet.jo";
+		return CheminFichier{"entreface/operatrice_creation_kelvinlet.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1524,9 +1524,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_evaluation_kelvinlet.jo";
+		return CheminFichier{"entreface/operatrice_evaluation_kelvinlet.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1642,9 +1642,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_deformation_kelvinlet.jo";
+		return CheminFichier{"entreface/operatrice_deformation_kelvinlet.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1790,9 +1790,9 @@ public:
 
 	COPIE_CONSTRUCT(OpCreationPancarte);
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_creation_pancartes.jo";
+		return CheminFichier{"entreface/operatrice_creation_pancartes.jo"};
 	}
 
 	const char *nom_classe() const override

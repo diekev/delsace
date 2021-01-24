@@ -865,9 +865,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_creation_volume_temporel.jo";
+		return CheminFichier{"entreface/operatrice_creation_volume_temporel.jo"};
 	}
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -933,9 +933,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_creation_volume_temporel.jo";
+		return CheminFichier{"entreface/operatrice_creation_volume_temporel.jo"};
 	}
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -1012,9 +1012,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_creation_volume_temporel.jo";
+		return CheminFichier{"entreface/operatrice_creation_volume_temporel.jo"};
 	}
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -1578,9 +1578,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_creation_grille_eclairage.jo";
+		return CheminFichier{"entreface/operatrice_creation_grille_eclairage.jo"};
 	}
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -1712,9 +1712,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_deep_scattering.jo";
+		return CheminFichier{"entreface/operatrice_deep_scattering.jo"};
 	}
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override

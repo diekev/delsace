@@ -65,7 +65,7 @@ public:
 
 	const char *texte_aide() const override;
 
-	const char *chemin_entreface() const override;
+	ResultatCheminEntreface chemin_entreface() const override;
 
 	type_prise type_entree(int) const override;
 

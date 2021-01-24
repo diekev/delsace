@@ -279,9 +279,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_lissage_laplacien.jo";
+		return CheminFichier{"entreface/operatrice_3d_lissage_laplacien.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -360,9 +360,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "";
+		return CheminFichier{""};
 	}
 
 	const char *nom_classe() const override
@@ -557,9 +557,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_normalise_covariance.jo";
+		return CheminFichier{"entreface/operatrice_normalise_covariance.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -619,9 +619,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "";
+		return CheminFichier{""};
 	}
 
 	const char *nom_classe() const override
@@ -740,9 +740,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_erosion_maillage.jo";
+		return CheminFichier{"entreface/operatrice_erosion_maillage.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1384,9 +1384,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_geometrie_maillage.jo";
+		return CheminFichier{"entreface/operatrice_geometrie_maillage.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1595,9 +1595,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "";
+		return CheminFichier{""};
 	}
 
 	const char *nom_classe() const override
@@ -1737,9 +1737,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "";
+		return CheminFichier{""};
 	}
 
 	const char *nom_classe() const override

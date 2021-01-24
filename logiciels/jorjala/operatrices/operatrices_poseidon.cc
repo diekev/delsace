@@ -115,9 +115,9 @@ public:
 	OpEntreeGaz(OpEntreeGaz const &) = default;
 	OpEntreeGaz &operator=(OpEntreeGaz const &) = default;
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_entree_gaz.jo";
+		return CheminFichier{"entreface/operatrice_entree_gaz.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -282,9 +282,9 @@ public:
 	OpObstacleGaz(OpObstacleGaz const &) = default;
 	OpObstacleGaz &operator=(OpObstacleGaz const &) = default;
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_obstacle_gaz.jo";
+		return CheminFichier{"entreface/operatrice_obstacle_gaz.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -398,9 +398,9 @@ public:
 		supprime_grilles();
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_simulation_gaz.jo";
+		return CheminFichier{"entreface/operatrice_simulation_gaz.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -647,9 +647,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_advection_gaz.jo";
+		return CheminFichier{"entreface/operatrice_advection_gaz.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -748,9 +748,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_flottance_gaz.jo";
+		return CheminFichier{"entreface/operatrice_flottance_gaz.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -845,9 +845,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_projection_gaz.jo";
+		return CheminFichier{"entreface/operatrice_projection_gaz.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -912,9 +912,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_vorticite_gaz.jo";
+		return CheminFichier{"entreface/operatrice_vorticite_gaz.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -971,9 +971,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_affinage_gaz.jo";
+		return CheminFichier{"entreface/operatrice_affinage_gaz.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1043,9 +1043,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_diffusion_gaz.jo";
+		return CheminFichier{"entreface/operatrice_diffusion_gaz.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1157,9 +1157,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_dissipation_gaz.jo";
+		return CheminFichier{"entreface/operatrice_dissipation_gaz.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1223,9 +1223,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_visualisation_gaz.jo";
+		return CheminFichier{"entreface/operatrice_visualisation_gaz.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1373,9 +1373,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_poseidon_erosion.jo";
+		return CheminFichier{"entreface/operatrice_poseidon_erosion.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1462,9 +1462,9 @@ public:
 		noeud.graphe.donnees.ajoute(static_cast<int>(DETAIL_POSEIDON_GAZ));
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "";
+		return CheminFichier{""};
 	}
 
 	const char *nom_classe() const override

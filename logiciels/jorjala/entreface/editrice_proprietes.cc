@@ -110,6 +110,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
 	auto manipulable = static_cast<danjo::Manipulable *>(nullptr);
 	auto chemin_entreface = "";
+	dls::chaine texte_entreface;
 
 	switch (noeud->type) {
 		case type_noeud::COMPOSITE:
@@ -129,7 +130,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		}
 		case type_noeud::OBJET:
 		{
-			auto objet = extrait_objet(noeud->donnees);
+			auto objet = extrait_objet(noeud->donnees);			
 			chemin_entreface = objet->chemin_entreface();
 
 			if (chemin_entreface[0] != '\0' && !std::filesystem::exists(chemin_entreface)) {
@@ -142,23 +143,36 @@ void EditriceProprietes::ajourne_etat(int evenement)
 				ajoute_avertissements(avertissements);
 			}
 
+			texte_entreface = dls::contenu_fichier(chemin_entreface);
+
 			manipulable = objet->noeud;
 			break;
 		}
 		case type_noeud::OPERATRICE:
 		{
 			auto operatrice = extrait_opimage(noeud->donnees);
-			chemin_entreface = operatrice->chemin_entreface();
-			manipulable = operatrice;
 
-			operatrice->ajourne_proprietes();
+			std::visit([&](auto &&arg)
+			{
+				using T = std::decay_t<decltype(arg)>;
+				if constexpr (std::is_same_v<T, CheminFichier>) {
+					chemin_entreface = arg.chemin;
+					manipulable = operatrice;
 
-			if (chemin_entreface[0] != '\0' && !std::filesystem::exists(chemin_entreface)) {
-				operatrice->ajoute_avertissement(
-							"Le fichier « ",
-							chemin_entreface,
-							" » n'existe pas !");
-			}
+					operatrice->ajourne_proprietes();
+
+					if (chemin_entreface[0] != '\0' && !std::filesystem::exists(chemin_entreface)) {
+						operatrice->ajoute_avertissement(
+									"Le fichier « ",
+									chemin_entreface,
+									" » n'existe pas !");
+					}
+					texte_entreface = dls::contenu_fichier(chemin_entreface);
+				}
+				else {
+					texte_entreface = arg.texte;
+				}
+			}, operatrice->chemin_entreface());
 
 			/* avertissements */
 			if (operatrice->avertissements().taille() > 0) {
@@ -190,8 +204,8 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	donnees.conteneur = this;
 	donnees.repondant_bouton = m_jorjala.repondant_commande();
 
-	auto gestionnaire = m_jorjala.gestionnaire_entreface;
-	auto disposition = gestionnaire->compile_entreface_fichier(donnees, chemin_entreface, m_jorjala.temps_courant);
+	auto gestionnaire = m_jorjala.gestionnaire_entreface;	
+	auto disposition = gestionnaire->compile_entreface_texte(donnees, texte_entreface, m_jorjala.temps_courant);
 
 	if (disposition == nullptr) {
 		return;

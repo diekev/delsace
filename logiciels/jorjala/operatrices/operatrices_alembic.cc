@@ -364,7 +364,7 @@ public:
 	OpImportAlembic(OpImportAlembic const &) = default;
 	OpImportAlembic &operator=(OpImportAlembic const &) = default;
 
-	const char *chemin_entreface() const override;
+	ResultatCheminEntreface chemin_entreface() const override;
 
 	const char *nom_classe() const override;
 
@@ -387,9 +387,9 @@ OpImportAlembic::OpImportAlembic(Graphe &graphe_parent, Noeud &noeud_)
 	sorties(1);
 }
 
-const char *OpImportAlembic::chemin_entreface() const
+ResultatCheminEntreface OpImportAlembic::chemin_entreface() const
 {
-	return "entreface/operatrice_import_alembic.jo";
+	return CheminFichier{"entreface/operatrice_import_alembic.jo"};
 }
 
 const char *OpImportAlembic::nom_classe() const

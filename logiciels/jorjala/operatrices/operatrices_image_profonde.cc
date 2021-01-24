@@ -111,9 +111,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "";
+		return CheminFichier{""};
 	}
 
 	const char *nom_classe() const override
@@ -256,9 +256,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "";
+		return CheminFichier{""};
 	}
 
 	const char *nom_classe() const override
@@ -467,9 +467,9 @@ public:
 	OpPointsDepuisProfonde(OpPointsDepuisProfonde const &) = default;
 	OpPointsDepuisProfonde &operator=(OpPointsDepuisProfonde const &) = default;
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_points_depuis_profonde.jo";
+		return CheminFichier{"entreface/operatrice_points_depuis_profonde.jo"};
 	}
 
 	const char *nom_classe() const override

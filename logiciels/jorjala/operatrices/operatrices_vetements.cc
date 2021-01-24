@@ -494,9 +494,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_simulation_vetement.jo";
+		return CheminFichier{"entreface/operatrice_simulation_vetement.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1064,9 +1064,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_patch_triangle.jo";
+		return CheminFichier{"entreface/operatrice_patch_triangle.jo"};
 	}
 
 	const char *nom_classe() const override

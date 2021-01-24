@@ -162,9 +162,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_3d_creation_courbes.jo";
+		return CheminFichier{"entreface/operatrice_3d_creation_courbes.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -843,9 +843,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_bruit_cheveux.jo";
+		return CheminFichier{"entreface/operatrice_bruit_cheveux.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -947,9 +947,9 @@ public:
 		: OperatriceCorps(graphe_parent, noeud_)
 	{}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_melange_cheveux.jo";
+		return CheminFichier{"entreface/operatrice_melange_cheveux.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1089,9 +1089,9 @@ public:
 		}
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_melange_cheveux.jo";
+		return CheminFichier{"entreface/operatrice_melange_cheveux.jo"};
 	}
 
 	const char *nom_classe() const override

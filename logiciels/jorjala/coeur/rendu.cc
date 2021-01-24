@@ -53,12 +53,12 @@ Rendu *cree_rendu_defaut(Jorjala &jorjala)
 	auto noeud_sortie = graphe.cree_noeud("Moteur Rendu", type_noeud::OPERATRICE);
 	auto op = jorjala.usine_operatrices()("Moteur Rendu", graphe, *noeud_sortie);
 	synchronise_donnees_operatrice(*noeud_sortie);
-	danjo::initialise_entreface(op, dls::contenu_fichier(op->chemin_entreface()).c_str());
+	initialise_entreface(op, op->chemin_entreface());
 
 	auto noeud_objets = graphe.cree_noeud("Cherche Objets", type_noeud::OPERATRICE);
 	op = jorjala.usine_operatrices()("Cherche Objets", graphe, *noeud_objets);
 	synchronise_donnees_operatrice(*noeud_objets);
-	danjo::initialise_entreface(op, dls::contenu_fichier(op->chemin_entreface()).c_str());
+	initialise_entreface(op, op->chemin_entreface());
 
 	graphe.connecte(noeud_objets->sortie(0), noeud_sortie->entree(0));
 

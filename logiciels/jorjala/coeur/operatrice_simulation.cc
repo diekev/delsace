@@ -45,9 +45,9 @@ const char *OperatriceSimulation::texte_aide() const
 	return AIDE;
 }
 
-const char *OperatriceSimulation::chemin_entreface() const
+ResultatCheminEntreface OperatriceSimulation::chemin_entreface() const
 {
-	return "entreface/operatrice_simulation.jo";
+	return CheminFichier{"entreface/operatrice_simulation.jo"};
 }
 
 int OperatriceSimulation::type() const

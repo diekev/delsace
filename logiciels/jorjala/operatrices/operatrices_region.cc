@@ -143,9 +143,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_analyse.jo";
+		return CheminFichier{"entreface/operatrice_analyse.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -381,9 +381,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_filtre.jo";
+		return CheminFichier{"entreface/operatrice_filtre.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -530,9 +530,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_normalisation.jo";
+		return CheminFichier{"entreface/operatrice_normalisation.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -616,9 +616,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_flou.jo";
+		return CheminFichier{"entreface/operatrice_flou.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -697,9 +697,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_affinage_image.jo";
+		return CheminFichier{"entreface/operatrice_affinage_image.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -813,9 +813,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_mediane_image.jo";
+		return CheminFichier{"entreface/operatrice_mediane_image.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -934,9 +934,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_bilateral_image.jo";
+		return CheminFichier{"entreface/operatrice_bilateral_image.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1066,9 +1066,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_lueur_image.jo";
+		return CheminFichier{"entreface/operatrice_lueur_image.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1191,9 +1191,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_tournoiement.jo";
+		return CheminFichier{"entreface/operatrice_tournoiement.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1313,9 +1313,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_champs_distance.jo";
+		return CheminFichier{"entreface/operatrice_champs_distance.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1439,9 +1439,9 @@ public:
 		entrees(2);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_deformation.jo";
+		return CheminFichier{"entreface/operatrice_deformation.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1736,9 +1736,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_simulation_grain.jo";
+		return CheminFichier{"entreface/operatrice_simulation_grain.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1812,9 +1812,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_coordonnees_polaires.jo";
+		return CheminFichier{"entreface/operatrice_coordonnees_polaires.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1879,9 +1879,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_ondelette_haar.jo";
+		return CheminFichier{"entreface/operatrice_ondelette_haar.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1981,9 +1981,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_dilation_erosion.jo";
+		return CheminFichier{"entreface/operatrice_dilation_erosion.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -2067,9 +2067,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_dilation_erosion.jo";
+		return CheminFichier{"entreface/operatrice_dilation_erosion.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -2152,9 +2152,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_extraction_palette.jo";
+		return CheminFichier{"entreface/operatrice_extraction_palette.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -2324,9 +2324,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_extraction_palette.jo";
+		return CheminFichier{"entreface/operatrice_extraction_palette.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -2394,9 +2394,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_rayons_soleil.jo";
+		return CheminFichier{"entreface/operatrice_rayons_soleil.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -2655,9 +2655,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_mappage_tonal_ondelette.jo";
+		return CheminFichier{"entreface/operatrice_mappage_tonal_ondelette.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -3148,9 +3148,9 @@ public:
 		entrees(0);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_generation_bruit_bleu.jo";
+		return CheminFichier{"entreface/operatrice_generation_bruit_bleu.jo"};
 	}
 
 	const char *nom_classe() const override

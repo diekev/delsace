@@ -139,9 +139,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_vis_arbre_hbe.jo";
+		return CheminFichier{"entreface/operatrice_vis_arbre_hbe.jo"};
 	}
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -283,9 +283,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_vis_arbre_hbe.jo";
+		return CheminFichier{"entreface/operatrice_vis_arbre_hbe.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -392,9 +392,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "";
+		return CheminFichier{""};
 	}
 
 	const char *nom_classe() const override

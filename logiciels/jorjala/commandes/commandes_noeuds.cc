@@ -234,7 +234,7 @@ public:
 		auto op = (jorjala->usine_operatrices())(nom, *jorjala->graphe, *noeud);
 		synchronise_donnees_operatrice(*noeud);
 
-		jorjala->gestionnaire_entreface->initialise_entreface_fichier(op, op->chemin_entreface());
+		initialise_entreface(jorjala->gestionnaire_entreface, op, op->chemin_entreface());
 
 		auto besoin_evaluation = finalise_ajout_noeud(*jorjala, *graphe, *noeud);
 
@@ -299,7 +299,7 @@ public:
 		auto op = cree_op_detail(*jorjala, *graphe, *noeud, nom);
 		op->cree_proprietes();
 		synchronise_donnees_operatrice(*noeud);
-		jorjala->gestionnaire_entreface->initialise_entreface_fichier(op, op->chemin_entreface());
+		initialise_entreface(jorjala->gestionnaire_entreface, op, op->chemin_entreface());
 
 		finalise_ajout_noeud(*jorjala, *graphe, *noeud);
 
@@ -374,7 +374,7 @@ public:
 		auto op = (jorjala->usine_operatrices())(nom, *graphe, *noeud);
 		synchronise_donnees_operatrice(*noeud);
 
-		jorjala->gestionnaire_entreface->initialise_entreface_fichier(op, op->chemin_entreface());
+		initialise_entreface(jorjala->gestionnaire_entreface, op, op->chemin_entreface());
 
 		auto besoin_evaluation = finalise_ajout_noeud(*jorjala, *graphe, *noeud);
 
@@ -429,7 +429,7 @@ public:
 		 * type de détail pour déterminer les types de sorties */
 		synchronise_donnees_operatrice(*noeud);
 
-		jorjala->gestionnaire_entreface->initialise_entreface_fichier(op, op->chemin_entreface());
+		initialise_entreface(jorjala->gestionnaire_entreface, op, op->chemin_entreface());
 
 		auto besoin_evaluation = finalise_ajout_noeud(*jorjala, *graphe, *noeud);
 

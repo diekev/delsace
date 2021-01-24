@@ -85,9 +85,9 @@ public:
 		return type_prise::IMAGE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_texture.jo";
+		return CheminFichier{"entreface/operatrice_texture.jo"};
 	}
 
 	const char *nom_classe() const override

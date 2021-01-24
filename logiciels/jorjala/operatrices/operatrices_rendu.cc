@@ -119,9 +119,9 @@ public:
 		m_execute_toujours = true;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_rendu_instance.jo";
+		return CheminFichier{"entreface/operatrice_rendu_instance.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -270,9 +270,9 @@ public:
 		}
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_rendu_moteur.jo";
+		return CheminFichier{"entreface/operatrice_rendu_moteur.jo"};
 	}
 
 	const char *nom_classe() const override

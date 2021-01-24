@@ -140,13 +140,13 @@ const char *OperatriceGrapheDetail::texte_aide() const
 	return AIDE;
 }
 
-const char *OperatriceGrapheDetail::chemin_entreface() const
+ResultatCheminEntreface OperatriceGrapheDetail::chemin_entreface() const
 {
 	if (type_detail == DETAIL_PIXELS) {
-		return "";
+		return CheminFichier{""};
 	}
 
-	return "";
+	return CheminFichier{""};
 }
 
 type_prise OperatriceGrapheDetail::type_entree(int) const
@@ -1204,9 +1204,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_attribut_detail.jo";
+		return CheminFichier{"entreface/operatrice_attribut_detail.jo"};
 	}
 
 	type_prise type_sortie(int) const override
@@ -1287,9 +1287,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_attribut_detail.jo";
+		return CheminFichier{"entreface/operatrice_attribut_detail.jo"};
 	}
 
 	type_prise type_entree(int) const override
@@ -1390,9 +1390,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_detail_echantimage.jo";
+		return CheminFichier{"entreface/operatrice_detail_echantimage.jo"};
 	}
 
 	type_prise type_sortie(int i) const override
@@ -1540,9 +1540,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return desc_operatrice_courbe_rampe<O>::chemin_entreface;
+		return CheminFichier{desc_operatrice_courbe_rampe<O>::chemin_entreface};
 	}
 
 	type_prise type_sortie(int i) const override
@@ -1619,9 +1619,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_detail_camera.jo";
+		return CheminFichier{"entreface/operatrice_detail_camera.jo"};
 	}
 
 	type_prise type_sortie(int i) const override
@@ -1757,9 +1757,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "";
+		return CheminFichier{""};
 	}
 
 	type_prise type_sortie(int i) const override

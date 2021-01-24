@@ -238,7 +238,7 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
 		return "";
 	}
@@ -1474,9 +1474,9 @@ public:
 		sorties(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_fracture_voronoi.jo";
+		return CheminFichier{"entreface/operatrice_fracture_voronoi.jo"};
 	}
 
 	const char *nom_classe() const override

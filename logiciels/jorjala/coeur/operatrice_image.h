@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/resultat.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include <any>
@@ -32,6 +33,8 @@
 #include "image.hh"
 
 #include "danjo/manipulable.h"
+
+#include "outils_entreface.hh"
 
 enum class type_prise : int;
 
@@ -236,7 +239,7 @@ public:
 
 	virtual const char *nom_classe() const = 0;
 	virtual const char *texte_aide() const = 0;
-	virtual const char *chemin_entreface() const;
+	virtual ResultatCheminEntreface chemin_entreface() const;
 
 	/* la logique principale d'exécution de cette opératrice */
 

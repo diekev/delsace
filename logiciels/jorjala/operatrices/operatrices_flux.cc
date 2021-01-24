@@ -603,9 +603,9 @@ public:
 		sorties(0);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_visionnage.jo";
+		return CheminFichier{"entreface/operatrice_visionnage.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -657,9 +657,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_lecture_fichier.jo";
+		return CheminFichier{"entreface/operatrice_lecture_fichier.jo"};
 	}
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -749,9 +749,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_lecture_video.jo";
+		return CheminFichier{"entreface/operatrice_lecture_video.jo"};
 	}
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -869,9 +869,9 @@ public:
 		return AIDE;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_lecture_fichier.jo";
+		return CheminFichier{"entreface/operatrice_lecture_fichier.jo"};
 	}
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -954,9 +954,9 @@ public:
 	{
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return desc_operatrice_commutation<O>::chemin_entreface;
+		return CheminFichier{desc_operatrice_commutation<O>::chemin_entreface};
 	}
 
 	const char *nom_classe() const override
@@ -1130,9 +1130,9 @@ public:
 		entrees(0);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_entree_simulation.jo";
+		return CheminFichier{"entreface/operatrice_entree_simulation.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1190,9 +1190,9 @@ public:
 	OpReferenceObjet(OpReferenceObjet const &) = default;
 	OpReferenceObjet &operator=(OpReferenceObjet const &) = default;
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_import_objet.jo";
+		return CheminFichier{"entreface/operatrice_import_objet.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1292,7 +1292,7 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
 		return "";
 	}

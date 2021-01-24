@@ -634,9 +634,9 @@ public:
 		entrees(1);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_ocean.jo";
+		return CheminFichier{"entreface/operatrice_ocean.jo"};
 	}
 
 	const char *nom_classe() const override
@@ -1960,9 +1960,9 @@ public:
 #endif
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "";
+		return CheminFichier{""};
 	}
 
 	const char *nom_classe() const override

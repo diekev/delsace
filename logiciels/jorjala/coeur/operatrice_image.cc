@@ -432,9 +432,9 @@ type_prise OperatriceImage::type_sortie(int n) const
 	}
 }
 
-const char *OperatriceImage::chemin_entreface() const
+ResultatCheminEntreface OperatriceImage::chemin_entreface() const
 {
-	return "";
+	return CheminFichier{""};
 }
 
 void OperatriceImage::transfere_image(Image &image)

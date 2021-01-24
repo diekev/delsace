@@ -69,9 +69,9 @@ public:
 		entrees(0);
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_points_depuis_image.jo";
+		return CheminFichier{"entreface/operatrice_points_depuis_image.jo"};
 	}
 
 	const char *nom_classe() const override

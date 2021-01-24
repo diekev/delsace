@@ -782,7 +782,7 @@ public:
 
 	~OperatriceCreationArbre() override;
 
-	const char *chemin_entreface() const override;
+	ResultatCheminEntreface chemin_entreface() const override;
 
 	const char *nom_classe() const override;
 
@@ -804,9 +804,9 @@ OperatriceCreationArbre::~OperatriceCreationArbre()
 	memoire::deloge("MTree", m_arbre);
 }
 
-const char *OperatriceCreationArbre::chemin_entreface() const
+ResultatCheminEntreface OperatriceCreationArbre::chemin_entreface() const
 {
-	return "entreface/operatrice_creation_arbre.jo";
+	return CheminFichier{"entreface/operatrice_creation_arbre.jo"};
 }
 
 const char *OperatriceCreationArbre::nom_classe() const
@@ -2161,9 +2161,9 @@ public {
 		return OPERATRICE_CORPS;
 	}
 
-	const char *chemin_entreface() const override
+	ResultatCheminEntreface chemin_entreface() const override
 	{
-		return "entreface/operatrice_creation_arbre.jo";
+		return CheminFichier{"entreface/operatrice_creation_arbre.jo"};
 	}
 
 	const char *nom_classe() const override
