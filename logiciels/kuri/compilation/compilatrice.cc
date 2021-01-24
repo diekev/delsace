@@ -687,26 +687,17 @@ long GeranteChaine::ajoute_chaine(const dls::chaine &chaine)
 	// calcul l'adresse de la chaine
 	auto adresse = (enchaineuse.nombre_tampons() - 1) * Enchaineuse::TAILLE_TAMPON + enchaineuse.tampon_courant->occupe;
 
-	adresse_et_taille.ajoute(adresse);
-	adresse_et_taille.ajoute(static_cast<int>(chaine.taille()));
-
 	enchaineuse.ajoute(chaine);
 
-	return adresse;
+	return adresse | (chaine.taille() << 32);
 }
 
 kuri::chaine GeranteChaine::chaine_pour_adresse(long adresse) const
 {
 	assert(adresse >= 0);
 
-	auto taille = 0;
-
-	for (auto i = 0; i < adresse_et_taille.taille(); i += 2) {
-		if (adresse_et_taille[i] == adresse) {
-			taille = adresse_et_taille[i + 1];
-			break;
-		}
-	}
+	auto taille = (adresse >> 32) & 0xffffffff;
+	adresse = (adresse & 0xfffffff);
 
 	auto tampon_courant = &enchaineuse.m_tampon_base;
 
@@ -725,7 +716,7 @@ kuri::chaine GeranteChaine::chaine_pour_adresse(long adresse) const
 
 long GeranteChaine::memoire_utilisee() const
 {
-	return enchaineuse.nombre_tampons_alloues() * Enchaineuse::TAILLE_TAMPON + adresse_et_taille.taille() * taille_de(int);
+	return enchaineuse.nombre_tampons_alloues() * Enchaineuse::TAILLE_TAMPON;
 }
 
 /* ************************************************************************** */

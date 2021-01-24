@@ -40,7 +40,6 @@ struct DonneesExecution;
 struct GeranteChaine {
 private:
 	Enchaineuse enchaineuse{};
-	dls::tableau<int> adresse_et_taille{};
 
 public:
 	long ajoute_chaine(dls::chaine const &chaine);
