@@ -52,6 +52,7 @@ parse_courriel_pour_info_type :: fonc (chn: chaine, tampon: []octet) -> bool
 }
 
 Courriel :: struct {
+    objet: chaine
     message: chaine
     expéditeur: chaine
     destinataires: []chaine
@@ -89,8 +90,8 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
 
     si format {
         message = imprime_chaine(format, ...args)
-       chaine_ajoute(*message, '\r')
-       chaine_ajoute(*message, '\n')
+        chaine_ajoute(*message, '\r')
+        chaine_ajoute(*message, '\n')
     }
 
     taille_écrite := tente fichier.écris(message) piège err {
@@ -155,7 +156,9 @@ crée_corps_message :: fonc (courriel: Courriel) -> chaine
 
     ajoute_au_tampon(*enchaineuse, ">\r\n")
 
-    ajoute_au_tampon(*enchaineuse, "Subject: Test envoie message\r\n")
+    ajoute_au_tampon(*enchaineuse, "Subject: ")
+    ajoute_au_tampon(*enchaineuse, courriel.objet)
+    ajoute_au_tampon(*enchaineuse, "\r\n")
     ajoute_au_tampon(*enchaineuse, "\r\n")
     ajoute_au_tampon(*enchaineuse, courriel.message)
     ajoute_au_tampon(*enchaineuse, "\r\n.")
