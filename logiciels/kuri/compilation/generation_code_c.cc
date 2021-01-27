@@ -571,19 +571,43 @@ struct GeneratriceCodeC {
 							}
 							case AtomeValeurConstante::Valeur::Genre::ENTIERE:
 							{
-								auto resultat = dls::vers_chaine(valeur_const->valeur.valeur_entiere);
 								auto type = valeur_const->type;
+								auto valeur_entiere = valeur_const->valeur.valeur_entiere;
 
-								if (type->taille_octet == 8) {
-									if (type->genre == GenreType::ENTIER_NATUREL) {
-										resultat += "UL";
+								if (type->est_entier_naturel()) {
+									if (type->taille_octet == 1) {
+										return dls::vers_chaine(static_cast<unsigned char>(valeur_entiere));
 									}
-									else {
+									else if (type->taille_octet == 2) {
+										return dls::vers_chaine(static_cast<unsigned short>(valeur_entiere));
+									}
+									else if (type->taille_octet == 4) {
+										return dls::vers_chaine(static_cast<unsigned int>(valeur_entiere));
+									}
+									else if (type->taille_octet == 8) {
+										auto resultat = dls::vers_chaine(valeur_entiere);
+										resultat += "UL";
+										return resultat;
+									}
+								}
+								else {
+									if (type->taille_octet == 1) {
+										return dls::vers_chaine(static_cast<char>(valeur_entiere));
+									}
+									else if (type->taille_octet == 2) {
+										return dls::vers_chaine(static_cast<short>(valeur_entiere));
+									}
+									else if (type->taille_octet == 4 || type->taille_octet == 0) {
+										return dls::vers_chaine(static_cast<int>(valeur_entiere));
+									}
+									else if (type->taille_octet == 8) {
+										auto resultat = dls::vers_chaine(valeur_entiere);
 										resultat += "L";
+										return resultat;
 									}
 								}
 
-								return resultat;
+								return "";
 							}
 							case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
 							{
