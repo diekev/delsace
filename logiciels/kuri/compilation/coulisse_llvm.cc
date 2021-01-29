@@ -22,7 +22,7 @@
  *
  */
 
-#include "generation_code_llvm.hh"
+#include "coulisse_llvm.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
@@ -1433,12 +1433,7 @@ static bool cree_executable(const kuri::chaine &dest, const std::filesystem::pat
 	return true;
 }
 
-bool coulisse_llvm_cree_executable(
-		Compilatrice &compilatrice,
-		EspaceDeTravail &espace,
-		double &temps_generation_code,
-		double &temps_executable,
-		double &temps_fichier_objet)
+bool CoulisseLLVM::cree_fichier_objet(Compilatrice &compilatrice, EspaceDeTravail &espace, ConstructriceRI &/*constructrice_ri*/)
 {
 	auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
@@ -1487,7 +1482,6 @@ bool coulisse_llvm_cree_executable(
 	}
 #endif
 
-	/* définition du fichier de sortie */
 	if (espace.options.objet_genere == ObjetGenere::Executable) {
 		std::cout << "Écriture du code dans un fichier..." << std::endl;
 		auto debut_fichier_objet = dls::chrono::compte_seconde();
@@ -1496,15 +1490,19 @@ bool coulisse_llvm_cree_executable(
 			return 1;
 		}
 		temps_fichier_objet = debut_fichier_objet.temps();
-
-		auto debut_executable = dls::chrono::compte_seconde();
-		if (!cree_executable(espace.options.nom_sortie, compilatrice.racine_kuri.c_str())) {
-			compilatrice.possede_erreur = true;
-			return false;
-		}
-
-		temps_executable = debut_executable.temps();
 	}
 
+	return true;
+}
+
+bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace)
+{
+	auto debut_executable = dls::chrono::compte_seconde();
+	if (!::cree_executable(espace.options.nom_sortie, compilatrice.racine_kuri.c_str())) {
+		compilatrice.possede_erreur = true;
+		return false;
+	}
+
+	temps_executable = debut_executable.temps();
 	return true;
 }

@@ -34,6 +34,7 @@
 #include "options.hh"
 #include "tacheronne.hh"
 
+struct Coulisse;
 struct Statistiques;
 struct DonneesExecution;
 
@@ -161,6 +162,8 @@ public:
 
 	/* Le métaprogramme controlant la compilation dans cette espace. */
 	MetaProgramme *metaprogramme = nullptr;
+
+	Coulisse *coulisse = nullptr;
 
 	explicit EspaceDeTravail(OptionsCompilation opts);
 

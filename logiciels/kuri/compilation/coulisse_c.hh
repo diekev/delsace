@@ -24,18 +24,10 @@
 
 #pragma once
 
-struct Compilatrice;
-struct ConstructriceRI;
-struct EspaceDeTravail;
+#include "coulisse.hh"
 
-bool coulisse_C_cree_fichier_objet(
-		Compilatrice &compilatrice,
-		ConstructriceRI &constructrice_ri,
-		EspaceDeTravail &espace,
-		double &temps_generation_code,
-		double &temps_fichier_objet);
+struct CoulisseC final : public Coulisse {
+	bool cree_fichier_objet(Compilatrice &compilatrice, EspaceDeTravail &espace, ConstructriceRI &constructrice_ri) override;
 
-bool coulisse_C_cree_executable(
-		Compilatrice &compilatrice,
-		EspaceDeTravail &espace,
-		double &temps_executable);
+	bool cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace) override;
+};

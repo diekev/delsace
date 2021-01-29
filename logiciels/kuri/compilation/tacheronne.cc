@@ -31,8 +31,7 @@
 
 #include "assembleuse_arbre.h"
 #include "compilatrice.hh"
-#include "generation_code_c.hh"
-#include "generation_code_llvm.hh"
+#include "coulisse.hh"
 #include "lexeuse.hh"
 #include "modules.hh"
 #include "syntaxeuse.hh"
@@ -720,21 +719,17 @@ void Tacheronne::gere_tache()
 			case GenreTache::GENERE_FICHIER_OBJET:
 			{
 				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
-
-				if (tache.espace->options.type_coulisse == TypeCoulisse::C) {
-					coulisse_C_cree_fichier_objet(compilatrice, constructrice_ri, *tache.espace, temps_generation_code, temps_fichier_objet);
-				}
-				else if (tache.espace->options.type_coulisse == TypeCoulisse::LLVM) {
-					coulisse_llvm_cree_executable(compilatrice, *tache.espace, temps_generation_code, temps_executable, temps_fichier_objet);
-				}
-
+				tache.espace->coulisse->cree_fichier_objet(compilatrice, *tache.espace, constructrice_ri);
+				temps_generation_code += tache.espace->coulisse->temps_generation_code;
+				temps_fichier_objet += tache.espace->coulisse->temps_fichier_objet;
 				tache_fut_completee = true;
 				break;
 			}
 			case GenreTache::LIAISON_EXECUTABLE:
 			{
 				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
-				coulisse_C_cree_executable(compilatrice, *tache.espace, temps_executable);
+				tache.espace->coulisse->cree_executable(compilatrice, *tache.espace);
+				temps_executable += tache.espace->coulisse->temps_executable;
 				tache_fut_completee = true;
 				break;
 			}

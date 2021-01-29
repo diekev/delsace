@@ -22,7 +22,7 @@
  *
  */
 
-#include "generation_code_c.hh"
+#include "coulisse_c.hh"
 
 #include <fstream>
 
@@ -1580,12 +1580,7 @@ static dls::chaine genere_commande_fichier_objet(Compilatrice &compilatrice, Opt
 	return commande;
 }
 
-bool coulisse_C_cree_fichier_objet(
-		Compilatrice &compilatrice,
-		ConstructriceRI &constructrice_ri,
-		EspaceDeTravail &espace,
-		double &temps_generation_code,
-		double &temps_fichier_objet)
+bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice, EspaceDeTravail &espace, ConstructriceRI &constructrice_ri)
 {
 	std::ofstream of;
 	of.open("/tmp/compilation_kuri.c");
@@ -1616,10 +1611,7 @@ bool coulisse_C_cree_fichier_objet(
 	return true;
 }
 
-bool coulisse_C_cree_executable(
-		Compilatrice &compilatrice,
-		EspaceDeTravail &espace,
-		double &temps_executable)
+bool CoulisseC::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace)
 {
 	compile_objet_r16(compilatrice.racine_kuri.c_str(), espace.options.architecture_cible);
 

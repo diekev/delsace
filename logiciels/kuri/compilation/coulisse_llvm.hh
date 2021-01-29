@@ -24,15 +24,14 @@
 
 #pragma once
 
-struct Compilatrice;
-struct EspaceDeTravail;
+#include "coulisse.hh"
 
 bool initialise_llvm();
 void issitialise_llvm();
 
-bool coulisse_llvm_cree_executable(
-		Compilatrice &compilatrice,
-		EspaceDeTravail &espace,
-		double &temps_generation_code,
-		double &temps_executable,
-		double &temps_fichier_objet);
+struct CoulisseLLVM final : public Coulisse  {
+	bool cree_fichier_objet(Compilatrice &compilatrice, EspaceDeTravail &espace, ConstructriceRI &constructrice_ri) override;
+
+	bool cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace) override;
+};
+

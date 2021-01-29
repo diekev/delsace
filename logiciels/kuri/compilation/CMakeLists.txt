@@ -42,11 +42,12 @@ set(SOURCES
 	assembleuse_arbre.h
 	broyage.hh
 	compilatrice.hh
+	coulisse.hh
+	coulisse_c.hh
 	empreinte_parfaite.hh
 	environnement.hh
 	erreur.h
 	expression.h
-	generation_code_c.hh
 	graphe_dependance.hh
 	identifiant.hh
 	lexemes.hh
@@ -74,10 +75,11 @@ set(SOURCES
 	assembleuse_arbre.cc
 	broyage.cc
 	compilatrice.cc
+	coulisse.cc
+	coulisse_c.cc
 	environnement.cc
 	erreur.cc
 	expression.cc
-	generation_code_c.cc
 	graphe_dependance.cc
 	identifiant.cc
 	lexemes.cc
@@ -103,7 +105,7 @@ set(SOURCES
 
 if(AVEC_LLVM)
 	set(BIBLIOTHEQUES "${BIBLIOTHEQUES}" /usr/lib/llvm-6.0/lib/libLLVM.so) # À FAIRE
-	set(SOURCES "${SOURCES}" generation_code_llvm.cc generation_code_llvm.hh)
+	set(SOURCES "${SOURCES}" coulisse_llvm.cc coulisse_llvm.hh)
 endif()
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

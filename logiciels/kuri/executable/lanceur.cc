@@ -31,9 +31,9 @@
 #include <thread>
 
 #include "compilation/compilatrice.hh"
+#include "compilation/coulisse_llvm.hh"
 #include "compilation/environnement.hh"
 #include "compilation/erreur.h"
-#include "compilation/generation_code_llvm.hh"
 #include "compilation/modules.hh"
 #include "compilation/options.hh"
 #include "compilation/statistiques.hh"

@@ -31,6 +31,9 @@
 #include "biblinternes/flux/outils.h"
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
+#include "coulisse.hh"
+#include "coulisse_c.hh"
+#include "coulisse_llvm.hh"
 #include "erreur.h"
 #include "lexeuse.hh"
 #include "modules.hh"
@@ -46,10 +49,30 @@ EspaceDeTravail::EspaceDeTravail(OptionsCompilation opts)
 {
 	auto ops = operateurs.verrou_ecriture();
 	enregistre_operateurs_basiques(*this, *ops);
+
+	if (options.type_coulisse == TypeCoulisse::C) {
+		coulisse = memoire::loge<CoulisseC>("CoulisseC");
+	}
+	else if (options.type_coulisse == TypeCoulisse::LLVM) {
+		coulisse = memoire::loge<CoulisseLLVM>("CoulisseLLVM");
+	}
+	else {
+		assert(false);
+	}
 }
 
 EspaceDeTravail::~EspaceDeTravail()
 {
+	if (options.type_coulisse == TypeCoulisse::C) {
+		auto c = dynamic_cast<CoulisseC *>(coulisse);
+		memoire::deloge("CoulisseC", c);
+		coulisse = nullptr;
+	}
+	else if (options.type_coulisse == TypeCoulisse::LLVM) {
+		auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
+		memoire::deloge("CoulisseLLVM", c);
+		coulisse = nullptr;
+	}
 }
 
 Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module, IdentifiantCode *nom_module, dls::vue_chaine chemin)
