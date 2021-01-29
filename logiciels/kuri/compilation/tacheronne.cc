@@ -37,6 +37,8 @@
 #include "syntaxeuse.hh"
 #include "validation_semantique.hh"
 
+#include "representation_intermediaire/optimisations.hh"
+
 const char *chaine_genre_tache(GenreTache genre)
 {
 #define ENUMERE_GENRE_TACHE_EX(genre) \
@@ -182,6 +184,7 @@ long OrdonnanceuseTache::nombre_de_taches_en_attente() const
 			+ taches_parsage.taille()
 			+ taches_typage.taille()
 			+ taches_generation_ri.taille()
+			+ taches_optimisation.taille()
 			+ taches_execution.taille()
 			+ taches_message.taille();
 }
@@ -354,6 +357,23 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 			}
 
 			espace->tache_ri_terminee(m_compilatrice->messagere);
+
+			if (espace->optimisations) {
+				tache_terminee.genre = GenreTache::OPTIMISATION;
+				taches_optimisation.enfile(tache_terminee);
+			}
+
+			break;
+		}
+		case GenreTache::OPTIMISATION:
+		{
+			if (!tache_completee) {
+				tache_terminee.unite->cycle += 1;
+				taches_optimisation.enfile(tache_terminee);
+				break;
+			}
+
+			espace->tache_optimisation_terminee(m_compilatrice->messagere);
 			break;
 		}
 		case GenreTache::GENERE_FICHIER_OBJET:
@@ -454,6 +474,10 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, DrapeauxTacher
 		}
 
 		return taches_typage.defile();
+	}
+
+	if (!taches_optimisation.est_vide() && dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_OPTIMISER)) {
+		return taches_optimisation.defile();
 	}
 
 	if (espace->peut_generer_code_final()) {
@@ -708,6 +732,14 @@ void Tacheronne::gere_tache()
 				auto debut_generation = dls::chrono::compte_seconde();
 				tache_fut_completee = gere_unite_pour_ri(tache.unite);
 				constructrice_ri.temps_generation += debut_generation.temps();
+				break;
+			}
+			case GenreTache::OPTIMISATION:
+			{
+				assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_OPTIMISER));
+				auto debut_generation = dls::chrono::compte_seconde();
+				tache_fut_completee = gere_unite_pour_optimisation(tache.unite);
+				temps_optimisation += debut_generation.temps();
 				break;
 			}
 			case GenreTache::EXECUTE:
@@ -985,6 +1017,54 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 		}
 
 		constructrice_ri.genere_ri_pour_fonction_metaprogramme(unite->espace, corps->entete);
+	}
+
+	return true;
+}
+
+bool Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
+{
+	auto noeud = unite->noeud;
+
+	if (noeud->est_entete_fonction()) {
+		auto entete = noeud->comme_entete_fonction();
+
+		if (entete->est_externe) {
+			return true;
+		}
+
+		/* n'optimise pas cette fonction car le manque de retour fait supprimer tout le code */
+		if (entete == unite->espace->interface_kuri->decl_creation_contexte) {
+			return true;
+		}
+
+		if (!dependances_eurent_ri_generees(entete->noeud_dependance)) {
+			return false;
+		}
+
+		optimise_code(constructrice_ri, static_cast<AtomeFonction *>(entete->atome));
+	}
+	else if (noeud->est_corps_fonction()) {
+		auto corps = noeud->comme_corps_fonction();
+		auto entete = corps->entete;
+
+		if (entete->est_externe) {
+			return true;
+		}
+
+		/* n'optimise pas cette fonction car le manque de retour fait supprimer tout le code */
+		if (entete == unite->espace->interface_kuri->decl_creation_contexte) {
+			return true;
+		}
+
+		if (!dependances_eurent_ri_generees(entete->noeud_dependance)) {
+			return false;
+		}
+
+		optimise_code(constructrice_ri, static_cast<AtomeFonction *>(entete->atome));
+	}
+	else if (noeud->est_structure()) {
+		// À FAIRE : types
 	}
 
 	return true;

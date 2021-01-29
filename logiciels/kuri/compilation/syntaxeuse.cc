@@ -2380,6 +2380,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		}
 	}
 
+	if (!dls::outils::possede_drapeau(noeud->drapeaux, FORCE_HORSLIGNE)) {
+		noeud->drapeaux |= FORCE_ENLIGNE;
+	}
+
 	/* ignore les points-virgules implicites */
 	if (apparie(GenreLexeme::POINT_VIRGULE)) {
 		consomme();

@@ -112,6 +112,7 @@ private:
 	std::atomic<int> nombre_taches_typage = 0;
 	std::atomic<int> nombre_taches_ri = 0;
 	std::atomic<int> nombre_taches_execution = 0;
+	std::atomic<int> nombre_taches_optimisation = 0;
 
 	PhaseCompilation phase = PhaseCompilation::PARSAGE_EN_COURS;
 
@@ -164,6 +165,9 @@ public:
 	MetaProgramme *metaprogramme = nullptr;
 
 	Coulisse *coulisse = nullptr;
+
+	/* pour activer ou désactiver les optimisations */
+	bool optimisations = false;
 
 	explicit EspaceDeTravail(OptionsCompilation opts);
 
@@ -225,6 +229,7 @@ public:
 	void tache_parsage_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
 	void tache_typage_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
 	void tache_ri_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_optimisation_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
 	void tache_execution_ajoutee(dls::outils::Synchrone<Messagere> &messagere);
 
 	void tache_chargement_terminee(dls::outils::Synchrone<Messagere> &messagere, Fichier *fichier);
@@ -232,6 +237,7 @@ public:
 	void tache_parsage_terminee(dls::outils::Synchrone<Messagere> &messagere);
 	void tache_typage_terminee(dls::outils::Synchrone<Messagere> &messagere);
 	void tache_ri_terminee(dls::outils::Synchrone<Messagere> &messagere);
+	void tache_optimisation_terminee(dls::outils::Synchrone<Messagere> &messagere);
 	void tache_execution_terminee(dls::outils::Synchrone<Messagere> &messagere);
 	void tache_generation_objet_terminee(dls::outils::Synchrone<Messagere> &messagere);
 	void tache_liaison_executable_terminee(dls::outils::Synchrone<Messagere> &messagere);

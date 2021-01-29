@@ -49,7 +49,8 @@ struct Tacheronne;
 	ENUMERE_GENRE_TACHE_EX(LIAISON_EXECUTABLE) \
 	ENUMERE_GENRE_TACHE_EX(GENERE_FICHIER_OBJET) \
 	ENUMERE_GENRE_TACHE_EX(ENVOIE_MESSAGE) \
-	ENUMERE_GENRE_TACHE_EX(CHARGE_FICHIER)
+	ENUMERE_GENRE_TACHE_EX(CHARGE_FICHIER) \
+	ENUMERE_GENRE_TACHE_EX(OPTIMISATION)
 
 enum class GenreTache {
 #define ENUMERE_GENRE_TACHE_EX(etat) etat,
@@ -85,6 +86,7 @@ enum class DrapeauxTacheronne : uint32_t {
 	PEUT_GENERER_CODE    = (1 << 4),
 	PEUT_ENVOYER_MESSAGE = (1 << 5),
 	PEUT_GENERER_RI      = (1 << 6),
+	PEUT_OPTIMISER       = (1 << 7),
 
 	PEUT_TOUT_FAIRE      = 0xfffffff,
 };
@@ -102,6 +104,7 @@ private:
 	dls::file<Tache> taches_generation_ri{};
 	dls::file<Tache> taches_execution{};
 	dls::file<Tache> taches_message{};
+	dls::file<Tache> taches_optimisation{};
 
 	tableau_page<UniteCompilation> unites{};
 
@@ -165,6 +168,7 @@ struct Tacheronne {
 	double temps_generation_code = 0.0;
     double temps_chargement = 0.0;
     double temps_tampons = 0.0;
+	double temps_optimisation = 0.0;
 
 	DrapeauxTacheronne drapeaux = DrapeauxTacheronne::PEUT_TOUT_FAIRE;
 
@@ -183,6 +187,7 @@ struct Tacheronne {
 private:
 	bool gere_unite_pour_typage(UniteCompilation *unite);
 	bool gere_unite_pour_ri(UniteCompilation *unite);
+	bool gere_unite_pour_optimisation(UniteCompilation *unite);
 	bool gere_unite_pour_execution(UniteCompilation *unite);
 
 	void execute_metaprogrammes();

@@ -400,6 +400,11 @@ void EspaceDeTravail::tache_ri_ajoutee(dls::outils::Synchrone<Messagere> &messag
 	nombre_taches_ri += 1;
 }
 
+void EspaceDeTravail::tache_optimisation_ajoutee(dls::outils::Synchrone<Messagere> &/*messagere*/)
+{
+	nombre_taches_optimisation += 1;
+}
+
 void EspaceDeTravail::tache_execution_ajoutee(dls::outils::Synchrone<Messagere> &/*messagere*/)
 {
 	nombre_taches_execution += 1;
@@ -444,7 +449,20 @@ void EspaceDeTravail::tache_ri_terminee(dls::outils::Synchrone<Messagere> &messa
 {
 	nombre_taches_ri -= 1;
 
-	if (nombre_taches_ri == 0 && phase == PhaseCompilation::TYPAGE_TERMINE) {
+	if (optimisations) {
+		tache_optimisation_ajoutee(messagere);
+	}
+
+	if (nombre_taches_ri == 0 && nombre_taches_optimisation == 0 && phase == PhaseCompilation::TYPAGE_TERMINE) {
+		change_de_phase(messagere, PhaseCompilation::GENERATION_CODE_TERMINEE);
+	}
+}
+
+void EspaceDeTravail::tache_optimisation_terminee(dls::outils::Synchrone<Messagere> &messagere)
+{
+	nombre_taches_optimisation -= 1;
+
+	if (nombre_taches_ri == 0 && nombre_taches_optimisation == 0 && phase == PhaseCompilation::TYPAGE_TERMINE) {
 		change_de_phase(messagere, PhaseCompilation::GENERATION_CODE_TERMINEE);
 	}
 }

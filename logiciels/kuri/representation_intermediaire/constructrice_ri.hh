@@ -128,9 +128,6 @@ public:
 
 	void rassemble_statistiques(Statistiques &stats);
 
-private:
-	AtomeFonction *genere_fonction_init_globales_et_appel(const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
-
 	AtomeConstante *cree_constante_booleenne(bool valeur);
 	AtomeConstante *cree_constante_caractere(Type *type, unsigned long long valeur);
 	AtomeConstante *cree_constante_entiere(Type *type, unsigned long long valeur);
@@ -154,7 +151,7 @@ private:
 	void insere_label(InstructionLabel *label);
 	InstructionRetour *cree_retour(NoeudExpression *site_, Atome *valeur);
 	InstructionStockeMem *cree_stocke_mem(NoeudExpression *site_, Atome *ou, Atome *valeur, bool cree_seulement = false);
-	InstructionChargeMem *cree_charge_mem(NoeudExpression *site_, Atome *ou);
+	InstructionChargeMem *cree_charge_mem(NoeudExpression *site_, Atome *ou, bool cree_seulement = false);
 	InstructionAppel *cree_appel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele);
 	InstructionAppel *cree_appel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args);
 
@@ -174,6 +171,8 @@ private:
 	OpBinaireConstant *cree_op_comparaison_constant(OperateurBinaire::Genre op, AtomeConstante *valeur_gauche, AtomeConstante *valeur_droite);
 	AccedeIndexConstant *cree_acces_index_constant(AtomeConstante *accede, AtomeConstante *index);
 
+private:
+	AtomeFonction *genere_fonction_init_globales_et_appel(const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
 	void empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_reprends, InstructionLabel *label_arrete, InstructionLabel *label_arrete_implicite);
 	void depile_controle_boucle();
 
@@ -210,15 +209,6 @@ private:
 	void empile_valeur(Atome *valeur);
 	Atome *depile_valeur();
 
-	friend void enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc);
-	friend void performe_enlignage(
-			ConstructriceRI &constructrice,
-			kuri::tableau<Instruction *> &nouvelles_instructions,
-			kuri::tableau<Instruction *> const &instructions,
-			AtomeFonction *fonction_appelee,
-			kuri::tableau<Atome *> const &arguments, int &nombre_labels,
-			InstructionLabel *label_post,
-			InstructionAllocation *adresse_retour);
-
-	friend Atome *copie_atome(ConstructriceRI &constructrice, Atome *atome);
+	/* pour pouvoir accéder aux tableaux d'instructions */
+	friend struct CopieuseInstruction;
 };

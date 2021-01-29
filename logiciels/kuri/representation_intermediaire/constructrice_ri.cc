@@ -345,7 +345,7 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_, A
 	return inst;
 }
 
-InstructionChargeMem *ConstructriceRI::cree_charge_mem(NoeudExpression *site_, Atome *ou)
+InstructionChargeMem *ConstructriceRI::cree_charge_mem(NoeudExpression *site_, Atome *ou, bool cree_seulement)
 {
 	/* nous chargeons depuis une adresse en mémoire, donc nous devons avoir un pointeur */
 	assert_rappel(ou->type->genre == GenreType::POINTEUR || ou->type->genre == GenreType::REFERENCE, [&](){
@@ -363,7 +363,11 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(NoeudExpression *site_, A
 	//assert_rappel((type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" << chaine_type(type) << "' n'est pas normalisé\n"; });
 
 	auto inst = insts_charge_memoire.ajoute_element(site_, type, ou);
-	fonction_courante->instructions.ajoute(inst);
+
+	if (!cree_seulement) {
+		fonction_courante->instructions.ajoute(inst);
+	}
+
 	return inst;
 }
 
@@ -1560,9 +1564,6 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 
 	decl->drapeaux |= RI_FUT_GENEREE;
 	decl->corps->drapeaux |= RI_FUT_GENEREE;
-
-	//corrige_labels(atome_fonc);
-	//analyse_ri(*m_espace, atome_fonc);
 
 	fonction_courante = nullptr;
 	contexte = nullptr;
