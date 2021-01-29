@@ -30,6 +30,7 @@
 enum class TypeCoulisse : int {
 	C,
 	LLVM,
+	ASM,
 };
 
 enum class ArchitectureCible : int {

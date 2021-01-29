@@ -43,6 +43,7 @@ set(SOURCES
 	broyage.hh
 	compilatrice.hh
 	coulisse.hh
+	coulisse_asm.hh
 	coulisse_c.hh
 	empreinte_parfaite.hh
 	environnement.hh
@@ -76,6 +77,7 @@ set(SOURCES
 	broyage.cc
 	compilatrice.cc
 	coulisse.cc
+	coulisse_asm.cc
 	coulisse_c.cc
 	environnement.cc
 	erreur.cc

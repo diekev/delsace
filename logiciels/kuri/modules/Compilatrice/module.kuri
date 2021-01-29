@@ -6,6 +6,7 @@
 TypeCoulisse :: énum z32 {
     C
     LLVM
+    ASM
 }
 
 ArchitectureCible :: énum z32 {

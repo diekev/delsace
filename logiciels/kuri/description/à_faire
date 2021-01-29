@@ -24,8 +24,6 @@ stocke les labels pour les controles des boucles dans la structure Boucle, au li
 kuri_allocations
 -- inutile ?
 -- optimisation prématurée
-kuri_coulisse_asm
--- À FAIRE de manière générale
 kuri_encapsulation_membres
 -- remplace les boucles pour prendre des rappels
 kuri_optimisations

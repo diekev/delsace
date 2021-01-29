@@ -32,6 +32,7 @@
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "coulisse.hh"
+#include "coulisse_asm.hh"
 #include "coulisse_c.hh"
 #include "coulisse_llvm.hh"
 #include "erreur.h"
@@ -56,6 +57,9 @@ EspaceDeTravail::EspaceDeTravail(OptionsCompilation opts)
 	else if (options.type_coulisse == TypeCoulisse::LLVM) {
 		coulisse = memoire::loge<CoulisseLLVM>("CoulisseLLVM");
 	}
+	else if (options.type_coulisse == TypeCoulisse::ASM) {
+		coulisse = memoire::loge<CoulisseASM>("CoulisseASM");
+	}
 	else {
 		assert(false);
 	}
@@ -71,6 +75,11 @@ EspaceDeTravail::~EspaceDeTravail()
 	else if (options.type_coulisse == TypeCoulisse::LLVM) {
 		auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
 		memoire::deloge("CoulisseLLVM", c);
+		coulisse = nullptr;
+	}
+	else if (options.type_coulisse == TypeCoulisse::ASM) {
+		auto c = dynamic_cast<CoulisseASM *>(coulisse);
+		memoire::deloge("CoulisseASM", c);
 		coulisse = nullptr;
 	}
 }
