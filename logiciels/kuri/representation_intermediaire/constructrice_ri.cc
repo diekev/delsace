@@ -354,12 +354,6 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(NoeudExpression *site_, A
 	});
 	auto type_pointeur = ou->type->comme_pointeur();
 
-	POUR (charge_mems) {
-		if (it->chargee == ou) {
-			return it;
-		}
-	}
-
 	assert_rappel(ou->genre_atome == Atome::Genre::INSTRUCTION || ou->genre_atome == Atome::Genre::GLOBALE,
 					 [=](){
 		std::cerr << "Le genre de l'atome est : " << static_cast<int>(ou->genre_atome) << ".\n";
@@ -370,7 +364,6 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(NoeudExpression *site_, A
 
 	auto inst = insts_charge_memoire.ajoute_element(site_, type, ou);
 	fonction_courante->instructions.ajoute(inst);
-	charge_mems.ajoute(inst);
 	return inst;
 }
 
@@ -452,12 +445,6 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(NoeudExpression *sit
 	});
 	assert_rappel(type_pointe->genre != GenreType::UNION, [=](){ std::cerr << "Type accédé : '" << chaine_type(type_pointe) << "'\n"; });
 
-	POUR (acces_membres) {
-		if (it->accede == accede && static_cast<AtomeValeurConstante *>(it->index)->valeur.valeur_entiere == static_cast<unsigned>(index)) {
-			return it;
-		}
-	}
-
 	auto type_compose = static_cast<TypeCompose *>(type_pointe);
 	auto type = type_compose->membres[index].type;
 
@@ -467,7 +454,6 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(NoeudExpression *sit
 
 	auto inst = insts_accede_membre.ajoute_element(site_, type, accede, cree_z64(static_cast<unsigned>(index)));
 	fonction_courante->instructions.ajoute(inst);
-	acces_membres.ajoute(inst);
 	return inst;
 }
 
@@ -1545,8 +1531,6 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 	}
 
 	fonction_courante = atome_fonc;
-	acces_membres.taille = 0;
-	charge_mems.taille = 0;
 
 	if (!decl->possede_drapeau(FORCE_NULCTX)) {
 		contexte = atome_fonc->params_entrees[0];
@@ -2173,8 +2157,6 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	SAUVEGARDE_ETAT(fonction_courante);
 	SAUVEGARDE_ETAT(nombre_labels);
 	SAUVEGARDE_ETAT(taille_allouee);
-	acces_membres.taille = 0;
-	charge_mems.taille = 0;
 
 	auto fonction = m_espace->trouve_ou_insere_fonction_init(*this, type);
 	fonction_courante = fonction;
@@ -3217,8 +3199,6 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnte
 	auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, fonction);
 
 	fonction_courante = atome_fonc;
-	acces_membres.taille = 0;
-	charge_mems.taille = 0;
 	taille_allouee = 0;
 
 	auto decl_creation_contexte = m_espace->interface_kuri->decl_creation_contexte;

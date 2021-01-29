@@ -68,9 +68,6 @@ private:
 
 	Compilatrice &m_compilatrice;
 
-	kuri::tableau<InstructionAccedeMembre *> acces_membres{};
-	kuri::tableau<InstructionChargeMem *> charge_mems{};
-
 	int nombre_labels = 0;
 
 	/* La taille allouée nous sert à ternir trace des allocations dans les blocs
