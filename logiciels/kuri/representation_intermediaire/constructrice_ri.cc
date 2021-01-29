@@ -669,7 +669,14 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			POUR (expr_appel->exprs) {
 				genere_ri_pour_expression_droite(it, nullptr);
-				args.ajoute(depile_valeur());
+				auto valeur = depile_valeur();
+
+				/* crée une temporaire pour simplifier l'enlignage, car nous devrons
+				 * remplacer les locales par les expressions passées, et il est plus
+				 * simple de remplacer une allocation par une autre */
+				auto alloc = cree_allocation(it, valeur->type, nullptr);
+				cree_stocke_mem(it, alloc, valeur);
+				args.ajoute(cree_charge_mem(it, alloc));
 			}
 
 			m_noeud_pour_appel = ancien_pour_appel;
