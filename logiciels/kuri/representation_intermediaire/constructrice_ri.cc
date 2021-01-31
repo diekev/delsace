@@ -747,6 +747,11 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto expr_ref = noeud->comme_ref_decl();
 			auto decl_ref = expr_ref->decl;
 
+			assert_rappel(decl_ref, [&]() {
+				erreur::imprime_site(*m_espace, noeud);
+				std::cerr << "La référence à la déclaration est nulle " << noeud->ident->nom << " (" << chaine_type(noeud->type) << ")\n";
+			});
+
 			if (decl_ref->est_entete_fonction()) {
 				auto atome_fonc = m_espace->trouve_ou_insere_fonction(*this, decl_ref->comme_entete_fonction());
 				// voir commentaire dans cree_appel
