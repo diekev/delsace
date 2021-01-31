@@ -227,7 +227,7 @@ dls::chaine chaine_dot_pour_graphe(Graphe const &graphe)
 
 	flux << "digraph depgraph {\n";
 
-	if (graphe.type == type_graphe::DETAIL) {
+	if (graphe.type == type_graphe::DETAIL || graphe.type == type_graphe::CYCLES) {
 		flux << "rankdir=LR\n";
 	}
 	else {

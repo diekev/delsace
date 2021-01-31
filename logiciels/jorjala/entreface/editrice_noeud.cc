@@ -162,7 +162,7 @@ void EditriceGraphe::ajourne_etat(int evenement)
 		auto item = new ItemNoeud(
 					node_ptr,
 					node_ptr == graphe->noeud_actif,
-					graphe->type == type_graphe::DETAIL);
+					graphe->type == type_graphe::DETAIL || graphe->type == type_graphe::CYCLES);
 		m_scene->addItem(item);
 
 		for (PriseEntree *prise : node_ptr->entrees) {

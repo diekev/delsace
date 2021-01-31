@@ -79,6 +79,7 @@ enum class type_graphe : int {
 	OBJET,
 	COMPOSITE,
 	DETAIL,
+	CYCLES,
 	RENDU,
 	RACINE_OBJET,
 	RACINE_COMPOSITE,

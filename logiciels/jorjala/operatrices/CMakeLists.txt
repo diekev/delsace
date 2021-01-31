@@ -23,13 +23,22 @@ set(NOM_CIBLE jorjala_operatrices)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
+	${CMAKE_CURRENT_SOURCE_DIR}/../cycles/src/
+	${CMAKE_CURRENT_SOURCE_DIR}/../cycles/third_party/
+	${CMAKE_CURRENT_SOURCE_DIR}/../cycles/third_party/atomic/
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
 	${INCLUSIONS_ALEMBIC}
 	${INCLUSIONS_BULLET}
 	${INCLUSIONS_OPENEXR}
 	${INCLUSIONS_OPENSUBDIV}
+	${OPENIMAGEIO_INCLUDE_DIR}
 	/usr/include/eigen3
+)
+
+add_definitions(
+  -DCCL_NAMESPACE_BEGIN=namespace\ ccl\ {
+  -DCCL_NAMESPACE_END=}
 )
 
 set(BIBLIOTHEQUES
@@ -74,6 +83,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_bullet.cc
 	operatrices_cheveux.cc
 	operatrices_corps.cc
+	operatrices_cycles.cc
 	operatrices_flux.cc
 	operatrices_fracture.cc
 	operatrices_groupes.cc
@@ -107,6 +117,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_bullet.hh
 	operatrices_cheveux.h
 	operatrices_corps.hh
+	operatrices_cycles.hh
 	operatrices_flux.h
 	operatrices_fracture.hh
 	operatrices_groupes.hh

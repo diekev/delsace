@@ -64,6 +64,8 @@
 #include "coeur/rendu.hh"
 #include "coeur/usine_operatrice.h"
 
+#include "operatrices/operatrices_cycles.hh"
+
 #include "lcc/contexte_execution.hh"
 #include "lcc/lcc.hh"
 
@@ -298,6 +300,40 @@ public:
 
 		auto op = cree_op_detail(*jorjala, *graphe, *noeud, nom);
 		op->cree_proprietes();
+		synchronise_donnees_operatrice(*noeud);
+		initialise_entreface(jorjala->gestionnaire_entreface, op, op->chemin_entreface());
+
+		finalise_ajout_noeud(*jorjala, *graphe, *noeud);
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class CommandeAjoutNoeudCycles final : public Commande {
+public:
+	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
+	{
+		auto jorjala = extrait_jorjala(pointeur);
+		auto graphe = jorjala->graphe;
+
+		if (graphe->type != type_graphe::CYCLES) {
+			return false;
+		}
+
+		return true;
+	}
+
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+	{
+		auto jorjala = extrait_jorjala(pointeur);
+
+		auto nom = donnees.metadonnee;
+		auto graphe = jorjala->graphe;
+		auto noeud = graphe->cree_noeud(nom, type_noeud::OPERATRICE);
+
+		auto op = OperatriceCycles::cree(*graphe, *noeud, nom);
 		synchronise_donnees_operatrice(*noeud);
 		initialise_entreface(jorjala->gestionnaire_entreface, op, op->chemin_entreface());
 
@@ -1188,6 +1224,10 @@ void enregistre_commandes_graphes(UsineCommande &usine)
 
 	usine.enregistre_type("ajouter_noeud_detail",
 						   description_commande<CommandeAjoutNoeudDetail>(
+							   "graphe", 0, 0, 0, false));
+
+	usine.enregistre_type("ajouter_noeud_cycles",
+						   description_commande<CommandeAjoutNoeudCycles>(
 							   "graphe", 0, 0, 0, false));
 
 	usine.enregistre_type("ajouter_noeud_spécial_détail",

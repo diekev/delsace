@@ -24,6 +24,25 @@
 set(NOM_PROJET jorjala)
 
 add_subdirectory(coeur)
+
+if(AVEC_CYCLES)
+	add_subdirectory(cycles)
+
+	#desactive_drapeaux_compilation(cycles)
+	desactive_drapeaux_compilation(cycles_bvh)
+	desactive_drapeaux_compilation(cycles_device)
+	desactive_drapeaux_compilation(cycles_graph)
+	desactive_drapeaux_compilation(cycles_kernel)
+	desactive_drapeaux_compilation(cycles_render)
+	desactive_drapeaux_compilation(cycles_subd)
+	desactive_drapeaux_compilation(cycles_util)
+
+	desactive_drapeaux_compilation_c(extern_clew)
+	desactive_drapeaux_compilation_c(extern_cuew)
+	desactive_drapeaux_compilation_c(extern_numaapi)
+	desactive_drapeaux_compilation_c(extern_libc_compat)
+endif()
+
 add_subdirectory(commandes)
 add_subdirectory(corps)
 add_subdirectory(entreface)

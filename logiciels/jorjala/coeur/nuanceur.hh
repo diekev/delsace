@@ -41,7 +41,11 @@ struct Nuanceur {
 	int temps_modifie = 0;
 	int temps_compilation_glsl = 0;
 
+	bool est_cycles = false;
+
 	Nuanceur(Noeud &n);
+
+	void marque_est_cycles();
 };
 
 /* ************************************************************************** */

@@ -3,7 +3,8 @@ disposition "operatrice_rendu_moteur" {
 		étiquette(valeur="Moteur")
 		énum(valeur="opengl"; attache=id_moteur; items=[
 			{ nom="OpenGL", valeur="opengl" },
-			{ nom="Koudou", valeur="koudou" }
+			{ nom="Koudou", valeur="koudou" },
+			{ nom="Cycles", valeur="cycles" }
 		])
 	}
 }

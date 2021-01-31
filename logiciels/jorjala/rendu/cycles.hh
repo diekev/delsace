@@ -1,0 +1,20 @@
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wextra"
+#pragma GCC diagnostic ignored "-Wfloat-conversion"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC system_header
+#include "cycles/src/render/session.h"
+#include "cycles/src/render/light.h"
+#include "cycles/src/render/mesh.h"
+#include "cycles/src/render/object.h"
+#include "cycles/src/render/scene.h"
+#include "cycles/src/render/nodes.h"
+#include "cycles/src/graph/node_type.h"
+#pragma GCC diagnostic pop

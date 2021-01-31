@@ -38,6 +38,7 @@
 #include "coeur/usine_operatrice.h"
 
 #include "rendu/moteur_rendu.hh"
+#include "rendu/moteur_rendu_cycles.hh"
 #include "rendu/moteur_rendu_koudou.hh"
 #include "rendu/moteur_rendu_opengl.hh"
 
@@ -268,6 +269,10 @@ public:
 			auto moteur_rendu = dynamic_cast<MoteurRenduKoudou *>(m_moteur_rendu);
 			memoire::deloge("MoteurRenduKoudou", moteur_rendu);
 		}
+		else if (m_moteur_rendu->id() == dls::chaine("cycles")) {
+			auto moteur_rendu = dynamic_cast<MoteurRenduCycles *>(m_moteur_rendu);
+			memoire::deloge("MoteurRenduCycles", moteur_rendu);
+		}
 	}
 
 	ResultatCheminEntreface chemin_entreface() const override
@@ -299,6 +304,9 @@ public:
 			}
 			else if (id_moteur == "koudou") {
 				m_moteur_rendu = memoire::loge<MoteurRenduKoudou>("MoteurRenduKoudou");
+			}
+			else if (id_moteur == "cycles") {
+				m_moteur_rendu = memoire::loge<MoteurRenduCycles>("MoteurRenduCycles");
 			}
 		}
 

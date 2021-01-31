@@ -22,8 +22,16 @@
 set(NOM_CIBLE jorjala_rendu)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../cycles/src/
+	${CMAKE_CURRENT_SOURCE_DIR}/../cycles/third_party/atomic/
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
+	${OPENIMAGEIO_INCLUDE_DIR}
+)
+
+add_definitions(
+  -DCCL_NAMESPACE_BEGIN=namespace\ ccl\ {
+  -DCCL_NAMESPACE_END=}
 )
 
 set(BIBLIOTHEQUES
@@ -34,16 +42,28 @@ set(BIBLIOTHEQUES
 	jorjala_coeur
 	bib_outils
 	jorjala_koudou
+
+	cycles_render
+	cycles_util
+	cycles_bvh
+	cycles_device
+	cycles_graph
+	${OPENIMAGEIO_LIBRARY}
+	extern_numaapi
+	dl
 )
 
 add_library(${NOM_CIBLE} STATIC
 	moteur_rendu.cc
+	moteur_rendu_cycles.cc
 	moteur_rendu_koudou.cc
 	moteur_rendu_opengl.cc
 	rendu_corps.cc
 	rendu_lumiere.cc
 
+	cycles.hh
 	moteur_rendu.hh
+	moteur_rendu_cycles.hh
 	moteur_rendu_koudou.hh
 	moteur_rendu_opengl.hh
 	rendu_corps.h

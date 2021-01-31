@@ -55,6 +55,7 @@ class VueEditeurNoeud : public QGraphicsView {
 	QMenu *m_menu_graphe_composite = nullptr;
 	QMenu *m_menu_graphe_nuanceur = nullptr;
 	QMenu *m_menu_graphe_rendu = nullptr;
+	QMenu *m_menu_ajout_noeud_cycles = nullptr;
 
 public:
 	VueEditeurNoeud(

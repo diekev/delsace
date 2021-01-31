@@ -36,3 +36,10 @@ Nuanceur::Nuanceur(Noeud &n)
 	noeud.graphe.donnees.efface();
 	noeud.graphe.donnees.ajoute(static_cast<int>(DETAIL_NUANCAGE));
 }
+
+void Nuanceur::marque_est_cycles()
+{
+	est_cycles = true;
+	noeud.graphe.type = type_graphe::CYCLES;
+	noeud.graphe.donnees.efface();
+}

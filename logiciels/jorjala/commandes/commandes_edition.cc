@@ -141,6 +141,23 @@ public:
 
 /* ************************************************************************** */
 
+class CommandeAjouterNuanceurCycles final : public Commande {
+public:
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+	{
+		auto jorjala = extrait_jorjala(pointeur);
+
+		auto nuanceur = jorjala->bdd.cree_nuanceur("nuanceur");
+		nuanceur->marque_est_cycles();
+
+		jorjala->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 struct CommandeCreeNuanceurOperatrice final : public Commande {
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
@@ -322,6 +339,10 @@ void enregistre_commandes_edition(UsineCommande &usine)
 
 	usine.enregistre_type("ajouter_nuanceur",
 						   description_commande<CommandeAjouterNuanceur>(
+							   "", 0, 0, 0, false));
+
+	usine.enregistre_type("ajouter_nuanceur_cycles",
+						   description_commande<CommandeAjouterNuanceurCycles>(
 							   "", 0, 0, 0, false));
 
 	usine.enregistre_type("crée_nuanceur_opératrice",

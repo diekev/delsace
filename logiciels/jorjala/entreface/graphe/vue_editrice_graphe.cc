@@ -41,6 +41,7 @@
 #include "biblinternes/outils/fichier.hh"
 
 #include "coeur/jorjala.hh"
+#include "operatrices/operatrices_cycles.hh"
 
 #include "../editrice_noeud.h"
 
@@ -72,6 +73,9 @@ VueEditeurNoeud::VueEditeurNoeud(Jorjala &jorjala,
 	m_menu_graphe_composite = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_composite.jo");
 	m_menu_graphe_nuanceur = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_nuanceur.jo");
 	m_menu_graphe_rendu = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_rendu.jo");
+
+	auto texte_menu_cycles = genere_menu_noeuds_cycles();
+	m_menu_ajout_noeud_cycles = gestionnaire->compile_menu_texte(donnees, texte_menu_cycles);
 }
 
 VueEditeurNoeud::~VueEditeurNoeud()
@@ -83,6 +87,7 @@ VueEditeurNoeud::~VueEditeurNoeud()
 	delete m_menu_ajout_noeud_composite;
 	delete m_menu_ajout_noeud_objet;
 	delete m_menu_ajout_noeud_detail;
+	delete m_menu_ajout_noeud_cycles;
 	delete m_menu_graphe_objet;
 	delete m_menu_ajout_noeud_simulation;
 }
@@ -116,6 +121,9 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 				break;
 			case type_graphe::DETAIL:
 				m_menu_ajout_noeud_detail->popup(QCursor::pos());
+				break;
+			case type_graphe::CYCLES:
+				m_menu_ajout_noeud_cycles->popup(QCursor::pos());
 				break;
 			case type_graphe::INVALIDE:
 				break;
