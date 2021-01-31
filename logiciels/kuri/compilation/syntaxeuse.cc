@@ -1822,34 +1822,11 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si(GenreNoeud genre_noeud)
 	if (apparie(GenreLexeme::SINON)) {
 		consomme();
 
-		/* Si le 'sinon' contient un « si » ou un « saufsi », nous ajoutons un
-		 * bloc pour créer un niveau d'indirection. Car dans le cas où nous
-		 * avons un contrôle du type si/sinon si dans une boucle, la génération
-		 * de blocs LLVM dans l'arbre syntaxic devient plus compliquée sans
-		 * cette indirection : certaines instructions de branchage ne sont pas
-		 * ajoutées alors qu'elles devraient l'être et la logique pour
-		 * correctement traiter ce cas sans l'indirection semble être complexe.
-		 * LLVM devrait pouvoir effacer cette indirection en enlevant les
-		 * branchements redondants.
-		 */
-
 		if (apparie(GenreLexeme::SI)) {
-			auto bloc_si_faux = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
-			noeud->bloc_si_faux = bloc_si_faux;
-
-			auto noeud_si = analyse_instruction_si(GenreNoeud::INSTRUCTION_SI);
-			bloc_si_faux->expressions->ajoute(noeud_si);
-
-			m_tacheronne.assembleuse->depile_bloc();
+			noeud->bloc_si_faux = analyse_instruction_si(GenreNoeud::INSTRUCTION_SI);
 		}
 		else if (apparie(GenreLexeme::SAUFSI)) {
-			auto bloc_si_faux = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
-			noeud->bloc_si_faux = bloc_si_faux;
-
-			auto noeud_saufsi = analyse_instruction_si(GenreNoeud::INSTRUCTION_SAUFSI);
-			bloc_si_faux->expressions->ajoute(noeud_saufsi);
-
-			m_tacheronne.assembleuse->depile_bloc();
+			noeud->bloc_si_faux = analyse_instruction_si(GenreNoeud::INSTRUCTION_SAUFSI);
 		}
 		else {
 			noeud->bloc_si_faux = analyse_bloc();
