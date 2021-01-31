@@ -103,6 +103,7 @@ public:
 	NoeudDeclarationEnteteFonction *cree_entete_fonction(const Lexeme *lexeme);
 	NoeudDeclarationVariable *cree_declaration(Lexeme const *lexeme);
 	NoeudDeclarationVariable *cree_declaration(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
+	NoeudDeclarationVariable *cree_declaration(NoeudExpressionReference *ref);
 	NoeudDeclarationVariable *cree_declaration(NoeudExpressionReference *ref, NoeudExpression *expression);
 	NoeudDirectiveExecution *cree_execution(const Lexeme *lexeme);
 	NoeudDiscr *cree_discr(const Lexeme *lexeme);

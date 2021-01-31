@@ -219,6 +219,15 @@ NoeudDeclarationVariable *AssembleuseArbre::cree_declaration(NoeudExpressionRefe
 	return declaration;
 }
 
+NoeudDeclarationVariable *AssembleuseArbre::cree_declaration(NoeudExpressionReference *ref)
+{
+	auto decl = cree_declaration(ref->lexeme);
+	decl->valeur = ref;
+	decl->ident = ref->ident;
+	ref->decl = decl;
+	return decl;
+}
+
 NoeudExpressionMembre *AssembleuseArbre::cree_acces_membre(const Lexeme *lexeme)
 {
 	return cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_MEMBRE, lexeme)->comme_ref_membre();

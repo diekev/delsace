@@ -163,9 +163,6 @@ private:
 	NoeudExpression *analyse_instruction_si_statique(Lexeme *lexeme);
 	NoeudExpression *analyse_instruction_tantque();
 
-	NoeudDeclarationVariable *cree_declaration(Lexeme *lexeme);
-	NoeudDeclarationVariable *cree_declaration_pour_ref(NoeudExpressionReference *ref);
-
 	/**
 	 * Lance une exception de type ErreurSyntaxique contenant la chaine passée
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant

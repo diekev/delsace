@@ -1236,7 +1236,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 
 			if (gauche->est_ref_decl()) {
 				// nous avons la déclaration d'un type (a: z32)
-				auto decl = cree_declaration_pour_ref(gauche->comme_ref_decl());
+				auto decl = m_tacheronne.assembleuse->cree_declaration(gauche->comme_ref_decl());
 				decl->expression_type = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
 				return decl;
 			}
@@ -1271,7 +1271,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 						rapporte_erreur(m_unite->espace, it, "Expression innatendu à gauche de « := »");
 					}
 
-					cree_declaration_pour_ref(it->comme_ref_decl());
+					m_tacheronne.assembleuse->cree_declaration(it->comme_ref_decl());
 				}
 			}
 			else if (!gauche->est_ref_decl()) {
@@ -1661,21 +1661,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
 	return noeud_discr;
 }
 
-NoeudDeclarationVariable *Syntaxeuse::cree_declaration_pour_ref(NoeudExpressionReference *ref)
-{
-	auto decl = m_tacheronne.assembleuse->cree_declaration(ref->lexeme);
-	decl->valeur = ref;
-	decl->ident = ref->ident;
-	ref->decl = decl;
-	return decl;
-}
-
-NoeudDeclarationVariable *Syntaxeuse::cree_declaration(Lexeme *lexeme)
-{
-	auto ref  = m_tacheronne.assembleuse->cree_ref_decl(lexeme);
-	return cree_declaration_pour_ref(ref);
-}
-
 void Syntaxeuse::analyse_specifiants_instruction_pour(NoeudPour *noeud)
 {
 	bool eu_direction = false;
@@ -1919,7 +1904,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 			auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
 
 			if (noeud->est_ref_decl()) {
-				expressions.ajoute(cree_declaration_pour_ref(noeud->comme_ref_decl()));
+				expressions.ajoute(m_tacheronne.assembleuse->cree_declaration(noeud->comme_ref_decl()));
 			}
 			else {
 				expressions.ajoute(noeud);
@@ -2081,7 +2066,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 					auto ref = m_tacheronne.assembleuse->cree_ref_decl(decl_sortie->lexeme);
 					ref->ident = ident;
 
-					auto decl = cree_declaration_pour_ref(ref);
+					auto decl = m_tacheronne.assembleuse->cree_declaration(ref);
 					decl->expression_type = decl_sortie;
 					decl->bloc_parent = decl_sortie->bloc_parent;
 
@@ -2112,7 +2097,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			auto ref = m_tacheronne.assembleuse->cree_ref_decl(&lexeme_rien);
 			ref->ident = ident;
 
-			auto decl = cree_declaration_pour_ref(ref);
+			auto decl = m_tacheronne.assembleuse->cree_declaration(ref);
 			decl->expression_type = type_declare;
 
 			noeud->params_sorties.ajoute(decl);
@@ -2324,7 +2309,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 			auto ref = m_tacheronne.assembleuse->cree_ref_decl(decl_sortie->lexeme);
 			ref->ident = ident;
 
-			auto decl = cree_declaration_pour_ref(ref);
+			auto decl = m_tacheronne.assembleuse->cree_declaration(ref);
 			decl->expression_type = decl_sortie;
 
 			decl_sortie = decl;
