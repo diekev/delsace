@@ -53,25 +53,7 @@ add_library(${NOM_PROJET} STATIC
     vector.h
 )
 
-get_target_property(EXTLIB_COMPILE_FLAGS ${NOM_PROJET} COMPILE_OPTIONS)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wpedantic)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wconversion)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wuseless-cast)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wsign-conversion)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wold-style-cast)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Woverloaded-virtual)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-delete-non-virtual-dtor)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wnon-virtual-dtor)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wdouble-promotion)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=unused-variable)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=shadow)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=discarded-qualifiers)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=deprecated-copy)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -fconcepts)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -fno-nonansi-builtins)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wno-error=class-memaccess)
-set_target_properties(${NOM_PROJET} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
+desactive_drapeaux_compilation_c(${NOM_PROJET})
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 

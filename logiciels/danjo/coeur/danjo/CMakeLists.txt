@@ -72,12 +72,8 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES "Profile")
 	add_library(qt_danjo_entreface ${moc_headers})
 	target_include_directories(qt_danjo_entreface PUBLIC "${INCLUSIONS}")
 	target_link_libraries(qt_danjo_entreface "${BIBLIOTHEQUES}")
-	get_target_property(EXTLIB_COMPILE_FLAGS qt_danjo_entreface COMPILE_OPTIONS)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wconversion)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wuseless-cast)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wsign-conversion)
-	set_target_properties(qt_danjo_entreface PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
+
+	desactive_drapeaux_compilation(qt_danjo_entreface)
 
 	set(BIBLIOTHEQUES
 		${BIBLIOTHEQUES}
