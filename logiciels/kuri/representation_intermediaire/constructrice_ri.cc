@@ -1131,7 +1131,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::INSTRUCTION_SAUFSI:
 		case GenreNoeud::INSTRUCTION_SI:
 		{
-			// À FAIRE: si comme expression (a := si b { c } sinon { d }
 			auto inst_si = static_cast<NoeudSi *>(noeud);
 
 			auto label_si_vrai = reserve_label(noeud);

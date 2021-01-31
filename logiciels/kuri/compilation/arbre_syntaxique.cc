@@ -30,6 +30,7 @@
 #include "assembleuse_arbre.h"
 #include "broyage.hh"
 #include "compilatrice.hh"
+#include "erreur.h"
 #include "identifiant.hh"
 #include "modules.hh"
 #include "outils_lexemes.hh"
@@ -1117,10 +1118,16 @@ static void aplatis_arbre(
 		{
 			auto expr = static_cast<NoeudSi *>(racine);
 
+			/* préserve le drapeau au cas où nous serions à droite d'une expression */
+			expr->drapeaux |= drapeau;
+
 			aplatis_arbre(expr->condition, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION | DrapeauxNoeud::DROITE_CONDITION);
-			arbre_aplatis.ajoute(expr);
 			aplatis_arbre(expr->bloc_si_vrai, arbre_aplatis, DrapeauxNoeud::AUCUN);
 			aplatis_arbre(expr->bloc_si_faux, arbre_aplatis, DrapeauxNoeud::AUCUN);
+
+			/* mets l'instruction à la fin afin de pouvoir déterminer le type de
+			 * l'expression selon les blocs si nous sommes à droite d'une expression */
+			arbre_aplatis.ajoute(expr);
 
 			break;
 		}
@@ -1485,6 +1492,9 @@ private:
 	NoeudExpression *simplifie_operateur_binaire(NoeudExpressionBinaire *expr_bin, bool pour_operande);
 	NoeudSi *cree_condition_boucle(NoeudExpression *inst, GenreNoeud genre_noeud);
 	NoeudExpression *cree_expression_pour_op_chainee(kuri::tableau<NoeudExpressionBinaire> &comparaisons, const Lexeme *lexeme_op_logique);
+
+	/* remplace la dernière expression d'un bloc par une assignation afin de pouvoir simplifier les conditions à droite des assigations */
+	void corrige_bloc_pour_assignation(NoeudExpression *expr, NoeudExpression *ref_temp);
 };
 
 void Simplificatrice::simplifie(NoeudExpression *noeud)
@@ -1860,6 +1870,41 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			simplifie(si->condition);
 			simplifie(si->bloc_si_vrai);
 			simplifie(si->bloc_si_faux);
+
+			if (si->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+				/*
+
+				  x := si y { z } sinon { w }
+
+				  {
+					decl := XXX;
+					si y { decl = z; } sinon { decl = w; }
+					decl; // nous avons une référence simple car la RI empilera sa valeur qui pourra être dépilée et utilisée pour l'assignation
+				  }
+
+				 */
+
+				auto bloc = assem->cree_bloc_seul(si->lexeme, si->bloc_parent);
+
+				auto decl_temp = assem->cree_declaration(si->lexeme, si->type, nullptr, nullptr);
+				auto ref_temp = assem->cree_ref_decl(si->lexeme, decl_temp);
+
+				auto nouveau_si = assem->cree_si(si->lexeme, si->genre);
+				nouveau_si->condition = si->condition;
+				nouveau_si->bloc_si_vrai = si->bloc_si_vrai;
+				nouveau_si->bloc_si_faux = si->bloc_si_faux;
+
+				corrige_bloc_pour_assignation(nouveau_si->bloc_si_vrai, ref_temp);
+				corrige_bloc_pour_assignation(nouveau_si->bloc_si_faux, ref_temp);
+
+				bloc->membres->ajoute(decl_temp);
+				bloc->expressions->ajoute(decl_temp);
+				bloc->expressions->ajoute(nouveau_si);
+				bloc->expressions->ajoute(ref_temp);
+
+				si->substitution = bloc;
+			}
+
 			return;
 		}
 		case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
@@ -2406,6 +2451,34 @@ NoeudExpression *Simplificatrice::cree_expression_pour_op_chainee(
 	}
 
 	return resultat;
+}
+
+void Simplificatrice::corrige_bloc_pour_assignation(NoeudExpression *expr, NoeudExpression *ref_temp)
+{
+	if (expr->est_bloc()) {
+		auto bloc = expr->comme_bloc();
+
+		auto di = bloc->expressions->derniere();
+		di = assem->cree_assignation(di->lexeme, ref_temp, di);
+		bloc->expressions->supprime_dernier();
+		bloc->expressions->ajoute(di);
+	}
+	else if (expr->est_si()) {
+		auto si = expr->comme_si();
+		corrige_bloc_pour_assignation(si->bloc_si_vrai, ref_temp);
+		corrige_bloc_pour_assignation(si->bloc_si_faux, ref_temp);
+	}
+	else if (expr->est_saufsi()) {
+		auto si = expr->comme_saufsi();
+		corrige_bloc_pour_assignation(si->bloc_si_vrai, ref_temp);
+		corrige_bloc_pour_assignation(si->bloc_si_faux, ref_temp);
+	}
+	else {
+		assert_rappel(false, [&](){
+			erreur::imprime_site(*espace, expr);
+			std::cerr << "Expression invalide pour la simplification de l'assignation implicite d'un bloc si !\n";
+		});
+	}
 }
 
 void Simplificatrice::simplifie_comparaison_chainee(NoeudExpressionBinaire *comp)

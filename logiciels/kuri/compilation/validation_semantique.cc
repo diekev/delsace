@@ -968,7 +968,27 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			}
 
 			/* pour les expressions x = si y { z } sinon { w } */
-			inst->type = inst->bloc_si_vrai->type;
+			if (inst->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+				inst->type = inst->bloc_si_vrai->type;
+
+				// À FAIRE : vérifie que tous les blocs ont le même type
+
+				// vérifie que l'arbre s'arrête sur un sinon
+				auto racine = inst;
+				while (true) {
+					if (!inst->bloc_si_faux) {
+						::rapporte_erreur(espace, racine, "Bloc « sinon » manquant dans la condition si utilisée comme expression !");
+						return true;
+					}
+
+					if (inst->bloc_si_faux->est_si() || inst->bloc_si_faux->est_saufsi()) {
+						inst = static_cast<NoeudSi *>(inst->bloc_si_faux);
+						continue;
+					}
+
+					break;
+				}
+			}
 
 			break;
 		}

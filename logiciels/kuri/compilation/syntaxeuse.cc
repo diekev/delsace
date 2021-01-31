@@ -1036,6 +1036,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			assert_rappel(false, [&]() { std::cerr << "Lexème inattendu, supposément déjà géré, comme expression primaire : " << chaine_du_lexeme(lexeme->genre) << '\n'; });
 			return nullptr;
 		}
+		case GenreLexeme::SI:
+		{
+			return analyse_instruction_si(GenreNoeud::INSTRUCTION_SI);
+		}
+		case GenreLexeme::SAUFSI:
+		{
+			return analyse_instruction_si(GenreNoeud::INSTRUCTION_SAUFSI);
+		}
 		default:
 		{
 			if (est_identifiant_type(lexeme->genre)) {
