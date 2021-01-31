@@ -44,8 +44,8 @@ ControleProprieteEntier::ControleProprieteEntier(QWidget *parent)
 {
 	auto metriques = this->fontMetrics();
 
-	m_bouton->setFixedWidth(metriques.width("H") * 2);
-	m_bouton_animation->setFixedWidth(metriques.width("C") * 2);
+	m_bouton->setFixedWidth(metriques.horizontalAdvance("H") * 2);
+	m_bouton_animation->setFixedWidth(metriques.horizontalAdvance("C") * 2);
 
 	m_agencement->addWidget(m_bouton_animation);
 	m_agencement->addWidget(m_bouton);

@@ -68,10 +68,10 @@ ControleProprieteVec3::ControleProprieteVec3(QWidget *parent)
 	, m_echelle_z(new ControleEchelleDecimale())
 {
 	auto metriques = this->fontMetrics();
-	m_bouton_x->setFixedWidth(metriques.width("H") * 2);
-	m_bouton_y->setFixedWidth(metriques.width("H") * 2);
-	m_bouton_z->setFixedWidth(metriques.width("H") * 2);
-	m_bouton_animation->setFixedWidth(metriques.width("C") * 2);
+	m_bouton_x->setFixedWidth(metriques.horizontalAdvance("H") * 2);
+	m_bouton_y->setFixedWidth(metriques.horizontalAdvance("H") * 2);
+	m_bouton_z->setFixedWidth(metriques.horizontalAdvance("H") * 2);
+	m_bouton_animation->setFixedWidth(metriques.horizontalAdvance("C") * 2);
 
 	m_agencement->addWidget(m_bouton_animation);
 	m_agencement->addWidget(m_bouton_x);

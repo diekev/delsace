@@ -42,7 +42,7 @@ ControleCouleur::ControleCouleur(QWidget *parent)
 
 	const auto &metriques = this->fontMetrics();
 	setFixedHeight(static_cast<int>(static_cast<float>(metriques.height()) * 1.5f));
-	setFixedWidth(metriques.width("#000000"));
+	setFixedWidth(metriques.horizontalAdvance("#000000"));
 }
 
 dls::phys::couleur32 ControleCouleur::couleur()

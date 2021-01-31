@@ -69,8 +69,8 @@ ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(QWidget *parent)
 	m_agencement_principal->addWidget(m_controle_courbe);
 
 	auto metriques = this->fontMetrics();
-	m_bouton_echelle_x->setFixedWidth(metriques.width("H") * 2);
-	m_bouton_echelle_y->setFixedWidth(metriques.width("H") * 2);
+	m_bouton_echelle_x->setFixedWidth(metriques.horizontalAdvance("H") * 2);
+	m_bouton_echelle_y->setFixedWidth(metriques.horizontalAdvance("H") * 2);
 
 	m_agencement_nombre->addWidget(m_bouton_echelle_x);
 	m_agencement_nombre->addWidget(m_pos_x);

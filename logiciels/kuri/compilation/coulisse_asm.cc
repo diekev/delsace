@@ -172,7 +172,7 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
 			 * @Incomplet : fusionne plusieurs telles instructions.
 			 * @Incomplet : assigne l'adresse à l'atome */
 			auto type_pointeur = inst->type->comme_pointeur();
-			taille_allouee += type_pointeur->type_pointe->taille_octet;
+			taille_allouee += static_cast<int>(type_pointeur->type_pointe->taille_octet);
 			os << "  sub " << RSP << ' ' << type_pointeur->type_pointe->taille_octet << '\n';
             break;
         }
@@ -344,6 +344,10 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
                 {
                     break;
                 }
+				case OperateurBinaire::Genre::Indexage:
+				{
+					break;
+				}
                 case OperateurBinaire::Genre::Invalide:
                 {
                     break;
@@ -389,7 +393,7 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
 void GeneratriceCodeASM::genere_code(const tableau_page<AtomeGlobale> &globales, const kuri::tableau<AtomeFonction *> &fonctions, Enchaineuse &os)
 {
     // prédéclare les globales pour éviter les problèmes de références cycliques
-    POUR_TABLEAU_PAGE (globales) {
+//    POUR_TABLEAU_PAGE (globales) {
 //        auto valeur_globale = &it;
 
 //        if (!valeur_globale->est_constante) {
@@ -412,7 +416,7 @@ void GeneratriceCodeASM::genere_code(const tableau_page<AtomeGlobale> &globales,
 //        }
 
 //        os << ";\n";
-    }
+//   }
 
     os << "section .text\n";
 

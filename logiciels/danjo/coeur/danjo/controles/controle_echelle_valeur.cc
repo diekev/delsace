@@ -49,7 +49,7 @@ ControleEchelleDecimale::ControleEchelleDecimale(QWidget *parent)
 {
 	auto metriques = this->fontMetrics();
 	setFixedHeight(metriques.height() * 3 * NOMBRE_PALIER);
-	setFixedWidth(static_cast<int>(static_cast<float>(metriques.width("1000.0")) * 1.2f));
+	setFixedWidth(static_cast<int>(static_cast<float>(metriques.horizontalAdvance("1000.0")) * 1.2f));
 }
 
 void ControleEchelleDecimale::paintEvent(QPaintEvent *event)
@@ -173,7 +173,7 @@ ControleEchelleEntiere::ControleEchelleEntiere(QWidget *parent)
 {
 	auto metriques = this->fontMetrics();
 	setFixedHeight(metriques.height() * 3 * NOMBRE_PALIER_ENTIER);
-	setFixedWidth(static_cast<int>(static_cast<float>(metriques.width("1000.0")) * 1.2f));
+	setFixedWidth(static_cast<int>(static_cast<float>(metriques.horizontalAdvance("1000.0")) * 1.2f));
 }
 
 void ControleEchelleEntiere::paintEvent(QPaintEvent *event)

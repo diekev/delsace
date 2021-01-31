@@ -352,7 +352,7 @@ static void imprime_blocs(const dls::tableau<Bloc *> &blocs, std::ostream &os)
 	int decalage_instruction = 0;
 	POUR (blocs) {
 		imprime_bloc(it, decalage_instruction, os);
-		decalage_instruction += it->instructions.taille;
+		decalage_instruction += static_cast<int>(it->instructions.taille);
 	}
 }
 
@@ -2009,7 +2009,7 @@ static void transfere_instructions_blocs(dls::tableau<Bloc *> const &blocs, Atom
 {
 	auto nombre_instructions = 0;
 	POUR (blocs) {
-		nombre_instructions += 1 + it->instructions.taille;
+		nombre_instructions += 1 + static_cast<int>(it->instructions.taille);
 	}
 
 	atome_fonc->instructions.taille = 0;

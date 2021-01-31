@@ -57,7 +57,7 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(QWidget *parent)
 	m_agencement_principal->addWidget(m_controle_rampe);
 
 	auto metriques = this->fontMetrics();
-	m_bouton_echelle->setFixedWidth(metriques.width("H") * 2);
+	m_bouton_echelle->setFixedWidth(metriques.horizontalAdvance("H") * 2);
 
 	m_agencement_nombre->addWidget(m_bouton_echelle);
 	m_agencement_nombre->addWidget(m_pos);

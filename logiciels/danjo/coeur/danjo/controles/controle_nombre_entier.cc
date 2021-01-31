@@ -70,7 +70,7 @@ void ControleNombreEntier::paintEvent(QPaintEvent *)
 					 texte);
 
 	metriques = painter.fontMetrics();
-	int largeur = metriques.width(texte);
+	int largeur = metriques.horizontalAdvance(texte);
 	int hauteur = metriques.height();
 
 	if (m_edition) {
