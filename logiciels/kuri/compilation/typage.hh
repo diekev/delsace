@@ -556,7 +556,7 @@ inline TypeOpaque *Type::comme_opaque()
 
 void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine_compacte> &noms);
 
-// À FAIRE : il peut y avoir une concurrence critique pour l'assignation d'index aux types
+// À FAIRE(table type) : il peut y avoir une concurrence critique pour l'assignation d'index aux types
 struct Typeuse {
 	dls::outils::Synchrone<GrapheDependance> &graphe_;
 	dls::outils::Synchrone<Operateurs> &operateurs_;

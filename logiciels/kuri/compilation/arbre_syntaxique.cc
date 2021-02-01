@@ -2807,7 +2807,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 
 		si_courant->condition = cree_expression_pour_op_chainee(comparaisons, &lexeme_ou);
 
-		// À FAIRE : création d'une variable si nous avons une union
+		// À FAIRE(union) : création d'une variable si nous avons une union
 		simplifie(it.second);
 		si_courant->bloc_si_vrai = it.second;
 

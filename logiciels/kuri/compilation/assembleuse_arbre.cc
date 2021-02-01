@@ -358,7 +358,7 @@ NoeudAssignation *AssembleuseArbre::cree_incrementation(const Lexeme *lexeme, No
 		inc->expr2 = cree_lit_entier(valeur->lexeme, type, 1);
 	}
 	else if (type->est_reel()) {
-		// À FAIRE : r16
+		// À FAIRE(r16)
 		inc->expr2 = cree_lit_reel(valeur->lexeme, type, 1.0);
 	}
 
@@ -379,7 +379,7 @@ NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme, No
 		inc->expr2 = cree_lit_entier(valeur->lexeme, type, 1);
 	}
 	else if (type->est_reel()) {
-		// À FAIRE : r16
+		// À FAIRE(r16)
 		inc->expr2 = cree_lit_reel(valeur->lexeme, type, 1.0);
 	}
 

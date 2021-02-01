@@ -1600,7 +1600,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						rapporte_erreur("Le type n'est pas membre de l'union", expr_paire);
 					}
 
-					/* À FAIRE : ajoute la variable dans le bloc suivant, il nous faudra un système de capture dans le cas où la variable est un accès */
+					/* À FAIRE(union) : ajoute la variable dans le bloc suivant, il nous faudra un système de capture dans le cas où la variable est un accès */
 				}
 
 				if (inst->bloc_sinon == nullptr) {
@@ -1682,7 +1682,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					decl_expr->bloc_parent = bloc_paire;
 					decl_expr->drapeaux |= EMPLOYE;
 					decl_expr->type = expr_paire->type;
-					// À FAIRE: mise en place des informations d'emploi
+					// À FAIRE(emploi): mise en place des informations d'emploi
 
 					bloc_paire->membres->ajoute(decl_expr);
 				}
@@ -2920,7 +2920,7 @@ static bool est_hors_des_limites(long valeur, Type *type)
 			return valeur > std::numeric_limits<unsigned int>::max();
 		}
 
-		// À FAIRE : trouve une bonne de détecter ceci
+		// À FAIRE : trouve une bonne manière de détecter ceci
 		return false;
 	}
 
@@ -2936,7 +2936,7 @@ static bool est_hors_des_limites(long valeur, Type *type)
 		return valeur < std::numeric_limits<int>::min() || valeur > std::numeric_limits<int>::max();
 	}
 
-	// À FAIRE : trouve une bonne de détecter ceci
+	// À FAIRE : trouve une bonne manière de détecter ceci
 	return false;
 }
 
@@ -3354,7 +3354,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 					auto expression = donnees.expression;
 					transtype_si_necessaire(expression, donnees.transformations[i]);
 
-					// À FAIRE : préserve l'emploi dans les données types
+					// À FAIRE(emploi) : préserve l'emploi dans les données types
 					if (ajoute_donnees_membre(var, expression)) {
 						return true;
 					}
@@ -3410,7 +3410,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 
 		if (decl_var->declaration_vient_d_un_emploi) {
-			// À FAIRE : préserve l'emploi dans les données types
+			// À FAIRE(emploi) : préserve l'emploi dans les données types
 			if (ajoute_donnees_membre(decl_var, decl_var->expression)) {
 				return true;
 			}
@@ -3450,7 +3450,7 @@ bool ContexteValidationCode::valide_structure(NoeudStruct *decl)
 				auto expression = donnees.expression;
 				transtype_si_necessaire(expression, donnees.transformations[i]);
 
-				// À FAIRE : préserve l'emploi dans les données types
+				// À FAIRE(emploi) : préserve l'emploi dans les données types
 				if (ajoute_donnees_membre(var, expression)) {
 					return true;
 				}

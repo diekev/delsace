@@ -1364,7 +1364,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
 							}
 
 							if (tableau_valeur[index_membre] != nullptr) {
-								// À FAIRE : type tableau fixe
+								// À FAIRE(tableau fixe)
 								genere_code_binaire_pour_atome(tableau_valeur[index_membre], chunk, true);
 							}
 

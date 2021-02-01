@@ -1064,7 +1064,7 @@ bool Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
 		optimise_code(constructrice_ri, static_cast<AtomeFonction *>(entete->atome));
 	}
 	else if (noeud->est_structure()) {
-		// À FAIRE : types
+		// À FAIRE(optimisations) : fonctions d'initialisation des types
 	}
 
 	return true;

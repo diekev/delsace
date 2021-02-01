@@ -1405,7 +1405,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 						valeur = genere_initialisation_defaut_pour_type(type_struct->membres[index_membre].type);
 					}
 
-					// À FAIRE : tableaux fixes
+					// À FAIRE(tableau fixe)
 					if (valeur) {
 						auto ptr = cree_acces_membre(noeud, alloc, index_membre);
 						cree_stocke_mem(noeud, ptr, valeur);
@@ -2439,7 +2439,7 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
 			auto type_opaque = type->comme_opaque();
 			auto valeur = genere_initialisation_defaut_pour_type(type_opaque->type_opacifie);
 
-			// À FAIRE : tableau fixe
+			// À FAIRE(tableau fixe)
 			if (valeur) {
 				valeur->type = type_opaque;
 			}
@@ -3345,7 +3345,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 				}
 
 				if (type_var->genre == GenreType::TABLEAU_FIXE) {
-					// À FAIRE(ri) : valeur défaut pour tableau fixe
+					// À FAIRE(tableau fixe) : valeur défaut
 				}
 				else if (type_var->genre == GenreType::STRUCTURE || type_var->genre == GenreType::UNION) {
 					auto atome_fonction = m_espace->trouve_ou_insere_fonction_init(*this, var->type);

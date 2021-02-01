@@ -632,7 +632,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 						}
 						case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
 						{
-							// À FAIRE : tableaux fixes
+							// À FAIRE(tableau fixe)
 							return nullptr;
 						}
 						case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:

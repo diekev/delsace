@@ -94,7 +94,7 @@ bool cherche_transformation(
 		return false;
 	}
 
-	// À FAIRE : type R16
+	// À FAIRE(r16)
 	if (type_de->genre == GenreType::ENTIER_CONSTANT && (est_type_entier(type_vers) || type_vers->est_octet() || type_vers->est_reel())) {
 		transformation = { TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers };
 		return false;

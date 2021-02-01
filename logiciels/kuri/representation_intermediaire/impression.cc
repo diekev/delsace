@@ -123,7 +123,7 @@ void imprime_atome(Atome const *atome, std::ostream &os)
 					}
 					case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
 					{
-						os << "À FAIRE(ri) : tableau fixe";
+						os << "À FAIRE(tableau fixe) : impression de la valeur pour la RI";
 						break;
 					}
 					case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:

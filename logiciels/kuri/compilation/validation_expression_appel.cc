@@ -186,7 +186,7 @@ struct Monomorpheuse {
 				return false;
 			}
 
-			// À FAIRE : type tableau fixe
+			// À FAIRE(tableau fixe)
 			type_courant = type_dereference_pour(type_courant);
 			type_courant_poly = type_dereference_pour(type_courant_poly);
 		}
@@ -241,7 +241,7 @@ struct Monomorpheuse {
 				return nullptr;
 			}
 
-			// À FAIRE : type tableau fixe
+			// À FAIRE(tableau fixe)
 			type_courant = type_dereference_pour(type_courant);
 			type_courant_poly = type_dereference_pour(type_courant_poly);
 		}

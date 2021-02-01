@@ -26,7 +26,7 @@
 
 #include "options.hh"
 
-/* À FAIRE : il faudra proprement gérer les architectures pour les r16, ou trouver des algorithmes pour supprimer les tables */
+/* À FAIRE(r16) : il faudra proprement gérer les architectures pour les r16, ou trouver des algorithmes pour supprimer les tables */
 void precompile_objet_r16(const std::filesystem::path &chemin_racine_kuri)
 {
 	// objet pour la liaison statique de la bibliothèque
