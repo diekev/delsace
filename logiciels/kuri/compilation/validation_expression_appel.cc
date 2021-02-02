@@ -816,11 +816,17 @@ static auto apparie_appel_fonction(
 		return false;
 	}
 
+	/* mise en cache des paramètres d'entrées, accéder à cette fonction se voit dans les profiles */
+	dls::tablet<NoeudDeclarationVariable *, 10> parametres_entree;
+	for (auto i = 0; i < decl->params.taille; ++i) {
+		parametres_entree.ajoute(decl->parametre_entree(i));
+	}
+
 	auto apparieuse_params = ApparieuseParams(res);
 	//slots.redimensionne(nombre_args - decl->est_variadique);
 
 	for (auto i = 0; i < decl->params.taille; ++i) {
-		auto param = decl->parametre_entree(i);
+		auto param = parametres_entree[i];
 		apparieuse_params.ajoute_param(param->ident, param->expression, param->possede_drapeau(EST_VARIADIQUE));
 	}
 
@@ -873,7 +879,7 @@ static auto apparie_appel_fonction(
 
 		for (auto i = 0l; i < slots.taille(); ++i) {
 			auto index_arg = std::min(i, decl->params.taille - 1);
-			auto param = decl->parametre_entree(index_arg);
+			auto param = parametres_entree[index_arg];
 			auto arg = param->valeur;
 			auto slot = slots[i];
 
@@ -917,7 +923,7 @@ static auto apparie_appel_fonction(
 
 	for (auto i = 0l; i < slots.taille(); ++i) {
 		auto index_arg = std::min(i, decl->params.taille - 1);
-		auto param = decl->parametre_entree(index_arg);
+		auto param = parametres_entree[index_arg];
 		auto arg = param->valeur;
 		auto slot = slots[i];
 
@@ -1101,7 +1107,7 @@ static auto apparie_appel_fonction(
 	// Il faut supprimer de l'appel les constantes correspondant aux valeur polymorphiques.
 	for (auto i = 0l; i < slots.taille(); ++i) {
 		auto index_arg = std::min(i, decl->params.taille - 1);
-		auto param = decl->parametre_entree(index_arg);
+		auto param = parametres_entree[index_arg];
 
 		if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
 			continue;
