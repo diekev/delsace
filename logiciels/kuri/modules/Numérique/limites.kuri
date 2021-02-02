@@ -14,7 +14,7 @@ valeur_min :: fonc (taille_en_octet: n32, est_signé: bool) -> z64
     }
 
     si taille_en_octet == 4 {
-        retourne -2147483648
+        retourne -(2147483648 comme z64)
     }
 
     retourne -(0x7fff_ffff_ffff_ffff comme z64) - 1
@@ -80,7 +80,7 @@ hors_limite :: fonc (valeur: z64, taille_en_octet: n32, est_signé: bool) -> boo
     }
 
     si taille_en_octet == 4 {
-        retourne valeur > 2147483647 || valeur < -2147483648
+        retourne valeur > 2147483647 || valeur < -(2147483648 comme z64)
     }
 
     retourne faux
