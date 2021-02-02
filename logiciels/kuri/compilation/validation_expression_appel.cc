@@ -846,7 +846,7 @@ static auto apparie_appel_fonction(
 	auto expansion_rencontree = false;
 
 	auto &slots = apparieuse_params.slots();
-	auto transformations = dls::tableau<TransformationType>(slots.taille());
+	auto transformations = dls::tablet<TransformationType, 10>(slots.taille());
 
 	auto nombre_arg_variadiques_rencontres = 0;
 
@@ -1103,6 +1103,8 @@ static auto apparie_appel_fonction(
 			slots.redimensionne(nombre_args);
 		}
 	}
+
+	res.transformations.reserve(transformations.taille());
 
 	// Il faut supprimer de l'appel les constantes correspondant aux valeur polymorphiques.
 	for (auto i = 0l; i < slots.taille(); ++i) {
