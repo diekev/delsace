@@ -266,8 +266,8 @@ static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
 				os << virgule;
 				os << it.nom << " = ";
 
-				pointeur += it.decalage;
-				lis_valeur(pointeur, it.type, os);
+				auto pointeur_membre = pointeur + it.decalage;
+				lis_valeur(pointeur_membre, it.type, os);
 
 				virgule = ", ";
 			}
