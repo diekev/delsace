@@ -1192,8 +1192,6 @@ void Tacheronne::execute_metaprogrammes()
 				if (!resultat) {
 					rapporte_erreur(espace, it->directive, "Échec de l'assertion");
 				}
-
-				it->fut_execute = true;
 			}
 			else if (it->corps_texte) {
 				auto resultat = *reinterpret_cast<kuri::chaine *>(it->donnees_execution->pointeur_pile);
@@ -1228,6 +1226,9 @@ void Tacheronne::execute_metaprogrammes()
 				}
 			}
 		}
+
+		/* attend d'avoir générer le résultat des opérations avant de marquer comme exécuté */
+		it->fut_execute = true;
 
 		mv.deloge_donnees_execution(it->donnees_execution);
 
