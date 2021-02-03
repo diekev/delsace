@@ -226,12 +226,6 @@ vérifie que les entrées des métaprogrammes sont des constantes
 
 - proprement définir ce qu'on doit faire si un métaprogramme demande un message alors qu'il n'a pas commencer à les intercepter
 
-- défini une bonne sémantique pour compilatrice_commence_interception
-    - dit à la compilatrice qu'un espace de travail devient le défaut ?
-    - que l'on écoute des messages ? chaque espace de travail aura sa propre file de messages et la compilatrice mettra tous les messages dans celle-ci
-        peut-on ne pas avoir les messages d'autres espaces ?
-    => mise en place du métaprogramme ayant fait l'appel comme étant celui qui est le métaprogramme controlant la compilation, il aura l'exclusivité sur la prise en charge des messages (la compilatrice attendra que les message de pasage et de typage soit gérés avant de continuer, etc.)
-
 - avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
 
 - utilise des métaprogrammes pour exécuter les #si
