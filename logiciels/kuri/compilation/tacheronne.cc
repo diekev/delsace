@@ -1193,6 +1193,16 @@ void Tacheronne::execute_metaprogrammes()
 					rapporte_erreur(espace, it->directive, "Échec de l'assertion");
 				}
 			}
+			else if (it->directive && it->directive->ident == ID::execute) {
+				auto type = it->directive->type;
+				auto pointeur = it->donnees_execution->pointeur_pile;
+
+				// À FAIRE : fonction retournant plusieurs valeurs
+				// Les directives pour des expressions dans des fonctions n'ont pas d'unités
+				if (!it->directive->unite) {
+					it->directive->substitution = noeud_syntaxique_depuis_resultat(espace, it->directive, it->directive->lexeme, type, pointeur);
+				}
+			}
 			else if (it->corps_texte) {
 				auto resultat = *reinterpret_cast<kuri::chaine *>(it->donnees_execution->pointeur_pile);
 
@@ -1234,4 +1244,115 @@ void Tacheronne::execute_metaprogrammes()
 
 		espace->tache_execution_terminee(compilatrice.messagere);
 	}
+}
+
+NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *espace, NoeudDirectiveExecution *directive, Lexeme const *lexeme, Type *type, octet_t *pointeur)
+{
+	switch (type->genre) {
+		default:
+		{
+			// À FAIRE : pour les chaines il faut stocker la valeur de l'index quelque part..., nous ne pouvons réutiliser le lexème
+			rapporte_erreur(espace, directive, "Type non pris en charge pour le résutat des exécutions !")
+					.ajoute_message("Le type est : ", chaine_type(type), "\n");
+			break;
+		}
+		case GenreType::RIEN:
+		{
+			break;
+		}
+		case GenreType::ENTIER_CONSTANT:
+		case GenreType::ENTIER_RELATIF:
+		{
+			unsigned long valeur = 0;
+
+			if (type->taille_octet == 1) {
+				valeur = static_cast<unsigned long>(*reinterpret_cast<char *>(pointeur));
+			}
+			else if (type->taille_octet == 2) {
+				valeur = static_cast<unsigned long>(*reinterpret_cast<short *>(pointeur));
+			}
+			else if (type->taille_octet == 4 || type->taille_octet == 0) {
+				valeur = static_cast<unsigned long>(*reinterpret_cast<int *>(pointeur));
+			}
+			else if (type->taille_octet == 8) {
+				valeur = static_cast<unsigned long>(*reinterpret_cast<long *>(pointeur));
+			}
+
+			return assembleuse->cree_lit_entier(lexeme, type, valeur);
+		}
+		case GenreType::ENUM:
+		case GenreType::ERREUR:
+		case GenreType::ENTIER_NATUREL:
+		{
+			unsigned long valeur = 0;
+			if (type->taille_octet == 1) {
+				valeur = static_cast<unsigned long>(*pointeur);
+			}
+			else if (type->taille_octet == 2) {
+				valeur = static_cast<unsigned long>(*reinterpret_cast<unsigned short *>(pointeur));
+			}
+			else if (type->taille_octet == 4) {
+				valeur = static_cast<unsigned long>(*reinterpret_cast<unsigned int *>(pointeur));
+			}
+			else if (type->taille_octet == 8) {
+				valeur = *reinterpret_cast<unsigned long *>(pointeur);
+			}
+
+			return assembleuse->cree_lit_entier(lexeme, type, valeur);
+		}
+		case GenreType::BOOL:
+		{
+			auto valeur = *reinterpret_cast<bool *>(pointeur);
+			auto noeud_syntaxique = assembleuse->cree_lit_bool(lexeme);
+			noeud_syntaxique->valeur_bool = valeur;
+			return noeud_syntaxique;
+		}
+		case GenreType::REEL:
+		{
+			double valeur = 0.0;
+
+			// À FAIRE(r16)
+			if (type->taille_octet == 4) {
+				valeur = static_cast<double>(*reinterpret_cast<float *>(pointeur));
+			}
+			else if (type->taille_octet == 8) {
+				valeur = *reinterpret_cast<double *>(pointeur);
+			}
+
+			return assembleuse->cree_lit_reel(lexeme, type, valeur);
+		}
+		case GenreType::STRUCTURE:
+		{
+			auto type_structure = type->comme_structure();
+
+			auto construction_structure = assembleuse->cree_construction_structure(lexeme, type_structure);
+
+			POUR (type_structure->membres) {
+				if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
+					continue;
+				}
+
+				auto pointeur_membre = pointeur + it.decalage;
+				auto noeud_membre = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, it.type, pointeur_membre);
+				construction_structure->exprs.ajoute(noeud_membre);
+			}
+
+			return construction_structure;
+		}
+//		case GenreType::CHAINE:
+//		{
+//			auto valeur_pointeur = pointeur;
+//			auto valeur_chaine = *reinterpret_cast<long *>(pointeur + 8);
+
+//			kuri::chaine chaine;
+//			chaine.pointeur = *reinterpret_cast<char **>(valeur_pointeur);
+//			chaine.taille = valeur_chaine;
+
+//			auto lit_chaine = assembleuse->cree_lit_chaine(lexeme);
+
+//			return lit_chaine;
+//		}
+	}
+
+	return nullptr;
 }

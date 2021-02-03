@@ -220,11 +220,6 @@ impression des paramètres dans les messages d'erreur en cas de mésappariement
 permet de modifier la valeur des globales via les métaprogrammes, la génération de code final devra pendre les valeurs se trouvant dans le code binaire
     complexe
 
-directive #exécute dans les fonctions
-    UnitéCompilation::attend_sur_métaprogramme(métaprogramme)
-    tiré le résultat et son type
-    le métaprogramme devra avoir des constantes comme entrée
-
 vérifie que les entrées des métaprogrammes sont des constantes
 
 - pouvoir changer le contenu d'une fonction (par exemple pour profiler l'exécutable)

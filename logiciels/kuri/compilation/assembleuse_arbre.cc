@@ -286,6 +286,17 @@ NoeudExpressionAppel *AssembleuseArbre::cree_appel(const Lexeme *lexeme, NoeudEx
 	return appel;
 }
 
+NoeudExpressionAppel *AssembleuseArbre::cree_construction_structure(const Lexeme *lexeme, TypeStructure *type)
+{
+	auto structure = cree_appel(lexeme);
+	structure->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
+	structure->exprs.reserve(type->membres.taille);
+	structure->appelee = type->decl;
+	structure->noeud_fonction_appelee = type->decl;
+	structure->type = type;
+	return structure;
+}
+
 NoeudExpressionLitterale *AssembleuseArbre::cree_lit_chaine(const Lexeme *lexeme)
 {
 	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CHAINE, lexeme)->comme_litterale();

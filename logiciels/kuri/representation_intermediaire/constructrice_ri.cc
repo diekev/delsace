@@ -1383,8 +1383,9 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 					cree_stocke_mem(noeud, ptr_index, cree_z32(index_membre + 1));
 				}
 			}
-			else {
-				if (expr->appelee->ident == ID::PositionCodeSource) {
+			else {			
+				/* appelee peut être nulle pour les structures anonymes crées par la compilatrice */
+				if (expr->appelee && expr->appelee->ident == ID::PositionCodeSource) {
 					genere_ri_pour_position_code_source(noeud);
 					return;
 				}
