@@ -715,7 +715,7 @@ void Tacheronne::gere_tache()
 
 					rapporte_erreur(unite->espace, unite->noeud, "Je ne peux pas continuer la compilation car une unité est bloqué dans un cycle")
 							.ajoute_message("\nNote : l'unité est dans l'état : ")
-							.ajoute_message(chaine_etat_unite(unite->etat()))
+							.ajoute_message(chaine_attentes_recursives(unite))
 							.ajoute_message("\n");
 
 					break;
