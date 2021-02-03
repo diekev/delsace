@@ -379,3 +379,127 @@ ABC_xform_echantillon_pour_temps :: fonc (schema: *ISchemaXform, temps: r64) -> 
 ABC_echant_xform_detruit :: fonc (echant: *IEchantXform) #externe
 
 // À FAIRE
+
+/*
+
+Pour supporter cette fonctionnalité, il nous faudra plusieurs fonctionnalités dans le langage :
+
+- opaque polymorphique
+- #exécute dans les fonctions, avec création de noeuds syntaxique pour les résultats
+- bonus, pour les messages d'erreurs : ajout d'un contexte au typage (dans le typage de, dans la monomorphisation de..., )
+
+ÉchantillonTableauTypé :: #opaque []$T
+
+ABC_echant_tableau_type_donnees :: fonc (échant: *EchantillonTableau) -> *TypeDeDonnées #externe
+
+TypeDonnéesPassive :: énum z32 {
+    //! Booleans are difficult to store in arrays in a 'one bit per bool'
+    //! kind of way, so we actually file them as bytes (uint8).  But again
+    //! this is entirely hidden from the end user. Implemented via the
+    //! "bool_t" type defined above.
+    Booléen
+
+    //! Char/UChar
+    N8
+    Z8
+
+    //! Short/UShort
+    N16
+    Z16
+
+    //! Int/UInt
+    N32
+    Z32
+
+    //! Long/ULong
+    N64
+    Z64
+
+    //! Half/Float/Double
+    R16
+    R32
+    R64
+
+    //! String Pointer
+    Chaine
+
+    //! Wide String Pointer
+    ChaineLarge
+
+    //! Number of POD
+    NombreDeTypeDonneePassive
+
+    //! Unknown
+    Inconnu :: 127
+};
+
+ABC_type_donnees_accede_donnee_passive :: fonc (td: *TypeDeDonnées) -> TypeDonnéesPassive #externe
+ABC_type_donnees_mute_donnee_passive :: fonc (td: *TypeDeDonnées, donnee_passive: TypeDonnéesPassive) -> rien #externe
+
+ABC_type_donnees_accede_etendue :: fonc (td: *TypeDeDonnées) -> n8 #externe
+ABC_type_donnees_mute_etendue :: fonc (td: *TypeDeDonnées, étendue: n8) #externe
+
+calcule_données_passive_et_étendue :: fonc (T: type_de_données) -> TypeDonnéesPassive, n8
+{
+    DonnéesValidationTypeDonnées :: struct {
+        type: type_de_données
+        donnée_passive: TypeDonnéesPassive
+        étendue: n8
+    }
+
+    données_validations := [
+        DonnéesValidationTypeDonnées(bool, TypeDonnéesPassive.Booléen, 1),
+        DonnéesValidationTypeDonnées(n8, TypeDonnéesPassive.N8, 1),
+        DonnéesValidationTypeDonnées(z8, TypeDonnéesPassive.Z8, 1),
+        DonnéesValidationTypeDonnées(n16, TypeDonnéesPassive.N16, 1),
+        DonnéesValidationTypeDonnées(z16, TypeDonnéesPassive.Z16, 1),
+        DonnéesValidationTypeDonnées(n32, TypeDonnéesPassive.N32, 1),
+        DonnéesValidationTypeDonnées(z32, TypeDonnéesPassive.Z32, 1),
+        DonnéesValidationTypeDonnées(n64, TypeDonnéesPassive.N64, 1),
+        DonnéesValidationTypeDonnées(z64, TypeDonnéesPassive.Z64, 1),
+        DonnéesValidationTypeDonnées(r16, TypeDonnéesPassive.R16, 1),
+        DonnéesValidationTypeDonnées(r32, TypeDonnéesPassive.R32, 1),
+        DonnéesValidationTypeDonnées(r64, TypeDonnéesPassive.R64, 1),
+    ]
+
+    pour données_validations {
+        si it.type == T {
+            retourne it.donnée_passive, it.étendue
+        }
+    }
+
+    compilatrice_rapporte("type non supporté comme données pour ÉchantillonTableauTypé")
+    retourne TypeDonnéesPassive.Inconnu, 0
+}
+
+ABC_échantillon_tableau :: fonc (échant: *EchantillonTableau, $T: type_de_données) -> ÉchantillonTableauTypé(T)
+{
+    saufsi échant {
+        retourne Invalide
+    }
+
+    si !ABC_echant_tableau_valide(échant) {
+        retourne Invalide
+    }
+
+    type_données := ABC_echant_tableau_type_donnees(échant)
+    donnes_passive := ABC_type_donnees_accede_donnee_passive(type_données)
+    étendue := ABC_type_donnees_accede_etendue(type_de_données)
+
+    données_passive, étendue := #exécute calcule_données_passive_et_étendue(T)
+
+    si ABC_type_donnees_accede_donnee_passive(type_données) != donnée_passive {
+        reoturne Invalide
+    }
+
+    si ABC_type_donnees_accede_etendue(type_données) != étendue {
+        reoturne Invalide
+    }
+
+    résultat : ÉchantillonTableauTypé(T)
+    résultat.données = ABC_echant_tableau_donnees(échant) comme *T
+    résultat.taille = ABC_echant_tableau_taille(échant)
+    retourne résultat
+}
+
+*/
