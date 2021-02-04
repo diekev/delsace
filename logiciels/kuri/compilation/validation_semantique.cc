@@ -2080,13 +2080,15 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 
 		auto membre_trouve = false;
 		auto index_membre = 0;
-		auto membre_est_constant = false;;
+		auto membre_est_constant = false;
+		auto membre_est_implicite = false;
 
 		POUR (type_compose->membres) {
 			if (it.nom == membre->ident) {
 				expression_membre->type = it.type;
 				membre_trouve = true;
 				membre_est_constant = it.drapeaux == TypeCompose::Membre::EST_CONSTANT;
+				membre_est_implicite = it.drapeaux == TypeCompose::Membre::EST_IMPLICITE;
 				break;
 			}
 
@@ -2114,7 +2116,9 @@ bool ContexteValidationCode::valide_acces_membre(NoeudExpressionMembre *expressi
 			if (structure->est_ref_decl() && !structure->comme_ref_decl()->decl->est_enum() && !expression_membre->type->est_type_de_donnees()) {
 				if (type->est_enum() && type->comme_enum()->est_drapeau) {
 					expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
-					expression_membre->drapeaux |= ACCES_EST_ENUM_DRAPEAU;
+					if (!membre_est_implicite) {
+						expression_membre->drapeaux |= ACCES_EST_ENUM_DRAPEAU;
+					}
 				}
 				else {
 					::rapporte_erreur(espace, expression_membre, "Impossible d'accéder à une variable de type énumération");
