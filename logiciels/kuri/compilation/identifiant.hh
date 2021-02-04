@@ -145,6 +145,10 @@ extern IdentifiantCode *info;
 extern IdentifiantCode *_0;
 extern IdentifiantCode *_1;
 extern IdentifiantCode *nombre_elements;
+extern IdentifiantCode *min;
+extern IdentifiantCode *max;
+extern IdentifiantCode *valeurs_legales;
+extern IdentifiantCode *valeurs_illegales;
 
 }
 

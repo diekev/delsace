@@ -3031,7 +3031,9 @@ bool ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, TypeEnum *type_en
 	membres.reserve(decl->bloc->expressions->taille);
 	decl->bloc->membres->reserve(decl->bloc->expressions->taille);
 
-	// À FAIRE : ajout d'un masque pour les énums_drapeaux
+	long valeur_enum_min = std::numeric_limits<long>::max();
+	long valeur_enum_max = std::numeric_limits<long>::min();
+	long valeurs_legales = 0;
 
 	POUR (*decl->bloc->expressions.verrou_ecriture()) {
 		if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
@@ -3122,12 +3124,26 @@ bool ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, TypeEnum *type_en
 			return true;
 		}
 
+		valeur_enum_min = std::min(valeur.entier, valeur_enum_min);
+		valeur_enum_max = std::max(valeur.entier, valeur_enum_max);
+
+		if (N == VALIDE_ENUM_DRAPEAU) {
+			valeurs_legales |= valeur.entier;
+		}
+
 		membres.ajoute({ type_enum, var->ident, 0, static_cast<int>(valeur.entier) });
 
 		derniere_valeur = valeur;
 	}
 
 	membres.ajoute({ espace->typeuse[TypeBase::Z32], ID::nombre_elements, 0, static_cast<int>(membres.taille), nullptr, TypeCompose::Membre::EST_IMPLICITE });
+	membres.ajoute({ type_enum, ID::min, 0, static_cast<int>(valeur_enum_min), nullptr, TypeCompose::Membre::EST_IMPLICITE });
+	membres.ajoute({ type_enum, ID::max, 0, static_cast<int>(valeur_enum_max), nullptr, TypeCompose::Membre::EST_IMPLICITE });
+
+	if (N == VALIDE_ENUM_DRAPEAU) {
+		membres.ajoute({ type_enum, ID::valeurs_legales, 0, static_cast<int>(valeurs_legales), nullptr, TypeCompose::Membre::EST_IMPLICITE });
+		membres.ajoute({ type_enum, ID::valeurs_illegales, 0, static_cast<int>(~valeurs_legales), nullptr, TypeCompose::Membre::EST_IMPLICITE });
+	}
 
 	decl->drapeaux |= DECLARATION_FUT_VALIDEE;
 	decl->type->drapeaux |= TYPE_FUT_VALIDE;

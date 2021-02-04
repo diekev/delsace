@@ -181,6 +181,10 @@ IdentifiantCode *info;
 IdentifiantCode *_0;
 IdentifiantCode *_1;
 IdentifiantCode *nombre_elements;
+IdentifiantCode *min;
+IdentifiantCode *max;
+IdentifiantCode *valeurs_legales;
+IdentifiantCode *valeurs_illegales;
 
 }
 
@@ -273,4 +277,8 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::_0 = table.identifiant_pour_chaine("0");
 	ID::_1 = table.identifiant_pour_chaine("1");
 	ID::nombre_elements = table.identifiant_pour_chaine("nombre_éléments");
+	ID::min = table.identifiant_pour_chaine("min");
+	ID::max = table.identifiant_pour_chaine("max");
+	ID::valeurs_legales = table.identifiant_pour_chaine("valeurs_légales");
+	ID::valeurs_illegales = table.identifiant_pour_chaine("valeurs_illégales");
 }
