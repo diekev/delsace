@@ -746,6 +746,10 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->valeurs.reserve(type_enum->membres.taille);
 
 			POUR (type_enum->membres) {
+				if (it.drapeaux == TypeCompose::Membre::EST_IMPLICITE) {
+					continue;
+				}
+
 				info_type->noms.ajoute(it.nom->nom);
 				info_type->valeurs.ajoute(it.valeur);
 			}

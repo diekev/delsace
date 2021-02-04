@@ -2718,6 +2718,10 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			valeurs_enum.reserve(type_enum->membres.taille);
 
 			POUR (type_enum->membres) {
+				if (it.drapeaux == TypeCompose::Membre::EST_IMPLICITE) {
+					continue;
+				}
+
 				auto valeur = cree_z32(static_cast<unsigned>(it.valeur));
 				valeurs_enum.ajoute(valeur);
 			}
@@ -2726,6 +2730,10 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			noms_enum.reserve(type_enum->membres.taille);
 
 			POUR (type_enum->membres) {
+				if (it.drapeaux == TypeCompose::Membre::EST_IMPLICITE) {
+					continue;
+				}
+
 				auto chaine_nom = cree_chaine(it.nom->nom);
 				noms_enum.ajoute(chaine_nom);
 			}
