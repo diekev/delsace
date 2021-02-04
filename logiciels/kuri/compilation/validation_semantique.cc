@@ -3079,7 +3079,7 @@ bool ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, TypeEnum *type_en
 				return true;
 			}
 
-			if (N == VALIDE_ENUM_DRAPEAU || N == VALIDE_ENUM_ERREUR) {
+			if (N == VALIDE_ENUM_ERREUR) {
 				if (res.valeur.entier == 0) {
 					::rapporte_erreur(espace, expr, "L'expression d'une enumération erreur ne peut s'évaluer à 0 (cette valeur est réservée par la compilatrice).");
 					return true;
