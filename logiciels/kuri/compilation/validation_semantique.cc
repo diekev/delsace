@@ -574,16 +574,6 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 				auto type_type1 = type1->comme_type_de_donnees();
 				auto type_type2 = type2->comme_type_de_donnees();
 
-				if (type_type1->type_connu == nullptr) {
-					rapporte_erreur("Opération impossible car le type n'est pas connu", enfant1);
-					return true;
-				}
-
-				if (type_type2->type_connu == nullptr) {
-					rapporte_erreur("Opération impossible car le type n'est pas connu", enfant2);
-					return true;
-				}
-
 				switch (expr->lexeme->genre) {
 					default:
 					{
@@ -592,6 +582,16 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 					case GenreLexeme::BARRE:
 					{
+						if (type_type1->type_connu == nullptr) {
+							rapporte_erreur("Opération impossible car le type n'est pas connu", noeud);
+							return true;
+						}
+
+						if (type_type2->type_connu == nullptr) {
+							rapporte_erreur("Opération impossible car le type n'est pas connu", noeud);
+							return true;
+						}
+
 						if (type_type1->type_connu == type_type2->type_connu) {
 							rapporte_erreur("Impossible de créer une union depuis des types similaires\n", expr);
 							return true;
