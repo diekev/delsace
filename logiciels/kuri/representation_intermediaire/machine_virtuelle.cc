@@ -1178,6 +1178,11 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 			auto taille = LIS_4_OCTETS();
 			auto adresse_de = depile<void *>();
 			auto adresse_ou = static_cast<void *>(this->pointeur_pile);
+
+			if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) < taille) {
+				rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : superposition de la copie dans la machine virtuelle !\n");
+			}
+
 			memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 			this->pointeur_pile += taille;
 			break;
