@@ -334,6 +334,10 @@ TypeOpaque::TypeOpaque(NoeudDeclarationVariable *decl_, Type *opacifie)
 	this->drapeaux |= TYPE_FUT_VALIDE;
 	this->taille_octet = opacifie->taille_octet;
 	this->alignement = opacifie->alignement;
+
+	if (opacifie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+		this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+	}
 }
 
 void TypeTuple::marque_polymorphique()
@@ -964,7 +968,29 @@ TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
 TypeOpaque *Typeuse::cree_opaque(NoeudDeclarationVariable *decl, Type *type_opacifie)
 {
 	auto type = types_opaques->ajoute_element(decl, type_opacifie);
-	graphe_->connecte_type_type(type, type_opacifie);
+	if (type_opacifie) {
+		graphe_->connecte_type_type(type, type_opacifie);
+	}
+	return type;
+}
+
+TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationVariable *decl, Type *type_monomorphique)
+{
+	auto types_opaques_ = types_opaques.verrou_ecriture();
+
+	POUR_TABLEAU_PAGE ((*types_opaques_)) {
+		if (it.decl != decl) {
+			continue;
+		}
+
+		if (it.type_opacifie == type_monomorphique) {
+			return &it;
+		}
+	}
+
+	auto type = types_opaques_->ajoute_element(decl, type_monomorphique);
+	type->drapeaux |= TYPE_FUT_VALIDE;
+	graphe_->connecte_type_type(type, type_monomorphique);
 	return type;
 }
 
@@ -1281,7 +1307,11 @@ dls::chaine chaine_type(const Type *type)
 		}
 		case GenreType::OPAQUE:
 		{
-			return static_cast<TypeOpaque const *>(type)->ident->nom;
+			auto type_opaque = static_cast<TypeOpaque const *>(type);
+			auto res = dls::chaine();
+			res = static_cast<TypeOpaque const *>(type)->ident->nom;
+			res += "(" + chaine_type(type_opaque->type_opacifie) + ")";
+			return res;
 		}
 		case GenreType::TUPLE:
 		{

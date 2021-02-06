@@ -80,6 +80,7 @@ private:
 	NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
 
 	bool est_dans_fonction = false;
+	bool m_est_declaration_type_opaque = false;
 	NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
 	NoeudStruct *structure_courante = nullptr;
 

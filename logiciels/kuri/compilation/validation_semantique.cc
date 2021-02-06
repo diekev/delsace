@@ -3614,11 +3614,17 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 {
 	if (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE) {
 		auto type_opacifie = Type::nul();
-		resoud_type_final(decl->expression, type_opacifie);
 
-		if ((type_opacifie->drapeaux & TYPE_FUT_VALIDE) == 0) {
-			unite->attend_sur_type(type_opacifie);
-			return true;
+		if (!decl->expression->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
+			resoud_type_final(decl->expression, type_opacifie);
+
+			if ((type_opacifie->drapeaux & TYPE_FUT_VALIDE) == 0) {
+				unite->attend_sur_type(type_opacifie);
+				return true;
+			}
+		}
+		else {
+			type_opacifie = espace->typeuse.cree_polymorphique(decl->expression->ident);
 		}
 
 		auto type_opaque = espace->typeuse.cree_opaque(decl, type_opacifie);

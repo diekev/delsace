@@ -1015,8 +1015,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 				structure_courante->bloc_constantes->membres->ajoute(noeud_decl_param);
 				structure_courante->est_polymorphe = true;
 			}
-			else {
-				lance_erreur("déclaration d'un type polymorphique hors d'une fonction ou d'une structure");
+			else if (!m_est_declaration_type_opaque) {
+				lance_erreur("déclaration d'un type polymorphique hors d'une fonction, d'une structure, ou de la déclaration d'un type opaque");
 			}
 
 			return noeud;
@@ -1132,7 +1132,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		{
 			consomme();
 
-			bool est_declaration_type_opaque = false;
+			m_est_declaration_type_opaque = false;
 
 			switch (lexeme_courant()->genre) {
 				default:
@@ -1178,7 +1178,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 					auto directive = lexeme_courant()->ident;
 
 					if (directive == ID::opaque) {
-						est_declaration_type_opaque = true;
+						m_est_declaration_type_opaque = true;
 						consomme();
 					}
 					else {
@@ -1195,9 +1195,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 			noeud->drapeaux |= EST_CONSTANTE;
 			gauche->drapeaux |= EST_CONSTANTE;
 
-			if (est_declaration_type_opaque) {
+			if (m_est_declaration_type_opaque) {
 				noeud->drapeaux |= EST_DECLARATION_TYPE_OPAQUE;
 				gauche->drapeaux |= EST_DECLARATION_TYPE_OPAQUE;
+				m_est_declaration_type_opaque = false;
 			}
 
 			if (gauche->est_ref_decl()) {

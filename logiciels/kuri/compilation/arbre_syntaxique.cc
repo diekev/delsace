@@ -878,8 +878,12 @@ static void aplatis_arbre(
 			auto expr = static_cast<NoeudDeclarationVariable *>(racine);
 
 			// N'aplatis pas expr->valeur car ça ne sers à rien dans ce cas.
-			aplatis_arbre(expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
-			aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+			// Évite également les déclaration de types polymorphiques, cela gène la validation car la déclaration n'est dans aucun bloc.
+			if (!expr->possede_drapeau(EST_DECLARATION_TYPE_OPAQUE) || !expr->expression->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
+				aplatis_arbre(expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+				aplatis_arbre(expr->expression_type, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+			}
+
 			arbre_aplatis.ajoute(expr);
 
 			break;
@@ -1944,6 +1948,10 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
 				appel->substitution = comme;
 				return;
+			}
+
+			if (appel->aide_generation_code == MONOMORPHE_TYPE_OPAQUE) {
+				appel->substitution = assem->cree_ref_type(appel->lexeme, appel->type);
 			}
 
 			if (appel->noeud_fonction_appelee) {

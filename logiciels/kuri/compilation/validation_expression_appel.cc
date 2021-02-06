@@ -116,6 +116,11 @@ struct Monomorpheuse {
 			return true;
 		}
 
+		if (type_poly->est_opaque() && type_cible->est_opaque()) {
+			paires_types.ajoute({type_poly->comme_opaque()->type_opacifie, type_cible->comme_opaque()->type_opacifie});
+			return true;
+		}
+
 		// À FAIRE(poly) : comment détecter ces cas ? x: fonc()() = nul
 		if (type_poly->est_fonction() && type_cible->est_pointeur() && type_cible->comme_pointeur()->type_pointe == nullptr) {
 			return true;
@@ -330,6 +335,11 @@ struct Monomorpheuse {
 			}
 
 			resultat = typeuse.type_fonction(types_entrees, type_sortie);
+		}
+		else if (type_polymorphique->est_opaque()) {
+			auto type_opaque = type_polymorphique->comme_opaque();
+			auto type_opacifie = resoud_type_final(typeuse, type_opaque->type_opacifie);
+			resultat = typeuse.monomorphe_opaque(type_opaque->decl, type_opacifie);
 		}
 		else {
 			assert_rappel(false, [&]() { std::cerr << "Type inattendu dans la résolution de type polymorphique : " << chaine_type(type_polymorphique) << "\n"; });
@@ -1380,6 +1390,26 @@ static auto apparie_construction_opaque(
 		return true;
 	}
 
+	auto arg = arguments[0].expr;
+
+	if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+		if (arg->type->est_type_de_donnees()) {
+			resultat.type = type_opaque;
+			resultat.note = CANDIDATE_EST_MONOMORPHISATION_OPAQUE;
+			resultat.etat = FONCTION_TROUVEE;
+			resultat.poids_args = 1.0;
+			resultat.exprs.ajoute(arg);
+			return false;
+		}
+
+		resultat.type = type_opaque;
+		resultat.note = CANDIDATE_EST_INITIALISATION_OPAQUE;
+		resultat.etat = FONCTION_TROUVEE;
+		resultat.poids_args = 1.0;
+		resultat.exprs.ajoute(arg);
+		return false;
+	}
+
 	if (arguments[0].expr->type != type_opaque->type_opacifie) {
 		resultat.etat = FONCTION_INTROUVEE;
 		resultat.raison = METYPAGE_ARG;
@@ -1391,7 +1421,7 @@ static auto apparie_construction_opaque(
 	resultat.note = CANDIDATE_EST_INITIALISATION_OPAQUE;
 	resultat.etat = FONCTION_TROUVEE;
 	resultat.poids_args = 1.0;
-	resultat.exprs.ajoute(arguments[0].expr);
+	resultat.exprs.ajoute(arg);
 	return false;
 }
 
@@ -1999,8 +2029,29 @@ bool valide_appel_fonction(
 		expr->drapeaux |= FORCE_NULCTX;
 	}
 	else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
-		expr->aide_generation_code = CONSTRUIT_OPAQUE;
-		expr->type = candidate->type;
+		auto type_opaque = candidate->type->comme_opaque();
+
+		if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+			type_opaque = contexte.espace->typeuse.monomorphe_opaque(type_opaque->decl, candidate->exprs[0]->type);
+			expr->type = type_opaque;
+			expr->aide_generation_code = CONSTRUIT_OPAQUE;
+		}
+		else {
+			expr->type = type_opaque;
+			expr->aide_generation_code = CONSTRUIT_OPAQUE;
+		}
+	}
+	else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_OPAQUE) {
+		auto type_opaque = candidate->type->comme_opaque();
+		auto type_opacifie = candidate->exprs[0]->type->comme_type_de_donnees();
+
+		/* différencie entre Type($T) et Type(T) où T dans le deuxième cas est connu */
+		if ((type_opacifie->type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
+			type_opaque = contexte.espace->typeuse.monomorphe_opaque(type_opaque->decl, type_opacifie->type_connu);
+		}
+
+		expr->type = contexte.espace->typeuse.type_type_de_donnees(type_opaque);
+		expr->aide_generation_code = MONOMORPHE_TYPE_OPAQUE;
 	}
 
 #ifdef STATISTIQUES_DETAILLEES

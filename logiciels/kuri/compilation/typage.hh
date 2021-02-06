@@ -670,6 +670,8 @@ struct Typeuse {
 
 	TypeOpaque *cree_opaque(NoeudDeclarationVariable *decl, Type *type_opacifie);
 
+	TypeOpaque *monomorphe_opaque(NoeudDeclarationVariable *decl, Type *type_monomorphique);
+
 	TypeTuple *cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membres);
 
 	inline Type *operator[](TypeBase type_base) const
