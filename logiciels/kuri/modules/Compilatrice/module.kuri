@@ -528,6 +528,11 @@ compilatrice_termine_interception :: fonc (espace: *EspaceDeTravail) #compilatri
 
 compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, fichier: chaine, ligne: z32, message: chaine) #compilatrice
 
+compilatrice_rapporte_erreur :: fonc (message: chaine, pos := PositionCodeSource())
+{
+	compilatrice_rapporte_erreur(compilatrice_espace_courant(), pos.fichier, pos.ligne, message)
+}
+
 /* Lèxe le fichier d'entrée et retourne un tableau de léxèmes, le tableau devra être délogé par le programme */
 compilatrice_lèxe_fichier :: fonc (fichier: chaine) -> []Lexème #compilatrice
 
