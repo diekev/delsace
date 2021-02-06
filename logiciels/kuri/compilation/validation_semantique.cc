@@ -698,6 +698,20 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					::rapporte_erreur(espace, enfant2, "Expression non conditionnable à droite de l'opérateur logique !");
 				}
 
+				/* Les expressions de types a && b || c ou a || b && c ne sont pas valides
+				 * car nous ne pouvons déterminer le bon ordre d'exécution. */
+				if (noeud->lexeme->genre == GenreLexeme::BARRE_BARRE) {
+					if (enfant1->lexeme->genre == GenreLexeme::ESP_ESP) {
+						::rapporte_erreur(espace, enfant1, "Utilisation ambigüe de l'opérateur « && » à gauche de « || » !")
+								.ajoute_message("Veuillez utiliser des parenthèses pour clarifier l'ordre des comparisons.");
+					}
+
+					if (enfant2->lexeme->genre == GenreLexeme::ESP_ESP) {
+						::rapporte_erreur(espace, enfant2, "Utilisation ambigüe de l'opérateur « && » à droite de « || » !")
+								.ajoute_message("Veuillez utiliser des parenthèses pour clarifier l'ordre des comparisons.");
+					}
+				}
+
 				noeud->type = espace->typeuse[TypeBase::BOOL];
 			}
 			else {

@@ -496,10 +496,6 @@ a := enligne ajoute(5, 6)
 
 != || != => toujours vraie, avertissement
 
-&& || => ambigüe, avertissement
-
-|| && => idem
-
 nombres littéraux :
 -- définis la taille minimale naturel et relative
 ---- v < 128 => z8
