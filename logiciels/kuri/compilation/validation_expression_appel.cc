@@ -1753,7 +1753,7 @@ static NoeudStruct *monomorphise_au_besoin(
 /* ************************************************************************** */
 
 // À FAIRE : ajout d'un état de résolution des appels afin de savoir à quelle étape nous nous arrêté en cas d'erreur recouvrable (typage fait, tri des arguments fait, etc.)
-bool valide_appel_fonction(
+ResultatValidation valide_appel_fonction(
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
@@ -1804,7 +1804,7 @@ bool valide_appel_fonction(
 		CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "trouve candidate");
 
 		if (trouve_candidates_pour_appel(espace, contexte, expr, args, candidates)) {
-			return true;
+			return ResultatValidation::Erreur;
 		}
 	}
 
@@ -1822,7 +1822,7 @@ bool valide_appel_fonction(
 
 	if (candidate == nullptr) {
 		contexte.rapporte_erreur_fonction_inconnue(expr, candidates);
-		return true;
+		return ResultatValidation::Erreur;
 	}
 
 	POUR (candidates) {
@@ -1837,7 +1837,7 @@ bool valide_appel_fonction(
 					.ajoute_site(it.noeud_decl)
 					.ajoute_message("Candidate possible :\n")
 					.ajoute_site(candidate->noeud_decl);
-			return true;
+			return ResultatValidation::Erreur;
 		}
 	}
 
@@ -1865,7 +1865,7 @@ bool valide_appel_fonction(
 
 				if (!decl_appel->est_externe && !decl_appel->possede_drapeau(FORCE_NULCTX)) {
 					contexte.rapporte_erreur_fonction_nulctx(expr, decl_fonc, decl_appel);
-					return true;
+					return ResultatValidation::Erreur;
 				}
 			}
 		}
@@ -1877,7 +1877,7 @@ bool valide_appel_fonction(
 
 			if (doit_monomorpher || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 				contexte.unite->attend_sur_declaration(noeud_decl);
-				return true;
+				return ResultatValidation::Erreur;
 			}
 
 			decl_fonction_appelee = noeud_decl;
@@ -1898,7 +1898,7 @@ bool valide_appel_fonction(
 					.ajoute_site(decl_fonction_appelee)
 					.ajoute_conseil("si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « _ » comme identifiant pour la capturer et l'ignorer :\n")
 					.ajoute_message("\t_ := appel_mais_ignore_le_retour()\n");
-			return true;
+			return ResultatValidation::Erreur;
 		}
 
 		/* met en place les drapeaux sur les enfants */
@@ -1955,7 +1955,7 @@ bool valide_appel_fonction(
 
 			if (doit_monomorpher || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 				contexte.unite->attend_sur_declaration(noeud_decl);
-				return true;
+				return ResultatValidation::Erreur;
 			}
 
 			decl_fonction_appelee = noeud_decl;
@@ -1975,7 +1975,7 @@ bool valide_appel_fonction(
 				// saute l'expression pour ne plus revenir
 				contexte.unite->index_courant += 1;
 				contexte.unite->attend_sur_type(copie->type);
-				return true;
+				return ResultatValidation::Erreur;
 			}
 		}
 		else {
@@ -1991,7 +1991,7 @@ bool valide_appel_fonction(
 
 		if (!expr->possede_drapeau(DROITE_ASSIGNATION)) {
 			rapporte_erreur(&espace, expr, "La valeur de l'expression de construction de structure n'est pas utilisée. Peut-être vouliez-vous l'assigner à quelque variable ou l'utiliser comme type ?");
-			return true;
+			return ResultatValidation::Erreur;
 		}
 	}
 	else if (candidate->note == CANDIDATE_EST_TYPE_POLYMORPHIQUE) {
@@ -2020,7 +2020,7 @@ bool valide_appel_fonction(
 					.ajoute_message("\n")
 					.ajoute_conseil("si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « _ » comme identifiant pour la capturer et l'ignorer :\n")
 					.ajoute_message("\t_ := appel_mais_ignore_le_retour()\n");
-			return true;
+			return ResultatValidation::Erreur;
 		}
 	}
 	else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
@@ -2059,5 +2059,5 @@ bool valide_appel_fonction(
 #endif
 
 	assert(expr->type);
-	return false;
+	return ResultatValidation::OK;
 }

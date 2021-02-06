@@ -102,9 +102,6 @@ switch (expr->etat_validation.etat) {
     }
 }
 
-
-utilisation d'une énumération pour retourner si le typage retourne une erreur au lieu d'une valeur booléenne
-
 plusieurs threads d'exécutions pour le typage ou la génération de RI
 
 remplace les noeuds de dépendances par des unités de compilations

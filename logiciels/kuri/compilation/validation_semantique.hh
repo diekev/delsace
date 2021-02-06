@@ -54,6 +54,11 @@ namespace erreur {
 enum class Genre : int;
 }
 
+enum class ResultatValidation : int {
+	OK,
+	Erreur,
+};
+
 struct ContexteValidationCode {
 	Compilatrice &m_compilatrice;
 	Tacheronne &m_tacheronne;
@@ -87,24 +92,24 @@ struct ContexteValidationCode {
 
 	void renseigne_membre_actif(dls::vue_chaine_compacte const &nom_union, dls::vue_chaine_compacte const &nom_membre);
 
-	bool valide_semantique_noeud(NoeudExpression *);
-	bool valide_acces_membre(NoeudExpressionMembre *expression_membre);
+	ResultatValidation valide_semantique_noeud(NoeudExpression *);
+	ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
 
-	bool valide_type_fonction(NoeudDeclarationEnteteFonction *);
-	bool valide_fonction(NoeudDeclarationCorpsFonction *);
-	bool valide_operateur(NoeudDeclarationCorpsFonction *);
+	ResultatValidation valide_type_fonction(NoeudDeclarationEnteteFonction *);
+	ResultatValidation valide_fonction(NoeudDeclarationCorpsFonction *);
+	ResultatValidation valide_operateur(NoeudDeclarationCorpsFonction *);
 
 	template<int N>
-	bool valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum);
-	bool valide_enum(NoeudEnum *);
+	ResultatValidation valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum);
+	ResultatValidation valide_enum(NoeudEnum *);
 
-	bool valide_structure(NoeudStruct *);
-	bool valide_declaration_variable(NoeudDeclarationVariable *decl);
-	bool valide_assignation(NoeudAssignation *inst);
-	bool valide_arbre_aplatis(NoeudExpression *declaration, kuri::tableau<NoeudExpression *> &arbre_aplatis);
-	bool valide_expression_retour(NoeudRetour *inst_retour);
-	bool valide_cuisine(NoeudExpressionUnaire *directive);
-	bool resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
+	ResultatValidation valide_structure(NoeudStruct *);
+	ResultatValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
+	ResultatValidation valide_assignation(NoeudAssignation *inst);
+	ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration, kuri::tableau<NoeudExpression *> &arbre_aplatis);
+	ResultatValidation valide_expression_retour(NoeudRetour *inst_retour);
+	ResultatValidation valide_cuisine(NoeudExpressionUnaire *directive);
+	ResultatValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
 	void rapporte_erreur(const char *message, NoeudExpression *noeud);
 	void rapporte_erreur(const char *message, NoeudExpression *noeud, erreur::Genre genre);
@@ -120,8 +125,8 @@ struct ContexteValidationCode {
 	void rapporte_erreur_fonction_inconnue(NoeudExpression *b, dls::tablet<DonneesCandidate, 10> const &candidates);
 	void rapporte_erreur_fonction_nulctx(NoeudExpression const *appl_fonc, NoeudExpression const *decl_fonc, NoeudExpression const *decl_appel);
 
-	bool transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
-	bool transtype_si_necessaire(NoeudExpression *&expression, TransformationType const &transformation);
+	ResultatValidation transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
+	ResultatValidation transtype_si_necessaire(NoeudExpression *&expression, TransformationType const &transformation);
 
 	MetaProgramme *cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte, NoeudBloc *bloc_parent, const Lexeme *lexeme);
 };
