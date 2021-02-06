@@ -1396,8 +1396,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 					// À FAIRE(tableau fixe)
 					if (valeur) {
-						auto ptr = cree_acces_membre(noeud, alloc, index_membre);
-						cree_stocke_mem(noeud, ptr, valeur);
+						auto ptr = cree_acces_membre(it, alloc, index_membre);
+						cree_stocke_mem(it, ptr, valeur);
 					}
 
 					index_membre += 1;
