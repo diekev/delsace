@@ -382,12 +382,6 @@ ABC_echant_xform_detruit :: fonc (echant: *IEchantXform) #externe
 
 /*
 
-Pour supporter cette fonctionnalité, il nous faudra plusieurs fonctionnalités dans le langage :
-
-- opaque polymorphique
-- #exécute dans les fonctions, avec création de noeuds syntaxique pour les résultats
-- bonus, pour les messages d'erreurs : ajout d'un contexte au typage (dans le typage de, dans la monomorphisation de..., )
-
 ÉchantillonTableauTypé :: #opaque []$T
 
 ABC_echant_tableau_type_donnees :: fonc (échant: *EchantillonTableau) -> *TypeDeDonnées #externe
@@ -431,13 +425,15 @@ TypeDonnéesPassive :: énum z32 {
 
     //! Unknown
     Inconnu :: 127
-};
+}
 
 ABC_type_donnees_accede_donnee_passive :: fonc (td: *TypeDeDonnées) -> TypeDonnéesPassive #externe
 ABC_type_donnees_mute_donnee_passive :: fonc (td: *TypeDeDonnées, donnee_passive: TypeDonnéesPassive) -> rien #externe
 
 ABC_type_donnees_accede_etendue :: fonc (td: *TypeDeDonnées) -> n8 #externe
 ABC_type_donnees_mute_etendue :: fonc (td: *TypeDeDonnées, étendue: n8) #externe
+
+importe Compilatrice
 
 calcule_données_passive_et_étendue :: fonc (T: type_de_données) -> TypeDonnéesPassive, n8
 {
@@ -459,16 +455,18 @@ calcule_données_passive_et_étendue :: fonc (T: type_de_données) -> TypeDonné
         DonnéesValidationTypeDonnées(z64, TypeDonnéesPassive.Z64, 1),
         DonnéesValidationTypeDonnées(r16, TypeDonnéesPassive.R16, 1),
         DonnéesValidationTypeDonnées(r32, TypeDonnéesPassive.R32, 1),
-        DonnéesValidationTypeDonnées(r64, TypeDonnéesPassive.R64, 1),
+        DonnéesValidationTypeDonnées(r64, TypeDonnéesPassive.R64, 1)
     ]
 
-    pour données_validations {
+    // À FAIRE : si ceci n'est ni un pointeur, ni une référence, la machine virtuelle crash
+    //           il y a une superposition entre l'assignation à la locale et sa source
+    pour & données_validations {
         si it.type == T {
             retourne it.donnée_passive, it.étendue
         }
     }
 
-    compilatrice_rapporte("type non supporté comme données pour ÉchantillonTableauTypé")
+    compilatrice_rapporte_erreur("type non supporté comme données pour ÉchantillonTableauTypé")
     retourne TypeDonnéesPassive.Inconnu, 0
 }
 
@@ -486,14 +484,15 @@ ABC_échantillon_tableau :: fonc (échant: *EchantillonTableau, $T: type_de_donn
     donnes_passive := ABC_type_donnees_accede_donnee_passive(type_données)
     étendue := ABC_type_donnees_accede_etendue(type_de_données)
 
+    // À FAIRE : les indexes dans la table de type ne sont pas correctes
     données_passive, étendue := #exécute calcule_données_passive_et_étendue(T)
 
     si ABC_type_donnees_accede_donnee_passive(type_données) != donnée_passive {
-        reoturne Invalide
+        retourne Invalide
     }
 
     si ABC_type_donnees_accede_etendue(type_données) != étendue {
-        reoturne Invalide
+        retourne Invalide
     }
 
     résultat : ÉchantillonTableauTypé(T)
