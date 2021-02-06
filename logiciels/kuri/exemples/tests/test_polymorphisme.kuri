@@ -61,6 +61,18 @@ initialise_polymorphe :: fonc (poly: *Polymorphe(T = $T), x: T)
     poly.x = x
 }
 
+Temps :: #opaque $T
+
+crée_temps :: fonc (a: $T) -> Temps(T)
+{
+    retourne Temps(a)
+}
+
+extrait_temps :: fonc (t: Temps($T)) -> T
+{
+    retourne t comme T
+}
+
 principale :: fonc () -> z32
 {
     x := ajoute(12, 27)
@@ -88,6 +100,20 @@ principale :: fonc () -> z32
     initialise_polymorphe(*poly, 6)
 
     imprime("poly : %\n", poly)
+
+    {
+        imprime("Opaque polymorphique :\n")
+        b := crée_temps(1035)
+        c := crée_temps(653.8)
+
+        imprime("-- impression depuis opaque\n")
+        imprime("b : %\n", b)
+        imprime("c : %\n", c)
+
+        imprime("-- impression depuis extraction\n")
+        imprime("b : %\n", extrait_temps(b))
+        imprime("c : %\n", extrait_temps(c))
+    }
 
     retourne 0
 }
