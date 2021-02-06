@@ -598,6 +598,11 @@ ffi_type *converti_type_ffi(Type *type)
 			assert_rappel(false, [&]() { std::cerr << "Type polymorphique dans la conversion FFI\n"; });
 			return static_cast<ffi_type *>(nullptr);
 		}
+		case GenreType::TUPLE:
+		{
+			assert_rappel(false, [&]() { std::cerr << "Type tuple dans la conversion FFI\n"; });
+			return static_cast<ffi_type *>(nullptr);
+		}
 		case GenreType::BOOL:
 		case GenreType::OCTET:
 		{

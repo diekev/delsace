@@ -1404,6 +1404,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			switch (expr->type->genre) {
 				case GenreType::POLYMORPHIQUE:
+				case GenreType::TUPLE:
 				{
 					break;
 				}

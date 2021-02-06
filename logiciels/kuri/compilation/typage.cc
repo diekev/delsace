@@ -343,6 +343,16 @@ TypeOpaque::TypeOpaque(NoeudDeclarationVariable *decl_, Type *opacifie)
 	this->alignement = opacifie->alignement;
 }
 
+void TypeTuple::marque_polymorphique()
+{
+	POUR (membres) {
+		if (it.type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+			this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+			return;
+		}
+	}
+}
+
 /* ************************************************************************** */
 
 static Type *cree_type_pour_lexeme(GenreLexeme lexeme)
@@ -975,6 +985,48 @@ TypeOpaque *Typeuse::cree_opaque(NoeudDeclarationVariable *decl, Type *type_opac
 	return type;
 }
 
+TypeTuple *Typeuse::cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membres)
+{
+	auto types_tuples_ = types_tuples.verrou_ecriture();
+
+	POUR_TABLEAU_PAGE ((*types_tuples_)) {
+		if (it.membres.taille != membres.taille()) {
+			continue;
+		}
+
+		auto trouve = true;
+
+		for (auto i = 0; i < membres.taille(); ++i) {
+			if (it.membres[i].type != membres[i].type) {
+				trouve = false;
+				break;
+			}
+		}
+
+		if (trouve) {
+			return &it;
+		}
+	}
+
+	auto type = types_tuples_->ajoute_element();
+	type->membres.reserve(membres.taille());
+
+	POUR (membres) {
+		type->membres.ajoute(it);
+		graphe_->connecte_type_type(type, it.type);
+	}
+
+	type->marque_polymorphique();
+
+	if ((type->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
+		calcule_taille_type_compose(type);
+	}
+
+	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
+
+	return type;
+}
+
 void Typeuse::rassemble_statistiques(Statistiques &stats) const
 {
 #define DONNEES_ENTREE(Type, Tableau) \
@@ -1005,6 +1057,12 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
 		memoire_membres_unions += it.membres.taille * taille_de(TypeCompose::Membre);
 	}
 	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeUnion, types_unions) + memoire_membres_unions });
+
+	auto memoire_membres_tuples = 0l;
+	POUR_TABLEAU_PAGE ((*types_tuples.verrou_lecture())) {
+		memoire_membres_tuples += it.membres.taille * taille_de(TypeCompose::Membre);
+	}
+	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeTuple, types_tuples) + memoire_membres_tuples });
 
 	auto memoire_membres_tfixes = 0l;
 	POUR_TABLEAU_PAGE ((*types_tableaux_fixes.verrou_lecture())) {
@@ -1067,6 +1125,7 @@ void Typeuse::construit_table_types()
 	POUR_TABLEAU_PAGE ((*types_variadiques.verrou_ecriture())) { ASSIGNE_INDEX((&it)); }
 	POUR_TABLEAU_PAGE ((*types_unions.verrou_ecriture())) { ASSIGNE_INDEX((&it)); }
 	POUR_TABLEAU_PAGE ((*types_opaques.verrou_ecriture())) { ASSIGNE_INDEX((&it)); }
+	POUR_TABLEAU_PAGE ((*types_tuples.verrou_ecriture())) { ASSIGNE_INDEX((&it)); }
 }
 
 /* ************************************************************************** */
@@ -1248,6 +1307,22 @@ dls::chaine chaine_type(const Type *type)
 		{
 			return static_cast<TypeOpaque const *>(type)->ident->nom;
 		}
+		case GenreType::TUPLE:
+		{
+			auto type_tuple = static_cast<TypeTuple const *>(type);
+			dls::chaine resultat = "tuple ";
+
+			auto virgule = '(';
+			POUR (type_tuple->membres) {
+				resultat += virgule;
+				resultat += chaine_type(it.type);
+				virgule = ',';
+			}
+
+			resultat += ')';
+
+			return resultat;
+		}
 	}
 
 	return "";
@@ -1300,6 +1375,16 @@ void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine
 		}
 
 		return;
+	}
+
+	if (type->genre == GenreType::TUPLE) {
+		auto type_tuple = type->comme_tuple();
+
+		POUR (type_tuple->membres) {
+			if (it.drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				rassemble_noms_type_polymorphique(it.type, noms);
+			}
+		}
 	}
 
 	while (type->genre != GenreType::POLYMORPHIQUE) {
@@ -1417,6 +1502,17 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 
 		resultat = typeuse.type_fonction(types_entrees, types_sorties, false);
 	}
+	else if (type->genre == GenreType::TUPLE) {
+		auto type_tuple = type->comme_tuple();
+
+		auto types_membres = dls::tablet<TypeCompose::Membre, 6>();
+
+		POUR (type_tuple->membres) {
+			types_membres.ajoute({ normalise_type(typeuse, it.type) });
+		}
+
+		resultat = typeuse.cree_tuple(types_membres);
+	}
 
 	resultat->drapeaux |= TYPE_EST_NORMALISE;
 
@@ -1468,7 +1564,7 @@ void calcule_taille_type_compose(TypeCompose *type)
 		type_union->taille_octet = taille_union;
 		type_union->alignement = max_alignement;
 	}
-	else if (type->genre == GenreType::STRUCTURE) {
+	else if (type->genre == GenreType::STRUCTURE || type->est_tuple()) {
 		auto decalage = 0u;
 		auto max_alignement = 0u;
 

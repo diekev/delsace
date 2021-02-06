@@ -59,6 +59,7 @@ struct TypeReference;
 struct TypeStructure;
 struct TypeTableauDynamique;
 struct TypeTableauFixe;
+struct TypeTuple;
 struct TypeTypeDeDonnees;
 struct TypeUnion;
 struct TypeVariadique;
@@ -160,7 +161,8 @@ enum class TypeBase : char {
 	/* ENUMERE_GENRE_TYPE_EX(EINI_ERREUR) */ \
 	ENUMERE_GENRE_TYPE_EX(TYPE_DE_DONNEES) \
 	ENUMERE_GENRE_TYPE_EX(POLYMORPHIQUE) \
-	ENUMERE_GENRE_TYPE_EX(OPAQUE)
+	ENUMERE_GENRE_TYPE_EX(OPAQUE) \
+	ENUMERE_GENRE_TYPE_EX(TUPLE)
 
 enum class GenreType : int {
 #define ENUMERE_GENRE_TYPE_EX(genre) genre,
@@ -244,6 +246,7 @@ struct Type {
 	inline bool est_union() const { return genre == GenreType::UNION; }
 	inline bool est_variadique() const { return genre == GenreType::VARIADIQUE; }
 	inline bool est_opaque() const { return genre == GenreType::OPAQUE; }
+	inline bool est_tuple() const { return genre == GenreType::TUPLE; }
 
 	inline TypeCompose *comme_compose();
 	inline TypeEnum *comme_enum();
@@ -259,6 +262,7 @@ struct Type {
 	inline TypeUnion *comme_union();
 	inline TypeVariadique *comme_variadique();
 	inline TypeOpaque *comme_opaque();
+	inline TypeTuple *comme_tuple();
 };
 
 struct TypePointeur : public Type {
@@ -338,6 +342,7 @@ inline bool est_type_compose(Type *type)
 				GenreType::STRUCTURE,
 				GenreType::TABLEAU_DYNAMIQUE,
 				GenreType::TABLEAU_FIXE,
+				GenreType::TUPLE,
 				GenreType::UNION,
 				GenreType::VARIADIQUE);
 }
@@ -466,6 +471,13 @@ struct TypeOpaque : public Type {
 	dls::chaine const &nom_portable();
 };
 
+/* Pour les sorties multiples des fonctions. */
+struct TypeTuple : public TypeCompose {
+	TypeTuple() { genre = GenreType::TUPLE; }
+
+	void marque_polymorphique();
+};
+
 /* ************************************************************************** */
 
 inline TypePointeur *Type::comme_pointeur()
@@ -552,6 +564,12 @@ inline TypeOpaque *Type::comme_opaque()
 	return static_cast<TypeOpaque *>(this);
 }
 
+inline TypeTuple *Type::comme_tuple()
+{
+	assert(genre == GenreType::TUPLE);
+	return static_cast<TypeTuple *>(this);
+}
+
 /* ************************************************************************** */
 
 void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine_compacte> &noms);
@@ -584,6 +602,7 @@ struct Typeuse {
 	tableau_page_synchrone<TypeTypeDeDonnees> types_type_de_donnees{};
 	tableau_page_synchrone<TypePolymorphique> types_polymorphiques{};
 	tableau_page_synchrone<TypeOpaque> types_opaques{};
+	tableau_page_synchrone<TypeTuple> types_tuples{};
 
 	// mise en cache de plusieurs types pour mieux les trouver
 	TypeTypeDeDonnees *type_type_de_donnees_ = nullptr;
@@ -648,6 +667,8 @@ struct Typeuse {
 	TypePolymorphique *cree_polymorphique(IdentifiantCode *ident);
 
 	TypeOpaque *cree_opaque(NoeudDeclarationVariable *decl, Type *type_opacifie);
+
+	TypeTuple *cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membres);
 
 	inline Type *operator[](TypeBase type_base) const
 	{

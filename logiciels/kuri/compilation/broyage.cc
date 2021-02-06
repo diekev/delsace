@@ -284,6 +284,11 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 			broye_nom_simple(enchaineuse, type->comme_opaque()->nom_portable());
 			break;
 		}
+		case GenreType::TUPLE:
+		{
+			enchaineuse << "Kl" << dls::vers_chaine(type);
+			break;
+		}
 	}
 }
 

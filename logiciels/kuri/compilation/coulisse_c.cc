@@ -303,6 +303,11 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 			enchaineuse << "typedef chaine " << nom_broye << ";\n";
 			break;
 		}
+		case GenreType::TUPLE:
+		{
+			enchaineuse << "typedef struct " << nom_broye << ' ' << nom_broye << ";\n";
+			break;
+		}
 	}
 }
 
@@ -1136,6 +1141,9 @@ struct GeneratriceCodeC {
 				if (membre.nom == ID::chaine_vide) {
 					valeur_accede += "membre_invisible";
 				}
+				else if (type_compose->est_tuple()) {
+					valeur_accede += "_" + dls::vers_chaine(index_membre);
+				}
 				else {
 					valeur_accede += broye_nom_simple(membre.nom->nom);
 				}
@@ -1380,19 +1388,43 @@ static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Sync
 
 			genere_typedefs_recursifs(compilatrice, type, enchaineuse);
 
-			if (type && type->est_structure()) {
-				auto type_struct = type->comme_structure();
+			if (type) {
+				if (type->est_structure()) {
+					auto type_struct = type->comme_structure();
 
-				if (type_struct->decl && type_struct->decl->est_polymorphe) {
-					return;
+					if (type_struct->decl && type_struct->decl->est_polymorphe) {
+						return;
+					}
+
+					for (auto &membre : type_struct->membres) {
+						genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
+					}
+
+					auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
+					genere_declaration_structure(enchaineuse, type_struct, quoi);
 				}
+				else if (type->est_tuple()) {
+					auto type_tuple = type->comme_tuple();
 
-				for (auto &membre : type_struct->membres) {
-					genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
+					if (type_tuple->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+						return;
+					}
+
+					for (auto &membre : type_tuple->membres) {
+						genere_typedefs_recursifs(compilatrice, membre.type, enchaineuse);
+					}
+
+					auto nom_broye = nom_broye_type(type_tuple);
+
+					enchaineuse << "typedef struct " << nom_broye << " {\n";
+
+					auto index_membre = 0;
+					for (auto &membre : type_tuple->membres) {
+						enchaineuse << nom_broye_type(membre.type) << " _" << index_membre++ << ";\n";
+					}
+
+					enchaineuse << "} " << nom_broye << ";\n";
 				}
-
-				auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
-				genere_declaration_structure(enchaineuse, type_struct, quoi);
 			}
 		});
 	}

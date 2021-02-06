@@ -2413,6 +2413,7 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
 		case GenreType::STRUCTURE:
 		case GenreType::TABLEAU_DYNAMIQUE:
 		case GenreType::VARIADIQUE:
+		case GenreType::TUPLE:
 		{
 			auto type_compose = static_cast<TypeCompose *>(type);
 			auto valeurs = kuri::tableau<AtomeConstante *>();
@@ -2635,8 +2636,9 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 
 	switch (type->genre) {
 		case GenreType::POLYMORPHIQUE:
+		case GenreType::TUPLE:
 		{
-			assert_rappel(false, [](){ std::cerr << "Obtenu un type invalide ou polymophique\n"; });
+			assert_rappel(false, [](){ std::cerr << "Obtenu un type tuple ou polymophique\n"; });
 			break;
 		}
 		case GenreType::BOOL:

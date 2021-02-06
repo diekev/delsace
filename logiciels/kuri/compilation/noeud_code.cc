@@ -541,6 +541,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
 	switch (type->genre) {
 		case GenreType::POLYMORPHIQUE:
+		case GenreType::TUPLE:
 		{
 			return nullptr;
 		}
