@@ -14,6 +14,8 @@ erreur de compilation si nous définissons une structure dans une fonction et qu
 
 vérifie que les opérateurs sont surchargeables durant le typage (pour compenser les syntaxes correctes, mais sémantiques incorrectes)
 
+pour les messages d'erreurs : ajout d'un contexte au typage (dans le typage de, dans la monomorphisation de..., )
+
 réusinage référence membre
 NoeudExpression::unite => NoeudDeclaration, NoeudExecution ?
 utilisation d'un ramasse miette pour les métaprogrammes ?
