@@ -134,9 +134,6 @@ considère revoir l'arbre syntaxique des références de membres, pour simpilfie
 
 // --------------------------- Lexage
 
-nombre décimaux de la forme 1e-6
-    voir cas dans chrono
-
 inclus les signes des nombres littéraux dans la lexeuse
 
 ajout de drapeaux aux lexèmes des nombres littéraux pour indiquer la taille du nombre

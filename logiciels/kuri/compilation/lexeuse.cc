@@ -30,6 +30,8 @@
 
 #include "biblinternes/structures/flux_chaine.hh"
 
+#include <cmath>
+
 #include "compilatrice.hh"
 #include "erreur.h"
 #include "empreinte_parfaite.hh"
@@ -95,6 +97,8 @@ static constexpr auto table_drapeaux_caracteres = [] {
 			case '9':
 			case '_':
 			case '.':
+			case 'e':
+			case '-':
 			{
 				t[i] |= (CARACTERE_PEUT_SUIVRE_ZERO | CARACTERE_PEUT_SUIVRE_CHIFFRE);
 				break;
@@ -907,6 +911,8 @@ void Lexeuse::lexe_nombre_decimal()
 	unsigned long long resultat_entier = 0;
 	unsigned nombre_de_chiffres = 0;
 	auto point_trouve = false;
+	auto exposant_trouve = false;
+	auto exposant_negatif = false;
 
 	while (!fini()) {
 		auto c = this->caractere_courant();
@@ -934,6 +940,13 @@ void Lexeuse::lexe_nombre_decimal()
 				break;
 			}
 
+			if (c == 'e') {
+				exposant_trouve = true;
+				this->avance_fixe<1>();
+				this->pousse_caractere();
+				break;
+			}
+
 			break;
 		}
 
@@ -944,7 +957,7 @@ void Lexeuse::lexe_nombre_decimal()
 		this->pousse_caractere();
 	}
 
-	if (!point_trouve) {
+	if (!point_trouve && !exposant_trouve) {
 		if (nombre_de_chiffres > 20) {
 			lance_erreur("constante entière trop grande");
 		}
@@ -953,8 +966,9 @@ void Lexeuse::lexe_nombre_decimal()
 		return;
 	}
 
-	auto resultat_reel = static_cast<double>(resultat_entier);
-	auto dividende = 10.0;
+	auto part_entiere = static_cast<double>(resultat_entier);
+	double part_fracionnelle[2] = { 0.0, 0.0 };
+	int nombre_chiffres[2] = { 0, 0 };
 
 	while (!fini()) {
 		auto c = this->caractere_courant();
@@ -978,15 +992,75 @@ void Lexeuse::lexe_nombre_decimal()
 			lance_erreur("point superflux dans l'expression du nombre");
 		}
 
+		if (c == 'e') {
+			if (exposant_trouve) {
+				lance_erreur("exposant superflux dans l'expression du nombre");
+			}
+
+			exposant_trouve = true;
+			this->avance_fixe<1>();
+			this->pousse_caractere();
+			continue;
+		}
+
+		if (c == '-') {
+			if (!exposant_trouve || nombre_chiffres[1] != 0) {
+				break;
+			}
+
+			exposant_negatif = true;
+			this->avance_fixe<1>();
+			this->pousse_caractere();
+			continue;
+		}
+
 		auto chiffre = static_cast<double>(c - '0');
 
-		resultat_reel += chiffre / dividende;
-		dividende *= 10.0;
+		part_fracionnelle[exposant_trouve] *= 10.0;
+		part_fracionnelle[exposant_trouve] += chiffre;
+
+		nombre_chiffres[exposant_trouve] += 1;
+
 		this->avance_fixe<1>();
 		this->pousse_caractere();
 	}
 
-	this->pousse_lexeme_reel(resultat_reel);
+	if (nombre_chiffres[0] != 0) {
+		static double puissances_de_10[16] = {
+			10.0,
+			100.0,
+			1000.0,
+			10000.0,
+			100000.0,
+			1000000.0,
+			10000000.0,
+			100000000.0,
+			1000000000.0,
+			10000000000.0,
+			100000000000.0,
+			1000000000000.0,
+			10000000000000.0,
+			100000000000000.0,
+			1000000000000000.0,
+			10000000000000000.0,
+		};
+
+		if (nombre_chiffres[0] <= 16) {
+			part_entiere += part_fracionnelle[0] / puissances_de_10[nombre_chiffres[0] - 1];
+		}
+		else {
+			part_entiere += part_fracionnelle[0] / std::pow(10.0, nombre_chiffres[0]);
+		}
+	}
+
+	if (nombre_chiffres[1] != 0) {
+		if (exposant_negatif) {
+			part_fracionnelle[1] *= -1.0;
+		}
+		part_entiere *= std::pow(10.0, part_fracionnelle[1]);
+	}
+
+	this->pousse_lexeme_reel(part_entiere);
 }
 
 void Lexeuse::lexe_nombre_hexadecimal()
