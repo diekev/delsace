@@ -1505,6 +1505,14 @@ void calcule_taille_type_compose(TypeCompose *type)
 			auto taille = type_membre->taille_octet;
 			max_alignement = std::max(taille, max_alignement);
 
+			assert_rappel(it.type->alignement != 0, [&]{
+				std::cerr << "Alignement de 0 pour le type « " << chaine_type(it.type) << " »\n";
+			});
+
+			assert_rappel(it.type->taille_octet != 0, [&]{
+				std::cerr << "Taille octet de 0 pour le type « " << chaine_type(it.type) << " »\n";
+			});
+
 			if (taille > taille_union) {
 				type_le_plus_grand = type_membre;
 				taille_union = taille;
@@ -1542,6 +1550,15 @@ void calcule_taille_type_compose(TypeCompose *type)
 			}
 
 			auto align_type = it.type->alignement;
+
+			assert_rappel(it.type->alignement != 0, [&]{
+				std::cerr << "Alignement de 0 pour le type « " << chaine_type(it.type) << " »\n";
+			});
+
+			assert_rappel(it.type->taille_octet != 0, [&]{
+				std::cerr << "Taille octet de 0 pour le type « " << chaine_type(it.type) << " »\n";
+			});
+
 			max_alignement = std::max(align_type, max_alignement);
 
 			auto padding = (align_type - (decalage % align_type)) % align_type;
