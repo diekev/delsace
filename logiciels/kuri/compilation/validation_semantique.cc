@@ -537,6 +537,10 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 						return true;
 					}
 
+					if (res.valeur.entier == 0) {
+						::rapporte_erreur(espace, expression_taille, "Impossible de définir un tableau fixe de taille 0 !\n");
+					}
+
 					taille_tableau = res.valeur.entier;
 				}
 
