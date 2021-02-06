@@ -240,13 +240,8 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 			auto nouveau_nom_broye = dls::chaine("Kf");
 			nouveau_nom_broye += dls::vers_chaine(type_fonc->types_entrees.taille);
 
-			if (type_fonc->types_sorties.taille > 1) {
-				prefixe += "void (*";
-			}
-			else {
-				auto const &nom_broye_dt = nom_broye_type(type_fonc->types_sorties[0]);
-				prefixe += nom_broye_dt + " (*";
-			}
+			auto const &nom_broye_sortie = nom_broye_type(type_fonc->type_sortie);
+			prefixe += nom_broye_sortie + " (*";
 
 			auto virgule = "(";
 
@@ -264,19 +259,8 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 				virgule = ",";
 			}
 
-			nouveau_nom_broye += dls::vers_chaine(type_fonc->types_sorties.taille);
-
-			POUR (type_fonc->types_sorties) {
-				auto const &nom_broye_dt = nom_broye_type(it);
-
-				if (type_fonc->types_sorties.taille > 1) {
-					suffixe += virgule;
-					// pointeur puisque si nous avons plusieurs valeurs de sorties, nous utilisons un pointeur vers un argument
-					suffixe += nom_broye_dt + "*";
-				}
-
-				nouveau_nom_broye += nom_broye_dt;
-			}
+			nouveau_nom_broye += dls::vers_chaine(1);
+			nouveau_nom_broye += nom_broye_sortie;
 
 			suffixe += ")";
 
@@ -416,13 +400,11 @@ static void genere_typedefs_recursifs(
 			it->drapeaux |= TYPEDEF_FUT_GENERE;
 		}
 
-		POUR (type_fonc->types_sorties) {
-			if ((it->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
-				genere_typedefs_recursifs(compilatrice, it, enchaineuse);
-			}
-
-			it->drapeaux |= TYPEDEF_FUT_GENERE;
+		if ((type_fonc->type_sortie->drapeaux & TYPEDEF_FUT_GENERE) == 0) {
+			genere_typedefs_recursifs(compilatrice, type_fonc->type_sortie, enchaineuse);
 		}
+
+		type_fonc->type_sortie->drapeaux |= TYPEDEF_FUT_GENERE;
 	}
 
 	cree_typedef(type, enchaineuse);
@@ -807,7 +789,7 @@ struct GeneratriceCodeC {
 				os << "  ";
 
 				auto type_fonction = inst_appel->appele->type->comme_fonction();
-				if  (type_fonction->types_sorties.taille == 1 && !type_fonction->types_sorties[0]->est_rien()) {
+				if  (!type_fonction->type_sortie->est_rien()) {
 					auto nom_ret = "__ret" + dls::vers_chaine(inst->numero);
 					os << nom_broye_type(inst_appel->type) << ' ' << nom_ret << " = ";
 					table_valeurs[inst] = nom_ret;
@@ -1197,12 +1179,7 @@ struct GeneratriceCodeC {
 			auto atome_fonc = it;
 
 			auto type_fonction = atome_fonc->type->comme_fonction();
-			if (type_fonction->types_sorties.taille > 1) {
-				os << "void ";
-			}
-			else {
-				os << nom_broye_type(type_fonction->types_sorties[0]) << " ";
-			}
+			os << nom_broye_type(type_fonction->type_sortie) << " ";
 
 			os << atome_fonc->nom;
 
@@ -1286,12 +1263,7 @@ struct GeneratriceCodeC {
 			//std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
 
 			auto type_fonction = atome_fonc->type->comme_fonction();
-			if (type_fonction->types_sorties.taille > 1) {
-				os << "void ";
-			}
-			else {
-				os << nom_broye_type(type_fonction->types_sorties[0]) << " ";
-			}
+			os << nom_broye_type(type_fonction->type_sortie) << " ";
 
 			os << atome_fonc->nom;
 
@@ -1339,14 +1311,21 @@ struct GeneratriceCodeC {
 			auto numero_inst = static_cast<int>(atome_fonc->params_entrees.taille);
 
 			/* crée une variable local pour la valeur de sortie */
-			if (type_fonction->types_sorties.taille == 1 && !type_fonction->types_sorties[0]->est_rien()) {
-				auto param = atome_fonc->params_sorties[0];
+			if (!type_fonction->type_sortie->est_rien()) {
+				auto param = atome_fonc->param_sortie;
 				auto type_pointeur = param->type->comme_pointeur();
 				os << nom_broye_type(type_pointeur->type_pointe) << ' ';
 				os << broye_nom_simple(param->ident->nom);
 				os << ";\n";
 
 				table_valeurs.insere({ param, "&" + broye_nom_simple(param->ident->nom) });
+			}
+
+			/* Génère le code pour les accès de membres des retours mutliples. */
+			if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille > 1) {
+				for (auto &param : atome_fonc->decl->params_sorties) {
+					genere_code_pour_instruction(param->atome->comme_instruction(), os);
+				}
 			}
 
 			for (auto inst : atome_fonc->instructions) {

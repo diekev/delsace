@@ -340,13 +340,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os, bool in
 	auto type_fonction = atome_fonc->type->comme_fonction();
 
 	virgule = ") -> ";
-
-	POUR (type_fonction->types_sorties) {
-		os << virgule;
-		os << chaine_type(it);
-		virgule = ", ";
-	}
-
+	os << chaine_type(type_fonction->type_sortie);
 	os << '\n';
 
 	auto numero_instruction = static_cast<int>(atome_fonc->params_entrees.taille);

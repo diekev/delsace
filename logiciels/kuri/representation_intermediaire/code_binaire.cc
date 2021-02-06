@@ -843,7 +843,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 			donnees_externe.types_entrees.ajoute(converti_type_ffi(it));
 		}
 
-		auto type_ffi_sortie = converti_type_ffi(type_fonction->types_sorties[0]);
+		auto type_ffi_sortie = converti_type_ffi(type_fonction->type_sortie);
 		auto nombre_arguments = static_cast<unsigned>(donnees_externe.types_entrees.taille());
 		auto ptr_types_entrees = donnees_externe.types_entrees.donnees();
 
@@ -870,8 +870,8 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 	}
 
 	/* crée une variable local pour la valeur de sortie */
-	if (fonction->params_sorties.taille == 1) {
-		auto param = fonction->params_sorties[0];
+	if (fonction->param_sortie) {
+		auto param = fonction->param_sortie;
 		auto alloc = param->comme_instruction()->comme_alloc();
 		auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
 

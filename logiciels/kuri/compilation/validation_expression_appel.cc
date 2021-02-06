@@ -99,10 +99,6 @@ struct Monomorpheuse {
 				return false;
 			}
 
-			if (type_poly_fonction->types_sorties.taille != type_cible_fonction->types_sorties.taille) {
-				return false;
-			}
-
 			for (auto i = 0; i < type_poly_fonction->types_entrees.taille; ++i) {
 				if (type_poly_fonction->types_entrees[i]->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 					if (!ajoute_paire_types(type_poly_fonction->types_entrees[i], type_cible_fonction->types_entrees[i])) {
@@ -111,11 +107,9 @@ struct Monomorpheuse {
 				}
 			}
 
-			for (auto i = 0; i < type_poly_fonction->types_sorties.taille; ++i) {
-				if (type_poly_fonction->types_sorties[i]->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-					if (!ajoute_paire_types(type_poly_fonction->types_sorties[i], type_cible_fonction->types_sorties[i])) {
-						return false;
-					}
+			if (type_poly_fonction->type_sortie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				if (!ajoute_paire_types(type_poly_fonction->type_sortie, type_cible_fonction->type_sortie)) {
+					return false;
 				}
 			}
 
@@ -315,20 +309,27 @@ struct Monomorpheuse {
 				}
 			}
 
-			auto types_sorties = dls::tablet<Type *, 6>();
-			types_sorties.reserve(type_fonction->types_sorties.taille);
+			auto type_sortie = type_fonction->type_sortie;
 
-			POUR (type_fonction->types_sorties) {
-				if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-					auto type_param = resoud_type_final(typeuse, it);
-					types_sorties.ajoute(type_param);
-				}
-				else {
-					types_sorties.ajoute(it);
+			if (type_sortie->est_tuple()) {
+				auto membres = dls::tablet<TypeCompose::Membre, 6>();
+
+				auto tuple = type_sortie->comme_tuple();
+
+				POUR (tuple->membres) {
+					if (it.type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+						membres.ajoute({ resoud_type_final(typeuse, it.type) });
+					}
+					else {
+						membres.ajoute({ it.type });
+					}
 				}
 			}
+			else if (type_sortie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+				type_sortie = resoud_type_final(typeuse, type_sortie);
+			}
 
-			resultat = typeuse.type_fonction(types_entrees, types_sorties);
+			resultat = typeuse.type_fonction(types_entrees, type_sortie);
 		}
 		else {
 			assert_rappel(false, [&]() { std::cerr << "Type inattendu dans la résolution de type polymorphique : " << chaine_type(type_polymorphique) << "\n"; });
@@ -1858,7 +1859,7 @@ bool valide_appel_fonction(
 
 		// nous devons monomorpher (ou avoir les types monomorphés) avant de pouvoir faire ça
 		auto type_fonc = decl_fonction_appelee->type->comme_fonction();
-		auto type_sortie = type_fonc->types_sorties[0];
+		auto type_sortie = type_fonc->type_sortie;
 
 		auto expr_gauche = !expr->possede_drapeau(DROITE_ASSIGNATION);
 		if (type_sortie->genre != GenreType::RIEN && expr_gauche) {
@@ -1911,7 +1912,6 @@ bool valide_appel_fonction(
 		}
 
 		if (expr->type == nullptr) {
-			// À FAIRE(retours multiples)
 			expr->type = type_sortie;
 		}
 
@@ -1975,8 +1975,7 @@ bool valide_appel_fonction(
 		}
 
 		if (expr->type == nullptr) {
-			// À FAIRE(retours multiples)
-			expr->type = candidate->type->comme_fonction()->types_sorties[0];
+			expr->type = candidate->type->comme_fonction()->type_sortie;
 		}
 
 		for (auto i = 0; i < expr->exprs.taille; ++i) {

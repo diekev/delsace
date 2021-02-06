@@ -311,7 +311,7 @@ struct AtomeFonction : public Atome {
 	dls::chaine nom{};
 
 	kuri::tableau<Atome *> params_entrees{};
-	kuri::tableau<Atome *> params_sorties{};
+	Atome *param_sortie = nullptr;
 
 	kuri::tableau<Instruction *> instructions{};
 
@@ -447,8 +447,7 @@ struct InstructionAppel : public Instruction {
 		: InstructionAppel(site_)
 	{
 		auto type_fonction = appele_->type->comme_fonction();
-		// À FAIRE(retours multiples)
-		this->type = type_fonction->types_sorties[0];
+		this->type = type_fonction->type_sortie;
 
 		this->appele = appele_;
 		this->lexeme = lexeme_;

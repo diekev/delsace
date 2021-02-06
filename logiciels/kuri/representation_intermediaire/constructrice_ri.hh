@@ -160,7 +160,7 @@ public:
 	InstructionOpBinaire *cree_op_comparaison(NoeudExpression *site_, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
 
 	InstructionAccedeIndex *cree_acces_index(NoeudExpression *site_, Atome *accede, Atome *index);
-	InstructionAccedeMembre *cree_acces_membre(NoeudExpression *site_, Atome *accede, long index);
+	InstructionAccedeMembre *cree_acces_membre(NoeudExpression *site_, Atome *accede, long index, bool cree_seulement = false);
 	Instruction *cree_acces_membre_et_charge(NoeudExpression *site_, Atome *accede, long index);
 
 	InstructionTranstype *cree_transtype(NoeudExpression *site_, Type *type, Atome *valeur, TypeTranstypage op);

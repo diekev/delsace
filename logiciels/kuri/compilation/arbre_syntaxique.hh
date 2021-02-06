@@ -577,6 +577,11 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	bool est_monomorphisation = false;
 	bool est_metaprogramme = false;
 
+	/* Le paramètre de sortie :
+	 * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
+	 * soit une variable créée par la compilatrice pour les fonctions en retournant plusieurs; */
+	NoeudDeclarationVariable *param_sortie = nullptr;
+
 	NoeudDeclarationVariable *parametre_entree(long i) const;
 
 	// @design : ce n'est pas très propre de passer l'espace ici, mais il nous faut le fichier pour le module

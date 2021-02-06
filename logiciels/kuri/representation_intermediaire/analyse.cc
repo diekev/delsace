@@ -57,7 +57,7 @@ void analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
 	auto decl = atome->decl;
 	auto type = decl->type->comme_fonction();
 
-	if (type->types_sorties.taille > 1 || !type->types_sorties[0]->est_rien()) {
+	if (!type->type_sortie->est_rien()) {
 		auto di = derniere_instruction(atome);
 
 		if (!di || !di->est_retour()) {

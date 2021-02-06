@@ -540,7 +540,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction, int t
 
 		donnees_externe.types_entrees.ajoute(nullptr);
 
-		auto type_ffi_sortie = converti_type_ffi(type_fonction->types_sorties[0]);
+		auto type_ffi_sortie = converti_type_ffi(type_fonction->type_sortie);
 		auto ptr_types_entrees = donnees_externe.types_entrees.donnees();
 
 		auto status = ffi_prep_cif_var(&donnees_externe.cif, FFI_DEFAULT_ABI, nombre_arguments_fixes, nombre_arguments_totaux, type_ffi_sortie, ptr_types_entrees);
@@ -560,7 +560,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction, int t
 
 	ffi_call(&donnees_externe.cif, ptr_fonction->donnees_externe.ptr_fonction, pointeur_pile, pointeurs_arguments.donnees());
 
-	auto taille_type_retour = type_fonction->types_sorties[0]->taille_octet;
+	auto taille_type_retour = type_fonction->type_sortie->taille_octet;
 
 	if (taille_type_retour != 0) {
 		if (taille_type_retour <= static_cast<unsigned int>(taille_argument)) {
@@ -1015,12 +1015,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 		case OP_RETOURNE:
 		{
 			auto type_fonction = frame->fonction->type->comme_fonction();
-			auto taille_retour = 0;
-
-			POUR (type_fonction->types_sorties) {
-				taille_retour += static_cast<int>(it->taille_octet);
-			}
-
+			auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
 			auto pointeur_debut_retour = pointeur_pile - taille_retour;
 
 #ifdef DEBOGUE_LOCALES

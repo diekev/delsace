@@ -773,10 +773,19 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 				info_type->types_entrees.ajoute(cree_info_type_pour(it));
 			}
 
-			info_type->types_sorties.reserve(type_fonction->types_sorties.taille);
+			auto type_sortie = type_fonction->type_sortie;
 
-			POUR (type_fonction->types_sorties) {
-				info_type->types_sorties.ajoute(cree_info_type_pour(it));
+			if (type_sortie->est_tuple()) {
+				auto tuple = type_sortie->comme_tuple();
+				info_type->types_sorties.reserve(tuple->membres.taille);
+
+				POUR (tuple->membres) {
+					info_type->types_sorties.ajoute(cree_info_type_pour(it.type));
+				}
+			}
+			else {
+				info_type->types_sorties.reserve(1);
+				info_type->types_sorties.ajoute(cree_info_type_pour(type_sortie));
 			}
 
 			type->info_type = info_type;

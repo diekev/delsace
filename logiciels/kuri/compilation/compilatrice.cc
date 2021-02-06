@@ -205,18 +205,19 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 		params.ajoute(atome);
 	}
 
-	auto params_sortie = kuri::tableau<Atome *>();
-	if (decl->params_sorties.taille == 1) {
-		auto param_sortie = decl->params_sorties[0];
-		auto atome = constructrice.cree_allocation(decl, param_sortie->type, param_sortie->ident);
-		param_sortie->atome = atome;
-		params_sortie.ajoute(atome);
-	}
-	else {
+	/* Pour les sorties multiples, les valeurs de sorties sont des accès de
+	 * membres du tuple, ainsi nous n'avons pas à compliquer la génération de
+	 * code ou sa simplification.
+	 */
+
+	auto param_sortie = decl->param_sortie;
+	auto atome_param_sortie = constructrice.cree_allocation(decl, param_sortie->type, param_sortie->ident);
+	param_sortie->atome = atome_param_sortie;
+
+	if (decl->params_sorties.taille > 1) {
+		auto index_membre = 0;
 		POUR (decl->params_sorties) {
-			auto atome = constructrice.cree_allocation(decl, typeuse.type_pointeur_pour(it->type, false), it->ident);
-			it->atome = atome;
-			params.ajoute(atome);
+			it->atome = constructrice.cree_acces_membre(it, atome_param_sortie, index_membre++, true);
 		}
 	}
 
@@ -225,7 +226,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	atome_fonc->est_externe = decl->est_externe;
 	atome_fonc->sanstrace = decl->possede_drapeau(FORCE_SANSTRACE);
 	atome_fonc->decl = decl;
-	atome_fonc->params_sorties = std::move(params_sortie);
+	atome_fonc->param_sortie = atome_param_sortie;
 	atome_fonc->enligne = decl->possede_drapeau(FORCE_ENLIGNE);
 
 	decl->atome = atome_fonc;
@@ -248,19 +249,16 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 	auto types_entrees = dls::tablet<Type *, 6>(1);
 	types_entrees[0] = typeuse.type_pointeur_pour(normalise_type(typeuse, type), false);
 
-	auto types_sorties = dls::tablet<Type *, 6>(1);
-	types_sorties[0] = typeuse[TypeBase::RIEN];
+	auto type_sortie = typeuse[TypeBase::RIEN];
 
 	auto params = kuri::tableau<Atome *>(1);
 	params[0] = constructrice.cree_allocation(nullptr, types_entrees[0], ID::pointeur);
 
-	auto params_sortie = kuri::tableau<Atome *>();
-	auto atome = constructrice.cree_allocation(nullptr, typeuse[TypeBase::RIEN], nullptr);
-	params_sortie.ajoute(atome);
+	auto param_sortie = constructrice.cree_allocation(nullptr, typeuse[TypeBase::RIEN], nullptr);
 
 	auto atome_fonc = fonctions.ajoute_element(nullptr, nom_fonction, std::move(params));
-	atome_fonc->type = typeuse.type_fonction(types_entrees, types_sorties, false);
-	atome_fonc->params_sorties = std::move(params_sortie);
+	atome_fonc->type = typeuse.type_fonction(types_entrees, type_sortie, false);
+	atome_fonc->param_sortie = param_sortie;
 	atome_fonc->enligne = true;
 	atome_fonc->sanstrace = true;
 
@@ -333,7 +331,6 @@ long EspaceDeTravail::memoire_utilisee() const
 	pour_chaque_element(fonctions, [&](AtomeFonction const &it)
 	{
 		memoire += it.params_entrees.taille * taille_de(Atome *);
-		memoire += it.params_sorties.taille * taille_de(Atome *);
 		memoire += it.chunk.capacite;
 		memoire += it.chunk.locales.taille() * taille_de(Locale);
 		memoire += it.chunk.decalages_labels.taille() * taille_de(int);

@@ -225,8 +225,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const dls
 	auto types_entrees = dls::tablet<Type *, 6>(1);
 	types_entrees[0] = m_espace->typeuse.type_contexte;
 
-	auto types_sorties = dls::tablet<Type *, 6>(1);
-	types_sorties[0] = m_espace->typeuse[TypeBase::RIEN];
+	auto type_sortie = m_espace->typeuse[TypeBase::RIEN];
 
 	Atome *param_contexte = cree_allocation(nullptr, types_entrees[0], ID::contexte);
 
@@ -234,7 +233,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const dls
 	params[0] = param_contexte;
 
 	auto fonction = m_espace->cree_fonction(nullptr, nom_fonction, std::move(params));
-	fonction->type = m_espace->typeuse.type_fonction(types_entrees, types_sorties, false);
+	fonction->type = m_espace->typeuse.type_fonction(types_entrees, type_sortie, false);
 
 	this->fonction_courante = fonction;
 	this->m_pile.efface();
@@ -433,7 +432,7 @@ InstructionAccedeIndex *ConstructriceRI::cree_acces_index(NoeudExpression *site_
 	return inst;
 }
 
-InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(NoeudExpression *site_, Atome *accede, long index)
+InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(NoeudExpression *site_, Atome *accede, long index, bool cree_seulement)
 {
 	assert_rappel(accede->type->genre == GenreType::POINTEUR || accede->type->genre == GenreType::REFERENCE, [=](){ std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
 	auto type_pointeur = accede->type->comme_pointeur();
@@ -457,7 +456,9 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(NoeudExpression *sit
 	//assert_rappel((type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" << chaine_type(type) << "' n'est pas normalisé\n"; });
 
 	auto inst = insts_accede_membre.ajoute_element(site_, type, accede, cree_z64(static_cast<unsigned>(index)));
-	fonction_courante->instructions.ajoute(inst);
+	if (!cree_seulement) {
+		fonction_courante->instructions.ajoute(inst);
+	}
 	return inst;
 }
 
@@ -709,33 +710,18 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			});
 
 			auto type_fonction = atome_fonc->type->comme_fonction();
-			dls::tablet<InstructionAllocation *, 6> adresses_retours;
+			InstructionAllocation *adresse_retour = nullptr;
 
-			if (type_fonction->types_sorties.taille != 1 || !type_fonction->types_sorties[0]->est_rien()) {
-				POUR (type_fonction->types_sorties) {
-					auto alloc = cree_allocation(nullptr, it, nullptr);
-					adresses_retours.ajoute(alloc);
-				}
-			}
-
-			if (adresses_retours.taille() > 1) {
-				POUR (adresses_retours) {
-					args.ajoute(it);
-				}
+			if (!type_fonction->type_sortie->est_rien()) {
+				adresse_retour = cree_allocation(nullptr, type_fonction->type_sortie, nullptr);
 			}
 
 			auto valeur = cree_appel(expr_appel, noeud->lexeme, atome_fonc, std::move(args));
+			valeur->adresse_retour = adresse_retour;
 
-			if (adresses_retours.taille() == 1) {
-				valeur->adresse_retour = adresses_retours[0];
+			if (adresse_retour) {
 				cree_stocke_mem(noeud, valeur->adresse_retour, valeur);
-			}
-
-			if (adresses_retours.taille() != 0) {
-				for (auto i = adresses_retours.taille() - 1; i >= 0; --i) {
-					empile_valeur(adresses_retours[i]);
-				}
-
+				empile_valeur(adresse_retour);
 				return;
 			}
 
@@ -810,13 +796,15 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				expression_gauche = ancienne_expression_gauche;
 
 				if (it.multiple_retour) {
+					auto valeur_tuple = depile_valeur();
+
 					for (auto i = 0; i < it.variables.taille(); ++i) {
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						genere_ri_pour_noeud(var);
 						auto pointeur = depile_valeur();
 
-						auto valeur = depile_valeur();
+						auto valeur = cree_acces_membre(expression, valeur_tuple, i);
 						transforme_valeur(expression, valeur, transformation, pointeur);
 						depile_valeur();
 					}
@@ -3161,10 +3149,9 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
 	auto types_entrees = dls::tablet<Type *, 6>(1);
 	types_entrees[0] = m_espace->typeuse.type_contexte;
 
-	auto types_sorties = dls::tablet<Type *, 6>(1);
-	types_sorties[0] = m_espace->typeuse[TypeBase::Z32];
+	auto type_sortie = m_espace->typeuse[TypeBase::Z32];
 
-	auto type_fonction = m_espace->typeuse.type_fonction(types_entrees, types_sorties, false);
+	auto type_fonction = m_espace->typeuse.type_fonction(types_entrees, type_sortie, false);
 
 	auto alloc_contexte = cree_allocation(nullptr, m_espace->typeuse.type_contexte, ID::contexte);
 	contexte = alloc_contexte;
@@ -3179,8 +3166,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
 
 	/* Crée également un paramètre pour le retour, les coulisses en ayant besoin,
 	 * car nous y devons prédéclarer les valeurs de retours. */
-	auto param_sortie = cree_allocation(nullptr, m_espace->typeuse[TypeBase::Z32], ID::valeur);
-	fonction->params_sorties.ajoute(param_sortie);
+	fonction->param_sortie = cree_allocation(nullptr, m_espace->typeuse[TypeBase::Z32], ID::valeur);
 
 	fonction_courante = fonction;
 
@@ -3313,13 +3299,15 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 				expression_gauche = ancienne_expression_gauche;
 
 				if (it.multiple_retour) {
+					auto valeur_tuple = depile_valeur();
+
 					for (auto i = 0; i < it.variables.taille(); ++i) {
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						auto pointeur = alloc_pointeur(var);
 						var->comme_ref_decl()->decl->atome = pointeur;
 
-						auto valeur = depile_valeur();
+						auto valeur = cree_acces_membre(expression, valeur_tuple, i);
 						transforme_valeur(expression, valeur, transformation, pointeur);
 						depile_valeur();
 					}

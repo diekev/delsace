@@ -2084,6 +2084,16 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 				consomme();
 			}
 
+			if (noeud->params_sorties.taille > 1) {
+				auto ref = m_tacheronne.assembleuse->cree_ref_decl(noeud->params_sorties[0]->lexeme);
+				/* il nous faut un identifiant valide */
+				ref->ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine("valeur_de_retour");
+				noeud->param_sortie = m_tacheronne.assembleuse->cree_declaration(ref);
+			}
+			else {
+				noeud->param_sortie = noeud->params_sorties[0];
+			}
+
 			if (eu_parenthese) {
 				consomme(GenreLexeme::PARENTHESE_FERMANTE, "attendu une parenthèse fermante après la liste des retours de la fonction");
 			}
@@ -2101,6 +2111,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 			decl->expression_type = type_declare;
 
 			noeud->params_sorties.ajoute(decl);
+			noeud->param_sortie = noeud->params_sorties[0];
 		}
 
 		/* ignore les points-virgules implicites */
@@ -2329,6 +2340,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	if (noeud->params_sorties.taille > 1) {
 		lance_erreur("Il est impossible d'avoir plusieurs de sortie pour un opérateur");
 	}
+
+	noeud->param_sortie = noeud->params_sorties[0];
 
 	while (apparie(GenreLexeme::DIRECTIVE)) {
 		consomme();

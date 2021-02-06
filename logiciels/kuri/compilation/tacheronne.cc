@@ -1197,7 +1197,6 @@ void Tacheronne::execute_metaprogrammes()
 				auto type = it->directive->type;
 				auto pointeur = it->donnees_execution->pointeur_pile;
 
-				// À FAIRE : fonction retournant plusieurs valeurs
 				// Les directives pour des expressions dans des fonctions n'ont pas d'unités
 				if (!it->directive->unite) {
 					it->directive->substitution = noeud_syntaxique_depuis_resultat(espace, it->directive, it->directive->lexeme, type, pointeur);
@@ -1259,6 +1258,19 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 		case GenreType::RIEN:
 		{
 			break;
+		}
+		case GenreType::TUPLE:
+		{
+			// pour les tuples de retours, nous les convertissons en expression-virgule
+			auto tuple = type->comme_tuple();
+			auto virgule = assembleuse->cree_virgule(lexeme);
+
+			POUR (tuple->membres) {
+				auto pointeur_membre = pointeur + it.decalage;
+				virgule->expressions.ajoute(noeud_syntaxique_depuis_resultat(espace, directive, lexeme, it.type, pointeur_membre));
+			}
+
+			return virgule;
 		}
 		case GenreType::ENTIER_CONSTANT:
 		case GenreType::ENTIER_RELATIF:

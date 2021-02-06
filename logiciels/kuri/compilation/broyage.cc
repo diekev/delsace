@@ -515,14 +515,11 @@ dls::chaine broye_nom_fonction(
 
 	/* sorties */
 	enchaineuse << "_S";
-	enchaineuse << type_fonc->types_sorties.taille;
 	enchaineuse << "_";
 
-	POUR (type_fonc->types_sorties) {
-		auto const &nom_broye = nom_broye_type(it);
-		enchaineuse << nom_broye.taille();
-		enchaineuse << nom_broye;
-	}
+	auto const &nom_broye = nom_broye_type(type_fonc->type_sortie);
+	enchaineuse << nom_broye.taille();
+	enchaineuse << nom_broye;
 
 	return enchaineuse.chaine();
 }

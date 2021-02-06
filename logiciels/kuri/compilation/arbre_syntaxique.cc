@@ -504,6 +504,13 @@ NoeudExpression *copie_noeud(
 				nexpr->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(copie));
 			}
 
+			if (expr->params_sorties.taille > 1) {
+				nexpr->param_sortie = copie_noeud(assem, expr->param_sortie, bloc_parent)->comme_decl_var();
+			}
+			else {
+				nexpr->param_sortie = nexpr->params_sorties[0];
+			}
+
 			nexpr->annotations.reserve(expr->annotations.taille());
 			POUR (expr->annotations) {
 				nexpr->annotations.ajoute(it);
@@ -2508,9 +2515,9 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 {
 	// crée une assignation pour chaque sortie
 	auto type_fonction = fonction_courante->type->comme_fonction();
-	auto multiple_valeurs = type_fonction->types_sorties.taille > 1;
+	auto type_sortie = type_fonction->type_sortie;
 
-	if (!multiple_valeurs && type_fonction->types_sorties[0]->est_rien()) {
+	if (type_sortie->est_rien()) {
 		return;
 	}
 
@@ -2521,16 +2528,6 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 		for (auto &var : it.variables) {
 			var = assem->cree_ref_decl(var->lexeme, var->comme_decl_var());
 		}
-
-		/* si multiple valeurs -> déréférence les pointeurs */
-		if (multiple_valeurs) {
-			for (auto &var : it.variables) {
-				auto memoire = assem->cree_memoire(inst->lexeme);
-				memoire->expr = var;
-				memoire->type = var->type;
-				var = memoire;
-			}
-		}
 	}
 
 	auto assignation = assem->cree_assignation(inst->lexeme);
@@ -2539,11 +2536,11 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 
 	auto retour = assem->cree_retour(inst->lexeme);
 
-	if (!multiple_valeurs && !type_fonction->types_sorties[0]->est_rien()) {
-		retour->expr = assem->cree_ref_decl(fonction_courante->params_sorties[0]->lexeme, fonction_courante->params_sorties[0]);
+	if (type_sortie->est_rien()) {
+		retour->expr = nullptr;
 	}
 	else {
-		retour->expr = nullptr;
+		retour->expr = assem->cree_ref_decl(fonction_courante->param_sortie->lexeme, fonction_courante->param_sortie);
 	}
 
 	auto bloc = assem->cree_bloc_seul(inst->lexeme, inst->bloc_parent);

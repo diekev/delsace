@@ -202,7 +202,7 @@ TypeReference::TypeReference(Type *type_pointe_)
 	type_pointe_->drapeaux |= POSSEDE_TYPE_REFERENCE;
 }
 
-TypeFonction::TypeFonction(dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties)
+TypeFonction::TypeFonction(dls::tablet<Type *, 6> const &entrees, Type *sortie)
 	: TypeFonction()
 {
 	this->types_entrees.reserve(entrees.taille());
@@ -210,11 +210,7 @@ TypeFonction::TypeFonction(dls::tablet<Type *, 6> const &entrees, dls::tablet<Ty
 		this->types_entrees.ajoute(it);
 	}
 
-	this->types_sorties.reserve(sorties.taille());
-	POUR (sorties) {
-		this->types_sorties.ajoute(it);
-	}
-
+	this->type_sortie = sortie;
 	this->taille_octet = 8;
 	this->alignement = 8;
 	this->marque_polymorphique();
@@ -230,11 +226,8 @@ void TypeFonction::marque_polymorphique()
 		}
 	}
 
-	POUR (types_sorties) {
-		if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-			this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-			return;
-		}
+	if (type_sortie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+		this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
 	}
 }
 
@@ -760,24 +753,18 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 	return type;
 }
 
-TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties)
+TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees, Type *type_sortie)
 {
-	if (it->types_entrees.taille != entrees.taille()) {
+	if (it->type_sortie != type_sortie) {
 		return nullptr;
 	}
 
-	if (it->types_sorties.taille != sorties.taille()) {
+	if (it->types_entrees.taille != entrees.taille()) {
 		return nullptr;
 	}
 
 	for (int i = 0; i < it->types_entrees.taille; ++i) {
 		if (it->types_entrees[i] != entrees[i]) {
-			return nullptr;
-		}
-	}
-
-	for (int i = 0; i < it->types_sorties.taille; ++i) {
-		if (it->types_sorties[i] != sorties[i]) {
 			return nullptr;
 		}
 	}
@@ -788,7 +775,7 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *,
 //static int nombre_types_apparies = 0;
 //static int nombre_appels = 0;
 
-TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, dls::tablet<Type *, 6> const &sorties, bool ajoute_operateurs)
+TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, Type *type_sortie, bool ajoute_operateurs)
 {
 	//nombre_appels += 1;
 
@@ -801,16 +788,14 @@ TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, dls:
 		tag_entrees |= reinterpret_cast<uint64_t>(it);
 	}
 
-	POUR (sorties) {
-		tag_sorties |= reinterpret_cast<uint64_t>(it);
-	}
+	tag_sorties |= reinterpret_cast<uint64_t>(type_sortie);
 
 	POUR_TABLEAU_PAGE ((*types_fonctions_)) {
 		if (it.tag_entrees != tag_entrees || it.tag_sorties != tag_sorties) {
 			continue;
 		}
 
-		auto type = discr_type_fonction(&it, entrees, sorties);
+		auto type = discr_type_fonction(&it, entrees, type_sortie);
 
 		if (type != nullptr) {
 //			nombre_types_apparies += 1;
@@ -820,7 +805,7 @@ TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, dls:
 		}
 	}
 
-	auto type = types_fonctions_->ajoute_element(entrees, sorties);
+	auto type = types_fonctions_->ajoute_element(entrees, type_sortie);
 	type->tag_entrees = tag_entrees;
 	type->tag_sorties = tag_sorties;
 
@@ -845,9 +830,7 @@ TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, dls:
 		graphe->connecte_type_type(type, it);
 	}
 
-	POUR (type->types_sorties) {
-		graphe->connecte_type_type(type, it);
-	}
+	graphe->connecte_type_type(type, type_sortie);
 
 //	std::cerr << "appariements : " << nombre_types_apparies << '\n';
 //	std::cerr << "appels       : " << nombre_appels << '\n';
@@ -1085,7 +1068,6 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
 	auto memoire_params_fonctions = 0l;
 	POUR_TABLEAU_PAGE ((*types_fonctions.verrou_lecture())) {
 		memoire_params_fonctions += it.types_entrees.taille * taille_de(Type *);
-		memoire_params_fonctions += it.types_sorties.taille * taille_de(Type *);
 	}
 	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeFonction, types_fonctions) + memoire_params_fonctions });
 
@@ -1271,14 +1253,8 @@ dls::chaine chaine_type(const Type *type)
 
 			res += ')';
 
-			virgule = '(';
-
-			POUR (type_fonc->types_sorties) {
-				res += virgule;
-				res += chaine_type(it);
-				virgule = ',';
-			}
-
+			res += '(';
+			res += chaine_type(type_fonc->type_sortie);
 			res += ')';
 
 			return res;
@@ -1368,10 +1344,8 @@ void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine
 			}
 		}
 
-		POUR (type_fonction->types_sorties) {
-			if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-				rassemble_noms_type_polymorphique(it, noms);
-			}
+		if (type_fonction->type_sortie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+			rassemble_noms_type_polymorphique(type_fonction->type_sortie, noms);
 		}
 
 		return;
@@ -1493,14 +1467,8 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 			types_entrees.ajoute(normalise_type(typeuse, it));
 		}
 
-		auto types_sorties = dls::tablet<Type *, 6>();
-		types_sorties.reserve(type_fonction->types_entrees.taille);
-
-		POUR (type_fonction->types_sorties) {
-			types_sorties.ajoute(normalise_type(typeuse, it));
-		}
-
-		resultat = typeuse.type_fonction(types_entrees, types_sorties, false);
+		auto type_sortie = normalise_type(typeuse, type_fonction->type_sortie);
+		resultat = typeuse.type_fonction(types_entrees, type_sortie, false);
 	}
 	else if (type->genre == GenreType::TUPLE) {
 		auto type_tuple = type->comme_tuple();

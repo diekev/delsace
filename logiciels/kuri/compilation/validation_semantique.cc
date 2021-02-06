@@ -172,15 +172,35 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 					}
 				}
 
-				auto types_sorties = dls::tablet<Type *, 6>(decl->params_sorties.taille);
+				Type *type_sortie = nullptr;
 
-				for (auto i = 0; i < decl->params_sorties.taille; ++i) {
-					if (resoud_type_final(decl->params_sorties[i], types_sorties[i])) {
+				if (decl->params_sorties.taille == 1) {
+					if (resoud_type_final(decl->params_sorties[0], type_sortie)) {
 						return true;
 					}
 				}
+				else {
+					dls::tablet<TypeCompose::Membre, 6> membres;
+					membres.reserve(decl->params_sorties.taille);
 
-				auto type_fonction = espace->typeuse.type_fonction(types_entrees, types_sorties);
+					for (auto &type_declare : decl->params_sorties) {
+						if (resoud_type_final(type_declare, type_sortie)) {
+							return true;
+						}
+
+						// À FAIRE(état validation)
+						if ((type_sortie->drapeaux & TYPE_FUT_VALIDE) == 0) {
+							unite->attend_sur_type(type_sortie);
+							return true;
+						}
+
+						membres.ajoute({ type_sortie });
+					}
+
+					type_sortie = espace->typeuse.cree_tuple(membres);
+				}
+
+				auto type_fonction = espace->typeuse.type_fonction(types_entrees, type_sortie);
 				decl->type = espace->typeuse.type_type_de_donnees(type_fonction);
 				return false;
 			}
@@ -224,19 +244,38 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			decl_entete->est_metaprogramme = true;
 
 			// le type de la fonction est fonc () -> (type_expression)
-			auto decl_sortie = m_tacheronne.assembleuse->cree_declaration(noeud->lexeme);
-			decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
-			decl_sortie->type = noeud_directive->expr->type;
-			decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-			decl_entete->params_sorties.ajoute(decl_sortie);
+			auto type_expression = noeud_directive->expr->type;
+
+			if (type_expression->est_tuple()) {
+				auto tuple = type_expression->comme_tuple();
+
+				POUR (tuple->membres) {
+					auto decl_sortie = m_tacheronne.assembleuse->cree_declaration(noeud->lexeme);
+					decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
+					decl_sortie->type = it.type;
+					decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
+					decl_entete->params_sorties.ajoute(decl_sortie);
+				}
+
+				decl_entete->param_sortie = m_tacheronne.assembleuse->cree_declaration(noeud->lexeme);
+				decl_entete->param_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("valeur_de_retour");
+				decl_entete->param_sortie->type = type_expression;
+			}
+			else {
+				auto decl_sortie = m_tacheronne.assembleuse->cree_declaration(noeud->lexeme);
+				decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
+				decl_sortie->type = type_expression;
+				decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
+
+				decl_entete->params_sorties.ajoute(decl_sortie);
+				decl_entete->param_sortie = m_tacheronne.assembleuse->cree_declaration(noeud->lexeme);
+				decl_entete->param_sortie->type = type_expression;
+			}
 
 			auto types_entrees = dls::tablet<Type *, 6>(0);
 
-			auto types_sorties = dls::tablet<Type *, 6>(1);
-			types_sorties[0] = noeud_directive->expr->type;
-
-			auto type_fonction = espace->typeuse.type_fonction(types_entrees, types_sorties);
+			auto type_fonction = espace->typeuse.type_fonction(types_entrees, type_expression);
 			decl_entete->type = type_fonction;
 
 			decl_corps->bloc = m_tacheronne.assembleuse->cree_bloc_seul(noeud->lexeme, nullptr);
@@ -246,7 +285,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 
 			simplifie_arbre(espace, m_tacheronne.assembleuse, espace->typeuse, noeud_directive->expr);
 
-			if (noeud_directive->expr->type != espace->typeuse[TypeBase::RIEN]) {
+			if (type_expression != espace->typeuse[TypeBase::RIEN]) {
 				expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
 				expr_ret->expr = noeud_directive->expr;
 
@@ -1491,10 +1530,7 @@ bool ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 			types_entrees[0] = espace->typeuse.type_contexte;
 			types_entrees[1] = espace->typeuse.type_pointeur_pour(type);
 
-			auto types_sorties = dls::tablet<Type *, 6>(1);
-			types_sorties[0] = espace->typeuse[TypeBase::RIEN];
-
-			auto type_fonction = espace->typeuse.type_fonction(types_entrees, types_sorties);
+			auto type_fonction = espace->typeuse.type_fonction(types_entrees, espace->typeuse[TypeBase::RIEN]);
 			noeud->type = type_fonction;
 
 			donnees_dependance.types_utilises.insere(noeud->type);
@@ -2275,26 +2311,45 @@ bool ContexteValidationCode::valide_type_fonction(NoeudDeclarationEnteteFonction
 			types_entrees.ajoute(it->type);
 		}
 
-		dls::tablet<Type *, 6> types_sorties;
-		types_sorties.reserve(decl->params_sorties.taille);
+		Type *type_sortie = nullptr;
 
-		for (auto &type_declare : decl->params_sorties) {
-			Type *type_sortie = nullptr;
-			if (resoud_type_final(type_declare->expression_type, type_sortie)) {
+		if (decl->params_sorties.taille == 1) {
+			if (resoud_type_final(decl->params_sorties[0]->expression_type, type_sortie)) {
 				return true;
 			}
-			types_sorties.ajoute(type_sortie);
+		}
+		else {
+			dls::tablet<TypeCompose::Membre, 6> membres;
+			membres.reserve(decl->params_sorties.taille);
+
+			for (auto &type_declare : decl->params_sorties) {
+				if (resoud_type_final(type_declare->expression_type, type_sortie)) {
+					return true;
+				}
+
+				// À FAIRE(état validation) : nous ne devrions pas revalider les paramètres
+				if ((type_sortie->drapeaux & TYPE_FUT_VALIDE) == 0) {
+					unite->attend_sur_type(type_sortie);
+					return true;
+				}
+
+				membres.ajoute({ type_sortie });
+			}
+
+			type_sortie = espace->typeuse.cree_tuple(membres);
 		}
 
+		decl->param_sortie->type = type_sortie;
+
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (type_fonction)");
-		type_fonc = espace->typeuse.type_fonction(types_entrees, types_sorties);
+		type_fonc = espace->typeuse.type_fonction(types_entrees, type_sortie);
 		decl->type = type_fonc;
 		donnees_dependance.types_utilises.insere(decl->type);
 	}
 
 	if (decl->est_operateur) {
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (opérateurs)");
-		auto type_resultat = type_fonc->types_sorties[0];
+		auto type_resultat = type_fonc->type_sortie;
 
 		if (type_resultat == espace->typeuse[TypeBase::RIEN]) {
 			rapporte_erreur("Un opérateur ne peut retourner 'rien'", decl);
@@ -2441,6 +2496,12 @@ static void rassemble_expressions(NoeudExpression *expr, dls::tablet<NoeudExpres
 		return;
 	}
 
+	/* pour les directives d'exécutions nous devons directement utiliser le résultat afin
+	 * d'éviter les problèmes si la substitution est une virgule (plusieurs résultats) */
+	if (expr->est_execute() && expr->substitution) {
+		expr = expr->substitution;
+	}
+
 	if (expr->est_virgule()) {
 		auto virgule = expr->comme_virgule();
 
@@ -2462,6 +2523,12 @@ static void rassemble_expressions(NoeudExpression *expr, dls::tablet<VariableEtE
 {
 	if (expr == nullptr) {
 		return;
+	}
+
+	/* pour les directives d'exécutions nous devons directement utiliser le résultat afin
+	 * d'éviter les problèmes si la substitution est une virgule (plusieurs résultats) */
+	if (expr->est_execute() && expr->substitution) {
+		expr = expr->substitution;
 	}
 
 	if (expr->est_virgule()) {
@@ -2496,7 +2563,7 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 	if (inst->expr == nullptr) {
 		inst->type = espace->typeuse[TypeBase::RIEN];
 
-		if ((!fonction_courante->est_coroutine && type_fonc->types_sorties[0] != inst->type) || est_corps_texte) {
+		if ((!fonction_courante->est_coroutine && type_fonc->type_sortie != inst->type) || est_corps_texte) {
 			rapporte_erreur("Expression de retour manquante", inst);
 			return true;
 		}
@@ -2537,9 +2604,7 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 		return false;
 	}
 
-	auto nombre_retour = type_fonc->types_sorties.taille;
-
-	if (nombre_retour == 1 && type_fonc->types_sorties[0]->est_rien()) {
+	if (type_fonc->type_sortie->est_rien()) {
 		::rapporte_erreur(espace, inst->expr, "Retour d'une valeur d'une fonction qui ne retourne rien");
 		return true;
 	}
@@ -2572,8 +2637,8 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 			if (expr->est_appel() && expr->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
 				auto type_fonction = expr->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
 
-				if (type_fonction->types_sorties.taille > 1) {
-					::rapporte_erreur(espace, it.expression, "Impossible de nommer les variables de retours si l'expression est une fonction retrounant plusieurs valeurs");
+				if (type_fonction->type_sortie->est_tuple()) {
+					::rapporte_erreur(espace, it.expression, "Impossible de nommer les variables de retours si l'expression est une fonction retournant plusieurs valeurs");
 					return true;
 				}
 			}
@@ -2629,25 +2694,25 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 		DonneesAssignations donnees;
 		donnees.expression = it;
 
-		if (it->est_appel() && it->comme_appel()->noeud_fonction_appelee && it->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
-			auto type_fonction = it->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
+		if (it->type->est_rien()) {
+			rapporte_erreur("impossible de retourner une expression de type « rien » à une variable", it, erreur::Genre::ASSIGNATION_RIEN);
+			return true;
+		}
+		else if (it->type->est_tuple()) {
+			auto type_tuple = it->type->comme_tuple();
 
-			donnees.multiple_retour = type_fonction->types_sorties.taille > 1;
+			donnees.multiple_retour = true;
 
-			for (auto type : type_fonction->types_sorties) {
+			for (auto &membre : type_tuple->membres) {
 				if (variables.est_vide()) {
 					::rapporte_erreur(espace, it, "Trop d'expressions de retour");
 					break;
 				}
 
-				if (!valide_typage_et_ajoute(donnees, variables.defile(), it, type)) {
+				if (!valide_typage_et_ajoute(donnees, variables.defile(), it, membre.type)) {
 					return true;
 				}
 			}
-		}
-		else if (it->type->est_rien()) {
-			rapporte_erreur("impossible de retourner une expression de type « rien » à une variable", it, erreur::Genre::ASSIGNATION_RIEN);
-			return true;
 		}
 		else {
 			if (variables.est_vide()) {
@@ -2669,12 +2734,7 @@ bool ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 		return true;
 	}
 
-	if (nombre_retour > 1) {
-		inst->type = espace->typeuse[TypeBase::RIEN];
-	}
-	else {
-		inst->type = type_fonc->types_sorties[0];
-	}
+	inst->type = type_fonc->type_sortie;
 
 	inst->donnees_exprs.reserve(donnees_retour.taille());
 	POUR (donnees_retour) {
@@ -2724,13 +2784,13 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
 	decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
 
 	fonction->params_sorties.ajoute(decl_sortie);
+	fonction->param_sortie = decl_sortie;
 
 	auto types_entrees = dls::tablet<Type *, 6>(0);
 
-	auto types_sorties = dls::tablet<Type *, 6>(1);
-	types_sorties[0] = espace->typeuse[TypeBase::CHAINE];
+	auto type_sortie = espace->typeuse[TypeBase::CHAINE];
 
-	fonction->type = espace->typeuse.type_fonction(types_entrees, types_sorties);
+	fonction->type = espace->typeuse.type_fonction(types_entrees, type_sortie);
 	fonction->drapeaux |= DECLARATION_FUT_VALIDEE;
 
 	auto metaprogramme = espace->cree_metaprogramme();
@@ -2822,7 +2882,7 @@ bool ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl
 	if (inst_ret == nullptr) {
 		auto type_fonc = entete->type->comme_fonction();
 
-		if ((type_fonc->types_sorties[0]->genre != GenreType::RIEN && !entete->est_coroutine) || est_corps_texte) {
+		if ((type_fonc->type_sortie->genre != GenreType::RIEN && !entete->est_coroutine) || est_corps_texte) {
 			rapporte_erreur("Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
 			return true;
 		}
@@ -3703,17 +3763,17 @@ bool ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariabl
 				donnees.variables.ajoute(variables.defile());
 				donnees.transformations.ajoute({ TypeTransformation::INUTILE });
 			}
-			else if (it->est_appel() && it->comme_appel()->noeud_fonction_appelee && it->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
-				auto type_fonction = it->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
+			else if (it->type->est_tuple()) {
+				auto type_tuple = it->type->comme_tuple();
 
-				donnees.multiple_retour = type_fonction->types_sorties.taille > 1;
+				donnees.multiple_retour = true;
 
-				for (auto type : type_fonction->types_sorties) {
+				for (auto &membre : type_tuple->membres) {
 					if (variables.est_vide()) {
 						break;
 					}
 
-					if (!ajoute_variable(donnees, variables.defile(), it, type)) {
+					if (!ajoute_variable(donnees, variables.defile(), it, membre.type)) {
 						return true;
 					}
 				}
@@ -3925,17 +3985,17 @@ bool ContexteValidationCode::valide_assignation(NoeudAssignation *inst)
 		auto donnees = DonneesAssignations();
 		donnees.expression = it;
 
-		if (it->est_appel() && it->comme_appel()->noeud_fonction_appelee && it->comme_appel()->noeud_fonction_appelee->type->est_fonction()) {
-			auto type_fonction = it->comme_appel()->noeud_fonction_appelee->type->comme_fonction();
+		if (it->type->est_tuple()) {
+			auto type_tuple = it->type->comme_tuple();
 
-			donnees.multiple_retour = type_fonction->types_sorties.taille > 1;
+			donnees.multiple_retour = true;
 
-			for (auto type : type_fonction->types_sorties) {
+			for (auto &membre : type_tuple->membres) {
 				if (variables.est_vide()) {
 					break;
 				}
 
-				if (!ajoute_variable(donnees, variables.defile(), it, type)) {
+				if (!ajoute_variable(donnees, variables.defile(), it, membre.type)) {
 					return true;
 				}
 			}
