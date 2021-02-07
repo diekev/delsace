@@ -1,6 +1,7 @@
 // Les boucles sur des structures échouent dans la MV si nous les prenons par valeurs
 // Il semblerait que le bug soit dû aux type_de_données
 // Quand résolu, voir note dans Alembic
+// Résolution : le bug est en fait dû au manque de valeur pour l'initalisation de types_de_données
 
 importe Compilatrice
 

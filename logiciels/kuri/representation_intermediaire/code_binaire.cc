@@ -1285,6 +1285,9 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
 					else if (type->est_octet()) {
 						chunk.emets_constante(static_cast<unsigned char>(valeur_entiere));
 					}
+					else if (type->est_type_de_donnees()) {
+						chunk.emets_constante(static_cast<long>(valeur_entiere));
+					}
 
 					break;
 				}
