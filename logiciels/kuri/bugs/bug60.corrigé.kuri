@@ -1,4 +1,6 @@
 // Cette expression fait crasher la compilatrice
+// Résolution : le crash est dû au fait que les globales utiliserait des instructions normales alors qu'il n'y a pas de fonction_courante
+//              émets une erreur de syntaxage
 
 Structure :: struct {
     valeur: z32

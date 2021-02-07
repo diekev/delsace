@@ -1302,6 +1302,12 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 			m_noeud_expression_virgule = nullptr;
 
 			if (gauche->est_decl_var()) {
+				if (gauche->lexeme->genre == GenreLexeme::DECLARATION_VARIABLE) {
+					/* repositionne le lexème courant afin que les messages d'erreurs pointent au bon endroit */
+					recule();
+					lance_erreur("utilisation de '=' alors que nous somme à droite de ':='");
+				}
+
 				auto decl = gauche->comme_decl_var();
 				decl->expression = analyse_expression(donnees_precedence, racine_expression, lexeme_final);
 
