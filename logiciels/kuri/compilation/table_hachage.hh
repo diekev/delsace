@@ -72,39 +72,30 @@ public:
 
         for (auto i = 0; i < vieilles_cles.taille(); ++i) {
             if (vieilles_occupes[i]) {
-                insere(vieilles_cles[i], vieilles_valeurs[i]);
+				insere(std::move(vieilles_cles[i]), std::move(vieilles_valeurs[i]));
             }
         }
     }
 
     void insere(Cle const &cle, Valeur const &valeur)
     {
-        auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_index(cle, empreinte);
-
-        if (index == -1) {
-            if (nombre_elements * 2 >= capacite) {
-                agrandis();
-            }
-
-            index = static_cast<long>(empreinte % static_cast<size_t>(capacite));
-
-            while (occupes[index]) {
-                index += 1;
-
-                if (index >= capacite) {
-                    index = 0;
-                }
-            }
-
-            nombre_elements += 1;
-        }
-
+		auto empreinte = std::hash<Cle>()(cle);
+		auto index = trouve_index_innoccupe(cle, empreinte);
         occupes[index] = 1;
         empreintes[index] = empreinte;
         cles[index] = cle;
         valeurs[index] = valeur;
     }
+
+	void insere(Cle &&cle, Valeur &&valeur)
+	{
+		auto empreinte = std::hash<Cle>()(cle);
+		auto index = trouve_index_innoccupe(cle, empreinte);
+		occupes[index] = 1;
+		empreintes[index] = empreinte;
+		cles[index] = std::move(cle);
+		valeurs[index] = std::move(valeur);
+	}
 
     Valeur trouve(Cle const &cle, bool &trouve)
     {
@@ -177,5 +168,31 @@ public:
 		valeurs.efface();
 		capacite = 0;
 		nombre_elements = 0;
+	}
+
+private:
+	long trouve_index_innoccupe(Cle const &cle, size_t empreinte)
+	{
+		auto index = trouve_index(cle, empreinte);
+
+		if (index == -1) {
+			if (nombre_elements * 2 >= capacite) {
+				agrandis();
+			}
+
+			index = static_cast<long>(empreinte % static_cast<size_t>(capacite));
+
+			while (occupes[index]) {
+				index += 1;
+
+				if (index >= capacite) {
+					index = 0;
+				}
+			}
+
+			nombre_elements += 1;
+		}
+
+		return index;
 	}
 };
