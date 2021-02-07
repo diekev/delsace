@@ -194,7 +194,7 @@ private:
 
 	void desinstalle_metaprogramme(MetaProgramme *metaprogramme);
 
-	ResultatInterpretation execute_instruction();
+	ResultatInterpretation execute_instructions();
 
 	void imprime_trace_appel(NoeudExpression *site);
 };

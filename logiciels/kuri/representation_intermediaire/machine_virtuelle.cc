@@ -668,582 +668,584 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme)
 	m_metaprogramme = nullptr;
 }
 
-MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
+MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions()
 {
 	auto frame = &frames[profondeur_appel - 1];
 
+	for (auto i = 0; i < 1000; ++i) {
 #ifdef DEBOGUE_INTERPRETEUSE
-	auto &sortie = std::cerr;
-	imprime_tab(sortie, profondeur_appel);
-	desassemble_instruction(frame->fonction->chunk, (frame->pointeur - frame->fonction->chunk.code), sortie);
+		auto &sortie = std::cerr;
+		imprime_tab(sortie, profondeur_appel);
+		desassemble_instruction(frame->fonction->chunk, (frame->pointeur - frame->fonction->chunk.code), sortie);
 #endif
-	/* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
-	auto pointeur_debut = frame->pointeur;
-	auto instruction = LIS_OCTET();
-	auto site = LIS_POINTEUR(NoeudExpression);
+		/* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
+		auto pointeur_debut = frame->pointeur;
+		auto instruction = LIS_OCTET();
+		auto site = LIS_POINTEUR(NoeudExpression);
 
-	switch (instruction) {
-		case OP_LABEL:
-		{
-			// saute le label
-			frame->pointeur += 4;
-			break;
-		}
-		case OP_BRANCHE:
-		{
-			auto decalage = LIS_4_OCTETS();
-			frame->pointeur = frame->fonction->chunk.code + decalage;
-			break;
-		}
-		case OP_BRANCHE_CONDITION:
-		{
-			auto decalage_si_vrai = LIS_4_OCTETS();
-			auto decalage_si_faux = LIS_4_OCTETS();
-			auto condition = depile<bool>();
-
-			if (condition) {
-				frame->pointeur = frame->fonction->chunk.code + decalage_si_vrai;
+		switch (instruction) {
+			case OP_LABEL:
+			{
+				// saute le label
+				frame->pointeur += 4;
+				break;
 			}
-			else {
-				frame->pointeur = frame->fonction->chunk.code + decalage_si_faux;
+			case OP_BRANCHE:
+			{
+				auto decalage = LIS_4_OCTETS();
+				frame->pointeur = frame->fonction->chunk.code + decalage;
+				break;
 			}
+			case OP_BRANCHE_CONDITION:
+			{
+				auto decalage_si_vrai = LIS_4_OCTETS();
+				auto decalage_si_faux = LIS_4_OCTETS();
+				auto condition = depile<bool>();
 
-			break;
-		}
-		case OP_CONSTANTE:
-		{
-			empile_constante(frame);
-			break;
-		}
-		case OP_CHAINE_CONSTANTE:
-		{
-			auto pointeur_chaine = LIS_8_OCTETS();
-			auto taille_chaine = LIS_8_OCTETS();
-			empile(pointeur_chaine);
-			empile(taille_chaine);
-			break;
-		}
-		case OP_COMPLEMENT_ENTIER:
-		{
-			OP_UNAIRE(-)
-			break;
-		}
-		case OP_COMPLEMENT_REEL:
-		{
-			OP_UNAIRE_REEL(-)
-			break;
-		}
-		case OP_NON_BINAIRE:
-		{
-			OP_UNAIRE(~)
-			break;
-		}
-		case OP_AJOUTE:
-		{
-			OP_BINAIRE(oper::ajoute)
-			break;
-		}
-		case OP_SOUSTRAIT:
-		{
-			OP_BINAIRE(oper::soustrait)
-			break;
-		}
-		case OP_MULTIPLIE:
-		{
-			OP_BINAIRE(oper::multiplie)
-			break;
-		}
-		case OP_DIVISE:
-		{
-			OP_BINAIRE_NATUREL(oper::divise)
-			break;
-		}
-		case OP_DIVISE_RELATIF:
-		{
-			OP_BINAIRE(oper::divise)
-			break;
-		}
-		case OP_AJOUTE_REEL:
-		{
-			OP_BINAIRE_REEL(oper::ajoute)
-			break;
-		}
-		case OP_SOUSTRAIT_REEL:
-		{
-			OP_BINAIRE_REEL(oper::soustrait)
-			break;
-		}
-		case OP_MULTIPLIE_REEL:
-		{
-			OP_BINAIRE_REEL(oper::multiplie)
-			break;
-		}
-		case OP_DIVISE_REEL:
-		{
-			OP_BINAIRE_REEL(oper::divise)
-			break;
-		}
-		case OP_RESTE_NATUREL:
-		{
-			OP_BINAIRE_NATUREL(oper::modulo)
-			break;
-		}
-		case OP_RESTE_RELATIF:
-		{
-			OP_BINAIRE(oper::modulo)
-			break;
-		}
-		case OP_COMP_EGAL:
-		{
-			OP_BINAIRE(oper::egal)
-			break;
-		}
-		case OP_COMP_INEGAL:
-		{
-			OP_BINAIRE(oper::different)
-			break;
-		}
-		case OP_COMP_INF:
-		{
-			OP_BINAIRE(oper::inferieur)
-			break;
-		}
-		case OP_COMP_INF_EGAL:
-		{
-			OP_BINAIRE(oper::inferieur_egal)
-			break;
-		}
-		case OP_COMP_SUP:
-		{
-			OP_BINAIRE(oper::superieur)
-			break;
-		}
-		case OP_COMP_SUP_EGAL:
-		{
-			OP_BINAIRE(oper::superieur_egal)
-			break;
-		}
-		case OP_COMP_INF_NATUREL:
-		{
-			OP_BINAIRE_NATUREL(oper::inferieur)
-			break;
-		}
-		case OP_COMP_INF_EGAL_NATUREL:
-		{
-			OP_BINAIRE_NATUREL(oper::inferieur_egal)
-			break;
-		}
-		case OP_COMP_SUP_NATUREL:
-		{
-			OP_BINAIRE_NATUREL(oper::superieur)
-			break;
-		}
-		case OP_COMP_SUP_EGAL_NATUREL:
-		{
-			OP_BINAIRE_NATUREL(oper::superieur_egal)
-			break;
-		}
-		case OP_COMP_EGAL_REEL:
-		{
-			OP_BINAIRE_REEL(oper::egal)
-			break;
-		}
-		case OP_COMP_INEGAL_REEL:
-		{
-			OP_BINAIRE_REEL(oper::different)
-			break;
-		}
-		case OP_COMP_INF_REEL:
-		{
-			OP_BINAIRE_REEL(oper::inferieur)
-			break;
-		}
-		case OP_COMP_INF_EGAL_REEL:
-		{
-			OP_BINAIRE_REEL(oper::inferieur_egal)
-			break;
-		}
-		case OP_COMP_SUP_REEL:
-		{
-			OP_BINAIRE_REEL(oper::superieur)
-			break;
-		}
-		case OP_COMP_SUP_EGAL_REEL:
-		{
-			OP_BINAIRE_REEL(oper::superieur_egal)
-			break;
-		}
-		case OP_ET_BINAIRE:
-		{
-			OP_BINAIRE(oper::et_binaire)
-			break;
-		}
-		case OP_OU_BINAIRE:
-		{
-			OP_BINAIRE(oper::ou_binaire)
-			break;
-		}
-		case OP_OU_EXCLUSIF:
-		{
-			OP_BINAIRE(oper::oux_binaire)
-			break;
-		}
-		case OP_DEC_GAUCHE:
-		{
-			OP_BINAIRE(oper::dec_gauche)
-			break;
-		}
-		case OP_DEC_DROITE_ARITHM:
-		{
-			OP_BINAIRE(oper::dec_droite)
-			break;
-		}
-		case OP_DEC_DROITE_LOGIQUE:
-		{
-			OP_BINAIRE_NATUREL(oper::dec_droite)
-			break;
-		}
-		case OP_AUGMENTE_NATUREL:
-		{
-			auto taille_de = LIS_4_OCTETS();
-			auto taille_vers = LIS_4_OCTETS();
-			FAIS_TRANSTYPE_AUGMENTE(unsigned char, unsigned short, unsigned int, unsigned long)
-			break;
-		}
-		case OP_DIMINUE_NATUREL:
-		{
-			auto taille_de = LIS_4_OCTETS();
-			auto taille_vers = LIS_4_OCTETS();
-			FAIS_TRANSTYPE_DIMINUE(unsigned char, unsigned short, unsigned int, unsigned long)
-			break;
-		}
-		case OP_AUGMENTE_RELATIF:
-		{
-			auto taille_de = LIS_4_OCTETS();
-			auto taille_vers = LIS_4_OCTETS();
-			FAIS_TRANSTYPE_AUGMENTE(char, short, int, long)
-			break;
-		}
-		case OP_DIMINUE_RELATIF:
-		{
-			auto taille_de = LIS_4_OCTETS();
-			auto taille_vers = LIS_4_OCTETS();
-			FAIS_TRANSTYPE_DIMINUE(char, short, int, long)
-			break;
-		}
-		case OP_AUGMENTE_REEL:
-		{
-			auto taille_de = LIS_4_OCTETS();
-			auto taille_vers = LIS_4_OCTETS();
+				if (condition) {
+					frame->pointeur = frame->fonction->chunk.code + decalage_si_vrai;
+				}
+				else {
+					frame->pointeur = frame->fonction->chunk.code + decalage_si_faux;
+				}
 
-			if (taille_de == 4 && taille_vers == 8) {
-				auto v = depile<float>();
-				empile(static_cast<double>(v));
+				break;
 			}
-
-			break;
-		}
-		case OP_DIMINUE_REEL:
-		{
-			auto taille_de = LIS_4_OCTETS();
-			auto taille_vers = LIS_4_OCTETS();
-
-			if (taille_de == 8 && taille_vers == 4) {
-				auto v = depile<double>();
-				empile(static_cast<float>(v));
+			case OP_CONSTANTE:
+			{
+				empile_constante(frame);
+				break;
 			}
+			case OP_CHAINE_CONSTANTE:
+			{
+				auto pointeur_chaine = LIS_8_OCTETS();
+				auto taille_chaine = LIS_8_OCTETS();
+				empile(pointeur_chaine);
+				empile(taille_chaine);
+				break;
+			}
+			case OP_COMPLEMENT_ENTIER:
+			{
+				OP_UNAIRE(-)
+				break;
+			}
+			case OP_COMPLEMENT_REEL:
+			{
+				OP_UNAIRE_REEL(-)
+				break;
+			}
+			case OP_NON_BINAIRE:
+			{
+				OP_UNAIRE(~)
+				break;
+			}
+			case OP_AJOUTE:
+			{
+				OP_BINAIRE(oper::ajoute)
+				break;
+			}
+			case OP_SOUSTRAIT:
+			{
+				OP_BINAIRE(oper::soustrait)
+				break;
+			}
+			case OP_MULTIPLIE:
+			{
+				OP_BINAIRE(oper::multiplie)
+				break;
+			}
+			case OP_DIVISE:
+			{
+				OP_BINAIRE_NATUREL(oper::divise)
+				break;
+			}
+			case OP_DIVISE_RELATIF:
+			{
+				OP_BINAIRE(oper::divise)
+				break;
+			}
+			case OP_AJOUTE_REEL:
+			{
+				OP_BINAIRE_REEL(oper::ajoute)
+				break;
+			}
+			case OP_SOUSTRAIT_REEL:
+			{
+				OP_BINAIRE_REEL(oper::soustrait)
+				break;
+			}
+			case OP_MULTIPLIE_REEL:
+			{
+				OP_BINAIRE_REEL(oper::multiplie)
+				break;
+			}
+			case OP_DIVISE_REEL:
+			{
+				OP_BINAIRE_REEL(oper::divise)
+				break;
+			}
+			case OP_RESTE_NATUREL:
+			{
+				OP_BINAIRE_NATUREL(oper::modulo)
+				break;
+			}
+			case OP_RESTE_RELATIF:
+			{
+				OP_BINAIRE(oper::modulo)
+				break;
+			}
+			case OP_COMP_EGAL:
+			{
+				OP_BINAIRE(oper::egal)
+				break;
+			}
+			case OP_COMP_INEGAL:
+			{
+				OP_BINAIRE(oper::different)
+				break;
+			}
+			case OP_COMP_INF:
+			{
+				OP_BINAIRE(oper::inferieur)
+				break;
+			}
+			case OP_COMP_INF_EGAL:
+			{
+				OP_BINAIRE(oper::inferieur_egal)
+				break;
+			}
+			case OP_COMP_SUP:
+			{
+				OP_BINAIRE(oper::superieur)
+				break;
+			}
+			case OP_COMP_SUP_EGAL:
+			{
+				OP_BINAIRE(oper::superieur_egal)
+				break;
+			}
+			case OP_COMP_INF_NATUREL:
+			{
+				OP_BINAIRE_NATUREL(oper::inferieur)
+				break;
+			}
+			case OP_COMP_INF_EGAL_NATUREL:
+			{
+				OP_BINAIRE_NATUREL(oper::inferieur_egal)
+				break;
+			}
+			case OP_COMP_SUP_NATUREL:
+			{
+				OP_BINAIRE_NATUREL(oper::superieur)
+				break;
+			}
+			case OP_COMP_SUP_EGAL_NATUREL:
+			{
+				OP_BINAIRE_NATUREL(oper::superieur_egal)
+				break;
+			}
+			case OP_COMP_EGAL_REEL:
+			{
+				OP_BINAIRE_REEL(oper::egal)
+				break;
+			}
+			case OP_COMP_INEGAL_REEL:
+			{
+				OP_BINAIRE_REEL(oper::different)
+				break;
+			}
+			case OP_COMP_INF_REEL:
+			{
+				OP_BINAIRE_REEL(oper::inferieur)
+				break;
+			}
+			case OP_COMP_INF_EGAL_REEL:
+			{
+				OP_BINAIRE_REEL(oper::inferieur_egal)
+				break;
+			}
+			case OP_COMP_SUP_REEL:
+			{
+				OP_BINAIRE_REEL(oper::superieur)
+				break;
+			}
+			case OP_COMP_SUP_EGAL_REEL:
+			{
+				OP_BINAIRE_REEL(oper::superieur_egal)
+				break;
+			}
+			case OP_ET_BINAIRE:
+			{
+				OP_BINAIRE(oper::et_binaire)
+				break;
+			}
+			case OP_OU_BINAIRE:
+			{
+				OP_BINAIRE(oper::ou_binaire)
+				break;
+			}
+			case OP_OU_EXCLUSIF:
+			{
+				OP_BINAIRE(oper::oux_binaire)
+				break;
+			}
+			case OP_DEC_GAUCHE:
+			{
+				OP_BINAIRE(oper::dec_gauche)
+				break;
+			}
+			case OP_DEC_DROITE_ARITHM:
+			{
+				OP_BINAIRE(oper::dec_droite)
+				break;
+			}
+			case OP_DEC_DROITE_LOGIQUE:
+			{
+				OP_BINAIRE_NATUREL(oper::dec_droite)
+				break;
+			}
+			case OP_AUGMENTE_NATUREL:
+			{
+				auto taille_de = LIS_4_OCTETS();
+				auto taille_vers = LIS_4_OCTETS();
+				FAIS_TRANSTYPE_AUGMENTE(unsigned char, unsigned short, unsigned int, unsigned long)
+				break;
+			}
+			case OP_DIMINUE_NATUREL:
+			{
+				auto taille_de = LIS_4_OCTETS();
+				auto taille_vers = LIS_4_OCTETS();
+				FAIS_TRANSTYPE_DIMINUE(unsigned char, unsigned short, unsigned int, unsigned long)
+				break;
+			}
+			case OP_AUGMENTE_RELATIF:
+			{
+				auto taille_de = LIS_4_OCTETS();
+				auto taille_vers = LIS_4_OCTETS();
+				FAIS_TRANSTYPE_AUGMENTE(char, short, int, long)
+				break;
+			}
+			case OP_DIMINUE_RELATIF:
+			{
+				auto taille_de = LIS_4_OCTETS();
+				auto taille_vers = LIS_4_OCTETS();
+				FAIS_TRANSTYPE_DIMINUE(char, short, int, long)
+				break;
+			}
+			case OP_AUGMENTE_REEL:
+			{
+				auto taille_de = LIS_4_OCTETS();
+				auto taille_vers = LIS_4_OCTETS();
 
-			break;
-		}
-		case OP_ENTIER_VERS_REEL:
-		{
-			// @Incomplet : on perd l'information du signe dans le nombre entier
-			auto taille_de = LIS_4_OCTETS();
-			auto taille_vers = LIS_4_OCTETS();
+				if (taille_de == 4 && taille_vers == 8) {
+					auto v = depile<float>();
+					empile(static_cast<double>(v));
+				}
+
+				break;
+			}
+			case OP_DIMINUE_REEL:
+			{
+				auto taille_de = LIS_4_OCTETS();
+				auto taille_vers = LIS_4_OCTETS();
+
+				if (taille_de == 8 && taille_vers == 4) {
+					auto v = depile<double>();
+					empile(static_cast<float>(v));
+				}
+
+				break;
+			}
+			case OP_ENTIER_VERS_REEL:
+			{
+				// @Incomplet : on perd l'information du signe dans le nombre entier
+				auto taille_de = LIS_4_OCTETS();
+				auto taille_vers = LIS_4_OCTETS();
 
 #define TRANSTYPE_EVR(type_) \
-			if (taille_de == static_cast<int>(taille_de(type_))) {\
-				auto v = depile<type_>(); \
-				if (taille_vers == 2) { \
-					/* @Incomplet : r16 */ \
-				} \
-				else if (taille_vers == 4) { \
-					empile(static_cast<float>(v)); \
-				} \
-				else if (taille_vers == 8) { \
-					empile(static_cast<double>(v)); \
-				} \
-			}
+	if (taille_de == static_cast<int>(taille_de(type_))) {\
+		auto v = depile<type_>(); \
+		if (taille_vers == 2) { \
+			/* @Incomplet : r16 */ \
+		} \
+		else if (taille_vers == 4) { \
+			empile(static_cast<float>(v)); \
+		} \
+		else if (taille_vers == 8) { \
+			empile(static_cast<double>(v)); \
+		} \
+	}
 
-			TRANSTYPE_EVR(char)
-			TRANSTYPE_EVR(short)
-			TRANSTYPE_EVR(int)
-			TRANSTYPE_EVR(long)
+				TRANSTYPE_EVR(char)
+				TRANSTYPE_EVR(short)
+				TRANSTYPE_EVR(int)
+				TRANSTYPE_EVR(long)
 
 #undef TRANSTYPE_EVR
-			break;
-		}
-		case OP_REEL_VERS_ENTIER:
-		{
-			// @Incomplet : on perd l'information du signe dans le nombre entier
-			auto taille_de = LIS_4_OCTETS();
-			auto taille_vers = LIS_4_OCTETS();
+				break;
+			}
+			case OP_REEL_VERS_ENTIER:
+			{
+				// @Incomplet : on perd l'information du signe dans le nombre entier
+				auto taille_de = LIS_4_OCTETS();
+				auto taille_vers = LIS_4_OCTETS();
 
 #define TRANSTYPE_RVE(type_) \
-			if (taille_de == static_cast<int>(taille_de(type_))) {\
-				auto v = depile<type_>(); \
-				if (taille_vers == 1) { \
-					empile(static_cast<char>(v)); \
-				} \
-				else if (taille_vers == 2) { \
-					empile(static_cast<short>(v)); \
-				} \
-				else if (taille_vers == 4) { \
-					empile(static_cast<int>(v)); \
-				} \
-				else if (taille_vers == 8) { \
-					empile(static_cast<long>(v)); \
-				} \
-			}
+	if (taille_de == static_cast<int>(taille_de(type_))) {\
+		auto v = depile<type_>(); \
+		if (taille_vers == 1) { \
+			empile(static_cast<char>(v)); \
+		} \
+		else if (taille_vers == 2) { \
+			empile(static_cast<short>(v)); \
+		} \
+		else if (taille_vers == 4) { \
+			empile(static_cast<int>(v)); \
+		} \
+		else if (taille_vers == 8) { \
+			empile(static_cast<long>(v)); \
+		} \
+	}
 
-			TRANSTYPE_RVE(float)
-			TRANSTYPE_RVE(double)
+				TRANSTYPE_RVE(float)
+				TRANSTYPE_RVE(double)
 
 #undef TRANSTYPE_RVE
-			break;
-		}
-		case OP_RETOURNE:
-		{
-			auto type_fonction = frame->fonction->type->comme_fonction();
-			auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
-			auto pointeur_debut_retour = pointeur_pile - taille_retour;
+				break;
+			}
+			case OP_RETOURNE:
+			{
+				auto type_fonction = frame->fonction->type->comme_fonction();
+				auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
+				auto pointeur_debut_retour = pointeur_pile - taille_retour;
 
 #ifdef DEBOGUE_LOCALES
-			imprime_valeurs_locales(frame, profondeur_appel, std::cerr);
+				imprime_valeurs_locales(frame, profondeur_appel, std::cerr);
 #endif
 
 #ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
-			imprime_valeurs_sorties(pointeur_debut_retour, type_fonction, frame->fonction->nom, profondeur_appel);
+				imprime_valeurs_sorties(pointeur_debut_retour, type_fonction, frame->fonction->nom, profondeur_appel);
 #endif
 
-			profondeur_appel--;
+				profondeur_appel--;
 
-			if (profondeur_appel == 0) {
-				if (pointeur_pile != pile) {
-					pointeur_pile = pointeur_debut_retour;
+				if (profondeur_appel == 0) {
+					if (pointeur_pile != pile) {
+						pointeur_pile = pointeur_debut_retour;
+					}
+
+					return ResultatInterpretation::TERMINE;
 				}
 
-				return ResultatInterpretation::TERMINE;
+				pointeur_pile = frame->pointeur_pile;
+
+				if (taille_retour != 0 && pointeur_pile != pointeur_debut_retour) {
+					memcpy(pointeur_pile, pointeur_debut_retour, static_cast<unsigned>(taille_retour));
+				}
+
+				pointeur_pile += taille_retour;
+
+				frame = &frames[profondeur_appel - 1];
+				break;
 			}
-
-			pointeur_pile = frame->pointeur_pile;
-
-			if (taille_retour != 0 && pointeur_pile != pointeur_debut_retour) {
-				memcpy(pointeur_pile, pointeur_debut_retour, static_cast<unsigned>(taille_retour));
-			}
-
-			pointeur_pile += taille_retour;
-
-			frame = &frames[profondeur_appel - 1];
-			break;
-		}
-		case OP_APPEL:
-		{
-			auto valeur_ptr = LIS_8_OCTETS();
-			auto taille_argument = LIS_4_OCTETS();
-			// saute l'instruction d'appel
-			frame->pointeur += 8;
-			auto ptr_fonction = reinterpret_cast<AtomeFonction *>(valeur_ptr);
+			case OP_APPEL:
+			{
+				auto valeur_ptr = LIS_8_OCTETS();
+				auto taille_argument = LIS_4_OCTETS();
+				// saute l'instruction d'appel
+				frame->pointeur += 8;
+				auto ptr_fonction = reinterpret_cast<AtomeFonction *>(valeur_ptr);
 
 #ifdef DEBOGUE_INTERPRETEUSE
-			std::cerr << "-- appel : " << ptr_fonction->nom << '\n';
+				std::cerr << "-- appel : " << ptr_fonction->nom << '\n';
 #endif
 
-			if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
-				return ResultatInterpretation::ERREUR;
-			}
-
-			break;
-		}
-		case OP_APPEL_EXTERNE:
-		{
-			auto valeur_ptr = LIS_8_OCTETS();
-			auto taille_argument = LIS_4_OCTETS();
-			auto valeur_inst = LIS_8_OCTETS();
-			auto ptr_fonction = reinterpret_cast<AtomeFonction *>(valeur_ptr);
-			auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
-
-			if (EST_FONCTION_COMPILATRICE(compilatrice_espace_courant)) {
-				empile(m_metaprogramme->unite->espace);
-				break;
-			}
-
-			if (EST_FONCTION_COMPILATRICE(compilatrice_attend_message)) {
-				auto &messagere = compilatrice.messagere;
-
-				if (!messagere->possede_message()) {
-					frame->pointeur = pointeur_debut;
-					return ResultatInterpretation::PASSE_AU_SUIVANT;
-				}
-
-				auto message = messagere->defile();
-				empile(message);
-				break;
-			}
-
-			if (EST_FONCTION_COMPILATRICE(compilatrice_commence_interception)) {
-				auto espace_recu = static_cast<EspaceDeTravail *>(depile<void *>());
-
-				auto &messagere = compilatrice.messagere;
-				messagere->commence_interception(espace_recu);
-
-				espace_recu->metaprogramme = m_metaprogramme;
-				static_cast<void>(espace_recu);
-				break;
-			}
-
-			if (EST_FONCTION_COMPILATRICE(compilatrice_termine_interception)) {
-				auto espace_recu = static_cast<EspaceDeTravail *>(depile<void *>());
-
-				if (espace_recu->metaprogramme != m_metaprogramme) {
-					/* L'espace du « site » est celui de métaprogramme, et non
-					 * l'espace reçu en paramètre. */
-					rapporte_erreur(m_metaprogramme->unite->espace,
-									site,
-									"Le métaprogramme terminant l'interception n'est pas celui l'ayant commancé !");
-				}
-
-				espace_recu->metaprogramme = nullptr;
-
-				auto &messagere = compilatrice.messagere;
-				messagere->termine_interception(espace_recu);
-				compilatrice.ordonnanceuse->purge_messages();
-				break;
-			}
-
-			if (EST_FONCTION_COMPILATRICE(compilatrice_lexe_fichier)) {
-				auto chemin_recu = depile<kuri::chaine>();
-				auto resultat = compilatrice_lexe_fichier(chemin_recu, site);
-				empile(resultat);
-				break;
-			}
-
-			appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
-			break;
-		}
-		case OP_APPEL_POINTEUR:
-		{
-			auto taille_argument = LIS_4_OCTETS();
-			auto valeur_inst = LIS_8_OCTETS();
-			auto adresse = depile<void *>();
-			auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
-			auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
-
-			if (ptr_fonction->est_externe) {
-				appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
-			}
-			else {
 				if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
 					return ResultatInterpretation::ERREUR;
 				}
+
+				break;
 			}
+			case OP_APPEL_EXTERNE:
+			{
+				auto valeur_ptr = LIS_8_OCTETS();
+				auto taille_argument = LIS_4_OCTETS();
+				auto valeur_inst = LIS_8_OCTETS();
+				auto ptr_fonction = reinterpret_cast<AtomeFonction *>(valeur_ptr);
+				auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
 
-			break;
-		}
-		case OP_ASSIGNE:
-		{
-			auto taille = LIS_4_OCTETS();
-			auto adresse_ou = depile<void *>();
-			auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
-//			std::cerr << "----------------\n";
-//			std::cerr << "adresse_ou : " << adresse_ou << '\n';
-//			std::cerr << "adresse_de : " << adresse_de << '\n';
-//			std::cerr << "taille     : " << taille << '\n';
+				if (EST_FONCTION_COMPILATRICE(compilatrice_espace_courant)) {
+					empile(m_metaprogramme->unite->espace);
+					break;
+				}
 
-			if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) < taille) {
-				rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : superposition de la copie dans la machine virtuelle lors d'une assignation !")
-						.ajoute_message("La taille à copier est de    : ", taille, ".\n")
-						.ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
-						.ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
-						.ajoute_message("Le type du site  est         : ", chaine_type(site->type), "\n");
+				if (EST_FONCTION_COMPILATRICE(compilatrice_attend_message)) {
+					auto &messagere = compilatrice.messagere;
+
+					if (!messagere->possede_message()) {
+						frame->pointeur = pointeur_debut;
+						return ResultatInterpretation::PASSE_AU_SUIVANT;
+					}
+
+					auto message = messagere->defile();
+					empile(message);
+					break;
+				}
+
+				if (EST_FONCTION_COMPILATRICE(compilatrice_commence_interception)) {
+					auto espace_recu = static_cast<EspaceDeTravail *>(depile<void *>());
+
+					auto &messagere = compilatrice.messagere;
+					messagere->commence_interception(espace_recu);
+
+					espace_recu->metaprogramme = m_metaprogramme;
+					static_cast<void>(espace_recu);
+					break;
+				}
+
+				if (EST_FONCTION_COMPILATRICE(compilatrice_termine_interception)) {
+					auto espace_recu = static_cast<EspaceDeTravail *>(depile<void *>());
+
+					if (espace_recu->metaprogramme != m_metaprogramme) {
+						/* L'espace du « site » est celui de métaprogramme, et non
+					 * l'espace reçu en paramètre. */
+						rapporte_erreur(m_metaprogramme->unite->espace,
+										site,
+										"Le métaprogramme terminant l'interception n'est pas celui l'ayant commancé !");
+					}
+
+					espace_recu->metaprogramme = nullptr;
+
+					auto &messagere = compilatrice.messagere;
+					messagere->termine_interception(espace_recu);
+					compilatrice.ordonnanceuse->purge_messages();
+					break;
+				}
+
+				if (EST_FONCTION_COMPILATRICE(compilatrice_lexe_fichier)) {
+					auto chemin_recu = depile<kuri::chaine>();
+					auto resultat = compilatrice_lexe_fichier(chemin_recu, site);
+					empile(resultat);
+					break;
+				}
+
+				appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
+				break;
 			}
+			case OP_APPEL_POINTEUR:
+			{
+				auto taille_argument = LIS_4_OCTETS();
+				auto valeur_inst = LIS_8_OCTETS();
+				auto adresse = depile<void *>();
+				auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
+				auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
 
-			memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
-			depile(taille);
-			break;
-		}
-		case OP_ALLOUE:
-		{
-			auto type = LIS_POINTEUR(Type);
-			// saute l'identifiant
-			frame->pointeur += 8;
-//			std::cerr << "----------------\n";
-//			std::cerr << "alloue : " << type->taille_octet << '\n';
-			this->pointeur_pile += type->taille_octet;
+				if (ptr_fonction->est_externe) {
+					appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
+				}
+				else {
+					if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
+						return ResultatInterpretation::ERREUR;
+					}
+				}
 
-			if (type->taille_octet == 0) {
-				rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : allocation d'un type de taille 0 dans la MV !")
-						.ajoute_message("La type est : ", chaine_type(type), ".\n");
+				break;
 			}
+			case OP_ASSIGNE:
+			{
+				auto taille = LIS_4_OCTETS();
+				auto adresse_ou = depile<void *>();
+				auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
+//				std::cerr << "----------------\n";
+//				std::cerr << "adresse_ou : " << adresse_ou << '\n';
+//				std::cerr << "adresse_de : " << adresse_de << '\n';
+//				std::cerr << "taille     : " << taille << '\n';
 
-			break;
-		}
-		case OP_CHARGE:
-		{
-			auto taille = LIS_4_OCTETS();
-			auto adresse_de = depile<void *>();
-			auto adresse_ou = static_cast<void *>(this->pointeur_pile);
+				if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) < taille) {
+					rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : superposition de la copie dans la machine virtuelle lors d'une assignation !")
+							.ajoute_message("La taille à copier est de    : ", taille, ".\n")
+							.ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
+							.ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
+							.ajoute_message("Le type du site  est         : ", chaine_type(site->type), "\n");
+				}
 
-			if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) < taille) {
-				rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : superposition de la copie dans la machine virtuelle lors d'un chargement !")
-						.ajoute_message("La taille à copier est de    : ", taille, ".\n")
-						.ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
-						.ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
-						.ajoute_message("Le type du site  est         : ", chaine_type(site->type), "\n");
+				memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
+				depile(taille);
+				break;
 			}
+			case OP_ALLOUE:
+			{
+				auto type = LIS_POINTEUR(Type);
+				// saute l'identifiant
+				frame->pointeur += 8;
+//				std::cerr << "----------------\n";
+//				std::cerr << "alloue : " << type->taille_octet << '\n';
+				this->pointeur_pile += type->taille_octet;
 
-			memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
-			this->pointeur_pile += taille;
-			break;
-		}
-		case OP_REFERENCE_VARIABLE:
-		{
-			auto index = LIS_4_OCTETS();
-			auto const &locale = frame->fonction->chunk.locales[index];
-			empile(&frame->pointeur_pile[locale.adresse]);
-			break;
-		}
-		case OP_REFERENCE_GLOBALE:
-		{
-			auto index = LIS_4_OCTETS();
-			auto const &globale = this->globales[index];
-			empile(&ptr_donnees_globales[globale.adresse]);
-			break;
-		}
-		case OP_REFERENCE_MEMBRE:
-		{
-			auto decalage = LIS_4_OCTETS();
-			auto adresse_de = depile<char *>();
-			empile(adresse_de + decalage);
-			//std::cerr << "adresse_de : " << static_cast<void *>(adresse_de) << '\n';
-			break;
-		}
-		case OP_ACCEDE_INDEX:
-		{
-			auto taille_donnees = LIS_4_OCTETS();
-			auto adresse = depile<char *>();
-			auto index = depile<long>();
-			auto nouvelle_adresse = adresse + index * taille_donnees;
-			empile(nouvelle_adresse);
+				if (type->taille_octet == 0) {
+					rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : allocation d'un type de taille 0 dans la MV !")
+							.ajoute_message("La type est : ", chaine_type(type), ".\n");
+				}
+
+				break;
+			}
+			case OP_CHARGE:
+			{
+				auto taille = LIS_4_OCTETS();
+				auto adresse_de = depile<void *>();
+				auto adresse_ou = static_cast<void *>(this->pointeur_pile);
+
+				if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) < taille) {
+					rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : superposition de la copie dans la machine virtuelle lors d'un chargement !")
+							.ajoute_message("La taille à copier est de    : ", taille, ".\n")
+							.ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
+							.ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
+							.ajoute_message("Le type du site  est         : ", chaine_type(site->type), "\n");
+				}
+
+				memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
+				this->pointeur_pile += taille;
+				break;
+			}
+			case OP_REFERENCE_VARIABLE:
+			{
+				auto index = LIS_4_OCTETS();
+				auto const &locale = frame->fonction->chunk.locales[index];
+				empile(&frame->pointeur_pile[locale.adresse]);
+				break;
+			}
+			case OP_REFERENCE_GLOBALE:
+			{
+				auto index = LIS_4_OCTETS();
+				auto const &globale = this->globales[index];
+				empile(&ptr_donnees_globales[globale.adresse]);
+				break;
+			}
+			case OP_REFERENCE_MEMBRE:
+			{
+				auto decalage = LIS_4_OCTETS();
+				auto adresse_de = depile<char *>();
+				empile(adresse_de + decalage);
+				//std::cerr << "adresse_de : " << static_cast<void *>(adresse_de) << '\n';
+				break;
+			}
+			case OP_ACCEDE_INDEX:
+			{
+				auto taille_donnees = LIS_4_OCTETS();
+				auto adresse = depile<char *>();
+				auto index = depile<long>();
+				auto nouvelle_adresse = adresse + index * taille_donnees;
+				empile(nouvelle_adresse);
 //				std::cerr << "nouvelle_adresse : " << static_cast<void *>(nouvelle_adresse) << '\n';
 //				std::cerr << "index            : " << index << '\n';
 //				std::cerr << "taille_donnees   : " << taille_donnees << '\n';
-			break;
-		}
-		default:
-		{
-			std::cerr << "Opération inconnue dans la MV\n";
-			return ResultatInterpretation::ERREUR;
+				break;
+			}
+			default:
+			{
+				std::cerr << "Opération inconnue dans la MV\n";
+				return ResultatInterpretation::ERREUR;
+			}
 		}
 	}
 
@@ -1351,30 +1353,24 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
 		installe_metaprogramme(it);
 
-		for (int j = 0; j < 100; ++j) {
-			auto res = execute_instruction();
+		auto res = execute_instructions();
 
-			if (res == ResultatInterpretation::PASSE_AU_SUIVANT) {
-				break;
-			}
-
-			if (res == ResultatInterpretation::ERREUR) {
-				it->resultat = MetaProgramme::ResultatExecution::ERREUR;
-				m_metaprogrammes_termines.ajoute(it);
-				std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
-				nombre_metaprogrammes -= 1;
-				i -= 1;
-				break;
-			}
-
-			if (res == ResultatInterpretation::TERMINE) {
-				it->resultat = MetaProgramme::ResultatExecution::SUCCES;
-				m_metaprogrammes_termines.ajoute(it);
-				std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
-				nombre_metaprogrammes -= 1;
-				i -= 1;
-				break;
-			}
+		if (res == ResultatInterpretation::PASSE_AU_SUIVANT) {
+			// RÀF
+		}
+		else if (res == ResultatInterpretation::ERREUR) {
+			it->resultat = MetaProgramme::ResultatExecution::ERREUR;
+			m_metaprogrammes_termines.ajoute(it);
+			std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
+			nombre_metaprogrammes -= 1;
+			i -= 1;
+		}
+		else if (res == ResultatInterpretation::TERMINE) {
+			it->resultat = MetaProgramme::ResultatExecution::SUCCES;
+			m_metaprogrammes_termines.ajoute(it);
+			std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
+			nombre_metaprogrammes -= 1;
+			i -= 1;
 		}
 
 		desinstalle_metaprogramme(it);
