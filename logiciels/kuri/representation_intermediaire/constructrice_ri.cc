@@ -1347,7 +1347,17 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 						valeur = depile_valeur();
 
 						if (it->type != type_union->type_le_plus_grand) {
-							auto ptr = valeur->comme_instruction()->comme_charge()->chargee;
+							Atome *ptr = nullptr;
+
+							if (!valeur->est_instruction()) {
+								auto alloc_temp = cree_allocation(it, it->type, nullptr);
+								cree_stocke_mem(it, alloc_temp, valeur);
+								ptr = alloc_temp;
+							}
+							else {
+								ptr = valeur->comme_instruction()->comme_charge()->chargee;
+							}
+
 							valeur = cree_transtype(noeud, m_espace->typeuse.type_pointeur_pour(type_union->type_le_plus_grand, false), ptr, TypeTranstypage::BITS);
 							valeur = cree_charge_mem(noeud, valeur);
 						}
