@@ -216,7 +216,7 @@ static const struct EntreeTable wordlist[] =
 {"diff\303\250re", GenreLexeme::DIFFERE}
 };
 
-GenreLexeme
+inline GenreLexeme
 EmpreinteParfaite::lexeme_pour_chaine (const char *str, size_t len)
 {
 	if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -235,7 +235,7 @@ EmpreinteParfaite::lexeme_pour_chaine (const char *str, size_t len)
 	return GenreLexeme::CHAINE_CARACTERE;
 }
 
-GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
+inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
 {
 	return EmpreinteParfaite::lexeme_pour_chaine(chn.pointeur(), static_cast<size_t>(chn.taille()));
 }
