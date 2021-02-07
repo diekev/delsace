@@ -113,6 +113,15 @@ private:
 		return consomme();
 	}
 
+	inline void recule()
+	{
+		m_position -= 1;
+
+		if (m_position >= 0) {
+			m_lexeme_courant = &m_lexemes[m_position];
+		}
+	}
+
 	inline Lexeme *lexeme_courant()
 	{
 		return m_lexeme_courant;

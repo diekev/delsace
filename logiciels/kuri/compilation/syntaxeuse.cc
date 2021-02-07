@@ -987,8 +987,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			}
 			else {
 				/* repositionne le lexème courant afin que les messages d'erreurs pointent au bon endroit */
-				this->m_position -= 1;
-				m_lexeme_courant = lexeme;
+				recule();
 				lance_erreur("Directive inconnue");
 			}
 
