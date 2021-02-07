@@ -1179,6 +1179,12 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 //			std::cerr << "----------------\n";
 //			std::cerr << "alloue : " << type->taille_octet << '\n';
 			this->pointeur_pile += type->taille_octet;
+
+			if (type->taille_octet == 0) {
+				rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : allocation d'un type de taille 0 dans la MV !")
+						.ajoute_message("La type est : ", chaine_type(type), ".\n");
+			}
+
 			break;
 		}
 		case OP_CHARGE:
