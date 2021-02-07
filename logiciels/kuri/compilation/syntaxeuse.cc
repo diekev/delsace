@@ -117,211 +117,452 @@ static auto copie_tablet_tableau(dls::tablet<T, N> const &src, kuri::tableau<T> 
 	}
 }
 
-static bool est_operateur_surchargeable(GenreLexeme genre)
-{
-	switch (genre) {
-		default:
-		{
-			return false;
+enum {
+	OPERATEUR_EST_SURCHARGEABLE   = (1 << 0),
+	EST_EXPRESSION = (1 << 1),
+	EST_EXPRESSION_UNAIRE = (1 << 2),
+	EST_EXPRESSION_SECONDAIRE = (1 << 3),
+	EST_LEXEME_TYPE = (1 << 4),
+	EST_INSTRUCTION = (1 << 5),
+};
+
+static constexpr auto table_drapeaux_lexemes = [] {
+	std::array<u_char, 256> t{};
+
+	for (auto i = 0u; i < 256; ++i) {
+		t[i] = 0;
+
+		switch (static_cast<GenreLexeme>(i)) {
+			default:
+			{
+				break;
+			}
+			case GenreLexeme::INFERIEUR:
+			case GenreLexeme::INFERIEUR_EGAL:
+			case GenreLexeme::SUPERIEUR:
+			case GenreLexeme::SUPERIEUR_EGAL:
+			case GenreLexeme::DIFFERENCE:
+			case GenreLexeme::EGALITE:
+			case GenreLexeme::PLUS:
+			case GenreLexeme::PLUS_UNAIRE:
+			case GenreLexeme::MOINS:
+			case GenreLexeme::MOINS_UNAIRE:
+			case GenreLexeme::FOIS:
+			case GenreLexeme::FOIS_UNAIRE:
+			case GenreLexeme::DIVISE:
+			case GenreLexeme::DECALAGE_DROITE:
+			case GenreLexeme::DECALAGE_GAUCHE:
+			case GenreLexeme::POURCENT:
+			case GenreLexeme::ESPERLUETTE:
+			case GenreLexeme::BARRE:
+			case GenreLexeme::TILDE:
+			case GenreLexeme::EXCLAMATION:
+			case GenreLexeme::CHAPEAU:
+			case GenreLexeme::CROCHET_OUVRANT:
+			{
+				t[i] |= OPERATEUR_EST_SURCHARGEABLE;
+				break;
+			}
 		}
-		case GenreLexeme::INFERIEUR:
-		case GenreLexeme::INFERIEUR_EGAL:
-		case GenreLexeme::SUPERIEUR:
-		case GenreLexeme::SUPERIEUR_EGAL:
-		case GenreLexeme::DIFFERENCE:
-		case GenreLexeme::EGALITE:
-		case GenreLexeme::PLUS:
-		case GenreLexeme::PLUS_UNAIRE:
-		case GenreLexeme::MOINS:
-		case GenreLexeme::MOINS_UNAIRE:
-		case GenreLexeme::FOIS:
-		case GenreLexeme::FOIS_UNAIRE:
-		case GenreLexeme::DIVISE:
-		case GenreLexeme::DECALAGE_DROITE:
-		case GenreLexeme::DECALAGE_GAUCHE:
-		case GenreLexeme::POURCENT:
-		case GenreLexeme::ESPERLUETTE:
-		case GenreLexeme::BARRE:
-		case GenreLexeme::TILDE:
-		case GenreLexeme::EXCLAMATION:
-		case GenreLexeme::CHAPEAU:
-		case GenreLexeme::CROCHET_OUVRANT:
-		{
-			return true;
+
+		// expression unaire
+		switch (static_cast<GenreLexeme>(i)) {
+			case GenreLexeme::EXCLAMATION:
+			case GenreLexeme::MOINS:
+			case GenreLexeme::MOINS_UNAIRE:
+			case GenreLexeme::PLUS:
+			case GenreLexeme::PLUS_UNAIRE:
+			case GenreLexeme::TILDE:
+			case GenreLexeme::FOIS:
+			case GenreLexeme::FOIS_UNAIRE:
+			case GenreLexeme::ESP_UNAIRE:
+			case GenreLexeme::ESPERLUETTE:
+			case GenreLexeme::TROIS_POINTS:
+			case GenreLexeme::EXPANSION_VARIADIQUE:
+			{
+				t[i] |= EST_EXPRESSION_UNAIRE;
+				t[i] |= EST_EXPRESSION;
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+
+		// expresssion
+		switch (static_cast<GenreLexeme>(i)) {
+			case GenreLexeme::CARACTERE:
+			case GenreLexeme::CHAINE_CARACTERE:
+			case GenreLexeme::CHAINE_LITTERALE:
+			case GenreLexeme::COROUT:
+			case GenreLexeme::CROCHET_OUVRANT: // construit tableau
+			case GenreLexeme::DIRECTIVE:
+			case GenreLexeme::DOLLAR:
+			case GenreLexeme::EMPL:
+			case GenreLexeme::ENUM:
+			case GenreLexeme::ENUM_DRAPEAU:
+			case GenreLexeme::ERREUR:
+			case GenreLexeme::EXTERNE:
+			case GenreLexeme::FAUX:
+			case GenreLexeme::FONC:
+			case GenreLexeme::INFO_DE:
+			case GenreLexeme::INIT_DE:
+			case GenreLexeme::MEMOIRE:
+			case GenreLexeme::NOMBRE_ENTIER:
+			case GenreLexeme::NOMBRE_REEL:
+			case GenreLexeme::NON_INITIALISATION:
+			case GenreLexeme::NUL:
+			case GenreLexeme::OPERATEUR:
+			case GenreLexeme::PARENTHESE_OUVRANTE: // expression entre parenthèse
+			case GenreLexeme::STRUCT:
+			case GenreLexeme::TABLEAU:
+			case GenreLexeme::TAILLE_DE:
+			case GenreLexeme::TYPE_DE:
+			case GenreLexeme::TENTE:
+			case GenreLexeme::UNION:
+			case GenreLexeme::VRAI:
+			{
+				t[i] |= EST_EXPRESSION;
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+
+		// expresssion type
+		switch (static_cast<GenreLexeme>(i)) {
+			case GenreLexeme::N8:
+			case GenreLexeme::N16:
+			case GenreLexeme::N32:
+			case GenreLexeme::N64:
+			case GenreLexeme::R16:
+			case GenreLexeme::R32:
+			case GenreLexeme::R64:
+			case GenreLexeme::Z8:
+			case GenreLexeme::Z16:
+			case GenreLexeme::Z32:
+			case GenreLexeme::Z64:
+			case GenreLexeme::BOOL:
+			case GenreLexeme::RIEN:
+			case GenreLexeme::EINI:
+			case GenreLexeme::CHAINE:
+			case GenreLexeme::CHAINE_CARACTERE:
+			case GenreLexeme::OCTET:
+			case GenreLexeme::TYPE_DE_DONNEES:
+			{
+				t[i] |= EST_LEXEME_TYPE;
+				t[i] |= EST_EXPRESSION;
+				break;
+			}
+			default:
+				break;
+		}
+
+		// expresssion secondaire
+		switch (static_cast<GenreLexeme>(i)) {
+			case GenreLexeme::BARRE:
+			case GenreLexeme::BARRE_BARRE:
+			case GenreLexeme::CHAPEAU:
+			case GenreLexeme::CROCHET_OUVRANT:
+			case GenreLexeme::DECALAGE_DROITE:
+			case GenreLexeme::DECALAGE_GAUCHE:
+			case GenreLexeme::DECLARATION_CONSTANTE:
+			case GenreLexeme::DECLARATION_VARIABLE:
+			case GenreLexeme::DEC_DROITE_EGAL:
+			case GenreLexeme::DEC_GAUCHE_EGAL:
+			case GenreLexeme::DIFFERENCE:
+			case GenreLexeme::DIVISE:
+			case GenreLexeme::DIVISE_EGAL:
+			case GenreLexeme::EGAL:
+			case GenreLexeme::EGALITE:
+			case GenreLexeme::ESPERLUETTE:
+			case GenreLexeme::ESP_ESP:
+			case GenreLexeme::ET_EGAL:
+			case GenreLexeme::FOIS:
+			case GenreLexeme::INFERIEUR:
+			case GenreLexeme::INFERIEUR_EGAL:
+			case GenreLexeme::MODULO_EGAL:
+			case GenreLexeme::MOINS:
+			case GenreLexeme::MOINS_EGAL:
+			case GenreLexeme::MULTIPLIE_EGAL:
+			case GenreLexeme::OUX_EGAL:
+			case GenreLexeme::OU_EGAL:
+			case GenreLexeme::PARENTHESE_OUVRANTE:
+			case GenreLexeme::PLUS:
+			case GenreLexeme::PLUS_EGAL:
+			case GenreLexeme::POINT:
+			case GenreLexeme::POURCENT:
+			case GenreLexeme::SUPERIEUR:
+			case GenreLexeme::SUPERIEUR_EGAL:
+			case GenreLexeme::TROIS_POINTS:
+			case GenreLexeme::VIRGULE:
+			case GenreLexeme::COMME:
+			case GenreLexeme::DOUBLE_POINTS:
+			{
+				t[i] |= EST_EXPRESSION_SECONDAIRE;
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+
+		switch (static_cast<GenreLexeme>(i)) {
+			case GenreLexeme::ACCOLADE_OUVRANTE:
+			case GenreLexeme::ARRETE:
+			case GenreLexeme::BOUCLE:
+			case GenreLexeme::CONTINUE:
+			case GenreLexeme::DIFFERE:
+			case GenreLexeme::DISCR:
+			case GenreLexeme::NONSUR:
+			case GenreLexeme::POUR:
+			case GenreLexeme::POUSSE_CONTEXTE:
+			case GenreLexeme::REPETE:
+			case GenreLexeme::REPRENDS:
+			case GenreLexeme::RETIENS:
+			case GenreLexeme::RETOURNE:
+			case GenreLexeme::SAUFSI:
+			case GenreLexeme::SI:
+			case GenreLexeme::TANTQUE:
+			{
+				t[i] |= EST_INSTRUCTION;
+				break;
+			}
+			default:
+			{
+				break;
+			}
 		}
 	}
-}
+
+	return t;
+}();
+
+static constexpr auto table_associativite_lexemes = [] {
+	std::array<Associativite, 256> t{};
+
+	for (auto i = 0u; i < 256; ++i) {
+		t[i] = static_cast<Associativite>(-1);
+
+		switch (static_cast<GenreLexeme>(i)) {
+			case GenreLexeme::VIRGULE:
+			case GenreLexeme::TROIS_POINTS:
+			case GenreLexeme::EGAL:
+			case GenreLexeme::DECLARATION_VARIABLE:
+			case GenreLexeme::DECLARATION_CONSTANTE:
+			case GenreLexeme::PLUS_EGAL:
+			case GenreLexeme::MOINS_EGAL:
+			case GenreLexeme::DIVISE_EGAL:
+			case GenreLexeme::MULTIPLIE_EGAL:
+			case GenreLexeme::MODULO_EGAL:
+			case GenreLexeme::ET_EGAL:
+			case GenreLexeme::OU_EGAL:
+			case GenreLexeme::OUX_EGAL:
+			case GenreLexeme::DEC_DROITE_EGAL:
+			case GenreLexeme::DEC_GAUCHE_EGAL:
+			case GenreLexeme::BARRE_BARRE:
+			case GenreLexeme::ESP_ESP:
+			case GenreLexeme::BARRE:
+			case GenreLexeme::CHAPEAU:
+			case GenreLexeme::ESPERLUETTE:
+			case GenreLexeme::DIFFERENCE:
+			case GenreLexeme::EGALITE:
+			case GenreLexeme::INFERIEUR:
+			case GenreLexeme::INFERIEUR_EGAL:
+			case GenreLexeme::SUPERIEUR:
+			case GenreLexeme::SUPERIEUR_EGAL:
+			case GenreLexeme::DECALAGE_GAUCHE:
+			case GenreLexeme::DECALAGE_DROITE:
+			case GenreLexeme::PLUS:
+			case GenreLexeme::MOINS:
+			case GenreLexeme::FOIS:
+			case GenreLexeme::DIVISE:
+			case GenreLexeme::POURCENT:
+			case GenreLexeme::POINT:
+			case GenreLexeme::CROCHET_OUVRANT:
+			case GenreLexeme::PARENTHESE_OUVRANTE:
+			case GenreLexeme::COMME:
+			case GenreLexeme::DOUBLE_POINTS:
+			{
+				t[i] = Associativite::GAUCHE;
+				break;
+			}
+			case GenreLexeme::EXCLAMATION:
+			case GenreLexeme::TILDE:
+			case GenreLexeme::PLUS_UNAIRE:
+			case GenreLexeme::FOIS_UNAIRE:
+			case GenreLexeme::ESP_UNAIRE:
+			case GenreLexeme::MOINS_UNAIRE:
+			case GenreLexeme::EXPANSION_VARIADIQUE:
+			{
+				t[i] = Associativite::DROITE;
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+	}
+
+	return t;
+}();
 
 static constexpr int PRECEDENCE_VIRGULE = 3;
 static constexpr int PRECEDENCE_TYPE    = 4;
 
-static int precedence_pour_operateur(GenreLexeme genre_operateur)
-{
-	switch (genre_operateur) {
-		case GenreLexeme::TROIS_POINTS:
-		{
-			return 1;
-		}
-		case GenreLexeme::EGAL:
-		case GenreLexeme::DECLARATION_VARIABLE:
-		case GenreLexeme::DECLARATION_CONSTANTE:
-		case GenreLexeme::PLUS_EGAL:
-		case GenreLexeme::MOINS_EGAL:
-		case GenreLexeme::DIVISE_EGAL:
-		case GenreLexeme::MULTIPLIE_EGAL:
-		case GenreLexeme::MODULO_EGAL:
-		case GenreLexeme::ET_EGAL:
-		case GenreLexeme::OU_EGAL:
-		case GenreLexeme::OUX_EGAL:
-		case GenreLexeme::DEC_DROITE_EGAL:
-		case GenreLexeme::DEC_GAUCHE_EGAL:
-		{
-			return 2;
-		}
-		case GenreLexeme::VIRGULE:
-		{
-			return PRECEDENCE_VIRGULE;
-		}
-		case GenreLexeme::DOUBLE_POINTS:
-		{
-			return PRECEDENCE_TYPE;
-		}
-		case GenreLexeme::BARRE_BARRE:
-		{
-			return 5;
-		}
-		case GenreLexeme::ESP_ESP:
-		{
-			return 6;
-		}
-		case GenreLexeme::BARRE:
-		{
-			return 7;
-		}
-		case GenreLexeme::CHAPEAU:
-		{
-			return 8;
-		}
-		case GenreLexeme::ESPERLUETTE:
-		{
-			return 9;
-		}
-		case GenreLexeme::DIFFERENCE:
-		case GenreLexeme::EGALITE:
-		{
-			return 10;
-		}
-		case GenreLexeme::INFERIEUR:
-		case GenreLexeme::INFERIEUR_EGAL:
-		case GenreLexeme::SUPERIEUR:
-		case GenreLexeme::SUPERIEUR_EGAL:
-		{
-			return 11;
-		}
-		case GenreLexeme::DECALAGE_GAUCHE:
-		case GenreLexeme::DECALAGE_DROITE:
-		{
-			return 12;
-		}
-		case GenreLexeme::PLUS:
-		case GenreLexeme::MOINS:
-		{
-			return 13;
-		}
-		case GenreLexeme::FOIS:
-		case GenreLexeme::DIVISE:
-		case GenreLexeme::POURCENT:
-		{
-			return 14;
-		}
-		case GenreLexeme::COMME:
-		{
-			return 15;
-		}
-		case GenreLexeme::EXCLAMATION:
-		case GenreLexeme::TILDE:
-		case GenreLexeme::PLUS_UNAIRE:
-		case GenreLexeme::MOINS_UNAIRE:
-		case GenreLexeme::FOIS_UNAIRE:
-		case GenreLexeme::ESP_UNAIRE:
-		case GenreLexeme::EXPANSION_VARIADIQUE:
-		{
-			return 16;
-		}
-		case GenreLexeme::PARENTHESE_OUVRANTE:
-		case GenreLexeme::POINT:
-		case GenreLexeme::CROCHET_OUVRANT:
-		{
-			return 17;
-		}
-		default:
-		{
-			assert_rappel(false, [&]() { std::cerr << "Aucune précédence pour l'opérateur : " << chaine_du_lexeme(genre_operateur) << '\n'; });
-			return -1;
+static constexpr auto table_precedence_lexemes = [] {
+	std::array<char, 256> t{};
+
+	for (auto i = 0u; i < 256; ++i) {
+		t[i] = -1;
+
+		switch (static_cast<GenreLexeme>(i)) {
+			case GenreLexeme::TROIS_POINTS:
+			{
+				t[i] = 1;
+				break;
+			}
+			case GenreLexeme::EGAL:
+			case GenreLexeme::DECLARATION_VARIABLE:
+			case GenreLexeme::DECLARATION_CONSTANTE:
+			case GenreLexeme::PLUS_EGAL:
+			case GenreLexeme::MOINS_EGAL:
+			case GenreLexeme::DIVISE_EGAL:
+			case GenreLexeme::MULTIPLIE_EGAL:
+			case GenreLexeme::MODULO_EGAL:
+			case GenreLexeme::ET_EGAL:
+			case GenreLexeme::OU_EGAL:
+			case GenreLexeme::OUX_EGAL:
+			case GenreLexeme::DEC_DROITE_EGAL:
+			case GenreLexeme::DEC_GAUCHE_EGAL:
+			{
+				t[i] = 2;
+				break;
+			}
+			case GenreLexeme::VIRGULE:
+			{
+				t[i] = PRECEDENCE_VIRGULE;
+				break;
+			}
+			case GenreLexeme::DOUBLE_POINTS:
+			{
+				t[i] = PRECEDENCE_TYPE;
+				break;
+			}
+			case GenreLexeme::BARRE_BARRE:
+			{
+				t[i] = 5;
+				break;
+			}
+			case GenreLexeme::ESP_ESP:
+			{
+				t[i] = 6;
+				break;
+			}
+			case GenreLexeme::BARRE:
+			{
+				t[i] = 7;
+				break;
+			}
+			case GenreLexeme::CHAPEAU:
+			{
+				t[i] = 8;
+				break;
+			}
+			case GenreLexeme::ESPERLUETTE:
+			{
+				t[i] = 9;
+				break;
+			}
+			case GenreLexeme::DIFFERENCE:
+			case GenreLexeme::EGALITE:
+			{
+				t[i] = 10;
+				break;
+			}
+			case GenreLexeme::INFERIEUR:
+			case GenreLexeme::INFERIEUR_EGAL:
+			case GenreLexeme::SUPERIEUR:
+			case GenreLexeme::SUPERIEUR_EGAL:
+			{
+				t[i] = 11;
+				break;
+			}
+			case GenreLexeme::DECALAGE_GAUCHE:
+			case GenreLexeme::DECALAGE_DROITE:
+			{
+				t[i] = 12;
+				break;
+			}
+			case GenreLexeme::PLUS:
+			case GenreLexeme::MOINS:
+			{
+				t[i] = 13;
+				break;
+			}
+			case GenreLexeme::FOIS:
+			case GenreLexeme::DIVISE:
+			case GenreLexeme::POURCENT:
+			{
+				t[i] = 14;
+				break;
+			}
+			case GenreLexeme::COMME:
+			{
+				t[i] = 15;
+				break;
+			}
+			case GenreLexeme::EXCLAMATION:
+			case GenreLexeme::TILDE:
+			case GenreLexeme::PLUS_UNAIRE:
+			case GenreLexeme::MOINS_UNAIRE:
+			case GenreLexeme::FOIS_UNAIRE:
+			case GenreLexeme::ESP_UNAIRE:
+			case GenreLexeme::EXPANSION_VARIADIQUE:
+			{
+				t[i] = 16;
+				break;
+			}
+			case GenreLexeme::PARENTHESE_OUVRANTE:
+			case GenreLexeme::POINT:
+			case GenreLexeme::CROCHET_OUVRANT:
+			{
+				t[i] = 17;
+				break;
+			}
+			default:
+			{
+
+				break;
+			}
 		}
 	}
+
+	return t;
+}();
+
+static inline bool est_operateur_surchargeable(GenreLexeme genre)
+{
+	return (table_drapeaux_lexemes[static_cast<size_t>(genre)] & OPERATEUR_EST_SURCHARGEABLE) != 0;
 }
 
-static Associativite associativite_pour_operateur(GenreLexeme genre_operateur)
+static inline int precedence_pour_operateur(GenreLexeme genre_operateur)
 {
-	switch (genre_operateur) {
-		case GenreLexeme::VIRGULE:
-		case GenreLexeme::TROIS_POINTS:
-		case GenreLexeme::EGAL:
-		case GenreLexeme::DECLARATION_VARIABLE:
-		case GenreLexeme::DECLARATION_CONSTANTE:
-		case GenreLexeme::PLUS_EGAL:
-		case GenreLexeme::MOINS_EGAL:
-		case GenreLexeme::DIVISE_EGAL:
-		case GenreLexeme::MULTIPLIE_EGAL:
-		case GenreLexeme::MODULO_EGAL:
-		case GenreLexeme::ET_EGAL:
-		case GenreLexeme::OU_EGAL:
-		case GenreLexeme::OUX_EGAL:
-		case GenreLexeme::DEC_DROITE_EGAL:
-		case GenreLexeme::DEC_GAUCHE_EGAL:
-		case GenreLexeme::BARRE_BARRE:
-		case GenreLexeme::ESP_ESP:
-		case GenreLexeme::BARRE:
-		case GenreLexeme::CHAPEAU:
-		case GenreLexeme::ESPERLUETTE:
-		case GenreLexeme::DIFFERENCE:
-		case GenreLexeme::EGALITE:
-		case GenreLexeme::INFERIEUR:
-		case GenreLexeme::INFERIEUR_EGAL:
-		case GenreLexeme::SUPERIEUR:
-		case GenreLexeme::SUPERIEUR_EGAL:
-		case GenreLexeme::DECALAGE_GAUCHE:
-		case GenreLexeme::DECALAGE_DROITE:
-		case GenreLexeme::PLUS:
-		case GenreLexeme::MOINS:
-		case GenreLexeme::FOIS:
-		case GenreLexeme::DIVISE:
-		case GenreLexeme::POURCENT:
-		case GenreLexeme::POINT:
-		case GenreLexeme::CROCHET_OUVRANT:
-		case GenreLexeme::PARENTHESE_OUVRANTE:
-		case GenreLexeme::COMME:
-		case GenreLexeme::DOUBLE_POINTS:
-		{
-			return Associativite::GAUCHE;
-		}
-		case GenreLexeme::EXCLAMATION:
-		case GenreLexeme::TILDE:
-		case GenreLexeme::PLUS_UNAIRE:
-		case GenreLexeme::FOIS_UNAIRE:
-		case GenreLexeme::ESP_UNAIRE:
-		case GenreLexeme::MOINS_UNAIRE:
-		case GenreLexeme::EXPANSION_VARIADIQUE:
-		{
-			return Associativite::DROITE;
-		}
-		default:
-		{
-			assert_rappel(false, [&]() { std::cerr << "Aucune associativité pour l'opérateur : " << chaine_du_lexeme(genre_operateur) << '\n'; });
-			return static_cast<Associativite>(-1);
-		}
-	}
+	int precedence = table_precedence_lexemes[static_cast<size_t>(genre_operateur)];
+	assert_rappel(precedence != -1, [&]() { std::cerr << "Aucune précédence pour l'opérateur : " << chaine_du_lexeme(genre_operateur) << '\n'; });
+	return precedence;
+}
+
+static inline Associativite associativite_pour_operateur(GenreLexeme genre_operateur)
+{
+	auto associativite = table_associativite_lexemes[static_cast<size_t>(genre_operateur)];
+	assert_rappel(associativite != static_cast<Associativite>(-1), [&]() { std::cerr << "Aucune précédence pour l'opérateur : " << chaine_du_lexeme(genre_operateur) << '\n'; });
+	return associativite;
 }
 
 Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite)
@@ -469,157 +710,25 @@ void Syntaxeuse::lance_analyse()
 bool Syntaxeuse::apparie_expression() const
 {
 	auto genre = lexeme_courant()->genre;
-
-	switch (genre) {
-		case GenreLexeme::CARACTERE:
-		case GenreLexeme::CHAINE_CARACTERE:
-		case GenreLexeme::CHAINE_LITTERALE:
-		case GenreLexeme::COROUT:
-		case GenreLexeme::CROCHET_OUVRANT: // construit tableau
-		case GenreLexeme::DIRECTIVE:
-		case GenreLexeme::DOLLAR:
-		case GenreLexeme::EMPL:
-		case GenreLexeme::ENUM:
-		case GenreLexeme::ENUM_DRAPEAU:
-		case GenreLexeme::ERREUR:
-		case GenreLexeme::EXTERNE:
-		case GenreLexeme::FAUX:
-		case GenreLexeme::FONC:
-		case GenreLexeme::INFO_DE:
-		case GenreLexeme::INIT_DE:
-		case GenreLexeme::MEMOIRE:
-		case GenreLexeme::NOMBRE_ENTIER:
-		case GenreLexeme::NOMBRE_REEL:
-		case GenreLexeme::NON_INITIALISATION:
-		case GenreLexeme::NUL:
-		case GenreLexeme::OPERATEUR:
-		case GenreLexeme::PARENTHESE_OUVRANTE: // expression entre parenthèse
-		case GenreLexeme::STRUCT:
-		case GenreLexeme::TABLEAU:
-		case GenreLexeme::TAILLE_DE:
-		case GenreLexeme::TYPE_DE:
-		case GenreLexeme::TENTE:
-		case GenreLexeme::UNION:
-		case GenreLexeme::VRAI:
-		{
-			return true;
-		}
-		default:
-		{
-			return apparie_expression_unaire() || est_identifiant_type(genre);
-		}
-	}
+	return (table_drapeaux_lexemes[static_cast<size_t>(genre)] & EST_EXPRESSION) != 0;
 }
 
 bool Syntaxeuse::apparie_expression_unaire() const
 {
 	auto genre = lexeme_courant()->genre;
-
-	switch (genre) {
-		case GenreLexeme::EXCLAMATION:
-		case GenreLexeme::MOINS:
-		case GenreLexeme::MOINS_UNAIRE:
-		case GenreLexeme::PLUS:
-		case GenreLexeme::PLUS_UNAIRE:
-		case GenreLexeme::TILDE:
-		case GenreLexeme::FOIS:
-		case GenreLexeme::FOIS_UNAIRE:
-		case GenreLexeme::ESP_UNAIRE:
-		case GenreLexeme::ESPERLUETTE:
-		case GenreLexeme::TROIS_POINTS:
-		case GenreLexeme::EXPANSION_VARIADIQUE:
-		{
-			return true;
-		}
-		default:
-		{
-			return false;
-		}
-	}
+	return (table_drapeaux_lexemes[static_cast<size_t>(genre)] & EST_EXPRESSION_UNAIRE) != 0;
 }
 
 bool Syntaxeuse::apparie_expression_secondaire() const
 {
 	auto genre = lexeme_courant()->genre;
-
-	switch (genre) {
-		case GenreLexeme::BARRE:
-		case GenreLexeme::BARRE_BARRE:
-		case GenreLexeme::CHAPEAU:
-		case GenreLexeme::CROCHET_OUVRANT:
-		case GenreLexeme::DECALAGE_DROITE:
-		case GenreLexeme::DECALAGE_GAUCHE:
-		case GenreLexeme::DECLARATION_CONSTANTE:
-		case GenreLexeme::DECLARATION_VARIABLE:
-		case GenreLexeme::DEC_DROITE_EGAL:
-		case GenreLexeme::DEC_GAUCHE_EGAL:
-		case GenreLexeme::DIFFERENCE:
-		case GenreLexeme::DIVISE:
-		case GenreLexeme::DIVISE_EGAL:
-		case GenreLexeme::EGAL:
-		case GenreLexeme::EGALITE:
-		case GenreLexeme::ESPERLUETTE:
-		case GenreLexeme::ESP_ESP:
-		case GenreLexeme::ET_EGAL:
-		case GenreLexeme::FOIS:
-		case GenreLexeme::INFERIEUR:
-		case GenreLexeme::INFERIEUR_EGAL:
-		case GenreLexeme::MODULO_EGAL:
-		case GenreLexeme::MOINS:
-		case GenreLexeme::MOINS_EGAL:
-		case GenreLexeme::MULTIPLIE_EGAL:
-		case GenreLexeme::OUX_EGAL:
-		case GenreLexeme::OU_EGAL:
-		case GenreLexeme::PARENTHESE_OUVRANTE:
-		case GenreLexeme::PLUS:
-		case GenreLexeme::PLUS_EGAL:
-		case GenreLexeme::POINT:
-		case GenreLexeme::POURCENT:
-		case GenreLexeme::SUPERIEUR:
-		case GenreLexeme::SUPERIEUR_EGAL:
-		case GenreLexeme::TROIS_POINTS:
-		case GenreLexeme::VIRGULE:
-		case GenreLexeme::COMME:
-		case GenreLexeme::DOUBLE_POINTS:
-		{
-			return true;
-		}
-		default:
-		{
-			return false;
-		}
-	}
+	return (table_drapeaux_lexemes[static_cast<size_t>(genre)] & EST_EXPRESSION_SECONDAIRE) != 0;
 }
 
 bool Syntaxeuse::apparie_instruction() const
 {
 	auto genre = lexeme_courant()->genre;
-
-	switch (genre) {
-		case GenreLexeme::ACCOLADE_OUVRANTE:
-		case GenreLexeme::ARRETE:
-		case GenreLexeme::BOUCLE:
-		case GenreLexeme::CONTINUE:
-		case GenreLexeme::DIFFERE:
-		case GenreLexeme::DISCR:
-		case GenreLexeme::NONSUR:
-		case GenreLexeme::POUR:
-		case GenreLexeme::POUSSE_CONTEXTE:
-		case GenreLexeme::REPETE:
-		case GenreLexeme::REPRENDS:
-		case GenreLexeme::RETIENS:
-		case GenreLexeme::RETOURNE:
-		case GenreLexeme::SAUFSI:
-		case GenreLexeme::SI:
-		case GenreLexeme::TANTQUE:
-		{
-			return true;
-		}
-		default:
-		{
-			return false;
-		}
-	}
+	return (table_drapeaux_lexemes[static_cast<size_t>(genre)] & EST_INSTRUCTION) != 0;
 }
 
 NoeudExpression *Syntaxeuse::analyse_expression(DonneesPrecedence const &donnees_precedence, GenreLexeme racine_expression, GenreLexeme lexeme_final)
