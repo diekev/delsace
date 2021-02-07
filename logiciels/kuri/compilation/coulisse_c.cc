@@ -34,6 +34,7 @@
 #include "compilatrice.hh"
 #include "environnement.hh"
 #include "erreur.h"
+#include "table_hachage.hh"
 #include "typage.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
@@ -474,8 +475,8 @@ static bool est_type_tableau_fixe(Type *type)
 }
 
 struct GeneratriceCodeC {
-	dls::dico<Atome const *, dls::chaine> table_valeurs{};
-	dls::dico<Atome const *, dls::chaine> table_globales{};
+	table_hachage<Atome const *, dls::chaine> table_valeurs{};
+	table_hachage<Atome const *, dls::chaine> table_globales{};
 	EspaceDeTravail &m_espace;
 	AtomeFonction const *m_fonction_courante = nullptr;
 
@@ -511,7 +512,7 @@ struct GeneratriceCodeC {
 							return valeur_globale->ident->nom;
 						}
 
-						return table_valeurs[valeur_globale];
+						return table_valeurs.valeur_ou(valeur_globale, "");
 					}
 					case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
 					{
@@ -714,11 +715,11 @@ struct GeneratriceCodeC {
 			case Atome::Genre::INSTRUCTION:
 			{
 				auto inst = atome->comme_instruction();
-				return table_valeurs[inst];
+				return table_valeurs.valeur_ou(inst, "");
 			}
 			case Atome::Genre::GLOBALE:
 			{
-				return table_globales[atome];
+				return table_globales.valeur_ou(atome, "");
 			}
 		}
 
@@ -743,12 +744,12 @@ struct GeneratriceCodeC {
 				if (inst->ident != nullptr) {
 					auto nom = broye_nom_simple(inst->ident->nom) + "_" + dls::vers_chaine(inst->numero);
 					os << ' ' << nom << ";\n";
-					table_valeurs[inst] = "&" + nom;
+					table_valeurs.insere(inst, "&" + nom);
 				}
 				else {
 					auto nom = "val" + dls::vers_chaine(inst->numero);
 					os << ' ' << nom << ";\n";
-					table_valeurs[inst] = "&" + nom;
+					table_valeurs.insere(inst, "&" + nom);
 				}
 
 				break;
@@ -792,7 +793,7 @@ struct GeneratriceCodeC {
 				if  (!type_fonction->type_sortie->est_rien()) {
 					auto nom_ret = "__ret" + dls::vers_chaine(inst->numero);
 					os << nom_broye_type(inst_appel->type) << ' ' << nom_ret << " = ";
-					table_valeurs[inst] = nom_ret;
+					table_valeurs.insere(inst, nom_ret);
 				}
 
 				os << genere_code_pour_atome(inst_appel->appele, os, false);
@@ -839,19 +840,19 @@ struct GeneratriceCodeC {
 				auto valeur = dls::chaine();
 
 				if (charge->genre_atome == Atome::Genre::INSTRUCTION) {
-					valeur = table_valeurs[charge];
+					valeur = table_valeurs.valeur_ou(charge, "");
 				}
 				else {
-					valeur = table_globales[charge];
+					valeur = table_globales.valeur_ou(charge, "");
 				}
 
 				assert(valeur != "");
 
 				if (valeur[0] == '&') {
-					table_valeurs.insere({ inst_charge, valeur.sous_chaine(1) });
+					table_valeurs.insere(inst_charge, valeur.sous_chaine(1));
 				}
 				else {
-					table_valeurs.insere({ inst_charge, "(*" + valeur + ")" });
+					table_valeurs.insere(inst_charge, "(*" + valeur + ")");
 				}
 
 				break;
@@ -864,10 +865,10 @@ struct GeneratriceCodeC {
 				auto valeur_ou = dls::chaine();
 
 				if (ou->genre_atome == Atome::Genre::INSTRUCTION) {
-					valeur_ou = table_valeurs[ou];
+					valeur_ou = table_valeurs.valeur_ou(ou, "");
 				}
 				else {
-					valeur_ou = table_globales[ou];
+					valeur_ou = table_globales.valeur_ou(ou, "");
 				}
 
 				if (valeur_ou[0] == '&') {
@@ -928,7 +929,7 @@ struct GeneratriceCodeC {
 				os << valeur;
 				os << ";\n";
 
-				table_valeurs[inst] = "val" + dls::vers_chaine(inst->numero);
+				table_valeurs.insere(inst, "val" + dls::vers_chaine(inst->numero));
 				break;
 			}
 			case Instruction::Genre::OPERATION_BINAIRE:
@@ -1050,7 +1051,7 @@ struct GeneratriceCodeC {
 				os << valeur_droite;
 				os << ";\n";
 
-				table_valeurs[inst] = "val" + dls::vers_chaine(inst->numero);
+				table_valeurs.insere(inst, "val" + dls::vers_chaine(inst->numero));
 
 				break;
 			}
@@ -1081,7 +1082,7 @@ struct GeneratriceCodeC {
 				}
 
 				auto valeur = valeur_accede + "[" + valeur_index + "]";
-				table_valeurs[inst] = valeur;
+				table_valeurs.insere(inst, valeur);
 				break;
 			}
 			case Instruction::Genre::ACCEDE_MEMBRE:
@@ -1092,10 +1093,10 @@ struct GeneratriceCodeC {
 				auto valeur_accede = dls::chaine();
 
 				if (accede->genre_atome == Atome::Genre::INSTRUCTION) {
-					valeur_accede = broye_nom_simple(table_valeurs[accede]);
+					valeur_accede = broye_nom_simple(table_valeurs.valeur_ou(accede, ""));
 				}
 				else {
-					valeur_accede = broye_nom_simple(table_globales[accede]);
+					valeur_accede = broye_nom_simple(table_globales.valeur_ou(accede, ""));
 				}
 
 				assert(valeur_accede != "");
@@ -1130,7 +1131,7 @@ struct GeneratriceCodeC {
 					valeur_accede += broye_nom_simple(membre.nom->nom);
 				}
 
-				table_valeurs[inst_acces] = valeur_accede;
+				table_valeurs.insere(inst_acces, valeur_accede);
 				break;
 			}
 			case Instruction::Genre::TRANSTYPE:
@@ -1138,7 +1139,7 @@ struct GeneratriceCodeC {
 				auto inst_transtype = inst->comme_transtype();
 				auto valeur = genere_code_pour_atome(inst_transtype->valeur, os, false);
 				valeur = "((" + nom_broye_type(inst_transtype->type) + ")(" + valeur + "))";
-				table_valeurs[inst] = valeur;
+				table_valeurs.insere(inst, valeur);
 				break;
 			}
 		}
@@ -1161,12 +1162,12 @@ struct GeneratriceCodeC {
 			if (valeur_globale->ident) {
 				auto nom_globale = broye_nom_simple(valeur_globale->ident->nom);
 				os << nom_globale;
-				table_globales[valeur_globale] = "&" + broye_nom_simple(nom_globale);
+				table_globales.insere(valeur_globale, "&" + broye_nom_simple(nom_globale));
 			}
 			else {
 				auto nom_globale = "globale" + dls::vers_chaine(valeur_globale);
 				os << nom_globale;
-				table_globales[valeur_globale] = "&" + broye_nom_simple(nom_globale);
+				table_globales.insere(valeur_globale, "&" + broye_nom_simple(nom_globale));
 			}
 
 			os << ";\n";
@@ -1232,12 +1233,12 @@ struct GeneratriceCodeC {
 			if (valeur_globale->ident) {
 				auto nom_globale = broye_nom_simple(valeur_globale->ident->nom);
 				os << nom_globale;
-				table_globales[valeur_globale] = "&" + broye_nom_simple(nom_globale);
+				table_globales.insere(valeur_globale, "&" + broye_nom_simple(nom_globale));
 			}
 			else {
 				auto nom_globale = "globale" + dls::vers_chaine(valeur_globale);
 				os << nom_globale;
-				table_globales[valeur_globale] = "&" + broye_nom_simple(nom_globale);
+				table_globales.insere(valeur_globale, "&" + broye_nom_simple(nom_globale));
 			}
 
 			if (valeur_globale->initialisateur) {
@@ -1276,7 +1277,7 @@ struct GeneratriceCodeC {
 				os << nom_broye_type(type_pointeur->type_pointe) << ' ';
 				os << broye_nom_simple(param->ident->nom);
 
-				table_valeurs.insere({ param, "&" + broye_nom_simple(param->ident->nom) });
+				table_valeurs.insere(param, "&" + broye_nom_simple(param->ident->nom));
 
 				virgule = ", ";
 			}
@@ -1318,7 +1319,7 @@ struct GeneratriceCodeC {
 				os << broye_nom_simple(param->ident->nom);
 				os << ";\n";
 
-				table_valeurs.insere({ param, "&" + broye_nom_simple(param->ident->nom) });
+				table_valeurs.insere(param, "&" + broye_nom_simple(param->ident->nom));
 			}
 
 			/* Génère le code pour les accès de membres des retours mutliples. */
