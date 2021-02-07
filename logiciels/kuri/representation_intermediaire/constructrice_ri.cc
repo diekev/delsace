@@ -849,7 +849,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
 		{
-			auto chaine = compilatrice().gerante_chaine->chaine_pour_adresse(noeud->lexeme->index_chaine);
+			auto lit_chaine = noeud->comme_litterale();
+			auto chaine = compilatrice().gerante_chaine->chaine_pour_adresse(lit_chaine->index_chaine);
 			auto constante = cree_chaine(dls::vue_chaine_compacte(chaine.pointeur, chaine.taille));
 
 			assert_rappel((noeud->lexeme->chaine.taille() != 0 && chaine.taille != 0) || (noeud->lexeme->chaine.taille() == 0 && chaine.taille == 0),
@@ -858,7 +859,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				std::cerr << "La chaine n'est pas de la bonne taille !\n";
 				std::cerr << "Le lexème a une chaine taille de " << noeud->lexeme->chaine.taille()
 						  << " alors que la chaine littérale a une taille de " << chaine.taille << '\n';
-				std::cerr << "L'index de la chaine est de " << noeud->lexeme->index_chaine << '\n';
+				std::cerr << "L'index de la chaine est de " << lit_chaine->index_chaine << '\n';
 			});
 
 			if (fonction_courante == nullptr) {

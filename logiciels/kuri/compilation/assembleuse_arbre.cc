@@ -299,7 +299,10 @@ NoeudExpressionAppel *AssembleuseArbre::cree_construction_structure(const Lexeme
 
 NoeudExpressionLitterale *AssembleuseArbre::cree_lit_chaine(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CHAINE, lexeme)->comme_litterale();
+	auto noeud = cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CHAINE, lexeme)->comme_litterale();
+	/* transfère l'index car les lexèmes peuvent être partagés lors de la simplification du code ou des exécutions */
+	noeud->index_chaine = lexeme->index_chaine;
+	return noeud;
 }
 
 NoeudExpressionLitterale *AssembleuseArbre::cree_lit_caractere(const Lexeme *lexeme)

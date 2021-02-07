@@ -388,11 +388,11 @@ struct NoeudExpression {
 };
 
 struct NoeudExpressionLitterale : public NoeudExpression {
-	// À FAIRE: ajout des chaines
 	union {
 		double valeur_reelle;
 		unsigned long valeur_entiere;
 		bool valeur_bool;
+		long index_chaine;
 	};
 };
 
