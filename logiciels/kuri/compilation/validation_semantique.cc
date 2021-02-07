@@ -303,7 +303,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
 			auto graphe = espace->graphe_dependance.verrou_ecriture();
 			auto noeud_dep = graphe->cree_noeud_fonction(decl_entete);
-			graphe->ajoute_dependances(*noeud_dep, donnees_dependance);
+			/* préserve les données, car il nous les faut également pour la fonction_courante */
+			graphe->ajoute_dependances(*noeud_dep, donnees_dependance, fonction_courante == nullptr);
 
 			decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
 
@@ -317,9 +318,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 			noeud->type = noeud_directive->expr->type;
 
 			if (fonction_courante) {
-				/* avance l'index car il est inutile de revalidé ce noeud */
+				/* avance l'index car il est inutile de revalider ce noeud */
 				unite->index_courant += 1;
 				unite->attend_sur_metaprogramme(metaprogramme);
+				graphe->ajoute_dependances(*fonction_courante->noeud_dependance, donnees_dependance);
 				return ResultatValidation::Erreur;
 			}
 

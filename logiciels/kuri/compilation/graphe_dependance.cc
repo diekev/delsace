@@ -151,7 +151,8 @@ void GrapheDependance::rassemble_statistiques(Statistiques &stats) const
 
 void GrapheDependance::ajoute_dependances(
 		NoeudDependance &noeud,
-		DonneesDependance &donnees)
+		DonneesDependance &donnees,
+		bool efface_donnees)
 {
 	dls::pour_chaque_element(donnees.types_utilises, [&](auto &type)
 	{
@@ -175,9 +176,11 @@ void GrapheDependance::ajoute_dependances(
 	});
 
 	/* libère la mémoire */
-	donnees.types_utilises.efface();
-	donnees.fonctions_utilisees.efface();
-	donnees.globales_utilisees.efface();
+	if (efface_donnees) {
+		donnees.types_utilises.efface();
+		donnees.fonctions_utilisees.efface();
+		donnees.globales_utilisees.efface();
+	}
 }
 
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
