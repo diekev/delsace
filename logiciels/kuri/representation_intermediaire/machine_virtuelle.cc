@@ -1188,7 +1188,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 			auto adresse_ou = static_cast<void *>(this->pointeur_pile);
 
 			if (std::abs(static_cast<char *>(adresse_de) - static_cast<char *>(adresse_ou)) < taille) {
-				rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : superposition de la copie dans la machine virtuelle !\n");
+				rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : superposition de la copie dans la machine virtuelle lors d'un chargement !")
+						.ajoute_message("La taille à copier est de    : ", taille, ".\n")
+						.ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
+						.ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n");
 			}
 
 			memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
