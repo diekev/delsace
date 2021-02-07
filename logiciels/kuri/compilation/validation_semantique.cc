@@ -4105,7 +4105,7 @@ void ContexteValidationCode::rapporte_erreur_redefinition_fonction(NoeudDeclarat
 
 void ContexteValidationCode::rapporte_erreur_type_arguments(NoeudExpression *type_arg, NoeudExpression *type_enf)
 {
-	erreur::lance_erreur_type_arguments(type_arg->type, type_enf->type, *espace, type_enf, type_arg);
+	erreur::lance_erreur_transtypage_impossible(type_arg->type, type_enf->type, *espace, type_enf, type_arg);
 }
 
 void ContexteValidationCode::rapporte_erreur_assignation_type_differents(const Type *type_gauche, const Type *type_droite, NoeudExpression *noeud)

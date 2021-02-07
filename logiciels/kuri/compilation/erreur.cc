@@ -51,6 +51,15 @@ std::ostream &operator<<(std::ostream &os, Genre genre)
 	return os;
 }
 
+static auto chaine_expression(EspaceDeTravail const &espace, const NoeudExpression *expr)
+{
+	auto lexeme = expr->lexeme;
+	auto fichier = espace.fichier(lexeme->fichier);
+	auto etendue_expr = calcule_etendue_noeud(expr, fichier);
+	auto ligne = fichier->tampon()[lexeme->ligne];
+	return dls::vue_chaine_compacte(&ligne[etendue_expr.pos_min], etendue_expr.pos_max - etendue_expr.pos_min);
+}
+
 void imprime_ligne_avec_message(
 		dls::flux_chaine &flux,
 		Fichier *fichier,
@@ -99,19 +108,17 @@ void redefinition_symbole(EspaceDeTravail const &espace, const NoeudExpression *
 			.ajoute_site(site_original);
 }
 
-[[noreturn]] void lance_erreur_type_arguments(
-		const Type *type_arg,
-		const Type *type_enf,
+[[noreturn]] void lance_erreur_transtypage_impossible(
+		const Type *type_cible,
+		const Type *type_expression,
 		EspaceDeTravail const &espace,
-		const NoeudExpression *site_enfant,
+		const NoeudExpression *site_expression,
 		const NoeudExpression *site)
 {
-	// À FAIRE(erreur) : utilisée uniquement pour les transtypages, améliore le message
-	auto lexeme_enfant = site_enfant->lexeme;
-	rapporte_erreur(&espace, site, "Dans l'expression d'appel.", Genre::TYPE_ARGUMENT)
-			.ajoute_message("Le type de l'argument '", lexeme_enfant->chaine, "' ne correspond pas à celui requis !\n")
-			.ajoute_message("Requiers : ", chaine_type(type_arg), "\n")
-			.ajoute_message("Obtenu   : ", chaine_type(type_enf), "\n\n");
+	rapporte_erreur(&espace, site, "Aucune conversion connue pour transformer vers le type cible", Genre::TYPE_ARGUMENT)
+			.ajoute_message("Le type de l'expression '", chaine_expression(espace, site_expression), "' ne peut être transformer vers le type cible !\n")
+			.ajoute_message("Type cible           : ", chaine_type(type_cible), "\n")
+			.ajoute_message("Type de l'expression : ", chaine_type(type_expression), "\n\n");
 }
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
@@ -134,15 +141,6 @@ void lance_erreur_type_operation(
 	rapporte_erreur(&espace, site, "Type incompatible pour l'opération !", Genre::TYPE_DIFFERENTS)
 			.ajoute_message("Type à gauche : ", chaine_type(type_gauche), "\n")
 			.ajoute_message("Type à droite : ", chaine_type(type_droite), "\n");
-}
-
-static auto chaine_expression(EspaceDeTravail const &espace, NoeudExpression *expr)
-{
-	auto lexeme = expr->lexeme;
-	auto fichier = espace.fichier(lexeme->fichier);
-	auto etendue_expr = calcule_etendue_noeud(expr, fichier);
-	auto ligne = fichier->tampon()[lexeme->ligne];
-	return dls::vue_chaine_compacte(&ligne[etendue_expr.pos_min], etendue_expr.pos_max - etendue_expr.pos_min);
 }
 
 void lance_erreur_fonction_inconnue(

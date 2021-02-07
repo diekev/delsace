@@ -102,11 +102,10 @@ void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 		const NoeudExpression *site_redefinition,
 		const NoeudExpression *site_original);
 
-[[noreturn]] void lance_erreur_type_arguments(
-		const Type *type_arg,
+[[noreturn]] void lance_erreur_transtypage_impossible(const Type *type_cible,
 		const Type *type_enf,
 		EspaceDeTravail const &espace,
-		const NoeudExpression *site_enfant,
+		const NoeudExpression *site_expression,
 		const NoeudExpression *site);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
