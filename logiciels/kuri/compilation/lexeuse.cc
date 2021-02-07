@@ -785,10 +785,6 @@ void Lexeuse::lance_erreur(const dls::chaine &quoi) const
 
 void Lexeuse::pousse_mot(GenreLexeme identifiant)
 {
-	if (m_donnees->lexemes.taille() % 128 == 0) {
-		m_donnees->lexemes.reserve(m_donnees->lexemes.taille() + 128);
-	}
-
 	Lexeme lexeme = {
 		mot_courant(), { 0ul }, identifiant, static_cast<int>(m_donnees->id), m_compte_ligne, m_pos_mot
 	};
