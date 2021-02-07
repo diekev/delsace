@@ -1078,7 +1078,6 @@ static void rassemble_globales_et_fonctions(
 		dls::tableau<AtomeFonction *> &fonctions)
 {
 	auto graphe = espace->graphe_dependance.verrou_ecriture();
-	auto index_dans_table_type = 1u;
 
 	graphe->traverse(racine, [&](NoeudDependance *noeud_dep)
 	{
@@ -1099,8 +1098,6 @@ static void rassemble_globales_et_fonctions(
 			if ((type->drapeaux & CODE_BINAIRE_TYPE_FUT_GENERE) != 0) {
 				return;
 			}
-
-			type->index_dans_table_types = index_dans_table_type++;
 
 			if (type->genre == GenreType::STRUCTURE || type->genre == GenreType::UNION) {
 				auto atome_fonction = type->fonction_init;

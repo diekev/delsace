@@ -23,6 +23,8 @@ stocke les labels pour les controles des boucles dans la structure Boucle, au li
 
 erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
 
+trouve une manière de protéger les pointeurs vers les types quand nous les utilisons dans les métaprogrammes à la place des index dans la table de type
+
 // --------------------------- Branches
 
 kuri_allocations

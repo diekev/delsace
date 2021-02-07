@@ -1242,8 +1242,9 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
 				}
 				case AtomeValeurConstante::Valeur::Genre::TYPE:
 				{
-					auto valeur_type = valeur_constante->valeur.type->index_dans_table_types;
-					chunk.emets_constante(static_cast<long>(valeur_type));
+					// utilisation du pointeur directement au lieu de l'index car la table de type n'est pas
+					// implémentée, et il y a des concurrences critiques entre les métaprogrammes
+					chunk.emets_constante(reinterpret_cast<long>(valeur_constante->valeur.type));
 					break;
 				}
 				case AtomeValeurConstante::Valeur::Genre::ENTIERE:
@@ -1428,8 +1429,9 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 				}
 				case AtomeValeurConstante::Valeur::Genre::TYPE:
 				{
-					auto valeur_type = valeur_constante->valeur.type->index_dans_table_types;
-					*reinterpret_cast<long *>(donnees) = static_cast<long>(valeur_type);
+					// utilisation du pointeur directement au lieu de l'index car la table de type n'est pas
+					// implémentée, et il y a des concurrences critiques entre les métaprogrammes
+					*reinterpret_cast<long *>(donnees) = reinterpret_cast<long>(valeur_constante->valeur.type);
 					break;
 				}
 				case AtomeValeurConstante::Valeur::Genre::ENTIERE:
