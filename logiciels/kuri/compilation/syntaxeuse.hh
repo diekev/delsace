@@ -92,19 +92,16 @@ public:
 	void lance_analyse();
 
 private:
-	inline Lexeme consomme()
+	inline void consomme()
 	{
-		auto vieux_lexeme = m_lexemes[m_position];
 		m_position += 1;
 
 		if (!fini()) {
-			m_lexeme_courant = &m_lexemes[m_position];
+			m_lexeme_courant += 1;
 		}
-
-		return vieux_lexeme;
 	}
 
-	inline Lexeme consomme(GenreLexeme genre_lexeme, const char *message)
+	inline void consomme(GenreLexeme genre_lexeme, const char *message)
 	{
 		if (m_lexemes[m_position].genre != genre_lexeme) {
 			lance_erreur(message);
