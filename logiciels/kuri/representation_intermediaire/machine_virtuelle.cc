@@ -1164,7 +1164,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 				rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : superposition de la copie dans la machine virtuelle lors d'une assignation !")
 						.ajoute_message("La taille à copier est de    : ", taille, ".\n")
 						.ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
-						.ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n");
+						.ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
+						.ajoute_message("Le type du site  est         : ", chaine_type(site->type), "\n");
 			}
 
 			memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
@@ -1197,7 +1198,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instruction()
 				rapporte_erreur(m_metaprogramme->unite->espace, site, "Erreur interne : superposition de la copie dans la machine virtuelle lors d'un chargement !")
 						.ajoute_message("La taille à copier est de    : ", taille, ".\n")
 						.ajoute_message("L'adresse d'origine est      : ", adresse_de, ".\n")
-						.ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n");
+						.ajoute_message("L'adresse de destination est : ", adresse_ou, ".\n")
+						.ajoute_message("Le type du site  est         : ", chaine_type(site->type), "\n");
 			}
 
 			memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
