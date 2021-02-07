@@ -62,7 +62,7 @@ struct NoeudTableauArgsVariadiques;
 struct NoeudTente;
 struct OperateurBinaire;
 struct Type;
-struct TypeStructure;
+struct TypeCompose;
 
 struct AssembleuseArbre {
 private:
@@ -156,5 +156,5 @@ public:
 	NoeudStruct *cree_struct(const Lexeme *lexeme);
 	NoeudTableauArgsVariadiques *cree_tableau_variadique(const Lexeme *lexeme);
 	NoeudTente *cree_tente(const Lexeme *lexeme);
-	NoeudExpressionAppel *cree_construction_structure(const Lexeme *lexeme, TypeStructure *type);
+	NoeudExpressionAppel *cree_construction_structure(const Lexeme *lexeme, TypeCompose *type);
 };

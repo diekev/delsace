@@ -739,6 +739,20 @@ long GeranteChaine::ajoute_chaine(const dls::chaine &chaine)
 	return adresse | (chaine.taille() << 32);
 }
 
+long GeranteChaine::ajoute_chaine(const kuri::chaine &chaine)
+{
+	if ((enchaineuse.tampon_courant->occupe + chaine.taille) >= Enchaineuse::TAILLE_TAMPON) {
+		enchaineuse.ajoute_tampon();
+	}
+
+	// calcul l'adresse de la chaine
+	auto adresse = (enchaineuse.nombre_tampons() - 1) * Enchaineuse::TAILLE_TAMPON + enchaineuse.tampon_courant->occupe;
+
+	enchaineuse.ajoute(dls::vue_chaine(chaine.pointeur, chaine.taille));
+
+	return adresse | (chaine.taille << 32);
+}
+
 kuri::chaine GeranteChaine::chaine_pour_adresse(long adresse) const
 {
 	assert(adresse >= 0);

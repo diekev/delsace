@@ -1,26 +1,125 @@
 importe Fondation
 importe Math
 
-retourne_vecteur :: fonc () -> Vec3
+retourne_entier :: fonc () -> z32
+{
+    retourne 127
+}
+
+retourne_réel :: fonc () -> r32
+{
+    retourne 3.14159
+}
+
+retourne_chaine :: fonc () -> chaine
+{
+    retourne "une chaine de caractère"
+}
+
+retourne_type :: fonc () -> type_de_données
+{
+    retourne r32
+}
+
+retourne_structure :: fonc () -> Vec3
 {
     retourne Vec3(1.0, 3.0, 9.0)
 }
 
-retourne_vecteurs :: fonc () -> Vec3, Vec3
+fonction_retournée :: fonc ()
 {
-    retourne Vec3(1.0, 3.0, 9.0), Vec3(2.0, 4.0, 8.0)
+    imprime("cette fonction fut retournée depuis un exécution !\n")
 }
 
-démo_exécute_dans_fonction :: fonc ()
+retourne_fonction :: fonc () -> fonc()(rien)
 {
-    a, b := #exécute retourne_vecteurs()
+    retourne fonction_retournée
+}
 
-    imprime("a := %\n", a)
-    imprime("b := %\n", b)
+Temps :: #opaque r32
+
+retourne_opaque :: fonc () -> Temps
+{
+    retourne Temps(60.0)
+}
+
+retourne_tuple :: fonc () -> Vec3, Temps
+{
+    retourne Vec3(5.0, 6.0, 7.0), Temps(45.0)
+}
+
+retourne_tableau_fixe :: fonc () -> [3]z32
+{
+    retourne [ 9, 8, 7 ]
+}
+
+retourne_tableau_dyn :: fonc () -> []z32
+{
+    tabl : []z32
+    tableau_ajoute(*tabl, 4)
+    tableau_ajoute(*tabl, 5)
+    tableau_ajoute(*tabl, 6)
+    retourne tabl
+}
+
+UnionNonsure :: union nonsûr {
+    e : z32
+    f : r32
+}
+
+retourne_union_nonsure :: fonc () -> UnionNonsure
+{
+    retourne 1.0
+}
+
+UnionSure :: union {
+    e : z32
+    f : r32
+}
+
+retourne_union_sure :: fonc () -> UnionSure
+{
+    retourne 2.5
 }
 
 principale :: fonc () -> z32
 {
-    démo_exécute_dans_fonction()
+    entier := #exécute retourne_entier()
+    imprime("entier : %\n", entier)
+
+    réel := #exécute retourne_réel()
+    imprime("réel : %\n", réel)
+
+    chn := #exécute retourne_chaine()
+    imprime("chaine : %\n", chn)
+
+    vec := #exécute retourne_structure()
+    imprime("structure : %\n", vec)
+
+    type := #exécute retourne_type()
+    imprime("type : %\n", type)
+
+    fn := #exécute retourne_fonction()
+    imprime("fonction : ")
+    fn()
+
+    opaque := #exécute retourne_opaque()
+    imprime("opaque : %\n", opaque)
+
+    t0, t1 := #exécute retourne_tuple()
+    imprime("t0, t1 : %, %\n", t0, t1)
+
+    tableau_fixe := #exécute retourne_tableau_fixe()
+    imprime("tableau fixe : %\n", tableau_fixe)
+
+    tableau_dyn := #exécute retourne_tableau_dyn()
+    imprime("tableau dyn : %\n", tableau_dyn)
+
+    union_nonsure := #exécute retourne_union_nonsure()
+    imprime("union nonsûre : %\n", union_nonsure)
+
+    union_sure := #exécute retourne_union_sure()
+    imprime("union sûre : %\n", union_sure)
+
     retourne 0
 }

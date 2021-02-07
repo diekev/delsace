@@ -44,6 +44,7 @@ private:
 
 public:
 	long ajoute_chaine(dls::chaine const &chaine);
+	long ajoute_chaine(kuri::chaine const &chaine);
 
 	kuri::chaine chaine_pour_adresse(long adresse) const;
 

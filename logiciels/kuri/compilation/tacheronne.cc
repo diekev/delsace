@@ -1245,9 +1245,12 @@ void Tacheronne::execute_metaprogrammes()
 NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *espace, NoeudDirectiveExecution *directive, Lexeme const *lexeme, Type *type, octet_t *pointeur)
 {
 	switch (type->genre) {
-		default:
+		case GenreType::EINI:
+		case GenreType::POINTEUR:
+		case GenreType::POLYMORPHIQUE:
+		case GenreType::REFERENCE:
+		case GenreType::VARIADIQUE:
 		{
-			// À FAIRE : pour les chaines il faut stocker la valeur de l'index quelque part..., nous ne pouvons réutiliser le lexème
 			rapporte_erreur(espace, directive, "Type non pris en charge pour le résutat des exécutions !")
 					.ajoute_message("Le type est : ", chaine_type(type), "\n");
 			break;
@@ -1269,6 +1272,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 
 			return virgule;
 		}
+		case GenreType::OCTET:
 		case GenreType::ENTIER_CONSTANT:
 		case GenreType::ENTIER_RELATIF:
 		{
@@ -1348,19 +1352,117 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 
 			return construction_structure;
 		}
-//		case GenreType::CHAINE:
-//		{
-//			auto valeur_pointeur = pointeur;
-//			auto valeur_chaine = *reinterpret_cast<long *>(pointeur + 8);
+		case GenreType::UNION:
+		{
+			auto type_union = type->comme_union();
+			auto construction_union = assembleuse->cree_construction_structure(lexeme, type_union);
 
-//			kuri::chaine chaine;
-//			chaine.pointeur = *reinterpret_cast<char **>(valeur_pointeur);
-//			chaine.taille = valeur_chaine;
+			if (type_union->est_nonsure) {
+				auto expr = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, type_union->type_le_plus_grand, pointeur);
+				construction_union->exprs.ajoute(expr);
+			}
+			else {
+				auto pointeur_donnees = pointeur;
+				auto pointeur_discriminant = *reinterpret_cast<int *>(pointeur + type_union->decalage_index);
+				auto index_membre = pointeur_discriminant - 1;
 
-//			auto lit_chaine = assembleuse->cree_lit_chaine(lexeme);
+				auto type_donnees = type_union->membres[index_membre].type;
 
-//			return lit_chaine;
-//		}
+				for (auto i = 0; i < index_membre; ++i) {
+					construction_union->exprs.ajoute(nullptr);
+				}
+
+				auto expr = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, type_donnees, pointeur_donnees);
+				construction_union->exprs.ajoute(expr);
+			}
+
+			return construction_union;
+		}
+		case GenreType::CHAINE:
+		{
+			auto valeur_pointeur = pointeur;
+			auto valeur_chaine = *reinterpret_cast<long *>(pointeur + 8);
+
+			kuri::chaine chaine;
+			chaine.pointeur = *reinterpret_cast<char **>(valeur_pointeur);
+			chaine.taille = valeur_chaine;
+
+			auto lit_chaine = assembleuse->cree_lit_chaine(lexeme);
+			lit_chaine->index_chaine = compilatrice.gerante_chaine->ajoute_chaine(chaine);
+			lit_chaine->type = type;
+			return lit_chaine;
+		}
+		case GenreType::TYPE_DE_DONNEES:
+		{
+			auto type_de_donnees = *reinterpret_cast<Type **>(pointeur);
+			type_de_donnees = espace->typeuse.type_type_de_donnees(type_de_donnees);
+			return assembleuse->cree_ref_type(lexeme, type_de_donnees);
+		}
+		case GenreType::FONCTION:
+		{
+			auto fonction = *reinterpret_cast<AtomeFonction **>(pointeur);
+
+			if (!fonction->decl) {
+				rapporte_erreur(espace, directive, "La fonction retournée n'a pas de déclaration !\n");
+			}
+
+			return assembleuse->cree_ref_decl(lexeme, const_cast<NoeudDeclarationEnteteFonction *>(fonction->decl));
+		}
+		case GenreType::OPAQUE:
+		{
+			auto type_opaque = type->comme_opaque();
+			auto expr = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, type_opaque->type_opacifie, pointeur);
+
+			/* comme dans la simplification de l'arbre, ceci doit être un transtypage vers le type opaque */
+			auto comme = assembleuse->cree_comme(lexeme);
+			comme->type = type_opaque;
+			comme->expression = expr;
+			comme->transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_opaque };
+			comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+			return comme;
+		}
+		case GenreType::TABLEAU_FIXE:
+		{
+			auto type_tableau = type->comme_tableau_fixe();
+
+			auto virgule = assembleuse->cree_virgule(lexeme);
+			virgule->expressions.reserve(type_tableau->taille);
+
+			for (auto i = 0; i < type_tableau->taille; ++i) {
+				auto pointeur_valeur = pointeur + type_tableau->type_pointe->taille_octet * static_cast<unsigned>(i);
+				auto expr = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, type_tableau->type_pointe, pointeur_valeur);
+				virgule->expressions.ajoute(expr);
+			}
+
+			auto construction = assembleuse->cree_construction_tableau(lexeme);
+			construction->type = type_tableau;
+			construction->expr = virgule;
+			return construction;
+		}
+		case GenreType::TABLEAU_DYNAMIQUE:
+		{
+			auto type_tableau = type->comme_tableau_dynamique();
+
+			auto pointeur_donnees = *reinterpret_cast<octet_t **>(pointeur);
+			auto taille_donnees = *reinterpret_cast<long *>(pointeur + 8);
+
+			if (taille_donnees == 0) {
+				rapporte_erreur(espace, directive, "Retour d'un tableau dynamique de taille 0 !");
+			}
+
+			/* crée un tableau fixe */
+			auto type_tableau_fixe = espace->typeuse.type_tableau_fixe(type_tableau->type_pointe, taille_donnees);
+			auto construction = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, type_tableau_fixe, pointeur_donnees);
+
+			/* convertis vers un tableau dynamique */
+			auto comme = assembleuse->cree_comme(lexeme);
+			comme->type = type_tableau;
+			comme->expression = construction;
+			comme->transformation = { TypeTransformation::CONVERTI_TABLEAU, type_tableau };
+			comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+
+			return comme;
+		}
 	}
 
 	return nullptr;
