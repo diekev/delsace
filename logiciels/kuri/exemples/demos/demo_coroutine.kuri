@@ -1,6 +1,4 @@
 importe Fondation
-importe "chaine"
-importe "iter"
 
 Noeud :: struct {
     suiv : *Noeud
@@ -29,7 +27,7 @@ iter_liste_noeud :: corout(noeud : *r32) -> *r32
 
 principale :: fonc () -> z32
 {
-    pour j, i dans découpe("Texte d'exemple où les mots sont coupés ") {
+    pour j, i dans découpe("Texte d'exemple où les mots sont coupés ", ' ') {
         imprime("Mot (%) : %\n", i, j)
     }
 

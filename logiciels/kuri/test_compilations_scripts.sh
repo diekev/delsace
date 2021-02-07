@@ -23,8 +23,6 @@ cd $DOSSIER_COURANT
 # cas pour les fichiers simples
 
 # À FAIRE : exemples/applications/jeu_chaos.kuri
-# À FAIRE : exemples/demos/demo_coroutine.kuri
-# À FAIRE : exemples/demos/demo_coro_nombre_premier.kuri
 # À FAIRE : "exemples/tests/test_tri.kuri" \
 # À FAIRE : "exemples/tests/test_fichier.kuri" \
 
@@ -38,6 +36,8 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/applications/serveuse.kuri" \
           "exemples/applications/serveuse_ssl.kuri" \
           "exemples/applications/sudoku.kuri" \
+          "exemples/demos/demo_coro_nombre_premier.kuri" \
+          "exemples/demos/demo_coroutine.kuri" \
           "exemples/demos/demo_exécution.kuri" \
           "exemples/demos/demo_expansion_argument_variadique.kuri" \
           "exemples/demos/demo_info_type_fonction.kuri" \

@@ -59,14 +59,14 @@ dessine_point_rayon :: fonc(
 
 }
 
-dessine_point_rayon :: fonc(
-	cannevas : []z8,
+points_vers_ecran :: fonc (
 	hauteur : z32,
 	largeur : z32,
-	p : &Point2D,
-	rayon_point : z32) -> rien
+	monde : &Rectangle2D,
+	ecran : &Rectangle2D,
+	points : []Point2D) -> []Point2D
 {
-
+	retourne points
 }
 
 dessine_bmp :: fonc(
@@ -75,7 +75,7 @@ dessine_bmp :: fonc(
 	largeur : z32,
 	monde : &Rectangle2D,
 	ecran : &Rectangle2D,
-	points : []Points2D,
+	points : []Point2D,
 	rayon_point : z32) -> rien
 {
 	cannevas := loge_tableau(z8, hauteur * largeur * 4)
@@ -111,6 +111,8 @@ dessine_bmp :: fonc(
 principale :: fonc () -> z32
 {
 	monde := Rectangle2D( gauche = 0.0, bas = 0.0, haut = 800.0, droite = 800.0 );
+	hauteur := 800
+	largeur := 800
 
 	points := [
 		Point2D(x =   0.0, y =  0.0),
