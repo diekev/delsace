@@ -886,25 +886,6 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 					return llvm::FCmpInst::Create(llvm::Instruction::FCmp, op->predicat_llvm, valeur1, valeur2, "", contexte.bloc_courant());
 				}
 
-				// détecte arithmétique de pointeur
-				if (type1->genre != type2->genre) {
-					if (type1->genre == GenreType::POINTEUR && (est_type_entier(type2) || type2->genre == GenreType::ENTIER_CONSTANT)) {
-						return llvm::GetElementPtrInst::CreateInBounds(
-									valeur1,
-									valeur2,
-									"",
-									contexte.bloc_courant());
-					}
-
-					if (type2->genre == GenreType::POINTEUR && (est_type_entier(type1) || type1->genre == GenreType::ENTIER_CONSTANT)) {
-						return llvm::GetElementPtrInst::CreateInBounds(
-									valeur2,
-									valeur1,
-									"",
-									contexte.bloc_courant());
-					}
-				}
-
 				return llvm::BinaryOperator::Create(op->instr_llvm, valeur1, valeur2, "", contexte.bloc_courant());
 			}
 #endif

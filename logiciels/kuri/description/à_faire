@@ -309,8 +309,6 @@ avoir une gestion de la correctitude de constance
 investigue l'utilisation des types entiers, des représentations binaires et des opérations
     https://stackoverflow.com/questions/13224273/difference-between-signed-and-unsigned-on-bitwise-operations
 
-passe en revue les arithmétiques de pointeurs
-
 meilleur gestion des modulos : négatif % positif => négatif, positif % négatif => négatif, ceci est à éviter
 
 amélioration du typage des expressions de tableaux constants

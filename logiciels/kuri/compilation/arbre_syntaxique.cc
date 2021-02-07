@@ -1565,6 +1565,82 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			simplifie(expr_bin->expr1);
 			simplifie(expr_bin->expr2);
 
+			if (expr_bin->op && expr_bin->op->est_arithmetique_pointeur) {
+				auto comme_type = [&](NoeudExpression *expr_ptr, Type *type)
+				{
+					auto comme = assem->cree_comme(expr_ptr->lexeme);
+					comme->type = type;
+					comme->expression = expr_ptr;
+					comme->transformation = { TypeTransformation::POINTEUR_VERS_ENTIER, type };
+					return comme;
+				};
+
+				auto type1 = expr_bin->expr1->type;
+				auto type2 = expr_bin->expr2->type;
+
+				// ptr - ptr => (ptr comme z64 - ptr comme z64) / taille_de(type_pointe)
+				if (type1->est_pointeur() && type2->est_pointeur()) {
+					auto const &type_z64 = typeuse[TypeBase::Z64];
+					auto type_pointe = type2->comme_pointeur()->type_pointe;
+					auto soustraction = assem->cree_op_binaire(expr_bin->lexeme, type_z64->operateur_sst, comme_type(expr_bin->expr1, type_z64), comme_type(expr_bin->expr2, type_z64));
+					auto taille_de = assem->cree_lit_entier(expr_bin->lexeme, type_z64, type_pointe->taille_octet);
+					auto div = assem->cree_op_binaire(expr_bin->lexeme, type_z64->operateur_div, soustraction, taille_de);
+					expr_bin->substitution = div;
+				}
+				else {
+					Type *type_entier = Type::nul();
+					Type *type_pointeur = Type::nul();
+
+					NoeudExpression *expr_entier = nullptr;
+					NoeudExpression *expr_pointeur = nullptr;
+
+					// ent + ptr => (ptr comme type_entier + ent * taille_de(type_pointe)) comme type_ptr
+					if (est_type_entier(type1)) {
+						type_entier = type1;
+						type_pointeur = type2;
+						expr_entier = expr_bin->expr1;
+						expr_pointeur = expr_bin->expr2;
+					}
+					// ptr - ent => (ptr comme type_entier - ent * taille_de(type_pointe)) comme type_ptr
+					// ptr + ent => (ptr comme type_entier + ent * taille_de(type_pointe)) comme type_ptr
+					else if (est_type_entier(type2)) {
+						type_entier = type2;
+						type_pointeur = type1;
+						expr_entier = expr_bin->expr2;
+						expr_pointeur = expr_bin->expr1;
+					}
+
+					auto type_pointe = type_pointeur->comme_pointeur()->type_pointe;
+
+					auto taille_de = assem->cree_lit_entier(expr_entier->lexeme, type_entier, type_pointe->taille_octet);
+					auto mul = assem->cree_op_binaire(expr_entier->lexeme, type_entier->operateur_mul, expr_entier, taille_de);
+
+					OperateurBinaire *op_arithm = nullptr;
+
+					if (expr_bin->lexeme->genre == GenreLexeme::MOINS || expr_bin->lexeme->genre == GenreLexeme::MOINS_EGAL) {
+						op_arithm = type_entier->operateur_sst;
+					}
+					else if (expr_bin->lexeme->genre == GenreLexeme::PLUS || expr_bin->lexeme->genre == GenreLexeme::PLUS_EGAL) {
+						op_arithm = type_entier->operateur_ajt;
+					}
+
+					auto arithm = assem->cree_op_binaire(expr_bin->lexeme, op_arithm, comme_type(expr_pointeur, type_entier), mul);
+
+					auto comme_pointeur = assem->cree_comme(expr_bin->lexeme);
+					comme_pointeur->type = type_pointeur;
+					comme_pointeur->expression = arithm;
+					comme_pointeur->transformation = { TypeTransformation::ENTIER_VERS_POINTEUR, type_pointeur };
+
+					expr_bin->substitution = comme_pointeur;
+				}
+
+				if (expr_bin->possede_drapeau(EST_ASSIGNATION_COMPOSEE)) {
+					expr_bin->substitution = assem->cree_assignation(expr_bin->lexeme, expr_bin->expr1, expr_bin->substitution);
+				}
+
+				return;
+			}
+
 			if (expr_bin->possede_drapeau(EST_ASSIGNATION_COMPOSEE)) {
 				noeud->substitution = assem->cree_assignation(expr_bin->lexeme, expr_bin->expr1, simplifie_operateur_binaire(expr_bin, true));
 				return;

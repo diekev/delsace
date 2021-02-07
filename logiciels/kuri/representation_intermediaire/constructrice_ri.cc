@@ -897,7 +897,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			// À FAIRE(ri) : arithmétique de pointeur
 			genere_ri_pour_expression_droite(expr_bin->expr1, nullptr);
 			auto valeur_gauche = depile_valeur();
 			genere_ri_pour_expression_droite(expr_bin->expr2, nullptr);

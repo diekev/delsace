@@ -129,6 +129,9 @@ struct OperateurBinaire {
 
 	/* faux pour les opérateurs définis par l'utilisateur */
 	bool est_basique = true;
+
+	/* vrai pour les opérateurs d'arithmétiques de pointeurs */
+	bool est_arithmetique_pointeur = false;
 };
 
 const char *chaine_pour_genre_op(OperateurBinaire::Genre genre);

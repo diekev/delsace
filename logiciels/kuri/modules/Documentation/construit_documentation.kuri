@@ -100,8 +100,7 @@ compile :: fonc ()
                 }
 
                 sous_lexèmes.taille -= 1
-                // @arithmétique de pointeur
-                sous_lexèmes.pointeur += (1 * taille_de(Lexème))
+                sous_lexèmes.pointeur += 1
             }
 
             // supprime les espaces blancs à la fin du code

@@ -782,6 +782,12 @@ void enregistre_operateurs_basiques(
 			else if (op == GenreLexeme::MOINS) {
 				type->operateur_sst = operateur;
 			}
+			else if (op == GenreLexeme::FOIS) {
+				type->operateur_mul = operateur;
+			}
+			else if (op == GenreLexeme::DIVISE) {
+				type->operateur_div = operateur;
+			}
 		}
 
 		for (auto type : types_entiers_naturels) {
@@ -793,6 +799,12 @@ void enregistre_operateurs_basiques(
 			else if (op == GenreLexeme::MOINS) {
 				type->operateur_sst = operateur;
 			}
+			else if (op == GenreLexeme::FOIS) {
+				type->operateur_mul = operateur;
+			}
+			else if (op == GenreLexeme::DIVISE) {
+				type->operateur_div = operateur;
+			}
 		}
 
 		for (auto type : types_reels) {
@@ -803,6 +815,12 @@ void enregistre_operateurs_basiques(
 			}
 			else if (op == GenreLexeme::MOINS) {
 				type->operateur_sst = operateur;
+			}
+			else if (op == GenreLexeme::FOIS) {
+				type->operateur_mul = operateur;
+			}
+			else if (op == GenreLexeme::DIVISE) {
+				type->operateur_div = operateur;
 			}
 		}
 

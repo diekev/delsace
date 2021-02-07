@@ -640,19 +640,19 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool ajoute_operateurs)
 		 * que le type plus petit soit transtyper à la bonne taille. */
 		auto idx_type_entier = types_communs[static_cast<long>(TypeBase::Z64)];
 
-		operateurs->ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice);
-		operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice);
-		operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, resultat, idx_type_entier, indice);
-		operateurs->ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice);
-		operateurs->ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice);
+		operateurs->ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
+		operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
+		operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, resultat, idx_type_entier, indice)->est_arithmetique_pointeur = true;
+		operateurs->ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
+		operateurs->ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
 
 		idx_type_entier = types_communs[static_cast<long>(TypeBase::N64)];
 		indice = IndiceTypeOp::ENTIER_NATUREL;
 
-		operateurs->ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice);
-		operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice);
-		operateurs->ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice);
-		operateurs->ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice);
+		operateurs->ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
+		operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
+		operateurs->ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
+		operateurs->ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
 	}
 
 	return resultat;

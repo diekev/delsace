@@ -213,6 +213,8 @@ struct Type {
 	OperateurBinaire *operateur_oub = nullptr;
 	OperateurBinaire *operateur_etb = nullptr;
 	OperateurBinaire *operateur_dif = nullptr;
+	OperateurBinaire *operateur_mul = nullptr;
+	OperateurBinaire *operateur_div = nullptr;
 	OperateurUnaire *operateur_non  = nullptr;
 
 	POINTEUR_NUL(Type)
