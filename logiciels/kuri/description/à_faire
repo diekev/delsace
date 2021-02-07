@@ -21,6 +21,8 @@ NoeudExpression::unite => NoeudDeclaration, NoeudExecution ?
 utilisation d'un ramasse miette pour les métaprogrammes ?
 stocke les labels pour les controles des boucles dans la structure Boucle, au lieu d'allouer de la mémoire et faire une recherche linéaire dans la RI
 
+erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
+
 // --------------------------- Branches
 
 kuri_allocations
@@ -133,8 +135,6 @@ considère revoir l'arbre syntaxique des références de membres, pour simpilfie
 - déduplique TypeTranstypage et TypeTransformation
 
 // --------------------------- Lexage
-
-inclus les signes des nombres littéraux dans la lexeuse
 
 ajout de drapeaux aux lexèmes des nombres littéraux pour indiquer la taille du nombre
 
@@ -251,6 +251,22 @@ TableOpérateur {
 
 type->table_opérateur
 
+struct TableOperateurBinaire {
+private:
+    dls::tableau<OpérateurBinaire *> operateurs[NOMBRE_OPERATEURS_BINAIRE] = {};
+
+public:
+    void ajoute_operateur(OperateurBinaire::Genre genre, OperateurBinaire *op)
+    {
+        operateurs[genre].pousse(op);
+    }
+
+    dls::tableau<OpérateurBinaire *> const &trouve_operateurs(OperateurBinaire::Genre genre)
+    {
+        return operateurs[genre];
+    }
+};
+
 Opérateurs implicites :
 - pour les structures, si triviale -> hérite des différents opérateurs
 - le faire de manière fainéante, quand requis, que faire si un autre module les définis ?
@@ -274,6 +290,8 @@ ajout de tranches pour les tableaux et les chaines
 
 
 // --------------------------- Types
+
+unions : utilise le plus petit type possible pour représenter le discriminant
 
 ajout de types produits (tuples) avec accès par x.0, x.1, etc...
 
