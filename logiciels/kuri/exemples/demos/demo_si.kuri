@@ -1,0 +1,33 @@
+importe Fondation
+
+/*
+
+    cas : assignation et déclaration similaires
+    cas : retourne
+
+ */
+
+démo_si_comme_expression :: fonc ()
+{
+    b := 5
+    c := 7
+    d := 8
+
+    a := si b == 6 {
+        c
+    }
+    sinon saufsi b == 5 {
+        b
+    }
+    sinon {
+        d
+    }
+
+    imprime("a = %\n", a)
+}
+
+principale :: fonc () -> z32
+{
+    démo_si_comme_expression()
+    retourne 0
+}

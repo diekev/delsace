@@ -27,6 +27,7 @@ cd $DOSSIER_COURANT
 # À FAIRE : exemples/demos/demo_coro_nombre_premier.kuri
 # À FAIRE : "exemples/tests/test_tri.kuri" \
 # À FAIRE : "exemples/tests/test_fichier.kuri" \
+
 FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/applications/calendrier_républicain.kuri" \
           "exemples/applications/cliente.kuri" \
@@ -37,13 +38,17 @@ FICHIERS=("exemples/applications/base64.kuri" \
           "exemples/applications/serveuse.kuri" \
           "exemples/applications/serveuse_ssl.kuri" \
           "exemples/applications/sudoku.kuri" \
+          "exemples/demos/demo_exécution.kuri" \
           "exemples/demos/demo_expansion_argument_variadique.kuri" \
           "exemples/demos/demo_info_type_fonction.kuri" \
           "exemples/demos/demo_logement.kuri" \
           "exemples/demos/demo_operateur_crochet.kuri" \
           "exemples/demos/demo_operateur_point.kuri" \
+          "exemples/demos/demo_operateur_surcharge.kuri" \
+          "exemples/demos/demo_pointeurs.kuri" \
           "exemples/demos/demo_reference.kuri" \
           "exemples/demos/demo_retour_multiple.kuri" \
+          "exemples/demos/demo_si.kuri" \
           "exemples/demos/demo_surcharge_fonctions.kuri" \
           "exemples/demos/demo_syntax_appel_uniforme.kuri" \
           "exemples/demos/demo_typage.kuri" \

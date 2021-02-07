@@ -1,0 +1,26 @@
+importe Fondation
+importe Math
+
+retourne_vecteur :: fonc () -> Vec3
+{
+    retourne Vec3(1.0, 3.0, 9.0)
+}
+
+retourne_vecteurs :: fonc () -> Vec3, Vec3
+{
+    retourne Vec3(1.0, 3.0, 9.0), Vec3(2.0, 4.0, 8.0)
+}
+
+démo_exécute_dans_fonction :: fonc ()
+{
+    a, b := #exécute retourne_vecteurs()
+
+    imprime("a := %\n", a)
+    imprime("b := %\n", b)
+}
+
+principale :: fonc () -> z32
+{
+    démo_exécute_dans_fonction()
+    retourne 0
+}

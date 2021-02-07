@@ -1,0 +1,70 @@
+importe Fondation
+importe Math
+
+principale :: fonc () -> z32
+{
+    u : Vec3
+    v : Vec3
+    s := 1.0
+
+	u.x = 1.0
+	u.y = 2.0
+	u.z = 3.0
+
+	pour 0 ... 2 {
+		imprime("u[%] = %\n", it, u[it])
+	}
+
+    si u == v {
+        imprime("u == v\n")
+    }
+
+    si u == 0.0 {
+        imprime("u == 0.0\n")
+    }
+
+    {
+        c := u + 2.0
+        imprime("c = %\n", c)
+
+        d := 2.0 + u
+        imprime("d = %\n", d)
+    }
+
+    {
+        c := u - 2.0
+        imprime("c = %\n", c)
+
+        // Ceci produit une erreur de compilation, car a - b != b - a
+        // d := 2.0 - u
+        // imprime("d = %\n", d)
+    }
+
+    {
+        c := u * 2.0
+        imprime("c = %\n", c)
+
+        d := 2.0 * u
+        imprime("d = %\n", d)
+    }
+
+    {
+        c := u / 2.0
+        imprime("c = %\n", c)
+
+        // Ceci produit une erreur de compilation, car a / b != b / a
+        // d := 2.0 / u
+        // imprime("d = %\n", d)
+    }
+
+    {
+        u += 2.0
+        imprime("u = %\n", u)
+
+        // Ceci génère une erreur de compilation car nous ne pouvons pas assigner le résultat à la variable
+        // e := 5.0
+        // e += u
+    }
+
+    retourne 0
+}
