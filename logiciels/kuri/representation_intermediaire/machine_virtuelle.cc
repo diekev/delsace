@@ -1391,12 +1391,6 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 	nombre_de_metaprogrammes_executes += static_cast<int>(m_metaprogrammes_termines.taille());
 }
 
-dls::tableau<MetaProgramme *> const &MachineVirtuelle::metaprogrammes_termines()
-{
-	m_metaprogrammes_termines_lu = true;
-	return m_metaprogrammes_termines;
-}
-
 DonneesExecution *MachineVirtuelle::loge_donnees_execution()
 {
 	auto donnees = donnees_execution.ajoute_element();
@@ -1414,11 +1408,6 @@ void MachineVirtuelle::deloge_donnees_execution(DonneesExecution *&donnees)
 	// À FAIRE : récupère la mémoire
 	memoire::deloge_tableau("MachineVirtuelle::pile", donnees->pile, TAILLE_PILE);
 	donnees = nullptr;
-}
-
-bool MachineVirtuelle::terminee() const
-{
-	return m_metaprogrammes.est_vide();
 }
 
 void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)

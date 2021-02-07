@@ -158,12 +158,19 @@ public:
 
 	void execute_metaprogrammes_courants();
 
-	dls::tableau<MetaProgramme *> const &metaprogrammes_termines();
+	dls::tableau<MetaProgramme *> const &metaprogrammes_termines()
+	{
+		m_metaprogrammes_termines_lu = true;
+		return m_metaprogrammes_termines;
+	}
 
 	DonneesExecution *loge_donnees_execution();
 	void deloge_donnees_execution(DonneesExecution *&donnees);
 
-	bool terminee() const;
+	bool terminee() const
+	{
+		return m_metaprogrammes.est_vide();
+	}
 
 	void rassemble_statistiques(Statistiques &stats);
 
