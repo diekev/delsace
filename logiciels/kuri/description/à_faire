@@ -381,6 +381,7 @@ initialisation de tableaux fixes :
 
 - pouvoir passer des pointeur comme référence (voir création du contexte qui utilise pour le moment une valeur)
 
+- utilisation des opérateurs + et - sur les énums drapeaux afin de pouvoir ajouter ou soustraire des bits
 
 // --------------------------- Discriminations
 
