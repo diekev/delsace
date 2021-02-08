@@ -28,41 +28,7 @@
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/pile.hh"
 
-enum class GenreNoeud : char;
-
-struct AllocatriceNoeud;
-struct EspaceDeTravail;
-struct IdentifiantCode;
-struct Lexeme;
-struct NoeudAssignation;
-struct NoeudBloc;
-struct NoeudBoucle;
-struct NoeudComme;
-struct NoeudDeclaration;
-struct NoeudDeclarationEnteteFonction;
-struct NoeudDeclarationVariable;
-struct NoeudDirectiveExecution;
-struct NoeudDiscr;
-struct NoeudEnum;
-struct NoeudExpression;
-struct NoeudExpressionAppel;
-struct NoeudExpressionBinaire;
-struct NoeudExpressionLitterale;
-struct NoeudExpressionMembre;
-struct NoeudExpressionReference;
-struct NoeudExpressionUnaire;
-struct NoeudExpressionVirgule;
-struct NoeudPour;
-struct NoeudPousseContexte;
-struct NoeudRetour;
-struct NoeudSi;
-struct NoeudSiStatique;
-struct NoeudStruct;
-struct NoeudTableauArgsVariadiques;
-struct NoeudTente;
-struct OperateurBinaire;
-struct Type;
-struct TypeCompose;
+#include "allocatrice_noeud.hh"
 
 struct AssembleuseArbre {
 private:
@@ -86,11 +52,33 @@ public:
 
 	void depile_bloc();
 
-	/**
-	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
-	 * pointeur vers celui-ci.
-	 */
-	NoeudExpression *cree_noeud(GenreNoeud type, Lexeme const *lexeme);
+	/* À FAIRE : supprime en faveur de la fonction ci-bas, uniquement utilisée pour les copies. */
+	NoeudExpression *cree_noeud(GenreNoeud genre, Lexeme const *lexeme);
+
+	/* Utilisation d'un gabarit car à part pour les copies, nous connaissons
+	 * toujours le genre de noeud à créer, et spécialiser cette fonction nous
+	 * économise pas mal de temps d'exécution, au prix d'un exécutable plus gros. */
+	template <GenreNoeud genre>
+	NoeudExpression *cree_noeud(Lexeme const *lexeme)
+	{
+		auto noeud = m_allocatrice_noeud.cree_noeud<genre>();
+		noeud->genre = genre;
+		noeud->lexeme = lexeme;
+		noeud->bloc_parent = bloc_courant();
+
+		if (noeud->lexeme && (noeud->lexeme->genre == GenreLexeme::CHAINE_CARACTERE || noeud->lexeme->genre == GenreLexeme::EXTERNE)) {
+			noeud->ident = lexeme->ident;
+		}
+
+		if (genre == GenreNoeud::DECLARATION_ENTETE_FONCTION) {
+			auto entete = noeud->comme_entete_fonction();
+			entete->corps->lexeme = lexeme;
+			entete->corps->ident = lexeme->ident;
+			entete->corps->bloc_parent = entete->bloc_parent;
+		}
+
+		return noeud;
+	}
 
 	NoeudAssignation *cree_assignation(const Lexeme *lexeme);
 	NoeudAssignation *cree_assignation(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression);

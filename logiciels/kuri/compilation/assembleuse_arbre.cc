@@ -34,7 +34,7 @@ AssembleuseArbre::AssembleuseArbre(AllocatriceNoeud &allocatrice)
 
 NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 {
-	auto bloc = static_cast<NoeudBloc *>(cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, lexeme));
+	auto bloc = static_cast<NoeudBloc *>(cree_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme));
 	bloc->bloc_parent = bloc_courant();
 
 	if (bloc->bloc_parent) {
@@ -74,7 +74,7 @@ void AssembleuseArbre::depile_bloc()
 	m_blocs.depile();
 }
 
-NoeudExpression *AssembleuseArbre::cree_noeud(GenreNoeud genre, Lexeme const *lexeme)
+NoeudExpression *AssembleuseArbre::cree_noeud(GenreNoeud genre, const Lexeme *lexeme)
 {
 	auto noeud = m_allocatrice_noeud.cree_noeud(genre);
 	noeud->genre = genre;
@@ -97,27 +97,27 @@ NoeudExpression *AssembleuseArbre::cree_noeud(GenreNoeud genre, Lexeme const *le
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_importe(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_IMPORTE, lexeme)->comme_importe();
+	return cree_noeud<GenreNoeud::INSTRUCTION_IMPORTE>(lexeme)->comme_importe();
 }
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_charge(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_CHARGE, lexeme)->comme_charge();
+	return cree_noeud<GenreNoeud::INSTRUCTION_CHARGE>(lexeme)->comme_charge();
 }
 
 NoeudExpressionVirgule *AssembleuseArbre::cree_virgule(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_VIRGULE, lexeme)->comme_virgule();
+	return cree_noeud<GenreNoeud::EXPRESSION_VIRGULE>(lexeme)->comme_virgule();
 }
 
 NoeudBoucle *AssembleuseArbre::cree_boucle(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_BOUCLE, lexeme)->comme_boucle();
+	return cree_noeud<GenreNoeud::INSTRUCTION_BOUCLE>(lexeme)->comme_boucle();
 }
 
 NoeudExpressionBinaire *AssembleuseArbre::cree_op_binaire(Lexeme const *lexeme)
 {
-	return cree_noeud(GenreNoeud::OPERATEUR_BINAIRE, lexeme)->comme_operateur_binaire();
+	return cree_noeud<GenreNoeud::OPERATEUR_BINAIRE>(lexeme)->comme_operateur_binaire();
 }
 
 NoeudExpressionBinaire *AssembleuseArbre::cree_op_binaire(const Lexeme *lexeme, const OperateurBinaire *op, NoeudExpression *expr1, NoeudExpression *expr2)
@@ -133,12 +133,12 @@ NoeudExpressionBinaire *AssembleuseArbre::cree_op_binaire(const Lexeme *lexeme, 
 
 NoeudDeclarationVariable *AssembleuseArbre::cree_declaration(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::DECLARATION_VARIABLE, lexeme)->comme_decl_var();
+	return cree_noeud<GenreNoeud::DECLARATION_VARIABLE>(lexeme)->comme_decl_var();
 }
 
 NoeudExpressionReference *AssembleuseArbre::cree_ref_decl(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme)->comme_ref_decl();
+	return cree_noeud<GenreNoeud::EXPRESSION_REFERENCE_DECLARATION>(lexeme)->comme_ref_decl();
 }
 
 NoeudExpressionReference *AssembleuseArbre::cree_ref_decl(const Lexeme *lexeme, NoeudDeclaration *decl)
@@ -152,34 +152,38 @@ NoeudExpressionReference *AssembleuseArbre::cree_ref_decl(const Lexeme *lexeme, 
 
 NoeudSi *AssembleuseArbre::cree_si(const Lexeme *lexeme, GenreNoeud genre_noeud)
 {
-	return static_cast<NoeudSi *>(cree_noeud(genre_noeud, lexeme));
+	if (genre_noeud == GenreNoeud::INSTRUCTION_SI) {
+		return static_cast<NoeudSi *>(cree_noeud<GenreNoeud::INSTRUCTION_SI>(lexeme));
+	}
+
+	return static_cast<NoeudSi *>(cree_noeud<GenreNoeud::INSTRUCTION_SAUFSI>(lexeme));
 }
 
 NoeudBloc *AssembleuseArbre::cree_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent)
 {
-	auto bloc = cree_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, lexeme)->comme_bloc();
+	auto bloc = cree_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme)->comme_bloc();
 	bloc->bloc_parent = bloc_parent;
 	return bloc;
 }
 
 NoeudExpression *AssembleuseArbre::cree_arrete(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_CONTINUE_ARRETE, lexeme)->comme_controle_boucle();
+	return cree_noeud<GenreNoeud::INSTRUCTION_CONTINUE_ARRETE>(lexeme)->comme_controle_boucle();
 }
 
 NoeudExpression *AssembleuseArbre::cree_continue(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_CONTINUE_ARRETE, lexeme)->comme_controle_boucle();
+	return cree_noeud<GenreNoeud::INSTRUCTION_CONTINUE_ARRETE>(lexeme)->comme_controle_boucle();
 }
 
 NoeudAssignation *AssembleuseArbre::cree_assignation(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE, lexeme)->comme_assignation();
+	return cree_noeud<GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE>(lexeme)->comme_assignation();
 }
 
 NoeudAssignation *AssembleuseArbre::cree_assignation(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression)
 {
-	auto assignation = cree_noeud(GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE, lexeme)->comme_assignation();
+	auto assignation = cree_noeud<GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE>(lexeme)->comme_assignation();
 
 	auto donnees = DonneesAssignations();
 	donnees.expression = expression;
@@ -230,7 +234,7 @@ NoeudDeclarationVariable *AssembleuseArbre::cree_declaration(NoeudExpressionRefe
 
 NoeudExpressionMembre *AssembleuseArbre::cree_acces_membre(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_MEMBRE, lexeme)->comme_ref_membre();
+	return cree_noeud<GenreNoeud::EXPRESSION_REFERENCE_MEMBRE>(lexeme)->comme_ref_membre();
 }
 
 NoeudExpressionMembre *AssembleuseArbre::cree_acces_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index)
@@ -244,18 +248,18 @@ NoeudExpressionMembre *AssembleuseArbre::cree_acces_membre(const Lexeme *lexeme,
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_op_unaire(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::OPERATEUR_UNAIRE, lexeme)->comme_operateur_unaire();
+	return cree_noeud<GenreNoeud::OPERATEUR_UNAIRE>(lexeme)->comme_operateur_unaire();
 }
 
 NoeudExpressionBinaire *AssembleuseArbre::cree_indexage(const Lexeme *lexeme)
 {
-	auto indexage = cree_noeud(GenreNoeud::EXPRESSION_INDEXAGE, lexeme)->comme_indexage();
+	auto indexage = cree_noeud<GenreNoeud::EXPRESSION_INDEXAGE>(lexeme)->comme_indexage();
 	return indexage;
 }
 
 NoeudExpressionBinaire *AssembleuseArbre::cree_indexage(const Lexeme *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification)
 {
-	auto indexage = cree_noeud(GenreNoeud::EXPRESSION_INDEXAGE, lexeme)->comme_indexage();
+	auto indexage = cree_noeud<GenreNoeud::EXPRESSION_INDEXAGE>(lexeme)->comme_indexage();
 	indexage->expr1 = expr1;
 	indexage->expr2 = expr2;
 	indexage->type = type_dereference_pour(expr1->type);
@@ -267,7 +271,7 @@ NoeudExpressionBinaire *AssembleuseArbre::cree_indexage(const Lexeme *lexeme, No
 
 NoeudExpressionAppel *AssembleuseArbre::cree_appel(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_APPEL_FONCTION, lexeme)->comme_appel();
+	return cree_noeud<GenreNoeud::EXPRESSION_APPEL_FONCTION>(lexeme)->comme_appel();
 }
 
 NoeudExpressionAppel *AssembleuseArbre::cree_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type)
@@ -307,7 +311,7 @@ NoeudExpressionAppel *AssembleuseArbre::cree_construction_structure(const Lexeme
 
 NoeudExpressionLitterale *AssembleuseArbre::cree_lit_chaine(const Lexeme *lexeme)
 {
-	auto noeud = cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CHAINE, lexeme)->comme_litterale();
+	auto noeud = cree_noeud<GenreNoeud::EXPRESSION_LITTERALE_CHAINE>(lexeme)->comme_litterale();
 	/* transfère l'index car les lexèmes peuvent être partagés lors de la simplification du code ou des exécutions */
 	noeud->index_chaine = lexeme->index_chaine;
 	return noeud;
@@ -315,27 +319,27 @@ NoeudExpressionLitterale *AssembleuseArbre::cree_lit_chaine(const Lexeme *lexeme
 
 NoeudExpressionLitterale *AssembleuseArbre::cree_lit_caractere(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CARACTERE, lexeme)->comme_litterale();
+	return cree_noeud<GenreNoeud::EXPRESSION_LITTERALE_CARACTERE>(lexeme)->comme_litterale();
 }
 
 NoeudExpressionLitterale *AssembleuseArbre::cree_lit_entier(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER, lexeme)->comme_litterale();
+	return cree_noeud<GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER>(lexeme)->comme_litterale();
 }
 
 NoeudExpressionLitterale *AssembleuseArbre::cree_lit_reel(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL, lexeme)->comme_litterale();
+	return cree_noeud<GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL>(lexeme)->comme_litterale();
 }
 
 NoeudExpressionLitterale *AssembleuseArbre::cree_lit_nul(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NUL, lexeme)->comme_litterale();
+	return cree_noeud<GenreNoeud::EXPRESSION_LITTERALE_NUL>(lexeme)->comme_litterale();
 }
 
 NoeudExpressionLitterale *AssembleuseArbre::cree_lit_bool(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN, lexeme)->comme_litterale();
+	return cree_noeud<GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN>(lexeme)->comme_litterale();
 }
 
 NoeudExpressionLitterale *AssembleuseArbre::cree_lit_entier(Lexeme const *lexeme, Type *type, unsigned long valeur)
@@ -356,7 +360,7 @@ NoeudExpressionLitterale *AssembleuseArbre::cree_lit_reel(Lexeme const *lexeme, 
 
 NoeudExpression *AssembleuseArbre::cree_ref_type(Lexeme const *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_TYPE, lexeme);
+	return cree_noeud<GenreNoeud::EXPRESSION_REFERENCE_TYPE>(lexeme);
 }
 
 NoeudExpression *AssembleuseArbre::cree_ref_type(Lexeme const *lexeme, Type *type)
@@ -410,135 +414,135 @@ NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme, No
 
 NoeudPour *AssembleuseArbre::cree_pour(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_POUR, lexeme)->comme_pour();
+	return cree_noeud<GenreNoeud::INSTRUCTION_POUR>(lexeme)->comme_pour();
 }
 
 NoeudBoucle *AssembleuseArbre::cree_repete(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_REPETE, lexeme)->comme_repete();
+	return cree_noeud<GenreNoeud::INSTRUCTION_REPETE>(lexeme)->comme_repete();
 }
 
 NoeudBoucle *AssembleuseArbre::cree_tantque(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_TANTQUE, lexeme)->comme_tantque();
+	return cree_noeud<GenreNoeud::INSTRUCTION_TANTQUE>(lexeme)->comme_tantque();
 }
 
 NoeudSiStatique *AssembleuseArbre::cree_si_statique(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_SI_STATIQUE, lexeme)->comme_si_statique();
+	return cree_noeud<GenreNoeud::INSTRUCTION_SI_STATIQUE>(lexeme)->comme_si_statique();
 }
 
 NoeudDiscr *AssembleuseArbre::cree_discr(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_DISCR, lexeme)->comme_discr();
+	return cree_noeud<GenreNoeud::INSTRUCTION_DISCR>(lexeme)->comme_discr();
 }
 
 NoeudEnum *AssembleuseArbre::cree_enum(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::DECLARATION_ENUM, lexeme)->comme_enum();
+	return cree_noeud<GenreNoeud::DECLARATION_ENUM>(lexeme)->comme_enum();
 }
 
 NoeudStruct *AssembleuseArbre::cree_struct(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::DECLARATION_STRUCTURE, lexeme)->comme_structure();
+	return cree_noeud<GenreNoeud::DECLARATION_STRUCTURE>(lexeme)->comme_structure();
 }
 
 NoeudTableauArgsVariadiques *AssembleuseArbre::cree_tableau_variadique(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, lexeme)->comme_args_variadiques();
+	return cree_noeud<GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES>(lexeme)->comme_args_variadiques();
 }
 
 NoeudDeclarationEnteteFonction *AssembleuseArbre::cree_entete_fonction(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::DECLARATION_ENTETE_FONCTION, lexeme)->comme_entete_fonction();
+	return cree_noeud<GenreNoeud::DECLARATION_ENTETE_FONCTION>(lexeme)->comme_entete_fonction();
 }
 
 NoeudRetour *AssembleuseArbre::cree_retour(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_RETOUR, lexeme)->comme_retour();
+	return cree_noeud<GenreNoeud::INSTRUCTION_RETOUR>(lexeme)->comme_retour();
 }
 
 NoeudRetour *AssembleuseArbre::cree_retiens(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_RETIENS, lexeme)->comme_retiens();
+	return cree_noeud<GenreNoeud::INSTRUCTION_RETIENS>(lexeme)->comme_retiens();
 }
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_controle_boucle(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_CONTINUE_ARRETE, lexeme)->comme_controle_boucle();
+	return cree_noeud<GenreNoeud::INSTRUCTION_CONTINUE_ARRETE>(lexeme)->comme_controle_boucle();
 }
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_cuisine(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::DIRECTIVE_CUISINE, lexeme)->comme_cuisine();
+	return cree_noeud<GenreNoeud::DIRECTIVE_CUISINE>(lexeme)->comme_cuisine();
 }
 
 NoeudComme *AssembleuseArbre::cree_comme(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_COMME, lexeme)->comme_comme();
+	return cree_noeud<GenreNoeud::EXPRESSION_COMME>(lexeme)->comme_comme();
 }
 
 NoeudExpressionBinaire *AssembleuseArbre::cree_plage(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_PLAGE, lexeme)->comme_plage();
+	return cree_noeud<GenreNoeud::EXPRESSION_PLAGE>(lexeme)->comme_plage();
 }
 
 NoeudDirectiveExecution *AssembleuseArbre::cree_execution(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::DIRECTIVE_EXECUTION, lexeme)->comme_execute();
+	return cree_noeud<GenreNoeud::DIRECTIVE_EXECUTION>(lexeme)->comme_execute();
 }
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_type_de(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_TYPE_DE, lexeme)->comme_type_de();
+	return cree_noeud<GenreNoeud::EXPRESSION_TYPE_DE>(lexeme)->comme_type_de();
 }
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_taille_de(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_TAILLE_DE, lexeme)->comme_taille();
+	return cree_noeud<GenreNoeud::EXPRESSION_TAILLE_DE>(lexeme)->comme_taille();
 }
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_info_de(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_INFO_DE, lexeme)->comme_info_de();
+	return cree_noeud<GenreNoeud::EXPRESSION_INFO_DE>(lexeme)->comme_info_de();
 }
 
 NoeudTente *AssembleuseArbre::cree_tente(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_TENTE, lexeme)->comme_tente();
+	return cree_noeud<GenreNoeud::INSTRUCTION_TENTE>(lexeme)->comme_tente();
 }
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_parenthese(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_PARENTHESE, lexeme)->comme_parenthese();
+	return cree_noeud<GenreNoeud::EXPRESSION_PARENTHESE>(lexeme)->comme_parenthese();
 }
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_memoire(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_MEMOIRE, lexeme)->comme_memoire();
+	return cree_noeud<GenreNoeud::EXPRESSION_MEMOIRE>(lexeme)->comme_memoire();
 }
 
 NoeudExpression *AssembleuseArbre::cree_non_initialisation(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_NON_INITIALISATION, lexeme);
+	return cree_noeud<GenreNoeud::INSTRUCTION_NON_INITIALISATION>(lexeme);
 }
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_init_de(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_INIT_DE, lexeme)->comme_init_de();
+	return cree_noeud<GenreNoeud::EXPRESSION_INIT_DE>(lexeme)->comme_init_de();
 }
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_empl(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_EMPL, lexeme)->comme_empl();
+	return cree_noeud<GenreNoeud::INSTRUCTION_EMPL>(lexeme)->comme_empl();
 }
 
 NoeudExpressionUnaire *AssembleuseArbre::cree_construction_tableau(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU, lexeme)->comme_construction_tableau();
+	return cree_noeud<GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU>(lexeme)->comme_construction_tableau();
 }
 
 NoeudPousseContexte *AssembleuseArbre::cree_pousse_contexte(const Lexeme *lexeme)
 {
-	return cree_noeud(GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE, lexeme)->comme_pousse_contexte();
+	return cree_noeud<GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE>(lexeme)->comme_pousse_contexte();
 }
