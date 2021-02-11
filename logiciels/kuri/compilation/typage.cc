@@ -757,12 +757,8 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 	return type;
 }
 
-TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees, Type *type_sortie)
+TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees)
 {
-	if (it->type_sortie != type_sortie) {
-		return nullptr;
-	}
-
 	if (it->types_entrees.taille != entrees.taille()) {
 		return nullptr;
 	}
@@ -799,7 +795,7 @@ TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, Type
 			continue;
 		}
 
-		auto type = discr_type_fonction(&it, entrees, type_sortie);
+		auto type = discr_type_fonction(&it, entrees);
 
 		if (type != nullptr) {
 //			nombre_types_apparies += 1;

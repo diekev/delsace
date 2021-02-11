@@ -652,7 +652,7 @@ struct Typeuse {
 
 	TypeVariadique *type_variadique(Type *type_pointe);
 
-	TypeFonction *discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees, Type *type_sortie);
+	TypeFonction *discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees);
 
 	TypeFonction *type_fonction(dls::tablet<Type *, 6> const &entrees, Type *type_sortie, bool ajoute_operateurs = true);
 

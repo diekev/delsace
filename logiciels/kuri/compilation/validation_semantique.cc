@@ -2541,10 +2541,6 @@ struct VariableEtExpression {
 
 static void rassemble_expressions(NoeudExpression *expr, dls::tablet<VariableEtExpression, 6> &expressions)
 {
-	if (expr == nullptr) {
-		return;
-	}
-
 	/* pour les directives d'exécutions nous devons directement utiliser le résultat afin
 	 * d'éviter les problèmes si la substitution est une virgule (plusieurs résultats) */
 	if (expr->est_execute() && expr->substitution) {
