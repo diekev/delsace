@@ -1332,20 +1332,20 @@ dls::chaine chaine_type(const Type *type)
 
 Type *type_dereference_pour(Type *type)
 {
-	if (type->genre == GenreType::TABLEAU_FIXE) {
-		return type->comme_tableau_fixe()->type_pointe;
-	}
-
-	if (type->genre == GenreType::TABLEAU_DYNAMIQUE) {
-		return type->comme_tableau_dynamique()->type_pointe;
-	}
-
 	if (type->genre == GenreType::POINTEUR) {
 		return type->comme_pointeur()->type_pointe;
 	}
 
 	if (type->genre == GenreType::REFERENCE) {
 		return type->comme_reference()->type_pointe;
+	}
+
+	if (type->genre == GenreType::TABLEAU_FIXE) {
+		return type->comme_tableau_fixe()->type_pointe;
+	}
+
+	if (type->genre == GenreType::TABLEAU_DYNAMIQUE) {
+		return type->comme_tableau_dynamique()->type_pointe;
 	}
 
 	if (type->genre == GenreType::VARIADIQUE) {
@@ -1439,7 +1439,15 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 
 	auto resultat = type;
 
-	if (type->genre == GenreType::UNION) {
+	if (type->genre == GenreType::POINTEUR) {
+		auto type_pointeur = type->comme_pointeur();
+		auto type_normalise = normalise_type(typeuse, type_pointeur->type_pointe);
+
+		if (type_normalise != type_pointeur) {
+			resultat = typeuse.type_pointeur_pour(type_pointeur->type_pointe, false);
+		}
+	}
+	else if (type->genre == GenreType::UNION) {
 		auto type_union = type->comme_union();
 
 		if (type_union->est_nonsure) {
@@ -1468,14 +1476,6 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 
 		if (type_normalise != type_variadique) {
 			resultat = typeuse.type_variadique(type_variadique->type_pointe);
-		}
-	}
-	else if (type->genre == GenreType::POINTEUR) {
-		auto type_pointeur = type->comme_pointeur();
-		auto type_normalise = normalise_type(typeuse, type_pointeur->type_pointe);
-
-		if (type_normalise != type_pointeur) {
-			resultat = typeuse.type_pointeur_pour(type_pointeur->type_pointe, false);
 		}
 	}
 	else if (type->genre == GenreType::REFERENCE) {
