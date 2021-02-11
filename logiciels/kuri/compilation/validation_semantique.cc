@@ -359,7 +359,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 				expr->type = espace->typeuse.type_type_de_donnees(decl->type);
 				expr->decl = decl;
 			}
-			else {				
+			else {
 				if (!decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 					if (decl->unite == nullptr) {
 						m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl);
@@ -2383,7 +2383,7 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(NoeudDeclaration
 
 		auto operateurs = espace->operateurs.verrou_ecriture();
 
-		if (decl->params.taille == 1) {			
+		if (decl->params.taille == 1) {
 			auto &iter_op = operateurs->trouve_unaire(decl->lexeme->genre);
 			auto type1 = type_fonc->types_entrees[0 + possede_contexte];
 
