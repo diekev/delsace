@@ -11,3 +11,4 @@ logiciels/kuri/modules/FTGL/*.h
 logiciels/kuri/modules/Image/*.h
 
 .chaines_ajoutées
+.vscode/
