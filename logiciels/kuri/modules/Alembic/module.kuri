@@ -458,8 +458,6 @@ calcule_données_passive_et_étendue :: fonc (T: type_de_données) -> TypeDonné
         DonnéesValidationTypeDonnées(r64, TypeDonnéesPassive.R64, 1)
     ]
 
-    // À FAIRE : si ceci n'est ni un pointeur, ni une référence, la machine virtuelle crash
-    //           il y a une superposition entre l'assignation à la locale et sa source
     pour & données_validations {
         si it.type == T {
             retourne it.donnée_passive, it.étendue
