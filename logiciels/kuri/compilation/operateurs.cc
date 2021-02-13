@@ -24,6 +24,7 @@
 
 #include "operateurs.hh"
 
+#include "biblinternes/outils/assert.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 
 #include "compilatrice.hh"
@@ -36,6 +37,7 @@ static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 {
 	switch (genre_lexeme) {
 		case GenreLexeme::PLUS:
+		case GenreLexeme::PLUS_EGAL:
 		{
 			if (type_operandes == IndiceTypeOp::REEL) {
 				return OperateurBinaire::Genre::Addition_Reel;
@@ -44,6 +46,7 @@ static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 			return OperateurBinaire::Genre::Addition;
 		}
 		case GenreLexeme::MOINS:
+		case GenreLexeme::MOINS_EGAL:
 		{
 			if (type_operandes == IndiceTypeOp::REEL) {
 				return OperateurBinaire::Genre::Soustraction_Reel;
@@ -52,6 +55,7 @@ static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 			return OperateurBinaire::Genre::Soustraction;
 		}
 		case GenreLexeme::FOIS:
+		case GenreLexeme::MULTIPLIE_EGAL:
 		{
 			if (type_operandes == IndiceTypeOp::REEL) {
 				return OperateurBinaire::Genre::Multiplication_Reel;
@@ -60,6 +64,7 @@ static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 			return OperateurBinaire::Genre::Multiplication;
 		}
 		case GenreLexeme::DIVISE:
+		case GenreLexeme::DIVISE_EGAL:
 		{
 			if (type_operandes == IndiceTypeOp::REEL) {
 				return OperateurBinaire::Genre::Division_Reel;
@@ -72,6 +77,7 @@ static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 			return OperateurBinaire::Genre::Division_Relatif;
 		}
 		case GenreLexeme::POURCENT:
+		case GenreLexeme::MODULO_EGAL:
 		{			
 			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
 				return OperateurBinaire::Genre::Reste_Naturel;
@@ -80,6 +86,7 @@ static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 			return OperateurBinaire::Genre::Reste_Relatif;
 		}
 		case GenreLexeme::DECALAGE_DROITE:
+		case GenreLexeme::DEC_DROITE_EGAL:
 		{
 			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
 				return OperateurBinaire::Genre::Dec_Droite_Logique;
@@ -88,18 +95,22 @@ static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 			return OperateurBinaire::Genre::Dec_Droite_Arithm;
 		}
 		case GenreLexeme::DECALAGE_GAUCHE:
+		case GenreLexeme::DEC_GAUCHE_EGAL:
 		{
 			return OperateurBinaire::Genre::Dec_Gauche;
 		}
 		case GenreLexeme::ESPERLUETTE:
+		case GenreLexeme::ET_EGAL:
 		{
 			return OperateurBinaire::Genre::Et_Binaire;
 		}
 		case GenreLexeme::BARRE:
+		case GenreLexeme::OU_EGAL:
 		{
 			return OperateurBinaire::Genre::Ou_Binaire;
 		}
 		case GenreLexeme::CHAPEAU:
+		case GenreLexeme::OUX_EGAL:
 		{
 			return OperateurBinaire::Genre::Ou_Exclusif;
 		}
@@ -171,6 +182,9 @@ static OperateurBinaire::Genre genre_op_binaire_pour_lexeme(
 		}
 		default:
 		{
+			assert_rappel(false, [=](){
+				std::cerr << "Lexème inattendu lors de la résolution du genre d'opérateur : " << chaine_du_genre_de_lexeme(genre_lexeme) << '\n';
+			});
 			return OperateurBinaire::Genre::Invalide;
 		}
 	}
