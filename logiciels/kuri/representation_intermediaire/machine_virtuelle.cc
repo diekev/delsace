@@ -1338,6 +1338,10 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 		m_metaprogrammes_termines_lu = false;
 	}
 
+	if (terminee()) {
+		return;
+	}
+
 	auto nombre_metaprogrammes = m_metaprogrammes.taille();
 
 	dls::chrono::compte_seconde chrono_exec;
