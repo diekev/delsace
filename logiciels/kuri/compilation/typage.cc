@@ -1231,11 +1231,23 @@ dls::chaine chaine_type(const Type *type)
 		}
 		case GenreType::UNION:
 		{
-			return static_cast<TypeUnion const *>(type)->nom->nom;
+			auto type_structure = static_cast<TypeStructure const *>(type);
+
+			if (type_structure->nom) {
+				return type_structure->nom->nom;
+			}
+
+			return "union.anonyme";
 		}
 		case GenreType::STRUCTURE:
 		{
-			return static_cast<TypeStructure const *>(type)->nom->nom;
+			auto type_structure = static_cast<TypeStructure const *>(type);
+
+			if (type_structure->nom) {
+				return type_structure->nom->nom;
+			}
+
+			return "struct.anonyme";
 		}
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
