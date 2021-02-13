@@ -3861,7 +3861,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(NoeudDecl
 		}
 	}
 
-	{
+	if (!decl->possede_drapeau(EST_PARAMETRE)) {
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "copie données");
 
 		decl->donnees_decl.reserve(donnees_assignations.taille());
