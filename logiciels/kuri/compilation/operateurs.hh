@@ -136,6 +136,24 @@ struct OperateurBinaire {
 
 const char *chaine_pour_genre_op(OperateurBinaire::Genre genre);
 
+/* Structure stockant les opérateurs binaires pour un Type.
+ * Le Type n'est pas stocker ici, mais chaque Type possède une telle table.
+ * Une Table stocke les opérateurs binaires pour un Type si celui-ci est le type
+ * de l'opérande à gauche. */
+struct TableOperateurs {
+	using type_conteneur = dls::tableau<OperateurBinaire *>;
+
+private:
+	dls::tableau<type_conteneur> operateurs_{};
+
+public:
+	TableOperateurs();
+
+	void ajoute(GenreLexeme lexeme, OperateurBinaire *operateur);
+
+	type_conteneur const &operateurs(GenreLexeme lexeme);
+};
+
 // À FAIRE : considère synchroniser les conteneurs des opérateurs au lieu de la structure, il faudra sans doute revoir l'interface afin de ne pas avoir à trop prendre de verrous
 struct Operateurs {
 	using type_conteneur_binaire = tableau_page<OperateurBinaire>;
@@ -154,7 +172,6 @@ struct Operateurs {
 
 	COPIE_CONSTRUCT(Operateurs);
 
-	type_conteneur_binaire const &trouve_binaire(GenreLexeme id) const;
 	type_conteneur_unaire const &trouve_unaire(GenreLexeme id) const;
 
 	OperateurBinaire *ajoute_basique(GenreLexeme id, Type *type, Type *type_resultat, IndiceTypeOp indice_type);

@@ -476,6 +476,23 @@ constexpr inline int nombre_genre_op_unaires()
 	return compte;
 }
 
+TableOperateurs::TableOperateurs()
+{
+	operateurs_.redimensionne(nombre_genre_op_binaires());
+}
+
+void TableOperateurs::ajoute(GenreLexeme lexeme, OperateurBinaire *operateur)
+{
+	/* nous utilisons le lexème pour indexer afin que les opérateurs dépendants
+	 * du signe des types soient stockés ensemble */
+	operateurs_[index_op_binaire(lexeme)].ajoute(operateur);
+}
+
+const TableOperateurs::type_conteneur &TableOperateurs::operateurs(GenreLexeme lexeme)
+{
+	return operateurs_[index_op_binaire(lexeme)];
+}
+
 Operateurs::Operateurs()
 {
 	operateurs_unaires.redimensionne(nombre_genre_op_unaires());
@@ -489,11 +506,6 @@ Operateurs::~Operateurs()
 const Operateurs::type_conteneur_unaire &Operateurs::trouve_unaire(GenreLexeme id) const
 {
 	return operateurs_unaires[index_op_unaire(id)];
-}
-
-const Operateurs::type_conteneur_binaire &Operateurs::trouve_binaire(GenreLexeme id) const
-{
-	return operateurs_binaires[index_op_binaire(id)];
 }
 
 OperateurBinaire *Operateurs::ajoute_basique(
@@ -522,6 +534,7 @@ OperateurBinaire *Operateurs::ajoute_basique(
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = true;
 	op->genre = genre_op_binaire_pour_lexeme(id, indice_type);
+	type1->operateurs.ajoute(id, op);
 	return op;
 }
 
@@ -549,6 +562,7 @@ void Operateurs::ajoute_perso(
 	op->est_commutatif = est_commutatif(id);
 	op->est_basique = false;
 	op->decl = decl;
+	type1->operateurs.ajoute(id, op);
 }
 
 void Operateurs::ajoute_perso_unaire(
@@ -665,22 +679,13 @@ bool cherche_candidats_operateurs(
 
 	auto op_candidats = dls::tablet<OperateurBinaire const *, 10>();
 
-	auto &iter = espace.operateurs->trouve_binaire(type_op);
+	POUR (type1->operateurs.operateurs(type_op)) {
+		op_candidats.ajoute(it);
+	}
 
-	for (auto i = 0; i < iter.taille(); ++i) {
-		auto op = &iter[i];
-
-		if (op->type1 == type1 && op->type2 == type2) {
-			op_candidats.efface();
-			op_candidats.ajoute(op);
-			break;
-		}
-
-		if (op->type1 == type1 || op->type2 == type2) {
-			op_candidats.ajoute(op);
-		}
-		else if (op->est_commutatif && (op->type2 == type1 || op->type1 == type2)) {
-			op_candidats.ajoute(op);
+	if (type1 != type2) {
+		POUR (type2->operateurs.operateurs(type_op)) {
+			op_candidats.ajoute(it);
 		}
 	}
 

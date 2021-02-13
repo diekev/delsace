@@ -31,6 +31,7 @@
 #include "biblinternes/structures/tableau_page.hh"
 
 #include "lexemes.hh"
+#include "operateurs.hh"
 #include "structures.hh"
 
 struct AtomeConstante;
@@ -201,6 +202,8 @@ struct Type {
 	NoeudDependance *noeud_dependance = nullptr;
 
 	AtomeFonction *fonction_init = nullptr;
+
+	TableOperateurs operateurs{};
 
 	/* À FAIRE : ces opérateurs ne sont que pour la simplification du code, nous devrions les généraliser */
 	OperateurBinaire *operateur_ajt = nullptr;

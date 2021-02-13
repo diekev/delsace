@@ -245,30 +245,6 @@ considère un opérateur pour convertir entre des types
 
     opérateur Type :: fonc (a: AutreType) -> Type
 
-
-TableOpérateur {
-    opérateurs_unaires = ...;
-    opérateurs_binaires = ...;
-}
-
-type->table_opérateur
-
-struct TableOperateurBinaire {
-private:
-    dls::tableau<OpérateurBinaire *> operateurs[NOMBRE_OPERATEURS_BINAIRE] = {};
-
-public:
-    void ajoute_operateur(OperateurBinaire::Genre genre, OperateurBinaire *op)
-    {
-        operateurs[genre].pousse(op);
-    }
-
-    dls::tableau<OpérateurBinaire *> const &trouve_operateurs(OperateurBinaire::Genre genre)
-    {
-        return operateurs[genre];
-    }
-};
-
 Opérateurs implicites :
 - pour les structures, si triviale -> hérite des différents opérateurs
 - le faire de manière fainéante, quand requis, que faire si un autre module les définis ?

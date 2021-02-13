@@ -2410,14 +2410,11 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(NoeudDeclaration
 						decl);
 		}
 		else if (decl->params.taille == 2) {
-			auto &iter_op = operateurs->trouve_binaire(decl->lexeme->genre);
 			auto type1 = type_fonc->types_entrees[0 + possede_contexte];
 			auto type2 = type_fonc->types_entrees[1 + possede_contexte];
 
-			for (auto i = 0; i < iter_op.taille(); ++i) {
-				auto op = &iter_op[i];
-
-				if (op->type1 == type1 && op->type2 == type2) {
+			for (auto &op : type1->operateurs.operateurs(decl->lexeme->genre)) {
+				if (op->type2 == type2) {
 					if (op->est_basique) {
 						rapporte_erreur("redéfinition de l'opérateur basique", decl);
 						return ResultatValidation::Erreur;
