@@ -244,7 +244,12 @@ static GenreLexeme operateurs_entiers[] = {
 	GenreLexeme::DECALAGE_DROITE,
 	GenreLexeme::ESPERLUETTE,
 	GenreLexeme::BARRE,
-	GenreLexeme::CHAPEAU,
+	GenreLexeme::CHAPEAU
+};
+
+// types entiers unaires :
+// ~
+static GenreLexeme operateurs_entiers_unaires[] = {
 	GenreLexeme::TILDE
 };
 
@@ -918,6 +923,19 @@ void enregistre_operateurs_basiques(
 
 		operateurs.ajoute_basique(op, type_octet, type_octet, IndiceTypeOp::ENTIER_RELATIF);
 		operateurs.ajoute_basique(op, type_entier_constant, type_entier_constant, IndiceTypeOp::ENTIER_NATUREL);
+	}
+
+	POUR (operateurs_entiers_unaires) {
+		for (auto type : types_entiers_relatifs) {
+			operateurs.ajoute_basique_unaire(it, type, type);
+		}
+
+		for (auto type : types_entiers_naturels) {
+			operateurs.ajoute_basique_unaire(it, type, type);
+		}
+
+		operateurs.ajoute_basique_unaire(it, type_octet, type_octet);
+		operateurs.ajoute_basique_unaire(it, type_entier_constant, type_entier_constant);
 	}
 
 	// operateurs booléens & | ^ == !=
