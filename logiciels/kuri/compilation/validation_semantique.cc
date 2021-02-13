@@ -3861,6 +3861,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(NoeudDecl
 		}
 	}
 
+	/* Les paramètres de fonctions n'ont pas besoin de données pour les assignations d'expressions. */
 	if (!decl->possede_drapeau(EST_PARAMETRE)) {
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl, "copie données");
 
