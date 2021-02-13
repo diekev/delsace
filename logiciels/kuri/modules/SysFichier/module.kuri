@@ -241,6 +241,62 @@ chaque_chemin :: corout(chemin : &CheminFichier) -> CheminFichier
     _ := closedir(d)
 }
 
+pour_chaque_chemin :: fonc (chemin : CheminFichier, données: *$T, rappel: fonc(CheminFichier, *T)(rien))
+{
+    si !est_dossier(chemin) {
+        retourne
+    }
+
+    d := ouvre_dossier(chemin)
+
+    si d == nul {
+        retourne
+    }
+
+    boucle {
+        dir := readdir(d)
+
+        si dir == nul {
+            arrête
+        }
+
+        rappel(chemin_pour_dirname(dir), données)
+    }
+
+    _ := closedir(d)
+}
+
+extension :: fonc (chemin: &CheminFichier) -> chaine
+{
+    // À FAIRE : ceci considère les fichiers cachés sous Linux comme étant des extensions
+    pos := trouve_caractère_depuis_la_fin(chemin.chn, '.')
+
+    si pos < 0 {
+        retourne ""
+    }
+
+    retourne sous_chaine(chemin.chn, pos, chemin.chn.taille)
+}
+
+nom_fichier :: fonc (chemin: &CheminFichier) -> chaine
+{
+    pos := trouve_caractère_depuis_la_fin(chemin.chn, '/')
+
+    nom_fichier := ""
+
+    si pos >= 0 {
+        nom_fichier = sous_chaine(chemin.chn, pos, chemin.chn.taille)
+    }
+
+    pos = trouve_caractère_depuis_la_fin(nom_fichier, '.')
+
+    si pos <= 0 {
+        retourne nom_fichier
+    }
+
+    retourne sous_chaine(nom_fichier, 0, pos)
+}
+
 //###############################################################################
 
 enfile_dossier :: fonc(file : &File(T = *DIR), dir : *dirent, chemin : &CheminFichier) -> rien
