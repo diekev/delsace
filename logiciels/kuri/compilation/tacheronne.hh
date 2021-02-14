@@ -143,9 +143,11 @@ private:
 
 	bool toutes_les_tacheronnes_dorment() const;
 
+	bool autre_tacheronne_dans_etat(int id, GenreTache genre_tache);
+
 	long nombre_de_taches_en_attente() const;
 
-	Tache tache_suivante(EspaceDeTravail *espace, DrapeauxTacheronne drapeaux);
+	Tache tache_suivante(EspaceDeTravail *espace, int id, DrapeauxTacheronne drapeaux);
 };
 
 struct Tacheronne {

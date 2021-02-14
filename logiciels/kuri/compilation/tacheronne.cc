@@ -177,6 +177,21 @@ bool OrdonnanceuseTache::toutes_les_tacheronnes_dorment() const
 	return true;
 }
 
+bool OrdonnanceuseTache::autre_tacheronne_dans_etat(int id, GenreTache genre_tache)
+{
+	for (auto i = 0; i < etats_tacheronnes.taille(); ++i) {
+		if (i == id) {
+			continue;
+		}
+
+		if (etats_tacheronnes[i] == genre_tache) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 long OrdonnanceuseTache::nombre_de_taches_en_attente() const
 {
 	return taches_chargement.taille()
@@ -237,7 +252,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 	/* Assigne une nouvelle tâche avant de traiter la dernière, afin d'éviter les
 	 * problèmes de cycles, par exemple quand une tâche de typage est la seule dans
 	 * la liste et que les métaprogrammes n'ont pas encore générés le symbole à définir. */
-	auto nouvelle_tache = tache_suivante(espace, drapeaux);
+	auto nouvelle_tache = tache_suivante(espace, id, drapeaux);
 
 	switch (tache_terminee.genre) {
 		case GenreTache::DORS:
@@ -412,7 +427,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 	return nouvelle_tache;
 }
 
-Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, DrapeauxTacheronne drapeaux)
+Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, int id, DrapeauxTacheronne drapeaux)
 {
 	/* toute tâcheronne pouvant lexer peut charger */
 	if (!taches_chargement.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER))) {
@@ -452,11 +467,11 @@ Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, DrapeauxTacher
 	auto tache_typage = static_cast<Tache *>(nullptr);
 	auto tache_ri = static_cast<Tache *>(nullptr);
 
-	if (!taches_typage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER))) {
+	if (!taches_typage.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER) && !autre_tacheronne_dans_etat(id, GenreTache::TYPAGE))) {
 		tache_typage = &taches_typage.front();
 	}
 
-	if (!taches_generation_ri.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI))) {
+	if (!taches_generation_ri.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI) && !autre_tacheronne_dans_etat(id, GenreTache::GENERE_RI))) {
 		tache_ri = &taches_generation_ri.front();
 	}
 
