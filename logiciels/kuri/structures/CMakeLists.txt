@@ -22,15 +22,19 @@
 set(NOM_CIBLE kuri_structures)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../
 )
 
 set(BIBLIOTHEQUES
+	bib_memoire
 )
 
 set(SOURCES
     chaine.cc
+	tableau_compresse.cc
 
     chaine.hh
+	tableau_compresse.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
