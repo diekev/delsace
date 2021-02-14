@@ -61,6 +61,17 @@ struct EntreeNombreMemoire {
     }
 };
 
+struct EntreeTaille {
+	dls::chaine nom = "";
+	long taille = 0;
+
+	EntreeTaille &operator += (EntreeTaille const &autre)
+	{
+		taille = std::max(taille, autre.taille);
+		return *this;
+	}
+};
+
 struct EntreeFichier {
     dls::chaine nom = "";
     long memoire_lexemes = 0;
@@ -136,6 +147,7 @@ using StatistiquesOperateurs = EntreesStats<EntreeNombreMemoire>;
 using StatistiquesNoeudCode = EntreesStats<EntreeNombreMemoire>;
 using StatistiquesMessage = EntreesStats<EntreeNombreMemoire>;
 using StatistiquesRI = EntreesStats<EntreeNombreMemoire>;
+using StatistiquesTableaux = EntreesStats<EntreeTaille>;
 
 struct Statistiques {
     long nombre_modules = 0ul;
@@ -165,6 +177,7 @@ struct Statistiques {
 	StatistiquesNoeudCode stats_noeuds_code{"Noeuds Code"};
 	StatistiquesMessage stats_messages{"Messages"};
 	StatistiquesRI stats_ri{"Représentation Intermédiaire"};
+	StatistiquesTableaux stats_tableaux{"Tableaux"};
 };
 
 struct StatistiquesTypage {

@@ -204,6 +204,20 @@ static void imprime_stats_fichier(EntreesStats<EntreeFichier> &stats)
 	imprime_tableau(tableau);
 }
 
+static void imprime_stats_tableaux(EntreesStats<EntreeTaille> &stats)
+{
+	std::sort(stats.entrees.debut(), stats.entrees.fin(), [](const EntreeTaille &a, const EntreeTaille &b) { return a.taille > b.taille; });
+
+	auto tableau = Tableau({ "Nom", "Taille Maximum"});
+	tableau.alignement(1, Alignement::DROITE);
+
+	POUR (stats.entrees) {
+		tableau.ajoute_ligne({ it.nom, formatte_nombre(it.taille) });
+	}
+
+	imprime_tableau(tableau);
+}
+
 static void imprime_stats_detaillee(Statistiques &stats)
 {
 	std::cout << "Arbre Syntaxique :\n";
@@ -218,6 +232,8 @@ static void imprime_stats_detaillee(Statistiques &stats)
 	imprime_stats_tableau(stats.stats_types);
 	std::cout << "Fichiers :\n";
 	imprime_stats_fichier(stats.stats_fichiers);
+	std::cout << "Tableaux :\n";
+	imprime_stats_tableaux(stats.stats_tableaux);
 }
 
 #if 0
