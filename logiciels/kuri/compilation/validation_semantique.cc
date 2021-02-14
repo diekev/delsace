@@ -2610,7 +2610,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
 		donnees.variables.ajoute(fonction_courante->params_sorties[0]);
 		donnees.transformations.ajoute({});
 
-		inst->donnees_exprs.ajoute(donnees);
+		inst->donnees_exprs.ajoute(std::move(donnees));
 
 		donnees_dependance.types_utilises.insere(inst->type);
 
@@ -2751,7 +2751,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
 
 	inst->donnees_exprs.reserve(donnees_retour.taille());
 	POUR (donnees_retour) {
-		inst->donnees_exprs.ajoute(it);
+		inst->donnees_exprs.ajoute(std::move(it));
 	}
 
 	donnees_dependance.types_utilises.insere(inst->type);
@@ -4039,7 +4039,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
 
 	inst->donnees_exprs.reserve(donnees_assignations.taille());
 	POUR (donnees_assignations) {
-		inst->donnees_exprs.ajoute(it);
+		inst->donnees_exprs.ajoute(std::move(it));
 	}
 
 	return ResultatValidation::OK;
