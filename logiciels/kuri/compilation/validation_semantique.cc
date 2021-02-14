@@ -1698,13 +1698,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 				noeud->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
 				for (int i = 0; i < inst->paires_discr.taille; ++i) {
-					auto expr_paire = inst->paires_discr[i].first;
+					auto expr_paire = inst->paires_discr[i].first->comme_virgule()->expressions[0];
 					auto bloc_paire = inst->paires_discr[i].second;
 
 					/* vérifie que toutes les expressions des paires sont bel et
 					 * bien des membres */
 					if (expr_paire->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-						rapporte_erreur("Attendu une variable membre de l'union nonsûre", expr_paire);
+						::rapporte_erreur(espace, expr_paire, "Attendu une référence à un membre de l'union")
+								.ajoute_message("L'expression est de genre : ", chaine_genre_noeud(expr_paire->genre), "\n");
 						return ResultatValidation::Erreur;
 					}
 
