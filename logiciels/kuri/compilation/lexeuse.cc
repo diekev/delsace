@@ -796,10 +796,6 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant)
 
 void Lexeuse::pousse_mot(GenreLexeme identifiant, unsigned valeur)
 {
-	if (m_donnees->lexemes.taille() % 128 == 0) {
-		m_donnees->lexemes.reserve(m_donnees->lexemes.taille() + 128);
-	}
-
 	m_donnees->lexemes.ajoute({ mot_courant(), { valeur }, identifiant, static_cast<int>(m_donnees->id), m_compte_ligne, m_pos_mot });
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
@@ -1430,10 +1426,6 @@ unsigned Lexeuse::lexe_caractere_litteral(dls::chaine *chaine)
 
 void Lexeuse::pousse_lexeme_entier(unsigned long long valeur)
 {
-	if (m_donnees->lexemes.taille() % 128 == 0) {
-		m_donnees->lexemes.reserve(m_donnees->lexemes.taille() + 128);
-	}
-
 	auto lexeme = Lexeme{};
 	lexeme.genre = GenreLexeme::NOMBRE_ENTIER;
 	lexeme.valeur_entiere = valeur;
@@ -1450,10 +1442,6 @@ void Lexeuse::pousse_lexeme_entier(unsigned long long valeur)
 
 void Lexeuse::pousse_lexeme_reel(double valeur)
 {
-	if (m_donnees->lexemes.taille() % 128 == 0) {
-		m_donnees->lexemes.reserve(m_donnees->lexemes.taille() + 128);
-	}
-
 	auto lexeme = Lexeme{};
 	lexeme.genre = GenreLexeme::NOMBRE_REEL;
 	lexeme.valeur_reelle = valeur;
