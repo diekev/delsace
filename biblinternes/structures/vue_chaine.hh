@@ -45,11 +45,20 @@ public:
 
 	vue_chaine(char const *ptr);
 
-	vue_chaine(char const *ptr, long taille);
+	vue_chaine(char const *ptr, long taille)
+		: m_ptr(ptr)
+		, m_taille(taille)
+	{}
 
-	char const &operator[](long idx) const;
+	char const &operator[](long idx) const
+	{
+		return m_ptr[idx];
+	}
 
-	long taille() const;
+	long taille() const
+	{
+		return m_taille;
+	}
 
 	bool est_vide() const;
 

@@ -85,11 +85,6 @@ void chaine::redimensionne(long combien, char c)
 	m_chaine.resize(static_cast<size_t>(combien), c);
 }
 
-void chaine::ajoute(char c)
-{
-	m_chaine.push_back(c);
-}
-
 chaine &chaine::append(const chaine &c)
 {
 	m_chaine.append(c.m_chaine);
@@ -166,11 +161,6 @@ void chaine::remplace(long pos, long combien, const chaine &motif)
 	m_chaine.replace(static_cast<size_t>(pos), static_cast<size_t>(combien), motif.m_chaine);
 }
 
-const char *chaine::c_str() const
-{
-	return m_chaine.c_str();
-}
-
 const chaine::type_chaine &chaine::std_str() const
 {
 	return m_chaine;
@@ -231,16 +221,6 @@ chaine &chaine::operator+=(const chaine &autre)
 void chaine::permute(chaine &autre)
 {
 	m_chaine.swap(autre.m_chaine);
-}
-
-dls::chaine::operator vue_chaine() const
-{
-	return vue_chaine(this->c_str(), this->taille());
-}
-
-dls::chaine::operator vue_chaine_compacte() const
-{
-	return vue_chaine_compacte(this->c_str(), this->taille());
 }
 
 /* ************************************************************************** */

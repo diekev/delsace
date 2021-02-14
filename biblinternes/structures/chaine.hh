@@ -91,7 +91,10 @@ public:
 
 	void redimensionne(long combien, char c);
 
-	void ajoute(char c);
+	void ajoute(char c)
+	{
+		m_chaine.push_back(c);
+	}
 
 	chaine &append(chaine const &c);
 
@@ -138,7 +141,10 @@ public:
 		return m_chaine[static_cast<size_t>(idx)];
 	}
 
-	char const *c_str() const;
+	char const *c_str() const
+	{
+		return m_chaine.c_str();
+	}
 
 	type_chaine const &std_str() const;
 
@@ -162,9 +168,15 @@ public:
 
 	chaine &operator+=(chaine const &autre);
 
-	operator vue_chaine() const;
+	operator vue_chaine() const
+	{
+		return vue_chaine(this->c_str(), this->taille());
+	}
 
-	operator vue_chaine_compacte() const;
+	operator vue_chaine_compacte() const
+	{
+		return vue_chaine_compacte(this->c_str(), this->taille());
+	}
 
 	void permute(chaine &autre);
 };
