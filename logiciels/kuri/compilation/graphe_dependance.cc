@@ -63,7 +63,7 @@ NoeudDependance::NoeudDependance(Type *t)
 
 void NoeudDependance::ajoute_relation(Badge<GrapheDependance>, const Relation &relation)
 {
-	POUR (m_relations) {
+	POUR (m_relations.plage()) {
 		if (it.type == relation.type && it.noeud_fin == relation.noeud_fin) {
 			return;
 		}
@@ -72,12 +72,12 @@ void NoeudDependance::ajoute_relation(Badge<GrapheDependance>, const Relation &r
 	m_relations.ajoute(relation);
 }
 
-dls::tableau<Relation> const &NoeudDependance::relations() const
+kuri::tableau_compresse<Relation> const &NoeudDependance::relations() const
 {
 	return m_relations;
 }
 
-void NoeudDependance::relations(Badge<GrapheDependance>, dls::tableau<Relation> &&relations)
+void NoeudDependance::relations(Badge<GrapheDependance>, kuri::tableau_compresse<Relation> &&relations)
 {
 	m_relations = relations;
 }
@@ -250,7 +250,7 @@ static void marque_chemins_atteignables(NoeudDependance &noeud)
 
 	noeud.drapeaux |= VISITE;
 
-	for (auto &relation : noeud.relations()) {
+	for (auto &relation : noeud.relations().plage()) {
 		marque_chemins_atteignables(*relation.noeud_fin);
 		relation.noeud_fin->drapeaux |= ATTEIGNABLE;
 	}
@@ -263,7 +263,7 @@ void GrapheDependance::reduction_transitive()
 	auto relations_supprimees = 0;
 	auto relations_totales = 0;
 
-	auto relations_filtrees = dls::tableau<Relation>();
+	auto relations_filtrees = kuri::tableau_compresse<Relation>();
 
 	POUR_TABLEAU_PAGE_NOMME(cible, noeuds) {
 		/* Réinitialisation des drapeaux. */
@@ -276,13 +276,13 @@ void GrapheDependance::reduction_transitive()
 		 * pas marqués.
 		 */
 		cible.drapeaux |= VISITE;
-		for (auto &relation : cible.relations()) {
+		for (auto &relation : cible.relations().plage()) {
 			marque_chemins_atteignables(*relation.noeud_fin);
 		}
 
 		relations_filtrees = cible.relations();
 
-		for (auto &relation : cible.relations()) {
+		for (auto &relation : cible.relations().plage()) {
 			++relations_totales;
 
 			if ((relation.noeud_fin->drapeaux & ATTEIGNABLE) != 0) {

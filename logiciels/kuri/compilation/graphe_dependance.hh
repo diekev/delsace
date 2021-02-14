@@ -33,6 +33,8 @@
 
 #include "structures.hh"
 
+#include "structures/tableau_compresse.hh"
+
 struct AtomeFonction;
 struct GrapheDependance;
 struct NoeudDeclarationEnteteFonction;
@@ -74,9 +76,14 @@ struct Relation {
 	NoeudDependance *noeud_fin  = nullptr;
 };
 
+inline bool operator == (Relation const &r1, Relation const &r2)
+{
+	return r1.type == r2.type && r1.noeud_debut == r2.noeud_debut && r1.noeud_fin == r2.noeud_fin;
+}
+
 struct NoeudDependance {
 private:
-	dls::tableau<Relation> m_relations{};
+	kuri::tableau_compresse<Relation> m_relations{};
 
 	union {
 		Type *m_type;
@@ -131,9 +138,9 @@ public:
 
 	void ajoute_relation(Badge<GrapheDependance>, const Relation &relation);
 
-	dls::tableau<Relation> const &relations() const;
+	kuri::tableau_compresse<Relation> const &relations() const;
 
-	void relations(Badge<GrapheDependance>, dls::tableau<Relation> &&relations);
+	void relations(Badge<GrapheDependance>, kuri::tableau_compresse<Relation> &&relations);
 };
 
 struct DonneesDependance {
@@ -176,7 +183,7 @@ struct GrapheDependance {
 	{
 		racine->fut_visite = true;
 
-		for (auto const &relation : racine->relations()) {
+		for (auto const &relation : racine->relations().plage()) {
 			auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
 			accepte |= relation.type == TypeRelation::UTILISE_FONCTION;
 			accepte |= relation.type == TypeRelation::UTILISE_GLOBALE;

@@ -798,7 +798,7 @@ static bool dependances_eurent_ri_generees(NoeudDependance *noeud)
 
 		visite.insere(n);
 
-		POUR (n->relations()) {
+		POUR (n->relations().plage()) {
 			auto noeud_fin = it.noeud_fin;
 
 			if (noeud_fin->est_type()) {
