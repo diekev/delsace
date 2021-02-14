@@ -3605,6 +3605,36 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 	return ResultatValidation::OK;
 }
 
+#if 0
+/* Structure utilisée pour récupérer la mémoire entre plusieurs validations de déclaration,
+ * mais également éviter de construire les différentes structures de données y utilisées;
+ * ces constructions se voyant dans les profils d'exécution, notamment pour les DonneesAssignations. */
+struct ContexteValidationDeclaration {
+	struct DeclarationEtReference {
+		NoeudExpression *ref_decl = nullptr;
+		NoeudDeclarationVariable *decl = nullptr;
+	};
+
+	/* Les variables déclarées, entre les virgules, si quelqu'une. */
+	dls::tablet<NoeudExpression *, 6> feuilles_variables{};
+
+	/* Les noeuds de déclarations des variables et les références pointant vers ceux-ci. */
+	dls::tablet<DeclarationEtReference, 6> decls_et_refs{};
+
+	/* Les expressions pour les initialisations, entre les virgules, si quelqu'une. */
+	dls::tablet<NoeudExpression *, 6> feuilles_expressions{};
+
+	/* Les variables à assigner, chaque expression le nombre de variables nécessaires pour recevoir le résultat de son évaluation. */
+	file_fixe<NoeudExpression *, 6> variables{};
+
+	/* Les données finales pour les assignations, faisant correspondre les expressions aux variables. */
+	dls::tablet<DonneesAssignations, 6> donnees_assignations{};
+
+	/* Données temporaires pour la constructions des donnees_assignations. */
+	DonneesAssignations donnees_temp{};
+};
+#endif
+
 ResultatValidation ContexteValidationCode::valide_declaration_variable(NoeudDeclarationVariable *decl)
 {
 	if (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE) {
