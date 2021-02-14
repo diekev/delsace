@@ -2149,4 +2149,11 @@ remplace par
 	(sst (mul x @N) x)
 	(mul x %(N - 1))
 )
+
+// -------------- simplifie autre
+
+// (x + -1) – y -> ~y + x
+// (x - 1) – y -> ~y + x
+// (( x | y) & c1 ) | (y & c2) -> x & c1 (si c1 est complément binaire de c2)
+
 */
