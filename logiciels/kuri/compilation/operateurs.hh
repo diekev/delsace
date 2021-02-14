@@ -32,6 +32,8 @@
 #include "transformation_type.hh"
 #include "structures.hh"
 
+#include "structures/tableau_compresse.hh"
+
 enum class GenreLexeme : unsigned int;
 struct EspaceDeTravail;
 struct NoeudDeclarationEnteteFonction;
@@ -141,7 +143,7 @@ const char *chaine_pour_genre_op(OperateurBinaire::Genre genre);
  * Une Table stocke les opérateurs binaires pour un Type si celui-ci est le type
  * de l'opérande à gauche. */
 struct TableOperateurs {
-	using type_conteneur = dls::tableau<OperateurBinaire *>;
+	using type_conteneur = kuri::tableau_compresse<OperateurBinaire *, char>;
 
 private:
 	dls::tableau<type_conteneur> operateurs_{};

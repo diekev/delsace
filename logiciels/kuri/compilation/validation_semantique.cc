@@ -2413,7 +2413,7 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(NoeudDeclaration
 			auto type1 = type_fonc->types_entrees[0 + possede_contexte];
 			auto type2 = type_fonc->types_entrees[1 + possede_contexte];
 
-			for (auto &op : type1->operateurs.operateurs(decl->lexeme->genre)) {
+			for (auto &op : type1->operateurs.operateurs(decl->lexeme->genre).plage()) {
 				if (op->type2 == type2) {
 					if (op->est_basique) {
 						rapporte_erreur("redéfinition de l'opérateur basique", decl);

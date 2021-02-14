@@ -679,12 +679,12 @@ bool cherche_candidats_operateurs(
 
 	auto op_candidats = dls::tablet<OperateurBinaire const *, 10>();
 
-	POUR (type1->operateurs.operateurs(type_op)) {
+	POUR (type1->operateurs.operateurs(type_op).plage()) {
 		op_candidats.ajoute(it);
 	}
 
 	if (type1 != type2) {
-		POUR (type2->operateurs.operateurs(type_op)) {
+		POUR (type2->operateurs.operateurs(type_op).plage()) {
 			op_candidats.ajoute(it);
 		}
 	}
