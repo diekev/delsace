@@ -149,8 +149,6 @@ private:
 	dls::tableau<type_conteneur> operateurs_{};
 
 public:
-	TableOperateurs();
-
 	void ajoute(GenreLexeme lexeme, OperateurBinaire *operateur);
 
 	type_conteneur const &operateurs(GenreLexeme lexeme);

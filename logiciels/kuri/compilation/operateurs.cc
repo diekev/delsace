@@ -476,13 +476,11 @@ constexpr inline int nombre_genre_op_unaires()
 	return compte;
 }
 
-TableOperateurs::TableOperateurs()
-{
-	operateurs_.redimensionne(nombre_genre_op_binaires());
-}
-
 void TableOperateurs::ajoute(GenreLexeme lexeme, OperateurBinaire *operateur)
 {
+	/* n'alloue de la mémoire que si nous ajoutons un opérateurs */
+	operateurs_.redimensionne(nombre_genre_op_binaires());
+
 	/* nous utilisons le lexème pour indexer afin que les opérateurs dépendants
 	 * du signe des types soient stockés ensemble */
 	operateurs_[index_op_binaire(lexeme)].ajoute(operateur);
@@ -490,6 +488,12 @@ void TableOperateurs::ajoute(GenreLexeme lexeme, OperateurBinaire *operateur)
 
 const TableOperateurs::type_conteneur &TableOperateurs::operateurs(GenreLexeme lexeme)
 {
+	/* retourne un tableau vide si aucun opérateur n'a été ajouté */
+	if (operateurs_.est_vide()) {
+		static type_conteneur tableau_vide;
+		return tableau_vide;
+	}
+
 	return operateurs_[index_op_binaire(lexeme)];
 }
 
