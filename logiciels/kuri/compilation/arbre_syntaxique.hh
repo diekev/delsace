@@ -408,6 +408,14 @@ struct DonneesAssignations {
     bool multiple_retour = false;
 	dls::tablet<NoeudExpression *, 6> variables{};
 	dls::tablet<TransformationType, 6> transformations{};
+
+	void efface()
+	{
+		expression = nullptr;
+		multiple_retour = false;
+		variables.efface();
+		transformations.efface();
+	}
 };
 
 struct NoeudDeclarationVariable final : public NoeudDeclaration {

@@ -54,4 +54,10 @@ public:
     {
         return curseur - tete;
     }
+
+	void efface()
+	{
+		curseur = 0;
+		tete = 0;
+	}
 };
