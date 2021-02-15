@@ -25,7 +25,9 @@
 #pragma once
 
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/file_fixe.hh"
 
+#include "arbre_syntaxique.hh"
 #include "graphe_dependance.hh"
 #include "structures.hh"
 #include "validation_expression_appel.hh"
@@ -33,17 +35,6 @@
 struct Compilatrice;
 struct Lexeme;
 struct MetaProgramme;
-struct NoeudAssignation;
-struct NoeudBloc;
-struct NoeudDeclarationCorpsFonction;
-struct NoeudDeclarationEnteteFonction;
-struct NoeudDirectiveExecution;
-struct NoeudEnum;
-struct NoeudExpression;
-struct NoeudExpressionMembre;
-struct NoeudExpressionUnaire;
-struct NoeudRetour;
-struct NoeudStruct;
 struct Tacheronne;
 struct TypeCompose;
 struct TypeEnum;
@@ -57,6 +48,34 @@ enum class Genre : int;
 enum class ResultatValidation : int {
 	OK,
 	Erreur,
+};
+
+/* Structure utilisée pour récupérer la mémoire entre plusieurs validations de déclaration,
+ * mais également éviter de construire les différentes structures de données y utilisées;
+ * ces constructions se voyant dans les profils d'exécution, notamment pour les DonneesAssignations. */
+struct ContexteValidationDeclaration {
+	struct DeclarationEtReference {
+		NoeudExpression *ref_decl = nullptr;
+		NoeudDeclarationVariable *decl = nullptr;
+	};
+
+	/* Les variables déclarées, entre les virgules, si quelqu'une. */
+	dls::tablet<NoeudExpression *, 6> feuilles_variables{};
+
+	/* Les noeuds de déclarations des variables et les références pointant vers ceux-ci. */
+	dls::tablet<DeclarationEtReference, 6> decls_et_refs{};
+
+	/* Les expressions pour les initialisations, entre les virgules, si quelqu'une. */
+	dls::tablet<NoeudExpression *, 6> feuilles_expressions{};
+
+	/* Les variables à assigner, chaque expression le nombre de variables nécessaires pour recevoir le résultat de son évaluation. */
+	file_fixe<NoeudExpression *, 6> variables{};
+
+	/* Les données finales pour les assignations, faisant correspondre les expressions aux variables. */
+	dls::tablet<DonneesAssignations, 6> donnees_assignations{};
+
+	/* Données temporaires pour la constructions des donnees_assignations. */
+	DonneesAssignations donnees_temp{};
 };
 
 struct ContexteValidationCode {

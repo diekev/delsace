@@ -28,6 +28,7 @@
 #include "biblinternes/structures/file.hh"
 
 #include "allocatrice_noeud.hh"
+#include "validation_semantique.hh"
 #include "statistiques.hh"
 #include "unite_compilation.hh"
 
@@ -160,6 +161,8 @@ struct Tacheronne {
 	AssembleuseArbre *assembleuse = nullptr;
 
 	StatistiquesTypage stats_typage{};
+
+	ContexteValidationDeclaration contexte_validation_declaration{};
 
 	double temps_validation = 0.0;
 	double temps_lexage = 0.0;
