@@ -1,4 +1,8 @@
 
+nettoyage : création des opérateurs dans Opérateurs et non dans Typeuse
+cache les nom broyés pour les IdentifiantsCode
+"kuri init" pour créer des projets ?
+
 améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_valeur_énum comme type_entier, etc.)
 
 trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
