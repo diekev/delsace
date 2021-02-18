@@ -2160,7 +2160,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(NoeudExpressionMe
 
 		expression_membre->index_membre = index_membre;
 
-		if (membre_est_constant || type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
+		if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
 			expression_membre->genre_valeur = GenreValeur::DROITE;
 
 			/* Nous voulons détecter les accès à des constantes d'énumérations via une variable, mais
@@ -2183,6 +2183,9 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(NoeudExpressionMe
 					return ResultatValidation::Erreur;
 				}
 			}
+		}
+		else if (membre_est_constant) {
+			expression_membre->genre_valeur = GenreValeur::DROITE;
 		}
 		else if (type->genre == GenreType::UNION) {
 			auto noeud_struct = type->comme_union()->decl;
