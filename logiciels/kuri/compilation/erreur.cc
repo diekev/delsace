@@ -291,9 +291,7 @@ void lance_erreur_fonction_inconnue(
 				e.ajoute_message("\tImpossible de définir le type polymorphique ", dc.ident_poly_manquant->nom, '\n');
 			}
 			else if (dc.raison == METYPAGE_ARG) {
-				auto const &lexeme_enfant = dc.noeud_erreur->lexeme;
-
-				e.ajoute_message("\tLe type de l'argument '", lexeme_enfant->chaine, "' ne correspond pas à celui requis !\n");
+				e.ajoute_message("\tLe type de l'argument '", chaine_expression(espace, dc.noeud_erreur), "' ne correspond pas à celui requis !\n");
 				e.ajoute_message("\tRequiers : ", chaine_type(dc.type_attendu), '\n');
 				e.ajoute_message("\tObtenu   : ", chaine_type(dc.type_obtenu), '\n');
 				e.genre_erreur(erreur::Genre::TYPE_ARGUMENT);
