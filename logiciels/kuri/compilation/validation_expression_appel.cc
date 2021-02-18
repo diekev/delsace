@@ -1971,7 +1971,8 @@ ResultatValidation valide_appel_fonction(
 			auto copie = monomorphise_au_besoin(contexte, espace, decl_struct, std::move(candidate->items_monomorphisation));
 			expr->type = espace.typeuse.type_type_de_donnees(copie->type);
 
-			if ((copie->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+			/* il est possible d'utiliser un type avant sa validation final, par exemple en paramètre d'une fonction de rappel qui est membre de la structure */
+			if ((copie->type->drapeaux & TYPE_FUT_VALIDE) == 0 && copie->type != contexte.union_ou_structure_courante) {
 				// saute l'expression pour ne plus revenir
 				contexte.unite->index_courant += 1;
 				contexte.unite->attend_sur_type(copie->type);

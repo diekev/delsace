@@ -82,6 +82,7 @@ struct ContexteValidationCode {
 	Compilatrice &m_compilatrice;
 	Tacheronne &m_tacheronne;
 	NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
+	Type *union_ou_structure_courante = nullptr;
 
 	/* Les données des dépendances d'un noeud syntaxique. */
 	DonneesDependance donnees_dependance{};

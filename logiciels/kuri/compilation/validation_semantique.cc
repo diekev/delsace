@@ -26,6 +26,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/assert.hh"
+#include "biblinternes/outils/garde_portee.h"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/file_fixe.hh"
 
@@ -3299,6 +3300,9 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
 	auto noeud_dependance = graphe->cree_noeud_type(decl->type);
 	decl->noeud_dependance = noeud_dependance;
+
+	union_ou_structure_courante = decl->type;
+	DIFFERE { union_ou_structure_courante = nullptr; };
 
 	if (decl->est_externe && decl->bloc == nullptr) {
 		decl->drapeaux |= DECLARATION_FUT_VALIDEE;
