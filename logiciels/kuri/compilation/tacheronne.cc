@@ -697,6 +697,9 @@ void Tacheronne::gere_tache()
 						rapporte_erreur(unite->espace, site, "Je ne peux pas continuer la compilation car je n'arrive pas à déterminer un type pour l'expression", erreur::Genre::TYPE_INCONNU)
 								.ajoute_message("Note : le type attendu est ")
 								.ajoute_message(chaine_type(unite->type_attendu))
+								.ajoute_message("\n")
+								.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+								.ajoute_message(chaine_attentes_recursives(unite))
 								.ajoute_message("\n");
 					}
 
