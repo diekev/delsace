@@ -1,0 +1,202 @@
+/*
+
+    Module de service TCP.
+
+    Utilisation :
+
+    serveuse: ServeuseTCP(MesDonnées)
+
+    /* Donne l'adresse et le port sur lequel écouter.
+     */
+    serveuse.écoute_sur(...)
+
+    /* Mise en place du rappel pour gérer les connexions entrantes.
+     * Le rappel doit être de la forme fonc(&MesDonnées, ClienteTCPTCP)
+     */
+    serveuse.quand_connexion = rappel_quand_connexion
+
+    /* Attend qu'une connexion survienne.
+     * La fonction ne retourne que si le programme un signal d'interruption (p.e. CTRL-C dans un terminal Linux).
+     */
+    serveuse.lance()
+
+
+    Documentation principale pour l'implémentation :
+        https://man7.org/linux/man-pages/man7/ip.7.html
+
+ */
+
+importe GlibC
+importe Internet
+importe POSIX
+importe Réseau
+importe SysFichier
+
+/*
+
+    À FAIRE : version SSL
+
+ */
+
+/* ClienteTCP
+ *
+ * Dans la tradition Unix, tout étant un fichier, la prise cliente est représentée via un Fichier,
+ * donc nous pouvons lire et écrire des données dans celui-ci via son interface.
+ */
+ClienteTCP :: struct {
+    fichier : Fichier
+    adresse : AdresseIPv4
+}
+
+/* Le protocol IP n'a pas de concept pour un port, seuls les protocols TCP et UDP le conceptualisent. */
+AdresseTCP :: struct {
+    adresse: AdresseIPv4
+    port: n16
+}
+
+INTERRUTION := faux
+PRISE_SERVEUSE := -1
+
+// À FAIRE : paramétrise
+CONNEXIONS_MAX :: 1000
+
+/*
+    ServeuseTCP, utilise le protocole TCP pour écouter et accepter des connexions.
+
+    Quand une connexion survient, la fonction de rappel `rappel_connexion` est appelée.
+    La fermeture des fichiers ClienteTCP est déléguée aux implémentations.
+ */
+ServeuseTCP :: struct ($T: type_de_données) {
+    données: T
+    prise := -1
+
+    // retourne si nous devons clore la connexion ?
+    quand_connexion : fonc(&T, ClienteTCP)(rien)
+    quand_interruption : fonc(&T)(rien)
+}
+
+détruit_serveuse :: fonc(serveuse: &ServeuseTCP($T))
+{
+    si serveuse.prise == -1 {
+        retourne
+    }
+
+    _ := close(serveuse.prise)
+}
+
+// À FAIRE : erreur
+écoute_sur :: fonc (serveuse: &ServeuseTCP($T), adresse: AdresseTCP) -> chaine
+{
+    si adresse.port < 1024 {
+        // À FAIRE : un port inférieur à 1024 ne peut être précisé que si le processus est privilégié
+        retourne "le port a une valeur illégale"
+    }
+
+    /*
+        tcp_socket = socket(AF_INET, SOCK_STREAM, 0);
+        udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+        raw_socket = socket(AF_INET, SOCK_RAW, protocol);
+    */
+    serveuse.prise = socket(AF_INET, SOCK_STREAM, 0)
+
+    si serveuse.prise == -1 {
+        retourne "erreur lors de la création de la prise"
+    }
+
+    enable := 1
+    si setsockopt(serveuse.prise, SOL_SOCKET, SO_REUSEADDR, *enable, taille_de(z32)) < 0 {
+        // @erreur
+        _ := close(serveuse.prise)
+        retourne "setsockopt(SO_REUSEADDR) failed"
+    }
+
+    notre_adresse : sockaddr_in = ---
+    // doit toujours être AF_INET
+	notre_adresse.sin_family = AF_INET comme n16
+    notre_adresse.sin_port = htons(adresse.port)
+    // trouve notre propre adresse
+    // À FAIRE : parse l'adresse ip données
+	notre_adresse.sin_addr.s_addr = 0
+    // potentiellement inutile de mettre à zéro, mais on ne sait jamais
+    pour & notre_adresse.sin_zero {
+        it = 0
+    }
+
+	err := bind(serveuse.prise, *notre_adresse comme *sockaddr, taille_de(sockaddr) comme n64)
+
+	si err == -1 {
+		retourne "erreur lors de la liaison"
+	}
+
+	err = listen(serveuse.prise, CONNEXIONS_MAX)
+
+	si err == -1 {
+		retourne "erreur lors de l'écoute"
+	}
+
+    signal(SIGINT, rappel_interruption);
+
+    retourne ""
+}
+
+// À FAIRE : #portée_fichier
+accepte :: fonc (serveuse: &ServeuseTCP($T)) -> ClienteTCP
+{
+    adresse : sockaddr_in
+	sin_size := taille_de(sockaddr_in) comme n32
+
+    prise := accept(serveuse.prise, *adresse comme *sockaddr, *sin_size)
+
+    cliente : ClienteTCP
+    // À FAIRE : converti l'adresse
+    //cliente.adresse = adresse
+    cliente.fichier.desc = prise
+
+    si prise == -1 {
+        retourne cliente
+    }
+
+    retourne cliente
+}
+
+lance :: fonc (serveuse: &ServeuseTCP($T))
+{
+    PRISE_SERVEUSE = serveuse.prise
+
+    saufsi serveuse.quand_connexion {
+        retourne
+    }
+
+    boucle {
+        cliente := accepte(serveuse)
+
+        si INTERRUTION {
+            si serveuse.quand_interruption {
+                serveuse.quand_interruption(serveuse.données)
+            }
+
+            arrête
+        }
+
+        // À FAIRE : redondant
+        // À FAIRE : fichier.valide()
+        si cliente.fichier.desc == -1 {
+            perror("accept".pointeur)
+            continue
+        }
+
+        serveuse.quand_connexion(serveuse.données, cliente)
+    }
+}
+
+rappel_interruption :: fonc (numéro_signal: z32) -> rien #nulctx
+{
+    INTERRUTION = vrai
+
+    // débloque la prise pour pouvoir interrompre la boucle
+    // flags := fcntl(PRISE_SERVEUSE, F_GETFL, 0);
+    // // @erreur
+    // _ := fcntl(PRISE_SERVEUSE, F_SETFL, flags | O_NONBLOCK);
+
+    exit(1)
+}
