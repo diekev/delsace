@@ -1988,11 +1988,11 @@ ResultatValidation valide_appel_fonction(
 					contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
 				}
 			}
-		}
 
-		if (!expr->possede_drapeau(DROITE_ASSIGNATION)) {
-			rapporte_erreur(&espace, expr, "La valeur de l'expression de construction de structure n'est pas utilisée. Peut-être vouliez-vous l'assigner à quelque variable ou l'utiliser comme type ?");
-			return ResultatValidation::Erreur;
+			if (!expr->possede_drapeau(DROITE_ASSIGNATION)) {
+				rapporte_erreur(&espace, expr, "La valeur de l'expression de construction de structure n'est pas utilisée. Peut-être vouliez-vous l'assigner à quelque variable ou l'utiliser comme type ?");
+				return ResultatValidation::Erreur;
+			}
 		}
 	}
 	else if (candidate->note == CANDIDATE_EST_TYPE_POLYMORPHIQUE) {
