@@ -2083,6 +2083,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 			}
 
 			POUR (type_structure->membres) {
+				if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
+					continue;
+				}
+
 				auto decl_membre = m_tacheronne.assembleuse->cree_declaration(decl->lexeme);
 				decl_membre->ident = it.nom;
 				decl_membre->type = it.type;
