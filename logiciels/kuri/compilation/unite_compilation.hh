@@ -29,6 +29,8 @@
 
 #include <iostream>
 
+#include "arbre_syntaxique.hh"
+
 struct EspaceDeTravail;
 struct Fichier;
 struct Lexeme;
@@ -94,6 +96,7 @@ struct UniteCompilation {
 	{
 		this->etat_ = (UniteCompilation::Etat::ATTEND_SUR_TYPE);
 		this->type_attendu = type;
+		assert(type != noeud->type);
 	}
 
 	inline void attend_sur_interface_kuri(const char *nom_fonction)
@@ -106,6 +109,7 @@ struct UniteCompilation {
 	{
 		this->etat_ = UniteCompilation::Etat::ATTEND_SUR_DECLARATION;
 		this->declaration_attendue = decl;
+		assert(decl != noeud);
 	}
 
 	inline void attend_sur_symbole(NoeudExpressionReference const *symbole)
