@@ -18,6 +18,7 @@
 
  */
 
+importe Fondation
 importe Réseau
 importe Routage
 importe SysFichier
@@ -43,9 +44,9 @@ ServeuseHTTP :: struct ($T: type_de_données) {
 
     routeuse: Routeuse(T)
 
-    quand_accepte = #cuisine quand_accepte_http(T = T)
+    quand_connexion = #cuisine quand_connexion_http(T = T)
 
-    intergiciel : fonc(*Requête, &T)(RésultatRequête)
+    intergiciel : fonc(*Requête, *T)(RésultatRequête)
 }
 
 ajoute_route :: fonc (serveuse: &ServeuseHTTP($T), chemin: chaine, méthode_get: fonc(*Requête, *T)(RésultatRequête), méthode_post: fonc(*Requête, *T)(RésultatRequête))
@@ -53,19 +54,32 @@ ajoute_route :: fonc (serveuse: &ServeuseHTTP($T), chemin: chaine, méthode_get:
     ajoute_route(*serveuse.routeuse, chemin, méthode_get, méthode_post)
 }
 
-quand_accepte_http :: fonc (données: &$T, cliente: ClienteTCP)
+écoute_sur :: fonc (serveuse: &ServeuseHTTP($T), adresse: AdresseTCP) -> chaine
 {
+    // À FAIRE(langage) : ceci devrait être géré d'une manière ou d'une autre par la monomorphisation
+    retourne écoute_sur(serveuse comme &ServeuseTCP(T), adresse)
+}
+
+lance :: fonc (serveuse: &ServeuseHTTP($T))
+{
+    lance(serveuse comme &ServeuseTCP(T))
+}
+
+quand_connexion_http :: fonc (serveuse_tcp: &ServeuseTCP($T), cliente: ClienteTCP)
+{
+    serveuse := serveuse_tcp comme &ServeuseHTTP(T)
+
     // À FAIRE : défini si l'on doit fermer la connexion
     diffère { _ := ferme(*cliente.fichier) }
 
     // lis le tampon
-    données := tente lis_tout(*cliente.fichier) piège err {
+    données_requête := tente lis_tout(*cliente.fichier) piège err {
         retourne
     }
 
     // parse la requête HTTP
     analyseuse : AnalyseuseRequête
-    analyseuse.requête = données
+    analyseuse.requête = données_requête
 
     ligne_requête := analyse_ligne_requête(*analyseuse)
 
@@ -81,20 +95,29 @@ quand_accepte_http :: fonc (données: &$T, cliente: ClienteTCP)
 
     requête : Requête
     requête.uri = uri
-    requête.cookies = cookies
+    // À FAIRE : parse cookies
+    // requête.cookies = cookies
     requête.méthode = ligne_requête.méthode
-    requête.adresse_ip = cliente.adresse_ip
+    requête.adresse_ip = cliente.adresse
 
     si serveuse.intergiciel {
         résultat := serveuse.intergiciel(*requête, serveuse.routeuse.données_serveuse)
 
         si résultat.status != CodeÉtatHTTP.OK {
-            crée_réponse(résultat)
+            crée_réponse(résultat, cliente)
+            retourne
+        }
+
+        // À FAIRE : ceci est pour détecter les cas où nous avons un fichier, ou une icone
+        si résultat.type_contenu {
+            crée_réponse(résultat, cliente)
             retourne
         }
     }
 
     // résoud la requête
+    // À FAIRE: trouve une meilleure manière de passer cette information
+    serveuse.routeuse.données_serveuse = *serveuse.données
     résultat := apparie_route(*serveuse.routeuse, *requête)
 
     // envoie la réponse au client
@@ -107,7 +130,9 @@ crée_réponse :: fonc (résultat: &RésultatRequête, cliente: &ClienteTCP)
     initialise_enchaineuse(*enchaineuse)
     diffère { détruit_tampons(*enchaineuse) }
 
-    ajoute_au_tampon(*enchaineuse, "HTTP/1.1 ", chaine_code_état_http(réponse.code), "\r\n")
+    contenu := résultat.contenu
+
+    ajoute_au_tampon(*enchaineuse, "HTTP/1.1 ", chaine_code_état_http(résultat.status), "\r\n")
     // À FAIRE : paramétrise le nom du serveur
     ajoute_au_tampon(*enchaineuse, "Server: delsace\r\n")
     ajoute_au_tampon(*enchaineuse, "Content-Length: ", contenu.taille, "\r\n")
@@ -159,7 +184,7 @@ crée_réponse :: fonc (résultat: &RésultatRequête, cliente: &ClienteTCP)
     chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse)
     diffère { déloge(chaine_reponse); }
 
-    tente écris(*cliente.fichier) piège err {
+    tente écris(*cliente.fichier, chaine_reponse) piège err {
         retourne
     }
 }

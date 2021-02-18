@@ -1,27 +1,57 @@
 importe Compilatrice
 importe Fondation
 importe GHTML
-importe GlibC
 importe JSON
-importe Réseau
+importe Routage
+importe ServeuseTCP
+importe ServeuseHTTP
 importe SysFichier
-importe Temps
 
 charge "page_accueil"
-charge "requête"
 charge "serveuse"
 
 // ----------------------------
 
-crée_réponse_pour_requête_fichier :: fonc (chm: &CheminFichier) -> RéponseRequête
+crée_réponse_pour_requête_fichier :: fonc (chm: &CheminFichier) -> RésultatRequête
 {
     contenu := contenu_fichier_texte(chm)
 
-    retourne RéponseRequête(
-        code = CodeÉtatHTTP.OK,
-        type_contenu = TypeContenu.APPLICATION_JAVASCRIPT,
+    retourne RésultatRequête(
+        status = CodeÉtatHTTP.OK,
+        type_contenu = "application/javascript"
         contenu = contenu
     )
+}
+
+crée_réponse_page_non_trouvée :: fonc (requête: *Requête, serveuse: *Serveuse) -> RésultatRequête
+{
+    retourne RésultatRequête(
+        status = CodeÉtatHTTP.NOT_FOUND,
+        type_contenu = "text/html;charset=utf-8",
+        // À FAIRE : évite de copier la chaine
+        contenu = copie_chaine("<p>La page n'existe pas</p>")
+    )
+}
+
+crée_réponse_méthode_non_autorisée :: fonc (requête: *Requête, serveuse: *Serveuse) -> RésultatRequête
+{
+    retourne RésultatRequête(
+        status = CodeÉtatHTTP.METHOD_NOT_ALLOWED,
+        type_contenu = "text/html;charset=utf-8",
+        // À FAIRE : évite de copier la chaine
+        contenu = copie_chaine("<p>La méthode n'est pas autorisée !</p>")
+    )
+}
+
+intergiciel :: fonc (requête: *Requête, serveuse: *Serveuse) -> RésultatRequête
+{
+    chemin_fichier_potentiel := construit_chemin(requête.uri.chemin)
+
+    si fichier_existe(chemin_fichier_potentiel) {
+        retourne crée_réponse_pour_requête_fichier(chemin_fichier_potentiel)
+    }
+
+    retourne RésultatRequête(status = CodeÉtatHTTP.OK)
 }
 
 // -------------------------------------------------
@@ -63,23 +93,22 @@ principale :: fonc () -> z32
 
     contexte.logueur = mon_impression_log
 
-    signal(SIGINT, rappel_interruption);
+    serveuse : ServeuseHTTP(Serveuse)
 
-    serveuse : Serveuse
     // @erreur
-    _ := construit_serveuse(serveuse, configuration.port)
+    _ := serveuse.écoute_sur(AdresseTCP(port = configuration.port))
 
     // pour les gabarits
-    ajoute_fichier(*serveuse.rendeuse_gabarit.catalogue, "accueil", "accueil.html")
+    ajoute_fichier(*serveuse.données.rendeuse_gabarit.catalogue, "accueil", "accueil.html")
 
     // pour les fichiers statiques
-    ajoute_fichier(*serveuse.fichiers_statiques, "test", "test.js")
+    ajoute_fichier(*serveuse.données.fichiers_statiques, "test", "test.js")
 
-    ajoute_route(*serveuse, "/", répond_get_page_accueil, répond_post_page_accueil)
+    serveuse.ajoute_route("/", répond_get_page_accueil, répond_post_page_accueil)
 
-    démarre(serveuse)
+    serveuse.lance()
 
-    détruit_serveuse(*serveuse)
+    détruit_serveuse(*serveuse.données)
 
     retourne 0
 }

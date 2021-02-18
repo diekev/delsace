@@ -1,24 +1,25 @@
 importe Fondation
+importe GHTML
 importe Réseau
+importe Routage
+importe ServeuseHTTP
 
 DonnéesPage :: struct {
     titre := "Accueil"
 }
 
-crée_réponse_fichier_gabarit_manquant :: fonc () -> RéponseRequête
+crée_réponse_fichier_gabarit_manquant :: fonc () -> RésultatRequête
 {
-    retourne RéponseRequête(
-        code = CodeÉtatHTTP.INTERNAL_SERVER_ERROR,
-        type_contenu = TypeContenu.TEXT_HTML,
+    retourne RésultatRequête(
+        status = CodeÉtatHTTP.INTERNAL_SERVER_ERROR,
+        type_contenu = "text/html;charset=utf-8",
         // À FAIRE : évite de copier la chaine
         contenu = copie_chaine("<p>La page du gabarit n'est pas trouvable !</p>")
     )
 }
 
-importe GHTML
-
 // À FAIRE : ceci duplique la logique de GHTML
-rends_page_ex :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données: eini) -> RéponseRequête
+rends_page_ex :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données: eini) -> RésultatRequête
 {
     //temps_présent := compte_ticks_microsecondes()
     //diffère { imprime_log("", "Durée rendu gabarit : %µs", compte_ticks_microsecondes() - temps_présent) }
@@ -42,33 +43,27 @@ rends_page_ex :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, donn�
         retourne crée_réponse_fichier_gabarit_manquant()
     }
 
-    retourne RéponseRequête(
-        code = CodeÉtatHTTP.OK,
-        type_contenu = TypeContenu.TEXT_HTML,
+    retourne RésultatRequête(
+        status = CodeÉtatHTTP.OK,
+        type_contenu = "text/html;charset=utf-8",
         contenu = chaine_depuis_enchaineuse(*enchaineuse)
     )
 }
 
-répond_get_page_accueil :: fonc (ptr_serveuse: *rien, ptr_requête: *rien) -> RéponseRequête
+répond_get_page_accueil :: fonc (requête: *Requête, serveuse: *Serveuse) -> RésultatRequête
 {
-    serveuse := ptr_serveuse comme *Serveuse
-    requête := ptr_requête comme *DonnéesRequête
-
     données: DonnéesPage
     retourne rends_page_ex(*serveuse.rendeuse_gabarit, "accueil", données)
 }
 
-répond_post_page_accueil :: fonc (ptr_serveuse: *rien, ptr_requête: *rien) -> RéponseRequête
+répond_post_page_accueil :: fonc (requête: *Requête, serveuse: *Serveuse) -> RésultatRequête
 {
-    serveuse := ptr_serveuse comme *Serveuse
-    requête := ptr_requête comme *DonnéesRequête
-
     enchaineuse : Enchaineuse
     diffère { détruit_tampons(*enchaineuse) }
 
     initialise_enchaineuse(*enchaineuse)
 
-    entête := cherche_entête(*requête.entêtes, "Content-Type")
+    entête := cherche_entête(requête.entêtes, "Content-Type")
 
     // Le contenu est dans les paramètres de l'URL
     si entête.valeur == "application/x-www-form-urlencoded" {
@@ -79,7 +74,7 @@ répond_post_page_accueil :: fonc (ptr_serveuse: *rien, ptr_requête: *rien) -> 
 
     }
 
-    entête_longueur_contenu := cherche_entête(*requête.entêtes, "Content-Length")
+    entête_longueur_contenu := cherche_entête(requête.entêtes, "Content-Length")
 
     longueur_contenu := extrait_nombre_entier(entête_longueur_contenu.valeur)
 
@@ -95,9 +90,9 @@ répond_post_page_accueil :: fonc (ptr_serveuse: *rien, ptr_requête: *rien) -> 
         //ajoute_au_tampon(@enchaineuse, "'</p>")
     }
 
-    retourne RéponseRequête(
-        code = CodeÉtatHTTP.OK,
-        type_contenu = TypeContenu.TEXT_HTML,
+    retourne RésultatRequête(
+        status = CodeÉtatHTTP.OK,
+        type_contenu = "text/html;charset=utf-8",
         // À FAIRE : évite de copier la chaine
         contenu = chaine_depuis_enchaineuse(*enchaineuse)
     )

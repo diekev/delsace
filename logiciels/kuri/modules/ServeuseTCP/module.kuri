@@ -71,7 +71,7 @@ ServeuseTCP :: struct ($T: type_de_données) {
     prise := -1
 
     // retourne si nous devons clore la connexion ?
-    quand_connexion : fonc(&T, ClienteTCP)(rien)
+    quand_connexion : fonc(&ServeuseTCP(T), ClienteTCP)(rien)
     quand_interruption : fonc(&T)(rien)
 }
 
@@ -159,6 +159,8 @@ accepte :: fonc (serveuse: &ServeuseTCP($T)) -> ClienteTCP
     retourne cliente
 }
 
+importe Fondation
+
 lance :: fonc (serveuse: &ServeuseTCP($T))
 {
     PRISE_SERVEUSE = serveuse.prise
@@ -185,7 +187,7 @@ lance :: fonc (serveuse: &ServeuseTCP($T))
             continue
         }
 
-        serveuse.quand_connexion(serveuse.données, cliente)
+        serveuse.quand_connexion(serveuse, cliente)
     }
 }
 

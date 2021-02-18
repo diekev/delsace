@@ -212,9 +212,21 @@ apparie_règles_et_route :: fonc (règles: []RègleRoutage, route: chaine) -> Do
     retourne résultat
 }
 
+// À FAIRE : déduplique avec la structure dans ServeuseHTTP
 Entête :: struct {
     nom: chaine
     valeur: chaine
+}
+
+cherche_entête :: fonc (entêtes: []Entête, clé: chaine) -> *Entête
+{
+    pour entête dans entêtes {
+        si entête.nom == clé {
+            retourne *entête
+        }
+    }
+
+    retourne nul
 }
 
 // Les données de la requête
@@ -229,6 +241,17 @@ Requête :: struct {
 
     données_route : []DonnéesAppariement
 }
+
+/*
+// une liste complète des types de contenu peut se trouver ici :
+// https://www.iana.org/assignments/media-types/media-types.xhtml
+TypeContenu :: énum z32 {
+    INVALIDE
+    APPLICATION_JAVASCRIPT
+    APPLICATION_JSON
+    TEXT_HTML
+}
+*/
 
 // Le résultat d'une requête.
 RésultatRequête :: struct {
