@@ -1,91 +1,13 @@
-importe GlibC
 importe GHTML
 
-CONNEXIONS_MAX := 1000
-
-Route :: struct {
-    url : chaine
-    méthode_get : fonc(*rien, *rien)(RéponseRequête) = nul
-    méthode_post : fonc(*rien, *rien)(RéponseRequête) = nul
-}
-
 Serveuse :: struct {
-    prise := -1
     rendeuse_gabarit : RendeusePage
     // pour les fichiers javascripts, css, ou encore les images
     fichiers_statiques : CatalogueFichier
-
-    routes: []Route
-}
-
-construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
-{
-    serveuse.prise = socket(AF_INET, SOCK_STREAM, 0)
-
-    si serveuse.prise == -1 {
-        retourne "erreur lors de la création de la prise"
-    }
-
-    enable := 1
-    si setsockopt(serveuse.prise, SOL_SOCKET, SO_REUSEADDR, *enable, taille_de(z32)) < 0 {
-        // @erreur
-        _ := close(serveuse.prise)
-        retourne "setsockopt(SO_REUSEADDR) failed"
-    }
-
-    adresse_du_connecté : sockaddr_in
-	adresse_du_connecté.sin_family = AF_INET comme n16
-    adresse_du_connecté.sin_port = htons(port)
-    // trouve notre propre adresse
-	adresse_du_connecté.sin_addr.s_addr = 0
-    adresse_du_connecté.sin_zero[0] = 0
-    adresse_du_connecté.sin_zero[1] = 0
-    adresse_du_connecté.sin_zero[2] = 0
-    adresse_du_connecté.sin_zero[3] = 0
-    adresse_du_connecté.sin_zero[4] = 0
-    adresse_du_connecté.sin_zero[5] = 0
-    adresse_du_connecté.sin_zero[6] = 0
-    adresse_du_connecté.sin_zero[7] = 0
-
-	err := bind(serveuse.prise, *adresse_du_connecté comme *sockaddr, taille_de(sockaddr) comme n64)
-
-	si err == -1 {
-		retourne "erreur lors de la liaison"
-	}
-
-	err = listen(serveuse.prise, CONNEXIONS_MAX)
-
-	si err == -1 {
-		retourne "erreur lors de l'écoute"
-	}
-
-    retourne ""
 }
 
 détruit_serveuse :: fonc (serveuse: *Serveuse) -> rien
 {
-    si serveuse.prise != -1 {
-        // @erreur
-        _ := close(serveuse.prise)
-    }
-
-    déloge(serveuse.routes)
-
     détruit_catalogue(*serveuse.fichiers_statiques)
-
     détruit_rendeuse(*serveuse.rendeuse_gabarit)
-}
-
-ajoute_route :: fonc (
-    serveuse: *Serveuse,
-    url: chaine,
-    méthode_get: fonc(*rien, *rien)(RéponseRequête),
-    méthode_post: fonc(*rien, *rien)(RéponseRequête)) -> rien
-{
-    route : Route
-    route.url = url
-    route.méthode_get = méthode_get
-    route.méthode_post = méthode_post
-
-    tableau_ajoute(*serveuse.routes, route)
 }
