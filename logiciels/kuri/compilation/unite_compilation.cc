@@ -201,14 +201,23 @@ dls::chaine chaine_attentes_recursives(UniteCompilation *unite)
 		fc << "    " << commentaire << " est bloquée !\n";
 	}
 
+	dls::ensemble<UniteCompilation *> unite_visite;
+
 	while (attendue) {
 		if (attendue->etat() == UniteCompilation::Etat::PRETE) {
+			break;
+		}
+
+		if (unite_visite.trouve(attendue) != unite_visite.fin()) {
+			fc << "    erreur : dépendance cyclique !\n";
 			break;
 		}
 
 		fc << "    " << commentaire << " attend sur ";
 		commentaire = attendue->commentaire();
 		fc << commentaire << '\n';
+
+		unite_visite.insere(attendue);
 
 		attendue = attendue->unite_attendue();
 	}
