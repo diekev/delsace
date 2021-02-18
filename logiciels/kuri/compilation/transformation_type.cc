@@ -511,6 +511,26 @@ bool cherche_transformation(
 			transformation = { TypeTransformation::ENTIER_VERS_POINTEUR, type_vers };
 			return false;
 		}
+
+		if (type_de->est_reference() && type_vers->est_reference()) {
+			auto type_pointe_de = type_de->comme_reference()->type_pointe;
+			auto type_pointe_vers = type_vers->comme_reference()->type_pointe;
+
+			if (type_pointe_de->est_structure() && type_pointe_vers->est_structure()) {
+				auto ts_de = type_pointe_de->comme_structure();
+				auto ts_vers = type_pointe_vers->comme_structure();
+
+				if (est_type_de_base(ts_vers, ts_de)) {
+					transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+					return false;
+				}
+
+				if (est_type_de_base(ts_de, ts_vers)) {
+					transformation = { TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers };
+					return false;
+				}
+			}
+		}
 	}
 
 	transformation = TypeTransformation::IMPOSSIBLE;
