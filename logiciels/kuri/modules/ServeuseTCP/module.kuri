@@ -60,6 +60,15 @@ PRISE_SERVEUSE := -1
 // À FAIRE : paramétrise
 CONNEXIONS_MAX :: 1000
 
+RègleProcèsConnexion :: énum {
+    /* garde la connexion dans la même fil d'exécution que la fonction principal */
+    Aucune
+    /* duplique le processus, et exécute quand_connexion dans le processus fils */
+    Duplication
+    /* utilise une stratégie de moultfilage */
+    MoultFils
+}
+
 /*
     ServeuseTCP, utilise le protocole TCP pour écouter et accepter des connexions.
 
