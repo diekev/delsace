@@ -10,9 +10,39 @@ est_base64_url :: fonc(c : z8) -> bool
     retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '-') || (c == '_')
 }
 
+est_base64_url :: fonc (chn: chaine) -> bool
+{
+    saufsi chn {
+        retourne faux
+    }
+
+    pour chn {
+        saufsi est_base64_url(it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
 est_base64 :: fonc(c : z8) -> bool
 {
     retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '+') || (c == '/')
+}
+
+est_base64 :: fonc (chn: chaine) -> bool
+{
+    saufsi chn {
+        retourne faux
+    }
+
+    pour chn {
+        saufsi est_base64(it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
 }
 
 //#######################################
