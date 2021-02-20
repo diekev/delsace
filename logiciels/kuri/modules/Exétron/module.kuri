@@ -1,0 +1,80 @@
+#bibliothèque_statique "libexetron.a"
+
+// ------------------------------------------
+// FilExécution
+
+FilExécution :: struct #externe
+
+EXETRON_nombre_fils_materiel :: fonc () -> n32 #externe
+EXETRON_cree_fil :: fonc (rappel: #nulctx fonc(*rien)(rien), données: *rien) -> *FilExécution #externe
+EXETRON_join_fil :: fonc (fil: *FilExécution) -> bool #externe
+EXTRONT_detache_fil :: fonc (fil: *FilExécution) #externe
+EXETRON_detruit_fil :: fonc (fil: *FilExécution) #externe
+
+DonnéesCréationFil :: struct ($T: type_de_données) {
+    rappel: fonc(*T)(rien)
+    données: *T
+}
+
+__fonction_principale_exétron :: fonc (données_création_fil: *DonnéesCréationFil($T)) #nulctx
+{
+    pousse_contexte __contexte_principal {
+        données_création_fil.rappel(données_création_fil.données)
+    }
+}
+
+// À FAIRE(langage) : crash si le type polymorphique est déclaré dans le rappel
+crée_fil_exécution :: fonc (rappel: fonc(*T)(rien), données: *$T) -> *FilExécution
+{
+    données_création_fil : DonnéesCréationFil(T) = ---
+    données_création_fil.données = données
+    données_création_fil.rappel = rappel
+    retourne EXETRON_cree_fil(__fonction_principale_exétron, *données_création_fil)
+}
+
+join :: fonc (fil: *FilExécution) -> bool
+{
+    retourne EXETRON_join_fil(fil, 0)
+}
+
+détache :: fonc (fil: *FilExécution)
+{
+    EXTRONT_detache_fil(fil)
+}
+
+détruit :: fonc (fil: &*FilExécution)
+{
+    EXETRON_detruit_fil(fil)
+    fil = nul
+}
+
+// ------------------------------------------
+// Mutex
+
+Mutex :: struct #externe
+
+EXETRON_cree_mutex :: fonc () -> *Mutex #externe
+EXETRON_detruit_mutex :: fonc (mutex: *Mutex) #externe
+EXETRON_verrouille_mutex :: fonc (mutex: *Mutex) #externe
+EXETRON_deverrouille_mutex :: fonc (mutex: *Mutex) #externe
+
+crée_mutex :: fonc () -> *Mutex
+{
+    retourne EXETRON_cree_mutex()
+}
+
+verrouille :: fonc (mutex: *Mutex)
+{
+    EXETRON_verrouille_mutex(mutex)
+}
+
+déverrouille :: fonc (mutex: *Mutex)
+{
+    EXETRON_deverrouille_mutex(mutex)
+}
+
+détruit :: fonc (mutex: &*Mutex)
+{
+    EXETRON_detruit_mutex(mutex)
+    mutex = nul
+}
