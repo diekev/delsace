@@ -1583,7 +1583,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 					auto const &type_z64 = typeuse[TypeBase::Z64];
 					auto type_pointe = type2->comme_pointeur()->type_pointe;
 					auto soustraction = assem->cree_op_binaire(expr_bin->lexeme, type_z64->operateur_sst, comme_type(expr_bin->expr1, type_z64), comme_type(expr_bin->expr2, type_z64));
-					auto taille_de = assem->cree_lit_entier(expr_bin->lexeme, type_z64, type_pointe->taille_octet);
+					auto taille_de = assem->cree_lit_entier(expr_bin->lexeme, type_z64, std::max(type_pointe->taille_octet, 1u));
 					auto div = assem->cree_op_binaire(expr_bin->lexeme, type_z64->operateur_div, soustraction, taille_de);
 					expr_bin->substitution = div;
 				}
@@ -1612,7 +1612,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
 					auto type_pointe = type_pointeur->comme_pointeur()->type_pointe;
 
-					auto taille_de = assem->cree_lit_entier(expr_entier->lexeme, type_entier, type_pointe->taille_octet);
+					auto taille_de = assem->cree_lit_entier(expr_entier->lexeme, type_entier, std::max(type_pointe->taille_octet, 1u));
 					auto mul = assem->cree_op_binaire(expr_entier->lexeme, type_entier->operateur_mul, expr_entier, taille_de);
 
 					OperateurBinaire *op_arithm = nullptr;
