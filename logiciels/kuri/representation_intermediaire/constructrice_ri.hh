@@ -112,7 +112,7 @@ public:
 	void genere_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
 	void genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace, NoeudDeclarationEnteteFonction *fonction);
 	AtomeFonction *genere_ri_pour_fonction_principale(EspaceDeTravail *espace);
-	AtomeFonction *genere_fonction_init_globales_et_appel(EspaceDeTravail *espace, const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
+	AtomeFonction *genere_fonction_init_globales_et_appel(EspaceDeTravail *espace, const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
 
 	Compilatrice &compilatrice() const
 	{
@@ -153,15 +153,15 @@ public:
 	InstructionStockeMem *cree_stocke_mem(NoeudExpression *site_, Atome *ou, Atome *valeur, bool cree_seulement = false);
 	InstructionChargeMem *cree_charge_mem(NoeudExpression *site_, Atome *ou, bool cree_seulement = false);
 	InstructionAppel *cree_appel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele);
-	InstructionAppel *cree_appel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args);
+	InstructionAppel *cree_appel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *, int> &&args);
 
 	InstructionOpUnaire *cree_op_unaire(NoeudExpression *site_, Type *type, OperateurUnaire::Genre op, Atome *valeur);
 	InstructionOpBinaire *cree_op_binaire(NoeudExpression *site_, Type *type, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
 	InstructionOpBinaire *cree_op_comparaison(NoeudExpression *site_, OperateurBinaire::Genre op, Atome *valeur_gauche, Atome *valeur_droite);
 
 	InstructionAccedeIndex *cree_acces_index(NoeudExpression *site_, Atome *accede, Atome *index);
-	InstructionAccedeMembre *cree_acces_membre(NoeudExpression *site_, Atome *accede, long index, bool cree_seulement = false);
-	Instruction *cree_acces_membre_et_charge(NoeudExpression *site_, Atome *accede, long index);
+	InstructionAccedeMembre *cree_acces_membre(NoeudExpression *site_, Atome *accede, int index, bool cree_seulement = false);
+	Instruction *cree_acces_membre_et_charge(NoeudExpression *site_, Atome *accede, int index);
 
 	InstructionTranstype *cree_transtype(NoeudExpression *site_, Type *type, Atome *valeur, TypeTranstypage op);
 
@@ -172,7 +172,7 @@ public:
 	AccedeIndexConstant *cree_acces_index_constant(AtomeConstante *accede, AtomeConstante *index);
 
 private:
-	AtomeFonction *genere_fonction_init_globales_et_appel(const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
+	AtomeFonction *genere_fonction_init_globales_et_appel(const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
 	void empile_controle_boucle(IdentifiantCode *ident, InstructionLabel *label_continue, InstructionLabel *label_reprends, InstructionLabel *label_arrete, InstructionLabel *label_arrete_implicite);
 	void depile_controle_boucle();
 

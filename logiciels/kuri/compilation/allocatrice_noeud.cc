@@ -245,19 +245,19 @@ static auto nombre_recherches = 0;
 void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 {
 	auto &stats_arbre = stats.stats_arbre;
-	auto taille_max_donnees_assignations = 0l;
+	auto taille_max_donnees_assignations = 0;
 	auto taille_max_donnees_assignations_vars = 0l;
 	auto taille_max_donnees_assignations_tfms = 0l;
-	auto taille_max_arbre_aplatis = 0l;
-	auto taille_max_params_entree = 0l;
-	auto taille_max_params_sorties = 0l;
-	auto taille_max_annotations = 0l;
-	auto taille_max_monomorphisations = 0l;
-	auto taille_max_items_monomorphisations = 0l;
-	auto taille_max_params_appels = 0l;
-	auto taille_max_noeuds_differes = 0l;
-	auto taille_max_paires_discr = 0l;
-	auto taille_max_expr_variadiques = 0l;
+	auto taille_max_arbre_aplatis = 0;
+	auto taille_max_params_entree = 0;
+	auto taille_max_params_sorties = 0;
+	auto taille_max_annotations = 0;
+	auto taille_max_monomorphisations = 0;
+	auto taille_max_items_monomorphisations = 0;
+	auto taille_max_params_appels = 0;
+	auto taille_max_noeuds_differes = 0;
+	auto taille_max_paires_discr = 0;
+	auto taille_max_expr_variadiques = 0;
 
 #define DONNEES_ENTREE(Nom, Tableau) \
 	Nom, Tableau.taille(), Tableau.memoire_utilisee()
@@ -317,8 +317,8 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	auto memoire_struct = 0l;
 	pour_chaque_element(m_noeuds_struct, [&](NoeudStruct const &noeud)
 	{
-		memoire_struct += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
-		taille_max_arbre_aplatis = std::max(taille_max_arbre_aplatis, noeud.arbre_aplatis.taille);
+		memoire_struct += noeud.arbre_aplatis.taille_memoire();
+		taille_max_arbre_aplatis = std::max(taille_max_arbre_aplatis, noeud.arbre_aplatis.taille());
 
 		memoire_struct += noeud.monomorphisations->taille() * (taille_de(NoeudDeclarationEnteteFonction::tableau_item_monomorphisation) + taille_de(NoeudDeclarationCorpsFonction *));
 		POUR (*noeud.monomorphisations.verrou_lecture()) {
@@ -330,10 +330,10 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	auto memoire_bloc = 0l;
 	pour_chaque_element(m_noeuds_bloc, [&](NoeudBloc const &noeud)
 	{
-		memoire_bloc += noeud.membres->taille * taille_de(NoeudDeclaration *);
-		memoire_bloc += noeud.expressions->taille * taille_de(NoeudExpression *);
-		memoire_bloc += noeud.noeuds_differes.taille * taille_de(NoeudBloc *);
-		taille_max_noeuds_differes = std::max(taille_max_noeuds_differes, noeud.noeuds_differes.taille);
+		memoire_bloc += noeud.membres->taille_memoire();
+		memoire_bloc += noeud.expressions->taille_memoire();
+		memoire_bloc += noeud.noeuds_differes.taille_memoire();
+		taille_max_noeuds_differes = std::max(taille_max_noeuds_differes, noeud.noeuds_differes.taille());
 
 #ifdef COMPTE_RECHERCHES
 		if (noeud.nombre_recherches) {
@@ -353,21 +353,21 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	auto memoire_corps_fonction = 0l;
 	pour_chaque_element(m_noeuds_declaration_corps_fonction, [&](NoeudDeclarationCorpsFonction const &noeud)
 	{
-		memoire_corps_fonction += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
-		taille_max_arbre_aplatis = std::max(taille_max_arbre_aplatis, noeud.arbre_aplatis.taille);
+		memoire_corps_fonction += noeud.arbre_aplatis.taille_memoire();
+		taille_max_arbre_aplatis = std::max(taille_max_arbre_aplatis, noeud.arbre_aplatis.taille());
 	});
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudDeclarationCorpsFonction", m_noeuds_declaration_corps_fonction) + memoire_corps_fonction });
 
 	auto memoire_entete_fonction = 0l;
 	pour_chaque_element(m_noeuds_declaration_entete_fonction, [&](NoeudDeclarationEnteteFonction const &noeud)
 	{
-		memoire_entete_fonction += noeud.params.taille * taille_de(NoeudDeclaration *);
-		memoire_entete_fonction += noeud.params_sorties.taille * taille_de(NoeudExpression *);
-		memoire_entete_fonction += noeud.arbre_aplatis.taille * taille_de(NoeudExpression *);
-		memoire_entete_fonction += noeud.annotations.taille() * taille_de(dls::vue_chaine_compacte);
-		taille_max_arbre_aplatis = std::max(taille_max_arbre_aplatis, noeud.arbre_aplatis.taille);
-		taille_max_params_entree = std::max(taille_max_params_entree, noeud.params.taille);
-		taille_max_params_sorties = std::max(taille_max_params_sorties, noeud.params_sorties.taille);
+		memoire_entete_fonction += noeud.params.taille_memoire();
+		memoire_entete_fonction += noeud.params_sorties.taille_memoire();
+		memoire_entete_fonction += noeud.arbre_aplatis.taille_memoire();
+		memoire_entete_fonction += noeud.annotations.taille_memoire();
+		taille_max_arbre_aplatis = std::max(taille_max_arbre_aplatis, noeud.arbre_aplatis.taille());
+		taille_max_params_entree = std::max(taille_max_params_entree, noeud.params.taille());
+		taille_max_params_sorties = std::max(taille_max_params_sorties, noeud.params_sorties.taille());
 		taille_max_annotations = std::max(taille_max_annotations, noeud.annotations.taille());
 
 		memoire_entete_fonction += noeud.monomorphisations->taille() * (taille_de(NoeudDeclarationEnteteFonction::tableau_item_monomorphisation) + taille_de(NoeudDeclarationCorpsFonction *));
@@ -385,9 +385,9 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	auto memoire_entete_appel = 0l;
 	pour_chaque_element(m_noeuds_appel, [&](NoeudExpressionAppel const &noeud)
 	{
-		memoire_entete_appel += noeud.params.taille * taille_de(NoeudExpression *);
-		memoire_entete_appel += noeud.exprs.taille * taille_de(NoeudExpression *);
-		taille_max_params_appels = std::max(taille_max_params_appels, noeud.params.taille);
+		memoire_entete_appel += noeud.params.taille_memoire();
+		memoire_entete_appel += noeud.exprs.taille_memoire();
+		taille_max_params_appels = std::max(taille_max_params_appels, noeud.params.taille());
 	});
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionAppel", m_noeuds_appel) + memoire_entete_appel });
 
@@ -395,23 +395,23 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	pour_chaque_element(m_noeuds_discr, [&](NoeudDiscr const &noeud)
 	{
 		using type_paire = std::pair<NoeudExpression *, NoeudBloc *>;
-		memoire_discr += noeud.paires_discr.taille * taille_de(type_paire);
-		taille_max_paires_discr = std::max(taille_max_paires_discr, noeud.paires_discr.taille);
+		memoire_discr += noeud.paires_discr.taille_memoire();
+		taille_max_paires_discr = std::max(taille_max_paires_discr, noeud.paires_discr.taille());
 	});
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudDiscr", m_noeuds_discr) + memoire_discr });
 
 	auto memoire_tableau_args_variadiques = 0l;
 	pour_chaque_element(m_noeuds_tableau_args_variadiques, [&](NoeudTableauArgsVariadiques const &noeud)
 	{
-		memoire_tableau_args_variadiques += noeud.exprs.taille * taille_de(NoeudExpression *);
-		taille_max_expr_variadiques = std::max(taille_max_expr_variadiques, noeud.exprs.taille);
+		memoire_tableau_args_variadiques += noeud.exprs.taille_memoire();
+		taille_max_expr_variadiques = std::max(taille_max_expr_variadiques, noeud.exprs.taille());
 	});
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudTableauArgsVariadiques", m_noeuds_tableau_args_variadiques) + memoire_tableau_args_variadiques });
 
 	auto memoire_expression_virgule = 0l;
 	pour_chaque_element(m_noeuds_expression_virgule, [&](NoeudExpressionVirgule const &noeud)
 	{
-		memoire_expression_virgule += noeud.expressions.taille * taille_de(NoeudExpression *);
+		memoire_expression_virgule += noeud.expressions.taille_memoire();
 	});
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionVirgule", m_noeuds_expression_virgule) + memoire_expression_virgule });
 

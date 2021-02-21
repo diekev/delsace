@@ -32,8 +32,9 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico.hh"
-#include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/tablet.hh"
+
+#include "structures/tableau.hh"
 
 struct AtomeFonction;
 struct Compilatrice;
@@ -214,9 +215,9 @@ struct Chunk {
 
 	int nombre_labels = 0;
 
-	dls::tableau<int> decalages_labels{};
+	kuri::tableau<int, int> decalages_labels{};
 
-	dls::tableau<Locale> locales{};
+	kuri::tableau<Locale, int> locales{};
 
 	~Chunk();
 
@@ -258,8 +259,8 @@ struct Chunk {
 	void emets_appel_pointeur(NoeudExpression *site, unsigned taille_arguments, InstructionAppel *inst_appel);
 	void emets_acces_index(NoeudExpression *site, Type *type);
 
-	void emets_branche(NoeudExpression *site, dls::tableau<PatchLabel> &patchs_labels, int index);
-	void emets_branche_condition(NoeudExpression *site, dls::tableau<PatchLabel> &patchs_labels, int index_label_si_vrai, int index_label_si_faux);
+	void emets_branche(NoeudExpression *site, kuri::tableau<PatchLabel> &patchs_labels, int index);
+	void emets_branche_condition(NoeudExpression *site, kuri::tableau<PatchLabel> &patchs_labels, int index_label_si_vrai, int index_label_si_faux);
 
 	void emets_label(NoeudExpression *site, int index);
 };

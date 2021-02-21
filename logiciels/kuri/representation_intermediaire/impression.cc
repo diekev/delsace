@@ -181,7 +181,7 @@ void imprime_instruction(Instruction const *inst, std::ostream &os)
 				virgule = ", ";
 			}
 
-			if (inst_appel->args.taille == 0) {
+			if (inst_appel->args.est_vide()) {
 				os << virgule;
 			}
 
@@ -333,7 +333,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os, bool in
 		virgule = ", ";
 	}
 
-	if (atome_fonc->params_entrees.taille == 0) {
+	if (atome_fonc->params_entrees.taille() == 0) {
 		os << virgule;
 	}
 
@@ -343,11 +343,11 @@ void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os, bool in
 	os << chaine_type(type_fonction->type_sortie);
 	os << '\n';
 
-	auto numero_instruction = static_cast<int>(atome_fonc->params_entrees.taille);
+	auto numero_instruction = atome_fonc->params_entrees.taille();
 	imprime_instructions(atome_fonc->instructions, numero_instruction, os, inclus_nombre_utilisations, surligne_inutilisees);
 }
 
-void imprime_instructions(kuri::tableau<Instruction *> const &instructions, int numero_de_base, std::ostream &os, bool inclus_nombre_utilisations, bool surligne_inutilisees)
+void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions, int numero_de_base, std::ostream &os, bool inclus_nombre_utilisations, bool surligne_inutilisees)
 {
 	auto numero_instruction = numero_de_base;
 	auto max_utilisations = 0;
@@ -375,7 +375,7 @@ void imprime_instructions(kuri::tableau<Instruction *> const &instructions, int 
 			os << it->nombre_utilisations << ") ";
 		}
 
-		auto nombre_zero_avant_numero = nombre_de_chiffres(instructions.taille) - nombre_de_chiffres(it->numero);
+		auto nombre_zero_avant_numero = nombre_de_chiffres(instructions.taille()) - nombre_de_chiffres(it->numero);
 
 		for (auto i = 0; i < nombre_zero_avant_numero; ++i) {
 			os << ' ';

@@ -62,8 +62,8 @@ private:
 	Tacheronne &m_tacheronne;
 	Fichier *m_fichier = nullptr;
 	UniteCompilation *m_unite = nullptr;
-	dls::tableau<Lexeme> &m_lexemes;
-	long m_position = 0;
+	kuri::tableau<Lexeme, int> &m_lexemes;
+	int m_position = 0;
 
 	dls::chrono::metre_seconde m_chrono_analyse{};
 

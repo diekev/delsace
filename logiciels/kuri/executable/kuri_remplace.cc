@@ -43,17 +43,17 @@
  */
 
 struct Configuration {
-	dls::tableau<dls::chaine> dossiers{};
-	dls::tableau<dls::chaine> fichiers{};
+	kuri::tableau<dls::chaine> dossiers{};
+	kuri::tableau<dls::chaine> fichiers{};
 
 	using paire = std::pair<dls::chaine, dls::chaine>;
 
-	dls::tableau<paire> mots_cles{};
+	kuri::tableau<paire> mots_cles{};
 };
 
 static void analyse_liste_chemin(
 		tori::ObjetTableau *tableau,
-		dls::tableau<dls::chaine> &chaines)
+		kuri::tableau<dls::chaine> &chaines)
 {
 	for (auto objet : tableau->valeur) {
 		if (objet->type != tori::type_objet::CHAINE) {

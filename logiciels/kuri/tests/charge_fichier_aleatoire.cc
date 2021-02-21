@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 	auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
 	auto nombre_morceaux = taille_fichier / static_cast<long>(sizeof(id_morceau));
 
-	dls::tableau<Lexeme> morceaux;
+	kuri::tableau<Lexeme> morceaux;
 	morceaux.reserve(nombre_morceaux);
 
 	for (auto i = 0; i < nombre_morceaux; ++i) {

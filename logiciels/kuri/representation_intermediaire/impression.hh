@@ -36,4 +36,4 @@ void imprime_atome(Atome const *atome, std::ostream &os);
 
 void imprime_fonction(AtomeFonction const *atome_fonc, std::ostream &os, bool inclus_nombre_utilisations = false, bool surligne_inutilisees = false);
 void imprime_instruction(Instruction const *inst, std::ostream &os);
-void imprime_instructions(kuri::tableau<Instruction *> const &instructions, int numero_de_base, std::ostream &os, bool inclus_nombre_utilisations = false, bool surligne_inutilisees = false);
+void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions, int numero_de_base, std::ostream &os, bool inclus_nombre_utilisations = false, bool surligne_inutilisees = false);

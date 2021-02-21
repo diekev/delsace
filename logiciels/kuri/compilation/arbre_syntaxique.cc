@@ -87,7 +87,7 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab, bool subs
 			auto bloc = static_cast<NoeudBloc *>(racine);
 
 			imprime_tab(os, tab);
-			os << "bloc : " << bloc->expressions->taille << " expression(s)\n";
+			os << "bloc : " << bloc->expressions->taille() << " expression(s)\n";
 
 			POUR (*bloc->expressions.verrou_lecture()) {
 				imprime_arbre(it, os, tab + 1, substitution);
@@ -312,7 +312,7 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab, bool subs
 			auto expr = static_cast<NoeudTableauArgsVariadiques *>(racine);
 
 			imprime_tab(os, tab);
-			os << "expr args variadiques : " << expr->exprs.taille << " expression(s)\n";
+			os << "expr args variadiques : " << expr->exprs.taille() << " expression(s)\n";
 
 			POUR (expr->exprs) {
 				imprime_arbre(it, os, tab + 1, substitution);
@@ -463,8 +463,8 @@ NoeudExpression *copie_noeud(
 		{
 			auto bloc = static_cast<NoeudBloc const *>(racine);
 			auto nbloc = static_cast<NoeudBloc *>(nracine);
-			nbloc->membres->reserve(bloc->membres->taille);
-			nbloc->expressions->reserve(bloc->expressions->taille);
+			nbloc->membres->reserve(bloc->membres->taille());
+			nbloc->expressions->reserve(bloc->expressions->taille());
 			nbloc->possede_contexte = bloc->possede_contexte;
 			nbloc->est_differe = bloc->est_differe;
 
@@ -484,9 +484,9 @@ NoeudExpression *copie_noeud(
 			auto expr  = racine->comme_entete_fonction();
 			auto nexpr = nracine->comme_entete_fonction();
 
-			nexpr->params.reserve(expr->params.taille);
-			nexpr->params_sorties.reserve(expr->params_sorties.taille);
-			nexpr->arbre_aplatis.reserve(expr->arbre_aplatis.taille);
+			nexpr->params.reserve(expr->params.taille());
+			nexpr->params_sorties.reserve(expr->params_sorties.taille());
+			nexpr->arbre_aplatis.reserve(expr->arbre_aplatis.taille());
 			nexpr->est_declaration_type = expr->est_declaration_type;
 
 			nexpr->bloc_constantes = assem->cree_bloc_seul(nullptr, bloc_parent);
@@ -504,7 +504,7 @@ NoeudExpression *copie_noeud(
 				nexpr->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(copie));
 			}
 
-			if (expr->params_sorties.taille > 1) {
+			if (expr->params_sorties.taille() > 1) {
 				nexpr->param_sortie = copie_noeud(assem, expr->param_sortie, bloc_parent)->comme_decl_var();
 			}
 			else {
@@ -528,7 +528,7 @@ NoeudExpression *copie_noeud(
 				nexpr_corps->drapeaux &= ~DECLARATION_FUT_VALIDEE;
 				nexpr_corps->est_corps_texte = expr_corps->est_corps_texte;
 
-				nexpr_corps->arbre_aplatis.reserve(expr_corps->arbre_aplatis.taille);
+				nexpr_corps->arbre_aplatis.reserve(expr_corps->arbre_aplatis.taille());
 				nexpr_corps->bloc = static_cast<NoeudBloc *>(copie_noeud(assem, expr_corps->bloc, bloc_parent));
 			}
 
@@ -640,7 +640,7 @@ NoeudExpression *copie_noeud(
 
 			nexpr->appelee = copie_noeud(assem, expr->appelee, bloc_parent);
 
-			nexpr->params.reserve(expr->params.taille);
+			nexpr->params.reserve(expr->params.taille());
 
 			POUR (expr->params) {
 				nexpr->params.ajoute(copie_noeud(assem, it, bloc_parent));
@@ -718,7 +718,7 @@ NoeudExpression *copie_noeud(
 		{
 			auto expr = static_cast<NoeudTableauArgsVariadiques const *>(racine);
 			auto nexpr = static_cast<NoeudTableauArgsVariadiques *>(nracine);
-			nexpr->exprs.reserve(expr->exprs.taille);
+			nexpr->exprs.reserve(expr->exprs.taille());
 
 			POUR (expr->exprs) {
 				nexpr->exprs.ajoute(copie_noeud(assem, it, bloc_parent));
@@ -757,7 +757,7 @@ NoeudExpression *copie_noeud(
 		{
 			auto expr = static_cast<NoeudDiscr const *>(racine);
 			auto nexpr = static_cast<NoeudDiscr *>(nracine);
-			nexpr->paires_discr.reserve(expr->paires_discr.taille);
+			nexpr->paires_discr.reserve(expr->paires_discr.taille());
 
 			nexpr->expr = copie_noeud(assem, expr->expr, bloc_parent);
 			nexpr->bloc_sinon = static_cast<NoeudBloc	*>(copie_noeud(assem, expr->bloc_sinon, bloc_parent));
@@ -820,7 +820,7 @@ NoeudExpression *copie_noeud(
 			auto expr = racine->comme_virgule();
 			auto nexpr = nracine->comme_virgule();
 
-			nexpr->expressions.reserve(expr->expressions.taille);
+			nexpr->expressions.reserve(expr->expressions.taille());
 
 			POUR (expr->expressions) {
 				nexpr->expressions.ajoute(copie_noeud(assem, it, bloc_parent));
@@ -835,7 +835,7 @@ NoeudExpression *copie_noeud(
 
 static void aplatis_arbre(
 		NoeudExpression *racine,
-		kuri::tableau<NoeudExpression *> &arbre_aplatis,
+		kuri::tableau<NoeudExpression *, int> &arbre_aplatis,
 		DrapeauxNoeud drapeau)
 {
 	if (racine == nullptr) {
@@ -1149,9 +1149,9 @@ static void aplatis_arbre(
 			arbre_aplatis.ajoute(inst);
 			aplatis_arbre(inst->bloc_si_vrai, arbre_aplatis, DrapeauxNoeud::AUCUN);
 			arbre_aplatis.ajoute(inst); // insère une deuxième fois pour pouvoir sauter le code du bloc_si_faux si la condition évalue à « vrai »
-			inst->index_bloc_si_faux = static_cast<int>(arbre_aplatis.taille - 1);
+			inst->index_bloc_si_faux = arbre_aplatis.taille() - 1;
 			aplatis_arbre(inst->bloc_si_faux, arbre_aplatis, DrapeauxNoeud::AUCUN);
-			inst->index_apres = static_cast<int>(arbre_aplatis.taille - 1);
+			inst->index_apres = arbre_aplatis.taille() - 1;
 			break;
 		}
 		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
@@ -1200,7 +1200,7 @@ void aplatis_arbre(NoeudExpression *declaration)
 {
 	if (declaration->est_entete_fonction()) {
 		auto entete = declaration->comme_entete_fonction();
-		if (entete->arbre_aplatis.taille == 0) {
+		if (entete->arbre_aplatis.taille() == 0) {
 			aplatis_arbre(entete->bloc_constantes, entete->arbre_aplatis, {});
 			aplatis_arbre(entete->bloc_parametres, entete->arbre_aplatis, {});
 
@@ -1217,7 +1217,7 @@ void aplatis_arbre(NoeudExpression *declaration)
 
 	if (declaration->est_corps_fonction()) {
 		auto corps = declaration->comme_corps_fonction();
-		if (corps->arbre_aplatis.taille == 0) {
+		if (corps->arbre_aplatis.taille() == 0) {
 			aplatis_arbre(corps->bloc, corps->arbre_aplatis, {});
 		}
 		return;
@@ -1225,7 +1225,7 @@ void aplatis_arbre(NoeudExpression *declaration)
 
 	if (declaration->est_structure()) {
 		auto structure = declaration->comme_structure();
-		if (structure->arbre_aplatis.taille == 0) {
+		if (structure->arbre_aplatis.taille() == 0) {
 			POUR (structure->params_polymorphiques) {
 				aplatis_arbre(it, structure->arbre_aplatis_params, {});
 			}
@@ -1237,7 +1237,7 @@ void aplatis_arbre(NoeudExpression *declaration)
 
 	if (declaration->est_execute()) {
 		auto execute = declaration->comme_execute();
-		if (execute->arbre_aplatis.taille == 0) {
+		if (execute->arbre_aplatis.taille() == 0) {
 			aplatis_arbre(execute, execute->arbre_aplatis, {});
 		}
 		return;
@@ -1245,7 +1245,7 @@ void aplatis_arbre(NoeudExpression *declaration)
 
 	if (declaration->est_decl_var()) {
 		auto decl_var = declaration->comme_decl_var();
-		if (decl_var->arbre_aplatis.taille == 0) {
+		if (decl_var->arbre_aplatis.taille() == 0) {
 			aplatis_arbre(decl_var, decl_var->arbre_aplatis, {});
 		}
 		return;
@@ -2196,7 +2196,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
 	auto ident_index_it = ID::index_it;
 	auto type_index_it = typeuse[TypeBase::Z64];
-	if (feuilles->expressions.taille == 2) {
+	if (feuilles->expressions.taille() == 2) {
 		idx = feuilles->expressions[1];
 		ident_index_it = idx->ident;
 		type_index_it = idx->type;
@@ -2512,7 +2512,7 @@ NoeudExpression *Simplificatrice::cree_expression_pour_op_chainee(
 {
 	dls::pile<NoeudExpression *> exprs;
 
-	for (auto i = comparaisons.taille - 1; i >= 0; --i) {
+	for (auto i = comparaisons.taille() - 1; i >= 0; --i) {
 		auto &it = comparaisons[i];
 		simplifie(it.expr1);
 		simplifie(it.expr2);
@@ -2848,7 +2848,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 		expression = discr->expr;
 	}
 
-	for (auto i = 0; i < discr->paires_discr.taille; ++i) {
+	for (auto i = 0; i < discr->paires_discr.taille(); ++i) {
 		auto &it = discr->paires_discr[i];
 		auto virgule = it.first->comme_virgule();
 
@@ -2892,7 +2892,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 		simplifie(it.second);
 		si_courant->bloc_si_vrai = it.second;
 
-		if (i != (discr->paires_discr.taille - 1)) {
+		if (i != (discr->paires_discr.taille() - 1)) {
 			si = assem->cree_si(discr->lexeme, GenreNoeud::INSTRUCTION_SI);
 			si_courant->bloc_si_faux = si;
 			si_courant = si;
@@ -2983,7 +2983,7 @@ NoeudSi *Simplificatrice::cree_condition_boucle(NoeudExpression *inst, GenreNoeu
 
 NoeudDeclarationVariable *NoeudDeclarationEnteteFonction::parametre_entree(long i) const
 {
-	auto param = params[i];
+	auto param = params[static_cast<int>(i)];
 
 	if (param->est_empl()) {
 		return param->comme_empl()->expr->comme_decl_var();

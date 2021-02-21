@@ -186,9 +186,12 @@ struct AtomeValeurConstante : public AtomeConstante {
 		: AtomeValeurConstante()
 	{
 		this->type = type_;
-		this->valeur.genre = Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
-		this->valeur.valeur_tdc.pointeur = donnees_constantes.pointeur;
-		this->valeur.valeur_tdc.taille = donnees_constantes.taille;
+		this->valeur.genre = Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;		
+		this->valeur.valeur_tdc.pointeur = nullptr;
+		this->valeur.valeur_tdc.taille = 0;
+		this->valeur.valeur_tdc.taille = 0;
+		auto valeur_tdc = reinterpret_cast<kuri::tableau<char> *>(&this->valeur.valeur_tdc);
+		valeur_tdc->permute(donnees_constantes);
 	}
 
 	AtomeValeurConstante(Type *type_, char *pointeur, long taille)
@@ -205,11 +208,11 @@ struct AtomeValeurConstante : public AtomeConstante {
 	{
 		this->type = type_;
 		this->valeur.genre = Valeur::Genre::STRUCTURE;
-		this->valeur.valeur_structure.pointeur = valeurs.pointeur;
-		this->valeur.valeur_structure.taille = valeurs.taille;
-		this->valeur.valeur_structure.capacite = valeurs.capacite;
-		valeurs.pointeur = nullptr;
-		valeurs.taille = 0;
+		this->valeur.valeur_structure.pointeur = nullptr;
+		this->valeur.valeur_structure.taille = 0;
+		this->valeur.valeur_structure.taille = 0;
+		auto valeur_structure = reinterpret_cast<kuri::tableau<AtomeConstante *> *>(&this->valeur.valeur_structure);
+		valeur_structure->permute(valeurs);
 	}
 };
 
@@ -309,10 +312,10 @@ struct AccedeIndexConstant : public AtomeConstante {
 struct AtomeFonction : public Atome {
 	dls::chaine nom{};
 
-	kuri::tableau<Atome *> params_entrees{};
+	kuri::tableau<Atome *, int> params_entrees{};
 	Atome *param_sortie = nullptr;
 
-	kuri::tableau<Instruction *> instructions{};
+	kuri::tableau<Instruction *, int> instructions{};
 
 	/* pour les traces d'appels */
 	Lexeme const *lexeme = nullptr;
@@ -342,7 +345,7 @@ struct AtomeFonction : public Atome {
 		genre_atome = Atome::Genre::FONCTION;
 	}
 
-	AtomeFonction(Lexeme const *lexeme_, dls::chaine const &nom_, kuri::tableau<Atome *> &&params_)
+	AtomeFonction(Lexeme const *lexeme_, dls::chaine const &nom_, kuri::tableau<Atome *, int> &&params_)
 		: AtomeFonction(lexeme_, nom_)
 	{
 		this->params_entrees = std::move(params_);
@@ -434,7 +437,7 @@ struct InstructionAppel : public Instruction {
 	explicit InstructionAppel(NoeudExpression *site_) { site = site_; genre = Instruction::Genre::APPEL; }
 
 	Atome *appele = nullptr;
-	kuri::tableau<Atome *> args{};
+	kuri::tableau<Atome *, int> args{};
 	/* pour les traces d'appels */
 	Lexeme const *lexeme = nullptr;
 
@@ -452,7 +455,7 @@ struct InstructionAppel : public Instruction {
 		this->lexeme = lexeme_;
 	}
 
-	InstructionAppel(NoeudExpression *site_, Lexeme const *lexeme_, Atome *appele_, kuri::tableau<Atome *> &&args_)
+	InstructionAppel(NoeudExpression *site_, Lexeme const *lexeme_, Atome *appele_, kuri::tableau<Atome *, int> &&args_)
 		: InstructionAppel(site_, lexeme_, appele_)
 	{
 		this->args = std::move(args_);

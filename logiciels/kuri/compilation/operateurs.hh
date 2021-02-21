@@ -146,7 +146,7 @@ struct TableOperateurs {
 	using type_conteneur = kuri::tableau_compresse<OperateurBinaire *, char>;
 
 private:
-	dls::tableau<type_conteneur> operateurs_{};
+	kuri::tableau<type_conteneur, int> operateurs_{};
 
 public:
 	void ajoute(GenreLexeme lexeme, OperateurBinaire *operateur);

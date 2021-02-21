@@ -92,21 +92,21 @@ enum {
 
 struct Bloc;
 static void imprime_bloc(Bloc *bloc, int decalage_instruction, std::ostream &os, bool surligne_inutilisees = false);
-static void imprime_blocs(const dls::tableau<Bloc *> &blocs, std::ostream &os);
+static void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, std::ostream &os);
 
 struct Bloc {
 	InstructionLabel *label = nullptr;
 
-	kuri::tableau<Instruction *> instructions{};
+	kuri::tableau<Instruction *, int> instructions{};
 
-	dls::tableau<Bloc *> parents{};
-	dls::tableau<Bloc *> enfants{};
+	kuri::tableau<Bloc *, int> parents{};
+	kuri::tableau<Bloc *, int> enfants{};
 
 	/* les variables déclarées dans ce bloc */
-	dls::tableau<InstructionAllocation *> variables_declarees{};
+	kuri::tableau<InstructionAllocation *, int> variables_declarees{};
 
 	/* les variables utilisées dans ce bloc */
-	dls::tableau<InstructionAllocation *> variables_utilisees{};
+	kuri::tableau<InstructionAllocation *, int> variables_utilisees{};
 
 	void ajoute_enfant(Bloc *enfant)
 	{
@@ -254,7 +254,7 @@ struct Bloc {
 		log(std::cerr, "S'apprête à fusionner le bloc ", enfant->label->id, " dans le bloc ", this->label->id);
 
 		this->instructions.supprime_dernier();
-		this->instructions.reserve_delta(enfant->instructions.taille);
+		this->instructions.reserve_delta(enfant->instructions.taille());
 
 		POUR (enfant->instructions) {
 			this->instructions.ajoute(it);
@@ -291,11 +291,11 @@ struct Bloc {
 			imprime_bloc(this, 0, std::cerr);
 		}
 
-		enfant->instructions.taille = 0;
+		enfant->instructions.efface();
 	}
 
 private:
-	void enleve_du_tableau(dls::tableau<Bloc *> &tableau, Bloc *bloc)
+	void enleve_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc)
 	{
 		for (auto i = 0; i < tableau.taille(); ++i) {
 			if (tableau[i] == bloc) {
@@ -345,14 +345,14 @@ static void imprime_bloc(Bloc *bloc, int decalage_instruction, std::ostream &os,
 	imprime_instructions(bloc->instructions, decalage_instruction, os, false, surligne_inutilisees);
 }
 
-static void imprime_blocs(const dls::tableau<Bloc *> &blocs, std::ostream &os)
+static void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, std::ostream &os)
 {
 	os << "=================== Blocs ===================\n";
 
 	int decalage_instruction = 0;
 	POUR (blocs) {
 		imprime_bloc(it, decalage_instruction, os);
-		decalage_instruction += static_cast<int>(it->instructions.taille);
+		decalage_instruction += it->instructions.taille();
 	}
 }
 
@@ -400,7 +400,7 @@ static void construit_liste_variables_utilisees(Bloc *bloc)
 	}
 }
 
-static Bloc *bloc_pour_label(dls::tableau<Bloc *> &blocs, InstructionLabel *label)
+static Bloc *bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, InstructionLabel *label)
 {
 	POUR (blocs) {
 		if (it->label == label) {
@@ -576,9 +576,9 @@ static bool est_utilise(Atome *atome)
  * -- variable définie par le compilateur : les temporaires dans la RI, le contexte implicite, les it et index_it des boucles pour
  *
  */
-static void marque_instructions_utilisees(kuri::tableau<Instruction *> &instructions)
+static void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructions)
 {
-	for (auto i = instructions.taille - 1; i >= 0; --i) {
+	for (auto i = instructions.taille() - 1; i >= 0; --i) {
 		auto it = instructions[i];
 
 		if (it->nombre_utilisations != 0) {
@@ -639,10 +639,10 @@ public:
 		copies.insert({ a, b });
 	}
 
-	kuri::tableau<Instruction *> copie_instructions(AtomeFonction *atome_fonction)
+	kuri::tableau<Instruction *, int> copie_instructions(AtomeFonction *atome_fonction)
 	{
-		kuri::tableau<Instruction *> resultat;
-		resultat.reserve(atome_fonction->instructions.taille);
+		kuri::tableau<Instruction *, int> resultat;
+		resultat.reserve(atome_fonction->instructions.taille());
 
 		POUR (atome_fonction->instructions) {
 			// s'il existe une substition pour cette instruction, ignore-là
@@ -686,7 +686,7 @@ public:
 				nouvelle_appel->lexeme = appel->lexeme;
 				nouvelle_appel->adresse_retour = static_cast<InstructionAllocation *>(copie_atome(appel->adresse_retour));
 
-				nouvelle_appel->args.reserve(appel->args.taille);
+				nouvelle_appel->args.reserve(appel->args.taille());
 
 				POUR (appel->args) {
 					nouvelle_appel->args.ajoute(copie_atome(it));
@@ -817,9 +817,9 @@ public:
 
 void performe_enlignage(
 		ConstructriceRI &constructrice,
-		kuri::tableau<Instruction *> &nouvelles_instructions,
+		kuri::tableau<Instruction *, int> &nouvelles_instructions,
 		AtomeFonction *fonction_appelee,
-		kuri::tableau<Atome *> const &arguments,
+		kuri::tableau<Atome *, int> const &arguments,
 		int &nombre_labels,
 		InstructionLabel *label_post,
 		InstructionAllocation *adresse_retour)
@@ -827,7 +827,7 @@ void performe_enlignage(
 
 	auto copieuse = CopieuseInstruction(constructrice);
 
-	for (auto i = 0; i < fonction_appelee->params_entrees.taille; ++i) {
+	for (auto i = 0; i < fonction_appelee->params_entrees.taille(); ++i) {
 		auto parametre = fonction_appelee->params_entrees[i]->comme_instruction();
 		auto atome = arguments[i];
 
@@ -872,7 +872,7 @@ void performe_enlignage(
 	}
 
 	auto instructions_copiees = copieuse.copie_instructions(fonction_appelee);
-	nouvelles_instructions.reserve_delta(instructions_copiees.taille);
+	nouvelles_instructions.reserve_delta(instructions_copiees.taille());
 
 	POUR (instructions_copiees) {
 		if (it->genre == Instruction::Genre::LABEL) {
@@ -1060,12 +1060,12 @@ static bool est_candidate_pour_enlignage(AtomeFonction *fonction)
 	log(std::cerr, "candidate pour enlignage : ", fonction->nom);
 
 	/* appel d'une fonction externe */
-	if (fonction->instructions.taille == 0) {
+	if (fonction->instructions.taille() == 0) {
 		log(std::cerr, "-- ignore la candidate car il n'y a pas d'instructions...");
 		return false;
 	}
 
-	if (fonction->instructions.taille < 32) {
+	if (fonction->instructions.taille() < 32) {
 		return true;
 	}
 
@@ -1086,8 +1086,8 @@ static bool est_candidate_pour_enlignage(AtomeFonction *fonction)
 
 bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
 {
-	auto nouvelle_instructions = kuri::tableau<Instruction *>();
-	nouvelle_instructions.reserve(atome_fonc->instructions.taille);
+	auto nouvelle_instructions = kuri::tableau<Instruction *, int>();
+	nouvelle_instructions.reserve(atome_fonc->instructions.taille());
 
 	auto substitutrice = Substitutrice();
 	auto nombre_labels = 0;
@@ -1118,7 +1118,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 			continue;
 		}
 
-		nouvelle_instructions.reserve_delta(atome_fonc_appelee->instructions.taille + 1);
+		nouvelle_instructions.reserve_delta(atome_fonc_appelee->instructions.taille() + 1);
 
 		// crée une nouvelle adresse retour pour faciliter la suppression de l'instruction de stockage de la valeur de retour dans l'ancienne adresse
 		auto adresse_retour = static_cast<InstructionAllocation *>(nullptr);
@@ -1275,7 +1275,7 @@ static bool operandes_sont_constantes(InstructionOpBinaire *op)
 	return false;
 }
 
-static bool propage_constantes_et_temporaires(kuri::tableau<Instruction *> &instructions)
+static bool propage_constantes_et_temporaires(kuri::tableau<Instruction *, int> &instructions)
 {
 	dls::tablet<std::pair<Atome *, Atome *>, 16> dernieres_valeurs;
 	dls::tablet<InstructionAccedeMembre *, 16> acces_membres;
@@ -1387,7 +1387,7 @@ static bool propage_constantes_et_temporaires(kuri::tableau<Instruction *> &inst
 	return instructions_subtituees;
 }
 
-bool propage_constantes_et_temporaires(dls::tableau<Bloc *> &blocs)
+bool propage_constantes_et_temporaires(kuri::tableau<Bloc *, int> &blocs)
 {
 	auto constantes_propagees = false;
 
@@ -1456,7 +1456,7 @@ static void determine_assignations_inutiles(Bloc *bloc)
 	}
 }
 
-static bool supprime_code_mort(kuri::tableau<Instruction *> &instructions)
+static bool supprime_code_mort(kuri::tableau<Instruction *, int> &instructions)
 {
 	if (instructions.est_vide()) {
 		return false;
@@ -1468,7 +1468,7 @@ static bool supprime_code_mort(kuri::tableau<Instruction *> &instructions)
 
 	if (iter != instructions.end()) {
 		/* ne supprime pas la mémoire, nous pourrions en avoir besoin */
-		instructions.taille = std::distance(instructions.begin(), iter);
+		instructions.redimensionne(static_cast<int>(std::distance(instructions.begin(), iter)));
 		return true;
 	}
 
@@ -1476,7 +1476,7 @@ static bool supprime_code_mort(kuri::tableau<Instruction *> &instructions)
 }
 
 // À FAIRE : vérifie que ceci ne vide pas les fonctions sans retour
-bool supprime_code_mort(dls::tableau<Bloc *> &blocs)
+bool supprime_code_mort(kuri::tableau<Bloc *, int> &blocs)
 {
 	POUR (blocs) {
 		for (auto inst : it->instructions) {
@@ -1687,13 +1687,13 @@ void lance_optimisations(AtomeFonction *fonction)
 }
 #endif
 
-static bool enleve_blocs_vides(dls::tableau<Bloc *> &blocs)
+static bool enleve_blocs_vides(kuri::tableau<Bloc *, int> &blocs)
 {
 	if (blocs.taille() == 1) {
 		return false;
 	}
 
-	dls::tableau<Bloc *> nouveau_blocs;
+	kuri::tableau<Bloc *, int> nouveau_blocs;
 	nouveau_blocs.reserve(blocs.taille());
 
 	/* le premier bloc est celui du corps de la fonction, ne le travaille pas */
@@ -1736,7 +1736,7 @@ static bool enleve_blocs_vides(dls::tableau<Bloc *> &blocs)
 	return false;
 }
 
-static bool elimine_branches_inutiles(dls::tableau<Bloc *> &blocs)
+static bool elimine_branches_inutiles(kuri::tableau<Bloc *, int> &blocs)
 {
 	auto branche_eliminee = false;
 
@@ -1749,7 +1749,7 @@ static bool elimine_branches_inutiles(dls::tableau<Bloc *> &blocs)
 
 		auto inst = bloc->instructions.derniere();
 
-		if (bloc->instructions.taille == 1 && inst->est_branche()) {
+		if (bloc->instructions.taille() == 1 && inst->est_branche()) {
 			auto enfant = bloc->enfants[0];
 
 			POUR (bloc->enfants) {
@@ -1761,7 +1761,7 @@ static bool elimine_branches_inutiles(dls::tableau<Bloc *> &blocs)
 				it->remplace_enfant(bloc, enfant);
 			}
 
-			bloc->instructions.taille = 0;
+			bloc->instructions.efface();
 			branche_eliminee = true;
 			continue;
 		}
@@ -1794,7 +1794,7 @@ static bool elimine_branches_inutiles(dls::tableau<Bloc *> &blocs)
 	return branche_eliminee;
 }
 
-static int analyse_blocs(dls::tableau<Bloc *> &blocs)
+static int analyse_blocs(kuri::tableau<Bloc *, int> &blocs)
 {
 	int drapeaux = 0;
 
@@ -1827,7 +1827,7 @@ static int analyse_blocs(dls::tableau<Bloc *> &blocs)
 	return drapeaux;
 }
 
-static Bloc *trouve_bloc_utilisant_variable(dls::tableau<Bloc *> const &blocs, Bloc *sauf_lui, InstructionAllocation *var)
+static Bloc *trouve_bloc_utilisant_variable(kuri::tableau<Bloc *, int> const &blocs, Bloc *sauf_lui, InstructionAllocation *var)
 {
 	POUR (blocs) {
 		if (it == sauf_lui) {
@@ -1844,7 +1844,7 @@ static Bloc *trouve_bloc_utilisant_variable(dls::tableau<Bloc *> const &blocs, B
 	return nullptr;
 }
 
-static void detecte_utilisations_variables(dls::tableau<Bloc *> const &blocs)
+static void detecte_utilisations_variables(kuri::tableau<Bloc *, int> const &blocs)
 {
 	POUR (blocs) {
 		construit_liste_variables_utilisees(it);
@@ -1854,8 +1854,8 @@ static void detecte_utilisations_variables(dls::tableau<Bloc *> const &blocs)
 		for (auto decl : it->variables_declarees) {
 			auto utilise = false;
 
-//			log(std::cerr, "Le bloc ", it->label->id, " déclare ", it->variables_declarees.taille(), " variables");
-//			log(std::cerr, "Le bloc ", it->label->id, " utilise ", it->variables_utilisees.taille(), " variables");
+//			log(std::cerr, "Le bloc ", it->label->id, " déclare ", it->variables_declarees.taille, " variables");
+//			log(std::cerr, "Le bloc ", it->label->id, " utilise ", it->variables_utilisees.taille, " variables");
 
 			for (auto var : it->variables_utilisees) {
 				if (var == decl) {
@@ -1882,7 +1882,7 @@ static void detecte_utilisations_variables(dls::tableau<Bloc *> const &blocs)
 						index += 1;
 					}
 
-					std::rotate(it->instructions.pointeur + index, it->instructions.pointeur + index + 1, it->instructions.pointeur + it->instructions.taille);
+					std::rotate(it->instructions.donnees() + index, it->instructions.donnees() + index + 1, it->instructions.donnees() + it->instructions.taille());
 					it->instructions.supprime_dernier();
 
 					// ajoute alloc dans bloc
@@ -1899,12 +1899,12 @@ static void detecte_utilisations_variables(dls::tableau<Bloc *> const &blocs)
 	}
 }
 
-static dls::tableau<Bloc *> convertis_en_blocs(ConstructriceRI &constructrice, AtomeFonction *atome_fonc, dls::tableau<Bloc *> &blocs___)
+static kuri::tableau<Bloc *, int> convertis_en_blocs(ConstructriceRI &constructrice, AtomeFonction *atome_fonc, kuri::tableau<Bloc *, int> &blocs___)
 {
-	dls::tableau<Bloc *> blocs{};
+	kuri::tableau<Bloc *, int> blocs{};
 
 	Bloc *bloc_courant = nullptr;
-	auto numero_instruction = static_cast<int>(atome_fonc->params_entrees.taille);
+	auto numero_instruction = atome_fonc->params_entrees.taille();
 
 	POUR (atome_fonc->instructions) {
 		it->numero = numero_instruction++;
@@ -1954,7 +1954,7 @@ static dls::tableau<Bloc *> convertis_en_blocs(ConstructriceRI &constructrice, A
 	return blocs;
 }
 
-static void performe_passes_optimisation(dls::tableau<Bloc *> &blocs)
+static void performe_passes_optimisation(kuri::tableau<Bloc *, int> &blocs)
 {
 	while (true) {
 		if (log_actif) {
@@ -2005,14 +2005,14 @@ static void performe_passes_optimisation(dls::tableau<Bloc *> &blocs)
 	}
 }
 
-static void transfere_instructions_blocs(dls::tableau<Bloc *> const &blocs, AtomeFonction *atome_fonc)
+static void transfere_instructions_blocs(kuri::tableau<Bloc *, int> const &blocs, AtomeFonction *atome_fonc)
 {
 	auto nombre_instructions = 0;
 	POUR (blocs) {
-		nombre_instructions += 1 + static_cast<int>(it->instructions.taille);
+		nombre_instructions += 1 + it->instructions.taille();
 	}
 
-	atome_fonc->instructions.taille = 0;
+	atome_fonc->instructions.efface();
 	atome_fonc->instructions.reserve(nombre_instructions);
 
 	POUR (blocs) {
@@ -2034,7 +2034,7 @@ void optimise_code(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
 	//while (enligne_fonctions(constructrice, atome_fonc)) {}
 	enligne_fonctions(constructrice, atome_fonc);
 
-	dls::tableau<Bloc *> blocs___{};
+	kuri::tableau<Bloc *, int> blocs___{};
 	auto blocs = convertis_en_blocs(constructrice, atome_fonc, blocs___);
 
 	performe_passes_optimisation(blocs);

@@ -170,7 +170,7 @@ void lance_tacheronne(Tacheronne *tacheronne)
 
 static void imprime_stats_tableau(EntreesStats<EntreeNombreMemoire> &stats)
 {
-	std::sort(stats.entrees.debut(), stats.entrees.fin(), [](const EntreeNombreMemoire &a, const EntreeNombreMemoire &b) { return a.memoire > b.memoire; });
+	std::sort(stats.entrees.begin(), stats.entrees.end(), [](const EntreeNombreMemoire &a, const EntreeNombreMemoire &b) { return a.memoire > b.memoire; });
 
 	auto tableau = Tableau({ "Nom", "Compte", "Mémoire" });
 	tableau.alignement(1, Alignement::DROITE);
@@ -187,7 +187,7 @@ static void imprime_stats_tableau(EntreesStats<EntreeNombreMemoire> &stats)
 
 static void imprime_stats_fichier(EntreesStats<EntreeFichier> &stats)
 {
-	std::sort(stats.entrees.debut(), stats.entrees.fin(), [](const EntreeFichier &a, const EntreeFichier &b) { return a.nombre_lignes > b.nombre_lignes; });
+	std::sort(stats.entrees.begin(), stats.entrees.end(), [](const EntreeFichier &a, const EntreeFichier &b) { return a.nombre_lignes > b.nombre_lignes; });
 
 	auto tableau = Tableau({ "Nom", "Lignes", "Mémoire", "Lexèmes", "Mémoire Lexèmes" });
 	tableau.alignement(1, Alignement::DROITE);
@@ -206,7 +206,7 @@ static void imprime_stats_fichier(EntreesStats<EntreeFichier> &stats)
 
 static void imprime_stats_tableaux(EntreesStats<EntreeTaille> &stats)
 {
-	std::sort(stats.entrees.debut(), stats.entrees.fin(), [](const EntreeTaille &a, const EntreeTaille &b) { return a.taille > b.taille; });
+	std::sort(stats.entrees.begin(), stats.entrees.end(), [](const EntreeTaille &a, const EntreeTaille &b) { return a.taille > b.taille; });
 
 	auto tableau = Tableau({ "Nom", "Taille Maximum"});
 	tableau.alignement(1, Alignement::DROITE);
@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
 #ifdef AVEC_THREADS
 		auto nombre_tacheronnes = std::thread::hardware_concurrency();
 
-		dls::tableau<Tacheronne *> tacheronnes;
+		kuri::tableau<Tacheronne *> tacheronnes;
 		tacheronnes.reserve(nombre_tacheronnes);
 
 		for (auto i = 0u; i < nombre_tacheronnes; ++i) {
@@ -360,7 +360,7 @@ int main(int argc, char *argv[])
 			tacheronnes[i]->drapeaux |= drapeaux;
 		}
 
-		dls::tableau<std::thread *> threads;
+		kuri::tableau<std::thread *> threads;
 		threads.reserve(nombre_tacheronnes);
 
 		POUR (tacheronnes) {

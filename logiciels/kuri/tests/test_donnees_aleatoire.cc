@@ -196,7 +196,7 @@ void parenthese::visite(visiteur_arbre visiteur)
 }
 
 struct appel_fonction : public expression {
-	dls::tableau<expression *> params{};
+	kuri::tableau<expression *> params{};
 
 	virtual void visite(visiteur_arbre visiteur) override;
 };
@@ -229,7 +229,7 @@ void acces_tableau::visite(visiteur_arbre visiteur)
 
 struct arbre {
 	expression *racine{nullptr};
-	dls::tableau<expression *> noeuds{};
+	kuri::tableau<expression *> noeuds{};
 	std::random_device device{};
 	std::uniform_real_distribution<double> rng{0.0, 1.0};
 
@@ -325,7 +325,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 #if 0
 	auto const max_lexemes = taille_tampon / sizeof(Lexeme);
 
-	dls::tableau<Lexeme> lexemes;
+	kuri::tableau<Lexeme> lexemes;
 	lexemes.reserve(max_lexemes);
 
 	auto dm = Lexeme{};
@@ -364,7 +364,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 #else
 	auto const max_lexemes = taille_tampon / sizeof(GenreLexeme);
 
-	dls::tableau<GenreLexeme> lexemes;
+	kuri::tableau<GenreLexeme> lexemes;
 	lexemes.reserve(static_cast<long>(max_lexemes));
 
 	for (auto id : sequence_declaration_fonction) {
@@ -400,7 +400,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 #if 0
 	auto const max_lexemes = taille_tampon / sizeof(Lexeme);
 
-	dls::tableau<Lexeme> lexemes;
+	kuri::tableau<Lexeme> lexemes;
 	lexemes.reserve(max_lexemes);
 
 	std::random_device device{};
@@ -438,7 +438,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 		static_cast<int>(GenreLexeme::INCONNU)
 	};
 
-	dls::tableau<GenreLexeme> lexemes;
+	kuri::tableau<GenreLexeme> lexemes;
 	lexemes.reserve(static_cast<long>(max_lexemes));
 
 	for (auto id : sequence_declaration_fonction) {
@@ -462,8 +462,8 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	auto donnees_lexemes = reinterpret_cast<const GenreLexeme *>(donnees);
 	auto nombre_lexemes = taille / sizeof(GenreLexeme);
 
-	dls::tableau<Lexeme> lexemes;
-	lexemes.reserve(static_cast<long>(nombre_lexemes));
+	kuri::tableau<Lexeme, int> lexemes;
+	lexemes.reserve(static_cast<int>(nombre_lexemes));
 
 	auto dm = Lexeme{};
 	dm.chaine = "texte_test";

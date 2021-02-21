@@ -296,7 +296,7 @@ struct TypeFonction : public Type {
 
 	COPIE_CONSTRUCT(TypeFonction);
 
-	kuri::tableau<Type *> types_entrees{};
+	kuri::tableau<Type *, int> types_entrees{};
 	Type *type_sortie{};
 
 	uint64_t tag_entrees = 0;
@@ -324,7 +324,7 @@ struct TypeCompose : public Type {
 		int drapeaux = 0;
 	};
 
-	kuri::tableau<Membre> membres{};
+	kuri::tableau<Membre, int> membres{};
 
 	/* Le nom tel que donné dans le script (p.e. Structure, pour Structure :: struct ...). */
 	IdentifiantCode *nom = nullptr;
@@ -358,7 +358,7 @@ struct TypeStructure final : public TypeCompose {
 
 	COPIE_CONSTRUCT(TypeStructure);
 
-	kuri::tableau<TypeStructure *> types_employes{};
+	kuri::tableau<TypeStructure *, int> types_employes{};
 
 	NoeudStruct *decl = nullptr;
 
@@ -405,18 +405,18 @@ struct TypeEnum final : public TypeCompose {
 struct TypeTableauFixe final : public TypeCompose {
 	TypeTableauFixe() { genre = GenreType::TABLEAU_FIXE; }
 
-	TypeTableauFixe(Type *type_pointe, long taille, kuri::tableau<TypeCompose::Membre> &&membres);
+	TypeTableauFixe(Type *type_pointe, int taille, kuri::tableau<Membre, int> &&membres);
 
 	COPIE_CONSTRUCT(TypeTableauFixe);
 
 	Type *type_pointe = nullptr;
-	long taille = 0;
+	int taille = 0;
 };
 
 struct TypeTableauDynamique final : public TypeCompose {
 	TypeTableauDynamique() { genre = GenreType::TABLEAU_DYNAMIQUE; }
 
-	TypeTableauDynamique(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres);
+	TypeTableauDynamique(Type *type_pointe, kuri::tableau<TypeCompose::Membre, int> &&membres);
 
 	COPIE_CONSTRUCT(TypeTableauDynamique);
 
@@ -426,7 +426,7 @@ struct TypeTableauDynamique final : public TypeCompose {
 struct TypeVariadique final : public TypeCompose {
 	TypeVariadique() { genre = GenreType::VARIADIQUE; }
 
-	TypeVariadique(Type *type_pointe, kuri::tableau<TypeCompose::Membre> &&membres);
+	TypeVariadique(Type *type_pointe, kuri::tableau<TypeCompose::Membre, int> &&membres);
 
 	COPIE_CONSTRUCT(TypeVariadique);
 
@@ -459,7 +459,7 @@ struct TypePolymorphique : public Type {
 
 	bool est_structure_poly = false;
 	NoeudStruct *structure = nullptr;
-	dls::tableau<Type *> types_constants_structure{};
+	kuri::tableau<Type *, int> types_constants_structure{};
 };
 
 struct TypeOpaque : public Type {
@@ -586,7 +586,7 @@ struct Typeuse {
 	dls::outils::Synchrone<Operateurs> &operateurs_;
 
 	template <typename T>
-	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
+	using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
 	template <typename T>
 	using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
@@ -594,7 +594,7 @@ struct Typeuse {
 	// NOTE : nous synchronisons les tableaux individuellement et non la Typeuse
 	// dans son entièreté afin que différents threads puissent accéder librement
 	// à différents types de types.
-	dls::tableau<Type *> types_communs{};
+	kuri::tableau<Type *> types_communs{};
 	tableau_synchrone<Type *> types_simples{};
 	tableau_page_synchrone<TypePointeur> types_pointeurs{};
 	tableau_page_synchrone<TypeReference> types_references{};
@@ -648,7 +648,7 @@ struct Typeuse {
 
 	TypeReference *type_reference_pour(Type *type);
 
-	TypeTableauFixe *type_tableau_fixe(Type *type_pointe, long taille);
+	TypeTableauFixe *type_tableau_fixe(Type *type_pointe, int taille);
 
 	TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe);
 

@@ -90,7 +90,7 @@ struct ContexteValidationCode {
 	EspaceDeTravail *espace = nullptr;
 
 	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
-	dls::tableau<paire_union_membre> membres_actifs{};
+	kuri::tableau<paire_union_membre> membres_actifs{};
 
 	double temps_chargement = 0.0;
 
@@ -125,7 +125,7 @@ struct ContexteValidationCode {
 	ResultatValidation valide_structure(NoeudStruct *);
 	ResultatValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
 	ResultatValidation valide_assignation(NoeudAssignation *inst);
-	ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration, kuri::tableau<NoeudExpression *> &arbre_aplatis);
+	ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration, kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
 	ResultatValidation valide_expression_retour(NoeudRetour *inst_retour);
 	ResultatValidation valide_cuisine(NoeudExpressionUnaire *directive);
 	ResultatValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);

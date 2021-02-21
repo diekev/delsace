@@ -205,7 +205,7 @@ TypeReference::TypeReference(Type *type_pointe_)
 TypeFonction::TypeFonction(dls::tablet<Type *, 6> const &entrees, Type *sortie)
 	: TypeFonction()
 {
-	this->types_entrees.reserve(entrees.taille());
+	this->types_entrees.reserve(static_cast<int>(entrees.taille()));
 	POUR (entrees) {
 		this->types_entrees.ajoute(it);
 	}
@@ -251,7 +251,7 @@ TypeCompose *TypeCompose::cree_chaine()
 	return type;
 }
 
-TypeTableauFixe::TypeTableauFixe(Type *type_pointe_, long taille_, kuri::tableau<TypeCompose::Membre> &&membres_)
+TypeTableauFixe::TypeTableauFixe(Type *type_pointe_, int taille_, kuri::tableau<TypeCompose::Membre, int> &&membres_)
 	: TypeTableauFixe()
 {
 	assert(type_pointe_);
@@ -270,7 +270,7 @@ TypeTableauFixe::TypeTableauFixe(Type *type_pointe_, long taille_, kuri::tableau
 	type_pointe_->drapeaux |= POSSEDE_TYPE_TABLEAU_FIXE;
 }
 
-TypeTableauDynamique::TypeTableauDynamique(Type *type_pointe_, kuri::tableau<TypeCompose::Membre> &&membres_)
+TypeTableauDynamique::TypeTableauDynamique(Type *type_pointe_, kuri::tableau<TypeCompose::Membre, int> &&membres_)
 	: TypeTableauDynamique()
 {
 	assert(type_pointe_);
@@ -288,7 +288,7 @@ TypeTableauDynamique::TypeTableauDynamique(Type *type_pointe_, kuri::tableau<Typ
 	type_pointe_->drapeaux |= POSSEDE_TYPE_TABLEAU_DYNAMIQUE;
 }
 
-TypeVariadique::TypeVariadique(Type *type_pointe_, kuri::tableau<TypeCompose::Membre> &&membres_)
+TypeVariadique::TypeVariadique(Type *type_pointe_, kuri::tableau<TypeCompose::Membre, int> &&membres_)
 	: TypeVariadique()
 {
 	this->type_pointe = type_pointe_;
@@ -484,13 +484,13 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synch
 	type_contexte = reserve_type_structure(nullptr);
 	type_info_type_ = reserve_type_structure(nullptr);
 
-	auto membres_eini = kuri::tableau<TypeCompose::Membre>();
+	auto membres_eini = kuri::tableau<TypeCompose::Membre, int>();
 	membres_eini.ajoute({ types_communs[static_cast<long>(TypeBase::PTR_RIEN)], ID::pointeur, 0 });
 	membres_eini.ajoute({ type_pointeur_pour(type_info_type_), ID::info, 8 });
 	type_eini->membres = std::move(membres_eini);
 	type_eini->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE | TYPE_EST_NORMALISE);
 
-	auto membres_chaine = kuri::tableau<TypeCompose::Membre>();
+	auto membres_chaine = kuri::tableau<TypeCompose::Membre, int>();
 	membres_chaine.ajoute({ types_communs[static_cast<long>(TypeBase::PTR_Z8)], ID::pointeur, 0 });
 	membres_chaine.ajoute({ types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8 });
 	type_chaine->membres = std::move(membres_chaine);
@@ -678,7 +678,7 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
 	return resultat;
 }
 
-TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
+TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille)
 {
 	auto types_tableaux_fixes_ = types_tableaux_fixes.verrou_ecriture();
 
@@ -691,7 +691,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, long taille)
 	}
 
 	// les décalages sont à zéros car ceci n'est pas vraiment une structure
-	auto membres = kuri::tableau<TypeCompose::Membre>();
+	auto membres = kuri::tableau<TypeCompose::Membre, int>();
 	membres.ajoute({ type_pointeur_pour(type_pointe), ID::pointeur, 0 });
 	membres.ajoute({ types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 0 });
 
@@ -715,7 +715,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe)
 		}
 	}
 
-	auto membres = kuri::tableau<TypeCompose::Membre>();
+	auto membres = kuri::tableau<TypeCompose::Membre, int>();
 	membres.ajoute({ type_pointeur_pour(type_pointe), ID::pointeur, 0 });
 	membres.ajoute({ types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8 });
 	membres.ajoute({ types_communs[static_cast<long>(TypeBase::Z64)], ID::capacite, 16 });
@@ -738,7 +738,7 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 		}
 	}
 
-	auto membres = kuri::tableau<TypeCompose::Membre>();
+	auto membres = kuri::tableau<TypeCompose::Membre, int>();
 	membres.ajoute({ type_pointeur_pour(type_pointe), ID::pointeur, 0 });
 	membres.ajoute({ types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8 });
 	membres.ajoute({ types_communs[static_cast<long>(TypeBase::Z64)], ID::capacite, 16 });
@@ -759,11 +759,11 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 
 TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it, dls::tablet<Type *, 6> const &entrees)
 {
-	if (it->types_entrees.taille != entrees.taille()) {
+	if (it->types_entrees.taille() != entrees.taille()) {
 		return nullptr;
 	}
 
-	for (int i = 0; i < it->types_entrees.taille; ++i) {
+	for (int i = 0; i < it->types_entrees.taille(); ++i) {
 		if (it->types_entrees[i] != entrees[i]) {
 			return nullptr;
 		}
@@ -897,13 +897,13 @@ TypeUnion *Typeuse::union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &mem
 			continue;
 		}
 
-		if (it.membres.taille != membres.taille()) {
+		if (it.membres.taille() != membres.taille()) {
 			continue;
 		}
 
 		auto type_apparie = true;
 
-		for (auto i = 0; i < it.membres.taille; ++i) {
+		for (auto i = 0; i < it.membres.taille(); ++i) {
 			if (it.membres[i].type != membres[i].type) {
 				type_apparie = false;
 				break;
@@ -918,7 +918,7 @@ TypeUnion *Typeuse::union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &mem
 	auto type = types_unions_->ajoute_element();
 	type->nom = ID::anonyme;
 
-	type->membres.reserve(membres.taille());
+	type->membres.reserve(static_cast<int>(membres.taille()));
 	POUR (membres) {
 		type->membres.ajoute(it);
 	}
@@ -995,7 +995,7 @@ TypeTuple *Typeuse::cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membre
 	auto types_tuples_ = types_tuples.verrou_ecriture();
 
 	POUR_TABLEAU_PAGE ((*types_tuples_)) {
-		if (it.membres.taille != membres.taille()) {
+		if (it.membres.taille() != membres.taille()) {
 			continue;
 		}
 
@@ -1014,7 +1014,7 @@ TypeTuple *Typeuse::cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membre
 	}
 
 	auto type = types_tuples_->ajoute_element();
-	type->membres.reserve(membres.taille());
+	type->membres.reserve(static_cast<int>(membres.taille()));
 
 	POUR (membres) {
 		type->membres.ajoute(it);
@@ -1047,57 +1047,57 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
 
 	auto memoire_membres_structures = 0l;
 	POUR_TABLEAU_PAGE ((*types_structures.verrou_lecture())) {
-		memoire_membres_structures += it.membres.taille * taille_de(TypeCompose::Membre);
+		memoire_membres_structures += it.membres.taille_memoire();
 	}
 	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeStructure, types_structures) + memoire_membres_structures });
 
 	auto memoire_membres_enums = 0l;
 	POUR_TABLEAU_PAGE ((*types_enums.verrou_lecture())) {
-		memoire_membres_enums += it.membres.taille * taille_de(TypeCompose::Membre);
+		memoire_membres_enums += it.membres.taille_memoire();
 	}
 	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeEnum, types_enums) + memoire_membres_enums });
 
 	auto memoire_membres_unions = 0l;
 	POUR_TABLEAU_PAGE ((*types_unions.verrou_lecture())) {
-		memoire_membres_unions += it.membres.taille * taille_de(TypeCompose::Membre);
+		memoire_membres_unions += it.membres.taille_memoire();
 	}
 	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeUnion, types_unions) + memoire_membres_unions });
 
 	auto memoire_membres_tuples = 0l;
 	POUR_TABLEAU_PAGE ((*types_tuples.verrou_lecture())) {
-		memoire_membres_tuples += it.membres.taille * taille_de(TypeCompose::Membre);
+		memoire_membres_tuples += it.membres.taille_memoire();
 	}
 	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeTuple, types_tuples) + memoire_membres_tuples });
 
 	auto memoire_membres_tfixes = 0l;
 	POUR_TABLEAU_PAGE ((*types_tableaux_fixes.verrou_lecture())) {
-		memoire_membres_tfixes += it.membres.taille * taille_de(TypeCompose::Membre);
+		memoire_membres_tfixes += it.membres.taille_memoire();
 	}
 	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeTableauFixe, types_tableaux_fixes) + memoire_membres_tfixes });
 
 	auto memoire_membres_tdyns = 0l;
 	POUR_TABLEAU_PAGE ((*types_tableaux_dynamiques.verrou_lecture())) {
-		memoire_membres_tdyns += it.membres.taille * taille_de(TypeCompose::Membre);
+		memoire_membres_tdyns += it.membres.taille_memoire();
 	}
 	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeTableauDynamique, types_tableaux_dynamiques) + memoire_membres_tdyns });
 
 	auto memoire_membres_tvars = 0l;
 	POUR_TABLEAU_PAGE ((*types_variadiques.verrou_lecture())) {
-		memoire_membres_tvars += it.membres.taille * taille_de(TypeCompose::Membre);
+		memoire_membres_tvars += it.membres.taille_memoire();
 	}
 	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeVariadique, types_variadiques) + memoire_membres_tvars });
 
 	auto memoire_params_fonctions = 0l;
 	POUR_TABLEAU_PAGE ((*types_fonctions.verrou_lecture())) {
-		memoire_params_fonctions += it.types_entrees.taille * taille_de(Type *);
+		memoire_params_fonctions += it.types_entrees.taille_memoire();
 	}
 	stats_types.fusionne_entree({ DONNEES_ENTREE(TypeFonction, types_fonctions) + memoire_params_fonctions });
 
 	// les types communs sont dans les types simples, ne comptons que la mémoire du tableau
-	stats_types.fusionne_entree({ "TypeCommun", types_communs.taille(), types_communs.taille() * taille_de(Type *) });
+	stats_types.fusionne_entree({ "TypeCommun", types_communs.taille(), types_communs.taille_memoire() });
 
-	stats_types.fusionne_entree({ "eini", 1, taille_de(TypeCompose) + taille_de(TypeCompose *) + type_eini->membres.taille * taille_de(TypeCompose::Membre) });
-	stats_types.fusionne_entree({ "chaine", 1, taille_de(TypeCompose) + taille_de(TypeCompose *) + type_chaine->membres.taille * taille_de(TypeCompose::Membre) });
+	stats_types.fusionne_entree({ "eini", 1, taille_de(TypeCompose) + taille_de(TypeCompose *) + type_eini->membres.taille_memoire() });
+	stats_types.fusionne_entree({ "chaine", 1, taille_de(TypeCompose) + taille_de(TypeCompose *) + type_chaine->membres.taille_memoire() });
 
 #undef DONNES_ENTREE
 }
@@ -1281,7 +1281,7 @@ dls::chaine chaine_type(const Type *type)
 				virgule = ',';
 			}
 
-			if (type_fonc->types_entrees.taille == 0) {
+			if (type_fonc->types_entrees.est_vide()) {
 				res += virgule;
 			}
 
@@ -1426,7 +1426,7 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
 	assert(type_le_plus_grand);
 	assert(!est_nonsure);
 
-	auto membres_ = kuri::tableau<TypeCompose::Membre>(2);
+	auto membres_ = kuri::tableau<TypeCompose::Membre, int>(2);
 	membres_[0] = { type_le_plus_grand, ID::valeur, 0 };
 	membres_[1] = { typeuse[TypeBase::Z32], ID::membre_actif, alignement_membre_actif };
 
@@ -1499,7 +1499,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 		auto type_fonction = type->comme_fonction();
 
 		auto types_entrees = dls::tablet<Type *, 6>();
-		types_entrees.reserve(type_fonction->types_entrees.taille);
+		types_entrees.reserve(type_fonction->types_entrees.taille());
 
 		POUR (type_fonction->types_entrees) {
 			types_entrees.ajoute(normalise_type(typeuse, it));

@@ -168,7 +168,7 @@ AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const dls::c
 	return atome_fonc;
 }
 
-AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const dls::chaine &nom_fonction, kuri::tableau<Atome *> &&params)
+AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const dls::chaine &nom_fonction, kuri::tableau<Atome *, int> &&params)
 {
 	std::unique_lock lock(mutex_atomes_fonctions);
 	auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fonction, std::move(params));
@@ -190,15 +190,15 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 
 	SAUVEGARDE_ETAT(constructrice.fonction_courante);
 
-	auto params = kuri::tableau<Atome *>();
-	params.reserve(decl->params.taille);
+	auto params = kuri::tableau<Atome *, int>();
+	params.reserve(decl->params.taille());
 
 	if (!decl->est_externe && !decl->possede_drapeau(FORCE_NULCTX)) {
 		auto atome = constructrice.cree_allocation(decl, typeuse.type_contexte, ID::contexte);
 		params.ajoute(atome);
 	}
 
-	for (auto i = 0; i < decl->params.taille; ++i) {
+	for (auto i = 0; i < decl->params.taille(); ++i) {
 		auto param = decl->parametre_entree(i);
 		auto atome = constructrice.cree_allocation(decl, param->type, param->ident);
 		param->atome = atome;
@@ -214,7 +214,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction(ConstructriceRI &const
 	auto atome_param_sortie = constructrice.cree_allocation(decl, param_sortie->type, param_sortie->ident);
 	param_sortie->atome = atome_param_sortie;
 
-	if (decl->params_sorties.taille > 1) {
+	if (decl->params_sorties.taille() > 1) {
 		auto index_membre = 0;
 		POUR (decl->params_sorties) {
 			it->atome = constructrice.cree_acces_membre(it, atome_param_sortie, index_membre++, true);
@@ -251,7 +251,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 
 	auto type_sortie = typeuse[TypeBase::RIEN];
 
-	auto params = kuri::tableau<Atome *>(1);
+	auto params = kuri::tableau<Atome *, int>(1);
 	params[0] = constructrice.cree_allocation(nullptr, types_entrees[0], ID::pointeur);
 
 	auto param_sortie = constructrice.cree_allocation(nullptr, typeuse[TypeBase::RIEN], nullptr);
@@ -330,10 +330,10 @@ long EspaceDeTravail::memoire_utilisee() const
 
 	pour_chaque_element(fonctions, [&](AtomeFonction const &it)
 	{
-		memoire += it.params_entrees.taille * taille_de(Atome *);
+		memoire += it.params_entrees.taille_memoire();
 		memoire += it.chunk.capacite;
-		memoire += it.chunk.locales.taille() * taille_de(Locale);
-		memoire += it.chunk.decalages_labels.taille() * taille_de(int);
+		memoire += it.chunk.locales.taille_memoire();
+		memoire += it.chunk.decalages_labels.taille_memoire();
 	});
 
 	return memoire;
@@ -904,7 +904,7 @@ void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier,
 	::rapporte_erreur(espace, fichier, ligne, message);
 }
 
-static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(dls::tableau<Lexeme> const &lexemes)
+static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(kuri::tableau<Lexeme, int> const &lexemes)
 {
 	auto resultat = kuri::tableau<kuri::Lexeme>();
 	resultat.reserve(lexemes.taille());

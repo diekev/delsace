@@ -878,7 +878,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 					auto decl = static_cast<NoeudDeclarationVariable *>(unite->noeud);
 					aplatis_arbre(decl);
 
-					for (; unite->index_courant < decl->arbre_aplatis.taille; ++unite->index_courant) {
+					for (; unite->index_courant < decl->arbre_aplatis.taille(); ++unite->index_courant) {
 						if (contexte.valide_semantique_noeud(decl->arbre_aplatis[unite->index_courant]) == ResultatValidation::Erreur) {
 							auto graphe = unite->espace->graphe_dependance.verrou_ecriture();
 							auto noeud_dependance = graphe->cree_noeud_globale(decl);
@@ -899,7 +899,7 @@ bool Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 					aplatis_arbre(dir);
 
 					// À FAIRE : ne peut pas préserver les dépendances si nous échouons avant la fin
-					for (unite->index_courant = 0; unite->index_courant < dir->arbre_aplatis.taille; ++unite->index_courant) {
+					for (unite->index_courant = 0; unite->index_courant < dir->arbre_aplatis.taille(); ++unite->index_courant) {
 						if (contexte.valide_semantique_noeud(dir->arbre_aplatis[unite->index_courant]) == ResultatValidation::Erreur) {
 							return false;
 						}
@@ -1092,8 +1092,8 @@ static void rassemble_globales_et_fonctions(
 		EspaceDeTravail *espace,
 		MachineVirtuelle &mv,
 		NoeudDependance *racine,
-		dls::tableau<AtomeGlobale *> &globales,
-		dls::tableau<AtomeFonction *> &fonctions)
+		kuri::tableau<AtomeGlobale *> &globales,
+		kuri::tableau<AtomeFonction *> &fonctions)
 {
 	auto graphe = espace->graphe_dependance.verrou_ecriture();
 
@@ -1160,8 +1160,8 @@ bool Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 	auto peut_executer = (metaprogramme->fonction->drapeaux & RI_FUT_GENEREE) != 0;
 
 	if (peut_executer) {
-		dls::tableau<AtomeGlobale *> globales;
-		dls::tableau<AtomeFonction *> fonctions;
+		kuri::tableau<AtomeGlobale *> globales;
+		kuri::tableau<AtomeFonction *> fonctions;
 		rassemble_globales_et_fonctions(espace, mv, metaprogramme->fonction->noeud_dependance, globales, fonctions);
 
 		auto fonction = static_cast<AtomeFonction *>(metaprogramme->fonction->atome);
@@ -1469,7 +1469,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 			}
 
 			/* crée un tableau fixe */
-			auto type_tableau_fixe = espace->typeuse.type_tableau_fixe(type_tableau->type_pointe, taille_donnees);
+			auto type_tableau_fixe = espace->typeuse.type_tableau_fixe(type_tableau->type_pointe, static_cast<int>(taille_donnees));
 			auto construction = noeud_syntaxique_depuis_resultat(espace, directive, lexeme, type_tableau_fixe, pointeur_donnees);
 
 			/* convertis vers un tableau dynamique */

@@ -178,18 +178,18 @@ void lance_erreur_fonction_inconnue(
 
 				if (decl && decl->genre == GenreNoeud::DECLARATION_CORPS_FONCTION) {
 					auto decl_fonc = decl->comme_entete_fonction();
-					e.ajoute_message("\tRequiers ", decl_fonc->params.taille, " arguments\n");
+					e.ajoute_message("\tRequiers ", decl_fonc->params.taille(), " arguments\n");
 				}
 				else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
 					auto type_struct = static_cast<NoeudStruct const *>(decl)->type->comme_structure();
-					e.ajoute_message("\tRequiers ", type_struct->membres.taille, " arguments\n");
+					e.ajoute_message("\tRequiers ", type_struct->membres.taille(), " arguments\n");
 				}
 				else {
 					auto type_fonc = dc.type->comme_fonction();
-					e.ajoute_message("\tRequiers ", type_fonc->types_entrees.taille - dc.requiers_contexte, " arguments\n");
+					e.ajoute_message("\tRequiers ", type_fonc->types_entrees.taille() - dc.requiers_contexte, " arguments\n");
 				}
 
-				e.ajoute_message("\tObtenu ", noeud_appel->params.taille, " arguments\n");
+				e.ajoute_message("\tObtenu ", noeud_appel->params.taille(), " arguments\n");
 				e.genre_erreur(erreur::Genre::NOMBRE_ARGUMENT);
 			}
 			else if (dc.raison == MENOMMAGE_ARG) {
@@ -200,7 +200,7 @@ void lance_erreur_fonction_inconnue(
 					auto decl_fonc = decl->comme_entete_fonction();
 					e.ajoute_message("\tLes arguments de la fonction sont : \n");
 
-					for (auto i = 0; i < decl_fonc->params.taille; ++i) {
+					for (auto i = 0; i < decl_fonc->params.taille(); ++i) {
 						auto param = decl_fonc->parametre_entree(i);
 						e.ajoute_message("\t\t", param->ident->nom, '\n');
 					}

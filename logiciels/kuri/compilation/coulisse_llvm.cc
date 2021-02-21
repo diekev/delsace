@@ -391,7 +391,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 			table_types[type] = type_opaque;
 
 			std::vector<llvm::Type *> types_membres;
-			types_membres.reserve(static_cast<size_t>(type_struct->membres.taille));
+			types_membres.reserve(static_cast<size_t>(type_struct->membres.taille()));
 
 			POUR (type_struct->membres) {
 				types_membres.push_back(converti_type_llvm(it.type));
@@ -462,7 +462,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction *type, bool est_externe)
 {
 	std::vector<llvm::Type *> parametres;
-	parametres.reserve(static_cast<size_t>(type->types_entrees.taille));
+	parametres.reserve(static_cast<size_t>(type->types_entrees.taille()));
 
 	auto est_variadique = false;
 
@@ -594,7 +594,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 							auto tableau_membre = std::vector<llvm::Constant *>();
 
 							auto index_membre = 0;
-							for (auto i = 0; i < type->membres.taille; ++i) {
+							for (auto i = 0; i < type->membres.taille(); ++i) {
 								if (type->membres[i].drapeaux & TypeCompose::Membre::EST_CONSTANT) {
 									continue;
 								}
@@ -1059,7 +1059,7 @@ void GeneratriceCodeLLVM::genere_code()
 		auto type_fonction = atome_fonc->type->comme_fonction();
 		auto type_llvm = converti_type_fonction(
 					type_fonction,
-					atome_fonc->instructions.taille == 0);
+					atome_fonc->instructions.taille() == 0);
 
 		llvm::Function::Create(
 					type_llvm,
@@ -1163,7 +1163,7 @@ llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const dls::chaine &chain
 	}
 
 	// @.chn [N x i8] c"...0"
-	auto type_tableau = m_espace.typeuse.type_tableau_fixe(m_espace.typeuse[TypeBase::Z8], taille_chaine + 1);
+	auto type_tableau = m_espace.typeuse.type_tableau_fixe(m_espace.typeuse[TypeBase::Z8], static_cast<int>(taille_chaine + 1));
 
 	auto constante = llvm::ConstantDataArray::getString(
 				m_contexte_llvm,

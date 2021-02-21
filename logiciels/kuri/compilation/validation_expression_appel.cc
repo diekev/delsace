@@ -95,11 +95,11 @@ struct Monomorpheuse {
 			auto type_poly_fonction = type_poly->comme_fonction();
 			auto type_cible_fonction = type_cible->comme_fonction();
 
-			if (type_poly_fonction->types_entrees.taille != type_cible_fonction->types_entrees.taille) {
+			if (type_poly_fonction->types_entrees.taille() != type_cible_fonction->types_entrees.taille()) {
 				return false;
 			}
 
-			for (auto i = 0; i < type_poly_fonction->types_entrees.taille; ++i) {
+			for (auto i = 0; i < type_poly_fonction->types_entrees.taille(); ++i) {
 				if (type_poly_fonction->types_entrees[i]->drapeaux & TYPE_EST_POLYMORPHIQUE) {
 					if (!ajoute_paire_types(type_poly_fonction->types_entrees[i], type_cible_fonction->types_entrees[i])) {
 						return false;
@@ -302,7 +302,7 @@ struct Monomorpheuse {
 			auto type_fonction = type_polymorphique->comme_fonction();
 
 			auto types_entrees = dls::tablet<Type *, 6>();
-			types_entrees.reserve(type_fonction->types_entrees.taille);
+			types_entrees.reserve(type_fonction->types_entrees.taille());
 
 			POUR (type_fonction->types_entrees) {
 				if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
@@ -628,9 +628,9 @@ static auto apparie_appel_pointeur(
 	 * s'il y aura besoin d'une transformation. */
 	auto type_fonction = type->comme_fonction();
 
-	auto debut_params = 0l;
+	auto debut_params = 0;
 
-	if (type_fonction->types_entrees.taille != 0 && type_fonction->types_entrees[0] == espace.typeuse.type_contexte) {
+	if (type_fonction->types_entrees.taille() != 0 && type_fonction->types_entrees[0] == espace.typeuse.type_contexte) {
 		debut_params = 1;
 
 		if (!b->bloc_parent->possede_contexte) {
@@ -644,7 +644,7 @@ static auto apparie_appel_pointeur(
 		resultat.requiers_contexte = false;
 	}
 
-	if (type_fonction->types_entrees.taille - debut_params != args.taille) {
+	if (type_fonction->types_entrees.taille() - debut_params != args.taille()) {
 		resultat.noeud_erreur = b;
 		resultat.type = type;
 		resultat.etat = FONCTION_INTROUVEE;
@@ -653,14 +653,14 @@ static auto apparie_appel_pointeur(
 	}
 
 	auto exprs = dls::tablet<NoeudExpression *, 10>();
-	exprs.reserve(type_fonction->types_entrees.taille - debut_params);
+	exprs.reserve(type_fonction->types_entrees.taille() - debut_params);
 
-	auto transformations = dls::tableau<TransformationType>(type_fonction->types_entrees.taille - debut_params);
+	auto transformations = kuri::tableau<TransformationType, int>(type_fonction->types_entrees.taille() - debut_params);
 
 	auto poids_args = 1.0;
 
 	/* Validation des types passés en paramètre. */
-	for (auto i = debut_params; i < type_fonction->types_entrees.taille; ++i) {
+	for (auto i = debut_params; i < type_fonction->types_entrees.taille(); ++i) {
 		auto arg = args[i - debut_params].expr;
 		auto type_prm = type_fonction->types_entrees[i];
 		auto type_enf = arg->type;
@@ -708,7 +708,7 @@ static auto apparie_appel_init_de(
 {
 	auto resultat = DonneesCandidate();
 
-	if (args.taille > 1) {
+	if (args.taille() > 1) {
 		resultat.etat = FONCTION_INTROUVEE;
 		resultat.raison = MECOMPTAGE_ARGS;
 		return resultat;
@@ -728,7 +728,7 @@ static auto apparie_appel_init_de(
 	auto exprs = dls::tablet<NoeudExpression *, 10>();
 	exprs.ajoute(args[0].expr);
 
-	auto transformations = dls::tableau<TransformationType>(1);
+	auto transformations = kuri::tableau<TransformationType, int>(1);
 	transformations[0] = { TypeTransformation::INUTILE };
 
 	resultat.etat = FONCTION_TROUVEE;
@@ -765,7 +765,7 @@ static auto apparie_appel_fonction(
 		// prend les paramètres polymorphiques
 		auto bloc_constantes = decl->bloc_constantes;
 
-		if (bloc_constantes->membres->taille != args.taille) {
+		if (bloc_constantes->membres->taille() != args.taille()) {
 			res.raison = MECOMPTAGE_ARGS;
 			return false;
 		}
@@ -812,15 +812,15 @@ static auto apparie_appel_fonction(
 		return false;
 	}
 
-	auto const nombre_args = decl->params.taille;
+	auto const nombre_args = decl->params.taille();
 
-	if (!decl->est_variadique && (args.taille > nombre_args)) {
+	if (!decl->est_variadique && (args.taille() > nombre_args)) {
 		res.etat = FONCTION_INTROUVEE;
 		res.raison = MECOMPTAGE_ARGS;
 		return false;
 	}
 
-	if (nombre_args == 0 && args.taille == 0) {
+	if (nombre_args == 0 && args.taille() == 0) {
 		res.poids_args = 1.0;
 		res.etat = FONCTION_TROUVEE;
 		res.raison = AUCUNE_RAISON;
@@ -829,14 +829,14 @@ static auto apparie_appel_fonction(
 
 	/* mise en cache des paramètres d'entrées, accéder à cette fonction se voit dans les profiles */
 	dls::tablet<NoeudDeclarationVariable *, 10> parametres_entree;
-	for (auto i = 0; i < decl->params.taille; ++i) {
+	for (auto i = 0; i < decl->params.taille(); ++i) {
 		parametres_entree.ajoute(decl->parametre_entree(i));
 	}
 
 	auto apparieuse_params = ApparieuseParams(res);
 	//slots.redimensionne(nombre_args - decl->est_variadique);
 
-	for (auto i = 0; i < decl->params.taille; ++i) {
+	for (auto i = 0; i < decl->params.taille(); ++i) {
 		auto param = parametres_entree[i];
 		apparieuse_params.ajoute_param(param->ident, param->expression, param->possede_drapeau(EST_VARIADIQUE));
 	}
@@ -864,7 +864,7 @@ static auto apparie_appel_fonction(
 	// utilisé pour déterminer le type des données des arguments variadiques
 	// pour la création des tableaux ; nécessaire au cas où nous avons une
 	// fonction polymorphique, au quel cas le type serait un type polymorphique
-	auto dernier_type_parametre = decl->params[decl->params.taille - 1]->type;
+	auto dernier_type_parametre = decl->params[decl->params.taille() - 1]->type;
 
 	if (dernier_type_parametre->genre == GenreType::VARIADIQUE) {
 		dernier_type_parametre = type_dereference_pour(dernier_type_parametre);
@@ -875,7 +875,7 @@ static auto apparie_appel_fonction(
 	auto monomorpheuse = Monomorpheuse();
 
 	if (decl->est_polymorphe) {
-		decl->bloc_constantes->membres.avec_verrou_lecture([&monomorpheuse](const kuri::tableau<NoeudDeclaration *> &membres)
+		decl->bloc_constantes->membres.avec_verrou_lecture([&monomorpheuse](const kuri::tableau<NoeudDeclaration *, int> &membres)
 		{
 			POUR (membres) {
 				monomorpheuse.ajoute_item(it->ident);
@@ -889,7 +889,7 @@ static auto apparie_appel_fonction(
 		}
 
 		for (auto i = 0l; i < slots.taille(); ++i) {
-			auto index_arg = std::min(i, decl->params.taille - 1);
+			auto index_arg = std::min(i, static_cast<long>(decl->params.taille() - 1));
 			auto param = parametres_entree[index_arg];
 			auto arg = param->valeur;
 			auto slot = slots[i];
@@ -933,7 +933,7 @@ static auto apparie_appel_fonction(
 	}
 
 	for (auto i = 0l; i < slots.taille(); ++i) {
-		auto index_arg = std::min(i, decl->params.taille - 1);
+		auto index_arg = std::min(i, static_cast<long>(decl->params.taille() - 1));
 		auto param = parametres_entree[index_arg];
 		auto arg = param->valeur;
 		auto slot = slots[i];
@@ -1098,7 +1098,7 @@ static auto apparie_appel_fonction(
 			auto noeud_tableau = contexte.m_tacheronne.assembleuse->cree_tableau_variadique(&lexeme_tableau);
 
 			noeud_tableau->type = type_donnees_argument_variadique;
-			noeud_tableau->exprs.reserve(slots.taille() - index_premier_var_arg);
+			noeud_tableau->exprs.reserve(static_cast<int>(slots.taille()) - index_premier_var_arg);
 
 			for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
 				noeud_tableau->exprs.ajoute(slots[i]);
@@ -1115,11 +1115,11 @@ static auto apparie_appel_fonction(
 		}
 	}
 
-	res.transformations.reserve(transformations.taille());
+	res.transformations.reserve(static_cast<int>(transformations.taille()));
 
 	// Il faut supprimer de l'appel les constantes correspondant aux valeur polymorphiques.
 	for (auto i = 0l; i < slots.taille(); ++i) {
-		auto index_arg = std::min(i, decl->params.taille - 1);
+		auto index_arg = std::min(i, static_cast<long>(decl->params.taille() - 1));
 		auto param = parametres_entree[index_arg];
 
 		if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
@@ -1141,7 +1141,7 @@ static auto apparie_appel_fonction(
 	res.etat = FONCTION_TROUVEE;
 
 	if (decl->est_polymorphe) {
-		res.items_monomorphisation.reserve(monomorpheuse.items.taille());
+		res.items_monomorphisation.reserve(static_cast<int>(monomorpheuse.items.taille()));
 
 		POUR (monomorpheuse.items) {
 			res.items_monomorphisation.ajoute({ it.premier, it.second, ValeurExpression(), true });
@@ -1164,7 +1164,7 @@ static auto apparie_appel_structure(
 	auto type_compose = decl_struct->type->comme_compose();
 
 	if (decl_struct->est_polymorphe) {
-		if (expr->params.taille != decl_struct->params_polymorphiques.taille) {
+		if (expr->params.taille() != decl_struct->params_polymorphiques.taille()) {
 			resultat.etat = FONCTION_INTROUVEE;
 			resultat.raison = MECOMPTAGE_ARGS;
 			resultat.poids_args = 0.0;
@@ -1299,14 +1299,14 @@ static auto apparie_appel_structure(
 	}
 
 	if (decl_struct->est_union) {
-		if (expr->params.taille > 1) {
+		if (expr->params.taille() > 1) {
 			resultat.etat = FONCTION_TROUVEE;
 			resultat.raison = TROP_D_EXPRESSION_POUR_UNION;
 			resultat.poids_args = 0.0;
 			return false;
 		}
 
-		if (expr->params.taille == 0) {
+		if (expr->params.taille() == 0) {
 			resultat.etat = FONCTION_TROUVEE;
 			resultat.raison = EXPRESSION_MANQUANTE_POUR_UNION;
 			resultat.poids_args = 0.0;
@@ -1327,7 +1327,7 @@ static auto apparie_appel_structure(
 		}
 	}
 
-	auto transformations = dls::tableau<TransformationType>(type_compose->membres.taille);
+	auto transformations = kuri::tableau<TransformationType, int>(type_compose->membres.taille());
 	auto poids_appariement = 1.0;
 
 	auto index_membre = 0;
@@ -1383,7 +1383,7 @@ static auto apparie_construction_opaque(
 		kuri::tableau<IdentifiantEtExpression> const &arguments,
 		DonneesCandidate &resultat)
 {
-	if (arguments.taille > 1) {
+	if (arguments.taille() > 1) {
 		resultat.etat = FONCTION_INTROUVEE;
 		resultat.raison = MECOMPTAGE_ARGS;
 		resultat.poids_args = 0.0;
@@ -1663,7 +1663,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 
 	// Supprime les valeurs polymorphiques
 	// À FAIRE : optimise
-	auto nouveau_params = kuri::tableau<NoeudDeclarationVariable *>();
+	auto nouveau_params = kuri::tableau<NoeudDeclarationVariable *, int>();
 	POUR (copie->params) {
 		if (it->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
 			continue;
@@ -1672,7 +1672,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue
 		nouveau_params.ajoute(it);
 	}
 
-	if (nouveau_params.taille != copie->params.taille) {
+	if (nouveau_params.taille() != copie->params.taille()) {
 		copie->params = std::move(nouveau_params);
 	}
 
@@ -1688,7 +1688,7 @@ static NoeudStruct *monomorphise_au_besoin(
 		ContexteValidationCode &contexte,
 		EspaceDeTravail &espace,
 		NoeudStruct *decl_struct,
-		dls::tableau<ItemMonomorphisation> &&items_monomorphisation)
+		kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
 	auto monomorphisations = decl_struct->monomorphisations.verrou_ecriture();
 
@@ -1725,7 +1725,7 @@ static NoeudStruct *monomorphise_au_besoin(
 	}
 
 	// À FAIRE : n'efface pas les membres, mais la validation sémantique les rajoute...
-	copie->bloc->membres->taille = 0;
+	copie->bloc->membres->efface();
 
 	// ajout de constantes dans le bloc, correspondants aux paires de monomorphisation
 	POUR (items_monomorphisation) {
@@ -1776,7 +1776,7 @@ ResultatValidation valide_appel_fonction(
 	// valide d'abord les expressions, leurs types sont nécessaire pour trouver les candidates
 
 	kuri::tableau<IdentifiantEtExpression> args;
-	args.reserve(expr->params.taille);
+	args.reserve(expr->params.taille());
 
 	{
 		CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "prépare arguments");
@@ -1846,7 +1846,7 @@ ResultatValidation valide_appel_fonction(
 
 	CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "copie données");
 
-	expr->exprs.reserve(candidate->exprs.taille());
+	expr->exprs.reserve(static_cast<int>(candidate->exprs.taille()));
 
 	for (auto enfant : candidate->exprs) {
 		expr->exprs.ajoute(enfant);
@@ -1903,7 +1903,7 @@ ResultatValidation valide_appel_fonction(
 
 		/* met en place les drapeaux sur les enfants */
 
-		auto nombre_args_simples = candidate->exprs.taille();
+		auto nombre_args_simples = static_cast<int>(candidate->exprs.taille());
 		auto nombre_args_variadics = nombre_args_simples;
 
 		if (!candidate->exprs.est_vide() && candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
@@ -1913,14 +1913,14 @@ ResultatValidation valide_appel_fonction(
 
 			/* ajoute le type du tableau */
 			auto noeud_tabl = static_cast<NoeudTableauArgsVariadiques *>(candidate->exprs.back());
-			auto taille_tableau = noeud_tabl->exprs.taille;
+			auto taille_tableau = noeud_tabl->exprs.taille();
 			auto &type_tabl = noeud_tabl->type;
 
 			auto type_tfixe = espace.typeuse.type_tableau_fixe(type_tabl, taille_tableau);
 			donnees_dependance.types_utilises.insere(type_tfixe);
 		}
 
-		auto i = 0l;
+		auto i = 0;
 		/* les drapeaux pour les arguments simples */
 		for (; i < nombre_args_simples; ++i) {
 			contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
@@ -1983,7 +1983,7 @@ ResultatValidation valide_appel_fonction(
 			expr->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
 			expr->type = candidate->type;
 
-			for (auto i = 0; i < expr->exprs.taille; ++i) {
+			for (auto i = 0; i < expr->exprs.taille(); ++i) {
 				if (expr->exprs[i] != nullptr) {
 					contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
 				}
@@ -2009,7 +2009,7 @@ ResultatValidation valide_appel_fonction(
 			expr->type = candidate->type->comme_fonction()->type_sortie;
 		}
 
-		for (auto i = 0; i < expr->exprs.taille; ++i) {
+		for (auto i = 0; i < expr->exprs.taille(); ++i) {
 			contexte.transtype_si_necessaire(expr->exprs[i], candidate->transformations[i]);
 		}
 

@@ -76,7 +76,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale(EspaceDeTrava
 	return genere_ri_pour_fonction_principale();
 }
 
-AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(EspaceDeTravail *espace, const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour)
+AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(EspaceDeTravail *espace, const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour)
 {
 	m_espace = espace;
 	return genere_fonction_init_globales_et_appel(globales, fonction_pour);
@@ -136,7 +136,7 @@ AtomeGlobale *ConstructriceRI::cree_globale(Type *type, AtomeConstante *initiali
 
 AtomeConstante *ConstructriceRI::cree_tableau_global(Type *type, kuri::tableau<AtomeConstante *> &&valeurs)
 {
-	auto taille_tableau = valeurs.taille;
+	auto taille_tableau = static_cast<int>(valeurs.taille());
 	auto type_tableau = m_espace->typeuse.type_tableau_fixe(type, taille_tableau);
 	auto tableau_fixe = cree_constante_tableau_fixe(type_tableau, std::move(valeurs));
 
@@ -148,7 +148,7 @@ AtomeConstante *ConstructriceRI::cree_tableau_global(AtomeConstante *tableau_fix
 	auto type_tableau_fixe = tableau_fixe->type->comme_tableau_fixe();
 	auto globale_tableau_fixe = cree_globale(type_tableau_fixe, tableau_fixe, false, true);
 	auto ptr_premier_element = cree_acces_index_constant(globale_tableau_fixe, cree_z64(0));
-	auto valeur_taille = cree_z64(static_cast<unsigned long>(type_tableau_fixe->taille));
+	auto valeur_taille = cree_z64(static_cast<unsigned>(type_tableau_fixe->taille));
 	auto type_tableau_dyn = m_espace->typeuse.type_tableau_dynamique(type_tableau_fixe->type_pointe);
 
 	auto membres = kuri::tableau<AtomeConstante *>(3);
@@ -218,7 +218,7 @@ InstructionRetour *ConstructriceRI::cree_retour(NoeudExpression *site_, Atome *v
 	return inst;
 }
 
-AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const dls::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour)
+AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour)
 {
 	auto nom_fonction = "init_globale" + dls::vers_chaine(fonction_pour);
 
@@ -229,7 +229,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const dls
 
 	Atome *param_contexte = cree_allocation(nullptr, types_entrees[0], ID::contexte);
 
-	auto params = kuri::tableau<Atome *>(1);
+	auto params = kuri::tableau<Atome *, int>(1);
 	params[0] = param_contexte;
 
 	auto fonction = m_espace->cree_fonction(nullptr, nom_fonction, std::move(params));
@@ -271,7 +271,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const dls
 		}
 	}
 
-	auto param_appel = kuri::tableau<Atome *>(1);
+	auto param_appel = kuri::tableau<Atome *, int>(1);
 	param_appel[0] = cree_charge_mem(nullptr, param_contexte);
 
 	cree_appel(nullptr, nullptr, fonction, std::move(param_appel));
@@ -381,7 +381,7 @@ InstructionAppel *ConstructriceRI::cree_appel(NoeudExpression *site_, Lexeme con
 	return inst;
 }
 
-InstructionAppel *ConstructriceRI::cree_appel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *> &&args)
+InstructionAppel *ConstructriceRI::cree_appel(NoeudExpression *site_, Lexeme const *lexeme, Atome *appele, kuri::tableau<Atome *, int> &&args)
 {
 	// voir commentaire plus haut
 	appele->nombre_utilisations += 1;
@@ -432,7 +432,7 @@ InstructionAccedeIndex *ConstructriceRI::cree_acces_index(NoeudExpression *site_
 	return inst;
 }
 
-InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(NoeudExpression *site_, Atome *accede, long index, bool cree_seulement)
+InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(NoeudExpression *site_, Atome *accede, int index, bool cree_seulement)
 {
 	assert_rappel(accede->type->genre == GenreType::POINTEUR || accede->type->genre == GenreType::REFERENCE, [=](){ std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
 	auto type_pointeur = accede->type->comme_pointeur();
@@ -462,7 +462,7 @@ InstructionAccedeMembre *ConstructriceRI::cree_acces_membre(NoeudExpression *sit
 	return inst;
 }
 
-Instruction *ConstructriceRI::cree_acces_membre_et_charge(NoeudExpression *site_, Atome *accede, long index)
+Instruction *ConstructriceRI::cree_acces_membre_et_charge(NoeudExpression *site_, Atome *accede, int index)
 {
 	auto inst = cree_acces_membre(site_, accede, index);
 	return cree_charge_mem(site_, inst);
@@ -646,7 +646,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 			if (derniere_instruction->genre != Instruction::Genre::RETOUR) {
 				/* génère le code pour tous les noeuds différés de ce bloc */
-				for (auto i = noeud_bloc->noeuds_differes.taille - 1; i >= 0; --i) {
+				for (auto i = noeud_bloc->noeuds_differes.taille() - 1; i >= 0; --i) {
 					auto bloc_differe = noeud_bloc->noeuds_differes[i];
 					bloc_differe->est_differe = false;
 					genere_ri_pour_noeud(bloc_differe);
@@ -662,8 +662,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto expr_appel = noeud->comme_appel();
 
-			auto args = kuri::tableau<Atome *>();
-			args.reserve(expr_appel->exprs.taille);
+			auto args = kuri::tableau<Atome *, int>();
+			args.reserve(expr_appel->exprs.taille());
 
 			if (!expr_appel->possede_drapeau(FORCE_NULCTX)) {
 				args.ajoute(cree_charge_mem(expr_appel, contexte));
@@ -953,7 +953,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 				insere_label(label1);
 
-				auto params = kuri::tableau<Atome *>(3);
+				auto params = kuri::tableau<Atome *, int>(3);
 				params[0] = cree_charge_mem(noeud, contexte);
 				params[1] = acces_taille;
 				params[2] = valeur_;
@@ -966,7 +966,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
 				insere_label(label3);
 
-				params = kuri::tableau<Atome *>(3);
+				params = kuri::tableau<Atome *, int>(3);
 				params[0] = cree_charge_mem(noeud, contexte);
 				params[1] = acces_taille;
 				params[2] = valeur_;
@@ -980,7 +980,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			if (type_gauche->genre == GenreType::TABLEAU_FIXE) {
 				if (contexte != nullptr && noeud->aide_generation_code != IGNORE_VERIFICATION) {
 					auto type_tableau_fixe = type_gauche->comme_tableau_fixe();
-					auto acces_taille = cree_z64(static_cast<unsigned long>(type_tableau_fixe->taille));
+					auto acces_taille = cree_z64(static_cast<unsigned>(type_tableau_fixe->taille));
 					genere_protection_limites(acces_taille, valeur, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_tableau));
 				}
 				empile_valeur(cree_acces_index(noeud, pointeur, valeur));
@@ -1307,7 +1307,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
 		{
 			auto noeud_tableau = noeud->comme_args_variadiques();
-			auto taille_tableau = noeud_tableau->exprs.taille;
+			auto taille_tableau = noeud_tableau->exprs.taille();
 
 			if (taille_tableau == 0) {
 				auto type_tableau_dyn = m_espace->typeuse.type_tableau_dynamique(noeud->type);
@@ -1389,7 +1389,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				}
 
 				auto type_struct = noeud->type->comme_structure();
-				auto index_membre = 0u;
+				auto index_membre = 0;
 
 				alloc = cree_allocation(noeud, type_struct, nullptr);
 
@@ -1426,7 +1426,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			if (fonction_courante == nullptr) {
 				auto type_tableau_fixe = expr->type->comme_tableau_fixe();
 				kuri::tableau<AtomeConstante *> valeurs;
-				valeurs.reserve(feuilles->expressions.taille);
+				valeurs.reserve(feuilles->expressions.taille());
 
 				POUR (feuilles->expressions) {
 					genere_ri_pour_noeud(it);
@@ -1706,7 +1706,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud, Atome *valeur, T
 				cree_branche_condition(noeud, condition, label_si_vrai, label_si_faux);
 				insere_label(label_si_vrai);
 				// À FAIRE : nous pourrions avoir une erreur différente ici.
-				auto params = kuri::tableau<Atome *>(1);
+				auto params = kuri::tableau<Atome *, int>(1);
 				params[0] = cree_charge_mem(noeud, contexte);
 				cree_appel(noeud, noeud->lexeme, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_membre_union), std::move(params));
 				insere_label(label_si_faux);
@@ -1995,7 +1995,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud, Atome *valeur, T
 				valeur = cree_charge_mem(noeud, valeur);
 			}
 
-			auto args = kuri::tableau<Atome *>();
+			auto args = kuri::tableau<Atome *, int>();
 			args.ajoute(valeur);
 
 			valeur = cree_appel(noeud, noeud->lexeme, atome_fonction, std::move(args));
@@ -2065,7 +2065,7 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 
 		insere_label(label_si_vrai);
 		if (noeud->expr_piege == nullptr) {
-			auto params = kuri::tableau<Atome *>(1);
+			auto params = kuri::tableau<Atome *, int>(1);
 			params[0] = cree_charge_mem(noeud, contexte);
 			cree_appel(noeud, noeud->lexeme, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_erreur), std::move(params));
 		}
@@ -2085,7 +2085,7 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 		auto type_union = noeud->expr_appel->type->comme_union();
 		auto index_membre_erreur = 0;
 
-		if (type_union->membres.taille == 2) {
+		if (type_union->membres.taille() == 2) {
 			if (type_union->membres[0].type->genre == GenreType::ERREUR) {
 				gen_tente.type_piege = type_union->membres[0].type;
 				gen_tente.type_variable = normalise_type(m_espace->typeuse, type_union->membres[1].type);
@@ -2119,7 +2119,7 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 
 		insere_label(label_si_vrai);
 		if (noeud->expr_piege == nullptr) {
-			auto params = kuri::tableau<Atome *>(1);
+			auto params = kuri::tableau<Atome *, int>(1);
 			params[0] = cree_charge_mem(noeud, contexte);
 			cree_appel(noeud, noeud->lexeme, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_erreur), std::move(params));
 		}
@@ -2216,7 +2216,7 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 	}
 	else if (type->genre == GenreType::STRUCTURE) {
 		auto type_struct = type->comme_structure();
-		auto index_membre = 0u;
+		auto index_membre = 0;
 		auto pointeur_struct = cree_charge_mem(noeud, fonction->params_entrees[0]);
 
 		POUR (type_struct->membres) {
@@ -2236,7 +2236,7 @@ void ConstructriceRI::genere_ri_pour_declaration_structure(NoeudStruct *noeud)
 				if (it.type->genre == GenreType::STRUCTURE || it.type->genre == GenreType::UNION) {
 					auto atome_fonction = m_espace->trouve_ou_insere_fonction_init(*this, it.type);
 
-					auto params_init = kuri::tableau<Atome *>(1);
+					auto params_init = kuri::tableau<Atome *, int>(1);
 					params_init[0] = pointeur;
 
 					cree_appel(noeud, noeud->lexeme, atome_fonction, std::move(params_init));
@@ -2331,7 +2331,7 @@ void ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *n
 
 		cree_branche_condition(noeud, condition, label_si_vrai, label_si_faux);
 		insere_label(label_si_vrai);
-		auto params = kuri::tableau<Atome *>(1);
+		auto params = kuri::tableau<Atome *, int>(1);
 		params[0] = cree_charge_mem(noeud, contexte);
 		cree_appel(noeud, noeud->lexeme, m_espace->trouve_ou_insere_fonction(*this, m_espace->interface_kuri->decl_panique_membre_union), std::move(params));
 		insere_label(label_si_faux);
@@ -2415,7 +2415,7 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type *ty
 		{
 			auto type_compose = static_cast<TypeCompose *>(type);
 			auto valeurs = kuri::tableau<AtomeConstante *>();
-			valeurs.reserve(type_compose->membres.taille);
+			valeurs.reserve(type_compose->membres.taille());
 
 			POUR (type_compose->membres) {
 				if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
@@ -2592,7 +2592,7 @@ void ConstructriceRI::genere_ri_blocs_differes(NoeudBloc *bloc)
 #endif
 
 	while (bloc != nullptr) {
-		for (auto i = bloc->noeuds_differes.taille - 1; i >= 0; --i) {
+		for (auto i = bloc->noeuds_differes.taille() - 1; i >= 0; --i) {
 			auto bloc_differe = bloc->noeuds_differes[i];
 			bloc_differe->est_differe = false;
 			genere_ri_pour_noeud(bloc_differe);
@@ -2715,7 +2715,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			/* création des tableaux de valeurs et de noms */
 
 			kuri::tableau<AtomeConstante *> valeurs_enum;
-			valeurs_enum.reserve(type_enum->membres.taille);
+			valeurs_enum.reserve(type_enum->membres.taille());
 
 			POUR (type_enum->membres) {
 				if (it.drapeaux == TypeCompose::Membre::EST_IMPLICITE) {
@@ -2727,7 +2727,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 			}
 
 			kuri::tableau<AtomeConstante *> noms_enum;
-			noms_enum.reserve(type_enum->membres.taille);
+			noms_enum.reserve(type_enum->membres.taille());
 
 			POUR (type_enum->membres) {
 				if (it.drapeaux == TypeCompose::Membre::EST_IMPLICITE) {
@@ -2957,7 +2957,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 						valeur_type_pointe);
 
 			auto valeur_est_fixe = cree_constante_booleenne(true);
-			auto valeur_taille_fixe = cree_z32(static_cast<size_t>(type_tableau->taille));
+			auto valeur_taille_fixe = cree_z32(static_cast<unsigned>(type_tableau->taille));
 
 			auto valeurs = kuri::tableau<AtomeConstante *>(5);
 			valeurs[0] = valeur_id;
@@ -3115,7 +3115,7 @@ Atome *ConstructriceRI::converti_vers_tableau_dyn(NoeudExpression *noeud, Atome 
 	cree_stocke_mem(noeud, ptr_pointeur_donnees, premier_elem);
 
 	auto ptr_taille = cree_acces_membre(noeud, alloc_tableau_dyn, 1);
-	auto constante = cree_z64(uint64_t(type_tableau_fixe->taille));
+	auto constante = cree_z64(unsigned(type_tableau_fixe->taille));
 	cree_stocke_mem(noeud, ptr_taille, constante);
 
 	return alloc_tableau_dyn;
@@ -3133,7 +3133,7 @@ AtomeConstante *ConstructriceRI::cree_chaine(dls::vue_chaine_compacte const &cha
 
 	auto type_chaine = m_espace->typeuse.type_chaine;
 
-	auto type_tableau = m_espace->typeuse.type_tableau_fixe(m_espace->typeuse[TypeBase::Z8], chaine.taille());
+	auto type_tableau = m_espace->typeuse.type_tableau_fixe(m_espace->typeuse[TypeBase::Z8], static_cast<int>(chaine.taille()));
 	auto tableau = cree_constante_tableau_donnees_constantes(type_tableau, const_cast<char *>(chaine.pointeur()), chaine.taille());
 
 	auto globale_tableau = cree_globale(type_tableau, tableau, false, true);
@@ -3166,7 +3166,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
 	auto alloc_contexte = cree_allocation(nullptr, m_espace->typeuse.type_contexte, ID::contexte);
 	contexte = alloc_contexte;
 
-	auto params = kuri::tableau<Atome *>(1);
+	auto params = kuri::tableau<Atome *, int>(1);
 	params[0] = alloc_contexte;
 
 	auto fonction = m_espace->cree_fonction(nullptr, "__principale", std::move(params));
@@ -3198,7 +3198,7 @@ AtomeFonction *ConstructriceRI::genere_ri_pour_fonction_principale()
 	// appel notre fonction principale en passant le contexte et le tableau
 	auto fonc_princ = m_espace->fonction_principale;
 
-	auto params_principale = kuri::tableau<Atome *>(1);
+	auto params_principale = kuri::tableau<Atome *, int>(1);
 	params_principale[0] = cree_charge_mem(nullptr, fonction->params_entrees[0]);
 
 	static Lexeme lexeme_appel_principale = { "principale", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0 };
@@ -3224,9 +3224,9 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnte
 
 	auto atome_creation_contexte = m_espace->trouve_ou_insere_fonction(*this, decl_creation_contexte);
 
-	atome_fonc->instructions.reserve(atome_creation_contexte->instructions.taille);
+	atome_fonc->instructions.reserve(atome_creation_contexte->instructions.taille());
 
-	for (auto i = 0; i < atome_creation_contexte->instructions.taille; ++i) {
+	for (auto i = 0; i < atome_creation_contexte->instructions.taille(); ++i) {
 		auto it = atome_creation_contexte->instructions[i];
 		atome_fonc->instructions.ajoute(it);
 
@@ -3235,7 +3235,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnte
 		}
 	}
 
-	atome_fonc->decalage_appel_init_globale = atome_fonc->instructions.taille;
+	atome_fonc->decalage_appel_init_globale = atome_fonc->instructions.taille();
 
 	genere_ri_pour_noeud(fonction->corps->bloc);
 
@@ -3359,7 +3359,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 				else if (type_var->genre == GenreType::STRUCTURE || type_var->genre == GenreType::UNION) {
 					auto atome_fonction = m_espace->trouve_ou_insere_fonction_init(*this, var->type);
 
-					auto params_init = kuri::tableau<Atome *>(1);
+					auto params_init = kuri::tableau<Atome *, int>(1);
 					params_init[0] = pointeur;
 
 					cree_appel(var, var->lexeme, atome_fonction, std::move(params_init));
@@ -3406,7 +3406,7 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
 
 	pour_chaque_element(insts_appel, [&](InstructionAppel const &it)
 	{
-		memoire += it.args.taille * taille_de(Atome *);
+		memoire += it.args.taille_memoire();
 	});
 
 	stats_ri.fusionne_entree({ "insts_appel", insts_appel.taille(), memoire });

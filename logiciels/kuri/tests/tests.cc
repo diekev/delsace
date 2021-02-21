@@ -311,7 +311,7 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
 
 static auto decoupe_tampon(lng::tampon_source const &tampon)
 {
-	dls::tableau<lng::tampon_source> resultat;
+	kuri::tableau<lng::tampon_source> resultat;
 
 	auto debut_cas = 0ul;
 	auto fin_cas = 1ul;
@@ -374,7 +374,7 @@ int main()
 	auto test_passes = 0;
 	auto test_echoues = 0;
 
-	auto resultats_tests = dls::tableau<ResultatTest>();
+	auto resultats_tests = kuri::tableau<ResultatTest>();
 
 	POUR (tests_unitaires) {
 		auto chemin = std::filesystem::path("fichiers_tests/") / it.source;

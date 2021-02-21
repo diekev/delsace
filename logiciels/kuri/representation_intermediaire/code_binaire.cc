@@ -180,7 +180,7 @@ void Chunk::emets_acces_index(NoeudExpression *site, Type *type)
 	emets(type->taille_octet);
 }
 
-void Chunk::emets_branche(NoeudExpression *site, dls::tableau<PatchLabel> &patchs_labels, int index)
+void Chunk::emets_branche(NoeudExpression *site, kuri::tableau<PatchLabel> &patchs_labels, int index)
 {
 	emets(OP_BRANCHE);
 	emets(site);
@@ -192,7 +192,7 @@ void Chunk::emets_branche(NoeudExpression *site, dls::tableau<PatchLabel> &patch
 	patchs_labels.ajoute(patch);
 }
 
-void Chunk::emets_branche_condition(NoeudExpression *site, dls::tableau<PatchLabel> &patchs_labels, int index_label_si_vrai, int index_label_si_faux)
+void Chunk::emets_branche_condition(NoeudExpression *site, kuri::tableau<PatchLabel> &patchs_labels, int index_label_si_vrai, int index_label_si_faux)
 {
 	emets(OP_BRANCHE_CONDITION);
 	emets(site);
@@ -801,7 +801,7 @@ static auto trouve_fonction_compilatrice(IdentifiantCode *ident)
 
 struct ConvertisseuseRI {
 	MachineVirtuelle *mv = nullptr;
-	dls::tableau<PatchLabel> patchs_labels{};
+	kuri::tableau<PatchLabel> patchs_labels{};
 	dls::pile<int> pile_taille{};
 	int dernier_decalage_pile = 0;
 
@@ -837,7 +837,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 		}
 
 		auto type_fonction = fonction->type->comme_fonction();
-		donnees_externe.types_entrees.reserve(type_fonction->types_entrees.taille);
+		donnees_externe.types_entrees.reserve(type_fonction->types_entrees.taille());
 
 		POUR (type_fonction->types_entrees) {
 			donnees_externe.types_entrees.ajoute(converti_type_ffi(it));
@@ -865,7 +865,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 		auto alloc = it->comme_instruction()->comme_alloc();
 		auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
 		auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
-		alloc->index_locale = static_cast<int>(chunk.locales.taille());
+		alloc->index_locale = chunk.locales.taille();
 		chunk.locales.ajoute({ alloc->ident, alloc->type, adresse });
 	}
 
@@ -877,7 +877,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 
 		if (!type_pointe->est_rien()) {
 			auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
-			alloc->index_locale = static_cast<int>(chunk.locales.taille());
+			alloc->index_locale = chunk.locales.taille();
 			chunk.locales.ajoute({ alloc->ident, alloc->type, adresse });
 		}
 	}
@@ -894,7 +894,7 @@ void genere_code_binaire_pour_fonction(AtomeFonction *fonction, MachineVirtuelle
 			auto alloc = it->comme_alloc();
 			auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
 			auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
-			alloc->index_locale = static_cast<int>(chunk.locales.taille());
+			alloc->index_locale = chunk.locales.taille();
 			chunk.locales.ajoute({ alloc->ident, alloc->type, adresse });
 		}
 	}
@@ -977,7 +977,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 
 				auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
 				auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
-				alloc->index_locale = static_cast<int>(chunk.locales.taille());
+				alloc->index_locale = static_cast<int>(chunk.locales.taille);
 				chunk.locales.ajoute({ alloc->ident, alloc->type, adresse });
 			}
 #endif
@@ -1159,7 +1159,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction *instruc
 		case Instruction::Genre::ACCEDE_MEMBRE:
 		{
 			auto membre = instruction->comme_acces_membre();
-			auto index_membre = static_cast<long>(static_cast<AtomeValeurConstante *>(membre->index)->valeur.valeur_entiere);
+			auto index_membre = static_cast<int>(static_cast<AtomeValeurConstante *>(membre->index)->valeur.valeur_entiere);
 
 			auto type_pointeur = membre->accede->type->comme_pointeur();
 			auto type_compose = static_cast<TypeCompose *>(type_pointeur->type_pointe);
@@ -1367,7 +1367,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
 						auto type_compose = static_cast<TypeCompose *>(type);
 
 						auto index_membre = 0;
-						for (auto i = 0; i < type_compose->membres.taille; ++i) {
+						for (auto i = 0; i < type_compose->membres.taille(); ++i) {
 							if ((type_compose->membres[i].drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
 								continue;
 							}
@@ -1515,7 +1515,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 					auto tableau_valeur = valeur_constante->valeur.valeur_structure.pointeur;
 
 					auto index_membre = 0;
-					for (auto i = 0; i < type->membres.taille; ++i) {
+					for (auto i = 0; i < type->membres.taille(); ++i) {
 						if (type->membres[i].drapeaux & TypeCompose::Membre::EST_CONSTANT) {
 							continue;
 						}
@@ -1559,10 +1559,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
 							auto type_tableau = tableau->type->comme_tableau_fixe();
 							auto type_pointe  = type_tableau->type_pointe;
-							auto decalage_valeur = static_cast<int>(mv->donnees_constantes.taille());
+							auto decalage_valeur = mv->donnees_constantes.taille();
 							auto adresse_tableau = decalage_valeur;
 
-							mv->donnees_constantes.redimensionne(mv->donnees_constantes.taille() + type_pointe->taille_octet * type_tableau->taille);
+							mv->donnees_constantes.redimensionne(mv->donnees_constantes.taille() + static_cast<int>(type_pointe->taille_octet) * type_tableau->taille);
 
 							for (auto j = 0; j < taille; ++j) {
 								auto pointeur_valeur = pointeur[j];

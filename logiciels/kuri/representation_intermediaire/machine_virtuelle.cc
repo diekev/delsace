@@ -422,7 +422,7 @@ GestionnaireBibliotheques::type_fonction GestionnaireBibliotheques::fonction_pou
 
 long GestionnaireBibliotheques::memoire_utilisee() const
 {
-	return bibliotheques.taille() * taille_de(BibliothequePartagee);
+	return bibliotheques.taille_memoire();
 }
 
 static constexpr auto TAILLE_PILE = 1024 * 1024;
@@ -516,8 +516,8 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction, int t
 	auto decalage_argument = 0u;
 
 	if (ptr_fonction->decl->est_variadique) {
-		auto nombre_arguments_fixes = static_cast<unsigned>(type_fonction->types_entrees.taille - 1);
-		auto nombre_arguments_totaux = static_cast<unsigned>(inst_appel->args.taille);
+		auto nombre_arguments_fixes = static_cast<unsigned>(type_fonction->types_entrees.taille() - 1);
+		auto nombre_arguments_totaux = static_cast<unsigned>(inst_appel->args.taille());
 
 		donnees_externe.types_entrees.efface();
 		donnees_externe.types_entrees.reserve(nombre_arguments_totaux);
@@ -1269,11 +1269,11 @@ int MachineVirtuelle::ajoute_globale(Type *type, IdentifiantCode *ident)
 	auto globale = Globale{};
 	globale.type = type;
 	globale.ident = ident;
-	globale.adresse = static_cast<int>(donnees_globales.taille());
+	globale.adresse = donnees_globales.taille();
 
-	donnees_globales.redimensionne(donnees_globales.taille() + static_cast<long>(type->taille_octet));
+	donnees_globales.redimensionne(donnees_globales.taille() + static_cast<int>(type->taille_octet));
 
-	auto ptr = static_cast<int>(globales.taille());
+	auto ptr = globales.taille();
 
 	globales.ajoute(globale);
 
@@ -1387,7 +1387,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
 	temps_execution_metaprogammes += chrono_exec.temps();
 
-	nombre_de_metaprogrammes_executes += static_cast<int>(m_metaprogrammes_termines.taille());
+	nombre_de_metaprogrammes_executes += m_metaprogrammes_termines.taille();
 }
 
 DonneesExecution *MachineVirtuelle::loge_donnees_execution()
@@ -1419,10 +1419,10 @@ void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
 	}
 
 	memoire_mv += donnees_execution.memoire_utilisee();
-	memoire_mv += globales.taille() * taille_de(Globale);
-	memoire_mv += donnees_constantes.taille();
-	memoire_mv += donnees_globales.taille();
-	memoire_mv += patchs_donnees_constantes.taille() * taille_de(PatchDonneesConstantes);
+	memoire_mv += globales.taille_memoire();
+	memoire_mv += donnees_constantes.taille_memoire();
+	memoire_mv += donnees_globales.taille_memoire();
+	memoire_mv += patchs_donnees_constantes.taille_memoire();
 	memoire_mv += gestionnaire_bibliotheques.memoire_utilisee();
 
 	stats.memoire_mv += memoire_mv;

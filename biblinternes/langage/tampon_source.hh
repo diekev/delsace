@@ -34,6 +34,8 @@ class tampon_source {
 	dls::tableau<dls::vue_chaine> m_lignes{};
 
 public:
+	tampon_source() = default;
+
 	/**
 	 * Construit une instance de tampon_source à partir d'une chaîne C
 	 * terminée par zéro.
@@ -87,8 +89,6 @@ public:
 	dls::chaine const &chaine() const;
 
 private:
-	tampon_source() = default;
-
 	/**
 	 * Construit le vecteur contenant les données de chaque ligne du tampon.
 	 */

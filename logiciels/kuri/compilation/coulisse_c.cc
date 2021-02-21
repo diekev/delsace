@@ -240,7 +240,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 			auto suffixe = dls::chaine("");
 
 			auto nouveau_nom_broye = dls::chaine("Kf");
-			nouveau_nom_broye += dls::vers_chaine(type_fonc->types_entrees.taille);
+			nouveau_nom_broye += dls::vers_chaine(type_fonc->types_entrees.taille());
 
 			auto const &nom_broye_sortie = nom_broye_type(type_fonc->type_sortie);
 			prefixe += nom_broye_sortie + " (*";
@@ -256,7 +256,7 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 				virgule = ",";
 			}
 
-			if (type_fonc->types_entrees.taille == 0) {
+			if (type_fonc->types_entrees.taille() == 0) {
 				suffixe += virgule;
 				virgule = ",";
 			}
@@ -621,7 +621,7 @@ struct GeneratriceCodeC {
 								auto virgule_placee = false;
 
 								auto index_membre = 0;
-								for (auto i = 0; i < type->membres.taille; ++i) {
+								for (auto i = 0; i < type->membres.taille(); ++i) {
 									if (type->membres[i].drapeaux & TypeCompose::Membre::EST_CONSTANT) {
 										continue;
 									}
@@ -807,7 +807,7 @@ struct GeneratriceCodeC {
 					virgule = ", ";
 				}
 
-				if (inst_appel->args.taille == 0) {
+				if (inst_appel->args.taille() == 0) {
 					os << virgule;
 				}
 
@@ -1110,7 +1110,7 @@ struct GeneratriceCodeC {
 				}
 
 				auto type_compose = static_cast<TypeCompose *>(type_pointe);
-				auto index_membre = static_cast<long>(static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere);
+				auto index_membre = static_cast<int>(static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere);
 
 				if (valeur_accede[0] == '&') {
 					valeur_accede = valeur_accede + ".";
@@ -1204,7 +1204,7 @@ struct GeneratriceCodeC {
 				virgule = ", ";
 			}
 
-			if (atome_fonc->params_entrees.taille == 0) {
+			if (atome_fonc->params_entrees.taille() == 0) {
 				os << virgule;
 			}
 
@@ -1257,7 +1257,7 @@ struct GeneratriceCodeC {
 
 			auto atome_fonc = it;
 
-			if (atome_fonc->instructions.taille == 0) {
+			if (atome_fonc->instructions.taille() == 0) {
 				// ignore les fonctions externes
 				continue;
 			}
@@ -1283,7 +1283,7 @@ struct GeneratriceCodeC {
 				virgule = ", ";
 			}
 
-			if (atome_fonc->params_entrees.taille == 0) {
+			if (atome_fonc->params_entrees.taille() == 0) {
 				os << virgule;
 			}
 
@@ -1310,7 +1310,7 @@ struct GeneratriceCodeC {
 
 			m_fonction_courante = atome_fonc;
 
-			auto numero_inst = static_cast<int>(atome_fonc->params_entrees.taille);
+			auto numero_inst = atome_fonc->params_entrees.taille();
 
 			/* crée une variable local pour la valeur de sortie */
 			if (!type_fonction->type_sortie->est_rien()) {
@@ -1324,7 +1324,7 @@ struct GeneratriceCodeC {
 			}
 
 			/* Génère le code pour les accès de membres des retours mutliples. */
-			if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille > 1) {
+			if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
 				for (auto &param : atome_fonc->decl->params_sorties) {
 					genere_code_pour_instruction(param->atome->comme_instruction(), os);
 				}

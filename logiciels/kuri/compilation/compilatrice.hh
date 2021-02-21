@@ -150,7 +150,7 @@ public:
 		TransformationType transformation{};
 	};
 
-	using ConteneurConstructeursGlobales = dls::tableau<DonneesConstructeurGlobale>;
+	using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
 	dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
 	using TableChaine = kuri::table_hachage<dls::chaine, AtomeConstante *>;
@@ -210,7 +210,7 @@ public:
 	Fichier *fichier(const dls::vue_chaine_compacte &chemin) const;
 
 	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction);
-	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction, kuri::tableau<Atome *> &&params);
+	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction, kuri::tableau<Atome *, int> &&params);
 	AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationEnteteFonction *decl);
 	AtomeFonction *trouve_fonction(dls::chaine const &nom_fonction);
 	AtomeFonction *trouve_ou_insere_fonction_init(ConstructriceRI &constructrice, Type *type);
@@ -269,7 +269,7 @@ struct Compilatrice {
 	bool active_tests = false;
 
 	template <typename T>
-	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
+	using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
 	tableau_synchrone<dls::chaine> bibliotheques_dynamiques{};
 

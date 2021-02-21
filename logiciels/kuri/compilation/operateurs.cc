@@ -621,7 +621,7 @@ void Operateurs::ajoute_operateur_basique_enum(TypeEnum *type)
 void Operateurs::rassemble_statistiques(Statistiques &stats) const
 {
 	auto nombre_unaires = 0l;
-	auto memoire_unaires = operateurs_unaires.taille * (taille_de(type_conteneur_unaire));
+	auto memoire_unaires = operateurs_unaires.taille_memoire();
 
 	POUR (operateurs_unaires) {
 		memoire_unaires += it.memoire_utilisee();
@@ -629,7 +629,7 @@ void Operateurs::rassemble_statistiques(Statistiques &stats) const
 	}
 
 	auto nombre_binaires = 0l;
-	auto memoire_binaires = operateurs_binaires.taille * (taille_de(type_conteneur_binaire));
+	auto memoire_binaires = operateurs_binaires.taille_memoire();
 
 	POUR (operateurs_binaires) {
 		memoire_binaires += it.memoire_utilisee();

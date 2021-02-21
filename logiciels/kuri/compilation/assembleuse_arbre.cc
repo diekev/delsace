@@ -294,7 +294,7 @@ NoeudExpressionAppel *AssembleuseArbre::cree_construction_structure(const Lexeme
 {
 	auto structure = cree_appel(lexeme);
 	structure->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
-	structure->exprs.reserve(type->membres.taille);
+	structure->exprs.reserve(type->membres.taille());
 
 	if (type->est_structure()) {
 		structure->appelee = type->comme_structure()->decl;

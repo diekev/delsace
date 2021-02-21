@@ -176,7 +176,7 @@ bool bloc_est_dans_boucle(NoeudBloc *bloc, IdentifiantCode *ident_boucle)
 NoeudExpression *derniere_instruction(NoeudBloc *b)
 {
 	auto expressions = b->expressions.verrou_lecture();
-	auto taille = expressions->taille;
+	auto taille = expressions->taille();
 
 	if (taille == 0) {
 		return NoeudExpression::nul();

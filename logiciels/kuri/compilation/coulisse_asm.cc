@@ -473,7 +473,7 @@ void GeneratriceCodeASM::genere_code(const tableau_page<AtomeGlobale> &globales,
         m_fonction_courante = it;
 		taille_allouee = 0;
 
-        auto numero_inst = static_cast<int>(it->params_entrees.taille);
+		auto numero_inst = it->params_entrees.taille();
 
         for (auto inst : it->instructions) {
             inst->numero = numero_inst++;

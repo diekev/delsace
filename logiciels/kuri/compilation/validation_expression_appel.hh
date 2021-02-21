@@ -25,9 +25,10 @@
 #pragma once
 
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/tablet.hh"
 #include "biblinternes/structures/vue_chaine_compacte.hh"
+
+#include "structures/tableau.hh"
 
 #include "transformation_type.hh"
 
@@ -109,8 +110,8 @@ struct DonneesCandidate {
 	Type *type_obtenu{};
 	NoeudExpression const *noeud_erreur = nullptr;
 	NoeudDeclaration *noeud_decl = nullptr;
-	dls::tableau<TransformationType> transformations{};
-	dls::tableau<ItemMonomorphisation> items_monomorphisation{};
+	kuri::tableau<TransformationType, int> transformations{};
+	kuri::tableau<ItemMonomorphisation, int> items_monomorphisation{};
 
 	IdentifiantCode *ident_poly_manquant = nullptr;
 

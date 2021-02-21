@@ -25,7 +25,8 @@
 #pragma once
 
 #include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/tableau.hh"
+
+#include "structures/tableau.hh"
 
 #undef STATISTIQUES_DETAILLEES
 
@@ -111,7 +112,7 @@ struct EntreeTemps {
 template <TypeEntreesStats T>
 struct EntreesStats {
 	dls::chaine nom{};
-    dls::tableau<T> entrees{};
+	kuri::tableau<T, int> entrees{};
     T totaux{};
 
 	EntreesStats(dls::chaine const &nom_)

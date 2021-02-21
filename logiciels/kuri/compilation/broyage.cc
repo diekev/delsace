@@ -467,10 +467,10 @@ dls::chaine broye_nom_fonction(
 
 	/* paramètres */
 	enchaineuse << "_P";
-	enchaineuse << decl->bloc_constantes->membres->taille;
+	enchaineuse << decl->bloc_constantes->membres->taille();
 	enchaineuse << "_";
 
-	decl->bloc_constantes->membres.avec_verrou_lecture([&](kuri::tableau<NoeudDeclaration *> const &membres)
+	decl->bloc_constantes->membres.avec_verrou_lecture([&](kuri::tableau<NoeudDeclaration *, int> const &membres)
 	{
 		POUR (membres) {
 			nom_ascii = broye_nom_simple(it->ident->nom);
@@ -491,7 +491,7 @@ dls::chaine broye_nom_fonction(
 
 	/* entrées */
 	enchaineuse << "_E";
-	enchaineuse << decl->params.taille;
+	enchaineuse << decl->params.taille();
 	enchaineuse << "_";
 
 	if (!decl->possede_drapeau(FORCE_NULCTX)) {
@@ -504,7 +504,7 @@ dls::chaine broye_nom_fonction(
 		enchaineuse << nom_broye;
 	}
 
-	for (auto i = 0; i < decl->params.taille; ++i) {
+	for (auto i = 0; i < decl->params.taille(); ++i) {
 		auto param = decl->parametre_entree(i);
 
 		nom_ascii = broye_nom_simple(param->valeur->ident->nom);

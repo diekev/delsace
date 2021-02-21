@@ -107,10 +107,10 @@ static auto renseigne_type_interface(Typeuse &typeuse, IdentifiantCode *ident, T
 #undef INIT_TYPE
 }
 
-template <typename T, unsigned long N>
-static auto copie_tablet_tableau(dls::tablet<T, N> const &src, kuri::tableau<T> &dst)
+template <typename T, unsigned long N, typename TypeIndex>
+static auto copie_tablet_tableau(dls::tablet<T, N> const &src, kuri::tableau<T, TypeIndex> &dst)
 {
-	dst.reserve(src.taille());
+	dst.reserve(static_cast<TypeIndex>(src.taille()));
 
 	POUR (src) {
 		dst.ajoute(it);
@@ -618,7 +618,7 @@ void Syntaxeuse::lance_analyse()
 		}
 		else if (metaprogramme->corps_texte_pour_structure) {
 			auto recipiente = metaprogramme->corps_texte_pour_structure;
-			recipiente->arbre_aplatis.taille = 0;
+			recipiente->arbre_aplatis.efface();
 
 			m_tacheronne.assembleuse->bloc_courant(recipiente->bloc_constantes);
 
@@ -2176,7 +2176,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 				auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 
 				if (!decl_sortie->est_decl_var()) {
-					auto ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine("__ret" + dls::vers_chaine(noeud->params_sorties.taille));
+					auto ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine("__ret" + dls::vers_chaine(noeud->params_sorties.taille()));
 
 					auto ref = m_tacheronne.assembleuse->cree_ref_decl(decl_sortie->lexeme);
 					ref->ident = ident;
@@ -2199,7 +2199,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 				consomme();
 			}
 
-			if (noeud->params_sorties.taille > 1) {
+			if (noeud->params_sorties.taille() > 1) {
 				auto ref = m_tacheronne.assembleuse->cree_ref_decl(noeud->params_sorties[0]->lexeme);
 				/* il nous faut un identifiant valide */
 				ref->ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine("valeur_de_retour");
@@ -2294,7 +2294,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 		if (noeud->est_externe) {
 			consomme(GenreLexeme::POINT_VIRGULE, "Attendu un point-virgule ';' après la déclaration de la fonction externe");
 
-			if (noeud->params_sorties.taille > 1) {
+			if (noeud->params_sorties.taille() > 1) {
 				lance_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
 			}
 
@@ -2400,13 +2400,13 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
 	copie_tablet_tableau(params, noeud->params);
 
-	if (noeud->params.taille > 2) {
+	if (noeud->params.taille() > 2) {
 		erreur::lance_erreur(
 					"La surcharge d'opérateur ne peut prendre au plus 2 paramètres",
 					*m_unite->espace,
 					noeud);
 	}
-	else if (noeud->params.taille == 1) {
+	else if (noeud->params.taille() == 1) {
 		if (genre_operateur == GenreLexeme::PLUS) {
 			lexeme->genre = GenreLexeme::PLUS_UNAIRE;
 		}
@@ -2430,7 +2430,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 
 		if (!decl_sortie->est_decl_var()) {
-			auto ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine("__ret" + dls::vers_chaine(noeud->params_sorties.taille));
+			auto ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine("__ret" + dls::vers_chaine(noeud->params_sorties.taille()));
 
 			auto ref = m_tacheronne.assembleuse->cree_ref_decl(decl_sortie->lexeme);
 			ref->ident = ident;
@@ -2452,7 +2452,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		consomme();
 	}
 
-	if (noeud->params_sorties.taille > 1) {
+	if (noeud->params_sorties.taille() > 1) {
 		lance_erreur("Il est impossible d'avoir plusieurs de sortie pour un opérateur");
 	}
 
@@ -2592,7 +2592,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		}
 
 		/* permet la déclaration de structures sans paramètres, pourtant ayant des parenthèse */
-		if (noeud_decl->params_polymorphiques.taille != 0) {
+		if (noeud_decl->params_polymorphiques.taille() != 0) {
 			noeud_decl->est_polymorphe = true;
 			cree_tache = true;
 		}

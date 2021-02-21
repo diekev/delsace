@@ -26,5 +26,5 @@
 
 Instruction *AtomeFonction::derniere_instruction() const
 {
-	return instructions[instructions.taille - 1];
+	return instructions[instructions.taille() - 1];
 }

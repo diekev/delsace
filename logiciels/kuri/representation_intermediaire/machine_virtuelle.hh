@@ -44,7 +44,7 @@ struct GestionnaireBibliotheques {
 	using type_fonction = void(*)();
 
 private:
-	dls::tableau<BibliothequePartagee> bibliotheques{};
+	kuri::tableau<BibliothequePartagee> bibliotheques{};
 	dls::dico<IdentifiantCode *, type_fonction> symboles_et_fonctions{};
 
 public:
@@ -87,8 +87,8 @@ std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch);
 static constexpr auto TAILLE_FRAMES_APPEL = 64;
 
 struct DonneesExecution {
-	dls::tableau<unsigned char> donnees_globales{};
-	dls::tableau<unsigned char> donnees_constantes{};
+	kuri::tableau<unsigned char, int> donnees_globales{};
+	kuri::tableau<unsigned char, int> donnees_constantes{};
 
 	octet_t *pile = nullptr;
 	octet_t *pointeur_pile = nullptr;
@@ -113,8 +113,8 @@ private:
 
 	tableau_page<DonneesExecution> donnees_execution{};
 
-	dls::tableau<MetaProgramme *> m_metaprogrammes{};
-	dls::tableau<MetaProgramme *> m_metaprogrammes_termines{};
+	kuri::tableau<MetaProgramme *, int> m_metaprogrammes{};
+	kuri::tableau<MetaProgramme *, int> m_metaprogrammes_termines{};
 
 	bool m_metaprogrammes_termines_lu = false;
 
@@ -136,10 +136,10 @@ private:
 public:
 	GestionnaireBibliotheques gestionnaire_bibliotheques{};
 
-	dls::tableau<Globale> globales{};
-	dls::tableau<unsigned char> donnees_globales{};
-	dls::tableau<unsigned char> donnees_constantes{};
-	dls::tableau<PatchDonneesConstantes> patchs_donnees_constantes{};
+	kuri::tableau<Globale, int> globales{};
+	kuri::tableau<unsigned char, int> donnees_globales{};
+	kuri::tableau<unsigned char, int> donnees_constantes{};
+	kuri::tableau<PatchDonneesConstantes, int> patchs_donnees_constantes{};
 
 	bool stop = false;
 
@@ -158,7 +158,7 @@ public:
 
 	void execute_metaprogrammes_courants();
 
-	dls::tableau<MetaProgramme *> const &metaprogrammes_termines()
+	kuri::tableau<MetaProgramme *, int> const &metaprogrammes_termines()
 	{
 		m_metaprogrammes_termines_lu = true;
 		return m_metaprogrammes_termines;

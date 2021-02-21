@@ -34,6 +34,8 @@
 
 #include <mutex>
 
+#include "structures/tableau.hh"
+
 #include "lexemes.hh"
 
 struct Compilatrice;
@@ -53,7 +55,7 @@ struct DonneesConstantesFichier {
 
 	lng::tampon_source tampon{""};
 
-	dls::tableau<Lexeme> lexemes{};
+	kuri::tableau<Lexeme, int> lexemes{};
 
 	dls::chaine nom{""};
 	dls::chaine chemin{""};

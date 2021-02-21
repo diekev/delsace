@@ -49,7 +49,7 @@ static auto id_depuis_idx(int id)
 	return static_cast<GenreLexeme>(id);
 }
 
-void test_markov_id_simple(dls::tableau<Lexeme> const &lexemes)
+void test_markov_id_simple(kuri::tableau<Lexeme, int> const &lexemes)
 {
 	static constexpr auto _0 = static_cast<type_scalaire>(0);
 	static constexpr auto _1 = static_cast<type_scalaire>(1);

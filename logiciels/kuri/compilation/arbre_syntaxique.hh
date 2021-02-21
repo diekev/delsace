@@ -439,10 +439,9 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 	int index_membre_employe = 0;
 
 	// pour les variables globales
-	kuri::tableau<NoeudExpression *> arbre_aplatis{};
+	kuri::tableau<NoeudExpression *, int> arbre_aplatis{};
 
-	// À FAIRE : kuri::tableau cause une fuite de mémoire
-	dls::tableau<DonneesAssignations> donnees_decl{};
+	kuri::tableau<DonneesAssignations, int> donnees_decl{};
 };
 
 struct NoeudAssignation final : public NoeudExpression {
@@ -452,7 +451,7 @@ struct NoeudAssignation final : public NoeudExpression {
 	NoeudExpression *variable = nullptr;
 	NoeudExpression *expression = nullptr;
 
-	dls::tableau<DonneesAssignations> donnees_exprs{};
+	kuri::tableau<DonneesAssignations, int> donnees_exprs{};
 };
 
 struct NoeudRetour : public NoeudExpression {
@@ -460,7 +459,7 @@ struct NoeudRetour : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudRetour);
 
 	NoeudExpression *expr = nullptr;
-	dls::tableau<DonneesAssignations> donnees_exprs{};
+	kuri::tableau<DonneesAssignations, int> donnees_exprs{};
 };
 
 struct NoeudExpressionReference : public NoeudExpression {
@@ -551,12 +550,12 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	NoeudDeclarationEnteteFonction() { genre = GenreNoeud::DECLARATION_ENTETE_FONCTION; }
 
 	NoeudDeclarationCorpsFonction *corps = nullptr;
-	kuri::tableau<NoeudExpression *> arbre_aplatis{};
+	kuri::tableau<NoeudExpression *, int> arbre_aplatis{};
 
 	COPIE_CONSTRUCT(NoeudDeclarationEnteteFonction);
 
-	kuri::tableau<NoeudDeclarationVariable *> params{};
-	kuri::tableau<NoeudDeclarationVariable *> params_sorties{};
+	kuri::tableau<NoeudDeclarationVariable *, int> params{};
+	kuri::tableau<NoeudDeclarationVariable *, int> params_sorties{};
 
 	/* La hiérarchie des blocs pour les fonctions est la suivante :
 	 * - bloc_constantes (qui contient les constantes déclarées pour les polymorphes)
@@ -569,14 +568,14 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	dls::chaine nom_broye_ = "";
 
 	// mise en cache des monomorphisations déjà existantes afin de ne pas les recréer
-	using tableau_item_monomorphisation = dls::tableau<ItemMonomorphisation>;
+	using tableau_item_monomorphisation = kuri::tableau<ItemMonomorphisation, int>;
 
 	template <typename T>
-	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
+	using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
 	tableau_synchrone<dls::paire<tableau_item_monomorphisation, NoeudDeclarationEnteteFonction *>> monomorphisations{};
 
-	dls::tableau<dls::vue_chaine_compacte> annotations{};
+	kuri::tableau<dls::vue_chaine_compacte, int> annotations{};
 
 	bool est_operateur = false;
 	bool est_coroutine = false;
@@ -604,7 +603,7 @@ struct NoeudDeclarationCorpsFonction : public NoeudDeclaration {
 	NoeudDeclarationEnteteFonction *entete = nullptr;
 	NoeudBloc *bloc = nullptr;
 
-	kuri::tableau<NoeudExpression *> arbre_aplatis{};
+	kuri::tableau<NoeudExpression *, int> arbre_aplatis{};
 
 	bool est_corps_texte = false;
 
@@ -616,9 +615,9 @@ struct NoeudExpressionAppel : public NoeudExpression {
 
 	NoeudExpression *appelee = nullptr;
 
-	kuri::tableau<NoeudExpression *> params{};
+	kuri::tableau<NoeudExpression *, int> params{};
 
-	kuri::tableau<NoeudExpression *> exprs{};
+	kuri::tableau<NoeudExpression *, int> exprs{};
 
 	NoeudExpression const *noeud_fonction_appelee = nullptr;
 
@@ -631,7 +630,7 @@ struct NoeudStruct : public NoeudDeclaration {
 	COPIE_CONSTRUCT(NoeudStruct);
 
 	NoeudBloc *bloc = nullptr;
-	kuri::tableau<NoeudExpression *> arbre_aplatis{};
+	kuri::tableau<NoeudExpression *, int> arbre_aplatis{};
 
 	bool est_union = false;
 	bool est_nonsure = false;
@@ -641,17 +640,17 @@ struct NoeudStruct : public NoeudDeclaration {
 	bool est_corps_texte = false;
 
 	NoeudBloc *bloc_constantes = nullptr;
-	kuri::tableau<NoeudDeclarationVariable *> params_polymorphiques{};
-	kuri::tableau<NoeudExpression *> arbre_aplatis_params{};
+	kuri::tableau<NoeudDeclarationVariable *, int> params_polymorphiques{};
+	kuri::tableau<NoeudExpression *, int> arbre_aplatis_params{};
 
 	/* Le polymorphe d'où vient cette structure, non-nul si monomorphe. */
 	NoeudStruct *polymorphe_de_base = nullptr;
 
 	template <typename T>
-	using tableau_synchrone = dls::outils::Synchrone<dls::tableau<T>>;
+	using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
 	// mise en cache des monomorphisations déjà existantes afin de ne pas les recréer
-	using tableau_item_monomorphisation = dls::tableau<ItemMonomorphisation>;
+	using tableau_item_monomorphisation = kuri::tableau<ItemMonomorphisation, int>;
 	tableau_synchrone<dls::paire<tableau_item_monomorphisation, NoeudStruct *>> monomorphisations{};
 };
 
@@ -733,12 +732,12 @@ struct NoeudBloc : public NoeudExpression {
 	NoeudExpression *appartiens_a_boucle = nullptr;
 
 	template <typename T>
-	using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T>>;
+	using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
 	tableau_synchrone<NoeudDeclaration *> membres{};
 	tableau_synchrone<NoeudExpression *>  expressions{};
 
-	kuri::tableau<NoeudBloc *> noeuds_differes{};
+	kuri::tableau<NoeudBloc *, int> noeuds_differes{};
 
 	bool est_differe = false;
 	bool est_nonsur = false;
@@ -755,7 +754,7 @@ struct NoeudDiscr : public NoeudExpression {
 
 	NoeudExpression *expr = nullptr;
 
-	kuri::tableau<std::pair<NoeudExpression *, NoeudBloc *>> paires_discr{};
+	kuri::tableau<std::pair<NoeudExpression *, NoeudBloc *>, int> paires_discr{};
 
 	NoeudBloc *bloc_sinon = nullptr;
 
@@ -776,7 +775,7 @@ struct NoeudPousseContexte : public NoeudExpression {
 struct NoeudTableauArgsVariadiques : public NoeudExpression {
 	NoeudTableauArgsVariadiques() { genre = GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES; }
 
-	kuri::tableau<NoeudExpression *> exprs{};
+	kuri::tableau<NoeudExpression *, int> exprs{};
 
 	COPIE_CONSTRUCT(NoeudTableauArgsVariadiques);
 };
@@ -798,13 +797,13 @@ struct NoeudDirectiveExecution : NoeudExpression {
 
 	NoeudExpression *expr = nullptr;
 
-	kuri::tableau<NoeudExpression *> arbre_aplatis{};
+	kuri::tableau<NoeudExpression *, int> arbre_aplatis{};
 };
 
 struct NoeudExpressionVirgule : public NoeudExpression {
 	NoeudExpressionVirgule() { genre = GenreNoeud::EXPRESSION_VIRGULE; }
 
-	kuri::tableau<NoeudExpression *> expressions{};
+	kuri::tableau<NoeudExpression *, int> expressions{};
 };
 
 struct NoeudComme : public NoeudExpression {

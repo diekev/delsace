@@ -34,11 +34,11 @@ static Instruction *derniere_instruction(AtomeFonction *atome)
 {
 	auto &instructions = atome->instructions;
 
-	if (instructions.taille == 0) {
+	if (instructions.taille() == 0) {
 		return nullptr;
 	}
 
-	auto index = instructions.taille - 1;
+	auto index = instructions.taille() - 1;
 	return instructions[index];
 }
 

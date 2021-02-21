@@ -66,7 +66,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto decl = noeud_expression->comme_entete_fonction();
 
 			auto n = noeuds_entetes_fonctions.ajoute_element();
-			n->params_entree.reserve(decl->params.taille);
+			n->params_entree.reserve(decl->params.taille());
 
 			n->nom.pointeur = const_cast<char *>(decl->lexeme->chaine.pointeur());
 			n->nom.taille = decl->lexeme->chaine.taille();
@@ -100,7 +100,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			n->bloc = static_cast<NoeudCodeBloc *>(converti_noeud_syntaxique(espace, decl->bloc));
 			n->entete = static_cast<NoeudCodeEnteteFonction *>(converti_noeud_syntaxique(espace, decl->entete));
 
-			n->arbre_aplatis.reserve(decl->arbre_aplatis.taille);
+			n->arbre_aplatis.reserve(decl->arbre_aplatis.taille());
 			POUR (decl->arbre_aplatis) {
 				n->arbre_aplatis.ajoute(converti_noeud_syntaxique(espace, it));
 			}
@@ -146,14 +146,14 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto expressions = noeud_bloc->expressions.verrou_lecture();
 
 			auto n = noeuds_blocs.ajoute_element();
-			n->expressions.reserve(expressions->taille);
+			n->expressions.reserve(expressions->taille());
 
 			POUR (*expressions) {
 				n->expressions.ajoute(converti_noeud_syntaxique(espace, it));
 			}
 
 			auto membres = noeud_bloc->membres.verrou_lecture();
-			n->membres.reserve(membres->taille);
+			n->membres.reserve(membres->taille());
 
 			POUR (*membres) {
 				// le noeud_code peut être nul pour le contexte implicite
@@ -245,7 +245,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 
 			auto n = noeuds_appel.ajoute_element();
 			n->expression = converti_noeud_syntaxique(espace, noeud_appel->appelee);
-			n->params.reserve(noeud_appel->params.taille);
+			n->params.reserve(noeud_appel->params.taille());
 
 			POUR (noeud_appel->params) {
 				n->params.ajoute(converti_noeud_syntaxique(espace, it));
@@ -428,7 +428,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto n = noeuds_discr.ajoute_element();
 			n->expression = converti_noeud_syntaxique(espace, noeud_discr->expr);
 			n->bloc_sinon = converti_noeud_syntaxique(espace, noeud_discr->bloc_sinon);
-			n->paires_discr.reserve(noeud_discr->paires_discr.taille);
+			n->paires_discr.reserve(noeud_discr->paires_discr.taille());
 
 			POUR (noeud_discr->paires_discr) {
 				auto expr = converti_noeud_syntaxique(espace, it.first);
@@ -478,7 +478,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto noeud_virgule = noeud_expression->comme_virgule();
 
 			auto n = noeuds_virgule.ajoute_element();
-			n->expressions.reserve(noeud_virgule->expressions.taille);
+			n->expressions.reserve(noeud_virgule->expressions.taille());
 
 			POUR (noeud_virgule->expressions) {
 				n->expressions.ajoute(converti_noeud_syntaxique(espace, it));
@@ -621,7 +621,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->genre = GenreInfoType::TABLEAU;
 			info_type->taille_en_octet = type->taille_octet;
 			info_type->est_tableau_fixe = true;
-			info_type->taille_fixe = static_cast<int>(type_tableau->taille);
+			info_type->taille_fixe = type_tableau->taille;
 			info_type->type_pointe = cree_info_type_pour(type_tableau->type_pointe);
 
 			type->info_type = info_type;
@@ -692,7 +692,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->taille_en_octet = type->taille_octet;
 			info_type->nom = type_struct->nom->nom;
 
-			info_type->membres.reserve(type_struct->membres.taille);
+			info_type->membres.reserve(type_struct->membres.taille());
 
 			POUR (type_struct->membres) {
 				auto info_type_membre = infos_types_membres_structures.ajoute_element();
@@ -717,7 +717,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->decalage_index = type_union->decalage_index;
 			info_type->taille_en_octet = type_union->taille_octet;
 
-			info_type->membres.reserve(type_union->membres.taille);
+			info_type->membres.reserve(type_union->membres.taille());
 
 			POUR (type_union->membres) {
 				auto info_type_membre = infos_types_membres_structures.ajoute_element();
@@ -743,8 +743,8 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->est_drapeau = type_enum->est_drapeau;
 			info_type->taille_en_octet = type_enum->taille_octet;
 
-			info_type->noms.reserve(type_enum->membres.taille);
-			info_type->valeurs.reserve(type_enum->membres.taille);
+			info_type->noms.reserve(type_enum->membres.taille());
+			info_type->valeurs.reserve(type_enum->membres.taille());
 
 			POUR (type_enum->membres) {
 				if (it.drapeaux == TypeCompose::Membre::EST_IMPLICITE) {
@@ -767,7 +767,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 			info_type->est_coroutine = false;
 			info_type->taille_en_octet = type->taille_octet;
 
-			info_type->types_entrees.reserve(type_fonction->types_entrees.taille);
+			info_type->types_entrees.reserve(type_fonction->types_entrees.taille());
 
 			POUR (type_fonction->types_entrees) {
 				info_type->types_entrees.ajoute(cree_info_type_pour(it));
@@ -777,7 +777,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
 			if (type_sortie->est_tuple()) {
 				auto tuple = type_sortie->comme_tuple();
-				info_type->types_sorties.reserve(tuple->membres.taille);
+				info_type->types_sorties.reserve(tuple->membres.taille());
 
 				POUR (tuple->membres) {
 					info_type->types_sorties.ajoute(cree_info_type_pour(it.type));

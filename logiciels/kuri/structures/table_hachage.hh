@@ -25,17 +25,18 @@
 #pragma once
 
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/tableau.hh"
+
+#include "structures/tableau.hh"
 
 namespace kuri {
 
 template <typename Cle, typename Valeur>
 struct table_hachage {
 private:
-    dls::tableau<Cle> cles{};
-    dls::tableau<Valeur> valeurs{};
-    dls::tableau<char> occupes{};
-    dls::tableau<size_t> empreintes{};
+	kuri::tableau<Cle, int> cles{};
+	kuri::tableau<Valeur, int> valeurs{};
+	kuri::tableau<char, int> occupes{};
+	kuri::tableau<size_t, int> empreintes{};
 
     long capacite = 0;
     long nombre_elements = 0;
@@ -47,10 +48,10 @@ public:
     {
         capacite = taille;
 
-        cles.redimensionne(taille);
-        valeurs.redimensionne(taille);
-        occupes.redimensionne(taille);
-        empreintes.redimensionne(taille);
+		cles.redimensionne(static_cast<int>(taille));
+		valeurs.redimensionne(static_cast<int>(taille));
+		occupes.redimensionne(static_cast<int>(taille));
+		empreintes.redimensionne(static_cast<int>(taille));
 
         POUR (occupes) {
             it = 0;
@@ -132,13 +133,13 @@ public:
         return index != -1;
     }
 
-    long trouve_index(Cle const &cle, size_t empreinte)
+	int trouve_index(Cle const &cle, size_t empreinte)
     {
         if (capacite == 0) {
             return -1;
         }
 
-        auto index = static_cast<long>(empreinte % static_cast<size_t>(capacite));
+		auto index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
 
         while (occupes[index]) {
             if (empreintes[index] == empreinte) {
@@ -173,7 +174,7 @@ public:
 	}
 
 private:
-	long trouve_index_innoccupe(Cle const &cle, size_t empreinte)
+	int trouve_index_innoccupe(Cle const &cle, size_t empreinte)
 	{
 		auto index = trouve_index(cle, empreinte);
 
@@ -182,7 +183,7 @@ private:
 				agrandis();
 			}
 
-			index = static_cast<long>(empreinte % static_cast<size_t>(capacite));
+			index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
 
 			while (occupes[index]) {
 				index += 1;

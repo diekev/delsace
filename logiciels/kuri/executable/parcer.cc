@@ -51,7 +51,8 @@
 #include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/pile.hh"
-#include "biblinternes/structures/tableau.hh"
+
+#include "structures/tableau.hh"
 
 using dls::outils::est_element;
 
@@ -81,7 +82,7 @@ std::ostream& operator<<(std::ostream& stream, const CXString& str)
 
 static auto morcelle_type(dls::chaine const &str)
 {
-	auto ret = dls::tableau<dls::chaine>();
+	auto ret = kuri::tableau<dls::chaine>();
 	auto taille_mot = 0;
 	auto ptr = &str[0];
 
@@ -184,10 +185,10 @@ static dls::chaine trouve_nom_anonyme(dls::chaine chn)
 	return chn.sous_chaine(pos_slash);
 }
 
-using dico_typedefs = dls::dico_desordonne<dls::chaine, dls::tableau<dls::chaine>>;
+using dico_typedefs = dls::dico_desordonne<dls::chaine, kuri::tableau<dls::chaine>>;
 
 static dls::chaine converti_type(
-		dls::tableau<dls::chaine> const &morceaux,
+		kuri::tableau<dls::chaine> const &morceaux,
 		dico_typedefs const &typedefs,
 		bool dereference = false)
 {
@@ -358,7 +359,7 @@ static dls::chaine converti_type(
 				}
 
 				if (est_pointeur_fonc) {
-					auto type_retour = dls::tableau<dls::chaine>();
+					auto type_retour = kuri::tableau<dls::chaine>();
 					auto decalage = 0;
 
 					for (auto i = 0; i < morceaux.taille(); ++i) {
@@ -374,7 +375,7 @@ static dls::chaine converti_type(
 
 					flux << "fonc(";
 
-					auto type_param = dls::tableau<dls::chaine>();
+					auto type_param = kuri::tableau<dls::chaine>();
 
 					for (auto i = decalage + 4; i < morceaux.taille(); ++i) {
 						auto const &m = morceaux[i];
@@ -428,7 +429,7 @@ static dls::chaine converti_type_sizeof(
 		return dls::chaine();
 	}
 
-	auto donnees_types = dls::tableau<dls::chaine>();
+	auto donnees_types = kuri::tableau<dls::chaine>();
 
 	for (auto i = 2u; i < nombre_tokens - 1; ++i) {
 		auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
@@ -446,13 +447,13 @@ static dls::chaine converti_type_sizeof(
 
 static auto rassemble_enfants(CXCursor cursor)
 {
-	auto enfants = dls::tableau<CXCursor>();
+	auto enfants = kuri::tableau<CXCursor>();
 
 	clang_visitChildren(
 				cursor,
 				[](CXCursor c, CXCursor parent, CXClientData client_data)
 	{
-		auto ptr_enfants = static_cast<dls::tableau<CXCursor> *>(client_data);
+		auto ptr_enfants = static_cast<kuri::tableau<CXCursor> *>(client_data);
 		ptr_enfants->ajoute(c);
 		return CXChildVisit_Continue;
 	},
@@ -782,7 +783,7 @@ static auto tokens_typedef(
 	}
 
 	auto nom = converti_chaine(clang_getTokenSpelling(trans_unit, tokens[nombre_tokens - 1]));
-	auto morceaux = dls::tableau<dls::chaine>();
+	auto morceaux = kuri::tableau<dls::chaine>();
 
 	for (auto i = 1u; i < nombre_tokens - 1; ++i) {
 		auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
@@ -812,7 +813,7 @@ static auto tokens_typealias(
 	}
 
 	auto nom = converti_chaine(clang_getTokenSpelling(trans_unit, tokens[1]));
-	auto morceaux = dls::tableau<dls::chaine>();
+	auto morceaux = kuri::tableau<dls::chaine>();
 
 	for (auto i = 3u; i < nombre_tokens; ++i) {
 		auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
@@ -831,7 +832,7 @@ struct EnfantsBoucleFor {
 	CXCursor const *enfant_bloc = nullptr;
 };
 
-static EnfantsBoucleFor determine_enfants_for(CXCursor cursor, CXTranslationUnit trans_unit, dls::tableau<CXCursor> const &enfants)
+static EnfantsBoucleFor determine_enfants_for(CXCursor cursor, CXTranslationUnit trans_unit, kuri::tableau<CXCursor> const &enfants)
 {
 	CXSourceRange range = clang_getCursorExtent(cursor);
 	CXToken *tokens = nullptr;
@@ -963,7 +964,7 @@ struct Convertisseuse {
 			{
 				auto enfants = rassemble_enfants(cursor);
 
-				auto enfants_filtres = dls::tableau<CXCursor>();
+				auto enfants_filtres = kuri::tableau<CXCursor>();
 
 				for (auto enfant : enfants) {
 					if (enfant.kind == CXCursorKind::CXCursor_VisibilityAttr) {
@@ -1499,7 +1500,7 @@ struct Convertisseuse {
 				/* valeur */
 				convertis(enfants[0], trans_unit, flux_sortie);
 
-				auto cas_similaires = dls::tableau<CXCursor>();
+				auto cas_similaires = kuri::tableau<CXCursor>();
 
 				/* case | bloc */
 				auto enfant = enfants[1];
@@ -1784,7 +1785,7 @@ struct Convertisseuse {
 		converti_enfants(enfants, trans_unit, flux_sortie);
 	}
 
-	void converti_enfants(dls::tableau<CXCursor> const &enfants, CXTranslationUnit trans_unit, std::ostream &flux_sortie)
+	void converti_enfants(kuri::tableau<CXCursor> const &enfants, CXTranslationUnit trans_unit, std::ostream &flux_sortie)
 	{
 		for (auto enfant : enfants) {
 			convertis(enfant, trans_unit, flux_sortie);
@@ -1799,12 +1800,12 @@ struct Convertisseuse {
 		CXCursor enfant_bloc;
 
 		if (!est_declaration) {
-			est_declaration = enfants.back().kind != CXCursorKind::CXCursor_CompoundStmt;
+			est_declaration = enfants.derniere().kind != CXCursorKind::CXCursor_CompoundStmt;
 
 			if (!est_declaration) {
 				/* Nous n'avons pas une déclaration */
-				enfant_bloc = enfants.back();
-				enfants.pop_back();
+				enfant_bloc = enfants.derniere();
+				enfants.supprime_dernier();
 			}
 		}
 
@@ -1872,8 +1873,8 @@ struct Convertisseuse {
 struct Configuration {
 	dls::chaine fichier{};
 	dls::chaine fichier_sortie{};
-	dls::tableau<dls::chaine> args{};
-	dls::tableau<dls::chaine> inclusions{};
+	kuri::tableau<dls::chaine> args{};
+	kuri::tableau<dls::chaine> inclusions{};
 };
 
 static auto analyse_configuration(const char *chemin)
@@ -1951,7 +1952,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	auto args = dls::tableau<const char *>();
+	auto args = kuri::tableau<const char *>();
 
 	for (auto const &arg : config.args) {
 		args.ajoute(arg.c_str());
