@@ -29,7 +29,6 @@
 
 #include "arbre_syntaxique.hh"
 #include "graphe_dependance.hh"
-#include "structures.hh"
 #include "validation_expression_appel.hh"
 
 struct Compilatrice;

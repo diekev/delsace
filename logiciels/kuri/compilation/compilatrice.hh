@@ -32,6 +32,7 @@
 #include "modules.hh"
 #include "operateurs.hh"
 #include "options.hh"
+#include "structures.hh"
 #include "tacheronne.hh"
 
 struct Coulisse;
@@ -152,7 +153,7 @@ public:
 	using ConteneurConstructeursGlobales = dls::tableau<DonneesConstructeurGlobale>;
 	dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
-	using TableChaine = table_hachage<dls::chaine, AtomeConstante *>;
+	using TableChaine = kuri::table_hachage<dls::chaine, AtomeConstante *>;
 	dls::outils::Synchrone<TableChaine> table_chaines{};
 
 	std::mutex mutex_atomes_fonctions{};

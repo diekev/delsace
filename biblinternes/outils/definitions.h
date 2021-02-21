@@ -106,3 +106,5 @@
 	{ \
 		return static_cast<Type const *>(nullptr); \
 	}
+
+#define POUR(x) for (auto &it : (x))

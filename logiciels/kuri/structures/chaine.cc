@@ -29,6 +29,58 @@
 
 namespace kuri {
 
+bool operator ==(const chaine &chn1, const chaine &chn2)
+{
+	if (chn1.taille != chn2.taille) {
+		return false;
+	}
+
+	if (chn1.taille == 0) {
+		return true;
+	}
+
+	for (auto i = 0; i < chn1.taille; ++i) {
+		if (chn1[i] != chn2[i]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool operator !=(const chaine &chn1, const chaine &chn2)
+{
+	return !(chn1 == chn2);
+}
+
+std::ostream &operator<<(std::ostream &os, const chaine &chn)
+{
+	POUR (chn) {
+		os << it;
+	}
+
+	return os;
+}
+
+chaine copie_chaine(chaine const &autre)
+{
+	chaine resultat;
+	resultat.taille = autre.taille;
+	resultat.pointeur = memoire::loge_tableau<char>("chaine", resultat.taille);
+
+	for (auto i = 0; i < autre.taille; ++i) {
+		resultat.pointeur[i] = autre.pointeur[i];
+	}
+
+	return resultat;
+}
+
+void detruit_chaine(kuri::chaine &chn)
+{
+	memoire::deloge_tableau("chaine", chn.pointeur, chn.taille);
+}
+
+/*
 chaine::chaine(Allocatrice &alloc)
 	: m_allocatrice(&alloc)
 {}
@@ -40,7 +92,7 @@ chaine::chaine(const chaine &autre)
 
 chaine::chaine(chaine &&autre)
 {
-    permute(autre);
+	permute(autre);
 }
 
 chaine &chaine::operator=(const chaine &autre)
@@ -51,7 +103,7 @@ chaine &chaine::operator=(const chaine &autre)
 
 chaine &chaine::operator=(chaine &&autre)
 {
-    permute(autre);
+	permute(autre);
 	return *this;
 }
 
@@ -136,5 +188,6 @@ chaine_statique::chaine_statique(const char *pointeur_)
 chaine_statique::chaine_statique(const chaine &chn)
 	: tableau_statique(chn.pointeur(), chn.taille())
 {}
+*/
 
 }

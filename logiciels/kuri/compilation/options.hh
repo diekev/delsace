@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "compilation/structures.hh"
+#include "structures/chaine.hh"
 
 // Ces structures doivent être tenues synchronisées avec celles dans compilateur.kuri
 enum class TypeCoulisse : int {

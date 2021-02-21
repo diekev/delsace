@@ -26,7 +26,7 @@
 
 #include <ostream>
 
-#include "compilation/structures.hh"
+#include "structures/tableau.hh"
 
 struct Atome;
 struct AtomeFonction;

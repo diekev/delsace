@@ -29,7 +29,8 @@
 #include "biblinternes/langage/erreur.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "structures.hh"
+#include "structures/chaine.hh"
+
 #include "validation_expression_appel.hh"
 
 struct EspaceDeTravail;

@@ -30,8 +30,8 @@
 #include "biblinternes/structures/tablet.hh"
 
 #include "transformation_type.hh"
-#include "structures.hh"
 
+#include "structures/tableau.hh"
 #include "structures/tableau_compresse.hh"
 
 enum class GenreLexeme : unsigned int;

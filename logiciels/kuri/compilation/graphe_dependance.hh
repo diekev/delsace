@@ -31,8 +31,7 @@
 #include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
-#include "structures.hh"
-
+#include "structures/tableau.hh"
 #include "structures/tableau_compresse.hh"
 
 struct AtomeFonction;

@@ -24,8 +24,10 @@
 
 #pragma once
 
-#include "structures.hh" // pour POUR
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/tableau.hh"
+
+namespace kuri {
 
 template <typename Cle, typename Valeur>
 struct table_hachage {
@@ -196,3 +198,5 @@ private:
 		return index;
 	}
 };
+
+}

@@ -26,7 +26,8 @@
 
 #include "biblinternes/structures/tableau_page.hh"
 
-#include "structures.hh"
+#include "structures/chaine.hh"
+#include "structures/tableau.hh"
 
 /* Structures utilisées pour passer les arbres syntaxiques aux métaprogrammes.
  * Nous utilisons des structures différents que celles de l'arbre syntaxique

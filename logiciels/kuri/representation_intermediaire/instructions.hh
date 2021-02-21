@@ -31,7 +31,6 @@
 
 #include "compilation/operateurs.hh"
 #include "compilation/typage.hh"
-#include "compilation/structures.hh"
 
 #include "code_binaire.hh"
 

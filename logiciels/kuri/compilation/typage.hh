@@ -32,7 +32,6 @@
 
 #include "lexemes.hh"
 #include "operateurs.hh"
-#include "structures.hh"
 
 struct AtomeConstante;
 struct AtomeFonction;

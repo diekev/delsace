@@ -24,6 +24,114 @@
 
 #pragma once
 
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/chaine.hh"
+
+/**
+ * Ces structures sont les mêmes que celles définies par le langage (tableaux
+ * via « []TYPE », et chaine via « chaine ») ; elles sont donc la même
+ * définition que celles du langage. Elles sont utilisées pour pouvoir passer
+ * des messages sainement entre la compilatrice et les métaprogrammes. Par
+ * sainement, on entend que l'interface binaire de l'application doit être la
+ * même.
+ */
+
+namespace kuri {
+
+struct chaine {
+	char *pointeur = nullptr;
+	long taille = 0;
+
+	chaine() = default;
+
+	COPIE_CONSTRUCT(chaine);
+
+	explicit chaine(const char *c_str)
+		: pointeur(const_cast<char *>(c_str))
+	{
+		while (*c_str++ != '\0') {
+			taille += 1;
+		}
+	}
+
+	chaine(dls::chaine const &chn)
+		: pointeur(const_cast<char *>(chn.c_str()))
+		, taille(chn.taille())
+	{}
+
+	chaine(dls::vue_chaine_compacte const &chn)
+		: pointeur(const_cast<char *>(chn.pointeur()))
+		, taille(chn.taille())
+	{}
+
+	char &operator[](long i)
+	{
+		assert(i >= 0 && i < this->taille);
+		return this->pointeur[i];
+	}
+
+	char const &operator[](long i) const
+	{
+		assert(i >= 0 && i < this->taille);
+		return this->pointeur[i];
+	}
+
+	char *begin()
+	{
+		return this->pointeur;
+	}
+
+	char const *begin() const
+	{
+		return this->pointeur;
+	}
+
+	char *end()
+	{
+		return this->begin() + this->taille;
+	}
+
+	char const *end() const
+	{
+		return this->begin() + this->taille;
+	}
+
+	void ajoute(char c)
+	{
+		memoire::reloge_tableau("chaine", this->pointeur, this->taille, this->taille + 1);
+		pousse_reserve(c);
+	}
+
+	void pousse_reserve(char c)
+	{
+		this->pointeur[this->taille] = c;
+		this->taille += 1;
+	}
+
+	void reserve(long nouvelle_taille)
+	{
+		if (nouvelle_taille <= this->taille) {
+			return;
+		}
+
+		memoire::reloge_tableau("chaine", this->pointeur, this->taille, this->taille + nouvelle_taille);
+	}
+};
+
+chaine copie_chaine(chaine const &autre);
+
+void detruit_chaine(chaine &chn);
+
+bool operator == (kuri::chaine const &chn1, kuri::chaine const &chn2);
+
+bool operator != (kuri::chaine const &chn1, kuri::chaine const &chn2);
+
+std::ostream &operator<<(std::ostream &os, kuri::chaine const &chn);
+
+}
+
+/*
+
 struct Allocatrice;
 
 struct Allocatrice {
@@ -126,13 +234,13 @@ public:
 
 template <typename T>
 struct tableau_statique {
-    const T *pointeur = nullptr;
-    long taille = 0;
+	const T *pointeur = nullptr;
+	long taille = 0;
 
-    tableau_statique(const T *pointeur_, long taille_)
-        : pointeur(pointeur_)
-        , taille(taille_)
-    {}
+	tableau_statique(const T *pointeur_, long taille_)
+		: pointeur(pointeur_)
+		, taille(taille_)
+	{}
 };
 
 struct chaine_statique : public tableau_statique<char> {
@@ -142,3 +250,5 @@ struct chaine_statique : public tableau_statique<char> {
 };
 
 }
+
+*/

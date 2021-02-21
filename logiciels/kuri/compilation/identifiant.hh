@@ -28,7 +28,7 @@
 #include "biblinternes/structures/tableau_page.hh"
 #include "biblinternes/structures/vue_chaine_compacte.hh"
 
-#include "table_hachage.hh"
+#include "structures/table_hachage.hh"
 
 struct IdentifiantCode {
 	dls::vue_chaine_compacte nom{};
@@ -36,7 +36,7 @@ struct IdentifiantCode {
 
 struct TableIdentifiant {
 private:
-	table_hachage<dls::vue_chaine_compacte, IdentifiantCode *> table{};
+	kuri::table_hachage<dls::vue_chaine_compacte, IdentifiantCode *> table{};
 	tableau_page<IdentifiantCode, 1024> identifiants{};
 
 	Enchaineuse enchaineuse{};

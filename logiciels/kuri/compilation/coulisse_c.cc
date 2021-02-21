@@ -30,11 +30,12 @@
 #include "biblinternes/outils/enchaineuse.hh"
 #include "biblinternes/outils/numerique.hh"
 
+#include "structures/table_hachage.hh"
+
 #include "broyage.hh"
 #include "compilatrice.hh"
 #include "environnement.hh"
 #include "erreur.h"
-#include "table_hachage.hh"
 #include "typage.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
@@ -475,8 +476,8 @@ static bool est_type_tableau_fixe(Type *type)
 }
 
 struct GeneratriceCodeC {
-	table_hachage<Atome const *, dls::chaine> table_valeurs{};
-	table_hachage<Atome const *, dls::chaine> table_globales{};
+	kuri::table_hachage<Atome const *, dls::chaine> table_valeurs{};
+	kuri::table_hachage<Atome const *, dls::chaine> table_globales{};
 	EspaceDeTravail &m_espace;
 	AtomeFonction const *m_fonction_courante = nullptr;
 

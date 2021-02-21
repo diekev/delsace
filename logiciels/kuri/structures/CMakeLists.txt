@@ -26,14 +26,18 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	bib_memoire
+	memoire
 )
 
 set(SOURCES
     chaine.cc
+	table_hachage.cc
+	tableau.cc
 	tableau_compresse.cc
 
     chaine.hh
+	table_hachage.hh
+	tableau.hh
 	tableau_compresse.hh
 )
 

@@ -27,7 +27,6 @@
 #include "biblinternes/outils/definitions.h"
 
 #include "lexemes.hh"
-#include "structures.hh"
 
 struct Compilatrice;
 struct DonneesConstantesFichier;

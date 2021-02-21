@@ -31,7 +31,6 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
 #include "compilation/identifiant.hh"
-#include "compilation/structures.hh"
 
 #include "instructions.hh"
 
