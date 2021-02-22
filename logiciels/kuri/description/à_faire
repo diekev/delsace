@@ -1,9 +1,16 @@
 
-nettoyage : création des opérateurs dans Opérateurs et non dans Typeuse
-cache les nom broyés pour les IdentifiantsCode
 "kuri init" pour créer des projets ?
 
-améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_valeur_énum comme type_entier, etc.)
+qualité de code :
+- déplace toutes les fonctions d'interface dans la MV afin de supprimer la variable globale "ptr_compilatrice"
+- supprime chaine::ajoute, en faveur de l'enchaineuse
+- nettoyage : création des opérateurs dans Opérateurs et non dans Typeuse
+
+- structures: ajout d'un pointeur vers une Allocatrice
+- cache les nom broyés pour les IdentifiantsCode
+- chaine: ajoute de TypeIndex
+- ajout de identifiant_pour_nouvelle_chaine(args...) afin d'éviter les allocations temporaires si possible
+- améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_valeur_énum comme type_entier, etc.)
 
 trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
 
@@ -25,7 +32,7 @@ NoeudExpression::unite => NoeudDeclaration, NoeudExecution ?
 utilisation d'un ramasse miette pour les métaprogrammes ?
 stocke les labels pour les controles des boucles dans la structure Boucle, au lieu d'allouer de la mémoire et faire une recherche linéaire dans la RI
 
-erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
+émets une erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
 
 trouve une manière de protéger les pointeurs vers les types quand nous les utilisons dans les métaprogrammes à la place des index dans la table de type
 
