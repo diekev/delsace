@@ -24,6 +24,8 @@
 
 #include "environnement.hh"
 
+#include "structures/enchaineuse.hh"
+
 #include "options.hh"
 
 /* À FAIRE(r16) : il faudra proprement gérer les architectures pour les r16, ou trouver des algorithmes pour supprimer les tables */
@@ -31,19 +33,23 @@ void precompile_objet_r16(const std::filesystem::path &chemin_racine_kuri)
 {
 	// objet pour la liaison statique de la bibliothèque
 	{
+		Enchaineuse enchaineuse;
 		auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
 		auto chemin_objet = "/tmp/r16_tables_x64.o";
 
 		if (!std::filesystem::exists(chemin_objet)) {
-			auto commande = dls::chaine("/usr/bin/g++-9 -c ");
-			commande += chemin_fichier.c_str();
-			commande += " -o ";
-			commande += chemin_objet;
+			enchaineuse << "/usr/bin/g++-9 -c ";
+			enchaineuse << chemin_fichier.c_str();
+			enchaineuse << " -o ";
+			enchaineuse << chemin_objet;
+			enchaineuse << '\0';
+
+			auto commande = enchaineuse.chaine();
 
 			std::cout << "Compilation des tables de conversion R16...\n";
 			std::cout << "Exécution de la commande " << commande << std::endl;
 
-			auto err = system(commande.c_str());
+			auto err = system(commande.pointeur());
 
 			if (err != 0) {
 				std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
@@ -56,19 +62,23 @@ void precompile_objet_r16(const std::filesystem::path &chemin_racine_kuri)
 
 	// objet pour la liaison dynamique de la bibliothèque, pour les métaprogrammes
 	{
+		Enchaineuse enchaineuse;
 		auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
 		auto chemin_objet = "/tmp/r16_tables_x64.so";
 
 		if (!std::filesystem::exists(chemin_objet)) {
-			auto commande = dls::chaine("/usr/bin/g++-9 -shared -fPIC ");
-			commande += chemin_fichier.c_str();
-			commande += " -o ";
-			commande += chemin_objet;
+			enchaineuse << "/usr/bin/g++-9 -shared -fPIC ";
+			enchaineuse << chemin_fichier.c_str();
+			enchaineuse << " -o ";
+			enchaineuse << chemin_objet;
+			enchaineuse << '\0';
+
+			auto commande = enchaineuse.chaine();
 
 			std::cout << "Compilation des tables de conversion R16...\n";
 			std::cout << "Exécution de la commande " << commande << std::endl;
 
-			auto err = system(commande.c_str());
+			auto err = system(commande.pointeur());
 
 			if (err != 0) {
 				std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
@@ -88,19 +98,23 @@ void compile_objet_r16(const std::filesystem::path &chemin_racine_kuri, Architec
 	}
 
 	{
+		Enchaineuse enchaineuse;
 		auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
 		auto chemin_objet = "/tmp/r16_tables_x86.o";
 
 		if (!std::filesystem::exists(chemin_objet)) {
-			auto commande = dls::chaine("/usr/bin/g++-9 -c -m32 ");
-			commande += chemin_fichier.c_str();
-			commande += " -o ";
-			commande += chemin_objet;
+			enchaineuse << "/usr/bin/g++-9 -c -m32 ";
+			enchaineuse << chemin_fichier.c_str();
+			enchaineuse << " -o ";
+			enchaineuse << chemin_objet;
+			enchaineuse << '\0';
+
+			auto commande = enchaineuse.chaine();
 
 			std::cout << "Compilation des tables de conversion R16...\n";
 			std::cout << "Exécution de la commande " << commande << std::endl;
 
-			auto err = system(commande.c_str());
+			auto err = system(commande.pointeur());
 
 			if (err != 0) {
 				std::cerr << "Impossible de compiler les tables de conversion R16 !\n";

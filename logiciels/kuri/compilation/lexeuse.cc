@@ -712,7 +712,7 @@ void Lexeuse::performe_lexage()
 		auto gerante_chaine = m_compilatrice.gerante_chaine.verrou_ecriture();
 
 		/* en dehors de la boucle car nous l'utilisons comme tampon */
-		dls::chaine chaine;
+		kuri::chaine chaine;
 
 		POUR (m_donnees->lexemes) {
 			if (it.genre != GenreLexeme::CHAINE_LITTERALE) {
@@ -756,7 +756,7 @@ dls::vue_chaine_compacte Lexeuse::mot_courant() const
 	return dls::vue_chaine_compacte(m_debut_mot, m_taille_mot_courant);
 }
 
-void Lexeuse::lance_erreur(const dls::chaine &quoi) const
+void Lexeuse::lance_erreur(const kuri::chaine &quoi) const
 {
 	auto ligne_courante = m_donnees->tampon[m_compte_ligne];
 
@@ -1261,7 +1261,7 @@ static int hex_depuis_char(char c)
  * \Unnnnnnnn : insère un caractère Unicode sur 32-bits, où n est un nombre hexadécimal
  * \xnn       : insère une valeur hexadécimale, où n est un nombre hexadécimal
  */
-unsigned Lexeuse::lexe_caractere_litteral(dls::chaine *chaine)
+unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 {
 	auto c = this->caractere_courant();
 	this->avance_fixe<1>();

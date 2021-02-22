@@ -40,6 +40,8 @@
 #include "impression.hh"
 #include "optimisations.hh"
 
+#include "structures/enchaineuse.hh"
+
 /* À FAIRE : (représentation intermédiaire, non-urgent)
  * - copie les tableaux fixes quand nous les assignations (a = b -> copie_mem(a, b))
  * - crée une branche lors de l'insertion d'un label si la dernière instruction
@@ -220,7 +222,7 @@ InstructionRetour *ConstructriceRI::cree_retour(NoeudExpression *site_, Atome *v
 
 AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour)
 {
-	auto nom_fonction = "init_globale" + dls::vers_chaine(fonction_pour);
+	auto nom_fontion = enchaine("init_globale", fonction_pour);
 
 	auto types_entrees = dls::tablet<Type *, 6>(1);
 	types_entrees[0] = m_espace->typeuse.type_contexte;
@@ -232,7 +234,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(const kur
 	auto params = kuri::tableau<Atome *, int>(1);
 	params[0] = param_contexte;
 
-	auto fonction = m_espace->cree_fonction(nullptr, nom_fonction, std::move(params));
+	auto fonction = m_espace->cree_fonction(nullptr, nom_fontion, std::move(params));
 	fonction->type = m_espace->typeuse.type_fonction(types_entrees, type_sortie, false);
 
 	this->fonction_courante = fonction;
@@ -851,14 +853,14 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto lit_chaine = noeud->comme_litterale();
 			auto chaine = compilatrice().gerante_chaine->chaine_pour_adresse(lit_chaine->index_chaine);
-			auto constante = cree_chaine(dls::vue_chaine_compacte(chaine.pointeur, chaine.taille));
+			auto constante = cree_chaine(chaine);
 
-			assert_rappel((noeud->lexeme->chaine.taille() != 0 && chaine.taille != 0) || (noeud->lexeme->chaine.taille() == 0 && chaine.taille == 0),
+			assert_rappel((noeud->lexeme->chaine.taille() != 0 && chaine.taille() != 0) || (noeud->lexeme->chaine.taille() == 0 && chaine.taille() == 0),
 						  [&](){
 				erreur::imprime_site(*espace(), noeud);
 				std::cerr << "La chaine n'est pas de la bonne taille !\n";
 				std::cerr << "Le lexème a une chaine taille de " << noeud->lexeme->chaine.taille()
-						  << " alors que la chaine littérale a une taille de " << chaine.taille << '\n';
+						  << " alors que la chaine littérale a une taille de " << chaine.taille() << '\n';
 				std::cerr << "L'index de la chaine est de " << lit_chaine->index_chaine << '\n';
 			});
 
@@ -2758,13 +2760,13 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type *type)
 		case GenreType::UNION:
 		{
 			auto type_union = type->comme_union();
-			auto nom_union = dls::vue_chaine_compacte();
+			auto nom_union = kuri::chaine_statique();
 
 			if (type_union->est_anonyme) {
 				nom_union = "anonyme";
 			}
 			else {
-				nom_union = type_union->decl->lexeme->chaine;
+				nom_union = type_union->decl->ident->nom;
 			}
 
 			// ------------------------------------
@@ -3077,7 +3079,7 @@ void ConstructriceRI::genere_ri_pour_position_code_source(NoeudExpression *noeud
 	cree_stocke_mem(noeud, ptr_fichier, chaine_nom_fichier);
 
 	// fonction
-	auto nom_fonction = dls::vue_chaine_compacte("");
+	auto nom_fonction = kuri::chaine_statique("");
 
 	if (fonction_courante != nullptr) {
 		nom_fonction = fonction_courante->nom;
@@ -3121,7 +3123,7 @@ Atome *ConstructriceRI::converti_vers_tableau_dyn(NoeudExpression *noeud, Atome 
 	return alloc_tableau_dyn;
 }
 
-AtomeConstante *ConstructriceRI::cree_chaine(dls::vue_chaine_compacte const &chaine)
+AtomeConstante *ConstructriceRI::cree_chaine(kuri::chaine_statique chaine)
 {
 	auto table_chaines = m_espace->table_chaines.verrou_ecriture();
 	auto trouve = false;

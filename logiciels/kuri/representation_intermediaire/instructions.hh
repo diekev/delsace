@@ -310,7 +310,7 @@ struct AccedeIndexConstant : public AtomeConstante {
 };
 
 struct AtomeFonction : public Atome {
-	dls::chaine nom{};
+	kuri::chaine nom{};
 
 	kuri::tableau<Atome *, int> params_entrees{};
 	Atome *param_sortie = nullptr;
@@ -338,14 +338,14 @@ struct AtomeFonction : public Atome {
 
 	DonneesFonctionExterne donnees_externe{};
 
-	AtomeFonction(Lexeme const *lexeme_, dls::chaine const &nom_)
+	AtomeFonction(Lexeme const *lexeme_, kuri::chaine const &nom_)
 		: nom(nom_)
 		, lexeme(lexeme_)
 	{
 		genre_atome = Atome::Genre::FONCTION;
 	}
 
-	AtomeFonction(Lexeme const *lexeme_, dls::chaine const &nom_, kuri::tableau<Atome *, int> &&params_)
+	AtomeFonction(Lexeme const *lexeme_, kuri::chaine const &nom_, kuri::tableau<Atome *, int> &&params_)
 		: AtomeFonction(lexeme_, nom_)
 	{
 		this->params_entrees = std::move(params_);

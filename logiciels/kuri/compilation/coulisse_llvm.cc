@@ -61,6 +61,16 @@
 
 /* ************************************************************************** */
 
+auto vers_std_string(kuri::chaine const &chn)
+{
+	return std::string(chn.pointeur(), static_cast<size_t>(chn.taille()));
+}
+
+auto vers_std_string(dls::vue_chaine_compacte const &chn)
+{
+	return std::string(chn.pointeur(), static_cast<size_t>(chn.taille()));
+}
+
 static bool est_plus_petit(Type *type1, Type *type2)
 {
 	return type1->taille_octet < type2->taille_octet;
@@ -165,7 +175,7 @@ struct GeneratriceCodeLLVM {
 	dls::dico<InstructionLabel const *, llvm::BasicBlock *> table_blocs{};
 	dls::dico<Atome const *, llvm::GlobalVariable *> table_globales{};
 	dls::dico_desordonne<Type *, llvm::Type *> table_types{};
-	dls::dico_desordonne<dls::chaine, llvm::Constant *> valeurs_chaines_globales{};
+	dls::dico_desordonne<kuri::chaine, llvm::Constant *> valeurs_chaines_globales{};
 	EspaceDeTravail &m_espace;
 
 	llvm::Function *m_fonction_courante = nullptr;
@@ -189,7 +199,7 @@ struct GeneratriceCodeLLVM {
 
 	void genere_code();
 
-	llvm::Constant *valeur_pour_chaine(const dls::chaine &chaine, long taille_chaine);
+	llvm::Constant *valeur_pour_chaine(const kuri::chaine &chaine, long taille_chaine);
 };
 
 GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace)
@@ -353,8 +363,8 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		{
 			auto type_struct = type->comme_union();
 			auto decl_struct = type_struct->decl;
-			auto nom_nonsur = "union_nonsure." + type_struct->nom->nom;
-			auto nom = "union." + type_struct->nom->nom;
+			auto nom_nonsur = enchaine("union_nonsure.", type_struct->nom->nom);
+			auto nom = enchaine("union.", type_struct->nom->nom);
 
 			// création d'une structure ne contenant que le membre le plus grand
 			auto taille_max = 0u;
@@ -370,11 +380,11 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 			}
 
 			auto type_max_llvm = converti_type_llvm(type_max);
-			auto type_union = llvm::StructType::create(m_contexte_llvm, { type_max_llvm }, nom_nonsur.c_str());
+			auto type_union = llvm::StructType::create(m_contexte_llvm, { type_max_llvm }, vers_std_string(nom_nonsur));
 
 			if (!decl_struct->est_nonsure) {
 				// création d'une structure contenant l'union et une valeur discriminante
-				type_union = llvm::StructType::create(m_contexte_llvm, { type_union, llvm::Type::getInt32Ty(m_contexte_llvm) }, nom.c_str());
+				type_union = llvm::StructType::create(m_contexte_llvm, { type_union, llvm::Type::getInt32Ty(m_contexte_llvm) }, vers_std_string(nom));
 			}
 
 			type_llvm = type_union;
@@ -383,11 +393,11 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 		case GenreType::STRUCTURE:
 		{
 			auto type_struct = type->comme_structure();
-			auto nom = "struct." + type_struct->nom->nom;
+			auto nom = enchaine("struct.", type_struct->nom->nom);
 
 			/* Pour les structures récursives, il faut créer un type
 			 * opaque, dont le corps sera renseigné à la fin */
-			auto type_opaque = llvm::StructType::create(m_contexte_llvm, nom.c_str());
+			auto type_opaque = llvm::StructType::create(m_contexte_llvm, vers_std_string(nom));
 			table_types[type] = type_opaque;
 
 			std::vector<llvm::Type *> types_membres;
@@ -495,7 +505,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 		case Atome::Genre::FONCTION:
 		{
 			auto atome_fonc = static_cast<AtomeFonction const *>(atome);
-			return m_module->getFunction(llvm::StringRef(atome_fonc->nom.c_str()));
+			return m_module->getFunction(vers_std_string(atome_fonc->nom));
 		}
 		case Atome::Genre::CONSTANTE:
 		{
@@ -1064,7 +1074,7 @@ void GeneratriceCodeLLVM::genere_code()
 		llvm::Function::Create(
 					type_llvm,
 					llvm::Function::ExternalLinkage,
-					atome_fonc->nom.c_str(),
+					vers_std_string(atome_fonc->nom),
 					m_module);
 	}
 
@@ -1079,7 +1089,7 @@ void GeneratriceCodeLLVM::genere_code()
 
 		//std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
 
-		auto fonction = m_module->getFunction(atome_fonc->nom.c_str());
+		auto fonction = m_module->getFunction(vers_std_string(atome_fonc->nom));
 
 		m_fonction_courante = fonction;
 		table_valeurs.efface();
@@ -1103,7 +1113,7 @@ void GeneratriceCodeLLVM::genere_code()
 			auto const &nom_argument = param->ident->nom;
 
 			auto valeur = &(*valeurs_args++);
-			valeur->setName(dls::chaine(nom_argument).c_str());
+			valeur->setName(vers_std_string(nom_argument));
 
 			auto type = param->type->comme_pointeur()->type_pointe;
 			auto type_llvm = converti_type_llvm(type);
@@ -1154,7 +1164,7 @@ void GeneratriceCodeLLVM::genere_code()
 	}
 }
 
-llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const dls::chaine &chaine, long taille_chaine)
+llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chaine, long taille_chaine)
 {
 	auto iter = valeurs_chaines_globales.trouve(chaine);
 
@@ -1167,7 +1177,7 @@ llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const dls::chaine &chain
 
 	auto constante = llvm::ConstantDataArray::getString(
 				m_contexte_llvm,
-				chaine.c_str());
+				vers_std_string(chaine));
 
 	auto tableu_chaine_c = new llvm::GlobalVariable(
 				*m_module,
@@ -1468,7 +1478,7 @@ bool CoulisseLLVM::cree_fichier_objet(Compilatrice &compilatrice, EspaceDeTravai
 bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice, EspaceDeTravail &espace)
 {
 	auto debut_executable = dls::chrono::compte_seconde();
-	if (!::cree_executable(espace.options.nom_sortie, compilatrice.racine_kuri.c_str())) {
+	if (!::cree_executable(espace.options.nom_sortie, vers_std_string(compilatrice.racine_kuri))) {
 		compilatrice.possede_erreur = true;
 		return false;
 	}

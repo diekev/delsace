@@ -89,7 +89,7 @@ struct ContexteValidationCode {
 	UniteCompilation *unite = nullptr;
 	EspaceDeTravail *espace = nullptr;
 
-	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
+	using paire_union_membre = std::pair<kuri::chaine_statique, kuri::chaine_statique>;
 	kuri::tableau<paire_union_membre> membres_actifs{};
 
 	double temps_chargement = 0.0;
@@ -107,9 +107,9 @@ struct ContexteValidationCode {
 	 * -- les portées des variables
 	 * -- les unions dans les structures (accès par '.')
 	 */
-	dls::vue_chaine_compacte trouve_membre_actif(dls::vue_chaine_compacte const &nom_union);
+	kuri::chaine_statique trouve_membre_actif(kuri::chaine_statique const &nom_union);
 
-	void renseigne_membre_actif(dls::vue_chaine_compacte const &nom_union, dls::vue_chaine_compacte const &nom_membre);
+	void renseigne_membre_actif(kuri::chaine_statique const &nom_union, kuri::chaine_statique const &nom_membre);
 
 	ResultatValidation valide_semantique_noeud(NoeudExpression *);
 	ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
@@ -140,7 +140,7 @@ struct ContexteValidationCode {
 	void rapporte_erreur_acces_hors_limites(NoeudExpression *b, TypeTableauFixe *type_tableau, long index_acces);
 	void rapporte_erreur_membre_inconnu(NoeudExpression *acces, NoeudExpression *structure, NoeudExpression *membre, TypeCompose *type);
 	void rapporte_erreur_membre_inactif(NoeudExpression *acces, NoeudExpression *structure, NoeudExpression *membre);
-	void rapporte_erreur_valeur_manquante_discr(NoeudExpression *expression, dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes);
+	void rapporte_erreur_valeur_manquante_discr(NoeudExpression *expression, const dls::ensemble<kuri::chaine_statique> &valeurs_manquantes);
 	void rapporte_erreur_fonction_inconnue(NoeudExpression *b, dls::tablet<DonneesCandidate, 10> const &candidates);
 	void rapporte_erreur_fonction_nulctx(NoeudExpression const *appl_fonc, NoeudExpression const *decl_fonc, NoeudExpression const *decl_appel);
 

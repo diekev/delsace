@@ -84,7 +84,7 @@ EspaceDeTravail::~EspaceDeTravail()
 	}
 }
 
-Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module, IdentifiantCode *nom_module, dls::vue_chaine chemin)
+Module *EspaceDeTravail::trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module, IdentifiantCode *nom_module, kuri::chaine_statique chemin)
 {
 	auto donnees_module = sys_module->trouve_ou_cree_module(nom_module, chemin);
 
@@ -111,7 +111,7 @@ Module *EspaceDeTravail::module(const IdentifiantCode *nom_module) const
 	return nullptr;
 }
 
-ResultatFichier EspaceDeTravail::trouve_ou_cree_fichier(dls::outils::Synchrone<SystemeModule> &sys_module, Module *module, dls::vue_chaine nom_fichier, dls::vue_chaine chemin, bool importe_kuri)
+ResultatFichier EspaceDeTravail::trouve_ou_cree_fichier(dls::outils::Synchrone<SystemeModule> &sys_module, Module *module, kuri::chaine_statique nom_fichier, kuri::chaine_statique chemin, bool importe_kuri)
 {
 	auto donnees_fichier = sys_module->trouve_ou_cree_fichier(nom_fichier, chemin);
 
@@ -153,7 +153,7 @@ Fichier *EspaceDeTravail::fichier(const dls::vue_chaine_compacte &chemin) const
 	auto fichiers_ = fichiers.verrou_lecture();
 
 	POUR_TABLEAU_PAGE ((*fichiers_)) {
-		if (it.chemin() == chemin) {
+		if (dls::vue_chaine_compacte(it.chemin()) == chemin) {
 			return const_cast<Fichier *>(&it);
 		}
 	}
@@ -161,14 +161,14 @@ Fichier *EspaceDeTravail::fichier(const dls::vue_chaine_compacte &chemin) const
 	return nullptr;
 }
 
-AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const dls::chaine &nom_fichier)
+AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const kuri::chaine &nom_fichier)
 {
 	std::unique_lock lock(mutex_atomes_fonctions);
 	auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fichier);
 	return atome_fonc;
 }
 
-AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const dls::chaine &nom_fonction, kuri::tableau<Atome *, int> &&params)
+AtomeFonction *EspaceDeTravail::cree_fonction(const Lexeme *lexeme, const kuri::chaine &nom_fonction, kuri::tableau<Atome *, int> &&params)
 {
 	std::unique_lock lock(mutex_atomes_fonctions);
 	auto atome_fonc = fonctions.ajoute_element(lexeme, nom_fonction, std::move(params));
@@ -242,7 +242,7 @@ AtomeFonction *EspaceDeTravail::trouve_ou_insere_fonction_init(ConstructriceRI &
 		return type->fonction_init;
 	}
 
-	auto nom_fonction = "initialise_" + dls::vers_chaine(type);
+	auto nom_fonction = enchaine("initialise_", type);
 
 	SAUVEGARDE_ETAT(constructrice.fonction_courante);
 
@@ -349,7 +349,7 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 	auto fichiers_ = fichiers.verrou_lecture();
 	POUR_TABLEAU_PAGE ((*fichiers_)) {
 		auto entree = EntreeFichier();
-		entree.nom = it.nom().c_str();
+		entree.nom = it.nom();
 		entree.temps_parsage = it.temps_analyse;
 
 		stats_fichiers.fusionne_entree(entree);
@@ -535,13 +535,13 @@ Compilatrice::Compilatrice()
 	ptr_compilatrice = this;
 }
 
-Module *Compilatrice::importe_module(EspaceDeTravail *espace, const dls::chaine &nom, NoeudExpression const *site)
+Module *Compilatrice::importe_module(EspaceDeTravail *espace, const kuri::chaine &nom, NoeudExpression const *site)
 {
-	auto chemin = nom;
+	auto chemin = dls::chaine(nom.pointeur(), nom.taille());
 
 	if (!std::filesystem::exists(chemin.c_str())) {
 		/* essaie dans la racine kuri */
-		chemin = racine_kuri + "/modules/" + chemin;
+		chemin = dls::chaine(racine_kuri.pointeur(), racine_kuri.taille()) + "/modules/" + chemin;
 
 		if (!std::filesystem::exists(chemin.c_str())) {
 			erreur::lance_erreur(
@@ -633,9 +633,9 @@ dls::chaine charge_fichier(
 	return dls::chaine(std::istreambuf_iterator<char>(fichier), std::istreambuf_iterator<char>());
 }
 
-void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, const dls::chaine &nom, Module *module, NoeudExpression const *site)
+void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, const kuri::chaine &nom, Module *module, NoeudExpression const *site)
 {
-	auto chemin = module->chemin() + nom + ".kuri";
+	auto chemin = dls::chaine(module->chemin()) + dls::chaine(nom) + ".kuri";
 
 	if (!std::filesystem::exists(chemin.c_str())) {
 		erreur::lance_erreur(
@@ -656,7 +656,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, cons
 	/* trouve le chemin absolu du fichier */
 	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
 
-	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, nom.c_str(), chemin_absolu.c_str(), importe_kuri);
+	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, nom, chemin_absolu.c_str(), importe_kuri);
 
 	if (resultat.tag_type() == FichierNeuf::tag) {
 		ordonnanceuse->cree_tache_pour_chargement(espace, resultat.t2().fichier);
@@ -669,12 +669,12 @@ long Compilatrice::memoire_utilisee() const
 {
 	auto memoire = taille_de(Compilatrice);
 
-	memoire += bibliotheques_dynamiques->taille() * taille_de(dls::chaine);
+	memoire += bibliotheques_dynamiques->taille() * taille_de(kuri::chaine);
 	POUR (*bibliotheques_dynamiques.verrou_lecture()) {
 		memoire += it.taille();
 	}
 
-	memoire += bibliotheques_statiques->taille() * taille_de(dls::chaine);
+	memoire += bibliotheques_statiques->taille() * taille_de(kuri::chaine);
 	POUR (*bibliotheques_statiques.verrou_lecture()) {
 		memoire += it.taille();
 	}
@@ -713,7 +713,7 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
 /* ************************************************************************** */
 
-EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation const &options, const dls::chaine &nom)
+EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation const &options, const kuri::chaine &nom)
 {
 	auto espace = espaces_de_travail->ajoute_element(options);
 	espace->nom = nom;
@@ -725,7 +725,12 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation c
 
 /* ************************************************************************** */
 
-long GeranteChaine::ajoute_chaine(const dls::chaine &chaine)
+long GeranteChaine::ajoute_chaine(const kuri::chaine &chaine)
+{
+	return ajoute_chaine(kuri::chaine_statique(chaine));
+}
+
+long GeranteChaine::ajoute_chaine(kuri::chaine_statique chaine)
 {
 	if ((enchaineuse.tampon_courant->occupe + chaine.taille()) >= Enchaineuse::TAILLE_TAMPON) {
 		enchaineuse.ajoute_tampon();
@@ -739,21 +744,7 @@ long GeranteChaine::ajoute_chaine(const dls::chaine &chaine)
 	return adresse | (chaine.taille() << 32);
 }
 
-long GeranteChaine::ajoute_chaine(const kuri::chaine &chaine)
-{
-	if ((enchaineuse.tampon_courant->occupe + chaine.taille) >= Enchaineuse::TAILLE_TAMPON) {
-		enchaineuse.ajoute_tampon();
-	}
-
-	// calcul l'adresse de la chaine
-	auto adresse = (enchaineuse.nombre_tampons() - 1) * Enchaineuse::TAILLE_TAMPON + enchaineuse.tampon_courant->occupe;
-
-	enchaineuse.ajoute(dls::vue_chaine(chaine.pointeur, chaine.taille));
-
-	return adresse | (chaine.taille << 32);
-}
-
-kuri::chaine GeranteChaine::chaine_pour_adresse(long adresse) const
+kuri::chaine_statique GeranteChaine::chaine_pour_adresse(long adresse) const
 {
 	assert(adresse >= 0);
 
@@ -768,11 +759,7 @@ kuri::chaine GeranteChaine::chaine_pour_adresse(long adresse) const
 	}
 
 	assert(tampon_courant);
-
-	auto resultat = kuri::chaine();
-	resultat.taille = taille;
-	resultat.pointeur = const_cast<char *>(&tampon_courant->donnees[adresse]);
-	return resultat;
+	return { &tampon_courant->donnees[adresse], taille };
 }
 
 long GeranteChaine::memoire_utilisee() const
@@ -790,18 +777,13 @@ OptionsCompilation *obtiens_options_compilation()
 void ajourne_options_compilation(OptionsCompilation *options)
 {
 	ptr_compilatrice->espace_de_travail_defaut->options = *options;
-
-	if (options->nom_sortie != kuri::chaine("a.out")) {
-		// duplique la mémoire
-		options->nom_sortie = copie_chaine(options->nom_sortie);
-	}
 }
 
-void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine c)
+void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
 {
-	auto chaine = dls::chaine(c.pointeur, c.taille);
+	auto chaine = dls::chaine(c.pointeur(), c.taille());
 
-	ptr_compilatrice->chaines_ajoutees_a_la_compilation->ajoute(chaine);
+	ptr_compilatrice->chaines_ajoutees_a_la_compilation->ajoute(kuri::chaine(c.pointeur(), c.taille()));
 
 	auto module = espace->trouve_ou_cree_module(ptr_compilatrice->sys_module, ID::chaine_vide, "");
 	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, "métaprogramme", "", ptr_compilatrice->importe_kuri);
@@ -815,11 +797,11 @@ void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chain
 	}
 }
 
-void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine c)
+void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c)
 {
-	auto chaine = dls::chaine(c.pointeur, c.taille);
+	auto chaine = dls::chaine(c.pointeur(), c.taille());
 
-	ptr_compilatrice->chaines_ajoutees_a_la_compilation->ajoute(chaine);
+	ptr_compilatrice->chaines_ajoutees_a_la_compilation->ajoute(kuri::chaine(c.pointeur(), c.taille()));
 
 	auto resultat = espace->trouve_ou_cree_fichier(ptr_compilatrice->sys_module, module, "métaprogramme", "", ptr_compilatrice->importe_kuri);
 
@@ -832,9 +814,9 @@ void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chai
 	}
 }
 
-void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine c)
+void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
 {
-	auto vue = dls::chaine(c.pointeur, c.taille);
+	auto vue = dls::chaine(c.pointeur(), c.taille());
 	auto chemin = std::filesystem::current_path() / vue.c_str();
 
 	if (!std::filesystem::exists(chemin)) {
@@ -875,9 +857,9 @@ Message const *compilatrice_attend_message()
 	return nullptr;
 }
 
-EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine nom, OptionsCompilation *options)
+EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine_statique nom, OptionsCompilation *options)
 {
-	return ptr_compilatrice->demarre_un_espace_de_travail(*options, dls::chaine(nom.pointeur, nom.taille));
+	return ptr_compilatrice->demarre_un_espace_de_travail(*options, kuri::chaine(nom.pointeur(), nom.taille()));
 }
 
 /* cette fonction est symbolique, afin de pouvoir la détecter dans les
@@ -899,7 +881,7 @@ EspaceDeTravail *espace_defaut_compilation()
 	return ptr_compilatrice->espace_de_travail_defaut;
 }
 
-void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne, kuri::chaine message)
+void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message)
 {
 	::rapporte_erreur(espace, fichier, ligne, message);
 }
@@ -916,10 +898,10 @@ static kuri::tableau<kuri::Lexeme> converti_tableau_lexemes(kuri::tableau<Lexeme
 	return resultat;
 }
 
-kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne, NoeudExpression const *site)
+kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine_statique chemin_donne, NoeudExpression const *site)
 {
 	auto espace = ptr_compilatrice->espace_de_travail_defaut;
-	auto chemin = dls::chaine(chemin_donne.pointeur, chemin_donne.taille);
+	auto chemin = dls::chaine(chemin_donne.pointeur(), chemin_donne.taille());
 
 	if (!std::filesystem::exists(chemin.c_str())) {
 		erreur::lance_erreur(
@@ -954,7 +936,7 @@ kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne,
 	}
 
 	auto donnees_fichier = resultat.t2().fichier->donnees_constantes;
-	auto tampon = charge_fichier(chemin.c_str(), *espace, site);
+	auto tampon = charge_fichier(chemin, *espace, site);
 	donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
 	auto lexeuse = Lexeuse(*ptr_compilatrice, donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);

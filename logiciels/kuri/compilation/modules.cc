@@ -40,12 +40,12 @@ bool Fichier::importe_module(IdentifiantCode *nom_module) const
 	return modules_importes.possede(nom_module);
 }
 
-DonneesConstantesModule *SystemeModule::trouve_ou_cree_module(IdentifiantCode *nom, dls::vue_chaine chemin)
+DonneesConstantesModule *SystemeModule::trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin)
 {
-	auto chemin_normalise = dls::chaine(chemin);
+	auto chemin_normalise = kuri::chaine(chemin);
 
 	if (chemin_normalise.taille() > 0 && chemin_normalise[chemin_normalise.taille() - 1] != '/') {
-		chemin_normalise += '/';
+		chemin_normalise = enchaine(chemin_normalise, '/');
 	}
 
 	POUR_TABLEAU_PAGE (donnees_modules) {
@@ -57,7 +57,7 @@ DonneesConstantesModule *SystemeModule::trouve_ou_cree_module(IdentifiantCode *n
 	return cree_module(nom, chemin_normalise);
 }
 
-DonneesConstantesModule *SystemeModule::cree_module(IdentifiantCode *nom, dls::vue_chaine chemin)
+DonneesConstantesModule *SystemeModule::cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin)
 {
 	auto dm = donnees_modules.ajoute_element();
 	dm->nom = nom;
@@ -66,7 +66,7 @@ DonneesConstantesModule *SystemeModule::cree_module(IdentifiantCode *nom, dls::v
 	return dm;
 }
 
-DonneesConstantesFichier *SystemeModule::trouve_ou_cree_fichier(dls::vue_chaine nom, dls::vue_chaine chemin)
+DonneesConstantesFichier *SystemeModule::trouve_ou_cree_fichier(kuri::chaine_statique nom, kuri::chaine_statique chemin)
 {
 	POUR_TABLEAU_PAGE (donnees_fichiers) {
 		if (it.chemin == chemin) {
@@ -77,7 +77,7 @@ DonneesConstantesFichier *SystemeModule::trouve_ou_cree_fichier(dls::vue_chaine 
 	return cree_fichier(nom, chemin);
 }
 
-DonneesConstantesFichier *SystemeModule::cree_fichier(dls::vue_chaine nom, dls::vue_chaine chemin)
+DonneesConstantesFichier *SystemeModule::cree_fichier(kuri::chaine_statique nom, kuri::chaine_statique chemin)
 {
 	auto df = donnees_fichiers.ajoute_element();
 	df->nom = nom;
@@ -94,7 +94,7 @@ void SystemeModule::rassemble_stats(Statistiques &stats) const
 	auto &stats_fichiers = stats.stats_fichiers;
 	POUR_TABLEAU_PAGE (donnees_fichiers) {
 		auto entree = EntreeFichier();
-		entree.nom = it.nom.c_str();
+		entree.nom = it.nom;
 		entree.nombre_lignes = it.tampon.nombre_lignes();
 		entree.memoire_tampons = it.tampon.taille_donnees();
 		entree.memoire_lexemes = it.lexemes.taille() * taille_de(Lexeme);

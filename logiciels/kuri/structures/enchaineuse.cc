@@ -44,9 +44,16 @@ Enchaineuse::~Enchaineuse()
 	}
 }
 
-void Enchaineuse::ajoute(const dls::vue_chaine &chn)
+void Enchaineuse::ajoute(const kuri::chaine_statique &chn)
 {
-	ajoute(&chn[0], chn.taille());
+	ajoute(chn.pointeur(), chn.taille());
+}
+
+void Enchaineuse::ajoute_inverse(const kuri::chaine_statique &chn)
+{
+	for (auto i = chn.taille() - 1; i >= 0; --i) {
+		pousse_caractere(chn.pointeur()[i]);
+	}
 }
 
 void Enchaineuse::ajoute(const char *c_str, long N)
@@ -143,7 +150,7 @@ long Enchaineuse::taille_chaine() const
 	return taille;
 }
 
-dls::chaine Enchaineuse::chaine() const
+kuri::chaine Enchaineuse::chaine() const
 {
 	auto taille = taille_chaine();
 
@@ -151,7 +158,7 @@ dls::chaine Enchaineuse::chaine() const
 		return "";
 	}
 
-	auto resultat = dls::chaine();
+	auto resultat = kuri::chaine();
 	resultat.redimensionne(taille);
 
 	auto tampon = &m_tampon_base;
@@ -166,15 +173,15 @@ dls::chaine Enchaineuse::chaine() const
 	return resultat;
 }
 
-Enchaineuse &operator <<(Enchaineuse &enchaineuse, const dls::vue_chaine_compacte &chn)
+Enchaineuse &operator <<(Enchaineuse &enchaineuse, const kuri::chaine_statique &chn)
 {
 	enchaineuse.ajoute(chn.pointeur(), chn.taille());
 	return enchaineuse;
 }
 
-Enchaineuse &operator <<(Enchaineuse &enchaineuse, const dls::chaine &chn)
+Enchaineuse &operator <<(Enchaineuse &enchaineuse, const kuri::chaine &chn)
 {
-	enchaineuse.ajoute(chn.c_str(), chn.taille());
+	enchaineuse.ajoute(chn.pointeur(), chn.taille());
 	return enchaineuse;
 }
 

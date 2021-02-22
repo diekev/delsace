@@ -610,7 +610,7 @@ void Tacheronne::gere_tache()
 
 					if (!donnees->fut_charge) {
 						auto debut_chargement = dls::chrono::compte_seconde();
-						auto texte = charge_fichier(donnees->chemin, *tache.unite->espace, {});
+						auto texte = charge_fichier(dls::chaine(donnees->chemin), *tache.unite->espace, {});
 						temps_chargement += debut_chargement.temps();
 
 						auto debut_tampon = dls::chrono::compte_seconde();
@@ -1218,22 +1218,22 @@ void Tacheronne::execute_metaprogrammes()
 				}
 			}
 			else if (it->corps_texte) {
-				auto resultat = *reinterpret_cast<kuri::chaine *>(it->donnees_execution->pointeur_pile);
+				auto resultat = *reinterpret_cast<kuri::chaine_statique *>(it->donnees_execution->pointeur_pile);
 
-				if (resultat.taille == 0) {
+				if (resultat.taille() == 0) {
 					rapporte_erreur(espace, it->corps_texte, "Le corps-texte a retourné une chaine vide");
 				}
 
 				auto fichier_racine = espace->fichier(it->corps_texte->lexeme->fichier);
 				auto module = fichier_racine->module;
 
-				auto tampon = dls::chaine(resultat.pointeur, resultat.taille);
+				auto tampon = dls::chaine(resultat.pointeur(), resultat.taille());
 
-				if (*tampon.fin() != ' ') {
+				if (*tampon.fin() != '\n') {
 					tampon.ajoute('\n');
 				}
 
-				auto nom_fichier = dls::vers_chaine(it);
+				auto nom_fichier = enchaine(it);
 				auto resultat_fichier = espace->trouve_ou_cree_fichier(compilatrice.sys_module, module, nom_fichier, nom_fichier, false);
 
 				if (resultat_fichier.tag_type() == FichierNeuf::tag) {
@@ -1245,7 +1245,7 @@ void Tacheronne::execute_metaprogrammes()
 
 					donnees_fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
 
-					compilatrice.chaines_ajoutees_a_la_compilation->ajoute(dls::chaine(resultat.pointeur, resultat.taille));
+					compilatrice.chaines_ajoutees_a_la_compilation->ajoute(resultat);
 					compilatrice.ordonnanceuse->cree_tache_pour_lexage(espace, fichier);
 				}
 			}
@@ -1401,9 +1401,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 			auto valeur_pointeur = pointeur;
 			auto valeur_chaine = *reinterpret_cast<long *>(pointeur + 8);
 
-			kuri::chaine chaine;
-			chaine.pointeur = *reinterpret_cast<char **>(valeur_pointeur);
-			chaine.taille = valeur_chaine;
+			kuri::chaine_statique chaine = { *reinterpret_cast<char **>(valeur_pointeur), valeur_chaine };
 
 			auto lit_chaine = assembleuse->cree_lit_chaine(lexeme);
 			lit_chaine->index_chaine = compilatrice.gerante_chaine->ajoute_chaine(chaine);

@@ -32,11 +32,15 @@ set(BIBLIOTHEQUES
 
 set(SOURCES
     chaine.cc
+	chaine_statique.cc
+	enchaineuse.cc
 	table_hachage.cc
 	tableau.cc
 	tableau_compresse.cc
 
     chaine.hh
+	chaine_statique.hh
+	enchaineuse.hh
 	table_hachage.hh
 	tableau.hh
 	tableau_compresse.hh

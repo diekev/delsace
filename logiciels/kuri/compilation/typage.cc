@@ -26,6 +26,8 @@
 
 #include "biblinternes/outils/assert.hh"
 
+#include <algorithm>
+
 #include "compilatrice.hh"
 #include "operateurs.hh"
 #include "outils_lexemes.hh"
@@ -1134,212 +1136,249 @@ void Typeuse::construit_table_types()
 
 /* ************************************************************************** */
 
-dls::chaine chaine_type(const Type *type)
+static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
 {
 	if (type == nullptr) {
-		return "nul";
+		enchaineuse.ajoute("nul");
+		return;
 	}
 
 	switch (type->genre) {
 		case GenreType::EINI:
 		{
-			return "eini";
+			enchaineuse.ajoute("eini");
+			return;
 		}
 		case GenreType::CHAINE:
 		{
-			return "chaine";
+			enchaineuse.ajoute("chaine");
+			return;
 		}
 		case GenreType::RIEN:
 		{
-			return "rien";
+			enchaineuse.ajoute("rien");
+			return;
 		}
 		case GenreType::BOOL:
 		{
-			return "bool";
+			enchaineuse.ajoute("bool");
+			return;
 		}
 		case GenreType::OCTET:
 		{
-			return "octet";
+			enchaineuse.ajoute("octet");
+			return;
 		}
 		case GenreType::ENTIER_CONSTANT:
 		{
-			return "entier_constant";
+			enchaineuse.ajoute("entier_constant");
+			return;
 		}
 		case GenreType::ENTIER_NATUREL:
 		{
 			if (type->taille_octet == 1) {
-				return "n8";
+				enchaineuse.ajoute("n8");
+				return;
 			}
 
 			if (type->taille_octet == 2) {
-				return "n16";
+				enchaineuse.ajoute("n16");
+				return;
 			}
 
 			if (type->taille_octet == 4) {
-				return "n32";
+				enchaineuse.ajoute("n32");
+				return;
 			}
 
 			if (type->taille_octet == 8) {
-				return "n64";
+				enchaineuse.ajoute("n64");
+				return;
 			}
 
-			return "invalide";
+			enchaineuse.ajoute("invalide");
+			return;
 		}
 		case GenreType::ENTIER_RELATIF:
 		{
 			if (type->taille_octet == 1) {
-				return "z8";
+				enchaineuse.ajoute("z8");
+				return;
 			}
 
 			if (type->taille_octet == 2) {
-				return "z16";
+				enchaineuse.ajoute("z16");
+				return;
 			}
 
 			if (type->taille_octet == 4) {
-				return "z32";
+				enchaineuse.ajoute("z32");
+				return;
 			}
 
 			if (type->taille_octet == 8) {
-				return "z64";
+				enchaineuse.ajoute("z64");
+				return;
 			}
 
-			return "invalide";
+			enchaineuse.ajoute("invalide");
+			return;
 		}
 		case GenreType::REEL:
 		{
 			if (type->taille_octet == 2) {
-				return "r16";
+				enchaineuse.ajoute("r16");
+				return;
 			}
 
 			if (type->taille_octet == 4) {
-				return "r32";
+				enchaineuse.ajoute("r32");
+				return;
 			}
 
 			if (type->taille_octet == 8) {
-				return "r64";
+				enchaineuse.ajoute("r64");
+				return;
 			}
 
-			return "invalide";
+			enchaineuse.ajoute("invalide");
+			return;
 		}
 		case GenreType::REFERENCE:
 		{
-			return "&" + chaine_type(static_cast<TypeReference const *>(type)->type_pointe);
+			enchaineuse.ajoute("&");
+			chaine_type(enchaineuse, static_cast<TypeReference const *>(type)->type_pointe);
+			return;
 		}
 		case GenreType::POINTEUR:
 		{
-			return "*" + chaine_type(static_cast<TypePointeur const *>(type)->type_pointe);
+			enchaineuse.ajoute("*");
+			chaine_type(enchaineuse, static_cast<TypePointeur const *>(type)->type_pointe);
+			return;
 		}
 		case GenreType::UNION:
 		{
 			auto type_structure = static_cast<TypeStructure const *>(type);
 
 			if (type_structure->nom) {
-				return type_structure->nom->nom;
+				enchaineuse << type_structure->nom->nom;
+				return;
 			}
 
-			return "union.anonyme";
+			enchaineuse.ajoute("union.anonyme");
+			return;
 		}
 		case GenreType::STRUCTURE:
 		{
 			auto type_structure = static_cast<TypeStructure const *>(type);
 
 			if (type_structure->nom) {
-				return type_structure->nom->nom;
+				enchaineuse << type_structure->nom->nom;
+				return;
 			}
 
-			return "struct.anonyme";
+			enchaineuse.ajoute("struct.anonyme");
+			return;
 		}
 		case GenreType::TABLEAU_DYNAMIQUE:
 		{
-			return "[]" + chaine_type(static_cast<TypeTableauDynamique const *>(type)->type_pointe);
+			enchaineuse.ajoute("[]");
+			chaine_type(enchaineuse, static_cast<TypeTableauDynamique const *>(type)->type_pointe);
+			return;
 		}
 		case GenreType::TABLEAU_FIXE:
 		{
 			auto type_tabl = static_cast<TypeTableauFixe const *>(type);
 
-			auto res = dls::chaine("[");
-			res += dls::vers_chaine(type_tabl->taille);
-			res += "]";
-
-			return res + chaine_type(type_tabl->type_pointe);
+			enchaineuse << "[" << type_tabl->taille << "]";
+			chaine_type(enchaineuse, type_tabl->type_pointe);
+			return;
 		}
 		case GenreType::VARIADIQUE:
 		{
-			return "..." + chaine_type(static_cast<TypeVariadique const *>(type)->type_pointe);
+			enchaineuse << "...";
+			chaine_type(enchaineuse, static_cast<TypeVariadique const *>(type)->type_pointe);
+			return;
 		}
 		case GenreType::FONCTION:
 		{
 			auto type_fonc = static_cast<TypeFonction const *>(type);
 
-			auto res = dls::chaine("fonc");
+			enchaineuse << "fonc";
 
 			auto virgule = '(';
 
 			POUR (type_fonc->types_entrees) {
-				res += virgule;
-				res += chaine_type(it);
+				enchaineuse << virgule;
+				chaine_type(enchaineuse, it);
 				virgule = ',';
 			}
 
 			if (type_fonc->types_entrees.est_vide()) {
-				res += virgule;
+				enchaineuse << virgule;
 			}
 
-			res += ')';
-
-			res += '(';
-			res += chaine_type(type_fonc->type_sortie);
-			res += ')';
-
-			return res;
+			enchaineuse << '(';
+			chaine_type(enchaineuse, type_fonc->type_sortie);
+			enchaineuse << ')';
+			return;
 		}
 		case GenreType::ENUM:
 		case GenreType::ERREUR:
 		{
-			return static_cast<TypeEnum const *>(type)->nom->nom;
+			enchaineuse << static_cast<TypeEnum const *>(type)->nom->nom;
+			return;
 		}
 		case GenreType::TYPE_DE_DONNEES:
 		{
-			return "type_de_données";
+			enchaineuse << "type_de_données";
+			return;
 		}
 		case GenreType::POLYMORPHIQUE:
 		{
 			auto type_polymorphique = static_cast<TypePolymorphique const *>(type);
-			auto res = dls::chaine("$");
+			enchaineuse << "$";
 
 			if (type_polymorphique->est_structure_poly) {
-				return res + type_polymorphique->structure->ident->nom;
+				enchaineuse << type_polymorphique->structure->ident->nom;
+				return;
 			}
 
-			return res + type_polymorphique->ident->nom;
+			enchaineuse << type_polymorphique->ident->nom;
+			return;
 		}
 		case GenreType::OPAQUE:
 		{
 			auto type_opaque = static_cast<TypeOpaque const *>(type);
-			auto res = dls::chaine();
-			res = static_cast<TypeOpaque const *>(type)->ident->nom;
-			res += "(" + chaine_type(type_opaque->type_opacifie) + ")";
-			return res;
+			enchaineuse << static_cast<TypeOpaque const *>(type)->ident->nom;
+			enchaineuse << "(";
+			chaine_type(enchaineuse, type_opaque->type_opacifie);
+			enchaineuse << ")";
+			return;
 		}
 		case GenreType::TUPLE:
 		{
 			auto type_tuple = static_cast<TypeTuple const *>(type);
-			dls::chaine resultat = "tuple ";
+			enchaineuse << "tuple ";
 
 			auto virgule = '(';
 			POUR (type_tuple->membres) {
-				resultat += virgule;
-				resultat += chaine_type(it.type);
+				enchaineuse << virgule;
+				chaine_type(enchaineuse, it.type);
 				virgule = ',';
 			}
 
-			resultat += ')';
-
-			return resultat;
+			enchaineuse << ')';
+			return;
 		}
 	}
+}
 
-	return "";
+kuri::chaine chaine_type(const Type *type)
+{
+	Enchaineuse enchaineuse;
+	chaine_type(enchaineuse, type);
+	return enchaineuse.chaine();
 }
 
 Type *type_dereference_pour(Type *type)
@@ -1371,7 +1410,7 @@ Type *type_dereference_pour(Type *type)
 	return nullptr;
 }
 
-void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine_compacte> &noms)
+void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<kuri::chaine_statique> &noms)
 {
 	if (type->genre == GenreType::FONCTION) {
 		auto type_fonction = type->comme_fonction();
@@ -1615,24 +1654,28 @@ void calcule_taille_type_compose(TypeCompose *type)
 	}
 }
 
-static dls::chaine nom_portable(NoeudBloc *bloc, dls::vue_chaine_compacte nom)
+static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
 {
-	auto resultat = dls::chaine();
+	dls::tablet<kuri::chaine_statique, 6> noms;
 
 	while (bloc) {
 		if (bloc->ident) {
-			resultat = bloc->ident->nom + resultat;
+			noms.ajoute(bloc->ident->nom);
 		}
 
 		bloc = bloc->bloc_parent;
 	}
 
-	resultat += nom;
+	Enchaineuse enchaineuse;
+	for (auto i = noms.taille() - 1; i >= 0; --i) {
+		enchaineuse.ajoute(noms[i]);
+	}
+	enchaineuse.ajoute(nom);
 
-	return resultat;
+	return enchaineuse.chaine();
 }
 
-const dls::chaine &TypeStructure::nom_portable()
+const kuri::chaine &TypeStructure::nom_portable()
 {
 	if (nom_portable_ != "") {
 		return nom_portable_;
@@ -1642,7 +1685,7 @@ const dls::chaine &TypeStructure::nom_portable()
 	return nom_portable_;
 }
 
-const dls::chaine &TypeUnion::nom_portable()
+const kuri::chaine &TypeUnion::nom_portable()
 {
 	if (nom_portable_ != "") {
 		return nom_portable_;
@@ -1652,7 +1695,7 @@ const dls::chaine &TypeUnion::nom_portable()
 	return nom_portable_;
 }
 
-const dls::chaine &TypeEnum::nom_portable()
+const kuri::chaine &TypeEnum::nom_portable()
 {
 	if (nom_portable_ != "") {
 		return nom_portable_;
@@ -1662,7 +1705,7 @@ const dls::chaine &TypeEnum::nom_portable()
 	return nom_portable_;
 }
 
-const dls::chaine &TypeOpaque::nom_portable()
+const kuri::chaine &TypeOpaque::nom_portable()
 {
 	if (nom_portable_ != "") {
 		return nom_portable_;

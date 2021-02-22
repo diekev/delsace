@@ -24,14 +24,14 @@
 
 #pragma once
 
-#include "biblinternes/outils/enchaineuse.hh"
 #include "biblinternes/structures/tableau_page.hh"
-#include "biblinternes/structures/vue_chaine_compacte.hh"
 
+#include "structures/chaine.hh"
+#include "structures/enchaineuse.hh"
 #include "structures/table_hachage.hh"
 
 struct IdentifiantCode {
-	dls::vue_chaine_compacte nom{};
+	kuri::chaine_statique nom{};
 };
 
 struct TableIdentifiant {
@@ -46,7 +46,7 @@ public:
 
 	IdentifiantCode *identifiant_pour_chaine(dls::vue_chaine_compacte const &nom);
 
-	IdentifiantCode *identifiant_pour_nouvelle_chaine(dls::chaine const &nom);
+	IdentifiantCode *identifiant_pour_nouvelle_chaine(kuri::chaine const &nom);
 
 	long taille() const;
 

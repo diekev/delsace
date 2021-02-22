@@ -44,10 +44,10 @@ private:
 	Enchaineuse enchaineuse{};
 
 public:
-	long ajoute_chaine(dls::chaine const &chaine);
+	long ajoute_chaine(kuri::chaine_statique chaine);
 	long ajoute_chaine(kuri::chaine const &chaine);
 
-	kuri::chaine chaine_pour_adresse(long adresse) const;
+	kuri::chaine_statique chaine_pour_adresse(long adresse) const;
 
 	long memoire_utilisee() const;
 };
@@ -119,7 +119,7 @@ private:
 	PhaseCompilation phase = PhaseCompilation::PARSAGE_EN_COURS;
 
 public:
-	dls::chaine nom{};
+	kuri::chaine nom{};
 	OptionsCompilation options{};
 
 	template <typename T>
@@ -137,7 +137,7 @@ public:
 
 	dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
 
-	using TypeDicoFonction = dls::dico<dls::chaine, AtomeFonction *>;
+	using TypeDicoFonction = dls::dico<kuri::chaine, AtomeFonction *>;
 	tableau_page<AtomeFonction> fonctions{};
 
 	using TypeDicoGlobale = dls::dico<NoeudDeclaration *, AtomeGlobale *>;
@@ -153,7 +153,7 @@ public:
 	using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
 	dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
-	using TableChaine = kuri::table_hachage<dls::chaine, AtomeConstante *>;
+	using TableChaine = kuri::table_hachage<kuri::chaine_statique, AtomeConstante *>;
 	dls::outils::Synchrone<TableChaine> table_chaines{};
 
 	std::mutex mutex_atomes_fonctions{};
@@ -183,7 +183,7 @@ public:
 	 * Retourne un pointeur vers le module avec le nom et le chemin spécifiés.
 	 * Si un tel module n'existe pas, un nouveau module est créé.
 	 */
-	Module *trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module, IdentifiantCode *nom_module, dls::vue_chaine chemin);
+	Module *trouve_ou_cree_module(dls::outils::Synchrone<SystemeModule> &sys_module, IdentifiantCode *nom_module, kuri::chaine_statique chemin);
 
 	/**
 	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
@@ -195,7 +195,7 @@ public:
 	 * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
 	 * fichier ainsi créé ou un pointeur vers un fichier existant.
 	 */
-	ResultatFichier trouve_ou_cree_fichier(dls::outils::Synchrone<SystemeModule> &sys_module, Module *module, dls::vue_chaine nom_fichier, dls::vue_chaine chemin, bool importe_kuri);
+	ResultatFichier trouve_ou_cree_fichier(dls::outils::Synchrone<SystemeModule> &sys_module, Module *module, kuri::chaine_statique nom_fichier, kuri::chaine_statique chemin, bool importe_kuri);
 
 	/**
 	 * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
@@ -209,10 +209,10 @@ public:
 	 */
 	Fichier *fichier(const dls::vue_chaine_compacte &chemin) const;
 
-	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction);
-	AtomeFonction *cree_fonction(Lexeme const *lexeme, dls::chaine const &nom_fonction, kuri::tableau<Atome *, int> &&params);
+	AtomeFonction *cree_fonction(Lexeme const *lexeme, kuri::chaine const &nom_fonction);
+	AtomeFonction *cree_fonction(Lexeme const *lexeme, kuri::chaine const &nom_fonction, kuri::tableau<Atome *, int> &&params);
 	AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice, NoeudDeclarationEnteteFonction *decl);
-	AtomeFonction *trouve_fonction(dls::chaine const &nom_fonction);
+	AtomeFonction *trouve_fonction(kuri::chaine const &nom_fonction);
 	AtomeFonction *trouve_ou_insere_fonction_init(ConstructriceRI &constructrice, Type *type);
 
 	AtomeGlobale *cree_globale(Type *type, AtomeConstante *valeur, bool initialisateur, bool est_constante);
@@ -271,16 +271,16 @@ struct Compilatrice {
 	template <typename T>
 	using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
-	tableau_synchrone<dls::chaine> bibliotheques_dynamiques{};
+	tableau_synchrone<kuri::chaine> bibliotheques_dynamiques{};
 
-	tableau_synchrone<dls::chaine> bibliotheques_statiques{};
+	tableau_synchrone<kuri::chaine> bibliotheques_statiques{};
 
 	tableau_synchrone<dls::vue_chaine_compacte> chemins{};
 
 	/* définitions passées au compilateur C pour modifier les fichiers d'entête */
 	tableau_synchrone<dls::vue_chaine_compacte> definitions{};
 
-	tableau_synchrone<dls::chaine> chaines_ajoutees_a_la_compilation{};
+	tableau_synchrone<kuri::chaine> chaines_ajoutees_a_la_compilation{};
 
 	template <typename T>
 	using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
@@ -288,7 +288,7 @@ struct Compilatrice {
 	tableau_page_synchrone<EspaceDeTravail> espaces_de_travail{};
 	EspaceDeTravail *espace_de_travail_defaut = nullptr;
 
-	dls::chaine racine_kuri{};
+	kuri::chaine racine_kuri{};
 
 	dls::outils::Synchrone<SystemeModule> sys_module{};
 
@@ -324,15 +324,15 @@ struct Compilatrice {
 	 *
 	 * Le paramètre est_racine ne doit être vrai que pour le module racine.
 	 */
-	Module *importe_module(EspaceDeTravail *espace, dls::chaine const &nom, NoeudExpression const *site);
+	Module *importe_module(EspaceDeTravail *espace, kuri::chaine const &nom, NoeudExpression const *site);
 
 	/* ********************************************************************** */
 
-	void ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, dls::chaine const &chemin, Module *module, NoeudExpression const *site);
+	void ajoute_fichier_a_la_compilation(EspaceDeTravail *espace, kuri::chaine const &chemin, Module *module, NoeudExpression const *site);
 
 	/* ********************************************************************** */
 
-	EspaceDeTravail *demarre_un_espace_de_travail(OptionsCompilation const &options, dls::chaine const &nom);
+	EspaceDeTravail *demarre_un_espace_de_travail(OptionsCompilation const &options, kuri::chaine const &nom);
 
 	/* ********************************************************************** */
 
@@ -351,12 +351,12 @@ OptionsCompilation *obtiens_options_compilation();
 void ajourne_options_compilation(OptionsCompilation *options);
 
 EspaceDeTravail *espace_defaut_compilation();
-void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine c);
-void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine c);
-void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine c);
+void compilatrice_ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
+void compilatrice_ajoute_fichier_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
+void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c);
 int fonction_test_variadique_externe(int sentinel, ...);
 
-EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine nom, OptionsCompilation *options);
+EspaceDeTravail *demarre_un_espace_de_travail(kuri::chaine_statique nom, OptionsCompilation *options);
 
 EspaceDeTravail *compilatrice_espace_courant();
 
@@ -364,10 +364,10 @@ Message const *compilatrice_attend_message();
 void compilatrice_commence_interception(EspaceDeTravail *espace);
 void compilatrice_termine_interception(EspaceDeTravail *espace);
 
-void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine fichier, int ligne, kuri::chaine message);
+void compilatrice_rapporte_erreur(EspaceDeTravail *espace, kuri::chaine_statique fichier, int ligne, kuri::chaine_statique message);
 
 /* ATTENTION: le paramètre « site » ne fait pas partie de l'interface de la fonction !
  * Cette fonction n'est pas appelée via FFI, mais est manuellement détectée et appelée
  * avec le site renseigné.
  */
-kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine chemin_donne, NoeudExpression const *site);
+kuri::tableau<kuri::Lexeme> compilatrice_lexe_fichier(kuri::chaine_statique chemin_donne, NoeudExpression const *site);

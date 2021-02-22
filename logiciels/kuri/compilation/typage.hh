@@ -30,6 +30,8 @@
 #include "biblinternes/structures/tablet.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "structures/chaine.hh"
+
 #include "lexemes.hh"
 #include "operateurs.hh"
 
@@ -194,7 +196,7 @@ struct Type {
 	int drapeaux = 0;
 	unsigned index_dans_table_types = 0;
 
-	dls::chaine nom_broye{};
+	kuri::chaine nom_broye{};
 
 	InfoType *info_type = nullptr;
 	AtomeConstante *atome_info_type = nullptr;
@@ -330,7 +332,7 @@ struct TypeCompose : public Type {
 	IdentifiantCode *nom = nullptr;
 
 	/* Le nom final, contenant les informations de portée (p.e. ModuleStructure, pour Structure :: struct dans le module Module). */
-	dls::chaine nom_portable_{};
+	kuri::chaine nom_portable_{};
 
 	static TypeCompose *cree_eini();
 
@@ -365,7 +367,7 @@ struct TypeStructure final : public TypeCompose {
 	bool deja_genere = false;
 	bool est_anonyme = false;
 
-	dls::chaine const &nom_portable();
+	kuri::chaine const &nom_portable();
 };
 
 struct TypeUnion final : public TypeCompose {
@@ -385,7 +387,7 @@ struct TypeUnion final : public TypeCompose {
 
 	void cree_type_structure(Typeuse &typeuse, unsigned alignement_membre_actif);
 
-	dls::chaine const &nom_portable();
+	kuri::chaine const &nom_portable();
 };
 
 struct TypeEnum final : public TypeCompose {
@@ -399,7 +401,7 @@ struct TypeEnum final : public TypeCompose {
 	bool est_drapeau = false;
 	bool est_erreur = false;
 
-	dls::chaine const &nom_portable();
+	kuri::chaine const &nom_portable();
 };
 
 struct TypeTableauFixe final : public TypeCompose {
@@ -472,9 +474,9 @@ struct TypeOpaque : public Type {
 	NoeudDeclarationVariable *decl = nullptr;
 	IdentifiantCode *ident = nullptr;
 	Type *type_opacifie = nullptr;
-	dls::chaine nom_portable_ = "";
+	kuri::chaine nom_portable_ = "";
 
-	dls::chaine const &nom_portable();
+	kuri::chaine const &nom_portable();
 };
 
 /* Pour les sorties multiples des fonctions. */
@@ -578,7 +580,7 @@ inline TypeTuple *Type::comme_tuple()
 
 /* ************************************************************************** */
 
-void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<dls::vue_chaine_compacte> &noms);
+void rassemble_noms_type_polymorphique(Type *type, kuri::tableau<kuri::chaine_statique> &noms);
 
 // À FAIRE(table type) : il peut y avoir une concurrence critique pour l'assignation d'index aux types
 struct Typeuse {
@@ -690,7 +692,7 @@ struct Typeuse {
 
 /* ************************************************************************** */
 
-dls::chaine chaine_type(Type const *type);
+kuri::chaine chaine_type(Type const *type);
 
 Type *type_dereference_pour(Type *type);
 

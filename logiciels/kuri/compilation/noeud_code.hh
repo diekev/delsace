@@ -51,8 +51,8 @@ struct NoeudCode {
 	int genre = 0;
 	InfoType *info_type = nullptr;
 
-	kuri::chaine chemin_fichier{};
-	kuri::chaine nom_fichier{};
+	kuri::chaine_statique chemin_fichier{};
+	kuri::chaine_statique nom_fichier{};
 	int numero_ligne = 0;
 	int numero_colonne = 0;
 
@@ -60,12 +60,12 @@ struct NoeudCode {
 };
 
 struct NoeudCodeEnteteFonction : public NoeudCode {
-	kuri::chaine nom{};
+	kuri::chaine_statique nom{};
 
 	kuri::tableau<NoeudCodeDeclaration *> params_entree{};
 	kuri::tableau<NoeudCodeDeclaration *> params_sortie{};
 
-	kuri::tableau<kuri::chaine> annotations{};
+	kuri::tableau<kuri::chaine_statique> annotations{};
 
 	bool est_operateur = false;
 	bool est_coroutine = false;
@@ -91,14 +91,14 @@ struct NoeudCodeDeclaration : public NoeudCode {
 struct NoeudCodeOperationUnaire : public NoeudCode {
 	NoeudCode *operande = nullptr;
 
-	kuri::chaine op{};
+	kuri::chaine_statique op{};
 };
 
 struct NoeudCodeOperationBinaire : public NoeudCode {
 	NoeudCode *operande_gauche = nullptr;
 	NoeudCode *operande_droite = nullptr;
 
-	kuri::chaine op{};
+	kuri::chaine_statique op{};
 };
 
 struct NoeudCodeBloc : public NoeudCode {
@@ -162,12 +162,12 @@ struct NoeudCodeVirgule : public NoeudCode {
 };
 
 struct NoeudCodeDirective : public NoeudCode {
-	kuri::chaine ident{};
+	kuri::chaine_statique ident{};
 	NoeudCode *expression = nullptr;
 };
 
 struct NoeudCodeIdentifiant : public NoeudCode {
-	kuri::chaine ident{};
+	kuri::chaine_statique ident{};
 };
 
 struct NoeudCodeLitteraleEntier : public NoeudCode {
@@ -183,7 +183,7 @@ struct NoeudCodeLitteraleCaractere : public NoeudCode {
 };
 
 struct NoeudCodeLitteraleChaine : public NoeudCode {
-	kuri::chaine valeur{};
+	kuri::chaine_statique valeur{};
 };
 
 struct NoeudCodeLitteraleBooleen : public NoeudCode {
@@ -235,19 +235,19 @@ struct InfoTypeTableau : public InfoType {
 struct InfoTypeMembreStructure {
 	// Les Drapeaux sont définis dans TypeCompose::Membre
 
-	kuri::chaine nom{};
+	kuri::chaine_statique nom{};
 	InfoType *info = nullptr;
 	long decalage = 0;  // décalage en octets dans la structure
 	int drapeaux = 0;
 };
 
 struct InfoTypeStructure : public InfoType {
-	kuri::chaine nom{};
+	kuri::chaine_statique nom{};
 	kuri::tableau<InfoTypeMembreStructure *> membres{};
 };
 
 struct InfoTypeUnion : public InfoType {
-	kuri::chaine nom{};
+	kuri::chaine_statique nom{};
 	kuri::tableau<InfoTypeMembreStructure *> membres{};
 	InfoType *type_le_plus_grand = nullptr;
 	long decalage_index = 0;
@@ -261,14 +261,14 @@ struct InfoTypeFonction : public InfoType {
 };
 
 struct InfoTypeEnum : public InfoType {
-	kuri::chaine nom{};
+	kuri::chaine_statique nom{};
 	kuri::tableau<int> valeurs{}; // À FAIRE typage selon énum
-	kuri::tableau<kuri::chaine> noms{};
+	kuri::tableau<kuri::chaine_statique> noms{};
 	bool est_drapeau = false;
 };
 
 struct InfoTypeOpaque : public InfoType {
-	kuri::chaine nom{};
+	kuri::chaine_statique nom{};
 	InfoType *type_opacifie = nullptr;
 };
 

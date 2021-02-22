@@ -24,7 +24,7 @@
 
 #include "coulisse_asm.hh"
 
-#include "biblinternes/outils/enchaineuse.hh"
+#include "structures/enchaineuse.hh"
 
 #include "broyage.hh"
 #include "compilatrice.hh"
@@ -34,8 +34,8 @@
 static constexpr const char *RSP = "rsp";
 
 struct GeneratriceCodeASM {
-    dls::dico<Atome const *, dls::chaine> table_valeurs{};
-    dls::dico<Atome const *, dls::chaine> table_globales{};
+	dls::dico<Atome const *, kuri::chaine> table_valeurs{};
+	dls::dico<Atome const *, kuri::chaine> table_globales{};
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
 
@@ -50,7 +50,7 @@ struct GeneratriceCodeASM {
 
     COPIE_CONSTRUCT(GeneratriceCodeASM);
 
-    dls::chaine genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale);
+	kuri::chaine genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale);
 
     void genere_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
 
@@ -61,7 +61,7 @@ GeneratriceCodeASM::GeneratriceCodeASM(EspaceDeTravail &espace)
     : m_espace(espace)
 {}
 
-dls::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale)
+kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale)
 {
     switch (atome->genre_atome) {
         case Atome::Genre::FONCTION:
@@ -113,15 +113,15 @@ dls::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome, Enchaineuse
                         }
                         case AtomeValeurConstante::Valeur::Genre::ENTIERE:
                         {
-							return dls::vers_chaine(valeur_const->valeur.valeur_entiere);
+							return enchaine(valeur_const->valeur.valeur_entiere);
                         }
                         case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
                         {
-                            return dls::vers_chaine(valeur_const->valeur.valeur_booleenne);
+							return enchaine(valeur_const->valeur.valeur_booleenne);
                         }
                         case AtomeValeurConstante::Valeur::Genre::CARACTERE:
                         {
-                            return dls::vers_chaine(valeur_const->valeur.valeur_entiere);
+							return enchaine(valeur_const->valeur.valeur_entiere);
                         }
                         case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
                         {

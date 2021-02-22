@@ -62,7 +62,7 @@ enum class ObjetGenere : int {
 };
 
 struct OptionsCompilation {
-	kuri::chaine nom_sortie = kuri::chaine("a.out");
+	kuri::chaine_statique nom_sortie = "a.out";
 	TypeCoulisse type_coulisse = TypeCoulisse::C;
 	NiveauOptimisation niveau_optimisation = NiveauOptimisation::AUCUN;
 	ArchitectureCible architecture_cible = ArchitectureCible::X64;

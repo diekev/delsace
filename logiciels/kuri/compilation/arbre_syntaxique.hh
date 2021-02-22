@@ -565,7 +565,7 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	NoeudBloc *bloc_constantes = nullptr;
 	NoeudBloc *bloc_parametres = nullptr;
 
-	dls::chaine nom_broye_ = "";
+	kuri::chaine nom_broye_ = "";
 
 	// mise en cache des monomorphisations déjà existantes afin de ne pas les recréer
 	using tableau_item_monomorphisation = kuri::tableau<ItemMonomorphisation, int>;
@@ -575,7 +575,7 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 
 	tableau_synchrone<dls::paire<tableau_item_monomorphisation, NoeudDeclarationEnteteFonction *>> monomorphisations{};
 
-	kuri::tableau<dls::vue_chaine_compacte, int> annotations{};
+	kuri::tableau<kuri::chaine_statique, int> annotations{};
 
 	bool est_operateur = false;
 	bool est_coroutine = false;
@@ -594,7 +594,7 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	NoeudDeclarationVariable *parametre_entree(long i) const;
 
 	// @design : ce n'est pas très propre de passer l'espace ici, mais il nous faut le fichier pour le module
-	dls::chaine const &nom_broye(EspaceDeTravail *espace);
+	kuri::chaine const &nom_broye(EspaceDeTravail *espace);
 };
 
 struct NoeudDeclarationCorpsFonction : public NoeudDeclaration {

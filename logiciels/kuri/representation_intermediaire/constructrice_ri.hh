@@ -201,7 +201,7 @@ private:
 
 	Atome *converti_vers_tableau_dyn(NoeudExpression *noeud, Atome *pointeur_tableau_fixe, TypeTableauFixe *type_tableau_fixe, Atome *place);
 
-	AtomeConstante *cree_chaine(dls::vue_chaine_compacte const &chaine);
+	AtomeConstante *cree_chaine(kuri::chaine_statique chaine);
 
 	void imprime_instruction(Instruction const *inst, std::ostream &os) const;
 	Atome *valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident);

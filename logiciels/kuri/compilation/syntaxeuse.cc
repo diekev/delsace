@@ -37,19 +37,20 @@
 #include "typage.hh"
 
 // Pour les bibliothèques externes ou les inclusions, détermine le chemin absolu selon le fichier courant, au cas où la bibliothèque serait dans le même dossier que le fichier
-static auto trouve_chemin_si_dans_dossier(Module *module, dls::chaine const &chaine)
+static auto trouve_chemin_si_dans_dossier(Module *module, kuri::chaine const &chaine)
 {
+	auto chaine_ = dls::chaine(chaine);
 	/* vérifie si le chemin est relatif ou absolu */
-	auto chemin = std::filesystem::path(chaine.c_str());
+	auto chemin = std::filesystem::path(chaine_.c_str());
 
 	if (!std::filesystem::exists(chemin)) {
 		/* le chemin n'est pas absolu, détermine s'il est dans le même dossier */
-		auto chemin_abs = module->chemin() + chaine;
+		auto chemin_abs = dls::chaine(module->chemin()) + chaine_;
 
 		chemin = std::filesystem::path(chemin_abs.c_str());
 
 		if (std::filesystem::exists(chemin)) {
-			return chemin_abs;
+			return kuri::chaine(chemin_abs.c_str(), chemin_abs.taille());
 		}
 	}
 
@@ -2176,7 +2177,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 				auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 
 				if (!decl_sortie->est_decl_var()) {
-					auto ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine("__ret" + dls::vers_chaine(noeud->params_sorties.taille()));
+					auto ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(enchaine("__ret", noeud->params_sorties.taille()));
 
 					auto ref = m_tacheronne.assembleuse->cree_ref_decl(decl_sortie->lexeme);
 					ref->ident = ident;
@@ -2430,7 +2431,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 		auto decl_sortie = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
 
 		if (!decl_sortie->est_decl_var()) {
-			auto ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine("__ret" + dls::vers_chaine(noeud->params_sorties.taille()));
+			auto ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(enchaine("__ret", noeud->params_sorties.taille()));
 
 			auto ref = m_tacheronne.assembleuse->cree_ref_decl(decl_sortie->lexeme);
 			ref->ident = ident;
@@ -2682,7 +2683,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 	return noeud_decl;
 }
 
-void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::Genre genre)
+void Syntaxeuse::lance_erreur(const kuri::chaine &quoi, erreur::Genre genre)
 {
 	auto lexeme = lexeme_courant();
 	auto fichier = m_unite->espace->fichier(lexeme->fichier);
@@ -2696,7 +2697,7 @@ void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::Genre genre)
 		erreur::imprime_ligne_avec_message(flux, fichier, it.lexeme, it.message);
 	}
 
-	erreur::imprime_ligne_avec_message(flux, fichier, lexeme, quoi.c_str());
+	erreur::imprime_ligne_avec_message(flux, fichier, lexeme, quoi);
 
 	throw erreur::frappe(flux.chn().c_str(), genre);
 }

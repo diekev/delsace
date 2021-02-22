@@ -29,6 +29,8 @@
 #include "biblinternes/structures/tableau_page.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
+#include "structures/chaine.hh"
+
 struct AtomeFonction;
 struct Compilatrice;
 struct MetaProgramme;
@@ -38,7 +40,7 @@ struct TypeFonction;
 struct GestionnaireBibliotheques {
 	struct BibliothequePartagee {
 		dls::systeme_fichier::shared_library bib{};
-		dls::chaine chemin{};
+		kuri::chaine chemin{};
 	};
 
 	using type_fonction = void(*)();
@@ -48,7 +50,7 @@ private:
 	dls::dico<IdentifiantCode *, type_fonction> symboles_et_fonctions{};
 
 public:
-	void ajoute_bibliotheque(dls::chaine const &chemin);
+	void ajoute_bibliotheque(kuri::chaine const &chemin);
 	void ajoute_fonction_pour_symbole(IdentifiantCode *symbole, type_fonction fonction);
 	type_fonction fonction_pour_symbole(IdentifiantCode *symbole);
 

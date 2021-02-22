@@ -1349,14 +1349,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
 
 							auto tableau = static_cast<AtomeValeurConstante *>(globale_tableau->initialisateur);
 
-							auto chaine = kuri::chaine();
-							chaine.pointeur = tableau->valeur.valeur_tdc.pointeur;
-							chaine.taille = tableau->valeur.valeur_tdc.taille;
+							auto pointeur_chaine = tableau->valeur.valeur_tdc.pointeur;
+							auto taille_chaine = tableau->valeur.valeur_tdc.taille;
 
 							chunk.emets(OP_CHAINE_CONSTANTE);
 							chunk.emets(nullptr); /* site */
-							chunk.emets(chaine.pointeur);
-							chunk.emets(chaine.taille);
+							chunk.emets(pointeur_chaine);
+							chunk.emets(taille_chaine);
 
 							// reférence globale, tableau
 							// accède index
@@ -1539,13 +1538,12 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
 							auto tableau = static_cast<AtomeValeurConstante *>(globale_tableau->initialisateur);
 
-							auto chaine = kuri::chaine();
-							chaine.pointeur = tableau->valeur.valeur_tdc.pointeur;
-							chaine.taille = tableau->valeur.valeur_tdc.taille;
+							auto pointeur_chaine = tableau->valeur.valeur_tdc.pointeur;
+							auto taille_chaine = tableau->valeur.valeur_tdc.taille;
 
 							auto donnees_ = mv->donnees_globales.donnees() + decalage + static_cast<int>(decalage_membre);
-							*reinterpret_cast<char **>(donnees_) = chaine.pointeur;
-							*reinterpret_cast<long *>(donnees_ + 8) = chaine.taille;
+							*reinterpret_cast<char **>(donnees_) = pointeur_chaine;
+							*reinterpret_cast<long *>(donnees_ + 8) = taille_chaine;
 						}
 						else if (type_membre->genre == GenreType::TABLEAU_DYNAMIQUE) {
 							auto valeur_tableau = static_cast<AtomeValeurConstante *>(tableau_valeur[index_membre]);

@@ -83,12 +83,12 @@ void imprime_ligne_avec_message(
 		dls::flux_chaine &flux,
 		Fichier *fichier,
 		Lexeme const *lexeme,
-		const char *message);
+		kuri::chaine_statique message);
 
 void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 
 [[noreturn]] void lance_erreur(
-		const dls::chaine &quoi,
+		const kuri::chaine &quoi,
 		EspaceDeTravail const &espace,
 		const NoeudExpression *site,
 		Genre type = Genre::NORMAL);
@@ -154,9 +154,9 @@ void imprime_site(EspaceDeTravail const &espace, NoeudExpression const *site);
 			NoeudExpression *membre);
 
 [[noreturn]] void valeur_manquante_discr(
-			EspaceDeTravail const &espace,
-			NoeudExpression *expression,
-			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes);
+		EspaceDeTravail const &espace,
+		NoeudExpression *expression,
+		const dls::ensemble<kuri::chaine_statique> &valeurs_manquantes);
 
 [[noreturn]] void fonction_principale_manquante(EspaceDeTravail const &espace);
 }
@@ -172,7 +172,7 @@ struct Erreur {
 
 	[[noreturn]] ~Erreur() noexcept(false);
 
-	Erreur &ajoute_message(dls::chaine const &m);
+	Erreur &ajoute_message(kuri::chaine const &m);
 
 	template <typename... Ts>
 	Erreur &ajoute_message(Ts... ts)
@@ -185,7 +185,7 @@ struct Erreur {
 
 	Erreur &ajoute_site(NoeudExpression const *site);
 
-	Erreur &ajoute_conseil(dls::chaine const &c);
+	Erreur &ajoute_conseil(kuri::chaine const &c);
 
 	void genre_erreur(erreur::Genre genre_)
 	{
@@ -193,8 +193,8 @@ struct Erreur {
 	}
 };
 
-Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, dls::chaine const &message, erreur::Genre genre = erreur::Genre::NORMAL);
+Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, kuri::chaine const &message, erreur::Genre genre = erreur::Genre::NORMAL);
 
-Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace, const dls::chaine &message, erreur::Genre genre = erreur::Genre::NORMAL);
+Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace, const kuri::chaine &message, erreur::Genre genre = erreur::Genre::NORMAL);
 
-Erreur rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine fichier, int ligne, kuri::chaine message);
+Erreur rapporte_erreur(EspaceDeTravail const *espace, const kuri::chaine &fichier, int ligne, const kuri::chaine &message);

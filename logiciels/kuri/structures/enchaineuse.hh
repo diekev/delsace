@@ -25,8 +25,8 @@
 #pragma once
 
 #include "biblinternes/structures/flux_chaine.hh"
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/vue_chaine.hh"
+#include "structures/chaine.hh"
+#include "structures/chaine_statique.hh"
 
 struct Enchaineuse {
 	static constexpr auto TAILLE_TAMPON = 16 * 1024;
@@ -47,7 +47,9 @@ struct Enchaineuse {
 
 	~Enchaineuse();
 
-	void ajoute(dls::vue_chaine const &chn);
+	void ajoute(kuri::chaine_statique const &chn);
+
+	void ajoute_inverse(const kuri::chaine_statique &chn);
 
 	void ajoute(const char *c_str, long N);
 
@@ -63,7 +65,7 @@ struct Enchaineuse {
 
 	long taille_chaine() const;
 
-	dls::chaine chaine() const;
+	kuri::chaine chaine() const;
 };
 
 template <typename T>
@@ -93,8 +95,16 @@ Enchaineuse &operator << (Enchaineuse &enchaineuse, const char (&c)[N])
 	return enchaineuse;
 }
 
-Enchaineuse &operator << (Enchaineuse &enchaineuse, dls::vue_chaine_compacte const &chn);
+Enchaineuse &operator << (Enchaineuse &enchaineuse, kuri::chaine_statique const &chn);
 
-Enchaineuse &operator << (Enchaineuse &enchaineuse, dls::chaine const &chn);
+Enchaineuse &operator << (Enchaineuse &enchaineuse, kuri::chaine const &chn);
 
 Enchaineuse &operator << (Enchaineuse &enchaineuse, const char *chn);
+
+template <typename... Ts>
+kuri::chaine enchaine(Ts &&... ts)
+{
+	Enchaineuse enchaineuse;
+	((enchaineuse << ts), ...);
+	return enchaineuse.chaine();
+}

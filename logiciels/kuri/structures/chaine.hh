@@ -24,8 +24,13 @@
 
 #pragma once
 
+#include <cstring>
+
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/vue_chaine_compacte.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
+
+#include "chaine_statique.hh"
 
 /**
  * Ces structures sont les mêmes que celles définies par le langage (tableaux
@@ -39,96 +44,230 @@
 namespace kuri {
 
 struct chaine {
-	char *pointeur = nullptr;
-	long taille = 0;
+private:
+	using TypeIndex = long;
 
+	char *pointeur_ = nullptr;
+	TypeIndex taille_ = 0;
+	TypeIndex capacite_ = 0;
+
+public:
 	chaine() = default;
 
-	COPIE_CONSTRUCT(chaine);
-
-	explicit chaine(const char *c_str)
-		: pointeur(const_cast<char *>(c_str))
+	chaine(chaine const &autre)
+		: chaine()
 	{
-		while (*c_str++ != '\0') {
-			taille += 1;
+		if (this != &autre) {
+			reserve(autre.taille());
+			taille_ = 0;
+			for (auto i = 0; i < autre.taille(); ++i) {
+				ajoute_reserve(autre.pointeur()[i]);
+			}
 		}
 	}
 
-	chaine(dls::chaine const &chn)
-		: pointeur(const_cast<char *>(chn.c_str()))
-		, taille(chn.taille())
+	chaine(chaine &&autre)
+	{
+		permute(autre);
+	}
+
+	chaine(const char *c_str, long taille)
+		: chaine()
+	{
+		reserve(taille);
+
+		for (auto i = 0; i < taille; ++i) {
+			ajoute_reserve(c_str[i]);
+		}
+	}
+
+	template <size_t N>
+	chaine(const char (&c)[N])
+		: chaine(c, static_cast<TypeIndex>(N))
+	{}
+
+	chaine(const char *c_str)
+		: chaine(c_str, static_cast<long>(std::strlen(c_str)))
 	{}
 
 	chaine(dls::vue_chaine_compacte const &chn)
-		: pointeur(const_cast<char *>(chn.pointeur()))
-		, taille(chn.taille())
+		: chaine(chn.pointeur(), chn.taille())
 	{}
 
-	char &operator[](long i)
+	chaine(chaine_statique chn)
+		: chaine(chn.pointeur(), chn.taille())
+	{}
+
+	~chaine()
 	{
-		assert(i >= 0 && i < this->taille);
-		return this->pointeur[i];
+		memoire::deloge_tableau("chaine", this->pointeur_, this->capacite_);
 	}
 
-	char const &operator[](long i) const
+	chaine &operator=(chaine const &autre)
 	{
-		assert(i >= 0 && i < this->taille);
-		return this->pointeur[i];
+		if (this != &autre) {
+			reserve(autre.taille());
+			taille_ = 0;
+			for (auto i = 0; i < autre.taille(); ++i) {
+				ajoute_reserve(autre.pointeur()[i]);
+			}
+		}
+
+		return *this;
+	}
+
+	chaine &operator=(chaine &&autre)
+	{
+		permute(autre);
+		return *this;
+	}
+
+	char &operator[](TypeIndex i)
+	{
+		assert(i >= 0 && i < this->taille_);
+		return this->pointeur_[i];
+	}
+
+	char const &operator[](TypeIndex i) const
+	{
+		assert(i >= 0 && i < this->taille_);
+		return this->pointeur_[i];
 	}
 
 	char *begin()
 	{
-		return this->pointeur;
+		return this->pointeur_;
 	}
 
 	char const *begin() const
 	{
-		return this->pointeur;
+		return this->pointeur_;
 	}
 
 	char *end()
 	{
-		return this->begin() + this->taille;
+		return this->begin() + this->taille_;
 	}
 
 	char const *end() const
 	{
-		return this->begin() + this->taille;
+		return this->begin() + this->taille_;
 	}
 
 	void ajoute(char c)
 	{
-		memoire::reloge_tableau("chaine", this->pointeur, this->taille, this->taille + 1);
-		pousse_reserve(c);
+		reserve(taille() + 1);
+		ajoute_reserve(c);
 	}
 
-	void pousse_reserve(char c)
+	void ajoute_reserve(char c)
 	{
-		this->pointeur[this->taille] = c;
-		this->taille += 1;
+		this->pointeur_[this->taille_] = c;
+		this->taille_ += 1;
 	}
 
-	void reserve(long nouvelle_taille)
+	void reserve(TypeIndex nouvelle_taille)
 	{
-		if (nouvelle_taille <= this->taille) {
+		if (nouvelle_taille <= this->capacite_) {
 			return;
 		}
 
-		memoire::reloge_tableau("chaine", this->pointeur, this->taille, this->taille + nouvelle_taille);
+		memoire::reloge_tableau("chaine", this->pointeur_, this->capacite_, nouvelle_taille);
+		this->capacite_ = nouvelle_taille;
+	}
+
+	void redimensionne(TypeIndex nouvelle_taille)
+	{
+		reserve(nouvelle_taille);
+		taille_ = nouvelle_taille;
+	}
+
+	void efface()
+	{
+		taille_ = 0;
+	}
+
+	char *pointeur()
+	{
+		return pointeur_;
+	}
+
+	char const *pointeur() const
+	{
+		return pointeur_;
+	}
+
+	TypeIndex taille() const
+	{
+		return taille_;
+	}
+
+	TypeIndex capacite() const
+	{
+		return capacite_;
+	}
+
+	chaine sous_chaine(TypeIndex index) const
+	{
+		return chaine(this->pointeur() + index, this->taille() - index);
+	}
+
+	operator dls::vue_chaine_compacte() const
+	{
+		return { pointeur(), taille() };
+	}
+
+	operator chaine_statique() const
+	{
+		return { pointeur(), taille() };
+	}
+
+	void permute(chaine &autre)
+	{
+		std::swap(pointeur_, autre.pointeur_);
+		std::swap(taille_, autre.taille_);
+		std::swap(capacite_, autre.capacite_);
 	}
 };
 
-chaine copie_chaine(chaine const &autre);
+bool operator == (chaine const &chn1, chaine const &chn2);
 
-void detruit_chaine(chaine &chn);
+bool operator == (chaine const &chn1, chaine_statique const &chn2);
 
-bool operator == (kuri::chaine const &chn1, kuri::chaine const &chn2);
+bool operator == (chaine_statique const &chn1, chaine const &chn2);
 
-bool operator != (kuri::chaine const &chn1, kuri::chaine const &chn2);
+bool operator == (chaine const &chn1, const char *chn2);
 
-std::ostream &operator<<(std::ostream &os, kuri::chaine const &chn);
+bool operator == (const char *chn1, chaine const &chn2);
+
+bool operator != (kuri::chaine const &chn1, chaine const &chn2);
+
+bool operator != (chaine const &chn1, chaine_statique const &chn2);
+
+bool operator != (chaine_statique const &chn1, chaine const &chn2);
+
+bool operator != (chaine const &chn1, const char *chn2);
+
+bool operator != (const char *chn1, chaine const &chn2);
+
+std::ostream &operator<<(std::ostream &os, chaine const &chn);
+
+long distance_levenshtein(chaine_statique const &chn1, chaine_statique const &chn2);
 
 }
+
+namespace std {
+
+template <>
+struct hash<kuri::chaine> {
+	std::size_t operator()(kuri::chaine const &chn) const
+	{
+		auto h = std::hash<std::string>{};
+		return h(std::string(chn.pointeur(), static_cast<size_t>(chn.taille())));
+	}
+};
+
+}  /* namespace std */
 
 /*
 

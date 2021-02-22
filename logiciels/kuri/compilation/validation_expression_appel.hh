@@ -26,8 +26,8 @@
 
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/tablet.hh"
-#include "biblinternes/structures/vue_chaine_compacte.hh"
 
+#include "structures/chaine_statique.hh"
 #include "structures/tableau.hh"
 
 #include "transformation_type.hh"
@@ -92,7 +92,7 @@ struct DonneesCandidate {
 	int etat = FONCTION_INTROUVEE;
 	int raison = AUCUNE_RAISON;
 	double poids_args = 0.0;
-	dls::vue_chaine_compacte nom_arg{};
+	kuri::chaine_statique nom_arg{};
 
 	/* Ce que nous avons à gauche */
 	int note = NOTE_INVALIDE;

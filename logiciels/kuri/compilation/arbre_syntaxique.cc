@@ -141,7 +141,14 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab, bool subs
 			auto expr = static_cast<NoeudDeclarationVariable *>(racine);
 
 			imprime_tab(os, tab);
-			os << "decl var : " << (expr->ident ? expr->ident->nom : expr->lexeme->chaine) << '\n';
+			os << "decl var : ";
+			if (expr->ident) {
+				os << expr->ident->nom;
+			}
+			else {
+				os << expr->lexeme->chaine;
+			}
+			os << "\n";
 
 			imprime_arbre(expr->valeur, os, tab + 1, substitution);
 			imprime_arbre(expr->expression, os, tab + 1, substitution);
@@ -2436,7 +2443,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 			rassemble_feuilles(enfant1, feuilles);
 
 			auto idx = static_cast<NoeudExpression *>(nullptr);
-			auto nom_idx = dls::chaine{};
+			auto nom_idx = kuri::chaine{};
 
 			if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
 				idx = feuilles.back();
@@ -2992,7 +2999,7 @@ NoeudDeclarationVariable *NoeudDeclarationEnteteFonction::parametre_entree(long 
 	return param->comme_decl_var();
 }
 
-dls::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *espace)
+kuri::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *espace)
 {
 	if (nom_broye_ != "") {
 		return nom_broye_;
@@ -3002,7 +3009,7 @@ dls::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *es
 		auto fichier = espace->fichier(lexeme->fichier);
 
 		if (est_metaprogramme) {
-			nom_broye_ = "metaprogramme" + dls::vers_chaine(this);
+			nom_broye_ = enchaine("metaprogramme", this);
 		}
 		else {
 			nom_broye_ = broye_nom_fonction(this, fichier->module->nom()->nom);

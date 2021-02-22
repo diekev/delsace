@@ -24,8 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/structures/chaine.hh"
-
+#include "structures/chaine.hh"
 #include "structures/tableau.hh"
 
 #undef STATISTIQUES_DETAILLEES
@@ -50,7 +49,7 @@ concept TypeEntreesStats = requires(T a, T b)
 #endif
 
 struct EntreeNombreMemoire {
-    dls::chaine nom = "";
+    kuri::chaine nom = "";
     long compte = 0;
     long memoire = 0;
 
@@ -63,7 +62,7 @@ struct EntreeNombreMemoire {
 };
 
 struct EntreeTaille {
-	dls::chaine nom = "";
+	kuri::chaine nom = "";
 	long taille = 0;
 
 	EntreeTaille &operator += (EntreeTaille const &autre)
@@ -74,7 +73,7 @@ struct EntreeTaille {
 };
 
 struct EntreeFichier {
-    dls::chaine nom = "";
+    kuri::chaine nom = "";
     long memoire_lexemes = 0;
     long nombre_lexemes = 0;
     long nombre_lignes = 0;
@@ -111,11 +110,11 @@ struct EntreeTemps {
 
 template <TypeEntreesStats T>
 struct EntreesStats {
-	dls::chaine nom{};
+	kuri::chaine nom{};
 	kuri::tableau<T, int> entrees{};
     T totaux{};
 
-	EntreesStats(dls::chaine const &nom_)
+	EntreesStats(kuri::chaine const &nom_)
 		: nom(nom_)
 	{}
 

@@ -34,6 +34,7 @@
 
 #include <mutex>
 
+#include "structures/chaine.hh"
 #include "structures/tableau.hh"
 
 #include "lexemes.hh"
@@ -57,8 +58,8 @@ struct DonneesConstantesFichier {
 
 	kuri::tableau<Lexeme, int> lexemes{};
 
-	dls::chaine nom{""};
-	dls::chaine chemin{""};
+	kuri::chaine nom{""};
+	kuri::chaine chemin{""};
 
 	long id = 0;
 
@@ -98,12 +99,12 @@ struct Fichier {
 	 */
 	bool importe_module(IdentifiantCode *nom_module) const;
 
-	dls::chaine const &chemin() const
+	kuri::chaine const &chemin() const
 	{
 		return donnees_constantes->chemin;
 	}
 
-	dls::chaine const &nom() const
+	kuri::chaine const &nom() const
 	{
 		return donnees_constantes->nom;
 	}
@@ -138,7 +139,7 @@ using ResultatFichier = Resultat<FichierExistant, FichierNeuf>;
 struct DonneesConstantesModule {
 	/* le nom du module, qui est le nom du dossier où se trouve les fichiers */
 	IdentifiantCode *nom = nullptr;
-	dls::chaine chemin{""};
+	kuri::chaine chemin{""};
 };
 
 struct Module {
@@ -156,7 +157,7 @@ struct Module {
 
 	COPIE_CONSTRUCT(Module);
 
-	dls::chaine const &chemin() const
+	kuri::chaine const &chemin() const
 	{
 		return donnees_constantes->chemin;
 	}
@@ -171,13 +172,13 @@ struct SystemeModule {
 	tableau_page<DonneesConstantesModule> donnees_modules{};
 	tableau_page<DonneesConstantesFichier> donnees_fichiers{};
 
-	DonneesConstantesModule *trouve_ou_cree_module(IdentifiantCode *nom, dls::vue_chaine chemin);
+	DonneesConstantesModule *trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
-	DonneesConstantesModule *cree_module(IdentifiantCode *nom, dls::vue_chaine chemin);
+	DonneesConstantesModule *cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
-	DonneesConstantesFichier *trouve_ou_cree_fichier(dls::vue_chaine nom, dls::vue_chaine chemin);
+	DonneesConstantesFichier *trouve_ou_cree_fichier(kuri::chaine_statique nom, kuri::chaine_statique chemin);
 
-	DonneesConstantesFichier *cree_fichier(dls::vue_chaine nom, dls::vue_chaine chemin);
+	DonneesConstantesFichier *cree_fichier(kuri::chaine_statique nom, kuri::chaine_statique chemin);
 
 	void rassemble_stats(Statistiques &stats) const;
 

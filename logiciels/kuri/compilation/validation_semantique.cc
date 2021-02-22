@@ -90,7 +90,7 @@ void ContexteValidationCode::termine_fonction()
 	fonction_courante = nullptr;
 }
 
-dls::vue_chaine_compacte ContexteValidationCode::trouve_membre_actif(const dls::vue_chaine_compacte &nom_union)
+kuri::chaine_statique ContexteValidationCode::trouve_membre_actif(const kuri::chaine_statique &nom_union)
 {
 	for (auto const &paire : membres_actifs) {
 		if (paire.first == nom_union) {
@@ -101,7 +101,7 @@ dls::vue_chaine_compacte ContexteValidationCode::trouve_membre_actif(const dls::
 	return "";
 }
 
-void ContexteValidationCode::renseigne_membre_actif(const dls::vue_chaine_compacte &nom_union, const dls::vue_chaine_compacte &nom_membre)
+void ContexteValidationCode::renseigne_membre_actif(const kuri::chaine_statique &nom_union, const kuri::chaine_statique &nom_membre)
 {
 	for (auto &paire : membres_actifs) {
 		if (paire.first == nom_union) {
@@ -140,7 +140,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 			auto lexeme = inst->expr->lexeme;
 			auto fichier = espace->fichier(inst->lexeme->fichier);
 			auto temps = dls::chrono::compte_seconde();
-			auto module = m_compilatrice.importe_module(espace, dls::chaine(lexeme->chaine), inst->expr);
+			auto module = m_compilatrice.importe_module(espace, kuri::chaine(lexeme->chaine), inst->expr);
 			temps_chargement += temps.temps();
 			// @concurrence critique
 			fichier->modules_importes.insere(module->nom());
@@ -1680,7 +1680,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 				auto membres_rencontres = dls::ensemblon<IdentifiantCode *, 16>();
 
 				auto valide_presence_membres = [&membres_rencontres, &decl, this, &expression]() {
-					auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
+					auto valeurs_manquantes = dls::ensemble<kuri::chaine_statique>();
 
 					POUR (*decl->bloc->membres.verrou_lecture()) {
 						if (!membres_rencontres.possede(it->ident)) {
@@ -1796,7 +1796,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 				}
 
 				if (inst->bloc_sinon == nullptr) {
-					auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
+					auto valeurs_manquantes = dls::ensemble<kuri::chaine_statique>();
 
 					POUR (type_enum->membres) {
 						if (!membres_rencontres.possede(it.nom) && (it.drapeaux & TypeCompose::Membre::EST_IMPLICITE) == 0) {
@@ -4142,7 +4142,7 @@ void ContexteValidationCode::rapporte_erreur_membre_inactif(NoeudExpression *acc
 	erreur::membre_inactif(*espace, *this, acces, structure, membre);
 }
 
-void ContexteValidationCode::rapporte_erreur_valeur_manquante_discr(NoeudExpression *expression, dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes)
+void ContexteValidationCode::rapporte_erreur_valeur_manquante_discr(NoeudExpression *expression, dls::ensemble<kuri::chaine_statique> const &valeurs_manquantes)
 {
 	erreur::valeur_manquante_discr(*espace, expression, valeurs_manquantes);
 }

@@ -68,8 +68,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto n = noeuds_entetes_fonctions.ajoute_element();
 			n->params_entree.reserve(decl->params.taille());
 
-			n->nom.pointeur = const_cast<char *>(decl->lexeme->chaine.pointeur());
-			n->nom.taille = decl->lexeme->chaine.taille();
+			n->nom = { const_cast<char *>(decl->lexeme->chaine.pointeur()), decl->lexeme->chaine.taille() };
 
 			POUR (decl->params) {
 				auto n_param = converti_noeud_syntaxique(espace, it);
@@ -199,7 +198,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 			auto n = noeuds_operations_binaire.ajoute_element();
 			n->operande_gauche = converti_noeud_syntaxique(espace, noeud_op_bin->expr1);
 			n->operande_droite = converti_noeud_syntaxique(espace, noeud_op_bin->expr2);
-			n->op = noeud_op_bin->lexeme->chaine;
+			n->op = { &noeud_op_bin->lexeme->chaine[0], noeud_op_bin->lexeme->chaine.taille() };
 
 			noeud_code = n;
 			break;
@@ -269,7 +268,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 
 			auto n = noeuds_operations_unaire.ajoute_element();
 			n->operande = converti_noeud_syntaxique(espace, expr->expr);
-			n->op = expr->lexeme->chaine;
+			n->op =  { &expr->lexeme->chaine[0], expr->lexeme->chaine.taille() };
 
 			noeud_code = n;
 			break;
@@ -356,7 +355,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
 		{
 			auto n = noeuds_litterale_chaine.ajoute_element();
-			n->valeur = noeud_expression->lexeme->chaine;
+			n->valeur = { &noeud_expression->lexeme->chaine[0], noeud_expression->lexeme->chaine.taille() };
 
 			noeud_code = n;
 			break;
@@ -399,7 +398,7 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 				n->ident = ref->ident->nom;
 			}
 			else {
-				n->ident = ref->lexeme->chaine;
+				n->ident = { &ref->lexeme->chaine[0], ref->lexeme->chaine.taille() };
 			}
 
 			noeud_code = n;

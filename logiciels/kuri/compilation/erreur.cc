@@ -64,7 +64,7 @@ void imprime_ligne_avec_message(
 		dls::flux_chaine &flux,
 		Fichier *fichier,
 		Lexeme const *lexeme,
-		const char *message)
+		kuri::chaine_statique message)
 {
 	flux << fichier->chemin() << ':' << lexeme->ligne + 1 << ':' << lexeme->colonne + 1 << " : ";
 	flux << message << "\n";
@@ -84,7 +84,7 @@ void imprime_ligne_avec_message(
 	flux << '\n';
 }
 
-void lance_erreur(const dls::chaine &quoi,
+void lance_erreur(const kuri::chaine &quoi,
 		EspaceDeTravail const &espace,
 		const NoeudExpression *site,
 		Genre type)
@@ -330,12 +330,12 @@ void lance_erreur_acces_hors_limites(
 
 struct CandidatMembre {
 	long distance = 0;
-	dls::vue_chaine_compacte chaine = "";
+	kuri::chaine_statique chaine = "";
 };
 
 static auto trouve_candidat(
-			dls::ensemble<dls::vue_chaine_compacte> const &membres,
-			dls::vue_chaine_compacte const &nom_donne)
+			dls::ensemble<kuri::chaine_statique> const &membres,
+			kuri::chaine_statique const &nom_donne)
 {
 	auto candidat = CandidatMembre{};
 	candidat.distance = 1000;
@@ -360,7 +360,7 @@ void membre_inconnu(
 			NoeudExpression *membre,
 			TypeCompose *type)
 {
-	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
+	auto membres = dls::ensemble<kuri::chaine_statique>();
 
 	POUR (type->membres) {
 		membres.insere(it.nom->nom);
@@ -415,7 +415,7 @@ void membre_inactif(
 void valeur_manquante_discr(
 			EspaceDeTravail const &espace,
 			NoeudExpression *expression,
-			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes)
+			dls::ensemble<kuri::chaine_statique> const &valeurs_manquantes)
 {
 	auto e = rapporte_erreur(&espace, expression, "Dans l'expression de discrimination", Genre::NORMAL);
 
@@ -481,9 +481,9 @@ Erreur::~Erreur() noexcept(false)
 	throw erreur::frappe(message.c_str(), erreur::Genre::NORMAL);
 }
 
-Erreur &Erreur::ajoute_message(const dls::chaine &m)
+Erreur &Erreur::ajoute_message(const kuri::chaine &m)
 {
-	message += m;
+	message += dls::chaine(m);
 	return *this;
 }
 
@@ -502,7 +502,7 @@ Erreur &Erreur::ajoute_site(const NoeudExpression *site)
 	return *this;
 }
 
-Erreur &Erreur::ajoute_conseil(const dls::chaine &c)
+Erreur &Erreur::ajoute_conseil(const kuri::chaine &c)
 {
 	auto flux = dls::flux_chaine();
 	flux << message;
@@ -512,7 +512,7 @@ Erreur &Erreur::ajoute_conseil(const dls::chaine &c)
 	return *this;
 }
 
-static dls::chaine chaine_pour_erreur(erreur::Genre genre)
+static kuri::chaine chaine_pour_erreur(erreur::Genre genre)
 {
 	switch (genre) {
 		default:
@@ -541,7 +541,7 @@ static dls::chaine chaine_pour_erreur(erreur::Genre genre)
 #define COULEUR_NORMALE "\033[0m"
 #define COULEUR_CYAN_GRAS "\033[1;36m"
 
-Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, const dls::chaine &message, erreur::Genre genre)
+Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *site, const kuri::chaine &message, erreur::Genre genre)
 {
 	auto fichier = espace->fichier(site->lexeme->fichier);
 
@@ -570,7 +570,7 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace, NoeudExpression const *sit
 	return erreur;
 }
 
-Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace, const dls::chaine &message, erreur::Genre genre)
+Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace, const kuri::chaine &message, erreur::Genre genre)
 {
 	auto flux = dls::flux_chaine();
 	flux << COULEUR_CYAN_GRAS << "-- ";
@@ -596,12 +596,12 @@ Erreur rapporte_erreur_sans_site(EspaceDeTravail const *espace, const dls::chain
 	return erreur;
 }
 
-Erreur rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine fichier, int ligne, kuri::chaine message)
+Erreur rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine const &fichier, int ligne, kuri::chaine const &message)
 {
 	auto flux = dls::flux_chaine();
 	flux << COULEUR_CYAN_GRAS << "-- ";
 
-	auto chaine_erreur = dls::chaine("ERREUR");
+	auto chaine_erreur = kuri::chaine("ERREUR");
 	flux << chaine_erreur << ' ';
 
 	for (auto i = 0; i < 76 - chaine_erreur.taille(); ++i) {
@@ -610,7 +610,7 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace, kuri::chaine fichier, int 
 
 	flux << "\n\n" << COULEUR_NORMALE;
 
-	const Fichier *f = espace->fichier({ fichier.pointeur, fichier.taille });
+	const Fichier *f = espace->fichier({ fichier.pointeur(), fichier.taille() });
 
 	flux << "Dans l'espace de travail \"" << espace->nom << "\" :\n";
 	flux << "\nErreur : " << f->chemin() << ":" << ligne << ":\n";

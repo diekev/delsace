@@ -24,13 +24,13 @@
 
 #pragma once
 
-#include "biblinternes/structures/chaine.hh"
+#include "structures/chaine.hh"
 
 struct NoeudDeclarationEnteteFonction;
 struct Type;
 
-dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom);
+kuri::chaine broye_nom_simple(kuri::chaine_statique const &nom);
 
-dls::chaine const &nom_broye_type(Type *type);
+kuri::chaine const &nom_broye_type(Type *type);
 
-dls::chaine broye_nom_fonction(NoeudDeclarationEnteteFonction *decl, dls::chaine const &nom_module);
+kuri::chaine broye_nom_fonction(NoeudDeclarationEnteteFonction *decl, kuri::chaine const &nom_module);

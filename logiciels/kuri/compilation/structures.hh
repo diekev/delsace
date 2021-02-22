@@ -40,8 +40,8 @@ namespace kuri {
 /* Structure pour passer les lexèmes aux métaprogrammes, via compilatrice_lèxe_fichier
  */
 struct Lexeme {
-	int genre;
-	chaine texte;
+	int genre = 0;
+	chaine_statique texte{};
 };
 
 }

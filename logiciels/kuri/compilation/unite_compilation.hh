@@ -132,7 +132,7 @@ struct UniteCompilation {
 
 	bool est_bloquee() const;
 
-	dls::chaine commentaire() const;
+	kuri::chaine commentaire() const;
 
 	UniteCompilation *unite_attendue() const;
 };
@@ -141,4 +141,4 @@ const char *chaine_etat_unite(UniteCompilation::Etat etat);
 
 std::ostream &operator<<(std::ostream &os, UniteCompilation::Etat etat);
 
-dls::chaine chaine_attentes_recursives(UniteCompilation *unite);
+kuri::chaine chaine_attentes_recursives(UniteCompilation *unite);

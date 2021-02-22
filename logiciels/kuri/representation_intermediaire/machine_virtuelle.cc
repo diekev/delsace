@@ -293,7 +293,7 @@ static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
 #endif
 
 #ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
-static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree, TypeFonction *type_fonction, dls::chaine const &nom, int profondeur_appel)
+static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree, TypeFonction *type_fonction, kuri::chaine const &nom, int profondeur_appel)
 {
 	imprime_tab(std::cerr, profondeur_appel);
 
@@ -312,7 +312,7 @@ static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree, TypeFonction
 	}
 }
 
-static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour, TypeFonction *type_fonction, dls::chaine const &nom, int profondeur_appel)
+static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour, TypeFonction *type_fonction, kuri::chaine const &nom, int profondeur_appel)
 {
 	imprime_tab(std::cerr, profondeur_appel);
 
@@ -385,9 +385,9 @@ static void notre_free(void *ptr)
 
 /* ************************************************************************** */
 
-void GestionnaireBibliotheques::ajoute_bibliotheque(dls::chaine const &chemin)
+void GestionnaireBibliotheques::ajoute_bibliotheque(kuri::chaine const &chemin)
 {
-	auto objet = dls::systeme_fichier::shared_library(chemin.c_str());
+	auto objet = dls::systeme_fichier::shared_library(dls::chaine(chemin).c_str());
 	bibliotheques.ajoute({ std::move(objet), chemin });
 }
 
@@ -406,7 +406,7 @@ GestionnaireBibliotheques::type_fonction GestionnaireBibliotheques::fonction_pou
 
 	POUR (bibliotheques) {
 		try {
-			auto ptr_symbole = it.bib(symbole->nom);
+			auto ptr_symbole = it.bib(dls::chaine(symbole->nom.pointeur(), symbole->nom.taille()));
 			auto fonction = reinterpret_cast<MachineVirtuelle::fonction_symbole>(ptr_symbole.ptr());
 			ajoute_fonction_pour_symbole(symbole, fonction);
 			return fonction;

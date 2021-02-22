@@ -26,6 +26,8 @@
 
 #include "biblinternes/outils/definitions.h"
 
+#include "structures/chaine.hh"
+
 #include "lexemes.hh"
 
 struct Compilatrice;
@@ -85,7 +87,7 @@ private:
 
 	dls::vue_chaine_compacte mot_courant() const;
 
-	[[noreturn]] void lance_erreur(const dls::chaine &quoi) const;
+	[[noreturn]] void lance_erreur(const kuri::chaine &quoi) const;
 
 	ENLIGNE_TOUJOURS void pousse_caractere(int n = 1)
 	{
@@ -112,7 +114,7 @@ private:
 	void lexe_nombre_octal();
 	void lexe_nombre_reel_hexadecimal();
 
-	unsigned lexe_caractere_litteral(dls::chaine *chaine);
+	unsigned lexe_caractere_litteral(kuri::chaine *chaine);
 
 	void pousse_lexeme_entier(unsigned long long valeur);
 	void pousse_lexeme_reel(double valeur);

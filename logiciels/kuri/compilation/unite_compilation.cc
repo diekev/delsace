@@ -83,7 +83,7 @@ bool UniteCompilation::est_bloquee() const
 	return false;
 }
 
-dls::chaine UniteCompilation::commentaire() const
+kuri::chaine UniteCompilation::commentaire() const
 {
 	switch (etat()) {
 		case UniteCompilation::Etat::ATTEND_SUR_TYPE:
@@ -100,31 +100,31 @@ dls::chaine UniteCompilation::commentaire() const
 		}
 		case UniteCompilation::Etat::ATTEND_SUR_OPERATEUR:
 		{
-			return "opérateur + " + operateur_attendu->lexeme->chaine;
+			return enchaine("opérateur ", operateur_attendu->lexeme->chaine);
 		}
 		case UniteCompilation::Etat::ATTEND_SUR_METAPROGRAMME:
 		{
-			dls::chaine resultat = "métaprogramme";
+			auto resultat = Enchaineuse();
+			resultat << "métaprogramme";
 
 			if (metaprogramme_attendu->corps_texte) {
-				resultat += " #corps_texte pour ";
+				resultat << " #corps_texte pour ";
 
 				if (metaprogramme_attendu->corps_texte_pour_fonction) {
-					resultat += metaprogramme->corps_texte_pour_fonction->ident->nom;
+					resultat << metaprogramme->corps_texte_pour_fonction->ident->nom;
 				}
 				else if (metaprogramme_attendu->corps_texte_pour_structure) {
-					resultat += metaprogramme_attendu->corps_texte_pour_structure->ident->nom;
+					resultat << metaprogramme_attendu->corps_texte_pour_structure->ident->nom;
 				}
 				else {
-					resultat += " ERREUR COMPILATRICE";
+					resultat << " ERREUR COMPILATRICE";
 				}
 			}
 			else {
-				resultat += " ";
-				resultat += dls::vers_chaine(metaprogramme_attendu);
+				resultat << " " << metaprogramme_attendu;
 			}
 
-			return resultat;
+			return resultat.chaine();
 		}
 		case UniteCompilation::Etat::ATTEND_SUR_INTERFACE_KURI:
 		{
@@ -186,13 +186,13 @@ UniteCompilation *UniteCompilation::unite_attendue() const
 	return nullptr;
 }
 
-dls::chaine chaine_attentes_recursives(UniteCompilation *unite)
+kuri::chaine chaine_attentes_recursives(UniteCompilation *unite)
 {
 	if (!unite) {
 		return "    L'unité est nulle !\n";
 	}
 
-	dls::flux_chaine fc;
+	Enchaineuse fc;
 
 	auto attendue = unite->unite_attendue();
 	auto commentaire = unite->commentaire();
@@ -222,5 +222,5 @@ dls::chaine chaine_attentes_recursives(UniteCompilation *unite)
 		attendue = attendue->unite_attendue();
 	}
 
-	return fc.chn();
+	return fc.chaine();
 }

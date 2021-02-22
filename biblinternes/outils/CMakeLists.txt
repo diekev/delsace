@@ -41,7 +41,6 @@ set(ENTETES
 	conditions.h
 	definitions.h
 	empreintes.hh
-	enchaineuse.hh
     enum_drapeau.hh
 	fichier.hh
 	format.hh
@@ -63,7 +62,6 @@ set(SOURCES
 	chaine.cc
 	chemin.cc
 	empreintes.cc
-	enchaineuse.cc
 	fichier.cc
 	format.cc
 	gna.cc

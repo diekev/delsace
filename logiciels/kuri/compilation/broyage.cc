@@ -36,10 +36,10 @@
 //           il faudra trouver comment calculer la taille de la chaine pour la préfixer (peut-être en prébroyant
 //           le nom broyé et en le stockant dans IdentifiantCode ?)
 
-static void broye_nom_simple(Enchaineuse &enchaineuse, dls::vue_chaine_compacte const &nom)
+static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique const &nom)
 {
-	auto debut = &nom[0];
-	auto fin   = &nom[nom.taille()];
+	auto debut = nom.pointeur();
+	auto fin   = nom.pointeur() + nom.taille();
 
 	while (debut < fin) {
 		auto no = lng::nombre_octets(debut);
@@ -71,7 +71,7 @@ static void broye_nom_simple(Enchaineuse &enchaineuse, dls::vue_chaine_compacte 
 	}
 }
 
-dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)
+kuri::chaine broye_nom_simple(kuri::chaine_statique const &nom)
 {
 	Enchaineuse enchaineuse;
 	broye_nom_simple(enchaineuse, nom);
@@ -295,7 +295,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
 	}
 }
 
-dls::chaine const &nom_broye_type(Type *type)
+kuri::chaine const &nom_broye_type(Type *type)
 {
 	if (type->nom_broye != "") {
 		return type->nom_broye;
@@ -324,9 +324,9 @@ dls::chaine const &nom_broye_type(Type *type)
  * fonc test(x : z32) : z32 (module Test)
  * -> _KF4Test4test_P2_E1_1x3z32_S1_3z32
  */
-dls::chaine broye_nom_fonction(
+kuri::chaine broye_nom_fonction(
 		NoeudDeclarationEnteteFonction *decl,
-		dls::chaine const &nom_module)
+		kuri::chaine const &nom_module)
 {
 	Enchaineuse enchaineuse;
 	auto type_fonc = decl->type->comme_fonction();
@@ -459,7 +459,7 @@ dls::chaine broye_nom_fonction(
 		}
 	}
 	else {
-		nom_ascii = broye_nom_simple(decl->lexeme->chaine);
+		nom_ascii = broye_nom_simple(decl->ident->nom);
 	}
 
 	enchaineuse << nom_ascii.taille();
@@ -499,7 +499,7 @@ dls::chaine broye_nom_fonction(
 		enchaineuse << nom_ascii.taille();
 		enchaineuse << nom_ascii;
 
-		dls::chaine const &nom_broye = "KsContexteProgramme";
+		kuri::chaine const &nom_broye = "KsContexteProgramme";
 		enchaineuse << nom_broye.taille();
 		enchaineuse << nom_broye;
 	}
