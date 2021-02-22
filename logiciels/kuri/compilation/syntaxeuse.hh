@@ -26,7 +26,6 @@
 
 #include "biblinternes/chrono/outils.hh"
 #include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/tableau.hh"
 
 #include "erreur.h"
 #include "lexemes.hh"

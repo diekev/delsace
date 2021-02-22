@@ -28,7 +28,6 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/ensemblon.hh"
-#include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
 #include "structures/tableau.hh"
