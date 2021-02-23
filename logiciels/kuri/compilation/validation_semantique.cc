@@ -1316,6 +1316,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 				return ResultatValidation::Erreur;
 			}
 
+			if ((expr_type->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+				/* ce n'est plus la peine de revenir ici une fois que le type sera validé */
+				unite->index_courant += 1;
+				unite->attend_sur_type(expr_type->type);
+				return ResultatValidation::Erreur;
+			}
+
 			break;
 		}
 		case GenreNoeud::EXPRESSION_PLAGE:

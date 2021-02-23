@@ -1805,6 +1805,11 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 		{
 			auto expr = noeud->comme_taille();
 			auto type = expr->expr->type;
+
+			assert_rappel(type->taille_octet != 0, [&] {
+				std::cerr << "[simplification] : taille octet de 0 pour le type : " << chaine_type(type) << '\n';
+			});
+
 			noeud->substitution = assem->cree_lit_entier(noeud->lexeme, expr->type, type->taille_octet);
 			return;
 		}
