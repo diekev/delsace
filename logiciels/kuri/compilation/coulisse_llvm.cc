@@ -407,7 +407,12 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type *type)
 				types_membres.push_back(converti_type_llvm(it.type));
 			}
 
-			type_opaque->setBody(types_membres, false);
+			auto est_compacte = false;
+			if (type_struct->decl && type_struct->decl->est_compacte) {
+				est_compacte = true;
+			}
+
+			type_opaque->setBody(types_membres, est_compacte);
 
 			/* retourne directement puisque le type a déjà été ajouté à la table de types */
 			return type_opaque;

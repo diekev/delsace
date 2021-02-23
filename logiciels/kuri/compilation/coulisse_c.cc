@@ -334,7 +334,13 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeStructure
 		}
 	}
 
-	enchaineuse << "} " << nom_broye;
+	enchaineuse << "} ";
+
+	if (type_compose->decl && type_compose->decl->est_compacte) {
+		enchaineuse << " __attribute__((packed)) ";
+	}
+
+	enchaineuse << nom_broye;
 
 	if (quoi == STRUCTURE_ANONYME) {
 		enchaineuse << dls::vers_chaine(type_compose);

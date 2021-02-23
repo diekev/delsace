@@ -185,6 +185,7 @@ IdentifiantCode *min;
 IdentifiantCode *max;
 IdentifiantCode *valeurs_legales;
 IdentifiantCode *valeurs_illegales;
+IdentifiantCode *compacte;
 
 }
 
@@ -281,4 +282,5 @@ void initialise_identifiants(TableIdentifiant &table)
 	ID::max = table.identifiant_pour_chaine("max");
 	ID::valeurs_legales = table.identifiant_pour_chaine("valeurs_légales");
 	ID::valeurs_illegales = table.identifiant_pour_chaine("valeurs_illégales");
+	ID::compacte = table.identifiant_pour_chaine("compacte");
 }

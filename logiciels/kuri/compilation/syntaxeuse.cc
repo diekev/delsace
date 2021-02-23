@@ -2601,7 +2601,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		consomme();
 	}
 
-	if (apparie(GenreLexeme::DIRECTIVE)) {
+	while (apparie(GenreLexeme::DIRECTIVE)) {
 		consomme();
 
 		auto ident_directive = lexeme_courant()->ident;
@@ -2615,6 +2615,13 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		}
 		else if (ident_directive == ID::corps_texte) {
 			noeud_decl->est_corps_texte = true;
+		}
+		else if (ident_directive == ID::compacte) {
+			if (noeud_decl->est_union) {
+				lance_erreur("Directive « compacte » impossible pour une union\n");
+			}
+
+			noeud_decl->est_compacte = true;
 		}
 		else {
 			lance_erreur("Directive inconnue");

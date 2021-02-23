@@ -928,7 +928,7 @@ TypeUnion *Typeuse::union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &mem
 	type->est_anonyme = true;
 	type->drapeaux |= (TYPE_FUT_VALIDE);
 
-	calcule_taille_type_compose(type);
+	calcule_taille_type_compose(type, false);
 
 	type->cree_type_structure(*this, type->decalage_index);
 
@@ -1026,7 +1026,7 @@ TypeTuple *Typeuse::cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membre
 	type->marque_polymorphique();
 
 	if ((type->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
-		calcule_taille_type_compose(type);
+		calcule_taille_type_compose(type, false);
 	}
 
 	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
@@ -1564,7 +1564,56 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 	return resultat;
 }
 
-void calcule_taille_type_compose(TypeCompose *type)
+template <bool COMPACTE>
+void calcule_taille_structure(TypeCompose *type)
+{
+	auto decalage = 0u;
+	auto alignement_max = 0u;
+
+	POUR (type->membres) {
+		if (it.drapeaux & TypeStructure::Membre::EST_CONSTANT) {
+			continue;
+		}
+
+		assert_rappel(it.type->taille_octet != 0, [&]{
+			std::cerr << "Taille octet de 0 pour le type « " << chaine_type(it.type) << " »\n";
+		});
+
+		if (!COMPACTE) {
+			/* Ajout de rembourrage entre les membres si le type n'est pas compacte. */
+			auto alignement_type = it.type->alignement;
+
+			assert_rappel(it.type->alignement != 0, [&]{
+				std::cerr << "Alignement de 0 pour le type « " << chaine_type(it.type) << " »\n";
+			});
+
+			alignement_max = std::max(alignement_type, alignement_max);
+
+			auto rembourrage = (alignement_type - (decalage % alignement_type)) % alignement_type;
+			decalage += rembourrage;
+		}
+
+		it.decalage = decalage;
+		decalage += it.type->taille_octet;
+	}
+
+	if (COMPACTE) {
+		/* Une structure compacte a un alignement de 1 ce qui permet de lire
+		 * et écrire et des valeurs à des adresses non-alignées. */
+		type->alignement = 1;
+	}
+	else {
+		/* Ajout d'un rembourrage si nécessaire. */
+		auto rembourrage = (alignement_max - (decalage % alignement_max)) % alignement_max;
+		decalage += rembourrage;
+
+		type->alignement = alignement_max;
+	}
+
+	type->taille_octet = decalage;
+}
+
+void calcule_taille_type_compose(TypeCompose *type, bool compacte)
 {
 	if (type->genre == GenreType::UNION) {
 		auto type_union = type->comme_union();
@@ -1618,39 +1667,12 @@ void calcule_taille_type_compose(TypeCompose *type)
 		type_union->alignement = max_alignement;
 	}
 	else if (type->genre == GenreType::STRUCTURE || type->est_tuple()) {
-		auto decalage = 0u;
-		auto max_alignement = 0u;
-
-		POUR (type->membres) {
-			if (it.drapeaux & TypeStructure::Membre::EST_CONSTANT) {
-				continue;
-			}
-
-			auto align_type = it.type->alignement;
-
-			assert_rappel(it.type->alignement != 0, [&]{
-				std::cerr << "Alignement de 0 pour le type « " << chaine_type(it.type) << " »\n";
-			});
-
-			assert_rappel(it.type->taille_octet != 0, [&]{
-				std::cerr << "Taille octet de 0 pour le type « " << chaine_type(it.type) << " »\n";
-			});
-
-			max_alignement = std::max(align_type, max_alignement);
-
-			auto padding = (align_type - (decalage % align_type)) % align_type;
-			decalage += padding;
-
-			it.decalage = decalage;
-
-			decalage += it.type->taille_octet;
+		if (compacte) {
+			calcule_taille_structure<true>(type);
 		}
-
-		auto padding = (max_alignement - (decalage % max_alignement)) % max_alignement;
-		decalage += padding;
-
-		type->taille_octet = decalage;
-		type->alignement = max_alignement;
+		else {
+			calcule_taille_structure<false>(type);
+		}
 	}
 }
 

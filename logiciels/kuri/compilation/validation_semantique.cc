@@ -3477,7 +3477,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			}
 		}
 
-		calcule_taille_type_compose(type_union);
+		calcule_taille_type_compose(type_union, false);
 
 		if (!decl->est_nonsure) {
 			type_union->cree_type_structure(espace->typeuse, type_union->decalage_index);
@@ -3601,11 +3601,11 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		if (!decl->est_externe) {
 			/* Ajoute un membre, d'un octet de taille. */
 			type_compose->membres.ajoute({ espace->typeuse[TypeBase::BOOL], ID::chaine_vide, 0, 0, nullptr });
-			calcule_taille_type_compose(type_compose);
+			calcule_taille_type_compose(type_compose, decl->est_compacte);
 		}
 	}
 	else {
-		calcule_taille_type_compose(type_compose);
+		calcule_taille_type_compose(type_compose, decl->est_compacte);
 	}
 
 	decl->type->drapeaux |= TYPE_FUT_VALIDE;

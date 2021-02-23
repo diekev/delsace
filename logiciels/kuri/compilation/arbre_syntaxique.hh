@@ -638,6 +638,7 @@ struct NoeudStruct : public NoeudDeclaration {
 	bool est_polymorphe = false;
 	bool est_monomorphisation = false;
 	bool est_corps_texte = false;
+	bool est_compacte = false;
 
 	NoeudBloc *bloc_constantes = nullptr;
 	kuri::tableau<NoeudDeclarationVariable *, int> params_polymorphiques{};
