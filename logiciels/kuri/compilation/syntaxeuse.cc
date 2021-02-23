@@ -2520,6 +2520,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 	return noeud;
 }
 
+template <typename  T>
+static inline bool est_puissance_de_2(T x)
+{
+	return (x != 0) && (x & (x - 1)) == 0;
+}
+
 NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauche)
 {
 	auto lexeme_mot_cle = lexeme_courant();
@@ -2622,6 +2628,19 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 			}
 
 			noeud_decl->est_compacte = true;
+		}
+		else if (ident_directive == ID::aligne) {
+			consomme();
+
+			if (!apparie(GenreLexeme::NOMBRE_ENTIER)) {
+				lance_erreur("Un nombre entier est requis après « aligne »");
+			}
+
+			noeud_decl->alignement_desire = static_cast<uint32_t>(lexeme_courant()->valeur_entiere);
+
+			if (!est_puissance_de_2(noeud_decl->alignement_desire)) {
+				lance_erreur("Un alignement doit être une puissance de 2");
+			}
 		}
 		else {
 			lance_erreur("Directive inconnue");

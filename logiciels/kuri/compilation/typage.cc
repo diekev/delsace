@@ -928,7 +928,7 @@ TypeUnion *Typeuse::union_anonyme(const dls::tablet<TypeCompose::Membre, 6> &mem
 	type->est_anonyme = true;
 	type->drapeaux |= (TYPE_FUT_VALIDE);
 
-	calcule_taille_type_compose(type, false);
+	calcule_taille_type_compose(type, false, 0);
 
 	type->cree_type_structure(*this, type->decalage_index);
 
@@ -1026,7 +1026,7 @@ TypeTuple *Typeuse::cree_tuple(const dls::tablet<TypeCompose::Membre, 6> &membre
 	type->marque_polymorphique();
 
 	if ((type->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
-		calcule_taille_type_compose(type, false);
+		calcule_taille_type_compose(type, false, 0);
 	}
 
 	type->drapeaux |= (TYPE_FUT_VALIDE | RI_TYPE_FUT_GENEREE);
@@ -1565,7 +1565,7 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 }
 
 template <bool COMPACTE>
-void calcule_taille_structure(TypeCompose *type)
+void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
 {
 	auto decalage = 0u;
 	auto alignement_max = 0u;
@@ -1610,10 +1610,16 @@ void calcule_taille_structure(TypeCompose *type)
 		type->alignement = alignement_max;
 	}
 
+	if (alignement_desire != 0) {
+		auto rembourrage = (alignement_desire - (decalage % alignement_desire)) % alignement_desire;
+		decalage += rembourrage;
+		type->alignement = alignement_desire;
+	}
+
 	type->taille_octet = decalage;
 }
 
-void calcule_taille_type_compose(TypeCompose *type, bool compacte)
+void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alignement_desire)
 {
 	if (type->genre == GenreType::UNION) {
 		auto type_union = type->comme_union();
@@ -1668,10 +1674,10 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte)
 	}
 	else if (type->genre == GenreType::STRUCTURE || type->est_tuple()) {
 		if (compacte) {
-			calcule_taille_structure<true>(type);
+			calcule_taille_structure<true>(type, alignement_desire);
 		}
 		else {
-			calcule_taille_structure<false>(type);
+			calcule_taille_structure<false>(type, alignement_desire);
 		}
 	}
 }

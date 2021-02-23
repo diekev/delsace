@@ -336,8 +336,14 @@ static void genere_declaration_structure(Enchaineuse &enchaineuse, TypeStructure
 
 	enchaineuse << "} ";
 
-	if (type_compose->decl && type_compose->decl->est_compacte) {
-		enchaineuse << " __attribute__((packed)) ";
+	if (type_compose->decl) {
+		if (type_compose->decl->est_compacte) {
+			enchaineuse << " __attribute__((packed)) ";
+		}
+
+		if (type_compose->decl->alignement_desire != 0) {
+			enchaineuse << " __attribute__((aligned(" << type_compose->decl->alignement_desire << "))) ";
+		}
 	}
 
 	enchaineuse << nom_broye;

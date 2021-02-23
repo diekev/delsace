@@ -640,6 +640,8 @@ struct NoeudStruct : public NoeudDeclaration {
 	bool est_corps_texte = false;
 	bool est_compacte = false;
 
+	uint32_t alignement_desire = 0;
+
 	NoeudBloc *bloc_constantes = nullptr;
 	kuri::tableau<NoeudDeclarationVariable *, int> params_polymorphiques{};
 	kuri::tableau<NoeudExpression *, int> arbre_aplatis_params{};

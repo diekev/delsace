@@ -150,6 +150,7 @@ extern IdentifiantCode *max;
 extern IdentifiantCode *valeurs_legales;
 extern IdentifiantCode *valeurs_illegales;
 extern IdentifiantCode *compacte;
+extern IdentifiantCode *aligne;
 
 }
 
