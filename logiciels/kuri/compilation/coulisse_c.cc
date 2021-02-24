@@ -1411,6 +1411,18 @@ static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Sync
 
 					enchaineuse << "} " << nom_broye << ";\n";
 				}
+				else if (type->est_union()) {
+					auto type_union = type->comme_union();
+
+					if (type_union->est_nonsure) {
+						auto nom_broye = broye_nom_simple(type_union->nom_portable());
+						enchaineuse << "typedef union " << nom_broye << " {\n";
+						for (auto &membre : type_union->membres) {
+							enchaineuse << nom_broye_type(membre.type) << " " << broye_nom_simple(membre.nom->nom) << ";\n";
+						}
+						enchaineuse << "} " << nom_broye << ";\n";
+					}
+				}
 			}
 		});
 	}
