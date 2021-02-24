@@ -2618,6 +2618,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 		}
 		else if (ident_directive == ID::externe) {
 			noeud_decl->est_externe = true;
+			// #externe implique nonsûr
+			noeud_decl->est_nonsure = noeud_decl->est_union;
 		}
 		else if (ident_directive == ID::corps_texte) {
 			noeud_decl->est_corps_texte = true;
