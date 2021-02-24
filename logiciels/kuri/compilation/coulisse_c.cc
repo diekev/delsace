@@ -185,21 +185,22 @@ static void cree_typedef(Type *type, Enchaineuse &enchaineuse)
 		}
 		case GenreType::UNION:
 		{
-			auto type_struct = type->comme_union();
-			auto nom_struct = broye_nom_simple(type_struct->nom_portable());
-			auto decl = type_struct->decl;
+			auto type_union = type->comme_union();
+			auto nom_union = broye_nom_simple(type_union->nom_portable());
+			auto decl = type_union->decl;
 
 			// union anomyme
-			if (type_struct->est_anonyme) {
-				enchaineuse << "typedef struct " << nom_struct << dls::vers_chaine(type_struct) << ' ' << nom_broye << ";\n";
+			if (type_union->est_anonyme) {
+				enchaineuse << "typedef struct " << nom_union << dls::vers_chaine(type_union) << ' ' << nom_broye << ";\n";
 				break;
 			}
 
 			if (decl->est_nonsure || decl->est_externe) {
-				enchaineuse << "typedef union " << nom_struct << ' ' << nom_broye << ";\n";
+				auto type_le_plus_grand = type_union->type_le_plus_grand;
+				enchaineuse << "typedef " << nom_broye_type(type_le_plus_grand) << ' ' << nom_broye << ";\n";
 			}
 			else {
-				enchaineuse << "typedef struct " << nom_struct << ' ' << nom_broye << ";\n";
+				enchaineuse << "typedef struct " << nom_union << ' ' << nom_broye << ";\n";
 			}
 
 			break;
@@ -1410,18 +1411,6 @@ static void genere_code_pour_types(Compilatrice &compilatrice, dls::outils::Sync
 					}
 
 					enchaineuse << "} " << nom_broye << ";\n";
-				}
-				else if (type->est_union()) {
-					auto type_union = type->comme_union();
-
-					if (type_union->est_nonsure) {
-						auto nom_broye = broye_nom_simple(type_union->nom_portable());
-						enchaineuse << "typedef union " << nom_broye << " {\n";
-						for (auto &membre : type_union->membres) {
-							enchaineuse << nom_broye_type(membre.type) << " " << broye_nom_simple(membre.nom->nom) << ";\n";
-						}
-						enchaineuse << "} " << nom_broye << ";\n";
-					}
 				}
 			}
 		});
