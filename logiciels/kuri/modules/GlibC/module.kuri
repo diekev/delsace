@@ -461,3 +461,54 @@ SIGUSR2   :: 31  /* User-defined signal 2.  */
 SIGWINCH  :: 28  /* Window size change (4.3 BSD, Sun).  */
 
 signal :: fonc (numéro_signal: z32, rappel: #nulctx fonc(z32)(rien)) -> rien #externe
+
+// --------------------------------------------------
+// Notification sur des prises.
+// Devrait plutôt être dans POSIX mais epoll est une spécialité linuxienne.
+
+EPOLL_EVENTS :: énum_drapeau n32 {
+    EPOLLIN :: 0x001
+    EPOLLPRI :: 0x002
+    EPOLLOUT :: 0x004
+    EPOLLRDNORM :: 0x040
+    EPOLLRDBAND :: 0x080
+    EPOLLWRNORM :: 0x100
+    EPOLLWRBAND :: 0x200
+    EPOLLMSG :: 0x400
+    EPOLLERR :: 0x008
+    EPOLLHUP :: 0x010
+    EPOLLRDHUP :: 0x2000
+    EPOLLEXCLUSIVE :: 1 << 28
+    EPOLLWAKEUP :: 1 << 29
+    EPOLLONESHOT:: 1 << 30
+    EPOLLET :: 1 << 31
+}
+
+/* Valid opcodes ( "op" parameter ) to issue to epoll_ctl().  */
+EPOLL_CTL_OP :: énum z32 {
+    ADD :: 1 /* Add a file descriptor to the interface.  */
+    DEL :: 2 /* Remove a file descriptor from the interface.  */
+    MOD :: 3 /* Change file descriptor epoll_event structure.  */
+}
+
+epoll_data :: union nonsûr #externe {
+    ptr: *rien
+    fd: z32
+    u32: n32
+    u64: n64
+}
+
+epoll_event :: struct #externe #compacte {
+    events: EPOLL_EVENTS  /* Epoll events */
+    data: epoll_data      /* User data variable */
+}
+
+sigset_t :: struct #externe
+
+epoll_create :: fonc (size: z32) -> z32 #externe
+epoll_create1 :: fonc (flags: z32) -> z32 #externe
+
+epoll_ctl :: fonc (epfd: z32, op: EPOLL_CTL_OP, fd: z32, event: *epoll_event) -> z32 #externe
+
+epoll_wait :: fonc (epfd: z32, events: *epoll_event, maxevents: z32, timeout: z32) -> z32 #externe
+epoll_pwait :: fonc (epfd: z32, events: *epoll_event, maxevents: z32, timeout: z32, sigmask: *sigset_t) -> z32 #externe
