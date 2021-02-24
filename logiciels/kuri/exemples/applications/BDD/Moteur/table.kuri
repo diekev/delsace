@@ -1,42 +1,6 @@
 importe Fondation
 importe GlibC
-
-// --------------------------------------------------------
-
-désérialise_chaine :: fonc (ligne: []octet, décalage: z64) -> chaine
-{
-    ptr := ligne.pointeur + décalage
-
-    taille := mémoire(ptr comme *z32)
-
-    ptr = ligne.pointeur + décalage + 4
-
-    retourne construit_chaine(ptr comme *z8, taille)
-}
-
-désérialise_entier :: fonc (ligne: []octet, décalage: z64) -> z32
-{
-    ptr := ligne.pointeur + décalage
-    retourne mémoire(ptr comme *z32)
-}
-
-sérialise_chaine :: fonc (ligne: []octet, chn: chaine, décalage: z64) -> rien
-{
-    slot_taille := (ligne.pointeur + décalage) comme *z32
-    mémoire(slot_taille) = chn.taille comme z32
-
-    slot_données := (ligne.pointeur + décalage + 4) comme *z8
-
-    pour c, idx dans chn {
-        slot_données[idx] = c
-    }
-}
-
-sérialise_entier :: fonc (ligne: []octet, entier: z32, décalage: z64) -> rien
-{
-    slot := (ligne.pointeur + décalage) comme *z32
-    mémoire(slot) = entier
-}
+importe Sérialisation
 
 // --------------------------------------------------------
 

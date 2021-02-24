@@ -92,7 +92,7 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> ErreurExé
                 retourne ErreurExécution.NombreNégatif
             }
 
-            sérialise_entier(tampon_insertion, entier, décalage)
+            sérialise_entier(tampon_insertion, décalage, entier)
         }
         sinon si expr.littérale.genre == GenreLexème.CHAINE {
             si colonne.genre != TypeColonne.CHAINE {
@@ -105,7 +105,7 @@ insère :: fonc (cm: *CoulisseMémoire, inst: *InstructionInsère) -> ErreurExé
                 retourne ErreurExécution.TexteTropLarge
             }
 
-            sérialise_chaine(tampon_insertion, chn, décalage)
+            sérialise_chaine(tampon_insertion, décalage, chn)
         }
         sinon {
             retourne ErreurExécution.TypageColonneInvalide
@@ -234,7 +234,7 @@ sélectionne_tables :: fonc (cm: *CoulisseMémoire) -> *Table
     pour nom dans cm.noms_tables {
         ligne := valeur_curseur(curseur_résultat)
 
-        sérialise_chaine(ligne, nom, 0)
+        sérialise_chaine(ligne, 0, nom)
 
         avance_curseur(curseur_résultat)
         table_résultat.nombre_de_lignes += 1
