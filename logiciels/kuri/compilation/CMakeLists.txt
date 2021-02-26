@@ -49,12 +49,15 @@ set(SOURCES
 	empreinte_parfaite.hh
 	environnement.hh
 	erreur.h
+	espace_de_travail.hh
 	expression.h
+	gerante_chaine.hh
 	graphe_dependance.hh
 	identifiant.hh
 	lexemes.hh
 	lexeuse.hh
 	message.hh
+	metaprogramme.hh
 	modules.hh
 	noeud_code.hh
 	options.hh
@@ -81,12 +84,15 @@ set(SOURCES
 	coulisse_c.cc
 	environnement.cc
 	erreur.cc
+	espace_de_travail.cc
 	expression.cc
+	gerante_chaine.cc
 	graphe_dependance.cc
 	identifiant.cc
 	lexemes.cc
 	lexeuse.cc
 	message.cc
+	metaprogramme.cc
 	modules.cc
 	noeud_code.cc
 	operateurs.cc
