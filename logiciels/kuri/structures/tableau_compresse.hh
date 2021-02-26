@@ -176,12 +176,23 @@ public:
 				m_capacite = std::max(static_cast<TypeIndex>(m_taille + 1), m_capacite);
 				m_pointeur = memoire::loge_tableau<T>("tableau_compresse", m_capacite);
 
+				if (!std::is_trivially_constructible_v<T>) {
+					for (auto i = 0; i < m_taille; ++i) {
+						new (&m_pointeur[i]) T;
+					}
+				}
+
 				for (auto i = 0; i < m_taille; ++i) {
 					m_pointeur[i] = m_premiere_valeur;
 				}
 			}
 
 			reserve(static_cast<TypeIndex>(m_taille + 1));
+
+			if (!std::is_trivially_constructible_v<T>) {
+				new (&m_pointeur[static_cast<long>(m_taille)]) T;
+			}
+
 			m_pointeur[static_cast<long>(m_taille)] = valeur;
 			++m_taille;
 		}
