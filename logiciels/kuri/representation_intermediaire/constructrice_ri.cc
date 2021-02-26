@@ -789,7 +789,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		{
 			auto expr_ass = noeud->comme_assignation();
 
-			POUR (expr_ass->donnees_exprs) {
+			POUR (expr_ass->donnees_exprs.plage()) {
 				auto expression = it.expression;
 
 				auto ancienne_expression_gauche = expression_gauche;
@@ -3254,7 +3254,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 	}
 
 	if (fonction_courante == nullptr) {
-		POUR (decl->donnees_decl) {
+		POUR (decl->donnees_decl.plage()) {
 			for (auto i = 0; i < it.variables.taille(); ++i) {
 				auto var = it.variables[i];
 				auto est_externe = dls::outils::possede_drapeau(decl->drapeaux, EST_EXTERNE);
@@ -3300,7 +3300,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 		return pointeur;
 	};
 
-	POUR (decl->donnees_decl) {
+	POUR (decl->donnees_decl.plage()) {
 		auto expression = it.expression;
 
 		if (expression) {
@@ -3339,14 +3339,14 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 				}
 			}
 			else {
-				for (auto &var : it.variables) {
+				for (auto &var : it.variables.plage()) {
 					auto pointeur = alloc_pointeur(var);
 					var->comme_ref_decl()->decl->atome = pointeur;
 				}
 			}
 		}
 		else {
-			for (auto &var : it.variables) {
+			for (auto &var : it.variables.plage()) {
 				auto pointeur = alloc_pointeur(var);
 
 				// À FAIRE: appel pour les opaques étant des structures

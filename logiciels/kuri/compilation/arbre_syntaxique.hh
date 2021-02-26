@@ -407,8 +407,8 @@ struct NoeudDeclaration : public NoeudExpression {
 struct DonneesAssignations {
     NoeudExpression *expression = nullptr;
     bool multiple_retour = false;
-	dls::tablet<NoeudExpression *, 6> variables{};
-	dls::tablet<TransformationType, 6> transformations{};
+	kuri::tableau_compresse<NoeudExpression *, int> variables{};
+	kuri::tableau_compresse<TransformationType, int> transformations{};
 
 	void efface()
 	{
@@ -416,6 +416,15 @@ struct DonneesAssignations {
 		multiple_retour = false;
 		variables.efface();
 		transformations.efface();
+	}
+
+	bool operator == (DonneesAssignations const &autre) const
+	{
+		if (this == &autre) {
+			return true;
+		}
+
+		return false;
 	}
 };
 
@@ -441,7 +450,7 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 	// pour les variables globales
 	kuri::tableau<NoeudExpression *, int> arbre_aplatis{};
 
-	kuri::tableau<DonneesAssignations, int> donnees_decl{};
+	kuri::tableau_compresse<DonneesAssignations, int> donnees_decl{};
 };
 
 struct NoeudAssignation final : public NoeudExpression {
@@ -451,7 +460,7 @@ struct NoeudAssignation final : public NoeudExpression {
 	NoeudExpression *variable = nullptr;
 	NoeudExpression *expression = nullptr;
 
-	kuri::tableau<DonneesAssignations, int> donnees_exprs{};
+	kuri::tableau_compresse<DonneesAssignations, int> donnees_exprs{};
 };
 
 struct NoeudRetour : public NoeudExpression {
@@ -459,7 +468,7 @@ struct NoeudRetour : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudRetour);
 
 	NoeudExpression *expr = nullptr;
-	kuri::tableau<DonneesAssignations, int> donnees_exprs{};
+	kuri::tableau_compresse<DonneesAssignations, int> donnees_exprs{};
 };
 
 struct NoeudExpressionReference : public NoeudExpression {

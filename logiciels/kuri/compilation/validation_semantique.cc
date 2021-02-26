@@ -3437,7 +3437,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		POUR (*decl->bloc->membres.verrou_ecriture()) {
 			auto decl_var = it->comme_decl_var();
 
-			for (auto &donnees : decl_var->donnees_decl) {
+			for (auto &donnees : decl_var->donnees_decl.plage()) {
 				for (auto i = 0; i < donnees.variables.taille(); ++i) {
 					auto var = donnees.variables[i];
 
@@ -3533,7 +3533,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 			continue;
 		}
 
-		for (auto &donnees : decl_var->donnees_decl) {
+		for (auto &donnees : decl_var->donnees_decl.plage()) {
 			for (auto i = 0; i < donnees.variables.taille(); ++i) {
 				auto var = donnees.variables[i];
 

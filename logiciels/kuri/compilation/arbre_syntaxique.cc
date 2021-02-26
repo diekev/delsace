@@ -2061,10 +2061,10 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
 			simplifie(assignation->variable);
 
-			POUR (assignation->donnees_exprs) {
+			POUR (assignation->donnees_exprs.plage()) {
 				auto expression_fut_simplifiee = false;
 
-				for (auto var : it.variables) {
+				for (auto var : it.variables.plage()) {
 					if (var->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
 						auto ref_membre = var->comme_ref_membre();
 						auto ref_var = ref_membre->accede;
@@ -2106,7 +2106,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 		{
 			auto declaration = noeud->comme_decl_var();
 
-			POUR (declaration->donnees_decl) {
+			POUR (declaration->donnees_decl.plage()) {
 				simplifie(it.expression);
 			}
 
@@ -2617,11 +2617,11 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 		return;
 	}
 
-	POUR (inst->donnees_exprs) {
+	POUR (inst->donnees_exprs.plage()) {
 		simplifie(it.expression);
 
 		/* Les variables sont les déclarations des paramètres, donc crée des références. */
-		for (auto &var : it.variables) {
+		for (auto &var : it.variables.plage()) {
 			var = assem->cree_ref_decl(var->lexeme, var->comme_decl_var());
 		}
 	}

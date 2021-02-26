@@ -246,8 +246,8 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 {
 	auto &stats_arbre = stats.stats_arbre;
 	auto taille_max_donnees_assignations = 0;
-	auto taille_max_donnees_assignations_vars = 0l;
-	auto taille_max_donnees_assignations_tfms = 0l;
+	auto taille_max_donnees_assignations_vars = 0;
+	auto taille_max_donnees_assignations_tfms = 0;
 	auto taille_max_arbre_aplatis = 0;
 	auto taille_max_params_entree = 0;
 	auto taille_max_params_sorties = 0;
@@ -283,7 +283,7 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	{
 		memoire_retour += noeud.donnees_exprs.taille() * taille_de(DonneesAssignations);
 		taille_max_donnees_assignations = std::max(taille_max_donnees_assignations, noeud.donnees_exprs.taille());
-		POUR (noeud.donnees_exprs) {
+		POUR (noeud.donnees_exprs.plage()) {
 			taille_max_donnees_assignations_vars = std::max(taille_max_donnees_assignations_vars, it.variables.taille());
 			taille_max_donnees_assignations_tfms = std::max(taille_max_donnees_assignations_tfms, it.transformations.taille());
 		}
@@ -295,7 +295,7 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	{
 		memoire_assignation += noeud.donnees_exprs.taille() * taille_de(DonneesAssignations);
 		taille_max_donnees_assignations = std::max(taille_max_donnees_assignations, noeud.donnees_exprs.taille());
-		POUR (noeud.donnees_exprs) {
+		POUR (noeud.donnees_exprs.plage()) {
 			taille_max_donnees_assignations_vars = std::max(taille_max_donnees_assignations_vars, it.variables.taille());
 			taille_max_donnees_assignations_tfms = std::max(taille_max_donnees_assignations_tfms, it.transformations.taille());
 		}
@@ -307,7 +307,7 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	{
 		memoire_decl += noeud.donnees_decl.taille() * taille_de(DonneesAssignations);
 		taille_max_donnees_assignations = std::max(taille_max_donnees_assignations, noeud.donnees_decl.taille());
-		POUR (noeud.donnees_decl) {
+		POUR (noeud.donnees_decl.plage()) {
 			taille_max_donnees_assignations_vars = std::max(taille_max_donnees_assignations_vars, it.variables.taille());
 			taille_max_donnees_assignations_tfms = std::max(taille_max_donnees_assignations_tfms, it.transformations.taille());
 		}

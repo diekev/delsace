@@ -97,6 +97,31 @@ struct TransformationType {
 		, fonction(fonction_)
 		, type_cible(type_cible_)
 	{}
+
+	bool operator == (TransformationType const &autre) const
+	{
+		if (this == &autre) {
+			return true;
+		}
+
+		if (type != autre.type) {
+			return false;
+		}
+
+		if (fonction != autre.fonction) {
+			return false;
+		}
+
+		if (index_membre != autre.index_membre) {
+			return false;
+		}
+
+		if (type_cible != autre.type_cible) {
+			return false;
+		}
+
+		return false;
+	}
 };
 
 bool cherche_transformation(

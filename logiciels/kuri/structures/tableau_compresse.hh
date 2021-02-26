@@ -230,6 +230,12 @@ public:
 		std::swap(m_premiere_valeur, autre.m_premiere_valeur);
 	}
 
+	void efface()
+	{
+		m_taille = 0;
+		m_premiere_valeur = {};
+	}
+
 private:
 	void supprime_donnees()
 	{
