@@ -170,6 +170,111 @@ accepte :: fonc (serveuse: &ServeuseTCP($T)) -> ClienteTCP
 
 importe Fondation
 
+TypePrise :: énum {
+    CLIENTE
+    SERVEUSE
+}
+
+PriseTCP :: struct {
+    fichier : Fichier
+    adresse : AdresseIPv4
+
+    type: TypePrise
+}
+
+crée_prise_serveuse :: fonc (fd: z32) -> *PriseTCP
+{
+    prise := loge(PriseTCP)
+    prise.fichier.desc = fd
+    prise.type = TypePrise.SERVEUSE
+    retourne prise
+}
+
+crée_prise_cliente :: fonc (fd: z32) -> *PriseTCP
+{
+    prise := loge(PriseTCP)
+    prise.fichier.desc = fd
+    prise.type = TypePrise.CLIENTE
+    retourne prise
+}
+
+/*
+    MAX_EVENTS :: 1024
+
+    évènements: [MAX_EVENTS]epoll_event
+    ev: epoll_event
+
+    prise_serveuse: z32
+    prise_connexion: z32
+    epollfd := epoll_create1(0);
+
+    si (epollfd == -1) {
+        //perror("epoll_create1");
+        //exit(EXIT_FAILURE);
+        retourne 1
+    }
+
+    ev.events = EPOLL_EVENTS.EPOLLIN;
+    ev.data.ptr = crée_prise_serveuse(prise_serveuse);
+
+    si (epoll_ctl(epollfd, EPOLL_CTL_OP.ADD, prise_serveuse, *ev) == -1) {
+        // perror("epoll_ctl: listen_sock");
+        // exit(EXIT_FAILURE);
+        retourne 1
+    }
+
+    boucle {
+        nfds := epoll_wait(epollfd, *évènements[0], MAX_EVENTS, -1);
+
+        si (nfds == -1) {
+            // perror("epoll_wait");
+            // exit(EXIT_FAILURE);
+            retourne 1
+        }
+
+        pour 0 ... nfds - 1 {
+            prise := évènements[it].data.ptr
+
+            si prise.type == TypePrise.SERVEUSE {
+                cliente := accepte()
+
+                prise_cliente := crée_prise_cliente(cliente.fichier.desc)
+
+                ev.events = EPOLLIN | EPOLLET
+                ev.data.ptr = prise_cliente
+
+                if (epoll_ctl(epollfd, EPOLL_CTL_ADD, cliente.fichier.desc, *ev) == -1) {
+                    // ferme la prise
+                    continue;
+                }
+
+                si quand_ouverture {
+                    quand_ouverture(prise);
+                }
+            }
+            sinon {
+                prise.contexte.quand_données(prise);
+            }
+            si (évènements[it].data.fd == prise_serveuse) {
+                // conn_sock = accept(listen_sock, (struct sockaddr *) &addr, &addrlen);
+                // if (conn_sock == -1) {
+                //     perror("accept");
+                //     exit(EXIT_FAILURE);
+                // }
+                // setnonblocking(conn_sock);
+                // ev.events = EPOLLIN | EPOLLET;
+                // ev.data.fd = conn_sock;
+                // if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock, &ev) == -1) {
+                //     perror("epoll_ctl: conn_sock");
+                //     exit(EXIT_FAILURE);
+                // }
+            } sinon {
+                //do_use_fd(events[n].data.fd);
+            }
+        }
+    }
+*/
+
 lance :: fonc (serveuse: &ServeuseTCP($T))
 {
     PRISE_SERVEUSE = serveuse.prise
