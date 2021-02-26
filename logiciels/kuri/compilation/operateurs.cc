@@ -27,7 +27,7 @@
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 
-#include "compilatrice.hh"
+#include "espace_de_travail.hh"
 #include "lexemes.hh"
 #include "statistiques.hh"
 

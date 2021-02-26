@@ -34,6 +34,7 @@
 
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/compilatrice.hh"
+#include "compilation/espace_de_travail.hh"
 #include "compilation/modules.hh"
 #include "compilation/tacheronne.hh"
 

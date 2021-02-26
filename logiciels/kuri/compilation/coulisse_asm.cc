@@ -26,8 +26,12 @@
 
 #include "structures/enchaineuse.hh"
 
+#include "representation_intermediaire/constructrice_ri.hh"
+#include "representation_intermediaire/instructions.hh"
+
+#include "arbre_syntaxique.hh"
 #include "broyage.hh"
-#include "compilatrice.hh"
+#include "espace_de_travail.hh"
 #include "erreur.h"
 #include "typage.hh"
 

@@ -26,7 +26,9 @@
 
 #include "biblinternes/outils/conditions.h"
 
-#include "compilatrice.hh"
+#include "arbre_syntaxique.hh"
+#include "espace_de_travail.hh"
+#include "identifiant.hh"
 #include "outils_lexemes.hh"
 #include "portee.hh"
 

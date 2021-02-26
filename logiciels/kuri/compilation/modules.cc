@@ -24,8 +24,10 @@
 
 #include "modules.hh"
 
-#include "compilatrice.hh"
+#include "structures/enchaineuse.hh"
+
 #include "portee.hh"
+#include "statistiques.hh"
 
 template <>
 const int FichierExistant::tag = tags++;

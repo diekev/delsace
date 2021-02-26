@@ -29,8 +29,12 @@
 #include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "compilatrice.hh"
+#include "structures/enchaineuse.hh"
+
+#include "arbre_syntaxique.hh"
+#include "identifiant.hh"
 #include "modules.hh"
+#include "typage.hh"
 
 // À FAIRE : supprime les derniers appels à broye_nom_simple dans la génération des noms broyés pour les fonctions
 //           il faudra trouver comment calculer la taille de la chaine pour la préfixer (peut-être en prébroyant

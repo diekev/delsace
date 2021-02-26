@@ -24,8 +24,11 @@
 
 #include "unite_compilation.hh"
 
+#include "biblinternes/structures/ensemble.hh"
+
 #include "arbre_syntaxique.hh"
-#include "compilatrice.hh"
+#include "identifiant.hh"
+#include "metaprogramme.hh"
 
 static constexpr auto CYCLES_MAXIMUM = 10;
 

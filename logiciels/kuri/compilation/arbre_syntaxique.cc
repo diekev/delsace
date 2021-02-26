@@ -29,8 +29,8 @@
 
 #include "assembleuse_arbre.h"
 #include "broyage.hh"
-#include "compilatrice.hh"
 #include "erreur.h"
+#include "espace_de_travail.hh"
 #include "identifiant.hh"
 #include "modules.hh"
 #include "outils_lexemes.hh"

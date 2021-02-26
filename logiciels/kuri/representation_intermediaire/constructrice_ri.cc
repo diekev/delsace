@@ -33,6 +33,7 @@
 #include "arbre_syntaxique.hh"
 #include "compilatrice.hh"
 #include "erreur.h"
+#include "espace_de_travail.hh"
 #include "outils_lexemes.hh"
 #include "statistiques.hh"
 

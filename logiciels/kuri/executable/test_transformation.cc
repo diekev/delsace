@@ -23,6 +23,7 @@
  */
 
 #include "compilation/compilatrice.hh"
+#include "compilation/espace_de_travail.hh"
 #include "compilation/tacheronne.hh"
 #include "compilation/typage.hh"
 #include "compilation/validation_semantique.hh"

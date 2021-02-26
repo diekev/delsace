@@ -29,6 +29,8 @@
 
 #include "structures/table_hachage.hh"
 
+#include "representation_intermediaire/instructions.hh"
+
 #include "graphe_dependance.hh"
 #include "message.hh"
 #include "metaprogramme.hh"
@@ -37,8 +39,6 @@
 #include "operateurs.hh"
 #include "typage.hh"
 
-struct Atome;
-struct AtomeGlobale;
 struct Coulisse;
 struct ConstructriceRI;
 

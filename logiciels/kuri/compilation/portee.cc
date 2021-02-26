@@ -27,7 +27,7 @@
 #include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntaxique.hh"
-#include "compilatrice.hh"
+#include "espace_de_travail.hh"
 #include "modules.hh"
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode *ident)

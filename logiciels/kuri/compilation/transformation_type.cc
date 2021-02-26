@@ -25,6 +25,7 @@
 #include "transformation_type.hh"
 
 #include "compilatrice.hh"
+#include "espace_de_travail.hh"
 #include "outils_lexemes.hh"
 #include "validation_semantique.hh"
 

@@ -28,6 +28,7 @@
 
 #include "biblinternes/flux/outils.h"
 
+#include "espace_de_travail.hh"
 #include "erreur.h"
 #include "lexeuse.hh"
 #include "statistiques.hh"
@@ -43,6 +44,13 @@ Compilatrice::Compilatrice()
 	this->definitions->ajoute("_REENTRANT");
 
 	ptr_compilatrice = this;
+}
+
+Compilatrice::~Compilatrice()
+{
+	POUR ((*espaces_de_travail.verrou_ecriture())) {
+		memoire::deloge("EspaceDeTravail", it);
+	}
 }
 
 Module *Compilatrice::importe_module(EspaceDeTravail *espace, const kuri::chaine &nom, NoeudExpression const *site)
@@ -197,8 +205,8 @@ long Compilatrice::memoire_utilisee() const
 
 	memoire += gerante_chaine->memoire_utilisee();
 
-	POUR_TABLEAU_PAGE ((*espaces_de_travail.verrou_lecture())) {
-		memoire += it.memoire_utilisee();
+	POUR ((*espaces_de_travail.verrou_lecture())) {
+		memoire += it->memoire_utilisee();
 	}
 
 	memoire += messagere->memoire_utilisee();
@@ -212,8 +220,8 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 {
 	stats.memoire_compilatrice = memoire_utilisee();
 
-	POUR_TABLEAU_PAGE ((*espaces_de_travail.verrou_lecture())) {
-		it.rassemble_statistiques(stats);
+	POUR ((*espaces_de_travail.verrou_lecture())) {
+		it->rassemble_statistiques(stats);
 	}
 
 	stats.nombre_identifiants = table_identifiants->taille();
@@ -225,7 +233,7 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
 EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation const &options, const kuri::chaine &nom)
 {
-	auto espace = espaces_de_travail->ajoute_element(options);
+	auto espace = memoire::loge<EspaceDeTravail>("EspaceDeTravail", options);
 	espace->nom = nom;
 
 	importe_module(espace, "Kuri", {});

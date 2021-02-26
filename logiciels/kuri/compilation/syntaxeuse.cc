@@ -32,6 +32,7 @@
 #include "arbre_syntaxique.hh"
 #include "assembleuse_arbre.h"
 #include "compilatrice.hh"
+#include "espace_de_travail.hh"
 #include "modules.hh"
 #include "outils_lexemes.hh"
 #include "typage.hh"

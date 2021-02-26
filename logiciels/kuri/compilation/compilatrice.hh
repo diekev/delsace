@@ -26,7 +26,6 @@
 
 #include "biblinternes/moultfilage/synchrone.hh"
 
-#include "espace_de_travail.hh"
 #include "gerante_chaine.hh"
 #include "identifiant.hh"
 #include "message.hh"
@@ -34,6 +33,8 @@
 #include "structures.hh"
 #include "tacheronne.hh"
 
+struct EspaceDeTravail;
+struct OptionsCompilation;
 struct Statistiques;
 
 struct Compilatrice {
@@ -64,10 +65,7 @@ struct Compilatrice {
 
 	tableau_synchrone<kuri::chaine> chaines_ajoutees_a_la_compilation{};
 
-	template <typename T>
-	using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
-
-	tableau_page_synchrone<EspaceDeTravail> espaces_de_travail{};
+	tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
 	EspaceDeTravail *espace_de_travail_defaut = nullptr;
 
 	kuri::chaine racine_kuri{};
@@ -84,6 +82,8 @@ struct Compilatrice {
 	 * compilation. */
 	Compilatrice(const Compilatrice &) = delete;
 	Compilatrice &operator=(const Compilatrice &) = delete;
+
+	~Compilatrice();
 
 	/* ********************************************************************** */
 

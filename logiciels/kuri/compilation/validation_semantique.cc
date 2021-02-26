@@ -34,6 +34,7 @@
 #include "assembleuse_arbre.h"
 #include "broyage.hh"
 #include "compilatrice.hh"
+#include "espace_de_travail.hh"
 #include "erreur.h"
 #include "outils_lexemes.hh"
 #include "portee.hh"

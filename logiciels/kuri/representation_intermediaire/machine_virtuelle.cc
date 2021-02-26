@@ -30,7 +30,9 @@
 #include "compilation/broyage.hh"
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
+#include "compilation/espace_de_travail.hh"
 #include "compilation/identifiant.hh"
+#include "compilation/metaprogramme.hh"
 
 #include "instructions.hh"
 

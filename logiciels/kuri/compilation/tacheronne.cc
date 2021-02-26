@@ -32,6 +32,7 @@
 #include "assembleuse_arbre.h"
 #include "compilatrice.hh"
 #include "coulisse.hh"
+#include "espace_de_travail.hh"
 #include "lexeuse.hh"
 #include "modules.hh"
 #include "syntaxeuse.hh"

@@ -29,7 +29,8 @@
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "arbre_syntaxique.hh"
-#include "compilatrice.hh"
+#include "espace_de_travail.hh"
+#include "identifiant.hh"
 #include "lexemes.hh"
 #include "validation_semantique.hh"
 

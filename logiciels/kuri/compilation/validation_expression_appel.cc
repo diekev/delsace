@@ -30,6 +30,7 @@
 #include "assembleuse_arbre.h"
 #include "compilatrice.hh"
 #include "erreur.h"
+#include "espace_de_travail.hh"
 #include "portee.hh"
 #include "validation_semantique.hh"
 

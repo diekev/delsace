@@ -34,6 +34,7 @@
 #include "compilation/coulisse_llvm.hh"
 #include "compilation/environnement.hh"
 #include "compilation/erreur.h"
+#include "compilation/espace_de_travail.hh"
 #include "compilation/modules.hh"
 #include "compilation/options.hh"
 #include "compilation/statistiques.hh"
