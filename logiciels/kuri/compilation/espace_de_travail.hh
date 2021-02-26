@@ -92,6 +92,8 @@ public:
 	tableau_page_synchrone<Fichier> fichiers{};
 	tableau_page_synchrone<MetaProgramme> metaprogrammes{};
 
+	kuri::tableau<Fichier *> table_fichiers{};
+
 	dls::outils::Synchrone<GrapheDependance> graphe_dependance{};
 
 	dls::outils::Synchrone<Operateurs> operateurs{};

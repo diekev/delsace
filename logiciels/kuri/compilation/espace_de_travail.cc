@@ -113,10 +113,11 @@ ResultatFichier EspaceDeTravail::trouve_ou_cree_fichier(dls::outils::Synchrone<S
 
 	auto fichiers_ = fichiers.verrou_ecriture();
 
-	POUR_TABLEAU_PAGE ((*fichiers_)) {
-		if (it.donnees_constantes == donnees_fichier) {
-			return FichierExistant(it);
-		}
+	/* fait de la place la table */
+	table_fichiers.redimensionne(donnees_fichier->id + 1, nullptr);
+
+	if (table_fichiers[donnees_fichier->id] != nullptr) {
+		return FichierExistant(*table_fichiers[donnees_fichier->id]);
 	}
 
 	auto fichier = fichiers_->ajoute_element(donnees_fichier);
@@ -128,20 +129,15 @@ ResultatFichier EspaceDeTravail::trouve_ou_cree_fichier(dls::outils::Synchrone<S
 	fichier->module = module;
 	module->fichiers.ajoute(fichier);
 
+	table_fichiers[donnees_fichier->id] = fichier;
+
 	return FichierNeuf(*fichier);
 }
 
 Fichier *EspaceDeTravail::fichier(long index) const
 {
 	auto fichiers_ = fichiers.verrou_lecture();
-
-	POUR_TABLEAU_PAGE ((*fichiers_)) {
-		if (it.id() == index) {
-			return const_cast<Fichier *>(&it);
-		}
-	}
-
-	return nullptr;
+	return table_fichiers[index];
 }
 
 Fichier *EspaceDeTravail::fichier(const dls::vue_chaine_compacte &chemin) const
