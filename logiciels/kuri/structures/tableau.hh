@@ -190,6 +190,21 @@ public:
 		taille_ = nombre;
 	}
 
+	void redimensionne(TypeIndex nombre, T valeur_defaut)
+	{
+		reserve(nombre);
+
+		if (taille_ >= nombre) {
+			return;
+		}
+
+		for (auto i = taille_; i < nombre; ++i) {
+			pointeur[i] = valeur_defaut;
+		}
+
+		taille_ = nombre;
+	}
+
 	void reserve_delta(TypeIndex delta)
 	{
 		reserve(taille_ + delta);
