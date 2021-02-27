@@ -236,6 +236,8 @@ EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsCompilation c
 	auto espace = memoire::loge<EspaceDeTravail>("EspaceDeTravail", options);
 	espace->nom = nom;
 
+	espaces_de_travail->ajoute(espace);
+
 	importe_module(espace, "Kuri", {});
 
 	return espace;
