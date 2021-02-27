@@ -80,14 +80,19 @@ struct Tache {
 };
 
 enum class DrapeauxTacheronne : uint32_t {
-	PEUT_LEXER           = (1 << 0),
-	PEUT_PARSER          = (1 << 1),
-	PEUT_TYPER           = (1 << 2),
-	PEUT_EXECUTER        = (1 << 3),
-	PEUT_GENERER_CODE    = (1 << 4),
-	PEUT_ENVOYER_MESSAGE = (1 << 5),
-	PEUT_GENERER_RI      = (1 << 6),
+	/* drapeaux pour les tâches étant dans des files
+	 * ATTENTION : l'ordre doit correspondre à l'énumération dans OrdonnanceuseTache ! */
+	PEUT_CHARGER         = (1 << 0),
+	PEUT_LEXER           = (1 << 1),
+	PEUT_PARSER          = (1 << 2),
+	PEUT_TYPER           = (1 << 3),
+	PEUT_GENERER_RI      = (1 << 4),
+	PEUT_EXECUTER        = (1 << 5),
+	PEUT_ENVOYER_MESSAGE = (1 << 6),
 	PEUT_OPTIMISER       = (1 << 7),
+
+	/* drapeaux pour les tâches n'étant pas dans des files */
+	PEUT_GENERER_CODE    = (1 << 8),
 
 	PEUT_TOUT_FAIRE      = 0xfffffff,
 };
@@ -98,6 +103,24 @@ struct OrdonnanceuseTache {
 private:
 	Compilatrice *m_compilatrice = nullptr;
 
+#if 0
+	enum {
+		FILE_CHARGEMENT,
+		FILE_LEXAGE,
+		FILE_PARSAGE,
+		FILE_TYPAGE,
+		FILE_GENERATION_RI,
+		FILE_EXECUTION,
+		FILE_MESSAGE,
+		FILE_OPTIMISATION,
+
+		NOMBRE_FILES,
+	};
+
+	dls::file<Tache> taches[NOMBRE_FILES];
+
+	void enfile(Tache tache, int index_file);
+#else
 	dls::file<Tache> taches_chargement{};
 	dls::file<Tache> taches_lexage{};
 	dls::file<Tache> taches_parsage{};
@@ -106,6 +129,7 @@ private:
 	dls::file<Tache> taches_execution{};
 	dls::file<Tache> taches_message{};
 	dls::file<Tache> taches_optimisation{};
+#endif
 
 	tableau_page<UniteCompilation> unites{};
 

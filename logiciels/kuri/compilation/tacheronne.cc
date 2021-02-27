@@ -98,6 +98,43 @@ Tache Tache::attend_message(UniteCompilation *unite_)
 	return t;
 }
 
+#undef STATS_PIQUE_TAILLE
+
+#ifdef STATS_PIQUE_TAILLE
+struct PiqueTailleFile {
+	long taches_chargement = 0;
+	long taches_execution = 0;
+	long taches_generation_ri = 0;
+	long taches_lexage = 0;
+	long taches_message = 0;
+	long taches_optimisation = 0;
+	long taches_parsage = 0;
+	long taches_typage = 0;
+
+	~PiqueTailleFile()
+	{
+		std::cerr << "Pique taille files :\n";
+		std::cerr << "-- taches_chargement    " << taches_chargement << '\n';
+		std::cerr << "-- taches_execution     " << taches_execution << '\n';
+		std::cerr << "-- taches_generation_ri " << taches_generation_ri << '\n';
+		std::cerr << "-- taches_lexage        " << taches_lexage << '\n';
+		std::cerr << "-- taches_message       " << taches_message << '\n';
+		std::cerr << "-- taches_optimisation  " << taches_optimisation << '\n';
+		std::cerr << "-- taches_parsage       " << taches_parsage << '\n';
+		std::cerr << "-- taches_typage        " << taches_typage << '\n';
+	}
+};
+
+static PiqueTailleFile pique_taille;
+#endif
+
+#if 0
+void OrdonnanceuseTache::enfile(Tache tache, int index_file)
+{
+	taches[index_file].enfile(tache);
+}
+#endif
+
 OrdonnanceuseTache::OrdonnanceuseTache(Compilatrice *compilatrice)
 	: m_compilatrice(compilatrice)
 {}
@@ -114,6 +151,9 @@ void OrdonnanceuseTache::cree_tache_pour_chargement(EspaceDeTravail *espace, Fic
 	tache.genre = GenreTache::CHARGE_FICHIER;
 
 	taches_chargement.enfile(tache);
+#ifdef STATS_PIQUE_TAILLE
+	pique_taille.taches_chargement = std::max(pique_taille.taches_chargement, taches_chargement.taille());
+#endif
 }
 
 void OrdonnanceuseTache::cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier *fichier)
@@ -129,6 +169,9 @@ void OrdonnanceuseTache::cree_tache_pour_lexage(EspaceDeTravail *espace, Fichier
 	tache.genre = GenreTache::LEXE;
 
 	taches_lexage.enfile(tache);
+#ifdef STATS_PIQUE_TAILLE
+	pique_taille.taches_lexage = std::max(pique_taille.taches_lexage, taches_lexage.taille());
+#endif
 }
 
 void OrdonnanceuseTache::cree_tache_pour_parsage(EspaceDeTravail *espace, Fichier *fichier)
@@ -144,6 +187,9 @@ void OrdonnanceuseTache::cree_tache_pour_parsage(EspaceDeTravail *espace, Fichie
 	tache.genre = GenreTache::PARSE;
 
 	taches_parsage.enfile(tache);
+#ifdef STATS_PIQUE_TAILLE
+	pique_taille.taches_parsage = std::max(pique_taille.taches_parsage, taches_parsage.taille());
+#endif
 }
 
 void OrdonnanceuseTache::cree_tache_pour_typage(EspaceDeTravail *espace, NoeudExpression *noeud)
@@ -160,6 +206,9 @@ void OrdonnanceuseTache::cree_tache_pour_typage(EspaceDeTravail *espace, NoeudEx
 	tache.genre = GenreTache::TYPAGE;
 
 	taches_typage.enfile(tache);
+#ifdef STATS_PIQUE_TAILLE
+	pique_taille.taches_typage = std::max(pique_taille.taches_typage, taches_typage.taille());
+#endif
 }
 
 void OrdonnanceuseTache::renseigne_etat_tacheronne(int id, GenreTache genre_tache)
@@ -219,6 +268,9 @@ void OrdonnanceuseTache::cree_tache_pour_generation_ri(EspaceDeTravail *espace, 
 	tache.genre = GenreTache::GENERE_RI;
 
 	taches_generation_ri.enfile(tache);
+#ifdef STATS_PIQUE_TAILLE
+	pique_taille.taches_generation_ri = std::max(pique_taille.taches_generation_ri, taches_generation_ri.taille());
+#endif
 }
 
 void OrdonnanceuseTache::cree_tache_pour_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
@@ -235,6 +287,9 @@ void OrdonnanceuseTache::cree_tache_pour_execution(EspaceDeTravail *espace, Meta
 	tache.genre = GenreTache::EXECUTE;
 
 	taches_execution.enfile(tache);
+#ifdef STATS_PIQUE_TAILLE
+	pique_taille.taches_execution = std::max(pique_taille.taches_execution, taches_execution.taille());
+#endif
 }
 
 Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_completee, int id, DrapeauxTacheronne drapeaux, bool mv_en_execution)
@@ -430,6 +485,20 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, bool tache_compl
 
 Tache OrdonnanceuseTache::tache_suivante(EspaceDeTravail *espace, int id, DrapeauxTacheronne drapeaux)
 {
+#if 0
+	using dls::outils::possede_drapeau;
+
+	for (int i = 0; i < NOMBRE_FILES; ++i) {
+		if (!possede_drapeau(drapeaux, static_cast<DrapeauxTacheronne>(1 << i))) {
+			continue;
+		}
+
+		if (!taches[i].est_vide()) {
+			return taches[i].defile();
+		}
+	}
+#endif
+
 	/* toute tâcheronne pouvant lexer peut charger */
 	if (!taches_chargement.est_vide() && (dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER))) {
 		return taches_chargement.defile();
