@@ -35,6 +35,7 @@
 #include <mutex>
 
 #include "structures/chaine.hh"
+#include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
 
 #include "lexemes.hh"
@@ -171,6 +172,8 @@ struct Module {
 struct SystemeModule {
 	tableau_page<DonneesConstantesModule> donnees_modules{};
 	tableau_page<DonneesConstantesFichier> donnees_fichiers{};
+
+	kuri::table_hachage<kuri::chaine_statique, DonneesConstantesFichier *> table_fichiers{};
 
 	DonneesConstantesModule *trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 

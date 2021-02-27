@@ -56,7 +56,10 @@ DonneesConstantesModule *SystemeModule::trouve_ou_cree_module(IdentifiantCode *n
 		}
 	}
 
-	return cree_module(nom, chemin_normalise);
+	auto dm = donnees_modules.ajoute_element();
+	dm->nom = nom;
+	dm->chemin = std::move(chemin_normalise);
+	return dm;
 }
 
 DonneesConstantesModule *SystemeModule::cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin)
@@ -70,10 +73,10 @@ DonneesConstantesModule *SystemeModule::cree_module(IdentifiantCode *nom, kuri::
 
 DonneesConstantesFichier *SystemeModule::trouve_ou_cree_fichier(kuri::chaine_statique nom, kuri::chaine_statique chemin)
 {
-	POUR_TABLEAU_PAGE (donnees_fichiers) {
-		if (it.chemin == chemin) {
-			return &it;
-		}
+	auto fichier = table_fichiers.valeur_ou(chemin, nullptr);
+
+	if (fichier) {
+		return fichier;
 	}
 
 	return cree_fichier(nom, chemin);
@@ -85,6 +88,8 @@ DonneesConstantesFichier *SystemeModule::cree_fichier(kuri::chaine_statique nom,
 	df->nom = nom;
 	df->chemin = chemin;
 	df->id = donnees_fichiers.taille() - 1;
+
+	table_fichiers.insere(df->chemin, df);
 
 	return df;
 }
