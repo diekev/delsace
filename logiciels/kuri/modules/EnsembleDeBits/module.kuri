@@ -1,0 +1,82 @@
+/* Module de travail sur des ensembles de bits. */
+
+// À FAIRE : polymorphe sur la taille
+EnsembleDeBits :: struct {
+    bits: [512 / 8]n8
+}
+
+est_actif :: fonc (ensemble: &EnsembleDeBits, index: n32) -> bool
+{
+    index_octet := index / 8
+    index_bit := index comme n8 % 8
+    retourne (ensemble.bits[index_octet] >> index_bit) != 0
+}
+
+active :: fonc (ensemble: &EnsembleDeBits, index: n32)
+{
+    index_octet := index / 8
+    index_bit := index comme n8 % 8
+    ensemble.bits[index_octet] |= (1 << index_bit)
+}
+
+active_tout :: fonc (ensemble: &EnsembleDeBits)
+{
+    pour & ensemble.bits {
+        it = 0b1111_1111
+    }
+}
+
+désactive :: fonc (ensemble: &EnsembleDeBits, index: n32)
+{
+    index_octet := index / 8
+    index_bit := index comme n8 % 8
+    masque := (1 << index_bit)
+    ensemble.bits[index_octet] &= ~masque
+}
+
+désactive_tout :: fonc (ensemble: &EnsembleDeBits)
+{
+    pour & ensemble.bits {
+        it = 0
+    }
+}
+
+bascule_tout :: fonc (ensemble: &EnsembleDeBits)
+{
+    pour & ensemble.bits {
+        it ^= it
+    }
+}
+
+tout_actif :: fonc (ensemble: &EnsembleDeBits) -> bool
+{
+    pour ensemble.bits {
+        si it != 0b1111_1111 {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+tout_inactif :: fonc (ensemble: &EnsembleDeBits) -> bool
+{
+    pour ensemble.bits {
+        si it != 0 {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+quelque_actif :: fonc (ensemble: &EnsembleDeBits) -> bool
+{
+    pour ensemble.bits {
+        si it != 0 {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
