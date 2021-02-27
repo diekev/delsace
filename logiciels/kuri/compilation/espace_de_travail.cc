@@ -122,7 +122,7 @@ ResultatFichier EspaceDeTravail::trouve_ou_cree_fichier(dls::outils::Synchrone<S
 
 	auto fichier = fichiers_->ajoute_element(donnees_fichier);
 
-	if (importe_kuri) {
+	if (importe_kuri && module->nom() != ID::Kuri) {
 		fichier->modules_importes.insere(ID::Kuri);
 	}
 
