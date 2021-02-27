@@ -129,14 +129,24 @@ struct logeuse_memoire {
 		ptr = nullptr;
 	}
 
-	static logeuse_memoire &instance();
+	static inline logeuse_memoire &instance()
+	{
+		return m_instance;
+	}
 
 private:
 	static logeuse_memoire m_instance;
 
-	void ajoute_memoire(long taille);
+	inline void ajoute_memoire(long taille)
+	{
+		this->memoire_allouee += taille;
+		this->memoire_consommee = std::max(this->memoire_allouee.load(), this->memoire_consommee.load());
+	}
 
-	void enleve_memoire(long taille);
+	inline void enleve_memoire(long taille)
+	{
+		this->memoire_allouee -= taille;
+	}
 
 	void *loge_generique(const char *message, long taille);
 

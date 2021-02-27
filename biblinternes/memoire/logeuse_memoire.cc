@@ -48,22 +48,6 @@ logeuse_memoire::~logeuse_memoire()
 #endif
 }
 
-logeuse_memoire &logeuse_memoire::instance()
-{
-	return m_instance;
-}
-
-void logeuse_memoire::ajoute_memoire(long taille)
-{
-	this->memoire_allouee += taille;
-	this->memoire_consommee = std::max(this->memoire_allouee.load(), this->memoire_consommee.load());
-}
-
-void logeuse_memoire::enleve_memoire(long taille)
-{
-	this->memoire_allouee -= taille;
-}
-
 /* ************************************************************************** */
 
 #define PROTEGE_MEMOIRE
