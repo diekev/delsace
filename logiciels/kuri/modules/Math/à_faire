@@ -108,3 +108,16 @@ Matrice -> colonne majeur, ligne majeure, droitière, gauchère
 [ ] Médianne
 [ ] Mode
 [ ] Écart-Type
+
+Degrés :: #opaque $T
+Radians :: #opaque $T
+
+vers_degrés :: fonc (a: Radians($T)) -> Degrés(T)
+{
+    retourne Degrés(a comme T / 180.0 * PI)
+}
+
+vers_radians :: fonc (a: Degrés($T)) -> Radians(T)
+{
+    retourne Radians(a comme T / PI * 180.0)
+}
