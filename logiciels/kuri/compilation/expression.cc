@@ -244,7 +244,7 @@ ResultatExpression evalue_expression(
 			auto res = ResultatExpression();
 
 			auto fichier = espace->fichier(b->lexeme->fichier);
-			auto decl = trouve_dans_bloc_ou_module(*espace, bloc, b->ident, fichier);
+			auto decl = trouve_dans_bloc_ou_module(bloc, b->ident, fichier);
 
 			if (decl == nullptr) {
 				res.est_errone = true;

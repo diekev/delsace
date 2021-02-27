@@ -132,6 +132,8 @@ public:
 
 	Coulisse *coulisse = nullptr;
 
+	Module *module_kuri = nullptr;
+
 	/* pour activer ou désactiver les optimisations */
 	bool optimisations = false;
 

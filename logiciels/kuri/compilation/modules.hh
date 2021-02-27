@@ -82,7 +82,7 @@ struct Fichier {
 
 	DonneesConstantesFichier *donnees_constantes = nullptr;
 
-	dls::ensemblon<IdentifiantCode *, 16> modules_importes{};
+	dls::ensemblon<Module *, 16> modules_importes{};
 
 	Module *module = nullptr;
 	MetaProgramme *metaprogramme_corps_texte = nullptr;

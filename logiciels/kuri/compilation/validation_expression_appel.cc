@@ -491,7 +491,7 @@ static auto trouve_candidates_pour_fonction_appelee(
 
 	if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
 		auto declarations = dls::tablet<NoeudDeclaration *, 10>();
-		trouve_declarations_dans_bloc_ou_module(espace, declarations, appelee->bloc_parent, appelee->ident, fichier);
+		trouve_declarations_dans_bloc_ou_module(declarations, appelee->bloc_parent, appelee->ident, fichier);
 
 		POUR (declarations) {
 			// on peut avoir des expressions du genre inverse := inverse(matrice),

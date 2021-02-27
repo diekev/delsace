@@ -39,7 +39,17 @@ const int FichierNeuf::tag = tags++;
 
 bool Fichier::importe_module(IdentifiantCode *nom_module) const
 {
-	return modules_importes.possede(nom_module);
+	bool importe = false;
+	pour_chaque_element(modules_importes, [nom_module, &importe](Module *module_)
+	{
+		if (module_->nom() == nom_module) {
+			importe = true;
+			return dls::DecisionIteration::Arrete;
+		}
+
+		return dls::DecisionIteration::Continue;
+	});
+	return importe;
 }
 
 DonneesConstantesModule *SystemeModule::trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin)

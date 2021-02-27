@@ -144,7 +144,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 			auto module = m_compilatrice.importe_module(espace, kuri::chaine(lexeme->chaine), inst->expr);
 			temps_chargement += temps.temps();
 			// @concurrence critique
-			fichier->modules_importes.insere(module->nom());
+			fichier->modules_importes.insere(module);
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
@@ -340,7 +340,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 			assert(bloc != nullptr);
 
 			auto fichier = espace->fichier(expr->lexeme->fichier);
-			auto decl = trouve_dans_bloc_ou_module(*espace, bloc, expr->ident, fichier);
+			auto decl = trouve_dans_bloc_ou_module(bloc, expr->ident, fichier);
 
 			if (decl == nullptr) {
 				unite->attend_sur_symbole(expr);
