@@ -93,8 +93,8 @@ template <>
 struct hash<dls::vue_chaine> {
 	std::size_t operator()(dls::vue_chaine const &chn) const
 	{
-		auto h = std::hash<std::string>{};
-		return h(std::string(&chn[0], static_cast<size_t>(chn.taille())));
+		auto h = std::hash<std::string_view>{};
+		return h(std::string_view(&chn[0], static_cast<size_t>(chn.taille())));
 	}
 };
 
