@@ -50,15 +50,6 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 	return bloc;
 }
 
-NoeudBloc *AssembleuseArbre::bloc_courant() const
-{
-	if (m_blocs.est_vide()) {
-		return nullptr;
-	}
-
-	return m_blocs.haut();
-}
-
 void AssembleuseArbre::bloc_courant(NoeudBloc *bloc)
 {
 	m_blocs.empile(bloc);

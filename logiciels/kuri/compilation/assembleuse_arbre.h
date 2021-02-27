@@ -44,7 +44,14 @@ public:
 
 	NoeudBloc *empile_bloc(Lexeme const *lexeme);
 
-	NoeudBloc *bloc_courant() const;
+	NoeudBloc *bloc_courant() const
+	{
+		if (m_blocs.est_vide()) {
+			return nullptr;
+		}
+
+		return m_blocs.haut();
+	}
 
 	void bloc_courant(NoeudBloc *bloc);
 
