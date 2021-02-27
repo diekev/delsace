@@ -600,7 +600,16 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	 * soit une variable créée par la compilatrice pour les fonctions en retournant plusieurs; */
 	NoeudDeclarationVariable *param_sortie = nullptr;
 
-	NoeudDeclarationVariable *parametre_entree(long i) const;
+	NoeudDeclarationVariable *parametre_entree(long i) const
+	{
+		auto param = params[static_cast<int>(i)];
+
+		if (param->est_empl()) {
+			return param->comme_empl()->expr->comme_decl_var();
+		}
+
+		return param->comme_decl_var();
+	}
 
 	// @design : ce n'est pas très propre de passer l'espace ici, mais il nous faut le fichier pour le module
 	kuri::chaine const &nom_broye(EspaceDeTravail *espace);

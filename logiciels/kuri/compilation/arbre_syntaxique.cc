@@ -2993,17 +2993,6 @@ NoeudSi *Simplificatrice::cree_condition_boucle(NoeudExpression *inst, GenreNoeu
 	return condition;
 }
 
-NoeudDeclarationVariable *NoeudDeclarationEnteteFonction::parametre_entree(long i) const
-{
-	auto param = params[static_cast<int>(i)];
-
-	if (param->est_empl()) {
-		return param->comme_empl()->expr->comme_decl_var();
-	}
-
-	return param->comme_decl_var();
-}
-
 kuri::chaine const &NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *espace)
 {
 	if (nom_broye_ != "") {
