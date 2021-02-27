@@ -36,6 +36,25 @@ stocke les labels pour les controles des boucles dans la structure Boucle, au li
 
 trouve une manière de protéger les pointeurs vers les types quand nous les utilisons dans les métaprogrammes à la place des index dans la table de type
 
+// avertissements
+-- fonction non utilisée
+-- variable non utilisée
+-- paramètre non utilisé
+-- membre structure (ou union) non utilisé
+-- structure ou union non utilisée
+-- module non utilisé dans un fichier
+
+// fonctionnalités pour le moultfilage
+-- async
+-- attends
+-- corout
+-- retiens
+-- thead_local
+-- thread
+-- mutex
+-- correctitude de constance
+-- nursery
+
 // --------------------------- Branches
 
 kuri_allocations
