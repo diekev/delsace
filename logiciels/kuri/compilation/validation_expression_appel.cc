@@ -705,14 +705,13 @@ static auto apparie_appel_pointeur(
 
 static auto apparie_appel_init_de(
 		NoeudExpression *expr,
-		kuri::tableau<IdentifiantEtExpression> const &args)
+		kuri::tableau<IdentifiantEtExpression> const &args,
+		DonneesCandidate &resultat)
 {
-	auto resultat = DonneesCandidate();
-
 	if (args.taille() > 1) {
 		resultat.etat = FONCTION_INTROUVEE;
 		resultat.raison = MECOMPTAGE_ARGS;
-		return resultat;
+		return;
 	}
 
 	auto type_fonction = expr->type->comme_fonction();
@@ -723,7 +722,7 @@ static auto apparie_appel_init_de(
 		resultat.raison = METYPAGE_ARG;
 		resultat.type_attendu = type_pointeur;
 		resultat.type_obtenu = args[0].expr->type;
-		return resultat;
+		return;
 	}
 
 	auto exprs = dls::tablet<NoeudExpression *, 10>();
@@ -739,8 +738,6 @@ static auto apparie_appel_init_de(
 	resultat.exprs = exprs;
 	resultat.transformations = std::move(transformations);
 	resultat.requiers_contexte = false;
-
-	return resultat;
 }
 
 /* ************************************************************************** */
@@ -1099,6 +1096,7 @@ static auto apparie_appel_fonction(
 			auto noeud_tableau = contexte.m_tacheronne.assembleuse->cree_tableau_variadique(&lexeme_tableau);
 
 			noeud_tableau->type = type_donnees_argument_variadique;
+			// @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas sélectionné
 			noeud_tableau->exprs.reserve(static_cast<int>(slots.taille()) - index_premier_var_arg);
 
 			for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
@@ -1428,12 +1426,48 @@ static auto apparie_construction_opaque(
 
 /* ************************************************************************** */
 
+struct ContexteValidationAppel {
+	kuri::tableau<IdentifiantEtExpression> args{};
+	dls::tablet<DonneesCandidate, 10> candidates{};
+	int nombre_candidates = 0;
+
+	DonneesCandidate &ajoute_donnees()
+	{
+		candidates.redimensionne(candidates.taille() + 1);
+		return candidates[nombre_candidates++];
+	}
+
+	void efface()
+	{
+		nombre_candidates = 0;
+		args.efface();
+
+		POUR (candidates) {
+			it.arguments_manquants.efface();
+			it.exprs.efface();
+			it.transformations.efface();
+			it.items_monomorphisation.efface();
+			it.poids_args = 0.0;
+			it.raison = 0;
+			it.etat = 0;
+			it.nom_arg = "";
+			it.requiers_contexte = true;
+			it.type = nullptr;
+			it.type_attendu = nullptr;
+			it.type_obtenu = nullptr;
+			it.noeud_erreur = nullptr;
+			it.noeud_decl = nullptr;
+			it.ident_poly_manquant = nullptr;
+		}
+	}
+};
+
 static auto trouve_candidates_pour_appel(
 		EspaceDeTravail &espace,
 		ContexteValidationCode &contexte,
 		NoeudExpressionAppel *expr,
 		kuri::tableau<IdentifiantEtExpression> &args,
-		dls::tablet<DonneesCandidate, 10> &resultat)
+		ContexteValidationAppel &resultat)
 {
 	auto candidates_appel = dls::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>();
 	if (trouve_candidates_pour_fonction_appelee(contexte, espace, expr->appelee, candidates_appel)) {
@@ -1474,11 +1508,10 @@ static auto trouve_candidates_pour_appel(
 
 	POUR (candidates_appel) {
 		if (it.quoi == CANDIDATE_EST_ACCES) {
-			auto dc = DonneesCandidate();
+			auto &dc = resultat.ajoute_donnees();
 			if (apparie_appel_pointeur(expr, it.decl->type, espace, contexte, args, dc)) {
 				return true;
 			}
-			resultat.ajoute(std::move(dc));
 		}
 		else if (it.quoi == CANDIDATE_EST_DECLARATION) {
 			auto decl = it.decl;
@@ -1495,11 +1528,10 @@ static auto trouve_candidates_pour_appel(
 					return true;
 				}
 
-				auto dc = DonneesCandidate();
+				auto &dc = resultat.ajoute_donnees();
 				if (apparie_appel_structure(espace, contexte, expr, decl_struct, args, dc)) {
 					return true;
 				}
-				resultat.ajoute(std::move(dc));
 			}
 			else if (decl->est_entete_fonction()) {
 				auto decl_fonc = decl->comme_entete_fonction();
@@ -1509,15 +1541,14 @@ static auto trouve_candidates_pour_appel(
 					return true;
 				}
 
-				auto dc = DonneesCandidate();
+				auto &dc = resultat.ajoute_donnees();
 				if (apparie_appel_fonction(espace, contexte, expr, decl_fonc, args, dc)) {
 					return true;
 				}
-				resultat.ajoute(std::move(dc));
 			}
 			else if (decl->est_decl_var()) {
 				auto type = decl->type;
-				auto dc = DonneesCandidate();
+				auto &dc = resultat.ajoute_donnees();
 
 				if ((decl->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
 					// @concurrence critique
@@ -1536,7 +1567,6 @@ static auto trouve_candidates_pour_appel(
 					if (!type_connu) {
 						dc.etat = FONCTION_INTROUVEE;
 						dc.raison = TYPE_N_EST_PAS_FONCTION;
-						resultat.ajoute(std::move(dc));
 						return true;
 					}
 
@@ -1546,7 +1576,6 @@ static auto trouve_candidates_pour_appel(
 						if (apparie_appel_structure(espace, contexte, expr, type_struct->decl, args, dc)) {
 							return true;
 						}
-						resultat.ajoute(std::move(dc));
 					}
 					else if (type_connu->est_union()) {
 						auto type_union = type_connu->comme_union();
@@ -1554,7 +1583,6 @@ static auto trouve_candidates_pour_appel(
 						if (apparie_appel_structure(espace, contexte, expr, type_union->decl, args, dc)) {
 							return true;
 						}
-						resultat.ajoute(std::move(dc));
 					}
 					else if (type_connu->est_opaque()) {
 						auto type_opaque = type_connu->comme_opaque();
@@ -1562,12 +1590,10 @@ static auto trouve_candidates_pour_appel(
 						if (apparie_construction_opaque(espace, contexte, expr, type_opaque, args, dc)) {
 							return true;
 						}
-						resultat.ajoute(std::move(dc));
 					}
 					else {
 						dc.etat = FONCTION_INTROUVEE;
 						dc.raison = TYPE_N_EST_PAS_FONCTION;
-						resultat.ajoute(std::move(dc));
 						return false;
 					}
 				}
@@ -1582,29 +1608,24 @@ static auto trouve_candidates_pour_appel(
 					if (apparie_construction_opaque(espace, contexte, expr, type_opaque, args, dc)) {
 						return true;
 					}
-					resultat.ajoute(std::move(dc));
 				}
 				else {
 					dc.etat = FONCTION_INTROUVEE;
 					dc.raison = TYPE_N_EST_PAS_FONCTION;
-					resultat.ajoute(std::move(dc));
 					return false;
 				}
-
-				resultat.ajoute(std::move(dc));
 			}
 		}
 		else if (it.quoi == CANDIDATE_EST_INIT_DE) {
 			// ici nous pourrions directement retourner si le type est correcte...
-			auto dc = apparie_appel_init_de(it.decl, args);
-			resultat.ajoute(std::move(dc));
+			auto &dc = resultat.ajoute_donnees();
+			apparie_appel_init_de(it.decl, args, dc);
 		}
 		else if (it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
-			auto dc = DonneesCandidate();
+			auto &dc = resultat.ajoute_donnees();
 			if (apparie_appel_pointeur(expr, it.decl->type, espace, contexte, args, dc)) {
 				return true;
 			}
-			resultat.ajoute(std::move(dc));
 		}
 	}
 
@@ -1776,7 +1797,10 @@ ResultatValidation valide_appel_fonction(
 	// ------------
 	// valide d'abord les expressions, leurs types sont nécessaire pour trouver les candidates
 
-	kuri::tableau<IdentifiantEtExpression> args;
+	static ContexteValidationAppel ctx;
+	ctx.efface();
+
+	auto &args = ctx.args;
 	args.reserve(expr->params.taille());
 
 	{
@@ -1800,19 +1824,19 @@ ResultatValidation valide_appel_fonction(
 	// ------------
 	// trouve la fonction, pour savoir ce que l'on a
 
-	auto candidates = dls::tablet<DonneesCandidate, 10>();
 	{
 		CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel, "trouve candidate");
 
-		if (trouve_candidates_pour_appel(espace, contexte, expr, args, candidates)) {
+		if (trouve_candidates_pour_appel(espace, contexte, expr, args, ctx)) {
 			return ResultatValidation::Erreur;
 		}
 	}
 
+	ctx.candidates.redimensionne(ctx.nombre_candidates);
 	auto candidate = DonneesCandidate::nul();
 	auto poids = 0.0;
 
-	POUR (candidates) {
+	POUR (ctx.candidates) {
 		if (it.etat == FONCTION_TROUVEE) {
 			if (it.poids_args > poids) {
 				candidate = &it;
@@ -1822,11 +1846,11 @@ ResultatValidation valide_appel_fonction(
 	}
 
 	if (candidate == nullptr) {
-		contexte.rapporte_erreur_fonction_inconnue(expr, candidates);
+		contexte.rapporte_erreur_fonction_inconnue(expr, ctx.candidates);
 		return ResultatValidation::Erreur;
 	}
 
-	POUR (candidates) {
+	POUR (ctx.candidates) {
 		// À FAIRE : nous avons plusieurs fois les mêmes fonctions ?
 		if (it.noeud_decl == candidate->noeud_decl) {
 			continue;
