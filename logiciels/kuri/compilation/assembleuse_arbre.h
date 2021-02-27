@@ -52,9 +52,6 @@ public:
 
 	void depile_bloc();
 
-	/* À FAIRE : supprime en faveur de la fonction ci-bas, uniquement utilisée pour les copies. */
-	NoeudExpression *cree_noeud(GenreNoeud genre, Lexeme const *lexeme);
-
 	/* Utilisation d'un gabarit car à part pour les copies, nous connaissons
 	 * toujours le genre de noeud à créer, et spécialiser cette fonction nous
 	 * économise pas mal de temps d'exécution, au prix d'un exécutable plus gros. */

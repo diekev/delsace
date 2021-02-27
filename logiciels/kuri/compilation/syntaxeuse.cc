@@ -809,7 +809,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
 	auto precedence = precedence_pour_operateur(lexeme->genre);
 	auto associativite = associativite_pour_operateur(lexeme->genre);
 
-	auto noeud = static_cast<NoeudExpressionUnaire *>(m_tacheronne.assembleuse->cree_noeud(genre_noeud, lexeme));
+	auto noeud = static_cast<NoeudExpressionUnaire *>(m_tacheronne.assembleuse->cree_noeud<GenreNoeud::OPERATEUR_UNAIRE>(lexeme));
+	noeud->genre = genre_noeud;
 
 	// cette vérification n'est utile que pour les arguments variadiques sans type
 	if (apparie_expression()) {
