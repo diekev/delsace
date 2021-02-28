@@ -147,7 +147,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
 			// @concurrence critique
 			if (fichier->importe_module(module->nom())) {
-				// À FAIRE: avertissement
+				espace->rapporte_avertissement(inst, "Importation superflux du module");
 			}
 			else {
 				fichier->modules_importes.insere(module);
@@ -1179,6 +1179,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
 			if (cherche_transformation_pour_transtypage(*espace, *this, expr->expression->type, noeud->type, transformation)) {
 				return ResultatValidation::Erreur;
+			}
+
+			if (transformation.type == TypeTransformation::INUTILE) {
+				espace->rapporte_avertissement(expr, "transtypage inutile");
 			}
 
 			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
