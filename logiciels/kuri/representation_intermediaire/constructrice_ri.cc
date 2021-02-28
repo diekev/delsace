@@ -643,6 +643,9 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 			auto ancienne_taille_allouee = taille_allouee;
 
 			POUR (*noeud_bloc->expressions.verrou_lecture()) {
+				if (it->est_entete_fonction()) {
+					continue;
+				}
 				genere_ri_pour_noeud(it);
 			}
 

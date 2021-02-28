@@ -1609,6 +1609,9 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 			auto bloc = noeud->comme_bloc();
 
 			POUR (*bloc->expressions.verrou_ecriture()) {
+				if (it->est_entete_fonction()) {
+					continue;
+				}
 				simplifie(it);
 			}
 
