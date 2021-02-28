@@ -357,7 +357,7 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
 		index_début -= 1
 	}
 
-	taille := index_fin - index_début comme z32
+	taille := index_fin - index_début
 
 	pour i dans 0 ... taille - 1 {
 		si format.séparation != 0 {
@@ -402,7 +402,7 @@ imprime_nombre_entier :: fonc (enchaineuse: *Enchaineuse, format: FormatEntier) 
 
 z64_depuis_pointeur :: fonc (pointeur: *z8, taille: n32) -> z64
 {
-	si taille == 1 { retourne mémoire(pointeur comme *z8) }
+	si taille == 1 { retourne mémoire(pointeur) }
 	si taille == 2 { retourne mémoire(pointeur comme *z16) }
 	si taille == 4 { retourne mémoire(pointeur comme *z32) }
 	si taille == 8 { retourne mémoire(pointeur comme *z64) }

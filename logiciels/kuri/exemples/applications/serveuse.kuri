@@ -98,7 +98,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
     }
 
     mon_addresse : sockaddr_in // Adresse du connecté
-	sin_size := taille_de(sockaddr_in) comme n32
+	sin_size := taille_de(sockaddr_in)
 
     boucle {
         prise := accept(serveuse.prise, *mon_addresse comme *sockaddr, *sin_size)

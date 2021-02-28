@@ -597,7 +597,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
                 valeur.assigne_z32(scanner.nombre_entier comme z32)
             }
             sinon si valeur.est_z64() {
-                valeur.assigne_z64(scanner.nombre_entier comme z64)
+                valeur.assigne_z64(scanner.nombre_entier)
             }
         }
         sinon {

@@ -152,7 +152,7 @@ détruit_serveuse :: fonc(serveuse: &ServeuseTCP($T))
 accepte :: fonc (serveuse: &ServeuseTCP($T)) -> ClienteTCP
 {
     adresse : sockaddr_in
-	sin_size := taille_de(sockaddr_in) comme n32
+	sin_size := taille_de(sockaddr_in)
 
     prise := accept(serveuse.prise, *adresse comme *sockaddr, *sin_size)
 

@@ -66,8 +66,8 @@ encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
 
 		si i == 3 {
 			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2 comme n8
-			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4) comme n8
-			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6) comme n8
+			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4)
+			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6)
 			char_array_4[3] = char_array_3[2] & 0x3f comme n8
 
             pour j dans 0 ... 3 {
@@ -84,8 +84,8 @@ encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
         }
 
 		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2
-		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4) comme n8
-		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6) comme n8
+		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4)
+		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6)
 		char_array_4[3] = char_array_3[2] & 0x3f
 
         pour j dans 0 ... i {
@@ -147,7 +147,7 @@ décode_base64 :: fonc(chn : chaine) -> chaine
                 temp |= 0x3F
             }
             sinon si caractère == '=' {
-                reste := (fin - curseur) comme z64
+                reste := (fin - curseur)
 
                 si reste == 1 {
                     ajoute_au_tampon(*enchaineuse, ((temp >> 16) & 0xff) comme z8)

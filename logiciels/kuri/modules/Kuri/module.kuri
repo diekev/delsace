@@ -381,7 +381,7 @@ __stockage_temporaire :: fonc(
     info : *InfoType,
     pos : PositionCodeSource) -> *rien
 {
-    alloc := contexte.stockage_temporaire comme *StockageTemporaire
+    alloc := contexte.stockage_temporaire
 
     discr mode {
         ALLOUE {

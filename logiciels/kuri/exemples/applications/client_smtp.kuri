@@ -92,7 +92,7 @@ PRISE_SERVEUSE := -1
 accepte :: fonc (serveuse: *Fichier) -> Fichier
 {
     adresse : sockaddr_in
-	sin_size := taille_de(sockaddr_in) comme n32
+	sin_size := taille_de(sockaddr_in)
 
     prise := accept(serveuse.desc, *adresse comme *sockaddr, *sin_size)
 
