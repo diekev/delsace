@@ -47,8 +47,8 @@ TypeÉditrice :: énum z32 {
 
     caméra : *Caméra3D
     tampon_texture : *TamponTexture
-    image : Image
-    matcap : *Image
+    image : Image.Image
+    matcap : *Image.Image
 }
 
 détruit_éditrice_vue_3d :: fonc (éditrice: *ÉditriceVue3D) -> rien
@@ -172,8 +172,8 @@ détruit_application :: fonc (app: *Application) -> rien
 ratisse_maillage :: fonc (
     caméra : *Caméra3D,
     maillage: *Maillage,
-    image: *Image,
-    matcap: *Image,
+    image: *Image.Image,
+    matcap: *Image.Image,
     theta: r32) -> rien
 {
     marque := obtiens_marque_stockage_temporaire()
@@ -453,8 +453,8 @@ min_max :: fonc (v: *Vec3, min_boite: *Vec3, max_boite: *Vec3) -> rien
 trace_maillage :: fonc (
     caméra : *Caméra3D,
     maillage : *Maillage,
-    image: *Image,
-    matcap: *Image) -> rien
+    image: *Image.Image,
+    matcap: *Image.Image) -> rien
 {
     ticks := compte_ticks_ms()
 

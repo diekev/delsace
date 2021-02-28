@@ -3,7 +3,7 @@ importe Couleur
 importe Math
 
 Image :: struct {
-    tampon : []Couleur
+    tampon : []Couleur.Couleur
     largeur: z32
     hauteur: z32
 }
@@ -11,7 +11,7 @@ Image :: struct {
 crée_image :: fonc (largeur: z32, hauteur: z32) -> Image
 {
     image: Image
-    image.tampon = loge_tableau(Couleur, largeur * hauteur)
+    image.tampon = loge_tableau(Couleur.Couleur, largeur * hauteur)
     image.largeur = largeur
     image.hauteur = hauteur
 
@@ -23,14 +23,14 @@ détruit_image :: fonc (image: *Image) -> rien
     déloge(image.tampon)
 }
 
-remplis_image :: fonc (image : *Image, couleur: Couleur) -> rien
+remplis_image :: fonc (image : *Image, couleur: Couleur.Couleur) -> rien
 {
     pour & pixel dans image.tampon {
         pixel = couleur
     }
 }
 
-échantillonne_prochain :: fonc (image: *Image, pos: *Vec2r) -> Couleur
+échantillonne_prochain :: fonc (image: *Image, pos: *Vec2r) -> Couleur.Couleur
 {
     x := pos.x * image.largeur comme r32
     y := pos.y * image.hauteur comme r32

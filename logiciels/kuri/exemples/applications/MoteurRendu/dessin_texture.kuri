@@ -108,7 +108,7 @@ détruit_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
 
 génère_texture :: fonc (
     tampon_texture: *TamponTexture,
-    données: []Couleur,
+    données: []Couleur.Couleur,
     largeur: z32,
     hauteur: z32) -> rien
 {

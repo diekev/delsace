@@ -145,7 +145,7 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 
 	sommets : []Vec2r
 	uvs : []Vec2r
-	couleurs : []Couleur
+	couleurs : []Couleur.Couleur
 	indices : []z32
 
     diffère {

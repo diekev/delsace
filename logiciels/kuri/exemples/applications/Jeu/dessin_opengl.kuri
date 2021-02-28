@@ -8,7 +8,7 @@ ProgramID : n32 = 0
 vertexbuffer : n32 = 0
 colorbuffer : n32 = 0
 tabl_sommets : []r32
-tabl_couleur : []Couleur
+tabl_couleur : []Couleur.Couleur
 
 charge_programme :: fonc() -> n32
 {
@@ -137,7 +137,7 @@ termine_dessin :: fonc() -> rien
 
     glEnableVertexAttribArray(1)
     glBindBuffer(GL_ARRAY_BUFFER, colorbuffer)
-	glBufferData(GL_ARRAY_BUFFER, tabl_couleur.taille comme n64 * taille_de(Couleur), tabl_couleur.pointeur, GL_STATIC_DRAW)
+	glBufferData(GL_ARRAY_BUFFER, tabl_couleur.taille comme n64 * taille_de(Couleur.Couleur), tabl_couleur.pointeur, GL_STATIC_DRAW)
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nul)
 
     glDrawArrays(GL_TRIANGLES, 0, tabl_sommets.taille / 3)
@@ -158,7 +158,7 @@ ajoute_sommet :: fonc(x : r32, y : r32, z : r32) -> rien
     tableau_ajoute(*tabl_sommets, z)
 }
 
-ajoute_couleur :: fonc(coul : Couleur) -> rien
+ajoute_couleur :: fonc(coul : Couleur.Couleur) -> rien
 {
     tableau_ajoute(*tabl_couleur, coul)
 }
@@ -174,7 +174,7 @@ dessine_triangle :: fonc() -> rien
     termine_dessin()
 }
 
-dessine_carré_ex :: fonc(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) -> rien
+dessine_carré_ex :: fonc(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur.Couleur) -> rien
 {
     débute_dessin()
 

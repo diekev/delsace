@@ -9,12 +9,12 @@ importe Math
 // ceci utilise l'algorithme de Bresenham, on pourrait essayer celui de Wu :
 // https://en.wikipedia.org/wiki/Xiaolin_Wu%27s_line_algorithm
 dessine_ligne :: fonc(
-    image: *Image,
+    image: *Image.Image,
     x1 : z32,
     y1 : z32,
     x2 : z32,
     y2 : z32,
-    couleur : Couleur) -> rien
+    couleur : Couleur.Couleur) -> rien
 {
     dx := (x2 - x1) comme r32;
     dy := (y2 - y1) comme r32;
@@ -46,14 +46,14 @@ dessine_ligne :: fonc(
 }
 
 dessine_triangle :: fonc(
-    image: *Image,
+    image: *Image.Image,
     x1 : r32,
     y1 : r32,
     x2 : r32,
     y2 : r32,
     x3 : r32,
     y3 : r32,
-    couleur : Couleur) -> rien
+    couleur : Couleur.Couleur) -> rien
 {
     ld := (image.largeur - 1) comme r32;
     hd := (image.hauteur - 1) comme r32;
@@ -76,11 +76,11 @@ dessine_triangle :: fonc(
 //     /  \
 //     ----
 remplis_triangle_bas_plat :: fonc(
-    image: *Image,
+    image: *Image.Image,
     v1 : Vec2r,
     v2 : Vec2r,
     v3 : Vec2r,
-    couleur : Couleur) -> rien
+    couleur : Couleur.Couleur) -> rien
 {
     ld := (image.largeur - 1) comme r32;
     hd := (image.hauteur - 1) comme r32;
@@ -122,11 +122,11 @@ remplis_triangle_bas_plat :: fonc(
 //     \  /
 //      \/
 remplis_triangle_haut_plat :: fonc(
-    image: *Image,
+    image: *Image.Image,
     v1 : Vec2r,
     v2 : Vec2r,
     v3 : Vec2r,
-    couleur : Couleur) -> rien
+    couleur : Couleur.Couleur) -> rien
 {
     ld := (image.largeur - 1) comme r32;
     hd := (image.hauteur - 1) comme r32;
@@ -180,14 +180,14 @@ remplis_triangle_haut_plat :: fonc(
 //   \|
 //
 ratisse_triangle :: fonc(
-    image: *Image,
+    image: *Image.Image,
     x1 : r32,
     y1 : r32,
     x2 : r32,
     y2 : r32,
     x3 : r32,
     y3 : r32,
-    couleur : Couleur) -> rien
+    couleur : Couleur.Couleur) -> rien
 {
     v1 := Vec2r( x = x1, y = y1 );
     v2 := Vec2r( x = x2, y = y2 );
