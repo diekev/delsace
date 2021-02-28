@@ -920,9 +920,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'info_de'");
 
 			auto noeud = m_tacheronne.assembleuse->cree_info_de(lexeme);
-			noeud->expr = analyse_expression_primaire(GenreLexeme::INFO_DE, GenreLexeme::INCONNU);
+			noeud->expr = analyse_expression({}, GenreLexeme::INFO_DE, GenreLexeme::INCONNU);
 
-			consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'taille_de'");
+			consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'info_de'");
 
 			return noeud;
 		}
@@ -932,7 +932,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'init_de'");
 
 			auto noeud = m_tacheronne.assembleuse->cree_init_de(lexeme);
-			noeud->expr = analyse_expression_primaire(GenreLexeme::INIT_DE, GenreLexeme::INCONNU);
+			noeud->expr = analyse_expression({}, GenreLexeme::INIT_DE, GenreLexeme::INCONNU);
 
 			consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'init_de'");
 
@@ -991,7 +991,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 			consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'taille_de'");
 
 			auto noeud = m_tacheronne.assembleuse->cree_taille_de(lexeme);
-			noeud->expr = analyse_expression_primaire(GenreLexeme::TAILLE_DE, GenreLexeme::INCONNU);
+			noeud->expr = analyse_expression({}, GenreLexeme::TAILLE_DE, GenreLexeme::INCONNU);
 
 			consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après le type de 'taille_de'");
 
