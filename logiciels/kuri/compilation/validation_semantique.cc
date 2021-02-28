@@ -2715,12 +2715,40 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(NoeudExp
 
 	assert(bloc_recherche != nullptr);
 	auto fichier = espace->fichier(expr->lexeme->fichier);
+
+#if 0
+	/* À FAIRE : nous devrions gérer les déclarations multiples, mais il est possible
+	 * qu'un module soit nommé comme une structure dans celui-ci, donc une expression
+	 * du style X.X sera toujours erronnée.
+	 */
+	auto declarations = dls::tablet<NoeudDeclaration *, 10>();
+	trouve_declarations_dans_bloc_ou_module(declarations, bloc_recherche, expr->ident, fichier);
+
+	if (declarations.taille() == 0) {
+		unite->attend_sur_symbole(expr);
+		return ResultatValidation::Erreur;
+	}
+
+	if (declarations.taille() > 1) {
+		auto e = ::rapporte_erreur(espace, expr, "Plusieurs déclaration sont possibles pour le symbole !");
+		e.ajoute_message("Candidates possibles :\n");
+
+		POUR (declarations) {
+			e.ajoute_site(it);
+		}
+
+		return ResultatValidation::Erreur;
+	}
+
+	auto decl = declarations[0];
+#else
 	auto decl = trouve_dans_bloc_ou_module(bloc_recherche, expr->ident, fichier);
 
 	if (decl == nullptr) {
 		unite->attend_sur_symbole(expr);
 		return ResultatValidation::Erreur;
 	}
+#endif
 
 	if (decl->lexeme->fichier == expr->lexeme->fichier && decl->genre == GenreNoeud::DECLARATION_VARIABLE && !decl->possede_drapeau(EST_GLOBALE)) {
 		if (decl->lexeme->ligne > expr->lexeme->ligne) {
