@@ -128,6 +128,7 @@ struct ContexteValidationCode {
 	ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration, kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
 	ResultatValidation valide_expression_retour(NoeudRetour *inst_retour);
 	ResultatValidation valide_cuisine(NoeudExpressionUnaire *directive);
+	ResultatValidation valide_reference_declaration(NoeudExpressionReference *expr, NoeudBloc *bloc_recherche);
 	ResultatValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
 	void rapporte_erreur(const char *message, NoeudExpression *noeud);

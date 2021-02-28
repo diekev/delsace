@@ -122,6 +122,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 		case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
 		case GenreNoeud::INSTRUCTION_BOUCLE:
 		case GenreNoeud::EXPRESSION_VIRGULE:
+		case GenreNoeud::DECLARATION_MODULE:
 		{
 			break;
 		}
@@ -143,8 +144,21 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 			auto temps = dls::chrono::compte_seconde();
 			auto module = m_compilatrice.importe_module(espace, kuri::chaine(lexeme->chaine), inst->expr);
 			temps_chargement += temps.temps();
+
 			// @concurrence critique
-			fichier->modules_importes.insere(module);
+			if (fichier->importe_module(module->nom())) {
+				// À FAIRE: avertissement
+			}
+			else {
+				fichier->modules_importes.insere(module);
+				auto noeud_module = m_tacheronne.assembleuse->cree_noeud<GenreNoeud::DECLARATION_MODULE>(inst->lexeme)->comme_decl_module();
+				noeud_module->module = module;
+				noeud_module->ident = inst->expr->ident;
+				noeud_module->bloc_parent = inst->bloc_parent;
+				noeud_module->bloc_parent->membres->ajoute(noeud_module);
+				noeud_module->drapeaux |= DECLARATION_FUT_VALIDEE;
+			}
+
 			break;
 		}
 		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
@@ -331,90 +345,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
-			CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, "valide référence déclaration");
-			auto expr = noeud->comme_ref_decl();
-
-			expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
-
-			auto bloc = expr->bloc_parent;
-			assert(bloc != nullptr);
-
-			auto fichier = espace->fichier(expr->lexeme->fichier);
-			auto decl = trouve_dans_bloc_ou_module(bloc, expr->ident, fichier);
-
-			if (decl == nullptr) {
-				unite->attend_sur_symbole(expr);
-				return ResultatValidation::Erreur;
-			}
-
-			if (decl->lexeme->fichier == expr->lexeme->fichier && decl->genre == GenreNoeud::DECLARATION_VARIABLE && !decl->possede_drapeau(EST_GLOBALE)) {
-				if (decl->lexeme->ligne > expr->lexeme->ligne) {
-					rapporte_erreur("Utilisation d'une variable avant sa déclaration", expr);
-					return ResultatValidation::Erreur;
-				}
-			}
-
-			if (dls::outils::est_element(decl->genre, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE) && expr->aide_generation_code != EST_NOEUD_ACCES) {
-				if (decl->unite == nullptr) {
-					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl);
-				}
-				expr->type = espace->typeuse.type_type_de_donnees(decl->type);
-				expr->decl = decl;
-			}
-			else {
-				if (!decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-					if (decl->unite == nullptr) {
-						m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl);
-					}
-					unite->attend_sur_declaration(decl);
-					return ResultatValidation::Erreur;
-				}
-
-				if (decl->type && decl->type->est_opaque() && decl->est_decl_var() && (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE)) {
-					expr->type = espace->typeuse.type_type_de_donnees(decl->type);
-					expr->decl = decl;
-				}
-				else {
-					// les fonctions peuvent ne pas avoir de type au moment si elles sont des appels polymorphiques
-					assert(decl->type || decl->genre == GenreNoeud::DECLARATION_ENTETE_FONCTION);
-					expr->decl = decl;
-					expr->type = decl->type;
-
-					/* si nous avons une valeur polymorphique, crée un type de données
-					 * temporaire pour que la validation soit contente, elle sera
-					 * remplacée par une constante appropriée lors de la validation
-					 * de l'appel */
-					if (decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
-						expr->type = espace->typeuse.type_type_de_donnees(expr->type);
-					}
-				}
-			}
-
-			if (decl->possede_drapeau(EST_CONSTANTE)) {
-				expr->genre_valeur = GenreValeur::DROITE;
-			}
-
-			// uniquement pour les fonctions polymorphiques
-			if (expr->type) {
-				donnees_dependance.types_utilises.insere(expr->type);
-			}
-
-			if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->est_polymorphe) {
-				noeud->genre_valeur = GenreValeur::DROITE;
-				auto decl_fonc = decl->comme_entete_fonction();
-				donnees_dependance.fonctions_utilisees.insere(decl_fonc);
-
-				if (decl_fonc->corps->unite == nullptr && !decl_fonc->est_externe) {
-					m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl_fonc->corps);
-				}
-			}
-			else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
-				if (decl->possede_drapeau(EST_GLOBALE)) {
-					donnees_dependance.globales_utilisees.insere(decl->comme_decl_var());
-				}
-			}
-
-			break;
+			return valide_reference_declaration(noeud->comme_ref_decl(), noeud->bloc_parent);
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
 		{
@@ -427,46 +358,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
 		{
 			auto inst = noeud->comme_ref_membre();
-			auto enfant1 = inst->accede;
-			//auto enfant2 = inst->membre;
 			noeud->genre_valeur = GenreValeur::TRANSCENDANTALE;
-
-			if (enfant1->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-				auto fichier = espace->fichier(noeud->lexeme->fichier);
-
-				auto const nom_symbole = enfant1->ident;
-				if (fichier->importe_module(nom_symbole)) {
-					/* À FAIRE(réusinage arbre) */
-//					auto module_importe = m_compilatrice.module(nom_symbole);
-
-//					if (module_importe == nullptr) {
-//						rapporte_erreur(
-//									"module inconnu",
-//									compilatrice,
-//									enfant1->lexeme,
-//									erreur::Genre::MODULE_INCONNU);
-//					}
-
-//					auto const nom_fonction = enfant2->ident->nom;
-
-//					if (!module_importe->possede_fonction(nom_fonction)) {
-//						rapporte_erreur(
-//									"Le module ne possède pas la fonction",
-//									compilatrice,
-//									enfant2->lexeme,
-//									erreur::Genre::FONCTION_INCONNUE);
-//					}
-
-//					enfant2->module_appel = static_cast<int>(module_importe->id);
-
-//					performe_validation_semantique(enfant2, m_compilatrice);
-
-//					noeud->type = enfant2->type;
-//					noeud->aide_generation_code = ACCEDE_MODULE;
-
-					return ResultatValidation::OK;
-				}
-			}
 
 			if (valide_acces_membre(inst) == ResultatValidation::Erreur) {
 				return ResultatValidation::Erreur;
@@ -2117,6 +2009,24 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(NoeudExpressionMe
 {
 	auto structure = expression_membre->accede;
 	auto membre = expression_membre->membre;
+
+	if (structure->est_ref_decl()) {
+		auto decl = structure->comme_ref_decl()->decl;
+
+		if (decl->est_decl_module()) {
+			auto ref = membre->comme_ref_decl();
+			auto res = valide_reference_declaration(ref, decl->comme_decl_module()->module->bloc);
+
+			if (res != ResultatValidation::OK) {
+				return res;
+			}
+
+			expression_membre->type = membre->type;
+			expression_membre->genre_valeur = membre->genre_valeur;
+			return res;
+		}
+	}
+
 	auto type = structure->type;
 
 	/* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
@@ -2789,6 +2699,91 @@ ResultatValidation ContexteValidationCode::valide_cuisine(NoeudExpressionUnaire 
 
 	directive->type = expr->type;
 	donnees_dependance.fonctions_utilisees.insere(expr->comme_appel()->appelee->comme_entete_fonction());
+
+	return ResultatValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_reference_declaration(NoeudExpressionReference *expr, NoeudBloc *bloc_recherche)
+{
+	CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, "valide référence déclaration");
+
+	expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
+
+	assert(bloc_recherche != nullptr);
+	auto fichier = espace->fichier(expr->lexeme->fichier);
+	auto decl = trouve_dans_bloc_ou_module(bloc_recherche, expr->ident, fichier);
+
+	if (decl == nullptr) {
+		unite->attend_sur_symbole(expr);
+		return ResultatValidation::Erreur;
+	}
+
+	if (decl->lexeme->fichier == expr->lexeme->fichier && decl->genre == GenreNoeud::DECLARATION_VARIABLE && !decl->possede_drapeau(EST_GLOBALE)) {
+		if (decl->lexeme->ligne > expr->lexeme->ligne) {
+			rapporte_erreur("Utilisation d'une variable avant sa déclaration", expr);
+			return ResultatValidation::Erreur;
+		}
+	}
+
+	if (dls::outils::est_element(decl->genre, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE) && expr->aide_generation_code != EST_NOEUD_ACCES) {
+		if (decl->unite == nullptr) {
+			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl);
+		}
+		expr->type = espace->typeuse.type_type_de_donnees(decl->type);
+		expr->decl = decl;
+	}
+	else {
+		if (!decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+			if (decl->unite == nullptr) {
+				m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl);
+			}
+			unite->attend_sur_declaration(decl);
+			return ResultatValidation::Erreur;
+		}
+
+		if (decl->type && decl->type->est_opaque() && decl->est_decl_var() && (decl->drapeaux & EST_DECLARATION_TYPE_OPAQUE)) {
+			expr->type = espace->typeuse.type_type_de_donnees(decl->type);
+			expr->decl = decl;
+		}
+		else {
+			// les fonctions peuvent ne pas avoir de type au moment si elles sont des appels polymorphiques
+			assert(decl->type || decl->genre == GenreNoeud::DECLARATION_ENTETE_FONCTION || decl->est_decl_module());
+			expr->decl = decl;
+			expr->type = decl->type;
+
+			/* si nous avons une valeur polymorphique, crée un type de données
+			 * temporaire pour que la validation soit contente, elle sera
+			 * remplacée par une constante appropriée lors de la validation
+			 * de l'appel */
+			if (decl->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+				expr->type = espace->typeuse.type_type_de_donnees(expr->type);
+			}
+		}
+	}
+
+	if (decl->possede_drapeau(EST_CONSTANTE)) {
+		expr->genre_valeur = GenreValeur::DROITE;
+	}
+
+	// uniquement pour les fonctions polymorphiques
+	if (expr->type) {
+		donnees_dependance.types_utilises.insere(expr->type);
+	}
+
+	if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->est_polymorphe) {
+		expr->genre_valeur = GenreValeur::DROITE;
+		auto decl_fonc = decl->comme_entete_fonction();
+		donnees_dependance.fonctions_utilisees.insere(decl_fonc);
+
+		if (decl_fonc->corps->unite == nullptr && !decl_fonc->est_externe) {
+			m_compilatrice.ordonnanceuse->cree_tache_pour_typage(espace, decl_fonc->corps);
+		}
+	}
+	else if (decl->genre == GenreNoeud::DECLARATION_VARIABLE) {
+		if (decl->possede_drapeau(EST_GLOBALE)) {
+			donnees_dependance.globales_utilisees.insere(decl->comme_decl_var());
+		}
+	}
 
 	return ResultatValidation::OK;
 }

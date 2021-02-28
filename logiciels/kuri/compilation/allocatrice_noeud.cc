@@ -55,6 +55,7 @@ long AllocatriceNoeud::nombre_noeuds() const
 	noeuds += m_noeuds_directive_execution.taille();
 	noeuds += m_noeuds_expression_virgule.taille();
 	noeuds += m_noeuds_litterales.taille();
+	noeuds += m_noeuds_module.taille();
 
 	return noeuds;
 }
@@ -100,6 +101,7 @@ void AllocatriceNoeud::rassemble_statistiques(Statistiques &stats) const
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudDirectiveExecution", m_noeuds_directive_execution) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudComme", m_noeuds_comme) });
 	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudExpressionLitterale", m_noeuds_litterales) });
+	stats_arbre.fusionne_entree({ DONNEES_ENTREE("NoeudModule", m_noeuds_module) });
 
 	auto memoire_retour = 0l;
 	pour_chaque_element(m_noeuds_retour, [&](NoeudRetour const &noeud)

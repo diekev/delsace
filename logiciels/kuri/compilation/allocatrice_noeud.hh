@@ -55,6 +55,7 @@ struct AllocatriceNoeud {
 	tableau_page<NoeudRetour> m_noeuds_retour{};
 	tableau_page<NoeudAssignation> m_noeuds_assignation{};
 	tableau_page<NoeudExpressionLitterale> m_noeuds_litterales{};
+	tableau_page<NoeudModule> m_noeuds_module{};
 
 	AllocatriceNoeud() = default;
 	~AllocatriceNoeud() = default;
@@ -234,6 +235,10 @@ struct AllocatriceNoeud {
 			{
 				noeud = m_noeuds_expression_virgule.ajoute_element();
 				break;
+			}
+			case GenreNoeud::DECLARATION_MODULE:
+			{
+				noeud = m_noeuds_module.ajoute_element();
 			}
 		}
 

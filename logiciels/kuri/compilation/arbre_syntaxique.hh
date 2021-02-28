@@ -38,6 +38,7 @@ struct AssembleuseArbre;
 struct Atome;
 struct Fichier;
 struct IdentifiantCode;
+struct Module;
 struct NoeudAssignation;
 struct NoeudBloc;
 struct NoeudBoucle;
@@ -54,6 +55,7 @@ struct NoeudExpressionAppel;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionMembre;
 struct NoeudExpressionReference;
+struct NoeudModule;
 struct NoeudRetour;
 struct NoeudExpressionLitterale;
 struct NoeudExpressionUnaire;
@@ -126,7 +128,8 @@ struct UniteCompilation;
 	ENUMERE_GENRE_NOEUD_EX(EXPANSION_VARIADIQUE) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_EMPL) \
 	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_IMPORTE) \
-	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_CHARGE)
+	ENUMERE_GENRE_NOEUD_EX(INSTRUCTION_CHARGE) \
+	ENUMERE_GENRE_NOEUD_EX(DECLARATION_MODULE)
 
 enum class GenreNoeud : char {
 #define ENUMERE_GENRE_NOEUD_EX(genre) genre,
@@ -287,6 +290,7 @@ struct NoeudExpression {
 	EST_NOEUD_GENRE(decl_discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
 	EST_NOEUD_GENRE(decl_var, GenreNoeud::DECLARATION_VARIABLE)
 	EST_NOEUD_GENRE(declaration, GenreNoeud::DECLARATION_VARIABLE, GenreNoeud::DECLARATION_CORPS_FONCTION, GenreNoeud::DECLARATION_ENTETE_FONCTION, GenreNoeud::DECLARATION_ENUM, GenreNoeud::DECLARATION_STRUCTURE)
+	EST_NOEUD_GENRE(decl_module, GenreNoeud::DECLARATION_MODULE)
 	EST_NOEUD_GENRE(discr, GenreNoeud::INSTRUCTION_DISCR, GenreNoeud::INSTRUCTION_DISCR_ENUM, GenreNoeud::INSTRUCTION_DISCR_UNION)
 	EST_NOEUD_GENRE(enum, GenreNoeud::DECLARATION_ENUM)
 	EST_NOEUD_GENRE(entete_fonction, GenreNoeud::DECLARATION_ENTETE_FONCTION)
@@ -346,6 +350,7 @@ struct NoeudExpression {
 	COMME_NOEUD(controle_boucle, NoeudExpressionUnaire)
 	COMME_NOEUD(cuisine, NoeudExpressionUnaire)
 	COMME_NOEUD(decl_discr, NoeudDiscr)
+	COMME_NOEUD(decl_module, NoeudModule)
 	COMME_NOEUD(decl_var, NoeudDeclarationVariable)
 	COMME_NOEUD(discr, NoeudDiscr)
 	COMME_NOEUD(enum, NoeudEnum)
@@ -398,10 +403,17 @@ struct NoeudExpressionLitterale : public NoeudExpression {
 };
 
 struct NoeudDeclaration : public NoeudExpression {
+	POINTEUR_NUL(NoeudDeclaration)
+};
+
+struct NoeudModule : public NoeudDeclaration {
+	Module *module = nullptr;
+};
+
+struct NoeudDeclarationSymbole : public NoeudDeclaration {
 	NoeudDependance *noeud_dependance = nullptr;
 	Atome *atome = nullptr;
 
-	POINTEUR_NUL(NoeudDeclaration)
 };
 
 struct DonneesAssignations {
@@ -428,7 +440,7 @@ struct DonneesAssignations {
 	}
 };
 
-struct NoeudDeclarationVariable final : public NoeudDeclaration {
+struct NoeudDeclarationVariable final : public NoeudDeclarationSymbole {
 	NoeudDeclarationVariable() { genre = GenreNoeud::DECLARATION_VARIABLE; }
 
 	COPIE_CONSTRUCT(NoeudDeclarationVariable);
@@ -444,7 +456,7 @@ struct NoeudDeclarationVariable final : public NoeudDeclaration {
 
 	ValeurExpression valeur_expression{};
 
-	NoeudDeclaration *declaration_vient_d_un_emploi = nullptr;
+	NoeudDeclarationSymbole *declaration_vient_d_un_emploi = nullptr;
 	int index_membre_employe = 0;
 
 	// pour les variables globales
@@ -555,7 +567,7 @@ struct ItemMonomorphisation {
 };
 
 // À FAIRE(poly) : opérateurs polymorphiques
-struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
+struct NoeudDeclarationEnteteFonction : public NoeudDeclarationSymbole {
 	NoeudDeclarationEnteteFonction() { genre = GenreNoeud::DECLARATION_ENTETE_FONCTION; }
 
 	NoeudDeclarationCorpsFonction *corps = nullptr;
@@ -615,7 +627,7 @@ struct NoeudDeclarationEnteteFonction : public NoeudDeclaration {
 	kuri::chaine const &nom_broye(EspaceDeTravail *espace);
 };
 
-struct NoeudDeclarationCorpsFonction : public NoeudDeclaration {
+struct NoeudDeclarationCorpsFonction : public NoeudDeclarationSymbole {
 	NoeudDeclarationCorpsFonction() { genre = GenreNoeud::DECLARATION_CORPS_FONCTION; }
 
 	NoeudDeclarationEnteteFonction *entete = nullptr;
@@ -642,7 +654,7 @@ struct NoeudExpressionAppel : public NoeudExpression {
 	COPIE_CONSTRUCT(NoeudExpressionAppel);
 };
 
-struct NoeudStruct : public NoeudDeclaration {
+struct NoeudStruct : public NoeudDeclarationSymbole {
 	NoeudStruct() { genre = GenreNoeud::DECLARATION_STRUCTURE; }
 
 	COPIE_CONSTRUCT(NoeudStruct);
@@ -675,7 +687,7 @@ struct NoeudStruct : public NoeudDeclaration {
 	tableau_synchrone<dls::paire<tableau_item_monomorphisation, NoeudStruct *>> monomorphisations{};
 };
 
-struct NoeudEnum : public NoeudDeclaration {
+struct NoeudEnum : public NoeudDeclarationSymbole {
 	NoeudEnum() { genre = GenreNoeud::DECLARATION_STRUCTURE; }
 
 	NoeudBloc *bloc = nullptr;
@@ -862,6 +874,7 @@ struct NoeudComme : public NoeudExpression {
 	COMME_NOEUD(cuisine, NoeudExpressionUnaire)
 	COMME_NOEUD(decl_discr, NoeudDiscr)
 	COMME_NOEUD(decl_var, NoeudDeclarationVariable)
+	COMME_NOEUD(decl_module, NoeudModule)
 	COMME_NOEUD(discr, NoeudDiscr)
 	COMME_NOEUD(enum, NoeudEnum)
 	COMME_NOEUD(entete_fonction, NoeudDeclarationEnteteFonction)

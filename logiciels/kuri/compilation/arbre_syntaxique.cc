@@ -82,6 +82,10 @@ void imprime_arbre(NoeudExpression *racine, std::ostream &os, int tab, bool subs
 	}
 
 	switch (racine->genre) {
+		case GenreNoeud::DECLARATION_MODULE:
+		{
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
 			auto bloc = static_cast<NoeudBloc *>(racine);
@@ -865,6 +869,14 @@ NoeudExpression *copie_noeud(
 
 			break;
 		}
+		case GenreNoeud::DECLARATION_MODULE:
+		{
+			CREE_NOEUD_POUR_COPIE(GenreNoeud::DECLARATION_MODULE);
+			auto expr = racine->comme_decl_module();
+			auto nexpr = nracine->comme_decl_module();
+			nexpr->module = expr->module;
+			break;
+		}
 	}
 
 	return nracine;
@@ -880,6 +892,10 @@ static void aplatis_arbre(
 	}
 
 	switch (racine->genre) {
+		case GenreNoeud::DECLARATION_MODULE:
+		{
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_COMPOSEE:
 		{
 			auto bloc = static_cast<NoeudBloc *>(racine);
@@ -1303,6 +1319,10 @@ Etendue calcule_etendue_noeud(const NoeudExpression *racine, Fichier *fichier)
 	etendue.pos_max = pos.pos + racine->lexeme->chaine.taille();
 
 	switch (racine->genre) {
+		case GenreNoeud::DECLARATION_MODULE:
+		{
+			break;
+		}
 		case GenreNoeud::DECLARATION_VARIABLE:
 		{
 			auto expr = racine->comme_decl_var();
@@ -1552,6 +1572,10 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 	}
 
 	switch (noeud->genre) {
+		case GenreNoeud::DECLARATION_MODULE:
+		{
+			break;
+		}
 		case GenreNoeud::DECLARATION_ENTETE_FONCTION:
 		{
 			auto entete = noeud->comme_entete_fonction();
@@ -1789,6 +1813,14 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
 				ref_membre->substitution = dif;
 				return;
+			}
+
+			if (accede->est_ref_decl()) {
+				if (accede->comme_ref_decl()->decl->est_decl_module()) {
+					ref_membre->substitution = accede;
+					simplifie(accede);
+					return;
+				}
 			}
 
 			while (type_accede->est_pointeur() || type_accede->est_reference()) {

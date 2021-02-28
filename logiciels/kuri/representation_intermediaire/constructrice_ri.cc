@@ -535,6 +535,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 		case GenreNoeud::INSTRUCTION_EMPL:
 		case GenreNoeud::INSTRUCTION_IMPORTE:
 		case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
+		case GenreNoeud::DECLARATION_MODULE:
 		{
 			break;
 		}
@@ -754,7 +755,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 				return;
 			}
 
-			auto locale = decl_ref->atome;
+			auto locale = static_cast<NoeudDeclarationSymbole *>(decl_ref)->atome;
 			assert_rappel(locale, [&]() {
 				erreur::imprime_site(*m_espace, noeud);
 				std::cerr << "Aucune locale trouvée pour " << noeud->ident->nom << " (" << chaine_type(noeud->type) << ")\n";
@@ -1554,7 +1555,7 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 
 		POUR ((*decl->corps->bloc->membres.verrou_lecture())) {
 			if (it->ident == ID::contexte) {
-				it->atome = contexte;
+				static_cast<NoeudDeclarationSymbole *>(it)->atome = contexte;
 				break;
 			}
 		}
@@ -2075,7 +2076,7 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 		else {
 			auto var_expr_piegee = cree_allocation(noeud, gen_tente.type_piege, noeud->expr_piege->ident);
 			auto decl_expr_piegee = noeud->expr_piege->comme_ref_decl()->decl;
-			decl_expr_piegee->atome = var_expr_piegee;
+			static_cast<NoeudDeclarationSymbole *>(decl_expr_piegee)->atome = var_expr_piegee;
 			genere_ri_pour_noeud(noeud->bloc);
 		}
 
@@ -2131,7 +2132,7 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudTente *noeud)
 			membre_erreur = cree_transtype(noeud, m_espace->typeuse.type_pointeur_pour(gen_tente.type_piege, false), membre_erreur, TypeTranstypage::BITS);
 			membre_erreur->est_chargeable = true;
 			auto decl_expr_piegee = noeud->expr_piege->comme_ref_decl()->decl;
-			decl_expr_piegee->atome = membre_erreur;
+			static_cast<NoeudDeclarationSymbole *>(decl_expr_piegee)->atome = membre_erreur;
 			genere_ri_pour_noeud(noeud->bloc);
 		}
 
@@ -3318,7 +3319,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						auto pointeur = alloc_pointeur(var);
-						var->comme_ref_decl()->decl->atome = pointeur;
+						static_cast<NoeudDeclarationSymbole *>(var->comme_ref_decl()->decl)->atome = pointeur;
 
 						auto valeur = cree_acces_membre(expression, valeur_tuple, i);
 						transforme_valeur(expression, valeur, transformation, pointeur);
@@ -3332,7 +3333,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 						auto var = it.variables[i];
 						auto &transformation = it.transformations[i];
 						auto pointeur = alloc_pointeur(var);
-						var->comme_ref_decl()->decl->atome = pointeur;
+						static_cast<NoeudDeclarationSymbole *>(var->comme_ref_decl()->decl)->atome = pointeur;
 
 						transforme_valeur(expression, valeur, transformation, pointeur);
 						depile_valeur();
@@ -3342,7 +3343,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 			else {
 				for (auto &var : it.variables.plage()) {
 					auto pointeur = alloc_pointeur(var);
-					var->comme_ref_decl()->decl->atome = pointeur;
+					static_cast<NoeudDeclarationSymbole *>(var->comme_ref_decl()->decl)->atome = pointeur;
 				}
 			}
 		}
@@ -3372,7 +3373,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 					cree_stocke_mem(var, pointeur, valeur);
 				}
 
-				var->comme_ref_decl()->decl->atome = pointeur;
+				static_cast<NoeudDeclarationSymbole *>(var->comme_ref_decl()->decl)->atome = pointeur;
 			}
 		}
 	}

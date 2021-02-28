@@ -41,6 +41,10 @@ NoeudCode *ConvertisseuseNoeudCode::converti_noeud_syntaxique(EspaceDeTravail *e
 	}
 
 	switch (noeud_expression->genre) {
+		case GenreNoeud::DECLARATION_MODULE:
+		{
+			break;
+		}
 		case GenreNoeud::INSTRUCTION_CHARGE:
 		{
 			auto charge = noeud_expression->comme_charge();
