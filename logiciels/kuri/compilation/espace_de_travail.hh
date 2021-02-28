@@ -216,6 +216,8 @@ public:
 	void change_de_phase(dls::outils::Synchrone<Messagere> &messagere, PhaseCompilation nouvelle_phase);
 	PhaseCompilation phase_courante() const;
 
+	void rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message);
+
 	/* Imprime la RI de toutes les fonctions de l'espace de travail. */
 	void imprime_programme() const;
 };

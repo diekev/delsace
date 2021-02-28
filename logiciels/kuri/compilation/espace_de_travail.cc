@@ -505,6 +505,14 @@ PhaseCompilation EspaceDeTravail::phase_courante() const
 	return phase;
 }
 
+#include "erreur.h"
+
+void EspaceDeTravail::rapporte_avertissement(NoeudExpression *site, kuri::chaine_statique message)
+{
+	erreur::imprime_site(*this, site);
+	std::cerr << message << '\n';
+}
+
 void EspaceDeTravail::imprime_programme() const
 {
 	std::ofstream os;
