@@ -3273,9 +3273,6 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
 	CHRONO_TYPAGE(m_tacheronne.stats_typage.enumerations, "valide énum");
 	auto type_enum = decl->type->comme_enum();
 
-	// nous avons besoin du symbole le plus rapidement possible pour déterminer les types l'utilisant
-	decl->bloc_parent->membres->ajoute(decl);
-
 	if (type_enum->est_erreur) {
 		type_enum->type_donnees = espace->typeuse[TypeBase::Z32];
 	}
