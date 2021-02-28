@@ -209,6 +209,8 @@ permet de ne pas avoir un retour si la dernière instruction est celle d'une dis
         cas_2 { retourne 1 }
     }
 
+propement gérer les cas où une fonction nichée dans une autre essaie d'utiliser une variable locale de la fonction parente
+
 // --------------------------- Polymorphie / Monomorphisation
 
 pouvoir instantier une fonction polymorphique lorsqu'on la passe à une autre
