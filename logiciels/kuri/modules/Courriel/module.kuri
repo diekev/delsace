@@ -31,6 +31,20 @@ importe Temps
  * retourne envoie_courriel(config, courriel)
  */
 
+/*
+
+    Interfaces à considérer :
+
+    - un service client pour envoyer plusieurs courriels (travailler d'abord sur le module TCP)
+    - un gestionnaire de message se basant, ou réutilisant des composants du précité service
+    - nom expéditeur par défaut
+    - type CorpsMessage tenant trace du l'encodage souhaité, et du type de contenu (text/plain, text/html)
+    - création d'un texte depuis un texte html (à mettre plutôt dans le module HTML)
+    - type PièceJointe tenant du nom, nom de fichier, type de contenu (texte, flux octet, audio, image, vidéo, etc.)
+    - (base64) : compression/décompression depuis un flux (peut-être avec une table virtuelle quand nous en aurons une, mais avec des rappels, c'est bien aussi)
+
+ */
+
 /* Représentation d'une adresse courriel. Contient la chaine originelle, et ses composants de nom et d'hôte. */
 AdresseCourriel :: struct {
     chn: chaine
