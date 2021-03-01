@@ -38,36 +38,50 @@ AdresseCourriel :: struct {
     hôte: chaine
 }
 
-/* Fonction auxilliaire pour parser un courriel pour les FonctionParsages du module Introspection. */
-parse_courriel_pour_info_type :: fonc (chn: chaine, tampon: []octet) -> bool
+crée_adresse_courriel :: fonc (chn: chaine) -> AdresseCourriel
 {
     pos_arobase := trouve_caractère_depuis_le_début(chn, '@')
 
     si pos_arobase <= 0 {
-        retourne faux
+        retourne AdresseCourriel()
     }
 
     courriel : AdresseCourriel = ---
     courriel.chn = chn
     courriel.nom = chn.sous_chaine(0, pos_arobase)
     courriel.hôte = chn.sous_chaine(pos_arobase + 1, chn.taille)
+    retourne courriel
+}
+
+est_valide :: fonc (courriel: &AdresseCourriel) -> bool
+{
+    retourne courriel.chn != ""
+}
+
+/* Fonction auxilliaire pour parser un courriel pour les FonctionParsages du module Introspection. */
+parse_courriel_pour_info_type :: fonc (chn: chaine, tampon: []octet) -> bool
+{
+    courriel := crée_courriel(chn)
+
+    saufsi courriel.est_valide() {
+        retourne faux
+    }
 
     copie_mem(src = courriel, dst = tampon, taille = tampon.taille)
-
     retourne vrai
 }
 
 Courriel :: struct {
-    expéditeur: chaine
-    destinataires: []chaine
-    destinataires_cc: []chaine
-    destinataires_bcc: []chaine
+    expéditeur: AdresseCourriel
+    destinataires: []AdresseCourriel
+    destinataires_cc: []AdresseCourriel
+    destinataires_bcc: []AdresseCourriel
     objet: chaine
     pièces_jointes: []chaine
     messages: []chaine
 }
 
-détruit_courriel :: fonc (courriel: *Courriel) -> rien
+détruit_courriel :: fonc (courriel: &Courriel) -> rien
 {
     déloge(courriel.messages)
     déloge(courriel.destinataires)
@@ -85,17 +99,17 @@ ajoute_pièce_jointe :: fonc (courriel: &Courriel, pièce: chaine)
     tableau_ajoute(*courriel.pièces_jointes, pièce)
 }
 
-ajoute_destinataire :: fonc (courriel: *Courriel, destinataire: chaine) -> rien
+ajoute_destinataire :: fonc (courriel: &Courriel, destinataire: AdresseCourriel) -> rien
 {
     tableau_ajoute(*courriel.destinataires, destinataire)
 }
 
-ajoute_destinataire_cc :: fonc (courriel: *Courriel, destinataire: chaine) -> rien
+ajoute_destinataire_cc :: fonc (courriel: &Courriel, destinataire: AdresseCourriel) -> rien
 {
     tableau_ajoute(*courriel.destinataires_cc, destinataire)
 }
 
-ajoute_destinataire_bcc :: fonc (courriel: *Courriel, destinataire: chaine) -> rien
+ajoute_destinataire_bcc :: fonc (courriel: &Courriel, destinataire: AdresseCourriel) -> rien
 {
     tableau_ajoute(*courriel.destinataires_bcc, destinataire)
 }
@@ -147,7 +161,7 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
 }
 
 // https://tools.ietf.org/html/rfc5322
-crée_corps_message :: fonc (courriel: Courriel) -> chaine
+crée_corps_message :: fonc (courriel: &Courriel) -> chaine
 {
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -160,15 +174,15 @@ crée_corps_message :: fonc (courriel: Courriel) -> chaine
     // Date: Tue, 15 Jan 2008 16:02:43 -0500
     //ajoute_au_tampon(@enchaineuse, "Date: ")
 
-    imprime_dans_enchaineuse(*enchaineuse, "From: <%>\r\n", courriel.expéditeur)
+    imprime_dans_enchaineuse(*enchaineuse, "From: <%>\r\n", courriel.expéditeur.chn)
 
     si courriel.destinataires {
         ajoute_au_tampon(*enchaineuse, "To: ")
         virgule := "<"
 
-        pour courriel.destinataires {
+        pour & courriel.destinataires {
             ajoute_au_tampon(*enchaineuse, virgule)
-            ajoute_au_tampon(*enchaineuse, it)
+            ajoute_au_tampon(*enchaineuse, it.chn)
             virgule = ">,<"
         }
 
@@ -179,9 +193,9 @@ crée_corps_message :: fonc (courriel: Courriel) -> chaine
         ajoute_au_tampon(*enchaineuse, "Cc: ")
         virgule := "<"
 
-        pour courriel.destinataires_cc {
+        pour & courriel.destinataires_cc {
             ajoute_au_tampon(*enchaineuse, virgule)
-            ajoute_au_tampon(*enchaineuse, it)
+            ajoute_au_tampon(*enchaineuse, it.chn)
             virgule = ">,<"
         }
 
@@ -292,8 +306,24 @@ ErreurServeur :: erreur {
     ClientNeFutPasAuthentifié :: 530
 }
 
-envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: Courriel) -> z32
+// À FAIRE : meilleure type de retour
+// À FAIRE : note les erreurs
+envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: &Courriel) -> z32
 {
+    si !courriel.expéditeur.est_valide() {
+        retourne 1
+    }
+
+    saufsi courriel.destinataires {
+        retourne 1
+    }
+
+    pour & courriel.destinataires {
+        saufsi it.est_valide() {
+            retourne 1
+        }
+    }
+
     fichier := tente ouvre_connexion_serveur(config) piège err {
         discr err {
             RésolutionHôteImpossible {
@@ -348,26 +378,38 @@ envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: Courriel) -> z
 
     // 530 5.7.1 Client was not authenticated
     // 250 2.1.0 Ok
-    si envoie_commande_smtp(*fichier, "MAIL FROM:<%>", courriel.expéditeur) == 0 {
+    si envoie_commande_smtp(*fichier, "MAIL FROM:<%>", courriel.expéditeur.chn) == 0 {
         retourne 1
     }
 
     // 530 5.7.1 Client was not authenticated
     // 250 2.1.0 Ok
-    pour courriel.destinataires {
-        si envoie_commande_smtp(*fichier, "RCPT TO:<%>", it) == 0 {
+    pour & courriel.destinataires {
+        saufsi it.est_valide() {
+            continue;
+        }
+
+        si envoie_commande_smtp(*fichier, "RCPT TO:<%>", it.chn) == 0 {
             retourne 1
         }
     }
 
-    pour courriel.destinataires_cc {
-        si envoie_commande_smtp(*fichier, "RCPT TO:<%>", it) == 0 {
+    pour & courriel.destinataires_cc {
+        saufsi it.est_valide() {
+            continue;
+        }
+
+        si envoie_commande_smtp(*fichier, "RCPT TO:<%>", it.chn) == 0 {
             retourne 1
         }
     }
 
-    pour courriel.destinataires_bcc {
-        si envoie_commande_smtp(*fichier, "RCPT TO:<%>", it) == 0 {
+    pour & courriel.destinataires_bcc {
+        saufsi it.est_valide() {
+            continue;
+        }
+
+        si envoie_commande_smtp(*fichier, "RCPT TO:<%>", it.chn) == 0 {
             retourne 1
         }
     }
