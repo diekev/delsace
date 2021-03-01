@@ -1,8 +1,14 @@
+// https://www.email-standards.org/
+// https://tools.ietf.org/html/rfc1521#section-3 MIME
+// https://tools.ietf.org/html/rfc5321#section-2.3.1 SMTP
+
+importe Aléa
 importe CodecDonnées
 importe Fondation
 importe GlibC
 importe Réseau
 importe SysFichier
+importe Temps
 
 /* Module d'envoie de courriel.
  *
@@ -52,17 +58,31 @@ parse_courriel_pour_info_type :: fonc (chn: chaine, tampon: []octet) -> bool
 }
 
 Courriel :: struct {
-    objet: chaine
-    message: chaine
     expéditeur: chaine
     destinataires: []chaine
     destinataires_cc: []chaine
+    destinataires_bcc: []chaine
+    objet: chaine
+    pièces_jointes: []chaine
+    messages: []chaine
 }
 
 détruit_courriel :: fonc (courriel: *Courriel) -> rien
 {
+    déloge(courriel.messages)
     déloge(courriel.destinataires)
     déloge(courriel.destinataires_cc)
+    déloge(courriel.destinataires_bcc)
+}
+
+ajoute_message :: fonc (courriel: &Courriel, message: chaine)
+{
+    tableau_ajoute(*courriel.messages, message)
+}
+
+ajoute_pièce_jointe :: fonc (courriel: &Courriel, pièce: chaine)
+{
+    tableau_ajoute(*courriel.pièces_jointes, pièce)
 }
 
 ajoute_destinataire :: fonc (courriel: *Courriel, destinataire: chaine) -> rien
@@ -73,6 +93,11 @@ ajoute_destinataire :: fonc (courriel: *Courriel, destinataire: chaine) -> rien
 ajoute_destinataire_cc :: fonc (courriel: *Courriel, destinataire: chaine) -> rien
 {
     tableau_ajoute(*courriel.destinataires_cc, destinataire)
+}
+
+ajoute_destinataire_bcc :: fonc (courriel: *Courriel, destinataire: chaine) -> rien
+{
+    tableau_ajoute(*courriel.destinataires_bcc, destinataire)
 }
 
 ConfigurationCourriel :: struct {
@@ -98,7 +123,7 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
         retourne 0
     }
 
-    imprime("requête: %", message)
+    // imprime("requête: %", message)
 
     si taille_écrite == -1 {
         imprime("impossible d'envoyer la requête !\n")
@@ -110,7 +135,7 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
         retourne 0
     }
 
-    imprime("réponse: %\n", réponse)
+    // imprime("réponse: %\n", réponse)
     diffère { déloge(réponse) }
 
     si réponse.taille < 3 {
@@ -128,40 +153,115 @@ crée_corps_message :: fonc (courriel: Courriel) -> chaine
     initialise_enchaineuse(*enchaineuse)
     diffère { détruit_tampons(*enchaineuse) }
 
+    // À FAIRE: entêtes arbitraires
+    // À FAIRE: Date
+
     ajoute_au_tampon(*enchaineuse, "User-Agent: courriel_kuri\r\n")
     // Date: Tue, 15 Jan 2008 16:02:43 -0500
     //ajoute_au_tampon(@enchaineuse, "Date: ")
 
-    imprime_dans_enchaineuse(*enchaineuse, "From:<%>\r\n", courriel.expéditeur)
+    imprime_dans_enchaineuse(*enchaineuse, "From: <%>\r\n", courriel.expéditeur)
 
-    ajoute_au_tampon(*enchaineuse, "To:")
-    virgule := "<"
+    si courriel.destinataires {
+        ajoute_au_tampon(*enchaineuse, "To: ")
+        virgule := "<"
 
-    pour courriel.destinataires {
-        ajoute_au_tampon(*enchaineuse, virgule)
-        ajoute_au_tampon(*enchaineuse, it)
-        virgule = ">,<"
+        pour courriel.destinataires {
+            ajoute_au_tampon(*enchaineuse, virgule)
+            ajoute_au_tampon(*enchaineuse, it)
+            virgule = ">,<"
+        }
+
+        ajoute_au_tampon(*enchaineuse, ">\r\n")
     }
 
-    ajoute_au_tampon(*enchaineuse, ">\r\n")
+    si courriel.destinataires_cc {
+        ajoute_au_tampon(*enchaineuse, "Cc: ")
+        virgule := "<"
 
-    ajoute_au_tampon(*enchaineuse, "Cc:")
-    virgule = "<"
+        pour courriel.destinataires_cc {
+            ajoute_au_tampon(*enchaineuse, virgule)
+            ajoute_au_tampon(*enchaineuse, it)
+            virgule = ">,<"
+        }
 
-    pour courriel.destinataires_cc {
-        ajoute_au_tampon(*enchaineuse, virgule)
-        ajoute_au_tampon(*enchaineuse, it)
-        virgule = ">,<"
+        ajoute_au_tampon(*enchaineuse, ">\r\n")
     }
 
-    ajoute_au_tampon(*enchaineuse, ">\r\n")
+    si courriel.objet {
+        imprime_dans_enchaineuse(*enchaineuse, "Subject: %\r\n", courriel.objet)
+    }
 
-    ajoute_au_tampon(*enchaineuse, "Subject: ")
-    ajoute_au_tampon(*enchaineuse, courriel.objet)
-    ajoute_au_tampon(*enchaineuse, "\r\n")
-    ajoute_au_tampon(*enchaineuse, "\r\n")
-    ajoute_au_tampon(*enchaineuse, courriel.message)
-    ajoute_au_tampon(*enchaineuse, "\r\n.")
+    séparateur_pièce_jointe := ""
+    si courriel.pièces_jointes {
+        ajoute_au_tampon(*enchaineuse, "MIME-Version: 1.0\r\n")
+
+        séparateur_pièce_jointe = aléafères_zéros("=PART=SEPARATOR=_0000_0000_0000_0000_0000_0000_=")
+        imprime_dans_enchaineuse(*enchaineuse, "Content-Type: multipart/mixed; boundary=\"%\"\r\n", séparateur_pièce_jointe)
+
+        ajoute_au_tampon(*enchaineuse, "\r\nThis is a multipart message in MIME format.\r\n\r\n")
+        ajoute_au_tampon(*enchaineuse, "--", séparateur_pièce_jointe, "\r\n")
+    }
+
+    séparateur_corps := ""
+    si courriel.messages.taille > 1 {
+        séparateur_corps = aléafères_zéros("=BODY=SEPARATOR=_0000_0000_0000_0000_0000_0000_=")
+        imprime_dans_enchaineuse(*enchaineuse, "Content-Type: multipart/alternative; boundary=\"%\"\r\n", séparateur_corps)
+    }
+
+    // Création du corps
+    type_mime := "text/plain"
+
+    pour courriel.messages {
+        si séparateur_corps {
+            ajoute_au_tampon(*enchaineuse, "\r\n")
+            ajoute_au_tampon(*enchaineuse, "--", séparateur_corps, "\r\n")
+        }
+
+        ajoute_au_tampon(*enchaineuse, "Content-Type: ", type_mime, "; charset=utf-8\r\n")
+        ajoute_au_tampon(*enchaineuse, "Content-Transfer-Encoding: 8bit\r\n")
+        ajoute_au_tampon(*enchaineuse, "Content-Disposition: inline\r\n\r\n")
+
+        type_mime = "text/html"
+
+        ajoute_au_tampon(*enchaineuse, "\r\n")
+        ajoute_au_tampon(*enchaineuse, it)
+    }
+
+    si séparateur_corps {
+        ajoute_au_tampon(*enchaineuse, "\r\n")
+        ajoute_au_tampon(*enchaineuse, "--", séparateur_corps, "--\r\n")
+    }
+
+    type_mime = "application/octet-stream"
+    nom := "ATTACHMENT"
+    nom_fichier := "ATTACHMENT"
+
+    pour courriel.pièces_jointes {
+        si séparateur_pièce_jointe {
+            ajoute_au_tampon(*enchaineuse, "\r\n")
+            ajoute_au_tampon(*enchaineuse, "--", séparateur_pièce_jointe, "\r\n")
+        }
+
+        ajoute_au_tampon(*enchaineuse, "Content-Type: ", type_mime, "; ")
+        ajoute_au_tampon(*enchaineuse, "Name=\"", nom, "\"\r\n")
+        ajoute_au_tampon(*enchaineuse, "Content-Disposition: attachment; filename=\"", nom_fichier, "\"\r\n")
+        ajoute_au_tampon(*enchaineuse, "Content-Transfer-Encoding: base64\r\n\r\n")
+
+        contenu_encodé := encode_base64(it)
+        ajoute_au_tampon(*enchaineuse, contenu_encodé)
+        déloge(contenu_encodé)
+
+        ajoute_au_tampon(*enchaineuse, "\r\n")
+    }
+
+    si séparateur_pièce_jointe {
+        ajoute_au_tampon(*enchaineuse, "\r\n")
+        ajoute_au_tampon(*enchaineuse, "--", séparateur_pièce_jointe, "--\r\n")
+    }
+
+    // Fin des données
+    ajoute_au_tampon(*enchaineuse, "\r\n.\r\n")
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
@@ -266,6 +366,12 @@ envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: Courriel) -> z
         }
     }
 
+    pour courriel.destinataires_bcc {
+        si envoie_commande_smtp(*fichier, "RCPT TO:<%>", it) == 0 {
+            retourne 1
+        }
+    }
+
     // 503 Bad sequence of commands
     // 354 End data with <CR><LF>.<CR><LF>
     si envoie_commande_smtp(*fichier, "DATA") == 0 {
@@ -285,4 +391,22 @@ envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: Courriel) -> z
     }
 
     retourne 0
+}
+
+aléafères_zéros :: fonc (chn: chaine) -> chaine
+{
+    maintenant := Temps.maintenant()
+
+    gna := crée_gna(maintenant.nanoseconde comme n32)
+    diffère { détruit_gna(gna) }
+
+    résultat := copie_chaine(chn)
+
+    pour & résultat {
+        si it == '0' {
+            it = gna.uniforme('0' comme r32, '9' comme r32) comme z8
+        }
+    }
+
+    retourne résultat
 }
