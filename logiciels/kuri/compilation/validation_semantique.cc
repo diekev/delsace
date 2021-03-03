@@ -333,6 +333,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
 			noeud->type = noeud_directive->expr->type;
 
+			// À FAIRE: ceci ne prend en compte les expressions pour les variables globales
 			if (fonction_courante) {
 				/* avance l'index car il est inutile de revalider ce noeud */
 				unite->index_courant += 1;
