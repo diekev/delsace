@@ -2,6 +2,7 @@ importe Couleur
 importe Fondation
 importe OpenGL
 importe Structures
+importe GlibC
 
 charge "dessin_opengl"
 charge "evenements"
@@ -13,11 +14,11 @@ charge "glfw"
 
 VG_file_évènements : File(T = Évènement)
 
-rappel_erreur :: fonc(erreur_ : z32, desc : *z8) -> rien #nulctx
+rappel_erreur :: fonc(erreur_ : z32, desc : ChaineC) -> rien #nulctx
 {
     contexte := __contexte_fil_principal
     pousse_contexte contexte {
-        chn := converti_chaine_c(desc)
+        chn := convertis_chaine_c(desc)
         imprime("Erreur % : %\n", erreur_, chn);
     }
 }

@@ -1,5 +1,7 @@
 // définitions des interfaces de la bibliothèques C pour GNU/Linux
 
+charge "chaine"
+
 //###############################################################################
 
 // Valeur des descripteurs fichiers pour les flux standards.
@@ -7,7 +9,7 @@ STDIN_FILENO  :: 0
 STDOUT_FILENO :: 1
 STDERR_FILENO :: 2
 
-sprintf :: fonc (tmp : *z8, fmt : *z8, args : ...) -> z32 #externe
+sprintf :: fonc (tmp : ChaineC, fmt : ChaineC, args : ...) -> z32 #externe
 
 //###############################################################################
 
@@ -42,7 +44,7 @@ tm :: struct #externe {
     tm_yday: z32     /* Days in year. [0-365] */
     tm_isdst: z32    /* DST.          [-1/0/1] */
     tm_gmtoff : z64; /* Seconds east of UTC.  */
-    tm_zone : *z8;   /* Timezone abbreviation.  */
+    tm_zone : ChaineC;   /* Timezone abbreviation.  */
 }
 
 localtime :: fonc (tloc: *z64) -> *tm #externe
@@ -81,22 +83,22 @@ timespec :: struct #externe {
 
 //###############################################################################
 
-open :: fonc (chemin : *z8, drapeaux : z32, args : ...) -> z32 #externe
+open :: fonc (chemin : ChaineC, drapeaux : z32, args : ...) -> z32 #externe
 close :: fonc (fd : z32) -> z32 #externe
 read :: fonc (fd : z32, tampon : *z8, taille : n64) -> z64 #externe
 write :: fonc (fd : z32, tampon : *z8, taille : z64) -> z32 #externe
-unlink :: fonc (chemin: *z8) -> z32 #externe
+unlink :: fonc (chemin: ChaineC) -> z32 #externe
 
 fsync :: fonc (fd: z32) -> z32 #externe
 fdatasync :: fonc (fd: z32) -> z32 #externe
 
-getcwd :: fonc (ptr : *z8, taille : z64) -> *z8 #externe
-chdir :: fonc (ptr : *z8) -> rien #externe
+getcwd :: fonc (ptr : ChaineC, taille : z64) -> ChaineC #externe
+chdir :: fonc (ptr : ChaineC) -> rien #externe
 
 abort :: fonc () -> rien #externe
 
-rename :: fonc (orig : *z8, dest : *z8) -> z32 #externe
-remove :: fonc (chemin : *z8) -> z32 #externe
+rename :: fonc (orig : ChaineC, dest : ChaineC) -> z32 #externe
+remove :: fonc (chemin : ChaineC) -> z32 #externe
 
 // bits pour déterminer le type de fichier
 __S_IFMT	:: 0o170000 comme n32
@@ -149,15 +151,15 @@ struct_stat :: struct #externe {
 //        ni l'appeler dans les métaprogrammes, donc nous utilisons __xstat qui se trouve dans l'interface binaire, mais non dans
 //        l'interface de programme
 //        Voir http://refspecs.linux-foundation.org/LSB_4.0.0/LSB-Core-generic/LSB-Core-generic/baselib---xstat.html
-__xstat :: fonc (__ver: z32, __filename: *z8, __stat_buf: *struct_stat) -> z32 #externe
+__xstat :: fonc (__ver: z32, __filename: ChaineC, __stat_buf: *struct_stat) -> z32 #externe
 
-_STAT_VER_KERNEL :: 0
-_STAT_VER_LINUX  :: 1
-_STAT_VER        :: _STAT_VER_LINUX
+STAT_VER_KERNEL :: 0
+STAT_VER_LINUX  :: 1
+STAT_VER        :: STAT_VER_LINUX
 
-stat :: fonc (chemin : *z8, buf : *rien) -> z32
+stat :: fonc (chemin : ChaineC, buf : *rien) -> z32
 {
-    retourne __xstat(_STAT_VER, chemin, buf)
+    retourne __xstat(STAT_VER, chemin, buf)
 }
 
 DIR :: struct #externe
@@ -216,7 +218,7 @@ F_SETFL :: 4	/* Set file status flags.  */
 
 fcntl :: fonc (fd: z32, cmd: z32, args: ...) -> z32 #externe
 
-opendir :: fonc (chemin : *z8) -> *DIR #externe
+opendir :: fonc (chemin : ChaineC) -> *DIR #externe
 closedir :: fonc (d : *DIR) -> z32 #externe
 readdir :: fonc (d : *DIR) -> *dirent #externe
 
@@ -258,11 +260,11 @@ INADDR_BROADCAST :: 0xffffffff comme n32
 INADDR_NONE      :: 0xffffffff comme n32
 
 hostent :: struct #externe {
-    h_name : *z8
-    h_aliases : **z8
+    h_name : ChaineC
+    h_aliases : *ChaineC
     h_addrtype : z32
     h_length : z32
-    h_addr_list : **z8
+    h_addr_list : *ChaineC
 }
 
 in_addr :: struct #externe {
@@ -281,7 +283,7 @@ sockaddr_in :: struct #externe {
     sin_zero : [8]n8
 }
 
-gethostbyname :: fonc (arg : *z8) -> *hostent #externe
+gethostbyname :: fonc (arg : ChaineC) -> *hostent #externe
 
 socket :: fonc (a : z32, b : z32, c : z32) -> z32 #externe
 
@@ -384,13 +386,13 @@ send :: fonc (prise : z32, tampon : *rien, taille : n64, flags : z32) -> z64 #ex
 bind :: fonc (prise : z32, addr : *sockaddr, taille : n64) -> z32 #externe
 listen :: fonc (prise : z32, connexions : z32) -> z32 #externe
 accept :: fonc (prise : z32, addr : *sockaddr, taille : *n32) -> z32 #externe
-perror :: fonc (ptr : *z8) -> rien #externe
+perror :: fonc (ptr : ChaineC) -> rien #externe
 exit :: fonc (id : z32) -> rien #externe
-inet_ntoa :: fonc (addr : in_addr) -> *z8 #externe
+inet_ntoa :: fonc (addr : in_addr) -> ChaineC #externe
 
 // -------------------------------------
 
-printf :: fonc (fmt: *z8, args: ...) -> z32 #externe
+printf :: fonc (fmt: ChaineC, args: ...) -> z32 #externe
 
 memset :: fonc (ptr: *rien, valeur: z32, taille: n64) -> *rien #externe
 memcpy :: fonc (ptr: *rien, src: *rien, taille: n64) -> *rien #externe
@@ -398,7 +400,7 @@ memcpy :: fonc (ptr: *rien, src: *rien, taille: n64) -> *rien #externe
 // -------------------------------------
 
 FILE :: struct #externe
-fopen :: fonc (__filename : *z8, __modes : *z8) -> *FILE #externe
+fopen :: fonc (__filename : ChaineC, __modes : ChaineC) -> *FILE #externe
 fclose :: fonc (__file : *FILE) -> z32 #externe
 
 // -------------------------------------

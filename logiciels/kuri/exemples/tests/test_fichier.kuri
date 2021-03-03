@@ -5,7 +5,7 @@ FILE_MODE := 0600;
 
 crée_fichier :: fonc(chemin : chaine) -> z32
 {
-    ptr_chaine_c := chaine_c_temp(chemin);
+    ptr_chaine_c := crée_chaine_c_temp(chemin);
 
     // Supprime les liens symbolics potentiels, pour éviter les attaques.
     _ := unlink(ptr_chaine_c);

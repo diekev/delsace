@@ -14,7 +14,7 @@ construit_chemin :: fonc(chn : chaine) -> CheminFichier
 
 obtiens_stmode :: fonc(chemin : &CheminFichier) -> n32
 {
-	ptr_chemin := chaine_c_temp(chemin.chn)
+	ptr_chemin := crée_chaine_c_temp(chemin.chn)
 
 	st : struct_stat
 	ok := stat(ptr_chemin, *st)
@@ -114,14 +114,14 @@ ouvre_fichier :: fonc(chemin : &CheminFichier) -> z32
 		retourne -1
 	}
 
-	ptr_chemin := chaine_c_temp(chemin.chn)
+	ptr_chemin := crée_chaine_c_temp(chemin.chn)
     // @erreur
 	retourne open(ptr_chemin, LECTURE_SEULE)
 }
 
 ouvre_fichier_ecriture :: fonc(chemin : &CheminFichier) -> z32
 {
-	ptr_chemin := chaine_c_temp(chemin.chn)
+	ptr_chemin := crée_chaine_c_temp(chemin.chn)
     // @erreur
 	retourne open(ptr_chemin, CREATION | ÉCRITURE_SEULE, 0o777)
 }
@@ -204,7 +204,7 @@ contenu_fichier_texte :: fonc (chemin: chaine) -> chaine
 
 ouvre_dossier :: fonc(chemin : &CheminFichier) -> *DIR
 {
-	ptr_chemin := chaine_c_temp(chemin.chn)
+	ptr_chemin := crée_chaine_c_temp(chemin.chn)
     retourne opendir(ptr_chemin)
 }
 
@@ -380,7 +380,7 @@ chemin_courant :: fonc() -> CheminFichier
     tampon : [1024]z8
     pointeur := getcwd(*tampon[0], 1024)
 
-    si pointeur == nul {
+    si (pointeur comme *z8) == nul {
         // @erreur
         retourne construit_chemin("")
     }
@@ -391,7 +391,7 @@ chemin_courant :: fonc() -> CheminFichier
 
 chemin_courant :: fonc(chemin : CheminFichier) -> rien
 {
-	ptr_chemin := chaine_c_temp(chemin.chn)
+	ptr_chemin := crée_chaine_c_temp(chemin.chn)
     chdir(ptr_chemin)
 }
 
@@ -401,14 +401,14 @@ chemin_courant :: fonc(chemin : CheminFichier) -> rien
 
 renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> z32
 {
-	ptr_chemin_orig := chaine_c_temp(orig.chn)
-	ptr_chemin_dest := chaine_c_temp(dest.chn)
+	ptr_chemin_orig := crée_chaine_c_temp(orig.chn)
+	ptr_chemin_dest := crée_chaine_c_temp(dest.chn)
 
 	retourne rename(ptr_chemin_orig, ptr_chemin_dest)
 }
 
 supprime :: fonc(chm : &CheminFichier) -> z32
 {
-	ptr_chemin := chaine_c_temp(chm.chn)
+	ptr_chemin := crée_chaine_c_temp(chm.chn)
     retourne remove(ptr_chemin)
 }

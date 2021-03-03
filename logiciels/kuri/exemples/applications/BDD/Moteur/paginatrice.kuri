@@ -16,7 +16,7 @@ ouvre_paginatrice :: fonc (fichier: chaine) -> *Paginatrice
     marque := obtiens_marque_stockage_temporaire()
     diffère { set_marque_stockage_temporaire(marque) }
 
-    chemin_c := chaine_c_temp(fichier)
+    chemin_c := crée_chaine_c_temp(fichier)
 
     fd := open(chemin_c, LECTURE_ÉCRITURE | CREATION, 0o400 | 0o200)
 

@@ -58,7 +58,7 @@ détruit_serveuse :: fonc(serveuse: &Serveuse)
 
 charge_donnees_requete :: fonc(prise : z32, mon_addresse : &sockaddr_in) -> chaine
 {
-    //ip = converti_chaine_c(inet_ntoa(mon_addresse.sin_addr))
+    //ip = convertis_chaine_c(inet_ntoa(mon_addresse.sin_addr))
     //imprime("serveur: Reçu connexion de ", ip, '\n')
     MAXDATASIZE : z64 = 1024
 
@@ -104,7 +104,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
         prise := accept(serveuse.prise, *mon_addresse comme *sockaddr, *sin_size)
 
         si prise == -1 {
-            perror("accept".pointeur)
+            perror(ChaineC("accept".pointeur))
             continue
         }
 
@@ -132,7 +132,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
             //chaine_reponse = construit_reponse(reponse)
 
             si send(prise, chaine_reponse.pointeur, chaine_reponse.taille comme n64, 0) == -1 {
-                perror("send".pointeur)
+                perror(ChaineC("send".pointeur))
             }
 
             déloge(chaine_reponse)

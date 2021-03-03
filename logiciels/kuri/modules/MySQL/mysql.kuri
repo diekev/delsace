@@ -971,7 +971,7 @@ mysql_init :: fonc (mysql : *MYSQL) -> *MYSQL #externe
 mysql_ssl_set :: fonc (mysql : *MYSQL, key : *z8, cert : *z8, ca : *z8, capath : *z8, cipher : *z8) -> bool #externe
 mysql_get_ssl_cipher :: fonc (mysql : *MYSQL) -> *z8 #externe
 mysql_change_user :: fonc (mysql : *MYSQL, user : *z8, passwd : *z8, db : *z8) -> bool #externe
-mysql_real_connect :: fonc (mysql : *MYSQL, host : *z8, user : *z8, passwd : *z8, db : *z8, port : n32, unix_socket : *z8, clientflag : n64) -> *MYSQL #externe
+mysql_real_connect :: fonc (mysql : *MYSQL, host : ChaineC, user : ChaineC, passwd : ChaineC, db : ChaineC, port : n32, unix_socket : *z8, clientflag : n64) -> *MYSQL #externe
 mysql_select_db :: fonc (mysql : *MYSQL, db : *z8) -> z32 #externe
 mysql_query :: fonc (mysql : *MYSQL, q : *z8) -> z32 #externe
 mysql_send_query :: fonc (mysql : *MYSQL, q : *z8, length : n64) -> z32 #externe

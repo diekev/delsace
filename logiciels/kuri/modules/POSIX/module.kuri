@@ -1,23 +1,24 @@
 // Interface pour les fonctions standardes définies par POSIX
 
 importe Fondation
+importe GlibC
 
-getenv :: fonc (nom: *z8) -> *z8 #externe
+getenv :: fonc (nom: ChaineC) -> ChaineC #externe
 getuid :: fonc () -> z32 #externe
-system :: fonc (command: *z8) -> z32 #externe
+system :: fonc (command: ChaineC) -> z32 #externe
 usleep :: fonc (µsec: n32) -> z32 #externe
-symlink :: fonc (target: *z8, linkpath: *z8) -> z32 #externe
-mkdir :: fonc (chemin: *z8, mode: z32) -> z32 #externe
+symlink :: fonc (target: ChaineC, linkpath: ChaineC) -> z32 #externe
+mkdir :: fonc (chemin: ChaineC, mode: z32) -> z32 #externe
 
 chaine_environnement :: fonc (nom: chaine) -> chaine
 {
-    chn := getenv(nom.pointeur)
+    chn := getenv(ChaineC(nom.pointeur))
 
     saufsi chn {
         retourne ""
     }
 
-    retourne converti_chaine_c(chn)
+    retourne convertis_chaine_c(chn)
 }
 
 est_utilisateur_racine :: fonc() -> bool
@@ -40,7 +41,7 @@ exécute_commande_externe :: fonc (args: ...chaine) -> bool
     commande := chaine_depuis_enchaineuse(*enchaineuse)
     diffère { déloge(commande) }
 
-    si system(commande.pointeur) != 0 {
+    si system(ChaineC(commande.pointeur)) != 0 {
         retourne faux
     }
 

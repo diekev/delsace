@@ -297,7 +297,7 @@ lance :: fonc (serveuse: &ServeuseTCP($T))
         // À FAIRE : redondant
         // À FAIRE : fichier.valide()
         si cliente.fichier.desc == -1 {
-            perror("accept".pointeur)
+            perror(ChaineC("accept".pointeur))
             continue
         }
 

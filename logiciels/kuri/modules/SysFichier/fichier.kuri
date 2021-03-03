@@ -1,4 +1,4 @@
-importe Fondation // pour chaine_c_temp
+importe Fondation
 importe GlibC
 importe POSIX
 
@@ -46,7 +46,7 @@ RésultatOpérationFichier :: union {
     r: z32
 }
 
-système_ouvre :: fonc (chemin: *z8, drapeaux: z32, permissions: z32) -> RésultatOpérationFichier
+système_ouvre :: fonc (chemin: ChaineC, drapeaux: z32, permissions: z32) -> RésultatOpérationFichier
 {
     résultat := open(chemin, drapeaux, permissions)
 
@@ -269,7 +269,7 @@ système_crée_dossier :: fonc (chemin: chaine, mode: z32) -> ErreurFichier
 
     chemin_dossier := chemin.sous_chaine(0, pos_dossier_parent)
 
-    ptr_chemin := chaine_c_temp(chemin_dossier)
+    ptr_chemin := crée_chaine_c_temp(chemin_dossier)
 
     résultat := mkdir(ptr_chemin, mode)
 
@@ -316,7 +316,7 @@ RésultatFichier :: union {
 // ouvre_fichier_existant_crée_sinon
 ouvre_fichier :: fonc (chemin: chaine) -> RésultatFichier
 {
-   	ptr_chemin := chaine_c_temp(chemin)
+   	ptr_chemin := crée_chaine_c_temp(chemin)
 
     desc := tente système_ouvre(ptr_chemin, LECTURE_ÉCRITURE, 0o644) piège err {
         retourne err
@@ -336,7 +336,7 @@ ouvre_fichier_crée_si_non_existant :: fonc (chemin: chaine, drapeaux: z32) -> R
         retourne err
     }
 
-    ptr_chemin := chaine_c_temp(chemin)
+    ptr_chemin := crée_chaine_c_temp(chemin)
 
     desc := tente système_ouvre(ptr_chemin, drapeaux, 0o644) piège err {
         retourne err

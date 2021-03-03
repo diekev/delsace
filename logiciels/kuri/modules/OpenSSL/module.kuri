@@ -1,5 +1,7 @@
 // Interface pour la bibliothèque OpenSSL
 
+importe GlibC
+
 #bibliothèque_dynamique "ssl"
 #bibliothèque_dynamique "crypto"
 
@@ -74,10 +76,10 @@ X509_REQ_set_subject_name :: fonc (req: *X509_REQ, nom: *X509_NAME) -> z32 #exte
 X509_CRL_get_issuer :: fonc (crl: *X509_CRL) -> *X509_NAME #externe
 X509_CRL_set_issuer_name :: fonc (crl: *X509_CRL, nom: *X509_NAME) -> z32 #externe
 
-X509_NAME_oneline :: fonc (a: *X509_NAME, buf: *z8, size: z32) -> *z8 #externe
+X509_NAME_oneline :: fonc (a: *X509_NAME, buf: *z8, size: z32) -> ChaineC #externe
 
-SSL_CTX_use_certificate_file :: fonc (ctx: *ssl_st, CertFile: *z8, x: z32) -> z32 #externe
-SSL_CTX_use_PrivateKey_file :: fonc (ctx: *ssl_st, KeyFile: *z8, x: z32) -> z32 #externe
+SSL_CTX_use_certificate_file :: fonc (ctx: *ssl_st, CertFile: ChaineC, x: z32) -> z32 #externe
+SSL_CTX_use_PrivateKey_file :: fonc (ctx: *ssl_st, KeyFile: ChaineC, x: z32) -> z32 #externe
 SSL_CTX_check_private_key :: fonc (ctx: *ssl_st) -> z32 #externe
 
 X509_FILETYPE_PEM     :: 1
@@ -87,7 +89,7 @@ X509_FILETYPE_DEFAULT :: 3
 SSL_FILETYPE_PEM  :: X509_FILETYPE_PEM
 SSL_FILETYPE_ASN1 :: X509_FILETYPE_ASN1
 
-ERR_print_errors_cb :: fonc (cb : fonc(*z8,n64,*rien)(z32), u : *rien) -> rien #externe
+ERR_print_errors_cb :: fonc (cb : fonc(ChaineC,n64,*rien)(z32), u : *rien) -> rien #externe
 
 // ----------------------------------------------------------------------------
 
@@ -102,12 +104,12 @@ ErreurCertificat :: erreur {
 
 charge_certificats_ssl :: fonc(ctx: *ssl_st, chemin_fichier_certificat: chaine, chemin_fichier_clé: chaine) -> ErreurCertificat
 {
-    ptr_chemin_certificat := chaine_c_temp(chemin_fichier_certificat)
+    ptr_chemin_certificat := crée_chaine_c_temp(chemin_fichier_certificat)
     si SSL_CTX_use_certificate_file(ctx, ptr_chemin_certificat, SSL_FILETYPE_PEM) <= 0 {
         retourne ErreurCertificat.FichierCertificationInvalide
     }
 
-    ptr_chemin_clé := chaine_c_temp(chemin_fichier_clé)
+    ptr_chemin_clé := crée_chaine_c_temp(chemin_fichier_clé)
     si SSL_CTX_use_PrivateKey_file(ctx, ptr_chemin_clé, SSL_FILETYPE_PEM) <= 0 {
         retourne ErreurCertificat.FichierCléInvalide
     }
@@ -131,11 +133,11 @@ imprime_certificats_ssl :: fonc(ssl: *ssl_st) -> rien
     imprime("Certificats serveurs :\n")
 
     line := X509_NAME_oneline(X509_get_subject_name(cert), nul, 0)
-    imprime("Sujet :\n%\n", converti_chaine_c(line))
+    imprime("Sujet :\n%\n", convertis_chaine_c(line))
     free(line)
 
     line = X509_NAME_oneline(X509_get_issuer_name(cert), nul, 0)
-    imprime("Émetteur :\n%\n", converti_chaine_c(line))
+    imprime("Émetteur :\n%\n", convertis_chaine_c(line))
     free(line)
 
     X509_free(cert)

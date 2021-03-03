@@ -74,65 +74,12 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 	retourne nchn
 }
 
-// Retourne la taille d'une chaine C, c'est à  dire nul-terminé.
-taille_chaine_c :: fonc(ch : *z8) -> z64 #nulctx
-{
-	index : z64 = 0
-
-    tantque ch[index] != '\0' {
-		index += 1
-    }
-
-	retourne index
-}
-
 construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine #nulctx
 {
 	ret : chaine
 	ret.pointeur = ptr
 	ret.taille = taille
 	retourne ret
-}
-
-// Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
-// À FAIRE: ceci ne fait que copier le pointeur, il faudrait remplacer ceci par une copie profonde.
-converti_chaine_c :: fonc(chaine_c : *z8) -> chaine #nulctx
-{
-	retourne construit_chaine(chaine_c, taille_chaine_c(chaine_c))
-}
-
-copie_chaine_c :: fonc (chaine_c: *z8) -> chaine
-{
-	si !chaine_c || chaine_c[0] == '\0' {
-		retourne ""
-	}
-
-	taille := taille_chaine_c(chaine_c)
-	chn := loge_chaine(taille)
-
-	copie_mem_nonsur(src = chaine_c, dst = chn.pointeur, taille = taille)
-
-	retourne chn
-}
-
-// Copie le contenue de la chn native dans un tampon afin de pouvoir la terminer
-// par un '\0' et l'utiliser dans les fonctions C. Le tampon est alloué dans le
-// stockage temporaire, et n'a pas besoin d'être déloger manuellement.
-chaine_c_temp :: fonc(chn: chaine) -> *z8
-{
-    tampon := logement_temp(chn.taille + 1)
-    copie_mem_nonsur(src = chn.pointeur, dst = tampon, taille = chn.taille)
-    tampon[chn.taille] = '\0' comme octet
-
-    retourne tampon comme *z8
-}
-
-crée_chaine_c :: fonc (chn: chaine) -> chaine
-{
-	tampon := loge_chaine(chn.taille + 1)
-    copie_mem_nonsur(src = chn.pointeur, dst = tampon.pointeur, taille = chn.taille)
-    tampon[chn.taille] = '\0'
-	retourne tampon
 }
 
 // execute une fonction pour chaque ligne du texte d'entrée

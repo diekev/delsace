@@ -1,5 +1,6 @@
 importe Fondation
 importe JSON
+importe GlibC
 importe Introspection
 
 ConfigurationMySQL :: struct {
@@ -110,16 +111,16 @@ crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
 	marque := obtiens_marque_stockage_temporaire()
 	diffère { set_marque_stockage_temporaire(marque) }
 
-	hôte := chaine_c_temp(pilote.config.hôte)
-	utilisateur := chaine_c_temp(pilote.config.utilisateur)
-	mot_de_passe := chaine_c_temp(pilote.config.mot_de_passe)
-	base_de_données := chaine_c_temp(pilote.config.base_de_données)
+	hôte := crée_chaine_c_temp(pilote.config.hôte)
+	utilisateur := crée_chaine_c_temp(pilote.config.utilisateur)
+	mot_de_passe := crée_chaine_c_temp(pilote.config.mot_de_passe)
+	base_de_données := crée_chaine_c_temp(pilote.config.base_de_données)
 
 	c := mysql_real_connect(*mysql, hôte, utilisateur, mot_de_passe, base_de_données, 0, nul, 0);
 
 	si (c == nul) {
 		e := mysql_error(*mysql)
-		chn := converti_chaine_c(e)
+		chn := convertis_chaine_c(e)
 		imprime_log("[MySQL]", "erreur lors de la connexion : %\n", chn);
 		retourne ErreurConnexionMySQL.MauvaiseConnexion
 	}
@@ -151,7 +152,7 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
 {
 	curseur : CurseurRésultat
 
-	requête := chaine_c_temp(chaine_requête)
+	requête := crée_chaine_c_temp(chaine_requête)
 	succès := mysql_query(*connexion.mysql, requête)
 
 	imprime_log("[MySQL]", "exécution de la requête : %\n", chaine_requête)
@@ -160,7 +161,7 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
 		e := mysql_error(*connexion.mysql)
 
 		si e != nul {
-			chn := converti_chaine_c(e)
+			chn := convertis_chaine_c(e)
 			imprime_log("[MySQL]", "Une erreur est survenue lors de la requête : % !\n", chn)
 		}
 
@@ -175,7 +176,7 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
 			e := mysql_error(*connexion.mysql)
 
 			si e != nul {
-				chn := converti_chaine_c(e)
+				chn := convertis_chaine_c(e)
 				imprime_log("[MySQL]", "Une erreur est survenue lors du stockage du résultat : % !\n", chn)
 			}
 		}

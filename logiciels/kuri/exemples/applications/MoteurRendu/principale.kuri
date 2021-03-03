@@ -708,7 +708,7 @@ principale2 :: fonc () -> z32
 
         nouveau_titre := imprime_chaine("Moteur Rendu - % FPS", FormatRéel(valeur = fps, précision = 2))
 
-        chn_c := chaine_c_temp(nouveau_titre)
+        chn_c := crée_chaine_c_temp(nouveau_titre)
 
         SDL_SetWindowTitle(window, chn_c)
 

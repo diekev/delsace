@@ -118,7 +118,7 @@ démarre :: fonc(serveuse : *Fichier) -> rien
 
 		// @Redondant
         si cliente.desc == -1 {
-            perror("accept".pointeur)
+            perror(ChaineC("accept".pointeur))
             continue
         }
 
