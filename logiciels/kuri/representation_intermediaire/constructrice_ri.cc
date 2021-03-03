@@ -3269,17 +3269,23 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
 				atome->est_constante = false;
 				atome->ident = var->ident;
 
-				if (it.expression) {
-					if (it.expression->genre == GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU && it.transformations[i].type == TypeTransformation::INUTILE) {
-						genere_ri_pour_noeud(decl->expression);
+				auto expression = it.expression;
+
+				if (!expression) {
+					valeur = genere_initialisation_defaut_pour_type(var->type);
+				}
+				else {
+					if (expression->substitution) {
+						expression = expression->substitution;
+					}
+
+					if (expression->genre == GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU && it.transformations[i].type == TypeTransformation::INUTILE) {
+						genere_ri_pour_noeud(expression);
 						valeur = static_cast<AtomeConstante *>(depile_valeur());
 					}
 					else {
-						m_espace->constructeurs_globaux->ajoute({ atome, it.expression, it.transformations[i] });
+						m_espace->constructeurs_globaux->ajoute({ atome, expression, it.transformations[i] });
 					}
-				}
-				else if (!est_externe) {
-					valeur = genere_initialisation_defaut_pour_type(var->type);
 				}
 
 				atome->initialisateur = valeur;
