@@ -1,0 +1,155 @@
+// Module d'analyse statique du code selon différents modèles (NASA, Linux, Google, etc.)
+// À FAIRE : compilatrice_rapporte_avertissement(...)
+// À FAIRE : préserve l'information qu'une fonction est marquée comme enlignée
+
+importe Compilatrice
+
+/*
+
+    Lignes directrices de la NASA :
+
+    1. pas de goto, setjmp, longjmp, récursion directe ou indirecte
+
+    2. toutes les boucles doivent avoir une limite
+       on doit pouvoir vérifier qu'il ne sera jamais possible d'avoir un dépassement de limite
+
+    3. pas d'allocation dynamique après l'initialisation (en dehors de principale)
+
+    4. pas plus de 60 lignes de code par fonction
+
+    5. minimum de deux assertions par fonction
+       les assertions ne doivent pas avoir d'effets secondaires
+       les assertions doivent avoir des actions associées en cas d'erreur (= si cond { } ?)
+
+    6. les déclarations doivent avoir lieu au plus près de leurs utilisations
+
+    7. la valeur de retour des fonctions doit être vérifiée par les appelants
+       les paramètres des fonctions doivent être vérifées dans la fonction
+
+    8. The use of the preprocessor must be limited to the inclusion of header files and simple macro definitions. Token pasting, variable argument lists (ellipses), and recursive macro calls are not allowed. All macros must expand into complete syntactic units. The use of conditional compilation directives is often also dubious, but cannot always be avoided. This means that there should rarely be justification for more than one or two conditional compilation directives even in large software development efforts, beyond the standard boilerplate that avoids multiple inclusion of the same header file. Each such use should be flagged by a tool-based checker and justified in the code.
+
+    9. The use of pointers should be restricted.
+       no more than one level of dereferencing is allowed.
+       Pointer dereference operations may not be hidden in macro definitions or inside typedef declarations.
+       Function pointers are not permitted.
+
+    10. All code must be compiled, from the first day of development, with all compiler warnings enabled at the compiler’s most pedantic setting. All code must compile with these setting without any warnings. All code must be checked daily with at least one, but preferably more than one, state-of-the-art static source code analyzer and should pass the analyses with zero warnings.
+
+*/
+
+vérifie_nasa :: fonc (espace: *EspaceDeTravail, code: *NoeudCode)
+{
+    type := code.type
+
+    si type.id == id_info.STRUCTURE {
+        type_structure := type comme *InfoTypeStructure
+
+        pour type_structure.membres {
+            si it.id.id == id_info.FONCTION {
+                compilatrice_rapporte_erreur(espace, code.chemin_fichier, code.numero_ligne, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
+            }
+        }
+    }
+    sinon si type.id == id_info.FONCTION {
+        type_fonction := type comme *InfoTypeFonction
+
+        pour type_fonction.types_entrée {
+            si it.id == id_info.FONCTION {
+                compilatrice_rapporte_erreur(espace, code.chemin_fichier, code.numero_ligne, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
+            }
+        }
+
+        pour type_fonction.types_sortie {
+            si it.id == id_info.FONCTION {
+                compilatrice_rapporte_erreur(espace, code.chemin_fichier, code.numero_ligne, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
+            }
+        }
+    }
+}
+
+vérifie_nasa :: fonc (espace: *EspaceDeTravail, corps: *NoeudCodeCorpsFonction)
+{
+    bloc := corps.bloc
+    entête := corps.entête
+
+    pour entête.annotations {
+        si it == "IgnoreNASA" {
+            retourne
+        }
+    }
+
+    si bloc.expressions {
+        dernière_expression := bloc.expressions[bloc.expressions.taille - 1]
+        début_bloc := bloc.numero_ligne
+        fin_bloc := dernière_expression.numero_ligne
+
+        si (fin_bloc - début_bloc) > 60 {
+            compilatrice_rapporte_erreur(espace, entête.chemin_fichier, entête.numero_ligne, "La fonction possède plus de 60 lignes, violation de la ligne directrice de la NASA n° 4")
+        }
+    }
+}
+
+vérife_nasa :: fonc (espace: *EspaceDeTravail, code: *NoeudCode)
+{
+    si code.genre == GenreNoeudCode.DECLARATION_STRUCTURE {
+        vérifie_nasa(espace, code)
+    }
+
+    si code.genre == GenreNoeudCode.DECLARATION_CORPS_FONCTION {
+        vérifie_nasa(espace, code comme *NoeudCodeCorpsFonction)
+    }
+}
+
+/*
+
+    Lignes directrices du kernel Linux
+    https://www.kernel.org/doc/html/v4.10/process/coding-style.html
+
+    1. pas plus de 80 caractères par lignes
+
+    2. pas plus de 3 niveaux d'indentations (de profondeur, switch/case compte pour 1)
+
+    3. pas d'expressions multiples sur une même ligne
+
+    4. pas d'assignations multiples sur une même ligne
+
+    5. pas de typedefs pour les structures et les pointeurs
+
+    6. les fonctions ne doivent pas dépassée 24-48 lignes (en fonction de leurs complexité)
+
+    7. entre 5 et 10 variables locales par fonction (7 est une bonne moyenne)
+
+    8. utilisation de « inline » uniquement sur les fonctions courtes (3 lignes)
+
+*/
+
+/*
+    Lignes directrices de Google
+    https://google.github.io/styleguide/cppguide.html
+
+    1. « inline » uniquement sur les fonctions courtes (10 lignes)
+       à éviter sur les fonctions ayant des boucles ou des switchs
+
+    2. Place a function's variables in the narrowest scope possible, and initialize variables in the declaration.
+
+    3. éviter les opérateurs template
+
+    4. fonctions < 40 lignes de préférence
+
+    5. surcharge de fonctions uniquement si la sémantique de valeur est préservée
+*/
+
+/*
+
+    Lignes directrices de Sean Parent
+
+    1. no raw loops
+       si la fonction possède plusieurs boucles
+
+    2. no raw synchronization primitives
+
+    3. avoid incident data structures
+
+    4. human interfaces
+
+*/
