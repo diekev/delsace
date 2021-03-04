@@ -560,6 +560,9 @@ asm enligné
 
 instructions SIMD
 
+idée pour sécurité du controle flux : https://msrc-blog.microsoft.com/2020/08/17/control-flow-guard-for-clang-llvm-and-rust/
+    -- nécéssite support de la part du système d'exploitation
+
 directive #externe : argument définissant la bibliothèque où trouver le symbole
 - libc :: #bibiliothèque_externe "c"
 - write :: fonc (...) -> z32 #externe libc
