@@ -585,7 +585,7 @@ void Operateurs::ajoute_perso_unaire(
 
 void Operateurs::ajoute_operateur_basique_enum(Typeuse const &typeuse, TypeEnum *type)
 {
-	auto const &idx_dt_bool = typeuse[TypeBase::BOOL];
+	auto const &type_bool = typeuse[TypeBase::BOOL];
 
 	auto indice_type_op = IndiceTypeOp();
 	if (type->type_donnees->est_entier_naturel()) {
@@ -596,7 +596,7 @@ void Operateurs::ajoute_operateur_basique_enum(Typeuse const &typeuse, TypeEnum 
 	}
 
 	for (auto op : operateurs_comparaisons) {
-		auto op_bin = this->ajoute_basique(op, type, idx_dt_bool, indice_type_op);
+		auto op_bin = this->ajoute_basique(op, type, type_bool, indice_type_op);
 
 		if (op == GenreLexeme::EGALITE) {
 			type->operateur_egt = op_bin;
@@ -624,51 +624,51 @@ void Operateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse, Typ
 {
 	auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-	auto const &idx_dt_ptr_nul = typeuse[TypeBase::PTR_NUL];
-	auto const &idx_dt_bool = typeuse[TypeBase::BOOL];
+	auto const &type_ptr_nul = typeuse[TypeBase::PTR_NUL];
+	auto const &type_bool = typeuse[TypeBase::BOOL];
 
-	ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_bool, indice);
-	ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_bool, indice);
+	ajoute_basique(GenreLexeme::EGALITE, type, type_bool, indice);
+	ajoute_basique(GenreLexeme::DIFFERENCE, type, type_bool, indice);
 
-	ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
-	ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
-	ajoute_basique(GenreLexeme::INFERIEUR, type, idx_dt_bool, indice);
-	ajoute_basique(GenreLexeme::INFERIEUR_EGAL, type, idx_dt_bool, indice);
-	ajoute_basique(GenreLexeme::SUPERIEUR, type, idx_dt_bool, indice);
-	ajoute_basique(GenreLexeme::SUPERIEUR_EGAL, type, idx_dt_bool, indice);
+	ajoute_basique(GenreLexeme::EGALITE, type, type_ptr_nul, type_bool, indice);
+	ajoute_basique(GenreLexeme::DIFFERENCE, type, type_ptr_nul, type_bool, indice);
+	ajoute_basique(GenreLexeme::INFERIEUR, type, type_bool, indice);
+	ajoute_basique(GenreLexeme::INFERIEUR_EGAL, type, type_bool, indice);
+	ajoute_basique(GenreLexeme::SUPERIEUR, type, type_bool, indice);
+	ajoute_basique(GenreLexeme::SUPERIEUR_EGAL, type, type_bool, indice);
 
 	/* Pour l'arithmétique de pointeur nous n'utilisons que le type le plus
 	 * gros, la résolution de l'opérateur ajoutera une transformation afin
 	 * que le type plus petit soit transtyper à la bonne taille. */
-	auto idx_type_entier = typeuse[TypeBase::Z64];
+	auto type_entier = typeuse[TypeBase::Z64];
 
-	ajoute_basique(GenreLexeme::PLUS, type, idx_type_entier, type, indice)->est_arithmetique_pointeur = true;
-	ajoute_basique(GenreLexeme::MOINS, type, idx_type_entier, type, indice)->est_arithmetique_pointeur = true;
-	ajoute_basique(GenreLexeme::MOINS, type, type, idx_type_entier, indice)->est_arithmetique_pointeur = true;
-	ajoute_basique(GenreLexeme::PLUS_EGAL, type, idx_type_entier, type, indice)->est_arithmetique_pointeur = true;
-	ajoute_basique(GenreLexeme::MOINS_EGAL, type, idx_type_entier, type, indice)->est_arithmetique_pointeur = true;
+	ajoute_basique(GenreLexeme::PLUS, type, type_entier, type, indice)->est_arithmetique_pointeur = true;
+	ajoute_basique(GenreLexeme::MOINS, type, type_entier, type, indice)->est_arithmetique_pointeur = true;
+	ajoute_basique(GenreLexeme::MOINS, type, type, type_entier, indice)->est_arithmetique_pointeur = true;
+	ajoute_basique(GenreLexeme::PLUS_EGAL, type, type_entier, type, indice)->est_arithmetique_pointeur = true;
+	ajoute_basique(GenreLexeme::MOINS_EGAL, type, type_entier, type, indice)->est_arithmetique_pointeur = true;
 
-	idx_type_entier = typeuse[TypeBase::N64];
+	type_entier = typeuse[TypeBase::N64];
 	indice = IndiceTypeOp::ENTIER_NATUREL;
 
-	ajoute_basique(GenreLexeme::PLUS, type, idx_type_entier, type, indice)->est_arithmetique_pointeur = true;
-	ajoute_basique(GenreLexeme::MOINS, type, idx_type_entier, type, indice)->est_arithmetique_pointeur = true;
-	ajoute_basique(GenreLexeme::PLUS_EGAL, type, idx_type_entier, type, indice)->est_arithmetique_pointeur = true;
-	ajoute_basique(GenreLexeme::MOINS_EGAL, type, idx_type_entier, type, indice)->est_arithmetique_pointeur = true;
+	ajoute_basique(GenreLexeme::PLUS, type, type_entier, type, indice)->est_arithmetique_pointeur = true;
+	ajoute_basique(GenreLexeme::MOINS, type, type_entier, type, indice)->est_arithmetique_pointeur = true;
+	ajoute_basique(GenreLexeme::PLUS_EGAL, type, type_entier, type, indice)->est_arithmetique_pointeur = true;
+	ajoute_basique(GenreLexeme::MOINS_EGAL, type, type_entier, type, indice)->est_arithmetique_pointeur = true;
 }
 
 void Operateurs::ajoute_operateurs_basiques_fonction(const Typeuse &typeuse, TypeFonction *type)
 {
 	auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-	auto const &idx_dt_ptr_nul = typeuse[TypeBase::PTR_NUL];
-	auto const &idx_dt_bool = typeuse[TypeBase::BOOL];
+	auto const &type_ptr_nul = typeuse[TypeBase::PTR_NUL];
+	auto const &type_bool = typeuse[TypeBase::BOOL];
 
-	ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
-	ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
+	ajoute_basique(GenreLexeme::EGALITE, type, type_ptr_nul, type_bool, indice);
+	ajoute_basique(GenreLexeme::DIFFERENCE, type, type_ptr_nul, type_bool, indice);
 
-	ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_bool, indice);
-	ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_bool, indice);
+	ajoute_basique(GenreLexeme::EGALITE, type, type_bool, indice);
+	ajoute_basique(GenreLexeme::DIFFERENCE, type, type_bool, indice);
 }
 
 void Operateurs::rassemble_statistiques(Statistiques &stats) const
