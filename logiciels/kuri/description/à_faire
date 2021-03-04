@@ -1,59 +1,81 @@
+// -----------------------------------
+// Directives
 
-"kuri init" pour créer des projets ?
+- ajout de #portée_fichier
+- ajout de #portée_module
+- ajout de #portée_export
+- ajout de #convention_c
+- retravaille #bibliothèque_dynamique, #bibliothèque_statique
+- ajout de #thread_local
+- ajout de #macro
+- ajout de #boucle_pour
+- ajout de #insère pour controler où nous collons du code
+- ajout de #enligne pour les appels de fonctions
+- ajout de #horsligne pour les appels de fonctions
+- renomme #assert #vérifie
 
-qualité de code :
+// -----------------------------------
+// Bugs
+
+- collision de symbole pour les retours des fonctions dans les fonctions
+- compilation infinie si nous devons convertir le type pour la création d'un opaque (voir GlibC/chaine.kuri)
+- crash dans les exécutables quand nous prenont l'adresse d'une référence
+- crash quand nous paniquons sur un membre non-actif d'une union
+- compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
+- erreur de compilation si nous définissons une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
+- aucune erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
+- aucune vérification de la signature de la fonction principale
+
+// -----------------------------------
+// Architecture/Qualité de code
+
 - déplace toutes les fonctions d'interface dans la MV afin de supprimer la variable globale "ptr_compilatrice"
 - supprime chaine::ajoute, en faveur de l'enchaineuse
-- nettoyage : création des opérateurs dans Opérateurs et non dans Typeuse
-
 - structures: ajout d'un pointeur vers une Allocatrice
 - cache les nom broyés pour les IdentifiantsCode
 - chaine: ajoute de TypeIndex
 - ajout de identifiant_pour_nouvelle_chaine(args...) afin d'éviter les allocations temporaires si possible
 - améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_valeur_énum comme type_entier, etc.)
+- vérifie que les opérateurs sont surchargeables durant le typage (pour compenser les syntaxes correctes, mais sémantiques incorrectes)
+- pour les messages d'erreurs : ajout d'un contexte au typage (dans le typage de, dans la monomorphisation de..., )
+- déplace NoeudExpression::unite dans NoeudDeclaration, NoeudExecution ?
+- utilisation d'un ramasse miette pour les métaprogrammes ?
+- stocke les labels pour les controles des boucles dans la structure Boucle, au lieu d'allouer de la mémoire et faire une recherche linéaire dans la RI
+-- instructions continue/arrête/reprends devront définir sur quelles boucles elles opèrent : => ajout d'un noeud syntaxique
+- trouve une manière de protéger les pointeurs vers les types quand nous les utilisons dans les métaprogrammes à la place des index dans la table de type
+- pouvoir compiler plusieurs exécutables depuis le même espace de travail, par exemple afin de compiler les exécutables pour un système d'exploitation
 
-trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
+// -----------------------------------
+// Fonctionnalités diverses
 
-// compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
+- trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
+- travail sur les itérateurs (via macros comme JAI?)
+- annotations pour les membres de structures/unions
+- "kuri init" pour créer des projets ?
+- directive pour définir quelle fonction doit-être la fonction principale
 
-crash dans les exécutables quand nous prenont l'adresse d'une référence
-crash quand nous paniquons sur un membre non-actif d'une union
+// -----------------------------------
+// Avertissements
 
-erreur de compilation si nous définissons une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
+- fonction non utilisée
+- variable non utilisée
+- paramètre non utilisé
+- membre structure (ou union) non utilisé
+- structure ou union non utilisée
+- module non utilisé dans un fichier
 
--- travail sur les itérateurs (via macros comme JAI?)
+// -----------------------------------
+// Fonctionnalités pour moultfilage
 
-vérifie que les opérateurs sont surchargeables durant le typage (pour compenser les syntaxes correctes, mais sémantiques incorrectes)
-
-pour les messages d'erreurs : ajout d'un contexte au typage (dans le typage de, dans la monomorphisation de..., )
-
-réusinage référence membre
-NoeudExpression::unite => NoeudDeclaration, NoeudExecution ?
-utilisation d'un ramasse miette pour les métaprogrammes ?
-stocke les labels pour les controles des boucles dans la structure Boucle, au lieu d'allouer de la mémoire et faire une recherche linéaire dans la RI
-
-émets une erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
-
-trouve une manière de protéger les pointeurs vers les types quand nous les utilisons dans les métaprogrammes à la place des index dans la table de type
-
-// avertissements
--- fonction non utilisée
--- variable non utilisée
--- paramètre non utilisé
--- membre structure (ou union) non utilisé
--- structure ou union non utilisée
--- module non utilisé dans un fichier
-
-// fonctionnalités pour le moultfilage
--- async
--- attends
--- corout
--- retiens
--- thead_local
--- thread
--- mutex
--- correctitude de constance
--- nursery
+- async
+- attends
+- corout
+- retiens
+- thead_local
+- thread
+- mutex
+- correctitude de constance
+- nursery
 
 // --------------------------- Branches
 
@@ -140,6 +162,7 @@ plusieurs threads d'exécutions pour le typage ou la génération de RI
 
 remplace les noeuds de dépendances par des unités de compilations
 -- ajoute la liste des dépendances aux unités, ainsi que la raison de la dépendance
+-- les types dérivés (pointeurs, références, tableaux, etc.) ne seront plus dans le graphe
 
 statistiques pour les reprises de compilation (temps, nombre, où), ainsi que pour le temps passé dans chaque feuille de l'arbre de typage (hors arbre aplatis)
 ajout de la construction des messages dans les tâches
