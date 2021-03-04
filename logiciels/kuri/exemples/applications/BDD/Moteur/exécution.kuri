@@ -1,4 +1,5 @@
 importe Fondation
+importe Sérialisation
 
 crée_table :: fonc (cm: *CoulisseMémoire, inst: *InstructionCréationTable) -> rien
 {
