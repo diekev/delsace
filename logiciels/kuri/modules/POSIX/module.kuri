@@ -14,7 +14,7 @@ chaine_environnement :: fonc (nom: chaine) -> chaine
 {
     chn := getenv(ChaineC(nom.pointeur))
 
-    saufsi chn {
+    saufsi (chn comme *z8) {
         retourne ""
     }
 

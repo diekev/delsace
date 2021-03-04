@@ -210,7 +210,8 @@ ouvre_dossier :: fonc(chemin : &CheminFichier) -> *DIR
 
 chemin_pour_dirname :: fonc(dir : *dirent) -> CheminFichier
 {
-    taille := taille_chaine_c(*dir.d_name[0])
+    chn_c := ChaineC(*dir.d_name[0])
+    taille := taille_chaine_c(chn_c)
     chn := construit_chaine(*dir.d_name[0], taille)
 
     retourne construit_chemin(chn)
@@ -378,7 +379,7 @@ chaque_chemin_récursif :: corout(chemin : &CheminFichier) -> CheminFichier
 chemin_courant :: fonc() -> CheminFichier
 {
     tampon : [1024]z8
-    pointeur := getcwd(*tampon[0], 1024)
+    pointeur := getcwd(ChaineC(*tampon[0]), 1024)
 
     si (pointeur comme *z8) == nul {
         // @erreur

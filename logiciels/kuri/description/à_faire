@@ -19,6 +19,9 @@
 
 - collision de symbole pour les retours des fonctions dans les fonctions
 - compilation infinie si nous devons convertir le type pour la création d'un opaque (voir GlibC/chaine.kuri)
+- impossible de convertir implicitement un opaque de pointeur vers un *octet
+- impossible de comparer un opaque de pointeur avec nul
+- impossible d'utiliser les types opaques dans les conditions, si le type opacifié est convertible en bool
 - crash dans les exécutables quand nous prenont l'adresse d'une référence
 - crash quand nous paniquons sur un membre non-actif d'une union
 - compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)

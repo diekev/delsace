@@ -7,6 +7,8 @@
 
 #chemin "/opt/lib/mysql/lib/private/"
 
+importe GlibC // pour ChaineC
+
 // Column types for MySQL
 enum_field_types :: énum n32 {
 	MYSQL_TYPE_DECIMAL
@@ -960,7 +962,7 @@ mysql_field_count :: fonc (mysql : *MYSQL) -> n32 #externe
 mysql_affected_rows :: fonc (mysql : *MYSQL) -> n64 #externe
 mysql_insert_id :: fonc (mysql : *MYSQL) -> n64 #externe
 mysql_errno :: fonc (mysql : *MYSQL) -> n32 #externe
-mysql_error :: fonc (mysql : *MYSQL) -> *z8 #externe
+mysql_error :: fonc (mysql : *MYSQL) -> ChaineC #externe
 mysql_sqlstate :: fonc (mysql : *MYSQL) -> *z8 #externe
 mysql_warning_count :: fonc (mysql : *MYSQL) -> n32 #externe
 mysql_info :: fonc (mysql : *MYSQL) -> *z8 #externe
@@ -973,9 +975,9 @@ mysql_get_ssl_cipher :: fonc (mysql : *MYSQL) -> *z8 #externe
 mysql_change_user :: fonc (mysql : *MYSQL, user : *z8, passwd : *z8, db : *z8) -> bool #externe
 mysql_real_connect :: fonc (mysql : *MYSQL, host : ChaineC, user : ChaineC, passwd : ChaineC, db : ChaineC, port : n32, unix_socket : *z8, clientflag : n64) -> *MYSQL #externe
 mysql_select_db :: fonc (mysql : *MYSQL, db : *z8) -> z32 #externe
-mysql_query :: fonc (mysql : *MYSQL, q : *z8) -> z32 #externe
-mysql_send_query :: fonc (mysql : *MYSQL, q : *z8, length : n64) -> z32 #externe
-mysql_real_query :: fonc (mysql : *MYSQL, q : *z8, length : n64) -> z32 #externe
+mysql_query :: fonc (mysql : *MYSQL, q : ChaineC) -> z32 #externe
+mysql_send_query :: fonc (mysql : *MYSQL, q : ChaineC, length : n64) -> z32 #externe
+mysql_real_query :: fonc (mysql : *MYSQL, q : ChaineC, length : n64) -> z32 #externe
 mysql_store_result :: fonc (mysql : *MYSQL) -> *MYSQL_RES #externe
 mysql_use_result :: fonc (mysql : *MYSQL) -> *MYSQL_RES #externe
 mysql_real_connect_nonblocking :: fonc (mysql : *MYSQL, host : *z8, user : *z8, passwd : *z8, db : *z8, port : n32, unix_socket : *z8, clientflag : n64) -> net_async_status #externe

@@ -75,7 +75,7 @@ est_valide :: fonc (courriel: &AdresseCourriel) -> bool
 /* Fonction auxilliaire pour parser un courriel pour les FonctionParsages du module Introspection. */
 parse_courriel_pour_info_type :: fonc (chn: chaine, tampon: []octet) -> bool
 {
-    courriel := crée_courriel(chn)
+    courriel := crée_adresse_courriel(chn)
 
     saufsi courriel.est_valide() {
         retourne faux

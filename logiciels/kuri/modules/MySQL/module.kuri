@@ -160,7 +160,7 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
 	si succès != 0 {
 		e := mysql_error(*connexion.mysql)
 
-		si e != nul {
+		si (e comme *z8) != nul {
 			chn := convertis_chaine_c(e)
 			imprime_log("[MySQL]", "Une erreur est survenue lors de la requête : % !\n", chn)
 		}
@@ -175,7 +175,7 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
 		saufsi commence_par(chaine_requête, "INSERT", "UPDATE") {
 			e := mysql_error(*connexion.mysql)
 
-			si e != nul {
+			si (e comme *z8) != nul {
 				chn := convertis_chaine_c(e)
 				imprime_log("[MySQL]", "Une erreur est survenue lors du stockage du résultat : % !\n", chn)
 			}
