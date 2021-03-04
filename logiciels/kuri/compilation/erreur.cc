@@ -313,7 +313,7 @@ void lance_erreur_fonction_nulctx(
 			.ajoute_site(decl_fonc)
 			.ajoute_message("\n\n")
 			.ajoute_message("« ", decl_appel->ident->nom, " » fut déclarée ici :\n")
-			.ajoute_site(decl_fonc)
+			.ajoute_site(decl_appel)
 			.ajoute_message("\n\n");
 }
 
