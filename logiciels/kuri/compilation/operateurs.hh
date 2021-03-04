@@ -165,8 +165,6 @@ struct Operateurs {
 	kuri::tableau<type_conteneur_binaire> operateurs_binaires{};
 	kuri::tableau<type_conteneur_unaire> operateurs_unaires{};
 
-	Type *type_bool = nullptr;
-
 	OperateurBinaire *op_comp_egal_types = nullptr;
 	OperateurBinaire *op_comp_diff_types = nullptr;
 
@@ -186,7 +184,7 @@ struct Operateurs {
 
 	void ajoute_perso_unaire(GenreLexeme id, Type *type, Type *type_resultat, NoeudDeclarationEnteteFonction *decl);
 
-	void ajoute_operateur_basique_enum(TypeEnum *type);
+	void ajoute_operateur_basique_enum(const Typeuse &typeuse, TypeEnum *type);
 
 	void ajoute_operateurs_basiques_pointeur(Typeuse const &typeuse, TypePointeur *type);
 

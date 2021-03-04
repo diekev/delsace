@@ -583,8 +583,10 @@ void Operateurs::ajoute_perso_unaire(
 	op->genre = genre_op_unaire_pour_lexeme(id);
 }
 
-void Operateurs::ajoute_operateur_basique_enum(TypeEnum *type)
+void Operateurs::ajoute_operateur_basique_enum(Typeuse const &typeuse, TypeEnum *type)
 {
+	auto const &idx_dt_bool = typeuse[TypeBase::BOOL];
+
 	auto indice_type_op = IndiceTypeOp();
 	if (type->type_donnees->est_entier_naturel()) {
 		indice_type_op = IndiceTypeOp::ENTIER_NATUREL;
@@ -594,7 +596,7 @@ void Operateurs::ajoute_operateur_basique_enum(TypeEnum *type)
 	}
 
 	for (auto op : operateurs_comparaisons) {
-		auto op_bin = this->ajoute_basique(op, type, type_bool, indice_type_op);
+		auto op_bin = this->ajoute_basique(op, type, idx_dt_bool, indice_type_op);
 
 		if (op == GenreLexeme::EGALITE) {
 			type->operateur_egt = op_bin;
@@ -849,7 +851,6 @@ void enregistre_operateurs_basiques(
 	auto type_entier_constant = espace.typeuse[TypeBase::ENTIER_CONSTANT];
 	auto type_octet = espace.typeuse[TypeBase::OCTET];
 	auto type_bool = espace.typeuse[TypeBase::BOOL];
-	operateurs.type_bool = type_bool;
 
 	for (auto op : operateurs_entiers_reels) {
 		for (auto type : types_entiers_relatifs) {

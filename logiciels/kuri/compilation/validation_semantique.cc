@@ -3140,7 +3140,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
 	type_enum->taille_octet = type_enum->type_donnees->taille_octet;
 	type_enum->alignement = type_enum->type_donnees->alignement;
 
-	espace->operateurs->ajoute_operateur_basique_enum(type_enum);
+	espace->operateurs->ajoute_operateur_basique_enum(espace->typeuse, type_enum);
 
 	auto noms_rencontres = dls::ensemblon<IdentifiantCode *, 32>();
 
