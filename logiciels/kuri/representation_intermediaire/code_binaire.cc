@@ -737,8 +737,8 @@ ffi_type *converti_type_ffi(Type *type)
 		}
 		case GenreType::OPAQUE:
 		{
-			// non supporté pour le moment
-			break;
+			auto type_opaque = type->comme_opaque();
+			return converti_type_ffi(type_opaque->type_opacifie);
 		}
 		case GenreType::UNION:
 		{
