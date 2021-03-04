@@ -2,6 +2,9 @@ Les directives servent à controler le comportement du compilateur.
 
 Directives pour le compilateur
 
+#aligne N               indique l'alignement souhaité pour la structure, où N est un nombre entier, puissance de 2
+#compacte               indique que la structure ne doit pas contenir de rembourrage entre les membres, ignorant leurs alignements machines natifs
+#opaque                 crée un type depuis un autre, le nouveau type sera héritera des propriétés du type source, mais sera strictement typé (si Entier :: #opaque z32, alors z32 ne peut se faire passer pour Entier)
 #bibliothèque_statique  indique le chemin d'une bibliothèque statique pour lier le programme final (.a sur GNU/Linux)
 #bibliothèque_dynamique indique le chemin d'une bibliothèque dynamique pour lier le programme final (.so sur GNU/Linux)
 #chemin                 indique un chemin où chercher les bibliothèques ou autres fichiers
@@ -20,6 +23,8 @@ Directives pour le compilateur
 Directive pour la métaprogrammation
 
 #assert      évalue une expression booléenne lors de la compilation, si le résultat est faux la compilation doit s'arrêter
+#corps_texte indique que le corps de la structure ou de la fonction est défini via un métaprogramme retournant une chaine
+#cuisine     crée une version d'une fonction ou les paramètres constants sont remplacés par les expressions données
 #exécute     exécute un métaprogramme et retourne le résultat
 #si          évalue une expression booléenne, et ne compile la branche que si l'expression est vraie
 #test        comme #assert mais seulement évaluée si les tests sont activés
