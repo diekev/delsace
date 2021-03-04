@@ -39,7 +39,10 @@ struct EspaceDeTravail;
 struct NoeudDeclarationEnteteFonction;
 struct Statistiques;
 struct Type;
+struct Typeuse;
 struct TypeEnum;
+struct TypeFonction;
+struct TypePointeur;
 
 enum class IndiceTypeOp {
 	ENTIER_NATUREL,
@@ -184,6 +187,10 @@ struct Operateurs {
 	void ajoute_perso_unaire(GenreLexeme id, Type *type, Type *type_resultat, NoeudDeclarationEnteteFonction *decl);
 
 	void ajoute_operateur_basique_enum(TypeEnum *type);
+
+	void ajoute_operateurs_basiques_pointeur(Typeuse const &typeuse, TypePointeur *type);
+
+	void ajoute_operateurs_basiques_fonction(Typeuse const &typeuse, TypeFonction *type);
 
 	void rassemble_statistiques(Statistiques &stats) const;
 };

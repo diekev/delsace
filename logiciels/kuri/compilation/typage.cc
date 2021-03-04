@@ -622,41 +622,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool ajoute_operateurs)
 	}
 
 	if (ajoute_operateurs) {
-		auto indice = IndiceTypeOp::ENTIER_RELATIF;
-
-		auto const &idx_dt_ptr_nul = types_communs[static_cast<long>(TypeBase::PTR_NUL)];
-		auto const &idx_dt_bool = types_communs[static_cast<long>(TypeBase::BOOL)];
-
-		auto operateurs = operateurs_.verrou_ecriture();
-
-		operateurs->ajoute_basique(GenreLexeme::EGALITE, resultat, idx_dt_bool, indice);
-		operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, resultat, idx_dt_bool, indice);
-
-		operateurs->ajoute_basique(GenreLexeme::EGALITE, resultat, idx_dt_ptr_nul, idx_dt_bool, indice);
-		operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, resultat, idx_dt_ptr_nul, idx_dt_bool, indice);
-		operateurs->ajoute_basique(GenreLexeme::INFERIEUR, resultat, idx_dt_bool, indice);
-		operateurs->ajoute_basique(GenreLexeme::INFERIEUR_EGAL, resultat, idx_dt_bool, indice);
-		operateurs->ajoute_basique(GenreLexeme::SUPERIEUR, resultat, idx_dt_bool, indice);
-		operateurs->ajoute_basique(GenreLexeme::SUPERIEUR_EGAL, resultat, idx_dt_bool, indice);
-
-		/* Pour l'arithmétique de pointeur nous n'utilisons que le type le plus
-		 * gros, la résolution de l'opérateur ajoutera une transformation afin
-		 * que le type plus petit soit transtyper à la bonne taille. */
-		auto idx_type_entier = types_communs[static_cast<long>(TypeBase::Z64)];
-
-		operateurs->ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
-		operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
-		operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, resultat, idx_type_entier, indice)->est_arithmetique_pointeur = true;
-		operateurs->ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
-		operateurs->ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
-
-		idx_type_entier = types_communs[static_cast<long>(TypeBase::N64)];
-		indice = IndiceTypeOp::ENTIER_NATUREL;
-
-		operateurs->ajoute_basique(GenreLexeme::PLUS, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
-		operateurs->ajoute_basique(GenreLexeme::MOINS, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
-		operateurs->ajoute_basique(GenreLexeme::PLUS_EGAL, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
-		operateurs->ajoute_basique(GenreLexeme::MOINS_EGAL, resultat, idx_type_entier, resultat, indice)->est_arithmetique_pointeur = true;
+		operateurs_->ajoute_operateurs_basiques_pointeur(*this, resultat);
 	}
 
 	return resultat;
@@ -814,18 +780,7 @@ TypeFonction *Typeuse::type_fonction(dls::tablet<Type *, 6> const &entrees, Type
 	type->tag_sorties = tag_sorties;
 
 	if (ajoute_operateurs) {
-		auto indice = IndiceTypeOp::ENTIER_RELATIF;
-
-		auto const &idx_dt_ptr_nul = types_communs[static_cast<long>(TypeBase::PTR_NUL)];
-		auto const &idx_dt_bool = types_communs[static_cast<long>(TypeBase::BOOL)];
-
-		auto operateurs = operateurs_.verrou_ecriture();
-
-		operateurs->ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
-		operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_ptr_nul, idx_dt_bool, indice);
-
-		operateurs->ajoute_basique(GenreLexeme::EGALITE, type, idx_dt_bool, indice);
-		operateurs->ajoute_basique(GenreLexeme::DIFFERENCE, type, idx_dt_bool, indice);
+		operateurs_->ajoute_operateurs_basiques_fonction(*this, type);
 	}
 
 	auto graphe = graphe_.verrou_ecriture();
