@@ -1,0 +1,186 @@
+// Transpile du code Kuri vers C ou C++
+
+importe Compilatrice
+importe Fondation
+
+convertis_type_c :: fonc (espace: *EspaceDeTravail, enchaineuse: *Enchaineuse, type: *InfoType, site: *NoeudCode)
+{
+    discr info.id {
+        ENTIER {
+            type_entier := info comme *InfoTypeEntier
+
+            saufsi type_entier.est_signé {
+                ajoute_au_tampon(enchaineuse, "unsigned ")
+            }
+
+            si info.taille_en_octet == 1 {
+                ajoute_au_tampon(enchaineuse, "char")
+            }
+            sinon si info.taille_en_octet == 2 {
+                ajoute_au_tampon(enchaineuse, "short")
+            }
+            sinon si info.taille_en_octet == 4 {
+                ajoute_au_tampon(enchaineuse, "int")
+            }
+            sinon si info.taille_en_octet == 8 {
+                ajoute_au_tampon(enchaineuse, "long")
+            }
+        }
+        RÉEL {
+            si info.taille_en_octet == 2 {
+                ajoute_au_tampon(enchaineuse, "half")
+            }
+            sinon si info.taille_en_octet == 4 {
+                ajoute_au_tampon(enchaineuse, "float")
+            }
+            sinon si info.taille_en_octet == 8 {
+                ajoute_au_tampon(enchaineuse, "double")
+            }
+        }
+        BOOLÉEN {
+            ajoute_au_tampon(enchaineuse, "bool")
+        }
+        RIEN {
+            ajoute_au_tampon(enchaineuse, "void")
+        }
+        POINTEUR {
+            type_pointeur := info comme *InfoTypePointeur
+            convertis_type_c(espace, enchaineuse, type_pointeur.type_pointé, site)
+
+            si type_pointeur.est_référence {
+                ajoute_au_tampon(enchaineuse, "*")
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, "&")
+            }
+        }
+        STRUCTURE {
+            type_struct := type comme *InfoTypeStructure
+            ajoute_au_tampon(enchaineuse, type_struct.nom)
+        }
+        sinon {
+            compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numero_ligne, "impossible de convertir le type vers C")
+        }
+    }
+}
+
+converti_fonction_C :: fonc (code_fonction: *NoeudCodeCorpsFonction) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    imprime_dans_enchaineuse(*enchaineuse, "\nlong %", code_fonction.entête.nom)
+
+    virgule := "("
+
+    pour code_fonction.entête.params_entrée {
+        //imprime_dans_enchaineuse(*enchaineuse, "%long %", virgule, it.nom)
+        virgule = ", "
+    }
+
+    ajoute_au_tampon(*enchaineuse, ")\n{\n")
+
+    pour code_fonction.bloc.membres {
+        //imprime("-- membre : % %\n", convertis_type_c(nul, *enchaineuse, it.type, it), it.nom)
+    }
+
+    converti_code_c(*enchaineuse, code_fonction.bloc)
+
+    ajoute_au_tampon(*enchaineuse, "}\n\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+converti_code_c :: fonc (enchaineuse: *Enchaineuse, code: *NoeudCode)
+{
+    si code == nul {
+        retourne
+    }
+
+    discr code.genre {
+        DECLARATION_VARIABLE {
+            code_déclaration := code comme *NoeudCodeDéclaration
+            //imprime_dans_enchaineuse(enchaineuse, "\tlong %;\n", code_déclaration.nom)
+        }
+        INSTRUCTION_SI {
+            code_si := code comme *NoeudCodeSi
+
+            ajoute_au_tampon(enchaineuse, "\tif condition {\n")
+            converti_code_c(enchaineuse, code_si.bloc_si_vrai)
+            ajoute_au_tampon(enchaineuse, "\t}\n")
+
+            si code_si.bloc_si_faux {
+                ajoute_au_tampon(enchaineuse, "\telse {\n")
+                converti_code_c(enchaineuse, code_si.bloc_si_faux)
+                ajoute_au_tampon(enchaineuse, "\t}\n")
+            }
+
+            ajoute_au_tampon(enchaineuse, "\n")
+        }
+        INSTRUCTION_COMPOSEE {
+            bloc := code comme *NoeudCodeBloc
+
+            pour bloc.expressions {
+                converti_code_c(enchaineuse, it)
+            }
+        }
+        INSTRUCTION_RETOUR {
+            code_retour := code comme *NoeudCodeOpérationUnaire
+            ajoute_au_tampon(enchaineuse, "\t\treturn ")
+            converti_code_c(enchaineuse, code_retour.opérande)
+            ajoute_au_tampon(enchaineuse, ";\n")
+        }
+        INSTRUCTION_BOUCLE {
+            code_boucle := code comme *NoeudCodeBoucle
+            ajoute_au_tampon(enchaineuse, "\twhile (1) {\n")
+            converti_code_c(enchaineuse, code_boucle.bloc)
+            ajoute_au_tampon(enchaineuse, "\t}\n\n")
+        }
+        INSTRUCTION_TANTQUE {
+            code_boucle := code comme *NoeudCodeBoucle
+            ajoute_au_tampon(enchaineuse, "\twhile condition {\n")
+            converti_code_c(enchaineuse, code_boucle.bloc)
+            ajoute_au_tampon(enchaineuse, "\t}\n\n")
+        }
+        INSTRUCTION_REPETE {
+            code_boucle := code comme *NoeudCodeBoucle
+            ajoute_au_tampon(enchaineuse, "\tdo {\n")
+            converti_code_c(enchaineuse, code_boucle.bloc)
+            ajoute_au_tampon(enchaineuse, "\t} while condition;\n\n")
+        }
+        sinon {
+
+        }
+    }
+}
+
+transpile_code_c :: fonc (code: *NoeudCode)
+{
+    si code.genre == GenreNoeudCode.DECLARATION_CORPS_FONCTION {
+        code_fonction := code comme *NoeudCodeCorpsFonction
+        entête := code_fonction.entête
+        si entête.nom == "pgdc" {
+            code_c := converti_fonction_C(code_fonction)
+            imprime("%\n", code_c)
+            déloge(code_c)
+        }
+    }
+    sinon si code.genre == GenreNoeudCode.DECLARATION_STRUCTURE {
+        // type := code.type comme *InfoTypeStructure
+
+        // imprime("structure.nom = %\n", type.nom)
+
+        // pour type.membres {
+        //     imprime("membre structure : %\n", it.nom)
+        // }
+    }
+    sinon si code.genre == GenreNoeudCode.DECLARATION_ENUM {
+        // type := code.type comme *InfoTypeÉnum
+
+        // imprime("énum.nom = %\n", type.nom)
+
+        // pour type.noms {
+        //     imprime("-- %\n", it)
+        // }
+    }
+}
