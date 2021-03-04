@@ -319,6 +319,11 @@ bool est_reference_compatible_pointeur(Type *type_pointeur, Type *type_ref)
 	return true;
 }
 
+static bool est_type_opacifie(Type *type_pointe, Type *valeur)
+{
+	return  type_pointe->est_opaque() && type_pointe->comme_opaque()->type_opacifie == valeur;
+}
+
 InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_, Atome *ou, Atome *valeur, bool cree_seulement)
 {
 	assert_rappel(ou->type->genre == GenreType::POINTEUR, [&]() {
@@ -327,7 +332,8 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_, A
 	});
 
 	auto type_pointeur = ou->type->comme_pointeur();
-	assert_rappel(type_pointeur->type_pointe == valeur->type || est_reference_compatible_pointeur(type_pointeur->type_pointe, valeur->type) || (type_pointeur->type_pointe->genre == GenreType::TYPE_DE_DONNEES && type_pointeur->type_pointe->genre == valeur->type->genre),
+	assert_rappel(type_pointeur->type_pointe == valeur->type || est_reference_compatible_pointeur(type_pointeur->type_pointe, valeur->type) || (type_pointeur->type_pointe->genre == GenreType::TYPE_DE_DONNEES && type_pointeur->type_pointe->genre == valeur->type->genre)
+				  || est_type_opacifie(type_pointeur->type_pointe, valeur->type),
 					 [&]() {
 		std::cerr << "\ttype_pointeur->type_pointe : " << chaine_type(type_pointeur->type_pointe) << " (" << type_pointeur->type_pointe << ") "
 				  << ", valeur->type : " << chaine_type(valeur->type) << " (" << valeur->type << ") " << '\n';
