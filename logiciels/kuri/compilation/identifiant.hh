@@ -56,102 +56,101 @@ private:
 	IdentifiantCode *ajoute_identifiant(dls::vue_chaine_compacte const &nom);
 };
 
+#define ENUMERE_IDENTIFIANTS_COMMUNS \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(chaine_vide, "") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(Kuri, "Kuri") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(contexte, "contexte") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ContexteProgramme, "ContexteProgramme") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoType, "InfoType") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypeEnum, "InfoTypeÉnum") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypeStructure, "InfoTypeStructure") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypeUnion, "InfoTypeUnion") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypeMembreStructure, "InfoTypeMembreStructure") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypeEntier, "InfoTypeEntier") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypeTableau, "InfoTypeTableau") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypePointeur, "InfoTypePointeur") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypeFonction, "InfoTypeFonction") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypeOpaque, "InfoTypeOpaque") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(PositionCodeSource, "PositionCodeSource") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoFonctionTraceAppel, "InfoFonctionTraceAppel") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(TraceAppel, "TraceAppel") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(BaseAllocatrice, "BaseAllocatrice") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoAppelTraceAppel, "InfoAppelTraceAppel") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(StockageTemporaire, "StockageTemporaire") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(panique, "panique") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(panique_hors_memoire, "panique_hors_mémoire") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(panique_depassement_limites_tableau, "panique_dépassement_limites_tableau") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(panique_depassement_limites_chaine, "panique_dépassement_limites_chaine") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(panique_membre_union, "panique_membre_union") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(panique_erreur_non_geree, "panique_erreur_non_gérée") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__rappel_panique_defaut, "__rappel_panique_défaut") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(DLS_vers_r32, "DLS_vers_r32") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(DLS_vers_r64, "DLS_vers_r64") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(DLS_depuis_r32, "DLS_depuis_r32") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(DLS_depuis_r64, "DLS_depuis_r64") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(it, "it") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(index_it, "index_it") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(principale, "principale") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(enligne, "enligne") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(horsligne, "horsligne") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(nulctx, "nulctx") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(externe, "externe") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(sanstrace, "sanstrace") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(interface, "interface") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bibliotheque_dynamique, "bibliothèque_dynamique") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bibliotheque_statique, "bibliothèque_statique") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(def, "def") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(execute, "exécute") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(chemin, "chemin") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(creation_contexte, "création_contexte") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_chaine_a_la_compilation, "ajoute_chaine_à_la_compilation") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_fichier_a_la_compilation, "ajoute_fichier_à_la_compilation") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_chaine_au_module, "ajoute_chaine_au_module") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice, "compilatrice") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_obtiens_options, "compilatrice_obtiens_options") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_ajourne_options, "compilatrice_ajourne_options") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_attend_message, "compilatrice_attend_message") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_commence_interception, "compilatrice_commence_interception") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_termine_interception, "compilatrice_termine_interception") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_rapporte_erreur, "compilatrice_rapporte_erreur") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_lexe_fichier, "compilatrice_lèxe_fichier") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice_espace_courant, "compilatrice_espace_courant") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(demarre_un_espace_de_travail, "démarre_un_espace_de_travail") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(espace_defaut_compilation, "espace_défaut_compilation") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(fonction_test_variadique_externe, "fonction_test_variadique_externe") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(test, "test") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(assert_, "assert") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(sansbroyage, "sansbroyage") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(racine, "racine") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(malloc_, "malloc") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(realloc_, "realloc") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(free_, "free") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(si, "si") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(pointeur, "pointeur") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(corps_texte, "corps_texte") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(cuisine, "cuisine") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(opaque, "opaque") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__point_d_entree_systeme, "__point_d_entree_systeme") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(taille, "taille") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(capacite, "capacité") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(anonyme, "anonyme") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(valeur, "valeur") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(membre_actif, "membre_actif") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(info, "info") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(_0, "0") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(_1, "1") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(nombre_elements, "nombre_éléments") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(min, "min") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(max, "max") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(valeurs_legales, "valeurs_légales") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(valeurs_illegales, "valeurs_illégales") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compacte, "compacte") \
+	ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(aligne, "aligne")
+
 namespace ID {
-
-extern IdentifiantCode *chaine_vide;
-extern IdentifiantCode *Kuri;
-extern IdentifiantCode *contexte;
-extern IdentifiantCode *ContexteProgramme;
-extern IdentifiantCode *InfoType;
-extern IdentifiantCode *InfoTypeEnum;
-extern IdentifiantCode *InfoTypeStructure;
-extern IdentifiantCode *InfoTypeUnion;
-extern IdentifiantCode *InfoTypeMembreStructure;
-extern IdentifiantCode *InfoTypeEntier;
-extern IdentifiantCode *InfoTypeTableau;
-extern IdentifiantCode *InfoTypePointeur;
-extern IdentifiantCode *InfoTypeFonction;
-extern IdentifiantCode *InfoTypeOpaque;
-extern IdentifiantCode *PositionCodeSource;
-extern IdentifiantCode *InfoFonctionTraceAppel;
-extern IdentifiantCode *TraceAppel;
-extern IdentifiantCode *BaseAllocatrice;
-extern IdentifiantCode *InfoAppelTraceAppel;
-extern IdentifiantCode *StockageTemporaire;
-extern IdentifiantCode *panique;
-extern IdentifiantCode *panique_hors_memoire;
-extern IdentifiantCode *panique_depassement_limites_tableau;
-extern IdentifiantCode *panique_depassement_limites_chaine;
-extern IdentifiantCode *panique_membre_union;
-extern IdentifiantCode *panique_erreur_non_geree;
-extern IdentifiantCode *__rappel_panique_defaut;
-extern IdentifiantCode *DLS_vers_r32;
-extern IdentifiantCode *DLS_vers_r64;
-extern IdentifiantCode *DLS_depuis_r32;
-extern IdentifiantCode *DLS_depuis_r64;
-extern IdentifiantCode *initialise_RC;
-extern IdentifiantCode *it;
-extern IdentifiantCode *index_it;
-extern IdentifiantCode *principale;
-extern IdentifiantCode *lance_execution;
-extern IdentifiantCode *initialise_contexte;
-extern IdentifiantCode *initialise_alloc;
-extern IdentifiantCode *enligne;
-extern IdentifiantCode *horsligne;
-extern IdentifiantCode *nulctx;
-extern IdentifiantCode *externe;
-extern IdentifiantCode *sanstrace;
-extern IdentifiantCode *interface;
-extern IdentifiantCode *bibliotheque_dynamique;
-extern IdentifiantCode *bibliotheque_statique;
-extern IdentifiantCode *def;
-extern IdentifiantCode *execute;
-extern IdentifiantCode *chemin;
-extern IdentifiantCode *creation_contexte;
-extern IdentifiantCode *ajoute_chaine_a_la_compilation;
-extern IdentifiantCode *ajoute_fichier_a_la_compilation;
-extern IdentifiantCode *ajoute_chaine_au_module;
-extern IdentifiantCode *compilatrice;
-extern IdentifiantCode *compilatrice_obtiens_options;
-extern IdentifiantCode *compilatrice_ajourne_options;
-extern IdentifiantCode *compilatrice_attend_message;
-extern IdentifiantCode *compilatrice_commence_interception;
-extern IdentifiantCode *compilatrice_termine_interception;
-extern IdentifiantCode *compilatrice_rapporte_erreur;
-extern IdentifiantCode *compilatrice_lexe_fichier;
-extern IdentifiantCode *compilatrice_espace_courant;
-extern IdentifiantCode *demarre_un_espace_de_travail;
-extern IdentifiantCode *espace_defaut_compilation;
-extern IdentifiantCode *fonction_test_variadique_externe;
-extern IdentifiantCode *test;
-extern IdentifiantCode *assert_;
-extern IdentifiantCode *sansbroyage;
-extern IdentifiantCode *racine;
-extern IdentifiantCode *malloc_;
-extern IdentifiantCode *realloc_;
-extern IdentifiantCode *free_;
-extern IdentifiantCode *si;
-extern IdentifiantCode *pointeur;
-extern IdentifiantCode *corps_texte;
-extern IdentifiantCode *cuisine;
-extern IdentifiantCode *opaque;
-extern IdentifiantCode *__point_d_entree_systeme;
-extern IdentifiantCode *taille;
-extern IdentifiantCode *capacite;
-extern IdentifiantCode *anonyme;
-extern IdentifiantCode *valeur;
-extern IdentifiantCode *membre_actif;
-extern IdentifiantCode *info;
-extern IdentifiantCode *_0;
-extern IdentifiantCode *_1;
-extern IdentifiantCode *nombre_elements;
-extern IdentifiantCode *min;
-extern IdentifiantCode *max;
-extern IdentifiantCode *valeurs_legales;
-extern IdentifiantCode *valeurs_illegales;
-extern IdentifiantCode *compacte;
-extern IdentifiantCode *aligne;
-
+#define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;
+	ENUMERE_IDENTIFIANTS_COMMUNS
+#undef ENUMERE_IDENTIFIANT_COMMUN_SIMPLE
 }
 
 void initialise_identifiants(TableIdentifiant &table);
