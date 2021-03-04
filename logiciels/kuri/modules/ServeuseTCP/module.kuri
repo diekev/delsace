@@ -277,6 +277,78 @@ crée_prise_cliente :: fonc (fd: z32) -> *PriseTCP
 
 lance :: fonc (serveuse: &ServeuseTCP($T))
 {
+    MAX_EVENTS :: 1024
+    évènements: [MAX_EVENTS]epoll_event
+    ev: epoll_event
+
+    prise_serveuse: z32 = serveuse.prise
+    prise_connexion: z32
+    epollfd := epoll_create1(0);
+
+    si (epollfd == -1) {
+        imprime("[epoll_create1] impossible de créer l'epoll !\n")
+        //exit(EXIT_FAILURE);
+        retourne
+    }
+
+    ev.events = EPOLL_EVENTS.EPOLLIN | EPOLL_EVENTS.EPOLLET
+    ev.data.ptr = crée_prise_serveuse(prise_serveuse);
+
+    si (epoll_ctl(epollfd, EPOLL_CTL_OP.ADD, prise_serveuse, *ev) == -1) {
+        imprime("[epoll_ctl] impossible de créer un control pour la prise_serveuse !\n")
+        // exit(EXIT_FAILURE);
+        retourne
+    }
+
+    boucle {
+        nfds := epoll_wait(epollfd, *évènements[0], MAX_EVENTS, -1);
+
+        si (nfds == -1) {
+            imprime("[epoll_wait] erreur !\n")
+            // perror("epoll_wait");
+            // exit(EXIT_FAILURE);
+            retourne
+        }
+
+        si INTERRUTION {
+            si serveuse.quand_interruption {
+                serveuse.quand_interruption(serveuse.données)
+            }
+
+            arrête
+        }
+
+        pour 0 ... nfds - 1 {
+            prise := évènements[it].data.ptr comme *PriseTCP
+
+            si prise.type == TypePrise.SERVEUSE {
+                cliente := accepte(serveuse)
+
+                prise_cliente := crée_prise_cliente(cliente.fichier.desc)
+
+                ev.events = EPOLL_EVENTS.EPOLLIN | EPOLL_EVENTS.EPOLLET
+                ev.data.ptr = prise_cliente
+
+                si (epoll_ctl(epollfd, EPOLL_CTL_OP.ADD, cliente.fichier.desc, *ev) == -1) {
+                    // ferme la prise
+                    continue;
+                }
+
+                // si quand_ouverture {
+                //     quand_ouverture(prise);
+                // }
+            }
+            sinon {
+                // À FAIRE : savoir si l'on peut lire ou écrire
+                // imprime("des données sont disponibles !\n")
+                cliente : ClienteTCP
+                cliente.fichier = prise.fichier
+                cliente.adresse = prise.adresse
+                serveuse.quand_connexion(serveuse, cliente)
+            }
+        }
+    }
+/*
     PRISE_SERVEUSE = serveuse.prise
 
     saufsi serveuse.quand_connexion {
@@ -303,6 +375,7 @@ lance :: fonc (serveuse: &ServeuseTCP($T))
 
         serveuse.quand_connexion(serveuse, cliente)
     }
+*/
 }
 
 rappel_interruption :: fonc (numéro_signal: z32) -> rien #nulctx
