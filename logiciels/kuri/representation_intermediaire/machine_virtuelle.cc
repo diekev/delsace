@@ -1051,11 +1051,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 			}
 			case OP_APPEL:
 			{
-				auto valeur_ptr = LIS_8_OCTETS();
+				auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
 				auto taille_argument = LIS_4_OCTETS();
 				// saute l'instruction d'appel
 				frame->pointeur += 8;
-				auto ptr_fonction = reinterpret_cast<AtomeFonction *>(valeur_ptr);
 
 #ifdef DEBOGUE_INTERPRETEUSE
 				std::cerr << "-- appel : " << ptr_fonction->nom << '\n';
@@ -1069,11 +1068,9 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 			}
 			case OP_APPEL_EXTERNE:
 			{
-				auto valeur_ptr = LIS_8_OCTETS();
+				auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
 				auto taille_argument = LIS_4_OCTETS();
-				auto valeur_inst = LIS_8_OCTETS();
-				auto ptr_fonction = reinterpret_cast<AtomeFonction *>(valeur_ptr);
-				auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
+				auto ptr_inst_appel = LIS_POINTEUR(InstructionAppel);
 
 				if (EST_FONCTION_COMPILATRICE(compilatrice_espace_courant)) {
 					empile(m_metaprogramme->unite->espace);
@@ -1094,7 +1091,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 				}
 
 				if (EST_FONCTION_COMPILATRICE(compilatrice_commence_interception)) {
-					auto espace_recu = static_cast<EspaceDeTravail *>(depile<void *>());
+					auto espace_recu = depile<EspaceDeTravail *>();
 
 					auto &messagere = compilatrice.messagere;
 					messagere->commence_interception(espace_recu);
@@ -1105,7 +1102,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 				}
 
 				if (EST_FONCTION_COMPILATRICE(compilatrice_termine_interception)) {
-					auto espace_recu = static_cast<EspaceDeTravail *>(depile<void *>());
+					auto espace_recu = depile<EspaceDeTravail *>();
 
 					if (espace_recu->metaprogramme != m_metaprogramme) {
 						/* L'espace du « site » est celui de métaprogramme, et non
