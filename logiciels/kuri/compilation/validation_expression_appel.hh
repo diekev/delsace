@@ -51,11 +51,6 @@ struct IdentifiantEtExpression {
 };
 
 enum {
-	FONCTION_TROUVEE,
-	FONCTION_INTROUVEE,
-};
-
-enum {
 	AUCUNE_RAISON,
 
 	EXPRESSION_MANQUANTE_POUR_UNION,
@@ -89,7 +84,6 @@ enum {
 };
 
 struct DonneesCandidate {
-	int etat = FONCTION_INTROUVEE;
 	int raison = AUCUNE_RAISON;
 	double poids_args = 0.0;
 	kuri::chaine_statique nom_arg{};
@@ -140,7 +134,6 @@ struct DonneesCandidate {
 			return;
 		}
 
-		std::swap(etat, autre.etat);
 		std::swap(raison, autre.raison);
 		std::swap(poids_args, autre.poids_args);
 		std::swap(nom_arg, autre.nom_arg);
