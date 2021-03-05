@@ -1634,7 +1634,7 @@ static auto trouve_candidates_pour_appel(
 
 /* ************************************************************************** */
 
-static std::pair<NoeudDeclarationEnteteFonction *, bool> trouve_fonction_epandue_ou_crees_en_une(
+static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 		ContexteValidationCode &contexte,
 		Compilatrice &compilatrice,
 		EspaceDeTravail &espace,
@@ -1925,7 +1925,7 @@ ResultatValidation valide_appel_fonction(
 		/* ---------------------- */
 
 		if (!candidate->items_monomorphisation.est_vide()) {
-			auto [noeud_decl, doit_monomorpher] = trouve_fonction_epandue_ou_crees_en_une(contexte, compilatrice, espace, decl_fonction_appelee, std::move(candidate->items_monomorphisation));
+			auto [noeud_decl, doit_monomorpher] = monomorphise_au_besoin(contexte, compilatrice, espace, decl_fonction_appelee, std::move(candidate->items_monomorphisation));
 
 			if (doit_monomorpher || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 				contexte.unite->attend_sur_declaration(noeud_decl);
@@ -2003,7 +2003,7 @@ ResultatValidation valide_appel_fonction(
 		auto decl_fonction_appelee = candidate->noeud_decl->comme_entete_fonction();
 
 		if (!candidate->items_monomorphisation.est_vide()) {
-			auto [noeud_decl, doit_monomorpher] = trouve_fonction_epandue_ou_crees_en_une(contexte, compilatrice, espace, decl_fonction_appelee, std::move(candidate->items_monomorphisation));
+			auto [noeud_decl, doit_monomorpher] = monomorphise_au_besoin(contexte, compilatrice, espace, decl_fonction_appelee, std::move(candidate->items_monomorphisation));
 
 			if (doit_monomorpher || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
 				contexte.unite->attend_sur_declaration(noeud_decl);
