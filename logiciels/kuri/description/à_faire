@@ -625,6 +625,15 @@ considération des assertions statiques lors de la compilation de plusieurs espa
 - ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés (pour permettre les emplois d'énumérations)
 - vérifie les appels superflux à empile_valeur (expr appel, transforme valeur)
 
+- variable_locales :: fonc () #compilatrice
+    retourne une structure contenant les variables locales de la fonction qui sont visibles depuis l'appel
+
+ajoute :: fonc (x: z32, y: z32) -> z32
+{
+    vars := variables_locales()
+    retourne 0
+}
+
 À faire (architecture)
 ----------------------
 - génération de code sur plusieurs threads (LLVM -> un module par thread + liaison finale de tous les modules)
