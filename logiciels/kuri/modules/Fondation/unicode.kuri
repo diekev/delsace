@@ -1,8 +1,6 @@
 // Bibliothèque de travail sur des chaines de caractères encodées en utilisant le
 // standard Unicode
 
-importe Fondation
-
 est_continuation :: fonc (c: n8) -> bool #enligne
 {
 	retourne 0x80 <= c <= 0xBF

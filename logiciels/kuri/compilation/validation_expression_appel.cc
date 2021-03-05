@@ -1809,8 +1809,7 @@ ResultatValidation valide_appel_fonction(
 	}
 
 	POUR (ctx.candidates) {
-		// À FAIRE : nous avons plusieurs fois les mêmes fonctions ?
-		if (it.noeud_decl == candidate->noeud_decl) {
+		if (&it == candidate) {
 			continue;
 		}
 

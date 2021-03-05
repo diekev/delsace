@@ -149,6 +149,9 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 			if (fichier->importe_module(module->nom())) {
 				espace->rapporte_avertissement(inst, "Importation superflux du module");
 			}
+			else if (fichier->module == module) {
+				::rapporte_erreur(espace, inst, "Importation d'un module dans lui-même !\n");
+			}
 			else {
 				fichier->modules_importes.insere(module);
 				auto noeud_module = m_tacheronne.assembleuse->cree_noeud<GenreNoeud::DECLARATION_MODULE>(inst->lexeme)->comme_decl_module();
