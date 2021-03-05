@@ -3516,7 +3516,6 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 		}
 
 		graphe->ajoute_dependances(*noeud_dependance, donnees_dependance);
-		decl->bloc_parent->membres->ajoute(decl);
 		return ResultatValidation::OK;
 	}
 
