@@ -413,7 +413,6 @@ struct NoeudModule : public NoeudDeclaration {
 struct NoeudDeclarationSymbole : public NoeudDeclaration {
 	NoeudDependance *noeud_dependance = nullptr;
 	Atome *atome = nullptr;
-
 };
 
 struct DonneesAssignations {
