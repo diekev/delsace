@@ -1512,7 +1512,10 @@ Type *normalise_type(Typeuse &typeuse, Type *type)
 		resultat = typeuse.cree_tuple(types_membres);
 	}
 
-	resultat->drapeaux |= TYPE_EST_NORMALISE;
+	// À FAIRE: comprends pourquoi ceci peut-être nul...
+	if (resultat) {
+		resultat->drapeaux |= TYPE_EST_NORMALISE;
+	}
 
 	return resultat;
 }
