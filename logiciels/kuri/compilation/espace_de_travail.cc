@@ -318,17 +318,6 @@ long EspaceDeTravail::memoire_utilisee() const
 		}
 	}
 
-	memoire += fonctions.memoire_utilisee();
-	memoire += globales.memoire_utilisee();
-
-	pour_chaque_element(fonctions, [&](AtomeFonction const &it)
-	{
-		memoire += it.params_entrees.taille_memoire();
-		memoire += it.chunk.capacite;
-		memoire += it.chunk.locales.taille_memoire();
-		memoire += it.chunk.decalages_labels.taille_memoire();
-	});
-
 	return memoire;
 }
 
@@ -347,6 +336,21 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 
 		stats_fichiers.fusionne_entree(entree);
 	}
+
+	auto &stats_ri = stats.stats_ri;
+
+	auto memoire_fonctions = fonctions.memoire_utilisee();
+	memoire_fonctions += fonctions.memoire_utilisee();
+	pour_chaque_element(fonctions, [&](AtomeFonction const &it)
+	{
+		memoire_fonctions += it.params_entrees.taille_memoire();
+		memoire_fonctions += it.chunk.capacite;
+		memoire_fonctions += it.chunk.locales.taille_memoire();
+		memoire_fonctions += it.chunk.decalages_labels.taille_memoire();
+	});
+
+	stats_ri.fusionne_entree({ "fonctions", fonctions.taille(), memoire_fonctions });
+	stats_ri.fusionne_entree({ "globales", globales.taille(), globales.memoire_utilisee() });
 }
 
 MetaProgramme *EspaceDeTravail::cree_metaprogramme()
