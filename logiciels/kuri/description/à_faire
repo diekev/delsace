@@ -27,6 +27,7 @@
 - compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
 - erreur de compilation si nous définissons une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
 - aucune erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
+- compilation infinie si nous utilisons #exécute pour une globale
 
 // -----------------------------------
 // Architecture/Qualité de code
@@ -55,6 +56,7 @@
 - annotations pour les membres de structures/unions
 - "kuri init" pour créer des projets ?
 - directive pour définir quelle fonction doit-être la fonction principale
+- pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))
 
 // -----------------------------------
 // Avertissements
@@ -309,8 +311,6 @@ Opérateurs implicites :
 
 - pour les comparaisons de nombres réels, il faut savoir comment ordonnées
 ---- définis un epsilon lors de la compilation ? ULP ?
-
-- opérateurs commutatif, le noter dans la génération de code
 
 
 // --------------------------- Bas Fruitage
