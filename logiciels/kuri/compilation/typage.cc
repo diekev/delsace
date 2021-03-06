@@ -606,12 +606,8 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool ajoute_operateurs)
 
 	auto types_pointeurs_ = types_pointeurs.verrou_ecriture();
 
-	if ((type->drapeaux & POSSEDE_TYPE_POINTEUR) != 0) {
-		POUR_TABLEAU_PAGE ((*types_pointeurs_)) {
-			if (it.type_pointe == type) {
-				return &it;
-			}
-		}
+	if (type->type_pointeur) {
+		return type->type_pointeur;
 	}
 
 	auto resultat = types_pointeurs_->ajoute_element(type);
@@ -624,6 +620,8 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool ajoute_operateurs)
 	if (ajoute_operateurs) {
 		operateurs_->ajoute_operateurs_basiques_pointeur(*this, resultat);
 	}
+
+	type->type_pointeur = resultat;
 
 	return resultat;
 }

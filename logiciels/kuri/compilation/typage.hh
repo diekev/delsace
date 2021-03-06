@@ -221,6 +221,9 @@ struct Type {
 	OperateurBinaire *operateur_div = nullptr;
 	OperateurUnaire *operateur_non  = nullptr;
 
+	/* À FAIRE: déplace ceci dans une table? */
+	TypePointeur *type_pointeur = nullptr;
+
 	POINTEUR_NUL(Type)
 
 	static Type *cree_entier(unsigned taille_octet, bool est_naturel);
