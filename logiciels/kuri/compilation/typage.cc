@@ -612,10 +612,8 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool ajoute_operateurs)
 
 	auto resultat = types_pointeurs_->ajoute_element(type);
 
-	if (type != nullptr) {
-		auto graphe = graphe_.verrou_ecriture();
-		graphe->connecte_type_type(resultat, type);
-	}
+	auto graphe = graphe_.verrou_ecriture();
+	graphe->connecte_type_type(resultat, type);
 
 	if (ajoute_operateurs) {
 		operateurs_->ajoute_operateurs_basiques_pointeur(*this, resultat);
