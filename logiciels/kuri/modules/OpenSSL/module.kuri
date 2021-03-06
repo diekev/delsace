@@ -134,11 +134,11 @@ imprime_certificats_ssl :: fonc(ssl: *ssl_st) -> rien
 
     line := X509_NAME_oneline(X509_get_subject_name(cert), nul, 0)
     imprime("Sujet :\n%\n", convertis_chaine_c(line))
-    free(line)
+    free(line comme *z8)
 
     line = X509_NAME_oneline(X509_get_issuer_name(cert), nul, 0)
     imprime("Émetteur :\n%\n", convertis_chaine_c(line))
-    free(line)
+    free(line comme *z8)
 
     X509_free(cert)
 }

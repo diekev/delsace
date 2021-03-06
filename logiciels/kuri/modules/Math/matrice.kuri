@@ -69,7 +69,7 @@ inverse_matrice_sans_échelle :: fonc (mat: *Mat4r) -> Mat4r
 
 matrice_de_visé :: fonc (pos: *Vec3, cible: *Vec3, haut: *Vec3) -> Mat4r
 {
-    dir_avant := soustrait(mémoire(cible), mémoire(pos))
+    dir_avant := mémoire(cible) - mémoire(pos)
     dir_avant = normalise(*dir_avant)
 
     dir_droite := produit_vectoriel(*dir_avant, haut)

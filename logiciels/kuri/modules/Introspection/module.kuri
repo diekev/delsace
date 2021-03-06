@@ -250,7 +250,7 @@ comme_octet :: fonc (valeur: eini) -> octet
     retourne mémoire(valeur.pointeur comme *octet)
 }
 
-comme_type_de_données :: fonc (valeur: eini) -> bool
+comme_type_de_données :: fonc (valeur: eini) -> type_de_données
 {
     retourne mémoire(valeur.pointeur comme *type_de_données)
 }
@@ -361,7 +361,7 @@ trouve_info_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembre
 
     pour info.membres {
         si it.nom == nom_membre {
-            retourne membre
+            retourne it
         }
     }
 

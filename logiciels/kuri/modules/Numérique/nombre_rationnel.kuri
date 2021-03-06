@@ -2,7 +2,7 @@
 // fractions, afin d'être plus précis que des nombres à point flottant.
 // https://iquilezles.org/www/articles/floatingbar/floatingbar.htm
 
-importe GlibC
+importe Fondation
 
 NombreRationnel :: struct {
     N: n32
@@ -140,10 +140,10 @@ opérateur / :: fonc(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 imprime_nombre_rationnel :: fonc(a: NombreRationnel) -> rien
 {
     si a.s {
-        _ := printf("- %u / %u\n".pointeur, a.N, a.D)
+        imprime("- % / %\n", a.N, a.D)
     }
     sinon {
-        _ := printf("%u / %u\n".pointeur, a.N, a.D)
+        imprime("% / %\n", a.N, a.D)
     }
 }
 

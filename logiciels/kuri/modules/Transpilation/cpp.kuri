@@ -5,35 +5,35 @@ importe Fondation
 
 convertis_type_c :: fonc (espace: *EspaceDeTravail, enchaineuse: *Enchaineuse, type: *InfoType, site: *NoeudCode)
 {
-    discr info.id {
+    discr type.id {
         ENTIER {
-            type_entier := info comme *InfoTypeEntier
+            type_entier := type comme *InfoTypeEntier
 
             saufsi type_entier.est_signé {
                 ajoute_au_tampon(enchaineuse, "unsigned ")
             }
 
-            si info.taille_en_octet == 1 {
+            si type.taille_en_octet == 1 {
                 ajoute_au_tampon(enchaineuse, "char")
             }
-            sinon si info.taille_en_octet == 2 {
+            sinon si type.taille_en_octet == 2 {
                 ajoute_au_tampon(enchaineuse, "short")
             }
-            sinon si info.taille_en_octet == 4 {
+            sinon si type.taille_en_octet == 4 {
                 ajoute_au_tampon(enchaineuse, "int")
             }
-            sinon si info.taille_en_octet == 8 {
+            sinon si type.taille_en_octet == 8 {
                 ajoute_au_tampon(enchaineuse, "long")
             }
         }
         RÉEL {
-            si info.taille_en_octet == 2 {
+            si type.taille_en_octet == 2 {
                 ajoute_au_tampon(enchaineuse, "half")
             }
-            sinon si info.taille_en_octet == 4 {
+            sinon si type.taille_en_octet == 4 {
                 ajoute_au_tampon(enchaineuse, "float")
             }
-            sinon si info.taille_en_octet == 8 {
+            sinon si type.taille_en_octet == 8 {
                 ajoute_au_tampon(enchaineuse, "double")
             }
         }
@@ -44,7 +44,7 @@ convertis_type_c :: fonc (espace: *EspaceDeTravail, enchaineuse: *Enchaineuse, t
             ajoute_au_tampon(enchaineuse, "void")
         }
         POINTEUR {
-            type_pointeur := info comme *InfoTypePointeur
+            type_pointeur := type comme *InfoTypePointeur
             convertis_type_c(espace, enchaineuse, type_pointeur.type_pointé, site)
 
             si type_pointeur.est_référence {

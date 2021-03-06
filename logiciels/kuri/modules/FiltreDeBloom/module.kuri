@@ -3,7 +3,7 @@
 importe EnsembleDeBits
 
 FiltreDeBloom :: struct {
-    bits: EnsembleDeBits
+    bits: EnsembleDeBits.EnsembleDeBits
 }
 
 possède_peut_être :: fonc (filtre: &FiltreDeBloom, clé: chaine) -> bool
@@ -42,7 +42,7 @@ empreinte3 :: fonc (clé: chaine) -> n32
 
 /*
 #test {
-    ensemble : EnsembleDeBits
+    ensemble : EnsembleDeBits.EnsembleDeBits
     pour & ensemble.bits {
         it = 0
     }

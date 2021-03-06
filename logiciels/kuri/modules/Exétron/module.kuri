@@ -34,7 +34,7 @@ crée_fil_exécution :: fonc (rappel: fonc(*T)(rien), données: *$T) -> *FilExé
 
 join :: fonc (fil: *FilExécution) -> bool
 {
-    retourne EXETRON_join_fil(fil, 0)
+    retourne EXETRON_join_fil(fil)
 }
 
 détache :: fonc (fil: *FilExécution)

@@ -242,7 +242,7 @@ normalise :: fonc (v: *Vec3) -> Vec3
 {
     résultat := mémoire(v)
     l := longueur(résultat)
-    retourne divise(résultat, l)
+    retourne résultat / l
 }
 
 vec_depuis_nor :: fonc (n: Norm3) -> Vec3

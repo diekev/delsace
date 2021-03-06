@@ -123,7 +123,7 @@ parse_date_http :: fonc (chn: chaine) -> DateHTTP | ErreurParsageDate
         retourne ErreurParsageDate.JourMalformé
     }
 
-    date.jour = parseuse.nombre comme z32
+    date.jour = parseuse.nombre
 
     si !consomme(*parseuse, ' ') {
         retourne ErreurParsageDate.FormatMalformée
@@ -149,7 +149,7 @@ parse_date_http :: fonc (chn: chaine) -> DateHTTP | ErreurParsageDate
         retourne ErreurParsageDate.AnnéeMalformée
     }
 
-    date.année = parseuse.nombre comme z32
+    date.année = parseuse.nombre
 
     si !consomme(*parseuse, ' ') {
         retourne ErreurParsageDate.FormatMalformée
@@ -160,7 +160,7 @@ parse_date_http :: fonc (chn: chaine) -> DateHTTP | ErreurParsageDate
         retourne ErreurParsageDate.HeureMalformée
     }
 
-    date.heure = parseuse.nombre comme z32
+    date.heure = parseuse.nombre
 
     si !consomme(*parseuse, ':') {
         retourne ErreurParsageDate.FormatMalformée
@@ -171,7 +171,7 @@ parse_date_http :: fonc (chn: chaine) -> DateHTTP | ErreurParsageDate
         retourne ErreurParsageDate.MinuteMalfomée
     }
 
-    date.minute = parseuse.nombre comme z32
+    date.minute = parseuse.nombre
 
     si !consomme(*parseuse, ':') {
         retourne ErreurParsageDate.FormatMalformée
@@ -182,7 +182,7 @@ parse_date_http :: fonc (chn: chaine) -> DateHTTP | ErreurParsageDate
         retourne ErreurParsageDate.SecondeMalformée
     }
 
-    date.seconde = parseuse.nombre comme z32
+    date.seconde = parseuse.nombre
 
     si !consomme(*parseuse, ' ') {
         retourne ErreurParsageDate.FormatMalformée

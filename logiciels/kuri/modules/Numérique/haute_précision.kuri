@@ -58,7 +58,7 @@ insère_bits_du_bas :: fonc(
 	}
 
 	si high_index + 1 < COMPTE {
-		hp.données[high_index + 1] |= résultat_bas comme n32;
+		hp.données[high_index + 1] |= résultat_bas
 	}
 }
 
