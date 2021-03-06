@@ -1,0 +1,57 @@
+importe Aléa
+importe Alembic
+importe Algorithmes
+// importe Allocatrices // non-terminé
+importe AnalyseStatique
+// importe ArbreB // erreur dans un cas polymorphique
+importe Authentification
+// importe Chaine // non-terminé
+importe CodecDonnées
+importe Compilatrice
+importe Couleur
+importe Courriel
+// importe Documentation // définis une fonction principale...
+importe Ensemble
+importe EnsembleDeBits
+importe Exétron
+importe FiltreDeBloom
+importe FloconDeNeige
+importe Flux
+importe Fondation
+importe FTGL
+importe GHTML
+importe GlibC
+importe HTML
+importe Image
+importe Internet
+importe Introspection
+importe JSON
+importe Krypto
+importe Math
+importe MySQL
+importe Numérique
+importe OpenGL
+importe OpenSSL
+importe Ordinatrice
+importe Physique
+importe POSIX
+importe PThread
+importe Réseau
+importe Routage
+importe SDL2
+importe Sérialisation
+importe ServeuseCGI
+importe ServeuseHTTP
+importe ServeuseTCP
+importe Structures
+importe SysFichier
+importe TableHachage
+importe Temps
+importe Terminal
+importe Tori
+importe Transpilation
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}
