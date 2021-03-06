@@ -180,4 +180,6 @@ private:
 	void empile_etat(const char *message, Lexeme *lexeme);
 
 	void depile_etat();
+
+	dls::chaine cree_message_erreur(const kuri::chaine &quoi);
 };

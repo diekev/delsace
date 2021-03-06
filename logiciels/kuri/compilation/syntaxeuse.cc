@@ -799,7 +799,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
 		}
 		default:
 		{
-			assert_rappel(false, [&]() { std::cerr << "Lexème inattendu comme opérateur unaire : " << chaine_du_lexeme(lexeme->genre) << '\n'; });
+			assert_rappel(false, [&]() {
+				std::cerr << "Lexème inattendu comme opérateur unaire : " << chaine_du_lexeme(lexeme->genre) << '\n';
+				std::cerr << cree_message_erreur("");
+			});
 			return nullptr;
 		}
 	}
@@ -1144,7 +1147,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 		case GenreLexeme::STRUCT:
 		case GenreLexeme::UNION:
 		{
-			assert_rappel(false, [&]() { std::cerr << "Lexème inattendu, supposément déjà géré, comme expression primaire : " << chaine_du_lexeme(lexeme->genre) << '\n'; });
+			assert_rappel(false, [&]() {
+				std::cerr << "Lexème inattendu, supposément déjà géré, comme expression primaire : " << chaine_du_lexeme(lexeme->genre) << '\n';
+				std::cerr << cree_message_erreur("");
+			});
 			return nullptr;
 		}
 		case GenreLexeme::SI:
@@ -1480,7 +1486,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(NoeudExpression *gauc
 		}
 		default:
 		{
-			assert_rappel(false, [&]() { std::cerr << "Lexème inattendu comme expression secondaire : " << chaine_du_lexeme(lexeme->genre) << '\n'; });
+			assert_rappel(false, [&]() {
+				std::cerr << "Lexème inattendu comme expression secondaire : " << chaine_du_lexeme(lexeme->genre) << '\n';
+				std::cerr << cree_message_erreur("");
+			});
 			return nullptr;
 		}
 	}
@@ -1633,7 +1642,10 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 		}
 		default:
 		{
-			assert_rappel(false, [&]() { std::cerr << "Lexème inattendu comme instruction : " << chaine_du_lexeme(lexeme->genre) << '\n'; });
+			assert_rappel(false, [&]() {
+				std::cerr << "Lexème inattendu comme instruction : " << chaine_du_lexeme(lexeme->genre) << '\n';
+				std::cerr << cree_message_erreur("");
+			});
 			return nullptr;
 		}
 	}
@@ -2715,6 +2727,21 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
 void Syntaxeuse::lance_erreur(const kuri::chaine &quoi, erreur::Genre genre)
 {
+	throw erreur::frappe(cree_message_erreur(quoi).c_str(), genre);
+}
+
+void Syntaxeuse::empile_etat(const char *message, Lexeme *lexeme)
+{
+	m_donnees_etat_syntaxage.ajoute({ lexeme, message });
+}
+
+void Syntaxeuse::depile_etat()
+{
+	m_donnees_etat_syntaxage.pop_back();
+}
+
+dls::chaine Syntaxeuse::cree_message_erreur(const kuri::chaine &quoi)
+{
 	auto lexeme = lexeme_courant();
 	auto fichier = m_unite->espace->fichier(lexeme->fichier);
 
@@ -2729,15 +2756,5 @@ void Syntaxeuse::lance_erreur(const kuri::chaine &quoi, erreur::Genre genre)
 
 	erreur::imprime_ligne_avec_message(flux, fichier, lexeme, quoi);
 
-	throw erreur::frappe(flux.chn().c_str(), genre);
-}
-
-void Syntaxeuse::empile_etat(const char *message, Lexeme *lexeme)
-{
-	m_donnees_etat_syntaxage.ajoute({ lexeme, message });
-}
-
-void Syntaxeuse::depile_etat()
-{
-	m_donnees_etat_syntaxage.pop_back();
+	return flux.chn();
 }
