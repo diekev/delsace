@@ -2296,6 +2296,23 @@ ResultatValidation ContexteValidationCode::valide_type_fonction(NoeudDeclaration
 
 		decl->param_sortie->type = type_sortie;
 
+		if (decl->ident == ID::principale) {
+			if (decl->params.taille() != 0) {
+				::rapporte_erreur(espace, decl->params[0], "La fonction principale ne doit pas prendre de paramètres d'entrée !");
+				return ResultatValidation::Erreur;
+			}
+
+			if (decl->param_sortie->type->est_tuple()) {
+				::rapporte_erreur(espace, decl->param_sortie, "La fonction principale ne peut retourner qu'une seule valeur !");
+				return ResultatValidation::Erreur;
+			}
+
+			if (decl->param_sortie->type != espace->typeuse[TypeBase::Z32]) {
+				::rapporte_erreur(espace, decl->param_sortie, "La fonction principale doit retourner un z32 !");
+				return ResultatValidation::Erreur;
+			}
+		}
+
 		CHRONO_TYPAGE(m_tacheronne.stats_typage.fonctions, "valide_type_fonction (type_fonction)");
 		type_fonc = espace->typeuse.type_fonction(types_entrees, type_sortie);
 		decl->type = type_fonc;

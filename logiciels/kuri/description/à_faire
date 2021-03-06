@@ -27,7 +27,6 @@
 - compilation infinie si nous n'avons pas de message (voir test_conversin_cpp.kuri)
 - erreur de compilation si nous définissons une structure dans une fonction et que celle-ci possède un membre de même nom qu'une variable locale
 - aucune erreur de compilation si nous tentons d'utiliser une fonction de la compilatrice dans le code final
-- aucune vérification de la signature de la fonction principale
 
 // -----------------------------------
 // Architecture/Qualité de code
